@@ -1,0 +1,630 @@
+---
+# Task: User-Edit Console Zenka
+# Date: 2026-08-09
+# Status: design, blocked on prerequisite (see blockers below)
+# Context: todo JUE [ new-zenki ] — "create user-edit console zenka design file"
+# Related: todo 5PN [ new-zenki ] "create users v7-managed zenka design file"
+#          — NOT designed here. see users_zenka_relationship below for why
+#          the two must not be conflated.
+
+task_metadata:
+  title: "user-edit console zenka — interactive settings editor over editor.control.*"
+  description: >
+    A new zenka, cloned in skeleton-shape from `keys` (thin standalone
+    console zenka, not key-management content), that presents a
+    multi-field form for editing a user's settings and writes the
+    submitted values back to wherever user settings actually live. Uses
+    editor.control.* for field state/keystroke handling and ascii.frame.*
+    for layout/rendering, instead of hand-rolling either.
+  priority: normal
+  category: "new-zenki"
+
+overarching_theme: >
+  per user direction: read everything in this doc as also laying
+  groundwork for a GUI-and-terminal-capable INSTALLER workflow — built
+  from the same independently usable elements, not as a monolith that
+  only works wired into user-edit specifically. This reframes, rather
+  than replaces, what's already designed:
+    - editor.control.* (field state/keys), ascii.frame.* / amos-term
+      render+input plugins (rendering), the path registry
+      (base.path.register_keywords), and the outbox/draft-save pattern
+      are ALL already being designed as standalone primitives, not
+      user-edit-internal helpers — this theme confirms that was the
+      right instinct and raises the bar on it: each piece should be
+      callable/testable on its own, an installer step (or any other
+      future form) reuses them directly, not through user-edit as a
+      dependency.
+    - scope widens from "a user's settings" to "user AND system
+      [host-local or remote] settings" — i.e. the same field-schema +
+      submit/outbox machinery this doc specifies for host-system/
+      user records may also need to target host-local system config
+      and, via 5PN's remote/ discovery+key-authority layer, REMOTE
+      system settings too (installer-style: configuring a node you're
+      not sitting at). Not designed here — flagging that user-edit's
+      backing command surface may end up being "users.* for user
+      records, something-else.* for system config," both driving the
+      identical editor.control/ascii.frame/outbox stack, rather than
+      user-edit being permanently user-records-only.
+    - GUI-and-terminal-capable directly motivates
+      amos_term_plugin_overlap's open question (below) rather than
+      settling it: an installer plausibly needs BOTH a terminal path
+      (ascii.frame, no amos-term dependency, works over SSH/serial) and
+      a GUI path (amos-term window, render/input plugins) for the exact
+      same field schema — which argues for editor.ui.* staying backend-
+      swappable (already the design, per the interface doc's
+      terminal/gtk3/vterm split) rather than picking one now.
+  not scoping an installer zenka here — no todo item exists for one yet.
+  this section exists so implementation of user-edit's pieces is done in
+  a way that doesn't foreclose that reuse, not so this doc grows into an
+  installer design. worth its own todo/design file when it's time.
+
+related_precedent_set_up_zenka: >
+  there is already a real installer-adjacent zenka: `set-up`
+  (configuration/zenki/set-up), renamed from `settings`
+  (commit 089844a94, "renamed agent : 'set-up' <-- 'settings'").
+  set-up.cmd.create-profile / install-profile / export-config /
+  fetch-zenka-config manage named PROFILES — whole-zenka-config JSON
+  snapshots, captured from /etc/protocol-7/import and installed to
+  set-up.profile_dir, exported/fetched per zenka. This is real,
+  file-granularity installer machinery: bundle/replay a set of zenka
+  configs as a unit. It is a DIFFERENT granularity than what user-edit/
+  users(5PN) do — set-up moves whole JSON config blobs per zenka;
+  user-edit edits individual fields within one user's record — so this
+  is not redundant with anything designed so far, but it IS part of the
+  same "installer workflow" the overarching_theme above names, and
+  worth knowing about before any future installer design assumes it's
+  starting from nothing.
+  per user direction: the rename freed the `settings` name for a
+  DIFFERENT, still-planned zenka — not set-up's successor, a distinct
+  future thing. Its relationship to 5PN (users zenka, host-system/
+  canonical storage) and to this doc is NOT decided and must not be
+  assumed: does the future `settings` zenka SUBSUME what 5PN was just
+  designed to own (canonical local settings storage), making 5PN's
+  host-system/ actually settings zenka's storage rather than users
+  zenka's? Or is `settings` scoped to something else entirely (e.g.
+  set-up's profile JSON, given the name history) leaving 5PN's design
+  untouched? Do not build against either assumption — when a `settings`
+  design file exists, reconcile it against users-zenka.yaml (5PN)
+  explicitly before either implementation proceeds.
+
+set_up_format_gap: >
+  per user direction: set-up's profile system is JSON-only
+  (set-up.json.*, import_dir/profile_dir all handle .json) — it is
+  "missing a yaml expansion." User's own call: that gap can wait until
+  a previously-planned GENERIC CONVERSION PARSER exists, rather than
+  set-up growing bespoke YAML handling now.
+  found, per user follow-up: two references, neither a scoped converter
+  spec.
+    1. data/md/design/CONCEPT-DATA-ZENKA-ARCHITECTURE.md:271 — a single
+       bullet ("Transformations: On-the-fly format conversion
+       (JSON→YAML)") listed as one illustrative use case for CODE-ref
+       lazy transformers inside that doc's much larger "data zenka"
+       vision (a FUSE-mounted %data-as-filesystem fabric — indexer +
+       checksums + cubic topology + native FS access). That doc's own
+       "Current State" section says "Stub exists" — data.init_code
+       (File::ExtAttr autoload) plus two unimplemented command stubs
+       (data.cmd.mount-cube, data.cmd.attach-fs-mount).
+    2. data/md/investigation/yaml/YAML-AS-GATEWAY-FORMAT.md — a full
+       standalone philosophy doc, but its actual argument is NOT
+       "build a JSON↔YAML converter." It argues signed YAML (YAML +
+       AMOS7 signatures) should BE the canonical gateway format for
+       specifications entering Protocol-7 in the first place — XML is
+       "maximum bloat," JSON is "bracket hell," YAML is what aligns
+       with the project's bloat-avoidance philosophy — with a
+       yaml-validator-style zenka reading signature-verified YAML and
+       executing/enforcing it as a contract. No JSON→YAML conversion
+       mechanism is scoped anywhere in it; the framing is "arrive as
+       signed YAML," not "convert into YAML."
+  so there is no scoped "generic conversion parser" project anywhere in
+  the repo — correcting the earlier framing above ("a known planned
+  dependency, spec pending"): what actually exists is (a) one
+  illustrative bullet in a stub-only vision doc, and (b) a philosophy
+  argument that set-up's own JSON profiles are arguably already on the
+  wrong side of Protocol-7's stated format preference, which cuts
+  against "wait for a converter" and toward "set-up's profile format
+  should move to signed YAML directly, when it's time" — the opposite
+  direction from a JSON→YAML bridge. Neither doc gives set-up's gap a
+  near-term unblock; recorded here as context, not as something to
+  build against.
+  origin + direction, per user: set-up's JSON focus dates back to a
+  kiosk-appliance-era subsystem, years old — not a deliberate current
+  preference, a historical holdover. Project direction going forward:
+  minimize JSON generally; where no Protocol-7-native format exists yet
+  for a given use, YAML is the sane fallback — consistent with
+  YAML-AS-GATEWAY-FORMAT.md's stated philosophy above.
+  CORRECTION, per user follow-up: there is no near-term-unblock problem
+  at all — modules/format.json.* (encode/decode/init_code, JSON::XS-
+  backed) and modules/format.yaml.* (load_str/dump_str/load_file/
+  write_file/load_keyword_path, YAML::XS-preferred-with-pure-YAML-
+  fallback via format.yaml.pre_init) are ALREADY symmetric, shared,
+  ready-to-use modules — not something set-up or anyone else has to
+  build. format.yaml.load_keyword_path even calls
+  base.path.resolve_keywords directly — the exact mechanism phase_1b
+  below already specifies for VAR_P7/ETC_P7/HOME_N. So: no converter,
+  generic or otherwise, is a real dependency for anything in this doc
+  or 5PN. Withdrawing the earlier "no near-term unblock in sight" line
+  above — it was wrong; format.yaml.* already IS the unblock, today.
+  Net effect for this doc and 5PN: use format.yaml.write_file /
+  format.yaml.load_keyword_path directly for host-system/,
+  remote/{incoming,outgoing}/, and local_edit_outbox/draft_auto_save's
+  persistence — not a bespoke YAML::XS Load/Dump call site each, per
+  the earlier protocol-7-menu.position.save-style sketch. That module
+  hand-rolled its own YAML::XS Load/Dump because format.yaml.* may not
+  have existed yet when it was written (or simply predates the
+  convention) — this doc should use the shared module, not repeat that
+  pattern.
+## -----------------------------------------------------------------------
+## blockers — read this before scoping implementation work
+## -----------------------------------------------------------------------
+
+blockers:
+  editor_control_step_4: >
+    editor.control.* (see data/yaml/coding-tasks/editor-namespace-interface-design.yaml)
+    only implements single-field freeform_line editing today. Multi-field
+    schema support — field_next/field_prev navigation, render_form,
+    active_field tracking across fields — is explicitly deferred as
+    "step_4: add multi-field schema support when user-edit/users zenka is
+    actually started." THIS zenka is that trigger. Step_4 is a
+    prerequisite, not parallel work: a settings form is n fields by
+    definition, and editor.control.create() rejects anything but
+    freeform_line today. Do not start console UI wiring before step_4
+    lands — there is nothing to wire it to.
+  field_types_needed: >
+    enum (dropdown-style settings, e.g. log level, theme) and masked
+    (credentials/secrets fields, if any settings are secret) are named in
+    the editor schema but interface-only stubs. A settings form is the
+    first realistic consumer of both — check at design time whether any
+    target setting is enum-shaped or secret-shaped, since that determines
+    whether those stubs must be filled before this zenka's first release
+    or can wait for a later field.
+  no_settings_data_format_exists: >
+    grepped repo-wide: there is no "user settings" storage format today.
+    modules/USR.<user>.* holds only public keys (3 files total, all
+    base-key). There is nothing resembling a settings mask, profile
+    record, or per-user config tree to bind editor fields to. Per
+    users_zenka_relationship below, this format is owned and designed by
+    5PN (users zenka), not here — this zenka only needs to know the
+    users.* command surface it calls through, once 5PN defines it.
+
+users_zenka_relationship: >
+  RESOLVED (2026-08-09, per user); full spec now in
+  data/yaml/coding-tasks/users-zenka.yaml (5PN). Split (a). The users
+  zenka (5PN) is
+  the canonical authority — it owns user data/settings storage (the
+  records this console edits), distributed-discovery features for
+  finding users/records across nodes, AND key authority for local
+  zenki: when a zenka needs to contact a user or another zenki, it asks
+  the users zenka to acquire/resolve the correct key, which then feeds
+  routing directly. This means:
+    - user-edit console has NO CANONICAL settings storage of its own —
+      host-system/ (5PN) is the source of truth. It DOES need local
+      durable staging for edits in flight, see local_edit_outbox below;
+      that is not canonical storage, it's a write-ahead buffer for
+      offline/transient-access resilience.
+    - the data_model / storage format itself belongs in 5PN's design
+      doc, not this one. This doc only needs the users.* command
+      surface (get/set/list a user's editable fields) once 5PN defines
+      it — treat that as this zenka's actual integration point.
+    - key authority living in users zenka is a reason this zenka does
+      NOT need crypt.C25519 itself (phase_1_skeleton already drops it,
+      correctly) — key acquisition for anything this console needs is
+      a users.* call, not a local key load.
+    - discovery features (distributed lookup) are 5PN's concern; this
+      console only ever edits records for the locally-authenticated
+      user/session, it does not need to implement discovery itself.
+
+local_edit_outbox: >
+  per user direction: var_P7/user-edit/ should persist every edit as
+  soon as it's made — WHETHER OR NOT the users.* commit has succeeded
+  yet — so the console is offline-capable. Applying an edit depends on
+  transient access (network to wherever users zenka resolves/commits
+  the record, per 5PN's still-open discovery_integration question), so
+  the local copy has to be durable independent of that path being up.
+  this is a write-ahead OUTBOX, not a cache: it exists to survive a
+  crash/restart/disconnect between "user typed it" and "users zenka
+  confirmed it," not to duplicate host-system/ as a second source of
+  truth. lifecycle:
+    - on submit() ok=1 (phase 0/3): format.yaml.write_file the submitted
+      values to a [VAR_P7]/user-edit/outbox/ path [ resolved via
+      phase_1b's registered keywords, e.g. format.yaml.load_keyword_path's
+      sibling write path — use the shared format.yaml.* module, not a
+      bespoke YAML::XS Load/Dump call site ] BEFORE attempting the
+      users.* set call — durability first, network second
+    - attempt users.* set immediately after
+    - on confirmed commit: mark/remove the outbox entry
+    - on failure or no connectivity: entry stays, retried later — see
+      retry_mechanism below (open question, not yet designed)
+  this changes phase_1_skeleton's var_P7 usage from "default zenka
+  scratch dir, incidental" to "load-bearing for the offline story" —
+  worth calling out explicitly in implementation, not left implicit.
+
+draft_auto_save: >
+  per user direction: reuse the mpv zenka's state snapshot/restore
+  pattern (commit bba7c09b3, mpv.snapshot.*) for the DRAFT — the
+  in-progress, not-yet-submitted field values while the user is still
+  editing. This is distinct from local_edit_outbox above: outbox covers
+  values already submitted but not yet committed to users zenka; draft
+  auto-save covers values not yet even submitted, so a crash/restart
+  mid-edit (before F2/submit) doesn't lose keystrokes either. mirror
+  mpv's actual mechanism, not just its intent — PLUS a second precedent
+  that changes the trigger shape: protocol-7-menu's window-drag handler
+  (graphical-startup-init) updates position in memory on every
+  motion-notify-event tick [ cache only, no disk write ], and only
+  calls protocol-7-menu.position.save on button-release-event, once the
+  gesture is actually complete. That's the better model for a text
+  field than a flat timer: a field is being actively typed in
+  continuously [ like drag motion ], and the natural "gesture complete"
+  boundary is leaving the field, not a fixed wall-clock interval.
+  DECIDED, supersedes the earlier open question: trigger draft save on
+  editor.control.process_key returning action=field_next/field_prev [
+  i.e. on leaving a field ] and on end_code, not on a flat periodic
+  timer. A short periodic timer MAY still be worth keeping as a backstop
+  for a single-field schema or a very long stay in one field [ where
+  field_next never fires ] — that's additive, not a replacement for the
+  field-transition trigger:
+    - field-transition trigger (primary), mirroring position.save on
+      button-release: fires on action=field_next/field_prev
+    - periodic backstop timer (secondary, optional), mirroring
+      mpv.snapshot_interval_seconds (default 60s there) — a
+      user-edit.draft_save_interval_seconds config var,
+      format.yaml.write_file'd to [VAR_P7]/user-edit/draft/ alongside
+      the outbox, same shared module as local_edit_outbox above
+    - empty-state guard, mirroring mpv.snapshot.write's skip-if-empty:
+      don't let a periodic tick overwrite a good draft with blank
+      fields — same failure mode mpv hit and fixed in the same commit
+    - restore_on_startup gate, mirroring mpv.restore_on_startup: on
+      launch, if a draft exists, load it back into the form rather than
+      starting blank — exact UX (auto-load vs prompt) is an open
+      question below
+  end_code callback for pre-exit flush, mirroring mpv.cmd.quit's
+  graceful pre-quit snapshot.save: register via
+  `push <callbacks.end_code>->@*, qw| user-edit.draft.save |;` per
+  data/ai-mem/claude/feedback-zenka-shutdown-end-code-callback.md. The
+  actual hazard that memory file documents is EVENT LOOP AVAILABILITY,
+  not "network" as such — bin/Protocol-7's END block fires during Perl
+  global destruction, after Event::loop has already stopped, so
+  anything that needs the loop pumped again (a route-send followed by
+  event.once to actually flush it, radio.end_code's segfault) is unsafe
+  there. Plain filesystem writes are synchronous and need no loop at
+  all, so they still work fine in that context — which is exactly why
+  user-edit's draft save is safe as a bare end_code callback and
+  radio's mpv-fade wasn't: the write itself isn't the risk, needing the
+  loop afterward is.
+  caveat, not a data-loss risk: `<[base.log]>`/`<[base.logs]>` calls
+  made from inside this callback may themselves route through
+  zenka-to-zenka logging (p7-log) or otherwise depend on the same
+  stopped event loop — so a log line from user-edit.draft.save at exit
+  time is best-effort, may not appear. That's a missing log message,
+  not a lost draft: the file write happens independently of whether the
+  log call actually got flushed anywhere. Worth a plain comment at the
+  call site so a future reader doesn't mistake a missing exit-log line
+  for the save having failed.
+  do not follow the mpv precedent past this point: mpv ALSO needs a
+  network-facing pre-quit path (fading the player), which is why
+  mpv.cmd.quit's flow is more involved (deferred reply + 2s safety-net
+  timer) than a plain end_code push — user-edit's draft save doesn't
+  need any of that, a bare end_code callback suffices.
+
+## -----------------------------------------------------------------------
+## phase 0: unblock editor.control.* (not zenka-specific work)
+## -----------------------------------------------------------------------
+
+phase_0_editor_step_4:
+  motivation: >
+    Land the prerequisite named in editor-namespace-interface-design.yaml's
+    migration_path.step_4, scoped exactly to what this zenka needs and no
+    further (per that doc's stated philosophy: build only what a real
+    caller needs).
+  scope:
+    - editor.control.create() accepts schema.fields with length > 1
+    - active_field tracking in $editor_state, authoritative per that doc
+    - process_key returns action=field_next / field_prev on Tab/Shift-Tab,
+      only when scalar(@{$schema->{fields}}) > 1 [ already specified ]
+    - editor.control.active_buffer($editor_state) helper [ already named
+      in the interface doc, not yet implemented ]
+    - render_form is an editor.ui.* concern (phase 1), not editor.control
+  explicitly_out_of_scope_here:
+    - freeform_multiline [ step_3, separate trigger: coding-zenka chat ]
+    - undo/redo journal [ open_questions in the interface doc, unrelated ]
+    - editor.buffer.shm / cross-zenki sync [ not needed for a local
+      single-session settings form ]
+
+## -----------------------------------------------------------------------
+## phase 1: zenka skeleton (clone keys, strip content)
+## -----------------------------------------------------------------------
+
+phase_1_skeleton:
+  motivation: >
+    `keys` is structurally the right clone base: a 24-line `start` file
+    that loads modules and drops straight into console_command, no
+    access.* files, minimal source/ placeholders. None of its CONTENT is
+    reusable — its 30 keys.console.* command modules and pm-dep set
+    (Curses::UI, Term::Clui, Crypt::*) are key-management-specific.
+  clone_steps:
+    - configuration/zenki/user-edit/start
+      modules.load = terminal editor ascii.frame user-edit
+      [ drop crypt.C25519 entirely — this zenka has no key-management
+        role; if it needs to identify the operator it uses the existing
+        session/auth identity, not a standalone key load ]
+    - configuration/zenki/user-edit/pm-dep/
+      keep only what terminal/editor/ascii.frame actually require —
+      audit against keys' 30-module pm-dep list rather than copying it
+      wholesale; most of it (Crypt::Ed25519, Digest::BMW, Compress::Raw::Lzma)
+      is C25519/checksum-specific and unused here
+    - configuration/zenki/user-edit/source/ — placeholders per loaded module
+    - new modules/user-edit.* namespace (or user-edit-console.* — pick one;
+      keys.console.* precedent suggests <zenka-name>.console.* subcommands
+      if an interactive console mode is wanted in addition to the form)
+  boot_checklist: >
+    follow the two operational checklists already in memory —
+    feedback-ondemand-zenka-start-checklist.md (start file shape, cube
+    auth.zenki grant, access.cmd.usr.cube grant) and
+    feedback-new-zenka-boot-checklist.md (grant → p7c reload → p7c
+    v7.reload → p7c v7.start_once → show-buffer verification sequence)
+    — both already reference real, live-verified gotchas for this exact
+    kind of new-zenka bring-up.
+
+## -----------------------------------------------------------------------
+## phase 1b: path discovery — register roots, don't hardcode them
+## -----------------------------------------------------------------------
+
+phase_1b_path_discovery:
+  motivation: >
+    user-edit needs to know about more than one filesystem root: the
+    zenka_dir pair (var_P7/user-edit, etc_P7/user-edit) it gets for
+    free like any zenka, PLUS home-relative roots such as ~/.n/ — which
+    already exists today as a real, live convention for per-user data
+    (crypt.C25519.get_usr_keys_dir: ~/.n/user-keys, key_vars:
+    ~/.n/remote-keys/authorized, create-session-seed-file: ~/.n/enc-entropy)
+    — PLUS whatever additional roots show up later. This is not a
+    problem to solve locally: base.path.register_keywords /
+    base.path.resolve_keywords / base.path.to_keywords already IS a
+    generic named-path-root registry, used elsewhere today
+    (workspace-transfer.pre_init registers a keyword set from env at
+    pre_init) — a zenka calls register_keywords({ NAME => path, ... })
+    once, then resolve_keywords('[NAME]/rest/of/path') anywhere. Per
+    user direction: this is base infra several zenki already lean on,
+    configurably — user-edit should be a consumer of it, not a second
+    implementation.
+  what_this_zenka_registers: |
+    at minimum, mirroring what base.file.zenka_dir.* already exposes
+    plus the one convention it does NOT cover:
+      VAR_P7   -> <system.path.zenka-dirs.var_P7>/user-edit   [ existing,
+                  via base.file.zenka_dir.load/write — register as a
+                  keyword too so path strings can use [VAR_P7] uniformly
+                  rather than mixing keyword-resolved and zenka_dir-style
+                  paths in the same module ]
+      ETC_P7   -> <system.path.zenka-dirs.etc_P7>/user-edit   [ ditto ]
+      HOME_N   -> ~/.n                                        [ NOT
+                  currently a registered keyword anywhere — every
+                  consumer today hardcodes sprintf( '%s/.n/...', $home )
+                  independently (crypt.C25519.get_usr_keys_dir,
+                  session.console.setup-keys, p7-auth-keypair-helper.pl,
+                  p7-tofu-helper.pl). registering it once here doesn't
+                  require touching those call sites, but it means
+                  user-edit's own path-building doesn't repeat the same
+                  hardcoding a fourth time ]
+    additional roots: registered the same way, as they're identified —
+    the point of using register_keywords is that the list is open-ended
+    by construction, not a fixed enum this design has to fully specify.
+  reads_and_writes_through_format_yaml: >
+    every path this zenka resolves via [KEYWORD]/... should be read/
+    written through modules/format.yaml.* (load_keyword_path already
+    calls base.path.resolve_keywords internally — it's the direct
+    read-side counterpart to this phase; write_file is the equivalent
+    write-side call), not a bespoke YAML::XS or File::Slurp call site.
+    see local_edit_outbox and draft_auto_save below, both updated to
+    use format.yaml.* directly.
+  not_in_scope_here: >
+    migrating the four existing ~/.n/ hardcoders to use the keyword
+    registry is a separate, optional cleanup — not required for this
+    zenka to function, and not this design's call to make unilaterally
+    since those call sites belong to crypt.C25519 / session / standalone
+    helper scripts outside user-edit's namespace.
+
+## -----------------------------------------------------------------------
+## amos-term plugin system overlap — check before building phase 2/3
+## -----------------------------------------------------------------------
+
+amos_term_plugin_overlap: >
+  per user direction: amos-term now has a general, hot-reloadable plugin
+  system (amos-term.plugin-init_code, landed 42ba2e636/854c23d34) with
+  FIVE hook types registered in <amos-term.plugin-types>: decoder
+  (buffer.decode), routing (event.route), render (render.frame), input
+  (input.key), and interaction (agent.query — ask-user flow with
+  timeout-degrade-to-observation and a GTK window-open path, built for
+  the coding-zenka fallback-chain). At least three of these bear
+  directly on what this design already proposes, and duplication is a
+  real risk, not a hypothetical one:
+    - render hook (render.frame) vs phase_2_rendering's proposed
+      editor.ui.ascii_frame backend — if user-edit's UI ever runs inside
+      an amos-term window/buffer rather than a bare terminal, the render
+      plugin hook may be the correct integration point instead of (or
+      wrapping) ascii.frame.render directly. Undecided: does user-edit
+      run in a plain terminal (ascii.frame only, no amos-term
+      dependency) or as an amos-term buffer (render plugin, ascii.frame
+      as the thing the plugin calls internally)? Both are consistent
+      with everything designed so far; this doc does not yet pick one.
+    - input hook (input.key) vs editor.control.process_key — same
+      question: does key handling flow through amos-term's input plugin
+      hook, or does user-edit read keys directly and hand them to
+      editor.control.process_key with no amos-term involvement at all?
+    - interaction hook (agent.query, ask_user_stream, timeout-degrade,
+      GTK-degrade-when-no-display) vs this doc's submit/draft flow —
+      built for a different caller (coding-zenka asking the human a
+      question), but the underlying shape — ask, wait, timeout, degrade
+      gracefully when no display — overlaps with what a submit
+      confirmation or a "restore draft? y/n" prompt (see
+      draft_auto_save's open question) would need. Worth checking
+      whether amos-term.interaction.ask is reusable for that prompt
+      before writing a bespoke one.
+  resolution: NOT decided here — this doc flags the overlap so
+  implementation doesn't duplicate live infrastructure by accident, but
+  which of editor.ui.*/ascii.frame.* vs amos-term.plugin-render (and
+  editor.control.* vs amos-term.plugin-input, and a bespoke prompt vs
+  amos-term.interaction.ask) is the right integration shape depends on
+  where user-edit actually runs, which isn't pinned down yet (see
+  open_questions). Check amos-term.plugin-render/plugin-input/
+  plugin-interaction's actual call shape before starting phase 2/3
+  implementation, not after.
+
+## -----------------------------------------------------------------------
+## phase 2: rendering — ascii.frame.* as editor.ui.* backend
+## -----------------------------------------------------------------------
+
+phase_2_rendering:
+  motivation: >
+    ascii.frame.* (modules/ascii.frame.*, 23 files) is an existing
+    mockup-driven layout engine: parse a text mockup into a frame
+    descriptor (ascii.frame.parse / from_mockup), bind scalar refs to
+    named slots for live updates (ascii.frame.slot.bind), compose nested
+    frames (ascii.frame.compose), and render to either ascii-art terminal
+    output or HTML (ascii.frame.render / render.html). This was not
+    accounted for in editor-namespace-interface-design.yaml's editor.ui.*
+    section [ which only names terminal/gtk3/vterm ] — it is a strong
+    fourth backend candidate, specifically well-suited to forms: a
+    settings mockup with one named slot per field, each slot bound to
+    that field's live buffer value.
+  proposed_backend: |
+    editor.ui.ascii_frame — new editor.ui.* backend implementing the
+    render_field / render_form / update_cursor / refresh_display contract
+    from the interface doc, by:
+      - loading a per-schema mockup ( ascii.frame.load / from_mockup ),
+        one slot per schema field, named to match field name
+      - render_form: ascii.frame.slot.bind each field's current value,
+        then ascii.frame.render — reuses the existing renderer wholesale,
+        no new drawing code
+      - active_field focus indicator: either a slot-value convention
+        [ e.g. bracket/highlight marker prepended by editor.ui.ascii_frame
+          before binding, not by ascii.frame.* itself — ascii.frame stays
+          focus-agnostic ] or a dedicated marker slot per field
+      - the HTML render path (ascii.frame.render.html) is a free second
+        UI surface for the same form/mockup — worth keeping in mind if a
+        browser-facing settings page is ever wanted, without a rewrite
+  open_question: >
+    does ascii.frame's slot model cleanly support cursor position display
+    within a field's live value [ needed for editor.ui.* per the interface
+    contract's update_cursor call ], or does that require ascii.frame
+    changes too? not yet checked against ascii.frame.render's actual
+    column math — verify before committing to this as the sole backend.
+
+## -----------------------------------------------------------------------
+## phase 3: form definition and submission
+## -----------------------------------------------------------------------
+
+phase_3_form:
+  motivation: >
+    Once phase 0-2 land, the console itself is thin: define a schema,
+    create() it, loop process_key, submit() on completion, stage then
+    push values to the users zenka. Per users_zenka_relationship, host-
+    system/ is the canonical store — schema field defaults are populated
+    FROM a users.* get call, and submit values are pushed THROUGH a
+    users.* set call — but per local_edit_outbox, every submit is staged
+    to var_P7/user-edit/ FIRST, commit-to-users-zenka second. Exact
+    users.* command names are 5PN's to define; this doc treats them as
+    an integration point, not a spec.
+  sketch: |
+    user-edit.console.start:
+      $schema = { fields => [ ... per-setting field defs, types TBD per
+                               setting ... ], submit_on => 'explicit_key:F2' }
+      # field defaults populated from users.<get-command> before create()
+      $editor_state = editor.control.create($schema)
+      loop: read key -> editor.control.process_key -> dispatch action ->
+            editor.ui.ascii_frame.render_form -> refresh_display
+      on submit: editor.control.submit($editor_state) -> { ok, values }
+                 -> write values to var_P7/user-edit/ outbox [ durable,
+                    unconditional — see local_edit_outbox ]
+                 -> attempt users.<set-command>( values )  [ command
+                    name: 5PN's to define ]
+                 -> on success: mark/remove outbox entry
+                 -> on failure/offline: leave staged, retry later
+                    [ retry_mechanism: open question ]
+  validators: >
+    per-field validator hooks already exist in the schema shape
+    ($field->{validator}) — use them for setting-specific constraints
+    (e.g. log level must be one of a fixed set) rather than validating
+    post-hoc after submit.
+
+## -----------------------------------------------------------------------
+## verification
+## -----------------------------------------------------------------------
+
+verification:
+  phase_0:
+    - editor.control.create() accepts a 2+ field schema without error
+    - Tab/Shift-Tab produce field_next/field_prev only when fields > 1
+    - active_buffer() returns the correct field's buffer ref after navigation
+  phase_1:
+    - zenka boots via the standard checklist, reaches show-buffer-visible state
+    - no crypt.C25519 / Curses::UI / Term::Clui pm-deps remain in pm-dep/
+  phase_1b:
+    - register_keywords called once at pre_init/init_code with at least
+      VAR_P7/ETC_P7/HOME_N; resolve_keywords round-trips a [KEYWORD]/path
+      string to the correct absolute path for each
+  phase_2:
+    - a 2-field mockup renders via ascii.frame with live slot values
+    - focus indicator visibly moves on field_next/field_prev
+  phase_3:
+    - full loop: navigate fields (values pre-populated via users.* get),
+      edit a value, submit, confirm value reaches the users zenka via
+      users.* set [ exact command surface blocked on 5PN's design ]
+    - offline case: users.* set unreachable at submit time -> outbox
+      entry persists in var_P7/user-edit/ across a zenka restart ->
+      once reachable again, staged entry commits and is cleared
+      [ retry trigger mechanism itself is an open question below ]
+  draft_auto_save:
+    - periodic checkpoint writes a non-empty draft; an idle tick with no
+      changes does not rewrite the file [ mpv.snapshot.write precedent ]
+    - killing the zenka mid-edit still leaves a draft on disk [ end_code
+      callback fired ]; killing it with -9 (SIGKILL, unblockable) may
+      lose up to one checkpoint interval — acceptable, same tradeoff
+      mpv accepted
+    - restart with a pending draft present -> draft reappears in the
+      form per restore_on_startup's chosen UX
+
+open_questions:
+  - runtime surface: does user-edit run as a plain terminal console
+    (keys.-style, ascii.frame only) or inside an amos-term window/buffer
+    (amos-term.plugin-render/input as the integration point)? Blocks
+    amos_term_plugin_overlap and, downstream, whether phase_2's
+    editor.ui.ascii_frame backend is standalone or amos-term-plugin-hosted
+  - users.* command surface for get/set of a user's editable fields —
+    5PN's to define; this console just needs the names/args once they
+    exist
+  - retry_mechanism for the local edit outbox: event-driven (fires on
+    reconnect / users zenka becoming reachable) vs periodic timer vs
+    only-on-next-console-launch — not yet decided, and it determines
+    whether this zenka needs a background timer at all outside active
+    console sessions
+  - conflict handling: if host-system/'s record changed elsewhere
+    between staging and eventual commit of an offline edit, does submit
+    win, lose, or prompt — not addressed yet, only matters once
+    retry_mechanism exists
+  - draft restore UX: auto-load a found draft silently, or prompt
+    "restore unsaved draft? y/n" — mpv's restore_on_startup is a bare
+    boolean auto-restore, but a settings form overwriting live fields
+    silently on launch may be more surprising than a paused video
+    resuming; lean prompt unless there's a reason not to
+  - draft_save_interval_seconds default for the periodic BACKSTOP timer
+    only — the primary trigger is field-transition (decided, see
+    draft_auto_save), so this default matters less than mpv's did;
+    anything in the tens-of-seconds range is probably fine as a backstop
+  - ascii.frame cursor-position support (phase_2 open_question)
+  - masked field type: does any target setting need it for v1, or can it
+    wait
+  - is a bare interactive console mode (user-edit.console.* commands,
+    mirroring keys.console.*) wanted alongside the form, or is the form
+    the only interface
+  - does user-edit ever need to browse/edit anything under HOME_N
+    directly (vs. everything routing through users.* per
+    users_zenka_relationship) — e.g. is remote-keys/authorized ever
+    user-edit's concern, or strictly crypt.C25519/keys territory
+
+created: 2026-08-09
+tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer]
+
+#,,.,,,.,,,,,,...,.,,,,,.,,.,,.,,,...,.,,,,.,,..,,...,...,...,..,,,,,,...,..,,
+#Y5HKZ4KHYUUFB2525EGABTKLHCI7UXVUP462MYNCMPNF2GBURTTLZPIGR56SSHKETGNEVVMEQ36DA
+#\\\|XGAGH62DBA6QKT4UQKQ4U43WKJBKWUDYK35VLY46ODREQKFGO4N \ / AMOS7 \ YOURUM ::
+#\[7]JJRPDHP5EOLZTTWCC37C35RYKO5EM5KTNXLQX3F6CCZSULHDMGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

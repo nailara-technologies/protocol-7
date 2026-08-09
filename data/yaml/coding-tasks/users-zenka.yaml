@@ -1,0 +1,181 @@
+---
+# Task: Users (v7-managed) Zenka
+# Date: 2026-08-10
+# Status: design, early — storage layout decided, integration boundary open
+# Context: todo 5PN [ new-zenki ] "create users v7-managed zenka design file"
+# Related: data/yaml/coding-tasks/user-edit-console-zenka.yaml (JUE) — the
+#          console this zenka is canonical storage/authority FOR. That doc's
+#          users_zenka_relationship section already resolved: users zenka
+#          owns storage, discovery, and key authority; user-edit is a thin
+#          UI client with no local storage of its own. This doc is where
+#          that ownership actually gets specified.
+
+task_metadata:
+  title: "users zenka — canonical user records, distributed discovery, key authority"
+  description: >
+    A v7-managed zenka that is the canonical local authority for user
+    records (the data user-edit console edits), tracks distributed
+    discovery of the same kind of records from other nodes, and acts as
+    a key authority for local zenki: when a zenka needs to contact a
+    user or another zenka, it asks the users zenka to resolve the
+    correct key, which then feeds routing directly.
+  priority: low
+  category: "new-zenki"
+
+## -----------------------------------------------------------------------
+## storage layout — decided
+## -----------------------------------------------------------------------
+
+storage_layout:
+  decided: >
+    /etc/protocol-7/users/host-system/ and /etc/protocol-7/users/remote/
+    {incoming,outgoing}/ — both user-verified against bin/harmony.
+    Precedent: /etc/protocol-7/ already has non-per-zenka top-level dirs
+    today (certs, export, import, jobsite, zenki) — a shared "users"
+    dir at that level, not nested under a per-zenka etc_P7/<zenka>
+    subdirectory, matches existing convention. Register these as
+    keywords via base.path.register_keywords per
+    user-edit-console-zenka.yaml's phase_1b (e.g. USERS_HOST,
+    USERS_REMOTE_IN, USERS_REMOTE_OUT), not hardcoded path strings.
+    Format: YAML throughout, read/written via modules/format.yaml.*
+    (load_keyword_path/write_file — load_keyword_path already calls
+    base.path.resolve_keywords internally, the exact read-side
+    counterpart to the keyword registration above), not JSON. set-up's
+    JSON profile format is a kiosk-appliance-era holdover, not a
+    convention to match — see user-edit-console-zenka.yaml's
+    set_up_format_gap for the full context; format.json.* / format.yaml.*
+    are already symmetric shared modules either way, so this isn't
+    blocked on anything, it's a plain module choice.
+  host_system: |
+    /etc/protocol-7/users/host-system/
+    canonical records for users this node is authoritative for. This is
+    what user-edit console reads defaults from and writes edits back to,
+    through users.* commands (never touched directly by user-edit — see
+    JUE's users_zenka_relationship).
+  remote_incoming: |
+    /etc/protocol-7/users/remote/incoming/
+    records/requests received FROM other nodes about their users —
+    populated by whatever discovery transport this zenka uses (see
+    discovery_integration below). Directional split (incoming vs
+    outgoing) mirrors the pattern discover.* already uses internally
+    for packet handling (discover.handler.incoming_packet /
+    discover.process_incoming_packet / discover.send_packet) — worth
+    confirming this zenka reuses that split deliberately, not by
+    coincidence, once discovery_integration below is resolved.
+  remote_outgoing: |
+    /etc/protocol-7/users/remote/outgoing/
+    this node's own host-system records staged/queued for
+    announcement to other nodes.
+  not_yet_decided: >
+    exact record format (per-user file? one file per host-system user,
+    named how?), and what "incoming"/"outgoing" actually persist —
+    full user records, or lighter sync/announce requests referencing
+    records that live elsewhere (host-system/). The discover.* precedent
+    (discover.load_resend_requests persists resend-reqs under
+    var_P7/<zenka>/resend-reqs/, not etc_P7) suggests request-shaped
+    transient state might belong under var_P7 instead of etc_P7/remote —
+    worth resolving before implementation: etc_P7/users/remote may be
+    the wrong tier for anything that isn't durable across a full node
+    rebuild.
+
+## -----------------------------------------------------------------------
+## discovery — likely integration point, not a fresh build
+## -----------------------------------------------------------------------
+
+discovery_integration:
+  finding: >
+    modules/discover.* already exists and does real distributed
+    discovery: mcast-based host announcement (discover.mcast.init_code,
+    discover.format_discover_mcast_packet, discover.send_packet), an
+    incoming/outgoing packet handling split
+    (discover.handler.incoming_packet, discover.process_incoming_packet),
+    and — notably — discover.orbital.store_remote ALREADY stores
+    hostname + decoded pubkey + p7ref + timestamp per known remote node
+    in <discover.orbital.known>, in memory. That is materially the same
+    shape as "key authority for routing," already half-built.
+  open_question: >
+    does the users zenka WRAP/consume discover.orbital.known (adding
+    durable etc_P7/users/remote persistence + a users.* query interface
+    on top of what discover.* already tracks in memory), or is it a
+    distinct discovery mechanism/transport for a different scope (e.g.
+    discover.* is LAN mcast host discovery, users zenka discovery might
+    need to work across WAN/non-LAN topologies where mcast doesn't
+    reach)? Do not assume either way — check discover.mcast's actual
+    reach/scope before deciding whether this is "integrate with
+    discover.*" or "separate discovery layer, same directional pattern
+    for consistency only."
+  if_integration_chosen: >
+    users zenka would not reimplement packet handling — it would consume
+    discover.orbital.known (or a discover.* accessor built for this
+    purpose) and be the thing that PERSISTS it durably + exposes it via
+    users.* commands + folds in host-system's own local records, rather
+    than discover.* owning persistence itself. discover.* today looks
+    memory-only (<discover.orbital.known>, no store-to-disk call seen in
+    store_remote) — persistence is the gap users zenka would actually
+    fill, not discovery itself.
+
+## -----------------------------------------------------------------------
+## key authority
+## -----------------------------------------------------------------------
+
+key_authority:
+  role: >
+    per user direction: when a local zenka wants to contact a user or
+    another zenka, it asks the users zenka to acquire/resolve the
+    correct key, and that key feeds routing directly.
+  precedent: >
+    discover.orbital.store_remote already decodes and stores a pubkey
+    per known remote host (see discovery_integration above) — if
+    discovery integration is chosen, key authority is largely "expose
+    that lookup as a users.* command, backed by host-system/ for local
+    users and remote/ for discovered ones," not new key-handling logic.
+  relationship_to_crypt_C25519: >
+    crypt.C25519.* / ~/.n/user-keys remain the actual key material and
+    signing operations — users zenka is an AUTHORITY/DIRECTORY over
+    which key belongs to which user/host for routing purposes, not a
+    replacement for crypt.C25519. Needs a clear boundary statement once
+    written: users zenka resolves "which key", crypt.C25519 does
+    "operations with a key".
+
+## -----------------------------------------------------------------------
+## relationship to user-edit console (JUE)
+## -----------------------------------------------------------------------
+
+user_edit_relationship: >
+  Per user-edit-console-zenka.yaml's users_zenka_relationship (already
+  resolved): user-edit has no storage of its own. It calls a users.*
+  command surface — get(user) to populate form defaults, set(user,
+  values) on submit. That command surface is this doc's to define; JUE
+  only needs the names/args once they exist. host-system/ is exactly
+  what those get/set calls read and write.
+
+open_questions:
+  - a DIFFERENT, still-planned `settings` zenka is intended for later —
+    the name was freed by set-up's rename (commit 089844a94, "'set-up'
+    <-- 'settings'"; set-up is real installer-profile machinery,
+    unrelated in granularity to this doc's storage). whether that future
+    `settings` zenka subsumes THIS doc's host-system/ canonical storage
+    or is scoped to something else entirely is undecided — see
+    user-edit-console-zenka.yaml's related_precedent_set_up_zenka for
+    the full note. do not build storage_layout against either
+    assumption; reconcile explicitly once a `settings` design exists.
+  - discovery_integration's core question (integrate with discover.* vs
+    separate) — resolve before implementation, it changes this zenka's
+    entire discovery-side design
+  - remote/incoming and remote/outgoing: full records or sync requests —
+    and does that belong under etc_P7 (durable) or var_P7 (transient),
+    per storage_layout.not_yet_decided
+  - record format for host-system/ (per-user file naming, structure) —
+    needed before users.* get/set can be specified concretely
+  - v7-managed lifecycle specifics (always-on vs on-demand, restart
+    policy) not yet addressed at all — this doc is storage/discovery/key
+    scope only so far
+
+created: 2026-08-10
+tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit]
+
+#,,,,,,,,,,.,,,,,,...,.,,,.,,,.,.,,..,,.,,...,..,,...,...,...,,.,,,.,,,,,,.,,,
+#XTXHLFKNX4DGSZQPLCR5CJYFDJQAPTGLUX7HNMW6ZBPHBW7UNTCF4WKI33UVAW7R6NH7T4JCOYQW6
+#\\\|SNW7WGD7QRZZET7BJQUM5QBPIQZU3UD6RZVMEN6CSJ2HD4B7QCY \ / AMOS7 \ YOURUM ::
+#\[7]ORKL6OKKWNCX7RG3X6LU5GDQZY4BHP6WZPI7W2J7P6T2VNT5YWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
