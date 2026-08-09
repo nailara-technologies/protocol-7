@@ -1,7 +1,8 @@
 ---
 # Task: User-Edit Console Zenka
 # Date: 2026-08-09
-# Status: design, blocked on prerequisite (see blockers below)
+# Status: design; phase_0 (editor.control step_4) verified DONE 2026-08-10.
+#         phase_1/1b next dispatchable — see phase_0_editor_step_4 note.
 # Context: todo JUE [ new-zenki ] — "create user-edit console zenka design file"
 # Related: todo 5PN [ new-zenki ] "create users v7-managed zenka design file"
 #          — NOT designed here. see users_zenka_relationship below for why
@@ -159,16 +160,19 @@ set_up_format_gap: >
 
 blockers:
   editor_control_step_4: >
-    editor.control.* (see data/yaml/coding-tasks/editor-namespace-interface-design.yaml)
-    only implements single-field freeform_line editing today. Multi-field
-    schema support — field_next/field_prev navigation, render_form,
-    active_field tracking across fields — is explicitly deferred as
-    "step_4: add multi-field schema support when user-edit/users zenka is
-    actually started." THIS zenka is that trigger. Step_4 is a
-    prerequisite, not parallel work: a settings form is n fields by
-    definition, and editor.control.create() rejects anything but
-    freeform_line today. Do not start console UI wiring before step_4
-    lands — there is nothing to wire it to.
+    RESOLVED — verified against live code (2026-08-10), no longer a
+    blocker. editor.control.create() already loops over all
+    schema.fields (no length limit), active_field is tracked and
+    authoritative, process_key already returns field_next/field_prev on
+    Tab/Shift-Tab gated correctly on scalar(@{$schema->{fields}}) > 1,
+    editor.control.active_buffer/load_field/get_value/get_cursor/reset
+    all exist, and submit() already iterates every field in the schema
+    (not just one). phase_0_editor_step_4 below is DONE, not pending —
+    this doc's original premise (that step_4 had to be built first) was
+    correct in intent but the work had already landed by the time this
+    was re-checked; kept as a record of what was verified rather than
+    deleted, since phase_0's scope list is still useful as a checklist
+    confirming coverage.
   field_types_needed: >
     enum (dropdown-style settings, e.g. log level, theme) and masked
     (credentials/secrets fields, if any settings are secret) are named in
@@ -310,19 +314,25 @@ draft_auto_save: >
 ## -----------------------------------------------------------------------
 
 phase_0_editor_step_4:
+  status: DONE — verified against live code 2026-08-10, see blockers
+    above. Every item below checked present and correct.
   motivation: >
     Land the prerequisite named in editor-namespace-interface-design.yaml's
     migration_path.step_4, scoped exactly to what this zenka needs and no
     further (per that doc's stated philosophy: build only what a real
     caller needs).
   scope:
-    - editor.control.create() accepts schema.fields with length > 1
+    - editor.control.create() accepts schema.fields with length > 1 [ OK,
+      loops over all field_defs, no length restriction ]
     - active_field tracking in $editor_state, authoritative per that doc
+      [ OK, create() sets it, active_buffer()/process_key both read it ]
     - process_key returns action=field_next / field_prev on Tab/Shift-Tab,
-      only when scalar(@{$schema->{fields}}) > 1 [ already specified ]
-    - editor.control.active_buffer($editor_state) helper [ already named
-      in the interface doc, not yet implemented ]
+      only when scalar(@{$schema->{fields}}) > 1 [ OK, live code matches
+      spec exactly — $multi_field gate on both \x09 and \e[Z ]
+    - editor.control.active_buffer($editor_state) helper [ OK, exists,
+      indexes fields-by-name via active_field's index correctly ]
     - render_form is an editor.ui.* concern (phase 1), not editor.control
+      [ correctly NOT in editor.control.* — still phase 2's to build ]
   explicitly_out_of_scope_here:
     - freeform_multiline [ step_3, separate trigger: coding-zenka chat ]
     - undo/redo journal [ open_questions in the interface doc, unrelated ]
@@ -623,8 +633,8 @@ open_questions:
 created: 2026-08-09
 tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer]
 
-#,,.,,,.,,,,,,...,.,,,,,.,,.,,.,,,...,.,,,,.,,..,,...,...,...,..,,,,,,...,..,,
-#Y5HKZ4KHYUUFB2525EGABTKLHCI7UXVUP462MYNCMPNF2GBURTTLZPIGR56SSHKETGNEVVMEQ36DA
-#\\\|XGAGH62DBA6QKT4UQKQ4U43WKJBKWUDYK35VLY46ODREQKFGO4N \ / AMOS7 \ YOURUM ::
-#\[7]JJRPDHP5EOLZTTWCC37C35RYKO5EM5KTNXLQX3F6CCZSULHDMGDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,..,.,.,..,,,,.,...,..,,.,.,,,,,..,,...,...,.,.,,,.,.,.,.,,,...,
+#P2FYAGKBW2OMNGNKOQJJB6THWJSZZWSYCQY25KV7NMIXJEZ2ZXZPZIEGLGCMXV4PG5ROD3KVA5B7W
+#\\\|OIN4Q5T4OQR6CMJ4ZDZV45D333VQHMOXSM6UL7Y7HPNPFXQ4HUT \ / AMOS7 \ YOURUM ::
+#\[7]2O7MKZSXQ5AJO5GU26VQEVZDZ2MGLUMZSQ2DM3V7SUTXS4PEWCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
