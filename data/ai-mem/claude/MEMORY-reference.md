@@ -49,9 +49,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names; buffer is a passive review sink only, rotation ≠ behavior unreliability
 - [add new on-demand zenka](reference-add-new-ondemand-zenka.md) — `start` file alone isn't enough: needs zenka-startup.v7 + v7.reload (spawn/connect), then cube's auth.zenki + access.zenki + bare `reload config` to cube itself (not `cube.reload`) for the connection handshake; each missing piece has a distinct error message, verified live bringing up opencv
 - [ext-bundle backup alias](reference-ext-bundle-backup-alias.md) — `gbc` bash alias creates+verifies the ext-bundle git backup; it's a `.bundle` file not a real remote, `git push` to it always fails harmlessly
+- [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 
-#,,,,,...,.,.,,,.,..,,.,.,,..,,,,,,..,..,,,,,,..,,...,..,,...,,,,,...,,.,,...,
-#FDNLAA7DBC7DAQYGQDEJZTU6AYK4RMNBLMNNSPETWH53HSYMBR5MXQ3APTABAEYGDBPNEWSU6HFKA
-#\\\|ZNHX76IAAOWVHB6L7XO53SIBUM4U3Q7YOGSDBTWJKXNL67EGXAD \ / AMOS7 \ YOURUM ::
-#\[7]A6ALB56XWOCO7PBSR6TTUW2DTG32XXKAUDCB3YQUL2AVKQOMSKBA 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,,,,,..,,.,,,,,.,.,.,.,.,..,,..,,...,...,.,.,,,,,.,,,.,,,,,,,
+#6DWZ5RUZBSLNZBCBREILX7MEFCIWXLMSVQE2JBEEEINJVUTJVNLUGAWRTJSALED7JDGZV6NWBHJUI
+#\\\|UZSAQ632O4YKMWGA7PY2B6WR2CKZWZOZPOXGMMU6RVKFYDJRKPC \ / AMOS7 \ YOURUM ::
+#\[7]RUPBXJ5CUGW7KDGBLHM5YGYIULR2MQUXMD6BPYTIHUTZIPRSGODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
