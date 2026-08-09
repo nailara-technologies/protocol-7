@@ -9,18 +9,18 @@ return \%tasks unless -d $yaml_data_dir;
 
 # Scan coding-tasks
 my $coding_tasks_dir = "$yaml_data_dir/coding-tasks";
-if (-d $coding_tasks_dir) {
+if ( -d $coding_tasks_dir ) {
     opendir my $dh, $coding_tasks_dir or return \%tasks;
-    while (my $file = readdir($dh)) {
+    while ( my $file = readdir($dh) ) {
         next unless $file =~ /\.yaml$/;
         my $absolute_path = "$coding_tasks_dir/$file";
-        my $keyword_path = <[base.path.to_keywords]>->($absolute_path);
+        my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
         eval {
             my $task_data = YAML::XS::LoadFile($absolute_path);
             $tasks{$file} = {
-                path => $keyword_path,
-                data => $task_data,
-                type => 'coding-task',
+                path   => $keyword_path,
+                data   => $task_data,
+                type   => 'coding-task',
                 source => 'protocol-7'
             };
         };
@@ -30,18 +30,39 @@ if (-d $coding_tasks_dir) {
 
 # Scan deferred-tasks
 my $deferred_dir = "$yaml_data_dir/deferred-tasks";
-if (-d $deferred_dir) {
+if ( -d $deferred_dir ) {
     opendir my $dh, $deferred_dir or return \%tasks;
-    while (my $file = readdir($dh)) {
+    while ( my $file = readdir($dh) ) {
         next unless $file =~ /\.yaml$/;
         my $absolute_path = "$deferred_dir/$file";
-        my $keyword_path = <[base.path.to_keywords]>->($absolute_path);
+        my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
         eval {
             my $task_data = YAML::XS::LoadFile($absolute_path);
             $tasks{$file} = {
-                path => $keyword_path,
-                data => $task_data,
-                type => 'deferred-task',
+                path   => $keyword_path,
+                data   => $task_data,
+                type   => 'deferred-task',
+                source => 'protocol-7'
+            };
+        };
+    }
+    closedir $dh;
+}
+
+# Scan bin/todo lists [ data/yaml/todo/*.yaml, items: [...] shape ]
+my $todo_dir = "$yaml_data_dir/todo";
+if ( -d $todo_dir ) {
+    opendir my $dh, $todo_dir or return \%tasks;
+    while ( my $file = readdir($dh) ) {
+        next unless $file =~ /\.yaml$/;
+        my $absolute_path = "$todo_dir/$file";
+        my $keyword_path  = <[base.path.to_keywords]>->($absolute_path);
+        eval {
+            my $task_data = YAML::XS::LoadFile($absolute_path);
+            $tasks{"todo-list.$file"} = {
+                path   => $keyword_path,
+                data   => $task_data,
+                type   => 'bin-todo-list',
                 source => 'protocol-7'
             };
         };
@@ -51,8 +72,8 @@ if (-d $deferred_dir) {
 
 return \%tasks;
 
-#,,..,,,,,...,,.,,.,.,...,...,,,,,,,,,,..,,,,,..,,...,...,...,.,,,.,.,,,.,,,.,
-#VZKBMWBCBSB3BAIXH3OM4VO7KKGDSRBQW7YIHMNNHMUBAH46SAM5VMDGTKGSYGCM2Q535XBPXR3I4
-#\\\|NNVOXD3BMUEP5TOAKWUWJK5S7X4K5GVTVSSR4ICSSX5LWK6YU23 \ / AMOS7 \ YOURUM ::
-#\[7]M3PJPMK4IGVJ4PZ3AANQYWAWVRU4XAV77EIT4W4W52YQDKTOVCDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,.,,.,.,.,,,,,.,,,,,.,,,,..,..,,...,...,...,,.,,,.,,.,,,...,
+#EY4XE5HWCOOEHMCM4GZKJULOSFB5D5NPYWWBEKWQVPYWFR4WH7GLF4Z27GD6L52JJYD74VFAEPLC6
+#\\\|ODDMKPVWOCR5D3VTIUCNHLWLDOYCYG6LMNMLKTLXEFGVDNHUZX5 \ / AMOS7 \ YOURUM ::
+#\[7]BEISHNR2PEEHO5GMEC4EDJAN3QGYEC455VJASFB6LG5JDRMA56CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

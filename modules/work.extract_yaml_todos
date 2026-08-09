@@ -6,50 +6,83 @@
 my $tasks = <[work.scan_yaml_tasks]>;
 my @todos;
 
-foreach my $file (sort keys %$tasks) {
-    my $task = $tasks->{$file};
+foreach my $file ( sort keys %$tasks ) {
+    my $task      = $tasks->{$file};
     my $task_data = $task->{data};
 
+    # bin/todo lists : one file, many items [ items: [...] shape ]
+    if ( $task->{type} eq 'bin-todo-list' ) {
+        foreach my $item ( @{ $task_data->{items} // [] } ) {
+            my $item_status = $item->{status} // 'open';
+            next if $item_status =~ /^done$/i;
+
+            push @todos,
+                {
+                title    => $item->{text}     // $item->{id} // '[untitled]',
+                priority => $item->{priority} // 'normal',
+                category => 'bin-todo',
+                status   => $item_status,
+                file     => $file,
+                id       => $item->{id},
+                type     => 'bin-todo-item',
+                source   => 'bin-todo'
+                };
+        }
+        next;
+    }
+
     # Check task status
-    my $status = $task_data->{status} || $task_data->{task_metadata}{status} || 'unknown';
+    my $status
+        = $task_data->{status}
+        || $task_data->{task_metadata}{status}
+        || 'unknown';
     next if $status =~ /completed/i;
 
     # Extract task info
-    my $title = $task_data->{title} || $task_data->{task_metadata}{title} || $file;
-    my $priority = $task_data->{priority} || $task_data->{task_metadata}{priority} || 'medium';
-    my $category = $task_data->{category} || $task_data->{task_metadata}{category} || 'task';
+    my $title
+        = $task_data->{title} || $task_data->{task_metadata}{title} || $file;
+    my $priority
+        = $task_data->{priority}
+        || $task_data->{task_metadata}{priority}
+        || 'medium';
+    my $category
+        = $task_data->{category}
+        || $task_data->{task_metadata}{category}
+        || 'task';
 
-    push @todos, {
-        title => $title,
+    push @todos,
+        {
+        title    => $title,
         priority => $priority,
         category => $category,
-        status => $status,
-        file => $file,
-        path => $task->{path},
-        type => $task->{type},
-        source => 'protocol-7-yaml'
-    };
+        status   => $status,
+        file     => $file,
+        path     => $task->{path},
+        type     => $task->{type},
+        source   => 'protocol-7-yaml'
+        };
 
     # Extract phase tasks if present
-    if ($task_data->{phases}) {
-        foreach my $phase_key (sort keys %{$task_data->{phases}}) {
+    if ( $task_data->{phases} ) {
+        foreach my $phase_key ( sort keys %{ $task_data->{phases} } ) {
             my $phase = $task_data->{phases}{$phase_key};
             next unless $phase->{tasks};
 
-            foreach my $phase_task (@{$phase->{tasks}}) {
+            foreach my $phase_task ( @{ $phase->{tasks} } ) {
                 my $task_status = $phase_task->{status} || 'pending';
                 next if $task_status =~ /completed/i;
 
-                push @todos, {
-                    title => "[$phase->{title}] " . $phase_task->{name},
+                push @todos,
+                    {
+                    title    => "[$phase->{title}] " . $phase_task->{name},
                     priority => $priority,
                     category => $category,
-                    status => $task_status,
-                    file => $file,
-                    phase => $phase_key,
-                    type => 'phase-task',
-                    source => 'protocol-7-yaml'
-                };
+                    status   => $task_status,
+                    file     => $file,
+                    phase    => $phase_key,
+                    type     => 'phase-task',
+                    source   => 'protocol-7-yaml'
+                    };
             }
         }
     }
@@ -57,8 +90,8 @@ foreach my $file (sort keys %$tasks) {
 
 return \@todos;
 
-#,,,,,.,,,,.,,,,,,...,,,.,,.,,..,,,.,,,.,,.,.,..,,...,...,,.,,...,...,,,,,...,
-#45ICUUITBTH7DYR3BV6NGSTJ4ZRPS5N5OUGVMKXLLFF3NC2GEEUTEPVYIVIOWDI7VD3GRBBS65B6E
-#\\\|YYIIQUUGMFAAFZ2R3COLPLVLUNHYEFIDMZMVPZF7KH6JGQ5LIUU \ / AMOS7 \ YOURUM ::
-#\[7]DP4KPRT3JBARAQQUJITAZ4RIQGWC7MXN2EOAMQ4H426R6PIOOSBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,,,,,...,...,,,,,.,,,.,.,..,,..,,...,...,..,,.,.,,,,,,,,,.,.,
+#7MDPFLGJQYRRWMHORU2HOXWM6Y5FUXYAHM7PN7LCPR2ZDKEE735XWZBBXBXZM7BDMUYMZODMOVWZU
+#\\\|ZKAIOGFIGUKCIN6YXRUQ4IC3RJT43UY4GSLGVZTCPMZJ276YAOI \ / AMOS7 \ YOURUM ::
+#\[7]TC7GG5WRJDHSAQ5VRYF5TAKO6OXVYVGTFWO6I5MNNH6YYDQ63ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

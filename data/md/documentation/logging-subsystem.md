@@ -72,28 +72,32 @@ defined as `p7__log__*` functions in `bin/Protocol-7` and installed into
 implementation: direct console output + early-buffer accumulation before
 the chain is ready, then delegation to `base.log` after.
 
-| core sub      | maps to       | level | purpose                              |
-|---------------|---------------|-------|--------------------------------------|
-| `log.noerr`   | `p7__log__noerr`  | 1 | normal startup messages, plain string |
-| `log.error`   | `p7__log__error`  | 0 | error messages, always visible        |
-| `log.devmod`  | `p7__log__devmod` | 2 | developer/verbose output              |
+| core sub      | maps to          | level    | purpose                                  |
+|---------------|------------------|----------|------------------------------------------|
+| `log.noerr`   | `p7__log__noerr` | 1        | normal startup messages, plain string    |
+| `log.error`   | `p7__log__error` | 0        | error messages, always visible           |
+| `log.devmod`  | `p7__log__devmod`| 2        | developer/verbose output                 |
+| `log.string`  | `p7__log__string`| variable | plain string wrapper for `base.log`      |
+| `log.fmt`     | `p7__log__fmt`   | variable | sprintf format wrapper for `base.logs`   |
 
 `log.noerr` also serves as the fallback installed at `base.log` before the
 real module loads — the guard `$code{'base.log'} eq $code{'log.noerr'}` detects
 this condition and sets emergency verbosity levels.
 
-### planned: `log.string` and `log.fmt`
+### `log.string` and `log.fmt`
 
 `log.noerr`, `log.error`, and `log.devmod` are fixed-level wrappers. two
-general-purpose wrappers are planned to replace `base.log` and `base.logs`
-respectively:
+general-purpose wrappers provide clearly-named alternatives to `base.log` and
+`base.logs`:
 
 - `log.string` — plain string, level parameter, delegates to `base.log`
 - `log.fmt` — sprintf format + args, level parameter, delegates to `base.logs`
 
-both will be implemented as `p7__log__string` / `p7__log__fmt` core subs in
+both are implemented as `p7__log__string` / `p7__log__fmt` core subs in
 `bin/Protocol-7`, following the same two-phase early/late pattern. this
-enables gradual transition without a flag-day rename. see task file:
+enables gradual transition without a flag-day rename. `base.log` and
+`base.logs` remain the real implementations; `log.string` and `log.fmt` are
+additive wrappers that coexist with them. see task file:
 `data/yaml/coding-tasks/log-namespace-wrappers.yaml`.
 
 ---
@@ -144,8 +148,8 @@ harmony calculation (for log timestamps) is skipped at level > 1 or when
 `system.zenka.verbosity.logfile > 1`, reducing calculation load for
 high-frequency debug output.
 
-#,,,.,.,.,.,.,,,.,,.,,,,,,,..,,,.,.,,,,,.,,,.,..,,...,...,,.,,.,,,.,,,,,.,,,,,
-#5VQPXTIRLB7V6PMQTEDA3ICE5OUZNNVBISPVASKFF37HJQKNXL4N4DC66RXQLOKJ6QQSO3JJUIZUY
-#\\\|LRICOC6QAFHFL4GZALIUUWVALV37CM3BYXJ42TOWFF57WOZXCLW \ / AMOS7 \ YOURUM ::
-#\[7]NPLUOTIEDW3OPB5Y45QI2BK37HDWGNECPAO3K6HMGRIJRJN4Z4AQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,,,,..,,.,,..,,,,.,,..,,,,,..,,..,,...,...,...,...,,,,,,,,,,..,
+#3454KU6HSROOVS32TJXBJD3RRC4APSQI5ELPOYGH4GCRLSKNHWKKFITBMOUW6PZKBMNUUWTIGFFRW
+#\\\|VO2VQWVZUKSKIA4IIEACQ4P345EOW3KYVHGD3WMAJZJTD455CZA \ / AMOS7 \ YOURUM ::
+#\[7]O7SLKRTCN2F4LV3QMZOPE65TLM72RCEVVJPDKDL42YSMVXSBYUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
