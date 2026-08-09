@@ -3899,6 +3899,128 @@ sub p7__log__devmod {
 
 ##############################################################################
 
+sub p7__log__string {
+
+    ##  plain string wrapper — delegates to base.log after init  ##
+    if ( $code{'log.base_log_complete'}->() ) {
+        $code{'base.log'}->(@ARG);
+    } else {
+        ##  early path: direct console output + early start-up buffer  ##
+        $data{'system'}{'zenka'}{'verbosity'}{'console'} //= 0;
+        $data{'system'}{'zenka'}{'verbosity'}{'buffer'}  //= 1;
+        $data{'system'}{'start'}{'zenka-buffer'}         //= [];
+
+        my $s_len;
+        $s_len = $code{'base.log_hook'}->()
+            if defined $code{'base.log_hook'};
+        $s_len //= 1;    # <-- << ! >>
+        my $spaces = ' ' x $s_len;
+
+        my $llvl = 1;
+        my $lmsg = shift @ARG // '';
+        if ( $lmsg =~ m|^\d$| and @ARG ) {
+            $llvl = $lmsg;
+            $lmsg = shift @ARG // '';
+        }
+
+        ##  optional buffer / timestamp not available pre-init  ##
+        shift @ARG;      ##  log_buffer  ##
+        shift @ARG;      ##  time_stamp  ##
+
+        $lmsg =~ s|\r|\\r|g;
+        $lmsg =~ s|\n|\\n|g;
+        $lmsg =~ s|\0|\\0|g;
+        $lmsg =~ s|\e|\\e|g;
+
+        my $color = $llvl < 1 ? qw| p7_fg_0002 |       : qw| p7_fg_0004 |;
+        my $hl    = index( $lmsg, '.\\7', 0 ) == 0 ? 1 : 0;
+        if (    $data{'system'}{'zenka'}{'verbosity'}{'console'}
+            and $llvl <= $data{'system'}{'zenka'}{'verbosity'}{'console'} ) {
+            say $code{'log.format_name'}->($hl), ' ',
+                $colors{$color}, $lmsg, $colors{'reset'},
+                $spaces;
+        }
+        ##  early start-up buffer  ##
+        push(
+            $data{'system'}{'start'}{'zenka-buffer'}->@*,
+            join( ' ', $code{'base.anum_log_time'}->(), $llvl, $lmsg )
+        ) if $llvl <= $data{'system'}{'zenka'}{'verbosity'}{'buffer'};
+    }
+}
+
+##############################################################################
+
+sub p7__log__fmt {
+
+    ##  sprintf format wrapper — delegates to base.logs after init  ##
+    if ( $code{'log.base_log_complete'}->() ) {
+        $code{'base.logs'}->(@ARG);
+    } else {
+        ##  early path: sprintf then console output + early buffer  ##
+        $data{'system'}{'zenka'}{'verbosity'}{'console'} //= 0;
+        $data{'system'}{'zenka'}{'verbosity'}{'buffer'}  //= 1;
+        $data{'system'}{'start'}{'zenka-buffer'}         //= [];
+
+        if ( @ARG < 2 ) {
+            warn '<< log.fmt needs format string and parameters >> <{C1}>';
+            return undef;
+        }
+
+        my $param_index = 0;
+        map {
+            if ( not defined $ARG ) {
+                warn sprintf( 'log.fmt parameter %d not defined <{C1}>',
+                    $param_index );
+                return undef;
+            }
+            $param_index++;
+        } @ARG;
+
+        my $llvl = 1;
+        if ( scalar @ARG > 1 and $ARG[0] =~ m|^\d$| ) {
+            $llvl = shift @ARG;
+        }
+
+        my $lmsg = eval {
+            use warnings FATAL => qw| all |;    ##  catches all warnings  ##
+            sprintf( shift @ARG, @ARG );
+        };
+
+        if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
+            warn sprintf( '<< log.fmt sprintf error: %s >> <{C1}>',
+                $EVAL_ERROR );
+            return undef;
+        }
+
+        my $s_len;
+        $s_len = $code{'base.log_hook'}->()
+            if defined $code{'base.log_hook'};
+        $s_len //= 1;                  # <-- << ! >>
+        my $spaces = ' ' x $s_len;
+
+        $lmsg =~ s|\r|\\r|g;
+        $lmsg =~ s|\n|\\n|g;
+        $lmsg =~ s|\0|\\0|g;
+        $lmsg =~ s|\e|\\e|g;
+
+        my $color = $llvl < 1 ? qw| p7_fg_0002 |       : qw| p7_fg_0004 |;
+        my $hl    = index( $lmsg, '.\\7', 0 ) == 0 ? 1 : 0;
+        if (    $data{'system'}{'zenka'}{'verbosity'}{'console'}
+            and $llvl <= $data{'system'}{'zenka'}{'verbosity'}{'console'} ) {
+            say $code{'log.format_name'}->($hl), ' ',
+                $colors{$color}, $lmsg, $colors{'reset'},
+                $spaces;
+        }
+        ##  early start-up buffer  ##
+        push(
+            $data{'system'}{'start'}{'zenka-buffer'}->@*,
+            join( ' ', $code{'base.anum_log_time'}->(), $llvl, $lmsg )
+        ) if $llvl <= $data{'system'}{'zenka'}{'verbosity'}{'buffer'};
+    }
+}
+
+##############################################################################
+
 sub p7_handler__end_code {
     goto RESET_STDERR if not exists $data{'callbacks'}{'end_code'};
     foreach my $callback_name ( reverse $data{'callbacks'}{'end_code'}->@* ) {
@@ -5837,8 +5959,8 @@ __DATA__
 :
 :.
 
-#,,,.,,..,.,,,,..,..,,,..,,.,,...,...,.,.,...,..,,...,...,..,,.,,,.,.,,..,,,.,
-#TNBLFASCWKE6NEQ5AT3C6TJPCSBOF6HNQA6EZZEHSONUPSTKYCI53ONYHI4OUVVFJIYB4U6XA3J2S
-#\\\|QEV54Z4DQHNM56YUN2DMUVMMHCZYKQNYFQADROADXZIG2C5VXEN \ / AMOS7 \ YOURUM ::
-#\[7]4YQPYTLYYX4AIZXGHZOSK7UJVZTJJHHO34XTQRAIPXEB54DCQICI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,,..,,,.,.,,,,.,,..,,,..,.,,,..,,...,...,.,.,,.,,..,,,..,.,,,
+#5P4FMUXL72CUYOKQWWFDP2AYNBC3KSWWIULSBS46HC3ZA3XO7XK5DA47G7E3HUVLVDE7VWJM2TN2A
+#\\\|H6QPULDCRBPP54XOEYQCJPGROZ4MYZYQUUGWLJJ6CMYZUNX2DIY \ / AMOS7 \ YOURUM ::
+#\[7]MTPNGQOBM3INEO55P4HSBP6YUGH6SYKSKEMHK7LC44JHZ2CKGGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
