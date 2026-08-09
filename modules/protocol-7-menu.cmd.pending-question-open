@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = protocol-7-menu.cmd.pending-question-open
+# descr = Open the oldest pending question via its dialog
+
+my $questions = <protocol-7-menu.pending-questions> // [];
+
+return { 'mode' => qw| false |, 'data' => 'no pending questions' }
+    unless scalar @$questions;
+
+my $question = shift @$questions;
+my $type     = $question->{'type'}     // '';
+my $text     = $question->{'question'} // '';
+my $result;
+
+if ( $type eq qw| text | ) {
+    $result = <[protocol-7-menu.cmd.input-text]>->($text);
+} elsif ( $type eq qw| password | ) {
+    $result = <[protocol-7-menu.cmd.input-password]>->($text);
+} elsif ( $type eq qw| choice | ) {
+    my $options = $question->{'options'} // [];
+    my $payload = JSON::encode_json( [ $text, $options ] );
+    $result = <[protocol-7-menu.cmd.input-choice]>->($payload);
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "unknown pending question type: %s", $type )
+    };
+}
+
+## Remove answered question if dialog returned a value ##
+if (    ref $result eq qw| HASH |
+    and $result->{'mode'} eq qw| true |
+    and defined $result->{'data'} ) {
+    <[base.logs]>->(
+        1,
+        "pending question answered via dialog : id=%s",
+        $question->{'id'} // '?'
+    );
+} else {
+    ## Return to queue if no selection ##
+    unshift @$questions, $question;
+}
+
+<[protocol-7-menu.pending-indicator-update]>;
+
+return $result;
+
+#,,,,,,..,.,,,.,.,.,.,,.,,,,,,..,,,.,,...,,,,,..,,...,...,.,.,.,.,,,.,,.,,...,
+#BUZENBHNLTWDTCUYYQZ77PITYTEDOVH5J5B5DWQVKDPWHOBYXSWEKBBEDOW7DE22E6NSBMJY4YIV2
+#\\\|4H2FFCX5XYZXJFNLOWVMO2XHQRRZQA7LK6AM4IRCVDWVLP3WJDQ \ / AMOS7 \ YOURUM ::
+#\[7]5QOJYMB2S7II2GD6F6Q5OHVJN33VLRBDVYM7HBSFCXTNKQDU4SDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
