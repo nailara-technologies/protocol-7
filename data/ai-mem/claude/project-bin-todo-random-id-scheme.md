@@ -49,14 +49,23 @@ project's broader checksum-addressing philosophy this sits inside, and
 [[feedback-amos-chksum-listcontext-gotcha]] for a real bug hit while
 implementing this.
 
+**Refinement, same day, commit `f45cdaf19`**: `gen_id()` also excludes any
+candidate matching `^\d+$` (measured ~0.57% of random candidates land
+here). Without this, a purely-numeric-looking generated code would be
+indistinguishable from a legacy id on a future `load_data()` call — its
+own migration-detection regex is the same `^\d+$` pattern — silently
+triggering the legacy-migration path and reassigning the item a fresh
+code out from under the user. Both retry loops (harmonic-gated and the
+harmony-dropped fallback) reject numeric-lookalikes before returning.
+
 Sort order in `bin/todo`'s listing also changed as a consequence: id is no
 longer creation-ordered, so listing now sorts by item text using
 `modules/base.sort`'s own two-pass algorithm (ascending length, ties
 broken descending-alphabetical via a reverse-then-stable-sort) — the first
 non-`base.sort`-internal reuse of that exact algorithm shape seen so far.
 
-#,,..,.,.,,.,,,..,..,,.,,,.,,,.,.,...,,.,,..,,..,,...,...,...,,..,...,...,,,,,
-#ILOES3WT77CD3GJXHAR6VVNDAZI7O4WRUHE4SXWDNGKWE4QPN76KICMSYNQYPHMVNV4CF4PLD3BMG
-#\\\|RMPU4GI4GSCV643YM5TXRKYZMHQU3UZ5X53SPZBVUKVJKKSUZIZ \ / AMOS7 \ YOURUM ::
-#\[7]5CUXLWDLAC7NM4W3LAWJFGRVQO6XKJ5HZXZQUJ6FYWMOK5HR2IAI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,.,,,,.,,,,,,...,..,,..,,,,,,..,,...,...,...,.,.,.,,,.,.,,.,,
+#WZ3UTP5FUXKTBYNLCART3LUKFSFMPXE2KIKQQ2TU63OQWGJS2UBBK5M4PNLBLPFYTTKT3NFPN6EI6
+#\\\|WLRYVMOWJIM54KU4XNZRPTV7DAYRGDJKJ6MJDJBHED25AJZMAVD \ / AMOS7 \ YOURUM ::
+#\[7]5X2KL7SJ3E35VEMW4A5UT3J26XUJG4K3RBACVF4X7BTI3LLE54CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
