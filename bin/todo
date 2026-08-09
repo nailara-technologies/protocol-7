@@ -161,6 +161,10 @@ sub gen_id {
     for my $try ( 1 .. $max_retries ) {
         my $seed      = join( '-', time, $PID, rand(1e9), $try );
         my $candidate = chk3($seed);
+        ## exclude anything that could be mistaken for a legacy numeric id on
+        ## a future load_data() call [ same pattern load_data uses to detect
+        ## legacy items -- measured ~0.57% of candidates land here ]
+        next if $candidate =~ m{^\d+$};
         next if $used{ uc($candidate) };
         next
             if $want_harmony
@@ -173,6 +177,7 @@ sub gen_id {
     for my $try ( 1 .. $max_retries ) {
         my $seed      = join( '-', time, $PID, rand(1e9), 'noharm', $try );
         my $candidate = chk3($seed);
+        next if $candidate =~ m{^\d+$};
         return $candidate unless $used{ uc($candidate) };
     }
 
@@ -682,8 +687,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,.,,,.,.,,,.,.,,,...,.,,,..,,,.,,,..,,,,,..,,...,...,,,.,.,.,.,,,.,.,,.,,
-#6RLBSJWPNDJQ5KRK6M7FMKRKHLGSIRL7TAS3JVS2PC4JGOV34RNGXYGVCEQEPCCLKU74ELFFATIBE
-#\\\|OJCCFJXQEARFR7RE5JWAKQ3DHDIGD7WEL2QGASNJFFZRIGJPLDK \ / AMOS7 \ YOURUM ::
-#\[7]XES2PEGHBIE4SJY6YNUZ2SONNACEV3JVJ6FO5FQMX7QOEDVC64AQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,..,,,,,,,.,,...,,,.,,.,,..,,..,,...,...,,,,,,,.,.,.,..,,..,,
+#AT3NELN2YDTUQSRWLL4VKP7WGK6SJSXN27CD7RT6PSG5JURCPHJD27LWKDPUMGRVU2YPUTMRQNI4Y
+#\\\|UPASJAAMWAIA3CYJWYVG7IKLUPANBOE7FMDFGAWQSSV5ZMTVLTB \ / AMOS7 \ YOURUM ::
+#\[7]MBPUGAXZWMRGVECZPY35FS6I6RQFWWVHW36SVB7BGIL5B3XZ5GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
