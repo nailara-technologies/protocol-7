@@ -6,8 +6,8 @@
 my ( $editor, $colors, $clear_to_eol ) = @ARG;
 $clear_to_eol //= 0;
 
-my $cursor_pos     = $editor->{cursor_pos};
-my $buffer         = $editor->{buffer};
+my $cursor_pos     = AMOS7::TERM::editor_get_cursor($editor);
+my $buffer         = AMOS7::TERM::editor_get_buffer($editor);
 my $buf_len        = length($buffer);
 my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
 
@@ -31,8 +31,8 @@ STDOUT->flush();
 
 return;
 
-#,,..,..,,,,.,,,.,,,,,.,,,,,.,.,,,...,,,.,.,.,.,.,...,...,...,..,,,,.,..,,,.,,
-#GLLGJ55RJVURHRIFJC5VMTR3BBHWSUYL2WQIKBR5FWBET36WIMDRJNXKDMDKH26SPKK3EV4LHLGR6
-#\\\|YGDOMK6MISU7SQCRNUV545G3BCRNDF3SLWRRYQ2DUA42EQEGY2B \ / AMOS7 \ YOURUM ::
-#\[7]PYITUGCRQCCQWBWUXHPGL6AJWAFGZUCQICBCYRDJXHWVFIZCOWCY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,,,.,,,,,,,.,.,,.,,.,.,,..,,,.,.,.,...,...,.,.,,,.,..,,..,,.,.,
+#IAO6ONBMOHFKHSM3XLJCA3PFRJBZ5NR3AWWH4F7JPJZXI3C32VFGIPDC5ND4TZRQC4TVFGE2H3CYE
+#\\\|2HDLGRULYE2YQUXEPRAWAUCQVLMR7MTNA7SSTKNTQA6SHJJ6ARI \ / AMOS7 \ YOURUM ::
+#\[7]NFH3UF2HSMYWGNHOYMM5JWA2L4E3I3WSWYHUIQZRYLT5Q7ZFNIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
