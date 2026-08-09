@@ -155,10 +155,7 @@ sub feed_key {
         "step $step key=" . key_desc($key) . " cursor : $nc vs $oc" );
     check(
         $nk eq $ok,
-        "step $step key="
-            . key_desc($key)
-            . " kill_buffer : "
-            . "'$nk' vs '$ok'"
+        "step $step key=" . key_desc($key) . " kill_buffer : '$nk' vs '$ok'"
     );
     return;
 }
@@ -292,8 +289,8 @@ check( $new_st->{'kill_buffer'} eq '', 'full reset clears kill_buffer' );
 printf "\n%d checks : %d passed, %d failed\n", $pass + $fail, $pass, $fail;
 exit( $fail ? 1 : 0 );
 
-#,,..,...,,,,,.,,,,,.,,..,,,,,.,.,,,.,,,,,,..,..,,...,...,...,...,..,,,.,,.,.,
-#P3WC4ICB3WUS6PLWZV2SHKCBMFW3OXAMINICAQXHKBXNGIF3YUYTQAZZLZWFBNR4U44IZ2LQDSZK6
-#\\\|3ZRWHJ2GKCN46CKOV34U2PKWWZJDO7ERVBBDL6MQQACHCLABJ2M \ / AMOS7 \ YOURUM ::
-#\[7]IC6GVARVVNEVPDYYJ7GB5YLR25GTKUBDKO7KN4KU737ZG2R2GCCI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,,,.,.,.,...,,,,,..,,,..,,..,..,,...,..,,,..,,,.,,,,,,.,,.,,,
+#XHSWD5OQPIFQGZ4NASQEKE6KQDMN74RWMWI2KCSME557PAM2L5WTRJR2CAS37OS5XTU3M5IJGWUJC
+#\\\|NJY4JX3A4UIJC33BGWMFIQHLNGT27XDZNQK65WBDKQUHEDCR2WX \ / AMOS7 \ YOURUM ::
+#\[7]WEC4EJXNVVG6QYCFYH2WLLZPSU7ECATIUXPPS43XBIKI6PM5IMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
