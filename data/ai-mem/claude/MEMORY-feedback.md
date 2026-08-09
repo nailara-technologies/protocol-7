@@ -74,9 +74,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [avoid-em-dash-external-writing](feedback-avoid-em-dash-external-writing.md) — no em-dashes in cover letters/emails/anything read by an external human, reads as an AI-generation tell; plain hyphen/comma/colon instead, default from the start
 - [comp-regex-qr-delimiter-escaping](feedback-comp-regex-qr-delimiter-escaping.md) — qr'...' only needs the delimiter (') escaped, never backslash; qr'...' hands \-escapes to the regex engine unlike q'...', so backslash-doubling silently breaks \d/\s for every caller
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
+- [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
 
-#,,,,,.,,,...,..,,...,,..,...,.,,,,,.,,,,,,..,..,,...,...,...,...,...,,..,,,.,
-#NYXWSEZBZHPC4FKM7JQC64LKSK3XUFO4OD6WHQOIO4CLPOOYISHEOHNRHR7ONYZ7VSDSVFSGUHDZK
-#\\\|67MFECFVYBDUEBKUWVJYP5FUFI7B534UWIJCMRBNKNTFPQ3EQ4Y \ / AMOS7 \ YOURUM ::
-#\[7]UT54NLKYIKQ4JGP6QDWGYRKCJSSE5COO7DZNJIK4XP7XSJUVJQBQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,.,,,...,,.,,.,,,,.,,.,.,..,,..,,...,...,.,,,..,,...,,..,.,.,
+#JW7XA47RYZLIO2FSEYPTL3RMP6QK5HEWZZ4ENWBNIMY5ECKCIEXAKMRLSIXWRBXCBGR6GND25EYSI
+#\\\|BP5Z7MHWBDQ2LCONS7CL2TPQM3B4ZYQLQJGY4SQ3KXZMXVWW3AH \ / AMOS7 \ YOURUM ::
+#\[7]VYLTDQN47CSAOH5OUGPCHMW5PRUK2I6DP6LDUCT64EPEGZJRBWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
