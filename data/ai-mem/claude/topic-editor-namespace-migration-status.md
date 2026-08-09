@@ -1,6 +1,6 @@
 ---
 name: topic-editor-namespace-migration-status
-description: editor.* namespace migration -- design doc reviewed twice, step_0 and step_1 landed, step_2 (wire nshell to the new modules) is next
+description: editor.* namespace migration -- design doc reviewed twice, step_0/step_1/step_2 all landed and live-verified; nshell's live editing path now runs on editor.control.*
 metadata:
   type: project
 ---
@@ -36,15 +36,36 @@ the actual diff/test output, not just the auto-summary):
   correct by a parity test (`bin/test-scripts/test-editor-control-parity.pl`,
   334/334 checks) against the existing `AMOS7::TERM` behavior instead of
   live nshell verification, since nothing calls the new modules yet.
+- `step_2` (commit `47a2bf87e`): switched `nshell.editor.process` and its
+  supporting modules (render.viewport/cursor, ctrl_o handlers, history
+  navigation, search.handler, read_from_buffer — 13 files total) to call
+  `editor.control.*` directly, dropping the `AMOS7::TERM` indirection.
+  Object shape changed entirely (flat `{buffer,cursor_pos,...}` hash →
+  schema-based `{fields=>{command=>...}}`), so every remaining direct
+  hash-key touch had to be found, not just the old `AMOS7::TERM::editor_*`
+  call sites — including two lines in `nshell.read_from_buffer` step_0 had
+  correctly left alone (shape hadn't changed yet at that point), now
+  converted to `editor.control.reset`'s per-field mode specifically (not
+  `load_field`, which has different `kill_buffer`-clearing semantics).
+  Character-offset editor state crosses back to nshell's byte-oriented
+  terminal/history/execution paths via explicit `utf8::encode()` at each
+  boundary — necessary because `nshell.init_code` deliberately reverts
+  STDOUT/STDIN/STDERR to raw bytes (`binmode($ARG)` with no layer),
+  overriding `bin/Protocol-7`'s earlier `:encoding(UTF-8)` setup, verified
+  by reading both files directly rather than assuming. Required an
+  additional deployment fix beyond the code itself — see
+  [[reference-new-module-namespace-existing-zenka]] — caught live by a
+  real Up-arrow runtime error after first restart, fixed and confirmed
+  working. Verified independently: zero remaining `AMOS7::TERM::editor_*`
+  or raw editor-hash touches anywhere in `modules/nshell.*`, step_1's
+  parity test still 334/334, and live nshell exercise after restart.
 
-**Next**: `step_2` — switch `nshell.editor.process` to call
-`editor.control.process_key` directly (drop the `AMOS7::TERM` indirection),
-still single-field. This is the first step that touches nshell's live
-input path again, so it needs the same live-behavior verification rigor as
-step_0, not just a parity test. `step_3` (multiline field type) and
-`step_4` (multi-field schema) come after, only when a real consumer needs
-them — see the design doc's `migration_path` for the full sequencing and
-its explicit "don't build speculatively" guardrails.
+**Status: all three steps landed and live-verified.** `step_3` (multiline
+field type) and `step_4` (multi-field schema) remain, only when a real
+consumer needs them (chat-style input / a settings form) — see the design
+doc's `migration_path` for the full sequencing and its explicit "don't
+build speculatively" guardrails. Nothing currently blocks either; neither
+has a concrete consumer yet.
 
 Also separately tracked: `data/tasks/spdx-license-string-cleanup.md`
 ([[reference-spdx-marker-flags-suspect-session]]) flags that
@@ -54,8 +75,8 @@ eventually un-stub) are among the files from a prior low-quality session —
 treat their existing code as unverified scaffolding, not a design
 reference, until that cleanup task reviews them.
 
-#,,.,,,,,,,.,,.,.,,.,,.,,,,..,,,,,.,,,,..,,.,,..,,...,..,,.,.,,,,,,..,.,.,...,
-#4BZTYNR6UFZFXSO6INIYNBPY2AZZE5YIBPOAFA5MEVR7PP7GGMK7MBOGGAQJXTXQJL4XXUUY2P2GK
-#\\\|IDS3EOSQNBXQNDSQ3QCB4VRX5UXAXXN5GHVEWVJRMJLZ4TAWXZH \ / AMOS7 \ YOURUM ::
-#\[7]YSOYXOGFRUXY6PSPHWNPW3RR72Z26G4Q4SQZZXT4QC7AOZTB26CA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,...,...,.,.,.,.,,,.,,,.,.,.,..,,...,...,...,,.,,.,.,...,,,,,
+#6RJFSOPW3DBJHNUEINUF7AEJXDXNUTLYQJLLUCSVQYBKBJXRGJQEFD3WBETWUEFQJMQKYWR7ORFYC
+#\\\|CYDUGLKPN2GXC3BK2VBUX6YQR7JHKJEJLX4JAOYXNK232SMBM2U \ / AMOS7 \ YOURUM ::
+#\[7]OG3NQITHLOEWEFS5DF5ID7PNHSLEA46FWYHW464IHA775XW6FMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
