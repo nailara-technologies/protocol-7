@@ -96,7 +96,13 @@ my @external_tools = (
             . 'model=k3-256k for the same reasoning quality '
             . 'at ~1/2 the quota within a 256k ceiling (no '
             . 'video input), model=k2.7-fast for faster '
-            . 'turnaround at mid cost.',
+            . 'turnaround at mid cost. if this call is '
+            . 'reported as failed by the outer harness '
+            . 'after ~1800s of idle silence, the kimi '
+            . 'process usually keeps running — call '
+            . 'kimi_check_status(session_id) to poll '
+            . 'progress or recover the final result before '
+            . 'assuming the work was lost.',
         'command' => 'kimi-legacy -y --afk -p %s --model %s',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
@@ -131,7 +137,11 @@ my @external_tools = (
             . 'model=k3 (default) for complex reasoning, model=k3-256k '
             . 'for the same reasoning quality at ~1/2 the quota within a '
             . '256k ceiling (no video input), model=k2.7-fast for faster '
-            . 'turnaround at mid cost.',
+            . 'turnaround at mid cost. if this call is reported as '
+            . 'failed by the outer harness after ~1800s of idle silence, '
+            . 'the kimi process usually keeps running — call '
+            . 'kimi_check_status(session_id) to poll progress or recover '
+            . 'the final result before assuming the work was lost.',
         'command' => 'kimi-legacy -y --afk -r %s -p %s --model %s',
         'params'  => [
             [ 'session_id', 'the kimi session uuid from the resume line', 1 ],
@@ -158,6 +168,28 @@ my @external_tools = (
             ],
         ],
         'timeout' => 4620,    ## 77 minutes
+    },
+    {   'name'        => 'kimi_check_status',
+        'description' =>
+            'quick poll on a kimi session after a kimi_dispatch or '
+            . 'kimi_continue call was reported as failed by the outer '
+            . 'harness [ its ~1800s idle timeout fires long before the '
+            . '4620s tool timeout, while the underlying kimi process '
+            . 'keeps running ]. returns within seconds: status=running '
+            . 'with a tail of recent session log activity, or '
+            . 'status=completed with the final result recovered from the '
+            . 'session state on disk. always call this before assuming a '
+            . 'timed-out dispatch lost its work.',
+        'params' => [
+            [ 'session_id', 'the kimi session uuid from the resume line', 1 ],
+            [   'lines',
+                'number of recent session log lines to include '
+                    . 'when still running (default: 40, max: 200)',
+                0
+            ],
+        ],
+        ## no 'command' : routed by name to tool_kimi_check_status, ##
+        ## registration only — same pattern as coding_summarize     ##
     },
     {   'name'        => 'claude_dispatch',
         'description' =>
@@ -1116,6 +1148,8 @@ sub handle_tools_call {
         tool_p7_memory_search( $id, $args );
     } elsif ( $name eq 'p7_memory_digest' ) {
         tool_p7_memory_digest( $id, $args );
+    } elsif ( $name eq 'kimi_check_status' ) {
+        tool_kimi_check_status( $id, $args );
     } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
         tool_external_command( $id, $args, $ext );
     } else {
@@ -3719,6 +3753,145 @@ sub tool_external_command {
     send_tool_result( $id, $result, length($error) ? 1 : 0 );
 }
 
+## quick poll on a kimi session — the fast recovery path when the outer  ##
+## harness reports a kimi_dispatch / kimi_continue call as failed at its ##
+## ~1800s idle-silence watchdog while kimi-legacy keeps running. must    ##
+## return well under 1800s : no blocking waits here at all               ##
+sub tool_kimi_check_status {
+    my ( $id, $args ) = @ARG;
+
+    my $session_id = $args->{'session_id'} // '';
+    return send_tool_result( $id, 'session_id is required', 1 )
+        if not length $session_id;
+
+    my $max_lines = $args->{'lines'} // 40;
+    $max_lines = 200 if $max_lines > 200;
+    $max_lines = 1   if $max_lines < 1;
+
+    my $home     = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    my $log_file = "$home/.kimi/logs/kimi.log";
+
+    ## locate persisted session state : ~/.kimi/sessions/<hash>/<uuid>/ ##
+    my ($session_dir)
+        = grep { -d $ARG } glob("$home/.kimi/sessions/*/$session_id");
+    my $wire_file = defined $session_dir ? "$session_dir/wire.jsonl" : undef;
+
+    ## liveness, approach [a] : scan the process table — a resumed session  ##
+    ## carries its uuid in argv  [ kimi-legacy -y --afk -r <uuid> -p ... ]. ##
+    ## known false-positive window : an unrelated fresh dispatch whose      ##
+    ## prompt text mentions the uuid also matches — acceptable, it is still ##
+    ## a live kimi process referencing this session                         ##
+    my $running_pid = 0;
+    my $kimi_procs  = 0;
+    for my $proc_line (qx| ps -eo pid,args 2>/dev/null |) {
+        next unless index( $proc_line, 'kimi-legacy' ) >= 0;
+        $kimi_procs++;
+        if (    not $running_pid
+            and $proc_line =~ m{^\s*(\d+)\s}
+            and index( $proc_line, $session_id ) >= 0 ) {
+            $running_pid = $1;
+        }
+    }
+
+    ## unified activity corroboration : a live process alone is not proof   ##
+    ## of an active session — a lingering idle sh -c wrapper can outlive    ##
+    ## its completed turn by hours [ observed 2026-07-17 : zero cpu, idle   ##
+    ## 4h40m after the result had already landed ]. both the argv pid-      ##
+    ## match and the fresh-dispatch fallback below funnel through the same  ##
+    ## freshness gate : the session's own wire.jsonl must have been written ##
+    ## recently, and a trailing TurnEnd event means done regardless of      ##
+    ## process state                                                        ##
+    my $wire_age;
+    my $wire_fresh = 0;
+    my $turn_ended = 0;
+    if ( defined $wire_file and -f $wire_file ) {
+        $wire_age   = time - ( stat($wire_file) )[9];
+        $wire_fresh = $wire_age < 180 ? 1 : 0;
+        my $tail_cmd   = sprintf 'tail -n 1 %s', quotemeta($wire_file);
+        my $last_event = qx( $tail_cmd 2>/dev/null );
+        $turn_ended = 1
+            if index( $last_event // '', '"type": ' . '"TurnEnd"' ) >= 0;
+    }
+
+    ## fresh dispatches have no uuid in argv [ session created at runtime ] ##
+    ## : fall back to any live kimi-legacy process, still subject to the    ##
+    ## same freshness gate below                                            ##
+    my $running = 0;
+    $running = 1 if $running_pid;
+    $running = 1 if not $running and $kimi_procs and $wire_fresh;
+
+    ## the freshness gate itself : process alive but wire.jsonl stale or ##
+    ## turn already ended = lingering wrapper, not a working session     ##
+    my $stale_wrapper = 0;
+    if ( $running
+        and ( $turn_ended or ( defined $wire_age and not $wire_fresh ) ) ) {
+        $stale_wrapper = 1 if $running_pid;
+        $running       = 0;
+    }
+
+    my $resume_line = "To resume this session: kimi -r $session_id";
+
+    if ($running) {
+        ## still in progress : return recent session activity so the caller ##
+        ## can see what it is doing without waiting it out                  ##
+        my $log_tail = '';
+        if ( -f $log_file ) {
+            my $tail_cmd = sprintf 'grep -F -- %s %s | tail -n %d',
+                quotemeta($session_id), quotemeta($log_file), $max_lines;
+            $log_tail = qx( $tail_cmd 2>/dev/null );
+        }
+        my $header = sprintf 'status=running session=%s%s',
+            $session_id,
+            $running_pid ? " pid=$running_pid" : '';
+        $header .= sprintf ' wire_last_write=%ds_ago', $wire_age
+            if defined $wire_age;
+        my $output = "$header\nrecent activity [ last $max_lines "
+            . "lines ]:\n$log_tail\n$resume_line\n";
+        return send_tool_result( $id, $output, 0 );
+    }
+
+    return send_tool_result(
+        $id,
+        "status=unknown session=$session_id : no live process and "
+            . "no session state found under ~/.kimi/sessions/*/$session_id",
+        1
+    ) if not defined $session_dir;
+
+    ## process gone : recover the final result from the session's own    ##
+    ## persisted wire.jsonl — last ContentPart of payload type 'text' is ##
+    ## the closing assistant message of the completed turn               ##
+    my $final_text = '';
+    if ( defined $wire_file and -f $wire_file ) {
+        my $grep_cmd = sprintf
+            'grep -F %s %s | grep -F %s | tail -n 1',
+            quotemeta('"type": "ContentPart"'), quotemeta($wire_file),
+            quotemeta('"type": "text"');
+        my $last_text_line = qx( $grep_cmd 2>/dev/null );
+        if ( length $last_text_line ) {
+            ## qx under -C31 already utf8-decodes its output, but $json is ##
+            ## in ->utf8 mode and expects raw bytes on decode [ same as    ##
+            ## every other $json->decode() call in this file, which reads  ##
+            ## its source via '<:raw' filehandles ] — re-encode first      ##
+            my $event
+                = eval { $json->decode( encode( 'UTF-8', $last_text_line ) ) };
+            $final_text = $event->{'message'}{'payload'}{'text'} // ''
+                if not $EVAL_ERROR and ref $event eq 'HASH';
+        }
+    }
+
+    my $header = sprintf 'status=completed session=%s', $session_id;
+    $header .= sprintf ' wire_last_write=%ds_ago', $wire_age
+        if defined $wire_age;
+    $header .= ' note=stale_wrapper_process_ignored' if $stale_wrapper;
+    my $output
+        = length $final_text
+        ? "$header\n$final_text\n$resume_line\n"
+        : "$header\n[ no final assistant text found in wire.jsonl — session "
+        . "may have died mid-turn; resume to continue "
+        . "]\n$resume_line\n";
+    send_tool_result( $id, $output, 0 );
+}
+
 ## =========================================================================
 ## logging [ stderr only — stdout is mcp protocol ]
 ## =========================================================================
@@ -3729,8 +3902,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,.,,,,,.,,..,,..,,,,,,,.,.,.,.,.,.,,,,,,,..,,...,...,.,.,..,,,,.,.,.,,,.,
-#2KMSVLCXIF4WAVTBGG2SKSLTNCF47DEDI6K5R6MSW23DQEFDNEEIIWV5WEKY2GOSJN6O6L552M6VK
-#\\\|DJX3COMNGEY426VUGNZ66ETGBXSKTDSY3EWRMS2T72WLP2WFEWA \ / AMOS7 \ YOURUM ::
-#\[7]QSCVZR7LPOSPCT4RW5R4YBHE2MOEASOAYUE5SHTRHLRVGPQLE2CQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,,.,,,.,,,,,,.,,,.,,,,,.,.,.,..,,...,...,,,.,...,..,,,..,,,.,
+#66MBWZ65YKS7Z2AFGWN23OZ35VAYWVDX4JYDBOA4QCP3NGITI3RPZV6Z3GQER46GD5XLXF7FCW45G
+#\\\|5JVFYB4SAFP5D3J3B5Y7XOPMQGP3UKP4EEBKCP2IVALYOEDWKYO \ / AMOS7 \ YOURUM ::
+#\[7]IGT3BOUORMK24TS5OVE6P6VEBE4JNXGDN5PNEB3ORLJF6JMFVODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
