@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = editor.buffer.memory.insert
+# descr = insert text at CHARACTER position in in-memory editor buffer
+
+## $position in CHARACTERS [ design: position_units ]. text inserted at or
+## before the cursor pushes the cursor right [ standard editing semantics ].
+
+my ( $buffer, $position, $text ) = @ARG;
+
+return undef if ref $buffer ne qw| HASH |;
+return undef if $buffer->{'readonly'};
+$text //= '';
+return TRUE if not length $text;
+
+utf8::decode($text) if not utf8::is_utf8($text);
+
+my $buf_len = length $buffer->{'text'};
+$position //= $buffer->{'cursor'};
+$position = 0        if $position < 0;
+$position = $buf_len if $position > $buf_len;
+
+substr( $buffer->{'text'}, $position, 0, $text );
+
+$buffer->{'cursor'} += length($text) if $buffer->{'cursor'} >= $position;
+
+return TRUE;
+
+#,,,.,,,,,..,,,,.,,,.,...,,..,.,,,.,,,,..,...,..,,...,...,,,.,,..,,..,,,.,..,,
+#AOPGX5ARFGZRWD3A2VPD3CG2YRS7SRVKQIHSUDSDIMITKUI2NMUNFMNE5WP6R72KHI6MO6OD3JSVC
+#\\\|XUSHLIJ6XQQ54V4R4WPWFQIG7VUNT24JSWDMSMRMMDG6W4FXFIR \ / AMOS7 \ YOURUM ::
+#\[7]KDD2PKNMMUFVTQCWD6KCI5WR44PHBUT3YP3VKIRGJMFP36IHSCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

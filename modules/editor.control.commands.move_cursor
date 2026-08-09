@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = editor.control.commands.move_cursor
+# descr = move a field's cursor by a CHARACTER delta, clamped to buffer
+
+my ( $editor_state, $field, $delta ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+my $buffer = $editor_state->{'fields'}{$field} // return undef;
+$delta //= 0;
+
+my $new_pos = $buffer->{'cursor'} + $delta;
+$new_pos = 0 if $new_pos < 0;
+my $buf_len = <[editor.buffer.memory.length]>->($buffer);
+$new_pos = $buf_len if $new_pos > $buf_len;
+
+$buffer->{'cursor'} = $new_pos;
+
+return $new_pos;
+
+#,,,,,...,,.,,,..,.,.,,..,...,...,.,,,.,.,,,.,..,,...,..,,...,.,.,,.,,.,.,,,.,
+#L3OC6YXXDUMWCC7S6XFMF2YIDQCWRGI6S6GHJXHG36JDFU3BH3WMRPVJIDFHQQ6YYO7Q5GQPYNCAA
+#\\\|VGQHJBC53QADV5HKMLPGQPWB3J4SNCAVD7R2V2LTVOXCUXFYEM5 \ / AMOS7 \ YOURUM ::
+#\[7]FLZ6GIZWFOC2ZKZR5HBCIK46DBUQ3I4K4NSQGP3QGVGQKNE7PCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

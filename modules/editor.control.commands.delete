@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = editor.control.commands.delete
+# descr = delete CHARACTER range [start,end) from a field buffer
+
+my ( $editor_state, $field, $start, $end ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+my $buffer = $editor_state->{'fields'}{$field} // return undef;
+
+return <[editor.buffer.memory.delete]>->( $buffer, $start, $end );
+
+#,,,.,...,..,,,.,,,,.,,,.,...,...,,,,,...,..,,..,,...,...,.,.,,,.,,.,,..,,..,,
+#NH6NM3H7GC6KP4B6UKTKE7N6YVPNGDEVU33YNJU2RP5ICLAIXZWUWBEV5WU4V34ECAYH6XD5J4OE4
+#\\\|FCTBENTLOELTWRKFKRLXGIYUJ3TF6EOP2C7NAAB5V5NDVMCRJP7 \ / AMOS7 \ YOURUM ::
+#\[7]YOJXK5RGZDUA2FKE564RBWOLBHH5JD65MC6T2FQI5DMWORJURCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

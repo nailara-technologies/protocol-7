@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = editor.control.reset
+# descr = reset field(s) to schema defaults ; undef field = all fields
+
+## per-field reset clears that field's text/cursor only.  full reset [ $field
+## undef ] additionally clears the kill buffer and returns to insert mode [
+## matches AMOS7::TERM::editor_reset semantics ].
+
+my ( $editor_state, $field ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+
+my @names
+    = defined $field
+    ? ($field)
+    : map { $ARG->{'name'} } $editor_state->{'schema'}{'fields'}->@*;
+
+foreach my $name (@names) {
+    my $buffer = $editor_state->{'fields'}{$name} // next;
+    my ($field_def)
+        = grep { $ARG->{'name'} eq $name }
+        $editor_state->{'schema'}{'fields'}->@*;
+    <[editor.buffer.memory.load]>->( $buffer, $field_def->{'default'} // '' );
+    $buffer->{'cursor'} = 0;
+}
+
+if ( not defined $field ) {
+    $editor_state->{'kill_buffer'} = '';
+    $editor_state->{'mode'}        = 'insert';
+}
+
+return TRUE;
+
+#,,.,,.,.,.,,,.,.,.,.,.,,,.,,,..,,,,,,.,,,.,,,..,,...,..,,,,,,,.,,,,,,.,,,...,
+#TNMKXOQ2ETIEGHDFLK2KUUOUGMBNMNO7Y4CEXC6T6GBKJTBU6GQZBQX5EXQE3V4RK2BXBHTZTEK4K
+#\\\|4TIAPFC4QNHXGC22SG6X3RHNV4OSS2YHQILLRCTN7I6B6AOZ6LA \ / AMOS7 \ YOURUM ::
+#\[7]BAUQYH3TWB5XHGKMZQ2ETFRLMYYWVCCKFDTROA67SDWHTYPI7IAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

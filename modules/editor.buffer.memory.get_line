@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = editor.buffer.memory.get_line
+# descr = fetch one line from in-memory editor buffer
+
+## single-line field types [ freeform_line ]: line 0 only ##
+
+my ( $buffer, $line_num ) = @ARG;
+
+return undef if ref $buffer ne qw| HASH |;
+$line_num //= 0;
+return undef if $line_num != 0;
+
+return $buffer->{'text'};
+
+#,,.,,,,,,,,,,,..,.,,,,,,,...,..,,.,,,,.,,,,,,..,,...,.,.,,..,,,,,..,,,,.,.,,,
+#MHAGMV62ZNILGM5KUKECP6SS2Q7DQUWJLY3SQHJ6ABJVYE7ODFWM3CZG6KCAJRQI7OFLREDGW5LBW
+#\\\|6SECYFQZKOMG3L6LUL4AMOFSYJPV763KZTZ6HLBDESQWA2TKJLT \ / AMOS7 \ YOURUM ::
+#\[7]QSKQBKGKB7FX3XYI354VS32YPNDL5ESM3HI6ZLQ7VM6UBVAPTOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

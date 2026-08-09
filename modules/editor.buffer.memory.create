@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = editor.buffer.memory.create
+# descr = create in-memory text buffer for one editor field
+
+## buffer contract [ design: editor.buffer.* ] backed by a single decoded perl
+## string. ALL offsets crossing this boundary are CHARACTER offsets [ design:
+## position_units ] ; utf-8 byte handling is internal here.
+
+my $field_def = shift // {};
+
+return undef if ref $field_def ne qw| HASH |;
+
+my $text = $field_def->{'default'} // '';
+## ensure decoded text, not byte soup [ design: position_units note ] ##
+utf8::decode($text) if length $text and not utf8::is_utf8($text);
+
+return {
+    'text'     => $text,
+    'cursor'   => 0,       ## cursor in CHARACTERS, memory-adapter-owned state
+    'type'     => $field_def->{'type'}     // 'freeform_line',
+    'readonly' => $field_def->{'readonly'} // FALSE,
+};
+
+#,,,,,,,.,.,.,,..,,..,,,,,,,.,.,.,.,.,..,,.,.,..,,...,...,,.,,,,,,,,.,...,,..,
+#KM677QKLJR4SMHAAB4IUMD5BKDKRQWKSYRZQ5GLTWEVOPOVUKUGVXMIB5RLRMXUK2P34RDWY5BZVA
+#\\\|XOFFUU7KPDKGOKVVPRVKHNJFYM4GZRLE24S2APWS5EWZ6AMPOGX \ / AMOS7 \ YOURUM ::
+#\[7]RZO2HQ2UZOB3EKMRVQRJEPYNA5VHA4YRNG2ZZJNHQ774WCLS6SCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

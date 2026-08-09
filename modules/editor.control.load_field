@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = editor.control.load_field
+# descr = externally rewrite a field's text + cursor [ history/search/etc ]
+
+## $cursor : 'end' [ default, matches AMOS7::TERM::editor_load ] | 'start' |
+## integer CHARACTER offset  like editor_load, external rewrite clears the
+## kill buffer.
+
+my ( $editor_state, $field, $text, $cursor ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+my $buffer = $editor_state->{'fields'}{$field} // return undef;
+return undef if $buffer->{'readonly'};
+
+<[editor.buffer.memory.load]>->( $buffer, $text );
+
+my $buf_len = <[editor.buffer.memory.length]>->($buffer);
+$cursor //= 'end';
+if ( $cursor eq qw| start | ) {
+    $buffer->{'cursor'} = 0;
+} elsif ( $cursor eq qw| end | ) {
+    $buffer->{'cursor'} = $buf_len;
+} else {
+    $buffer->{'cursor'}
+        = $cursor < 0        ? 0
+        : $cursor > $buf_len ? $buf_len
+        :                      $cursor;
+}
+
+$editor_state->{'kill_buffer'} = '';
+
+return TRUE;
+
+#,,.,,,.,,.,.,..,,,.,,,,,,.,,,,.,,..,,,..,,,.,..,,...,...,,.,,,,,,.,.,,.,,.,.,
+#7TXQDTQRWEM3434VNQ4KHGUUVT2C4ZPDSP7ZW6MZ7DWO23HCIDYTICM2BTVIOJSJ3S4TW6ESOTNMO
+#\\\|HRSWLU3K5Y23ITWXAPDBG5TJVAAWR254UGUW2GZWW52PUR7FD7Y \ / AMOS7 \ YOURUM ::
+#\[7]YTP7TW54NMWEYVG6HI7BFIMRR25WFUIIUZDKLCTX2AEXCY45XMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

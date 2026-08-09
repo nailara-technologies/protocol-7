@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = editor.control.create
+# descr = create editor state from a field schema
+
+## $editor_state shape per design doc editor.control.create :
+##   { schema, fields => { $name => $buffer_ref }, active_field, mode }
+## only the freeform_line field type has a real implementation ;
+## enum/masked/readonly/freeform_multiline stay interface-only for now.
+
+my $schema = shift;
+
+return undef if ref $schema ne qw| HASH |;
+return undef
+    if ref $schema->{'fields'} ne qw| ARRAY |
+    or not $schema->{'fields'}->@*;
+
+my %fields;
+foreach my $field_def ( $schema->{'fields'}->@* ) {
+    return undef if ref $field_def ne qw| HASH |;
+    my $name = $field_def->{'name'} // return undef;
+    my $type = $field_def->{'type'} // qw| freeform_line |;
+    return undef if $type ne qw| freeform_line |;    ## only type implemented
+    $fields{$name} = <[editor.buffer.memory.create]>->($field_def);
+    return undef if not defined $fields{$name};
+}
+
+return {
+    'schema'       => $schema,
+    'fields'       => \%fields,
+    'active_field' => $schema->{'active_field'} // 0,
+    'mode'         => 'insert',
+    ## provisional single-field placement ; pending the design doc's open
+    ## multi-field kill-ring question [ per-field vs shared ring ]
+    'kill_buffer' => '',
+};
+
+#,,.,,.,.,...,,,,,.,.,...,,,.,.,.,..,,..,,...,..,,...,...,,..,,..,..,,,,.,.,,,
+#KA5V2ELPUPYM2BFRXRQMMSXFPDKJK5MFT7B5L6Q6DTXJRLLRDCSZYEQDL7J57QPGBCXAJMGNOYXVC
+#\\\|CAXUJ4SS66ZCUDPO6S5TKLUR2TZ2MP4225GV3UIEV2IWF5LDQ6G \ / AMOS7 \ YOURUM ::
+#\[7]7DPQ6UJPPX46SNDCTAN33A6E5VHXHNVBYXV7GU3K26LGPID5BIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
