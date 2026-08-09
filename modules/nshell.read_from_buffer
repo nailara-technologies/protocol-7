@@ -25,15 +25,18 @@ $main::data{'nshell'}{'edit_state'} = {
 if ($show_cursor_on_call) {
     $show_cursor_on_call = FALSE;
 
-    $state_ref->{'editor'} //= AMOS7::TERM::editor_init();
+    $state_ref->{'editor'}
+        //= <[editor.control.create]>->(<[nshell.editor.default_schema]>);
     AMOS7::TERM::cursor_set_color( $colors{'p7_fg_0003'} );
 
     ## [ check if we need to display a preloaded entry from ctrl+o cycle ]
     if ( $state_ref->{'display_preloaded_entry'} ) {
         $state_ref->{'display_preloaded_entry'} = FALSE;
         ## [ display the preloaded buffer with cursor ]
-        my $buffer = AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} )
-            // '';
+        my $buffer = <[editor.control.get_value]>->(
+            $state_ref->{'editor'}, 'command'
+        ) // '';
+        utf8::encode($buffer);    ## char state -> byte view for the log
         if (<nshell.mode.no_tty_debug>) {
             <[base.logs]>->(
                 2,       "[ preload display: buffer='%s' color_0004='%s' ]",
@@ -104,7 +107,8 @@ if ( <nshell.mode.no_tty_debug> && length <nshell.buffer.debug_input> ) {
     }
 }
 
-$state_ref->{'editor'} //= AMOS7::TERM::editor_init();
+$state_ref->{'editor'}
+    //= <[editor.control.create]>->(<[nshell.editor.default_schema]>);
 
 ## Process all buffered characters
 while ( length $input_chars ) {
@@ -154,13 +158,17 @@ while ( length $input_chars ) {
             next;
         } elsif ( $result == 2 ) {
             ## Selected command - return it for execution
-            my $selected
-                = AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} )
-                // '';
+            my $selected = <[editor.control.get_value]>->(
+                $state_ref->{'editor'}, 'command'
+            ) // '';
+            ## returned command crosses back into the byte world [ execution ]
+            ## — same bytes as the old path
+            utf8::encode($selected);
 
-            ## Clear editor buffer for next command
-            $state_ref->{'editor'}->{buffer}     = '';
-            $state_ref->{'editor'}->{cursor_pos} = 0;
+            ## Clear editor buffer for next command  [ per-field reset: clears
+            ## text/cursor but NOT kill_buffer, matching the two old direct
+            ## writes exactly ]
+            <[editor.control.reset]>->( $state_ref->{'editor'}, 'command' );
 
             ## Set flag to redraw cursor on next call after reply arrives
             $show_cursor_on_call = TRUE;
@@ -258,8 +266,11 @@ while ( length $input_chars ) {
             $state_ref->{'search_mode'}  = TRUE;
             $state_ref->{'current_mode'} = 1;      # SEARCHING
             $state_ref->{'pre_search_buffer'}
-                = AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} )
-                // '';
+                = <[editor.control.get_value]>->(
+                $state_ref->{'editor'}, 'command'
+                ) // '';
+            ## kept character-based: only ever round-trips back into the
+            ## editor via load_field on search exit, never printed
             $state_ref->{'search_term'}    = '';
             $state_ref->{'search_results'} = [];
             $state_ref->{'search_index'}   = 0;
@@ -343,8 +354,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,,,,,,.,,,,.,...,,..,.,,,,,,,..,,,,,,,,,,.,.,...,...,...,,,.,,.,,,,.,,,,,
-#AMAOEECBWRKOOOUQCQWYYXPOHTHGOUVCEO6VTU33JDDBR6WA3C4U524GPHORVNK75PB2TL4SBYMP2
-#\\\|RNUDT43TJU7XW4NMOM52PJBIB75JUVUJYOAHDI2M7A2NT5XX6BY \ / AMOS7 \ YOURUM ::
-#\[7]IQLWNP7Q3447AH4VF5CXO7CYNT43WJWTXBPAL7A36KFFW4TBHADA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,,,,,.,.,,,.,..,,,.,,,,,,,,.,.,.,...,...,.,.,.,.,,,.,..,,...,
+#OPGIHEXDWCLG4MTGLHDYDTIGZQRGIVZ4GKCJXALZ2NBFTYDDMW5NZNFLPPLTD25YT7GFT7G5MOLKS
+#\\\|FL2MWCRKAMOXWWOWFDTYFWFRF2UWYG4EKGV5P5YWJN57JWMEUGS \ / AMOS7 \ YOURUM ::
+#\[7]TMMYC5NTVZN2Z7RRC2BY2M2FOQLPTVM2RSRA3ZWD5XWVD4ZIKACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

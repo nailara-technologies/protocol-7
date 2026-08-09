@@ -6,7 +6,7 @@
 my ( $state_ref, $key, $input_chars_ref, $editor, $colors ) = @ARG;
 
 ## Helper to display search prompt and current match, color varies based on
-##                    add-to-history mode: green when adding, blue when not
+## add-to-history mode: green when adding, blue when not
 my $display_search = sub {    ### <-- extract subroutine [LLL]
     my ($term) = @ARG;
     my $prompt_color = $state_ref->{'search_add_to_history'}
@@ -128,7 +128,7 @@ if ( $key eq "\x0f" ) {    # Ctrl+O
         $state_ref->{'ctrl_o_previous_cycle_count'}   = 0;
 
         ## Load selected command into editor for execution
-        AMOS7::TERM::editor_load( $editor, $selected );
+        <[editor.control.load_field]>->( $editor, 'command', $selected );
 
         ## print command for execution [ truncate to terminal width ]
         my $tw = $data{'nshell'}{'cfg'}{'term_cols'}
@@ -151,8 +151,8 @@ if ( $key eq "\x0f" ) {    # Ctrl+O
 
 ## Exit search mode (Ctrl+C or Esc)
 if ( $key eq "\x03" or $key eq "\e" ) {
-    ## if there's a valid search result, load it;
-    ## otherwise restore original buffer
+    ## if there's a valid search result, load it;  otherwise restore original
+    ## buffer
     my $exit_buffer;
 
     if (   $state_ref->{'search_results'}->@*
@@ -188,7 +188,7 @@ if ( $key eq "\x03" or $key eq "\e" ) {
     $state_ref->{'search_add_to_history'}  = 1;    # TRUE - reset to default
     $state_ref->{'current_mode'}           = 0;    # NORMAL
 
-    AMOS7::TERM::editor_load( $editor, $exit_buffer );
+    <[editor.control.load_field]>->( $editor, 'command', $exit_buffer );
     $state_ref->{'display_buffer'} = $colors{'p7_fg_0004'} . $exit_buffer;
 
     ## redraw with viewport [ handles overflow for long commands ]
@@ -234,9 +234,9 @@ if ( $key eq "\r" or $key eq "\n" ) {
         $state_ref->{'search_add_to_history'}  = 1;  # TRUE - reset to default
         $state_ref->{'current_mode'}           = 0;  # NORMAL
 
-        AMOS7::TERM::editor_load( $editor, $selected );
-        ## clear search prompt and display selected command
-        ## [ truncate to terminal width ]
+        <[editor.control.load_field]>->( $editor, 'command', $selected );
+        ## clear search prompt and display selected command  [ truncate to
+        ## terminal width ]
         my $tw = $data{'nshell'}{'cfg'}{'term_cols'}
             // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
         my $disp = $selected;
@@ -422,8 +422,8 @@ $display_search->( $state_ref->{'search_term'} );
 
 return 0;    ## Continue in search mode
 
-#,,..,,..,,,.,,.,,,.,,.,.,,,,,...,,,,,..,,.,.,.,.,...,..,,,..,..,,..,,.,.,,..,
-#WB72JBVIHCDDUY3SIH2VNJ4NSLDXCMUYQ3GZTPR62RB5PNF34OTLURXF76SY3P65BG272BRTPFFIY
-#\\\|BT7P3TG6CIBVQDT7STE5VUCZPTE3DEHIJMSNJQCAVDSATLIHONP \ / AMOS7 \ YOURUM ::
-#\[7]T2KECGDD4VP7U6SOCOQZ7X5FKMOTD2P7E4SSKLD3PHISP6P4UICQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,,,.,..,,,,.,...,,,.,,,,,,.,,.,.,...,...,.,.,,..,..,,...,...,
+#CRKT6HJMG7ECLS325P35Z72J5QR7PGU2KDYPA53VQEW5PRNTLRYC2ACENAGM6WI3UEW5HOFRCJ4WG
+#\\\|HO7WZCA3G25VMRZ2AX4CEZHHB5JBSAPAU6LHL5GSIYFSTYE3MM3 \ / AMOS7 \ YOURUM ::
+#\[7]F5IC2VDNWITV5XUVKWKAUCSEOZDLJCROVPRSYU3I6IHNBYUUFABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -247,7 +247,9 @@ $log_debug_event->(
         'debug_buf_len=%d, editor_buf="%s", editor_defined=%d, mode=%d',
         length( <nshell.buffer.debug_input> // '' ),
         substr(
-            ( AMOS7::TERM::editor_get_buffer($diag_editor) // '' ),
+            (   <[editor.control.get_value]>->( $diag_editor, 'command' )
+                    // ''
+            ),
             0, 40
         ),
         ( defined $diag_editor ? 1 : 0 ),
@@ -267,7 +269,9 @@ $log_debug_event->(
             . 'editor_defined=%d, mode=%d, hist_idx=%d',
         length( <nshell.buffer.debug_input> // '' ),
         substr(
-            ( AMOS7::TERM::editor_get_buffer($diag_editor) // '' ),
+            (   <[editor.control.get_value]>->( $diag_editor, 'command' )
+                    // ''
+            ),
             0, 40
         ),
         ( defined $diag_editor ? 1 : 0 ),
@@ -307,7 +311,9 @@ $log_debug_event->(
         $iteration,
         length( <nshell.buffer.debug_input> // '' ),
         substr(
-            ( AMOS7::TERM::editor_get_buffer($diag_editor) // '' ),
+            (   <[editor.control.get_value]>->( $diag_editor, 'command' )
+                    // ''
+            ),
             0, 40
         ),
         ( defined $diag_editor ? 1 : 0 ),
@@ -320,11 +326,12 @@ STATUS_SECTION:
 
 ### [ read current nshell state ]
 ##
-my $nshell_state  = <nshell.state>                           // {};
-my $editor        = $nshell_state->{'editor'}                // {};
-my $editor_buffer = AMOS7::TERM::editor_get_buffer($editor)  // '';
-my $nav_mode      = $nshell_state->{'current_mode'}          // 0;
-my $hist_idx      = $nshell_state->{'current_history_index'} // -1;
+my $nshell_state  = <nshell.state>            // {};
+my $editor        = $nshell_state->{'editor'} // {};
+my $editor_buffer = <[editor.control.get_value]>->( $editor, 'command' )
+    // '';
+my $nav_mode = $nshell_state->{'current_mode'}          // 0;
+my $hist_idx = $nshell_state->{'current_history_index'} // -1;
 
 my $mode_name = 'UNKNOWN';
 if ( exists $nshell_state->{'mode_names'}
@@ -397,8 +404,8 @@ my $state_transition_reply = sprintf(
 
 return { 'mode' => qw| size |, 'data' => $state_transition_reply }
 
-#,,..,..,,,,,,,.,,,,.,...,,,.,...,,,.,...,,.,,..,,...,...,.,.,,,,,.,.,,..,..,,
-#TNV6EWYBPFVTU3RNHWVNZTZV3QBQQVASOAR42HXDGYSRTUQNNUHULBRN2PFSNSYFEGLEKAYGIH5LK
-#\\\|5PHQTBGDTNV7TFB3C6E7VQSBBP4XNXVTKPKOE7XWM4L4RE5BTY4 \ / AMOS7 \ YOURUM ::
-#\[7]ZJTXIAFLH2UAZJKIP3C6WFMWV3IKHWE4FLYTN2NHQ3HZW2FJPCAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,...,,..,,,,,,.,,.,.,...,...,..,,...,...,...,,.,,.,.,...,.,.,
+#ZH5OIA6GVHRKKB43JAXSINRETW7EGCR4LAZBLIC63R4I45Y2WHHG4L65EKBXRWXUEVBNQ7IHF3ZCA
+#\\\|CLSZ5IJ6OKPRVUG43BDR6D4RQ6IPXIKHUDOBBHGWCMZBJXIYSOQ \ / AMOS7 \ YOURUM ::
+#\[7]DO5M36Y7AXH2USNECDJBIIFI5YRWFNYLOMJDNXN43EJTLPPHG4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

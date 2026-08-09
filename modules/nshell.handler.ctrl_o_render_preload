@@ -11,8 +11,9 @@ my $state_ref = <nshell.state> // {};
 return if not $state_ref->{'display_preloaded_entry'};
 $state_ref->{'display_preloaded_entry'} = FALSE;
 
-my $editor = $state_ref->{'editor'}                  // return;
-my $buffer = AMOS7::TERM::editor_get_buffer($editor) // '';
+my $editor = $state_ref->{'editor'}                               // return;
+my $buffer = <[editor.control.get_value]>->( $editor, 'command' ) // '';
+utf8::encode($buffer);    ## char state -> byte view for the log below
 
 return unless length $buffer;
 
@@ -31,8 +32,8 @@ if (<nshell.mode.no_tty_debug>) {
 
 return;
 
-#,,.,,,,,,,.,,.,.,,.,,,,,,,.,,,,.,.,.,...,.,,,..,,...,...,..,,,,.,.,.,.,,,...,
-#6TH5IETVDCX2CNCVUGXP42YNXIXUOZO6EJSV5J5TGLJKGYSJCQN22SIRJWTL5BLH2GHP36YTVRV7C
-#\\\|5ABPMHUUPIBUT2AHPXHZWWTQHAFRPJTFUBLDEYIZDVA5NWS2IFL \ / AMOS7 \ YOURUM ::
-#\[7]6MVTEMJVSEL3K3AVOQMT6JW3P5EUS3VLF76NVHQRDSQSPLJAUMCY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,,..,.,.,,,.,..,,.,.,.,.,..,,..,,...,...,,,,,.,.,...,,,,,..,,
+#77VSLCADQA56E24D2A6L47MXBT6QGPHLNMLFMDIX3AVREJPFENAP2OPNFIRWTN7LYDGH4JFKHHZHE
+#\\\|ASOHS6MZKEDST5KCEJVSTS7JRTHHTJN7ZZUWXJBVVKQVYSNMGX4 \ / AMOS7 \ YOURUM ::
+#\[7]ZV4PESUFW5GFHGIRLNM6TPQKXMKR6EJCXXMLDLXXYH7ZK6GMTYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

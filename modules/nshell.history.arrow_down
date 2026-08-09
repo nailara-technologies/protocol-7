@@ -47,8 +47,8 @@ if ( $state_ref->{'current_history_index'} >= 0 ) {
     return;
 }
 
-## clear current line before showing new one
-## [ \e[2K avoids wrap on long lines ]
+## clear current line before showing new one  [ \e[2K avoids wrap on long
+## lines ]
 print "\r\e[2K";
 
 $state_ref->{'display_buffer'} = join "\n", $lines_ref->@*;
@@ -63,7 +63,9 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
 }
 
 ## Load into editor to sync editor buffer
-AMOS7::TERM::editor_load( $editor, $state_ref->{'display_buffer'} );
+<[editor.control.load_field]>->(
+    $editor, 'command', $state_ref->{'display_buffer'}
+);
 
 my $display_buffer = $colors{'p7_fg_0004'} . $state_ref->{'display_buffer'};
 
@@ -75,8 +77,8 @@ $state_ref->{'current_mode'} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,,.,,,,,...,,,,,..,,,,.,.,.,...,,,,,,,,,.,,,.,.,...,...,,,,,,..,,.,,.,.,,..,
-#OY4VREIYIBMSRIDUAW2KGDCPFN25E3KORLEAVZVKOSZK4VQBD37B6W3GNSTCARZV7MOVGWXEYB322
-#\\\|Q7XZRI7UAN2D3IIH2JQVJSJRX5N6OYG3RDBDI56QO4AZHRBTFEV \ / AMOS7 \ YOURUM ::
-#\[7]CAI64V6KBOFNPX6XTDL6UJ3IFRPIIJ76OYVYPZHJCONR556MI6AA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,,,,,,.,,,,.,,,.,..,,,..,,..,.,.,...,..,,..,,,..,,..,..,,,,,,
+#F2XMJ27CLEHYC7ANNQRVA7G3654B6JOWHMZCRXE7BEI3HOR3CWIMLAFGFSUPNT6ECHNIOVRU7NNEY
+#\\\|RGXGSJFJMPBGZ6WDTH4ATR6W5GYIMCMIZPQHLBBQYZ66RQLI35T \ / AMOS7 \ YOURUM ::
+#\[7]45MAQDM2FQJL35UVST7ERSQJZHWQKMKSL4QZ5E5KJ5EINW6YX6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
