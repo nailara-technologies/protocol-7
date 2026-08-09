@@ -1206,6 +1206,7 @@ return [ qw[
         ffmpeg.extract_frame
         feline.teleportation
         events.set_up_timers
+        editor.control.reset
         discover.send_packet
         devmod.cmd.test-strm
         devmod.cmd.list-subs
@@ -1437,6 +1438,8 @@ return [ qw[
         format.json.init_code
         filter.cmd.del_filter
         filter.cmd.add_filter
+        editor.control.submit
+        editor.control.create
         download.util.resolve
         download.cmd.get_file
         data.mount.shm.unlink
@@ -2229,6 +2232,7 @@ return [ qw[
         ffmpeg.cmd.rescale_video
         events.cmd.trigger_event
         event.anyevent.init_code
+        editor.control.get_value
         download.util.read_hosts
         discover.mcast.init_code
         devmod.cmd.unload-unsafe
@@ -2481,6 +2485,10 @@ return [ qw[
         forensics.report.assemble
         fetch-files.cmd.hf-status
         fetch-files.cmd.hf-search
+        editor.control.load_field
+        editor.control.get_cursor
+        editor.buffer.memory.save
+        editor.buffer.memory.load
         download.cmd.get_mimetype
         discover.log_mcast_packet
         discover.cmd.list-orbital
@@ -2722,6 +2730,7 @@ return [ qw[
         graphics-matrix.cell.place
         ext-pkg.cmd.package-ensure
         events.set-up.import_rules
+        editor.control.process_key
         discover.orbital.init_code
         decoder.cmd.show-indexcube
         decoder.cmd.show-d13-types
@@ -2941,6 +2950,7 @@ return [ qw[
         jobsite.handler.repair-done
         jobsite.handler.fetch-drain
         jobsite.handler.assess-done
+        jobsite.cmd.unmark-exported
         jobsite.cmd.set-export-time
         jobsite.cmd.import-url-http
         jobsite.cmd.blacklist-stats
@@ -2968,6 +2978,10 @@ return [ qw[
         fetch.file.huggingface.list
         fetch-files.cmd.hf-download
         external.cmd.orbital-status
+        editor.buffer.memory.length
+        editor.buffer.memory.insert
+        editor.buffer.memory.delete
+        editor.buffer.memory.create
         discover.init_packet_buffer
         discover.cmd.show-temp-echo
         discover.cmd.inject-orbital
@@ -3139,6 +3153,7 @@ return [ qw[
         reasoning.branch.stuck_score
         protocol.protocol-7.pre_init
         protocol.amos_term.init_code
+        protocol-7-menu.dialog-types
         povray.handler.render_output
         plugin.web.space.cmd.context
         plugin.web.auth.session.read
@@ -3159,6 +3174,7 @@ return [ qw[
         p7-log.anon.cmd.resolve-line
         osd-logo.set-up.import_rules
         nshell.handler.command_reply
+        nshell.editor.default_schema
         ncode.util.file_to_namespace
         mpv.startup.resolve_x11_info
         mpv.startup.request_geometry
@@ -3219,6 +3235,7 @@ return [ qw[
         fetch-files.cmd.hf-lan-check
         external.orbital.push_update
         external.cmd.connect-orbital
+        editor.control.active_buffer
         download.set-up.import_rules
         download.set-up.export_rules
         discover.process_host_packet
@@ -3442,6 +3459,8 @@ return [ qw[
         fetch.file.huggingface.status
         fetch.file.huggingface.search
         external.cmd.list-connections
+        editor.buffer.memory.get_text
+        editor.buffer.memory.get_line
         discover.orbital.store_remote
         discover.load_resend_requests
         discover.cmd.resend-awareness
@@ -3677,6 +3696,8 @@ return [ qw[
         events.handler.event_triggered
         events.cmd.get_playlist_hidden
         events.callback.object.weekday
+        editor.control.commands.insert
+        editor.control.commands.delete
         discover.check_packet_timeouts
         devmod.cmd.decode-harmonic-ref
         data.topology.interference.map
@@ -3978,6 +3999,7 @@ return [ qw[
         reenc-msg.handler.shutdown_timer
         protocol-7-menu.load-action-keys
         protocol-7-menu.example-provider
+        protocol-7-menu.cmd.input-choice
         plugin.web.space.index.init_code
         plugin.storage.checksum.map-file
         plan-9.protocol.codec.encode-qid
@@ -4129,6 +4151,7 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.exit
         protocol-7-menu.structure-changed
         protocol-7-menu.provider-register
+        protocol-7-menu.dialog-input-text
         protocol-7-menu.cmd.test-provider
         powershell.handler.pointer-stream
         powershell.cmd.screenshot-capture
@@ -4412,6 +4435,8 @@ return [ qw[
         protocol-7-menu.graphical-menu-init
         protocol-7-menu.graphical-main-loop
         protocol-7-menu.graphical-init-lazy
+        protocol-7-menu.dialog-notification
+        protocol-7-menu.dialog-input-choice
         protocol-7-menu.cmd.provider-status
         protocol-7-menu.cmd.get-action-keys
         protocol-7-menu.cmd.debug-structure
@@ -4471,6 +4496,7 @@ return [ qw[
         graphics-matrix.cmd.harmonic-coords
         graphics-3d.handler.cursor_navigate
         external.orbital.sync_grid_fragment
+        editor.control.commands.move_cursor
         credentials.handler.session_cleanup
         cred-mesh.ui.render.registry_detail
         context.util.template.evaluate_when
@@ -4631,6 +4657,7 @@ return [ qw[
         protocol-7-menu.update-provider-items
         protocol-7-menu.remove-provider-items
         protocol-7-menu.graphical-window-init
+        protocol-7-menu.dialog-input-password
         plugin.web.space.orbital.json.context
         plugin.storage.util.has_p7ref_members
         plugin.storage.checksum.cluster.query
@@ -4710,6 +4737,7 @@ return [ qw[
         route.bmw384.visual.wheel.oscilloscope
         protocol.sftp.terminate_server_process
         protocol.protocol-7.auth.select-method
+        protocol-7-menu.pending-questions-init
         protocol-7-menu.graphical-startup-init
         protocol-7-menu.cmd.menu-update-notify
         plugin.web.space.orbital.handler.reply
@@ -4822,6 +4850,8 @@ return [ qw[
         sourcecode.console.verify-dev-signatures
         sourcecode.console.read-sig-footer-state
         protocol.sftp.handler.read_server_output
+        protocol-7-menu.pending-indicator-update
+        protocol-7-menu.cmd.pending-question-add
         plugin.web.space.orbital.subscribe_nodes
         plugin.web.content.util.generate_submenu
         plugin.storage.util.visual.path_distance
@@ -4864,6 +4894,7 @@ return [ qw[
         screenshot.powershell_passthrough.request
         proxy.handler.subscribe_rotation_deferred
         protocol.protocol-7.auth.select-size-mode
+        protocol-7-menu.cmd.pending-question-open
         plugin.storage.checksum.cluster.init-code
         plugin.httpd.radio.handler.stream_request
         pdf.html.parent.handler.convert_pdf_reply
@@ -4923,6 +4954,7 @@ return [ qw[
         storchencam.handler.screen-change_strm_open
         screenshot.handler.powershell_capture_reply
         protocol-7-menu.handler.pointer-stream-path
+        protocol-7-menu.cmd.pending-question-answer
         powershell.plugin.screenshot-capture.invoke
         plugin.web.space.orbital.subscribe_gm_state
         plugin.web.space.orbital.subscribe_external
@@ -5076,8 +5108,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,.,..,,.,,,.,.,..,,,,.,..,,...,,..,.,,,.,.,...,...,..,,,..,,.,,,,,,,,.,
-#J4BZVCG57FUVCH2GCYR34QYM35CAFQ3I7GCCXBGLVCDGYHABZGJBTNMR362Q3NUX5SP6DM52ZBFHC
-#\\\|W6CJJFS5J4PP5TLYT77SKU5PUUQAHGXTWRODKUT4G27WQIV3CAH \ / AMOS7 \ YOURUM ::
-#\[7]ABKVSAQ7EVZUEZNII3IOYG3WNCAMEZ3UNDUDXZKA666GFF3B6OBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,..,,,..,.,.,.,.,,,,,.,,,...,,.,,.,.,...,...,.,.,,,,,...,,,,,,,.,
+#2KEAIWGM7SRYQUPMO77YCV74VW4ZUFFCIURAF6UHC4ENGQ6SF7J3GHKPSK2MESYLSXZP4MVC5GQMI
+#\\\|3ETJAR2ZYXNZSMAGZMVC4OCJ4LUEHQ2PXEZHYQWKM7NMCXOVYLB \ / AMOS7 \ YOURUM ::
+#\[7]BAYFEPSV7OAZRTILSLCAQF74ZRF7LZMLBVRIG55E2F7NVD3L4CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

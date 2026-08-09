@@ -1,0 +1,169 @@
+## [:< ##
+
+# name  = protocol-7-menu.cmd.input-choice
+# param = [question_text, options_json]
+# descr = Styled option-selection dialog, one button per option
+
+return { 'mode' => qw| false |, 'data' => 'graphical mode not enabled' }
+    unless <protocol-7-menu.init-graphical>;
+
+my $args = $call->{'args'} // '';
+
+## Parse args as JSON array [ question_text, options ] ##
+my ( $question_text, $options );
+
+if ( length $args ) {
+    my $decoded = eval { JSON::decode_json($args) };
+    if ( ref $decoded eq qw| ARRAY |
+        and scalar @$decoded >= 2 ) {
+        $question_text = $decoded->[0] // '';
+        $options       = $decoded->[1];
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'missing question or options' }
+    unless defined $question_text and length $question_text;
+
+return { 'mode' => qw| false |, 'data' => 'options must be an array' }
+    unless ref $options eq qw| ARRAY | and scalar @$options;
+
+# Disable GTK error beep sounds [ the backspace sound, etc. ]
+my $settings = Gtk3::Settings::get_default();
+$settings->set_property( 'gtk-error-bell', 0 );
+
+# Suppress Gdk warnings during dialog creation
+<[base.stderr_redir]>;
+
+# Create dialog window - modal to capture input reliably
+my $parent_window = <protocol-7-menu.graphical-window>;
+my $dialog        = Gtk3::Window->new('toplevel');
+$dialog->set_type_hint('dialog');
+$dialog->set_transient_for($parent_window) if $parent_window;
+$dialog->set_modal(1);    # Modal captures all input
+$dialog->set_decorated(0);
+$dialog->set_border_width(8);
+$dialog->set_app_paintable(1);
+
+# Apply styling
+my $screen           = $dialog->get_screen;
+my $use_transparency = $dialog->is_composited ? 1 : 0;
+$dialog->set_opacity(1) if $use_transparency;
+
+if ($use_transparency) {
+    my $rgba = $screen->get_rgba_visual();
+    $dialog->set_visual($rgba);
+}
+
+my $css_prov = Gtk3::CssProvider->new();
+$css_prov->load_from_data(<<'EOT');
+window { background-color:#000013; color:#0055CC; font-size:large; }
+button { background-color:#000042; color:#0055CC; padding:6px;
+         border:1px solid #0055CC; }
+button:focus { background-color:#001066; }
+button:hover { background-color:#001066; }
+button label { color:#0055CC; }
+label { color:#0055CC; }
+EOT
+Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
+
+# Create container
+my $vbox = Gtk3::Box->new( 'vertical', 6 );
+$dialog->add($vbox);
+
+# Add question label
+my $label = Gtk3::Label->new($question_text);
+$label->set_halign('start');
+$label->set_line_wrap(1);
+$vbox->pack_start( $label, 0, 0, 0 );
+
+# Store result
+my $result          = '';
+my $result_label    = '';
+my $dialog_finished = 0;
+
+# Create one button per option
+foreach my $option (@$options) {
+    my $opt_label
+        = ref $option eq qw| HASH |
+        ? ( $option->{'label'} // '' )
+        : $option;
+    my $opt_value
+        = ref $option eq qw| HASH |
+        ? ( $option->{'value'} // $opt_label )
+        : $option;
+
+    next if not length $opt_label;
+
+    my $button = Gtk3::Button->new($opt_label);
+    $button->signal_connect(
+        'clicked' => sub {
+            $result          = $opt_value;
+            $result_label    = $opt_label;
+            $dialog_finished = 1;
+            $dialog->destroy;
+        }
+    );
+    $vbox->pack_start( $button, 0, 0, 0 );
+}
+
+# Handle Escape key on dialog
+$dialog->signal_connect(
+    'key-press-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        if ( $event->keyval == 65307 ) {    # Escape key
+            $result          = '';
+            $dialog_finished = 1;
+            $dialog->destroy;
+            return 1;
+        }
+        return 0;
+    }
+);
+
+# Handle window-manager close / destroy
+$dialog->signal_connect(
+    'delete-event' => sub {
+        $result          = '';
+        $dialog_finished = 1;
+        return 0;    # allow default destroy
+    }
+);
+
+## Center dialog on screen ##
+$dialog->set_position('center-always');
+
+# Show and focus
+$dialog->show_all;
+$dialog->present;
+
+# Focus first button
+my @children = $vbox->get_children;
+foreach my $child (@children) {
+    if ( $child->isa('Gtk3::Button') ) {
+        $child->grab_focus;
+        last;
+    }
+}
+
+# Process events until dialog closes
+while ( !$dialog_finished ) {
+    <[event.once]>->(0.07);
+    Gtk3::main_iteration_do(1);
+}
+
+# Restore stderr
+<[base.stderr_restore]>;
+
+# Return result
+if ( length $result ) {
+    <[base.logs]>->( 1, "choice input : selected '%s'", $result_label );
+    return { 'mode' => qw| true |, 'data' => $result };
+} else {
+    return { 'mode' => qw| false |, 'data' => 'no selection' };
+}
+
+#,,.,,.,,,,.,,..,,,.,,,..,,.,,,..,,,.,.,,,..,,..,,...,...,,.,,.,,,,,.,,..,.,.,
+#3RVPK67XWUCNOUUC4AKSIB2M3TXZ3RVCYFGEJINLQWY6NKD2PRDAJ2MFQALVRFTIG35CQZ6H5D5AO
+#\\\|257US6TS6BEDYVZF2VKOC5G7MWIVDTAMDGJ4QJO2SIFICEC5EXK \ / AMOS7 \ YOURUM ::
+#\[7]B2YZCF7RBTFE6CFDPZ74W4KSAKCG75WL23HZ5I2G3F3T3T6MXMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
