@@ -1498,6 +1498,19 @@ sub editor_get_buffer {
     return $editor->{buffer};
 }
 
+sub editor_get_cursor {
+    my $editor = shift;
+    return undef if !defined $editor;
+    return $editor->{cursor_pos};
+}
+
+sub editor_set_cursor {
+    my ( $editor, $pos ) = @ARG;
+    return if !defined $editor;
+    $editor->{cursor_pos} = $pos;
+    return TRUE;
+}
+
 sub editor_submit {
     my $editor = shift;
     return undef if !defined $editor;
@@ -1795,8 +1808,8 @@ sub frame_bar {
 
 return TRUE ##################################################################
 
-#,,,.,.,,,.,.,,,,,,,.,...,,,,,,,,,...,,,.,..,,..,,...,...,..,,,,.,,,,,,..,..,,
-#3AJ7UGRGPYOJMZZ7IHN2UMDDSADDQZMV5R4GSIUUA7V67L4YU4JWCXIQJ3AOI6CTMR4TDREEOAZAK
-#\\\|WVKCRYRZN3ZD7VPK7D3MSOPCDLZSBKDLPULU54NC3XYTXMCBKGD \ / AMOS7 \ YOURUM ::
-#\[7]6K3T5VZMBIIB3NNBEDP5D55F4M6K6ZWHJF6HYE36ZKF6M2DXRGBI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,.,,,.,...,,..,.,,,.,,,,.,,.,.,..,,...,...,...,,.,,,,,,,,,,.,,,
+#6COONP3IGXCMJG5EAMNOSQ3A46WMXTFUJFEW53WW6AGOWMX7IECIENABLIK5TVLGU4XP32BWSRVUS
+#\\\|O6QXLDS2L6GPY5JDLWULESYAVBLX7DWQ72275CDPB7G6WCX5LFR \ / AMOS7 \ YOURUM ::
+#\[7]JME7F75UXLTPNBLVD6466VD3IWYJTGED63RN3CQXD2DLRCWTQIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
