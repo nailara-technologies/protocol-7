@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = editor.buffer.memory.load
+# descr = load text into in-memory editor buffer
+
+my ( $buffer, $source ) = @ARG;
+
+return undef if ref $buffer ne qw| HASH |;
+return undef if $buffer->{'readonly'};
+
+my $text = $source // '';
+$text = $$text if ref $text eq qw| SCALAR |;
+utf8::decode($text) if length $text and not utf8::is_utf8($text);
+
+$buffer->{'text'}   = $text;
+$buffer->{'cursor'} = 0;
+
+return TRUE;
+
+#,,.,,...,,..,.,,,,.,,.,,,,,,,.,.,,,,,.,,,,,,,..,,...,...,,,.,.,.,.,.,..,,,,.,
+#V4XHB7HUUOWQS4HNVCBG2C424UQFXDCX37HSYF6YHLJYA7ZP6XPZ4VJ5R7LK66DLOXGSNR5QE2IKI
+#\\\|X7YWL46S6PLPBB2VLKDFUAEPDS4475NI44PVWODYADI2RTTSQCP \ / AMOS7 \ YOURUM ::
+#\[7]SHCEZCSWQ7YGJQPUKHRPVE4V2T2W57V5WYYUBY3HYA6V7CJNV6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

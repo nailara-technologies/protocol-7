@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = editor.control.get_cursor
+# descr = fetch a field's cursor position in CHARACTERS
+
+my ( $editor_state, $field ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+my $buffer = $editor_state->{'fields'}{$field} // return undef;
+
+return $buffer->{'cursor'};
+
+#,,,,,,,,,.,,,.,,,,,,,,..,,.,,.,.,,,.,...,..,,..,,...,...,.,.,,,,,..,,.,,,.,,,
+#F2AO2H5CZQQARWIF5F2I7FGCACCX7RNBGZ3GRSSGL4BEMDBQIMCTUNROMGPHJ5L4P4CD42I2MH37U
+#\\\|RAPOJPHSVMRCMODT6H4RPGHATCK5SMS7BNVUPVDNHR7PWNUEBDW \ / AMOS7 \ YOURUM ::
+#\[7]BNP2V5TIVKT4I2T3SDR3E6Y5NQ667VPPGILXQ2CCHPJ6U7LNQQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

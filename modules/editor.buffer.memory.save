@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = editor.buffer.memory.save
+# descr = save in-memory editor buffer content to destination scalarref
+
+my ( $buffer, $destination ) = @ARG;
+
+return undef if ref $buffer ne qw| HASH |;
+
+## memory adapter destination: a scalar ref to assign the text to ##
+return undef if ref $destination ne qw| SCALAR |;
+
+$$destination = $buffer->{'text'};
+
+return TRUE;
+
+#,,,.,,,.,,..,..,,.,.,...,.,,,..,,,.,,,,,,...,..,,...,...,.,,,.,.,...,...,..,,
+#W56PAN2CFCWJWW3AUO6UKBBK2NGNBDFV7YU6EHWTMY444GIHYJ62JQORZQCRYDZDQCVGUXRF5UZ7U
+#\\\|ILFFS5NM6ESA2JQKQGJ4UIEJUHAQSC43VVILAUJCD5IJBX6XZ4A \ / AMOS7 \ YOURUM ::
+#\[7]WIL6762DZDEDT4WTMXU7AEMSX3OD2OH3NVS65APYRX4X6LB7NOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

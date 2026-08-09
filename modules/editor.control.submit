@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = editor.control.submit
+# descr = validate + collect field values ; reset fields ONLY on ok
+
+## RESET GATE [ design doc editor.control.submit ]: fields reset only on
+## ok=>1, unlike AMOS7::TERM::editor_submit's unconditional reset — a failed
+## validator must not discard the user's input. validator: coderef from the
+## schema field def, returns error string on failure / undef on success.
+
+my $editor_state = shift;
+
+return undef if ref $editor_state ne qw| HASH |;
+
+my ( %values, %errors );
+foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
+    my $name = $field_def->{'name'};
+    my $text = <[editor.control.get_value]>->( $editor_state, $name );
+
+    if ( ref $field_def->{'validator'} eq qw| CODE | ) {
+        my $error = $field_def->{'validator'}->($text);
+        $errors{$name} = $error if defined $error and length $error;
+    }
+    $values{$name} = $text;
+}
+
+return { 'ok' => 0, 'errors' => \%errors } if keys %errors;
+
+<[editor.control.reset]>->($editor_state);    ## reset ONLY on ok ##
+
+return { 'ok' => 1, 'values' => \%values };
+
+#,,,,,.,.,,..,,..,.,,,,,.,.,,,...,,.,,,.,,.,,,..,,...,...,..,,.,.,.,,,.,.,.,,,
+#2SBTDPEEAAEWYZ5OJ2PKTHGJ4ZZ3P7OWS2Q6HWVJQPGXS37CR2JKD4RCZ6CN3ZHWSHNP6IRHOOCQ2
+#\\\|S6WEGBO7K5ZMVFAUCUZGVVPFFOGDTRLLKUSLO2WVYYC3EGOUYO3 \ / AMOS7 \ YOURUM ::
+#\[7]IYYFVS5OPBCCCMFAW34RMXCVDMBMKJUHTVP2EM3HSLOQEIL2VQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
