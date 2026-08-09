@@ -1,0 +1,189 @@
+## [:< ##
+
+# name = work.parent.purge_paths
+# descr = analyze [ and optionally execute ] a git-filter-repo
+#         based purge of tracked paths from all history
+
+my $params = shift || {};
+
+my @paths   = @{ $params->{paths} // [] };
+my $dry_run = $params->{dry_run} // 1;    ## safe by default
+
+unless (@paths) {
+    return { success => FALSE, error => 'no paths given' };
+}
+
+my $repo_path = <git.cfg.repository_path>;
+unless ( -d "$repo_path/.git" ) {
+    return {
+        success => FALSE,
+        error   => "not a git repository : $repo_path"
+    };
+}
+
+## filter-repo is destructive : refuse to touch a repo with a dirty
+## working tree so nothing outside the purge itself gets swept away ##
+my $porcelain = `cd '$repo_path' && git status --porcelain 2>&1`;
+if ( length $porcelain and not $dry_run ) {
+    return {
+        success => FALSE,
+        error   => 'working tree not clean - commit or stash first'
+    };
+}
+
+## === per-path history analysis === ##
+my %analysis;
+my $commits_total = 0;
+my $bytes_total    = 0;
+
+foreach my $path (@paths) {
+    <[event.once]>->(0.0007);    ## allow Ctrl+C abort ##
+
+    my $log_out = `cd '$repo_path' && git log --oneline --all -- '$path' 2>&1`;
+    my @commit_lines = grep { length } split m|\n|, $log_out;
+    my $commit_count = scalar @commit_lines;
+
+    my $objects_out = `cd '$repo_path' && git rev-list --objects --all -- '$path' 2>&1`;
+    my @object_lines = grep { length } split m|\n|, $objects_out;
+
+    my $path_bytes = 0;
+    if (@object_lines) {
+        my @hashes = map { ( split m| |, $_, 2 )[0] } @object_lines;
+        my $hash_input = join( "\n", @hashes ) . "\n";
+
+        ## write hashes to a temp file rather than a shell arg [ portable,
+        ## avoids arg-length limits for paths with long history ] ##
+        my $tmp_file = "$repo_path/.git/purge-paths-hashes.$$";
+        if ( open my $tfh, '>', $tmp_file ) {
+            print $tfh $hash_input;
+            close $tfh;
+            my $sizes_out
+                = `cd '$repo_path' && git cat-file --batch-check='%(objectsize)' < '$tmp_file' 2>&1`;
+            unlink $tmp_file;
+            foreach my $line ( split m|\n|, $sizes_out ) {
+                $path_bytes += $1 if $line =~ m|(\d+)\s*$|;
+            }
+        }
+    }
+
+    $analysis{$path} = {
+        commits => $commit_count,
+        bytes   => $path_bytes,
+    };
+    $commits_total += $commit_count;
+    $bytes_total   += $path_bytes;
+}
+
+<[base.log]>->( 1, "  Paths requested for purge:" );
+foreach my $path (@paths) {
+    my $info = $analysis{$path};
+    <[base.log]>->(
+        1,
+        sprintf(
+            "    %s : %d commit(s), ~%.1f KB in history",
+            $path, $info->{commits}, $info->{bytes} / 1024
+        )
+    );
+}
+<[base.log]>->(
+    1,
+    sprintf(
+        "  Totals : %d commit(s) touched, ~%.1f KB reclaimable",
+        $commits_total, $bytes_total / 1024
+    )
+);
+
+if ($dry_run) {
+    say "";
+    <[base.log]>->( 1, "  PREVIEW - No changes will be made (dry run)" );
+    <[base.log]>->(
+        1, "  This REWRITES ALL git history via git-filter-repo."
+    );
+    <[base.log]>->(
+        1,
+        "  Every clone (including yours after this run) needs to"
+            . " re-clone or hard-reset to the new history, and any"
+            . " already-pushed remote needs a force-push."
+    );
+    <[base.log]>->(
+        1,
+        "  git-filter-repo removes the 'origin' remote as a safety"
+            . " net - note the current remote URL(s) before"
+            . " running execute so you can re-add them after."
+    );
+    my $remotes = `cd '$repo_path' && git remote -v 2>&1`;
+    if ( length $remotes ) {
+        <[base.log]>->( 1, "  Current remotes :" );
+        foreach my $line ( split m|\n|, $remotes ) {
+            <[base.log]>->( 1, "    $line" );
+        }
+    }
+    say "";
+    <[base.log]>->(
+        1,
+        sprintf(
+            "  To execute: work purge-paths execute %s",
+            join( ' ', @paths )
+        )
+    );
+    say "";
+
+    return {
+        success  => TRUE,
+        dry_run  => 1,
+        commits  => $commits_total,
+        bytes    => $bytes_total,
+        analysis => \%analysis,
+    };
+}
+
+## === execute === ##
+<[base.log]>->( 1, "  Executing git-filter-repo to purge paths..." );
+<[base.log]>->( 1, "    This may take a while for large histories" );
+
+my $cmd = sprintf(
+    q|cd '%s' && git filter-repo --force --invert-paths %s 2>&1|,
+    $repo_path,
+    join( ' ', map { sprintf( q|--path '%s'|, $_ ) } @paths )
+);
+
+<[base.log]>->( 2, "  Running : git filter-repo --invert-paths ..." );
+my $output    = `$cmd`;
+my $exit_code = $? >> 8;
+
+if ( $exit_code != 0 ) {
+    <[base.log]>->( 0, "  \x{2717} git-filter-repo failed:" );
+    <[base.log]>->( 0, "  $output" );
+    return {
+        success => FALSE,
+        error   => "git-filter-repo failed (exit: $exit_code)",
+        output  => $output,
+    };
+}
+
+<[base.log]>->( 1, "  \x{2713} History rewritten successfully" );
+<[base.log]>->(
+    1, "  \x{26a0} 'origin' remote removed by filter-repo - re-add it"
+);
+<[base.log]>->(
+    1, "  \x{26a0} force-push required for any already-pushed branch"
+);
+<[base.log]>->(
+    1, "  \x{26a0} everyone else must re-clone or hard-reset - old"
+        . " history is now divergent"
+);
+
+return {
+    success => TRUE,
+    commits => $commits_total,
+    bytes   => $bytes_total,
+    output  => $output,
+};
+
+0;
+
+#,,.,,.,.,.,.,,,.,,,,,..,,..,,,,,,..,,,,.,...,..,,...,...,...,...,,..,,..,.,.,
+#N4GHZP6D3P4G4HCFXHL75E7PFJEKTA2DOLNRLL2OM4AILVLZWV7MWFPBNQDFJC22DAOV4IVQ72OTA
+#\\\|OL5P7VMW4UZ4CH7CJXBHHPZ2INSXAOAN65ILCUDN4EXAIO5ZCK2 \ / AMOS7 \ YOURUM ::
+#\[7]HMOZEHJHFVJSW3XCYHTCSLKZHCW2HJD42537RNKJNIFRUH6GNMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

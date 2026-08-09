@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = work.console.purge-paths
+# param = [execute] <path> [path2] [path3] ...
+# descr = safely purge tracked paths from all git history
+
+my $args_str = shift // '';
+my @tokens = split m| +|, $args_str;
+
+my $dry_run = 1;
+if ( @tokens and ( $tokens[0] eq 'execute' or $tokens[0] eq 'exec' ) ) {
+    $dry_run = 0;
+    shift @tokens;
+}
+
+my @paths = @tokens;
+
+unless (@paths) {
+    say ":: usage :  work purge-paths <path> [path2] ...";
+    say ":: usage :  work purge-paths execute <path> [path2] ...";
+    return FALSE;
+}
+
+<[base.log]>->( 1, "Analyzing history for requested purge paths..." );
+
+if ($dry_run) {
+    <[base.log]>->(
+        1, "  DRY RUN mode - use 'execute' parameter to apply changes"
+    );
+}
+
+my $result = <[work.parent.purge_paths]>->(
+    {   paths   => \@paths,
+        dry_run => $dry_run,
+    }
+);
+
+unless ( $result->{success} ) {
+    my $error = $result->{error} || 'unknown error';
+    return say "::\n: \x{2717} Purge failed: $error\n::";
+}
+
+if ($dry_run) {
+    say "";
+    return FALSE;
+}
+
+return say "::\n: \x{2713} History rewritten - see warnings above\n::";
+
+#,,,,,,,,,...,.,.,,,,,,,,,...,,,.,.,,,..,,,,.,..,,...,...,.,.,...,.,,,,..,,.,,
+#CDAMXXZFQI473WZF2AWENT4FEVQOV7G6YWRHKHFHIOCSBRPBAA5NVID6ZSZAKDCY2SEB6QEPZFITC
+#\\\|FN2BQ42XGXC6D36XKFLEQC6O7P6MEBWJDL2HWPIFR5OFTCLOTYN \ / AMOS7 \ YOURUM ::
+#\[7]3DS2J2J6TXDCC7EG2T2W3XYJUFC4VPMPH6ZQIYUKLKV7Z5AJFGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
