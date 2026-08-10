@@ -118,6 +118,13 @@ around its own fork→socket-ready window (discussed, not implemented —
 closes the window, doesn't eliminate it, given as an option to the user
 and declined for this pass).
 
+A second, related v7-handshake gotcha surfaced and got fixed in the same
+pass: `base.cmd.verify-instance` confirms the instance to v7 by logging a
+KEY to console output, which v7 reads back — a silenced console verbosity
+drops that line entirely and produces the identical hang/restart-loop
+symptom even though startup itself is fine. See
+[[feedback-verify-instance-callbacks-initialized-deadlock]] (`2f23bbba1`).
+
 ## open work
 
 - ~~**state snapshot/restore**~~ **DONE** (`218cc382b`, 2026-07-31) —
@@ -147,8 +154,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,.,,,,.,,..,...,,,,,,,.,,.,,,,.,.,,,..,,,,.,..,,...,...,..,,.,.,.,.,,,,,,,,,
-#C3GUVM5RTPGMQDOCLR3LIKTT6H7THYYKFX4LIMXFFBSLTCMNG27XDJAUPKVJGURZKGJ2STBZUEFG2
-#\\\|2BBSQKXAYWYI35BH6VSLFCHDNY726P463J53H2JZ4VDNKGXHFSG \ / AMOS7 \ YOURUM ::
-#\[7]NFD5T42WXQ4GHK3ZVERFJWXJUHOSS5PSDCPQDNIUBGQQPKGBDYDA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,.,.,.,.,...,,,.,.,.,,..,,..,..,,...,...,...,...,,..,...,..,,
+#VBOJBQ3X2HYGA7254PUZON4FUFVXREKSSP5WP2RFN2GVTJGDFNQYDAJGN6LYQY5OZ477TRMVS3XWG
+#\\\|GMTWCLV33OPDCPUWYAHDB4TTY2YSWCTRDF6CN4IWRKF23HO3IEZ \ / AMOS7 \ YOURUM ::
+#\[7]4TSSGQXASE5N6DFZMYBDEUNA2BYKF4GI4MOHZENJQEDUR2ZVZCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
