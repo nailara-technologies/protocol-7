@@ -255,23 +255,30 @@ discovery_integration:
     Crypt::Curve25519::curve25519_shared_secret) -> state 3 (upgraded).
     A client-side Perl equivalent of p-7-r.c's C handshake also exists:
     protocol.protocol-7.link-upgrade.handshake($socket,$options).
-    GAP FOUND (real, on BOTH ends, not just one): base.handler.
-    link-upgrade.response is a literal `## TODO: Implement link-upgrade
-    response formatting ... Placeholder: pass through unchanged` — and
-    re-checking p-7-r.c's own main read loop, enc_state.key (the derived
-    shared secret) is computed but never actually used to encrypt/
-    decrypt the subsequent recv()/write() traffic either. So: the DH
-    handshake itself is real, complete, and wire-compatible C25519/
-    Curve25519 crypto — but NEITHER side applies the negotiated cipher
-    to payload data afterward yet. State 3 is reached, but nothing is
-    actually encrypted once there. Do not assume "link-upgrade" gives
-    remote/ real transport encryption today — it gives a real, reusable
-    key-exchange primitive with the cipher-application step still open
-    on both client and server. If remote/ needs actual encrypted
-    payload later, this is the near-complete primitive to finish
-    (implement the missing cipher wrapper in
-    base.handler.link-upgrade.response and its p-7-r.c counterpart),
-    not something to build from scratch.
+    GAP FOUND, then CLOSED same day (2026-08-10, commit f7c65afb4, kimi
+    K3 dispatch + live verification): base.handler.link-upgrade.response
+    WAS a literal TODO placeholder, and p-7-r.c's enc_state.key was
+    derived but never used — cipher was negotiated but never applied to
+    payload. Real bug found in the process: client derived its nonce/KDF
+    session_id from time(NULL), server used its own internal session id
+    — they never matched, so decryption would have failed on every frame
+    even with the cipher wired in. Both fixed: client now sends its
+    session_id in link-complete; both ends derive
+    sha256(dh_secret . session_id) and use matching per-direction nonce
+    counters. Real hooks turned out to be
+    protocol.protocol-7.encryption.init (state-3 setup) +
+    modules/base.handler.link-upgrade.{input,output} (new files) — NOT
+    the .response placeholder, which is confirmed dead/unused code, left
+    alone. Verified end-to-end against the live installed
+    /usr/local/bin/p-7-r (reinstalled via the standard v7
+    checksum-mismatch auto-recompile path): PROTOCOL_7_LINK_UPGRADE=yes
+    returns correct real data over genuinely encrypted framing (wire
+    capture confirmed zero plaintext command/reply bytes post-handshake),
+    default plaintext path unaffected. link-upgrade now DOES give real
+    transport encryption, not just a key-exchange primitive — this
+    changes working_transport_precedent_p7r's calculus above: p-7-r with
+    PROTOCOL_7_LINK_UPGRADE=yes is now a genuinely encrypted one-shot
+    transport option for remote/, not just signed-plaintext.
   if_integration_chosen: >
     [ superseded by resolution above — kept for history ] users zenka
     would not reimplement packet handling — it would consume
@@ -452,8 +459,8 @@ created: 2026-08-10
 tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
        smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh]
 
-#,,,.,,..,,..,,,.,,..,,,,,.,,,..,,.,.,.,.,,,.,..,,...,..,,,..,.,,,,.,,.,.,.,,,
-#WQQJQSQVHDGGG4OYQOYKTTO726DGOBYIUID6TZY6SZVMELCEM5HD3KGISOD25T3O6DVMVXCGI5GME
-#\\\|ZZQGSEV45G67ISDRWNZKK2RP5DHBQY3GPJRNVG2DRULOG3YIZDJ \ / AMOS7 \ YOURUM ::
-#\[7]63HTW4DIDFGR3O3BS57V5SYHFRHNWVM66XYXOYIZMNMZLYW56MAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,.,,,..,,.,.,..,,..,,.,.,.,.,..,,...,...,.,,,...,..,,.,,,,..,
+#YPYU5ZCIVT42CIF3AZFBKHPPMM6HBJFIODPKFMWASAY3DYUGKB5QD722ZRU7O4M2E3MYDXE2GUSZM
+#\\\|KOA4NBZYSEX5Y5LWPZF7C64D4SNWKYWAICMIG6EIGMPCGE3R24J \ / AMOS7 \ YOURUM ::
+#\[7]AT6P6ZAZPT5342LAFQUL3UUJD2QRVBHDSQ2JVMHWALOXUFHKLUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
