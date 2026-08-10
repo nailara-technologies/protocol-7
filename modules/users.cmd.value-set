@@ -30,16 +30,11 @@ return {
     }
     if $username =~ m|[/\\]|;
 
+## use the shared P7 json module [ not raw JSON::PP : avoids relying on an ##
+## unimported perl module being loaded by some other zenka path            ##
 my $fields = {};
-if ( defined $json_str and length $json_str ) {
-    $fields = eval { JSON::PP::decode_json($json_str) };
-    if ($@) {
-        return {
-            'mode' => qw| false |,
-            'data' => sprintf( 'invalid JSON fields: %s', $@ )
-        };
-    }
-}
+$fields = <[format.json.decode]>->($json_str)
+    if defined $json_str and length $json_str;
 
 return {
     'mode' => qw| false |,
@@ -49,18 +44,11 @@ return {
 
 $fields->{'username'} //= $username;
 
+## USERS_HOST is created once at boot, as root, in users.init_code — this ##
+## handler runs post-drop_privs and can't mkdir under the root-owned      ##
+## /etc/protocol-7/ parent, so it only ever writes here                   ##
 my $file_path     = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
 my $resolved_path = <[base.path.resolve_keywords]>->($file_path);
-
-## ensure parent directory exists [ may be needed after reload ] ##
-my $dir_path = $resolved_path;
-$dir_path =~ s|/[^/]+$||;
-
-if ( not -d $dir_path ) {
-    <[base.file.make_path]>->(
-        $dir_path, 0770, <system.amos-zenka-user>, <system.amos-zenka-user>
-    );
-}
 
 my ( $ok, $err ) = <[format.yaml.write_file]>->( $resolved_path, $fields );
 
@@ -78,8 +66,8 @@ return {
     'data' => sprintf( "user '%s' stored", $username )
 };
 
-#,,,,,,,,,,,,,.,.,..,,...,...,,,.,.,,,..,,.,,,..,,...,.,.,.,,,,.,,,.,,..,,,.,,
-#N2ZMN6TBTDE7V7ZAZ4MDBZRK6NR7S5WGI66SVYFSUUWT6LRCBZ36A6UUCVE7C5ML2BULFUPGJV42I
-#\\\|2MNZ5KPY7VDLQUOSS25WH7JMFQ2SVJQLH3GJCHVOKH5S5GZLK5O \ / AMOS7 \ YOURUM ::
-#\[7]CQX3ZUNKNKNO7SWJV7W34LRGRH3AN2RZYHA7GC74QHFGPESNIWBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,.,.,,.,,,..,..,,,..,,.,,,.,,..,,...,...,,..,,.,,,.,,,.,,,.,,
+#KNJPIAOMKLY73AZCQGYDLKPUYTWCRIVO6SNUQHSONXVY37PM4IVSWTKG2OP5XYWTXIBIA7YHMEWUO
+#\\\|6R6QLHC6JP6ANTQAFXRZUQWVKKBNNUPGMJMUWTTOAIMTELWXBS2 \ / AMOS7 \ YOURUM ::
+#\[7]6IWRSS7YR6WFO3XP4IZ5CIT2UNI2SOJG6ELXOF5LUATLQZZ7N4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

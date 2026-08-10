@@ -32,13 +32,16 @@ return {
     }
     if not defined $user_data;
 
+## reply contract requires a string 'data' payload, never a raw hashref ##
+my $yaml_str = <[format.yaml.dump_str]>->($user_data);
+
 return {
-    'mode' => qw| true |,
-    'data' => $user_data
+    'mode' => qw| size |,
+    'data' => $yaml_str
 };
 
-#,,.,,,.,,.,,,..,,,,.,.,,,,..,..,,..,,,.,,..,,..,,...,..,,.,.,,,.,.,,,..,,,,,,
-#3C2RIJYXBEBOZ4T5CEG6ORPUPXIEQCJYLQZEP4YTPOOZRI3B7BLSVTDHDLVTVJWRTA2TYYT3PO72O
-#\\\|B7ZTJBCJM3THXZZJWQFQXOLG5DBRKLAQBH6GAP2T3IFOQ4XEKNN \ / AMOS7 \ YOURUM ::
-#\[7]MD3VRNUPAPDRBFX6FY3NPX4LFQQFGJYSVQ76EONNI7IMNPBGL6CI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,.,,.,.,,,,,.,,,.,.,.,.,.,,,..,,..,,...,...,...,..,,..,,,,.,,.,,
+#OBK2QMRLY4UHNEYJZQQQOFBGM4FV4HTYDFGS4ZJ6W427RTMR5K2VEX6FZPYAN75DZDMUQKKP3FIL2
+#\\\|AB7EUOA7JR2XZKESZMRU57HXHAXZQLJ62ORC4O2366ET7QLVFG7 \ / AMOS7 \ YOURUM ::
+#\[7]63QGXTYFZFHMQQCQ4RP5KRFVXG2427MGTOKSDUOZ6A432LBHUSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

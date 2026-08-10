@@ -589,9 +589,13 @@ phase_3_form:
     system/ is the canonical store — schema field defaults are populated
     FROM a users.* get call, and submit values are pushed THROUGH a
     users.* set call — but per local_edit_outbox, every submit is staged
-    to var_P7/user-edit/ FIRST, commit-to-users-zenka second. Exact
-    users.* command names are 5PN's to define; this doc treats them as
-    an integration point, not a spec.
+    to var_P7/user-edit/ FIRST, commit-to-users-zenka second. RESOLVED
+    2026-08-10: 5PN's phase-1 command surface landed
+    (commit df2e83d85) — `users.value-get <username>` returns the
+    record, `users.value-set <username> <json-fields>` writes it,
+    `users.value-all` lists known usernames. Names are harmony-verified
+    (bin/harmony) to avoid the bare-name collision devmod.cmd.get/set
+    would otherwise cause under access.cmd.usr.cube's flat namespace.
   sketch: |
     CORRECTED (2026-08-10): NOT a blocking "read key" loop — user-edit
     needs concurrent keyboard input AND network I/O (users.* replies,
@@ -605,7 +609,7 @@ phase_3_form:
       CORRECTION_needed_2026_08_10 note in phase_1_skeleton above ]:
       $schema = { fields => [ ... per-setting field defs, types TBD per
                                setting ... ], submit_on => 'explicit_key:F2' }
-      # field defaults populated from users.<get-command> before create()
+      # field defaults populated from users.value-get before create()
       $editor_state = editor.control.create($schema)
       [user-edit.setup_stdin_watcher] -> event.add_io registers
         user-edit's key-handler module on fd 0 [ mirrors
@@ -618,8 +622,7 @@ phase_3_form:
       on submit: editor.control.submit($editor_state) -> { ok, values }
                  -> write values to var_P7/user-edit/ outbox [ durable,
                     unconditional — see local_edit_outbox ]
-                 -> attempt users.<set-command>( values )  [ command
-                    name: 5PN's to define ]
+                 -> attempt users.value-set( values )
                  -> on success: mark/remove outbox entry
                  -> on failure/offline: leave staged, retry later
                     [ retry_mechanism: open question ]
@@ -707,9 +710,9 @@ open_questions:
     term's role is general infrastructure for settings UIs broadly, not
     user-edit-specific — don't narrow the plugin hooks to this zenka's
     exact shape
-  - users.* command surface for get/set of a user's editable fields —
-    5PN's to define; this console just needs the names/args once they
-    exist
+  - RESOLVED: users.* command surface is users.value-get <username>,
+    users.value-set <username> <json-fields>, users.value-all — see
+    phase_3_form above
   - retry_mechanism for the local edit outbox: event-driven (fires on
     reconnect / users zenka becoming reachable) vs periodic timer vs
     only-on-next-console-launch — not yet decided, and it determines
@@ -742,8 +745,8 @@ open_questions:
 created: 2026-08-09
 tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer, nshell, event-driven, network-connectivity]
 
-#,,..,,..,,.,,...,.,,,.,.,.,.,,..,,..,.,,,...,..,,...,...,..,,,.,,,.,,,,.,...,
-#7Q7QJZJ5B75L2JZGTE4DNQVBBH7GTNXHTQYODA4LETQLMASLVHNKYX2YSRR33CNWYZXOGUHQNQYJG
-#\\\|INW5BMSQFYFGWQXYK4CK23TO55IZKULZBMK7G4U3CBYZUFDHHXA \ / AMOS7 \ YOURUM ::
-#\[7]7XIDCEFOASR5RSKFYU5F7SRK5CY6D6MKKFK3QGM7M54C5Z3TSQCI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,.,.,.,.,...,.,.,...,,,.,.,,,..,,...,..,,..,,,..,...,,..,..,,
+#RJXHHSDO4DRENFVG23ABUXGEBZ3WD5SXG4GLBG4DOMW2EUNNZ6PRASCII3EZKVZEINDSKAGSPL5QY
+#\\\|YND2F5YF5AIGJ64VSE3CQSKDX24UBBUP6SGLNU3AXTG5NYSM5G2 \ / AMOS7 \ YOURUM ::
+#\[7]ZYT3DL7XUDJYIWKJJIXJ4TH5GK3AVMN6MBE6DESLCA2ENS3L3KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
