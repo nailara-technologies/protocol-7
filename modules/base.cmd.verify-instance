@@ -8,7 +8,18 @@ my $random_string = $call->{'args'} // '';
 return { 'mode' => qw| false |, 'data' => 'no random string supplied' }
     if not length $random_string;
 
+## v7 confirms this instance is alive by reading the KEY back off console   ##
+## output -- if console verbosity is silenced below this line's log level [ ##
+## 1, base.logs' default ], the KEY never reaches v7 and the handshake      ##
+## looks hung from its side even though this command ran fine. force it     ##
+## through once, then restore whatever level was configured.,               ##
+my $console_verbosity_bak = <system.zenka.verbosity.console>;
+<system.zenka.verbosity.console> = 1 if not $console_verbosity_bak;
+
 <[base.logs]>->( 'instance verification [KEY:%s]', $random_string );
+
+<system.zenka.verbosity.console> = $console_verbosity_bak
+    if not $console_verbosity_bak;
 
 <[base.disable_command]>->('verify-instance');    # used only once by v7 zenka
 
@@ -25,8 +36,8 @@ map {
 
 return { 'mode' => qw| true |, 'data' => 'verification code logged' };
 
-#,,,,,,.,,,,,,..,,,,,,,,,,.,.,...,.,,,...,...,..,,...,...,..,,..,,,,,,..,,,,.,
-#XX736BOZKRVBJ3S6Z4MX3ZTIHVRJWWN446FJ2SOLNIKLVQYA4GP2IUT7NSERBD7NXWOAM3TZE3JIM
-#\\\|MM6QH4QELRVQO2MX45IUKJX4NYIK3XMMKVGVKKEG23CLWY3FH7W \ / AMOS7 \ YOURUM ::
-#\[7]GTUBBPRJQB7UZWF4FKM26EBMZMIN5JS5TNQMLKRPK6LRXB7VEWAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,..,.,.,,,.,..,,..,,,,.,,,.,...,..,,...,...,..,,..,,,,.,,..,,,,,
+#APESSGERSMRYOFS6SVXF7V2C5GA5EVKM2OOGZIPP4BRJV57MR5MK7I4OMNIB5HELRILOYGF3HMVYQ
+#\\\|QDV2G4ZLNINUW2VGNWGV3LQKUBKQMABASK3ZLRVB7GU2B5GU7CJ \ / AMOS7 \ YOURUM ::
+#\[7]AJDQWETPQTD4FY6NHCUSFDHBG64XAXITP5BCYJX2P7FFOJHSXEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
