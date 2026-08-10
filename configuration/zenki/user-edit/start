@@ -1,17 +1,28 @@
  .:[ protocol-7 user-edit console zenka ]:.
 
 [load_config_file:'shared-params']
-buffer.zenka.log_cmd = ''    ## standalone zenka : no network logging
 
-modules.load  = terminal editor ascii.frame user-edit
+modules.load  = auth.client net protocol io.unix terminal editor ascii.frame user-edit
 
 [load_modules:<modules.load>]
 [init_modules]
 
+## authenticate as the invoking Unix user, not a zenka credential ##
+## [ nshell/start precedent : personal interactive console, not a ]  ##
+## [ managed zenka session -- system.auth-user set by user-edit.   ]  ##
+## [ init_code during init_modules above ]                           ##
+system.auth-user = <user-edit.unix_user>
+
+[base.net.connect:'unix']
+
+## authenticates as Unix user above, not via cube session id -- ##
+## [base.get_session_id] intentionally NOT called [ nshell/start ##
+## precedent, same reasoning ]                                    ##
+
 [base.call.console_command:<system.args>]
 
-#,,,.,.,,,,.,,,,.,,.,,,,.,,,,,,,.,,..,...,,,,,..,,...,...,..,,.,,,.,.,.,.,...,
-#4BSZYDNXX3KYBQCTOL4Z4FIGKNR7OHB6OR5JLFU7MCMI6MRZE5UEGD42LEZDHOSCXJB2QFBZ2QUB6
-#\\\|KN3TAYORMVL2B3ELMZCUTVIRA5N5OXLXXCNPMQORBLX7UGLPJZZ \ / AMOS7 \ YOURUM ::
-#\[7]Z7LA67XGG3KYKVGQXPYYR6WLBUF47REYKOHVRJD6CQZMJUDOVCDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,,,.,...,,,.,,,.,..,,,,.,.,,,..,,...,...,.,,,,,.,,,,,..,,..,,
+#6YNMNLJMAGD5T5SDQDRLB3X27WIVT7IEEUY22VPK3P76ZJBVP53Z4E4XYS7V35CFPQQGKHUQA6NP6
+#\\\|KFV5BTA2MNXGEWIUV2CYNME6Q6R3SD5ZONOHK33WDMGBL4MGIKG \ / AMOS7 \ YOURUM ::
+#\[7]V2Y22OFRVTNH53H5ELFEQRTOTRRDJML7ODQDJDR7Y2J5EEA7XMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
