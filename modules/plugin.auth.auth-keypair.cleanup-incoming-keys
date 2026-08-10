@@ -32,7 +32,7 @@ my $now_time      = time();
 foreach my $file_path (@incoming_files) {
     next if !-f $file_path or !-r $file_path;
 
-    my $file_name = basename($file_path);
+    my $file_name = <[file.basename]>->($file_path);
     next if $file_name =~ m|^\.|;    ## skip hidden files ##
 
     ## Extract username from filename  Format: username.public or ##
@@ -72,7 +72,7 @@ foreach my $file_path (@incoming_files) {
         ##  Key has expired, remove it  ##
         unless ( unlink($file_path) ) {
             <[base.logs]>->(
-                0,          "auth-keypair cleanup: failed to remove %s: %s",
+                0,          "auth-keypair cleanup : failed to remove %s : %s",
                 $file_name, $!
             );
             next;
@@ -81,9 +81,8 @@ foreach my $file_path (@incoming_files) {
         $cleanup_count++;
 
         <[base.logs]>->(
-            1,
-            "auth-keypair cleanup: removed unpinned key %s (age: %d hours)",
-            $file_name, int( $file_age / 3600 )
+            1, "auth-keypair cleanup: removed unpinned key %s [age:%s]",
+            $file_name, <[base.parser.duration]>->($file_mtime)
         );
     }
 }
@@ -92,8 +91,8 @@ return $cleanup_count;
 
 1;
 
-#,,,.,,.,,..,,,,.,...,...,.,.,,..,,,,,,,.,...,.,.,...,...,...,,..,.,.,...,.,.,
-#LC6KN6UJPXW36ZGCTPISKG3P4OU3CYDR3TPR7P552WDHR4VVXEYD7XADEL4S2N6FQZZTQYFKOQGU6
-#\\\|D2T2EWNVI7FNJ2SUF2G6SPAYUNX3PCVEIUTDFA2RB76TFNFYJRL \ / AMOS7 \ YOURUM ::
-#\[7]Q23I4LIPCLVETPZ2EFXSGJRGN3UUOT65W57USHRJFKP7SHX5EYCA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,.,,,,,,,,,.,.,.,,..,,..,..,,.,.,...,...,,,,,,,,,,..,.,,,...,
+#XVTXANAHAYXROZHIJJ3TMGRI5MHCJ3QFQGBPGQ5LRBY6OR6KPOEISJFEMPJUFBP77HZQFBQG2LIU6
+#\\\|ROPAGLXG6HOMWDGJDDSNYVX7SPWGRFARB7MRQVCU2JIBA34IY6U \ / AMOS7 \ YOURUM ::
+#\[7]TWSDLCAAJYNAZWCWQ7W2AEACDTZ4QSGB2UWIGP53IOOLSOIMLMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
