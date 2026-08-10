@@ -8,18 +8,12 @@ my $random_string = $call->{'args'} // '';
 return { 'mode' => qw| false |, 'data' => 'no random string supplied' }
     if not length $random_string;
 
-## v7 confirms this instance is alive by reading the KEY back off console   ##
-## output -- if console verbosity is silenced below this line's log level [ ##
-## 1, base.logs' default ], the KEY never reaches v7 and the handshake      ##
-## looks hung from its side even though this command ran fine. force it     ##
-## through once, then restore whatever level was configured.,               ##
-my $console_verbosity_bak = <system.zenka.verbosity.console>;
-<system.zenka.verbosity.console> = 1 if not $console_verbosity_bak;
-
-<[base.logs]>->( 'instance verification [KEY:%s]', $random_string );
-
-<system.zenka.verbosity.console> = $console_verbosity_bak
-    if not $console_verbosity_bak;
+## v7 confirms this instance is alive by reading the KEY back off console ##
+## output -- see base.log.forced_console for why this can't be a plain    ##
+## base.logs call.,                                                       ##
+<[base.log.forced_console]>->(
+    'instance verification [KEY:%s]', $random_string
+);
 
 <[base.disable_command]>->('verify-instance');    # used only once by v7 zenka
 
@@ -36,8 +30,8 @@ map {
 
 return { 'mode' => qw| true |, 'data' => 'verification code logged' };
 
-#,,,.,.,,,,,,,,..,.,.,,,.,..,,..,,,,.,,,.,...,..,,...,...,..,,..,,,,.,,..,,,,,
-#APESSGERSMRYOFS6SVXF7V2C5GA5EVKM2OOGZIPP4BRJV57MR5MK7I4OMNIB5HELRILOYGF3HMVYQ
-#\\\|QDV2G4ZLNINUW2VGNWGV3LQKUBKQMABASK3ZLRVB7GU2B5GU7CJ \ / AMOS7 \ YOURUM ::
-#\[7]AJDQWETPQTD4FY6NHCUSFDHBG64XAXITP5BCYJX2P7FFOJHSXEAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,..,,,..,,,.,,..,..,,,,.,,,,,..,,...,...,.,.,..,,,,.,...,..,,
+#MYNBCXMOUTTRSUIRMND5JL7I2QZ7F45OSH5MS3A4O5MZCUYMX62HZYSMJS2YOCS5HKDMM7WXZ36XE
+#\\\|UZTSCEUXTOEJXCUBXEWYHWNVRSGV5F4A4NJWGA5M3IE5Y5ZX7XX \ / AMOS7 \ YOURUM ::
+#\[7]A7CXG6NOQGJXC4VHDN42TWKE3CM2CQ5YP7X36LE755VXVZWZJYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
