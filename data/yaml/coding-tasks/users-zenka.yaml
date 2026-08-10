@@ -145,6 +145,52 @@ key_authority:
     "operations with a key".
 
 ## -----------------------------------------------------------------------
+## external source hooks — key generation, cross-zenka data lookup
+## -----------------------------------------------------------------------
+
+external_source_hooks:
+  requirement: >
+    per user direction: users zenka needs hooks out to external sources —
+    key generation (when a lookup misses and no key exists yet for a
+    local host-system user) and data lookup from OTHER zenki (unnamed so
+    far — could overlap with discovery_integration's discover.* question
+    above, or be a distinct need; not specified beyond "other zenki").
+    Both are cross-zenka operations, not in-process calls.
+  async_design: >
+    per user direction, correctly: this needs a real async design, not a
+    synchronous call. The right mechanism already exists and is used
+    elsewhere in this codebase — do NOT invent a new hook-registry
+    abstraction for this. FALSE START avoided during this design: was
+    initially going to point at base.handler.hooks.register/unregister,
+    but that's session I/O interception (input-pre/output/command hooks
+    on a connection) — a completely different concern, wrong fit,
+    corrected before it went further.
+    The actual precedent: `{ mode => 'deferred' }` + `base.callback.
+    cmd_reply`, exactly as mpv.cmd.quit / mpv.snapshot.cmd_reply already
+    do — a .cmd. handler returns deferred immediately (stashing the
+    caller's reply_id), does async work, and calls
+    `<[base.callback.cmd_reply]>->($reply_id, {mode=>..., data=>...})`
+    once that work resolves, to actually deliver the reply.
+    For users zenka's external hooks this nests one level deeper: a
+    users.* command that needs a key generated or data looked up from
+    another zenka returns deferred to ITS caller, issues a routed
+    command to the external zenka (crypt.C25519 for key generation,
+    presumably — not yet confirmed callable this way; whichever zenka
+    for data lookup — not yet named), and on receiving THAT zenka's
+    reply (via its own <zenka>.handler.*_reply-style callback, same
+    shape as mpv.snapshot.cmd_reply), calls base.callback.cmd_reply to
+    complete the ORIGINAL deferred command back to whoever asked users.*
+    in the first place. Two hops, same primitive reused at each hop —
+    not two different mechanisms.
+  open_questions:
+    - does crypt.C25519 already expose a routable command for key
+      generation, or would one need to be added? Not checked yet.
+    - which zenka(s) provide "data lookup from other zenki" — genuinely
+      unnamed by user direction so far, distinct open item from
+      discovery_integration's discover.* question above (that's about
+      distributed USER discovery specifically; this may be broader)
+
+## -----------------------------------------------------------------------
 ## relationship to user-edit console (JUE)
 ## -----------------------------------------------------------------------
 
@@ -181,8 +227,8 @@ open_questions:
 created: 2026-08-10
 tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit]
 
-#,,,.,,.,,,,.,...,,,.,..,,...,.,.,,,.,.,,,,,.,..,,...,...,,..,,..,,.,,..,,,.,,
-#FSH6GIJM2CTOXVTPEPVXUFB7PXHNYIZK7QRC4DJH5HTX75LC2ZB5STIJ34PDZ4YKFHG2HJE6EBMWI
-#\\\|QMCVOGWN7KCNJXGRW2B5U43NKP33HLTY6CPNRL5JEV35MZQUKZZ \ / AMOS7 \ YOURUM ::
-#\[7]ZC7IUOQ5CEALVNPMTID7EU2UGICFBATLWQ4BMYUPJQJB43LRTSCA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,.,.,,,..,,,.,,..,,,,.,..,,,,,,..,,...,...,..,,..,,,..,.,,,.,.,
+#4PPG4EM6MWT6D4YKYY33MEA7FGTWUXYRFRDGCAFEVERDHL4LSBEQDUMXKWZWECZZP322NTIH4LS6M
+#\\\|UVURUPWKPGSRPAQMO4X6KRVDYERZNQ6CUVTV3ZGNOKEBOZHLZ76 \ / AMOS7 \ YOURUM ::
+#\[7]KHWECMJJBTEWQUCKZOV4N434F6AALVQFJPSUJRKLJDPCHUH4EEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

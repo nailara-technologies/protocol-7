@@ -5,20 +5,28 @@
 
 <[base.logs]>->( 2, 'user-edit zenka initialized' );
 
-<[base.perlmod.load]>->( 'AMOS7::FILE', qw| get_homepath | );
+## resolve the invoking Unix user, for the start file's  system.auth-user =
+## <user-edit.unix_user> [ nshell.init_code precedent : authenticate as the
+## Unix user, not a zenka credential ]
+<user-edit.unix_user> //= $ENV{'USER'} // getpwuid($EUID);
+
+## P7-native home dir resolution [ base.get_homedir, NOT AMOS7::FILE:: ##
+## get_homepath directly — matches crypt.C25519.get_usr_keys_dir's     ##
+## precedent for this exact ~/.n purpose ]                             ##
+my $home_dir = <[base.get_homedir]>->(<user-edit.unix_user>);
 
 my $user_edit_path_keywords = {
     qw| VAR_P7 | => <[file.zenka_dir.data_path]>->(),
     qw| ETC_P7 | => <[file.zenka_dir.data_path]>->(TRUE),
-    qw| HOME_N | => join( qw| / |, get_homepath(), qw| .n | )
+    qw| HOME_N | => join( qw| / |, $home_dir, qw| .n | )
 };
 
 <[base.path.register_keywords]>->($user_edit_path_keywords);
 
 return TRUE;
 
-#,,..,.,,,,.,,..,,.,,,..,,.,,,...,.,.,..,,,..,..,,...,...,.,.,,.,,,,,,,,.,..,,
-#76LMD5BVT65RDFSNVD3PHEGSZBDM73L5W2DEHEPVKAXRGS3ZCETSVMFWTRN2VRSGXGLD77KEM6UYM
-#\\\|3KJOQEXLFKV55B2BSLYK7Z2QGKZOLBTPMV2UEKGNQVW2AMJUYFS \ / AMOS7 \ YOURUM ::
-#\[7]QOJYQZ2SPN4XE5YQ25WS3FQKUXKKMDQLWLZO73UFKUG7GQFRXEAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,,,,,.,.,,,,,,,...,..,,,,.,..,,..,,...,...,,,,,.,,,...,.,,,.,,,
+#UYP4NTZYFWD5BZ4B35SSWZC6QZMZRC37B2HVT3ML4REDF3IT3LLKTK5CXGJMX56QFDINNWILVJBYQ
+#\\\|PD7FMIPCPVITZFJ6NHE3MZLCSXWHYFVFTV5VVSYN3XHWW7CWFDC \ / AMOS7 \ YOURUM ::
+#\[7]CWPLENHO4SLCVKQCC73MF3XDAJ5EJIT4IPVXLBBWPYCZFFB3OOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

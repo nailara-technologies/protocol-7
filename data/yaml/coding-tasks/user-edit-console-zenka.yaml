@@ -1,8 +1,9 @@
 ---
 # Task: User-Edit Console Zenka
 # Date: 2026-08-09
-# Status: design; phase_0 (editor.control step_4) verified DONE 2026-08-10.
-#         phase_1/1b next dispatchable — see phase_0_editor_step_4 note.
+# Status: phases 1/1b/outbox/draft/2 landed (0fee40f7c..a291e63a1); the
+#         phase-1 network-connectivity gap is fixed (see phase_1_skeleton's
+#         CORRECTION_needed_2026_08_10_FIXED), pending sign+commit.
 # Context: todo JUE [ new-zenki ] — "create user-edit console zenka design file"
 # Related: todo 5PN [ new-zenki ] "create users v7-managed zenka design file"
 #          — NOT designed here. see users_zenka_relationship below for why
@@ -374,6 +375,59 @@ phase_1_skeleton:
     — both already reference real, live-verified gotchas for this exact
     kind of new-zenka bring-up.
 
+  CORRECTION_needed_2026_08_10_FIXED: >
+    fixed same day, pending sign+commit. configuration/zenki/user-edit/
+    start now loads auth.client/net/protocol/io.unix, sets
+    system.auth-user = <user-edit.unix_user> (resolved in
+    user-edit.init_code, corrected there too — see below), and calls
+    [base.net.connect:'unix'], mirroring nshell/start closely (skips
+    [base.get_session_id] for the same reason nshell does — Unix-user
+    auth, not a cube session). source/ placeholders added for the four
+    new namespaces (auth, auth.client, net, protocol, io.unix — auth
+    included even though only auth.client is in modules.load, matching
+    nshell's source/ set exactly). base.call.console_command's one-shot
+    CLI-dispatch ending kept as-is — nshell's persistent zenka.loop +
+    stdin-watcher machinery is phase_3's concern, not this fix's scope.
+    SEPARATE finding, also fixed: user-edit.init_code's HOME_N keyword
+    was resolving ~/.n via a raw AMOS7::FILE::get_homepath() perlmod
+    call — user pointed out base.get_homedir already exists as the
+    P7-native wrapper for this, used by crypt.C25519.get_usr_keys_dir
+    for this exact ~/.n purpose. Switched to base.get_homedir($requested
+    _user), requested_user being <user-edit.unix_user> (now resolved
+    before the path-keyword block, not after).
+  CORRECTION_needed_2026_08_10_original_note: >
+    per user direction: the phase 1 skeleton as ALREADY COMMITTED
+    (0fee40f7c) is incomplete — it has NO network connectivity at all
+    (modules.load = terminal editor ascii.frame user-edit, no
+    auth.client/net/protocol/io.unix, no [base.net.connect:'unix']),
+    because it was cloned from `keys`, which is intentionally a fully
+    standalone/offline tool. That was fine for phases 1b/outbox/draft
+    (pure local file I/O), but user-edit will need to reach the users
+    zenka's users.* command surface once 5PN exists, and per user
+    direction it is NOT currently a "hybrid zenka" (protocol-7-menu's
+    shape: standalone-startable AND v7-startable AND network-connected —
+    the v7-startable part is explicitly NOT needed yet) — what it needs
+    is nshell's shape: console-only [ human-invoked directly, no v7
+    lifecycle management ], but network-connected to reach other zenki.
+    read configuration/zenki/nshell/start in full — it is the concrete
+    precedent to follow for the network-connectivity retrofit:
+      - modules.load needs auth.client/net/protocol/io.unix added
+        [ nshell: "auth.client net protocol io.unix ui ascii format.yaml
+        editor nshell" — user-edit's equivalent drops nshell-specific
+        pieces, keeps the net stack ]
+      - system.auth-user = <user-edit.unix_user> [ nshell's pattern:
+        authenticate as the invoking Unix user, not a zenka credential —
+        fits a personal interactive console; means [base.get_session_id]
+        is correctly SKIPPED, same as nshell explicitly skips it ]
+      - [base.net.connect:'unix'] — the actual connection call, currently
+        entirely absent from user-edit's start file
+    this is a real gap in already-landed work, not a future nice-to-have
+    — flagging it now before phase_3 gets built assuming connectivity
+    that doesn't exist yet. Needs its own follow-up dispatch/fix to
+    configuration/zenki/user-edit/start (and likely pm-dep/source
+    placeholders for the newly-added modules) before phase_3 can do
+    anything real with users.*.
+
 ## -----------------------------------------------------------------------
 ## phase 1b: path discovery — register roots, don't hardcode them
 ## -----------------------------------------------------------------------
@@ -539,13 +593,28 @@ phase_3_form:
     users.* command names are 5PN's to define; this doc treats them as
     an integration point, not a spec.
   sketch: |
-    user-edit.console.start:
+    CORRECTED (2026-08-10): NOT a blocking "read key" loop — user-edit
+    needs concurrent keyboard input AND network I/O (users.* replies,
+    external_source_hooks' deferred cmd_reply completions) running
+    through the same event loop, exactly like nshell already does.
+    mirror nshell.setup_stdin_watcher's shape: event.add_io on fd 0,
+    poll=>'r', repeat=>TRUE, handler=>a user-edit shell-loop-equivalent
+    module — NOT a synchronous read() call anywhere in the flow.
+
+    user-edit.console.start [ after base.net.connect per the
+      CORRECTION_needed_2026_08_10 note in phase_1_skeleton above ]:
       $schema = { fields => [ ... per-setting field defs, types TBD per
                                setting ... ], submit_on => 'explicit_key:F2' }
       # field defaults populated from users.<get-command> before create()
       $editor_state = editor.control.create($schema)
-      loop: read key -> editor.control.process_key -> dispatch action ->
-            editor.ui.ascii_frame.render_form -> refresh_display
+      [user-edit.setup_stdin_watcher] -> event.add_io registers
+        user-edit's key-handler module on fd 0 [ mirrors
+        nshell.setup_stdin_watcher exactly ]
+      per keystroke event: editor.control.process_key -> dispatch action
+        -> write into the watched field-value scalar [ see
+        display_update_trigger below — this write is what fires the
+        base.event.add_var re-render watcher, not a direct render call
+        here ]
       on submit: editor.control.submit($editor_state) -> { ok, values }
                  -> write values to var_P7/user-edit/ outbox [ durable,
                     unconditional — see local_edit_outbox ]
@@ -554,6 +623,35 @@ phase_3_form:
                  -> on success: mark/remove outbox entry
                  -> on failure/offline: leave staged, retry later
                     [ retry_mechanism: open question ]
+  display_update_trigger: >
+    per user direction: use base.event.add_var (a real, established P7
+    primitive — Event->var() under the hood, watches a scalar ref, fires
+    a handler on write; live precedent: jobqueue.event.register_job_queues
+    watches a counter scalar, poll=>'w', fires jobqueue.handler.
+    queue_counter on every write) rather than manually calling
+    editor.ui.ascii_frame.render_form after every mutation site by hand.
+    This unifies two distinct triggers under one mechanism: a normal
+    keystroke edit (editor.control.commands.insert/delete writing into a
+    field's buffer) AND an async external resolution completing (5PN's
+    external_source_hooks — a key-generation or data-lookup reply
+    arriving and updating a field's value out-of-band, well after the
+    keystroke that originally triggered it) both just need to WRITE the
+    watched scalar; the watcher fires the re-render either way, so the
+    render call site doesn't need to know which case triggered it.
+    NOT YET DESIGNED: exactly which scalar(s) to watch — per-field value
+    scalars individually, or one coarser "form dirty" flag scalar that
+    render_form's caller watches once — and whether editor.control.*'s
+    buffer internals expose a stable scalar ref suitable for this
+    (editor.buffer.memory's storage shape needs checking, not assumed).
+    Not required for phase_2's already-landed render_form/render_field
+    (they render on demand when called). UPGRADED from "additive" to
+    LOAD-BEARING for phase_3, per the event-driven correction to
+    phase_3_form's sketch above: since keyboard input now arrives via
+    event.add_io rather than a blocking loop, there is no natural
+    "just re-render after the read() returns" point left in the flow —
+    the watcher IS the mechanism that connects a keystroke's write to
+    the field buffer with an actual screen redraw, not an optional
+    convenience on top of a simpler loop that could do it directly.
   validators: >
     per-field validator hooks already exist in the schema shape
     ($field->{validator}) — use them for setting-specific constraints
@@ -642,10 +740,10 @@ open_questions:
     user-edit's concern, or strictly crypt.C25519/keys territory
 
 created: 2026-08-09
-tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer]
+tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer, nshell, event-driven, network-connectivity]
 
-#,,..,,.,,,,,,.,.,,.,,.,.,.,,,,,.,.,.,,.,,,.,,..,,...,...,...,...,,,,,,,,,.,,,
-#GS7KMAAW4CYWB3N37QC3V3MT3BCLS2YP5MYALRQ7SDDDKP3KSN4LFAK4BB7PABH7636JJDCHTBSD4
-#\\\|IOEJALBX3QLTHZQDCJVTXX3JXBX5SWSTWWMHZRWS6M2GWYYUOND \ / AMOS7 \ YOURUM ::
-#\[7]SGUT6JJNP3L6FHXEWTIYTK4NF6TWWH3HFTC5FZZEIIGQEGEDXIBY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,.,,,.,.,.,.,,..,,..,.,,,...,..,,...,...,..,,,.,,,.,,,,.,...,
+#7Q7QJZJ5B75L2JZGTE4DNQVBBH7GTNXHTQYODA4LETQLMASLVHNKYX2YSRR33CNWYZXOGUHQNQYJG
+#\\\|INW5BMSQFYFGWQXYK4CK23TO55IZKULZBMK7G4U3CBYZUFDHHXA \ / AMOS7 \ YOURUM ::
+#\[7]7XIDCEFOASR5RSKFYU5F7SRK5CY6D6MKKFK3QGM7M54C5Z3TSQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
