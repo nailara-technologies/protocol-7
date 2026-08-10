@@ -9,31 +9,35 @@
 ##      for each configured domain [ openvas.cfg.enrich.domains ] the       ##
 ##      domain's skipgram word vectors [ data/embeddings/<domain>.vec,      ##
 ##      committed output of bin/dev/train-embedding ] are queried for       ##
-##      nearest neighbors of the finding : CVE ids extracted from oid /     ##
-##      name plus the finding name words form the query [ mean vector ].    ##
-##      neighbor tokens that map to a protocol file on disk [ name =        ##
-##      filepath convention : data/protocols/<domain>/<id>, no registry ]   ##
-##      are loaded and attached as enrichment context. a finding CVE id     ##
-##      with a protocol file in the domain is attached as a direct hit      ##
-##      [ score 1.0 ] independent of the neighbor ranking.                  ##
+##      nearest neighbors of the finding : CVE ids extracted from oid       ##
+##      / name plus the finding name words form the query [ mean            ##
+##      vector ].  neighbor tokens that map to a protocol file on disk      ##
+##      [ name = filepath convention : data/protocols/<domain>/<id>,        ##
+##      no registry ] are loaded and attached as enrichment context. a      ##
+##      finding CVE id with a protocol file in the domain is attached       ##
+##      as a direct hit [ score 1.0 ] independent of the neighbor           ##
+##      ranking.                                                            ##
 ##                                                                          ##
-##      the .vec export is queried instead of the .bin model : the .bin     ##
-##      files are ~2.4 GB each and gitignored, the committed .vec files     ##
-##      carry the same trained input vectors, so pure-perl cosine over      ##
-##      .vec yields the same neighbors as `fasttext nn <domain>.bin` for    ##
-##      in-vocab tokens without loading gigabytes into a zenka [ cross-     ##
-##      validated live against the cisa .bin, 2026-07-29 ].                 ##
+##      the .vec export is queried instead of the .bin model : the          ##
+##      .bin files are ~2.4 GB each and gitignored, the committed .vec      ##
+##      files carry the same trained input vectors, so pure-perl            ##
+##      cosine over .vec yields the same neighbors as `fasttext nn          ##
+##      <domain>.bin` for in-vocab tokens without loading gigabytes         ##
+##      into a zenka [ cross- validated live against the cisa .bin,         ##
+##      2026-07-29 ].                                                       ##
 ##                                                                          ##
 ##      per-domain graceful degradation [ the documented fallback ] :       ##
 ##      a domain whose model export or protocol dir is missing [ nvt :      ##
 ##      still bound to the unbuilt openvas feed-sync machinery ; cve :      ##
-##      deferred in security-intel-embedding-domains ] does not fail the    ##
-##      finding -- the finding is attached as-is and that domain alone is   ##
-##      marked status 'pending'. remaining domains still enrich normally.   ##
-##      a live domain with zero vocabulary overlap is marked                ##
-##      'no-vocab-match' [ distinct from 'pending' : the domain exists ].   ##
+##      deferred in security-intel-embedding-domains ] does not fail        ##
+##      the finding -- the finding is attached as-is and that domain        ##
+##      alone is marked status 'pending'. remaining domains still           ##
+##      enrich normally.  a live domain with zero vocabulary overlap        ##
+##      is marked 'no-vocab-match' [ distinct from 'pending' : the          ##
+##      domain exists ].                                                    ##
 ##                                                                          ##
-##      parsed vectors are memoized per zenka process [ per-scan reuse ].   ##
+##      parsed vectors are memoized per zenka process [ per-scan reuse      ##
+##      ].                                                                  ##
 
 my $finding = shift;
 
@@ -47,7 +51,7 @@ my $proto_base = <openvas.cfg.enrich.protocols_dir>
     // sprintf qw| %s/data/protocols |, $root_path;
 my $max_neighbors   = <openvas.cfg.enrich.neighbors>       // 5;
 my $max_proto_bytes = <openvas.cfg.enrich.max_proto_bytes> // 32768;
-my $domains_cfg = <openvas.cfg.enrich.domains>
+my $domains_cfg     = <openvas.cfg.enrich.domains>
     // join( ' ', qw| cve mitre cwe cisa nvt | );
 my @domains = grep {length} split m{[\s,]+}, $domains_cfg;
 
@@ -149,8 +153,8 @@ foreach my $domain (@domains) {
         next;
     }
 
-    ##  nearest neighbors : cosine of query vector vs all vocab tokens,    ##
-    ##  filtered to tokens that map to a protocol file on disk             ##
+    ## nearest neighbors : cosine of query vector vs all vocab tokens, ##
+    ## filtered to tokens that map to a protocol file on disk          ##
     if (@qvec) {
         my $qnorm = 0;
         $qnorm += $ARG * $ARG foreach @qvec;
@@ -225,10 +229,9 @@ return {
 #..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
-#,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
 
-#,,..,.,,,..,,,,.,,,,,..,,.,,,,,.,,.,,,,,,.,,,..,,...,...,..,,,.,,,,,,,,,,,..,
-#E2IJCNSZTTLZBCNXWHHPIHHGTJL24GAPJXOBHSVDDQ647AFCF5DJ3WVPDE3QAVBWHBSDSZFIPGTI6
-#\\\|M5Z3M6LJSA7PFK3PZDJQBEPE4EUHLSXSKHP4TAIRJHVTJIPTI23 \ / AMOS7 \ YOURUM ::
-#\[7]CMX3A2MJ6LRC5I2ZBFHKA7MM6NFZPUU4FHGJEH6DUN4XJS3YIKBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,,,.,,,,,.,.,,,.,.,,,...,.,,,..,,...,...,..,,,..,,,,,,.,,,,.,
+#S3APPE4JBLODSYB4SRWWNCF2APDG3K7R7QIN3BC7GWPIZEKIIZG2J3YFKMFJIRUR4WHUBHB646JXQ
+#\\\|DULGST6XLNVKEOQUYCUTN366M4RPE4PYYORDH7F6MOK6EC7QXUF \ / AMOS7 \ YOURUM ::
+#\[7]2NXG7TZIQFOIGIZWYB6BDN7DXYI5JXR42ZFQBNMBTPNV5EVRNODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'users' zenka startup configuration used by 'v7' zenka
+
+dependencies    = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+stdio.multiplex    = yes
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:4200]
+  [base.stdio_multiplex.connect]
+
+#,,,.,,,,,..,,,.,,,,.,,..,...,,.,,.,,,.,,,,.,,..,,...,..,,.,.,...,,..,,,.,,,,,
+#2NWJ232NUNZXN2OWCICZCUPYDRVE6JU6FZ2AWC5NFSNJSQ5C3MNBKOODLSBMOF4PXP7A2B333QOLM
+#\\\|6TPBLW3RKT6GA24QLZXY6J5ITZ7ZD3VHTZOXCSI6CHHPCP65YIU \ / AMOS7 \ YOURUM ::
+#\[7]JZZEPDXJLKDN4XAK3BQR4DN7Q72KSA2NUYLQ7RPYFUBZJXU2HGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
