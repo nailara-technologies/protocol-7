@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = mpv.startup.handler.socket_ready
+# descr = mpv's ipc socket file exists [ inotify-fired, or found already   ##
+#          present at watch-install time ] -- open it and complete startup
+
+## idempotency guard: the immediate -e check in mpv.open_control_socket and ##
+## a genuine inotify event can both reach here for the same socket          ##
+return if defined <mpv.socket>;
+
+if ( defined <mpv.startup.socket_deadline_timer> ) {
+    <mpv.startup.socket_deadline_timer>->cancel;
+    delete $data{'mpv'}{'startup'}{'socket_deadline_timer'};
+}
+if ( defined <mpv.startup.socket_watch> ) {
+    <mpv.startup.socket_watch>->cancel;
+    delete $data{'mpv'}{'startup'}{'socket_watch'};
+}
+
+my $socket_path = <mpv.path.ipc_socket> // '';
+
+<[base.log]>->( 1, "opening unix domain socket '$socket_path'.," );
+<mpv.socket> = <[base.open]>->( 'unix', 'output', $socket_path );
+<[base.log]>->( 1, "unlinking socket $socket_path.," );
+unlink($socket_path) or warn("unlink($socket_path) : \l$OS_ERROR");
+
+if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
+    <[base.log]>->(
+        0, '[!] mpv socket creation error [ not a valid socket ]'
+    );
+    <[mpv.callback.abort_startup]>;
+    return;
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <mpv.socket>,
+        'handler' => qw| mpv.handler.pipe_output |,
+        'data'    => { 'pid' => <mpv.pid> }
+    }
+);
+
+## replay whatever mpv.send_command buffered while the socket was down, in ##
+## the order it was called                                                 ##
+if ( <mpv.pending_commands> and <mpv.pending_commands>->@* ) {
+    my $pending = delete <mpv.pending_commands>;
+    <[base.logs]>->(
+        2,
+        '[send_command] player ready — replaying %d buffered command%s',
+        scalar $pending->@*,
+        <[base.cnt_s]>->( scalar $pending->@* )
+    );
+    <[base.s_write]>->( <mpv.socket>, $ARG ) foreach $pending->@*;
+}
+
+## window-id is mpv's own ipc property [ null until the real window opens,
+## vo-dependent ] - subscribe instead of firing fade_in/geometry here
+## synchronously; mpv.handler.event.property-change.window-id does both once a
+## real id arrives, async, no X-11 title-matching involved
+<[mpv.send_command]>->( qw| observe_property |, 1, qw| window-id | )
+    if not <mpv.audio_only> and ( <mpv.fade_in> or defined <mpv.geometry> );
+
+<[base.log]>->( 1, 'player startup successful., =)' );
+
+## release finalize job — observe_properties + get_playlist run from there ##
+<[jobqueue.check_dependencies]>;
+
+#,,,.,,,.,,,,,.,.,.,,,.,.,...,..,,.,,,,..,,..,.,.,...,.,.,..,,.,,,,.,,,,.,,,.,
+#HXQK6WNI2B3IWWADSNZ5LZORC35LTPVZXBDCJXX6D4Y2AUHOVVGCOEJ7MNCWWLPX6RLEUVPOREST4
+#\\\|I5K327NXOOTR6RLZECCNML5K3JJIK34SBKIHSOEFGZ6DLOGKEFO \ / AMOS7 \ YOURUM ::
+#\[7]GMLOFRO5VY2Y4DNIL3H2XHG7MNNTREQPN52RLCH4L7R6AZGJLWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
