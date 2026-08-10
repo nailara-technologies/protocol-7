@@ -444,39 +444,44 @@ amos_term_plugin_overlap: >
   (input.key), and interaction (agent.query — ask-user flow with
   timeout-degrade-to-observation and a GTK window-open path, built for
   the coding-zenka fallback-chain). At least three of these bear
-  directly on what this design already proposes, and duplication is a
-  real risk, not a hypothetical one:
+  directly on what this design already proposes:
     - render hook (render.frame) vs phase_2_rendering's proposed
-      editor.ui.ascii_frame backend — if user-edit's UI ever runs inside
-      an amos-term window/buffer rather than a bare terminal, the render
-      plugin hook may be the correct integration point instead of (or
-      wrapping) ascii.frame.render directly. Undecided: does user-edit
-      run in a plain terminal (ascii.frame only, no amos-term
-      dependency) or as an amos-term buffer (render plugin, ascii.frame
-      as the thing the plugin calls internally)? Both are consistent
-      with everything designed so far; this doc does not yet pick one.
-    - input hook (input.key) vs editor.control.process_key — same
-      question: does key handling flow through amos-term's input plugin
-      hook, or does user-edit read keys directly and hand them to
-      editor.control.process_key with no amos-term involvement at all?
+      editor.ui.ascii_frame backend
+    - input hook (input.key) vs editor.control.process_key
     - interaction hook (agent.query, ask_user_stream, timeout-degrade,
-      GTK-degrade-when-no-display) vs this doc's submit/draft flow —
-      built for a different caller (coding-zenka asking the human a
-      question), but the underlying shape — ask, wait, timeout, degrade
-      gracefully when no display — overlaps with what a submit
-      confirmation or a "restore draft? y/n" prompt (see
-      draft_auto_save's open question) would need. Worth checking
-      whether amos-term.interaction.ask is reusable for that prompt
-      before writing a bespoke one.
-  resolution: NOT decided here — this doc flags the overlap so
-  implementation doesn't duplicate live infrastructure by accident, but
-  which of editor.ui.*/ascii.frame.* vs amos-term.plugin-render (and
-  editor.control.* vs amos-term.plugin-input, and a bespoke prompt vs
-  amos-term.interaction.ask) is the right integration shape depends on
-  where user-edit actually runs, which isn't pinned down yet (see
-  open_questions). Check amos-term.plugin-render/plugin-input/
-  plugin-interaction's actual call shape before starting phase 2/3
-  implementation, not after.
+      GTK-degrade-when-no-display) vs this doc's submit/draft
+      confirmation prompts (see draft_auto_save's restore-UX question) —
+      worth checking whether amos-term.interaction.ask is reusable there
+      once a GUI backend exists, instead of writing a bespoke prompt.
+  RESOLVED (2026-08-10, per user): BOTH will exist, not either/or —
+  terminal-first, GUI second, sequenced not competing:
+    - user-edit itself: terminal/console, matching the keys precedent
+      exactly. Phase 2 targets editor.ui.ascii_frame — ascii.frame.*
+      only, no amos-term dependency — full stop, this is the near-term
+      implementation target.
+    - a GUI backend (GTK3-class) is real, planned, and NOT speculative —
+      amos-term is the identified closest fit for it (its plugin system
+      already has the render/input hooks and a GTK window-open path via
+      the interaction plugin type), to be added as an ADDITIVE second
+      editor.ui.* backend later, per the interface doc's existing
+      terminal/gtk3/vterm backend-swappable design — not a replacement
+      for the terminal path.
+    - amos-term's role here is bigger than user-edit specifically: per
+      user direction, it's intended as the general vehicle for OTHER
+      settings-related UIs/forms too, not a one-off integration for this
+      zenka alone. Don't design amos-term hooks narrowly around
+      user-edit's exact needs when that work eventually starts.
+    - users zenka (5PN) is HEADLESS — no UI of any kind, terminal or
+      GUI. It's pure backend authority (storage/discovery/key-authority).
+      This overlap section and its render/input/interaction questions
+      apply to user-edit only, never to 5PN.
+  practical effect: phase_2_rendering below can proceed now, scoped to
+  ascii.frame.* / editor.ui.terminal only. The amos-term GUI backend is
+  a separate, later phase (not yet named/scoped in this doc) — when it
+  starts, check amos-term.plugin-render/plugin-input/plugin-interaction's
+  actual call shape before building against it, and keep it additive to
+  editor.ui.* rather than a fork of the field-schema/editor.control.*
+  layer everything else already shares.
 
 ## -----------------------------------------------------------------------
 ## phase 2: rendering — ascii.frame.* as editor.ui.* backend
@@ -593,11 +598,17 @@ verification:
       form per restore_on_startup's chosen UX
 
 open_questions:
-  - runtime surface: does user-edit run as a plain terminal console
-    (keys.-style, ascii.frame only) or inside an amos-term window/buffer
-    (amos-term.plugin-render/input as the integration point)? Blocks
-    amos_term_plugin_overlap and, downstream, whether phase_2's
-    editor.ui.ascii_frame backend is standalone or amos-term-plugin-hosted
+  - RESOLVED: runtime surface is terminal-first (ascii.frame.*, no
+    amos-term dependency), with an amos-term-hosted GTK3-class GUI
+    backend planned as an additive second editor.ui.* backend later —
+    see amos_term_plugin_overlap above. phase_2 below proceeds against
+    terminal only.
+  - GUI backend scoping (amos-term-hosted editor.ui.gtk3-equivalent) —
+    not yet its own phase/task, deliberately deferred until the
+    terminal path (phase 2/3) is real; when it starts, remember amos-
+    term's role is general infrastructure for settings UIs broadly, not
+    user-edit-specific — don't narrow the plugin hooks to this zenka's
+    exact shape
   - users.* command surface for get/set of a user's editable fields —
     5PN's to define; this console just needs the names/args once they
     exist
@@ -633,8 +644,8 @@ open_questions:
 created: 2026-08-09
 tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer]
 
-#,,.,,.,,,,..,,..,.,.,..,,,,.,...,..,,.,.,,,,,..,,...,...,.,.,,,.,.,.,.,,,...,
-#P2FYAGKBW2OMNGNKOQJJB6THWJSZZWSYCQY25KV7NMIXJEZ2ZXZPZIEGLGCMXV4PG5ROD3KVA5B7W
-#\\\|OIN4Q5T4OQR6CMJ4ZDZV45D333VQHMOXSM6UL7Y7HPNPFXQ4HUT \ / AMOS7 \ YOURUM ::
-#\[7]2O7MKZSXQ5AJO5GU26VQEVZDZ2MGLUMZSQ2DM3V7SUTXS4PEWCCY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,.,,.,,.,.,.,,,,,.,.,.,,.,,,.,,..,,...,...,...,...,,,,,,,,,.,,,
+#GS7KMAAW4CYWB3N37QC3V3MT3BCLS2YP5MYALRQ7SDDDKP3KSN4LFAK4BB7PABH7636JJDCHTBSD4
+#\\\|IOEJALBX3QLTHZQDCJVTXX3JXBX5SWSTWWMHZRWS6M2GWYYUOND \ / AMOS7 \ YOURUM ::
+#\[7]SGUT6JJNP3L6FHXEWTIYTK4NF6TWWH3HFTC5FZZEIIGQEGEDXIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,7 +16,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## Category files — open the one that matches the topic in play
 
-- **[MEMORY-active.md](MEMORY-active.md)** (57 pointers) — in-flight / recently-landed work.
+- **[MEMORY-active.md](MEMORY-active.md)** (58 pointers) — in-flight / recently-landed work.
   open for: x11 (hardening, resolution-profiles, multi-server, bare-name routing), window placement,
   mpv startup/persistence, ascii-frame & ascii-desktop-domains UI, coding & kimi zenka state machines,
   jobsite ui/assessment, streaming transport & reply modes, web-browser capture/replay/waypoints,
@@ -29,7 +29,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   fetch-files/huggingface, usb-backup, invoke-model-manager), tool-SHM architecture, tls-acme,
   unicode-encoding repair, core patterns/templates.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (50 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (51 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -46,8 +46,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,,,,,,.,..,,,,,,,,,,,,,,,,,,,.,,,.,,...,..,,...,..,,...,,,,,,.,,,.,,,,,,
-#TV3BXBQE4JN7LSDOODLI4DDQNCUKHGH7UKRFNKLXF3KQZOBXMO545PUTO2NBER7O4C5I3TVFHWKVK
-#\\\|TVRCHOHAQ5CXSOY7ZMAVRWNNFRN3ESZUPXZI6T6WRZOVQDUNXVI \ / AMOS7 \ YOURUM ::
-#\[7]JJVQYVGOEK2WPZXYR4CUPYUDWDDDSUUZ2ISZI6OB4Q2S5ZHXLOCY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,,,.,..,,...,.,,,,..,...,..,,..,,...,...,...,,,.,,.,,..,,.,.,
+#PSYACGUPNZ3FTWBUHBPBQ74G22TWEGQWFTSEMO5ILFVGCEKPLHVEBXES6TIKPCEOFEPSOBKMNCVDA
+#\\\|FSSHOL5IMVQG4CB3N7STGFBSMWRK7IBNVEB5XTD4YAZGPEJCXHV \ / AMOS7 \ YOURUM ::
+#\[7]3SPJXHYA5TB2AGHL37V7KG74FRSXVVDGQLJBGYHJPYFFW33NMMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
