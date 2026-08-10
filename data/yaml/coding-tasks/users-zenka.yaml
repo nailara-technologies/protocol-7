@@ -9,6 +9,15 @@
 #          owns storage, discovery, and key authority; user-edit is a thin
 #          UI client with no local storage of its own. This doc is where
 #          that ownership actually gets specified.
+# Why now: per user (2026-08-10) — this zenka was the main missing piece
+#          blocking real testing/adoption of the cross-host stack that
+#          already exists (p-7-r, link-upgrade, ssh zenka, discover/
+#          orbital, see discovery_integration below): none of it had a
+#          real per-user identity/record system to test against. Phase 1
+#          (host-system/ only) landing gives that a concrete target —
+#          expect phase 2 (remote/) to double as the real-world exercise
+#          of the transport findings recorded below, not a separate
+#          from-scratch integration effort.
 
 task_metadata:
   title: "users zenka — canonical user records, distributed discovery, key authority"
@@ -101,18 +110,171 @@ discovery_integration:
     in <discover.orbital.known>, in memory. That is materially the same
     shape as "key authority for routing," already half-built.
   open_question: >
-    does the users zenka WRAP/consume discover.orbital.known (adding
-    durable etc_P7/users/remote persistence + a users.* query interface
-    on top of what discover.* already tracks in memory), or is it a
-    distinct discovery mechanism/transport for a different scope (e.g.
-    discover.* is LAN mcast host discovery, users zenka discovery might
-    need to work across WAN/non-LAN topologies where mcast doesn't
-    reach)? Do not assume either way — check discover.mcast's actual
-    reach/scope before deciding whether this is "integrate with
-    discover.*" or "separate discovery layer, same directional pattern
-    for consistency only."
+    RESOLVED (2026-08-10, verified against live code): NOT a straight
+    wrap. Two real findings settle this:
+      1. reach — discover.mcast.init_code sets mesg_ttl=3 (a few router
+         hops, bounded site/local-network scope, not WAN/global). This
+         matches — doesn't conflict with — identity_checksum_choice's
+         BMW-L13 "host/medium-network" scope decision above. No WAN
+         concern to design around.
+      2. granularity mismatch — discover.orbital.store_remote stores ONE
+         ENTRY PER HOST (hostname + the host's own single C25519 pubkey +
+         p7ref), signed by one per-host key (discover.crypt.key_name).
+         The mcast packet format (discover.format_discover_mcast_packet)
+         carries zero per-user information. discover.* discovers NODES,
+         not the individual user accounts living on them — it cannot
+         become users-zenka's remote/ user records via a simple wrap,
+         because it was never user-shaped to begin with.
+  resolution: >
+    Two layers, not one:
+      - discover.orbital.known stays exactly what it already is: a
+        presence/routing substrate ("which hosts exist, how do I reach
+        them" — host pubkey + p7ref). users zenka does NOT reimplement
+        or duplicate this.
+      - users zenka's remote/ is a genuine APPLICATION-LAYER exchange on
+        top: once discover says a host exists and how to reach it, users
+        makes a real routed request to THAT HOST'S OWN users zenka asking
+        for its user records — a new, small request/response protocol
+        addressed to a peer users zenka, not a data wrap of discover's
+        host-presence cache.
+  transport_dependency_found: >
+    CORRECTED (2026-08-10, traced one level deeper — the first pass was
+    wrong): external.cmd.connect-orbital does NOT open a real cross-host
+    connection today. It resolves a discover.orbital.known entry to an
+    IP/pkey, then calls nodes.cmd.add-tronk via protocol-7.route-send —
+    but (a) base.protocol-7.route-send is a SAME-HOST helper (prepends
+    protocol-7.network.parent_route hops, then calls
+    protocol-7.command.send.local — no network hop at all), and (b)
+    nodes.cmd.add-tronk only records {name, addr, pkey} into
+    <nodes.trunc> locally; the line where it would actually connect is a
+    literal unimplemented stub: `## establish encrypted connection ..,
+    ## [ LLL ] ##`. So the orbital/external/nodes path provides presence
+    (discover) and a connection-state UI (external.cmd.list-connections
+    etc, 'encrypted'=>FALSE/TRUE tracked per-connection) but NO working
+    cross-host transport yet, full stop — not an encrypted-vs-plaintext
+    question, a not-yet-connected-anywhere one.
+  transparent_link_model: >
+    per user direction (2026-08-10): when a real transport exists, the
+    link should present as an ordinary protocol-7 link to the zenki on
+    either end — "as if unencrypted," i.e. wire-protocol-transparent,
+    with any encryption happening at a layer below the zenka code, not
+    as a zenka-visible concern. Real, complete precedent for exactly
+    this shape already exists: the `ssh` zenka (modules/ssh.connection.
+    start opens a real authenticated+hostkey-verified SSH tunnel via
+    Net::SSH2, then ssh.handler.nailara_io / ssh.handler.ssh_io pipe RAW
+    protocol-7 wire bytes bidirectionally between a local protocol-7
+    socket and the remote proto-7 port through that tunnel). Neither
+    side's zenka code ever sees SSH — it just reads/writes a normal
+    local protocol-7 socket. This is the working, complete version of
+    what external.cmd.connect-orbital's 'encrypted' field gestures at
+    but never implements. Two real options once remote/ is actually
+    built, in order of how much new work each needs:
+      (a) reuse the ssh zenka's tunnel machinery directly as the
+          transport for a users-zenka remote connection (link setup via
+          ssh profiles, addressed by name) — least new code, but couples
+          remote/ to ssh-zenka link configuration existing per peer pair
+      (b) finish the nodes.cmd.add-tronk [LLL] stub to actually connect
+          (mirroring ssh's own connect+pipe shape but keyed off
+          discover.orbital's already-known pkey/p7ref instead of a
+          manually configured ssh profile) — more work, but is the
+          "real" fix for the orbital/external path as originally
+          intended, and doesn't require a pre-configured ssh link per
+          peer
+    neither is required to finish users-zenka's phase 1 (host-system/
+    only, already shipped). This is recorded so phase 2 doesn't start
+    from "the transport already exists" (it doesn't) or invent a THIRD
+    transport pattern alongside ssh's and orbital's half-built one.
+  working_transport_precedent_p7r: >
+    verification caveat, per user (2026-08-10): this and
+    link_upgrade_perl_side below are CODE-REVIEW findings only — p-7-r
+    was confirmed installed and its usage banner runs, but no live
+    round-trip against a real remote protocol-7 host was tested this
+    session. Per user: these components should, for their STATED
+    functions, be at least feature-complete — i.e. treat "auth-keypair
+    handshake + TOFU + command/reply parsing" and "DH key exchange
+    negotiation" as intended-complete implementations of exactly what
+    they claim to do, not partial stubs, UNLESS a piece is explicitly
+    marked incomplete (e.g. base.handler.link-upgrade.response's literal
+    TODO/placeholder comment) — that marked gap is a real, narrow
+    exception (cipher NOT applied to payload post-handshake), not
+    evidence the surrounding handshake/auth machinery is unreliable.
+    SUPERSEDES the "no working cross-host transport exists" framing
+    above for one-shot command execution specifically (ssh/orbital
+    analysis above still stands for a persistent tunnel). bin/c_src/
+    p-7-r.c (protocol-7-remote) is a COMPLETE, ALREADY-WORKING,
+    already-installed standalone C client — confirmed live at
+    /usr/local/bin/p-7-r, auto-compiled+installed by the v7 zenka
+    (modules/v7.compile_bin_p7r, same auto-install pattern CLAUDE.md
+    documents for p7c) — not a stub, not aspirational. Usage: `p-7-r
+    <hostname[:port]> <command> [args]`, default port 42. Real,
+    working handshake against a live remote protocol-7 host: reads the
+    \\PROTOCOL-7-VERSION\\<VERSION>\\ banner, `select auth-keypair`,
+    TOFU-validates the server's pubkey (shells to p7-tofu-helper.pl —
+    same TOFU mechanism project-zenka-cryptographic-identity-survey.md
+    found on the SERVER side, plugin.auth.auth-keypair.
+    validate-incoming-tofu — this is its client-side counterpart, both
+    real), sends `auth <user> <c25519_pubkey> <ed25519_sig>` (shells to
+    p7-auth-keypair-helper.pl gen-auth), then the actual command, then
+    parses the real TRUE/FALSE/SIZE/CHRSIZE/STRM reply grammar — the
+    same wire-level shape as the .cmd. reply contract
+    (feedback-cmd-data-must-be-string.md) this doc's own value-get/
+    value-all bugs were just fixed against, just at the wire level
+    instead of the Perl %code level.
+    CONFIRMS transparent_link_model exactly: auth is always signed
+    (C25519/Ed25519), but the command/reply payload is plaintext by
+    default — encryption is a fully optional negotiated upgrade
+    (PROTOCOL_7_LINK_UPGRADE=yes env var triggers negotiate_link_upgrade:
+    ephemeral DH via p7-link-upgrade-helper.pl gen-ephemeral/compute-dh/
+    derive-key). This is real code proving the "as if unencrypted,
+    transparent to the zenki, encryption optional" model already ships
+    today, independent of ssh/orbital.
+    practical implication for remote/: this is the most direct existing
+    path to "ask a peer host's users zenka for its records" — a
+    users.remote-* command could shell out to p-7-r <peer-host>
+    users.value-all (peer host/port resolved from discover.orbital.known
+    presence data), OR a native-Perl equivalent could be built reusing
+    the same three helper scripts (p7-tofu-helper.pl,
+    p7-auth-keypair-helper.pl, p7-link-upgrade-helper.pl) p-7-r already
+    shells out to, avoiding a subprocess per request. Either way: this
+    is the concrete unblock for remote/'s transport question, more
+    direct than either finishing the orbital [LLL] stub or wiring
+    through the ssh zenka. Still not decided WHICH of shell-out-to-p7-r
+    vs native-Perl-via-the-same-helpers remote/ should use — that's the
+    next open question, not "is there a working transport" (there is).
+  link_upgrade_perl_side: >
+    the server-side (and a client-side helper) Perl implementation of
+    the SAME protocol p-7-r.c speaks, confirmed wire-compatible:
+    cube.cmd.link-upgrade returns literally "TRUE link-upgrade OK
+    <pubkey_b32>" — the exact string p-7-r.c's negotiate_link_upgrade()
+    parses via strstr(response_line,"OK "). Session state machine:
+    state 1 (plaintext/authenticated, default, indefinite) -> state 2
+    (protocol.protocol-7.link-upgrade.init generates an ephemeral
+    Curve25519 keypair + capability list [ChaCha20-Poly1305 encryption;
+    utf7/base32/base32-xz encoding]; base.handler.link-upgrade processes
+    link-pub-key/link-confirm-encoding/link-complete, does REAL DH via
+    Crypt::Curve25519::curve25519_shared_secret) -> state 3 (upgraded).
+    A client-side Perl equivalent of p-7-r.c's C handshake also exists:
+    protocol.protocol-7.link-upgrade.handshake($socket,$options).
+    GAP FOUND (real, on BOTH ends, not just one): base.handler.
+    link-upgrade.response is a literal `## TODO: Implement link-upgrade
+    response formatting ... Placeholder: pass through unchanged` — and
+    re-checking p-7-r.c's own main read loop, enc_state.key (the derived
+    shared secret) is computed but never actually used to encrypt/
+    decrypt the subsequent recv()/write() traffic either. So: the DH
+    handshake itself is real, complete, and wire-compatible C25519/
+    Curve25519 crypto — but NEITHER side applies the negotiated cipher
+    to payload data afterward yet. State 3 is reached, but nothing is
+    actually encrypted once there. Do not assume "link-upgrade" gives
+    remote/ real transport encryption today — it gives a real, reusable
+    key-exchange primitive with the cipher-application step still open
+    on both client and server. If remote/ needs actual encrypted
+    payload later, this is the near-complete primitive to finish
+    (implement the missing cipher wrapper in
+    base.handler.link-upgrade.response and its p-7-r.c counterpart),
+    not something to build from scratch.
   if_integration_chosen: >
-    users zenka would not reimplement packet handling — it would consume
+    [ superseded by resolution above — kept for history ] users zenka
+    would not reimplement packet handling — it would consume
     discover.orbital.known (or a discover.* accessor built for this
     purpose) and be the thing that PERSISTS it durably + exposes it via
     users.* commands + folds in host-system's own local records, rather
@@ -140,6 +302,48 @@ discovery_integration:
     the actual multi-node discovery layer — uses BMW-L13, same as
     discover.orbital already does, rather than inventing a fourth
     checksum convention.
+
+## -----------------------------------------------------------------------
+## central registration point — future scope, not phase 1/2
+## -----------------------------------------------------------------------
+
+central_registration_point: >
+  per user (2026-08-10): host-system/ records are intended to eventually be
+  the CENTRAL registration point for a broader class of per-user
+  peripheral/personal data — not just what user-edit console's form edits,
+  but things like personal email addresses and similar — with OTHER zenki
+  resolving their own config FROM these records rather than duplicating it:
+    - smtpd (modules/smtpd.* — real, live mail archive/route/classify
+      zenka today) would resolve a user's mail identity/routing data from
+      here instead of its own separate config, once wired.
+    - nameserv's PLANNED TXT/SRV record features (per user — confirmed not
+      yet built: grepped modules/nameserv.* for literal TXT/SRV record
+      generation, found none; only coincidental substring hits like
+      discover-nodes/p7ref_lookup) would generate DNS TXT/SRV records FROM
+      user-zenka data (e.g. SPF/DKIM/MX-relevant fields tied to a user's
+      registered email) rather than a separate nameserv-side config surface.
+  this directly matches [[feedback-no-personal-data-in-repo-tree]]'s
+  existing rule (never hardcode PII into repo-tracked files, use external
+  dirs) — host-system/ under /etc/protocol-7/users/ already IS that
+  external, non-repo location, so this isn't a new constraint, it's the
+  natural consumer other zenki should have been resolving PII from all
+  along instead of ad-hoc per-zenka config.
+  reproducible-setup package: per user, host-system/'s eventual role is to
+  BE (or be referenced by) a package from which an entire node's set-up can
+  be recreated — echoes set-up zenka's already-real profile export/import
+  machinery (set-up.cmd.export-config/create-profile/install-profile/
+  fetch-zenka-config, whole-zenka-config JSON snapshots — see
+  user-edit-console-zenka.yaml's related_precedent_set_up_zenka) at a
+  different granularity (per-user field records, not whole-zenka-config
+  blobs). Whether this means host-system/ becomes one of the things
+  set-up's profile export captures, or a parallel reproducibility
+  mechanism, is NOT decided — flagging the connection so a future
+  reproducible-setup design doesn't start from scratch or duplicate
+  set-up's existing profile machinery.
+  status: vision-level, not scoped as phase 1 or phase 2 work. Recorded
+  here so the eventual "other zenki consume user records" and "node
+  recreation package" designs start from this doc's existing storage
+  layout/identity decisions rather than reinventing them.
 
 ## -----------------------------------------------------------------------
 ## key authority
@@ -245,10 +449,11 @@ open_questions:
     scope only so far
 
 created: 2026-08-10
-tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit]
+tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
+       smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh]
 
-#,,..,,,.,,,.,,.,,,,.,..,,,,,,.,,,,.,,..,,..,,..,,...,...,..,,,,,,,,,,.,,,,..,
-#SWCNBSQJAKLDS6F35OQZPN55TVNMNW4VFSMTFZSAJCECTOPCJPVXQ6XYINPTN7GPFOPMTNKR43ST6
-#\\\|VS6I4ZOZN44RZMRR6HQZDRT72QZSK6SKODJJC6JCO5KJMH4YJRV \ / AMOS7 \ YOURUM ::
-#\[7]DIC3SGKKW7AMVZX3PE5TIFLC5NII4742MFVYLNMEQZTUQITFIODY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,.,,..,,,,,.,,,..,,.,.,.,.,,,.,..,,...,..,,,..,.,,,,.,,.,.,.,,,
+#WQQJQSQVHDGGG4OYQOYKTTO726DGOBYIUID6TZY6SZVMELCEM5HD3KGISOD25T3O6DVMVXCGI5GME
+#\\\|ZZQGSEV45G67ISDRWNZKK2RP5DHBQY3GPJRNVG2DRULOG3YIZDJ \ / AMOS7 \ YOURUM ::
+#\[7]63HTW4DIDFGR3O3BS57V5SYHFRHNWVM66XYXOYIZMNMZLYW56MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
