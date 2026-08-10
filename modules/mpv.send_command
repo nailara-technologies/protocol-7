@@ -30,22 +30,25 @@ if (   ( <mpv.reply_ids> and <mpv.reply_ids>->@* )
     };
 }
 
+## player not ready yet -- buffer in arrival order and replay as one batch ##
+## once the socket opens [ see mpv.startup.handler.socket_ready ].  a      ##
+## jobqueue job per command used to be spun up here instead: correct, but  ##
+## each one carries a full job id, priority slot, and dependency tracking  ##
+## entry for what is really just "write these bytes once ready" — a plain  ##
+## ordered buffer says the same thing without the per-command jobqueue     ##
+## bookkeeping and log noise.,                                             ##
 if ( not defined <mpv.socket> ) {
-    <[base.log]>->( 1, '[send_command] player not ready — queuing command' );
-    <[jobqueue.add_job]>->(
-        {   'name'            => 'mpv deferred command',
-            'job_callback'    => 'mpv.job.deferred_send_command',
-            'object_id'       => <mpv.dep.socket>,
-            'callback_params' => { 'command' => $json_string },
-        }
+    <[base.log]>->(
+        2, '[send_command] player not ' . 'ready — buffering command'
     );
+    push @{ <mpv.pending_commands> //= [] }, $json_string;
     return;
 }
 
 <[base.s_write]>->( <mpv.socket>, $json_string );
 
-#,,..,,,,,,,,,,,.,...,.,.,.,,,...,,.,,,,.,,,,,..,,...,...,..,,.,,,..,,.,.,,,.,
-#GZWETI3Z6TPSHACVCXBNLFQAWOP2ZR7WMB3TPCRTMATZVENSMWDMPNPETKFERKOAVQSRWRPOG7ELW
-#\\\|S57T3QVMDY3HEJNMQB7IP64PBQR47TIM6AYXJSWT3ZEEMPOFKTW \ / AMOS7 \ YOURUM ::
-#\[7]JI7QHIBDGPTZH6X3WRYUDJIKMOD2P4VVWZFTNJTTSEJ4TFTRNYBQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,,..,...,...,,,.,,..,.,,,,.,,..,,...,...,,,.,,.,,,.,,,.,,..,,
+#EVPUFXKDSHWTUE2ZITE3YAZZITNSB3PSOLQU3BQ2EDAR3R5K3NECG2MQKBBT4OSW2AJHJWTBQR7TM
+#\\\|PTPXFO3W4I5Q53P5VCSP3BDVLSBS2PGV2EDLZT6LZQ277N5SARO \ / AMOS7 \ YOURUM ::
+#\[7]J5WLVBJZXD6V5E2VLPY2UN6GXU6Q4L4FTBHXB72TIKZKEQUOBQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

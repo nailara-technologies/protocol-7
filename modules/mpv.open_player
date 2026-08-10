@@ -107,8 +107,8 @@ my $mpv_title_str = <mpv.zenka_title>;
 $mpv_title_str .= sprintf qw| [%s] |, <system.zenka.subname>
     if exists <system.zenka.subname> and length <system.zenka.subname>;
 $mpv_title_str
-    .= ' [ ${?universal-title:${universal-title}}'
-    . '${!universal-title:no file} ]';
+    .= ' [ ${?universal-title:${universal-title}}${!universal-title:no '
+    . 'file} ]';
 
 push( @mpv_params, sprintf qw| --title='%s' |, $mpv_title_str );
 <mpv.started_with_params> = join ' ', @mpv_params;
@@ -186,18 +186,19 @@ close( delete <mpv.fh.stdin> );    # input fd not required
                 'WARNING: Invalid RefPicListX',
                 'xcb_connection_has_error\(\) returned true',
                 'jack server is not running or cannot be started',
-                'JackShmReadWritePtr::~JackShmReadWritePtr - Init not done for',
+                'JackShmReadWritePtr::~JackShmReadWritePtr '
+                    . '- Init not done for',
                 'Failed to open VDPAU backend libvdpau_nvidia.so',
             ]
         }
     }
 );
 
-## 'player startup successful' log + fade_in + observe + get_playlist
-##  are deferred to mpv.startup.handler.socket_poll
+## 'player startup successful' log + fade_in + observe + get_playlist are
+## deferred to mpv.startup.handler.socket_ready
 
-#,,..,.,,,...,,..,...,,,.,.,.,,..,,.,,,..,.,.,..,,...,...,..,,.,,,..,,.,.,,.,,
-#XNK75GNSAXNLLDUM63X7W55RGPQSGQULBQGAOKETK44DQHLBFKNT7PKJEADTBB52LJ7FI7JU3GQBS
-#\\\|KVGX3QEUXW23U4DL7YZZFMPIAVUYAN2AMD6NSTPLNZTEMINXEC2 \ / AMOS7 \ YOURUM ::
-#\[7]HX32YHDAI5JTMGZWHDCDDU36FRZY36XSDPZ3JJ6YKJBCCM7A42AQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,..,,,.,,...,,,.,...,.,,,,,,,.,,,..,,...,...,,..,,..,.,,,,,,,...,
+#L5RL5C46HNE5FG62JENNQKVOORC5EYGE2KDRCM7IHDCU7XZY6LRG2E45EV4AYEE2MJM3364MROHK4
+#\\\|AKOBZQVDKFWBWHUNIJYB6B7TCFH2KWYYEI3GH4ZNDX7WUI2ZNVM \ / AMOS7 \ YOURUM ::
+#\[7]626E2CYMOELMZP4ENHLDB4HJJZVQ4YEZ6GN5ECAOES3BEMSREWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
