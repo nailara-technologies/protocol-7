@@ -1,19 +1,50 @@
 ## [:< ##
 
 # name  = mpv.open_control_socket
+# descr = event-driven wait for mpv's ipc socket to appear [ inotify watch
+#          on IN_CREATE, no polling ] ; a single one-shot deadline timer is
+#          the only fallback, for the still-alive-but-stuck case [ mpv
+#          dying outright is already caught by the stdout/stderr io
+#          watchers installed in mpv.open_player, no need to duplicate
+#          that here ]
 
-## start async poll — socket connection completed in socket_poll handler ##
-<mpv.startup.socket_retries> = 0;
+<[base.inotify.install_io_watcher]>;
 
-<mpv.startup.socket_poll_timer> = <[event.add_timer]>->(
-    {   'after'    => 0.02,
-        'interval' => 0.05,
-        'handler'  => qw| mpv.startup.handler.socket_poll |
+my $socket_path = <mpv.path.ipc_socket> // '';
+my ( $socket_dir, $socket_name ) = $socket_path =~ m|^(.*)/([^/]+)$|;
+
+if ( not defined $socket_dir or not -d $socket_dir ) {
+    <[base.log]>
+        ->( 0, "[!] mpv socket directory missing [ '$socket_path' ]" );
+    <[mpv.callback.abort_startup]>;
+    return;
+}
+
+<mpv.startup.socket_deadline_timer> = <[event.add_timer]>->(
+    {   'after'   => 4.2,
+        'handler' => qw| mpv.startup.handler.socket_timeout |
     }
 );
 
-#,,.,,.,,,,.,,.,,,,..,,.,,...,,,,,...,.,.,.,,,..,,...,...,.,,,...,.,.,.,.,.,,,
-#IVVHRGDVZE3HKOZMBPIVQGPNOJFGO33KPBTHN5ZCCXDS2OE3KN6TBNX2N7YYNV372GTUUBQNLICEM
-#\\\|UWDO6NBKTKJZOVLRIGJ7QLMV3YYP7EQYP53XHCYPAGCTIH4KVBC \ / AMOS7 \ YOURUM ::
-#\[7]NBHON4G2M6OYVAWTYBAIUV3RBGB6SNQNCTC7HHSCTZVCOU7USUAI 7  DATA SIGNATURE ::
+<mpv.startup.socket_watch> = <base.obj.inotify>->watch(
+    $socket_dir,
+    IN_CREATE(),
+    sub {
+        my $event = shift;
+        return
+            if not defined $event->name
+            or $event->name ne $socket_name;
+        <[mpv.startup.handler.socket_ready]>;
+    }
+);
+
+## socket may already exist [ created in the gap between fork and watch     ##
+## install ] -- inotify only reports creates seen after the watch is armed, ##
+## so this covers that race without risking a double dispatch               ##
+<[mpv.startup.handler.socket_ready]> if -e $socket_path;
+
+#,,,,,,,,,...,,,,,,..,..,,,..,,,.,.,,,,.,,.,,,..,,...,...,..,,.,.,.,,,..,,...,
+#Y4SAKZM55GCUHZGWCW43PNAJ4JEYRK4BO57ZU6RVGXLN5GZOQF4EVNB6UYYQVMCGZOL3NTEMGBT46
+#\\\|ZAI5HETZXJWU65G65WYX6NGP6PLQQWSLFKDVUOWUZ37B3TSPTRO \ / AMOS7 \ YOURUM ::
+#\[7]YEGPDRTVKJMJQLQIDFSTBUY23YAFZORJDWTS62MZTQN2YBOLNKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
