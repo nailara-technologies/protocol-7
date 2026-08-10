@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = user-edit.draft.write
+# descr = write a draft edit record to local storage as yaml
+# param = $id, $yaml_data
+
+my ( $id, $yaml_data ) = @ARG;
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'draft.write : entry id required' );
+    return wantarray ? ( FALSE, 'entry id required' ) : FALSE;
+}
+
+if (   index( $id, qw| / | ) != -1
+    or index( $id, qw| .. | ) != -1 ) {
+    <[base.logs]>->( 0, 'draft.write : invalid entry id [ %s ]', $id );
+    return wantarray ? ( FALSE, 'invalid entry id' ) : FALSE;
+}
+
+my $has_data = 0;
+
+if ( ref $yaml_data eq qw| HASH | ) {
+    foreach my $key ( keys %{$yaml_data} ) {
+        my $value = $yaml_data->{$key};
+        if ( defined $value and length $value ) {
+            $has_data = 1;
+            last;
+        }
+    }
+}
+
+if ( not $has_data ) {
+    <[base.logs]>->( 2, 'draft.write : no data to save [ %s ]', $id );
+    return wantarray ? ( qw| skipped |, 'no data to save' ) : qw| skipped |;
+}
+
+my $path = sprintf qw| [VAR_P7]/draft/%s.yaml |, $id;
+
+my $resolved_path = <[base.path.resolve_keywords]>->($path);
+
+( my $draft_dir = $resolved_path ) =~ s|/[^/]+$||;
+
+<[file.make_path]>->( $draft_dir, 0750 )
+    or return wantarray
+    ? ( FALSE, 'cannot create draft directory' )
+    : FALSE;
+
+return <[format.yaml.write_file]>->( $resolved_path, $yaml_data );
+
+#,,.,,,,.,...,,,,,...,.,,,...,,,.,..,,,..,.,.,..,,...,...,..,,.,.,,,.,...,,..,
+#TK5OFXEZR6UYTYCB7HLJZQ5BYQIOPGZHXVR3YX57TM3JOAYFKDQRXDNVIIBUUQ3I42J2WUPCPTRD2
+#\\\|OFBT6I53CGRYREPYV2MBG2FP3D2LK7266UN6O4EX6MX4CH3BQCL \ / AMOS7 \ YOURUM ::
+#\[7]5LH7Z4VGYJJRRJH6IQ6DASKRG3WQCSZAP2B2R35K4ZSZ4NN5NWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
