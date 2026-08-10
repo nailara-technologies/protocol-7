@@ -5,7 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
-- [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — editor.* design reviewed twice; step_0/step_1/step_2 all landed and live-verified (`290a8f72f`/`e039f1912`/`47a2bf87e`) — nshell's live editing path now fully runs on editor.control.*; step_3/step_4 wait on a real multiline/multi-field consumer
+- [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — step_0/1/2 landed+verified (`290a8f72f`/`e039f1912`/`47a2bf87e`); step_4 also found already landed 2026-08-10 (was thought pending — memory was stale); only step_3 (multiline) remains unbuilt
+- [user-edit-console-zenka-status](topic-user-edit-console-zenka-status.md) — todo JUE+5PN design docs signed 2026-08-09/10; 4 phases landed on user-edit via kimi K2.7 (skeleton/path-registry/outbox/draft-storage); rendering blocked on terminal-vs-amos-term runtime-surface question
 - [jobqueue-check-dependencies-splice-bug](topic-jobqueue-check-dependencies-splice-bug.md) — FIXED + live-verified 2026-08-06: shared jobqueue.check_dependencies iterated the array move_job splices, stranding ~half of resolved dep-queue jobs per pass; hits mpv/coding/models/vision-batch/X-11 identically. Reported symptom persisted after this fix for a separate reason, see next entry
 - [jobqueue-queued-drain-starvation](topic-jobqueue-queued-drain-starvation.md) — FIXED + live-verified 2026-08-09: jobqueue.handler.queue_counter drained only 1 job per edge-triggered counter firing, starving the rest of any bulk depending→queued resolution (mpv startup: ~9 deferred send_commands stuck forever); bounded per-tick drain landed
 - [mpv-ipc-reply-request-id-matching](topic-mpv-ipc-reply-request-id-matching.md) — FIXED + live-verified 2026-08-06, commit `ca1370fe9`: mpv.handler.pipe_output matched IPC replies by shift()-order FIFO with no id in the payload, permanently desyncing on any dropped/reordered reply (mpv.is-idle hung, mpv.get-volume returned wrong-shaped answers). Fixed with request_id tagging end-to-end. Same session also fixed pause/resume volume fade-out/fade-in (was firing via the wrong event, silently discarding mpv.callback.silenced's real payload — device reopen, not volume mute)
@@ -102,8 +103,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,.,,..,,.,.,..,,..,,,..,,,,,..,,,..,,..,.,,,..,,...,..,,.,.,,,,,..,,,.,,,.,,
-#HBKNUMG2WYGDLLHQD34PB2BQI4F5ZVKC7ABWQQF5JYWRRMSIJXD7OY3KJCMPAAQRU42OJK52ZFWUA
-#\\\|4CKNLCGOKZ5NZRWFGLU5FEOKYAMYVT3HDSBPZ64GGFHSYNKW6EM \ / AMOS7 \ YOURUM ::
-#\[7]IBYN5J2UC5P5J4KZ6QLBYRLH3NJKMBXICOEHYZDYTOSQ2DODKGAQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,,,...,.,.,,.,,.,,,.,,,,,.,..,,..,,...,...,...,,..,..,,,,,,.,,,
+#3SHHC5UGAZD7Q645G5BTSK2V3MZPYPLGWG46WXA2I2XS7UGSPIUVO6H3Z7MJMHVIPHCYCHEA5C34E
+#\\\|YSQIKSWUASYIXNDB2MS53L3UHZ5NVGZVWLK7URFI6L7QEUSFFTH \ / AMOS7 \ YOURUM ::
+#\[7]E7IMY2FAZSSZBAKYFFVIU656LFXVYM3S2IBY7Z73INKDLECYROBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

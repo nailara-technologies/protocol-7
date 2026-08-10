@@ -233,8 +233,24 @@ wrapper owns its own relative-path prefix logic for var/etc dirs; the
 outbox file is already an absolute path from `[VAR_P7]/outbox/<id>.yaml`
 + `base.path.resolve_keywords`, so direct `unlink` is the simpler fit.
 
-#,,.,,,..,,,,,,.,,,,.,.,,,.,,,.,.,,..,,.,,..,,..,,...,...,..,,...,,.,,,..,..,,
-#AXPZRWIT7EQ33MKIEI6RIPSEAPXUJSW3JEEIO4JGXCVW5O7YCJOFJK4WJVOFDXDKV3IZJUL6MZO6S
-#\\\|5CCWWR4XLMOZQBTUW4X4E7MZZFVVVLTZ7TVRVGZFQDZBCQFZ6SW \ / AMOS7 \ YOURUM ::
-#\[7]RAEGHVHAFDC5HYYHHZLQPAV3KHIOOXM747MYR2KWV6XAZZKIU4DI 7  DATA SIGNATURE ::
+## ascii.frame cursor marker in live field values — WORKS (2026-08-10)
+
+phase-2 open question resolved: inserting a `|` cursor marker [ + `[..]`
+focus brackets ] into the active field's value before ascii.frame.render
+does NOT break alignment. hand-traced modules/ascii.frame.render: the
+same `length($value)` feeds BOTH the required_width computation and the
+render-time fill_width padding, so the extra chars cancel out and every
+row still pads to the same frame_width. do NOT strip the marker from
+width accounting — fill_width would clamp at 0 and the row overflows the
+right border by the marker count. only caveat: total frame width can
+shift by up to +3 cols [ 2 brackets + 1 marker ] across focus changes
+when the active row is/becomes the widest row — cosmetic jitter, safe to
+accept for the interactive loop. implemented in
+modules/editor.ui.ascii_frame.render_form [ + render_field wrapper,
+fixture data/yaml/ascii-frames/user-edit-test-form.yaml ], unsigned.
+
+#,,..,.,,,,..,.,,,.,,,.,,,.,,,.,,,,.,,..,,,,,,..,,...,...,.,.,.,,,.,,,..,,,,.,
+#ICF6E6BFPUDH3MKNBD7SLVUYY5JDNGLVEWOBDHUCXSGTFUE44QVAN336GTMUFVPBW655GMQBWMWSW
+#\\\|3FQZR6IQ437NAMYRJ4TSTXVI54BGV4LAEA7NQU2RSGEWNAJRL2C \ / AMOS7 \ YOURUM ::
+#\[7]U75T5HUCWYV32X7AFK3MMTIV4R7DEO24J2NLNKHMVPIE54GHEUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

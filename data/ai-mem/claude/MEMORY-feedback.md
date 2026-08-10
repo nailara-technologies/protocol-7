@@ -39,6 +39,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md)
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
+- [narrow-scoped-kimi-task-file-pattern](feedback-narrow-scoped-kimi-task-file-pattern.md) — one design-doc section + named precedent file + explicit out-of-scope + execution-free verification got 4/4 K2.7 dispatches right; still review the diff, caught 2 real bugs syntax-check missed
 - [kimi-k2.7-vs-k3-tier-economics](project-kimi-k2.7-vs-k3-tier-economics.md) — K3 categorically stronger reasoning, not just steering; ~3.75x price reflects it, use for higher-impact tasks
 - [model-routing-opus-cubic-viz-k3-design](feedback-model-routing-opus-cubic-viz-k3-design.md) — Opus: standout on cube/voxel-viz perf refactors (one-pass, error-free); K3: matched Opus's "catches real errors" bar immediately on first design-corpus dispatch
 - [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md)
@@ -76,8 +77,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 - [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
 
-#,,..,,.,,..,,,,,,.,,,...,,.,,.,,,,.,,.,.,..,,..,,...,...,.,,,..,,...,,..,.,.,
-#JW7XA47RYZLIO2FSEYPTL3RMP6QK5HEWZZ4ENWBNIMY5ECKCIEXAKMRLSIXWRBXCBGR6GND25EYSI
-#\\\|BP5Z7MHWBDQ2LCONS7CL2TPQM3B4ZYQLQJGY4SQ3KXZMXVWW3AH \ / AMOS7 \ YOURUM ::
-#\[7]VYLTDQN47CSAOH5OUGPCHMW5PRUK2I6DP6LDUCT64EPEGZJRBWCY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,...,,,.,,..,,,.,.,,,,.,,.,.,..,,...,...,...,..,,,.,,.,,,.,.,
+#LIGOJZ5I2KAO3LGTU7CVFVXMFDIJKEPWZYW2FR5IGV5M7MIGQZVJ2YKHM7YZFT7WMSEXOOE73RFTA
+#\\\|HC7XOKUTLI7C7OHAHK7T4DSCEWWIH37V7DW3ELTLVLLI2EYMQWY \ / AMOS7 \ YOURUM ::
+#\[7]WKZIUDPM4AHMOECRHKOL7KHVKLBTRKUSLWWGUDNGGMGJTULTIYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

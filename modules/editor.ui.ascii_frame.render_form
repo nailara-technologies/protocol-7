@@ -1,0 +1,99 @@
+## [:< ##
+
+# name  = editor.ui.ascii_frame.render_form
+# descr = render editor state as ascii-art form via ascii.frame backend
+# param = $editor_state, $frame_name [ , $only_field ]
+
+## rendering backend for the editor.ui.* contract [ design doc :
+## editor-namespace-interface-design.yaml ]. builds a FRESH values hash from
+## editor.control.get_value on every call [ no live slot binding —
+## ascii.frame.slot.bind deliberately not used here ].
+##
+## focus indication : ascii.frame slot prefix/suffix are static [ part of the
+## descriptor, not the values ], so the ACTIVE field's value itself is
+## bracket-wrapped and given a '|' cursor marker at the character offset from
+## editor.control.get_cursor before entering the values hash.  inactive fields
+## render their plain value.
+##
+## cursor-marker width note [ hand-traced against ascii.frame.render ] : the
+## marker [ and brackets ] are counted BOTH in the required_width computation
+## AND in the render-time fill calculation — both use length() of the same
+## value string — so row alignment stays exact. do NOT strip the marker from
+## width accounting : fill_width would clamp at 0 and the row would overflow
+## the right border by the marker count.  cosmetic caveat : total frame width
+## can shift by up to 3 columns [ 2 brackets + 1 marker ] across focus
+## changes, when the active field's row is or becomes the width-determining
+## row.
+
+my ( $editor_state, $frame_name, $only_field ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+return undef if not defined $frame_name or not length $frame_name;
+return undef if ref $editor_state->{'schema'}{'fields'} ne qw| ARRAY |;
+
+my $entry = <[ascii.frame.load]>->($frame_name);
+return undef if not defined $entry;
+
+## resolve descriptor [ single-mode frame, or first declared mode ] ##
+my $descriptor;
+if ( exists $entry->{'descriptor'} ) {
+    $descriptor = $entry->{'descriptor'};
+} elsif ( exists $entry->{'descriptors'} ) {
+    my $mode = $entry->{'modes'}[0] // qw| expanded |;
+    $descriptor = $entry->{'descriptors'}{$mode};
+}
+return undef if not defined $descriptor;
+
+## active field NAME [ active_field is an index into schema fields ] ##
+my $active_index = $editor_state->{'active_field'} // 0;
+my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
+    // '';
+
+## build fresh values hash from live field state ##
+my %values;
+foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
+    my $name  = $field_def->{'name'} // next;
+    my $value = <[editor.control.get_value]>->( $editor_state, $name ) // '';
+
+    if ( $name eq $active_name ) {
+        ## cursor marker at character offset, clamped to value bounds ##
+        my $cursor = <[editor.control.get_cursor]>->( $editor_state, $name )
+            // 0;
+        $cursor = 0             if $cursor < 0;
+        $cursor = length $value if $cursor > length $value;
+        substr( $value, $cursor, 0 ) = '|';
+        $value = '[' . $value . ']';
+    }
+    $values{$name} = $value;
+}
+
+## single-field scope : narrow the descriptor to the requested slot ##
+if ( defined $only_field ) {
+    my $slot = $descriptor->{'slots'}{$only_field} // return undef;
+    $descriptor = {
+        'border' => {
+            'left'   => $descriptor->{'border'}{'left'},
+            'right'  => $descriptor->{'border'}{'right'},
+            'top'    => [],
+            'bottom' => [],
+        },
+        'padding' => {
+            'left'  => $descriptor->{'padding'}{'left'}  // 0,
+            'right' => $descriptor->{'padding'}{'right'} // 0,
+        },
+        'slots' => { $only_field => { %{$slot}, 'row' => 1 } },
+    };
+    %values = ( $only_field => $values{$only_field} // '' );
+}
+
+return <[ascii.frame.render]>->(
+    {   'descriptor' => $descriptor,
+        'values'     => \%values,
+    }
+);
+
+#,,..,.,,,,..,,,,,.,,,,,,,,,,,,,,,.,.,...,.,,,..,,...,...,,.,,,,,,.,,,.,,,,..,
+#KZ2PW3V3AW4CFDONDUXWCKMHA2JMQROD6V5VNVXXJN526FFMAJ7Y7ALWIQLRN62BHL34BOBXNCMZK
+#\\\|YRW3OIVBF56VABW4K53YLRCZV4K3LHTUFS2AC3H5CH5DYZXJMXB \ / AMOS7 \ YOURUM ::
+#\[7]ILUTVCROVHMFESMZ2PN742NYSP3UX63XXEC724UT35E67UTLYSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
