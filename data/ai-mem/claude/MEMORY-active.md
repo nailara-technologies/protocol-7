@@ -7,6 +7,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 ## Active Topics
 - [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — step_0/1/2 landed+verified (`290a8f72f`/`e039f1912`/`47a2bf87e`); step_4 also found already landed 2026-08-10 (was thought pending — memory was stale); only step_3 (multiline) remains unbuilt
 - [user-edit-console-zenka-status](topic-user-edit-console-zenka-status.md) — todo JUE+5PN, 6 phases landed on user-edit incl. network-connectivity fix (43d22a1f8); async external-hooks + variable-watcher display-update designs added; next: 5PN's users.* surface OR phase_3 event loop against the existing fixture, either unblocks the other
+- [checksum-addressing-implementation-survey](project-checksum-addressing-implementation-survey.md) — 2026-08-10 ground-truth survey for 5PN (users zenka) identity decision: ~1/3 of checksum-addressing vision is real code (AMOS/BMW checksums, P7REF via base.p7ref.self, BMW384 geometric routing — but local-module-scoped, not network); no TYPE registry exists anywhere. Verdict: root new-entity identity in crypt.C25519, treat P7REF as a derived display layer, don't wait on the vision's unbuilt pieces
 - [jobqueue-check-dependencies-splice-bug](topic-jobqueue-check-dependencies-splice-bug.md) — FIXED + live-verified 2026-08-06: shared jobqueue.check_dependencies iterated the array move_job splices, stranding ~half of resolved dep-queue jobs per pass; hits mpv/coding/models/vision-batch/X-11 identically. Reported symptom persisted after this fix for a separate reason, see next entry
 - [jobqueue-queued-drain-starvation](topic-jobqueue-queued-drain-starvation.md) — FIXED + live-verified 2026-08-09: jobqueue.handler.queue_counter drained only 1 job per edge-triggered counter firing, starving the rest of any bulk depending→queued resolution (mpv startup: ~9 deferred send_commands stuck forever); bounded per-tick drain landed
 - [mpv-ipc-reply-request-id-matching](topic-mpv-ipc-reply-request-id-matching.md) — FIXED + live-verified 2026-08-06, commit `ca1370fe9`: mpv.handler.pipe_output matched IPC replies by shift()-order FIFO with no id in the payload, permanently desyncing on any dropped/reordered reply (mpv.is-idle hung, mpv.get-volume returned wrong-shaped answers). Fixed with request_id tagging end-to-end. Same session also fixed pause/resume volume fade-out/fade-in (was firing via the wrong event, silently discarding mpv.callback.silenced's real payload — device reopen, not volume mute)
@@ -104,8 +105,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,..,..,,.,.,.,.,.,.,,,.,...,.,,,...,,..,,,,,..,,...,...,.,.,,,.,.,,,,..,,.,,
-#KULD5WOQM2TOYF2NWY2GSVLGGSEY7IZ6G46GJMBGWWR6VKDESLXUVA3FC6JXTDXEQLGDCSG7LVBK6
-#\\\|3P52X3EXFB3PX5A2YJSKBDA7P5JNWMJFFKRWYYOUNVV64OQ26XG \ / AMOS7 \ YOURUM ::
-#\[7]QJ44A4TPYL47W2TMMWUI27BK23UZSPSKN2WYJAKMNXH5UZEPMUCY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,.,,,,.,,,,.,...,..,,.,,,.,,,..,,...,...,...,.,.,,..,,..,..,,
+#AO7UKF3ZFBZHXAXFQZPC53HOQBLQAQSDQAOZNM6HOPXTDVU6NK4QZHKZVODC2MYBUWJWXQU7VS6F6
+#\\\|CRGO6W44LZ3LL5WTUJ5SVMC5OHVKA6ISE6UXFYQWMK66RATXRAK \ / AMOS7 \ YOURUM ::
+#\[7]BMPSOF644RW3ALGK4EW4ARMQW35ZZK37BKEZRMV5G73GDQE3T4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
