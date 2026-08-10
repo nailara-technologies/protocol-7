@@ -1,0 +1,33 @@
+
+.:[ protocol-7 users records authority zenka ]:.
+
+[load_config_file:'shared-params']
+
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
+
+system.zenka.verbosity.buffer = 1
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer \
+                      buffer-erase buffer-erase-level \
+                      value-get value-set value-all \
+                      val
+
+modules.load = auth.client net protocol io.unix format.yaml users
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,,,.,.,.,.,,,,,.,.,.,..,,..,,...,,..,..,,..,,...,...,,.,,,,,,.,.,,,.,,,,,
+#DKV65SWRQSNKIV4UM5MURB6K3LTETQ4NFU4GWBA4GIBQEJCJDNYHTGGXSRZXVVEZX4S64P36ST5PG
+#\\\|472G76VIFTPIVJPRNAUP5W7UH2AZ5FXOBK6DKGPXBBLE3QLJJYY \ / AMOS7 \ YOURUM ::
+#\[7]76L724HQJVLTZMKALQZGZ5ZHGTHACFYW4OUTOW6CRXDHJIA24IAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

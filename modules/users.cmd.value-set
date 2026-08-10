@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = users.cmd.value-set
+# param = <username> <json-fields>
+# descr = write or overwrite a host-system user record
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.value-set <username> <json-fields>'
+    }
+    if not length $args;
+
+## split username from the rest of the argument string ##
+my ( $username, $json_str ) = $args =~ m|^\s*(\S+)(?:\s+(.*))?\s*$|s;
+$username //= '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.value-set <username> <json-fields>'
+    }
+    if not length $username;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'username cannot contain path separators'
+    }
+    if $username =~ m|[/\\]|;
+
+my $fields = {};
+if ( defined $json_str and length $json_str ) {
+    $fields = eval { JSON::PP::decode_json($json_str) };
+    if ($@) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( 'invalid JSON fields: %s', $@ )
+        };
+    }
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'fields must be a JSON object'
+    }
+    if ref $fields ne qw| HASH |;
+
+$fields->{'username'} //= $username;
+
+my $file_path     = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
+my $resolved_path = <[base.path.resolve_keywords]>->($file_path);
+
+## ensure parent directory exists [ may be needed after reload ] ##
+my $dir_path = $resolved_path;
+$dir_path =~ s|/[^/]+$||;
+
+if ( not -d $dir_path ) {
+    <[base.file.make_path]>->(
+        $dir_path, 0770, <system.amos-zenka-user>, <system.amos-zenka-user>
+    );
+}
+
+my ( $ok, $err ) = <[format.yaml.write_file]>->( $resolved_path, $fields );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        "failed to write user " . "'%s': %s",
+        $username, $err // 'unknown error'
+    )
+    }
+    if not $ok;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "user '%s' stored", $username )
+};
+
+#,,,,,,,,,,,,,.,.,..,,...,...,,,.,.,,,..,,.,,,..,,...,.,.,.,,,,.,,,.,,..,,,.,,
+#N2ZMN6TBTDE7V7ZAZ4MDBZRK6NR7S5WGI66SVYFSUUWT6LRCBZ36A6UUCVE7C5ML2BULFUPGJV42I
+#\\\|2MNZ5KPY7VDLQUOSS25WH7JMFQ2SVJQLH3GJCHVOKH5S5GZLK5O \ / AMOS7 \ YOURUM ::
+#\[7]CQX3ZUNKNKNO7SWJV7W34LRGRH3AN2RZYHA7GC74QHFGPESNIWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
