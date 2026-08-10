@@ -79,6 +79,52 @@ for why this dispatch shape worked well four times in a row):
    can shift ±3 columns across focus changes when the active row becomes
    the widest one. No bugs found this round.
 
+6. **phase 1 network-connectivity fix** (`43d22a1f8`, hand-edited
+   directly, not dispatched — small enough with a tight precedent):
+   phase 1's `start` file, cloned from `keys`' fully-standalone pattern,
+   had NO network connectivity at all — a real gap in already-committed
+   work, caught by the user before phase_3 could get built assuming
+   connectivity that didn't exist. Fixed by mirroring `nshell/start`
+   closely: `auth.client net protocol io.unix` added to `modules.load`,
+   `system.auth-user = <user-edit.unix_user>` (Unix-user auth, not a
+   zenka credential — personal console, same reasoning nshell uses),
+   `[base.net.connect:'unix']` added, `[base.get_session_id]`
+   intentionally skipped (same reason nshell skips it). Five new
+   `source/` placeholders. Also fixed in the same commit: `user-edit.
+   init_code`'s `HOME_N` keyword was resolving `~/.n` via a raw
+   `AMOS7::FILE::get_homepath()` perlmod call — user pointed out
+   `base.get_homedir` already exists as the P7-native wrapper for this,
+   already used by `crypt.C25519.get_usr_keys_dir` for this exact
+   purpose. Switched to match — worth remembering as a general lesson:
+   check for an existing `base.*`-namespace wrapper before reaching for
+   a raw Perl-module call, even when the raw call works fine.
+
+**Two new design-only additions** (both docs, 2026-08-10, per user
+direction — NOT implemented yet, design sections only):
+- `external_source_hooks` (`users-zenka.yaml`) — users zenka will need
+  async hooks out to external sources: key generation (crypt.C25519,
+  not confirmed callable this way yet) and data lookup from other zenki
+  (unnamed which ones). Correct mechanism identified: `{ mode =>
+  'deferred' }` + `base.callback.cmd_reply`, exactly as `mpv.cmd.quit`/
+  `mpv.snapshot.cmd_reply` already do — nested one level for the
+  cross-zenka round trip. FALSE START avoided and documented in the doc
+  itself: `base.handler.hooks.register/unregister` looked promising
+  but is session I/O interception (input-pre/output/command hooks on a
+  connection), wrong fit — don't repeat that dead end.
+- `display_update_trigger` (`user-edit-console-zenka.yaml`, inside
+  `phase_3_form`) — use `base.event.add_var` (real precedent:
+  `jobqueue.event.register_job_queues` watches a scalar ref, fires a
+  handler on write) to unify keystroke-driven and async-arrival-driven
+  re-renders under one mechanism, rather than manually threading
+  render calls through every mutation site. Also corrected
+  `phase_3_form`'s sketch: NOT a blocking "read key" loop — needs
+  `event.add_io` on STDIN mirroring `nshell.setup_stdin_watcher`
+  exactly, since keyboard input and network replies (including the
+  external-hooks deferred replies above) must both flow through the
+  same event loop concurrently. This is why the variable-watcher
+  mechanism was upgraded from "additive" to load-bearing in the doc —
+  there's no other natural redraw point left once input is event-driven.
+
 **Runtime-surface question RESOLVED (2026-08-10, per user)** — was the
 prior blocker on phase 2, now settled: `user-edit` is terminal-first
 (`ascii.frame.*`, no amos-term dependency — this is what phase 2 above
@@ -113,11 +159,23 @@ JSON-only profile format is a kiosk-appliance-era holdover per the
 user, not a convention to match; project direction is minimize JSON,
 YAML as the fallback where no native format exists.
 
-**Next step**: 5PN (`users-zenka.yaml`) needs to move from design to a
-real `users.*` command surface before `phase_3_form` (the interactive
-loop) can be built against real fields rather than the synthetic
-fixture. Until then, this is a natural pause point on the `user-edit`
-side specifically.
+**Next step, as of end of 2026-08-10 session — two open paths, neither
+started**:
+  1. 5PN (`users-zenka.yaml`) moving from design to a real `users.*`
+     command surface — needed before `phase_3_form` can be built
+     against real fields rather than the synthetic fixture. This also
+     means starting to resolve 5PN's own still-open questions:
+     `discovery_integration` (integrate with `discover.*` or not) and
+     `external_source_hooks`' two items above (is crypt.C25519 callable
+     for key-gen this way? which zenka(s) for data lookup?).
+  2. OR: `user-edit`'s phase_3 event-driven loop scaffolding itself
+     (the `event.add_io`/STDIN-watcher + `base.event.add_var` design
+     from this session) could be built and exercised against the
+     EXISTING synthetic test fixture first, independent of 5PN — same
+     "build against a fixture, not real fields yet" approach phase 2
+     already used successfully. Might be the better next dispatch
+     target if 5PN stalls, since it doesn't block on that work at all.
+  Neither has been started; pick either as the next session's opener.
 
 Also fixed along the way (unrelated to user-edit, found via a live task
 abort during this work — see
@@ -127,8 +185,8 @@ character runs (this codebase's own `ascii.frame` border fills and
 AMOS7 signature terminators both qualify) as degenerate model output.
 Fixed in `c39873f93`.
 
-#,,.,,,..,,..,...,.,.,,..,.,.,...,.,.,,,.,,,.,..,,...,...,.,.,,,,,.,,,...,..,,
-#JKXKL6DAVJ5HH32W4KQU7ME2L66EH7M6ZXNPRGEDQ6UX7AXBZX5W323H4I24AQIKNYQF45W3FZ6DK
-#\\\|RIP5AD4Y2KZDJT7NWJQGUCEF3HX443OT257HP25BS563RSTNL2U \ / AMOS7 \ YOURUM ::
-#\[7]ZM52D5IQIVEMYNZOGDGZOOK6EMPCSAF24IARXHZYROX6EGAPCEBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,,.,,.,,,,..,,..,,,.,,.,,...,..,,...,...,,..,,..,.,,,,,,,,,.,
+#JJDYRD6UB2AFFBJUEJW5MYJZWRS34TBMWEMTYTK3DHTFDAOGUEWVI54BCG7QO4GONOGDKWAJMPDLA
+#\\\|AJUSFMURCDIZPG2NVLNY3H6PD6ZSSD6AKZ3SDDRBSWQTVAKY2OT \ / AMOS7 \ YOURUM ::
+#\[7]EGQZC2KCNYDPCECXZCWGPQ4D4J5S2Q2RFLTKJ4NVEDGRHVH3MMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
