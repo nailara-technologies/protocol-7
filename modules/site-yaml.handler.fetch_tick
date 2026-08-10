@@ -53,7 +53,7 @@ if ( ref $job ne 'HASH' ) {
     }
 
     my $is_retry  = $tag =~ m{retry=};
-    my $log_level = $is_gone ? 2 : ( $is_ratelimit || $is_retry ) ? 1 : 0;
+    my $log_level = $is_gone ? 2 : ( $is_ratelimit || $is_retry ) ? 2 : 1;
     <[base.logs]>->(
         $log_level, 'fetch: %s [%s] q=%d',
         $id, $tag, scalar @{$queue}
@@ -89,8 +89,8 @@ if ( length $reply_handler ) {
 
 return;
 
-#,,,,,,,.,...,...,,.,,,,.,.,.,.,.,..,,,,,,.,,,.,.,...,...,...,.,.,.,,,,,.,,,,,
-#2R2M63TIE5RJL7KV72LH4HKRXJMZFW6OFN22BYFMPY5RKU6FNTQPZ2YX46JCYBEXS7DVBQG6QBR3W
-#\\\|LGGK244COF4WFWIBTYKG7GM2HDYZ5OD3QQQAMPJBN2RVPG5DW7B \ / AMOS7 \ YOURUM ::
-#\[7]3KMO2PTG7VVNE2MVN6AAV7THJTISHPWMHGICCCEQUVOD7B3UMEDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,..,,..,.,,,,,.,..,,.,,,..,,.,.,...,...,,.,,.,.,,,.,,,,,,,.,
+#FMHFXE7RWHRPJIRQSLZ7HYKAKZKAOTFMGANM5PWVFQDLDAKO76SLWFFW67QW7INC75Z2BUP32EQUW
+#\\\|YTZBF373JLDDHQ2QUXGC3AINIV56ZPH5DHO75GQHFDAJYUJ6J6Q \ / AMOS7 \ YOURUM ::
+#\[7]F6F3KMTYQITJY4TS444EOQGBQTV7M4NLUQY4HPJU6GIKVIPEJICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
