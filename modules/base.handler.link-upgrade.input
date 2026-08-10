@@ -1,0 +1,147 @@
+## [:< ##
+
+# name  = base.handler.link-upgrade.input
+# descr = input handler for encrypted session state (state 3)
+#         reads length-prefixed ChaCha20-Poly1305 frames, decrypts them
+#         and feeds the plaintext into the regular command handler
+#
+# installed_by = protocol.protocol-7.encryption.init [ state 3 init ]
+#
+# wire format = frame : pack('N', length) . ciphertext . 16-byte auth tag
+# nonce       = pack('N', link_nonce_session_id) . pack('N', counter)
+#               . "\0" x 4   [ counter starts at 0, increments per frame ]
+#
+# returns = 0 (command processed) | 1 (more data expected) | 2 (shutdown)
+
+my $event      = shift;
+my $session_id = $event->w->data;
+my $session    = $data{'session'}{$session_id};
+my $input      = \$session->{'buffer'}->{'input'};
+
+## encryption not initialized [ should not happen in state 3 ] ##
+if ( not defined $session->{'link_encryption_key'} ) {
+    <[base.s_warn]>->(
+        sprintf 'encrypted input handler without key [session %d]',
+        $session_id
+    );
+    $session->{'shutdown'} = TRUE;
+    return 2;
+}
+
+##[ FRAME HEADER : 4-byte big-endian length ]#################################
+
+$session->{'link_frame_state'} //= qw| header |;
+
+if ( $session->{'link_frame_state'} eq qw| header | ) {
+
+    if ( bytes::length($$input) < 4 ) {
+        $session->{'read-mode'}     = qw| bytewise |;
+        $session->{'bytes-to-read'} = 4 - bytes::length($$input);
+        return 1;    ## header incomplete ##
+    }
+
+    my $frame_len = unpack qw| N |, bytes::substr( $$input, 0, 4, q|| );
+
+    ## minimum : 16-byte auth tag [ empty plaintext ] ; cap : 4 MB ##
+    if ( $frame_len < 16 or $frame_len > 4 * 1024 * 1024 ) {
+        <[base.s_warn]>->(
+            sprintf 'invalid encrypted frame length %d [session %d]',
+            $frame_len, $session_id
+        );
+        $session->{'shutdown'} = TRUE;
+        return 2;
+    }
+
+    $session->{'link_frame_len'}   = $frame_len;
+    $session->{'link_frame_state'} = qw| payload |;
+}
+
+##[ FRAME PAYLOAD : ciphertext + tag ]########################################
+
+my $need = $session->{'link_frame_len'} - bytes::length($$input);
+
+if ( $need > 0 ) {
+    $session->{'read-mode'}     = qw| bytewise |;
+    $session->{'bytes-to-read'} = $need;
+    return 1;    ## payload incomplete ##
+}
+
+my $frame = bytes::substr( $$input, 0, $session->{'link_frame_len'}, q|| );
+$session->{'link_frame_state'} = qw| header |;
+
+##[ DECRYPT FRAME ]###########################################################
+
+my $counter = $session->{'link_read_counter'} // 0;
+
+my $nonce
+    = pack( qw| N |, $session->{'link_nonce_session_id'} // $session_id )
+    . pack( qw| N |, $counter )
+    . qq|\0\0\0\0|;
+
+my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
+    $session->{'link_encryption_key'}, $nonce );
+
+if ( not defined $cipher ) {
+    <[base.s_warn]>->(
+        sprintf 'ChaCha20-Poly1305 initialization failed [session %d]',
+        $session_id
+    );
+    $session->{'shutdown'} = TRUE;
+    return 2;
+}
+
+my $ciphertext = bytes::substr( $frame, 0, bytes::length($frame) - 16 );
+my $auth_tag   = bytes::substr( $frame, -16 );
+
+my $plaintext = eval {
+    my $pt = $cipher->decrypt_add($ciphertext);
+    $cipher->decrypt_done($auth_tag) or die "tag verification failed\n";
+    $pt;
+};
+
+if ( my $error = $EVAL_ERROR ) {
+    <[base.s_warn]>->(
+        sprintf 'ChaCha20-Poly1305 decryption failed [session %d] : %s',
+        $session_id, $error
+    );
+    $session->{'shutdown'} = TRUE;
+    return 2;    ## disconnect on authentication failure ##
+}
+
+$session->{'link_read_counter'} = $counter + 1;
+
+##[ FEED PLAINTEXT TO COMMAND HANDLER ]#######################################
+
+$session->{'link_plain_buffer'} .= $plaintext;
+
+## swap decrypted plaintext into the input buffer for base.handler.command,
+## keep any raw bytes beyond the frame aside [ normally none : bytewise reads
+## are exact, defensive only ]
+my $raw_rest = $$input;
+$$input = $session->{'link_plain_buffer'};
+
+my $ret_code = $code{'base.handler.command'}->($event);
+
+$ret_code = 2 if not defined $ret_code or $ret_code !~ m|^\d+$|;
+
+$session->{'link_plain_buffer'} = $$input;      ## unconsumed plaintext
+$$input = $raw_rest;                            ## restore raw frame bytes
+
+return 2 if $ret_code == 2;
+
+## set up read for the next frame header
+$session->{'read-mode'} = qw| bytewise |;
+if ( $session->{'link_frame_state'} eq qw| header | ) {
+    $session->{'bytes-to-read'} = 4 - bytes::length($$input);
+} else {
+    $session->{'bytes-to-read'}
+        = $session->{'link_frame_len'} - bytes::length($$input);
+}
+
+return $ret_code;    ## 0 : command processed | 1 : incomplete plaintext
+
+#,,,,,,.,,.,.,,,,,,,,,..,,,..,,.,,.,.,.,,,,.,,.,.,...,...,.,,,.,.,,,,,.,.,...,
+#BIXYJYRS7CFPQMPXATUFS4KNM23NMJR2EQAZ3BD6TMEHR3URKFRO4GOJVP6OGORCDVMZN4MLXLQO2
+#\\\|MPYIW7XLPYNFQCZVP6CIFS6KFCAZJA7KR4B6ANA2XVYVK7YZYEE \ / AMOS7 \ YOURUM ::
+#\[7]H2A7FCO7537VUH4QAEEEG7OJD73CHQZXEJ3AVR4IZ3T5XFHYYSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

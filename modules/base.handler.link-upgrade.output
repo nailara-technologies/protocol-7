@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = base.handler.link-upgrade.output
+# descr = output buffer watcher handler for encrypted session state (state 3)
+#         encrypts the pending plaintext output buffer into a length-prefixed
+#         ChaCha20-Poly1305 frame, then drains it via base.handler.write
+#
+# installed_by = protocol.protocol-7.encryption.init [ state 3 init ]
+#         [ replaces the session's output_buffer var watcher handler ]
+#
+# wire format = frame : pack('N', length) . ciphertext . 16-byte auth tag
+# nonce       = pack('N', link_nonce_session_id) . pack('N', write counter)
+#               . "\0" x 4   [ counter starts at 0, increments per frame ]
+
+my $event = shift;
+my $id    = $event->w->data;
+
+if ( not exists $data{'session'}->{$id} ) {    ## session is gone ? ##
+    $event->w->cancel if $event->w->is_active;
+    return FALSE;
+}
+
+my $session = $data{'session'}->{$id};
+my $output  = \$session->{'buffer'}->{'output'};
+
+## encryption not initialized or nothing pending : plain drain ##
+if (   not defined $session->{'link_encryption_key'}
+    or not bytes::length($$output) ) {
+    return $code{'base.handler.write'}->($event);
+}
+
+##[ ENCRYPT PENDING OUTPUT INTO ONE FRAME ]###################################
+
+$event->w->stop;    ## modify buffer without re-triggering ##
+
+utf8::downgrade( $$output, 1 ) if utf8::is_utf8($$output);
+
+my $counter = $session->{'link_write_counter'} // 0;
+
+my $nonce
+    = pack( qw| N |, $session->{'link_nonce_session_id'} // $id )
+    . pack( qw| N |, $counter )
+    . qq|\0\0\0\0|;
+
+my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
+    $session->{'link_encryption_key'}, $nonce );
+
+if ( not defined $cipher ) {
+    <[base.s_warn]>->(
+        sprintf 'ChaCha20-Poly1305 initialization failed [session %d]', $id
+    );
+    $session->{'shutdown'} = TRUE;
+    return 2;
+}
+
+my $framed = eval {
+    my $ciphertext = $cipher->encrypt_add($$output);
+    my $auth_tag   = $cipher->encrypt_done();
+    pack( qw| N |, bytes::length($ciphertext) + 16 )
+        . $ciphertext
+        . $auth_tag;
+};
+
+if ( my $error = $EVAL_ERROR ) {
+    <[base.s_warn]>->(
+        sprintf 'ChaCha20-Poly1305 encryption failed [session %d] : %s',
+        $id, $error
+    );
+    $session->{'shutdown'} = TRUE;
+    return 2;
+}
+
+## replace plaintext buffer with the framed ciphertext [ drain stays raw ]
+$$output = $framed;
+$session->{'link_write_counter'} = $counter + 1;
+
+## drain the framed bytes to the socket [ restarts watcher as needed ]
+return $code{'base.handler.write'}->($event);
+
+#,,..,..,,,,,,...,...,..,,...,.,,,.,.,..,,.,,,.,.,...,...,.,,,..,,.,.,,,.,.,,,
+#2WHH4QHPQZYBRIIBVLPWPWARWCNEFWHLIOIFWSNA3D6E7PQPAGTDCBZ45MUM5AJ27Q57TYL4KFMDS
+#\\\|SUEI4LQV2I4JS7HQVGMTON3UKRRSIKFNZNXOAOOY4FK5WPJVEPN \ / AMOS7 \ YOURUM ::
+#\[7]3TVEHU7FD3L5POAFI6WDRCSC6MBQCTUP7QUWQ2HX4TWZHFSUUABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
