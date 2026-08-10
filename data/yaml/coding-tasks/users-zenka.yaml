@@ -120,6 +120,26 @@ discovery_integration:
     memory-only (<discover.orbital.known>, no store-to-disk call seen in
     store_remote) — persistence is the gap users zenka would actually
     fill, not discovery itself.
+  identity_checksum_choice: >
+    RESOLVED (2026-08-10, per user + verified against live code): use
+    BMW-L13 (base.chk-sum.bmw.L13-str / harmonize_L13) as the identity
+    checksum for remote/{incoming,outgoing} records, not a fresh scheme.
+    Precedent: discover.orbital.store_remote ALREADY keys known remote
+    pubkeys by BMW-L13 today — this is not a new choice, it's reusing the
+    exact mechanism the discovery layer already validates. BMW-L13 is not
+    a truncated BMW512 — harmonize_L13 folds the 512-bit digest through
+    the harmonic (division-by-13) AMOS7::Assert::Truth::true_int
+    validator until the result passes, then base32-encodes to a fixed
+    13-char string (~65 bits). It sits deliberately between AMOS7's
+    7-char scheme (cheap, small-scope — fine for host-system/'s local
+    users) and full BMW224/384 (geometric routing, currently
+    local-module-scoped only, not a network mechanism — see
+    project-checksum-addressing-implementation-survey.md). Net effect:
+    host-system/ local records can stay on AMOS7 or a C25519-derived
+    P7REF (base.p7ref.self shape); remote/{incoming,outgoing} identity —
+    the actual multi-node discovery layer — uses BMW-L13, same as
+    discover.orbital already does, rather than inventing a fourth
+    checksum convention.
 
 ## -----------------------------------------------------------------------
 ## key authority
@@ -227,8 +247,8 @@ open_questions:
 created: 2026-08-10
 tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit]
 
-#,,,,,,.,,.,,,,,.,.,,,..,,,.,,..,,,,.,..,,,,,,..,,...,...,..,,..,,,..,.,,,.,.,
-#4PPG4EM6MWT6D4YKYY33MEA7FGTWUXYRFRDGCAFEVERDHL4LSBEQDUMXKWZWECZZP322NTIH4LS6M
-#\\\|UVURUPWKPGSRPAQMO4X6KRVDYERZNQ6CUVTV3ZGNOKEBOZHLZ76 \ / AMOS7 \ YOURUM ::
-#\[7]KHWECMJJBTEWQUCKZOV4N434F6AALVQFJPSUJRKLJDPCHUH4EEDI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,.,,,,.,..,,,,,,.,,,,.,,..,,..,,..,,...,...,..,,,,,,,,,,.,,,,..,
+#SWCNBSQJAKLDS6F35OQZPN55TVNMNW4VFSMTFZSAJCECTOPCJPVXQ6XYINPTN7GPFOPMTNKR43ST6
+#\\\|VS6I4ZOZN44RZMRR6HQZDRT72QZSK6SKODJJC6JCO5KJMH4YJRV \ / AMOS7 \ YOURUM ::
+#\[7]DIC3SGKKW7AMVZX3PE5TIFLC5NII4742MFVYLNMEQZTUQITFIODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
