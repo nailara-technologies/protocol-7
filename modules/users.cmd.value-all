@@ -5,11 +5,10 @@
 
 my $users_path = <[base.path.resolve_keywords]>->(qw| [USERS_HOST] |);
 
-if ( not -d $users_path ) {
-    return { 'mode' => qw| true |, 'data' => [] };
-}
+## reply contract requires a string 'data' payload, never a raw arrayref ##
+return { 'mode' => qw| size |, 'data' => '' } if not -d $users_path;
 
-my @files = <[base.file.match_files]>->( $users_path, qw| *.yaml | );
+my @files = <[file.match_files]>->( $users_path, qw| *.yaml | );
 
 my @usernames;
 foreach my $file_path (@files) {
@@ -17,10 +16,13 @@ foreach my $file_path (@files) {
     push @usernames, $1;
 }
 
-return { 'mode' => qw| true |, 'data' => [ sort @usernames ] };
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", sort @usernames )
+};
 
-#,,,,,,,.,.,.,..,,.,.,.,.,,,.,...,,,.,..,,,,.,..,,...,...,,.,,...,...,.,,,...,
-#5V4DNC5MZSXJ7YK53TKXIAKBXWFFAUKFKNYKXTLLAJMDZM5I6JSRMWOSWDV3JKDROEV4WZNFGGBYM
-#\\\|SU2IQJKRPSFGHYIXRSCFJZ2P5MMVJ5N3XTK4OI6XSWOCLWKY4HP \ / AMOS7 \ YOURUM ::
-#\[7]6ZXHJ7V2FX5ZGBJQDTKBT5IHEOBMEYWCSXHOVDZ6XD3D3PF5QKAA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,.,,,.,,,,.,,...,.,,,..,,,,,,..,,...,...,,,.,.,,,,,.,.,,,,,.,
+#2DD7FL6JE3EZWE2XZWQB3AR7SIH7PIIIG7THVN7JEKAZFGGPWZZKN4MN23MVRBH3SLUWQVQXM7TOI
+#\\\|IIBMYTFYQD45DITJDWEOCLFLLDGIBROAQ2AOGNA526LT4ZGGI7O \ / AMOS7 \ YOURUM ::
+#\[7]JOG4XC3X3M4D74K4QUQXSN3UV7GHF5CRKMUHCJOXAFYS2YKW76BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
