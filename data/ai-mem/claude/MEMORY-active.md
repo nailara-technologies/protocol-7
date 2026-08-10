@@ -41,7 +41,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [screen-setup-zenka](topic-screen-setup-zenka.md), [amos7-shm-phase1](topic-amos7-shm-phase1.md) — minimap+overlay LIVE; SHM phase 4 open
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md), [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — renames LANDED; tile test case
 - [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md), [mpv-persistence](topic-mpv-persistence.md) — placement+geometry LANDED; persistence planned; 2026-08-10 (`4526a0360`) socket-wait polling → inotify + one-shot deadline, send_command per-command jobqueue job → plain replay buffer, live-verified
-- [verify-instance-callbacks-initialized-deadlock](feedback-verify-instance-callbacks-initialized-deadlock.md) — never defer get_session_id past a system.callbacks.initialized push: v7's verify-instance (the only drain site) depends on the early whoami report reaching v7 first; deferring it deadlocks startup into a restart loop, hit live in mpv 2026-08-10
+- [verify-instance-callbacks-initialized-deadlock](feedback-verify-instance-callbacks-initialized-deadlock.md) — two traps in v7's verify-instance handshake: (1) never defer get_session_id past a system.callbacks.initialized push, deadlocks startup into a restart loop, hit live in mpv 2026-08-10; (2) the confirmation KEY is read back off console log output — silenced console verbosity hides it too, same restart-loop symptom; fixed in base.cmd.verify-instance (`2f23bbba1`)
 - [x11-multi-server](topic-x11-multi-server.md), [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — LANDED
 - [cube-tree-dashboard](topic-cube-tree-dashboard.md), [ascii-minimap](topic-ascii-minimap.md) — planned tree-view, btop2 minimap
 - [dot-path-case-notation](topic-dot-path-case-notation.md), [deparse-code-features](topic-deparse-code-features.md) — path-case written; deparse tree later
@@ -104,8 +104,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,.,,.,,,.,,,...,..,,..,,,..,.,,,,,,,...,,,,,..,,...,...,..,,...,,,,,,,,,.,,,
-#6Y5HFXKO4N27UHWGJCDZI2WD4H3N6BMPE3HTQHLJVVSTYHAOVISWR5BQJGNVPKYNSS4L5KSDDRGYS
-#\\\|QXFR2S5GQ6YEODN2MXUB3HG5XLEFQZZJATFAGFGWAI4EWP5NZYR \ / AMOS7 \ YOURUM ::
-#\[7]HSDW5WFBGNFQHFTOS6A73OBRPNDQGVOQPOS37MZUBPCKNGQYQEBI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,.,,,,.,,,..,..,,,,,,,,,,..,,..,,...,.,,,...,,,.,...,,,,,.,,,
+#GQOYLKSLCP3FLB3EAUBBRHDSLXOTGNMGBNDDGHBQGJVTK7TBJZOBQBEZIF7KGZXACTBUKVSUVX6U4
+#\\\|7CPYABEI3XXTO2OJTR2QA3XXXYQQCB5745CYNUXI6YPLQIFNSED \ / AMOS7 \ YOURUM ::
+#\[7]4H5FRENHRKDVW7MZAKV233N4RUIRVNLZSCMR2SOI4KSJM5WXJWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
