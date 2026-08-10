@@ -64,10 +64,8 @@ elsewhere — on THIS page, prefer reusing a color already present in the establ
 range (`--p7-fg-bright`, `--p7-text-soft`, `--p7-accent`, `--p7-gold`) over introducing any
 new, more-saturated hue, even one from the same brand palette.
 
-#,,..,.,.,,.,,,..,..,,,,,,.,,,.,,,..,,...,,,,,..,,...,...,,,,,...,..,,..,,..,,
-
-#,,,.,,..,.,,,,,.,,,,,,.,,.,.,..,,,.,,,.,,...,..,,...,...,.,,,...,,..,,.,,,.,,
-#WB3AAHCUW66LCPBAWS3T4TG6WGDEKJB3TPBMBRGJK3G3FLDRO3U6M3OW2KKPOCWGEG2V5HVD2EO44
-#\\\|SBN6EPLII6O7X5QTMFUGQGXW6BSZNJLQMENSKLKZHJD2525XDQ2 \ / AMOS7 \ YOURUM ::
-#\[7]WNDHVUDGFH2KI7WMB72HSZHSAAPTIYQNBOFNPXBR4R73X33GDADA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,.,,,,.,,.,,,...,...,,,.,.,.,..,,...,...,.,,,.,,,.,,,,..,,,.,
+#UQNXHCPIYRPEKY5KDNILMVB3VJFRCTMYVOZSYYBVOB2CVX3WQL2G2XPEADAX6UYV3VPL2A56VCS3W
+#\\\|BJVWZMJP4JDQKK3AHVHXEDYWR5JNQC5UTYLDQII4TXB2YF7MI5D \ / AMOS7 \ YOURUM ::
+#\[7]MBFD6ZTHMQQBFHZ2RPKAFRNI5FVOI7C6SKNNJRSWFDYMLNHBI2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

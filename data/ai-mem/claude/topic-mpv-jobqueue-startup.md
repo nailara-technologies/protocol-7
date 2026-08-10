@@ -74,6 +74,50 @@ coordinates to a profile (`window.profile.save`), which mpv reads back as
 `set_geometry` chain is the only thing that ever touches mpv's real
 window.
 
+## socket-wait polling replaced with inotify + batched send_command buffer (2026-08-10, `4526a0360`)
+
+The 50ms `mpv.open_control_socket` poll timer (`mpv.startup.handler.socket_poll`,
+this doc's original "async 50ms poll timer" line above) was a polling-timer
+anti-pattern per [[feedback-watcher-state-machines]]. Replaced with an
+inotify `IN_CREATE` watch on `/run/.7` (`base.inotify.install_io_watcher`,
+same pattern as `amos-term.plugin-install_watcher`) — fires only when the
+socket file actually appears, plus a single one-shot 4.2s deadline timer as
+the only remaining fallback (not a repeating poll). The per-tick `waitpid`
+crash check inside the old poll handler is gone too — redundant with
+`mpv.handler.stdout`/`.stderr`, which already catch the player dying via
+EOF (event-driven, was already there). Handler renamed
+`mpv.startup.handler.socket_poll` → `.socket_ready` (fires on the inotify
+event or an immediate `-e` check for the fork/watch-install race); new
+`mpv.startup.handler.socket_timeout` handles the deadline-only case.
+
+Separately, `mpv.send_command`'s deferred-command mechanism ("queues
+`mpv.job.deferred_send_command` with socket dep", described below) was the
+actual root cause of a long-reported "redundant queue entries" symptom:
+every command called before the socket was ready spun up a *full jobqueue
+job* (job id, priority slot, dependency-tracking entry) just to hold a
+string. Replaced with a plain ordered array (`<mpv.pending_commands>`) that
+`mpv.startup.handler.socket_ready` replays as one batch, in call order,
+right after the socket's io handler is registered. `mpv.job.
+deferred_send_command` is now dead and deleted. `jobqueue` stays loaded —
+`mpv.dep.socket` and the `finalize` job (observe_properties/get_playlist,
+gated on the socket dependency) are untouched and still legitimate uses of
+it.
+
+Mid-fix, deferring `[base.get_session_id]` (in `configuration/zenki/mpv/
+start`) until `socket_ready` looked like the correct move — it seemed to
+be what unlocks cube's routing-ready flag too early — but caused a real
+startup deadlock instead. See [[feedback-verify-instance-callbacks-initialized-deadlock]]
+for why that specific move is a trap for *any* zenka using the
+`system.callbacks.initialized` pattern, not just mpv. `get_session_id`
+stays early in the start file; the "not ready — buffering" burst you'll
+still see in logs at startup is expected/routine now (logged at level 2),
+not a bug — cube's per-session `initialized` flag and the player's actual
+IPC-socket readiness are just two different clocks that can't be fully
+unified without mpv self-managing `cube.set-initialized`/`unset-initialized`
+around its own fork→socket-ready window (discussed, not implemented —
+closes the window, doesn't eliminate it, given as an option to the user
+and declined for this pass).
+
 ## open work
 
 - ~~**state snapshot/restore**~~ **DONE** (`218cc382b`, 2026-07-31) —
@@ -103,8 +147,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,,,,,,,,,,,,.,.,...,..,,,,,,..,,..,,,,,,...,..,,...,...,,,,,,,,,,,,,,,.,,,.,
-#2S4W6UKULRL3YSRSCM7EZXUJFTJV3I6NU7P3IJ2B5ALN2TWQAGIQIFVBK2E5A4H5IOE44PUF4TNCS
-#\\\|AZK3CPHNIJ3ROQYRJP63MKBBM6MEIPMU5YF54GV6N546EQVAFDS \ / AMOS7 \ YOURUM ::
-#\[7]5OMVZUBFPVOA6LDCEWEDLBG7TNDA5FFUVSDKZ7R4OCNOOLWANOCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,...,,,,,,,.,,.,,,,.,.,,,..,,,,.,..,,...,...,..,,.,.,.,.,,,,,,,,,
+#C3GUVM5RTPGMQDOCLR3LIKTT6H7THYYKFX4LIMXFFBSLTCMNG27XDJAUPKVJGURZKGJ2STBZUEFG2
+#\\\|2BBSQKXAYWYI35BH6VSLFCHDNY726P463J53H2JZ4VDNKGXHFSG \ / AMOS7 \ YOURUM ::
+#\[7]NFD5T42WXQ4GHK3ZVERFJWXJUHOSS5PSDCPQDNIUBGQQPKGBDYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
