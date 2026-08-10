@@ -40,6 +40,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
 - [narrow-scoped-kimi-task-file-pattern](feedback-narrow-scoped-kimi-task-file-pattern.md) — one design-doc section + named precedent file + explicit out-of-scope + execution-free verification got 4/4 K2.7 dispatches right; still review the diff, caught 2 real bugs syntax-check missed
+- [stream-repetition-homogeneous-false-positive](feedback-stream-repetition-homogeneous-false-positive.md) — coding.detect_stream_repetition flagged legit homogeneous char runs (ascii.frame borders, AMOS7 sig footers) as degenerate model output; fixed c39873f93, homogeneous units now need 200+ char runs
 - [kimi-k2.7-vs-k3-tier-economics](project-kimi-k2.7-vs-k3-tier-economics.md) — K3 categorically stronger reasoning, not just steering; ~3.75x price reflects it, use for higher-impact tasks
 - [model-routing-opus-cubic-viz-k3-design](feedback-model-routing-opus-cubic-viz-k3-design.md) — Opus: standout on cube/voxel-viz perf refactors (one-pass, error-free); K3: matched Opus's "catches real errors" bar immediately on first design-corpus dispatch
 - [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md)
@@ -77,8 +78,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 - [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
 
-#,,.,,..,,,.,,.,.,...,,,.,,..,,,.,.,,,,.,,.,.,..,,...,...,...,..,,,.,,.,,,.,.,
-#LIGOJZ5I2KAO3LGTU7CVFVXMFDIJKEPWZYW2FR5IGV5M7MIGQZVJ2YKHM7YZFT7WMSEXOOE73RFTA
-#\\\|HC7XOKUTLI7C7OHAHK7T4DSCEWWIH37V7DW3ELTLVLLI2EYMQWY \ / AMOS7 \ YOURUM ::
-#\[7]WKZIUDPM4AHMOECRHKOL7KHVKLBTRKUSLWWGUDNGGMGJTULTIYCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,,,,,,..,,,.,...,..,,..,,.,.,..,,...,...,.,.,,..,,.,,,.,,.,.,
+#BTLQSBL2ZDKC6R7P2QEHRCQXBLC7PZB5XYC7Q6OO2NNAXWR3AZH7LRVI5Q42VIRDGFCDAYBWPXXE6
+#\\\|MRXTHWD3WBKLDR6E6ZHSDEFF42AWTKPJZOF4HKH7YB72P2QUE7P \ / AMOS7 \ YOURUM ::
+#\[7]P4Y2QCZGFLUWPEMP57AYTSXF7TYYK7OTI2PH4LVVAD5GK6F24UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,11 +55,22 @@ When a `.cmd.` module's usage-error/blank-args branch fires unexpectedly
 during live testing, check this exact pattern before assuming the
 caller's input, access grant, or routing is at fault.
 
+**Sibling gotcha, opposite direction (found 2026-08-10,
+`coding.cmd.summarize-reply`):** `$call` is already provided to every
+`.cmd.` handler by the framework — do NOT write
+`my $call = <[protocol-7.call]>;` at the top of one. It compiles and
+even works (same value), but it's a redundant redeclaration that shadows
+the framework-provided `$call` in the same scope, which `bin/dev/ptd -c`
+flags as a warning ("my variable $call masks earlier declaration in same
+scope"). Caught via a routine bulk syntax-check run, not a functional
+bug — but worth fixing on sight and worth checking for when reviewing
+any `.cmd.` module, alongside the `$ARG`/`shift` mistake above.
+
 [[arg-calling-convention]]
 [[topic-ncode-safe-refactor-workflow]]
 
-#,,,.,,,,,..,,..,,.,.,,..,,.,,.,.,..,,,.,,..,,..,,...,...,.,.,.,.,,..,...,,,.,
-#L2YTHOTESGHQIDMLFQLQHVOVN62FZIUU3VDDW6OQRGM3W4KKMMSHIXNTCMR6EVPWPQN3CNCWQDWUU
-#\\\|HXWEQY42DHZERZNQOEYLQZVXQJYD5GUX5NEP2DXZBULFD5K56PV \ / AMOS7 \ YOURUM ::
-#\[7]HEBAGUAIRMIIHX2BD4JB7VBZQC2X2RBEPCNTZXIUYTRON5VZ2UBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,...,,.,,..,,.,,,...,,..,.,.,..,,...,...,..,,,..,,..,..,,,,,,
+#ABTQ55YSHYA2C2ENKU5IC7DQIPNJFELXWACSXHSMYKPWIT2HWZ4MQYEWXM74B2H5S323DQAF66WJC
+#\\\|OKZJPUERKKOTIFCLYAFISLI24PEB3S23RNLV3PD6BYYBAFJX5DQ \ / AMOS7 \ YOURUM ::
+#\[7]OJYRJJV7E2RK32USJVYICD2IFH4EV3E2XXK27PSLWXI7Y3NIE6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
