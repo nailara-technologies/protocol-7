@@ -2,7 +2,8 @@
 
 # name  = protocol.protocol-7.encryption.init
 # descr = initialization for encrypted session state (state 3)
-#         sets up encryption and link-layer encoding transformation layers
+#         derives the ChaCha20-Poly1305 session key and installs the
+#         length-prefixed encrypted frame handlers for both directions
 #
 # called = from base.session.init_state when transitioning to state 3
 #         (only after successful link-upgrade negotiation at state 2)
@@ -10,22 +11,19 @@
 #            unencrypted local links never reach this state
 # args   = session_id, mode, state_id
 # returns = 1 (success) | 0 (failure - disconnect, not return to state 2)
+#
+# wire format [ state 3 ] :
+#   frame = pack('N', length) . ciphertext . 16-byte auth tag
+#   nonce = pack('N', link_nonce_session_id) . pack('N', counter) . "\0" x 4
+#   key   = SHA256( dh_shared_secret . pack('N', link_nonce_session_id ) )
+#   link_nonce_session_id is selected by the client and transmitted with
+#   the 'link-complete <session_id>' line [ fallback : server session id ]
 
 my ( $session_id, $mode, $state_id ) = @ARG;
 
-<[base.logs]>->(
-    1, '[%d] encryption.init: STARTED (unpacked args)', $session_id
-);
-
 my $session = $data{'session'}{$session_id};
-<[base.logs]>->(
-    1, '[%d] encryption.init: got session reference', $session_id
-);
 
 ## Verify shared secret exists from link-upgrade negotiation
-<[base.logs]>->(
-    1, '[%d] encryption.init: checking for DH shared secret', $session_id
-);
 if ( not defined $session->{'link_dh_shared_secret'} ) {
     <[base.logs]>->(
         0, '[%d] encryption init: missing DH shared secret from link-upgrade',
@@ -33,23 +31,17 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
     );
     return FALSE;
 }
-<[base.logs]>->(
-    1, '[%d] encryption.init: DH shared secret found, deriving key',
-    $session_id
-);
 
-## Derive encryption key using AMOS7::13::key_32
-## Input: C25519 DH shared secret
-## Seed: session ID for entropy variation (passed as SCALAR ref for smart iteration count)
-<[base.logs]>->(
-    1, '[%d] encryption.init: starting key derivation with AMOS7::13::key_32',
-    $session_id
-);
-my $enc_key
-    = AMOS7::13::key_32( \$session->{'link_dh_shared_secret'}, \$session_id );
-<[base.logs]>->(
-    1, '[%d] encryption.init: key derivation completed', $session_id
-);
+## nonce session id : client-selected [ sent with link-complete ], fallback to
+## server session id for legacy peers that do not transmit one
+$session->{'link_nonce_session_id'} //= $session_id;
+my $nonce_sid = $session->{'link_nonce_session_id'};
+
+## Derive encryption key : SHA256( shared_secret . pack('N', nonce_sid ) ) [
+## identical to the client-side 'derive-key' KDF, both ends must match ]
+use Digest::SHA qw| sha256 |;
+my $enc_key = sha256( $session->{'link_dh_shared_secret'} . pack qw| N |,
+    $nonce_sid );
 
 if ( not defined $enc_key or length($enc_key) != 32 ) {
     <[base.logs]>->(
@@ -61,123 +53,103 @@ if ( not defined $enc_key or length($enc_key) != 32 ) {
 ## Store encryption key in session (volatile, not persistent)
 $session->{'link_encryption_key'} = $enc_key;
 
-## Initialize ChaCha20-Poly1305 cipher context
 ## Load cipher module if not already loaded
 if ( not <[base.perlmod.loaded]>->('Crypt::AuthEnc::ChaCha20Poly1305') ) {
-    <[base.logs]>->(
-        2, '[%d] encryption.init: loading ChaCha20Poly1305 module...',
-        $session_id
-    );
     <[base.perlmod.load]>->('Crypt::AuthEnc::ChaCha20Poly1305');
-    <[base.logs]>->(
-        2, '[%d] encryption.init: ChaCha20Poly1305 loaded', $session_id
-    );
-} else {
-    <[base.logs]>->(
-        2, '[%d] encryption.init: ChaCha20Poly1305 already loaded',
-        $session_id
-    );
 }
 
-## Note: Cipher instances are created per-message with generated nonces
-## No need to create a context here - we'll create fresh instances in the wrappers
-## Just initialize the message counter for nonce generation
+## Initialize frame counters for nonce generation [ first frame : counter 0 ]
+$session->{'link_read_counter'}  = 0;              ## read-side frame counter
+$session->{'link_write_counter'} = 0;              ## write-side frame counter
+$session->{'link_frame_state'}   = qw| header |;
+$session->{'link_plain_buffer'}  = q||;    ## decrypted bytes pending parse
 
-$session->{'link_read_counter'}  = 0;    ## read-side message counter
-$session->{'link_write_counter'} = 0;    ## write-side message counter
-
-<[base.logs]>
-    ->( 2, '[%d] ChaCha20-Poly1305 cipher initialized', $session_id );
-
-## Save current input/output handlers before installing encryption wrappers
-if ( not defined $session->{'input'}->{'handler_encryption_original'} ) {
-    $session->{'input'}->{'handler_encryption_original'}
-        = $session->{'input'}->{'handler'} // qw| base.handler.command |;
-}
-if ( not defined $session->{'output'}->{'handler_encryption_original'} ) {
-    $session->{'output'}->{'handler_encryption_original'}
-        = $session->{'output'}->{'handler'} // qw| base.handler.write |;
-}
-
-## Install read encryption wrapper (decrypts incoming data)
-<[base.logs]>->(
-    2, '[%d] encryption.init: installing read wrapper', $session_id
-);
-$session->{'input'}->{'handler'} = qw| base.handler.read.encryption-wrapper |;
-
-## Create session-specific write encryption wrapper
-<[base.logs]>->(
-    2, '[%d] encryption.init: creating write wrapper...', $session_id
-);
-my $write_crypto_handler_name
-    = sprintf qw| base.handler.write.encryption-%d |, $session_id;
-my $write_crypto_wrapper
-    = <[base.handler.write.encryption-wrapper]>->( $session_id, $enc_key );
-<[base.logs]>->(
-    2,           '[%d] encryption.init: write wrapper created, ref=%s',
-    $session_id, ref($write_crypto_wrapper)
-);
-$code{$write_crypto_handler_name} = $write_crypto_wrapper
-    if ref $write_crypto_wrapper eq qw| CODE |;
-<[base.logs]>->(
-    2, '[%d] encryption.init: write wrapper installed', $session_id
-);
-
-## Install write encryption wrapper
-$session->{'output'}->{'handler'} = $write_crypto_handler_name;
-
-<[base.logs]>->( 2, '[%d] encryption wrappers installed', $session_id );
-
-## Install encoding wrappers if negotiated
+## Warn if a transport encoding was negotiated : state 3 framing carries
+## binary ciphertext, link-layer encodings are not applied on top of it
 if ( defined $session->{'link_encoding_mode'}
     and length $session->{'link_encoding_mode'} ) {
-
-    ## Save encryption wrappers as original for encoding wrappers
-    if ( not defined $session->{'input'}->{'handler_original'} ) {
-        $session->{'input'}->{'handler_original'}
-            = qw| base.handler.read.encryption-wrapper |;
-    }
-    if ( not defined $session->{'output'}->{'handler_original'} ) {
-        $session->{'output'}->{'handler_original'}
-            = $write_crypto_handler_name;
-    }
-
-    ## Install read wrapper (decode after decrypt)
-    $session->{'input'}->{'handler'}
-        = qw| base.handler.read.encoding-wrapper |;
-
-    ## Create session-specific write wrapper (encode before encrypt)
-    my $wrapper_handler_name = sprintf qw| base.handler.write.encoding-%d |,
-        $session_id;
-    my $write_wrapper = <[base.handler.write.encoding-wrapper]>->(
-        $session_id, $session->{'link_encoding_mode'}
-    );
-    $code{$wrapper_handler_name} = $write_wrapper
-        if ref $write_wrapper eq qw| CODE |;
-
-    ## Install write wrapper
-    $session->{'output'}->{'handler'} = $wrapper_handler_name;
-
     <[base.logs]>->(
-        2, '[%d] installed link-layer encoding wrappers for mode: %s',
-        $session_id, $session->{'link_encoding_mode'}
+        1,
+        '[%d] encryption init: encoding mode \'%s\' not applied [ encrypted '
+            . 'framing is binary, linewise encodings incompatible ]',
+        $session_id,
+        $session->{'link_encoding_mode'}
     );
 }
 
-<[base.logs]>->(
-    2, '[%d] encryption initialized (state %d), all layers configured',
-    $session_id, $state_id
+## Switch input to length-prefixed binary frames : read 4-byte header first
+$session->{'read-mode'}          = qw| bytewise |;
+$session->{'bytes-to-read'}      = 4;
+$session->{'input'}->{'handler'} = qw| base.handler.link-upgrade.input |;
+
+## transform for direct sends via base.net.send_to_socket [ rare path ]
+## session-specific closure : encrypts payload into one framed message
+my $frame_handler_name = sprintf qw| base.handler.link-upgrade.frame-%d |,
+    $session_id;
+$code{$frame_handler_name} = sub {
+    my $payload = shift;
+    $payload = q|| if not defined $payload;
+
+    my $sess = $data{'session'}{$session_id} or return $payload;
+    return $payload if not defined $sess->{'link_encryption_key'};
+
+    utf8::downgrade( $payload, 1 ) if utf8::is_utf8($payload);
+
+    my $w_counter = $sess->{'link_write_counter'} // 0;
+    my $w_nonce
+        = pack( qw| N |, $sess->{'link_nonce_session_id'} // $session_id )
+        . pack( qw| N |, $w_counter )
+        . qq|\0\0\0\0|;
+
+    my $w_cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
+        $sess->{'link_encryption_key'}, $w_nonce );
+    return $payload if not defined $w_cipher;
+
+    my $w_framed = eval {
+        my $ct  = $w_cipher->encrypt_add($payload);
+        my $tag = $w_cipher->encrypt_done();
+        pack( qw| N |, bytes::length($ct) + 16 ) . $ct . $tag;
+    };
+    return $payload if not defined $w_framed or length $EVAL_ERROR;
+
+    $sess->{'link_write_counter'} = $w_counter + 1;
+    return $w_framed;
+};
+$session->{'output'}->{'handler'} = $frame_handler_name;
+
+## Re-register the output buffer watcher with the encrypting write handler [
+## base.handler.write drains the buffer raw, encryption must wrap it ]
+if ( defined $session->{'watcher'}->{'output_buffer'} ) {
+    $session->{'watcher'}->{'output_buffer'}->cancel
+        if $session->{'watcher'}->{'output_buffer'}->is_active;
+    delete $session->{'watcher'}->{'output_buffer'};
+}
+$session->{'watcher'}{'output_buffer'} = <[event.add_var]>->(
+    {   'var'     => \$session->{'buffer'}->{'output'},        ## VARIABLE ##
+        'prio'    => -1,
+        'repeat'  => FALSE,
+        'poll'    => qw| w |,
+        'data'    => $session_id,
+        'handler' => qw| base.handler.link-upgrade.output |,
+        'desc'    => sprintf( '[%d] output buffer', $session_id )
+    }
 );
 
 <[base.logs]>->(
-    1, '[%d] encryption.init: COMPLETE AND RETURNING SUCCESS', $session_id
+    2,
+    '[%d] encryption initialized (state %d) : '
+        . 'ChaCha20-Poly1305, nonce-sid=%d, length-prefixed frames',
+    $session_id,
+    $state_id,
+    $nonce_sid
 );
+
 return TRUE;
 
 1;
 
-#,,.,,...,.,,,.,,,,,.,...,,,.,.,.,.,.,...,,,,,..,,...,...,...,.,.,.,,,..,,.,.,
-#XQCYFEB4MAW54Q57POQ6IBTXONT5XZXC5UXRZIN4HTRKOFQY7WSBJVG4H3QVQZRUIPVFUY2EJLKZ6
-#\\\|UZRM6354GXD7ZQLEC4UFCWG45MGYHQAOJLZ4KHFEDSKO4MOLCBZ \ / AMOS7 \ YOURUM ::
-#\[7]QRSR6ZPWV445KLYCTHVIVHEPZRE6AJHJ2ZZUFOC3CE6VGIB2DUBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,,,.,,.,,,,,,,,,,,.,,,.,,...,..,,...,...,...,,.,,,,.,..,,,..,
+#32XHAOYKXBGAQT2WXSAD4U6IK2JVBBNCUKAOEXAZD7Y7E5ZDHB75Y2SA6Z6ZBBRBCPSJQL2UVOMKQ
+#\\\|KZBNJNCOANHFIECJGOIGE5BIIZPGEYV4A2PAQSU26FODD2YBOYR \ / AMOS7 \ YOURUM ::
+#\[7]I26YAT2ZZMDSW4HV3P3NQPAWGZXJVQF6MMYWIPCKGWTQXAB476DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
