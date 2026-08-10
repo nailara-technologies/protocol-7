@@ -1,6 +1,6 @@
 ---
 name: feedback-verify-instance-callbacks-initialized-deadlock
-description: "system.callbacks.initialized is only drained by v7's verify-instance handshake, which itself depends on an early get_session_id call — deferring get_session_id past any callback pushed onto that array deadlocks startup"
+description: "two distinct v7 verify-instance handshake traps: (1) system.callbacks.initialized only drains via an early get_session_id call, deferring it deadlocks startup; (2) the handshake's confirmation KEY is read back off console log output, so silenced console verbosity makes a healthy instance look hung too"
 metadata:
   type: feedback
 ---
@@ -66,10 +66,39 @@ whatever fork/startup work that same event releases — see
 [[topic-mpv-jobqueue-startup]] for why that specific gap can't be closed by
 session-id timing).
 
+## second trap, same mechanism: the confirmation KEY needs console verbosity on (fixed 2026-08-10, `2f23bbba1`)
+
+`base.cmd.verify-instance` doesn't reply "I ran" over the wire — v7 confirms the
+instance is alive by reading a one-time random KEY back off the instance's own
+**console log output** (`instance verification [KEY:%s]`, logged via `base.logs`
+at its default level 1). If a zenka's `<system.zenka.verbosity.console>` is
+configured at 0 (or otherwise below 1) and its buffer/logfile verbosity are also
+too low, `base.log`'s gate (`return TRUE if $log_level > console and > buffer and
+> logfile`) drops the line entirely — it's never written anywhere. v7 then never
+sees the KEY, the handshake looks hung exactly like the deadlock above even though
+`base.cmd.verify-instance` ran fine and drained `<system.callbacks.initialized>`
+correctly, and the same `verify_instance` timeout/restart loop follows.
+
+**Fix** (`modules/base.cmd.verify-instance`): before logging the KEY line, save
+`<system.zenka.verbosity.console>`, force it to 1 if it was falsy, log, then
+restore the saved value. Scoped safely — this command is only ever reachable in
+the v7-managed handshake context to begin with: it self-disables after first use
+(`<[base.disable_command]>->('verify-instance')`, line after the KEY log) and is
+explicitly disabled entirely for the local `cube` zenka in `base.init_code`
+(`system.zenka.type eq 'cube'` branch), so the override never fires for a
+manually-invoked or non-v7 command path.
+
+**How to apply:** any log line another process depends on reading back
+(handshake confirmations, health-check markers, anything polled externally via
+log buffer rather than a wire reply) needs the same save/force/restore treatment
+if verbosity silencing could plausibly hide it — don't assume a "default level 1"
+log call is actually visible; check what verbosity the call site can realistically
+run under.
+
 [[topic-mpv-jobqueue-startup]]
 
-#,,,.,,,,,...,,,,,...,..,,.,,,,.,,,..,...,,..,..,,...,...,...,...,.,.,.,,,..,,
-#MJRJWD7HEZON5GCLKNDJPK2HMZTOROUB6CDT2EXEGGYSR3YUYJBDN2HE4T2MTH26CCJP3THWG43TC
-#\\\|7UJ323Z3VDIQKMZD7J5H2APSBRK3OCMU7KILEKMY4KFVLBTY2AI \ / AMOS7 \ YOURUM ::
-#\[7]ARYF6ZPXJWFRIA7EIJA6JIFEHVUOFFXHD4F3MTA7P5U7NMM53SCI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,..,,,.,,,,.,.,,,..,,,,.,...,..,,...,...,,,.,...,,,.,,,,,,..,
+#2PKR4WWIHQ7BIW7AF3SJEHARL2NJIDBA7HY3UPV3NXYSMWMB42VUKMAKMSG76TPOH7EHKLQXNIZHC
+#\\\|2BTP3UWAQV7C52BGKL7MXZCMRINYPRUSU4FCDVFIDKOVMKGMBGM \ / AMOS7 \ YOURUM ::
+#\[7]J3AFS2JKKDF3LC7NFHTWUA7IMBDU2NCUXULNGS3D3DLR3WZ27MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
