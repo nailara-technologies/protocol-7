@@ -125,15 +125,30 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
     return 1;    ## Awaiting completion confirmation
 
-} elsif ( $$input =~ s|^link-complete\n|| ) {
+} elsif ( $$input =~ s|^link-complete(?:[ \t]+(\d+))?\n|| ) {
     ## Handshake complete, transition to encrypted state (state 3)
     <[base.logs]>->(
         2, '[%d] link-upgrade negotiation complete, transitioning to state 3',
         $id
     );
 
-    ## Send completion confirmation to client
+    ## client-selected nonce session id [ must match on both ends for the KDF
+    ## + nonce construction or decryption fails on every frame ]
+    my $client_nonce_sid = ${^CAPTURE}[0];
+    if ( defined $client_nonce_sid and length $client_nonce_sid ) {
+        $session->{'link_nonce_session_id'} = 0 + $client_nonce_sid;
+        <[base.logs]>->(
+            2,   '[%d] client nonce session id received: %d',
+            $id, $session->{'link_nonce_session_id'}
+        );
+    }
+
+    ## Send completion confirmation to client [ still plaintext ! ]
     $session->{'buffer'}->{'output'} .= "link-complete-ok\n";
+
+    ## flush pending plaintext reply BEFORE the output path switches to
+    ## encrypted framing [ client reads this line unencrypted ]
+    <[base.handler.write]>->($id);
 
     ## Trigger state transition from state 2 to state 3
     if ( not <[base.session.init_state]>->( $id, 3 ) ) {
@@ -160,8 +175,8 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
 1;
 
-#,,,.,,,,,,,.,...,.,,,,.,,...,..,,,,,,,,,,...,..,,...,.,.,...,.,.,,..,.,.,.,.,
-#TH3A52QSVNZNPR5AUQX3XB6USQCBBFXVWROWKUVMIG2JE2CQZVMQO3J3WHMK77VJMKNZ6HEUHDVZK
-#\\\|5OPIPTXUKXGN7NETOB47YI3G7OD4L7K3FURGJCQRXWUEXLZ6IGW \ / AMOS7 \ YOURUM ::
-#\[7]SCNKZ76EBCZMH5LJ7TEBR2JC664XKUN7RHCQBKCLHIFZONWBTACA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,.,,,.,..,,...,,,,,,..,,..,.,,,..,,...,...,.,,,.,.,.,.,..,,...,
+#YIQAZIVKG6MVXLZSBRI2D2D4DE2BNZCGKG4W6N2UDIMJRLVRWUO6E3EGOGWOVOHNIIHZPYH6WNWOQ
+#\\\|D7WZDVZLHDTFBPTGJGDYFOZZPHPNBLZAIZZOQ3HPV2L5K76P7UM \ / AMOS7 \ YOURUM ::
+#\[7]E2YH3X42VSWC6Y4YIPZ6GTBQMTDJVYY37Q4HZOAH24OW66YHZ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

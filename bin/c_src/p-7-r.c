@@ -70,6 +70,181 @@ void strip_newline(char *str)
         str[len - 1] = '\0';
 }
 
+/* --- link-upgrade encrypted frame I/O ------------------------------------- */
+
+/* read exactly n bytes [ blocking ] ; 0 ok, -1 error/closed */
+static int read_full(int fd, void *buf, size_t n)
+{
+    size_t got = 0;
+    while (got < n) {
+        ssize_t r = recv(fd, (char *)buf + got, n - got, MSG_WAITALL);
+        if (r < 1)
+            return -1;
+        got += (size_t)r;
+    }
+    return 0;
+}
+
+/* run p7-link-upgrade-helper.pl encrypt|decrypt on a buffer via a temp file
+   [ helper reads stdin, writes binary stdout ] ; returns malloc'd output */
+static unsigned char *lu_crypt(const char *op, struct encryption_state *st,
+                               const unsigned char *in, size_t in_len,
+                               unsigned int counter, size_t *out_len)
+{
+    char tmpname[] = "/tmp/p7r-lu-XXXXXX";
+    int tfd = mkstemp(tmpname);
+    if (tfd < 0)
+        return NULL;
+    size_t off = 0;
+    while (off < in_len) {
+        ssize_t w = write(tfd, in + off, in_len - off);
+        if (w < 1) {
+            close(tfd);
+            unlink(tmpname);
+            return NULL;
+        }
+        off += (size_t)w;
+    }
+    close(tfd);
+
+    char cmd[1200];
+    snprintf(cmd, sizeof(cmd),
+             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl %s %s %u %u < %s 2>/dev/null",
+             op, st->key, st->session_id, counter, tmpname);
+
+    FILE *f = popen(cmd, "r");
+    if (!f) {
+        unlink(tmpname);
+        return NULL;
+    }
+
+    size_t cap = in_len + 256;
+    size_t len = 0;
+    unsigned char *out = (unsigned char *)malloc(cap);
+    if (!out) {
+        pclose(f);
+        unlink(tmpname);
+        return NULL;
+    }
+    size_t r;
+    while ((r = fread(out + len, 1, cap - len, f)) > 0) {
+        len += r;
+        if (cap - len < 64) {
+            cap *= 2;
+            unsigned char *nb = (unsigned char *)realloc(out, cap);
+            if (!nb) {
+                free(out);
+                pclose(f);
+                unlink(tmpname);
+                return NULL;
+            }
+            out = nb;
+        }
+    }
+    int rc = pclose(f);
+    unlink(tmpname);
+    if (rc != 0) {          /* helper died [ e.g. auth tag mismatch ] */
+        free(out);
+        return NULL;
+    }
+    *out_len = len;
+    return out;
+}
+
+/* encrypt one frame and send : pack('N',len) . ciphertext . tag */
+static int lu_send_frame(int fd, struct encryption_state *st,
+                         const unsigned char *data, size_t len)
+{
+    size_t ct_len = 0;
+    unsigned char *ct = lu_crypt("encrypt", st, data, len,
+                                 st->write_counter, &ct_len);
+    if (!ct) {
+        fprintf(stderr, "<< link-upgrade encrypt failed >>\n");
+        return -1;
+    }
+    unsigned char hdr[4];
+    hdr[0] = (unsigned char)((ct_len >> 24) & 0xFF);
+    hdr[1] = (unsigned char)((ct_len >> 16) & 0xFF);
+    hdr[2] = (unsigned char)((ct_len >> 8) & 0xFF);
+    hdr[3] = (unsigned char)(ct_len & 0xFF);
+
+    int ok = (write(fd, hdr, 4) == 4) &&
+             (write(fd, ct, ct_len) == (ssize_t)ct_len);
+    free(ct);
+    if (!ok)
+        return -1;
+    st->write_counter++;
+    return 0;
+}
+
+/* decrypted receive buffer [ frames are fed to the parser byte-wise ] */
+static unsigned char *dec_buf = NULL;
+static size_t dec_len = 0;
+static size_t dec_pos = 0;
+
+/* next plaintext byte from the encrypted link ; 1 byte, 0 closed, -1 error */
+static ssize_t lu_read_byte(int fd, struct encryption_state *st, char *byte)
+{
+    while (dec_pos >= dec_len) {
+        free(dec_buf);
+        dec_buf = NULL;
+        dec_len = dec_pos = 0;
+
+        unsigned char hdr[4];
+        if (read_full(fd, hdr, 4) < 0)
+            return 0;   /* connection closed */
+
+        unsigned int flen = ((unsigned int)hdr[0] << 24) |
+                            ((unsigned int)hdr[1] << 16) |
+                            ((unsigned int)hdr[2] << 8) |
+                            (unsigned int)hdr[3];
+        if (flen < 16 || flen > 16U * 1024U * 1024U) {
+            fprintf(stderr, "<< invalid encrypted frame length %u >>\n", flen);
+            return -1;
+        }
+
+        unsigned char *frame = (unsigned char *)malloc(flen);
+        if (!frame)
+            return -1;
+        if (read_full(fd, frame, flen) < 0) {
+            free(frame);
+            return 0;
+        }
+
+        size_t plen = 0;
+        dec_buf = lu_crypt("decrypt", st, frame, flen,
+                           st->read_counter, &plen);
+        free(frame);
+        if (!dec_buf) {
+            fprintf(stderr, "<< link-upgrade decrypt failed [ auth tag ] >>\n");
+            return -1;
+        }
+        dec_len = plen;
+        dec_pos = 0;
+        st->read_counter++;
+        /* empty frame [ keepalive ] : loop and read the next one */
+    }
+    *byte = (char)dec_buf[dec_pos++];
+    return 1;
+}
+
+/* read one decrypted line [ used for post-upgrade textual replies ] */
+static int lu_read_line(int fd, struct encryption_state *st,
+                        char *buffer, size_t max_size)
+{
+    int pos = 0;
+    char byte;
+    while (pos < (int)max_size - 1) {
+        if (lu_read_byte(fd, st, &byte) != 1)
+            return -1;
+        buffer[pos++] = byte;
+        if (byte == '\n')
+            break;
+    }
+    buffer[pos] = '\0';
+    return pos;
+}
+
 /* TOFU validation helper */
 int validate_tofu_key(const char *remote_host, const char *remote_port, const char *server_pubkey_b32, int verbose, int strict)
 {
@@ -233,7 +408,12 @@ int negotiate_link_upgrade(int socket_fd, struct encryption_state *state)
     strip_newline(confirm);
     /* Expect: "encoding-confirmed" or similar success response */
 
-    if (write(socket_fd, "link-complete\n", 14) < 0)
+    /* send link-complete with our nonce session id : the server derives
+       the same key + nonces from THIS value, both ends must match */
+    char complete_cmd[64];
+    snprintf(complete_cmd, sizeof(complete_cmd), "link-complete %u\n",
+             state->session_id);
+    if (write(socket_fd, complete_cmd, strlen(complete_cmd)) < 0)
         return -1;
 
     if (read_line(socket_fd, confirm, sizeof(confirm)) < 0)
@@ -504,11 +684,26 @@ int main( int argc, char * argv[] ) {
     }
 
     /* Send select-strm-mode first and read its response */
-    write( socket_fd, "select-strm-mode locked\n", 24 );
+    if ( enc_state.enabled ) {
+        if ( lu_send_frame( socket_fd, &enc_state,
+                            (unsigned char *)"select-strm-mode locked\n",
+                            24 ) < 0 ) {
+            fprintf(stderr, "error sending encrypted strm-mode request\n");
+            close(socket_fd);
+            return 4;
+        }
+    } else {
+        write( socket_fd, "select-strm-mode locked\n", 24 );
+    }
 
     /* Read select-strm-mode response - should be TRUE */
     char strm_response_line[256] = {0};
-    if (read_line(socket_fd, strm_response_line, sizeof(strm_response_line)) < 0) {
+    int strm_read_ok = enc_state.enabled
+        ? ( lu_read_line( socket_fd, &enc_state, strm_response_line,
+                          sizeof(strm_response_line) ) > 0 )
+        : ( read_line( socket_fd, strm_response_line,
+                       sizeof(strm_response_line) ) > 0 );
+    if ( ! strm_read_ok ) {
         fprintf(stderr, "error reading strm-mode response\n");
         close(socket_fd);
         return 4;
@@ -520,8 +715,18 @@ int main( int argc, char * argv[] ) {
     if (getenv("DEBUG"))
         fprintf(stderr, "[select-strm-mode locked] accepted\n");
 
-    /* send protocol-7 command string to socket */
-    write( socket_fd, cmd_str, strlen(cmd_str) );
+    /* send protocol-7 command string to socket [ encrypted when upgraded ] */
+    if ( enc_state.enabled ) {
+        if ( lu_send_frame( socket_fd, &enc_state, (unsigned char *)cmd_str,
+                            strlen(cmd_str) ) < 0 ) {
+            fprintf(stderr, "error sending encrypted command\n");
+            free(cmd_str);
+            close(socket_fd);
+            return 4;
+        }
+    } else {
+        write( socket_fd, cmd_str, strlen(cmd_str) );
+    }
     free(cmd_str);
 
     char reply_type[13]   = "\0";
@@ -540,7 +745,11 @@ int main( int argc, char * argv[] ) {
     int bytes_read = 0;         // Track raw bytes read
 
     while ( continue_read ) {
-        result_code = recv( socket_fd, &byte, 1, MSG_WAITALL );
+        /* byte source : decrypted frames when link-upgrade is active */
+        if ( enc_state.enabled )
+            result_code = lu_read_byte( socket_fd, &enc_state, &byte );
+        else
+            result_code = recv( socket_fd, &byte, 1, MSG_WAITALL );
         if ( result_code < 1 ) {
             continue_read = 0;
         } else {
