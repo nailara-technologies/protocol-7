@@ -1,28 +1,30 @@
+
  .:[ protocol-7 user-edit console zenka ]:.
 
 [load_config_file:'shared-params']
 
-modules.load  = auth.client net protocol io.unix terminal editor ascii.frame user-edit
+modules.load  =  auth.client net protocol io.unix terminal editor \
+                                             ascii.frame user-edit
 
 [load_modules:<modules.load>]
 [init_modules]
 
-## authenticate as the invoking Unix user, not a zenka credential ##
-## [ nshell/start precedent : personal interactive console, not a ]  ##
-## [ managed zenka session -- system.auth-user set by user-edit.   ]  ##
-## [ init_code during init_modules above ]                           ##
+## authenticate as the invoking Unix user, not a zenka credential   ##
+## [ nshell/start precedent : personal interactive console, not a ] ##
+## [ managed zenka session -- system.auth-user set by user-edit.  ] ##
+## [ init_code during init_modules above ]                          ##
 system.auth-user = <user-edit.unix_user>
 
 [base.net.connect:'unix']
 
-## authenticates as Unix user above, not via cube session id -- ##
+## authenticates as Unix user above, not via cube session id --  ##
 ## [base.get_session_id] intentionally NOT called [ nshell/start ##
-## precedent, same reasoning ]                                    ##
+## precedent, same reasoning ]                                   ##
 
 [base.call.console_command:<system.args>]
 
-#,,..,,..,.,,,.,.,,,.,...,,,.,,,.,..,,,,.,.,,,..,,...,...,.,,,,,.,,,,,..,,..,,
-#6YNMNLJMAGD5T5SDQDRLB3X27WIVT7IEEUY22VPK3P76ZJBVP53Z4E4XYS7V35CFPQQGKHUQA6NP6
-#\\\|KFV5BTA2MNXGEWIUV2CYNME6Q6R3SD5ZONOHK33WDMGBL4MGIKG \ / AMOS7 \ YOURUM ::
-#\[7]V2Y22OFRVTNH53H5ELFEQRTOTRRDJML7ODQDJDR7Y2J5EEA7XMAY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,,..,,..,...,,,.,,..,,,.,...,..,,...,...,.,.,.,.,...,.,.,.,.,
+#7EX5SIXG3TRHRK7HH3ZTN5ZUPMMVK6EZSAEICMXPDNGHSR6IKBWRX22Y6L42Y5WQHEZNFZTTTERW2
+#\\\|ONWH3QF7ZNL7Z7JCEDDRKSQPCHX63DGMYRR2O2TGTPCV6OARRAA \ / AMOS7 \ YOURUM ::
+#\[7]KS7T76AOWJPSUWBIZFJHQW3LFY5KO72XX4NRZUDHG4ESYE2KRSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
