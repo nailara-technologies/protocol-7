@@ -29,7 +29,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   fetch-files/huggingface, usb-backup, invoke-model-manager), tool-SHM architecture, tls-acme,
   unicode-encoding repair, core patterns/templates.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (51 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (52 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -46,8 +46,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,,,,,...,..,,,,.,..,,...,.,,,,..,...,..,,..,,...,...,...,,,.,,.,,..,,.,.,
-#PSYACGUPNZ3FTWBUHBPBQ74G22TWEGQWFTSEMO5ILFVGCEKPLHVEBXES6TIKPCEOFEPSOBKMNCVDA
-#\\\|FSSHOL5IMVQG4CB3N7STGFBSMWRK7IBNVEB5XTD4YAZGPEJCXHV \ / AMOS7 \ YOURUM ::
-#\[7]3SPJXHYA5TB2AGHL37V7KG74FRSXVVDGQLJBGYHJPYFFW33NMMDI 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,.,.,,..,...,.,.,..,,,,.,,,,,..,,...,..,,...,..,,,.,,..,,,,.,
+#LKQCTLMNKHMH3LGY5E6TY4G2LF7QIHOZ7RWZSKTXGPWFEHNYLQHACWYNMOAESSOFEN2OGUXCOB63O
+#\\\|MWWLATHMXNPYTEGCNM7OSCAIV3BF3E5XOKHTSSYSVBE33DYTWX3 \ / AMOS7 \ YOURUM ::
+#\[7]M2Y4MXZ67QCHSVXSDTO2ZT3HPV5XGGQPQV2IWR36SGRAA4ZMGUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
