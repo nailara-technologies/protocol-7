@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = user-edit.draft.clear
+# descr = remove a draft edit record from local storage
+# param = $id
+
+my $id = shift;
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'draft.clear : entry id required' );
+    return wantarray ? ( FALSE, 'entry id required' ) : FALSE;
+}
+
+if (   index( $id, qw| / | ) != -1
+    or index( $id, qw| .. | ) != -1 ) {
+    <[base.logs]>->( 0, 'draft.clear : invalid entry id [ %s ]', $id );
+    return wantarray ? ( FALSE, 'invalid entry id' ) : FALSE;
+}
+
+my $path = sprintf qw| [VAR_P7]/draft/%s.yaml |, $id;
+
+my $resolved_path = <[base.path.resolve_keywords]>->($path);
+
+if ( unlink($resolved_path) ) {
+    return wantarray ? ( TRUE, undef ) : TRUE;
+}
+
+my $err = sprintf 'cannot remove draft entry [ %s ] : %s',
+    $id, <[base.str.os_err]>;
+
+<[base.logs]>->( 0, $err );
+
+return wantarray ? ( FALSE, $err ) : FALSE;
+
+#,,.,,.,,,.,.,...,.,.,.,.,,..,.,.,,..,.,,,.,.,..,,...,...,,.,,.,.,.,,,...,.,,,
+#UKNFQKTVEWCAEW5CK3ESZCWQE4RWOJRF33EBXMSJ7YZV2VHIWXDFQQSJ7VTQ766LWXIGICOPFLZAC
+#\\\|2JSGFR2VDKQFHBTM75QIJDBUY6LHN6A6E6D6J3OB234DEMRHHHF \ / AMOS7 \ YOURUM ::
+#\[7]23CJUUON5SXXP6Q7OPSWGML54IF55JCQCNNRUNVPD7JRKJABRWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
