@@ -118,12 +118,21 @@ around its own fork→socket-ready window (discussed, not implemented —
 closes the window, doesn't eliminate it, given as an option to the user
 and declined for this pass).
 
-A second, related v7-handshake gotcha surfaced and got fixed in the same
-pass: `base.cmd.verify-instance` confirms the instance to v7 by logging a
-KEY to console output, which v7 reads back — a silenced console verbosity
-drops that line entirely and produces the identical hang/restart-loop
-symptom even though startup itself is fine. See
-[[feedback-verify-instance-callbacks-initialized-deadlock]] (`2f23bbba1`).
+A second, related v7-handshake gotcha surfaced and got fully fixed in a
+follow-up pass, live-verified on the `site-yaml` zenka (which silences
+console by design, `system.zenka.verbosity.console = 0`): v7's entire
+verify-instance handshake is driven by scraping two specific console log
+lines (`cube session id received [...]` and `instance verification
+[KEY:...]`), not by any reply or by `send_init_reports` — a silenced
+console verbosity drops either line entirely and produces the identical
+hang/restart-loop symptom even though the zenka itself runs fine. Initial
+fix only patched the KEY line in `base.cmd.verify-instance`; the real
+blocker turned out to be earlier, in `base.get_session_id`/
+`base.handler.whoami_reply`'s "cube session id received" line, which is
+what triggers v7 to send verify-instance in the first place. New shared
+helper `base.log.forced_console` fixes all three call sites. See
+[[feedback-verify-instance-callbacks-initialized-deadlock]] for the full
+mechanism and the `and`/`or`-precedence bug caught writing the helper.
 
 ## open work
 
@@ -154,8 +163,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,.,,,..,,.,,,,.,.,.,.,.,...,,,.,.,.,,..,,..,..,,...,...,...,...,,..,...,..,,
-#VBOJBQ3X2HYGA7254PUZON4FUFVXREKSSP5WP2RFN2GVTJGDFNQYDAJGN6LYQY5OZ477TRMVS3XWG
-#\\\|GMTWCLV33OPDCPUWYAHDB4TTY2YSWCTRDF6CN4IWRKF23HO3IEZ \ / AMOS7 \ YOURUM ::
-#\[7]4TSSGQXASE5N6DFZMYBDEUNA2BYKF4GI4MOHZENJQEDUR2ZVZCAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,.,,,.,.,,,..,,,,,,,,.,.,,,,,.,..,,...,...,..,,.,,,.,.,,..,,,,,
+#BWLXY4DIRSSAIODO4OSX23JTJYGDZUPMDHVSB6OOFGGUBWEOUQLFBXL2BG4Q4IH4QGP4XAWRLUT26
+#\\\|WAWXD4O4WOGN4PEHYJ5HHGV32CTRPE4FGKICQK4VQJ6DOJKL3Z7 \ / AMOS7 \ YOURUM ::
+#\[7]Q3GYW5YK2JFFVPZNFLCIQUJ66MNUAFBY3SIQ36Q2UNFLXXIWMACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

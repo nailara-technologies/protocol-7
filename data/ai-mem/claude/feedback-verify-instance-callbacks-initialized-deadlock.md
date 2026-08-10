@@ -1,104 +1,116 @@
 ---
 name: feedback-verify-instance-callbacks-initialized-deadlock
-description: "two distinct v7 verify-instance handshake traps: (1) system.callbacks.initialized only drains via an early get_session_id call, deferring it deadlocks startup; (2) the handshake's confirmation KEY is read back off console log output, so silenced console verbosity makes a healthy instance look hung too"
+description: "v7's verify-instance handshake is driven entirely by console-log-scraping two specific lines ('cube session id received', 'instance verification [KEY:...]'); silenced console verbosity or a deferred get_session_id call both stall it identically, and system.callbacks.initialized only ever drains once it succeeds"
 metadata:
   type: feedback
 ---
 
+v7 learns a freshly-spawned instance exists, and later confirms it, **purely by
+pattern-matching the instance's raw console stdout** — not via any reply, not via
+`base.session.send_init_reports`. Two config-driven regexes in
+`configuration/zenki/v7/zenka-output.patterns` (matched by `v7.handler.zenka_output`
+→ `v7.handler.process_output_line`) drive the whole handshake:
+
+```
+^cube session id received \[(\d+)\]$   → zenka.set_cube_sid:<instance_id>,<match_1>
+^instance verification \[KEY:([a-zA-Z\d]+)\]$ → v7.handler.instance_verification:<instance_id>,<match_1>
+```
+
+The real chain, confirmed end-to-end 2026-08-10:
+
+```
+get_session_id (sync) / base.handler.whoami_reply (async)
+  → logs "cube session id received [...]" to CONSOLE
+  → v7's stdout pattern-matcher sees it → calls zenka.set_cube_sid
+  → set_cube_sid sends the "verify-instance" command
+  → base.cmd.verify-instance logs "instance verification [KEY:...]" to CONSOLE
+  → v7's stdout pattern-matcher sees it → calls v7.handler.instance_verification
+  → sets instance status 'online' directly
+  → base.cmd.verify-instance ALSO drains <system.callbacks.initialized> itself
+    [ the array most zenki push their real deferred startup work onto ]
+```
+
+**`base.session.send_init_reports` is NOT part of this chain** — despite being
+gated by the same `<system.zenka.initialized>` flag that `get_session_id` also
+sets, it drains a *different*, unrelated queue (e.g. `base.log.send-buffer.
+send-idle-callback`'s "waiting for log target p7-log..." entries). An earlier
+version of this memory wrongly credited it as how v7 learns about a new instance —
+it doesn't; the console-log pattern match above is the entire mechanism. Don't
+reintroduce that wrong causal link.
+
+## trap 1: deferring get_session_id past a system.callbacks.initialized push
+
 Never defer `[base.get_session_id]` (or `base.async.get_session_id`) past whatever
 a zenka pushes onto `<system.callbacks.initialized>` in its own `*_init`/start
-sequence.
-
-**Why:** `<system.callbacks.initialized>` (pushed to by many zenki's init code —
-`coding.init_code`, `index.init_code`, `tile.init_code`, `ticker.init_code`,
-`web-browser.init_code`, `mpv.startup.init`, and others) is drained by exactly one
-place: `base.cmd.verify-instance`, a command **only v7 sends**, as part of v7's own
-startup handshake for that instance. v7 can't send it until it learns the instance
-exists, which happens via `base.session.send_init_reports` (armed as a timer in
-`base.net.connect`) delivering a pending report to v7 — and `send_init_reports`
-refuses to send *anything* until `<system.zenka.initialized>` (a **different**, local
-flag) is true. That flag is only set inside `base.get_session_id` /
-`base.handler.whoami_reply`, once the `whoami` round-trip to cube completes.
-
-So the real dependency chain is:
-
-```
-get_session_id → <system.zenka.initialized>=TRUE → send_init_reports fires
-  → v7 learns about the instance → v7 sends verify-instance
-  → base.cmd.verify-instance drains <system.callbacks.initialized>
-  → whatever real startup work (fork_player, open_window, ...) was deferred there runs
-```
+sequence — e.g. `coding.init_code`, `index.init_code`, `tile.init_code`,
+`ticker.init_code`, `web-browser.init_code`, `mpv.startup.init`, and others.
 
 If any callback pushed onto `<system.callbacks.initialized>` is itself a
 precondition for `get_session_id` running (e.g. "call it once the socket this
-callback opens is ready"), the chain is circular and nothing ever moves — the
-instance sits in v7's `starting` status forever, `send_init_reports` logs
-"delaying sending init reports [ zenka is not initialized yet ]" on a growing
-backoff, and v7's `verify_instance` timeout (`v7.timeout.verify_instance`, default
-13s) fires and restarts the instance — forever, since the same deadlock recurs
-every restart.
+callback opens is ready"), the chain above is circular and nothing ever moves —
+v7 never sees the "cube session id received" console line, never sends
+verify-instance, `<system.callbacks.initialized>` never drains, the instance sits
+in v7's `starting` status forever, and v7's own start/verify timeout fires and
+restarts the instance — forever, since the same deadlock recurs every restart.
 
-**How to apply:** when a zenka's start file calls `get_session_id`, keep it before
-any step whose completion the zenka's own deferred (`system.callbacks.initialized`)
-work depends on — normally that means keeping it early/unconditional, exactly where
-it already is in most start files. It is safe to call it again later (e.g. once a
-resource the zenka manages, like an IPC socket, is truly ready) purely for
-documentation/clarity — `base.handler.whoami_reply`'s "already have a cube sid,
-refused to request another" guard makes the second call a harmless no-op, but it's
-also pure log noise once you know it can never do anything: prefer not adding it
-unless there's a real reason to re-request post-ready.
+**How to apply:** keep `get_session_id` before any step whose completion the
+zenka's own deferred (`system.callbacks.initialized`) work depends on — normally
+that means early/unconditional, exactly where it already is in most start files.
 
-Diagnosis path when this happens: check whether `verify-instance`'s own log line
-(`instance verification [KEY:...]`) ever appears in the zenka's own buffer
-(`p7c <zenka>.show-buffer "zenka <N>"`) — if it never does, this deadlock (or a
-variant of it) is the cause, not whatever the deferred callback itself does.
-Confirmed live 2026-08-10 in [[topic-mpv-jobqueue-startup]] — `mpv.open_player`'s
-own "starting mpv player.," log line never appeared either, proving the fork itself
-never ran, before any code inside the deferred callback could be blamed.
+## trap 2: console verbosity silences the two handshake lines (fixed 2026-08-10, `base.log.forced_console`)
 
-Distinct from, and not to be confused with, cube's *routing* gate
-(`$data{'session'}{$sid}{'initialized'}`, flipped by `cube.cmd.set-initialized`,
-which v7 also calls as a side effect of the same verify-instance success). That
-flag controls whether cube relays fresh commands to the session at all — it is not
-what causes this deadlock, and delaying `get_session_id` does not delay it either
-(v7 flips it as soon as verify-instance succeeds, essentially concurrently with
-whatever fork/startup work that same event releases — see
-[[topic-mpv-jobqueue-startup]] for why that specific gap can't be closed by
-session-id timing).
+Both console-scraped lines above are logged via plain `base.logs` at its default
+level 1. `base.log`'s gate (`return TRUE if $log_level > console and > buffer and
+> logfile`) drops a line entirely — not written anywhere, not even the zenka's own
+buffer for *this specific write path* if buffer/logfile are also too low — the
+moment ALL THREE verbosities sit below the log level. Any zenka configured with
+`system.zenka.verbosity.console = 0` (a completely reasonable, common setting for
+"silence regular operation") hits this: `get_session_id` runs fine internally,
+`<system.zenka.initialized>` becomes true, but the console line v7 needs never
+gets written — v7 never learns the cube_sid, never calls `zenka.set_cube_sid`,
+never sends verify-instance at all. Symptom is identical to trap 1 (stuck in
+`starting`, restart loop) but the zenka itself did nothing wrong — confirmed live
+on the `site-yaml` zenka (`system.zenka.verbosity.console = 0` in its own start
+file), which stalled at exactly this point every restart.
 
-## second trap, same mechanism: the confirmation KEY needs console verbosity on (fixed 2026-08-10, `2f23bbba1`)
+**Fix**: new shared helper `modules/base.log.forced_console` — same calling
+convention as `base.logs` ([level] fmt args...), saves
+`<system.zenka.verbosity.console>`, forces it up to at least the log's own level
+only if it was lower, logs, restores. Used at both console-scraped call sites:
+`base.get_session_id` and `base.handler.whoami_reply` ("cube session id
+received"), and `base.cmd.verify-instance` ("instance verification [KEY:...]").
+Safe by construction — forcing only ever *raises* visibility for that one write,
+never lowers it below what was configured.
 
-`base.cmd.verify-instance` doesn't reply "I ran" over the wire — v7 confirms the
-instance is alive by reading a one-time random KEY back off the instance's own
-**console log output** (`instance verification [KEY:%s]`, logged via `base.logs`
-at its default level 1). If a zenka's `<system.zenka.verbosity.console>` is
-configured at 0 (or otherwise below 1) and its buffer/logfile verbosity are also
-too low, `base.log`'s gate (`return TRUE if $log_level > console and > buffer and
-> logfile`) drops the line entirely — it's never written anywhere. v7 then never
-sees the KEY, the handshake looks hung exactly like the deadlock above even though
-`base.cmd.verify-instance` ran fine and drained `<system.callbacks.initialized>`
-correctly, and the same `verify_instance` timeout/restart loop follows.
-
-**Fix** (`modules/base.cmd.verify-instance`): before logging the KEY line, save
-`<system.zenka.verbosity.console>`, force it to 1 if it was falsy, log, then
-restore the saved value. Scoped safely — this command is only ever reachable in
-the v7-managed handshake context to begin with: it self-disables after first use
-(`<[base.disable_command]>->('verify-instance')`, line after the KEY log) and is
-explicitly disabled entirely for the local `cube` zenka in `base.init_code`
-(`system.zenka.type eq 'cube'` branch), so the override never fires for a
-manually-invoked or non-v7 command path.
+**Gotcha hit while writing the helper**: `my $forced = not defined $x or $x <
+$level;` — `or`/`and` bind looser than `=`, so this assigns `$forced` only the
+`not defined $x` half; `$x < $level` evaluates standalone in void context
+("Useless use of numeric lt (<) in void context" warning) and its result is
+silently discarded. Use `||`/`&&` (or explicit parens) for any assignment RHS
+that mixes multiple `or`/`and` clauses — the low-precedence keyword forms are for
+control-flow chaining (`open(...) or die`), not for building a value.
 
 **How to apply:** any log line another process depends on reading back
 (handshake confirmations, health-check markers, anything polled externally via
-log buffer rather than a wire reply) needs the same save/force/restore treatment
-if verbosity silencing could plausibly hide it — don't assume a "default level 1"
-log call is actually visible; check what verbosity the call site can realistically
-run under.
+raw stdout/log buffer rather than a wire reply) needs `base.log.forced_console`
+treatment if verbosity silencing could plausibly hide it. Don't assume a
+"default level 1" log call is actually visible — check what verbosity the call
+site can realistically run under, especially for zenki that intentionally
+silence console output for normal operation.
+
+Diagnosis path: check `p7c <zenka>.show-buffer "zenka <N>"` (buffer verbosity is
+usually higher than console, so this often reveals the line even when console
+silenced it) for whether "cube session id received" and "instance verification
+[KEY:...]" both appear. Neither appearing at all (not even in the buffer) →
+trap 1 (deadlock, the code never ran). "cube session id received" in the buffer
+but never in v7's actual pattern-matched behavior (status stuck on `starting`,
+no `instance N : verified : success` from v7) → trap 2 (verbosity hid it from
+console specifically).
 
 [[topic-mpv-jobqueue-startup]]
 
-#,,.,,,..,,,.,...,..,,,.,,,,.,.,,,..,,,,.,...,..,,...,...,,,.,...,,,.,,,,,,..,
-#2PKR4WWIHQ7BIW7AF3SJEHARL2NJIDBA7HY3UPV3NXYSMWMB42VUKMAKMSG76TPOH7EHKLQXNIZHC
-#\\\|2BTP3UWAQV7C52BGKL7MXZCMRINYPRUSU4FCDVFIDKOVMKGMBGM \ / AMOS7 \ YOURUM ::
-#\[7]J3AFS2JKKDF3LC7NFHTWUA7IMBDU2NCUXULNGS3D3DLR3WZ27MAI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,..,,.,,,,.,,,..,..,,,.,,.,,,..,,..,,...,...,.,,,,,,,.,,,.,.,..,,
+#UDBUKM6VWIPCACNUTHJE47IIPOEUGLZXRRWVC64QMMFINESGLLUHUFPUQSS6W7QW6EHNCBELXMZ7A
+#\\\|AYDJDGWN3O64J7K6OIVG2UQFXRUR7NK24YBF6XS73RWKCA2PALJ \ / AMOS7 \ YOURUM ::
+#\[7]HIOM4XZ7KPYVITZKNEWRAQLKF7WRS6EBWXAZF2JLUTZMEXN4L6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

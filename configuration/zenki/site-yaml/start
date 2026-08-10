@@ -1,3 +1,4 @@
+
 .:[ site-yaml — structured site scraping zenka ]:.
 
 [load_config_file:'shared-params']
@@ -5,7 +6,8 @@
 buffer.session.log_cmd  = p7-log.append
 buffer.session.max_size = 795648
 
-system.zenka.verbosity.buffer = 1
+system.zenka.verbosity.console = 0  ## silencing regular operation ##
+system.zenka.verbosity.buffer  = 1  ## messages available for dev. ##
 
 access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       list src-age src-ver show-buffer src-age src-ver \
@@ -14,12 +16,12 @@ access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       list-stray-jobs export-stray-job confirm-stray-claimed \
                       dump set get del exec-sub eval-code
 
-site-yaml.bypass_proxy = no  ## bypass proxy for stepstone domains ? ##
-site-yaml.import_max_pages = 4  ## pages per search term (25 jobs/page) ##
+site-yaml.bypass_proxy = no         ## bypass proxy for stepstone domains ? ##
+site-yaml.import_max_pages = 4      ## pages per search term [25 jobs|page] ##
 site-yaml.import_delay_search = 1.5  ## seconds between search page fetches ##
-site-yaml.import_delay_detail = 2.0  ## seconds between job detail fetches ##
+site-yaml.import_delay_detail = 2.0  ## seconds between job detail fetches  ##
 
-modules.load = auth.client net protocol io.unix ui site-yaml devmod
+modules.load = auth.client net protocol io.unix ui site-yaml # devmod # <- <!>
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -31,8 +33,8 @@ modules.load = auth.client net protocol io.unix ui site-yaml devmod
 
 [zenka.loop]
 
-#,,,.,,.,,.,,,.,.,..,,,.,,..,,..,,.,,,...,,,.,..,,...,...,.,.,..,,,..,,.,,..,,
-#VBIARBWA6XJAAHWGB2PAOV7R5SE5E6UF2V7XTZ7FYFNB3DAWDXRQXM4PL7G7CISZWUA2VADPOMP6A
-#\\\|JX2QL2GW4IOJ2FQLG6ZA7HABJX7EYCVHRZSEUPV7GD7ZNM4FNHS \ / AMOS7 \ YOURUM ::
-#\[7]YOM3QRJKGEVR3CGC6SNGILMNS63OB47UT2KGUZEISIBW74JCWWCQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,,.,,.,.,,..,,,,,,.,,,,.,..,,..,,...,...,.,.,.,.,,..,...,,,,,
+#BD3GI7TH5VJDES5N6L4TXVSQ7LLR27FE3S6PP2NWNU2EC46LAOGRKOR3UM5N4WDT73YUY4ZAPM6YO
+#\\\|WVSORUBCAM23AJPVJPNV2MBN3FIVTUIYPRFAEWGR44D4J64KY32 \ / AMOS7 \ YOURUM ::
+#\[7]YZLN5FRXNYWHEBTW4R42QFSZNSNLZGJ7WUJJ4NFTFEDZAUFSRWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
