@@ -3,7 +3,6 @@
 # name  = coding.cmd.summarize-reply
 # descr = reply handler for routed summarize-context requests
 
-my $call    = <[protocol-7.call]>;
 my $summary = $call->{'data'} // '';
 
 ## store in valued tree if node_id was passed ##
@@ -18,8 +17,8 @@ if ( length( $call->{'params'}{'node_id'} // '' ) ) {
 
 return { mode => 'true', data => $summary };
 
-#,,,.,,,,,,..,.,,,..,,,..,..,,,,,,,.,,.,.,,,.,..,,...,...,..,,,..,,.,,,,,,,.,,
-#F7BKBNTJYJABMFFMQH6LDI3Z2TFLHTBEM4IBM5DRYVQVWZ7BZC7SA6ZD245CNRYU2FPIDDISQWQYQ
-#\\\|2UOL6U7CE4AKNPA5LXH7IEVBKGFRGS2OPYHFO7C26T5ZDNAKEXU \ / AMOS7 \ YOURUM ::
-#\[7]TKMTZN2K6OD7MN3VERZMDKK5LN3WKEC2F7WFTAMDR74Q44GU7YCY 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,.,.,...,.,,,...,..,,...,.,,,..,,...,...,..,,..,,,.,,...,,,.,
+#FD4GOT5UXFFWFFEQXYLJLAMH66V7SIA7WFKHCB4TT2GZ24KL52PUSRFPVEAD4FRWJRKVJRNIUD5L2
+#\\\|N23PE3WBJZFVAS5O25FZBM3OKPJH5MWRVLGO55GP53Z4Q6OURV5 \ / AMOS7 \ YOURUM ::
+#\[7]UCWYC35KPYF24VIE3OHM2INL73N5YRCSK4WSLXSMXGZQBHXB6GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,6 +10,11 @@ my $unit_max = <coding.cfg.stream_repetition_unit_max> // 60;
 my $min_run  = <coding.cfg.stream_repetition_min_run>  // 4;
 my $window   = <coding.cfg.stream_repetition_window>   // 600;
 
+## homogeneous [ single-character ] runs need a much longer match before ##
+## they count as degenerate - see the check below                        ##
+my $homogeneous_min_len = <coding.cfg.stream_repetition_homogeneous_min_len>
+    // 200;
+
 return undef if length($text) < $unit_min * $min_run;
 
 ## only the tail matters for detection - bounds the regex cost regardless ##
@@ -24,10 +29,24 @@ my $re = qr/(.{$unit_min,$unit_max}?)\1{$min_run,}/s;
 
 return undef unless $tail =~ $re;
 
-return { matched => $1, unit_len => length($1) };
+my $matched_unit = $1;
 
-#,,..,,,.,,,.,,,,,.,,,,.,,...,,..,.,.,..,,,,,,.,.,...,...,,.,,,,,,,,,,...,,,,,
-#SIRHYUCBUGMKG4SMBP7Y2TRCOEQPK4PIUYYB4LQLFAQV6NTWLIYWYPZLEV3FLAFSCGLTGASDLFNI4
-#\\\|PWGHG7ZWQ4MBKGHDKU2DHTMJFHXG4CTCAAWA45KU3RZVX2HSVGX \ / AMOS7 \ YOURUM ::
-#\[7]FJ6L4FP4VKQAUSUHWCRWAD65UXPH4IMPMFUCOPBGFUKUBAW4NMCI 7  DATA SIGNATURE ::
+## a unit made of a single repeated character [ ':....:' -style ascii.frame
+## border fills, AMOS7 signature terminators, '====' / '----' dividers ] is
+## common LEGITIMATE content in this codebase, not the degenerate-loop failure
+## mode this check exists to catch [ a model looping on a real multi-character
+## PHRASE ]. require a much longer run before flagging those specifically,
+## using the actual matched span length rather than $& [ avoids the global
+## perf penalty of touching that special var ]
+if ( $matched_unit =~ m|^(.)\1*$|s ) {
+    my $full_match_len = $+[0] - $-[0];
+    return undef if $full_match_len < $homogeneous_min_len;
+}
+
+return { matched => $matched_unit, unit_len => length($matched_unit) };
+
+#,,,,,,,.,,.,,,.,,...,.,.,,,.,.,.,,..,.,,,.,,,.,.,...,..,,,..,,,.,,.,,.,,,.,.,
+#TOHZXCLR3Y4CANYRSNYRE5EQX4C33Q5ASCNOE7QAF6OYT3U64EH2OLAZ2QWTV46WQWMCKUBGTNJCM
+#\\\|6HHWCGRZQIBKI34GIXHGYK5WGONLES2P7Y7SS6VLNTHV4CLYGPA \ / AMOS7 \ YOURUM ::
+#\[7]TLPNMVNVIJJWJGAO4FEKOZZ2K7746VGCY76D2SLR5APIHFW4RSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
