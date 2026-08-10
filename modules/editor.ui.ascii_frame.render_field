@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = editor.ui.ascii_frame.render_field
+# descr = render a single field via ascii.frame [ wraps render_form ]
+# param = $editor_state, $field_name, $frame_name
+
+## single-field variant of the editor.ui.* render contract : for a
+## single-field schema, or re-rendering just one field without a full form
+## redraw. ALL focus/cursor decoration logic lives in
+## editor.ui.ascii_frame.render_form — this wrapper only passes the field name
+## through as render_form's optional single-field scope argument.  the scoped
+## render drops the frame's top/bottom border and renders the field's row at
+## its natural width [ left/right border + padding kept ].
+
+my ( $editor_state, $field_name, $frame_name ) = @ARG;
+
+return undef if not defined $field_name or not length $field_name;
+
+return <[editor.ui.ascii_frame.render_form]>->(
+    $editor_state, $frame_name, $field_name
+);
+
+#,,.,,...,...,,.,,...,,..,.,.,.,.,,..,,.,,.,,,..,,...,...,.,.,..,,,..,,.,,,.,,
+#4MA4ZIVZAE55XIYKKDC4OWHIXJSEOVG2WWCVGWAOKULWDAHJYJIZRQG2RGITCBQISIQ7P4G2GAVCY
+#\\\|Q6A3QG2T7QUKJKHLVKLS7IOIP4RSZMKDLUB6DSRKF7K77INJCDF \ / AMOS7 \ YOURUM ::
+#\[7]PPVRGL62MQDBAV2OVXYWJ5LUNLRQGLRXPITRJ7CVGD6G47UFUGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

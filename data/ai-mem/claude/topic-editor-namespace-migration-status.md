@@ -1,6 +1,6 @@
 ---
 name: topic-editor-namespace-migration-status
-description: editor.* namespace migration -- design doc reviewed twice, step_0/step_1/step_2 all landed and live-verified; nshell's live editing path now runs on editor.control.*
+description: editor.* namespace migration -- design doc reviewed twice, step_0/step_1/step_2 landed and live-verified; step_4 (multi-field) also found already landed 2026-08-10, only step_3 (multiline) remains unbuilt
 metadata:
   type: project
 ---
@@ -60,12 +60,29 @@ the actual diff/test output, not just the auto-summary):
   or raw editor-hash touches anywhere in `modules/nshell.*`, step_1's
   parity test still 334/334, and live nshell exercise after restart.
 
-**Status: all three steps landed and live-verified.** `step_3` (multiline
-field type) and `step_4` (multi-field schema) remain, only when a real
-consumer needs them (chat-style input / a settings form) — see the design
-doc's `migration_path` for the full sequencing and its explicit "don't
-build speculatively" guardrails. Nothing currently blocks either; neither
-has a concrete consumer yet.
+**Status: step_0/1/2 landed and live-verified, and step_4 also found
+already landed** (checked 2026-08-10, while scoping the new `user-edit`
+console zenka — see [[topic-user-edit-console-zenka-status]]):
+`editor.control.create()` already accepts multi-field schemas (no length
+restriction), `active_field` is tracked and authoritative,
+`process_key` already returns `field_next`/`field_prev` on Tab/Shift-Tab
+correctly gated on `scalar(@{$schema->{fields}}) > 1`, and
+`editor.control.active_buffer`/`load_field`/`get_value`/`get_cursor`/
+`reset`/`submit` all exist and are multi-field-aware (`submit` iterates
+every field, not just one). This was NOT expected — this memory
+previously said step_4 "remains, only when a real consumer needs
+[it]... neither has a concrete consumer yet" — but the code was already
+there by the time `user-edit` went looking for it, landed by someone
+between this memory's last update and 2026-08-10, without a
+corresponding memory update. Lesson: don't trust this memory's "not
+built yet" claims about `editor.*` without re-checking the live code —
+confirmed stale once already.
+
+Only `step_3` (multiline field type) remains genuinely unbuilt, still
+gated on a real multiline consumer (chat-style input to coding zenka) —
+see the design doc's `migration_path` for sequencing. `user-edit` is
+now the real multi-field consumer step_4 was waiting on; it does not
+need step_3 (its fields are single-line per the current design).
 
 Also separately tracked: `data/tasks/spdx-license-string-cleanup.md`
 ([[reference-spdx-marker-flags-suspect-session]]) flags that
@@ -75,8 +92,8 @@ eventually un-stub) are among the files from a prior low-quality session —
 treat their existing code as unverified scaffolding, not a design
 reference, until that cleanup task reviews them.
 
-#,,.,,..,,.,,,,.,,...,...,.,.,.,.,,,.,,,.,.,.,..,,...,...,...,,.,,.,.,...,,,,,
-#6RJFSOPW3DBJHNUEINUF7AEJXDXNUTLYQJLLUCSVQYBKBJXRGJQEFD3WBETWUEFQJMQKYWR7ORFYC
-#\\\|CYDUGLKPN2GXC3BK2VBUX6YQR7JHKJEJLX4JAOYXNK232SMBM2U \ / AMOS7 \ YOURUM ::
-#\[7]OG3NQITHLOEWEFS5DF5ID7PNHSLEA46FWYHW464IHA775XW6FMDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,...,,,.,,.,,,,,,,,.,.,.,.,,,..,,...,...,...,.,.,.,,,,..,,,.,
+#MUU2YNSFJTI3Q37PZFEZFZLBPJ3BDWCFCSMJ6EBKBXUIMNYWYIJOHXF5DAOSNPNDHTF6WQI6S6VNE
+#\\\|ULLUHPIRMR7PM346Z7GYLX64HFRJBKMXSJOMNUDQS3WSZSBQKVM \ / AMOS7 \ YOURUM ::
+#\[7]AQT7TC43HNYUPSDHC6GX3GE326N7A5LCFWJPK4BUYRMZM52JEUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
