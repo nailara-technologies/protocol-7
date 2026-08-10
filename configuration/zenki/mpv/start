@@ -35,11 +35,11 @@ mpv.restore_last_position = yes ## restore last saved window position on  ####
                                 ## startup instead of re-querying placement ##
                                 ## zenka — set to 0 to always ask fresh   ####
 
-mpv.restore_on_startup = 1   ## replay saved player state [ properties,   ##
+mpv.restore_on_startup = 1   ## replay saved player state [ properties,    ##
                              ## position, pause ] from state/snapshot.yaml ##
-                             ## on startup -- set to 0 to disable       ##
-mpv.snapshot_interval_seconds = 60  ## periodic state snapshot checkpoint ##
-                                    ## [ 0 disables the periodic save ] ##
+                             ## on startup -- set to 0 to disable          ##
+mpv.snapshot_interval_seconds = 60  ## periodic state snapshot checkpoint  ##
+                                    ## [ 0 disables the periodic save ]    ##
 
 mpv.log_played = 0   # seperately log which files or urls have been played ..,
 
@@ -174,14 +174,28 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [mpv.startup.init]
 
+## must run before [zenka.loop] : base.session.send_init_reports [ armed in ##
+## base.net.connect ] withholds ALL pending reports -- including whatever   ##
+## tells v7 this instance exists -- until <system.zenka.initialized> is     ##
+## true, which only this call sets. v7's own startup handshake              ##
+## [ verify-instance ] depends on that report arriving, and                 ##
+## mpv.startup.job.fork_player [ pushed onto system.callbacks.initialized   ##
+## by mpv.startup.init above ] only runs once v7 sends verify-instance.     ##
+## deferring this call [ eg. to mpv.startup.handler.socket_ready, after the ##
+## player's own control socket opens ] deadlocks : the fork that would      ##
+## open the socket never happens because v7 never hears from this instance  ##
+## in the first place. mpv.startup.handler.socket_ready also (harmlessly)   ##
+## calls base.async.get_session_id again once the socket is up; the         ##
+## 'already have a cube sid' guard in base.handler.whoami_reply makes that  ##
+## second call a no-op.                                                     ##
 [base.get_session_id]
 
 # [mpv.get_optional_playlist:<mpv.playlist_type>]
 
 [zenka.loop]
 
-#,,..,.,.,.,,,,,.,,,,,...,..,,,,.,,,.,.,.,..,,..,,...,...,,.,,..,,...,,,.,.,,,
-#GUZS2AUBOYRIDGBAKU7B7B6IFATVPE64XFKZORG3DFFESXFJRY33672XRFH2KEJEAYCJKE435HGK2
-#\\\|QAIC23KITLVHHWO7W7HTBICZLQRJ2KVV4KU3IEKAULV2AKATIAI \ / AMOS7 \ YOURUM ::
-#\[7]AR2UNAQ2KT4FMXHA6QUUL44LXL43Z7T7HJIH4AHV3KLRWSYZN6AA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,,,,,.,,.,,.,,,,.,,,.,,,,,,,,.,..,,...,..,,,,,,.,.,,.,,.,.,...,
+#44ZQUKMPK4CDW6F7DGXC2NW2CWNGSJ4P6ZL5CGNUU5DOEVDEH7TAL7JCMCDSV5IXX2T7EKYJ7LHMY
+#\\\|YBOMNWCNBZLPJOPPPPEXUDEQMFYK574AGP45J2DAOOKM7PRLQZP \ / AMOS7 \ YOURUM ::
+#\[7]EF5KQGREMHEOSBLE3UJ57RCAKCOIACMSDNDKPU6LKJPESOT55OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

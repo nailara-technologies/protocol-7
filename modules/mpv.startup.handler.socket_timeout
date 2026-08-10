@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = mpv.startup.handler.socket_timeout
+# descr = one-shot deadline: mpv's ipc socket never appeared in time
+#          [ the only remaining timer in the startup path -- fires once,
+#          not a repeating poll ; mpv dying outright is caught separately
+#          by the stdout/stderr io watchers, this only covers the
+#          still-alive-but-stuck case ]
+
+delete $data{'mpv'}{'startup'}{'socket_deadline_timer'};
+
+## socket opened in the gap right before this timer fired ##
+return if defined <mpv.socket>;
+
+if ( defined <mpv.startup.socket_watch> ) {
+    <mpv.startup.socket_watch>->cancel;
+    delete $data{'mpv'}{'startup'}{'socket_watch'};
+}
+
+<[base.log]>->(
+    0,
+    "[!] mpv socket creation error [ '%s' does not exist ]",
+    <mpv.path.ipc_socket> // ''
+);
+<[mpv.callback.abort_startup]>;
+
+#,,.,,.,.,.,.,...,,.,,,..,..,,.,.,...,,,.,.,.,.,.,...,...,.,.,,..,,..,..,,,,,,
+#KZM5V2DNVCJWEA3NTN7GOGM6RIYPZ2BYVLNNL4UWZLX6FCTS2RTPT5MABDWOL6T77AHU7B4HOTHAY
+#\\\|MRD7OWA5BWL675EQM6TAODL7BRJ2HF5DH2UNWFAGQ3UDNYT7LHW \ / AMOS7 \ YOURUM ::
+#\[7]LPBXYG3NSIIJBR2FHSCRRI6IRWKZTMJJRZ7PR23PJO6VK24ETQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
