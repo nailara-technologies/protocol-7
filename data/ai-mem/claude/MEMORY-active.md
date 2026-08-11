@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [keys-zenka-integration-direction](project-keys-zenka-integration-direction.md) — user direction 2026-08-12: integrate keys zenka functionality too; keys ALREADY holds the TOFU host-key pins the users remote/ work depends on (`crypt.C25519.init_code`'s `tofu_hostkey` regex, `remote-host.<host>_<port>.public`) and already carries a credential command (`github-pat`); secret/identity material now spans keys+credentials+cred-mesh+users — reconcile ownership, don't start moving material
 - [credential-types-into-user-edit](project-credential-types-into-user-edit.md) — user direction 2026-08-12: move real credential types (external sites, android app accounts, host passwords) into p7 via user-edit/users as built; makes editor.control's `masked` type load-bearing (currently hard-rejected); `credentials.cmd.add`'s closed type whitelist covers only 1 of 3 named cases; first real target is the uninstalled fanless desktop node whose `taeki` AND `root` accounts both need p7 management Topics
 - [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — step_0/1/2 landed+verified (`290a8f72f`/`e039f1912`/`47a2bf87e`); step_4 also found already landed 2026-08-10 (was thought pending — memory was stale); only step_3 (multiline) remains unbuilt
 - [user-edit-console-zenka-status](topic-user-edit-console-zenka-status.md) — todo JUE+5PN; 2026-08-11: LOCAL key model resolved (crypt.C25519 added back to modules.load, autocreates taeki.base, same identity as keys zenka), hybrid local/tunneled/distributed reuse + alien-OS-adapter ideas recorded in overarching_theme; next: phase_3 event loop, or DELEGATED-vs-LOCAL signing tradeoff for the tunneled case
@@ -109,8 +110,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,.,,...,,,.,,,.,,.,,,,.,.,.,,.,,.,,,..,,...,..,,...,...,.,.,,,,,,,,,,..,.,,,
-#7ESGC6NF3UBPOEGBWO53LQCS6PVBLCSE4SXLUGGVW3632Z3KNLM2ZBLIHO3WVHSXGOURVPJCUJRNA
-#\\\|4UMPVXZCMOGSIFRQVHVKMJQBO6R3NWIUNWSLZYE6XWPMENWWYBF \ / AMOS7 \ YOURUM ::
-#\[7]NOYEHOUVLQWRQSACVA3RGJ3576J6EC2ITYGSKOHGHHE6HZDZ6MCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,..,,,,,.,.,...,..,,..,,,,.,...,..,,...,..,,,.,,...,.,.,,..,...,
+#QUDVF3522JFVLVGJAFTFQPRLYBIY4XDBN3BLVS6B25ZUYKIUOSCUGJBW5IXJKB7EN7PKQQILHU444
+#\\\|4X6KXQCN57I6C64VQH2ILCCRVO4UPLHIJ3ENRNX3FVS7GEDFB3M \ / AMOS7 \ YOURUM ::
+#\[7]IQ4GYP2CNNVFOX3VDRP4UHAL5IO3HOWM32RTJEVQPJQSNNVI2ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
