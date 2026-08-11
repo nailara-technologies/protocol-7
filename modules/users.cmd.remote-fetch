@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = users.cmd.remote-fetch
+# param = <host[:port]> <as-username> <target-username>
+# descr = fetch a peer's users.remote-get record [ deferred ]
+#         <as-username> is the identity label this node authenticates
+#         AS -- the peer must already have that label's public key
+#         under its own ~/.n/remote-keys/authorized/cube/<as-username>.public.
+#
+# KNOWN LIMITATION: does not TOFU-validate the peer's own server pubkey
+# [ plugin.auth.auth-keypair.validate-incoming-tofu's client-side
+# counterpart is not implemented here yet -- see users-zenka.yaml ].
+#
+# users.remote_fetch.run does the connect + auth-keypair handshake as a
+# brief bounded blocking call [ same accepted shape as base.net.connect's
+# own auth.client.zenka.authenticate precedent ], deferred via a same-tick
+# timer so it never holds up this command's own dispatch -- but the
+# ACTUAL users.remote-get query afterward runs through the normal
+# event-driven session/command-reply machinery (base.session.init +
+# base.protocol-7.command.send.local), never a blocking read loop. See
+# users.remote_fetch.run's own header comment for the real deadlock this
+# replaced.
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my ( $host_port, $as_username, $target_username ) = split( m|\s+|, $args, 3 );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.remote-fetch <host[:port]> '
+        . '<as-username> <target-username>'
+    }
+    if not defined $host_port
+    or not defined $as_username
+    or not defined $target_username
+    or not length $host_port
+    or not length $as_username
+    or not length $target_username;
+
+my ( $host, $port ) = split( m|:|, $host_port, 2 );
+$port //= <protocol-7.remote.default-port> // 42;
+
+my $reply_id = $call->{'reply_id'};
+
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub {
+            <[users.remote_fetch.run]>->(
+                $host, $port, $as_username, $target_username, $reply_id
+            );
+        }
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,..,,.,,,,.,...,,,,,.,.,,,,,.,.,...,.,.,..,,...,...,.,.,...,,..,,,.,,,,,
+#IDBKEISCJHJ6HUJJAFXRC3GYJXKO2YF3XX3US5AJELAJAZBH74MLVPBAQUVFIZYNS2M24VVTCXW4Q
+#\\\|ZL6AZJR6ZK6KTHOI3MGUWRJNHJ7U2RZSTXWKTUH4P2CJSZCPUU3 \ / AMOS7 \ YOURUM ::
+#\[7]4D2UA77BO4E4J34A2HLQHAHIJLTTZVBOW3LLGWFVDDLZM3N5VIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
