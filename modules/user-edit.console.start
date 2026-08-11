@@ -16,7 +16,15 @@
 ## leaves the loop on its own — every exit path funnels through
 ## user-edit.form.quit so the terminal is always restored
 
-my $username = shift // '';
+my $params = shift // '';
+
+## '-no-tty' opens the form without a terminal : no raw mode, no STDIN
+## watcher.  keys then arrive over the network via user-edit.cmd.char-add,
+## which replies with the rendered form — so the interactive path can be
+## driven and verified headlessly [ nshell's -no-tty-debug precedent ]
+<user-edit.mode.no_tty_debug> = $params =~ s|\s*-no-tty\b|| ? TRUE : FALSE;
+
+my $username = $params;
 $username =~ s|^\s+||;
 $username =~ s|\s+$||;
 $username = <user-edit.unix_user> if not length $username;
@@ -28,7 +36,7 @@ if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
     return FALSE;
 }
 
-if ( not -t STDIN ) {
+if ( not -t STDIN and not <user-edit.mode.no_tty_debug> ) {
     ## NOTE : no quoted token directly after '<<' in these messages — "<<
     ## 'start' .." parses as a heredoc opener and breaks the module
     print "\n  << the start command needs a terminal "
@@ -65,8 +73,8 @@ if ( not -t STDIN ) {
 
 return TRUE;
 
-#,,,.,...,.,.,.,.,,.,,,,,,.,,,...,,,,,.,.,,.,,..,,...,..,,.,,,,..,,..,,,,,,.,,
-#HCYGHX2CNW5CDIS3ZK4YHJBREGBH5IEKOQNK75OK632D6Y4PF776EWL4X6H63KIVYIUHJPFY42QS4
-#\\\|MLOU3GPXUYTHBFFNMUB6K455YQBDHPQ27KPD5A3OF53FJX43D7J \ / AMOS7 \ YOURUM ::
-#\[7]2TGHNB432OHMFWN4BDZWSCBRQXPNZZITNISTF7QB2H3CNMXHAOBI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,,,,.,,,,,,.,,,,.,,,.,,,.,,.,,,..,,...,...,.,.,,..,,,.,,.,,,,.,
+#BTJ2NXHQQO4ZWWXHQQFHQL2UDPGNEO6N3FI7PDDRSXTHAVK2BKNIISHFR4PY2U5OASEWRMXT5RV5U
+#\\\|W2B7FXRTQIMKTFHEBIMFMU6UKFJMOILW2EO4FANCMCW5RFABWQF \ / AMOS7 \ YOURUM ::
+#\[7]SWZJA5WIVDWPJ6XMLG2PQRBHJPLG2YORGRCY2ANQZLPGBH2PYCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
