@@ -32,16 +32,29 @@ return {
     }
     if not defined $user_data;
 
+my ( $record, $err ) = <[users.record.validate]>->( $user_data, $username );
+
+if ( not defined $record ) {
+    <[base.logs]>->(
+        1,         "user '%s' record failed validation: %s",
+        $username, $err
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "user '%s' record invalid: %s", $username, $err )
+    };
+}
+
 ## reply contract requires a string 'data' payload, never a raw hashref ##
-my $yaml_str = <[format.yaml.dump_str]>->($user_data);
+my $yaml_str = <[format.yaml.dump_str]>->($record);
 
 return {
     'mode' => qw| size |,
     'data' => $yaml_str
 };
 
-#,,,,,.,.,,..,,.,,.,.,,,,,.,,,.,.,.,.,.,,,..,,..,,...,...,...,..,,..,,,,.,,.,,
-#OBK2QMRLY4UHNEYJZQQQOFBGM4FV4HTYDFGS4ZJ6W427RTMR5K2VEX6FZPYAN75DZDMUQKKP3FIL2
-#\\\|AB7EUOA7JR2XZKESZMRU57HXHAXZQLJ62ORC4O2366ET7QLVFG7 \ / AMOS7 \ YOURUM ::
-#\[7]63QGXTYFZFHMQQCQ4RP5KRFVXG2427MGTOKSDUOZ6A432LBHUSCA 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,,,.,..,,.,.,.,,,.,,,..,,...,..,,...,...,...,,.,,,,,,,,.,.,,,
+#R3IZDB4YEMGCRICMQKRM4DDA24RWQX42SDOPRQ6BSMKJZJL433TRPUNYAEOPGECANJ3AT6HGYTJES
+#\\\|57BFOCE5OJR54XJSOGFPXWSXAMHY7WCYJEPQLGTLADSW5IYKG5B \ / AMOS7 \ YOURUM ::
+#\[7]ENY6DL4TP32UTFOVFRIFPWV2UB5QHL5WWTS2HLTJQCLQKN2IYOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

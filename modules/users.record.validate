@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = users.record.validate
+# param = <loaded_href> <expected_username>
+# descr = validate a loaded host-system record envelope shape; returns
+#         ( $record, undef ) on success or ( undef, $err_string ) on
+#         failure [ list context, matching format.yaml.write_file's own
+#         wantarray convention ]
+
+my ( $loaded_href, $expected_username ) = @ARG;
+
+return ( undef, 'record is not a hash' )
+    if ref $loaded_href ne qw| HASH |;
+
+return ( undef, 'missing or mismatched name field' )
+    if not defined $loaded_href->{'name'}
+    or $loaded_href->{'name'} ne $expected_username;
+
+return ( undef, 'missing checksum field' )
+    if not defined $loaded_href->{'checksum'}
+    or not length $loaded_href->{'checksum'};
+
+return ( undef, 'missing timestamp field' )
+    if not defined $loaded_href->{'timestamp'}
+    or not length $loaded_href->{'timestamp'};
+
+return ( undef, 'missing or invalid fields payload' )
+    if ref $loaded_href->{'fields'} ne qw| HASH |;
+
+## metadata is optional -- don't hard-fail on a future minor reordering ##
+
+return ( $loaded_href, undef );
+
+#,,,,,,..,..,,.,.,.,,,,..,,.,,,.,,,,,,,.,,,,.,..,,...,.,,,..,,..,,..,,,,.,.,,,
+#BCDC2NOBCL7MXLHLEURP2FZ2HYB2YP5OHKNKDPV6UPSQTG6NG6KMLWQQUPJSDRXIULMN4ION3SBL6
+#\\\|RQIIJMNOFPEHOIL7VK54HSXXY6X4Y3LIY6Q5PQSTEPBNW6KHOMG \ / AMOS7 \ YOURUM ::
+#\[7]N4KMPSZSY2PMCBZWSHT4TPBPVRIP7FXCU4ZFN3MDKCSY24GCJ2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
