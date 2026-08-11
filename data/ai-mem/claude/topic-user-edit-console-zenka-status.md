@@ -185,8 +185,30 @@ character runs (this codebase's own `ascii.frame` border fills and
 AMOS7 signature terminators both qualify) as degenerate model output.
 Fixed in `c39873f93`.
 
-#,,.,,.,.,.,,,.,.,,.,,.,,,,..,,..,,,.,,.,,...,..,,...,...,,..,,..,.,,,,,,,,,.,
-#JJDYRD6UB2AFFBJUEJW5MYJZWRS34TBMWEMTYTK3DHTFDAOGUEWVI54BCG7QO4GONOGDKWAJMPDLA
-#\\\|AJUSFMURCDIZPG2NVLNY3H6PD6ZSSD6AKZ3SDDRBSWQTVAKY2OT \ / AMOS7 \ YOURUM ::
-#\[7]EGQZC2KCNYDPCECXZCWGPQ4D4J5S2Q2RFLTKJ4NVEDGRHVH3MMBY 7  DATA SIGNATURE ::
+**2026-08-11 UPDATE — the "next step" above is stale; both paths have
+now moved.** 5PN's `users.*` surface is real, not design-only anymore:
+`modules/users.cmd.value-get/-set/-all` (phase 1, `df2e83d85`/
+`25a4bf1ab`) plus a proper envelope schema
+(`modules/users.record.build`/`.validate`, name/checksum/timestamp/
+metadata/fields, `24c58a9d1`) and, further out, a working `remote-get`/
+`remote-fetch` cross-host pair (`e4185e78b`, see
+[[project-users-zenka-unblocks-cross-host-testing]]). `external_source_
+hooks`'s two open items are both resolved: key generation is in-process
+(`crypt.C25519` added to `users`' own `modules.load`, autocreate
+handles it — NOT a cross-zenka hook as originally drafted), and the
+data-lookup zenki are named (`udev`/`fs`, see `users-zenka.yaml`'s
+`data_lookup_zenki_RESOLVED`). `user-edit` also got its own
+LOCAL-vs-DELEGATED key-ownership resolution (LOCAL: `crypt.C25519`
+added back to its `modules.load`, live-verified to autocreate the same
+`taeki.base` identity `keys` zenka already uses).
+
+Real next blocker now: `user-edit`'s `phase_3_form` event-driven read-
+loop / actual field schema still hasn't been built — that's the
+genuinely unstarted piece, not 5PN (which was the blocker described
+above and no longer is).
+
+#,,,.,.,,,.,.,..,,..,,,,.,.,,,,,,,.,,,..,,,,.,..,,...,.,.,,,.,.,.,,.,,,,,,...,
+#ZDK545TYK2H2SQM6NVBJNA4ZC7AKUJKOV5LXEA4MYQZ3WC2W2FPZCX5TMYPVUX2MCTDAPK2524AVC
+#\\\|WUAQDFTBKE3NVV7M6M6V5UJBONTVUY5OYLBA2ZKZ6DQ7YLDUM4N \ / AMOS7 \ YOURUM ::
+#\[7]7MMTOBJSEAEGLG34YYHYCKHPVV5EZHCJJWSYG76HZHS7VDJR2ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
