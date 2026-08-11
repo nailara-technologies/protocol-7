@@ -77,8 +77,13 @@ return $abort->('could not generate a frame for the derived field set')
 
 ## interactive mode : raw terminal and the watchers go up BEFORE the first
 ## paint, so the screen-clear lands on an already-raw terminal and no
-## keystroke typed during setup is echoed or lost
-if (<user-edit.form.interactive>) {
+## keystroke typed during setup is echoed or lost  no-tty mode skips both :
+## there is no terminal to put into raw mode, and an event.add_io on fd 0
+## would fire continuously on a non-tty descriptor.  keys arrive via
+## user-edit.cmd.char-add instead, which appends to the same input buffer,
+## calls the same handler and renders on demand — so no redraw watcher is
+## needed either
+if ( <user-edit.form.interactive> and not <user-edit.mode.no_tty_debug> ) {
 
     return $abort->('could not put the terminal into raw mode')
         if not <[user-edit.term_init]>;
@@ -97,8 +102,8 @@ if (<user-edit.form.interactive>) {
 
 return TRUE;
 
-#,,..,,.,,.,.,..,,.,.,,,.,...,,.,,...,,..,,,,,..,,...,...,,.,,.,,,,,,,,,,,,,,,
-#T2JAZSN6FPXRIA4HYK3T63GWLA6DMG3NZPVLHALIBVQ6LUNXYURGTSNLSVWY5T6FTNJ3P4C7EALKQ
-#\\\|JXCDICOUN44BCY7OMNOOFCX6BG436RYPK4IWEZJ7HXOYE7JOFFD \ / AMOS7 \ YOURUM ::
-#\[7]6CUHQAZCEKONCOFPUKFXXAGTO2PA2S63GB4X4TBOSW3EAPN756CA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,,..,,.,,.,,,..,,,,.,.,.,,,.,..,,...,...,.,.,.,.,,,.,...,.,.,
+#NR2EZEQCKA5W7NVUHF64ZRAZNPI4F45N3RLZS6ZT3XVCXICYTF6EL6D2LVHPXIS6IMXJT3NJJIUKI
+#\\\|4UWWRRORKTIHCLYT2ZQSBUB33JYGYRMQPHGI7ZUM34YWGQOYH2W \ / AMOS7 \ YOURUM ::
+#\[7]WSGC3UTD76ZPA2UPGS2EJFIR3MDW6KBUYPXG22YZB44RNAUJBGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,144 @@
+## [:< ##
+
+# name  = editor.input.parse_key_spec
+# descr = expand a named-key spec string into raw terminal input bytes
+# param = $spec_string
+
+## turns an LLM/script-friendly spec into exactly the bytes a terminal would
+## have produced, so a form or shell can be driven over the network with no
+## tty attached :
+##
+##   'hello[Tab]world[Enter]'      literal text with named keys inline
+##   ':Up,Up,Ctrl+c:'              colon-wrapped works the same as brackets
+##
+## the inverse of editor.input.next_key : this produces the byte stream, that
+## one decodes it back into single keys.  both live in the shared editor
+## namespace because editor.control.process_key defines the key semantics and
+## every front-end needs the same table
+##
+## returns ( $bytes, $summary ) in list context — $summary renders named keys
+## back as [Name] for logging.  returns undef on an unknown key name or an
+## unclosed bracket, with the reason as the second element
+##
+## NOTE : nshell.no-tty-debug.cmd.char-add carries its own inline copy of this
+## table and parser.  it predates this module and is NOT yet switched over —
+## when it is, that command shrinks to injection plus event pumping
+
+my $spec_string = shift // '';
+
+state %key_map = (
+
+    ## navigation ##
+    qw| Up |    => "\e[A",
+    qw| Down |  => "\e[B",
+    qw| Right | => "\e[C",
+    qw| Left |  => "\e[D",
+    qw| Home |  => "\e[H",
+    qw| End |   => "\e[F",
+    'PageUp'    => "\e[5~",
+    'PageDown'  => "\e[6~",
+
+    ## editing ##
+    'Backspace' => "\x7f",
+    'Delete'    => "\e[3~",
+    qw| Tab |   => "\t",
+    'ShiftTab'  => "\e[Z",
+    'Insert'    => "\e[2~",
+
+    ## control characters ##
+    'Ctrl+a' => "\x01",
+    'Ctrl+b' => "\x02",
+    'Ctrl+c' => "\x03",
+    'Ctrl+d' => "\x04",
+    'Ctrl+e' => "\x05",
+    'Ctrl+f' => "\x06",
+    'Ctrl+g' => "\x07",
+    'Ctrl+k' => "\x0b",
+    'Ctrl+l' => "\x0c",
+    'Ctrl+n' => "\x0e",
+    'Ctrl+o' => "\x0f",
+    'Ctrl+p' => "\x10",
+    'Ctrl+r' => "\x12",
+    'Ctrl+u' => "\x15",
+    'Ctrl+w' => "\x17",
+    'Ctrl+y' => "\x19",
+
+    ## special ##
+    'Escape'    => "\e",
+    'Esc'       => "\e",
+    qw| Enter | => "\n",
+    'Return'    => "\n",
+    'Space'     => q| |,
+
+    ## function keys [ SS3 form ] ##
+    qw| F1 | => "\eOP",
+    qw| F2 | => "\eOQ",
+    qw| F3 | => "\eOR",
+    qw| F4 | => "\eOS",
+);
+
+my $bytes   = '';
+my $summary = '';
+
+## expand one comma-separated key-name list into bytes ##
+my $expand_list = sub {
+    my ($list) = @ARG;
+    foreach my $name ( split m|,|, $list ) {
+        $name =~ s|^\s+||;
+        $name =~ s|\s+$||;
+        next if not length $name;
+        return sprintf( 'unknown key name [ %s ]', $name )
+            if not exists $key_map{$name};
+        $bytes   .= $key_map{$name};
+        $summary .= sprintf( '[%s]', $name );
+    }
+    return undef;
+};
+
+my $position = 0;
+my $length   = length $spec_string;
+
+while ( $position < $length ) {
+
+    my $char = substr( $spec_string, $position, 1 );
+
+    if ( $char eq q|[| or $char eq q|:| ) {
+
+        my $closing = $char eq q|[| ? q|]| : q|:|;
+        my $close   = index( $spec_string, $closing, $position + 1 );
+
+        ## an unclosed ':' is an ordinary colon ; an unclosed '[' is an error,
+        ## since bracket form is unambiguous
+        if ( $close < 0 ) {
+            return wantarray
+                ? ( undef, 'unclosed bracket in key spec' )
+                : undef
+                if $char eq q|[|;
+            $bytes   .= $char;
+            $summary .= $char;
+            $position++;
+            next;
+        }
+
+        my $error = $expand_list->(
+            substr( $spec_string, $position + 1, $close - $position - 1 ) );
+
+        return wantarray ? ( undef, $error ) : undef if defined $error;
+
+        $position = $close + 1;
+        next;
+    }
+
+    ## literal character — spaces and newlines included verbatim ##
+    $bytes   .= $char;
+    $summary .= $char;
+    $position++;
+}
+
+return wantarray ? ( $bytes, $summary ) : $bytes;
+
+#,,.,,,,,,,..,.,.,..,,.,.,,.,,,,,,,..,,..,,,,,..,,...,...,...,.,.,,.,,.,,,..,,
+#JDCS6NM2ESB4QJSBMARFRTYTGDU5BXT7PWPFYN6MEBOGPDUMS6WSUNNH4AZKB4YKMI7EMIOGRZ6RM
+#\\\|QAJSK5HKD4XJ6NJGB3ZIQPJFRYFNIFD7R54CTBGAZCCG3OEGE4E \ / AMOS7 \ YOURUM ::
+#\[7]YSDDRMQJ433BEA4UBFU2HFM7Q7GMV5HXZUPDRFBLJUGWIVFJQSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = user-edit.cmd.char-add
+# param = <key-spec>
+# descr = send keys to a no-tty form, return its rendering
+
+## network-driven form interaction, modelled on nshell.no-tty-debug.cmd.
+## char-add.  lets the interactive form be driven and VERIFIED with no
+## terminal attached :
+##
+##   p7c user-edit.char-add 'hello[Tab]world[Enter]'
+##
+## the reply is the freshly RENDERED FORM, not just a status line, so the
+## caller sees exactly what a user at a terminal would see — which is what
+## makes this a test surface rather than only a debug poke.
+##
+## gated on <user-edit.mode.no_tty_debug>, set by starting the form as 'start
+## <user> -no-tty'.  without that flag this command refuses, so the
+## key-injection path cannot be driven against an ordinary interactive session
+
+my $key_spec = $call->{'args'} // '';
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'form is not running in no-tty mode'
+    }
+    if not <user-edit.mode.no_tty_debug>;
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'no form is currently open'
+    }
+    if ref <user-edit.form.state> ne qw| HASH |;
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'key spec expected [ e.g. abc[Tab]def[Enter] ]'
+    }
+    if not length $key_spec;
+
+my ( $bytes, $summary ) = <[editor.input.parse_key_spec]>->($key_spec);
+
+return { qw| mode | => qw| false |, qw| data | => $summary }
+    if not defined $bytes;
+
+<[base.logs]>->( 2, ': no-tty key input : %s', $summary );
+
+## same buffer user-edit.handler.stdin_key drains, so injected keys take the
+## identical decode/dispatch path a real keystroke would — no parallel input
+## implementation to drift out of sync
+<user-edit.form.input_buffer> .= $bytes;
+
+## drive the loop until the injected keys are consumed.  the handler is
+## normally woken by fd 0 becoming readable, which never happens here, so call
+## it directly and let event.once flush anything it triggers
+my $iteration = 0;
+while ( length( <user-edit.form.input_buffer> // '' ) and $iteration < 21 ) {
+    $iteration++;
+    <[user-edit.handler.stdin_key]>;
+    <[event.once]>->(0.02);
+
+    ## the form may have closed under us [ submit / ctrl-c both exit ] ##
+    last if ref <user-edit.form.state> ne qw| HASH |;
+}
+
+if ( ref <user-edit.form.state> ne qw| HASH | ) {
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => "\n  : form closed\n"
+    };
+}
+
+## render the CURRENT state as the reply.  note this deliberately calls the
+## renderer rather than reading the dirty counter : the caller wants the form
+## as it stands now, whether or not these particular keys happened to mark it
+## dirty
+my $frame_name = <user-edit.form.frame_name> // qw| user-edit-form |;
+
+my $rendered = <[editor.ui.ascii_frame.render_form]>->(
+    <user-edit.form.state>, $frame_name
+);
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'form render failed'
+    }
+    if not defined $rendered;
+
+my $editor_state = <user-edit.form.state>;
+my $active_index = $editor_state->{'active_field'} // 0;
+my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
+    // '?';
+
+return {
+    qw| mode | => qw| size |,
+    qw| data | => sprintf(
+        "\n%s\n\n  : active field : %s [ %d of %d ]\n",
+        $rendered,         $active_name,
+        $active_index + 1, scalar $editor_state->{'schema'}{'fields'}->@*
+    )
+};
+
+#,,,.,,,,,...,.,.,...,..,,,..,.,.,,..,,.,,,.,,..,,...,...,.,.,.,.,,.,,.,.,.,.,
+#FJNHIWOZEOJKWD7N2DJWIVNMZRJXS3CD2UBVO2F4YPOB4722SCEQSZT6LNT6EPOLD3O3WHAKLOZTC
+#\\\|ORA5VMPENRPVT6MMWFJTM4TNIPDFKHELRCJDDFGKKJZMZVEQMZS \ / AMOS7 \ YOURUM ::
+#\[7]2WK2ZLOYBQQF5QMNTMC37ES5CT6TEY62JHVCGGTDIKTHMIXRX2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

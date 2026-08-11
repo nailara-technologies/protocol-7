@@ -19,11 +19,24 @@ return FALSE if ref $editor_state ne qw| HASH |;
 
 ## kept in %data rather than a state var : a state var would survive a code
 ## reload while the watcher and decoder around it are replaced, stranding
-## bytes from a previous generation in a buffer nothing can see or reset
+## bytes from a previous generation in a buffer nothing can see or reset NOTE
+## : a reference to a data keyword MUST be written as explicit $data{..} —
+## '\<user-edit.form.input_buffer>' does NOT take a reference to the slot.
+## the translator's rule is (?<!\\)<..>, i.e. a leading backslash is the
+## ESCAPE meaning "leave this untranslated", so that form silently yields a
+## reference to the literal NAME STRING instead
 <user-edit.form.input_buffer> //= '';
-my $input_buffer = \<user-edit.form.input_buffer>;
+my $input_buffer = \$data{'user-edit'}{'form'}{'input_buffer'};
 
-my $bytes_read = sysread( STDIN, my $chunk, 1024 );
+## no-tty mode : keys arrive from user-edit.cmd.char-add, which appends to the
+## same buffer and calls this module directly.  STDIN must NOT be read at all
+## here — on a redirected/closed descriptor sysread returns 0, which the EOF
+## branch below would correctly-but-fatally treat as "terminal closed" and
+## quit the form on the first injected key
+my $bytes_read
+    = <user-edit.mode.no_tty_debug>
+    ? undef
+    : sysread( STDIN, my $chunk, 1024 );
 
 if ( defined $bytes_read and $bytes_read > 0 ) {
     $input_buffer->$* .= $chunk;
@@ -83,8 +96,8 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
 return TRUE;
 
-#,,,.,,.,,..,,...,,..,,..,,.,,,..,...,..,,,..,..,,...,...,.,.,.,,,,,.,...,,,.,
-#IPK2FIXQBGCO66KZHG7P7ZOG37IG4ZU3V7TJGKN3EOBVH6XJLMYEXCSLNGN2T4RIH3AUU5EXDL336
-#\\\|EXQBCYGSX3RQCTLCJIHCNL6SB2T26F3ONJ65UGIIOVXUE5H76GL \ / AMOS7 \ YOURUM ::
-#\[7]5IYT5ILATB7QWLMMRBVD5YZ4UPPMROOVADJHB25BV6PHHGDI5QDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,.,,..,...,.,,,..,,...,,..,.,.,..,,...,...,...,,,.,,..,..,,,,,,
+#ZK5HW6WZA6FQA5UQMQTQZXPGMZQZURD5ATM64GXPWVCZTTZTEHXVBSKDT5XCCIYQ4625EWOM27CDI
+#\\\|XEYNMCQKQA4EJCGBTXSWWJHUGK6EFTKKDFWGQSI6RRTOEYQ3T3H \ / AMOS7 \ YOURUM ::
+#\[7]HCVPEUIRGLB5227FONZOH3YXGZIMG634C6HCMMGX5Y63XB4NAMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
