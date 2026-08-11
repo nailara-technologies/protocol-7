@@ -322,7 +322,27 @@ users_zenka_relationship: >
             against copying crypt.C25519.cmd.*'s current no-check
             pattern. Delegation doesn't avoid that work, it just
             relocates which zenka has to do it correctly.
-      NOT decided: (a) vs (b). phase_1_skeleton's clone_steps below
+      RESOLVED (2026-08-11, per user): (a) LOCAL chosen — "it will need
+      it later anyways", so load it now rather than defer. IMPLEMENTED:
+      configuration/zenki/user-edit/start's modules.load now includes
+      crypt.C25519 (between editor and ascii.frame, matching keys
+      zenka's own module ordering). Live-verified via `Protocol-7
+      keys list` after a one-shot `./bin/Protocol-7 user-edit list`
+      run: resolves to the SAME taeki.base identity keys zenka already
+      uses (fingerprint ZITAETA:YKO7BCA matches exactly) — confirms the
+      "same running-as-user -> same <user>.base key" behavior
+      users-zenka.yaml's key_ownership_model DEFAULT tier described.
+      New pm-dep markers auto-created and committed: AMOS7__Twofish,
+      Crypt__Curve25519, Crypt__Ed25519 (AMOS7__13/AMOS7__FILE were NOT
+      needed — those are passphrase-seed-key-specific, unused by the
+      plain autocreate path). subroutines.load-early regenerated via
+      bin/dev/gen-sub-whitelist. (b) DELEGATED's security reasoning
+      above remains recorded for whenever a genuinely different-identity
+      delegation case arises (e.g. the distributed/group-account mode
+      in overarching_theme's hybrid-reuse point) — this resolution is
+      specifically about user-edit's OWN identity key, not a blanket
+      ruling against delegation ever being used elsewhere.
+      phase_1_skeleton's clone_steps below
       ("drop crypt.C25519 entirely") reflects the PRE-revision
       assumption and needs revisiting either way — not yet done in
       code (configuration/zenki/user-edit/start currently has no
@@ -468,18 +488,12 @@ phase_1_skeleton:
     (Curses::UI, Term::Clui, Crypt::*) are key-management-specific.
   clone_steps:
     - configuration/zenki/user-edit/start
-      modules.load = terminal editor ascii.frame user-edit
-      OPEN (2026-08-11) — see users_zenka_relationship above: whether
-      crypt.C25519 stays dropped depends on the undecided (a) LOCAL vs
-      (b) DELEGATED tradeoff there. If LOCAL: add crypt.C25519 to
-      modules.load (mirroring keys/users-zenka's own pattern), for this
-      zenka's own identity key (autocreate -> taeki.base) and signing
-      its own requests to users zenka. If DELEGATED: crypt.C25519 stays
-      dropped as originally written, but the delegate zenka's signing/
-      generation request-handling needs the authenticate-then-authorize
-      hardening discussed there — not a free pass either way. Live
-      modules.load as of 2026-08-11 has no crypt.C25519 (the original
-      LOCAL-drop assumption, not yet revisited in code either way).
+      RESOLVED + IMPLEMENTED (2026-08-11) — see users_zenka_relationship
+      above: (a) LOCAL chosen. modules.load is now `terminal editor
+      crypt.C25519 ascii.frame user-edit` — crypt.C25519 added back in,
+      superseding the original "drop it entirely" clone step. Live-
+      verified resolving to the same taeki.base identity keys zenka
+      already uses.
     - configuration/zenki/user-edit/pm-dep/
       keep only what terminal/editor/ascii.frame actually require —
       audit against keys' 30-module pm-dep list rather than copying it
@@ -868,8 +882,8 @@ open_questions:
 created: 2026-08-09
 tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer, nshell, event-driven, network-connectivity]
 
-#,,,,,,,.,.,,,,.,,,,.,.,.,..,,,,.,,..,,.,,,,,,..,,...,...,.,.,,.,,.,,,.,,,..,,
-#PILY5H6ZMPXLDO27ZXZFMPXDFGOR4A6OHJFQUUXEXKCCOIF4NRKSK5WF5DNOKWXVQEMMYKHYGMQKW
-#\\\|M2LX23I4KO6KNSPNXZSDXOPVL5WDFDQJNY6VID7DWB73ADO73C3 \ / AMOS7 \ YOURUM ::
-#\[7]FHXXKQJZM7ISWKN2ZQNBSSIX5OE5ZLM4MFV27WIYU7NKEGYW3OCY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,..,,,.,,,,,,.,.,,..,,,,,.,,,,..,..,,...,..,,..,,..,,.,.,,,,,,.,,
+#4KSJOFZRUQPIUNSU244N526IEWGRBXA52YVQM27UMQCJHPWLPVVSXAR2ND74RN7OHG5T763FRQG3Y
+#\\\|IHKTJ62A7NSDKZMWSXRK34UG2NDWPTDCGDR2IQYYDZLZEYXC2HN \ / AMOS7 \ YOURUM ::
+#\[7]BNR3M645VPTZM4P4KXSDJB5X6N4CMYGMWZ6CR3KT5W5LTIDK6MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
