@@ -102,11 +102,27 @@ foreach my $sub_name ( keys %code ) {
         if $new_sub eq $sub_name and $new_sub eq $source_sub_prefix;
 
     if ( $new_sub ne $sub_name ) {
-        ## leave unresolved stubs under their original name -- moving a   ##
-        ## stub before it's ever compiled just relocates the problem, and ##
-        ## it was already excluded from $subs_matching above for the same ##
-        ## reason                                                         ##
-        next if $data{'code'}{$sub_name}{'deferred_stub'};
+        ## an unresolved stub is not MOVED [ its own filename hint names    ##
+        ## the source name, and base.caller resolves the real source path   ##
+        ## from that ], but it must still be REACHABLE under the target     ##
+        ## name : after a swap every call site uses the target namespace,   ##
+        ## so leaving the stub only at the source name turns "compile       ##
+        ## deferred to first use" into "never loadable at all" -- the       ##
+        ## whitelist governs compile TIMING, never reachability.  aliasing  ##
+        ## the stub across restores the on-demand path : the stub fires     ##
+        ## under either name, identifies itself as the SOURCE name, and     ##
+        ## base.handler.deferred_compile's own moved_to self-heal then      ##
+        ## lands the freshly compiled code at both keys.  it stays excluded ##
+        ## from $subs_matching above -- an alias is not evidence of real    ##
+        ## reloaded code                                                    ##
+        if ( $data{'code'}{$sub_name}{'deferred_stub'} ) {
+            if ( not exists $code{$new_sub} ) {
+                $code{$new_sub}                          = $code{$sub_name};
+                $data{'code'}{$new_sub}{'deferred_stub'} = TRUE;
+                $data{'code'}{$sub_name}{'moved_to'}     = $new_sub;
+            }
+            next;
+        }
 
         if ( $overwrite_policy eq 'if_missing' and exists $code{$new_sub} ) {
             delete $code{$sub_name};
@@ -194,8 +210,8 @@ if ( <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |) ) {
     }
 }
 
-#,,,,,,,.,.,.,,,.,,,.,..,,,,.,,,,,,.,,,,,,,,.,..,,...,...,,,.,.,.,.,,,,,,,,,.,
-#X3NHXOWUNP33FQDPMDN2DFCSJN7QNFYYCJFRAMVWTMGMSDX3INSRB3YOPZOIQKYXLGQTNTDLLFAWK
-#\\\|4DYWMEDPRH7LEZVHGISU34UDWOOZLCHSO4DO37BOYC64U2Q7CXR \ / AMOS7 \ YOURUM ::
-#\[7]YGALGPSOU47CBBMKR6L3SYUGPVI3ZQKS6274QKZ6RJWL2UU36GCA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,,,,..,,,.,,,,,.,,,.,.,.,,,..,,..,,...,...,.,,,...,...,.,.,..,,
+#LIHTARLLUHUIHNDPTVWO75TUGDREM5EUGAGSH47ULSRA4IEHGKSU3GIGFPW4PXOAEJSGFPYFW7TRA
+#\\\|6QOLGY6H6BMHNHZ55F7IT37SB3XCSSVMEE2YFR7CSRIYMRD5S2M \ / AMOS7 \ YOURUM ::
+#\[7]ZPU2LRSQKFAKNSXY3LZ3LEM7N5F7ZIQRCRAWL25P6EDK3U427SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
