@@ -4,7 +4,8 @@ in-flight and recently-landed work: x11/window placement, mpv, ascii-frame/deskt
 coding & kimi zenka state machines, jobsite, streaming transport, web-browser capture/replay,
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
-## Active Topics
+## Active
+- [credential-types-into-user-edit](project-credential-types-into-user-edit.md) — user direction 2026-08-12: move real credential types (external sites, android app accounts, host passwords) into p7 via user-edit/users as built; makes editor.control's `masked` type load-bearing (currently hard-rejected); `credentials.cmd.add`'s closed type whitelist covers only 1 of 3 named cases; first real target is the uninstalled fanless desktop node whose `taeki` AND `root` accounts both need p7 management Topics
 - [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — step_0/1/2 landed+verified (`290a8f72f`/`e039f1912`/`47a2bf87e`); step_4 also found already landed 2026-08-10 (was thought pending — memory was stale); only step_3 (multiline) remains unbuilt
 - [user-edit-console-zenka-status](topic-user-edit-console-zenka-status.md) — todo JUE+5PN; 2026-08-11: LOCAL key model resolved (crypt.C25519 added back to modules.load, autocreates taeki.base, same identity as keys zenka), hybrid local/tunneled/distributed reuse + alien-OS-adapter ideas recorded in overarching_theme; next: phase_3 event loop, or DELEGATED-vs-LOCAL signing tradeoff for the tunneled case
 - [checksum-addressing-implementation-survey](project-checksum-addressing-implementation-survey.md) — 2026-08-10 ground-truth survey for 5PN (users zenka) identity decision: ~1/3 of checksum-addressing vision is real code (AMOS/BMW checksums, P7REF via base.p7ref.self, BMW384 geometric routing — but local-module-scoped, not network); no TYPE registry exists anywhere. Verdict: root new-entity identity in crypt.C25519, treat P7REF as a derived display layer, don't wait on the vision's unbuilt pieces
@@ -108,8 +109,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,.,,,..,..,,,..,,,,,,.,,...,,..,...,,,.,,,.,..,,...,...,.,,,...,,,.,,,.,.,.,
-#PUJCIUZTRICDWS25Q25CLL3VPAEDQOKGGFFOM4BAO2IP2NNS2LDBCLSKHKOBKYRR5MYYIPCSBBGSQ
-#\\\|B222MWD5IKEGONCERK2CCWDYYGKJZGXW2Q7AJSW6IVYE3WW4PK6 \ / AMOS7 \ YOURUM ::
-#\[7]CX6YOROGH5SB47ODAWDDJHRG4Y3DONQGM5Z255ENCH3EFMOFKGBA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,.,,.,,,,.,.,.,,.,,.,,,..,,...,..,,...,...,.,.,,,,,,,,,,..,.,,,
+#7ESGC6NF3UBPOEGBWO53LQCS6PVBLCSE4SXLUGGVW3632Z3KNLM2ZBLIHO3WVHSXGOURVPJCUJRNA
+#\\\|4UMPVXZCMOGSIFRQVHVKMJQBO6R3NWIUNWSLZYE6XWPMENWWYBF \ / AMOS7 \ YOURUM ::
+#\[7]NOYEHOUVLQWRQSACVA3RGJ3576J6EC2ITYGSKOHGHHE6HZDZ6MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

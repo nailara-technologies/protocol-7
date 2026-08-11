@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = user-edit.handler.stdin_key
+# descr = event.add_io handler : decode keystrokes and drive the form
+
+## fires whenever STDIN is readable [ registered by
+## user-edit.setup_stdin_watcher ].  never blocks : STDIN is O_NONBLOCK, one
+## sysread per firing, and a partially-arrived escape sequence is simply left
+## in the buffer for the next one [ editor.input.next_key returns undef and
+## consumes nothing in that case ].
+##
+## this module does NOT render.  every mutation just bumps
+## <user-edit.form.dirty>, and the base.event.add_var watcher on that scalar
+## is what repaints — the same path an async out-of-band field update takes,
+## so neither side has to know the other exists.
+
+my $editor_state = <user-edit.form.state>;
+return FALSE if ref $editor_state ne qw| HASH |;
+
+## kept in %data rather than a state var : a state var would survive a code
+## reload while the watcher and decoder around it are replaced, stranding
+## bytes from a previous generation in a buffer nothing can see or reset
+<user-edit.form.input_buffer> //= '';
+my $input_buffer = \<user-edit.form.input_buffer>;
+
+my $bytes_read = sysread( STDIN, my $chunk, 1024 );
+
+if ( defined $bytes_read and $bytes_read > 0 ) {
+    $input_buffer->$* .= $chunk;
+} elsif ( defined $bytes_read and $bytes_read == 0 ) {
+    ## EOF on stdin [ terminal closed / input redirected and exhausted ] ##
+    <[base.logs]>->( 2, ': stdin closed, leaving form' );
+    <[user-edit.form.quit]>;
+    return TRUE;
+}
+
+my $repaint = FALSE;
+
+while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
+
+    my $result = <[editor.control.process_key]>->( $editor_state, $key );
+    next if ref $result ne qw| HASH |;
+
+    my $action = $result->{'action'} // qw| none |;
+
+    if ( $action eq qw| field_next | ) {
+        my $count = scalar $editor_state->{'schema'}{'fields'}->@*;
+        $editor_state->{'active_field'}
+            = ( ( $editor_state->{'active_field'} // 0 ) + 1 ) % $count;
+        <[user-edit.form.field_changed]>;
+        $repaint = TRUE;
+
+    } elsif ( $action eq qw| field_prev | ) {
+        my $count = scalar $editor_state->{'schema'}{'fields'}->@*;
+        $editor_state->{'active_field'}
+            = ( ( $editor_state->{'active_field'} // 0 ) - 1 + $count )
+            % $count;
+        <[user-edit.form.field_changed]>;
+        $repaint = TRUE;
+
+    } elsif ( $action eq qw| submit | ) {
+        <[user-edit.form.submit]>;
+        return TRUE;    ## submit owns the flow from here ##
+
+    } elsif ( $action eq qw| signal | ) {
+        ## ADVISORY per editor.control.process_key's contract — the host
+        ## decides.  ctrl-c leaves the form ; the draft is flushed and the
+        ## terminal restored on the way out, which is exactly why ISIG is
+        ## disabled in user-edit.term_init rather than letting the signal kill
+        ## the process outright
+        <[user-edit.form.quit]>;
+        return TRUE;
+
+    } elsif ( $action ne qw| none | ) {
+        ## echo / delete / backspace / cursor-* / kill-* / yank ##
+        $repaint = TRUE;
+    }
+}
+
+## single write per firing, not per key : a paste arriving as one chunk
+## repaints once instead of once per character
+<user-edit.form.dirty>++ if $repaint;
+
+return TRUE;
+
+#,,,.,,.,,..,,...,,..,,..,,.,,,..,...,..,,,..,..,,...,...,.,.,.,,,,,.,...,,,.,
+#IPK2FIXQBGCO66KZHG7P7ZOG37IG4ZU3V7TJGKN3EOBVH6XJLMYEXCSLNGN2T4RIH3AUU5EXDL336
+#\\\|EXQBCYGSX3RQCTLCJIHCNL6SB2T26F3ONJ65UGIIOVXUE5H76GL \ / AMOS7 \ YOURUM ::
+#\[7]5IYT5ILATB7QWLMMRBVD5YZ4UPPMROOVADJHB25BV6PHHGDI5QDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
