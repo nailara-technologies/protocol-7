@@ -27,10 +27,20 @@ if ( $rest =~ m|^(\d{1,5})(?:\s+(.*))?$|s ) {
     $pattern = $rest;
 }
 
+## NOT `not defined $data{'buffer'}{$buffer}` -- a plain read through a
+## multi-level hash chain autovivifies the intermediate level, so even a
+## buffer name that never existed becomes a defined (empty) hashref just
+## from this check running, always passing it; the real crash then hit
+## dereferencing the still-missing 'data' key as an array two lines down.
+## Also: 'data' is genuinely absent on a real, freshly-registered buffer
+## until its first line is written (base.buffer.add_line populates it
+## lazily) -- checking its ref type directly covers both cases at once.
+my $buf_entry = $data{'buffer'}{$buffer};
 return { 'mode' => qw| false |, 'data' => 'no such buffer' }
-    if not defined $data{'buffer'}{$buffer};
+    if ref $buf_entry ne qw| HASH |
+    or ref $buf_entry->{'data'} ne qw| ARRAY |;
 
-my @buf_lines = @{ $data{'buffer'}{$buffer}{'data'} };
+my @buf_lines = @{ $buf_entry->{'data'} };
 
 ## tail [lines] first, then filter within that window ##
 if ( defined $lines and $lines < @buf_lines ) {
@@ -54,8 +64,8 @@ return {
     'data' => join( '', map {"$ARG\n"} @buf_lines )
 };
 
-#,,..,.,.,,.,,,,,,..,,,.,,.,,,.,.,,.,,..,,,,,,..,,...,...,.,,,.,,,,,,,.,.,,.,,
-#256HNR7ZZIDRTHK44QA7Y5JX6XXH3ZY4DOURSHHFCXCXMCQ3YRJUBC663IJ4NDPWN4ABJFSRS7SNO
-#\\\|7O4BKU5Q3JKYSYQQXH35TTSZBYGSZBSIRHSFL3T63SI4EHBUG6Z \ / AMOS7 \ YOURUM ::
-#\[7]HQXXLAZ4BLDUMEUR2WLNFLY5COO5RS4BUEM7LUNOBN6K4FA32QAQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,,..,,,,,,..,.,.,,.,,..,,,,.,..,,...,...,.,,,,,.,,.,,,,.,.,.,
+#4GY4YTR57T2CBU7L5BC3GIMXSPDXRGWWA4TSJRUHLRZSJY7VIM6NSM2BX7KA4KCNMVFUCWKP56ZEA
+#\\\|7OV6KVCT25S75ESFVJNFUFGY2JVJY3XZW5R637ZUCUKM4K525HN \ / AMOS7 \ YOURUM ::
+#\[7]KXZ4VTXE7ZJUATM7BKLFCYK7X2TMQY55LILVONLNDPJLRWEM5ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
