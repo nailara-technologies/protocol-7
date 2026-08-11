@@ -55,10 +55,93 @@ overarching_theme: >
       same field schema — which argues for editor.ui.* staying backend-
       swappable (already the design, per the interface doc's
       terminal/gtk3/vterm split) rather than picking one now.
+    - HYBRID reuse, extending the REMOTE-settings point above (2026-08-11,
+      per user): zenki are usually light frontends with logic living in
+      the network / in inter-zenka interaction, not monolithic — so the
+      same user-edit zenka plausibly gets reused three ways over time,
+      not built three times: (1) LOCAL, phase 1's actual target — this
+      host's own users zenka; (2) TUNNELED — the same frontend pointed
+      at a remote host's users zenka over an existing tunnel mechanism
+      (ssh zenka's transparent pipe, or p-7-r/link-upgrade per
+      users-zenka.yaml's transport_implementation_choice) for
+      configuring a node you're not sitting at, same as the REMOTE point
+      above but naming the actual transport; (3) further out — network-
+      based, distributed zenki and [group] account configuration, not
+      just single-user records. This directly bears on
+      users_zenka_relationship's LOCAL-vs-DELEGATED key question above:
+      an admin driving (2) interactively plausibly wants THEIR OWN local
+      identity signing the request (favors LOCAL), while (3)'s
+      automated/distributed case may not have a human present at all
+      (favors DELEGATED, or a v7-mediated identity per users-zenka.
+      yaml's deferred v7_mediated_trust_chain_OUT_OF_SCOPE note) — one
+      more reason that tradeoff isn't a single answer for all of
+      user-edit's future reuse, not just phase 1's local case.
   not scoping an installer zenka here — no todo item exists for one yet.
   this section exists so implementation of user-edit's pieces is done in
   a way that doesn't foreclose that reuse, not so this doc grows into an
   installer design. worth its own todo/design file when it's time.
+  per user: local-first is fine for phase 1 — hybrid reuse is a "likely
+  later" awareness note, not a phase 1 requirement.
+  even further out (2026-08-11, per user): the same frontend, via an
+  ADAPTER zenka, editing an ALIEN (non-protocol-7-native) OS account —
+  e.g. a Windows account on this WSL host, or an account inside a
+  Windows VM. Distinct in kind from the three modes above: those all
+  still target a protocol-7 users zenka's host-system/ (local, tunneled,
+  or distributed); this targets a foreign account system's own API/
+  storage entirely, translated through an adapter rather than read/
+  written as host-system/ records. checked configuration/zenki/
+  users/os-dep/ — that's the ordinary per-OS pm-dep/binary convention
+  every zenka can have, not an account-adapter mechanism, so no
+  precedent there. A closer real precedent DOES exist though, per user:
+  the powershell zenka (configuration/zenki/powershell/, modules/
+  powershell.exec) is a genuine windows-host bridge — it spawns real
+  powershell.exe via IPC::Open3 (WSL interop) and returns parsed
+  stdout, already used for screenshot-capture/pointer-stream/display-
+  switch plugins. It COULD read Windows account variables the same way
+  ($env:USERNAME, Get-LocalUser, etc.) — but per user, "depending on
+  how it's started": powershell.exe launched this way runs under
+  whatever Windows user session WSL interop maps to (this host's
+  currently logged-in Windows session), not an arbitrary target
+  account. powershell.exec today is a single fixed local -Command
+  invocation only — no -ComputerName/-Credential/remoting support,
+  so reaching a DIFFERENT local Windows account or an actual Windows
+  VM (vs. this WSL host's own interop session) isn't currently wired
+  up, would need PS remoting (Invoke-Command/Enter-PSSession with
+  -Credential) added to that module.
+  ALTERNATE mechanism raised by user: socat.exe on the Windows host, as
+  a persistent bridge instead of powershell.exec's one-shot IPC::Open3
+  call per invocation. CHECKED 2026-08-11, per user: the socat.exe
+  variant was deliberately POSTPONED, not abandoned or overlooked —
+  once it became clear bash could already exec powershell.exe directly
+  (WSL interop, what powershell.exec actually does today), that path
+  was cheaper to ship first. But real, more developed plans for actual
+  persistent shell sessions (not one-shot -Command calls) exist:
+  data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml —
+  dated 2026-02-12, phase_status "Scoped, awaiting architectural
+  review", a much larger unified cross-platform shell/session design
+  (not just windows-specific): distributed TTY buffers + session
+  protocol tunneling + capability-based command filtering, explicitly
+  scoping socat as the Windows integration point ("Bridge Windows
+  shells (cmd.exe/powershell.exe) to protocol-7 sessions", line 128;
+  "Enables Windows integration via socat", line 76) so cmd.exe/
+  powershell.exe sessions become addressable through nshell like any
+  other shell (line 528: "Access Windows powershell through nshell
+  (shell tunneling)"). data/md/design/9P-CLIENT.md:91's "existing"
+  wording is still loose (nothing built yet), but this is a real
+  scoped design, not a blank slate — an alien-OS-account adapter for
+  user-edit would very plausibly sit ON TOP of THIS infrastructure
+  once it lands, rather than needing its own separate bridge.
+  Per user: even once the tunneling design lands, socat stays OPTIONAL
+  in the chain, not mandatory for all Windows integration — where the
+  current WSL-interop session's own permissions are already sufficient
+  for a given task, the cheaper direct powershell.exec path (no
+  persistent session, no capability-filtering layer) remains valid.
+  socat/session-tunneling is for the cases that path genuinely can't
+  reach (different account, real persistence, a separate VM), not a
+  wholesale replacement of the simpler mechanism.
+  Flagging only — not designed, not scoped, likely its own
+  adapter-pattern doc whenever it's time, but now grounded in real
+  starting points (and real gaps) rather than a blank slate.
 
 related_precedent_set_up_zenka: >
   there is already a real installer-adjacent zenka: `set-up`
@@ -210,10 +293,42 @@ users_zenka_relationship: >
       doc, not this one. This doc only needs the users.* command
       surface (get/set/list a user's editable fields) once 5PN defines
       it — treat that as this zenka's actual integration point.
-    - key authority living in users zenka is a reason this zenka does
-      NOT need crypt.C25519 itself (phase_1_skeleton already drops it,
-      correctly) — key acquisition for anything this console needs is
-      a users.* call, not a local key load.
+    - REVISED (2026-08-11, per user, cross-doc consistency pass, then
+      further refined): the original "does NOT need crypt.C25519" claim
+      was too absolute, but the fix isn't "it definitely needs it"
+      either — it's a genuine unresolved tradeoff between two
+      approaches, not yet decided:
+        (a) LOCAL — this zenka loads crypt.C25519 itself, owns its own
+            identity key (autocreate -> taeki.base, same as
+            users-zenka's key_ownership_model DEFAULT tier) and signs
+            its own requests to users zenka directly. Simpler,
+            self-contained, but this zenka's own process now holds
+            live key material.
+        (b) DELEGATED — this zenka technically does NOT need
+            crypt.C25519 loaded if signing/key operations are delegated
+            to another zenka (users zenka, or a keys-style broker) via
+            a routed command — smaller attack surface for THIS zenka
+            specifically (no key material in its process at all). But
+            per user: this does not remove the security work, it moves
+            it — whichever zenka the delegation lands on then has
+            access to BOTH the crypt module AND the actual key files
+            for potentially multiple identities, and THAT access needs
+            securing (caller-identity verification on the delegated
+            signing/generation request itself) — exactly the
+            authenticate-then-authorize discipline already required by
+            discovery_integration.remote_command_authorization
+            (SIGNED-COMMAND-INTERFACE.md-style command signing) and
+            the existing_C25519_cmd_surface_quality_finding caution
+            against copying crypt.C25519.cmd.*'s current no-check
+            pattern. Delegation doesn't avoid that work, it just
+            relocates which zenka has to do it correctly.
+      NOT decided: (a) vs (b). phase_1_skeleton's clone_steps below
+      ("drop crypt.C25519 entirely") reflects the PRE-revision
+      assumption and needs revisiting either way — not yet done in
+      code (configuration/zenki/user-edit/start currently has no
+      crypt.C25519 in modules.load, confirmed live 2026-08-11) —
+      flagging as an open
+      item, not silently assuming it's already handled.
     - discovery features (distributed lookup) are 5PN's concern; this
       console only ever edits records for the locally-authenticated
       user/session, it does not need to implement discovery itself.
@@ -354,9 +469,17 @@ phase_1_skeleton:
   clone_steps:
     - configuration/zenki/user-edit/start
       modules.load = terminal editor ascii.frame user-edit
-      [ drop crypt.C25519 entirely — this zenka has no key-management
-        role; if it needs to identify the operator it uses the existing
-        session/auth identity, not a standalone key load ]
+      OPEN (2026-08-11) — see users_zenka_relationship above: whether
+      crypt.C25519 stays dropped depends on the undecided (a) LOCAL vs
+      (b) DELEGATED tradeoff there. If LOCAL: add crypt.C25519 to
+      modules.load (mirroring keys/users-zenka's own pattern), for this
+      zenka's own identity key (autocreate -> taeki.base) and signing
+      its own requests to users zenka. If DELEGATED: crypt.C25519 stays
+      dropped as originally written, but the delegate zenka's signing/
+      generation request-handling needs the authenticate-then-authorize
+      hardening discussed there — not a free pass either way. Live
+      modules.load as of 2026-08-11 has no crypt.C25519 (the original
+      LOCAL-drop assumption, not yet revisited in code either way).
     - configuration/zenki/user-edit/pm-dep/
       keep only what terminal/editor/ascii.frame actually require —
       audit against keys' 30-module pm-dep list rather than copying it
@@ -745,8 +868,8 @@ open_questions:
 created: 2026-08-09
 tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer, nshell, event-driven, network-connectivity]
 
-#,,..,,.,,..,,,..,.,.,.,.,...,.,.,...,,,.,.,,,..,,...,..,,..,,,..,...,,..,..,,
-#RJXHHSDO4DRENFVG23ABUXGEBZ3WD5SXG4GLBG4DOMW2EUNNZ6PRASCII3EZKVZEINDSKAGSPL5QY
-#\\\|YND2F5YF5AIGJ64VSE3CQSKDX24UBBUP6SGLNU3AXTG5NYSM5G2 \ / AMOS7 \ YOURUM ::
-#\[7]ZYT3DL7XUDJYIWKJJIXJ4TH5GK3AVMN6MBE6DESLCA2ENS3L3KDY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,.,,,,.,.,.,..,,,,.,,..,,.,,,,,,..,,...,...,.,.,,.,,.,,,.,,,..,,
+#PILY5H6ZMPXLDO27ZXZFMPXDFGOR4A6OHJFQUUXEXKCCOIF4NRKSK5WF5DNOKWXVQEMMYKHYGMQKW
+#\\\|M2LX23I4KO6KNSPNXZSDXOPVL5WDFDQJNY6VID7DWB73ADO73C3 \ / AMOS7 \ YOURUM ::
+#\[7]FHXXKQJZM7ISWKN2ZQNBSSIX5OE5ZLM4MFV27WIYU7NKEGYW3OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

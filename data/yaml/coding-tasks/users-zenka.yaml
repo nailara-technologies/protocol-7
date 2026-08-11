@@ -1,7 +1,10 @@
 ---
 # Task: Users (v7-managed) Zenka
 # Date: 2026-08-10
-# Status: design, early — storage layout decided, integration boundary open
+# Status: phase 1 shipped (host-system/ records + users.value-get/set/all);
+#         storage layout fully decided (record_format, var_vs_etc_tier);
+#         discovery/transport boundary resolved (two-layer + native-Perl
+#         p-7-r-compatible handshake); phase 2 (remote/) not yet built
 # Context: todo 5PN [ new-zenki ] "create users v7-managed zenka design file"
 # Related: data/yaml/coding-tasks/user-edit-console-zenka.yaml (JUE) — the
 #          console this zenka is canonical storage/authority FOR. That doc's
@@ -46,6 +49,9 @@ storage_layout:
   decided: >
     /etc/protocol-7/users/host-system/ and /etc/protocol-7/users/remote/
     {incoming,outgoing}/ — both user-verified against bin/harmony.
+    [ tier caveat added later the same session: the remote/ half's
+      DEFAULT tier is var_P7, with etc_P7 as an override — see
+      var_vs_etc_tier below. host-system/ is etc_P7, unqualified. ]
     Precedent: /etc/protocol-7/ already has non-per-zenka top-level dirs
     today (certs, export, import, jobsite, zenki) — a shared "users"
     dir at that level, not nested under a per-zenka etc_P7/<zenka>
@@ -70,6 +76,10 @@ storage_layout:
     JUE's users_zenka_relationship).
   remote_incoming: |
     /etc/protocol-7/users/remote/incoming/
+    NOTE: var_P7/users/remote/incoming/ is the DEFAULT tier for this
+    path and the etc_P7 form shown here is the OVERRIDE tier — see
+    var_vs_etc_tier below, which was decided after this entry was
+    written.
     records/requests received FROM other nodes about their users —
     populated by whatever discovery transport this zenka uses (see
     discovery_integration below). Directional split (incoming vs
@@ -80,6 +90,9 @@ storage_layout:
     coincidence, once discovery_integration below is resolved.
   remote_outgoing: |
     /etc/protocol-7/users/remote/outgoing/
+    NOTE: same tier caveat as remote_incoming — var_P7/users/remote/
+    outgoing/ is the DEFAULT, etc_P7 the OVERRIDE, per var_vs_etc_tier
+    below.
     this node's own host-system records staged/queued for
     announcement to other nodes.
   record_format: >
@@ -178,7 +191,7 @@ discovery_integration:
       1. reach — discover.mcast.init_code sets mesg_ttl=3 (a few router
          hops, bounded site/local-network scope, not WAN/global). This
          matches — doesn't conflict with — identity_checksum_choice's
-         BMW-L13 "host/medium-network" scope decision above. No WAN
+         BMW-L13 "host/medium-network" scope decision below. No WAN
          concern to design around.
       2. granularity mismatch — discover.orbital.store_remote stores ONE
          ENTRY PER HOST (hostname + the host's own single C25519 pubkey +
@@ -490,6 +503,10 @@ external_source_hooks:
     local host-system user) and data lookup from OTHER zenki (unnamed so
     far — could overlap with discovery_integration's discover.* question
     above, or be a distinct need; not specified beyond "other zenki").
+    SUPERSEDED IN PART: the key-generation half of this framing was
+    walked back — it is NOT an external/cross-zenka hook at all, see
+    key_generation_CORRECTED directly below. Only the data-lookup half
+    of this requirement still stands as written.
   key_generation_CORRECTED: >
     CORRECTED (2026-08-11, per user — the cross-zenka framing below was
     wrong for this half): key generation is NOT a cross-zenka operation.
@@ -576,7 +593,7 @@ external_source_hooks:
     keys ON BEHALF OF other host-system users, for remote-host
     provisioning / desktop-recreation scenarios (ties directly into
     central_registration_point's reproducible-setup-package vision
-    below, and set-up zenka's existing profile export/import
+    above, and set-up zenka's existing profile export/import
     machinery) — per user: build this as a cryptographically secured
     expansion using the SAME admin-group chmod_child-style privileged-
     child escalation already found in coding.start.chmod_child /
@@ -675,24 +692,36 @@ open_questions:
     user-edit-console-zenka.yaml's related_precedent_set_up_zenka for
     the full note. do not build storage_layout against either
     assumption; reconcile explicitly once a `settings` design exists.
-  - discovery_integration's core question (integrate with discover.* vs
-    separate) — resolve before implementation, it changes this zenka's
-    entire discovery-side design
-  - remote/incoming and remote/outgoing: full records or sync requests —
-    and does that belong under etc_P7 (durable) or var_P7 (transient),
-    per storage_layout.not_yet_decided
-  - record format for host-system/ (per-user file naming, structure) —
-    needed before users.* get/set can be specified concretely
+  - RESOLVED [ kept for history ] — discovery_integration's core question
+    [ integrate with discover.* vs separate ] — answered in
+    discovery_integration.resolution — two layers, discover.orbital.known
+    stays a host-presence substrate, users' remote/ is a separate
+    application-layer request/response to a peer users zenka. Transport
+    for that is likewise resolved in transport_implementation_choice
+    (native Perl, p-7-r-compatible handshake, no shell-out).
+  - RESOLVED [ kept for history ] — remote/incoming and remote/outgoing,
+    full records or sync requests, and etc_P7 vs var_P7 — answered in
+    storage_layout.not_yet_decided (lightweight sync/announce requests,
+    no record-content duplication) and storage_layout.var_vs_etc_tier
+    (var_P7 default tier, etc_P7 override tier for permanent peer links).
+  - RESOLVED IN IMPLEMENTATION — record format for host-system/,
+    phase 1 shipped as one YAML file per user at [USERS_HOST]/<user>.yaml,
+    read/written via format.yaml.load_keyword_path — see
+    modules/users.cmd.value-get / .value-set / .value-all and
+    modules/users.init_code's USERS_HOST keyword registration. Remaining
+    open piece is the per-field schema inside that file, not the naming
+    or container format.
   - v7-managed lifecycle specifics (always-on vs on-demand, restart
     policy) not yet addressed at all — this doc is storage/discovery/key
     scope only so far
 
 created: 2026-08-10
 tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
-       smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh]
+       smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh,
+       bmw-l13, addressing-trinity, signed-commands, crypt-c25519]
 
-#,,,,,,.,,.,.,.,.,..,,,.,,,,.,,,,,,..,,,.,.,.,..,,...,...,...,...,,.,,,,,,..,,
-#NSLVVWZAN5OYQBDFSHSDHDWNNTV4TLDC5L2RBAVNALJL4DGF2XMKOU2R3UKUAQ6EFZUCFKVJYGDXC
-#\\\|SDAMGW2CHXBXFMW6572EUAYV3BHNQ4DUUH4L4Z327CWVMJTDFIJ \ / AMOS7 \ YOURUM ::
-#\[7]ZMBSAT6ERTJ2RWHHFXHHNXUU5FZWS5KR3AG3HTD5AYSYMPLQISCI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,..,,,,.,,..,.,,,,.,,,.,,,,,,..,,...,...,...,.,,,...,.,.,...,
+#XXGI2QU3XHEF3PZCUBIJ57F2HY7EWJFL746MYWPSTQYJTMVQJH43N2HDTYOSCS6OPGJWSFS75YYLC
+#\\\|MLUDXZNOBSMINWLRC33BQQDOK6GIECUWIH4XH76IVPOCOG5EIUG \ / AMOS7 \ YOURUM ::
+#\[7]CRJ5BXGAOZFR7ZBQSWU5WIUJ44DBIETAUTNJ54Z5YDOTEDACHSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
