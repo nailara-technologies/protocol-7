@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = user-edit.term_init
+# descr = put the terminal into raw non-blocking mode for form input
+
+## mirrors nshell.term_init : Linux::Termios2 [ linux-native, no XS build
+## issues ], O_NONBLOCK on STDIN so sysread never stalls the event loop, and
+## the original termios saved for user-edit.term_restore.
+##
+## Fcntl comes from bin/Protocol-7, POSIX from base.init, Linux::Termios2 from
+## user-edit.init_code — use CONSTANT() call form, not barewords
+
+my $tty_fd = fileno(STDIN);
+return FALSE if not defined $tty_fd or $tty_fd < 0;
+
+## already raw : re-entering would save the RAW state as the original and make
+## restore a no-op, leaving the user's shell without echo
+return TRUE if defined <user-edit.term.orig_termios>;
+
+my $flags = fcntl( \*STDIN, F_GETFL, 0 );
+return FALSE if not defined $flags;
+fcntl( \*STDIN, F_SETFL, $flags | O_NONBLOCK ) or return FALSE;
+
+my $orig_termios = Linux::Termios2->new();
+$orig_termios->getattr($tty_fd) or return FALSE;
+
+<user-edit.term.orig_termios> = $orig_termios;
+<user-edit.term.tty_fd>       = $tty_fd;
+
+my $raw_termios = Linux::Termios2->new();
+$raw_termios->getattr($tty_fd);
+
+## ISIG off too : ctrl-c must reach editor.control.process_key as a key [ it
+## returns an ADVISORY action=signal ; the host decides ] rather than killing
+## the process before the terminal can be restored
+$raw_termios->setlflag(
+    $orig_termios->getlflag() & ~( ISIG() | ECHO() | ICANON() ) );
+
+$raw_termios->setattr( $tty_fd, TCSAFLUSH() );
+
+## armed only now that the terminal really is raw, so exit paths that never
+## reach user-edit.form.quit [ SIGTERM, an uncaught die ] still restore it.
+## local cleanup only, no event loop needed — exactly what end_code is safe
+## for [ feedback-zenka-shutdown-end-code-callback ]
+push <callbacks.end_code>->@*, qw| user-edit.term_restore |;
+
+return TRUE;
+
+#,,.,,.,,,.,.,,..,.,.,...,,,,,,,.,.,.,.,,,.,,,..,,...,...,..,,.,.,...,...,...,
+#GSAJ4EBKFWG2C5Z5D7DH2DAU7WZKYXPAV4LGQAUM2JR5SZWLRTVMRRYUL6JR2UN65YGZ2G5DJBKWE
+#\\\|4SSCGDP5VW3OOG66KL54SSE5VTZ3HJHHOSYGLWHP7O34RVO5W6S \ / AMOS7 \ YOURUM ::
+#\[7]XXUWLFU53D5R6J34DL45QMLULSTXRG4YQLID6LFNPLTAIYOCHAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

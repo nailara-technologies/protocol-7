@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = user-edit.handler.value_set_reply
+# descr = clear the outbox entry once the users zenka confirms the write
+
+## reply-handler call signature is a SINGLE hashref { sid, cmd, call_args,
+## params, data? } ; TRUE/FALSE carry their message in call_args->{'args'}
+
+my ($info) = @ARG;
+
+my $cmd       = uc( $info->{'cmd'} // '' );
+my $call_args = $info->{'call_args'}      // {};
+my $username  = <user-edit.form.username> // '?';
+
+if ( $cmd eq qw| TRUE | ) {
+
+    ## confirmed stored : the staged copy has served its purpose ##
+    <[user-edit.outbox.clear]>->($username);
+    <[user-edit.draft.clear]>->($username);
+
+    print sprintf( "\n  << saved : %s >>\n\n",
+        $call_args->{'args'} // "user '$username' stored" );
+
+} else {
+    ## staged entry deliberately LEFT IN PLACE for a later retry — losing the
+    ## edit because the zenka rejected one attempt is the failure mode the
+    ## outbox exists to prevent
+    print sprintf( "\n  << not saved [ %s ] : %s >>\n  << edit "
+            . "is staged in the outbox and kept >>\n\n",
+        lc($cmd), $call_args->{'args'} // 'no detail' );
+}
+
+STDOUT->flush();
+
+<[user-edit.form.quit]>;
+
+return TRUE;
+
+#,,,,,,.,,...,,,,,,,,,.,.,,,.,...,,,,,..,,...,..,,...,..,,,..,...,,,,,,,.,..,,
+#VENJROEQE6HJCRBTRIH7WXPSRH5D3OSVHR7UIAYUTLLGPHNY6S5E44TZ5LGVD4VQ6ZYZ32DZYWZHC
+#\\\|6DFTVVPFCUTQMKAUXJTW4MNMXBF7PKEQEAZXKD4HINQ7QHCHVAM \ / AMOS7 \ YOURUM ::
+#\[7]5JHCLUDDCZBA6KOSMWRWP7BLGQMC63B6VK3OSPEZ7V2JHPBIMKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

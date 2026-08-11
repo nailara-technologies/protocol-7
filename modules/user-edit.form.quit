@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = user-edit.form.quit
+# descr = leave the interactive form, restoring the terminal first
+
+## every exit path from the form funnels through here so terminal restore can
+## never be skipped.  base.exit also fires the registered end_code callback,
+## which calls user-edit.term_restore again — that is deliberate
+## belt-and-braces for the paths that never reach this module [ SIGTERM ], and
+## term_restore is idempotent [ it clears orig_termios on success ]
+
+<[user-edit.term_restore]>;
+
+<[base.exit]>;
+
+return TRUE;
+
+#,,,.,,,,,,,,,,.,,,,.,..,,,,.,.,,,,,.,,,,,,,,,..,,...,...,..,,.,,,.,,,...,...,
+#3S6QHW5AGWDRQ3W2VAIM6LKKR37MVLIFEJ7HR76USVZX75H3GHTCHJSMYG2YZ3UQJ3APCVVV7GLUC
+#\\\|V2DECRPWGWNCJ7RORCZVZ4YJ5RXAKVRGVQZIXHDTCL3GU5FPQSJ \ / AMOS7 \ YOURUM ::
+#\[7]KD7RR7NDFTLHYOAGTC5N2JU55UZH5NOCSMQP5NWL4GSBHW3JDIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
