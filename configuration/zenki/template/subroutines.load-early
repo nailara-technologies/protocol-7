@@ -298,6 +298,8 @@ base.X-11.keep_above
 base.X-11.get_driver
 ascii.frame.validate
 format.yaml.load_file
+crypt.C25519.key_vars
+crypt.C25519.gen_keys
 base.zenka.on_restart
 base.vec.offset_write
 base.start.prio_child
@@ -339,6 +341,7 @@ base.balanced-average
 base.X-11.set_gravity
 base.X-11.move-window
 base.X-11.get_display
+crypt.C25519.sign_data
 base.utf8.decode_clean
 base.time.is_leap_year
 base.strm.local.cancel
@@ -373,6 +376,9 @@ base.X-11.raise-window
 base.X-11.lower-window
 base.X-11.get_geometry
 base.X-11.get_bg_color
+crypt.C25519.write_keys
+crypt.C25519.unload_key
+crypt.C25519.key_exists
 base.templates.pre_init
 base.strm.local.consume
 base.strip_chksum_lines
@@ -421,6 +427,9 @@ base.X-11.get_geo_async
 base.X-11.get_dbus_addr
 base.X-11.assign_window
 ui.caller.security-level
+crypt.C25519.single_file
+crypt.C25519.load_single
+crypt.C25519.chk_key_dir
 base.zenka.push.pre_init
 base.zenka.load_sub_list
 base.zenka.is_v7_started
@@ -431,6 +440,7 @@ base.syntax.p7_reference
 base.strm.local.register
 base.stream.frame.detect
 base.stream.frame.decode
+base.session.set_subname
 base.session.check.close
 base.protocol-7.pre_init
 base.perlmod.runtime_use
@@ -456,6 +466,7 @@ base.check_cfg_cmd_alias
 base.cfg.profile.current
 base.X-11.iconify-window
 ui.render.tree.invalidate
+crypt.C25519.load_keypair
 base.stream.advance_drain
 base.stdio.transport.emit
 base.sourcecode.init_code
@@ -490,7 +501,9 @@ base.X-11.get_screen_size
 base.X-11.get_pointer_pos
 base.X-11.get_orientation
 base.X-11.get_coordinates
+crypt.C25519.encrypted_key
 base.warnings.from_bitmask
+base.session.split_subname
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol.compile_once
@@ -515,6 +528,8 @@ base.crypt.flush_passwords
 base.chk-sum.jha.init_code
 base.check_dependency_dirs
 net.read_linewise_estimated
+crypt.C25519.sign_file_list
+crypt.C25519.key_is_virtual
 base.zenki.report_child_pid
 base.templates.register_add
 base.strm.subscribe.attempt
@@ -550,6 +565,7 @@ base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 base.X-11.handler.geo_reply
 auth.client.zenka.init_code
+crypt.C25519.compare_keypair
 base.validate.composite_name
 base.strm.callback.recv_test
 base.stdio_multiplex.connect
@@ -570,6 +586,9 @@ base.chk-sum.bmw384.pre_init
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 base.X-11.set_window_opacity
+crypt.C25519.key_name_to_skey
+crypt.C25519.get_usr_keys_dir
+crypt.C25519.chksum_cache.add
 base.zenki.resolve_group_sids
 base.validate.data_key_syntax
 base.stdio_multiplex.emit_str
@@ -602,6 +621,8 @@ base.callback.report_children
 base.X-11.get_window_geometry
 auth.client.unix.authenticate
 ascii.frame.parse.border_line
+crypt.C25519.key_name_and_type
+crypt.C25519.chksum_cache.retr
 base.zenki.resolve_primary_sid
 base.zenki.ondemand_registered
 base.strm.subscribe.on-restart
@@ -623,6 +644,7 @@ base.cache.refaddr-prefix.init
 base.X-11.get_pointer_scr_rect
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
+crypt.C25519.decrypt_secret_key
 base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
@@ -638,6 +660,9 @@ base.chk-sum.reference.is-fresh
 base.chk-sum.jha.b32.harmonized
 base.chk-sum.bmw384.arc-segment
 base.X-11.get_coordinates_async
+crypt.C25519.name_from_skey_name
+crypt.C25519.del_keys_hash_entry
+crypt.C25519.decrypt_priv_keystr
 base.stream.frame.detect.grammar
 base.sourcecode.in-mem.checksums
 base.perlmod.install_cpan_module
@@ -673,6 +698,8 @@ base.dependency.install_callbacks
 base.callback.expire_code_version
 base.buffer.handler.sending_state
 base.X-11.coordinates_to_geometry
+crypt.C25519.load_keys_from_secret
+crypt.C25519.get_type_from_key_str
 base.stdio.frame.encode.encode_b32
 base.stdio.frame.decode.parse_meta
 base.stdio.frame.decode.decode_b32
@@ -723,6 +750,7 @@ base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
 base.handler.check_strm_size_timeouts
 base.X-11.handler.coordinates_timeout
+auth.client.auth-keypair.authenticate
 protocol.protocol-7.auth.select-method
 base.stdio.frame.encode.serialize_meta
 base.stdio.frame.decode.decode_payload
@@ -748,8 +776,8 @@ base.zenki.ondemand.handler.reconcile_starting
 base.strm.subscribe.reply-handler.notify-online
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,.,,,,.,,,.,,.,.,,.,,,,,,,,.,,.,,.,.,,,,,..,,...,...,...,,,.,..,,,.,,.,,,
-#OGDR3RQWTJ5M7KX6Y3OZOAEUER5QQSLK22RQXVCWPUWBRKBV3XD74FYYENIPKN3DKS2C4BQROJEW4
-#\\\|TYLIZIP335EMCRZ767EVW55OICRRURUNABY7S7BUEJ4G4SXYQSI \ / AMOS7 \ YOURUM ::
-#\[7]3OWVADSCIAXH5V6C6D7G3RFFP66GOJHN2Y2QNIEE7CSSU3LP7IAI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,,..,,,,,.,,,,,,,.,.,,..,.,,,..,,...,...,...,...,...,.,.,...,
+#NGQUDQIB2R47M6NFFTORY5TGEB4JLTZ2S2VPVFD2SUCUNYDINAPAFMOWA7F4XPGGE43GVWLAJ367U
+#\\\|37D5MCT5KH5JAPZECRIE4WFBBUZ3M2SIRUWDSJTZYBXOGS35USP \ / AMOS7 \ YOURUM ::
+#\[7]43Y73GJDXSTX2Z6IZWV7NJN6G4O3OZTJRYXRJ3UB75ECI3TBKQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

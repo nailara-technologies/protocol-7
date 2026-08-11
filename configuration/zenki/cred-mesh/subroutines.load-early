@@ -261,6 +261,7 @@ proxy.transport.select
 proxy.template.resolve
 proxy.template.generic
 format.yaml.write_file
+crypt.C25519.sign_data
 base.strm.local.cancel
 base.session.init_code
 base.required_bin_path
@@ -277,6 +278,8 @@ proxy.handler.post_auth
 proxy.client.send_error
 protocol.sftp.init_code
 io.unix.socket.end_code
+crypt.C25519.write_keys
+crypt.C25519.unload_key
 crypt.C25519.key_exists
 cred-mesh.seed_registry
 clients.http.handler.io
@@ -308,6 +311,9 @@ proxy.handler.connection
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
+crypt.C25519.single_file
+crypt.C25519.load_single
+crypt.C25519.chk_key_dir
 cred-mesh.ui.query.slots
 cred-mesh.cmd.list-slots
 clients.https.handler.io
@@ -316,6 +322,7 @@ base.zenka.is_v7_started
 base.white-list.register
 base.templates.init_code
 base.strm.local.register
+base.session.set_subname
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
@@ -328,6 +335,7 @@ ascii.frame.render.color
 ui.render.tree.invalidate
 io.unix.socket.input.open
 httpd.base.size.normalize
+crypt.C25519.load_keypair
 cred-mesh.util.format_age
 base.stream.advance_drain
 base.sourcecode.init_code
@@ -349,8 +357,10 @@ proxy.handler.cred_rotated
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
+crypt.C25519.encrypted_key
 cred-mesh.key_holder.child
 base.warnings.from_bitmask
+base.session.split_subname
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol.compile_once
@@ -367,6 +377,8 @@ proxy.selector.zenka_assert
 net.read_linewise_estimated
 io.unix.socket.output.close
 httpd.update_download_count
+crypt.C25519.sign_file_list
+crypt.C25519.key_is_virtual
 cred-mesh.util.perform_auth
 cred-mesh.ui.query.overview
 cred-mesh.ui.interactive.up
@@ -390,6 +402,7 @@ protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 plugin.httpd.radio.init_code
 io.unix.socket.input.connect
+crypt.C25519.compare_keypair
 cred-mesh.ui.render.overview
 cred-mesh.subscribe_rotation
 clients.http.handler.timeout
@@ -400,12 +413,15 @@ base.parser.protocol-version
 base.parser.ondemand_session
 base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
+base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 proxy.outbound.connect_or_use
 proxy.handler.site_yaml_reply
 protocol.protocol-7.init_code
 format.yaml.load_keyword_path
+crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
+crypt.C25519.chksum_cache.add
 cred-mesh.ui.query.key_holder
 cred-mesh.ui.query.auth_relay
 cred-mesh.ui.interactive.down
@@ -428,6 +444,8 @@ auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+crypt.C25519.key_name_and_type
+crypt.C25519.chksum_cache.retr
 cred-mesh.util.key_holder.sign
 cred-mesh.ui.query.slot_detail
 cred-mesh.ui.interactive.input
@@ -444,6 +462,7 @@ ascii.frame.render.html.anchor
 ascii.frame.render.border_line
 proxy.handler.passthrough_reply
 proxy.handler.auth_lookup_reply
+crypt.C25519.decrypt_secret_key
 cred-mesh.ui.query.rotation_log
 cred-mesh.ui.interactive.action
 cred-mesh.request-authorization
@@ -454,6 +473,9 @@ base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
 base.file.zenka_dir.unlink_file
+crypt.C25519.name_from_skey_name
+crypt.C25519.del_keys_hash_entry
+crypt.C25519.decrypt_priv_keystr
 cred-mesh.util.format_holder_age
 cred-mesh.util.complete_approval
 cred-mesh.ui.render.rotation_log
@@ -486,6 +508,8 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+crypt.C25519.load_keys_from_secret
+crypt.C25519.get_type_from_key_str
 cred-mesh.handler.auth-relay-reply
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
@@ -531,6 +555,7 @@ cred-mesh.util.key_holder.start_child
 cred-mesh.ui.render.key_holder_status
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
+auth.client.auth-keypair.authenticate
 ascii.frame.render.data.border_string
 ascii.frame.render.color.content_line
 protocol.sftp.terminate_server_process
@@ -561,8 +586,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,,.,.,,,...,.,.,..,,,,.,,,.,...,,,.,,,,,..,,...,...,.,.,.,,,,.,,.,,,..,,
-#M4NBPNEFBOKSBYUDY6ZJXTHXHR5YMQDF7ENJHXGFJV3D32GYVVU6FEKX7PA4VGKVT3L6PX4GU4BPC
-#\\\|SN2RKGSTYWGBX736WO5KRUVEVCWFAVODX2NHZJEYDVYNYSBYB45 \ / AMOS7 \ YOURUM ::
-#\[7]YPBQ67LJIWHTFMSJWBQLNVPUVFXA2NDOQIQUSZHOSHT7WVPBRMDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,..,,,..,...,.,,,.,.,,,,,.,,,..,,...,...,..,,.,,,,.,,...,.,,,
+#5S3V2IL7ZFLJFYJ2L7PJSPQBPIKLRLAYQKNSVWTDD4SDY72BHRABQFMJPTC7GLJKDCU4IM32KM4BG
+#\\\|JXXBBTY5DPYG2TV7AAJ3YFD5ZU6Z7MDG4UE6FNT4RY2GEG3KA6D \ / AMOS7 \ YOURUM ::
+#\[7]6WNFP4AKKFD4PG2D2G5HOBY4IRV7JI6MMXJNWQYFQHTWIED2ZQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,9 +10,27 @@ my $re    = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
+## brace delimiters, NOT s|..|..| : the alternation below needs a literal ##
+## '|' in the pattern, which would terminate a '|'-delimited substitution ##
+## early [ plugin.auth.zenka uses the same s{..}{} form for this reason ] ##
+if ( $input->$* =~ s{^auth ($re->{usr_str}|$re->{usr_subn_str})\n}{} ) {
 
     my $auth_user = $LAST_PAREN_MATCH;
+
+    ## optional '<user>[<subname>]' form [ plugin.auth.zenka already        ##
+    ## accepts it ; this is what lets two consoles running as the SAME unix ##
+    ## user -- e.g. nshell and user-edit, both 'taeki' -- be addressed      ##
+    ## separately as taeki[nshell] / taeki[user-edit] instead of colliding. ##
+    ## the router already parses the inline form [                          ##
+    ## base.handler.command.route_to_target strips [subname] off the target ##
+    ## ], as do cube.cmd.select and v7.zenka.cmd.stop                       ##
+    ##                                                                      ##
+    ## SPLIT BEFORE ANY AUTHORIZATION : the subname is a ROUTING LABEL only ##
+    ## and must never influence the access decision, so every check below   ##
+    ## keeps seeing the bare unix user exactly as it did before             ##
+    my $auth_subname;
+    ( $auth_user, $auth_subname )
+        = <[base.session.split_subname]>->($auth_user);
 
     if ( $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'} ne
         qw| unix | ) {
@@ -38,7 +56,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
         return 2;
     }
 
-    ## Expand template variables in auth username (e.g., <admin-user> -> admin-user)
+    ## Expand template variables in auth username (e.g., <admin-user> ->
+    ## admin-user)
     my $lookup_auth_user = $auth_user;
     if ( $auth_user =~ m|^<([^>]+)>$| ) {
         my $template = "<${^CAPTURE}[0]}>";
@@ -55,8 +74,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
 
         if ( not $authorize_unix_session ) {
 
-            ## 'unix-'-prefixed users are matched ##
-            ##  #### against actual unix accounts ##
+            ## 'unix-'-prefixed users are matched  #### against actual unix ##
+            ## accounts                                                     ##
             foreach my $allowed_user (@allowed_users) {
 
                 my $prefixed_user  ## acquire the special user variable map ##
@@ -96,6 +115,9 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
             $id, $client_uname, $mapped_user_string
         ) if defined $mapped_user_string;
 
+        ## routing label recorded only after authorization succeeded ##
+        <[base.session.set_subname]>->( $id, $auth_user, $auth_subname );
+
         return ( 0, $auth_user )
             ;               ## register as authorized (success code 0) ##
     } else {    ##  no match for unix-user \ auth-user pair  ##
@@ -121,8 +143,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
 
 return 2;
 
-#,,.,,,,.,.,,,...,..,,,,,,,.,,,,,,.,,,...,,,,,..,,...,...,,.,,,,,,.,,,...,,,,,
-#FRYRIBUCEG2NYTRBRP4CEBGMBR7SZQFIJ4JZIMRAWI3F46XMOTWYEKX3HDVHVXAEPU2TYPDJTLZW2
-#\\\|QZ7ZVJYLP33VZAXJ52JULKDKEBOJLQQF77QKWJ3YPMAVAW5YJZM \ / AMOS7 \ YOURUM ::
-#\[7]5PN4G5OM7QIZ2Q5SL7RVQ2SSGI77KPM3LABFTZJDRVW254JTQICY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,,,.,.,.,,,.,,,,,.,,,..,,.,.,..,,...,..,,..,,,.,,.,,,...,,..,
+#XBGUMCHVJSM3C64RYA7WAFZWKZDRLLVBYBH2HI4IUCQZBHREN7UBOOFBXM3B4ZDBIZ5BG3QL7DFZA
+#\\\|QFL32APM76CAOMDDFEK7RPSS55N2ZSLLZILD4SJYPQKJCG2YO7V \ / AMOS7 \ YOURUM ::
+#\[7]HFFJIPGSKHMWUTDKTURMCBQZUYRXYNJNQYMD7KNPYKY6WQK6XUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

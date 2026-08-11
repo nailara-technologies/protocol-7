@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = base.session.set_subname
+# descr = register a session's routing subname
+# param = $session_id, $user_name, $subname
+
+## call only AFTER authorization succeeded -- this records a routing label, it
+## never grants anything.
+##
+## the per-user counter is what base.session.check.close decrements again on
+## disconnect, so both writes have to stay together ; that pairing is the
+## reason this is one shared module rather than a few lines copied into each
+## auth plugin
+
+my ( $session_id, $user_name, $subname ) = @ARG;
+
+return FALSE
+    if not defined $session_id
+    or not defined $user_name
+    or not defined $subname
+    or not length $subname;
+
+$data{'session'}{$session_id}{'subname'} = $subname;
+$data{'user'}{$user_name}{'subname'}{$subname}++;
+
+<[base.logs]>->( 2, "[%s] .: routing subname '%s'", $session_id, $subname );
+
+return TRUE;
+
+#,,..,.,,,.,.,..,,,,.,,..,,,,,..,,,.,,.,.,,,.,..,,...,...,,,,,..,,,,.,,..,,.,,
+#FBMZU5NIK3PWYJEI7L2RJINUCA4GYWEYXUSGWC3EDRXHUGRGSM44RW6CYBQRHYF7O75JUFX2FHQB6
+#\\\|57WYC6LQBH5JLRPDG6WTH77L36CBA5O46G5T3DTZHOEZ5WGNRUF \ / AMOS7 \ YOURUM ::
+#\[7]GYKOJ63Z5RGHHKU3TA2NONLCDDXIHJWI3L5EJSSZNGML4RGMCICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -45,16 +45,16 @@ if (   <[plugin.auth.zenka.no-keys-defined]>
 
 if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     my ( $user, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
-    my $subname = $user =~ s|\[($re->{subname})\]$|| ? $1 : '';
+
+    ## shared with plugin.auth.unix -- see base.session.split_subname ##
+    my $subname;
+    ( $user, $subname ) = <[base.session.split_subname]>->($user);
 
     if ( defined $keys{'auth'}{'zenka'}->{$user} ) {
 
         if ( $key_hash eq $keys{'auth'}{'zenka'}{$user} ) {
 
-            if ( length($subname) ) {
-                $data{'session'}{$id}{'subname'} = $subname;
-                $data{'user'}{$user}{'subname'}{$subname}++;
-            }
+            <[base.session.set_subname]>->( $id, $user, $subname );
 
             delete $keys{'auth'}{'zenka'}{$user};
             $output->$* .= "AUTH_TRUE =)\n";
@@ -131,8 +131,8 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     return 2;    # Protocol error - disconnect
 }
 
-#,,,,,...,.,,,...,,,,,...,,.,,,.,,,..,.,.,,.,,..,,...,...,,,,,.,,,,,.,.,,,,,.,
-#2WJ4P2VJ2JFP5JIHWNZ4INC6XKAGO5XQC7N63A7R4I5CLB3NNANTSQW4S2VNCMLEM3FIUGVEGFNB2
-#\\\|V3EZTE6DV6J4ENHLP3QS6WQLM6BZH3EDCXAFBFE652XZJU72S6O \ / AMOS7 \ YOURUM ::
-#\[7]PV6HDA62PN453FZKLMJ474DMWVQJJIB27WO4EVPY3T2F7NM4FACQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,,,,,,..,..,,.,,,.,,,.,,,..,,..,,...,...,..,,...,,,.,.,,,,.,,
+#AO32UTRAJZ6OPLWOBJELNCJYVN2ZFPMMQ3UWOOMOBHUOILYHUCWP3D4UB3JZEP3ASFRJPORCRZLHY
+#\\\|Q576JSGEFHS2QWFL7AM27VDW6WEYLO7S2J6BJXOY22D2JTPAXIG \ / AMOS7 \ YOURUM ::
+#\[7]X7R6PIX3HD5PYQ52EHDJHXGOIQRDTLLK26J7GRDWJKGCEV2CIAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

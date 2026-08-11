@@ -25,7 +25,11 @@ modules.load  =  auth.client net protocol io.unix ui terminal editor \
 ## [ nshell/start precedent : personal interactive console, not a ] ##
 ## [ managed zenka session -- system.auth-user set by user-edit.  ] ##
 ## [ init_code during init_modules above ]                          ##
-system.auth-user = <user-edit.unix_user>
+## '<unix-user>[user-edit]' — the subname makes this console addressable ##
+## separately from any other zenka running as the same unix user [ e.g.  ##
+## nshell ].  built in user-edit.init_code, since '[user-edit]' written   ##
+## literally here would be read as a command invocation by the parser     ##
+system.auth-user = <user-edit.auth_name>
 
 [base.net.connect:'unix']
 
@@ -44,8 +48,8 @@ system.auth-user = <user-edit.unix_user>
 ## print and exit : a [zenka.loop] at this level would hang them, and    ##
 ## plain 'v7.user-edit' would never return to the shell                  ##
 
-#,,,.,,.,,,,,,.,,,...,..,,...,...,,..,..,,..,,..,,...,..,,.,,,,..,,,,,,.,,.,,,
-#BSJM6SB4UHBOJ3662SMSDC6ECNVN6LPEHKTFCVOYULCWLEMYSNRCE7OWL7EFVKQSJGEV3LKX5LOSY
-#\\\|NRZSYNCLMDQZLACZA67IN3SB2P2MOW24JJNGY45DONHEZXNTNKR \ / AMOS7 \ YOURUM ::
-#\[7]UBRUD3WYC55NX2KE3QPSHVAL42QBKTGKKZI7SS5KMLXGEASVCKAI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,,..,,.,,..,,,.,,,.,,,..,.,,,..,,...,...,,..,,,,,,,.,,..,,..,
+#KF226CBYNUDUOIIG7KZBK2IP2DCSP5LAVWRE4RPXERR6WN3HLLUIBCVZ3CQJOYNQQW7BWANSOVOD2
+#\\\|SBUWDJXDAOYCDKM74TGYIXQ3UFHV5EUNQWVMMGM5YRZCIBYRDCW \ / AMOS7 \ YOURUM ::
+#\[7]V26L2AA33WLFSRVDZSLCQEPAMBGHLHK7U7M75QKSGYGUYQRJREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

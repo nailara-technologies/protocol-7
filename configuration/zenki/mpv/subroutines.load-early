@@ -332,6 +332,7 @@ mpv.cmd.change-subname
 mpv.check_rescale_path
 mpv.callback.play_next
 io.ip.tcp.output.close
+crypt.C25519.sign_data
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -359,6 +360,8 @@ mpv.cmd.playlist-update
 jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
+crypt.C25519.write_keys
+crypt.C25519.unload_key
 crypt.C25519.key_exists
 chk-sum.skein.init_code
 base.templates.pre_init
@@ -398,9 +401,13 @@ mpv.cmd.snapshot-restore
 mpv.cmd.shuffle-playlist
 mpv.callback.init_volume
 io.unix.socket.init_code
+crypt.C25519.single_file
+crypt.C25519.load_single
+crypt.C25519.chk_key_dir
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
+base.session.set_subname
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
@@ -424,6 +431,7 @@ mpv.await_window_presence
 jobqueue.priorities_table
 jobqueue.joblist_template
 io.unix.socket.input.open
+crypt.C25519.load_keypair
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -452,7 +460,9 @@ mpv.handler.cmd_prop.pause
 mpv.callback.abort_startup
 io.unix.socket.output.open
 io.unix.socket.input.close
+crypt.C25519.encrypted_key
 base.warnings.from_bitmask
+base.session.split_subname
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol.compile_once
@@ -471,6 +481,8 @@ mpv.handler.window_id_reply
 mpv.callback.reenc_finished
 jobqueue.check_dependencies
 io.unix.socket.output.close
+crypt.C25519.sign_file_list
+crypt.C25519.key_is_virtual
 base.zenki.report_child_pid
 base.templates.register_add
 base.stream.record_emission
@@ -496,6 +508,7 @@ mpv.handler.pipe.single_line
 mpv.callback.start_reenc_msg
 mpv.callback.object.mpv_flag
 io.unix.socket.input.connect
+crypt.C25519.compare_keypair
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -503,11 +516,14 @@ base.parser.protocol-version
 base.parser.ondemand_session
 base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
+base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 base.X-11.set_window_opacity
 protocol.protocol-7.init_code
 mpv.handler.event.file-loaded
+crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
+crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -531,6 +547,8 @@ mpv.handler.scan_encoded_timer
 mpv.handler.reenc_notify_reply
 mpv.callback.check_parent_dirs
 jobqueue.handler.queue_counter
+crypt.C25519.key_name_and_type
+crypt.C25519.chksum_cache.retr
 base.zenki.resolve_primary_sid
 base.zenki.ondemand_registered
 base.session.send_init_reports
@@ -542,6 +560,7 @@ base.X-11.get_pointer_scr_rect
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
 mpv.handler.rescale_video_reply
+crypt.C25519.decrypt_secret_key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -553,6 +572,9 @@ mpv.startup.handler.socket_ready
 mpv.startup.handler.coords_reply
 mpv.handler.snapshot_collect_pos
 mpv.handler.event.client-message
+crypt.C25519.name_from_skey_name
+crypt.C25519.del_keys_hash_entry
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -583,6 +605,8 @@ plugin.auth.auth-keypair.init_code
 mpv.startup.handler.socket_timeout
 mpv.handler.snapshot_collect_error
 jobqueue.event.register_job_queues
+crypt.C25519.load_keys_from_secret
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.path-set-up.check-zenka-paths
@@ -622,6 +646,7 @@ protocol.amos-chksum.connect_callback
 mpv.handler.snapshot_collect_playlist
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
+auth.client.auth-keypair.authenticate
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 mpv.handler.event.property-change.path
@@ -656,8 +681,8 @@ base.log.send-buffer.reply-handler.notify-online
 mpv.handler.event.property-change.partially-seekable
 mpv.handler.event.property-change.video-aspect-override
 
-#,,,.,,.,,,..,,,,,.,,,...,...,,,,,,.,,,,.,,.,,..,,...,...,...,,..,.,,,.,.,..,,
-#D2HEEFHEWSUE56X4T6TUMTJ5T46POWW55CYY4CARODWAHZMLJUMVPHCNYCGNRD6REKWW4PCKPA6A2
-#\\\|YNCAB4JEEY3YO4XA6VT66C3YBKB6FQEY4F5KLI5LHKYRNE7JULI \ / AMOS7 \ YOURUM ::
-#\[7]POKUA55VUCEYBKLYPPBVVDQVEDP4QAD4CALIRNKZR4YIUJBLF6DY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,.,,,,..,..,,.,,,,..,,.,,.,.,..,,...,...,..,,..,,,,,,.,.,..,,
+#ARKKV6PWRFSCD2H6RY357ITIPK3LUWGPA3KUYEDDQDMSYLJQTCKJ4MANQDWIVDDR7P5DVZPOHEIEW
+#\\\|W5NJZMBXRF5KL374UPURV5K7QW7CSRBBSRORL6A6WOIBBJ43DVG \ / AMOS7 \ YOURUM ::
+#\[7]KDVEHYI56XJLAIWHQT7VYDXQPHJPVVHK7CKJIBCVWDJCLQTCMUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

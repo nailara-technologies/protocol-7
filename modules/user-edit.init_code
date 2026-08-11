@@ -15,6 +15,17 @@
 ## Unix user, not a zenka credential ]
 <user-edit.unix_user> //= $ENV{'USER'} // getpwuid($EUID);
 
+## '<user>[<subname>]' routing identity : without the subname this console ##
+## is indistinguishable from any other zenka authenticating as the same    ##
+## unix user [ nshell, notably ], and cube cannot address either one --    ##
+## 'p7c taeki.<cmd>' reaches whichever matched first.  the subname is a    ##
+## routing label only : plugin.auth.unix splits it off before every access ##
+## check, so authorization still sees the bare unix user.                  ##
+##                                                                         ##
+## built here rather than written into the start file, where '[user-edit]' ##
+## would be parsed as a command invocation by the config parser            ##
+<user-edit.auth_name> = sprintf( qw| %s[user-edit] |, <user-edit.unix_user> );
+
 ## P7-native home dir resolution [ base.get_homedir, NOT AMOS7::FILE:: ##
 ## get_homepath directly — matches crypt.C25519.get_usr_keys_dir's     ##
 ## precedent for this exact ~/.n purpose ]                             ##
@@ -30,8 +41,8 @@ my $user_edit_path_keywords = {
 
 return TRUE;
 
-#,,..,..,,,.,,,,.,.,.,.,.,.,.,,,.,..,,.,,,,.,,..,,...,...,,..,,.,,,,.,...,...,
-#FWUU762BLJJKA2VBM33JAUDZ4R4VTPEMMIXL4ZCJ6BCJLYW7GMUIYYU4UYJYJFR3IUJUBDRK5ZRCG
-#\\\|AKNU2H7VA4QYJXRNUKRBXODHGSZ3UGB4IJ4HSKVPCZ72EBLJH5J \ / AMOS7 \ YOURUM ::
-#\[7]4JVQV7XKXC2EYSWQA6XM7IFCOPW5S2MODMUGVCONZZL6CMCW6KAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,..,,.,.,.,.,..,,...,,.,,.,.,.,.,..,,...,...,..,,...,...,,,.,,,,,
+#J6W5HGJVAHZ3ZQNN776NQMKQLGIXE57QQXWRLTIFPUGWM2O4NTORMK6P7WVDSIUA2GLZVILZXIH2S
+#\\\|Q2GWHTVXQFDRN7XQ2FOMISMZ3FGNEPJPADAU6CXRAOCKSUXJIZL \ / AMOS7 \ YOURUM ::
+#\[7]I2MSOPWM2BUQEKRCVNYACVQJLKFUWQXSOXZ4O6UXI4ROQUQ2RGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

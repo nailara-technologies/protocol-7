@@ -197,6 +197,7 @@ base.console.commands
 base.cfg.profile.list
 base.balanced-average
 reasoning.tree.narrate
+crypt.C25519.sign_data
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -212,6 +213,8 @@ reasoning.branch.status
 reasoning.branch.inject
 protocol.sftp.init_code
 io.unix.socket.end_code
+crypt.C25519.write_keys
+crypt.C25519.unload_key
 crypt.C25519.key_exists
 base.templates.pre_init
 base.strip_chksum_lines
@@ -237,9 +240,13 @@ reasoning.branch.resolve
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
+crypt.C25519.single_file
+crypt.C25519.load_single
+crypt.C25519.chk_key_dir
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
+base.session.set_subname
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
@@ -249,6 +256,7 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 reasoning.branch.register
 io.unix.socket.input.open
+crypt.C25519.load_keypair
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -266,7 +274,9 @@ base.callback.delayed-log
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
+crypt.C25519.encrypted_key
 base.warnings.from_bitmask
+base.session.split_subname
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol.compile_once
@@ -282,6 +292,8 @@ reasoning.threshold.crossed
 reasoning.branch.checkpoint
 net.read_linewise_estimated
 io.unix.socket.output.close
+crypt.C25519.sign_file_list
+crypt.C25519.key_is_virtual
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -299,6 +311,7 @@ reasoning.branch.stuck_score
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
+crypt.C25519.compare_keypair
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -306,10 +319,13 @@ base.parser.protocol-version
 base.parser.ondemand_session
 base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
+base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 reasoning.branch.spawn_rescue
 protocol.protocol-7.init_code
+crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
+crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -325,6 +341,8 @@ base.chk-sum.bmw.B-32-56.TRUE
 auth.client.unix.authenticate
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+crypt.C25519.key_name_and_type
+crypt.C25519.chksum_cache.retr
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -332,11 +350,15 @@ base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
+crypt.C25519.decrypt_secret_key
 base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
+crypt.C25519.name_from_skey_name
+crypt.C25519.del_keys_hash_entry
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -359,6 +381,8 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+crypt.C25519.load_keys_from_secret
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.handler.link-upgrade.response
@@ -393,6 +417,7 @@ protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
+auth.client.auth-keypair.authenticate
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
@@ -418,8 +443,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,.,,,.,.,...,..,,,.,,,..,,..,,.,,,,,,,,.,..,,...,...,,.,,...,...,,.,,...,
-#3SNGXY5DYSTJLW2V7TIMIIWKJFENRSMSLHX3VEGEBMINVT4CW5HXYXZZD3HZOQRYQCGBHHD4CZ3MY
-#\\\|KORU2IKFS6KX6DC6LX2XTBNXJZK7U6MJWOFKCNAS7ZFHABBCXVK \ / AMOS7 \ YOURUM ::
-#\[7]NUONXYUMKD5OYVYCX4WO2D27WBM7WKB3M67RTDNWSHOSGHXPUCCQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,..,,,,,.,.,.,,,,..,,,,,,,.,.,,,..,,...,...,..,,.,.,.,.,,,.,...,
+#LCS2F3WRQYDQEXG5NL4YBOCV6QP4BEDUKZGP4PBTZWP2SH3LPMSEBAFQSKI7MDV2B2PFBSHMS4CK6
+#\\\|MWB3J2F4FV6KUK76MWZGX6S453FPQHYRN7G7LAYI77CLOBUYT6L \ / AMOS7 \ YOURUM ::
+#\[7]LOOFHCAYHERWJLBEZWKA4ZNERKIMPSKEHYCSR25GHZHAEYVTHODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

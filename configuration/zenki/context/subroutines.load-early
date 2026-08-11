@@ -320,6 +320,7 @@ base.balanced-average
 ncode.util.scope_match
 format.yaml.write_file
 devmod.cmd.switch-user
+crypt.C25519.sign_data
 context.review.iterate
 context.provider.frame
 context.priority.prune
@@ -344,6 +345,8 @@ ncode.start.chmod_child
 ncode.cmd.parse-headers
 io.unix.socket.end_code
 devmod.cmd.deparse-code
+crypt.C25519.write_keys
+crypt.C25519.unload_key
 crypt.C25519.key_exists
 context.template.render
 context.module.dep_pack
@@ -381,6 +384,9 @@ devmod.cmd.unload-unsafe
 devmod.cmd.unload-devmod
 devmod.cmd.mem-allocated
 devmod.cmd.current-umask
+crypt.C25519.single_file
+crypt.C25519.load_single
+crypt.C25519.chk_key_dir
 context.template.resolve
 context.string.ellipsize
 context.module.dep_order
@@ -394,6 +400,7 @@ channels.cmd.unsubscribe
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
+base.session.set_subname
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
@@ -405,6 +412,7 @@ ascii.frame.render.color
 ui.render.tree.invalidate
 io.unix.socket.input.open
 devmod.cmd.test-strm-size
+crypt.C25519.load_keypair
 context.delegate.dispatch
 channels.util.yaml_encode
 channels.util.yaml_decode
@@ -428,12 +436,14 @@ protocol.sftp.read_ssh_env
 ncode.chmod_child.readline
 io.unix.socket.output.open
 io.unix.socket.input.close
+crypt.C25519.encrypted_key
 context.review.consolidate
 context.git.recent_changes
 context.diff.lines_similar
 context.compose.for_review
 channels.memory-sync.fetch
 base.warnings.from_bitmask
+base.session.split_subname
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol.compile_once
@@ -452,6 +462,8 @@ devmod.cmd.utf8-test-buffer
 devmod.cmd.utf8-stream-test
 devmod.cmd.permission-setup
 devmod.cmd.extract-line-map
+crypt.C25519.sign_file_list
+crypt.C25519.key_is_virtual
 context.tree.index.position
 context.tree.checksum.state
 context.module.dependencies
@@ -477,6 +489,7 @@ protocol.amos_term.init_code
 ncode.util.file_to_namespace
 io.unix.socket.input.connect
 devmod.cmd.receive-multiline
+crypt.C25519.compare_keypair
 context.tree.checksum.stream
 context.conversation.history
 channels.memory-sync.publish
@@ -488,12 +501,15 @@ base.parser.protocol-version
 base.parser.ondemand_session
 base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
+base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 protocol.protocol-7.init_code
 format.yaml.load_keyword_path
 devmod.cmd.keep-devmod-loaded
 devmod.cmd.inline-subroutines
+crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
+crypt.C25519.chksum_cache.add
 context.pattern.generate_name
 channels.subscription.mapping
 channels.subscription.manager
@@ -516,6 +532,8 @@ ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 devmod.cmd.decode-harmonic-ref
+crypt.C25519.key_name_and_type
+crypt.C25519.chksum_cache.retr
 context.tree.summary.init-code
 context.tree.summary.add-event
 context.tree.checksum.template
@@ -532,6 +550,7 @@ base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
 devmod.cmd.change-log-verbosity
+crypt.C25519.decrypt_secret_key
 context.tree.summary.get-branch
 context.tree.summary.checkpoint
 context.tree.checksum.init_code
@@ -544,6 +563,9 @@ base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
+crypt.C25519.name_from_skey_name
+crypt.C25519.del_keys_hash_entry
+crypt.C25519.decrypt_priv_keystr
 context.util.tree.canonical_json
 context.string.common_suffix_len
 context.string.common_prefix_len
@@ -576,6 +598,8 @@ protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
 ncode.transform.handler.wave_reply
+crypt.C25519.load_keys_from_secret
+crypt.C25519.get_type_from_key_str
 context.util.tree.generate_summary
 context.tree.summary.compact.check
 context.review.handler.page_result
@@ -627,6 +651,7 @@ context.util.template.substitute_vars
 channels.handler.playlist-integration
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
+auth.client.auth-keypair.authenticate
 ascii.frame.render.color.content_line
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
@@ -663,8 +688,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,.,.,.,,,,,,,.,...,.,.,,.,,.,.,.,,,,..,..,,...,...,..,,,.,,...,.,.,.,.,
-#JQT6OJPMCG75R2I2ETF2I52BW4ECDPLNW5IMGTQJKDTDH6N5E4SYPHRB3VFSCRLOUHBXX27NJVAUG
-#\\\|M2PG4EHDTVRIP2ORVPRNUGIP5DBSNR5ADOSTNDHPVNJ5BSN7FHQ \ / AMOS7 \ YOURUM ::
-#\[7]GUTIJSLEIAUKMOZ2KOY7V6LMSFV6ERHDXCY3T2KC63N3AXNUDMAA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,..,,,,.,..,,,..,..,,,,.,.,.,..,,...,...,..,,,.,,..,,,,,,.,.,
+#JCBHLL3JOWMARST3RGSSKT5763WP2BZNEHIWFIR6OHN3FQF7FIFWNKIOKGYKFUYSMUWBDDTZ4XUL2
+#\\\|6YBY5QIUURNMVFNXFNWL43WYOFLLOLIAAH32QIBHM2EIYSDUTDP \ / AMOS7 \ YOURUM ::
+#\[7]TQEBG5XXWVDCHUAWVSXWQ76AJ6N26PGRRYSXJSUOKDX7SSQP7ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
