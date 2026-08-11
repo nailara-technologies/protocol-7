@@ -1,0 +1,105 @@
+## [:< ##
+
+# name  = user-edit.form.build_frame
+# descr = generate an ascii.frame descriptor for a runtime-derived field set
+# param = $schema [ , $frame_name , $title ]
+
+## phase 2's render_form takes a NAMED frame and resolves it through
+## ascii.frame.load, which reads data/yaml/ascii-frames/<name>.yaml.  a form
+## whose field list is derived from a users.* record at runtime [ see
+## user-edit.form.schema_from_record ] has no such file and cannot have one,
+## so this module builds the mockup text in memory, parses it through the same
+## ascii.frame.parse the yaml path uses, and seeds the result directly into
+## <ascii.frame.cache> under $frame_name.  render_form then finds it on its
+## own ascii.frame.load call and needs no change at all.
+##
+## ascii.frame.init_code wipes that cache on source reload, and there is no
+## on-disk yaml to fall back to — user-edit.form.render re-calls this module
+## whenever the entry is missing rather than seeding it once.
+
+my ( $schema, $frame_name, $title ) = @ARG;
+
+return undef if ref $schema ne qw| HASH |;
+return undef if ref $schema->{'fields'} ne qw| ARRAY |;
+return undef if not $schema->{'fields'}->@*;
+
+$frame_name //= qw| user-edit-form |;
+$title      //= qw| user-edit |;
+
+my @names = map { $ARG->{'name'} } $schema->{'fields'}->@*;
+return undef if grep { not defined $ARG or not length $ARG } @names;
+
+## label column width, so the ':' separators line up down the form ##
+my $label_width = 0;
+foreach my $name (@names) {
+    $label_width = length $name if length $name > $label_width;
+}
+
+## content rows, without the border columns yet ##
+my @bodies
+    = map { sprintf( '  %-*s : {{%s}}', $label_width, $ARG, $ARG ) } @names;
+
+my $title_bar = sprintf( '.:[ %s ]:', $title );
+
+## inner width = widest content row + breathing room, but never narrower than
+## the title bar needs [ +4 keeps at least a few fill dots visible ]
+my $inner_width = 0;
+foreach my $body (@bodies) {
+    $inner_width = length $body if length $body > $inner_width;
+}
+$inner_width += 2;
+
+my $total_width = $inner_width + 2;
+$total_width = length($title_bar) + 4
+    if length($title_bar) + 4 > $total_width;
+$inner_width = $total_width - 2;
+
+## assemble the mockup exactly as a hand-written frame yaml would carry it ##
+my @lines = ( $title_bar . ( q|.| x ( $total_width - length $title_bar ) ) );
+push @lines, sprintf( ':%-*s:', $inner_width, $ARG ) foreach @bodies;
+push @lines, q|:| . ( q|.| x $inner_width ) . q|:|;
+
+my $mockup = join( "\n", @lines ) . "\n";
+
+my $descriptor = <[ascii.frame.parse]>->($mockup);
+
+if ( not defined $descriptor ) {
+    <[base.logs]>->(
+        0, ': generated form mockup failed to parse [ %s ]', $frame_name
+    );
+    return undef;
+}
+
+my $validated = <[ascii.frame.validate]>->($descriptor);
+if ( not $validated->{'valid'} ) {
+    <[base.logs]>->(
+        2,           ': generated form mockup validation warning [ %s ] : %d',
+        $frame_name, scalar $validated->{'errors'}->@*
+    );
+}
+
+## same entry shape ascii.frame.load builds for a single-mode yaml frame ##
+my $entry = {
+    qw| name |         => $frame_name,
+    qw| title |        => $title,
+    qw| descr |        => 'runtime-derived user-edit settings form',
+    qw| border_style | => qw| single |,
+    qw| modes |        => [qw| expanded |],
+    qw| slots |        => { map { $ARG => { qw| label | => $ARG } } @names },
+    qw| descriptor |   => $descriptor,
+};
+
+<ascii.frame.cache>->{$frame_name} = $entry;
+
+<[base.logs]>->(
+    2, ': generated ascii frame [ %s ] [ %d fields, width %d ]',
+    $frame_name, scalar @names, $total_width
+);
+
+return $entry;
+
+#,,,,,...,.,.,,..,.,,,,,.,,,,,...,...,,,.,...,..,,...,..,,...,..,,.,,,,..,,.,,
+#5QHFX2O4KUEBJMZIGCQ26CJMTXFF2T7UKEXJJCZHIHPXPWH2MMLFQ3YQUNEVX7RFDAUVRS7JJUROA
+#\\\|64TUQSWNA7EYEZVBR6EXPJV7N5LTMKBRQNPZXWXUJ56WWCW5BZW \ / AMOS7 \ YOURUM ::
+#\[7]5Q4OX3CSGTZGAH6IAWCLOX7D5BI56GJLZWNSALLBKQHARY6TLABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = user-edit.handler.value_get_reply
+# descr = turn a users.value-get reply into a live editor form
+
+## reply-handler call signature is a SINGLE hashref { sid, cmd, call_args,
+## params, data? } — 'cmd' is the wire-level mode keyword, and only SIZE mode
+## carries its payload in the top-level 'data' key [ confirmed against
+## base.handler.command.process_reply, see
+## bug-auth-keypair-client-composition-gotchas ]
+
+my ($info) = @ARG;
+
+my $cmd       = uc( $info->{'cmd'} // '' );
+my $call_args = $info->{'call_args'}      // {};
+my $username  = <user-edit.form.username> // '?';
+
+my $abort = sub {
+    my ($msg) = @ARG;
+    print sprintf( "\n  << %s >>\n\n", $msg );
+    <[base.exit]> if not <user-edit.form.interactive>;
+    return FALSE;
+};
+
+if ( $cmd ne qw| SIZE | ) {
+    return $abort->(
+        sprintf(
+            'users.value-get failed [ %s ]: %s',
+            lc($cmd), $call_args->{'args'} // 'no detail'
+        )
+    );
+}
+
+my ( $record, $yaml_error )
+    = <[format.yaml.load_str]>->( $info->{'data'} // '' );
+
+return $abort->( sprintf( 'record parse failed: %s', $yaml_error ) )
+    if defined $yaml_error;
+
+return $abort->('record is not a mapping')
+    if ref $record ne qw| HASH |;
+
+<user-edit.form.record> = $record;
+
+## field list is DERIVED from the record — the settings payload is  ##
+## deliberately open, no declared schema exists to validate against ##
+my $schema = <[user-edit.form.schema_from_record]>->(
+    $record, <user-edit.form.submit_on>
+);
+
+return $abort->(
+    sprintf( "user '%s' has no editable scalar fields", $username ) )
+    if not defined $schema;
+
+my $editor_state = <[editor.control.create]>->($schema);
+
+return $abort->('editor.control.create rejected the derived schema')
+    if not defined $editor_state;
+
+my $frame_name = <user-edit.form.frame_name> //= qw| user-edit-form |;
+
+return $abort->('could not generate a frame for the derived field set')
+    if not defined <[user-edit.form.build_frame]>->(
+    $schema, $frame_name, <user-edit.form.title>
+    );
+
+<user-edit.form.state> = $editor_state;
+
+## the watched redraw counter must exist as a real scalar BEFORE anything
+## takes a reference to it — autovivifying it later would leave the watcher
+## registered on a detached scalar [ base.event.add_var ]
+<user-edit.form.dirty> //= 0;
+
+<[user-edit.form.render]>;
+
+## one-shot mode is done the moment the form is on screen ; interactive mode
+## hands over to the input side instead
+<[base.exit]> if not <user-edit.form.interactive>;
+
+return TRUE;
+
+#,,,,,..,,,,,,...,.,,,,,,,,..,,..,,,,,,,,,.,.,..,,...,..,,...,..,,,..,.,,,.,.,
+#GXPSK3E6H4BBR5B36NBRK7UGLWSD2BE2YLTZL4NRNIMBGPJNZNAKCPCSVIH7J4U54U5EDK43E6U4E
+#\\\|IZILC65N4Y44WGTXXHNDX5LLJGEIQR6NC4PCOBLG76LEBU3M2XJ \ / AMOS7 \ YOURUM ::
+#\[7]7UYOMYKEHS6RXF5B6HM5XITVQBBGBYE5DOTFOBIL6EBNBN5RCOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

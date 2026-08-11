@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = user-edit.form.schema_from_record
+# descr = derive an editor.control schema from a users.* record envelope
+# param = $record [ , $submit_on ]
+
+## the record's settings payload is deliberately open [ users-zenka.yaml : no
+## declared settings field list exists anywhere yet ], so the form schema is
+## DERIVED at runtime from whatever keys the record actually carries, rather
+## than declared here.  when a real field list eventually exists this stays
+## valid — typed/enum/validator field defs then merge on top of what this
+## returns, they do not replace it.
+##
+## every field is a freeform_line : editor.control.create rejects every other
+## type as interface-only, and no setting is known to be enum- or secret-
+## shaped yet [ user-edit-console-zenka.yaml : field_types_needed ]
+
+my ( $record, $submit_on ) = @ARG;
+
+return undef if ref $record ne qw| HASH |;
+
+my $fields = $record->{'fields'};
+$fields = {} if ref $fields ne qw| HASH |;
+
+my @field_defs;
+
+foreach my $name ( sort keys %{$fields} ) {
+
+    ## ascii.frame slot tokens are \w+ [ ascii.frame.parse's own token regex
+    ## ], so a field name that cannot become a slot name is skipped loudly
+    ## here instead of rendering as a silently blank row
+    if ( $name !~ m|^\w+$| ) {
+        <[base.logs]>->(
+            2, ': field name is not slot-safe, skipped [ %s ]', $name
+        );
+        next;
+    }
+
+    my $value = $fields->{$name} // '';
+
+    ## nested structures have no freeform_line representation ##
+    if ( length ref $value ) {
+        <[base.logs]>->(
+            2, ': field value is not a scalar, skipped [ %s ]', $name
+        );
+        next;
+    }
+
+    push @field_defs, {
+        qw| name | => $name,
+        qw| type | => qw| freeform_line |,
+        ## editor.buffer.memory.create reads the initial text from 'default' —
+        ## NOT from a 'value' key
+        qw| default | => "$value",
+    };
+}
+
+if ( not @field_defs ) {
+    <[base.logs]>->(
+        1,
+        ': record has no editable scalar fields [ %s ]',
+        $record->{'name'} // '?'
+    );
+    return undef;
+}
+
+return {
+    qw| fields |       => \@field_defs,
+    qw| active_field | => 0,
+    qw| submit_on |    => $submit_on // qw| enter |,
+};
+
+#,,.,,,.,,...,..,,..,,,..,,.,,,.,,.,,,.,,,,,.,..,,...,...,.,,,,,.,.,.,.,,,.,.,
+#645DCNODAFC3RIQ5VG2SHH3XBXNJW44W7QBJSCXK3FZLU6MOSXCIPE7MAR6K6KJIR6QQA4GXUFY5K
+#\\\|HISZS5A36W5626IMSX6YCA476IL2SSFRVKRGXPMOGWPUSSVGQBL \ / AMOS7 \ YOURUM ::
+#\[7]RHEILFSOKRY6U2ADYMZXVWW4ILYZ737GE5U22FWDCSQUNQHQGQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
