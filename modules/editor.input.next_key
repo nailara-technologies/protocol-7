@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = editor.input.next_key
+# descr = pull one complete key from a raw input buffer [ destructive ]
+# param = $buffer_sref
+
+## produces exactly the key strings editor.control.process_key already
+## consumes : a single [ possibly multi-byte utf-8 ] character, or a whole
+## ANSI escape sequence as one string [ "\e[D", "\e[3~", "\e[Z", "\eOH" .. ].
+## consumed bytes are removed from the buffer in place.
+##
+## returns undef when the buffer holds nothing usable YET — either it is
+## empty, or it ends mid-sequence [ a lone "\e", or a CSI still awaiting its
+## final byte ].  the buffer is left INTACT in that case, so the caller just
+## reads more bytes and calls again ; this is what makes the non-blocking
+## event.add_io path safe, where a keystroke can arrive split across two
+## reads.
+##
+## lives in the shared editor namespace rather than a zenka's own, since
+## editor.control.process_key defines these key strings and every editor
+## front-end needs the same decoding [ nshell.util.extract_utf8_char plus
+## nshell.read_from_buffer's inline escape accumulation are the equivalent
+## logic, entangled with nshell's own state ]
+
+my ($buffer_sref) = @ARG;
+
+return undef if ref $buffer_sref ne qw| SCALAR |;
+return undef if not length $buffer_sref->$*;
+
+## ---- non-escape : one complete utf-8 character ---------------------- ##
+
+if ( substr( $buffer_sref->$*, 0, 1 ) ne "\e" ) {
+
+    my $first_byte = ord( substr( $buffer_sref->$*, 0, 1 ) );
+    my $seq_len    = 1;
+
+    if    ( ( $first_byte & 0xE0 ) == 0xC0 ) { $seq_len = 2 }
+    elsif ( ( $first_byte & 0xF0 ) == 0xE0 ) { $seq_len = 3 }
+    elsif ( ( $first_byte & 0xF8 ) == 0xF0 ) { $seq_len = 4 }
+    ## else : 0xxxxxxx plain ascii, seq_len stays 1 ##
+
+    ## incomplete multi-byte char : wait for the rest rather than returning a
+    ## truncated sequence the buffer layer would mis-decode
+    return undef if length $buffer_sref->$* < $seq_len;
+
+    return substr( $buffer_sref->$*, 0, $seq_len, '' );
+}
+
+## ---- escape sequence ------------------------------------------------ ##
+
+my $buffer_length = length $buffer_sref->$*;
+
+## a lone ESC so far — cannot tell yet whether a sequence follows ##
+return undef if $buffer_length < 2;
+
+my $second = substr( $buffer_sref->$*, 1, 1 );
+
+## SS3 [ "\eOH", "\eOF", "\eOP" .. ] : always exactly three bytes ##
+if ( $second eq qw| O | ) {
+    return undef if $buffer_length < 3;
+    return substr( $buffer_sref->$*, 0, 3, '' );
+}
+
+## not a CSI/SS3 introducer : treat ESC and the next key separately, so
+## alt-<key> and a bare ESC keypress both stay recoverable
+return substr( $buffer_sref->$*, 0, 1, '' ) if $second ne q|[|;
+
+## CSI : parameter/intermediate bytes until a final byte in 0x40-0x7E ##
+my $index = 2;
+while ( $index < $buffer_length ) {
+    my $byte = ord( substr( $buffer_sref->$*, $index, 1 ) );
+    return substr( $buffer_sref->$*, 0, $index + 1, '' )
+        if $byte >= 0x40 and $byte <= 0x7E;
+    $index++;
+}
+
+## final byte has not arrived yet ##
+return undef;
+
+#,,,,,,..,,..,,..,,,,,.,,,,,.,.,,,.,.,...,,.,,..,,...,...,.,.,.,,,,,,,...,..,,
+#JY7KVFM3CZHES6KCA2UAUORPCKTBHHB5Y6ZKJFRPNOWORNDDIYPGLWO67JJH2SG2SLM2CLITGNF2Q
+#\\\|5ITBTKWS3L4TTIYQQE4IX23U4CNNFHD7DA3ULGE7TKG4J7N3G7K \ / AMOS7 \ YOURUM ::
+#\[7]EXDY6QQWJNPAE36ZGWBKZ7VHYZ63BMRKPVQHQWHJ6V7PUX5SEACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

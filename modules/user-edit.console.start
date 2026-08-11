@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = user-edit.console.start
+# descr = interactive settings form for a user record
+# param = [ <username> ]
+
+## the interactive half of phase 3.  identical setup to
+## user-edit.console.show-form — the record fetch, derived schema and
+## generated frame are the same code — and differs only in setting interactive
+## mode, which makes user-edit.handler.value_get_reply bring up raw terminal
+## input and the redraw watcher instead of printing once and exiting.
+##
+## HYBRID LOOP MODE : [init-done:TRUE] + [zenka.loop] are called HERE rather
+## than in the start file, so 'commands' and 'describe' still print and exit [
+## see configuration/zenki/user-edit/start ].  unlike show-form this never
+## leaves the loop on its own — every exit path funnels through
+## user-edit.form.quit so the terminal is always restored
+
+my $username = shift // '';
+$username =~ s|^\s+||;
+$username =~ s|\s+$||;
+$username = <user-edit.unix_user> if not length $username;
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    print "\n  << no cube session — cannot reach the users zenka >>\n\n";
+    return FALSE;
+}
+
+if ( not -t STDIN ) {
+    ## NOTE : no quoted token directly after '<<' in these messages — "<<
+    ## 'start' .." parses as a heredoc opener and breaks the module
+    print "\n  << the start command needs a terminal "
+        . "[ use show-form when piped ] >>\n\n";
+    return FALSE;
+}
+
+<user-edit.form.username>    = $username;
+<user-edit.form.interactive> = TRUE;
+<user-edit.form.title>       = sprintf( 'user-edit : %s', $username );
+
+## enter submits, matching editor.control.process_key's default ##
+<user-edit.form.submit_on> = qw| enter |;
+
+## the end_code terminal-restore callback is registered by user-edit.
+## term_init, on success — NOT here.  registering it up front would leave a
+## restore callback armed on a process that never went raw [ e.g. the record
+## fetch fails ], and its no-saved-state fallback would then clear O_NONBLOCK
+## and force ECHO/ICANON/ISIG on a descriptor nothing had touched
+
+<[base.logs]>->( 2, ': starting interactive form [ %s ]', $username );
+
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-get', $cube_sid ),
+        qw| call_args | => { qw| args | => $username },
+        qw| reply |     =>
+            { qw| handler | => qw| user-edit.handler.value_get_reply | }
+    }
+);
+
+<[base.init-done]>->(TRUE);    ## standalone zenka : not v7-managed ##
+
+<[base.zenka.loop]>;
+
+return TRUE;
+
+#,,,.,...,.,.,.,.,,.,,,,,,.,,,...,,,,,.,.,,.,,..,,...,..,,.,,,,..,,..,,,,,,.,,
+#HCYGHX2CNW5CDIS3ZK4YHJBREGBH5IEKOQNK75OK632D6Y4PF776EWL4X6H63KIVYIUHJPFY42QS4
+#\\\|MLOU3GPXUYTHBFFNMUB6K455YQBDHPQ27KPD5A3OF53FJX43D7J \ / AMOS7 \ YOURUM ::
+#\[7]2TGHNB432OHMFWN4BDZWSCBRQXPNZZITNISTF7QB2H3CNMXHAOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

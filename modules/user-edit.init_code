@@ -5,6 +5,11 @@
 
 <[base.logs]>->( 2, 'user-edit zenka initialized' );
 
+## raw terminal mode for the interactive form [ user-edit.term_init /
+## .term_restore ] — linux-native, no XS build issues, and API-compatible with
+## POSIX::Termios [ nshell.init_code precedent ]
+<[base.perlmod.load]>->('Linux::Termios2');
+
 ## resolve the invoking Unix user, for the start file's  system.auth-user =
 ## <user-edit.unix_user> [ nshell.init_code precedent : authenticate as the
 ## Unix user, not a zenka credential ]
@@ -25,8 +30,8 @@ my $user_edit_path_keywords = {
 
 return TRUE;
 
-#,,,.,,..,,,.,,,,,,,.,.,,,,,,,...,..,,,,.,..,,..,,...,...,,,,,.,,,...,.,,,.,,,
-#UYP4NTZYFWD5BZ4B35SSWZC6QZMZRC37B2HVT3ML4REDF3IT3LLKTK5CXGJMX56QFDINNWILVJBYQ
-#\\\|PD7FMIPCPVITZFJ6NHE3MZLCSXWHYFVFTV5VVSYN3XHWW7CWFDC \ / AMOS7 \ YOURUM ::
-#\[7]CWPLENHO4SLCVKQCC73MF3XDAJ5EJIT4IPVXLBBWPYCZFFB3OOBQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,.,.,.,.,.,.,.,,,.,..,,.,,,,.,,..,,...,...,,..,,.,,,,.,...,...,
+#FWUU762BLJJKA2VBM33JAUDZ4R4VTPEMMIXL4ZCJ6BCJLYW7GMUIYYU4UYJYJFR3IUJUBDRK5ZRCG
+#\\\|AKNU2H7VA4QYJXRNUKRBXODHGSZ3UGB4IJ4HSKVPCZ72EBLJH5J \ / AMOS7 \ YOURUM ::
+#\[7]4JVQV7XKXC2EYSWQA6XM7IFCOPW5S2MODMUGVCONZZL6CMCW6KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

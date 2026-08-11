@@ -58,6 +58,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 - [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.swap_subs whitelist itself isn't fragile; real gap was missing canonical doc of active swaps AND (corrected 2026-07-25) the loader's own nested-lifecycle-hook coverage, see [[bug-swap-subs-nested-lifecycle-hook-gate]]
 - [swap-subs-deferred-stub-alias-regression](bug-swap-subs-deferred-stub-alias-regression.md) — RESOLVED 2026-08-12: the `next if deferred_stub` guard added by the v7-reload fix silently UNDID the base32 fix, making non-whitelisted subs in swapped namespaces permanently unreachable ("event.loop not defined") instead of on-demand compiled; swap_subs now ALIASES stubs into the target namespace; whitelist is compile TIMING, never reachability — never hand-add entries to work around it; read all three swap_subs memories together before touching this cluster
+- [double-angle-heredoc-in-console-messages](feedback-double-angle-heredoc-in-console-messages.md) — a quoted token right after `<<` in a console message (`print "\n << 'start' needs .."`) parses as a heredoc opener and breaks the whole module; the error names an unrelated line + "at EOF". Also: a broken module doesn't stop the zenka — grep start-up output for `broken` after adding console modules
 - [p7-security-hardening-symlink-findings](topic-p7-security-hardening-symlink-findings.md) — two DEFERRED (user: "could be later") latent bugs in bin/Protocol-7's p7_security_hardening BEGIN block: first `die` missing `sprintf`, and relative symlink targets breaking @INC lib-path derivation; `$char_map` and `${^CAPTURE}[0]` were checked and are CLEAN — don't re-investigate those
 - [v7-symlink-hyphenated-zenka-names](bug-v7-symlink-hyphenated-zenka-names.md) — RESOLVED 2026-08-12: every hyphenated zenka (`user-edit`, `workspace-transfer`, `p7-log`, `web-browser`, 25+) was unreachable via its `v7.<zenka>` symlink — base.init's name-split class `[\w|\.]` has no `-`; plus bin/Protocol-7's early-whitelist peek still matched the retired `p7.` form. Test BOTH `v7.<zenka>` and `./bin/Protocol-7 <zenka>` — they take different name-parsing paths
 - [swap-subs-nested-lifecycle-hook-gate](bug-swap-subs-nested-lifecycle-hook-gate.md) — RESOLVED e90dd04ae: base.<X>.pre_init (base32, chk-sum.bmw, ...) never got a stub when un-whitelisted, so swap_subs never ran and short-name call sites crashed instead of deferred-compiling; also fixes deferred_compile self-recompile loop + register_src_deps ancestor collapse
@@ -81,8 +82,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 - [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
 
-#,,,,,,.,,.,,,..,,,,.,,.,,.,,,,,,,,.,,,.,,,,.,..,,...,...,...,..,,...,.,.,,,.,
-#W4OSTQWBBDDW6QRRJERQKNGZWDW45PYCQR3EEWUCBYIZRKDLCJACN2A3Z32QR7UJVUWQFXNFWQISY
-#\\\|4AMCZRS5CY3FRHTYAAHJ2LGXUYQRS5DEZBCTMHE7IC3GENS4VRF \ / AMOS7 \ YOURUM ::
-#\[7]C6DXTNEOWB4WABNZW3RLMTZYI3JCZCPZ4BJLLBLLFLRGRTJHOKAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,.,...,,,.,..,,,..,...,,.,,,.,,..,,...,...,.,.,..,,,,.,,,.,,.,,
+#L6OB3ZEEM6KOZEZO2WFMEVJAQRZX7RUNUCMVUSOHHKAKWYTHFZKIR2VKH5FMOJHLEI725KOYYWDRU
+#\\\|SURZGY5BS2MOLJLUN6KO5MB45XT6U5NSUYXG6OQMLYYPAOBQIJ5 \ / AMOS7 \ YOURUM ::
+#\[7]CHLUQ52F37EBC4XWYJVKCHVGMGVXEK6QPFT3CWZTCY3ODLXMH6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
