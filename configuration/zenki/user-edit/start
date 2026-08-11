@@ -3,8 +3,14 @@
 
 [load_config_file:'shared-params']
 
-modules.load  =  auth.client net protocol io.unix terminal editor \
-                                 crypt.C25519 ascii.frame user-edit
+## two families were missing from the original keys-clone [ keys is fully ##
+## standalone and needs neither ] : 'ui' provides base.event.* — without  ##
+## it base.zenka.loop dies on an undefined event.loop — and format.yaml   ##
+## is called directly by ascii.frame.load and by the outbox/draft modules ##
+## [ nshell/start loads both explicitly for exactly these reasons ]       ##
+modules.load  =  auth.client net protocol io.unix ui terminal editor \
+                                 crypt.C25519 ascii.frame format.yaml \
+                                 user-edit
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -23,10 +29,17 @@ system.auth-user = <user-edit.unix_user>
 
 [base.call.console_command:<system.args>]
 
-## requires hybrid loop mode ##
+## HYBRID LOOP MODE [ resolved ] : there is deliberately NO [zenka.loop] ##
+## here.  console commands that need the event loop -- anything talking  ##
+## to the users zenka, where the reply arrives asynchronously and needs  ##
+## command/reply processing -- call [init-done:TRUE] + [zenka.loop]      ##
+## THEMSELVES as their last step [ see user-edit.console.show-form ].    ##
+## per-command, not per-zenka, because 'commands' and 'describe' must    ##
+## print and exit : a [zenka.loop] at this level would hang them, and    ##
+## plain 'v7.user-edit' would never return to the shell                  ##
 
-#,,..,...,..,,,,,,.,.,,,.,,..,...,...,.,.,.,,,..,,...,..,,.,.,.,.,..,,,..,..,,
-#IEU6R64K4M46GP44EM7YKHLX7YSWMYTLLZAA4WW6K2ZAOGFRB7THJGEQAFNEPS5A5FRUAY5UFBKMS
-#\\\|CBWNSHV6RZZT2BQTHRVUBZDHMPURFTUWL3GBLLEWNXKMT66T5UH \ / AMOS7 \ YOURUM ::
-#\[7]BQHTSXOD4IEO7SUANFG4TIZJCOLVAMTJOJ4KWKTDWAIPX47ERWDY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,..,.,,,...,,.,,,..,...,..,,...,..,,...,...,,,.,,.,,.,,,,.,,,.,,
+#IIWJXQABIFLZLRGYOCJXMW24DA3FYPFSDILUA2ICUB63EG3XWA3T5WV5UAAKBFSKD5226T6RE2CO2
+#\\\|BEHVKXOOBQGFQYWM5DF4JT7XLOKTN2OAWL4CNKWEKAVG73ZFDES \ / AMOS7 \ YOURUM ::
+#\[7]PSH2IWDO7IV4UETQFMDFNOCGXLBVTEJQN2J4TIUMVWA2J5BDJYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

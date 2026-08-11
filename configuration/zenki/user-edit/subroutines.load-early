@@ -6,9 +6,11 @@
 # : access.zenki for reachability
 # :.
 
+ui.fold
 net.get
 net.cmd
 base.log
+ui.unfold
 base.sort
 base.open
 base.logt
@@ -24,6 +26,7 @@ base.s_read
 base.minmax
 base.getcwd
 base.gen_id
+ui.summarise
 base.waitpid
 base.sig_int
 base.sig_hup
@@ -31,6 +34,8 @@ base.set_key
 base.s_write
 base.max-len
 base.del_key
+ui.layout.fit
+ui.budget.tty
 net.init_code
 net.calc_port
 base.timezone
@@ -47,6 +52,8 @@ base.cmd.name
 base.cmd.list
 base.cmd.exit
 base.cfg_bool
+ui.render.tree
+ui.cmd.ui-show
 devmod.cmd.set
 devmod.cmd.get
 devmod.cmd.del
@@ -61,6 +68,7 @@ base.route.add
 base.post_init
 base.list.init
 base.init_code
+base.init-done
 base.hide_list
 base.file.open
 base.dump_data
@@ -76,6 +84,7 @@ devmod.cmd.echo
 devmod.cmd.dump
 crypt.init_code
 base.zenka.push
+base.zenka.loop
 base.str.os_err
 base.prng.bytes
 base.path_perms
@@ -85,10 +94,12 @@ base.has_access
 base.file.which
 base.file.slurp
 base.event.once
+base.event.loop
 base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
 ascii.frame.bar
+ui.estimate.cost
 plugin.auth.unix
 devmod.post_init
 devmod.init_code
@@ -143,6 +154,8 @@ base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 ascii.frame.parse
+ui.render.fallback
+ui.fields.fallback
 devmod.cmd.elf-num
 devmod.cmd.elf-b32
 devmod.cmd.eat-mem
@@ -193,6 +206,9 @@ base.calc_unix_path
 ascii.frame.compose
 user-edit.draft.load
 io.ip.tcp.input.open
+format.yaml.pre_init
+format.yaml.load_str
+format.yaml.dump_str
 editor.control.reset
 devmod.cmd.test-strm
 devmod.cmd.list-subs
@@ -223,6 +239,7 @@ base.cmd.amos-chksum
 base.buffer.add_line
 ascii.frame.validate
 user-edit.outbox.list
+user-edit.form.render
 user-edit.draft.write
 user-edit.draft.clear
 format.yaml.load_file
@@ -269,6 +286,7 @@ base.perlmod.init_code
 base.path.resolved_abs
 base.net.cmd.timestamp
 base.load_section_conf
+base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
 base.cmd.cancel-stream
@@ -305,6 +323,7 @@ ascii.frame.slot.select
 ascii.frame.render.html
 ascii.frame.render.data
 ascii.frame.from_mockup
+ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
@@ -330,6 +349,7 @@ base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ascii.frame.render.color
+ui.render.tree.invalidate
 io.unix.socket.input.open
 editor.control.load_field
 editor.control.get_cursor
@@ -352,6 +372,7 @@ base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 base.call.console_command
+user-edit.form.build_frame
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
@@ -374,6 +395,7 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
+user-edit.console.show-form
 net.read_linewise_estimated
 io.unix.socket.output.close
 editor.buffer.memory.length
@@ -423,6 +445,7 @@ base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 terminal.curses_ui.app.models
 protocol.protocol-7.init_code
+format.yaml.load_keyword_path
 editor.buffer.memory.get_text
 editor.buffer.memory.get_line
 devmod.cmd.keep-devmod-loaded
@@ -443,6 +466,7 @@ base.handler.cmd_filter_hooks
 base.format.multiline_command
 base.file.zenka_dir.data_path
 base.event.handler.exceptions
+base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
@@ -500,6 +524,8 @@ base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 base.cfg.profile.cmd.set-profile
 ascii.frame.parse.border_segment
+user-edit.handler.value_get_reply
+user-edit.form.schema_from_record
 protocol.amos-chksum.ext-cmd.exit
 editor.ui.ascii_frame.render_form
 crypt.C25519.verify_key_signature
@@ -559,6 +585,7 @@ crypt.C25519.generate_session_keypair
 crypt.C25519.create_signature_request
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
+auth.client.auth-keypair.authenticate
 ascii.frame.render.data.border_string
 ascii.frame.render.color.content_line
 protocol.sftp.terminate_server_process
@@ -587,8 +614,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,...,,.,,..,,,,.,,,,,,..,.,,,,..,.,,,..,,..,,...,..,,.,.,,,.,.,,,.,,,.,,,
-#IGQ3UCDAANMJB2HINADEJ3HET42KX6Y3SIA6F6GZYDSUPQHLD2GIU4G66OKVJYIPOPYXC4XSLEMRW
-#\\\|XMGT7XAY4XZF6AIBCJ6QQUWBG7OC6WKSR6HJ6RH2LMZRFIP7GPT \ / AMOS7 \ YOURUM ::
-#\[7]CHTLTZRH3LBZYOWQPMIK5VPL4GWKFBXVNNX4REWX23VJOFPN2MBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,..,,,.,,..,,,..,...,...,.,,,..,,...,...,,,.,.,.,.,,,,,.,...,
+#3YESGMQA5G7LGTBXEJ76CZF4RGEKRK3YGWSS7E747ZZYV3KDR6JD46BUWTAZMA5T3ASGISEPOLAUS
+#\\\|AEARRC7L2JZ54WIPYUSPFD5LX4YE6C7OOUNJIWR245BN7NXFRHQ \ / AMOS7 \ YOURUM ::
+#\[7]AFEWR4ZVATMVCHDY4CYZU64VJRAW4RQXNL6KPLQVKIY3IPM6T4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
