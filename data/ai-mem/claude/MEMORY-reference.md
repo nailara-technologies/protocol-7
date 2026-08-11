@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [session-subname-routing-convention](reference-session-subname-routing-convention.md) — `<name>[<subname>]`: primary is ALWAYS the authenticated identity (zenka for zenka-auth, unix user for unix-auth), subname is a routing label that must never touch authorization; inverse form rejected 2026-08-12 (access grants key on the primary; subnames are runtime-mutable, users need devmod)
 - [zenka-process-title-convention](reference-zenka-process-title-convention.md) — running zenki rename argv to `<hostname>.<zenka-name>` (or `<hostname>.<stdin>` pre-name); use `pkill -f <zenka-name>`, not a captured launch-command PID, to reliably kill a stuck one
 - [edit-memory-via-ai-mem-path](feedback-edit-memory-via-ai-mem-path.md) — always edit data/ai-mem/claude/*.md directly, not the ~/.claude symlink path, to avoid permission prompts
 - [bin-todo-random-id-scheme](project-bin-todo-random-id-scheme.md) — for a short reusable display id, generate-random-and-check-against-current-set beats hash-of-a-growing-counter (birthday saturation grows with all-time count, not live-set size); base.gen_id's shape mirrored for a standalone script that can't use `<[...]>`/`<base.prng.fortuna>`
@@ -51,8 +52,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [ext-bundle backup alias](reference-ext-bundle-backup-alias.md) — `gbc` bash alias creates+verifies the ext-bundle git backup; it's a `.bundle` file not a real remote, `git push` to it always fails harmlessly
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 
-#,,..,...,,,.,.,.,,,,,..,,.,,,,,.,.,.,.,.,..,,..,,...,...,.,.,,,,,.,,,.,,,,,,,
-#6DWZ5RUZBSLNZBCBREILX7MEFCIWXLMSVQE2JBEEEINJVUTJVNLUGAWRTJSALED7JDGZV6NWBHJUI
-#\\\|UZSAQ632O4YKMWGA7PY2B6WR2CKZWZOZPOXGMMU6RVKFYDJRKPC \ / AMOS7 \ YOURUM ::
-#\[7]RUPBXJ5CUGW7KDGBLHM5YGYIULR2MQUXMD6BPYTIHUTZIPRSGODY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,...,,,.,.,.,.,,,.,,,,,.,,.,,..,,...,...,,..,..,,,.,,,,,,,..,
+#HJNOPOXAJNCDEJ5N6R3CL3QB7XU3C7NHOK5HECHF2BYBPB3WPITO3Z2KTZ45EM42RD6QCFDCDNZVC
+#\\\|HDQV3MICQHZGTJU5SPHQHRIKZOJ666OPWIUXSNBKAPZTGIR26AZ \ / AMOS7 \ YOURUM ::
+#\[7]CSBJ7T2RRR7TXLQN5JRQCQSDM6WRE6ZCTNQ4EI7LD64IXQA3QAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
