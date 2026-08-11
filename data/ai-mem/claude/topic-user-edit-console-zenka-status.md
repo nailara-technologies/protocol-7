@@ -207,8 +207,87 @@ loop / actual field schema still hasn't been built — that's the
 genuinely unstarted piece, not 5PN (which was the blocker described
 above and no longer is).
 
-#,,,.,.,,,.,.,..,,..,,,,.,.,,,,,,,.,,,..,,,,.,..,,...,.,.,,,.,.,.,,.,,,,,,...,
-#ZDK545TYK2H2SQM6NVBJNA4ZC7AKUJKOV5LXEA4MYQZ3WC2W2FPZCX5TMYPVUX2MCTDAPK2524AVC
-#\\\|WUAQDFTBKE3NVV7M6M6V5UJBONTVUY5OYLBA2ZKZ6DQ7YLDUM4N \ / AMOS7 \ YOURUM ::
-#\[7]7MMTOBJSEAEGLG34YYHYCKHPVV5EZHCJJWSYG76HZHS7VDJR2ECI 7  DATA SIGNATURE ::
+**2026-08-12 SESSION — phase 3 BOTH SLICES LANDED, plus four framework
+fixes and three new directions.** Commits `c6ff73f57` (slice 1),
+`e11800518` (slice 2), `f9c51a636` (keys), `e0cfb09a7` (no-tty driver),
+`d0848477b` (subnames), `adf5bb13a`/`2a9617bc6`/`b2aae999f` (memory +
+framework).
+
+**Slice 1 — record-derived form.** `user-edit.console.show-form` →
+`users.value-get` → envelope → `user-edit.form.schema_from_record` →
+`user-edit.form.build_frame` → phase 2's `render_form`. Per user, the
+field list is DERIVED FROM THE RECORD at runtime, not declared — the
+settings payload is deliberately open and no field list exists anywhere.
+Because the field set is unknown until the record arrives there can be no
+`data/yaml/ascii-frames/*.yaml` for it: `build_frame` assembles the mockup
+in memory, parses it with the same `ascii.frame.parse`, and seeds
+`<ascii.frame.cache>` directly, so `render_form` needed NO change.
+`form.render` regenerates it when missing (`ascii.frame.init_code` wipes
+that cache on reload and there is no file to fall back on).
+
+**HYBRID LOOP MODE resolved** — console commands needing the event loop
+call `[init-done:TRUE]` + `[zenka.loop]` THEMSELVES as their last step,
+NOT the start file, because `commands`/`describe` must print and exit.
+
+**Slice 2 — event-driven form.** `start [<username>] [-no-tty]`;
+termios raw mode (`user-edit.term_init`/`term_restore`, `nshell` shape,
+TCSANOW on restore), `event.add_io` on fd 0 → `handler.stdin_key`,
+`event.add_var` on `<user-edit.form.dirty>` → `form.render`. Nothing
+renders directly: every mutation bumps the counter, the watcher repaints.
+New shared `editor.input.next_key` decodes one key (utf-8 char or whole
+ANSI sequence) and returns undef WITHOUT consuming on a partial sequence —
+that is what makes the non-blocking path safe. Submit is outbox-FIRST then
+`users.value-set`; staged entry cleared only on confirmation, KEPT on
+rejection. `format.json.encode` is `pretty(1)` so its output is flattened
+before going on the line-based wire (safe: a real newline only ever occurs
+as formatting, json escapes in-string newlines as `\n` — round-trip
+verified).
+
+**keys zenka loaded directly** (`f9c51a636`) — per user, rather than
+reimplementing key handling as user-edit grows. Verified already safe, no
+changes to `keys.*` needed. Safe for a NETWORKED zenka because keys has NO
+`.cmd.` modules at all — pure `.console.*` + helpers, so zero network
+surface added. Curses::UI/Term::Clui stay lazy (phase 1's criterion holds).
+Side effects to know: `keys.init_code` overwrites `<system.amos-zenka-user>`
+globally, and `keys.post_init` hard-exits on `crypt.C25519.key_vars_error`.
+
+**Network-driven form input** (`e0cfb09a7`) — `user-edit.cmd.char-add`,
+modelled on nshell's, plus shared `editor.input.parse_key_spec`. Reply is
+the RENDERED FORM, so it is a test surface not just a debug poke. Gated
+twice (`-no-tty` required, narrow `access.cmd.usr.cube`). This is
+user-edit's first `.cmd.` module. It immediately caught a shipped bug —
+see [[feedback-backslash-keyword-is-not-a-reference]].
+
+**Subname routing** (`d0848477b`) — `taeki[user-edit]` vs bare `taeki`
+(nshell); see [[reference-session-subname-routing-convention]].
+
+**STILL NOT DONE — the honest list:**
+- **the interactive form has NEVER been run at a real terminal.** Only the
+  no-tty driver path is verified (insert, Ctrl+a/Ctrl+e, Backspace,
+  Delete, named keys, sequences). Tab/field navigation, the
+  `form.field_changed` draft checkpoint and submit are ALL unexercised —
+  Tab is gated behind `$multi_field` and `selftest` has ONE field.
+- **`masked`/`enum` field types** — `editor.control.create` still
+  hard-rejects everything but `freeform_line`. This is the single blocker
+  on [[project-credential-types-into-user-edit]], since all three
+  secret-holding paths collect input with BLOCKING prompts that cannot run
+  inside the event loop. `base.ask` does NOT solve this — see
+  [[reference-console-question-ask-primitive]] for why an event-loop-safe
+  prompt is a separate unbuilt thing.
+- **the offline retry trigger** and the `end_code` draft flush.
+- **no `taeki` record exists** — `show-form` errors with "user 'taeki' not
+  found". Design in progress per user: detect the case where the invoking
+  unix user equals `<system.admin-user>` (`configuration/system-user-map`,
+  resolved via `base.access.special-user-map`'s `<admin-user>`) and offer
+  to create a default record, interactively unless a `:create-admin:` tag
+  is passed. `base.ask` was built for exactly this. **BLOCKED on deciding
+  the DEFAULT FIELD SET for a host-system record** — creating it empty
+  does not work (`schema_from_record` returns undef, so the error just
+  moves). That decision also sets the template the uninstalled desktop
+  node's `taeki` AND `root` accounts would inherit.
+
+#,,,.,,.,,,..,.,.,,.,,,..,...,.,.,,..,,..,...,..,,...,..,,,..,,..,.,.,,.,,..,,
+#QBLFRLNW5N5KHEDKDFL5A3S67KENYT3OT7ETN5Z6SLM776VOT6GK64XA6Y4B5XHLRXHJPUDL7VXJE
+#\\\|S6RXR52ZORKFGFXRXDGZRF5XWQJDQGNQWLFN5J6SE6NZ4HTGS6X \ / AMOS7 \ YOURUM ::
+#\[7]Z6ZAFYZQRBL4HZWPJSOLVCE4V7MNVDEK333SXJVBNBR64D7WZQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

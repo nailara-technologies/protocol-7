@@ -35,6 +35,7 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
     editor_load cursor_render cursor_clear_old cursor_set_color
     cursor_set_animation cursor_enable cursor_disable
     frame_border_line frame_rule_line frame_colorize_content frame_bar
+    ask
 ];
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
@@ -384,6 +385,83 @@ sub has_tty {
     return TRUE if -t *STDERR;
 
     return FALSE;
+}
+
+sub ask {
+
+    ## generic console question, usable from zenki AND standalone scripts.
+    ##
+    ## AMOS7::TERM::ask( { question => 'proceed?' } )              yes-no
+    ## AMOS7::TERM::ask( { question => 'name', type => 'text' } )
+    ## AMOS7::TERM::ask( { question => 'key',  type => 'masked' } )
+    ##
+    ## 'masked' delegates to read_password_single below, so secret entry keeps
+    ## its single implementation rather than growing a second one.
+    ##
+    ## two properties make this safe to call from anywhere :
+    ##
+    ## 'given'  when defined it is returned immediately and nothing is printed
+    ## -- crypt.C25519.load_keypair's own  parameter-or-prompt shape.  lets a
+    ## caller expose a  :tag: or command parameter that turns an interactive
+    ## step into a scripted one with no second code path.
+    ##
+    ## no tty   returns 'default' WITHOUT reading.  a blocking read on a
+    ## detached STDIN is how an event-driven zenka wedges itself, so this
+    ## refuses rather than risk it.
+    ##
+    ## BLOCKING : reads STDIN.  call before an event loop is entered, or where
+    ## nothing else needs servicing -- the same constraint that makes the
+    ## passphrase prompts acceptable during zenka init but not inside a
+    ## running form.
+
+    my $params = shift // {};
+
+    return undef if ref $params ne qw| HASH |;
+
+    my $question = $params->{'question'} // return undef;
+    my $type     = $params->{'type'}     // qw| yes-no |;
+    my $default  = $params->{'default'};
+    my $prefix   = $params->{'prefix'} // qw| :. |;
+
+    ## [1] answered programmatically : no prompt, no output ##
+    return $params->{'given'} if defined $params->{'given'};
+
+    ## [2] no terminal : never block, hand back the default ##
+    return $default if not AMOS7::TERM::has_tty();
+
+    return AMOS7::TERM::read_password_single($question)
+        if $type eq qw| masked |;
+
+    ## hint shows which answer 'enter' selects ##
+    my $hint = '';
+    if ( $type eq qw| yes-no | ) {
+        $hint
+            = not defined $default ? ' [y/n]'
+            : $default             ? ' [Y/n]'
+            :                        ' [y/N]';
+    } elsif ( defined $default and length $default ) {
+        $hint = sprintf( ' [%s]', $default );
+    }
+
+    printf "\n %s %s%s : ", $prefix, $question, $hint;
+    STDOUT->flush();
+
+    my $answer = <STDIN>;
+    print "\n";
+
+    return $default if not defined $answer;    ## EOF [ ctrl-d ] ##
+
+    chomp $answer;
+    $answer =~ s|^\s+||;
+    $answer =~ s|\s+$||;
+
+    return $default if not length $answer;
+    return $answer  if $type ne qw| yes-no |;
+
+    return TRUE  if $answer =~ m|^y|i;
+    return FALSE if $answer =~ m|^n|i;
+
+    return $default;                           ## unparsable : do not guess ##
 }
 
 sub read_password_repeated {
@@ -1808,8 +1886,8 @@ sub frame_bar {
 
 return TRUE ##################################################################
 
-#,,,.,,,,,.,,,.,.,,,.,...,,..,.,,,.,,,,.,,.,.,..,,...,...,...,,.,,,,,,,,,,.,,,
-#6COONP3IGXCMJG5EAMNOSQ3A46WMXTFUJFEW53WW6AGOWMX7IECIENABLIK5TVLGU4XP32BWSRVUS
-#\\\|O6QXLDS2L6GPY5JDLWULESYAVBLX7DWQ72275CDPB7G6WCX5LFR \ / AMOS7 \ YOURUM ::
-#\[7]JME7F75UXLTPNBLVD6466VD3IWYJTGED63RN3CQXD2DLRCWTQIAI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,..,,,,,,,,.,..,,.,.,,,,,,.,,..,,...,.,.,..,,...,.,.,,.,,,.,,
+#HTMG2AI2NA5YGZS3QQKHL545RZR5FXLLH2UZAKYI567UV6BVEFC23NK7ZTUI3KX54JIHH3ZST634C
+#\\\|TY33WNHXU7WH7A5FH7E67AZ5CVEGEDQUXYSO775SNFYGWMMQHX4 \ / AMOS7 \ YOURUM ::
+#\[7]IQAKGMD2HOMDXP3K4N6244QRTKEKML667LO5HMC2JONY2DJHSSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
