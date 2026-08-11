@@ -82,17 +82,80 @@ storage_layout:
     /etc/protocol-7/users/remote/outgoing/
     this node's own host-system records staged/queued for
     announcement to other nodes.
+  record_format: >
+    RESOLVED (2026-08-11, per user), applying the existing addressing-
+    trinity primitive (data/ai-mem/claude/topic-addressing-trinity.md —
+    name/checksum/timestamp as three orthogonal axes, not merged into
+    one hash) directly to remote/ records:
+      name:      dotted path segment (e.g. the record's place under
+                 users.remote.incoming/outgoing)
+      checksum:  BMW-L13 of the remote user's C25519 pubkey — identity
+                 axis. Stays pure/timestamp-free per
+                 identity_checksum_choice and discover.orbital.
+                 store_remote's own precedent (keys ALREADY computed
+                 this way from pubkey bytes alone, no time/nonce input)
+                 — this is what stays re-derivable by anyone from the
+                 pubkey alone, and what must NOT move when content
+                 changes, so directory/routing addressing never breaks.
+      timestamp: creation ntime — temporal axis, separate field
+      latest / current: per the trinity's own pattern, diverge only
+                 when deliberately pointing at prior state (rollback/
+                 audit/snapshot) — this is the resolved mechanism for
+                 the "unchangeable root + appended session, compaction
+                 changes the record but not its identity" question
+                 raised during this design pass: BMW-L13(pubkey) is the
+                 permanent root/directory name; content changes are
+                 appended (mirrors zenka-key-identity-infrastructure.
+                 md's world-appendable log/ pattern under a task's
+                 pubkey directory) and tracked via latest/current
+                 rather than by mutating the identity checksum.
+                 Compacting the append-log into a fresh baseline is
+                 free to change a separate CONTENT checksum (a distinct
+                 field, not yet named) without touching the identity
+                 checksum used as the parent directory.
+      nested entries under a remote/ record (if any) would use
+      CHECKSUM-PARENTING-NAMESPACE-TREES.md's auto-parenting relation
+      (C0 = chksum(C1 ':' name)) rather than a second identity scheme —
+      distinct role from the BMW-L13 root: structural/parenting, not
+      peer identity.
+    directory-as-session fallback: per user direction, treating every
+    node as BOTH a directory (structural/addressable) and a session
+    (append-only/temporal) by default avoids needing to pick one
+    up-front and re-architect later when the other turns out to be
+    needed too — a plain record can always grow a log/ subdirectory
+    without changing its address, and a session can always be addressed
+    as a directory without inventing a new identity scheme.
+  var_vs_etc_tier: >
+    RESOLVED (2026-08-11, per user): var_P7/users/remote/{incoming,
+    outgoing}/ is the DEFAULT tier — matches the discover.*
+    precedent (discover.load_resend_requests persists resend-reqs
+    under var_P7/<zenka>/resend-reqs/, not etc_P7) for request/sync-
+    shaped state that shouldn't survive a full node rebuild by default.
+    etc_P7/users/remote/ acts as an OVERRIDE tier on top: a record
+    present there wins over the var_P7 default for that same BMW-L13
+    identity, for the case of a deliberately PERMANENT link between two
+    hosts maintained by the same user (e.g. always-trusted peers that
+    should survive a rebuild without needing rediscovery/re-sync).
+    Lookup order: check etc_P7/users/remote/<BMW-L13>/ first, fall back
+    to var_P7/users/remote/<BMW-L13>/ if absent — same directory-as-
+    session shape either way (record_format above), just a different
+    durability tier for the same identity-addressed directory.
   not_yet_decided: >
-    exact record format (per-user file? one file per host-system user,
-    named how?), and what "incoming"/"outgoing" actually persist —
-    full user records, or lighter sync/announce requests referencing
-    records that live elsewhere (host-system/). The discover.* precedent
-    (discover.load_resend_requests persists resend-reqs under
-    var_P7/<zenka>/resend-reqs/, not etc_P7) suggests request-shaped
-    transient state might belong under var_P7 instead of etc_P7/remote —
-    worth resolving before implementation: etc_P7/users/remote may be
-    the wrong tier for anything that isn't durable across a full node
-    rebuild.
+    RESOLVED (2026-08-11, per user): lightweight — sync/announce
+    requests referencing records that live elsewhere (host-system/ for
+    local, the peer's own host-system/ for remote), NOT full record
+    copies. Sized specifically to make session state recoverable across
+    a host reboot: enough of the trinity fields (record_format above —
+    identity checksum + name + timestamp/latest/current pointer) to
+    resume an in-flight exchange or re-establish a known peer link
+    without needing a full re-sync from scratch, but no record content
+    duplication. This is consistent with var_vs_etc_tier's var_P7
+    default (transient-but-recoverable, not durable-by-default) — the
+    lightweight shape is exactly what makes var_P7 an acceptable
+    default: there's little to lose and quickly reconstruct if it's
+    cleared, since the authoritative content stays in host-system/ (or
+    the remote peer's own host-system/), never duplicated into
+    incoming/outgoing.
 
 ## -----------------------------------------------------------------------
 ## discovery — likely integration point, not a fresh build
@@ -229,18 +292,34 @@ discovery_integration:
     transparent to the zenki, encryption optional" model already ships
     today, independent of ssh/orbital.
     practical implication for remote/: this is the most direct existing
-    path to "ask a peer host's users zenka for its records" — a
-    users.remote-* command could shell out to p-7-r <peer-host>
-    users.value-all (peer host/port resolved from discover.orbital.known
-    presence data), OR a native-Perl equivalent could be built reusing
-    the same three helper scripts (p7-tofu-helper.pl,
-    p7-auth-keypair-helper.pl, p7-link-upgrade-helper.pl) p-7-r already
-    shells out to, avoiding a subprocess per request. Either way: this
-    is the concrete unblock for remote/'s transport question, more
-    direct than either finishing the orbital [LLL] stub or wiring
-    through the ssh zenka. Still not decided WHICH of shell-out-to-p7-r
-    vs native-Perl-via-the-same-helpers remote/ should use — that's the
-    next open question, not "is there a working transport" (there is).
+    path to "ask a peer host's users zenka for its records" — this is
+    the concrete unblock for remote/'s transport question, more direct
+    than either finishing the orbital [LLL] stub or wiring through the
+    ssh zenka.
+  transport_implementation_choice: >
+    RESOLVED (2026-08-11, per user: "native perl would almost always be
+    preferred to shelling out"), verified against live code: native-Perl,
+    NOT shell-out-to-p7-r. The p7-*-helper.pl scripts
+    (p7-tofu-helper.pl, p7-auth-keypair-helper.pl,
+    p7-link-upgrade-helper.pl) only exist because p-7-r.c is C and needs
+    popen() to reach Perl's crypto libs (Crypt::Ed25519,
+    Crypt::Curve25519) at all — that barrier does not apply to a Perl
+    zenka. Confirmed both sides of the handshake already exist as
+    in-process %code modules, not scripts: server-side TOFU/auth-keypair
+    is plugin.auth.auth-keypair(.validate-incoming-tofu/.init_code),
+    already real; client-side is
+    protocol.protocol-7.link-upgrade.handshake($socket,$options) — this
+    doc's own link_upgrade_perl_side note already identifies it as "a
+    client-side Perl equivalent of p-7-r.c's C handshake." crypt.C25519.*
+    additionally exposes session-key/session-sig generation natively
+    (crypt.C25519.cmd.get-session-sig etc.) — no subprocess needed for
+    the signing step either. Shelling out to p-7-r per remote/ request
+    would mean spawning a subprocess per call and parsing its
+    TRUE/FALSE/SIZE/STRM text reply grammar back into Perl data,
+    duplicating auth logic that already runs in-process on both ends.
+    users.remote-* should compose plugin.auth.auth-keypair +
+    protocol.protocol-7.link-upgrade.handshake + crypt.C25519.* directly,
+    not shell out to p-7-r or its helper scripts.
   link_upgrade_perl_side: >
     the server-side (and a client-side helper) Perl implementation of
     the SAME protocol p-7-r.c speaks, confirmed wire-compatible:
@@ -309,6 +388,31 @@ discovery_integration:
     the actual multi-node discovery layer — uses BMW-L13, same as
     discover.orbital already does, rather than inventing a fourth
     checksum convention.
+  remote_command_authorization: >
+    per user (2026-08-11): a peer host's users.remote-* request needs to
+    be authorized at the COMMAND level, not just the connection level —
+    connection auth (p-7-r's `auth <user> <c25519_pubkey> <ed25519_sig>`
+    handshake, working_transport_precedent_p7r above) proves who opened
+    the link, it does not imply every command sent over it should be
+    treated as equally privileged (e.g. users.value-get vs. a future
+    users.value-delete). data/md/design/SIGNED-COMMAND-INTERFACE.md is
+    the existing design for exactly this second layer — design-only
+    today (base.cmd.extract_signature_footer, base.cmd.verify_signature,
+    bin/p7-sign-cmd all unimplemented, confirmed via file check), but
+    directly applicable: a users.remote-* handler that mutates
+    (vs. reads) would be a natural security.cmd.require-signed candidate,
+    verified via that doc's BMW384-digest + C25519-signature footer
+    before the handler runs, with key_fp -> username resolution and a
+    per-command authorized-keys list — the same authenticate-then-
+    authorize split already used for admin_group/admin_user gating in
+    coding.start.chmod_child / ncode.start.chmod_child. Layering, top to
+    bottom: p-7-r/link-upgrade (transport-level signed connection,
+    working today) -> SIGNED-COMMAND-INTERFACE.md (command-level
+    signature, design-only) -> users.remote-* handler (not yet built).
+    Not decided: which users.remote-* commands actually need
+    require-signed vs signed-optional vs unsigned — flagging the
+    mechanism exists and where it plugs in, not scoping phase 2's exact
+    tier assignment.
 
 ## -----------------------------------------------------------------------
 ## central registration point — future scope, not phase 1/2
@@ -386,9 +490,120 @@ external_source_hooks:
     local host-system user) and data lookup from OTHER zenki (unnamed so
     far — could overlap with discovery_integration's discover.* question
     above, or be a distinct need; not specified beyond "other zenki").
-    Both are cross-zenka operations, not in-process calls.
+  key_generation_CORRECTED: >
+    CORRECTED (2026-08-11, per user — the cross-zenka framing below was
+    wrong for this half): key generation is NOT a cross-zenka operation.
+    users zenka should simply load crypt.C25519 directly into its own
+    modules.load, exactly as the keys zenka's start file already does
+    (configuration/zenki/keys/start:8, `modules.load = crypt.C25519
+    terminal keys`) — plain in-process module loading, nothing
+    routable. crypt.C25519 already has a complete "ensure key
+    loaded-or-generated" interface, just needs enabling: shared-params
+    already sets `crypt.C25519.autocreate-user-key = yes`
+    (configuration/shared-params:22), and crypt.C25519.post_init
+    (lines ~44-61) checks on every init whether the private/public key
+    files exist for the current key user and, if not, auto-generates
+    and writes them via crypt.C25519.gen_keys + .write_keys — entirely
+    during that zenka's own init lifecycle, no command, no deferred
+    reply, no cross-process call. The earlier draft of this section
+    (previously proposing a new crypt.C25519.cmd.generate-key routable
+    command) was solving a problem that doesn't exist for this half —
+    it only applied to the OTHER, still-genuinely-unnamed half of this
+    section: data lookup from other zenki.
+  autocreated_key_encryption_caveat: >
+    NOTED (2026-08-11, per user), verified against live code:
+    crypt.C25519.post_init's autocreate path calls
+    <[crypt.C25519.gen_keys]> with no passphrase argument, and
+    crypt.C25519.write_keys (lines ~81-132) only encrypts the secret/
+    private key at rest (AMOS7::Twofish, '.:' prefix) when an
+    encryption key/passphrase IS present — with none, it writes the
+    UNENCRYPTED form ('U:' prefix). So autocreated keys (both the
+    DEFAULT tier below and any future EXPANSION-tier generation) are
+    unencrypted at rest by default, protected only by unix file
+    permissions (~/.n/user-keys/, 0700-class), not a passphrase. Per
+    user: this still has real value — once TOFU-validated, a stable
+    signing key an attacker would need actual filesystem access to
+    steal is meaningfully safer than not signing at all, and it's
+    exactly the right shape for cross-host request signing
+    (working_transport_precedent_p7r's `auth <user> <pubkey> <sig>`
+    handshake, users.remote-* per transport_implementation_choice) —
+    those need non-interactive signing with no human present to type a
+    passphrase, so passphrase-protected keys would be the wrong choice
+    there regardless. Not a defect to fix, just a property to keep in
+    mind: autocreated keys trade passphrase-protection for
+    availability/non-interactivity, deliberately.
+    Encrypted-key-plus-prompt is NOT missing functionality, per user —
+    it already exists: crypt.C25519.load_keypair (lines ~57-79, 137-149)
+    has a real interactive passphrase-prompt flow via AMOS7::TERM::
+    read_password_single/read_password_repeated, with retry-on-error
+    re-prompting, used for human-facing console contexts (e.g. keys
+    zenka). It's console/terminal-bound (needs AMOS7::TERM), which is
+    exactly why the non-interactive post_init autocreate path can't use
+    it and correctly falls back to unencrypted — two different key-
+    protection modes for two different contexts (interactive console
+    identity vs. unattended daemon/signing identity), not one
+    unfinished feature.
+  v7_mediated_trust_chain_OUT_OF_SCOPE: >
+    RAISED then EXPLICITLY DEFERRED (2026-08-11, per user): a v7-spawn-
+    time trust-chain mechanism for zenka identity keys (extending the
+    real, existing exclusive stdin channel v7 already uses for cube.key
+    / base.auth.set_v7_key — see configuration/zenki/*/zenka-startup.v7,
+    modules/base.auth.set_v7_key, base.cmd.verify-instance) does NOT
+    belong in this doc — it's system-wide (every v7-spawned zenka), not
+    users-zenka-specific. Per user: postpone until different topology-
+    based key types exist; likely becomes safer/more feasible
+    specifically for zenki that DON'T need their own key-generation
+    ability at all (v7 provisions instead). Belongs in a future v7/
+    zenka-lifecycle or key-topology design doc, not here — recorded as
+    a pointer only so it isn't lost, not designed further in this doc.
+  key_ownership_model: >
+    RESOLVED (2026-08-11, per user), two tiers:
+    DEFAULT — with default parameters, users zenka (running as the
+    protocol-7 unix user, v7-managed) resolves its OWN identity key via
+    the plain autocreate flow above, which lands on protocol-7.base
+    (confirmed live: `USER=protocol-7 Protocol-7 keys list` shows
+    exactly global-root + protocol-7.base under that user, both
+    no-r.perms) — this is users zenka's own self-identity, nothing
+    cross-user. crypt.C25519.get_usr_keys_dir($requested_user) DOES
+    support resolving an arbitrary OTHER user's key directory by name
+    (falls back through base.get_homedir), but that's path resolution
+    only — actual read/write there needs real OS permission on that
+    directory, which protocol-7 does not have on e.g. taeki's
+    /home/taeki/.n/user-keys/ under normal permissions (no-r.perms
+    precedent above suggests these are deliberately locked down even
+    cross-user by default).
+    EXPANSION (explicitly wanted, not default) — users zenka generating
+    keys ON BEHALF OF other host-system users, for remote-host
+    provisioning / desktop-recreation scenarios (ties directly into
+    central_registration_point's reproducible-setup-package vision
+    below, and set-up zenka's existing profile export/import
+    machinery) — per user: build this as a cryptographically secured
+    expansion using the SAME admin-group chmod_child-style privileged-
+    child escalation already found in coding.start.chmod_child /
+    ncode.start.chmod_child (fork requires root, immediately drops to
+    admin_user + admin_group, verifies target-path ownership before
+    ANY write, tiny fixed request protocol over a pipe — never a
+    general privileged shell), gated additionally behind
+    discovery_integration.remote_command_authorization's
+    SIGNED-COMMAND-INTERFACE.md-style command signature (this is
+    exactly the kind of mutating, security-sensitive operation that
+    section flagged as a require-signed candidate, not signed-optional
+    or unsigned). NOT yet designed: the exact chmod_child-equivalent
+    protocol verbs for key generation specifically (create/gen key file
+    under an ownership-verified target dir, mirroring the existing
+    gwd/create/mkdir verb set) — flagging the shape, not the full spec.
+    Mirror on the user-edit side: per user, user-edit zenka (running as
+    the human operator, e.g. taeki — see runtime_surface /
+    user_edit_relationship) would by the same plain autocreate flow
+    default to loading taeki.base, not protocol-7.base — same
+    mechanism as users zenka's own DEFAULT tier above, just resolved
+    under a different running-as user. No special-casing needed between
+    the two zenki; the running-as user is what determines <user>.base,
+    consistently.
   async_design: >
-    per user direction, correctly: this needs a real async design, not a
+    per user direction, correctly: cross-zenka calls (the data-lookup
+    half specifically — key generation no longer needs this, see
+    key_generation_CORRECTED above) need a real async design, not a
     synchronous call. The right mechanism already exists and is used
     elsewhere in this codebase — do NOT invent a new hook-registry
     abstraction for this. FALSE START avoided during this design: was
@@ -402,20 +617,37 @@ external_source_hooks:
     caller's reply_id), does async work, and calls
     `<[base.callback.cmd_reply]>->($reply_id, {mode=>..., data=>...})`
     once that work resolves, to actually deliver the reply.
-    For users zenka's external hooks this nests one level deeper: a
-    users.* command that needs a key generated or data looked up from
-    another zenka returns deferred to ITS caller, issues a routed
-    command to the external zenka (crypt.C25519 for key generation,
-    presumably — not yet confirmed callable this way; whichever zenka
-    for data lookup — not yet named), and on receiving THAT zenka's
+    For users zenka's data-lookup hook this nests one level deeper: a
+    users.* command that needs data looked up from another zenka
+    returns deferred to ITS caller, issues a routed command to that
+    external zenka (not yet named), and on receiving THAT zenka's
     reply (via its own <zenka>.handler.*_reply-style callback, same
     shape as mpv.snapshot.cmd_reply), calls base.callback.cmd_reply to
     complete the ORIGINAL deferred command back to whoever asked users.*
     in the first place. Two hops, same primitive reused at each hop —
     not two different mechanisms.
+  existing_C25519_cmd_surface_quality_finding: >
+    FOUND 2026-08-11, reviewed with user: crypt.C25519.cmd.
+    register-master-key / .set-client-key / .clear-zenka-key have no
+    caller-identity check in-module (register-master-key accepts any
+    caller-supplied <username> <pubkey> pair and registers it as that
+    username's master trust anchor; no access.zenki grep hit gates any
+    of the three by name anywhere in configuration/zenki/*/access.*,
+    and crypt.C25519 loads broadly across most zenki's
+    subroutines.load-early). register-master-key's file also carries a
+    broken/placeholder signature footer (literal "XYZABC123DEFGH456...",
+    "TEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ..." text where a real
+    AMOS7 signature belongs) ahead of what looks like an actual one.
+    Per user: this reads as early-stage/prototype-quality code (likely
+    LLM-scaffolded, never cleaned up) rather than a deliberately shipped
+    security hole — NOT currently wired into anything live, so nothing
+    breaks by changing it freely. NOTE: this no longer blocks or
+    motivates anything in THIS doc per key_generation_CORRECTED above
+    (no new crypt.C25519.cmd.* command is needed here at all) — it's
+    now purely its own standalone cleanup item, worth its own todo so
+    it isn't
+    forgotten before something DOES start calling them.
   open_questions:
-    - does crypt.C25519 already expose a routable command for key
-      generation, or would one need to be added? Not checked yet.
     - which zenka(s) provide "data lookup from other zenki" — genuinely
       unnamed by user direction so far, distinct open item from
       discovery_integration's discover.* question above (that's about
@@ -459,8 +691,8 @@ created: 2026-08-10
 tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
        smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh]
 
-#,,,.,,,,,,..,,.,,.,,,..,,.,.,..,,..,,.,.,.,.,..,,...,...,.,,,...,..,,.,,,,..,
-#YPYU5ZCIVT42CIF3AZFBKHPPMM6HBJFIODPKFMWASAY3DYUGKB5QD722ZRU7O4M2E3MYDXE2GUSZM
-#\\\|KOA4NBZYSEX5Y5LWPZF7C64D4SNWKYWAICMIG6EIGMPCGE3R24J \ / AMOS7 \ YOURUM ::
-#\[7]AT6P6ZAZPT5342LAFQUL3UUJD2QRVBHDSQ2JVMHWALOXUFHKLUBI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,..,,,.,,,,.,,,,,,..,,,.,.,.,..,,...,...,...,...,,.,,,,,,..,,
+#NSLVVWZAN5OYQBDFSHSDHDWNNTV4TLDC5L2RBAVNALJL4DGF2XMKOU2R3UKUAQ6EFZUCFKVJYGDXC
+#\\\|SDAMGW2CHXBXFMW6572EUAYV3BHNQ4DUUH4L4Z327CWVMJTDFIJ \ / AMOS7 \ YOURUM ::
+#\[7]ZMBSAT6ERTJ2RWHHFXHHNXUU5FZWS5KR3AG3HTD5AYSYMPLQISCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
