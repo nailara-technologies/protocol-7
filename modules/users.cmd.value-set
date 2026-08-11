@@ -42,15 +42,20 @@ return {
     }
     if ref $fields ne qw| HASH |;
 
-$fields->{'username'} //= $username;
-
 ## USERS_HOST is created once at boot, as root, in users.init_code — this ##
 ## handler runs post-drop_privs and can't mkdir under the root-owned      ##
 ## /etc/protocol-7/ parent, so it only ever writes here                   ##
 my $file_path     = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
 my $resolved_path = <[base.path.resolve_keywords]>->($file_path);
 
-my ( $ok, $err ) = <[format.yaml.write_file]>->( $resolved_path, $fields );
+## best-effort read of the existing record, only to preserve its creation   ##
+## timestamp across updates -- undef/error is fine here, it just means this ##
+## write is treated as a fresh record                                       ##
+my $existing = <[format.yaml.load_keyword_path]>->($file_path);
+
+my $envelope = <[users.record.build]>->( $username, $fields, $existing );
+
+my ( $ok, $err ) = <[format.yaml.write_file]>->( $resolved_path, $envelope );
 
 return {
     'mode' => qw| false |,
@@ -66,8 +71,8 @@ return {
     'data' => sprintf( "user '%s' stored", $username )
 };
 
-#,,..,,.,,.,,,,..,.,.,,.,,,..,..,,,..,,.,,,.,,..,,...,...,,..,,.,,,.,,,.,,,.,,
-#KNJPIAOMKLY73AZCQGYDLKPUYTWCRIVO6SNUQHSONXVY37PM4IVSWTKG2OP5XYWTXIBIA7YHMEWUO
-#\\\|6R6QLHC6JP6ANTQAFXRZUQWVKKBNNUPGMJMUWTTOAIMTELWXBS2 \ / AMOS7 \ YOURUM ::
-#\[7]6IWRSS7YR6WFO3XP4IZ5CIT2UNI2SOJG6ELXOF5LUATLQZZ7N4BQ 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,.,.,.,,.,,,..,...,,.,,.,.,..,,..,,...,...,,.,,.,.,,..,.,.,,..,
+#FKAQ5B2VTJYGP3VLCZ6LUZOA4JQEQRRFSBD7ABUJT47XJCSWAEZWSD7E4E455TVGY35B6NNYT4Q32
+#\\\|ZPW6OKXJ5NRJLMGOI7DQGRAJK6PEEF5RTH4JF5CH6JCWORTXZQM \ / AMOS7 \ YOURUM ::
+#\[7]5SLEPOJUKKK7TO2L4WLDVFAKVSHE4LY4AGSA3EMPEJNMCXCTUSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
