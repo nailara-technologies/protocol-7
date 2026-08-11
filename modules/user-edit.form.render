@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = user-edit.form.render
+# descr = render the active user-edit form to the terminal
+
+## doubles as the base.event.add_var watcher handler for
+## <user-edit.form.dirty> [ see user-edit.handler.value_get_reply ] : both a
+## keystroke edit and an async out-of-band field update just bump that
+## counter, and this module is what turns either into an actual redraw.
+##
+## it must never write <user-edit.form.dirty> itself — base.event.add_var
+## registers reentrant watchers by default, so a write from inside the handler
+## would re-fire it immediately.
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $frame_name = <user-edit.form.frame_name> // qw| user-edit-form |;
+
+## the frame is generated in memory, and ascii.frame.init_code wipes that ##
+## cache on every source reload — regenerate rather than render nothing   ##
+if ( not exists <ascii.frame.cache>->{$frame_name} ) {
+    <[user-edit.form.build_frame]>->(
+        $editor_state->{'schema'},
+        $frame_name, <user-edit.form.title>
+    );
+}
+
+my $rendered
+    = <[editor.ui.ascii_frame.render_form]>->( $editor_state, $frame_name );
+
+if ( not defined $rendered ) {
+    <[base.logs]>->( 0, ': form render failed [ %s ]', $frame_name );
+    return FALSE;
+}
+
+## interactive mode owns the whole screen ; the one-shot render just adds the
+## frame to whatever is already on the terminal
+print "\e[H\e[2J" if <user-edit.form.interactive>;
+
+print "\n" . $rendered . "\n";
+
+if (<user-edit.form.interactive>) {
+    print "\n  [ tab ] next field   [ enter ] submit   [ ctrl-c ] quit\n\n";
+}
+
+STDOUT->flush();
+
+return TRUE;
+
+#,,.,,,.,,,,.,,,.,,.,,..,,..,,.,,,,..,,.,,.,.,..,,...,...,..,,.,.,,..,.,,,.,,,
+#5JUQ73HBQHRSMPK4M6VJ7XPMQB5TCA2Y7J4YRFX6X4ZMJO7WIYKMH3IDZUAC26ZC5OVM6V47WHERQ
+#\\\|HVYLI72CHRCAF3I7CXGTRPONMD7I5I5ABGNQ4AAWEFQAB5QNWXI \ / AMOS7 \ YOURUM ::
+#\[7]P2PJVNUBHX552BN73YFEVFCXAF63MJFRTOWXACA7BNRRD6FZLODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

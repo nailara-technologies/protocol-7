@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = user-edit.console.show-form
+# descr = fetch a users record and render it once as an ascii form
+# param = [ <username> ]
+
+## the non-interactive half of phase 3 : proves the whole data path —
+## users.value-get over the cube link -> record envelope -> derived editor
+## schema -> generated ascii frame -> render_form — with no terminal raw mode
+## and no watchers involved.  user-edit.console.start reuses every one of
+## these steps and only adds the input side on top.
+##
+## this is a HYBRID console command [ user-edit/start's own note ] : the reply
+## is asynchronous, so the command marks init done and enters the zenka event
+## loop itself rather than the start file doing it — a [zenka.loop] in the
+## start file would hang plain 'v7.user-edit commands'.
+
+my $username = shift // '';
+$username =~ s|^\s+||;
+$username =~ s|\s+$||;
+$username = <user-edit.unix_user> if not length $username;
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    print "\n  << no cube session — cannot reach the users zenka >>\n\n";
+    return FALSE;
+}
+
+<user-edit.form.username>    = $username;
+<user-edit.form.interactive> = FALSE;
+<user-edit.form.title>       = sprintf( 'user-edit : %s', $username );
+
+<[base.logs]>->( 2, ': requesting user record [ %s ]', $username );
+
+## session-id-prefixed route, matching users.remote_fetch.run's own send ; the
+## non-prefixed swap-family alias is required here — see
+## bug-auth-keypair-client-composition-gotchas
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-get', $cube_sid ),
+        qw| call_args | => { qw| args | => $username },
+        qw| reply |     =>
+            { qw| handler | => qw| user-edit.handler.value_get_reply | }
+    }
+);
+
+<[base.init-done]>->(TRUE);    ## standalone zenka : not v7-managed ##
+
+<[base.zenka.loop]>;
+
+return TRUE;
+
+#,,,.,,.,,,,,,..,,.,,,,..,..,,.,,,...,..,,.,.,..,,...,...,...,,.,,,.,,.,.,,.,,
+#AIJ3FTK5V5KQP6KH353CTUSMIL3E4XO4LHYK4OD3OZ6QIR42ET4LTQO4YYHWIKMYATUGTLUR6MA6K
+#\\\|XLFDTDQMKCJ3OPLJKTX5TEVWHNWBBF5A27NONGCK2N4V5QWAGB6 \ / AMOS7 \ YOURUM ::
+#\[7]OLNLSVTFEOFK3EVOXUUHH2U6LLCZOOUCSQ2MYVLZAB4WYKUSXOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
