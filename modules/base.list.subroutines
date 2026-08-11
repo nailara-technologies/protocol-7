@@ -674,6 +674,7 @@ return [ qw[
         v7.cmd.host-reboot
         v7.available_zenki
         v7.autostart_zenki
+        users.record.build
         universal.pre_init
         ui.render.fallback
         ui.fields.fallback
@@ -886,7 +887,9 @@ return [ qw[
         users.cmd.value-set
         users.cmd.value-get
         users.cmd.value-all
+        user-edit.term_init
         user-edit.init_code
+        user-edit.form.quit
         universal.init_code
         transport.init_code
         tile.merge_multiple
@@ -1085,6 +1088,7 @@ return [ qw[
         v7.terminate_process
         v7.process_zenka_end
         v7.parser.process_id
+        users.cmd.remote-get
         user-edit.draft.load
         tree.route.page.read
         tile.cmd.sort_layers
@@ -1343,7 +1347,10 @@ return [ qw[
         v7.cmd.reboot-warning
         v7.cleanup_temp_paths
         v7.cleanup_temp_files
+        users.record.validate
         user-edit.outbox.list
+        user-edit.form.submit
+        user-edit.form.render
         user-edit.draft.write
         user-edit.draft.clear
         universal.start_zenka
@@ -1448,6 +1455,7 @@ return [ qw[
         format.json.init_code
         filter.cmd.del_filter
         filter.cmd.add_filter
+        editor.input.next_key
         editor.control.submit
         editor.control.create
         download.util.resolve
@@ -1602,8 +1610,12 @@ return [ qw[
         v7.calc_prefix_lengths
         v7.bin_p7r_comp_chksum
         v7.bin_p7c_comp_chksum
+        users.remote_fetch.run
+        users.cmd.remote-fetch
+        user-edit.term_restore
         user-edit.outbox.write
         user-edit.outbox.clear
+        user-edit.cmd.char-add
         universal.switch_child
         universal.self_restart
         universal.lower_except
@@ -1865,6 +1877,7 @@ return [ qw[
         v7.handler.zenka_output
         v7.handler.shutdown_cmd
         v7.callback.host-reboot
+        user-edit.console.start
         universal.cmd.slow_down
         udev.handler.adm_stdout
         tree.sort.trunk.project
@@ -2309,6 +2322,7 @@ return [ qw[
         base.strm.local.register
         base.stream.frame.detect
         base.stream.frame.decode
+        base.session.set_subname
         base.session.check.close
         base.protocol-7.pre_init
         base.perlmod.runtime_use
@@ -2632,6 +2646,7 @@ return [ qw[
         v7.load_zenka_startup_cfgs
         v7.handler.restart-timeout
         v7.handler.heartbeat_timer
+        user-edit.form.build_frame
         universal.reroute_commands
         universal.handler.sig_chld
         universal.cmd.get_geometry
@@ -2803,6 +2818,7 @@ return [ qw[
         branch.field.axes_boundary
         branch.cluster.layers_list
         base.warnings.from_bitmask
+        base.session.split_subname
         base.session.check.flushed
         base.reverse-sort.key-name
         base.protocol.compile_once
@@ -2880,6 +2896,8 @@ return [ qw[
         v7.callback.setup_zenka_key
         v7.callback.get_x11_display
         v7.callback.connect_to_cube
+        user-edit.handler.stdin_key
+        user-edit.console.show-form
         universal.startup_sub_zenki
         universal.cmd.show_playlist
         universal.cmd.set_window_id
@@ -2993,6 +3011,7 @@ return [ qw[
         fetch.file.huggingface.list
         fetch-files.cmd.hf-download
         external.cmd.orbital-status
+        editor.input.parse_key_spec
         editor.buffer.memory.length
         editor.buffer.memory.insert
         editor.buffer.memory.delete
@@ -3133,6 +3152,7 @@ return [ qw[
         v7.handler.get_display_reply
         v7.handler.cube_session_auth
         v7.callback.instance.restart
+        user-edit.form.field_changed
         universal.get_unix_sock_path
         universal.cmd.get_list_types
         tree.sort.trunk.layer_to_col
@@ -3352,6 +3372,7 @@ return [ qw[
         v7.handler.cube_session_close
         v7.callback.stdout_log_rotate
         v7.callback.register_ondemand
+        user-edit.setup_stdin_watcher
         universal.handler.switch_fade
         universal.cmd.playlist-update
         universal.cmd.get_coordinates
@@ -3988,6 +4009,7 @@ return [ qw[
         v7.handler.stdio_multiplex_demux
         v7.handler.set_initialized_reply
         v7.handler.instance_verification
+        users.handler.remote_fetch_reply
         universal.handler.switch_timeout
         universal.handler.mpv_idle_reply
         universal.handler.get_list_reply
@@ -4152,6 +4174,9 @@ return [ qw[
         v7.parser.manually_stopped_tstamp
         v7.handler.stdio_multiplex_listen
         v7.callback.delete_instance_cache
+        user-edit.handler.value_set_reply
+        user-edit.handler.value_get_reply
+        user-edit.form.schema_from_record
         universal.callback.mpv_idle_check
         tile.handler.get-tile-color_reply
         tile.handler.check_playlist_reply
@@ -4745,6 +4770,7 @@ return [ qw[
         base.handler.write.encryption-wrapper
         base.handler.check_strm_size_timeouts
         base.X-11.handler.coordinates_timeout
+        auth.client.auth-keypair.authenticate
         ascii.frame.render.data.border_string
         ascii.frame.render.color.content_line
         amos-term.handler.interaction-timeout
@@ -5137,8 +5163,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,.,,.,,,...,.,,,,,.,...,.,,,,,,,.,.,,,.,.,.,...,...,...,,..,.,.,,,,,.,,,
-#ZW3QDDE366MPZXJ2WDQOZXD6IUKWOKOCPLMUW7RADVVNLXM567UUD2NSAICCRFYDEMAQLOVSMDI32
-#\\\|U225M5JTH6AZXV4GEHVVZLXQVJZPKZVE2JU6XQ3VOTFUQB6JPJ2 \ / AMOS7 \ YOURUM ::
-#\[7]APZSWFCR4B7MQKMFEOILJIW42YFPXOZ3ZA4VAHHE2BAHF6CWAUAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,..,,,,,,,..,.,,,.,,,,.,,..,,.,.,...,...,.,,,,,,,,,,,,.,,,,,,
+#QQ3M2QD56B37QB2FN4VFIOAFYWW3JPIJ7S7SS6LJFGXZF2AL4QRCZJXDJQA3B3ODNTYRZLXT6S7OW
+#\\\|CIJVW526QY37IEFMXFFPAVLJ6VLYM7G76SCL7DLBOELZDWNZIE6 \ / AMOS7 \ YOURUM ::
+#\[7]6OBYAMJU4WGEFXCHO3M4VEEN7YQJPGRKYQ5OEZ7OZKISLWOPKWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
