@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [backslash-keyword-is-not-a-reference](feedback-backslash-keyword-is-not-a-reference.md) — `\<some.data.key>` does NOT take a ref to that slot; a leading backslash is the loader's ESCAPE ((?<!\\)<..>), so it yields a ref to the literal NAME STRING. Use explicit `\$data{..}`. Fails silently — an add_var watcher on one simply never fires
 - [amos-chksum-listcontext-gotcha](feedback-amos-chksum-listcontext-gotcha.md) — AMOS7::CHKSUM::amos_chksum returns a 2-elem list under wantarray; a thin `return`-wrapping helper called inline in a hash literal silently corrupts the hash — always `return scalar EXPR`
 - [interrupted-signing-session-recovery](feedback-interrupted-signing-session-recovery.md) — after an AFK-timeout mid signing/commit: `git reset` (mixed) a stale pre-signing index before re-staging; recover the prior session's exact batch plan from /tmp/claude-*/<session-id>/scratchpad, not just session_catchup's summary (which can time out on structured detail)
 - [esoteric-research-verification-pipeline](feedback-esoteric-research-verification-pipeline.md) — validated Opus-verify-then-Fable-consolidate sequence + citation/tiering discipline for harmonic-math/vision corpus deep-dives; propose proactively when speculative-chain ratio climbs
@@ -82,8 +83,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 - [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
 
-#,,,,,.,,,,,.,,,.,...,,,.,..,,,..,...,,.,,,.,,..,,...,...,.,.,..,,,,.,,,.,,.,,
-#L6OB3ZEEM6KOZEZO2WFMEVJAQRZX7RUNUCMVUSOHHKAKWYTHFZKIR2VKH5FMOJHLEI725KOYYWDRU
-#\\\|SURZGY5BS2MOLJLUN6KO5MB45XT6U5NSUYXG6OQMLYYPAOBQIJ5 \ / AMOS7 \ YOURUM ::
-#\[7]CHLUQ52F37EBC4XWYJVKCHVGMGVXEK6QPFT3CWZTCY3ODLXMH6BQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,.,,,..,,..,,,,,,.,,.,.,..,,,..,..,,...,...,.,.,,.,,,,,,.,,,,,,,
+#SDSA3F55WUV56JSRSOYE3GAJVUSGTS5NKFS7TM6VHIO27EMILEBJPOGNUPJD546EVCTOQVD7JSPHW
+#\\\|XZTLSLZSG77IM7HYONR3PS3BDVXVIYDTIGNYIE72DBIBCWJJIJD \ / AMOS7 \ YOURUM ::
+#\[7]WCAVI6LFD4UTA2FM2NI4TRELGZAMMODEYSO2BEWMA4PSCSEJXUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
