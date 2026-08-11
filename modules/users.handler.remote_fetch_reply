@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = users.handler.remote_fetch_reply
+# descr = reply handler for a users.remote-get sent over a
+#         users.remote_fetch.run-established client session -- completes
+#         the ORIGINAL users.remote-fetch caller's own deferred reply
+#
+# real call signature confirmed 2026-08-11 against
+# base.handler.command.process_reply (NOT the single ($reply,$params)
+# shape discover.orbital.handler.local_p7ref_reply's own precedent
+# suggested -- that turned out to be reading a differently-shaped call
+# path): a SINGLE hashref arg { sid, cmd, call_args, params, data? }.
+# 'cmd' is the wire-level reply mode keyword (TRUE/FALSE/SIZE/...);
+# SIZE mode carries the payload in a separate top-level 'data' key,
+# TRUE/FALSE carry their message in call_args->{'args'} instead.
+
+my ($info) = @ARG;
+
+my $cmd           = $info->{'cmd'}       // '';
+my $call_args     = $info->{'call_args'} // {};
+my $reply_params  = $info->{'params'}    // {};
+my $orig_reply_id = $reply_params->{'orig_reply_id'};
+
+my $reply;
+if ( uc($cmd) eq qw| SIZE | ) {
+    $reply = { 'mode' => qw| size |, 'data' => $info->{'data'} // '' };
+} elsif ( uc($cmd) eq qw| TRUE | ) {
+    $reply = { 'mode' => qw| true |, 'data' => $call_args->{'args'} // '' };
+} else {
+    $reply
+        = { 'mode' => qw| false |, 'data' => $call_args->{'args'} // $cmd };
+}
+
+<[base.callback.cmd_reply]>->( $orig_reply_id, $reply );
+
+return TRUE;
+
+#,,,.,,,,,.,.,,,,,.,,,,,,,.,.,.,,,.,.,.,.,,..,..,,...,...,.,.,.,.,.,.,.,,,,,,,
+#JBJ53ABSTTHVFQX6TG2ZEATD6KQH453ZXCWPRBHKW5PE4EZXUW3EKWYREF5PYKOTKUWCTJVXETH3U
+#\\\|CMM6BZYYIFSJH3YIYVSCOUFBNO6GOYONZUZGYPPSRWDWAQBZNDN \ / AMOS7 \ YOURUM ::
+#\[7]LUEI4XOS3FUA6PPVVPUHOKZCQT5UB2CUROJ4DZFHMVV23DZKBMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
