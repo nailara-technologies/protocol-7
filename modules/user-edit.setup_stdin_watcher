@@ -34,7 +34,11 @@
 ## register_job_queues' counter-watcher precedent ].  user-edit.form.render
 ## must never write this scalar itself — watchers are reentrant by default
 <user-edit.form.watcher.dirty> = <[event.add_var]>->(
-    {   qw| var |     => \<user-edit.form.dirty>,
+    ## explicit $data{..}, NOT '\<user-edit.form.dirty>' — a leading backslash
+    ## is the translator's ESCAPE ((?<!\\)<..>), so that form silently watches
+    ## a reference to the literal name string and never fires.  this was a
+    ## real bug here, caught by the no-tty driver
+    {   qw| var |     => \$data{'user-edit'}{'form'}{'dirty'},
         qw| poll |    => qw| w |,
         qw| handler | => qw| user-edit.form.render |,
         qw| repeat |  => TRUE,
@@ -50,8 +54,8 @@ return FALSE
 
 return TRUE;
 
-#,,..,,,.,,.,,..,,...,..,,..,,.,,,,.,,,,,,...,..,,...,...,,.,,...,,,.,.,.,.,.,
-#AOABGDBJRT6LAGYOLMMQXUHJ3ZLW65VDUETLXUN4PIYS6HFU5VXDCSYYBV4XAISSX4DCRGRNUL54O
-#\\\|7E67QPK2PPD6QXEZDYTCNB32G4DAV5CWAQSFDO64M2K7T4L3S72 \ / AMOS7 \ YOURUM ::
-#\[7]XXF4PBFKBTPYADZ5RBZN5EUF5XWRILM6EMAN5KWYMXUIMIZO7MDI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,..,,...,,,.,,,,,,,,,,,.,..,,,.,,..,,...,...,..,,,..,.,,,.,.,,,,,
+#QD65LLK5W5PPKJABRURLHUOTYPK5QDJUCHDDNZ74YJPPFTAUIRU6RN6RRVYYNE6WMUWK2XBLYQJ7W
+#\\\|QVCELHHIXVBIRWGYI62TBXX47BS6GUTDEWCF2ZI2M54H3B4W7BM \ / AMOS7 \ YOURUM ::
+#\[7]LTLO3IW6FNGH4IQ5KKIYGEWOA6J3BVUAM7CKVMNWVE34XZ7X6CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
