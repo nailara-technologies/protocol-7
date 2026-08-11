@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = base.ask
+# descr = ask the user a question on the terminal console
+# param = { question, type, default, given, prefix }
+
+## thin P7-native wrapper over AMOS7::TERM::ask, which holds the actual
+## implementation so standalone scripts in bin/ can use the same one --
+## AMOS7::TERM is where the interactive code lives [ read_password_single/
+## _repeated, has_tty, the editor and cursor primitives ].  this exists so
+## zenka code reaches for a base.* wrapper instead of a raw perlmod call, and
+## so the autoload happens in one place.
+##
+## <[base.ask]>->( { question => 'create a default record?' } )
+## <[base.ask]>->( { question => 'user name', type => 'text' } )
+## <[base.ask]>->( { question => 'passphrase', type => 'masked' } )
+##
+## 'given' short-circuits with no prompt and no output, and a missing tty
+## returns 'default' without reading -- see AMOS7::TERM::ask for why both
+## matter.  BLOCKING : do not call from inside a running event loop.
+##
+## OTHER 'ask' PATHS, none of which this replaces -- different media, not
+## duplicates : amos-term.interaction.ask [ named buffer, non-blocking, agent
+## side ], coding.tools.handler.ask_user_text/_choice [ GUI modal via
+## protocol-7-menu ].  nshell additionally carries its own line-editing and
+## history interaction ; the editor.* namespace migration is the effort
+## consolidating that core.
+
+my $params = shift // {};
+
+return undef if ref $params ne qw| HASH |;
+
+<[base.perlmod.load]>->('AMOS7::TERM')
+    if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+
+my $answer = AMOS7::TERM::ask($params);
+
+<[base.logs]>->(
+    2,
+    ': no terminal, answered with the default [ %s ]',
+    $params->{'question'} // '?'
+    )
+    if not defined $params->{'given'}
+    and not AMOS7::TERM::has_tty();
+
+return $answer;
+
+#,,,.,,..,...,..,,,,.,.,.,...,.,.,,,,,.,.,..,,..,,...,...,..,,..,,.,.,,.,,.,.,
+#FCHZQJ2B6IHTHUYEZTRGGINAZPVS2PWM5RGITXBIQ5T5KNSV73PTUCXOYAPLMPU5PRMGWWFNJT5HK
+#\\\|YE3CMD7URGWNJMMXWHAFPGRDRMDDYPSA73UFCBO5VKOWW6PYSQG \ / AMOS7 \ YOURUM ::
+#\[7]HEH2SU7FHJBSO47DYVOOCS7T4RTTP4CSK3SU76AFJ3FFJRZYLABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
