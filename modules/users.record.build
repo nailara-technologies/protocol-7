@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = users.record.build
+# param = <username> <fields_href> <existing_href_or_undef>
+# descr = build a host-system record envelope [ name/checksum/timestamp/
+#         metadata/fields ], reusing an existing record's creation
+#         timestamp when present
+
+my ( $username, $fields_href, $existing_href ) = @ARG;
+
+$fields_href = {} if ref $fields_href ne qw| HASH |;
+
+## creation timestamp is immutable once set -- reuse it across updates, ##
+## fall back to a fresh one for brand-new or legacy/malformed records   ##
+my $timestamp = <[base.ntime]>;
+$timestamp = $existing_href->{'timestamp'}
+    if ref $existing_href eq qw| HASH |
+    and defined $existing_href->{'timestamp'}
+    and length $existing_href->{'timestamp'};
+
+## identity checksum is name-derived only -- never reads key material, so a ##
+## record can always be built even before the user has any key              ##
+my $checksum = substr( <[chk-sum.amos]>->("host-system:$username"), 0, 7 );
+
+return {
+    'name'      => $username,
+    'checksum'  => $checksum,
+    'timestamp' => $timestamp,
+    'metadata'  => { 'updated_at' => <[base.ntime]> },
+    'fields'    => $fields_href
+};
+
+#,,.,,.,.,,.,,,.,,,,,,...,,.,,..,,,,,,.,,,.,.,..,,...,.,.,..,,,,.,.,.,...,,..,
+#7P6355XZ6O5SBGOL6YBVY5WQOLT6PPA6UDSZW6YOHWOC7224KKNBD7WQO6MIZYEWGWQW3RN6MBXM4
+#\\\|QBTVSYEEUZD4MMTJTWG2SY7DPMY3RUJAO4QRNEBI7QVGRJYCQEX \ / AMOS7 \ YOURUM ::
+#\[7]U7O5M37YKGFKOXCT6RNZFM5AJYG33J5DH67EHU5HUVJTO3EAAYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
