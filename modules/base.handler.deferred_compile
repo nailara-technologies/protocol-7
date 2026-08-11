@@ -21,8 +21,13 @@ my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 if ( ref $code{$sub_name} eq qw| CODE | ) {
     delete $data{'code'}{$sub_name}{'deferred_stub'};    ## real code now ##
     my $moved_to = $data{'code'}{$sub_name}{'moved_to'};
-    $code{$moved_to} = $code{$sub_name}
-        if defined $moved_to and $moved_to ne $sub_name;
+    if ( defined $moved_to and $moved_to ne $sub_name ) {
+        $code{$moved_to} = $code{$sub_name};
+        ## the target key carries the stub flag too when swap_subs aliased ##
+        ## rather than moved it -- clear it there as well, or a later swap ##
+        ## keeps reading real compiled code as "just a stub"               ##
+        delete $data{'code'}{$moved_to}{'deferred_stub'};
+    }
 }
 
 goto &{ $code{$sub_name} }    ##  transparent hand-off on first call  ##
@@ -51,8 +56,8 @@ $code{$sub_name} = eval(                         ##
 
 <[base.logs]>->( 0, '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,..,.,.,,..,...,,,,,...,.,,,...,.,,,,,,,,,.,..,,...,...,.,.,,..,.,.,.,,,...,
-#3ZGN5RZWGZ5UKZL3BKCIVR4DK6FJE5SG5ROC7JKMUTONKLRAWVWI6VSGTFSXQU4FB2PPMIXMCJBNY
-#\\\|IIRGFVDQOZRQK5AAPOUJOL45OUHQMI5HAST7WN7YQR5BVMHRV25 \ / AMOS7 \ YOURUM ::
-#\[7]J25W7QCLNP6NWMVW5TQJQWQQWATMBZCNC5SCZKFCSKYTDOIEMCDA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,..,,..,,,,,,..,,..,.,.,..,,..,,..,,...,...,,,.,,.,,.,,,,..,...,
+#BZ45AGCOW7JDDDQZ76LP3R4J4RPS4YQ7Q2NADKOHI6GCLWIKGWRBYSUFLFSI3KPAZ6DAGBXDZCFXU
+#\\\|ZYRRMIXKYWNZIWGB5L6W45DMZY6SOVRVCEFXZKDT5JMHP5OMUG5 \ / AMOS7 \ YOURUM ::
+#\[7]GXRJYBZXYXZQT3TWAJ7EGSOTRNV63ZMKMURUXD2TPRBH56WJ7CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
