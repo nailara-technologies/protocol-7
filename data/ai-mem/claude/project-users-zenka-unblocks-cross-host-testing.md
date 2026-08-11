@@ -25,10 +25,30 @@ genuinely unimplemented `[LLL]` stub). Don't treat phase 2 as "design a new
 transport" — treat it as "wire users.remote.* onto the transport that's
 already there, and that exercise IS the adoption test this was waiting for."
 
+**UPDATE 2026-08-11: slice 1 landed exactly this way, and it WAS the
+adoption test.** `users.cmd.remote-get`/`remote-fetch` (commit e4185e78b)
+composes `plugin.auth.auth-keypair` + a new `auth.client.auth-keypair.
+authenticate` (client-side, modeled on `auth.client.zenka.authenticate`)
++ `base.session.init`/`init_state` for event-driven dispatch — live-verified
+via a loopback self-test. Doing so surfaced 8 real, previously-undocumented
+bugs/gaps in shared framework code nobody had exercised this combination of
+before (TOFU pin-key stability, a `crypt.C25519.key_vars` cache-hijack trap,
+`plugin.auth.auth-keypair`'s distinct `AUTH_TRUE =)` wire format,
+`protocol.protocol-7.auth.select-method` NOT being generically reusable
+across auth methods, `base.session.init`'s session-name regex constraint,
+the `protocol-7.command.send.local` non-prefixed alias requirement, a reply
+handler's real single-hashref call signature, and a genuine self-deadlock
+when a blocking-read client implementation loops back through the same
+zenka process — recovered only via `v7.stop`/TERM+KILL, `v7.restart`
+couldn't reach the stuck process). Full writeup in `users-zenka.yaml`'s
+`transport_implementation_choice` section. Still open: `discover.orbital.
+known` -> host:port resolution, `remote/{incoming,outgoing}` sync-cache
+storage, link-upgrade encryption, command-level signing.
+
 [[project-checksum-addressing-implementation-survey]]
 
-#,,..,,,.,..,,,.,,,.,,.,,,,,.,.,.,..,,,,.,..,,..,,...,..,,..,,...,...,...,.,,,
-#VSSLUCYOSJGARX3XRXLHIPKFSCYM4EF542CDZ3CS7YGIJCFNV4OYME4YZEBBBJ6PJBM27MZV2BYUK
-#\\\|6BUU2HMX34UP4DGXRGTGEZMGDBBELUDMN3Q4I7CRY2AOPRJTXTL \ / AMOS7 \ YOURUM ::
-#\[7]H5ZYVKQT6EGLSSX4ECG66FJ5BJ5AP2MSO7GMHTRARKVEHOBFEUDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,.,,,,..,,,.,.,.,,..,.,,,.,,,..,,...,...,.,.,,.,,..,,..,,,.,,
+#IPRJENM7O4PI2I36JCEZVA5EPBCGVGO2E3GUZ4I4XH3GOYEZT55XIU345B2XAEDNJMBVK6SVP67ZM
+#\\\|SAKVGIGMQ3KZUA4A4PIJPLHU4VFKZ5LEESMW6HOLLZ3DZ54K4R7 \ / AMOS7 \ YOURUM ::
+#\[7]UG4LBCEO3KBH72VLL6LAMHYMHP5OG5UEDJLAL245HKKIHLVOAYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
