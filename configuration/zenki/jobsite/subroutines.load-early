@@ -278,6 +278,8 @@ jobsite.cmd.rescue-http
 jobsite.cmd.manual-sync
 jobsite.cmd.clear-tasks
 io.unix.socket.end_code
+crypt.C25519.write_keys
+crypt.C25519.unload_key
 crypt.C25519.key_exists
 clients.http.handler.io
 base.templates.pre_init
@@ -308,9 +310,13 @@ jobsite.report.csv_parse
 jobsite.cmd.report-build
 jobsite.cmd.list-trashed
 io.unix.socket.init_code
+crypt.C25519.single_file
+crypt.C25519.load_single
+crypt.C25519.chk_key_dir
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
+base.session.set_subname
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
@@ -331,6 +337,7 @@ jobsite.cmd.dossier-build
 jobsite.cmd.blacklist-add
 jobsite.client_prefs.read
 io.unix.socket.input.open
+crypt.C25519.load_keypair
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -357,7 +364,9 @@ jobsite.handler.fetch-done
 jobsite.client_prefs.write
 io.unix.socket.output.open
 io.unix.socket.input.close
+crypt.C25519.encrypted_key
 base.warnings.from_bitmask
+base.session.split_subname
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol.compile_once
@@ -382,6 +391,8 @@ jobsite.cmd.import-url-http
 jobsite.cmd.blacklist-stats
 jobsite.chksum.branch-color
 io.unix.socket.output.close
+crypt.C25519.sign_file_list
+crypt.C25519.key_is_virtual
 clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
@@ -403,6 +414,7 @@ jobsite.handler.task-created
 jobsite.handler.rescan-timer
 jobsite.dispatch.assessments
 io.unix.socket.input.connect
+crypt.C25519.compare_keypair
 clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
@@ -420,7 +432,9 @@ jobsite.handler.sync-response
 jobsite.handler.rewire-assess
 jobsite.dispatch.reassess_now
 jobsite.dispatch.consume_slot
+crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
+crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -443,6 +457,8 @@ jobsite.handler.repair-created
 jobsite.handler.new-job-settle
 jobsite.handler.assess-timeout
 jobsite.chksum.group-by-branch
+crypt.C25519.key_name_and_type
+crypt.C25519.chksum_cache.retr
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -455,6 +471,7 @@ ascii.frame.render.border_line
 jobsite.report.mime_decode_body
 jobsite.report.evidence_collect
 jobsite.handler.pending-changed
+crypt.C25519.decrypt_secret_key
 base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
@@ -462,6 +479,9 @@ base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
 base.chk-sum.bmw384.arc-segment
 jobsite.handler.import-url-reply
+crypt.C25519.name_from_skey_name
+crypt.C25519.del_keys_hash_entry
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -488,6 +508,8 @@ protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
 jobsite.handler.stray-job-exported
+crypt.C25519.load_keys_from_secret
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.path-set-up.check-zenka-paths
@@ -525,6 +547,7 @@ protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
+auth.client.auth-keypair.authenticate
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 jobsite.handler.mark-exported-response
@@ -554,8 +577,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,.,,,..,,,..,.,,,,.,,...,,..,.,.,.,.,,..,..,,...,...,...,.,,,,,,,,,.,,,.,
-#TAEMWGP7J4VWLGFPTXXCYTG3BLDAFBH3PMOAKUY4GBROQ27YISLVUSA3ADYCH3VN5BLWEMEFAY7JW
-#\\\|O3FI5AXNJBQ4YJTUC4OQ7KLXOSQ67PRVF6QQFW33S2J5XUHOQPE \ / AMOS7 \ YOURUM ::
-#\[7]DM7WB2GFAXUKXRLKNKZXE4KJXLWXFEQNX2EM2UIPUM5JG4XZYQCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,,,...,...,..,,,.,,,,,,,,.,.,.,..,,...,..,,,..,...,.,,,..,,.,,,
+#FSQ7YOUMDZIDB6AEUVQ22EZK26Y6XCTFZCZR5OFQ5FQVUYQOT2FKA3BIR452DVN5MK267LL4GJLWE
+#\\\|CJCDTLADDGCA376MAJX2K24HIVHRJ3SOW632R3O665AIYA74POT \ / AMOS7 \ YOURUM ::
+#\[7]CIPICGPA7T2FPIF3JBEYTGF27XYHOD5RDE77JPVBNSRYMMYBKGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

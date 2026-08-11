@@ -218,6 +218,7 @@ base.balanced-average
 base.X-11.get_display
 impressive.open_window
 impressive.cmd.version
+crypt.C25519.sign_data
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -231,6 +232,8 @@ base.cfg.profile.apply
 base.X-11.get_geometry
 io.unix.socket.end_code
 impressive.get_playlist
+crypt.C25519.write_keys
+crypt.C25519.unload_key
 crypt.C25519.key_exists
 base.templates.pre_init
 base.strip_chksum_lines
@@ -258,10 +261,14 @@ plugin.auth.auth-keypair
 io.unix.socket.init_code
 impressive.screen-change
 impressive.check_tmp_dir
+crypt.C25519.single_file
+crypt.C25519.load_single
+crypt.C25519.chk_key_dir
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
 base.strm.local.register
+base.session.set_subname
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
@@ -279,6 +286,7 @@ ui.render.tree.invalidate
 io.unix.socket.input.open
 impressive.process_subcfg
 impressive.cmd.reposition
+crypt.C25519.load_keypair
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -299,7 +307,9 @@ base.X-11.wait_for_window
 window.profile.color.apply
 io.unix.socket.output.open
 io.unix.socket.input.close
+crypt.C25519.encrypted_key
 base.warnings.from_bitmask
+base.session.split_subname
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol-7.route-send
@@ -313,6 +323,8 @@ base.event.io_idle_restart
 base.check_dependency_dirs
 net.read_linewise_estimated
 io.unix.socket.output.close
+crypt.C25519.sign_file_list
+crypt.C25519.key_is_virtual
 base.zenki.report_child_pid
 base.templates.register_add
 base.stream.record_emission
@@ -330,6 +342,7 @@ auth.client.zenka.init_code
 protocol.protocol-7.pre_init
 io.unix.socket.input.connect
 impressive.autoinstall_check
+crypt.C25519.compare_keypair
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -337,9 +350,12 @@ base.parser.protocol-version
 base.parser.ondemand_session
 base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
+base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 protocol.protocol-7.init_code
+crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
+crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -356,6 +372,8 @@ base.callback.report_children
 auth.client.unix.authenticate
 ascii.frame.parse.border_line
 impressive.cmd.playlist-update
+crypt.C25519.key_name_and_type
+crypt.C25519.chksum_cache.retr
 base.zenki.resolve_primary_sid
 base.zenki.ondemand_registered
 base.session.send_init_reports
@@ -365,11 +383,15 @@ base.chk-sum.bmw.harmonize_L13
 base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
+crypt.C25519.decrypt_secret_key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
 base.file.zenka_dir.unlink_file
+crypt.C25519.name_from_skey_name
+crypt.C25519.del_keys_hash_entry
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -389,6 +411,8 @@ base.parser.center_ellipse_string
 base.callback.expire_code_version
 plugin.auth.auth-keypair.init_code
 impressive.subscribe-screen-change
+crypt.C25519.load_keys_from_secret
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.path-set-up.check-zenka-paths
@@ -420,6 +444,7 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
+auth.client.auth-keypair.authenticate
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
 impressive.callback.rendering_finished
@@ -445,8 +470,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,,,..,,,,.,,..,.,,,,,,,,,,,.,,,..,,,.,,..,,...,...,..,,,,.,...,,.,,..,,
-#SACJM46CNA37ECD4YOOMFT4BNQMU4RITBUW3DRWZSJBEWGOXHAN6LJ3YESHLTZ7WJCUA4IMFENRIK
-#\\\|5RPJVYDRA5QNWS56YHAZXFCOBHKIQOQT7UF7LLGHYJHTEZ5G3NQ \ / AMOS7 \ YOURUM ::
-#\[7]AAYQINFYSSTHGCGUEMY73OAIFSMHFDI6PV4QUFMZ4UTAUDTRTYBI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,,,,,.,.,.,,,...,.,,,..,,.,.,..,,...,...,,.,,.,.,,,,,..,,.,,,
+#65FOMQ25TTYHQGE2DPJSIJ3652Z6ES2TL2UVKIAWLF6EMNGGMDLUQCBIMNHFEESZ6OCAZQINL4ZUY
+#\\\|VVW6I4ZB3477YGGVLHITKOAPNSKEJWZ2QMB5LXRS7RNFG3GQIR6 \ / AMOS7 \ YOURUM ::
+#\[7]IKULJRXYYXLODO2PFZ2L2HCVIB72KAQ5SOKVK6UWS7WOOUEUW4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

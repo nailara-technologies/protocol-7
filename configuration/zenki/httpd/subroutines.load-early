@@ -346,6 +346,8 @@ httpd.system.network_io
 httpd.handler.shm_write
 httpd.diagnostic.report
 httpd.cmd.update-vhosts
+crypt.C25519.write_keys
+crypt.C25519.unload_key
 crypt.C25519.key_exists
 clients.http.handler.io
 base.templates.pre_init
@@ -382,10 +384,14 @@ httpd.system.memory_free
 httpd.parse_range_header
 httpd.event.remove_timer
 httpd.cmd.install-vhosts
+crypt.C25519.single_file
+crypt.C25519.load_single
+crypt.C25519.chk_key_dir
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
 base.strm.local.register
+base.session.set_subname
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
@@ -407,6 +413,7 @@ jobsite.cmd.blacklist-add
 io.unix.socket.input.open
 httpd.system.memory_stats
 httpd.base.size.normalize
+crypt.C25519.load_keypair
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -433,7 +440,9 @@ io.unix.socket.output.open
 io.unix.socket.input.close
 httpd.vhost.read_manifests
 httpd.handler.acme_request
+crypt.C25519.encrypted_key
 base.warnings.from_bitmask
+base.session.split_subname
 base.session.check.flushed
 base.reverse-sort.key-name
 base.protocol.compile_once
@@ -462,6 +471,8 @@ httpd.path.remove_vhost_dir
 httpd.path.create_vhost_dir
 httpd.benchmark.end_request
 httpd.base.file.nonblocking
+crypt.C25519.sign_file_list
+crypt.C25519.key_is_virtual
 clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
@@ -495,6 +506,7 @@ httpd.route.handler.iris-svg
 httpd.handler.template_reply
 httpd.handler.iris-svg.relay
 httpd.handler.acme_challenge
+crypt.C25519.compare_keypair
 clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
@@ -519,7 +531,9 @@ httpd.vhost_template_resolver
 httpd.vhost.dns_matches_local
 httpd.route.handler.web-relay
 httpd.benchmark.start_request
+crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
+crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -548,6 +562,8 @@ httpd.route.handler.iris-route
 httpd.route.handler.iris-pulse
 httpd.diagnostic.end_operation
 httpd.cmd.setup-acme-challenge
+crypt.C25519.key_name_and_type
+crypt.C25519.chksum_cache.retr
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
@@ -570,6 +586,7 @@ httpd.path.create_default_index
 httpd.handler.download_transfer
 httpd.cmd.remove-acme-challenge
 httpd.benchmark.collect_metrics
+crypt.C25519.decrypt_secret_key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -582,6 +599,9 @@ httpd.handler.web_template_reply
 httpd.handler.web-relay.response
 httpd.diagnostic.track_operation
 httpd.cmd.cleanup-acme-challenge
+crypt.C25519.name_from_skey_name
+crypt.C25519.del_keys_hash_entry
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -621,6 +641,8 @@ plugin.auth.auth-keypair.init_code
 jobsite.handler.stray-job-exported
 httpd.route.handler.iris-negotiate
 httpd.handler.input.body_remainder
+crypt.C25519.load_keys_from_secret
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.path-set-up.check-zenka-paths
@@ -667,6 +689,7 @@ protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
+auth.client.auth-keypair.authenticate
 route.bmw384.visual.wheel.oscilloscope
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
@@ -707,8 +730,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,..,,.,,,...,.,.,,..,,,.,...,,,,,.,,,..,,..,,...,...,.,.,.,.,..,,...,,..,
-#UXAR7Z32KUETQEUVY2CMZ36DJKT3VTSAFP3TDIH7C4YL5M7KB4WWQPVA46KJVFU6CNPXRSFCPSLVK
-#\\\|QWCWOLQAITZZNZ6HNOFVCHISNSERI74RS6VJLN2PV3V2CYTCSTZ \ / AMOS7 \ YOURUM ::
-#\[7]TQMPVIWBA6QMJ5KNGO5UFJ26VI4VYGDKO4GN2ISHOTILGXCJ2KCQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,,,,,.,.,,,,,..,,.,.,..,,,..,..,,...,...,,.,,.,,,.,,,..,,,..,
+#HRETH3WWDTBE2YVQ23ARKIXGC7RRERL25V7NN3DMNU3XQM626T766VR4PBWT2DABA5EKHY7FY5TUY
+#\\\|NJPI5YLWJFKM5P375R4ST6CICLYQBXHHWLA5ZOSGG5CRZWFN7N4 \ / AMOS7 \ YOURUM ::
+#\[7]T3JCYCOCVISUWZIXG35JBA7ZNVPDZF7OFYJRKLAQ4RZGQBLCWUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

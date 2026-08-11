@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = base.session.split_subname
+# descr = split '<name>[<subname>]' into its two parts
+# param = $auth_name
+
+## the '<name>[<subname>]' routing form lets several sessions sharing one user
+## or zenka name be addressed individually -- 'taeki[nshell]' vs
+## 'taeki[user-edit]', two consoles running as the same unix user.  the
+## subname is a ROUTING LABEL only and must never take part in an access
+## decision, which is why this splits it off before anything else looks at the
+## name.
+##
+## returns ( $bare_name, $subname ) ; $subname is undef when none was given.
+## shares the base.session.* namespace with set_subname and with
+## base.session.check.close, which releases the same registration
+
+my $auth_name = shift // return ( undef, undef );
+
+my $subname;
+$subname = ${^CAPTURE}[0]
+    if $auth_name =~ s|\[(<regex.base.subname>)\]$||;
+
+return ( $auth_name, $subname );
+
+#,,,,,.,.,,,.,,.,,...,.,,,...,.,.,.,,,,..,,,,,..,,...,...,,.,,.,,,,.,,.,,,,,,,
+#MX5HDFSF47P2RBYQQQ26AFFE26LSQ6TJOZJ3IZEGF5PRDTCA244672GXN57QCNHI67HDVPSKRADK4
+#\\\|4GT56VGO7QRQXRA5N2C4EEPO2GZD7ZFVMHJCG2VZA4TT2WBNOFQ \ / AMOS7 \ YOURUM ::
+#\[7]4Y4J3HIRTCH2KGMJJMSAGVLVDIQJRF5DSPNCDLOXAAXNMYXGVUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
