@@ -333,6 +333,111 @@ discovery_integration:
     users.remote-* should compose plugin.auth.auth-keypair +
     protocol.protocol-7.link-upgrade.handshake + crypt.C25519.* directly,
     not shell out to p-7-r or its helper scripts.
+  IMPLEMENTED (2026-08-11): slice 1 landed and is live-verified end to
+    end — users.cmd.remote-get (server, read-only, its own access-grant
+    surface, reuses users.record.validate) + users.cmd.remote-fetch
+    (client, deferred) + users.remote_fetch.run (the actual connect/
+    auth/dispatch worker) + auth.client.auth-keypair.authenticate (new,
+    modeled directly on auth.client.zenka.authenticate) +
+    users.handler.remote_fetch_reply (completes the original caller's
+    deferred reply once the async round-trip finishes). Verified via a
+    loopback self-test against this host's own cube (127.0.0.1:42,
+    identity 'test-auth-keypair', narrow access.cmd.usr.test-auth-keypair
+    = users.remote-get grant in configuration/zenki/cube/access.users) —
+    reliable across repeated runs, correctly rejects unknown users, no
+    session leaks. NOT implemented in this slice: discover.orbital.known
+    -> host:port resolution (still takes an explicit host[:port] arg),
+    the remote/{incoming,outgoing} sync-cache storage layer, link-upgrade
+    encryption, or SIGNED-COMMAND-INTERFACE.md command-level signing on
+    top of the connection-level auth-keypair signing.
+
+    Real bugs found and fixed along the way, worth recording since none
+    of them were documented anywhere and several are non-obvious traps
+    for the NEXT thing that composes these same primitives:
+
+    (1) TOFU pin-key stability — plugin.auth.auth-keypair.
+    validate-incoming-tofu pins the CLIENT's session pubkey on first
+    contact (etc_home/.n/remote-keys/incoming/<user>.public) and only
+    reaches 'authorized' once an admin creates a SYMLINK at
+    authorized/<zenka>/<user>.public pointing at that pinned file (or,
+    as used for the self-test, pointing directly at a real master-key
+    file — the TOFU check only requires -l/-f on that path, it doesn't
+    itself compare content; load-authorized-users, a SEPARATE mechanism
+    reading the SAME path, is what needs the content to be the actual
+    master pubkey). A client that regenerates its session keypair on
+    every connection can NEVER reach 'authorized' — each connection
+    re-pins a different key forever. The client identity must be a
+    STABLE, disk-persisted key (crypt.C25519.key_exists + load_keypair
+    if present, else gen_keys + write_keys), not regenerated per call.
+
+    (2) crypt.C25519.key_vars cache hijack — calling key_vars($name) for
+    a name that ISN'T the process's real base key, when it's the FIRST
+    key_vars() call in the process and that name's key files already
+    exist on disk, silently sets <crypt.C25519.base_key_name> to that
+    name permanently (crypt.C25519.key_vars:29-33). A later unqualified
+    sign_data(\$msg) call then signs with the WRONG key. Always pass the
+    real base key name explicitly to sign_data's second arg rather than
+    relying on the implicit default once any OTHER named key has been
+    touched in the same process.
+
+    (3) plugin.auth.auth-keypair's own success line is literally
+    "AUTH_TRUE =)" — a distinct wire format from the generic
+    TRUE/FALSE/SIZE/CHRSIZE .cmd. reply grammar used for actual routed
+    commands. auth.client.zenka.process_auth_reply already checks for
+    this exact string and is genuinely reusable for auth-keypair despite
+    its zenka-specific namespace.
+
+    (4) protocol.protocol-7.auth.select-method is NOT generically reusable
+    across auth methods — it hard-requires the reply be literally 'TRUE
+    continue', but auth.auth_select's auth-keypair branch replies 'TRUE
+    <server_pubkey_b32>' instead (doubles as TOFU material). Had to
+    inline the select-method exchange for auth-keypair rather than reuse
+    that helper.
+
+    (5) base.session.init's $name param must satisfy base.regex's
+    usr_str_re (alnum/hyphen/underscore only, max 32 chars) or it
+    silently returns undef with no other symptom — a label like
+    "remote-fetch:<host>:<port>" fails outright.
+
+    (6) base.protocol-7.command.send.local must be called via its
+    non-prefixed swap-family alias, <[protocol-7.command.send.local]>,
+    not <[base.protocol-7.command.send.local]> — matches
+    base.protocol-7.route-send's own internal call site.
+
+    (7) A registered reply handler's real call signature (confirmed
+    against base.handler.command.process_reply, NOT what
+    discover.orbital.handler.local_p7ref_reply's single-arg shift
+    suggested) is a SINGLE hashref: { sid, cmd, call_args, params,
+    data? }. 'cmd' is the wire-level mode keyword (TRUE/FALSE/SIZE/...);
+    SIZE mode carries its payload in a separate top-level 'data' key,
+    TRUE/FALSE carry theirs in call_args->{'args'} instead.
+
+    (8) The real deadlock, found via this same loopback self-test before
+    any of the above were fixed: an EARLIER version of remote_fetch.run
+    did the entire handshake AND the subsequent command/reply via manual
+    blocking socket reads. Looping back through this SAME host's own
+    cube meant cube routed users.remote-get back to THIS SAME users
+    zenka process's own pre-existing link session — which could not be
+    serviced because the process was blocked waiting on its own reply,
+    on its own single-threaded event loop. v7.restart could not recover
+    it either, since the stuck process couldn't process its own
+    restart/stop command while blocked — required v7.stop (TERM then
+    KILL) to recover, and surfaced a second real gap: users'
+    zenka-startup.v7 had no max_concurrency limit, so a racing
+    v7.start during the hang produced two live instances at once (fixed:
+    max_concurrency = 1, matching image2html/window-place's own
+    precedent). Fixed at the ROOT by modeling the post-handshake flow on
+    how every regular protocol-7 session already works: base.session.init
+    + explicit base.session.init_state($id, 1) hands the connection to
+    the normal event-driven command-dispatch machinery, so the event
+    loop is never blocked waiting on itself — this also means a real
+    cross-host call (a genuinely separate peer process) was never at
+    risk of THIS specific deadlock, but the blocking-read version would
+    still have been bad practice there too (indefinite stall on a slow/
+    dead peer). Only the brief connect + auth-keypair handshake itself
+    remains a bounded blocking call, the same accepted shape
+    auth.client.zenka.authenticate already uses for cube's own primary
+    link connection.
   link_upgrade_perl_side: >
     the server-side (and a client-side helper) Perl implementation of
     the SAME protocol p-7-r.c speaks, confirmed wire-compatible:
@@ -664,11 +769,43 @@ external_source_hooks:
     now purely its own standalone cleanup item, worth its own todo so
     it isn't
     forgotten before something DOES start calling them.
-  open_questions:
-    - which zenka(s) provide "data lookup from other zenki" — genuinely
-      unnamed by user direction so far, distinct open item from
-      discovery_integration's discover.* question above (that's about
-      distributed USER discovery specifically; this may be broader)
+  data_lookup_zenki_RESOLVED: >
+    RESOLVED (2026-08-11, per user): udev and fs are the concrete named
+    zenki — external storage (e.g. a USB key) detected by udev counts
+    as exactly this kind of "data lookup from other zenki." Grounds a
+    thread from earlier this session that was discussed but never
+    actually written down until now:
+      - udev zenka (configuration/zenki/udev/, modules/udev.*) is a
+        real, working rule/action mechanism over `udevadm monitor`
+        output — confirmed live via configuration/zenki/udev/
+        rules-set-up.U2F-tokens, which matches vendor/model IDs on
+        device insert/remove and fires `net.cmd`-ROUTED commands
+        (currently `notify.message`, but the action slot accepts any
+        routed command) — this is the real hook point, not a pub/sub
+        bus other zenki subscribe to.
+      - fs zenka (configuration/zenki/fs/, modules/fs.*) is a thin
+        Sys::Filesystem wrapper: fs.get_filesystems (list mounted/
+        unmounted), fs.cmd.mount/.re-mount/.unmount/.is_mounted. No
+        2FA-specific detection lives here (that's udev's rule-matching
+        job) — fs only handles the mount/unmount step once a device
+        path is known.
+    multi_target_storage (new, follows from the above): a udev rule's
+    `inserted` action could route to a new users.cmd.register-target
+    (or similar) instead of/alongside notify.message, which would do a
+    merge-safe base.path.register_keywords call (NOTE:
+    register_keywords REPLACES the whole keyword table wholesale per
+    its own implementation — modules/base.path.register_keywords:56 —
+    so a dynamic add here MUST read-existing -> merge -> write-back;
+    every current caller only calls it once at init with a static set,
+    so this would be the first read-modify-write caller) to add e.g.
+    USERS_MOBILE for a detected external storage path, with fs handling
+    the actual mount step udev's action would trigger first. Concrete
+    driver for the earlier-flagged "user-edit and users zenka would be
+    multi-target, able to register a mobile storage" idea. NOT yet
+    designed: the exact register-target command shape, or whether
+    host-system/ records or user-edit's own outbox would be what
+    actually gets targeted at a mobile path once registered — flagging
+    the mechanism and the concrete udev/fs precedent, not a full spec.
 
 ## -----------------------------------------------------------------------
 ## relationship to user-edit console (JUE)
@@ -729,22 +866,24 @@ open_questions:
     start.on-demand = 1 in that node's own zenka-startup.v7), this is a
     PER-NODE CONFIG CHOICE already supported by the existing v7
     lifecycle mechanism, not something requiring new code in users
-    zenka itself — no zenka-startup.v7 exists for users yet since it's
-    only been started ad-hoc via p7c so far; whichever node wants
-    always-on adds one with `start.on-demand` unset/0 (or lists it in
-    that node's start-set-up.base), nodes that want on-demand do
-    nothing extra (the current default). Not yet done: users zenka has
-    no zenka-startup.v7 file at all yet on THIS node — worth adding one
-    (on-demand, matching current de-facto behavior) so it's explicit
-    rather than implicit.
+    zenka itself. CORRECTED (2026-08-11, caught mid-session): this
+    already exists — configuration/zenki/users/zenka-startup.v7 landed
+    in df2e83d85 (phase-1 CRUD skeleton commit), start.on-demand=1,
+    4200s idle timeout, matching the calc/image2html precedent. An
+    earlier draft of this note incorrectly claimed no such file existed
+    yet and briefly overwrote it with a near-duplicate before the
+    mistake was caught and reverted (git checkout, no lasting change) —
+    nothing to do here; whichever node wants always-on later adds its
+    own override (unset start.on-demand, or list in that node's
+    start-set-up.base), on-demand nodes need no changes at all.
 
 created: 2026-08-10
 tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
        smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh,
        bmw-l13, addressing-trinity, signed-commands, crypt-c25519]
 
-#,,,.,.,.,,,.,,,,,,,.,,..,,..,,..,,..,.,,,...,..,,...,...,,.,,.,.,.,,,,..,..,,
-#7NCHZX5EUQGQZO3JMCSDFTLTGJR7RMWGZEN3BWT5W2ZSEVQGEKSCSF65C4BK5QBN5FMGILRR6HDM4
-#\\\|TNXFX5PNFBFSICRUXQKTNMRXCVX3O7S55JMSLL5Q4UR3VEG7G5T \ / AMOS7 \ YOURUM ::
-#\[7]UUZYY3RSYJGCRGGGYA7WDGEFO5NW6KUPTOQIWMQ3CBI4BG7QGUDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,...,..,,,,.,,,,,..,,,..,,..,..,,...,...,.,.,,,.,.,.,..,,.,.,
+#5NIXBUZ5HRYDW6BFL4DSV334MODJVLL7SNX6LYVVBJEGWV5EXRWTDQSFFZDAENBAC7R27EE33TPXQ
+#\\\|AFLDNDPRGGYPJWFENFS4E4S7VGQ5N2AU4NXYFABAM7O5QJNUW2O \ / AMOS7 \ YOURUM ::
+#\[7]HHZ3XAH6Q7KUYGLT7FKAM4AC3QAGAMAN2ICOANOR2YNSY75MCUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = users.cmd.remote-get
+# param = <username>
+# descr = read-only host-system record fetch for an authenticated
+#         remote peer [ auth-keypair session, routed via cube ] --
+#         deliberately separate from value-get so a remote peer's
+#         command surface on this zenka is exactly this one command,
+#         never value-set/value-all
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.remote-get <username>'
+    }
+    if not length $args;
+
+my $username = $args;
+$username =~ s|\s.*||s;    ## first whitespace-delimited token only ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'username cannot contain path separators'
+    }
+    if $username =~ m|[/\\]|;
+
+my $file_path = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
+my $user_data = <[format.yaml.load_keyword_path]>->($file_path);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "user '%s' not found", $username )
+    }
+    if not defined $user_data;
+
+my ( $record, $err ) = <[users.record.validate]>->( $user_data, $username );
+
+if ( not defined $record ) {
+    <[base.logs]>->(
+        1,         "remote-get: user '%s' record failed validation: %s",
+        $username, $err
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "user '%s' record invalid: %s", $username, $err )
+    };
+}
+
+## reply contract requires a string 'data' payload, never a raw hashref ##
+my $yaml_str = <[format.yaml.dump_str]>->($record);
+
+return {
+    'mode' => qw| size |,
+    'data' => $yaml_str
+};
+
+#,,.,,,,.,,,.,,,.,,,,,.,,,,..,...,...,..,,...,..,,...,...,.,.,.,.,.,.,,,,,..,,
+#LTGRRKZECLHWYGYYSW43MEIKXTH5EMREFSIIPGATPWEVZIQFUIREFHK7DJ6K4IL7OF66TY6JRZNM4
+#\\\|WT2ELRI6KDWHRDMIEJ4TXN7OAM3ZIGRCQCQPWTW53GMV4NINNZH \ / AMOS7 \ YOURUM ::
+#\[7]HQ6YGFYBDIHUX5IRZEFGECJH5SGTLS7YKXVKAVJPNRCXWXL5B4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
