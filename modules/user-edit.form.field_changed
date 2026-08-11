@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = user-edit.form.field_changed
+# descr = checkpoint the in-flight edit when focus leaves a field
+
+## the field-transition draft-save trigger.  a field transition is the natural
+## checkpoint : it is the moment a value is finished being typed, it costs one
+## small write at human speed rather than one per keystroke, and it mirrors
+## protocol-7-menu's save-on-release precedent rather than inventing a timer.
+##
+## user-edit.draft.write already carries the empty-state guard [ it returns a
+## distinct 'skipped' state rather than TRUE/FALSE when there is nothing worth
+## saving ], so an untouched form does not churn the file — no extra
+## dirty-tracking needed here
+
+my $editor_state = <user-edit.form.state>;
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $username = <user-edit.form.username> // return FALSE;
+
+my %values;
+foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
+    my $name = $field_def->{'name'} // next;
+    $values{$name} = <[editor.control.get_value]>->( $editor_state, $name )
+        // '';
+}
+
+my ( $ok, $err ) = <[user-edit.draft.write]>->( $username, \%values );
+
+<[base.logs]>->( 2, ': draft checkpoint failed [ %s ]', $err // '?' )
+    if not $ok and defined $err;
+
+return $ok;
+
+#,,.,,,,,,.,,,,.,,..,,,,.,,..,,,.,..,,...,..,,..,,...,...,...,,,.,,.,,.,,,..,,
+#MWNSLUVUYMU7QVBMDVM3W5OTKTQQLWIP7PRCPX72POAFQXN3T2KKQTTTWBYASRKJACQHGVSNVSF74
+#\\\|23QRULE7TWOMXYEEIJLGMTI44GIRGTJSIU24X2OZ4HERLLZHVCM \ / AMOS7 \ YOURUM ::
+#\[7]J2T7MD5I4T33A35C6GWGHNDW454ZZSDSPN7SN6VYY55STBGPJCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

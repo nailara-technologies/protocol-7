@@ -18,7 +18,11 @@ my $username  = <user-edit.form.username> // '?';
 my $abort = sub {
     my ($msg) = @ARG;
     print sprintf( "\n  << %s >>\n\n", $msg );
-    <[base.exit]> if not <user-edit.form.interactive>;
+    ## must exit in BOTH modes : the zenka is already inside zenka.loop by the
+    ## time a reply lands, so simply returning would leave it spinning with no
+    ## watchers and no way out.  form.quit restores the terminal first, which
+    ## matters once interactive mode has gone raw
+    <[user-edit.form.quit]>;
     return FALSE;
 };
 
@@ -71,6 +75,20 @@ return $abort->('could not generate a frame for the derived field set')
 ## registered on a detached scalar [ base.event.add_var ]
 <user-edit.form.dirty> //= 0;
 
+## interactive mode : raw terminal and the watchers go up BEFORE the first
+## paint, so the screen-clear lands on an already-raw terminal and no
+## keystroke typed during setup is echoed or lost
+if (<user-edit.form.interactive>) {
+
+    return $abort->('could not put the terminal into raw mode')
+        if not <[user-edit.term_init]>;
+
+    if ( not <[user-edit.setup_stdin_watcher]> ) {
+        <[user-edit.term_restore]>;    ## never leave the shell raw ##
+        return $abort->('could not register the form watchers');
+    }
+}
+
 <[user-edit.form.render]>;
 
 ## one-shot mode is done the moment the form is on screen ; interactive mode
@@ -79,8 +97,8 @@ return $abort->('could not generate a frame for the derived field set')
 
 return TRUE;
 
-#,,,,,..,,,,,,...,.,,,,,,,,..,,..,,,,,,,,,.,.,..,,...,..,,...,..,,,..,.,,,.,.,
-#GXPSK3E6H4BBR5B36NBRK7UGLWSD2BE2YLTZL4NRNIMBGPJNZNAKCPCSVIH7J4U54U5EDK43E6U4E
-#\\\|IZILC65N4Y44WGTXXHNDX5LLJGEIQR6NC4PCOBLG76LEBU3M2XJ \ / AMOS7 \ YOURUM ::
-#\[7]7UYOMYKEHS6RXF5B6HM5XITVQBBGBYE5DOTFOBIL6EBNBN5RCOBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,.,.,,,.,...,,.,,...,,..,,,,,..,,...,...,,.,,.,,,,,,,,,,,,,,,
+#T2JAZSN6FPXRIA4HYK3T63GWLA6DMG3NZPVLHALIBVQ6LUNXYURGTSNLSVWY5T6FTNJ3P4C7EALKQ
+#\\\|JXCDICOUN44BCY7OMNOOFCX6BG436RYPK4IWEZJ7HXOYE7JOFFD \ / AMOS7 \ YOURUM ::
+#\[7]6CUHQAZCEKONCOFPUKFXXAGTO2PA2S63GB4X4TBOSW3EAPN756CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

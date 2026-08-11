@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = user-edit.setup_stdin_watcher
+# descr = register STDIN and the form-redraw variable watcher
+
+## the two halves of the event-driven form, registered together because they
+## are the same mechanism seen from both ends :
+##
+##   event.add_io   on fd 0        -> keystrokes in
+##   event.add_var  on <..dirty>   -> repaint out
+##
+## keyboard input and network replies must share ONE loop [ a users.* reply
+## can update a field out of band, long after the keystroke that asked for it
+## ], which is why input is a watcher and not a blocking read.  the variable
+## watcher is what connects a write into a field buffer to an actual redraw —
+## with input event-driven there is no natural  "re-render after read()
+## returns" point left in the flow
+
+## the watched scalar must EXIST before its reference is taken — autovivifying
+## it later would leave the watcher on a detached scalar
+<user-edit.form.dirty> //= 0;
+
+<user-edit.form.watcher.stdin> = <[event.add_io]>->(
+    {   qw| fd |      => 0,
+        qw| poll |    => qw| r |,
+        qw| handler | => qw| user-edit.handler.stdin_key |,
+        qw| prio |    => 2,
+        qw| repeat |  => TRUE,
+        qw| desc |    => 'user-edit STDIN handler',
+    }
+);
+
+## poll => 'w' : fire when the scalar is WRITTEN [ jobqueue.event.
+## register_job_queues' counter-watcher precedent ].  user-edit.form.render
+## must never write this scalar itself — watchers are reentrant by default
+<user-edit.form.watcher.dirty> = <[event.add_var]>->(
+    {   qw| var |     => \<user-edit.form.dirty>,
+        qw| poll |    => qw| w |,
+        qw| handler | => qw| user-edit.form.render |,
+        qw| repeat |  => TRUE,
+        qw| desc |    => 'user-edit form redraw',
+    }
+);
+
+return FALSE
+    if not defined <user-edit.form.watcher.stdin>
+    or not defined <user-edit.form.watcher.dirty>;
+
+<[base.logs]>->( 2, ': form watchers registered [ stdin + redraw ]' );
+
+return TRUE;
+
+#,,..,,,.,,.,,..,,...,..,,..,,.,,,,.,,,,,,...,..,,...,...,,.,,...,,,.,.,.,.,.,
+#AOABGDBJRT6LAGYOLMMQXUHJ3ZLW65VDUETLXUN4PIYS6HFU5VXDCSYYBV4XAISSX4DCRGRNUL54O
+#\\\|7E67QPK2PPD6QXEZDYTCNB32G4DAV5CWAQSFDO64M2K7T4L3S72 \ / AMOS7 \ YOURUM ::
+#\[7]XXF4PBFKBTPYADZ5RBZN5EUF5XWRILM6EMAN5KWYMXUIMIZO7MDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = user-edit.term_restore
+# descr = restore terminal settings after an interactive form session
+
+## mirrors nshell.term_restore.  MUST run on every exit path — a form left in
+## raw/noecho mode hands the user back a shell that does not echo.  registered
+## as an end_code callback by user-edit.console.start so it fires on normal
+## exit, ctrl-c and SIGTERM alike [ SIGKILL is unblockable, same tradeoff
+## nshell and mpv.snapshot already accept ]
+
+print "\e[0m\r\e[K";
+STDOUT->flush();
+
+## prefer the fd stored at init : fileno(STDIN) can be stale at exit time ##
+my $tty_fd = <user-edit.term.tty_fd> // fileno(STDIN);
+return FALSE if not defined $tty_fd or $tty_fd < 0;
+
+my $flags = fcntl( \*STDIN, F_GETFL, 0 );
+fcntl( \*STDIN, F_SETFL, $flags & ~O_NONBLOCK ) if defined $flags;
+
+my $orig_termios = <user-edit.term.orig_termios>;
+
+## TCSANOW, not TCSAFLUSH : the flush variant waits for an i/o drain that
+## never completes on a signal-exit path [ nshell.term_restore's own note ]
+if ( defined $orig_termios ) {
+    $orig_termios->setattr( $tty_fd, TCSANOW() );
+    <user-edit.term.orig_termios> = undef;
+    return TRUE;
+}
+
+## fallback : no saved state — re-enable echo/canonical/signals explicitly
+## rather than leaving the calling shell raw
+my $fallback = Linux::Termios2->new();
+if ( $fallback->getattr($tty_fd) ) {
+    $fallback->setlflag( $fallback->getlflag() | ECHO() | ICANON() | ISIG() );
+    $fallback->setattr( $tty_fd, TCSANOW() );
+}
+
+return TRUE;
+
+#,,..,..,,...,,,,,,,.,,,,,,..,.,.,,.,,.,.,..,,..,,...,...,,.,,.,,,..,,,,,,.,,,
+#43PC2F6Y7VES4OZGTACVPHQDBD4N4UGDARPAINL6JFK6WAZKF3ZVNS7FBJFQK5YZFAIYBZ3SRURRQ
+#\\\|3V2POWZ57WO3B5S6AVVKOI4TATMIYBF5DAK3CEOLSMN4TRNRGUP \ / AMOS7 \ YOURUM ::
+#\[7]TMPTNVRMJRDC3ZLDG2N5QHH2TU5T4GHECDLWCS5PP6MGJFGGH2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

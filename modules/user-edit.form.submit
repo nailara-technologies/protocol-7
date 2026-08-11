@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = user-edit.form.submit
+# descr = stage the edited values, then push them to the users zenka
+
+## ORDER MATTERS [ local_edit_outbox ] : the outbox write is durable and
+## UNCONDITIONAL, and happens BEFORE the users.value-set attempt.  if the
+## users zenka is unreachable — or this process dies between the two — the
+## edit survives on disk rather than being lost to a failed network call.  the
+## outbox entry is cleared only once the zenka confirms the write.
+
+my $editor_state = <user-edit.form.state>;
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $username = <user-edit.form.username> // return FALSE;
+
+my $result = <[editor.control.submit]>->($editor_state);
+
+if ( ref $result ne qw| HASH | or not $result->{'ok'} ) {
+    ## validator rejected : editor.control.submit deliberately does NOT reset
+    ## the fields in this case, so the user's input is still there
+    my $errors = $result->{'errors'} // {};
+    print sprintf( "\n  << %s : %s >>\n", $ARG, $errors->{$ARG} // 'invalid' )
+        foreach sort keys %{$errors};
+    STDOUT->flush();
+    <user-edit.form.dirty>++;    ## repaint over the message ##
+    return FALSE;
+}
+
+my $values = $result->{'values'} // {};
+
+## durable staging first, always ##
+my ( $staged, $stage_err )
+    = <[user-edit.outbox.write]>->( $username, $values );
+
+if ( not $staged ) {
+    print sprintf( "\n  << could not stage edit locally : %s >>\n\n",
+        $stage_err // 'unknown error' );
+    STDOUT->flush();
+    return FALSE;
+}
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    print "\n  << offline : edit staged in the outbox, not yet sent >>\n\n";
+    STDOUT->flush();
+    <[user-edit.form.quit]>;
+    return TRUE;
+}
+
+## call_args.data is NOT transmitted over routes — only args, as a string.
+## users.cmd.value-set splits '<username> <json-fields>' with a /s-flagged
+## (.*) capture, so a json object with spaces survives intact as one arg.
+##
+## format.json.encode is pretty(1), i.e. MULTI-LINE — which the line-based
+## wire would truncate.  flattening is safe rather than lossy : json escapes a
+## literal newline inside a string value as '\n' [ two characters ], so a real
+## newline byte only ever occurs as pretty-printer formatting.  verified
+## round-trip against values containing spaces, double quotes and embedded
+## newlines
+my $json_fields = <[format.json.encode]>->($values);
+$json_fields =~ s|\n\s*||g;
+
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-set', $cube_sid ),
+        qw| call_args | =>
+            { qw| args | => sprintf( '%s %s', $username, $json_fields ) },
+        qw| reply | =>
+            { qw| handler | => qw| user-edit.handler.value_set_reply | }
+    }
+);
+
+return TRUE;
+
+#,,,.,,.,,,.,,,,,,.,,,...,..,,..,,.,.,.,,,..,,..,,...,...,...,,,,,...,.,.,,..,
+#EXN3AUTYTHJ26IDLLHHPNF5LS324X5KXZWY75WKC7VLBEZQQSDDVHISZTSXURICRQZ4JQ5DB7OKRI
+#\\\|34ABXYHVARYLKBYYBZA6PHGE2PIMMDRBWNLU7NUXELEPP6HSGY6 \ / AMOS7 \ YOURUM ::
+#\[7]OZ6C27B47P232N4IPYZEZ5P4LEU6ZIWBDIKU2DPH26QSPO5BJ2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
