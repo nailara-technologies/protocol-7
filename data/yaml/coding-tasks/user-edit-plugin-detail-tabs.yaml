@@ -1,0 +1,335 @@
+---
+# Task: user-edit plugin detail tabs
+# Date: 2026-08-12
+# Status: DESIGN ONLY — nothing implemented yet, several open questions
+#         below need answers before phase_1 can start
+# Context: third feature in the user-edit UI roadmap this session, after
+#          capped/scrollable list windows (landed, commit 3fe1fed15) and
+#          field/entry sort ordering (landed, commits 793e1c2c7/a63ea5438).
+#          Per user: "a plugin configuration for additional detail pages..
+#          pinning them to specific setup keys over which when selected,
+#          using the Tab key will switch to the custom detail tab" — e.g.
+#          a hosts tab, a keys tab, an ssh tab.
+# Related: user-edit-console-zenka.yaml (the zenka this extends),
+#          editor-namespace-interface-design.yaml (editor.control.* /
+#          editor.ui.* contracts this must stay compatible with)
+
+task_metadata:
+  title: "user-edit plugin detail tabs — Tab-key-switched custom views pinned to setup keys"
+  description: >
+    Certain optional setup keys (a host reference, an ssh key reference,
+    ...) should be able to declare an associated PLUGIN that renders an
+    alternate "detail tab" — a full custom view distinct from the main
+    settings form — reachable by pressing Tab while focused on that key's
+    row. Plugins are discovered and loaded through the codebase's
+    existing base.load_plugins / plugin.<zenka>.<name>.* convention
+    (confirmed live via plugin.httpd.radio.*, see plugin_module_convention
+    below) — that mechanism only loads named modules and tracks them for
+    reload, though; it has no self-description or discovery layer, so
+    user-edit needs to build one on top, not invent a parallel plugin
+    system.
+  priority: normal
+  category: "feature"
+
+motivation: >
+  The base plugin mechanism (base.load_plugins, modules/base.load_plugins)
+  takes an explicit list of plugin.* module names, compiles them, and
+  registers them into <plugins.status> purely for RELOAD bookkeeping
+  (base.reload_plugins re-walks that same list). Nothing in it lets a
+  HOST zenka ask "which plugins do I have, and what do they each offer" —
+  every existing consumer hardcodes the answer. httpd.route_dispatcher is
+  the concrete precedent: it reads <plugin.httpd.radio.active> and calls
+  plugin.httpd.radio.handler.stream_request by LITERAL name (modules/
+  httpd.route_dispatcher:133-141) rather than through any lookup. That is
+  fine for httpd, which only ever has one or two hardcoded plugins wired
+  by hand — it does not scale to "however many detail-tab plugins happen
+  to be configured," which is exactly user-edit's case. This doc's job is
+  the missing self-description + discovery layer, not a replacement for
+  base.load_plugins itself.
+
+plugin_module_convention:
+  motivation: >
+    Match the existing plugin.httpd.radio.* shape (modules/plugin.httpd.
+    radio.init_code, .cmd.radio_online, .handler.radio_offline, .handler.
+    stream_request, .handler.strm_open) rather than inventing new
+    plumbing — same base.load_plugins loader, same <plugins.status>
+    reload bookkeeping, same explicit `plugins.load = ...` start-file
+    directive httpd already uses (configuration/zenki/httpd/start:9-10).
+  proposed_routine_set: |
+    plugin.user-edit.<name>.init_code
+      — state init, exactly like plugin.httpd.radio.init_code. Runs when
+        base.load_plugins compiles the plugin, same as any other zenka.
+
+    plugin.user-edit.<name>.tab_info                          [ NEW ]
+      — the self-description this whole doc exists to add. Niladic,
+        returns a hashref : { label => 'hosts', pinned_keys => [ 'host' ],
+        ... }. Called by the ONE PARENT plugin.user-edit.post_init [ see
+        registry_and_post_init — not a per-plugin post_init of its own ]
+        — this is the ONLY new routine every plugin author must write
+        beyond init_code; everything else already has an httpd.radio
+        precedent to mirror. No per-plugin registration wiring needed :
+        the parent collector finds every loaded plugin through
+        <plugins.status>, the same list base.reload_plugins already
+        maintains.
+
+    plugin.user-edit.<name>.render                            [ NEW ]
+      — produces the detail tab's own content while it is active. Exact
+        return contract NOT decided yet — see rendering_contract open
+        question below, this is the doc's biggest unresolved piece.
+
+    plugin.user-edit.<name>.handler.key                       [ NEW ]
+      — handles one keystroke while this plugin's tab is active, mirrors
+        user-edit.handler.stdin_key's own per-key dispatch shape but
+        scoped to the plugin. Return contract should probably mirror
+        editor.control.process_key's { action, ... } shape rather than
+        inventing a third one — TBD alongside rendering_contract.
+  start_file_wiring: >
+    configuration/zenki/user-edit/start gains its own `plugins.load =
+    plugin.user-edit.hosts plugin.user-edit.keys ...` line + a
+    [load_plugins:<plugins.load>] call, same two lines httpd/start
+    already has — and, confirmed against httpd/start's actual line
+    order (load_plugins at line 10, load_modules/init_modules at lines
+    45/47), this MUST go BEFORE the zenka's existing [load_modules:...]
+    / [init_modules] pair (currently start:21-22), not after : [init_
+    modules] only picks up *.init_code/*.post_init for whatever is
+    already compiled into %code at the moment it runs, so a plugin
+    loaded afterward would miss that automatic pass entirely and need
+    its own manual invocation. EXPLICIT list, not directory-glob
+    discovery — matches the one precedent that exists, and means adding
+    a plugin is a one-line start-file edit plus dropping its module
+    files in, not a new auto-discovery mechanism to design and trust.
+
+registry_and_post_init:
+  motivation: >
+    Per user : ONE PARENT plugin.user-edit.post_init [ not one per
+    plugin ] is the right shape, collecting what each plugin.user-edit.
+    <name>.init_code already set up — and this is not just cleaner, it
+    is GUARANTEED correct by how base.init_modules actually works
+    (checked directly, modules/base.init_modules:9-22): the OUTER loop is
+    over the three phases pre_init / init_code / post_init in that fixed
+    order, and for EACH phase it walks every module in %code matching
+    that phase's suffix before moving to the next phase. So EVERY
+    plugin.user-edit.<name>.init_code across every loaded plugin has
+    already run, unconditionally, before plugin.user-edit.post_init [
+    itself just another *.post_init match, module_name = "plugin.user-
+    edit" ] ever fires — regardless of load order or base.sort's
+    ordering within a phase, since that ordering only affects modules
+    WITHIN one phase, never across phases. Also resolves an ordering risk
+    an earlier draft of this section had wrongly built AROUND [ N
+    independent per-plugin post_inits racing to self-register, with
+    collision handling duplicated N times and relying on call order ] :
+    with one parent collector there is exactly one place doing the walk,
+    so pinned_keys collisions are checked once, deterministically, not
+    left to whichever plugin's post_init happened to run last.
+  sketch: |
+    plugin.user-edit.post_init [ ONE module, auto-invoked by
+    [init_modules] purely by name, after every plugin's own init_code
+    has already completed per the phase-ordering guarantee above ] :
+      - walk <plugins.status> filtered to keys matching ^plugin\.user-
+        edit\. [ the SAME registry base.reload_plugins already
+        maintains ] to get the list of loaded plugin names
+      - call each one's .tab_info [ { label, pinned_keys, ... } ] — by
+        the time this runs, that plugin's init_code has already set up
+        whatever internal state tab_info reads from, so tab_info itself
+        can stay a plain, cheap accessor rather than doing setup work
+      - build both indexes into <user-edit.plugin.registry> in ONE pass :
+          by_key   : { <pinned_key_name> => <plugin_name>, ... }
+          by_name  : { <plugin_name> => { label, pinned_keys, ... }, ... }
+      - a pinned_keys COLLISION [ two plugins pin the same key ] is
+        caught HERE, in the single walk, and logged loudly — not a
+        runtime decision or a race between independent self-registrations
+  open_question: >
+    does pinned_keys need to support ONE plugin pinning MULTIPLE keys
+    [ user's original phrasing was plural, "pinning them to specific
+    setup keys" ], or one key per plugin — an array already assumes
+    multiple are allowed, worth confirming that reading is right before
+    locking the shape in.
+
+tab_key_dispatch:
+  motivation: >
+    Tab currently means ONLY "move to next field" everywhere in the form
+    (editor.control.process_key:53-57 → field_next, gated on $multi_field;
+    user-edit.handler.stdin_key's field_next branch just increments
+    active_field mod field count). This is the one piece that changes
+    EXISTING behaviour rather than adding new machinery, so it is the
+    highest-risk part of this design.
+  decided: >
+    RESOLVED, per user : Tab is the default trigger, and RightArrow ALSO
+    switches to the pinned plugin's tab — a dual binding, not an
+    either/or. This is the SAME pattern already shipped for the
+    scrollinfo row (user-edit.handler.stdin_key's existing list_info
+    Left/Right block, which pages a windowed list exactly like PageUp/
+    PageDown do from that row) : a row can carry both its "default" key
+    and a directional-arrow alternate for the identical action, checked
+    ahead of the ordinary dispatch chain the same way. ONLY when the
+    CURRENTLY FOCUSED field's name is a key in <user-edit.plugin.
+    registry>{by_key} — every other field keeps today's plain Tab =
+    field_next / Right = cursor-move meaning unchanged. Implemented as
+    one new branch ahead of stdin_key's existing field_next dispatch and
+    ahead of process_key's own Right-arrow cursor-move claim [ same TRAP
+    3 reason Left/Right already have to be matched on $key directly
+    rather than via passthrough, see reference-editor-add-field-
+    cycler.md ].
+  return_path: >
+    RESOLVED, per user : Esc AND LeftArrow both return from the detail
+    tab to WHERE IT WAS CALLED FROM — the same dual-binding shape the
+    entry trigger got (Tab / RightArrow), now confirmed symmetric on the
+    way back out too (Left = return, Right = enter). "Where it was called
+    from" is not just "back to the main form" generically, but focus
+    restored onto the specific pinned-key row the tab was entered from,
+    same as user-edit.form.sync_list_mode's own "collapse parks the
+    cursor ON the collapsed field" precedent (user-edit.form.sync_list_
+    mode:44-56) for the equivalent list-expand/collapse case. Esc's side
+    of this also matches its EXISTING meaning [ "leave a sub-mode," per
+    user-edit.form.escape's list-mode branch ] rather than inventing a
+    new one — a detail tab is another sub-mode in the same family. Left/
+    Right for enter/return both need to be claimed the same TRAP-3 way
+    Left/Right-on-list_info already are [ process_key claims arrow keys
+    for cursor movement first, so a host must match $key directly ahead
+    of that, not rely on passthrough ] — and a plugin's own handler.key
+    should NOT re-claim Left/Right for its own purposes while its tab is
+    active, or it would shadow the return path with no way out.
+
+rendering_contract:
+  motivation: >
+    Not decided at all yet — the single biggest open piece. A detail tab
+    needs SOME way to draw itself and handle its own keys while active,
+    but user-edit's whole rendering stack (editor.ui.ascii_frame.
+    render_form, user-edit.form.build_frame) is built entirely around ONE
+    editor.control.* schema/state pair. TWO SEPARATE AXES turned out to be
+    in play here, per user, not one : LAYOUT (where the tab's content
+    physically appears) and STATE MODEL (what data structure drives it).
+    They are not fully independent — one layout pairs naturally with one
+    state model, per each option below — but they are not the same
+    decision either.
+  layout_top_bar: |
+    a tab STRIP at the top of the card [ e.g. '.:[ user-edit : taeki |
+    hosts | keys | ssh ]:.' ], active tab highlighted among the available
+    ones, and the WHOLE card body below the strip swaps to the active
+    tab's content when switched. Pairs naturally with a FULL STATE SWAP :
+    <user-edit.form.state> points at a completely different editor.
+    control.* state while a plugin tab is active [ closest to how list
+    expand/collapse already swap the whole state via editor.control.
+    create ], or at a wholly custom render replacing everything below the
+    strip. Needs a NEW mechanism this codebase does not have yet : nothing
+    today swaps out ascii.frame's TITLE BAR ROW itself [ every existing
+    expand/collapse only ever changes body ROWS, build_frame's title_bar
+    line is fixed at generation time ].
+  layout_embedding_list_style: |
+    "yet another expansion" — the SAME mechanism list fields already use,
+    extended to a THIRD row-shape. Today a row carrying 'list' expands
+    into cap+1 rows in place, with build_frame reserving matching blank
+    rows for the collapsed state so the frame never jumps [ user-edit.
+    form.build_frame's whole reservation scheme, editor.control.list.
+    expand/collapse ]. A pinned key's row could expand THE SAME WAY :
+    collapsed it shows as an ordinary row [ or a summary, mirroring a
+    collapsed list's ':..N.entries..:' ], Tab/Right on it expands the
+    plugin's content IN PLACE across MULTIPLE rows, reserved-row
+    accounting extended to cover it. Reuses build_frame's reservation
+    machinery, but the row-count math is genuinely new work — a plugin's
+    content is not a fixed cap+1 shape the way a list's is.
+  layout_embedding_field_type_dropin: |
+    per user, CONFIRMED as single-row : the plugin becomes a new FIELD
+    TYPE, not a row-expansion shape at all — closest existing analog is
+    editor.control.get_display_value's own per-type dispatch [ masked /
+    list / cycler already branch there ] and editor.control.create's
+    field-type contract [ today hard-rejects anything but freeform_line /
+    masked, with enum / readonly / freeform_multiline already reserved as
+    interface-only names waiting for real implementations — 'plugin'
+    would be a natural fifth name in that same list, not a user-edit-only
+    special case ]. Tab/Right on a plugin-typed row hands display AND key
+    handling over to the plugin for THAT row only — no row-count/
+    reservation change in build_frame at all, since the row never grows.
+    Per user : this composes cleanly with a LIST of such fields too [ each
+    entry, or each of several pinned rows, independently plugin-typed ]
+    with nothing lost relative to the row-expansion shape — a genuine
+    point in its favour, since layout_embedding_list_style's reservation
+    math would need its own answer for "a list field whose entries are
+    THEMSELVES plugin-typed" and this option does not, by construction.
+    A FURTHER point in its favour, per user : which specific element was
+    selected is known AUTOMATICALLY, for free — because the plugin IS the
+    field rather than a separate view swapped in, "which row triggered
+    this" is just active_field/focus_def, the SAME identity every other
+    field's focus already carries. This also collapses return_path's
+    "restore focus to where it was called from" requirement entirely : a
+    plugin-typed row never navigates AWAY from itself when Tab/Right hands
+    it control, so there is no separate position to remember or restore —
+    contrast with layout_top_bar / layout_embedding_list_style, where
+    something equivalent to user-edit.form.sync_list_mode's explicit
+    active_name-restore-after-collapse bookkeeping would be needed to
+    answer "which row does Esc/Left go back to."
+    Architectural question this raises : does 'plugin' as a field type
+    belong in editor.control.* itself [ the GENERIC layer every zenka's
+    forms share, matching where enum/readonly/freeform_multiline already
+    sit reserved ] rather than being user-edit-specific — the existing
+    reserved-but-unbuilt type list suggests the codebase already expects
+    the type vocabulary to grow at that generic layer, not per-zenka.
+  state_model_full_editor_state: >
+    (paired naturally with layout_top_bar, but not exclusively) the
+    plugin owns a SECOND, independent editor.control.* schema/state and
+    reuses render_form directly against it — means every plugin's detail
+    view has to be shaped as an editor.control field schema even when
+    what it wants to show is not form-shaped [ e.g. a live host-status
+    readout ].
+  state_model_free_render: >
+    (paired naturally with the embedding layouts, but not exclusively)
+    plugin.user-edit.<name>.render returns raw text/ascii.frame content
+    with no editor.control.* schema underneath — more flexible per
+    plugin, but user-edit.handler.stdin_key's whole key-dispatch chain
+    does not apply while the tab/row is active, and plugin.handler.key
+    has to reimplement whatever subset of it the plugin needs. Closer to
+    amos-term's plugin-render/plugin-input hook shape [ modules/amos-
+    term.plugin-init_code:10-36 ] — worth reading that contract closely
+    before committing to this shape, even though amos-term itself is a
+    different [ GUI ] rendering surface per user-edit-console-zenka.
+    yaml's amos_term_plugin_overlap section.
+  open_question: >
+    THREE layout options now on the table [ top_bar / embedding_list_
+    style / embedding_field_type_dropin ], plus the state-model axis —
+    pick before phase_1 starts, this determines almost everything else
+    about how .render / .handler.key get called and what they are
+    allowed to assume. embedding_field_type_dropin has by far the
+    strongest case built up so far [ least new machinery, composes with
+    lists for free, and return-path/"which element was selected"
+    bookkeeping the other two would need is simply not needed at all,
+    since the plugin never leaves the field it is attached to ] — still
+    not formally stated as the final decision, but nothing has been
+    raised in either alternative's favour across this whole thread.
+
+data_access_question:
+  motivation: >
+    unresolved and not yet even asked : does a detail tab plugin read/
+    write the SAME users.* record user-edit is already editing [ e.g. a
+    "hosts" tab editing a structured sub-field of the current user's
+    record ], or an entirely separate data source [ e.g. an "ssh" tab
+    reading real ssh config files, unrelated to users.record.* at all ].
+    This affects whether tab_info needs to declare anything about data
+    scope, and whether draft/outbox semantics [ user-edit.form.field_
+    changed, user-edit.draft.* ] apply to a plugin tab's edits at all.
+
+open_questions:
+  - rendering_contract : three layout options (top_bar / embedding_list_
+    style / embedding_field_type_dropin — the last one by far the
+    strongest so far : composes with lists for free, needs the least new
+    machinery, and needs no return-path bookkeeping since the plugin
+    never leaves the field it is attached to) and the state-model axis
+    (full editor.control.* schema vs free-form render) — biggest open
+    piece, blocks almost everything else
+  - can one plugin pin multiple setup keys, or exactly one
+    (registry_and_post_init)
+  - does a plugin tab share the current record's data / draft / outbox
+    lifecycle, or own a separate data source entirely
+    (data_access_question)
+  - amos-term.plugin-render/plugin-input's actual hook contract has not
+    been read closely against option_b above — worth doing before
+    picking that branch, not just noting the surface-level shape
+    difference
+
+created: 2026-08-12
+tags: [user-edit, plugin, tabs, editor, ascii-frame, design-only]
+
+#,,,.,..,,.,.,,,.,..,,,.,,.,.,..,,,,,,...,,..,..,,...,...,,,,,..,,...,..,,,.,,
+#CYID2VX2OMX6TIARCTDEY4XY6GDAYQUE4DYD5ROUD2DQDBQTFJNXKEDICPBQ2SWCGZMZX67RSXADI
+#\\\|6KWXA2PYI5SYW2X53L7L3CQVUHBHDATHU7WNW7JFT2433L6UHQ7 \ / AMOS7 \ YOURUM ::
+#\[7]BBO3FNINX6XE4UOBBFUEXQFWDQPUR75TJFBXJCAJZXBABCPI36CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
