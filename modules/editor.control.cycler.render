@@ -10,22 +10,29 @@
 ## the full vocabulary to know how wide the row can ever get, and must not
 ## re-implement the layout to do it.
 ##
-## CONSTANT GRID, the same rule editor.ui.ascii_frame.render_form applies to
-## focus framing : brackets when current, MATCHING SPACES when not.  without
-## it '[full_name]' is two columns wider than 'full_name', so every choice to
-## its right shifts on every keypress -- the row cycles by MOVING, which reads
-## as jitter rather than as selection.  now nothing moves but which pair of
-## cells is a bracket.
+## '[choice]' was tried first, matching the focus-bracket rule
+## editor.ui.ascii_frame.render_form applies elsewhere : brackets when
+## current, matching spaces when not.  dropped -- this row's own frame ALSO
+## brackets it when the row has focus, so a focused cycler nested '[ [shell] |
+## timezone ]', a doubled bracket that reads as a typo rather than as
+## selection.  '+choice+' marks the current one instead, leaving '[ ]' meaning
+## exactly one thing on screen : the outer frame's own focus marker.  '+' also
+## still reads as "add" for the row as a whole, so no prefix word is spent on
+## that either.
 ##
-## the cells alone are what make the width constant -- every choice pays for
-## two either way, so the total never depends on WHICH one is current.
-## padding the choices out to the longest as well would line them up in
-## columns, but that is a second, unrelated effect and it costs real width on
-## a row that is already the widest in the form [ nine columns on the
-## four-option vocabulary ], so it is deliberately not done.
-##
-## '+' reads as "add" without spending a word on it, and the row has no label
-## column of its own -- see user-edit.form.build_frame.
+## CONSTANT GRID, restored : an EARLIER version of this line let the '+'-pair
+## add two columns on top of a bare, unpadded choice, so only the currently
+## marked choice paid for its marker and everything to its right shifted
+## sideways as the marker moved -- exactly the jitter this module's own descr
+## warns against.  fixed by giving every choice the same reserved cell
+## regardless of state : the '+' does not ADD width, it WRITES INTO the single
+## space each choice already carries on both sides when it is not current.
+## one cell, one width, always -- '+choice+' and ' choice ' are the same
+## length, so nothing to either side ever moves.  the join separator is a bare
+## '|' with no space of its own, since the padding living inside each choice's
+## own cell already supplies it -- adding a second layer of spacing here is
+## what produced the double-space '[shell] |  timezone' the very first version
+## had
 
 my ( $choices_aref, $current ) = @ARG;
 
@@ -37,17 +44,12 @@ return '( none )' if not @choices;
 $current //= 0;
 $current = 0 if $current < 0 or $current > $#choices;
 
-return sprintf(
-    '+ %s',
-    join(
-        q| | . q{|} . q| |,
-        map { sprintf( $ARG == $current ? '[%s]' : ' %s ', $choices[$ARG] ) }
-            0 .. $#choices
-    )
-);
+return join( q{|},
+    map { sprintf( $ARG == $current ? '+%s+' : ' %s ', $choices[$ARG] ) }
+        0 .. $#choices );
 
-#,,..,,,.,,,,,..,,..,,,.,,,,.,..,,.,,,...,,.,,..,,...,..,,..,,,,.,...,...,,,.,
-#N7MR47DUAXEIOVK64WA77DAT5LNJO3EQZEJVG3A4V3FXV3MGYU35FU35G6C7SGHZHDATAB7UFEUQ6
-#\\\|TKZVCOTQ5NQRUU3XZFZDQVNZWECPJN3K7HBKWDBC4B7TJKOMEGR \ / AMOS7 \ YOURUM ::
-#\[7]NILG2NW6MJ5ONDERL4BEWDFCKUPFWSF4OGACBLTINGCSE2SZVIDI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,,.,...,.,,,,,.,,..,..,,,,.,..,,...,...,...,.,,,,,,,,,,,,..,
+#325JQK3O32BNQFRFLTAS6RNIOGHRMGS3QIMC3P6JZJ4FDV2F46HTI4QQQPTXXEMGSRUZKIVU4XAIC
+#\\\|JONZHM4Q4E7C7DYTYOTCP44IN2WR4EGKOZDYTU6M2IDLPYNCXY2 \ / AMOS7 \ YOURUM ::
+#\[7]PD3QNH73HZ4JWGMGH5HV252U7U5RJMTGLONJMH4X4GKLCWLCDAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

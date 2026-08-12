@@ -105,6 +105,12 @@ return $abort->('could not generate a frame for the derived field set')
 
 <user-edit.form.state> = $editor_state;
 
+## the cmd-list toggle and its discovery hint are per-CARD, not per-session :
+## opening a different record starts hidden again, with the hint ready to show
+## once more -- see user-edit.form.render and  user-edit.handler.stdin_key
+<user-edit.form.help_visible> = FALSE;
+<user-edit.form.hint_seen>    = FALSE;
+
 ## the watched redraw counter must exist as a real scalar BEFORE anything
 ## takes a reference to it — autovivifying it later would leave the watcher
 ## registered on a detached scalar [ base.event.add_var ]
@@ -163,8 +169,8 @@ if ( <user-edit.form.interactive> and defined <user-edit.cube_sid> ) {
 
 return TRUE;
 
-#,,..,...,.,.,,,.,,,.,,,.,..,,,.,,,,.,...,,.,,..,,...,...,..,,,,,,,,,,,,.,.,,,
-#4PF6G6SQ4YBSQCBWH2SCHALRCQJJO6GHHTXFP5EAZYS2BRJGS6OONCFSNOSXXOKUDAMZ46XQFVYH6
-#\\\|TBOTJPPDEATERKVIMSITKWNACZLTQAE4NA6OQS55NITI3ZAYAPE \ / AMOS7 \ YOURUM ::
-#\[7]YTXA7B2P4RHXJWZ5KB53CYA6NEH6SW4HZJ772EEUOT64K3SYPMBI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,,,.,,,,,.,...,,,.,,,,,.,,,.,,,..,,...,...,,,,,,.,,.,,,..,,,.,,
+#BEDODPEY7KR6ZVMQW7YUAH5AR7JQ35EUNAIBGIRNWTGMVGXNEACHNYWZRCN7CNAJNM47SBSB4TKXA
+#\\\|DXVXWZQVJ4G7DBV25FJPX4IBJI7N3DTKERWFZYWVPZED75VVCVM \ / AMOS7 \ YOURUM ::
+#\[7]3SPKTKZYNIIZKG6WCDRX3ASU7VZBCVWQDTWKPPPI7U6KETK4WSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

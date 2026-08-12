@@ -63,6 +63,12 @@ state %key_map = (
     'Ctrl+w' => "\x17",
     'Ctrl+y' => "\x19",
 
+    ## same byte either name : a terminal sends 0x1f for Ctrl and the [/?] key
+    ## regardless of shift state, so 'Ctrl+?' -- the mnemonic user-edit's help
+    ## toggle uses -- and 'Ctrl+/' -- what is actually pressed -- both work
+    'Ctrl+/' => "\x1f",
+    'Ctrl+?' => "\x1f",
+
     ## special ##
     'Escape'    => "\e",
     'Esc'       => "\e",
@@ -137,8 +143,8 @@ while ( $position < $length ) {
 
 return wantarray ? ( $bytes, $summary ) : $bytes;
 
-#,,.,,,,,,,..,.,.,..,,.,.,,.,,,,,,,..,,..,,,,,..,,...,...,...,.,.,,.,,.,,,..,,
-#JDCS6NM2ESB4QJSBMARFRTYTGDU5BXT7PWPFYN6MEBOGPDUMS6WSUNNH4AZKB4YKMI7EMIOGRZ6RM
-#\\\|QAJSK5HKD4XJ6NJGB3ZIQPJFRYFNIFD7R54CTBGAZCCG3OEGE4E \ / AMOS7 \ YOURUM ::
-#\[7]YSDDRMQJ433BEA4UBFU2HFM7Q7GMV5HXZUPDRFBLJUGWIVFJQSDA 7  DATA SIGNATURE ::
+#,,..,..,,...,,,.,,..,,..,,.,,...,,..,.,.,.,,,..,,...,...,,,,,..,,,..,.,,,..,,
+#3JYJI5CNOMXXTMQNGN3JC34VIIWP4KHBDW4UA56L4KJWZW6E637HTBQBS7B4O2M5M74DENQTUKO4W
+#\\\|J7KTDUG7ZCCWJQ7OXVRLFLZZ6WYOFQXLIRFI2CAPLDD25NWWGJE \ / AMOS7 \ YOURUM ::
+#\[7]6ANS2W6RBMLLHYRMTUA5E5TX3OXU6HNWLP7ZPYW5DDNKY24ZNQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
