@@ -39,9 +39,16 @@ foreach my $name (@names) {
 ## BOTH sides of its separator, matching the reserved cells the values      ##
 ## gained : without it the value text sits inset from its framing while the ##
 ## label hugs the border, and the two columns read as misaligned even       ##
-## though every row is the same width                                       ##
+## though every row is the same width  labels are RIGHT-aligned so the      ##
+## colon sits flush against the name.  that is not cosmetic :               ##
+## ascii.frame.render.color.content_line matches a field label as           ##
+## [\w][\w\-\.]*: -- colon immediately after the word -- and a left-aligned ##
+## padded label never matches, so the whole row fell through to the value   ##
+## colour.  right-aligned, the shared colouriser gives labels the dim tone  ##
+## and only the value keeps content colour, with the colons lining up as a  ##
+## bonus                                                                    ##
 my @bodies
-    = map { sprintf( '   %-*s  : {{%s}}', $label_width, $ARG, $ARG ) } @names;
+    = map { sprintf( '   %*s:  {{%s}}', $label_width, $ARG, $ARG ) } @names;
 
 my $title_bar = sprintf( '.:[ %s ]:', $title );
 
@@ -80,6 +87,12 @@ if ( not defined $descriptor ) {
 $descriptor->{'padding'}{'top'}    = 1;
 $descriptor->{'padding'}{'bottom'} = 1;
 
+## outer margin : space OUTSIDE the border, so the card is inset from the
+## terminal edge rather than starting in column zero.  ascii.frame.render
+## applies it as a final wrap on every line, borders included -- matches the
+## one-space gutter the key-hint block below the card already uses
+$descriptor->{'margin'}{'left'} = 1;
+
 my $validated = <[ascii.frame.validate]>->($descriptor);
 if ( not $validated->{'valid'} ) {
     <[base.logs]>->(
@@ -108,8 +121,8 @@ my $entry = {
 
 return $entry;
 
-#,,..,,.,,,.,,,..,,,,,,.,,,,,,,,.,,..,,,.,.,,,..,,...,...,...,,,,,,.,,,,.,,,.,
-#BXHAK5LSRATNQCV4CXNBL63SCGW2BACQKUC7RWWELN5W6SVQA6E45YNXSJJSDRWDGT25WIUFMMBYQ
-#\\\|J4K6WDMGFI3CLIOLBBPC4WIIAMCMLIW746YXUQZEXTLYETGRRPH \ / AMOS7 \ YOURUM ::
-#\[7]52QMTI745AN7RWYX4YYLI2UPNKQALYWUFZ6VSVFDXKCWKEOKL4AA 7  DATA SIGNATURE ::
+#,,..,.,,,...,..,,,..,...,,.,,.,,,..,,...,..,,..,,...,...,...,...,,,.,...,..,,
+#4VBXGTRUUKKHH7OTDNSW3R3JKIICZXB4IZLIVQ5PUYRB3EJM264Z4YVROSEQPM7KTGFQSBFBHOFTY
+#\\\|WMBJAFT6J4C2N4WIZAODIQY74ZHHAD7GPFI4CO47COBAOWKCB7K \ / AMOS7 \ YOURUM ::
+#\[7]6R3Y6DFKBG3A6B2K7HTXKLAG6SGPGJDOFKRL73FD6LN6V4PDNGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -116,6 +116,24 @@ my $content_color = length $colors{'reset'} ? $colors{'p7_fg_0004'} : '';
 $rendered =~ s{\x02}{$bracket_color . q{[} . $content_color}ge;
 $rendered =~ s{\x03}{$bracket_color . q{]} . $content_color}ge;
 
+## title : the 'user-edit : ' part is framing, the username is payload, so
+## only the username keeps the content colour.  substituting ANSI into the
+## already-colourised label costs ZERO columns, so the border width is
+## untouched -- the label is contiguous in the colourised output, with no ansi
+## inside it, which is what makes a literal match safe here
+if ( length $colors{'reset'} ) {
+
+    my $title    = <user-edit.form.title>    // '';
+    my $username = <user-edit.form.username> // '';
+
+    ( my $title_prefix = $title ) =~ s|\Q$username\E$||
+        if length $username;
+
+    $rendered =~ s{\Q$title_prefix\E\Q$username\E}
+        {$bracket_color . $title_prefix . $content_color . $username}e
+        if length $title_prefix;
+}
+
 ## interactive mode owns the whole screen ; the one-shot render just adds the
 ## frame to whatever is already on the terminal  $colors{'clear_screen'}
 ## rather than a literal : it survives the -nc palette blanking, which is
@@ -143,9 +161,11 @@ if (<user-edit.form.interactive>) {
     print "\n";
 
     foreach my $hint (
-        [ qw{ tab|arrows }, qw| field | ],
-        [ qw| enter |,      qw| submit | ],
-        [ qw{ esc|ctrl-c }, qw| quit | ],
+        ## q{} not qw| | : these contain a '/' and a space, and a '|' here
+        ## would terminate the qw delimiter early
+        [ q{tab / arrows}, q{field} ],
+        [ q{enter},        q{submit} ],
+        [ q{esc / ctrl-c}, q{quit} ],
     ) {
         printf " %s:%s  %-13s%s\x{b7}%s  %s%s\n",
             $gutter, $key, $hint->[0], $gutter, $action, $hint->[1], $done;
@@ -158,8 +178,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,,,,.,,.,,,..,,,,.,...,...,,,.,..,,,..,,,,,..,,...,...,..,,,..,...,,..,.,.,
-#JH7QSBHB2ZS2MFARHP3DRZFBVIX2LCZTX2WKL2TSJCRDBJJRURIS33VLGMR4AH26B7ZM4DKZPQTEE
-#\\\|SLTCZQBMPB5YGQTUZ5AJKPT4KA2IBHNVAGLQUWVUA57NTO4O4QU \ / AMOS7 \ YOURUM ::
-#\[7]33ONFOIYH4JF36XIXH27IDZN7OH32SSGIXP2CRQXU2BAOUOCZABI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,.,,,..,.,,,,.,,.,,,.,.,,,,,,.,,..,,...,..,,..,,.,,,,,.,.,,,,,.,
+#JC6MLQAJMKOWPYS67QS7ZJNPATDY3YBMQ6SYGGGJ3Y3SVEMAGK2T342Z3PZKJ6VA3DHNNNZJFQ5ES
+#\\\|4YCKH2TUJAMZX3OUZKKUSWWOIJ4LMXCIOP5PWDOI6SKUEBEB4JA \ / AMOS7 \ YOURUM ::
+#\[7]YZKTRZTZHGCPIYKALJGTK2TTYYPVCNORHE6MVMGFK66O55HUR4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

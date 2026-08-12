@@ -359,8 +359,46 @@ path around it is verified). Gap found: there is **no `users.cmd.remove`**, so
 a record cannot be deleted once created — a `testuser` test record is stuck
 in the store.
 
-#,,,,,,,.,...,,,,,,,,,.,,,,..,.,.,,.,,.,.,..,,..,,...,...,.,,,,,.,,..,.,,,,..,
-#AA562NQCZPTGV7IROKWHTCJSELGL63753BK4KG5DY2Y4VSAETHAJVZSJC3JOWNMC4QLBQZMOKBN6E
-#\\\|K37INFT76PZM3TT5TBHMB6TKCMP47LSCTWH4XRANOPIAUSEEIXN \ / AMOS7 \ YOURUM ::
-#\[7]QHCPOAW6ZRIX65FMHVEZ7Z7I7VN3JRCI4DEWR5UNJKY5B4LWEGAQ 7  DATA SIGNATURE ::
+
+**2026-08-12 (later still) — create-admin landed, then the LIST field type.**
+`eef14372d` (create-admin, colours, cursor forms, Esc, clear-on-exit) and
+`f0d15bd28` (list field, alignment, hint block).
+
+The record now exists: `users.record.default_fields` +
+`users.cmd.create-default` (authority-side, refuses an existing record,
+reachable by an installer with no user-edit). Detection is async — user-edit
+cannot stat the 0770 store — so the reply handler `Event::unloop()`s and
+`user-edit.offer_create` prompts OUTSIDE the loop, then re-enters.
+`:create-admin:` skips the prompt only when target == invoker ==
+`<system.admin-user>`.
+
+**The interactive form is no longer unverified** — `script -qec` allocates a
+pty, which is what finally made it testable. Confirmed: typing repaints (the
+`add_var` watcher path), Tab and arrows navigate, the field-transition draft
+checkpoint fires, submit round-trips, Esc and ctrl-c exit, and the terminal
+is left with `isig icanon echo` restored. **Use `script -qec` for any future
+tty-dependent test** — the no-tty `char-add` driver exercises decode/dispatch
+faithfully but never touches the ACQUISITION path, which is why it missed the
+`sysread() isn't allowed on :utf8 handles` failure entirely.
+
+Colour/rendering conventions now settled — see
+[[reference-editor-list-field-and-render-contract]] for the cell/marker
+contract, and note: **never hardcode an SGR sequence**, go through `%colors`
+so `-nc` and piped output stay honest (a literal `\e[0m` in `term_restore`
+was forcing the terminal back to its DEFAULT foreground under `-nc`, the one
+thing `-nc` asks us not to do). `-nc` blanks COLOURS but keeps `clear_screen`
+and inverse video — it is not a request for plain text; only a non-tty STDOUT
+must be escape-free. Message classes: `ok`=amber (matching keys, whose save
+messages are amber because `base.log` writes to STDERR), `fail`=TRUE blue,
+`no-op`=green meaning the store is untouched, NOT success.
+
+STILL OPEN: `enum` remains interface-only; an
+event-loop-safe prompt for secret entry INSIDE a running form is still
+unbuilt (`base.term.ask` is blocking, pre-loop only); and there is still no
+`users.cmd.remove`, so the `testuser` test record cannot be deleted.
+
+#,,.,,,,,,,..,...,,..,,..,,,,,.,.,,..,,.,,...,..,,...,...,.,.,,.,,,,,,..,,,.,,
+#US4M33F7OQ3EYGAOZ3IPK5N6L6UPXH7OAUDOSDOGUXRTII4DRGT3WZLNUDE4SHET34HNGTF72Y5HE
+#\\\|SFR2DHNR7BEXDJHFMTUCVG5GWTX4XFLVXY4BA7ECVM42KNWBCCI \ / AMOS7 \ YOURUM ::
+#\[7]WFOGCGX7E6XFT4GKVQPJ2JZNTVSXU75AYBGGPHUGK43D6OHRJIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
