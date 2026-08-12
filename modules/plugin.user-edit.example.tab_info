@@ -5,16 +5,28 @@
 # param = -none-
 
 ## THROWAWAY / reference only -- see plugin.user-edit.example.init_code's own
-## note.  pins 'location', an existing default field, purely so the registry
-## has a real by_key entry to verify against.
-
+## note.
+##
+## REAL BUG, found live and fixed : this originally pinned 'location' -- a
+## REAL default field on every actual record [ users.record.default_fields ]
+## -- to make live testing easy.  plugin.user-edit.example stayed wired into
+## plugins.load afterward [ per user, "keep it and clean it up later" ], so
+## that pin was ACTIVE against every real user's real record too, not just
+## test ones : 'location' silently became readonly, two-stage-Right-to-enter,
+## test-plugin-append-only-edited for EVERYONE, the moment phase_2 shipped.
+## pinned_keys must NEVER name a key from users.record.default_fields /
+## .optional_fields while this plugin stays wired for live smoke-testing --
+## 'example_test_field' [ below ] cannot collide with anything real, and a
+## throwaway test record can still carry it directly via users.value-set
+## [ schema_from_record derives fields from whatever a record actually has,
+## not a fixed list, so an arbitrary extra key works fine for this ].
 return {
     qw| label |       => qw| example |,
-    qw| pinned_keys | => [qw| location |],
+    qw| pinned_keys | => [qw| example_test_field |],
 };
 
-#,,.,,.,.,.,.,,.,,...,,.,,.,,,...,,.,,,..,,.,,..,,...,.,.,...,.,.,.,,,.,,,..,,
-#HGDJSILGCBTBMKO4JVT4A2XBH773DEDI42ZEGRYKM36PDABVF2YK5RRSYDG3VAV74CLOKL2FBPMGQ
-#\\\|YDNUNSKIFLXE2R4OE4RW6OZCY7UQT3ZZFH5DHRBKJRCBYXMJD6G \ / AMOS7 \ YOURUM ::
-#\[7]W6MGBFKMRFOKDTUTARSZ5QDBSEKXHOLAA2CLL2OSTNZAFI6TC4AI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,...,,,,,..,,,..,..,,,,.,,.,,...,..,,...,...,...,..,,,.,,.,.,.,,,
+#W5CQYOB324DM7JXOJEN4SSTCNENQXFZRT6RCEFIKORCIVGMA7JXOZRLDCVXVTCLNWQKSKLP32DI4Q
+#\\\|CMKD3XTAMQBQNNT4GOL4PSYZA26FNADK7ZALC2EFAGIUVFSMYSA \ / AMOS7 \ YOURUM ::
+#\[7]B77PTRXLHBAX6QVGPW7VZ5ZNSUULRWHBEZP7CKHM3TEU2PFAFEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
