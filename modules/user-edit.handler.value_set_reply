@@ -18,8 +18,9 @@ if ( $cmd eq qw| TRUE | ) {
     <[user-edit.outbox.clear]>->($username);
     <[user-edit.draft.clear]>->($username);
 
-    print sprintf( "\n  << saved : %s >>\n\n",
+    <user-edit.form.exit_message> = sprintf( 'saved : %s',
         $call_args->{'args'} // "user '$username' stored" );
+    <user-edit.form.exit_class> = qw| ok |;
 
 } else {
     ## staged entry deliberately LEFT IN PLACE for a later retry — losing the
@@ -27,24 +28,29 @@ if ( $cmd eq qw| TRUE | ) {
     ## outbox exists to prevent.  a form holding a secret was never staged [
     ## see user-edit.form.submit ], so say so rather than claiming a
     ## recoverable copy exists when it does not
-    print sprintf(
-        "\n  << not saved [ %s ] : %s >>\n  << %s >>\n\n",
-        lc($cmd),
-        $call_args->{'args'} // 'no detail',
-        <user-edit.form.staged>
-        ? 'edit is staged in the outbox and kept'
-        : 'nothing was staged — this edit is not recoverable'
+    <user-edit.form.exit_class>   = qw| fail |;
+    <user-edit.form.exit_message> = (
+        sprintf(
+            'not saved [ %s ] : %s — %s',
+            lc($cmd),
+            $call_args->{'args'} // 'no detail',
+            <user-edit.form.staged>
+            ? 'edit is staged in the outbox and kept'
+            : 'nothing was staged, this edit is not recoverable'
+        )
     );
 }
 
 STDOUT->flush();
 
-<[user-edit.form.quit]>;
+<[user-edit.form.quit]>->(
+    <user-edit.form.exit_message>, <user-edit.form.exit_class>
+);
 
 return TRUE;
 
-#,,,,,,..,..,,...,,,.,..,,,,.,..,,...,..,,,,,,..,,...,...,...,.,,,..,,,,.,,.,,
-#CTQIWV2ZKLJO26LIWEOJSWDVGVQRKTSFACDF57ZRFMIB2L2EU5XJOUAELADCWM5OLBPJQMU6MVCVA
-#\\\|Y27MX6W2AZJJJORHMKU2K67FLDDDBZCWRXOHOQ6Z6AJXE5IHHW4 \ / AMOS7 \ YOURUM ::
-#\[7]E5SUFXUSPMN27267GHLGB7SKONTBB3IPC56F6PLGKEB2P77OV4BQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,.,.,,,.,...,...,.,,,...,.,,,..,,...,..,,..,,.,,,,..,,,.,,,.,
+#7NXR3VHLK276RSCTSEO4OBCBLZTMBCBJMDVD27CXAHY5OKUDGWIISPK4OQNQI6FHBXPCEACR6FDSE
+#\\\|YP4GHSP55M3GE455SMLKAPS7IFQ2RLTDGTUTL4CKRY6647VFTV2 \ / AMOS7 \ YOURUM ::
+#\[7]JZEYQEXR4JUOEZIWFYK6W4BIO2QK2QOXGQWLTDRL7Z4QQ4VCXIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,6 +24,12 @@ my $params = shift // '';
 ## driven and verified headlessly [ nshell's -no-tty-debug precedent ]
 <user-edit.mode.no_tty_debug> = $params =~ s|\s*-no-tty\b|| ? TRUE : FALSE;
 
+## ':tag:' tokens are a separate class from the '-no-tty' flag above, and are
+## partitioned out BEFORE the username fallback -- otherwise 'start
+## :create-admin:' would take the tag itself as the username
+my $tags;
+( $params, $tags ) = <[user-edit.parse_params]>->($params);
+
 my $username = $params;
 $username =~ s|^\s+||;
 $username =~ s|\s+$||;
@@ -44,6 +50,10 @@ if ( not -t STDIN and not <user-edit.mode.no_tty_debug> ) {
     return FALSE;
 }
 
+<user-edit.cube_sid> = $cube_sid;
+## this console command owns the event loop, so its reply handler is allowed
+## to unloop and hand control back [ user-edit.offer_create ]
+<user-edit.offer.create>     = TRUE;
 <user-edit.form.username>    = $username;
 <user-edit.form.interactive> = TRUE;
 <user-edit.form.title>       = sprintf( 'user-edit : %s', $username );
@@ -71,10 +81,11 @@ if ( not -t STDIN and not <user-edit.mode.no_tty_debug> ) {
 
 <[base.zenka.loop]>;
 
-return TRUE;
+## resumes here only if the reply handler unlooped to offer a record ##
+return <[user-edit.offer_create]>->( $username, $tags );
 
-#,,..,,,,,.,.,,,,,,.,,,,,,.,,,,.,,,.,,,.,,.,,,..,,...,...,.,.,,..,,,.,,.,,,,.,
-#BTJ2NXHQQO4ZWWXHQQFHQL2UDPGNEO6N3FI7PDDRSXTHAVK2BKNIISHFR4PY2U5OASEWRMXT5RV5U
-#\\\|W2B7FXRTQIMKTFHEBIMFMU6UKFJMOILW2EO4FANCMCW5RFABWQF \ / AMOS7 \ YOURUM ::
-#\[7]SWZJA5WIVDWPJ6XMLG2PQRBHJPLG2YORGRCY2ANQZLPGBH2PYCAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,..,,..,,..,,,.,..,,..,,.,.,.,,,..,,...,...,...,...,.,,,,,,,..,,
+#ZTG6TYP6GOLMU72NDE5HEM3AAHPB7FCLPYJJOZ63V3P63R445U5BWBL7DOLH22ETACODYONBYQXXG
+#\\\|F3EB4COBGZCXUPG3TO26CXZMGAEGQU3BM3URCVZH75VN375SDL6 \ / AMOS7 \ YOURUM ::
+#\[7]4573ESWSPPH7JIRHJUQ6WSXDTNFJS35JZEUHQTDYQ57CFRXQFQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

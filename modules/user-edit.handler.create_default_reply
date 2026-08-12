@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = user-edit.handler.create_default_reply
+# descr = handle the users.create-default reply
+
+## reply-handler call signature is a SINGLE hashref { sid, cmd, call_args,
+## params, data? } ; TRUE/FALSE carry their message in call_args->{'args'}.
+##
+## on success this RE-SENDS users.value-get through the ordinary
+## user-edit.handler.value_get_reply path and stays INSIDE the event loop, so
+## the schema / frame / render / raw-mode sequence runs exactly as it does for
+## a record that existed all along -- no second code path, and no second
+## unloop.
+
+my ($info) = @ARG;
+
+my $cmd       = uc( $info->{'cmd'} // '' );
+my $call_args = $info->{'call_args'}      // {};
+my $username  = <user-edit.form.username> // '?';
+
+if ( $cmd ne qw| TRUE | ) {
+    print sprintf( "\n  << could not create the record [ %s ] : %s >>\n\n",
+        lc($cmd), $call_args->{'args'} // 'no detail' );
+    STDOUT->flush();
+    <[user-edit.form.quit]>;
+    return FALSE;
+}
+
+<[base.logs]>->( 2, ': default record created [ %s ]', $username );
+
+my $cube_sid = <user-edit.cube_sid>;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    print "\n  << record created, but the link "
+        . "is gone — run the command again >>\n\n";
+    STDOUT->flush();
+    <[user-edit.form.quit]>;
+    return FALSE;
+}
+
+## fetch what we just created ; create.attempted was set before the send, so a
+## still-missing record cannot loop back into another offer
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-get', $cube_sid ),
+        qw| call_args | => { qw| args | => $username },
+        qw| reply |     =>
+            { qw| handler | => qw| user-edit.handler.value_get_reply | }
+    }
+);
+
+return TRUE;
+
+#,,,,,.,,,.,,,,..,...,...,..,,...,.,.,,,,,.,.,..,,...,...,...,.,.,.,,,,,,,.,,,
+#KNJ24A3XZ5YBAMG6QB4ISOXLDM6LETP6QCSB2ASVWEKUONZJABXUPMHORIPZULV74LAI6YVJCWBBQ
+#\\\|3GNK46FQ4EIP6WRKTTYNEOR6ONILBW5G3PTMR75VZY75A255GTR \ / AMOS7 \ YOURUM ::
+#\[7]Q4QX3OBKGJYR5JTFBSKRRMSLZW3JY5XI2SCQLAOAIOUCGS3VCIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

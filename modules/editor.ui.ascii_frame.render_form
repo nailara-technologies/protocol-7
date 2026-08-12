@@ -25,7 +25,17 @@
 ## changes, when the active field's row is or becomes the width-determining
 ## row.
 
-my ( $editor_state, $frame_name, $only_field ) = @ARG;
+my ( $editor_state, $frame_name, $only_field, $cursor_marker ) = @ARG;
+
+## the cursor marker is parameterisable so a COLOURED caller can pass a
+## one-character placeholder [ e.g. "\x01" ], colourise the finished frame,
+## then substitute a coloured cursor into it afterwards.  it must stay ONE
+## character here : both the required-width computation and the render-time
+## fill padding measure it with length(), so an ansi sequence passed in
+## directly would silently break row alignment
+$cursor_marker = q{|}
+    if not defined $cursor_marker
+    or length $cursor_marker != 1;
 
 return undef if ref $editor_state ne qw| HASH |;
 return undef if not defined $frame_name or not length $frame_name;
@@ -65,7 +75,19 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
             // 0;
         $cursor = 0             if $cursor < 0;
         $cursor = length $value if $cursor > length $value;
-        substr( $value, $cursor, 0 ) = '|';
+
+        ## OVERLAY, not insert [ nshell.render.cursor's shape ] : the marker
+        ## REPLACES the character it sits on, so the row keeps its width and a
+        ## colourising caller can restore that character in inverse video --
+        ## the character under the cursor stays readable.  only a cursor PAST
+        ## the last character has nothing to overlay and appends a cell, which
+        ## is the underscore case
+        if ( $cursor >= length $value ) {
+            $value .= $cursor_marker;
+        } else {
+            substr( $value, $cursor, 1 ) = $cursor_marker;
+        }
+
         $value = '[' . $value . ']';
     }
     $values{$name} = $value;
@@ -96,8 +118,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,.,.,,,,,,,...,...,,,,,,,.,,,,,.,,,,,,,,.,,..,,...,...,...,,,.,,..,.,,,...,
-#ENTDCGNAQJAYVK5CAQV2ZC6BTZEDDQ76QFPLOG4TTZC4F5UO4GWS7AEG5GDKRG34THGIGK5QYJGQC
-#\\\|PFINFIOUAIWQQ7SNSDYYPLRCLESEKPLDQFDSQ3FKDNUSABEBAIJ \ / AMOS7 \ YOURUM ::
-#\[7]TRRTN7D6K6VSXGYJIWE55AXHW4WIXKI4OAR5YEGHXR5FKIKML2CQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,..,,...,,.,,,.,,.,,,,,.,,.,,,,.,..,,...,...,,.,,..,,,,.,,..,,.,,
+#RFV7N4QUPE7OQCJ74GO65LUF4GZCJNP6PRY6IG23KRQXVD2V7V4S7YEMWAQI5UOIT7SHVWDJ73RD4
+#\\\|YQQVENS5SPAQGCJ5TV37F5X2BPL3KATHBZFYQYQIMUIBEZWPLGV \ / AMOS7 \ YOURUM ::
+#\[7]OP5T42WWCEATZY65CJTXONIA2D2JO7DCRMFJBNSLOK2IY7IOT2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

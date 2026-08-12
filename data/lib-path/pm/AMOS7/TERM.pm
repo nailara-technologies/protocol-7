@@ -435,10 +435,14 @@ sub ask {
     ## hint shows which answer 'enter' selects ##
     my $hint = '';
     if ( $type eq qw| yes-no | ) {
-        $hint
-            = not defined $default ? ' [y/n]'
-            : $default             ? ' [Y/n]'
-            :                        ' [y/N]';
+        ## parentheses are REQUIRED : 'not' binds looser than ?: , so 'not
+        ## defined $default ? A : B' negates the whole ternary chain and
+        ## always yields '' -- the hint silently disappeared
+        if ( not defined $default ) {
+            $hint = ' [y/n]';
+        } else {
+            $hint = $default ? ' [Y/n]' : ' [y/N]';
+        }
     } elsif ( defined $default and length $default ) {
         $hint = sprintf( ' [%s]', $default );
     }
@@ -1886,8 +1890,8 @@ sub frame_bar {
 
 return TRUE ##################################################################
 
-#,,..,.,.,..,,,,,,..,,,,,,,,.,..,,.,.,,,,,,.,,..,,...,.,.,..,,...,.,.,,.,,,.,,
-#HTMG2AI2NA5YGZS3QQKHL545RZR5FXLLH2UZAKYI567UV6BVEFC23NK7ZTUI3KX54JIHH3ZST634C
-#\\\|TY33WNHXU7WH7A5FH7E67AZ5CVEGEDQUXYSO775SNFYGWMMQHX4 \ / AMOS7 \ YOURUM ::
-#\[7]IQAKGMD2HOMDXP3K4N6244QRTKEKML667LO5HMC2JONY2DJHSSDY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,...,,,.,..,,,,,,..,,,.,,..,,..,,...,...,..,,,..,,..,,..,,.,,
+#6456KLT5V7RAQPPSRGZSYKPVIPYUM5DS2SGBOFFKNY7SQTVVIGE7RPFZOEJRVP27JL7WBLD37UJW6
+#\\\|J6YO6VKNMVVCR2BFPJMG5E2FNA7X5CAIEDGBXTSPF6PZCZVQFCN \ / AMOS7 \ YOURUM ::
+#\[7]LAY7NDATG4OCILQBS6ZSCET6ZQKA52JC2IKBOES74MAXPK4M6KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

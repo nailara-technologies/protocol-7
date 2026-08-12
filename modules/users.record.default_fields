@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = users.record.default_fields
+# descr = default field set for a new host-system record
+
+## the single authority for what a freshly created host-system record
+## contains.  the settings payload is deliberately open [ users-zenka.yaml
+## defines no field list ], so this is the ONE place that decides the starting
+## shape -- an installer provisioning a node's 'root' account calls this same
+## module, with no user-edit involved.
+##
+## returns a FRESHLY BUILT hashref on every call and is deliberately not
+## cached in a <users.record.default_fields> variable : callers write into the
+## record they are given, and a shared structure would let two of them
+## collide.
+##
+## empty strings rather than absent keys : user-edit.form.schema_from_record
+## derives its form from whichever keys the record carries, so a record with
+## no fields renders nothing at all -- the keys are what make an empty record
+## editable.
+
+return {
+    qw| contact |  => '',
+    qw| location | => '',
+    qw| note |     => '',
+};
+
+#,,.,,..,,,,.,.,.,.,.,,.,,,.,,,,,,,..,,.,,,,,,..,,...,..,,.,.,,.,,.,,,,..,.,.,
+#3KHY2D3SJFC236HZETN63IIEZ5Z62USOER6PVUOKF7OFQBP44AU53KXU5TQHBHHDTSIQB3PALZAVA
+#\\\|GNN2O6DIR76T5Y3R2L3VLMTNGKXOIJELXUKZLP4CWOBGWXOZMSF \ / AMOS7 \ YOURUM ::
+#\[7]VY2GGUW2J3C5WLTEHO3RICLYDSOFBA47M7H6UP22L7FY2CIB3WAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

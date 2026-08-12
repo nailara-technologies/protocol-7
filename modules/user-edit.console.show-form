@@ -15,7 +15,11 @@
 ## loop itself rather than the start file doing it — a [zenka.loop] in the
 ## start file would hang plain 'v7.user-edit commands'.
 
-my $username = shift // '';
+## tags are partitioned out BEFORE the username fallback -- otherwise
+## 'show-form :create-admin:' would take the tag itself as the username
+my ( $params, $tags ) = <[user-edit.parse_params]>->( shift // '' );
+
+my $username = $params;
 $username =~ s|^\s+||;
 $username =~ s|\s+$||;
 $username = <user-edit.unix_user> if not length $username;
@@ -27,6 +31,10 @@ if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
     return FALSE;
 }
 
+<user-edit.cube_sid> = $cube_sid;
+## this console command owns the event loop, so its reply handler is allowed
+## to unloop and hand control back [ user-edit.offer_create ]
+<user-edit.offer.create>     = TRUE;
 <user-edit.form.username>    = $username;
 <user-edit.form.interactive> = FALSE;
 <user-edit.form.title>       = sprintf( 'user-edit : %s', $username );
@@ -48,10 +56,11 @@ if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
 
 <[base.zenka.loop]>;
 
-return TRUE;
+## resumes here only if the reply handler unlooped to offer a record ##
+return <[user-edit.offer_create]>->( $username, $tags );
 
-#,,,.,,.,,,,,,..,,.,,,,..,..,,.,,,...,..,,.,.,..,,...,...,...,,.,,,.,,.,.,,.,,
-#AIJ3FTK5V5KQP6KH353CTUSMIL3E4XO4LHYK4OD3OZ6QIR42ET4LTQO4YYHWIKMYATUGTLUR6MA6K
-#\\\|XLFDTDQMKCJ3OPLJKTX5TEVWHNWBBF5A27NONGCK2N4V5QWAGB6 \ / AMOS7 \ YOURUM ::
-#\[7]OLNLSVTFEOFK3EVOXUUHH2U6LLCZOOUCSQ2MYVLZAB4WYKUSXOCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,..,,..,,..,,,,,,,.,,.,.,.,.,...,..,,...,...,...,,,.,.,,,...,,.,,
+#ULWWGHL3ZHOUHPCP64XAQMWAAGIPNV3W5DLAAO4DVVL4TDUQM2AI5LI3A6STVZZQQL23WHZUVCKMY
+#\\\|3DIAIQ2WAEHHG5QMCFESDU4KLOCPUGCE42PXSLCOUA5PLGMBM5O \ / AMOS7 \ YOURUM ::
+#\[7]2ZTVC5HZXEQCI4MFFBTWC4UTDNQTI4Z4VMOXOZHZF6U73LSUC4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

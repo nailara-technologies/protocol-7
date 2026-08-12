@@ -9,14 +9,38 @@
 ## belt-and-braces for the paths that never reach this module [ SIGTERM ], and
 ## term_restore is idempotent [ it clears orig_termios on success ]
 
+my ( $message, $class ) = @ARG;
+
+## CLEAR BEFORE RESTORING, and before printing the outcome : leaving a
+## rendered record on screen after the form exits is an information leak in
+## any observed or shared terminal, and it is why the outcome message is
+## passed IN rather than printed by the caller -- printing first and clearing
+## second would wipe the very line worth keeping
+if (<user-edit.form.interactive>) {
+
+    print $colors{'clear_screen'} // '';
+
+    ## scrollback is a SEPARATE, opt-in step : '\e[3J' drops the terminal's
+    ## saved lines, which is what actually stops someone scrolling back to
+    ## read the record -- but it discards whatever the user had on screen
+    ## before running this, so it stays off unless explicitly asked for
+    print "\e[3J"
+        if <[base.cfg_bool]>->( <user-edit.cfg.clear_scrollback> // FALSE );
+
+    STDOUT->flush();
+}
+
 <[user-edit.term_restore]>;
+
+<[user-edit.message]>->( $message, $class // qw| info | )
+    if defined $message and length $message;
 
 <[base.exit]>;
 
 return TRUE;
 
-#,,,.,,,,,,,,,,.,,,,.,..,,,,.,.,,,,,.,,,,,,,,,..,,...,...,..,,.,,,.,,,...,...,
-#3S6QHW5AGWDRQ3W2VAIM6LKKR37MVLIFEJ7HR76USVZX75H3GHTCHJSMYG2YZ3UQJ3APCVVV7GLUC
-#\\\|V2DECRPWGWNCJ7RORCZVZ4YJ5RXAKVRGVQZIXHDTCL3GU5FPQSJ \ / AMOS7 \ YOURUM ::
-#\[7]KD7RR7NDFTLHYOAGTC5N2JU55UZH5NOCSMQP5NWL4GSBHW3JDIBI 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,,,,,.,,,,,,,,,.,,..,,..,...,..,,...,...,...,.,,,..,,.,,,,,,,
+#ZICM4RDWJNANQRHEYOZ7K63ZW7HK7RVJGGS7FBEJU4QTJJHPDX2SXVJSTPAOCYUP5N77HVMYVCUDQ
+#\\\|6A6XN6DK5NL6WHETGOTM26TSMLFFSBM3SF7VKT5655ILVWLPZXF \ / AMOS7 \ YOURUM ::
+#\[7]SCQWSEXE6VU3WZ6ME27SQTIL54GHNEOLTXJNK4E4T7FGPVSBGECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
