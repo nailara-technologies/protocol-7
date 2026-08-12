@@ -42,10 +42,16 @@ return {
     }
     if ref $fields ne qw| HASH |;
 
-## USERS_HOST is created once at boot, as root, in users.init_code — this ##
-## handler runs post-drop_privs and can't mkdir under the root-owned      ##
-## /etc/protocol-7/ parent, so it only ever writes here                   ##
-my $file_path     = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
+## a record is a DIRECTORY, so its own dir is created here.  that is possible
+## post-drop_privs because [USERS_HOST] is 0770 owned by the zenka user --
+## only its root-owned /etc/protocol-7/ PARENT needed boot-time root
+my $file_path = <[users.record.path]>->($username);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "cannot create record directory for '%s'", $username )
+    }
+    if not <[users.record.ensure_dir]>->($username);
 my $resolved_path = <[base.path.resolve_keywords]>->($file_path);
 
 ## best-effort read of the existing record, only to preserve its creation   ##
@@ -71,8 +77,8 @@ return {
     'data' => sprintf( "user '%s' stored", $username )
 };
 
-#,,..,..,,..,,.,.,.,.,,.,,,..,...,,.,,.,.,..,,..,,...,...,,.,,.,.,,..,.,.,,..,
-#FKAQ5B2VTJYGP3VLCZ6LUZOA4JQEQRRFSBD7ABUJT47XJCSWAEZWSD7E4E455TVGY35B6NNYT4Q32
-#\\\|ZPW6OKXJ5NRJLMGOI7DQGRAJK6PEEF5RTH4JF5CH6JCWORTXZQM \ / AMOS7 \ YOURUM ::
-#\[7]5SLEPOJUKKK7TO2L4WLDVFAKVSHE4LY4AGSA3EMPEJNMCXCTUSCQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,.,,,,,,,.,.,..,,...,..,,,.,,..,,...,...,...,,,,,..,,,,,,,,,,
+#TMT7L4W2EDAWIQTHPIFWXMT4DOKIXX7GI3VKZLU6BL7VV6YNEWUXVALPMIVVAAPOKLVEYTZOJTMPE
+#\\\|FLSXQWL5EK4KOUPPBM65274LH6GAMADYUJTCCKYNWYKW6CRCHIK \ / AMOS7 \ YOURUM ::
+#\[7]M66TNWI23L2UKSGB2OBQOB5UIZPZ6ZPNXCPVUANUYHO6C6Q3TGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = users.record.ensure_dir
+# descr = create a record's own directory if it is absent
+# param = $username
+
+## a record is a DIRECTORY [ see users.record.path ], so a writer has to
+## create it before writing the document inside.
+##
+## this CAN mkdir post-drop_privs, unlike the [USERS_HOST] parent : that one
+## lives under the root-owned /etc/protocol-7/ tree and is created once at
+## boot by users.init_code while still root.  [USERS_HOST] itself is 0770
+## owned by <system.amos-zenka-user>, which is who this handler runs as -- so
+## creating a subdirectory INSIDE it needs no privilege the zenka lacks.
+
+my ($username) = @ARG;
+
+return FALSE if not defined $username or not length $username;
+
+my $record_dir = <[base.path.resolve_keywords]>
+    ->( sprintf( qw| [USERS_HOST]/%s |, $username ) );
+
+return TRUE if -d $record_dir;
+
+<[file.make_path]>->(
+    $record_dir, 0770, <system.amos-zenka-user>, <system.amos-zenka-user>
+);
+
+return -d $record_dir ? TRUE : FALSE;
+
+#,,.,,.,.,,,.,...,.,,,...,.,.,,..,..,,,,.,,,,,..,,...,...,,,.,,,.,,..,,,.,,.,,
+#T3HZ5MQF645KSRCHYO4KTXJ5TQWNX2INWTNIKG6TNSBVSA2OXAYW23BLPPDIWNEDACCFI5WV3YJCS
+#\\\|SCR73UYUXFWSNBHILJ65UIVQOXIRGO5DXQZTHZDG4YNJM4TGPM3 \ / AMOS7 \ YOURUM ::
+#\[7]FPKODRPLMHPPIXZT7MGBENE3XH2YXVTBLDZIIAHBEPQACSFZBCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

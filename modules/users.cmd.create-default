@@ -36,7 +36,7 @@ return {
     }
     if $username =~ m|[/\\]|;
 
-my $file_path = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
+my $file_path = <[users.record.path]>->($username);
 
 return {
     'mode' => qw| false |,
@@ -48,6 +48,12 @@ return {
 my $envelope = <[users.record.build]>->(
     $username, <[users.record.default_fields]>, undef
 );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "cannot create record directory for '%s'", $username )
+    }
+    if not <[users.record.ensure_dir]>->($username);
 
 my $resolved_path = <[base.path.resolve_keywords]>->($file_path);
 
@@ -67,8 +73,8 @@ return {
     'data' => sprintf( "user '%s' default record created", $username )
 };
 
-#,,..,...,,.,,,..,,.,,,..,,,.,.,,,,..,,,.,...,..,,...,...,...,,,,,..,,..,,,.,,
-#IXEV7KRD7BLGE6QHOE274TQCYCT5PHK7A2KCAJF4M25FDX7HOVTA5LSXYBSKMAUUDIDBD5BKDZ2BO
-#\\\|YRT4T5HCXNGULUWCHNV5ZFO5T7HCOXUG4W2R2NSQLGS4VNXBT3A \ / AMOS7 \ YOURUM ::
-#\[7]FLYRMGM3IPMOV3WP75BWZ6VCO2AGHBBZSASDPEWLRZFILJIO5QBY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,..,,.,,,,.,,..,.,,,.,,,,..,,,,,..,,...,...,,,.,,,.,..,,...,,,.,
+#I73AZPU7JDKB5CYXFYNVVZW2DGCPEAYCJH5OPNNV6ALIXYSDYKI2V7J2OYDR2WDUBEZNFUHOFOGKM
+#\\\|RETHPV6TEN553SF6VRXMMSHEGV35VZE4L3TQQP66LSHH5Q7HSZ5 \ / AMOS7 \ YOURUM ::
+#\[7]YUGZJOD3KAAZXVXZHOB3P4JDZIEDVW5BHLNLRUJ3SZYTQUZ5JECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
