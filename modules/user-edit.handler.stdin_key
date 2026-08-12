@@ -47,6 +47,13 @@ if ( defined $bytes_read and $bytes_read > 0 ) {
     return TRUE;
 }
 
+## any new input answers the "was that a bare Esc?" question, so the pending
+## one-shot is cancelled before the buffer is drained
+if ( defined <user-edit.esc.timer> ) {
+    <user-edit.esc.timer>->cancel;
+    <user-edit.esc.timer> = undef;
+}
+
 my $repaint = FALSE;
 
 while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
@@ -55,6 +62,21 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     next if ref $result ne qw| HASH |;
 
     my $action = $result->{'action'} // qw| none |;
+
+    ## Down / Up move between fields as well as Tab / Shift-Tab : in a
+    ## multi-field FORM that is the natural reading, while nshell binds the
+    ## same two keys to history navigation.  editor.control.process_key
+    ## deliberately does NOT decide this centrally -- it returns them as
+    ## 'passthrough' so each host claims them with its own meaning
+    if ( $action eq qw| none | and defined $result->{'passthrough'} ) {
+        my $field_count = scalar $editor_state->{'schema'}{'fields'}->@*;
+        if ( $field_count > 1 ) {
+            $action = qw| field_next |
+                if $result->{'passthrough'} eq "\e[B";
+            $action = qw| field_prev |
+                if $result->{'passthrough'} eq "\e[A";
+        }
+    }
 
     if ( $action eq qw| field_next | ) {
         my $count = scalar $editor_state->{'schema'}{'fields'}->@*;
@@ -81,7 +103,7 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         ## terminal restored on the way out, which is exactly why ISIG is
         ## disabled in user-edit.term_init rather than letting the signal kill
         ## the process outright
-        <[user-edit.form.quit]>;
+        <[user-edit.form.quit]>->( 'cancelled', 'no-op' );
         return TRUE;
 
     } elsif ( $action ne qw| none | ) {
@@ -90,14 +112,29 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     }
 }
 
+## a lone "\e" left over means editor.input.next_key could not decide between
+## a bare Esc keypress and the first byte of an escape sequence still in
+## flight.  arm a one-shot : if nothing follows, it was Esc
+if ( ( $input_buffer->$* // '' ) eq "\e"
+    and not defined <user-edit.esc.timer> ) {
+
+    <user-edit.esc.timer> = <[event.add_timer]>->(
+        {   qw| after |   => <user-edit.cfg.esc_timeout> // 0.05,
+            qw| repeat |  => FALSE,
+            qw| handler | => qw| user-edit.handler.esc_timeout |,
+            qw| desc |    => 'user-edit bare-Esc timeout',
+        }
+    );
+}
+
 ## single write per firing, not per key : a paste arriving as one chunk
 ## repaints once instead of once per character
 <user-edit.form.dirty>++ if $repaint;
 
 return TRUE;
 
-#,,,.,.,.,,,.,,,.,,..,...,.,,,..,,...,,..,.,.,..,,...,...,...,,,.,,..,..,,,,,,
-#ZK5HW6WZA6FQA5UQMQTQZXPGMZQZURD5ATM64GXPWVCZTTZTEHXVBSKDT5XCCIYQ4625EWOM27CDI
-#\\\|XEYNMCQKQA4EJCGBTXSWWJHUGK6EFTKKDFWGQSI6RRTOEYQ3T3H \ / AMOS7 \ YOURUM ::
-#\[7]HCVPEUIRGLB5227FONZOH3YXGZIMG634C6HCMMGX5Y63XB4NAMAA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,,..,,,,,..,,,,,,.,.,,,,,,.,,..,,...,.,.,..,,,,,,,,,,,,.,,,.,
+#XNLKGYLWBWNBRDWZQZ2JWSWZBUC7E4BTPLIP5YKXBPI5FAOQG4EDYAWJZWJFKEORF6NVPZ4Z65FOW
+#\\\|S2WU2V7PXLOYIICLKJENIUV2AJC3IIYCZQAP7LH6M34SWFKRALD \ / AMOS7 \ YOURUM ::
+#\[7]BS7D4ERTLALPUK2YLA6RJ56YDOPFB4NV46S5Q4JH3GXA4XBGBGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

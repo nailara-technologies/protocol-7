@@ -27,6 +27,41 @@ my $abort = sub {
 };
 
 if ( $cmd ne qw| SIZE | ) {
+
+    my $detail = $call_args->{'args'} // '';
+    $detail =~ s|^\s+||;
+    $detail =~ s|\s+$||;
+
+    ## OFFER TO CREATE : only for a record that genuinely does not exist.
+    ##
+    ## 'false' mode is overloaded on the users side -- it also carries "user
+    ## '%s' record invalid: %s" and the usage errors -- so this matches
+    ## users.cmd.value-get's not-found string EXACTLY.  a substring test would
+    ## offer to overwrite a CORRUPT but existing record.  [ the counterpart
+    ## string lives in modules/users.cmd.value-get ]
+    my $not_found_msg = sprintf( "user '%s' not found", $username );
+
+    if (<user-edit.offer.create>    ## the caller owns the event loop ##
+        and not <user-edit.create.attempted>
+        and <user-edit.unix_user> eq ( <system.admin-user> // '' )
+        and $detail eq $not_found_msg
+    ) {
+
+        ## hand control back OUT of the event loop : base.term.ask is blocking
+        ## and must not run inside a handler.  the console command resumes
+        ## after its own <[base.zenka.loop]> and asks there.  function form --
+        ## Event->unloop() would pass 'Event' as the unloop result
+        <user-edit.pending.create> = TRUE;
+        Event::unloop();
+        return FALSE;
+    }
+
+    ## a near-miss is worth seeing : if the users-side wording ever drifts
+    ## this feature would otherwise just silently stop triggering
+    <[base.logs]>->(
+        1, ': create-offer declined a false reply [ %s ]', $detail
+    ) if <user-edit.offer.create> and not <user-edit.create.attempted>;
+
     return $abort->(
         sprintf(
             'users.value-get failed [ %s ]: %s',
@@ -102,8 +137,8 @@ if ( <user-edit.form.interactive> and not <user-edit.mode.no_tty_debug> ) {
 
 return TRUE;
 
-#,,.,,,.,,,,.,.,,,,..,,.,,.,,,..,,,,.,.,.,,,.,..,,...,...,.,.,.,.,,,.,...,.,.,
-#NR2EZEQCKA5W7NVUHF64ZRAZNPI4F45N3RLZS6ZT3XVCXICYTF6EL6D2LVHPXIS6IMXJT3NJJIUKI
-#\\\|4UWWRRORKTIHCLYT2ZQSBUB33JYGYRMQPHGI7ZUM34YWGQOYH2W \ / AMOS7 \ YOURUM ::
-#\[7]WSGC3UTD76ZPA2UPGS2EJFIR3MDW6KBUYPXG22YZB44RNAUJBGCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,.,,,,..,.,,,.,,,.,.,,,.,.,,,..,,...,...,.,.,.,,,,..,,,,,...,
+#FG4UXVTS4NRHG72W6QUBQCXYUDQAEG2H7ONJQFLC5ESET44XK677YPS2IBRCTX3C3VDKBW5B55JH2
+#\\\|BLEDIXYWWNZAKVTCM573FOCPDTCIBQUZEKIMGANENRFYT5VB5CW \ / AMOS7 \ YOURUM ::
+#\[7]EPMPVVZGMJT45L4BFNRMZ2D7F4S26HKB25L4BECSGLA2ZSVTPMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

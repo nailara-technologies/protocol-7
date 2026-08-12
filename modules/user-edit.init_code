@@ -24,6 +24,13 @@
 ##                                                                         ##
 ## built here rather than written into the start file, where '[user-edit]' ##
 ## would be parsed as a command invocation by the config parser            ##
+## create-admin flow state, explicitly reset : a mid-session               ##
+## base.cmd.reload must not leave the resume block in user-edit.           ##
+## offer_create armed from a previous invocation                           ##
+<user-edit.pending.create>   = FALSE;
+<user-edit.create.attempted> = FALSE;
+<user-edit.offer.create>     = FALSE;
+
 <user-edit.auth_name> = sprintf( qw| %s[user-edit] |, <user-edit.unix_user> );
 
 ## P7-native home dir resolution [ base.get_homedir, NOT AMOS7::FILE:: ##
@@ -41,8 +48,8 @@ my $user_edit_path_keywords = {
 
 return TRUE;
 
-#,,,.,..,,..,,..,,.,.,.,.,..,,...,,.,,.,.,.,.,..,,...,...,..,,...,...,,,.,,,,,
-#J6W5HGJVAHZ3ZQNN776NQMKQLGIXE57QQXWRLTIFPUGWM2O4NTORMK6P7WVDSIUA2GLZVILZXIH2S
-#\\\|Q2GWHTVXQFDRN7XQ2FOMISMZ3FGNEPJPADAU6CXRAOCKSUXJIZL \ / AMOS7 \ YOURUM ::
-#\[7]I2MSOPWM2BUQEKRCVNYACVQJLKFUWQXSOXZ4O6UXI4ROQUQ2RGBQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,.,.,.,.,.,,,...,,..,,..,,.,,..,,...,...,,,,,,..,.,.,,,.,,.,,
+#5ZIWBFEKWMX6HRE2OBC2SEJC7JKJMCESUNRZ5GHBUYK65CIAHEHRH2RFZ5Z4MIEGEUJMLN7FNCLUC
+#\\\|SVY2ZKRUYJWJTOAU436MMGIZI46D6T4P4VJMAZX2CGRZAZYUI5O \ / AMOS7 \ YOURUM ::
+#\[7]3OP3ITI6S25B3PC2INXJEHBZS7I57YWA263E54ONWF7B6ZMOHOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

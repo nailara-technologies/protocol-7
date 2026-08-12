@@ -27,30 +27,107 @@ if ( not exists <ascii.frame.cache>->{$frame_name} ) {
     );
 }
 
-my $rendered
-    = <[editor.ui.ascii_frame.render_form]>->( $editor_state, $frame_name );
+## SOH placeholder for the cursor : one character wide so render_form's width
+## and fill maths stay exact, substituted for a coloured '|' after
+## colourisation below [ an ansi sequence passed in directly would break row
+## alignment ]
+my $cursor_mark = qq|\x01|;
+
+my $rendered = <[editor.ui.ascii_frame.render_form]>->(
+    $editor_state, $frame_name, undef, $cursor_mark
+);
 
 if ( not defined $rendered ) {
     <[base.logs]>->( 0, ': form render failed [ %s ]', $frame_name );
     return FALSE;
 }
 
-## interactive mode owns the whole screen ; the one-shot render just adds the
-## frame to whatever is already on the terminal
-print "\e[H\e[2J" if <user-edit.form.interactive>;
+## colourise by character class through the shared frame colouriser --
+## config-driven from configuration/ascii-frame [ purple structure, TRUE blue
+## slot values ], the same call memory.render.term and  context.provider.frame
+## already use
+$rendered = <[ascii.frame.render.color]>->($rendered) // $rendered;
 
-print "\n" . $rendered . "\n";
+## which field the cursor sits in -- active_field is an INDEX into the
+## schema's field list, the same resolution render_form does internally
+my $active_index = $editor_state->{'active_field'} // 0;
+my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
+    // '';
+
+## restore the character the marker overlaid, in nshell.render.cursor's two
+## forms : a real character comes back in INVERSE VIDEO so it stays readable,
+## and an empty cell [ cursor past the end, or sitting on a space ] becomes a
+## phosphor green underscore.  both are exactly one column wide, so the row
+## keeps the width ascii.frame.render computed
+my $active_value
+    = <[editor.control.get_display_value]>->( $editor_state, $active_name )
+    // '';
+my $active_cursor
+    = <[editor.control.get_cursor]>->( $editor_state, $active_name ) // 0;
+
+my $cursor_char
+    = $active_cursor < length $active_value
+    ? substr( $active_value, $active_cursor, 1 )
+    : '';
+
+## THREE cases, not two.  '-nc' blanks the COLOUR palette but is not a request
+## for plain text -- bin/Protocol-7 keeps clear_screen as a real escape in
+## that same branch -- and inverse video is an ATTRIBUTE, not a colour, so it
+## stays available and keeps the cursor visible.  only a non-terminal STDOUT
+## must be free of escapes entirely
+my $on_terminal = -t STDOUT ? TRUE : FALSE;
+
+my $cursor_render;
+if ( not $on_terminal ) {
+    ## piped : no escapes at all, so the cursor cell can only be a character
+    ## OR a marker -- prefer showing the marker, since losing the cursor
+    ## position is worse than losing one readable character
+    $cursor_render = q{_};
+} elsif ( not length $colors{'reset'} ) {
+    ## -nc : no colour, but inverse video still marks the position and keeps
+    ## the character underneath readable
+    $cursor_render
+        = length $cursor_char && $cursor_char ne q{ }
+        ? "\e[7m" . $cursor_char . "\e[27m"
+        : q{_};
+} elsif ( not length $cursor_char or $cursor_char eq q{ } ) {
+    $cursor_render = $colors{'p7_fg_0003'} . q{_} . $colors{'p7_fg_0004'};
+} else {
+    ## \e[7m / \e[27m : inverse video on and off, zero columns each ##
+    $cursor_render
+        = "\e[7m" . $cursor_char . "\e[27m" . $colors{'p7_fg_0004'};
+}
+
+$rendered =~ s{\x01}{$cursor_render}ge;
+
+## interactive mode owns the whole screen ; the one-shot render just adds the
+## frame to whatever is already on the terminal  $colors{'clear_screen'}
+## rather than a literal : it survives the -nc palette blanking, which is
+## exactly where a hardcoded escape would have been inconsistent with the rest
+## of this module
+print $colors{'clear_screen'} // '' if <user-edit.form.interactive>;
+
+## leading reset is not cosmetic : bin/Protocol-7 leaves STDERR set to
+## p7_fg_0002 [ amber ], and without this the whole frame inherits it.
+## $colors{'reset'}, NOT a literal "\e[0m" : bin/Protocol-7 blanks the whole
+## palette when output is piped, and a hardcoded sequence would put escape
+## codes into a pipe that deliberately asked for none
+print $colors{'reset'} . "\n" . $rendered . $colors{'reset'} . "\n";
 
 if (<user-edit.form.interactive>) {
-    print "\n  [ tab ] next field   [ enter ] submit   [ ctrl-c ] quit\n\n";
+    printf "\n  %s[ tab / arrows ]%s field   %s[ enter "
+        . "]%s submit   %s[ esc / ctrl-c ]%s quit%s\n\n",
+        $colors{'p7_fg_0000'}, $colors{'p7_fg_0001'},
+        $colors{'p7_fg_0000'}, $colors{'p7_fg_0001'},
+        $colors{'p7_fg_0000'}, $colors{'p7_fg_0001'}, $colors{'reset'};
 }
 
 STDOUT->flush();
 
 return TRUE;
 
-#,,.,,,.,,,,.,,,.,,.,,..,,..,,.,,,,..,,.,,.,.,..,,...,...,..,,.,.,,..,.,,,.,,,
-#5JUQ73HBQHRSMPK4M6VJ7XPMQB5TCA2Y7J4YRFX6X4ZMJO7WIYKMH3IDZUAC26ZC5OVM6V47WHERQ
-#\\\|HVYLI72CHRCAF3I7CXGTRPONMD7I5I5ABGNQ4AAWEFQAB5QNWXI \ / AMOS7 \ YOURUM ::
-#\[7]P2PJVNUBHX552BN73YFEVFCXAF63MJFRTOWXACA7BNRRD6FZLODQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,...,,,.,,.,,,,.,.,.,.,,,,,,,..,,...,..,,..,,.,,,,,,,...,.,.,
+#BFBQR7LP3RM3NC5OH4MDNBA25APYALWDMDVALCXAFH7JYHOM3NQHJCJ7XNAJD4CWRLYSMW7ORJEBU
+#\\\|RNIQDYTIRQ4NEPQNI6MYK4S5TQRYTLQFIERY4SKKOHVINSBKNEL \ / AMOS7 \ YOURUM ::
+#\[7]KZWX7YLEHGAOKQGSUV2YJFA2RF3Q4NB3OWLPBQNGGW34LYOGFYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

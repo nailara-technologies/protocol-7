@@ -17,6 +17,15 @@ return FALSE if not defined $tty_fd or $tty_fd < 0;
 ## restore a no-op, leaving the user's shell without echo
 return TRUE if defined <user-edit.term.orig_termios>;
 
+## bin/Protocol-7 puts an :encoding(UTF-8) layer on STDIN/STDOUT/STDERR at
+## start-up, and sysread() is FATAL on a :utf8 handle -- "sysread() isn't
+## allowed on :utf8 handles".  drop the layer from STDIN only [ bare binmode()
+## resets to :raw ], exactly as nshell.init_code does for all three.  STDOUT
+## keeps its encoding so console messages still print utf-8 correctly, and
+## editor.input.next_key wants raw BYTES anyway -- it does its own utf-8
+## sequence assembly, and the buffer adapter decodes on insert
+binmode(STDIN);
+
 my $flags = fcntl( \*STDIN, F_GETFL, 0 );
 return FALSE if not defined $flags;
 fcntl( \*STDIN, F_SETFL, $flags | O_NONBLOCK ) or return FALSE;
@@ -46,8 +55,8 @@ push <callbacks.end_code>->@*, qw| user-edit.term_restore |;
 
 return TRUE;
 
-#,,.,,.,,,.,.,,..,.,.,...,,,,,,,.,.,.,.,,,.,,,..,,...,...,..,,.,.,...,...,...,
-#GSAJ4EBKFWG2C5Z5D7DH2DAU7WZKYXPAV4LGQAUM2JR5SZWLRTVMRRYUL6JR2UN65YGZ2G5DJBKWE
-#\\\|4SSCGDP5VW3OOG66KL54SSE5VTZ3HJHHOSYGLWHP7O34RVO5W6S \ / AMOS7 \ YOURUM ::
-#\[7]XXUWLFU53D5R6J34DL45QMLULSTXRG4YQLID6LFNPLTAIYOCHAAA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,.,,,,,.,.,,.,,..,,...,.,.,,.,,..,,...,..,,.,,,,.,,,,,,...,,,,,
+#FSNT7F3KRF3CMSM2XKCOLJYUJR4ADLWSDIWLFYXT634W6LF37SZADBZGCSWBGENIOCKT4GNOH2HSS
+#\\\|G57Y2IDIGP27U5ENRT6XA5PKC7XVSXWCG7YJSX43ZS3YNE4IYBP \ / AMOS7 \ YOURUM ::
+#\[7]STWIP3ZNRE7ISEUGKGEWZQRH5RR7JZB3IFYZ6AMJWOXEWJWSR2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
