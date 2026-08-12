@@ -38,7 +38,7 @@ if ( $mode =~ m|^menu:| ) {
         <user-edit.form.state> = $previous;
 
         <[user-edit.form.build_frame]>->(
-            $previous->{'schema'},
+            $previous,
             <user-edit.form.frame_name> // qw| user-edit-form |,
             $previous->{'title'} // <user-edit.form.title>
         );
@@ -76,7 +76,7 @@ if ( ref $browse_return eq qw| HASH | ) {
     <user-edit.form.state>       = $browse_return;
 
     <[user-edit.form.build_frame]>->(
-        $browse_return->{'schema'},
+        $browse_return,
         <user-edit.form.frame_name> // qw| user-edit-form |,
         $browse_return->{'title'}   // qw| user-edit |
     );
@@ -92,8 +92,8 @@ if ( ref $browse_return eq qw| HASH | ) {
 
 return TRUE;
 
-#,,.,,,,,,,.,,..,,.,,,...,.,.,.,.,.,,,.,.,,,.,..,,...,...,...,.,.,.,.,.,,,,,.,
-#H7GSSFMTTT2BEGYQYJJWKYCLNFPVDI4HRB732IFI7RWIHEIBQWKSQKM5YGYW72K4R7FI2KK4UCULU
-#\\\|UNHEQY6PPDNSJMRMDPOE4JQG6NJAD5BUQQFXNREFABWO4D6AQV6 \ / AMOS7 \ YOURUM ::
-#\[7]UW7UAWJUTASZ4LA34M3MEMDSBGE3V3UYIQCHANB5F6CHKVMEPACI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,.,,.,,,..,,,,,,.,,.,.,...,,,,,..,,...,...,...,,..,,,,,,.,,.,,,
+#Q7PTGD6JCMUDVXARKAW5WSYWCU2SXIOWIBLC4PGER7S34Q6JA6IDQAKDBHS7I23FLJIR5AYM2SDX6
+#\\\|OLCINLLLMMLK4Y6L4IHVUPAI3BFJ7365VTFAD2HHP3A6FP5JQAD \ / AMOS7 \ YOURUM ::
+#\[7]ITVKGTTVMCXT2DPILE3VRLR5XZWHCROWRBFYTAWH3KHFKGUDU6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
