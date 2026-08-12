@@ -24,6 +24,35 @@ return FALSE if ref $editor_state ne qw| HASH |;
 
 my $mode = $editor_state->{'mode'} // qw| insert |;
 
+## a MENU ascends one level : editor.control.menu.close returns the state the
+## menu was opened over, and undef means this was the top level -- so Esc
+## there leaves the form, which is the same "back out one level" reading
+if ( $mode =~ m|^menu:| ) {
+
+    my $previous = <[editor.control.menu.close]>->($editor_state);
+
+    if ( ref $previous eq qw| HASH | ) {
+
+        <[base.logs]>->( 2, ': leaving menu [ %s ]', $mode );
+
+        <user-edit.form.state> = $previous;
+
+        <[user-edit.form.build_frame]>->(
+            $previous->{'schema'},
+            <user-edit.form.frame_name> // qw| user-edit-form |,
+            $previous->{'title'} // <user-edit.form.title>
+        );
+
+        <user-edit.form.dirty>++;
+
+        return TRUE;
+    }
+
+    ## top level ##
+    <[user-edit.form.quit]>->( 'closed', 'no-op' );
+    return TRUE;
+}
+
 if ( $mode ne qw| insert | ) {
 
     ## leave the sub-mode and stay in the form ##
@@ -34,14 +63,37 @@ if ( $mode ne qw| insert | ) {
     return TRUE;
 }
 
-## base mode : Esc leaves the form.  the draft checkpoint written on the last
-## field transition is what preserves an in-flight edit
+## base mode reached from a BROWSE : step back up to the record menu rather
+## than leaving.  Esc means "back out one level" at every depth and the form
+## is simply the deepest -- the menu state was stashed by
+## user-edit.menu.open_record, since the form itself is a FRESH state with no
+## menu_source of its own
+my $browse_return = <user-edit.menu.form_return>;
+
+if ( ref $browse_return eq qw| HASH | ) {
+
+    <user-edit.menu.form_return> = undef;
+    <user-edit.form.state>       = $browse_return;
+
+    <[user-edit.form.build_frame]>->(
+        $browse_return->{'schema'},
+        <user-edit.form.frame_name> // qw| user-edit-form |,
+        $browse_return->{'title'}   // qw| user-edit |
+    );
+
+    <user-edit.form.dirty>++;
+
+    return TRUE;
+}
+
+## base mode with nothing above it : Esc leaves the form.  the draft
+## checkpoint written on the last field transition preserves an in-flight edit
 <[user-edit.form.quit]>->( 'closed without saving', 'no-op' );
 
 return TRUE;
 
-#,,..,.,.,..,,,.,,.,.,.,.,.,.,,,.,,.,,.,.,,,.,..,,...,...,,,.,..,,..,,.,,,,.,,
-#PZXCJV2FV7YH6MOTUGNTDQDXBCMIPEKVJXAAESDWYPG2FTDJV2JFAO2WLTSFJ2Z2VTC4Q74TWBYN4
-#\\\|2LOSMSRJYD7H5YH5YDU5XIX7TNBQQMLRMGZXAXSYEWQKO4G6P5V \ / AMOS7 \ YOURUM ::
-#\[7]V3KJI4QVWV624I3Y2YWZFDTDQ4CE54K7ILWMV4RYKYNH25LO5UCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,.,,,...,.,.,.,.,.,,,.,.,,,.,..,,...,...,...,.,.,.,.,.,,,,,.,
+#H7GSSFMTTT2BEGYQYJJWKYCLNFPVDI4HRB732IFI7RWIHEIBQWKSQKM5YGYW72K4R7FI2KK4UCULU
+#\\\|UNHEQY6PPDNSJMRMDPOE4JQG6NJAD5BUQQFXNREFABWO4D6AQV6 \ / AMOS7 \ YOURUM ::
+#\[7]UW7UAWJUTASZ4LA34M3MEMDSBGE3V3UYIQCHANB5F6CHKVMEPACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
