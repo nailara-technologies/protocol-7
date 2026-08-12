@@ -33,60 +33,29 @@ my ($field_def)
     = grep { ( $ARG->{'name'} // '' ) eq $field }
     ( $editor_state->{'schema'}{'fields'} // [] )->@*;
 
+## the summary text itself lives in editor.control.list.summary : it is also
+## what user-edit.form.build_frame measures to reserve the frame width across
+## an expand/collapse, and two implementations of one sentence would drift
 if ( ref $field_def eq qw| HASH | and $field_def->{'list'} ) {
 
-    my @entries = grep { defined $ARG and length $ARG }
-        ( $field_def->{'entries'} // [] )->@*;
-
-    ## the noun is a STEM plus two suffixes, because English plurals are not
-    ## all '+s' : 'entr' + 'y' / 'ies', 'address' + '' / 'es'
-    my $noun     = $field_def->{'noun'}          // qw| entr |;
-    my $plural   = $field_def->{'noun_plural'}   // qw| ies |;
-    my $singular = $field_def->{'noun_singular'} // qw| y |;
-
-    ## base.cnt_s returns the SUFFIX only, count first -- and its default 's'
-    ## is wrong for nouns like 'address', hence noun_plural
-    my $summary
-        = @entries
-        ? sprintf( '%d %s%s',
-        scalar @entries,
-        $noun, <[base.cnt_s]>->( scalar @entries, $plural, $singular ) )
-        : sprintf( 'no %s%s', $noun, $plural );
-
-    ## bounded on purpose : ascii.frame.render recomputes row width from the
-    ## VALUES and nothing truncates, so an unbounded summary would widen the
-    ## whole frame
-    $summary = substr( $summary, 0, 30 ) if length $summary > 30;
-
-    return sprintf( '.. %s ..', $summary );
+    return <[editor.control.list.summary]>->($field_def);
 }
 
 ## CYCLER fields : the buffer is not the value either -- choices live on the
 ## field def and the current one is an index.  drawn as the choice set with
-## the current one bracketed, so the whole option row reads at a glance : '[
-## full_name ] phone  shell'
+## the current one bracketed, so the whole option row reads at a glance : '+
+## [full_name] |  phone    |  shell    '
+##
+## the layout itself lives in editor.control.cycler.render, because
+## user-edit.form.build_frame reserves this row's WIDTH by drawing the full
+## vocabulary through the same code -- two implementations of one grid would
+## drift and the reservation would silently stop matching
 if (    ref $field_def eq qw| HASH |
     and ref $field_def->{'choices'} eq qw| ARRAY | ) {
 
-    my @choices = $field_def->{'choices'}->@*;
-
-    return '( none )' if not @choices;
-
-    my $current = $field_def->{'choice'} // 0;
-    $current = 0 if $current < 0 or $current > $#choices;
-
-    ## '+' reads as "add" without spending a word on it, and the row has no
-    ## label column of its own -- see user-edit.form.build_frame
-    return sprintf(
-        '+ %s',
-        join(
-            q| | . q{|} . q| |,
-            map {
-                $ARG == $current
-                    ? sprintf( '[%s]', $choices[$ARG] )
-                    : $choices[$ARG]
-            } 0 .. $#choices
-        )
+    return <[editor.control.cycler.render]>->(
+        $field_def->{'choices'},
+        $field_def->{'choice'}
     );
 }
 
@@ -100,8 +69,8 @@ return q|*| x length $value if $type eq qw| masked |;
 
 return $value;
 
-#,,.,,..,,..,,..,,..,,,..,..,,,,,,,,.,,,.,.,,,..,,...,...,..,,...,...,,,.,,,.,
-#X5YQCK3JOLONZ4EFLVPU3JRJC434X4QHA7WVAWEVCR4G3HEHA5A2XTYSMQIWUMSKSBYOSSNVDVKV4
-#\\\|DV3IKDDLDXR224WYTRT6LSGRHB62QSME4GJUQ32UCAY7FTPEOM4 \ / AMOS7 \ YOURUM ::
-#\[7]CDIPEUVTKZIMGZVZP764DA66SGQV6ZX3WQ3EDO6JZMBFFYGUEYDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,.,,,,,..,,,..,.,,,...,,,.,..,,..,,...,...,...,..,,,..,,.,,,..,
+#QG52PYCHSDK55N6EUD3SL3ILLB4J4N4CHTAHNAZF34IRLMTBW5J4CJCOP6VZSCYZKQZMDKJY736HO
+#\\\|JUMNFWL6M6JSNMUN43QEUFHHBOU4I2A6CINI3ZKA6PNKBYAVZ6D \ / AMOS7 \ YOURUM ::
+#\[7]ZZUVDV4C7Q25P32M7CFI3XXP7URTOXRDONFI2MT7SG3NIFWIASCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

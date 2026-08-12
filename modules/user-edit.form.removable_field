@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = user-edit.form.removable_field
+# descr = which field a keystroke on this row would take off the form
+# param = $editor_state, $field_def
+
+## the guard in front of user-edit.form.remove_field, kept apart from it
+## because it is asked BEFORE the keystroke is processed [ see
+## user-edit.handler.stdin_key ] while the removal happens after.
+##
+## four conditions, and all of them are about not surprising anyone :
+##
+## OPTIONAL -- the field is in the authority's optional vocabulary.  the
+## default fields are what make a record editable at all [
+## users.record.default_fields ] and taking one off would leave a row that
+## cannot be offered back.
+##
+## EMPTY -- nothing is lost, which is what makes a confirmation step
+## unnecessary.  a LIST field is empty when it holds no entries, not when its
+## buffer is empty : the buffer is never the value for those.
+##
+##   DATA, not action -- a synthesised row is not a record field.
+##
+##   NOT A MENU -- menu rows are labels, not record fields.
+##
+## returns the NAME to remove rather than a yes/no, because on an expanded
+## list that is not the name of the row under the cursor : an optional field
+## declared as a list [ 'phone' ] is only ever ON SCREEN as 'phone_0', since
+## focus arriving on it expands it.  a guard that only accepted a plain
+## collapsed row would make such a field addable and never removable -- add it
+## by mistake and it is permanent.  undef means "not removable".
+
+my ( $editor_state, $field_def ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+return undef if ref $field_def ne qw| HASH |;
+
+my $mode = $editor_state->{'mode'} // qw| insert |;
+
+return undef if $mode =~ m|^menu:|;
+
+my $vocabulary = <user-edit.form.field_options>;
+
+return undef if ref $vocabulary ne qw| HASH |;
+
+my $name = $field_def->{'name'} // return undef;
+
+return undef if $field_def->{'add_field'} or $field_def->{'menu_row'};
+
+## an EXPANDED list : the target is the SOURCE field, and it counts as empty
+## when no row of it holds anything -- the trailing 'new entry' row is always
+## there and is not content
+my $source = $field_def->{'list_row_of'} // '';
+
+if ( length $source ) {
+
+    return undef if $mode ne sprintf( qw| list:%s |, $source );
+    return undef if not exists $vocabulary->{$source};
+
+    foreach my $row_def ( ( $editor_state->{'schema'}{'fields'} // [] )->@* )
+    {
+        next if ( $row_def->{'list_row_of'} // '' ) ne $source;
+        return undef
+            if length(
+            <[editor.control.get_value]>->(
+                $editor_state, $row_def->{'name'}
+            ) // ''
+            );
+    }
+
+    return $source;
+}
+
+return undef if $mode ne qw| insert |;
+return undef if not exists $vocabulary->{$name};
+
+return $field_def->{'list'}
+    ? (
+    scalar(
+        grep { defined $ARG and length $ARG }
+            ( $field_def->{'entries'} // [] )->@*
+    ) ? undef : $name
+    )
+    : (
+    length( <[editor.control.get_value]>->( $editor_state, $name ) // '' )
+    ? undef
+    : $name
+    );
+
+#,,,,,,,,,...,.,,,,,.,,.,,...,...,..,,...,,.,,..,,...,...,,,.,,,.,.,,,,,.,,,.,
+#AOQVULPRCKR25Z5NTXWSS5OUY66KJGIDZ2GZ5ZOMMRLWLBE6S7M5RZNMPEYSTYPPS5533WKBKJ4LY
+#\\\|GIJJ4JNDLIEMQGUCE6TXLEUDCF6CJJOVQ6KZOMKF42JTBJDTEAH \ / AMOS7 \ YOURUM ::
+#\[7]M6KCXLOISWVMTDLPP23ZVX65CUW5FNRNNVKCA4ZVSFP74QGB6KDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

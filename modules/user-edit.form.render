@@ -22,8 +22,7 @@ my $frame_name = <user-edit.form.frame_name> // qw| user-edit-form |;
 ## cache on every source reload — regenerate rather than render nothing   ##
 if ( not exists <ascii.frame.cache>->{$frame_name} ) {
     <[user-edit.form.build_frame]>->(
-        $editor_state->{'schema'},
-        $frame_name, <user-edit.form.title>
+        $editor_state, $frame_name, <user-edit.form.title>
     );
 }
 
@@ -179,6 +178,7 @@ if (<user-edit.form.interactive>) {
         )
         : (
         [ q{tab / arrows}, q{field} ],
+        [ q{del},          q{drop empty field} ],
         [ q{enter},        q{submit} ],
         [ q{esc / ctrl-c}, q{quit} ]
         );
@@ -195,8 +195,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,.,,.,.,,,.,..,,.,.,...,,,,,.,.,...,.,,,.,,,..,,...,...,...,,,,,.,.,..,,.,,,
-#WDSUMH2UV57YM5H27ZCQIOVMCKF5DWPG5RKPBKE3GKWFRBJGE6I5K7ITGD54B2FCP3HGEQ4GWPU32
-#\\\|5TS4M3GX7BURTFN5L5UWE6XMMT3MGXFNUGTIHUBTUSHWSDT27NO \ / AMOS7 \ YOURUM ::
-#\[7]UAOEI2ERBJYFUUCKGIVHCUIOQIJHHDGCHISTRIQIXY5YSH5GHSBY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,.,,,..,...,...,,..,.,,,,,.,.,,,..,,...,...,,..,...,,,.,.,,,,,.,
+#IBFVYKMS4ZCO45KYNHVHTNE6MZNQQTFU6CVV47JIIZDTN46IBY53CTQ2YRKTJPA7CBSKYW3AWMCYC
+#\\\|APBA73HYGRU6XS7FTOIVKKQHHBWQNO5DH2HMHVCNBRXOTI4EFHL \ / AMOS7 \ YOURUM ::
+#\[7]2CZF2MMCA73XTOPK62CUDHQ44YNZ55MRYJE6THF57EGZBXLQSGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

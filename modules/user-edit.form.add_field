@@ -14,10 +14,11 @@
 ## every guard create already has.
 ##
 ## the new field's STARTING SHAPE comes from the authority's vocabulary [
-## users.record.optional_fields ] -- but user-edit only receives NAMES over
-## the wire, so a plain line is assumed here.  a multi-value optional field
-## therefore starts as a line and becomes a list when the record is next read
-## back.  worth revisiting if optional list fields become common.
+## users.record.optional_fields, over the wire as users.cmd.field-options'
+## '<name> <shape>' pairs ] : a field declared as a list starts as a
+## collapsible list, exactly as one read back from a record does.  the shape
+## used to be assumed to be a line here, which stored a list-shaped field as a
+## scalar and silently lost the declaration.
 
 my $editor_state = <user-edit.form.state>;
 
@@ -34,8 +35,6 @@ my @choices = $row_def->{'choices'}->@*;
 my $chosen  = $choices[ $row_def->{'choice'} // 0 ];
 
 return FALSE if not defined $chosen or not length $chosen;
-
-my @remaining = grep { $ARG ne $chosen } @choices;
 
 ## rebuild : every existing field with its CURRENT value, the chosen field as
 ## a new empty one, then a fresh add-a-field row if anything is left
@@ -57,8 +56,25 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         };
 }
 
+## the LIST shape, built exactly as user-edit.form.schema_from_record builds
+## one from an array-valued record field -- 'list' is metadata on the def and
+## 'entries' is the authoritative value, while the type stays freeform_line
+## because editor.control.create accepts no other
+my $shape = ( <user-edit.form.field_options> // {} )->{$chosen} // qw| line |;
+
 push @fields,
-    {
+    $shape eq qw| list |
+    ? {
+    qw| name |          => $chosen,
+    qw| type |          => qw| freeform_line |,
+    qw| default |       => '',
+    qw| list |          => TRUE,
+    qw| entries |       => [],
+    qw| noun |          => qw| entr |,
+    qw| noun_plural |   => qw| ies |,
+    qw| noun_singular | => qw| y |,
+    }
+    : {
     qw| name |    => $chosen,
     qw| type |    => qw| freeform_line |,
     qw| default | => '',
@@ -73,7 +89,12 @@ $new_state->{'kill_buffer'} = $editor_state->{'kill_buffer'} // '';
 $new_state->{'mode'}        = qw| insert |;
 $new_state->{'title'}       = $editor_state->{'title'};
 
-<[user-edit.form.add_field_row]>->( $new_state, \@remaining );
+## what is left to offer is recomputed from the vocabulary against the NEW
+## schema, not carried over as the old choice list minus one -- the same
+## answer today, and the only one that stays right once fields can come back
+<[user-edit.form.add_field_row]>->(
+    $new_state, <[user-edit.form.addable_fields]>->($new_state)
+);
 
 ## focus the field just added, by NAME -- active_field is an index and the
 ## count just changed
@@ -86,16 +107,22 @@ foreach my $field_def ( $new_state->{'schema'}{'fields'}->@* ) {
 
 <user-edit.form.state> = $new_state;
 
+## a LIST field added this way opens EXPANDED, exactly as one does when focus
+## arrives on it by any other route -- otherwise the field you just asked for
+## sits there reading '.. no entries ..' with nowhere to type
+<[user-edit.form.sync_list_mode]>;
+$new_state = <user-edit.form.state>;
+
 <[user-edit.form.build_frame]>->(
-    $new_state->{'schema'},
+    $new_state,
     <user-edit.form.frame_name> // qw| user-edit-form |,
     $new_state->{'title'} // <user-edit.form.title>
 );
 
 return TRUE;
 
-#,,.,,...,..,,,,,,..,,.,,,..,,,,,,..,,,..,,.,,..,,...,...,,,.,,..,,..,,..,.,.,
-#G5ENDKEE4BBGOVIR76ZYQXKA6CIOCZQFC5GVIIBL2F6Q7OM5DIPCCMTA3NYOU7WIDARMGFSEFNQHK
-#\\\|EABA5LJLWAKEBFP7INHT56HWPMDSTWLTCPDFRYYEWAG3IQICRIT \ / AMOS7 \ YOURUM ::
-#\[7]DHGAHWMMOQMXYOMFFRZKDVNPTL3IFK4SD4LFAF6REQ3HRJH2LSCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,..,,,.,,,.,,,,,,.,.,,..,,..,,,.,..,,...,...,..,,,,.,...,...,..,,
+#RDPW22SAEJJ2VGG5O2UJ5J6EHZG4EUTSY2VLFKI2BUZVOHOIQHQMD5W5AZ7BOOBBCPJOMWNRKMMJQ
+#\\\|EIS6WARQLN5RFNRUTZQQVZVOTNUS6H5DETFT43X5ZZIN2H27CJD \ / AMOS7 \ YOURUM ::
+#\[7]FCVA3ROMF23EKK4E4JOEEMN7L24MAR3L2ZGFVJ7UOUXBOWYSWABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

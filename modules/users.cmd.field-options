@@ -2,14 +2,24 @@
 
 # name  = users.cmd.field-options
 # param = -none-
-# descr = list optional field names a record may still gain
+# descr = optional fields a record may carry, and their shapes
 
 ## the vocabulary a client offers when adding a field.  optionally filtered to
 ## what a NAMED record does not already carry, so a console can show only what
 ## is actually addable :
 ##
-##   users.field-options            every optional field name
+##   users.field-options            every optional field, with its shape
 ##   users.field-options <user>     only those <user> lacks
+##
+## one '<name> <shape>' pair per line, shape being 'list' or 'line'.  the
+## SHAPE is half the vocabulary, not decoration : users.record.optional_fields
+## declares 'contact'-like fields as [] and plain ones as '', and a client
+## receiving bare names has no choice but to assume a line -- which is exactly
+## how a field declared as a list came to be stored as a scalar.
+##
+## a client that wants to know what a record could still gain AND what it may
+## give back needs the WHOLE vocabulary and filters locally ; the username
+## filter stays for callers that only ever add.
 ##
 ## reply contract requires a string 'data' payload, never a raw arrayref --
 ## newline-joined, the same shape users.cmd.value-all returns.
@@ -43,13 +53,23 @@ if ( length $args ) {
 
 my @addable = grep { not $present{$ARG} } sort keys %{$optional};
 
+## the shape IS the declaration [ users.record.optional_fields ] : an ARRAY
+## makes a collapsible multi-value list, anything else a plain line
 return {
     'mode' => qw| size |,
-    'data' => join( "\n", @addable )
+    'data' => join(
+        "\n",
+        map {
+            sprintf '%s %s', $ARG,
+                ref $optional->{$ARG} eq qw| ARRAY |
+                ? qw| list |
+                : qw| line |
+        } @addable
+    )
 };
 
-#,,..,.,,,,..,,,,,...,,,,,.,.,.,,,,,,,,,.,,,,,..,,...,...,...,..,,,.,,,.,,,,.,
-#JVLZGUVKKRR65I2ERTQZAP6FSXYKVL2AFG2DBEZULZ3SUWNE2BMY3S2NKL2J5JLAXTU3363IKX5LA
-#\\\|JXYXCC73YA2UDETZACYRTGCIYOHEVWVD3GEXW4EGODRYC5DN7BN \ / AMOS7 \ YOURUM ::
-#\[7]CLYMUYTSUWBZOAKVECXOU5Q3L3SECMAZ7VSURMDC7GZ3RPKJXYCI 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,...,.,.,,..,..,,,..,..,,,,.,..,,...,...,,..,,,,,..,,,,,,,,.,
+#HVXWIKQS6A3LQBHH5MQG7RKHBOPTL6ALSUXR3SLWOE26OZQZF3MS4HRZVEHK4J36ZPWEHOSGBMUPS
+#\\\|JVVTINAYUB2PFGRCFHGAAETF6NJXV6Y42DPABGQR4MDE5JPOBMA \ / AMOS7 \ YOURUM ::
+#\[7]7RKLWB7TFVXIR2VCWVWLUKUBREGMPCLEBWZFYDQCIZZJ5QHU56BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

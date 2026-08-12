@@ -117,16 +117,50 @@ choice index, not text.
 handle. Before claiming a key in a host, check whether it already has a
 branch there -- a silent no-op is the failure mode, not an error.
 
-## KNOWN LIMITATION — an optional field's declared SHAPE is ignored
+## CLOSED 2026-08-12 — the shape limitation, and the vocabulary is now two-way
 
-`users.record.optional_fields` declares a starting shape (`[]` = list,
-`''` = line), but user-edit receives only NAMES over the wire, so
-`user-edit.form.add_field` assumes a plain line. A field declared `[]`
-is therefore stored as a scalar and only becomes a list if something later
-writes an array to it. Verified: `phone => []` stored as a string.
+`users.cmd.field-options` returns `<name> <shape>` pairs (`list` / `line`),
+user-edit asks for it WITHOUT a username — the whole vocabulary, filtered
+locally by `user-edit.form.addable_fields` — and `add_field` honours the
+shape. Verified: `phone` (declared `[]`) comes back as a real list field.
 
-Fix when it matters: have `users.cmd.field-options` return name+shape pairs
-rather than bare names, and honour the shape when building the new field.
+Asking unfiltered is what made REMOVAL possible: the part the server-side
+filter threw away (the optional fields a record already has) is exactly the
+set that may be given back.
+
+**Del on an empty optional field removes it** (`user-edit.form.remove_field`,
+guarded by `user-edit.form.removable_field`). No wire command was needed:
+`users.cmd.value-set` hands its json to `users.record.build` as the WHOLE
+fields hash, so a field absent from the schema is absent from the record on
+the next submit. Verified: add → submit → stored, empty → Del → submit →
+key gone.
+
+Two traps that shaped it:
+
+- **sample emptiness BEFORE `process_key`.** On a one-character field Delete
+  removes the character; a check made after would then see an empty field and
+  remove the FIELD. One keystroke, two effects. Verified the other way: nine
+  Deletes empty a nine-character field without removing it, the tenth removes.
+- **Delete is TRAP 3 again** — `process_key` has an explicit `\e[3~` branch,
+  so it never arrives as `passthrough`. Matched on `$key`.
+
+Sampling the def before `process_key` is safe because `process_key` only READS
+`active_field` and never assigns it — no branch of it can move focus under the
+caller.
+
+**A LIST-shaped optional field is only ever on screen under another name.**
+Focus arriving on `phone` expands it, so the row under the cursor is `phone_0`
+and the mode is `list:phone`. A guard written only for a plain collapsed row
+therefore makes a list-shaped optional field addable and NEVER removable — add
+it by mistake and it is permanent. Caught by testing it; the line-shaped cases
+(`shell`, `full_name`) all passed and hid it.
+
+`removable_field` therefore returns the NAME to remove rather than a yes/no:
+for an expanded list it returns the SOURCE field, counting it empty when no row
+of it holds anything (the trailing 'new entry' row is always there and is not
+content). `remove_field` collapses first, exactly as `submit` does and for the
+same reason. Verified both ways: an empty expanded list is removed by Delete,
+one holding an entry loses a character instead.
 
 ## VERIFIED end-to-end 2026-08-12 (post-compaction)
 
@@ -136,8 +170,92 @@ guessing a tab count. Right/Left cycle and wrap, Enter replaces the row with
 a real focused field and re-offers the remainder minus the one taken, the
 value submits, and `_add_field` does NOT appear in the stored record.
 
-#,,,,,..,,,,.,..,,,,.,.,.,.,,,.,,,.,,,,..,.,.,..,,...,...,...,,..,,,.,.,.,...,
-#6LFD6OZH3GFFNYQSUL5BYJ53DE2CNEA6YK5OKHCNOJ2P3XJVMINUDVG6IWLP3MO55DXUHFFKJUXYK
-#\\\|CVWRGDRWS376K7JOMH7YMK4OS6BN7RATX5U32TY2QGUX2FMBT2P \ / AMOS7 \ YOURUM ::
-#\[7]NNZK3AUW37SYIB3NDX2NE4RRGPOXBTNRCWV5OKNT7DT7NW6HDUCY 7  DATA SIGNATURE ::
+
+
+## the frame stopped moving sideways — and the identity that made it possible
+
+Three separate jumps, all fixed 2026-08-12:
+
+1. **the cycler jittered.** `[full_name]` is two columns wider than
+   `full_name`, so every choice to its right shifted on every keypress. Fixed
+   in `editor.control.cycler.render` with the rule `render_form` already uses
+   for focus: brackets when current, MATCHING SPACES when not. The cells alone
+   make the width constant — every choice pays for two either way. Padding the
+   choices out to the longest as well is a *second, unrelated* effect and costs
+   real width (9 columns on the four-option vocabulary), so it is not done.
+
+2. **`_add_field` inflated the label column.** `build_frame` took
+   `$label_width` over every name including a row that has no label at all.
+
+3. **expand/collapse resized the frame.** `build_frame` now reserves width for
+   BOTH renderings and sets `min_width` on the descriptor (`ascii.frame.render`
+   already honours it; units are INNER content width — borders excluded,
+   lpad/rpad included).
+
+**The identity, and why the obvious approach fails.** Traced through
+build_frame's own mockup (`prefix = label_width + 6`, `body = label_width +
+len(name) + 10`, `suffix = inner_width - body`) and render's per-slot sum
+(`prefix + value + suffix + lpad + rpad`, with `parse` stripping exactly the
+lpad/rpad render adds back):
+
+```
+row_width = inner_width + len(display) - len(name) - 4
+```
+
+It holds for label-less rows too. **Both** `inner_width` and `len(name)` differ
+between the two renderings (`{{contact}}` is 11, `{{contact_0}}` is 13), so
+walking the CURRENT mockup's parsed slots cannot predict the other state — it
+comes out wrong in both directions. The whole row set has to be rebuilt for
+each rendering and measured with one shared helper.
+
+Also required, and each one is its own jump if missed:
+
+- `build_frame` takes the **STATE**, not the schema — an expanded list's
+  original field list lives on `list_source`, which is what collapse rebuilds
+  from and therefore the only exact source for the other direction.
+- `$label_width` is taken over both renderings, so a collapsed `contact`
+  reserves for the `contact_0` its expansion produces. Otherwise the frame
+  border holds still while the `:` column steps sideways.
+- the add-a-field row is reserved for **even when it is not there** — it
+  arrives a round trip after the first paint, is absent while a list is
+  expanded, and comes and goes as fields are added and removed. Measured at
+  the FULL vocabulary, never at the options currently left.
+- `field_options_reply` rebuilds the frame even when it cannot ATTACH the row
+  (mode is not `insert`), or the reservation waits for whatever later collapse
+  happens to rebuild next.
+- `render_form`'s `$only_field` branch must carry `min_width` across, or a
+  single-row redraw renders narrower than the frame it patches.
+
+Cost of the full-vocabulary reservation, measured: a three-field record renders
+73 columns wide instead of 46. That is the price of a frame that only moves
+when the user types.
+
+## a capture must not have a cursor overlaid into it
+
+`user-edit.cmd.char-add` called `render_form` with default marks, so its reply
+carried a literal `|` OVERLAID onto the value — `[ |170-1234 ]` for a field
+holding `0170-1234`. It corrupts the very value a capture exists to show.
+
+`user-edit.form.render` already reaches this conclusion for a non-terminal
+STDOUT and restores the character; a network reply is that same case, always.
+char-add now sets the marker TO the character underneath, overlaying it with
+itself. Focus is not lost: the row keeps its framing brackets and the active
+field is named below the frame.
+
+The three render paths and how they differ: `console.start` (interactive) and
+`console.show-form` (one-shot) both go through `user-edit.form.render`, which
+gives the cursor inverse video on a terminal and a green underscore on an empty
+cell. `cmd.char-add` renders its own frame and is always a capture.
+
+## a stale comment sent one reader chasing a jump that was already gone
+
+`render_form`'s header warned that frame width could shift up to 3 columns
+across focus changes. True once; not true since `pad_l`/`pad_r` came to match
+the brackets and the cursor started overlaying a reserved cell. Corrected in
+place — a width note that no longer describes the code is worse than none.
+
+#,,..,,..,.,.,,..,.,.,...,.,,,,.,,...,,.,,,.,,..,,...,...,,,.,.,.,.,,,,,.,,,.,
+#7Q3XYJBHO3Z22NQUQ6GRCRIGH6L5L7JJ742YIKXRKTMWAO6DSFMKIPHEZPQPBU3UFCAO5W3JPOEFM
+#\\\|ZB6INFBNEDNM3EOGICPZFRVPDNFW6KDBPTAPRSCK75XKZOBATWO \ / AMOS7 \ YOURUM ::
+#\[7]MSOXUUXK5VLWKVUNNWGZ5S3NGP5YA5AUCOODLDQ3PNPXZPZJEQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

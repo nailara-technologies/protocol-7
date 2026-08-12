@@ -58,20 +58,49 @@ my $repaint = FALSE;
 
 while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
+    ## the focused def is resolved BEFORE process_key rather than after, which
+    ## is safe because process_key only ever READS 'active_field' [ line 17,
+    ## never assigned there ] -- no branch of it can move focus under us, so
+    ## the def is the same one either side of the call
+    ##
+    ## SAMPLED BEFORE process_key, and that ordering is the whole point : on a
+    ## field holding one character Delete removes the character, and a check
+    ## made afterwards would see an empty field and remove the FIELD -- one
+    ## keystroke doing two things.  what matters is whether the field was
+    ## already empty when the key arrived
+    my $focus_def
+        = $editor_state->{'schema'}{'fields'}[ $editor_state->{'active_field'}
+        // 0 ];
+
+    my $remove_target
+        = <[user-edit.form.removable_field]>->( $editor_state, $focus_def );
+
     my $result = <[editor.control.process_key]>->( $editor_state, $key );
     next if ref $result ne qw| HASH |;
 
     my $action = $result->{'action'} // qw| none |;
+
+    ## Delete on an ALREADY EMPTY optional field takes it back off the form --
+    ## the other half of the add-a-field row's vocabulary.  the NAME comes
+    ## from the guard rather than from the focused row : on an expanded list
+    ## the row under the cursor is 'phone_0' and the field to remove is
+    ## 'phone'.  matched on the KEY for the same reason Left / Right are :
+    ## process_key has an explicit Delete branch, so it never arrives as
+    ## passthrough, and its own effect here was a no-op on an empty buffer
+    ## anyway
+    if ( defined $remove_target
+        and ( $key eq "\e[3~" or $key eq "\x1b[3~" ) ) {
+        <[user-edit.form.remove_field]>->($remove_target);
+        $editor_state = <user-edit.form.state>;
+        $repaint      = TRUE;
+        next;
+    }
 
     ## Left / Right CYCLE on an add-a-field row : the row's value is a choice
     ## index rather than text, so there is no character position for them to
     ## move through.  claimed here for the same reason Up / Down are --
     ## editor.control.process_key returns unclaimed keys as passthrough so
     ## each host gives them its own meaning
-    my $focus_def
-        = $editor_state->{'schema'}{'fields'}[ $editor_state->{'active_field'}
-        // 0 ];
-
     if ( ref $focus_def eq qw| HASH | and $focus_def->{'add_field'} ) {
         ## matched on the KEY, not on passthrough : process_key CLAIMS
         ## Left/Right for cursor movement, so they never arrive as passthrough
@@ -201,8 +230,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,,,..,,,,.,,,,,.,.,,..,,,.,.,,,..,,,..,,..,..,,...,...,,,.,..,,..,,,,.,...,
-#FAZUTSTZPY56VDT6QU4WOMKONHSK5L5XLXSVUS6SP5TP6B3TLPA3YK6FOPIHDRQX5EHFB4RZVNXV6
-#\\\|BG6OYKEGACA7N6W75FYAMYM3XW7Y2GXIR6SD6CEDINVW42BGJ4L \ / AMOS7 \ YOURUM ::
-#\[7]IJ22LGWOTQGHU2OM32PJB2XMTUCECYVDKV36XVTO72LPWKOCUECQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,,,.,,.,,,,.,.,.,,.,,.,,,,,.,..,,...,..,,.,,,,,.,.,,,..,,..,,
+#KUJRIMUVIROBQLVVSAOCXMULF23HW62K7ZTJ354UHU3ADPCZIL3LIOXFGNJBNUSCIVX3CNP4HF4Q6
+#\\\|XFN5LY2PW56SU3VSKJ5DNB7J226NOCVVFZSPNM3VKHJSIZWHDHC \ / AMOS7 \ YOURUM ::
+#\[7]OPFZSNLSA6UQ4ASVZDOEK6M2IALVQLRMP6FMPTMFWRXHAT7FRUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = editor.control.list.summary
+# descr = the '.. 2 entries ..' text a collapsed list field draws
+# param = $field_def
+
+## what a LIST field shows when it is not expanded : a count rather than its
+## contents.  factored out of editor.control.get_display_value because
+## user-edit.form.build_frame has to know how wide this text WILL be in order
+## to reserve the frame's width across an expand/collapse -- and a second
+## implementation of the same sentence would drift, leaving the reservation
+## quietly wrong rather than visibly broken.
+##
+## takes the FIELD DEF, not the state : the def is what stays authoritative
+## while collapsed, and build_frame's collapsed-state reservation works from a
+## def it synthesises rather than from a live buffer.
+
+my ($field_def) = @ARG;
+
+return '' if ref $field_def ne qw| HASH |;
+
+my @entries = grep { defined $ARG and length $ARG }
+    ( $field_def->{'entries'} // [] )->@*;
+
+## the noun is a STEM plus two suffixes, because English plurals are not all
+## '+s' : 'entr' + 'y' / 'ies', 'address' + '' / 'es'
+my $noun     = $field_def->{'noun'}          // qw| entr |;
+my $plural   = $field_def->{'noun_plural'}   // qw| ies |;
+my $singular = $field_def->{'noun_singular'} // qw| y |;
+
+## base.cnt_s returns the SUFFIX only, count first -- and its default 's' is
+## wrong for nouns like 'address', hence noun_plural
+my $summary
+    = @entries
+    ? sprintf( '%d %s%s',
+    scalar @entries,
+    $noun, <[base.cnt_s]>->( scalar @entries, $plural, $singular ) )
+    : sprintf( 'no %s%s', $noun, $plural );
+
+## bounded on purpose : ascii.frame.render recomputes row width from the
+## VALUES and nothing truncates, so an unbounded summary would widen the whole
+## frame
+$summary = substr( $summary, 0, 30 ) if length $summary > 30;
+
+return sprintf( '.. %s ..', $summary );
+
+#,,..,,.,,,.,,.,,,.,,,,..,,,,,,..,..,,.,,,,..,..,,...,...,..,,,,,,.,.,...,..,,
+#77G3PBOHCZZWJQCDPJZND2QGBN35SQQO4GNR4RBWDLZG2V4ZGKMDNJRIXOJSBO2EMDUZE5QJ4TEFC
+#\\\|TGJZEQSJRLSTGR4VLLE7R7LSMENAUTKASFIU4TWYATZZC3MZTQS \ / AMOS7 \ YOURUM ::
+#\[7]YBMMF7OJDIUNT3V2EB7D7C4JQT5JYM5WEONZOX4RPLF4JJUMO2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,8 +8,11 @@
 ## costs a round trip, and blocking the form on it would trade a visible delay
 ## for a row that is only occasionally used.
 ##
-## an empty reply is the ordinary "this record already carries every optional
-## field" case, not an error -- the row is simply not added.
+## an empty reply would mean the authority declares no optional fields at all
+## ; a record that already carries every one of them still gets the full
+## vocabulary here, and simply has nothing left to offer once
+## user-edit.form.addable_fields has filtered it -- add_field_row then
+## declines on its own.
 
 my ($info) = @ARG;
 
@@ -17,9 +20,28 @@ my $cmd = uc( $info->{'cmd'} // '' );
 
 return FALSE if $cmd ne qw| SIZE |;
 
-my @options = grep { length $ARG } split m|\n|, ( $info->{'data'} // '' );
+## '<name> <shape>' per line, shape 'list' or 'line' -- see
+## users.cmd.field-options.  a line without a shape is not tolerated silently
+## : it would mean an old zenka is answering, and assuming 'line' there is
+## what used to store a list-shaped field as a scalar
+my %vocabulary;
+foreach my $line ( split m|\n|, ( $info->{'data'} // '' ) ) {
+    next if not length $line;
+    my ( $name, $shape ) = split m|\s+|, $line;
+    next if not defined $name or not length $name;
+    ## compared, not matched : an alternation inside m|..| would end the
+    ## pattern at its own '|'
+    if ( not defined $shape
+        or ( $shape ne qw| list | and $shape ne qw| line | ) ) {
+        <[base.logs]>->(
+            1, ': field-options gave no shape for [ %s ] -- ignored', $name
+        );
+        next;
+    }
+    $vocabulary{$name} = $shape;
+}
 
-return FALSE if not @options;
+return FALSE if not keys %vocabulary;
 
 ## REMEMBER them : the row cannot always be added at the moment the answer
 ## arrives -- a form whose first field is a list opens EXPANDED, and the row
@@ -27,31 +49,40 @@ return FALSE if not @options;
 ## from the schema captured at expand time and would drop it ].  so the
 ## vocabulary is stored and the row is re-applied after every collapse, by
 ## user-edit.form.sync_list_mode
-<user-edit.form.field_options> = \@options;
+##
+## the WHOLE vocabulary is kept, not the addable part of it : which fields may
+## be REMOVED is the same question read the other way round, and
+## user-edit.form.addable_fields makes the split on demand
+<user-edit.form.field_options> = \%vocabulary;
 
 my $editor_state = <user-edit.form.state>;
 
 return FALSE if ref $editor_state ne qw| HASH |;
 
-## only ever onto a plain form : never over a menu, and never while a list is
-## expanded [ its rows are transient and collapse would drop the row ]
-return FALSE if ( $editor_state->{'mode'} // qw| insert | ) ne qw| insert |;
-
-return FALSE
-    if not <[user-edit.form.add_field_row]>->( $editor_state, \@options );
+## the ROW only ever goes onto a plain form : never over a menu, and never
+## while a list is expanded [ its rows are transient and collapse would drop
+## it ] -- but the FRAME is rebuilt either way.  build_frame reserves this
+## row's width whether or not the row is there yet, and the reservation is
+## only possible once the vocabulary is known, so rebuilding here is what
+## makes the width settle the moment the answer lands instead of at whatever
+## later collapse happens to rebuild next
+my $attached = ( $editor_state->{'mode'} // qw| insert | ) eq qw| insert |
+    && <[user-edit.form.add_field_row]>->(
+    $editor_state, <[user-edit.form.addable_fields]>->($editor_state)
+    );
 
 <[user-edit.form.build_frame]>->(
-    $editor_state->{'schema'},
+    $editor_state,
     <user-edit.form.frame_name> // qw| user-edit-form |,
     $editor_state->{'title'} // <user-edit.form.title>
 );
 
 <user-edit.form.dirty>++;
 
-return TRUE;
+return $attached ? TRUE : FALSE;
 
-#,,,.,,,.,,,,,,,,,.,.,,,.,.,.,,,,,,.,,,..,,,,,..,,...,...,,.,,,,,,,,.,..,,.,.,
-#BXSA4OTYAUO7O3T32OELUR6Y624RUYS2CUFRKE4BGOC6LQCDGY6DU2ZXQQEN3EMV5UEZ7XQCW6JSC
-#\\\|E3DCHINGSY32HP6BVKRSXB3AIOLQ35JI6J2LC6OSCP5HBT64R5U \ / AMOS7 \ YOURUM ::
-#\[7]JDHYG4IKHINNIZFEJBFXRIASONIXBYXBTLWHHI3HRY33LRNX6OCI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,,..,.,.,,,,,,..,,.,,.,,,..,,..,,...,...,.,.,...,...,,.,,,,,,
+#6X3G72RRJCVEB4MQHFQVOKQICP4OOOX6EPDIFFOCGHQ3OHZSCGIW43WA5UHAMBEZVBVHYX4BAX7IE
+#\\\|SX7ACF3DEP3Y3GNCPNS4WU24HNXVREJA6APQBFJD7ZRLAO4DD42 \ / AMOS7 \ YOURUM ::
+#\[7]YQ2GZE56UHIGHJWRA2XZI3Y6NKLXQ3HY5CMUECYSI2ZANAVOXSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

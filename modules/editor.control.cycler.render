@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = editor.control.cycler.render
+# descr = draw an inline cycler's choice set on a CONSTANT grid
+# param = $choices_aref [ , $current_index ]
+
+## the drawn form of an inline cycler [ editor.control.cycler.set ], factored
+## out of editor.control.get_display_value because the WIDTH of this row is
+## reserved ahead of time by user-edit.form.build_frame -- which has to render
+## the full vocabulary to know how wide the row can ever get, and must not
+## re-implement the layout to do it.
+##
+## CONSTANT GRID, the same rule editor.ui.ascii_frame.render_form applies to
+## focus framing : brackets when current, MATCHING SPACES when not.  without
+## it '[full_name]' is two columns wider than 'full_name', so every choice to
+## its right shifts on every keypress -- the row cycles by MOVING, which reads
+## as jitter rather than as selection.  now nothing moves but which pair of
+## cells is a bracket.
+##
+## the cells alone are what make the width constant -- every choice pays for
+## two either way, so the total never depends on WHICH one is current.
+## padding the choices out to the longest as well would line them up in
+## columns, but that is a second, unrelated effect and it costs real width on
+## a row that is already the widest in the form [ nine columns on the
+## four-option vocabulary ], so it is deliberately not done.
+##
+## '+' reads as "add" without spending a word on it, and the row has no label
+## column of its own -- see user-edit.form.build_frame.
+
+my ( $choices_aref, $current ) = @ARG;
+
+my @choices
+    = grep { defined $ARG and length $ARG } ( $choices_aref // [] )->@*;
+
+return '( none )' if not @choices;
+
+$current //= 0;
+$current = 0 if $current < 0 or $current > $#choices;
+
+return sprintf(
+    '+ %s',
+    join(
+        q| | . q{|} . q| |,
+        map { sprintf( $ARG == $current ? '[%s]' : ' %s ', $choices[$ARG] ) }
+            0 .. $#choices
+    )
+);
+
+#,,..,,,.,,,,,..,,..,,,.,,,,.,..,,.,,,...,,.,,..,,...,..,,..,,,,.,...,...,,,.,
+#N7MR47DUAXEIOVK64WA77DAT5LNJO3EQZEJVG3A4V3FXV3MGYU35FU35G6C7SGHZHDATAB7UFEUQ6
+#\\\|TKZVCOTQ5NQRUU3XZFZDQVNZWECPJN3K7HBKWDBC4B7TJKOMEGR \ / AMOS7 \ YOURUM ::
+#\[7]NILG2NW6MJ5ONDERL4BEWDFCKUPFWSF4OGACBLTINGCSE2SZVIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

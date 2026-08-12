@@ -66,22 +66,21 @@ return FALSE if not defined $new_state or $new_state == $editor_state;
 ## re-apply the add-a-field row : a collapse rebuilds the schema from the one
 ## captured at expand time, which never carried the row
 <[user-edit.form.add_field_row]>->(
-    $new_state, <user-edit.form.field_options>
+    $new_state, <[user-edit.form.addable_fields]>->($new_state)
 ) if ( $new_state->{'mode'} // qw| insert | ) eq qw| insert |;
 
 <user-edit.form.state> = $new_state;
 
 ## row count changed : the cached descriptor no longer matches the schema ##
 <[user-edit.form.build_frame]>->(
-    $new_state->{'schema'},
-    <user-edit.form.frame_name> // qw| user-edit-form |,
+    $new_state, <user-edit.form.frame_name> // qw| user-edit-form |,
     <user-edit.form.title>
 );
 
 return TRUE;
 
-#,,.,,,,.,...,,.,,,..,.,.,,..,.,.,,,,,,.,,,,,,..,,...,...,...,..,,,.,,,,,,,,,,
-#PF57OHVVOIHPE3U5YGTZDT6ZOWTUIWCPQIGYZ6IRGJLVUFQFBETFTWQJBOZDXVDXIFQ4CYUHXN54Y
-#\\\|LPQ27YN6GR74DWJLB5WN5PC5PA6SEB3VYKQHXUH7YZHIVNGFUAV \ / AMOS7 \ YOURUM ::
-#\[7]CIEWGLIGC6VT26WRRRT65SXSZILYYK53WNAOEP7QGUZUSRMQQ2DA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,,.,,.,.,,.,,.,.,...,..,,,..,..,,...,...,.,,,,,,,,.,,.,,,..,,
+#VEG5RYXTB424MKYZS7G2V3VLGGU37TCJ5PL3QM6KUO2B3ETBGCSFXQN5YPT6ZHYEO7M3Y5Q26AQNA
+#\\\|3YG7OHSSMH2X27QX4I36T2PXMNJ36PFUZFRX3WQ7ILA7SHJD4CX \ / AMOS7 \ YOURUM ::
+#\[7]SSWACUXJ7JCBYJ73KRHDTFUXSYKO6TTGNGRWMVH4ABKEATVNLWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
