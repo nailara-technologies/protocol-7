@@ -271,7 +271,7 @@ see [[feedback-backslash-keyword-is-not-a-reference]].
   hard-rejects everything but `freeform_line`. This is the single blocker
   on [[project-credential-types-into-user-edit]], since all three
   secret-holding paths collect input with BLOCKING prompts that cannot run
-  inside the event loop. `base.ask` does NOT solve this — see
+  inside the event loop. `base.term.ask` does NOT solve this — see
   [[reference-console-question-ask-primitive]] for why an event-loop-safe
   prompt is a separate unbuilt thing.
 - **the offline retry trigger** and the `end_code` draft flush.
@@ -280,14 +280,14 @@ see [[feedback-backslash-keyword-is-not-a-reference]].
   unix user equals `<system.admin-user>` (`configuration/system-user-map`,
   resolved via `base.access.special-user-map`'s `<admin-user>`) and offer
   to create a default record, interactively unless a `:create-admin:` tag
-  is passed. `base.ask` was built for exactly this. **BLOCKED on deciding
+  is passed. `base.term.ask` was built for exactly this. **BLOCKED on deciding
   the DEFAULT FIELD SET for a host-system record** — creating it empty
   does not work (`schema_from_record` returns undef, so the error just
   moves). That decision also sets the template the uninstalled desktop
   node's `taeki` AND `root` accounts would inherit.
 
-#,,,.,,.,,,..,.,.,,.,,,..,...,.,.,,..,,..,...,..,,...,..,,,..,,..,.,.,,.,,..,,
-#QBLFRLNW5N5KHEDKDFL5A3S67KENYT3OT7ETN5Z6SLM776VOT6GK64XA6Y4B5XHLRXHJPUDL7VXJE
-#\\\|S6RXR52ZORKFGFXRXDGZRF5XWQJDQGNQWLFN5J6SE6NZ4HTGS6X \ / AMOS7 \ YOURUM ::
-#\[7]Z6ZAFYZQRBL4HZWPJSOLVCE4V7MNVDEK333SXJVBNBR64D7WZQCY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,,,,,.,.,,.,,,,.,,.,,...,.,,,..,,...,..,,,..,,..,.,.,,,,,,..,
+#TYS7CY7SIJUNEIPS2JU6ZUYNAPCZA7CTKFV3OE63FJIBQ5DQYQMNHNEI6QPPFR7AFP4NATDDZHTU4
+#\\\|2HGG66I7TTDTBR2DMTINLDLBPBZ6RUUYT7BD6JSD2LLWJBJWMDM \ / AMOS7 \ YOURUM ::
+#\[7]QFJ524XQ76T3ILEN5LIJIIMREDPGCBPROPS57NJQAAZMJGCB2UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

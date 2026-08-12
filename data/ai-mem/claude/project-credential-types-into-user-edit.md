@@ -118,8 +118,52 @@ front-end. The latter looks far more likely given the encryption-at-rest
 and rotation machinery already in place — do not move secrets into
 `host-system/` YAML without deciding this explicitly.
 
-#,,,.,...,..,,,,,,,.,,,,,,,,,,.,,,..,,..,,,.,,..,,...,...,..,,..,,.,.,,,,,,.,,
-#E5Z77G7BZXNQ6CYQSMRFEUEHJWY67G35RT3ZI4JOALRRNMNJLCAY23ZTLFY7QTCJFK5HQIAZYRH32
-#\\\|H3Z4PB6LRFQZ4U33WCXHXP6WYRSUDJXHP5DZLOB4CTHU6CSWX4B \ / AMOS7 \ YOURUM ::
-#\[7]5OYBUE6G3V6Y3QI45KCENWVNZ3VEYJ567MUSO6XLGLHDM7GOGSAA 7  DATA SIGNATURE ::
+
+## LANDED 2026-08-12 — `masked` field type, and the rule that came with it
+
+`editor.control.create` now accepts `masked` (previously it hard-rejected
+everything but `freeform_line`). It edits exactly like a freeform_line —
+same buffer, same key handling — and differs ONLY in how it is drawn:
+
+- **`editor.control.get_display_value`** — the boundary between what a
+  field HOLDS and what a renderer may PUT ON SCREEN. Returns `*` repeated
+  to the SAME LENGTH, so cursor offsets, required-width and per-row fill
+  padding all stay consistent with the real buffer.
+  `editor.control.get_value` stays truthful and is what
+  `editor.control.submit` collects, so a masked field still submits its
+  real content. **Every UI backend must draw through get_display_value.**
+  `editor.ui.ascii_frame.render_form` does. **nshell's own renderer still
+  calls `get_value` directly** — fine today since nshell has no masked
+  fields, but it would leak if one were ever added there.
+
+**THE RULE — display masking is not confidentiality.** Masking protects
+the screen; persistence collects the real value. Without a guard a secret
+reached `[VAR_P7]/draft/<user>.yaml` in clear text on the very FIRST field
+transition, before the user submitted anything. Decided with the user:
+
+- **`editor.control.masked_field_names`** is the single place that decides
+  which types are secret-shaped. Callers ask it instead of testing for
+  `'masked'` themselves, so a future secret type changes one module.
+- **drafts NEVER contain masked values** (`user-edit.form.field_changed`
+  filters them).
+- **a form holding a secret is never staged to the outbox at all.** A
+  partial entry would be worse than none: a later retry would push a
+  record with the secret blanked, silently destroying it.
+- **offline submit is REFUSED** for such a form, and the check runs
+  **before `editor.control.submit`** — which RESETS the fields on success,
+  so refusing afterwards would destroy what the user just typed. That
+  ordering is load-bearing; do not move it.
+- `<user-edit.form.staged>` records whether staging happened, so
+  `value_set_reply` cannot claim a recoverable copy exists when it does
+  not.
+
+Still NOT solved: an **event-loop-safe prompt** for entering a secret
+inside a running form. `base.term.ask` is BLOCKING and pre-loop only — see
+[[reference-console-question-ask-primitive]]. And `enum` remains
+interface-only.
+
+#,,..,...,,,.,,..,,..,,..,,.,,...,..,,,,,,,,.,..,,...,...,...,...,...,,,.,,.,,
+#6KZTPBA53KLTUNVF3K4NG6HHWG7M3DRNWRV6RCNGCQL355DKPV4ACWVH3RGLXZ4ALONO75TC4ZV6U
+#\\\|CLI7U4RONXLF4LGB3AIPW2PAC5FKCFUJZW2WOE6YIKB4ESNK7AK \ / AMOS7 \ YOURUM ::
+#\[7]3NH67B6DDVNADXQKO6JSTPYACCCXCXSHO3GIJT7RGZCW4UVNCICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
