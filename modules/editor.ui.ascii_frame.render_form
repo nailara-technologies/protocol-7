@@ -94,10 +94,14 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     ## [ collapsed list fields ]  neither a collapsed list nor a menu row has
     ## a meaningful character position -- both DISPLAY something other than
     ## editable text, so a cursor overlaid there marks nothing and corrupts
-    ## the label.  the focus framing alone shows which row is active
+    ## the label.  the focus framing alone shows which row is active.
+    ## list_info [ a windowed list's 'start-end of total' row,
+    ## editor.control.list.expand ] joins them for the same reason -- it is
+    ## READ-ONLY text about the list, not a value belonging to it
     my $cursor_bearing = not( $field_def->{'list'}
         or $field_def->{'menu_row'}
-        or $field_def->{'add_field'} );
+        or $field_def->{'add_field'}
+        or $field_def->{'list_info'} );
 
     ## the add-a-field CYCLER already manages its own per-choice spacing [
     ## editor.control.cycler.render's cell design -- '+choice+' writes INTO
@@ -220,8 +224,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,.,...,,..,,,.,.,,,,.,,...,,,,,,..,,,,,,,.,..,,...,...,.,,,..,,,..,,,.,,,,,
-#N5UUDQM77MLAV2PSYK7HIM3BE2EVUIQEOJYKEHOHTLAG7FADTZAAN67WILHGAIBSBKIBJU5IVA64K
-#\\\|IPFYYB5FUTVCNHTKQ2IOOB4DEMFZFG6WWGWODYAGYGZILHBP4VC \ / AMOS7 \ YOURUM ::
-#\[7]NL3TUVPZBFWYFY4GAKA7B5HEVZL5PDSKIZ3GBJUO27TFGETXFEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,..,..,,.,,,...,,..,,,.,.,,,..,,..,,...,...,...,,,.,,,.,,..,.,.,
+#CQSW6AEWXCE6XDYB2R5LBGCQFC6KBBWR3BBA7V4Q7NYTRF2URVSF733FZEMSRBSO7HKDKF4ZUSR5M
+#\\\|K6O7O24X6AJK44AHL7GTPIOJ2J32RIUURGR3OUTDR3TRSWXMBQH \ / AMOS7 \ YOURUM ::
+#\[7]CPHMG5OUKAVLFPK7LBGRILBIWVNWM4T32DZH4NOKS3AMGNYWTMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

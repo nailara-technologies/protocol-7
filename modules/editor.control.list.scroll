@@ -1,0 +1,126 @@
+## [:< ##
+
+# name  = editor.control.list.scroll
+# descr = page a windowed list field's visible window up or down
+# param = $editor_state, $direction [ -1 = page back, +1 = page forward ]
+
+## the harvest-and-merge half of this is the SAME move
+## editor.control.list.collapse makes : fold the currently visible window back
+## into list_source's working copy at the offset it was shown at, never trust
+## it to be the whole list, or an entry scrolled off-screen would be dropped
+## the moment the window moves.  kept as its own copy rather than shared with
+## collapse, since collapse ends by rebuilding the ORIGINAL [ collapsed ]
+## schema and this one ends by re-expanding instead -- two different endings
+## wrapped around the same merge would read as one module doing two jobs.
+##
+## returns undef when there is nothing TO scroll -- no list currently expanded
+## [ mode is not 'list:<field>' ], or the field's entry count is at or under
+## editor.control.list.window_cap [ a single window already shows everything
+## ].  callers treat undef as "not applicable, skip the repaint", the same
+## contract editor.control.list.collapse's no-op return already sets.
+##
+## the caller MUST rebuild the frame afterwards [ same as .expand / .collapse
+## ].
+
+my ( $editor_state, $direction ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+return undef if not $direction;
+
+my $mode = $editor_state->{'mode'} // '';
+my ($field_name) = $mode =~ m|^list:(\w+)$|;
+
+return undef if not defined $field_name;
+
+my $source = $editor_state->{'list_source'};
+return undef if ref $source ne qw| HASH |;
+
+my $cap          = <[editor.control.list.window_cap]>;
+my @base_entries = ( $source->{'entries'} // [] )->@*;
+
+return undef if scalar(@base_entries) <= $cap;
+
+## gather the CURRENT WINDOW's rows, same reasoning as
+## editor.control.list.collapse : trimmed but not yet filtered, list_info
+## skipped, position preserved for the splice below
+my @window_values;
+foreach my $field_def ( ( $editor_state->{'schema'}{'fields'} // [] )->@* ) {
+
+    my $name = $field_def->{'name'} // next;
+
+    next if ( $field_def->{'list_row_of'} // '' ) ne $field_name;
+    next if $field_def->{'list_info'};
+
+    my $value = <[editor.control.get_value]>->( $editor_state, $name ) // '';
+    $value =~ s|^\s+||;
+    $value =~ s|\s+$||;
+
+    push @window_values, $value;
+}
+
+my @virtual = ( @base_entries, '' );
+splice( @virtual, $source->{'offset'} // 0,
+    scalar(@window_values), @window_values );
+my @entries = grep {length} @virtual;
+
+## step by a full window per keypress, clamped against the MERGED count -- a
+## row emptied or filled in during this same window changes where the last
+## window sits
+my $max_offset = scalar(@entries) + 1 - $cap;
+$max_offset = 0 if $max_offset < 0;
+
+my $new_offset = ( $source->{'offset'} // 0 ) + $direction * $cap;
+$new_offset = 0           if $new_offset < 0;
+$new_offset = $max_offset if $new_offset > $max_offset;
+
+## re-expand from a COLLAPSED-shaped state built around the merged entries --
+## reuses editor.control.list.expand's row-building rather than duplicating
+## it, the same move user-edit.form.sync_list_mode already makes to open a
+## list in the first place.  every OTHER field def carries its CURRENT buffer
+## content across, not the possibly-stale snapshot list_source.schema captured
+## at the original [ pre-expand ] focus change -- a field beside the list
+## stays live and editable while the list is open, so its value may have
+## changed since
+my @collapsed_fields;
+
+foreach my $field_def ( $source->{'schema'}->@* ) {
+
+    my $name = $field_def->{'name'} // next;
+
+    if ( $name eq $field_name ) {
+        push @collapsed_fields, { %{$field_def}, qw| entries | => \@entries };
+        next;
+    }
+
+    push @collapsed_fields,
+        {
+        %{$field_def},
+        qw| default | =>
+            <[editor.control.get_value]>->( $editor_state, $name )
+            // $field_def->{'default'}
+        };
+}
+
+## built through editor.control.create rather than assembled by hand -- expand
+## carries every OTHER field's value across by calling
+## editor.control.get_value on the state it is GIVEN [ its own "still live
+## while the list is open" note ], which needs a real 'fields' buffer hash to
+## read from.  a bare { schema => ... } stub has none, and every non-list
+## field's just-harvested default above would silently go back to '' the
+## moment expand re-read it
+my $collapsed_state = <[editor.control.create]>
+    ->( { qw| fields | => \@collapsed_fields, qw| active_field | => 0 } );
+
+return undef if not defined $collapsed_state;
+
+$collapsed_state->{'kill_buffer'} = $editor_state->{'kill_buffer'} // '';
+
+return <[editor.control.list.expand]>->(
+    $collapsed_state, $field_name, $new_offset
+);
+
+#,,,,,..,,..,,,,.,...,...,,.,,.,.,,..,.,.,.,.,..,,...,..,,,.,,.,.,,.,,,,,,,..,
+#FMD55P43O23YDYTWRQZL4WLPEZBUPTILKFV5USXXPBNHZDXQGARABY5F4IG564DAXPCX4NVUN2S5G
+#\\\|BGNK56E36NYMH3UXAMJ347YUDS3D4HWUVPLUHGXEZBAZBFNJNPW \ / AMOS7 \ YOURUM ::
+#\[7]3QKQW3FFH633MT2WLQK37IVLRBIFNBAVR2E2F56DY3F6QCSBAGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -145,6 +145,26 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         }
     }
 
+    ## Left / Right PAGE a windowed list's position row -- same reasoning as
+    ## the add-a-field row's Left/Right above : process_key already claimed
+    ## \e[D/\e[C for cursor movement [ a harmless no-op here, the buffer is
+    ## readonly ], so they never arrive as passthrough.  per user : once focus
+    ## can land on the position row it reads as a selectable thing in its own
+    ## right, so Left/Right page it exactly like PageUp/PageDown do rather
+    ## than doing nothing
+    if ( ref $focus_def eq qw| HASH | and $focus_def->{'list_info'} ) {
+        my $direction
+            = $key eq "\e[C" ? 1
+            : $key eq "\e[D" ? -1
+            :                  0;
+        if ($direction) {
+            $repaint = TRUE
+                if <[user-edit.form.scroll_list]>->( $direction, TRUE );
+            $editor_state = <user-edit.form.state>;
+            next;
+        }
+    }
+
     ## Down / Up move between fields as well as Tab / Shift-Tab : in a
     ## multi-field FORM that is the natural reading, while nshell binds the
     ## same two keys to history navigation.  editor.control.process_key
@@ -158,6 +178,16 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
             $action = qw| field_prev |
                 if $result->{'passthrough'} eq "\e[A";
         }
+
+        ## PgDn / PgUp : page a windowed list field's window -- unclaimed by
+        ## editor.control.process_key for the same reason Up/Down are [ no
+        ## branch there ], so claimed here the same way.  no field-count guard
+        ## : user-edit.form.scroll_list is itself the "is there anything to
+        ## scroll" check and no-ops cleanly when there isn't
+        $action = qw| list_scroll_next |
+            if $result->{'passthrough'} eq "\e[6~";
+        $action = qw| list_scroll_prev |
+            if $result->{'passthrough'} eq "\e[5~";
     }
 
     if ( $action eq qw| field_next | ) {
@@ -196,6 +226,14 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         <[user-edit.form.field_changed]>
             if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
         $repaint = TRUE;
+
+    } elsif ( $action eq qw| list_scroll_next | ) {
+        $repaint      = TRUE if <[user-edit.form.scroll_list]>->(1);
+        $editor_state = <user-edit.form.state>;
+
+    } elsif ( $action eq qw| list_scroll_prev | ) {
+        $repaint      = TRUE if <[user-edit.form.scroll_list]>->(-1);
+        $editor_state = <user-edit.form.state>;
 
     } elsif ( $action eq qw| submit | ) {
 
@@ -255,8 +293,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,.,,.,,,...,..,,,,.,.,,,.,,,.,.,.,,,...,,,.,..,,...,...,,..,.,.,..,,,.,,,..,
-#DT5ZSNEB5DTUGDVA24V2FC46Y5AC25QT4UJX6OEJ6I3HDSJIGPNY5TK4QM724KMGXEE7E2FMJZO6I
-#\\\|4OMAFWEK564BLBOQ45V63XTFPVPMSIZVL6257MEQS4HTLJPXFYI \ / AMOS7 \ YOURUM ::
-#\[7]2KOSX3LAVXYZXWKBHDFZK5ZMABRY2DNTQBI5ZANGVDKWHLHQX6DY 7  DATA SIGNATURE ::
+#,,,,,.,.,...,..,,.,,,...,,..,,..,,.,,,.,,,..,..,,...,...,..,,...,.,.,.,.,.,.,
+#PAQRL6Y2PGS5T34AVEGMVKAJZ3FO5R6LC7KSMAV7WXQU3XCA4DWU374W2LK2OKV2LW3757JFQ564S
+#\\\|CP663MSEIQZDYMWZF5TKA6ZBBCRGOFP64QNT3IGLXATSV7SJIEB \ / AMOS7 \ YOURUM ::
+#\[7]7SDFWZH7EOEG37N5MQYQGTV4ORZ4YANLIG6CASYN65VRIQRKSMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
