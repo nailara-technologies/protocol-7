@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = mpv.handler.event.end-file
+# descr = mpv 'end-file' event : surface playback failures loudly when this
+#         instance is audio-only [ playback IS the entire intent there ]
+
+my $params = shift;
+
+return 0 if ( $params->{'reason'} // '' ) ne qw| error |;
+
+my $file_error = $params->{'file_error'} // 'unknown error';
+
+## audio-only zenka : nothing else was ever going to happen with this file  ##
+## besides play its audio, so any end-file error here is a total failure of ##
+## the only intent -- always surface it, not just at debug                  ##
+if (<mpv.audio_only>) {
+    <[base.log]>->(
+        0, sprintf( 'playback failed [ ' . 'audio-only ] : %s', $file_error )
+    );
+} else {
+    <[base.log]>->( 1, sprintf( 'playback failed : %s', $file_error ) );
+}
+
+0;
+
+#,,,.,,,,,...,...,,..,,,,,,,,,.,.,.,,,.,.,,..,..,,...,...,.,,,.,,,,..,,,,,,,.,
+#2JOGD2PDFKAZ6CQNHHYIPF24IQKBXYSWKRIU6XMBTRAERLLMYXC4JAAE6X5KFT2HKPQIN3AB6WSLU
+#\\\|6ER5EF4KRYM5U6QPRYKFTEDQT6G6C66NLUH4YEM5OVSAT6KXVZQ \ / AMOS7 \ YOURUM ::
+#\[7]GS5TMPZZHK2XT7KI4XIMO42TNZQRKI62QQWWO4T5QMKWIQBIZQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
