@@ -52,7 +52,7 @@ my $title_bar = sprintf( '.:[ %s ]:', $title );
 
 ## ROW GEOMETRY, and why it is computed for BOTH renderings of the form.
 ##
-## a list field draws as '.. 1 entry ..' collapsed and as one row per entry
+## a list field draws as '< 1 entry >' collapsed and as one row per entry
 ## expanded, and the two are not the same width -- so the frame jumped
 ## sideways every time focus entered or left the field.  build_frame already
 ## solves the VERTICAL half of exactly this, by reserving blank expansion rows
@@ -81,12 +81,15 @@ my $vocabulary = <user-edit.form.field_options>;
 my @vocabulary
     = ref $vocabulary eq qw| HASH | ? sort keys %{$vocabulary} : ();
 
-## DISPLAY length of a row, +4 throughout for the pad, the cursor cell [ which
-## now doubles as the trailing pad -- see editor.ui.ascii_frame.render_form ]
-## and the two framing cells it adds to every value.  a plain scalar field
-## contributes NOTHING : its live value is render's business, and freezing it
-## into min_width would stop the frame ever narrowing again once a long value
-## had been typed and deleted
+## DISPLAY length of a row -- +4 for an ordinary value [ pad, the cursor cell
+## which doubles as the trailing pad, and the two framing cells -- see
+## editor.ui.ascii_frame.render_form ], +2 for a collapsed list's summary [
+## drops BOTH the inner leading pad and the outer pad_l, marking it as
+## non-value ] and likewise +2 for the add-a-field cycler [ drops the inner
+## reservation entirely, since its own per-choice cells already pad it ].  a
+## plain scalar field contributes NOTHING : its live value is render's
+## business, and freezing it into min_width would stop the frame ever
+## narrowing again once a long value had been typed and deleted
 my $display_length = sub {
 
     my ($field_def) = @ARG;
@@ -104,7 +107,11 @@ my $display_length = sub {
         length( <[editor.control.cycler.render]>->( \@vocabulary, 0 ) ) + 2
         if $field_def->{'add_field'} and @vocabulary;
 
-    return length( <[editor.control.list.summary]>->($field_def) ) + 4
+    ## +2, not +4 : a collapsed list's summary drops BOTH the inner leading
+    ## pad and the outer pad_l [ editor.ui.ascii_frame.render_form ], two
+    ## columns closer to its label than a real value sits -- only the trailing
+    ## cursor cell plus the outer pad_r remain to account for
+    return length( <[editor.control.list.summary]>->($field_def) ) + 2
         if $field_def->{'list'};
 
     return length( $field_def->{'default'} // '' ) + 4
@@ -272,13 +279,33 @@ if ($is_menu) {
 
         my $name = $field_def->{'name'} // next;
 
+        ## a LIST field's own block -- its collapsed summary row, or the FIRST
+        ## row of an expanded group -- gets a blank line ahead of it, same
+        ## reasoning the add-a-field row below already has : several
+        ## 'phone_<n>' rows stacked directly under whatever came before, all
+        ## carrying the SAME repeated label [ label_of, above ], read as one
+        ## run-on list rather than as their own group.  matched on '_0' rather
+        ## than on 'list_row_of' alone, since every row of the group carries
+        ## that same key and only the first should trigger it
+        my $starts_list_block = $field_def->{'list'}
+            || ( length( $field_def->{'list_row_of'} // '' )
+            and $name eq sprintf( qw| %s_0 |, $field_def->{'list_row_of'} ) );
+
         ## the add-a-field row is not a name/value pair -- it is an action, so
         ## it carries no label column and no ':' separator, and a blank row
         ## sets it off from the values above it.  the frame's own top and
         ## bottom padding are blank rows for the same reason : this is where
         ## the record STOPS and a control begins, and without the gap the two
-        ## kinds of row read as one list
-        push @bodies, '' if $field_def->{'add_field'} and @bodies;
+        ## kinds of row read as one list.
+        ##
+        ## COMPACTED, both cases : skipped when the row above is already blank
+        ## -- typically a COLLAPSED list immediately before this one, which
+        ## already carries its own reserved trailing blanks [ below ] -- so
+        ## two list-shaped fields in a row do not stack two separate gaps
+        push @bodies, ''
+            if ( $starts_list_block or $field_def->{'add_field'} )
+            and @bodies
+            and $bodies[-1] ne '';
 
         push @bodies,
             $field_def->{'add_field'}
@@ -376,8 +403,8 @@ my $entry = {
 
 return $entry;
 
-#,,,.,,..,,,,,,,.,.,.,,.,,,.,,.,,,.,.,,,.,,..,..,,...,...,.,,,,.,,.,.,.,.,.,,,
-#EUU6Q5MFF5JN4VPELOKDWPVBIP44NLROL2Z5CHFN7M2IB7K4BQE65A5TQROFSIZUE5C55D2EFXJZO
-#\\\|LK6RKDV2CGZM4ZCWZEXRDKUY5EGHIYDEUJQGSITANW24FFLPNXO \ / AMOS7 \ YOURUM ::
-#\[7]NHP7MFERNBCM5QYFCT5MRVE5HEJW6JDWNFW74AC4PS5GGZERZCAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,,,...,,,.,.,.,...,..,,.,,,.,,,..,,...,...,...,..,,,,,,,.,,...,
+#DGSWKFY3WUZPT2HUHTFOCZ7W7M25NPQKLEUDSZGSQUL35GGLVFOA5RFOYCDBX5TB3ZVMPOZCDML6M
+#\\\|A4RRMWFVCWXZGDVOUO2KQCUSPZQZDYJRH6QLF2BGVNOYJY53EUZ \ / AMOS7 \ YOURUM ::
+#\[7]ZLR5BBEDPJ6PD4W3DEQNPDJVCRHWZ64OSWTPYXOHWJ6TA6DOTWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
