@@ -10,6 +10,26 @@ my ( $username, $fields_href, $existing_href ) = @ARG;
 
 $fields_href = {} if ref $fields_href ne qw| HASH |;
 
+## users.record.sorted_fields [ contact, phone -- neither has a manual reorder
+## control anywhere in the editor, so insertion order is effectively arbitrary
+## and reads as unintentional mess rather than a meaningful sequence ] are
+## normalised to a canonical order on every WRITE, via base.sort [ length
+## ascending, alphabetical-descending tiebreak -- see
+## base.access.special-user-map / amos-term.term-params-update for the same
+## idiom elsewhere ] -- so display never depends on typing/insertion order and
+## every reader [ users.value-get/-all, a future export, the form's own
+## re-display after submit ] sees the identical order without re-sorting
+## itself.  the AUTHORITY's job, not the form's : this is the one place every
+## write path [ user-edit's submit, a direct users.value-set, an installer ]
+## converges through, so normalising anywhere else would leave the others
+## unsorted.  a shallow copy, not an in-place mutation of the caller's array
+## -- callers may still hold that arrayref themselves
+my %fields = %{$fields_href};
+foreach my $sorted_field (<[users.record.sorted_fields]>) {
+    $fields{$sorted_field} = [ <[base.sort]>->( $fields{$sorted_field} ) ]
+        if ref $fields{$sorted_field} eq qw| ARRAY |;
+}
+
 ## creation timestamp is immutable once set -- reuse it across updates, ##
 ## fall back to a fresh one for brand-new or legacy/malformed records   ##
 my $timestamp = <[base.ntime]>;
@@ -27,11 +47,11 @@ return {
     'checksum'  => $checksum,
     'timestamp' => $timestamp,
     'metadata'  => { 'updated_at' => <[base.ntime]> },
-    'fields'    => $fields_href
+    'fields'    => \%fields
 };
 
-#,,.,,.,.,,.,,,.,,,,,,...,,.,,..,,,,,,.,,,.,.,..,,...,.,.,..,,,,.,.,.,...,,..,
-#7P6355XZ6O5SBGOL6YBVY5WQOLT6PPA6UDSZW6YOHWOC7224KKNBD7WQO6MIZYEWGWQW3RN6MBXM4
-#\\\|QBTVSYEEUZD4MMTJTWG2SY7DPMY3RUJAO4QRNEBI7QVGRJYCQEX \ / AMOS7 \ YOURUM ::
-#\[7]U7O5M37YKGFKOXCT6RNZFM5AJYG33J5DH67EHU5HUVJTO3EAAYAA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,...,..,,,,,,,.,,.,,,,,,,,,,,.,,,..,,...,...,,..,,,,,.,.,,.,,,,.,
+#VQN7IYYYKR4VYXI52QSZVXVY3HOZJHEVJ3KMK2SVIWLIAWCTZMYP6TFE4KZZRWLK77LX7ZASHJ6RU
+#\\\|BMA2YQ52BE6POLM654LRRPEEFHME5ZTLEFLO76C25QQFPR2VUSL \ / AMOS7 \ YOURUM ::
+#\[7]FT5OA5G6II5Q3DNG2UKEB7TUNAZ3G45BAZCWEWFGFKFJQ3UL3WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
