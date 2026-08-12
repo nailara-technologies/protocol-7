@@ -502,6 +502,7 @@ return [ qw[
         v7.zenka.cmd.stop
         v7.instance_count
         v7.find-AMOS-user
+        users.record.path
         user-edit.message
         universal.startup
         udev.reload_rules
@@ -1351,6 +1352,7 @@ return [ qw[
         v7.cleanup_temp_files
         users.record.validate
         user-edit.outbox.list
+        user-edit.menu.select
         user-edit.form.submit
         user-edit.form.render
         user-edit.form.escape
@@ -1620,6 +1622,7 @@ return [ qw[
         user-edit.outbox.write
         user-edit.outbox.clear
         user-edit.offer_create
+        user-edit.menu.records
         user-edit.cmd.char-add
         universal.switch_child
         universal.self_restart
@@ -1882,6 +1885,9 @@ return [ qw[
         v7.handler.zenka_output
         v7.handler.shutdown_cmd
         v7.callback.host-reboot
+        users.record.ensure_dir
+        users.cmd.field-options
+        user-edit.menu.show_key
         user-edit.console.start
         universal.cmd.slow_down
         udev.handler.adm_stdout
@@ -2157,6 +2163,9 @@ return [ qw[
         v7.cmd.forced-mod-reload
         v7.callback.object.zenka
         users.cmd.create-default
+        user-edit.menu.open_rows
+        user-edit.form.add_field
+        user-edit.console.browse
         universal.cmd.dump_state
         ui.caller.security-level
         udev.set-up.import_rules
@@ -2266,6 +2275,7 @@ return [ qw[
         ffmpeg.cmd.rescale_video
         events.cmd.trigger_event
         event.anyevent.init_code
+        editor.control.menu.open
         editor.control.get_value
         download.util.read_hosts
         discover.mcast.init_code
@@ -2406,6 +2416,7 @@ return [ qw[
         v7.cancel_instance_timers
         v7.bin_p7r_chksum_current
         v7.bin_p7c_chksum_current
+        user-edit.menu.namespaces
         universal.stop_start-anim
         ui.render.tree.invalidate
         tree.sort.trunk.remainder
@@ -2520,8 +2531,10 @@ return [ qw[
         forensics.report.assemble
         fetch-files.cmd.hf-status
         fetch-files.cmd.hf-search
+        editor.control.menu.close
         editor.control.load_field
         editor.control.get_cursor
+        editor.control.cycler.set
         editor.buffer.memory.save
         editor.buffer.memory.load
         download.cmd.get_mimetype
@@ -2652,6 +2665,7 @@ return [ qw[
         v7.load_zenka_startup_cfgs
         v7.handler.restart-timeout
         v7.handler.heartbeat_timer
+        user-edit.menu.open_record
         user-edit.form.build_frame
         universal.reroute_commands
         universal.handler.sig_chld
@@ -2905,6 +2919,7 @@ return [ qw[
         v7.callback.connect_to_cube
         users.record.default_fields
         user-edit.handler.stdin_key
+        user-edit.form.remove_field
         user-edit.console.show-form
         universal.startup_sub_zenki
         universal.cmd.show_playlist
@@ -3020,6 +3035,7 @@ return [ qw[
         fetch-files.cmd.hf-download
         external.cmd.orbital-status
         editor.input.parse_key_spec
+        editor.control.list.summary
         editor.buffer.memory.length
         editor.buffer.memory.insert
         editor.buffer.memory.delete
@@ -3160,7 +3176,9 @@ return [ qw[
         v7.handler.get_display_reply
         v7.handler.cube_session_auth
         v7.callback.instance.restart
+        users.record.optional_fields
         user-edit.form.field_changed
+        user-edit.form.add_field_row
         universal.get_unix_sock_path
         universal.cmd.get_list_types
         tree.sort.trunk.layer_to_col
@@ -3279,6 +3297,7 @@ return [ qw[
         external.orbital.push_update
         external.cmd.connect-orbital
         editor.control.list.collapse
+        editor.control.cycler.render
         editor.control.active_buffer
         download.set-up.import_rules
         download.set-up.export_rules
@@ -3384,6 +3403,7 @@ return [ qw[
         user-edit.setup_stdin_watcher
         user-edit.handler.esc_timeout
         user-edit.form.sync_list_mode
+        user-edit.form.addable_fields
         universal.handler.switch_fade
         universal.cmd.playlist-update
         universal.cmd.get_coordinates
@@ -3629,6 +3649,7 @@ return [ qw[
         v7.handler.process_output_line
         v7.handler.output_zenka_stdout
         v7.callback.xorg-error-handler
+        user-edit.form.removable_field
         universal.handler.zenka_output
         universal.handler.resume_reply
         universal.collect_video_frames
@@ -4094,6 +4115,7 @@ return [ qw[
         graphics-matrix.cmd.cursor-state
         graphics-matrix.address.register
         fetch.file.huggingface.lan-check
+        editor.control.menu.selected_key
         editor.control.get_display_value
         discover.process_incoming_packet
         discover.orbital.get_local_p7ref
@@ -4188,6 +4210,7 @@ return [ qw[
         v7.callback.delete_instance_cache
         user-edit.handler.value_set_reply
         user-edit.handler.value_get_reply
+        user-edit.handler.value_all_reply
         user-edit.form.schema_from_record
         universal.callback.mpv_idle_check
         tile.handler.get-tile-color_reply
@@ -4596,6 +4619,7 @@ return [ qw[
         vterm.consensus.interference_pattern
         vision-batch.parent.handle_job_reply
         vision-batch.child.cmd.analyze_image
+        user-edit.handler.browse_start_reply
         universal.handler.start-anim_timeout
         universal.handler.start-anim_started
         tile.tile_activity.change_poll_timer
@@ -4706,6 +4730,7 @@ return [ qw[
         vision-batch.parent.handle_child_exit
         vision-batch.parent.generate_batch_id
         v7.handler.heartbeat_response_timeout
+        user-edit.handler.field_options_reply
         universal.handler.extract_frame_reply
         transport.handler.credential_resolved
         reasoning.branch.internal.check_stuck
@@ -5177,8 +5202,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,,,,,.,,,,,..,,,,.,..,,,..,.,,,..,,,,.,.,.,...,...,.,.,,,,,.,.,,.,,,.,,
-#RWIT4SZTBSNVMO6LAYOEH2S35GUSFA44M4FXB5DZXAO3DP4ENZAJKZLHWOBHX3NDL36TFEQHNPJYK
-#\\\|H3XKNNO2WUVFNMVUS2ONCOH3AEW4W4FUB4RW6CZBE7SMEEEPUBF \ / AMOS7 \ YOURUM ::
-#\[7]VLTRGFLYXHVRKO6HKKHEGZUNLIDPTKK2IZRWKOOLZDP5MYDBYSAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,,,.,,,.,,,,,,,.,,,,,,,,,,,,,.,.,...,...,,.,,.,,,.,,,,,,,,..,
+#STNFCKLHOQZT5T4NKHDT2DJJDWGGFVC6NFCHQVIZEBPBDR4U5JLBXY5365HXB3LWNSY4XHPKCP2PG
+#\\\|K36SZDETWB22NNICK7IU6UIRDW4ILNUN66L4KP4I5X34JSOF354 \ / AMOS7 \ YOURUM ::
+#\[7]74VXAJVWC663PFUHCNNV7ORS5T3ICBSI4UVBQEKJMC3PKKUY4UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

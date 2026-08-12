@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = user-edit.form.addable_fields
+# descr = the optional fields a form does not carry yet, in offer order
+# param = $editor_state
+
+## the local half of the optional-field vocabulary.  users.cmd.field-options
+## hands over the WHOLE vocabulary -- name and shape both -- and the split
+## between "may still be added" and "is already here, and may be given back"
+## is made HERE, against the schema on screen rather than against the record
+## on disk.
+##
+## that distinction matters : a field added and not yet submitted exists on
+## the form and not in the record, and a server-side filter would keep
+## offering it.
+##
+## synthesised rows are not record fields, so an option is not considered
+## present just because a row of that name exists -- but no optional field can
+## collide with '_add_field' anyway [ ^\w+$ names, leading underscore reserved
+## ], so the schema names are enough.
+
+my ($editor_state) = @ARG;
+
+return [] if ref $editor_state ne qw| HASH |;
+
+my $vocabulary = <user-edit.form.field_options>;
+
+return [] if ref $vocabulary ne qw| HASH |;
+
+my %present = map { ( $ARG->{'name'} // '' ) => TRUE }
+    ( $editor_state->{'schema'}{'fields'} // [] )->@*;
+
+## an EXPANDED list is on screen as '<field>_0', '<field>_1' -- the field
+## itself is present all the same, so its source name counts too
+$present{ $ARG->{'list_row_of'} } = TRUE
+    foreach grep { length( $ARG->{'list_row_of'} // '' ) }
+    ( $editor_state->{'schema'}{'fields'} // [] )->@*;
+
+return [ grep { not $present{$ARG} } sort keys %{$vocabulary} ];
+
+#,,,.,...,...,..,,..,,...,..,,...,,,,,,..,,,.,..,,...,...,.,.,,.,,,,.,...,,..,
+#4VDHWEY5F2BPDHEIJS4XZGIRNVR7G2S2TDFUWAWI5GFQEAPQASQOXTPB6PY4BTXGKGWBU3U5D7K6E
+#\\\|Y25MWLNSTVINBYAJCHX45W5PVUW2LC654FSFIBEHG6HMKF3SI7V \ / AMOS7 \ YOURUM ::
+#\[7]SQFRET6VKR25YIWTA3PZNRNXGNKSM7W22YGD4S2WPAJPK6P3O2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
