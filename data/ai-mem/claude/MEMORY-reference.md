@@ -57,9 +57,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [add new on-demand zenka](reference-add-new-ondemand-zenka.md) — `start` file alone isn't enough: needs zenka-startup.v7 + v7.reload (spawn/connect), then cube's auth.zenki + access.zenki + bare `reload config` to cube itself (not `cube.reload`) for the connection handshake; each missing piece has a distinct error message, verified live bringing up opencv
 - [ext-bundle backup alias](reference-ext-bundle-backup-alias.md) — `gbc` bash alias creates+verifies the ext-bundle git backup; it's a `.bundle` file not a real remote, `git push` to it always fails harmlessly
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
+- [nshell SS3 arrows + live debug probe](reference-nshell-ss3-arrows-and-live-debug-probe.md) — DECCKM terminals send arrows as SS3 not CSI, `cat -v` settles it in one step (0747face5 fix); `debug-status` safely reads any live session's state, `char-add` injection only works if zenka started with `-no-tty-debug`
 
-#,,.,,,,.,..,,.,.,,,.,.,.,,..,,..,.,,,..,,,,,,..,,...,.,.,,.,,,,.,,..,.,,,,.,,
-#XFDIMV6Z656CN3RFB5Z3VMK3626NO3WY4ONMSCBZQHNP5QQWJ7CNWOFYRSE4T33MSJQUNMI3KPVPI
-#\\\|UJ7EVFOFFJ2XQG3SXGMRLISF6C5IKRJ6KUDJPBYS6453BSYIXOM \ / AMOS7 \ YOURUM ::
-#\[7]EQRG773JUCJTJ3PYZU4DRPPN4X6ADPAZVLTWXIAFZOICHUD27KBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,,.,,.,,,.,.,,,.,.,,,..,,,.,,..,,...,..,,..,,..,,..,,,..,.,,,
+#TBLDWFEYSABFK2LVBAAOTLN6227RRIWBXTHA24JABMKTJQ5VEAKSVTM2TRZ6DILENXO5BBNSRS5VU
+#\\\|L3RFIS463QG2I5Z4DNZTWQE52I4S43PQDSPI3VR7OMXAZHY3EPP \ / AMOS7 \ YOURUM ::
+#\[7]O5VVJXHHETKQWWHSHFWZTW733TTC4EWWE7TNB2ICQBY3K5GNCEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
