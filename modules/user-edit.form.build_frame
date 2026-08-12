@@ -54,10 +54,32 @@ foreach my $name (@names) {
 ## colour.  right-aligned, the shared colouriser gives labels the dim tone  ##
 ## and only the value keeps content colour, with the colons lining up as a  ##
 ## bonus                                                                    ##
-my @bodies
-    = $is_menu
-    ? map { sprintf( '  {{%s}}', $ARG ) } @names
-    : map { sprintf( '   %*s:  {{%s}}', $label_width, $ARG, $ARG ) } @names;
+my @bodies;
+
+if ($is_menu) {
+    @bodies = map { sprintf( '  {{%s}}', $ARG ) } @names;
+} else {
+    foreach my $field_def ( $schema->{'fields'}->@* ) {
+
+        my $name = $field_def->{'name'} // next;
+
+        push @bodies,
+            sprintf( '   %*s:  {{%s}}', $label_width, $name, $name );
+
+        ## RESERVED EXPANSION ROWS.  a collapsed list occupies ONE row and
+        ## expands to entries + 1, so reserving exactly 'entries' blank rows
+        ## after it makes both heights identical -- the form stops jumping
+        ## vertically as focus enters and leaves the field, and every field
+        ## below it keeps its screen position.
+        ##
+        ## expanded state carries no 'list' def [ only its list_row_of rows ]
+        ## so nothing is reserved then, which is what makes the two add up.
+        next if not $field_def->{'list'};
+
+        push @bodies, ''
+            foreach 1 .. scalar( ( $field_def->{'entries'} // [] )->@* );
+    }
+}
 
 my $title_bar = sprintf( '.:[ %s ]:', $title );
 
@@ -130,8 +152,8 @@ my $entry = {
 
 return $entry;
 
-#,,..,..,,,,.,,..,.,.,,,.,,.,,,..,..,,..,,.,.,..,,...,...,,,.,...,,.,,.,,,.,.,
-#E7BP76BTPHUKNW67UI6OJB3BF2MKNOZA4CYB2ZNU2AS7W2BFBMIVFQXHLVRSLS7IVBQJXIBW3MW7C
-#\\\|SHLYIOBDIRML3VOL23VOENPHVTY26GE74WCPR6LFUMQ5X7FRFGQ \ / AMOS7 \ YOURUM ::
-#\[7]PDCV2WRMXDCVFDO4MDDGUUK5JKLWA5XNL3UJERCJCCUGS6OO64CA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,.,,,,,,,,,,,.,,,.,,,,..,.,.,..,,...,..,,,,.,,..,,..,,,.,..,,
+#HCBMCK2N6IZ5VASYEQX2ILQLGEHOAY4ATR22AFIZ6GWCKFT47S54AAFJ5PXJMGAROWYK275ZEJBCW
+#\\\|TTQSFRENILGFC3SNHB6J4JNDLRR5RLKXKUMX5VUQJ7BM4R6FY2J \ / AMOS7 \ YOURUM ::
+#\[7]UXZK4L7KFT3VZWU7C2Z7PP6KTDLMWO36QSWH2MGLDTI3NZMQOWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
