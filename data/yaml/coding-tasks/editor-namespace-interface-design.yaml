@@ -110,11 +110,45 @@ field_types: |
   freeform_line       : multiline = FALSE, cursor = 1d
   freeform_multiline  : multiline = TRUE,  cursor = 1d-wrapped
   enum                : multiline = FALSE, cursor = none, cycles = TRUE
+  list                : multiline = FALSE, cursor = none, collapses = TRUE
   masked              : multiline = FALSE, cursor = 1d,   display = redacted
   readonly            : multiline = n/a,   cursor = none, display = verbatim
   # amos-term's 3D voxel buffer is a distinct UI concern, not a new field
   # type — but revision 1 described it wrongly [ "freeform_multiline field
   # with cursor.z" ]. corrected in amos_term_z below.
+
+selection_styles: |
+  AMENDMENT [ 2026-08-12, per user ]. Selection comes in TWO styles, chosen
+  by CARDINALITY, and revision 1 named only the first.
+
+  1. INLINE CYCLER  -- 'enum : cycles = TRUE' above, unchanged.
+     Few, known options. Stays on its own row, no screen transition.
+     Left/Right cycle in place; the row shows the current choice.
+     The concrete case that motivated writing this down: an "add a field"
+     row rendered as [ field1 | field2 ], where Enter replaces the option
+     row with the chosen field and appends a fresh option row below.
+
+  2. FOCUSED ROW LIST -- many or unbounded options, or options that need
+     their own screen. One row per option, one focused, arrows move,
+     Enter descends, Esc leaves one level.
+     Implemented as editor.control.menu.open / .close / .selected_key.
+
+  Both are sub-modes on $editor_state->{'mode'} :
+    'menu:<what>'  a row list      'enum:<field>'  a cycler [ unbuilt ]
+  so user-edit.form.escape's "leave one level" branch serves both without
+  knowing which is open.
+
+  The row list is a READ-ONLY FORM : rows become schema fields, so focus,
+  navigation, rendering and frame regeneration work unmodified. Rows are
+  named row_0, row_1 .. because field names become ascii.frame slot tokens
+  and must match ^\w+$, while an option key is arbitrary -- the real keys
+  travel alongside in menu_source.row_keys.
+
+  STILL UNSPECIFIED, and deliberately so until a caller needs it: where an
+  enum's option list lives on the field def. The schema shape below defines
+  no 'choices' key. The LIST type solved the equivalent problem by putting
+  'entries' on the field def with the buffer ignored, and an enum would most
+  likely mirror that.
 
 control_ui_boundary: |
   editor.control.* returns SEMANTICS ONLY — no terminal bytes, no colors,
@@ -449,8 +483,8 @@ open_questions:
 created: 2026-08-09
 tags: [editor, interface-design, nshell, amos-term, forms, chat, syntax-highlighting]
 
-#,,.,,...,,,.,..,,,.,,,.,,,,.,,.,,,,,,.,.,,,.,..,,...,...,,,,,,,.,,,,,,,.,..,,
-#LZQWUIV4BL5BYVHICWTUWQL64MCFSGJQXDL26LWDD5ZA3OVU5HNKEQOA55ZSER2SRJ3XHTCHFMEKC
-#\\\|YWAA5GYST32KGJ2ACJYJ6JDEDSADFIWSCGBC4OLAIH566P54EGH \ / AMOS7 \ YOURUM ::
-#\[7]5N4NUUG4OPBUDWRPX32PO4CZDCKT45R3PLOXLB5IYVUJZQ3CDOAY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,,,,.,.,..,,,,.,,.,,,,,,.,,,..,,...,..,,,,.,...,.,,,.,,,,,.,
+#PWH3DRFRBNOFCKO6XTZJXHEKJOK5W7OTBRFLS4OLU26NLQOCPCGFRALRYB3TSF23QR7ZA6SG66VP2
+#\\\|S6TNKKVSTZJBY4OPRVVDAFNT5EFLI6WXUVRPSJLAIUSVPERIBGV \ / AMOS7 \ YOURUM ::
+#\[7]RPTSJUJXRYM63HFWOIC4JCV7WWKXJVZ53KD7TAJSFNCK3I2WSMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

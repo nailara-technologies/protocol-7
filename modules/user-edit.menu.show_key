@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = user-edit.menu.show_key
+# descr = show a key read-only ; keys are not editable
+# param = $key_name
+
+## the keys namespace is browsable but READ-ONLY -- a key is not a settings
+## record and this form has no business writing one.  so a chosen key opens a
+## read-only field set rather than the edit form.
+##
+## data comes from in-process crypt.C25519 / keys.* helpers that RETURN
+## values.  keys.console.list is deliberately not used : it prints,
+## autoflushes progress mid-flight and bakes ansi colour into its output,
+## which would corrupt the raw-mode screen this runs on.
+
+my ($key_name) = @ARG;
+
+return FALSE if not defined $key_name or not length $key_name;
+
+my $checksums = <[keys.checksum_href]> // {};
+
+my @rows = (
+    {   qw| key |   => $key_name,
+        qw| label | => sprintf( 'name       %s', $key_name )
+    },
+);
+
+foreach my $type (qw| public private secret |) {
+    my $sum = $checksums->{$key_name}{$type};
+    next if not defined $sum or not length $sum;
+    push @rows,
+        {
+        qw| key |   => sprintf( qw| %s.%s |, $key_name, $type ),
+        qw| label | => sprintf( '%-10s %s',  $type,     $sum )
+        };
+}
+
+push @rows, { qw| key | => '', qw| label | => '[ read-only ]' };
+
+return <[user-edit.menu.open_rows]>->(
+    \@rows, qw| keydetail |,
+    <user-edit.form.state>
+);
+
+#,,,,,..,,,..,.,.,.,.,,,,,.,,,.,,,...,.,.,,.,,..,,...,...,.,.,,.,,,,.,,..,.,.,
+#2EJSEVYCXORUQGQZIXEYRR3MTNEJTMJALRNUWMJHZ76NPMCHMU5UC5RC2X64J3FBOH5QPMC7ETD3C
+#\\\|WKR3J3RUJRJMLGUSRYGDOX2ZCS2EPAIOMZ4RHBRRDJJENOWSDWB \ / AMOS7 \ YOURUM ::
+#\[7]LSPMHOKQMPYYZUUDEDAT72Q3QZR4AS3AT2OC3S6OXSGLBDFP4QCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

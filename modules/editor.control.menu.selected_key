@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = editor.control.menu.selected_key
+# descr = the row key under focus in an open menu
+# param = $editor_state
+
+## the schema field NAME is row_<n>, never the key -- field names become
+## ascii.frame slot tokens and must match ^\w+$, while a key is arbitrary.  so
+## the key is resolved positionally from menu_source's row_keys, the parallel
+## array editor.control.menu.open built.
+##
+## returns undef when no menu is open, so a caller can test with it.
+
+my ($editor_state) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+
+my $source = $editor_state->{'menu_source'};
+
+return undef if ref $source ne qw| HASH |;
+return undef if ref $source->{'row_keys'} ne qw| ARRAY |;
+
+my $index = $editor_state->{'active_field'} // 0;
+
+return $source->{'row_keys'}[$index];
+
+#,,..,..,,...,...,,,.,,.,,...,,,.,,,,,.,,,,.,,..,,...,...,,.,,...,.,.,,..,.,,,
+#BLDZQH6B6OWSODCCNOVMLQCCDEOPHODLHHIVIPCJHOLUKWNPGIQDDGRWCWTV67CU7233LVZUJO5D4
+#\\\|5T6R3TBAF4COORBVXLRKYRQWNWEIZC6YC5YHH7PRV2ND6KCKMAV \ / AMOS7 \ YOURUM ::
+#\[7]LGMA2TMYWGTXMQHVAMD55K6JXQAJ62GZVYFA6UPEXLEGQR6KRQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

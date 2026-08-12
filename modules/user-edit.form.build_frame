@@ -29,6 +29,13 @@ $title      //= qw| user-edit |;
 my @names = map { $ARG->{'name'} } $schema->{'fields'}->@*;
 return undef if grep { not defined $ARG or not length $ARG } @names;
 
+## a MENU has no label column -- every row is just its own text, so the 'name
+## : value' shape a form uses would show meaningless row_0 / row_1 labels.
+## detected from the field defs rather than passed in, so any caller building
+## a menu state gets the right frame automatically
+my $is_menu = scalar( grep { $ARG->{'menu_row'} } $schema->{'fields'}->@* )
+    == scalar @names;
+
 ## label column width, so the ':' separators line up down the form ##
 my $label_width = 0;
 foreach my $name (@names) {
@@ -48,7 +55,9 @@ foreach my $name (@names) {
 ## and only the value keeps content colour, with the colons lining up as a  ##
 ## bonus                                                                    ##
 my @bodies
-    = map { sprintf( '   %*s:  {{%s}}', $label_width, $ARG, $ARG ) } @names;
+    = $is_menu
+    ? map { sprintf( '  {{%s}}', $ARG ) } @names
+    : map { sprintf( '   %*s:  {{%s}}', $label_width, $ARG, $ARG ) } @names;
 
 my $title_bar = sprintf( '.:[ %s ]:', $title );
 
@@ -121,8 +130,8 @@ my $entry = {
 
 return $entry;
 
-#,,..,.,,,...,..,,,..,...,,.,,.,,,..,,...,..,,..,,...,...,...,...,,,.,...,..,,
-#4VBXGTRUUKKHH7OTDNSW3R3JKIICZXB4IZLIVQ5PUYRB3EJM264Z4YVROSEQPM7KTGFQSBFBHOFTY
-#\\\|WMBJAFT6J4C2N4WIZAODIQY74ZHHAD7GPFI4CO47COBAOWKCB7K \ / AMOS7 \ YOURUM ::
-#\[7]6R3Y6DFKBG3A6B2K7HTXKLAG6SGPGJDOFKRL73FD6LN6V4PDNGBI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,.,.,,,.,,.,,,..,..,,..,,.,.,..,,...,...,,,.,...,,.,,.,,,.,.,
+#E7BP76BTPHUKNW67UI6OJB3BF2MKNOZA4CYB2ZNU2AS7W2BFBMIVFQXHLVRSLS7IVBQJXIBW3MW7C
+#\\\|SHLYIOBDIRML3VOL23VOENPHVTY26GE74WCPR6LFUMQ5X7FRFGQ \ / AMOS7 \ YOURUM ::
+#\[7]PDCV2WRMXDCVFDO4MDDGUUK5JKLWA5XNL3UJERCJCCUGS6OO64CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

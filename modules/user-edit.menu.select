@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = user-edit.menu.select
+# descr = act on the focused menu row : descend a level
+# param = -none-
+
+## Enter inside a menu DESCENDS : namespace -> record list -> edit form.
+## user-edit.handler.stdin_key routes the submit action here when the mode is
+## a menu, so Enter selects instead of submitting a form.
+##
+## going back UP is Esc, which needs no code of its own --
+## user-edit.form.escape's non-base-mode branch already means "leave one
+## level", and editor.control.menu.close returns the state the menu was opened
+## over.
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $mode = $editor_state->{'mode'} // '';
+my ($what) = $mode =~ m|^menu:(\w+)$|;
+
+return FALSE if not defined $what;
+
+my $key = <[editor.control.menu.selected_key]>->($editor_state);
+
+return FALSE if not defined $key;
+
+if ( $what eq qw| namespace | ) {
+
+    <user-edit.menu.namespace> = $key;
+
+    ## keys enumerate in-process, so that list is available immediately.
+    ## host-system has to ask the users zenka, and the reply handler opens the
+    ## menu when it arrives -- the same async shape the form itself uses
+    if ( $key eq qw| keys | ) {
+        return <[user-edit.menu.open_rows]>->(
+            <[user-edit.menu.records]>->($key),
+            qw| record |, $editor_state
+        );
+    }
+
+    my $cube_sid = <user-edit.cube_sid>;
+
+    return FALSE
+        if not defined $cube_sid
+        or not exists $data{'session'}{$cube_sid};
+
+    <user-edit.menu.return_state> = $editor_state;
+
+    <[protocol-7.command.send.local]>->(
+        {   qw| command |   => sprintf( '%d.users.value-all', $cube_sid ),
+            qw| call_args | => { qw| args | => '' },
+            qw| reply |     =>
+                { qw| handler | => qw| user-edit.handler.value_all_reply | }
+        }
+    );
+
+    return TRUE;
+}
+
+if ( $what eq qw| record | ) {
+
+    ## a key is shown, never edited : the keys namespace is read-only ##
+    return <[user-edit.menu.show_key]>->($key)
+        if ( <user-edit.menu.namespace> // '' ) eq qw| keys |;
+
+    ## a host-system record opens the ordinary edit form, unchanged ##
+    return <[user-edit.menu.open_record]>->($key);
+}
+
+return FALSE;
+
+#,,,,,.,,,..,,,,.,,,,,.,,,,..,,..,.,,,,,,,.,,,..,,...,..,,...,,,.,,,.,.,.,.,.,
+#YQ5G5PZAKYPK3F3J2Z3R2K2TW4FW6VU7X4H3H5JCTKB6C5E6RGOVZCLCIBUH24Q6OO2SSA4FLFROY
+#\\\|VV3H4SWMIELZMIAGZHI3XSU2ROYWOSBQWPGQXGBAXCDXO66ULEX \ / AMOS7 \ YOURUM ::
+#\[7]NXGVNWQL76RYM6A5X65XDVKBGX5MEYRLGEBRZB447BEM2AKXM2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

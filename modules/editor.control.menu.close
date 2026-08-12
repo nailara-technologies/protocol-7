@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = editor.control.menu.close
+# descr = leave a menu, returning to the state it opened over
+# param = $editor_state
+
+## the inverse of editor.control.menu.open.  returns the state the menu was
+## opened OVER, so a nested menu [ namespace -> records -> form ] unwinds one
+## level per call -- which is exactly what Esc means via
+## user-edit.form.escape's non-base-mode branch.
+##
+## returns undef when there is nothing to return to : the caller decides
+## whether that means "leave the form entirely" [ top-level menu ] or
+## something else.
+##
+## the caller MUST rebuild the frame afterwards.
+
+my ($editor_state) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+
+my $source = $editor_state->{'menu_source'};
+
+return undef if ref $source ne qw| HASH |;
+
+return $source->{'return_state'};
+
+#,,..,,,,,,..,,,.,...,.,.,,.,,,,,,.,.,.,,,.,,,..,,...,...,,.,,...,,,.,..,,...,
+#DCXXHOGD76W5RSJPV4IVESNL54SOPBPP6QCRTBPG7VZLYC5H6J2I4EXURNLTMRQ2BJF4KVIM4YOBQ
+#\\\|URKHQK7T2ETFGY6MH7FRB6XNSKOQ4WBIIREWFV35E2FLNX2RBMG \ / AMOS7 \ YOURUM ::
+#\[7]D4G5D3DMZSUHOFGEN5GGFBQEOEWNHDXDQKOQIUEBARUSJSPK3KAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

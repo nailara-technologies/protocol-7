@@ -47,6 +47,13 @@ $raw_termios->setlflag(
 
 $raw_termios->setattr( $tty_fd, TCSAFLUSH() );
 
+## hide the TERMINAL's own cursor : the form draws its own [ inverse video or
+## a phosphor underscore ], and leaving the hardware one visible gives two
+## cursors in different places.  nshell.init_code does the same, and like the
+## termios state it is tied to raw mode so the restore path cannot miss it
+print "\e[?25l";
+STDOUT->flush();
+
 ## armed only now that the terminal really is raw, so exit paths that never
 ## reach user-edit.form.quit [ SIGTERM, an uncaught die ] still restore it.
 ## local cleanup only, no event loop needed — exactly what end_code is safe
@@ -55,8 +62,8 @@ push <callbacks.end_code>->@*, qw| user-edit.term_restore |;
 
 return TRUE;
 
-#,,..,.,,,..,,.,.,,,,,.,.,,.,,..,,...,.,.,,.,,..,,...,..,,.,,,,.,,,,,,...,,,,,
-#FSNT7F3KRF3CMSM2XKCOLJYUJR4ADLWSDIWLFYXT634W6LF37SZADBZGCSWBGENIOCKT4GNOH2HSS
-#\\\|G57Y2IDIGP27U5ENRT6XA5PKC7XVSXWCG7YJSX43ZS3YNE4IYBP \ / AMOS7 \ YOURUM ::
-#\[7]STWIP3ZNRE7ISEUGKGEWZQRH5RR7JZB3IFYZ6AMJWOXEWJWSR2DI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,...,,..,,.,,,,,,,,,,,.,,,,.,..,,..,,...,...,...,.,.,,..,,.,,...,
+#M4ZJX3DTJXNQ2EKDFYQYEEO3VIBQ5QY3Q6FLVK3MVJ5IT5V75OAFJCRTL3CO326VEUXPCC4DVPUCO
+#\\\|VXL5DONNLNAGLOJBJZZEIBNY5OQRWJBK5HHTVZC7WDAUX3QDGSS \ / AMOS7 \ YOURUM ::
+#\[7]Z32FW4PULFR2ADVPF3DN2EQNO5VY5VX73MNZXOQMIX6KCD2VNIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
