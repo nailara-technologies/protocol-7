@@ -26,6 +26,12 @@ return {
 my $file_path = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
 my $user_data = <[format.yaml.load_keyword_path]>->($file_path);
 
+## COUPLED STRING : user-edit.handler.value_get_reply matches this text
+## EXACTLY to tell "no such record" apart from the other 'false' replies below
+## [ record invalid, usage ], and only offers to create in the former case.
+## changing the wording here disables that offer -- it logs a near-miss at
+## level 1 rather than failing loudly, so grep for it there before editing
+## this line
 return {
     'mode' => qw| false |,
     'data' => sprintf( "user '%s' not found", $username )
@@ -53,8 +59,8 @@ return {
     'data' => $yaml_str
 };
 
-#,,,.,...,...,..,,,,.,..,,.,.,.,,,.,,,..,,...,..,,...,...,...,,.,,,,,,,,.,.,,,
-#R3IZDB4YEMGCRICMQKRM4DDA24RWQX42SDOPRQ6BSMKJZJL433TRPUNYAEOPGECANJ3AT6HGYTJES
-#\\\|57BFOCE5OJR54XJSOGFPXWSXAMHY7WCYJEPQLGTLADSW5IYKG5B \ / AMOS7 \ YOURUM ::
-#\[7]ENY6DL4TP32UTFOVFRIFPWV2UB5QHL5WWTS2HLTJQCLQKN2IYOBI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,,..,..,,.,.,...,,..,,..,..,,..,,...,.,.,...,,,,,.,,,,,,,...,
+#3L5NUK22WREVAJPEEBK5WZ3AFFNF7MUDJDA2HIR55B2VT3AIESECFRAEIMO5XCLADQQSD3LCCTTPI
+#\\\|VF6GDICUUBXKGELR35BKFX2XYPBPHY6M4AJIIDXBA55HRIROUJC \ / AMOS7 \ YOURUM ::
+#\[7]VK4MXPHRFWPJPHPZLADG3CPEYO6GSZNCC5V5KVYZV3SCM5CI7UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

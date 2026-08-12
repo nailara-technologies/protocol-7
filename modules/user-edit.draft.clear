@@ -21,6 +21,13 @@ my $path = sprintf qw| [VAR_P7]/draft/%s.yaml |, $id;
 
 my $resolved_path = <[base.path.resolve_keywords]>->($path);
 
+## already gone is SUCCESS, not failure : clearing is about reaching a state,
+## not about performing an unlink.  the draft is written conditionally [
+## draft.write skips an empty form, and a form holding a secret is never
+## staged at all ], so "no such file" is an ORDINARY outcome of a normal save
+## -- reporting it as an error made a clean submit print a spurious failure
+return wantarray ? ( TRUE, undef ) : TRUE if not -e $resolved_path;
+
 if ( unlink($resolved_path) ) {
     return wantarray ? ( TRUE, undef ) : TRUE;
 }
@@ -32,8 +39,8 @@ my $err = sprintf 'cannot remove draft entry [ %s ] : %s',
 
 return wantarray ? ( FALSE, $err ) : FALSE;
 
-#,,.,,.,,,.,.,...,.,.,.,.,,..,.,.,,..,.,,,.,.,..,,...,...,,.,,.,.,.,,,...,.,,,
-#UKNFQKTVEWCAEW5CK3ESZCWQE4RWOJRF33EBXMSJ7YZV2VHIWXDFQQSJ7VTQ766LWXIGICOPFLZAC
-#\\\|2JSGFR2VDKQFHBTM75QIJDBUY6LHN6A6E6D6J3OB234DEMRHHHF \ / AMOS7 \ YOURUM ::
-#\[7]23CJUUON5SXXP6Q7OPSWGML54IF55JCQCNNRUNVPD7JRKJABRWDI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,.,,.,,.,,,,.,,...,.,.,.,.,..,,..,,...,...,...,,..,.,.,..,,..,,
+#5BKVWS2VGZHS2XOGQJZL5DR2J4F4IC763H5VNYE22I5JLEHB76B3JMPKJ23G26LCVVKT4W2DKG7VE
+#\\\|QYQCAQOKL5DLZ225WFRSKPXVR3JPXPWXEQXZ7MDS6OTOGI7RNSI \ / AMOS7 \ YOURUM ::
+#\[7]4AOMLUDHZ4OQJBM2ZBXYCCIPV3QP76UW3HNXESSH5N5KP3JZSMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = users.cmd.create-default
+# param = <username>
+# descr = create a record with the default field set
+
+## creates a host-system record carrying users.record.default_fields, for a
+## user that has none yet.  reachable without user-edit -- an installer
+## provisioning a new node's accounts calls this directly.
+##
+## REFUSES an existing record on purpose, and deliberately does NOT route
+## through users.cmd.value-set : that one is create-or-overwrite by design,
+## which is right for an edit but wrong here, where overwriting would silently
+## replace a populated record with empty defaults.
+##
+## benign TOCTOU between the exists check and the write : two admins racing
+## both write the identical default record, so no locking is warranted --
+## noted rather than guarded.
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.create-default <username>'
+    }
+    if not length $args;
+
+my $username = $args;
+$username =~ s|\s.*||s;    ## first whitespace-delimited token only ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'username cannot contain path separators'
+    }
+    if $username =~ m|[/\\]|;
+
+my $file_path = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "user '%s' record exists already", $username )
+    }
+    if defined <[format.yaml.load_keyword_path]>->($file_path);
+
+## no existing record to preserve a creation timestamp from ##
+my $envelope = <[users.record.build]>->(
+    $username, <[users.record.default_fields]>, undef
+);
+
+my $resolved_path = <[base.path.resolve_keywords]>->($file_path);
+
+my ( $ok, $err ) = <[format.yaml.write_file]>->( $resolved_path, $envelope );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        "failed to create user " . "'%s': %s",
+        $username, $err // 'unknown error'
+    )
+    }
+    if not $ok;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "user '%s' default record created", $username )
+};
+
+#,,..,...,,.,,,..,,.,,,..,,,.,.,,,,..,,,.,...,..,,...,...,...,,,,,..,,..,,,.,,
+#IXEV7KRD7BLGE6QHOE274TQCYCT5PHK7A2KCAJF4M25FDX7HOVTA5LSXYBSKMAUUDIDBD5BKDZ2BO
+#\\\|YRT4T5HCXNGULUWCHNV5ZFO5T7HCOXUG4W2R2NSQLGS4VNXBT3A \ / AMOS7 \ YOURUM ::
+#\[7]FLYRMGM3IPMOV3WP75BWZ6VCO2AGHBBZSASDPEWLRZFILJIO5QBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

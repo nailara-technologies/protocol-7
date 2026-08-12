@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = user-edit.form.escape
+# descr = handle Esc : leave a sub-mode, or exit the form
+
+## Esc means "back out one level", so what it does depends on where you are --
+## leaving a sub-mode when one is active, and leaving the form when none is.
+## the dispatch point is $editor_state->{'mode'}, which editor.control.create
+## and .reset already SET to 'insert' and which nothing has ever read : the
+## hook was designed in and left waiting for exactly this.
+##
+## nothing sets a non-base mode yet, so today Esc exits.  the three things
+## coming all introduce one -- an enum picker [ open list ], the masked secret
+## prompt, and any field search -- and each gets 'leave' behaviour by setting
+## mode, with no change to this module's callers or to the key decoder.
+##
+## Ctrl-c remains the UNAMBIGUOUS exit : a bare Esc can only be told apart
+## from an arrow-key prefix by a timeout [ user-edit.handler.esc_timeout ],
+## and on a slow link that timeout can misfire.
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $mode = $editor_state->{'mode'} // qw| insert |;
+
+if ( $mode ne qw| insert | ) {
+
+    ## leave the sub-mode and stay in the form ##
+    <[base.logs]>->( 2, ': leaving sub-mode [ %s ]', $mode );
+    $editor_state->{'mode'} = qw| insert |;
+    <user-edit.form.dirty>++;    ## repaint without the sub-mode ##
+
+    return TRUE;
+}
+
+## base mode : Esc leaves the form.  the draft checkpoint written on the last
+## field transition is what preserves an in-flight edit
+<[user-edit.form.quit]>->( 'closed without saving', 'no-op' );
+
+return TRUE;
+
+#,,..,.,.,..,,,.,,.,.,.,.,.,.,,,.,,.,,.,.,,,.,..,,...,...,,,.,..,,..,,.,,,,.,,
+#PZXCJV2FV7YH6MOTUGNTDQDXBCMIPEKVJXAAESDWYPG2FTDJV2JFAO2WLTSFJ2Z2VTC4Q74TWBYN4
+#\\\|2LOSMSRJYD7H5YH5YDU5XIX7TNBQQMLRMGZXAXSYEWQKO4G6P5V \ / AMOS7 \ YOURUM ::
+#\[7]V3KJI4QVWV624I3Y2YWZFDTDQ4CE54K7ILWMV4RYKYNH25LO5UCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
