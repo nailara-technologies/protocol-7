@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = users.record.sorted_fields
+# descr = which array-valued record fields get base.sort's canonical order
+# param = -none-
+
+## the single list, alongside users.record.default_fields' and
+## .optional_fields' own vocabularies : per user, contact and phone both have
+## no manual reorder control anywhere in the editor, so insertion order is
+## arbitrary and reads as unintentional mess rather than a meaningful
+## sequence.  three call sites read this rather than each naming the two
+## fields for itself -- users.record.build [ normalises on every WRITE ],
+## users.cmd.value-get [ normalises on every READ, read-only copy ], and
+## user-edit.form.schema_from_record [ marks the field def so
+## editor.control.list.expand normalises the moment focus ENTERS the list,
+## mid-session, before either of the other two ever run ] -- the same "one
+## implementation, not three, or they drift" reasoning
+## editor.control.list.summary documents for itself.
+##
+## deliberately NOT "every array-valued field" : the vocabulary only has these
+## two today, so the two forms are behaviourally identical right now, but
+## naming them explicitly matches what was actually asked rather than
+## committing every future list field to this by default.
+
+return qw| contact phone |;
+
+#,,,.,,.,,.,,,.,,,,..,,.,,,,.,,,.,,,.,,.,,...,..,,...,..,,,,.,,,,,,.,,,.,,,,,,
+#QPXE5W3RQC5D7P5IZDGEL5L52M5M6BZD4B2C5AVGPAY6L7HWTV3YVUIELCZWUEQ6XJRGC2OJPTQVQ
+#\\\|NJWOBYZMQWRD5GJD46YQSV2J46XCSMWEN64Q7LZEVKCYADPVJKU \ / AMOS7 \ YOURUM ::
+#\[7]6JNUUETKQJRU5Q6VRXSJYROMAHHMGGZ7E4ZBEOR3UEMKKQ5FLGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
