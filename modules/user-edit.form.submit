@@ -3,16 +3,42 @@
 # name  = user-edit.form.submit
 # descr = stage the edited values, then push them to the users zenka
 
-## ORDER MATTERS [ local_edit_outbox ] : the outbox write is durable and
-## UNCONDITIONAL, and happens BEFORE the users.value-set attempt.  if the
+## ORDER MATTERS [ local_edit_outbox ] : for an ordinary form the outbox
+## write is durable and happens BEFORE the users.value-set attempt, so if the
 ## users zenka is unreachable — or this process dies between the two — the
 ## edit survives on disk rather than being lost to a failed network call.  the
 ## outbox entry is cleared only once the zenka confirms the write.
+##
+## ONE EXCEPTION, and it is deliberate : a form holding a masked field is
+## never staged at all, and refuses to submit while offline.  display masking
+## is not confidentiality — the outbox stores clear text — and a partial entry
+## would be worse than none, since a later retry would push a record with the
+## secret blanked and silently destroy it.  see the two guards below.
 
 my $editor_state = <user-edit.form.state>;
 return FALSE if ref $editor_state ne qw| HASH |;
 
 my $username = <user-edit.form.username> // return FALSE;
+
+my @masked_fields = <[editor.control.masked_field_names]>->($editor_state);
+
+## CHECKED BEFORE editor.control.submit ON PURPOSE : submit RESETS the fields
+## on success, so refusing afterwards would destroy what the user just typed.
+## a form holding a secret is not allowed to fall back to plaintext outbox
+## staging, so if the users zenka is unreachable we stop here with the form
+## still intact rather than dropping the secret silently or writing it to disk
+## in clear
+if (@masked_fields) {
+    my ($check_sid) = keys <user.cube.session>->%*;
+    if ( not defined $check_sid or not exists $data{'session'}{$check_sid} ) {
+        print "\n  << not sent : this form contains a secret and the users "
+            . "zenka\n     is unreachable — secrets are never staged "
+            . "in clear text >>\n\n";
+        STDOUT->flush();
+        <user-edit.form.dirty>++;    ## repaint over the message ##
+        return FALSE;
+    }
+}
 
 my $result = <[editor.control.submit]>->($editor_state);
 
@@ -29,15 +55,26 @@ if ( ref $result ne qw| HASH | or not $result->{'ok'} ) {
 
 my $values = $result->{'values'} // {};
 
-## durable staging first, always ##
-my ( $staged, $stage_err )
-    = <[user-edit.outbox.write]>->( $username, $values );
+## durable staging first -- EXCEPT when the form holds a secret.  a partial
+## outbox entry would be worse than none : a later retry would push a record
+## with the secret field blanked, silently destroying it.  so a masked form is
+## never staged at all, and the reachability check above has already
+## guaranteed the zenka is there to send to
+<user-edit.form.staged> = FALSE;
 
-if ( not $staged ) {
-    print sprintf( "\n  << could not stage edit locally : %s >>\n\n",
-        $stage_err // 'unknown error' );
-    STDOUT->flush();
-    return FALSE;
+if ( not @masked_fields ) {
+
+    my ( $staged, $stage_err )
+        = <[user-edit.outbox.write]>->( $username, $values );
+
+    if ( not $staged ) {
+        print sprintf( "\n  << could not stage edit locally : %s >>\n\n",
+            $stage_err // 'unknown error' );
+        STDOUT->flush();
+        return FALSE;
+    }
+
+    <user-edit.form.staged> = TRUE;
 }
 
 my ($cube_sid) = keys <user.cube.session>->%*;
@@ -73,8 +110,8 @@ $json_fields =~ s|\n\s*||g;
 
 return TRUE;
 
-#,,,.,,.,,,.,,,,,,.,,,...,..,,..,,.,.,.,,,..,,..,,...,...,...,,,,,...,.,.,,..,
-#EXN3AUTYTHJ26IDLLHHPNF5LS324X5KXZWY75WKC7VLBEZQQSDDVHISZTSXURICRQZ4JQ5DB7OKRI
-#\\\|34ABXYHVARYLKBYYBZA6PHGE2PIMMDRBWNLU7NUXELEPP6HSGY6 \ / AMOS7 \ YOURUM ::
-#\[7]OZ6C27B47P232N4IPYZEZ5P4LEU6ZIWBDIKU2DPH26QSPO5BJ2BI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,,,,,..,,,.,,...,,,,,,.,,.,,,..,,...,...,,,,,..,,.,.,,,,,.,.,
+#RWPBB6UMVRTBY4EOWCNFWHTCIPQNJY2ERMAUYEMRDGH65RTNKQ6MZA7VF7RHHA7N3HQX3NBOAK4AG
+#\\\|YB66IOUS7YSCP4JFMAPVBG2SVEWCN4TDZXRFHXYPGHJAKO2OCLZ \ / AMOS7 \ YOURUM ::
+#\[7]HWGV3ROOHAI6WGYGBIR5BKUDVRDUHXASYCVOZH3E4OSYE2YTBIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

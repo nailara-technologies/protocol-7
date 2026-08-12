@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = editor.control.get_display_value
+# descr = field value as it should be drawn, not as stored
+# param = $editor_state, $field
+
+## the boundary between what a field HOLDS and what a renderer may PUT ON
+## SCREEN.  every ui backend draws through this ; editor.control.get_value
+## stays truthful and is what editor.control.submit collects, so a masked
+## field still submits its real content.
+##
+## masked fields return a run of '*' of the same length -- same length so
+## cursor offsets, required-width computation and per-row fill padding all
+## stay consistent with the real buffer [ see editor.ui.ascii_frame.
+## render_form's width note ].  a caller must therefore never assume the
+## displayed string equals the stored one.
+##
+## adding a type that renders differently from how it is stored means
+## extending THIS module, not the renderers.
+
+my ( $editor_state, $field ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+
+my $value = <[editor.control.get_value]>->( $editor_state, $field );
+
+return $value if not defined $value;
+
+my $buffer = $editor_state->{'fields'}{$field};
+my $type
+    = ref $buffer eq qw| HASH |
+    ? $buffer->{'type'} // qw| freeform_line |
+    : qw| freeform_line |;
+
+return q|*| x length $value if $type eq qw| masked |;
+
+return $value;
+
+#,,,.,,..,.,,,,,.,..,,.,,,..,,,,.,,,.,,..,,,.,..,,...,...,,..,.,.,...,,,,,,,.,
+#DIVXVYDMOM2MM2HT6GAD6F6HKPZAQJODPZ2T5WCQCJURNNDCJ4AFJ53RXUSJWHMBVFVG57WOYN374
+#\\\|6MWFV5NSU55T3NUJOCWCG5SEITKKV4EED56O4MQKP57YUCEL6PF \ / AMOS7 \ YOURUM ::
+#\[7]BWTIJ4TDMQWKBBR5EOVZJ2FYEXSRGLKNLSDJZFGKMOCADRWDEMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

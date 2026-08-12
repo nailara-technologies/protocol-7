@@ -6,7 +6,7 @@
 
 ## rendering backend for the editor.ui.* contract [ design doc :
 ## editor-namespace-interface-design.yaml ]. builds a FRESH values hash from
-## editor.control.get_value on every call [ no live slot binding —
+## editor.control.get_display_value on every call [ no live slot binding —
 ## ascii.frame.slot.bind deliberately not used here ].
 ##
 ## focus indication : ascii.frame slot prefix/suffix are static [ part of the
@@ -52,8 +52,12 @@ my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
 ## build fresh values hash from live field state ##
 my %values;
 foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
-    my $name  = $field_def->{'name'} // next;
-    my $value = <[editor.control.get_value]>->( $editor_state, $name ) // '';
+    my $name = $field_def->{'name'} // next;
+    ## DISPLAY value, never the stored one — a masked field must not reach the
+    ## screen in clear text [ editor.control.get_display_value ]
+    my $value
+        = <[editor.control.get_display_value]>->( $editor_state, $name )
+        // '';
 
     if ( $name eq $active_name ) {
         ## cursor marker at character offset, clamped to value bounds ##
@@ -92,8 +96,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,..,.,,,,..,,,,,.,,,,,,,,,,,,,,,.,.,...,.,,,..,,...,...,,.,,,,,,.,,,.,,,,..,
-#KZ2PW3V3AW4CFDONDUXWCKMHA2JMQROD6V5VNVXXJN526FFMAJ7Y7ALWIQLRN62BHL34BOBXNCMZK
-#\\\|YRW3OIVBF56VABW4K53YLRCZV4K3LHTUFS2AC3H5CH5DYZXJMXB \ / AMOS7 \ YOURUM ::
-#\[7]ILUTVCROVHMFESMZ2PN742NYSP3UX63XXEC724UT35E67UTLYSAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,...,...,,,,,,,.,,,,,.,,,,,,,,.,,..,,...,...,...,,,.,,..,.,,,...,
+#ENTDCGNAQJAYVK5CAQV2ZC6BTZEDDQ76QFPLOG4TTZC4F5UO4GWS7AEG5GDKRG34THGIGK5QYJGQC
+#\\\|PFINFIOUAIWQQ7SNSDYYPLRCLESEKPLDQFDSQ3FKDNUSABEBAIJ \ / AMOS7 \ YOURUM ::
+#\[7]TRRTN7D6K6VSXGYJIWE55AXHW4WIXKI4OAR5YEGHXR5FKIKML2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
