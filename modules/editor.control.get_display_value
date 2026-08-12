@@ -61,6 +61,35 @@ if ( ref $field_def eq qw| HASH | and $field_def->{'list'} ) {
     return sprintf( '.. %s ..', $summary );
 }
 
+## CYCLER fields : the buffer is not the value either -- choices live on the
+## field def and the current one is an index.  drawn as the choice set with
+## the current one bracketed, so the whole option row reads at a glance : '[
+## full_name ] phone  shell'
+if (    ref $field_def eq qw| HASH |
+    and ref $field_def->{'choices'} eq qw| ARRAY | ) {
+
+    my @choices = $field_def->{'choices'}->@*;
+
+    return '( none )' if not @choices;
+
+    my $current = $field_def->{'choice'} // 0;
+    $current = 0 if $current < 0 or $current > $#choices;
+
+    ## '+' reads as "add" without spending a word on it, and the row has no
+    ## label column of its own -- see user-edit.form.build_frame
+    return sprintf(
+        '+ %s',
+        join(
+            q| | . q{|} . q| |,
+            map {
+                $ARG == $current
+                    ? sprintf( '[%s]', $choices[$ARG] )
+                    : $choices[$ARG]
+            } 0 .. $#choices
+        )
+    );
+}
+
 my $buffer = $editor_state->{'fields'}{$field};
 my $type
     = ref $buffer eq qw| HASH |
@@ -71,8 +100,8 @@ return q|*| x length $value if $type eq qw| masked |;
 
 return $value;
 
-#,,..,..,,.,.,..,,.,.,...,.,.,.,.,,..,...,,.,,..,,...,.,,,.,,,...,...,.,.,.,.,
-#XTU526EWRVXNFUGXG7P2MSIQWUHTTPA7HGGKFQYERZTUAGYAVTDUI7DZLKM2GLZL5V46WOZM4YBF2
-#\\\|A3QIIR77LOZKI6HN7GBAFQIUR7FJF4ZPEOBLXLEUJ4ZR46HPM2M \ / AMOS7 \ YOURUM ::
-#\[7]66TACQPCURIATZOSXRRMMCB37B7NOAFDKI4DI7JHUYHZ6GRT4GDY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,..,,,..,..,,,,,,,,.,,,.,.,,,..,,...,...,..,,...,...,,,.,,,.,
+#X5YQCK3JOLONZ4EFLVPU3JRJC434X4QHA7WVAWEVCR4G3HEHA5A2XTYSMQIWUMSKSBYOSSNVDVKV4
+#\\\|DV3IKDDLDXR224WYTRT6LSGRHB62QSME4GJUQ32UCAY7FTPEOM4 \ / AMOS7 \ YOURUM ::
+#\[7]CDIPEUVTKZIMGZVZP764DA66SGQV6ZX3WQ3EDO6JZMBFFYGUEYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

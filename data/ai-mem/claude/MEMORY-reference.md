@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [editor-add-field-cycler](reference-editor-add-field-cycler.md) — inline `[ + a | b ]` cycler + `users.record.optional_fields`. TWO TRAPS: a synthesised ACTION row must never reach storage (`_add_field` was written into the record, sorted first and blocked itself), and a schema def appended after `editor.control.create` has NO buffer so it renders empty with no error. Also: `v7.restart users` before testing any `users.*` change
 - [editor-list-field-and-render-contract](reference-editor-list-field-and-render-contract.md) — ALSO: an overlay (cursor) must ask whether output is INTERACTIVE — overlaying corrupts a capture, so a non-tty shows the character not the marker; `-t STDOUT` (may I emit escapes) and `length $colors{'reset'}` (are colours on) are DIFFERENT questions; and ascii.frame's flush-colon label constraint is GONE (padded labels match now, contra commit 69ca66fa4's message)
 - [editor-list-field-and-render-contract](reference-editor-list-field-and-render-contract.md) — collapsible LIST field type: expand REWRITES the schema via editor.control.create (no add/remove primitive exists); row names must be `^\w+$`; submit collapses unconditionally first (Enter submits from ANY field, else `field_0`/`field_1` replace the array); `active_field` is an INDEX so every rewrite recomputes it by NAME. Also render_form's cell contract: `<pad><value><cursor cell><pad>`, markers exactly one char
 - [console-question-ask-primitive](reference-console-question-ask-primitive.md) — `AMOS7::TERM::ask` + `base.term.ask`: generic console question (yes-no/text/masked) with the `given` parameter-or-prompt short-circuit and a no-tty guard; BLOCKING, so pre-loop only — an event-loop-safe prompt is separate and unbuilt. Includes the map of the FIVE places interaction code lives (AMOS7::TERM / nshell / amos-term / coding GUI / user-edit form)
@@ -55,8 +56,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [ext-bundle backup alias](reference-ext-bundle-backup-alias.md) — `gbc` bash alias creates+verifies the ext-bundle git backup; it's a `.bundle` file not a real remote, `git push` to it always fails harmlessly
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 
-#,,,.,.,.,,,.,,,.,...,...,,..,.,,,,.,,,,,,,,,,..,,...,...,,,,,,.,,,..,..,,.,.,
-#BXUHAB7RG4GQCAMLIZPIMS3LCYUN5HYGOO6EI5IULRHW2YTW73MJW7MJ4H7HTU3SWY4MM6YUWN3MK
-#\\\|JUXFET24ZXYAZZ5E3N7SXVJIFYXAV7T7WJRDBGPZOX6MTWDTMXA \ / AMOS7 \ YOURUM ::
-#\[7]5DRHFNO5FMRHHBD7HANRGCE6I2QDGGN7ACQ5UVWAY2PEX5IJ3ADI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,,,,..,,,.,,.,.,,.,,...,.,.,..,,...,...,,,.,,.,,...,,..,.,,,
+#ARKSES3IYAO3TZQKQXNSSL3RG2UVGRGL5Z5GBN3CSI5J4WKOGAEWTDEWWJPEBEASI2AKILDW5TPZI
+#\\\|PPD7CFI34IGPPZUSH72NDLLVS7PJHZ2UTO5WCJNYA37BICO3CPY \ / AMOS7 \ YOURUM ::
+#\[7]XP4IF7E6JYBJC37Y5YULUV42NNN6YBEC3M7LAQ7FE6KGVU2CVWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
