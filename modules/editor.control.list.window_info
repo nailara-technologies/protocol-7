@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = editor.control.list.window_info
+# descr = the 'start-end of total' text a capped list field's window shows
+# param = $start, $end, $total [ all 1-indexed / plain counts ]
+
+## the scroll-position readout that replaces the trailing 'new entry' row's
+## worth of space once a list has been windowed [ editor.control.list.expand ]
+## -- factored out for the same reason editor.control.list.summary is :
+## user-edit.form.build_frame has to measure this text's width to reserve the
+## frame across a scroll step, and a second implementation of the same
+## sentence would drift.
+##
+## bracket convention matches list.summary's ':..N.entries..:' -- the two read
+## as one family, both marking "this row is a count/position, not a value"
+
+my ( $start, $end, $total ) = @ARG;
+
+return '' if not defined $total;
+
+return sprintf( ':..%d-%d.of.%d..:', $start // 0, $end // 0, $total );
+
+#,,..,,..,..,,...,..,,,.,,...,.,,,,..,,,,,..,,..,,...,...,..,,.,,,.,.,..,,,.,,
+#JB674QITE2WQUVX2J44LIXVCFM4MQW3AP5H6IQEQKPIBKRCQDKGB74JDGUJ3TZZJRNKINGOQZTI6Y
+#\\\|7CYXZCSTRJC6WO2PXAXD5JER5TZPFZ3PEYBMMTIWFZQULC7M2SL \ / AMOS7 \ YOURUM ::
+#\[7]X2IYTN46TCE5ZR3DCW2OFASIM5MQPIOM4WA5OLGUGS63C7ER4GCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

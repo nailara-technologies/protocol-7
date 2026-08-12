@@ -421,8 +421,137 @@ STILL OPEN: the add-field cycler's live path (Left/Right + Enter) is
 unverified at a pty; `enum` proper is unbuilt; the event-loop-safe secret
 prompt is unbuilt (`base.term.ask` is pre-loop only); no `users.cmd.remove`.
 
-#,,..,,,,,,..,,..,.,.,,,.,,..,.,.,...,.,.,.,.,..,,...,..,,...,.,,,..,,.,.,.,,,
-#MSXPEGQLXQDH3DSM2PWQE2UF4LPVZ4OOE4NZ7RZ6DRUI42NALI5S76JS7EOTNFUQCVDSMWSYEO72U
-#\\\|3YA5G5IJZU3MR47VVITX4CHGZUOKHPWWIE4IRTLWK6XHJ4VXKA7 \ / AMOS7 \ YOURUM ::
-#\[7]2UVRWOCWHALY3NS4XHFQQYMY2COY4LXCTAZ3SAT4KOJ6PWD53UDY 7  DATA SIGNATURE ::
+
+**2026-08-12 (later) — capped list-field height + PgUp/PgDn windowed
+scroll.** User request: an 8-entry `contact` field was reserving 8 blank
+rows (`user-edit.form.build_frame`'s expand/collapse height-matching
+reservation had no cap), making the card mostly empty space for the common
+case. Fixed by capping every list field's window at 3 rows
+(`editor.control.list.window_cap`, single source of truth) with a
+`:..start-end.of.total..:` position row (`editor.control.list.window_info`,
+same bracket family as `list.summary`) and PgUp/PgDn paging the window —
+Up/Down/Tab still just move between fields as before, unchanged.
+
+New/changed: `editor.control.list.expand` (+optional `$offset`, slices
+`(@entries,'')` into a `cap`-wide window named RELATIVE to the window —
+always `<field>_0..<field>_(cap-1)`, never absolute position, so
+`build_frame`'s "list block starts here" detection and this module's own
+first-row `active_field` targeting both keep working unchanged for every
+window, not just the first; seeds `list_source.entries`/`.offset` on
+EVERY call now, windowed or not), new `editor.control.list.scroll` (pure
+harvest-current-window → **splice into `list_source.entries` at
+`list_source.offset`** → filter blanks → re-`expand` at the new offset —
+splicing rather than replacing is what stops entries scrolled off-screen
+from being silently dropped), `editor.control.list.collapse` (same
+splice-not-replace fix — below the cap this is exactly the old behaviour,
+since the window then covers everything), new `user-edit.form.scroll_list`
+(glue, mirrors `sync_list_mode`), `user-edit.form.build_frame` (reservation
+capped at `window_cap` instead of full entry count — the actual fix for
+the bloat — plus the indicator row's width folded into the frame's
+`min_width` floor, measured at the field's LAST window since that has the
+most digits), `user-edit.handler.stdin_key` (PgUp/PgDn `\e[5~`/`\e[6~`
+converted to actions in the same block that already converts Up/Down),
+`editor.ui.ascii_frame.render_form` (indicator row added to the
+`cursor_bearing` exclusion — bracket-only focus framing, no cursor
+overlaid on static text).
+
+**Real bug caught by the live test, not by reading the diff**: the first
+implementation of `editor.control.list.scroll` built a temp
+`{ schema => ..., kill_buffer => ... }` stub to re-drive `expand`, skipping
+`editor.control.create` — every OTHER field's value went blank on the
+first PgDn (`full_user_name`/`location` vanished from the render) because
+`expand`'s own "carry current buffer content across" logic reads via
+`editor.control.get_value($given_state, $name)`, which needs a real
+`fields` buffer hash to read from; a bare schema-only stub has none, so
+`get_value` returned undef and expand's `// ''` fallback silently blanked
+every field beside the list. **General lesson, extends
+[[reference-editor-add-field-cycler]]'s TRAP 2** ("appending a schema def
+after `create` leaves no buffer"): ANY hand-assembled state passed to code
+that calls `get_value`/`get_display_value` on it needs to go through
+`editor.control.create` first, not just carry a `schema` key — a state is
+schema+buffers together, not schema alone, and nothing enforces that at
+the call site.
+
+**Verified live** via the `-no-tty`/`char-add` headless driver (see
+[[reference-user-edit-headless-driving]]) against a throwaway
+`p7-fieldtest` record seeded with 9 `contact` entries (8 + one added
+during the test) and a 1-entry `phone` (regression control): frame width
+AND height identical across collapsed, every window (`1-3`, `4-6`, `7-9`
+of 9), and the clamped-last-window boundary (repeated PgDn there is a
+byte-identical no-op); PgUp/PgDn while focused OUTSIDE any list is a true
+no-op (state and render both untouched); an edit made in the last window
+plus a new 9th entry both survived PageUp back through every earlier
+window AND a full Tab-away collapse + Tab-back re-expand round trip —
+confirming the splice-based merge actually prevents the data loss the
+naive "harvest visible rows, replace the array" approach would have
+caused. `phone` (1 entry, under the cap) rendered identically to before
+throughout — no windowing engaged, no indicator row, confirming the
+below-cap path is unchanged.
+
+**Testing-harness gotcha, cost one lost shell**: a multi-line `kill $pid`
+cleanup loop run in the SAME Bash invocation as the `./bin/Protocol-7
+user-edit start ...` command that followed it killed the invoking shell
+itself — `ps aux | grep '[u]ser-edit'` (the self-exclusion trick from
+[[reference-user-edit-headless-driving]]) only protects against matching
+the grep process's own line; it does NOT protect against matching some
+OTHER process on the machine whose full command line happens to contain
+the literal string "user-edit" — and the harness's own `bash -c
+"<the whole multi-line script>"` invocation, still running the kill loop
+partway through when `ps aux` is read, IS such a process once the script
+text further down contains that substring. Exit code 144, no output at
+all. **Fix: run a `ps aux | grep` cleanup/kill step as its own, separate
+tool call — never in the same shell invocation as (before or after) a
+command whose literal text contains the pattern being matched.**
+
+**Outstanding, not a design gap — needs the user's key passphrase**:
+these module files carry AMOS7 signature footers; `sourcecode.console.sign
+<path>` (`./bin/Protocol-7 sourcecode sign <path>`, or `sourcecode.console.
+update-signatures` for a batch) is the real per-file resigning tool
+(distinct from `work.console.fix-signatures`, which re-signs GIT COMMITS,
+not file content) — but it prompts interactively for the `proto-7.
+sourcecode` key decryption password, which is not something to attempt
+non-interactively. New files were left with an obvious `PLACEHOLDER...`
+signature block rather than a fabricated one. Whoever holds that
+passphrase should run the sign command over every file this session
+touched before treating the change as commit-ready.
+
+**Same session, right after — Left/Right also page the scrollinfo row.**
+Per user: once the position row is focusable, Left/Right should mean what
+PageUp/PageDown already do rather than nothing. Added to
+`user-edit.handler.stdin_key` as a `$focus_def->{'list_info'}` check
+matched directly on `$key` (same TRAP-3 reason the add-a-field row's own
+Left/Right claim exists a few lines above it: `process_key` already claims
+`\e[D`/`\e[C` for cursor movement, so they never arrive as `passthrough`).
+Verified live on a second throwaway record (`p7-fieldtest2`, 5 entries,
+cap 3): Right on the position row pages forward and clamps at the last
+window exactly like PageDown; Left pages back; Left/Right on an ORDINARY
+row still just moves the text cursor (confirmed no regression — the
+window stayed put while editing). Same file already in the
+not-yet-signed batch above, no new file added.
+
+**Immediately after — focus was bouncing off the position row.** User:
+Left/Right from `:..1-3.of.8..:` should STAY on that row across the page,
+not jump down to the window's first data row. Root cause:
+`editor.control.list.expand` (what `.scroll` re-drives internally) always
+lands `active_field` on the new window's first row — right for PgUp/PgDn,
+which start from a data row anyway, wrong for a gesture that started ON
+the position row itself. Fixed with a second, optional
+`$keep_on_indicator` param on `user-edit.form.scroll_list`: when true, it
+re-targets `active_field` to `<field>_scrollinfo` by NAME after the
+re-expand (same by-name re-targeting pattern `.expand`'s own first-row
+logic and `.collapse`'s "park the cursor back on the field" both already
+use) — silently falls back to whatever `.expand` picked if the field
+dropped under the cap during this same scroll and the row no longer
+exists. `stdin_key`'s Left/Right-on-`list_info` branch now calls
+`scroll_list($direction, TRUE)`; the PageUp/PageDown action branches stay
+at the one-arg call, unchanged. Verified live (third throwaway record,
+`p7-fieldtest3`): Right/Left from the position row now stay parked on it
+across every page; PageDown from the SAME row still lands on the first
+data row as before, confirming the two gestures diverge only where
+intended.
+
+#,,.,,.,.,..,,,,.,,.,,,,,,,,,,,..,,,.,..,,,,.,..,,...,...,,,.,,,.,,..,,.,,,..,
+#FXQBLUYAKZGTDGK7CO4B4X7CMKMGF5T25O6SDR5PRYIJD5N7LPND7OG3GL4LFFNPHPVKW6IV6N5SK
+#\\\|IRQBUCHIMYAJUFPKZG5IG6UPXPKVQ3YOS7HHIU2LNKDTVCWDV5L \ / AMOS7 \ YOURUM ::
+#\[7]4EVQEJMJJ2GDEZOOMJANOVRZUNTLKM44MPJEUPEDXXBDUT7EDGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

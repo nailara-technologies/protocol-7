@@ -139,7 +139,10 @@ my $display_length = sub {
 my $has_label = sub {
     my ($field_def) = @ARG;
     return FALSE if $is_menu;
-    return FALSE if $field_def->{'add_field'} or $field_def->{'menu_row'};
+    return FALSE
+        if $field_def->{'add_field'}
+        or $field_def->{'menu_row'}
+        or $field_def->{'list_info'};
     return TRUE;
 };
 
@@ -212,7 +215,12 @@ if (    ref $editor_state->{'list_source'} eq qw| HASH |
             }
 
             ## editor.control.list.expand's own shape : one row per entry plus
-            ## the trailing empty 'new entry' row, named '<field>_<n>'
+            ## the trailing empty 'new entry' row, named '<field>_<n>'.  scans
+            ## ALL entries even though a real window only ever shows
+            ## <window_cap> of them at once -- ANY window can be scrolled to,
+            ## so the widest entry anywhere in the list is still the correct
+            ## floor, capping this scan would let the frame narrow and then
+            ## jump wider the moment a scroll brings a longer entry into view
             my $index = 0;
             foreach my $entry ( @entries, '' ) {
                 push @rows,
@@ -220,6 +228,28 @@ if (    ref $editor_state->{'list_source'} eq qw| HASH |
                     sprintf( qw| %s_%d |, $list_def->{'name'}, $index++ ),
                     length($entry) + 4,
                     $has_label->($list_def),
+                    $list_def->{'name'}
+                    ];
+            }
+
+            ## the indicator row only exists once a list is actually windowed
+            ## -- measured at its LAST window, whose start/total carry the
+            ## most digits of any window and so give the widest indicator text
+            ## this field will ever show
+            my $cap = <[editor.control.list.window_cap]>;
+            if ( scalar(@entries) > $cap ) {
+                my $last_start = scalar(@entries) - $cap + 1;
+                $last_start = 1 if $last_start < 1;
+                push @rows,
+                    [
+                    sprintf( qw| %s_scrollinfo |, $list_def->{'name'} ),
+                    length(
+                        <[editor.control.list.window_info]>->(
+                            $last_start, scalar(@entries),
+                            scalar(@entries)
+                        )
+                    ) + 4,
+                    FALSE,
                     $list_def->{'name'}
                     ];
             }
@@ -325,7 +355,7 @@ if ($is_menu) {
             and $bodies[-1] ne '';
 
         push @bodies,
-            $field_def->{'add_field'}
+            ( $field_def->{'add_field'} or $field_def->{'list_info'} )
             ? sprintf( '  {{%s}}', $name )
             : sprintf( '   %*s:  {{%s}}',
             $label_width, $label_of->($field_def), $name );
@@ -336,12 +366,23 @@ if ($is_menu) {
         ## vertically as focus enters and leaves the field, and every field
         ## below it keeps its screen position.
         ##
+        ## CAPPED at editor.control.list.window_cap : past the cap, expand
+        ## only ever materialises <cap> window rows plus one indicator row --
+        ## never entries + 1 -- so reserving the full entry count here would
+        ## over-reserve by exactly the amount PgDn is supposed to have saved.
+        ## reserving <cap> makes collapsed [ 1 summary + cap blanks ] match
+        ## expanded [ cap window rows + 1 indicator row ] again, and every
+        ## window reserves the identical count regardless of its offset.
+        ##
         ## expanded state carries no 'list' def [ only its list_row_of rows ]
         ## so nothing is reserved then, which is what makes the two add up.
         next if not $field_def->{'list'};
 
+        my $entry_count = scalar( ( $field_def->{'entries'} // [] )->@* );
+        my $cap         = <[editor.control.list.window_cap]>;
+
         push @bodies, ''
-            foreach 1 .. scalar( ( $field_def->{'entries'} // [] )->@* );
+            foreach 1 .. ( $entry_count > $cap ? $cap : $entry_count );
     }
 }
 
@@ -420,8 +461,8 @@ my $entry = {
 
 return $entry;
 
-#,,.,,,,.,...,,..,..,,,.,,,..,,..,,,.,,,.,,,,,..,,...,...,.,.,...,,,.,.,,,...,
-#AWDCW43OQDEBMWDBRO2K6UGIDQ2UBMSNBCOMZPMBRUKZCVVDKAWN3QVQNIJ6EPJCUXIPH7ULK2V7S
-#\\\|3TIY6BY4Q4ZSBC5TV2AAIC3XHUKRHDOR36SJMKQOTKUW5F5GRCD \ / AMOS7 \ YOURUM ::
-#\[7]SLCF7VIDL3TF2RWVP3O2G62KSTF6RBWU2BCGO52HWX6YYCILVGAQ 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,,,.,,..,.,.,,..,,..,,,,,.,.,..,,...,..,,,.,,.,,,,,.,.,,,,,.,
+#OICIWKAMAKN44I5VBWQIJNW33LQFR4N2AB6R2S53VVKPG6PDOOTGZH7G5WUEG5VKFVHRMC3SO37AS
+#\\\|DEGRLWE246DOSUNA2WLZ2EZPUXSUR5RMZR2VZFHPUJ3WHQZCVIS \ / AMOS7 \ YOURUM ::
+#\[7]GGDUXFHVAX3G2NTLKZNTHZOO7TYBDYXCNSX6H3DXEKANE4PT3ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

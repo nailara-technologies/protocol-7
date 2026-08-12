@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = user-edit.form.scroll_list
+# descr = page the focused list field's window up or down
+# param = $direction [ -1 = page back, +1 = page forward ]
+#         [ , $keep_on_indicator ]
+
+## the PgUp/PgDn counterpart to user-edit.form.sync_list_mode : that module
+## opens/closes a list as FOCUS moves between fields, this one moves the
+## WINDOW within an already-open, over-the-cap list.  same shape as
+## sync_list_mode's own state-replace-and-rebuild dance, minus the
+## expand/collapse branching -- editor.control.list.scroll already decides
+## whether there is anything to do.
+##
+## returns FALSE [ no state write, no frame rebuild ] when
+## editor.control.list.scroll returns undef -- either focus is not currently
+## inside a list, or that list has too few entries to window at all.  callers
+## read this as "not applicable, do not repaint."
+##
+## the frame MUST be regenerated here for the same reason sync_list_mode's own
+## note gives : user-edit.form.build_frame assigns <ascii.frame.cache>
+## unconditionally and is itself the invalidation primitive.
+
+my ( $direction, $keep_on_indicator ) = @ARG;
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $new_state = <[editor.control.list.scroll]>->( $editor_state, $direction );
+
+return FALSE if not defined $new_state;
+
+## editor.control.list.expand [ what .scroll re-drives internally ] always
+## lands active_field on the window's FIRST row -- right for PgUp/PgDn, which
+## start from a data row and have nowhere more natural to land.  Left/Right
+## pressed ON the position row itself is a different gesture though : per
+## user, that row now reads as a selectable thing in its own right, so paging
+## it should not also bounce focus down to the data underneath.  re-target by
+## NAME, same pattern .expand's own first-row targeting and
+## editor.control.list.collapse's "put the cursor back on the field" both use
+## -- silently a no-op if the field fell back under the cap this same scroll
+## and the row no longer exists
+if ($keep_on_indicator) {
+    my ($field_name) = ( $new_state->{'mode'} // '' ) =~ m|^list:(\w+)$|;
+    if ( defined $field_name ) {
+        my $indicator_name = sprintf( qw| %s_scrollinfo |, $field_name );
+        my $position       = 0;
+        foreach
+            my $field_def ( ( $new_state->{'schema'}{'fields'} // [] )->@* ) {
+            $new_state->{'active_field'} = $position, last
+                if ( $field_def->{'name'} // '' ) eq $indicator_name;
+            $position++;
+        }
+    }
+}
+
+<user-edit.form.state> = $new_state;
+
+## row set is unchanged in COUNT [ still cap + 1 ] but not in CONTENT : the
+## descriptor's {{token}} placeholders are per-row-name, and a fresh window's
+## names are the same '<field>_0 .. <field>_<cap-1>' every window uses --
+## harmless to reuse, but the DISPLAY VALUES behind them changed, and
+## render_form pulls those from the live state fresh on every call regardless
+<[user-edit.form.build_frame]>->(
+    $new_state, <user-edit.form.frame_name> // qw| user-edit-form |,
+    <user-edit.form.title>
+);
+
+## same checkpoint trigger every other field transition fires -- scrolling can
+## change what an off-window entry holds [ editor.control.list.scroll's merge
+## ], and while the list stays expanded user-edit.form.field_changed already
+## skips it same as any other list_row_of row, so this is a no-op today and
+## becomes correct automatically the day that skip is lifted
+<[user-edit.form.field_changed]>;
+
+return TRUE;
+
+#,,,.,,..,,,.,,,.,...,,,,,,.,,.,,,.,.,,.,,,.,,..,,...,..,,...,,,.,,.,,..,,..,,
+#JUHEZFGJUZRG5NFIOK7R7UUL2OHDXNH4M77K33MOKEQ7U76X7KX37XQNVKIFK2XCP6QDWZ6FSC72C
+#\\\|ZO2DDYKMXDSH6MBDZ6EVYJ6MP4ZAARLOBRUFFWJYMTEYNVAQNKA \ / AMOS7 \ YOURUM ::
+#\[7]MPDINHNBDNYOKKW4FHHOXZGRQQYAGFBYKT7UOFEOF3EIQDY3Q4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
