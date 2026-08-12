@@ -87,9 +87,57 @@ my $schema = <[user-edit.form.schema_from_record]>->(
     $record, <user-edit.form.submit_on>
 );
 
-return $abort->(
-    sprintf( "user '%s' has no editable scalar fields", $username ) )
-    if not defined $schema;
+if ( not defined $schema ) {
+
+    ## a record whose 'fields' hash is genuinely empty is a real, reachable
+    ## case now that users.record.default_fields returns {} -- see that
+    ## module's own note.  $record is already confirmed a HASH above [ the
+    ## 'record is not a mapping' guard ], so schema_from_record's OTHER undef
+    ## cause [ 'ref $record ne HASH' ] is unreachable at this call site --
+    ## this is unambiguously its "no editable scalar fields" guard.
+    ##
+    ## one-shot [ show-form ] mode still aborts here : it has no round trip to
+    ## chain a vocabulary fetch onto, and no return-and-retry path for an
+    ## abort either -- bootstrapping is an interactive-only concern
+    return $abort->(
+        sprintf( "user '%s' has no editable scalar fields", $username ) )
+        if not <user-edit.form.interactive>;
+
+    ## raw mode + the stdin/redraw watchers do not depend on any editor state
+    ## existing yet -- same setup the populated-record path below does, just
+    ## reached before a schema exists rather than after
+    if ( not <user-edit.mode.no_tty_debug> ) {
+
+        return $abort->('could not put the terminal into raw mode')
+            if not <[user-edit.term_init]>;
+
+        if ( not <[user-edit.setup_stdin_watcher]> ) {
+            <[user-edit.term_restore]>;    ## never leave the shell raw ##
+            return $abort->('could not register the form watchers');
+        }
+    }
+
+    return $abort->(
+        'no cube session to ask for the optional-field vocabulary')
+        if not defined <user-edit.cube_sid>;
+
+    ## same field-options round trip the populated-record path makes below,
+    ## but routed to the BOOTSTRAP reply handler : that one founds a schema
+    ## from nothing [ the add-a-field cycler as its one and only row ] instead
+    ## of attaching a row onto a form that is already on screen
+    <[protocol-7.command.send.local]>->(
+        {   qw| command | =>
+                sprintf( '%d.users.field-options', <user-edit.cube_sid> ),
+            qw| call_args | => { qw| args | => '' },
+            qw| reply |     => {
+                qw| handler | =>
+                    qw| user-edit.handler.field_options_bootstrap_reply |
+            }
+        }
+    );
+
+    return TRUE;
+}
 
 my $editor_state = <[editor.control.create]>->($schema);
 
@@ -169,8 +217,8 @@ if ( <user-edit.form.interactive> and defined <user-edit.cube_sid> ) {
 
 return TRUE;
 
-#,,..,..,,,.,,.,,,.,,,,,.,...,,,.,,,,,.,,,.,,,..,,...,...,,,,,,.,,.,,,..,,,.,,
-#BEDODPEY7KR6ZVMQW7YUAH5AR7JQ35EUNAIBGIRNWTGMVGXNEACHNYWZRCN7CNAJNM47SBSB4TKXA
-#\\\|DXVXWZQVJ4G7DBV25FJPX4IBJI7N3DTKERWFZYWVPZED75VVCVM \ / AMOS7 \ YOURUM ::
-#\[7]3SPKTKZYNIIZKG6WCDRX3ASU7VZBCVWQDTWKPPPI7U6KETK4WSBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,,.,,,,.,,.,,.,,,...,..,,.,,,..,,...,...,,.,,..,,,,,,,,.,,.,,
+#W5BXFVDSYO2D3Y6DFGGFRLLAUBNT7COBU4BMMN2C5F6J2OLVX7MH7E2HTYG6FACOW3QAYQ33CM27S
+#\\\|XX2UYRA2WURMKNGO4SN4OYLIVYSQYFZZNCOXHMNGOFZXQSDKXAT \ / AMOS7 \ YOURUM ::
+#\[7]23VB45VXHSCZ7FTZJLBIDWNL7ANBWHALCTBG5PCTL5SXKZWW7CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
