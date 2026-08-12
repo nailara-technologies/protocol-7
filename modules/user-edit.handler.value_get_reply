@@ -100,7 +100,7 @@ my $frame_name = <user-edit.form.frame_name> //= qw| user-edit-form |;
 
 return $abort->('could not generate a frame for the derived field set')
     if not defined <[user-edit.form.build_frame]>->(
-    $schema, $frame_name, <user-edit.form.title>
+    $editor_state, $frame_name, <user-edit.form.title>
     );
 
 <user-edit.form.state> = $editor_state;
@@ -137,11 +137,17 @@ if ( <user-edit.form.interactive> and not <user-edit.mode.no_tty_debug> ) {
 ## ask for the optional-field vocabulary AFTER the form is up : it costs a
 ## round trip and the add-a-field row is only occasionally used, so the form
 ## is rendered and usable first and the row appears when the answer lands
+##
+## asked WITHOUT the username, i.e. for the whole vocabulary rather than only
+## what this record lacks.  the addable subset is a local filter [
+## user-edit.form.addable_fields ], and the part the server-side filter throws
+## away -- the optional fields the record already HAS -- is exactly what says
+## which present fields may be given back again
 if ( <user-edit.form.interactive> and defined <user-edit.cube_sid> ) {
     <[protocol-7.command.send.local]>->(
         {   qw| command | =>
                 sprintf( '%d.users.field-options', <user-edit.cube_sid> ),
-            qw| call_args | => { qw| args | => $username },
+            qw| call_args | => { qw| args | => '' },
             qw| reply |     => {
                 qw| handler | => qw| user-edit.handler.field_options_reply |
             }
@@ -157,8 +163,8 @@ if ( <user-edit.form.interactive> and defined <user-edit.cube_sid> ) {
 
 return TRUE;
 
-#,,.,,.,.,,,.,,..,.,.,,,.,..,,,..,.,.,,..,,.,,..,,...,...,.,.,.,.,,..,.,,,.,,,
-#FIEI5CSXZCYILJ4CFJPLJU35SYFUGWUCMTKZEBEV43OMSO6IPGTLBZOBB7ZCJ3SNNXHMNSAADLCAW
-#\\\|L3VTHW5PMATJNIY2FEDHKME25E2QXY52D5HGELUG7XYOFTWWRRQ \ / AMOS7 \ YOURUM ::
-#\[7]PFS3TNOYSXGWRMWOISKD25ZSYBMI462RLRK2FXVRQYGQ2XGOPEDY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,,,.,,,.,..,,,.,,,,.,...,,.,,..,,...,...,..,,,,,,,,,,,,.,.,,,
+#4PF6G6SQ4YBSQCBWH2SCHALRCQJJO6GHHTXFP5EAZYS2BRJGS6OONCFSNOSXXOKUDAMZ46XQFVYH6
+#\\\|TBOTJPPDEATERKVIMSITKWNACZLTQAE4NA6OQS55NITI3ZAYAPE \ / AMOS7 \ YOURUM ::
+#\[7]YTXA7B2P4RHXJWZ5KB53CYA6NEH6SW4HZJ772EEUOT64K3SYPMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,10 +20,15 @@
 ## AND in the render-time fill calculation — both use length() of the same
 ## value string — so row alignment stays exact. do NOT strip the marker from
 ## width accounting : fill_width would clamp at 0 and the row would overflow
-## the right border by the marker count.  cosmetic caveat : total frame width
-## can shift by up to 3 columns [ 2 brackets + 1 marker ] across focus
-## changes, when the active field's row is or becomes the width-determining
-## row.
+## the right border by the marker count.
+##
+## frame width is INVARIANT under focus changes, and both halves below are
+## what make it so : an unfocused value gets pad_l/pad_r where a focused one
+## gets its brackets, and the cursor is OVERLAID into a reserved cell rather
+## than appended.  every value is therefore length + 5 whether focused or not.
+## [ this replaces an earlier note here warning of a 3-column shift : that was
+## true before the pads and the reserved cell existed, and left behind it a
+## jump to go looking for that is no longer there. ]
 
 my ( $editor_state, $frame_name, $only_field, $marks ) = @ARG;
 
@@ -152,7 +157,11 @@ if ( defined $only_field ) {
             'left'  => $descriptor->{'padding'}{'left'}  // 0,
             'right' => $descriptor->{'padding'}{'right'} // 0,
         },
-        'slots' => { $only_field => { %{$slot}, 'row' => 1 } },
+        ## carried, or a single-row redraw comes out NARROWER than the frame
+        ## it is patching : min_width is the width its whole form reserved,
+        ## and this row on its own has no idea what the others needed
+        'min_width' => $descriptor->{'min_width'} // 0,
+        'slots'     => { $only_field => { %{$slot}, 'row' => 1 } },
     };
     %values = ( $only_field => $values{$only_field} // '' );
 }
@@ -163,8 +172,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,,,.,.,,,.,..,,.,,,,,,,..,,,.,,...,,,,,,.,,..,,...,...,..,,,,,,..,,...,.,.,
-#DSAT7C47SH3SHOK6FTO2B2ERN5ZKBGTPMXVOTBLIHL7MWMYDAR53FUDOJ4HQ2AUCC4RZG6HDYMQTW
-#\\\|ADWDZWMNVO4EST7O2PBNBQC3BN7JCV2BG7NITINUDXILYL7FUN5 \ / AMOS7 \ YOURUM ::
-#\[7]EILG3YRBLD2OYAZTPLJNMN22745IGXLSO4CPUBP52TALNNGYYGAY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,,,,,..,,,..,,..,,.,,,..,...,..,,...,...,,.,,,.,,,,,,..,,,..,
+#AIKNZ6GDOBMYMHU7PITTJDNCOYXUTCTST4CCIXNSK6JGB2XQTYELBJWA5WPIPVEEKDZUCLPHJ4QV4
+#\\\|2PIDGFP5CKGLR7A3ABT4HOSE2MO2T6Q4THTE4VUUZYLKWIDI6GQ \ / AMOS7 \ YOURUM ::
+#\[7]6VPGIL2RS25RUPBEK7WSHHUBCAZJWD7SJMNUXAYLTT6IS3BQBWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

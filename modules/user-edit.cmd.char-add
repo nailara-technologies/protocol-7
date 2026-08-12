@@ -76,8 +76,36 @@ if ( ref <user-edit.form.state> ne qw| HASH | ) {
 ## dirty
 my $frame_name = <user-edit.form.frame_name> // qw| user-edit-form |;
 
+my $editor_state = <user-edit.form.state>;
+my $active_index = $editor_state->{'active_field'} // 0;
+my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
+    // '?';
+
+## NO CURSOR IS OVERLAID INTO A CAPTURE.  render_form's marker REPLACES the
+## character it sits on, so a reply rendered with the default '|' shows
+## '|170-1234' for a field holding '0170-1234' -- it corrupts the very value a
+## capture exists to show.  user-edit.form.render already reaches this
+## conclusion for a non-terminal STDOUT and restores the character ; a network
+## reply is that same case, always.  the marker is therefore set TO the
+## character underneath, which overlays it with itself.
+##
+## focus is not lost by this : the row still carries its framing brackets, and
+## the active field is named in the line below the frame
+my $active_value
+    = <[editor.control.get_display_value]>->( $editor_state, $active_name )
+    // '';
+my $active_cursor
+    = <[editor.control.get_cursor]>->( $editor_state, $active_name ) // 0;
+
+my $cursor_char
+    = $active_cursor < length $active_value
+    ? substr( $active_value, $active_cursor, 1 )
+    : q| |;
+
+$cursor_char = q| | if not length $cursor_char;
+
 my $rendered = <[editor.ui.ascii_frame.render_form]>->(
-    <user-edit.form.state>, $frame_name
+    $editor_state, $frame_name, undef, { qw| cursor | => $cursor_char }
 );
 
 return {
@@ -85,11 +113,6 @@ return {
     qw| data | => 'form render failed'
     }
     if not defined $rendered;
-
-my $editor_state = <user-edit.form.state>;
-my $active_index = $editor_state->{'active_field'} // 0;
-my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
-    // '?';
 
 return {
     qw| mode | => qw| size |,
@@ -100,8 +123,8 @@ return {
     )
 };
 
-#,,,.,,,,,...,.,.,...,..,,,..,.,.,,..,,.,,,.,,..,,...,...,.,.,.,.,,.,,.,.,.,.,
-#FJNHIWOZEOJKWD7N2DJWIVNMZRJXS3CD2UBVO2F4YPOB4722SCEQSZT6LNT6EPOLD3O3WHAKLOZTC
-#\\\|ORA5VMPENRPVT6MMWFJTM4TNIPDFKHELRCJDDFGKKJZMZVEQMZS \ / AMOS7 \ YOURUM ::
-#\[7]2WK2ZLOYBQQF5QMNTMC37ES5CT6TEY62JHVCGGTDIKTHMIXRX2BY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,.,,,,.,,..,.,,,,,.,.,,,...,,.,,..,,...,...,...,,,.,...,..,,,,.,
+#EUSAD3CMLO3OFTP63CO2MA5WJWHFWU4VIHCZDLYBSH5DHO6OE2UQQPYN4JPXXCPI4W5NGLK3Z3VRO
+#\\\|N3R5ZUH4W74AMVIOWQCQ6IZMTTI2X3IWS2FI7AP3K72TEOPNESX \ / AMOS7 \ YOURUM ::
+#\[7]M3KLVAXBKCE2LTO3VI5PNHTQSXJGAUQVMWJWQNX3L7GRKNWVJUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

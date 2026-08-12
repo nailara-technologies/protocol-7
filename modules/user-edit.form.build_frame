@@ -2,7 +2,7 @@
 
 # name  = user-edit.form.build_frame
 # descr = generate an ascii.frame descriptor for a runtime-derived field set
-# param = $schema [ , $frame_name , $title ]
+# param = $editor_state [ , $frame_name , $title ]
 
 ## phase 2's render_form takes a NAMED frame and resolves it through
 ## ascii.frame.load, which reads data/yaml/ascii-frames/<name>.yaml.  a form
@@ -17,9 +17,21 @@
 ## on-disk yaml to fall back to — user-edit.form.render re-calls this module
 ## whenever the entry is missing rather than seeding it once.
 
-my ( $schema, $frame_name, $title ) = @ARG;
+## takes the STATE, not just the schema -- the same move, and for a related
+## reason, that user-edit.form.add_field_row documents for itself.  the width
+## reservation below has to know what the form will look like in its OTHER
+## rendering, and for an EXPANDED list that lives on the state as
+## 'list_source', not on the schema.  a bare schema is still accepted : some
+## callers legitimately have nothing else
+my ( $editor_state, $frame_name, $title ) = @ARG;
 
-return undef if ref $schema ne qw| HASH |;
+return undef if ref $editor_state ne qw| HASH |;
+
+my $schema
+    = ref $editor_state->{'schema'} eq qw| HASH |
+    ? $editor_state->{'schema'}
+    : $editor_state;
+
 return undef if ref $schema->{'fields'} ne qw| ARRAY |;
 return undef if not $schema->{'fields'}->@*;
 
@@ -36,10 +48,188 @@ return undef if grep { not defined $ARG or not length $ARG } @names;
 my $is_menu = scalar( grep { $ARG->{'menu_row'} } $schema->{'fields'}->@* )
     == scalar @names;
 
-## label column width, so the ':' separators line up down the form ##
+my $title_bar = sprintf( '.:[ %s ]:', $title );
+
+## ROW GEOMETRY, and why it is computed for BOTH renderings of the form.
+##
+## a list field draws as '.. 1 entry ..' collapsed and as one row per entry
+## expanded, and the two are not the same width -- so the frame jumped
+## sideways every time focus entered or left the field.  build_frame already
+## solves the VERTICAL half of exactly this, by reserving blank expansion rows
+## so both heights match ; this is the horizontal half.
+##
+## the identity, traced through this module's own mockup [ prefix =
+## label_width + 6, body = label_width + len(name) + 10, suffix = inner_width
+## - body ] and ascii.frame.render's per-slot sum [ prefix + value + suffix +
+## lpad + rpad, with parse stripping exactly the lpad/rpad render adds back ]:
+##
+##   row_width = inner_width + len(display) - len(name) - 4
+##
+## which holds for label-less rows too, since prefix + token is the body
+## either way and the token is len(name) + 4.  BOTH terms on the right differ
+## between the two renderings -- '{{contact}}' is 11 and '{{contact_0}}' is 13
+## -- so one state's slot geometry cannot predict the other's.  the whole row
+## set is therefore rebuilt for each rendering and measured with the same
+## helper, and the wider answer becomes min_width.  both renderings then
+## reserve the identical number and neither moves.
+##
+## a row is [ name, display_length, has_a_label ].
+
+## the optional-field vocabulary, for the add-a-field row's reservation -- the
+## WHOLE of it, name => shape, not the part still addable
+my $vocabulary = <user-edit.form.field_options>;
+my @vocabulary
+    = ref $vocabulary eq qw| HASH | ? sort keys %{$vocabulary} : ();
+
+## DISPLAY length of a row, +5 throughout for the two pads, the cursor cell
+## and the two framing cells editor.ui.ascii_frame.render_form adds to every
+## value.  a plain scalar field contributes NOTHING : its live value is
+## render's business, and freezing it into min_width would stop the frame ever
+## narrowing again once a long value had been typed and deleted
+my $display_length = sub {
+
+    my ($field_def) = @ARG;
+
+    ## the add-a-field row is measured at the FULL vocabulary, not at the
+    ## options currently left : its choice set shrinks with every field added
+    ## and grows with every one removed, and it is usually the widest row in
+    ## the form, so measuring what is left would make every add and every
+    ## remove resize the frame
+    return
+        length( <[editor.control.cycler.render]>->( \@vocabulary, 0 ) ) + 5
+        if $field_def->{'add_field'} and @vocabulary;
+
+    return length( <[editor.control.list.summary]>->($field_def) ) + 5
+        if $field_def->{'list'};
+
+    return length( $field_def->{'default'} // '' ) + 5
+        if length( $field_def->{'list_row_of'} // '' );
+
+    return 0;
+};
+
+my $has_label = sub {
+    my ($field_def) = @ARG;
+    return FALSE if $is_menu;
+    return FALSE if $field_def->{'add_field'} or $field_def->{'menu_row'};
+    return TRUE;
+};
+
+my $row_of = sub {
+    my ($field_def) = @ARG;
+    return [
+        $field_def->{'name'}, $display_length->($field_def),
+        $has_label->($field_def)
+    ];
+};
+
+my @current_rows = map { $row_of->($ARG) } $schema->{'fields'}->@*;
+
+## the add-a-field row is reserved for even when it is NOT THERE.  it arrives
+## a round trip after the first paint [ progressive enhancement, see
+## user-edit.handler.value_get_reply ], it is absent while a list is expanded,
+## and it comes and goes as the vocabulary empties and refills -- so measuring
+## only the times it happens to be in the schema would leave every one of
+## those transitions moving the frame.  it is the widest row in the form, so
+## that is the largest movement there is
+push @current_rows,
+    [
+    qw| _add_field |,
+    $display_length->( { qw| add_field | => TRUE } ), FALSE
+    ]
+    if @vocabulary
+    and not $is_menu
+    and not grep { $ARG->{'add_field'} } $schema->{'fields'}->@*;
+
+## the OTHER rendering.  expanded -> collapsed is exact : list_source carries
+## the original field list, nouns and all, and is literally what collapse will
+## rebuild from.  collapsed -> expanded is synthesised per list field, since
+## only one list is ever open at a time and each opens to a different width
+my @other_row_sets;
+
+if (    ref $editor_state->{'list_source'} eq qw| HASH |
+    and ref $editor_state->{'list_source'}{'schema'} eq qw| ARRAY | ) {
+
+    push @other_row_sets,
+        [ map { $row_of->($ARG) }
+            $editor_state->{'list_source'}{'schema'}->@* ];
+
+} else {
+
+    foreach my $list_def ( grep { $ARG->{'list'} } $schema->{'fields'}->@* ) {
+
+        my @entries = grep { defined $ARG and length $ARG }
+            ( $list_def->{'entries'} // [] )->@*;
+
+        my @rows;
+        foreach my $field_def ( $schema->{'fields'}->@* ) {
+
+            if ( ( $field_def->{'name'} // '' ) ne $list_def->{'name'} ) {
+                push @rows, $row_of->($field_def);
+                next;
+            }
+
+            ## editor.control.list.expand's own shape : one row per entry plus
+            ## the trailing empty 'new entry' row, named '<field>_<n>'
+            my $index = 0;
+            foreach my $entry ( @entries, '' ) {
+                push @rows,
+                    [
+                    sprintf( qw| %s_%d |, $list_def->{'name'}, $index++ ),
+                    length($entry) + 5,
+                    $has_label->($list_def)
+                    ];
+            }
+        }
+
+        push @other_row_sets, \@rows;
+    }
+}
+
+## label column width, so the ':' separators line up down the form -- taken
+## over BOTH renderings and over label-bearing rows only.  both halves matter
+## : '_add_field' has no label at all yet was making every label in the form
+## ten columns wide, and a collapsed 'contact' has to reserve for the
+## 'contact_0' its expansion will produce or the ':' column steps sideways
+## even when the frame border does not
 my $label_width = 0;
-foreach my $name (@names) {
-    $label_width = length $name if length $name > $label_width;
+foreach my $row ( @current_rows, map { $ARG->@* } @other_row_sets ) {
+    next                            if not $row->[2];
+    $label_width = length $row->[0] if length $row->[0] > $label_width;
+}
+
+## the mockup geometry of one rendering, in ascii.frame.render's own units [
+## inner content width : borders excluded, lpad/rpad included ]
+my $required_width_for = sub {
+
+    my ($rows) = @ARG;
+
+    my $inner = length($title_bar) + 2;
+
+    foreach my $row ( $rows->@* ) {
+        my ( $name, undef, $labelled ) = $row->@*;
+        my $body
+            = $labelled
+            ? $label_width + length($name) + 10
+            : length($name) + 6;
+        $inner = $body + 2 if $body + 2 > $inner;
+    }
+
+    my $required = $inner;
+
+    foreach my $row ( $rows->@* ) {
+        my ( $name, $display ) = $row->@*;
+        my $candidate = $inner + $display - length($name) - 4;
+        $required = $candidate if $candidate > $required;
+    }
+
+    return $required;
+};
+
+my $min_width = $required_width_for->( \@current_rows );
+foreach my $rows (@other_row_sets) {
+    my $required = $required_width_for->($rows);
+    $min_width = $required if $required > $min_width;
 }
 
 ## content rows, without the border columns yet  the label carries a pad on ##
@@ -64,7 +254,13 @@ if ($is_menu) {
         my $name = $field_def->{'name'} // next;
 
         ## the add-a-field row is not a name/value pair -- it is an action, so
-        ## it carries no label column and no ':' separator
+        ## it carries no label column and no ':' separator, and a blank row
+        ## sets it off from the values above it.  the frame's own top and
+        ## bottom padding are blank rows for the same reason : this is where
+        ## the record STOPS and a control begins, and without the gap the two
+        ## kinds of row read as one list
+        push @bodies, '' if $field_def->{'add_field'} and @bodies;
+
         push @bodies, $field_def->{'add_field'}
             ? sprintf( '  {{%s}}', $name )
             : sprintf( '   %*s:  {{%s}}', $label_width, $name, $name );
@@ -83,8 +279,6 @@ if ($is_menu) {
             foreach 1 .. scalar( ( $field_def->{'entries'} // [] )->@* );
     }
 }
-
-my $title_bar = sprintf( '.:[ %s ]:', $title );
 
 ## inner width = widest content row + breathing room, but never narrower than
 ## the title bar needs [ +4 keeps at least a few fill dots visible ]
@@ -114,6 +308,12 @@ if ( not defined $descriptor ) {
     );
     return undef;
 }
+
+## the reserved width, in ascii.frame.render's own units.  render seeds it
+## into $required_width and then lets the actual row values raise it, so this
+## is a FLOOR and never a clamp -- a value longer than anything reserved still
+## widens the frame as it always did
+$descriptor->{'min_width'} = $min_width if $min_width > 0;
 
 ## a blank content row top and bottom, so the first field is not flush against
 ## the title bar.  ascii.frame.render already implements this as the vertical
@@ -155,8 +355,8 @@ my $entry = {
 
 return $entry;
 
-#,,.,,,,,,...,...,,,.,,,,,.,.,.,,,,,.,,.,,.,.,..,,...,...,..,,,.,,...,,,.,.,.,
-#ZHR2GDXZYI2ACR6JDN3Y3H4EI6TDXYMVFARHCI7UTN5IXC7WABNMXAGVODRCMRLGUCPUY6AO3OAXO
-#\\\|HBBKCDBZEQ6QHYBEG3V4Y4KGBPIL4IOPLLSZ7PLMDOBB5QOIRBS \ / AMOS7 \ YOURUM ::
-#\[7]GANY5VOCTPQ2FHPYFU4AR5DEUBKNB4JOQE5CPXDAEJQODZPZUOBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,..,,.,,,.,.,,,.,...,,,,,...,..,,...,..,,,..,..,,,..,.,.,,,.,
+#P7LJ2SOTD64MBHW4TD3J5CB2LRQPZ4D2PXRQFUFNOOKQGYM5WKDQJ6752J6HPTV7QLTKPZKXYLYIK
+#\\\|GL6TG6QMQDGVMC5T3TICFAOTDMGUKRDF73DSBE4XE3IPOO4NPUV \ / AMOS7 \ YOURUM ::
+#\[7]N56Z2YMEVUBA3PMYLH442LDNIDP32DDMRVRJMWRKX3IH4POGCABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
