@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = plugin.user-edit.example.render
+# descr = minimal reference plugin's display -- verifies the display_override hook
+# param = $editor_state, $field
+
+## THROWAWAY / reference only -- see plugin.user-edit.example.init_code's own
+## note.  deliberately visible/distinctive [ a bracketed prefix ] so a live
+## capture makes it obvious the override actually fired, rather than just
+## showing the raw stored text unchanged.
+
+my ( $editor_state, $field ) = @ARG;
+
+my $stored = <[editor.control.get_value]>->( $editor_state, $field ) // '';
+
+## q|...|, NOT qw|...| : qw splits on WHITESPACE into a LIST, so a format
+## string containing a space would silently become two separate arguments
+## instead of one -- the exact 'and'/'or' precedence-adjacent class of trap,
+## just for qw() instead
+return sprintf( q| [example] %s |, $stored );
+
+#,,..,.,.,,.,,.,.,,.,,,..,.,,,..,,...,,.,,,..,..,,...,...,.,,,,..,,,,,,.,,.,.,
+#B37MCV3ISCZITN7HMQHAWYQHS2VXGDKI4K6GNFRADDGT27FHUKKQW6CXGBFI7DL57AKCJL6BPVPU2
+#\\\|MMP2HSLKWQE4TJPKIXGGZQOMVO3DBSLVKHCMD4LSNEMDYMZC4NP \ / AMOS7 \ YOURUM ::
+#\[7]5C2XC6V7SEHLCGAHMAH46XIA3TPH3B4QAL5XXQ3Z6CFUVPUAOABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

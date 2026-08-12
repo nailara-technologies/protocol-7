@@ -89,6 +89,44 @@ foreach my $name ( <[base.reverse-sort]>->($fields) ) {
         next;
     }
 
+    ## PLUGIN-PINNED key : per design doc data/yaml/coding-tasks/user-edit-
+    ## plugin-detail-tabs.yaml, a field a plugin has pinned itself to stays a
+    ## PLAIN SCALAR buffer [ get_value / submit / draft / outbox all keep
+    ## working completely unmodified ] with only DISPLAY customised, via the
+    ## GENERIC display_override hook editor.control.get_display_value now
+    ## honours -- that module stays unaware this is "a plugin," it just calls
+    ## a coderef.  readonly blocks ORDINARY typing before the field is entered
+    ## [ user-edit.handler.stdin_key's Tab/Right trigger ] ; once entered [
+    ## mode = 'plugin:<name>' ], that same handler routes every key straight
+    ## to the plugin's own handler.key, bypassing editor.control.  process_key
+    ## -- and process_key's readonly guard -- entirely, so this never blocks
+    ## the plugin's OWN edits, only a stray keystroke that landed here before
+    ## Tab/Right was pressed
+    my $pinned_plugin = <user-edit.plugin.registry> {'by_key'}{$name};
+
+    if ( defined $pinned_plugin ) {
+
+        my $render_sub = sprintf( qw| %s.render |, $pinned_plugin );
+
+        push @field_defs, {
+            qw| name |             => $name,
+            qw| type |             => qw| freeform_line |,
+            qw| default |          => "$value",
+            qw| readonly |         => TRUE,
+            qw| plugin |           => $pinned_plugin,
+            qw| display_override | => sub {
+                my ( $render_state, $render_field ) = @ARG;
+                return
+                    exists $code{$render_sub}
+                    ? $code{$render_sub}->( $render_state, $render_field )
+                    : <[editor.control.get_value]>->(
+                    $render_state, $render_field
+                    );
+            },
+        };
+        next;
+    }
+
     push @field_defs, {
         qw| name | => $name,
         qw| type | => qw| freeform_line |,
@@ -113,8 +151,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,.,,,..,...,,,,,.,.,..,,...,.,.,,,.,,,,,..,,..,,...,..,,,.,,,,,,.,,,.,.,.,.,
-#PJLLAC72VWAXR7TPPXCHBWU5KQFIZIDEVLGIXWX6G3A2SEUIHMSDE4ESJX24E2NGAS6YIEMRQL2ZA
-#\\\|OAKWHSY36VPMFEI6MDS4GMZUME7PNQFEKFCZTIIMZO6Y4BLL5M5 \ / AMOS7 \ YOURUM ::
-#\[7]ESHPWGAJS27ARBQ6DJBX3U73NEPE4AQ626LZJC3LGZ2Y2AY46QBY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,,..,,.,,..,,,.,,,,,,.,,,.,,,..,,...,...,...,,,.,...,.,,,,.,,
+#UOZMELNU25F6NFSHNNCNGMMC2Q4IPFCZRZKZI4OPXUFB2YVCC5VKNLW4NAZM3GMW5TRQXR5BCQ66K
+#\\\|7OR4KCW33UWXGMSUZRE7DQRGG7U4FSB3PYGWHWPSR7PAOGSR3CM \ / AMOS7 \ YOURUM ::
+#\[7]LASMUKZ6LJUY3XPNXBVCGM6NLPN52R7VOGHM45QVDX5EGV4VSMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

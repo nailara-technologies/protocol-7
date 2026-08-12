@@ -118,6 +118,64 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         <[editor.control.get_value]>->( $editor_state, $focus_def->{'name'} )
             // '' );
 
+    ## PRE-KEY cursor position on a plugin-pinned field, same "sample before
+    ## process_key" reasoning as $remove_empty_row above : Right's meaning on
+    ## such a field depends on where the cursor ALREADY was when the key
+    ## arrived, not where process_key's own [ readonly-exempt ] cursor-move
+    ## leaves it afterward -- see the entry-trigger block below for why
+    my $plugin_cursor_before
+        = ref $focus_def eq qw| HASH | && defined $focus_def->{'plugin'}
+        ? <[editor.control.get_cursor]>
+        ->( $editor_state, $focus_def->{'name'} ) // 0
+        : undef;
+
+    ## PLUGIN MODE : once a pinned key's row has been ENTERED [ mode =
+    ## 'plugin:<field>', set by the Tab/Right trigger further below ], every
+    ## key except LeftArrow routes DIRECTLY to the plugin's own handler.key,
+    ## bypassing editor.control.process_key entirely : the plugin owns full
+    ## key handling once entered, per design.  Esc's OWN return path needs no
+    ## code HERE : it never reaches this loop as a resolved key while
+    ## ambiguous [ user-edit.handler.esc_timeout's debounce ], and once
+    ## resolved, user-edit.form.escape's EXISTING generic "leave a sub-mode"
+    ## branch already relabels ANY non-menu:/non-list: mode back to 'insert'
+    ## -- plugin mode never touches the schema, so a bare relabel already IS
+    ## the correct return.  escape.pm DOES need one small addition though --
+    ## see its own note -- for the readonly toggle immediately below
+    my ($active_plugin_field)
+        = ( $editor_state->{'mode'} // '' ) =~ m|^plugin:(\w+)$|;
+
+    if ( defined $active_plugin_field ) {
+
+        if ( $key eq "\e[D" or $key eq "\x1b[D" ) {    ## Left : return ##
+            <[base.logs]>->(
+                2, ': leaving plugin mode [ %s ]',
+                $active_plugin_field
+            );
+            $editor_state->{'mode'} = qw| insert |;
+            ## restore readonly -- see the matching note on entry below.
+            ## found live : without this, the field stays editable by ORDINARY
+            ## typing after Left leaves plugin mode
+            $editor_state->{'fields'}{$active_plugin_field}{'readonly'}
+                = TRUE
+                if ref $editor_state->{'fields'}{$active_plugin_field} eq
+                qw| HASH |;
+            $repaint = TRUE;
+            next;
+        }
+
+        my $plugin_name
+            = <user-edit.plugin.registry> {'by_key'}{$active_plugin_field};
+        my $handler_sub = sprintf( qw| %s.handler.key |, $plugin_name // '' );
+
+        if ( defined $plugin_name and exists $code{$handler_sub} ) {
+            $code{$handler_sub}
+                ->( $editor_state, $active_plugin_field, $key );
+            $repaint = TRUE;
+        }
+
+        next;
+    }
+
     my $result = <[editor.control.process_key]>->( $editor_state, $key );
     next if ref $result ne qw| HASH |;
 
@@ -197,6 +255,51 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
             $editor_state = <user-edit.form.state>;
             next;
         }
+    }
+
+    ## Right ENTERS a pinned key's plugin tab -- TAB DELIBERATELY NOT BOUND
+    ## here, per a real trap found live : Tab is the ONLY forward-navigation
+    ## key this form has, so binding it to "enter" as well means a field
+    ## already visited can never be Tabbed PAST again -- every press just
+    ## re-enters, permanently stuck.  Tab keeps its ordinary field_next
+    ## meaning everywhere, no exceptions.
+    ##
+    ## Right is TWO-STAGE instead, per user : cursor position 0 [ just arrived
+    ## ] lets process_key's own ALREADY-APPLIED cursor move stand [ readonly
+    ## blocks MUTATION only, not cursor movement, so Right at position 0
+    ## already moved the cursor to 1 by the time this runs ] -- nothing
+    ## claimed, key falls through as an ordinary cursor move.  only once the
+    ## cursor was ALREADY past 0 BEFORE this keystroke [
+    ## $plugin_cursor_before, sampled ahead of process_key same as
+    ## $remove_empty_row is ] does Right mean "enter" instead of "move further
+    ## right" -- so landing here takes one Right to move in, a second Right to
+    ## commit, rather than the first Right press immediately hijacking
+    ## navigation
+    if (    ref $focus_def eq qw| HASH |
+        and defined $focus_def->{'plugin'}
+        and exists <user-edit.plugin.registry> {'by_key'}{
+            $focus_def->{'name'} // ''
+        } and ( $key eq "\e[C" or $key eq "\x1b[C" )
+        and ( $plugin_cursor_before // 0 ) > 0
+    ) {
+
+        <[base.logs]>->(
+            2, ': entering plugin mode [ %s ]',
+            $focus_def->{'name'}
+        );
+        $editor_state->{'mode'}
+            = sprintf( qw| plugin:%s |, $focus_def->{'name'} );
+        ## readonly is TRUE on every pinned field so ORDINARY typing is
+        ## blocked before entry [ user-edit.form.schema_from_record ] --
+        ## flipped off here so the plugin's OWN handler.key can actually write
+        ## through editor.buffer.memory.insert/delete, which enforce readonly
+        ## themselves regardless of process_key.  found live : without this,
+        ## the plugin's own edits were silently no-ops.  restored by the
+        ## Left/Esc return paths above / in  user-edit.form.escape
+        $editor_state->{'fields'}{ $focus_def->{'name'} }{'readonly'}
+            = FALSE;
+        $repaint = TRUE;
+        next;
     }
 
     ## Down / Up move between fields as well as Tab / Shift-Tab : in a
@@ -327,8 +430,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,.,,...,,.,,...,.,,,,..,.,.,...,,,.,..,,,..,..,,...,...,...,.,.,,,,,.,.,.,,,
-#7F22FGHKRYKF7JIKHJDBTHGHNSS3QCACNZMDROG24KC2RTFYNLE5BH4VJH73B62ZNBHDY7Y2H55OU
-#\\\|FSCEZA3QPTEGLPTJ7AS5YHSOKKNI456ZRVD37PDUG6IZSVBNRU5 \ / AMOS7 \ YOURUM ::
-#\[7]LIP5EEARUZFXIY3LKIO6OPRYW32R2T6QPBCSQKBL5WI2GU2SMSCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,,,,,.,.,,,..,,,,.,,,.,..,,,..,..,,...,...,...,.,.,..,,.,,,,,,,
+#GKUEGQB34FYPCCBOGRCHJOSOV53RFD4HX4PGWQSXMLD6ASJDZXAV4Z6ITWZPEPVUOQIFV4SMUNLD6
+#\\\|VNW7RRQRDGALC2H2WLUXZZNHLTWAMEZEJXN2I5OCYNCUJIWVS2F \ / AMOS7 \ YOURUM ::
+#\[7]4QOUIY5YULSMMXOCGKJAO4BGDWAXGST74HWNA3323D5JSHSONOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
