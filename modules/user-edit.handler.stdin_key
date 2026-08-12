@@ -73,10 +73,15 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         // 0 ];
 
     if ( ref $focus_def eq qw| HASH | and $focus_def->{'add_field'} ) {
+        ## matched on the KEY, not on passthrough : process_key CLAIMS
+        ## Left/Right for cursor movement, so they never arrive as passthrough
+        ## the way Up/Down do [ which have no branch there ].  the claim is a
+        ## no-op on a cycler row anyway -- its buffer is empty and its value
+        ## is a choice index, not text
         my $step
-            = ( $result->{'passthrough'} // '' ) eq "\e[C" ? 1
-            : ( $result->{'passthrough'} // '' ) eq "\e[D" ? -1
-            :                                                0;
+            = $key eq "\e[C" ? 1
+            : $key eq "\e[D" ? -1
+            :                  0;
         if ($step) {
             <[editor.control.cycler.set]>->(
                 $editor_state, $focus_def->{'name'}, $step
@@ -196,8 +201,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,..,.,,,.,.,,.,,,..,.,,,,.,,,.,,...,,,,,,.,,..,,...,...,.,.,,..,..,,...,,,,,
-#A4QYOVOWLA67FERU6FMAIFOH7W6HLBHOYIOXLL2HMAKM5YSHBY5CB7HEVE7QTYQRXS5PCUCNENODG
-#\\\|WLWDS5TMMOHE3LDVKMT3I2MVZ5TLKREUJK2O3W75GVCSNBDRK2H \ / AMOS7 \ YOURUM ::
-#\[7]N7ZNM6D7HIU65QL3WDJI3QER463I4F7E6OP5YGL7JF45Q5WNK4DI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,.,.,,..,,,.,.,,,..,,,..,,..,..,,...,...,,,.,..,,..,,,,.,...,
+#FAZUTSTZPY56VDT6QU4WOMKONHSK5L5XLXSVUS6SP5TP6B3TLPA3YK6FOPIHDRQX5EHFB4RZVNXV6
+#\\\|BG6OYKEGACA7N6W75FYAMYM3XW7Y2GXIR6SD6CEDINVW42BGJ4L \ / AMOS7 \ YOURUM ::
+#\[7]IJ22LGWOTQGHU2OM32PJB2XMTUCECYVDKV36XVTO72LPWKOCUECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
