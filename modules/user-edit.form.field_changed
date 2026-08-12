@@ -36,6 +36,7 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     ## so the rows would be written as ordinary fields.  record the list under
     ## its own name, joined for the draft's benefit
     next if ( $field_def->{'list_row_of'} // '' ) ne '';
+    next if $field_def->{'add_field'};    ## an action, not data ##
 
     if ( $field_def->{'list'} ) {
         ## q{,} not qw| , | : qw splits on whitespace, so a comma inside it
@@ -56,8 +57,8 @@ my ( $ok, $err ) = <[user-edit.draft.write]>->( $username, \%values );
 
 return $ok;
 
-#,,,.,,,,,,.,,,..,.,.,.,.,,..,,..,,.,,,.,,,..,..,,...,...,.,,,,,.,.,,,.,.,,,,,
-#7J4JQIVTAVS2BXQCGFO76O44OZ2CPLGZCBLRWMGH63I6TJGLU75PCQAD7HXBKF76GWB5KJDPBWTRY
-#\\\|B4AX5L335N6PLDNKMPRNBQY23YAR4LMOQSQKJOBRGNDKBW4O3EM \ / AMOS7 \ YOURUM ::
-#\[7]MU6ZRLAA44MOIO7REUZ75SBGYTKC3VQMGQKQC47XI5AGLVWBAWCI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,..,,...,,.,,,,,,...,,,,,.,.,..,,...,...,,,.,,,,,..,,.,,,,..,
+#RRLP2G2LOTJJX6W3YWXOXQ2HKCPWJ5A45MWKGAOG5RZMFJ5KTPYT5OGSVFOQ4OTLFVPA65Y2X6XCK
+#\\\|FUZD3WCNJVNZAVTIBDDIA23FVVK4ES7Y4AM4QZY34MXUZEZFLQ3 \ / AMOS7 \ YOURUM ::
+#\[7]RANAK52CX7JFX52R5OXPJZE26LB4C25A74OAVDVSALFDUBFRNYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

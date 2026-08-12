@@ -63,6 +63,29 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
     my $action = $result->{'action'} // qw| none |;
 
+    ## Left / Right CYCLE on an add-a-field row : the row's value is a choice
+    ## index rather than text, so there is no character position for them to
+    ## move through.  claimed here for the same reason Up / Down are --
+    ## editor.control.process_key returns unclaimed keys as passthrough so
+    ## each host gives them its own meaning
+    my $focus_def
+        = $editor_state->{'schema'}{'fields'}[ $editor_state->{'active_field'}
+        // 0 ];
+
+    if ( ref $focus_def eq qw| HASH | and $focus_def->{'add_field'} ) {
+        my $step
+            = ( $result->{'passthrough'} // '' ) eq "\e[C" ? 1
+            : ( $result->{'passthrough'} // '' ) eq "\e[D" ? -1
+            :                                                0;
+        if ($step) {
+            <[editor.control.cycler.set]>->(
+                $editor_state, $focus_def->{'name'}, $step
+            );
+            $repaint = TRUE;
+            next;
+        }
+    }
+
     ## Down / Up move between fields as well as Tab / Shift-Tab : in a
     ## multi-field FORM that is the natural reading, while nshell binds the
     ## same two keys to history navigation.  editor.control.process_key
@@ -117,8 +140,16 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
     } elsif ( $action eq qw| submit | ) {
 
-        ## inside a MENU, Enter DESCENDS a level rather than submitting a form
-        ## -- there is no form to submit, and the rows are read-only
+        ## inside a MENU, Enter DESCENDS a level rather than submitting a ##
+        ## form -- there is no form to submit, and the rows are read-only ##
+        ## Enter on the add-a-field row ADDS the current choice           ##
+        if ( ref $focus_def eq qw| HASH | and $focus_def->{'add_field'} ) {
+            <[user-edit.form.add_field]>;
+            $editor_state = <user-edit.form.state>;
+            $repaint      = TRUE;
+            next;
+        }
+
         if ( ( $editor_state->{'mode'} // '' ) =~ m|^menu:| ) {
             <[user-edit.menu.select]>;
             $editor_state = <user-edit.form.state>;
@@ -165,8 +196,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,.,.,.,,,,,,.,,,.,,.,.,,..,.,.,..,,,..,.,,,..,,...,...,..,,,.,,.,.,,,.,..,,
-#45ZQ5PGVL3KUEL2B6CTQOTD77LWTMAPJ22ZT3DV5N6W6P4EIEZEQ2JKVCDMBWND2AQ3LGKSE6YADA
-#\\\|643N4MURPHJF7ROS34JJQESDHLFIGFPI3MOSLYGU5UYWRUXDW2E \ / AMOS7 \ YOURUM ::
-#\[7]HA7JXU5UBITUJHVTUGSV76WUDMHWZSQ5GO6QY7MP6Z3IMRYIUIAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,.,,,..,.,,,,.,,,.,,...,,,,,,.,,..,,...,...,.,.,,..,..,,...,,,,,
+#A4QYOVOWLA67FERU6FMAIFOH7W6HLBHOYIOXLL2HMAKM5YSHBY5CB7HEVE7QTYQRXS5PCUCNENODG
+#\\\|WLWDS5TMMOHE3LDVKMT3I2MVZ5TLKREUJK2O3W75GVCSNBDRK2H \ / AMOS7 \ YOURUM ::
+#\[7]N7ZNM6D7HIU65QL3WDJI3QER463I4F7E6OP5YGL7JF45Q5WNK4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

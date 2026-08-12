@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = users.cmd.field-options
+# param = -none-
+# descr = list optional field names a record may still gain
+
+## the vocabulary a client offers when adding a field.  optionally filtered to
+## what a NAMED record does not already carry, so a console can show only what
+## is actually addable :
+##
+##   users.field-options            every optional field name
+##   users.field-options <user>     only those <user> lacks
+##
+## reply contract requires a string 'data' payload, never a raw arrayref --
+## newline-joined, the same shape users.cmd.value-all returns.
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my $optional = <[users.record.optional_fields]>;
+
+my %present;
+
+if ( length $args ) {
+
+    my $username = $args;
+    $username =~ s|\s.*||s;
+
+    return {
+        'mode' => qw| false |,
+        'data' => 'username cannot contain path separators'
+        }
+        if $username =~ m|[/\\]|;
+
+    my $record
+        = <[format.yaml.load_keyword_path]>
+        ->( <[users.record.path]>->($username) );
+
+    %present = map { $ARG => TRUE } keys %{ $record->{'fields'} // {} }
+        if ref $record eq qw| HASH |;
+}
+
+my @addable = grep { not $present{$ARG} } sort keys %{$optional};
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @addable )
+};
+
+#,,..,.,,,,..,,,,,...,,,,,.,.,.,,,,,,,,,.,,,,,..,,...,...,...,..,,,.,,,.,,,,.,
+#JVLZGUVKKRR65I2ERTQZAP6FSXYKVL2AFG2DBEZULZ3SUWNE2BMY3S2NKL2J5JLAXTU3363IKX5LA
+#\\\|JXYXCC73YA2UDETZACYRTGCIYOHEVWVD3GEXW4EGODRYC5DN7BN \ / AMOS7 \ YOURUM ::
+#\[7]CLYMUYTSUWBZOAKVECXOU5Q3L3SECMAZ7VSURMDC7GZ3RPKJXYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

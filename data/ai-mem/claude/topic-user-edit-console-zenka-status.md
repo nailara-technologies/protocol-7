@@ -397,8 +397,32 @@ event-loop-safe prompt for secret entry INSIDE a running form is still
 unbuilt (`base.term.ask` is blocking, pre-loop only); and there is still no
 `users.cmd.remove`, so the `testuser` test record cannot be deleted.
 
-#,,.,,,,,,,..,...,,..,,..,,,,,.,.,,..,,.,,...,..,,...,...,.,.,,.,,,,,,..,,,.,,
-#US4M33F7OQ3EYGAOZ3IPK5N6L6UPXH7OAUDOSDOGUXRTII4DRGT3WZLNUDE4SHET34HNGTF72Y5HE
-#\\\|SFR2DHNR7BEXDJHFMTUCVG5GWTX4XFLVXY4BA7ECVM42KNWBCCI \ / AMOS7 \ YOURUM ::
-#\[7]WFOGCGX7E6XFT4GKVQPJ2JZNTVSXU75AYBGGPHUGK43D6OHRJIBQ 7  DATA SIGNATURE ::
+
+**2026-08-12 (session end) — menu, storage restructure, add-field cycler.**
+Commits `c12351f92` (namespace menu), `2bef4639b` (record-as-directory +
+contact multi-valued + no vertical jump). The add-field cycler is
+UNCOMMITTED and mid-flight -- see [[reference-editor-add-field-cycler]].
+
+`v7.user-edit browse` gives namespace -> record -> form with Esc ascending;
+see [[reference-editor-list-field-and-render-contract]] for the row-list
+primitive and [[reference-editor-add-field-cycler]] for the inline one.
+
+STORAGE: a record is now a DIRECTORY -- `host-system/<user>/details.yaml`.
+This RESTORED the resolved design (users-zenka.yaml's directory-as-session
+fallback: "a plain record can always grow a log/ subdirectory without
+changing its address"), it was not a new idea. Layout lives in ONE place,
+`users.record.path`. No migration code was written -- the system was fresh
+and the three flat files were converted by hand. `users.record.build` still
+hardcodes `"host-system:$username"` into the identity checksum: that is now
+the ONLY place assuming a namespace, and the thing to revisit when remote/
+lands.
+
+STILL OPEN: the add-field cycler's live path (Left/Right + Enter) is
+unverified at a pty; `enum` proper is unbuilt; the event-loop-safe secret
+prompt is unbuilt (`base.term.ask` is pre-loop only); no `users.cmd.remove`.
+
+#,,..,,,,,,..,,..,.,.,,,.,,..,.,.,...,.,.,.,.,..,,...,..,,...,.,,,..,,.,.,.,,,
+#MSXPEGQLXQDH3DSM2PWQE2UF4LPVZ4OOE4NZ7RZ6DRUI42NALI5S76JS7EOTNFUQCVDSMWSYEO72U
+#\\\|3YA5G5IJZU3MR47VVITX4CHGZUOKHPWWIE4IRTLWK6XHJ4VXKA7 \ / AMOS7 \ YOURUM ::
+#\[7]2UVRWOCWHALY3NS4XHFQQYMY2COY4LXCTAZ3SAT4KOJ6PWD53UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
