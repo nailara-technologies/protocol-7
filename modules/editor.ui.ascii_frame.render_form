@@ -112,6 +112,28 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
         ## no inner reservation : outer wrap below is the only framing ##
 
+    } elsif ( $field_def->{'list'} ) {
+
+        ## a collapsed list's summary text [ '< 2 entries >' ] is a COUNT
+        ## standing in for a value, not a value itself -- per user, shown two
+        ## columns CLOSER to its label's colon than a real value would be, so
+        ## it reads as non-value at a glance while tabbing past it rather than
+        ## sitting at the identical column every real value does.  BOTH the
+        ## inner leading pad AND the outer pad_l [ below ] are dropped for
+        ## this row ; the trailing cursor cell and outer pad_r stay, since
+        ## there is still a closing bracket or pad-mark to keep the text off.
+        ## deliberately asymmetric -- symmetry is what makes this
+        ## indistinguishable from a value in the first place
+        ##
+        ## relies on a list field never being FOCUSED while still collapsed [
+        ## user-edit.form.sync_list_mode expands it on every arrival, so no
+        ## render ever observes the two together ] -- otherwise this would
+        ## violate the frame-width-invariant-under-focus this module states up
+        ## top, since a focused row uses the bracket marks instead of
+        ## pad_l/pad_r and this row's own outer pad_l is no longer their equal
+        ## width
+        $value = $value . q{ };
+
     } else {
 
         ## TWO reserved cells : <pad><value><cursor cell>.
@@ -156,11 +178,15 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     }
 
     ## framing : brackets when focused, matching spaces when not, so a value
-    ## occupies the same columns either way and nothing shifts sideways
+    ## occupies the same columns either way and nothing shifts sideways --
+    ## except a collapsed list's summary, whose outer LEADING pad is dropped
+    ## too [ see the 'list' branch above for why that is safe here ]
+    my $row_pad_l = $field_def->{'list'} ? '' : $mark{'pad_l'};
+
     $value
         = $name eq $active_name
         ? $mark{'focus_l'} . $value . $mark{'focus_r'}
-        : $mark{'pad_l'} . $value . $mark{'pad_r'};
+        : $row_pad_l . $value . $mark{'pad_r'};
 
     $values{$name} = $value;
 }
@@ -194,8 +220,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,.,,,,.,,,.,,,,,,.,,,.,,,..,,,.,,.,,...,..,,..,,...,...,...,.,,,,.,,,..,..,,
-#4O3FBXHYSEK4YWXGQVDEJQIG4NTN4HVJT6T46GCPSOT76WPCWM3HW4NQ7ZGZOLIWJADBMSQBGRFMO
-#\\\|P4EDFUY5XGGH3WTB4HDPQ7IWMUJS6FWQ7SP3ZGPYPSJX6SGUYCF \ / AMOS7 \ YOURUM ::
-#\[7]NI3H7BC53T5YGIW4GYT4QZ5B7S2TV2RDVWMIXARA365EQAK766CY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,.,.,,,,.,,...,,,,,,..,,,,,,,.,..,,...,...,.,,,..,,,..,,,.,,,,,
+#N5UUDQM77MLAV2PSYK7HIM3BE2EVUIQEOJYKEHOHTLAG7FADTZAAN67WILHGAIBSBKIBJU5IVA64K
+#\\\|IPFYYB5FUTVCNHTKQ2IOOB4DEMFZFG6WWGWODYAGYGZILHBP4VC \ / AMOS7 \ YOURUM ::
+#\[7]NL3TUVPZBFWYFY4GAKA7B5HEVZL5PDSKIZ3GBJUO27TFGETXFEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
