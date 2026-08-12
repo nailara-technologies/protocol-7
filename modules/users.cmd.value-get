@@ -23,7 +23,7 @@ return {
     }
     if $username =~ m|[/\\]|;
 
-my $file_path = sprintf( qw| [USERS_HOST]/%s.yaml |, $username );
+my $file_path = <[users.record.path]>->($username);
 my $user_data = <[format.yaml.load_keyword_path]>->($file_path);
 
 ## COUPLED STRING : user-edit.handler.value_get_reply matches this text
@@ -59,8 +59,8 @@ return {
     'data' => $yaml_str
 };
 
-#,,..,,.,,,.,,,,.,,..,..,,.,.,...,,..,,..,..,,..,,...,.,.,...,,,,,.,,,,,,,...,
-#3L5NUK22WREVAJPEEBK5WZ3AFFNF7MUDJDA2HIR55B2VT3AIESECFRAEIMO5XCLADQQSD3LCCTTPI
-#\\\|VF6GDICUUBXKGELR35BKFX2XYPBPHY6M4AJIIDXBA55HRIROUJC \ / AMOS7 \ YOURUM ::
-#\[7]VK4MXPHRFWPJPHPZLADG3CPEYO6GSZNCC5V5KVYZV3SCM5CI7UCA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,.,,,..,,,.,,,,,...,,..,..,,,,.,..,,...,...,,.,,...,,..,...,.,,,
+#GGQDIURYIRVOWPOZHXWX2XMSCH3DDUTS5XSAGZNVOQQUP43WNEOSCD4IHA3AE4TQZ7ZHW3VHLJOYI
+#\\\|BLUZQ655O4UKGU4YO7JDMPE65P77256MXEH5PAB4CJGHRXKTAS3 \ / AMOS7 \ YOURUM ::
+#\[7]ROG2CZ7J2D6KP5L6E3WLF6MQBTDBX5NKZHQHWHHFC64RCKZ4WOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

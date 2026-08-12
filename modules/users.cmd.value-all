@@ -8,12 +8,20 @@ my $users_path = <[base.path.resolve_keywords]>->(qw| [USERS_HOST] |);
 ## reply contract requires a string 'data' payload, never a raw arrayref ##
 return { 'mode' => qw| size |, 'data' => '' } if not -d $users_path;
 
-my @files = <[file.match_files]>->( $users_path, qw| *.yaml | );
+## a record is a DIRECTORY, not a file [ users.record.path ] : the name to
+## list is the directory's, and its details.yaml is only one document inside
+## it.  a directory WITHOUT that document is a record mid-creation or one
+## whose baseline was removed -- not listed, since nothing can be read from it
+my @dirs = <[file.match_dirs]>->( $users_path, qw| * | );
 
 my @usernames;
-foreach my $file_path (@files) {
-    next if $file_path !~ m|/([^/]+)\.yaml$|;
-    push @usernames, $1;
+foreach my $dir_path (@dirs) {
+    next if $dir_path !~ m|/([^/]+)/?$|;
+    my $username = $1;
+    next
+        if not -f <[base.path.resolve_keywords]>
+        ->( <[users.record.path]>->($username) );
+    push @usernames, $username;
 }
 
 return {
@@ -21,8 +29,8 @@ return {
     'data' => join( "\n", sort @usernames )
 };
 
-#,,.,,,..,,..,..,,.,,,.,,,,.,,...,.,,,..,,,,,,..,,...,...,,,.,.,,,,,.,.,,,,,.,
-#2DD7FL6JE3EZWE2XZWQB3AR7SIH7PIIIG7THVN7JEKAZFGGPWZZKN4MN23MVRBH3SLUWQVQXM7TOI
-#\\\|IIBMYTFYQD45DITJDWEOCLFLLDGIBROAQ2AOGNA526LT4ZGGI7O \ / AMOS7 \ YOURUM ::
-#\[7]JOG4XC3X3M4D74K4QUQXSN3UV7GHF5CRKMUHCJOXAFYS2YKW76BY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,...,,.,,...,...,..,,,,.,,,.,.,.,..,,...,...,,,,,,..,,,.,...,...,
+#6VELSJWRURZMIMVQDQTYSMOUTSYT2AIWSTP2M4JVOEB3SNM2VBL3QFDQICCUWD46YKPHQ4JBPKL7Q
+#\\\|DIETZJIPAKA2DIK2Z3ESYCNOIUI3TXDXIA7TP53B2XM6WUFV2GG \ / AMOS7 \ YOURUM ::
+#\[7]Z56VMQ3H7SMW3H42SA6M763MNDKUDUMPAVLIDCNTHKFH72EIXMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
