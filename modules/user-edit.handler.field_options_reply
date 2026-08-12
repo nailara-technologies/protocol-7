@@ -20,26 +20,12 @@ my $cmd = uc( $info->{'cmd'} // '' );
 
 return FALSE if $cmd ne qw| SIZE |;
 
-## '<name> <shape>' per line, shape 'list' or 'line' -- see
-## users.cmd.field-options.  a line without a shape is not tolerated silently
-## : it would mean an old zenka is answering, and assuming 'line' there is
-## what used to store a list-shaped field as a scalar
-my %vocabulary;
-foreach my $line ( split m|\n|, ( $info->{'data'} // '' ) ) {
-    next if not length $line;
-    my ( $name, $shape ) = split m|\s+|, $line;
-    next if not defined $name or not length $name;
-    ## compared, not matched : an alternation inside m|..| would end the
-    ## pattern at its own '|'
-    if ( not defined $shape
-        or ( $shape ne qw| list | and $shape ne qw| line | ) ) {
-        <[base.logs]>->(
-            1, ': field-options gave no shape for [ %s ] -- ignored', $name
-        );
-        next;
-    }
-    $vocabulary{$name} = $shape;
-}
+## parsing lives in user-edit.form.parse_field_options -- shared with
+## user-edit.handler.field_options_bootstrap_reply, so the wire format has
+## exactly one implementation
+my $vocabulary_href
+    = <[user-edit.form.parse_field_options]>->( $info->{'data'} // '' );
+my %vocabulary = %{ $vocabulary_href // {} };
 
 return FALSE if not keys %vocabulary;
 
@@ -81,8 +67,8 @@ my $attached = ( $editor_state->{'mode'} // qw| insert | ) eq qw| insert |
 
 return $attached ? TRUE : FALSE;
 
-#,,.,,,..,.,,,,.,,,..,.,.,,,,,,..,,.,,.,,,..,,..,,...,...,.,.,...,...,,.,,,,,,
-#6X3G72RRJCVEB4MQHFQVOKQICP4OOOX6EPDIFFOCGHQ3OHZSCGIW43WA5UHAMBEZVBVHYX4BAX7IE
-#\\\|SX7ACF3DEP3Y3GNCPNS4WU24HNXVREJA6APQBFJD7ZRLAO4DD42 \ / AMOS7 \ YOURUM ::
-#\[7]YQ2GZE56UHIGHJWRA2XZI3Y6NKLXQ3HY5CMUECYSI2ZANAVOXSBA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,...,,.,,,,.,...,,.,,.,,,,.,,,,.,..,,...,...,.,.,,.,,,,.,,,.,,,.,
+#BZLSV4K6YL4FFGHZYLYVQC3AO2IDKJ7YQCFC5CPPTZQB263PZL4RJKDOTJAPE52MSG3YOJXGJ6UGA
+#\\\|QY2LV6EL4V237CENLHVQBKGC7JASJCBQJTI4NWZJGK6E2TBSOQT \ / AMOS7 \ YOURUM ::
+#\[7]GVTFOTBNXJRSKEQKOYSHXV6LQFH5P67EAC3QR2VV6RB7B6YIJMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,17 +24,27 @@
 ## what a job application reply pins to a specific email/domain instead ] are
 ## two different pieces of data with two different audiences, not one field
 ## with two use cases
+##
+## contact and location moved here FROM users.record.default_fields, per user
+## : nothing is mandatory beyond the record's own identity [ its username ]
+## any more -- a minimal record is just that identity plus whichever of these
+## the user actually chooses to add.  see users.record.default_fields' own
+## note on what this required elsewhere [ user-edit.handler.value_get_reply's
+## zero-field bootstrap path ] before a record with truly nothing in it could
+## ever be opened and built up from scratch
 return {
+    qw| contact |        => [],
     qw| full_user_name | => '',
     qw| full_real_name | => '',
+    qw| location |       => '',
     qw| note |           => '',
     qw| phone |          => [],
     qw| shell |          => '',
     qw| timezone |       => '',
 };
 
-#,,,,,,,.,..,,,,,,,,,,.,.,...,,,,,,,.,,..,,,.,..,,...,..,,,..,,,.,..,,..,,,..,
-#DCGQJFYAXICLCP4Y6I4AV32MWXPZICOPYXJ5SVK2VEUW4VYZZIOFS4JEECJLZHY6UVTQ2JPB3NVNW
-#\\\|E4TTMCS5JOL7WPKFTDZAKPUBQJNDEC44GIOS466QBG22S5X3AT5 \ / AMOS7 \ YOURUM ::
-#\[7]5RNLRYHSCBORUNWMGSKGRKV2RYCP7WY6V7HXZNVCV27PNKKMOAAI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,...,,.,,,..,,,.,,,.,,,,,...,..,,...,...,,.,,.,.,,.,,,.,,.,,,
+#HP6XBSKKQXAHF3CYVQ2LPH6L2ZZJ3K5JAYOZ5G5HGWE2V5KV7DLZBGVHC3SSLEVDQK7JWEHXN3JMK
+#\\\|ARHDIA4GA2GDCROI3LTBNIP7223ZQCLP4SMW37JBDGFCO7KKWVO \ / AMOS7 \ YOURUM ::
+#\[7]P4X5XNY4IN3YEPJFL6DIYN4YRHKTIHWH3UT2MUPKZH5CX5LET6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
