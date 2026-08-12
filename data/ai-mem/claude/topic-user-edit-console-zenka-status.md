@@ -286,8 +286,81 @@ see [[feedback-backslash-keyword-is-not-a-reference]].
   moves). That decision also sets the template the uninstalled desktop
   node's `taeki` AND `root` accounts would inherit.
 
-#,,..,.,.,,.,,,.,,,,,,.,.,,.,,,,.,,.,,...,.,,,..,,...,..,,,..,,..,.,.,,,,,,..,
-#TYS7CY7SIJUNEIPS2JU6ZUYNAPCZA7CTKFV3OE63FJIBQ5DQYQMNHNEI6QPPFR7AFP4NATDDZHTU4
-#\\\|2HGG66I7TTDTBR2DMTINLDLBPBZ6RUUYT7BD6JSD2LLWJBJWMDM \ / AMOS7 \ YOURUM ::
-#\[7]QFJ524XQ76T3ILEN5LIJIIMREDPGCBPROPS57NJQAAZMJGCB2UCI 7  DATA SIGNATURE ::
+
+**2026-08-12 (later) — create-admin LANDED, and the record now exists.**
+`v7.user-edit show-form` no longer dead-ends on "user 'taeki' not found".
+
+Authority side owns the shape, per user: `users.record.default_fields`
+(freshly-built hashref each call, NOT cached) + `users.cmd.create-default
+<username>`, which **refuses an existing record** and deliberately does NOT
+route through `users.cmd.value-set` (that one is create-or-overwrite by
+design — right for an edit, wrong here). Reachable without user-edit at all,
+which is the point: an installer provisioning the desktop node's `root`
+account calls `p7c users.create-default root`. Default fields: `contact`,
+`location`, `note`, all empty strings — empty values render fine
+(`schema_from_record` only skips non-`\w+` names and REF values; the keys are
+what make an empty record editable).
+
+**The control-flow problem and its solution — the interesting part.** The
+"record does not exist" answer is necessarily ASYNC (user-edit runs as the
+invoking unix user and cannot even stat `USERS_HOST`, `0770` owned by
+`<system.amos-zenka-user>`), so it lands in a reply handler INSIDE the event
+loop — where `base.term.ask` must never run. So `user-edit.handler.
+value_get_reply` sets `<user-edit.pending.create>` and calls
+`Event::unloop()`; `base.zenka.loop` returns; the console command resumes in
+`user-edit.offer_create` OUTSIDE the loop and prompts there; on yes it sends
+`create-default` and RE-ENTERS the loop, whose reply re-issues `value-get`
+and stays in the loop so the render path is untouched. **Re-entry is
+explicitly supported** — `Event.pm:157` sets `$TopResult = undef; # allow
+re-entry of loop after unloop_all`, and `base.zenka.loop`'s init-done guard
+is already satisfied on the second call. Note `base.zenka.loop` DISCARDS the
+unloop result, so a pending-state variable is the only channel back.
+
+Four guards, all verified live:
+- `<user-edit.offer.create>` — **the caller owns the loop**. Gating on
+  admin-ness alone would let this handler tear down a loop belonging to some
+  other caller (a `char-add`-driven flow, say).
+- `<user-edit.create.attempted>` set BEFORE the send — a create that succeeds
+  while `value-get` still 404s would otherwise re-offer forever.
+- exact-match on `sprintf("user '%s' not found", $username)`. `false` mode is
+  OVERLOADED on the users side (not-found, usage errors, AND `"record
+  invalid"`), so a substring test would offer to overwrite a CORRUPT record.
+  Coupled string, cross-referenced in both files; a near-miss logs at level 1
+  so wording drift shows up instead of silently killing the feature.
+- `-t STDIN`, **not** `AMOS7::TERM::has_tty` — has_tty also accepts a
+  `Term::ReadLine->findConsole` `/dev/tty` hit, so `show-form | cat` would
+  print the prompt into the pipe and block on the terminal.
+
+`:create-admin:` skips the prompt via `base.term.ask`'s `given`, and is
+honoured ONLY when target == invoker == `<system.admin-user>` — otherwise it
+is ignored and falls through to the prompt, so it cannot silently create
+third-party records. `user-edit.parse_params` does the tag splitting
+(`base.call.console_command` does exactly ONE split, so there is no framework
+tag parsing; `keys.console.list`'s whole-string equality cannot handle
+`show-form taeki :create-admin:`). It is NOT under `user-edit.console.*` —
+that namespace IS the command registry, so a helper there becomes invocable.
+
+**Verified live, headlessly:** create/refuse-if-exists/read-back; tag path;
+third-party guard (`show-form bob :create-admin:` creates nothing); pipe
+safety (no hang, no prompt into the pipe); a non-not-found `false` falls
+through to the original error; regressions clean.
+
+**AND — the long-outstanding tests finally ran**, since `taeki` now has three
+fields (previously blocked: `selftest` has one, and Tab is gated behind
+`$multi_field`): Tab navigation moves 1-of-3 -> 2-of-3 with values retained;
+the field-transition draft checkpoint writes `[VAR_P7]/draft/taeki.yaml`
+(`/var/protocol-7/user-edit/`, 0640 taeki:taeki) containing only the
+completed field; submit does outbox -> `value-set` -> `<< saved >>` -> outbox
+AND draft cleared -> process exits; the record keeps its creation `timestamp`
+while `updated_at` bumps.
+
+STILL not run: the INTERACTIVE prompt at a real terminal (needs a tty; every
+path around it is verified). Gap found: there is **no `users.cmd.remove`**, so
+a record cannot be deleted once created — a `testuser` test record is stuck
+in the store.
+
+#,,,,,,,.,...,,,,,,,,,.,,,,..,.,.,,.,,.,.,..,,..,,...,...,.,,,,,.,,..,.,,,,..,
+#AA562NQCZPTGV7IROKWHTCJSELGL63753BK4KG5DY2Y4VSAETHAJVZSJC3JOWNMC4QLBQZMOKBN6E
+#\\\|K37INFT76PZM3TT5TBHMB6TKCMP47LSCTWH4XRANOPIAUSEEIXN \ / AMOS7 \ YOURUM ::
+#\[7]QHCPOAW6ZRIX65FMHVEZ7Z7I7VN3JRCI4DEWR5UNJKY5B4LWEGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,12 +9,23 @@
 ## exit, ctrl-c and SIGTERM alike [ SIGKILL is unblockable, same tradeoff
 ## nshell and mpv.snapshot already accept ]
 
-print "\e[0m\r\e[K";
+## $colors{'reset'}, NOT a literal "\e[0m" : under -nc the palette is blanked
+## precisely so nothing forces the terminal back to its DEFAULT foreground --
+## a hardcoded reset there overrides whatever colour the user's own terminal
+## was set to, which is the one thing -nc is asking us not to do.  the \r\e[K
+## stays : clearing the partial line is a cursor operation, not a colour one,
+## and -nc does not disable those
+print( ( $colors{'reset'} // '' ) . "\r\e[K" );
 STDOUT->flush();
 
 ## prefer the fd stored at init : fileno(STDIN) can be stale at exit time ##
 my $tty_fd = <user-edit.term.tty_fd> // fileno(STDIN);
 return FALSE if not defined $tty_fd or $tty_fd < 0;
+
+## restore the :encoding(UTF-8) layer bin/Protocol-7 installed and
+## user-edit.term_init dropped, so anything reading STDIN afterwards sees the
+## handle it expects
+binmode( STDIN, qw| :encoding(UTF-8) | );
 
 my $flags = fcntl( \*STDIN, F_GETFL, 0 );
 fcntl( \*STDIN, F_SETFL, $flags & ~O_NONBLOCK ) if defined $flags;
@@ -39,8 +50,8 @@ if ( $fallback->getattr($tty_fd) ) {
 
 return TRUE;
 
-#,,..,..,,...,,,,,,,.,,,,,,..,.,.,,.,,.,.,..,,..,,...,...,,.,,.,,,..,,,,,,.,,,
-#43PC2F6Y7VES4OZGTACVPHQDBD4N4UGDARPAINL6JFK6WAZKF3ZVNS7FBJFQK5YZFAIYBZ3SRURRQ
-#\\\|3V2POWZ57WO3B5S6AVVKOI4TATMIYBF5DAK3CEOLSMN4TRNRGUP \ / AMOS7 \ YOURUM ::
-#\[7]TMPTNVRMJRDC3ZLDG2N5QHH2TU5T4GHECDLWCS5PP6MGJFGGH2BI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,,.,,,,.,.,.,..,,,.,,...,,,,,..,,...,...,,.,,,,.,,,,,,.,,,..,
+#HV2QAIE2YZODU2IKH27BUC6DVWNWZ63OYIQWDUC7G322B53UXI2YDP2SYHT2Q7DCFVPRRTUHP26PC
+#\\\|6SSJQH75KI57YZONILKI6X2YGRR6HIV2NDVJ4Q7ZQ3CCNTZTKVO \ / AMOS7 \ YOURUM ::
+#\[7]2HJBYCWX7LFYZ7NNMBW2RSBRZ2DRG46JFOXZPAEPORGCTB22USAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

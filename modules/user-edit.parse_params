@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = user-edit.parse_params
+# descr = split console params into a string and :tag: set
+# param = $params_string
+
+## console commands receive their parameters as ONE scalar :
+## base.call.console_command does exactly one split [ m| +|, shift, 2 ],
+## separating the command name from the entire remainder.  there is no
+## framework-level tag parsing at all, so each command does its own.
+##
+## keys.console.list's form -- whole-string equality, $param eq qw| :sigs: |
+## -- cannot express 'show-form taeki :create-admin:', where a tag sits
+## alongside a positional argument.  this splits on whitespace instead and
+## partitions out anything shaped like :a-tag:, returning the rest joined back
+## together.
+##
+##   ( $remainder, $tags ) = <[user-edit.parse_params]>->($params)
+##
+## $tags keys carry NO colons -- ':create-admin:' arrives as 'create-admin'.
+
+my $params_string = shift // '';
+
+my @remaining;
+my $tags = {};
+
+foreach my $token ( split m| +|, $params_string ) {
+    next if not length $token;
+    if ( $token =~ m|^:([a-z0-9-]+):$| ) {
+        $tags->{ ${^CAPTURE}[0] } = TRUE;
+        next;
+    }
+    push @remaining, $token;
+}
+
+return ( join( q| |, @remaining ), $tags );
+
+#,,..,,.,,,..,,,.,,..,,..,..,,,,.,,,.,.,,,.,.,..,,...,...,,.,,..,,..,,...,..,,
+#OX32S4NNNI5ADG32SE7YTW6JZHF2N6ARBIJWWHDWOM2PTYAFNS7T4RQCTLXHTRFUXU7J2QBPAVIQ4
+#\\\|ZIYX3D6FCESGIHIYM6YVSFGEJB5MUQTZG6KZAFAH3ARKDX2UFHT \ / AMOS7 \ YOURUM ::
+#\[7]2YXALYRT3TGTQXHDH2TNRBMHH7H23BRI75FGT3XPBZ4IVD4HUSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

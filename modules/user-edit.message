@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = user-edit.message
+# descr = print a console message in the p7 palette
+# param = $text [ , $class ]
+
+## one place for the '<< text >>' console messages, so they share a palette
+## instead of each print site inheriting whatever colour the terminal was left
+## in -- bin/Protocol-7 leaves STDERR set to p7_fg_0002, which is why an
+## uncoloured print came out amber-then-white rather than neutral.
+##
+##   ok      saved / created           amber -- matches the keys zenka,
+##                                     whose data-saving messages are amber
+##                                     because base.log writes to STDERR
+##   fail    tried and did not work    TRUE blue -- visible without being
+##                                     alarming
+##   no-op   nothing was changed       green : left without saving, declined
+##                                     to create.  green consistently means
+##                                     "the store is untouched", NOT success
+##                                     -- which is why 'ok' is amber
+##   info    anything else             structural purple
+##
+## the '<<' and '>>' brackets are printed here too : never pass text starting
+## with a quoted token, since '<< '...'' parses as a heredoc opener [ see
+## feedback-double-angle-heredoc-in-console-messages ].
+##
+## colours come from %colors, which bin/Protocol-7 blanks entirely when output
+## is piped -- so this degrades to plain text with no escape codes.
+
+my ( $text, $class ) = @ARG;
+
+return FALSE if not defined $text or not length $text;
+
+$class //= qw| info |;
+
+my %class_color = (
+    qw| ok |   => $colors{'p7_fg_0002'} // '',
+    qw| fail | => $colors{'p7_fg_0004'} // '',
+    'no-op'    => $colors{'p7_fg_0003'} // '',
+    qw| info | => $colors{'p7_fg_0000'} // '',
+);
+
+my $color = $class_color{$class} // $class_color{'info'};
+
+printf "\n  %s<<%s %s %s>>%s\n\n",
+    $colors{'p7_fg_0000'} // '', $color,
+    $text,
+    $colors{'p7_fg_0000'} // '', $colors{'reset'} // '';
+
+STDOUT->flush();
+
+return TRUE;
+
+#,,,,,,,,,,..,.,,,,,.,.,,,...,,,.,,..,...,..,,..,,...,...,.,.,,..,.,.,,..,.,,,
+#4KVIZ3F5S7L3CRNDG3WHN2OJYDJ27WDDPLFVAK4JWO46LNN6ZD3257PCUMR7UJHO2AFYOU7ADAMBA
+#\\\|QUG3BMUQRVMIWFUSMAFU62JRRGGXV2AVH6AVASOYPHPBNTTKXK7 \ / AMOS7 \ YOURUM ::
+#\[7]KR4OVLKUH6J5XYLWMV6B6XB562OWRLZH2EJOFEORRHCBMU5U24BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
