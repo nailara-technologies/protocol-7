@@ -550,8 +550,131 @@ across every page; PageDown from the SAME row still lands on the first
 data row as before, confirming the two gestures diverge only where
 intended.
 
-#,,.,,.,.,..,,,,.,,.,,,,,,,,,,,..,,,.,..,,,,.,..,,...,...,,,.,,,.,,..,,.,,,..,
-#FXQBLUYAKZGTDGK7CO4B4X7CMKMGF5T25O6SDR5PRYIJD5N7LPND7OG3GL4LFFNPHPVKW6IV6N5SK
-#\\\|IRQBUCHIMYAJUFPKZG5IG6UPXPKVQ3YOS7HHIU2LNKDTVCWDV5L \ / AMOS7 \ YOURUM ::
-#\[7]4EVQEJMJJ2GDEZOOMJANOVRZUNTLKM44MPJEUPEDXXBDUT7EDGAY 7  DATA SIGNATURE ::
+**Next session, same thread — two ordering features, on opposite sides of
+the record.** Per user: field ROW display order via
+`<[base.reverse-sort]>`, and `contact` entry order via `<[base.sort]>`
+normalised on write. Neither is a plain alphabetical sort — both are the
+codebase's own `base.sort`/`base.reverse-sort` idiom [ `base.each_sort`,
+`base.cmd.commands`, `base.diff.hash_keys`, etc. already use it
+pervasively for hash-key/list iteration order ]: length ascending
+(`base.sort`) or descending (`base.reverse-sort`), tiebreak
+alphabetical-descending in both. Confirmed by hand-deriving the expected
+order first, then matching it exactly against a live capture — worth
+doing for any future call site, since the length-primary/alpha-secondary
+shape is easy to mis-predict as a plain alpha sort otherwise.
+
+- **Display order** (`user-edit.form.schema_from_record`): `sort keys
+  %{$fields}` → `<[base.reverse-sort]>->($fields)` — passed the HASHREF
+  directly, not `keys %{...}`, matching `base.each_sort`/
+  `base.diff.hash_keys`'s call shape (`base.context.list` expands a
+  hashref to its keys internally). Verified: an 8-field test record
+  rendered `full_user_name, full_real_name, timezone, location, contact,
+  shell, phone, note` — exactly the hand-derived length-desc/alpha-desc
+  order, not the old plain-alphabetical one.
+- **Write-time contact normalisation** (`users.record.build`, NOT
+  `editor.control.list.collapse` or anywhere in `editor.control.*`): per
+  user, scoped to `contact` specifically, not a generic list-field
+  behaviour — `phone` etc. are untouched. Placed in the AUTHORITY's
+  `record.build` rather than the form/editor layer because it is the one
+  place every write path converges (`user-edit`'s submit, a direct
+  `users.value-set`, an installer), so every reader downstream
+  (`value-get`/`value-all`, a future export) sees the normalised order
+  for free without re-sorting itself — "normalizing on writing, export
+  included" is satisfied by having exactly one write-time choke point
+  rather than sorting at each read/display site. Builds a shallow `%fields`
+  copy rather than mutating the caller's arrayref in place. Verified: an
+  8-entry contact list submitted in arbitrary order came back sorted
+  length-ascending/alpha-descending-tiebreak, byte-matching a hand-derived
+  prediction.
+- **Gotcha re-hit**: `users.*` code changes need `v7.restart users` before
+  they take effect — the FIRST post-edit `value-set` in this session still
+  wrote unsorted contact, silently, because the zenka was still running
+  the pre-edit code (already documented in
+  [[reference-editor-add-field-cycler]]'s testing-gotcha section, worth
+  the reminder since it bit again here on a totally different feature).
+
+**Immediately after — write-time-only left `show` disagreeing with a fresh
+record.** User's real `taeki` record predates the fix (last written before
+it landed), so `users.value-get`/`show-form`/the interactive form's initial
+load all still showed the OLD on-disk order — correctly, per the
+write-time-only design, but not what the user wanted: they'd rather `show`
+never depend on write history at all. Added the identical `<[base.sort]>`
+normalisation to `users.cmd.value-get` — the one place BOTH `show-form` and
+the interactive form's initial/every fetch already converge through (`user-
+edit.console.show-form` → `N.users.value-get` over the cube link →
+`user-edit.handler.value_get_reply`), so this single edit covers every
+'show' path at once. Read-only by design: builds a shallow
+`{ %record, fields => {%fields} }` copy before reordering, specifically so
+a plain GET can never have the side effect of rewriting stored state —
+verified live by md5summing `taeki`'s `details.yaml` before and after a
+`value-get` call and confirming it is byte-identical, while the REPLY now
+shows contact sorted. `users.record.validate` was deliberately NOT the
+injection point despite structural symmetry with `record.build` — its own
+contract is shape-checking only, no data transforms, and giving it one
+would be a scope violation for a function named "validate".
+
+**Immediately after — extended to `phone` too.** User's reasoning
+generalises cleanly: neither `contact` nor `phone` has a manual reorder
+control anywhere in the editor, so insertion order is arbitrary and reads
+as unintentional mess. Both `users.record.build` and `users.cmd.value-get`
+now loop `qw| contact phone |` instead of naming `contact` alone (write
+side: `foreach my $sorted_field (...) { ... if ref eq ARRAY }`; read side:
+`grep`s down to which of the two are actually array-shaped on this record,
+then sorts each found). Verified live (`p7-fieldtest5`, phone
+`["+49176 5839 2477","555-9999","+1 415 555 0100","0170-1234"]`): came
+back `555-9999, 0170-1234, +1 415 555 0100, +49176 5839 2477` — lengths
+8/9/15/16, exactly `base.sort`'s length-ascending rule. Deliberately NOT
+generalised further to "every array-valued field automatically" — the
+vocabulary only HAS these two array-shaped fields today, so the two forms
+are behaviourally identical right now, and hardcoding the two names
+matches what was actually asked rather than committing to a policy for
+fields that don't exist yet.
+
+**Immediately after — re-sort on ENTRY too, and a real cross-zenka bug
+caught live.** User: contact/phone should also re-sort the moment focus
+enters the list, mid-session, not only at write/read time — so a
+just-typed entry lands in its canonical position immediately rather than
+waiting for a submit. Design: `editor.control.list.expand` gained a
+per-field-def `sort_on_focus` flag it honours generically [ sorts
+`@entries` via `base.sort` before windowing, so the rule applies across
+the WHOLE array, not per-window — verified with a 4-then-5-entry windowed
+case, a newly-typed 6-char entry added in the LAST window correctly
+jumped all the way to the FRONT of the first window on re-entry ] — the
+module stays unaware of WHICH fields want it, same as `validator`/`noun`.
+`user-edit.form.schema_from_record` sets the flag, since it's the layer
+already naming `contact`/`phone` for display order.
+
+First attempt factored the name list into a new `users.record.sorted_
+fields` module and called it from THREE places, including `schema_from_
+record` — **broke immediately, live**: `protocol-7 subroutine users.
+record.sorted_fields not defined`. Real architecture lesson, not a typo:
+`user-edit` and `users` are SEPARATE ZENKA PROCESSES, each compiling its
+own `%code` from its own `modules.load` — a module living in one is
+simply not callable from the other via `<[module.name]>`, no matter how
+pure/stateless it is. `user-edit` only ever reaches `users` over the cube
+link (`N.users.value-get`, see `user-edit.console.show-form`), and its
+`modules.load` is deliberately narrow (see that zenka's own start-file
+header — no trailing `*`, no reason to be reachable beyond `char-add`).
+Loading the whole `users` family into `user-edit` just to reach one
+two-item list would be a far bigger coupling than the fix: kept `users.
+record.sorted_fields` for the two same-process call sites (`users.record.
+build`, `users.cmd.value-get` — both genuinely run inside `users`, so the
+shared module is correct THERE), and duplicated the literal `qw| contact
+phone |` in `schema_from_record` with a comment explaining why it's a
+duplicate on purpose rather than an oversight. **General rule for this
+codebase**: a "single source of truth" module only actually is one within
+ONE zenka's `modules.load` — sharing a constant/helper ACROSS zenki needs
+either a real network round trip or accepting hand-kept-in-sync
+duplication, there is no third option.
+
+Verified live end-to-end (`p7-fieldtest6`/`7`, both cleaned up after):
+adding a new short entry to an unwindowed 2-entry contact list, tabbing
+away then back, showed it re-sorted to the front with zero submit; same
+for a windowed 4→5-entry case, confirming the sort runs on the full
+pre-windowing array.
+
+#,,..,,.,,..,,.,,,.,,,,,.,...,.,.,,.,,,..,,,,,..,,...,...,.,,,.,,,...,,.,,,,,,
+#ANBUAQSKA45IJMKKAFPXEB2X2LDXVKRWESV7YQRGXGBL44SGLJ44MO5PEMFXSFMRZQNFZ4K46PY6S
+#\\\|6GCCUIWAB7ONMTOI6VGXFM3GB43I65T4XMGLAFQY6DODLRPNVY2 \ / AMOS7 \ YOURUM ::
+#\[7]IKUWLKTYKMIOXOKOZZTKJUBOENOX262M5NVSRTMWK7JUFBBUEMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
