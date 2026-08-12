@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = user-edit.form.add_field_name
+# descr = the add-a-field row's internal field name
+
+## ONE constant, not two hardcoded copies -- user-edit.form.add_field_row
+## needs it for the real schema field it creates, and user-edit.form.
+## build_frame needs the IDENTICAL string for its width RESERVATION of that
+## same row before it exists.  a second literal copy would drift exactly the
+## way editor.control.list.summary's own header warns against.
+##
+## PADDED, not the bare 'add_field' this started as.  read on its own the
+## short form was still perfectly valid [ ^\w+$, leading underscore reserved
+## so it cannot collide with a real record field ] -- the padding exists
+## purely to widen the MOCKUP PLACEHOLDER TOKEN [ '{{name}}' ], which
+## user-edit.form.build_frame's required_width_for identity treats as the
+## row's ASSUMED content size.  a short name meant the row's REAL rendered
+## text [ the whole cycler, routinely 30-45+ columns ] overshot that
+## assumption by just as much, and that overshoot gets ADDED ON TOP OF
+## whatever the label column already needs -- not maxed with it, since every
+## row shares one frame width.  padded to 30 characters : close to the average
+## cycler width across a 2-4 choice steady state [ measured against this
+## vocabulary's own name lengths : 24 / 35 / 46 columns for 2 / 3 / 4
+## remaining choices ], so the row's assumed size and its real size are close
+## enough that the compounding mostly disappears without ever under-reserving
+## [ a real value SHORTER than the padded token just leaves unused suffix,
+## which is harmless -- only a LONGER real value than assumed re-triggers the
+## overshoot, at the full 6-choice extreme this does not eliminate ]
+
+return qw| _add_field____________________ |;
+
+#,,,,,.,.,.,.,,,,,...,..,,,,,,..,,,,,,.,.,,,,,..,,...,...,.,.,,..,,,,,..,,,.,,
+#JWKBWWCLZJDXOCE5LETYE2BJOJQKLOWWZIAXONWUXHFZUMGE2MXTUC6HBBPSWJ4T657XC4BTYAJ36
+#\\\|ZMVRSP7PB7IV7SLDDBI7HWTM3ZZSPHZQ4HERI3CBOEYGUFTM3SV \ / AMOS7 \ YOURUM ::
+#\[7]TXF6FWSCAKLP3YBNXBKXQIIDGGJQRW232SPNS5EP6QDUGRS2UQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

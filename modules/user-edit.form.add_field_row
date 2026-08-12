@@ -14,7 +14,11 @@
 ##
 ## the row is READ-ONLY [ its value is a choice index, not text ] and named
 ## with a leading underscore so it cannot collide with a real field name from
-## the record, while still matching ^\w+$ for the slot token.
+## the record, while still matching ^\w+$ for the slot token.  the name itself
+## comes from user-edit.form.add_field_name -- deliberately padded, not the
+## plain 'add_field' it would otherwise be, so the mockup placeholder it
+## becomes is close in size to what this row actually renders.  see that
+## module for why.
 ##
 ## no options left means every optional field is already present, so the row
 ## is simply not added -- it disappears rather than offering nothing.
@@ -38,13 +42,14 @@ my @options
 
 return FALSE if not @options;
 
+my $name = <[user-edit.form.add_field_name]>;
+
 ## never twice ##
 return FALSE
-    if grep { ( $ARG->{'name'} // '' ) eq qw| _add_field | }
-    $schema->{'fields'}->@*;
+    if grep { ( $ARG->{'name'} // '' ) eq $name } $schema->{'fields'}->@*;
 
 my $field_def = {
-    qw| name |      => qw| _add_field |,
+    qw| name |      => $name,
     qw| type |      => qw| freeform_line |,
     qw| default |   => '',
     qw| readonly |  => TRUE,
@@ -55,13 +60,13 @@ my $field_def = {
 
 push $schema->{'fields'}->@*, $field_def;
 
-$editor_state->{'fields'}{'_add_field'}
+$editor_state->{'fields'}{$name}
     = <[editor.buffer.memory.create]>->($field_def);
 
 return TRUE;
 
-#,,,,,.,,,...,.,,,...,,..,,,.,..,,.,.,,,.,,.,,..,,...,...,..,,,,.,,.,,...,..,,
-#R6WKC5447BAJ6BPHNN5A25ILV22OO64JREQGOG7NFOFPCZ523XTZVBF6Z4WPJQPABXPNXUXCSR47G
-#\\\|QXM7TZPVJSACA6T24SHYMUZNGLYEGYJATXW7NO7K7MV4PMUHAHK \ / AMOS7 \ YOURUM ::
-#\[7]DS2GRXF4S3YY7AVJP7DBC462WFJQ4K4H4NGTVZGCTXFJUOA2ZCBA 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,,.,,..,,..,,..,,,,,,.,,,,,,,..,,...,...,.,.,,..,,,.,.,.,,,,,
+#PFDKWIWC7MOAYWQJBLWJBLHSN6V2WLQIEPW5HMUDVLSSKU7PIEGAH5AMSXG2HCERHKHVB2WAJGREI
+#\\\|IDXM3WE7HE4TYE2I3KZA6LBAJTABZTY4HMKSJ336LLBKALLZZLV \ / AMOS7 \ YOURUM ::
+#\[7]GGWCSL7CZN2ACQ6AOWK3P2PEF343UWVKOUH7U6K6PCWK3G4N6CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
