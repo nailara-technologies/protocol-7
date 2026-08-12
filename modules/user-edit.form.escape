@@ -9,10 +9,10 @@
 ## and .reset already SET to 'insert' and which nothing has ever read : the
 ## hook was designed in and left waiting for exactly this.
 ##
-## nothing sets a non-base mode yet, so today Esc exits.  the three things
-## coming all introduce one -- an enum picker [ open list ], the masked secret
-## prompt, and any field search -- and each gets 'leave' behaviour by setting
-## mode, with no change to this module's callers or to the key decoder.
+## [ stale as of the list-mode fix below : editor.control.list.expand DOES set
+## a non-base mode now, 'list:<field>', so it is no longer true that "nothing
+## sets a non-base mode yet" -- corrected in place rather than left standing,
+## per the rule that a comment describing gone-by code is worse than none ]
 ##
 ## Ctrl-c remains the UNAMBIGUOUS exit : a bare Esc can only be told apart
 ## from an arrow-key prefix by a timeout [ user-edit.handler.esc_timeout ],
@@ -50,6 +50,36 @@ if ( $mode =~ m|^menu:| ) {
 
     ## top level ##
     <[user-edit.form.quit]>->( 'closed', 'no-op' );
+    return TRUE;
+}
+
+## a LIST field's own EXPANDED state is a sub-mode too, but it cannot be left
+## by just relabelling 'mode' the way the generic branch below does : the
+## SCHEMA itself still carries '<field>_0', '<field>_1' .. as separate rows [
+## editor.control.list.expand rebuilt it that way ], and nothing else will
+## ever collapse them back on its own -- user-edit.form.sync_list_mode's own
+## collapse only runs on a field_next / field_prev TRANSITION, which Esc is
+## not.  left uncollapsed : the form silently keeps those rows as permanent
+## fields from here on, mode already reads 'insert' again so the NEXT Esc
+## exits outright instead of leaving the list -- which is exactly what looked
+## like "Esc needs pressing twice".  fixed by collapsing properly here, the
+## same call sync_list_mode itself makes
+if ( $mode =~ m|^list:| ) {
+
+    <[base.logs]>->( 2, ': leaving list mode [ %s ]', $mode );
+
+    my $collapsed = <[editor.control.list.collapse]>->($editor_state);
+
+    <user-edit.form.state> = $collapsed;
+
+    <[user-edit.form.build_frame]>->(
+        $collapsed,
+        <user-edit.form.frame_name> // qw| user-edit-form |,
+        $collapsed->{'title'} // <user-edit.form.title>
+    );
+
+    <user-edit.form.dirty>++;
+
     return TRUE;
 }
 
@@ -92,8 +122,8 @@ if ( ref $browse_return eq qw| HASH | ) {
 
 return TRUE;
 
-#,,,,,,,.,,,,,,,.,,.,,,..,,,,,,.,,.,.,...,,,,,..,,...,...,...,,..,,,,,,.,,.,,,
-#Q7PTGD6JCMUDVXARKAW5WSYWCU2SXIOWIBLC4PGER7S34Q6JA6IDQAKDBHS7I23FLJIR5AYM2SDX6
-#\\\|OLCINLLLMMLK4Y6L4IHVUPAI3BFJ7365VTFAD2HHP3A6FP5JQAD \ / AMOS7 \ YOURUM ::
-#\[7]ITVKGTTVMCXT2DPILE3VRLR5XZWHCROWRBFYTAWH3KHFKGUDU6CY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,,,,,...,,,.,...,..,,,..,.,.,..,,...,...,.,.,,.,,,.,,,.,,..,,
+#O3XO4NAV4DYC2TUWLIBA5Z75GCFKVN6JMQKWPXTO2X7KCUARC3AX5DA6RK5EFMS5DTND6PXSJAO6U
+#\\\|VPICCY5FK6EMQVY4YAEWY3Y6W7SDFPTUTMHYIEUJSJDVQ7LEOC4 \ / AMOS7 \ YOURUM ::
+#\[7]JV54WPR27CANADK4QTVBRDB6MHZXMOTIZP2AFFM5U4WST3MHIECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
