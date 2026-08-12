@@ -90,8 +90,9 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     ## a meaningful character position -- both DISPLAY something other than
     ## editable text, so a cursor overlaid there marks nothing and corrupts
     ## the label.  the focus framing alone shows which row is active
-    my $cursor_bearing
-        = not( $field_def->{'list'} or $field_def->{'menu_row'} );
+    my $cursor_bearing = not( $field_def->{'list'}
+        or $field_def->{'menu_row'}
+        or $field_def->{'add_field'} );
 
     ## THREE reserved cells : <pad><value><cursor cell><pad>.
     ##
@@ -162,8 +163,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,..,,..,,,.,,,,,..,,,,.,,,,,..,,.,.,..,,,.,,..,,...,...,,..,.,,,,,.,...,,..,
-#PBAE35YGLDGBJIOAY6VOMCKLXU77AYVGMMQLGY3JCCWTND3WWL3WQ77SRCCQMTHE6SWTGJ2TRILYA
-#\\\|JOYAQ7NO5VWRQM5PKERYVVBRYVAX52QWQU57T55P54FW5XYVBZP \ / AMOS7 \ YOURUM ::
-#\[7]2A6YK7GCOULK35MAE7WF3ZC6DEDCGBJJD3GFEQUGIFLHFDK5DYCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,..,,.,,,,,,,..,,,.,,...,,,,,,.,,..,,...,...,..,,,,,,..,,...,.,.,
+#DSAT7C47SH3SHOK6FTO2B2ERN5ZKBGTPMXVOTBLIHL7MWMYDAR53FUDOJ4HQ2AUCC4RZG6HDYMQTW
+#\\\|ADWDZWMNVO4EST7O2PBNBQC3BN7JCV2BG7NITINUDXILYL7FUN5 \ / AMOS7 \ YOURUM ::
+#\[7]EILG3YRBLD2OYAZTPLJNMN22745IGXLSO4CPUBP52TALNNGYYGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
