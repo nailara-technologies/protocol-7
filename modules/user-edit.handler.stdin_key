@@ -100,6 +100,24 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     my $remove_target
         = <[user-edit.form.removable_field]>->( $editor_state, $focus_def );
 
+    ## an EMPTY interior row of a list that still has OTHER content in it :
+    ## $remove_target above only fires when EVERY row of the field is empty [
+    ## the whole-field removal case ], so a list with mixed empty/filled rows
+    ## falls through it entirely today.  sampled BEFORE process_key for the
+    ## same "one keystroke, two effects" reason $remove_target already is --
+    ## see the Delete branch below  '&&'/'!', not 'and'/'not' : both bind
+    ## LOWER than '=', so '$x = A and B and C' assigns only A and evaluates
+    ## B/C for nothing, and 'A && not B' is not the same grouping as 'A && !B'
+    ## either -- see MEMORY-feedback.md's own note on this exact trap
+    my $remove_empty_row
+        = ref $focus_def eq qw| HASH |
+        && length( $focus_def->{'list_row_of'} // '' )
+        && !$focus_def->{'list_info'}
+        && !
+        length(
+        <[editor.control.get_value]>->( $editor_state, $focus_def->{'name'} )
+            // '' );
+
     my $result = <[editor.control.process_key]>->( $editor_state, $key );
     next if ref $result ne qw| HASH |;
 
@@ -118,6 +136,22 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         <[user-edit.form.remove_field]>->($remove_target);
         $editor_state = <user-edit.form.state>;
         $repaint      = TRUE;
+        next;
+    }
+
+    ## Delete on an empty INTERIOR row -- per user, removes just this row
+    ## rather than requiring a navigation event first.  no separate removal
+    ## primitive : editor.control.list.scroll's harvest-and-merge already
+    ## drops an empty buffer exactly like leaving the row does [ see
+    ## user-edit.form.resort_list's own note ], so a $direction 0 resort IS
+    ## the removal.  NOT gated on 'sort_on_focus' -- unlike  sync_list_mode's
+    ## resort trigger, this is a general list-hygiene move, not a
+    ## sorting-specific one, so it applies to any list field
+    if (    $remove_empty_row
+        and not defined $remove_target
+        and ( $key eq "\e[3~" or $key eq "\x1b[3~" ) ) {
+        $repaint      = TRUE if <[user-edit.form.resort_list]>;
+        $editor_state = <user-edit.form.state>;
         next;
     }
 
@@ -293,8 +327,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,,,.,.,...,..,,.,,,...,,..,,..,,.,,,.,,,..,..,,...,...,..,,...,.,.,.,.,.,.,
-#PAQRL6Y2PGS5T34AVEGMVKAJZ3FO5R6LC7KSMAV7WXQU3XCA4DWU374W2LK2OKV2LW3757JFQ564S
-#\\\|CP663MSEIQZDYMWZF5TKA6ZBBCRGOFP64QNT3IGLXATSV7SJIEB \ / AMOS7 \ YOURUM ::
-#\[7]7SDFWZH7EOEG37N5MQYQGTV4ORZ4YANLIG6CASYN65VRIQRKSMAI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,.,,,,..,.,.,...,,,.,..,,,..,..,,...,...,...,.,.,,,,,.,.,.,,,
+#7F22FGHKRYKF7JIKHJDBTHGHNSS3QCACNZMDROG24KC2RTFYNLE5BH4VJH73B62ZNBHDY7Y2H55OU
+#\\\|FSCEZA3QPTEGLPTJ7AS5YHSOKKNI456ZRVD37PDUG6IZSVBNRU5 \ / AMOS7 \ YOURUM ::
+#\[7]LIP5EEARUZFXIY3LKIO6OPRYW32R2T6QPBCSQKBL5WI2GU2SMSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,21 +37,48 @@ if ( defined $expanded_field ) {
     my $still_inside = ref $active_def eq qw| HASH |
         && ( $active_def->{'list_row_of'} // '' ) eq $expanded_field;
 
-    return FALSE if $still_inside;
+    if ($still_inside) {
 
-    $new_state = <[editor.control.list.collapse]>->($editor_state);
+        ## sort_on_focus lives on the ORIGINAL [ collapsed-shaped ] field def,
+        ## list_source.schema -- not on any row of the expanded schema, which
+        ## only carries list_row_of.  gated here, not inside
+        ## user-edit.form.resort_list itself : per user this resort is a
+        ## sorting-specific behaviour [ contact / phone ], not a general
+        ## every-list-field one -- resort_list's OTHER caller [ stdin_key's
+        ## Delete-on-an-empty-row ] deliberately does NOT gate on this flag
+        my ($list_def)
+            = grep { ( $ARG->{'name'} // '' ) eq $expanded_field }
+            ( $editor_state->{'list_source'}{'schema'} // [] )->@*;
 
-    ## collapse parks the cursor ON the collapsed field, which is right when
-    ## you back OUT of the list [ Esc, or stepping back onto it ] but wrong
-    ## when you tabbed PAST it : that focus belongs to the field you moved to.
-    ## restore it when that field survived the rebuild
-    if ( ref $new_state eq qw| HASH | and length $active_name ) {
-        my $position = 0;
-        foreach
-            my $field_def ( ( $new_state->{'schema'}{'fields'} // [] )->@* ) {
-            $new_state->{'active_field'} = $position, last
-                if ( $field_def->{'name'} // '' ) eq $active_name;
-            $position++;
+        return FALSE
+            if ref $list_def ne qw| HASH |
+            or not $list_def->{'sort_on_focus'};
+
+        ## resort IN PLACE, cursor position kept : per user, the moment focus
+        ## leaves the row it was typed into, not only when the whole list is
+        ## later re-entered or paged.  <user-edit.form.state> and the frame
+        ## are already handled by resort_list itself, so return its own
+        ## TRUE/FALSE straight through rather than falling into this
+        ## function's own tail [ which would re-read a state that is about to
+        ## be identical to what is already written, wasted work ]
+        return <[user-edit.form.resort_list]>;
+
+    } else {
+
+        $new_state = <[editor.control.list.collapse]>->($editor_state);
+
+        ## collapse parks the cursor ON the collapsed field, which is right
+        ## when you back OUT of the list [ Esc, or stepping back onto it ] but
+        ## wrong when you tabbed PAST it : that focus belongs to the field you
+        ## moved to.  restore it when that field survived the rebuild
+        if ( ref $new_state eq qw| HASH | and length $active_name ) {
+            my $position = 0;
+            foreach my $field_def (
+                ( $new_state->{'schema'}{'fields'} // [] )->@* ) {
+                $new_state->{'active_field'} = $position, last
+                    if ( $field_def->{'name'} // '' ) eq $active_name;
+                $position++;
+            }
         }
     }
 
@@ -79,8 +106,8 @@ return FALSE if not defined $new_state or $new_state == $editor_state;
 
 return TRUE;
 
-#,,,.,.,.,,,.,,..,,.,,.,.,,.,,.,.,...,..,,,..,..,,...,...,.,,,,,,,,.,,.,,,..,,
-#VEG5RYXTB424MKYZS7G2V3VLGGU37TCJ5PL3QM6KUO2B3ETBGCSFXQN5YPT6ZHYEO7M3Y5Q26AQNA
-#\\\|3YG7OHSSMH2X27QX4I36T2PXMNJ36PFUZFRX3WQ7ILA7SHJD4CX \ / AMOS7 \ YOURUM ::
-#\[7]SSWACUXJ7JCBYJ73KRHDTFUXSYKO6TTGNGRWMVH4ABKEATVNLWDY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,.,.,,..,,,.,,,.,...,,,.,.,,,..,,...,...,,,.,.,,,,.,,,,,,.,.,
+#YXOUVFQZ7WKDOS775APYMXG43YQJZK5L4S6OSMKE7BB6Q3XISHZVT4Y3U7OH3H4ZV5RDLBUMFPEZQ
+#\\\|2H52VD6DTWEYVUUCQTZUOM74DK2CNQA3BWZW5CXITMZHKB7LS7F \ / AMOS7 \ YOURUM ::
+#\[7]GWZQPISUXAB6W4OUZBHCNGU4BEZ62BVKK6C7LVPS3MBAO344KWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

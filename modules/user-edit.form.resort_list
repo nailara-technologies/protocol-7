@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = user-edit.form.resort_list
+# descr = resort the focused list's entries in place, cursor position kept
+# param = -none-
+
+## the shared glue behind TWO triggers : user-edit.form.sync_list_mode's
+## intra-list navigation [ per user, sort_on_focus fields resort the moment
+## focus leaves the row it was typed into ] and user-edit.handler.stdin_key's
+## Delete-on-an-empty-interior-row [ per user, removing just that row rather
+## than the whole field -- see the harvest-and-merge note below for why
+## nothing special is needed to make that happen ].  factored out once both
+## needed the identical "resort at the current offset, land the cursor back at
+## the same POSITION" sequence, rather than each carrying its own copy.
+##
+## the harvest-and-merge step editor.control.list.scroll already performs [
+## same one editor.control.list.collapse uses ] is what does the actual work
+## here : an EMPTY row's live buffer fails length() and is dropped by the
+## merge's grep{length} exactly like leaving it always did, so "resort in
+## place" and "remove this one empty row" are the SAME operation from this
+## module's point of view -- no separate remove-one-entry primitive exists or
+## is needed.
+##
+## POSITION preserved, not editor.control.list.expand's own "land on the
+## window's first row" default [ right for a fresh page/entry, wrong here ] :
+## sorting or shrinking can reshuffle which entry sits at which row, but the
+## cursor still needs to stay roughly where the user was -- landing everyone
+## back on row 0 after every keystroke would make it impossible to navigate
+## past row 0 at all whenever anything changed.
+##
+## the caller is responsible for deciding WHETHER to call this at all --
+## sync_list_mode gates its own call on the field's 'sort_on_focus' flag,
+## while stdin_key's Delete trigger does not [ removing an empty row is a
+## general list-hygiene move, not a sorting-specific one ].  this module
+## itself has no opinion : it just resorts/rebuilds and returns.
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $active_index = $editor_state->{'active_field'} // 0;
+
+my $new_state = <[editor.control.list.scroll]>->( $editor_state, 0 );
+
+return FALSE if not defined $new_state;
+
+my $field_count = scalar $new_state->{'schema'}{'fields'}->@*;
+$new_state->{'active_field'} = $active_index;
+$new_state->{'active_field'} = $field_count - 1
+    if $active_index > $field_count - 1;
+
+<user-edit.form.state> = $new_state;
+
+<[user-edit.form.build_frame]>->(
+    $new_state, <user-edit.form.frame_name> // qw| user-edit-form |,
+    <user-edit.form.title>
+);
+
+## the row that vanished [ or an entry that moved past it ] is exactly the
+## kind of change the draft should not lag behind on
+<[user-edit.form.field_changed]>;
+
+return TRUE;
+
+#,,,.,.,.,.,.,,,.,.,.,,.,,...,,.,,.,.,,,,,,,.,..,,...,...,...,.,.,,,,,.,.,,,.,
+#KDFWIA3CUWBF3YB3QSR5RB47JR6YYHVS2EG2V76CB57BQMVXIRDV4JIA253OB3RSRCMK2UUKHWYIY
+#\\\|WYVN4H6SA6UGBRSZX6R5RI45VMJDZELDMBUV52C22RDDDD5QE42 \ / AMOS7 \ YOURUM ::
+#\[7]VABWKR3M3QHBKUE2XMQNMAZDFQKCB2VAQVJ7FVRSX4IKIVDLSADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
