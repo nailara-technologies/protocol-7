@@ -35,9 +35,13 @@ foreach my $name (@names) {
     $label_width = length $name if length $name > $label_width;
 }
 
-## content rows, without the border columns yet ##
+## content rows, without the border columns yet  the label carries a pad on ##
+## BOTH sides of its separator, matching the reserved cells the values      ##
+## gained : without it the value text sits inset from its framing while the ##
+## label hugs the border, and the two columns read as misaligned even       ##
+## though every row is the same width                                       ##
 my @bodies
-    = map { sprintf( '  %-*s : {{%s}}', $label_width, $ARG, $ARG ) } @names;
+    = map { sprintf( '   %-*s  : {{%s}}', $label_width, $ARG, $ARG ) } @names;
 
 my $title_bar = sprintf( '.:[ %s ]:', $title );
 
@@ -70,6 +74,12 @@ if ( not defined $descriptor ) {
     return undef;
 }
 
+## a blank content row top and bottom, so the first field is not flush against
+## the title bar.  ascii.frame.render already implements this as the vertical
+## analogue of its lpad/rpad -- no rendering change needed
+$descriptor->{'padding'}{'top'}    = 1;
+$descriptor->{'padding'}{'bottom'} = 1;
+
 my $validated = <[ascii.frame.validate]>->($descriptor);
 if ( not $validated->{'valid'} ) {
     <[base.logs]>->(
@@ -98,8 +108,8 @@ my $entry = {
 
 return $entry;
 
-#,,,,,...,.,.,,..,.,,,,,.,,,,,...,...,,,.,...,..,,...,..,,...,..,,.,,,,..,,.,,
-#5QHFX2O4KUEBJMZIGCQ26CJMTXFF2T7UKEXJJCZHIHPXPWH2MMLFQ3YQUNEVX7RFDAUVRS7JJUROA
-#\\\|64TUQSWNA7EYEZVBR6EXPJV7N5LTMKBRQNPZXWXUJ56WWCW5BZW \ / AMOS7 \ YOURUM ::
-#\[7]5Q4OX3CSGTZGAH6IAWCLOX7D5BI56GJLZWNSALLBKQHARY6TLABY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,,,,,.,,,,,,,,.,,..,,,.,.,,,..,,...,...,...,,,,,,.,,,,.,,,.,
+#BXHAK5LSRATNQCV4CXNBL63SCGW2BACQKUC7RWWELN5W6SVQA6E45YNXSJJSDRWDGT25WIUFMMBYQ
+#\\\|J4K6WDMGFI3CLIOLBBPC4WIIAMCMLIW746YXUQZEXTLYETGRRPH \ / AMOS7 \ YOURUM ::
+#\[7]52QMTI745AN7RWYX4YYLI2UPNKQALYWUFZ6VSVFDXKCWKEOKL4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

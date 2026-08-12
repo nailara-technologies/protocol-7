@@ -30,6 +30,21 @@ my %values;
 foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     my $name = $field_def->{'name'} // next;
     next if $is_masked{$name};
+
+    ## a checkpoint taken while a list is EXPANDED must not persist the
+    ## synthesised row names -- draft.write's emptiness test is scalar-shaped,
+    ## so the rows would be written as ordinary fields.  record the list under
+    ## its own name, joined for the draft's benefit
+    next if ( $field_def->{'list_row_of'} // '' ) ne '';
+
+    if ( $field_def->{'list'} ) {
+        ## q{,} not qw| , | : qw splits on whitespace, so a comma inside it
+        ## triggers "possible attempt to separate words with commas"
+        $values{$name}
+            = join( q{,}, ( $field_def->{'entries'} // [] )->@* );
+        next;
+    }
+
     $values{$name} = <[editor.control.get_value]>->( $editor_state, $name )
         // '';
 }
@@ -41,8 +56,8 @@ my ( $ok, $err ) = <[user-edit.draft.write]>->( $username, \%values );
 
 return $ok;
 
-#,,.,,,,,,,.,,,,,,,,,,.,.,,..,,,.,,,,,,..,..,,..,,...,...,,,,,.,.,.,,,,,,,...,
-#IZK4C3SYDGDVRSHTSUFPFJTGRQZHVNZXIUGBOSP6URW75SYVRBFYHBDJYGPHIR64CSHY24IIT5Z2G
-#\\\|XHZZDEMWEIXJ5S2YOFIRTBAMQLV5JQWU5SYKZP473Z2E3D5NIFW \ / AMOS7 \ YOURUM ::
-#\[7]BZLVHMOQXFZSAMYDCOYYTTWDSQNUQ5D2RM4E7X7KPAFJFD4JHMCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,.,.,.,.,,..,,..,,.,,,.,,,..,..,,...,...,.,,,,,.,.,,,.,.,,,,,
+#7J4JQIVTAVS2BXQCGFO76O44OZ2CPLGZCBLRWMGH63I6TJGLU75PCQAD7HXBKF76GWB5KJDPBWTRY
+#\\\|B4AX5L335N6PLDNKMPRNBQY23YAR4LMOQSQKJOBRGNDKBW4O3EM \ / AMOS7 \ YOURUM ::
+#\[7]MU6ZRLAA44MOIO7REUZ75SBGYTKC3VQMGQKQC47XI5AGLVWBAWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,11 +30,18 @@ if ( not exists <ascii.frame.cache>->{$frame_name} ) {
 ## SOH placeholder for the cursor : one character wide so render_form's width
 ## and fill maths stay exact, substituted for a coloured '|' after
 ## colourisation below [ an ansi sequence passed in directly would break row
-## alignment ]
-my $cursor_mark = qq|\x01|;
-
+## alignment ]  one-character placeholders, substituted for coloured glyphs
+## after colourisation below.  they must be single characters : render_form's
+## width and fill maths measure them with length(), so passing ansi directly
+## would break row alignment
 my $rendered = <[editor.ui.ascii_frame.render_form]>->(
-    $editor_state, $frame_name, undef, $cursor_mark
+    $editor_state,
+    $frame_name,
+    undef,
+    {   qw| cursor |  => qq|\x01|,
+        qw| focus_l | => qq|\x02|,
+        qw| focus_r | => qq|\x03|,
+    }
 );
 
 if ( not defined $rendered ) {
@@ -100,6 +107,15 @@ if ( not $on_terminal ) {
 
 $rendered =~ s{\x01}{$cursor_render}ge;
 
+## focus brackets in the DARKER structural tone, so they read as framing
+## rather than as part of the payload text -- then back to the content colour
+## for the value between them
+my $bracket_color = length $colors{'reset'} ? $colors{'p7_fg_0001'} : '';
+my $content_color = length $colors{'reset'} ? $colors{'p7_fg_0004'} : '';
+
+$rendered =~ s{\x02}{$bracket_color . q{[} . $content_color}ge;
+$rendered =~ s{\x03}{$bracket_color . q{]} . $content_color}ge;
+
 ## interactive mode owns the whole screen ; the one-shot render just adds the
 ## frame to whatever is already on the terminal  $colors{'clear_screen'}
 ## rather than a literal : it survives the -nc palette blanking, which is
@@ -115,19 +131,35 @@ print $colors{'clear_screen'} // '' if <user-edit.form.interactive>;
 print $colors{'reset'} . "\n" . $rendered . $colors{'reset'} . "\n";
 
 if (<user-edit.form.interactive>) {
-    printf "\n  %s[ tab / arrows ]%s field   %s[ enter "
-        . "]%s submit   %s[ esc / ctrl-c ]%s quit%s\n\n",
-        $colors{'p7_fg_0000'}, $colors{'p7_fg_0001'},
-        $colors{'p7_fg_0000'}, $colors{'p7_fg_0001'},
-        $colors{'p7_fg_0000'}, $colors{'p7_fg_0001'}, $colors{'reset'};
+    ## multi-line under the card, on the same ':' gutter the frame border
+    ## uses, so the hint reads as part of the same object -- one line ran to
+    ## roughly twice the card's width and overhung it badly.  keys in the dim
+    ## structural tone, actions in content blue, aligned on a separator
+    my $gutter = $colors{'p7_fg_0000'} // '';
+    my $key    = $colors{'p7_fg_0001'} // '';
+    my $action = $colors{'p7_fg_0001'} // '';
+    my $done   = $colors{'reset'}      // '';
+
+    print "\n";
+
+    foreach my $hint (
+        [ qw{ tab|arrows }, qw| field | ],
+        [ qw| enter |,      qw| submit | ],
+        [ qw{ esc|ctrl-c }, qw| quit | ],
+    ) {
+        printf " %s:%s  %-13s%s\x{b7}%s  %s%s\n",
+            $gutter, $key, $hint->[0], $gutter, $action, $hint->[1], $done;
+    }
+
+    print "\n";
 }
 
 STDOUT->flush();
 
 return TRUE;
 
-#,,..,.,.,,,,,,,,,...,,,.,,.,,,,.,.,.,.,,,,,,,..,,...,..,,..,,.,,,,,,,...,.,.,
-#BFBQR7LP3RM3NC5OH4MDNBA25APYALWDMDVALCXAFH7JYHOM3NQHJCJ7XNAJD4CWRLYSMW7ORJEBU
-#\\\|RNIQDYTIRQ4NEPQNI6MYK4S5TQRYTLQFIERY4SKKOHVINSBKNEL \ / AMOS7 \ YOURUM ::
-#\[7]KZWX7YLEHGAOKQGSUV2YJFA2RF3Q4NB3OWLPBQNGGW34LYOGFYBA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,,,.,...,...,,,.,..,,,..,,,,,..,,...,...,..,,,..,...,,..,.,.,
+#JH7QSBHB2ZS2MFARHP3DRZFBVIX2LCZTX2WKL2TSJCRDBJJRURIS33VLGMR4AH26B7ZM4DKZPQTEE
+#\\\|SLTCZQBMPB5YGQTUZ5AJKPT4KA2IBHNVAGLQUWVUA57NTO4O4QU \ / AMOS7 \ YOURUM ::
+#\[7]33ONFOIYH4JF36XIXH27IDZN7OH32SSGIXP2CRQXU2BAOUOCZABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
