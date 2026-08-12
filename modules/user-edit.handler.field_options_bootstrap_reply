@@ -1,0 +1,122 @@
+## [:< ##
+
+# name  = user-edit.handler.field_options_bootstrap_reply
+# descr = build the FIRST state for a record with zero editable fields
+
+## the companion user-edit.handler.value_get_reply chains to instead of
+## aborting outright, when a record's fields hash is genuinely empty [
+## users.record.default_fields returns {} as of 2026-08-13 -- see that
+## module's own note -- so this is now a real, reachable case, not a
+## theoretical one ].
+##
+## WHY THIS EXISTS, not just a variant of user-edit.form.add_field_row : that
+## module APPENDS the add-a-field cycler to an already-valid $editor_state,
+## and editor.control.create itself refuses an EMPTY field list [ its own
+## guard, independent of user-edit.form.schema_from_record's matching one ] --
+## so there is no way to reach a state add_field_row could append to at all
+## when the record has nothing in it yet.  this module exists to found the
+## schema WITH the cycler as its one and only field, which is a genuinely
+## different starting point, not an append.
+##
+## the field def itself deliberately MIRRORS add_field_row's shape exactly [
+## name via the same padded user-edit.form.add_field_name, same add_field /
+## choices / choice / readonly keys ] rather than sharing code with it : that
+## module's own contract is built around "takes the STATE, not just the
+## schema" for the append case specifically, which does not fit here at all --
+## see its own header for why. kept in sync by hand if that shape ever
+## changes; it is a small, fixed literal unlikely to.
+
+my ($info) = @ARG;
+
+my $cmd = uc( $info->{'cmd'} // '' );
+
+return FALSE if $cmd ne qw| SIZE |;
+
+my $vocabulary_href
+    = <[user-edit.form.parse_field_options]>->( $info->{'data'} // '' );
+my %vocabulary = %{ $vocabulary_href // {} };
+
+## plain alphabetical, NOT base.sort : matches user-edit.form.addable_fields'
+## own ordering exactly [ 'sort keys %{$vocabulary}', filtered by presence --
+## the bootstrap schema has nothing present yet, so the filter is a no-op and
+## this reduces to that same expression ] -- the cycler's option order should
+## not depend on whether it was founded here or attached normally
+my @options = sort keys %vocabulary;
+
+if ( not @options ) {
+    ## genuinely nothing to offer : an empty record with an empty optional
+    ## vocabulary has no possible path forward at all.  logged clearly rather
+    ## than left as a blank screen with no explanation
+    <[base.logs]>->(
+        0,
+        ': record has no fields and no optional vocabulary [ %s ]',
+        <user-edit.form.username> // '?'
+    );
+    print "\n  << record is empty and no "
+        . "optional fields are available >>\n\n";
+    <[user-edit.form.quit]>;
+    return FALSE;
+}
+
+<user-edit.form.field_options> = \%vocabulary;
+
+my $cycler_name = <[user-edit.form.add_field_name]>;
+
+my $schema = {
+    qw| fields | => [
+        {   qw| name |      => $cycler_name,
+            qw| type |      => qw| freeform_line |,
+            qw| default |   => '',
+            qw| readonly |  => TRUE,
+            qw| add_field | => TRUE,
+            qw| choices |   => \@options,
+            qw| choice |    => 0,
+        }
+    ],
+    qw| active_field | => 0,
+    qw| submit_on |    => <user-edit.form.submit_on>,
+};
+
+my $editor_state = <[editor.control.create]>->($schema);
+
+if ( not defined $editor_state ) {
+    <[base.logs]>->(
+        0, ': bootstrap schema rejected ' . 'by editor.control.create'
+    );
+    <[user-edit.form.quit]>;
+    return FALSE;
+}
+
+my $frame_name = <user-edit.form.frame_name> //= qw| user-edit-form |;
+
+if (not defined <[user-edit.form.build_frame]>->(
+        $editor_state, $frame_name, <user-edit.form.title>
+    )
+) {
+    <[base.logs]>->(
+        0, ': could not generate a ' . 'frame for the bootstrap row'
+    );
+    <[user-edit.form.quit]>;
+    return FALSE;
+}
+
+<user-edit.form.state> = $editor_state;
+
+## same first-paint housekeeping user-edit.handler.value_get_reply does once a
+## state exists -- this handler is the delayed continuation of exactly that
+## moment, just reached one round trip later
+<user-edit.form.help_visible> = FALSE;
+<user-edit.form.hint_seen>    = FALSE;
+<user-edit.form.dirty> //= 0;
+
+<[user-edit.form.render]>;
+
+<[base.exit]> if not <user-edit.form.interactive>;
+
+return TRUE;
+
+#,,,,,,,,,,..,..,,..,,,..,.,.,,,.,,..,,,.,..,,..,,...,...,..,,..,,,,,,.,.,..,,
+#ZBP6U6ILXKT3UY7RY3VSYE4H3PRTVGSTMHXRBKNSBGYL5RFTK2MK2EJREOP4EEXGHZYARUQWLP7CO
+#\\\|6JYSXWOR2JNLU7TWC32MHJVA5RSEFPKR34OHK6RI2H4ISNK4ICL \ / AMOS7 \ YOURUM ::
+#\[7]KYXHS7E63EZYLC5KQEGB3CHPLP45IPY7BBZ6QBNSYGJZ6G7NA4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
