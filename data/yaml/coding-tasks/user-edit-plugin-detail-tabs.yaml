@@ -1,19 +1,26 @@
 ---
 # Task: user-edit plugin detail tabs
 # Date: 2026-08-12
-# Status: DESIGN SETTLED, nothing implemented yet. Resolved: plugin
-#         module convention, discovery (one parent post_init), entry/
-#         return keys (Tab+Right / Esc+Left), rendering layout
+# Status: DESIGN SETTLED. PHASE_1 (discovery) LANDED, commit 7592bdbc0 :
+#         plugin.user-edit.registry.post_init collects every loaded
+#         plugin.user-edit.<name>'s tab_info into a by_key/by_name
+#         registry, wired via plugins.load/[load_plugins:...] (NOT
+#         [load_modules:...] — plugin-namespaced modules must go through
+#         the plugin path so base.reload_plugins can hot-reload them
+#         independently, confirmed against configuration/zenki/web/
+#         start's plugin.web.auth precedent after an initial attempt via
+#         modules.load silently failed to fire at all). plugin.user-edit.
+#         example is a minimal live reference plugin + pipeline smoke
+#         test, kept until real plugins exist. NOT YET BUILT :
+#         rendering/dispatch — the Tab+Right entry trigger, the new
+#         'plugin' field type itself, Esc+Left return. Design resolved:
+#         plugin module convention, rendering layout
 #         (embedding_field_type_dropin — a new 'plugin' field type, not a
 #         row-expansion), value storage (plain scalar per pinned key,
 #         multiple keys per plugin, plugin owns its own namespace +
 #         cross-referencing), and field-type PLACEMENT (user-edit-
-#         specific, not editor.control.*'s generic type contract — the
-#         deciding fact is that plugin.user-edit.*.* only ever loads into
-#         the user-edit process itself, confirmed the hard way earlier
-#         this thread when a cross-zenka module call failed live). Only a
+#         specific, not editor.control.*'s generic type contract). Only a
 #         single low-priority deferred item remains — see open_questions.
-#         Ready for a phase_1 implementation pass.
 # Context: third feature in the user-edit UI roadmap this session, after
 #          capped/scrollable list windows (landed, commit 3fe1fed15) and
 #          field/entry sort ordering (landed, commits 793e1c2c7/a63ea5438).
@@ -74,9 +81,10 @@ plugin_module_convention:
     plugin.user-edit.<name>.tab_info                          [ NEW ]
       — the self-description this whole doc exists to add. Niladic,
         returns a hashref : { label => 'hosts', pinned_keys => [ 'host' ],
-        ... }. Called by the ONE PARENT plugin.user-edit.post_init [ see
-        registry_and_post_init — not a per-plugin post_init of its own ]
-        — this is the ONLY new routine every plugin author must write
+        ... }. Called by the ONE PARENT plugin.user-edit.registry.
+        post_init [ see registry_and_post_init — not a per-plugin
+        post_init of its own ] — this is the ONLY new routine every
+        plugin author must write
         beyond init_code; everything else already has an httpd.radio
         precedent to mirror. No per-plugin registration wiring needed :
         the parent collector finds every loaded plugin through
@@ -95,24 +103,44 @@ plugin_module_convention:
         editor.control.process_key's { action, ... } shape rather than
         inventing a third one — TBD alongside rendering_contract.
   start_file_wiring: >
-    configuration/zenki/user-edit/start gains its own `plugins.load =
-    plugin.user-edit.hosts plugin.user-edit.keys ...` line + a
-    [load_plugins:<plugins.load>] call, same two lines httpd/start
-    already has — and, confirmed against httpd/start's actual line
-    order (load_plugins at line 10, load_modules/init_modules at lines
-    45/47), this MUST go BEFORE the zenka's existing [load_modules:...]
-    / [init_modules] pair (currently start:21-22), not after : [init_
-    modules] only picks up *.init_code/*.post_init for whatever is
-    already compiled into %code at the moment it runs, so a plugin
-    loaded afterward would miss that automatic pass entirely and need
-    its own manual invocation. EXPLICIT list, not directory-glob
-    discovery — matches the one precedent that exists, and means adding
-    a plugin is a one-line start-file edit plus dropping its module
-    files in, not a new auto-discovery mechanism to design and trust.
+    LANDED, commit 7592bdbc0. configuration/zenki/user-edit/start's own
+    `plugins.load = plugin.user-edit.registry ...` line + a [load_
+    plugins:<plugins.load>] call, positioned BEFORE the zenka's [load_
+    modules:...]/[init_modules] pair, same shape httpd/start uses for
+    plugin.httpd.radio [ web/start's plugin.web precedent confirmed the
+    same requirement a different way, see below ]. plugin.user-edit.
+    registry [ the parent collector, always present ] is the permanent
+    baseline entry ; additional plugin.user-edit.<name> third-party
+    plugins get appended to the SAME list. EXPLICIT list, not directory-
+    glob discovery — matches httpd's own precedent, and means adding a
+    plugin is a one-line start-file edit plus dropping its module files
+    in, not a new auto-discovery mechanism to design and trust.
+    REAL GOTCHA hit live : a first attempt put plugin.user-edit.
+    registry.post_init directly in modules.load / [load_modules:...]
+    instead [ reasoning : it is core infrastructure, not an opt-in
+    plugin, so it seemed like it should not need the opt-in plugins.load
+    step ] — its own registry-built log line, bumped to the loudest
+    level for the test, never appeared at all ; no exception, no error,
+    completely silent, and not distinguished empirically between "failed
+    to compile" and "compiled but never ran" — only that moving it to
+    plugins.load fixed it outright. Root cause,
+    per user : plugin-namespaced modules go through [load_plugins:...]
+    UNCONDITIONALLY, core-to-the-zenka or not — confirmed against web/
+    start's plugin.web.auth (also listed directly in modules.load) AND
+    its separate plugins.load = plugin.web entry, and the reason is
+    RELOAD SEPARATION : base.load_modules (source reload) and base.
+    reload_plugins (plugin reload) are deliberately two different
+    mechanisms so a plugin can be hot-reloaded independently of a full
+    source reload — a module compiled via modules.load never enters
+    <plugins.status>, so reload_plugins would never find it. [init_
+    modules]'s OWN walk does not care which path put a module into
+    %code [ base.init_modules:14's un-argumented call walks ALL of %code
+    regardless ], so that was never the actual blocker — the blocker was
+    the module not being compiled via the right path AT ALL until fixed.
 
 registry_and_post_init:
   motivation: >
-    Per user : ONE PARENT plugin.user-edit.post_init [ not one per
+    Per user : ONE PARENT plugin.user-edit.registry.post_init [ not one per
     plugin ] is the right shape, collecting what each plugin.user-edit.
     <name>.init_code already set up — and this is not just cleaner, it
     is GUARANTEED correct by how base.init_modules actually works
@@ -121,7 +149,7 @@ registry_and_post_init:
     order, and for EACH phase it walks every module in %code matching
     that phase's suffix before moving to the next phase. So EVERY
     plugin.user-edit.<name>.init_code across every loaded plugin has
-    already run, unconditionally, before plugin.user-edit.post_init [
+    already run, unconditionally, before plugin.user-edit.registry.post_init [
     itself just another *.post_init match, module_name = "plugin.user-
     edit" ] ever fires — regardless of load order or base.sort's
     ordering within a phase, since that ordering only affects modules
@@ -133,7 +161,7 @@ registry_and_post_init:
     so pinned_keys collisions are checked once, deterministically, not
     left to whichever plugin's post_init happened to run last.
   sketch: |
-    plugin.user-edit.post_init [ ONE module, auto-invoked by
+    plugin.user-edit.registry.post_init [ ONE module, auto-invoked by
     [init_modules] purely by name, after every plugin's own init_code
     has already completed per the phase-ordering guarantee above ] :
       - walk <plugins.status> filtered to keys matching ^plugin\.user-
@@ -355,8 +383,8 @@ open_questions:
 created: 2026-08-12
 tags: [user-edit, plugin, tabs, editor, ascii-frame, design-only]
 
-#,,.,,,.,,.,,,,,,,,..,,.,,,,.,.,.,...,.,,,,.,,..,,...,...,.,.,.,,,,.,,,..,,,,,
-#24VS2YBXRUHDXMYWKZ4NZ5YMW3THV7Z4E54QSLBA6H7PKJNVKSJDRUEJPKV427FZZ5E7KBBJ6BODA
-#\\\|JICZF6QHVKARI3RXCQEP33HSLBYHJWBSHGK3E4RLMRSIUIVXYTM \ / AMOS7 \ YOURUM ::
-#\[7]EDR4OAKH4IU7UBEGBDXBCV362OEIF6PFOF6P5AEKZH2CBJLG5ACY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,..,,.,.,.,,,...,,,.,...,.,,,..,,...,...,,..,.,.,...,,,.,,,.,
+#BRZBJABWOCUSOFOWB43BBKB54QULAYGLFN6UXGB2JZ4PL2DA5LDLUNIFBT5HFY3KGI6XK76ZFP4YQ
+#\\\|MK6KJFH63CEXMTNIZXGZT62A7YALXX5KDTJIVWZTSBKATN76MVM \ / AMOS7 \ YOURUM ::
+#\[7]BR4HNB3KHK43CPRA3AITAD25EK5QKC3Z4ICGC7FBRISW4SZYOIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
