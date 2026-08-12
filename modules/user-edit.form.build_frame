@@ -75,11 +75,25 @@ my $title_bar = sprintf( '.:[ %s ]:', $title );
 ##
 ## a row is [ name, display_length, has_a_label ].
 
-## the optional-field vocabulary, for the add-a-field row's reservation -- the
-## WHOLE of it, name => shape, not the part still addable
+## the optional-field vocabulary -- the WHOLE of it, name => shape -- and
+## separately the part still ADDABLE : whichever names are not already present
+## as fields on this schema, counting an expanded list's rows [ '<field>_0',
+## '<field>_1' .. ] toward their SOURCE field, the same bookkeeping
+## user-edit.form.addable_fields does for the live row itself.  kept apart
+## because they answer two different questions below : whether the add-a-field
+## row exists AT ALL [ @vocabulary -- the feature as a whole ] versus how WIDE
+## it is right now [ @addable ]
 my $vocabulary = <user-edit.form.field_options>;
 my @vocabulary
     = ref $vocabulary eq qw| HASH | ? sort keys %{$vocabulary} : ();
+
+my %present
+    = map { ( $ARG->{'name'} // '' ) => TRUE } $schema->{'fields'}->@*;
+$present{ $ARG->{'list_row_of'} } = TRUE
+    foreach grep { length( $ARG->{'list_row_of'} // '' ) }
+    $schema->{'fields'}->@*;
+
+my @addable = grep { not $present{$ARG} } @vocabulary;
 
 ## DISPLAY length of a row -- +4 for an ordinary value [ pad, the cursor cell
 ## which doubles as the trailing pad, and the two framing cells -- see
@@ -94,17 +108,19 @@ my $display_length = sub {
 
     my ($field_def) = @ARG;
 
-    ## the add-a-field row is measured at the FULL vocabulary, not at the
-    ## options currently left : its choice set shrinks with every field added
-    ## and grows with every one removed, and it is usually the widest row in
-    ## the form, so measuring what is left would make every add and every
-    ## remove resize the frame.  +2, not +4 : this row skips the inner
-    ## pad+cursor-cell reservation entirely [
+    ## the add-a-field row is measured at what is still ADDABLE, not the full
+    ## vocabulary -- per user : the frame carried noticeable dead width once
+    ## several optional fields were already added [ e.g. two added out of six
+    ## -- the cycler shows four choices but the earlier full-vocabulary
+    ## reservation still measured all six ].  the accepted cost, same trade
+    ## reversed : the frame now resizes by a column or two on every add and
+    ## every remove, since the row measured here is genuinely the widest it
+    ## can be with the CURRENT set of fields, not with none of them.  +2, not
+    ## +4 : this row skips the inner pad+cursor-cell reservation entirely [
     ## editor.ui.ascii_frame.render_form ] -- editor.control.cycler.render's
     ## own per-choice cells already do that job, so only the outer
     ## bracket/pad-mark pair is left to account for here
-    return
-        length( <[editor.control.cycler.render]>->( \@vocabulary, 0 ) ) + 2
+    return length( <[editor.control.cycler.render]>->( \@addable, 0 ) ) + 2
         if $field_def->{'add_field'} and @vocabulary;
 
     ## +2, not +4 : a collapsed list's summary drops BOTH the inner leading
@@ -403,8 +419,8 @@ my $entry = {
 
 return $entry;
 
-#,,..,,.,,,.,,,,,,...,,,.,.,.,...,..,,.,,,.,,,..,,...,...,...,..,,,,,,,.,,...,
-#DGSWKFY3WUZPT2HUHTFOCZ7W7M25NPQKLEUDSZGSQUL35GGLVFOA5RFOYCDBX5TB3ZVMPOZCDML6M
-#\\\|A4RRMWFVCWXZGDVOUO2KQCUSPZQZDYJRH6QLF2BGVNOYJY53EUZ \ / AMOS7 \ YOURUM ::
-#\[7]ZLR5BBEDPJ6PD4W3DEQNPDJVCRHWZ64OSWTPYXOHWJ6TA6DOTWDY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,.,,.,,,,,,,.,,,..,,,,,,,.,,.,,..,,...,...,...,,..,,.,,..,,.,,,
+#WHOXZGVKP4CQHPBXXOS4BWKBSQXAGHIJ3VZDYR46NX6RJ7BNO6M3JFRXYN7LGVEAJ2VEPPEXK25AM
+#\\\|EP2HLV5WHVRYRWPOKWG5KCHLZDPY6PJMS4ZIYCW5MGNV3RUTMDK \ / AMOS7 \ YOURUM ::
+#\[7]YABPXRIWFRPNUCZ7NXHNYMRHNHGAFNJN7OFPMM65U6WMOSON6YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
