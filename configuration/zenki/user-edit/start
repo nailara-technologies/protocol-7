@@ -3,6 +3,26 @@
 
 [load_config_file:'shared-params']
 
+## detail-tab plugins [ data/yaml/coding-tasks/user-edit-plugin-detail-
+## tabs.yaml ], loaded and [load_plugins:...]'d BEFORE [load_modules:...]/
+## [init_modules] below, not after : [init_modules] only picks up
+## *.init_code/*.post_init for whatever is already compiled into %code at
+## the moment it runs [ base.init_modules:9-22's own phase-then-module walk
+## ], so a plugin loaded afterward would miss that automatic pass entirely.
+## plugin-namespaced modules go through [load_plugins:...], not
+## [load_modules:...], full stop -- confirmed against configuration/zenki/
+## web/start's own precedent [ plugins.load = plugin.web, alongside
+## modules.load's separate plugin.web.auth entry -- both plugin-prefixed,
+## both go through the plugin path one way or another ].
+##
+## plugin.user-edit.registry is the PERMANENT baseline entry here : 'registry'
+## is itself just a <name> under the plugin.user-edit.<name>.* convention [
+## not a special exception to it, per user ], always present regardless of
+## which THIRD-PARTY plugin.user-edit.<name> plugins get appended after it —
+## see modules/plugin.user-edit.registry.post_init for what it does
+plugins.load = plugin.user-edit.registry plugin.user-edit.example
+[load_plugins:<plugins.load>]
+
 ## deliberately NOT nshell's trailing '*' [ which enables everything for   ##
 ## devmod debugging ] : user-edit's only reason to be reachable at all is  ##
 ## char-add, the no-tty form driver, and char-add itself refuses unless    ##
@@ -48,8 +68,8 @@ system.auth-user = <user-edit.auth_name>
 ## print and exit : a [zenka.loop] at this level would hang them, and    ##
 ## plain 'v7.user-edit' would never return to the shell                  ##
 
-#,,,.,,,.,.,,,.,.,,..,,.,,..,,,.,,,.,,,..,.,,,..,,...,...,,..,,,,,,,.,,..,,..,
-#KF226CBYNUDUOIIG7KZBK2IP2DCSP5LAVWRE4RPXERR6WN3HLLUIBCVZ3CQJOYNQQW7BWANSOVOD2
-#\\\|SBUWDJXDAOYCDKM74TGYIXQ3UFHV5EUNQWVMMGM5YRZCIBYRDCW \ / AMOS7 \ YOURUM ::
-#\[7]V26L2AA33WLFSRVDZSLCQEPAMBGHLHK7U7M75QKSGYGUYQRJREAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,,.,,.,,,,..,,..,.,,,.,.,..,,..,,...,..,,,..,.,.,...,...,,,,,
+#5FWAQ4G5B4RJRLNHTH5ET4POB6Q7PVXPW6UHITWKXPSPWDDNQBGUPRNPJEVVD534VYXOZJUW42Y5Y
+#\\\|QDKVX3LLF2XJTPVM3NJOG6PYX3S7YON7WHQZ4W56QDRAR5ROQTY \ / AMOS7 \ YOURUM ::
+#\[7]CFHQS52NG35WN2OT34EMZNPLLKVHL277QFAZVTBIC4L7I7KCM4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
