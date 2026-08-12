@@ -1,8 +1,19 @@
 ---
 # Task: user-edit plugin detail tabs
 # Date: 2026-08-12
-# Status: DESIGN ONLY — nothing implemented yet, several open questions
-#         below need answers before phase_1 can start
+# Status: DESIGN SETTLED, nothing implemented yet. Resolved: plugin
+#         module convention, discovery (one parent post_init), entry/
+#         return keys (Tab+Right / Esc+Left), rendering layout
+#         (embedding_field_type_dropin — a new 'plugin' field type, not a
+#         row-expansion), value storage (plain scalar per pinned key,
+#         multiple keys per plugin, plugin owns its own namespace +
+#         cross-referencing), and field-type PLACEMENT (user-edit-
+#         specific, not editor.control.*'s generic type contract — the
+#         deciding fact is that plugin.user-edit.*.* only ever loads into
+#         the user-edit process itself, confirmed the hard way earlier
+#         this thread when a cross-zenka module call failed live). Only a
+#         single low-priority deferred item remains — see open_questions.
+#         Ready for a phase_1 implementation pass.
 # Context: third feature in the user-edit UI roadmap this session, after
 #          capped/scrollable list windows (landed, commit 3fe1fed15) and
 #          field/entry sort ordering (landed, commits 793e1c2c7/a63ea5438).
@@ -138,12 +149,13 @@ registry_and_post_init:
       - a pinned_keys COLLISION [ two plugins pin the same key ] is
         caught HERE, in the single walk, and logged loudly — not a
         runtime decision or a race between independent self-registrations
-  open_question: >
-    does pinned_keys need to support ONE plugin pinning MULTIPLE keys
-    [ user's original phrasing was plural, "pinning them to specific
-    setup keys" ], or one key per plugin — an array already assumes
-    multiple are allowed, worth confirming that reading is right before
-    locking the shape in.
+  resolved_multiplicity: >
+    RESOLVED, per user [ confirmed via rendering_contract's
+    resolved_stress_test ] : pinned_keys stays an ARRAY, multiple keys
+    per plugin — genuinely useful, not just an unused-but-harmless shape.
+    Each plugin's own pinned keys form the "namespace" it owns and cross-
+    references internally, e.g. an ssh plugin pinning both ssh_config and
+    ssh_known_hosts.
 
 tab_key_dispatch:
   motivation: >
@@ -258,78 +270,93 @@ rendering_contract:
     something equivalent to user-edit.form.sync_list_mode's explicit
     active_name-restore-after-collapse bookkeeping would be needed to
     answer "which row does Esc/Left go back to."
-    Architectural question this raises : does 'plugin' as a field type
-    belong in editor.control.* itself [ the GENERIC layer every zenka's
-    forms share, matching where enum/readonly/freeform_multiline already
-    sit reserved ] rather than being user-edit-specific — the existing
-    reserved-but-unbuilt type list suggests the codebase already expects
-    the type vocabulary to grow at that generic layer, not per-zenka.
-  state_model_full_editor_state: >
-    (paired naturally with layout_top_bar, but not exclusively) the
-    plugin owns a SECOND, independent editor.control.* schema/state and
-    reuses render_form directly against it — means every plugin's detail
-    view has to be shaped as an editor.control field schema even when
-    what it wants to show is not form-shaped [ e.g. a live host-status
-    readout ].
-  state_model_free_render: >
-    (paired naturally with the embedding layouts, but not exclusively)
-    plugin.user-edit.<name>.render returns raw text/ascii.frame content
-    with no editor.control.* schema underneath — more flexible per
-    plugin, but user-edit.handler.stdin_key's whole key-dispatch chain
-    does not apply while the tab/row is active, and plugin.handler.key
-    has to reimplement whatever subset of it the plugin needs. Closer to
-    amos-term's plugin-render/plugin-input hook shape [ modules/amos-
-    term.plugin-init_code:10-36 ] — worth reading that contract closely
-    before committing to this shape, even though amos-term itself is a
-    different [ GUI ] rendering surface per user-edit-console-zenka.
-    yaml's amos_term_plugin_overlap section.
-  open_question: >
-    THREE layout options now on the table [ top_bar / embedding_list_
-    style / embedding_field_type_dropin ], plus the state-model axis —
-    pick before phase_1 starts, this determines almost everything else
-    about how .render / .handler.key get called and what they are
-    allowed to assume. embedding_field_type_dropin has by far the
-    strongest case built up so far [ least new machinery, composes with
-    lists for free, and return-path/"which element was selected"
-    bookkeeping the other two would need is simply not needed at all,
-    since the plugin never leaves the field it is attached to ] — still
-    not formally stated as the final decision, but nothing has been
-    raised in either alternative's favour across this whole thread.
-
-data_access_question:
-  motivation: >
-    unresolved and not yet even asked : does a detail tab plugin read/
-    write the SAME users.* record user-edit is already editing [ e.g. a
-    "hosts" tab editing a structured sub-field of the current user's
-    record ], or an entirely separate data source [ e.g. an "ssh" tab
-    reading real ssh config files, unrelated to users.record.* at all ].
-    This affects whether tab_info needs to declare anything about data
-    scope, and whether draft/outbox semantics [ user-edit.form.field_
-    changed, user-edit.draft.* ] apply to a plugin tab's edits at all.
+    RESOLVED, per user : 'plugin' as a field type stays USER-EDIT-
+    SPECIFIC, not added to editor.control.*'s generic type contract —
+    correcting this doc's earlier framing, which wrongly assumed the
+    reserved-but-unbuilt enum/readonly/freeform_multiline precedent meant
+    every new type belongs at the generic layer. The deciding fact is
+    architectural, not stylistic : plugin.user-edit.<name>.* modules are
+    loaded into the user-edit PROCESS ONLY [ base.load_plugins compiles
+    them into user-edit's own %code via its own start file's plugins.load
+    — confirmed the hard way earlier this thread, when a cross-zenka
+    <[users.record.sorted_fields]> call failed live with 'subroutine not
+    defined' because user-edit and users are separate processes with
+    separate %code ]. A 'plugin' TYPE living in shared editor.control.*
+    would be meaningless — or silently broken — for any OTHER zenka's
+    form that has no plugin.<that-zenka>.* modules loaded at all. Kept
+    where the capability it depends on actually lives : user-edit's own
+    dispatch [ get_display_value-equivalent, process_key-equivalent ]
+    checks for a plugin-typed field and routes to plugin.user-edit.
+    <name>.render / .handler.key directly, entirely inside user-edit's
+    own modules — editor.control.create's shared type-acceptance list is
+    untouched by this feature. Per user : this is specifically the
+    intended mechanism for expanding user-edit's own supported data/page
+    types going forward, not a generic editor.control.* capability.
+  layout: >
+    RESOLVED, per user : layout_embedding_field_type_dropin over the
+    other two — single row, plugin as a new field TYPE, no row-count/
+    reservation change, no return-path bookkeeping needed.
+  state_model_and_data_access: >
+    RESOLVED, per user, and the two former separate open questions
+    [ state_model_full_editor_state / state_model_free_render above, and
+    data_access_question below ] COLLAPSE into one answer now that the
+    layout is settled : a plugin-typed field's VALUE stays a PLAIN SCALAR
+    in the normal buffer — editor.control.get_value / get_cursor / submit
+    / user-edit.form.field_changed / user-edit.draft.* all keep working
+    completely unmodified, the same way they already do for freeform_line
+    today. Only DISPLAY [ editor.control.get_display_value's per-type
+    dispatch, alongside masked/list/cycler's existing branches ] and KEY
+    HANDLING [ delegated to plugin.user-edit.<name>.handler.key while
+    focused, instead of process_key's normal freeform_line branches ]
+    are customised. A plugin that needs STRUCTURE encodes it into that
+    one text value itself [ same move 'list' already makes for the draft
+    checkpoint — join(',', entries), see user-edit.form.field_changed's
+    existing list branch — a 'plugin' type would own an equivalent
+    encode/decode pair instead of a fixed delimiter joiner ]. This also
+    answers data_access_question outright : a plugin tab is not a
+    separate data source needing its own submit/draft path at all, it
+    edits the SAME record through the SAME single stored value every
+    other field already goes through — an "ssh tab reading real ssh
+    config files" would need to encode/decode that config INTO this one
+    text value, not open a parallel storage channel.
+  resolved_stress_test: >
+    RESOLVED, per user : plain scalar holds up even for structured/
+    multi-part data, because the PLUGIN controls its own namespace — a
+    plugin is not limited to encoding everything into the ONE pinned key
+    it triggers a tab from. registry_and_post_init's pinned_keys is
+    already an ARRAY per plugin [ see that section's own still-open
+    question on single vs multiple keys, which this answers in passing :
+    multiple, clearly useful now ] — an "ssh" plugin can pin several
+    related keys [ e.g. ssh_config, ssh_known_hosts ], each a plain
+    scalar it owns the encode/decode for, rather than forcing one
+    genuinely complex dataset through a single text field. The field-
+    type-dropin layout composing with a LIST of plugin-typed fields "for
+    free" [ layout_embedding_field_type_dropin's own note above ] is the
+    same property showing up again here from a different angle : a
+    plugin's storage footprint is just "however many plain-scalar keys
+    it declares," not a single fixed shape. AND, per user : the plugin
+    also owns the CROSS-REFERENCING between its own pinned keys — the
+    STORAGE layer never needs to understand any relationship between
+    ssh_config and ssh_known_hosts, that logic lives entirely inside the
+    plugin's own .render / .handler.key / encode-decode code, reading
+    whichever of ITS OWN keys it needs via the same plain editor.control.
+    get_value every other field already goes through. Nothing new is
+    needed anywhere else in the stack for this — it falls out of "the
+    plugin owns its own namespace" for free, same as everything else in
+    this resolution has.
 
 open_questions:
-  - rendering_contract : three layout options (top_bar / embedding_list_
-    style / embedding_field_type_dropin — the last one by far the
-    strongest so far : composes with lists for free, needs the least new
-    machinery, and needs no return-path bookkeeping since the plugin
-    never leaves the field it is attached to) and the state-model axis
-    (full editor.control.* schema vs free-form render) — biggest open
-    piece, blocks almost everything else
-  - can one plugin pin multiple setup keys, or exactly one
-    (registry_and_post_init)
-  - does a plugin tab share the current record's data / draft / outbox
-    lifecycle, or own a separate data source entirely
-    (data_access_question)
   - amos-term.plugin-render/plugin-input's actual hook contract has not
-    been read closely against option_b above — worth doing before
-    picking that branch, not just noting the surface-level shape
-    difference
+    been read closely — low priority now, since the resolved layout
+    means user-edit's own plugin.handler.key/get_display_value dispatch
+    is the primary model, not amos-term's hooks; still worth a look if a
+    GUI-backend equivalent is ever wanted later
 
 created: 2026-08-12
 tags: [user-edit, plugin, tabs, editor, ascii-frame, design-only]
 
-#,,,.,..,,.,.,,,.,..,,,.,,.,.,..,,,,,,...,,..,..,,...,...,,,,,..,,...,..,,,.,,
-#CYID2VX2OMX6TIARCTDEY4XY6GDAYQUE4DYD5ROUD2DQDBQTFJNXKEDICPBQ2SWCGZMZX67RSXADI
-#\\\|6KWXA2PYI5SYW2X53L7L3CQVUHBHDATHU7WNW7JFT2433L6UHQ7 \ / AMOS7 \ YOURUM ::
-#\[7]BBO3FNINX6XE4UOBBFUEXQFWDQPUR75TJFBXJCAJZXBABCPI36CI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,..,,.,,,,.,.,.,...,.,,,,.,,..,,...,...,.,.,.,,,,.,,,..,,,,,
+#24VS2YBXRUHDXMYWKZ4NZ5YMW3THV7Z4E54QSLBA6H7PKJNVKSJDRUEJPKV427FZZ5E7KBBJ6BODA
+#\\\|JICZF6QHVKARI3RXCQEP33HSLBYHJWBSHGK3E4RLMRSIUIVXYTM \ / AMOS7 \ YOURUM ::
+#\[7]EDR4OAKH4IU7UBEGBDXBCV362OEIF6PFOF6P5AEKZH2CBJLG5ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
