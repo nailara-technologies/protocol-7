@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = user-edit.handler.browse_start_reply
+# descr = open the namespace menu once the record count is known
+
+## the namespace menu shows a record COUNT, which only the users zenka can
+## answer -- so browse asks first and the menu opens here.  raw terminal mode
+## and the watchers go up BEFORE the first paint, exactly as
+## user-edit.handler.value_get_reply does for the form, so the screen clear
+## lands on an already-raw terminal and no keystroke is echoed or lost.
+
+my ($info) = @ARG;
+
+my $cmd = uc( $info->{'cmd'} // '' );
+
+my $listing = $cmd eq qw| SIZE | ? $info->{'data'} // '' : '';
+
+## a failed listing is not fatal here : the namespace menu still opens, the
+## host-system count just reads zero and the store answers for itself when it
+## is entered
+<[base.logs]>->( 1, ': record listing unavailable [ %s ]', lc($cmd) )
+    if $cmd ne qw| SIZE |;
+
+my $record_count = scalar grep { length $ARG } split m|\n|, $listing;
+
+if ( not <[user-edit.term_init]> ) {
+    print "\n  << could not put the terminal into raw mode >>\n\n";
+    <[base.exit]>;
+    return FALSE;
+}
+
+if ( not <[user-edit.setup_stdin_watcher]> ) {
+    <[user-edit.term_restore]>;
+    print "\n  << could not register the form watchers >>\n\n";
+    <[base.exit]>;
+    return FALSE;
+}
+
+return <[user-edit.menu.open_rows]>->(
+    <[user-edit.menu.namespaces]>->($record_count),
+    qw| namespace |, undef
+);
+
+#,,,.,,..,..,,.,,,.,,,,,.,.,,,,..,,,,,..,,,.,,..,,...,...,.,.,,,.,,,.,,,.,.,.,
+#YKWGUPTQIAU2WWLFABXZORJLSCUL4PLNZTAHNVSNTHXULVNJXVQQXUJAUOJCYT77QFCPAMRJME2RI
+#\\\|BDGUVB7A66IGHYFYMOCCSIPG5MCBZKCLU4ZBXRI3RYGOSHXUIEH \ / AMOS7 \ YOURUM ::
+#\[7]XM5GG6RPOGAFIBWYYDGQ4MUFRW5GDNKO4WJ62TVNO7FA6LQKS4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

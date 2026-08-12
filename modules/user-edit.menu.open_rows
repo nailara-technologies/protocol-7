@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = user-edit.menu.open_rows
+# descr = install a menu state and rebuild its frame
+# param = $rows_aref, $what [ , $return_state ]
+
+## the single place a menu becomes the live state.  every menu transition goes
+## through here so the frame rebuild cannot be forgotten :
+## user-edit.form.build_frame assigns <ascii.frame.cache> unconditionally and
+## IS the invalidation primitive, while ascii.frame.load returns its cached
+## entry blindly -- a stale descriptor renders the new rows nowhere and leaves
+## ghost rows for the ones that went away.
+
+my ( $rows_aref, $what, $return_state ) = @ARG;
+
+my $menu_state
+    = <[editor.control.menu.open]>->( $rows_aref, $what, $return_state );
+
+if ( not defined $menu_state ) {
+    <[base.logs]>->( 0, ': could not open menu [ %s ]', $what // '?' );
+    return FALSE;
+}
+
+## the title belongs to the STATE, not to a global : ascending restores a
+## previous state, and a global would still be showing the title of the level
+## we just left
+$menu_state->{'title'} = <user-edit.menu.title>->{ $what // '' }
+    // qw| user-edit |;
+
+<user-edit.form.state> = $menu_state;
+
+<[user-edit.form.build_frame]>->(
+    $menu_state->{'schema'},
+    <user-edit.form.frame_name> // qw| user-edit-form |,
+    $menu_state->{'title'}
+);
+
+<user-edit.form.dirty>++;
+
+return TRUE;
+
+#,,,,,...,,,,,,,.,,,.,.,.,,,.,,,,,,,.,.,.,.,.,..,,...,...,.,,,,,,,..,,.,,,,.,,
+#VQR2PZDQKQ24P3JFOAECMCOILLX2VJYLYMXPCKP3BBGEODJIUP6BWDWM2WA3I3UBJDUA2ONC4YDTG
+#\\\|XVZLHHMDIU4JYMC6YWP2IWWLNBPDCZTQTXAJSQBJPK7C5NHVKCL \ / AMOS7 \ YOURUM ::
+#\[7]2CVOHQLA5TCPYOMKGP3S6355O2WKSLHBRWPTFQS677JQSKFFSMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

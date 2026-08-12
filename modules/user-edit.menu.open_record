@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = user-edit.menu.open_record
+# descr = open a chosen host-system record in the edit form
+# param = $username
+
+## the third level : a record picked from the menu opens the ORDINARY edit
+## form.  it reuses user-edit.handler.value_get_reply untouched, so the whole
+## schema / frame / render / raw-mode path is exactly the one a direct
+## 'show-form <user>' takes -- the menu only decided which record.
+##
+## create.attempted is set so a record that vanished between the listing and
+## this fetch cannot trigger the create-admin offer from inside a menu.
+
+my ($username) = @ARG;
+
+return FALSE if not defined $username or not length $username;
+
+my $cube_sid = <user-edit.cube_sid>;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    <[user-edit.message]>->( 'link to cube is gone', qw| fail | );
+    return FALSE;
+}
+
+## remember the menu we came from : the form that opens here is a FRESH state
+## with no menu_source, so without this Esc would leave the zenka instead of
+## stepping back up to the record list
+<user-edit.menu.form_return> = <user-edit.form.state>;
+
+<user-edit.form.username> = $username;
+<user-edit.form.title>    = sprintf( 'user-edit : %s', $username );
+
+## a record listed a moment ago is not a missing record : do not offer to
+## create one from inside a menu
+<user-edit.create.attempted> = TRUE;
+
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-get', $cube_sid ),
+        qw| call_args | => { qw| args | => $username },
+        qw| reply |     =>
+            { qw| handler | => qw| user-edit.handler.value_get_reply | }
+    }
+);
+
+return TRUE;
+
+#,,,.,,..,.,,,...,,.,,,.,,..,,.,.,...,,.,,,..,..,,...,...,,..,...,.,,,..,,,,.,
+#IN3KFGQPEL26C4UQKRNBAPZ4OSEKDUOSYPAITFVFMYGVT4MYZJOKGSO6YMC45YBEOCRX7J7VX7FLY
+#\\\|CXYMOBZPP2MA4AA3LO2BH3R7HVEU5L4RQYEOGPRXO6VOGIDZXD4 \ / AMOS7 \ YOURUM ::
+#\[7]APXLDSBSUPNITCKLMUZDZ3PYVDH4SHI5F5CUWRP7KP57C4FEU2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

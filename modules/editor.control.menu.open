@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = editor.control.menu.open
+# descr = open a focused row list as a read-only editor state
+# param = $rows_aref, $what [ , $return_state ]
+
+## a MENU is a read-only form : rows become schema fields, so focus,
+## navigation, rendering, the cursor suppression and the frame regeneration
+## all work unmodified -- the same move editor.control.list.expand makes, with
+## rows that cannot be edited.
+##
+## one primitive serves the namespace menu, the record list and [ when it
+## lands ] the enum picker.  the design doc's 'enum : cycles = TRUE' is
+## superseded by this : see the amendment in
+## editor-namespace-interface-design.yaml.
+##
+## $rows_aref : [ { key => 'host-system', label => 'host-system  3 ..' } ]
+## $what      : names the menu, becomes mode 'menu:<what>'
+##
+## rows are named row_0, row_1 .. rather than after their key : field names
+## become ascii.frame slot tokens and must match ^\w+$, while a key is
+## arbitrary [ 'host-system' has a hyphen ].  the real keys travel alongside
+## in menu_source, cred-mesh's row_keys shape.
+##
+## the caller MUST rebuild the frame afterwards -- user-edit.form.build_frame
+## is the ascii.frame cache invalidation primitive.
+
+my ( $rows_aref, $what, $return_state ) = @ARG;
+
+return undef if ref $rows_aref ne qw| ARRAY | or not $rows_aref->@*;
+return undef if not defined $what             or not length $what;
+
+my @fields;
+my @row_keys;
+my $index = 0;
+
+foreach my $row ( $rows_aref->@* ) {
+
+    next if ref $row ne qw| HASH |;
+
+    my $key = $row->{'key'};
+    next if not defined $key;
+
+    push @row_keys, $key;
+    push @fields,
+        {
+        qw| name |     => sprintf( qw| row_%d |, $index++ ),
+        qw| type |     => qw| freeform_line |,
+        qw| default |  => $row->{'label'} // $key,
+        qw| readonly | => TRUE,
+        qw| menu_row | => TRUE,
+        };
+}
+
+return undef if not @fields;
+
+my $menu_state
+    = <[editor.control.create]>
+    ->( { qw| fields | => \@fields, qw| active_field | => 0 } );
+
+return undef if not defined $menu_state;
+
+$menu_state->{'mode'} = sprintf( qw| menu:%s |, $what );
+
+$menu_state->{'menu_source'} = {
+    qw| what |         => $what,
+    qw| row_keys |     => \@row_keys,
+    qw| return_state | => $return_state,
+};
+
+return $menu_state;
+
+#,,,.,.,,,,..,...,,.,,,,.,.,,,...,,,,,...,,,.,..,,...,...,.,.,.,.,,,,,,.,,.,,,
+#ISEMB6AEYRLBS67QEQYCCMXUYVYCN3JRHKM33PBGCLO4CMBDUPAVKOU7RNIPZJUAYMOGEHKXEGBZG
+#\\\|XXHFH2G47KJEQW2NEBQMFE3QLC6IIDEKMPWHIIU37MGXQXQVHZS \ / AMOS7 \ YOURUM ::
+#\[7]NSAQVAVVROI5RVDJLJDFDQKXAUN7PT32WEMHWZ5VVHEZC7YT46CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
