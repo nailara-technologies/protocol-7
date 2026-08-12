@@ -60,6 +60,14 @@ if ( length $source ) {
     foreach my $row_def ( ( $editor_state->{'schema'}{'fields'} // [] )->@* )
     {
         next if ( $row_def->{'list_row_of'} // '' ) ne $source;
+
+        ## the position readout [ editor.control.list.expand's  'list_info'
+        ## row, present once a list is windowed ] carries list_row_of too and
+        ## its DISPLAY text is never empty -- without this it reads as
+        ## "content" forever, so a windowed list could never be judged empty
+        ## and Del stopped removing it even when every real entry was
+        next if $row_def->{'list_info'};
+
         return undef
             if length(
             <[editor.control.get_value]>->(
@@ -87,8 +95,8 @@ return $field_def->{'list'}
     : $name
     );
 
-#,,,,,,,,,...,.,,,,,.,,.,,...,...,..,,...,,.,,..,,...,...,,,.,,,.,.,,,,,.,,,.,
-#AOQVULPRCKR25Z5NTXWSS5OUY66KJGIDZ2GZ5ZOMMRLWLBE6S7M5RZNMPEYSTYPPS5533WKBKJ4LY
-#\\\|GIJJ4JNDLIEMQGUCE6TXLEUDCF6CJJOVQ6KZOMKF42JTBJDTEAH \ / AMOS7 \ YOURUM ::
-#\[7]M6KCXLOISWVMTDLPP23ZVX65CUW5FNRNNVKCA4ZVSFP74QGB6KDQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,..,,,,,,.,.,,.,,.,,,...,.,.,..,,...,...,...,,.,,,..,...,.,,,
+#TTGOLLYKWEEG5E7R42PSL767GUZXCB3Y7XTPIJVVNBTBENGDU3MOUHULLKRGG3L52GXSFCLLIVBUO
+#\\\|QTKIQPTURVNXGUISIMOYLVWEKWKLKKFOK6NGLCEID7OLCXCDLD6 \ / AMOS7 \ YOURUM ::
+#\[7]HYCVV3NGKSBRKGIIVN4VEUO2OBYUPWRQR5N3DFOYML4SST5PIOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

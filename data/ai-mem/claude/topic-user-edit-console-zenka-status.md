@@ -673,8 +673,96 @@ away then back, showed it re-sorted to the front with zero submit; same
 for a windowed 4→5-entry case, confirming the sort runs on the full
 pre-windowing array.
 
-#,,..,,.,,..,,.,,,.,,,,,.,...,.,.,,.,,,..,,,,,..,,...,...,.,,,.,,,...,,.,,,,,,
-#ANBUAQSKA45IJMKKAFPXEB2X2LDXVKRWESV7YQRGXGBL44SGLJ44MO5PEMFXSFMRZQNFZ4K46PY6S
-#\\\|6GCCUIWAB7ONMTOI6VGXFM3GB43I65T4XMGLAFQY6DODLRPNVY2 \ / AMOS7 \ YOURUM ::
-#\[7]IKUWLKTYKMIOXOKOZZTKJUBOENOX262M5NVSRTMWK7JUFBBUEMDA 7  DATA SIGNATURE ::
+**Next session — a real regression, a timing refinement, and a new
+per-entry Del, all in one thread.**
+
+1. **REGRESSION, caught by user, root-caused and fixed**: "Del on an empty
+   optional field row" (see [[reference-editor-add-field-cycler]]'s CLOSED
+   section) stopped working once a list field was WINDOWED. Root cause:
+   `user-edit.form.removable_field`'s "is every row of this list empty"
+   loop iterates every `list_row_of` row including the NEW `list_info`
+   [ scrollinfo ] row — its display text (`:..N-M.of.T..:`) is never
+   empty, so a windowed list could never be judged empty and Del silently
+   did nothing, "until it collapses [ tabbing away ] and that cleans up
+   the empty ones anyway" [ the entries, not the FIELD itself — collapse's
+   `grep{length}` was never the same thing as removing the field from the
+   form ]. Fixed with one `next if $row_def->{'list_info'};` line, the
+   same skip `.collapse`/`.scroll` already had — a THIRD call site I
+   missed when introducing the marker. Verified live with a 4-entry
+   windowed phone list emptied out via navigation: Del now removes the
+   field once truly empty, exactly as before windowing existed.
+
+2. **Timing refinement, per user**: sort-on-focus [ previous session ]
+   only resorted on ENTERING the whole list from outside. User wanted it
+   to also fire "the moment you exit focus from the [ row ] you entered
+   the new value from" — i.e. on ordinary Up/Down/Tab movement BETWEEN
+   rows within an already-open list, not only on the list-wide
+   enter/leave transition. Real design trap avoided: a naive
+   "resort + `editor.control.list.expand`'s own land-on-row-0 default"
+   would make it IMPOSSIBLE to navigate past row 0 whenever anything
+   needed reordering — every Down press would immediately bounce back.
+   Fixed by extending `editor.control.list.scroll` to accept `$direction
+   == 0` [ "resort in place, same window, no page" — required relaxing
+   TWO guards : `not defined $direction` instead of `not $direction` so 0
+   passes through, and the window_cap short-circuit now only applies when
+   `$direction` is truthy, since a 2-entry list has nothing to PAGE but
+   still has something to SORT ], and by making the caller
+   (`user-edit.form.sync_list_mode`'s `$still_inside` branch) PRESERVE the
+   destination `active_field` INDEX after the resort rather than accepting
+   `.expand`'s row-0 default — sorting can change which entry occupies
+   which row, but the cursor still needs to visibly move the direction
+   just pressed. `editor.control.list.collapse` got the same
+   `sort_on_focus`-gated sort too, so leaving the list ENTIRELY also
+   normalises immediately rather than waiting for a future re-entry.
+
+3. **New feature, same thread, per user**: "Del on empty multi-fields" —
+   clarified via AskUserQuestion into: an INTERIOR row of a multi-entry
+   list that is empty while SIBLING rows still hold content should be
+   removable with Del immediately, not only once the whole field is
+   empty [ the existing `removable_field`/`remove_field` pair only ever
+   handled the whole-field case ] and not only after navigating away
+   [ which already dropped it via the ordinary harvest-and-merge, per
+   item 2 above — the gap was specifically Del pressed WITHOUT first
+   moving off the row ]. Key realisation that avoided a whole new
+   removal primitive: an empty row's live buffer already fails
+   `grep{length}` in the SAME harvest-and-merge `.scroll`/`.collapse`
+   already do — "resort in place" and "remove this one empty row" are
+   THE SAME OPERATION from the merge's point of view. So Del on an empty
+   interior row just triggers a `$direction 0` resort immediately,
+   instead of waiting for a navigation event to trigger the same thing.
+   Factored the position-preserving resort+state-write+frame-rebuild
+   sequence [ shared by BOTH item 2's trigger and this one ] into a new
+   `user-edit.form.resort_list` glue module, called two different ways :
+   `sync_list_mode` gates its own call on `sort_on_focus` [ this resort
+   trigger is genuinely about sorting, contact/phone-specific ], while
+   `stdin_key`'s new Delete-on-empty-interior-row check does NOT gate on
+   it [ removing an empty slot is general list hygiene, not a sorting
+   behaviour, and should work for any list field ]. Verified live
+   (`p7-fieldtest9`, phone `["a@x","X","b@x"]`): cleared the MIDDLE row
+   without navigating away, pressed Delete — the row vanished
+   immediately, the entry below shifted up into its place, cursor stayed
+   at the same visual row ; confirmed Delete-as-character-delete on a
+   non-empty row is unaffected ; confirmed the field still collapses
+   correctly afterward.
+
+**A real `and`/`or`-precedence bug, caught by a live Perl warning before
+it shipped** (`Useless use of not in void context`, item 3's implementation):
+`my $x = A and B and C` assigns only `A` to `$x` — `and` binds LOWER than
+`=`, so `B`/`C` execute as discarded void-context statements rather than
+contributing to the assignment. Same trap with `not` : it ALSO binds
+lower than `&&`, so mixing `A && not B` is not the tight grouping it
+looks like either. Fixed by rewriting the whole `$remove_empty_row`
+boolean-and-chain with `&&`/`!` throughout rather than `and`/`not` — the
+existing `$still_inside` line elsewhere in this same codebase already
+uses `&&` for exactly this reason, worth pattern-matching against BEFORE
+writing a new multi-condition assignment, not after a warning catches it.
+Re-grepped every file touched this session for the same shape
+(`= .* and/or`) to confirm this was the only instance — worth doing as a
+matter of course after finding one, since it is very unlikely to be an
+isolated slip in a single sitting.
+
+#,,,.,..,,...,,.,,,..,.,,,,,,,,.,,,.,,.,,,.,,,..,,...,..,,...,.,,,,.,,,,.,,.,,
+#XT2HE7ASG5KGQHJGYQFCUM6OHXABDAN2F44KDIL67Z4T7QQU32QLEXEPSKJ4EMXEDZ4NLI2B6GYHO
+#\\\|CMWEMHBTCMVWD6FIRZB2UFDHSIYBD4YBUE2YDTTE6MK5JFOITTC \ / AMOS7 \ YOURUM ::
+#\[7]42MFXUDM7WSBSGCXMFQZNODRQH7GB6X5XJ6YLTXQMT4QLNUB5SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -64,6 +64,16 @@ splice( @virtual, $source->{'offset'} // 0,
     scalar(@window_values), @window_values );
 my @entries = grep {length} @virtual;
 
+## per-field OPT-IN, same 'sort_on_focus' flag and reasoning as
+## editor.control.list.expand : sort the merged entries before storing them
+## back, so LEAVING the list [ this module ] normalises immediately, exactly
+## like ENTERING it already does, rather than only showing sorted order the
+## next time the field happens to be re-expanded
+my ($list_def)
+    = grep { ( $ARG->{'name'} // '' ) eq $field_name } $source_fields->@*;
+@entries = <[base.sort]>->( \@entries )
+    if ref $list_def eq qw| HASH | and $list_def->{'sort_on_focus'};
+
 ## rebuild the original field list, carrying current values across ##
 my @restored;
 foreach my $field_def ( $source_fields->@* ) {
@@ -101,8 +111,8 @@ foreach my $field_def (@restored) {
 
 return $new_state;
 
-#,,.,,,..,.,.,,,.,.,,,..,,,.,,,.,,.,.,,.,,.,.,..,,...,...,.,,,.,,,..,,,..,,,,,
-#YW5ZGPLZH6DELCM2LDQQKTKIFZXBZAXFH5ZINBCP7WR6JPYSO736XIYE5WFKKAA7TFQF2I53JVQD4
-#\\\|WV567TJOZPGIMIHISPYVA37HQLNFMA5BYM7DOBR36IUYYL7B4PG \ / AMOS7 \ YOURUM ::
-#\[7]6VPLBEWH2MS5EPYZDENFXIAPNYM76VGGPCY2LP3Y6Q6PAGWRR6CI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,..,,..,,.,,,,..,,,.,,.,,.,,,.,,,..,,...,...,..,,,,,,,,.,...,,.,,
+#USWWIHS3OVVYORBGH7MBPC35P7AN6CMLZBAL2TP53HYGXKXZILFDBGEVFIKMU2Q66A3IJVSPTKTO6
+#\\\|PRVRDMOZW5FSFT4VBCJAOXXXFMVMQSDGF7MD43RI3FK7N44KAI2 \ / AMOS7 \ YOURUM ::
+#\[7]DN2644TPLTWDS5IKX3IFIC54BXM3GV67XIZGHW2MM2JUTRTZKYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
