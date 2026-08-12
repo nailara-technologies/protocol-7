@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = user-edit.console.browse
+# descr = browse namespaces and records, then edit
+# param = [ :create-admin: ]
+
+## the parent level above 'start' : pick a namespace, then a record, then edit
+## it -- rather than naming the record on the command line.
+##
+## same HYBRID LOOP MODE as the other interactive commands : [init-done] and
+## [zenka.loop] are called HERE, not in the start file, so 'commands' and
+## 'describe' still print and exit.  the namespace menu needs the record
+## COUNT, which crosses the cube, so the listing is requested first and the
+## menu opens in the reply -- the same async shape the form itself uses.
+
+my $params = shift // '';
+
+my ( $rest, $tags ) = <[user-edit.parse_params]>->($params);
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
+    print "\n  << no cube session — cannot reach the users zenka >>\n\n";
+    return FALSE;
+}
+
+if ( not -t STDIN ) {
+    print "\n  << the browse command needs a terminal >>\n\n";
+    return FALSE;
+}
+
+<user-edit.cube_sid>         = $cube_sid;
+<user-edit.form.interactive> = TRUE;
+## q{} NOT qw| | for the values : qw splits on whitespace, so  'qw| user-edit
+## : records |' yields THREE list elements and silently corrupts the hash
+## pairing -- which is why only the single-token entry was resolving
+<user-edit.menu.title> = {
+    qw| namespace | => q{user-edit},
+    qw| record |    => q{user-edit : records},
+    qw| keydetail | => q{user-edit : key},
+};
+
+push <callbacks.end_code>->@*, qw| user-edit.term_restore |;
+
+<[protocol-7.command.send.local]>->(
+    {   qw| command |   => sprintf( '%d.users.value-all', $cube_sid ),
+        qw| call_args | => { qw| args | => '' },
+        qw| reply |     =>
+            { qw| handler | => qw| user-edit.handler.browse_start_reply | }
+    }
+);
+
+<[base.init-done]>->(TRUE);
+
+<[base.zenka.loop]>;
+
+return TRUE;
+
+#,,,.,,..,,..,.,,,,,.,..,,..,,...,.,.,.,,,..,,..,,...,..,,...,,,,,,,,,..,,,,,,
+#CBFYQNQGAZSLCI3KY6M726CPOXO3ERKYWZ7GWBMQ6WYV34LKNEEWVUN6BOMCYP6A5MJWT5RJVT2KK
+#\\\|3TUAH4P5JU5TJM36V23KLH5BDV7P7Z3S5AR5DMFEMYMY6LS2UMY \ / AMOS7 \ YOURUM ::
+#\[7]EMKWUSYJ7VIW7QIFBCG2NYEJFX4GXA46OZMLYBXRIVDIPMBZRUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

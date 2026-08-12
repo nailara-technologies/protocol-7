@@ -28,6 +28,26 @@ my $result = {
 
 my $multi_field = scalar $schema->{'fields'}->@* > 1 ? TRUE : FALSE;
 
+## READONLY : block every MUTATING key, not just insertion.  the printable
+## branch far below already checked $buffer->{'readonly'}, but delete,
+## backspace, the kill commands and yank did not -- so a "read-only" field
+## could still be emptied with Backspace.  navigation [ Tab, arrows, Ctrl-a /
+## Ctrl-e ], submit and the advisory signal stay allowed, which is what makes
+## a read-only row usable as a selectable MENU entry
+state %mutating_key = map { $ARG => TRUE } (
+    "\x04",     ## ctrl-d  delete at cursor  ##
+    "\x0b",     ## ctrl-k  kill to end       ##
+    "\x15",     ## ctrl-u  kill to start     ##
+    "\x17",     ## ctrl-w  kill word back    ##
+    "\x19",     ## ctrl-y  yank              ##
+    "\x08",     ## backspace                 ##
+    "\x7f",     ## backspace [ DEL ]         ##
+    "\e[3~",    ## delete key                ##
+    "\x1b[3~",
+);
+
+return $result if $buffer->{'readonly'} and $mutating_key{$key};
+
 ## Tab / Shift-Tab : field_next / field_prev — never fires for a ##
 ## single-field schema [ design: editor.control.process_key ]    ##
 if ( $key eq "\x09" and $multi_field ) {
@@ -231,8 +251,8 @@ if ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 ) {
 $result->{'passthrough'} = $key;
 return $result;
 
-#,,..,.,,,,,,,,.,,,.,,,,,,...,,,.,,,.,.,.,.,.,..,,...,...,.,.,,.,,.,.,,..,,.,,
-#2BNFIZD4NHURO6J4EVQ7EJDHXHXGAOPXC3WF7IMPNML5FLK3ML7KTFOZFFIZPQVTFLRGCP4GDOJ3S
-#\\\|LCHT4DTT4LIPQR67FJYJ5SGUMLCBREZW2K257N65DRTGGP6EJHD \ / AMOS7 \ YOURUM ::
-#\[7]4XOXATZW4N6K5GACEQJ5BGN4TX2CI2DNI3KRD2NSCTSNG5POQOCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,..,,.,,,..,,.,,,,,.,.,.,.,,,...,..,,...,.,.,..,,,,.,...,,,.,...,
+#7TG7TZR7IRUOMURNKQHCEQIYIF55RIZIAOSH6SP2ZQOO4J5MHMI6WSIATWD2OB454BBHIJEK3IGUS
+#\\\|I54ANKSYQZ5DJQX22P7VSWV6S3QWU6A4KXBVSRG477PLDAJQNXT \ / AMOS7 \ YOURUM ::
+#\[7]SVJIFOM5WKN2WEC6BMEE7AJ5VFZDVTHNCEN2F5GLM4D2AMXHCCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

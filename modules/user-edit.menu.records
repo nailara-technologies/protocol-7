@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = user-edit.menu.records
+# descr = row list of records within a namespace
+# param = $namespace, $listing
+
+## the second level of the browse flow.  MIXED DATA PATH, normalised here :
+##
+##   host-system   crosses the cube.  users.cmd.value-all returns a
+##                 newline-joined STRING, because the reply contract forbids
+##                 a raw arrayref in 'data' -- so the caller passes that text
+##                 in as $listing and it is split here.
+##   keys          in-process.  crypt.C25519.all_key_names returns a real
+##                 sorted list, so $listing is ignored.
+##
+## keeping the split here means the menu primitive never has to know which
+## side of the cube its rows came from.
+
+my ( $namespace, $listing ) = @ARG;
+
+$namespace //= qw| host-system |;
+
+my @names;
+
+if ( $namespace eq qw| keys | ) {
+    ## never keys.console.list -- it prints, autoflushes progress and bakes
+    ## ansi into its output, which would corrupt a raw-mode screen
+    @names = <[crypt.C25519.all_key_names]>;
+} else {
+    @names = grep { length $ARG } split m|\n|, ( $listing // '' );
+}
+
+return [
+    map {
+        { qw| key | => $ARG, qw| label | => $ARG }
+    } sort @names
+];
+
+#,,,.,,.,,,,.,,,.,,,.,,..,...,,,,,,,.,,,.,,,,,..,,...,...,...,.,.,,,.,...,..,,
+#LPKHIXHB4X4IHPYZKLOY4CE23TAEZATLR7ZSYEGEFLR4CIGX467JBN65H3NB3MR6332PXIOA6Q7E6
+#\\\|VWEELSRUSYC76U3KTQLE7W7IAM4PZAPSRWP76JCKXTOGQNKE4ZA \ / AMOS7 \ YOURUM ::
+#\[7]RPXJGVAGVMBANMT3C4G3BDMU3B5FZUYZWHUOEQRTJ4GOQCORGSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

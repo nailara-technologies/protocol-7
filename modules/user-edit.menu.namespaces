@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = user-edit.menu.namespaces
+# descr = row list of browsable namespaces
+# param = $record_count
+
+## the top level of the browse flow.  two namespaces today :
+##
+##   host-system   canonical user records -- browsable AND editable
+##   keys          C25519 keys for this user -- browsable, READ-ONLY
+##
+## remote/{incoming,outgoing} is deliberately absent : it is design-only, with
+## no writer, reader or format anywhere in the tree and the directories do not
+## exist, so it would be a permanently empty entry that teaches nothing.  add
+## it when it has a format [ see users-zenka.yaml ].
+##
+## credentials is deliberately absent too, for a different reason : the editor
+## design doc RESOLVED that a masked field is memory-only, with storage
+## refusal enforced in editor.buffer.*, so "pick a credential and edit it"
+## cuts against a decision already taken.
+
+my ($record_count) = @ARG;
+
+$record_count //= 0;
+
+## keys enumerate IN-PROCESS and return real data -- unlike the users side,
+## which crosses the cube and returns newline-joined text.  never call
+## keys.console.list : it prints, autoflushes progress mid-flight and bakes
+## ansi colour into its output, which would corrupt a raw-mode screen
+my @key_names = <[crypt.C25519.all_key_names]>;
+
+return [
+    {   qw| key |   => qw| host-system |,
+        qw| label | => sprintf(
+            'host-system   %d record%s',
+            $record_count, <[base.cnt_s]>->($record_count)
+        )
+    },
+    {   qw| key |   => qw| keys |,
+        qw| label | => sprintf(
+            'keys          %d key%s  [ read-only ]',
+            scalar @key_names,
+            <[base.cnt_s]>->( scalar @key_names )
+        )
+    },
+];
+
+#,,..,,.,,...,,,,,,..,.,,,.,.,.,,,.,,,.,,,,.,,..,,...,...,.,,,.,.,.,,,..,,.,.,
+#UGSBSAY3B75ILUNVQXAW2IHT64WDAZTHEKAOWOFVCBD7VMYQ2CMIVMJIDDZQ7AT2NVRRWKN5ZNKFQ
+#\\\|GJ4OXW4DMWUMIQQBYUGBW277WCGHONQVIPXNQVK2HBWDPUZ6E5V \ / AMOS7 \ YOURUM ::
+#\[7]A2LFXRGPLMSVSNH6E33WJ4HKWUPHBO7L5VVAK4MFFBTJIXJQZYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

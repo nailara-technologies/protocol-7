@@ -86,8 +86,12 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     ## a field whose DISPLAY value is a summary rather than its editable text
     ## has no meaningful character position -- overlaying a cursor there just
     ## corrupts the summary.  the bracket wrapping alone marks focus for those
-    ## [ collapsed list fields ]
-    my $cursor_bearing = not $field_def->{'list'};
+    ## [ collapsed list fields ]  neither a collapsed list nor a menu row has
+    ## a meaningful character position -- both DISPLAY something other than
+    ## editable text, so a cursor overlaid there marks nothing and corrupts
+    ## the label.  the focus framing alone shows which row is active
+    my $cursor_bearing
+        = not( $field_def->{'list'} or $field_def->{'menu_row'} );
 
     ## THREE reserved cells : <pad><value><cursor cell><pad>.
     ##
@@ -158,8 +162,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,..,,.,,..,,...,,,.,,,.,.,.,,.,,,.,,.,.,,,.,..,,...,...,,.,,.,,,,..,,,,,,..,
-#ZM5UCH37MBFFXOFAF3VI6E65FEBFHZZROGTGHLSSEOJ5JCOWGMVJADFIMGGGVGBIHNI33R4B7VT5A
-#\\\|WKUMVBGS4ICGKV5AXOAUOISKNCQYA5A747HR7JETTY6KHN4JVR7 \ / AMOS7 \ YOURUM ::
-#\[7]H7OZDXCWOTAWDVBYMBOVSGZ5FBIYV7B32XAXGJZFYQDXBUPB3GAQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,..,,,,.,,,,,..,,.,.,..,,,.,,..,,...,...,,..,.,,,,,.,...,,..,
+#PBAE35YGLDGBJIOAY6VOMCKLXU77AYVGMMQLGY3JCCWTND3WWL3WQ77SRCCQMTHE6SWTGJ2TRILYA
+#\\\|JOYAQ7NO5VWRQM5PKERYVVBRYVAX52QWQU57T55P54FW5XYVBZP \ / AMOS7 \ YOURUM ::
+#\[7]2A6YK7GCOULK35MAE7WF3ZC6DEDCGBJJD3GFEQUGIFLHFDK5DYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

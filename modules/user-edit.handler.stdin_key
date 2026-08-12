@@ -85,9 +85,15 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         ## sync BEFORE the checkpoint : collapsing first means the draft
         ## records the list under its own name with its entries, instead of
         ## skipping it entirely because only the expanded rows exist yet
-        <[user-edit.form.sync_list_mode]>;
+        <[user-edit.form.sync_list_mode]>
+            if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
         $editor_state = <user-edit.form.state>;
-        <[user-edit.form.field_changed]>;
+
+        ## no draft checkpoint while navigating a MENU : its rows are
+        ## read-only labels, not field values, and checkpointing them would
+        ## write row_0 / row_1 into the draft
+        <[user-edit.form.field_changed]>
+            if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
         $repaint = TRUE;
 
     } elsif ( $action eq qw| field_prev | ) {
@@ -98,12 +104,28 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         ## sync BEFORE the checkpoint : collapsing first means the draft
         ## records the list under its own name with its entries, instead of
         ## skipping it entirely because only the expanded rows exist yet
-        <[user-edit.form.sync_list_mode]>;
+        <[user-edit.form.sync_list_mode]>
+            if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
         $editor_state = <user-edit.form.state>;
-        <[user-edit.form.field_changed]>;
+
+        ## no draft checkpoint while navigating a MENU : its rows are
+        ## read-only labels, not field values, and checkpointing them would
+        ## write row_0 / row_1 into the draft
+        <[user-edit.form.field_changed]>
+            if ( $editor_state->{'mode'} // '' ) !~ m|^menu:|;
         $repaint = TRUE;
 
     } elsif ( $action eq qw| submit | ) {
+
+        ## inside a MENU, Enter DESCENDS a level rather than submitting a form
+        ## -- there is no form to submit, and the rows are read-only
+        if ( ( $editor_state->{'mode'} // '' ) =~ m|^menu:| ) {
+            <[user-edit.menu.select]>;
+            $editor_state = <user-edit.form.state>;
+            $repaint      = TRUE;
+            next;
+        }
+
         <[user-edit.form.submit]>;
         return TRUE;    ## submit owns the flow from here ##
 
@@ -143,8 +165,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,.,,,,,.,.,.,.,...,.,,,...,..,,..,,,,.,,..,..,,...,...,.,,,,,.,.,.,,.,,,..,
-#GOUE7AUSLWIDCTE3WFKZF5BHT2BNZ3DFV6C3G3VFGIXING36F675H5O7AZIM7VPAWGQNEE4ONJE34
-#\\\|V72LOSNEL2KA5YHK52LEDVVO7VX2XRJJTU5SK66HXPZX437CTLE \ / AMOS7 \ YOURUM ::
-#\[7]BEF7ABIVFOVXHPSYM6AFR5PPU4JDVMVMQVQS4MKTRTJXYSRN6EBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,,.,,.,.,,..,.,.,..,,,..,.,,,..,,...,...,..,,,.,,.,.,,,.,..,,
+#45ZQ5PGVL3KUEL2B6CTQOTD77LWTMAPJ22ZT3DV5N6W6P4EIEZEQ2JKVCDMBWND2AQ3LGKSE6YADA
+#\\\|643N4MURPHJF7ROS34JJQESDHLFIGFPI3MOSLYGU5UYWRUXDW2E \ / AMOS7 \ YOURUM ::
+#\[7]HA7JXU5UBITUJHVTUGSV76WUDMHWZSQ5GO6QY7MP6Z3IMRYIUIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

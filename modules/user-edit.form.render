@@ -89,8 +89,8 @@ if ( not $on_terminal ) {
     ## piped : show the CHARACTER, i.e. no cursor at all.  nothing is
     ## navigating a captured render, so a cursor marks nothing -- while
     ## overlaying it silently CORRUPTS the value, which is what a capture is
-    ## actually for.  the reserved cell shows as a space when the cursor
-    ## sits past the end
+    ## actually for.  the reserved cell shows as a space when the cursor sits
+    ## past the end
     $cursor_render = length $cursor_char ? $cursor_char : q{ };
 } elsif ( not length $colors{'reset'} ) {
     ## -nc : no colour, but inverse video still marks the position and keeps
@@ -162,13 +162,28 @@ if (<user-edit.form.interactive>) {
 
     print "\n";
 
-    foreach my $hint (
-        ## q{} not qw| | : these contain a '/' and a space, and a '|' here
-        ## would terminate the qw delimiter early
-        [ q{tab / arrows}, q{field} ],
+    ## the hint describes what the CURRENT mode does : a menu selects and
+    ## descends, a form edits and submits -- offering 'submit' over a
+    ## read-only row list would simply be wrong
+    my $in_menu
+        = ( $editor_state->{'mode'} // '' ) =~ m|^menu:| ? TRUE : FALSE;
+
+    ## q{} not qw| | : these contain a '/' and a space, and a '|' here would
+    ## terminate the qw delimiter early
+    my @hints
+        = $in_menu
+        ? (
+        [ q{arrows},       q{select} ],
+        [ q{enter},        q{open} ],
+        [ q{esc|ctrl-c}, q{back} ]
+        )
+        : (
+        [ q{tab|arrows}, q{field} ],
         [ q{enter},        q{submit} ],
-        [ q{esc / ctrl-c}, q{quit} ],
-    ) {
+        [ q{esc|ctrl-c}, q{quit} ]
+        );
+
+    foreach my $hint (@hints) {
         printf " %s:%s  %-13s%s\x{b7}%s  %s%s\n",
             $gutter, $key, $hint->[0], $gutter, $action, $hint->[1], $done;
     }
@@ -180,8 +195,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,.,,..,.,,,,..,..,,.,,,...,,..,.,.,..,,,.,,..,,...,..,,,,.,...,,,,,,,.,.,,,
-#KYDREY6IZ72XQYZK6OTO4P6DXVZL2OC6SUSLQSOKCAEHVHJGUSEXZAMLROGA2M5QB73P2R5IXCS6I
-#\\\|3AN3IVMBTNC2OBFZ7AK3WBSHKO4PWRCYSDDXGNLJLLZFJJC3UJ7 \ / AMOS7 \ YOURUM ::
-#\[7]JOA4CKKQAFKOOBBUGCA5NCMKJEGQL5W5SCL2HQGQBJ6WDZL2VECQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,.,.,,..,,.,,,,,,,,.,,,.,..,,..,,...,...,..,,...,,.,,..,,,..,
+#GE5GV42EJ56FC2SZT5GK57W245KR6TJ5HFUJLGCAWBE3J63QMBKGBRLLBABANAWC4DLPDKVYVBLM2
+#\\\|D2WJZFM7LRQHWZTJOGTTO7KEYVHC222BU4E6VSJLGHS3WBCBF3O \ / AMOS7 \ YOURUM ::
+#\[7]5REEHVRYOVIN6BMMUADOINB552PI7O6DNW5QHIXEIESR4O4SK2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
