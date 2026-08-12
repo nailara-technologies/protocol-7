@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = editor.control.list.collapse
+# descr = collapse an expanded list back to its count summary
+# param = $editor_state
+
+## the inverse of editor.control.list.expand : reads the row buffers back into
+## the list field's 'entries', drops EMPTY rows -- which is what makes the
+## trailing 'new entry' row disappear again rather than accumulate -- and
+## rebuilds the original schema.
+##
+## returns the ORIGINAL state unchanged when no list is expanded, so callers
+## can invoke it unconditionally.  user-edit.form.submit relies on that :
+## submitting while expanded would otherwise write '<field>_0', '<field>_1' as
+## separate top-level record fields and permanently replace the array, and
+## Enter submits from ANY field.
+##
+## the caller MUST rebuild the frame afterwards [ see .expand's note ].
+
+my ($editor_state) = @ARG;
+
+return $editor_state if ref $editor_state ne qw| HASH |;
+
+my $source = $editor_state->{'list_source'};
+
+return $editor_state if ref $source ne qw| HASH |;
+
+my $field_name    = $source->{'field'}  // return $editor_state;
+my $source_fields = $source->{'schema'} // return $editor_state;
+
+## gather the rows in schema order, discarding blanks ##
+my @entries;
+foreach my $field_def ( ( $editor_state->{'schema'}{'fields'} // [] )->@* ) {
+
+    my $name = $field_def->{'name'} // next;
+
+    next
+        if ( $field_def->{'list_row_of'} // '' ) ne $field_name;
+
+    my $value = <[editor.control.get_value]>->( $editor_state, $name ) // '';
+    $value =~ s|^\s+||;
+    $value =~ s|\s+$||;
+
+    push @entries, $value if length $value;
+}
+
+## rebuild the original field list, carrying current values across ##
+my @restored;
+foreach my $field_def ( $source_fields->@* ) {
+
+    my $name = $field_def->{'name'} // next;
+
+    if ( $name eq $field_name ) {
+        push @restored, { %{$field_def}, qw| entries | => \@entries };
+        next;
+    }
+
+    push @restored,
+        {
+        %{$field_def},
+        qw| default | =>
+            <[editor.control.get_value]>->( $editor_state, $name ) // ''
+        };
+}
+
+my $new_state = <[editor.control.create]>
+    ->( { qw| fields | => \@restored, qw| active_field | => 0 } );
+
+return $editor_state if not defined $new_state;
+
+$new_state->{'kill_buffer'} = $editor_state->{'kill_buffer'} // '';
+$new_state->{'mode'}        = qw| insert |;
+
+## put the cursor back ON the collapsed field, by NAME ##
+my $position = 0;
+foreach my $field_def (@restored) {
+    $new_state->{'active_field'} = $position, last
+        if ( $field_def->{'name'} // '' ) eq $field_name;
+    $position++;
+}
+
+return $new_state;
+
+#,,..,.,.,.,.,,,,,.,.,,..,,..,.,,,.,,,...,,,,,..,,...,...,.,,,...,..,,,,.,,,,,
+#2U6T5VCNL7VZR2SYQWD5WOFS2HYJPW7U4TROTFUR4GA4YZJWDKUIW75K25QGJUAQP7EPAU6XJRTR4
+#\\\|QFECMB4PEU7IHOMHKJPCYFM5DPVDXU6G554ZBTALXIPWKGDI36K \ / AMOS7 \ YOURUM ::
+#\[7]HEAG72SOV7DP22MJL6C3PYAN4GCQ36FPERJC2ZWI6YKN76QMLODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

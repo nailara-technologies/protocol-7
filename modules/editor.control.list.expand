@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = editor.control.list.expand
+# descr = expand a list field into one editable row per entry
+# param = $editor_state, $field_name
+
+## expansion REWRITES THE SCHEMA : each entry becomes a real schema field, so
+## navigation, editing, the cursor and every renderer keep working entirely
+## unmodified.  a trailing EMPTY row is appended, which is what "add a new
+## entry" means -- no separate add command.
+##
+## nothing in editor.control.* caches a field list [ active_buffer resolves
+## index -> name -> buffer live, and render_form / submit / reset all iterate
+## fresh ], but there is no add/remove-field primitive either, so this goes
+## through editor.control.create with a NEW schema rather than hand-patching
+## the two structures -- which reuses every guard create already has.
+##
+## row names must satisfy ^\w+$ [ they become ascii.frame slot tokens ] :
+## '<field>_0', never '<field>[0]'.
+##
+## the caller MUST rebuild the frame afterwards -- user-edit.form.build_frame
+## assigns the ascii.frame cache unconditionally and is itself the
+## invalidation primitive, while ascii.frame.load returns its cache blindly.
+
+my ( $editor_state, $field_name ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+return undef if not defined $field_name or not length $field_name;
+
+my $source_fields = $editor_state->{'schema'}{'fields'} // [];
+
+my ($list_def)
+    = grep { ( $ARG->{'name'} // '' ) eq $field_name } $source_fields->@*;
+
+return undef if ref $list_def ne qw| HASH | or not $list_def->{'list'};
+
+my @entries = grep { defined $ARG and length $ARG }
+    ( $list_def->{'entries'} // [] )->@*;
+
+my @new_fields;
+my $first_row_name;
+
+foreach my $field_def ( $source_fields->@* ) {
+
+    my $name = $field_def->{'name'} // next;
+
+    if ( $name ne $field_name ) {
+        ## carry the CURRENT buffer content, not the original default -- edits
+        ## made before entering the list must survive the rebuild
+        push @new_fields,
+            {
+            %{$field_def},
+            qw| default | =>
+                <[editor.control.get_value]>->( $editor_state, $name ) // ''
+            };
+        next;
+    }
+
+    ## the list itself : one row per entry, plus the trailing 'new entry' ##
+    my $index = 0;
+    foreach my $entry ( @entries, '' ) {
+        my $row_name = sprintf( qw| %s_%d |, $field_name, $index++ );
+        $first_row_name //= $row_name;
+        push @new_fields,
+            {
+            qw| name |        => $row_name,
+            qw| type |        => qw| freeform_line |,
+            qw| default |     => $entry,
+            qw| list_row_of | => $field_name,
+            exists $list_def->{'validator'}
+            ? ( qw| validator | => $list_def->{'validator'} )
+            : ()
+            };
+    }
+}
+
+my $new_state = <[editor.control.create]>
+    ->( { qw| fields | => \@new_fields, qw| active_field | => 0 } );
+
+return undef if not defined $new_state;
+
+## carry the shared kill ring across the rebuild ##
+$new_state->{'kill_buffer'} = $editor_state->{'kill_buffer'} // '';
+
+## how collapse gets back : the ORIGINAL field list, and which field grew ##
+$new_state->{'list_source'} = {
+    qw| field |  => $field_name,
+    qw| schema | => $source_fields,
+};
+
+$new_state->{'mode'} = sprintf( qw| list:%s |, $field_name );
+
+## active_field is an INDEX, so it must be recomputed from the NAME -- any
+## field-count change otherwise relocates the cursor silently
+$new_state->{'active_field'} = 0;
+my $position = 0;
+foreach my $field_def (@new_fields) {
+    $new_state->{'active_field'} = $position, last
+        if ( $field_def->{'name'} // '' ) eq ( $first_row_name // '' );
+    $position++;
+}
+
+return $new_state;
+
+#,,..,,..,..,,,,.,,.,,,.,,..,,..,,,,.,,.,,,,,,..,,...,...,.,.,.,.,,..,,,,,,,,,
+#C3JE4BXNKIA7F347XKXWYL55BJE5FPT6SAJWVRUUHOMVPW6RHDQJU2UH3SM4NKEF2Z5T7Y2UEJN6S
+#\\\|7IEYFH322OKRJ7JPIVNPEOGJLLA3PRYK3SU276CHLNR7DXPKFE6 \ / AMOS7 \ YOURUM ::
+#\[7]OO2FYUQPKYEAOGMUNZWPAV3HRJZN7U2JLKZFVVG2RE7HXKQKBIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

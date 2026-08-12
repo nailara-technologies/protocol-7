@@ -25,7 +25,7 @@
 ## changes, when the active field's row is or becomes the width-determining
 ## row.
 
-my ( $editor_state, $frame_name, $only_field, $cursor_marker ) = @ARG;
+my ( $editor_state, $frame_name, $only_field, $marks ) = @ARG;
 
 ## the cursor marker is parameterisable so a COLOURED caller can pass a
 ## one-character placeholder [ e.g. "\x01" ], colourise the finished frame,
@@ -33,9 +33,23 @@ my ( $editor_state, $frame_name, $only_field, $cursor_marker ) = @ARG;
 ## character here : both the required-width computation and the render-time
 ## fill padding measure it with length(), so an ansi sequence passed in
 ## directly would silently break row alignment
-$cursor_marker = q{|}
-    if not defined $cursor_marker
-    or length $cursor_marker != 1;
+$marks = {} if ref $marks ne qw| HASH |;
+
+my %mark = (
+    qw| cursor |  => q{|},
+    qw| focus_l | => q{[},
+    qw| focus_r | => q{]},
+    qw| pad_l |   => q{ },
+    qw| pad_r |   => q{ },
+);
+
+foreach my $key ( keys %mark ) {
+    $mark{$key} = $marks->{$key}
+        if defined $marks->{$key}
+        and length $marks->{$key} == 1;
+}
+
+my $cursor_marker = $mark{'cursor'};
 
 return undef if ref $editor_state ne qw| HASH |;
 return undef if not defined $frame_name or not length $frame_name;
@@ -69,27 +83,53 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         = <[editor.control.get_display_value]>->( $editor_state, $name )
         // '';
 
-    if ( $name eq $active_name ) {
-        ## cursor marker at character offset, clamped to value bounds ##
-        my $cursor = <[editor.control.get_cursor]>->( $editor_state, $name )
-            // 0;
-        $cursor = 0             if $cursor < 0;
-        $cursor = length $value if $cursor > length $value;
+    ## a field whose DISPLAY value is a summary rather than its editable text
+    ## has no meaningful character position -- overlaying a cursor there just
+    ## corrupts the summary.  the bracket wrapping alone marks focus for those
+    ## [ collapsed list fields ]
+    my $cursor_bearing = not $field_def->{'list'};
+
+    ## THREE reserved cells : <pad><value><cursor cell><pad>.
+    ##
+    ## the CURSOR CELL gives a cursor sitting past the last character
+    ## somewhere to live -- without it the marker is appended instead, growing
+    ## the value by one and stepping the closing bracket [ and the whole frame
+    ## ] right as soon as you reach the end of a field.
+    ##
+    ## the two PADS keep the value off its framing characters.  the trailing
+    ## pad has to come AFTER the cursor cell, or an end-of-line cursor eats it
+    ## and the closing bracket sits flush against the marker -- most visible
+    ## on an empty field, which would render as '[ _]'.
+    ##
+    ## constant length + 5 with the framing, focused or not
+    $value = q{ } . $value . q{ } . q{ };
+
+    if ( $name eq $active_name and $cursor_bearing ) {
 
         ## OVERLAY, not insert [ nshell.render.cursor's shape ] : the marker
         ## REPLACES the character it sits on, so the row keeps its width and a
         ## colourising caller can restore that character in inverse video --
-        ## the character under the cursor stays readable.  only a cursor PAST
-        ## the last character has nothing to overlay and appends a cell, which
-        ## is the underscore case
-        if ( $cursor >= length $value ) {
-            $value .= $cursor_marker;
-        } else {
-            substr( $value, $cursor, 1 ) = $cursor_marker;
-        }
+        ## the character under the cursor stays readable.  the reserved cell
+        ## above guarantees there is always something to overlay +1 for the
+        ## leading reserved cell : the editor's cursor offset is into the
+        ## VALUE, while this string now carries a cell in front of it.
+        ## clamped so it can reach the trailing cell but not the leading one
+        my $cursor = <[editor.control.get_cursor]>->( $editor_state, $name )
+            // 0;
+        $cursor = 0 if $cursor < 0;
+        $cursor++;
+        $cursor = length($value) - 2 if $cursor > length($value) - 2;
 
-        $value = '[' . $value . ']';
+        substr( $value, $cursor, 1 ) = $cursor_marker;
     }
+
+    ## framing : brackets when focused, matching spaces when not, so a value
+    ## occupies the same columns either way and nothing shifts sideways
+    $value
+        = $name eq $active_name
+        ? $mark{'focus_l'} . $value . $mark{'focus_r'}
+        : $mark{'pad_l'} . $value . $mark{'pad_r'};
+
     $values{$name} = $value;
 }
 
@@ -118,8 +158,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,,,.,.,.,.,..,,...,,.,,,.,,.,,,,,.,,.,,,,.,..,,...,...,,.,,..,,,,.,,..,,.,,
-#RFV7N4QUPE7OQCJ74GO65LUF4GZCJNP6PRY6IG23KRQXVD2V7V4S7YEMWAQI5UOIT7SHVWDJ73RD4
-#\\\|YQQVENS5SPAQGCJ5TV37F5X2BPL3KATHBZFYQYQIMUIBEZWPLGV \ / AMOS7 \ YOURUM ::
-#\[7]OP5T42WWCEATZY65CJTXONIA2D2JO7DCRMFJBNSLOK2IY7IOT2BA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,...,,,.,,,.,.,.,,.,,,.,,.,.,,,.,..,,...,...,,.,,.,,,,..,,,,,,..,
+#ZM5UCH37MBFFXOFAF3VI6E65FEBFHZZROGTGHLSSEOJ5JCOWGMVJADFIMGGGVGBIHNI33R4B7VT5A
+#\\\|WKUMVBGS4ICGKV5AXOAUOISKNCQYA5A747HR7JETTY6KHN4JVR7 \ / AMOS7 \ YOURUM ::
+#\[7]H7OZDXCWOTAWDVBYMBOVSGZ5FBIYV7B32XAXGJZFYQDXBUPB3GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -82,6 +82,11 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         my $count = scalar $editor_state->{'schema'}{'fields'}->@*;
         $editor_state->{'active_field'}
             = ( ( $editor_state->{'active_field'} // 0 ) + 1 ) % $count;
+        ## sync BEFORE the checkpoint : collapsing first means the draft
+        ## records the list under its own name with its entries, instead of
+        ## skipping it entirely because only the expanded rows exist yet
+        <[user-edit.form.sync_list_mode]>;
+        $editor_state = <user-edit.form.state>;
         <[user-edit.form.field_changed]>;
         $repaint = TRUE;
 
@@ -90,6 +95,11 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         $editor_state->{'active_field'}
             = ( ( $editor_state->{'active_field'} // 0 ) - 1 + $count )
             % $count;
+        ## sync BEFORE the checkpoint : collapsing first means the draft
+        ## records the list under its own name with its entries, instead of
+        ## skipping it entirely because only the expanded rows exist yet
+        <[user-edit.form.sync_list_mode]>;
+        $editor_state = <user-edit.form.state>;
         <[user-edit.form.field_changed]>;
         $repaint = TRUE;
 
@@ -133,8 +143,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,,,...,.,.,,..,,..,,,,,..,,,,,,.,.,,,,,,.,,..,,...,.,.,..,,,,,,,,,,,,.,,,.,
-#XNLKGYLWBWNBRDWZQZ2JWSWZBUC7E4BTPLIP5YKXBPI5FAOQG4EDYAWJZWJFKEORF6NVPZ4Z65FOW
-#\\\|S2WU2V7PXLOYIICLKJENIUV2AJC3IIYCZQAP7LH6M34SWFKRALD \ / AMOS7 \ YOURUM ::
-#\[7]BS7D4ERTLALPUK2YLA6RJ56YDOPFB4NV46S5Q4JH3GXA4XBGBGCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,...,.,,,...,..,,..,,,,.,,..,..,,...,...,.,,,,,.,.,.,,.,,,..,
+#GOUE7AUSLWIDCTE3WFKZF5BHT2BNZ3DFV6C3G3VFGIXING36F675H5O7AZIM7VPAWGQNEE4ONJE34
+#\\\|V72LOSNEL2KA5YHK52LEDVVO7VX2XRJJTU5SK66HXPZX437CTLE \ / AMOS7 \ YOURUM ::
+#\[7]BEF7ABIVFOVXHPSYM6AFR5PPU4JDVMVMQVQS4MKTRTJXYSRN6EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
