@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = users.record.optional_fields
+# descr = fields a record MAY carry but is not created with
+# param = -none-
+
+## the authority's vocabulary of OPTIONAL fields, alongside
+## users.record.default_fields' mandatory ones.  a record is created with the
+## defaults ; these are what a user-edit console offers to ADD, and what any
+## other client sees as the same vocabulary rather than inventing its own
+## ad-hoc key names.
+##
+## NAMES MUST MATCH ^\w+$ -- they become ascii.frame slot tokens, and
+## user-edit.form.schema_from_record skips anything else, so 'full_name'
+## rather than 'full-name'.  the value is the field's STARTING SHAPE, and the
+## shape IS the declaration : [] makes a collapsible multi-value list exactly
+## as contact is, '' makes a plain line.
+##
+## EXTEND HERE.  this list is deliberately small -- it is a starting
+## vocabulary, not a closed model, and adding to it costs one line.
+
+return {
+    qw| full_name | => '',
+    qw| phone |     => [],
+    qw| shell |     => '',
+    qw| timezone |  => '',
+};
+
+#,,.,,..,,.,,,,.,,.,.,,,.,...,,,,,.,,,,,,,.,,,..,,...,..,,...,..,,..,,,..,,,,,
+#6KBXRWDQ5W7JI3FRFRF22NY74X52Q3XLDQGFYHSYUXTKQCN2A5EKOLRYKWMMW342D5WSLXOUG4OSC
+#\\\|OXVJN3TWMVHQ3SZVWV63QQ6EG5P6CUX6UXIDLJLRODRUHN4QGBN \ / AMOS7 \ YOURUM ::
+#\[7]F35CGPDIKWSZ45JVKT5IP3FR4XSQNRUJCFGQGFH6VBKWWVOTFOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

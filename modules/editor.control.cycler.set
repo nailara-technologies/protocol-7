@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = editor.control.cycler.set
+# descr = move an inline cycler to its next or prev choice
+# param = $editor_state, $field, $direction
+
+## the INLINE CYCLER half of selection : few, known options, staying on their
+## own row with no screen transition.  the other half is the focused row list
+## [ editor.control.menu.* ] for many or screen-sized option sets -- see
+## editor-namespace-interface-design.yaml's selection_styles amendment, which
+## records that the two are chosen by CARDINALITY.
+##
+## choices live on the schema field def, and the CURRENT one is an index
+## rather than buffer text -- the same "the buffer is not the value" shape the
+## LIST type uses for its entries.  editor.control.get_display_value is what
+## renders it.
+##
+## $direction is +1 / -1 ; the index wraps, which is what 'cycles' means.
+
+my ( $editor_state, $field, $direction ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+return FALSE if not defined $field;
+
+$direction = ( $direction // 1 ) < 0 ? -1 : 1;
+
+my ($field_def)
+    = grep { ( $ARG->{'name'} // '' ) eq $field }
+    ( $editor_state->{'schema'}{'fields'} // [] )->@*;
+
+return FALSE if ref $field_def ne qw| HASH |;
+return FALSE if ref $field_def->{'choices'} ne qw| ARRAY |;
+
+my $count = scalar $field_def->{'choices'}->@*;
+
+return FALSE if $count < 1;
+
+$field_def->{'choice'}
+    = ( ( $field_def->{'choice'} // 0 ) + $direction + $count ) % $count;
+
+return TRUE;
+
+#,,.,,..,,,,,,,,.,,..,.,,,...,,.,,,..,,,,,,..,..,,...,...,...,,.,,,,.,,.,,..,,
+#JPGZJK4MWFRMXYRCGOP3DF6R74OAAL3K342HPEWVMITV7TTIPFEBM33JB2ZGZLNPTDMIULLQEOA2C
+#\\\|IF77NSV6VWO5IOYR5MOMXQVOSAIWND72GEBNJRYHCSSI6WORDHS \ / AMOS7 \ YOURUM ::
+#\[7]NGTDUMAAULXXYQZJUMRI5I2ORMIUISAXCNULFJIRNRCVYJ2ZSQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

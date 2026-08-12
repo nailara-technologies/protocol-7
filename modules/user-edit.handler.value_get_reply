@@ -134,6 +134,21 @@ if ( <user-edit.form.interactive> and not <user-edit.mode.no_tty_debug> ) {
 ## had been navigated into
 <[user-edit.form.sync_list_mode]> if <user-edit.form.interactive>;
 
+## ask for the optional-field vocabulary AFTER the form is up : it costs a
+## round trip and the add-a-field row is only occasionally used, so the form
+## is rendered and usable first and the row appears when the answer lands
+if ( <user-edit.form.interactive> and defined <user-edit.cube_sid> ) {
+    <[protocol-7.command.send.local]>->(
+        {   qw| command | =>
+                sprintf( '%d.users.field-options', <user-edit.cube_sid> ),
+            qw| call_args | => { qw| args | => $username },
+            qw| reply |     => {
+                qw| handler | => qw| user-edit.handler.field_options_reply |
+            }
+        }
+    );
+}
+
 <[user-edit.form.render]>;
 
 ## one-shot mode is done the moment the form is on screen ; interactive mode
@@ -142,8 +157,8 @@ if ( <user-edit.form.interactive> and not <user-edit.mode.no_tty_debug> ) {
 
 return TRUE;
 
-#,,,.,...,...,.,,,,,.,,.,,.,,,,.,,,,.,,..,,,.,..,,...,...,,..,,..,,..,,,,,..,,
-#UI5SZSDNIQW7S5EIXPO2F7T5KQXEYLBZ72KWOVM754WLCN5F4LV3LMF74CRCKS3DT7SKOORCU5OQG
-#\\\|TZVP64CDR6UA5UOIBQHTW4H27C5NDPWJIU7KYDJEYPX5VP2NWX6 \ / AMOS7 \ YOURUM ::
-#\[7]C5QTCHPCWZGLGPHVMCS3RBGDDIYWKW3UCLLP7BAFAVBYSDMEI6CI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,..,.,.,,,.,..,,,..,.,.,,..,,.,,..,,...,...,.,.,.,.,,..,.,,,.,,,
+#FIEI5CSXZCYILJ4CFJPLJU35SYFUGWUCMTKZEBEV43OMSO6IPGTLBZOBB7ZCJ3SNNXHMNSAADLCAW
+#\\\|L3VTHW5PMATJNIY2FEDHKME25E2QXY52D5HGELUG7XYOFTWWRRQ \ / AMOS7 \ YOURUM ::
+#\[7]PFS3TNOYSXGWRMWOISKD25ZSYBMI462RLRK2FXVRQYGQ2XGOPEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

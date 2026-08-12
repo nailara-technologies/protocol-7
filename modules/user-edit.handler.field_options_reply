@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = user-edit.handler.field_options_reply
+# descr = attach the add-a-field row once options are known
+
+## PROGRESSIVE ENHANCEMENT : the form is rendered and usable before this
+## arrives.  the optional-field vocabulary lives with the users zenka, so it
+## costs a round trip, and blocking the form on it would trade a visible delay
+## for a row that is only occasionally used.
+##
+## an empty reply is the ordinary "this record already carries every optional
+## field" case, not an error -- the row is simply not added.
+
+my ($info) = @ARG;
+
+my $cmd = uc( $info->{'cmd'} // '' );
+
+return FALSE if $cmd ne qw| SIZE |;
+
+my @options = grep { length $ARG } split m|\n|, ( $info->{'data'} // '' );
+
+return FALSE if not @options;
+
+## REMEMBER them : the row cannot always be added at the moment the answer
+## arrives -- a form whose first field is a list opens EXPANDED, and the row
+## must not be attached to a transient expanded schema [ collapse rebuilds
+## from the schema captured at expand time and would drop it ].  so the
+## vocabulary is stored and the row is re-applied after every collapse, by
+## user-edit.form.sync_list_mode
+<user-edit.form.field_options> = \@options;
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+## only ever onto a plain form : never over a menu, and never while a list is
+## expanded [ its rows are transient and collapse would drop the row ]
+return FALSE if ( $editor_state->{'mode'} // qw| insert | ) ne qw| insert |;
+
+return FALSE
+    if not <[user-edit.form.add_field_row]>->( $editor_state, \@options );
+
+<[user-edit.form.build_frame]>->(
+    $editor_state->{'schema'},
+    <user-edit.form.frame_name> // qw| user-edit-form |,
+    $editor_state->{'title'} // <user-edit.form.title>
+);
+
+<user-edit.form.dirty>++;
+
+return TRUE;
+
+#,,,.,,,.,,,,,,,,,.,.,,,.,.,.,,,,,,.,,,..,,,,,..,,...,...,,.,,,,,,,,.,..,,.,.,
+#BXSA4OTYAUO7O3T32OELUR6Y624RUYS2CUFRKE4BGOC6LQCDGY6DU2ZXQQEN3EMV5UEZ7XQCW6JSC
+#\\\|E3DCHINGSY32HP6BVKRSXB3AIOLQ35JI6J2LC6OSCP5HBT64R5U \ / AMOS7 \ YOURUM ::
+#\[7]JDHYG4IKHINNIZFEJBFXRIASONIXBYXBTLWHHI3HRY33LRNX6OCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

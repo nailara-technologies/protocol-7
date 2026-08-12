@@ -71,6 +71,16 @@ if ( ref $result ne qw| HASH | or not $result->{'ok'} ) {
 
 my $values = $result->{'values'} // {};
 
+## SYNTHESISED ROWS ARE NOT FIELDS and must never reach storage.  the
+## add-a-field row is an ACTION, not data -- editor.control.submit collects
+## every schema field, so without this it is stored as '_add_field: ""',
+## becomes a real record field, sorts to the front of the form and then blocks
+## a fresh row from ever being offered again
+foreach my $field_def ( ( $editor_state->{'schema'}{'fields'} // [] )->@* ) {
+    my $name = $field_def->{'name'} // next;
+    delete $values->{$name} if $field_def->{'add_field'};
+}
+
 ## list fields submit their ARRAY, not the buffer string : the buffer is empty
 ## for a collapsed list, and 'entries' is what holds the value
 foreach my $field_def ( ( $editor_state->{'schema'}{'fields'} // [] )->@* ) {
@@ -134,8 +144,8 @@ $json_fields =~ s|\n\s*||g;
 
 return TRUE;
 
-#,,.,,,.,,..,,...,,..,,,,,,..,,,,,,..,.,,,.,.,..,,...,..,,...,,.,,.,,,,.,,,,.,
-#CKLSK4OY32IZAHNXQ253DJ3MO7DK67BV6J7IVEOORP66VNRLLSGSLY4J7SXT274MOX34S75KR3HNS
-#\\\|AHLH554DDJD2DMBVCUNWBSRO2ADH776H7HN7MOKWJA4U5Z3GQTL \ / AMOS7 \ YOURUM ::
-#\[7]3K43WW25DVTRZIH3AQOEZ5XGR7BSS7ZUS2Q47FW7VQ4FEQJN6QCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,,..,,..,,..,.,.,,,.,.,,,.,.,..,,...,..,,...,...,..,,,,.,,..,
+#C7EJICWR2VVZYTRKE45MSNR7RAJPU67MPG6S3BQFEWNUD6ICNUBZICUKE6N73FCR2OH2JOCXWMUWK
+#\\\|QIS66MH6N6FHIFUJTSKVR6YTZ7CBYWHRUFRUYLQX323YX5RGRST \ / AMOS7 \ YOURUM ::
+#\[7]YQZWCVEZWJCEXTDNM6TUAZA3IEYLRRTH5M3E4US4RKTHEZ2JZIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = user-edit.form.add_field
+# descr = add the field the add-a-field row currently offers
+# param = -none-
+
+## Enter on the add-a-field row turns the chosen option into a REAL field :
+## the row is replaced by it, and a fresh row offering what is left appears
+## below -- so adding several fields is one keystroke each with no menu.
+##
+## rebuilds through editor.control.create rather than patching the two
+## structures, the same move editor.control.list.expand makes, and for the
+## same reason : there is no add/remove-field primitive, and recreating reuses
+## every guard create already has.
+##
+## the new field's STARTING SHAPE comes from the authority's vocabulary [
+## users.record.optional_fields ] -- but user-edit only receives NAMES over
+## the wire, so a plain line is assumed here.  a multi-value optional field
+## therefore starts as a line and becomes a list when the record is next read
+## back.  worth revisiting if optional list fields become common.
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my ($row_def)
+    = grep { $ARG->{'add_field'} }
+    ( $editor_state->{'schema'}{'fields'} // [] )->@*;
+
+return FALSE if ref $row_def ne qw| HASH |;
+return FALSE if ref $row_def->{'choices'} ne qw| ARRAY |;
+
+my @choices = $row_def->{'choices'}->@*;
+my $chosen  = $choices[ $row_def->{'choice'} // 0 ];
+
+return FALSE if not defined $chosen or not length $chosen;
+
+my @remaining = grep { $ARG ne $chosen } @choices;
+
+## rebuild : every existing field with its CURRENT value, the chosen field as
+## a new empty one, then a fresh add-a-field row if anything is left
+my @fields;
+
+foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
+
+    my $name = $field_def->{'name'} // next;
+
+    next if $field_def->{'add_field'};
+
+    push @fields,
+        {
+        %{$field_def},
+        $field_def->{'list'}
+        ? ()
+        : ( qw| default | =>
+                <[editor.control.get_value]>->( $editor_state, $name ) // '' )
+        };
+}
+
+push @fields,
+    {
+    qw| name |    => $chosen,
+    qw| type |    => qw| freeform_line |,
+    qw| default | => '',
+    };
+
+my $new_state = <[editor.control.create]>
+    ->( { qw| fields | => \@fields, qw| active_field | => 0 } );
+
+return FALSE if not defined $new_state;
+
+$new_state->{'kill_buffer'} = $editor_state->{'kill_buffer'} // '';
+$new_state->{'mode'}        = qw| insert |;
+$new_state->{'title'}       = $editor_state->{'title'};
+
+<[user-edit.form.add_field_row]>->( $new_state, \@remaining );
+
+## focus the field just added, by NAME -- active_field is an index and the
+## count just changed
+my $position = 0;
+foreach my $field_def ( $new_state->{'schema'}{'fields'}->@* ) {
+    $new_state->{'active_field'} = $position, last
+        if ( $field_def->{'name'} // '' ) eq $chosen;
+    $position++;
+}
+
+<user-edit.form.state> = $new_state;
+
+<[user-edit.form.build_frame]>->(
+    $new_state->{'schema'},
+    <user-edit.form.frame_name> // qw| user-edit-form |,
+    $new_state->{'title'} // <user-edit.form.title>
+);
+
+return TRUE;
+
+#,,.,,...,..,,,,,,..,,.,,,..,,,,,,..,,,..,,.,,..,,...,...,,,.,,..,,..,,..,.,.,
+#G5ENDKEE4BBGOVIR76ZYQXKA6CIOCZQFC5GVIIBL2F6Q7OM5DIPCCMTA3NYOU7WIDARMGFSEFNQHK
+#\\\|EABA5LJLWAKEBFP7INHT56HWPMDSTWLTCPDFRYYEWAG3IQICRIT \ / AMOS7 \ YOURUM ::
+#\[7]DHGAHWMMOQMXYOMFFRZKDVNPTL3IFK4SD4LFAF6REQ3HRJH2LSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
