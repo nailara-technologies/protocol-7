@@ -9,6 +9,14 @@
 ## trailing 'new entry' row disappear again rather than accumulate -- and
 ## rebuilds the original schema.
 ##
+## WINDOWED lists [ more entries than editor.control.list.window_cap ] only
+## ever have their CURRENT window's rows materialised -- collapsing must
+## therefore MERGE those rows into list_source's working copy at the offset
+## they were shown at, not treat them as the whole list, or every entry
+## scrolled off-screen at the moment of collapse would be silently dropped.
+## below the cap this is exactly equivalent to a full rebuild, since the
+## window then covers everything and the offset is always 0.
+##
 ## returns the ORIGINAL state unchanged when no list is expanded, so callers
 ## can invoke it unconditionally.  user-edit.form.submit relies on that :
 ## submitting while expanded would otherwise write '<field>_0', '<field>_1' as
@@ -28,21 +36,33 @@ return $editor_state if ref $source ne qw| HASH |;
 my $field_name    = $source->{'field'}  // return $editor_state;
 my $source_fields = $source->{'schema'} // return $editor_state;
 
-## gather the rows in schema order, discarding blanks ##
-my @entries;
+## gather the CURRENT WINDOW's rows in schema order, trimmed but NOT yet
+## filtered -- position within the window still matters, since it is about to
+## be spliced back into the working copy at the offset the window was shown
+## at.  list_info [ the position readout row ] is not an entry and is skipped
+my @window_values;
 foreach my $field_def ( ( $editor_state->{'schema'}{'fields'} // [] )->@* ) {
 
     my $name = $field_def->{'name'} // next;
 
-    next
-        if ( $field_def->{'list_row_of'} // '' ) ne $field_name;
+    next if ( $field_def->{'list_row_of'} // '' ) ne $field_name;
+    next if $field_def->{'list_info'};
 
     my $value = <[editor.control.get_value]>->( $editor_state, $name ) // '';
     $value =~ s|^\s+||;
     $value =~ s|\s+$||;
 
-    push @entries, $value if length $value;
+    push @window_values, $value;
 }
+
+## MERGE, not replace : splicing the window into the working copy at the
+## offset it was shown at -- rather than treating it as the whole list -- is
+## what keeps an off-window entry from ever being tested against "is it blank"
+## in the first place.  blanks fall out only AFTER the splice
+my @virtual = ( ( $source->{'entries'} // [] )->@*, '' );
+splice( @virtual, $source->{'offset'} // 0,
+    scalar(@window_values), @window_values );
+my @entries = grep {length} @virtual;
 
 ## rebuild the original field list, carrying current values across ##
 my @restored;
@@ -81,8 +101,8 @@ foreach my $field_def (@restored) {
 
 return $new_state;
 
-#,,..,.,.,.,.,,,,,.,.,,..,,..,.,,,.,,,...,,,,,..,,...,...,.,,,...,..,,,,.,,,,,
-#2U6T5VCNL7VZR2SYQWD5WOFS2HYJPW7U4TROTFUR4GA4YZJWDKUIW75K25QGJUAQP7EPAU6XJRTR4
-#\\\|QFECMB4PEU7IHOMHKJPCYFM5DPVDXU6G554ZBTALXIPWKGDI36K \ / AMOS7 \ YOURUM ::
-#\[7]HEAG72SOV7DP22MJL6C3PYAN4GCQ36FPERJC2ZWI6YKN76QMLODA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,.,,,..,,,.,,,.,,.,.,,.,,.,.,..,,...,...,.,,,.,,,..,,,..,,,,,
+#YW5ZGPLZH6DELCM2LDQQKTKIFZXBZAXFH5ZINBCP7WR6JPYSO736XIYE5WFKKAA7TFQF2I53JVQD4
+#\\\|WV567TJOZPGIMIHISPYVA37HQLNFMA5BYM7DOBR36IUYYL7B4PG \ / AMOS7 \ YOURUM ::
+#\[7]6VPLBEWH2MS5EPYZDENFXIAPNYM76VGGPCY2LP3Y6Q6PAGWRR6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
