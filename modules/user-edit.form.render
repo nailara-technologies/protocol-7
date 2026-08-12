@@ -86,10 +86,12 @@ my $on_terminal = -t STDOUT ? TRUE : FALSE;
 
 my $cursor_render;
 if ( not $on_terminal ) {
-    ## piped : no escapes at all, so the cursor cell can only be a character
-    ## OR a marker -- prefer showing the marker, since losing the cursor
-    ## position is worse than losing one readable character
-    $cursor_render = q{_};
+    ## piped : show the CHARACTER, i.e. no cursor at all.  nothing is
+    ## navigating a captured render, so a cursor marks nothing -- while
+    ## overlaying it silently CORRUPTS the value, which is what a capture is
+    ## actually for.  the reserved cell shows as a space when the cursor
+    ## sits past the end
+    $cursor_render = length $cursor_char ? $cursor_char : q{ };
 } elsif ( not length $colors{'reset'} ) {
     ## -nc : no colour, but inverse video still marks the position and keeps
     ## the character underneath readable
@@ -178,8 +180,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,.,.,.,.,.,,.,,,..,.,,,,.,,.,,,.,.,,,,,,.,,..,,...,..,,..,,.,,,,,.,.,,,,,.,
-#JC6MLQAJMKOWPYS67QS7ZJNPATDY3YBMQ6SYGGGJ3Y3SVEMAGK2T342Z3PZKJ6VA3DHNNNZJFQ5ES
-#\\\|4YCKH2TUJAMZX3OUZKKUSWWOIJ4LMXCIOP5PWDOI6SKUEBEB4JA \ / AMOS7 \ YOURUM ::
-#\[7]YZKTRZTZHGCPIYKALJGTK2TTYYPVCNORHE6MVMGFK66O55HUR4AI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,..,,.,,,...,,..,.,.,..,,,.,,..,,...,..,,,,.,...,,,,,,,.,.,,,
+#KYDREY6IZ72XQYZK6OTO4P6DXVZL2OC6SUSLQSOKCAEHVHJGUSEXZAMLROGA2M5QB73P2R5IXCS6I
+#\\\|3AN3IVMBTNC2OBFZ7AK3WBSHKO4PWRCYSDDXGNLJLLZFJJC3UJ7 \ / AMOS7 \ YOURUM ::
+#\[7]JOA4CKKQAFKOOBBUGCA5NCMKJEGQL5W5SCL2HQGQBJ6WDZL2VECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
