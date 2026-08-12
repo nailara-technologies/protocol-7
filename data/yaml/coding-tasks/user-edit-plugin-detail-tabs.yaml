@@ -1,26 +1,41 @@
 ---
 # Task: user-edit plugin detail tabs
 # Date: 2026-08-12
-# Status: DESIGN SETTLED. PHASE_1 (discovery) LANDED, commit 7592bdbc0 :
-#         plugin.user-edit.registry.post_init collects every loaded
-#         plugin.user-edit.<name>'s tab_info into a by_key/by_name
-#         registry, wired via plugins.load/[load_plugins:...] (NOT
-#         [load_modules:...] — plugin-namespaced modules must go through
-#         the plugin path so base.reload_plugins can hot-reload them
-#         independently, confirmed against configuration/zenki/web/
-#         start's plugin.web.auth precedent after an initial attempt via
-#         modules.load silently failed to fire at all). plugin.user-edit.
-#         example is a minimal live reference plugin + pipeline smoke
-#         test, kept until real plugins exist. NOT YET BUILT :
-#         rendering/dispatch — the Tab+Right entry trigger, the new
-#         'plugin' field type itself, Esc+Left return. Design resolved:
-#         plugin module convention, rendering layout
-#         (embedding_field_type_dropin — a new 'plugin' field type, not a
-#         row-expansion), value storage (plain scalar per pinned key,
-#         multiple keys per plugin, plugin owns its own namespace +
-#         cross-referencing), and field-type PLACEMENT (user-edit-
-#         specific, not editor.control.*'s generic type contract). Only a
-#         single low-priority deferred item remains — see open_questions.
+# Status: PHASE_1 (discovery) AND PHASE_2 (rendering/dispatch) BOTH
+#         LANDED. Phase_1 : commit 7592bdbc0, plugin.user-edit.registry.
+#         post_init collects every loaded plugin.user-edit.<name>'s
+#         tab_info into a by_key/by_name registry, wired via plugins.
+#         load/[load_plugins:...] (NOT [load_modules:...] — confirmed
+#         against configuration/zenki/web/start's plugin.web.auth
+#         precedent after an initial modules.load attempt silently never
+#         fired at all). Phase_2 : editor.control.get_display_value
+#         gained a GENERIC display_override coderef hook (zenka-
+#         agnostic — knows nothing about "plugin"), user-edit.form.
+#         schema_from_record marks a pinned field readonly + builds the
+#         override closure, and user-edit.handler.stdin_key intercepts
+#         Right-to-enter / Left-to-return / routes every other key to
+#         plugin.<name>.handler.key while entered. TWO REAL BUGS caught
+#         only by live testing, both fixed — see plugin_module_
+#         convention / tab_key_dispatch below for the full account:
+#         (1) Tab was originally dual-bound to "enter" alongside Right,
+#         per the earlier design below — live testing found this makes a
+#         visited pinned field impossible to Tab PAST ever again, so Tab
+#         was dropped from the trigger entirely, Right-only now, and (2)
+#         readonly is enforced by editor.buffer.memory.insert/delete
+#         THEMSELVES, not just editor.control.process_key's guard, so
+#         toggling it off on entry / back on on return had to be added in
+#         THREE places (stdin_key's entry block, its Left-return block,
+#         AND user-edit.form.escape's generic sub-mode-leaving branch for
+#         the Esc path) rather than zero, as first assumed. Final entry
+#         gesture, per user : Right is TWO-STAGE — first press (cursor at
+#         0) is an ordinary cursor move, only a SUBSEQUENT press (cursor
+#         already >0) enters, sampled BEFORE process_key runs so it
+#         reflects where the cursor was when the key arrived, not where
+#         process_key's own already-applied move leaves it. plugin.user-
+#         edit.example now has real render/handler.key too, verified
+#         live end to end including the draft checkpoint (plain scalar,
+#         no display-override leakage into storage). Only the single low-
+#         priority deferred item remains — see open_questions.
 # Context: third feature in the user-edit UI roadmap this session, after
 #          capped/scrollable list windows (landed, commit 3fe1fed15) and
 #          field/entry sort ordering (landed, commits 793e1c2c7/a63ea5438).
@@ -194,41 +209,70 @@ tab_key_dispatch:
     EXISTING behaviour rather than adding new machinery, so it is the
     highest-risk part of this design.
   decided: >
-    RESOLVED, per user : Tab is the default trigger, and RightArrow ALSO
-    switches to the pinned plugin's tab — a dual binding, not an
-    either/or. This is the SAME pattern already shipped for the
-    scrollinfo row (user-edit.handler.stdin_key's existing list_info
-    Left/Right block, which pages a windowed list exactly like PageUp/
-    PageDown do from that row) : a row can carry both its "default" key
-    and a directional-arrow alternate for the identical action, checked
-    ahead of the ordinary dispatch chain the same way. ONLY when the
-    CURRENTLY FOCUSED field's name is a key in <user-edit.plugin.
-    registry>{by_key} — every other field keeps today's plain Tab =
-    field_next / Right = cursor-move meaning unchanged. Implemented as
-    one new branch ahead of stdin_key's existing field_next dispatch and
-    ahead of process_key's own Right-arrow cursor-move claim [ same TRAP
-    3 reason Left/Right already have to be matched on $key directly
-    rather than via passthrough, see reference-editor-add-field-
-    cycler.md ].
+    SUPERSEDED, then RE-RESOLVED, both per user, both live-tested.
+    Originally: Tab dual-bound with Right, mirroring the scrollinfo row's
+    Left/Right-alongside-PageUp/PageDown pattern. LIVE TESTING FOUND A
+    REAL TRAP in that shape : Tab is the ONLY forward-navigation key this
+    form has, so once Tab also means "enter" on a pinned field, a
+    visited pinned field can never be Tabbed past again — every press
+    just re-enters, permanently stuck (reproduced via char-add : arrive,
+    enter, exit, Tab again → still parked on the same field every time).
+    FINAL, working design : Tab is NOT bound to entry at all, full stop,
+    everywhere — no exceptions, no special-casing, exactly its ordinary
+    field_next/field_prev meaning always. Right is the SOLE entry
+    trigger, and per user it is TWO-STAGE rather than immediate : cursor
+    position 0 [ just arrived ] lets process_key's own cursor move stand
+    [ readonly blocks MUTATION only, not cursor movement, so Right at
+    position 0 already moved the cursor to 1 by the time the entry check
+    runs ] — nothing claimed, ordinary cursor move. Only once the cursor
+    was ALREADY past 0 BEFORE that keystroke does Right mean "enter"
+    instead of "move further right" — sampled ahead of process_key, same
+    "sample before mutation" reasoning user-edit.handler.stdin_key's
+    $remove_empty_row already uses for Delete. One Right moves in, a
+    second commits — the first press is never a surprise hijack. ONLY
+    fires for a field actually registered in <user-edit.plugin.
+    registry>{by_key} — every other field's Tab/Right keeps today's
+    meaning completely untouched. Checked AFTER process_key runs, same
+    TRAP-3 reason Left/Right-on-list_info already are matched on $key
+    directly rather than via passthrough (reference-editor-add-field-
+    cycler.md).
   return_path: >
     RESOLVED, per user : Esc AND LeftArrow both return from the detail
-    tab to WHERE IT WAS CALLED FROM — the same dual-binding shape the
-    entry trigger got (Tab / RightArrow), now confirmed symmetric on the
-    way back out too (Left = return, Right = enter). "Where it was called
-    from" is not just "back to the main form" generically, but focus
-    restored onto the specific pinned-key row the tab was entered from,
+    tab to WHERE IT WAS CALLED FROM, symmetric with Right as the (now
+    Right-only, two-stage) entry trigger : Left = return, Right = enter.
+    "Where it was called from" is not just "back to the main form"
+    generically, but focus restored onto the specific pinned-key row the
+    tab was entered from,
     same as user-edit.form.sync_list_mode's own "collapse parks the
     cursor ON the collapsed field" precedent (user-edit.form.sync_list_
     mode:44-56) for the equivalent list-expand/collapse case. Esc's side
     of this also matches its EXISTING meaning [ "leave a sub-mode," per
     user-edit.form.escape's list-mode branch ] rather than inventing a
-    new one — a detail tab is another sub-mode in the same family. Left/
-    Right for enter/return both need to be claimed the same TRAP-3 way
-    Left/Right-on-list_info already are [ process_key claims arrow keys
-    for cursor movement first, so a host must match $key directly ahead
-    of that, not rely on passthrough ] — and a plugin's own handler.key
-    should NOT re-claim Left/Right for its own purposes while its tab is
-    active, or it would shadow the return path with no way out.
+    new one — a detail tab is another sub-mode in the same family. Left
+    for return needs to be claimed the same TRAP-3 way Left/Right-on-
+    list_info already are [ process_key claims arrow keys for cursor
+    movement first, so a host must match $key directly ahead of that,
+    not rely on passthrough ], and IS claimed ahead of routing to the
+    plugin — a plugin's own handler.key never even sees Left, so there is
+    no way for it to accidentally shadow the return path. Right, once
+    ALREADY inside plugin mode, is NOT reserved the same way : every key
+    except Left routes to the plugin's handler.key, Right included [
+    confirmed live, plugin.user-edit.example's own handler.key just
+    treats it as an unhandled key and no-ops, same as any control byte it
+    does not recognise ] — only the ENTRY use of Right, before the tab is
+    open, is intercepted ahead of the plugin ever seeing it.
+    ALSO FOUND LIVE, a second real bug alongside the Tab trap above :
+    readonly is enforced by editor.buffer.memory.insert/delete
+    THEMSELVES, independently of editor.control.process_key's own guard
+    — so a pinned field marked readonly [ to block ORDINARY typing before
+    entry ] also silently blocked the PLUGIN's own edits once entered,
+    since bypassing process_key does nothing about the lower-level check.
+    Fixed by toggling readonly OFF on entry and back ON on every return
+    path — stdin_key's entry block, its Left-return block, AND user-
+    edit.form.escape's generic sub-mode-leaving branch for Esc [ escape.pm
+    needed a small addition here despite this doc's earlier assumption
+    that its existing generic relabel-to-insert branch would need
+    nothing more ].
 
 rendering_contract:
   motivation: >
@@ -383,8 +427,8 @@ open_questions:
 created: 2026-08-12
 tags: [user-edit, plugin, tabs, editor, ascii-frame, design-only]
 
-#,,.,,,,.,,,.,.,.,..,,.,.,.,,,...,,,.,...,.,,,..,,...,...,,..,.,.,...,,,.,,,.,
-#BRZBJABWOCUSOFOWB43BBKB54QULAYGLFN6UXGB2JZ4PL2DA5LDLUNIFBT5HFY3KGI6XK76ZFP4YQ
-#\\\|MK6KJFH63CEXMTNIZXGZT62A7YALXX5KDTJIVWZTSBKATN76MVM \ / AMOS7 \ YOURUM ::
-#\[7]BR4HNB3KHK43CPRA3AITAD25EK5QKC3Z4ICGC7FBRISW4SZYOIDI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,.,...,.,.,...,,.,,.,.,...,.,,,..,,...,...,...,,.,,,,.,...,.,,,
+#2UHFN56MSQN4AU2IQPGSDG37ZHU57EN6UHFSEIR5HMC3NSFNZD6X3CFYECHVBSOYD66AOBZ7XKYXY
+#\\\|QU26YUBQHMF3764SUKAD6X7M4PUYZFBJQMYHSPTY5QTM6E5A7Z7 \ / AMOS7 \ YOURUM ::
+#\[7]YNH4EDRRJTH26ZTV5VJFZKNAWV65YPIUUDP4H7YSYSHOPI5DCIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
