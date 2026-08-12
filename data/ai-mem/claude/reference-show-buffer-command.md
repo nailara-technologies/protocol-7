@@ -30,6 +30,18 @@ then had me implement `[lines]`/`[pattern]` support on `show-buffer` directly.
 `list buffers` first if the buffer name is unknown) — never invent a `.tail`/`.log`-style
 command name without verifying it exists in `modules/`.
 
+**Companion devmod commands for live %code/%data introspection** (found 2026-08-12,
+radio/mpv WSLg-audio debugging session): `<zenka>.dump-keys <pattern>` prints a key tree
+from `%data` under `<pattern>` without values (fast structural check — is a hash empty,
+what keys exist); `<zenka>.dump <pattern>` prints the same tree WITH values. `<zenka>.
+list-subs <pattern>` lists live `%code` subroutine names matching a substring — useful for
+confirming a `swap_subs`-aliased short name (e.g. `strm.local.register`) actually resolved
+in a *specific* zenka's runtime, rather than trusting the source tree alone. All three are
+`devmod.cmd.*` commands, called directly as `<zenka>.<name>` (no `devmod.` prefix) same as
+`show-buffer`. `<zenka>.dump base.strm.local` mid-request, run live while a real client was
+connected, is what proved a suspected registration path was never firing (hash stayed
+`{ }`) — cheaper and more conclusive than static code tracing alone for anything stateful.
+
 See also [[topic-buffer-access-control]] (future per-buffer ACL), and the
 `base.eval.comp_regex` delimiter-escaping bug fixed alongside this (raw `'` in a pattern
 used to crash the regex compile — fixed by escaping only the `'` delimiter, not backslash,
@@ -51,8 +63,8 @@ bearing for it. (The user separately lowered the coding zenka's `verbosity.buffe
 match console level 1, which stopped the chunk-spam eviction problem for future review —
 but that was a review-quality fix, not a correctness one.)
 
-#,,..,.,.,.,,,,,,,.,,,..,,.,,,,,.,.,.,.,,,,..,..,,...,...,,..,,..,.,,,...,.,.,
-#MQG3LBRBEEQHMEEIO2OFFSZLU3OW4E756IUEMMLZVKCQPMGPIUTBP2T7YAF5A7TLL5BGLZIU6IRNI
-#\\\|TE6AFSUCOSXQ57FU6CNFCPHY4GTWWPDT3H6WCXLFMJ3MATLJZK3 \ / AMOS7 \ YOURUM ::
-#\[7]QPY4FMBK4KJHQOLSLBERLHC6XXOOEL5GNQ6MIQCCOQUIAO4SDUBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,..,,,,,.,.,..,,,,,,...,,,.,.,.,..,,...,...,,,,,,..,,..,...,,.,,
+#3ZAUDBGQWYUESAX2L33ZQ4JJQ34BPNVJ5UOGHXR74OGUWNZU3IBFUXLITMHP73TAVUGBCFJQZXQBY
+#\\\|UG6KJPKOUTJCM7R7LFVUBZDL2LJE636DVAIA7UXJXTSP37YQCMD \ / AMOS7 \ YOURUM ::
+#\[7]TU3DLE2BCFSJT34TF5Z37IZENCGNC74W2I7G5ZBNQW5FG343RKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
