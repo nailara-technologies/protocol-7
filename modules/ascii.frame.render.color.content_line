@@ -38,8 +38,16 @@ my $right
     : $last;
 
 ## field label pattern : leading spaces + word: + spaces + value ##
+##
+## '\s*' before the colon so a PADDED label still counts as one.  a mockup
+## that column-aligns its colons by padding the name -- '  contact   :' --
+## is the obvious way to write a form, and previously matched nothing here,
+## so the whole row silently fell through to the value colour with no hint
+## as to why.  existing frames all put their padding AFTER a flush colon
+## ('role:    {{ROLE}}'), which still matches with \s* consuming nothing,
+## so this only ADDS matches -- it cannot change how they render today
 my $body_colored;
-if ( $body =~ m{^(\s*)([\w][\w\-\.]*:)(\s+)(.*?)(\s*)$} ) {
+if ( $body =~ m{^(\s*)([\w][\w\-\.]*\s*:)(\s+)(.*?)(\s*)$} ) {
     my ( $lpad, $lbl, $sp, $val, $rpad ) = ( $1, $2, $3, $4, $5 );
     $body_colored
         = $lpad
@@ -66,8 +74,8 @@ if ( $body =~ m{^(\s*)([\w][\w\-\.]*:)(\s+)(.*?)(\s*)$} ) {
 
 return $left . $body_colored . $right;
 
-#,,..,.,.,...,,.,,,..,,,.,,,.,.,,,,..,...,,.,,..,,...,.,.,.,.,...,.,.,..,,,,.,
-#MNOPI5MCF34LRXNVIA2AE4SOR75EVFHCLKQMVASVTBYRLPQG2OOBXYNNJ7ARXVBMGSJWMVQIETMP2
-#\\\|KCY53GEJJXXZAASVBM2RBTMXXEUXT2Y7Q4RJK4Y7F2HE245B7C4 \ / AMOS7 \ YOURUM ::
-#\[7]ZWUJJTQ4FHHZO5FZB5QL64ZDO4XXFTTMMM3IENJZC2RQBMNEOKAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,..,,,.,,...,,.,,,,.,,.,,,,,,..,,...,...,.,,,,.,,..,,.,,,,,,,
+#OQYBW7372XMHCBJM2OPLO5KM7MIHAVLW4E53KQS6SHWSAM222X2JGIHPFFBGWOJFZL2NUWA3RQEOE
+#\\\|VHATOATH2DDC6AFQE3XACBGIS4XIFY5SBP3U3TZJLJSDSFF5MZV \ / AMOS7 \ YOURUM ::
+#\[7]DO4PQKSWZ6XCQRTHR5SMQIXEQID5ZZDZAPDZ5OERRSR3USSPFOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
