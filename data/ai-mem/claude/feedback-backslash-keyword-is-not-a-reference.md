@@ -56,8 +56,32 @@ when auditing.
 Related: [[feedback-eval-code-no-angle-brackets]],
 [[feedback-comp-regex-qr-delimiter-escaping]].
 
-#,,,.,,.,,,..,.,.,..,,.,,,,,,,,.,,,.,,,,,,..,,..,,...,..,,..,,,,,,..,,,.,,,,,,
-#S24IUA5JO2NW7KTTAXRVQVRDVMUXPQGII4VXR7UB3ZZCX6NHBQQ3QJ6EAOZVDTEZ6ODOHS2Q4MUIA
-#\\\|3KFLQKCTGKKJYIHBQ3JXGFETJR2ZS6M7NFDDO4ETLPASYK5VS7Y \ / AMOS7 \ YOURUM ::
-#\[7]SE6DSOSKB5PHHMSV4VW3SNIM6SP6I7SQ6NIGY7WAFLT5YCQZ4EBI 7  DATA SIGNATURE ::
+
+## sibling trap — `qw| |` is not a quoting operator for arbitrary text
+
+Same family, hit twice in one session. `qw` splits on WHITESPACE, so
+anything with a space or comma inside it silently becomes several words:
+
+- `qw| , |` in a `join` triggered *"Possible attempt to separate words with
+  commas"* on every zenka startup. Use `q{,}`.
+- `sprintf( qw|  %-*s : {{%s}} |, ... )` would split into three words and
+  scramble the format string. Use ordinary quotes for any string containing
+  spaces.
+- `q|||` is invalid — the `|` delimiter collides with the content. Use
+  `q{|}`.
+
+And the matching delimiter trap: a `|`-delimited `s|...|...|` or `m|...|`
+whose pattern or replacement contains a literal `|` terminates early. That
+broke `plugin.auth.unix`'s auth regex mid-edit (an alternation) and a
+cursor substitution. Use `s{...}{...}` — which is what
+`plugin.auth.zenka` already did, for exactly this reason.
+
+**Rule of thumb:** `qw| |` is for single bare tokens only. The moment a
+string contains a space, comma or `|`, switch to `q{}` / `qq{}` / ordinary
+quotes.
+
+#,,..,,.,,,,.,,..,.,.,,.,,.,.,...,,,,,..,,.,,,..,,...,...,...,..,,...,,,.,.,.,
+#JMGAIT54GXEJMYQJZUFTYHYGLQ6L5TU6PX4VQTGUO5AG5FXZEZTTLJMLJIEBMYGWNHPXQQUHMFQHG
+#\\\|PVLSHU6PGDXU5CA6VCIWOQLMHBM2QMTHMROIJPO4VZEBDGZ6V4L \ / AMOS7 \ YOURUM ::
+#\[7]JCDWQDFVM6SNMPFQPPUDR5TNXCPN5OHWS47TFA3GEZA54NLRY6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
