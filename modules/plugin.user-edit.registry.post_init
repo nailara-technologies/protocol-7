@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = plugin.user-edit.registry.post_init
+# descr = collect every loaded user-edit plugin's tab_info into one registry
+
+## 'registry' is itself just a <name> under the SAME plugin.user-edit.<name>.*
+## convention every real plugin uses -- not a special-cased exception to it --
+## per user.  it is always present in this zenka's own plugins.load [ see
+## configuration/zenki/user-edit/start ], the one baseline entry alongside
+## whichever THIRD-PARTY plugin.user-edit.<name> entries get added later, so
+## it loads through [load_plugins:...] exactly like every other plugin does
+## rather than through [load_modules:...] -- confirmed against
+## configuration/zenki/web/start's own plugin.web.auth / plugins.load =
+## plugin.web precedent : plugin-namespaced modules go through
+## [load_plugins:...], full stop, core-to-the-zenka or not.
+##
+## ONE PARENT collector, not a per-plugin post_init of its own [ per design
+## doc data/yaml/coding-tasks/user-edit-plugin-detail-tabs.yaml,
+## registry_and_post_init ] -- picked up automatically by base.init_modules'
+## generic *.pre_init / *.init_code / *.post_init name-pattern walk, purely
+## because of this module's own name.  that walk runs the three phases in a
+## FIXED outer order [ base.init_modules:9-22 ], so every loaded plugin's own
+## plugin.user-edit.<name>.init_code has already completed, unconditionally,
+## before this ever fires -- no explicit ordering dependency to get wrong.
+##
+## <plugins.status> is the SAME registry base.load_plugins/base.
+## reload_plugins already maintain [ base.load_plugins : map { <plugins.
+## status>->{$ARG} //= {} } @plugins_to_load ] -- its keys are plugin NAME
+## PREFIXES [ 'plugin.user-edit.hosts', never a full subroutine name ], read
+## here rather than walked separately, so a plugin is discovered by the same
+## list reload already trusts.  filtered to exclude 'plugin.user-edit.
+## registry' itself -- the collector is not its own detail-tab plugin.
+
+<user-edit.plugin.registry> = { qw| by_key | => {}, qw| by_name | => {} };
+
+my @plugin_names = grep {
+    m|^plugin\.user-edit\.| and $ARG ne qw| plugin.user-edit.registry |
+    }
+    keys %{ <plugins.status> // {} };
+
+foreach my $plugin_name ( <[base.sort]>->( \@plugin_names ) ) {
+
+    my $tab_info_sub = sprintf( qw| %s.tab_info |, $plugin_name );
+
+    ## tab_info is the ONLY routine every plugin author must add beyond
+    ## init_code -- a plugin that skips it simply offers no detail tab, logged
+    ## rather than treated as an error
+    if ( not exists $code{$tab_info_sub} ) {
+        <[base.logs]>->(
+            2, ': plugin has no tab_info, no detail tab offered [ %s ]',
+            $plugin_name
+        );
+        next;
+    }
+
+    my $tab_info = $code{$tab_info_sub}->();
+
+    if ( ref $tab_info ne qw| HASH |
+        or not length( $tab_info->{'label'} // '' ) ) {
+        <[base.logs]>->(
+            0, ': plugin tab_info malformed, skipped [ %s ]', $plugin_name
+        );
+        next;
+    }
+
+    <user-edit.plugin.registry> {'by_name'}{$plugin_name}
+    = $tab_info;
+
+    ## pinned_keys is an ARRAY : per design, a plugin may pin several related
+    ## keys and cross-reference between them itself -- the storage layer [
+    ## here ] never needs to understand any relationship between them, only
+    ## record which plugin owns which key
+    foreach my $pinned_key ( ( $tab_info->{'pinned_keys'} // [] )->@* ) {
+
+        ## COLLISION : two plugins pinning the same key is a config error, not
+        ## a runtime decision -- caught HERE, in the single walk, and logged
+        ## loudly rather than silently letting one win
+        if ( exists <user-edit.plugin.registry> {'by_key'}{$pinned_key} ) {
+            <[base.logs]>->(
+                0,
+                ': pinned key collision [ %s ] : '
+                    . 'already claimed by %s, %s ignored',
+                $pinned_key,
+                <user-edit.plugin.registry> {'by_key'}{$pinned_key},
+                $plugin_name
+            );
+            next;
+        }
+
+        <user-edit.plugin.registry> {'by_key'}{$pinned_key}
+        = $plugin_name;
+    }
+}
+
+<[base.logs]>->(
+    2,
+    ': plugin detail-tab registry built [ %d plugin%s, %d pinned key%s ]',
+    scalar( keys %{ <user-edit.plugin.registry> {'by_name'} } ),
+    <[base.cnt_s]>->(
+        scalar( keys %{ <user-edit.plugin.registry> {'by_name'} } )
+    ),
+    scalar( keys %{ <user-edit.plugin.registry> {'by_key'} } ),
+    <[base.cnt_s]>->(
+        scalar( keys %{ <user-edit.plugin.registry> {'by_key'} } )
+    )
+);
+
+0;
+
+#,,.,,,,,,,.,,,,.,...,.,.,.,,,,,,,,,.,,.,,,.,,..,,...,...,...,.,,,,,.,.,,,,..,
+#M5U547RLKDW7CFKRUDHQ7JNIS3EMFERLSAA34KEU75ZXVMEJXBBINXCF7XHBGJCPV5SGRHW3A3RPK
+#\\\|LMCTJORRQWCEN6B6Z4QYPFHGTJMX67GKTHQACG4DI4OBVYW5ZJ5 \ / AMOS7 \ YOURUM ::
+#\[7]NEVILSK3SVWHIH5XIYNCLYEMMHXLUWCNYZJW2K55YHLEYSSDUCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
