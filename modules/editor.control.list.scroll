@@ -2,7 +2,8 @@
 
 # name  = editor.control.list.scroll
 # descr = page a windowed list field's visible window up or down
-# param = $editor_state, $direction [ -1 = page back, +1 = page forward ]
+# param = $editor_state, $direction [ -1 = page back, +1 = page forward,
+#         0 = resort IN PLACE, same window, no page ]
 
 ## the harvest-and-merge half of this is the SAME move
 ## editor.control.list.collapse makes : fold the currently visible window back
@@ -14,10 +15,19 @@
 ## wrapped around the same merge would read as one module doing two jobs.
 ##
 ## returns undef when there is nothing TO scroll -- no list currently expanded
-## [ mode is not 'list:<field>' ], or the field's entry count is at or under
-## editor.control.list.window_cap [ a single window already shows everything
-## ].  callers treat undef as "not applicable, skip the repaint", the same
-## contract editor.control.list.collapse's no-op return already sets.
+## [ mode is not 'list:<field>' ], or -- PAGING only, $direction non-zero --
+## the field's entry count is at or under editor.control.list.window_cap [ a
+## single window already shows everything, nowhere to page TO ].  callers
+## treat undef as "not applicable, skip the repaint", the same contract
+## editor.control.list.collapse's no-op return already sets.
+##
+## $direction == 0 is a RESORT, not a page : same offset, entries re-sorted [
+## editor.control.list.expand's own sort_on_focus gate applies exactly as it
+## does on a normal (re-)expand ] and window rebuilt -- per user, so a
+## just-typed entry lands in its canonical position the moment focus leaves
+## the row it was typed into, not only when the whole list is later re-entered
+## or paged.  the window_cap guard above is SKIPPED for this case : a 2-entry
+## list has nothing to PAGE but still has something to SORT.
 ##
 ## the caller MUST rebuild the frame afterwards [ same as .expand / .collapse
 ## ].
@@ -25,7 +35,7 @@
 my ( $editor_state, $direction ) = @ARG;
 
 return undef if ref $editor_state ne qw| HASH |;
-return undef if not $direction;
+return undef if not defined $direction;
 
 my $mode = $editor_state->{'mode'} // '';
 my ($field_name) = $mode =~ m|^list:(\w+)$|;
@@ -38,7 +48,7 @@ return undef if ref $source ne qw| HASH |;
 my $cap          = <[editor.control.list.window_cap]>;
 my @base_entries = ( $source->{'entries'} // [] )->@*;
 
-return undef if scalar(@base_entries) <= $cap;
+return undef if $direction and scalar(@base_entries) <= $cap;
 
 ## gather the CURRENT WINDOW's rows, same reasoning as
 ## editor.control.list.collapse : trimmed but not yet filtered, list_info
@@ -119,8 +129,8 @@ return <[editor.control.list.expand]>->(
     $collapsed_state, $field_name, $new_offset
 );
 
-#,,,,,..,,..,,,,.,...,...,,.,,.,.,,..,.,.,.,.,..,,...,..,,,.,,.,.,,.,,,,,,,..,
-#FMD55P43O23YDYTWRQZL4WLPEZBUPTILKFV5USXXPBNHZDXQGARABY5F4IG564DAXPCX4NVUN2S5G
-#\\\|BGNK56E36NYMH3UXAMJ347YUDS3D4HWUVPLUHGXEZBAZBFNJNPW \ / AMOS7 \ YOURUM ::
-#\[7]3QKQW3FFH633MT2WLQK37IVLRBIFNBAVR2E2F56DY3F6QCSBAGBA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,,,...,,,.,,..,...,..,,,,,,,.,,..,,...,..,,..,,,,,,...,,..,..,,
+#IPUA7UKASP5UYJ2XCVKQUADZTJCX5KOVNMJYPEZ3XUZXPQXJ3NLVI2UIPV542SBIKED56RZNLL3WS
+#\\\|OAATBSK5H6LAC56N3KVNCLODWAOQRTUBKFFKFIRYVUXTVDRRPIC \ / AMOS7 \ YOURUM ::
+#\[7]HZYQAEGJSJMHVP276DFRKPTTIMDR7XMWT62L6GHQGGU2O5K7WYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
