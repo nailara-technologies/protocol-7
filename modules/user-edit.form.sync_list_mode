@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = user-edit.form.sync_list_mode
+# descr = expand or collapse a list field as focus moves
+
+## called after every field change : if focus has landed ON a collapsed list
+## field it expands, and if focus has LEFT an expanded one it collapses.  that
+## is the whole interaction -- entering a list opens its entries, leaving
+## closes them back into the count.
+##
+## expand/collapse REPLACE the editor state [ editor.control.list.* rebuild it
+## through editor.control.create rather than hand-patching two structures ],
+## so callers must re-read <user-edit.form.state> afterwards.
+##
+## the frame MUST be regenerated here : user-edit.form.build_frame assigns
+## <ascii.frame.cache> unconditionally and is itself the invalidation
+## primitive, while ascii.frame.load returns its cached entry blindly -- a
+## stale descriptor renders the new rows nowhere and leaves ghost rows behind
+## for the ones that went away.
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $active_index = $editor_state->{'active_field'} // 0;
+my $active_def   = $editor_state->{'schema'}{'fields'}[$active_index];
+my $active_name  = ref $active_def eq qw| HASH | ? $active_def->{'name'} : '';
+
+my $mode = $editor_state->{'mode'} // qw| insert |;
+my ($expanded_field) = $mode =~ m|^list:(\w+)$|;
+
+my $new_state;
+
+if ( defined $expanded_field ) {
+
+    ## still inside the expanded list ? every row carries list_row_of ##
+    my $still_inside = ref $active_def eq qw| HASH |
+        && ( $active_def->{'list_row_of'} // '' ) eq $expanded_field;
+
+    return FALSE if $still_inside;
+
+    $new_state = <[editor.control.list.collapse]>->($editor_state);
+
+    ## collapse parks the cursor ON the collapsed field, which is right when
+    ## you back OUT of the list [ Esc, or stepping back onto it ] but wrong
+    ## when you tabbed PAST it : that focus belongs to the field you moved to.
+    ## restore it when that field survived the rebuild
+    if ( ref $new_state eq qw| HASH | and length $active_name ) {
+        my $position = 0;
+        foreach
+            my $field_def ( ( $new_state->{'schema'}{'fields'} // [] )->@* ) {
+            $new_state->{'active_field'} = $position, last
+                if ( $field_def->{'name'} // '' ) eq $active_name;
+            $position++;
+        }
+    }
+
+} elsif ( ref $active_def eq qw| HASH | and $active_def->{'list'} ) {
+
+    $new_state
+        = <[editor.control.list.expand]>->( $editor_state, $active_name );
+}
+
+return FALSE if not defined $new_state or $new_state == $editor_state;
+
+<user-edit.form.state> = $new_state;
+
+## row count changed : the cached descriptor no longer matches the schema ##
+<[user-edit.form.build_frame]>->(
+    $new_state->{'schema'},
+    <user-edit.form.frame_name> // qw| user-edit-form |,
+    <user-edit.form.title>
+);
+
+return TRUE;
+
+#,,.,,,,,,,.,,,..,,,,,,..,..,,,.,,.,.,..,,.,,,..,,...,...,,.,,.,.,..,,.,,,,,,,
+#I2CROGS6Y6Z7FT6BCEUFCUK7V7B7ROO6OBFXV5EWY2RTDUSMQTX2JHTASOF2ENTMAX7AIGNYGGPSW
+#\\\|JJPKWJB4PB24ZCLGMMOCCHYPEKLG6BZHVYU6AB7KJ23P6XWKYU4 \ / AMOS7 \ YOURUM ::
+#\[7]QH2XCNDWJ64PXAC3O4BFRMNL2AUUSXHSH7RENRJIIHFF2ZSGUIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,6 +26,41 @@ my $value = <[editor.control.get_value]>->( $editor_state, $field );
 
 return $value if not defined $value;
 
+## LIST fields : the buffer is not the value.  entries live on the schema
+## field def, which stays authoritative while collapsed, and what gets DRAWN
+## is a count summary -- the HOLDS-vs-DRAWN split this module exists for
+my ($field_def)
+    = grep { ( $ARG->{'name'} // '' ) eq $field }
+    ( $editor_state->{'schema'}{'fields'} // [] )->@*;
+
+if ( ref $field_def eq qw| HASH | and $field_def->{'list'} ) {
+
+    my @entries = grep { defined $ARG and length $ARG }
+        ( $field_def->{'entries'} // [] )->@*;
+
+    ## the noun is a STEM plus two suffixes, because English plurals are not
+    ## all '+s' : 'entr' + 'y' / 'ies', 'address' + '' / 'es'
+    my $noun     = $field_def->{'noun'}          // qw| entr |;
+    my $plural   = $field_def->{'noun_plural'}   // qw| ies |;
+    my $singular = $field_def->{'noun_singular'} // qw| y |;
+
+    ## base.cnt_s returns the SUFFIX only, count first -- and its default 's'
+    ## is wrong for nouns like 'address', hence noun_plural
+    my $summary
+        = @entries
+        ? sprintf( '%d %s%s',
+        scalar @entries,
+        $noun, <[base.cnt_s]>->( scalar @entries, $plural, $singular ) )
+        : sprintf( 'no %s%s', $noun, $plural );
+
+    ## bounded on purpose : ascii.frame.render recomputes row width from the
+    ## VALUES and nothing truncates, so an unbounded summary would widen the
+    ## whole frame
+    $summary = substr( $summary, 0, 30 ) if length $summary > 30;
+
+    return sprintf( '.. %s ..', $summary );
+}
+
 my $buffer = $editor_state->{'fields'}{$field};
 my $type
     = ref $buffer eq qw| HASH |
@@ -36,8 +71,8 @@ return q|*| x length $value if $type eq qw| masked |;
 
 return $value;
 
-#,,,.,,..,.,,,,,.,..,,.,,,..,,,,.,,,.,,..,,,.,..,,...,...,,..,.,.,...,,,,,,,.,
-#DIVXVYDMOM2MM2HT6GAD6F6HKPZAQJODPZ2T5WCQCJURNNDCJ4AFJ53RXUSJWHMBVFVG57WOYN374
-#\\\|6MWFV5NSU55T3NUJOCWCG5SEITKKV4EED56O4MQKP57YUCEL6PF \ / AMOS7 \ YOURUM ::
-#\[7]BWTIJ4TDMQWKBBR5EOVZJ2FYEXSRGLKNLSDJZFGKMOCADRWDEMBQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,.,.,...,.,.,.,.,,..,...,,.,,..,,...,.,,,.,,,...,...,.,.,.,.,
+#XTU526EWRVXNFUGXG7P2MSIQWUHTTPA7HGGKFQYERZTUAGYAVTDUI7DZLKM2GLZL5V46WOZM4YBF2
+#\\\|A3QIIR77LOZKI6HN7GBAFQIUR7FJF4ZPEOBLXLEUJ4ZR46HPM2M \ / AMOS7 \ YOURUM ::
+#\[7]66TACQPCURIATZOSXRRMMCB37B7NOAFDKI4DI7JHUYHZ6GRT4GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

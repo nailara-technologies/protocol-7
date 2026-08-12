@@ -3,10 +3,10 @@
 # name  = user-edit.form.submit
 # descr = stage the edited values, then push them to the users zenka
 
-## ORDER MATTERS [ local_edit_outbox ] : for an ordinary form the outbox
-## write is durable and happens BEFORE the users.value-set attempt, so if the
-## users zenka is unreachable — or this process dies between the two — the
-## edit survives on disk rather than being lost to a failed network call.  the
+## ORDER MATTERS [ local_edit_outbox ] : for an ordinary form the outbox write
+## is durable and happens BEFORE the users.value-set attempt, so if the users
+## zenka is unreachable — or this process dies between the two — the edit
+## survives on disk rather than being lost to a failed network call.  the
 ## outbox entry is cleared only once the zenka confirms the write.
 ##
 ## ONE EXCEPTION, and it is deliberate : a form holding a masked field is
@@ -19,6 +19,22 @@ my $editor_state = <user-edit.form.state>;
 return FALSE if ref $editor_state ne qw| HASH |;
 
 my $username = <user-edit.form.username> // return FALSE;
+
+## COLLAPSE FIRST, unconditionally.  Enter submits from ANY field [
+## editor.control.process_key ], and submitting while a list is expanded would
+## collect '<field>_0', '<field>_1' as separate top-level record fields and
+## permanently replace the array.  collapse is a no-op when nothing is
+## expanded, so this is safe to call every time
+my $collapsed = <[editor.control.list.collapse]>->($editor_state);
+
+if ( $collapsed != $editor_state ) {
+    <user-edit.form.state> = $editor_state = $collapsed;
+    <[user-edit.form.build_frame]>->(
+        $collapsed->{'schema'},
+        <user-edit.form.frame_name> // qw| user-edit-form |,
+        <user-edit.form.title>
+    );
+}
 
 my @masked_fields = <[editor.control.masked_field_names]>->($editor_state);
 
@@ -54,6 +70,14 @@ if ( ref $result ne qw| HASH | or not $result->{'ok'} ) {
 }
 
 my $values = $result->{'values'} // {};
+
+## list fields submit their ARRAY, not the buffer string : the buffer is empty
+## for a collapsed list, and 'entries' is what holds the value
+foreach my $field_def ( ( $editor_state->{'schema'}{'fields'} // [] )->@* ) {
+    next if not $field_def->{'list'};
+    my $name = $field_def->{'name'} // next;
+    $values->{$name} = [ ( $field_def->{'entries'} // [] )->@* ];
+}
 
 ## durable staging first -- EXCEPT when the form holds a secret.  a partial
 ## outbox entry would be worse than none : a later retry would push a record
@@ -110,8 +134,8 @@ $json_fields =~ s|\n\s*||g;
 
 return TRUE;
 
-#,,,,,.,,,,.,,.,.,,,,,..,,,.,,...,,,,,,.,,.,,,..,,...,...,,,,,..,,.,.,,,,,.,.,
-#RWPBB6UMVRTBY4EOWCNFWHTCIPQNJY2ERMAUYEMRDGH65RTNKQ6MZA7VF7RHHA7N3HQX3NBOAK4AG
-#\\\|YB66IOUS7YSCP4JFMAPVBG2SVEWCN4TDZXRFHXYPGHJAKO2OCLZ \ / AMOS7 \ YOURUM ::
-#\[7]HWGV3ROOHAI6WGYGBIR5BKUDVRDUHXASYCVOZH3E4OSYE2YTBIAI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,...,,..,,,,,,..,,,,,,..,.,,,.,.,..,,...,..,,...,,.,,.,,,,.,,,,.,
+#CKLSK4OY32IZAHNXQ253DJ3MO7DK67BV6J7IVEOORP66VNRLLSGSLY4J7SXT274MOX34S75KR3HNS
+#\\\|AHLH554DDJD2DMBVCUNWBSRO2ADH776H7HN7MOKWJA4U5Z3GQTL \ / AMOS7 \ YOURUM ::
+#\[7]3K43WW25DVTRZIH3AQOEZ5XGR7BSS7ZUS2Q47FW7VQ4FEQJN6QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

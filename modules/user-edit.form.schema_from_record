@@ -38,7 +38,28 @@ foreach my $name ( sort keys %{$fields} ) {
 
     my $value = $fields->{$name} // '';
 
-    ## nested structures have no freeform_line representation ##
+    ## an ARRAY becomes a LIST field : collapsed it draws as a count summary [
+    ## editor.control.get_display_value ] and expands into one editable row
+    ## per entry when entered.  the type stays freeform_line because
+    ## editor.control.create accepts no other -- 'list' is metadata on the
+    ## field def, and 'entries' is the authoritative value
+    if ( ref $value eq qw| ARRAY | ) {
+        push @field_defs,
+            {
+            qw| name |    => $name,
+            qw| type |    => qw| freeform_line |,
+            qw| default | => '',
+            qw| list |    => TRUE,
+            qw| entries | =>
+                [ grep { defined $ARG and length $ARG } $value->@* ],
+            qw| noun |          => qw| entr |,
+            qw| noun_plural |   => qw| ies |,
+            qw| noun_singular | => qw| y |,
+            };
+        next;
+    }
+
+    ## other nested structures have no freeform_line representation ##
     if ( length ref $value ) {
         <[base.logs]>->(
             2, ': field value is not a scalar, skipped [ %s ]', $name
@@ -70,8 +91,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,.,,,.,,...,..,,..,,,..,,.,,,.,,.,,,.,,,,,.,..,,...,...,.,,,,,.,.,.,.,,,.,.,
-#645DCNODAFC3RIQ5VG2SHH3XBXNJW44W7QBJSCXK3FZLU6MOSXCIPE7MAR6K6KJIR6QQA4GXUFY5K
-#\\\|HISZS5A36W5626IMSX6YCA476IL2SSFRVKRGXPMOGWPUSSVGQBL \ / AMOS7 \ YOURUM ::
-#\[7]RHEILFSOKRY6U2ADYMZXVWW4ILYZ737GE5U22FWDCSQUNQHQGQBY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,.,,.,.,,,,,,,.,...,.,.,.,,,,..,..,,...,...,...,,..,,.,,,..,,,,,
+#GM6DUIQFKWUE76Z6OY4DKFUID6HSJ4UYIEEL3SPSRDCZBJ6EGGUZNHKISCUDXC7TWVO6YV44ZTEXI
+#\\\|YPIWZKLSMWDS5NN6PXQ4ORBH6JGPKHKTA5Q4JOP4F3YLMI5FN5P \ / AMOS7 \ YOURUM ::
+#\[7]5DDQW5U7YPWRGHW7EE75HAAWVECP7GH4SJ2SC44MVV7XNPSU4CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
