@@ -58,6 +58,31 @@ my $repaint = FALSE;
 
 while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
 
+    ## the FIRST key of a freshly opened card retires the one-shot discovery
+    ## hint ['ctrl-? · toggle cmd list'] user-edit.form.render shows in its
+    ## place -- any key, not just ctrl-?, since the point is "the user has
+    ## started interacting", not "the user found the toggle".  forced here
+    ## rather than left to whatever $repaint this key's own effect sets,
+    ## because a no-op key [ e.g. Left at column 0 ] would otherwise leave the
+    ## hint on screen for one extra, silently stale repaint
+    if ( not <user-edit.form.hint_seen> ) {
+        <user-edit.form.hint_seen> = TRUE;
+        $repaint = TRUE;
+    }
+
+    ## Ctrl-? [ sent as Ctrl-/, 0x1f -- see editor.input.parse_key_spec ]
+    ## toggles the cmd-list hint block.  matched directly on the KEY rather
+    ## than through process_key's passthrough : consistent with how Delete and
+    ## Left/Right are claimed elsewhere in this module, and it means the
+    ## toggle works regardless of whether the focused row happens to be
+    ## readonly
+    if ( $key eq "\x1f" ) {
+        <user-edit.form.help_visible>
+            = <user-edit.form.help_visible> ? FALSE : TRUE;
+        $repaint = TRUE;
+        next;
+    }
+
     ## the focused def is resolved BEFORE process_key rather than after, which
     ## is safe because process_key only ever READS 'active_field' [ line 17,
     ## never assigned there ] -- no branch of it can move focus under us, so
@@ -230,8 +255,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,,,.,.,.,.,,,,,,,.,,.,,,,.,.,.,,.,,.,,,,,.,..,,...,..,,.,,,,,.,.,,,..,,..,,
-#KUJRIMUVIROBQLVVSAOCXMULF23HW62K7ZTJ354UHU3ADPCZIL3LIOXFGNJBNUSCIVX3CNP4HF4Q6
-#\\\|XFN5LY2PW56SU3VSKJ5DNB7J226NOCVVFZSPNM3VKHJSIZWHDHC \ / AMOS7 \ YOURUM ::
-#\[7]OPFZSNLSA6UQ4ASVZDOEK6M2IALVQLRMP6FMPTMFWRXHAT7FRUBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,,,.,.,,,.,,,.,.,.,,,...,,,.,..,,...,...,,..,.,.,..,,,.,,,..,
+#DT5ZSNEB5DTUGDVA24V2FC46Y5AC25QT4UJX6OEJ6I3HDSJIGPNY5TK4QM724KMGXEE7E2FMJZO6I
+#\\\|4OMAFWEK564BLBOQ45V63XTFPVPMSIZVL6257MEQS4HTLJPXFYI \ / AMOS7 \ YOURUM ::
+#\[7]2KOSX3LAVXYZXWKBHDFZK5ZMABRY2DNTQBI5ZANGVDKWHLHQX6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

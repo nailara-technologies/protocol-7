@@ -25,7 +25,7 @@
 ## frame width is INVARIANT under focus changes, and both halves below are
 ## what make it so : an unfocused value gets pad_l/pad_r where a focused one
 ## gets its brackets, and the cursor is OVERLAID into a reserved cell rather
-## than appended.  every value is therefore length + 5 whether focused or not.
+## than appended.  every value is therefore length + 4 whether focused or not.
 ## [ this replaces an earlier note here warning of a 3-column shift : that was
 ## true before the pads and the reserved cell existed, and left behind it a
 ## jump to go looking for that is no longer there. ]
@@ -99,38 +99,60 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         or $field_def->{'menu_row'}
         or $field_def->{'add_field'} );
 
-    ## THREE reserved cells : <pad><value><cursor cell><pad>.
-    ##
-    ## the CURSOR CELL gives a cursor sitting past the last character
-    ## somewhere to live -- without it the marker is appended instead, growing
-    ## the value by one and stepping the closing bracket [ and the whole frame
-    ## ] right as soon as you reach the end of a field.
-    ##
-    ## the two PADS keep the value off its framing characters.  the trailing
-    ## pad has to come AFTER the cursor cell, or an end-of-line cursor eats it
-    ## and the closing bracket sits flush against the marker -- most visible
-    ## on an empty field, which would render as '[ _]'.
-    ##
-    ## constant length + 5 with the framing, focused or not
-    $value = q{ } . $value . q{ } . q{ };
+    ## the add-a-field CYCLER already manages its own per-choice spacing [
+    ## editor.control.cycler.render's cell design -- '+choice+' writes INTO
+    ## the padding a choice already carries, rather than adding to it ].
+    ## stacking this row's own pad+cursor-cell reservation on top of that
+    ## double-padded the outer [ ] whenever the row had focus -- two layers of
+    ## spacing where the cycler's own already did the job.  every other row [
+    ## cursor-bearing text, a collapsed list summary, a menu label ] still
+    ## gets the reservation below ; only the cycler skips it entirely and is
+    ## framed by the outer bracket/pad-mark wrap with nothing extra inside it
+    if ( $field_def->{'add_field'} ) {
 
-    if ( $name eq $active_name and $cursor_bearing ) {
+        ## no inner reservation : outer wrap below is the only framing ##
 
-        ## OVERLAY, not insert [ nshell.render.cursor's shape ] : the marker
-        ## REPLACES the character it sits on, so the row keeps its width and a
-        ## colourising caller can restore that character in inverse video --
-        ## the character under the cursor stays readable.  the reserved cell
-        ## above guarantees there is always something to overlay +1 for the
-        ## leading reserved cell : the editor's cursor offset is into the
-        ## VALUE, while this string now carries a cell in front of it.
-        ## clamped so it can reach the trailing cell but not the leading one
-        my $cursor = <[editor.control.get_cursor]>->( $editor_state, $name )
-            // 0;
-        $cursor = 0 if $cursor < 0;
-        $cursor++;
-        $cursor = length($value) - 2 if $cursor > length($value) - 2;
+    } else {
 
-        substr( $value, $cursor, 1 ) = $cursor_marker;
+        ## TWO reserved cells : <pad><value><cursor cell>.
+        ##
+        ## the CURSOR CELL gives a cursor sitting past the last character
+        ## somewhere to live -- without it the marker is appended instead,
+        ## growing the value by one and stepping the closing bracket [ and the
+        ## whole frame ] right as soon as you reach the end of a field.
+        ##
+        ## the LEADING pad keeps the value off its opening framing character.
+        ## the trailing side has no separate pad of its own any more -- per
+        ## user, the right side was carrying one more reserved column than the
+        ## left [ pad + cursor cell vs. just pad ], which read as asymmetric.
+        ## the cursor cell now doubles as the trailing pad : an end-of-line
+        ## cursor sits flush against the closing bracket, e.g. '[ Taeki Ten_]'
+        ## rather than '[ Taeki Ten_ ]' -- a deliberate reversal of the '[ _]'
+        ## this used to be written to avoid.
+        ##
+        ## constant length + 4 with the framing, focused or not
+        $value = q{ } . $value . q{ };
+
+        if ( $name eq $active_name and $cursor_bearing ) {
+
+            ## OVERLAY, not insert [ nshell.render.cursor's shape ] : the
+            ## marker REPLACES the character it sits on, so the row keeps its
+            ## width and a colourising caller can restore that character in
+            ## inverse video -- the character under the cursor stays readable.
+            ## the reserved cell above guarantees there is always something to
+            ## overlay +1 for the leading reserved cell : the editor's cursor
+            ## offset is into the VALUE, while this string now carries a cell
+            ## in front of it.  clamped so it can reach the trailing cell but
+            ## not the leading one
+            my $cursor
+                = <[editor.control.get_cursor]>->( $editor_state, $name )
+                // 0;
+            $cursor = 0 if $cursor < 0;
+            $cursor++;
+            $cursor = length($value) - 1 if $cursor > length($value) - 1;
+
+            substr( $value, $cursor, 1 ) = $cursor_marker;
+        }
     }
 
     ## framing : brackets when focused, matching spaces when not, so a value
@@ -172,8 +194,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,,,,,.,.,,,..,,,,,,..,,,..,,..,,.,,,..,...,..,,...,...,,.,,,.,,,,,,..,,,..,
-#AIKNZ6GDOBMYMHU7PITTJDNCOYXUTCTST4CCIXNSK6JGB2XQTYELBJWA5WPIPVEEKDZUCLPHJ4QV4
-#\\\|2PIDGFP5CKGLR7A3ABT4HOSE2MO2T6Q4THTE4VUUZYLKWIDI6GQ \ / AMOS7 \ YOURUM ::
-#\[7]6VPGIL2RS25RUPBEK7WSHHUBCAZJWD7SJMNUXAYLTT6IS3BQBWCY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,,.,,,.,,,..,,,.,,.,,...,..,,..,,...,...,...,.,,,,.,,,..,..,,
+#4O3FBXHYSEK4YWXGQVDEJQIG4NTN4HVJT6T46GCPSOT76WPCWM3HW4NQ7ZGZOLIWJADBMSQBGRFMO
+#\\\|P4EDFUY5XGGH3WTB4HDPQ7IWMUJS6FWQ7SP3ZGPYPSJX6SGUYCF \ / AMOS7 \ YOURUM ::
+#\[7]NI3H7BC53T5YGIW4GYT4QZ5B7S2TV2RDVWMIXARA365EQAK766CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
