@@ -6,7 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
-- [editor-add-field-cycler](reference-editor-add-field-cycler.md) — inline `[ + a | b ]` cycler + `users.record.optional_fields`. TWO TRAPS: a synthesised ACTION row must never reach storage (`_add_field` was written into the record, sorted first and blocked itself), and a schema def appended after `editor.control.create` has NO buffer so it renders empty with no error. Also: `v7.restart users` before testing any `users.*` change
+- [editor-add-field-cycler](reference-editor-add-field-cycler.md) — inline `+a+|b` cycler + `users.record.optional_fields`. TWO TRAPS: a synthesised ACTION row must never reach storage, and a schema def appended after `editor.control.create` has NO buffer. `v7.restart users` before testing `users.*` changes. Plus: why the frame's width is set by `ascii.frame.render`'s own row-overflow detection (`build_frame`'s `min_width` only predicts it, doesn't cause it) and the padded-internal-token-name technique that follows from that; the `\x06`-sentinel technique for hand-colouring one row inside an auto-coloured frame; the Esc-on-expanded-list mode bug (fixed) and why `char-add` can never test the bare-Esc debounce at all
 - [user-edit-headless-driving](reference-user-edit-headless-driving.md) — how to actually drive the form with no terminal: start detached with `-no-tty`, route `char-add` by SESSION ID (by name it answers `client not present` — the zenka registers as `<unix-user>[user-edit]`), `[Ctrl+k]` not `[Ctrl-k]`, navigate by the returned rendering never a counted `[Down]` run, and never `pkill -f user-edit` (it kills the calling shell)
 - [editor-list-field-and-render-contract](reference-editor-list-field-and-render-contract.md) — ALSO: an overlay (cursor) must ask whether output is INTERACTIVE — overlaying corrupts a capture, so a non-tty shows the character not the marker; `-t STDOUT` (may I emit escapes) and `length $colors{'reset'}` (are colours on) are DIFFERENT questions; and ascii.frame's flush-colon label constraint is GONE (padded labels match now, contra commit 69ca66fa4's message)
 - [editor-list-field-and-render-contract](reference-editor-list-field-and-render-contract.md) — collapsible LIST field type: expand REWRITES the schema via editor.control.create (no add/remove primitive exists); row names must be `^\w+$`; submit collapses unconditionally first (Enter submits from ANY field, else `field_0`/`field_1` replace the array); `active_field` is an INDEX so every rewrite recomputes it by NAME. Also render_form's cell contract: `<pad><value><cursor cell><pad>`, markers exactly one char
@@ -57,8 +57,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [ext-bundle backup alias](reference-ext-bundle-backup-alias.md) — `gbc` bash alias creates+verifies the ext-bundle git backup; it's a `.bundle` file not a real remote, `git push` to it always fails harmlessly
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 
-#,,.,,.,,,,,,,...,,.,,,,,,.,,,,,,,,,.,.,.,.,.,..,,...,...,,..,.,,,...,..,,..,,
-#ZJY6IXGGQDWZOXNF26XSQ27RXWUWQEPNQNAAOIVHVTVHIKYI3L4VJXYLC5HU6XYEG6MNGA2NUWVYM
-#\\\|QH5NR3QGWDKK3BLILAYJTYX57IPMKXJB4GBQ7TTBXN3J7D6EG7W \ / AMOS7 \ YOURUM ::
-#\[7]IMDK2FJCH46X4N6O5ZP633V3772VJW3KVUT2W3KJQ2IV3GPWBGBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,.,.,,..,.,,,,,,,,,.,,,,,...,..,,...,...,.,,,,.,,,..,,,,,,..,
+#VNKLBXIFGQFM4ENL2C46SFTMEX2ASVAJXE6252S4FH2BDPSAJ4JTCQGOXC5UTQVMTRN5ZJQFWPTJ4
+#\\\|AZMKACND5CM7EAS2XVRRRACVTZWDNG7IK5ZUYKS7AJLCAYLJOBB \ / AMOS7 \ YOURUM ::
+#\[7]F4CGKWF3SVT6EKBHCLCWBBSSPR5NXIE5UQFLFDIOVG3KXQRPRWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

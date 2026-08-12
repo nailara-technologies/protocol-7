@@ -1,6 +1,6 @@
 ---
 name: reference-editor-add-field-cycler
-description: "inline add-a-field cycler ([ + a | b ]) + users.record.optional_fields — and the two traps it exposed: a synthesised row must NEVER reach storage, and a schema def appended after editor.control.create has no buffer"
+description: "inline add-a-field cycler (now '+a+|b') + users.record.optional_fields — the two traps a synthesised row exposes (never reaches storage, schema def needs a buffer), why the frame's width is set by ascii.frame.render's own row-overflow detection and NOT by build_frame's min_width (which only predicts it), the padded-internal-token-name technique that follows from that, and the Esc-on-expanded-list bug"
 metadata:
   type: reference
 ---
@@ -274,8 +274,183 @@ across focus changes. True once; not true since `pad_l`/`pad_r` came to match
 the brackets and the cursor started overlaying a reserved cell. Corrected in
 place — a width note that no longer describes the code is worse than none.
 
-#,,,.,.,.,,,.,.,,,.,,,,,,,,..,,..,,..,,,,,,,,,..,,...,...,...,.,,,,..,,,.,,,.,
-#CD42EIPYL7PYHQUVX2QYTORKNNAQ3Y37AKFO672EJXK5QN5PTHD5WSN446U3AYSORSMBTI4AFNUHY
-#\\\|WG3FN377CROJLXWUM6KDMR3IBWP4TFR2RUX2SAHI5N23LUT35IJ \ / AMOS7 \ YOURUM ::
-#\[7]OIZH3GUFEMNV7S56SRDFFCGJTUKURJPD6ZHUZZUCAOYP3PXAXQBI 7  DATA SIGNATURE ::
+## 2026-08-12, session two — density/compaction pass, landed in three commits
+
+Per user, a long iterative pass over the same form's visual density, mostly
+driven by live screenshots from their own interactive session rather than
+headless captures. Landed as `d483d9550`, `c0cbd90b8`, `cff9866af`,
+`c90b66b32`.
+
+**What changed, briefly** (each is small on its own, the cumulative effect is
+what mattered): list-row labels drop the `_0`/`_1` suffix on every row of an
+expanded group, not just the first (`label_of`, `user-edit.form.build_frame`
+— `list_row_of` present → its source field's name, on every row, including
+`label_width`'s own measurement, which is what let it reclaim columns rather
+than just hide the suffix). The cycler dropped its `+ ` prefix and switched
+from `[choice]`/`+choice+` — nested brackets under the frame's own focus
+brackets read as a typo. A collapsed list's summary is `':..N entries..:'`,
+not `'.. N entries ..'` — borrows the frame's own `:`/`.` vocabulary so it
+reads as chrome, and sits 2 columns closer to its label than a real value
+(`editor.ui.ascii_frame.render_form`'s `list` branch drops both the inner
+leading pad and the outer `pad_l` — relies on a list never being rendered
+focused-while-collapsed, which `user-edit.form.sync_list_mode` already
+guarantees by always expanding on arrival). An end-of-field cursor sits flush
+against the closing bracket now (`'[ Taeki Ten_]'`, not `'[ Taeki Ten_ ]'`) —
+a deliberate reversal of an earlier decision the file used to warn against;
+confirmed with the user before landing since it undid something already
+decided once. `note` moved from `users.record.default_fields` to
+`users.record.optional_fields` — no reason it was the one mandatory field
+with no story. `full_name` split into `full_user_name` / `full_real_name`; a
+live record's existing value was moved with `users.cmd.value-set` (the whole
+fields hash), never a hand-edit of the checksummed yaml. An expanded list
+group gets a blank line ahead of its first row, compacted away when the row
+above is already blank (typically another list's own collapsed-state
+reserved trailing blanks) — same guard now shared with the add-a-field row's
+existing blank-line-before-it rule, which had the identical gap and got the
+same compaction.
+
+## the ctrl-? cmd-list toggle, and drawing INSIDE a border row
+
+Hidden by default; toggled with `Ctrl-?` (sent as `Ctrl-/`, `\x1f` — added to
+`editor.input.parse_key_spec`'s key_map, both names). A one-line discovery
+hint shows until the first keystroke of an opened card
+(`<user-edit.form.hint_seen>`, reset in `value_get_reply`, set — and a
+repaint forced — on the very first key in `stdin_key`'s loop, not tied to
+paint count, since a round-trip repaint would otherwise make it flash once
+and vanish before the user could read it).
+
+First version printed the hint as a SEPARATE line below the card's own
+closing border. User: "it draws a second one now, instead of replacing it" —
+two dotted rows in a column reads as a doubled border. Fixed by splicing the
+hint INTO `@frame_lines[-1]` (the plain render, before colourisation) instead
+of printing anything extra — measuring the just-rendered frame's own width
+and margin directly off that array rather than reserving anything for it in
+`build_frame`.
+
+Two more rounds after that: the exact dot-spacing had to match the user's
+own hand-typed mockup letter-for-letter (`'ctrl-?'` keeps `-?` glued to the
+`l` with no dot, unlike every other character — not a generatable rule,
+hand-copied as a literal constant) including a **leading dot** right after
+the border colon that was missed the first time ("still one character too
+far left"). And the text came out **white** — the shared colouriser
+(`ascii.frame.render.color`) classifies a line as border-vs-content by DOT
+DENSITY across the WHOLE line, which a letter-heavy message can tip either
+way depending on how much of the frame's width the trailing fill consumes —
+and even on the border path, `ascii.frame.render.color.border_line` has no
+case for a bare LETTER inside a fill run, passing it through with no colour
+at all. Fixed by colouring the row BY HAND (matching
+`configuration/ascii-frame`'s own `fill.single`/`fill.dot` mapping) and
+shielding it from the automatic classifier with a **single otherwise-unused
+byte** (`\x06`) standing in for the finished row until AFTER colourisation —
+a length-1 line survives `content_line`'s classifier completely untouched
+(its first/last/body slicing all degrade to returning that one raw byte when
+`length <= 1`), so nothing the classifier does needs undoing on substitution.
+This is a REUSABLE technique for injecting hand-coloured content into an
+otherwise auto-coloured frame: build a sentinel placeholder, let the normal
+pipeline run over it harmlessly, substitute the real (pre-coloured) content
+back in afterward with a literal regex match.
+
+## Esc on an expanded list needed pressing TWICE — root cause, not a timing bug
+
+Reported as: press Esc once, nothing visible happens but you can still move
+around; a second Esc then exits. First hypothesis was the bare-Esc debounce
+timer (`user-edit.handler.esc_timeout`, 50ms) misfiring — WRONG, and it
+matters why: `user-edit.form.escape`'s generic "leave a sub-mode" branch
+(`if ($mode ne 'insert') { $editor_state->{mode} = 'insert'; ... }`) was
+written when the module's own header comment said "nothing sets a non-base
+mode yet" — true at the time, false since `editor.control.list.expand`
+started setting `mode = 'list:<field>'`. Esc on an expanded list matched that
+generic branch, which just RELABELS mode back to `'insert'` without ever
+calling `editor.control.list.collapse` — so the schema keeps `'<field>_0'`,
+`'<field>_1'` .. as permanent fields (`user-edit.form.sync_list_mode`'s own
+collapse only runs on a `field_next`/`field_prev` TRANSITION, which Esc is
+not), and the NEXT Esc, now genuinely in `insert` mode, exits outright. Fixed
+by giving `list:` mode its own branch, ahead of the generic one, that calls
+`editor.control.list.collapse` the same way `sync_list_mode` does. The stale
+comment was corrected in place rather than left standing.
+
+**Testing gotcha worth remembering**: this is NOT reproducible via
+`char-add`. Its own driving loop
+(`while (length(<user-edit.form.input_buffer>)) { stdin_key; event.once(0.02);
+}`) re-invokes `stdin_key` every ~20ms for as long as an unresolved lone
+`\e` sits in the buffer — and `stdin_key` unconditionally CANCELS any
+pending esc-timer at its own top, every time it runs, regardless of whether
+genuinely new bytes arrived. Since the timeout is 50ms and the loop's own
+gap is 20ms, the timer never gets an uninterrupted window and never fires
+within one `char-add` call, at all — confirmed empirically, not just
+reasoned. Logic bugs reachable via `esc_timeout` have to be traced by
+reading, then confirmed live, not through this harness.
+
+## the width investigation, and what it settled for good
+
+A long back-and-forth (user, rightly, did not accept "it's necessary" on
+faith) traced the add-a-field row's width reservation all the way down to
+two separate facts worth keeping:
+
+**`build_frame`'s `min_width` does not ADD width — it only PREDICTS what
+`ascii.frame.render` will conclude on its own.** The mockup is built ONCE, at
+a width driven purely by the longest LABEL (`$inner_width` from `@bodies`,
+completely separate from `$min_width`) — the add-field row's placeholder
+token (`{{name}}`) gets whatever trailing space that narrow build happens to
+leave it. At render time, `ascii.frame.render` computes
+`row_width = prefix + REAL_value + suffix` from that already-fixed suffix,
+completely independent of whatever `min_width` build_frame separately set —
+proven by reading `ascii.frame.parse`'s own slot extraction
+(`suffix = substr($line, $pos + length($match))`, taken straight off the
+narrow mockup). So even with `min_width` deleted entirely, `ascii.frame.
+render`'s own per-slot overflow detection (`$required_width = $row_width if
+$row_width > $required_width`) would arrive at the identical final width —
+`min_width` exists purely to avoid a RESIZE-ON-COLLAPSE/EXPAND jitter
+elsewhere, not to inflate this row.
+
+**The label baseline and the cycler's real-content overshoot ADD, not
+`max()`.** Because every row shares ONE `$inner_width` for mockup
+construction, a wider label column (e.g. `full_user_name`, needing ~40) gives
+EVERY row a wider trailing suffix too — including the add-field row, whose
+own body is tiny (~16). That inherited slack doesn't help it; the row's real
+value (44 chars) still overflows prefix+suffix, and the overflow amount is
+added ON TOP of the label-driven baseline: `70 ≈ 40 (label baseline) + 30
+(cycler overshoot)`, not `max(40, 46)`. Verified by hand-computing the
+identity (`row_width = inner_width + display - len(name) - 4`) against
+several live captures until the numbers matched exactly, including one where
+the add-field row was entirely INVISIBLE (a list was expanded over it) yet
+the frame was still the full width — the reservation applies the moment the
+vocabulary round trip lands, independent of whether the row is currently
+attached to the schema.
+
+**The actual, implemented fix**: the add-field row's schema field name
+(`'_add_field'`, 10 chars) is purely internal — never shown to the user — but
+its LENGTH is exactly what sets the mockup placeholder's assumed size, per
+the identity above. Padded it to 30 characters (`user-edit.form.
+add_field_name`, a new shared module so `build_frame`'s reservation tuple and
+`add_field_row`'s real field can't drift apart — same reasoning `editor.
+control.list.summary` exists for). 30 was chosen as roughly the average
+cycler width across a 2-4 remaining-choice steady state for this vocabulary
+(measured: 24 / 35 / 46 columns for 2/3/4 choices) — narrows the common case
+substantially (73→53 columns in the reported case) without ever
+under-reserving (a real value SHORTER than the padded token just leaves
+unused suffix, harmless; only a value LONGER re-triggers some overshoot, and
+still does at the full-vocabulary extreme). **This is a general technique**:
+when a synthesised row's real rendered content is much longer than its own
+field name, and that gap is producing unwanted width, padding the INTERNAL
+identifier (never shown, must stay `^\w+$`) is a legitimate, low-risk lever
+— because the identity ties the mockup's assumed size directly to
+`len(name)`, nothing else changes it.
+
+**Also confirmed, not a divergence**: `show-form` (one-shot) looks much
+narrower than `start` (interactive) on identical data — not a bug, `show-form`
+prints and exits before the optional-field vocabulary round trip can ever
+land, so `@vocabulary` stays empty and the add-field row's reservation never
+fires at all. It is missing a whole feature, not computing a tighter answer.
+
+**Also worth remembering**: killed the user's own live interactive session
+by mistake mid-session, via a cleanup loop that excluded one hardcoded PID —
+the PID had changed (session restarted) and the exclusion silently stopped
+matching. Fixed by filtering on the TTY column (`awk '$7 == "?"'`, only kill
+processes with NO controlling terminal) instead of a PID, going forward.
+
+#,,,.,,,.,,,.,.,,,,,,,...,.,.,...,..,,,.,,...,..,,...,...,.,.,..,,...,,,,,.,.,
+#BT7LXVH3TOJ5HWG3TLQO2WEXVMAORSTIWBQWCBRY3GYBYD5UC7JQXAJL4M7F6KCVENOIEUZL6TKD6
+#\\\|FLXI2RHVKVIL2TEQBGGYV6UOONJALGGMTOCYFGPNWJNA6JYHQNC \ / AMOS7 \ YOURUM ::
+#\[7]ASVATWBEX25X7W6BMYMI67GAZZ6ISUG37JVOVGR65JIUT3GGNOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -80,6 +80,22 @@ line and kills the calling shell (exit 144), repeatedly. Use:
 for pid in $( ps aux | grep '[u]ser-edit' | awk '{print $2}' ); do kill $pid; done
 ```
 
+## char-add cannot test the bare-Esc debounce, at all
+
+`char-add`'s own driving loop (`while (length($input_buffer)) { stdin_key;
+event.once(0.02); }`) re-invokes `stdin_key` every ~20ms for as long as an
+unresolved lone `\e` sits in the buffer, and `stdin_key` unconditionally
+cancels any pending esc-timer at its own top on every invocation — regardless
+of whether new bytes actually arrived. Since the timeout is 50ms and the
+loop's own gap is 20ms, the timer is cancelled-and-rearmed every iteration
+and never gets an uninterrupted window to fire. A `[Escape]` key-spec sent
+through `char-add`, alone or repeated, will never trigger
+`user-edit.handler.esc_timeout` — not "sometimes doesn't," never does. Bugs
+reachable only through that path (see
+[[reference-editor-add-field-cycler]]'s Esc-on-expanded-list section) have to
+be fixed by reading the code, then confirmed against a real interactive
+session — this harness cannot verify them.
+
 ## test against a throwaway record, not your own
 
 `p7c 'users.create-default p7-fieldtest'` makes one; the record lives at
@@ -89,8 +105,8 @@ no delete command. Editing a form does not touch the record until submit,
 so an abandoned form leaves the record alone, but anything you submit is
 real.
 
-#,,.,,,,.,.,.,.,.,,,,,,,,,...,...,..,,,..,,,.,..,,...,...,,..,,.,,,,.,,..,,..,
-#OOEQ7EJETSU5DQ3ANHAVVATW662ECZC4UE33GKIRFCNBKWW5RTET23USSW43HVCG5N6OVI66PJYCC
-#\\\|5GUKMJDIHUBGF26RMBIXXI7VP53L4Y3QYJNOJ2YO7QEWAKXVT72 \ / AMOS7 \ YOURUM ::
-#\[7]3N5I4Z2WFAOJ2M64WL7BNNNIGZCPLLN4NMUFDDI3JIONV3NF2WDY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,..,,.,.,,.,,,..,,,.,.,.,.,.,..,,...,...,.,,,...,,.,,..,,..,,
+#X4VW7VDOQAPBIZQOIN7BZ7RZOKXRPHKQDT3J2LF2PT4RKQUDQYFSITJSHJ7C546BHUZA6SOQTC5GE
+#\\\|J4DKBOBJBX3GYNBTAVWQJBWNA63AUL6METWMQOPKGOK3GOLFSZ4 \ / AMOS7 \ YOURUM ::
+#\[7]HBWUJ6YUHBN76QLTVIDJDXAMAWVYZFN57PYZCUSIXRPNJWY26GBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
