@@ -1,8 +1,8 @@
 ## [:< ##
 
 # name  = editor.control.list.expand
-# descr = expand a list field into one editable row per entry
-# param = $editor_state, $field_name
+# descr = expand a list field into one editable row per entry [ windowed ]
+# param = $editor_state, $field_name [ , $offset ]
 
 ## expansion REWRITES THE SCHEMA : each entry becomes a real schema field, so
 ## navigation, editing, the cursor and every renderer keep working entirely
@@ -18,11 +18,27 @@
 ## row names must satisfy ^\w+$ [ they become ascii.frame slot tokens ] :
 ## '<field>_0', never '<field>[0]'.
 ##
+## WINDOWED, once entries exceed editor.control.list.window_cap : only <cap>
+## rows of ( @entries, '' ) are materialised, sliding by $offset, with one
+## extra read-only row appended showing the 'start-end of total' position [
+## editor.control.list.window_info ].  row names stay RELATIVE to the window [
+## '<field>_0' .. '<field>_<cap-1>' ], never the entry's absolute position --
+## so user-edit.form.build_frame's "list block starts here" detection [ name
+## eq '<field>_0' ] and this module's own first-row active_field targeting
+## both keep working unchanged for every window, not just the first.  under
+## the cap this degenerates to exactly today's behaviour : the whole (
+## @entries, '' ) list, offset forced to 0, no position row.
+##
+## $editor_state->{'list_source'}{'entries'}/{'offset'} are seeded here on
+## EVERY call, windowed or not -- the working copy editor.control.list.scroll
+## and .collapse both merge back into rather than trusting the materialised
+## rows to cover the whole list, which they only do below the cap.
+##
 ## the caller MUST rebuild the frame afterwards -- user-edit.form.build_frame
 ## assigns the ascii.frame cache unconditionally and is itself the
 ## invalidation primitive, while ascii.frame.load returns its cache blindly.
 
-my ( $editor_state, $field_name ) = @ARG;
+my ( $editor_state, $field_name, $offset ) = @ARG;
 
 return undef if ref $editor_state ne qw| HASH |;
 return undef if not defined $field_name or not length $field_name;
@@ -36,6 +52,20 @@ return undef if ref $list_def ne qw| HASH | or not $list_def->{'list'};
 
 my @entries = grep { defined $ARG and length $ARG }
     ( $list_def->{'entries'} // [] )->@*;
+
+my $cap      = <[editor.control.list.window_cap]>;
+my $windowed = scalar(@entries) > $cap;
+
+## the virtual list a window slides over : entries plus the trailing 'new
+## entry' slot, exactly what the unwindowed path already showed in full
+my @virtual = ( @entries, '' );
+
+$offset = 0 if not $windowed;
+$offset = 0 if not defined $offset or $offset < 0;
+$offset = scalar(@virtual) - $cap
+    if $windowed and $offset > scalar(@virtual) - $cap;
+
+my @window = $windowed ? @virtual[ $offset .. $offset + $cap - 1 ] : @virtual;
 
 my @new_fields;
 my $first_row_name;
@@ -56,9 +86,12 @@ foreach my $field_def ( $source_fields->@* ) {
         next;
     }
 
-    ## the list itself : one row per entry, plus the trailing 'new entry' ##
+    ## the window : one row per slot, named RELATIVE to it [ see the header
+    ## note on why absolute naming would break both build_frame's list-block
+    ## detection and this loop's own active_field targeting on every window
+    ## past the first ]
     my $index = 0;
-    foreach my $entry ( @entries, '' ) {
+    foreach my $entry (@window) {
         my $row_name = sprintf( qw| %s_%d |, $field_name, $index++ );
         $first_row_name //= $row_name;
         push @new_fields,
@@ -72,6 +105,29 @@ foreach my $field_def ( $source_fields->@* ) {
             : ()
             };
     }
+
+    ## the position readout : a READ-ONLY row rather than a bare display
+    ## string, so it slots into the same schema/render pipeline every other
+    ## row already goes through.  'list_info' is what tells build_frame,
+    ## render_form, collapse and scroll apart from a real entry row -- it
+    ## still carries 'list_row_of' so user-edit.form.sync_list_mode's "cursor
+    ## still inside this list" check keeps the window open while focus sits on
+    ## it
+    if ($windowed) {
+        push @new_fields,
+            {
+            qw| name |    => sprintf( qw| %s_scrollinfo |, $field_name ),
+            qw| type |    => qw| freeform_line |,
+            qw| default | => <[editor.control.list.window_info]>->(
+                $offset + 1,
+                min( $offset + $cap, scalar @entries ),
+                scalar @entries
+            ),
+            qw| list_row_of | => $field_name,
+            qw| list_info |   => TRUE,
+            qw| readonly |    => TRUE,
+            };
+    }
 }
 
 my $new_state = <[editor.control.create]>
@@ -82,10 +138,16 @@ return undef if not defined $new_state;
 ## carry the shared kill ring across the rebuild ##
 $new_state->{'kill_buffer'} = $editor_state->{'kill_buffer'} // '';
 
-## how collapse gets back : the ORIGINAL field list, and which field grew ##
+## how collapse and scroll get back : the ORIGINAL field list and which field
+## grew, plus the WORKING copy of its entries and the window's offset -- the
+## materialised rows above only cover the current window, so a merge back into
+## this copy [ rather than trusting the rows to be the whole list ] is what
+## keeps a scroll or collapse from losing entries scrolled off-screen
 $new_state->{'list_source'} = {
-    qw| field |  => $field_name,
-    qw| schema | => $source_fields,
+    qw| field |   => $field_name,
+    qw| schema |  => $source_fields,
+    qw| entries | => [@entries],
+    qw| offset |  => $offset,
 };
 
 $new_state->{'mode'} = sprintf( qw| list:%s |, $field_name );
@@ -102,8 +164,8 @@ foreach my $field_def (@new_fields) {
 
 return $new_state;
 
-#,,..,,..,..,,,,.,,.,,,.,,..,,..,,,,.,,.,,,,,,..,,...,...,.,.,.,.,,..,,,,,,,,,
-#C3JE4BXNKIA7F347XKXWYL55BJE5FPT6SAJWVRUUHOMVPW6RHDQJU2UH3SM4NKEF2Z5T7Y2UEJN6S
-#\\\|7IEYFH322OKRJ7JPIVNPEOGJLLA3PRYK3SU276CHLNR7DXPKFE6 \ / AMOS7 \ YOURUM ::
-#\[7]OO2FYUQPKYEAOGMUNZWPAV3HRJZN7U2JLKZFVVG2RE7HXKQKBIBQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,.,..,,.,.,,,,,,,,,,..,...,.,.,..,,...,...,...,,,.,,..,,,.,..,,
+#ER3LN2UGIPWX63SM6K73LNZV4MLJAS4ZFKXGFNFZV2VEA4CES2JFAENXTNJB44SWXLRRIFPMIVFLA
+#\\\|HVJVXLBLNHWW3PGPZZPOPXUV4D4UR7H7GXSXEJRBXIKXSBML4VE \ / AMOS7 \ YOURUM ::
+#\[7]RBRRER342LL45YJ7S72TG6OZX6DL2Q5R7DSODYAQHQQ7MDMXKCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

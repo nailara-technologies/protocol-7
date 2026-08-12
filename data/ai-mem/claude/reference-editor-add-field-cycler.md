@@ -67,6 +67,16 @@ buffer itself via `editor.buffer.memory.create`. Any other code that grows a
 live schema must do the same (or rebuild through `create`, which is what
 `list.expand` / `menu.open` do).
 
+**TRAP 2, general form (hit again 2026-08-12 building windowed-list
+scroll, see [[topic-user-edit-console-zenka-status]])**: this isn't just
+about APPENDING to a live schema — any hand-assembled `{ schema => ... }`
+stub passed into code that calls `editor.control.get_value` /
+`get_display_value` on it fails the same way, because those read
+`$state->{'fields'}{$name}` (the BUFFER hash), which only `editor.control.
+create` populates. A schema alone renders/carries nothing; every field
+silently reads back as `undef`/`''`. Build the stub through `create`
+first, always.
+
 ## also landed here
 
 - `readonly` now blocks ALL mutating keys in `editor.control.process_key`
@@ -449,8 +459,8 @@ the PID had changed (session restarted) and the exclusion silently stopped
 matching. Fixed by filtering on the TTY column (`awk '$7 == "?"'`, only kill
 processes with NO controlling terminal) instead of a PID, going forward.
 
-#,,,.,,,.,,,.,.,,,,,,,...,.,.,...,..,,,.,,...,..,,...,...,.,.,..,,...,,,,,.,.,
-#BT7LXVH3TOJ5HWG3TLQO2WEXVMAORSTIWBQWCBRY3GYBYD5UC7JQXAJL4M7F6KCVENOIEUZL6TKD6
-#\\\|FLXI2RHVKVIL2TEQBGGYV6UOONJALGGMTOCYFGPNWJNA6JYHQNC \ / AMOS7 \ YOURUM ::
-#\[7]ASVATWBEX25X7W6BMYMI67GAZZ6ISUG37JVOVGR65JIUT3GGNOCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,.,,,,,,,.,.,.,.,.,.,...,.,,,..,,...,.,.,,.,,...,,..,...,,.,,
+#3SR7JODDLRB5BJ5XD4UPDYFP7XEH5YATIYV27D632PYRHWGR77FEMDSAFPOI7GWPZEVM7G4VOKLLG
+#\\\|SUJE36AGUYDHDL6KUTNUZ3UILJHXMZSXJNINNX2WJLED6LL56PA \ / AMOS7 \ YOURUM ::
+#\[7]Z6PPWLDLBEADDR2RAP6PGRVPUPVJIWWYX4JO3PK5IL3JGSEXDIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
