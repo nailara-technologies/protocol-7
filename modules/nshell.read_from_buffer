@@ -145,6 +145,18 @@ while ( length $input_chars ) {
         $key = "\x05";    ## End → Ctrl+E
     }
 
+    ## normalize SS3 arrow keys [ \eOA .. \eOD ] to their CSI form [ \e[A ..
+    ## \e[D ] : some terminals send SS3 when application cursor key mode [
+    ## DECCKM ] is on -- every dispatch site below only ever matches CSI, same
+    ## reasoning as the Home/End normalization above
+    state %ss3_arrow_map = (
+        "\eOA" => "\e[A",
+        "\eOB" => "\e[B",
+        "\eOC" => "\e[C",
+        "\eOD" => "\e[D",
+    );
+    $key = $ss3_arrow_map{$key} // $key;
+
     ## In search mode: delegate to search handler
     if ( $state_ref->{'search_mode'} ) {
         my $result = <[nshell.search.handler]>->(
@@ -354,8 +366,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,..,..,,,,,,,.,,,,,,.,.,,,.,..,,,.,,,,,,,,.,.,.,...,...,.,.,.,.,,,.,..,,...,
-#OPGIHEXDWCLG4MTGLHDYDTIGZQRGIVZ4GKCJXALZ2NBFTYDDMW5NZNFLPPLTD25YT7GFT7G5MOLKS
-#\\\|FL2MWCRKAMOXWWOWFDTYFWFRF2UWYG4EKGV5P5YWJN57JWMEUGS \ / AMOS7 \ YOURUM ::
-#\[7]TMMYC5NTVZN2Z7RRC2BY2M2FOQLPTVM2RSRA3ZWD5XWVD4ZIKACA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,,..,,,,,,..,...,,..,,,.,.,.,.,.,...,...,,.,,..,,,,.,,,,,,,,,
+#Y25JATVXVJB73T6KAQZN624IIZZQA4I73GNKSCKTL2F4HLHGJDEJPIQSLGPH34XX2H42GOHJAY6PU
+#\\\|QB2UKMOAYFTYMBWONQPUUZGUZJ2YEMPQDJMQHZX2MCOSS7U3RSO \ / AMOS7 \ YOURUM ::
+#\[7]7YGRYNZZSZBNCAJE7QCIWJOJ4SKILJDPNEZ2QB3D7YHQ7RBMXYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
