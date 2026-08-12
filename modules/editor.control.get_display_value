@@ -16,7 +16,9 @@
 ## displayed string equals the stored one.
 ##
 ## adding a type that renders differently from how it is stored means
-## extending THIS module, not the renderers.
+## extending THIS module, not the renderers -- UNLESS a single field def needs
+## its own one-off rendering rather than a whole new type every field of that
+## shape shares [ see 'display_override' below ].
 
 my ( $editor_state, $field ) = @ARG;
 
@@ -32,6 +34,18 @@ return $value if not defined $value;
 my ($field_def)
     = grep { ( $ARG->{'name'} // '' ) eq $field }
     ( $editor_state->{'schema'}{'fields'} // [] )->@*;
+
+## GENERIC per-field override, checked before every named type below : if a
+## field def carries a CODEREF here, it owns rendering itself completely --
+## this module knows nothing about who set it or why, only that it exists.
+## exists so a caller [ e.g. user-edit's plugin-typed fields ] can customise
+## exactly one field's display without teaching this SHARED, zenka-agnostic
+## module about a caller-specific concept ; the alternative -- a hardcoded
+## branch here for that specific caller's feature -- would leak zenka-
+## specific knowledge into code every zenka's forms share
+return $field_def->{'display_override'}->( $editor_state, $field )
+    if ref $field_def eq qw| HASH |
+    and ref $field_def->{'display_override'} eq qw| CODE |;
 
 ## the summary text itself lives in editor.control.list.summary : it is also
 ## what user-edit.form.build_frame measures to reserve the frame width across
@@ -69,8 +83,8 @@ return q|*| x length $value if $type eq qw| masked |;
 
 return $value;
 
-#,,.,,.,,,,.,,.,.,,,,,..,,,..,.,,,...,,,.,..,,..,,...,...,...,..,,,..,,.,,,..,
-#QG52PYCHSDK55N6EUD3SL3ILLB4J4N4CHTAHNAZF34IRLMTBW5J4CJCOP6VZSCYZKQZMDKJY736HO
-#\\\|JUMNFWL6M6JSNMUN43QEUFHHBOU4I2A6CINI3ZKA6PNKBYAVZ6D \ / AMOS7 \ YOURUM ::
-#\[7]ZZUVDV4C7Q25P32M7CFI3XXP7URTOXRDONFI2MT7SG3NIFWIASCY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,.,.,...,,..,,..,.,,,.,,,,,,,..,,...,...,.,,,,,.,.,.,,.,,.,,,
+#BW435YXQ6DHLLVDJ7O5XMWKCZGJJIYBEYC7KCDFSMMVZ5HDHUL2SLDSNLSSBW5QSA3AZQ7BZH6UCK
+#\\\|XHX4VCVBUYC2335V44LYPBY5O5ABTC6HS6VP5NZ73HSARQPHI24 \ / AMOS7 \ YOURUM ::
+#\[7]GLCN6D2MXNAIFD2SYBMTLCKBH4ZMAETYWKXLPUAZQTQKENY4Q4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

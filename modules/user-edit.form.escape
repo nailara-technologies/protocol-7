@@ -83,6 +83,24 @@ if ( $mode =~ m|^list:| ) {
     return TRUE;
 }
 
+## a PLUGIN field's entered state is a sub-mode too, and unlike list mode it
+## really can be left by just relabelling 'mode' below [ it never touches the
+## schema ] -- EXCEPT for one thing that relabelling alone would miss :
+## user-edit.handler.stdin_key's entry trigger flips the field's buffer
+## readonly OFF so the plugin's own handler.key can write through
+## editor.buffer.memory.insert/delete [ both enforce readonly themselves, not
+## just editor.control.process_key's guard -- found live, the plugin's own
+## edits were silently no-ops until this was added ].  that flip has to be
+## undone here too, or the field stays editable by ORDINARY typing after Esc
+## leaves plugin mode, same bug from the other direction.  restored
+## unconditionally rather than only if TRUE : cheap, and future-proof against
+## exactly one plugin field per schema not always holding
+if ( $mode =~ m|^plugin:(\w+)$| ) {
+    my $plugin_field = $LAST_PAREN_MATCH;
+    $editor_state->{'fields'}{$plugin_field}{'readonly'} = TRUE
+        if ref $editor_state->{'fields'}{$plugin_field} eq qw| HASH |;
+}
+
 if ( $mode ne qw| insert | ) {
 
     ## leave the sub-mode and stay in the form ##
@@ -122,8 +140,8 @@ if ( ref $browse_return eq qw| HASH | ) {
 
 return TRUE;
 
-#,,.,,.,.,...,..,,,,,,...,,,.,...,..,,,..,.,.,..,,...,...,.,.,,.,,,.,,,.,,..,,
-#O3XO4NAV4DYC2TUWLIBA5Z75GCFKVN6JMQKWPXTO2X7KCUARC3AX5DA6RK5EFMS5DTND6PXSJAO6U
-#\\\|VPICCY5FK6EMQVY4YAEWY3Y6W7SDFPTUTMHYIEUJSJDVQ7LEOC4 \ / AMOS7 \ YOURUM ::
-#\[7]JV54WPR27CANADK4QTVBRDB6MHZXMOTIZP2AFFM5U4WST3MHIECI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,,,.,.,,,.,,,,,,,..,,,.,,.,.,..,,...,...,,,.,...,,..,..,,,,.,
+#HLGCRBVVH4VPMSMKATQE2MZXPCVAJTJRTRCJXHSAQOMFLS3YHT2B4IZJR4NPDOTCVM7LOXTGVKTFE
+#\\\|DTKSHOFGLXSBTDM3Z2CAGTUFE5KQWZ75BTBTAKIR5JVJY3E47RZ \ / AMOS7 \ YOURUM ::
+#\[7]SDPPWWYAT4ODZWPIOEVNBOYQKULMXETVTWNJ6DEOHTECBEVZ4ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
