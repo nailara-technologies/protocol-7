@@ -226,9 +226,29 @@ Also required, and each one is its own jump if missed:
 - `render_form`'s `$only_field` branch must carry `min_width` across, or a
   single-row redraw renders narrower than the frame it patches.
 
-Cost of the full-vocabulary reservation, measured: a three-field record renders
-73 columns wide instead of 46. That is the price of a frame that only moves
-when the user types.
+Cost of the full-vocabulary reservation, measured — and NOT a flat number, which
+is how it was first [ wrongly ] reported here. 46 vs 73 compared a steady state
+against the transient pre-round-trip one. The real shape:
+
+| record | row shows | natural | reserved |
+|---|---|---|---|
+| fresh, 3 fields | all 4 options | 73 | 73 — no cost |
+| `taeki`, carries phone + shell | 2 options | 50 | 70 |
+
+Zero on an empty record, growing as the record fills up: you pay for the options
+already taken, worst when one remains. The cycler row is inherently wide [ 46
+columns at four options ] and is the width-determining row either way.
+
+Two decisions live in here and are worth keeping apart. Reserving while the row
+is TRANSIENTLY absent — before the round trip, during a list expansion — is
+cheap and worth keeping unconditionally. Reserving at the FULL vocabulary rather
+than at the options still addable is the part that costs, and what it buys is a
+frame that does not resize on every add and every remove.
+
+User accepted it 2026-08-12 after seeing the corrected figures: "for now it is
+totally acceptable". If it ever needs narrowing, change ONLY the second decision
+— one line in `build_frame`'s `display_length` closure, measuring the addable
+set instead of the whole vocabulary — and expect a resize per add/remove back.
 
 ## a capture must not have a cursor overlaid into it
 
@@ -254,8 +274,8 @@ across focus changes. True once; not true since `pad_l`/`pad_r` came to match
 the brackets and the cursor started overlaying a reserved cell. Corrected in
 place — a width note that no longer describes the code is worse than none.
 
-#,,..,,..,.,.,,..,.,.,...,.,,,,.,,...,,.,,,.,,..,,...,...,,,.,.,.,.,,,,,.,,,.,
-#7Q3XYJBHO3Z22NQUQ6GRCRIGH6L5L7JJ742YIKXRKTMWAO6DSFMKIPHEZPQPBU3UFCAO5W3JPOEFM
-#\\\|ZB6INFBNEDNM3EOGICPZFRVPDNFW6KDBPTAPRSCK75XKZOBATWO \ / AMOS7 \ YOURUM ::
-#\[7]MSOXUUXK5VLWKVUNNWGZ5S3NGP5YA5AUCOODLDQ3PNPXZPZJEQCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,,,.,,,,,,,,..,,..,,..,,,,,,,,,..,,...,...,...,.,,,,..,,,.,,,.,
+#CD42EIPYL7PYHQUVX2QYTORKNNAQ3Y37AKFO672EJXK5QN5PTHD5WSN446U3AYSORSMBTI4AFNUHY
+#\\\|WG3FN377CROJLXWUM6KDMR3IBWP4TFR2RUX2SAHI5N23LUT35IJ \ / AMOS7 \ YOURUM ::
+#\[7]OIZH3GUFEMNV7S56SRDFFCGJTUKURJPD6ZHUZZUCAOYP3PXAXQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
