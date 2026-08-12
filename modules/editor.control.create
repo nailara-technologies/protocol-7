@@ -20,7 +20,14 @@ foreach my $field_def ( $schema->{'fields'}->@* ) {
     return undef if ref $field_def ne qw| HASH |;
     my $name = $field_def->{'name'} // return undef;
     my $type = $field_def->{'type'} // qw| freeform_line |;
-    return undef if $type ne qw| freeform_line |;    ## only type implemented
+
+    ## 'masked' behaves exactly like freeform_line for editing -- same buffer,
+    ## same key handling -- and differs ONLY in how it is drawn, which lives
+    ## in editor.control.get_display_value.  enum / readonly /
+    ## freeform_multiline stay interface-only
+    return undef
+        if $type ne qw| freeform_line |
+        and $type ne qw| masked |;
     $fields{$name} = <[editor.buffer.memory.create]>->($field_def);
     return undef if not defined $fields{$name};
 }
@@ -35,8 +42,8 @@ return {
     'kill_buffer' => '',
 };
 
-#,,.,,.,.,...,,,,,.,.,...,,,.,.,.,..,,..,,...,..,,...,...,,..,,..,..,,,,.,.,,,
-#KA5V2ELPUPYM2BFRXRQMMSXFPDKJK5MFT7B5L6Q6DTXJRLLRDCSZYEQDL7J57QPGBCXAJMGNOYXVC
-#\\\|CAXUJ4SS66ZCUDPO6S5TKLUR2TZ2MP4225GV3UIEV2IWF5LDQ6G \ / AMOS7 \ YOURUM ::
-#\[7]7DPQ6UJPPX46SNDCTAN33A6E5VHXHNVBYXV7GU3K26LGPID5BIDI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,.,,,..,...,,.,,,.,,.,,,.,,,.,,,..,,...,..,,.,.,,,,,..,,,,.,..,,
+#EB5S67TTDTV2TDDNK5WWNDRXK76H3QQ2OISNGX56W2K3WO5WOOFPDIE6PTGKLHPEZATAT4JB56VAS
+#\\\|ROCGMROAD4NP3BSPUGLGXIBOUS36MYA7ESJPSVX73PUASP76OXV \ / AMOS7 \ YOURUM ::
+#\[7]ABWZTCUJQDABNCR7APBIEZA4GBV3VHKRXFCU4XUEM5S7IU2DNUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

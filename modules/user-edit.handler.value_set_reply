@@ -24,10 +24,17 @@ if ( $cmd eq qw| TRUE | ) {
 } else {
     ## staged entry deliberately LEFT IN PLACE for a later retry — losing the
     ## edit because the zenka rejected one attempt is the failure mode the
-    ## outbox exists to prevent
-    print sprintf( "\n  << not saved [ %s ] : %s >>\n  << edit "
-            . "is staged in the outbox and kept >>\n\n",
-        lc($cmd), $call_args->{'args'} // 'no detail' );
+    ## outbox exists to prevent.  a form holding a secret was never staged [
+    ## see user-edit.form.submit ], so say so rather than claiming a
+    ## recoverable copy exists when it does not
+    print sprintf(
+        "\n  << not saved [ %s ] : %s >>\n  << %s >>\n\n",
+        lc($cmd),
+        $call_args->{'args'} // 'no detail',
+        <user-edit.form.staged>
+        ? 'edit is staged in the outbox and kept'
+        : 'nothing was staged — this edit is not recoverable'
+    );
 }
 
 STDOUT->flush();
@@ -36,8 +43,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,,,,.,,...,,,,,,,,,.,.,,,.,...,,,,,..,,...,..,,...,..,,,..,...,,,,,,,.,..,,
-#VENJROEQE6HJCRBTRIH7WXPSRH5D3OSVHR7UIAYUTLLGPHNY6S5E44TZ5LGVD4VQ6ZYZ32DZYWZHC
-#\\\|6DFTVVPFCUTQMKAUXJTW4MNMXBF7PKEQEAZXKD4HINQ7QHCHVAM \ / AMOS7 \ YOURUM ::
-#\[7]5JHCLUDDCZBA6KOSMWRWP7BLGQMC63B6VK3OSPEZ7V2JHPBIMKBY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,,,.,..,,,,.,..,,...,..,,,,,,..,,...,...,...,.,,,..,,,,.,,.,,
+#CTQIWV2ZKLJO26LIWEOJSWDVGVQRKTSFACDF57ZRFMIB2L2EU5XJOUAELADCWM5OLBPJQMU6MVCVA
+#\\\|Y27MX6W2AZJJJORHMKU2K67FLDDDBZCWRXOHOQ6Z6AJXE5IHHW4 \ / AMOS7 \ YOURUM ::
+#\[7]E5SUFXUSPMN27267GHLGB7SKONTBB3IPC56F6PLGKEB2P77OV4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

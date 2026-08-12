@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = editor.control.masked_field_names
+# descr = names of fields that must not be persisted in clear
+# param = $editor_state
+
+## the single place that decides which field types are SECRET-SHAPED.  callers
+## ask this rather than testing for 'masked' themselves, so adding another
+## secret-shaped type later changes one module instead of every persistence
+## site.
+##
+## why it exists : masking is a DISPLAY property [ editor.control.
+## get_display_value ], and display protection alone is not confidentiality --
+## editor.control.submit and any draft checkpoint collect the REAL value, so
+## without this a secret reaches disk in clear text on the very first field
+## transition, before the user has even submitted.
+
+my ($editor_state) = @ARG;
+
+return () if ref $editor_state ne qw| HASH |;
+return () if ref $editor_state->{'schema'}{'fields'} ne qw| ARRAY |;
+
+my @masked;
+
+foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
+    my $name = $field_def->{'name'} // next;
+
+    ## the live buffer is authoritative -- editor.control.create copies the
+    ## type there, and a field could in principle be reloaded
+    my $buffer = $editor_state->{'fields'}{$name};
+    my $type
+        = ref $buffer eq qw| HASH |
+        ? $buffer->{'type'} // qw| freeform_line |
+        : $field_def->{'type'} // qw| freeform_line |;
+
+    push @masked, $name if $type eq qw| masked |;
+}
+
+return @masked;
+
+#,,,.,..,,,.,,...,...,.,,,...,..,,,..,...,,..,..,,...,...,,.,,..,,,.,,...,.,.,
+#IKSLC2ATGLXCP5JAQWB4KI3YARLQ2BZD7WT5YVI2DTDZYKBJEWQ3VDWJQS5YCY2YKLHPTXITRSBA4
+#\\\|HTQDXXGFB6CGP6BORASOJK4EP56UPDNFXKSVSLRODHWS2P7XDXU \ / AMOS7 \ YOURUM ::
+#\[7]RBHKDZQG6GA3XDOMVNDHBN6VOFJ2VP27VVQDA4LNSGUPEESMIOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

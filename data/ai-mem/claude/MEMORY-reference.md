@@ -6,7 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
-- [console-question-ask-primitive](reference-console-question-ask-primitive.md) — `AMOS7::TERM::ask` + `base.ask`: generic console question (yes-no/text/masked) with the `given` parameter-or-prompt short-circuit and a no-tty guard; BLOCKING, so pre-loop only — an event-loop-safe prompt is separate and unbuilt. Includes the map of the FIVE places interaction code lives (AMOS7::TERM / nshell / amos-term / coding GUI / user-edit form)
+- [console-question-ask-primitive](reference-console-question-ask-primitive.md) — `AMOS7::TERM::ask` + `base.term.ask`: generic console question (yes-no/text/masked) with the `given` parameter-or-prompt short-circuit and a no-tty guard; BLOCKING, so pre-loop only — an event-loop-safe prompt is separate and unbuilt. Includes the map of the FIVE places interaction code lives (AMOS7::TERM / nshell / amos-term / coding GUI / user-edit form)
 - [session-subname-routing-convention](reference-session-subname-routing-convention.md) — `<name>[<subname>]`: primary is ALWAYS the authenticated identity (zenka for zenka-auth, unix user for unix-auth), subname is a routing label that must never touch authorization; inverse form rejected 2026-08-12 (access grants key on the primary; subnames are runtime-mutable, users need devmod)
 - [zenka-process-title-convention](reference-zenka-process-title-convention.md) — running zenki rename argv to `<hostname>.<zenka-name>` (or `<hostname>.<stdin>` pre-name); use `pkill -f <zenka-name>`, not a captured launch-command PID, to reliably kill a stuck one
 - [edit-memory-via-ai-mem-path](feedback-edit-memory-via-ai-mem-path.md) — always edit data/ai-mem/claude/*.md directly, not the ~/.claude symlink path, to avoid permission prompts
@@ -53,8 +53,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [ext-bundle backup alias](reference-ext-bundle-backup-alias.md) — `gbc` bash alias creates+verifies the ext-bundle git backup; it's a `.bundle` file not a real remote, `git push` to it always fails harmlessly
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 
-#,,,.,,,,,,.,,,,.,,..,.,.,,..,,,.,,.,,,,.,,,,,..,,...,...,.,,,..,,,,.,,,,,..,,
-#VBGSWG2PZWUE2GZCCKV7ZLVSP5CZN2PMN4P3XQKJPU2JMZWUMZBS5WZWE36Y4SAY7CZSYW5MS5L7U
-#\\\|7K7ZZFVBKIR5LEAAGBSG2JZCFDMGY4PUJQKGVJDFRTS7K6J5QP7 \ / AMOS7 \ YOURUM ::
-#\[7]KWL6AY2XRKS6BCOWIPPBB3LTNP6NZX7MA7DKH5RXWZBRWL7HK2BI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,...,,,.,,,,,...,..,,,,.,,..,..,,...,...,,.,,,,,,,,,,.,.,,,,,
+#ZUW2JVFPRTINYTYUNA7EQ3MJTPIUWSD2F6U7TA3DBHUPSP5D6PPQIYBLA53LRDLLQU4BIGOWGJUSQ
+#\\\|VGFOZZMJGSLWPYSH2TLWCFNSJMZMOBWXRUCGWNNDJWQW7LD42DE \ / AMOS7 \ YOURUM ::
+#\[7]GXLQGXF4K4YFELKR5YYRISK436X2QFSCERYSPLGJQD5NGW5UHQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

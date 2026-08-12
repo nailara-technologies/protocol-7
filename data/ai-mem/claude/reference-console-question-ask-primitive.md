@@ -1,6 +1,6 @@
 ---
 name: reference-console-question-ask-primitive
-description: "AMOS7::TERM::ask + base.ask — the generic console question primitive (yes-no/text/masked) with the 'given' parameter-or-prompt shape and a no-tty guard; plus the map of the FIVE places interaction code lives, so nobody adds a sixth"
+description: "AMOS7::TERM::ask + base.term.ask — the generic console question primitive (yes-no/text/masked) with the 'given' parameter-or-prompt shape and a no-tty guard; plus the map of the FIVE places interaction code lives, so nobody adds a sixth"
 metadata:
   type: reference
 ---
@@ -13,16 +13,28 @@ subroutine is still very useful in imminent features."
 - **`AMOS7::TERM::ask`** — the implementation. In the library layer
   because, per user, "AMOS7::TERM has most the interactive code, so zenki
   and scripts both could use it." Exported via `@EXPORT_OK`.
-- **`modules/base.ask`** — thin P7 wrapper that autoloads AMOS7::TERM and
+**Namespace, per user — `base.term.ask`, deliberately NOT `base.ask`:**
+`base.term.size` already exists as a CORE SUB (inline in `bin/Protocol-7`,
+listed by `./bin/Protocol-7 -core-subs term.size`, called as
+`$code{'base.term.size'}`), so `base.term.*` is a live namespace and this
+belongs beside it. `base.ask` would also have implied it is THE ask, when
+the map below shows five distinct interaction media — naming the medium is
+more honest. And it leaves a clean later path to a `term.*` family via the
+standard `base.term.pre_init` + `swap_subs('base.term','term')` promote
+pattern ([[feedback-base-swap-subs-promote-pattern]]) with zero call-site
+churn. Renamed while there were still NO callers, which is when such a
+move is free.
+
+- **`modules/base.term.ask`** — thin P7 wrapper that autoloads AMOS7::TERM and
   delegates, so zenka code reaches for a `base.*` call rather than a raw
   perlmod one (the established convention — see the `base.get_homedir`
   vs `AMOS7::FILE::get_homepath` lesson in
   [[topic-user-edit-console-zenka-status]]).
 
 ```perl
-<[base.ask]>->( { question => 'create a default record?' } )   ## yes-no
-<[base.ask]>->( { question => 'user name', type => 'text' } )
-<[base.ask]>->( { question => 'passphrase', type => 'masked' } )
+<[base.term.ask]>->( { question => 'create a default record?' } )   ## yes-no
+<[base.term.ask]>->( { question => 'user name', type => 'text' } )
+<[base.term.ask]>->( { question => 'passphrase', type => 'masked' } )
 ```
 
 `masked` delegates to `read_password_single`, so secret entry keeps ONE
@@ -50,7 +62,7 @@ This is exactly why `crypt.C25519`'s passphrase prompts are fine during
 `[init_modules]` but would be wrong inside a running form. An
 event-loop-safe prompt (needed for `masked` credential entry *inside*
 user-edit's form) is a SEPARATE, still-unbuilt thing — do not assume
-`base.ask` covers it.
+`base.term.ask` covers it.
 
 ## the interaction-code map — FIVE places, do not add a sixth
 
@@ -96,8 +108,8 @@ perl -Idata/lib-path/pm -MAMOS7::TERM \
 `bin/dev/update-amos-versions` covers only AMOS7::CHKSUM/ELF/ELF::Inline,
 so TERM.pm's `$VERSION` tag needs no regeneration when edited.
 
-#,,,,,.,.,,.,,.,,,,,,,.,.,,.,,,,.,,..,,,,,,..,..,,...,...,..,,.,,,,,,,,,,,...,
-#IXRMEHONYDOJPMNJ5WRKUGMX4W2CYCUP7W5XVCCN6DA47K7EZ2XFK2VEWUPDJBBWYQXFOUQ7MVTTI
-#\\\|4DAAC2UPA7TSUPAUVIS23MR37PC37Z6DQGHQ6CK32CDGMEHHX7N \ / AMOS7 \ YOURUM ::
-#\[7]PPZGR757WB2JCNA2IXNCRK6D4VFIHOBNWQ5L2N7WLDQYJDAGBMCA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,,,...,,..,...,,,.,.,,,.,,,,..,..,,...,...,...,,,.,...,,.,,...,
+#233UCXR7TECV6ZOKHN7YWYOQHQD4UPZSKK24HXKQQZUAJSC6TAXEJZH3VP44TAP2D5GEWYXZPPJHS
+#\\\|3IBZWROOFU7EWUWKHIR6EB7FAJ347SC67LJWWT5OG65I45JGPOA \ / AMOS7 \ YOURUM ::
+#\[7]RAJRFNPTH5DF44B6EWK6OQG4Y3NBZQK6JKMPQBALCRP47654ASBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

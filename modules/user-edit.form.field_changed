@@ -18,9 +18,18 @@ return FALSE if ref $editor_state ne qw| HASH |;
 
 my $username = <user-edit.form.username> // return FALSE;
 
+## secret-shaped fields are NEVER checkpointed : a draft is a convenience
+## copy, and this trigger fires on every field transition -- so without the
+## filter a masked value would reach [VAR_P7]/draft/<user>.yaml in clear text
+## long before the user submits anything
+my %is_masked
+    = map { $ARG => TRUE }
+    <[editor.control.masked_field_names]>->($editor_state);
+
 my %values;
 foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     my $name = $field_def->{'name'} // next;
+    next if $is_masked{$name};
     $values{$name} = <[editor.control.get_value]>->( $editor_state, $name )
         // '';
 }
@@ -32,8 +41,8 @@ my ( $ok, $err ) = <[user-edit.draft.write]>->( $username, \%values );
 
 return $ok;
 
-#,,.,,,,,,.,,,,.,,..,,,,.,,..,,,.,..,,...,..,,..,,...,...,...,,,.,,.,,.,,,..,,
-#MWNSLUVUYMU7QVBMDVM3W5OTKTQQLWIP7PRCPX72POAFQXN3T2KKQTTTWBYASRKJACQHGVSNVSF74
-#\\\|23QRULE7TWOMXYEEIJLGMTI44GIRGTJSIU24X2OZ4HERLLZHVCM \ / AMOS7 \ YOURUM ::
-#\[7]J2T7MD5I4T33A35C6GWGHNDW454ZZSDSPN7SN6VYY55STBGPJCDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,,,,,.,.,,..,,,.,,,,,,..,..,,..,,...,...,,,,,.,.,.,,,,,,,...,
+#IZK4C3SYDGDVRSHTSUFPFJTGRQZHVNZXIUGBOSP6URW75SYVRBFYHBDJYGPHIR64CSHY24IIT5Z2G
+#\\\|XHZZDEMWEIXJ5S2YOFIRTBAMQLV5JQWU5SYKZP473Z2E3D5NIFW \ / AMOS7 \ YOURUM ::
+#\[7]BZLVHMOQXFZSAMYDCOYYTTWDSQNUQ5D2RM4E7X7KPAFJFD4JHMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
