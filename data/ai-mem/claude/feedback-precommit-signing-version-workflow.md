@@ -24,6 +24,20 @@ not once per session, not once per batch:
    per commit; a file with no footer at all fails even if untouched by
    the current diff (e.g. a config yaml that was never signed).
 
+   **Signing is the USER's step, not one you can run.** The command
+   prompts interactively for the `proto-7.sourcecode` key decryption
+   password and aborts without it ("source signature key :. not loaded").
+   Ask; don't burn a run finding out. `update-signatures :stage:` signs
+   AND re-stages exactly the files it signed, leaving other staged
+   batches alone — that is the form to ask for. Confirmed 2026-08-12.
+3. **descr/param line length** — a module's `# descr =` (and `# param =`)
+   text must be **55 chars or less**, counted after the `= `. Fails the
+   commit with "descr/param lines too long" and names the file, line and
+   count. Cheap to get right while writing the module; annoying to hit
+   after signing, since fixing the line invalidates the signature and
+   costs another signing round (2026-08-12: exactly that, on
+   `users.cmd.field-options`).
+
 **Gotcha (2026-07-29, build-zenka/ext-pkg-zenka session): `update-signatures`
 only signs files reachable through `modules/sourcecode.source_path_set_up`'s
 `@copy_sources` glob list.** `configuration/zenki/*/*` reaches exactly two
@@ -42,6 +56,15 @@ footer (harmless, signature-only diff, no content change) — expect that
 side effect and fold it into whichever commit is in flight rather than
 treating it as unrelated scope creep.
 
+**Two things that need no effort from you:** a `commit-msg` filter strips
+`Co-Authored-By:` / `Claude-Session:` trailers on its own — leave them in,
+they simply do not land. And while `bin/admin/vc_commit` enforces that the
+subject passes AMOS7 harmonic truth (`is_true`, 13–76 chars), the user
+confirmed 2026-08-12 that this is **not a strict rule** — commit with
+`git commit -F` and a normal message rather than searching for a subject
+that satisfies `is_true`. (`bin/is-true` also disagrees with vc_commit's
+internal call, so it is not even a reliable oracle for it.)
+
 **How to apply, when splitting a batch of finished work into several
 commits:** before each `git commit`, in order: (1) stage that commit's
 files, (2) if the hook reports a version mismatch, have the version
@@ -52,8 +75,8 @@ Retry the commit only after both gates pass. Don't try to pre-solve this
 by bumping/signing once for the whole batch up front — it won't survive
 past the first commit.
 
-#,,,.,.,.,,,.,,.,,,..,...,.,.,.,.,,,,,,.,,...,..,,...,...,...,..,,...,,.,,,.,,
-#Z7V4U7M4GG5AKMK4BTM3UWNJ6REC64GRXD56ZLN3MWQUCA2WWQAZWSYFGQLNMTKZNT53MAOZPU4LC
-#\\\|4M636UND2LXHQ5IUE5MMDBMDJSZ3DRYXWA6EGLFUPSRLCXM3MG7 \ / AMOS7 \ YOURUM ::
-#\[7]CVJIOFTYAWZIBVYALR56ZWDRJLVPD4ATCSPHJ7OY6UBM4JNV5YBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,,,,..,..,,,,.,.,,,.,,,...,..,,..,,...,..,,.,,,,,,,,..,.,.,,..,
+#ZV6RLTJIJV7HEF3OJESXPUKN6KOPGIYCSRZXCGJCDK3MYPVBUDVUOYMKEJGXYLLL2QH3QOONVZXCK
+#\\\|NOXOODOKKFGVG3NHMZT3YDOW72GMVRBCXTBMT2QGWSDIHVPK5PX \ / AMOS7 \ YOURUM ::
+#\[7]VWBIUKMUZPTYMGASBZYWPANSXUXI23H3XREB4OFLJOP6LCVMEODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
