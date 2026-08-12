@@ -53,6 +53,15 @@ return undef if ref $list_def ne qw| HASH | or not $list_def->{'list'};
 my @entries = grep { defined $ARG and length $ARG }
     ( $list_def->{'entries'} // [] )->@*;
 
+## per-field OPT-IN : re-sort the moment focus ENTERS an expanded list, rather
+## than only at write/read time [ users.record.build /  users.cmd.value-get ]
+## -- per user, so a newly-typed entry lands in its canonical position
+## immediately instead of waiting for the next submit.  this module stays
+## unaware of WHICH fields want it or why : that decision lives with whoever
+## built the field def [ user-edit.form.schema_from_record ], the same way
+## 'validator' / 'noun' already work
+@entries = <[base.sort]>->( \@entries ) if $list_def->{'sort_on_focus'};
+
 my $cap      = <[editor.control.list.window_cap]>;
 my $windowed = scalar(@entries) > $cap;
 
@@ -164,8 +173,8 @@ foreach my $field_def (@new_fields) {
 
 return $new_state;
 
-#,,,,,...,,,.,,,.,..,,.,.,,,,,,,,,,..,...,.,.,..,,...,...,...,,,.,,..,,,.,..,,
-#ER3LN2UGIPWX63SM6K73LNZV4MLJAS4ZFKXGFNFZV2VEA4CES2JFAENXTNJB44SWXLRRIFPMIVFLA
-#\\\|HVJVXLBLNHWW3PGPZZPOPXUV4D4UR7H7GXSXEJRBXIKXSBML4VE \ / AMOS7 \ YOURUM ::
-#\[7]RBRRER342LL45YJ7S72TG6OZX6DL2Q5R7DSODYAQHQQ7MDMXKCAY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,,,,,..,,,..,..,,.,.,,..,..,,..,,...,...,,.,,.,.,.,,,...,,,,,
+#WVWSGGQQPEYZL4XA3UYINL5QJEQUIH5S4SHOYUWTQF4YXLBANPR4NGYSD3L25LHAPBZYNOKPDCZFA
+#\\\|PPD5WM5NE7373A3SYSNNE7XGQIFFM2EG3ZJBCOVY4XEJYLZ64NR \ / AMOS7 \ YOURUM ::
+#\[7]K6NUZAV64LF3DNHR6EVR5QNUARLTUIQALB2DJ63HWOHVBQS3TSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

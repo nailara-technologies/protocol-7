@@ -24,7 +24,28 @@ $fields = {} if ref $fields ne qw| HASH |;
 
 my @field_defs;
 
-foreach my $name ( sort keys %{$fields} ) {
+## which list fields re-sort the moment focus ENTERS them, mid-session --
+## editor.control.list.expand reads the per-field 'sort_on_focus' flag below
+## and stays entirely unaware of WHY [ generic, zenka-agnostic machinery ].
+##
+## DUPLICATES users.record.sorted_fields's list rather than calling it :
+## user-edit and users are SEPARATE zenka processes, each with its own
+## compiled %code -- <[users.record.sorted_fields]> is not reachable from here
+## at all [ confirmed live : 'subroutine not defined', the same reason
+## user-edit talks to users only over the cube link, e.g.
+## user-edit.console.show-form's N.users.value-get ], and loading the whole
+## users.* module family into user-edit's deliberately narrow modules.load [
+## see this zenka's start file header ] just to reach one two-item list would
+## be a much larger coupling than the duplication it avoids.  keep the two
+## lists in sync by hand if the vocabulary ever changes
+my %sort_on_focus = map { $ARG => TRUE } qw| contact phone |;
+
+## DISPLAY order, not storage order : base.reverse-sort [ length descending,
+## alphabetical-descending tiebreak -- see base.each_sort / base.cmd.commands
+## for the same idiom elsewhere ] rather than a plain alphabetical `sort`, per
+## user.  takes the HASHREF directly [ base.context.list expands it to keys ],
+## the same call shape base.diff.hash_keys / base.each_sort already use
+foreach my $name ( <[base.reverse-sort]>->($fields) ) {
 
     ## ascii.frame slot tokens are \w+ [ ascii.frame.parse's own token regex
     ## ], so a field name that cannot become a slot name is skipped loudly
@@ -55,6 +76,7 @@ foreach my $name ( sort keys %{$fields} ) {
             qw| noun |          => qw| entr |,
             qw| noun_plural |   => qw| ies |,
             qw| noun_singular | => qw| y |,
+            qw| sort_on_focus | => $sort_on_focus{$name} ? TRUE : FALSE,
             };
         next;
     }
@@ -91,8 +113,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,,,,.,.,.,,,,.,,.,.,,,,,,,.,...,.,.,.,,,,..,..,,...,...,...,,..,,.,,,..,,,,,
-#GM6DUIQFKWUE76Z6OY4DKFUID6HSJ4UYIEEL3SPSRDCZBJ6EGGUZNHKISCUDXC7TWVO6YV44ZTEXI
-#\\\|YPIWZKLSMWDS5NN6PXQ4ORBH6JGPKHKTA5Q4JOP4F3YLMI5FN5P \ / AMOS7 \ YOURUM ::
-#\[7]5DDQW5U7YPWRGHW7EE75HAAWVECP7GH4SJ2SC44MVV7XNPSU4CBA 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,,,.,.,..,,...,.,.,,,.,,,,,..,,..,,...,..,,,.,,,,,,.,,,.,.,.,.,
+#PJLLAC72VWAXR7TPPXCHBWU5KQFIZIDEVLGIXWX6G3A2SEUIHMSDE4ESJX24E2NGAS6YIEMRQL2ZA
+#\\\|OAKWHSY36VPMFEI6MDS4GMZUME7PNQFEKFCZTIIMZO6Y4BLL5M5 \ / AMOS7 \ YOURUM ::
+#\[7]ESHPWGAJS27ARBQ6DJBX3U73NEPE4AQ626LZJC3LGZ2Y2AY46QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
