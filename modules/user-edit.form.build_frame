@@ -81,11 +81,12 @@ my $vocabulary = <user-edit.form.field_options>;
 my @vocabulary
     = ref $vocabulary eq qw| HASH | ? sort keys %{$vocabulary} : ();
 
-## DISPLAY length of a row, +5 throughout for the two pads, the cursor cell
-## and the two framing cells editor.ui.ascii_frame.render_form adds to every
-## value.  a plain scalar field contributes NOTHING : its live value is
-## render's business, and freezing it into min_width would stop the frame ever
-## narrowing again once a long value had been typed and deleted
+## DISPLAY length of a row, +4 throughout for the pad, the cursor cell [ which
+## now doubles as the trailing pad -- see editor.ui.ascii_frame.render_form ]
+## and the two framing cells it adds to every value.  a plain scalar field
+## contributes NOTHING : its live value is render's business, and freezing it
+## into min_width would stop the frame ever narrowing again once a long value
+## had been typed and deleted
 my $display_length = sub {
 
     my ($field_def) = @ARG;
@@ -94,15 +95,19 @@ my $display_length = sub {
     ## options currently left : its choice set shrinks with every field added
     ## and grows with every one removed, and it is usually the widest row in
     ## the form, so measuring what is left would make every add and every
-    ## remove resize the frame
+    ## remove resize the frame.  +2, not +4 : this row skips the inner
+    ## pad+cursor-cell reservation entirely [
+    ## editor.ui.ascii_frame.render_form ] -- editor.control.cycler.render's
+    ## own per-choice cells already do that job, so only the outer
+    ## bracket/pad-mark pair is left to account for here
     return
-        length( <[editor.control.cycler.render]>->( \@vocabulary, 0 ) ) + 5
+        length( <[editor.control.cycler.render]>->( \@vocabulary, 0 ) ) + 2
         if $field_def->{'add_field'} and @vocabulary;
 
-    return length( <[editor.control.list.summary]>->($field_def) ) + 5
+    return length( <[editor.control.list.summary]>->($field_def) ) + 4
         if $field_def->{'list'};
 
-    return length( $field_def->{'default'} // '' ) + 5
+    return length( $field_def->{'default'} // '' ) + 4
         if length( $field_def->{'list_row_of'} // '' );
 
     return 0;
@@ -115,11 +120,24 @@ my $has_label = sub {
     return TRUE;
 };
 
+## the DISPLAYED label text, as opposed to the slot TOKEN [ row->[0] below,
+## still the raw name -- the {{token}} placeholder in the mockup must stay
+## exact ].  an expanded list row carries 'list_row_of' pointing back at the
+## field it came from, so every row of it prints the same base label
+## ['phone:', not 'phone_0:' / 'phone_1:'] instead of a different one per
+## entry.  label_width is taken over THIS, not over the token names, so a
+## collapsed 'phone' and its expanded rows now reserve the identical width
+## instead of the expanded form paying for the longest '<field>_<n>' token
+my $label_of = sub {
+    my ($field_def) = @ARG;
+    return $field_def->{'list_row_of'} // $field_def->{'name'};
+};
+
 my $row_of = sub {
     my ($field_def) = @ARG;
     return [
-        $field_def->{'name'}, $display_length->($field_def),
-        $has_label->($field_def)
+        $field_def->{'name'},     $display_length->($field_def),
+        $has_label->($field_def), $label_of->($field_def)
     ];
 };
 
@@ -176,8 +194,9 @@ if (    ref $editor_state->{'list_source'} eq qw| HASH |
                 push @rows,
                     [
                     sprintf( qw| %s_%d |, $list_def->{'name'}, $index++ ),
-                    length($entry) + 5,
-                    $has_label->($list_def)
+                    length($entry) + 4,
+                    $has_label->($list_def),
+                    $list_def->{'name'}
                     ];
             }
         }
@@ -195,7 +214,7 @@ if (    ref $editor_state->{'list_source'} eq qw| HASH |
 my $label_width = 0;
 foreach my $row ( @current_rows, map { $ARG->@* } @other_row_sets ) {
     next                            if not $row->[2];
-    $label_width = length $row->[0] if length $row->[0] > $label_width;
+    $label_width = length $row->[3] if length $row->[3] > $label_width;
 }
 
 ## the mockup geometry of one rendering, in ascii.frame.render's own units [
@@ -261,9 +280,11 @@ if ($is_menu) {
         ## kinds of row read as one list
         push @bodies, '' if $field_def->{'add_field'} and @bodies;
 
-        push @bodies, $field_def->{'add_field'}
+        push @bodies,
+            $field_def->{'add_field'}
             ? sprintf( '  {{%s}}', $name )
-            : sprintf( '   %*s:  {{%s}}', $label_width, $name, $name );
+            : sprintf( '   %*s:  {{%s}}',
+            $label_width, $label_of->($field_def), $name );
 
         ## RESERVED EXPANSION ROWS.  a collapsed list occupies ONE row and
         ## expands to entries + 1, so reserving exactly 'entries' blank rows
@@ -355,8 +376,8 @@ my $entry = {
 
 return $entry;
 
-#,,,.,,.,,,.,,.,,,..,,.,,,.,.,,,.,...,,,,,...,..,,...,..,,,..,..,,,..,.,.,,,.,
-#P7LJ2SOTD64MBHW4TD3J5CB2LRQPZ4D2PXRQFUFNOOKQGYM5WKDQJ6752J6HPTV7QLTKPZKXYLYIK
-#\\\|GL6TG6QMQDGVMC5T3TICFAOTDMGUKRDF73DSBE4XE3IPOO4NPUV \ / AMOS7 \ YOURUM ::
-#\[7]N56Z2YMEVUBA3PMYLH442LDNIDP32DDMRVRJMWRKX3IH4POGCABY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,.,.,,.,,,.,,.,,,.,.,,,.,,..,..,,...,...,.,,,,.,,.,.,.,.,.,,,
+#EUU6Q5MFF5JN4VPELOKDWPVBIP44NLROL2Z5CHFN7M2IB7K4BQE65A5TQROFSIZUE5C55D2EFXJZO
+#\\\|LK6RKDV2CGZM4ZCWZEXRDKUY5EGHIYDEUJQGSITANW24FFLPNXO \ / AMOS7 \ YOURUM ::
+#\[7]NHP7MFERNBCM5QYFCT5MRVE5HEJW6JDWNFW74AC4PS5GGZERZCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

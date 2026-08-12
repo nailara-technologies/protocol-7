@@ -48,11 +48,81 @@ if ( not defined $rendered ) {
     return FALSE;
 }
 
+## the discovery hint REPLACES the card's own closing border row rather than
+## adding a line below it -- two dotted rows in a column read as a doubled
+## border, not as one border carrying a message.  done here, on the PLAIN
+## render, before colourisation, so length() on plain text is what keeps the
+## substitution at the card's own width with no separate reservation needed
+## anywhere in user-edit.form.build_frame
+my @frame_lines = split m|\n|, $rendered;
+
+## filled in below when the hint applies ; substituted back in AFTER
+## colourisation [ see the \x06 sentinel note below it ], so this starts empty
+## and the later substitution is a harmless no-op on every other paint
+my $hint_row_colored = '';
+
+if (    <user-edit.form.interactive>
+    and not <user-edit.form.help_visible>
+    and not <user-edit.form.hint_seen> ) {
+
+    my ($margin) = ( $frame_lines[-1] // '' ) =~ m|^( *):|;
+    $margin //= '';
+    my $frame_width = length( $frame_lines[-1] // '' );
+    my $inner_width = $frame_width - length($margin) - 2;
+    $inner_width = 0 if $inner_width < 0;
+
+    ## hand-spaced to match the mockup exactly [ per user ] rather than a
+    ## generated per-character rule : the leading dot echoes the border's own
+    ## fill rhythm right after the ':', and 'ctrl-?' keeps its hyphen and '?'
+    ## glued to the 'l' instead of dot-separated -- it reads as one glyph for
+    ## the key combo -- while every other character, including the ':' that
+    ## follows, gets its own trailing dot.  a real space between words gets
+    ## TWO dots, so the gap still reads as a gap
+    my $spaced = q{.c.t.r.l-?.:.t.o.g.g.l.e..c.m.d..l.i.s.t};
+
+    $spaced = substr( $spaced, 0, $inner_width )
+        if length($spaced) > $inner_width;
+    $spaced .= q{.} x ( $inner_width - length($spaced) );
+
+    ## coloured HERE, by hand, rather than left to the shared colouriser below
+    ## : that classifier decides border-vs-content by DOT DENSITY across the
+    ## whole line, which a letter-heavy message can tip either way depending
+    ## on how much of the frame it fills, and even on the border path
+    ## border_line has no case for a bare LETTER inside a fill run -- it
+    ## passes those through with no colour at all, which is what showed up as
+    ## plain white text.  matches configuration/ascii-frame's own fill.single
+    ## / fill.dot mapping, so it reads as the same border tone as every other
+    ## ':' and '.' on the card
+    my $colon_color = length $colors{'reset'} ? $colors{'p7_fg_0000'} : '';
+    my $fill_color  = length $colors{'reset'} ? $colors{'p7_fg_0001'} : '';
+    my $reset_color = $colors{'reset'} // '';
+
+    $hint_row_colored
+        = $margin
+        . $colon_color . q{:}
+        . $reset_color
+        . $fill_color
+        . $spaced
+        . $reset_color
+        . $colon_color . q{:}
+        . $reset_color;
+
+    ## \x06 : an otherwise-unused single byte standing in for the finished row
+    ## above.  a length-1 line survives ascii.frame.render.color.
+    ## content_line completely untouched -- its first/last/body slicing all
+    ## degrade to returning that one raw character when length <= 1 -- so
+    ## nothing the classifier does needs undoing after the substitution below
+    $frame_lines[-1] = "\x06";
+    $rendered = join( "\n", @frame_lines );
+}
+
 ## colourise by character class through the shared frame colouriser --
 ## config-driven from configuration/ascii-frame [ purple structure, TRUE blue
 ## slot values ], the same call memory.render.term and  context.provider.frame
 ## already use
 $rendered = <[ascii.frame.render.color]>->($rendered) // $rendered;
+
+$rendered =~ s{\x06}{$hint_row_colored}ge;
 
 ## which field the cursor sits in -- active_field is an INDEX into the
 ## schema's field list, the same resolution render_form does internally
@@ -161,42 +231,58 @@ if (<user-edit.form.interactive>) {
 
     print "\n";
 
-    ## the hint describes what the CURRENT mode does : a menu selects and
-    ## descends, a form edits and submits -- offering 'submit' over a
-    ## read-only row list would simply be wrong
-    my $in_menu
-        = ( $editor_state->{'mode'} // '' ) =~ m|^menu:| ? TRUE : FALSE;
+    ## the full cmd-list block is HIDDEN by default -- per user, it crowds a
+    ## card that is otherwise just a handful of fields.  ctrl-? [
+    ## user-edit.handler.stdin_key ] toggles it back on ; until either that
+    ## happens or the block is showing, a one-line discovery hint stands in
+    ## for it, shown exactly once per opened card [ hint_seen reset in
+    ## user-edit.handler.value_get_reply, set on the first key of the card ]
+    if (<user-edit.form.help_visible>) {
 
-    ## q{} not qw| | : these contain a '/' and a space, and a '|' here would
-    ## terminate the qw delimiter early
-    my @hints
-        = $in_menu
-        ? (
-        [ q{arrows},       q{select} ],
-        [ q{enter},        q{open} ],
-        [ q{esc / ctrl-c}, q{back} ]
-        )
-        : (
-        [ q{tab / arrows}, q{field} ],
-        [ q{del},          q{drop empty field} ],
-        [ q{enter},        q{submit} ],
-        [ q{esc / ctrl-c}, q{quit} ]
-        );
+        ## the hint describes what the CURRENT mode does : a menu selects and
+        ## descends, a form edits and submits -- offering 'submit' over a
+        ## read-only row list would simply be wrong
+        my $in_menu
+            = ( $editor_state->{'mode'} // '' ) =~ m|^menu:| ? TRUE : FALSE;
 
-    foreach my $hint (@hints) {
-        printf " %s:%s  %-13s%s\x{b7}%s  %s%s\n",
-            $gutter, $key, $hint->[0], $gutter, $action, $hint->[1], $done;
+        ## q{} not qw| | : these contain a '/' and a space, and a '|' here
+        ## would terminate the qw delimiter early
+        my @hints
+            = $in_menu
+            ? (
+            [ q{arrows},       q{select} ],
+            [ q{enter},        q{open} ],
+            [ q{esc / ctrl-c}, q{back} ]
+            )
+            : (
+            [ q{tab / arrows}, q{field} ],
+            [ q{del},          q{drop empty field} ],
+            [ q{enter},        q{submit} ],
+            [ q{esc / ctrl-c}, q{quit} ],
+            [ q{ctrl-?},       q{hide cmd list} ]
+            );
+
+        foreach my $hint (@hints) {
+            printf " %s:%s  %-13s%s\x{b7}%s  %s%s\n",
+                $gutter, $key, $hint->[0], $gutter, $action, $hint->[1],
+                $done;
+        }
+
+        print "\n";
     }
 
-    print "\n";
+    ## no elsif / discovery-hint branch here any more : that hint is now
+    ## spliced into the card's own closing border row above, before
+    ## colourisation, instead of being a separate line printed down here --
+    ## see the block right after render_form's call
 }
 
 STDOUT->flush();
 
 return TRUE;
 
-#,,.,,.,,,.,.,,.,,,..,...,...,,..,.,,,,,.,.,,,..,,...,...,,..,...,,,.,.,,,,,.,
-#IBFVYKMS4ZCO45KYNHVHTNE6MZNQQTFU6CVV47JIIZDTN46IBY53CTQ2YRKTJPA7CBSKYW3AWMCYC
-#\\\|APBA73HYGRU6XS7FTOIVKKQHHBWQNO5DH2HMHVCNBRXOTI4EFHL \ / AMOS7 \ YOURUM ::
-#\[7]2CZF2MMCA73XTOPK62CUDHQ44YNZ55MRYJE6THF57EGZBXLQSGBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,,,.,..,,,.,,,.,,..,,,,,,..,,..,,...,...,,..,,.,,..,,,,.,,,.,
+#4GEEJ3W7ZK4NJZSLGJDCBG6BTBOKEKWUBNUXRVQIJZVOXQCGHKRIYLHKWLZ3EVXLDQBDATFVVOXFE
+#\\\|SD4L6OMJQCPL4VWBYLPI6N4NIAIP4CVCSBVQNVOD54L342HOPAL \ / AMOS7 \ YOURUM ::
+#\[7]Q5QDCXQNEDRQBEH2SVFZ76UZE3XCTPGOSP2MBO5YHFW7MEWSHOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
