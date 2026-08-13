@@ -1008,8 +1008,46 @@ right away (matches the user's own earlier complaint about this row
 carrying dead width), not a regression, but worth knowing it's a visible
 day-one behavior change, not purely future-proofing.
 
-#,,,,,..,,...,...,.,.,,..,..,,,.,,..,,,.,,,,,,..,,...,..,,..,,...,,.,,..,,,.,,
-#X6UBNDFBZ66SFGSBG7AJ7PSSTSJOFZSJ6N54SD7O6GEG2ZKCYUWQXMBNJT4RRP7AW3EEFOA5J2TGG
-#\\\|5VMXZ4W26ZAICY224DDNKSFY6HWQT6FQM3UJZCDTM5DNBF7ZU5E \ / AMOS7 \ YOURUM ::
-#\[7]L7UQHLZBJ4OSXEKKXMKHADRR6JXDJ2PAZPRKHWAGOECCVOKESWCY 7  DATA SIGNATURE ::
+**address-cluster: stable migration refs + a latent gen_ref bug, both
+found live on the user's OWN real record, not a test one.** User noticed
+their real `address` field — a genuine legacy plain scalar
+(`Haselwanderstr.22`, predating this plugin, never migrated) — showed a
+DIFFERENT 3-char ref on every redraw. Root cause: `parse_blob` re-parses
+the buffer fresh on every render/handler.key call by design (`[[topic-
+user-edit-console-zenka-status]]`'s own no-second-authoritative-copy
+rule), and its LAZY MIGRATION path for unparseable legacy text called
+`gen_ref->([])` — random-seeded, by design, for minting a genuinely NEW
+entry's identity on Insert — on every single one of those calls. Fixed:
+the migration ref is now a pure, deterministic function of the raw text
+itself (`amos_chksum("legacy-address:$raw_text")`), stable until an
+actual edit persists a real blob and this path stops firing for that
+entry. The stored scalar itself is never touched by this fix — still
+plain legacy text on disk until the user actually edits it.
+
+Chasing why the ref was even 3 characters surfaced a SEPARATE, deeper,
+already-shipped bug in `gen_ref` itself (not introduced this round —
+present since `17008108d`): `AMOS7::CHKSUM::amos_chksum` resets its own
+package-global `$str_length` back to 7 as a side effect on every
+SUCCESSFUL return (`AMOS7/CHKSUM.pm` line ~312-314, "resetting substring
+template parameters"). `local $AMOS7::CHKSUM::str_length = 3;` set ONCE
+before a multi-call retry loop only actually protects the FIRST call —
+any retry (numeric-lookalike rejected, collision, failed harmonic gate)
+silently got a 7-character ref instead of 3, in both `gen_ref`'s own two
+retry loops and my draft fix's own analogous retry branch. Confirmed with
+a standalone Perl harness before touching any code (5 calls under one
+outer `local`: 1st call 3 chars, every subsequent call 7 — reproduced
+cleanly), confirmed fixed by moving the `local` inside each loop
+iteration instead of once outside it (re-verified: 20/20 candidates
+correctly 3 chars afterward). Not yet observed as a live symptom (most
+first-try candidates succeed, so it needed a retry to trigger) but a real
+latent correctness bug, not hypothetical — worth remembering as a general
+`AMOS7::CHKSUM` gotcha: **never assume one `local $str_length` covers
+more than one `amos_chksum` call** — re-assert it fresh immediately
+before every call that needs a non-default length, not once above a loop
+or before a sequence of calls.
+
+#,,..,,..,,.,,...,,.,,...,...,,,,,...,...,..,,..,,...,...,,..,,.,,,,.,,,.,,,,,
+#NPAG3WJLYMNUURMS5RREIQEIBQMLX2T4SIWRV6MCJSFINFRYZ5CGYNN6YX2JIDZUHQV4XPPAAWMRE
+#\\\|I2IYHQZ6YNM3NBLF3M5QFC2KD6VOK6C2M37WJKSGVQ5I25MQ4BL \ / AMOS7 \ YOURUM ::
+#\[7]J67GRYPL5VDOYR4N3KFYIW7ZVW5GQSKKXJTUXF3CRPUFZ2UV7YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
