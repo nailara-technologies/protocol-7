@@ -81,6 +81,11 @@ state %sort_on_focus_names = map { $ARG => TRUE } qw| contact phone |;
 state %multiline_names
     = map { $ARG => TRUE } <[user-edit.form.multiline_field_names]>;
 
+## same gap class, same fix -- see
+## user-edit.form.collapse_summary_field_names' own header
+state %collapse_summary_names
+    = map { $ARG => TRUE } <[user-edit.form.collapse_summary_field_names]>;
+
 ## PLUGIN-PINNED key, the SAME gap class as multiline/sort_on_focus above,
 ## found while building the address-cluster plugin : a field a plugin has
 ## pinned itself to needs the identical shape user-edit.form.
@@ -130,10 +135,13 @@ if ( defined $pinned_plugin ) {
         qw| sort_on_focus | => $sort_on_focus_names{$chosen} ? TRUE : FALSE,
         }
         : {
-        qw| name |      => $chosen,
-        qw| type |      => qw| freeform_line |,
-        qw| default |   => '',
-        qw| multiline | => $multiline_names{$chosen} ? TRUE : FALSE,
+        qw| name |             => $chosen,
+        qw| type |             => qw| freeform_line |,
+        qw| default |          => '',
+        qw| multiline |        => $multiline_names{$chosen} ? TRUE : FALSE,
+        qw| collapse_summary | => $collapse_summary_names{$chosen}
+        ? TRUE
+        : FALSE,
         };
 }
 
@@ -178,8 +186,8 @@ $new_state = <user-edit.form.state>;
 
 return TRUE;
 
-#,,,.,.,,,.,,,,.,,.,,,,,,,,..,...,,,,,,,.,..,,..,,...,...,,,.,..,,,,,,,.,,,.,,
-#O5UTLATQ7VMVXMPYKPTUAEZF6KXFO2CCWUWLJ5IGX2ULCVZ2HRMXU2PLI5XURJ46ETAY4SYV5EKMU
-#\\\|IYQ7MSSF4DJJFRNANXHVRRL76HQLGSVCHRGWZRJRTJG6XVEDKEL \ / AMOS7 \ YOURUM ::
-#\[7]TTRJHC65QILCZ2FBN4DLIGDM42A2FJIO4NLOW2XYEFD23SWVNIDA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,,,,..,..,,.,,,...,,,,,..,,...,..,,...,..,,...,,.,,..,,,..,.,.,
+#XPWTERCG7MI2MLPNIU6624WFB5UVGLL6VE6XWJU5TMMJEJW7I77APMDDMBHPVFH2K6PFYX2QV5O7A
+#\\\|LP3DXPDEGZ75YNIQAIFZGGJAJ2OEVE46VGM7VJCZ65MCZJW422W \ / AMOS7 \ YOURUM ::
+#\[7]FL4KIYVFTDFQ3SQN6B2TYUH4IAOX7PV234C2YXM7W7CZ35YCT6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
