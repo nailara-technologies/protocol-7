@@ -85,9 +85,11 @@ if (    exists <system.subs_loaded.devmod>
 map { <[v7.autostart_zenki]>->($ARG) if !<[v7.start_count]>->($ARG) }
     $added_start_ref->@*;
 
-## re-register ondemand zenki at cube on reload  [ initial registration via
-## cube post-init ]
-<[v7.register_ondemand_zenki]> if $module_reinitialization;
+## register ondemand zenki at cube on every pass, boot and reload alike -- the
+## sub is self-guarded [ no-ops with no cube session yet, dedups via
+## <v7.registered_at_cube> ], so this is the one path for both cases instead
+## of relying on a separate untraced first-boot registration
+<[v7.register_ondemand_zenki]>;
 
 print Dumper( $data{'jobqueue'} )
     if exists <system.subs_loaded.devmod>
@@ -96,8 +98,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,,,,,..,,.,,.,.,,,.,,.,,,,.,,,.,.,.,,,.,,,.,..,,...,...,.,,,...,...,.,,,...,
-#BESTKTHV6QQBM62ZYI4PE4KYQX25KOASGE4SIP32EJQDI6UMUM432JWUHDG52NLMFTUAT47XEULFY
-#\\\|5XGJ37SJEM5X554IT2PN54XLIVCQKN5MLNNPRUF4PF272Z237P6 \ / AMOS7 \ YOURUM ::
-#\[7]KXRO5B2HX27NAACRXTZOXYXFOWEFASNLXEWV2FXOOS7MHH5AMWBI 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,..,,..,,..,,,,.,,,.,,,.,.,,,..,,...,..,,...,,,,,..,,,..,,,,,
+#OP4VHDWLTGZSNZP3TBAMLYJFLORAGYPTV3PUJBI6VXFKFSFBVEH3WBQDMYPOKBNZ4IQSWPFQ7JMK6
+#\\\|M7TJHNP2PKGXCWIA2ZRKEWNNV3ZUMV466BZ4KSL3OT6QN5FGUIF \ / AMOS7 \ YOURUM ::
+#\[7]END6XXAQS6ZYAAXJXAHSK255APVFYSJWDHYZNAIKQANN5BH5Z6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
