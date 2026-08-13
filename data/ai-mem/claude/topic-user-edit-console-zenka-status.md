@@ -1200,8 +1200,34 @@ that line, not falling back to the collapsed "123 Main St…" preview),
 the 10th Left (column 0 of that row) exits correctly, and Right
 re-enters normally afterward.
 
-#,,,,,,,.,.,.,,,,,.,.,.,.,,..,,.,,.,.,,..,,..,..,,...,...,,..,...,.,,,..,,,,,,
-#ETZYCFWFWIIXJ3SXIV32UZS66UXIXQF67UBKHJBM75CTAN6WRYCIJXCAFZ4RPRUQLPI3JJAFU5WKM
-#\\\|R33Q5LL5YGAKC3QH5GFILIFKYVBAWSDCXO3SY6F5XUCXDAD6ZE4 \ / AMOS7 \ YOURUM ::
-#\[7]4MUDGYXKH2QUU7K4JQCSIMHCWAWEBUBB6OSVNSNMNV3WDO3OK2BY 7  DATA SIGNATURE ::
+**MULTILINE COLLAPSE, a separate feature request from earlier in the
+session, picked up once the address-cluster thread closed out**: `note`
+and (core) `address`-shaped multiline fields now collapse to a
+`:..N.lines..:` summary when not focused, exactly mirroring how a list
+field (`contact`/`phone`) already collapses to `:..N.entries..:` — new
+`editor.control.multiline.summary`, a direct structural counterpart to
+the existing `editor.control.list.summary` (same `:..%s..:` wrap, same
+dot-joined count+noun shape, `base.cnt_s`'s own default suffixes ('s'/'')
+already fit "line"/"lines" with no override needed). Turned out to need
+**no `user-edit.form.build_frame` changes at all** — that module already
+reserves the full window height unconditionally regardless of focus
+(blank rows under the cap, the same pattern a list's own under-cap
+reservation uses), and width comes from `ascii.frame.render`'s live
+recompute at render time, same as any plain scalar field. The entire
+feature is one new `if (not $is_active) { ...; next; }` branch inside
+`editor.ui.ascii_frame.render_form`'s existing multiline block, using
+`$is_active` (already computed there) as the sole toggle — no schema
+restructuring or extra sync step needed the way a list's own
+`sync_list_mode` requires, since a multiline field's value is always the
+one buffer its name already points at, collapsed or not. Verified live
+against `zztest-addr`: `note` shows `:..1.line..:` while unfocused,
+expands to the full bracketed windowed view on Tab-in, and after typing
+extra lines and tabbing back out shows `:..3.lines..:` with the frame
+correctly narrowing back down — accurate count, no width or height
+regression through the whole cycle.
+
+#,,..,..,,.,.,.,.,.,.,,..,..,,,..,,.,,.,,,..,,..,,...,...,..,,.,,,..,,...,,.,,
+#3YVHCSJWPVHBAYDXOKTGMA7A2OBVSID4QPEU76DIDYBBJWSOWCGHSD42MTV6BW2KV2QEC5YHVLIQO
+#\\\|TUB657HTL7H34RM3XN5NMNZC734O4Z7REMWPNVVPKVRL7NMB4CK \ / AMOS7 \ YOURUM ::
+#\[7]DDIY7AUAJI2WOKSTGONW5RFHVHNO44QAAMUF3OQN64M7USVRVUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
