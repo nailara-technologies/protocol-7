@@ -135,16 +135,44 @@ my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
 ## and an empty cell [ cursor past the end, or sitting on a space ] becomes a
 ## phosphor green underscore.  both are exactly one column wide, so the row
 ## keeps the width ascii.frame.render computed
-my $active_value
-    = <[editor.control.get_display_value]>->( $editor_state, $active_name )
-    // '';
-my $active_cursor
-    = <[editor.control.get_cursor]>->( $editor_state, $active_name ) // 0;
+##
+## a PLUGIN field's raw-buffer cursor offset has no relationship to its own
+## restructured display text [ get_display_value returns the plugin's OWN
+## rendering, not the stored value -- see editor.ui.ascii_frame.render_form's
+## cursor_bearing note on why that field never gets the generic \x01 overlay
+## at all ], so substr() against $active_value/$active_cursor below would be
+## meaningless for one. a plugin field that wants this same styling exposes
+## '<plugin>.cursor_char' instead [ e.g. plugin.user-edit.address-cluster.
+## cursor_char ] -- given the same $editor_state/$active_name pair, it returns
+## just the character ITS OWN cursor sits on. absent that sub, a plugin field
+## gets no styling here at all, same as before this existed
+my $active_plugin = <user-edit.plugin.registry> {'by_key'}{$active_name};
+my $plugin_cursor_char_sub
+    = defined $active_plugin
+    ? sprintf( qw| %s.cursor_char |, $active_plugin )
+    : undef;
 
-my $cursor_char
-    = $active_cursor < length $active_value
-    ? substr( $active_value, $active_cursor, 1 )
-    : '';
+my $cursor_char;
+if ( defined $plugin_cursor_char_sub
+    and exists $code{$plugin_cursor_char_sub} ) {
+
+    $cursor_char
+        = $code{$plugin_cursor_char_sub}->( $editor_state, $active_name )
+        // '';
+
+} else {
+
+    my $active_value
+        = <[editor.control.get_display_value]>
+        ->( $editor_state, $active_name ) // '';
+    my $active_cursor
+        = <[editor.control.get_cursor]>->( $editor_state, $active_name ) // 0;
+
+    $cursor_char
+        = $active_cursor < length $active_value
+        ? substr( $active_value, $active_cursor, 1 )
+        : '';
+}
 
 ## a MULTILINE field's cursor can legitimately sit right before an embedded
 ## '\n' [ end of any line but the last ] -- substr would then hand back the
@@ -290,8 +318,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,.,,..,..,,...,.,.,,..,,..,.,.,,.,,..,,..,,..,,...,..,,.,,,,.,,,..,.,,,,.,,
-#LACM4I7UUGLSWSU7CYFJHCH4MIYJD7X4JA7YLBBVPZ2RPWXNHKMB3TOCDMMODSVEWVVAZJR7RBLFG
-#\\\|KDNQ27PZKD2WUB3PC6M74JWQYEQ2ELAVCF3NSF772OPFV5YIRCE \ / AMOS7 \ YOURUM ::
-#\[7]Z5KWNRZNW7ERIMCJIMVJCW6TF3VQUC4C7HSNIWYP6KAQ7Q4OJIAI 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,..,,.,,,..,,.,.,,,.,,.,,,.,,..,,...,...,,,.,,..,..,,..,,.,,,
+#3N4KEZ66Y2JD6YSXSIXTOEZTFRBOKDOMFYJ5YJMZJILYAY5YGDMD4HJXFIKESJUPG5D4LULXCR5SK
+#\\\|OB7TN7KQQ63UIKK2X3EWQ3BZMF6M2RLXHT5SDCX25367IDTDUYZ \ / AMOS7 \ YOURUM ::
+#\[7]QWROMM5YJ7YQKFVJDOKRDPAZF55HF3WC3C3VSE6LYQOA36CL2ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
