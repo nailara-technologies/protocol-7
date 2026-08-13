@@ -14,10 +14,11 @@ my ( $editor_state, $key ) = @ARG;
 
 return undef if !defined $editor_state or !defined $key;
 
-my $schema = $editor_state->{'schema'}           // return undef;
-my $index  = $editor_state->{'active_field'}     // 0;
-my $field  = $schema->{'fields'}[$index]{'name'} // return undef;
-my $buffer = <[editor.control.active_buffer]>->($editor_state)
+my $schema    = $editor_state->{'schema'}       // return undef;
+my $index     = $editor_state->{'active_field'} // 0;
+my $field_def = $schema->{'fields'}[$index]     // return undef;
+my $field     = $field_def->{'name'}            // return undef;
+my $buffer    = <[editor.control.active_buffer]>->($editor_state)
     // return undef;
 
 my $result = {
@@ -61,9 +62,26 @@ if ( $key eq "\e[Z" and $multi_field ) {    ## Shift-Tab ##
     return $result;
 }
 
-## newline / enter : submit [ 'newline' action is only meaningful for
-## multiline field types ; freeform_line + submit_on=enter submits ]
+## newline / enter : a MULTILINE field's own Enter inserts a line break rather
+## than submitting -- checked before the schema-level submit_on, since
+## submit_on is a FORM-wide default and this is a per-field override [
+## user-edit-multiline-note.yaml's editing_model : narrower than wiring up the
+## schema design doc's general per-field submit_on, which nothing else reads
+## yet ].  '\n' is ord 10, which the printable-character branch far below (ord
+## >= 32) already excludes, so this needs its own insert call rather than
+## falling through to that one
 if ( $key eq "\n" or $key eq "\r" ) {
+    if ( $field_def->{'multiline'} ) {
+        return $result if $buffer->{'readonly'};
+        ## $buffer->{cursor}, not $cursor_pos -- that local is not declared
+        ## until further down this function, past every branch above it
+        <[editor.control.commands.insert]>->(
+            $editor_state, $field, $buffer->{'cursor'}, "\n"
+        );
+        $result->{'action'} = 'newline';
+        $result->{'dirty'}  = 'field';
+        return $result;
+    }
     my $submit_on = $schema->{'submit_on'} // qw| enter |;
     if ( $submit_on eq qw| enter | ) {
         $result->{'action'} = 'submit';
@@ -251,8 +269,8 @@ if ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 ) {
 $result->{'passthrough'} = $key;
 return $result;
 
-#,,.,,.,,,.,,,..,,.,,,..,,.,,,,,.,.,.,.,,,...,..,,...,.,.,..,,,,.,...,,,.,...,
-#7TG7TZR7IRUOMURNKQHCEQIYIF55RIZIAOSH6SP2ZQOO4J5MHMI6WSIATWD2OB454BBHIJEK3IGUS
-#\\\|I54ANKSYQZ5DJQX22P7VSWV6S3QWU6A4KXBVSRG477PLDAJQNXT \ / AMOS7 \ YOURUM ::
-#\[7]SVJIFOM5WKN2WEC6BMEE7AJ5VFZDVTHNCEN2F5GLM4D2AMXHCCDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,,.,,...,,.,,,..,,.,,...,,,.,..,,...,...,.,,,,,.,,..,.,.,,..,
+#FN5W2EGTE6Z2I5FAIQPRV7Z4D4RXK54RLJVEI5FRWEKTCWBNNMEUGDD6WDHIQVVIL3ILPLYWNZJYQ
+#\\\|MH5ZOKCZA3T6X5U2B746ZYN4QPAZYYECPP6WFMEYA6HNTVRLC4T \ / AMOS7 \ YOURUM ::
+#\[7]QTYCAQ6I3Z5HZAFIJRJDYL2HLSECZEDRLUTMRSJ2ZVMDWV22AOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

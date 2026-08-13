@@ -302,6 +302,57 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         next;
     }
 
+    ## Up / Down MOVE WITHIN a multiline field's buffer when there is
+    ## somewhere to go there -- reported live, per user : the reserved blank
+    ## rows below a short note read as real lines [ they carry the field's own
+    ## label same as any other row -- see user-edit.form.build_frame's
+    ## multiline branch ], and a row that LOOKS navigable but only ever
+    ## answers to Left/Right/Enter reads as broken, not as "v1 scope".
+    ##
+    ## falls through to the generic passthrough conversion just below when
+    ## there is nowhere to go [ Down already on the last line, Up already on
+    ## the first ] -- that conversion is what leaves the field via
+    ## field_next/field_prev exactly as any other field's Up/Down already
+    ## does, so this never becomes a dead end the way an earlier version of
+    ## the plugin-tab trigger did before its own Tab-trap fix.
+    ##
+    ## does NOT create a line on Down at the last row : the reserved blank
+    ## rows are CAPACITY, not lines -- editor.control.multiline.lines exists
+    ## specifically so a blank line is never silently reaped, and auto-
+    ## appending one just because the cursor moved would be the same violation
+    ## from the opposite direction.  Enter stays the only way to grow the
+    ## buffer
+    if (    ref $focus_def eq qw| HASH |
+        and $focus_def->{'multiline'}
+        and ( $key eq "\e[B" or $key eq "\e[A" ) ) {
+
+        my $ml_name = $focus_def->{'name'};
+        my $ml_text
+            = <[editor.control.get_value]>->( $editor_state, $ml_name ) // '';
+        my $ml_lines = <[editor.control.multiline.lines]>->($ml_text);
+        my $ml_cursor
+            = <[editor.control.get_cursor]>->( $editor_state, $ml_name ) // 0;
+        my ( $ml_line, $ml_col )
+            = <[editor.control.multiline.cursor_line]>
+            ->( $ml_text, $ml_cursor );
+        my $ml_total = scalar $ml_lines->@*;
+
+        my $ml_target_line = $key eq "\e[B" ? $ml_line + 1 : $ml_line - 1;
+
+        if ( $ml_target_line >= 0 and $ml_target_line < $ml_total ) {
+            my $ml_target_pos
+                = <[editor.control.multiline.line_col_to_offset]>->(
+                $ml_lines, $ml_target_line, $ml_col
+                );
+            <[editor.control.commands.move_cursor]>->(
+                $editor_state, $ml_name, $ml_target_pos - $ml_cursor
+            );
+            $repaint = TRUE;
+            next;
+        }
+        ## else : nowhere to go this direction -- fall through below ##
+    }
+
     ## Down / Up move between fields as well as Tab / Shift-Tab : in a
     ## multi-field FORM that is the natural reading, while nshell binds the
     ## same two keys to history navigation.  editor.control.process_key
@@ -365,11 +416,19 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         $repaint = TRUE;
 
     } elsif ( $action eq qw| list_scroll_next | ) {
-        $repaint      = TRUE if <[user-edit.form.scroll_list]>->(1);
+        ## scroll_list no-ops cleanly when focus isn't inside a windowed list
+        ## [ its own contract ] -- scroll_multiline is tried as a fallback for
+        ## that same "not applicable" case, since a multiline field has no
+        ## mode of its own to check first
+        $repaint = TRUE
+            if <[user-edit.form.scroll_list]>->(1)
+            || <[user-edit.form.scroll_multiline]>->(1);
         $editor_state = <user-edit.form.state>;
 
     } elsif ( $action eq qw| list_scroll_prev | ) {
-        $repaint      = TRUE if <[user-edit.form.scroll_list]>->(-1);
+        $repaint = TRUE
+            if <[user-edit.form.scroll_list]>->(-1)
+            || <[user-edit.form.scroll_multiline]>->(-1);
         $editor_state = <user-edit.form.state>;
 
     } elsif ( $action eq qw| submit | ) {
@@ -430,8 +489,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,.,,,,.,,,.,.,,,,,.,.,,,..,,,,.,,,.,..,,,..,..,,...,...,...,.,.,..,,.,,,,,,,
-#GKUEGQB34FYPCCBOGRCHJOSOV53RFD4HX4PGWQSXMLD6ASJDZXAV4Z6ITWZPEPVUOQIFV4SMUNLD6
-#\\\|VNW7RRQRDGALC2H2WLUXZZNHLTWAMEZEJXN2I5OCYNCUJIWVS2F \ / AMOS7 \ YOURUM ::
-#\[7]4QOUIY5YULSMMXOCGKJAO4BGDWAXGST74HWNA3323D5JSHSONOAI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,..,,,..,...,.,,,.,.,,..,,,,,..,,...,...,,,,,.,.,..,,..,,,.,,
+#OQCMT2IZKUU5DFQI5DQEWBBNPNC2KCBOQI2YEAHX3CJS5LT5WKZOI3Q6JT4YS2L6JN3XHIDK7Z5XW
+#\\\|KB7H2BBCALQPRPGHHLVYO5PD56ILASTSBVYYQ7HQMQEQ7HYAQLW \ / AMOS7 \ YOURUM ::
+#\[7]XMJJXPJF5HMXU3U7SV6OHEES3UJXJSARMQI22OFVETGSAXPR4QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

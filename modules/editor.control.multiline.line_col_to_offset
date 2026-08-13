@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = editor.control.multiline.line_col_to_offset
+# descr = CHARACTER offset for a [ line, column ] pair
+# param = $lines [ arrayref, editor.control.multiline.lines' own shape ],
+#         $line, $col
+
+## the inverse of editor.control.multiline.cursor_line -- factored out once a
+## second caller needed the same "sum of line lengths plus one '\n' each"
+## arithmetic user-edit.form.scroll_multiline already had inline [ moving the
+## cursor to a window's first line ] and user-edit.handler.stdin_key's Up/Down
+## -within-a-field handling needs too [ moving to the same column on the line
+## above/below ] -- two implementations of one sum would drift, same reasoning
+## editor.control.list.summary documents for itself.
+##
+## $col is CLAMPED to the target line's own length, not carried past it --
+## landing past end-of-line would desync the caller's own idea of $col from
+## where the cursor overlay actually renders.
+
+my ( $lines, $line, $col ) = @ARG;
+
+return 0 if ref $lines ne qw| ARRAY | or not $lines->@*;
+
+$line = 0              if $line < 0;
+$line = $lines->@* - 1 if $line > $lines->@* - 1;
+
+my $offset = 0;
+$offset += length( $lines->[$ARG] // '' ) + 1 foreach 0 .. $line - 1;
+
+my $line_len = length( $lines->[$line] // '' );
+$col //= 0;
+$col = 0         if $col < 0;
+$col = $line_len if $col > $line_len;
+
+return $offset + $col;
+
+#,,..,,,,,...,...,,..,.,,,,,.,.,,,,,.,,.,,...,..,,...,...,.,.,.,,,.,,,.,,,.,.,
+#6XIAZSVC2SRT64LOQ7FGGZVVXMDBGREAP7LYFCDYY4OR3AETJKVXSWLY6HDYGHBGSNUTBKP7PDP2I
+#\\\|4LRKB7SP6RF6DTWK2DPIBDQHUKTTQITNKBSSIUJTPIVISWQR5BY \ / AMOS7 \ YOURUM ::
+#\[7]7GI5GBIEC7VBP6YFC6DZSR74P453U53PE5L2ZJCT4KXLG6NZAAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
