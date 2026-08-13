@@ -455,6 +455,13 @@ if ( not defined $descriptor ) {
 ## widens the frame as it always did
 $descriptor->{'min_width'} = $min_width if $min_width > 0;
 
+## label_width is otherwise private to this module -- exposed here because
+## editor.ui.ascii_frame.render_form's multiline block needs it to derive a
+## per-row viewport budget [ editor.control.multiline.viewport_slice ] from
+## min_width alone. see the 'MULTILINE VIEWPORT' section of
+## user-edit-address-cluster-plugin.yaml for the full derivation
+$descriptor->{'label_width'} = $label_width;
+
 ## a blank content row top and bottom, so the first field is not flush against
 ## the title bar.  ascii.frame.render already implements this as the vertical
 ## analogue of its lpad/rpad -- no rendering change needed
@@ -495,8 +502,8 @@ my $entry = {
 
 return $entry;
 
-#,,,.,.,.,,,.,,.,,...,...,.,.,.,,,,..,,,.,,..,..,,...,...,..,,...,.,.,..,,...,
-#HDPG4HTNH3ZOCIVTS6IIWHS744L55FRTAM5DCA57GEAELRTHPWYM25K3G5N3RURTI2S5HU77BEUOA
-#\\\|52NIXAXZ5NTT5LSTK67R7GTBB7MDR25ZLXYWSPXEDX5BRW6SAB6 \ / AMOS7 \ YOURUM ::
-#\[7]TZETEVOWTVPKLQSGSOL472HWAFLSDMECCQSO6CXYYZZCF3ZMUWCA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,..,.,,,,,,,,..,..,,,.,,.,,,,,,,..,,...,..,,..,,.,.,.,.,..,,.,,,
+#LOCTCYWOTH7LSFLEO5P56MRHPVORNVHDUGJD45PK63Y3C4PGYOKESM6O2DFUURTXNFH5WUL6YMW42
+#\\\|VNFHOSLWFMJJKXZIMLPLXTJ5GQTPRBN5LQKNCIBCMGBR3I5KPEH \ / AMOS7 \ YOURUM ::
+#\[7]S5YV7O7T3H4PFDZ7KQOO3ZRBT6J246QFYNJPYW5WLQR7RBZGUOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
