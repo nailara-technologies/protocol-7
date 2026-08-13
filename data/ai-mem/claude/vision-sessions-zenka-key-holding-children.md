@@ -340,6 +340,109 @@ tidy in advance.
   `system.amos-zenka-user` service accounts, not just OS-level
   host logins — asked, not yet answered.
 
+## user-edit + keys — corrected scope, 2026-08-13 follow-on session
+
+Corrected understanding (user directly corrected an under-informed answer):
+`keys.*` module-safety-for-cross-zenka-loading is NOT open work — it
+landed already, commit `f9c51a636` (2026-08-12), verified: `keys.*` has
+zero `.cmd.` modules (pure `.console.*` + helpers, no network surface
+added by loading it into a networked zenka), `Curses::UI`/`Term::Clui`
+stay lazy. `user-edit` already loads `keys.*` directly (not proxied) and
+has a real, landed, ascii-frame-integrated read-only key list+detail view
+(`user-edit.menu.namespaces`→`.records`→`.show_key`, commit `c12351f92`,
+2026-08-12) — calls `crypt.C25519.all_key_names`/`keys.checksum_href`
+directly, explicitly NOT `keys.console.list` (would corrupt raw-mode
+screen: baked ANSI + mid-flight autoflush).
+
+Two known side effects of loading the FULL `keys` module set (not the
+underlying library alone): `keys.init_code` overwrites
+`<system.amos-zenka-user>` globally (fine for `user-edit`, which sets no
+conflicting value; would clobber a zenka — like the planned `sessions`
+zenka — that needs its OWN `system.amos-zenka-user`, connecting to the
+per-zenka-OS-user thread earlier this session); `keys.post_init`
+hard-exits the whole process on `crypt.C25519.key_vars_error` (acceptable
+for a personal console, a real availability risk for anything meant to
+stay up regardless of one bad key). **Per user**: use the underlying
+library routines (`crypt.C25519.*`, `keys.checksum_href`-style helpers)
+directly rather than loading the full `keys` module set (which pulls in
+`init_code`/`post_init` and both side effects) — `user-edit`'s own code
+already does exactly this.
+
+**Scope correction, same thread**: `user-edit` does NOT need to work with
+the main/permanent zenka keys yet. It CAN work with temporary keys local
+to itself, held until verified and written through to the real store —
+same shape as the already-established draft/outbox rule from
+[[project-credential-types-into-user-edit]] ("drafts NEVER contain masked
+values," a form holding a secret is never staged to the outbox at all).
+`keys.console.*`'s output remains a useful REFERENCE for namespace wiring
+even though it's not called directly: one key name groups
+`.private`/`.secret`/`.public` under one checksum, shape-markers
+(`[hostkey]`, `virtual`, `[enc-key]`) distinguish key kinds by naming
+convention alone — worth copying that shape for a temporary key's own
+namespace, without touching the console code or the main store.
+
+## detach/reattach mechanism — SIGUSR1/SIGUSR2, reverse-connect socket, reused helper code
+
+2026-08-13, same follow-on session as the `keys`/`user-edit` scope
+correction above. User pointed at three existing standalone helper
+scripts as direct code-reuse candidates for the key-holding-child design
+(these are real, already-shipped, invoked via `popen()` from the C
+clients `p-7-r.c`/`p7.c` — not design docs):
+
+- **`bin/p7-auth-keypair-helper.pl`** — `IO::AIO::aio_mlock` on every
+  sensitive buffer (long-term Ed25519 secret/private key, ephemeral
+  session C25519 secret) plus `erase_buffer_secure` (double
+  random-overwrite + truncate-to-zero) on exit. This is real, working
+  memory-protection discipline for decrypted key material — exactly what
+  the `chmod_child`-style children from earlier in this thread lack
+  (chmod_child never touches secret material, only chmod ops) but a real
+  key-holding child needs. Directly reusable, not a pattern to
+  re-derive.
+- **`bin/p7-tofu-helper.pl`** — implements the `remote-host.<host>_
+  <port>.public` / `NTIME_B32:PUBKEY_B32` pin format under
+  `~/.n/user-keys/` — confirms this is ONE consistent TOFU convention
+  across the codebase (matches `discover.orbital.known`'s BMW-L13-of-
+  pubkey keying and `keys.console.list`'s `[hostkey]` entries), not
+  three separate schemes.
+- **`bin/p7-link-upgrade-helper.pl`** — `gen-ephemeral`/`compute-dh`/
+  `derive-key`/`encrypt`/`decrypt` as discrete, independently-invokable
+  operations: a real, working DH-handshake-to-ChaCha20Poly1305-AEAD-
+  channel implementation, already shaped as small stateless per-call
+  operations rather than one monolithic session object — a structural
+  precedent for a key-holding child's own command vocabulary (mirrors
+  chmod_child's "closed, individually-validated command vocabulary,"
+  applied to crypto ops instead of chmod ops).
+
+**New design, per user**: key-holding children get a real attach/detach
+control protocol, not just spawn-once-and-pipe like chmod_child:
+
+- **`SIGUSR1` = attach, `SIGUSR2` = detach** — standard-unix signal pair
+  controlling a long-lived child's active/dormant state, plus separate
+  timeout and security-level settings (not yet specified in detail).
+- **Reverse-connect socket direction, deliberately**: the CONSUMER zenka
+  (e.g. `sessions`, or whatever needs the key) opens the listening unix
+  domain socket; the key-holding child, upon `SIGUSR1`, is the one that
+  connects OUT to it. This means the secret-holding process never has a
+  listening/bindable surface at all — nothing can reach in uninvited, it
+  can only be signaled to reach out. Stronger than the current
+  chmod_child/`open2` model, where the parent at least opens the pipe.
+  `SIGUSR2` drops the outbound connection, returns to dormant.
+  **Open, not yet decided**: whether detach re-derives the key fresh on
+  next attach (cheap, matches `cred-mesh`'s existing re-derive-from-
+  `fabric.secret` pattern found during the earlier verification pass) or
+  keeps it `mlock`ed and dormant (faster reattach, longer exposure
+  window).
+- **Authorization: "short ping, compared to a long passphrase"** — not
+  literal passphrase-substring comparison; maps onto
+  `p7-link-upgrade-helper.pl`'s `derive-key` step in miniature. The long
+  passphrase (or a key derived from it) sets up a verifier once; each
+  attach request produces a short value only derivable from that
+  verifier (HMAC/truncated-hash-style challenge-response) — same
+  DH-handshake-to-derived-key shape as `link-upgrade`, with a shared
+  passphrase standing in for the DH-computed shared secret. The real
+  passphrase is never transmitted or re-checked wholesale on every
+  attach.
+
 ## closing synthesis — sessions as ramp, not destination
 
 User's own close: the key tree (root-key contract + nested-checksum
@@ -374,8 +477,8 @@ desktop's `taeki`/`root` accounts), not where any of them get invented.
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,,,,.,,.,,,...,,,.,,,.,.,,,...,,..,,,.,.,.,.,.,...,.,.,,..,,,.,..,,,,.,,,.,
-#A34PHXFYPMCUJ7RWE74B3ED4C6DSAPRGKYF3KMLLYZX7QNO2OY6V5UKCV47RTKKG3HNHR6265NA6I
-#\\\|XDHZWTB6CGNJ6VJLTUF3MVUEZYCITTPRRXIDRMXSCQHIVCXBHSU \ / AMOS7 \ YOURUM ::
-#\[7]QSFPDBJG33J5QMPEABMRVEG232VDYTLLGTUTKHTJ2FZTBYORW2BI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,..,,...,.,.,,..,,.,,.,.,,,,,.,.,...,...,...,,,.,..,,.,,,,.,,
+#KCZRD6HSAIFRNSRYXQDUPYIELEO4R7DXOI2UKDIC6B5FVYWKHRECWED2OYVWBWSHT2ZYHVR2KZQFC
+#\\\|JNO4SVVZWWNUYSS7R7VTR64SU47MZFXISM7I7LQIUVG35QY3TEU \ / AMOS7 \ YOURUM ::
+#\[7]TQCYPGGHIQHVOX27VAE6S7WCVQKJJL6AJISAYFCB5BDAJK2PLUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
