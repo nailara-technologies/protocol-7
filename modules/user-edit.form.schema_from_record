@@ -40,6 +40,15 @@ my @field_defs;
 ## lists in sync by hand if the vocabulary ever changes
 my %sort_on_focus = map { $ARG => TRUE } qw| contact phone |;
 
+## which SCALAR fields render/edit as multiple windowed display rows instead
+## of one -- see user-edit-multiline-note.yaml.  NOT hand-duplicated like
+## %sort_on_focus above : user-edit.form.add_field needs this SAME list too [
+## found live -- a freshly-added field was single-line until save+reload, see
+## that module's own name-list header for the full account ], and both call
+## sites live in this one zenka's process, so one shared module is correct
+## here rather than two copies drifting
+my %multiline = map { $ARG => TRUE } <[user-edit.form.multiline_field_names]>;
+
 ## DISPLAY order, not storage order : base.reverse-sort [ length descending,
 ## alphabetical-descending tiebreak -- see base.each_sort / base.cmd.commands
 ## for the same idiom elsewhere ] rather than a plain alphabetical `sort`, per
@@ -132,14 +141,8 @@ foreach my $name ( <[base.reverse-sort]>->($fields) ) {
         qw| type | => qw| freeform_line |,
         ## editor.buffer.memory.create reads the initial text from 'default' —
         ## NOT from a 'value' key
-        qw| default | => "$value",
-        ## which SCALAR fields render/edit as multiple windowed display rows
-        ## instead of one -- see user-edit-multiline-note.yaml.  duplicated by
-        ## hand rather than shared, same reasoning %sort_on_focus above gives
-        ## for itself : this is zenka-specific POLICY [ which fields ], not
-        ## generic mechanism [ how multiline works, which stays unaware of
-        ## "note" entirely -- editor.control.* / editor.ui.ascii_frame.* ]
-        qw| multiline | => $name eq qw| note | ? TRUE : FALSE,
+        qw| default |   => "$value",
+        qw| multiline | => $multiline{$name} ? TRUE : FALSE,
     };
 }
 
@@ -158,8 +161,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,,.,..,,,..,,.,,,..,..,,,..,...,...,,,.,.,,,..,,...,...,.,.,,,,,,..,,.,,...,
-#MMWINZB5IPT6JI5WIPOFCVX3UVHHL2XL26O563BBHN3TSUXXZK2WWMHD2ZKNKCMNDDQTTCL2DXVSM
-#\\\|HKEREB4MB4CBAWXIC6AU3D6G7SN574O66YF3PKN3KXJKUNCIHAE \ / AMOS7 \ YOURUM ::
-#\[7]25TRIHQMPJBIT5JJ35GCPWLQ3WLZO2KGTXOHS5EQ47TGQ2XH2SCQ 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,.,,,,,.,.,.,..,,,,.,,,.,.,.,..,,...,...,,,.,,,,,,,,,.,.,.,,,
+#C4MPN5PL5P7ISDZIM2YF2C4BNDBID7DCEGG6IDPVN6LKPHJZS7LKFAQY7LQVC6B6LXIDRQR7W3UN6
+#\\\|X2XAD3N4RMUD37NJPD4F4TL22RFPKDUHBNWOH3BIAFYEH7PKQ6W \ / AMOS7 \ YOURUM ::
+#\[7]YCAE756ODB6JHBXFSQUFNYCWMDAU6FCJYIBJM5PHWVZKXHYEE4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
