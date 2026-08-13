@@ -93,8 +93,9 @@ if ( not defined $list_name or $list_name eq '' ) {    ## list overview
 
 my $list_nam_chars = qw| \w\d\- |;    ## valid characters
 
-if ( $list_name =~ m|^[$list_nam_chars]+$|
-    and defined $data{'list'}->{$list_name} ) {
+if (    $list_name =~ m|^[$list_nam_chars]+$|
+    and defined $data{'list'}->{$list_name}
+    and not exists $data{'lists_hidden'}{$list_name} ) {
 
     my $list = $data{'list'}->{$list_name};
 
@@ -145,8 +146,8 @@ if ( $list_name =~ m|^[$list_nam_chars]+$|
     $reply->{'data'} = "no such list [ see 'list' command ]";
 }
 
-#,,..,,,.,...,..,,..,,,.,,,..,...,...,.,.,,,.,.,.,...,...,..,,..,,,,,,.,.,...,
-#6HLHP2J4IDPNITWYM32CGYRISSLH7SPHNMS3NJOARSCPIGHOF7A7K7RS2PF6DWSCEAXB2CFWTQC6M
-#\\\|LVQTJX7LC7XW3Q2TYW3SOLG54ZJ5XL6BO5AKUK5GFEDCH4ATDSZ \ / AMOS7 \ YOURUM ::
-#\[7]PRR7CUBAE5ZQORO2F5AGPPODPNE2TGRAUFU6UFZ77KP2Z4XENQDY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,.,,,.,,...,,,.,,.,,.,.,...,.,,,.,.,...,...,,..,...,,..,,.,,,,,,
+#JUZKSM43EXRSPBCSPKR47MJ5HNCS4WIYO5H4SCEDNCH54JHU6FOJNPSYKCGNZ3ASXYAXHCC74MCPY
+#\\\|LWRJVI6LW2XSCK5SYUFJM52WWZJYDYTG7VGY4R6BXYZWEY3BKLH \ / AMOS7 \ YOURUM ::
+#\[7]JQWOO6OF6SZDJMXY7KHUWNGI7AEPEQNIN2NKXZGJOFLP3VSQTWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
