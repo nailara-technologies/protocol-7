@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = plugin.user-edit.address-cluster.gen_ref
+# descr = mint a fresh 3-char stable ref, collision-checked against the given list
+# param = \@existing_refs -- refs already used in THIS user's own address blob
+
+## adapts bin/todo's chk3()/gen_id() shape [ random candidate / collision
+## retry against the CURRENT live set only / harmonic gate with a non-
+## harmonic fallback pass ] for a running zenka rather than a standalone
+## script -- see user-edit-address-cluster-plugin.yaml's ref_generation
+## section for the full reasoning trail [ why "add one" as IDENTITY is wrong
+## but as a SEED INGREDIENT is fine, the base.ntime-per-retry refinement, the
+## closed-entropy-pool scoping ].
+##
+## COLLISION SCOPE, per user : checked against refs already present in THIS
+## user's own blob only, not any wider registry -- small N per user, matches
+## bin/todo's own scoping exactly.
+##
+## entropy per attempt : <[base.ntime]> [ this codebase's own encoded-epoch
+## primitive, high-resolution, fresh call every retry ] + <base.prng.fortuna>
+## [ the zenka-native PRNG bin/todo's standalone rand() substitutes for ] +
+## $try [ the retry counter itself, an INGREDIENT here, never the identity --
+## see the design doc's own worked example of why that distinction holds ].
+##
+## excludes numeric-lookalikes [ bin/todo's own refinement, f45cdaf19 ] : a
+## purely-numeric-looking ref would be indistinguishable from a legacy
+## migration id on some future load path this project's own convention
+## reserves that shape for -- kept here even though nothing currently reads an
+## address ref that way, since it costs nothing and matches the established
+## precedent exactly rather than silently diverging from it.
+
+my ($existing_refs) = @ARG;
+
+my %used = map { uc($ARG) => TRUE } @{ $existing_refs // [] };
+
+local $AMOS7::CHKSUM::str_length = 3;
+
+my $max_retries = 200;
+
+foreach my $try ( 1 .. $max_retries ) {
+
+    my $seed = join(
+        '-',
+        <[base.ntime]>,
+        <base.prng.fortuna>->string_from(
+            qw| ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 |, 12
+        ),
+        $try
+    );
+
+    my $candidate = scalar AMOS7::CHKSUM::amos_chksum("$seed");
+
+    next if $candidate =~ m|^\d+$|;
+    next if $used{ uc($candidate) };
+    next if not AMOS7::Assert::Truth::is_true($candidate);
+
+    return $candidate;
+}
+
+## harmonic space is ~99.6% of all codes [ bin/todo's own measured figure ] --
+## if this many retries failed, drop the harmony gate rather than fail
+## outright, same fallback bin/todo's gen_id() itself falls back to
+foreach my $try ( 1 .. $max_retries ) {
+
+    my $seed = join(
+        '-',
+        <[base.ntime]>,
+        <base.prng.fortuna>->string_from(
+            qw| ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 |, 12
+        ),
+        qw| noharm |,
+        $try
+    );
+
+    my $candidate = scalar AMOS7::CHKSUM::amos_chksum("$seed");
+
+    next              if $candidate =~ m|^\d+$|;
+    return $candidate if not $used{ uc($candidate) };
+}
+
+<[base.logs]>->( 0, ': address-cluster ref generation exhausted retries' );
+
+return undef;
+
+#,,,,,,..,,,.,,,,,,,.,,,,,..,,,,.,,,.,.,.,,.,,..,,...,...,..,,.,.,.,.,,,.,.,.,
+#TOOXAWXGIH4HOALCQF7FBW5TL7QCVP3U6K65F5HZXD6FNIJU335JCY2QQDA7VGORZIEOSJ6RWKEDQ
+#\\\|DE3QXXNAMVQFLA53VJWPYVX4QJ45C5G3QM6GLAVRUVEAPXSHO46 \ / AMOS7 \ YOURUM ::
+#\[7]KUEV5TIZO7G7Y5QJOZW55F7YTPAEBBQJ4KRBMKC3KXY3GBI6LCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
