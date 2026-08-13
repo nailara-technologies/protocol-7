@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = plugin.user-edit.address-cluster.tab_info
+# descr = address-cluster plugin's self-description
+# param = -none-
+
+## pins 'address' -- the SAME real optional field users.record.optional_fields
+## already declares [ see user-edit-address-cluster-plugin.yaml's
+## storage_shape ]. per plugin.user-edit.example.tab_info's own hard-earned
+## lesson [ REAL BUG, 2b504e4ef : a throwaway test plugin pinned a real field
+## by accident and silently made it readonly-until-entered for every user ] --
+## here that is not an accident, it is the entire point : this plugin's job is
+## to take the plain-scalar 'address' field over completely and give it a
+## structured, multi-entry meaning instead.
+##
+## COLLISION CHECK, per the design doc's own reminder : 'address' does not
+## collide with plugin.user-edit.example's own pin [ 'example_test_field' ],
+## the only other plugin currently wired into plugins.load.
+return {
+    qw| label |       => qw| addresses |,
+    qw| pinned_keys | => [qw| address |],
+};
+
+#,,..,..,,.,,,,..,,..,..,,,,.,,.,,,,.,,,,,,,,,..,,...,...,.,.,,,,,...,,,.,,.,,
+#3OQGENJDYBF4JO5Z26NX2DCEA2PPOQ2VMP3JMOEK4X3QWM6CGOBYB3TEHSS2MCLNKMTR4SFDIIV42
+#\\\|6VU4CKG6PFLECJXHYVNU4K2MGGJZ2N77RROPIULDUBL32SSJHLI \ / AMOS7 \ YOURUM ::
+#\[7]ZPW7LLKNSDKQIRKXWGO5TVJ5I7ZBPBZYD2SQIHY5YOTSDI6JHECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

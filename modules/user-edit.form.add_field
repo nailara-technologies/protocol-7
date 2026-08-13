@@ -81,25 +81,61 @@ state %sort_on_focus_names = map { $ARG => TRUE } qw| contact phone |;
 state %multiline_names
     = map { $ARG => TRUE } <[user-edit.form.multiline_field_names]>;
 
-push @fields,
-    $shape eq qw| list |
-    ? {
-    qw| name |          => $chosen,
-    qw| type |          => qw| freeform_line |,
-    qw| default |       => '',
-    qw| list |          => TRUE,
-    qw| entries |       => [],
-    qw| noun |          => qw| entr |,
-    qw| noun_plural |   => qw| ies |,
-    qw| noun_singular | => qw| y |,
-    qw| sort_on_focus | => $sort_on_focus_names{$chosen} ? TRUE : FALSE,
-    }
-    : {
-    qw| name |      => $chosen,
-    qw| type |      => qw| freeform_line |,
-    qw| default |   => '',
-    qw| multiline | => $multiline_names{$chosen} ? TRUE : FALSE,
+## PLUGIN-PINNED key, the SAME gap class as multiline/sort_on_focus above,
+## found while building the address-cluster plugin : a field a plugin has
+## pinned itself to needs the identical shape user-edit.form.
+## schema_from_record already builds for it [ readonly / plugin /
+## display_override ], the FIRST time it is added here too, not only once it
+## round-trips through a save+reload. UNLIKE multiline/sort_on_focus, this is
+## NOT a third hand-duplicated name list : schema_from_record reads
+## <user-edit.plugin.registry>{'by_key'} directly at schema-build time, so
+## there is nothing to duplicate -- the registry itself is already the single
+## source of truth, built once by plugin.user-edit.registry.post_init and
+## shared by every reader in this same zenka process
+my $pinned_plugin = <user-edit.plugin.registry> {'by_key'}{$chosen};
+
+if ( defined $pinned_plugin ) {
+
+    my $render_sub = sprintf( qw| %s.render |, $pinned_plugin );
+
+    push @fields, {
+        qw| name |             => $chosen,
+        qw| type |             => qw| freeform_line |,
+        qw| default |          => '',
+        qw| readonly |         => TRUE,
+        qw| plugin |           => $pinned_plugin,
+        qw| display_override | => sub {
+            my ( $render_state, $render_field ) = @ARG;
+            return
+                exists $code{$render_sub}
+                ? $code{$render_sub}->( $render_state, $render_field )
+                : <[editor.control.get_value]>
+                ->( $render_state, $render_field );
+        },
     };
+
+} else {
+
+    push @fields,
+        $shape eq qw| list |
+        ? {
+        qw| name |          => $chosen,
+        qw| type |          => qw| freeform_line |,
+        qw| default |       => '',
+        qw| list |          => TRUE,
+        qw| entries |       => [],
+        qw| noun |          => qw| entr |,
+        qw| noun_plural |   => qw| ies |,
+        qw| noun_singular | => qw| y |,
+        qw| sort_on_focus | => $sort_on_focus_names{$chosen} ? TRUE : FALSE,
+        }
+        : {
+        qw| name |      => $chosen,
+        qw| type |      => qw| freeform_line |,
+        qw| default |   => '',
+        qw| multiline | => $multiline_names{$chosen} ? TRUE : FALSE,
+        };
+}
 
 my $new_state = <[editor.control.create]>
     ->( { qw| fields | => \@fields, qw| active_field | => 0 } );
@@ -142,8 +178,8 @@ $new_state = <user-edit.form.state>;
 
 return TRUE;
 
-#,,,,,,,.,.,,,,.,,,.,,.,,,.,,,...,,,,,..,,.,,,..,,...,...,.,.,,..,,,.,.,,,.,,,
-#ZK7TRP3EFFBFI7SWAVMWVNIZVXWTYQSX7PVXSJLPNRP4TQSB6H4KE6HOAJ6R2HHY3PIMXBATPJGLS
-#\\\|UFYQMHCENTLFYOJRRZUR4N3UGSLPMINL3OKICFB324LHEHICL4U \ / AMOS7 \ YOURUM ::
-#\[7]N5KQD7MKR3EMC46TQGGC3H4CYAXXW56I4AAARWJ5R5BIFRLV3GCI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,.,,,,,,,,..,...,,,,,,,.,..,,..,,...,...,,,.,..,,,,,,,.,,,.,,
+#O5UTLATQ7VMVXMPYKPTUAEZF6KXFO2CCWUWLJ5IGX2ULCVZ2HRMXU2PLI5XURJ46ETAY4SYV5EKMU
+#\\\|IYQ7MSSF4DJJFRNANXHVRRL76HQLGSVCHRGWZRJRTJG6XVEDKEL \ / AMOS7 \ YOURUM ::
+#\[7]TTRJHC65QILCZ2FBN4DLIGDM42A2FJIO4NLOW2XYEFD23SWVNIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

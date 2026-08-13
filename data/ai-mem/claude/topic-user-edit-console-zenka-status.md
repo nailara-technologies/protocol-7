@@ -859,8 +859,70 @@ than silently injecting into a real interactive session — a real safety
 net that did its job, not just a nice-to-have gate. See [[reference-user-
 edit-headless-driving]] for the fuller driving notes this refines.
 
-#,,,.,,.,,,,.,.,.,..,,,,.,.,,,...,.,.,,..,,..,..,,...,...,..,,,,,,.,.,,.,,...,
-#OJIBCQEAFRR24MFQIZHHWYEJDOKJW5Q3L3DA6UQH735OYDND3A6RSRFEHJ7T6UOGMJP5TUGTZFBLS
-#\\\|Q4DVO22PMA2AKYHPLNJY36BBPRYJB64HYQTF7HG73B2BNKFF273 \ / AMOS7 \ YOURUM ::
-#\[7]B73SUR5JSJQM72U67D3QD4NQIEKVZ45SWGWKPNBH3QUCMNGAJ2DY 7  DATA SIGNATURE ::
+## multiline width-explosion fix — non-destructive viewport (2026-08-13, `434c289b7`)
+
+A REAL latent bug in the shipped multiline feature, found while designing
+the address-cluster plugin's own tab view (not hypothetical) : note/address
+rows placed each windowed line's FULL raw text into its frame slot with no
+length cap at all, and `user-edit.form.build_frame`'s own width-floor scan
+gives a multiline field's row ZERO contribution — so one very long line
+already blew the card wide open, unbounded, in already-shipped code.
+
+Two fixes were on the table for the plugin's own single-row tab view [ hard-
+wrap content into real `\n` vs a non-mutating slice viewport ] — user chose
+the viewport, specifically because hard-wrap is DESTRUCTIVE [ inserted `\n`
+indistinguishable from typed, re-wrapping at a different width later
+silently rewrites content and can ratchet ] where a slice viewport reads
+the SAME unmodified text and just bounds what one render shows. Scoped
+GENERAL per user, not plugin-only — fixes the existing note/address bug
+too, one helper, not a plugin-private reimplementation.
+
+**New**: `editor.control.multiline.viewport_slice($line_text, $width,
+$cursor_col)` → `($slice, $cursor_display_col)` [ two-value return, mirrors
+`cursor_line`'s own convention ] — cursor-following window with `<`/`>`
+overflow markers, pure text function, never touches stored content.
+
+**Width source**: `user-edit.form.build_frame`'s own `min_width` [ already
+computed from every OTHER field/label in the form — multiline content
+never contributes to it, which is exactly what keeps this non-circular ],
+now also exposed as `$descriptor->{'label_width'}` for `render_form` to
+derive a per-row body budget from (`min_width - label_width - 10`, floored
+at 20). Cross-layer read, flagged in-code: `render_form` is generic
+`editor.ui.*`, `label_width` is a key only `user-edit.form.build_frame`
+sets, not part of the generic frame contract — `// 0` fallback means any
+other caller just gets a wider budget rather than breaking.
+
+**Verified, measured not inferred** (advisor pushed back on an early
+inference-only claim) : `git stash`'d the two changed core modules, drove
+the identical long address line through a throwaway record on unpatched
+code (178 chars), restored the fix, repeated on a fresh throwaway (108
+chars) — same content, real A/B measurement. Separately swept
+`viewport_slice`'s cursor math exhaustively in a standalone harness [ every
+width 3..40 × every cursor position across a 150-char line, 5,738 cases ]
+to confirm the cursor's display position never lands on an overflow marker
+— zero failures once the legitimate "cursor exactly at end-of-text lands
+one-past-the-last-index" case [ same convention the pre-existing non-
+viewport cursor overlay already uses ] was excluded from the check.
+
+**Real bug caught on the user's own live restart, not in review**: `my
+$has_cursor = defined $cursor_col and $cursor_col >= 0;` — Perl's `and`
+binds looser than `=`, so this parsed as `(my $has_cursor = defined
+$cursor_col) and (...)`, silently dropping the `>= 0` guard and throwing
+"Useless use of numeric ge in void context". Benign in practice [ the real
+call site never passes a negative cursor_col ] but a genuine instance of
+the project's own documented perl and/or-precedence trap — fixed with
+explicit parens: `( defined $cursor_col and $cursor_col >= 0 )`. My own
+exhaustive sweep test had copied the same unparenthesized line and did not
+catch it, because the sweep never exercised a negative cursor_col — a
+reminder that a passing test only proves what it actually checks.
+
+See `data/yaml/coding-tasks/user-edit-address-cluster-plugin.yaml`'s
+`MULTILINE VIEWPORT` section for the full design trace. The address-
+cluster plugin itself (task tracked, not yet started) will reuse this same
+helper for its own single-row tab-view body display.
+
+#,,,,,...,,..,...,,.,,,.,,,,,,.,.,,,.,,,,,,..,..,,...,...,,,.,..,,..,,,,,,..,,
+#L22SAQPT7GHPPAMHA7XI733T6LKUATSLAB3Q252LQJKG6WJ7EQB6X2DMLDIFLDDMS7L263SAUNULU
+#\\\|P35OM6SKNE5BRYUMHRP35ZCIWXOWQUSXPNFQ4CS6VELU35I6MNT \ / AMOS7 \ YOURUM ::
+#\[7]FFNG47W4LODTHO4UHOTSENFDSC7ERGOT2F7LVK57O2NMDZYTRYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
