@@ -1226,8 +1226,62 @@ extra lines and tabbing back out shows `:..3.lines..:` with the frame
 correctly narrowing back down — accurate count, no width or height
 regression through the whole cycle.
 
-#,,..,..,,.,.,.,.,.,.,,..,..,,,..,,.,,.,,,..,,..,,...,...,..,,.,,,..,,...,,.,,
-#3YVHCSJWPVHBAYDXOKTGMA7A2OBVSID4QPEU76DIDYBBJWSOWCGHSD42MTV6BW2KV2QEC5YHVLIQO
-#\\\|TUB657HTL7H34RM3XN5NMNZC734O4Z7REMWPNVVPKVRL7NMB4CK \ / AMOS7 \ YOURUM ::
-#\[7]DDIY7AUAJI2WOKSTGONW5RFHVHNO44QAAMUF3OQN64M7USVRVUCA 7  DATA SIGNATURE ::
+**SCALAR COLLAPSE, same day, a new request bounced off before building**:
+`full_real_name` and `location` — plain SCALAR fields, not list or
+multiline — now collapse to a `:..15.chars..:` length summary when
+unfocused (shortened from the initially-built `.characters.`, per user —
+short reads better here than it would for `entries`/`lines`, which stay
+spelled out), the third of this shape alongside list's `:..N.entries..:`
+and multiline's `:..N.lines..:`. New `editor.control.scalar.summary`
+(exact structural counterpart to the other two) and new `user-edit.form.
+collapse_summary_field_names` (mirrors `multiline_field_names`'s own
+shared-list-not-hand-duplicated shape — both `schema_from_record` and
+`add_field` need the same classification, same drift risk that module's
+header already documents). Two design questions resolved before writing
+any code, per user: (1) generic per-field opt-in flag rather than
+hardcoding the field name, since it costs nothing extra and any future
+long scalar field gets it for free; (2) explicitly NOT given the dual-
+row-set width reservation list/multiline needed — a plain scalar field
+already reserves zero width in `build_frame` and already resizes the
+frame live as you type, an accepted pre-existing behaviour, so collapsing
+on blur just adds one more live resize of the same kind rather than a
+new problem. The render_form change computes `$collapsed_scalar =
+$field_def->{'collapse_summary'} && $name ne $active_name` once and folds
+it into the EXISTING `list`-branch condition (`if ($field_def->{'list'}
+or $collapsed_scalar)`), reusing that branch's zero-leading-pad
+convention directly rather than duplicating it — a collapsed scalar is
+never simultaneously focused by construction of that condition itself,
+same invariant list's own collapse already relies on.
+
+Verified live against `zztest-addr`: typed a 33-character name into
+`full_real_name`, frame widened to fit while focused (expected, matches
+the accepted live-resize precedent), Tab away showed `:..33.chars..:`
+with the frame narrowing back down, Tab back showed the real value
+again. Same result adding `location` fresh via the add-a-field cycler
+with a 19-character value.
+
+**A live scare mid-build, resolved as a false alarm**: while testing,
+`address` on `zztest-addr` — and later, live, on the user's own real
+`taeki` record too — showed `:..3.lines..:` instead of the address-
+cluster plugin's own collapsed view, which looked exactly like the
+plugin had silently stopped being pinned. Spent real effort chasing it
+as a pinning regression (temporary sentinel/canary debug branches in
+`schema_from_record`, live-confirmed `$pinned_plugin` WAS correctly
+resolving to `plugin.user-edit.address-cluster` the whole time) before
+finding the actual explanation: a separate, already-landed commit
+(`8816e7dc6`) had deliberately updated the plugin's own PLAIN-collapsed
+view to call `editor.control.multiline.summary` too, so it would read
+identically to an ordinary multiline field's own new collapse — exactly
+the kind of parity this whole feature line has been going for. Nothing
+was ever broken; the text format just changed underneath mid-session
+from a source outside this immediate conversation thread. Worth
+remembering the debugging shape, not just the resolution: when a field's
+*display text* changes in a way that looks like a *classification* bug,
+check recent commits to that field's own render path before assuming the
+classification logic itself regressed.
+
+#,,,,,...,,.,,,..,.,,,,,,,...,,,,,,..,,..,,,,,..,,...,...,,,.,,..,,,.,,..,...,
+#7EU6XLQM6L3TERIBKEO37PH346VLK7BIGDVH3KXEYKTZMFJQC4FM5GH3GBVY6AVBV5B4J6HVT2K3A
+#\\\|W7VWFCB6FW4OUMCW6FRADWMCCSA2DQ77SSU7ZRNJMZ7KW6VXIXD \ / AMOS7 \ YOURUM ::
+#\[7]UZMSG3SVEULNCN6W3WNMEOWC742IOP2A5NMV72IRS2ZL2CN7ESAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -374,7 +374,21 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         or $field_def->{'list_info'}
         or $field_def->{'plugin'} );
 
-    if ( $field_def->{'list'} ) {
+    ## COLLAPSED SCALAR : a plain scalar field opted into user-edit.form.
+    ## collapse_summary_field_names [ 'full_real_name' so far ] shows a
+    ## ':..15.characters..:' length summary in place of its real text while
+    ## NOT focused -- same reasoning as the list/multiline collapses above it,
+    ## per user. UNLIKE those two, this field is perfectly capable of being
+    ## focused straight after being collapsed [ there is no separate "expand"
+    ## step or schema restructuring the way list has -- Tab simply lands on it
+    ## and the very next render shows the real editable value again, $name eq
+    ## $active_name below already handles that ], so this only ever applies to
+    ## the UNFOCUSED half of that condition, computed once here rather than
+    ## duplicated at every branch below
+    my $collapsed_scalar
+        = $field_def->{'collapse_summary'} && $name ne $active_name;
+
+    if ( $field_def->{'list'} or $collapsed_scalar ) {
 
         ## a collapsed list's summary text [ '< 2 entries >' ] is a COUNT
         ## standing in for a value, not a value itself -- per user, shown two
@@ -393,7 +407,13 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ## violate the frame-width-invariant-under-focus this module states up
         ## top, since a focused row uses the bracket marks instead of
         ## pad_l/pad_r and this row's own outer pad_l is no longer their equal
-        ## width
+        ## width.  a collapsed SCALAR relies on the identical invariant, just
+        ## enforced differently -- $collapsed_scalar's own definition above
+        ## excludes the active field directly rather than through a separate
+        ## sync step, so the two states are never observed together here
+        ## either
+        $value = <[editor.control.scalar.summary]>->($value)
+            if $collapsed_scalar;
         $value = $value . q{ };
 
     } else {
@@ -441,9 +461,13 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
     ## framing : brackets when focused, matching spaces when not, so a value
     ## occupies the same columns either way and nothing shifts sideways --
-    ## except a collapsed list's summary, whose outer LEADING pad is dropped
-    ## too [ see the 'list' branch above for why that is safe here ]
-    my $row_pad_l = $field_def->{'list'} ? '' : $mark{'pad_l'};
+    ## except a collapsed list's summary [ or a collapsed scalar's -- same
+    ## treatment ], whose outer LEADING pad is dropped too [ see the 'list'
+    ## branch above for why that is safe here ]
+    my $row_pad_l
+        = ( $field_def->{'list'} or $collapsed_scalar )
+        ? ''
+        : $mark{'pad_l'};
 
     $value
         = $name eq $active_name
@@ -482,8 +506,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,.,,...,.,,,,,,,.,.,...,.,.,,,,,,..,,.,,.,.,..,,...,..,,...,..,,,,,,.,,,.,.,
-#DBGMON24A7AG7QYAZ5V7SAZFDWWMDMXTHH34R42R7DBGMJ6RW3AMN2C5HBJREHJE3ILMI4CQYXTGE
-#\\\|MJ6DJLARIV7YU5OLPE3IR3IXTCCKQTPDW4YQ63CUEOFORGPTJ3Z \ / AMOS7 \ YOURUM ::
-#\[7]IUSOIAOEISF5CLKQRYCSIPUW2BXZAOYQYNPNLVG4M5XU3VSVKWDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,,,.,.,.,,.,,.,,,...,,,.,,,.,..,,...,..,,.,.,,..,..,,..,,..,,
+#NZ4NGYGTSEMETO5HO7C6TNAJGHV4CRQLYLDLJGXTDK4A4IPDPCNSJMLTOE7VFMHOWKG24AYF44BQM
+#\\\|OKOXT7MMIO32LTJPJBF35FGJLCIHTZE25ICGJOWCKVD3WERILOJ \ / AMOS7 \ YOURUM ::
+#\[7]OSGKKG4D5JJDKGFV43TZTVNKEMQISGMRWX5N4CAOZEH2XRWF2YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

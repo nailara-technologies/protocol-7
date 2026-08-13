@@ -49,6 +49,12 @@ my %sort_on_focus = map { $ARG => TRUE } qw| contact phone |;
 ## here rather than two copies drifting
 my %multiline = map { $ARG => TRUE } <[user-edit.form.multiline_field_names]>;
 
+## which SCALAR fields collapse to a ':..15.characters..:' length summary when
+## not focused -- same shared-module reasoning as %multiline immediately
+## above, see user-edit.form.collapse_summary_field_names' own header
+my %collapse_summary
+    = map { $ARG => TRUE } <[user-edit.form.collapse_summary_field_names]>;
+
 ## DISPLAY order, not storage order : base.reverse-sort [ length descending,
 ## alphabetical-descending tiebreak -- see base.each_sort / base.cmd.commands
 ## for the same idiom elsewhere ] rather than a plain alphabetical `sort`, per
@@ -141,8 +147,9 @@ foreach my $name ( <[base.reverse-sort]>->($fields) ) {
         qw| type | => qw| freeform_line |,
         ## editor.buffer.memory.create reads the initial text from 'default' —
         ## NOT from a 'value' key
-        qw| default |   => "$value",
-        qw| multiline | => $multiline{$name} ? TRUE : FALSE,
+        qw| default |          => "$value",
+        qw| multiline |        => $multiline{$name}        ? TRUE : FALSE,
+        qw| collapse_summary | => $collapse_summary{$name} ? TRUE : FALSE,
     };
 }
 
@@ -161,8 +168,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,..,..,,...,.,.,.,,,,,.,.,.,..,,,,.,,,.,.,.,..,,...,...,,,.,,,,,,,,,.,.,.,,,
-#C4MPN5PL5P7ISDZIM2YF2C4BNDBID7DCEGG6IDPVN6LKPHJZS7LKFAQY7LQVC6B6LXIDRQR7W3UN6
-#\\\|X2XAD3N4RMUD37NJPD4F4TL22RFPKDUHBNWOH3BIAFYEH7PKQ6W \ / AMOS7 \ YOURUM ::
-#\[7]YCAE756ODB6JHBXFSQUFNYCWMDAU6FCJYIBJM5PHWVZKXHYEE4DI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,,.,,..,,...,.,,,.,.,,..,.,.,..,,...,...,...,.,.,,,.,,.,,,.,,
+#GBPJ3DON5G6SQ7QDZH7KBJJ4H6JJOTSHSUGJ2ST4U5T2AY2SHSLUKXFGEDZK23NUS2NKIN6SIRM7C
+#\\\|QDMUODRP3ITEZGVTQQQR5LGTUDOSYCFWQ2XE4XAVP432V5ULPR2 \ / AMOS7 \ YOURUM ::
+#\[7]3SQUUOJWQ43ARGZ7E4YVD66P35S52LQ65QWJR3BF7IEOUEFTCOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
