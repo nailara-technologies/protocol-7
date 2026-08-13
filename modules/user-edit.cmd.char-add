@@ -104,6 +104,14 @@ my $cursor_char
 
 $cursor_char = q| | if not length $cursor_char;
 
+## a MULTILINE field's cursor can legitimately sit right before an embedded
+## '\n' [ end of any line but the last ] -- substr would then hand back the
+## newline itself, and splicing that raw byte in as a one-character marker
+## glyph would corrupt this row's alignment exactly like an un-windowed '\n'
+## reaching a slot does [ user-edit-multiline-note.yaml ].  same "nothing
+## visible sits here" treatment as the end-of-buffer case above
+$cursor_char = q| | if $cursor_char eq "\n";
+
 my $rendered = <[editor.ui.ascii_frame.render_form]>->(
     $editor_state, $frame_name, undef, { qw| cursor | => $cursor_char }
 );
@@ -123,8 +131,8 @@ return {
     )
 };
 
-#,,,.,..,,,,,,,.,,,,.,,..,.,,,,,.,.,,,...,,.,,..,,...,...,...,,,.,...,..,,,,.,
-#EUSAD3CMLO3OFTP63CO2MA5WJWHFWU4VIHCZDLYBSH5DHO6OE2UQQPYN4JPXXCPI4W5NGLK3Z3VRO
-#\\\|N3R5ZUH4W74AMVIOWQCQ6IZMTTI2X3IWS2FI7AP3K72TEOPNESX \ / AMOS7 \ YOURUM ::
-#\[7]M3KLVAXBKCE2LTO3VI5PNHTQSXJGAUQVMWJWQNX3L7GRKNWVJUDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,,,,,...,.,,,,,,,,,,,..,,,,,,..,,...,...,,,.,..,,,.,,,.,,,,,,
+#HZZSJK24ZK6773L2LBZSPVE3LIS6KIDZ347BYCCMYHTNY5W5ZUXVNZZE3FV52BCQFFVKPV75QUOCG
+#\\\|BL3HDQLBGU3O3XQUQYJBZEL7HB2YI7BR4JWV2SYGTUEZYK4US7L \ / AMOS7 \ YOURUM ::
+#\[7]ZKC265TX3MPHIDUG7JVRSXWJVRFJQJMSUVTF3QM7OKLQBYJ2XUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

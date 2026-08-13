@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = user-edit.form.scroll_multiline
+# descr = page the focused multiline field's window up or down
+# param = $direction [ -1 = page back, +1 = page forward ]
+
+## the PgUp/PgDn counterpart for a multiline field, mirroring user-edit.form.
+## scroll_list's shape but with no mode-switch to drive : a multiline field is
+## always shown in its windowed form [ never collapses to a summary row, see
+## user-edit-multiline-note.yaml ], so there is no editor.control.list.scroll
+## equivalent to call -- the window offset is a plain integer stored directly
+## on the field def [ 'multiline_offset' ], the same way the add-a-field
+## cycler stores its own position in 'choice'.
+##
+## returns FALSE [ no frame rebuild ] when the focused field is not multiline,
+## or has too few lines to window at all -- callers read this as "not
+## applicable, do not repaint", identical contract to scroll_list.
+
+my ($direction) = @ARG;
+
+my $editor_state = <user-edit.form.state>;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $index     = $editor_state->{'active_field'} // 0;
+my $field_def = $editor_state->{'schema'}{'fields'}[$index];
+
+return FALSE if ref $field_def ne qw| HASH | or not $field_def->{'multiline'};
+
+my $name  = $field_def->{'name'} // return FALSE;
+my $text  = <[editor.control.get_value]>->( $editor_state, $name ) // '';
+my $lines = <[editor.control.multiline.lines]>->($text);
+my $total = scalar $lines->@*;
+my $cap   = <[editor.control.list.window_cap]>;
+
+return FALSE if $total <= $cap;    ## nothing to scroll ##
+
+my $max_offset = $total - $cap;
+my $offset
+    = ( $field_def->{'multiline_offset'} // 0 ) + ( $direction // 0 ) * $cap;
+$offset = 0           if $offset < 0;
+$offset = $max_offset if $offset > $max_offset;
+
+$field_def->{'multiline_offset'} = $offset;
+
+## the CURSOR moves to the start of the window's first line too, not just the
+## offset -- editor.ui.ascii_frame.render_form's own auto-scroll-to-cursor [
+## user-edit-multiline-note.yaml ] would otherwise snap the window straight
+## back to wherever the cursor already was on the very next render, since
+## nothing else moved it.  same move list's own PgUp/PgDn makes for the SAME
+## reason [ scroll_list's note : "editor.control.list.expand always lands
+## active_field on the window's FIRST row" ] -- keeping cursor and window in
+## lockstep is what PgUp/PgDn actually means here, not just "look at a
+## different slice while editing stays wherever it was"
+my $target_pos
+    = <[editor.control.multiline.line_col_to_offset]>->( $lines, $offset, 0 );
+my $current_pos = <[editor.control.get_cursor]>->( $editor_state, $name )
+    // 0;
+<[editor.control.commands.move_cursor]>->(
+    $editor_state, $name, $target_pos - $current_pos
+);
+
+## field_def is reached THROUGH $editor_state -- <user-edit.form.state> is a
+## live reference, not a defensive copy [ confirmed against user-edit.form.
+## add_field_row's identical in-place mutation with no reassignment ], so no
+## explicit write-back is needed here either
+
+<[user-edit.form.build_frame]>->(
+    $editor_state, <user-edit.form.frame_name> // qw| user-edit-form |,
+    <user-edit.form.title>
+);
+
+<[user-edit.form.field_changed]>;
+
+return TRUE;
+
+#,,..,,..,,,,,,,.,,,.,,.,,.,,,.,.,...,,,.,,,.,..,,...,...,,..,,..,...,.,.,...,
+#QL6S5LZIBFH5VCY7XLVYDQ3HUUNYZCJH2UDY3BK4QFQRWEFYSC6N5FWLXJIXG266B5FSJRGWMY2KW
+#\\\|BUUAKAL6EKAVLBSBXQ6YP4PA4CUD6RTW6LEGTX2JPNL3CJ5QNB4 \ / AMOS7 \ YOURUM ::
+#\[7]YQFCVYP4ZGTS44ESDJHD2JAEDJUFCAIC3UL4JYP67TH3UVPUZUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

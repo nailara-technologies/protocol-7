@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = editor.control.multiline.cursor_line
+# descr = which display line a CHARACTER offset falls on, and its column
+# param = $text, $cursor
+
+## the counterpart editor.control.multiline.lines needs to make the auto-
+## scroll-to-cursor property hold [ user-edit-multiline-note.yaml's
+## rendering_model note ] : a windowed multiline field must know which of its
+## split lines the cursor is currently inside, to keep that line inside the
+## visible window as the buffer is edited.
+##
+## counts '\n' characters strictly BEFORE $cursor -- a cursor sitting exactly
+## ON a '\n' is column 0 of the NEXT line, matching how inserting there and
+## typing immediately afterward reads : the new text lands on the line below
+## the break, not at the end of the one above it.
+
+my ( $text, $cursor ) = @ARG;
+
+$text   //= '';
+$cursor //= 0;
+$cursor = 0             if $cursor < 0;
+$cursor = length($text) if $cursor > length($text);
+
+my $before = substr( $text, 0, $cursor );
+
+my $line = () = $before =~ m|\n|g;
+
+my $last_break = rindex( $before, "\n" );
+my $col        = $last_break < 0 ? $cursor : $cursor - $last_break - 1;
+
+return ( $line, $col );
+
+#,,,,,,,,,...,.,.,,,,,...,,..,.,,,.,.,.,,,...,..,,...,...,.,.,,,,,,,.,,,.,,,,,
+#W2P66526XWOOIOGSFCXLD44VXV6XXNJTM3FLJH773CL7C5AX4HETFSBJ4CTPAIGDNI5CV77YMWUXW
+#\\\|HNTBG474EGS5PXXQMDC44ZHDDXRVUKKJO76C5XNEAIGWCVUM25U \ / AMOS7 \ YOURUM ::
+#\[7]SWHIU6JX46MG4TIRC2OL3N7V7TWZ5Q5LP3UUAHCQDLEBKWMFXECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
