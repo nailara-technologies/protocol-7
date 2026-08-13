@@ -50,6 +50,18 @@ p7c "$SID.char-add [Down][Down]"
 sessions` does not. Stale sessions from earlier runs linger in that list —
 take the newest, or kill the old ones first.
 
+**"take the newest" is not enough on its own**: the user's own live TTY
+session shows up in the same `list subnames` output alongside a `-no-tty`
+throwaway, and both can look recently-touched at a glance if the user has
+been actively using their own session too. Cross-check the candidate SID's
+actual connection age via `list sessions` [ same SID, different column ]
+before routing `char-add` at it — don't just eyeball `list subnames`'
+ordering. Got this wrong once (2026-08-13): routed `char-add` at the
+user's own pts/4 session by mistake. `user-edit.cmd.char-add`'s own
+`<user-edit.mode.no_tty_debug>` guard refused it outright rather than
+injecting into a real interactive session, so nothing was actually at
+risk — but it wasted a step and is worth just getting right first time.
+
 ## key specs
 
 `editor.input.parse_key_spec`: `[Up]` `[Down]` `[Left]` `[Right]` `[Home]`
@@ -105,8 +117,8 @@ no delete command. Editing a form does not touch the record until submit,
 so an abandoned form leaves the record alone, but anything you submit is
 real.
 
-#,,.,,...,,.,,,.,,..,,.,.,,.,,,..,,,.,.,.,.,.,..,,...,...,.,,,...,,.,,..,,..,,
-#X4VW7VDOQAPBIZQOIN7BZ7RZOKXRPHKQDT3J2LF2PT4RKQUDQYFSITJSHJ7C546BHUZA6SOQTC5GE
-#\\\|J4DKBOBJBX3GYNBTAVWQJBWNA63AUL6METWMQOPKGOK3GOLFSZ4 \ / AMOS7 \ YOURUM ::
-#\[7]HBWUJ6YUHBN76QLTVIDJDXAMAWVYZFN57PYZCUSIXRPNJWY26GBA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,...,..,,...,.,.,,,,,,,.,,.,,..,,...,...,,..,..,,.,,,,.,,,,.,
+#XPXZCHOMKXFHVFKK5GMJEGJFR64CCY2ZBWPXCYBPNWLX6MEY7AICHX4UAPMLYRRVXREURDADEJ7QS
+#\\\|VWOD5JBECRYD2ORZMIPKZJVH7CYGPGOMRYQEPKORVVAL4BOIO2B \ / AMOS7 \ YOURUM ::
+#\[7]YV5BFCG3AVIHPKDKBV7IDYGMJ3RPNAJUXNUPNZUJS5QRYKRV3ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
