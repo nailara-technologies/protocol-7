@@ -275,12 +275,33 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
     ## right" -- so landing here takes one Right to move in, a second Right to
     ## commit, rather than the first Right press immediately hijacking
     ## navigation
+    ##
+    ## REAL GAP, found live while building the address-cluster plugin, not
+    ## specific to it : on a field with ZERO content [ every brand-new
+    ## optional field a plugin pins to, before its own handler.key has ever
+    ## written anything ], the cursor can never move past 0 no matter how many
+    ## times Right is pressed -- there is nothing to move INTO -- so
+    ## $plugin_cursor_before stays 0 forever and this trigger could never
+    ## fire, leaving an empty pinned field permanently un-enterable. the two-
+    ## stage protection exists to let a first Right's ordinary cursor move
+    ## stand before a second commits to entering ; on empty content there IS
+    ## no ordinary cursor move to protect, so entering on the FIRST Right
+    ## loses nothing there. gated on the field's VALUE length, not on
+    ## $plugin_cursor_before itself -- a non-empty field with the cursor
+    ## merely PARKED at 0 [ e.g. after Home ] must keep the normal two-stage
+    ## behaviour, only truly empty content skips it
+    my $field_is_empty = not length(
+        <[editor.control.get_value]>->(
+            $editor_state, $focus_def->{'name'} // ''
+        ) // ''
+    );
+
     if (    ref $focus_def eq qw| HASH |
         and defined $focus_def->{'plugin'}
         and exists <user-edit.plugin.registry> {'by_key'}{
             $focus_def->{'name'} // ''
         } and ( $key eq "\e[C" or $key eq "\x1b[C" )
-        and ( $plugin_cursor_before // 0 ) > 0
+        and ( ( $plugin_cursor_before // 0 ) > 0 or $field_is_empty )
     ) {
 
         <[base.logs]>->(
@@ -489,8 +510,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,,,,,,,,...,...,..,,,..,...,.,,,.,.,,..,,,,,..,,...,...,,,,,.,.,..,,..,,,.,,
-#OQCMT2IZKUU5DFQI5DQEWBBNPNC2KCBOQI2YEAHX3CJS5LT5WKZOI3Q6JT4YS2L6JN3XHIDK7Z5XW
-#\\\|KB7H2BBCALQPRPGHHLVYO5PD56ILASTSBVYYQ7HQMQEQ7HYAQLW \ / AMOS7 \ YOURUM ::
-#\[7]XMJJXPJF5HMXU3U7SV6OHEES3UJXJSARMQI22OFVETGSAXPR4QCY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,..,.,.,,,,,..,,.,,,...,...,,,,,..,,...,..,,...,...,,..,.,,,..,,
+#C3TMA3CISZKO7CSWH5V7JV4ZG6QI27L3Q632UA257BS257UTPCMXPF5K7DS6SIW7OXPGHYFFWDIEK
+#\\\|O7LPU4NVCOEHI52ESVHM4OKMF74T3FI37JXYVSMRHLXYY45H2UX \ / AMOS7 \ YOURUM ::
+#\[7]7UBCKJU5RFJBNYHWOQF47A5FRRUMUNFW3VWMFIQSDXWXXZJI72CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

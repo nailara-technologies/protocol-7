@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = plugin.user-edit.address-cluster.render
+# descr = address-cluster plugin's display -- MINIMAL smoke-test stage
+# param = $editor_state, $field
+
+## SMOKE-TEST STAGE ONLY, per plugin.user-edit.address-cluster.handler.key's
+## own note -- real blob parsing / primary-ref-plus-count display / per-entry
+## tab view come next. deliberately mode-aware already though, since THAT is
+## the one thing display_override must get right from the start : it fires on
+## every render regardless of mode [ editor.control.get_display_value calls it
+## unconditionally ], so this checks $editor_state->{'mode'} itself rather
+## than assuming collapsed vs entered.
+
+my ( $editor_state, $field ) = @ARG;
+
+my $stored = <[editor.control.get_value]>->( $editor_state, $field ) // '';
+
+my $in_tab_mode
+    = (
+    ( $editor_state->{'mode'} // '' ) eq sprintf( qw| plugin:%s |, $field ) );
+
+return sprintf( q| [addresses:tab probe=%s] %s |,
+    $editor_state->{'plugin_state'}{$field}{'probe'} // 'undef', $stored )
+    if $in_tab_mode;
+
+return sprintf( q| [addresses] %s |, $stored );
+
+#,,,,,.,,,...,.,,,,.,,.,,,.,.,.,,,.,,,,,,,,,.,..,,...,...,,..,,,.,,,,,.,,,.,,,
+#MTT6OUORPXQEIE3HQHZBQAK2XXGEIXHBZMPQBOH2ALWADK3Q5YB36YUU7RKRXSNJWRBFWBT2ZGHHO
+#\\\|3A2CLZHBUZS3HRN6B6BADPYBWRHRH25QY7IPHQ4QE5DPJU6VRL5 \ / AMOS7 \ YOURUM ::
+#\[7]J4TPYFFUHVLB2PRHIBPEAROVTEM26ABKEAKA2LWSKONNPOYC72DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
