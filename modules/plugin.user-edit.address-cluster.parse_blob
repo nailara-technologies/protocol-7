@@ -44,18 +44,42 @@ if ( not defined $err and ref $parsed eq qw| ARRAY | ) {
     ];
 }
 
-## LAZY MIGRATION path -- synthesize a one-entry cluster from legacy text ##
+## LAZY MIGRATION path -- synthesize a one-entry cluster from legacy text.
+##
+## the ref here is DETERMINISTIC, a pure function of $raw_text -- NOT minted
+## via gen_ref's random+collision+harmonic machinery. that machinery is for
+## identity on INSERT, where a fresh distinct ref is the whole point ; here it
+## is the opposite, this path re-fires on EVERY render [ see this module's own
+## header ], and gen_ref->([]) in this spot meant a REAL address -- not a
+## throwaway one, found live once genuine legacy text [ a plain scalar
+## 'address', never touched by this plugin ] sat in a field during testing --
+## showed a DIFFERENT ref on every single redraw.  same input text now always
+## yields the same ref, until an actual edit persists a real blob and this
+## path stops firing for that entry at all RE-LOCALIZED before EACH call, not
+## once for both -- amos_chksum's own success path resets the package-global
+## $str_length back to 7 as a side effect on every successful return [ see
+## plugin.user-edit.address-cluster.  gen_ref's own matching fix and comment
+## for the full trace ], so a single local covering both calls below would
+## silently give the retry call 7 characters instead of 3
+local $AMOS7::CHKSUM::str_length = 3;
+my $migration_ref
+    = scalar AMOS7::CHKSUM::amos_chksum("legacy-address:$raw_text");
+if ( $migration_ref =~ m|^\d+$| ) {
+    local $AMOS7::CHKSUM::str_length = 3;
+    $migration_ref
+        = scalar AMOS7::CHKSUM::amos_chksum("legacy-address-retry:$raw_text");
+}
+
 return [
-    {   qw| ref | => <[plugin.user-edit.address-cluster.gen_ref]>->( [] )
-            // qw| ??? |,
+    {   qw| ref |     => $migration_ref // qw| ??? |,
         qw| label |   => '',
         qw| primary | => TRUE,
         qw| body |    => $raw_text,
     }
 ];
 
-#,,.,,.,,,..,,.,.,...,.,.,,,.,.,,,..,,,,,,,,.,..,,...,...,..,,,,,,,,.,.,.,.,.,
-#XCFRH2EKDVU3PFEYRBGBZ7KYHSZNEC7YB2ONPGXJWD32HBCW3QXIZBHUTSNKD7PBRQ4AYAPSQLSRI
-#\\\|NYNOWG5ULVGRGYEPFOOY2FBXEI6W456DXK7DLKVSWY4DNNRJKOT \ / AMOS7 \ YOURUM ::
-#\[7]3CK3DML4ZCC33MQJWZ6DUD5QACOET7DBOEDE6ZZKVZYYPXEUWMBI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,,..,.,,,.,,,,,.,,,,,.,,,,..,..,,...,...,..,,..,,,,,,.,,,.,.,
+#6ALJVNEPRCC2RVNKC5CUONJJXQ54TODISRSUJAUNDWVUQA4Y5PH4QXRLYYYP2LZRJFK57QXPG55D6
+#\\\|WVGTVXXBKAIUNQPKTFCNWDLGB6EIGGOAEMHZ6AG7Y7VO36JYAF7 \ / AMOS7 \ YOURUM ::
+#\[7]ODWZGMNO7C5JDHU3O6GWXZ2KF3IU53J7SKKLEZICHNHS5DJUD4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
