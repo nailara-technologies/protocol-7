@@ -129,12 +129,36 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         }
         $field_def->{'multiline_offset'} = $offset;
 
+        ## per-row viewport budget, derived from the frame's OWN already-
+        ## computed width floor -- see the 'MULTILINE VIEWPORT' section of
+        ## user-edit-address-cluster-plugin.yaml. a multiline field's body
+        ## never contributes to min_width [ user-edit.form.build_frame's
+        ## $display_length returns 0 for it ], so this reads a floor computed
+        ## entirely from everything ELSE in the form -- no circularity.
+        ## label_width + 10 mirrors build_frame's own row-prefix accounting [
+        ## '   %*s:  ' = label_width + 6, plus this block's own +4 pad/cursor
+        ## reservation ]. floored, not tuned to exact pixel precision -- a
+        ## soft display cap, adjust the floor/subtraction against what
+        ## actually renders, not a structural invariant.
+        ##
+        ## NOTE : this module is generic editor.ui.* [ ascii.frame render
+        ## backend, zenka-agnostic ] reading 'label_width' off the descriptor
+        ## -- a key only user-edit.form.build_frame sets, not part of this
+        ## module's own generic frame contract. the '// 0' fallback means any
+        ## OTHER caller [ a frame built some other way, without that key ]
+        ## just gets a wider budget rather than breaking -- silent, not
+        ## unsafe, but worth knowing this is a cross-layer reach, not a
+        ## documented contract field
+        my $viewport_width
+            = ( $descriptor->{'min_width'}   // 0 )
+            - ( $descriptor->{'label_width'} // 0 )
+            - 10;
+        $viewport_width = 20 if $viewport_width < 20;
+
         foreach my $i ( 0 .. $cap - 1 ) {
             my $line_index = $offset + $i;
             my $line_text = $line_index < $total ? $lines->[$line_index] : '';
             my $slot_name = sprintf( '%s_%d', $name, $i );
-
-            my $display = q{ } . $line_text . q{ };
 
             ## only the ONE row actually holding the cursor is marked as
             ## focused -- the rest of the block renders plain, the same
@@ -143,8 +167,22 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
             my $is_cursor_row
                 = ( $is_active and $line_index == $cursor_line );
 
+            ## bound this ONE line to the row's width budget -- non-
+            ## destructively [ editor.control.multiline.viewport_slice ], the
+            ## stored text itself never changes, only what this render shows.
+            ## cursor-following only on the row that actually holds it ; every
+            ## other overlong row windows from its own start
+            my $display_col;
+            ( $line_text, $display_col )
+                = <[editor.control.multiline.viewport_slice]>->(
+                $line_text, $viewport_width,
+                $is_cursor_row ? $cursor_col : undef
+                );
+
+            my $display = q{ } . $line_text . q{ };
+
             if ($is_cursor_row) {
-                my $c = $cursor_col + 1;
+                my $c = ( $display_col // $cursor_col ) + 1;
                 $c = length($display) - 1 if $c > length($display) - 1;
                 substr( $display, $c, 1 ) = $cursor_marker;
             }
@@ -315,8 +353,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,..,.,.,.,.,.,,,,,,,.,,,,..,,..,.,,,,..,.,,,..,,...,...,,,.,,..,.,.,,,,,.,,,
-#2QR4XBKGNSBTUT7D4I6WN753K72LHOHUROIXP5N2LGQDEGSS4Y2P5GSQR6U6I27ATBOS7DP2SHBPO
-#\\\|LE45AI5ISOMUXP2OGZYUQB4SVZP57NAKO5KOVQE2DUB3RJHOWDG \ / AMOS7 \ YOURUM ::
-#\[7]UOZUG7HMM63DSDKJLG6TMCCFVKB5Q4NROAUIFIONEXKOS75ELUDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,..,,.,,,..,,..,,,.,,,.,,.,,..,,...,...,..,,...,.,,,,.,,,,.,
+#UTZ437AJZ5R7QBQSSUQFFZL456I65E7UKUKLE3QV2EQQVTSVDR3YO3IS6KTYABIY4EOTQAJXYB2DM
+#\\\|345ATRFZTEA2QCZUW6XMX2ZUSEOQD72RQCOYEX2I5N7KFSL2OI3 \ / AMOS7 \ YOURUM ::
+#\[7]IQQUMPTOPRZXJ7RD2D5CS3E5CCXY6577ONEHRH36ZWLOIHXTXCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

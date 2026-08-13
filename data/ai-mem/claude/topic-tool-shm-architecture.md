@@ -137,8 +137,46 @@ Re-referenceable and re-nestable at zero copy.
 User note: "adding another abstracting layer is a temporary workaround
 that is still clean and no initial technical debt" — accepted pattern.
 
-#,,..,,.,,..,,.,,,,.,,..,,,,.,.,.,.,.,,.,,,,.,..,,...,...,,,,,,.,,,.,,,.,,,,.,
-#6GM3C3YQQPGVPYBV7LRWQGTVEBRMPW3G4AWFGV4VJO4GTLVZZ3AHICZH4F4IJFQLTEWXUWYBEZJDK
-#\\\|RINMTHIJ7H3UJRCZ472CVIMT2V3DJLQ5UBQDAKZ4HGE3QRXDBMM \ / AMOS7 \ YOURUM ::
-#\[7]W5TUJZRRKKMWQWZHYSAQS6EPR26AS2NBMOTDATXHHTMDZHQ7RKCA 7  DATA SIGNATURE ::
+## Inter-zenka SHM handle naming (raised 2026-08-13, design-only)
+
+Per user, while discussing [[project-checksum-addressing-implementation-
+survey]]'s "resolvable + anonymized reference" finding
+(`base.parser.harmonized_reference`/`decode_harmonized_refstr` — real code,
+but scoped to live in-process Perl memory addresses, meaningless across a
+process boundary) : that PATTERN [ checksum-tagged, typed, compact handle ]
+could be the right shape for naming entries WITHIN a real SHM segment for
+cross-zenka "session-like" sync mappings — unlike private-heap addresses,
+raw SHM offsets genuinely ARE comparable across the zenki attached to the
+same segment, so a handle scheme there is about namespacing/collision-
+avoidance rather than papering over per-process meaninglessness.
+
+**The piece needed for that to be safe, per user**: `%data`/`%code` hash
+keys already work as a kind of mapping too, but a MORE LITERAL kind than a
+checksum handle — per user, a captured coderef from `$code{'module.name'}`
+stays pointing at the OLD closure even after the module hot-reloads and
+the hash slot itself now holds a different one [ exactly why this
+codebase's own `<[module.name]>` syntax always re-dereferences through the
+live hash slot at CALL TIME rather than ever caching a coderef -- see
+`base.perlmods.refresh_stale` / `base.slot.refresh` ]. A future mapping
+system built on resolvable handles needs the SAME discipline the ROUTING
+table already has : `base.session.cancel_route` [ called from
+`base.session.check.close` ] DISSOLVES a route entry the moment either its
+SOURCE or TARGET session closes -- deletes `$data{route}{$route_id}`,
+notifies both ends, cleans up dependent stream/timer state. This is a
+REAL, working precedent for "collapse a mapping when either end is
+destroyed" [ the actual wire message is literally "command route
+collapsed", seen live this session when restarting the `users` zenka
+mid-request ] -- any new SHM-handle-mapping or reconciled-P7REF system
+needs an equivalent dissolution mechanism, not a new one invented from
+scratch; `base.session.cancel_route`'s shape [ delete on either-end-
+closure, notify both sides, clean up dependents ] is the template to
+reuse.
+
+Design-only, no implementation started. See [[project-checksum-addressing-
+implementation-survey]] for the reference-encoding half of this thread.
+
+#,,,.,,,,,,..,,,,,.,,,,,,,,.,,..,,,,,,.,.,,..,..,,...,..,,...,,,.,,,,,,,.,.,,,
+#DOVH5IZAFNSMUEBG4B3KDJ7VN3EUGHEENRDNGI4A4IZZXDMCH42G67W75OGPXDOQZQXO2JSTSBZJS
+#\\\|GF7MGTTMVATALMLTJUA2U25AWKOHFIUZ5KRFCO7HWIENPYJ7QQS \ / AMOS7 \ YOURUM ::
+#\[7]CYF7MYC2VZ3K5P2VE5C7YI7ZW3ESHHT6KYX4ZRLXMPJWUONG2YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
