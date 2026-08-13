@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = editor.control.cycler.window_width
+# descr = fixed display-column budget for a windowed cycler render
+# return = a bare integer
+
+## a SINGLE source both user-edit.form.build_frame's width RESERVATION and
+## editor.ui.ascii_frame.render_form's render-time width BUDGET read directly,
+## rather than either deriving one from the other -- see the 'user-edit form:
+## horizontal-scroll add-a-field cycler' design for why deriving the
+## render-time budget from min_width [ the multiline viewport fix's own
+## pattern, editor.control.multiline.viewport_slice ] is circular for THIS row
+## specifically.
+##
+## the multiline derivation works only because build_frame's own
+## $display_length returns ZERO for a multiline field -- min_width there is
+## genuinely computed from everything ELSE on the form. the add-a-field row is
+## not a bystander the same way : build_frame pushes it into @current_rows
+## even when the schema does not carry it yet, specifically because it is
+## normally the WIDEST row in the form -- it is one of min_width's own
+## drivers. shrinking its build-time contribution while still deriving its
+## render-time width FROM that same min_width would be circular : a sparse
+## form's min_width could drop below what even one choice cell needs, the
+## render-time floor would silently win, and the row would render wider than
+## the frame reserved -- exactly the jump-on-focus class this whole
+## reservation system exists to prevent.
+##
+## a fixed constant, read by both sides, cannot disagree with itself.
+##
+## tuned empirically against live rendering, same as editor.control.list.
+## window_cap and plugin.user-edit.address-cluster.render's TAB_WIDTH were --
+## not a structural invariant, just a number that reads well.
+
+return 40;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+
+#,,.,,,,.,.,.,.,.,,..,,..,.,,,...,,,,,.,.,,.,,.,.,...,...,.,.,,,.,..,,,..,.,,,
+#D2ZBJII7YLNNT6NKGS4H42F5HVNZDPHWRQIIMTOJC7LMDC4S3SUE4KHQHULYEIG7EKZ5KDRWZCZPY
+#\\\|FFFE7FILSOGTWE656FPULQV7BSCL4AWBVIOCXGP4LIA2HV2BFEU \ / AMOS7 \ YOURUM ::
+#\[7]SQRNABVBHJ7YQMEFZVLKTNSHNMJ7A573F7OY3HCYJXARD3NOPECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

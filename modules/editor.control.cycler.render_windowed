@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = editor.control.cycler.render_windowed
+# descr = draw a bounded WINDOW of an inline cycler's choice set, scrolled to width
+# param = $choices_aref, $current_index, $offset, $width
+# return = rendered string, bounded by $width
+
+## the windowed sibling of editor.control.cycler.render -- that module draws
+## the WHOLE vocabulary on one constant-grid line, which is what user-edit.
+## form.build_frame used to measure its own width reservation against, and
+## what blew that reservation open as the vocabulary grew [ see the 'user-
+## edit form: horizontal-scroll add-a-field cycler' design ]. this module
+## instead packs only as many WHOLE cells as fit inside $width, starting from
+## an already-decided $offset -- the offset itself is not this module's
+## business, it is settled by the caller [ editor.ui.ascii_frame.
+## render_form's own add_field block ], the same way editor.control.
+## multiline's own auto-scroll-to-cursor is settled inline there rather than
+## in a module of its own.
+##
+## SAME per-cell math as render() : '+choice+' and ' choice ' are both
+## length(choice)+2, so the marked cell never shifts its neighbours -- see
+## that module's own header for why this constant-grid shape was chosen.
+##
+## BOTH markers reserved unconditionally, same trick and same reasoning as
+## editor.control.multiline.viewport_slice's own $body_width : computing
+## exactly which side needs a marker before knowing how many cells fit is
+## circular [ how many cells fit depends on how much room the markers leave,
+## and how many markers there are depends on how many cells fit ].  a wasted
+## marker column near an edge costs nothing -- this is a soft display cap, not
+## a structural invariant.
+##
+## the cell AT $offset is always packed first, unconditionally, even when it
+## alone is wider than the budget left after reserving both markers -- a
+## vocabulary whose choice NAMES are wider than window_width must never simply
+## omit the '+choice+' marker outright when $offset lands on the current
+## choice [ which the caller's settle logic always arranges, see the design's
+## wrap-around trace ] ; better to overshoot $width by a few columns on a
+## pathological vocabulary than to render a cycler with no visible selection
+## at all.
+
+my ( $choices_aref, $current, $offset, $width ) = @ARG;
+
+my @choices
+    = grep { defined $ARG and length $ARG } ( $choices_aref // [] )->@*;
+
+return '( none )' if not @choices;
+
+$current //= 0;
+$current = 0 if $current < 0 or $current > $#choices;
+$offset //= 0;
+$offset = 0 if $offset < 0 or $offset > $#choices;
+
+$width //= 0;
+$width = 0 if $width < 0;
+
+my $body_width = $width - 2;
+$body_width = 0 if $body_width < 0;
+
+my $cell_width = sub {
+    my ($index) = @ARG;
+    return length( $choices[$index] ) + 2;
+};
+
+## first cell unconditional -- see header ##
+my @packed = ($offset);
+my $used   = $cell_width->($offset);
+
+foreach my $i ( $offset + 1 .. $#choices ) {
+    my $w = $cell_width->($i);
+    last if $used + $w > $body_width;
+    $used += $w;
+    push @packed, $i;
+}
+
+my $shows_left_edge  = ( $offset == 0 );
+my $shows_right_edge = ( $packed[-1] == $#choices );
+
+my $slice = join( q{|},
+    map { sprintf( $ARG == $current ? '+%s+' : ' %s ', $choices[$ARG] ) }
+        @packed );
+
+$slice = q|<| . $slice if not $shows_left_edge;
+$slice = $slice . q|>| if not $shows_right_edge;
+
+return $slice;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+
+#,,..,,.,,,,,,,,,,..,,...,...,,.,,.,,,,..,.,,,.,.,...,.,.,,,.,..,,,.,,,,,,.,,,
+#O2TC5TKTR2S7VQVGHXXWNVXQS2HKJXP5MR6NIZPF6PZZWEMEMZLM66LPD575W4QKRAHS4IGNLXCC4
+#\\\|DXB3SEU5ZKHXLBHPQQVP33NNZ7IIAVAU7MRYHPC4WT5EVS3TVNJ \ / AMOS7 \ YOURUM ::
+#\[7]B2DZJAPHNO45KVFM36M47RFEENVTF4LWLAYSKFEWQMFEXMPT5WAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

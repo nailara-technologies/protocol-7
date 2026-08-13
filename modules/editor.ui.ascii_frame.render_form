@@ -211,6 +211,100 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         next;
     }
 
+    ## ADD-A-FIELD CYCLER : see the 'user-edit form: horizontal-scroll
+    ## add-a-field cycler' design. handled entirely separately from the
+    ## generic per-field body below, same reason the multiline block above is
+    ## -- this row's display is not its stored value at all [ 'choices' +
+    ## 'choice' index, editor.control.cycler.set ], and windowing it needs
+    ## live auto-scroll state persisted on the field def, the same live-
+    ## reference-through-$editor_state pattern 'multiline_offset' above
+    ## already uses, just over discrete CELLS instead of characters.
+    if ( $field_def->{'add_field'} ) {
+
+        my @choices = grep { defined $ARG and length $ARG }
+            ( $field_def->{'choices'} // [] )->@*;
+
+        my $current = $field_def->{'choice'} // 0;
+        $current = 0 if $current < 0 or $current > $#choices;
+
+        my $width = <[editor.control.cycler.window_width]>;
+
+        my $cell_width = sub {
+            my ($index) = @ARG;
+            return length( $choices[$index] ) + 2;
+        };
+
+        my $offset = $field_def->{'cycler_offset'} // 0;
+        $offset = 0 if $offset < 0 or $offset > $#choices;
+
+        ## SETTLE : lookahead-margin scrolling, modeled on nshell.render.
+        ## viewport's own view_offset -- holds the window steady until an edge
+        ## is reached rather than recentering on every step, right for a
+        ## cycler since Left/Right move one discrete choice at a time and
+        ## constant recentering would reshuffle every neighbour on every
+        ## keystroke instead
+        if ( $current < $offset ) {
+
+            ## scrolled past the LEFT edge : current becomes leftmost ##
+            $offset = $current;
+
+        } else {
+
+            ## does $current already fit in the window forward-packed from the
+            ## CURRENT $offset? both markers reserved unconditionally, same
+            ## trick editor.control.cycler.render_windowed itself uses
+            my $body_width = $width - 2;
+            $body_width = 0 if $body_width < 0;
+
+            my $sum = 0;
+            for ( my $i = $offset; $i <= $current; $i++ ) {
+                $sum += $cell_width->($i);
+                last if $sum > $body_width;
+            }
+
+            if ( $sum > $body_width ) {
+
+                ## scroll RIGHT : a single backward pack from $current, not an
+                ## $offset++ loop -- see the design's own trace for why that
+                ## earlier draft was wrong [ walks the whole vocabulary
+                ## re-packing on every step, converges to $current pinned at
+                ## the LEFT edge instead of the RIGHT -- "scrolled way too
+                ## far," not "scrolled just enough" ].  current's own cell is
+                ## always included as the base case, even if it alone exceeds
+                ## $body_width -- render_windowed makes the same guarantee for
+                ## the same reason : the marker must never simply vanish
+                my $new_offset = $current;
+                my $acc        = $cell_width->($current);
+                for ( my $i = $current - 1; $i >= 0; $i-- ) {
+                    my $w = $cell_width->($i);
+                    last if $acc + $w > $body_width;
+                    $acc += $w;
+                    $new_offset = $i;
+                }
+                $offset = $new_offset;
+            }
+        }
+
+        $offset = 0 if $offset < 0 or $offset > $#choices;
+        $field_def->{'cycler_offset'} = $offset;
+
+        my $value = <[editor.control.cycler.render_windowed]>->(
+            \@choices, $current, $offset, $width
+        );
+
+        ## no inner reservation : render_windowed's own per-choice cells
+        ## already carry the padding a value elsewhere gets from the
+        ## pad+cursor-cell reservation below, and this row is never cursor-
+        ## bearing [ its value is a choice index, not text -- see the generic
+        ## $cursor_bearing exclusion this replaces ]
+        $values{$name}
+            = $name eq $active_name
+            ? $mark{'focus_l'} . $value . $mark{'focus_r'}
+            : $mark{'pad_l'} . $value . $mark{'pad_r'};
+
+        next;
+    }
+
     ## DISPLAY value, never the stored one — a masked field must not reach the
     ## screen in clear text [ editor.control.get_display_value ]
     my $value
@@ -240,27 +334,14 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     ## have SOME character sitting at that offset, silently misleading rather
     ## than visibly broken. a plugin wanting its own cursor indication draws
     ## one itself, exactly as this exclusion already expects every other
-    ## member of this list to
+    ## member of this list to  'add_field' no longer appears here -- that row
+    ## now ends in its own 'next' above, before this point is ever reached
     my $cursor_bearing = not( $field_def->{'list'}
         or $field_def->{'menu_row'}
-        or $field_def->{'add_field'}
         or $field_def->{'list_info'}
         or $field_def->{'plugin'} );
 
-    ## the add-a-field CYCLER already manages its own per-choice spacing [
-    ## editor.control.cycler.render's cell design -- '+choice+' writes INTO
-    ## the padding a choice already carries, rather than adding to it ].
-    ## stacking this row's own pad+cursor-cell reservation on top of that
-    ## double-padded the outer [ ] whenever the row had focus -- two layers of
-    ## spacing where the cycler's own already did the job.  every other row [
-    ## cursor-bearing text, a collapsed list summary, a menu label ] still
-    ## gets the reservation below ; only the cycler skips it entirely and is
-    ## framed by the outer bracket/pad-mark wrap with nothing extra inside it
-    if ( $field_def->{'add_field'} ) {
-
-        ## no inner reservation : outer wrap below is the only framing ##
-
-    } elsif ( $field_def->{'list'} ) {
+    if ( $field_def->{'list'} ) {
 
         ## a collapsed list's summary text [ '< 2 entries >' ] is a COUNT
         ## standing in for a value, not a value itself -- per user, shown two
@@ -368,8 +449,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,..,,,.,..,,...,,.,,,.,,,,,,,.,,,,.,,.,,,,,,..,,...,...,.,,,,..,..,,,,.,.,,,
-#3QSVS5O3KZS6X2CAWZDDZNTCLQXM3SN6UZFYNGE3XUFPDBMP4XPVNVFZY7MNECZKPOHBUVECYED42
-#\\\|QSPG6GFYXENOL2ZYU545GVP2HRR3HUGKOUVMURPE6AXSOJH5I2Z \ / AMOS7 \ YOURUM ::
-#\[7]L3N4OWQKVVIS4IVJVZBEFUHRAGQYCTLF7REPKM4Z7ONPUOXLKCCA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,,.,,...,.,.,.,.,..,,.,.,,..,..,,...,...,.,.,,..,,..,.,.,,..,
+#MKLPBUWZ7TEXMTY6CIHW5SNKBNK6GS3GQPNZGKOKV2K2MPLVDPS2IXFYSM7M6EWVXFSWZBRHKBCWI
+#\\\|TLBPSIMZTNJ37RMB6VPJXZLFM4B7NKVBFMA3FGDCRVIYVO3CTSD \ / AMOS7 \ YOURUM ::
+#\[7]QFNVDWYYQI4UUJAMWWCLQRXWTIBYFK5TMS6B2WCONHIVPZ5K3GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
