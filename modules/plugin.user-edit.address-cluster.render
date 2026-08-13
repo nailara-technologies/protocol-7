@@ -33,21 +33,48 @@ my $in_tab_mode
     = (
     ( $editor_state->{'mode'} // '' ) eq sprintf( qw| plugin:%s |, $field ) );
 
+## PLAIN : degrades to look and edit exactly like an ordinary multiline field
+## -- exactly one entry, and that entry carries no label. the ref/
+## label/position scaffolding exists to disambiguate MULTIPLE addresses and
+## means nothing when there is only one -- REVERTED and REBUILT same day, per
+## user : the first version showed '[1/1]* ref:XXX label: body:...'
+## unconditionally, even for a single unlabeled entry, which was "no longer a
+## free form field". recomputed FRESH on every render, from $entries alone --
+## never cached on $state -- so the structured view appears the INSTANT a 2nd
+## entry is Insert'ed or a label gets typed, and disappears again the instant
+## neither is true any more [ e.g. Ctrl+D back down to one unlabeled entry ].
+## no separate "promote/demote" step anywhere : this is the ONLY place that
+## decision is made, both branches below just read it
+my $is_plain = ( scalar( $entries->@* ) <= 1 )
+    && ( not length( ( $entries->[0] // {} )->{'label'} // '' ) );
+
 ## COLLAPSED : primary ref alone, plus a count suffix when more exist -- per
 ## the design doc's own resolution, matches how a collapsed LIST field shows a
-## count rather than every entry
+## count rather than every entry. PLAIN shows the address text's own first
+## line instead -- a ref standing in for the address is exactly the kind of
+## artefact this field should not show when there is nothing to disambiguate
 if ( not $in_tab_mode ) {
 
     return q| [ none ] | if not $entries->@*;
+
+    if ($is_plain) {
+        my $body      = $entries->[0]{'body'} // '';
+        my $lines     = <[editor.control.multiline.lines]>->($body);
+        my ($preview) = <[editor.control.multiline.viewport_slice]>->(
+            $lines->[0] // '',
+            TAB_WIDTH - 4, undef
+        );
+        $preview .= q|…| if scalar( $lines->@* ) > 1;
+        return
+            length($preview) ? sprintf( q| %s |, $preview ) : q| [ empty ] |;
+    }
 
     my ($primary) = grep { $ARG->{'primary'} } $entries->@*;
     $primary //= $entries->[0];
 
     my $extra = scalar( $entries->@* ) - 1;
 
-    return $extra > 0
-        ? sprintf( q| %s +%d |, $primary->{'ref'}, $extra )
-        : sprintf( q| %s |, $primary->{'ref'} );
+    return sprintf( q| %s +%d |, $primary->{'ref'}, $extra );
 }
 
 ## TAB MODE : the currently selected entry's label/primary/ref plus a
@@ -65,7 +92,6 @@ $selected = $#{$entries} if $selected > $#{$entries};
 $selected = 0            if $selected < 0;              ## empty list ##
 
 my $target = $state->{'target'} // qw| body |;
-my $cursor = $state->{'cursor'} // 0;
 
 if ( not $entries->@* ) {
     return sprintf(q| [ no addresses -- Insert to add one ] |);
@@ -73,27 +99,72 @@ if ( not $entries->@* ) {
 
 my $entry = $entries->[$selected];
 
-my $prefix = sprintf(
+## FRESH plugin_state, never touched by a keystroke yet -- lands at the END of
+## the target's existing text, not position 0, same "don't prepend, land at
+## the end" rule this plugin's own handler.key already applies to every
+## Tab/PageUp/PageDown/Ctrl+D switch. REAL BUG, found live : a genuinely
+## non-empty LEGACY-migrated body [ reached via the empty-field-exempt
+## two-stage entry trigger, which never runs through handler.key's own
+## Insert/Tab paths ] left cursor at 0 by the old blind default here --
+## landing on LINE 0 of a real multi-line body is not necessarily the FIRST
+## real line of content [ blank leading lines are legitimate content, see
+## editor.control.multiline.lines' own no-reaping rule ], so this looked
+## exactly like an empty body even though the text was still there, further
+## down. kept PURE / read-only here, unlike handler.key's own equivalent fix
+## -- this module never writes back to $state, see its own header
+my $cursor
+    = exists $state->{'cursor'}
+    ? ( $state->{'cursor'} // 0 )
+    : length( $entry->{$target} // '' );
+
+## empty in PLAIN mode : no ref/count means anything with only one entry ##
+my $prefix
+    = $is_plain
+    ? ''
+    : sprintf(
     q| [%d/%d]%s ref:%s |,
     $selected + 1,
     scalar( $entries->@* ),
     $entry->{'primary'} ? qw| * | : '',
     $entry->{'ref'}
-);
+    );
 
-## the cursor marker is hardcoded '|' rather than taken from a param : this
-## sub has no access to the caller's configured marker character [ only
-## render_form's OWN generic overlay receives that, and cursor_bearing now
-## excludes plugin fields from it entirely -- see that module's own note on
-## why the generic overlay is actively wrong for a restructured display like
-## this one, not just redundant ]. matches the project's own default marker
+## the cursor OVERLAYS the character already there with a bare underscore --
+## rather than the earlier INSERT of a bare '|' [ which grew the string by one
+## ]. per user, matched to the PARENT form's own underscore convention as
+## closely as ascii.frame.render's own width math allows -- see this sub's own
+## tail, right before return, for why the parent form's fuller
+## inverse-video/coloured treatment specifically CANNOT be replicated here
+## without a real interface change, found live, not hypothetical. this sub was
+## excluded from render_form's OWN generic cursor overlay in the first place [
+## see that module's own note -- meaningless once a plugin restructures its
+## display ], not because a different style was ever wanted, just because
+## nothing else drew one for it.
+##
+## PLACEHOLDER during construction, substituted only at the very end, AFTER
+## this sub's own TAB_WIDTH clamp -- kept even though the final substitution
+## is now a same-length, ANSI-free '_' : a one-byte placeholder still keeps
+## every intermediate length() computation [ viewport_slice's own width
+## budget, the TAB_WIDTH clamp itself ] exact regardless of what the FINAL
+## substitution ends up being, so a future richer marker never has to
+## re-thread this plumbing again
+use constant CURSOR_PLACEHOLDER => "\x01";
+
 my $overlay = sub {
     my ( $text, $is_active_target ) = @ARG;
     return $text if not $is_active_target;
     my $c = $cursor;
     $c = 0             if $c < 0;
     $c = length($text) if $c > length($text);
-    return substr( $text, 0, $c ) . q{|} . substr( $text, $c );
+
+    ## $c+1 legitimately reaches ONE PAST the last valid index whenever the
+    ## cursor sits at end-of-text -- substr() there is not an error [ nothing
+    ## follows the cursor, correctly '' ], but substr()'s OWN 'outside of
+    ## string' warning does not know that, and fires regardless. guarded
+    ## explicitly rather than silenced, so a genuine future off-by-one still
+    ## warns
+    my $rest = ( $c + 1 <= length($text) ) ? substr( $text, $c + 1 ) : '';
+    return substr( $text, 0, $c ) . CURSOR_PLACEHOLDER . $rest;
 };
 
 my $label_shown
@@ -116,9 +187,14 @@ if ( $target eq qw| body | ) {
     if ( defined $display_col ) {
         $display_col = 0               if $display_col < 0;
         $display_col = length($sliced) if $display_col > length($sliced);
+
+        ## same end-of-text substr() guard as $overlay's own, above ##
+        my $rest
+            = ( $display_col + 1 <= length($sliced) )
+            ? substr( $sliced, $display_col + 1 )
+            : '';
         $sliced
-            = substr( $sliced, 0, $display_col ) . q{|}
-            . substr( $sliced, $display_col );
+            = substr( $sliced, 0, $display_col ) . CURSOR_PLACEHOLDER . $rest;
     }
 
     $body_line = $sliced;
@@ -134,15 +210,47 @@ if ( $target eq qw| body | ) {
     );
 }
 
+## PLAIN : no 'label:'/'body:' scaffolding at all -- whichever of body/label
+## is actually targeted, shown bare with its own cursor, indistinguishable
+## from editing an ordinary multiline field. Tab still switches target
+## underneath [ handler.key's own logic, unchanged ] : the moment a character
+## actually lands in label, $is_plain flips FALSE on the very next render and
+## the structured view [ below ] takes over showing it properly -- no separate
+## "promote" step anywhere, see this module's own header
 my $out
-    = sprintf( q|%s label:%s body:%s |, $prefix, $label_shown, $body_line );
+    = $is_plain
+    ? sprintf( q| %s |, $target eq qw| body | ? $body_line : $label_shown )
+    : sprintf( q|%s label:%s body:%s |, $prefix, $label_shown, $body_line );
 
 $out = substr( $out, 0, TAB_WIDTH ) if length($out) > TAB_WIDTH;
 
+## STYLE the cursor now, after width truncation -- PLAIN underscore, no ANSI
+## at all, REAL BUG found live : an inverse-video / coloured-ANSI version [
+## matching user-edit.form.render's own three-case treatment exactly ] was
+## tried first, and broke row alignment live -- ascii.frame.render measures
+## this row's WIDTH via a plain length() on whatever display_override returns,
+## with no way to tell an invisible ANSI byte from a visible one, so a styled
+## cursor containing "\e[7m...\e[27m" [ 7-9 extra bytes, zero visual columns ]
+## made the row measure wider than it actually prints, under-padding it
+## against the frame border. the parent form avoids this by inserting a
+## ONE-BYTE placeholder [ \x01 ] and substituting the REAL ansi-laden text
+## only AFTER ascii.frame.render has already finished its width/fill math on
+## the fully-assembled frame string -- this sub's own CURSOR_PLACEHOLDER is
+## exactly that same idea, but display_override's return value is consumed BY
+## that width math directly [ get_display_value -> render_form's per-field
+## loop -> ascii.frame.render ], not after it, so there is no later, safe
+## point left to substitute real ANSI into. a bare, uncoloured '_' is exactly
+## one byte -- same length as the placeholder it replaces, so it can never
+## desync the row's width from what the frame already reserved for it,
+## regardless of terminal/colour state. full colour/inverse-video parity with
+## the parent form would need the plugin threaded through to THAT later
+## substitution pass instead -- a real interface change, not attempted here
+$out =~ s{\Q@{[ CURSOR_PLACEHOLDER ]}\E}{_}g;
+
 return $out;
 
-#,,..,,,,,.,.,..,,..,,,,.,.,.,...,,,,,..,,,..,..,,...,.,,,..,,...,,,.,.,.,,..,
-#W2ROJHWE6KCX2BDRO3FDAD3E5YH4ZO5ISTYLLNNDNEJVLEFIJ4J6EUEU5L3SUNCMK357CFNBKPM2M
-#\\\|LIZVLHFH6MKFBQOHTP3A2FWVZUCX6IQYCAJTAMJIMHD3ZPJPWXC \ / AMOS7 \ YOURUM ::
-#\[7]X2WRU2BLYG7SFL77S2GLNKYC7GPZSCXND67EKFHE2NVGJ2LOCGBA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,...,,.,,,.,,.,,,,,,,..,,.,.,..,,...,..,,,..,,..,.,,,..,,...,
+#MWA5SA42PSQAWX5F43WJ4FDVAO5IFIK5SMZIJFRDTNODTBFX2UPDMUWXXZM6VV24OTJ76ONTKWRPG
+#\\\|Z5Y4IW4PW7QHKRPNITVBVKZ4TP7BED3LJN5OBF6TX235G5DY6HB \ / AMOS7 \ YOURUM ::
+#\[7]F7JQ2SY3ITY5SMQTX6N3AP675Q2JVYIO3FVZTDNTQAHC56WXCGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
