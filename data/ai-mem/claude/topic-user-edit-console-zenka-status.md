@@ -917,12 +917,52 @@ catch it, because the sweep never exercised a negative cursor_col — a
 reminder that a passing test only proves what it actually checks.
 
 See `data/yaml/coding-tasks/user-edit-address-cluster-plugin.yaml`'s
-`MULTILINE VIEWPORT` section for the full design trace. The address-
-cluster plugin itself (task tracked, not yet started) will reuse this same
-helper for its own single-row tab-view body display.
+`MULTILINE VIEWPORT` section for the full design trace.
 
-#,,,,,...,,..,...,,.,,,.,,,,,,.,.,,,.,,,,,,..,..,,...,...,,,.,..,,..,,,,,,..,,
-#L22SAQPT7GHPPAMHA7XI733T6LKUATSLAB3Q252LQJKG6WJ7EQB6X2DMLDIFLDDMS7L263SAUNULU
-#\\\|P35OM6SKNE5BRYUMHRP35ZCIWXOWQUSXPNFQ4CS6VELU35I6MNT \ / AMOS7 \ YOURUM ::
-#\[7]FFNG47W4LODTHO4UHOTSENFDSC7ERGOT2F7LVK57O2NMDZYTRYAI 7  DATA SIGNATURE ::
+## address-cluster plugin — built and live-verified (2026-08-13, `63e0db701` + follow-up)
+
+`plugin.user-edit.address-cluster.*` (8 files: init_code, tab_info pinning
+'address', gen_ref, parse_blob, serialize_blob, write_buffer, render,
+handler.key) reuses the viewport-slice helper above for its own single-row
+tab view, as planned. Multiple labelled addresses per user, referenced by a
+short stable checksum ref, one marked primary, edited through the plugin
+detail-tab mechanism. Full design trace and the final implementation
+record (keybinding table, verified test matrix, every bug found) are both
+in `user-edit-address-cluster-plugin.yaml` — not duplicated here.
+
+**Three real bugs found and fixed at the source, not worked around,
+affecting the shipped plugin-tabs feature generally, not just this
+plugin**: `user-edit.form.add_field` never wired plugin-pinned fields when
+added fresh via the cycler (same drift-bug class as multiline/
+sort_on_focus, twice already this session — this one needed no
+hand-duplicated list, since the fix reads the plugin registry directly);
+`user-edit.handler.stdin_key`'s two-stage Right-entry trigger required the
+cursor to move past position 0, impossible on a field starting EMPTY —
+this plugin's own primary use case (a user's first address) could never
+be entered at all until fixed; `editor.ui.ascii_frame.render_form`'s
+generic cursor overlay fired on any plugin's restructured display string
+using the RAW BUFFER's meaningless offset — 'plugin' added to the same
+exclusion list list/menu_row/add_field/list_info already use.
+
+**One bug caught by advisor before it shipped**: an early handler.key
+draft let Backspace's write-through be conditional on a guard, with the
+fallthrough landing in the printable-character check — which does not
+exclude `"\x7f"` (ord 127, satisfies the same `>= 32` test as real
+printable bytes). Backspace at cursor 0 would have inserted a literal DEL
+byte. Fixed by having Enter/Backspace/Delete-forward each return
+unconditionally once matched, matching plugin.user-edit.example.
+handler.key's own long-standing pattern.
+
+**A live quirk of the ALREADY-SHIPPED trigger, not introduced here**,
+cost real testing time and is worth remembering: once a plugin-pinned
+field has been entered and left at least once, its raw buffer cursor is
+never 0 again, so the two-stage Right-entry protection collapses to
+single-stage on every later visit — a `Right` intended to just move past
+the field re-enters it instead. Use Tab to leave a field's ROW after a
+Left-exit, never Right.
+
+#,,,.,.,.,.,.,,,.,..,,,..,,..,.,,,,,,,,,.,..,,..,,...,...,,.,,..,,,,,,..,,,,,,
+#NLAPYU4EAIQFFIRUKA7SHXFWF4QB7IMHXVBR75YKJIHFIBI7NKN3PIV5FBXMZ2ETJP6A5BVZPRSCI
+#\\\|FOIXBGDN74XDK4OVWDFLOXCUGXJGS63IFXPAITY5WRJPO5N4BYX \ / AMOS7 \ YOURUM ::
+#\[7]HZ6C4Y4CSVVBMTUXCCOD5RM6F3ZDYWH3OC5VM665EVXVBDB2JQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

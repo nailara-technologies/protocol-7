@@ -407,11 +407,87 @@ open_questions: ALL RESOLVED per user 2026-08-13, recorded here for the
     before the rest, since everything else is composition of what
     already exists and carries much lower risk.
 
-created: 2026-08-13
-tags: [user-edit, plugin, checksum-addressing, multiline, design-only]
+implementation_status: |
+  BUILT AND LIVE-VERIFIED, 2026-08-13. `plugin.user-edit.address-cluster.*` :
+  init_code, tab_info (pinned_keys => ['address']), gen_ref, parse_blob,
+  serialize_blob, write_buffer, render, handler.key. Every path exercised
+  live against throwaway records via the established headless-driving
+  technique : entry create (Insert, collision-avoided refs), body/label
+  edit, PageUp/PageDown cycling, Ctrl+P primary toggle (exactly-one-primary
+  invariant held), Ctrl+D delete (with primary reassignment), collapsed
+  display (primary ref + count, or '[ none ]'), submit, and reload -- both
+  the non-empty and the empty-after-delete-all cases round-tripped
+  correctly (`address: ''`, not `'--- []'`).
 
-#,,..,,.,,,.,,...,.,.,,,.,...,,,,,,..,,.,,,,,,..,,...,...,..,,...,,,,,.,,,,,.,
-#GHYGBG2WGPWR6JB2RJV7F4JWXIQWFUBDKHDUZQYK54OS3UH6ZOSGVJT4XINXD6AL5F6LFXJGWKCQY
-#\\\|OPFGCYDI3PLXRSO36U36LRA2WDCE6OMOPTFW6GXXO5RIA4ZKM25 \ / AMOS7 \ YOURUM ::
-#\[7]64HVWKBKNS63LZNNEGR2DXR4PXZTDDJW2O32HSWIIJXJRCFOAQBQ 7  DATA SIGNATURE ::
+  TWO CORE BUGS found and fixed at the source while building this, both
+  affecting the plugin-tabs feature generally, not just this plugin :
+  - user-edit.form.add_field never wired plugin-pinned fields (readonly/
+    plugin/display_override) when added fresh via the cycler -- same gap
+    class as the earlier multiline/sort_on_focus drift (2a6a4b841), fixed
+    by reading the plugin registry directly (no third hand-duplicated
+    list needed, unlike those two).
+  - user-edit.handler.stdin_key's two-stage Right-entry trigger required
+    the cursor to move past position 0, impossible on a field with ZERO
+    content -- any plugin pinned to a field that starts empty (this
+    plugin's own primary case) could never be entered at all. Fixed to
+    enter on the first Right when the field's value is genuinely empty.
+  - editor.ui.ascii_frame.render_form's generic cursor_bearing overlay
+    fired on ANY plugin's display_override output using the RAW BUFFER's
+    character offset -- meaningless once a plugin restructures its own
+    display string [ this plugin's tab view bears no positional relation
+    to the raw YAML buffer at all ]. Added 'plugin' to the same exclusion
+    list list/menu_row/add_field/list_info already use.
+
+  ONE BUG caught by advisor before it shipped, not found live : an early
+  draft let Backspace's write-through be conditional on a guard inside the
+  key branch, with the fallthrough case landing in the printable-character
+  check -- which does not exclude "\x7f" (ord 127, satisfies >= 32 same as
+  real printable bytes). Backspace at cursor 0 would have inserted a
+  literal DEL byte instead of no-op'ing. Fixed by having Enter/Backspace/
+  Delete-forward each return unconditionally once matched, same pattern
+  plugin.user-edit.example.handler.key's own backspace/printable pair
+  already uses.
+
+  KEYBINDINGS, none recoverable from reading the code alone, recorded here
+  deliberately : PageUp/PageDown cycle entries (only established paging
+  precedent in this codebase). Tab swaps which of label/body typing goes
+  to. Insert creates a new entry. Ctrl+P toggles primary on the current
+  entry. Ctrl+D deletes the current entry (NOT bare Delete, which stays an
+  ordinary forward-character-delete). Right moves the cursor forward in
+  the targeted text ; Left is PERMANENTLY UNAVAILABLE inside plugin mode
+  [ user-edit.handler.stdin_key intercepts it unconditionally to leave ],
+  filled by Ctrl+B ('back') as the non-destructive move-backward key. Up/
+  Down move between the BODY's own lines only (no-op on label, always one
+  line). Home/End jump to start/end of the current line (body) or whole
+  text (label). Cursor lands at END of the newly-shown text on every
+  selection/target change (Tab, PageUp/PageDown, Ctrl+D), not the start --
+  reconsidered from an initial cursor-at-0 choice per advisor, since
+  landing at 0 would PREPEND to existing content on the very next
+  keystroke rather than continuing it, the less conventional of the two.
+
+  KNOWN QUIRK, not a bug introduced here, a live property of the ALREADY-
+  SHIPPED plugin-tabs trigger worth recording since it cost real time while
+  testing headless : the two-stage Right-entry protection [ first Right
+  lets an ordinary cursor move stand, second commits ] is keyed on the raw
+  buffer's cursor position BEFORE the keystroke. Once a field has been
+  entered and left at least once, that raw cursor is wherever editing left
+  it -- almost never 0 again -- so EVERY subsequent Tab-arrival-then-Right
+  on that field re-enters immediately, single-stage, not two-stage. Not
+  wrong exactly [ the field has already been "discovered" once ], but
+  surprising, and it is why a Right/Enter sequence intended to leave a
+  plugin field and move to the NEXT form field will instead re-enter the
+  plugin and dispatch Enter to its handler.key -- use Tab to leave the
+  outer field's row after a Left-exit, never Right.
+
+  NOT YET BUILT : content-type reference dispatch (arrayref `body` =>
+  typed reference, per the CONTENT TYPING section above) -- no concrete
+  reftype has a real consumer yet, still correctly deferred.
+
+created: 2026-08-13
+tags: [user-edit, plugin, checksum-addressing, multiline, implemented]
+
+#,,,.,,.,,,,.,.,.,.,.,...,,,,,...,...,..,,,,.,..,,...,...,,..,.,.,.,,,,.,,,.,,
+#4OCH5NG4VEL6RVLLB32D3FX2TX3R33VPTFRUCJJUGARXPLL54SBQ4KHRF3APVBR3FXJKUSCVJEDKG
+#\\\|TDBC2RFMA3B4QP4LW7INZSDQ3NBQ6TK3VYZC6RCPOAIF6ZU4BWI \ / AMOS7 \ YOURUM ::
+#\[7]PN6VPICX7UPOWGJ6PFV65YCNINV45THNDFZGRDRJJNBIWUWSAWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

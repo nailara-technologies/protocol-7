@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.user-edit.address-cluster.serialize_blob
+# descr = encode an entries arrayref back into the stored 'address' scalar
+# param = \@entries
+
+## the inverse of parse_blob, and the ONLY path that writes the real buffer --
+## every mutation in handler.key re-serializes the WHOLE entries list and
+## replaces the buffer wholesale, write-through, rather than patching it in
+## place : keeps the buffer and the caller's transient view of entries from
+## ever being two independently-maintained copies.
+##
+## EMPTY CASE, deliberately verified rather than assumed : zero entries writes
+## a plain empty string, NOT format.yaml.dump_str's own '--- []' rendering of
+## an empty arrayref. an empty string round-trips back through parse_blob as
+## [] directly [ the length-0 guard, above it ] and reads to every OTHER
+## client exactly like any other never-filled-in optional field does. '--- []'
+## would instead parse back as a real arrayref on the NEXT read -- of the
+## wrong shape for a field this plugin no longer recognises as its own once
+## emptied, and users.record.schema_from_record's own ARRAY branch would
+## misread it as a LIST-shaped field, not a plugin-pinned one.
+
+my ($entries) = @ARG;
+
+$entries = [] if ref $entries ne qw| ARRAY |;
+
+return '' if not $entries->@*;
+
+my ($yaml_str) = <[format.yaml.dump_str]>->($entries);
+
+return $yaml_str // '';
+
+#,,.,,...,,,.,,..,,..,..,,,.,,...,,.,,,..,,,,,..,,...,...,.,,,...,,..,,..,...,
+#4XHT5LCGYIL7TPWUM63JB6B76G42PXL3LIUKPRSGE5YLTDQITXIBQTU4E7E4UYRY3EY7VGTW7M6PM
+#\\\|MIUHENZ3WFRF2O4QJHH2OKH5VU357EEES3JOQXKNSNP3HZPLSJA \ / AMOS7 \ YOURUM ::
+#\[7]34JYMUSXUTNS4RAHNZI6ZBXVSXKKLCWTKTWD6J4VTTFELRT4OKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
