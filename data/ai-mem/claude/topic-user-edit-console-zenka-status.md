@@ -1046,8 +1046,82 @@ more than one `amos_chksum` call** — re-assert it fresh immediately
 before every call that needs a non-default length, not once above a loop
 or before a sequence of calls.
 
-#,,..,,..,,.,,...,,.,,...,...,,,,,...,...,..,,..,,...,...,,..,,.,,,,.,,,.,,,,,
-#NPAG3WJLYMNUURMS5RREIQEIBQMLX2T4SIWRV6MCJSFINFRYZ5CGYNN6YX2JIDZUHQV4XPPAAWMRE
-#\\\|I2IYHQZ6YNM3NBLF3M5QFC2KD6VOK6C2M37WJKSGVQ5I25MQ4BL \ / AMOS7 \ YOURUM ::
-#\[7]J67GRYPL5VDOYR4N3KFYIW7ZVW5GQSKKXJTUXF3CRPUFZ2UV7YDY 7  DATA SIGNATURE ::
+**address-cluster plugin REVERTED, same day.** Chasing the ref-stability
+fix further turned up two real cursor-position bugs (both fixed, both
+confirmed live: a fresh `plugin_state`'s cursor defaulted to position 0
+instead of the end of existing text, same "don't prepend" rule already
+applied everywhere else in this plugin — landing on a blank leading line
+of a multi-line legacy body made real content look missing entirely).
+But fixing those surfaced the actual problem underneath, per user: the
+whole ref/label/primary/multi-entry model was the wrong shape for one
+plain address per person. Two concrete complaints, both structural, not
+fixable by patching further: the mandatory `[N/M]* ref:XXX label:
+body:...` prefix could not be turned off even for a single entry — no
+longer a free-form field at all — and the storage format was an embedded
+YAML document inside the `address` scalar, which any OTHER display path
+would show as raw YAML text, not a plain address. Reverted cleanly rather
+than patched: plugin removed from `configuration/zenki/user-edit/start`,
+all 8 `plugin.user-edit.address-cluster.*` files deleted,
+`subroutines.load-early` regenerated (`bin/dev/gen-sub-whitelist
+user-edit`), live data hand-converted back to a plain multi-line scalar.
+`address` fell straight back to the PRE-EXISTING plain-multiline path —
+`user-edit.form.multiline_field_names` already listed it alongside
+`note`, predating this plugin entirely, so zero schema changes were
+needed for that part. Full account: `data/yaml/coding-tasks/user-edit-
+address-cluster-plugin.yaml`'s own `REVERTED` section. The plugin-
+detail-tabs MECHANISM itself (`plugin.user-edit.registry`,
+`plugin.user-edit.example`) is untouched and still live — this removed
+only this one plugin's use of it, not the underlying feature, which
+remains available for a future field that genuinely needs multiple
+structured entries. **Lesson worth keeping**: three live bugs got fixed
+in this plugin before the user could clearly evaluate whether its whole
+interaction model fit the use case at all — the UX-shape question was
+worth raising (or asking) BEFORE the detail work, not after three rounds
+of live debugging on top of it.
+
+**Migrating taeki's real `address` field ownership-broke it — separate
+incident, same session, own memory: [[feedback-editing-p7-owned-data-files-reowns-them]].**
+Hand-editing `/etc/protocol-7/users/host-system/taeki/details.yaml`
+directly (to convert the plugin's YAML blob back to plain text) silently
+reassigned the file from `protocol-7:protocol-7` to `taeki:taeki`, and
+`user-edit start taeki` then reported the account as not existing at all
+— looked like data loss, was actually a permission problem with a
+misleading error message. Fixed by handing the user the `chown` command
+(never `sudo` it myself, see [[feedback-no-sudo-privileged-fs-ops]]),
+not by any code change. The checksum was NOT the cause — it's
+username-derived only (`chk-sum.amos("host-system:$username")`,
+`users.record.build`), confirmed by recomputing it directly; content
+edits never invalidate it, only ownership does.
+
+**REBUILT the same plugin, same day, per user correction: the revert
+above over-corrected.** Per user, the implementation was incomplete, not
+conceptually wrong — the actual gap was that the structured ref/label/
+position view showed unconditionally even for the overwhelmingly common
+single-unlabeled-address case, where none of that metadata means
+anything yet. Restored via `git restore --staged --worktree` (the eight
+files were only `git rm`'d, never committed, so the pre-revert content —
+including both cursor-position fixes — came back intact) plus re-adding
+the plugin to `plugins.load`. New principle: `$is_plain` computed fresh
+on every `render()` call from `$entries` alone (exactly one entry, no
+label) — while true, both the collapsed AND tab-mode views drop every
+scaffold and look/edit indistinguishably from an ordinary multiline
+field; the instant a 2nd entry appears or a label is actually typed, the
+structured view takes over automatically, and demotes back the instant
+neither is true (e.g. Ctrl+D back to one). No separate "promote/demote"
+step anywhere — one boolean, read in two places. Real bug caught THIS
+round, before it ran live: `my $is_plain = (...) and (...)` — same
+documented `and`-binds-looser-than-`=` trap this project's memory
+already warns about repeatedly, made again anyway, caught by `perl -c`'s
+own warning rather than live testing this time. Taeki's real data needed
+no further migration — the plain scalar already there synthesizes into
+exactly one unlabeled entry via `parse_blob`'s existing legacy path,
+which `$is_plain` already treats as plain. Full account: `data/yaml/
+coding-tasks/user-edit-address-cluster-plugin.yaml`'s own `REBUILT`
+section, live-verified end to end (empty → Insert → type → collapse →
+2nd entry promotes → Ctrl+D demotes) against a throwaway record.
+
+#,,.,,,..,.,.,,,,,,,,,,.,,,,.,,,.,..,,,.,,.,,,..,,...,...,,,.,,.,,,.,,,..,,,.,
+#6WSVGCLNALIGD52FI3QVDJ6SA4VOGN7CI3DVHOPK65LAQSRL3IWWJJWRWDDSX6P76CXIUJ53MBLRO
+#\\\|GD57J4FQ7WM3OT6Z57DAFZX4WDNC35KFNOJAK6ZZW7MR6ABGCKF \ / AMOS7 \ YOURUM ::
+#\[7]WP23VNTOFMI4FVHNNWBXJP6TQ7D7F2RU2UI32A36DUW4G76ER6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
