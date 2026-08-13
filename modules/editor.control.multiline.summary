@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = editor.control.multiline.summary
+# descr = the ':..3.lines..:' text a collapsed multiline field draws
+# param = $text
+
+## exact counterpart to editor.control.list.summary's ':..2.entries..:' --
+## same wrap, same dot-joined count+noun shape, same reason it is factored out
+## rather than inlined : editor.ui.ascii_frame.render_form is the only caller,
+## and a second implementation of the same sentence would drift.  unlike
+## list.summary this takes the raw TEXT, not a field def -- a multiline
+## field's line count is a property of its buffer alone, nothing else on the
+## def matters to it, and there is no per-field noun to customise [ every
+## multiline field counts LINES, full stop, where a list's entries are named
+## per field -- 'address'/'addresses' vs the default 'entry'/'entries' ]
+
+my ($text) = @ARG;
+
+my $lines = <[editor.control.multiline.lines]>->( $text // '' );
+my $count = scalar $lines->@*;
+
+## editor.control.multiline.lines never returns an empty arrayref -- an empty
+## buffer still yields ONE blank line [ its own no-reaping rule, split's -1
+## limit ] -- so a genuinely empty field would otherwise show '1.line' instead
+## of the 'no.lines' its list counterpart shows for zero entries
+$count = 0 if $count == 1 and not length( $lines->[0] // '' );
+
+my $summary
+    = $count
+    ? sprintf( '%d.line%s', $count, <[base.cnt_s]>->($count) )
+    : qw| no.lines |;
+
+return sprintf( ':..%s..:', $summary );
+
+#,,,.,,,.,.,,,...,.,,,,,.,,,.,..,,,,,,.,.,,..,.,.,...,...,,..,..,,...,.,.,.,,,
+#WAL7OKNL4XXFORGPA77DC7DHSVLQ6AOPS7P6L5A4IAB3TBVHONLCGFDE62KUUC5HIOEUEKFWGOSZI
+#\\\|4R3E7Y44PHDSZFCGTU6J2PAKXWJP6TCZEBNOIIQW2FXVF4XZWSR \ / AMOS7 \ YOURUM ::
+#\[7]7V2Y2PNMJXY2OS3RGMGX3ZPIKVITYICBV7DOCKBST5QACU53GUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
