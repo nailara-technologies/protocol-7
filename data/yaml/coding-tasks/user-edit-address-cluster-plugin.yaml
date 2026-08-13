@@ -483,11 +483,90 @@ implementation_status: |
   typed reference, per the CONTENT TYPING section above) -- no concrete
   reftype has a real consumer yet, still correctly deferred.
 
+REVERTED, same day (2026-08-13), per user : the ref/label/primary/multi-
+entry model was the wrong shape for the actual use case -- one plain
+address per person, not several. Concretely : the mandatory
+'[N/M]* ref:XXX label: body:...' prefix could not be turned off even for
+a single entry, meaning a plain address was no longer a free-form field
+at all ; and the storage format was an embedded YAML document inside the
+'address' scalar, visible as raw YAML the moment anything outside this
+plugin's own render() displayed the field. Two live cursor-position bugs
+(see the sections above) were found and fixed on the way to this
+realization, but neither was the real problem -- the whole shape was.
+Unwound cleanly rather than patched further : `plugin.user-edit.address-
+cluster` removed from `configuration/zenki/user-edit/start`'s
+`plugins.load`, all eight `plugin.user-edit.address-cluster.*` module
+files deleted, `configuration/zenki/user-edit/subroutines.load-early`
+regenerated via `bin/dev/gen-sub-whitelist user-edit`. `address` falls
+straight back through to the PRE-EXISTING plain-multiline path
+(`user-edit.form.multiline_field_names` already listed it alongside
+`note`, predating this plugin -- the plugin's own pin in
+`user-edit.form.schema_from_record` was intercepting it first) : zero
+schema changes needed for that part, since the plain path was there
+the whole time underneath. Live data for the one real record already
+carrying the migrated blob was converted back to a plain multi-line
+scalar by hand, and the whole path re-verified live end to end against
+a throwaway record (add via cycler, type multi-line text, renders/
+edits exactly like `note` does -- no ref, no metadata, no YAML).
+
+This plugin's OWN infrastructure (`plugin.user-edit.registry`, the
+plugin-detail-tabs mechanism, `plugin.user-edit.example` as a live
+precedent) is untouched and still fully functional for a FUTURE case
+that genuinely needs multiple structured entries per field -- this
+reversal removes only this one plugin's use of it, not the mechanism
+itself.
+
+REBUILT, same day, same conversation, per user correction : the revert
+above over-corrected. Per user, the interaction model AS IMPLEMENTED was
+incomplete, not wrong as a concept -- "completing it" was the right call,
+not deleting it. The actual gap : the structured ref/label/position view
+showed UNCONDITIONALLY, even for the overwhelmingly common case of
+exactly one address with no label, where none of that metadata means
+anything yet. Restored via `git restore --staged --worktree` (all eight
+files were only `git rm`'d, not yet committed, so the pre-revert content
+-- including both cursor-position fixes from the sections above -- came
+back exactly as it was) and `configuration/zenki/user-edit/start`'s
+`plugins.load` re-appended.
+
+NEW PRINCIPLE, computed fresh on every `render()` call from `$entries`
+alone, never cached : `$is_plain` = exactly one entry AND that entry
+carries no label. While true, BOTH the collapsed view (address text's own
+first line, not a ref) and the tab-mode view (bare text with its cursor,
+no `[N/M]* ref:XXX label:`/`body:` scaffolding at all) look and edit
+indistinguishably from an ordinary multiline field -- matches `note`
+exactly from the outside, which was the actual ask. The MOMENT a 2nd
+entry is Insert'ed, or a character actually lands in `label` [ Tab still
+switches target underneath even while plain, unchanged -- the structured
+view simply takes over on the very next render once label is non-empty,
+no separate "promote" step needed anywhere ], `$is_plain` goes false and
+the full structured view appears. Ctrl+D back down to one unlabeled entry
+demotes it again, same mechanism, both directions verified live.
+
+REAL BUG caught building this, not hypothetical : `my $is_plain = (...)
+and (...)` -- `and` binds looser than `=`, so `$is_plain` was silently
+only ever the FIRST half of the condition. Caught by `perl -c`'s own
+"useless use of not in void context" warning before this ever ran live
+-- the same documented precedence trap this project's memory already
+warns about repeatedly, made again regardless, worth noting once more :
+`&&`, not `and`, whenever the result feeds an assignment on the same
+statement.
+
+Taeki's real `address` field needed NO further data migration for this
+rebuild : it already held the plain-scalar text from the first revert,
+and `parse_blob`'s existing LAZY MIGRATION path already turns that into
+exactly one unlabeled synthetic entry -- precisely the shape `$is_plain`
+treats as plain. Live-verified against a throwaway record : empty ->
+Insert (bare cursor, no scaffolding) -> type multi-line text (plain
+throughout) -> Left (collapsed preview, first line + an ellipsis when
+there is more than one line, no ref) -> Right/Right/Insert a 2nd entry
+(structured view appears immediately) -> Ctrl+D the 2nd entry (demotes
+back to plain immediately).
+
 created: 2026-08-13
 tags: [user-edit, plugin, checksum-addressing, multiline, implemented]
 
-#,,,.,,.,,,,.,.,.,.,.,...,,,,,...,...,..,,,,.,..,,...,...,,..,.,.,.,,,,.,,,.,,
-#4OCH5NG4VEL6RVLLB32D3FX2TX3R33VPTFRUCJJUGARXPLL54SBQ4KHRF3APVBR3FXJKUSCVJEDKG
-#\\\|TDBC2RFMA3B4QP4LW7INZSDQ3NBQ6TK3VYZC6RCPOAIF6ZU4BWI \ / AMOS7 \ YOURUM ::
-#\[7]PN6VPICX7UPOWGJ6PFV65YCNINV45THNDFZGRDRJJNBIWUWSAWCY 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,,.,,.,.,...,..,,...,.,.,.,.,..,,...,...,..,,.,,,,,,,...,,,.,
+#UB74MV3D3YCBS3MC2FU5VXPTZTT57VM4ZBW4M43STFRAAG33XZ2BPQHHZ5SZLIZJZENKVYROUI654
+#\\\|GOKKUAUWCL5TETM5Q5DS3MKTYTMJHHKD6HFXIT2YLG6REKO434X \ / AMOS7 \ YOURUM ::
+#\[7]6DJQX7UFGONBM4UNKZF6LZXFJSUSEUVR4ABKAVXIGADNVXLEFMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
