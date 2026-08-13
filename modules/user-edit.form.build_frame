@@ -108,19 +108,23 @@ my $display_length = sub {
 
     my ($field_def) = @ARG;
 
-    ## the add-a-field row is measured at what is still ADDABLE, not the full
-    ## vocabulary -- per user : the frame carried noticeable dead width once
-    ## several optional fields were already added [ e.g. two added out of six
-    ## -- the cycler shows four choices but the earlier full-vocabulary
-    ## reservation still measured all six ].  the accepted cost, same trade
-    ## reversed : the frame now resizes by a column or two on every add and
-    ## every remove, since the row measured here is genuinely the widest it
-    ## can be with the CURRENT set of fields, not with none of them.  +2, not
-    ## +4 : this row skips the inner pad+cursor-cell reservation entirely [
-    ## editor.ui.ascii_frame.render_form ] -- editor.control.cycler.render's
-    ## own per-choice cells already do that job, so only the outer
-    ## bracket/pad-mark pair is left to account for here
-    return length( <[editor.control.cycler.render]>->( \@addable, 0 ) ) + 2
+    ## FIXED, not vocabulary-scanned any more -- see editor.control.cycler.
+    ## window_width's own header and the 'user-edit form: horizontal-scroll
+    ## add-a-field cycler' design for why. this used to render the full
+    ## ADDABLE vocabulary through editor.control.cycler.render just to measure
+    ## it, which the user already flagged once as carrying dead width [ two
+    ## added out of six still measured all six -- the fix at the time was to
+    ## measure only what remained ADDABLE ] and which had no bound at all as
+    ## the vocabulary grew, the same width-explosion class already found and
+    ## fixed for the multiline note/address fields. now the row's render is
+    ## itself windowed to this same constant [
+    ## editor.ui.ascii_frame.render_form's own add_field block ], so this is
+    ## simply that constant's own reservation, +2 for the outer bracket/
+    ## pad-mark pair [ same accounting as before -- editor.control.cycler.
+    ## render_windowed's per-choice cells already carry the inner padding ].
+    ## the frame no longer resizes on every add/remove either, since neither
+    ## side of this reservation depends on how many choices remain
+    return <[editor.control.cycler.window_width]> + 2
         if $field_def->{'add_field'} and @vocabulary;
 
     ## +2, not +4 : a collapsed list's summary drops BOTH the inner leading
@@ -502,8 +506,8 @@ my $entry = {
 
 return $entry;
 
-#,,..,,..,,.,,,..,.,,,,,,,,..,..,,,.,,.,,,,,,,..,,...,..,,..,,.,.,.,.,..,,.,,,
-#LOCTCYWOTH7LSFLEO5P56MRHPVORNVHDUGJD45PK63Y3C4PGYOKESM6O2DFUURTXNFH5WUL6YMW42
-#\\\|VNFHOSLWFMJJKXZIMLPLXTJ5GQTPRBN5LQKNCIBCMGBR3I5KPEH \ / AMOS7 \ YOURUM ::
-#\[7]S5YV7O7T3H4PFDZ7KQOO3ZRBT6J246QFYNJPYW5WLQR7RBZGUOBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,,,,..,,.,,,,,,,..,,,.,,..,.,.,..,,...,...,,,.,.,,,.,.,,.,,.,.,
+#H7M3EDWSIY4V3JEKWEGLD2HS2JRXXMKRG5DXVT2TXOVOFVEDGIIPHTVZGICCID6TKH5WJLW3WDL44
+#\\\|FOWWNHC4OUQOMVHVN4JDSD5UFRET6N35NFDE3RUBE7SC65VWTPY \ / AMOS7 \ YOURUM ::
+#\[7]7VWQKRIGSXHVUWALNDIQYBVEHCJ7KVLR3EQ54MTLFNOXHGY2OCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
