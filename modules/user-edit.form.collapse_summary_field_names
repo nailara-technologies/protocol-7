@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = user-edit.form.collapse_summary_field_names
+# descr = which scalar record fields collapse to a length summary when unfocused
+# param = -none-
+
+## the SAME shape user-edit.form.multiline_field_names already is, for the
+## same reason -- see that module's own header for the full account of why a
+## POLICY name list needs ONE shared module rather than a hand-duplicated copy
+## per call site : user-edit.form.schema_from_record [ a field already present
+## on a loaded record ] and user-edit.form.add_field [ a field being added for
+## the FIRST time via the add-a-field cycler ] both need this list, and a
+## second copy would drift exactly the way that module's header warns about.
+##
+## unlike multiline/list, a plain scalar field reserves NO width in user-edit.
+## form.build_frame at all today -- it already resizes the frame live as text
+## is typed into it, an accepted, pre-existing behaviour. per user, this stays
+## unreserved rather than growing the dual-row-set machinery multiline/list
+## needed : the frame can widen/narrow on focus change for a collapsing field,
+## same as it already does while typing into any ordinary field, without a
+## visible correctness problem being reported.
+##
+## EXTEND HERE alongside users.record.optional_fields and user-edit.form.
+## multiline_field_names -- adding a new collapsing field costs one word here.
+
+return qw| full_real_name location |;
+
+#,,,.,.,.,.,,,.,,,,..,,.,,.,,,,.,,,,.,.,,,.,,,.,.,...,...,,..,,,.,...,,.,,,.,,
+#WW3SO4TOLOAEKUZGOXE2BP3ZXP534KJXKMOXNAYHKCDIQDF2YFXLSXONKQSYM47RWEEZH5UN3DQV2
+#\\\|GWNRM577ROPRRX3WX74Y2CV5XIPVUDU3V5J5V45CWN6PMTIPAMH \ / AMOS7 \ YOURUM ::
+#\[7]QDQYBHHLWWTUYKLWVLQAGQZXIPPI6FLQGHBO4WPH67TVL45UVEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

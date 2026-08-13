@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = editor.control.scalar.summary
+# descr = the ':..15.chars..:' text a collapsed scalar field draws
+# param = $text
+
+## third of the three collapse summaries this shape now has -- exact
+## structural counterpart to editor.control.list.summary's own
+## ':..2.entries..:' and editor.control.multiline.summary's own
+## ':..3.lines..:' : same wrap, same dot-joined count+noun shape, factored out
+## for the same reason both of those are : editor.ui.ascii_frame.  render_form
+## is the only caller, and a second implementation of the same sentence would
+## drift. counts CHARACTERS, not lines or entries -- the generic per-field
+## measure any scalar field already has, regardless of what it happens to
+## hold. 'chars', not the full word -- per user, shorter reads better here
+## than it would for 'entries'/'lines', which stay spelled out
+
+my ($text) = @ARG;
+
+my $count = length( $text // '' );
+
+my $summary
+    = $count
+    ? sprintf( '%d.char%s', $count, <[base.cnt_s]>->($count) )
+    : qw| no.chars |;
+
+return sprintf( ':..%s..:', $summary );
+
+#,,..,,.,,.,,,,,.,,,,,,,,,,..,,,,,,..,,.,,,..,.,.,...,...,.,.,.,,,..,,,,.,..,,
+#WMN5CSCN24G23HVRBVVU6AXMUJQ6TVUFXCZ6TL5WUJWPHCQPLNY25YSAPQ6CNXSCA3IDG32OI5QI6
+#\\\|V75FLC2OZVMTNID63VQPCTCJRW6QD4X6LXCMSVETVL5DENESTHO \ / AMOS7 \ YOURUM ::
+#\[7]YRSSKW6ASSCVDDD5FUJGPQRNYH5BDUQOH2OAQWJTGU7ASQUXHODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
