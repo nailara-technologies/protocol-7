@@ -1,6 +1,6 @@
 ---
 name: reference-user-edit-headless-driving
-description: "how to actually drive the user-edit form with no terminal: start it detached with -no-tty, route char-add by SESSION ID (not by name — 'client not present'), navigate by the returned rendering rather than a guessed tab count"
+description: "how to actually drive the user-edit form with no terminal: start it detached with -no-tty, route char-add by SESSION ID (not by name — 'client not present'), navigate by the returned rendering rather than a guessed tab count; also why this harness can never show real ANSI cursor styling and how to verify cursor-position wiring anyway (sentinel swap, not visual diff)"
 metadata:
   type: reference
 ---
@@ -108,6 +108,56 @@ reachable only through that path (see
 be fixed by reading the code, then confirmed against a real interactive
 session — this harness cannot verify them.
 
+## `-no-tty` can NEVER verify real ANSI styling, pty tricks included
+
+`user-edit.form.render` — the module that actually applies inverse-video /
+coloured cursor styling — only runs at all when
+`<user-edit.form.interactive> and not <user-edit.mode.no_tty_debug>`
+(`user-edit.handler.value_get_reply`'s own gate on the dirty-watcher print
+path). A `-no-tty` session sets `no_tty_debug` TRUE by definition, so that
+gate is FALSE unconditionally — the print path never fires, no matter what
+STDOUT is connected to. Wrapping the launch in `script`/a real pty does
+NOT help: the gate checks the MODE flag, never `-t STDOUT`. `char-add`'s
+own reply is built by a completely separate, always-unstyled render call
+(see its own note above) that self-overlays the cursor with the raw
+character and never applies colour. Bottom line, found 2026-08-13 after
+two dead-end pty attempts: there is no way to see real cursor styling
+without a real interactive terminal — read the styling code and reason
+about it, then ask the user to confirm live, rather than spending more
+time trying to capture it headless.
+
+## `char-add`'s self-overlay makes visual diffing useless for cursor bugs
+
+Every `char-add` reply overlays the cursor with the character ALREADY
+there (see the note above on why — captures must not corrupt the value).
+That means moving the cursor across ordinary text and diffing successive
+captures shows **no visible difference at all** when the underlying logic
+is correct — a real character overlaid with itself is invisible. Do not
+conclude "nothing changed" means "cursor tracking is broken"; it means
+the test can't see this class of bug through content alone. To actually
+verify a cursor-position computation is wired correctly, temporarily make
+the sub return an impossible sentinel value (e.g. a fixed `'Z'`), drive
+the field, confirm the sentinel appears exactly where expected in the
+capture, then revert it. Confirmed working this way for
+`plugin.user-edit.address-cluster.cursor_char` — content-diffing had
+falsely looked fine both before AND after a real wiring bug would have
+existed, the sentinel swap was the only test that actually discriminated.
+
+## `list subnames` lags a freshly started session by a few seconds
+
+A `-no-tty` session started via `nohup ... & disown` does not always show
+up in the very next `list subnames` call — it can take a couple of
+seconds to register, and in the meantime the command will show only the
+PREVIOUSLY existing sessions, which reads as "my new session failed to
+start" even though the process is running fine. Confirm via `ps aux |
+grep '[u]ser-edit'` sorted by start time (or `ps -eo pid,lstart,cmd
+--sort=-start_time`) instead of trusting `list subnames`' completeness
+immediately after launch, or use `list sessions`' own `since` column
+(sub-second for a session that just registered) to positively identify
+the new one rather than guessing from position in the list. Got a
+`char-add` call routed at a stale, wrong-mode session this way once
+(2026-08-13) purely from trusting `list subnames` too early.
+
 ## test against a throwaway record, not your own
 
 `p7c 'users.create-default p7-fieldtest'` makes one; the record lives at
@@ -117,8 +167,8 @@ no delete command. Editing a form does not touch the record until submit,
 so an abandoned form leaves the record alone, but anything you submit is
 real.
 
-#,,.,,.,.,..,,,,.,...,..,,...,.,.,,,,,,,.,,.,,..,,...,...,,..,..,,.,,,,.,,,,.,
-#XPXZCHOMKXFHVFKK5GMJEGJFR64CCY2ZBWPXCYBPNWLX6MEY7AICHX4UAPMLYRRVXREURDADEJ7QS
-#\\\|VWOD5JBECRYD2ORZMIPKZJVH7CYGPGOMRYQEPKORVVAL4BOIO2B \ / AMOS7 \ YOURUM ::
-#\[7]YV5BFCG3AVIHPKDKBV7IDYGMJ3RPNAJUXNUPNZUJS5QRYKRV3ECI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,,,.,.,.,..,,,.,,,.,,,,.,,,,,..,,...,..,,...,..,,...,,..,,,,,
+#DVPJZTWHPQNJQJ3KJXFKJBZFMSSYIP6WBDDNQBZE7G4UZTOPBGXB2OMGLUAR6XIA54TYMRQ4JCJ5G
+#\\\|US42HBZ42ZSXA5VKUFDVZQFHSEBLXVBIJOWO4EVI4BATF3DQI5J \ / AMOS7 \ YOURUM ::
+#\[7]QM32RECPVRBHOPGAYZ77C37UVFGQHXZUKRIKYIOCKCSBJ4QOZMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

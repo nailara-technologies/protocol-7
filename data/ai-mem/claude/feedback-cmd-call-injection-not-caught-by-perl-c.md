@@ -90,6 +90,11 @@ symbol '$call'` error visible when the target zenka is actually booted
   in its `init_code` — remove it, the loader auto-registers `.cmd.`
   modules and a stale manual mapping will point at the now-nonexistent
   old filename
+- [[reference-p7-module-syntax-check-tool]] is a better default check than
+  raw `perl -c` for most edits — it translates P7 macro syntax first, so
+  it doesn't false-positive on bare `<name>{...}` data-slot reads the way
+  raw `perl -c` does — but it does NOT close this specific gap either: it
+  never injects `$call`, so a `.cmd.` module still needs a real boot test
 - `bin/dev/gen-sub-whitelist <zenka>` regenerates that zenka's
   `subroutines.load-early` after a module rename; a module is only
   force-compiled/exercised by boot if reachable via an access grant —
@@ -99,8 +104,8 @@ symbol '$call'` error visible when the target zenka is actually booted
   `subroutines.load-early` to verify, then revert the whitelist to the
   tool-generated state
 
-#,,,.,,,,,,..,..,,,,,,..,,,,,,.,.,..,,..,,.,,,..,,...,...,,,.,,,.,,..,.,,,,.,,
-#546BY6K7UJXBB2MQIJQJRELBL5U6ELIU35AGD6BCTPFSFBQZ4FGON7C46XC3TFHR6CVHIEKDVWKAK
-#\\\|2TGESS3RON3LQRXCOARSY4YAXAI7KZYA2CEQBH5EFYFZWFAAGCU \ / AMOS7 \ YOURUM ::
-#\[7]YW4IMLYCN4V3YOB55Y62JZBZQO4WY3ZKSL4TZVWHEKNKSWL5LEBI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,,.,.,.,,.,,,,,,..,,...,,,,,..,,...,...,,..,,,,,,,.,.,.,,,,,
+#BJKBHXYUK2GCTCNS4YGP7MXCFFCIAYHIBGGQT7JRTCRPL73M25BK5E7GODXTWXDNP754HBZNRM5F6
+#\\\|ZZMWN4XPGXXH53ZB2G7GZC5PBOT62O4HGRAY27UZLPB7TQ6DU7R \ / AMOS7 \ YOURUM ::
+#\[7]GUYVGHDHDFEOWJFSC7XXQAJQNUDQD7L25DGH2UPAIQQUGNZ3AUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
