@@ -961,8 +961,55 @@ single-stage on every later visit — a `Right` intended to just move past
 the field re-enters it instead. Use Tab to leave a field's ROW after a
 Left-exit, never Right.
 
-#,,,.,.,.,.,.,,,.,..,,,..,,..,.,,,,,,,,,.,..,,..,,...,...,,.,,..,,,,,,..,,,,,,
-#NLAPYU4EAIQFFIRUKA7SHXFWF4QB7IMHXVBR75YKJIHFIBI7NKN3PIV5FBXMZ2ETJP6A5BVZPRSCI
-#\\\|FOIXBGDN74XDK4OVWDFLOXCUGXJGS63IFXPAITY5WRJPO5N4BYX \ / AMOS7 \ YOURUM ::
-#\[7]HZ6C4Y4CSVVBMTUXCCOD5RM6F3ZDYWH3OC5VM665EVXVBDB2JQBQ 7  DATA SIGNATURE ::
+**add-a-field horizontal-scroll cycler — built and live-verified, proactive
+fix, no live bug preceded it.** The add-a-field row's own width reservation
+(`user-edit.form.build_frame`) used to render the FULL addable vocabulary
+through `editor.control.cycler.render` just to measure it — unbounded as
+the vocabulary grows, the same width-explosion class already fixed twice
+for the multiline note/address fields, fixed here before it ever bit
+live. New `editor.control.cycler.window_width` (fixed constant, 40) is
+read directly by BOTH `build_frame`'s reservation and
+`editor.ui.ascii_frame.render_form`'s render budget, so the two cannot
+disagree — deliberately NOT derived from `min_width` the way the
+multiline fix derives its own budget, because the add-a-field row is one
+of `min_width`'s own drivers (`build_frame` pushes a synthetic row into
+`@current_rows` even when the schema doesn't carry it yet, specifically
+because it is normally the form's widest row) — deriving its render width
+from `min_width` while `min_width` still partly depends on it would be
+circular. New `editor.control.cycler.render_windowed` packs whole choice
+cells greedily from a caller-decided offset, always including the offset
+cell first (even oversized) so the `+choice+` marker never vanishes. The
+scroll-offset SETTLE logic lives inline in `render_form` (mirroring
+`multiline_offset`'s own live-state-on-the-field-def pattern), modeled on
+`nshell.render.viewport`'s lookahead-margin scrolling rather than
+`viewport_slice`'s per-render recentering — Left/Right move one discrete
+choice at a time, so holding the window steady until an edge is reached
+reads better than reshuffling every neighbour on every keystroke.
+Two settle rules, both traced through the wrap-around case live: scroll
+LEFT pins the new current at the window's left edge directly
+(`offset = current`); scroll RIGHT does a single backward pack FROM
+current (not an `offset++` loop — an earlier draft's mistake, which
+converges to current pinned at the wrong edge and re-packs the whole
+vocabulary on every step) landing current at the right edge. Caught by
+advisor before any code was written, not live: the circular width-
+derivation risk above, and the backward-pack-not-increment correction.
+
+Live-tested against a throwaway `cyclertest` record: correct `<`/`>`
+markers through a full forward cycle, both wrap directions (last→first
+and first→last) landing the wrapped choice at the correct edge, adding a
+field from mid-scroll adds the right one and the fresh row resets to
+offset 0, and a small remaining vocabulary (≤3 choices) renders with no
+markers at all — identical in shape to `cycler.render`'s own unbounded
+output. One live finding worth remembering: the DEFAULT vocabulary is 9
+fields, which already doesn't fit one 40-column window unscrolled — so a
+brand-new record now shows the scrolled/marked view immediately, not only
+once the vocabulary grows further. Treated as the fix correctly engaging
+right away (matches the user's own earlier complaint about this row
+carrying dead width), not a regression, but worth knowing it's a visible
+day-one behavior change, not purely future-proofing.
+
+#,,,,,..,,...,...,.,.,,..,..,,,.,,..,,,.,,,,,,..,,...,..,,..,,...,,.,,..,,,.,,
+#X6UBNDFBZ66SFGSBG7AJ7PSSTSJOFZSJ6N54SD7O6GEG2ZKCYUWQXMBNJT4RRP7AW3EEFOA5J2TGG
+#\\\|5VMXZ4W26ZAICY224DDNKSFY6HWQT6FQM3UJZCDTM5DNBF7ZU5E \ / AMOS7 \ YOURUM ::
+#\[7]L7UQHLZBJ4OSXEKKXMKHADRR6JXDJ2PAZPRKHWAGOECCVOKESWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
