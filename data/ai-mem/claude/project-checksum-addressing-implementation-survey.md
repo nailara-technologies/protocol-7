@@ -16,9 +16,36 @@ Roughly a third of the checksum-addressing vision is real: AMOS/BMW checksum
 generation, a working (but **triple-fragmented**) P7REF string format, a
 genuinely geometric BMW384 coordinate/routing engine, and at least two real
 call sites combining name+checksum+timestamp as the "addressing trinity"
-describes. The rest — a canonical TYPE registry for entity kinds,
-network-wide P7REF resolution, persistent orbital discovery, and the
-8-cube/2x2x2/void spatial geometry — is design-doc-only, zero code.
+describes. The rest — a canonical TYPE registry for entity kinds, persistent
+orbital discovery, and the 8-cube/2x2x2/void spatial geometry — is
+design-doc-only, zero code.
+
+**CORRECTION (2026-08-13)**: "network-wide P7REF resolution is design-doc-
+only" OVERSTATED it for the within-node case — real, live, currently-used
+code already does almost exactly what a later conversation independently
+described as a "future reconciled P7REF" (resolvable to a template, a
+coderef, or a scalar memory address, with PARTIAL ANONYMIZATION of the
+address itself) : `base.parser.harmonized_reference` [ encode ] and
+`base.parser.decode_harmonized_refstr` [ decode ] round-trip a live Perl
+ref-address string [ typed across `CODE|REF|HASH|SCALAR|ARRAY|GLOB` ]
+through a compact checksum-tagged encoding, stripping a CACHED COMMON
+ADDRESS PREFIX before encoding [ `base.cache.refaddr-prefix.init` /
+`<base.cache.perl.refaddr_prefix.current>` ] — the actual partial-
+anonymization mechanism, not a hypothetical one. `base.syntax.p7_reference`
+validates/type-detects one of these strings against known node+type
+combinations via `base.p7refs.gen_template_chksum`. All four are real call
+sites, not dead code : `base.dump_data`, `base.data-keys.get_checksum`,
+`base.data-keys.find_perlref`, and a dev command
+(`devmod.cmd.decode-harmonic-ref`) all use them.
+
+The scope is narrower than "network-wide" though, which is presumably why
+the first pass missed it : this resolves LIVE, IN-PROCESS memory addresses
+— inherently ephemeral, meaningless across a restart since Perl's allocator
+reassigns addresses every run. It is real WITHIN-node reference resolution
+[ genuinely working, not aspirational ], not the cross-node network
+resolution the original "design-doc-only" line was actually about — that
+narrower claim likely still holds, just needed the within-node piece
+carved out as a separate, already-real thing.
 
 **Practical takeaway for any new addressable entity (users zenka included):**
 build identity on `crypt.C25519` as root of trust; treat P7REF as a
@@ -81,13 +108,46 @@ unimplemented pieces (TYPE registry, network P7REF resolution, BMW384 as
 cross-node routing, cubic geometry) — they're real future direction but zero
 current infrastructure to integrate with.
 
+**A future-reconciled P7REF's shape, per user (2026-08-13)**, raised while
+designing an unrelated small feature (the user-edit address-cluster
+plugin's own per-entry ref) and worth keeping distinct from that feature
+itself : the fragmented schemes above are not competing designs, they're
+unconnected PIECES of one eventual unified concept. That concept is a
+RESOLVABLE reference — resolving to a template, a coderef, or a scalar
+memory address, interchangeably — with the property that resolution can
+PARTIALLY ANONYMIZE the underlying memory address itself, i.e. the
+reference is a stable handle that need not expose the literal location it
+resolves to on every use.
+
+CORRECTED same day, after checking rather than assuming : this is not
+purely aspirational — see the CORRECTION above `base.parser.
+harmonized_reference`/`decode_harmonized_refstr` already do almost
+exactly this, address-prefix stripping included. What's still genuinely
+missing for a full reconciliation is the CROSS-LIFETIME piece : that
+mechanism only resolves live in-process memory, gone the moment the
+process restarts, while `base.p7ref.self` [ C25519-derived identity ] and
+`plugin.storage.p7ref.*` [ real persisted storage locations ] both need
+to survive a restart. Unifying "resolvable + anonymized" with "survives a
+restart" is the part that's still actually unbuilt, not the resolvable-
+reference idea itself.
+
+The address-cluster plugin's own small, bounded-pool checksum ref [
+`data/yaml/coding-tasks/user-edit-address-cluster-plugin.yaml` ] is
+EXPLICITLY NOT claimed to be this future P7REF — it is a concrete, small-
+scale instance worth remembering when the real reconciliation work
+happens, since a working small example often reveals what an abstract
+unification actually needs that a top-down design misses. Keep the two
+threads separate until that reconciliation is actually undertaken : the
+address-cluster ref ships as its own named convention regardless of
+whether/when P7REF itself gets unified.
+
 [[topic-checksum-addressing]]
 [[topic-addressing-trinity]]
 [[project-zenka-cryptographic-identity-survey]]
 [[users-zenka-yaml]]
 
-#,,.,,..,,..,,,.,,..,,.,,,..,,.,,,,..,,,.,,..,..,,...,.,.,,,.,..,,.,.,,,.,...,
-#YPRUZVDUJBDCD7MMPNH3J5LVB2ESD5XJQV7ZH3CUGFMXEOKBKIBZFASCMWJZLH35POJDLLUF6MV3Q
-#\\\|MHUCJESSDEUKGOVWWR4O5G5GMYGSQU7ZEL6HCKXU6HKC3TAFEQM \ / AMOS7 \ YOURUM ::
-#\[7]I5AD446S5M4BQIQ7HSF2NVAI7AA6B45D7PWSQHQXHRMU2PNR5IAY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,,.,,.,.,.,,,,.,,,,.,,..,.,.,..,,...,...,,..,,.,,..,,.,.,.,,,
+#V2DOQPH7NHSXCI2RXIJQT56ECHKM6IC5AZKBUOISWUO2EBMG5RQSY7SQ4IC6Y3USDQZCRQN63Y4Z4
+#\\\|YUI2QBCZFWKHJ3OTIAAGJOLA37O4N6GNTX5AAMRFHT55EBIG6LJ \ / AMOS7 \ YOURUM ::
+#\[7]NBW4G56JQMFQ62IFHENZUGQDJOSJDB46DAEOPYFQQSVZCHW3AACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

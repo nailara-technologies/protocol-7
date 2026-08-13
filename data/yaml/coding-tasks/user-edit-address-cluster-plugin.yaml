@@ -161,9 +161,33 @@ storage_shape: |
   choice -- already proven round-tripping embedded newlines correctly,
   see multiline-note's own storage_and_round_trip note ] of
   `[ { ref => '<3-char amos_chksum>', label => '...', primary => TRUE|
-  FALSE, body => "multi\nline\ntext" }, ... ]`. exactly ONE entry ever has
+  FALSE, body => <CONTENT> }, ... ]`. exactly ONE entry ever has
   primary => TRUE ; the plugin enforces that invariant on every edit, not
   the storage layer.
+
+  CONTENT TYPING, per user -- no separate 'reftype' key at all, dispatched
+  by Perl's own ref() on `body` instead, the SAME idiom user-edit.form.
+  schema_from_record already uses one level up [ arrayref => list field,
+  plain scalar => line field -- confirmed by reading that module ] :
+    - scalar or scalar-ref `body` => PLAIN CONTENT, exactly what is built
+      today -- multiline address text, windowed/edited as already shipped.
+    - arrayref `body` => NOT literal content at all, but a REFERENCE of
+      some other kind -- even a single-element array is still array-
+      shaped and reads as "this is a reference, not text" unambiguously.
+      the array's own first element is the natural place for a reftype
+      discriminator [ e.g. `['pubkey', 'C25519', $key_id]` vs
+      `['plugin', 'credentials', $checksum_id]` ] -- NOT built now, no
+      concrete reftype has a real consumer yet [ credential types are
+      their own separate, already-tracked project -- see
+      [[project-credential-types-into-user-edit]] ], this just reserves
+      the DISPATCH shape so a future reftype costs adding one arrayref
+      convention, not a storage migration.
+  this resolves the earlier open question of whether a 'reftype' flag
+  belongs in editor.control's generic contract or stays plugin-private --
+  there IS no separate key to place anywhere. The distinction lives
+  entirely inside this plugin's own private blob format, using a
+  mechanism [ ref() dispatch on a value ] that is already zenka-agnostic
+  Perl, not a new concept anyone else needs to know about.
 
   NOT decided yet, deliberately left open : whether an EXISTING plain-
   scalar 'address' [ written before this plugin ever existed, or by any
@@ -204,42 +228,149 @@ checksum_algorithm: |
   there's a specific reason to prefer BMW-L13 for this.
 
 open_engineering_question -- MULTILINE EDITING INSIDE A PLUGIN TAB: |
-  flagged by advisor, not yet resolved, and this is the one piece with no
-  existing precedent to lean on. Today 'multiline' is a flag read by
-  user-edit.form.build_frame and editor.ui.ascii_frame.render_form on a
-  SCHEMA FIELD DEF -- it works because the field is a real, addressable
-  row in the form's own schema. A plugin's detail-tab page renders
-  through its OWN `.render` sub, which hands back a STRING [ or however
-  layout_embedding_field_type_dropin ultimately composes it -- see the
-  plugin-tabs doc's own resolution ], not a schema. So "each address
-  entry's body is multiline-editable inside the tab" does not fall out
-  for free just because both systems exist.
+  RESOLVED 2026-08-13, superseding the (a)/(b) fork originally recorded
+  here -- see MULTILINE VIEWPORT below, which folds this question into a
+  bigger, GENERAL fix rather than a plugin-scoped workaround. The plugin
+  still reimplements windowing itself [ still-valid part of former option
+  (a) -- pure editor.control.multiline.* text functions, no schema needed
+  ], but the actual per-line WIDTH problem that made this question hard is
+  now solved once, centrally, not duplicated per-caller.
 
-  TWO paths, neither built yet:
-    a) the plugin reimplements windowing itself, calling editor.control.
-       multiline.lines / .cursor_line / .line_col_to_offset directly --
-       these are pure TEXT functions [ take a string, know nothing about
-       schema fields ], so this is plausible without any change to
-       core editor.control.* or ascii_frame.*. the plugin's own
-       .handler.key would need to reimplement the Enter-inserts-\n /
-       Up-Down-within-buffer / PgUp-PgDn-windowing logic user-edit.
-       handler.stdin_key + user-edit.form.scroll_multiline currently own
-       -- duplicated, not shared, since a plugin's key-handling is
-       already a separate dispatch path [ user-edit.handler.stdin_key's
-       plugin-mode block routes every key straight to handler.key,
-       bypassing editor.control.process_key entirely ].
-    b) extend the plugin-tab rendering contract itself to accept an
-       embedded schema-shaped sub-field, letting the SAME build_frame /
-       render_form multiline machinery run inside a tab. bigger change,
-       touches the layout_embedding_field_type_dropin contract the
-       plugin-tabs doc already settled -- higher risk of destabilising
-       something that already shipped and works.
+MULTILINE VIEWPORT -- RESOLVED 2026-08-13, raised by user mid-design: |
+  starts from a REAL LATENT BUG found while resolving the plugin-tab
+  question above, not a hypothetical : editor.ui.ascii_frame.render_form's
+  existing multiline block [ user-edit-multiline-note.yaml's own shipped
+  feature ] places each windowed line's FULL raw text into its `{{name_N}}`
+  slot with no length cap at all [ line ~134, `$line_text =
+  $lines->[$line_index]` straight into `$display` ]. user-edit.form.
+  build_frame's own width-floor scan [ `$display_length` ] returns 0 for a
+  multiline field's own row -- confirmed by reading it -- so a multiline
+  body's length has NEVER contributed to `min_width`. That is fine for the
+  FLOOR [ narrowing ], but build_frame's own comment on `min_width` says it
+  plainly for the CEILING too : "a value longer than anything reserved
+  still widens the frame as it always did" [ ascii.frame.render's own
+  behaviour, unconditional ]. So today, right now, in shipped code : one
+  very long line in `note` or `address` already blows the card width open.
+  This was going to bite the plugin identically the moment its own tab
+  tried to show one address entry's body, which is what surfaced it.
 
-  RECOMMEND (a) : no core changes, contained inside the one new plugin
-  module, matches how plugin-owned key-handling already works today. Real
-  cost : the plugin duplicates roughly the shape of stdin_key's multiline
-  branch + scroll_multiline, which is a known, bounded amount of code
-  [ both already exist and are short ], not open-ended new design.
+  Two options were on the table for the plugin's single-row tab view
+  specifically [ hard-wrap-to-real-newlines vs a non-mutating slice
+  viewport ] -- user picked the slice viewport, and for a reason that
+  generalises past the plugin : hard-wrap is DESTRUCTIVE [ inserted \n is
+  indistinguishable from a typed one, so re-wrapping at a different width
+  later silently rewrites content and can ratchet ], whereas a slice
+  viewport reads the SAME stored text unmodified and just bounds what one
+  render shows. Per user : "the other option is to somehow implement a
+  viewport [passthrough] with elegant and compact overflow handling" --
+  and per user's own further framing on the (now moot, since nothing is
+  written) wrap-width question, overlong content should normalize into
+  "something window width independent" so that "'as seen' would be the
+  [recreated] truth" -- satisfied here differently than first framed :
+  truth is recreated because the SOURCE never changes, only the view does,
+  so "as seen" this render and "as seen" any other render of the same
+  content are both faithful slices of one unchanged truth, not two
+  independently-wrapped copies that can drift from each other.
+
+  SCOPE, per user : GENERAL, not plugin-only. Applies to the already-
+  shipped `note`/`address` cap-3 windowed rows [ fixing the latent bug
+  above ] AND to the new plugin's single-row tab view, both calling the
+  SAME helper -- one fix, one place, not a plugin-private reimplementation
+  of something the core feature needed anyway.
+
+  WIDTH SOURCE, per user : dynamic, tied to the frame's own actual current
+  width, not a fixed column constant. Concretely : user-edit.form.
+  build_frame already computes `$min_width` [ the width floor from every
+  OTHER field/label in the form -- a multiline field's own body never
+  contributes to it, confirmed above ], and stores it on the generated
+  descriptor as `$descriptor->{'min_width'}`, which editor.ui.ascii_frame.
+  render_form already loads via `ascii.frame.load` before it ever touches
+  the multiline block. That is the natural, ALREADY-COMPUTED width source
+  -- no new plumbing to carry a width value anywhere, no chicken-and-egg
+  with build_frame [ multiline content contributing 0 to the scan is
+  exactly what keeps this well-defined : the floor this reads is computed
+  from everything else in the form, never from the thing being capped ].
+  Being non-destructive is what makes "dynamic" safe here where it would
+  not have been for hard-wrap : recomputing the slice against a
+  frame-width that shifts between renders [ e.g. another field's value
+  changed length ] just shows a different window of the SAME text, never
+  rewrites it, so there is no ratcheting risk to worry about at all.
+
+  MECHANISM, to build : new pure-text helper, `editor.control.multiline.
+  viewport_slice($line_text, $width, $cursor_col)` -- given one line
+  [ never the whole multiline buffer -- the existing per-line windowing in
+  render_form's multiline block already isolates one line at a time before
+  this would be called ], a target character width, and the cursor's
+  column within that line [ -1 / undef when this is not the cursor's own
+  row ], returns a string at most `$width` chars : the raw line unchanged
+  if it already fits, otherwise a WINDOW of it that keeps `$cursor_col`
+  visible [ centring or edge-clamping the same way a scrollable single-line
+  input already would ], with a 1-char overflow marker [ `<` / `>` ]
+  replacing the edge character whenever content is truncated on that side.
+  A non-cursor row with no cursor_col simply windows from its own start
+  [ offset 0 ] when too long, matching the plugin's own single-row case
+  where there is no live cursor most of the time.
+
+  EXACT WIDTH BUDGET given `$descriptor->{'min_width'}` [ how many chars a
+  multiline row's own body may use out of it, after label/colon/framing
+  overhead ] is not hand-derived here -- build_frame's row-geometry algebra
+  [ `row_width = inner_width + len(display) - len(name) - 4` ] is exact for
+  MEASURING a fixed mockup token, not for INVERTING to "how much body fits
+  in a given inner_width" without re-deriving per-row constants live. Done
+  empirically instead, matching how window_cap [ '3' ] and every other
+  magic number in this feature was picked : `min_width - label_width - 10`,
+  floored at 20.
+
+  BUILT AND MEASURED, 2026-08-13, not left as an inference -- advisor
+  flagged that "the card no longer widens" needed an actual A/B
+  measurement, not just plausible-looking captures. Method : `git stash`
+  the two changed core modules [ render_form, build_frame -- the new
+  viewport_slice module itself set aside too, since without the other two
+  wired to it, it does nothing ], drive a fresh throwaway record
+  [ `p7-fieldtest2` ] headless through the identical long address value on
+  the UNPATCHED code, measure the rendered title-bar line length, restore
+  the fix, repeat against a fresh throwaway [ `p7-fieldtest3` ] with the
+  IDENTICAL input. Result : **178 characters unpatched, 108 characters
+  patched**, same content both times -- confirms the floor genuinely caps
+  the frame rather than merely looking bounded in one capture. label_width
+  + 10 held up as a workable subtraction at this content length ; no
+  further tuning needed yet, revisit only if a real record surfaces a
+  width that looks wrong.
+
+  CURSOR-MARKER CORRECTNESS, also verified rather than assumed : advisor
+  separately flagged a specific risk -- does the cursor's display column
+  ever get computed to land ON a '<'/'>' overflow marker instead of a real
+  character, reachable by ordinary Right-arrow through a long line, not a
+  degenerate input. Checked exhaustively with a standalone Perl harness
+  reproducing viewport_slice's exact logic : swept every width 3..40
+  against every cursor position across a 150-character line [ 5,738 cases
+  total ], asserting the character at the returned display_col always
+  matches the ORIGINAL character at that cursor position [ never a marker
+  ], with one legitimate exception carved out explicitly -- a cursor
+  exactly at end-of-text lands one position past the slice's own last
+  index, which is correct "cursor after the last character" semantics
+  [ the same convention the pre-existing non-viewport cursor-overlay
+  already uses, per render_form's own downstream clamp ], not a bug.
+  Zero failures across all 5,738 cases once that legitimate case was
+  accounted for.
+
+  live char-add captures separately confirmed the WINDOWING behaviour
+  itself [ typed a ~150-char address line, then walked the cursor left
+  through it in the actual headless harness -- '<'/'>' markers correctly
+  appeared and disappeared at each end as the visible window followed the
+  cursor ], though the cursor MARKER CHARACTER itself is not visible in
+  char-add's own capture rendering at all -- confirmed pre-existing and
+  unrelated to this change [ a plain short "hello" typed into an untouched
+  'note' field shows the identical gap ], not something this change
+  introduced or needs to fix.
+
+  BUILD ORDER, per user's own earlier prioritisation of the (now-
+  superseded) plugin-tab question : fix the general note/address latent
+  bug FIRST [ smaller, already-live code, immediately testable against the
+  existing headless-driving technique with a deliberately long value ],
+  THEN build the plugin's own tab reusing the same helper -- verifies the
+  helper once against a known-working feature before a brand new one
+  depends on it.
 
 collision_check_before_building: |
   the throwaway test plugin ( plugin.user-edit.example ) already caused
@@ -250,26 +381,37 @@ collision_check_before_building: |
   [ including the still-wired example one, currently pinned to
   'example_test_field' ] pins the same name.
 
-open_questions:
-  - blob migration : auto-convert an existing plain-scalar 'address' into
-    a one-entry cluster the first time the plugin touches it, or require
-    an explicit "convert" action?
-  - main-form display : primary-ref-alone-plus-count, or all refs at
-    once? [ recommendation above : primary alone ]
-  - checksum algorithm : amos_chksum [ recommended, has a bin/todo
-    precedent with a measured collision rate ] or BMW-L13 [ named as an
-    alternative, no equivalent measured precedent found yet ]?
-  - multiline-inside-a-plugin-tab : confirm approach (a) [ plugin
+open_questions: ALL RESOLVED per user 2026-08-13, recorded here for the
+  record rather than left as open:
+  - blob migration : RESOLVED -- LAZY, parse-on-read. An existing plain-
+    scalar 'address' that does not parse as the plugin's own blob format
+    is treated, for DISPLAY only, as a synthetic one-entry cluster [
+    single entry, primary => TRUE, body => the raw legacy text verbatim,
+    ref minted on the fly for that render but NOT persisted ]. Nothing is
+    written to disk until an actual edit happens -- avoids a write-storm
+    touching every existing user record the moment this plugin's
+    pinned_keys activates it globally [ pinning is systemic, not
+    per-user opt-in, same as every other plugin -- see the collision
+    hotfix precedent, 2b504e4ef ]. The real persisted migration happens
+    naturally the first time `user-edit.form.submit` writes the field
+    again, same as any other edit.
+  - main-form display : RESOLVED -- primary ref alone, plus a count
+    suffix when more exist [ e.g. '[ XY7 +2 ]' ].
+  - checksum algorithm : RESOLVED -- amos_chksum [ has bin/todo's
+    measured collision-rate precedent ; BMW-L13 stays a possible future
+    swap if ever characterised at short length, not blocking this ].
+  - multiline-inside-a-plugin-tab : RESOLVED -- approach (a), the plugin
     reimplements windowing via the generic editor.control.multiline.*
-    helpers ] before starting, since it is the one piece of real new
-    engineering in this whole feature -- everything else is composition
-    of what already exists.
+    helpers directly. This is still the one piece of real new
+    engineering in the whole feature ; build and live-test it first,
+    before the rest, since everything else is composition of what
+    already exists and carries much lower risk.
 
 created: 2026-08-13
 tags: [user-edit, plugin, checksum-addressing, multiline, design-only]
 
-#,,.,,,..,.,.,..,,,,.,.,,,...,,..,.,.,.,.,..,,..,,...,...,.,,,,,,,.,,,,,.,,,,,
-#57ENE3NLVVT6YGC73M33QTGU3I7WZWDQKJ2R7G6KSEYFSYFKU6LB3VKOZK2AWKNPL5FWOMPRUZ3PO
-#\\\|GNF44LCDZKHROU6X6YRLYMXHHIGFXWEAXDVO4BTZGGTAKV2OEF2 \ / AMOS7 \ YOURUM ::
-#\[7]AVJCNVMDFSTLGPSX3HOGJXMHEBR5FSAH4AYEHLSKWGYAYCHK66BY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,...,.,.,,,.,...,,,,,,..,,.,,,,,,..,,...,...,..,,...,,,,,.,,,,,.,
+#GHYGBG2WGPWR6JB2RJV7F4JWXIQWFUBDKHDUZQYK54OS3UH6ZOSGVJT4XINXD6AL5F6LFXJGWKCQY
+#\\\|OPFGCYDI3PLXRSO36U36LRA2WDCE6OMOPTFW6GXXO5RIA4ZKM25 \ / AMOS7 \ YOURUM ::
+#\[7]64HVWKBKNS63LZNNEGR2DXR4PXZTDDJW2O32HSWIIJXJRCFOAQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
