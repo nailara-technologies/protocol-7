@@ -62,6 +62,25 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 ## because editor.control.create accepts no other
 my $shape = ( <user-edit.form.field_options> // {} )->{$chosen} // qw| line |;
 
+## POLICY flags schema_from_record sets when a field already exists on a
+## loaded record -- 'sort_on_focus' [ contact / phone ] and 'multiline' [
+## address / note ] both need to ALSO apply the FIRST time a field is added
+## here, not only once it round-trips through a save+reload.  found live for
+## 'multiline' : a freshly-added 'address' rendered single-line with no way to
+## expand it until the form was saved and reopened -- see user-edit.form.
+## multiline_field_names' own header for the full account.  'sort_on_focus'
+## had the identical gap [ same shape of bug, not yet reported live, fixed
+## alongside while already here rather than left as a twin ].  its name list
+## is hand-duplicated, NOT shared via a call to users.record.sorted_fields --
+## that module lives in the SEPARATE users zenka process and is not reachable
+## from here at all [ confirmed live elsewhere this session : "subroutine not
+## defined" -- see schema_from_record's own note on the identical trap ].
+## kept in sync by hand with that module's copy of the same list if it ever
+## changes
+state %sort_on_focus_names = map { $ARG => TRUE } qw| contact phone |;
+state %multiline_names
+    = map { $ARG => TRUE } <[user-edit.form.multiline_field_names]>;
+
 push @fields,
     $shape eq qw| list |
     ? {
@@ -73,11 +92,13 @@ push @fields,
     qw| noun |          => qw| entr |,
     qw| noun_plural |   => qw| ies |,
     qw| noun_singular | => qw| y |,
+    qw| sort_on_focus | => $sort_on_focus_names{$chosen} ? TRUE : FALSE,
     }
     : {
-    qw| name |    => $chosen,
-    qw| type |    => qw| freeform_line |,
-    qw| default | => '',
+    qw| name |      => $chosen,
+    qw| type |      => qw| freeform_line |,
+    qw| default |   => '',
+    qw| multiline | => $multiline_names{$chosen} ? TRUE : FALSE,
     };
 
 my $new_state = <[editor.control.create]>
@@ -121,8 +142,8 @@ $new_state = <user-edit.form.state>;
 
 return TRUE;
 
-#,,,,,,,.,..,,,..,...,...,,.,,.,,,.,.,,,,,,..,..,,...,...,...,.,,,,.,,,..,,.,,
-#OQMDYCVFZ3QOH2FMPY3GP3SCHOWSTHEV776PSIHYWO27GMJHR7YDCRVR42QGA4UREWONL5SSPUB7S
-#\\\|MVAMGRSYCCL6HI6EJ2DVBOPJJFTZLOXGXTISKT65HY6WKXYO6Z5 \ / AMOS7 \ YOURUM ::
-#\[7]O5N4AKVYVNJNTFAWXL4V6MKPIABT3EVPUAM3ZUKD5NBKQCOY3ACY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,.,,,.,,.,,,.,,,...,,,,,..,,.,,,..,,...,...,.,.,,..,,,.,.,,,.,,,
+#ZK7TRP3EFFBFI7SWAVMWVNIZVXWTYQSX7PVXSJLPNRP4TQSB6H4KE6HOAJ6R2HHY3PIMXBATPJGLS
+#\\\|UFYQMHCENTLFYOJRRZUR4N3UGSLPMINL3OKICFB324LHEHICL4U \ / AMOS7 \ YOURUM ::
+#\[7]N5KQD7MKR3EMC46TQGGC3H4CYAXXW56I4AAARWJ5R5BIFRLV3GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
