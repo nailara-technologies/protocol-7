@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = plugin.user-edit.address-cluster.cursor_char
+# descr = the character currently under this field's own cursor
+# param = $editor_state, $field
+# return = the character [ '' when there is nothing to show ], never a
+#          newline
+
+## OPTIONAL convention a plugin exposes so the generic renderers [ user-edit.
+## form.render's live TTY path, user-edit.cmd.char-add's no-tty capture path ]
+## can style the ONE placeholder byte .render leaves behind at the cursor
+## position, instead of .render resolving it itself. neither generic caller
+## can compute this on its own : editor.control.get_cursor returns an offset
+## into the RAW STORED buffer, while a plugin field's displayed text [ via
+## get_display_value -> display_override -> this plugin's own .render ] is a
+## restructured string with no positional relationship to that offset at all
+## -- the exact reason editor.ui.ascii_frame.render_form's own cursor_bearing
+## already excludes plugin fields from its generic overlay in the first place.
+## a plugin without this sub simply gets no cursor styling from either caller
+## -- its own .render may still draw a marker directly in the text, as this
+## plugin's CURSOR_PLACEHOLDER does.
+##
+## shares plugin.user-edit.address-cluster.resolve_state with .render, so the
+## character returned here can never drift from the position .render is
+## actually showing.
+
+my ( $editor_state, $field ) = @ARG;
+
+my $in_tab_mode
+    = (
+    ( $editor_state->{'mode'} // '' ) eq sprintf( qw| plugin:%s |, $field ) );
+
+## .render's collapsed view never embeds a placeholder at all -- nothing to
+## style outside tab mode
+return '' if not $in_tab_mode;
+
+my $resolved = <[plugin.user-edit.address-cluster.resolve_state]>->(
+    $editor_state, $field
+);
+
+return '' if not $resolved->{'entries'}->@*;
+
+my $text = $resolved->{'entry'}{ $resolved->{'target'} } // '';
+my $c    = $resolved->{'cursor'};
+$c = 0             if $c < 0;
+$c = length($text) if $c > length($text);
+
+my $char = substr( $text, $c, 1 );
+
+## a MULTILINE body's cursor can legitimately sit right before an embedded
+## '\n' [ end of any line but the last ] -- same "nothing visible sits here"
+## treatment user-edit.form.render/user-edit.cmd.char-add already apply to
+## their own raw-buffer case
+return '' if $char eq "\n";
+return $char;
+
+#,,..,..,,...,.,,,.,.,..,,,..,.,.,.,,,,,,,..,,..,,...,...,..,,,,.,..,,,..,,..,
+#DHBCPVASJUUHCM3LF7V6ITBKQB6M76GU4ECXACRWC4KDBEN2ZXDL7DCMLDMNJ7CDEP7DOCW66QP5I
+#\\\|XKJWIOC4WAVFLE6RYDMCRTU47KWSMDDDWJCRCDY7JCYCEMFW5S7 \ / AMOS7 \ YOURUM ::
+#\[7]3CYFGHHJ2CYBIUXZ3NBJ2EMPNMHSME4FJU3ERYLDQ6EPOWRQV4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
