@@ -102,6 +102,39 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
         my $is_active = ( $name eq $active_name );
 
+        ## COLLAPSED : per user, matching how a list field already collapses
+        ## to a count summary [ editor.control.list.summary's own
+        ## ':..2.entries..:' ] the instant it is not focused -- the full
+        ## windowed view only matters while actively being edited ; unfocused,
+        ## a line count is enough to know something is there. no separate
+        ## "expand" step to sync anywhere the way a list field's own
+        ## sync_list_mode has to -- that exists because a list's expansion
+        ## restructures the SCHEMA itself into one row per entry, while a
+        ## multiline field's value is always the ONE buffer $name already
+        ## names, so $is_active alone decides which view this renders, fresh
+        ## on every call. mirrors the collapsed list's own zero-leading-pad
+        ## convention exactly [ no bracket framing either -- same as list,
+        ## this row is never simultaneously collapsed AND focused, by
+        ## construction of the branch itself, so there is nothing to frame ].
+        ## the remaining slots reserved by user-edit.form.build_frame [
+        ## '<name>_1' .. '<name>_<cap-1>', '<name>_scrollinfo' ] go blank,
+        ## same "reserved but currently empty" treatment an under-cap window's
+        ## own scrollinfo slot already gets further down -- the frame's height
+        ## stays exactly what it always reserves, unconditionally, regardless
+        ## of focus
+        if ( not $is_active ) {
+
+            $values{ sprintf( '%s_0', $name ) }
+                = <[editor.control.multiline.summary]>->($text) . q{ }
+                . $mark{'pad_r'};
+
+            $values{ sprintf( '%s_%d', $name, $ARG ) } = ''
+                foreach 1 .. $cap - 1;
+            $values{ sprintf( '%s_scrollinfo', $name ) } = '';
+
+            next;
+        }
+
         my ( $cursor_line, $cursor_col ) = ( -1, 0 );
         if ($is_active) {
             my $cursor
@@ -449,8 +482,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,,,,..,.,,,...,,.,,...,.,.,.,.,..,,.,.,,..,..,,...,...,.,.,,..,,..,.,.,,..,
-#MKLPBUWZ7TEXMTY6CIHW5SNKBNK6GS3GQPNZGKOKV2K2MPLVDPS2IXFYSM7M6EWVXFSWZBRHKBCWI
-#\\\|TLBPSIMZTNJ37RMB6VPJXZLFM4B7NKVBFMA3FGDCRVIYVO3CTSD \ / AMOS7 \ YOURUM ::
-#\[7]QFNVDWYYQI4UUJAMWWCLQRXWTIBYFK5TMS6B2WCONHIVPZ5K3GAY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,.,.,...,.,.,,,,,,..,,.,,.,.,..,,...,..,,...,..,,,,,,.,,,.,.,
+#DBGMON24A7AG7QYAZ5V7SAZFDWWMDMXTHH34R42R7DBGMJ6RW3AMN2C5HBJREHJE3ILMI4CQYXTGE
+#\\\|MJ6DJLARIV7YU5OLPE3IR3IXTCCKQTPDW4YQ63CUEOFORGPTJ3Z \ / AMOS7 \ YOURUM ::
+#\[7]IUSOIAOEISF5CLKQRYCSIPUW2BXZAOYQYNPNLVG4M5XU3VSVKWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
