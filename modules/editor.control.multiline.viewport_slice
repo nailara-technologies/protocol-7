@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = editor.control.multiline.viewport_slice
+# descr = bound ONE line's display to a width, cursor-following, non-destructive
+# param = $line_text, $width, $cursor_col
+# return = ( $slice, $cursor_display_col ) -- 2nd is undef when no cursor was given
+
+## the fix for a REAL latent bug, not a hypothetical one -- see the 'MULTILINE
+## VIEWPORT' section of user-edit-address-cluster-plugin.yaml for the full
+## trace. editor.ui.ascii_frame.render_form's multiline block places each
+## windowed line's FULL raw text into its frame slot with no length cap, and
+## user-edit.form.build_frame's own width-floor scan gives a multiline field's
+## row zero contribution -- so a single very long line in 'note' or 'address'
+## already widens the card open today, unbounded.
+##
+## deliberately NON-DESTRUCTIVE : unlike hard-wrapping content into real '\n'
+## characters, this never touches the stored text. every call re-slices the
+## same unmodified line fresh, so a shifting width [ another field's value
+## changing length moves the frame's min_width between renders ] just shows a
+## different window of unchanged truth -- nothing to ratchet, nothing to
+## reconcile against a previous wrap.
+
+my ( $line_text, $width, $cursor_col ) = @ARG;
+
+$line_text //= '';
+$width     //= 0;
+$width = 0 if $width < 0;
+
+my $has_cursor = ( defined $cursor_col and $cursor_col >= 0 );
+
+## fits unmodified : the cursor's own column needs no translation at all ##
+return ( $line_text, $has_cursor ? $cursor_col : undef )
+    if length($line_text) <= $width;
+
+return ( '', undef ) if $width < 1;
+
+## too narrow for markers to mean anything -- plain truncation, still bounded
+## by width, just no '<'/'>' dressing. never hit in practice [ the caller's
+## own width floor is far above 3 ], kept only so this never overshoots width
+## on a degenerate input
+if ( $width < 3 ) {
+    my $slice = substr( $line_text, 0, $width );
+    return ( $slice,
+        ( $has_cursor and $cursor_col < $width ) ? $cursor_col : undef );
+}
+
+my $cursor = $has_cursor ? $cursor_col : 0;
+$cursor = length($line_text) if $cursor > length($line_text);
+
+## reserve room for BOTH a leading '<' and trailing '>' unconditionally, even
+## on a call that only ends up needing one -- avoids a circular "how many
+## markers does this window need" computation [ marker count depends on
+## offset, offset depends on body_width ]. a wasted marker-width column near
+## an edge costs nothing : this is a soft display cap, not a structural
+## invariant, and the result never exceeds $width either way
+my $body_width = $width - 2;
+
+my $offset = $cursor - int( $body_width / 2 );
+$offset = 0 if $offset < 0;
+$offset = length($line_text) - $body_width
+    if $offset > length($line_text) - $body_width;
+$offset = 0 if $offset < 0;
+
+my $shows_left_edge  = ( $offset == 0 );
+my $shows_right_edge = ( $offset + $body_width >= length($line_text) );
+
+my $slice = substr( $line_text, $offset, $body_width );
+
+## the SLICE's own coordinate space, not the original line's -- shifted past
+## the leading marker when one is present, since that consumes column 0
+my $display_col;
+if ($has_cursor) {
+    $display_col = $cursor_col - $offset;
+    $display_col++ if not $shows_left_edge;
+}
+
+$slice = q|<| . $slice if not $shows_left_edge;
+$slice = $slice . q|>| if not $shows_right_edge;
+
+return ( $slice, $display_col );
+
+#,,.,,..,,...,,,.,..,,.,.,.,.,,,.,.,,,,,.,.,,,..,,...,...,,..,.,.,,..,,,.,.,,,
+#HXFFJ5R3N5KABW2KTU3QWV25A4ZUSKKC2UTDPT4C7OXTMDENWXZNUZ4RJ37Y75TEMRPCWDJQ6JEK2
+#\\\|SJ3EUGEQK2OXIRXPOXYXFLQF6MD3CHMC3OB3YINXDF4RC7PWUTZ \ / AMOS7 \ YOURUM ::
+#\[7]7GWH4X3AAIOIISWOM4OU3SRFSQN5M4KDJKUNLCKCJD5R2VPPP2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
