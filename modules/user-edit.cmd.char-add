@@ -91,16 +91,41 @@ my $active_name  = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
 ##
 ## focus is not lost by this : the row still carries its framing brackets, and
 ## the active field is named in the line below the frame
-my $active_value
-    = <[editor.control.get_display_value]>->( $editor_state, $active_name )
-    // '';
-my $active_cursor
-    = <[editor.control.get_cursor]>->( $editor_state, $active_name ) // 0;
+##
+## a PLUGIN field's raw-buffer cursor offset has no relationship to its own
+## restructured display text -- same reason user-edit.form.render's live path
+## cannot use it either, see that module's matching note.  render_form's
+## 'cursor' marker never reaches a plugin field's row regardless [ cursor_
+## bearing excludes it ], so the ONLY placeholder in play there is the ONE the
+## plugin's own render() leaves embedded in its returned text -- resolved
+## explicitly below, after render_form returns, rather than passed in here
+my $active_plugin = <user-edit.plugin.registry> {'by_key'}{$active_name};
+my $plugin_cursor_char_sub
+    = defined $active_plugin
+    ? sprintf( qw| %s.cursor_char |, $active_plugin )
+    : undef;
 
-my $cursor_char
-    = $active_cursor < length $active_value
-    ? substr( $active_value, $active_cursor, 1 )
-    : q| |;
+my $cursor_char;
+if ( defined $plugin_cursor_char_sub
+    and exists $code{$plugin_cursor_char_sub} ) {
+
+    $cursor_char
+        = $code{$plugin_cursor_char_sub}->( $editor_state, $active_name )
+        // '';
+
+} else {
+
+    my $active_value
+        = <[editor.control.get_display_value]>
+        ->( $editor_state, $active_name ) // '';
+    my $active_cursor
+        = <[editor.control.get_cursor]>->( $editor_state, $active_name ) // 0;
+
+    $cursor_char
+        = $active_cursor < length $active_value
+        ? substr( $active_value, $active_cursor, 1 )
+        : q| |;
+}
 
 $cursor_char = q| | if not length $cursor_char;
 
@@ -122,6 +147,12 @@ return {
     }
     if not defined $rendered;
 
+## resolve a PLUGIN field's own placeholder explicitly -- render_form's
+## 'cursor' marker above never reaches it [ see the note where $cursor_char is
+## computed ], so it is otherwise still sitting in $rendered as a raw \x01
+## byte at this point
+$rendered =~ s{\x01}{$cursor_char}g if defined $active_plugin;
+
 return {
     qw| mode | => qw| size |,
     qw| data | => sprintf(
@@ -131,8 +162,8 @@ return {
     )
 };
 
-#,,,.,,,.,.,.,.,.,,,,,...,.,,,,,,,,,,,..,,,,,,..,,...,...,,,.,..,,,.,,,.,,,,,,
-#HZZSJK24ZK6773L2LBZSPVE3LIS6KIDZ347BYCCMYHTNY5W5ZUXVNZZE3FV52BCQFFVKPV75QUOCG
-#\\\|BL3HDQLBGU3O3XQUQYJBZEL7HB2YI7BR4JWV2SYGTUEZYK4US7L \ / AMOS7 \ YOURUM ::
-#\[7]ZKC265TX3MPHIDUG7JVRSXWJVRFJQJMSUVTF3QM7OKLQBYJ2XUCA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,..,,,..,,,.,.,,,.,,,,..,..,,..,,...,...,,,,,,.,,,,.,,.,,,,,,
+#5MILEMZRTMUM43JGS3N3KNVUHAD6EKZ2QZI27T6GODJLCZRWQLZJL4FLHPBSNW2E3QI4BGMPXX6EC
+#\\\|E4XSC4YEOYBVLHP7E2LSYZHJG3B34KZ2BQQ77GFPA4XQZDA6GIG \ / AMOS7 \ YOURUM ::
+#\[7]WVSXX2FGHA2ER6KFH5I4QUEOSGI6ABS6YUZC6YPKE7GOROG23MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1120,8 +1120,64 @@ coding-tasks/user-edit-address-cluster-plugin.yaml`'s own `REBUILT`
 section, live-verified end to end (empty → Insert → type → collapse →
 2nd entry promotes → Ctrl+D demotes) against a throwaway record.
 
-#,,.,,,..,.,.,,,,,,,,,,.,,,,.,,,.,..,,,.,,.,,,..,,...,...,,,.,,.,,,.,,,..,,,.,
-#6WSVGCLNALIGD52FI3QVDJ6SA4VOGN7CI3DVHOPK65LAQSRL3IWWJJWRWDDSX6P76CXIUJ53MBLRO
-#\\\|GD57J4FQ7WM3OT6Z57DAFZX4WDNC35KFNOJAK6ZZW7MR6ABGCKF \ / AMOS7 \ YOURUM ::
-#\[7]WP23VNTOFMI4FVHNNWBXJP6TQ7D7F2RU2UI32A36DUW4G76ER6AY 7  DATA SIGNATURE ::
+**CURSOR STYLING, same plugin, third round: full inverse-video/coloured
+parity with the parent form, without the width regression from the
+first attempt.** The first attempt styled the cursor with real ANSI
+*inside* `render()` itself, before `ascii.frame.render` had measured
+the row — broke frame alignment live (invisible ANSI bytes counted by
+`length()`). The second attempt fell back to a plain, always-uncoloured
+`_`, which was width-safe but visibly regressed from the parent form's
+own treatment (no inverse-video for a real character under the cursor,
+only ever the empty-cell case). The actual fix, per an advisor review
+before starting: leave the plugin's own `\x01` placeholder *unresolved*
+in `render()`'s return value, and let it survive all the way out to
+`user-edit.form.render`'s existing post-width-math `\x01` substitution
+pass — the exact mechanism every ordinary field already uses safely.
+That pass can't compute the right character for a plugin field on its
+own (`get_cursor` returns a raw-buffer offset with no relationship to
+the plugin's own restructured display — the same mismatch that already
+excludes plugin fields from `render_form`'s generic overlay), so a new
+optional per-plugin convention, `<plugin>.cursor_char($editor_state,
+$field)`, supplies it instead — `user-edit.form.render` checks the
+plugin registry for the active field and calls it when present,
+otherwise falls back to the old raw-buffer `substr()` unchanged. New
+`plugin.user-edit.address-cluster.resolve_state` pulls the shared
+entries/selection/target/cursor resolution out of both `render()` and
+the new `cursor_char` sub, so the styled glyph can never drift from the
+position actually shown — an advisor-flagged risk of two independent
+copies of that arithmetic disagreeing silently.
+
+The advisor review caught a second gap before it shipped:
+`user-edit.cmd.char-add` (the no-tty debug/test path used for every
+live check this whole session) has no post-`render_form` substitution
+pass of its own — it never touches a plugin field's placeholder at all,
+relying entirely on `render()` resolving it locally. Once `render()`
+stopped doing that, `char-add` would have leaked a raw `\x01` byte into
+its reply, invisible in every capture used to verify this feature, and
+only surfacing live. Fixed the same way, explicitly, right after its
+own `render_form` call, but with NO styling — `char-add`'s own stated
+philosophy is to self-overlay the cursor with the character already
+there, never corrupt or mark the value, so its plugin-field case gets
+the raw character from `cursor_char`, not the styled version.
+
+Verified live against `zztest-addr` (headless `-no-tty`, driven via
+`char-add`): confirmed the wiring end-to-end by temporarily making
+`cursor_char` return a fixed sentinel character and watching it appear
+exactly at the cursor position in the capture, then reverted it. Could
+NOT verify the actual inverse-video ANSI rendering this way — `-no-tty`
+mode deliberately skips the dirty-watcher print path entirely (`user-
+edit.handler.value_get_reply`'s own gate,
+`<user-edit.form.interactive> and not <user-edit.mode.no_tty_debug>`),
+so `user-edit.form.render` never fires under it regardless of whether
+`STDOUT` is a real pty. The styling application code itself is
+byte-for-byte the same three-case block every other field already uses
+correctly all session — only the source of `$cursor_char` changed for
+a plugin field — so this is a structural argument for correctness, not
+a live-verified one; needs the user's own terminal to confirm the
+inverse-video case specifically.
+
+#,,,.,...,..,,...,...,,,,,.,.,.,.,,,.,,,,,...,..,,...,..,,...,,.,,,,,,...,,,.,
+#6HHPPICBR3SNU3DB73GCGYBNVFXPAIFIRIIOXAPUPNJ5AZK2POYKAOJDT7HQ6MI43FDHLZ7MOC4DO
+#\\\|YGTFO47H4ZFCWOIERSCENHNYXFL5AM5W2HNT7NTHPK3P5YOKVGR \ / AMOS7 \ YOURUM ::
+#\[7]2MD5TZEGEVGDHINSIVLPC4ADDQF23GANW7BFDFTM6KBVGDRI7GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

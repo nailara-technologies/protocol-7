@@ -562,11 +562,52 @@ there is more than one line, no ref) -> Right/Right/Insert a 2nd entry
 (structured view appears immediately) -> Ctrl+D the 2nd entry (demotes
 back to plain immediately).
 
+CURSOR STYLING, third round, same day : full inverse-video/coloured
+parity with the parent form's own cursor treatment, without the width
+regression the first attempt shipped. Root architecture : `render()`'s
+`\x01` placeholder is now left UNRESOLVED all the way out, surviving
+into `user-edit.form.render`'s existing post-width-math `\x01`
+substitution pass -- the same mechanism every ordinary field already
+uses safely, previously unusable here only because that pass computes
+its styling character via a raw-buffer `substr()` meaningless for a
+plugin's restructured display. Fixed with a new OPTIONAL per-plugin
+convention : `<plugin>.cursor_char($editor_state, $field)`, checked via
+`<user-edit.plugin.registry>{'by_key'}` for the active field. New
+`plugin.user-edit.address-cluster.resolve_state` shares the entries/
+selection/target/cursor resolution between `render()` and the new
+`cursor_char` sub, so the styled glyph cannot drift from the position
+actually shown -- an advisor-flagged risk of two independent copies of
+that arithmetic disagreeing silently, invisible in any piped capture.
+
+A second gap, also advisor-flagged before shipping : `user-edit.cmd.
+char-add` -- the no-tty debug path this whole plugin's live testing has
+run through -- has no substitution pass of its own for a plugin field's
+placeholder ; it relied entirely on `render()` resolving it locally.
+Fixed there too, explicitly, right after its own `render_form` call,
+with the RAW character rather than a styled one -- matches char-add's
+own established philosophy of self-overlaying the cursor with the
+character already there, never corrupting or marking the captured
+value.
+
+Verified live against `zztest-addr`, headless `-no-tty`, driven via
+`char-add` : confirmed the wiring end-to-end with a temporary sentinel
+return value in `cursor_char` (`Z`), watched it land exactly at the
+cursor position in the capture, reverted. Could NOT verify the actual
+inverse-video ANSI live this way -- `-no-tty` mode gates OFF the
+dirty-watcher print path entirely (`user-edit.handler.value_get_reply`'s
+`<user-edit.form.interactive> and not <user-edit.mode.no_tty_debug>`),
+so `user-edit.form.render` never runs under it, real pty on STDOUT or
+not. The styling application itself is the SAME three-case block every
+other field already renders correctly with all session -- only the
+source feeding `$cursor_char` changed for a plugin field -- so this is
+a structural correctness argument, not a live-verified one ; needs
+confirmation from an actual terminal.
+
 created: 2026-08-13
 tags: [user-edit, plugin, checksum-addressing, multiline, implemented]
 
-#,,..,...,..,,,.,,,.,,.,.,...,..,,...,.,.,.,.,..,,...,...,..,,.,,,,,,,...,,,.,
-#UB74MV3D3YCBS3MC2FU5VXPTZTT57VM4ZBW4M43STFRAAG33XZ2BPQHHZ5SZLIZJZENKVYROUI654
-#\\\|GOKKUAUWCL5TETM5Q5DS3MKTYTMJHHKD6HFXIT2YLG6REKO434X \ / AMOS7 \ YOURUM ::
-#\[7]6DJQX7UFGONBM4UNKZF6LZXFJSUSEUVR4ABKAVXIGADNVXLEFMDA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,,..,,,,,..,,,..,...,,,.,,..,..,,...,...,.,,,.,,,..,,..,,,,,,
+#CIXY2VYWEI3SBSEC6XJRM42PTJ3PJFY6HBBNODW3JWI6DS24VGFJPE7NOTDAQMPPVE6GVFAH3DLZS
+#\\\|FOSJCUPXVDR24FU3L5XHAJZJK4FWVYUOQLBULNX6HNFU4KWMUFA \ / AMOS7 \ YOURUM ::
+#\[7]L54MBWPHWBRBPYPVYXDDL5PRUKS77E3JTBPF5PAC2J5AMOAKR6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

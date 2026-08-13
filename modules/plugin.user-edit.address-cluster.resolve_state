@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = plugin.user-edit.address-cluster.resolve_state
+# descr = shared entries/selection/target/cursor resolution
+# param = $editor_state, $field
+# return = hashref : entries, state, selected, target, entry, cursor
+
+## PURE / read-only apart from the SAME lazy plugin_state {} initialisation
+## .render itself already treats as harmless [ a consistent empty shape, not a
+## meaningful write -- see .render's own header ].
+##
+## pulled out of .render so it can also back plugin.user-edit.address-
+## cluster.cursor_char : that sub needs the EXACT same entry/target/cursor
+## resolution .render uses to decide WHERE the cursor sits, so the styled
+## glyph a caller draws there can never quietly disagree with the position
+## .render itself is showing -- two independent copies of this arithmetic
+## drifting apart would be invisible in a piped/no-tty capture, where no
+## styling ever shows the mismatch, and only show up live.
+
+my ( $editor_state, $field ) = @ARG;
+
+my $raw     = <[editor.control.get_value]>->( $editor_state, $field ) // '';
+my $entries = <[plugin.user-edit.address-cluster.parse_blob]>->($raw);
+
+my $state = ( $editor_state->{'plugin_state'}{$field} //= {} );
+
+my $selected = $state->{'selected'} // 0;
+$selected = 0            if $selected < 0;
+$selected = $#{$entries} if $selected > $#{$entries};
+$selected = 0            if $selected < 0;              ## empty list ##
+
+my $target = $state->{'target'} // qw| body |;
+my $entry  = $entries->[$selected];    ## undef when $entries is empty ##
+
+## same "don't prepend, land at the end" default .render and handler.key both
+## already apply -- see either of their own notes on the fresh-state bug this
+## guards against
+my $cursor
+    = exists $state->{'cursor'}
+    ? ( $state->{'cursor'} // 0 )
+    : length( ( $entry // {} )->{$target} // '' );
+
+return {
+    qw| entries |  => $entries,
+    qw| state |    => $state,
+    qw| selected | => $selected,
+    qw| target |   => $target,
+    qw| entry |    => $entry,
+    qw| cursor |   => $cursor,
+};
+
+#,,,,,,,,,...,.,.,.,.,,.,,,.,,,.,,.,.,...,.,,,..,,...,...,,,,,,.,,..,,,.,,,,.,
+#22Q6U4FI74LWEZGDZ4ZBDQZBISSXDFNSEJCGF4QIWVXUXRGZFFBSHLYVMM7OJZOWM45GIGZ5OCDRA
+#\\\|BLYZEBQJLCLOKIMLUEGWWXIG4TKI6NYP5UJZLNY2NPOMWDS5PUP \ / AMOS7 \ YOURUM ::
+#\[7]BXLPA3V2F3GAT72AZOT2IJCDUJHGIL3IQAJV74554DZXWHOWXCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
