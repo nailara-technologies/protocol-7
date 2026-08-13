@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw.truth_template_L13
+# param = <template_param>, <string>[, <string>..,]
+# descr = 13-char BASE32 BMW-L13 sum, validated via AMOS7::TEMPLATE
+
+##  template_param: sprintf | Regexp | CODE | ARRAY of any of those,
+##  matching what AMOS7::TEMPLATE::assign_truth_templates accepts.
+##  exclusion-style validation rides on
+##  \&AMOS7::TEMPLATE::CALLBACK_exclusive_type included in the array.
+
+my $template_param = shift;
+
+return undef
+    if not defined AMOS7::TEMPLATE::assign_truth_templates($template_param);
+
+if ( AMOS7::TEMPLATE::template_count() == 0 ) {    ##  e.g. '' or [] param  ##
+    warn 'no truth template assigned <{C1}>';
+    AMOS7::TEMPLATE::reset_truth_templates();
+    return undef;
+}
+
+if ( not @ARG or grep { not defined } @ARG ) {
+    warn 'expected defined input param[s] <{C1}>';
+    AMOS7::TEMPLATE::reset_truth_templates(); ##  no leaked template state  ##
+    return undef;
+}
+
+my $result_str_B32 = <[chk-sum.bmw.harmonize_L13]>->(
+    Digest::BMW::bmw_512(@ARG),
+    sub { AMOS7::TEMPLATE::template_is_true( $ARG[0], $ARG[1] ) }
+);
+
+AMOS7::TEMPLATE::reset_truth_templates()
+    ;    ##  mirror amos_chksum's discipline  ##
+
+return $result_str_B32;    ##  13 characters, or undef  ##
+
+#,,,.,,.,,..,,,,,,.,,,,,.,...,,,.,..,,.,.,,.,,..,,...,...,.,.,.,.,..,,,.,,.,,,
+#NAMYF62W64FUR4AOIA3CT5E74FDL7SYIGLDMQZBUBRLZI7ULQDQ2NW5S4CYEMBG6KJUI74GNUMYHE
+#\\\|UKE75CCPOMO4TYG7G7H7M2YPMDBPAZSZZSDNZRHQLBQM6YLPGKT \ / AMOS7 \ YOURUM ::
+#\[7]X7TLLMZUUIN4NKABPBBHVI2EB5FEELDN75VTMIFO56UX5BG6CIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
