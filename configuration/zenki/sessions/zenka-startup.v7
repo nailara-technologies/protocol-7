@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'sessions' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+start.on-demand = 1
+restart.disabled = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#,,.,,.,,,,.,,,,,,.,.,.,,,,..,,,.,.,,,,,.,,,,,..,,...,...,...,,.,,,,.,,,,,.,.,
+#O4AZ4UXYIGO7XIL4FVJGS5YALTQUYQVNT4LNZZL2V7ZGMRJYJIEU6J26I5Z5IATRYW26GDYUZSOAK
+#\\\|B2VEVUKTKOFGZLIL554XOC4AKOTDP7IKL6EPAXZPC5WYMSDMKWL \ / AMOS7 \ YOURUM ::
+#\[7]LJRNG5KFUL4NRTFHLMDYA3HQY4HBHDIFK57CIH5SEEJSRSOHMEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
