@@ -603,11 +603,33 @@ source feeding `$cursor_char` changed for a plugin field -- so this is
 a structural correctness argument, not a live-verified one ; needs
 confirmation from an actual terminal.
 
+LEFT-KEY SYMMETRY, same day, reported by the user immediately after
+confirming the cursor styling itself : entering the plugin's tab mode
+and cursor styling both worked, but Left exited on the very first
+press regardless of cursor position -- a leftover from Left's earlier
+"permanently unavailable, unconditionally intercepted to leave" design,
+with Ctrl+B filling the gap as the only way to move backward. Fixed
+symmetric with Right's own two-stage entry trigger : Left is now
+offered to `plugin.user-edit.address-cluster.handler.key` first, same
+as every other key in plugin mode, and `user-edit.handler.stdin_key`
+only leaves plugin mode when that sub explicitly declines by returning
+FALSE. Declines specifically at column 0 of the CURSOR'S CURRENTLY
+DISPLAYED ROW, not column 0 of the whole text -- per the user's own
+follow-up clarification -- since only one line of a body is ever
+visible at once, so wrapping to the end of the previous line the way a
+real editor's Left usually does would move the cursor somewhere the
+user cannot see change. A label is always one line, so the distinction
+collapses to the same condition there. Verified live against
+`zztest-addr`'s two-line body ("123 Main St" / "Somewhere") : 9 Lefts
+walk back through "Somewhere" without leaving the field, the 10th
+(column 0 of that row) exits correctly to the collapsed preview, and
+Right re-enters normally afterward.
+
 created: 2026-08-13
 tags: [user-edit, plugin, checksum-addressing, multiline, implemented]
 
-#,,,.,..,,,.,,,,,,,..,,,,,..,,,..,...,,,.,,..,..,,...,...,.,,,.,,,..,,..,,,,,,
-#CIXY2VYWEI3SBSEC6XJRM42PTJ3PJFY6HBBNODW3JWI6DS24VGFJPE7NOTDAQMPPVE6GVFAH3DLZS
-#\\\|FOSJCUPXVDR24FU3L5XHAJZJK4FWVYUOQLBULNX6HNFU4KWMUFA \ / AMOS7 \ YOURUM ::
-#\[7]L54MBWPHWBRBPYPVYXDDL5PRUKS77E3JTBPF5PAC2J5AMOAKR6CY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,,,,,,..,.,.,.,.,,..,.,,,..,,..,,...,...,...,..,,.,,,,..,..,,
+#6LGBWNN3GAGRBS6BU457N5VYPJX4EQ23L6LCFHYQKOMYZ7D75IPNQAKNJ763XKPP3E7ILL7CLWQRQ
+#\\\|GJ47USQG7LIPJHKM56YEGFHZMYU2TNARR3CSLKOHLBAG4DNKUMC \ / AMOS7 \ YOURUM ::
+#\[7]H65POLT3NVTRCOZ4T24GSQTMI4R23N6SH5MZPT3NRRLWAU3WP4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
