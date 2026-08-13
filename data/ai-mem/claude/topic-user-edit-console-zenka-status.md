@@ -1176,8 +1176,32 @@ a plugin field — so this is a structural argument for correctness, not
 a live-verified one; needs the user's own terminal to confirm the
 inverse-video case specifically.
 
-#,,,.,...,..,,...,...,,,,,.,.,.,.,,,.,,,,,...,..,,...,..,,...,,.,,,,,,...,,,.,
-#6HHPPICBR3SNU3DB73GCGYBNVFXPAIFIRIIOXAPUPNJ5AZK2POYKAOJDT7HQ6MI43FDHLZ7MOC4DO
-#\\\|YGTFO47H4ZFCWOIERSCENHNYXFL5AM5W2HNT7NTHPK3P5YOKVGR \ / AMOS7 \ YOURUM ::
-#\[7]2MD5TZEGEVGDHINSIVLPC4ADDQF23GANW7BFDFTM6KBVGDRI7GCI 7  DATA SIGNATURE ::
+**LEFT-KEY SYMMETRY, same plugin, same day, per user's live report after
+confirming the cursor styling worked**: entering the plugin's tab mode
+worked and looked right, but Left exited the field on the very first
+press regardless of cursor position — a leftover from an earlier design
+decision (`user-edit.handler.stdin_key`'s plugin-mode block intercepted
+Left unconditionally to leave plugin mode, with Ctrl+B filling in as the
+only way to move the cursor backward). Fixed to be symmetric with how
+Right *enters* the field in the first place: Left is now offered to
+`plugin.user-edit.address-cluster.handler.key` first, same as any other
+key in plugin mode, and only exits when that sub explicitly declines it.
+The sub's own new Left branch declines specifically when the cursor is
+already at **column 0 of its currently displayed row** — per the user's
+own follow-up clarification, not column 0 of the whole text — since the
+body's viewport only ever shows one line at a time (`render`'s own
+`viewport_slice`), so wrapping to the end of the previous line the way a
+real editor's Left usually does would move the cursor to a position the
+user can't see change. A label is always one line, so that distinction
+collapses to the same thing there. Verified live against `zztest-addr`'s
+two-line body ("123 Main St" / "Somewhere"): 9 Lefts walk back through
+"Somewhere" without leaving the field (confirmed by content staying on
+that line, not falling back to the collapsed "123 Main St…" preview),
+the 10th Left (column 0 of that row) exits correctly, and Right
+re-enters normally afterward.
+
+#,,,,,,,.,.,.,,,,,.,.,.,.,,..,,.,,.,.,,..,,..,..,,...,...,,..,...,.,,,..,,,,,,
+#ETZYCFWFWIIXJ3SXIV32UZS66UXIXQF67UBKHJBM75CTAN6WRYCIJXCAFZ4RPRUQLPI3JJAFU5WKM
+#\\\|R33Q5LL5YGAKC3QH5GFILIFKYVBAWSDCXO3SY6F5XUCXDAD6ZE4 \ / AMOS7 \ YOURUM ::
+#\[7]4MUDGYXKH2QUU7K4JQCSIMHCWAWEBUBB6OSVNSNMNV3WDO3OK2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

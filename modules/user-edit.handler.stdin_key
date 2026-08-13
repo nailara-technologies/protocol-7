@@ -130,23 +130,56 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
         : undef;
 
     ## PLUGIN MODE : once a pinned key's row has been ENTERED [ mode =
-    ## 'plugin:<field>', set by the Tab/Right trigger further below ], every
-    ## key except LeftArrow routes DIRECTLY to the plugin's own handler.key,
-    ## bypassing editor.control.process_key entirely : the plugin owns full
-    ## key handling once entered, per design.  Esc's OWN return path needs no
-    ## code HERE : it never reaches this loop as a resolved key while
-    ## ambiguous [ user-edit.handler.esc_timeout's debounce ], and once
-    ## resolved, user-edit.form.escape's EXISTING generic "leave a sub-mode"
-    ## branch already relabels ANY non-menu:/non-list: mode back to 'insert'
-    ## -- plugin mode never touches the schema, so a bare relabel already IS
-    ## the correct return.  escape.pm DOES need one small addition though --
-    ## see its own note -- for the readonly toggle immediately below
+    ## 'plugin:<field>', set by the Tab/Right trigger further below ], EVERY
+    ## key routes DIRECTLY to the plugin's own handler.key, bypassing editor.
+    ## control.process_key entirely : the plugin owns full key handling once
+    ## entered, per design. LeftArrow is not an exception to this any more --
+    ## see its own block just below for why it is still special-cased, but
+    ## only to READ handler.key's return value, never to skip calling it.
+    ## Esc's OWN return path needs no  code HERE : it never reaches this loop
+    ## as a resolved key while ambiguous [ user-edit.handler.esc_timeout's
+    ## debounce ], and once resolved, user-edit.form.escape's EXISTING generic
+    ## "leave a sub-mode" branch already relabels ANY non-menu:/non-list: mode
+    ## back to 'insert' -- plugin mode never touches the schema, so a bare
+    ## relabel already IS the correct return.  escape.pm DOES need one small
+    ## addition though -- see its own note -- for the readonly toggle
+    ## immediately below
     my ($active_plugin_field)
         = ( $editor_state->{'mode'} // '' ) =~ m|^plugin:(\w+)$|;
 
     if ( defined $active_plugin_field ) {
 
-        if ( $key eq "\e[D" or $key eq "\x1b[D" ) {    ## Left : return ##
+        my $plugin_name
+            = <user-edit.plugin.registry> {'by_key'}{$active_plugin_field};
+        my $handler_sub = sprintf( qw| %s.handler.key |, $plugin_name // '' );
+
+        if ( $key eq "\e[D" or $key eq "\x1b[D" ) {    ## Left ##
+
+            ## SYMMETRIC with Right's own two-stage entry trigger, further
+            ## below : Left is offered to the plugin's own handler.key FIRST,
+            ## same as every other key while in plugin mode -- a TRUE return
+            ## means it moved the cursor left within whichever text is
+            ## targeted, same as any other navigation key, and this block is
+            ## done.  only a FALSE return [ the plugin's own contract for "no
+            ## further left to go", see plugin.user-edit.address-cluster.
+            ## handler.key's own Left branch ] falls through to actually leave
+            ## plugin mode, below. REAL BUG in the FIRST version of this,
+            ## found live by the user, not hypothetical : Left exited
+            ## unconditionally regardless of cursor position, so editing
+            ## anything past the very first character made the field feel
+            ## broken -- arrow keys stopping short of where every other editor
+            ## keeps going
+            my $moved
+                = defined $plugin_name
+                && exists $code{$handler_sub}
+                && $code{$handler_sub}
+                ->( $editor_state, $active_plugin_field, $key );
+
+            if ($moved) {
+                $repaint = TRUE;
+                next;
+            }
+
             <[base.logs]>->(
                 2, ': leaving plugin mode [ %s ]',
                 $active_plugin_field
@@ -162,10 +195,6 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
             $repaint = TRUE;
             next;
         }
-
-        my $plugin_name
-            = <user-edit.plugin.registry> {'by_key'}{$active_plugin_field};
-        my $handler_sub = sprintf( qw| %s.handler.key |, $plugin_name // '' );
 
         if ( defined $plugin_name and exists $code{$handler_sub} ) {
             $code{$handler_sub}
@@ -510,8 +539,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,.,,..,,,,.,,..,.,.,,,,,..,,.,,,...,...,,,,,..,,...,..,,...,...,,..,.,,,..,,
-#C3TMA3CISZKO7CSWH5V7JV4ZG6QI27L3Q632UA257BS257UTPCMXPF5K7DS6SIW7OXPGHYFFWDIEK
-#\\\|O7LPU4NVCOEHI52ESVHM4OKMF74T3FI37JXYVSMRHLXYY45H2UX \ / AMOS7 \ YOURUM ::
-#\[7]7UBCKJU5RFJBNYHWOQF47A5FRRUMUNFW3VWMFIQSDXWXXZJI72CY 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,.,.,...,,.,,...,,,,,,,,,,,.,..,,...,...,..,,,.,,,,.,,.,,,.,,
+#2GSJVEUZBUU7SCDY3P7YMXGBBQDH2UR2DOSJIKVFG4GPJBWABOH6HH67LGAM3A7JVVL7QVKDO44GU
+#\\\|PNUPHBGMUO6K4D5WNCS7TB4ZCQXB4TS7E7T2XRH5TCDQQJF6F6M \ / AMOS7 \ YOURUM ::
+#\[7]QXDNBOBXJYG2DCT5VRLWSVBBISR5NRQWKIB22N4HKNEFPHTJQWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
