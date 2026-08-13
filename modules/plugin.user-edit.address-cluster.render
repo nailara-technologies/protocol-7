@@ -52,23 +52,24 @@ my $is_plain = ( scalar( $entries->@* ) <= 1 )
 
 ## COLLAPSED : primary ref alone, plus a count suffix when more exist -- per
 ## the design doc's own resolution, matches how a collapsed LIST field shows a
-## count rather than every entry. PLAIN shows the address text's own first
-## line instead -- a ref standing in for the address is exactly the kind of
-## artefact this field should not show when there is nothing to disambiguate
+## count rather than every entry. PLAIN uses editor.control.multiline.summary
+## instead -- a ref standing in for the address is exactly the kind of
+## artefact this field should not show when there is nothing to disambiguate,
+## and per user this should read IDENTICALLY to how an ordinary multiline
+## field [ 'note' ] now collapses when unfocused [ editor.ui.ascii_frame.
+## render_form's own multiline block ] : this plugin bypasses that block
+## entirely [ display_override routes here instead ], so it needed its own
+## matching fix -- an EARLIER version of this branch showed the address text's
+## own first line instead, found live to have silently missed this exact
+## parity the user was actually asking for
 if ( not $in_tab_mode ) {
 
     return q| [ none ] | if not $entries->@*;
 
     if ($is_plain) {
-        my $body      = $entries->[0]{'body'} // '';
-        my $lines     = <[editor.control.multiline.lines]>->($body);
-        my ($preview) = <[editor.control.multiline.viewport_slice]>->(
-            $lines->[0] // '',
-            TAB_WIDTH - 4, undef
-        );
-        $preview .= q|…| if scalar( $lines->@* ) > 1;
+        my $body = $entries->[0]{'body'} // '';
         return
-            length($preview) ? sprintf( q| %s |, $preview ) : q| [ empty ] |;
+            sprintf( q| %s |, <[editor.control.multiline.summary]>->($body) );
     }
 
     my ($primary) = grep { $ARG->{'primary'} } $entries->@*;
@@ -233,8 +234,8 @@ $out = substr( $out, 0, TAB_WIDTH ) if length($out) > TAB_WIDTH;
 ## render_form -- see its own note there.
 return $out;
 
-#,,..,,,.,..,,,..,..,,,,,,,,,,..,,,..,...,...,..,,...,...,,..,,,,,,..,,..,...,
-#XXE63B5GAZYCPNLVK7AJGYJWQQVJ3ACJLUUQXUAU74GN7PNP7WRIRU7RDZLKLS2LTIRIGIEOL4Y4E
-#\\\|K7GQUTO7R3ZUYQSQ6FZHPQDZEX5SO2OUHS3AVQGOFVFWVXQWHZF \ / AMOS7 \ YOURUM ::
-#\[7]JJO6BTZTO5Q7ELRRVAPCAH4C2QPVVYYIYLMOTG6QIGI5BHKOZECY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,...,.,.,,,.,,.,,..,,...,,,,,,..,..,,...,..,,...,.,,,,.,,.,.,...,
+#J4GU7BLDL4K7CBGORCQELKM5UZWKUFLOYXYLC7HWOZMOKLKF6GYFFVWRDMOTMMDXZAG7FOSDATEHE
+#\\\|7KOHPBKKGI4ER5TIF65FEKTSGLMPRSDVOHGVWYAXBTG2UKO6Z5N \ / AMOS7 \ YOURUM ::
+#\[7]YNOUMN5KCND6LTJRUXDPYIGL5YFD2SHZ3KIBWLQF3ETV5UO3OODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
