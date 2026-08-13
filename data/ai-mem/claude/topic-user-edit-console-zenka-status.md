@@ -1,6 +1,6 @@
 ---
 name: topic-user-edit-console-zenka-status
-description: user-edit console zenka (todo JUE) + users v7-managed zenka (todo 5PN) -- two design docs written 2026-08-09/10, four implementation phases landed on user-edit via kimi K2.7 dispatch (skeleton/path-registry/outbox/draft-storage), next phases blocked on real open questions
+description: user-edit console zenka (todo JUE) + users v7-managed zenka (todo 5PN) -- as of 2026-08-13, live features include windowed/scrollable list fields, canonical sort order, plugin detail-tabs (pinned-key custom rendering), a zero-field bootstrap path (contact/location now optional), and multiline note editing; see this file's tail for the most recent work
 metadata:
   type: project
 ---
@@ -761,8 +761,106 @@ Re-grepped every file touched this session for the same shape
 matter of course after finding one, since it is very unlikely to be an
 isolated slip in a single sitting.
 
-#,,,.,..,,...,,.,,,..,.,,,,,,,,.,,,.,,.,,,.,,,..,,...,..,,...,.,,,,.,,,,.,,.,,
-#XT2HE7ASG5KGQHJGYQFCUM6OHXABDAN2F44KDIL67Z4T7QQU32QLEXEPSKJ4EMXEDZ4NLI2B6GYHO
-#\\\|CMWEMHBTCMVWD6FIRZB2UFDHSIYBD4YBUE2YDTTE6MK5JFOITTC \ / AMOS7 \ YOURUM ::
-#\[7]42MFXUDM7WSBSGCXMFQZNODRQH7GB6X5XJ6YLTXQMT4QLNUB5SDA 7  DATA SIGNATURE ::
+**Next session (2026-08-13) — three more features landed: plugin detail
+tabs, a zero-field bootstrap path, and multiline note editing.** Design
+docs for the first two are `data/yaml/coding-tasks/user-edit-plugin-
+detail-tabs.yaml` and the bootstrap work is folded into `users.record.
+default_fields`'s own header comment (no separate doc — it's a small,
+self-contained change); the third has its own doc, `data/yaml/coding-
+tasks/user-edit-multiline-note.yaml`. Committed as `7592bdbc0`/`7d66dfa6d`
+(plugin tabs phase_1/phase_2), `2b504e4ef` (hotfix), `a8b99c923`
+(bootstrap), `989e5ebb3` (multiline note) — all pushed.
+
+1. **Plugin detail tabs**: a `plugin.user-edit.<name>` module family lets
+   a zenka-external plugin PIN itself to a specific record key and take
+   over that field's rendering/key-handling entirely (`display_override`
+   — a new generic coderef hook on `editor.control.get_display_value`,
+   zenka-agnostic). Discovery is ONE parent `plugin.user-edit.registry.
+   post_init`, not N per-plugin self-registrations (per user preference).
+   TWO real bugs only live testing caught, both fixed before shipping —
+   see the design doc's own Status note for the full account : (a) Tab
+   dual-bound to "enter a pinned field" made a visited field permanently
+   un-Tab-able-past ever again — fixed by dropping Tab from the trigger
+   entirely and making Right a TWO-STAGE entry [ first press just moves
+   the cursor normally, a SECOND press with the cursor already >0 enters
+   ] ; (b) `editor.buffer.memory.insert/delete` enforce `readonly`
+   THEMSELVES, independently of `editor.control.process_key`'s own guard
+   — toggling it off on entry had to happen in three separate places, not
+   the one `process_key` bypass first assumed.
+   **CRITICAL LIVE BUG, immediately after shipping**: the kept-around
+   throwaway test plugin (`plugin.user-edit.example`, deliberately left
+   wired into the real `configuration/zenki/user-edit/start` per an
+   earlier "keep it for testing" decision) had `pinned_keys => ['location']`
+   — a REAL, universally-present field, not a placeholder name. This
+   silently made `location` readonly/plugin-mode/test-edited on every
+   real user's own record the moment the code shipped — user reported it
+   within the same session as "location can no longer be edited, allows
+   only 3 characters in with the arrow keys". Fixed by repinning to
+   `example_test_field` (verified nowhere in `users.record.*_fields`).
+   **Lesson for next time a throwaway test fixture is kept wired into a
+   real zenka's live config**: its test data must be checked against the
+   REAL vocabulary it could collide with, not just assumed safe because
+   it "was just for testing" — the collision was invisible in the diff
+   review and only surfaced as a live production bug.
+
+2. **Zero-field bootstrap path**: `users.record.default_fields` now
+   returns `{}` — `contact` and `location` moved to `users.record.
+   optional_fields` alongside the rest, so a fresh record has NOTHING
+   editable until the user adds something (per user : "the minimal is the
+   username and the list of options to include"). This made a genuinely
+   empty record reachable for the first time, which both `user-edit.form.
+   schema_from_record` (`return undef` on zero field defs) and `editor.
+   control.create` (refuses an empty `fields` array) independently
+   refused. Fix: `user-edit.handler.value_get_reply` gained an
+   interactive-only branch that, on the zero-fields case, puts the
+   terminal in raw mode and registers the watchers FIRST [ these don't
+   depend on any state existing ], then requests the field-options
+   vocabulary with a NEW reply handler (`user-edit.handler.field_options_
+   bootstrap_reply`) instead of the normal one — that handler founds the
+   FIRST schema as just the add-a-field cycler row, hand-mirroring `add_
+   field_row`'s field-def shape rather than sharing code with it [ that
+   module's contract is specifically "append to an existing state", which
+   doesn't fit founding one from nothing ]. Vocabulary-wire parsing was
+   extracted into a new shared `user-edit.form.parse_field_options` so
+   both reply handlers use one implementation. One-shot [ `show-form` ]
+   mode was deliberately NOT given the same bootstrap treatment — it has
+   no round trip to chain a vocabulary fetch onto, still aborts on a
+   truly empty record. Verified live end-to-end on a throwaway
+   `create-default`'d record : opened without aborting, added `contact`
+   and `location` through the cycler, submitted, reloaded — both
+   persisted correctly, and a normal populated record was completely
+   unaffected by any of this.
+
+3. **Multiline note editing** — the full account, including the auto-
+   scroll-to-cursor / manual-PgUp-PgDn conflict and the Up/Down-within-
+   field gap found only by testing against a REAL populated record, lives
+   in `data/yaml/coding-tasks/user-edit-multiline-note.yaml`'s own Status
+   note — worth reading directly rather than duplicating here. The one
+   lesson worth calling out on its own: **a throwaway record built by
+   hand for a feature test will not surface every UX gap a real, already-
+   lived-in record does** — the reserved blank rows below a short note
+   only read as "obviously not navigable" once a real person tried to use
+   them on their own actual note field ; every synthetic throwaway test
+   run during development had either an empty note or one that
+   conveniently filled every reserved row, so the gap never came up until
+   the user hit it live. Worth deliberately testing a genuinely
+   mixed/partial case, not just the two clean extremes, next time a
+   capped/windowed field ships.
+
+**Headless-testing gotcha, same session**: `list subnames` can show BOTH
+the user's own live TTY session and a `-no-tty` throwaway side by side,
+and casually picking "whichever looks newest" is not reliable when both
+were touched recently — cross-check the SID against `list sessions`'
+age column before routing `char-add` to it. Got this wrong once this
+session and routed a `char-add` at the user's own live pts/4 session by
+mistake ; `user-edit.cmd.char-add`'s own `<user-edit.mode.no_tty_debug>`
+guard refused it outright [ "form is not running in no-tty mode" ] rather
+than silently injecting into a real interactive session — a real safety
+net that did its job, not just a nice-to-have gate. See [[reference-user-
+edit-headless-driving]] for the fuller driving notes this refines.
+
+#,,,.,,.,,,,.,.,.,..,,,,.,.,,,...,.,.,,..,,..,..,,...,...,..,,,,,,.,.,,.,,...,
+#OJIBCQEAFRR24MFQIZHHWYEJDOKJW5Q3L3DA6UQH735OYDND3A6RSRFEHJ7T6UOGMJP5TUGTZFBLS
+#\\\|Q4DVO22PMA2AKYHPLNJY36BBPRYJB64HYQTF7HG73B2BNKFF273 \ / AMOS7 \ YOURUM ::
+#\[7]B73SUR5JSJQM72U67D3QD4NQIEKVZ45SWGWKPNBH3QUCMNGAJ2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
