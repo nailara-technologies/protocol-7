@@ -1,0 +1,275 @@
+---
+# Task: user-edit address clusters (multiple addresses via a plugin)
+# Date: 2026-08-13
+# Status: DESIGN DRAFT, not yet implemented. Raised by user right after the
+#         simple 'address' multiline field landed (commit 989e5ebb3 +
+#         follow-up fix for the add_field/schema_from_record drift) : one
+#         scalar address is not enough once home/work/billing/etc. all need
+#         to coexist. Consulted advisor before drafting.
+
+context: |
+  'address' today is exactly what 'note' is -- one multiline scalar. Fine
+  for a single address, wrong the moment more than one needs to coexist
+  with a label and a "which one is primary" distinction. Rather than
+  inventing a new core "list of multiline blocks" field type, the user
+  proposed composing THREE systems already built this session :
+
+  1. the plugin detail-tabs mechanism ( user-edit-plugin-detail-tabs.yaml )
+     -- a plugin pins itself to a field, takes over its display via the
+     already-generic editor.control.get_display_value 'display_override'
+     hook, and owns a full custom-rendered page entered via the same
+     Right-two-stage trigger every other pinned field already uses.
+  2. multiline editing ( user-edit-multiline-note.yaml ) -- windowed
+     display, PgUp/PgDn, Enter-splits-a-line, Up/Down-within-buffer, all
+     built on generic editor.control.multiline.* helpers that operate on
+     plain text, not on any specific field.
+  3. this project's own checksum-addressing lineage ( AMOS7::CHKSUM,
+     base.chk-sum.*, P7REF ) -- content gets a short, stable, addressable
+     code rather than a numeric row id.
+
+  the composed idea, per user : the top-level 'address' field, once a
+  plugin owns it, does NOT show address text at all -- it shows short
+  checksum REFERENCES to the actual entries, which live behind the
+  detail-tab page. that page is where the real list -- multiple labelled
+  addresses, one marked primary -- gets edited.
+
+decided_so_far:
+  ref_semantics: |
+    RESOLVED, per user, explicitly asked rather than assumed [ advisor's
+    flag : "reference to content" and "stable identifier" diverge
+    completely and the storage shape follows directly from which one it
+    is ] -- STABLE IDENTIFIER. Minted ONCE when an address entry is
+    created, stored alongside its label/primary-flag/body, never
+    recomputed from the body text. Survives edits to the body. This is
+    what makes it an actual REFERENCE rather than a fingerprint that
+    changes on every keystroke -- matches the project's own P7REF /
+    checksum-addressing lineage, not a hash-of-content display gimmick.
+
+  ref_generation: |
+    RESOLVED, per user's own precedent : `bin/todo`'s `chk3()`/`gen_id()`
+    -- a random 3-character AMOS7::CHKSUM::amos_chksum code [
+    `local $AMOS7::CHKSUM::str_length = 3` ], regenerated on collision,
+    gated through AMOS7::Assert::Truth::is_true when the harmonic space
+    allows it [ ~99.6% of codes per that script's own measured comment ],
+    falling back to a non-harmonic retry pass if the budget runs out.
+
+    ONE ADAPTATION NEEDED, not a straight copy : `bin/todo` is a
+    STANDALONE script with no zenka state, so its entropy source is
+    `rand()`/`time`/`$PID`. `user-edit` is a running zenka with
+    `<base.prng.fortuna>` available -- the real precedent is `chk3`'s
+    CHECKSUM step [ `AMOS7::CHKSUM::amos_chksum` at length 3 ] combined
+    with Fortuna for the seed, not `base.gen_id` itself [ that module
+    generates plain NUMERIC ids from a digit alphabet via Fortuna, a
+    different mechanism entirely -- `bin/todo`'s own comment says it
+    "mirrors base.gen_id's SHAPE" [ random candidate / collision retry /
+    harmonic gate ], not its digit-generation internals ].
+
+    COLLISION SCOPE, per user : "the same for address id in the namespace
+    of that user" -- collision-checked against refs already present in
+    THIS user's own address blob only, not a global registry. Small N per
+    user makes this cheap and matches `bin/todo`'s own scoping [ checked
+    against items still in ITS OWN file, not some wider store ].
+
+    SEED SOURCE, refined by user after the first pass above : `bin/todo`'s
+    own history went from a plain INCREMENTING id first, then moved away
+    from that -- an incrementing counter narrows the entropy space over
+    time and becomes predictable, the opposite of what a collision-
+    resistant short code wants. The fix that generalises here : fold
+    `<[base.ntime]>` [ this codebase's own encoded-epoch primitive, ALREADY
+    the timestamp mechanism `users.record.build` stamps every record with
+    -- confirmed via that module directly, not assumed ] into the seed on
+    EVERY retry attempt, not just once up front. A fresh `<[base.ntime]>`
+    call each retry gives each collision-retry attempt genuinely new
+    high-resolution entropy for free, without needing an explicit retry
+    counter or an incrementing id anywhere in the scheme -- collision
+    avoidance falls out of "ask for the time again", not "add one".
+    Concretely: `join('-', <[base.ntime]>, <base.prng.fortuna>->..., $try)`
+    as the per-attempt seed into the same `chk3`-shaped checksum step.
+
+    WHY "add one" is wrong, PRECISELY -- corrected by user after an
+    overstated first pass here : the problem is narrower than "any
+    increment is bad". It is specifically using the incrementing value AS
+    THE STORED IDENTITY itself [ `bin/todo`'s ORIGINAL `next_id` scheme,
+    before it moved to random checksums -- see [[project-bin-todo-random-
+    id-scheme]] ] -- reconstructing "what the counter's next value should
+    be" needs exact prior collision/skip state carried alongside it, and
+    separately hits the birthday-paradox growth problem that memory
+    already documents.
+
+    An incrementing value used as ONE INGREDIENT HASHED INTO a checksum
+    candidate is a DIFFERENT, perfectly fine thing -- per user's own
+    example : `amos-chksum LOVES` -> `PKHKHVA`, `amos-chksum 001:LOVES`
+    -> `NKDRXUA`. Different input, different checksum, entirely by
+    design. `bin/todo`'s OWN `gen_id()` already does exactly this : `$try`
+    [ the retry loop's own counter, 1..200 ] sits directly in the seed
+    alongside `time`/`$PID`/`rand()`. The final identity is always the
+    HASH OUTPUT, checked directly against the live collision set on every
+    attempt -- never inferred from the counter's value, so nothing about
+    it needs reconstructing. `<[base.ntime]>` refines the ENTROPY quality
+    of that seed [ project-native, high-resolution, vs raw `time()` ], it
+    does not need to replace an incrementing `$try` component -- both can
+    coexist in the same seed exactly as `bin/todo`'s already does.
+
+    ONE MORE SCOPING, per user : a plain incrementing counter AS identity
+    is still entirely valid -- but mostly within a CLOSED entropy pool,
+    one that fits in memory on a single node or lives only as long as one
+    session's own hash. The reconstructability problem is really about
+    the counter needing to be validated OUTSIDE the bounded scope that
+    generated it -- across a restart, across nodes, or once persisted
+    without its accompanying counter state travelling with it. A counter
+    that never leaves one node's memory for its entire meaningful
+    lifetime has none of that problem, because nothing about it ever
+    needs reconstructing -- the full history was never lost in the first
+    place. THIS feature's ref is explicitly the OTHER case : persisted to
+    disk, meant to survive edits and be referenced again in a later
+    session -- squarely where the reconstructability problem bites, so
+    the random/checksum approach stays right HERE. Worth remembering as
+    the general shape, not this feature's rule : a transient in-session
+    counter [ e.g. numbering rows in a not-yet-submitted UI list purely
+    for internal bookkeeping, never itself the persisted key ] could
+    legitimately just increment.
+
+    CONFIRMED, per user : the closed-entropy-pool rule is NOT broken by
+    this feature being persisted -- it still holds here, for two reasons.
+    First, the LIVE set this checksum is deduplicated against is always
+    small [ one user's own address entries -- realistically single
+    digits ], so a 3-char code's space is vastly larger than what it
+    needs to stay unique within, cheaply. Second, the ref is STABLE by
+    the earlier ref_semantics decision -- it does not reorder or need
+    regenerating on its own ; only actual content change could ever put
+    it in question, and even then a stable identifier is deliberately
+    never recomputed from content. So the persisted/cross-session
+    property that makes a bare incrementing counter risky elsewhere
+    [ reconstructability across a boundary ] does not undermine the
+    checksum approach here -- the two properties [ closed pool vs.
+    persisted lifetime ] are independent, and this design satisfies both
+    at once : persisted AND checked against a pool small enough to stay
+    effectively closed.
+
+storage_shape: |
+  ONE pinned key, 'address' -- the SAME name the plain scalar field
+  already uses today. Once the address-cluster plugin is active for a
+  user, it pins to 'address' exactly the way any other plugin pins to a
+  real field [ per the design doc's own resolution : "the plugin also
+  owns the CROSS-REFERENCING between its own pinned keys... a plugin's
+  storage footprint is just however many plain-scalar keys it declares,
+  not a single fixed shape" -- here that's ONE key holding an ENCODED
+  LIST rather than several separate keys, still a plain scalar at the
+  storage boundary ].
+
+  the blob : a plugin-owned encoding [ format.yaml.* is the obvious
+  choice -- already proven round-tripping embedded newlines correctly,
+  see multiline-note's own storage_and_round_trip note ] of
+  `[ { ref => '<3-char amos_chksum>', label => '...', primary => TRUE|
+  FALSE, body => "multi\nline\ntext" }, ... ]`. exactly ONE entry ever has
+  primary => TRUE ; the plugin enforces that invariant on every edit, not
+  the storage layer.
+
+  NOT decided yet, deliberately left open : whether an EXISTING plain-
+  scalar 'address' [ written before this plugin ever existed, or by any
+  other client that doesn't know about clusters ] gets auto-migrated into
+  a one-entry cluster on first plugin-mediated edit, or whether that is a
+  manual "convert to cluster" action. Needs a decision before
+  implementation, not guessed at here.
+
+main_form_display: |
+  PARTIALLY decided : per user, the field shows checksum REFERENCES, not
+  raw address text -- this is `display_override` doing exactly what it
+  already does for the plugin-tabs feature [ zero new mechanism there ].
+
+  NOT yet decided : whether it shows the PRIMARY entry's ref alone [
+  singular, matches "the parent address field... shows... references to
+  the actual addresses" read as "the primary one, by reference" ] or ALL
+  refs at once [ user's phrasing was plural -- "amos-chksum or BMW-L13
+  references to the actual addresses", which could mean either "one ref
+  per address, shown as a set" or just grammatical pluralisation of "the
+  feature in general" ]. Recommend showing the primary's ref alone, with
+  a count suffix if more exist [ e.g. '[ XY7 +2 ]' ] -- keeps the
+  collapsed row's width bounded and matches how a collapsed LIST field
+  already shows a count rather than every entry. Worth a one-line
+  confirmation before building the render, not worth blocking the rest of
+  this doc on.
+
+checksum_algorithm: |
+  NOT yet decided : user named BOTH amos-chksum and BMW-L13 as
+  candidates. `bin/todo`'s own precedent uses plain `AMOS7::CHKSUM::
+  amos_chksum` at 3 chars -- matching that exactly is the path of least
+  surprise and reuses a ALREADY-PROVEN collision-rate measurement [ the
+  99.6% harmonic-space figure `bin/todo`'s comment cites ]. BMW-L13 [
+  `AMOS7::13::*` / `base.chk-sum.bmw` per CLAUDE.md's own module list ]
+  is a different algorithm family with no equivalent measured collision
+  behaviour at short lengths documented anywhere found so far -- would
+  need its own characterisation before trusting it at 3 characters the
+  way amos_chksum's is already trusted. Recommend amos_chksum unless
+  there's a specific reason to prefer BMW-L13 for this.
+
+open_engineering_question -- MULTILINE EDITING INSIDE A PLUGIN TAB: |
+  flagged by advisor, not yet resolved, and this is the one piece with no
+  existing precedent to lean on. Today 'multiline' is a flag read by
+  user-edit.form.build_frame and editor.ui.ascii_frame.render_form on a
+  SCHEMA FIELD DEF -- it works because the field is a real, addressable
+  row in the form's own schema. A plugin's detail-tab page renders
+  through its OWN `.render` sub, which hands back a STRING [ or however
+  layout_embedding_field_type_dropin ultimately composes it -- see the
+  plugin-tabs doc's own resolution ], not a schema. So "each address
+  entry's body is multiline-editable inside the tab" does not fall out
+  for free just because both systems exist.
+
+  TWO paths, neither built yet:
+    a) the plugin reimplements windowing itself, calling editor.control.
+       multiline.lines / .cursor_line / .line_col_to_offset directly --
+       these are pure TEXT functions [ take a string, know nothing about
+       schema fields ], so this is plausible without any change to
+       core editor.control.* or ascii_frame.*. the plugin's own
+       .handler.key would need to reimplement the Enter-inserts-\n /
+       Up-Down-within-buffer / PgUp-PgDn-windowing logic user-edit.
+       handler.stdin_key + user-edit.form.scroll_multiline currently own
+       -- duplicated, not shared, since a plugin's key-handling is
+       already a separate dispatch path [ user-edit.handler.stdin_key's
+       plugin-mode block routes every key straight to handler.key,
+       bypassing editor.control.process_key entirely ].
+    b) extend the plugin-tab rendering contract itself to accept an
+       embedded schema-shaped sub-field, letting the SAME build_frame /
+       render_form multiline machinery run inside a tab. bigger change,
+       touches the layout_embedding_field_type_dropin contract the
+       plugin-tabs doc already settled -- higher risk of destabilising
+       something that already shipped and works.
+
+  RECOMMEND (a) : no core changes, contained inside the one new plugin
+  module, matches how plugin-owned key-handling already works today. Real
+  cost : the plugin duplicates roughly the shape of stdin_key's multiline
+  branch + scroll_multiline, which is a known, bounded amount of code
+  [ both already exist and are short ], not open-ended new design.
+
+collision_check_before_building: |
+  the throwaway test plugin ( plugin.user-edit.example ) already caused
+  one real live production bug this session by pinning to a name that
+  turned out to collide with a real field [ 'location' -- fixed in
+  2b504e4ef ]. before any REAL address-cluster plugin ships, confirm
+  its pinned_keys is exactly [ 'address' ] and that no OTHER plugin
+  [ including the still-wired example one, currently pinned to
+  'example_test_field' ] pins the same name.
+
+open_questions:
+  - blob migration : auto-convert an existing plain-scalar 'address' into
+    a one-entry cluster the first time the plugin touches it, or require
+    an explicit "convert" action?
+  - main-form display : primary-ref-alone-plus-count, or all refs at
+    once? [ recommendation above : primary alone ]
+  - checksum algorithm : amos_chksum [ recommended, has a bin/todo
+    precedent with a measured collision rate ] or BMW-L13 [ named as an
+    alternative, no equivalent measured precedent found yet ]?
+  - multiline-inside-a-plugin-tab : confirm approach (a) [ plugin
+    reimplements windowing via the generic editor.control.multiline.*
+    helpers ] before starting, since it is the one piece of real new
+    engineering in this whole feature -- everything else is composition
+    of what already exists.
+
+created: 2026-08-13
+tags: [user-edit, plugin, checksum-addressing, multiline, design-only]
+
+#,,.,,,..,.,.,..,,,,.,.,,,...,,..,.,.,.,.,..,,..,,...,...,.,,,,,,,.,,,,,.,,,,,
+#57ENE3NLVVT6YGC73M33QTGU3I7WZWDQKJ2R7G6KSEYFSYFKU6LB3VKOZK2AWKNPL5FWOMPRUZ3PO
+#\\\|GNF44LCDZKHROU6X6YRLYMXHHIGFXWEAXDVO4BTZGGTAKV2OEF2 \ / AMOS7 \ YOURUM ::
+#\[7]AVJCNVMDFSTLGPSX3HOGJXMHEBR5FSAH4AYEHLSKWGYAYCHK66BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
