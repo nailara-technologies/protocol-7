@@ -13,6 +13,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — begin_move_drag not move(); window.place grab-leak fixed fff81c212, initial-placement-before-show_all still open
+- [editing-p7-owned-data-files-reowns-them](feedback-editing-p7-owned-data-files-reowns-them.md) — hand-editing a protocol-7-owned data file (e.g. a users.* record) via Edit/Write silently reassigns it to my own unix user, and the owning zenka then reports the record as NOT FOUND, not a permission error — check `ls -la` ownership before ever hand-editing such a file
 
 ## Category files — open the one that matches the topic in play
 
@@ -47,8 +48,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,,.,...,,,,,,.,,,..,,,,,,..,,.,,.,,,.,,,..,,...,...,...,...,.,.,...,.,,,
-#25H6J45ZIZWH7ED4ZAHJDAUESC7IVKXKU5GXRN42N4D6UMHGSZ77FTWNSFUILC5E6BONEDKAREF6Y
-#\\\|QF24NYVA3ZA3PEZO4XNJKDUMXFGRJ6QSTAOSLHGCY4HXJ4GLCRG \ / AMOS7 \ YOURUM ::
-#\[7]Y6B7PO7XTAP36IOLQB2IMG36RK5N75QDCFXMSBYZI4AWGU6ID2DI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,.,,,,,,,...,,.,,...,,..,...,..,,...,..,,,..,,..,.,,,.,,,,,.,
+#DQJS2RHVOQQLOTK5CO3RB2NM7KZDNRVJP3FIYPVPNATR2ZTRVIPYCLZNMET7HNCFR2DIFFS3NKPIY
+#\\\|DDY6OMLE4U32UMH5RG2R63SFAPXHGCD6NGSYBAX2DVDTBFYM5Q2 \ / AMOS7 \ YOURUM ::
+#\[7]BRY2YIXQEJ6RXTNSG2DH4E5ZRMMEZDCKNKPAVGUZVM5DDGS424BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
