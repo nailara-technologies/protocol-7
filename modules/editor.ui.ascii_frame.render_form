@@ -227,10 +227,25 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
     ## list_info [ a windowed list's 'start-end of total' row,
     ## editor.control.list.expand ] joins them for the same reason -- it is
     ## READ-ONLY text about the list, not a value belonging to it
+    ##
+    ## 'plugin' joins them too, REAL BUG found live while building the
+    ## address-cluster plugin, not specific to it : get_cursor's offset is
+    ## into the RAW STORED BUFFER, but a plugin's display_override is free to
+    ## return an ARBITRARILY RESTRUCTURED string [ decorated, reordered, a
+    ## different entry's text entirely -- whatever the plugin's own tab_info
+    ## /render contract decides ] with no positional relationship to that raw
+    ## offset at all. overlaying the generic marker there lands it at a
+    ## meaningless position instead of corrupting nothing -- worse than the
+    ## list-summary case above, since a restructured string is more likely to
+    ## have SOME character sitting at that offset, silently misleading rather
+    ## than visibly broken. a plugin wanting its own cursor indication draws
+    ## one itself, exactly as this exclusion already expects every other
+    ## member of this list to
     my $cursor_bearing = not( $field_def->{'list'}
         or $field_def->{'menu_row'}
         or $field_def->{'add_field'}
-        or $field_def->{'list_info'} );
+        or $field_def->{'list_info'}
+        or $field_def->{'plugin'} );
 
     ## the add-a-field CYCLER already manages its own per-choice spacing [
     ## editor.control.cycler.render's cell design -- '+choice+' writes INTO
@@ -353,8 +368,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,.,,.,,,..,,...,,..,,.,,,..,,..,,,.,,,.,,.,,..,,...,...,..,,...,.,,,,.,,,,.,
-#UTZ437AJZ5R7QBQSSUQFFZL456I65E7UKUKLE3QV2EQQVTSVDR3YO3IS6KTYABIY4EOTQAJXYB2DM
-#\\\|345ATRFZTEA2QCZUW6XMX2ZUSEOQD72RQCOYEX2I5N7KFSL2OI3 \ / AMOS7 \ YOURUM ::
-#\[7]IQQUMPTOPRZXJ7RD2D5CS3E5CCXY6577ONEHRH36ZWLOIHXTXCBI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,...,,.,,,.,,,,,,,.,,,,.,,.,,,,,,..,,...,...,.,,,,..,..,,,,.,.,,,
+#3QSVS5O3KZS6X2CAWZDDZNTCLQXM3SN6UZFYNGE3XUFPDBMP4XPVNVFZY7MNECZKPOHBUVECYED42
+#\\\|QSPG6GFYXENOL2ZYU545GVP2HRR3HUGKOUVMURPE6AXSOJH5I2Z \ / AMOS7 \ YOURUM ::
+#\[7]L3N4OWQKVVIS4IVJVZBEFUHRAGQYCTLF7REPKM4Z7ONPUOXLKCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

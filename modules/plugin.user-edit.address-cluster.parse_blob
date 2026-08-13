@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = plugin.user-edit.address-cluster.parse_blob
+# descr = decode the stored 'address' scalar into an entries arrayref
+# param = $raw_text
+
+## the buffer IS the authority -- no in-memory copy persists across calls [
+## see user-edit-address-cluster-plugin.yaml's MULTILINE VIEWPORT section's
+## sibling reasoning against a second authoritative copy, same drift risk that
+## bit add_field/schema_from_record twice already this session ].  called
+## fresh on every render/handler.key invocation instead.
+##
+## LAZY MIGRATION, per the design doc's own resolution : an existing plain-
+## scalar 'address' [ written before this plugin existed, or by any client
+## that predates it ] does not parse as this plugin's own blob shape --
+## format.yaml.load_str returns something other than an arrayref, or the text
+## fails to parse at all. treated, for DISPLAY/EDIT purposes only, as a
+## SYNTHETIC one-entry cluster : single entry, primary => TRUE, body => the
+## raw legacy text verbatim, ref minted fresh for this call. NOT persisted
+## until an actual edit happens -- serialize_blob is what writes a real blob
+## back, this module only ever reads.
+
+my ($raw_text) = @ARG;
+
+$raw_text //= '';
+
+return [] if not length $raw_text;
+
+my ( $parsed, $err ) = <[format.yaml.load_str]>->($raw_text);
+
+if ( not defined $err and ref $parsed eq qw| ARRAY | ) {
+
+    ## defensive normalisation : every entry gets the four keys this plugin
+    ## reads, regardless of what an external writer happened to include
+    return [
+        map {
+            {
+                qw| ref |         => $ARG->{'ref'}   // '',
+                    qw| label |   => $ARG->{'label'} // '',
+                    qw| primary | => $ARG->{'primary'} ? TRUE : FALSE,
+                    qw| body |    => $ARG->{'body'} // '',
+            }
+        } grep { ref $ARG eq qw| HASH | } $parsed->@*
+    ];
+}
+
+## LAZY MIGRATION path -- synthesize a one-entry cluster from legacy text ##
+return [
+    {   qw| ref | => <[plugin.user-edit.address-cluster.gen_ref]>->( [] )
+            // qw| ??? |,
+        qw| label |   => '',
+        qw| primary | => TRUE,
+        qw| body |    => $raw_text,
+    }
+];
+
+#,,.,,.,,,..,,.,.,...,.,.,,,.,.,,,..,,,,,,,,.,..,,...,...,..,,,,,,,,.,.,.,.,.,
+#XCFRH2EKDVU3PFEYRBGBZ7KYHSZNEC7YB2ONPGXJWD32HBCW3QXIZBHUTSNKD7PBRQ4AYAPSQLSRI
+#\\\|NYNOWG5ULVGRGYEPFOOY2FBXEI6W456DXK7DLKVSWY4DNNRJKOT \ / AMOS7 \ YOURUM ::
+#\[7]3CK3DML4ZCC33MQJWZ6DUD5QACOET7DBOEDE6ZZKVZYYPXEUWMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

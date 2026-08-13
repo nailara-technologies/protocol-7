@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = plugin.user-edit.address-cluster.write_buffer
+# descr = replace the stored 'address' scalar wholesale with a fresh entries list
+# param = $editor_state, $field, \@entries
+
+## every mutating key in handler.key ends here : re-serialize the WHOLE list [
+## serialize_blob ] and replace the buffer's ENTIRE content, rather than
+## trying to patch just the changed characters -- the buffer is plain YAML
+## text with no stable per-entry byte ranges to patch safely, and a whole-
+## buffer replace is cheap at the small sizes this feature deals in [ one
+## user's own address list, realistically single digits of entries ].
+##
+## goes through editor.control.commands.delete/insert, NOT a direct hash write
+## to $editor_state->{'fields'}{$field} : that is what keeps readonly
+## enforcement, draft auto-save hooks and any other buffer-mutation observer
+## working exactly as they do for ordinary typed edits -- see plugin.user-
+## edit.example.handler.key's own precedent for going through these same two
+## calls rather than writing the buffer directly.
+
+my ( $editor_state, $field, $entries ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+return FALSE if not length $field;
+
+my $buffer = $editor_state->{'fields'}{$field} // return FALSE;
+my $len    = <[editor.buffer.memory.length]>->($buffer);
+
+<[editor.control.commands.delete]>->( $editor_state, $field, 0, $len )
+    if $len > 0;
+
+my $new_text
+    = <[plugin.user-edit.address-cluster.serialize_blob]>->($entries);
+
+<[editor.control.commands.insert]>->( $editor_state, $field, 0, $new_text )
+    if length $new_text;
+
+return TRUE;
+
+#,,.,,...,.,,,,,.,...,,,,,,.,,,..,..,,..,,,.,,..,,...,...,.,.,,,.,,.,,,,.,.,.,
+#I2RDYY6VVK2MSGJF247R4RKSXU2L6HN5O7QFAK5IDVR4NZANYSIUSA3AP4HI6CLX3XILG3O4QI2WE
+#\\\|GELVMOXLVSCLXBWTVFTOVGD4WIJQCWW5U3GC2LI5ZKAXG45ITFQ \ / AMOS7 \ YOURUM ::
+#\[7]TGGUZIE4MTUPFZRCRMNGQ45W5UVSORAQJ2OTUE5C4TYWHSAJHICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

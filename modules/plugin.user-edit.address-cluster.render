@@ -1,33 +1,148 @@
 ## [:< ##
 
 # name  = plugin.user-edit.address-cluster.render
-# descr = address-cluster plugin's display -- MINIMAL smoke-test stage
+# descr = address-cluster plugin's display -- collapsed summary + tab-mode entry view
 # param = $editor_state, $field
 
-## SMOKE-TEST STAGE ONLY, per plugin.user-edit.address-cluster.handler.key's
-## own note -- real blob parsing / primary-ref-plus-count display / per-entry
-## tab view come next. deliberately mode-aware already though, since THAT is
-## the one thing display_override must get right from the start : it fires on
-## every render regardless of mode [ editor.control.get_display_value calls it
-## unconditionally ], so this checks $editor_state->{'mode'} itself rather
-## than assuming collapsed vs entered.
+## fires on EVERY render regardless of mode [ editor.control.get_display_value
+## calls display_override unconditionally ], so this checks
+## $editor_state->{'mode'} itself rather than assuming collapsed vs entered --
+## see user-edit-address-cluster-plugin.yaml's MULTILINE VIEWPORT section.
+##
+## WIDTH BOUND, a SECOND, INDEPENDENT instance of the same width-explosion
+## class already fixed once in editor.ui.ascii_frame.render_form's generic
+## multiline block [ modules/editor.control.multiline.viewport_slice ] -- NOT
+## covered by that fix. this module has no access to the frame's own min_width
+## at all [ .render only receives $editor_state/$field, not the descriptor
+## build_frame computed ], and reaching for it would be a real layer violation
+## -- a plugin owns its one row completely, per
+## layout_embedding_field_type_dropin's own resolved architecture, so it
+## should not need to know the frame internals build_frame/render_form share
+## privately. a FIXED width constant is the architecturally consistent choice
+## here, not a shortcut : this plugin bounds its own output itself, same as it
+## owns everything else about this row.
 
 my ( $editor_state, $field ) = @ARG;
 
-my $stored = <[editor.control.get_value]>->( $editor_state, $field ) // '';
+use constant TAB_WIDTH => 72;
+
+my $raw     = <[editor.control.get_value]>->( $editor_state, $field ) // '';
+my $entries = <[plugin.user-edit.address-cluster.parse_blob]>->($raw);
 
 my $in_tab_mode
     = (
     ( $editor_state->{'mode'} // '' ) eq sprintf( qw| plugin:%s |, $field ) );
 
-return sprintf( q| [addresses:tab probe=%s] %s |,
-    $editor_state->{'plugin_state'}{$field}{'probe'} // 'undef', $stored )
-    if $in_tab_mode;
+## COLLAPSED : primary ref alone, plus a count suffix when more exist -- per
+## the design doc's own resolution, matches how a collapsed LIST field shows a
+## count rather than every entry
+if ( not $in_tab_mode ) {
 
-return sprintf( q| [addresses] %s |, $stored );
+    return q| [ none ] | if not $entries->@*;
 
-#,,,,,.,,,...,.,,,,.,,.,,,.,.,.,,,.,,,,,,,,,.,..,,...,...,,..,,,.,,,,,.,,,.,,,
-#MTT6OUORPXQEIE3HQHZBQAK2XXGEIXHBZMPQBOH2ALWADK3Q5YB36YUU7RKRXSNJWRBFWBT2ZGHHO
-#\\\|3A2CLZHBUZS3HRN6B6BADPYBWRHRH25QY7IPHQ4QE5DPJU6VRL5 \ / AMOS7 \ YOURUM ::
-#\[7]J4TPYFFUHVLB2PRHIBPEAROVTEM26ABKEAKA2LWSKONNPOYC72DY 7  DATA SIGNATURE ::
+    my ($primary) = grep { $ARG->{'primary'} } $entries->@*;
+    $primary //= $entries->[0];
+
+    my $extra = scalar( $entries->@* ) - 1;
+
+    return $extra > 0
+        ? sprintf( q| %s +%d |, $primary->{'ref'}, $extra )
+        : sprintf( q| %s |, $primary->{'ref'} );
+}
+
+## TAB MODE : the currently selected entry's label/primary/ref plus a
+## viewport-bounded view of its body's CURRENT line -- selection/target/
+## cursor state lives on $editor_state->{'plugin_state'}{$field}, confirmed
+## live to persist across separate char-add calls [ same object reference
+## <user-edit.form.state> always returns ], NOT the parsed $entries above --
+## that is re-derived from the buffer fresh on every call, never held
+## authoritative between calls, see parse_blob's own note on why
+my $state = ( $editor_state->{'plugin_state'}{$field} //= {} );
+
+my $selected = $state->{'selected'} // 0;
+$selected = 0            if $selected < 0;
+$selected = $#{$entries} if $selected > $#{$entries};
+$selected = 0            if $selected < 0;              ## empty list ##
+
+my $target = $state->{'target'} // qw| body |;
+my $cursor = $state->{'cursor'} // 0;
+
+if ( not $entries->@* ) {
+    return sprintf(q| [ no addresses -- Insert to add one ] |);
+}
+
+my $entry = $entries->[$selected];
+
+my $prefix = sprintf(
+    q| [%d/%d]%s ref:%s |,
+    $selected + 1,
+    scalar( $entries->@* ),
+    $entry->{'primary'} ? qw| * | : '',
+    $entry->{'ref'}
+);
+
+## the cursor marker is hardcoded '|' rather than taken from a param : this
+## sub has no access to the caller's configured marker character [ only
+## render_form's OWN generic overlay receives that, and cursor_bearing now
+## excludes plugin fields from it entirely -- see that module's own note on
+## why the generic overlay is actively wrong for a restructured display like
+## this one, not just redundant ]. matches the project's own default marker
+my $overlay = sub {
+    my ( $text, $is_active_target ) = @ARG;
+    return $text if not $is_active_target;
+    my $c = $cursor;
+    $c = 0             if $c < 0;
+    $c = length($text) if $c > length($text);
+    return substr( $text, 0, $c ) . q{|} . substr( $text, $c );
+};
+
+my $label_shown
+    = $overlay->( $entry->{'label'} // '', $target eq qw| label | );
+
+my $body_line = '';
+if ( $target eq qw| body | ) {
+
+    my $body = $entry->{'body'} // '';
+    my ( $line_no, $col )
+        = <[editor.control.multiline.cursor_line]>->( $body, $cursor );
+    my $lines    = <[editor.control.multiline.lines]>->($body);
+    my $raw_line = $lines->[$line_no] // '';
+
+    my ( $sliced, $display_col )
+        = <[editor.control.multiline.viewport_slice]>->(
+        $raw_line, TAB_WIDTH - length($prefix) - 20, $col
+        );
+
+    if ( defined $display_col ) {
+        $display_col = 0               if $display_col < 0;
+        $display_col = length($sliced) if $display_col > length($sliced);
+        $sliced
+            = substr( $sliced, 0, $display_col ) . q{|}
+            . substr( $sliced, $display_col );
+    }
+
+    $body_line = $sliced;
+
+} else {
+
+    ## label target : still show SOME of the body for context, unmarked ##
+    my $body       = $entry->{'body'} // '';
+    my $first_line = ( <[editor.control.multiline.lines]>->($body) )->[0]
+        // '';
+    ($body_line) = <[editor.control.multiline.viewport_slice]>->(
+        $first_line, TAB_WIDTH - length($prefix) - 20, undef
+    );
+}
+
+my $out
+    = sprintf( q|%s label:%s body:%s |, $prefix, $label_shown, $body_line );
+
+$out = substr( $out, 0, TAB_WIDTH ) if length($out) > TAB_WIDTH;
+
+return $out;
+
+#,,..,,,,,.,.,..,,..,,,,.,.,.,...,,,,,..,,,..,..,,...,.,,,..,,...,,,.,.,.,,..,
+#W2ROJHWE6KCX2BDRO3FDAD3E5YH4ZO5ISTYLLNNDNEJVLEFIJ4J6EUEU5L3SUNCMK357CFNBKPM2M
+#\\\|LIZVLHFH6MKFBQOHTP3A2FWVZUCX6IQYCAJTAMJIMHD3ZPJPWXC \ / AMOS7 \ YOURUM ::
+#\[7]X2WRU2BLYG7SFL77S2GLNKYC7GPZSCXND67EKFHE2NVGJ2LOCGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
