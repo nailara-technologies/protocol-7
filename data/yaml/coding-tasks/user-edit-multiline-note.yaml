@@ -1,0 +1,256 @@
+---
+# Task: user-edit multiline support for the 'note' field
+# Date: 2026-08-13
+# Status: IMPLEMENTED AND LIVE-VERIFIED, not yet signed/staged/committed.
+#         windowed display, PgUp/PgDn paging, mid-buffer Enter/newline
+#         insertion+split, auto-scroll-to-cursor, and submit round-trip all
+#         confirmed live against a throwaway record.  ONE real gap found only
+#         by testing against a REAL populated record (taeki's own, reported
+#         live by user) : Up/Down did nothing useful within a short note --
+#         the reserved blank rows below it LOOK like real lines [ same label,
+#         same row shape ] but only Left/Right/Enter could reach them.
+#         resolved per advisor + user : Up/Down now move within the buffer
+#         [ same column, clamped to the target line's length ] when there is
+#         another line to move to, and fall through to the ordinary
+#         field_next/field_prev conversion at the first/last line -- same
+#         escape-hatch discipline the plugin Right-trigger's Tab-trap fix
+#         established, confirmed live in both directions including the
+#         boundary [ Down on the last line / Up on the first correctly leaves
+#         the field ] and confirmed NOT to disturb an expanded LIST field's
+#         own Down/Up row navigation [ gated strictly on the focused field's
+#         own 'multiline' flag, never on row shape generally ].  a new shared
+#         helper, editor.control.multiline.line_col_to_offset, factors the
+#         line/column -> char-offset arithmetic used by both this and
+#         user-edit.form.scroll_multiline's PgUp/PgDn cursor-follow.
+#         PREVIOUS status, superseded by the above: Written after the
+#         zero-field bootstrap path landed (commit a8b99c923) — this is the next
+#         queued item from the original wishlist ("multi-line support for
+#         the optional key values"), scoped down to just 'note' per user
+#         (2026-08-13: "Only `note`" over "any scalar optional field").
+#         Consulted advisor before drafting; its steer shaped most of the
+#         recommendations below, credited inline where it applies.
+
+context: |
+  'note' is one of users.record.optional_fields' plain scalar fields [
+  default shape '' ], rendered today through the exact same freeform_line
+  path every other scalar field uses — one row, one line, no different
+  from 'location' or 'shell'. The ask is for it specifically to hold
+  multi-line prose comfortably : line breaks the user actually types, not
+  a single very long line that just widens the frame.
+
+  editor.control.create's own header already reserves the vocabulary for
+  this ["only the freeform_line field type has a real implementation ;
+  enum/masked/readonly/freeform_multiline stay interface-only for now"],
+  and editor-namespace-interface-design.yaml names 'freeform_multiline'
+  as a field type with "cursor = 1d-wrapped" — but nothing has ever
+  implemented it. bin/chat is cited there as a future consumer with its
+  own shape [ "one field, freeform_multiline, newline_on=enter,
+  submit_on=double_enter|ctrl_enter" ] — this task is the first real
+  implementation, scoped to user-edit's much narrower need.
+
+why_not_reuse_editor_control_list : |
+  The windowed-list machinery built this session [ window_cap,
+  expand/collapse/scroll, the ':..N-M.of.T..:' indicator row ] looks like
+  a tempting fit at first glance — same "cap the visible height, PgUp/
+  PgDn scroll" shape. Checked against advisor before committing to an
+  approach ; it fails on three independent points, the first fatal:
+
+  1. BLANK-LINE REAPING. schema_from_record's list branch does
+     `grep { defined and length }` on entries ; collapse and scroll both
+     `grep {length}` after harvest ; the per-entry Del feature deletes
+     blank interior rows ON PURPOSE. Every one of those exists because an
+     empty CONTACT entry is noise. An empty NOTE line is a paragraph
+     break — the exact opposite meaning. Reusing list's storage model
+     would eat every blank line a user typed.
+  2. NO MID-LINE INSERT OR SPLIT. Enter on a list row submits the whole
+     form [ user-edit.form.submit : "Enter submits from ANY field" ].
+     New list entries only ever appear via the trailing '' slot — there
+     is no "split this row into two here" operation, which prose editing
+     needs constantly.
+  3. FRAME WIDTH EXPLOSION. build_frame's width scan measures the
+     longest ENTRY across a list field to floor min_width. A single
+     200-character prose line would floor the whole form's width at 200
+     columns — correct for "the longest contact ever typed" being rare
+     and short, wrong for prose which routinely runs long.
+
+  So: 'note' stays ONE scalar buffer with embedded '\n', exactly as
+  editor.buffer.memory already stores it today [ confirmed by reading —
+  it is a flat perl string with a single character-offset cursor ; no
+  type switch anywhere in create/insert/delete ]. Only the DISPLAY needs
+  new machinery, built separately from editor.control.list.*, not on top
+  of it — the window/cap/scroll SHAPE is worth echoing for consistency,
+  the entries-array SEMANTICS are not.
+
+editing_model : |
+  UNCHANGED at the buffer level. editor.buffer.memory.insert/delete are
+  already pure character-offset operations against a flat string ; '\n'
+  is not special to either of them [ read both, confirmed — the only
+  guard either has is 'readonly' ]. Left/Right/Home-via-Ctrl-a/End-via-
+  Ctrl-e/Backspace/Delete/the kill-ring commands all therefore work on a
+  multi-line note WITHOUT ANY CHANGE, crossing line breaks exactly as
+  they cross any other character today.
+
+  The one thing that DOES need to change : Enter. process_key's existing
+  branch --
+
+    if ( $key eq "\n" or $key eq "\r" ) {
+        my $submit_on = $schema->{'submit_on'} // qw| enter |;
+        if ( $submit_on eq qw| enter | ) {
+            $result->{'action'} = 'submit';
+            ...
+        }
+        return $result;
+    }
+
+  -- always treats Enter as submit-or-nothing, checking only the SCHEMA-
+  level submit_on. Its own comment already anticipates the fix : "the
+  'newline' action is only meaningful for multiline field types". The
+  schema design doc separately reserves a per-FIELD submit_on override,
+  but nothing reads it anywhere today, and building out its full
+  vocabulary [ explicit_key / double_enter / ctrl_enter ] is a bigger
+  yak-shave than this feature needs.
+
+  RECOMMENDED, narrower : a new per-field-def flag, 'multiline => TRUE'
+  [ set by user-edit.form.schema_from_record for the 'note' field only,
+  the same way it already hand-sets 'sort_on_focus' for contact/phone —
+  duplication-by-hand is already this module's established pattern for
+  zenka-specific field policy ]. process_key's Enter branch checks the
+  ACTIVE field's own def for this flag BEFORE falling back to schema-
+  level submit_on ; when set, Enter inserts "\n" via editor.control.
+  commands.insert exactly like the printable-character branch does [ '\n'
+  is ord 10, which the printable check (ord >= 32) already excludes, so
+  this needs its own branch, not a relaxation of that guard ] and returns
+  action='newline' rather than 'echo' — a distinct action lets a host
+  repaint differently if it ever wants to [ none does yet ].
+
+  SUBMITTING A FORM THAT HAS A MULTILINE FIELD FOCUSED : Tab to a
+  different field, Enter there submits as normal — already true today,
+  needs no new code. No dedicated "submit from inside" key in v1 [ e.g.
+  Ctrl+Enter, matching bin/chat's own eventual convention ] — flagged as
+  a possible follow-up if this proves annoying in practice, not built
+  now.
+
+rendering_model : |
+  This is where the real new work is. editor.ui.ascii_frame.render_form
+  writes exactly ONE display string into ONE named ascii.frame slot per
+  schema field [ confirmed by reading — 'slots' in the generated frame
+  entry is built once from @names, one per schema field name ]. A raw
+  '\n' reaching that slot would corrupt the frame's row layout — ascii.
+  frame.render assumes one line of content per slot. So a multi-line
+  note MUST become multiple SYNTHETIC schema rows for display purposes,
+  the same structural move editor.control.list.expand already makes for
+  a list field's entries [ '<field>_0' .. '<field>_(cap-1)' plus a
+  read-only 'list_info' indicator row when windowed ] — echoing that
+  established shape for consistency, but implemented separately per
+  why_not_reuse_editor_control_list above, since the ROW CONTENTS this
+  time are slices of ONE shared buffer/cursor, not independent entries.
+
+  window_cap : RECOMMEND reusing editor.control.list.window_cap's same
+  constant [ 3 ] rather than minting a second one, so there is one
+  visual height budget in the app, not two silently-different ones. Open
+  to a larger cap for prose specifically if 3 lines reads as cramped once
+  it's actually on screen — cheap to change, not worth guessing at now.
+
+  Below the cap [ line count <= window_cap ] : each '\n'-delimited
+  segment becomes one synthetic read-only-labelled row, remaining
+  reserved rows blank — same shape as an unwindowed list today.
+
+  Above the cap : windowed exactly like list.scroll [ same PgUp/PgDn
+  keys, already wired in user-edit.handler.stdin_key's passthrough
+  table — that routing only needs to widen its target-mode check, not
+  grow a new key spec ], plus a 'list_info'-shaped ':..N-M.of.T..:' row
+  reusing editor.control.list.window_info verbatim [ same reasoning
+  list.window_cap's own header gives for itself : two implementations of
+  one format string would drift ].
+
+  ONE GENUINELY NEW PROBLEM list windowing never had : AUTO-SCROLL-TO-
+  CURSOR. A list window only ever moves on an explicit PgUp/PgDn, or an
+  explicit collapse/resort — nothing changes the window out from under
+  focus mid-edit. A note being typed does : if the cursor's current LINE
+  falls outside the visible window, it disappears off-screen with no
+  feedback, which is a broken editing experience, not a rare edge case
+  — it happens on ordinary typing the moment a note passes 3 lines.
+  RECOMMENDATION : after every keystroke that changes the buffer or moves
+  the cursor while a multiline field is focused, recompute which line the
+  cursor's character offset falls on [ new small helper, needs a line-
+  index-from-offset function — does not exist anywhere today, closest
+  precedent is none ] and shift the window offset just enough to bring
+  that line back inside [ offset, offset + cap ). This is the single
+  highest-risk piece of new logic in the whole feature — same weight
+  class the Tab-navigation trap turned out to be for the plugin tabs
+  work — and should get the same treatment : implement the simplest
+  version, then LIVE-DRIVE it with char-add sequences that deliberately
+  type past the window edge before trusting it.
+
+  CURSOR OVERLAY : render_form currently marks a field 'cursor_bearing'
+  as a single yes/no [ list/menu_row/add_field/list_info rows are never
+  cursor-bearing, every other row always is ]. A multiline note needs a
+  THIRD state : cursor-bearing on exactly ONE of its synthetic rows —
+  whichever currently holds the cursor's line — and plain text on the
+  rest, and WHICH one is cursor-bearing changes as the user types. This
+  is new logic in render_form, not just a new flag value.
+
+  NO SOFT WRAP in v1 : a single line longer than the frame's width simply
+  widens the frame, exactly like any ordinary scalar field does today —
+  wrapping a too-long line across multiple display rows is real added
+  complexity [ column math on a wrapped line's cursor position ] with no
+  concrete need behind it yet. Explicit-newline-only for v1 ; wrapping is
+  a clearly separable v2 if a real note ever needs it.
+
+storage_and_round_trip : |
+  NO CHANGE NEEDED, verified rather than assumed:
+    - users.record.optional_fields already declares note => '' [ a plain
+      scalar — no shape change required at all, unlike contact/location's
+      recent move ].
+    - user-edit.form.submit's JSON flattening [ 's|\n\s*||g' on the
+      PRETTY-PRINTED payload, to fit the line-based wire ] only strips
+      the ENCODER's own formatting newlines. A '\n' embedded inside a
+      JSON string VALUE is encoded as the two-character escape '\n', not
+      a raw newline byte [ confirmed against JSON::XS's documented
+      behaviour, cross-checked with an equivalent python json.dumps call
+      — an embedded real newline in the source string comes out as
+      '\\n' inside the quoted string, never as a literal newline byte ].
+      So the flattening regex cannot touch it — the existing comment's
+      claim holds for multi-line values too, not just the single-line
+      ones it was written against.
+    - format.yaml.write_file / load_str round-trip an arbitrary scalar
+      [ YAML block-scalar handles embedded newlines natively — this is
+      not project-specific, standard YAML ].
+    - user-edit.form.field_changed's draft checkpoint treats 'note' as
+      an ordinary non-list, non-masked scalar field already — no new
+      branch needed there.
+
+open_questions:
+  - window_cap : RESOLVED per user 2026-08-13 -- shared, unchanged at 3
+    [ editor.control.list.window_cap ]. A bump to 5 was tried and reverted
+    same day : it looked at first like it would only affect non-default /
+    plugin-pinned fields exceeding the cap, but it is the single shared
+    constant every list field reads [ contact, phone, any future one ],
+    so raising it moves ALL of them at once. Simpler to keep one number
+    for both features than carve out a second, field-scoped cap.
+  - auto-scroll-to-cursor : RESOLVED, built and live-verified -- confirmed
+    necessary [ manual-only PgUp/PgDn would let the cursor go invisible on
+    ordinary typing ].  surfaced a real conflict during implementation :
+    it would silently snap the window back to the cursor's own line
+    immediately after every PgUp/PgDn, since nothing else had moved the
+    cursor.  fixed by having scroll_multiline move the cursor to the
+    window's first line too, not just the offset -- same move list's own
+    PgUp/PgDn already makes for the identical reason.
+  - Up/Down WITHIN a multiline field : NOT in the original v1 scope [ see
+    editing_model's "no Up/Down movement in v1" ], but added same day
+    after live testing against a REAL populated record surfaced it as a
+    genuine usability gap, not a nice-to-have -- see this file's own
+    Status note at the top for the full account.  v1's "Tab to another
+    field, Enter there submits" workflow for leaving a multiline field is
+    UNCHANGED and still the only way to submit from inside one -- no
+    dedicated submit-from-inside key [ e.g. Ctrl+Enter ] was needed once
+    Up/Down could leave the field on its own at the first/last line.
+
+created: 2026-08-13
+tags: [user-edit, editor, multiline, note, ascii-frame]
+
+#,,.,,,..,,,.,...,.,.,.,.,,.,,,,.,..,,,,.,,.,,..,,...,...,.,,,...,...,,,,,,.,,
+#MBA3U3YP7Z3X43OOAET6JJGDHLMRN3DXIG7YFX7MR446A635AE6VNJWTY4FJHNQEHRR26LFSSJE72
+#\\\|C7ZB3HX3HLMQZJ6B5DVWP6ZBRDM6W4YWWRDSRQID3SAXVVBCQ6D \ / AMOS7 \ YOURUM ::
+#\[7]YPZRVT6LOOPY6UNVNXAWHQQCLH7R4DE5AUFRG7UN2NYNZGEKBUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

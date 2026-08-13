@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = editor.control.multiline.lines
+# descr = split a buffer's text into display lines, newlines never reaped
+# param = $text
+
+## the ONE place that decides what a "line" is for a multiline field --
+## user-edit.form.build_frame and editor.ui.ascii_frame.render_form both call
+## this rather than splitting by hand, so the two stay in agreement about how
+## many rows a given buffer needs [ same reasoning editor.control.list.summary
+## documents for itself ].
+##
+## split m|\n|, $text, -1 : the -1 LIMIT is load-bearing, not decoration.
+## without it, perl's split silently drops trailing empty fields -- a note
+## ending in a blank line [ "para one\n\n" ] would lose that trailing blank
+## the moment it round-tripped through here, which is exactly the "blank lines
+## are meaningful, never reap them" property this module exists to protect [
+## user-edit-multiline-note.yaml's why_not_reuse_editor_control_list note --
+## editor.control.list.* deliberately DOES filter blank entries, which is
+## wrong for prose ].
+
+my ($text) = @ARG;
+
+return [ split m|\n|, ( $text // '' ), -1 ];
+
+#,,..,.,.,,,.,...,...,...,,..,,,.,,.,,,.,,.,.,..,,...,...,..,,..,,...,,,.,.,,,
+#ZTCQCETSBMV67MUHICZZ6SFBCQVXQWFXGOWHSYU6KJWHM4QPSCGDDU34LEXGBGOEUJNLN5WPHQAT6
+#\\\|ZIWPWED27F3XMNOA7GDYVTJBHTMJNCVZJBUI3364UTF2QB2CTV4 \ / AMOS7 \ YOURUM ::
+#\[7]MMYA4YA6ENELTG7MVS6FQPLYA5CTLVTQPPQ4COMSFJZXKPMBO6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

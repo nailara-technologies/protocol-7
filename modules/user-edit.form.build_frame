@@ -326,6 +326,40 @@ if ($is_menu) {
 
         my $name = $field_def->{'name'} // next;
 
+        ## a MULTILINE field's own block -- see user-edit-multiline-note.yaml.
+        ## always shown windowed [ never a single-row collapsed summary the
+        ## way a list is ], so this handles its own body rows entirely and
+        ## moves on -- the generic label/token push and the list-only
+        ## expansion-row logic below both assume ONE token per field, which a
+        ## multiline field never has.
+        ##
+        ## the scrollinfo row is reserved UNCONDITIONALLY, not only once the
+        ## note actually exceeds the cap : the alternative is rebuilding the
+        ## frame's row STRUCTURE from ordinary typing the moment a note
+        ## crosses that threshold, which nothing else in this module does --
+        ## every other structural rebuild is triggered by an explicit event [
+        ## add/remove field, list expand/collapse ], never by a keystroke
+        ## landing inside an already-open field.  editor.ui.ascii_frame.
+        ## render_form leaves the slot blank while under the cap, reading as a
+        ## reserved blank row exactly like an under-cap list's own reservation
+        ## does today
+        if ( $field_def->{'multiline'} ) {
+
+            push @bodies, ''
+                if @bodies and $bodies[-1] ne '';
+
+            my $cap = <[editor.control.list.window_cap]>;
+
+            push @bodies,
+                sprintf( '   %*s:  {{%s_%d}}',
+                $label_width, $name, $name, $ARG )
+                foreach 0 .. $cap - 1;
+
+            push @bodies, sprintf( '  {{%s_scrollinfo}}', $name );
+
+            next;
+        }
+
         ## a LIST field's own block -- its collapsed summary row, or the FIRST
         ## row of an expanded group -- gets a blank line ahead of it, same
         ## reasoning the add-a-field row below already has : several
@@ -461,8 +495,8 @@ my $entry = {
 
 return $entry;
 
-#,,,.,...,...,.,.,,,.,,..,.,.,,..,,..,,,,,.,.,..,,...,..,,,.,,.,,,,,.,.,,,,,.,
-#OICIWKAMAKN44I5VBWQIJNW33LQFR4N2AB6R2S53VVKPG6PDOOTGZH7G5WUEG5VKFVHRMC3SO37AS
-#\\\|DEGRLWE246DOSUNA2WLZ2EZPUXSUR5RMZR2VZFHPUJ3WHQZCVIS \ / AMOS7 \ YOURUM ::
-#\[7]GGDUXFHVAX3G2NTLKZNTHZOO7TYBDYXCNSX6H3DXEKANE4PT3ECY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,...,...,.,.,.,,,,..,,,.,,..,..,,...,...,..,,...,.,.,..,,...,
+#HDPG4HTNH3ZOCIVTS6IIWHS744L55FRTAM5DCA57GEAELRTHPWYM25K3G5N3RURTI2S5HU77BEUOA
+#\\\|52NIXAXZ5NTT5LSTK67R7GTBB7MDR25ZLXYWSPXEDX5BRW6SAB6 \ / AMOS7 \ YOURUM ::
+#\[7]TZETEVOWTVPKLQSGSOL472HWAFLSDMECCQSO6CXYYZZCF3ZMUWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

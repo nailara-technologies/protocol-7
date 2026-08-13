@@ -146,6 +146,15 @@ my $cursor_char
     ? substr( $active_value, $active_cursor, 1 )
     : '';
 
+## a MULTILINE field's cursor can legitimately sit right before an embedded
+## '\n' [ end of any line but the last ] -- substr would then hand back the
+## newline itself, and every branch below would splice that raw byte straight
+## into an ansi-colored render, corrupting this row's alignment exactly like
+## an un-windowed '\n' reaching a slot does [  user-edit-multiline-note.yaml
+## ].  treated the same as "nothing here" -- same as $cursor_char already
+## being empty
+$cursor_char = '' if $cursor_char eq "\n";
+
 ## THREE cases, not two.  '-nc' blanks the COLOUR palette but is not a request
 ## for plain text -- bin/Protocol-7 keeps clear_screen as a real escape in
 ## that same branch -- and inverse video is an ATTRIBUTE, not a colour, so it
@@ -281,8 +290,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,.,,,..,.,.,.,,,,,.,..,,,.,,,.,,..,,,,,,..,,..,,...,...,,..,,.,,..,,,,.,,,.,
-#4GEEJ3W7ZK4NJZSLGJDCBG6BTBOKEKWUBNUXRVQIJZVOXQCGHKRIYLHKWLZ3EVXLDQBDATFVVOXFE
-#\\\|SD4L6OMJQCPL4VWBYLPI6N4NIAIP4CVCSBVQNVOD54L342HOPAL \ / AMOS7 \ YOURUM ::
-#\[7]Q5QDCXQNEDRQBEH2SVFZ76UZE3XCTPGOSP2MBO5YHFW7MEWSHOCI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,.,.,,..,,..,.,.,,.,,..,,..,,..,,...,..,,.,,,,.,,,..,.,,,,.,,
+#LACM4I7UUGLSWSU7CYFJHCH4MIYJD7X4JA7YLBBVPZ2RPWXNHKMB3TOCDMMODSVEWVVAZJR7RBLFG
+#\\\|KDNQ27PZKD2WUB3PC6M74JWQYEQ2ELAVCF3NSF772OPFV5YIRCE \ / AMOS7 \ YOURUM ::
+#\[7]Z5KWNRZNW7ERIMCJIMVJCW6TF3VQUC4C7HSNIWYP6KAQ7Q4OJIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
