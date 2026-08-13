@@ -64,8 +64,61 @@ longer creation-ordered, so listing now sorts by item text using
 broken descending-alphabetical via a reverse-then-stable-sort) — the first
 non-`base.sort`-internal reuse of that exact algorithm shape seen so far.
 
-#,,,,,..,,,.,,...,.,,,,.,,,,,,...,..,,..,,,,,,..,,...,...,...,.,.,.,,,.,.,,.,,
-#WZ3UTP5FUXKTBYNLCART3LUKFSFMPXE2KIKQQ2TU63OQWGJS2UBBK5M4PNLBLPFYTTKT3NFPN6EI6
-#\\\|WLRYVMOWJIM54KU4XNZRPTV7DAYRGDJKJ6MJDJBHED25AJZMAVD \ / AMOS7 \ YOURUM ::
-#\[7]5X2KL7SJ3E35VEMW4A5UT3J26XUJG4K3RBACVF4X7BTI3LLE54CY 7  DATA SIGNATURE ::
+**A second, distinct reason "add one" is wrong — PRECISELY WHERE it is
+wrong, corrected by user (2026-08-13) after an overstated first pass,
+surfaced while reusing this scheme for a new [[topic-user-edit-console-
+zenka-status]] address-cluster-ref design**: the problem is narrower than
+"any increment is bad". It is specifically using the incrementing value
+AS THE STORED IDENTITY itself — exactly `bin/todo`'s ORIGINAL `next_id`
+scheme above (iteration 1), where reconstructing "what the counter's next
+value should be" needs exact prior collision/skip state carried alongside
+it, on top of the birthday-paradox growth problem already documented
+above for iteration 2.
+
+An incrementing value used as ONE INGREDIENT HASHED INTO a checksum
+candidate is a different, perfectly fine thing — per user's own live
+example: `amos-chksum LOVES` → `PKHKHVA`, `amos-chksum 001:LOVES` →
+`NKDRXUA`. Different input, different checksum, entirely by design. The
+LANDED `gen_id()` above already does exactly this: `$try` (the retry
+loop's own counter, 1..200) sits directly in the seed alongside
+`time`/`$PID`/`rand()`. The final identity is always the HASH OUTPUT,
+checked directly against the live collision set on every attempt — never
+inferred from the counter's value, so nothing about it needs
+reconstructing.
+
+**Applied again, same corrected reasoning, one refinement**: when reusing
+this shape inside a running ZENKA (not a standalone script like `bin/todo`
+itself), the per-attempt seed can additionally fold in `<[base.ntime]>`
+[ this project's own encoded-epoch primitive, already what
+`users.record.build` stamps every record with ] alongside the existing
+`$try` component — a fresh `<[base.ntime]>` call each retry gives new
+high-resolution, project-native entropy per attempt, same "ask again"
+property the retry loop already has, without needing to drop the
+incrementing `$try` ingredient at all. See `data/yaml/coding-tasks/
+user-edit-address-cluster-plugin.yaml`'s own `ref_generation` section for
+the fuller adaptation (Fortuna instead of `rand()`, since a zenka has
+`<base.prng.fortuna>` available where a standalone script does not).
+
+**Final scoping, per user — the general rule, not just this feature's
+rule**: a plain incrementing counter used AS identity is still entirely
+valid, but mostly within a CLOSED entropy pool — one that fits in memory
+on a single node, or lives only as long as one session's own hash. The
+reconstructability failure mode above is really about the counter needing
+to be validated OUTSIDE the bounded scope that generated it — across a
+restart, across nodes, or once persisted without its accompanying counter
+state travelling with it. A counter that never leaves one node's memory
+for its whole meaningful lifetime has none of that problem, since nothing
+about it ever needs reconstructing — the history was never lost in the
+first place. `bin/todo`'s item ids and the address-cluster ref are both
+the OTHER case (persisted to disk, meant to survive process restarts and
+be referenced again later) — squarely where this matters, which is why
+random/checksum generation is right for BOTH. A transient in-session
+counter that never becomes the persisted key (row-numbering a not-yet-
+submitted UI list, for instance) could legitimately just increment — this
+scheme is not a blanket "never increment" rule.
+
+#,,..,,,,,.,.,..,,.,,,..,,,.,,.,,,.,.,,,,,,..,..,,...,..,,.,,,,.,,..,,,,.,,..,
+#LKRA7HEBJ56B34XBYOPTBIHKCMRJ3OWOG7BOZ3S7CQMMYSB3UTEKX2SLSCBG66LKKYIB4UUTBEZ4Y
+#\\\|SYGISSQTDTYW2DAE6B2QXMR3IUQROT2ZSAAYFDTGJHCMTSAMU5C \ / AMOS7 \ YOURUM ::
+#\[7]QAEX3GPSIRHTOOZWTGMPUZ5HEJ2VOOIHSQP6IKB6FF7HXM354KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
