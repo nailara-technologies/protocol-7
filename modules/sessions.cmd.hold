@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = sessions.cmd.hold
+# descr = hold a caller-supplied secret under a name
+# param = <name> <secret_b32>
+
+my $args = $call->{'args'} // '';
+$args =~ s/^\s+|\s+$//g;
+
+my ( $name, $secret_b32 ) = split q| |, $args, 2;
+$name       //= '';
+$secret_b32 //= '';
+
+return {
+    'mode' => qw| size |,
+    'data' => "<< usage: hold <name> " . "<secret_b32> >>\n"
+    }
+    if not length $name or not length $secret_b32;
+
+return { 'mode' => qw| size |, 'data' => "<< invalid name >>\n" }
+    if $name !~ m|^[\w\-]+$|;
+
+my $ok = <[sessions.util.secret.start_child]>->( $name, $secret_b32 );
+
+return {
+    'mode' => qw| size |,
+    'data' => sprintf( "%s\n", $ok ? "held $name" : "<< hold failed >>" )
+};
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,.,.,,,,,...,,.,,,,.,.,,,.,.,,..,,.,,..,,..,,...,...,..,,,,.,,.,,,,,,.,,,
+#66DO64YWYWTDMPWHR4BREFANFGH2XMBI62WPADDWHPZGEDPDDWCBACPZ6U24VA4TMJRHZOABRDQWO
+#\\\|DFFJPF2PE6U2MRRJ7XN2YTMIO26QRTQDWDVR2XERX6RCCKV6WK6 \ / AMOS7 \ YOURUM ::
+#\[7]DOHBG4OZ6G4J5FF4JSSGDBDOLPCGM7CEYVFRTQBXZW2GI6MD6QCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
