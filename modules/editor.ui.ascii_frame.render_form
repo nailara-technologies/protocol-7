@@ -411,9 +411,19 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ## enforced differently -- $collapsed_scalar's own definition above
         ## excludes the active field directly rather than through a separate
         ## sync step, so the two states are never observed together here
-        ## either
-        $value = <[editor.control.scalar.summary]>->($value)
-            if $collapsed_scalar;
+        ## either  masked : the count is a star total, not the real length [
+        ## editor.  control.get_display_value's variable
+        ## star-count-per-character ] -- 'chars' implies a length regardless,
+        ## so this noun stays distinct
+        $value = <[editor.control.scalar.summary]>->(
+            $value,
+            ( $field_def->{'type'} // '' ) eq qw| masked |
+            ? { qw| noun |          => qw| entr |,
+                qw| noun_plural |   => qw| ies |,
+                qw| noun_singular | => qw| y |,
+                }
+            : undef
+        ) if $collapsed_scalar;
         $value = $value . q{ };
 
     } else {
@@ -448,9 +458,9 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
             ## offset is into the VALUE, while this string now carries a cell
             ## in front of it.  clamped so it can reach the trailing cell but
             ## not the leading one
-            my $cursor
-                = <[editor.control.get_cursor]>->( $editor_state, $name )
-                // 0;
+            my $cursor = <[editor.control.get_display_cursor]>->(
+                $editor_state, $name
+            ) // 0;
             $cursor = 0 if $cursor < 0;
             $cursor++;
             $cursor = length($value) - 1 if $cursor > length($value) - 1;
@@ -506,8 +516,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,,,,.,,,.,,,.,,,,.,.,.,,.,,.,,,...,,,.,,,.,..,,...,..,,.,.,,..,..,,..,,..,,
-#NZ4NGYGTSEMETO5HO7C6TNAJGHV4CRQLYLDLJGXTDK4A4IPDPCNSJMLTOE7VFMHOWKG24AYF44BQM
-#\\\|OKOXT7MMIO32LTJPJBF35FGJLCIHTZE25ICGJOWCKVD3WERILOJ \ / AMOS7 \ YOURUM ::
-#\[7]OSGKKG4D5JJDKGFV43TZTVNKEMQISGMRWX5N4CAOZEH2XRWF2YCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,.,,,..,,...,.,,,,,.,,,.,..,,..,,...,..,,,,.,.,,,...,...,,..,
+#CRGWGA5GEQGIVHM2ZV76JDSKCNYIH5SRETFQOPICTKFHAEELP22CX7FKCBNUYDTF7PUUBP2HLTLNC
+#\\\|XF57ZDISDMZEIYBVEQRDW573IOW6IMKIHKETV4JWSYTCPIJC35Q \ / AMOS7 \ YOURUM ::
+#\[7]JZH6NUI6MUUCUSB2KUGQIOYO5GIMHOMPLENNOB2HNCZMBOEGTUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
