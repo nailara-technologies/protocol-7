@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = sessions.cmd.release
+# descr = retrieve + tear down a held secret, network-callable
+# param = <name>
+
+my $name = $call->{'args'} // '';
+$name =~ s/^\s+|\s+$//g;
+
+return { 'mode' => qw| size |, 'data' => "<< usage: release <name> >>\n" }
+    if not length $name;
+
+my $entry = <sessions.secrets>->{$name};
+return {
+    'mode' => qw| size |,
+    'data' => sprintf( "<< no secret held under '%s' >>\n", $name )
+    }
+    if not defined $entry;
+
+## read the child's response FIRST -- only then tear down. an unconditional ##
+## kill before/without confirming the reply risks the same reaper-race that ##
+## lost live diagnostic evidence during the identity holder's own debugging ##
+## [ base.sig_chld can reap the pid before this code re-checks it, if       ##
+## killed too early ]                                                       ##
+my $blob = <[sessions.secret.parent]>->( $name, qw| RELEASE |, '' );
+
+my $pid = $entry->{'pid'};
+kill( qw| TERM |, $pid )
+    if defined $pid and <[base.exists.sub-process]>->($pid);
+
+my $client_sock = $entry->{'client_sock'};
+close($client_sock) if defined $client_sock;
+my $listen_sock = $entry->{'listen_sock'};
+close($listen_sock) if defined $listen_sock;
+
+delete <sessions.secrets>->{$name};
+
+return { 'mode' => qw| size |, 'data' => "<< release failed >>\n" }
+    if not defined $blob;
+
+return {
+    'mode' => qw| size |,
+    'data' => sprintf( "%s\n", encode_b32r($blob) )
+};
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,..,,..,,..,,,.,,...,...,.,,,.,.,,..,,,.,..,,...,...,...,.,.,,.,,.,,,..,,
+#HKIDOSFEYWZERJMIMVPZBQ2VPRABMHTHRIXFLG46H5ZPGA2ZMLQL4HYPQFKO3SIOURCXJ2DRU757A
+#\\\|GDCMEZMVZQSUMPEU25FD6DCNEXHQIHR2C7GVOYLWETDST5KDSM2 \ / AMOS7 \ YOURUM ::
+#\[7]PQY7PBLZAKTLNG3K65XRTEXIS3WWFZAC4I2AZS6E47Z5NVDJSSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
