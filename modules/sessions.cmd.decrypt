@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = sessions.cmd.decrypt
+# descr = decrypt a console-supplied base32 blob
+#         [ from sessions.cmd.encrypt's output ], via the live child
+# param = <blob_b32>
+
+my $blob_b32 = $call->{'args'} // '';
+$blob_b32 =~ s/^\s+|\s+$//g;
+my $blob = eval { decode_b32r($blob_b32) };
+
+return { 'mode' => qw| size |, 'data' => "<< invalid base32 input >>\n" }
+    if not defined $blob;
+
+my $result = <[sessions.holder.parent]>->( qw| DECRYPT |, $blob );
+
+return { 'mode' => qw| size |, 'data' => "<< decrypt failed >>\n" }
+    if not defined $result;
+
+return { 'mode' => qw| size |, 'data' => sprintf( "%s\n", $result ) };
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,.,.,.,,,,,,,...,.,,,,..,.,,,.,,,.,.,,..,..,,...,.,.,,.,,,,,,,..,...,,,,,
+#NRM2UY7ADAQA7M4TXTQRBLI4B6W7DINOHJBTAJCWTVFXNV3AHALMNBBWZVCVRIYLZK2YWMGDNWHZO
+#\\\|GR3V2INAQ34U4XXJNG7TPYKMAGL6WNMIMEFDVSAPP4ODIA7XZ7A \ / AMOS7 \ YOURUM ::
+#\[7]Q5SHXL53TIDQUSLKMFPM5EX7557DJQZ23OHEGISQF335WR4MTABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

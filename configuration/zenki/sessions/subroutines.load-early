@@ -58,6 +58,7 @@ base.list.init
 base.init_code
 base.init-done
 base.hide_list
+base.file.temp
 base.file.open
 base.dump_data
 base.conf-wrap
@@ -100,6 +101,7 @@ base.chk-sum.elf
 base.call_filter
 auth.pwd.success
 auth.auth_select
+sessions.cmd.stop
 plugin.auth.zenka
 net.read_bytewise
 base.stream.close
@@ -121,6 +123,7 @@ base.context.list
 base.cmd.commands
 base.chk-sum.amos
 sessions.init_code
+sessions.cmd.spawn
 base.reload_values
 base.reload_config
 base.parser.config
@@ -136,6 +139,9 @@ base.event.add_var
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+sessions.cmd.status
+sessions.cmd.detach
+sessions.cmd.attach
 plugin.auth.twofish
 io.ip.tcp.init_code
 base.utf8.clean_str
@@ -155,6 +161,8 @@ base.extract_values
 base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
+sessions.cmd.encrypt
+sessions.cmd.decrypt
 io.ip.tcp.input.open
 base.route.init_code
 base.root.drop_privs
@@ -177,6 +185,7 @@ base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
 base.buffer.add_line
+sessions.holder.child
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
 base.session.shutdown
@@ -194,6 +203,9 @@ base.console.commands
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
+sessions.holder.parent
+sessions.holder.detach
+sessions.holder.attach
 crypt.C25519.sign_data
 base.session.init_code
 base.required_bin_path
@@ -243,9 +255,11 @@ base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
+base.file.zenka_dir.load
 base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
+base.buffer.erase_secure
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -258,10 +272,13 @@ base.log.send-buffer.init
 base.load_runtime_modules
 base.is_defined_recursive
 base.handler.link-upgrade
+base.file.zenka_dir.write
 base.erase_buffer_content
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
+sessions.holder.op.encrypt
+sessions.holder.op.decrypt
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
@@ -343,6 +360,7 @@ base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.handler.link-upgrade.input
+sessions.util.holder.start_child
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
@@ -372,6 +390,7 @@ crypt.C25519.load_keys_from_secret
 crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
+base.path-set-up.check-zenka-paths
 base.handler.link-upgrade.response
 base.handler.command.process_reply
 base.format.inline-nested.pre_init
@@ -413,6 +432,7 @@ base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
+sessions.util.holder.accept_with_timeout
 protocol.sftp.handler.read_server_output
 protocol.protocol-7.auth.select-size-mode
 base.zenki.ondemand.handler.startup_reply
@@ -429,8 +449,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,..,..,,,,.,,.,,,,,,..,,,,,,,..,,.,,...,..,,...,...,.,,,..,,.,,,,.,,.,,,
-#2AIBIGUL535YVH5CXGSKTGQKMC7JOJVLXCCEGGKEG6VUN7BJ6K5XAYYGR6PR2ITN3EJ2LV43LVTS2
-#\\\|RBGCFB6OGMN7GX4BEGCRVANZYVROJHGHUZSKE7OH2KQVS7G4LNZ \ / AMOS7 \ YOURUM ::
-#\[7]4LNID53F4HNSE5QOGRRVEGEFLHVB75NI3TRYXUJPLIVT4RWNPUCI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,,,.,,,...,,.,,...,..,,...,...,..,,...,...,...,.,,,...,...,...,
+#XE4NXSU5PSB77XDNA4BIKHB5D3BYCVIVCMDOW4XXHFH5VZ4JVA2HGO7TZTSWWG6DWDJ7IUXF2WUKQ
+#\\\|QV3XIWOKHV2S63J3VREAIF6ZAS76NP53F2WRDBRHYXDQZVGBB5M \ / AMOS7 \ YOURUM ::
+#\[7]3FUCOASGXW26HETP6H2V4YQDBGSFHIXZDRP2A224RCJHBAJIUUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

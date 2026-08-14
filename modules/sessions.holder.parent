@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = sessions.holder.parent
+# descr = dispatcher to the key-holding child. call with ('start') to
+#         spawn, or ('ENCRYPT'|'DECRYPT', $data) to perform an operation.
+#         refuses operations while dormant -- that gate is what the
+#         attach/detach knock protects.
+
+my $op   = shift // '';
+my $data = shift // '';
+
+return <[sessions.util.holder.start_child]> if $op eq qw| start |;
+
+if ( ( <sessions.holder.state> // '' ) ne qw| attached | ) {
+    <[base.s_warn]>->(
+        "sessions.holder: refusing '%s', "
+            . "state is '%s' -- attach first <{C1}>",
+        $op,
+        <sessions.holder.state> // 'unspawned'
+    );
+    return undef;
+}
+
+my $pid = <sessions.holder.pid>;
+if ( not defined $pid or not <[base.exists.sub-process]>->($pid) ) {
+    <[base.logs]>->( 0, 'sessions.holder: child not alive' );
+    <sessions.holder.state> = qw| unspawned |;
+    return undef;
+}
+
+my $sock     = <sessions.holder.client_sock>;
+my $data_b32 = encode_b32r($data);
+my $req_line = sprintf( "%s %s\n", $op, $data_b32 );
+
+my $written = syswrite( $sock, $req_line );
+if ( not defined $written or $written != length($req_line) ) {
+    <[base.logs]>->( 0, 'sessions.holder: failed to write request' );
+    return undef;
+}
+
+## bounded select/sysread read loop, same shape as ##
+## cred-mesh.key_holder.parent                     ##
+my $response;
+my $buf     = '';
+my $start   = <[base.time]>->(1);
+my $timeout = 7;
+
+while ( ( <[base.time]>->(1) - $start ) < $timeout ) {
+    my $rin = '';
+    vec( $rin, fileno($sock), 1 ) = 1;
+    my $nfound = select( $rin, undef, undef, 0.05 );
+    next if not defined $nfound or $nfound <= 0;
+
+    my $n = sysread( $sock, $buf, 65536, length($buf) );
+    if ( defined $n and $n > 0 ) {
+        if ( $buf =~ s|^(.+)\n||s ) {
+            $response = $1;
+            last;
+        }
+    } elsif ( defined $n and $n == 0 ) {
+        last;    ## EOF ##
+    }
+}
+
+if ( not defined $response ) {
+    <[base.logs]>->(
+        0, 'sessions.holder: timeout ' . 'waiting for child response'
+    );
+    return undef;
+}
+
+if ( $response =~ s|^OK\s+|| ) {
+    return eval { decode_b32r($response) };
+} else {
+    $response =~ s|^ERR\s+||;
+    <[base.s_warn]>->( 'sessions.holder: child error: %s <{C1}>', $response );
+    return undef;
+}
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,.,,,...,..,,.,.,,.,,,,.,...,...,..,,,.,,..,,...,...,...,.,.,,,,,..,,.,,,
+#Q4YOFH7KGSHGJ2XAYQ72WZQWS7W5PA2C55NLTHE5TLEQBNCJOGO5C2WEDTCXALARHHTGE7GFHGXRC
+#\\\|RWD33APCGMYFB5LYS5OYXDQZIOD23QXFATAX3D3QZ5OHSRDI2EN \ / AMOS7 \ YOURUM ::
+#\[7]QWPPW3ILUXPE6HAWTTNPEDMB4V6V7KBM3PQPSVXT54QKRHLBQWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

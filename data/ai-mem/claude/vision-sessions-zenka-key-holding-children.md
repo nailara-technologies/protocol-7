@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 3d67d3e5-c27e-4366-b904-c135559a9394
-  modified: 2026-08-13T17:09:49.444Z
+  modified: 2026-08-14T01:43:08.617Z
 ---
 
 **2026-08-13, still forming — user explicitly said "still thinking about
@@ -443,6 +443,108 @@ control protocol, not just spawn-once-and-pipe like chmod_child:
   passphrase is never transmitted or re-checked wholesale on every
   attach.
 
+## refinement, 2026-08-14 — connect-on-fork, not attach-on-signal, for the first run
+
+Per user: the `SIGUSR1`-to-attach handshake described above should NOT gate
+the child's *initial* connection. Before a child has ever been detached
+there is nothing to reattach to — the consumer spawned it on purpose and
+already knows the connection is wanted, so paying a signal-then-
+reverse-connect round trip for ordinary [non-timeout] usage is pure added
+latency with no corresponding benefit. Refined shape: the consumer opens
+its listening socket FIRST, forks the child with that socket path baked
+in, and the child connects out immediately at fork time, already active —
+no dormant-waiting-for-SIGUSR1 phase in the normal path.
+
+`SIGUSR1`/`SIGUSR2` remain the right mechanism for every attach/detach
+transition AFTER the initial fork — not narrowly "crash recovery." Per
+user correction, 2026-08-14: idle-timeout detach and security-level-driven
+detach (both already named in the original design) can cycle a child
+dormant→active→dormant repeatedly over its life with no crash or restart
+ever involved, so the signal path is not a rare fallback — it could be the
+MOST exercised part of the lifecycle if timeouts are tight. Only the very
+first connection, at fork time, skips the signal round trip; everything
+after that — however often — still goes through SIGUSR2/SIGUSR1. The
+reverse-connect *direction* (child dials out, never listens) holds
+identically at fork time and on every later reattach.
+
+## refinement, 2026-08-14 — the knock: non-replay signal sequence for attach/detach, settled shape
+
+Per user: the `SIGUSR1`/`SIGUSR2` attach/detach signals should carry a
+port-knocking-like non-replay sequence rather than being bare toggles.
+Settled after back-and-forth in conversation (not written until agreed,
+per the process note below):
+
+- **What the knock actually protects — integrity/liveness, not attacker
+  exclusion.** A key-holding child and its consumer (`sessions`) share a
+  UID (the child drops to `$UID=$EUID=$admin_uid`, same principal
+  `sessions` runs as). Anyone able to send it a signal is already that
+  UID, and at that point `ptrace`/`/proc/<pid>/mem` hand them the
+  decrypted key directly — a knock cannot exclude such an attacker, and
+  isn't trying to. What it actually guards against: **PID reuse** (a
+  detached child dies, the OS recycles the PID, a later signal reaches a
+  stranger process) and **stale/duplicate signals** (a `sessions` restart
+  racing a reattach, a leftover script, a double-send) — both are
+  integrity/freshness problems, not secrecy problems. The real
+  authorization already designed for this thread ("short ping compared
+  to a long passphrase" → `p7-link-upgrade-helper.pl`'s `derive-key`
+  step) runs AFTER connect, over the socket — the knock sits in front of
+  it and doesn't need to carry that weight itself.
+- **Real, live precedent for extracting a count from coalesced
+  signals**: `modules/base.sig_NUM55` (log-prefix-width sync, see
+  `data/tasks/v7-lpw-sync-debug.md`) already reads `$event->w->hints` —
+  Perl's `Event::signal` combined-events count — as `$signal_count` and
+  steps by that many. POSIX `SIGUSR1`/`SIGUSR2` don't queue at the OS
+  level (several sends before delivery collapse into one), but the event
+  library still recovers HOW MANY collapsed into that one delivery. A
+  knock encoded as burst-counts (send N times fast, receiver reads
+  `hints == N`) is a real, already-used technique here, not something to
+  import from POSIX real-time signals.
+- **But that same file documents a live, unresolved bug that's the actual
+  caution**: `cube` gets `hints=7` delivered as one batch and jumps
+  straight to max instead of stepping 1-at-a-time like `v7` does — the
+  count that arrives depends on the relative timing of the sender's
+  stagger against the receiver's event-loop drain rate, and that
+  relationship isn't reliable even in this simple, already-shipped case.
+  A knock design that demands an EXACT count match would inherit this
+  same fragility. **Resolution**: given the knock's actual job is
+  liveness/freshness, not exact-secret verification, read it with a
+  tolerant/windowed count match (HOTP-style skew window) rather than
+  requiring exact alignment — sidesteps the LPW bug's failure mode
+  entirely, at no cost to what the knock is protecting.
+- **Bandwidth note, not yet decided which is needed**: if the knock ever
+  needs to carry more than a repetition count (e.g. a value fragment, not
+  just presence+count), POSIX real-time signals (`SIGRTMIN..SIGRTMAX`) DO
+  queue individually and can carry a small integer via `sigqueue(2)` —
+  unlike `SIGUSR1`/`SIGUSR2`. Whether Perl's `Event` module exposes
+  `sigqueue` here is unchecked. Likely unnecessary given the
+  liveness-only scope above, but the option exists if the design grows.
+- **Shared counter for computing the next expected knock without
+  transmitting it**: `<[base.ntime.b32]>` is already the freshness stamp
+  `crypt.C25519.create_signature_request` uses, and advances 1 harmonic
+  position per real second (`4200 mod 13 = 1`, per
+  [[topic-harmonic-mathematics]]) — both ends can derive "what knock is
+  expected right now" from it without a round trip, same shape as a TOTP
+  counter. This is a plain freshness counter, not a claim that
+  division-by-13 arithmetic itself adds cryptographic strength — the
+  actual unpredictability still has to come from whatever secret seeds
+  the derivation (the child/consumer's shared verifier), same caveat as
+  the harmonic-mathematics thread's own repeated self-discipline about
+  keeping solid arithmetic separate from unproven security properties
+  layered onto it. **Namespace note, per user correction**: use
+  `base.ntime.*` (`epoch_timestamp`/`harmonized_epoch`/`delta_seconds`/
+  `B32_2_unix` — the actual harmonic network-time counter) wherever a
+  timestamp is needed for this, NOT `base.time.*` (a much smaller,
+  unrelated namespace — just `is_leap_year`/`year_utc_float`, calendar
+  utilities) and not raw system time. The two names look adjacent but
+  are different systems; only `ntime` carries the harmonic-position
+  semantics this design depends on.
+
+**Process note**: this shape went through two premature memory writes
+that the user corrected immediately after (attach-timing scope, then
+"only place" framing) before landing here — settled in conversation
+first this time, written once after user confirmation ("yes, sounds
+good"), per advisor guidance to stop the write-then-get-corrected loop.
+
 ## closing synthesis — sessions as ramp, not destination
 
 User's own close: the key tree (root-key contract + nested-checksum
@@ -471,14 +573,130 @@ via `base.p7ref.self`) — `sessions` is where these get exercised together
 for the first time, against a real target (the uninstalled fanless
 desktop's `taeki`/`root` accounts), not where any of them get invented.
 
+## LANDED, 2026-08-14 — first key-holding child built and verified live; the
+## knock design from earlier in this file did NOT survive contact with a
+## real implementation
+
+Uncommitted, working tree only (`modules/sessions.holder.*`,
+`sessions.util.holder.*`, `sessions.cmd.*`, `base.buffer.erase_secure`,
+plus `configuration/zenki/sessions/start` gaining the command list). Built
+against a plan file, then debugged live for a long stretch — the section
+below is what actually survived, not what was designed on paper.
+
+**What works, live-verified**: `sessions.cmd.spawn` forks a child (real
+distinct pid, confirmed via `ps -o ppid`, not just a thread), which dials
+out to a parent-opened unix listener immediately at fork time (connect-
+on-fork, no signal wait for the first connection — that part of the
+original design held). `IO::AIO::aio_mlock` on a 32-byte test key,
+confirmed via `VmLck` in `/proc/<pid>/status`. `sessions.cmd.encrypt`/
+`.decrypt` round-trip through the live child (ChaCha20Poly1305, key held
+in the child, never touches the parent). `sessions.cmd.detach` closes the
+control socket (EOF-driven), the child survives — confirmed alive
+afterward, unlike `cred-mesh.key_holder`'s always-refork model.
+`sessions.cmd.attach` sends `SIGUSR1`, child wakes and redials the SAME
+socket path, SAME pid, SAME mlock'd key — verified by decrypting a blob
+encrypted BEFORE detach using the key held AFTER reattach, and by a fresh
+encrypt/decrypt round trip post-reattach. `sessions.cmd.stop` sends
+`SIGTERM`, child's own handler calls `base.buffer.erase_secure`
+(extracted from `bin/p7-auth-keypair-helper.pl`'s script-local
+`erase_buffer_secure` — now shared, `<[base.buffer.erase_secure]>->
+(\$buffer)`) and exits; confirmed the child process actually disappears.
+
+**What did NOT survive, and why — three real bugs, not one**:
+
+1. **`base.event.add_signal` doesn't lazy-load its handler.** It checks
+   `exists $code{$handler}` on a plain runtime string — P7's on-demand
+   module loader only triggers on a literal `<[module.name]>` macro
+   occurrence at compile time, never on a module name passed as data.
+   Registering a signal handler by name-as-string silently failed
+   ("nonexistent callback"), leaving the signal at its OS-default
+   (terminate) disposition — the child was killed outright by its own
+   detach signal. Confirmed by directly reading `base.event.add_signal`'s
+   source, not inferred. **General lesson**: anything that takes a P7
+   module name as a runtime value (not literal macro syntax) needs an
+   explicit priming `<[module.name]>;` call first to force compilation,
+   or it will not be `exists $code{...}` when something else checks for
+   it later.
+2. **A forked child inheriting a live `Event.pm` loop is unsafe** — the
+   fork also inherits the PARENT's entire Event.pm internal state (its
+   polling fd, existing watchers on the parent's own cube connection,
+   etc). Calling `Event::loop()` in the child saw that inherited,
+   unrelated state and returned IMMEDIATELY with no signal ever having
+   arrived — confirmed by directly capturing `waitpid`'s `$?` before
+   `base.sig_chld`'s own automatic reaper could race for it: exit status
+   0, a clean voluntary exit, not a crash. This is exactly why
+   `cred-mesh.key_holder.child` (the precedent this design was built
+   from) deliberately uses NO Event.pm in its child at all — that was a
+   correctness requirement, not a style choice, and this design initially
+   missed it. **Fixed by matching cred-mesh exactly**: plain `%SIG{USR1,
+   USR2}` closures + `POSIX::pause()` for the dormant wait, zero Event.pm
+   involvement in the child. Perl's own deferred-signal-safety handles a
+   plain `%SIG` handler correctly even mid-blocking-syscall (confirmed
+   live and via an isolated reproduction script), which is what makes the
+   ATTACHED state's plain `<$sock>` readline safe to interrupt.
+3. **The ntime-bucket knock-count matching from this file's earlier
+   "settled" design does not work.** `base.ntime` carries per-process
+   harmonization/retry state (`$data{'base'}{'retry-count'}{'ntime'}`
+   etc.) — it is not a deterministic function of wall-clock time two
+   processes can compute independently and expect to agree on a fraction
+   of a second apart. A freshly-forked child and its parent computed
+   different bucket values immediately after fork, not after any real
+   drift. **This directly contradicts the earlier "2026-08-14 refinement"
+   section above** (`base.ntime` as a shared TOTP-style counter) — that
+   section's assumption doesn't hold and should not be reused elsewhere
+   without first confirming `base.ntime` is actually stable across
+   processes for whatever new purpose is being considered.
+
+**Net effect on the knock design**: the whole `NUM56`-counted-knock
+mechanism from earlier in this file (realtime signal, `hints`-based
+count, tolerant window) was cut entirely, not just simplified. What
+shipped is a plain `SIGUSR1`/`SIGUSR2` pair — presence-only, no count, no
+cross-process clock agreement. `SIGUSR2` is now pure after-the-fact
+corroboration logging with zero effect on state (EOF is the sole
+authority for the detach transition); `SIGUSR1` is the sole real actor,
+safe because the child is genuinely parked in a signal-only wait
+(`pause()`) with nothing else competing for signal delivery. The
+integrity/liveness framing from the connect-on-fork/knock discussion
+earlier in this file (PID-reuse detection, stale-signal rejection) is
+NOT implemented by this — it's a real gap, not a solved-and-simplified
+problem, if that property is ever actually needed. A future revision
+wanting it back should design it against a verified-stable freshness
+source, not `base.ntime`, and should not reintroduce Event.pm into the
+child under any circumstances.
+
+**Also cut, not yet extracted**: `bin/p7-auth-keypair-helper.pl`'s script-
+local `erase_buffer_secure` was NOT switched to call the new shared
+`base.buffer.erase_secure` — that script runs standalone via `popen()`
+from C, outside any zenka process, so it cannot reach `<[module.name]>`
+syntax at all. The shared module exists for `sessions`' own use and any
+future P7-module-side caller; the standalone script keeps its own copy.
+
+**Debugging method worth repeating**: black-box `p7c`-level testing
+repeatedly gave misleading signal (stale/orphaned zenka instances still
+registered with cube after `v7.restart`/`v7.stop` — confirmed via `ps -o
+pid,ppid` cross-checking against `list subnames`; `p7c term-all <sid>`
+was the reliable way to force a clean instance when `v7.restart`/`v7.stop`
+left stale registrations, a pre-existing v7 lifecycle gap unrelated to
+this work). The turning point was capturing `waitpid`'s raw `$?` directly
+in the code path under test, before the framework's own automatic
+`SIGCHLD` reaper (`base.sig_chld`, wired via `install_signal_handlers`'s
+`chld` entry) could reap the child first and erase the evidence — inferring
+cause of death from log silence alone produced two wrong theories in a
+row.
+
+The knock-mechanism design history earlier in this file (realtime signal,
+`hints`-based count, ntime-bucket matching) predates this landing and is
+kept for the record of how the design got here, not as a description of
+the current implementation.
+
 [[project-users-zenka-unblocks-cross-host-testing]]
 [[project-keys-zenka-integration-direction]]
 [[project-credential-types-into-user-edit]]
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,.,,,.,,,.,.,,,..,,...,.,.,,..,,.,,.,.,,,,,.,.,...,...,...,,,.,..,,.,,,,.,,
-#KCZRD6HSAIFRNSRYXQDUPYIELEO4R7DXOI2UKDIC6B5FVYWKHRECWED2OYVWBWSHT2ZYHVR2KZQFC
-#\\\|JNO4SVVZWWNUYSS7R7VTR64SU47MZFXISM7I7LQIUVG35QY3TEU \ / AMOS7 \ YOURUM ::
-#\[7]TQCYPGGHIQHVOX27VAE6S7WCVQKJJL6AJISAYFCB5BDAJK2PLUDI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,.,,,,..,...,,,,,.,.,,.,,,.,,.,.,...,.,.,.,,,.,.,,..,,,,,.,,,
+#OSEDT654QCTLPLBNUZ4FRRDJHBRLXXBYCOMRPSRTXD6H4GKVH4FDDQEKTDJQXQ6K37AAWXRAPP7SS
+#\\\|CX45M46BZTZ6GXNSTMJPGP5VU6TIY6D2FPK7JPA5MO5C7LRBW2G \ / AMOS7 \ YOURUM ::
+#\[7]BFAIZNA2RTV6LG7YWPUKXXQ733R5RPHGLRX24CBW2D74HZPVWYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

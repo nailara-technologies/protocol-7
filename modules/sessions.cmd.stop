@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = sessions.cmd.stop
+# descr = terminate the key-holding child [ SIGTERM triggers a
+#         secure key erase before exit ], clear parent-side state
+
+my $pid = <sessions.holder.pid>;
+
+if ( not defined $pid ) {
+    return { 'mode' => qw| size |, 'data' => "<< nothing running >>\n" };
+}
+
+kill qw| TERM |, $pid;
+
+my $sock = <sessions.holder.client_sock>;
+close($sock) if defined $sock;
+my $listen_sock = <sessions.holder.listen_sock>;
+close($listen_sock) if defined $listen_sock;
+
+<sessions.holder.pid>         = undef;
+<sessions.holder.client_sock> = undef;
+<sessions.holder.listen_sock> = undef;
+<sessions.holder.state>       = qw| unspawned |;
+
+return { 'mode' => qw| size |, 'data' => "<< stopped >>\n" };
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,..,,...,.,,,,,,,...,,.,,,..,...,.,,,.,,,..,,...,..,,..,,,.,,,,.,,,,,.,.,
+#7WLFFMCDOG4IJ76AK32UKML6GL64RMMTRPVINX3AQ2YZSRLI7Z5F5KB7EEI3RE5QMVA4TVCJQMSVU
+#\\\|6C3YZHL5XY5JWLX6WF736ZVZWAQB24PCWDHEQDALHF5IIHLWJIJ \ / AMOS7 \ YOURUM ::
+#\[7]WWCUD4KPEWRNNZKQWB75PIJMSOQTMRVWO2UFUHOIGXXPOOH2PIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

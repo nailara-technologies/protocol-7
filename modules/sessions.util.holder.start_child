@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = sessions.util.holder.start_child
+# descr = open the control socket and fork the key-holding child.
+#         idempotent -- returns TRUE immediately if already running.
+
+return TRUE if defined <sessions.holder.pid>;
+
+## socket path is generated once and reused for the whole pairing's  ##
+## lifetime -- attach/reattach redial the SAME path, not a fresh one ##
+<sessions.holder.socket_id> //= <[base.prng.chars-anum]>->(16);
+my $socket_path = sprintf( qw|/var/run/.7/UNIX/sessions.holder.%s.sock|,
+    <sessions.holder.socket_id> );
+
+my $listen_sock = <[io.unix.socket.input.open]>->(
+    $socket_path, 0600, <system.amos-zenka-user>
+);
+if ( not defined $listen_sock ) {
+    <[base.logs]>->( 0, 'sessions.holder: failed to open control socket' );
+    return undef;
+}
+
+my $pid = <[base.fork]>;
+if ( not defined $pid ) {
+    <[base.s_warn]>->( 'sessions.holder: fork failed: %s <{C1}>', $OS_ERROR );
+    return undef;
+}
+
+if ( $pid == 0 ) {    ## child ##
+    <[sessions.holder.child]>->($socket_path);
+    exit(0);
+}
+
+## parent -- accept the child's FIRST connect directly, no signal wait:     ##
+## before any detach has ever happened there is nothing to reattach to, and ##
+## the consumer already knows the connection is wanted                      ##
+my $client_sock
+    = <[sessions.util.holder.accept_with_timeout]>->( $listen_sock, 3 );
+if ( not defined $client_sock ) {
+    <[base.logs]>->(
+        0, 'sessions.holder: child did not connect within timeout'
+    );
+    return undef;
+}
+
+<sessions.holder.pid>         = $pid;
+<sessions.holder.socket_path> = $socket_path;
+<sessions.holder.listen_sock> = $listen_sock;
+<sessions.holder.client_sock> = $client_sock;
+<sessions.holder.state>       = qw| attached |;
+
+<[base.logs]>->(
+    1, 'sessions.holder: child ' . 'forked and attached (pid %d)', $pid
+);
+
+return TRUE;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,,,,.,,,,..,..,,,,.,,.,,..,,,,.,,,.,.,.,..,,...,...,...,..,,,,.,,..,.,,,
+#S2STQT2ERH6RSSXJZ3KNGZFPLRA7FVECESEJF6DNJN5MLRJNSTKYLXVDCG4JMIRZ5EO5HWRZMK25Y
+#\\\|3GVRALYN4USVUOYSMBV7X7SI6MHXXDHS3N2IP7QQ35OMVCNKRTD \ / AMOS7 \ YOURUM ::
+#\[7]A6UJUWETYMMC6QG2KZRM27QDHGLKAUQVDQUKZE74QRVURU6CN6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
