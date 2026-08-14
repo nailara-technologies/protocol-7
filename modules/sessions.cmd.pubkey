@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = sessions.cmd.pubkey
+# descr = retrieve the live child's C25519 public key
+#         [ separate from status: this is a live round-trip through
+#         the attached child, not a zero-cost parent-local read ]
+
+my $pubkey = <[sessions.holder.parent]>->( qw| PUBKEY |, '' );
+
+return { 'mode' => qw| size |, 'data' => "<< pubkey failed >>\n" }
+    if not defined $pubkey
+    or length($pubkey) != 32;
+
+my $checksum = eval { <[crypt.C25519.key_bin_checksums]>->($pubkey) } // '?';
+
+my $out = sprintf( "pubkey: %s\nchecksum: " . "%s\n",
+    encode_b32r($pubkey), $checksum );
+
+return { 'mode' => qw| size |, 'data' => $out };
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,..,..,,,..,,..,,..,,,.,.,,,.,.,...,,.,,..,,...,..,,,,,,.,.,,.,,,.,,.,.,
+#WIASROH32TCVN55A34CQID5YO2TFBWMDIWQATCA5WPSP6T5TPCW3QJED57PAXE5B4M3NK36KRSEIA
+#\\\|67LIOVHJVMTPMMRM2WZBKG5ZXEXLEN6H2IO73U6J237JY2227KZ \ / AMOS7 \ YOURUM ::
+#\[7]QBJLMFVUN44AAHBO6A5JYCBEHVIZ6TONFNCJYY6OXBB2HYYAYMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = sessions.cmd.sign
+# descr = sign a console-supplied string via the live identity
+# param = <plaintext>
+
+my $plaintext = $call->{'args'} // '';
+$plaintext =~ s/^\s+|\s+$//g;
+
+my $blob = <[sessions.holder.parent]>->( qw| SIGN |, $plaintext );
+
+return { 'mode' => qw| size |, 'data' => "<< sign failed >>\n" }
+    if not defined $blob
+    or length($blob) < 4;
+
+my $signed_len = unpack( qw| N |, substr( $blob, 0, 4 ) );
+my $signed_str = substr( $blob, 4, $signed_len );
+my $signature  = substr( $blob, 4 + $signed_len );
+
+my $out = sprintf(
+    "signed: %s\nsig:    %s\n",
+    encode_b32r($signed_str),
+    encode_b32r($signature)
+);
+
+return { 'mode' => qw| size |, 'data' => $out };
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,..,,,..,...,,,.,,.,,,,,,..,,.,,,,,.,,,.,..,,...,...,,..,..,,,.,,,,,,,.,,
+#AVZDCMLUXT57YRGRRYBGKSZQWPDMS6ZJXUE6SCRLQXJZL34DBWMUJBJRANKPEJIRGW5BZG5CNE5UA
+#\\\|AWCMBOPT57V3KRV54CEI67WXESFTXLQQJR4MD4ABIAGQP242VVZ \ / AMOS7 \ YOURUM ::
+#\[7]PEOHU557GFVIHCR7ECXUWFLDIQJAAP4HJKOBP6BSPYRXDOPBJACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
