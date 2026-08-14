@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = users.cmd.remove
+# param = <username>
+# descr = delete an existing host-system user record
+
+## mirrors users.cmd.create-default structurally, with the existence check
+## inverted : create-default refuses a record that already exists; remove
+## refuses one that does NOT exist.  deletes the whole record directory,
+## [USERS_HOST]/<user>/, not just details.yaml, because a record is a
+## directory by design [ see users.record.path ].
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.remove <username>'
+    }
+    if not length $args;
+
+my $username = $args;
+$username =~ s|\s.*||s;    ## first whitespace-delimited token only ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'username cannot contain path separators'
+    }
+    if $username =~ m|[/\\]|;
+
+my $file_path = <[users.record.path]>->($username);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "user '%s' record does not exist", $username )
+    }
+    if not defined <[format.yaml.load_keyword_path]>->($file_path);
+
+my $resolved_dir = <[base.path.resolve_keywords]>
+    ->( sprintf( qw| [USERS_HOST]/%s |, $username ) );
+
+my $removed = <[file.remove_tree]>->($resolved_dir);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        "failed to remove user '%s': %s",
+        $username, 'unknown error'
+    )
+    }
+    if not $removed;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "user '%s' record removed", $username )
+};
+
+#,,,,,,..,,,,,...,.,,,,,.,,,.,.,,,...,,.,,,,,,..,,...,.,.,..,,...,...,...,.,.,
+#SPQX4VZ4UTZLTWQH6KJXQVEUNBVLXS3SZRLE4WKDB5Z7EKP2PSBW2I64WYILFMZFM5UAGV4JVZS6S
+#\\\|Y5FTMARFPSK4MR7MDPAPWLFDMBI7ON2V67DLCXPI257OF5IA52H \ / AMOS7 \ YOURUM ::
+#\[7]SHHVYSFPD22PVPFD2INHX56OGP6YMMPBSZHGIP22XBW2QK67VMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
