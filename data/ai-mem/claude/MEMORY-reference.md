@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [forked-child-lazy-load-and-event-safety](reference-forked-child-lazy-load-and-event-safety.md) — a P7 module name passed as a runtime string (e.g. to event.add_signal) never triggers the on-demand loader, only a literal `<[module.name]>` occurrence does — prime it first; a forked child must NOT use Event.pm (inherits the parent's live watcher/polling state, Event::loop() can return spuriously) — use plain %SIG + POSIX::pause(), matching cred-mesh.key_holder.child
 - [wslg-pulseaudio-bridge-check-before-mpv-debug](reference-wslg-pulseaudio-bridge-check-before-mpv-debug.md) — mpv silently idle after "submitted for playback"? check mpv's own end-file event log + `pactl info` against WSLg's PulseServer bridge BEFORE chasing Protocol-7 routing/STRM code; stale bridge socket (exists but connection refused) needs `wsl --shutdown` from Windows host, not a code fix
 - [editor-add-field-cycler](reference-editor-add-field-cycler.md) — inline `+a+|b` cycler + `users.record.optional_fields`. TWO TRAPS: a synthesised ACTION row must never reach storage, and a schema def appended after `editor.control.create` has NO buffer. `v7.restart users` before testing `users.*` changes. Plus: why the frame's width is set by `ascii.frame.render`'s own row-overflow detection (`build_frame`'s `min_width` only predicts it, doesn't cause it) and the padded-internal-token-name technique that follows from that; the `\x06`-sentinel technique for hand-colouring one row inside an auto-coloured frame; the Esc-on-expanded-list mode bug (fixed) and why `char-add` can never test the bare-Esc debounce at all
 - [user-edit-headless-driving](reference-user-edit-headless-driving.md) — how to actually drive the form with no terminal: start detached with `-no-tty`, route `char-add` by SESSION ID (by name it answers `client not present` — the zenka registers as `<unix-user>[user-edit]`), `[Ctrl+k]` not `[Ctrl-k]`, navigate by the returned rendering never a counted `[Down]` run, never `pkill -f user-edit` (it kills the calling shell); this harness can NEVER show real ANSI cursor styling (pty tricks included) and `char-add`'s self-overlay makes visual diffing useless for cursor-position bugs — use a temporary sentinel-return swap instead; `list subnames` lags a freshly started session by a few seconds, cross-check via `ps`/`list sessions`' `since` column
@@ -60,8 +61,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 - [nshell SS3 arrows + live debug probe](reference-nshell-ss3-arrows-and-live-debug-probe.md) — DECCKM terminals send arrows as SS3 not CSI, `cat -v` settles it in one step (0747face5 fix); `debug-status` safely reads any live session's state, `char-add` injection only works if zenka started with `-no-tty-debug`
 
-#,,.,,...,,,.,..,,..,,,,,,,.,,,..,,.,,,.,,,,,,..,,...,.,.,.,.,,,,,,,,,,,.,,,,,
-#ONF343BK7SAMDKMJHQACNC4I4FMF3J2YO3LTKRAGLT4PTTDLDZWAWY4FR5D6PVSXWA6IYLRNU557A
-#\\\|LNPIBEIQM6NAPDE4IY3LVZ4PJAUJV5SN47BEZGKQT5PJFPXK7II \ / AMOS7 \ YOURUM ::
-#\[7]X3DQ5JUWTO6OSJQOTOBO7UBUIS3WWYHURH3OLDNFHW5BAOISVSCY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,,,.,,,...,,,,,.,,,...,,..,,..,..,,...,...,...,...,..,,.,,,..,,
+#DAEHXFH2DPRRHPSLFUNF6Z5P5V7IIQPSDDGWSKMZ6HK5XGNIQHL5KHUFWW5EWQD7MM36S4J2CVJVU
+#\\\|PSZCOARULPRKATMBWQZAWBAMNZU6IAVUMIDGYWECHSJW2ZWY2QX \ / AMOS7 \ YOURUM ::
+#\[7]YVE6OFKDV7C2I6L26OHWESXZ5SJ45TRGRSU6LMQHIO2QNEWBM4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
