@@ -15,10 +15,20 @@ utf8::decode($text) if length $text and not utf8::is_utf8($text);
 $buffer->{'text'}   = $text;
 $buffer->{'cursor'} = 0;
 
+## an external rewrite bypasses insert/delete entirely -- resync the parallel
+## star-count array here too, or a masked field's mask_stars goes stale [
+## mismatched against the new text ] and stays that way forever, since neither
+## insert nor delete ever rebuilds it wholesale, only trims at a given
+## position -- editor.control.get_display_value's own mismatch guard would
+## then permanently fall back to flat, length-revealing masking for the rest
+## of the session
+$buffer->{'mask_stars'} = [ map { int( 1 + rand(3) ) } 1 .. length $text ]
+    if ( $buffer->{'type'} // '' ) eq qw| masked |;
+
 return TRUE;
 
-#,,.,,...,,..,.,,,,.,,.,,,,,,,.,.,,,,,.,,,,,,,..,,...,...,,,.,.,.,.,.,..,,,,.,
-#V4XHB7HUUOWQS4HNVCBG2C424UQFXDCX37HSYF6YHLJYA7ZP6XPZ4VJ5R7LK66DLOXGSNR5QE2IKI
-#\\\|X7YWL46S6PLPBB2VLKDFUAEPDS4475NI44PVWODYADI2RTTSQCP \ / AMOS7 \ YOURUM ::
-#\[7]SHCEZCSWQ7YGJQPUKHRPVE4V2T2W57V5WYYUBY3HYA6V7CJNV6DQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,,,,,.,...,.,.,.,.,.,.,,,.,.,,,..,,...,..,,...,,,.,,,.,.,,,.,.,
+#ZV6N6LGKC2YOMD3ABJBMIMIIACC6UFBWT2YKKRKYOLGRSNC5VPBLPPL64K2PEDBFVNBCHDR26PO7A
+#\\\|7VXVSST2XECSMVJRNQN26T3HCQISHS4WKOJUILHVDO5GEQXL6J5 \ / AMOS7 \ YOURUM ::
+#\[7]7HQY4A5RZ5HC57XER4COWP4MR5J4A2MFQOZYMB6EBSTTZER2KQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

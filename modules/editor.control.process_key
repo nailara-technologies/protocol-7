@@ -100,9 +100,30 @@ if ( $key eq "\x03" ) {
 my $cursor_pos = $buffer->{'cursor'};
 my $buf_len    = <[editor.buffer.memory.length]>->($buffer);
 
-## Ctrl-D : delete char at cursor
+## a masked field's DISPLAY cursor is always pinned to the END [ editor.
+## control.get_display_cursor ] -- the real cursor a forward-delete [ Ctrl-D,
+## Delete key ] would act on is therefore never visible on screen, even in the
+## common case where the real cursor genuinely IS at the end. silently
+## removing whatever real character sits at an invisible position, with no way
+## to see it happened, is unsafe -- so for a masked field, forward- delete and
+## backspace collapse into the SAME function : both always remove the
+## character immediately before the cursor, exactly as backspace does.  every
+## other field type keeps its real, visible cursor and is unaffected
+my $is_masked = ( $buffer->{'type'} // '' ) eq qw| masked |;
+my $backspace = sub {
+    return if $cursor_pos <= 0;
+    <[editor.control.commands.delete]>->(
+        $editor_state, $field, $cursor_pos - 1, $cursor_pos
+    );
+    $result->{'action'} = 'backspace';
+    $result->{'dirty'}  = 'field';
+};
+
+## Ctrl-D : delete char at cursor [ masked : same as backspace, see above ]
 if ( $key eq "\x04" ) {
-    if ( $cursor_pos < $buf_len ) {
+    if ($is_masked) {
+        $backspace->();
+    } elsif ( $cursor_pos < $buf_len ) {
         <[editor.control.commands.delete]>->(
             $editor_state, $field, $cursor_pos, $cursor_pos + 1
         );
@@ -112,9 +133,15 @@ if ( $key eq "\x04" ) {
     return $result;
 }
 
-## Ctrl-A : cursor to start of line
+## Ctrl-A : cursor to start of line [ masked : same as backspace -- moving the
+## real cursor away from the end with no visible feedback is the exact hazard
+## the note above Ctrl-D describes ; a MOVE only makes it worse than a
+## single-character DELETE does, since it strands everything after the jump at
+## once, unreachable by backspace and invisible on screen ]
 if ( $key eq "\x01" ) {
-    if ( $cursor_pos > 0 ) {
+    if ($is_masked) {
+        $backspace->();
+    } elsif ( $cursor_pos > 0 ) {
         <[editor.control.commands.move_cursor]>->(
             $editor_state, $field, -$cursor_pos
         );
@@ -207,9 +234,12 @@ if ( $key eq "\x19" ) {
     return $result;
 }
 
-## left arrow : move cursor left one CHARACTER [ ANSI: \e[D ]
+## left arrow : move cursor left one CHARACTER [ ANSI: \e[D ] [ masked : same
+## as backspace, per user -- see the note above Ctrl-D ]
 if ( $key eq "\e[D" or $key eq "\x1b[D" ) {
-    if ( $cursor_pos > 0 ) {
+    if ($is_masked) {
+        $backspace->();
+    } elsif ( $cursor_pos > 0 ) {
         <[editor.control.commands.move_cursor]>
             ->( $editor_state, $field, -1 );
         $result->{'action'} = 'cursor_left';
@@ -228,9 +258,12 @@ if ( $key eq "\e[C" or $key eq "\x1b[C" ) {
     return $result;
 }
 
-## delete key [ ANSI: \e[3~ ] : delete character at cursor
+## delete key [ ANSI: \e[3~ ] : delete character at cursor [ masked : same as
+## backspace, see the note above Ctrl-D ]
 if ( $key eq "\e[3~" or $key eq "\x1b[3~" ) {
-    if ( $cursor_pos < $buf_len ) {
+    if ($is_masked) {
+        $backspace->();
+    } elsif ( $cursor_pos < $buf_len ) {
         <[editor.control.commands.delete]>->(
             $editor_state, $field, $cursor_pos, $cursor_pos + 1
         );
@@ -242,13 +275,7 @@ if ( $key eq "\e[3~" or $key eq "\x1b[3~" ) {
 
 ## backspace [ \x08 and \x7f ] : delete character before cursor
 if ( $key eq "\x08" or $key eq "\x7f" ) {
-    if ( $cursor_pos > 0 ) {
-        <[editor.control.commands.delete]>->(
-            $editor_state, $field, $cursor_pos - 1, $cursor_pos
-        );
-        $result->{'action'} = 'backspace';
-        $result->{'dirty'}  = 'field';
-    }
+    $backspace->();
     return $result;
 }
 
@@ -269,8 +296,8 @@ if ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 ) {
 $result->{'passthrough'} = $key;
 return $result;
 
-#,,,,,,.,,,,.,,..,,.,,...,,.,,,..,,.,,...,,,.,..,,...,...,.,,,,,.,,..,.,.,,..,
-#FN5W2EGTE6Z2I5FAIQPRV7Z4D4RXK54RLJVEI5FRWEKTCWBNNMEUGDD6WDHIQVVIL3ILPLYWNZJYQ
-#\\\|MH5ZOKCZA3T6X5U2B746ZYN4QPAZYYECPP6WFMEYA6HNTVRLC4T \ / AMOS7 \ YOURUM ::
-#\[7]QTYCAQ6I3Z5HZAFIJRJDYL2HLSECZEDRLUTMRSJ2ZVMDWV22AOBY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,.,.,..,,...,.,,,,,.,,,.,..,,..,,...,...,.,.,...,...,,,.,.,,,
+#6O24JP42JPYAUG6VF2NVKEXPG3DR3LGT5QBOR7KTLWPTXOAT7C4IUR3HKLBRRVOYSNJZ5D6LLNS6E
+#\\\|476HHDUOPI4FVTSC7PTDIH6IXMIYLHOM4ZGO4IEGE7UFLLZL4L3 \ / AMOS7 \ YOURUM ::
+#\[7]L3SBSCABY7KKSFYWEIG54ELOM3NBEY2Q7BPESVXCXVAPWAHPJWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
