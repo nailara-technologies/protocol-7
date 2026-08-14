@@ -22,12 +22,21 @@ $position = $buf_len if $position > $buf_len;
 
 substr( $buffer->{'text'}, $position, 0, $text );
 
+## keep the parallel star-count array in sync with the inserted characters
+if ( ( $buffer->{'type'} // '' ) eq qw| masked | ) {
+    $buffer->{'mask_stars'} //= [];
+    $buffer->{'mask_stars'} = []
+        if ref $buffer->{'mask_stars'} ne qw| ARRAY |;
+    splice @{ $buffer->{'mask_stars'} }, $position, 0,
+        map { int( 1 + rand(3) ) } 1 .. length($text);
+}
+
 $buffer->{'cursor'} += length($text) if $buffer->{'cursor'} >= $position;
 
 return TRUE;
 
-#,,,.,,,,,..,,,,.,,,.,...,,..,.,,,.,,,,..,...,..,,...,...,,,.,,..,,..,,,.,..,,
-#AOPGX5ARFGZRWD3A2VPD3CG2YRS7SRVKQIHSUDSDIMITKUI2NMUNFMNE5WP6R72KHI6MO6OD3JSVC
-#\\\|XUSHLIJ6XQQ54V4R4WPWFQIG7VUNT24JSWDMSMRMMDG6W4FXFIR \ / AMOS7 \ YOURUM ::
-#\[7]KDD2PKNMMUFVTQCWD6KCI5WR44PHBUT3YP3VKIRGJMFP36IHSCAY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,..,,,..,.,.,..,,,.,,,,,,.,,,..,,...,...,,,.,.,.,.,,,,..,..,,
+#3ELOYYOFBUINAXXEMLODBITDVDYSI3PH7FO6S54G63IS5SPEQAWXYW7NOKXKGD5W4TV7ELSCBUTYA
+#\\\|JET7BHUDB4QYN5PER5XAZVKEQEUPWM3HOQZIVOODCF3XJNQISCG \ / AMOS7 \ YOURUM ::
+#\[7]WOQIQVWJ4D7NTHQUAKOE667ZGB2ZZA4SAXD3WPOHPKGRS73LSOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
