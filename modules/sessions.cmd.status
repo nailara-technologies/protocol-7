@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = sessions.cmd.status
+# descr = report key-holding child pid/liveness/state/socket path
+
+my $pid   = <sessions.holder.pid>;
+my $state = <sessions.holder.state> // 'unspawned';
+my $alive = defined $pid ? <[base.exists.sub-process]>->($pid) : FALSE;
+
+my $out = sprintf(
+    "pid: %s\nstate: %s\nalive: %s\nsocket: %s\n",
+    $pid // 'none',
+    $state,
+    $alive ? 'yes' : 'no',
+    <sessions.holder.socket_path> // 'none'
+);
+
+return { 'mode' => qw| size |, 'data' => $out };
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,..,.,.,,..,,,.,...,,,,,.,.,,,,,,.,,,,,,..,,...,...,...,..,,...,.,,,,,.,
+#NA7Q3RQN7GYMBFL6OFF5AHCX2WRM37WPT4C2ZKIM3TYC4OTP3WKC2NYD3KYS4HDERRZHDKIS2V2BK
+#\\\|BSUQ7WKOOU74YUBCGJGXUM352EE47A2X6A3WYGHNZLXBL2HBZPY \ / AMOS7 \ YOURUM ::
+#\[7]HKDNPLOWJPEOLRMKLS3M35DLWGIIFFT4SFFNIZKHLOJ6RXPHUSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

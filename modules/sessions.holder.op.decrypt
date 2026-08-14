@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = sessions.holder.op.decrypt
+# descr = inverse of sessions.holder.op.encrypt -- reads the prepended
+#         counter to reconstruct the same nonce, verifies the auth tag.
+
+my $key  = shift;
+my $blob = shift // '';
+
+return undef if length($blob) < 4 + 16;
+
+my $counter    = unpack( qw| N |, substr( $blob, 0, 4 ) );
+my $auth_tag   = substr( $blob, -16 );
+my $ciphertext = substr( $blob, 4, length($blob) - 4 - 16 );
+
+my $nonce = pack( qw| N |, 0 ) . pack( qw| N |, $counter ) . "\0\0\0\0";
+
+my $cipher    = Crypt::AuthEnc::ChaCha20Poly1305->new( $key, $nonce );
+my $plaintext = $cipher->decrypt_add($ciphertext);
+my $success   = $cipher->decrypt_done($auth_tag);
+
+return undef if not $success;
+return $plaintext;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,,,,,..,.,.,...,,..,..,,..,,,.,,..,,,,,,..,,...,..,,...,.,.,.,,,...,,..,
+#X34NJBDZOUSRDYBOY4C7J7JQ4SF4GFG2GQUNMV3BBLUDOH2SGGQ57ONBIFXGCHS4FW3KP4HQT4WXI
+#\\\|3QSD7HVVDD2SPFQBOSSSQCOE27DTCR5G7B4HCLX3QFR6CHNUNZX \ / AMOS7 \ YOURUM ::
+#\[7]PDYKGHN4P6FDOZHZIN6UV3WXLFCPDSSAVG4NLNKK2DVPHKYBEGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = sessions.util.holder.accept_with_timeout
+# descr = blocking accept() on a listening unix socket, bounded by a
+#         wall-clock timeout [ local read-loop timing -- base.time is the
+#         right tool here, not base.ntime, which is reserved for the knock
+#         freshness derivation ]
+
+my $listen_sock = shift;
+my $timeout     = shift // 3;
+
+my $start = <[base.time]>->(1);
+while ( ( <[base.time]>->(1) - $start ) < $timeout ) {
+    my $rin = '';
+    vec( $rin, fileno($listen_sock), 1 ) = 1;
+    my $nfound = select( $rin, undef, undef, 0.05 );
+    next if not defined $nfound or $nfound <= 0;
+
+    my $client = $listen_sock->accept();
+    return $client if defined $client;
+}
+
+return undef;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,,,,,.,,.,.,.,,,,,,,.,.,.,,,,..,.,,,,,.,..,,...,...,,,,,.,.,,,.,...,...,
+#G2EXM6BU3MN76TG46GYWLIBF4FZXOCOPK3S27KALWQXAD2M4FM6ST3XD4THOLMKTX55OFDCD6SQA6
+#\\\|D5OOAJK5WW3YW2EVP4VWWTXQNPYOP3BRGTXTKYQFVSGPSVTJT4A \ / AMOS7 \ YOURUM ::
+#\[7]PGGXEQU7SPSFW5PK4YB6657AF2FYHFLPHGKBXSMCQW4VLZ426CAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
