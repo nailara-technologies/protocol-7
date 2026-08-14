@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.buffer.erase_secure
+# descr = overwrite a secret buffer with random data twice, then truncate
+
+my $buffer_sref = shift;
+
+return 0 if ref $buffer_sref ne qw| SCALAR |;
+return 0 if not defined $buffer_sref->$*;
+
+my $len = length( $buffer_sref->$* );
+return 0 if $len == 0;
+
+## two random-overwrite passes before truncation -- a single pass can leave ##
+## recoverable remnants depending on how the allocator reused the page;     ##
+## matches bin/p7-auth-keypair-helper.pl's original approach                ##
+my $prng = Crypt::PRNG::Fortuna->new();
+substr( $buffer_sref->$*, 0, $len, $prng->bytes($len) );
+substr( $buffer_sref->$*, 0, $len, $prng->bytes($len) );
+
+$buffer_sref->$* = '';    ##  truncate  ##
+
+return $len;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,.,,,.,,,,..,.,.,,.,,,,.,,,,,.,,,,,,,,,.,..,,...,...,,.,,..,,.,,,.,,,..,,
+#DY7GGUOV43YYLOUFI3LLPRLVLKREIUUWNWHBFYKLIYVCFVHOVZ3SJETVUE55T4Y3RQ3B4SLG6PCYW
+#\\\|TSDQKWSSGSRIJAUAHH43CVS5VMCK734ZYOR7MQKHT3ARUUR4NN3 \ / AMOS7 \ YOURUM ::
+#\[7]O7GC2OFEA63CFREZZUSDBPSOYJTMVIYJTKHATZOU3YBKDUZRK2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

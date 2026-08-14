@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = sessions.holder.detach
+# descr = close [ not kill ] the control connection -- this is what
+#         actually forces the child out of its blocking ATTACHED read via
+#         EOF, into the DORMANT pause() wait. A plain SIGUSR2 follows as
+#         after-the-fact corroboration only [ logged child-side, no state
+#         effect ] -- EOF is authoritative. Child process keeps running,
+#         mlock'd and dormant, so a later reattach is fast and does not
+#         re-derive the key.
+
+if ( ( <sessions.holder.state> // '' ) ne qw| attached | ) {
+    <[base.logs]>->( 0, 'sessions.holder.detach: not attached' );
+    return undef;
+}
+
+my $pid = <sessions.holder.pid>;
+if ( not defined $pid or not <[base.exists.sub-process]>->($pid) ) {
+    <[base.logs]>->( 0, 'sessions.holder.detach: child not alive' );
+    return undef;
+}
+
+my $sock = <sessions.holder.client_sock>;
+if ( defined $sock ) {
+    shutdown( $sock, 2 );
+    close($sock);
+}
+<sessions.holder.client_sock> = undef;
+<sessions.holder.state>       = qw| dormant |;
+
+kill qw| USR2 |, $pid;
+
+<[base.logs]>->( 1, 'sessions.holder: detached (pid %d)', $pid );
+
+return TRUE;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,.,,,,,.,,,,,,.,,,,,,,,,,,..,,..,,.,,,,.,..,,...,...,..,,.,.,,,,,,..,,,.,
+#AVF3MRPRSY2UFNMZBSM7QJBJY6NC6OHYHJHC7CGB2FQ6OLVMKOQGODRZZD3OSCQYRXY3BOCPNTFMO
+#\\\|JGUWUXSY4OWHW76TBMTDWWORGXCOUSG4GGO2BBTDGEDUSNGUFP2 \ / AMOS7 \ YOURUM ::
+#\[7]5TD46UWEPJ77T6SI3YW76F2KOEKRRK44DEMYRK37ONOP6ZB5FCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
