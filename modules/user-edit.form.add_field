@@ -121,6 +121,10 @@ if ( defined $pinned_plugin ) {
 
 } else {
 
+    ## 'masked' [ 2026-08-14 ] : no list/multiline/sort_on_focus/            ##
+    ## collapse_summary flags -- none apply to a masked scalar field. typing ##
+    ## into it needs no code here at all -- editor.control.create/           ##
+    ## get_display_value already treat 'masked' as a first-class type        ##
     push @fields,
         $shape eq qw| list |
         ? {
@@ -133,6 +137,12 @@ if ( defined $pinned_plugin ) {
         qw| noun_plural |   => qw| ies |,
         qw| noun_singular | => qw| y |,
         qw| sort_on_focus | => $sort_on_focus_names{$chosen} ? TRUE : FALSE,
+        }
+        : $shape eq qw| masked |
+        ? {
+        qw| name |    => $chosen,
+        qw| type |    => qw| masked |,
+        qw| default | => '',
         }
         : {
         qw| name |             => $chosen,
@@ -186,8 +196,8 @@ $new_state = <user-edit.form.state>;
 
 return TRUE;
 
-#,,,.,,..,.,.,,,,,,..,..,,.,,,...,,,,,..,,...,..,,...,..,,...,,.,,..,,,..,.,.,
-#XPWTERCG7MI2MLPNIU6624WFB5UVGLL6VE6XWJU5TMMJEJW7I77APMDDMBHPVFH2K6PFYX2QV5O7A
-#\\\|LP3DXPDEGZ75YNIQAIFZGGJAJ2OEVE46VGM7VJCZ65MCZJW422W \ / AMOS7 \ YOURUM ::
-#\[7]FL4KIYVFTDFQ3SQN6B2TYUH4IAOX7PV234C2YXM7W7CZ35YCT6CY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,,.,,,,,,,..,,..,,,,,.,.,,,.,..,,...,...,.,,,,,,,.,.,,,.,.,,,
+#YDL4QOGJG3MS6T4NCRK2FETHNXAW7USJKW7N3L7ODRD2ELSPBD7XRHMPOXOK6R3ICDVPUY2PGXUTS
+#\\\|NABGONIVGOO4PXXDB6RMO765HFW4CRRDOZPYXL5URB5VCFLDRHX \ / AMOS7 \ YOURUM ::
+#\[7]E3UPQQ4MQ3EXXPFS2F4PVC4ODSAI4H6KSFYAWRKEI474EDK3SWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
