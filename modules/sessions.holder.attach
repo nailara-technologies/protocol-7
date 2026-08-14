@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = sessions.holder.attach
+# descr = reattach the key-holding child: a plain SIGUSR1, then accept the
+#         child's redial on the still-open listener. same mlock'd key, no
+#         re-derivation.
+
+if ( ( <sessions.holder.state> // '' ) ne qw| dormant | ) {
+    <[base.logs]>->( 0, 'sessions.holder.attach: not dormant' );
+    return undef;
+}
+
+my $pid = <sessions.holder.pid>;
+if ( not defined $pid or not <[base.exists.sub-process]>->($pid) ) {
+    <[base.logs]>->( 0, 'sessions.holder.attach: child not alive' );
+    return undef;
+}
+
+my $listen_sock = <sessions.holder.listen_sock>;
+if ( not defined $listen_sock ) {
+    <[base.logs]>->( 0, 'sessions.holder.attach: no listener to accept on' );
+    return undef;
+}
+
+kill qw| USR1 |, $pid;
+
+## bounded accept -- gives the child a moment to wake and redial before ##
+## this gives up                                                        ##
+my $client_sock
+    = <[sessions.util.holder.accept_with_timeout]>->( $listen_sock, 2 );
+if ( not defined $client_sock ) {
+    <[base.logs]>->(
+        0, 'sessions.holder.attach: child did not redial within timeout'
+    );
+    return undef;
+}
+
+<sessions.holder.client_sock> = $client_sock;
+<sessions.holder.state>       = qw| attached |;
+
+<[base.logs]>->( 1, 'sessions.holder: reattached (pid %d)', $pid );
+
+return TRUE;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,...,...,,.,,,..,...,,,.,,,,,,.,,...,,,.,..,,...,...,...,,,.,,,,,..,,...,
+#TI2LA7WSWYXFV2H4MTCSAYAHGUM4KUD4ZJ6HS5UYWDT52JH6YSTPZRN7J6YQQAFEPL2LDS5NZXZHA
+#\\\|QCKVCNS5NFUYZ7KKNH7TFNXT5O7ZMRMSPV52V777D3QMA5SLXID \ / AMOS7 \ YOURUM ::
+#\[7]C3WCBRVLSYGDWGOEDKBL67YYJK73MRSIFTIXHPJIQZ74WLBT3KAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
