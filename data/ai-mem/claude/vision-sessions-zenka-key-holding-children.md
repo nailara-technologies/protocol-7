@@ -968,14 +968,45 @@ human at the console; there's no automatic "credential now permanently
 saved" consumer yet. That's the next real gap, not typing (proven) or
 routing (proven) — where the held secret goes from here.
 
+**Relevant groundwork for that gap, confirmed 2026-08-14 (later)**: the
+`credentials` zenka's own archive storage IS a direct clone of `keys`'
+— `modules/credentials.write_archive_file`/`.read_archive` both carry
+explicit header comments, "adapted from keys.write_key_archive_file/
+read_key_archive pattern" (not inferred, stated in the code). The
+mechanism, read in full both sides: `base.parser.splice_in_data`
+inserts the payload at a BIT offset (not byte) inside a 3×-oversized
+entropy block, the whole thing Twofish-encrypted; the offset itself is
+hidden as a trailing variable-length comp-int (`pack('w',...)`)
+appended to the encrypted blob, with no stored index of its length —
+`read_archive`/`read_key_archive` recover it by brute-force trying
+every possible trailing byte-length as a candidate comp-int, splicing
+out 80 bits at each candidate offset, and accepting whichever one's
+extracted bytes equal the literal P7 module header `"## [:< ##\n"` —
+self-verifying blind search, not a stored pointer. The spliced payload
+is itself a real P7-module-shaped blob (that header plus a `#.::`-
+marked footer), so a key/credential archive is disguised as an ordinary
+signed source file, bit-spliced into noise, then encrypted — three
+layers. `credentials`'s copy is function-for-function identical except
+config namespace and Twofish key-slot name, with ONE real divergence:
+`credentials.read_archive` returns the raw payload scalar directly, it
+never calls the `keys`-side unpack step (`keys.unpack_format.
+key_archive_payload`) to turn it into a named-key hash — whatever
+consumes it downstream does its own unpacking, or that step never got
+fully adapted. Whichever zenka eventually becomes the real destination
+for a `sessions.hold`-staged secret will very likely reuse THIS same
+archive mechanism (already proven, already the established storage
+idiom for exactly this kind of material) rather than inventing a fourth
+one — worth checking `credentials`'s actual unpack call site before
+assuming it's finished, when that thread gets picked up.
+
 [[project-users-zenka-unblocks-cross-host-testing]]
 [[project-keys-zenka-integration-direction]]
 [[project-credential-types-into-user-edit]]
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,,,,,.,..,,,,,,.,,,...,.,.,.,.,.,,,,.,,.,,,.,.,...,...,,,,,.,,,.,,,.,,,,,.,
-#HEUAMWYYTFCF57OFA57NTT5W3G6JOJJSQWOKRCLNLY7X46AXKN32BRFRWMRNJTMHXIS426D7TN6DK
-#\\\|YVLNACKHQF7IJHM6S4NAR4HXXO4NRUCAKKBWMNMIDJL4TRJBXRM \ / AMOS7 \ YOURUM ::
-#\[7]S3NPBC3WUZVE3JUZPHAOWQH2TAOZXJOUUFDTFYWOMPC2IZAJVKAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,..,.,.,,..,.,,,.,,,.,,,...,,,.,.,.,...,...,,,,,..,,,.,,,,,,...,
+#H27IPIRWDWNVDLBOJOGO5T7XPSBODCKDQVIP2K2HVLD4TWPEVPSOWJYMAIGPIDZFHUYUPCJHXDDZW
+#\\\|CX72X3C6DEVMW7ZENOQACFT2Y3MAALZ32U4HY7VGIOQAGA2OPUH \ / AMOS7 \ YOURUM ::
+#\[7]EZU27OMTPSIIJ222G5PFER76D2VVLPMNKUEW475SAXP475IIGCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
