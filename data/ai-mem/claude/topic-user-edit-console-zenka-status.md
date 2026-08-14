@@ -1280,8 +1280,58 @@ remembering the debugging shape, not just the resolution: when a field's
 check recent commits to that field's own render path before assuming the
 classification logic itself regressed.
 
-#,,,,,...,,.,,,..,.,,,,,,,...,,,,,,..,,..,,,,,..,,...,...,,,.,,..,,,.,,..,...,
-#7EU6XLQM6L3TERIBKEO37PH346VLK7BIGDVH3KXEYKTZMFJQC4FM5GH3GBVY6AVBV5B4J6HVT2K3A
-#\\\|W7VWFCB6FW4OUMCW6FRADWMCCSA2DQ77SSU7ZRNJMZ7KW6VXIXD \ / AMOS7 \ YOURUM ::
-#\[7]UZMSG3SVEULNCN6W3WNMEOWC742IOP2A5NMV72IRS2ZL2CN7ESAA 7  DATA SIGNATURE ::
+## `users.cmd.remove` LANDED, 2026-08-14 — closes the gap flagged above three
+## times ("no `users.cmd.remove`, so a record cannot be deleted once
+## created")
+
+Kimi K2.7 dispatch (`data/tasks/users-cmd-remove.md`), mirrored against
+`users.cmd.create-default` with the existence check inverted. Left
+mid-dispatch on a real, unresolved bug after hitting its own 100-step limit
+(the initial diagnosis, "undefined subroutine reference … users.cmd.
+remove:42", was accurate but unresolved when the transcript cut off) — fixed
+directly rather than re-dispatched: the module called
+`<[base.file.remove_tree]>`, but `modules/base.file.pre_init` swaps the
+whole `base.file.*` family to the short `file.*` alias
+(`<[base.swap_subs]>->('base.file','file')`), so the runtime key is
+`$code{'file.remove_tree'}`, never `$code{'base.file.remove_tree'}` — same
+swapped-family trap this file's own 2026-08-10 entry noted kimi getting
+*right* in a different task (`file.zenka_dir.data_path`). One-line fix
+(`<[base.file.remove_tree]>` → `<[file.remove_tree]>`); the
+`subroutines.load-early` whitelist entry correctly stays `base.file.
+remove_tree` (whitelist keys are filenames, not runtime swap targets).
+
+Kimi's dispatch also added `remove` to `configuration/zenki/users/start`'s
+own `access.cmd.usr.cube` list — outside the task file's literal
+"no `access.zenki`/`access.users` change" scope note, but a genuinely
+different, necessary mechanism (the zenka's OWN per-command whitelist for
+the `cube` caller role, distinct from the global cube-level grant file the
+task was scoped against) — the first live attempt failed with "command not
+known or no permission for 'remove'" until this was added. Kept, not
+reverted.
+
+All 6 acceptance checks from the task file verified live via `p7c` after a
+`v7.restart users` picked up both fixes: create → remove → value-get 404s →
+directory actually gone from `/etc/protocol-7/users/host-system/` → a
+second remove refuses cleanly ("record does not exist") → the
+path-separator guard rejects `../escape-test`. Also used to clean up the
+throwaway records this whole thread had been accumulating with no way to
+remove them: `p7-masktest2`, `p7-masktest3`, `zztest-addr`, `zztest-addr2`,
+`zztest-bootstrap`, `zztest-bootstrap2` — all gone, only `taeki` remains
+under `host-system/`.
+
+**Not yet committed** — `modules/users.cmd.remove` has no AMOS7 signature
+footer (left off deliberately, per this file's own precedent above:
+"New files were left with an obvious `PLACEHOLDER...` signature block
+rather than a fabricated one"), and `configuration/zenki/users/
+subroutines.load-early` LOST its pre-existing signature footer when
+`bin/dev/gen-sub-whitelist users` regenerated it — a real, reproducible bug
+in that script worth a separate look (it silently drops the trailing
+signature block on regen rather than preserving or re-flagging it). The
+pre-commit hook enforces signature presence and will block the commit until
+both are (re-)signed by whoever holds the `proto-7.sourcecode` passphrase.
+
+#,,..,,.,,.,.,..,,.,.,...,..,,.,,,,,.,.,,,...,..,,...,.,.,..,,..,,,..,..,,...,
+#5E5MDHT2SM53YN76SZJADQU4GPPWASLZGDSWCLRYEVPBFHBJXT3FOIAFGSE2VNNLFY3JS5KLF26VM
+#\\\|RYIOFG7UVRHJZHHTOPK7HEFNFHWY5AIDFXEAYLITPYJ73LPKJNC \ / AMOS7 \ YOURUM ::
+#\[7]TCG4BXEFRS6ENFCXND3UF5ODKJGQPTYXDMLNN7VY3NS5EPCPRECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
