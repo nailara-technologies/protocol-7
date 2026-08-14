@@ -121,6 +121,25 @@ under archive-password duress, not just separate-file discipline):
    contextualizing continuation. Conceptually closer to a KDF continuation
    chain than a derivation tree. Also not implemented.
 
+   **Concrete use case named 2026-08-14, connecting this to
+   [[vision-sessions-zenka-key-holding-children]]'s "where does a held
+   secret go long-term" question**: per user, this SAME mechanism —
+   entropy stream + a context string, here the SITE NAME rather than an
+   archive-slot context — is the intended answer for "the entire stack of
+   site passwords." Per user: "for now [ `sessions.hold`-staged, native
+   entry ] is native and acceptable" for a secret that can't be derived
+   (a real, assigned host password — `host_password`, the field landed
+   `96e47cc5b`), but a SITE password doesn't need that storage/staging
+   path at all — it's regenerated fresh from (entropy-stream seed, site
+   name) on demand, never persisted, never held even temporarily.
+   Reframes that "still open" question for this subcategory specifically:
+   the answer isn't a storage destination, it's "nowhere — recreation
+   replaces storage." Not implemented, not scoped into a task file yet —
+   the mechanism itself is still the same "diverging entropy-stream
+   continuation" primitive this section already proposed, now with a
+   real, named first application rather than only the hidden-volume-
+   archive motivation it was originally floated for.
+
 Both are real extensions of the existing splice/entropy-stream primitives
 already in `AMOS7::13`/`base.parser.splice_in_data`, not a new crypto
 primitive — the user's framing: "a lot can be mapped into it," and noted
@@ -231,8 +250,8 @@ answered there.
 this could eventually feed into), [[topic-ncode-pattern-learning-loop]]
 (the session this conversation branched off from)
 
-#,,..,.,.,,,.,,..,,..,,.,,,,.,,,.,..,,,,.,.,,,..,,...,...,,..,.,.,,,,,..,,.,.,
-#TZX3TDB34HOXO72UJET25YONYA54U7DBR3HRX64GJC2RGVUZXU4LZ3SBOOFEU77JDPIC75KA6EJO4
-#\\\|2KUXB2G3WFT3R7TMEPJWS5DPTIUA2R5KW62I5S62AGS6Z7G2FL2 \ / AMOS7 \ YOURUM ::
-#\[7]NPXJF4PFDX2GVTQ6LNETXACJWKT3OFZEUOPPF3CPRLAUE2JKEODY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,..,,,,,,,,.,,.,,,,.,..,,.,.,..,,...,...,.,,,...,,,,,,,.,.,,,
+#7454RMWF4SRRNHONDVCHBJI4BVH4KS5NB2W2CTFPISAKMFFAM5HC3ATP546CDFY5GXGN22HG625KK
+#\\\|U53FSPKXWE5VLLJVC25PJKBRQBZBGO47WT7JOMRY63BKKXJCLXR \ / AMOS7 \ YOURUM ::
+#\[7]FRN2HHHMXCRFHE4AF6IW6LFA7XPHQVPVJM6Q4LKBSVMTA7ZIYYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

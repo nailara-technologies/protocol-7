@@ -999,14 +999,24 @@ idiom for exactly this kind of material) rather than inventing a fourth
 one — worth checking `credentials`'s actual unpack call site before
 assuming it's finished, when that thread gets picked up.
 
+**Narrows for one whole subcategory, 2026-08-14**: per user, this
+"where does it go" question only applies to secrets that CAN'T be
+derived (real, assigned passwords like `host_password`). "The entire
+stack of site passwords" is a different case — auto-generated from an
+initialized entropy stream + the site name, "solely recreatable," never
+stored/held anywhere at all, not even in `sessions.hold`'s temporary
+sense. Full account, connected to the pre-existing "diverging entropy-
+stream continuation" proposal this reuses: [[topic-key-recovery-
+flexible-recreatability]].
+
 [[project-users-zenka-unblocks-cross-host-testing]]
 [[project-keys-zenka-integration-direction]]
 [[project-credential-types-into-user-edit]]
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,,,,,,,,,,,,..,.,.,,..,.,,,.,,,.,,,...,,,.,.,.,...,...,,,,,..,,,.,,,,,,...,
-#H27IPIRWDWNVDLBOJOGO5T7XPSBODCKDQVIP2K2HVLD4TWPEVPSOWJYMAIGPIDZFHUYUPCJHXDDZW
-#\\\|CX72X3C6DEVMW7ZENOQACFT2Y3MAALZ32U4HY7VGIOQAGA2OPUH \ / AMOS7 \ YOURUM ::
-#\[7]EZU27OMTPSIIJ222G5PFER76D2VVLPMNKUEW475SAXP475IIGCDA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,,..,.,,,..,,,,.,.,.,,,.,..,,.,.,...,...,,..,,,,,.,.,.,,,...,
+#WPOTUKUJ75WGGOGTP2ZKON5HUKW6R537XCK3ZN3QW4OBDVKHZLYET2NDZCN23MSBIAIEQOWNK52B2
+#\\\|DMO6AG6LNCCBV6RCNPJRH6ZIGVHZGMFGP3U7AKMVAIGSJ4WQUOU \ / AMOS7 \ YOURUM ::
+#\[7]HQO2RQBGIYBC7P4LYSSJF5DOM7MD6SUIAUVSYW27H7VNO3UZYOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
