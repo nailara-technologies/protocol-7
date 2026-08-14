@@ -13,6 +13,11 @@
 #         exited with status 0, not from any signal ]. cred-mesh's child
 #         avoids Event.pm entirely for exactly this reason -- this uses
 #         only plain %SIG + POSIX::pause(), never Event.pm, matching it.
+#         Real C25519/Ed25519 identity key -- NOT crypt.C25519.gen_keys,
+#         which internally loops on <[event.once]> [ -> Event::loop() ]
+#         for its harmonic-truth-checked key search, the exact same
+#         fork+Event.pm hazard above, just one call deeper. Calls the
+#         bare Crypt::Ed25519 primitives directly instead.
 
 my $socket_path = shift;
 
@@ -26,30 +31,44 @@ if ( not defined $socket_path ) {
 $SIG{ALRM} = qw| IGNORE |;
 IO::AIO::reinit();
 
-## load or generate+persist+mlock a 32-byte test key -- same shape as  ##
-## cred-mesh.key_holder.child's fabric.secret, plain random key here [ ##
-## symmetric only, no DH -- proving the mechanism, not the crypto ]    ##
-my $test_key;
-my $secret_ref = <[file.zenka_dir.load]>->('holder-test.secret');
+## load or generate+persist a 32-byte C25519 secret seed -- same storage ##
+## shape as the old holder-test.secret [ file.zenka_dir under /var/      ##
+## protocol-7/sessions/, structurally separate from keys zenka's own     ##
+## ~/.n/user-keys/ -- this is a sessions-OWNED identity, not standing in ##
+## for any real user's key ]                                             ##
+my $secret_key;
+my $secret_ref = <[file.zenka_dir.load]>->('holder-identity.secret');
 if ( defined $secret_ref ) {
     my $b32_str = $secret_ref->$* // '';
     chomp $b32_str;
-    $test_key = decode_b32r($b32_str);
+    $secret_key = decode_b32r($b32_str);
 } else {
     my $prng = Crypt::PRNG::Fortuna->new();
-    $test_key = $prng->bytes(32);
-    my $b32_out = encode_b32r($test_key);
+    $secret_key = $prng->bytes(32);
+    my $b32_out = encode_b32r($secret_key);
     <[file.zenka_dir.write]>->(
-        'holder-test.secret', \"$b32_out\n", '>', 0600
+        'holder-identity.secret', \"$b32_out\n", '>', 0600
     );
 }
 
-if ( not defined $test_key or length($test_key) != 32 ) {
-    warn 'sessions.holder.child: invalid test key <{C1}>';
+if ( not defined $secret_key or length($secret_key) != 32 ) {
+    warn 'sessions.holder.child: invalid identity secret <{C1}>';
     exit(1);
 }
 
-IO::AIO::aio_mlock( $test_key, 0, 32 );
+## direct primitive call -- what crypt.C25519.gen_keys does internally, ##
+## minus its %keys-hash bookkeeping and its Event.pm-touching loop      ##
+my ( $public_key, $private_key )
+    = Crypt::Ed25519::generate_keypair($secret_key);
+
+if ( not defined $public_key or not defined $private_key ) {
+    warn 'sessions.holder.child: keypair derivation failed <{C1}>';
+    exit(1);
+}
+
+## mirrors what crypt.C25519.gen_keys does post-derivation, just local  ##
+IO::AIO::aio_mlock( $private_key, 0, 64 );
+IO::AIO::aio_mlock( $secret_key,  0, 32 );
 
 ## plain %SIG handlers, deliberately NOT Event.pm -- see header note.  USR1 ##
 ## wakes the DORMANT pause() loop; USR2 is corroboration-only [ EOF is what ##
@@ -65,7 +84,8 @@ $SIG{USR2} = sub {
 };
 
 $SIG{TERM} = sub {
-    <[base.buffer.erase_secure]>->( \$test_key );
+    <[base.buffer.erase_secure]>->( \$private_key );
+    <[base.buffer.erase_secure]>->( \$secret_key );
     exit(0);
 };
 $SIG{INT} = $SIG{TERM};
@@ -108,14 +128,13 @@ eval {
 
             my $result;
             my $err_msg;
-            if ( $op eq qw| ENCRYPT | ) {
-                $result
-                    = <[sessions.holder.op.encrypt]>->( $test_key, $data );
-                $err_msg = 'encryption failed' if not defined $result;
-            } elsif ( $op eq qw| DECRYPT | ) {
-                $result
-                    = <[sessions.holder.op.decrypt]>->( $test_key, $data );
-                $err_msg = 'decryption failed' if not defined $result;
+            if ( $op eq qw| SIGN | ) {
+                $result = <[sessions.holder.op.sign]>->(
+                    $public_key, $private_key, $data
+                );
+                $err_msg = 'signing failed' if not defined $result;
+            } elsif ( $op eq qw| PUBKEY | ) {
+                $result = $public_key;    ## pure accessor, no op module ##
             } else {
                 $err_msg = "unknown op '$op'";
             }
@@ -135,13 +154,14 @@ eval {
         close($sock);
         undef $sock;
 
-        ## DORMANT -- plain POSIX::pause() loop until SIGUSR1 sets the flag;  ##
-        ## pause() returns on ANY signal delivery [ including USR2's harmless ##
-        ## corroboration log, ALRM, etc ], so loop until the real flag lands  ##
+        ## DORMANT -- plain POSIX::pause() loop until SIGUSR1 sets the     ##
+        ## flag; pause() returns on ANY signal delivery [ including USR2's ##
+        ## harmless corroboration log, ALRM, etc ], so loop until the real ##
+        ## flag lands                                                      ##
         $attach_requested = 0;
         POSIX::pause() until $attach_requested;
 
-        ## redial the SAME socket path -- reattach, not a fresh pairing      ##
+        ## redial the SAME socket path -- reattach, not a fresh pairing ##
         $sock = <[io.unix.socket.output.open]>->($socket_path);
         if ( not $sock ) {
             warn 'sessions.holder.child: redial failed, exiting <{C1}>';
@@ -158,7 +178,8 @@ eval {
 warn sprintf( 'sessions.holder.child: fatal: %s <{C1}>', $EVAL_ERROR )
     if length $EVAL_ERROR;
 
-<[base.buffer.erase_secure]>->( \$test_key );
+<[base.buffer.erase_secure]>->( \$private_key );
+<[base.buffer.erase_secure]>->( \$secret_key );
 exit(0);
 
 #,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
@@ -167,8 +188,8 @@ exit(0);
 #\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,.,,,,,.,.,,,,.,,.,,,.,.,,,.,,,.,..,,,..,..,,...,...,.,,,,,,,,.,,.,.,..,,
-#TCZQHBBMJCE5BMZVOV5CY6R26LLYIZZNKEJNVX3DJWQY77LASLGTWVCVOSJ5OLVIRYUISCPXE77F2
-#\\\|RBQOMGSMZMHCD5K7ZWNITTF4UJUMRE2PNGNC5BGQATUM3X4R3HU \ / AMOS7 \ YOURUM ::
-#\[7]EKIAOZIXURSX7AMPYNKK2WXXX7XNC6CN2XSUAZ36SRU37LIPIKDA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,.,.,,,,,.,,..,,.,,.,,,..,,,..,..,,...,...,,,.,..,,,,,,,,,,,,,,
+#ANBO4TGMQLCXPOMUB3UJ5DZBBYS4I7J44SMSQO3BVPHSVCX6WTE3MYMWIGGY2WYOVB4LCQF7DE6IM
+#\\\|SDVCDM6Z33RLYS7GQH3HI65BPRFGX2KEFVOFWDI75P7AUH2WTHF \ / AMOS7 \ YOURUM ::
+#\[7]YCGQSTVLYV3LDGNQ4YU5GYGAAMK6SXUVSNWWOOTXIBVQTA5G6QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

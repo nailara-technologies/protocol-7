@@ -689,14 +689,98 @@ The knock-mechanism design history earlier in this file (realtime signal,
 kept for the record of how the design got here, not as a description of
 the current implementation.
 
+## LANDED, 2026-08-14 (later) — step A: real C25519/Ed25519 identity key,
+## replacing the throwaway symmetric test key
+
+Per user, approved as "A + B, in the order you suggested": A (this) swaps
+the placeholder ChaCha20Poly1305 test key for a real identity key + a real
+SIGN op; B (separate, not started) wires `user-edit` to route its own key
+handling through this mechanism.
+
+**A second real Event.pm-in-forked-child hazard found and avoided, same
+family as the first**: `crypt.C25519.gen_keys` — the obvious "just call
+the existing keypair generator" choice — is itself unsafe to call inside
+the child. Confirmed by direct read (`modules/crypt.C25519.gen_keys:9,74,
+78-79`): its harmonic-truth-checked key-search loop is hardcoded to run at
+least once, and that loop's first statement is `<[event.once]>->(0.007)`
+→ `Event::loop()`. Resolution: the child calls the bare `Crypt::Ed25519::
+generate_keypair()`/`::sign()` primitives directly — exactly what
+`gen_keys`/`crypt.C25519.sign_data` do internally, just without their
+`%keys`-hash bookkeeping and (critically) without `gen_keys`'s
+Event.pm-touching loop. **General lesson, extends the earlier finding**:
+"does this touch Event.pm" needs checking transitively, not just at the
+call site — a plain-looking library wrapper one level down can still pull
+Event.pm in.
+
+**`crypt.C25519.verify_key_signature` (the obvious "verify" choice)
+doesn't fit arbitrary-data verification** — confirmed by direct read
+(`modules/crypt.C25519.verify_key_signature:52`), it hard-requires the
+signed payload be exactly 32 bytes because it verifies a signed PUBLIC
+KEY specifically (the key-trust-chain use case), not arbitrary signed
+data. `crypt.C25519.verify_sign` verifies arbitrary data but requires the
+caller's own `%keys` to already hold the signer's pubkey — not stateless
+either. Used the bare `Crypt::Ed25519::verify()` primitive directly for
+external verification instead — no existing wrapper fit a stateless
+arbitrary-data check.
+
+**`crypt.C25519` added to `sessions`'s `modules.load`** (needed for
+`Crypt::Ed25519` itself plus `crypt.C25519.key_bin_checksums` display
+formatting) with `crypt.C25519.auto_load_keys = 0` set before
+`[init_modules]` to keep its own auto-load/auto-create machinery fully
+inert — confirmed via direct read of `crypt.C25519.post_init:20`
+(`if (not <crypt.C25519.auto_load_keys> //= TRUE) { ...skip...; return
+FALSE }`) that `0`, not the literal word `FALSE`, is what actually
+disables it; config files here use plain `0`/`1`, not `TRUE`/`FALSE`
+tokens. **Still deliberately NOT loading the full `keys` zenka family** —
+`keys.init_code:17` unconditionally clobbers `<system.amos-zenka-user>`,
+and `sessions/start` depends on that exact value for
+`[root.drop_privs:...]` immediately after `[init_modules]`.
+
+**Storage**: renamed `holder-test.secret` → `holder-identity.secret`,
+same `/var/protocol-7/sessions/` mechanism (confirmed structurally
+separate from `keys`'s `~/.n/user-keys/` — different root, different
+per-zenka-vs-per-OS-user scheme, no collision risk). The 32-byte C25519
+secret seed persists there; the Ed25519 keypair is re-derived from it on
+every fork (cheap, deterministic), matching `crypt.C25519.gen_keys`'s own
+convention of storing the seed rather than the derived keypair.
+
+**Verified live, full chain**: distinct child pid (`ps -o pid,ppid`);
+`VmLck: 8kB` (two mlock'd regions, 64B private + 32B secret, each
+page-rounded); `sessions.cmd.pubkey`/`sessions.cmd.sign` round-trip;
+signature verified via a STANDALONE `perl -MCrypt::Ed25519` one-liner
+outside any `sessions` module, using only the returned pubkey + signed
+string + signature (never touching the held private key) — `TRUE`;
+detach → attach → same pid, same pubkey, a signature made AFTER reattach
+verifies against the pubkey captured BEFORE detach (no re-derivation);
+`stop` → child pid actually gone; **full zenka restart** (fresh main
+process, `p7c term-all <sid>` used to force a clean instance per
+[[feedback-v7-restart-stop-stale-zenka-registration]]) → fresh spawn →
+IDENTICAL pubkey recovered from the persisted seed file — proves
+persistence, not just in-process continuity.
+
+Removed: `sessions.holder.op.encrypt`/`.op.decrypt`,
+`sessions.cmd.encrypt`/`.decrypt` (the symmetric test key and the new
+C25519 identity are two unrelated key types with no reason to coexist —
+"swap the test key for a real one" read as replacement, not addition).
+`sessions.holder.parent`/`.attach`/`.detach`,
+`sessions.util.holder.start_child`/`.accept_with_timeout`,
+`sessions.cmd.spawn`/`.detach`/`.attach`/`.stop`,
+`base.buffer.erase_secure` — all untouched, none reference key material
+directly; the lifecycle plumbing from the first landing carries over
+unchanged.
+
+Not yet started: **B** (`user-edit` routing its own key handling through
+this), and everything else in this file's still-open vision (4-namespace
+orchestrator, root-key authorization contract, cross-host sync).
+
 [[project-users-zenka-unblocks-cross-host-testing]]
 [[project-keys-zenka-integration-direction]]
 [[project-credential-types-into-user-edit]]
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,.,,,.,,...,,..,.,,,,..,...,,,,,.,.,,.,,,.,,.,.,...,.,.,.,,,.,.,,..,,,,,.,,,
-#OSEDT654QCTLPLBNUZ4FRRDJHBRLXXBYCOMRPSRTXD6H4GKVH4FDDQEKTDJQXQ6K37AAWXRAPP7SS
-#\\\|CX45M46BZTZ6GXNSTMJPGP5VU6TIY6D2FPK7JPA5MO5C7LRBW2G \ / AMOS7 \ YOURUM ::
-#\[7]BFAIZNA2RTV6LG7YWPUKXXQ733R5RPHGLRX24CBW2D74HZPVWYDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,,,,.,,.,,,.,,,.,.,,.,,,,,,,,,,.,.,...,..,,,..,,,.,,,.,,.,,.,.,
+#3C6RPFLEBIFS3U3D27KTHAKP7YP2SQNVLBBKKXR2UTVD7PISX2NR2M6KIQQROPIYC37TVB6AITGPG
+#\\\|L5GGNXJQGE3G5ALJXTRLGUC2L46PE5AJUP7M4LKGGJ73GLSUA3N \ / AMOS7 \ YOURUM ::
+#\[7]XBLE6WFJZFDFQF4GFYA63B7SNFD7KVYNYSM5GNO6Q2XVCLH2TWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
