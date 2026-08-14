@@ -769,9 +769,92 @@ C25519 identity are two unrelated key types with no reason to coexist —
 directly; the lifecycle plumbing from the first landing carries over
 unchanged.
 
-Not yet started: **B** (`user-edit` routing its own key handling through
-this), and everything else in this file's still-open vision (4-namespace
-orchestrator, root-key authorization contract, cross-host sync).
+## LANDED, 2026-08-14 (later still) — step B: named secret-holder +
+## user-edit cross-zenka round trip, proven with synthetic values
+
+Per user, chose "extend sessions + prove it with a synthetic value" over
+the two other offered scopes (sessions-only, or building the secret-
+entry widget first). Explicitly NOT the masked-field secret-ENTRY
+mechanism — that's still unbuilt (see next paragraph) and stays a
+separate, later problem; this only proves the holding/routing mechanism.
+
+**Deliberate design choice, not a retrofit**: the identity holder
+(`sessions.holder.*`, step A) was left completely untouched. A SECOND,
+parallel module family (`sessions.secret.*`/`sessions.util.secret.*`)
+holds arbitrary caller-supplied secrets, keyed by name in
+`<sessions.secrets>->{$name}` (hash-of-hashes, live-process-only, never
+persisted — unlike the identity holder's persisted seed, a temporary
+secret must not survive a restart). Real precedent for the keyed-state
+idiom: `cred-mesh.register`'s `<cred-mesh.registry>->{$slot}` pattern
+(its YAML-persistence step deliberately NOT copied). No detach/attach
+for named secrets — the identity holder's dormancy exists to preserve
+*expensive derived* key state across a restart; a handed-back-once
+caller secret has nothing worth preserving that way. One hold, one
+release, child exits.
+
+**Real correction caught before writing any network-facing code, not
+live**: the draft plan assumed `sessions.cmd.hold`/`.release` would use
+`mode=>'false'` for errors, mirroring `users.cmd.value-get`. Checked
+directly against every `sessions.cmd.*` file actually shipped in this
+build — they ALL use `mode=>'size'` uniformly for success AND failure,
+signaling failure via a `"<< ... >>\n"`-phrased data string. Fixed
+before implementation: `hold`/`release` follow that established
+`sessions`-specific convention, and `user-edit`'s reply handlers check
+the `data` string's `<<` prefix, not `cmd`/mode.
+
+**Cross-zenka call pattern, verified against real working code, not
+assumed**: `user-edit.console.show-form` + `user-edit.handler.
+value_get_reply` (read in full) confirmed the exact reply contract
+(`($info)` with `cmd`/`call_args`/`data`, SIZE mode carries payload in
+`data`) and — the piece this design depends on — that firing a SECOND
+`protocol-7.command.send.local` from INSIDE a reply handler, while still
+in the event loop, is real proven code already running live in
+`user-edit` (not a pattern being invented here). `user-edit.handler.
+secret_hold_reply` chains straight into a RELEASE call the same way.
+
+**Verified live, first try, no debugging needed this time** — the prior
+two builds each needed multiple live-crash-driven fix cycles; this one
+worked on the first real test:
+- `v7.user-edit test-secret-roundtrip` → both synthetic cases (32 random
+  bytes; a pathological string starting with the literal `OK ` prefix
+  and containing embedded NUL/newline/space/0xFF, specifically chosen to
+  probe the child's own line-framing) came back byte-identical,
+  confirmed via printed hexdumps on both ends, not just a boolean.
+- `sessions.pubkey` captured before and after the whole round trip —
+  byte-identical, confirming the identity holder was genuinely never
+  touched by the new code path.
+- Manual `p7c sessions.hold`/`.secrets`/`.release` cycle: distinct child
+  pid (parent lineage confirmed via `ps -o pid,ppid`), `VmLck: 4kB`
+  (mlock confirmed on the 27-byte test value), `sessions.secrets` showed
+  the entry during hold and correctly showed "no secrets held" plus a
+  confirmed-gone child pid immediately after release.
+- Deliberately did NOT test full-zenka-restart persistence — named
+  secrets are explicitly non-persistent by design, so that would be
+  testing correct behavior as if it were a bug.
+
+**Accepted, stated limitation, not silently ignored**: the secret sits
+as an ordinary non-mlock'd Perl SV in the `sessions` parent process's
+own heap between arriving over the network (already base32-encoded) and
+the `fork()` call in `sessions.util.secret.start_child` — `decode_b32r`
+happens immediately before fork, `base.buffer.erase_secure` immediately
+after (parent branch only; the child has its own COW'd copy from
+`fork()` itself). This window is real and NOT mitigated — full pre-fork
+mlock would need plumbing a locked buffer through the whole call-arg
+pipeline, more invasive than this routing proof needed. Worth
+addressing before routing anything more sensitive than a synthetic test
+value through this path.
+
+**Still not built, the actual next gap**: the masked-field secret-ENTRY
+widget in `user-edit` — confirmed this session via direct code read that
+masked fields still edit identically to `freeform_line` (same buffer,
+same keystroke path, `editor.control.create:24` comment says so
+explicitly), with only DISPLAY obscured. No event-loop-safe typed-secret
+mechanism exists. `user-edit`'s own `crypt.C25519` usage today is
+read-only key-metadata display (`user-edit.menu.show_key` etc.) — no
+signing, no writing, nothing that would call into either the identity
+holder or the new secret holder for a REAL (non-synthetic) value yet.
+That's the piece standing between this landing and an actual credential-
+entry feature — routing and holding are now both proven; typing isn't.
 
 [[project-users-zenka-unblocks-cross-host-testing]]
 [[project-keys-zenka-integration-direction]]
@@ -779,8 +862,8 @@ orchestrator, root-key authorization contract, cross-host sync).
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,,,,,,,,,,,,,,,,.,,.,,,.,,,.,.,,.,,,,,,,,,,.,.,...,..,,,..,,,.,,,.,,.,,.,.,
-#3C6RPFLEBIFS3U3D27KTHAKP7YP2SQNVLBBKKXR2UTVD7PISX2NR2M6KIQQROPIYC37TVB6AITGPG
-#\\\|L5GGNXJQGE3G5ALJXTRLGUC2L46PE5AJUP7M4LKGGJ73GLSUA3N \ / AMOS7 \ YOURUM ::
-#\[7]XBLE6WFJZFDFQF4GFYA63B7SNFD7KVYNYSM5GNO6Q2XVCLH2TWDA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,..,,,..,,,,,,,.,.,,,.,,,,.,,.,.,...,...,...,..,,..,,.,,,.,.,
+#R4VERNCH46C2ESZWDULYVQQODVPD6KVKTQYUDRHT5BANDFPTT5NDKSYSBS2MLB7RE5XWBGXG3TDZM
+#\\\|OQPQVDNLCGFOST7SCDAUMRDS3Y4AYPPS6OI5JTZAR3UPEU5WUBU \ / AMOS7 \ YOURUM ::
+#\[7]TZOO7EI4EWLKX5U52LJ56JSOV6BMU4BX6A7G2RDGCBJ6ZBBMOADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
