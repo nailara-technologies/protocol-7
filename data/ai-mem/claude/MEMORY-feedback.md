@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [v7-restart-stop-stale-zenka-registration](feedback-v7-restart-stop-stale-zenka-registration.md) — v7.restart/v7.stop can leave an OLD zenka process still connected to cube under the same name, routing test commands to dead code; `p7c term-all <sid>` (from `list subnames`) is the reliable forced cleanup
 - [list-hidden-row-collision](feedback-list-hidden-row-collision.md) — base.hide_list hides LIST NAMES ('sessions'/'users'), but base.parser.list/list_filtered checked that hash per-ROW — any list with a row literally named 'sessions'/'users' (zenka name, username) silently lost that row; fixed 575530e3c
 - [bash-tool-http-proxy-contaminates-localhost-curl](feedback-bash-tool-http-proxy-contaminates-localhost-curl.md) — Bash tool's shell has an active http_proxy; bare curl to 127.0.0.1 silently proxies and 404s unless no_proxy=127.0.0.1 is set explicitly, don't rely on copying the user's exact command
 - [backslash-keyword-is-not-a-reference](feedback-backslash-keyword-is-not-a-reference.md) — `\<some.data.key>` does NOT take a ref to that slot; a leading backslash is the loader's ESCAPE ((?<!\\)<..>), so it yields a ref to the literal NAME STRING. Use explicit `\$data{..}`. Fails silently — an add_var watcher on one simply never fires
@@ -85,8 +86,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 - [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
 
-#,,..,,,.,..,,,..,..,,,..,,,,,..,,...,.,,,...,..,,...,.,.,,.,,.,.,...,,.,,..,,
-#F24NDMQYQ6ZXQJEZZEM7YM5SVCUSUWMHRJB6XEG7NDLSSBYNPKOURRSML2APXM46PAWOD4J5RWUHI
-#\\\|LQE7DJZWTNMMCUXOCOLFPF5D366T6FMOI2F67ETKAMLTYKUX5UF \ / AMOS7 \ YOURUM ::
-#\[7]R74T3FL4KARKPEWQHAB2TTRPFZONVE5QDSRA63MEQUIZLWY5ZEDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,...,,..,,..,...,..,,.,.,,..,..,,...,...,.,,,,..,,..,..,,.,,,
+#TAHTLSI6XIG7Y5ES37E5W6OSWOQPHI5IFD2NO3ZS3GX22FBGIFSJ35PPDW6P57VLWSM5TLSLZ7EX2
+#\\\|O2R73YFGECOKZ2CGCGGCY74XU4HAZ2KXNZ2XQWHS2FWG5XJC4KQ \ / AMOS7 \ YOURUM ::
+#\[7]I2UCDA6WFLIZAJIRTEGKEED42Z2QV4NQHJVWHPVQQJMFFOS7DEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

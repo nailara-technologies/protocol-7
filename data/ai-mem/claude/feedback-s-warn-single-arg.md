@@ -24,8 +24,19 @@ workaround" and plain `warn '... <{C1}>'` is the correct/regular form.
 extra args to `base.s_warn`. For fixed messages with no params, use plain
 `warn`.
 
-#,,,.,,,,,.,.,,,,,,,.,...,,,.,,,,,...,,,,,...,..,,...,...,,,,,,.,,...,...,..,,
-#KQHCQ5XH4W3BIBMS26SU3KS7LFU4FJSHNDP27ZTNUYKNLFSA3KH6OFKB4LHS2CUUCZBW47ANARSIG
-#\\\|7IGFQHOND4G4YENIXK5RVBLZJF2XJ4ZMYD2FKAF4UV35SUKS2HJ \ / AMOS7 \ YOURUM ::
-#\[7]I5FT2Y5KQUVRDKGZY32ZLH2NMTMDN4WGYSO2UEZPFT6HSVZDVWDQ 7  DATA SIGNATURE ::
+**Alternative seen 2026-08-14** (`sessions.holder.*`, see
+[[vision-sessions-zenka-key-holding-children]]): `<[base.logs]>->(0,
+'fixed message')` also satisfies the same `@ARG < 2` shape (the level
+counts as the first of the two required args), so it works too and reads
+more consistently when a file already mixes `base.logs` calls at other
+levels for informational messages. Not a correction to the guidance
+above — plain `warn '... <{C1}>'` is still the documented/preferred form
+for a pure warning with no level distinction — just noting the
+`base.logs(0, ...)` shape is a real, working alternative if a file is
+already logs-heavy.
+
+#,,.,,...,...,.,.,..,,,,.,..,,.,,,,..,.,.,,,,,..,,...,...,,,.,.,,,...,,..,.,,,
+#465337TFGH23LE5FZLW3PKKUXYZ7OCLVH2UZF4CHFGMWTKGNJR6TMLIOQ3CSPNDEOVR57N2PGK7OE
+#\\\|ZIMUQQHEMC3CYR53MKURYC5BSPRJ4S244K3Q4ZZYRDWQBMUTBBT \ / AMOS7 \ YOURUM ::
+#\[7]LNSS7EOEUMTT5YXQZ2HD75BTM6G4CN44DB2MYKHFTKI77TD62ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
