@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = editor.control.get_display_cursor
+# descr = cursor position for DISPLAY, not the real buffer offset
+# param = $editor_state, $field
+
+## a masked field's displayed value is no longer the same length as its real
+## text [ editor.control.get_display_value's variable star-count per character
+## ] -- overlaying a cursor at the REAL buffer offset then sits partway
+## through the star run, exposing exactly how many random stars were just
+## added for the most recent keystroke [ everything past the overlay is "new",
+## everything before is "old" -- countable, one keystroke at a time ].  masked
+## fields therefore always report the cursor at the END of the display value,
+## the same place typing naturally lands it, regardless of where the real edit
+## point is.  every other type is unaffected -- delegates straight to
+## editor.control.get_cursor
+
+my ( $editor_state, $field ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+
+my $buffer = $editor_state->{'fields'}{$field};
+my $type
+    = ref $buffer eq qw| HASH |
+    ? $buffer->{'type'} // qw| freeform_line |
+    : qw| freeform_line |;
+
+return
+    length( <[editor.control.get_display_value]>->( $editor_state, $field )
+        // '' )
+    if $type eq qw| masked |;
+
+return <[editor.control.get_cursor]>->( $editor_state, $field );
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,,.,,..,,,,,...,...,.,,,,,.,.,.,..,,,..,..,,...,...,...,..,,.,.,,,.,.,,,
+#P6ZKTMZXCICVMCQNJZSHDY3T6XLRZVXV6DYKZRUW242JYTS56GKBYZEP75C57HLQT77XXGZPLTOR6
+#\\\|JCPB426AQNPCLP6V2CQLA4CNP5HCKQGOZJCLUT4JBZV42Y2IQHT \ / AMOS7 \ YOURUM ::
+#\[7]6DDCC6NXHAM4CAWEEIHBII4WF4IYSBR2RHXDZ4LGSG3YCKC7LCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

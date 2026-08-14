@@ -20,13 +20,20 @@
 ## same as it already does while typing into any ordinary field, without a
 ## visible correctness problem being reported.
 ##
+## 'host_password' [ masked type ] is safe here specifically because render_
+## form passes the already-RANDOMIZED display value into editor.control.
+## scalar.summary, not the real one -- the count shown is the star total, not
+## the real character count [ editor.control.get_display_value's variable
+## star-count-per-character note ]. would have been a straight length leak
+## before that existed.
+##
 ## EXTEND HERE alongside users.record.optional_fields and user-edit.form.
 ## multiline_field_names -- adding a new collapsing field costs one word here.
 
-return qw| full_real_name location |;
+return qw| full_real_name location host_password |;
 
-#,,,.,.,.,.,,,.,,,,..,,.,,.,,,,.,,,,.,.,,,.,,,.,.,...,...,,..,,,.,...,,.,,,.,,
-#WW3SO4TOLOAEKUZGOXE2BP3ZXP534KJXKMOXNAYHKCDIQDF2YFXLSXONKQSYM47RWEEZH5UN3DQV2
-#\\\|GWNRM577ROPRRX3WX74Y2CV5XIPVUDU3V5J5V45CWN6PMTIPAMH \ / AMOS7 \ YOURUM ::
-#\[7]QDQYBHHLWWTUYKLWVLQAGQZXIPPI6FLQGHBO4WPH67TVL45UVEDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,...,,.,,..,,...,,..,.,.,,.,,.,.,...,..,,...,,,.,.,,,..,,..,,
+#CLC6TZZE6B4TXU6LKF2OAGG5VPWZWJLCOCAJOM6GSXTQBCBM75ROJ57BPOUP2K44K3ER2Y5PZRTUS
+#\\\|SOZ5UYFM72FOPWFWO2Z2TFGALKK3FJGXHBHJSZ2VWOVYOHV33ZG \ / AMOS7 \ YOURUM ::
+#\[7]XAZVSTD54VGTDK7TGZYGO7GSGJ44OOZNOSV5DNZ6DQ6PW6WR4YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
