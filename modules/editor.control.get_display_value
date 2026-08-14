@@ -79,12 +79,23 @@ my $type
     ? $buffer->{'type'} // qw| freeform_line |
     : qw| freeform_line |;
 
-return q|*| x length $value if $type eq qw| masked |;
+## variable star-count per character defeats reading the real password length
+## off the star count ; fall back to flat masking if desynced
+if ( $type eq qw| masked | ) {
+    my $mask_stars
+        = ref $buffer eq qw| HASH | ? $buffer->{'mask_stars'} : undef;
+    return q|*| x length $value
+        if ref $mask_stars ne qw| ARRAY |
+        or scalar @{$mask_stars} != length $value;
+    my $total = 0;
+    $total += $ARG // 1 for @{$mask_stars};
+    return q|*| x $total;
+}
 
 return $value;
 
-#,,..,.,.,...,,,,,.,.,...,,..,,..,.,,,.,,,,,,,..,,...,...,.,,,,,.,.,.,,.,,.,,,
-#BW435YXQ6DHLLVDJ7O5XMWKCZGJJIYBEYC7KCDFSMMVZ5HDHUL2SLDSNLSSBW5QSA3AZQ7BZH6UCK
-#\\\|XHX4VCVBUYC2335V44LYPBY5O5ABTC6HS6VP5NZ73HSARQPHI24 \ / AMOS7 \ YOURUM ::
-#\[7]GLCN6D2MXNAIFD2SYBMTLCKBH4ZMAETYWKXLPUAZQTQKENY4Q4BA 7  DATA SIGNATURE ::
+#,,..,...,.,.,...,,,.,,.,,..,,,,,,,,,,,..,...,..,,...,..,,,.,,,,,,,..,,..,...,
+#WAJ7FQCPXRLF3WH5LWVFIY6GRWRHS7WU4JYKVYJNVWCLFYJJOLMKGHOZJESXYXAU2ATZS5IE3SCEG
+#\\\|IEZ7R7QN7GWYYHHLTYU7CKRV3ALFFH75KO5KX7CO3T27M6X5LTA \ / AMOS7 \ YOURUM ::
+#\[7]HVCM4WSHRQ4ABXTFQUO6OTZWXAPETMEAOKGWTHVJ6GMPYNR6SWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

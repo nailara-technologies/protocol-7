@@ -15,15 +15,23 @@ my $text = $field_def->{'default'} // '';
 ## ensure decoded text, not byte soup [ design: position_units note ] ##
 utf8::decode($text) if length $text and not utf8::is_utf8($text);
 
+## variable-length masking needs one random star-count per character, ##
+## parallel to the text [ design: masked field star-count privacy ]   ##
+my $type = $field_def->{'type'} // 'freeform_line';
+my $mask_stars;
+$mask_stars = [ map { int( 1 + rand(3) ) } 1 .. length $text ]
+    if $type eq qw| masked |;
+
 return {
-    'text'     => $text,
-    'cursor'   => 0,       ## cursor in CHARACTERS, memory-adapter-owned state
-    'type'     => $field_def->{'type'}     // 'freeform_line',
-    'readonly' => $field_def->{'readonly'} // FALSE,
+    'text'       => $text,
+    'cursor'     => 0,     ## cursor in CHARACTERS, memory-adapter-owned state
+    'type'       => $type,
+    'readonly'   => $field_def->{'readonly'} // FALSE,
+    'mask_stars' => $mask_stars,
 };
 
-#,,,,,,,.,.,.,,..,,..,,,,,,,.,.,.,.,.,..,,.,.,..,,...,...,,.,,,,,,,,.,...,,..,
-#KM677QKLJR4SMHAAB4IUMD5BKDKRQWKSYRZQ5GLTWEVOPOVUKUGVXMIB5RLRMXUK2P34RDWY5BZVA
-#\\\|XOFFUU7KPDKGOKVVPRVKHNJFYM4GZRLE24S2APWS5EWZ6AMPOGX \ / AMOS7 \ YOURUM ::
-#\[7]RZO2HQ2UZOB3EKMRVQRJEPYNA5VHA4YRNG2ZZJNHQ774WCLS6SCY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,.,,.,,,.,,,,.,,,,,..,,.,,,...,..,,...,...,...,...,,,.,,.,,...,
+#DYPJA452STNG4SR5OQAJOOYL4IOSHHSKFPNQ2NCX6UMDQ5PU2HOQGD3EJDNR56Z2BPMVMXI6HS46Y
+#\\\|W6RBNHRPXXGNRGLYMO4TNLVJLOTC7XUHMMVMLIS37L5RTNCYGIW \ / AMOS7 \ YOURUM ::
+#\[7]7VQRPMXLP7YANLM7BXUNIQPB4WHXLNKNREKODA2TOZMBUOOCMWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
