@@ -53,6 +53,22 @@ if (@masked_fields) {
         <user-edit.form.dirty>++;    ## repaint over the message ##
         return FALSE;
     }
+
+    ## a held-secret name is built from the username [ user-edit.<user>.
+    ## <field> ], and sessions.cmd.hold only accepts ^[\w\-]+$ -- users.
+    ## cmd.value-set only rejects '/' and '\', so a legal-but-unusual
+    ## username could otherwise fail the hold call after the form has
+    ## already reset. checked HERE, before editor.control.submit runs,
+    ## for the identical reason the reachability guard above is checked
+    ## here : refusing AFTER submit resets the fields would destroy what
+    ## the user just typed
+    if ( $username !~ m|^[\w\-]+$| ) {
+        print "\n  << not sent : username contains characters a held-"
+            . "secret name cannot carry [ ^[\\w\\-]+\$ only ] >>\n\n";
+        STDOUT->flush();
+        <user-edit.form.dirty>++;
+        return FALSE;
+    }
 }
 
 my $result = <[editor.control.submit]>->($editor_state);
@@ -69,6 +85,13 @@ if ( ref $result ne qw| HASH | or not $result->{'ok'} ) {
 }
 
 my $values = $result->{'values'} // {};
+
+## masked values must NEVER reach users.value-set's plaintext JSON payload
+## -- pulled out here, before anything downstream [ the add-a-field-row
+## strip, the list-field substitution ] gets a chance to see them still
+## sitting in $values
+my %secret_values;
+$secret_values{$_} = delete( $values->{$_} ) // '' foreach @masked_fields;
 
 ## SYNTHESISED ROWS ARE NOT FIELDS and must never reach storage.  the
 ## add-a-field row is an ACTION, not data -- editor.control.submit collects
@@ -132,7 +155,23 @@ if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
 my $json_fields = <[format.json.encode]>->($values);
 $json_fields =~ s|\n\s*||g;
 
-<[protocol-7.command.send.local]>->(
+## fan-in bookkeeping, ONLY when this submit also carries masked fields --
+## left undef on every other path, so the ordinary single-reply behavior
+## user-edit.handler.value_set_reply already had is completely untouched
+if (@masked_fields) {
+    <user-edit.form.submit_pending> = {
+        'username'      => $username,
+        'pending'       => 1 + scalar(@masked_fields),
+        'value_set_ok'  => undef,
+        'value_set_msg' => undef,
+        'secrets'       => {
+            map { $_ => { 'status' => undef, 'detail' => undef } }
+                @masked_fields
+        },
+    };
+}
+
+my $vs_sent = <[protocol-7.command.send.local]>->(
     {   qw| command |   => sprintf( '%d.users.value-set', $cube_sid ),
         qw| call_args | =>
             { qw| args | => sprintf( '%s %s', $username, $json_fields ) },
@@ -141,10 +180,50 @@ $json_fields =~ s|\n\s*||g;
     }
 );
 
-return TRUE;
+## send failed outright [ empty session / unreachable target -- send.local's
+## own timeout handler is unimplemented, so a failed send otherwise leaves
+## 'pending' stuck above zero forever ]. only guarded on the fan-in path :
+## the ordinary single-reply path has this same latent gap today and is
+## left alone, out of scope here
+<[user-edit.form.submit_note_value_set_result]>->( FALSE, 'send failed' )
+    if @masked_fields and ( not defined $vs_sent or $vs_sent <= 0 );
 
-#,,,.,..,,...,..,,...,.,,,,,.,,.,,.,,,,.,,,,,,..,,...,...,..,,,,,,...,,,,,.,,,
-#JM4QCVUZEVD3TKSPKWRDT6SONOXUZDMTGC2AM25V5QH6LADFL4LPUIPKGKL4GU4P4CVVV6T6CH7AK
-#\\\|FXJVK4COSRJ4KVWXJHEFDCKKDWXGQB7NWFQ7BI6ICMPQPI5CWWL \ / AMOS7 \ YOURUM ::
-#\[7]FZULPUSPJTRIWXXRWCASBHBNLEFR3EKCTOA7CAJ73D4X6GCSMCAQ 7  DATA SIGNATURE ::
+foreach my $field_name (@masked_fields) {
+
+    my $secret = $secret_values{$field_name} // '';
+
+    if ( not length $secret ) {
+        ## left empty : nothing to protect, this is how a not-yet-submitted
+        ## typed value gets cleared with no side effect ##
+        <[user-edit.form.submit_note_secret_result]>->(
+            $field_name, TRUE, 'left empty, nothing held' );
+        next;
+    }
+
+    my $hold_name = sprintf( 'user-edit-%s-%s', $username, $field_name );
+
+    my $sent = <[protocol-7.command.send.local]>->(
+        {   qw| command |   => sprintf( '%d.sessions.hold', $cube_sid ),
+            qw| call_args | => {
+                qw| args | =>
+                    sprintf( '%s %s', $hold_name, encode_b32r($secret) )
+            },
+            qw| reply | => {
+                qw| handler | => qw| user-edit.handler.submit_secret_hold_reply |,
+                qw| params |  => { qw| field_name | => $field_name }
+            }
+        }
+    );
+
+    <[user-edit.form.submit_note_secret_result]>->(
+        $field_name, FALSE, 'send failed' )
+        if not defined $sent or $sent <= 0;
+}
+
+return TRUE;    ## completion, if any masked fields, is reply-driven from here ##
+
+#,,,,,,,.,,,.,,,,,,,,,,,.,.,.,,..,,..,..,,,,.,..,,...,.,.,..,,...,.,.,,,,,,,.,
+#U53AQS2CGC2DYEV3MML7EZNZ34X2VWCSKTXQMG2M72BXQVERUONDINT2XD3LIUYFB7VFDHTXWHHUY
+#\\\|7AYH24QVIEOXJII4HW4AUQAG63EYYCHDGLJHJG5D642IS7ZAGMR \ / AMOS7 \ YOURUM ::
+#\[7]W4E6WTMNFGMHHYBF52XGUOINR3L2PPUG3UJAQBSGORWIK7V6N4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

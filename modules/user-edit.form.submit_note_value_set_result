@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = user-edit.form.submit_note_value_set_result
+# descr = record the users.value-set leg of a fan-in submit
+# param = $ok, $message
+
+my ( $ok, $message ) = @ARG;
+
+my $pending = <user-edit.form.submit_pending>;
+return FALSE if ref $pending ne qw| HASH |;    ## late/duplicate reply ##
+
+$pending->{'value_set_ok'}  = $ok;
+$pending->{'value_set_msg'} = $message;
+$pending->{'pending'}--;
+
+<[user-edit.form.submit_maybe_finish]>;
+
+return TRUE;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,.,.,,,,,.,.,.,.,..,,,.,,,..,,.,,..,,.,.,..,,...,...,.,.,,,.,.,.,,,.,,,.,
+#VD6PAZTH3JGI5B5SEVAQNT7LGRV7FKCCY57KSFJ2BTBTE4UIYB2UPD3K3SGN7FBKPPSK4VSG2JY62
+#\\\|LJTZUJ5BTSFDG3TPGFODECEOVUEIKGHNRZG5X3MBLNL2AMXCMVI \ / AMOS7 \ YOURUM ::
+#\[7]3CQDSSMX4FATIBCKX35N7VLFCOSZKAYXZOLJ42AM3JOSK62MOCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

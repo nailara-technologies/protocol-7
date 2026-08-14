@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = user-edit.form.submit_maybe_finish
+# descr = once every fan-in leg has replied, report the combined outcome
+# param = -none-
+
+my $pending = <user-edit.form.submit_pending>;
+return FALSE if ref $pending ne qw| HASH |;
+
+return FALSE if ( $pending->{'pending'} // 0 ) > 0;    ## still waiting ##
+
+my @lines;
+push @lines,
+    $pending->{'value_set_ok'}
+    ? sprintf( 'saved : %s', $pending->{'value_set_msg'} // '' )
+    : sprintf( 'record NOT saved : %s', $pending->{'value_set_msg'} // '' );
+
+my $any_fail = not $pending->{'value_set_ok'};
+
+foreach my $field_name ( sort keys %{ $pending->{'secrets'} // {} } ) {
+    my $entry = $pending->{'secrets'}{$field_name};
+    if ( $entry->{'status'} ) {
+        push @lines, sprintf( '  %s : held', $field_name );
+    } else {
+        $any_fail = TRUE;
+        push @lines,
+            sprintf( '  %s : NOT held -- retype it [ %s ]',
+            $field_name, $entry->{'detail'} // 'unknown error' );
+    }
+}
+
+## clear BEFORE quitting -- a late/duplicate reply landing after this point
+## must be a harmless no-op via the guards in submit_note_*, never able to
+## re-trigger a second finish or leak into the NEXT submit's own fan-in
+<user-edit.form.submit_pending> = undef;
+
+<[user-edit.form.quit]>->( join( "\n", @lines ), $any_fail ? qw| fail | : qw| ok | );
+
+return TRUE;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,..,,,.,.,.,.,,,...,..,,.,,,...,,..,..,,..,,...,...,..,,.,.,,,.,..,,.,,,
+#JESMF3XTNO5PMOYLXW5QSG2AID4IEGRMIYHR72E6SYXL5JWEQ2CVMSRLNLR3OZW7GL4XPPWFH5GRW
+#\\\|4SSRU6RO6QU36MCFU5P6LRBJMG44O4LEFF3DDWEWQT2UITN6J4A \ / AMOS7 \ YOURUM ::
+#\[7]DLQ7PDYB5C3MJMSJEAMSINH7XLGV6D4RVO4LBMRDYFNWGXYRRMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

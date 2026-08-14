@@ -9,10 +9,11 @@
 ## implementations of one wire format would drift, same reasoning
 ## editor.control.list.summary documents for itself.
 ##
-## '<name> <shape>' per line, shape 'list' or 'line' -- see
-## users.cmd.field-options.  a line without a shape is not tolerated silently
-## : it would mean an old zenka is answering, and assuming 'line' there is
-## what used to store a list-shaped field as a scalar.
+## '<name> <shape>' per line, shape 'list', 'line', or 'masked' [ the third
+## joined 2026-08-14 -- see users.cmd.field-options ].  a line without a
+## shape is not tolerated silently : it would mean an old zenka is
+## answering, and assuming 'line' there is what used to store a list-shaped
+## field as a scalar.
 
 my ($raw_text) = @ARG;
 
@@ -25,7 +26,10 @@ foreach my $line ( split m|\n|, ( $raw_text // '' ) ) {
     ## compared, not matched : an alternation inside m|..| would end the
     ## pattern at its own '|'
     if ( not defined $shape
-        or ( $shape ne qw| list | and $shape ne qw| line | ) ) {
+        or ( $shape ne qw| list |
+            and $shape ne qw| line |
+            and $shape ne qw| masked | )
+    ) {
         <[base.logs]>->(
             1, ': field-options gave no shape for [ %s ] -- ignored', $name
         );
@@ -36,8 +40,8 @@ foreach my $line ( split m|\n|, ( $raw_text // '' ) ) {
 
 return \%vocabulary;
 
-#,,.,,,,.,..,,.,.,,..,,.,,,.,,,,,,,,,,,,.,.,.,..,,...,...,..,,.,.,,,.,...,...,
-#BDSNSPQ6G5YFOIGM2WVICCX7BQLEHS32E2H35SSDYZVM22D5MFQXMMFGAFBBSKAFPHFLKZMLF6L5C
-#\\\|BL2KJJBEMDPNQWOI52EOXXBWYOCZDOFHU2IH43GEO2VTQWPTD6F \ / AMOS7 \ YOURUM ::
-#\[7]3N44RSJ4AGZLZWAYJ5MDXLANNXJOPLIQ6YHQDQFCKKLPCRIHS4CQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,.,.,..,,...,,,.,.,,,,,.,,..,..,,...,...,,..,,.,,,,,,.,,,,,,,
+#P76HS52GA366QA4T2CUM7MLRWQ5F6PWNLMYBGQUBSYLBQOOD7V3F4Z3ARPTIDTYDZI3VUIHBMT742
+#\\\|XAEEFJLNTEUVNUH3WWTMUHSETGYKXXCQ4SERI3LB66X5NWKIWJD \ / AMOS7 \ YOURUM ::
+#\[7]I5BUUG2CCCWNGZEAS3NM3OWWVMZMCQTX3SXMR4RLWOL443JKHCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

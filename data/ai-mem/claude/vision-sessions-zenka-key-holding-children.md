@@ -844,17 +844,129 @@ pipeline, more invasive than this routing proof needed. Worth
 addressing before routing anything more sensitive than a synthetic test
 value through this path.
 
-**Still not built, the actual next gap**: the masked-field secret-ENTRY
-widget in `user-edit` — confirmed this session via direct code read that
-masked fields still edit identically to `freeform_line` (same buffer,
-same keystroke path, `editor.control.create:24` comment says so
-explicitly), with only DISPLAY obscured. No event-loop-safe typed-secret
-mechanism exists. `user-edit`'s own `crypt.C25519` usage today is
-read-only key-metadata display (`user-edit.menu.show_key` etc.) — no
-signing, no writing, nothing that would call into either the identity
-holder or the new secret holder for a REAL (non-synthetic) value yet.
-That's the piece standing between this landing and an actual credential-
-entry feature — routing and holding are now both proven; typing isn't.
+**CORRECTED same session, before any code was written**: the paragraph
+above overstated the gap. Direct trace of `user-edit.handler.stdin_key`
+→ `editor.input.next_key` → `editor.control.process_key` showed typing
+into a masked field already worked perfectly — no field-type branching
+exists anywhere in that path, `editor.control.create` treats `masked`
+identically to `freeform_line` for the BUFFER (only `get_display_value`
+differs, already giving correct-length live star-echo). The REAL gap
+was narrower: no field was ever DECLARED `masked` (the add-field cycler
+hardcoded `freeform_line`/`line`-or-`list` shape only), and submit sent
+everything to `users.value-set` unconditionally, so a masked value had
+nowhere safe to go. Both closed below.
+
+## LANDED, 2026-08-14 (final this session) — step C: one real masked
+## field, declared/offered/typed/submitted, routed to sessions.hold
+
+Per user: "no worse than `AMOS7::TERM`'s password entry" was the quality
+bar. Retype-to-confirm was explicitly decided AGAINST (user's call): the
+form's in-place editing already shows length and allows correction,
+which a blind terminal prompt can't, so the extra blind-confirmation
+step retype-to-confirm exists to compensate for would be friction
+without a matching safety gain here. That part of the parity check
+holds.
+
+**CORRECTED, same session, before this landed**: the star-echo/edit-key
+parity claim did NOT hold, and was wrong to assert — checked properly
+only after the user pushed back. `AMOS7::TERM::show_rnd_stars`/
+`del_rnd_stars` (`data/lib-path/pm/AMOS7/TERM.pm:918-943`) print a
+RANDOM 1–3 stars per real keystroke, at randomized inter-star delay
+(`Time::HiRes::sleep rand(0.13/$rnd_keys)`) — defeating BOTH length
+inference AND keystroke-timing analysis, two separate side-channels.
+`@rnd_count` is a per-keystroke stack of "how many stars were shown for
+this character," popped exactly on backspace so the display stays
+consistent despite the non-1:1 ratio — that's what "tracking it for
+corrections" meant. **A third property, also missed initially**:
+`timeout_stars()` (`AMOS7/TERM.pm:945-954`) — when the read loop's
+`$abort_mode eq 'timeout'` (no keystroke within the read-timeout
+window), it pops the ENTIRE `@rnd_count` stack, erasing every displayed
+star, with `$rewind_delay` starting at 0.777s and shrinking ×0.84 per
+step — a visibly accelerating "trailing off" erase, not an instant
+wipe. A partially-typed password left on screen while the user walks
+away self-clears rather than sitting there. `editor.control.get_
+display_value`'s masked rendering (`'*' x length($value)`, unchanged by
+this landing) has NONE of these three properties — exact length leak,
+no timing obfuscation, and a masked field left mid-edit in a running
+form stays fully visible (as `*`s, but exact-length ones) indefinitely,
+with no idle-timeout self-clear. A real regression relative to
+`AMOS7::TERM`, not parity. **Not backported in this pass** —
+`AMOS7::TERM`'s stack model is linear (backspace-from-the-end only, no
+mid-string cursor); `editor.control`'s buffer supports arbitrary cursor
+position/insert/delete-in-the-middle, so a direct port doesn't
+generalize — it would need its own design (e.g. a random star-run
+re-derived per edit, keyed by buffer position, not a linear push/pop
+stack; and its own idle-timeout hook, distinct from anything currently
+in `editor.control`/`user-edit`'s redraw-on-dirty model). Flagged as a
+real, not-yet-scoped follow-up, not solved here.
+
+**One real field**: `host_password` (`users.record.optional_fields`,
+sentinel `\''` — a SCALAR ref, third shape alongside `ARRAY`→list and
+plain-string→line, `ref()`-keyed same as the existing two).
+`users.cmd.field-options` and `user-edit.form.parse_field_options` both
+extended for the 3-way shape; the latter was a REQUIRED fix found by
+direct read, not in the original framing — it silently drops any shape
+token it doesn't recognize, so `host_password` would never have reached
+the client's vocabulary without it.
+
+**Submit split**: `user-edit.form.submit`'s `$values` used to carry a
+masked field's plaintext straight into the `users.value-set` JSON
+payload — now pulled out (`%secret_values`) before anything downstream
+sees it, one `sessions.hold` call per masked field, keyed
+`user-edit-<user>-<field>` (hyphens — dots fail `sessions.cmd.hold`'s
+`^[\w\-]+$`, and username is only guarded against `/`/`\` upstream, not
+`\w`-safety, so a new pre-submit guard checks the username itself
+before `editor.control.submit` runs — refusing after that point would
+destroy what the user just typed, same reasoning as the pre-existing
+offline guard right above it).
+
+**Fan-in, genuinely new, no exact precedent found**: a submit can now
+have MULTIPLE outstanding cross-zenka replies in flight (one
+`users.value-set` + N `sessions.hold`) that must all land before the
+form can report a combined result and quit. `<user-edit.form.
+submit_pending>` (mutable keyword-slot hash, matching this codebase's
+existing style) tracks a pending-count, decremented by each of two new
+per-leg reporter modules, `submit_maybe_finish` firing the combined
+message and clearing the slot only once `pending` hits zero — cleared
+BEFORE quitting so a late/duplicate reply is a harmless no-op. Guarded
+against the send call itself failing (`base.protocol-7.command.
+send.local`'s own comment marks its timeout handler unimplemented —
+without an explicit `<=0` check on the return value, a failed send
+would leave `pending` stuck forever and the form silently hangs after
+reset). Left undef on every non-masked submit — the ordinary single-
+reply path in `value_set_reply` is untouched, guarded behind `if (ref
+<user-edit.form.submit_pending> eq 'HASH')` at the top.
+
+**Collision, deliberately not auto-resolved**: `sessions.util.secret.
+start_child` isn't idempotent (refuses if the name is already held) — a
+second submit of the same field collides on the deterministic hold
+name. Chose NOT to pre-emptively release-then-hold (would pull a
+possibly-still-wanted secret back into `user-edit` just to discard it,
+destroying data on behalf of an unwritten downstream consumer) — the
+collision is reported plainly instead ("NOT held -- retype it").
+Verified live: the pre-existing held value survived completely
+untouched across a second, failed submit attempt.
+
+**Verified live, full chain, first try**: cycler → `host_password` →
+`[Enter]` materializes it → typed a real value via the network-driven
+`char-add` test surface (`<sid>.char-add`, NOT `<sid>.user-edit.char-
+add` — routing-by-name gotcha re-confirmed, `client not present`) →
+live star-echo of correct length → `[Enter]` submits → combined message
+`"saved : user '...' stored\n  host_password : held"` → `sessions.
+secrets` shows the exact expected hold-name → `sessions.release` +
+`decode_b32r` gives back the EXACT typed bytes, byte-for-byte → the
+record's `details.yaml`, read directly, shows `fields: {}` — the secret
+never touched permanent storage in any form. Collision path
+independently verified: pre-held value survives a second submit
+attempt untouched, reported plainly, no hang.
+
+**Still open, unchanged from before**: the real long-term destination
+for a held secret (credentials/cred-mesh integration) — this step is
+explicitly staging, not permanent storage, `sessions.hold` doesn't
+persist by design. Nobody currently calls `sessions.release` except a
+human at the console; there's no automatic "credential now permanently
+saved" consumer yet. That's the next real gap, not typing (proven) or
+routing (proven) — where the held secret goes from here.
 
 [[project-users-zenka-unblocks-cross-host-testing]]
 [[project-keys-zenka-integration-direction]]
@@ -862,8 +974,8 @@ entry feature — routing and holding are now both proven; typing isn't.
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,,,,.,,...,.,,,..,,,..,,,,,,,.,.,,,.,,,,.,,.,.,...,...,...,..,,..,,.,,,.,.,
-#R4VERNCH46C2ESZWDULYVQQODVPD6KVKTQYUDRHT5BANDFPTT5NDKSYSBS2MLB7RE5XWBGXG3TDZM
-#\\\|OQPQVDNLCGFOST7SCDAUMRDS3Y4AYPPS6OI5JTZAR3UPEU5WUBU \ / AMOS7 \ YOURUM ::
-#\[7]TZOO7EI4EWLKX5U52LJ56JSOV6BMU4BX6A7G2RDGCBJ6ZBBMOADQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,.,,,...,.,.,.,.,.,,,,.,,.,,,.,.,...,...,,,,,.,,,.,,,.,,,,,.,
+#HEUAMWYYTFCF57OFA57NTT5W3G6JOJJSQWOKRCLNLY7X46AXKN32BRFRWMRNJTMHXIS426D7TN6DK
+#\\\|YVLNACKHQF7IJHM6S4NAR4HXXO4NRUCAKKBWMNMIDJL4TRJBXRM \ / AMOS7 \ YOURUM ::
+#\[7]S3NPBC3WUZVE3JUZPHAOWQH2TAOZXJOUUFDTFYWOMPC2IZAJVKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

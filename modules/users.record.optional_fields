@@ -18,6 +18,15 @@
 ##
 ## EXTEND HERE.  this list is deliberately small -- it is a starting
 ## vocabulary, not a closed model, and adding to it costs one line.
+##
+## a THIRD shape, 'masked', joined the two above 2026-08-14 : a scalar
+## REF [ \'' ] rather than a plain string, so ref() on the value still
+## makes the declaration [ 'ARRAY' => list, 'SCALAR' => masked, else
+## line ] -- see users.cmd.field-options' matching 3-way check. a
+## masked field's SUBMIT destination differs too [ user-edit.form.
+## submit routes it to sessions.hold, not users.value-set -- see
+## data/ai-mem/claude/vision-sessions-zenka-key-holding-children.md
+## for why this is a staging step, not permanent credential storage ]
 
 ## split from a single 'full_name', per user 2026-08-12 : the USER-facing name
 ## [ what a git commit or a login carries -- 'Taeki Ten' ] and the REAL name [
@@ -37,6 +46,7 @@ return {
     qw| contact |        => [],
     qw| full_user_name | => '',
     qw| full_real_name | => '',
+    qw| host_password |  => \'',
     qw| location |       => '',
     qw| note |           => '',
     qw| phone |          => [],
@@ -44,8 +54,8 @@ return {
     qw| timezone |       => '',
 };
 
-#,,,.,.,,,...,,,.,,..,,,,,...,..,,.,.,,,.,..,,..,,...,...,..,,.,.,.,.,.,.,...,
-#VY6EPJGGQH3OPQFLBVSCBN5ZCTP4PYXY6ZZPHUENDMRGQOTK4K456JILIQH224Z3RPJ74SICPUNHY
-#\\\|VSXIGFLUKGSPXSLLVVJJOPHTUQ5X3O6J4JD37I4SPQET5EQLIJC \ / AMOS7 \ YOURUM ::
-#\[7]QL23LEEBP4NI5K2SRKDG4TH2PON3M4QSA653ACCERJ2KKDD3SWCQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,.,,..,,,,,,,.,..,,...,.,,,,.,,..,,...,...,.,.,.,.,..,,...,,,,,
+#FZQF3X7V2C4M5I4HHHVYSQVCSVD65J23D3GTIKS6D443OJOFUADI5OZQWQMPAFJPGFLT6IQ5SHYG2
+#\\\|KHTVAGMETTPG7TJKTJOSKOJWLUWCUFLFA3BB36UIL7FUW42R6ZV \ / AMOS7 \ YOURUM ::
+#\[7]FE77DWL7YDPVZDS6ZDAFTCR7AKXC55LJNFBKKWM5TKFTBLM24EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

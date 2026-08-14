@@ -12,6 +12,27 @@ my $cmd       = uc( $info->{'cmd'} // '' );
 my $call_args = $info->{'call_args'}      // {};
 my $username  = <user-edit.form.username> // '?';
 
+## FAN-IN path [ 2026-08-14 ] : a submit with masked fields also has one or
+## more sessions.hold calls in flight, and the combined outcome is owned by
+## user-edit.form.submit_maybe_finish, not this handler directly -- record
+## the result and return. everything below this guard is the ORIGINAL,
+## single-reply body, untouched -- it never inspected $values, so no other
+## change was needed for the ordinary [ no masked field ] case
+if ( ref <user-edit.form.submit_pending> eq qw| HASH | ) {
+
+    if ( $cmd eq qw| TRUE | ) {
+        <[user-edit.outbox.clear]>->($username);
+        <[user-edit.draft.clear]>->($username);
+        <[user-edit.form.submit_note_value_set_result]>->(
+            TRUE, $call_args->{'args'} // "user '$username' stored" );
+    } else {
+        <[user-edit.form.submit_note_value_set_result]>->(
+            FALSE, $call_args->{'args'} // 'no detail' );
+    }
+
+    return TRUE;
+}
+
 if ( $cmd eq qw| TRUE | ) {
 
     ## confirmed stored : the staged copy has served its purpose ##
@@ -49,8 +70,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,.,...,.,,,,..,.,.,,,.,...,...,.,,,...,.,,,..,,...,..,,..,,.,,,,..,,,.,,,.,
-#7NXR3VHLK276RSCTSEO4OBCBLZTMBCBJMDVD27CXAHY5OKUDGWIISPK4OQNQI6FHBXPCEACR6FDSE
-#\\\|YP4GHSP55M3GE455SMLKAPS7IFQ2RLTDGTUTL4CKRY6647VFTV2 \ / AMOS7 \ YOURUM ::
-#\[7]JZEYQEXR4JUOEZIWFYK6W4BIO2QK2QOXGQWLTDRL7Z4QQ4VCXIAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,.,..,,,,.,.,,,,,,,,,,,.,.,,.,,..,,...,...,,.,,...,,,.,.,.,,..,
+#E4FIOINF77NUQ4WOK6P4ZBMSLZSQMR2ZWGWQJ42TNNUBJDDXKSPQ4NKAEVQALIQWN32V5AJHU2JYW
+#\\\|IDI7ISPMYFCWDYPUIWS4RQ3TJH5KHKE76MOGJPDBOMH7IVDFZSZ \ / AMOS7 \ YOURUM ::
+#\[7]VJFFLK6KDXU5MWN5UIRY3AQNYLCFMS7HORY2I2RDND25RI3CLSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

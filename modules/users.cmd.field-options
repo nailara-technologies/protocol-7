@@ -54,22 +54,23 @@ if ( length $args ) {
 my @addable = grep { not $present{$ARG} } sort keys %{$optional};
 
 ## the shape IS the declaration [ users.record.optional_fields ] : an ARRAY
-## makes a collapsible multi-value list, anything else a plain line
+## makes a collapsible multi-value list, a SCALAR ref makes a masked line
+## [ 2026-08-14 ], anything else a plain line
 return {
     'mode' => qw| size |,
     'data' => join(
         "\n",
         map {
             sprintf '%s %s', $ARG,
-                ref $optional->{$ARG} eq qw| ARRAY |
-                ? qw| list |
+                ref $optional->{$ARG} eq qw| ARRAY |  ? qw| list |
+                : ref $optional->{$ARG} eq qw| SCALAR | ? qw| masked |
                 : qw| line |
         } @addable
     )
 };
 
-#,,..,...,,,,,.,.,...,.,.,,..,..,,,..,..,,,,.,..,,...,...,,..,,,,,..,,,,,,,,.,
-#HVXWIKQS6A3LQBHH5MQG7RKHBOPTL6ALSUXR3SLWOE26OZQZF3MS4HRZVEHK4J36ZPWEHOSGBMUPS
-#\\\|JVVTINAYUB2PFGRCFHGAAETF6NJXV6Y42DPABGQR4MDE5JPOBMA \ / AMOS7 \ YOURUM ::
-#\[7]7RKLWB7TFVXIR2VCWVWLUKUBREGMPCLEBWZFYDQCIZZJ5QHU56BQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,.,,,.,.,.,,..,.,,,...,.,.,.,.,..,,...,...,...,.,,,,,,,,..,.,,,
+#QJBD6JSYAO7JCKQKIJSSDPYOPOWITLBNTBMFGZ7PGZTRUIZP5KBX7KCNHQTQNDU347EBV6I2OU2EE
+#\\\|TUJTYX3F7EBKJDYCWWRU4KD3FYYPLEKSRT6OE4GBLL46XBOT6CM \ / AMOS7 \ YOURUM ::
+#\[7]DRJQKFHXH6CEXCB2R5RW3NPJ4LLYMNZZQVJVYWTK4ZXMF36XI6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
