@@ -528,6 +528,7 @@ return [ qw[
         site-yaml.extract
         sessions.cmd.stop
         sessions.cmd.sign
+        sessions.cmd.hold
         radio.cmd.library
         proxy.auth.lookup
         power.save_config
@@ -1134,6 +1135,8 @@ return [ qw[
         smtpd.cmd.reclassify
         site-yaml.cmd.search
         site-yaml.cmd.import
+        sessions.cmd.secrets
+        sessions.cmd.release
         select.region.commit
         select.region.cancel
         select.region.adjust
@@ -1386,6 +1389,7 @@ return [ qw[
         smtpd.archive.encrypt
         site-yaml.fetch.state
         set-up.json.init_code
+        sessions.secret.child
         sessions.holder.child
         reenc-msg.open_window
         reenc-msg.cmd.refresh
@@ -1659,6 +1663,7 @@ return [ qw[
         space.jump.cache.write
         source.signature_valid
         set-up.chk_profile_dir
+        sessions.secret.parent
         sessions.holder.parent
         sessions.holder.detach
         sessions.holder.attach
@@ -3884,6 +3889,7 @@ return [ qw[
         vision-batch.parent.cmd.process
         v7.zenka.cmd.restart_concurrent
         v7.callback.object.root.session
+        user-edit.test.secret_send_hold
         user-edit.form.scroll_multiline
         universal.handler.cur-pid_reply
         tree.sort.trunk.halve_frequency
@@ -4085,6 +4091,7 @@ return [ qw[
         sourcecode.console.test-diagnose
         sourcecode.callback.load_modules
         set-up.json.cmd.get-config-names
+        sessions.util.secret.start_child
         sessions.util.holder.start_child
         screen.setup.cmd.display-layouts
         route.bmw384.visual.wheel.vortex
@@ -4531,6 +4538,7 @@ return [ qw[
         vision-batch.parent.collect_results
         v7.zenka.instance.cmd.change-status
         v7.handler.heartbeat_timer_response
+        user-edit.handler.secret_hold_reply
         tile.impressive.increase_light_mode
         terminal.curses_ui.modified.english
         storchencam.subscribe-screen-change
@@ -4858,6 +4866,7 @@ return [ qw[
         web-browser.replay_capture.buffer_name
         web-browser.handler.signal.load_failed
         weather.parent.wind.calculate_beaufort
+        user-edit.handler.secret_release_reply
         user-edit.handler.create_default_reply
         ticker.handler.screen-change_strm_open
         storage.protocol.SFTP.open_unix_socket
@@ -4930,6 +4939,7 @@ return [ qw[
         web-browser.replay_template.dispatch_js
         web-browser.console_capture.buffer_name
         weather.parent.handler.station_id_reply
+        user-edit.console.test-secret-roundtrip
         sourcecode.console.verify-p7-signatures
         sourcecode.console.test-sign-and-verify
         sourcecode.console.report-endline-state
@@ -5255,8 +5265,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,.,,,..,,,.,,..,,,,,.,,,..,,,,,,,.,,,.,,.,.,...,...,..,,...,.,,,,,.,,,,,
-#7OS5Q4T3VQQCRRP7C7BQJMKEEKWC7KTUEORZOT5XEG64GJ5ZKGCWXMTY4ZX2VUEVA7HUPCTWWNAFE
-#\\\|C7UZJ25YKSHUW5EN24VBKAC24HWRDW554RBEKLRYMO4R4IHIBBG \ / AMOS7 \ YOURUM ::
-#\[7]KLWVAKMIKMEYYQQ6XXZ6BIPB3ZIYVHQS2FXMMQKADDMTKBMKF6CA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,...,...,.,.,,..,,.,,...,.,,,.,.,...,.,.,,,,,,..,,..,,,.,...,
+#LBVI5AQANBCMCK6JVJRURETWMU2BNSDJKCAZ3PKEWAMZ3OU7DOJIWXIGOVB3BFQASODFOSKQQY7US
+#\\\|PBXWH4GAF3PEVQVSFJRFBN4URL6MHD4ES24FBS7RLS4SVIWXOPX \ / AMOS7 \ YOURUM ::
+#\[7]NMVGBBFDE75SMQTNBEAPJVPBSTBS3VC2FLWUF4EKERO3NDQ7SAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
