@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = sessions.holder.op.sign
+# descr = Ed25519-sign a console-supplied string. binds a freshness
+#         timestamp into the payload before signing [ bracket-delimited,
+#         timestamp-first -- the SHAPE of crypt.C25519.create_signature_
+#         request's convention, not its literal 3-field key-checksum
+#         template, which signs a KEY, not arbitrary caller data ].
+#         returns signed-string + signature together [ length-prefixed,
+#         same convention as the old op.encrypt's counter-prepending ]
+#         since an external verifier has no other way to reconstruct the
+#         embedded timestamp independently.
+
+my $public_key  = shift;
+my $private_key = shift;
+my $data        = shift // '';
+
+my $signed_str = sprintf( '<%s:%s>', <[base.ntime.b32]>->( 1, TRUE ), $data );
+
+my $signature
+    = Crypt::Ed25519::sign( $signed_str, $public_key, $private_key );
+
+return undef if not defined $signature;
+
+return pack( qw| N |, length($signed_str) ) . $signed_str . $signature;
+
+#,,PLACEHOLDER,,,.,,,,.,,,,,,..,,,..,..,,..,,.,.,.,.,..,,...,..,,,.,,,.,,,..,.
+#PLACEHOLDER-SIGNATURE-NOT-YET-GENERATED-RUN-sourcecode.console.sign-ON-FILE
+#\\\|PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file \ / AMOS7 ::
+#\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,.,,,,..,..,,...,.,,,..,,..,,,,,,,.,,,..,..,,...,...,,..,..,,..,,.,,,.,,,
+#UE6ZVLKYCAUNBQDUHYN7P7JGOB7URUOQGPXTXVOVMTE25DQHOAFBFGANWU7GXSO5K75T5WGU6OEWW
+#\\\|HQGB6M4UTCLSRSQ4EBAQOIJGJ2ZPPNEXMOOI3RJSD4QCYTIGOGG \ / AMOS7 \ YOURUM ::
+#\[7]HEKE7QHA623W7XCZ6Z5G55H4FCX4ZQSXJKX2V6WUMT5OTQPZMQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
