@@ -1,51 +1,27 @@
 ---
 name: bug-crypt-c25519-key-vars-base-identity-hijack
-description: "crypt.C25519.key_vars sets the global <crypt.C25519.base_key_name> cache to whichever key name it is FIRST called with explicitly in a process's lifetime -- querying any OTHER key by name before the real identity has been established this way silently makes the zenka think that other key is its own identity. Fixed for user-edit's user_keys field via an explicit priming call; the underlying key_vars behavior itself was left alone (real, separately-scoped work, wide blast radius)"
+description: "SECOND confirmed occurrence of the key_vars base-identity-cache hijack already documented in bug-auth-keypair-client-composition-gotchas.md #2 -- this file adds the concrete priming-call fix pattern (used in user-edit's user_keys field) and a SEPARATE, still-unresolved gap: encrypted non-identity key checksums come back empty when queried from a process that already has a different key loaded"
 metadata:
   type: project
 ---
 
-**Found 2026-08-14** while adding a `user_keys` field to `user-edit` (list of
-the invoking user's OTHER C25519 keys, next to the existing `identity_key`
-tab -- see [[topic-user-edit-console-zenka-status]]). Computing a checksum
-for a second key (`crypt.C25519.key_checksums`/`cached_chksum`/
-`keys.checksum_href` all eventually call `crypt.C25519.key_vars($name)`
-internally) made `identity_key` itself start showing that OTHER key instead
-of the real identity, live-reproduced and confirmed.
+Read [[bug-auth-keypair-client-composition-gotchas]] item #2 first for the
+root cause itself (`crypt.C25519.key_vars`'s `<crypt.C25519.base_key_name>`
+global cache gets claimed permanently by whichever key name is FIRST
+passed to it explicitly, in a process's whole lifetime) -- found there
+2026-08-11 in auth-keypair signing, and independently hit AGAIN here
+2026-08-14 in a completely unrelated context: `user-edit`'s `user_keys`
+field (list of a user's OTHER C25519 keys, next to the existing
+`identity_key` tab -- see [[topic-user-edit-console-zenka-status]]).
+Computing a checksum for a second key (`crypt.C25519.key_checksums`/
+`cached_chksum`/`keys.checksum_href` all eventually call `crypt.C25519.
+key_vars($name)` internally) made `identity_key` itself start showing
+that OTHER key instead of the real identity, live-reproduced and
+confirmed. Two independent hits on the same sharp edge -- treat this as
+a standing hazard for any future code that queries more than one named
+C25519 key from a single process, not a one-off.
 
-## the actual bug, read directly from `modules/crypt.C25519.key_vars`
-
-```perl
-if ( defined $key_name ) {    ##  setting base key [ when not defined yet ]  ##
-    if ( not defined <crypt.C25519.base_key_name>
-        and <[crypt.C25519.key_exists]>->($key_name) ) {
-        <crypt.C25519.base_key_name> = $key_name;
-    }
-}
-```
-
-`<crypt.C25519.base_key_name>` is a single, process-global keyword slot.
-Whichever key name is FIRST passed EXPLICITLY to `key_vars` in this
-process's lifetime claims that slot permanently (the guard only fires
-`if (not defined ...)`), and every later BARE call (`<[crypt.C25519.
-key_vars]>->{'key_name'}`, no name argument -- what `identity_key`'s own
-render and much of `crypt.C25519.cmd.get-public-key` use) returns whatever
-got cached under that hijacked identity from then on.
-
-A bare call alone never sets this slot -- only an explicit-name call does,
-in the branch above. So the ordering that matters is: **whichever caller
-first names a specific key wins the zenka's whole notion of "its own"
-identity**, regardless of whether that caller meant to claim it.
-
-## why this hadn't surfaced before
-
-Nothing in `user-edit` (or apparently anywhere else touching `crypt.
-C25519` from a single long-lived process) had previously called `key_vars`
--- or anything that calls it internally -- with an EXPLICIT name for a
-key other than the zenka's own identity. `user_keys` was the first code
-to do that in this zenka, by querying a second key's checksum.
-
-## the fix used, NOT a fix to key_vars itself
+## the fix used here, NOT a fix to key_vars itself
 
 `user-edit.form.schema_from_record` now primes the cache explicitly,
 before any other-key lookup can run:
@@ -98,8 +74,8 @@ directly rather than dispatch it further.
 
 [[topic-user-edit-console-zenka-status]]
 
-#,,,.,,.,,,..,...,,..,,,.,..,,.,,,,..,.,.,,..,..,,...,...,,..,.,,,,,.,,,,,...,
-#GNNL42XNAXPJJ3RVPONJP7I56R6Q6BD7XSMP7U7FHUDLGMAGCALMALP7LILCDP2JEF3ZENPNUETMK
-#\\\|P7V2532Q3ENORYUAOHH6TGXEHGVM5ZEQ5WQ363PQGLHRXTXPWKJ \ / AMOS7 \ YOURUM ::
-#\[7]E37N5DGIMNKIIBCFAZUOJEYLPYR6BK4GLMXKTB3HWGJX6KYIZODI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,.,.,,,.,.,.,.,.,,,,,,,,,,,,..,..,,...,..,,,..,..,,,,.,,,.,,.,,
+#LPRJZ5OORFRKSSY63CAUUAK2GSG7K6JQNDJ3PH4EGJVIGHWL2LVYRUR7W5MBVELAEYCMD5O3KEW2O
+#\\\|AZ7SEXCZF3H62QQDQWSFDIO6GCT4WDBE2FPID6R7ZDY6NCZG25J \ / AMOS7 \ YOURUM ::
+#\[7]C5GWKNPVP6SKLXUOTWJHAZM2JEEQG2KEKGWWG4RFR5DOLQCSPGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
