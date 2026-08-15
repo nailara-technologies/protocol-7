@@ -38,6 +38,24 @@ access.cmd.usr.cube  =  commands heart verify-instance char-add
 ## 20 [ //= in the code ] when unset here
 # user-edit.cfg.user_keys_name_width = 20
 
+## user_keys field : display type. 'inline' shows each key's checksum on its
+## own row after the name ; 'detail' [ the default here, per user, once
+## proven live -- code still //= 'inline' when this var is entirely unset,
+## for any OTHER deployment that hasn't opted in ] shows name-only rows and
+## renders the SELECTED entry's checksum in that same field's existing
+## scrollinfo row, indented right of the names -- a plain content row, not a
+## frame-border corner [ an earlier attempt used a border corner and was
+## reverted: no colorer in this codebase applies value-coloring inside a
+## border line, and the placement was spatially disconnected from the list
+## it described besides -- see data/ai-mem/claude/topic-user-edit-console-
+## zenka-status.md's 2026-08-15 update ]. shares the scrollinfo row with
+## real pagination info rather than replacing it -- pagination text renders
+## flush-left, the checksum starts at a fixed column well right of it, so
+## they never overlap even if user_keys holds more than one window's worth
+## of entries -- see user-edit.form.build_frame and editor.ui.ascii_frame.
+## render_form's multiline block
+user-edit.cfg.user_keys_display_type = detail
+
 ## two families were missing from the original keys-clone [ keys is fully ##
 ## standalone and needs neither ] : 'ui' provides base.event.* — without  ##
 ## it base.zenka.loop dies on an undefined event.loop — and format.yaml   ##
@@ -77,8 +95,8 @@ system.auth-user = <user-edit.auth_name>
 ## print and exit : a [zenka.loop] at this level would hang them, and    ##
 ## plain 'v7.user-edit' would never return to the shell                  ##
 
-#,,..,,..,.,.,,,,,,.,,.,.,.,.,.,,,,.,,,,,,.,,,..,,...,..,,...,.,.,,.,,,..,,..,
-#DXKTXC5J4BTZGXK6UFU6QYURWKJ6MPKEFLYXX5RVD2WNHXW7CSGUCC3PAY53TKFVHEQXYK77ZY5HA
-#\\\|6DNBWNWUIFGCTDJNPQSQQIYMVRSCCNTCXKMKIFX2QGUIAQNVGMS \ / AMOS7 \ YOURUM ::
-#\[7]UXFEOXF3KNI5PT5MQULXF2QDSZSNIAGIHIBPDOIKJS2HHN5DWOAY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,,..,,,.,..,,,.,,,..,..,,.,.,..,,...,...,..,,.,.,,,.,,,.,,,,,
+#X3DUCG2DUGHL7UQM7L7NUHCOLDHI5Q6M2K4MDFOK7GR3ZZQ3JK3MUELOC6FK755ERXGZHB4C4IFL6
+#\\\|J3GHACWTWVZDHW3ZWKJHQ5KVPZTE2JJSDIZWAAUVRDZICQBULUD \ / AMOS7 \ YOURUM ::
+#\[7]UBP77PG2GM62RMP3PSVVYZOJ6TKDERW3L2RSD7SSMCEYIEGI3EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
