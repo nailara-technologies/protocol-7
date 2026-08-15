@@ -32,6 +32,46 @@
   rows (most common = winner); `lpad`/`rpad` derived from min leading/
   trailing whitespace runs across static (non-slot) content rows
 
+## VERIFIED trap : field-slot `suffix` double-counts a long substituted
+## value against its own build-time placeholder width (2026-08-15, traced
+## live via a debug dump of `render`'s own width computation, user-edit's
+## user_keys detail-checksum row — see [[topic-user-edit-console-zenka-
+## status]])
+- a **field**-type slot's width formula is `prefix + value + suffix`,
+  where `suffix` is whatever LITERAL text followed the `{{token}}` in the
+  mockup line `parse` was given — for a generator like `user-edit.form.
+  build_frame`, that's near-pure trailing whitespace, padding the SHORT
+  unsubstituted `{{token}}` placeholder out to whatever width other
+  fields' own literal text already established at build time
+- that padding is only correct for values close to the placeholder's own
+  length. once a caller substitutes in a value MUCH LONGER than the bare
+  `{{token}}` text was [ e.g. `{{user_keys_scrollinfo}}`, 25 literal
+  chars, holding a 23-char checksum plus a 42-char indent at render time
+  ], the stale `suffix` gets added ON TOP of the real value at render
+  time — `render`'s width computation has no way to know the suffix was
+  only ever meant to cover the placeholder, not the eventual value, so it
+  double-counts, silently widening the frame well past what the value
+  itself needs. no error, no warning — just a wider-than-expected frame
+  with unexplained blank padding on the affected row
+- a **block**-type slot [ `{{name...}}`, three literal dots before the
+  closing braces — `ascii.frame.parse`'s own trailing-dots syntax ] has
+  NO suffix concept at all : its width formula is just `prefix + line`
+  (`length($prefix) + length($line)` per line, since a block value
+  `split`s on `\n`). safe by construction for this exact case, and
+  correct even for an ordinary single-line value — `split "\n"` on text
+  with no newline just yields the one line
+- **how to apply**: before putting ANY dynamically-sized value [ not
+  scanned/measured at build time, i.e. not covered by whatever
+  `$display_length`-style static reservation the generator computes ]
+  into a field-type slot, check whether its live length can plausibly
+  exceed the literal `{{token}}` text's own length. if so, use a block
+  slot instead of trying to out-guess the gap with a bigger or smaller
+  static reservation — a static number can only ever match ONE specific
+  live value length, and drifts wrong the moment that changes. reserving
+  MORE width doesn't fix the suffix double-count, it just makes the
+  static min_width big enough to dominate over the render-time overflow,
+  hiding the bug behind a differently-wrong number instead of fixing it
+
 ## reverse parser
 - Parse mockup YAML in REVERSE: children first, then parent
 - Mockup structure: `mockup: { type: 'parent', children: [ { type: 'child', ... } ] }`
@@ -105,8 +145,8 @@ mockup:
 - DRC validation catches errors early in the pipeline
 - All three components work together: parse -> validate -> render
 
-#,,,.,..,,.,.,,,,,,,.,.,.,.,,,...,,.,,.,,,.,,,...,...,...,,..,...,,.,,,.,,.,,,
-#NNRNUR7BQ2Y4TQQ37EVNPE7GYJ7OC5PW55MYA5ISCWVR2G5MPTWCHRTARWK54D26WWEHCVPH2FEBA
-#\\\|G5YOZQ33AITSIHYSOCTXLD2EDXWMKSNOZRUVHZLAZBHMCWMPX47 \ / AMOS7 \ YOURUM ::
-#\[7]EZ57J6ELRDN33JAXRX2AXPF2ULE2N5PNJVCA7SSLEUSODO7PBEBA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,,.,,,,.,,..,..,,,,,,,,.,.,.,...,...,...,.,.,..,,.,.,...,.,,,
+#NGDRDO6YYISSQNJBZ76FAYSPRXK2NKJXXOKDRHFIQT6ODV4NSR5ZJ2ACZQSFQ6Z7LLULYG26QXGLG
+#\\\|4BXHY5KWCEFCNJ52PDFVEOAK7RETEKTCQEWDAN27PGCSQVJG4DG \ / AMOS7 \ YOURUM ::
+#\[7]IF2LUBIRAALNCSIAQT446NPDHM3KGMLKL2FP3LW6CIM7CJSKWQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
