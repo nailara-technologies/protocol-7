@@ -1441,8 +1441,43 @@ small enough — one more reserved content row, same pattern
 `_scrollinfo` already proves out — to build directly with the
 understanding already in hand from debugging both prior rounds.
 
-#,,,,,,,,,,..,...,,..,...,,,,,.,,,..,,...,,..,..,,...,...,.,.,.,,,...,,,,,..,,
-#SD6I46XQH3SAWRCAGXRTHXAFG5QILCFS2HJKVXLE4R6XRUGHTWE6Z43Y3H2IMYL3KWAJLPKIYJBM4
-#\\\|2VEVIFACDK4E3DLPKWGAJ2PBTHRRHSI43QZGEHTRNGFZ2DM6GIW \ / AMOS7 \ YOURUM ::
-#\[7]GLQLVBENYHNZMQYWTQB5CAKE44JGXXJR6FDCSI5I3UIKYHP3YQCA 7  DATA SIGNATURE ::
+**LANDED 2026-08-15, commits `290cbe05a`+`ed5f4ce68` (corner, reverted)
+then `1544fa382` (detail, current) — `user-edit.cfg.user_keys_display_type
+= 'detail'` is now the DEFAULT.** Built directly (no third kimi round),
+reusing the EXISTING `_scrollinfo` slot rather than a separate row —
+pagination text renders flush-left, the checksum starts at a fixed column
+(42) well right of it, so real pagination info and the detail checksum
+coexist on one line without collision (verified live with 5 keys, forcing
+real "N-M of T" pagination text alongside a selected checksum).
+
+**A second real bug found and fixed in the same pass, distinct from the
+corner-mode issue above**: the checksum row was carrying ~13-17 chars of
+unexplained blank padding past its own end, independent of the column
+position chosen. Traced live via a debug dump of `ascii.frame.render`'s
+own width computation (not `user-edit.form.build_frame`'s separate static
+`$required_width_for` calc, which turned out to be nearly irrelevant to
+the actual rendered width here) — full mechanism now documented generally
+in [[topic-ascii-frame-system]] ("VERIFIED trap: field-slot suffix
+double-counts..."): the checksum was rendered through a **field**-type
+frame slot, whose width formula unconditionally adds a static `suffix` —
+literal trailing whitespace left over from padding the SHORT, unsubstituted
+`{{token}}` placeholder out to the row's build-time width. Once the real,
+much longer checksum substituted in at render time, that stale suffix got
+added AGAIN on top of it. Several rounds of retuning `build_frame`'s
+static reservation number (26, 60, 33, 45) never touched this — they only
+ever adjusted which of the two (stale static reservation vs. live
+overflow) happened to be the larger/dominant term, never eliminating the
+double-count itself. Root-fixed by switching the slot to **block** type
+(`{{user_keys_scrollinfo...}}`, `ascii.frame.parse`'s trailing-dots
+syntax) — no suffix concept at all for block slots — then retuning the
+reservation once more against the corrected total. Frame width dropped
+from 86 to 73 chars at the same column position, with nothing else
+changed. **How to apply**: don't try to out-guess a suffix-inflation gap
+with a bigger or smaller static number; if a slot's live value can exceed
+its own `{{token}}` text's length, use a block slot instead.
+
+#,,.,,,.,,..,,,,,,,,,,,,,,,..,,,.,..,,,.,,,,.,..,,...,...,...,..,,.,,,,..,,,.,
+#67RO3TEGEZF7GWHPQZCSGKTMU37LGYAOUI7OTWUKO7U67QJYQRNUBEMVMU64PNBERWJ2VD7GMHUJA
+#\\\|62UUNKJFAC74NBCQMTV3RRBRDL7AHXPBRAPYZY5VDG2CEXWINW4 \ / AMOS7 \ YOURUM ::
+#\[7]ORZ4RHE7U7TNYRGYYY5TBGLSAO36PCW5XS2LSO2BC6NZZAJLQKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
