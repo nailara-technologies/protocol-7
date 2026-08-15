@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = user-edit.check_pending_excursions
+# descr = run pending out-of-loop terminal excursions after zenka.loop returns
+
+## the shared resume point for "leave the event loop, run something blocking
+## on the terminal, come back" excursions triggered MID-SESSION -- today the
+## only one is the key-actions tab's key-create [ <user-edit.pending.
+## key_create>, set by plugin.user-edit.key-actions.handler.key right before
+## its Event::unloop() ], shaped exactly after the bootstrap create-offer's
+## own <user-edit.pending.create> contract.
+##
+## called after BOTH <[base.zenka.loop]> call sites that a mid-session unloop
+## can resume into -- user-edit.console.start's own AND user-edit.
+## offer_create's nested one [ active instead whenever this session went
+## through the create-admin bootstrap first ].  handling only one site would
+## silently end the session in the other case : the loop returns, nothing
+## checks the pending flag, and the caller falls through to its return.
+##
+## a WHILE, not an if : the action can fire more than once in one session.
+## each iteration re-enters <[base.zenka.loop]> itself, and that call returns
+## again on the NEXT excursion's unloop.  the real session quit never resumes
+## here at all -- user-edit.form.quit ends in <[base.exit]>, so the process
+## exits from inside the loop rather than unwinding back to this frame.
+##
+## the STDIN io-watcher is deliberately LEFT REGISTERED throughout : Event is
+## not pumping between unloop and the re-entry below, perl is single-threaded,
+## and the blocking reads inside the excursion are the only thing touching fd
+## 0 meanwhile.  term_restore / term_init toggle O_NONBLOCK and the termios
+## mode, which is what actually governs blocking and raw-vs-canonical -- the
+## same implicit assumption offer_create's blocking base.term.ask already
+## relies on, exercised here with a watcher that was already active.
+
+while (<user-edit.pending.key_create>) {
+
+    <user-edit.pending.key_create> = FALSE;
+
+    <[user-edit.term_restore]>;
+
+    ## prompts, pre-validates and creates -- sets <user-edit.key_actions.
+    ## last_result> either way [ see that module's own header for the
+    ## keys.console.create base.exit risk this ordering exists for ]
+    <[user-edit.excursion.key_create]>;
+
+    <[user-edit.term_init]>;
+
+    ## repaint once the loop pumps again, so the tab shows the outcome ##
+    <user-edit.form.dirty>++;
+
+    ## re-enter ; returns again on the next excursion's unloop [ the real
+    ## end-of-session quit exits the process from inside the loop instead ]
+    <[base.zenka.loop]>;
+}
+
+return TRUE;
+
+#,,.,,..,,..,,.,.,,.,,,,.,.,,,.,.,...,.,.,.,.,..,,...,...,...,,,,,..,,...,...,
+#EI62OYNLC32OPERQXMIZ7ZV3ZFBW2DR25LQKA2VGKXCTFCAODS3VBSNDLRPFIO2G5LCMNECCP6GDS
+#\\\|D2ZWLPGDZGO7NURT3D44XBYBESYXGIOS3PA637WXRAOSBVUVWVJ \ / AMOS7 \ YOURUM ::
+#\[7]NNT22SCLTFQWK3QJEF2YWGMORPMAUFIIYLKQM6FBMSJAV26KJOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
