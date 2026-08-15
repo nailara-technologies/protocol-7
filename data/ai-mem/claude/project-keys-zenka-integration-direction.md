@@ -182,8 +182,51 @@ all-or-nothing: never block functionality waiting for the ideal case,
 always make the upgrade path easy once better security becomes available
 or needed.
 
-#,,..,,,,,.,.,,,.,.,,,..,,,.,,.,,,.,.,..,,,..,..,,...,..,,.,.,...,.,.,...,,.,,
-#CUHIJGI7LWGZ5VM5HUQ557CGBCVFOWFXVJND6R5FP6KJ6U5SMGS6GZBGMOB3JQRBBZNYE6TILKEMS
-#\\\|NU2FF3XVHIMKTTE5456CSZLDL6R4UKH2FSKGSU3QQL7QUL4WJTV \ / AMOS7 \ YOURUM ::
-#\[7]TZ5KW5GUVC2ZBRYFUO4A2WETOGVTGSRJI3MNK5OHMEIB2YYLUMBQ 7  DATA SIGNATURE ::
+## the endgame shape, per user, same conversation — parent keys as pure
+## lifecycle-event signers
+
+If the momentum holds: a "most-parent" key eventually signs almost
+nothing directly — only a minimal event payload over a subkey:
+`(subkey_name, timestamp, action)`, where `action` is something like
+`activate` or `remove`. Eventually EVERY key traces back through at
+least one parent signature — no unsigned keys left in the system at all,
+the literal fulfillment of "clean signature trees" above, not just a
+capability that exists.
+
+**A role distinction inside "pure signing" keys, worth keeping crisp**:
+per user, a key that ONLY ever signs other keys (never used directly for
+anything else) can represent one of at least two different things, and
+they should not blur together at implementation time:
+- a **name** — a naming/identity authority: its signature vouches for
+  "this subkey belongs under this name," nothing more
+- a **function or delegation of authority** — a work-key-style authority
+  that passes down permission to ACT, not just to be named
+
+Both look identical mechanically (a key whose only activity is signing
+others) but mean structurally different things — worth an explicit
+`purpose`/`role` marker on a pure-signing key when this gets built,
+rather than inferring it from usage after the fact.
+
+**Naming convention, per user**: both namespaces use the dot-separated
+form (`parent.child.grandchild`), so the KEY NAME ITSELF already reads as
+the branch/tree structure — deliberately the same convention this whole
+codebase already uses for module namespacing (`base.file.remove_tree`,
+`crypt.C25519.key_vars`, etc.), so the naming tree and the
+cryptographic-signature tree become two mutually-reinforcing
+representations of the same structure rather than two unrelated systems
+that happen to coexist.
+
+**Reconcile with existing prior art before formalizing**: the
+activate/remove signed-event idea is a sharper, more concrete version of
+`PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md`'s existing mode-A/mode-B
+credential-upgrade split (explicit `next: BMW384(new)` pointer for a
+traceable/scheduled change, vs. a historyless clean replacement for an
+unscheduled one — see this file's own earlier section above) — likely the
+same fork arrived at from a different direction, not a separate design to
+build in parallel.
+
+#,,.,,,.,,..,,,.,,,,.,.,.,,,,,,..,...,.,,,,,,,..,,...,...,,,.,,..,.,,,...,.,,,
+#5BK6YNSO4R4OTOK6U4RKQE6ZC44EOGPGLIFQQQ7CJ6P4VERICYPQL6SQ7PKTCDVRTR6Z2BMR6M5E4
+#\\\|3VE5VABGP5XVK3PC4YU2S2IMDHURHBWQDLTRCHDCF4D33JXUVS5 \ / AMOS7 \ YOURUM ::
+#\[7]WZYKS7KNQE6YVAIYBLKY2RFNEO3URQONUF2WBJJ46SVOGYY5TIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
