@@ -1,6 +1,6 @@
 ---
 name: bug-crypt-c25519-key-vars-base-identity-hijack
-description: "SECOND confirmed occurrence of the key_vars base-identity-cache hijack already documented in bug-auth-keypair-client-composition-gotchas.md #2 -- this file adds the concrete priming-call fix pattern (used in user-edit's user_keys field) and a SEPARATE, still-unresolved gap: encrypted non-identity key checksums come back empty when queried from a process that already has a different key loaded"
+description: "SECOND confirmed occurrence of the key_vars base-identity-cache hijack already documented in bug-auth-keypair-client-composition-gotchas.md #2 -- this file adds the concrete priming-call fix pattern (used in user-edit's user_keys field), a SEPARATE still-unresolved gap (encrypted non-identity key checksums come back empty when queried from a process that already has a different key loaded), and an important framing note: 'user identity key' is a NEW concept user-edit's identity_key tab introduces, not one crypt.C25519 ever had -- <user>.base is just the autocreate default's NAME, not a semantic guarantee"
 metadata:
   type: project
 ---
@@ -72,10 +72,43 @@ root-caused further -- committed broken (checksum column shows `<::>` for
 this case) per user direction, "commit it broken." User may take this on
 directly rather than dispatch it further.
 
+## what "identity key" actually means here — a NEW concept, not an existing one
+
+Worth being precise about, per user, since it shapes how any future fix
+to `key_vars`/`base_key_name` should be framed: **there was no pre-existing
+"user identity key" concept anywhere in `crypt.C25519` before `user-edit`'s
+`identity_key` tab.** `crypt.C25519` only ever had "the zenka's base key"
+(`base_key_name`) — a property of the PROCESS, inherited across forked
+children, with no guaranteed relationship to any human user. `identity_key`
+is the first place in this system that names and displays "this is the
+human's own key" as a concept at all. It got there by borrowing
+`base_key_name` opportunistically, because `user-edit`'s own design
+happens to make that borrowing valid — not because `crypt.C25519` was ever
+designed to carry that meaning. Any future work generalizing this should
+treat "user identity key" as a genuinely new primitive to introduce
+deliberately, not something to extract from existing `crypt.C25519`
+semantics, because there is nothing there yet to extract.
+
+**Why the borrowing is "to some degree valid," and exactly where that
+degree runs out**: `key_vars`'s own bare-call default is
+`join('.', $key_usr, qw|base|)` — literally the string `"base"` hardcoded
+as the fallback KEY NAME, e.g. `taeki.base`. This name only exists on disk
+because `crypt.C25519.autocreate-user-key` is enabled (a config flag) and,
+when enabled, autocreates a key under exactly that name if none exists yet
+for that user. `"base"` is a NAME, not a semantic marker — it is the
+DEFAULT name the autocreate mechanism happens to use, not a guarantee that
+whatever key is named `<user>.base` is the user's REAL, intended working
+identity. A user could have (or prefer) a differently-named key as their
+actual identity; `identity_key`'s current display is only as correct as
+the convention "the default autocreated key is the one you actually use"
+holds for a given user. It holds today for `taeki` because nothing has
+diverged from the default yet — it is not a property `crypt.C25519`
+enforces or checks.
+
 [[topic-user-edit-console-zenka-status]]
 
-#,,,,,,,,,.,,,.,.,.,,,.,.,.,.,.,,,,,,,,,,,,..,..,,...,..,,,..,..,,,,.,,,.,,.,,
-#LPRJZ5OORFRKSSY63CAUUAK2GSG7K6JQNDJ3PH4EGJVIGHWL2LVYRUR7W5MBVELAEYCMD5O3KEW2O
-#\\\|AZ7SEXCZF3H62QQDQWSFDIO6GCT4WDBE2FPID6R7ZDY6NCZG25J \ / AMOS7 \ YOURUM ::
-#\[7]C5GWKNPVP6SKLXUOTWJHAZM2JEEQG2KEKGWWG4RFR5DOLQCSPGCI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,...,,..,,,.,.,.,.,,,.,.,.,.,.,,,..,,...,...,,.,,...,..,,,,,,.,.,
+#5T4LLIZNMKZTDKO4B6CT6RPY7AZ5JSWLIZOZ2YLFZNZLPSIJRJ65O3AJ6ELV5QVDYRTF5D457Q5JG
+#\\\|4EUJM7YMGWTDJY5X657RHVGM2EIZDY2THBWDKJBJ5NTVFKNWYKF \ / AMOS7 \ YOURUM ::
+#\[7]ZU6DQ4C6TWDTECEJKJJ3Y7RW35LYE7LNUWEEDPQFPK45OEC6WADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
