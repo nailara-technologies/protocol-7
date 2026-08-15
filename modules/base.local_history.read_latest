@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = base.local_history.read_latest
+# param = <category>, <id>
+# descr = load the most recently written local history snapshot [ doubles as
+#         an offline read cache -- see base.local_history.write ]
+
+## harmonized-epoch directory names do NOT sort chronologically as strings [
+## they encode '99999999 - epoch', so lexical order runs BACKWARDS -- see
+## base.local_history.write's header ] -- rather than decode them, this walks
+## every epoch dir's snapshot files and picks the highest file mtime, which is
+## simple, always correct, and cheap : an id realistically holds a handful of
+## epoch dirs with a handful of files each, never a large tree
+
+my ( $category, $id ) = @ARG;
+
+if ( not defined $category or not length $category ) {
+    <[base.logs]>->( 0, 'local_history.read_latest : category required' );
+    return wantarray ? ( undef, 'category required' ) : undef;
+}
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'local_history.read_latest : id required' );
+    return wantarray ? ( undef, 'id required' ) : undef;
+}
+
+my $id_dir          = sprintf qw| [VAR_P7]/history/%s/%s |, $category, $id;
+my $resolved_id_dir = <[base.path.resolve_keywords]>->($id_dir);
+
+return wantarray ? ( undef, 'no history' ) : undef
+    if not -d $resolved_id_dir;
+
+my $epoch_dirs = <[file.match_dirs]>->( $resolved_id_dir, qw| * | );
+
+my $latest_path;
+my $latest_mtime = -1;
+
+foreach my $epoch_dir ( @{ $epoch_dirs // [] } ) {
+    my $snapshot_files = <[file.match_files]>->( $epoch_dir, qw| *.yaml | );
+
+    foreach my $snapshot_path ( @{ $snapshot_files // [] } ) {
+        my @stat_info = stat($snapshot_path);
+        next if not @stat_info;
+        my $mtime = $stat_info[9];
+        if ( $mtime > $latest_mtime ) {
+            $latest_mtime = $mtime;
+            $latest_path  = $snapshot_path;
+        }
+    }
+}
+
+return wantarray ? ( undef, 'no snapshots found' ) : undef
+    if not defined $latest_path;
+
+my ( $data_href, $err ) = <[format.yaml.load_file]>->($latest_path);
+
+return wantarray ? ( $data_href, $err ) : $data_href;
+
+#,,.,,..,,.,,,.,,,,,,,.,.,.,.,..,,,,,,...,,,,,.,.,...,...,...,,,,,,.,,...,.,,,
+#JYZQD4OUXYTOOZLFKBBBYIVFRVSTSLOE45CLKJTFEJGJUQ22RCWP4PJXIZXDFDUUC5VLDBFUZJTUA
+#\\\|XWQPAUHUUGQNSIPZ6QHJSXA7JYOOBYAJZJ6WPSRYQAAVDT7T7CE \ / AMOS7 \ YOURUM ::
+#\[7]RX25CB6QGXVUHU7B7ITEAZXAAGAPBPXDREYYGTUCKGJ2BTZCQKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

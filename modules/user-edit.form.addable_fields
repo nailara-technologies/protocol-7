@@ -36,10 +36,14 @@ $present{ $ARG->{'list_row_of'} } = TRUE
     foreach grep { length( $ARG->{'list_row_of'} // '' ) }
     ( $editor_state->{'schema'}{'fields'} // [] )->@*;
 
-return [ grep { not $present{$ARG} } sort keys %{$vocabulary} ];
+## length-ascending [ base.sort, alphabetical-descending tiebreak ], not plain
+## alpha : the offer row scrolls horizontally, and grouping the shortest names
+## first means more of them fit on screen before the reader has to scroll at
+## all
+return [ grep { not $present{$ARG} } <[base.sort]>->( keys %{$vocabulary} ) ];
 
-#,,,.,...,...,..,,..,,...,..,,...,,,,,,..,,,.,..,,...,...,.,.,,.,,,,.,...,,..,
-#4VDHWEY5F2BPDHEIJS4XZGIRNVR7G2S2TDFUWAWI5GFQEAPQASQOXTPB6PY4BTXGKGWBU3U5D7K6E
-#\\\|Y25MWLNSTVINBYAJCHX45W5PVUW2LC654FSFIBEHG6HMKF3SI7V \ / AMOS7 \ YOURUM ::
-#\[7]SQFRET6VKR25YIWTA3PZNRNXGNKSM7W22YGD4S2WPAJPK6P3O2DQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,.,,,,..,,.,,..,,...,.,.,.,.,..,,...,...,,,.,,..,,,,,,,.,.,,,
+#L7DSTM6W32NPEQQ7S3NU235CKRMK6TJHQJVZZMZ6UY36FG2DSUMEWFAGK7RQG7XY7Z34O33TMC4BG
+#\\\|W7T6YZHM765GJIB4GWFMSBBGYMKBKTYO4GEWZ3YCHMXB7MA4IJC \ / AMOS7 \ YOURUM ::
+#\[7]LT77OVOIPTIKPFJI46JF7RZUDCMIZT4LZ3W3MROFO4HU7QHMHOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
