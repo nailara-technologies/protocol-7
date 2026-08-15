@@ -147,7 +147,7 @@ if ( $phase eq qw| switching | ) {
     my $max_wait = <coding.cfg.switch_model_max_wait> // 300;
 
     ## cheap status read : no blocking i/o ##
-    my $reply  = <[coding.cmd.inference-status]>->();
+    my $reply  = <[coding.cmd.inference-status]>;
     my $yaml   = $reply->{'data'}               // '';
     my $status = eval { YAML::XS::Load($yaml) } // {};
 
@@ -216,8 +216,8 @@ if ( $phase eq qw| switching | ) {
 );
 return $finish->( { mode => qw| false |, data => qw| internal-error | } );
 
-#,,,,,,,,,..,,,.,,..,,,..,..,,,,,,,,.,,..,...,..,,...,...,...,,..,,,,,,,.,,.,,
-#K3CSTFP6FXPUUXI3STXKHPFDDOIOSC7M6CHQWA23FL5SPXEFTFPC773W5LF5OE5IMZRPWVCNUTCFC
-#\\\|MJVZHXFXUFQJMQDJIHDKUMQP3JA52S6ZLDBBSUHLWE5CTSD3A3J \ / AMOS7 \ YOURUM ::
-#\[7]ZAB3G6JJGAY4JBOG2RG4KS4GYKZHT4R5OJS62MAOUZA36W4BESAY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,,,.,.,.,,,,.,,.,.,.,,,..,,,,,,..,,...,...,.,.,.,,,,,,,.,,,.,.,
+#G3HB3DQLZZ7UFYDIRV6GLHZ5KBD3JG4K6EW4ZXFKN6CEUGQ322PFVG62C4KTXPW6NT6PK4ZHXWPMK
+#\\\|I3IO3ETD6QOMOPVANR6BYCCKQ4VDAF6SJE5HJM6WGLUVVSXMDQE \ / AMOS7 \ YOURUM ::
+#\[7]JLT5JZYTDT4FE3MB23FCMCXUWJ3YW2O7H4ASPCG3VNBPSDDU46DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

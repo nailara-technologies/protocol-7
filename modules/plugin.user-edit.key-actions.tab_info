@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = plugin.user-edit.key-actions.tab_info
+# descr = key-actions plugin's self-description
+# param = -none-
+
+## the 'key actions' tab : create a NEW named C25519 key from inside the form
+## [ the first interactive key action -- create ONLY, no rename/remove/
+## identity-switching ], shown only on the invoking Unix user's OWN record.
+##
+## pinned_keys => ['key_actions'], DELIBERATELY -- the exact opposite of
+## plugin.user-edit.key-details.tab_info's no-pins choice : that tab must
+## never be enterable, this one MUST be.  user-edit.handler.stdin_key's
+## Right-entry trigger requires BOTH plugin => ... on the field def AND the
+## field's name present in the registry's by_key map, and by_key is just a
+## string-to-plugin-name map -- it does not care that 'key_actions' is a
+## SYNTHESISED field [ pushed directly by user-edit.form.schema_from_record,
+## carrying plugin => 'plugin.user-edit.key-actions' on its own field def ]
+## rather than a real record field.  no collision : 'key_actions' appears
+## nowhere in users.record.default_fields/.optional_fields.
+##
+## q|..|, NOT qw|..| : qw splits on WHITESPACE, so qw| key actions | would
+## collapse into label => 'key' plus a stray 'actions' key -- the same trap
+## plugin.user-edit.key-details.tab_info's own header documents
+return {
+    qw| label |       => q| key actions |,
+    qw| pinned_keys | => [qw| key_actions |],
+};
+
+#,,,.,,,,,,,.,.,.,,,,,..,,,,.,,..,.,,,.,,,,.,,..,,...,...,.,.,.,,,...,,..,,,,,
+#TYXMHZHECHRXITRMBS4G5WLDWK7R6YUG7DRSZMDT2BZPOIDBVZLUWBYOAOZGCOTNPQLS7ZL46A3HO
+#\\\|XUZXPK5J56ECUKYU2JSM44UJSGILOEMLPASUAGRUMFU4NWHGKRF \ / AMOS7 \ YOURUM ::
+#\[7]J33CPAT7IU2ZFW42DPUWCAU5IW6FP5EWTMFIFCQC7ZBTBLEEQMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

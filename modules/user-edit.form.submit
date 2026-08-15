@@ -92,12 +92,14 @@ my $values = $result->{'values'} // {};
 my %secret_values;
 $secret_values{$_} = delete( $values->{$_} ) // '' foreach @masked_fields;
 
-## identity_key and user_keys are SYNTHESISED display-only data [        ##
-## schema_from_record's self-record tabs ], never real record content -- ##
-## deleted  unconditionally so neither can ever reach users.value-set's  ##
-## JSON payload                                                          ##
+## identity_key, user_keys and key_actions are SYNTHESISED display-only ##
+## data [ schema_from_record's self-record tabs ], never real record    ##
+## content -- deleted unconditionally so none can ever reach users.     ##
+## value-set's JSON payload [ key_actions' buffer is always empty, but  ##
+## editor.control.submit collects every schema field regardless ]       ##
 delete $values->{'identity_key'};
 delete $values->{'user_keys'};
+delete $values->{'key_actions'};
 
 ## SYNTHESISED ROWS ARE NOT FIELDS and must never reach storage.  the
 ## add-a-field row is an ACTION, not data -- editor.control.submit collects
@@ -231,8 +233,8 @@ foreach my $field_name (@masked_fields) {
 ## completion, if any masked fields, is reply-driven from here ##
 return TRUE;
 
-#,,..,...,,.,,.,.,,..,,,,,,,,,,,,,,,,,,,.,..,,..,,...,...,.,.,.,.,..,,...,,,,,
-#RT35KGDLSCOVDMI3AWGSXPH4CGF2VHZN7YLQPTBRQLE7P4VDHC4IRKSU3Y3NEJP5TALWPGWLESTQU
-#\\\|OGU4XTKD3IFGKMECWCN455TXZLFUMXBO5AV3IZBLXBLTUPTEHWP \ / AMOS7 \ YOURUM ::
-#\[7]5DP44XDBWFQELYIKFWNRJBHYCPQICYH443WZ6ALKPHVWICRIESCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,...,,..,..,,,.,,.,,,..,,,.,,.,.,..,,...,...,...,,,,,,,.,,,,,,,,,
+#TRURBAMHLJ6ULWH3B7MGJS6UAJO47HBV2BJUE6WCW7ZARYGMSA5H7SZV4IZIWNBGMXCYE2LIFQTIQ
+#\\\|2JOMVNEAL5ILEFVFB5IR4ZVLCZUKBSKHTSOGVV3QEFGFIBQ7LJF \ / AMOS7 \ YOURUM ::
+#\[7]C5ZP7WW7WY4HTEUA4AVJWW77NJSGYBW4HWUC5ZXNGEJJ4EGWCADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

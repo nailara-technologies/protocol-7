@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = user-edit.form.build_user_keys_field
+# descr = build the 'user_keys' field_def : every OTHER named C25519 key
+# param = -none-
+
+## extracted, unchanged in behaviour, out of user-edit.form.schema_from_record
+## -- factored out so user-edit.excursion.key_create can rebuild this ONE
+## field's def+buffer after a successful key-create without a full schema
+## rebuild.  self-contained : reads crypt.C25519's live key state directly,
+## takes no $record [ this field's content never depended on record data, only
+## on which key files exist on disk ], so the same call works from schema
+## build time and from a mid-session refresh alike.
+##
+## SELF-RECORD-ONLY GATING STAYS WITH THE CALLER : this module always builds
+## the field_def when called -- schema_from_record only calls it inside its
+## own self-record `if` guard, and the excursion only calls it during a
+## key_actions excursion, which itself only exists on a self-record schema.
+## duplicating that gate here would be a second place to keep in sync for no
+## benefit.
+
+<crypt.C25519.user_key_name> //= <crypt.C25519.base_key_name>;
+my $identity_name = <crypt.C25519.user_key_name> // '';
+
+my @key_files = <[crypt.C25519.keyfiles]>;
+
+my %seen_keyname;
+my @other_keynames;
+
+foreach my $file (@key_files) {
+    my $keyname = <[crypt.C25519.get_keyname]>->($file) // next;
+    next if $keyname eq '';
+    next if $keyname eq $identity_name;
+    next if $keyname =~ m|^remote-host\.|;
+    next if $seen_keyname{$keyname}++;
+    push @other_keynames, $keyname;
+}
+
+@other_keynames = <[base.reverse-sort]>->(@other_keynames);
+
+<user-edit.cfg.user_keys_name_width> //= 20;
+
+<user-edit.cfg.user_keys_display_type> //= qw| inline |;
+my $detail_display = <user-edit.cfg.user_keys_display_type> eq qw| detail |;
+
+my %all_key_chksums = <[keys.checksum_href]>->%*;
+
+my @other_keys_lines = map {
+    my $name = <[base.parser.ellipse_center]>->(
+        $ARG, <user-edit.cfg.user_keys_name_width>
+    );
+    $detail_display
+        ? $name
+        : sprintf( '%s %s', $name,
+        $all_key_chksums{$ARG} // qw| [unknown] | );
+} @other_keynames;
+
+my $other_keys_text
+    = @other_keys_lines
+    ? join( "\n", @other_keys_lines )
+    : 'no other keys';
+
+return {
+    qw| name |             => qw| user_keys |,
+    qw| type |             => qw| freeform_line |,
+    qw| multiline |        => TRUE,
+    qw| readonly |         => TRUE,
+    qw| default |          => $other_keys_text,
+    qw| separator_before | => TRUE,
+    qw| noun |             => qw| entr |,
+    qw| noun_plural |      => qw| ies |,
+    qw| noun_singular |    => qw| y |,
+    qw| user_keys_names |  => \@other_keynames,
+};
+
+#,,.,,.,,,,..,,..,,..,..,,,,,,.,.,.,,,...,...,..,,...,...,,..,.,.,..,,...,..,,
+
+#,,.,,,..,,.,,,.,,,..,.,,,.,.,.,.,..,,,..,.,,,..,,...,..,,.,,,,,.,,..,.,.,,.,,
+#HKKVFDHH46H2W74C3WG5NFMGKPOB4FFA2LARKQXHLHWFXR6NMIQQM4LCF2S22X4VKJSJUPX2BPONC
+#\\\|VQQUOIM4VKZQXV62YXJLIRKLNQDYCFEX6MDDRKRBONHSFQFD476 \ / AMOS7 \ YOURUM ::
+#\[7]W5KW5NU5D6RQW3OOGHAOV4L332G7PDEXHBXBS7IAGR3QRRX2ACCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

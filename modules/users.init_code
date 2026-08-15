@@ -28,7 +28,28 @@ if ( $EFFECTIVE_USER_ID == 0 ) {
 my $users_etc_dir   = <[file.zenka_dir.data_path]>->(TRUE);
 my $users_host_path = join qw| / |, $users_etc_dir, qw| host-system |;
 
-<[base.path.register_keywords]>->( { qw| USERS_HOST | => $users_host_path } );
+## ONE call, both keywords together -- base.path.register_keywords ASSIGNS
+## <base.path.keywords> wholesale [ '<base.path.keywords> = $keywords_href' ],
+## it does not merge.  a second call would silently WIPE OUT USERS_HOST, not
+## add to it -- hit live, 2026-08-15/16 : real records started reading as 'not
+## found' the moment a separate VAR_P7-only call landed, even though the file
+## was present, valid, and correctly owned on disk.
+##
+## VAR_P7 itself : this zenka's own var dir, same bare
+## <[file.zenka_dir.data_path]> call user-edit.init_code already uses for its
+## own VAR_P7 -- base.local_history.write [ shared, loaded here via
+## users.cmd.value-set ] hardcodes '[VAR_P7]/history/...' and expects the
+## loading zenka to have registered it itself ; users never had, so every
+## value-set left the keyword literally unresolved [ a non-absolute path ],
+## warning 'expected absolute path [ to create ]' at
+## base.local_history.write:57 on every submit and silently never writing the
+## history snapshot. found live while testing user-edit's key-actions tab --
+## unrelated to that feature, this zenka's own pre-existing gap
+<[base.path.register_keywords]>->(
+    {   qw| USERS_HOST | => $users_host_path,
+        qw| VAR_P7 |     => <[file.zenka_dir.data_path]>,
+    }
+);
 
 ## host-system/ itself: check-zenka-paths only manages the etc_P7/<zenka>   ##
 ## dir, not sub-dirs under it, so this one level still needs its own create ##
@@ -42,8 +63,8 @@ if ( $EFFECTIVE_USER_ID == 0 and not -d $users_host_path ) {
 
 return TRUE;
 
-#,,..,.,,,...,.,,,,.,,.,,,,..,,,,,,..,.,.,..,,..,,...,...,..,,,,,,,,.,,.,,.,.,
-#JCM47HQKXXJL7Y33S23HXQHXXEFQB2X6CGNVBAEPBAL5FS7Z3PN6FIAJIL432SYIR6V6642KN342E
-#\\\|32VPAVAQ2HWX7XJQL3ON2DPWGZE67DYO6EY5X3BERONV6CZJTCH \ / AMOS7 \ YOURUM ::
-#\[7]CTVWP72FZL7PLPLCZZFJSEDBE6ZKAHLLIP54ZRHI2MEJ3SKKLOCA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,..,.,.,,..,.,.,..,,...,,..,.,.,..,,...,...,...,,,.,,..,...,,,.,
+#BI5JC2GPNKZEEER47VUR43N526PXOR2DI4XNOVXGVDIPJO7KRGJL5A7NYYGSTUR7PSKXMHJEZOWDC
+#\\\|4WQOUTCJ2S5G4X6O5XQSNFVXVZLHJTDDRDM7DFJPUVIFUWI3UAI \ / AMOS7 \ YOURUM ::
+#\[7]XYB4SF6K2IKZLGEOLDAADPW376TOLDGSR6FANLYUXC26HNQ3FUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

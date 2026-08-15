@@ -54,7 +54,7 @@ state %checksum_cache;
 
 my $key_name = <[crypt.C25519.key_vars]>->{'key_name'} // '';
 
-my $pubkey_reply = <[crypt.C25519.cmd.get-public-key]>->();
+my $pubkey_reply = <[crypt.C25519.cmd.get-public-key]>;
 
 ## mode 'false' is legitimate [ the session key somehow not loaded when     ##
 ## render fired ] -- degrade to a short notice rather than dying mid-render ##
@@ -106,8 +106,8 @@ if ( ref $field_def eq qw| HASH | and $field_def->{'identity_detail_mode'} ) {
 ## not outer framing
 return sprintf( q|%s %s|, $key_name, $checksum );
 
-#,,,,,.,.,,,,,...,,,.,,.,,...,,,,,.,.,.,.,..,,..,,...,...,.,.,,,,,,,,,,.,,..,,
-#4WWZX7V54TSDDNNOCL6JIUDHJW4IA63DSZ3OGKABKJRB4D56WX4JKQ734UTP7USBCWWN2MUT6ZEOG
-#\\\|FGIIW4UIV2KERIBAU2JAE5K7WFQZU5H6FAYUBFMN7NSZEKOEUZR \ / AMOS7 \ YOURUM ::
-#\[7]IMWIPRCL3HGBZZF2DKTNVSMPP7UW2FIQW55O3S5M4FXHEGGXDQBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,.,.,.,,,,..,,,,,.,,,,..,.,,,..,,...,...,...,.,,,.,.,,,,,,,.,
+#AQHW6GXHY7DWACJ7OSGF6EQD2M2VZ5BLMH5TEMT4LLI4RGEXMSXU5CKAMOZFWZSM3M3E6AMYJHKIO
+#\\\|CHLHOZ7ENQX5QWM4QQ2777ETLWS6OFCSSBPPXWMTRL4LF45OTP5 \ / AMOS7 \ YOURUM ::
+#\[7]AXT5CXPT7CFX6ADIDL6AX54LB7XOFYCWRA3X7DFAU5E7RHOFXCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
