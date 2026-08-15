@@ -322,45 +322,6 @@ foreach my $rows (@other_row_sets) {
     $min_width = $required if $required > $min_width;
 }
 
-## OPT-IN corner-checksum display [ user-edit.cfg.user_keys_display_type =
-## 'corner' ] : the user_keys field's rows then carry key NAMES only [ see
-## user-edit.form.schema_from_record ] and the SELECTED entry's checksum
-## renders in a frame-border corner -- top-right or bottom-right, whichever is
-## FARTHER from the selection [ filled by editor.ui.ascii_frame.
-## render_form's multiline block ].  the two corner slots are embedded in the
-## border lines of the SAME mockup this module already builds and go through
-## the same ascii.frame.parse border-slot path any hand-written frame's inline
-## border tokens use [ e.g. task-queue.yaml's {{COUNT}} ] -- no parallel
-## mechanism.  reserved ONLY in corner mode AND only when this form actually
-## has a user_keys field [ self-records only, see schema_from_record ] : the
-## default 'inline' mode must not change the frame shape at all, and neither
-## should other records' forms.
-##
-## the written dot runs carry the sizing : ascii.frame.parse takes a fill's
-## minimum as its full written length, so everything in these border lines
-## except the slot is RIGID and the slot value -- always padded to the full
-## remaining width with dots by render_form, whether blank or carrying a
-## checksum -- is what stretches each border to the frame's width.  the
-## min_width bump below guarantees that remaining width fits the longest
-## checksum shape [ '<::[enc-key]::CCCCCCC:>', 23 chars -- the same figure the
-## viewport-floor fix used ] : render_form derives the value width as
-## min_width + 2 - the border's fixed elements [ top : title + 3 dots + 1
-## trailing dot ; bottom : ':' + 27 dots + ':' -- 27 being the floor
-## ascii.frame.parse's 0.5 structural-density border detection needs for a
-## token of this length ]
-<user-edit.cfg.user_keys_display_type> //= qw| inline |;
-
-my $corner_tokens = <user-edit.cfg.user_keys_display_type> eq qw| corner |
-    && scalar grep { ( $ARG->{'name'} // '' ) eq qw| user_keys | }
-    $schema->{'fields'}->@*;
-
-if ($corner_tokens) {
-    my $min_for_top = length($title_bar) + 25;    ## title + 4 dots + 23 value
-    my $min_for_bot = 50;                         ## 29 rigid + 23 value - 2
-    $min_width = $min_for_top if $min_width < $min_for_top;
-    $min_width = $min_for_bot if $min_width < $min_for_bot;
-}
-
 ## content rows, without the border columns yet  the label carries a pad on ##
 ## BOTH sides of its separator, matching the reserved cells the values      ##
 ## gained : without it the value text sits inset from its framing while the ##
@@ -504,20 +465,9 @@ $total_width = length($title_bar) + 4
 $inner_width = $total_width - 2;
 
 ## assemble the mockup exactly as a hand-written frame yaml would carry it ##
-my $top_border = $title_bar . ( q|.| x ( $total_width - length $title_bar ) );
-my $bottom_border = q|:| . ( q|.| x $inner_width ) . q|:|;
-
-## corner mode : the same two border lines, carrying their corner slots -- see
-## the reservation note at the min_width bump above for the dot counts
-if ($corner_tokens) {
-    $top_border = $title_bar . q|...| . q|{{user_keys_corner_top}}| . q|.|;
-    $bottom_border
-        = q|:| . ( q|.| x 27 ) . q|{{user_keys_corner_bottom}}| . q|:|;
-}
-
-my @lines = ($top_border);
+my @lines = ( $title_bar . ( q|.| x ( $total_width - length $title_bar ) ) );
 push @lines, sprintf( ':%-*s:', $inner_width, $ARG ) foreach @bodies;
-push @lines, $bottom_border;
+push @lines, q|:| . ( q|.| x $inner_width ) . q|:|;
 
 my $mockup = join( "\n", @lines ) . "\n";
 
@@ -576,39 +526,6 @@ my $entry = {
 
 <ascii.frame.cache>->{$frame_name} = $entry;
 
-## corner mode : the reserved floor must cover this record's LIVE rows, not
-## just the schema's reserved geometry.  plain scalar and plugin fields
-## contribute NOTHING to min_width by design [ see $display_length's own
-## header ], yet a synthesised read-only row like identity_key's paints far
-## wider than that floor -- and render_form sizes the corner slots' dot-padded
-## values from min_width, so a floor short of the live width leaves the
-## checksum floating left of the corner by the difference.  probe-render once
-## through render_form itself [ the only code that knows the live display
-## values ] and lift the floor to what it actually paints.  the probe's own
-## output is discarded ; every later render uses the lifted floor, and since
-## the corner value width derives from the same min_width, the border lands
-## exactly flush from the next paint on.  an editable value typed PAST the
-## floor still widens the frame at render time -- the checksum then keeps its
-## reserved position, floor-not-clamp as documented in render_form.  a
-## bare-schema caller [ no live state to probe ] simply keeps the static floor
-## above
-if ($corner_tokens) {
-    my $probe
-        = <[editor.ui.ascii_frame.render_form]>
-        ->( $editor_state, $frame_name );
-    if ( defined $probe ) {
-        my $live_width = 0;
-        foreach my $line ( split "\n", $probe ) {
-            $live_width = length $line if length $line > $live_width;
-        }
-        $live_width -= ( $descriptor->{'margin'}{'left'} // 0 )
-            + ( $descriptor->{'margin'}{'right'} // 0 );
-        my $needed = $live_width - 2;    ## the two ':' border columns
-        $descriptor->{'min_width'} = $needed
-            if $needed > ( $descriptor->{'min_width'} // 0 );
-    }
-}
-
 <[base.logs]>->(
     2, ': generated ascii frame [ %s ] [ %d fields, width %d ]',
     $frame_name, scalar @names, $total_width
@@ -616,8 +533,8 @@ if ($corner_tokens) {
 
 return $entry;
 
-#,,,,,,.,,.,.,,.,,,,.,.,.,..,,,.,,,,.,,.,,.,.,..,,...,...,...,,,.,,,,,..,,.,.,
-#SMCT3N4KL2MJPVTAXCNMP36AOJHKSN4BWG2IMUC6MXFPTM7QC7Q3VA2WTSRKVINEYA75DM4WHYTWI
-#\\\|3IYN5W3AABIZ434GO6MT23O4B52MJZ44DVHCZKC2INVBDWP5NYO \ / AMOS7 \ YOURUM ::
-#\[7]WHHFDWWFM7E5SJOXZOPX7IF2SD7YKE524HNOIV4IYU2XEZYFNIBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,..,,..,,,.,,..,,..,,,,,,,,.,..,,...,...,..,,..,,...,.,,,,..,
+#TYDLJZOL2CEZLFZGMUDAP7ZSXNMGIFGCSOV4GDE5ENB2IIVMLUDV2E2WFWQJF4DWOPYH6ZHFQ4JOS
+#\\\|RFWR3QMM5SFH7JDKXYV55CZDABEVDDJ22TRKMEPXRWJE22FWAO4 \ / AMOS7 \ YOURUM ::
+#\[7]IFICTKR2MDGFZ6UVZG6FMWBH3XKLFOIWV7LXKZD4NKV67G56NMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
