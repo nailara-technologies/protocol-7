@@ -24,12 +24,26 @@
 ## exits from inside the loop rather than unwinding back to this frame.
 ##
 ## the STDIN io-watcher is deliberately LEFT REGISTERED throughout : Event is
-## not pumping between unloop and the re-entry below, perl is single-threaded,
-## and the blocking reads inside the excursion are the only thing touching fd
-## 0 meanwhile.  term_restore / term_init toggle O_NONBLOCK and the termios
-## mode, which is what actually governs blocking and raw-vs-canonical -- the
-## same implicit assumption offer_create's blocking base.term.ask already
-## relies on, exercised here with a watcher that was already active.
+## not pumping between unloop and the re-entry below FOR MOST of the excursion
+## -- perl is single-threaded, and the blocking reads inside the excursion are
+## the only thing touching fd 0 meanwhile.  term_restore / term_init toggle
+## O_NONBLOCK and the termios mode, which is what actually governs blocking
+## and raw-vs-canonical -- the same implicit assumption offer_create's
+## blocking base.term.ask already relies on, exercised here with a watcher
+## that was already active.
+##
+## REAL EXCEPTION, found live 2026-08-16 : crypt.C25519.gen_keys [ reached via
+## keys.console.create, inside the excursion below ] retries in a 'while (not
+## $TRUE) { <[event.once]>->(0.007); ... }' harmonic-truth loop, and
+## base.event.once IS 'return Event::loop($timeout);' -- a real, reentrant
+## Event pump, not a plain sleep.  a keypress arriving during one of those 7ms
+## windows CAN fire the still-registered STDIN watcher reentrantly, deep
+## inside gen_keys, before this excursion has returned -- which would route
+## straight back into plugin.user-edit.key-actions.handler.key and arm a
+## SECOND Event::unloop() mid-generation.  guarded below with <user-edit.
+## key_actions.busy> : handler.key checks it before arming Enter, so a
+## reentrant dispatch during generation is a harmless no-op instead of queuing
+## a second excursion.
 
 while (<user-edit.pending.key_create>) {
 
@@ -37,10 +51,17 @@ while (<user-edit.pending.key_create>) {
 
     <[user-edit.term_restore]>;
 
+    ## set BEFORE the call, cleared straight after -- see the reentrancy note
+    ## above ; plugin.user-edit.key-actions.handler.key is what actually reads
+    ## this flag
+    <user-edit.key_actions.busy> = TRUE;
+
     ## prompts, pre-validates and creates -- sets <user-edit.key_actions.
     ## last_result> either way [ see that module's own header for the
     ## keys.console.create base.exit risk this ordering exists for ]
     <[user-edit.excursion.key_create]>;
+
+    <user-edit.key_actions.busy> = FALSE;
 
     <[user-edit.term_init]>;
 
@@ -54,8 +75,8 @@ while (<user-edit.pending.key_create>) {
 
 return TRUE;
 
-#,,.,,..,,..,,.,.,,.,,,,.,.,,,.,.,...,.,.,.,.,..,,...,...,...,,,,,..,,...,...,
-#EI62OYNLC32OPERQXMIZ7ZV3ZFBW2DR25LQKA2VGKXCTFCAODS3VBSNDLRPFIO2G5LCMNECCP6GDS
-#\\\|D2ZWLPGDZGO7NURT3D44XBYBESYXGIOS3PA637WXRAOSBVUVWVJ \ / AMOS7 \ YOURUM ::
-#\[7]NNT22SCLTFQWK3QJEF2YWGMORPMAUFIIYLKQM6FBMSJAV26KJOAQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,,,,,.,,,,,,,,,.,.,,..,..,,,,.,..,,...,...,.,,,.,.,.,.,.,.,,,.,
+#DYYIXIWYZ46BQX65BENOFBEV7ZRTZPHMHU3P2NIVKO6L6SUZVVYYFDLJLZ3VU2OPKG52L3W5KSZHY
+#\\\|VAEPMZ2SC3JE6UTX7HJ3J7GDVQY3B5VGYLIFDE3RR5SRKYGAZNL \ / AMOS7 \ YOURUM ::
+#\[7]IYKNTFQGBDPXTVFEJB7JH23ECYYHDI6IDPL5ZZTQBH3BTFMI7QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

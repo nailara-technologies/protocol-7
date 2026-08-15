@@ -132,6 +132,49 @@ directly, don't just assume it, by re-reading `crypt.C25519.gen_keys` and
 `crypt.C25519.write_keys` themselves for any `base.exit` call of their own
 first.
 
+## Design anchor 4 -- `gen_keys`'s own reentrancy hazard, confirmed live, must carry over
+
+**Read `modules/crypt.C25519.gen_keys` and `modules/base.event.once` before
+writing any submit-handling code for the new prompt.** `gen_keys` retries in
+a `while (not $TRUE) { <[event.once]>->(0.007); ... }` harmonic-truth loop,
+and `base.event.once` is literally `return Event::loop($timeout);` -- a
+REAL, reentrant Event pump, not a sleep. This means while generation is
+retrying (not instant -- can take several iterations), a keypress arriving
+in one of those 7ms windows CAN dispatch the STDIN watcher a second time,
+reentrantly, from deep inside `gen_keys`, before the first submit has
+finished. Confirmed live and already fixed once for the CURRENT (soon to be
+replaced) excursion shape: `user-edit.check_pending_excursions` and
+`plugin.user-edit.key-actions.handler.key` now carry a `<user-edit.
+key_actions.busy>` guard set around the `gen_keys`/`write_keys` call,
+checked before arming another submit -- read both as the precedent for the
+shape of the fix, not just as code being deleted. **The new in-frame prompt
+needs the equivalent protection**: whatever handles Enter/submit on the open
+prompt must ignore a reentrant trigger while `gen_keys`/`write_keys` are
+still running for a PRIOR submit -- a busy flag scoped to the prompt's own
+state (not necessarily the same global keyword name) is the obvious shape,
+but design it deliberately, don't assume unloop/re-entrant complexity
+disappearing (this task removes the blocking EXCURSION, it does not remove
+`gen_keys`'s own internal Event pump, which is unrelated and stays exactly
+as reentrancy-hazardous as before).
+
+## Design anchor 5 -- Ctrl-C while the prompt is open must cancel the PROMPT, not the form
+
+Read `user-edit.handler.stdin_key`'s `elsif ( $action eq qw| signal | )`
+branch (confirmed live): ordinary Ctrl-C in NORMAL mode calls `user-edit.
+form.quit->('cancelled','no-op')`, which flushes the draft, restores the
+terminal, and **ends the whole zenka process** (`form.quit` ends in
+`<[base.exit]>`). If the new prompt's own key-handling ever falls through to
+this same path -- e.g. by not claiming `\x03` explicitly and letting it
+propagate as an advisory `signal` action the same way ordinary field editing
+does -- pressing Ctrl-C mid-passphrase-entry would silently end the entire
+session, not just back out of the prompt. That is very likely not what a
+user expects from Ctrl-C inside a small nested prompt, and is a real
+foot-gun, not a cosmetic detail. **Required**: the prompt's own key handler
+must claim `\x03` explicitly and treat it exactly like Esc/Left -- cancel
+the PROMPT only, return focus to wherever it was (e.g. `key_actions`,
+un-entered), no form-wide quit, no data loss beyond the prompt's own
+in-progress buffer.
+
 ## Explicitly out of scope
 
 - Wiring `masked`/credential FIELD entry (ordinary schema fields, not this
@@ -217,8 +260,8 @@ concrete reason why.
   both are exactly the kind of non-obvious, load-bearing findings future
   work in this area (the deferred `masked`-field task) will need.
 
-#,,,,,,,.,,,.,,,,,,.,,...,,,,,..,,,.,,..,,.,,,..,,...,...,.,,,,,.,.,.,.,.,,..,
-#EXD2L2AEWRXWSR6UNLQIA5MLGJFWIPHA2D4QTUVW5KKGI3R4GD2LVCN2NBIDF7WB6LFMBJYZIYEFK
-#\\\|JA6KEVI6HMJFSZMX7YIAPX5MA4XZZYIPKNOWU3N5Q3UZJEKMF7U \ / AMOS7 \ YOURUM ::
-#\[7]RTD46EB7D5TR7AQ4TWUAQT5OCZORUPEF7ISV65WMLPHTE2FDWEBY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,.,,,,,,,..,,..,,,..,..,,,,.,..,,...,...,..,,,..,,,.,.,.,..,,
+#2DVZTE5XM2TEFHXNC527MOVA7ZECHHNCKJGRC7TLUML5FWRS6CSY5RNQQRC6ASZISG62WUVKP3MWW
+#\\\|HYOAD2YCPFIX4NEBPO74ZJZYCLKKQXD3NBFNY3ZVLSQHEAXABGW \ / AMOS7 \ YOURUM ::
+#\[7]B75TZFWKQHHHXXK27RSXHAKDS53USGMWJPQCIYKC5Q7X6QIXX2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
