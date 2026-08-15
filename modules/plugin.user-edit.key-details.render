@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = plugin.user-edit.key-details.render
+# descr = key-details tab display -- the zenka's own C25519 identity, read-only
+# param = $editor_state, $field
+
+## DISPLAY ONLY, self-record-only : the field def carrying this override is
+## synthesised in user-edit.form.schema_from_record ONLY when the open record
+## is the invoking Unix user's own, so whatever key state this zenka process
+## holds [ its OWN session key, loaded by this zenka's bootstrap ] is only
+## ever shown next to that same user's own record -- never beside someone
+## else's fields.
+##
+## data comes straight from crypt.C25519's in-process state, NOT from any
+## keys.console.* module [ those print/say interactively to STDOUT, the wrong
+## shape for a render contract ] :
+##
+##   key_vars->{'key_name'}   -- the loaded session key's name, resolved
+##                               exactly the way crypt.C25519.cmd.
+##                               get-public-key resolves it
+##   cmd.get-public-key       -- called ONLY as a loaded-key existence check
+##                               [ mode 'true'/'false'] ; its b32 public key
+##                               payload is deliberately not displayed here --
+##                               52 raw b32 chars is not useful at a glance and
+##                               dominates the row for no reader benefit
+##   key_checksums            -- the harmonised checksum for it ; the key is
+##                               already loaded, so this SKIPS a load/decrypt
+##                               round trip -- but key_checksums itself always
+##                               recomputes the AMOS truth-template checksum
+##                               [ base.chk-sum.amos.truth_template_chksum ->
+##                               AMOS7::CHKSUM::amos_template_chksum, a real
+##                               harmonic-truth search, not a cheap hash ] on
+##                               every call, and writes a cache slot [
+##                               crypt.C25519.loaded-keys ] it never reads
+##                               back.  render fires on every keystroke/cursor
+##                               move across the WHOLE form, not just while
+##                               this field is focused, so calling
+##                               key_checksums unconditionally here made every
+##                               keypress anywhere in the form pay for a fresh
+##                               harmonic search -- confirmed as the cause of
+##                               severe cursor lag once this tab shipped.
+##                               memoized below instead : the identity key is
+##                               immutable for this zenka's process lifetime,
+##                               so computing the checksum once is correct,
+##                               not just faster.
+##
+## the rendered checksum is verifiable against 'keys list' output for the same
+## key -- same underlying key, same checksum function family.
+
+my ( $editor_state, $field ) = @ARG;
+
+##  key_name => checksum, computed once per process ##
+state %checksum_cache;
+
+my $key_name = <[crypt.C25519.key_vars]>->{'key_name'} // '';
+
+my $pubkey_reply = <[crypt.C25519.cmd.get-public-key]>->();
+
+## mode 'false' is legitimate [ the session key somehow not loaded when     ##
+## render fired ] -- degrade to a short notice rather than dying mid-render ##
+if ( ref $pubkey_reply ne qw| HASH |
+    or ( $pubkey_reply->{'mode'} // '' ) ne qw| true | ) {
+    return sprintf(
+        q| %s : not available [ %s ] |,
+        length $key_name ? $key_name : qw| key |,
+        ref $pubkey_reply eq qw| HASH |
+        ? ( $pubkey_reply->{'data'} // 'key not loaded' )
+        : 'key not loaded'
+    );
+}
+
+my $checksum = $checksum_cache{$key_name}
+    //= ( <[crypt.C25519.key_checksums]>->( $key_name, FALSE, 2 )
+        // qw| [unknown] | );
+
+return sprintf( q| %s %s |, $key_name, $checksum );
+
+#,,,,,,,,,,.,,.,,,,,.,...,,,,,,,,,,,,,..,,.,.,..,,...,..,,..,,,.,,,,.,...,...,
+#L6FHOC2E27SPVHAV2VRKMNYJWA3FBGIXPEMMCPUJPG2GZY4XD4Z27W7WHE3DFCFCGVTV27ICRJ3YQ
+#\\\|N6I4QG3I77OCDAAEQBBF7DHR4GLVZN6YGMSATBLYR5UFRQEU4M7 \ / AMOS7 \ YOURUM ::
+#\[7]43ODXAZEIRCUGCEY7VCGNDDLLN6MMHSPO37GBLROUGEUN4A23ADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
