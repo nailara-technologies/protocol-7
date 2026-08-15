@@ -562,6 +562,26 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         : $row_pad_l . $value . $mark{'pad_r'};
 
     $values{$name} = $value;
+
+    ## OPT-IN detail display [ identity_key only, 'identity_detail_mode' --
+    ## see schema_from_record ] : the plugin's own render call above [ reached
+    ## through get_display_value's display_override dispatch, well before this
+    ## point ] stashed the checksum on $field_def itself when in this mode,
+    ## rather than including it in $value -- same
+    ## hand-data-forward-through-the-field-def pattern user_keys_names already
+    ## uses. write it into the field's own reserved detail row [ a block-type
+    ## slot user-edit.form.build_frame reserves only in this same mode -- see
+    ## that reservation's own header for why block, not field, type ].
+    ##
+    ## SAME fixed column start [ 42 ] as user_keys' own detail checksum just
+    ## above, per user 2026-08-15 -- both detail checksums line up in the same
+    ## column regardless of which field they belong to, rather than each
+    ## picking its own indent
+    if ( $field_def->{'identity_detail_mode'} ) {
+        my $checksum = $field_def->{'identity_key_checksum_detail'} // '';
+        $values{ sprintf( '%s_detail', $name ) }
+            = length($checksum) ? ( q{ } x 42 ) . $checksum : '';
+    }
 }
 
 ## single-field scope : narrow the descriptor to the requested slot ##
@@ -593,8 +613,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,.,,...,.,,,,,,,,,.,,..,...,,.,,...,,.,,.,,,..,,...,...,..,,..,,.,.,.,,,,.,,
-#7Y2YURZ3BNHBIMVNH2R3J4Z4KZ3K7DPAYKKYMONA72VARZ2RRSIQCTAEWZJJI3DAYJB6UGPV4GYQS
-#\\\|LZCLDAMONHXGJNDNASOJTWLVEKS663H6XSVKD57MM56545S3UP5 \ / AMOS7 \ YOURUM ::
-#\[7]XS6Q5OGK4CGSR4WOGTGNG5TCKFOQJB6Q5LFRJ4TBZ3M2CZGWU2CY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,...,,..,,..,.,,,.,,,,,.,.,.,..,,...,...,.,.,,.,,...,,.,,.,.,
+#ZB6LFHBZ5FPH7GMOPS35S6FC5VCCAT2CS46BLVATN4AM4PVMZHG7UE4QDTFYSFKBSAIBODYZXB6BI
+#\\\|ZPR4J7CPMJBVCLDMYDFQL4CVSGA5N3JGLO2ACUHM2TJHJ2O4QEX \ / AMOS7 \ YOURUM ::
+#\[7]X6ZCX2FCLAUUNJ5AXL32XFP3ND6BYZG23MXACD7UBBMGPBFT7WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

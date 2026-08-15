@@ -73,6 +73,31 @@ my $checksum = $checksum_cache{$key_name}
     //= ( <[crypt.C25519.key_checksums]>->( $key_name, FALSE, 2 )
         // qw| [unknown] | );
 
+## OPT-IN detail display, same shape user_keys' own display type uses --
+## user-edit.form.schema_from_record sets 'identity_detail_mode' once, from a
+## length threshold, since the identity key is immutable for this zenka's own
+## process lifetime [ see the header above ] there is nothing to re-check per
+## render.
+##
+## $field here is the FIELD NAME STRING [ confirmed live 2026-08-15 --
+## editor.control.get_display_value:46 calls display_override with
+## ($editor_state, $field), not the field_def hashref this file's own param
+## comment previously implied -- a first attempt treating $field as the
+## hashref died with "string as HASH ref" ]. resolve the real field_def from
+## $editor_state's own schema instead : the SAME hashref
+## user-edit.form.build_frame and editor.ui.ascii_frame.render_form both
+## already hold their own reference to, so mutating it here is visible to
+## both, same hand-data-forward pattern user_keys_names already uses to carry
+## data from schema-build time to render time
+my ($field_def)
+    = grep { ( $ARG->{'name'} // '' ) eq $field }
+    $editor_state->{'schema'}{'fields'}->@*;
+
+if ( ref $field_def eq qw| HASH | and $field_def->{'identity_detail_mode'} ) {
+    $field_def->{'identity_key_checksum_detail'} = $checksum;
+    return $key_name;
+}
+
 ## no leading/trailing space here -- render_form's generic body wrap [ q{
 ## }.$value.q{ } ] plus its pad_l/pad_r framing already supply that for every
 ## unfocused field ; adding it here too just stacked a third layer of padding
@@ -81,8 +106,8 @@ my $checksum = $checksum_cache{$key_name}
 ## not outer framing
 return sprintf( q|%s %s|, $key_name, $checksum );
 
-#,,..,.,,,,,.,,.,,,.,,..,,..,,...,,,.,,..,.,,,..,,...,...,,..,,..,,,.,..,,,.,,
-#BGHGHMJU5OM725455SVHLE4YJR5WUI3XGZNIBKE7LPKOAO2RYJTMEXODZLXEBKONSXHB6HK35VVE6
-#\\\|XPUSSMYPNA2ZKD7ZVMVDI3B4WYHS745K3GMLSDVLAPOQDE5IUTY \ / AMOS7 \ YOURUM ::
-#\[7]3RTCSRIZAU52NXDFF5A3MFEC2VG6CKIKYSB7PPOWSHQNXQKVCGAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,,,.,,.,,...,,,,,.,.,.,.,..,,..,,...,...,.,.,,,,,,,,,,.,,..,,
+#4WWZX7V54TSDDNNOCL6JIUDHJW4IA63DSZ3OGKABKJRB4D56WX4JKQ734UTP7USBCWWN2MUT6ZEOG
+#\\\|FGIIW4UIV2KERIBAU2JAE5K7WFQZU5H6FAYUBFMN7NSZEKOEUZR \ / AMOS7 \ YOURUM ::
+#\[7]IMWIPRCL3HGBZZF2DKTNVSMPP7UW2FIQW55O3S5M4FXHEGGXDQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
