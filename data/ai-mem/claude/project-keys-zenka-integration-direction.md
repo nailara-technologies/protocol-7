@@ -151,8 +151,39 @@ material itself" — check whether that doc's existing design already
 answers "what does the relationship file type look like" before
 inventing a new one.
 
-#,,,.,,.,,...,,..,,,,,...,.,,,,,.,,,,,,,.,,.,,..,,...,...,,.,,,,.,,.,,.,.,.,,,
-#WH6RVGTIA4O5JALH6DFMZGXB2S22LSNKOI7PNFRUT3ACUTS2F7CIO6J5DW2P6JHP5ZEAN66TEGBAQ
-#\\\|QEDL4D3W2CBNQ4UQSGGLP7ZY4TVORERPKDWM2EXGYHBUDZIQOET \ / AMOS7 \ YOURUM ::
-#\[7]WS2NBS26EDZGORTVY74AQSYQS4FRYHTRRRQAFCIEUGCNQMYETECY 7  DATA SIGNATURE ::
+**General policy, per user, same conversation: prefer an unencrypted key
+over no key at all.** Rationale stated directly: an unencrypted key still
+attaches its entropy to SOME physical security (filesystem/OS access
+control, even without a passphrase layer) — strictly better than nothing
+— and can already be used for TOFU pinning from first boot, so the system
+should not block on ideal security before establishing initial trust.
+Matches an existing, already-buildable capability rather than a new one:
+`keys.console.gen-file-seed-key`'s `-U` flag already skips at-rest
+encryption on request (see [[topic-key-recovery-flexible-recreatability]]),
+and `crypt.C25519.autocreate-user-key`'s default autocreate path already
+produces a plain key today — this policy makes that existing default
+behavior an explicit, intentional principle for the clean redesign,
+rather than an unstated default.
+
+**But, for important cases — user keys on an interactive system
+specifically** — per user: give an easy key-upgrade path (unencrypted →
+passphrase-protected) that is IMMEDIATELY SYNCHRONIZED once taken, not a
+manual multi-step re-issue. Likely UI surface for that upgrade prompt:
+`user-edit`'s `masked` field type (see
+[[project-credential-types-into-user-edit]]), already built for
+event-loop-safe secret entry, though an event-loop-safe prompt for
+entering a secret INSIDE an already-running form is still flagged
+unbuilt there — the same gap would need closing for this upgrade flow
+too.
+
+**Overall stance, stated directly**: "it will prefer better security, but
+use any it can already get" — progressive enhancement, not
+all-or-nothing: never block functionality waiting for the ideal case,
+always make the upgrade path easy once better security becomes available
+or needed.
+
+#,,..,,,,,.,.,,,.,.,,,..,,,.,,.,,,.,.,..,,,..,..,,...,..,,.,.,...,.,.,...,,.,,
+#CUHIJGI7LWGZ5VM5HUQ557CGBCVFOWFXVJND6R5FP6KJ6U5SMGS6GZBGMOB3JQRBBZNYE6TILKEMS
+#\\\|NU2FF3XVHIMKTTE5456CSZLDL6R4UKH2FSKGSU3QQL7QUL4WJTV \ / AMOS7 \ YOURUM ::
+#\[7]TZ5KW5GUVC2ZBRYFUO4A2WETOGVTGSRJI3MNK5OHMEIB2YYLUMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
