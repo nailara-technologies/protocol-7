@@ -124,8 +124,19 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ## of focus
         if ( not $is_active ) {
 
+            ## noun override, same field-def keys editor.control.list.summary
+            ## already reads -- lets a field that is only IMPLEMENTATION-
+            ## multiline [ e.g. user_keys, one entry per line ] collapse as
+            ## 'N.entries' instead of 'N.lines'; omitted [ undef, all three ]
+            ## for an ordinary free-text field falls through to
+            ## multiline.summary's own 'line'/'lines' default unchanged
             $values{ sprintf( '%s_0', $name ) }
-                = <[editor.control.multiline.summary]>->($text) . q{ }
+                = <[editor.control.multiline.summary]>->(
+                $text, $field_def->{'noun'},
+                $field_def->{'noun_plural'},
+                $field_def->{'noun_singular'}
+                )
+                . q{ }
                 . $mark{'pad_r'};
 
             $values{ sprintf( '%s_%d', $name, $ARG ) } = ''
@@ -516,8 +527,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,.,.,.,,,,,,..,.,,,..,,...,.,,,,,.,,,.,..,,..,,...,..,,,,.,.,,,...,...,,..,
-#CRGWGA5GEQGIVHM2ZV76JDSKCNYIH5SRETFQOPICTKFHAEELP22CX7FKCBNUYDTF7PUUBP2HLTLNC
-#\\\|XF57ZDISDMZEIYBVEQRDW573IOW6IMKIHKETV4JWSYTCPIJC35Q \ / AMOS7 \ YOURUM ::
-#\[7]JZH6NUI6MUUCUSB2KUGQIOYO5GIMHOMPLENNOB2HNCZMBOEGTUBI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,..,.,.,,..,.,,,...,,..,,..,..,,..,,...,...,...,...,,,,,,.,,,,.,
+#JZDIWDGOMX2OACGQ6WSK36YR2ERSSBQ7UA6TUQ5JG2WT4NZGPAAEWHC2TWEF6MMHQLMTX775ZM7A2
+#\\\|SDBX6GX4GTLHHAP4WDOKH4CK2OM5EW3AU7D7QMFZVPVDPCB5MVH \ / AMOS7 \ YOURUM ::
+#\[7]NBYKFQZH2M25HUKMY6U7TK5QPXP7RCBYC7D5MIA3MRSMM3RJ4KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
