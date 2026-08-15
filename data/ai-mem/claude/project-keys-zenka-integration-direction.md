@@ -91,8 +91,19 @@ Also unexamined: `cred-mesh.cmd.ui-show` is an existing credential UI
 with live nshell integration — settle whether user-edit's form subsumes
 it before building a parallel one.
 
-#,,..,,,,,..,,..,,.,.,...,.,,,.,.,...,..,,...,..,,...,...,,..,...,...,.,,,..,,
-#476E4VA2Z5L72WOBDWZWFTFDXSCVH2HQHIFKI6TGN75O5DHNNNHTAR7MLUTGN2A63YLPYGJZOHBRK
-#\\\|P6N475B2GTC5QKWM2RHD6Y3JFC3LTMT7SE3KDZRL7KTIQJFDGM4 \ / AMOS7 \ YOURUM ::
-#\[7]HGL65DKQULXUQ7LKR4TGBU632VLCWLNCQFKVFV2VMVLVLXGXZEBY 7  DATA SIGNATURE ::
+**Idea, per user 2026-08-14 (not yet designed further)**: move TOFU host
+pins (`remote-host.<host>_<port>.public`) out of the regular `keys`
+directory entirely, into a parallel directory of their own — surfaced
+while scoping the `user_keys` field (see
+[[topic-user-edit-console-zenka-status]]), which deliberately excludes
+hostkey entries from its "your keys" list because they already read as a
+different category of thing than a named keypair, not just a filtering
+convenience. Would also bear on the "three places describing peers"
+question above (`keys`' hostkey pins vs. `users`' `remote/` vs.
+`discover.orbital.known`) if it goes anywhere.
+
+#,,..,,,,,.,.,.,,,,..,,..,...,,,,,,,.,..,,,,.,..,,...,..,,,.,,.,.,,..,..,,,.,,
+#YCKLNKKRGLXLGOUYUKGE6GHLSYC2KB4CYLOVNG5C4ERWCE7DIAQPABBVL2QFTQSIDITNTD3GLNUOS
+#\\\|AIVYJXXAVSZXCIHFIG7KTLJ7KRY5MY7IJETRASI2VTN2T47PQG6 \ / AMOS7 \ YOURUM ::
+#\[7]FYIBA4CPP5272WRHHLFTYBQIRRLMTAWLOEVES4GAR7VC7GUFDWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

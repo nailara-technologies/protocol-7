@@ -160,23 +160,17 @@ if ( defined $pinned_plugin ) {
 }
 
 ## DISPLAY ORDER, same gap class as sort_on_focus/multiline/collapse_summary/
-## plugin-pinned above : schema_from_record derives order with
-## <[base.reverse-sort]> on first load, so add_field must ALSO apply it the
-## FIRST time a field is added here, not only once it round-trips through a
-## save+reload.  identity_key is a synthetic self-record tab and stays pinned
-## last, exactly as schema_from_record appends it after the sorted real fields
-my ( @identity_key, %real_fields );
+## plugin-pinned above : schema_from_record derives order with ONE combined
+## <[base.reverse-sort]> pass across every field name -- real fields and any
+## synthesised ones [ user_keys/identity_key ] alike, per user, rather than
+## pinning the synthesised ones to a fixed trailing position regardless of
+## their own name's length -- so add_field must ALSO apply the SAME combined
+## sort the FIRST time a field is added here, not only once it round-trips
+## through a save+reload
+my %field_def_by_name = map { ( $_->{'name'} // '' ) => $_ } @fields;
 
-foreach my $field_def (@fields) {
-    if ( ( $field_def->{'name'} // '' ) eq qw| identity_key | ) {
-        push @identity_key, $field_def;
-    } else {
-        $real_fields{ $field_def->{'name'} // '' } = $field_def;
-    }
-}
-
-@fields = map { $real_fields{$_} } <[base.reverse-sort]>->( \%real_fields );
-push @fields, @identity_key;
+@fields = map { $field_def_by_name{$_} }
+    <[base.reverse-sort]>->( \%field_def_by_name );
 
 my $new_state = <[editor.control.create]>
     ->( { qw| fields | => \@fields, qw| active_field | => 0 } );
@@ -219,8 +213,8 @@ $new_state = <user-edit.form.state>;
 
 return TRUE;
 
-#,,,,,...,,.,,...,,.,,..,,...,,.,,..,,..,,,..,..,,...,...,.,.,..,,,..,,,,,..,,
-#TMMF462RXWRXEJ5UGNHEKZTJUCHDYAK5UNLKQH4QFA76QBBZY72GPQ5SYU5E65JHV7OOEAKS7P6KS
-#\\\|BP3L743FKRBLHUCWBSJ22ELVPKWLNHRABG7T34URV4P65K76DLW \ / AMOS7 \ YOURUM ::
-#\[7]PCKP5XKJXCZ55L76PUU3J3EZET2KRUWWCIR2OK32TUAT7T5XGQBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,,,.,.,,,,,.,.,,.,,...,,.,,.,.,..,,...,...,,.,,..,,.,.,,,,,,,.,
+#RKUPWR7U56ZDD6G4THKHWHGHP5HOFGAK3QH4VRVTPAVXUKSUPMBK7226GS4TXFCG2IJSU5REPS7C6
+#\\\|73NBEBQUX26NS7J3WLP6B6ZGRLMWV4DJWWH37XWANCXFZR6YUPN \ / AMOS7 \ YOURUM ::
+#\[7]LFNNSGWAMTTMKPJMTRYWKBBZMK4SJBJASZY4XOVFEFAB4IAAH2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

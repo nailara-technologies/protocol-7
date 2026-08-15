@@ -2,7 +2,7 @@
 
 # name  = editor.control.multiline.summary
 # descr = the ':..3.lines..:' text a collapsed multiline field draws
-# param = $text
+# param = $text [ , $noun , $noun_plural , $noun_singular ]
 
 ## exact counterpart to editor.control.list.summary's ':..2.entries..:' --
 ## same wrap, same dot-joined count+noun shape, same reason it is factored out
@@ -10,11 +10,23 @@
 ## and a second implementation of the same sentence would drift.  unlike
 ## list.summary this takes the raw TEXT, not a field def -- a multiline
 ## field's line count is a property of its buffer alone, nothing else on the
-## def matters to it, and there is no per-field noun to customise [ every
-## multiline field counts LINES, full stop, where a list's entries are named
-## per field -- 'address'/'addresses' vs the default 'entry'/'entries' ]
+## def matters to it.
+##
+## the noun defaults to 'line'/'lines' [ base.cnt_s's own default suffixes,
+## passed explicitly here so overriding them later is a one-line change, not a
+## new call shape ] -- true for every genuine free-text multiline field [
+## note, address ].  optional override exists for a field that is only
+## IMPLEMENTATION-multiline [ user-edit.form.schema_from_record's user_keys,
+## one key name per line to route around display_override's multiline gap, see
+## that field's own header ] but conceptually a list of discrete entries --
+## same noun/noun_plural/noun_singular shape list.summary's own field-def keys
+## already use, so a caller with a field_def in hand can pass its
+## 'noun'/'noun_plural'/'noun_singular' straight through unchanged
 
-my ($text) = @ARG;
+my ( $text, $noun, $noun_plural, $noun_singular ) = @ARG;
+$noun          //= qw| line |;
+$noun_plural   //= qw| s |;
+$noun_singular //= '';
 
 my $lines = <[editor.control.multiline.lines]>->( $text // '' );
 my $count = scalar $lines->@*;
@@ -27,13 +39,14 @@ $count = 0 if $count == 1 and not length( $lines->[0] // '' );
 
 my $summary
     = $count
-    ? sprintf( '%d.line%s', $count, <[base.cnt_s]>->($count) )
-    : qw| no.lines |;
+    ? sprintf( '%d.%s%s',
+    $count, $noun, <[base.cnt_s]>->( $count, $noun_plural, $noun_singular ) )
+    : sprintf( 'no.%s%s', $noun, $noun_plural );
 
 return sprintf( ':..%s..:', $summary );
 
-#,,,.,,,.,.,,,...,.,,,,,.,,,.,..,,,,,,.,.,,..,.,.,...,...,,..,..,,...,.,.,.,,,
-#WAL7OKNL4XXFORGPA77DC7DHSVLQ6AOPS7P6L5A4IAB3TBVHONLCGFDE62KUUC5HIOEUEKFWGOSZI
-#\\\|4R3E7Y44PHDSZFCGTU6J2PAKXWJP6TCZEBNOIIQW2FXVF4XZWSR \ / AMOS7 \ YOURUM ::
-#\[7]7V2Y2PNMJXY2OS3RGMGX3ZPIKVITYICBV7DOCKBST5QACU53GUBQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,.,.,.,,,.,,.,,,..,.,.,...,,,.,.,.,...,...,.,.,,..,.,,,,,,,..,,
+#RNT5UTJMOGBT2EER2XHI2TZA4ZU3ZXF5BJH6CELXVJP7X7C4TZFD7FF5DVTFX6HYNHEBDJQJTUY7I
+#\\\|ODZJ73HYLREGZ2RJGF27TCU2S6JJCLBILPZPS2KI6COVXXG4O6T \ / AMOS7 \ YOURUM ::
+#\[7]JK2QOLGHSI65TRPJPCNU6KGLC3DDIGVG5SNK4VXC6OREJY33BUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
