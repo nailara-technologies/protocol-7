@@ -1379,8 +1379,70 @@ proven-working reference path (`keys.checksum_href`, matching `keys.
 console.list` line for line). User may pick this up directly rather than
 via another dispatch.
 
-#,,,,,,,,,,.,,...,,.,,.,.,,,.,.,,,.,.,...,.,,,..,,...,...,...,...,,.,,..,,..,,
-#34TXSGNGB5RQ2IEJPLKI32MQJYWVKYMMO6FGNOUFN4WVF376RNK2XK5GEGW3SNSEPYWXTO7B7TLWY
-#\\\|CI4P6KBNAW7FXD6ZV7YE6XK4SOLV7Z35MW62H7DOG3CPPZ5GEX4 \ / AMOS7 \ YOURUM ::
-#\[7]7EXPWCRISWYXKZ2XAH72RRRPH2DT3K2LQ2QYAJLYOIVDSHDIPCAY 7  DATA SIGNATURE ::
+**UPDATE 2026-08-15 — both gaps above fully resolved.** The `key_vars`
+hijack was root-caused and fixed (not worked around) at
+`crypt.C25519.key_vars` itself, and the empty-checksum gap turned out to
+be a display-width truncation in `editor.ui.ascii_frame.render_form`, not
+a data bug — the checksum was correct the whole time. Full account,
+including two more real bugs the root fix itself surfaced (sourcecode
+signing broke, needed `source.load_signature_key` fixes) in
+[[bug-crypt-c25519-key-vars-base-identity-hijack]]'s RESOLVED sections.
+
+**Corner-checksum display mode — attempted, reverted (commit `ed5f4ce68`
+reverts `290cbe05a`).** After the truncation fix, tried an opt-in second
+display mode: `user_keys` rows show name-only, selected entry's checksum
+floats in a frame-border corner (top-right/bottom-right by selection
+position). Dispatched to kimi (K3), needed a live-debugged resume to
+finish, passed every acceptance check the task file specified — and was
+still wrong. Two real problems only visible once actually looked at with
+color rendering, which the `-no-tty`/`char-add` headless test harness
+cannot show at all (see
+[[reference-user-edit-headless-driving]]'s own note on this):
+1. **Border lines can't safely carry value content.** The checksum was
+   embedded directly into the frame's own top/bottom border line, which
+   renders through `ascii.frame.render.color.border_line` — a colorer
+   built only to recognize border-DECORATION syntax (`#` anchors,
+   `[...]` bracket-labels, fill runs of `:`/`.`/`=`/`,`), with no concept
+   of "this span is opaque value text." A checksum like
+   `<::[enc-key]::MI4B6FA:>` got torn apart character-by-character:
+   `::` runs miscolored as border fill, `[enc-key]` miscolored as a
+   bracket-label, and the plain alphanumeric digits fell through
+   uncolored entirely (default terminal white — visibly wrong against a
+   themed frame). `ascii.frame.render.color.content_line` (used for
+   ordinary field rows) DOES handle this correctly — it explicitly
+   detects a value span and colors it as one. **Lesson: never embed
+   arbitrary value text into a border line's own string; only content
+   rows have a colorer built to carry it.**
+2. **Even fixed, the placement was wrong.** Per user: putting the
+   selected entry's checksum in the corner of the ENTIRE frame
+   disconnects it spatially from the list it describes — with other
+   fields (note/shell/phone/contact/address) sitting between the actual
+   row and the corner, there's no visible relationship between selection
+   and detail. Neither of us caught this from the design conversation
+   alone; it only became obvious looking at the live render.
+
+**The better design, per user's own mockup, not yet built**: reuse the
+pattern `user_keys`' own reserved `_scrollinfo` row already establishes
+— an always-present, normally-blank CONTENT row (not a border line)
+directly below the field's own windowed entries, inside the field's own
+vertical space. Show the selected entry's checksum there, right-aligned,
+on its own line — spatially adjacent to the list, rendered as ordinary
+content (so it gets correct value-coloring for free), no frame-geometry
+surgery needed at all. Two implementation options: repurpose the
+existing `_scrollinfo` slot directly (simplest, but collides with real
+pagination info if `user_keys` ever exceeds its window `cap`), or add a
+genuinely separate dedicated row alongside it (slightly more code, no
+collision risk) — leaning toward the separate row.
+
+**Why direct implementation, not another kimi dispatch, for the redo**:
+per user, two kimi rounds on this one feature already cost real quota
+(~35% of weekly budget between the two), and the corrected design is
+small enough — one more reserved content row, same pattern
+`_scrollinfo` already proves out — to build directly with the
+understanding already in hand from debugging both prior rounds.
+
+#,,,,,,,,,,..,...,,..,...,,,,,.,,,..,,...,,..,..,,...,...,.,.,.,,,...,,,,,..,,
+#SD6I46XQH3SAWRCAGXRTHXAFG5QILCFS2HJKVXLE4R6XRUGHTWE6Z43Y3H2IMYL3KWAJLPKIYJBM4
+#\\\|2VEVIFACDK4E3DLPKWGAJ2PBTHRRHSI43QZGEHTRNGFZ2DM6GIW \ / AMOS7 \ YOURUM ::
+#\[7]GLQLVBENYHNZMQYWTQB5CAKE44JGXXJR6FDCSI5I3UIKYHP3YQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
