@@ -1,6 +1,6 @@
 ---
 name: bug-crypt-c25519-key-vars-base-identity-hijack
-description: "RESOLVED 2026-08-15, commit 0bd1f6679: key_vars' claim side-effect moved from explicit-name calls to bare calls, root-fixing the twice-confirmed hijack this file originally documented as worked-around-not-fixed. Also added crypt.C25519.user_key_name (separate 'human identity' pointer) and two follow-up fixes in source.load_signature_key the root fix required. The empty-checksum gap below is still open, confirmed unchanged post-fix."
+description: "BOTH gaps RESOLVED 2026-08-15. Identity hijack: commit 0bd1f6679, key_vars' claim side-effect moved from explicit-name calls to bare calls, plus crypt.C25519.user_key_name split and two follow-up fixes in source.load_signature_key. Empty-checksum display gap: commit 0e3e84cd0 -- turned out to be a display-width truncation in editor.ui.ascii_frame.render_form's multiline viewport, NOT a key_vars/data bug at all; checksum data was correct the whole time."
 metadata:
   type: project
   modified: 2026-08-15
@@ -114,8 +114,50 @@ real, pre-existing, and used by a wide range of other callers across the
 work, not something to bundle into a display feature. Left alone
 deliberately.
 
-## a second, DIFFERENT, still-unresolved gap found in the same work
-## [ re-confirmed unchanged after the 2026-08-15 root fix above, per task ]
+## a second, DIFFERENT gap — RESOLVED 2026-08-15, commit `0e3e84cd0`, and
+## it was never a key_vars bug at all
+
+Root-caused live via instrumented debug probes (`<[base.logs]>` calls
+temporarily inserted into `crypt.C25519.key_checksums` and
+`user-edit.form.schema_from_record`, removed before committing): the
+checksum DATA was correct the entire time — `%all_key_chksums` in
+`user-edit`'s own process held `proto-7.sourcecode => <::[enc-key]::MI4B6FA:>`,
+byte-identical to `keys list`'s output, confirmed by dumping the hash right
+where `user_keys`' display string gets built. `key_checksums` wasn't even
+being invoked for it (cache hit inside `cached_chksum`, keyed by the
+public keyfile's content checksum, correctly populated in
+`~/.n/user-keys/.key-chksums.cache`).
+
+The actual bug was one layer up, in the RENDERER:
+`editor.ui.ascii_frame.render_form`'s multiline-row viewport width had a
+floor of 20 (a "soft display cap" per its own comment). Multiline fields
+are deliberately excluded from the form's overall width calculation
+(`user-edit.form.build_frame`: "a multiline field's body never contributes
+to min_width... no circularity"), so `user_keys`' row width came only from
+the *other* fields. `taeki.base <:ZITAETA:YKO7BCA:>` (30 chars) fit;
+`proto-7.sourcecode <::[enc-key]::MI4B6FA:>` (43 chars — the `[enc-key]`
+marker makes an encrypted key's checksum longer) didn't, and
+`editor.control.multiline.viewport_slice` silently windowed it from the
+start with no ellipsis, landing on `<::>`. Fixed by raising the floor to
+46 (44 needed: 20-char name + space + 23-char worst-case checksum, plus
+margin).
+
+**Why the original "one variable that differs" lead (pre-loaded identity)
+was a red herring**: it correlated with the symptom (only reproduced in
+`user-edit`, never in a fresh `keys` process) but wasn't causal — the real
+correlated variable was actually "does this form ALSO render an
+`identity_key`-style short row that keeps the frame narrow," which only
+`user-edit`'s specific field layout produces. `keys.console.list` never
+hit this because it isn't a multiline-viewport row at all, just a flat
+list line with no width floor applied the same way.
+
+**How to apply**: before concluding a checksum/data pipeline is broken,
+dump the value at the LAST point before display, not just at each
+computation step — this one had every computation step correct and the
+bug was purely in how a correct value got window-clipped for screen width.
+
+## [ superseded account below, kept for the trail — see RESOLVED section
+## immediately above for what was actually wrong ]
 
 Once the hijack was fixed, `user_keys`' checksum for `proto-7.sourcecode`
 (an encrypted key, NOT the process's own loaded identity) still comes back
@@ -172,8 +214,8 @@ enforces or checks.
 
 [[topic-user-edit-console-zenka-status]]
 
-#,,..,.,.,..,,.,.,,..,,,,,,.,,,,,,,..,,,,,...,..,,...,..,,.,.,.,,,...,.,.,.,.,
-#GOK4XEIX3OJRSNMGS37AKRLG446R7YTEF4HYX2F45MX3MCDJC4BFARL77U7YHMCGS2BKHASJWJJBS
-#\\\|7OHRGHGLMJPE2DSWIE7DMYI3I2QAEKHA45K4GYE76ZYAWBC7SRV \ / AMOS7 \ YOURUM ::
-#\[7]DK34NUXYDWT27N56KIU2KMVSY3BF7PUKKEPGB47QL4LHWTKUWUBI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,...,..,,,,.,,.,,.,,,.,,,.,,,..,,...,..,,.,.,,..,,..,.,,,,,.,
+#HZMJJNAH4HNDWOCKP2RMMXTA5QN3S7DPJ2LFQM2EVE2ENRWAA5FDVIM3D3C67MYLCYSIAXAPPIKZE
+#\\\|LVJTA2OEHFJT26MZPKDH6HZKBAGULNR4XQBWBHQQT6RVAJ6EJRF \ / AMOS7 \ YOURUM ::
+#\[7]XPGQ7ZMPTWRMP5DZ2HX2GXQOQJLHLCVYIQJPHEHAG5DHBA3FNCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

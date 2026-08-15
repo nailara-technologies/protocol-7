@@ -30,6 +30,14 @@ plugins.load = plugin.user-edit.registry plugin.user-edit.example \
 ## the form was opened with '-no-tty'                                      ##
 access.cmd.usr.cube  =  commands heart verify-instance char-add
 
+## user_keys field : max chars a key NAME shortens to via base.parser.
+## ellipse_center before its checksum, so a long name plus a long checksum
+## [ e.g. an encrypted key's '<::[enc-key]::CCCCCCC:>' ] does not force the
+## row wider than editor.ui.ascii_frame.render_form's multiline viewport
+## floor accommodates -- see user-edit.form.schema_from_record. defaults to
+## 20 [ //= in the code ] when unset here
+# user-edit.cfg.user_keys_name_width = 20
+
 ## two families were missing from the original keys-clone [ keys is fully ##
 ## standalone and needs neither ] : 'ui' provides base.event.* — without  ##
 ## it base.zenka.loop dies on an undefined event.loop — and format.yaml   ##
@@ -69,8 +77,8 @@ system.auth-user = <user-edit.auth_name>
 ## print and exit : a [zenka.loop] at this level would hang them, and    ##
 ## plain 'v7.user-edit' would never return to the shell                  ##
 
-#,,,.,,..,,.,,,,.,,,,,...,..,,..,,.,.,.,,,,.,,..,,...,...,,,,,.,,,..,,,..,.,,,
-#YR7URUWYKCHLCLKR7LYUYO6A7KME6I6CJW6DMHBMVUJMPTFFAHAWJFHQ2CYMVOXN6HWZVCY4TCX3O
-#\\\|67362AQHXSKPTQLJLXA2YPJ5VJDBMOABNDHKGJRLY4ECHSF7UER \ / AMOS7 \ YOURUM ::
-#\[7]6MGYUNIA365XLRVIPEGUTTOXPMVD5FS4AIEJVPRYGAKHV37KYMBA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,,.,,.,.,.,.,.,,,,.,,,,,,.,,,..,,...,..,,...,.,.,,.,,,..,,..,
+#DXKTXC5J4BTZGXK6UFU6QYURWKJ6MPKEFLYXX5RVD2WNHXW7CSGUCC3PAY53TKFVHEQXYK77ZY5HA
+#\\\|6DNBWNWUIFGCTDJNPQSQQIYMVRSCCNTCXKMKIFX2QGUIAQNVGMS \ / AMOS7 \ YOURUM ::
+#\[7]UXFEOXF3KNI5PT5MQULXF2QDSZSNIAGIHIBPDOIKJS2HHN5DWOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

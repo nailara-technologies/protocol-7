@@ -227,25 +227,32 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
     ## each entry also shows its checksum, same reasoning identity_key already
     ## carries one -- keys.checksum_href, called BARE [ every key at once, not
     ## one name at a time ], exactly matching keys.console.list's own call
-    ## shape -- that is the actual proven precedent, not a same- shape
+    ## shape -- that is the actual proven precedent, not a same-shape
     ## reconstruction : calling crypt.C25519.cached_chksum / key_checksums
     ## per-name myself came back empty for an encrypted key that was not the
-    ## process's own already-loaded identity [ a separate, still-unresolved
-    ## gap -- OUT of scope of the key_vars identity fix ], and per-name was
-    ## never what the working reference code does in the first place.  SAFE
-    ## from the base_key_name hijack either way now that key_vars itself is
-    ## fixed [ explicit-name lookups no longer claim base_key_name ].  name
-    ## shortened via  base.parser.ellipse_center [ core sub, bin/Protocol-7 --
-    ## confirmed live, NOT a missing primitive despite an earlier false alarm
-    ## ] so a long name plus its checksum does not run the row unreasonably
-    ## wide ; the checksum itself is never shortened, already a fixed short
-    ## width
+    ## process's own already-loaded identity -- turned out to be a display-
+    ## width truncation in editor.ui.ascii_frame.render_form, not a data bug
+    ## at all ; the checksum was correct here the entire time, see
+    ## bug-crypt-c25519-key-vars-base-identity-hijack.md's RESOLVED section.
+    ## SAFE from the base_key_name hijack either way now that key_vars itself
+    ## is fixed [ explicit-name lookups no longer claim base_key_name ].
+    ## name shortened via base.parser.ellipse_center [ core sub, bin/
+    ## Protocol-7 -- confirmed live, NOT a missing primitive despite an
+    ## earlier false alarm ] so a long name plus its checksum does not run
+    ## the row unreasonably wide ; width is a config knob rather than a
+    ## hardcoded literal since the right trade-off between name legibility
+    ## and row width is a display preference, not a structural constant --
+    ## the checksum itself is never shortened, already a fixed short width
+    <user-edit.cfg.user_keys_name_width> //= 20;
+
     my %all_key_chksums = <[keys.checksum_href]>->%*;
 
     my @other_keys_lines = map {
         my $checksum = $all_key_chksums{$ARG} // qw| [unknown] |;
         sprintf( '%s %s',
-            <[base.parser.ellipse_center]>->( $ARG, 20 ), $checksum );
+            <[base.parser.ellipse_center]>
+                ->( $ARG, <user-edit.cfg.user_keys_name_width> ),
+            $checksum );
     } @other_keynames;
 
     my $other_keys_text
@@ -318,8 +325,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,,,,,,,,,..,,.,,,,,,...,,,.,...,,..,.,.,,,.,..,,...,..,,.,.,,,,,...,,..,,,,,
-#RBLV72ML7GNZPCEKQQWMU64TTMIDERZJ4SIKCC6B4D6CFM2ZT4DOSEBXHABLBPSQRIQ5FKTDCKS5C
-#\\\|FC73A7C544CR3G7MJL7PJL63PSYVNQDNGD2CDWTE2MNQGGLUGU7 \ / AMOS7 \ YOURUM ::
-#\[7]E6UWPOPAQPAUMSUE4K2HH65GXYFPPD4DOTQGIE4MW42QT3HX2CAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,,,,,.,.,.,.,..,,.,,,.,,,,.,,..,,...,...,.,,,..,,..,,.,,,,..,
+#CLLLT5A3B5E7NGCIHJKXVDJAXXYAZ7XRS3QMMMZ2CBJ3MVRJQ3FJHJYE5JYJINVWMV5T2IMMAN7SQ
+#\\\|EMYQU5EGSPUKNTC6YB4D3YBDGXDZRKDEVCXTOMUF63ITXLSUII3 \ / AMOS7 \ YOURUM ::
+#\[7]EEH73TX2HO5UAPTAQ33LEDLM7Z3H72KDPE3PNPA7Z42OIYL5UQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
