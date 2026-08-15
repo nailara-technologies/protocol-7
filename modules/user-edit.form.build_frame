@@ -157,10 +157,23 @@ my $has_label = sub {
 ## ['phone:', not 'phone_0:' / 'phone_1:'] instead of a different one per
 ## entry.  label_width is taken over THIS, not over the token names, so a
 ## collapsed 'phone' and its expanded rows now reserve the identical width
-## instead of the expanded form paying for the longest '<field>_<n>' token
+## instead of the expanded form paying for the longest '<field>_<n>' token per
+## user : a one-space gap before the ':' separator, and underscores read as
+## spaces in the label -- 'full_user_name' displays as 'full user name'.
+## baked in HERE rather than at either sprintf call site below, so label_width
+## [ measured via length($row->[3]), row->[3] being this sub's own return
+## value ] already accounts for the gap and the [ length- preserving ]
+## underscore swap automatically -- the row-geometry identity this file's own
+## header derives [ prefix = label_width + 6, body = label_width + len(name) +
+## 10 ] stays correct unchanged, since label_width itself now simply measures
+## the padded/converted text rather than the raw name.  the TOKEN [ {{name}} /
+## {{name_N}} ] must never go through this -- it is a slot key, not display
+## text
 my $label_of = sub {
     my ($field_def) = @ARG;
-    return $field_def->{'list_row_of'} // $field_def->{'name'};
+    my $raw = $field_def->{'list_row_of'} // $field_def->{'name'};
+    ( my $display = $raw ) =~ tr/_/ /;
+    return $display . ' ';
 };
 
 my $row_of = sub {
@@ -354,10 +367,16 @@ if ($is_menu) {
 
             my $cap = <[editor.control.list.window_cap]>;
 
+            ## label_of, not raw $name : the label DISPLAY [ gap + underscore
+            ## swap, see label_of's own header ] must go through the same
+            ## conversion every other row's label does.  $name stays raw for
+            ## both {{%s_%d}} token args -- those are slot keys, not text
             push @bodies,
-                sprintf( '   %*s:  {{%s_%d}}',
-                $label_width, $name, $name, $ARG )
-                foreach 0 .. $cap - 1;
+                sprintf(
+                '   %*s:  {{%s_%d}}',
+                $label_width, $label_of->($field_def),
+                $name,        $ARG
+                ) foreach 0 .. $cap - 1;
 
             push @bodies, sprintf( '  {{%s_scrollinfo}}', $name );
 
@@ -514,8 +533,8 @@ my $entry = {
 
 return $entry;
 
-#,,,,,...,...,.,.,...,...,.,.,,..,...,,.,,,..,..,,...,...,...,,,,,,,,,...,,..,
-#QU6BRAIBYBCT5YWXTNZUJNNKFU5DZBAOO3GZI2RJH5Y2MCD6ZA2Y7QKQKMHYSD6JRQRGVA2YVWSSG
-#\\\|7FUMO2WPEQZM4QA77B6ZKFZ7WKEWJSUDO5GP2VCZGWRPOPLBYQL \ / AMOS7 \ YOURUM ::
-#\[7]PN2XGFL4MWCKJ7S4G2Z2NMZV3FNCTKEYZJOQF4AVNGJNEFDQP2AA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,..,,..,,,.,,..,,..,,,,,,,,.,..,,...,...,..,,..,,...,.,,,,..,
+#TYDLJZOL2CEZLFZGMUDAP7ZSXNMGIFGCSOV4GDE5ENB2IIVMLUDV2E2WFWQJF4DWOPYH6ZHFQ4JOS
+#\\\|RFWR3QMM5SFH7JDKXYV55CZDABEVDDJ22TRKMEPXRWJE22FWAO4 \ / AMOS7 \ YOURUM ::
+#\[7]IFICTKR2MDGFZ6UVZG6FMWBH3XKLFOIWV7LXKZD4NKV67G56NMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

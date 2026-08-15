@@ -1330,8 +1330,57 @@ signature block on regen rather than preserving or re-flagging it). The
 pre-commit hook enforces signature presence and will block the commit until
 both are (re-)signed by whoever holds the `proto-7.sourcecode` passphrase.
 
-#,,..,,.,,.,.,..,,.,.,...,..,,.,,,,,.,.,,,...,..,,...,.,.,..,,..,,,..,..,,...,
-#5E5MDHT2SM53YN76SZJADQU4GPPWASLZGDSWCLRYEVPBFHBJXT3FOIAFGSE2VNNLFY3JS5KLF26VM
-#\\\|RYIOFG7UVRHJZHHTOPK7HEFNFHWY5AIDFXEAYLITPYJ73LPKJNC \ / AMOS7 \ YOURUM ::
-#\[7]TCG4BXEFRS6ENFCXND3UF5ODKJGQPTYXDMLNN7VY3NS5EPCPRECI 7  DATA SIGNATURE ::
+## `user_keys` field — LANDED (mostly), 2026-08-14, same session as the
+## key-details tab and add-field sort-order fixes above
+
+A second synthesized, self-record-only field, next to `identity_key`:
+every OTHER named C25519 key the invoking Unix user holds (excludes hostkeys
+deliberately — see [[project-keys-zenka-integration-direction]]'s
+2026-08-14 note on the user's own idea to move those to a parallel
+directory eventually). Positioned between the sorted real fields and
+`identity_key` — see the unified combined-`base.reverse-sort` note above,
+both synthetic fields participate in the same ordering rule now, not a
+fixed trailing spot.
+
+**Three small fixes landed cleanly on top, each user-caught in live
+testing, not found by me first**:
+- the multiline collapse summary read `:..N.lines..:`; user pointed out
+  `user_keys` is conceptually a list of entries, not free text, and should
+  read `:..N.entries..:` — fixed generically via an optional noun override
+  on `editor.control.multiline.summary` (mirrors `editor.control.list.
+  summary`'s own `noun`/`noun_plural`/`noun_singular` field-def keys),
+  `note`/`address` confirmed unchanged
+- key names shortened via `base.parser.ellipse_center` — a real core sub
+  defined directly in `bin/Protocol-7` (`p7_parser__ellipse_center`), NOT
+  a `modules/` file. I wrongly diagnosed it as a missing primitive first
+  (grepped only `modules/`, never checked core subs) and built a
+  duplicate `modules/base.parser.ellipse_center` before the user caught
+  it via `Protocol-7 -core-subs ellipse_center`; deleted, real one used
+  instead. **Lesson: `bin/Protocol-7 -core-subs <pattern>` before
+  concluding any `base.*`-looking primitive is missing** — core subs
+  aren't `modules/` files and won't show up in a `modules/`-only search
+  or `git log -- modules/...`.
+- `identity_key`'s own render had THREE stacked padding layers (its own
+  `q| %s %s |` leading/trailing space, `render_form`'s generic body wrap,
+  and pad_l/pad_r framing) — trimmed the plugin's own redundant one,
+  kept the separator space between name and checksum
+
+**Checksums for each `user_keys` entry — landed, but broken for the
+non-trivial case, committed that way per user direction ("commit it
+broken").** See [[bug-crypt-c25519-key-vars-base-identity-hijack]] for the
+full account: computing a second key's checksum without first priming
+`crypt.C25519`'s global `base_key_name` cache corrupted `identity_key`
+itself (fixed, confirmed live across several fresh-process runs); a
+SEPARATE, still-open gap remains where an encrypted non-identity key's
+checksum comes back incomplete (`<::>`) specifically when queried from a
+process that already has a DIFFERENT key loaded as its own identity — not
+root-caused, tried three different call shapes including the exact
+proven-working reference path (`keys.checksum_href`, matching `keys.
+console.list` line for line). User may pick this up directly rather than
+via another dispatch.
+
+#,,,,,,,,,,.,,...,,.,,.,.,,,.,.,,,.,.,...,.,,,..,,...,...,...,...,,.,,..,,..,,
+#34TXSGNGB5RQ2IEJPLKI32MQJYWVKYMMO6FGNOUFN4WVF376RNK2XK5GEGW3SNSEPYWXTO7B7TLWY
+#\\\|CI4P6KBNAW7FXD6ZV7YE6XK4SOLV7Z35MW62H7DOG3CPPZ5GEX4 \ / AMOS7 \ YOURUM ::
+#\[7]7EXPWCRISWYXKZ2XAH72RRRPH2DT3K2LQ2QYAJLYOIVDSHDIPCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -61,7 +61,7 @@ my $pubkey_reply = <[crypt.C25519.cmd.get-public-key]>->();
 if ( ref $pubkey_reply ne qw| HASH |
     or ( $pubkey_reply->{'mode'} // '' ) ne qw| true | ) {
     return sprintf(
-        q| %s : not available [ %s ] |,
+        q|%s : not available [ %s ]|,
         length $key_name ? $key_name : qw| key |,
         ref $pubkey_reply eq qw| HASH |
         ? ( $pubkey_reply->{'data'} // 'key not loaded' )
@@ -73,10 +73,16 @@ my $checksum = $checksum_cache{$key_name}
     //= ( <[crypt.C25519.key_checksums]>->( $key_name, FALSE, 2 )
         // qw| [unknown] | );
 
-return sprintf( q| %s %s |, $key_name, $checksum );
+## no leading/trailing space here -- render_form's generic body wrap [ q{
+## }.$value.q{ } ] plus its pad_l/pad_r framing already supply that for every
+## unfocused field ; adding it here too just stacked a third layer of padding
+## on top of the two already applied generically.  the single space BETWEEN
+## key_name and checksum stays -- that separates two real pieces of content,
+## not outer framing
+return sprintf( q|%s %s|, $key_name, $checksum );
 
-#,,,,,,,,,,.,,.,,,,,.,...,,,,,,,,,,,,,..,,.,.,..,,...,..,,..,,,.,,,,.,...,...,
-#L6FHOC2E27SPVHAV2VRKMNYJWA3FBGIXPEMMCPUJPG2GZY4XD4Z27W7WHE3DFCFCGVTV27ICRJ3YQ
-#\\\|N6I4QG3I77OCDAAEQBBF7DHR4GLVZN6YGMSATBLYR5UFRQEU4M7 \ / AMOS7 \ YOURUM ::
-#\[7]43ODXAZEIRCUGCEY7VCGNDDLLN6MMHSPO37GBLROUGEUN4A23ADI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,,.,,..,,..,,...,,,.,,..,.,,,..,,...,...,,..,,..,,,.,..,,,.,,
+#BGHGHMJU5OM725455SVHLE4YJR5WUI3XGZNIBKE7LPKOAO2RYJTMEXODZLXEBKONSXHB6HK35VVE6
+#\\\|XPUSSMYPNA2ZKD7ZVMVDI3B4WYHS745K3GMLSDVLAPOQDE5IUTY \ / AMOS7 \ YOURUM ::
+#\[7]3RTCSRIZAU52NXDFF5A3MFEC2VG6CKIKYSB7PPOWSHQNXQKVCGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
