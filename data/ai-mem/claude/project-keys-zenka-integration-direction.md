@@ -125,8 +125,34 @@ little actually depends on it. The one real constraint is the
 `proto-7.sourcecode` signing key's *availability* for the pre-commit
 signature-check flow, and even that is recreatable, not irreplaceable.
 
-#,,,.,,..,..,,.,,,..,,...,.,.,,.,,,.,,,.,,,.,,..,,...,...,.,.,...,.,.,..,,,,,,
-#IB6P47BMBQH4UZP5KJNFLJSZMT6NV2AZXGNFMGX7UG7RLLODHAG2JJYCXA6IZAJRWTAFMKXT72I46
-#\\\|4FBCMIH5UDZFS77C6WGQQK2DCZRKBUIQIE4JJJRVOHY6T2ZC4UX \ / AMOS7 \ YOURUM ::
-#\[7]5X6JCOAPUAHGFFS5QRMVZUCSRJGFSWQN2RZHGZLGCIOA4GJR4CAA 7  DATA SIGNATURE ::
+**Target shape, per user, same conversation**: "clean signature trees."
+Realization driving it: signatures can exist MANY in parallel for one
+key, so there is no need to "attach" them to the key itself the way
+`keys.console.list`'s current `key_signed_by` mechanism does (scans for
+signature files pattern-matched by name INSIDE the same key's own
+directory — genuinely attached, one key's dir holding its own signature
+files). Per user, likely shape instead: **a separate file type whose job
+is specifically to define key SIGNATURE RELATIONSHIPS** — decoupled from
+the keys/directories themselves, so many parallel signatures over one key
+(or a chain of them) are just more entries in that structure, not more
+files crowded into a key's own directory.
+
+Directly overlaps prior art already flagged as the reference to read
+first before designing this from scratch: `data/md/design/
+PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md` (see
+[[topic-key-recovery-flexible-recreatability]]'s own account) already
+specifies close to this shape — `parent_key` SIGNS each `child_key`'s
+public component as a cert-chain authorization (not derivation from a
+shared seed), and credentials are content-addressed by `BMW384(credential)`
+with an explicit `next: BMW384(new)` pointer for auditable upgrades (mode
+A) vs. a historyless clean replacement (mode B). Both are already
+"signature/authorization relationships recorded separately from the key
+material itself" — check whether that doc's existing design already
+answers "what does the relationship file type look like" before
+inventing a new one.
+
+#,,,.,,.,,...,,..,,,,,...,.,,,,,.,,,,,,,.,,.,,..,,...,...,,.,,,,.,,.,,.,.,.,,,
+#WH6RVGTIA4O5JALH6DFMZGXB2S22LSNKOI7PNFRUT3ACUTS2F7CIO6J5DW2P6JHP5ZEAN66TEGBAQ
+#\\\|QEDL4D3W2CBNQ4UQSGGLP7ZY4TVORERPKDWM2EXGYHBUDZIQOET \ / AMOS7 \ YOURUM ::
+#\[7]WS2NBS26EDZGORTVY74AQSYQS4FRYHTRRRQAFCIEUGCNQMYETECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
