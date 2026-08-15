@@ -303,6 +303,21 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
         qw| user_keys_names | => \@other_keynames,
     };
 
+    ## OPT-IN detail display for identity_key, per user 2026-08-15 : same
+    ## shape as user_keys' own display type, but AUTOMATIC rather than a
+    ## manual toggle -- switches on its own once the identity key's name
+    ## exceeds a threshold, reusing the row's EXISTING separator_before blank
+    ## row for the checksum instead of a manually-flipped config.  reads the
+    ## SAME $identity_name already resolved above for the user_keys exclusion,
+    ## no second resolution needed. the identity key is immutable for this
+    ## zenka's own process lifetime [ see plugin.
+    ## user-edit.key-details.render's own header ], so this decision, made
+    ## once here at schema-build time, never needs re-checking per render the
+    ## way a live-changing value would
+    <user-edit.cfg.identity_key_name_threshold> //= 20;
+    my $identity_detail_mode = length($identity_name)
+        > <user-edit.cfg.identity_key_name_threshold>;
+
     $field_def_by_name{'identity_key'} = {
         qw| name |     => qw| identity_key |,
         qw| type |     => qw| freeform_line |,
@@ -312,9 +327,12 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
         ## own identity, not a record field -- a blank row above it sets it
         ## apart from a real field the same way the add-a-field row already
         ## does, instead of reading as stuck to whichever field happens to
-        ## render immediately above it
-        qw| separator_before | => TRUE,
-        qw| display_override | => sub {
+        ## render immediately above it.  in detail mode, that SAME row carries
+        ## the checksum instead of staying blank -- see user-edit.
+        ## form.build_frame and editor.ui.ascii_frame.render_form
+        qw| separator_before |     => TRUE,
+        qw| identity_detail_mode | => $identity_detail_mode ? TRUE : FALSE,
+        qw| display_override |     => sub {
             my ( $render_state, $render_field ) = @ARG;
             return
                 exists $code{'plugin.user-edit.key-details.render'}
@@ -347,8 +365,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,,.,,..,,,.,,..,,..,.,.,..,,.,.,,,.,,.,,,.,,..,,...,...,,,,,...,,,.,,,.,,.,,
-#QWJQTYRI22CMJTNQMZGTCO4V3RMIRQVWDXTGPTTLIZWUDDYPCDKGD64G7MBUBWVLYQ2QF6CCNS7NG
-#\\\|6FBXI6SZ4LZHKQGZ4YED454DF5OLRTWH5B6XKUWGYJ5R3WIAF3I \ / AMOS7 \ YOURUM ::
-#\[7]6TBRIPVBIAANZUIYBAKPAESFFSKTKQSKGBGFZPCKYLLZ5TCP22CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,.,,,,,,..,,.,,,.,,,...,.,.,.,.,..,,...,..,,,..,,..,...,,,,,,..,
+#E3HZRI3XXSLJN4HG6R5AIMVYC7XWM5F77EQKEJSH35RISR7E6MY47UPRRVDN26R6IRPP64227WUCG
+#\\\|6NATNWUDXQQSTBNDSVRRDUDCPX2T4YWIXGA4YR3IUQJHGYB3KQK \ / AMOS7 \ YOURUM ::
+#\[7]3UHTINNOBXWZIVMLCQCQICME5EGZLUDEOVHIDXYAXDMVKRRCNWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

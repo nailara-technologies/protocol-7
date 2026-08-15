@@ -56,6 +56,17 @@ access.cmd.usr.cube  =  commands heart verify-instance char-add
 ## render_form's multiline block
 user-edit.cfg.user_keys_display_type = detail
 
+## identity_key field : name-length threshold [ chars ] past which the
+## checksum moves off the name's own row and into the row's existing blank
+## separator space instead -- same detail-display idea as user_keys above,
+## but AUTOMATIC rather than a manually toggled mode, since the identity
+## key's name doesn't change mid-session. below the threshold [ e.g.
+## 'taeki.base', 10 chars ] renders unchanged from always -- see
+## user-edit.form.schema_from_record, user-edit.form.build_frame, and
+## editor.ui.ascii_frame.render_form. defaults to 20 [ //= in the code ]
+## when unset here
+# user-edit.cfg.identity_key_name_threshold = 20
+
 ## two families were missing from the original keys-clone [ keys is fully ##
 ## standalone and needs neither ] : 'ui' provides base.event.* — without  ##
 ## it base.zenka.loop dies on an undefined event.loop — and format.yaml   ##
@@ -95,8 +106,8 @@ system.auth-user = <user-edit.auth_name>
 ## print and exit : a [zenka.loop] at this level would hang them, and    ##
 ## plain 'v7.user-edit' would never return to the shell                  ##
 
-#,,,.,...,.,.,,,.,,..,,,.,..,,,.,,,..,..,,.,.,..,,...,...,..,,.,.,,,.,,,.,,,,,
-#X3DUCG2DUGHL7UQM7L7NUHCOLDHI5Q6M2K4MDFOK7GR3ZZQ3JK3MUELOC6FK755ERXGZHB4C4IFL6
-#\\\|J3GHACWTWVZDHW3ZWKJHQ5KVPZTE2JJSDIZWAAUVRDZICQBULUD \ / AMOS7 \ YOURUM ::
-#\[7]UBP77PG2GM62RMP3PSVVYZOJ6TKDERW3L2RSD7SSMCEYIEGI3EBY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,,,...,,.,,,.,,.,,,,..,,.,,..,,..,,...,...,..,,,.,,.,.,,,,,.,,,
+#KBWZRN6BGGLM7JJ5KGAKUTRVQ6J4P67FHG4UP4CQXC6FKEBZEBB55C2DMFE64GPYZMBYJDNCPLZK4
+#\\\|ZHP6HKHD256IVPOK3RSTIX47X4TRLOTZ5KN3WUARU67XEH6LWHT \ / AMOS7 \ YOURUM ::
+#\[7]C4M6K6RSWSPLYIVKUWRWNAJXFWSEYGM7XNV33Y2MT2MHVSXR7UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
