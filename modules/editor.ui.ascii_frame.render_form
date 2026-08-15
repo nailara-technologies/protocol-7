@@ -102,6 +102,57 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
         my $is_active = ( $name eq $active_name );
 
+        ## OPT-IN corner-checksum display [ user_keys only ] : engaged purely
+        ## by the presence of the two border corner slots user-edit.form.
+        ## build_frame reserves [ itself gated on user-edit.cfg.
+        ## user_keys_display_type = 'corner' AND a self-record form ], so an
+        ## ordinary frame -- and every 'inline'-mode form, which is the
+        ## default -- takes none of this and renders exactly as before.  the
+        ## descriptor's slots are the only signal read here : no config var,
+        ## no zenka-specific state.  in corner mode this field's rows carry
+        ## key NAMES only [ user-edit.form.schema_from_record ] and the
+        ## SELECTED entry's checksum goes to whichever border corner is
+        ## FARTHER from the selection [ computed after the window offset is
+        ## known, below ] ; the other corner, and both corners while the field
+        ## is not focused at all, stay blank -- no stale checksum left over
+        ## after focus moves away.
+        ##
+        ## "blank" is a run of DOTS, not an empty string : the corner slot is
+        ## its border line's only spring [ ascii.frame.render.  border_line ],
+        ## so an empty value would collapse that border's dot run and the line
+        ## would stop reading as a border.  the dots keep the reserved width
+        ## occupied, the frame width invariant, and the border visually
+        ## identical to a form without the tokens.
+        ##
+        ## the value width is derived from the descriptor itself : a border
+        ## line's non-slot elements are rigid [ anchors render verbatim, fills
+        ## at their parse-time minimum ], and the frame renders at min_width +
+        ## 2 [ the two ':' border columns ], so the slot value gets exactly
+        ## what remains.  a live row wider than min_width widens the frame
+        ## past the reservation -- the checksum then simply keeps its reserved
+        ## position left of the corner, the same floor- not-clamp philosophy
+        ## min_width itself has
+        my $corner_mode
+            = (     $name eq qw| user_keys |
+                and exists $descriptor->{'slots'}{'user_keys_corner_top'}
+                and exists $descriptor->{'slots'}{'user_keys_corner_bottom'}
+            );
+
+        my $corner_value_width = sub {
+            my ($side) = @ARG;
+            my $fixed = 0;
+            foreach my $el ( $descriptor->{'border'}{$side}->@* ) {
+                next if ( $el->{'type'} // '' ) eq qw| slot |;
+                $fixed
+                    += ( $el->{'type'} // '' ) eq qw| anchor |
+                    ? length( $el->{'value'} // '' )
+                    : ( $el->{'min'} // 1 );
+            }
+            my $width = ( $descriptor->{'min_width'} // 0 ) + 2 - $fixed;
+            $width = 0 if $width < 0;
+            return $width;
+        };
+
         ## COLLAPSED : per user, matching how a list field already collapses
         ## to a count summary [ editor.control.list.summary's own
         ## ':..2.entries..:' ] the instant it is not focused -- the full
@@ -143,6 +194,14 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
                 foreach 1 .. $cap - 1;
             $values{ sprintf( '%s_scrollinfo', $name ) } = '';
 
+            ## corner mode : both border corners blank while unfocused ##
+            if ($corner_mode) {
+                $values{'user_keys_corner_top'}
+                    = q|.| x $corner_value_width->(qw| top |);
+                $values{'user_keys_corner_bottom'}
+                    = q|.| x $corner_value_width->(qw| bottom |);
+            }
+
             next;
         }
 
@@ -172,6 +231,52 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
             $offset = $max_offset if $offset > $max_offset;
         }
         $field_def->{'multiline_offset'} = $offset;
+
+        ## corner mode : the SELECTED entry's checksum, in the border corner
+        ## FARTHER from the selection -- the cursor row's position within the
+        ## visible window decides : lower half of the window -> top-right
+        ## corner, upper half -> bottom-right [ with a full 3-entry window
+        ## this is the project owner's framing exactly : entry 3 shows
+        ## top-right, entries 1-2 bottom-right ].  the checksum comes from the
+        ## same bare keys.checksum_href call user-edit.form.
+        ## schema_from_record makes -- not recomputed any second way -- looked
+        ## up by the entry's UNTRUNCATED name, stashed on the field def there
+        ## in display-line order.  both corners always get a value, blank [
+        ## dots ] or not, so the border never collapses
+        if ($corner_mode) {
+
+            my $top_value    = q|.| x $corner_value_width->(qw| top |);
+            my $bottom_value = q|.| x $corner_value_width->(qw| bottom |);
+
+            my $names
+                = ref $field_def->{'user_keys_names'} eq qw| ARRAY |
+                ? $field_def->{'user_keys_names'}
+                : [];
+
+            my $checksum = '';
+            if ( $cursor_line >= 0 and defined $names->[$cursor_line] ) {
+                my %key_chksums = <[keys.checksum_href]>->%*;
+                $checksum = $key_chksums{ $names->[$cursor_line] } // '';
+            }
+
+            if ( length $checksum ) {
+                my $side
+                    = $cursor_line - $offset >= $cap / 2
+                    ? qw| top |
+                    : qw| bottom |;
+                my $width = $corner_value_width->($side);
+                my $corner_value
+                    = length($checksum) + 2 <= $width
+                    ? ( q|.| x ( $width - length($checksum) - 1 ) ) . q| |
+                    . $checksum
+                    : $checksum;
+                if   ( $side eq qw| top | ) { $top_value    = $corner_value }
+                else                        { $bottom_value = $corner_value }
+            }
+
+            $values{'user_keys_corner_top'}    = $top_value;
+            $values{'user_keys_corner_bottom'} = $bottom_value;
+        }
 
         ## per-row viewport budget, derived from the frame's OWN already-
         ## computed width floor -- see the 'MULTILINE VIEWPORT' section of
@@ -535,8 +640,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,..,...,,,,,,,,,.,.,.,,,,..,.,,,..,,..,,..,,..,,...,...,..,,,,,,,.,,.,.,...,
-#AL6JMZGND3AIWJQPJWFKTMQ2COPF6TZV7LSXV4S4TGPRKBJL2R7KFBRF5GI6LS3M7ALRF2OQIEXE4
-#\\\|MESZ5Q45UAYFXPNNFJ54R4CER4RC3DBP5LDBPY52MW66UJDPP5T \ / AMOS7 \ YOURUM ::
-#\[7]O6BCTP6JINIQ4PHEWIJCT3PJLUTWND37CGGBZMCOQNB63UHXTCAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,...,..,,..,,,,.,..,,.,,,.,,,,,,,..,,...,..,,.,,,,..,...,,.,,,,,,
+#F6A74MJSFRVNRCDMRLN5SV3ZQSSKCATKU7WA4KYI3GGPXM5BHL3F4ZSTQZNZ44PFET35L7VBMAJBY
+#\\\|7KILRBT3433UVAPZ5NUHD524NIZ3TXUIHZATWCO2Z7WMRKJIBKE \ / AMOS7 \ YOURUM ::
+#\[7]5RBX4CJQZZHTP2JWC4U2KEBFEMGDNFYO3SUTQ6FQT4JJZ37UNWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
