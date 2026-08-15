@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = base.local_history.write
+# param = <category>, <id>, <data_href>
+# descr = write a timestamped local snapshot [ generic, per-zenka history \
+#         offline-cache primitive -- see base.local_history.read_latest ]
+
+## storage shape : [VAR_P7]/history/<category>/<id>/<harmonized_epoch>/
+## <ntime_b32>.yaml -- the harmonized-epoch directory [ ~28 days per tick,
+## <[base.ntime.harmonized_epoch]> ] is the PRUNE unit [ see base.local_
+## history.prune : keep the newest N epoch dirs, rm -rf the rest, no per- file
+## timestamp parsing needed ], the ntime_b32 filename [ <[base.ntime.  b32]>,
+## current-time, collision-checked ] is just a unique leaf name.
+##
+## isolated per zenka via [VAR_P7] -- the SAME primitive is meant to be loaded
+## by multiple zenki [ e.g. 'users' for pre-overwrite record backup,
+## 'user-edit' for an offline read cache of the last confirmed record ] ; each
+## zenka only ever sees its own history tree, same as draft/outbox already
+## work.  plain yaml via format.yaml.write_file, matching every other
+## local-storage primitive here -- an encrypted variant would wrap the
+## write/read call INSIDE this module and base.local_history.  read_latest
+## only, callers never change.
+
+my ( $category, $id, $data_href ) = @ARG;
+
+if ( not defined $category or not length $category ) {
+    <[base.logs]>->( 0, 'local_history.write : category required' );
+    return wantarray ? ( FALSE, 'category required' ) : FALSE;
+}
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'local_history.write : id required' );
+    return wantarray ? ( FALSE, 'id required' ) : FALSE;
+}
+
+foreach my $part ( $category, $id ) {
+    if ( index( $part, qw| / | ) != -1 or index( $part, qw| .. | ) != -1 ) {
+        <[base.logs]>->(
+            0, 'local_history.write : invalid category/id [ %s ]', $part
+        );
+        return wantarray ? ( FALSE, 'invalid category/id' ) : FALSE;
+    }
+}
+
+if ( ref $data_href ne qw| HASH | ) {
+    <[base.logs]>->( 0, 'local_history.write : data_href must be a hashref' );
+    return wantarray ? ( FALSE, 'data_href must be a hashref' ) : FALSE;
+}
+
+my $epoch_dir = <[base.ntime.harmonized_epoch]>->();
+
+my $dir_path = sprintf qw| [VAR_P7]/history/%s/%s/%s |,
+    $category, $id, $epoch_dir;
+
+my $resolved_dir = <[base.path.resolve_keywords]>->($dir_path);
+
+<[file.make_path]>->( $resolved_dir, 0750 )
+    or return wantarray
+    ? ( FALSE, 'cannot create history directory' )
+    : FALSE;
+
+my $filename = sprintf qw| %s.yaml |, <[base.ntime.b32]>->();
+
+my $resolved_path = sprintf qw| %s/%s |, $resolved_dir, $filename;
+
+my ( $ok, $err ) = <[format.yaml.write_file]>->( $resolved_path, $data_href );
+
+return wantarray ? ( $ok, $ok ? $resolved_path : $err ) : $ok;
+
+#,,,.,...,,..,..,,,,,,...,,.,,...,,,.,.,,,,..,.,.,...,..,,.,.,,..,,,,,.,,,,..,
+#3FSUHYZDT63XHPL4KHIIZM6HA7WQMTGAQS6UC5U3QVQE7GKKQDPTEVO7V5AHFGWX426ULOIENFJTG
+#\\\|SGVVFCQEPJBCVE2YCLZU5I22AAAXE4UQ5NXXKO4D5SDUZPOXF2Y \ / AMOS7 \ YOURUM ::
+#\[7]WUVIDTRAZO34EEE5L6DQNKT5YKNDA56KP4JLCCG77DIVZ66TB4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

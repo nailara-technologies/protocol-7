@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = base.local_history.list
+# param = <category>, <id>
+# descr = list all local history snapshot paths for an id, newest first
+
+## same full-tree-walk approach as base.local_history.read_latest -- see its
+## header for why epoch-dir names aren't sorted directly
+
+my ( $category, $id ) = @ARG;
+
+if ( not defined $category or not length $category ) {
+    <[base.logs]>->( 0, 'local_history.list : category required' );
+    return [];
+}
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'local_history.list : id required' );
+    return [];
+}
+
+my $id_dir          = sprintf qw| [VAR_P7]/history/%s/%s |, $category, $id;
+my $resolved_id_dir = <[base.path.resolve_keywords]>->($id_dir);
+
+return [] if not -d $resolved_id_dir;
+
+my $epoch_dirs = <[file.match_dirs]>->( $resolved_id_dir, qw| * | );
+
+my @snapshots;
+
+foreach my $epoch_dir ( @{ $epoch_dirs // [] } ) {
+    my $snapshot_files = <[file.match_files]>->( $epoch_dir, qw| *.yaml | );
+
+    foreach my $snapshot_path ( @{ $snapshot_files // [] } ) {
+        my @stat_info = stat($snapshot_path);
+        next if not @stat_info;
+        push @snapshots,
+            {
+            qw| path |  => $snapshot_path,
+            qw| mtime | => $stat_info[9]
+            };
+    }
+}
+
+return [
+    map  { $ARG->{'path'} }
+    sort { $b->{'mtime'} <=> $a->{'mtime'} } @snapshots
+];
+
+#,,,,,,,,,,..,,,,,..,,...,,,,,.,,,,,,,,..,.,.,.,.,...,...,...,..,,,..,..,,,,.,
+#4ON477QLE5T43ZMNWFPP7GSP54TCDJZE5SJTEOOCJCNZ7NPGEYDVC3QZOUENB4AFNBKPUGB6YYGB6
+#\\\|Q5VV44YBJCMNF3TX55CLHJKKZCOBK2U7J4U3GGNSYDNPZGSM34P \ / AMOS7 \ YOURUM ::
+#\[7]VRMJSR3HT53YYGZ52B6VZQYY4UTKZV7XYUIW3O7567KAHWHTCADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

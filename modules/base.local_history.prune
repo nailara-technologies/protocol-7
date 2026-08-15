@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = base.local_history.prune
+# param = <category>, <id>, <keep_epochs>
+# descr = delete all but the newest N epoch-bucket directories for an id
+
+## the epoch-dir IS the prune unit [ see base.local_history.write's header ]
+## -- keep the $keep_epochs dirs with the most recent mtime, rm -rf the rest.
+## a bucket's own mtime updates whenever a snapshot file is created inside it,
+## so [ for an append-only tree like this one ] it is a reliable proxy for
+## "when was this bucket last written to", without needing to decode the
+## harmonized-epoch name back to a real epoch number
+
+my ( $category, $id, $keep_epochs ) = @ARG;
+
+if ( not defined $category or not length $category ) {
+    <[base.logs]>->( 0, 'local_history.prune : category required' );
+    return wantarray ? ( FALSE, 'category required' ) : FALSE;
+}
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'local_history.prune : id required' );
+    return wantarray ? ( FALSE, 'id required' ) : FALSE;
+}
+
+$keep_epochs //= 2;
+
+if ( $keep_epochs !~ m|^\d+$| or $keep_epochs < 1 ) {
+    <[base.logs]>->( 0, 'local_history.prune : keep_epochs must be >= 1' );
+    return wantarray ? ( FALSE, 'keep_epochs must be >= 1' ) : FALSE;
+}
+
+my $id_dir          = sprintf qw| [VAR_P7]/history/%s/%s |, $category, $id;
+my $resolved_id_dir = <[base.path.resolve_keywords]>->($id_dir);
+
+return wantarray ? ( TRUE, 0 ) : TRUE if not -d $resolved_id_dir;
+
+my $epoch_dirs = <[file.match_dirs]>->( $resolved_id_dir, qw| * | );
+
+my @dirs_by_mtime;
+foreach my $epoch_dir ( @{ $epoch_dirs // [] } ) {
+    my @stat_info = stat($epoch_dir);
+    next if not @stat_info;
+    push @dirs_by_mtime,
+        {
+        qw| path |  => $epoch_dir,
+        qw| mtime | => $stat_info[9]
+        };
+}
+
+@dirs_by_mtime = sort { $b->{'mtime'} <=> $a->{'mtime'} } @dirs_by_mtime;
+
+my @to_remove = splice( @dirs_by_mtime, $keep_epochs );
+
+my $removed_count = 0;
+foreach my $stale_dir (@to_remove) {
+    $removed_count++ if <[file.remove_tree]>->( $stale_dir->{'path'} );
+}
+
+return wantarray ? ( TRUE, $removed_count ) : TRUE;
+
+#,,..,,.,,,.,,,.,,...,,,.,,,.,,..,..,,.,.,,.,,.,.,...,...,...,,,,,,,.,,.,,,,.,
+#IAZIY43XRNQWMPED4TIZTZHHMIS7SNJBXOSYTIMWVVFKVAHYFCNII3RB2FJE6H6OXCFH2YH6BF7NW
+#\\\|DEV5SXCF2PF7M5WN67UJECNS7RA2W5RUT3JZTKYUYZMX4EUMZ3M \ / AMOS7 \ YOURUM ::
+#\[7]V2PHALYP24YXTPYZKFVO7KCFWZVYT4FWP7A5RYPKKJRB4AQZ3ADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

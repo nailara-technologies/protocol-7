@@ -59,6 +59,14 @@ my $resolved_path = <[base.path.resolve_keywords]>->($file_path);
 ## write is treated as a fresh record                                       ##
 my $existing = <[format.yaml.load_keyword_path]>->($file_path);
 
+## value-set OVERWRITES the whole fields hash [ see this module's own descr --
+## it does not merge ], so whatever is currently on disk is gone the moment
+## write_file below succeeds.  snapshot it first, best-effort : a snapshot
+## failure must never block a legitimate write, so its result is deliberately
+## not checked
+<[base.local_history.write]>->( qw| records |, $username, $existing )
+    if ref $existing eq qw| HASH |;
+
 my $envelope = <[users.record.build]>->( $username, $fields, $existing );
 
 my ( $ok, $err ) = <[format.yaml.write_file]>->( $resolved_path, $envelope );
@@ -77,8 +85,8 @@ return {
     'data' => sprintf( "user '%s' stored", $username )
 };
 
-#,,..,,,.,.,.,,..,.,,,,,,,.,.,..,,...,..,,,.,,..,,...,...,...,,,,,..,,,,,,,,,,
-#TMT7L4W2EDAWIQTHPIFWXMT4DOKIXX7GI3VKZLU6BL7VV6YNEWUXVALPMIVVAAPOKLVEYTZOJTMPE
-#\\\|FLSXQWL5EK4KOUPPBM65274LH6GAMADYUJTCCKYNWYKW6CRCHIK \ / AMOS7 \ YOURUM ::
-#\[7]M66TNWI23L2UKSGB2OBQOB5UIZPZ6ZPNXCPVUANUYHO6C6Q3TGBQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,.,,,,.,,,.,,,,,,,,,,,..,..,,..,,...,...,.,,,,..,.,,,,,.,,..,
+#EPEQDXCW357KNWYQ7GI4FOMZ5KBQ7C2YBXMEVUBUFI5Z7TD24MWJUT6VLJBLOJK2AA3LXTYACDECY
+#\\\|NV7DO2JDDGLYXGYN45DBKLC2LCOGULIVTC6F7D5QOBLCINHEGNZ \ / AMOS7 \ YOURUM ::
+#\[7]EH3JNFHMUOVY7ZJZ3WLCS66CPK46P5S3RP25Q4DFI5XOLWN2F2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
