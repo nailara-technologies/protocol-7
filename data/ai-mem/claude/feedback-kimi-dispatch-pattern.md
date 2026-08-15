@@ -97,8 +97,20 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
   other task instruction — it does this well when asked (see the
   `base.swap_subs` write-up added 2026-07-11) but won't do it unprompted.
 
-#,,.,,,,,,,,,,,.,,,,.,...,,,.,.,,,..,,...,,.,,..,,...,...,.,,,.,.,,,,,,,,,.,.,
-#SAQ67IY2EBQ6XSGD7PKMIXVRCI2HIKLNEE26T3CSNAPLQ4I2Q6ZETJLVUP2LKGDJKJHOG4JXS4LMI
-#\\\|AQ3OUT5QXU25ZL2B5PASICT5ULCCHLOFEQ5YIQNAHJJMWPW4TES \ / AMOS7 \ YOURUM ::
-#\[7]UO2FCVBZ2VUKC24WXLWOJB3ZU3FDUUB54GMHQDDCC3QVBMZGUEBA 7  DATA SIGNATURE ::
+- **default to `k3-256k`, not plain `k3`, even for design-level dispatches**
+  (per user, 2026-08-15, after dispatching a genuinely new-design task —
+  frame-geometry work for `user-edit`'s corner-checksum display — on plain
+  `k3`): `k3-256k` gives the SAME reasoning quality at roughly half the
+  quota, with a 256k context ceiling and no video input. That ceiling
+  covers essentially every task file + referenced-file context this
+  project's dispatches have needed so far. Reserve plain `k3` for the
+  narrow case where a task genuinely needs more than 256k context or video
+  input — not "this task involves design reasoning," since k3-256k clears
+  that bar too. Re-check this default periodically; it's about relative
+  quota cost, not a claim that k3-256k is literally the same model.
+
+#,,..,,..,,.,,.,.,,,,,.,,,.,.,..,,,.,,..,,,..,..,,...,...,..,,.,.,...,,,.,,.,,
+#OQXMBBB2YFICHCI6K7MGSVFYWSW2Y33P6X27T5OBKQIIJJNTLPUJDS3CT33BPJAJRKJKTRBX7T3GE
+#\\\|R3RWE424OPGM2525HAN7XGBJOO7JMBMQDPKVSSWFBOSAJL3ARPB \ / AMOS7 \ YOURUM ::
+#\[7]KW2DHHZWZ7DGTS72OXVPMYXCGFCGIDY5PQLDMAXFEATGZILJBYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
