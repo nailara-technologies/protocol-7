@@ -27,6 +27,32 @@ if ( $sign_key_exists
 
     $success = TRUE;    ##  key loaded  ##
 
+    ## this IS the deliberate override case crypt.C25519.post_init's own
+    ## header note describes -- a process whose whole purpose is signing with
+    ## $sigkey_name should adopt it as its own identity, explicitly, rather
+    ## than relying on key_vars' now-removed first-explicit-caller hijack [
+    ## which used to do this as an accidental side effect -- see
+    ## bug-crypt-c25519-key-vars-base-identity-hijack.md ] to make later bare
+    ## crypt.C25519.sign_data calls [ e.g. via source.sign_data,
+    ## source.fill_source_template ] resolve to the right key.  MUST be an
+    ## unconditional override, not //= -- crypt.C25519.post_init's own bare
+    ## startup call already set base_key_name to '<user>.base' by the time
+    ## this runs, so //= would silently no-op and leave the wrong identity
+    ## in place
+    <crypt.C25519.base_key_name> = $sigkey_name;
+
+    ## also invalidate the full-hashref key_vars cache -- its own early-return
+    ## guard [ crypt.C25519.key_vars:9-15 ] only checks whether $key_name is
+    ## undef/matches CURRENT base_key_name, never whether the CACHED hashref's
+    ## own key_name still matches base_key_name.  changing base_key_name above
+    ## does not by itself invalidate an already-populated cache from an
+    ## earlier bare call [ e.g. this zenka's own post_init startup ], so a
+    ## later bare key_vars() call [ sign_data's ] would otherwise keep serving
+    ## the stale pre-override hashref forever.  same invalidation
+    ## crypt.C25519.init_code already does once at startup, needed again here
+    ## since base_key_name is changing mid-process
+    delete <crypt.C25519.key_vars>;
+
 } elsif ( not $sign_key_exists
     and <[base.cfg_bool]>->(<source.autocreate-sig-key>) ) {
     if ( <[crypt.C25519.gen_keys]>->($sigkey_name) ) {
@@ -44,8 +70,8 @@ if ( $sign_key_exists
 
 return $success;
 
-#,,,,,,,,,,,,,.,.,...,,,,,.,.,.,,,,,.,...,..,,..,,...,...,.,.,...,.,,,..,,,,.,
-#MT5YWZ37MVQ7VWEKRCY2AWJC6EONAIBE6M72NEZPNVWYD2PZF7LVNLUELGXHDJVBSUYFS45ON34SI
-#\\\|WSSRJB7R2G6EMKKLGNJDC4EF2H7ONAINW6JHU3YJ6EJTE42QH4U \ / AMOS7 \ YOURUM ::
-#\[7]RLLYMYC3XLMUVLKDZES3GAGIUX2M74A5D2GYLLHK4M6QMEDBBGAA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,,,,..,.,,,...,...,,.,,.,,,.,,,..,,...,...,,..,..,,.,.,,..,,..,
+#MOVF2UOFWQEET2RNPY3ZCABHE5UTXS37LURWCP7YPD3EV7OX3SWHWAUCV27OOMF2I6TUUD5VYLNB6
+#\\\|P4IEV5H5RRQM52YXWT5NACE2ZUXUJVIHHCYVFFREYNTM7Y522GD \ / AMOS7 \ YOURUM ::
+#\[7]XBXJS3BI3HMI4PL76FETUMDLCNX3S4UO6XM4JH24K2Y3PCSEUGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
