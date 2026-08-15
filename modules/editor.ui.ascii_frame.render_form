@@ -192,12 +192,20 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ## OTHER caller [ a frame built some other way, without that key ]
         ## just gets a wider budget rather than breaking -- silent, not
         ## unsafe, but worth knowing this is a cross-layer reach, not a
-        ## documented contract field
+        ## documented contract field  floor raised 20 -> 46 : a name (up to 20
+        ## chars, see user-edit.form.  schema_from_record's own
+        ## base.parser.ellipse_center call) plus a space plus the longest
+        ## checksum shape actually in use [ an encrypted key's
+        ## '<::[enc-key]::CCCCCCC:>', 23 chars ] needs 44 -- below this floor
+        ## an encrypted key's checksum silently truncates to '<::>' with no
+        ## ellipsis/indicator, found live in user-edit's user_keys field
+        ## 2026-08-15. still just a soft display cap, not a structural
+        ## invariant -- raise again if a longer checksum shape ever appears
         my $viewport_width
             = ( $descriptor->{'min_width'}   // 0 )
             - ( $descriptor->{'label_width'} // 0 )
             - 10;
-        $viewport_width = 20 if $viewport_width < 20;
+        $viewport_width = 46 if $viewport_width < 46;
 
         foreach my $i ( 0 .. $cap - 1 ) {
             my $line_index = $offset + $i;
@@ -527,8 +535,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,,.,.,,,.,,,,..,.,.,,..,.,,,...,,..,,..,..,,..,,...,...,...,...,,,,,,.,,,,.,
-#JZDIWDGOMX2OACGQ6WSK36YR2ERSSBQ7UA6TUQ5JG2WT4NZGPAAEWHC2TWEF6MMHQLMTX775ZM7A2
-#\\\|SDBX6GX4GTLHHAP4WDOKH4CK2OM5EW3AU7D7QMFZVPVDPCB5MVH \ / AMOS7 \ YOURUM ::
-#\[7]NBYKFQZH2M25HUKMY6U7TK5QPXP7RCBYC7D5MIA3MRSMM3RJ4KBY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,.,.,.,,,,..,.,,,..,,..,,..,,..,,...,...,..,,,,,,,.,,.,.,...,
+#AL6JMZGND3AIWJQPJWFKTMQ2COPF6TZV7LSXV4S4TGPRKBJL2R7KFBRF5GI6LS3M7ALRF2OQIEXE4
+#\\\|MESZ5Q45UAYFXPNNFJ54R4CER4RC3DBP5LDBPY52MW66UJDPP5T \ / AMOS7 \ YOURUM ::
+#\[7]O6BCTP6JINIQ4PHEWIJCT3PJLUTWND37CGGBZMCOQNB63UHXTCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
