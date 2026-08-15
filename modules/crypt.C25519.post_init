@@ -2,6 +2,9 @@
 
 # name = crypt.C25519.post_init
 # note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
+# note = use <crypt.C25519.user_key_name> to override the user identity key
+#        [ distinct from the zenka process's own base_key_name ; currently
+#          only consumed by user-edit, defaults to base_key_name there ]
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
 return -2 if ref $key_vars_ref ne qw| HASH |;
@@ -98,8 +101,8 @@ if (    exists $keys{'C25519'}{$key_name}
 
 0;
 
-#,,.,,...,.,.,..,,,,,,,.,,..,,,,.,...,,,.,..,,..,,...,...,.,,,..,,...,,..,.,,,
-#5PFBVU2OMSRAUR2HLJVJORNUSB7YHMWXMYHVM3AJ445WACAU4TLCRIS3ALBD5L3TPKD36WWSWVLE2
-#\\\|PL3D2LULLVZBZA5LEJXH5BKPE6VARL3F5CCQA2ZBRVOA4BKWX6K \ / AMOS7 \ YOURUM ::
-#\[7]YVMVOT5FKN4KNCVORX2LNNF2EQP34BRV7TSK4IQDA6N64AD4AYCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,,,.,.,..,,.,.,,,.,,.,,...,..,,...,...,,.,,..,,...,.,.,...,
+#CZL5NR52DP4LCFF67EDRVTL3UN7TPUB6UD4LEZEAZI47IQPZ3RCSWNXIXERSQRLI7QXGS2W77X3Z6
+#\\\|SX26LZOEKJYPJXAFXY4LEGM2LPPT6WOY2TQT7R4DHQTYK3ZSS2L \ / AMOS7 \ YOURUM ::
+#\[7]TWJRK4KLTK4M2LVCNDQ35RBLLSFS7JVJWOJ3V2HLS2SNUAG2FQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

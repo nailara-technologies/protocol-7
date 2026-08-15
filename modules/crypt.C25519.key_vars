@@ -16,8 +16,8 @@ return <crypt.C25519.key_vars>
 
 my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
 
-## Use explicitly set usr_name, or fall back to current user
-## Security: each process uses its own home directory for keys
+## Use explicitly set usr_name, or fall back to current user  Security: each
+## process uses its own home directory for keys
 my $key_usr = <crypt.C25519.usr_name> // $cur_usr;
 
 ## in case being not root 'key_usr' is intended to be current user ##
@@ -26,14 +26,14 @@ $key_usr = $cur_usr if $key_usr ne $cur_usr and $cur_usr ne qw| root |;
 
 ( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
 
-if ( defined $key_name ) {   ##  setting base key [ when not defined yet ]  ##
-    if ( not defined <crypt.C25519.base_key_name>
-        and <[crypt.C25519.key_exists]>->($key_name) ) {
-        <crypt.C25519.base_key_name> = $key_name;
-    }
+if ( defined $key_name ) {
+    ## explicit-name lookup : must NEVER mutate base_key_name as a side   ##
+    ## effect [ was: first explicit caller silently claimed the process's ##
+    ## own identity -- the twice-confirmed base_key_name hijack bug ]     ##
 } else {
-    $key_name //= <crypt.C25519.base_key_name>
+    $key_name = <crypt.C25519.base_key_name>
         // join( qw| . |, $key_usr, qw| base | );
+    <crypt.C25519.base_key_name> //= $key_name;  ## bare call sets identity ##
 }
 
 my $home_dir = <crypt.C25519.key_usr_home>
@@ -49,12 +49,12 @@ my $key_dir = <crypt.C25519.key_dir>
 my $auth_dir = <crypt.C25519.auth_dir>
     //= sprintf( qw| %s/.n/remote-keys/authorized |, $home_dir );
 
-## When running as root from console, allow non-existent key directories
-## The directory will be created by chk_key_dir if needed
-## Only enforce readability if directory already exists
+## When running as root from console, allow non-existent key directories The
+## directory will be created by chk_key_dir if needed  Only enforce
+## readability if directory already exists
 if ( not -d $key_dir ) {
-    ## Directory doesn't exist yet - this is OK, can be created later
-    ## Just verify parent directory is writable if it exists
+    ## Directory doesn't exist yet - this is OK, can be created later Just
+    ## verify parent directory is writable if it exists
     my $parent_dir = <[file.last_existing_dir_path]>->($key_dir);
     if (    $EFFECTIVE_USER_ID != 0
         and $parent_dir ne $key_dir
@@ -110,8 +110,8 @@ my $key_vars_ref = {
 
 return $key_vars_ref;
 
-#,,..,,.,,.,.,.,.,,,,,..,,,.,,,..,..,,,,.,...,..,,...,...,,,.,.,,,,,.,,..,...,
-#WBND4DOYD3WWA345RE4HZ6ENMGZSJVLSFKPNY7YL7ENASVONXXZG56MLFZ6HPZDBZHKI6NHY43KII
-#\\\|7ZYZITJWYI7TXVVV4R7DWDC5QWZEYPFV2OMRUNDESA26IQUPVTS \ / AMOS7 \ YOURUM ::
-#\[7]5NWMURIQ5HD3LAHZQ52MMZ7F2FFD3D7NLT34GP4EZPYRWJFSQMCI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,.,.,.,.,..,,,,,,..,,.,,,,,,,..,,...,...,,,,,,,,,,..,,,.,.,.,
+#CATFA55OKPXNOQYP4DGHJPX34MPDKHKUWFP65BE3GP5P5DV5OW2FCFT5WDPNI7NRSV2ZN23IQUIWG
+#\\\|FVELOQU25B3O4ZHJ34SQ3CN3O64OQGBLKHYHYT5R7N4QQG76LLS \ / AMOS7 \ YOURUM ::
+#\[7]6XTPLM5DKVMMOZ7YGOZ44RJTVY4BLFWGKGN6RDEOLD2GJOSLQ6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
