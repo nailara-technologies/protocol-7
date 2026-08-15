@@ -1476,8 +1476,43 @@ changed. **How to apply**: don't try to out-guess a suffix-inflation gap
 with a bigger or smaller static number; if a slot's live value can exceed
 its own `{{token}}` text's length, use a block slot instead.
 
-#,,.,,,.,,..,,,,,,,,,,,,,,,..,,,.,..,,,.,,,,.,..,,...,...,...,..,,.,,,,..,,,.,
-#67RO3TEGEZF7GWHPQZCSGKTMU37LGYAOUI7OTWUKO7U67QJYQRNUBEMVMU64PNBERWJ2VD7GMHUJA
-#\\\|62UUNKJFAC74NBCQMTV3RRBRDL7AHXPBRAPYZY5VDG2CEXWINW4 \ / AMOS7 \ YOURUM ::
-#\[7]ORZ4RHE7U7TNYRGYYY5TBGLSAO36PCW5XS2LSO2BC6NZZAJLQKCQ 7  DATA SIGNATURE ::
+**LANDED 2026-08-15, commit `dea8855cb`: identity_key gets the same
+detail-display treatment, automatically.** Per user, once the identity
+key's own name exceeds `user-edit.cfg.identity_key_name_threshold`
+(defaults 20 — `taeki.base` at 10 chars stays under it, unaffected), the
+row switches to name-only and the checksum moves to a new row directly
+below it, at the SAME fixed column (42) `user_keys`' own detail checksum
+already uses — the two now visually line up whenever both are showing.
+Unlike `user_keys`, this is NOT a manually toggled mode: the identity key
+is immutable for the zenka's whole process lifetime, so the decision is
+made once at schema-build time from name length, never re-checked per
+render, and doesn't depend on which field currently has focus (confirmed
+live — the checksum stays visible even when `user_keys` is collapsed or
+another field is focused entirely). Reused the block-type-slot fix from
+the `user_keys` work from the start this time, no suffix-inflation
+detour needed.
+
+**A real, separate bug caught building this — worth remembering
+generally, not just for this one field**: `editor.control.
+get_display_value` calls a field's `display_override` as
+`->($editor_state, $field)`, where `$field` is the **field NAME STRING**,
+not the field_def hashref — confirmed live via a `string ('identity_key')
+as HASH ref while 'strict refs' in use` crash the moment
+`plugin.user-edit.key-details.render` tried to treat it as one.
+`plugin.user-edit.key-details.render`'s own `# param =` header comment
+had claimed the hashref shape and was simply wrong — worth checking the
+ACTUAL call site (`editor.control.get_display_value`) rather than
+trusting a plugin's own header comment about its param shapes, next time
+one needs the field_def itself. Fixed by resolving the real field_def
+from `$editor_state->{'schema'}{'fields'}` by name match instead — the
+SAME hashref `user-edit.form.build_frame`/`editor.ui.ascii_frame.
+render_form` already hold their own reference to, so mutating it in the
+plugin (stashing the checksum for render_form to pick up later) is
+visible to both — same hand-data-forward pattern `user_keys_names`
+already established for the same reason.
+
+#,,..,.,.,...,,..,...,,..,...,..,,.,,,..,,.,,,..,,...,..,,.,,,..,,.,.,..,,.,,,
+#3IIIAQIZ323JQDJ3DGHAPRKACXWP4YKXGADBFDMJAPCASQ637JAU4ODVICBDYUYCSXOJ3SDI2HB3S
+#\\\|S3SJSP2MJQTHRM7LYCNWB5SLMGO7NAHRNIM6ZBHWVOFGVP22N54 \ / AMOS7 \ YOURUM ::
+#\[7]GMTAMW2BTNEXMRD4RUNJ5P3HWMBUQIZBBE2QN5R6EAL42UGAXKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
