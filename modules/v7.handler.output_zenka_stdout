@@ -17,7 +17,7 @@ if ( defined <v7.stdout_log.fh> and fileno <v7.stdout_log.fh> ) {
 ## -- a short/interrupted write here would previously drop the remainder of ##
 ## a line silently. base.stdout.raw_fh gives an unlayered [ :raw ], redir-  ##
 ## ectable write target -- see data/md/design/STDIO-MULTIPLEX-PROTOCOL.md   ##
-my $raw_fh = <[base.stdout.raw_fh]>->();
+my $raw_fh = <[base.stdout.raw_fh]>;
 
 my $out_str     = $line . "\n";
 my $str_offset  = 0;
@@ -47,8 +47,8 @@ while ( defined $raw_fh and $str_offset < $out_len ) {
     ) if $write_tries > 1;
 }
 
-#,,.,,..,,,.,,..,,,,.,.,.,,..,.,.,,..,.,,,..,,.,.,...,...,...,.,,,,.,,,.,,,..,
-#QMT57N2YA4ROA6QAHYAWGBJI44U2L7VCNJE33AUY7NUDXYPASSD5MGSFAIFXA4S53LNNMIJ5SAL7G
-#\\\|RAAUSCT6F3SH5LOEAMC6I63RPWGYAS7LRGTIKEMNEJUS244JSGP \ / AMOS7 \ YOURUM ::
-#\[7]F3P6FGEVWNM434BT5TVT4L5YDMHKEITZX4DXGOJKI7K4JVFZTYCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,..,,..,,.,,,..,,,..,.,.,.,,,.,.,...,...,...,.,.,.,,,,..,,.,,
+#UJJ7FBRJFAWBYWBDRYNAVPETDGDOZTAMLVM4H3YZ7IKTOWMXHGDBX7GXEGO7ZSIQAZDWS3PR4PRYO
+#\\\|EXVK66OJVCHYKKZ7EJIXZMMKK4U2UVEOBWOZ4E3UGGX4CDO2T3N \ / AMOS7 \ YOURUM ::
+#\[7]QYREPZDHGM5R5RX22G7XGRD7DESWXXQWPCXM52EAFI6FMXJUNQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

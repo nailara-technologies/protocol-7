@@ -875,8 +875,54 @@ gotchas hit while wiring kimi.cmd.list-models / set-model :
 
 ---
 
-#,,.,,.,.,.,.,,,.,...,,,,,,,.,,,,,.,.,...,.,,,.,.,...,...,...,,..,...,,,.,.,,,
-#XVP5LT2FLJ6NPCFWHTVTWR7E4C3PSNF3NHZG7BUP5FH3QX6AYV6LPYJRDRJ5L3QNBISKHWLVZU3SS
-#\\\|RYTCEJL75OHIV5PIFOKL6KHYBCTMDTSPEC5Z756NQ64KBO6FS76 \ / AMOS7 \ YOURUM ::
-#\[7]WSY7D44MEB3RND6TX34MALDICGDQN55L7EF534TRD2SRKBFT4MAQ 7  DATA SIGNATURE ::
+## user-edit key-actions excursion — live pty test findings (2026-08-15)
+
+Findings from the `script -qec` acceptance runs for the `key actions`
+create-a-new-key excursion [ captures in /tmp/ue-keyact/ , task
+data/tasks/user-edit-key-actions-create.md ]:
+
+* STDIN watcher during blocking excursion — HOLDS. Check 1 typed an
+  ordinary char into a form field first (watcher definitely exercised),
+  then triggered the excursion: the blocking `base.term.ask` name prompt
+  read its line cleanly — no double-read, no lost keystroke, no hang —
+  and form typing worked identically after re-loop. The reasoning that
+  the watcher can stay registered (Event not pumping between unloop and
+  re-loop, term_restore/term_init toggling O_NONBLOCK+termios, the
+  blocking read being the sole fd-0 consumer) is now live-verified, not
+  just argued.
+* Resume sites: the console.start site (first) was exercised with a
+  real excursion, twice (duplicate-name failure AND genuine key
+  creation). The offer_create site (second) was only exercised in its
+  no-op fall-through: key_actions is gated on
+  `<user-edit.unix_user> eq $record->{'name'}` [ self-record-only ], and
+  the bootstrap path only fires for NONEXISTENT records, so a
+  throwaway-record bootstrap can never show the row for invoker taeki —
+  the combination is UI-unreachable except in the genuine fresh-install
+  case where the admin's OWN record is missing. Untestable here without
+  deleting taeki's live record (refused). The second site's code is
+  call-symmetric with the verified first site.
+* `keys.console.create` password-too-short/empty guard CANNOT be
+  pre-empted: the passphrase is read INSIDE create via
+  AMOS7::TERM::read_password_repeated, so on a short/empty passphrase
+  create still hits `<[base.exit]>` (= CORE::exit) and kills the zenka.
+  Accepted per task; documented in user-edit.excursion.key_create's
+  header. The other four guards (empty name, validate_keyname,
+  key_exists, Crypt::Mode::CBC presence) are pre-validated by the
+  excursion before calling create.
+* Draft side-effect: field_changed checkpoints persist the synthetic
+  `key_actions` field as `key_actions: ''` — same shape as the
+  pre-existing `identity_key: ''` precedent, harmless (submit deletes
+  it, draft.load just reloads ''), but a before/after draft diff shows
+  the added line. Left as-is for minimal change; restore the draft from
+  backup after tests if a byte-identical draft matters.
+* gen-sub-whitelist regen drops signature footers AND internally-called
+  cmd/console subs (keys.console.create, crypt.C25519.cmd.get-public-key
+  had to be re-inserted manually into subroutines.load-early).
+
+---
+
+#,,..,,..,,.,,,.,,,..,,.,,.,.,.,,,,,,,...,.,.,.,.,...,.,.,..,,,,,,.,,,,.,,,.,,
+#6L7W5AXCS5UXL5VRGYK2FCNAS6NIGQWT7W67JPAUDJGGW5GBAVX2BQQ7E33DY4X3YPGU5N52Y66ZG
+#\\\|FGNB4J3EG2252ZM2SGMC2L65ZFRGH24NYB3AASAS2G6LCPXWVIN \ / AMOS7 \ YOURUM ::
+#\[7]MH4LUVPVWP2LVUQA4AHQQX4RS6IFGLQVS2PRUSRJU5OSCIHRMSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

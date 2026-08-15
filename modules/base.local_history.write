@@ -47,7 +47,7 @@ if ( ref $data_href ne qw| HASH | ) {
     return wantarray ? ( FALSE, 'data_href must be a hashref' ) : FALSE;
 }
 
-my $epoch_dir = <[base.ntime.harmonized_epoch]>->();
+my $epoch_dir = <[base.ntime.harmonized_epoch]>;
 
 my $dir_path = sprintf qw| [VAR_P7]/history/%s/%s/%s |,
     $category, $id, $epoch_dir;
@@ -59,7 +59,7 @@ my $resolved_dir = <[base.path.resolve_keywords]>->($dir_path);
     ? ( FALSE, 'cannot create history directory' )
     : FALSE;
 
-my $filename = sprintf qw| %s.yaml |, <[base.ntime.b32]>->();
+my $filename = sprintf qw| %s.yaml |, <[base.ntime.b32]>;
 
 my $resolved_path = sprintf qw| %s/%s |, $resolved_dir, $filename;
 
@@ -67,8 +67,8 @@ my ( $ok, $err ) = <[format.yaml.write_file]>->( $resolved_path, $data_href );
 
 return wantarray ? ( $ok, $ok ? $resolved_path : $err ) : $ok;
 
-#,,,.,...,,..,..,,,,,,...,,.,,...,,,.,.,,,,..,.,.,...,..,,.,.,,..,,,,,.,,,,..,
-#3FSUHYZDT63XHPL4KHIIZM6HA7WQMTGAQS6UC5U3QVQE7GKKQDPTEVO7V5AHFGWX426ULOIENFJTG
-#\\\|SGVVFCQEPJBCVE2YCLZU5I22AAAXE4UQ5NXXKO4D5SDUZPOXF2Y \ / AMOS7 \ YOURUM ::
-#\[7]WUVIDTRAZO34EEE5L6DQNKT5YKNDA56KP4JLCCG77DIVZ66TB4CI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,...,,.,,.,,,..,,..,,,.,,,,.,,.,,.,.,...,...,...,...,,.,,,,,,.,.,
+#K6BTE2QFJ5Y4O4IENSCYNMQ6X5FGVPRBXTM4XTIBNBPNSZM3RVEB35MVLO43FZQI5Z5AA7LXFGUNE
+#\\\|ZGRZYHWJ357GBNTDABH5LDHFNYW2F2GRHTFDWS6ETSCM3NDATC6 \ / AMOS7 \ YOURUM ::
+#\[7]XOCDWQYXUSFCZSRIEEJCCGMI5INZMHC7SOVZTKH4WNVRZCCJJ6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
