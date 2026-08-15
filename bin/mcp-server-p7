@@ -3600,14 +3600,31 @@ sub tool_external_command {
             'opus'   => 'claude-opus-4-7',
         );
         if ( defined $args->{'model'} ) {
-            $args->{'model'} = $model_map{ lc $args->{'model'} }
-                // $args->{'model'};
+            my $resolved = $model_map{ lc $args->{'model'} };
+            ## not a recognised alias -- passed through AS-IS on purpose [ a
+            ## caller may legitimately want a raw underlying model string not
+            ## yet in this table ], but silently doing so is exactly what let
+            ## a real dispatch quietly run on the wrong [ costlier ] kimi
+            ## model, 2026-08-16 -- log it so a typo/drift is visible instead
+            ## of invisible
+            log_msg(
+                'warning: unrecognised %s model '
+                    . 'alias %s, passing through as-is',
+                'claude', $args->{'model'}
+            ) if not defined $resolved;
+            $args->{'model'} = $resolved // $args->{'model'};
         }
     }
 
     ## kimi-specific defaults and model alias resolution
     if ( $ext->{'name'} =~ m{^kimi_} ) {
-        $args->{'model'} //= 'k3';
+        ## default is k3-256k, NOT full k3 -- per user 2026-08-16, same
+        ## reasoning quality at roughly half the quota cost within a 256k
+        ## context ceiling, so any dispatch that omits 'model' [ or hits an
+        ## unresolved-model code path ] lands on the cheaper option rather
+        ## than the most expensive one.  pass model=k3 explicitly for the rare
+        ## case the full 1M context genuinely matters
+        $args->{'model'} //= 'k3-256k';
 
         my %model_map = (
             'k3'        => 'kimi-code/k3',
@@ -3616,8 +3633,13 @@ sub tool_external_command {
             'k2.7-fast' => 'kimi-code/kimi-for-coding-highspeed',
         );
         if ( defined $args->{'model'} ) {
-            $args->{'model'} = $model_map{ lc $args->{'model'} }
-                // $args->{'model'};
+            my $resolved = $model_map{ lc $args->{'model'} };
+            log_msg(
+                'warning: unrecognised %s model '
+                    . 'alias %s, passing through as-is',
+                'kimi', $args->{'model'}
+            ) if not defined $resolved;
+            $args->{'model'} = $resolved // $args->{'model'};
         }
     }
 
@@ -3902,8 +3924,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,.,,..,,.,,,.,,,.,,,,,,.,,,.,,,,,.,.,.,..,,...,...,,,.,...,..,,,..,,,.,
-#66MBWZ65YKS7Z2AFGWN23OZ35VAYWVDX4JYDBOA4QCP3NGITI3RPZV6Z3GQER46GD5XLXF7FCW45G
-#\\\|5JVFYB4SAFP5D3J3B5Y7XOPMQGP3UKP4EEBKCP2IVALYOEDWKYO \ / AMOS7 \ YOURUM ::
-#\[7]IGT3BOUORMK24TS5OVE6P6VEBE4JNXGDN5PNEB3ORLJF6JMFVODA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,,..,...,,,.,.,,,.,,,,,,,,.,,..,,...,...,.,,,,.,,,,.,.,,,,,,,
+#XXYIUHQIDORQKHPO2S24L65TPOMVTFML5DBTTGCD4XVVXBUQKSFT5LI7TX2Y6PVDN3WSP2QIO7DTC
+#\\\|OTEUZHRWBT4TERJ32UPYAHOHVKI24NPCG36W4RQIP5I4J5UUJCU \ / AMOS7 \ YOURUM ::
+#\[7]6QBT4ZPGZIEXWN2YH66S6OLXIAEQAGYP3T3DH37GKPITQYGNUIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
