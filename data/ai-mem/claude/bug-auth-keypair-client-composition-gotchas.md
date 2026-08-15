@@ -32,6 +32,14 @@ composed these exact primitives together before (client-side auth-keypair
    unqualified `sign_data(\$msg)` then signs with the WRONG key, no
    error. Always pass the real base key name explicitly as `sign_data`'s
    second arg once any other named key has touched the process.
+   **CONFIRMED AGAIN, independently, 2026-08-14** in a completely
+   different context — `user-edit`'s `user_keys` field (list of a user's
+   OTHER C25519 keys) computing a second key's checksum corrupted
+   `identity_key`'s own display the same way. Two unrelated pieces of
+   code have now hit this; treat it as a standing hazard, not a one-off.
+   Concrete fix pattern (a priming call for the real identity before
+   querying any other key by name) + a second, separate, still-open gap
+   found in the same session: [[bug-crypt-c25519-key-vars-base-identity-hijack]].
 
 3. **`plugin.auth.auth-keypair`'s success line is literally `AUTH_TRUE
    =)`** — a distinct wire format from the generic .cmd.
@@ -96,8 +104,8 @@ section.
 
 [[project-users-zenka-unblocks-cross-host-testing]]
 
-#,,.,,.,.,.,.,...,.,.,...,.,.,,,.,.,,,,,.,,.,,..,,...,...,..,,,,.,..,,..,,,..,
-#LQ3QDQJPXPD3KQRLM5WMG2ZOEXUJICHPHAN6P75WF2K5XCW2JLVVTFV7GBFAXHCAQNYMXEBUDGISY
-#\\\|F4PGHDZSUGFZ3XNVG2I5CWN7TDZMMO464YLBTWCYMG5OJD4RJFH \ / AMOS7 \ YOURUM ::
-#\[7]UQ3EKPNZOTE7T3UUROBVECSWHALDEQBAZZYARHOWZ32KARMOOUCY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,,..,.,.,.,,,.,,,,,.,...,,,,,..,,...,.,.,,,,,,,,,...,,,,,,,.,
+#LBGSCPUCPHWQT6NFOWOFOOD3AORILIHRNJ32Z3R2Q2IU4MVNP4SEZTYV77NGDOBK5OXZHTC3V74UU
+#\\\|BFEHEROYKO5UFXJX4TDVFB474Z7MAPBFUATXU6HI3HQ5KHGOJTG \ / AMOS7 \ YOURUM ::
+#\[7]QZE7BTUQEVWQRRJGP4PWZU6MXW65AOSJQKSOJPQBMQESH7NG4UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
