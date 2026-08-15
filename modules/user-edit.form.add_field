@@ -159,6 +159,25 @@ if ( defined $pinned_plugin ) {
         };
 }
 
+## DISPLAY ORDER, same gap class as sort_on_focus/multiline/collapse_summary/
+## plugin-pinned above : schema_from_record derives order with
+## <[base.reverse-sort]> on first load, so add_field must ALSO apply it the
+## FIRST time a field is added here, not only once it round-trips through a
+## save+reload.  identity_key is a synthetic self-record tab and stays pinned
+## last, exactly as schema_from_record appends it after the sorted real fields
+my ( @identity_key, %real_fields );
+
+foreach my $field_def (@fields) {
+    if ( ( $field_def->{'name'} // '' ) eq qw| identity_key | ) {
+        push @identity_key, $field_def;
+    } else {
+        $real_fields{ $field_def->{'name'} // '' } = $field_def;
+    }
+}
+
+@fields = map { $real_fields{$_} } <[base.reverse-sort]>->( \%real_fields );
+push @fields, @identity_key;
+
 my $new_state = <[editor.control.create]>
     ->( { qw| fields | => \@fields, qw| active_field | => 0 } );
 
@@ -200,8 +219,8 @@ $new_state = <user-edit.form.state>;
 
 return TRUE;
 
-#,,,.,,,.,.,,,.,,,,,,,.,,,,..,,.,,.,.,,,.,.,.,..,,...,...,.,,,..,,..,,,..,...,
-#HGIMSDYEIC27BKGMBEB27ALZGFARZ7B3X2CFWZJWY3XPGU3YGJ3625IDZYERH6L2BGHCG62EVQN46
-#\\\|H3XXT3KIVZJUIXVRYW3PHO2YWPSZAEOOZPH4QHLZHHWSS7LKG6Z \ / AMOS7 \ YOURUM ::
-#\[7]GSOMCMKKKAKKYZKDQRBL5JTTRLXPY3FIUTGX2PQP4PH4XISS72DA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,...,,.,,..,,...,,.,,..,,..,,,..,..,,...,...,.,.,..,,,..,,,,,..,,
+#TMMF462RXWRXEJ5UGNHEKZTJUCHDYAK5UNLKQH4QFA76QBBZY72GPQ5SYU5E65JHV7OOEAKS7P6KS
+#\\\|BP3L743FKRBLHUCWBSJ22ELVPKWLNHRABG7T34URV4P65K76DLW \ / AMOS7 \ YOURUM ::
+#\[7]PCKP5XKJXCZ55L76PUU3J3EZET2KRUWWCIR2OK32TUAT7T5XGQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
