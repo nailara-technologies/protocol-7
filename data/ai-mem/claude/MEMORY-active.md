@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [disk-edit-host-edit-zenki-planned](project-disk-edit-host-edit-zenki-planned.md) — user direction 2026-08-14: two more zenki likely emerging soon in the same style as user-edit -- disk-edit and host-edit, no scope yet
 - [keys-zenka-integration-direction](project-keys-zenka-integration-direction.md) — user direction 2026-08-12: integrate keys zenka functionality too; keys ALREADY holds the TOFU host-key pins the users remote/ work depends on (`crypt.C25519.init_code`'s `tofu_hostkey` regex, `remote-host.<host>_<port>.public`) and already carries a credential command (`github-pat`); secret/identity material now spans keys+credentials+cred-mesh+users — reconcile ownership, don't start moving material
 - [credential-types-into-user-edit](project-credential-types-into-user-edit.md) — user direction 2026-08-12: move real credential types (external sites, android app accounts, host passwords) into p7 via user-edit/users as built; makes editor.control's `masked` type load-bearing (currently hard-rejected); `credentials.cmd.add`'s closed type whitelist covers only 1 of 3 named cases; first real target is the uninstalled fanless desktop node whose `taeki` AND `root` accounts both need p7 management Topics
 - [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — step_0/1/2 landed+verified (`290a8f72f`/`e039f1912`/`47a2bf87e`); step_4 also found already landed 2026-08-10 (was thought pending — memory was stale); only step_3 (multiline) remains unbuilt
@@ -110,8 +111,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,.,,,.,,..,,,..,.,.,,,,,,,.,,.,,,..,,.,,,..,..,,...,..,,.,,,,,.,,..,..,,,,.,
-#SCGHO2ZHXTN52RIFCJQE5L6L3TNRB7IVQNJLNALT2UMZCHW2JBTBIPQY6LO67D6LLBZY7WW35RTFU
-#\\\|2LJNCEQF3DBSCLKMKVQSALCVLF2G42OXOWFRD3NMGXLUUYEJNX5 \ / AMOS7 \ YOURUM ::
-#\[7]Q7SXWCWGRU5AYDHBFKVIEZRUYUOFHJWCKZLNZAIREXLUY7647SAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,.,,...,,.,,..,,,..,..,,,,.,,..,..,,...,.,.,,,,,..,,.,.,..,,...,
+#6IAE2PAOFTPZXIT2EUL6SOTG6HKFQGQ73NEUMIZ3V47RLOKVTYAHIXFKSXRSVSYVFTYEZZXVUXIBK
+#\\\|ST2Y76P5QKPIEFOFIFP2K5YYHMFCXDE2R4PFV4BDUTAC4AK3VDV \ / AMOS7 \ YOURUM ::
+#\[7]VNAUOKLMCM3CINZVU7OMJI5CM2DOKFHTNKDN4IA3IMVSWG3ANOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

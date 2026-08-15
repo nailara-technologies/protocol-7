@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = plugin.user-edit.key-details.tab_info
+# descr = key-details plugin's self-description
+# param = -none-
+
+## read-only 'key details' tab : the invoking Unix user's own C25519 identity
+## [ name / checksum / public key ], shown only on their OWN record -- see
+## plugin.user-edit.key-details.render's header.
+##
+## NO pinned_keys, deliberately : pinning is for fields that exist in the
+## record's own $fields hash [ plugin.user-edit.registry.post_init's by_key
+## lookup, consulted by user-edit.form.schema_from_record's per-field loop and
+## user-edit.handler.stdin_key's Right-entry trigger ].  this plugin's one
+## field is SYNTHESISED in schema_from_record instead [ key/identity data is
+## not record data ], already carrying plugin =>
+## 'plugin.user-edit.key-details' on its own field_def -- and keeping
+## 'identity_key' OUT of by_key is exactly what keeps stdin_key's plugin-mode
+## entry trigger from ever firing on it.  this tab_info exists for the
+## registry's bookkeeping/discovery only.  registry.post_init tolerates a
+## missing pinned_keys [ '( ... // [] )' ], so no registry change was needed
+## for this shape.
+##
+## q|..|, NOT qw|..| : qw splits on WHITESPACE, so qw| key details | would
+## collapse into label => 'key' plus a stray 'details' key -- the same trap
+## plugin.user-edit.example.render's own header documents for format strings,
+## applied here to the label itself
+return { qw| label | => q| key details |, };
+
+#,,..,..,,,.,,,..,,,.,,.,,.,.,,,,,,.,,,..,.,.,..,,...,..,,,..,.,.,..,,..,,..,,
+#GEQMGJHEPL6GFRG3IDW2U5D2PUIDPVFE4DYDB66AUVVMCRABWCPJTLLJ7PZJIXZTICFHFTOXQTSEO
+#\\\|XS63Z4WAQLSKSSU5ERV5SXKDMPCPRDBLK27ZVGYOIT4TBFZT2AL \ / AMOS7 \ YOURUM ::
+#\[7]BNDIS2N46KOASLINRPVR4Z4HYG636T35UQVENV6QXBVBB7WZ5IDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

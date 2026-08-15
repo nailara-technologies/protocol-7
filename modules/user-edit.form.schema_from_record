@@ -153,6 +153,45 @@ foreach my $name ( <[base.reverse-sort]>->($fields) ) {
     };
 }
 
+## SYNTHESISED, self-record-only : the invoking Unix user's OWN C25519
+## identity [ key name / checksum / public key ] is NOT record data -- it
+## lives in crypt.C25519's in-process key state, not in users' storage -- so
+## it cannot arrive through the $fields loop above and must never be added to
+## users.record.default_fields/.optional_fields either.  appended ONLY when
+## the open record IS the invoking user's own [ the same comparison
+## user-edit.handler.value_get_reply's create-admin gate uses, against the
+## record envelope's own 'name' ], and BEFORE the empty-guard below : a
+## self-viewing bootstrap record with zero real fields yet still gets a form
+## holding just this read-only tab rather than bailing out.  mirrors the
+## pinned-plugin field_def shape above exactly, just synthesised instead of
+## derived from a real $fields entry --  'identity_key' is deliberately
+## unlikely to collide with any future real record field.  NOT registered in
+## plugin.user-edit.registry's by_key : that lookup is for fields that exist
+## in $fields, and stdin_key's Right-entry trigger gated on it staying absent
+## is exactly what keeps this display-only row un-enterable
+if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
+    push @field_defs, {
+        qw| name |     => qw| identity_key |,
+        qw| type |     => qw| freeform_line |,
+        qw| default |  => '',
+        qw| readonly | => TRUE,
+        qw| plugin |   => qw| plugin.user-edit.key-details |,
+        ## own identity, not a record field -- a blank row above it in
+        ## user-edit.form.build_frame sets it apart from the real fields the
+        ## same way the add-a-field row already does, instead of reading as
+        ## stuck to whichever field happens to render last
+        qw| separator_before | => TRUE,
+        qw| display_override | => sub {
+            my ( $render_state, $render_field ) = @ARG;
+            return
+                exists $code{'plugin.user-edit.key-details.render'}
+                ? $code{'plugin.user-edit.key-details.render'}
+                ->( $render_state, $render_field )
+                : '';
+        },
+    };
+}
+
 if ( not @field_defs ) {
     <[base.logs]>->(
         1,
@@ -168,8 +207,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,..,.,.,.,,,.,,,,.,,..,,...,.,,,.,.,,..,.,.,..,,...,...,...,.,.,,,.,,.,,,.,,
-#GBPJ3DON5G6SQ7QDZH7KBJJ4H6JJOTSHSUGJ2ST4U5T2AY2SHSLUKXFGEDZK23NUS2NKIN6SIRM7C
-#\\\|QDMUODRP3ITEZGVTQQQR5LGTUDOSYCFWQ2XE4XAVP432V5ULPR2 \ / AMOS7 \ YOURUM ::
-#\[7]3SQUUOJWQ43ARGZ7E4YVD66P35S52LQ65QWJR3BF7IEOUEFTCOBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,.,,,..,,.,,...,.,,,,.,,.,.,..,,...,...,.,.,,..,...,,,.,,..,
+#TLO5RRQOMUPRRYBSPQYQJE5SPJPKJ5LNKT2DBP7MYNV7ZFT5TGXRQH2H6NFNTPO2ABB6I4EP2HDKK
+#\\\|XOUHBAVI3CPDNVYVVJKQ27SKMCROBMN7DTCWYUJRPLWCGUFOL6Q \ / AMOS7 \ YOURUM ::
+#\[7]5M26VPPWRHHWC6PQ2WH4ORXMOPME36YCWWKIBBVDOS4YNF3VACCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -56,15 +56,14 @@ if (@masked_fields) {
 
     ## a held-secret name is built from the username [ user-edit.<user>.
     ## <field> ], and sessions.cmd.hold only accepts ^[\w\-]+$ -- users.
-    ## cmd.value-set only rejects '/' and '\', so a legal-but-unusual
-    ## username could otherwise fail the hold call after the form has
-    ## already reset. checked HERE, before editor.control.submit runs,
-    ## for the identical reason the reachability guard above is checked
-    ## here : refusing AFTER submit resets the fields would destroy what
-    ## the user just typed
+    ## cmd.value-set only rejects '/' and '\', so a legal-but-unusual username
+    ## could otherwise fail the hold call after the form has already reset.
+    ## checked HERE, before editor.control.submit runs, for the identical
+    ## reason the reachability guard above is checked here : refusing AFTER
+    ## submit resets the fields would destroy what the user just typed
     if ( $username !~ m|^[\w\-]+$| ) {
-        print "\n  << not sent : username contains characters a held-"
-            . "secret name cannot carry [ ^[\\w\\-]+\$ only ] >>\n\n";
+        print "\n  << not sent : username contains characters a held-secret "
+            . "name cannot carry [ ^[\\w\\-]+\$ only ] >>\n\n";
         STDOUT->flush();
         <user-edit.form.dirty>++;
         return FALSE;
@@ -86,12 +85,17 @@ if ( ref $result ne qw| HASH | or not $result->{'ok'} ) {
 
 my $values = $result->{'values'} // {};
 
-## masked values must NEVER reach users.value-set's plaintext JSON payload
-## -- pulled out here, before anything downstream [ the add-a-field-row
-## strip, the list-field substitution ] gets a chance to see them still
-## sitting in $values
+## masked values must NEVER reach users.value-set's plaintext JSON payload --
+## pulled out here, before anything downstream [ the add-a-field-row strip,
+## the list-field substitution ] gets a chance to see them still sitting in
+## $values
 my %secret_values;
 $secret_values{$_} = delete( $values->{$_} ) // '' foreach @masked_fields;
+
+## identity_key is SYNTHESISED display-only data [ schema_from_record's ##
+## self-record key-details tab ], never real record content -- deleted  ##
+## unconditionally so it can never reach users.value-set's JSON payload ##
+delete $values->{'identity_key'};
 
 ## SYNTHESISED ROWS ARE NOT FIELDS and must never reach storage.  the
 ## add-a-field row is an ACTION, not data -- editor.control.submit collects
@@ -182,9 +186,9 @@ my $vs_sent = <[protocol-7.command.send.local]>->(
 
 ## send failed outright [ empty session / unreachable target -- send.local's
 ## own timeout handler is unimplemented, so a failed send otherwise leaves
-## 'pending' stuck above zero forever ]. only guarded on the fan-in path :
-## the ordinary single-reply path has this same latent gap today and is
-## left alone, out of scope here
+## 'pending' stuck above zero forever ]. only guarded on the fan-in path : the
+## ordinary single-reply path has this same latent gap today and is left
+## alone, out of scope here
 <[user-edit.form.submit_note_value_set_result]>->( FALSE, 'send failed' )
     if @masked_fields and ( not defined $vs_sent or $vs_sent <= 0 );
 
@@ -193,10 +197,11 @@ foreach my $field_name (@masked_fields) {
     my $secret = $secret_values{$field_name} // '';
 
     if ( not length $secret ) {
-        ## left empty : nothing to protect, this is how a not-yet-submitted
-        ## typed value gets cleared with no side effect ##
+        ## left empty : nothing to protect, this is how a not-yet-submitted ##
+        ## typed value gets cleared with no side effect                     ##
         <[user-edit.form.submit_note_secret_result]>->(
-            $field_name, TRUE, 'left empty, nothing held' );
+            $field_name, TRUE, 'left empty, nothing held'
+        );
         next;
     }
 
@@ -209,21 +214,23 @@ foreach my $field_name (@masked_fields) {
                     sprintf( '%s %s', $hold_name, encode_b32r($secret) )
             },
             qw| reply | => {
-                qw| handler | => qw| user-edit.handler.submit_secret_hold_reply |,
-                qw| params |  => { qw| field_name | => $field_name }
+                qw| handler | =>
+                    qw| user-edit.handler.submit_secret_hold_reply |,
+                qw| params | => { qw| field_name | => $field_name }
             }
         }
     );
 
     <[user-edit.form.submit_note_secret_result]>->(
-        $field_name, FALSE, 'send failed' )
-        if not defined $sent or $sent <= 0;
+        $field_name, FALSE, 'send failed'
+    ) if not defined $sent or $sent <= 0;
 }
 
-return TRUE;    ## completion, if any masked fields, is reply-driven from here ##
+## completion, if any masked fields, is reply-driven from here ##
+return TRUE;
 
-#,,,,,,,.,,,.,,,,,,,,,,,.,.,.,,..,,..,..,,,,.,..,,...,.,.,..,,...,.,.,,,,,,,.,
-#U53AQS2CGC2DYEV3MML7EZNZ34X2VWCSKTXQMG2M72BXQVERUONDINT2XD3LIUYFB7VFDHTXWHHUY
-#\\\|7AYH24QVIEOXJII4HW4AUQAG63EYYCHDGLJHJG5D642IS7ZAGMR \ / AMOS7 \ YOURUM ::
-#\[7]W4E6WTMNFGMHHYBF52XGUOINR3L2PPUG3UJAQBSGORWIK7V6N4BQ 7  DATA SIGNATURE ::
+#,,..,...,...,,..,,,,,..,,.,,,,.,,.,.,...,,,.,..,,...,..,,...,,..,...,...,.,,,
+#KJIWX3CS5YBE6NMDJFAW7WJZDKR4MJEYSHLRFAH4EUN6QXJ23EUSVG65Q5BZ3YB5WWDLNBXS52PO4
+#\\\|EHNWLEHT5PNCG54ZZHMTIKVYIYAJLIAZC3DBKJUMFZ6XNPHK3CH \ / AMOS7 \ YOURUM ::
+#\[7]E24IJ4PST3H5HDHELGKPU5ELXX7UND2PKVRMZYTNG762CJ3RQICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
