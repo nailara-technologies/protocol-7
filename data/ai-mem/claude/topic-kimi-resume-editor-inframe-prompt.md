@@ -52,15 +52,27 @@ own "write these as END-STATE checks" section.
   this session too): neither `crypt.C25519.gen_keys` nor
   `crypt.C25519.write_keys` calls `base.exit` -- design anchor 3's premise
   holds.
-- **Two design questions kimi's own reasoning surfaced but did not
-  resolve** -- worth the resumed session revisiting explicitly, not
-  assuming its own tentative answers were right:
-  1. Ctrl-C while a prompt is open would currently be silently swallowed
-     -- it reasoned this as "consistent with pre-existing plugin-mode
-     behaviour" but never implemented or tested it.
-  2. Possible reentrancy: `crypt.C25519.gen_keys`'s internal
-     `event.once(0.007)` polling loop might let the STDIN watcher fire
-     reentrantly mid-submit -- reasoned as probably-safe, never verified.
+- **Both design questions kimi's own reasoning surfaced are now RESOLVED,
+  not just flagged** -- `data/tasks/editor-inframe-prompt-primitive.md`
+  gained two new sections since kimi's session started, read them, do not
+  re-derive:
+  1. **Design anchor 5**: Ctrl-C must cancel the PROMPT only, same as
+     Esc/Left -- NOT fall through to ordinary Ctrl-C's form-wide
+     `user-edit.form.quit` (confirmed live: that ends the whole process via
+     `base.exit`). This was NOT "probably fine to swallow" -- letting it
+     fall through would silently kill the session mid-passphrase-entry, a
+     real foot-gun.
+  2. **Design anchor 4**: the reentrancy concern was CONFIRMED real, not
+     speculative -- `base.event.once` is literally `Event::loop($timeout)`,
+     and `crypt.C25519.gen_keys`'s harmonic-truth retry loop calls it
+     repeatedly, so a keypress during generation genuinely can dispatch the
+     STDIN watcher reentrantly. **Already fixed once**, live, in the
+     CURRENTLY SHIPPED code (commit to follow this note) via a `<user-edit.
+     key_actions.busy>` guard in `user-edit.check_pending_excursions` +
+     `plugin.user-edit.key-actions.handler.key` -- read both as the shape
+     of the fix. The new in-frame design needs the EQUIVALENT protection
+     around its own submit handling, not a copy of the same globals
+     necessarily, but the same guarantee.
 
 ## Why this dispatch failed -- do not repeat the diagnosis
 
@@ -87,8 +99,8 @@ default/warning). Nothing else is staged or in flight.
 
 #,,.,,,..,,..,,..,,,.,,..,,..,,,,,,.,,,.,,.,.,..,,...,...,...,...,.,,,,,.,...,
 
-#,,,.,.,.,,,.,.,,,,,.,,.,,...,.,.,.,.,.,.,..,,..,,...,...,.,.,..,,...,.,.,,..,
-#52K57G4RTTW6AQC5MKZD44IYL5JPAKF3I3TZAVV5PXDHA5OAQBXWYQJW224JJOBQMNCOGD5QWKGNC
-#\\\|YTBI4TYKTGZEZ6VN6GAAQFENH3CONYZCFWGDBGG4AQHI5JVJZQN \ / AMOS7 \ YOURUM ::
-#\[7]E6JZEP7U34YZI5OAVBHKMG4UHICOMS7VTVRKROSNZY7IGADM5MBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,.,,.,,,,,,.,.,...,...,.,,,...,..,,...,..,,.,,,,..,...,,.,,.,.,
+#6Q2ELGF5E22BYWHC5AH4CDSJNXSOGNC5BGYGUR3X2WBIYWKYOSDZ6RD62UFLEVYNOA73PJ6HYIK7W
+#\\\|3S7W7OW2QXMQCU6SPQDWWYOSYUSZOG76ZA5RERZHAFORMNNF2UR \ / AMOS7 \ YOURUM ::
+#\[7]CHJLEOXW3J235HLX5VBTRFZSIRPVLUTZZEYNNLQMMJKFNCXMFKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
