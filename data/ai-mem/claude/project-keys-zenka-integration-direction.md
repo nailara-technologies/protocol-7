@@ -238,8 +238,30 @@ unscheduled one — see this file's own earlier section above) — likely the
 same fork arrived at from a different direction, not a separate design to
 build in parallel.
 
-#,,,.,,..,,.,,,..,,,.,,..,,..,,,,,,.,,,.,,.,.,..,,...,...,...,...,.,,,,,.,...,
-#QNWIQRNIXQUQVU2DFEC26L2N6VOV5KMKIVCMPMSZU4QKJHQKSTZOM4EQZUK2GJEYKG6AEWKTEYVEW
-#\\\|XNNQPFLNZZXUNN6CP6Y2AYJBXATY57LTB5SKKNHC5DRG535VE73 \ / AMOS7 \ YOURUM ::
-#\[7]L3J5BQI436KPS64UXYYZLMIDYBREXZ5UQXYKLJNJOG6DQRROHOBI 7  DATA SIGNATURE ::
+**Scoping clarification, per user, 2026-08-15**: the `user-edit` key-details
+tab's next increment ("basic key actions") is NOT identity-switching.
+Create/edit of existing-or-new keys is already possible unreferenced (via
+`keys.console.*`, already loaded into `user-edit`, see
+[[topic-user-edit-console-zenka-status]]) — so the tab's next step is
+surfacing those already-available create/edit actions, not building
+switch-active-identity logic. Identity-switching stays deferred until the
+"clean signature trees" work above actually lands, since which key IS the
+identity is exactly what that structure will govern.
+
+**Signature trees are next SESSION's task, not this one — still being
+designed, per user, same message.** New detail beyond this file's existing
+"clean signature trees" section: the structure is meant to be a
+**universal primitive for flexible nested referencing**, built ON TOP of
+`keys` but in an application scope that TRANSCENDS them — not a
+keys-only mechanism. Concretely: **multiple group memberships in all
+directions** — a key/entity can belong to more than one parent-style
+group simultaneously, and the structure needs to support that fanning out
+both up and down, not just a single strict parent-chain per key the way
+`key_signed_by`'s current attached-signature-file scan implicitly assumes.
+Still exploratory — no file format/syntax decided yet as of this message.
+
+#,,,,,.,,,,..,,..,..,,,.,,,,.,,,.,,,,,...,,..,..,,...,...,,,.,.,,,,..,,,.,.,,,
+#I55GIMO2JSCYEHUPWPXZKR47RAUPHACNDFEGYHW7LTEO4YGMCIXTGD6BLWTK47QPRPV4ZNNNBTOLO
+#\\\|7HCV6FUCGWKSN6QAI4ZSUMWOZ3GCE5AWG6IGRXCUS5TPKZDITET \ / AMOS7 \ YOURUM ::
+#\[7]M5FUPEWOQCID3SAWELT56LMUW6LM4QQKNIORKTQN5UPEKWA5HUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
