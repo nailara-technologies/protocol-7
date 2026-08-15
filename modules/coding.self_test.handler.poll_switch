@@ -29,7 +29,7 @@ my $max_wait  = <coding.cfg.switch_model_max_wait> // 300;
 my $timed_out = $elapsed > $max_wait;
 
 ## cheap status read : no blocking i/o ##
-my $reply  = <[coding.cmd.inference-status]>->();
+my $reply  = <[coding.cmd.inference-status]>;
 my $yaml   = $reply->{'data'}               // '';
 my $status = eval { YAML::XS::Load($yaml) } // {};
 
@@ -377,8 +377,8 @@ return $finish->(
     }
 );
 
-#,,,,,,,.,,,.,.,.,,,.,,.,,,.,,..,,,,.,,.,,..,,..,,...,...,...,,,.,,.,,,..,...,
-#P7MZ7X3TR6FLWRM55XZ3H5JOTTXZ5MCKYYTZVUHYQGH5EKG5YKHL7JNTL2ZBAJDZTV52XBMGU53NC
-#\\\|BVGWBOMRVUEA2S7TOORVV3TK6P2VYWNZYARHODZGIX4JFZUFL33 \ / AMOS7 \ YOURUM ::
-#\[7]GVJRS5HD4QY4EVMEZVDWER4IBH4DFB4NZT2X7T54H43M6MEPPICQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,..,,,.,,,..,.,,,,,.,..,,..,,...,..,,...,..,,.,.,,,.,,,.,...,..,,
+#FVSC2DAHOCSMAOP2QN4PW7CMC3RPZEY5AEW7OIU7EGEMJIMS4SO4YFDKR67CJ7SVTFV2MJBTTZHRS
+#\\\|AOLFEGBEGFADRSASL7VQERHMK4E2QJWLEGDALI2J34ZMHNG3LHF \ / AMOS7 \ YOURUM ::
+#\[7]NQAWLCHX2UOBN2ZVJD2ZIB2EEXCZEKPZJE7IL7GIVBE62OP3REDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

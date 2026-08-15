@@ -82,6 +82,21 @@ if ( $key eq "\n" or $key eq "\r" ) {
         $result->{'dirty'}  = 'field';
         return $result;
     }
+    ## a PLUGIN-PINNED field's Enter must never fall through to a form-wide
+    ## submit, even before the field has been ENTERED into plugin mode [ the
+    ## caller's own Right-entry trigger, not handled here ] : per-field
+    ## override, same reasoning and same "checked before the schema-level
+    ## submit_on" placement as the multiline branch just above.  found live,
+    ## 2026-08-15, on plugin.user-edit.key-actions -- landing on the field and
+    ## pressing Enter out of habit [ its normal meaning everywhere else in
+    ## this form ] silently submitted the WHOLE record instead of doing
+    ## nothing, before Right had ever been pressed to enter the tab.  applies
+    ## to every plugin-pinned field generically, not a key-actions-only patch
+    ## -- plugin.user-edit.address-cluster's own 'address' field had the
+    ## identical latent gap, just never noticed because that field's own
+    ## content rarely sits on Enter's own submit path unremarked
+    return $result if $field_def->{'plugin'};
+
     my $submit_on = $schema->{'submit_on'} // qw| enter |;
     if ( $submit_on eq qw| enter | ) {
         $result->{'action'} = 'submit';
@@ -296,8 +311,8 @@ if ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 ) {
 $result->{'passthrough'} = $key;
 return $result;
 
-#,,..,...,.,.,,..,.,.,..,,...,.,,,,,.,,,.,..,,..,,...,...,.,.,...,...,,,.,.,,,
-#6O24JP42JPYAUG6VF2NVKEXPG3DR3LGT5QBOR7KTLWPTXOAT7C4IUR3HKLBRRVOYSNJZ5D6LLNS6E
-#\\\|476HHDUOPI4FVTSC7PTDIH6IXMIYLHOM4ZGO4IEGE7UFLLZL4L3 \ / AMOS7 \ YOURUM ::
-#\[7]L3SBSCABY7KKSFYWEIG54ELOM3NBEY2Q7BPESVXCXVAPWAHPJWCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,,..,.,,,..,,...,,.,,,,,,...,..,,...,..,,..,,,.,,...,.,.,..,,
+#XOOS3I6HEV437SUILAIBJSNA5Q76NGGBDJ6JGZEJA4GQPWEZGXZOIZ2UB2MAPZ3XDKP47MX3RZWP6
+#\\\|OBARDDNVDOPGNMIV7G6MZKUOZBJJMTRG6STIQPR24KDFRPJ2GNJ \ / AMOS7 \ YOURUM ::
+#\[7]DG67OWEAO4T5U4FDCRKUM4EEMGTZEAX46IM37IMADXC3DK4TU2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

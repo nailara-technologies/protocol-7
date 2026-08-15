@@ -134,7 +134,7 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
             ## directly [ else it reports age since unix epoch ]          ##
             my $age_str
                 = defined $age_s
-                ? <[base.parser.duration]>->( <[base.time]>->() - $age_s )
+                ? <[base.parser.duration]>->( <[base.time]> - $age_s )
                 : 'unknown age';
             kill( 'KILL', $saved_pid );
             <[base.waitpid]>->($saved_pid);
@@ -558,8 +558,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,..,,,.,,,,,,,.,,.,.,,,.,,.,,.,.,,..,..,,..,,...,...,,..,.,.,,,.,,.,,,.,,
-#IX352LRHIRNMCQZVRF3RVPJT5W7B7D6V3XTTXIFYZ6C4GBERTGBZEJNLUUTW6LWYLLGE5QGILDRJY
-#\\\|V7OKUROYXL7YTLK4ESI5NB43MDUVTP3KBF76GVMTAUADMNEFMYL \ / AMOS7 \ YOURUM ::
-#\[7]IR6K6ZSPGZB52J3GN7MBNAME263QQWMTNBKDJMZ5P6VV7G6U3MDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,,,,...,..,,,.,,,.,,...,,.,,..,,...,...,.,.,.,,,,..,,,.,,,.,
+#CV7FLPWX45ZXOEVMPAHG2B6C5K5H5FJO6LIDJF5LRDC6SF3DINSNS74NOP3PXKGCBIZVIIH7A5FOU
+#\\\|66V2FDUGLM3SFHEDMK6K6NDABLH6XNMDVNR5LRF5WYOZXQKYJSG \ / AMOS7 \ YOURUM ::
+#\[7]53X3UOMLQXSHNMHK5AOWXDMWOKIPYAWE5AVSB2V2MA237HC7BCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

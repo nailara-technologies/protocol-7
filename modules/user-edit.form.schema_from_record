@@ -177,15 +177,6 @@ foreach my $name ( keys %{$fields} ) {
 ## it staying absent is exactly what keeps this display-only row un-enterable
 if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
 
-    ## SYNTHESISED, self-record-only : every OTHER named C25519 key the
-    ## invoking Unix user holds.  computed ONCE when the schema is built : the
-    ## on-disk key list is not going to move mid-session, so there is nothing
-    ## to gain from display_override's per-repaint freshness.  render_form's
-    ## multiline block calls editor.control.get_value directly and never
-    ## honours display_override anyway, so a synthesized multiline field MUST
-    ## carry its text in 'default' to render at all
-    my @key_files = <[crypt.C25519.keyfiles]>->();
-
     ## 'user identity key' [ the HUMAN's own key ] is a concept separate from
     ## the zenka PROCESS's own <crypt.C25519.base_key_name> -- user-edit
     ## represents exactly one human, so defaulting the former to the latter
@@ -203,104 +194,45 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
     ## name lookups [ key_checksums etc. below ] no longer mutate it, so there
     ## is nothing left to lock in.  the old priming call is dead code.
 
-    my %seen_keyname;
-    my @other_keynames;
+    ## SYNTHESISED, self-record-only : every OTHER named C25519 key the
+    ## invoking Unix user holds.  MOVED to
+    ## user-edit.form.build_user_keys_field, 2026-08-15, unchanged in
+    ## behaviour -- factored out so user-edit.  excursion.key_create can
+    ## rebuild this one field's def+buffer after a successful key-create,
+    ## without a full schema rebuild [ a create excursion was otherwise
+    ## invisible in the list until the next full reload, read live as "did it
+    ## even create anything" ].  the builder is self-contained [ re-derives
+    ## its own key-file list and identity name ], so nothing from this
+    ## function's own $identity_name above is passed in
+    $field_def_by_name{'user_keys'}
+        = <[user-edit.form.build_user_keys_field]>;
 
-    foreach my $file (@key_files) {
-        my $keyname = <[crypt.C25519.get_keyname]>->($file) // next;
-        next if $keyname eq '';
-        next if $keyname eq $identity_name;
-        next if $keyname =~ m|^remote-host\.|;
-        next if $seen_keyname{$keyname}++;
-        push @other_keynames, $keyname;
-    }
-
-    ## base.reverse-sort, matching the SAME rule this file's own real-field
-    ## row order uses a few lines up -- a vertical list reads consistently
-    ## with the rest of the form this way.  base.sort's ascending order [ the
-    ## addable- fields cycler's own choice, for its own unrelated reason :
-    ## shortest names first so more fit on one horizontally-scrolled row
-    ## before the reader has to scroll ] does not apply here, there is no
-    ## width to fit
-    @other_keynames = <[base.reverse-sort]>->(@other_keynames);
-
-    ## each entry also shows its checksum, same reasoning identity_key already
-    ## carries one -- keys.checksum_href, called BARE [ every key at once, not
-    ## one name at a time ], exactly matching keys.console.list's own call
-    ## shape -- that is the actual proven precedent, not a same-shape
-    ## reconstruction : calling crypt.C25519.cached_chksum / key_checksums
-    ## per-name myself came back empty for an encrypted key that was not the
-    ## process's own already-loaded identity -- turned out to be a display-
-    ## width truncation in editor.ui.ascii_frame.render_form, not a data bug
-    ## at all ; the checksum was correct here the entire time, see
-    ## bug-crypt-c25519-key-vars-base-identity-hijack.md's RESOLVED section.
-    ## SAFE from the base_key_name hijack either way now that key_vars itself
-    ## is fixed [ explicit-name lookups no longer claim base_key_name ].  name
-    ## shortened via base.parser.ellipse_center [ core sub, bin/ Protocol-7 --
-    ## confirmed live, NOT a missing primitive despite an earlier false alarm
-    ## ] so a long name plus its checksum does not run the row unreasonably
-    ## wide ; width is a config knob rather than a hardcoded literal since the
-    ## right trade-off between name legibility and row width is a display
-    ## preference, not a structural constant -- the checksum itself is never
-    ## shortened, already a fixed short width
-    <user-edit.cfg.user_keys_name_width> //= 20;
-
-    ## OPT-IN detail display [ user-edit.cfg.user_keys_display_type = 'detail'
-    ## ] : rows carry the key NAME ONLY, and the SELECTED entry's checksum
-    ## instead renders in user_keys' own existing scrollinfo row [ reserved by
-    ## user-edit.form.build_frame, filled by editor.ui.
-    ## ascii_frame.render_form's multiline block -- reused rather than a
-    ## separate row, per user, once the indent alone read clearly enough as
-    ## "not another list entry" ].  ellipse_center  stays either way -- a
-    ## pathologically long key name is still capped even though names are
-    ## short in practice, so only what is appended AFTER the name changes,
-    ## never the name itself.  the UNTRUNCATED names are stashed on the field
-    ## def [ 'user_keys_names' ] for render_form's detail-checksum lookup : a
-    ## display name shortened by ellipse_center would no longer match
-    ## keys.checksum_href's keys
-    <user-edit.cfg.user_keys_display_type> //= qw| inline |;
-    my $detail_display
-        = <user-edit.cfg.user_keys_display_type> eq qw| detail |;
-
-    my %all_key_chksums = <[keys.checksum_href]>->%*;
-
-    my @other_keys_lines = map {
-        my $name = <[base.parser.ellipse_center]>->(
-            $ARG, <user-edit.cfg.user_keys_name_width>
-        );
-        $detail_display
-            ? $name
-            : sprintf( '%s %s',
-            $name, $all_key_chksums{$ARG} // qw| [unknown] | );
-    } @other_keynames;
-
-    my $other_keys_text
-        = @other_keys_lines
-        ? join( "\n", @other_keys_lines )
-        : 'no other keys';
-
-    $field_def_by_name{'user_keys'} = {
-        qw| name |      => qw| user_keys |,
-        qw| type |      => qw| freeform_line |,
-        qw| multiline | => TRUE,
-        qw| readonly |  => TRUE,
-        qw| default |   => $other_keys_text,
-        ## synthesised, not a record field -- same visual-distinction reason
-        ## identity_key's own separator_before carries, applied here too now
-        ## that the two no longer necessarily render adjacent to each other
+    ## SYNTHESISED, self-record-only : the 'key actions' tab -- the first
+    ## INTERACTIVE key feature [ create a new named C25519 key without leaving
+    ## the form ], unlike the display-only identity_key / user_keys above.
+    ## carries plugin => 'plugin.user-edit.key-actions' directly on its own
+    ## field def, the same way identity_key does -- but UNLIKE identity_key it
+    ## is ALSO pinned in the plugin registry's by_key map [
+    ## plugin.user-edit.key-actions.tab_info's pinned_keys ], which is exactly
+    ## what makes stdin_key's Right-entry trigger able to fire on it.  its
+    ## Enter handler only sets <user-edit.pending.key_create> and unloops ;
+    ## the actual blocking work runs outside the event loop, via
+    ## user-edit.check_pending_excursions after both zenka.loop call sites
+    $field_def_by_name{'key_actions'} = {
+        qw| name |             => qw| key_actions |,
+        qw| type |             => qw| freeform_line |,
+        qw| default |          => '',
+        qw| readonly |         => TRUE,
+        qw| plugin |           => qw| plugin.user-edit.key-actions |,
         qw| separator_before | => TRUE,
-        ## this field is only IMPLEMENTATION-multiline -- one key name per
-        ## line, to route around display_override's multiline gap [ see this
-        ## block's own header comment above ] -- but conceptually a list of
-        ## discrete keys, so its collapsed summary reads 'N.entries' rather
-        ## than the free-text 'N.lines' note/address show.  same noun keys
-        ## editor.control.list.summary already reads, per user
-        qw| noun |          => qw| entr |,
-        qw| noun_plural |   => qw| ies |,
-        qw| noun_singular | => qw| y |,
-        ## untruncated key names, in display-line order -- only read by
-        ## render_form's detail-display path [ see above ]
-        qw| user_keys_names | => \@other_keynames,
+        qw| display_override | => sub {
+            my ( $render_state, $render_field ) = @ARG;
+            return
+                exists $code{'plugin.user-edit.key-actions.render'}
+                ? $code{'plugin.user-edit.key-actions.render'}
+                ->( $render_state, $render_field )
+                : '';
+        },
     };
 
     ## OPT-IN detail display for identity_key, per user 2026-08-15 : same
@@ -365,8 +297,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,.,,,.,,,,.,,.,,,,,,..,,.,,,.,,,...,.,.,.,.,..,,...,..,,,..,,..,...,,,,,,..,
-#E3HZRI3XXSLJN4HG6R5AIMVYC7XWM5F77EQKEJSH35RISR7E6MY47UPRRVDN26R6IRPP64227WUCG
-#\\\|6NATNWUDXQQSTBNDSVRRDUDCPX2T4YWIXGA4YR3IUQJHGYB3KQK \ / AMOS7 \ YOURUM ::
-#\[7]3UHTINNOBXWZIVMLCQCQICME5EGZLUDEOVHIDXYAXDMVKRRCNWBY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,,.,,.,,,..,,...,,.,,...,,..,..,,...,...,,..,.,,,,.,,...,..,,
+#CYCNSLXP33GZK5WTWOJKLC6QPQ4K7I3KHS7UM3NBHLH4O4GFUP2FSU545BPZP7Q7WUW5KL7DCD6IA
+#\\\|RAVFT4EJDDQWRQJKVVIXB25XN56E3LPIFIS6NXCZBSQXU5X62SZ \ / AMOS7 \ YOURUM ::
+#\[7]HG6ZYWKURIKDFBLH2VVPVSIDNZPNL4OUPLAQWLLBXMOWWHMGSQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

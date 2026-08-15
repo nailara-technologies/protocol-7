@@ -91,10 +91,16 @@ if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
 ## second call drops straight into event.loop with watchers intact
 <[base.zenka.loop]>;
 
+## SECOND resume site for mid-session excursions : once this session went
+## through the bootstrap above, THIS nested loop frame -- not console.start's
+## original one -- is what a key-create unloop wakes up in, so the shared
+## helper must run here too.  no-op when no excursion is pending
+<[user-edit.check_pending_excursions]>;
+
 return TRUE;
 
-#,,,,,.,,,,,,,..,,...,,.,,.,.,...,,,.,,,,,,.,,..,,...,...,...,...,..,,,.,,..,,
-#FFOPYHLZYUB7K22AG2V5VOUIM3K6M6DVYZWFFG2O5PM5F6XWLPJRSDHPBMBDZBLCKZGBNMBZR4ZBI
-#\\\|XPUMXJM3SYAWDVZ3H3GCF7YJNJP4UTAJ7DVBAODOO24NNCHLO5F \ / AMOS7 \ YOURUM ::
-#\[7]F277Y2EQPXW2CGZGVOKAAIUPZV5PGYBPOFJPGR3UWNNY35ON2MAY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,..,,,,.,.,.,,.,,,,.,,..,,,.,..,,...,..,,...,...,.,,,,,.,.,,,
+#B5DA3ZFUEYZS3LKZLVLMT7ZTWQ5N5TBGAQI52Y4KCEP7TJXWLIC2DAORM7VOV4ASMWYHLLM434DJU
+#\\\|BJ3JEAONDC6U5J2OZKL6EJFYKKTBAGKYRLDY3OFB3A3TNHBNKSC \ / AMOS7 \ YOURUM ::
+#\[7]YE4W7TUCDU2MATYHRLOZNIVPNDBY5DG2WQVOU3BYQMHKHJUGTIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,10 +57,8 @@ predict — always worth ruling out process staleness (check the running
 pid's start time vs the last relevant file mtime) before concluding a fix
 on disk didn't work.
 
-#,,,.,...,..,,.,.,.,.,,,...,,,.,...,,,,,,,.,..,,...,...,.,,,,.,,,,.,..,,,.,,
-
-#,,..,.,,,,,,,..,,,,.,,..,..,,,,,,,,.,..,,,,,,..,,...,...,..,,...,...,,,.,,,,,
-#TQCQQ3LHKKXXPUL5J4N6XTW4NHQ66ON5VGJETGUDOY2DLQF6QUKITRFMIXEFZNDM3VKDE54LGTRFI
-#\\\|X3VVOLDW7OVDJRP6QD7PUCW4DLTN2AH5KXLTX3V5DWAUUG6RBEP \ / AMOS7 \ YOURUM ::
-#\[7]5LI3NI2TSDQARC3EJXMDCYVANZ4OZWXY6TNHNBL3EVQZ25427EBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,,..,,,.,,..,,,,,,,.,,,.,,.,,..,,...,..,,...,.,,,,,,,,..,.,,,
+#RUTPCDVG4KUZLXGXLKH7E4PO43ESUJHVKGY7DF46UDORJESMDJTEU7DSQ7NJJRBGAQ2UMDJXVB4FU
+#\\\|YMXRPNIXKLG6PN6Z6J2QTLFEZ66HKALRYAI5DBQRMNF6HF5IUZ3 \ / AMOS7 \ YOURUM ::
+#\[7]3LYKFM7IXB2YNVIPABE5W5YJBEMKCZI7Q2NBFVIKAQP443FEAYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

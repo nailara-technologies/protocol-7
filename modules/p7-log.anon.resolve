@@ -17,7 +17,7 @@ return undef if not defined $key32;
 ## var_P7 data dir [ /var/protocol-7/<zenka> ] -- NOT the source tree, so ##
 ## the table survives git reset/clean and matches a real deployment path  ##
 <p7-log.anon.table_path> //= sprintf qw| %s/log-anon/table.bin |,
-    <[file.zenka_dir.data_path]>->();
+    <[file.zenka_dir.data_path]>;
 my $table_path = <p7-log.anon.table_path>;
 
 return FALSE if not -r $table_path;
@@ -60,8 +60,8 @@ close($table_fh);
 
 return defined $result ? $result : FALSE;
 
-#,,,,,,.,,,,.,,,,,.,.,.,,,,,,,,..,.,.,,.,,,..,..,,...,...,,..,.,.,,,,,,.,,..,,
-#ZSCBQWGJXFIERW3WC2QCMJOIHV5J5EMEXOKCFVFV3LUDPMS4P62X6IL6NTOQ54ILRDEKHSHLVWYGO
-#\\\|LFDYESE5Z6RUSWPOG5TKFVE2TAQJFYUOKTDCYQQYWKUDYWP3MWQ \ / AMOS7 \ YOURUM ::
-#\[7]EMJ2U62YBIRDQWBD4UHVI7SNN3A4WFNPX4OIN6LSTEDQTHTF62DI 7  DATA SIGNATURE ::
+#,,,.,..,,...,...,...,,.,,..,,.,.,,.,,..,,...,..,,...,...,,,.,..,,...,,,,,,.,,
+#OZ6F3PEZLXTIWSXPFZZQOTEP7NSFAMFTRYVXB4JW4HN5IRLETUWP72V4M3UWVML2UKSVK4QAKTPXQ
+#\\\|G2PEVCJTXKORQJIJQC42N2LVMUQD2TRCY4TWRNFJ7VA5Y52VUXQ \ / AMOS7 \ YOURUM ::
+#\[7]T6QNY75O2ARZLIWQFFICX6EV3VBTXEOUOTUAZ6UQGCBAGQ72NSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
