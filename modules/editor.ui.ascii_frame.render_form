@@ -141,6 +141,10 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
 
             $values{ sprintf( '%s_%d', $name, $ARG ) } = ''
                 foreach 1 .. $cap - 1;
+            ## also covers detail mode's repurposed use of this same slot --
+            ## no stale checksum left showing once focus moves away, same
+            ## "reserved but currently empty" treatment as every other slot
+            ## above
             $values{ sprintf( '%s_scrollinfo', $name ) } = '';
 
             next;
@@ -248,9 +252,22 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
         ## always present in the frame [ build_frame's own reasoning for
         ## reserving it unconditionally ], left blank under the cap rather
         ## than omitted -- reads as a reserved blank row, same as an under-cap
-        ## list's own reservation
+        ## list's own reservation.
+        ##
+        ## OPT-IN detail mode [ user-edit.cfg.user_keys_display_type =
+        ## 'detail', user_keys only ] shares this SAME slot with pagination
+        ## info rather than replacing it -- per user, pagination text renders
+        ## flush-left in this row while the checksum sits well right of it, so
+        ## the two never actually collide visually ; a fixed left-column width
+        ## [ same $indent used for the checksum's own column start ] keeps
+        ## that true regardless of how long the pagination text gets.  reading
+        ## the config directly [ not a generic descriptor signal ] matches
+        ## this same file's own precedent for zenka-specific cross-layer
+        ## reads, see 'label_width' at the top of the MULTILINE VIEWPORT
+        ## section
         my $info_slot = sprintf( '%s_scrollinfo', $name );
-        $values{$info_slot}
+
+        my $pagination_text
             = $total > $cap
             ? $mark{'pad_l'}
             . <[editor.control.list.window_info]>->(
@@ -259,6 +276,47 @@ foreach my $field_def ( $editor_state->{'schema'}{'fields'}->@* ) {
             )
             . $mark{'pad_r'}
             : '';
+
+        my $detail_checksum = '';
+        if ( $name eq qw| user_keys |
+            and <user-edit.cfg.user_keys_display_type> eq qw| detail | ) {
+
+            ## the checksum comes from the same bare keys.checksum_href call
+            ## schema_from_record already makes, looked up by the entry's
+            ## UNTRUNCATED name [ 'user_keys_names', stashed on the field def
+            ## there in display-line order, since a name shortened by
+            ## ellipse_center would no longer match keys.checksum_href's keys
+            ## ]
+            my $names_ref
+                = ref $field_def->{'user_keys_names'} eq qw| ARRAY |
+                ? $field_def->{'user_keys_names'}
+                : [];
+
+            if ( $cursor_line >= 0 and defined $names_ref->[$cursor_line] ) {
+                my %key_chksums = <[keys.checksum_href]>->%*;
+                $detail_checksum = $key_chksums{ $names_ref->[$cursor_line] }
+                    // '';
+            }
+        }
+
+        ## column start, not right-justify-to-frame-edge : the frame's ACTUAL
+        ## rendered width, once other rows' live content [ identity_key's
+        ## synthesised checksum included -- neither it nor this row can see
+        ## the OTHER's live value at min_width-registration time, since both
+        ## contribute 0 to it by the same synthesised-field convention -- see
+        ## the reservation note in build_frame ] is substituted in, does not
+        ## reliably match $descriptor->{'min_width'} as read here -- confirmed
+        ## live 2026-08-15 [ min_width read back as 80, actual rendered inner
+        ## width 100 ]. a fixed column start sidesteps needing that number to
+        ## be exact ; tuned against this row's own reservation [ see
+        ## build_frame ] to land clearly right-of-center without depending on
+        ## the frame's true final width, and generously past any realistic
+        ## pagination text length [ 'N-M of T', well under 20 chars ] so the
+        ## two never overlap
+        $values{$info_slot}
+            = length($detail_checksum)
+            ? sprintf( '%-42s%s', $pagination_text, $detail_checksum )
+            : $pagination_text;
 
         next;
     }
@@ -535,8 +593,8 @@ return <[ascii.frame.render]>->(
     }
 );
 
-#,,..,...,,,,,,,,,.,.,.,,,,..,.,,,..,,..,,..,,..,,...,...,..,,,,,,,.,,.,.,...,
-#AL6JMZGND3AIWJQPJWFKTMQ2COPF6TZV7LSXV4S4TGPRKBJL2R7KFBRF5GI6LS3M7ALRF2OQIEXE4
-#\\\|MESZ5Q45UAYFXPNNFJ54R4CER4RC3DBP5LDBPY52MW66UJDPP5T \ / AMOS7 \ YOURUM ::
-#\[7]O6BCTP6JINIQ4PHEWIJCT3PJLUTWND37CGGBZMCOQNB63UHXTCAA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,,,.,,..,...,,.,,...,,.,,.,,,..,,...,...,..,,..,,.,.,.,,,,.,,
+#7Y2YURZ3BNHBIMVNH2R3J4Z4KZ3K7DPAYKKYMONA72VARZ2RRSIQCTAEWZJJI3DAYJB6UGPV4GYQS
+#\\\|LZCLDAMONHXGJNDNASOJTWLVEKS663H6XSVKD57MM56545S3UP5 \ / AMOS7 \ YOURUM ::
+#\[7]XS6Q5OGK4CGSR4WOGTGNG5TCKFOQJB6Q5LFRJ4TBZ3M2CZGWU2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

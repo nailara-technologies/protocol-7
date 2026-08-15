@@ -203,6 +203,75 @@ push @current_rows,
     and not $is_menu
     and not grep { $ARG->{'add_field'} } $schema->{'fields'}->@*;
 
+## OPT-IN detail display for user_keys [ user-edit.cfg.user_keys_display_type
+## = 'detail' ] : the currently SELECTED entry's checksum, written into the
+## SAME reserved scrollinfo row user_keys' own multiline block already carries
+## unconditionally -- per user, a separate 4th row here was one reservation
+## too many : the checksum sitting well right of the actual key names already
+## reads as "not another list entry" on its own, no extra blank-row separation
+## needed.  a plain content row [ scrollinfo already is one ], not a
+## border-line token -- see topic-user-edit-console-zenka- status.md's
+## 2026-08-15 update for why a border line was tried first and reverted :
+## ascii.frame.render.color.border_line has no concept of "this span is an
+## opaque value," so a checksum embedded there came out partly miscolored and
+## partly uncolored ; render.color.content_line, which every ordinary row [
+## scrollinfo included ] already goes through, colors arbitrary value text
+## correctly with no extra work needed here.
+##
+## still needs its own width reservation though : scrollinfo's own normal
+## content [ 'editor.control.list.window_info', an "N-M of T" string ] is
+## always short, so nothing upstream currently reserves room for a 23-char
+## checksum landing in that same slot.  registered here as a synthetic row [
+## FIXED width, not measured from live content -- a multiline field's own body
+## contributes nothing to min_width by design, matching the add-a- field row's
+## own same-shaped 3-element push immediately above ] so the frame is always
+## at least wide enough for the longest checksum shape in use [
+## '<::[enc-key]::CCCCCCC:>', 23 chars ], with margin for it to sit right of
+## the actual names rather than flush-left.  reserved ONLY in detail mode AND
+## only when this form actually has a user_keys field [ self-records only, see
+## schema_from_record ] -- inline mode [ the default ] must not change the
+## frame shape at all.
+##
+## the row's registered NAME here is deliberately '' [ this is pure width
+## bookkeeping -- no token of this name is ever pushed to @bodies, the
+## checksum goes into the EXISTING {{user_keys_scrollinfo}} token instead ] :
+## $required_width_for's own second pass computes each row's contribution as
+## `$inner + $display - length($name) - 4`, so a real multi-char name here
+## would silently eat into the reservation via that subtraction -- found live
+## 2026-08-15, using this row's own real name under-reserved space by exactly
+## its own length and left render_form's width computation nothing stable to
+## indent against, causing the frame to grow  unpredictably at render time to
+## fit content never properly reserved for up front. empty name avoids that
+## entirely.
+##
+## the number below MUST track render_form's own fixed column start for this
+## row [ currently 42 -- 'sprintf( "%-42s%s", ... )' in its multiline block ]
+## : the two were tuned together against live output, not derived from a
+## shared constant [ different modules ].
+##
+## why this number specifically, traced live 2026-08-15 via ascii.frame.
+## render's own required-width computation [ NOT this file's
+## $required_width_for -- a SEPARATE, later pass, driven by actual substituted
+## slot VALUES rather than build_frame's static per-field guesses -- confirmed
+## by instrumenting it directly ] : that pass takes max(this file's static
+## min_width, every slot's live rendered width), so an UNDER-sized reservation
+## here doesn't break anything, it just gets silently overridden every render
+## by the checksum's own actual width -- traced 3 reservation values (26, 60,
+## 33) before landing on 45, the one that makes both passes agree exactly [
+## static min_width == live required_width, confirmed by dumping both ],
+## meaning nothing is being reserved that live content doesn't already need.
+## below 45, static min_width undershoots and the checksum's own live width
+## silently wins anyway [ same rendered result, no visible bug, just a static
+## number that no longer means anything ]. above 45, static min_width
+## overshoots and reproduces exactly the visible-gap complaint this comment
+## starts with -- KEEP THIS TIGHT, don't pad it "for safety," there is no
+## instability being guarded against here
+<user-edit.cfg.user_keys_display_type> //= qw| inline |;
+push @current_rows, [ '', 33, FALSE ]
+    if <user-edit.cfg.user_keys_display_type> eq qw| detail |
+    and grep { ( $ARG->{'name'} // '' ) eq qw| user_keys | }
+    $schema->{'fields'}->@*;
+
 ## the OTHER rendering.  expanded -> collapsed is exact : list_source carries
 ## the original field list, nouns and all, and is literally what collapse will
 ## rebuild from.  collapsed -> expanded is synthesised per list field, since
@@ -378,7 +447,30 @@ if ($is_menu) {
                 $name,        $ARG
                 ) foreach 0 .. $cap - 1;
 
-            push @bodies, sprintf( '  {{%s_scrollinfo}}', $name );
+            ## '...' marks this a BLOCK slot, not a field slot [ ascii.frame.
+            ## parse's own trailing-dots syntax ] : found live 2026-08-15 -- a
+            ## field slot's width formula is prefix+value+SUFFIX, where suffix
+            ## is whatever literal text followed the token in the BUILD-TIME
+            ## mockup line -- pure trailing whitespace here, added to pad this
+            ## row's SHORT unsubstituted placeholder out to whatever width
+            ## other fields' literal text already established.  that padding
+            ## is only meaningful for a short/empty placeholder; once a real,
+            ## much longer value [ the detail-mode checksum ] substitutes in,
+            ## the SAME static suffix gets added ON TOP of it, double-counting
+            ## width nothing actually needs and widening the frame well past
+            ## the checksum's own real length -- exactly the visible "why is
+            ## there so much blank padding" the project owner flagged. a block
+            ## slot's width formula is just prefix+line, no suffix concept at
+            ## all, so this sidesteps the double-count entirely rather than
+            ## trying to out-guess it with a bigger or smaller reservation
+            ## number [ tried both, see the min_width reservation just above
+            ## this field's block -- neither direction touches the actual
+            ## cause ]. safe unconditionally, not just in detail mode : inline
+            ## mode's own short "N-M of T" pagination text renders through the
+            ## identical block path with no behavioural difference,
+            ## single-line values split trivially to exactly one output row
+            ## either way
+            push @bodies, sprintf( '  {{%s_scrollinfo...}}', $name );
 
             next;
         }
@@ -533,8 +625,8 @@ my $entry = {
 
 return $entry;
 
-#,,,.,.,.,.,,,.,.,..,,..,,,.,,..,,..,,,,,,,,.,..,,...,...,..,,..,,...,.,,,,..,
-#TYDLJZOL2CEZLFZGMUDAP7ZSXNMGIFGCSOV4GDE5ENB2IIVMLUDV2E2WFWQJF4DWOPYH6ZHFQ4JOS
-#\\\|RFWR3QMM5SFH7JDKXYV55CZDABEVDDJ22TRKMEPXRWJE22FWAO4 \ / AMOS7 \ YOURUM ::
-#\[7]IFICTKR2MDGFZ6UVZG6FMWBH3XKLFOIWV7LXKZD4NKV67G56NMAQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,.,...,,..,...,.,,,.,,,.,.,.,,,..,,...,...,..,,...,,..,...,,.,,
+#JGCJQQKCZLLJMLFCJVUCKVUTGYNWR5GZQOTAO7CLSARYCO2X5JLP6JBWS2JED7CG32SE52WYRFODY
+#\\\|7PHELF2IDPEJ2TINWYHAIADOR4BQMQ7IOOTDHSUCDCSQAL5TTAR \ / AMOS7 \ YOURUM ::
+#\[7]OB6KOODQPYBTGPCZ2E6DI42DUAG7SZYHD2QSAJWC4KV2S4PMGIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

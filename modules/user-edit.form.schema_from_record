@@ -235,24 +235,43 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
     ## at all ; the checksum was correct here the entire time, see
     ## bug-crypt-c25519-key-vars-base-identity-hijack.md's RESOLVED section.
     ## SAFE from the base_key_name hijack either way now that key_vars itself
-    ## is fixed [ explicit-name lookups no longer claim base_key_name ].
-    ## name shortened via base.parser.ellipse_center [ core sub, bin/
-    ## Protocol-7 -- confirmed live, NOT a missing primitive despite an
-    ## earlier false alarm ] so a long name plus its checksum does not run
-    ## the row unreasonably wide ; width is a config knob rather than a
-    ## hardcoded literal since the right trade-off between name legibility
-    ## and row width is a display preference, not a structural constant --
-    ## the checksum itself is never shortened, already a fixed short width
+    ## is fixed [ explicit-name lookups no longer claim base_key_name ].  name
+    ## shortened via base.parser.ellipse_center [ core sub, bin/ Protocol-7 --
+    ## confirmed live, NOT a missing primitive despite an earlier false alarm
+    ## ] so a long name plus its checksum does not run the row unreasonably
+    ## wide ; width is a config knob rather than a hardcoded literal since the
+    ## right trade-off between name legibility and row width is a display
+    ## preference, not a structural constant -- the checksum itself is never
+    ## shortened, already a fixed short width
     <user-edit.cfg.user_keys_name_width> //= 20;
+
+    ## OPT-IN detail display [ user-edit.cfg.user_keys_display_type = 'detail'
+    ## ] : rows carry the key NAME ONLY, and the SELECTED entry's checksum
+    ## instead renders in user_keys' own existing scrollinfo row [ reserved by
+    ## user-edit.form.build_frame, filled by editor.ui.
+    ## ascii_frame.render_form's multiline block -- reused rather than a
+    ## separate row, per user, once the indent alone read clearly enough as
+    ## "not another list entry" ].  ellipse_center  stays either way -- a
+    ## pathologically long key name is still capped even though names are
+    ## short in practice, so only what is appended AFTER the name changes,
+    ## never the name itself.  the UNTRUNCATED names are stashed on the field
+    ## def [ 'user_keys_names' ] for render_form's detail-checksum lookup : a
+    ## display name shortened by ellipse_center would no longer match
+    ## keys.checksum_href's keys
+    <user-edit.cfg.user_keys_display_type> //= qw| inline |;
+    my $detail_display
+        = <user-edit.cfg.user_keys_display_type> eq qw| detail |;
 
     my %all_key_chksums = <[keys.checksum_href]>->%*;
 
     my @other_keys_lines = map {
-        my $checksum = $all_key_chksums{$ARG} // qw| [unknown] |;
-        sprintf( '%s %s',
-            <[base.parser.ellipse_center]>
-                ->( $ARG, <user-edit.cfg.user_keys_name_width> ),
-            $checksum );
+        my $name = <[base.parser.ellipse_center]>->(
+            $ARG, <user-edit.cfg.user_keys_name_width>
+        );
+        $detail_display
+            ? $name
+            : sprintf( '%s %s',
+            $name, $all_key_chksums{$ARG} // qw| [unknown] | );
     } @other_keynames;
 
     my $other_keys_text
@@ -279,6 +298,9 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
         qw| noun |          => qw| entr |,
         qw| noun_plural |   => qw| ies |,
         qw| noun_singular | => qw| y |,
+        ## untruncated key names, in display-line order -- only read by
+        ## render_form's detail-display path [ see above ]
+        qw| user_keys_names | => \@other_keynames,
     };
 
     $field_def_by_name{'identity_key'} = {
@@ -325,8 +347,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,,.,,,,,,,.,..,,,,,,.,.,.,.,..,,.,,,.,,,,.,,..,,...,...,.,,,..,,..,,.,,,,..,
-#CLLLT5A3B5E7NGCIHJKXVDJAXXYAZ7XRS3QMMMZ2CBJ3MVRJQ3FJHJYE5JYJINVWMV5T2IMMAN7SQ
-#\\\|EMYQU5EGSPUKNTC6YB4D3YBDGXDZRKDEVCXTOMUF63ITXLSUII3 \ / AMOS7 \ YOURUM ::
-#\[7]EEH73TX2HO5UAPTAQ33LEDLM7Z3H72KDPE3PNPA7Z42OIYL5UQCA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,..,,..,.,.,..,,.,.,,,.,,.,,,.,,..,,...,...,,,,,...,,,.,,,.,,.,,
+#QWJQTYRI22CMJTNQMZGTCO4V3RMIRQVWDXTGPTTLIZWUDDYPCDKGD64G7MBUBWVLYQ2QF6CCNS7NG
+#\\\|6FBXI6SZ4LZHKQGZ4YED454DF5OLRTWH5B6XKUWGYJ5R3WIAF3I \ / AMOS7 \ YOURUM ::
+#\[7]6TBRIPVBIAANZUIYBAKPAESFFSKTKQSKGBGFZPCKYLLZ5TCP22CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
