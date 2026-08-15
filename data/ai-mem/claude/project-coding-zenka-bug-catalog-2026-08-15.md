@@ -114,6 +114,32 @@ referenced by a literal `<[...]>` call in a scanned file is a real bug in
 `bin/dev/gen-sub-whitelist`'s own top-of-file header before digging in),
 not an acceptable "sometimes you need to re-add things by hand" quirk.
 
+## `kimi_dispatch`'s `model` parameter was not honoured, burned the account's
+## remaining kimi quota on a pure-design run, 2026-08-16
+
+Dispatched `mcp__protocol-7__kimi_dispatch` with `model: "k3-256k"` for the
+`editor-inframe-prompt-primitive.md` task (explicitly chosen over full k3
+for cost, per this session's own earlier budget discussion). The session's
+own reported context window was **`context: 14.7% (154k/1m)`** -- a 1M-token
+ceiling, which is full K3's window, not K3-256k's 256k cap. Per user: this
+is why it hit its usage limit before writing a single line of code (pure
+design/file-reading burn, ~87K chars of reasoning, zero `Edit`/`Write`
+calls) -- the wrong, more expensive model ran despite the explicit
+parameter. Process was terminated by the user; per user, roughly a 2-hour
+cooldown before it can be told to continue (not the "next billing cycle"
+wording the 403 error itself displayed -- trust the user's own account
+knowledge over the API error text if they ever disagree again).
+
+**How to apply**: do not trust `kimi_dispatch`'s `model` parameter to have
+actually taken effect -- **check the session's own reported context-window
+size in its output/log** (256k ceiling vs 1M) as the real signal of which
+model actually ran, every time, especially before a long/expensive dispatch.
+Root cause not investigated (harness-side default-model fallback? a
+stale/ignored param?) -- flagged for the same future dedicated coding-zenka
+bugfix session as the other items in this file, but this one has a direct
+cost consequence, not just a display/UX one -- treat it as high severity
+alongside the `gen-sub-whitelist` entry above.
+
 **How to apply**: NEVER treat a `gen-sub-whitelist` re-run as a safe,
 consequence-free step, even when only ADDING new references. **Always
 `git diff` the regenerated `subroutines.load-early` file before trusting
@@ -124,8 +150,8 @@ bugs above, this one took a live zenka down and would silently repeat on
 every future regen until the underlying `dep-graph`/`gen-sub-whitelist`
 logic is actually fixed.
 
-#,,,,,,.,,...,.,,,,.,,..,,.,,,.,.,.,,,,,.,,..,..,,...,..,,..,,,,,,.,.,,.,,,..,
-#TRZPDDMDU25MDOCK6OCRPPK7WEFDGATTWNRTEPZDKZE2DAEQMUOJQCPH4R7P4MTGYPU6P6XIZUKZY
-#\\\|FKZ6EZJ7H66E6YHIRWIINI5PH253JBG3OPXERIEL7DDKCNU4THI \ / AMOS7 \ YOURUM ::
-#\[7]CWMC2M3DY4TBZQIIFCYO6HEW6JRSJGMYFOX3TB6OC7DDW3P4F6AA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,.,.,.,,,.,.,.,,,,..,,..,...,..,,...,...,,.,,,,.,..,,,,.,,,,,
+#XB3AN3LU6ISEZKV4FRZHOU5OLZ3MOVFYVB5V5ML5MQ6MJZGDNBNCVGXUCGJL76KQZWOCOFBF3WW2A
+#\\\|BWB7S4VCPZFECKKY7HDCLLSIJPBCHJDBEGB6HF6XUZ4X6UPXCVJ \ / AMOS7 \ YOURUM ::
+#\[7]FZ7HUYWSFVFPHXU3HFC7KLMYJESKSVXVVYJGJBNWO3AHIEMQOUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
