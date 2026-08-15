@@ -5,6 +5,19 @@ metadata:
   type: project
 ---
 
+**Landed, 2026-08-15, commit `0bd1f6679`**: the `key_vars` base-identity
+hijack root-caused throughout this file's "how much freedom exists to
+redesign" section is now actually fixed, plus the additive
+`crypt.C25519.user_key_name` split this section's zenka/user/work-key idea
+motivated (two pointers shipped — zenka + user; no `work_key_name` added,
+since nothing currently needs it, checked directly against
+`source.load_signature_key`/`work.console.commit`'s hardcoded-name usage
+before scoping it out). Full account:
+[[bug-crypt-c25519-key-vars-base-identity-hijack]]. This is a narrow,
+concrete step — the "clean signature trees" / parent-key-lifecycle-signing
+/ dot-naming sections further down in this file remain vision-only, not
+touched by this landing.
+
 **Per user, 2026-08-12**, alongside
 [[project-credential-types-into-user-edit]]: integration of `keys` zenka
 functionality is a third direction for the user-edit/users work.
@@ -225,8 +238,8 @@ unscheduled one — see this file's own earlier section above) — likely the
 same fork arrived at from a different direction, not a separate design to
 build in parallel.
 
-#,,.,,,.,,..,,,.,,,,.,.,.,,,,,,..,...,.,,,,,,,..,,...,...,,,.,,..,.,,,...,.,,,
-#5BK6YNSO4R4OTOK6U4RKQE6ZC44EOGPGLIFQQQ7CJ6P4VERICYPQL6SQ7PKTCDVRTR6Z2BMR6M5E4
-#\\\|3VE5VABGP5XVK3PC4YU2S2IMDHURHBWQDLTRCHDCF4D33JXUVS5 \ / AMOS7 \ YOURUM ::
-#\[7]WZYKS7KNQE6YVAIYBLKY2RFNEO3URQONUF2WBJJ46SVOGYY5TIBY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,,,.,,..,,..,,,,,,.,,,.,,.,.,..,,...,...,...,...,.,,,,,.,...,
+#QNWIQRNIXQUQVU2DFEC26L2N6VOV5KMKIVCMPMSZU4QKJHQKSTZOM4EQZUK2GJEYKG6AEWKTEYVEW
+#\\\|XNNQPFLNZZXUNN6CP6Y2AYJBXATY57LTB5SKKNHC5DRG535VE73 \ / AMOS7 \ YOURUM ::
+#\[7]L3J5BQI436KPS64UXYYZLMIDYBREXZ5UQXYKLJNJOG6DQRROHOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
