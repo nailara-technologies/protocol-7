@@ -386,9 +386,17 @@ if ($is_menu) {
         ## COMPACTED, both cases : skipped when the row above is already blank
         ## -- typically a COLLAPSED list immediately before this one, which
         ## already carries its own reserved trailing blanks [ below ] -- so
-        ## two list-shaped fields in a row do not stack two separate gaps
+        ## two list-shaped fields in a row do not stack two separate gaps.
+        ##
+        ## separator_before is the same idea for a SYNTHESISED, non-record row
+        ## sitting among ordinary fields [ e.g. user-edit.form.schema_from_
+        ## record's identity_key tab ] : unlike add_field/list_info it still
+        ## carries a real label, so it needs its own opt-in flag rather than
+        ## piggybacking on those two field shapes
         push @bodies, ''
-            if ( $starts_list_block or $field_def->{'add_field'} )
+            if ( $starts_list_block
+            or $field_def->{'add_field'}
+            or $field_def->{'separator_before'} )
             and @bodies
             and $bodies[-1] ne '';
 
@@ -506,8 +514,8 @@ my $entry = {
 
 return $entry;
 
-#,,.,,..,,.,,,,,,,,..,,.,,,,,,,..,,,.,,..,.,.,..,,...,...,,,.,.,,,.,.,,.,,.,.,
-#H7M3EDWSIY4V3JEKWEGLD2HS2JRXXMKRG5DXVT2TXOVOFVEDGIIPHTVZGICCID6TKH5WJLW3WDL44
-#\\\|FOWWNHC4OUQOMVHVN4JDSD5UFRET6N35NFDE3RUBE7SC65VWTPY \ / AMOS7 \ YOURUM ::
-#\[7]7VWQKRIGSXHVUWALNDIQYBVEHCJ7KVLR3EQ54MTLFNOXHGY2OCCY 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,...,...,.,.,,..,...,,.,,,..,..,,...,...,...,,,,,,,,,...,,..,
+#QU6BRAIBYBCT5YWXTNZUJNNKFU5DZBAOO3GZI2RJH5Y2MCD6ZA2Y7QKQKMHYSD6JRQRGVA2YVWSSG
+#\\\|7FUMO2WPEQZM4QA77B6ZKFZ7WKEWJSUDO5GP2VCZGWRPOPLBYQL \ / AMOS7 \ YOURUM ::
+#\[7]PN2XGFL4MWCKJ7S4G2Z2NMZV3FNCTKEYZJOQF4AVNGJNEFDQP2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
