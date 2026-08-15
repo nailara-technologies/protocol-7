@@ -1,9 +1,73 @@
 ---
 name: bug-crypt-c25519-key-vars-base-identity-hijack
-description: "SECOND confirmed occurrence of the key_vars base-identity-cache hijack already documented in bug-auth-keypair-client-composition-gotchas.md #2 -- this file adds the concrete priming-call fix pattern (used in user-edit's user_keys field), a SEPARATE still-unresolved gap (encrypted non-identity key checksums come back empty when queried from a process that already has a different key loaded), and an important framing note: 'user identity key' is a NEW concept user-edit's identity_key tab introduces, not one crypt.C25519 ever had -- <user>.base is just the autocreate default's NAME, not a semantic guarantee"
+description: "RESOLVED 2026-08-15, commit 0bd1f6679: key_vars' claim side-effect moved from explicit-name calls to bare calls, root-fixing the twice-confirmed hijack this file originally documented as worked-around-not-fixed. Also added crypt.C25519.user_key_name (separate 'human identity' pointer) and two follow-up fixes in source.load_signature_key the root fix required. The empty-checksum gap below is still open, confirmed unchanged post-fix."
 metadata:
   type: project
+  modified: 2026-08-15
 ---
+
+## RESOLVED 2026-08-15 — root cause fixed, not worked around
+
+Commit `0bd1f6679`. Dispatched to kimi (K3-256k) via
+`data/tasks/crypt-c25519-key-vars-identity-split.md`, then two more real
+bugs found live by the project owner and fixed directly in-session on top
+of kimi's landing — see full account below and
+[[project-keys-zenka-integration-direction]] for the scoping/advisor
+context. The priming-call workaround described further down in this file
+is now DEAD, removed from `user-edit.form.schema_from_record`.
+
+**The root fix** (`modules/crypt.C25519.key_vars`): swapped which branch of
+the `if (defined $key_name)` claims `base_key_name` — moved from the
+explicit-name branch to the bare-call branch. A bare `key_vars()` call
+("who am I") now persists its resolution; an explicit-name call ("look up
+this specific key") never mutates `base_key_name` as a side effect again.
+
+**Two follow-up bugs found live**, both in `modules/source.load_signature_key`
+— the sourcecode-signing zenka's own bare `crypt.C25519.sign_data()` call
+(via `source.sign_data`/`source.fill_source_template`) turned out to be
+*relying* on the old hijack: the FIRST explicit `key_vars('proto-7.sourcecode')`
+call used to accidentally claim `base_key_name` for it, which is exactly
+what made the later bare sign call resolve correctly. Root-fixing key_vars
+broke sourcecode signing outright, caught live by the project owner running
+the real signing command (not by the dispatch's own testing, which never
+hit this path since it never has the passphrase to actually sign).
+Fixed by making `source.load_signature_key` **deliberately** set the
+override, the way `crypt.C25519.post_init`'s own header comment already
+documents as the intended pattern:
+1. `<crypt.C25519.base_key_name> = $sigkey_name;` — **must be unconditional
+   `=`, not `//=`**. First attempt used `//=` and silently no-op'd, because
+   `post_init`'s own bare startup call had ALREADY set `base_key_name` to
+   `<user>.base` before `load_signature_key` ever runs.
+2. `delete <crypt.C25519.key_vars>;` — the SEPARATE full-hashref cache
+   (distinct from `base_key_name` itself) has its own early-return guard
+   that only checks whether the requested name is undef/matches the
+   *current* `base_key_name` — it never checks whether the *cached
+   hashref's own* `key_name` still matches. So overriding `base_key_name`
+   alone was not enough; a stale cache from the zenka's own earlier
+   `post_init` bare call kept getting served to `sign_data`'s later bare
+   call regardless. Same invalidation `crypt.C25519.init_code` already does
+   once at zenka startup, needed again here since `base_key_name` is now
+   changing mid-process, not just once at boot.
+
+**How to apply**: any FUTURE code that deliberately overrides
+`base_key_name` mid-process (not just at startup) needs BOTH of these —
+an unconditional assignment, and an explicit `delete <crypt.C25519.key_vars>;`
+right after. Missing either one fails silently (wrong key used, or stale
+cache served) with no error, exactly like the original hijack bug's own
+failure mode.
+
+**Additive**: `<crypt.C25519.user_key_name>` — new, separate pointer for
+"the human's own identity key," distinct from the zenka process's own
+`base_key_name`. Defaults via `//=` to `base_key_name` where `user-edit`
+first needs it. `user-edit`'s `identity_key`/`user_keys` fields now read
+this instead of `base_key_name` directly.
+
+**Verification**: `keys.list` byte-identical to baseline; an actual
+`git commit` succeeded through the real pre-commit signature hook
+(`sourcecode verify-p7-signatures` passed against the whole tree); the
+sourcecode zenka's real `update-signatures` command — the actual repro the
+project owner used to catch both follow-up bugs — signed cleanly after the
+second fix.
 
 Read [[bug-auth-keypair-client-composition-gotchas]] item #2 first for the
 root cause itself (`crypt.C25519.key_vars`'s `<crypt.C25519.base_key_name>`
@@ -51,6 +115,7 @@ work, not something to bundle into a display feature. Left alone
 deliberately.
 
 ## a second, DIFFERENT, still-unresolved gap found in the same work
+## [ re-confirmed unchanged after the 2026-08-15 root fix above, per task ]
 
 Once the hijack was fixed, `user_keys`' checksum for `proto-7.sourcecode`
 (an encrypted key, NOT the process's own loaded identity) still comes back
@@ -107,8 +172,8 @@ enforces or checks.
 
 [[topic-user-edit-console-zenka-status]]
 
-#,,..,,.,,,,,,...,,..,,,.,.,.,.,,,.,.,.,.,.,,,..,,...,...,,.,,...,..,,,,,,.,.,
-#5T4LLIZNMKZTDKO4B6CT6RPY7AZ5JSWLIZOZ2YLFZNZLPSIJRJ65O3AJ6ELV5QVDYRTF5D457Q5JG
-#\\\|4EUJM7YMGWTDJY5X657RHVGM2EIZDY2THBWDKJBJ5NTVFKNWYKF \ / AMOS7 \ YOURUM ::
-#\[7]ZU6DQ4C6TWDTECEJKJJ3Y7RW35LYE7LNUWEEDPQFPK45OEC6WADI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,,..,,,,,,.,,,,,,,..,,,,,...,..,,...,..,,.,.,.,,,...,.,.,.,.,
+#GOK4XEIX3OJRSNMGS37AKRLG446R7YTEF4HYX2F45MX3MCDJC4BFARL77U7YHMCGS2BKHASJWJJBS
+#\\\|7OHRGHGLMJPE2DSWIE7DMYI3I2QAEKHA45K4GYE76ZYAWBC7SRV \ / AMOS7 \ YOURUM ::
+#\[7]DK34NUXYDWT27N56KIU2KMVSY3BF7PUKKEPGB47QL4LHWTKUWUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
