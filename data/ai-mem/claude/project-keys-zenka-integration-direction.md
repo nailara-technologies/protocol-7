@@ -102,8 +102,31 @@ convenience. Would also bear on the "three places describing peers"
 question above (`keys`' hostkey pins vs. `users`' `remote/` vs.
 `discover.orbital.known`) if it goes anywhere.
 
-#,,..,,,,,.,.,.,,,,..,,..,...,,,,,,,.,..,,,,.,..,,...,..,,,.,,.,.,,..,..,,,.,,
-#YCKLNKKRGLXLGOUYUKGE6GHLSYC2KB4CYLOVNG5C4ERWCE7DIAQPABBVL2QFTQSIDITNTD3GLNUOS
-#\\\|AIVYJXXAVSZXCIHFIG7KTLJ7KRY5MY7IJETRASI2VTN2T47PQG6 \ / AMOS7 \ YOURUM ::
-#\[7]FYIBA4CPP5272WRHHLFTYBQIRRLMTAWLOEVES4GAR7VC7GUFDWCQ 7  DATA SIGNATURE ::
+**How much freedom exists to redesign this — stated directly by the user,
+2026-08-14, after the `user_keys`/`identity_key` work surfaced how little
+of the key system is actually load-bearing (see
+[[bug-crypt-c25519-key-vars-base-identity-hijack]]'s "identity key is a
+NEW concept" section for the concrete evidence)**: key names are loose,
+free-form conventions (`base`, `global-root` are just strings someone
+picked, not semantics the system enforces), and almost nothing depends on
+the current structure holding still. Per user: "we can freely change a
+lot without breaking anything. the only load bearing thing currently is
+the availability of the sourcecode signature key... which i can
+recreate." Framing, also stated directly: this looseness isn't neglect,
+it "was all waiting for the current moment... when other parts of the
+system demand the emergence of a clean yet flexible structure" — i.e. the
+key/identity system was deliberately left unformalized until real,
+concrete demand (from `users`/`user-edit`/`credentials` work) would shape
+what it actually needs to be, rather than guessing ahead of that demand.
+**How to apply**: a future redesign of `key_vars`/`base_key_name`/naming
+conventions doesn't need to preserve today's incidental shape (e.g.
+`<user>.base` as THE default) for backward-compatibility reasons — very
+little actually depends on it. The one real constraint is the
+`proto-7.sourcecode` signing key's *availability* for the pre-commit
+signature-check flow, and even that is recreatable, not irreplaceable.
+
+#,,,.,,..,..,,.,,,..,,...,.,.,,.,,,.,,,.,,,.,,..,,...,...,.,.,...,.,.,..,,,,,,
+#IB6P47BMBQH4UZP5KJNFLJSZMT6NV2AZXGNFMGX7UG7RLLODHAG2JJYCXA6IZAJRWTAFMKXT72I46
+#\\\|4FBCMIH5UDZFS77C6WGQQK2DCZRKBUIQIE4JJJRVOHY6T2ZC4UX \ / AMOS7 \ YOURUM ::
+#\[7]5X6JCOAPUAHGFFS5QRMVZUCSRJGFSWQN2RZHGZLGCIOA4GJR4CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
