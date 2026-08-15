@@ -184,23 +184,24 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
     ## multiline block calls editor.control.get_value directly and never
     ## honours display_override anyway, so a synthesized multiline field MUST
     ## carry its text in 'default' to render at all
-    my @key_files     = <[crypt.C25519.keyfiles]>->();
-    my $identity_name = <[crypt.C25519.key_vars]>->{'key_name'} // '';
+    my @key_files = <[crypt.C25519.keyfiles]>->();
 
-    ## PRIME crypt.C25519's global base-identity cache with the REAL identity
-    ## before anything below queries a DIFFERENT key by name.  crypt.C25519.
-    ## key_vars only sets <crypt.C25519.base_key_name> the FIRST time it is
-    ## ever called with an explicit name in this zenka's process lifetime --
-    ## an explicit call for some OTHER key first [ e.g. key_checksums below,
-    ## which calls key_vars($other_name) internally ] would otherwise adopt
-    ## THAT key as the zenka's own base identity, corrupting every later bare
-    ## key_vars call [ including identity_key's own render -- found live :
-    ## querying a second key's checksum here made the identity tab start
-    ## showing that second key instead ].  an explicit call for the REAL
-    ## identity, made first, locks base_key_name in before that guard can ever
-    ## fire for anything else -- return value unused, this is purely for the
-    ## priming side effect
-    <[crypt.C25519.key_vars]>->($identity_name) if length $identity_name;
+    ## 'user identity key' [ the HUMAN's own key ] is a concept separate from
+    ## the zenka PROCESS's own <crypt.C25519.base_key_name> -- user-edit
+    ## represents exactly one human, so defaulting the former to the latter
+    ## HERE [ the first place user-edit needs it ] is valid for this zenka
+    ## specifically, while keeping the two overrideable independently [ see
+    ## crypt.C25519.post_init's header notes ].  the identity_key tab and the
+    ## user_keys exclusion below both read the USER pointer now.
+    <crypt.C25519.user_key_name> //= <crypt.C25519.base_key_name>;
+    my $identity_name = <crypt.C25519.user_key_name> // '';
+
+    ## NO priming call here anymore : the base_key_name hijack this file's
+    ## earlier `<[crypt.C25519.key_vars]>->($identity_name)` worked around is
+    ## fixed at the root in crypt.C25519.key_vars itself -- base_key_name is
+    ## now established ONCE by post_init's bare startup call, and explicit-
+    ## name lookups [ key_checksums etc. below ] no longer mutate it, so there
+    ## is nothing left to lock in.  the old priming call is dead code.
 
     my %seen_keyname;
     my @other_keynames;
@@ -229,14 +230,16 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
     ## shape -- that is the actual proven precedent, not a same- shape
     ## reconstruction : calling crypt.C25519.cached_chksum / key_checksums
     ## per-name myself came back empty for an encrypted key that was not the
-    ## process's own already-loaded identity, even after the base_key_name
-    ## priming above, and per-name was never what the working reference code
-    ## does in the first place.  SAFE from the base_key_name hijack either way
-    ## now that it is primed above.  name shortened via
-    ## base.parser.ellipse_center [ core sub, bin/Protocol-7 -- confirmed
-    ## live, NOT a missing primitive despite an earlier false alarm ] so a
-    ## long name plus its checksum does not run the row unreasonably wide ;
-    ## the checksum itself is never shortened, already a fixed short width
+    ## process's own already-loaded identity [ a separate, still-unresolved
+    ## gap -- OUT of scope of the key_vars identity fix ], and per-name was
+    ## never what the working reference code does in the first place.  SAFE
+    ## from the base_key_name hijack either way now that key_vars itself is
+    ## fixed [ explicit-name lookups no longer claim base_key_name ].  name
+    ## shortened via  base.parser.ellipse_center [ core sub, bin/Protocol-7 --
+    ## confirmed live, NOT a missing primitive despite an earlier false alarm
+    ## ] so a long name plus its checksum does not run the row unreasonably
+    ## wide ; the checksum itself is never shortened, already a fixed short
+    ## width
     my %all_key_chksums = <[keys.checksum_href]>->%*;
 
     my @other_keys_lines = map {
@@ -315,8 +318,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,,,,,.,,.,,,..,,.,.,,,.,,.,,..,,,.,,,,.,,,,,..,,...,...,.,.,,.,,.,.,,.,,.,,,
-#XK3VXSLOUIG6XMLO53YDVK4YFWEMLWAAV6WB47E4JUEU7YWFS5JQPZWW4AOROXCJ5IZ2SKPLNDUUS
-#\\\|2F62CJLMIQX4OY657DGXHGLXGNZE4KJ3DLHP345R5SYUAAXVS2P \ / AMOS7 \ YOURUM ::
-#\[7]Z4VNU3KDCKO4E3J7C3WIOD2BFTLRXTV3LZ6DBOKQ6ZK7MDZ2YCBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,,,,...,,,.,...,,..,.,.,,,.,..,,...,..,,.,.,,,,,...,,..,,,,,
+#RBLV72ML7GNZPCEKQQWMU64TTMIDERZJ4SIKCC6B4D6CFM2ZT4DOSEBXHABLBPSQRIQ5FKTDCKS5C
+#\\\|FC73A7C544CR3G7MJL7PJL63PSYVNQDNGD2CDWTE2MNQGGLUGU7 \ / AMOS7 \ YOURUM ::
+#\[7]E6UWPOPAQPAUMSUE4K2HH65GXYFPPD4DOTQGIE4MW42QT3HX2CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
