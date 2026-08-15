@@ -10,6 +10,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [credential-types-into-user-edit](project-credential-types-into-user-edit.md) — user direction 2026-08-12: move real credential types (external sites, android app accounts, host passwords) into p7 via user-edit/users as built; makes editor.control's `masked` type load-bearing (currently hard-rejected); `credentials.cmd.add`'s closed type whitelist covers only 1 of 3 named cases; first real target is the uninstalled fanless desktop node whose `taeki` AND `root` accounts both need p7 management Topics
 - [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — step_0/1/2 landed+verified (`290a8f72f`/`e039f1912`/`47a2bf87e`); step_4 also found already landed 2026-08-10 (was thought pending — memory was stale); only step_3 (multiline) remains unbuilt
 - [user-edit-console-zenka-status](topic-user-edit-console-zenka-status.md) — todo JUE+5PN; 2026-08-13: windowed lists, sort order, plugin detail-tabs, zero-field bootstrap (contact/location optional), multiline note editing all live and pushed; see file tail for latest
+- [crypt-c25519-key-vars-base-identity-hijack](bug-crypt-c25519-key-vars-base-identity-hijack.md) — key_vars(name) claims the zenka's global identity slot on its FIRST explicit-name call ever; prime with the real identity's name before querying any other key by name, or it gets hijacked. Also: separate unresolved gap, encrypted non-identity key checksums come back empty when queried from a process with a different key already loaded
 - [checksum-addressing-implementation-survey](project-checksum-addressing-implementation-survey.md) — 2026-08-10 ground-truth survey for 5PN (users zenka) identity decision: ~1/3 of checksum-addressing vision is real code (AMOS/BMW checksums, P7REF via base.p7ref.self, BMW384 geometric routing — but local-module-scoped, not network); no TYPE registry exists anywhere. Verdict: root new-entity identity in crypt.C25519, treat P7REF as a derived display layer, don't wait on the vision's unbuilt pieces
 - [users-zenka-unblocks-cross-host-testing](project-users-zenka-unblocks-cross-host-testing.md) — 2026-08-11 UPDATE: phase 2 slice 1 LANDED (e4185e78b) — live peer record fetch over auth-keypair, event-driven; 8 real framework bugs found+fixed along the way, see [[bug-auth-keypair-client-composition-gotchas]]. Still open: discover-based host resolution, remote/{incoming,outgoing} storage, link-upgrade encryption, command signing
 - [bug-auth-keypair-client-composition-gotchas](bug-auth-keypair-client-composition-gotchas.md) — 8 silent/misleading traps composing a native-Perl auth-keypair client: TOFU pin-key stability, crypt.C25519.key_vars cache hijack, AUTH_TRUE≠TRUE wire format, select-method not generic across auth methods, session-name regex, protocol-7.command.send.local alias form, reply-handler call signature, self-deadlock on blocking reads — check before touching this code path again
@@ -111,8 +112,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,,.,,,,,..,,,.,,...,,.,,..,,,..,..,,,,.,,..,..,,...,.,.,,,,,..,,.,.,..,,...,
-#6IAE2PAOFTPZXIT2EUL6SOTG6HKFQGQ73NEUMIZ3V47RLOKVTYAHIXFKSXRSVSYVFTYEZZXVUXIBK
-#\\\|ST2Y76P5QKPIEFOFIFP2K5YYHMFCXDE2R4PFV4BDUTAC4AK3VDV \ / AMOS7 \ YOURUM ::
-#\[7]VNAUOKLMCM3CINZVU7OMJI5CM2DOKFHTNKDN4IA3IMVSWG3ANOCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,,,,.,,,,,,.,.,...,...,,.,,,,.,..,,...,...,,..,...,.,,,,..,.,.,
+#XDTGCT3VSMHZXXDM7U3L7O2T75RZQL4YXF2KYCHC4FXL6UYLKRKGVJK2HOQWEKTY2Q43ZKX2N2DAE
+#\\\|NQNKRBKHQIQ2A7KDGQK6MOUX6ZURNIPFXEXZELN6TYIQTVF4WQY \ / AMOS7 \ YOURUM ::
+#\[7]TOB5ODFUJNOSDRYF3JGFDIWKMU2WYHBK6MJVZ3ABOODMHC24IQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
