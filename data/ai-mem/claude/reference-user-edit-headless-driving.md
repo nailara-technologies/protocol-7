@@ -167,8 +167,55 @@ no delete command. Editing a form does not touch the record until submit,
 so an abandoned form leaves the record alone, but anything you submit is
 real.
 
-#,,,.,..,,..,,,,.,,,.,.,.,..,,,.,,,.,,,,.,,,,,..,,...,..,,...,..,,...,,..,,,,,
-#DVPJZTWHPQNJQJ3KJXFKJBZFMSSYIP6WBDDNQBZE7G4UZTOPBGXB2OMGLUAR6XIA54TYMRQ4JCJ5G
-#\\\|US42HBZ42ZSXA5VKUFDVZQFHSEBLXVBIJOWO4EVI4BATF3DQI5J \ / AMOS7 \ YOURUM ::
-#\[7]QM32RECPVRBHOPGAYZ77C37UVFGQHXZUKRIKYIOCKCSBJ4QOZMDY 7  DATA SIGNATURE ::
+## driving a REAL pty with `expect`, not `char-add` — gotchas found 2026-08-16
+
+`script -qec` is what actually opens a real pty for `start <user>` [ needed
+for real cursor styling, the bare-Esc debounce, and anything else `char-add`
+structurally cannot reach — see this file's own notes above ], but something
+still has to feed it keystrokes programmatically for a scripted/agent
+session. `expect` works well for this. Found live while verifying the
+in-frame prompt primitive ([[project-loader-deferred-compile-disabled-cmd-fix-2026-08-16]]'s
+sibling feature):
+
+- **plugin-mode entry needs a real Right arrow first** — `key_actions` (and
+  any other plugin-pinned field) is not "entered" by Down/Enter alone.
+  `user-edit.handler.stdin_key`'s own two-stage Right-arrow entry trigger
+  (`\e[C`, gated on the field being empty or the cursor already past 0) must
+  fire before Enter reaches the plugin's own `handler.key` at all — skip it
+  and Enter still SEEMS to do something (it falls through to ordinary
+  process_key handling instead), which produced a convincing but entirely
+  false "Ctrl-C kills the zenka" bug report during this session: the
+  zenka really was dying, but only because plugin mode was never entered,
+  so Ctrl-C hit the ordinary top-level quit path, not the prompt's own
+  cancel handling. Re-tested with the Right arrow included and it was fine.
+  **Always send `\033\[C` after focusing a plugin-pinned field, before
+  Enter**, or a "bug" found this way may not be real.
+- **`send`'s Tcl argument parsing treats a leading `-` as a flag** — sending
+  a literal hyphen character (e.g. typing `-` as part of a key name like
+  `zz-test-key`) via `send "$c"` in a char-by-char typing loop throws
+  `ambiguous flag "-"` and kills the `expect` SCRIPT itself, which then
+  takes its spawned child down too via the closed pty (SIGHUP) — this reads
+  exactly like the zenka crashed, when it was only the test harness. Use
+  `send -- "$c"` for any programmatically-built literal argument, not just
+  ones you know might start with `-`.
+- **background a spawned zenka test session with `setsid nohup ... &
+  disown`**, not a bare `&`, even when only wrapping a short-lived `expect`
+  script — a bare `&`-backgrounded process can get reaped when the shell
+  invocation that started it ends (tool-call-scoped shells), silently
+  orphaning it before it ever produces output. If a background test run
+  produces zero output and the spawned zenka process is simply gone
+  afterward with no error, suspect this before suspecting a real bug.
+- to reliably tell "did the deferred-compile recursion bug's `no routines
+  were loaded` flood happen" from "is this just normal per-keystroke output
+  I haven't drained yet" in a captured log, synchronize on the real repaint
+  marker (`\x1b\[H\x1b\[2J`, the clear+home sequence every full frame paint
+  starts with) rather than a fixed sleep — per-keystroke incremental updates
+  inside an open prompt do NOT always trigger a full clear+repaint, so a
+  drain that only waits for that exact sequence will legitimately time out
+  on some keystrokes; treat that as normal, not a hang.
+
+#,,..,,..,,.,,,.,,,.,,,,.,,.,,,.,,,,,,...,.,.,..,,...,..,,.,,,,,.,.,,,,,,,,.,,
+#GUJZZVIPDXSEQ4RR2VY3XXARB6HQSAUBJGHZOHY7KMBNHKBBOCVVSYGL2GAZDWIWKZ5DB3W5L4GYM
+#\\\|XYQY2IOE2UBTBI4K2CQBF53ALO4MY7BOL7F535BUJORQMRD3CO6 \ / AMOS7 \ YOURUM ::
+#\[7]R6R4IO6BMDF2WD7IOEJLLTRTDUG4IBGTYIFWQBJOE3GEY4PO5MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
