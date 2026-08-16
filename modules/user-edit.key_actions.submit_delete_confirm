@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = user-edit.key_actions.submit_delete_confirm
+# descr = key-delete stage 2 : exact-phrase confirmation, unlink files, refresh
+# param = $editor_state, $value, $prompt
+
+## on_submit for the key-actions delete-confirmation prompt.  the typed value
+## must match the literal string 'delete key' exactly -- case-sensitive, no
+## trimming, no fuzzy prefix match.  this is the safety gate for an action
+## that destroys on-disk key material with no undo.
+
+my ( $editor_state, $value, $prompt ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $confirm = $value // '';
+my $name    = ref $prompt eq qw| HASH | ? $prompt->{'data'}{'name'} : undef;
+
+my $done = sub {
+    my ( $text, $ok ) = @ARG;
+    <user-edit.key_actions.last_result> = $text;
+    <[editor.control.prompt.cancel]>->($editor_state);
+    return $ok // FALSE;
+};
+
+return $done->(q|delete confirmation lost its key name, nothing deleted|)
+    if not length( $name // '' );
+
+## the ONE safety gate : exact phrase only.  trailing whitespace, different ##
+## casing, or any other variant is treated as a deliberate non-match.       ##
+return $done->(
+    sprintf( q|confirmation text did not match, '%s' NOT deleted|, $name ) )
+    if $confirm ne q|delete key|;
+
+## drop any in-memory copy before the on-disk files disappear, so the ##
+## running zenka's own view does not stay stale until restart         ##
+<[crypt.C25519.unload_key]>->( $name, TRUE );
+
+## enumerate every on-disk file belonging to this key.                     ##
+## crypt.C25519.keyfiles with a name argument stops after the first match, ##
+## so request the full directory listing and filter by keyname here.       ##
+my @files
+    = grep { $name eq ( <[crypt.C25519.get_keyname]>->($ARG) // '' ) }
+    <[crypt.C25519.keyfiles]>;
+
+return $done->(
+    sprintf( q|key '%s' has no files on disk, nothing deleted|, $name ) )
+    if not @files;
+
+my $deleted_count = 0;
+
+foreach my $file (@files) {
+    next if not -f $file;
+    if ( not unlink $file ) {
+        return $done->(
+            sprintf(
+                q|delete failed for '%s' [ %s ], partial delete may remain|,
+                $file, $!
+            )
+        );
+    }
+    $deleted_count++;
+}
+
+return $done->(
+    sprintf( q|key '%s' had no deletable files, nothing deleted|, $name ) )
+    if $deleted_count == 0;
+
+## refresh user_keys so the removed key disappears immediately.  mutate the ##
+## EXISTING field_def hashref in place and swap in a fresh buffer wholesale ##
+my ($user_keys_def)
+    = grep { ( $ARG->{'name'} // '' ) eq qw| user_keys | }
+    ( $editor_state->{'schema'}{'fields'} // [] )->@*;
+
+if ( ref $user_keys_def eq qw| HASH | ) {
+    my $fresh_def = <[user-edit.form.build_user_keys_field]>;
+    %$user_keys_def = %$fresh_def;
+    $editor_state->{'fields'}{'user_keys'}
+        = <[editor.buffer.memory.create]>->($fresh_def);
+}
+
+return $done->( sprintf( q|deleted '%s'|, $name ), TRUE );
+
+#,,..,..,,,.,,..,,,..,...,.,.,..,,.,,,..,,.,,,..,,...,...,,,.,...,..,,.,,,,,,,
+#VOLBFAIZTEZ4VNWXDGOS3UIJIXAXZLQCMLZOOQ3WFX4SG5GKVIPXJGJXPDRDDIG6L24OH6DATRZ42
+#\\\|Y7JMXJG3BWYVJ33RRUIWRPSJJZLZYQDHRQFO3WYC5BYANWKG2E7 \ / AMOS7 \ YOURUM ::
+#\[7]5DFIO4ADOLV27DIYMIOML3O2O3STYQVTLO4B7FH4XZLY7RVXD2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
