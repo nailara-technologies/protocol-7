@@ -293,6 +293,14 @@ sub draw_footer {
     );
 }
 
+sub item_has_details {
+    my $item = shift;
+    return 0 if not defined $item;
+    return 0 if not defined $item->{details};
+    return 0 if ref( $item->{details} ) ne '';
+    return length( $item->{details} ) ? 1 : 0;
+}
+
 sub format_items {
     my ( $items, $show_done ) = @_;
 
@@ -343,6 +351,7 @@ sub format_items {
         if ( $item->{tags} and $item->{tags}->@* ) {
             $tags = ' [ ' . join( ' · ', $item->{tags}->@* ) . ' ]';
         }
+        $tags .= ' ◆' if item_has_details($item);
 
         my $vis_len = length($prefix) + length($text) + length($tags);
         $max_width = $vis_len if $vis_len > $max_width;
@@ -391,6 +400,8 @@ my $option_list = <<'EOL';
     done <id> [<id>..] .............  mark item[s] as done
     del <id> .......................  remove an item
     edit <id> <text> ...............  replace item text
+    details <id> [<text>] ..........  edit item details [ tty ]
+    show <id> ......................  show item with details
     pri <id> <high|normal|low> .....  change item priority
     tag <id> <tag> .................  add a tag to an item
     untag <id> <tag> ...............  remove a tag from an item
@@ -424,6 +435,146 @@ sub list_options {
 }
 
 ##[ commands ]################################################################
+
+sub require_readkey {
+    return if defined $Term::ReadKey::VERSION;
+    eval { require Term::ReadKey; 1 }
+        or die "todo: Term::ReadKey is required "
+        . "for interactive details editor\n";
+    eval { require Time::HiRes; Time::HiRes->import(qw| time sleep |); 1 }
+        or die "todo: Time::HiRes is required "
+        . "for interactive details editor\n";
+}
+
+sub resolve_item {
+    my ( $id_str, $items ) = @_;
+    return undef unless defined $id_str and length $id_str;
+
+    my $id = resolve_id( $id_str, $items );
+    return undef unless defined $id;
+
+    foreach my $item ( $items->@* ) {
+        return $item if $item->{id} eq $id;
+    }
+    return undef;
+}
+
+sub draw_detail_line {
+    my ( $label, $value, $width ) = @_;
+    $width //= $TERM_WIDTH;
+    my $line = sprintf ' :  %-5s : %s', $label, $value // '';
+    if ($TTY) {
+        $line = AMOS7::TERM::frame_colorize_content(
+            $line,
+            {   label => $C{0},
+                value => $C{T},
+            },
+            $C{R}
+        );
+    }
+    say $line;
+}
+
+sub draw_detail_separator {
+    my $width = shift // $TERM_WIDTH;
+    say AMOS7::TERM::frame_border_line(
+        {   width    => $width,
+            reset    => $C{R} // '',
+            elements => [
+                { type => 'anchor', value => ' :..[ ', color => $C{0} // '' },
+                {   type  => 'anchor',
+                    value => ' details ',
+                    color => $C{T} // ''
+                },
+                { type => 'anchor', value => ' ]', color => $C{0} // '' },
+                {   type  => 'fill',
+                    char  => '.',
+                    min   => 1,
+                    color => $C{0} // '',
+                },
+                { type => 'anchor', value => ': ', color => $C{0} // '' },
+            ],
+        }
+    );
+}
+
+sub draw_item_details {
+    my ( $item, $width, $show_editor_hint ) = @_;
+    $width //= $TERM_WIDTH;
+
+    say '';
+    say AMOS7::TERM::frame_border_line(
+        {   width    => $width,
+            reset    => $C{R} // '',
+            elements => [
+                {   type  => 'anchor',
+                    value => ' .: todo details :. ',
+                    color => $C{T} // '',
+                },
+                {   type  => 'fill',
+                    char  => '─',
+                    min   => 1,
+                    color => $C{0} // '',
+                },
+            ],
+        }
+    );
+    say '';
+
+    draw_detail_line( 'id',   $item->{id},   $width );
+    draw_detail_line( 'text', $item->{text}, $width );
+    draw_detail_line( 'tags',
+        $item->{tags}->@* ? join( ' · ', $item->{tags}->@* ) : '-', $width );
+    draw_detail_line( 'pri',    $item->{priority},       $width );
+    draw_detail_line( 'added',  $item->{added},          $width );
+    draw_detail_line( 'status', $item->{status},         $width );
+    draw_detail_line( 'done',   $item->{done_at} // '-', $width )
+        if $item->{status} eq 'done';
+
+    if ( item_has_details($item) ) {
+        say '';
+        draw_detail_separator($width);
+        say '';
+        for my $dline ( split /\n/, $item->{details} ) {
+            my $out = ' :  ' . ( length $dline ? $dline : ' ' ) . ' ';
+            if ($TTY) {
+                $out = AMOS7::TERM::frame_colorize_content( $out,
+                    { value => $C{T} }, $C{R} );
+            }
+            say $out;
+        }
+        say '';
+        draw_detail_separator($width);
+    } elsif ($show_editor_hint) {
+        say '';
+        my $hint = ' :  [ no details yet ] ';
+        if ($TTY) {
+            $hint = AMOS7::TERM::frame_colorize_content( $hint,
+                { value => $C{dim} . $C{3} }, $C{R} );
+        }
+        say $hint;
+    }
+
+    say '';
+    say AMOS7::TERM::frame_border_line(
+        {   width    => $width,
+            reset    => $C{R} // '',
+            elements => [
+                {   type  => 'fill',
+                    char  => '─',
+                    min   => 1,
+                    color => $C{0} // '',
+                },
+                {   type  => 'anchor',
+                    value => ' [ ' . $item->{id} . ' ] ',
+                    color => $C{T} // '',
+                },
+                { type => 'anchor', value => '──', color => $C{0} // '' },
+            ],
+        }
+    );
+    say '';
+}
 
 sub cmd_list {
     my $filter = shift // 'open';
@@ -511,6 +662,7 @@ sub cmd_add {
         status   => 'open',
         priority => $priority,
         tags     => [@tags],
+        details  => '',
         added    => iso_now(),
         done_at  => undef,
         };
@@ -570,6 +722,410 @@ sub cmd_edit {
     }
 
     die "item $id_str not found\n";
+}
+
+sub detail_editor_draw_line {
+    my ( $text, $width, $is_cursor, $cur_col ) = @_;
+    $text //= '';
+
+    my $vw = $width - 6;    ## room for ':   ' ... '   :' ##
+    $vw = 4 if $vw < 4;
+
+    my $display;
+    if ( length($text) <= $vw ) {
+        $display = $text;
+    } elsif ( $cur_col < $vw - 1 ) {
+        $display = substr( $text, 0, $vw - 1 ) . '<';
+    } else {
+        my $start = $cur_col - $vw + 3;
+        $display = '<' . substr( $text, $start, $vw - 2 );
+        if ( $start + $vw - 2 < length($text) ) {
+            substr( $display, -1, 1, '>' );
+        }
+    }
+
+    $display .= ' ' x ( $vw - length($display) ) if length($display) < $vw;
+    $display = substr( $display, 0, $vw );
+
+    return
+          $C{0} . ':'
+        . $C{T}
+        . $C{B} . '   '
+        . $display . '   '
+        . $C{0} . ':'
+        . $C{R};
+}
+
+sub read_editor_key {
+    my ($aborted_ref) = @_;
+
+    ## short-timeout poll so a ctrl-c (SIGINT) is noticed promptly ##
+    my $key;
+    while ( !$$aborted_ref ) {
+        $key = Term::ReadKey::ReadKey(0.05);
+        last if defined $key;
+    }
+    return undef if not defined $key;
+
+    ## plain key or control char ##
+    return $key if $key ne "\e";
+
+    ## ESC : poll the rest of the escape sequence with a short timeout ##
+    my $seq      = $key;
+    my $deadline = Time::HiRes::time() + 0.1;
+    while ( Time::HiRes::time() < $deadline and !$$aborted_ref ) {
+        my $b = Term::ReadKey::ReadKey(-1);
+        if ( defined $b ) {
+            $seq .= $b;
+            last if $b =~ m{[A-Za-z~]};
+        }
+        Time::HiRes::sleep(0.001);
+    }
+    return $seq;
+}
+
+sub edit_details_interactive {
+    my ($item) = @_;
+
+    require_readkey();
+
+    my @lines = split /\n/, $item->{details} // '', -1;
+    @lines = ('') if !@lines;
+
+    my ( $cur_line, $cur_col ) = ( 0, 0 );
+    my $first_visible = 0;
+    my $dirty         = 0;
+    my $aborted       = 0;
+
+    local $SIG{'INT'} = sub { $aborted = 1; };
+
+    ## raw mode : ctrl-c is read as the byte \x03, not delivered as SIGINT ##
+    Term::ReadKey::ReadMode(4);
+
+    ## use a steady underscore cursor while editing ##
+    print "\e[4 q";
+
+    ## make sure the drawn frame is visible before blocking for input ##
+    my $old_autoflush = $|;
+    STDOUT->autoflush(1);
+
+    my $last_status = '';
+
+    while ( !$aborted ) {
+        ## terminal size may change while editing ##
+        my ( $cols, $rows ) = Term::ReadKey::GetTerminalSize();
+        $cols //= 80;
+        $rows //= 24;
+        $cols = 40 if $cols < 40;
+        $rows = 10 if $rows < 10;
+
+        ## top border / summary / separator ##
+        my $header_rows = 3;
+        ## separator / help / bottom border ##
+        my $footer_rows  = 3;
+        my $content_rows = $rows - $header_rows - $footer_rows;
+        $content_rows = 3 if $content_rows < 3;
+
+        my $inner_width = $cols - 2;
+        $inner_width = 20 if $inner_width < 20;
+
+        ## keep cursor inside buffer ##
+        $cur_line = 0       if $cur_line < 0;
+        $cur_line = $#lines if $cur_line > $#lines;
+        $cur_col  = 0       if $cur_col < 0;
+        $cur_col  = length( $lines[$cur_line] )
+            if $cur_col > length( $lines[$cur_line] );
+
+        ## vertical scroll ##
+        if ( $cur_line < $first_visible ) {
+            $first_visible = $cur_line;
+        } elsif ( $cur_line >= $first_visible + $content_rows ) {
+            $first_visible = $cur_line - $content_rows + 1;
+        }
+
+        ## draw frame : hide cursor during redraw to stop it flickering at ##
+        ## 1,1                                                             ##
+        print "\e[?25l\e[H\e[2J";    ## hide cursor, clear screen ##
+
+        ## top border : .:[ title ]:.......................:. ##
+        say AMOS7::TERM::frame_border_line(
+            {   width    => $cols,
+                reset    => $C{R},
+                elements => [
+                    { type => 'anchor', value => '.:[ ', color => $C{0} },
+                    {   type  => 'anchor',
+                        value => ' .: todo '
+                            . 'details :. [ '
+                            . $item->{id} . ' ] ',
+                        color => $C{T} . $C{B},
+                    },
+                    { type => 'anchor', value => ' ]: ', color => $C{0} },
+                    { type => 'fill', char => '.', min => 1, color => $C{0} },
+                    { type => 'anchor', value => ':.', color => $C{0} },
+                ],
+            }
+        );
+
+        ## summary line [ right-aligned task title, 2-space right pad ] ##
+        my $summary     = $item->{text} // '';
+        my $max_summary = $inner_width - 2;
+        if ( length($summary) > $max_summary ) {
+            $summary = substr( $summary, 0, $max_summary - 3 ) . '...';
+        }
+        my $sum_pad  = ' ' x ( $inner_width - length($summary) - 2 );
+        my $sum_line = $sum_pad . $summary . '  ';
+        say $C{0} . ':' . $C{T} . $C{B} . $sum_line . $C{0} . ':' . $C{R};
+
+        ## separator ##
+        say AMOS7::TERM::frame_border_line(
+            {   width    => $cols,
+                reset    => $C{R},
+                elements => [
+                    { type => 'anchor', value => ':..[ ', color => $C{0} },
+                    {   type  => 'anchor',
+                        value => ' details ',
+                        color => $C{T}
+                    },
+                    { type => 'anchor', value => ' ]', color => $C{0} },
+                    { type => 'fill', char => '.', min => 1, color => $C{0} },
+                    { type => 'anchor', value => ':', color => $C{0} },
+                ],
+            }
+        );
+
+        ## content area ##
+        for my $i ( 0 .. $content_rows - 1 ) {
+            my $line_idx  = $first_visible + $i;
+            my $line_text = ( $line_idx <= $#lines ) ? $lines[$line_idx] : '';
+            my $is_cursor = ( $line_idx == $cur_line );
+            say detail_editor_draw_line( $line_text, $inner_width,
+                $is_cursor, $cur_col );
+        }
+
+        ## footer separator ##
+        say AMOS7::TERM::frame_border_line(
+            {   width    => $cols,
+                reset    => $C{R},
+                elements => [
+                    { type => 'anchor', value => ':..[ ',  color => $C{0} },
+                    { type => 'anchor', value => ' keys ', color => $C{T} },
+                    { type => 'anchor', value => ' ]',     color => $C{0} },
+                    { type => 'fill', char => '.', min => 1, color => $C{0} },
+                    { type => 'anchor', value => ':', color => $C{0} },
+                ],
+            }
+        );
+
+        ## help line [ right-aligned, 2-space right pad ] ##
+        my $help_text
+            = '· ctrl-x save+quit · ctrl-c abort · ctrl-o '
+            . 'save · ctrl-w del-word · arrows · enter · del ·';
+        $help_text .= " · $last_status" if length $last_status;
+        $help_text = substr( $help_text, 0, $inner_width - 2 );
+        my $help_pad = ' ' x ( $inner_width - length($help_text) - 2 );
+        my $help     = $help_pad . $help_text . '  ';
+        say $C{0} . ':' . $C{dim} . $C{3} . $help . $C{0} . ':' . $C{R};
+
+        ## bottom border [ no trailing newline to avoid scrolling ] ##
+        print AMOS7::TERM::frame_border_line(
+            {   width    => $cols,
+                reset    => $C{R},
+                elements => [
+                    { type => 'anchor', value => ':', color => $C{0} },
+                    { type => 'fill', char => ':', min => 1, color => $C{0} },
+                    { type => 'anchor', value => ':', color => $C{0} },
+                ],
+            }
+        );
+
+        ## position hardware cursor on the cursor line ##
+        my $cursor_row = $header_rows + ( $cur_line - $first_visible ) + 1;
+        my $vw         = $inner_width - 6;
+        my $dcol;
+        if ( length( $lines[$cur_line] ) <= $vw ) {
+            $dcol = $cur_col;
+        } elsif ( $cur_col < $vw - 1 ) {
+            $dcol = $cur_col;
+        } else {
+            $dcol = $vw - 2;
+        }
+        my $cursor_col = 5 + $dcol;    ## ': [ ' puts text at visible col 5 ##
+        $cursor_col = $cols - 2 if $cursor_col > $cols - 2;
+        ## position and show cursor at the real edit point ##
+        print "\e[$cursor_row;${cursor_col}H\e[?25h";
+
+        ## read key ##
+        my $key = read_editor_key( \$aborted );
+        last if not defined $key;
+
+        $last_status = '';
+
+        ## control keys ##
+        if ( $key eq "\x03" ) {        ## Ctrl-C : abort ##
+            $aborted = 1;
+            last;
+        } elsif ( $key eq "\x0f" ) {    ## Ctrl-O ##
+            $dirty       = 0;
+            $last_status = 'saved';
+        } elsif ( $key eq "\x18" ) {    ## Ctrl-X ##
+            $dirty       = 0;
+            $last_status = 'saved';
+            last;
+        }
+
+        ## navigation ##
+        elsif ( $key eq "\e[A" ) {
+            $cur_line-- if $cur_line > 0;
+        } elsif ( $key eq "\e[B" ) {
+            $cur_line++ if $cur_line < $#lines;
+        } elsif ( $key eq "\e[C" ) {
+            $cur_col++;
+        } elsif ( $key eq "\e[D" ) {
+            $cur_col-- if $cur_col > 0;
+        } elsif ( $key eq "\e[H" or $key eq "\x01" ) {
+            $cur_col = 0;
+        } elsif ( $key eq "\e[F" or $key eq "\x05" ) {
+            $cur_col = length( $lines[$cur_line] );
+        }
+
+        ## editing ##
+        elsif ( $key eq "\n" or $key eq "\r" ) {
+            my $rest = substr( $lines[$cur_line], $cur_col );
+            $lines[$cur_line] = substr( $lines[$cur_line], 0, $cur_col );
+            splice @lines, $cur_line + 1, 0, $rest;
+            $cur_line++;
+            $cur_col = 0;
+            $dirty   = 1;
+        } elsif ( $key eq "\x08" or $key eq "\x7f" ) {    ## backspace ##
+            if ( $cur_col > 0 ) {
+                substr( $lines[$cur_line], $cur_col - 1, 1, '' );
+                $cur_col--;
+                $dirty = 1;
+            } elsif ( $cur_line > 0 ) {
+                $cur_col = length( $lines[ $cur_line - 1 ] );
+                $lines[ $cur_line - 1 ] .= $lines[$cur_line];
+                splice @lines, $cur_line, 1;
+                $cur_line--;
+                $dirty = 1;
+            }
+        } elsif ( $key eq "\e[3~" ) {                     ## delete ##
+            if ( $cur_col < length( $lines[$cur_line] ) ) {
+                substr( $lines[$cur_line], $cur_col, 1, '' );
+                $dirty = 1;
+            } elsif ( $cur_line < $#lines ) {
+                $lines[$cur_line] .= $lines[ $cur_line + 1 ];
+                splice @lines, $cur_line + 1, 1;
+                $dirty = 1;
+            }
+        } elsif ( $key eq "\x17" ) {    ## Ctrl-W : delete word backward ##
+            if ( $cur_col > 0 ) {
+                my $start = $cur_col;
+                ## skip trailing whitespace ##
+                while ( $start > 0
+                    and substr( $lines[$cur_line], $start - 1, 1 ) =~ m{\s} )
+                {
+                    $start--;
+                }
+                ## skip word characters ##
+                while ( $start > 0
+                    and substr( $lines[$cur_line], $start - 1, 1 ) !~ m{\s} )
+                {
+                    $start--;
+                }
+                if ( $start < $cur_col ) {
+                    substr( $lines[$cur_line], $start, $cur_col - $start,
+                        '' );
+                    $cur_col = $start;
+                    $dirty   = 1;
+                }
+            }
+        }
+
+        ## printable [ single byte, not control, not ESC ] ##
+        elsif ( length($key) == 1 and ord($key) >= 32 and $key ne "\e" ) {
+            substr( $lines[$cur_line], $cur_col, 0, $key );
+            $cur_col++;
+            $dirty = 1;
+        }
+    }
+
+    Term::ReadKey::ReadMode(0);
+    STDOUT->autoflush($old_autoflush);
+
+    my ( $cols, $rows ) = Term::ReadKey::GetTerminalSize();
+    $rows //= 24;
+
+    ## abort : clear screen so the shell prompt starts clean ##
+    if ($aborted) {
+        print "\e[?25l\e[H\e[2J";
+        STDOUT->flush();
+    }
+
+    ## leave cursor on a fresh line below the frame, always visible, shape ##
+    ## reset                                                               ##
+    print "\e[$rows;1H\e[?25h\e[0 q\n";
+
+    return undef if $aborted;
+    return join( "\n", @lines );
+}
+
+sub cmd_details {
+    my $id_str = shift // die "expected item id\n";
+
+    my $data = load_data();
+    my $item = resolve_item( $id_str, $data->{items} );
+    die "item $id_str not found\n" if not defined $item;
+
+    my $new_details;
+    if (@_) {
+        ## non-interactive : set details from command line ##
+        $new_details = join ' ', @_;
+    } else {
+        die "interactive details editor requires a tty\n"
+            if not $TTY;
+
+        $new_details = edit_details_interactive($item);
+
+        ## interactive editor returns undef when aborted without saving ##
+        return if not defined $new_details;
+    }
+
+    if ( ( $item->{details} // '' ) ne $new_details ) {
+        $item->{details} = $new_details;
+        save_data($data);
+
+        if ($TTY) {
+            print "\e[H\e[2J";    ## clear screen before saved message ##
+            say '';
+            say AMOS7::TERM::frame_border_line(
+                {   width    => $TERM_WIDTH,
+                    reset    => $C{R},
+                    elements => [
+                        {   type  => 'anchor',
+                            value => ' .: saved :. ',
+                            color => $C{3},
+                        },
+                        {   type  => 'fill',
+                            char  => '─',
+                            min   => 1,
+                            color => $C{0},
+                        },
+                    ],
+                }
+            );
+            say '';
+        }
+    }
+}
+
+sub cmd_show {
+    my $id_str = shift // die "expected item id\n";
+
+    my $data = load_data();
+    my $item = resolve_item( $id_str, $data->{items} );
+    die "item $id_str not found\n" if not defined $item;
+
+    draw_item_details( $item, $TERM_WIDTH, 0 );
 }
 
 sub cmd_pri {
@@ -667,6 +1223,10 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
     cmd_del(@ARGV);
 } elsif ( $cmd eq 'edit' ) {
     cmd_edit(@ARGV);
+} elsif ( $cmd eq 'details' ) {
+    cmd_details(@ARGV);
+} elsif ( $cmd eq 'show' ) {
+    cmd_show(@ARGV);
 } elsif ( $cmd eq 'pri' ) {
     cmd_pri(@ARGV);
 } elsif ( $cmd eq 'tag' ) {
@@ -687,8 +1247,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,,,.,,.,,,..,,,,,,.,,,.,,,,.,...,,.,,,..,..,,...,...,..,,..,,,,,,.,,,..,,
-#XWGRBVOAJC6VPA375INENVIDM6YLKIUDDTFAT4LVK63WIAY7AHKPCZHY47K552JHUXM7T7OLVDMIW
-#\\\|PZZ6WXX75V7BYPYOOZOAXYRS4CMC3Y2PN3K4SZKELHAFZ53BOYX \ / AMOS7 \ YOURUM ::
-#\[7]SCT2HOIVGLB3KGXC7XQAWZCLV26XA7MTVGHY5ZI43PJLZMKG54DA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,.,..,,,..,...,..,,,.,,,,,,.,,,..,,...,...,...,.,.,.,.,..,,,..,
+#WEQX2FFJ6J4V2AFODRTPDSI4M4DN7XVIUD7JYR52HFXIU3XMSJOUIVAKIH53FMEKIVHSNIR6NFKM4
+#\\\|BYTAQXXXISX3EFNLHPSY2RWJMNPXEGPYRNGTDLK2GYKQHOF3SCU \ / AMOS7 \ YOURUM ::
+#\[7]QAIL2GLSXXCVWNK5QNKIEOJPDN4VZAXAP4YCGIHOI72LKWSSBCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
