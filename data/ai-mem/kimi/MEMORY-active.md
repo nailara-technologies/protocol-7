@@ -3,6 +3,35 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
+## todo zenka — styled detail editor + show command (2026-08-16)
+
+`bin/todo` gained a `details <id>` command and a `show <id>` command.
+- items now carry a `details` free-text field; new items initialize it to `''`.
+- `show <id>` renders item metadata plus details inside AMOS7::TERM frames
+  and colon-prefixed content lines [ matching amos-chksum / amos-data-pager ].
+- `details <id>` opens a custom full-screen editor built with `Term::ReadKey`
+  and AMOS7::TERM styling — no external `$EDITOR` / vi. chrome uses the
+  ascii-frame visual language [ `.:[ title ]:.....:.`, `:..[ details ].....:`,
+  `:..[ keys ].....:`, `:...................:` ]. cursor line gets phosphor
+  green `[ ]` brackets and a `|` marker; arrows / enter / backspace / delete
+  edit the buffer; ctrl-o saves, ctrl-c aborts, ctrl-x saves & quits,
+  ctrl-w deletes the previous word. abort clears the screen before returning.
+  escape sequences are assembled by `read_editor_key` because `Term::ReadKey`
+  in raw mode returns arrow keys as individual bytes; bottom border is printed
+  without a trailing newline to avoid scrolling the header off-screen.
+  title and help lines are right-aligned with a 2-space right pad.
+  the task title and entered details text use the same bold TRUE-blue color as
+  the `.: todo details :.` header. the hardware cursor is hidden during frame
+  redraws (`\e[?25l`) and shown only at the final edit position (`\e[?25h`) to
+  prevent flicker at the home position. the cursor line uses the same `:   :`
+  borders as non-cursor lines (no green `[ ]` brackets), and the terminal cursor
+  is set to a steady underscore (`\e[4 q`) while editing, reset to default
+  (`\e[0 q`) on exit.
+- `details <id> <text>` also works non-interactively for scripts.
+- the list view appends a `◆` marker after tags when an item has non-empty
+  details. tested `show`, non-interactive `details`, interactive editor via
+  `expect`, and list indicator.
+
 ## routing_mode implementation (July 2026)
 
 bare-name routing modes + `-next` override family + strm dup-slot guard landed.
@@ -147,8 +176,8 @@ screen; the newline is now only emitted when the help block is visible. when the
 scrolls out of view, one empty content row is kept as top padding so fields do not sit
 flush against the terminal top. see [topic-user-edit-vertical-viewport.md](topic-user-edit-vertical-viewport.md)
 
-#,,,.,,..,,.,,.,,,...,,..,,..,,,,,,..,,,.,,..,..,,...,...,.,.,,,.,.,.,.,.,.,,,
-#Q3QJXBNYPOLPMVX6RLB7C36UIKYAGUFELMOK4R7VNWCP42BEYIVNMGSEQ7MMFPW2SGNB3AHGWALMQ
-#\\\|XIDIARM6JQI2R3G4B2FSGJRIDS6QIBQP4QFZSJ2PQB3RKIFKQKZ \ / AMOS7 \ YOURUM ::
-#\[7]HL4R5RIS6ZURAODP5C3ANYZJ6YZJ3QLMLHPJ3P7ZX7EENYHT3WCI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,.,,.,,,,.,,,,,,..,..,,,,.,,.,,..,,...,..,,...,...,..,,..,,,.,,
+#NXRYPUP7H6SEMJYHI6TITACNUTOVRCBHNMJJLELNQEOOBB354RWU2SNBC6ZUANDE2435YKNQRB7Z2
+#\\\|4RPTWUZBISBYBPL2I3FCWRKF6TFNK7TWPRD47T656ZORCYHGA2C \ / AMOS7 \ YOURUM ::
+#\[7]TD3UROBIP3YK7FQ73B2RFZH4ZE5JFTLJPRJ4DZV2TY7HVQX2GOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
