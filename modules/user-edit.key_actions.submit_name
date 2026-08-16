@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = user-edit.key_actions.submit_name
+# descr = key-create stage 1 : validate the entered name, open masked stage
+# param = $editor_state, $value, $prompt
+
+## on_submit for the key-actions name prompt [ editor.control.prompt.open ].
+## runs INSIDE the event loop, synchronously, from prompt.handler.key's Enter
+## branch -- nothing here may block on the terminal.
+##
+## these four guards used to pre-empt keys.console.create's base.exit guards
+## in user-edit.excursion.key_create ; that console module is no longer called
+## AT ALL [ user-edit.key_actions.submit_passphrase drives gen_keys /
+## write_keys directly ], but the guards stay -- they are the cheap, correct
+## pre-validation either way, and their failure messages are the user's only
+## feedback now that no console output happens
+
+my ( $editor_state, $value, $prompt ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $name = $value // '';
+
+my $fail = sub {
+    my ($text) = @ARG;
+    <user-edit.key_actions.last_result> = $text;
+    <[editor.control.prompt.cancel]>->($editor_state);
+    return FALSE;
+};
+
+## guard 1 : non-empty ##
+return $fail->(q|no key name entered, nothing created|) if not length $name;
+
+## guard 2 : valid keyname [ validate_keyname applies the anchored key-name
+## regex plus the stricter character-sequence rules ]
+return $fail->(
+    sprintf( q|%s is not a valid key name, nothing created|, $name ) )
+    if not <[crypt.C25519.validate_keyname]>->($name);
+
+## guard 3 : key must NOT already exist [ a virtual key's sentinel return of 4
+## is truthy and correctly also counts as 'exists' ]
+return $fail->(
+    sprintf( q|key '%s' already exists, nothing created|, $name ) )
+    if <[crypt.C25519.key_exists]>->($name);
+
+## guard 4 : write_keys encrypts through Crypt::Mode::CBC ##
+return $fail->(q|missing Crypt::Mode::CBC module, nothing created|)
+    if not defined &Crypt::Mode::CBC::new;
+
+## stage 2 : the masked passphrase prompt, same anchoring row.  the name ##
+## travels in the new prompt's opaque 'data' slot                        ##
+<[editor.control.prompt.open]>->(
+    $editor_state,
+    {   qw| field |     => qw| key_actions |,
+        qw| label |     => q| passphrase [ empty cancels ] |,
+        qw| type |      => qw| masked |,
+        qw| on_submit | => qw| user-edit.key_actions.submit_passphrase |,
+        qw| data |      => { qw| name | => $name },
+    }
+);
+
+return TRUE;
+
+#,,,.,.,.,...,,..,,..,,.,,,,.,..,,,.,,.,,,,..,..,,...,...,.,.,,..,,,,,,,.,,..,
+#NRY32C2XTCJEZOIOR2CQU2DVCNYKQB7II3RHT4DT6AHD2EMTVNIXPFGULNIPUTAPHTT5IGPZFLUDS
+#\\\|3HHGMWQBPUVWDFG4IMV4POCLG5MTHTISBN4HQ4Q5ATVNPYDTOAI \ / AMOS7 \ YOURUM ::
+#\[7]XR3UJQIPEGJ5L6DNXJ23CE26XZUTDZYIPPQM4DSILTVYXLWPG2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

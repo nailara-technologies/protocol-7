@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = plugin.user-edit.key-actions.cursor_char
+# descr = the character currently under this field's own cursor
+# param = $editor_state, $field
+# return = the character [ '' when there is nothing to show ], never a
+#          newline
+
+## mirrors plugin.user-edit.address-cluster.cursor_char's own role : user-
+## edit.form.render calls '<plugin>.cursor_char' [ given the same $editor_
+## state/$field pair it renders with ] so it can style the ONE placeholder
+## byte a plugin's own .render leaves behind, with the SAME inverse-video /
+## phosphor-underscore overlay every ordinary field gets -- editor.control.
+## prompt.render draws its own \x01 placeholder for exactly this reason [ see
+## its own header ], and this sub is the "what real character sits there" half
+## user-edit.form.render needs to style it.  delegates straight to
+## editor.control.prompt.cursor_char, which shares the same prompt-state
+## lookup .render itself uses, so the character returned here can never drift
+## from the position .render is actually showing.  absent an open prompt for
+## this field, editor.control.prompt.cursor_char already returns '' -- the
+## static hint / last-result text gets no cursor styling, same as before this
+## sub existed.
+
+my ( $editor_state, $field ) = @ARG;
+
+return <[editor.control.prompt.cursor_char]>->( $editor_state, $field );
+
+#,,,,,,,.,..,,.,.,.,,,,..,.,,,...,.,,,,,,,,..,..,,...,...,..,,.,.,,,,,,..,,.,,
+#SK5V6AYDRGSVWCMWPIUJFEG6EMLWA4KZKIR26NSHJT65MERD767F7KGNTZ62G4BFYBZY2FH6NVLUE
+#\\\|AFQHQ53UEP6JZXA3OKBOYMSQ5SG4RESUT2OJCLPNWIYRUROHT2C \ / AMOS7 \ YOURUM ::
+#\[7]BLVIID7VUPOHO5D4MZKUX7BYTI5VJ7YPIXGXU7WYPCH5ME2TXQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

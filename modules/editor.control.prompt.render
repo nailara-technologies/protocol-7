@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = editor.control.prompt.render
+# descr = in-frame prompt display string for its anchoring field's row
+# param = $editor_state, $field_name
+
+## called from the anchoring field's display_override [ e.g. plugin.
+## user-edit.key-actions.render ] on every repaint.  returns undef when no
+## prompt is open or the open prompt belongs to a DIFFERENT field, so the
+## caller falls back to its own ordinary display.
+##
+## masking reuses the EXISTING machinery [ design anchor 2 ] : the prompt
+## buffer was created with type => 'masked' by prompt.open, so editor.
+## control.get_display_value's own masked branch produces the star run --
+## reached here through a minimal pseudo-state, which is the one call shape
+## that module already supports [ a buffer under 'fields' plus an empty schema
+## : no field_def means its display_override / list branches skip themselves
+## ].  no new masking code anywhere.
+##
+## the cursor is drawn HERE, deliberately : render_form's generic cursor
+## overlay excludes plugin-typed fields [ a plugin's override returns an
+## arbitrarily restructured string with no positional relationship to the raw
+## buffer offset -- its own header ], so "a plugin wanting its own cursor
+## indication draws one itself".  same overlay convention plugin.user-edit.
+## address-cluster.render already uses, NOT render_form's own literal '|'
+## default [ that default is dead for user-edit's real render path -- user-
+## edit.form.render always overrides it with this SAME \x01 placeholder, then
+## substitutes inverse-video-on-the-real-character or a phosphor underscore
+## afterward -- confirmed live, 2026-08-16 ].  \x01 [ CURSOR_PLACEHOLDER, one
+## byte, matching address-cluster's own constant ] REPLACES the character it
+## sits on, with one reserved trailing cell so an end-of-buffer cursor has
+## somewhere to live without growing the string by more than that cell.
+## plugin.user-edit.key-actions.cursor_char [ delegating to editor.control.
+## prompt.cursor_char ] is the other half : it hands user-edit.form.render the
+## real character this placeholder overlaid, so the substitution styles it
+## exactly like any ordinary field's cursor.
+
+my ( $editor_state, $field_name ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+
+my $prompt = $editor_state->{'prompt'};
+return undef if ref $prompt ne qw| HASH |;
+return undef if ( $prompt->{'field'} // '' ) ne ( $field_name // '' );
+
+my $pseudo_state = {
+    qw| fields | => { qw| prompt | => $prompt->{'buffer'} },
+    qw| schema | => { qw| fields | => [] },
+};
+
+my $display
+    = <[editor.control.get_display_value]>->( $pseudo_state, qw| prompt | )
+    // '';
+
+## display cursor through the same pseudo-state : a masked buffer's star ##
+## counts make the DISPLAY offset differ from the raw buffer offset, and ##
+## get_display_cursor is the existing mapping for exactly that           ##
+my $cursor
+    = <[editor.control.get_display_cursor]>->( $pseudo_state, qw| prompt | )
+    // $prompt->{'buffer'}{'cursor'} // 0;
+$cursor = 0 if $cursor < 0;
+
+my $prefix = sprintf( q|%s : %s|, $prompt->{'label'} // '', $display )
+    . q{ };    ## the reserved trailing cursor cell ##
+
+my $marker_at = length($prefix) - 1 - length($display) + $cursor;
+$marker_at = length($prefix) - 1 if $marker_at > length($prefix) - 1;
+$marker_at = 0                   if $marker_at < 0;
+
+substr( $prefix, $marker_at, 1 ) = "\x01";    ## CURSOR_PLACEHOLDER ##
+
+return $prefix;
+
+#,,.,,.,,,..,,,.,,,,.,...,,,,,.,.,.,,,,..,,.,,..,,...,...,..,,,,.,...,..,,,,,,
+#MQNKHOJLIKX6PVFL4IY257UR4652OL2SRCNKQPHDQ2OS7EQJMFYKPPG5QIHHYWYJLSKAUXUGJXY3Y
+#\\\|VPYHEJXNPROXFSIK3MTDBA2ZHETZZ7TKHLK7RP3QKH3QERFR35N \ / AMOS7 \ YOURUM ::
+#\[7]6Y2XPGVF52PLDBUD76HX3A7GJKJ2LRODNW7BOGLFODIVFCAZ7OBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
