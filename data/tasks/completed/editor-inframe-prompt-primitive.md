@@ -1,5 +1,9 @@
 # editor.*: event-loop-safe in-frame prompt primitive (text + masked)
 
+## archive: DONE ✓ — 2026-08-16
+## commit: b056a04c4 — user-edit: event-loop-safe in-frame prompt primitive, fix loader deferred-compile bugs
+## notes: editor.control.prompt.* built and live-verified; two follow-up fixes landed same session -- cursor now uses the shared \x01 placeholder + .cursor_char convention instead of a stale hardcoded pipe, and Left-arrow only cancels the prompt on a genuinely empty buffer instead of unconditionally (see data/ai-mem/claude/feedback-modal-prompt-navigation-never-loses-content.md); became the shared foundation create/rename/delete all build on
+
 **Read first:**
 - `data/ai-mem/kimi/coding-style.md` and `data/ai-mem/kimi/MEMORY.md` -- P7
   module conventions, common mistakes to avoid.
@@ -260,8 +264,8 @@ concrete reason why.
   both are exactly the kind of non-obvious, load-bearing findings future
   work in this area (the deferred `masked`-field task) will need.
 
-#,,..,,..,,,.,,.,,.,,,,,,,..,,..,,,..,..,,,,.,..,,...,...,..,,,..,,,.,.,.,..,,
-#2DVZTE5XM2TEFHXNC527MOVA7ZECHHNCKJGRC7TLUML5FWRS6CSY5RNQQRC6ASZISG62WUVKP3MWW
-#\\\|HYOAD2YCPFIX4NEBPO74ZJZYCLKKQXD3NBFNY3ZVLSQHEAXABGW \ / AMOS7 \ YOURUM ::
-#\[7]B75TZFWKQHHHXXK27RSXHAKDS53USGMWJPQCIYKC5Q7X6QIXX2BA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,.,.,,,.,.,,,,,.,...,,,.,,,.,..,,...,..,,,..,,..,,.,,,,.,,.,,
+#LMCCUC4FYBPJXBY46XYOCZ74CR3SSJO7MXTVLTS6YQRQPJ64SI5GK4BWN5HCMSXDPDRXWG7TQRXMQ
+#\\\|SHEELDW2UE5373OSCD6KI6LJKOKYQIYKSKN2KSAGZFLJTNPCX7A \ / AMOS7 \ YOURUM ::
+#\[7]GPJHHJVPOKMUDGD4ENYYV4SXA2BLZGVXSQG32GWE2XX35BVEWOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
