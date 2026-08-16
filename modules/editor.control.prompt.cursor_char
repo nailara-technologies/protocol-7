@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = editor.control.prompt.cursor_char
+# descr = the character currently under an open in-frame prompt's own cursor
+# param = $editor_state, $field_name
+# return = the character [ '' when there is nothing to show ]
+
+## companion to editor.control.prompt.render, split out so a plugin's own
+## <plugin>.cursor_char sub [ e.g. plugin.user-edit.key-actions.cursor_char ]
+## can hand this back to user-edit.form.render for the SAME inverse-video /
+## underscore overlay every ordinary field gets -- exactly the plugin.user-
+## edit.address-cluster.cursor_char precedent : editor.control.prompt.render
+## draws its own cursor marker into the restructured text it returns [ a
+## plugin field has no positional relationship to the raw buffer offset, same
+## reason address-cluster's own .render does this ], so the generic
+## \x01-overlay in user-edit.form.render needs a DIFFERENT source for "what
+## character sits there" -- this is it.  returns '' [ same as the raw-buffer
+## fallback branch in user-edit.form.render itself ] whenever there is no open
+## prompt for this field, or the cursor sits past the last character.
+
+my ( $editor_state, $field_name ) = @ARG;
+
+return '' if ref $editor_state ne qw| HASH |;
+
+my $prompt = $editor_state->{'prompt'};
+return '' if ref $prompt ne qw| HASH |;
+return '' if ( $prompt->{'field'} // '' ) ne ( $field_name // '' );
+
+my $pseudo_state = {
+    qw| fields | => { qw| prompt | => $prompt->{'buffer'} },
+    qw| schema | => { qw| fields | => [] },
+};
+
+my $display
+    = <[editor.control.get_display_value]>->( $pseudo_state, qw| prompt | )
+    // '';
+
+my $cursor
+    = <[editor.control.get_display_cursor]>->( $pseudo_state, qw| prompt | )
+    // $prompt->{'buffer'}{'cursor'} // 0;
+$cursor = 0 if $cursor < 0;
+
+return '' if $cursor >= length $display;
+
+return substr( $display, $cursor, 1 );
+
+#,,,,,,,,,,.,,..,,...,,,,,,..,,,.,.,,,,,.,...,..,,...,...,...,,,,,.,,,..,,..,,
+#QAIZ7JA3J6JESBAOKKDQVE4OPZIDZOJWHXPRZELXJY4VPJXIKZNEGFFHBOPRJ2FZ2S3UQYOJXWAZ6
+#\\\|JILE7UH5SQW452QBVEQ7GVU2Q62W2C7CAIJVWACHXLCZSKHVZWE \ / AMOS7 \ YOURUM ::
+#\[7]B63UVZG6N4L6SPRWHLHCYHDQQIUDNYXH5PLC74OV6EYQWQVQFUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

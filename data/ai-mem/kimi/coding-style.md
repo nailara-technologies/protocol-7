@@ -921,8 +921,55 @@ data/tasks/user-edit-key-actions-create.md ]:
 
 ---
 
-#,,..,,..,,.,,,.,,,..,,.,,.,.,.,,,,,,,...,.,.,.,.,...,.,.,..,,,,,,.,,,,.,,,.,,
-#6L7W5AXCS5UXL5VRGYK2FCNAS6NIGQWT7W67JPAUDJGGW5GBAVX2BQQ7E33DY4X3YPGU5N52Y66ZG
-#\\\|FGNB4J3EG2252ZM2SGMC2L65ZFRGH24NYB3AASAS2G6LCPXWVIN \ / AMOS7 \ YOURUM ::
-#\[7]MH4LUVPVWP2LVUQA4AHQQX4RS6IFGLQVS2PRUSRJU5OSCIHRMSCI 7  DATA SIGNATURE ::
+## editor.control.prompt.* in-frame prompt — build + live findings (2026-08-16)
+
+The blocking-excursion key-create flow was replaced by an event-loop-safe
+in-frame prompt primitive [ task data/tasks/editor-inframe-prompt-primitive.md
+].  what future work [ the deferred masked-field task ] needs to know:
+
+* RENDER ANCHOR mechanism that shipped : prompt state lives in
+  `$editor_state->{'prompt'}` [ per-state, never a %data keyword ].  the
+  anchoring field's display_override [ plugin.user-edit.key-actions.render ]
+  delegates to editor.control.prompt.render, which builds the display by
+  calling editor.control.get_display_value / .get_display_cursor on a
+  MINIMAL PSEUDO-STATE `{ fields => { prompt => $buf }, schema => { fields
+  => [] } }` -- the one call shape that reuses the existing masked-stars
+  machinery with zero new masking code [ empty schema => display_override /
+  list branches skip themselves ].  render_form's generic cursor overlay
+  EXCLUDES plugin-typed fields, so prompt.render draws its own '|' with the
+  same overlay-on-reserved-trailing-cell convention.
+* gen_keys / write_keys base.exit audit [ design anchor 3 ] : NEITHER calls
+  base.exit -- failure modes are warn / return undef / return FALSE only.
+  keys.console.create is no longer called by user-edit at all, closing the
+  last base.exit-reachable path in key-create.
+* NEW constraint found live : AMOS7::13::key_32 [ write_keys' enc-key
+  derivation ] warns 'expected password length is at least 13 characters'
+  and returns undef below 13 -- keys.console.create's own guard only
+  checked `length <= 1`, so the OLD flow could run gen_keys and then fail
+  mid-write [ write_keys leaves its `$name.$PID.<ntime>` tmp files behind
+  on that path ].  user-edit.key_actions.submit_passphrase now validates
+  >= 13 BEFORE gen_keys.
+* REENTRANCY guard shape : `$editor_state->{'prompt'}{'busy'}`, set by
+  prompt.handler.key around EVERY submit callback [ gen_keys's
+  harmonic-truth loop re-pumps Event via event.once = a real Event::loop
+  ], swallowing reentrant keys.  Replaced the global
+  <user-edit.key_actions.busy>, retired with the excursion shape.
+* Ctrl-C in plugin mode never reaches stdin_key's signal branch [ plugin
+  routing claims every key ] ; the prompt additionally claims "\x03"
+  explicitly as prompt-cancel.  NOTE for scripted pty tests : a trailing
+  Ctrl-C sent while STILL in plugin mode is a swallowed no-op -- exit via
+  insert-mode Ctrl-C or the harness kill.
+* WHITELIST REGRESSION, third occurrence : crypt.C25519.cmd.get-public-key
+  was missing from subroutines.load-early again [ gen-sub-whitelist regen
+  drops it ].  symptom at startup : a flood of '[base.load_modules] no
+  routines were loaded' then 'FATAL ERROR : deep recursion on anonymous
+  subroutine [crypt.C25519.cmd.get-public-key:1]' [ on-demand compile
+  failing + re-entering itself ].  fix = manual re-insert, again.
+
+---
+
+#,,,.,.,.,...,,.,,,,,,..,,.,.,..,,,,.,,,,,,..,.,.,...,..,,.,.,,..,,,.,,,,,,,.,
+#NWQLM7XLTN2NIKOD3LND7OTL35ZXDZJV6WWBTGKK3G5UR7V5TICBFPCAUP2VBI2RQEED5553WQ3IU
+#\\\|VLZDWUAEG3NDITWSNA25FSX2XW2ULF2GMMBAOW6JUHR5R4MXC7E \ / AMOS7 \ YOURUM ::
+#\[7]3PDJ254PIFN7AWPKBVWNH6AGQJQ77VQHH7OA7XQHCN4JEA6ZE4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

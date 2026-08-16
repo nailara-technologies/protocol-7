@@ -1910,11 +1910,28 @@ sub p7_load_code {
             my $cmd_type = ${^CAPTURE}[0];
             my $cmd_name = ${^CAPTURE}[1];
 
-            next
-                if $cmd_type eq qw| cmd |
+            ## a DISABLED cmd is only meant to be unreachable through cube's
+            ## generic external command dispatch [ $data{'base'}{$cmd_type}
+            ## {$cmd_name}, populated below -- that table is what routing
+            ## looks up by NAME ] -- base.init_code disables a whole list of
+            ## cube-only commands [ get-public-key, get-session-sig, .. ] for
+            ## every non-cube zenka precisely so they can't be externally
+            ## invoked.  it is NOT meant to make the underlying sub
+            ## uncompileable : a `next` here used to skip compiling the sub at
+            ## all, so any LEGITIMATE internal <[...]> call site within the
+            ## SAME zenka's own code [ e.g. plugin.user-edit.key-
+            ## details.render's <[crypt.C25519.cmd.get-public-key]> ] could
+            ## never resolve -- confirmed live, 2026-08-16 : that exact call
+            ## left the sub perpetually stubbed, and base.handler.
+            ## deferred_compile's goto handoff recursed into the stub forever
+            ## once whitelist-deferred, aborting the zenka.  only skip the
+            ## DISPATCH-TABLE registration [ and the collision check that
+            ## exists to protect it ] below, never the compile
+            my $cmd_disabled = $cmd_type eq qw| cmd |
                 and exists $disabled_commands{$cmd_name};
 
-            if ( exists $data{'base'}{$cmd_type}{$cmd_name} ) {
+            if ( not $cmd_disabled
+                and exists $data{'base'}{$cmd_type}{$cmd_name} ) {
                 my $old_sub = $data{'base'}{$cmd_type}{$cmd_name};
                 if ( $sub_name ne $old_sub ) {
                     ## different file claiming the same cmd -- always a    ##
@@ -1951,7 +1968,7 @@ sub p7_load_code {
             }
 
             $data{'base'}{$cmd_type}{$cmd_name} = $sub_name
-                if not $sub_conflict;
+                if not $sub_conflict and not $cmd_disabled;
             my $stat_start_cref
                 = exists $code{'stats.sub_start'}
                 ? $code{'stats.sub_start'}->($sub_name)
@@ -2320,9 +2337,24 @@ sub p7_load_code {
         );
     }
 
-    ## staged hash swap  reload : atomic swap + rollback window  initial ##
-    ## load : subs already installed directly — no swap needed           ##
-    if ( $is_reload_batch and not $err_count ) {
+    ## staged hash swap  reload : atomic swap + rollback window  initial    ##
+    ## load : subs already installed directly — no swap needed              ##
+    ##                                                                      ##
+    ## $is_reload_batch alone missed a real third case : a module that was  ##
+    ## only ever STUBBED at startup [ whitelist-deferred, never previously  ##
+    ## compiled ] being compiled for the first time via a later             ##
+    ## runtime/deferred-compile call, once $active_version is already set.  ##
+    ## that batch has no sub with a prior 'no-error'/ 'warned' status, so   ##
+    ## $is_reload_batch stays FALSE, yet it also is not the very-first-load ##
+    ## case [ $active_version already defined ] -- it fell through to the   ##
+    ## discard branch below, so a successful deferred compile never reached ##
+    ## %code and base.handler.  deferred_compile's goto handoff kept        ##
+    ## re-entering the still-a-stub sub, recursing until Perl's own depth   ##
+    ## guard aborted the zenka [ confirmed live, 2026-08-16 :               ##
+    ## crypt.C25519.cmd.get-public-key ].  any successful compile after the ##
+    ## initial load must be applied, whether or not anything in the batch   ##
+    ## happens to be a RELOAD of previously-working code                    ##
+    if ( defined $active_version and not $err_count ) {
 
         ## archive prior version under its load-seq key  using seq key ##
         ## avoids collision when same src-ver reloaded                 ##
@@ -5959,8 +5991,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,,,.,,,,.,,,,,,...,,,.,,.,,,.,,..,,...,..,,...,...,..,,.,,,,,.,.,.,...,
-#OEBUDB2RWUTNJ2GRDNX5EPVQYAVDBDF6P2P4YM4HQ52OWH4WXX7TUNG7TFL65CL7V2RPDBTOHKBVI
-#\\\|K3RWLKTAMMFUSJLPQYB6PSHMPQUHM2BFLPXVYERA7MJQTCJ4WIX \ / AMOS7 \ YOURUM ::
-#\[7]5B6CKAHJ7VHQNEZQSLUOUF25263LAVTAPLXSSQGM6TUAL7INGSCA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,,,.,.,.,.,,,.,,,.,.,,..,.,.,..,,...,...,.,.,.,,,...,..,,...,
+#XWKID4HJV545LXHCNQ2N3REJABOFHSDT5ELHEXFFQRE6YC365JYY7SYLZF6ZQ7RSCDP6TH32UQL6C
+#\\\|G52VLVXZ23VPA65IOAENMGDBDSUL33A3M66GYM5VN5WUALPZZVJ \ / AMOS7 \ YOURUM ::
+#\[7]6B23C6CJ5Y3DW2QWMQLR6FW62RBSEMF6GQ5KZBEDNKITU2WGRSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

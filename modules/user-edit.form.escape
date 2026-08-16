@@ -24,6 +24,20 @@ return FALSE if ref $editor_state ne qw| HASH |;
 
 my $mode = $editor_state->{'mode'} // qw| insert |;
 
+## an open IN-FRAME PROMPT is the shallowest sub-mode there is : Esc backs out
+## of IT first [ editor.control.prompt.* -- e.g. the key-actions key-create
+## chain ].  cancelled here rather than in handler.key because a bare Esc
+## never reaches the key loop as a resolved key [ handler.  esc_timeout's
+## debounce calls THIS module directly ].  no early return afterward : the
+## prompt was opened from plugin mode, so the existing plugin branch below
+## then backs out of THAT too -- one Esc lands back on the focused, un-entered
+## row, exactly like the prompt's own Left/Ctrl-C cancel path in
+## plugin.user-edit.key-actions.handler.key
+if ( ref $editor_state->{'prompt'} eq qw| HASH | ) {
+    <[base.logs]>->( 2, ': cancelling in-frame prompt' );
+    <[editor.control.prompt.cancel]>->($editor_state);
+}
+
 ## a MENU ascends one level : editor.control.menu.close returns the state the
 ## menu was opened over, and undef means this was the top level -- so Esc
 ## there leaves the form, which is the same "back out one level" reading
@@ -140,8 +154,8 @@ if ( ref $browse_return eq qw| HASH | ) {
 
 return TRUE;
 
-#,,.,,.,,,.,,,,..,,,.,.,,,.,,,,,,,..,,,.,,.,.,..,,...,...,,,.,...,,..,..,,,,.,
-#HLGCRBVVH4VPMSMKATQE2MZXPCVAJTJRTRCJXHSAQOMFLS3YHT2B4IZJR4NPDOTCVM7LOXTGVKTFE
-#\\\|DTKSHOFGLXSBTDM3Z2CAGTUFE5KQWZ75BTBTAKIR5JVJY3E47RZ \ / AMOS7 \ YOURUM ::
-#\[7]SDPPWWYAT4ODZWPIOEVNBOYQKULMXETVTWNJ6DEOHTECBEVZ4ICQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,.,.,,,,,,,,,,,,,.,.,,,,..,,.,,..,,...,...,.,,,,,,,.,.,,.,,.,.,
+#FYSMZXKSAEMK7GYIUPU3IL3GJPSWXJMYTX2SODQIHF7XDRTVTPWO4S4M26WZVGFXIVOZMWMGA3DFY
+#\\\|FIAV7F2GEK6N5CCVMBZ4ULDTN7LQHDW34ETWQMT3VDIPAUMF574 \ / AMOS7 \ YOURUM ::
+#\[7]NIAYZ7DXJE3IAUQDUFWOKSWEJ7CCDQ67FVE7VZLUF46FPKPNKYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
