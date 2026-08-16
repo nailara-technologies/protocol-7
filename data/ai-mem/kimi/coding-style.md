@@ -965,11 +965,58 @@ in-frame prompt primitive [ task data/tasks/editor-inframe-prompt-primitive.md
   routines were loaded' then 'FATAL ERROR : deep recursion on anonymous
   subroutine [crypt.C25519.cmd.get-public-key:1]' [ on-demand compile
   failing + re-entering itself ].  fix = manual re-insert, again.
+  UPDATE 2026-08-16 : this recurred a 4th time and the CRASH itself is now
+  fixed at the root, in bin/Protocol-7's p7_load_code -- see
+  data/ai-mem/claude/project-loader-deferred-compile-disabled-cmd-fix-2026-08-16.md.
+  A dropped whitelist entry for a disabled cube-only command now self-heals
+  via deferred compile instead of aborting the zenka.
 
 ---
 
-#,,,.,.,.,...,,.,,,,,,..,,.,.,..,,,,.,,,,,,..,.,.,...,..,,.,.,,..,,,.,,,,,,,.,
-#NWQLM7XLTN2NIKOD3LND7OTL35ZXDZJV6WWBTGKK3G5UR7V5TICBFPCAUP2VBI2RQEED5553WQ3IU
-#\\\|VLZDWUAEG3NDITWSNA25FSX2XW2ULF2GMMBAOW6JUHR5R4MXC7E \ / AMOS7 \ YOURUM ::
-#\[7]3PDJ254PIFN7AWPKBVWNH6AGQJQ77VQHH7OA7XQHCN4JEA6ZE4CY 7  DATA SIGNATURE ::
+## user-edit.key_actions.submit_rename_{from,to} — rename-key, build +
+## live findings (2026-08-16)
+
+Second `editor.control.prompt.*` consumer after create (`user-edit.
+key_actions.submit_name`/`.submit_passphrase` above) -- same two-stage
+chain shape (`r` trigger ->
+name-of-existing-key stage -> new-name stage), same `$fail`/`$done` closure
+pattern, same identity/`remote-host.*` exclusion `user-edit.form.
+build_user_keys_field` already applies to the displayed list.  Live-verified
+via `script -qec`, not self-reported: create, rename-success (all 3 files
+moved, `user_keys` refreshed immediately), rename-to-existing-name (clear
+rejection, no files touched), rename-of-self-identity-key (refused at stage
+1, stage 2 never opens), and cancel via Esc/Ctrl-C at both stages (zenka
+alive through every case, including Ctrl-C mid-stage-2 -- design anchor 5's
+guarantee holds for a second prompt chain, not just create's).
+
+* `crypt.C25519.keyfiles($name)` DOES NOT return every file for a key when
+  given a name -- read its own source: it does `last if defined $name`
+  after the FIRST match, i.e. it returns exactly one file, not the
+  `.private`/`.public`/`.secret` set.  A task file describing this task
+  wrongly assumed otherwise.  Correct enumeration for "every file belonging
+  to key X": call `keyfiles()` with NO name arg [ full directory listing ]
+  and filter with `<[crypt.C25519.get_keyname]>->($file) eq $name` yourself.
+  The delete task reuses this exact same enumeration question -- use this
+  answer, don't re-derive it.
+* the rename itself is a plain `rename $old_file, $new_file` per matched
+  file, swapping only the name-prefix portion of the basename via
+  `substr`/regex on the OLD basename length -- no chksum-cache invalidation
+  call was needed in practice : `keys.checksum_href`/`crypt.C25519.
+  cached_chksum` re-derive from `crypt.C25519.all_key_names` [ a fresh
+  directory scan ] on every call, so a live rename shows the new name with
+  its correct checksum immediately, no stale cache entry under the old name
+  observed.
+* Left-arrow's content-preserving fix (see data/ai-mem/claude/feedback-
+  modal-prompt-navigation-never-loses-content.md) applies here unmodified,
+  inherited from the shared primitive -- a single Left
+  press on a non-empty rename-target buffer moves the cursor, it does NOT
+  cancel the prompt.  Worth remembering when scripting a test: don't assume
+  one Left press cancels a modal prompt any more, it takes an empty buffer.
+
+---
+
+#,,..,,..,.,.,,..,,,,,..,,,,,,...,.,.,,.,,..,,.,.,...,...,.,,,..,,.,.,,..,...,
+#USVJAS2O4IIMUI6OSDWBZM3J53OSDP3JSDS6KDRWMPEVMUYTXSUMKM2O7ETER3J6MA2PXW7D3OSUS
+#\\\|BTVEARHSN3HPQE5UXDUQ66FAQ7QPNR4OT5HIVOTNZPTMJMO42K5 \ / AMOS7 \ YOURUM ::
+#\[7]GOIIMHVFLDZSB7IR75JWCG4MH3G6MCZ2BOOKT6TXMMDVZ3MPA2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
