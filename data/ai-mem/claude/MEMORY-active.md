@@ -112,9 +112,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 - [user-edit-inframe-prompt-landed-2026-08-16](project-loader-deferred-compile-disabled-cmd-fix-2026-08-16.md) — LANDED `b056a04c4`: event-loop-safe in-frame key-create prompt (`editor.control.prompt.*`), same-shape rename/delete task files staged next; also root-caused+fixed the recurring `crypt.C25519.cmd.get-public-key` whitelist-drop CRASH (two real bugs in `bin/Protocol-7`'s `p7_load_code`, not `dep-graph`) — see file for the two bugs and what's still unverified
+- [rename-empty-target-stuck-state](topic-rename-empty-target-stuck-state-investigation-2026-08-16.md) — RESOLVED, fix live-verified not yet committed: `key_actions` row froze after any submit_* guard failure (create+rename share it) because `<user-edit.*.last_result>` was never cleared; fixed at the plugin-mode entry trigger in `user-edit.handler.stdin_key`; also documents the blind-sleep-vs-synchronized `expect` testing gotcha
 
-#,,.,,.,,,..,,...,...,...,.,.,,,.,,,,,...,,,.,..,,...,...,.,,,.,.,,,,,.,,,,,.,
-#QXNW5MUEQD35INP5JYGD2GTHD5XNF2KYBXT5OR6KCIQP42ADODOWED35Q2BYRYOA4SCQWOIX34YSM
-#\\\|SPI7MWJ3ABRNYCTVS33IKOADSBX2JE3XU6656VH4GYB7VU63LHB \ / AMOS7 \ YOURUM ::
-#\[7]VBBV6B3TN6BBRG67XINGEMPAB3ADQT5YAGI3PSI5KAK3G5R7KWAY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,.,.,,,...,,,.,.,.,,,.,,.,,,..,..,,...,...,..,,.,.,...,,,.,.,,,
+#DQNNFCBKG36BKYMIC3JYW2IVCGC4BDQFIY5IEC62GYYDLZKEQTELYRXI2NVG3MV4JXRV6VADES4Q6
+#\\\|K7OXZADBSYGPCIKZQSW7VULMN5IYMDYGID6DIM2NBL23O266V5J \ / AMOS7 \ YOURUM ::
+#\[7]IWZ5IIQS7SXXXWSP7DRWIC74BL7GAEVGZ5OCQIPNWHEQOVIDZ6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
