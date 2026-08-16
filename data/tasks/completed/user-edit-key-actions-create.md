@@ -1,5 +1,9 @@
 # user-edit: key-actions tab -- create a new key (first interactive key action)
 
+## archive: DONE ✓ — 2026-08-16
+## commit: b056a04c4 — user-edit: event-loop-safe in-frame prompt primitive, fix loader deferred-compile bugs
+## notes: landed alongside editor-inframe-prompt-primitive.md in the same commit; submit_name/submit_passphrase live-verified via script -qec (real pty); became the copy-this-shape template rename and delete both followed
+
 **Read first:**
 - `data/ai-mem/kimi/coding-style.md` and `data/ai-mem/kimi/MEMORY.md` -- P7
   module conventions, common mistakes to avoid.
@@ -320,8 +324,8 @@ excursion check (item 1) actually showed, and on which of the two resume
 sites you ended up exercising in testing -- both are exactly the kind of
 non-obvious, load-bearing findings future work in this area will need.
 
-#,,..,,,,,,.,,,..,..,,,,,,.,,,,,,,..,,,..,,.,,..,,...,...,,,.,...,,..,,..,.,.,
-#PUBCCJ64ETLMGYIMKSNQM32D2EMKX2CURDBCAKGC2MA3IACBCU4E2JL67A6RZTNX4MJRAVSOHKNG4
-#\\\|XQQK326DWB36XFQYUJFHCQAOPAUUMIGVHHJQF74PQFKLRI3C4PI \ / AMOS7 \ YOURUM ::
-#\[7]GUSAXT6YZKAUKKQ3NHYFSJPDUTP3FUGRSE2LG4HXXMC5QVMRSUDY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,.,,,.,.,.,.,,..,.,.,.,.,..,,..,,...,...,..,,,,,,,,.,...,...,
+#CYSHU2MSGSIFU2Q5QAYCJTWYRS62LYKLEVCP4NLC77EZDWV3MT4A5UTVLE5HV3RT6R7R3THQGZO6A
+#\\\|3GATJY4KGWWOTB4RSH2MLKJWNK6INNV27LFBN3SD7EOCM6HJAJJ \ / AMOS7 \ YOURUM ::
+#\[7]VX5IXU5PM3NWZREJV5NTN43UQM3N6AUOEF6ATDZFXQ4WMQ7BNCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
