@@ -150,8 +150,18 @@ bugs above, this one took a live zenka down and would silently repeat on
 every future regen until the underlying `dep-graph`/`gen-sub-whitelist`
 logic is actually fixed.
 
-#,,.,,,,.,.,.,.,,,.,.,.,,,.,.,.,,,,..,,..,...,..,,...,...,,.,,,,.,..,,,,.,,,,,
-#XB3AN3LU6ISEZKV4FRZHOU5OLZ3MOVFYVB5V5ML5MQ6MJZGDNBNCVGXUCGJL76KQZWOCOFBF3WW2A
-#\\\|BWB7S4VCPZFECKKY7HDCLLSIJPBCHJDBEGB6HF6XUZ4X6UPXCVJ \ / AMOS7 \ YOURUM ::
-#\[7]FZ7HUYWSFVFPHXU3HFC7KLMYJESKSVXVVYJGJBNWO3AHIEMQOUBA 7  DATA SIGNATURE ::
+**UPDATE 2026-08-16, see [[project-loader-deferred-compile-disabled-cmd-fix-2026-08-16]]**:
+this exact entry recurred a 4th time, and the CRASH consequence is now fixed
+at the root -- two real bugs in `bin/Protocol-7`'s `p7_load_code` itself
+(not `dep-graph`/`gen-sub-whitelist`, which was never actually confirmed to
+be the thing dropping the entry). A dropped whitelist entry for a disabled
+cube-only command now self-heals via deferred compile instead of crashing
+the zenka. Whether `gen-sub-whitelist` still DROPS the entry on a fresh
+regen was not re-tested -- the "always `git diff` the regen" advice above
+still stands, the stakes of missing it are just much lower now.
+
+#,,.,,,,,,,..,,.,,,,.,,,.,,,.,..,,,..,..,,.,,,..,,...,...,..,,.,,,,,,,...,,..,
+#SMHTOLDQDX4SEQY7N2S7XNXUEIJN6ZYLOIYTWAIGAWUVO5CUR4SA5335OOPFPU3LKW57TNI42LRQ6
+#\\\|OTIPL2SF5RNFTYGD5ESGYHASCUHK2JBRR634WAQVI4YGVUS423T \ / AMOS7 \ YOURUM ::
+#\[7]BOEPQ33HUDAQHQDQX76FEQK7JSKJTEUAUEWTDYICPALHPQSACQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
