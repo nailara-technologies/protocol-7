@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = editor.control.prompt.cancel
+# descr = close an open in-frame prompt without submitting
+# param = $editor_state
+
+## single close path for every cancel key [ Left / Ctrl-C in handler.key, bare
+## Esc in user-edit.form.escape's prompt branch ] and for a submit callback
+## that is done with the prompt.  fires the optional on_cancel sub [ resolved
+## through %code at call time, same as on_submit ] BEFORE dropping the state,
+## so the callback still sees which prompt it was.
+
+my ($editor_state) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $prompt = $editor_state->{'prompt'};
+return FALSE if ref $prompt ne qw| HASH |;
+
+my $cancel_sub = $prompt->{'on_cancel'} // '';
+
+$code{$cancel_sub}->($editor_state)
+    if length $cancel_sub and exists $code{$cancel_sub};
+
+delete $editor_state->{'prompt'};
+
+return TRUE;
+
+#,,,,,.,.,,..,.,,,,,.,,,,,.,,,,,.,,,,,,,.,..,,..,,...,...,.,.,,,,,...,..,,,,.,
+#AUMIVYFYG7TPFH6PI5BHSBN6BSXQMSVSPQM4HNH3KQHVU6FXXYBJADW372OZ4R6EPDUPTXJL23I5U
+#\\\|CHLJTHDHPHMAO666YKTNRUTNBUUNLWCWU7AFK2ONPVUOKLVCIKE \ / AMOS7 \ YOURUM ::
+#\[7]YZMLHAR3NX7RSKNEPCCXGA4ZRYTC7AAQCLXGVAMF6RVG4V26SYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

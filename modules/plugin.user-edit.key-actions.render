@@ -5,17 +5,26 @@
 # param = $editor_state, $field
 
 ## fires on EVERY render regardless of mode [ editor.control.
-## get_display_value calls display_override unconditionally ].  shows a short
-## static hint normally, and the LAST excursion's outcome once one has run [
-## <user-edit.key_actions.last_result>, set by user-edit.excursion.
-## key_create ].  that scalar is transient UI feedback only, never persisted
-## anywhere -- key data is not record data, and this is not even key data.
+## get_display_value calls display_override unconditionally ].  while an
+## in-frame prompt anchored to THIS field is open [ editor.control.prompt.* --
+## the key-create name / passphrase stages ], the row IS the prompt : label +
+## live buffer content + cursor, drawn by prompt.render.  otherwise shows a
+## short static hint normally, and the LAST create's outcome once one has run
+## [ <user-edit.key_actions.last_result>, set by user-edit.
+## key_actions.submit_name / .submit_passphrase ].  that scalar is transient
+## UI feedback only, never persisted anywhere -- key data is not record data,
+## and this is not even key data.
 ##
 ## no leading/trailing space here -- render_form's generic body wrap plus its
 ## pad_l/pad_r framing already supply that for every unfocused field [ the
 ## same padding-stack lesson plugin.user-edit.key-details.render documents ]
 
 my ( $editor_state, $field ) = @ARG;
+
+my $prompt_display
+    = <[editor.control.prompt.render]>->( $editor_state, $field );
+
+return $prompt_display if defined $prompt_display;
 
 my $last_result = <user-edit.key_actions.last_result>;
 
@@ -29,8 +38,8 @@ return q|enter : create a new key .,. left : back| if $in_tab_mode;
 
 return q|[ enter : create a new key ]|;
 
-#,,.,,,.,,,,.,,,,,,,,,,,.,..,,,,.,.,.,.,.,...,..,,...,...,,..,.,.,..,,.,,,.,,,
-#WGWBD7E263XOLO5OM3ITCZGPFR37LGM2JLLBGTKNLCHEWTH5MVWJ3MSELRG4MD454PSAKP7N3KM66
-#\\\|4GFQET3GVSIATJODO6EEKOXP3M2J6RK5LF3OWYWTKEZPNLL2Q5G \ / AMOS7 \ YOURUM ::
-#\[7]JYRFMFEP6YBCIDVUR6TN4B5POBCKNLLFOO2YKWB4HBOMAV3PHYCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,.,,.,.,,,,,..,,,,,,,,,,,.,,..,,..,,...,...,...,.,,,...,..,,,..,
+#UZLYFAL6C7WW6P3LY4XTQWSF47SOOXQTHOU2SPHEG2UK6YD7CYBSK7MAUW2KZLPYFLNGGGIFNBXUS
+#\\\|IFSEK3VSH6ND3SUYGP7W2D552SAFMDYMDUZP4J2XIANDAPYNLML \ / AMOS7 \ YOURUM ::
+#\[7]G5YRFWAYNKPI6ZB4BEFATWD65HYE6QSY6IJRVQI2QE3PYGHTI6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -197,8 +197,8 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
     ## SYNTHESISED, self-record-only : every OTHER named C25519 key the
     ## invoking Unix user holds.  MOVED to
     ## user-edit.form.build_user_keys_field, 2026-08-15, unchanged in
-    ## behaviour -- factored out so user-edit.  excursion.key_create can
-    ## rebuild this one field's def+buffer after a successful key-create,
+    ## behaviour -- factored out so user-edit.  key_actions.submit_passphrase
+    ## can rebuild this one field's def+buffer after a successful key-create,
     ## without a full schema rebuild [ a create excursion was otherwise
     ## invisible in the list until the next full reload, read live as "did it
     ## even create anything" ].  the builder is self-contained [ re-derives
@@ -215,9 +215,9 @@ if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) {
     ## is ALSO pinned in the plugin registry's by_key map [
     ## plugin.user-edit.key-actions.tab_info's pinned_keys ], which is exactly
     ## what makes stdin_key's Right-entry trigger able to fire on it.  its
-    ## Enter handler only sets <user-edit.pending.key_create> and unloops ;
-    ## the actual blocking work runs outside the event loop, via
-    ## user-edit.check_pending_excursions after both zenka.loop call sites
+    ## Enter handler opens the in-frame key-create prompt chain [ editor.
+    ## control.prompt.* ] rendered into THIS row -- nothing leaves the event
+    ## loop for it any more [ the blocking-excursion shape is retired ]
     $field_def_by_name{'key_actions'} = {
         qw| name |             => qw| key_actions |,
         qw| type |             => qw| freeform_line |,
@@ -297,8 +297,8 @@ return {
     qw| submit_on |    => $submit_on // qw| enter |,
 };
 
-#,,,,,,,.,...,,..,,.,,.,,,..,,...,,.,,...,,..,..,,...,...,,..,.,,,,.,,...,..,,
-#CYCNSLXP33GZK5WTWOJKLC6QPQ4K7I3KHS7UM3NBHLH4O4GFUP2FSU545BPZP7Q7WUW5KL7DCD6IA
-#\\\|RAVFT4EJDDQWRQJKVVIXB25XN56E3LPIFIS6NXCZBSQXU5X62SZ \ / AMOS7 \ YOURUM ::
-#\[7]HG6ZYWKURIKDFBLH2VVPVSIDNZPNL4OUPLAQWLLBXMOWWHMGSQBI 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,.,..,,,,,,..,,...,.,,,,..,,,,,..,,...,..,,..,,...,.,,,,.,,,..,
+#CAUVHHXBOWVXAADVEIP3P3DEAQXSMMXSGI73WAWPY4JOZGGLFY37NFZBTRFXKAD4SWXEBD7HIXKEW
+#\\\|HG6P34CMDITKJHYP2HOSK6DEFOAOSDEOOJS2LZZLND33TSDFKNN \ / AMOS7 \ YOURUM ::
+#\[7]GVZL7HWKOCNQQQRXXUP47TJHI62UINPVG5V4UKN5KLF3YQKOYUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
