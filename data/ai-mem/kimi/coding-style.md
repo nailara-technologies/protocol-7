@@ -1013,10 +1013,65 @@ guarantee holds for a second prompt chain, not just create's).
   cancel the prompt.  Worth remembering when scripting a test: don't assume
   one Left press cancels a modal prompt any more, it takes an empty buffer.
 
+## user-edit.key_actions.submit_delete_{name,confirm} -- delete-key, build +
+   live findings (2026-08-16)
+
+Third key_actions trigger key (`d`), same shape as create/rename: stage 1
+(`submit_delete_name`) validates the target exists and isn't the self
+identity key or a `remote-host.*` key, same exclusion rename already uses.
+Stage 2 (`submit_delete_confirm`) is a single exact-match gate -- the typed
+value must equal the literal string `delete key`, case-sensitive, no
+trimming, no fuzzy match. Implementation matched the task file's own spec
+closely: `$fail`/`$done` closures, `crypt.C25519.keyfiles()` with no name
+arg filtered by `get_keyname` (same enumeration answer the rename note
+above already established), `crypt.C25519.unload_key($name, TRUE)` called
+before unlinking so a loaded copy doesn't go stale, then the same
+`user_keys` field-def refresh block create/rename both use.
+
+Live-verified via `script -qec`, not self-reported, using throwaway keys
+only: create-then-delete round trip; three distinct wrong-confirmation
+attempts (close-but-wrong text, correct phrase with trailing whitespace,
+correct phrase with wrong casing) each correctly rejected with the key's
+files confirmed STILL on disk via direct `ls`, not just a UI message, and a
+fresh delete attempt in the same session working correctly afterward;
+correct-phrase deletion confirmed via `ls` showing the files genuinely gone;
+self-identity-key delete attempt refused at stage 1, confirmed stage 2 never
+opened; Esc-cancel at stage 1, Ctrl-C-cancel at stage 1, and Esc-cancel at
+stage 2 (even after typing the exact correct phrase but before submitting)
+all confirmed via `ls` to leave the key's files untouched; Tab navigation
+and rename's own stage-1 trigger both confirmed still reachable afterward
+(no regression).
+
+**Real bug found and fixed during this verification, NOT part of the
+delete-flow code itself**: the very first correct-confirmation delete
+attempt crashed the zenka outright (`string ('1') as subroutine ref while
+'strict refs' in use [crypt.C25519.del_keys_hash_entry:42]`). Root cause was
+a PRE-EXISTING latent bug in `crypt.C25519.del_keys_hash_entry`, unrelated
+to anything this task wrote: line 41 had `<[base.erase_buffer_content]>`
+followed by a trailing `## comment ##` on the SAME line, with its
+`->( \$key_name_table->{$name}->{'checksum'} )` call on the NEXT line. The
+translator's args-follow lookahead does not see past the comment, so it
+auto-appended an empty `->()` to the bracket -- `base.erase_buffer_content`
+then ran with NO argument, hit its own `ref $buffer_sref ne 'SCALAR'` guard,
+and `return warn(...)` returned Perl's own `1` (warn's return value), which
+the ORIGINAL `->( \$key_name_table->... )` then tried to call as a
+subroutine reference on -- hence the exact error text. This branch of
+`del_keys_hash_entry` (the "not in `%keys` but IS in the loaded-keys table"
+path) had apparently never been exercised live before delete-key's
+`unload_key` call reached it for the first time. Fixed by moving the
+`->(...)` onto the same line as the bracket and the comment above it,
+matching this same file's OTHER `<[base.erase_buffer_content]>` call
+(line 27) which already used the safe one-line shape. Worth remembering for
+any future module: a `<[module.name]>` bracket followed by a trailing
+same-line comment, with the `->(...)` args on the next line, silently
+mis-parses as a zero-arg call whose RETURN VALUE gets called as the real
+subroutine -- always keep `->(...)` on the same line as the bracket, put
+any comment above or after the full statement instead.
+
 ---
 
-#,,..,,..,.,.,,..,,,,,..,,,,,,...,.,.,,.,,..,,.,.,...,...,.,,,..,,.,.,,..,...,
-#USVJAS2O4IIMUI6OSDWBZM3J53OSDP3JSDS6KDRWMPEVMUYTXSUMKM2O7ETER3J6MA2PXW7D3OSUS
-#\\\|BTVEARHSN3HPQE5UXDUQ66FAQ7QPNR4OT5HIVOTNZPTMJMO42K5 \ / AMOS7 \ YOURUM ::
-#\[7]GOIIMHVFLDZSB7IR75JWCG4MH3G6MCZ2BOOKT6TXMMDVZ3MPA2AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,..,,.,,,.,.,,,.,...,,,,,,..,.,.,...,...,...,.,,,..,,..,,.,.,
+#D5SU5NXAU5HZM572VYY33LSUSCAP6K526ZPVTT6RF7L3OCN623C7FUUG5XNVR6BCCHBK2MD4Z7BXG
+#\\\|CNYLFNBQ5QLGIFHJ6DTZVCTL37BSSWVCVKTIR4K6KNMU566WNFN \ / AMOS7 \ YOURUM ::
+#\[7]JQ4BHWO2RJJXFPHOYN5KEEL2NHVVTDWMK7BSFUFXAZJBOSO3L4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
