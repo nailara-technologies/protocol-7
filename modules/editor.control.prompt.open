@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = editor.control.prompt.open
+# descr = open a modal in-frame prompt anchored to an existing field's row
+# param = $editor_state, \%spec
+
+## the OPEN half of the event-loop-safe in-frame prompt primitive : a small
+## modal question [ text or masked ] whose input is collected by a buffer of
+## its own and whose output is RENDERED INTO the anchoring field's own row --
+## no terminal mode change, no blocking read, no leaving the event loop [ the
+## shape base.term.ask can never have inside a running loop ].
+##
+## %spec keys :
+##   field     -- name of the schema field whose row displays the prompt
+##   label     -- prompt label shown before the live buffer content
+##   type      -- 'freeform_line' [ default ] or 'masked' ; masked builds
+##                mask_stars via editor.buffer.memory.create, exactly like
+##                any masked FIELD's buffer -- no new masking logic here
+##   on_submit -- NAME of the sub called as ->( $editor_state, $value,
+##                $prompt ) on Enter ; resolved through %code at CALL time,
+##                not bound here, so a code reload never strands a stale ref
+##   on_cancel -- NAME of an optional sub ->( $editor_state ) on cancel
+##   data      -- optional href carried opaquely for the submit chain [
+##                e.g. the name a passphrase stage was opened for ]
+##
+## the whole prompt lives in $editor_state->{'prompt'} -- per-editor-state,
+## not a %data keyword : a stale prompt then cannot outlive the state it was
+## opened on, and two open editor states can never share one by accident.
+## opening while one is already open REPLACES it [ the multi-stage chain
+## submits stage N by opening stage N+1 ].
+
+my ( $editor_state, $spec ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+return FALSE if ref $spec ne qw| HASH |;
+return FALSE if not length( $spec->{'field'} // '' );
+return FALSE if not length( $spec->{'label'} // '' );
+
+my $type = $spec->{'type'} // qw| freeform_line |;
+$type = qw| freeform_line | if $type ne qw| masked |;
+
+my $buffer = <[editor.buffer.memory.create]>->(
+    {   qw| type |    => $type,
+        qw| default | => '',
+    }
+) // return FALSE;
+
+$editor_state->{'prompt'} = {
+    qw| field |     => $spec->{'field'},
+    qw| label |     => $spec->{'label'},
+    qw| buffer |    => $buffer,
+    qw| on_submit | => $spec->{'on_submit'},    ## sub NAME, resolved late ##
+    qw| on_cancel | => $spec->{'on_cancel'},
+    qw| data |      => $spec->{'data'} // {},
+    qw| busy |      => FALSE,    ## reentrancy guard, see handler.key ##
+};
+
+return TRUE;
+
+#,,,,,...,.,,,,,,,..,,,,.,.,.,,..,...,,..,.,.,..,,...,...,..,,,.,,.,,,.,.,,.,,
+#POLG74RHX5LYN5RF2FLLUOZLVSG353WB6HTSIPJVVD5LQSU4UHGPSQNMEZDQ77WZ7WDH7ZHFI4NAE
+#\\\|E4B7ZHLFQIELKZTIG67HKPB53CRHL2ZPYFD5NOCO5IWF7GO5MCM \ / AMOS7 \ YOURUM ::
+#\[7]6JO4XZK2ZQBH3A4NNAOG6J6RQQEOIMK36DRNXPCHFC3ZGP6P3GCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
