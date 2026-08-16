@@ -1,0 +1,401 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+####                ####
+##  B32-dist-stat     ##
+###                 ####
+
+## reads base32-encoded data from STDIN, decodes it, and prints prettified  ##
+## distribution tables for both the base32 symbol stream and the underlying ##
+## decoded byte content                                                     ##
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $Bin    = $RealBin;
+    our $up_dir = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS7;    ## colors : %C ##
+
+##[ base32 alphabet ]#########################################################
+
+## base32 symbol -> 5-bit value [ RFC 4648, A-Z2-7 ] ##
+my %b32_table = (
+    'A' => 0,
+    'B' => 1,
+    'C' => 2,
+    'D' => 3,
+    'E' => 4,
+    'F' => 5,
+    'G' => 6,
+    'H' => 7,
+    'I' => 8,
+    'J' => 9,
+    'K' => 10,
+    'L' => 11,
+    'M' => 12,
+    'N' => 13,
+    'O' => 14,
+    'P' => 15,
+    'Q' => 16,
+    'R' => 17,
+    'S' => 18,
+    'T' => 19,
+    'U' => 20,
+    'V' => 21,
+    'W' => 22,
+    'X' => 23,
+    'Y' => 24,
+    'Z' => 25,
+    '2' => 26,
+    '3' => 27,
+    '4' => 28,
+    '5' => 29,
+    '6' => 30,
+    '7' => 31,
+);
+
+sub decode_base32 {
+    my ($str) = @_;
+
+    ## strip line-wrapping/whitespace and trailing padding before decoding ##
+    ( my $clean = $str ) =~ s|[^A-Za-z2-7=]||g;
+    $clean = uc $clean;
+    $clean =~ s|=+$||;
+
+    my @bits;
+    for my $char ( split //, $clean ) {
+        my $val = $b32_table{$char};
+        return '' unless defined $val;
+        ## 5 bits / symbol ##
+        push @bits, split //, sprintf( '%05b', $val );
+    }
+
+    my $out = '';
+    while ( @bits >= 8 ) {
+        my @byte_bits = splice( @bits, 0, 8 );
+        $out .= chr( oct( '0b' . join( '', @byte_bits ) ) );
+    }
+    return $out;
+}
+
+##[ OUTPUT HELPERS ]##########################################################
+
+sub hr        { say $C{'0'} . ( '-' x 60 ) . $C{'R'} }
+sub double_hr { say '   ' . $C{'T'} . ( ':' x 60 ) . $C{'R'} }
+
+## table framing -- data tables get a one-space-indented box around them, ##
+## using . / : decoration [ dot rule, colon frame ] instead of -/|/+      ##
+use constant TABLE_INNER_WIDTH => 60;
+
+## colored column separator, used between every field inside a table row ##
+our $SEP = "$C{'0'}:$C{'R'}";
+
+## same, but re-asserts bold+title color after itself -- for header/total  ##
+## rows that wrap their whole line in one color span rather than per-field ##
+our $HSEP = "$C{'0'}:$C{'R'}$C{'B'}$C{'T'}";
+
+sub frame_hr {
+    say ' ' . $C{'0'} . ( '.' x ( TABLE_INNER_WIDTH + 4 ) ) . $C{'R'};
+}
+
+sub frame_row {
+    my ($content) = @_;
+    say " $C{'0'}:$C{'R'} $content $C{'0'}:$C{'R'}";
+}
+
+use constant TITLE_WIDTH => 60;
+
+sub section_title {
+    my ($title) = @_;
+    ## '::' + pad + title + ' ::' ##
+    my $pad = TITLE_WIDTH - 5 - length($title);
+    $pad = 0 if $pad < 0;
+
+    say '';
+    double_hr();
+    say '   '
+        . $C{'T'} . '::'
+        . $C{'R'}
+        . ( ' ' x $pad )
+        . $C{'B'}
+        . $C{'T'}
+        . $title
+        . $C{'R'}
+        . $C{'T'} . ' ::'
+        . $C{'R'};
+    double_hr();
+}
+
+sub banner {
+    my ($text) = @_;
+    say sprintf(
+        "$C{'0'}:\n:$C{'b'} $C{'T'}%s$C{'0'} $C{'R'}\n$C{'0'}:$C{'R'}",
+        $text );
+}
+
+## printable rendering of a decoded byte -- raw control bytes [ incl. ESC ] ##
+## must never reach the terminal literally, they corrupt the ANSI state of  ##
+## every color code printed after them                                      ##
+sub char_label {
+    my ($char) = @_;
+    my $ord = ord($char);
+    return $char if $ord >= 0x20 && $ord <= 0x7E;
+    return sprintf( '\x%02X', $ord );
+}
+
+##[ READ INPUT ]##############################################################
+
+my $input     = do { local $INPUT_RECORD_SEPARATOR; <STDIN> };
+my $input_len = length($input);
+
+if ( $input_len == 0 ) {
+    error_exit('no input provided <{NC}>');
+}
+
+banner('base32 distribution statistics');
+
+##[ SECTION 1 : base32 symbol analysis ]######################################
+
+my %b32_freq;
+my $padding_count = 0;
+foreach my $char ( split //, $input ) {
+    if ( $char eq '=' ) {
+        $padding_count++;
+    } elsif ( $char =~ m|[A-Z2-7]| ) {
+        $b32_freq{$char}++;
+    }
+}
+
+section_title('base32 symbol distribution');
+
+frame_hr();
+frame_row(
+    sprintf(
+        "$C{'B'}$C{'T'}%-8s ${HSEP} %-10s ${HSEP} "
+            . "%10s ${HSEP} %10s ${HSEP} %10s$C{'R'}",
+        '5-bit', 'Character', 'Count', 'Freq', 'Percent'
+    )
+);
+frame_hr();
+
+## sort by frequency [ desc ], then alphabetical ##
+my @b32_sorted = sort {
+           $b32_freq{$b} <=> $b32_freq{$a}
+        || ( $b eq '=' ? 1 : 0 )
+        || $a cmp $b
+} keys %b32_freq;
+
+foreach my $char (@b32_sorted) {
+    my $count = $b32_freq{$char};
+    my $freq  = sprintf( '1:%d', $count );
+    my $pct   = sprintf( '%.2f', ( $count / $input_len ) * 100 );
+    my $bits  = sprintf( '%05b', $b32_table{$char} );
+
+    frame_row(
+        sprintf(
+            "$C{'g'}%-8s$C{'R'} ${SEP} $C{'T'}%-10s$C{'R'} ${SEP} $C{'0'}%10d$C{'R'} ${SEP} $C{'T'}%10s$C{'R'} ${SEP} $C{'g'}%9.2f%%$C{'R'}",
+            $bits, "'$char'", $count, $freq, $pct
+        )
+    );
+}
+
+frame_hr();
+frame_row(
+    sprintf(
+        "$C{'B'}$C{'T'}%-8s ${HSEP} %-10s ${HSEP} "
+            . "%10d ${HSEP} %10s ${HSEP} %9.2f%%$C{'R'}",
+        '', 'TOTAL', $input_len, sprintf( '1:%d', $input_len ), 100
+    )
+);
+frame_hr();
+say '';
+say sprintf(
+    '%s base32 chars used : %s%d / 32%s',
+    $C{'T'}, $C{'0'}, scalar( keys %b32_freq ),
+    $C{'R'}
+);
+say sprintf(
+    '%s padding characters : %s%d (%.2f%%)%s',
+    $C{'T'}, $C{'0'}, $padding_count, ( $padding_count / $input_len ) * 100,
+    $C{'R'}
+);
+
+##[ SECTION 2 : decoded content analysis ]####################################
+
+my $decoded     = decode_base32($input);
+my $decoded_len = length($decoded);
+
+if ( $decoded_len == 0 ) {
+    section_title('decoded content analysis [ empty result ]');
+    say "$C{'g'}error: decoded content is empty, check input validity$C{'R'}";
+    say sprintf( 'input length: %d, decoded length: %d',
+        $input_len, $decoded_len );
+    exit 1;
+}
+
+section_title(
+    sprintf( 'decoded content ' . 'analysis [ %d bytes ]', $decoded_len ) );
+
+my %content_freq;
+my $whitespace = 0;
+my $alphanum   = 0;
+my $other      = 0;
+
+foreach my $char ( split //, $decoded ) {
+    $content_freq{$char}++;
+    if ( $char =~ m|\s| ) {
+        $whitespace++;
+    } elsif ( $char =~ m|[A-Za-z0-9]| ) {
+        $alphanum++;
+    } else {
+        $other++;
+    }
+}
+
+say '';
+say "$C{'B'}$C{'T'}content summary$C{'R'}";
+hr();
+say sprintf( '%s total bytes ' . '   : %s%10d%s',
+    $C{'T'}, $C{'0'}, $decoded_len, $C{'R'} );
+say sprintf(
+    '%s alphanumeric   : %s%10d (%.2f%%)%s',
+    $C{'T'}, $C{'0'}, $alphanum, ( $alphanum / $decoded_len ) * 100,
+    $C{'R'}
+);
+say sprintf(
+    '%s whitespace     : %s%10d (%.2f%%)%s',
+    $C{'T'}, $C{'0'}, $whitespace, ( $whitespace / $decoded_len ) * 100,
+    $C{'R'}
+);
+say sprintf(
+    '%s other          : %s%10d (%.2f%%)%s',
+    $C{'T'}, $C{'0'}, $other, ( $other / $decoded_len ) * 100,
+    $C{'R'}
+);
+say sprintf(
+    '%s unique chars   : %s%10d%s',
+    $C{'T'}, $C{'0'}, scalar( keys %content_freq ),
+    $C{'R'}
+);
+say '';
+
+frame_hr();
+frame_row(
+    sprintf(
+        "$C{'B'}$C{'T'}%-10s ${HSEP} %10s ${HSEP} "
+            . "%10s ${HSEP} %10s ${HSEP} %-10s$C{'R'}",
+        'Char', 'Count', 'Freq', 'Percent', 'Type'
+    )
+);
+frame_hr();
+
+## sort by frequency [ desc ], then by ascii value for ties ##
+my @content_sorted
+    = sort { $content_freq{$b} <=> $content_freq{$a} || ord($a) <=> ord($b) }
+    keys %content_freq;
+
+foreach my $char (@content_sorted) {
+    my $count = $content_freq{$char};
+    my $freq  = sprintf( '1:%d', $count );
+    my $pct   = sprintf( '%.2f', ( $count / $decoded_len ) * 100 );
+
+    my $type
+        = $char =~ m|[A-Za-z]| ? 'Alpha'
+        : $char =~ m|[0-9]|    ? 'Digit'
+        : $char =~ m|\s|       ? 'Space'
+        :                        'Other';
+
+    frame_row(
+        sprintf(
+            "$C{'T'}%-10s$C{'R'} ${SEP} $C{'0'}%10d$C{'R'} ${SEP} $C{'T'}%10s$C{'R'} ${SEP} $C{'g'}%9.2f%%$C{'R'} ${SEP} $C{'0'}%-10s$C{'R'}",
+            "'" . char_label($char) . "'",
+            $count, $freq, $pct, $type
+        )
+    );
+}
+
+frame_hr();
+
+##[ SECTION 3 : ascii histogram ]#############################################
+
+section_title( sprintf( 'ascii histogram [ 0x%02X-%02X ]', 0x20, 0x7E ) );
+
+my @histogram = (0) x 256;
+foreach my $char ( split //, $decoded ) {
+    $histogram[ ord($char) ]++;
+}
+
+my @printable_bins = (
+    'space',  'tab',      'newline',   'carriage',
+    'return', 'formfeed', 'backspace', '0-9',
+    'A-Z',    'a-z',
+);
+my @bin_ranges = (
+    [ 32, 32 ],
+    [ 9,  9 ],
+    [ 10, 10 ],
+    [ 13, 13 ],
+    [ 13, 13 ],
+    [ 12, 12 ],
+    [ 8,  8 ],
+    [ 48, 57 ],
+    [ 65, 90 ],
+    [ 97, 122 ],
+);
+
+frame_hr();
+frame_row(
+    sprintf(
+        "$C{'B'}$C{'T'}%-21s ${HSEP} %10s ${HSEP} %10s ${HSEP} %10s$C{'R'}",
+        'Character', 'Count', 'Freq', 'Percent'
+    )
+);
+frame_hr();
+
+for my $i ( 0 .. $#bin_ranges ) {
+    my ( $start, $end ) = @{ $bin_ranges[$i] };
+    my $bin_count = 0;
+    $bin_count += $histogram[$_] for $start .. $end;
+
+    my $freq = sprintf( '1:%d', $bin_count );
+    my $pct  = sprintf( '%.2f', ( $bin_count / $decoded_len ) * 100 );
+    frame_row(
+        sprintf(
+            "$C{'0'}%-21s$C{'R'} ${SEP} $C{'T'}%10d$C{'R'} ${SEP} $C{'0'}%10s$C{'R'} ${SEP} $C{'g'}%9.2f%%$C{'R'}",
+            $printable_bins[$i], $bin_count, $freq, $pct
+        )
+    );
+}
+
+frame_hr();
+
+say '';
+say "$C{'T'}script complete$C{'R'}";
+
+__END__
+
+#,,.,,.,,,,,,,,..,,,.,,.,,,..,...,,..,,,,,,..,..,,...,...,...,,,.,,,.,,,.,,,.,
+#G25BS3ABRU6RS75IKIQ4WT3ZRRG5IG4U5QQ7A2W2ORLIQPKVG6NW57UTISTG4JYQWQIPLVCGDWGU6
+#\\\|4ZPGMYZKPKE6YIXMQ5ZBQC6GTNR3OHYVVISEGNEGOQXG7UDTPDV \ / AMOS7 \ YOURUM ::
+#\[7]PGHUTRQ6LEQERYXBPPHSCA3EGQINBD7LJ25SNWXJU2WCVUM7CMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
