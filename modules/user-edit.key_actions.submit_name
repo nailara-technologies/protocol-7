@@ -29,22 +29,22 @@ my $fail = sub {
 };
 
 ## guard 1 : non-empty ##
-return $fail->(q|no key name entered, nothing created|) if not length $name;
+return $fail->(q|no key name :. nothing created.|) if not length $name;
 
 ## guard 2 : valid keyname [ validate_keyname applies the anchored key-name
 ## regex plus the stricter character-sequence rules ]
 return $fail->(
-    sprintf( q|%s is not a valid key name, nothing created|, $name ) )
+    sprintf( q|%s : not valid key name :. nothing created.|, $name ) )
     if not <[crypt.C25519.validate_keyname]>->($name);
 
 ## guard 3 : key must NOT already exist [ a virtual key's sentinel return of 4
 ## is truthy and correctly also counts as 'exists' ]
 return $fail->(
-    sprintf( q|key '%s' already exists, nothing created|, $name ) )
+    sprintf( q|key '%s' already exists :. nothing created.|, $name ) )
     if <[crypt.C25519.key_exists]>->($name);
 
 ## guard 4 : write_keys encrypts through Crypt::Mode::CBC ##
-return $fail->(q|missing Crypt::Mode::CBC module, nothing created|)
+return $fail->(q|missing Crypt::Mode::CBC module :. nothing created.|)
     if not defined &Crypt::Mode::CBC::new;
 
 ## stage 2 : the masked passphrase prompt, same anchoring row.  the name ##
@@ -61,8 +61,8 @@ return $fail->(q|missing Crypt::Mode::CBC module, nothing created|)
 
 return TRUE;
 
-#,,,.,.,.,...,,..,,..,,.,,,,.,..,,,.,,.,,,,..,..,,...,...,.,.,,..,,,,,,,.,,..,
-#NRY32C2XTCJEZOIOR2CQU2DVCNYKQB7II3RHT4DT6AHD2EMTVNIXPFGULNIPUTAPHTT5IGPZFLUDS
-#\\\|3HHGMWQBPUVWDFG4IMV4POCLG5MTHTISBN4HQ4Q5ATVNPYDTOAI \ / AMOS7 \ YOURUM ::
-#\[7]XR3UJQIPEGJ5L6DNXJ23CE26XZUTDZYIPPQM4DSILTVYXLWPG2AY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,.,,,,,,,,.,,,,.,,,,,,,,,.,.,..,,...,...,..,,.,,,,..,..,,.,,,
+#IGAIDFFOCNM2U4WBP7XQYZGBHWAT4YHE3PGJEZHP3L3DDUWNMKLWFDJFQVZTIVAZCWX2WSTOGLNXA
+#\\\|42R3GVBD3VYLSDHYNNEOOVIHEPVHTN5IORVVFW7L4ITJH33ZHOX \ / AMOS7 \ YOURUM ::
+#\[7]XQ2PSH4WCFP7DCRNMFLPTYRE6SG2WF63NPWDU3OB4V4EPPSK5YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
