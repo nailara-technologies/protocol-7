@@ -85,9 +85,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [comp-regex-qr-delimiter-escaping](feedback-comp-regex-qr-delimiter-escaping.md) — qr'...' only needs the delimiter (') escaped, never backslash; qr'...' hands \-escapes to the regex engine unlike q'...', so backslash-doubling silently breaks \d/\s for every caller
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 - [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
+- [modal-prompt-navigation-never-loses-content](feedback-modal-prompt-navigation-never-loses-content.md) — a cancel-on-navigation key (Left-as-Esc in a modal prompt) must gate on buffer CONTENT being empty, never cursor position — ordinary cursor movement must never be able to discard typed text; caught live in editor.control.prompt.handler.key, applies to any future modal input control
 
-#,,,.,,.,,,..,,..,...,,..,,..,...,..,,.,.,,..,..,,...,...,.,,,,..,,..,..,,.,,,
-#TAHTLSI6XIG7Y5ES37E5W6OSWOQPHI5IFD2NO3ZS3GX22FBGIFSJ35PPDW6P57VLWSM5TLSLZ7EX2
-#\\\|O2R73YFGECOKZ2CGCGGCY74XU4HAZ2KXNZ2XQWHS2FWG5XJC4KQ \ / AMOS7 \ YOURUM ::
-#\[7]I2UCDA6WFLIZAJIRTEGKEED42Z2QV4NQHJVWHPVQQJMFFOS7DEDQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,.,.,.,,,..,,...,.,,,.,.,..,,..,,...,...,...,..,,,..,.,,,,.,,
+#3HMZNOY6MOSGVA62ZAS555II2PKSICCUSLGOZVG2MSAKKZYH3LPJ44CUROPYXWRXZRQ2PAWLI7WKS
+#\\\|FRODWNGW4J64PFSHVTDARQQUMQAKJJU7OX4QKFYMU2DNO7FNPWV \ / AMOS7 \ YOURUM ::
+#\[7]TDKTXJE6MHL7Z62TRALQV7FAPXQJOCZWKKZD4BFQPCAHTCOGR2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
