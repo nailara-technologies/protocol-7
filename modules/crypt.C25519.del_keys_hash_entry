@@ -38,7 +38,8 @@ my $key_name_table = <crypt.C25519.loaded-keys> //= {};
 
 if ( not exists $keys{'C25519'}->{$name} and exists $key_name_table->{$name} )
 {
-    <[base.erase_buffer_content]>    ##  erasing key chksum from memory  ##
+    ##  erasing key chksum from memory  ##
+    <[base.erase_buffer_content]>
         ->( \$key_name_table->{$name}->{'checksum'} );
     $key_name_table->{$name}->{'checksum'} = undef;
     ##  removing name from table  ##
@@ -54,8 +55,8 @@ return TRUE    ##  success  ##
 ##
 return FALSE;
 
-#,,..,,.,,,.,,.,.,..,,.,.,,,.,,,.,,,,,...,,,,,..,,...,..,,...,,.,,..,,,.,,..,,
-#ORI7PQ4IYLDFNVAGPOF7PNXGFDTTWRYD2BRMTP76E2N4WUGDDBNJPW5IV2YO53HXCPO5ZXBMPZPGU
-#\\\|DAETVMBWEBG5LJHIO6BRJUYB3CGULD3XNB7FBWSBGZJAQAE5WCC \ / AMOS7 \ YOURUM ::
-#\[7]Z2DRN3TQUQKBRULNIOAMKYRWKHCJ54NKM7OPOHHKKOJ6Q3JL2SBQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,,,.,..,,,,,,...,.,.,...,...,..,,...,...,,.,,..,,,,,,,,,,,.,,
+#6VPLHFHQLSQ45KZZWOSTN3SIK2MRB6HFURPZM2RITXCNZPWQ5YI6TDMBG25HJ6HIPBNJFYKKV6EJU
+#\\\|GCWHNSKGPNU2QQ7JU74ROEELBLQBIZTNITXS27HE7VOLOHJPOM2 \ / AMOS7 \ YOURUM ::
+#\[7]YROB2UY6SL4HM2BOR7A4P44URXXSZVIWK5X34SVRNSMHM6P23CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
