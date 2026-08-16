@@ -48,12 +48,6 @@ if ( not defined $rendered ) {
     return FALSE;
 }
 
-## the discovery hint REPLACES the card's own closing border row rather than
-## adding a line below it -- two dotted rows in a column read as a doubled
-## border, not as one border carrying a message.  done here, on the PLAIN
-## render, before colourisation, so length() on plain text is what keeps the
-## substitution at the card's own width with no separate reservation needed
-## anywhere in user-edit.form.build_frame
 my @frame_lines = split m|\n|, $rendered;
 
 ## filled in below when the hint applies ; substituted back in AFTER
@@ -61,7 +55,129 @@ my @frame_lines = split m|\n|, $rendered;
 ## and the later substitution is a harmless no-op on every other paint
 my $hint_row_colored = '';
 
-if (    <user-edit.form.interactive>
+my $total_lines    = scalar @frame_lines;
+my $scroll_top     = 0;
+my $bottom_visible = TRUE;
+
+## interactive mode on a real terminal : vertical viewport so a tall form
+## never exceeds the screen and the active field always stays visible.
+## one-shot and -no-tty modes render the whole frame unchanged.
+if ( <user-edit.form.interactive> and not <user-edit.mode.no_tty_debug> ) {
+
+    ## lines reserved below the frame for the cmd-list hint block ; 0 when the
+    ## discovery hint is used instead (that hint lives inside the frame
+    ## border)
+    my $hint_lines = 0;
+    if (<user-edit.form.help_visible>) {
+        my $in_menu
+            = ( $editor_state->{'mode'} // '' ) =~ m|^menu:| ? TRUE : FALSE;
+        my $hint_count = $in_menu ? 3 : 5;
+        $hint_lines = $hint_count + 2;    ## blank + hints + blank ##
+    }
+
+    my $term_rows = <user-edit.form.term_rows> // (
+        eval {
+            <[base.perlmod.load]>->('AMOS7::TERM')
+                if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+            ( AMOS7::TERM::terminal_size() )[1];
+        } // 24
+    );
+    $term_rows = 10 if $term_rows < 10;
+
+    my $budget = $term_rows - $hint_lines;
+    $budget = 5 if $budget < 5;
+
+    if ( $total_lines > $budget ) {
+
+        ## find which rendered lines belong to the active field by walking the
+        ## frame descriptor's slots. a slot belongs to the active field when
+        ## its name equals the field name or starts with '<name>_' -- this
+        ## covers multiline synthetic rows (<name>_0.._N), expanded list rows
+        ## and the list_info row, detail checksum rows, etc.
+        my $entry      = <[ascii.frame.load]>->($frame_name);
+        my $descriptor = $entry->{'descriptor'}          // {};
+        my $slots      = $descriptor->{'slots'}          // {};
+        my $tpad       = $descriptor->{'padding'}{'top'} // 0;
+
+        my $active_index = $editor_state->{'active_field'} // 0;
+        my $active_name
+            = $editor_state->{'schema'}{'fields'}[$active_index]{'name'}
+            // '';
+
+        my ( $active_start, $active_end );
+        foreach my $slot_name ( keys %{$slots} ) {
+            next
+                unless $slot_name eq $active_name
+                || ( length $active_name
+                && $slot_name =~ m|^\Q$active_name\E_| );
+
+            my $row = $slots->{$slot_name}{'row'} // 0;
+            next unless $row > 0;
+
+            ## 0-based index in @frame_lines ##
+            my $line_idx = $tpad + $row;
+            $active_start = $line_idx
+                if not defined $active_start
+                or $line_idx < $active_start;
+            $active_end = $line_idx
+                if not defined $active_end
+                or $line_idx > $active_end;
+        }
+
+        $scroll_top = <user-edit.form.scroll_top> // 0;
+
+        ## keep the active field inside the viewport ; if the field range was
+        ## not found (should not happen), keep the existing scroll_top
+        if ( defined $active_start and defined $active_end ) {
+            if ( $active_end >= $scroll_top + $budget ) {
+                $scroll_top = $active_end - $budget + 1;
+            }
+            if ( $active_start < $scroll_top ) {
+                $scroll_top = $active_start;
+            }
+        }
+
+        $scroll_top = 0 if $scroll_top < 0;
+        $scroll_top = $total_lines - $budget
+            if $scroll_top > $total_lines - $budget;
+
+        <user-edit.form.scroll_top> = $scroll_top;
+
+        my $end_idx = $scroll_top + $budget - 1;
+        $end_idx = $#frame_lines if $end_idx > $#frame_lines;
+
+        ## when the title/header has scrolled out of view, keep one empty
+        ## content row as top padding so the first visible field does not sit
+        ## flush against the terminal top edge
+        my $top_pad_line = '';
+        if (    $scroll_top > 0
+            and defined $frame_lines[1]
+            and $frame_lines[1] =~ m|^\s*:\s+:\s*$| ) {
+            $top_pad_line = $frame_lines[1];
+            $end_idx-- if $end_idx > $scroll_top;
+        }
+
+        @frame_lines = @frame_lines[ $scroll_top .. $end_idx ];
+        unshift @frame_lines, $top_pad_line if length $top_pad_line;
+
+        $bottom_visible = FALSE;
+
+    } else {
+        <user-edit.form.scroll_top> = 0;
+    }
+}
+
+## the discovery hint REPLACES the card's own closing border row rather than
+## adding a line below it -- two dotted rows in a column read as a doubled
+## border, not as one border carrying a message.  done here, on the PLAIN
+## render, before colourisation, so length() on plain text is what keeps the
+## substitution at the card's own width with no separate reservation needed
+## anywhere in user-edit.form.build_frame
+##
+## when a vertical viewport is active, the hint only appears if the bottom
+## border is actually visible in the current slice
+if (    $bottom_visible
+    and <user-edit.form.interactive>
     and not <user-edit.form.help_visible>
     and not <user-edit.form.hint_seen> ) {
 
@@ -113,8 +229,9 @@ if (    <user-edit.form.interactive>
     ## degrade to returning that one raw character when length <= 1 -- so
     ## nothing the classifier does needs undoing after the substitution below
     $frame_lines[-1] = "\x06";
-    $rendered = join( "\n", @frame_lines );
 }
+
+$rendered = join( "\n", @frame_lines );
 
 ## colourise by character class through the shared frame colouriser --
 ## config-driven from configuration/ascii-frame [ purple structure, TRUE blue
@@ -255,7 +372,21 @@ print $colors{'clear_screen'} // '' if <user-edit.form.interactive>;
 ## $colors{'reset'}, NOT a literal "\e[0m" : bin/Protocol-7 blanks the whole
 ## palette when output is piped, and a hardcoded sequence would put escape
 ## codes into a pipe that deliberately asked for none
-print $colors{'reset'} . "\n" . $rendered . $colors{'reset'} . "\n";
+##
+## interactive mode : no leading newline -- clear_screen already homes the
+## cursor, and a viewport-sliced frame must start at the top-left to fill the
+## terminal exactly. the trailing newline is only emitted when the help block
+## is visible, because a bare newline after a frame that already fills the
+## screen scrolls the top line and produces the one-line flicker/jump.
+## one-shot mode keeps the original framing newlines.
+if (<user-edit.form.interactive>) {
+    print $colors{'reset'}
+        . $rendered
+        . $colors{'reset'}
+        . ( <user-edit.form.help_visible> ? "\n" : '' );
+} else {
+    print $colors{'reset'} . "\n" . $rendered . $colors{'reset'} . "\n";
+}
 
 if (<user-edit.form.interactive>) {
     ## multi-line under the card, on the same ':' gutter the frame border
@@ -266,8 +397,6 @@ if (<user-edit.form.interactive>) {
     my $key    = $colors{'p7_fg_0001'} // '';
     my $action = $colors{'p7_fg_0001'} // '';
     my $done   = $colors{'reset'}      // '';
-
-    print "\n";
 
     ## the full cmd-list block is HIDDEN by default -- per user, it crowds a
     ## card that is otherwise just a handful of fields.  ctrl-? [
@@ -319,8 +448,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,.,,,,,.,,,,..,,,.,.,,,,..,.,,,,..,.,,,.,.,..,,...,..,,.,.,...,..,,..,,,,.,
-#JWISOEKKGG6NSQLX572U3EP5I432JKGBWRO6PMSJX23HVE5BX473XIOEK43AIYGRQXQ475CIRI7RQ
-#\\\|LTWHJ4GDLXTT7GHHNQSSPZDN27SK42FFVQOGBAUFLRWZUNWGVH7 \ / AMOS7 \ YOURUM ::
-#\[7]3KFFWYOQ7SORTGWBU3XXWT2DLOXETP4JTKEE5EJXHWR47NPBTIAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,..,,,,,,..,.,,,,..,.,.,..,,..,,...,...,.,.,,,.,,,.,.,,,,..,
+#2AXZRTKKUCAKP3KXWS5BSRY7O2IBGNMVBIZRUSZSKECHPKREJ6TE4RRQAKA45Y42FTL357TFXKM6K
+#\\\|R65735FCMEFFWM3374XKMIVZPPADXK7PFKO3JFOFDFOAXGSOWLT \ / AMOS7 \ YOURUM ::
+#\[7]43C2NAXV5P5TVNKYO4HRXSQDMRKLDAOG534UK4UCQODP5BNKHACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,6 +20,17 @@
 ## it later would leave the watcher on a detached scalar
 <user-edit.form.dirty> //= 0;
 
+## prime the cache with current terminal dimensions so the very first paint
+## can already apply a vertical viewport. load AMOS7::TERM on demand : it is
+## not loaded by user-edit.init_code, but nshell already uses it for the same
+## query
+<[base.perlmod.load]>->('AMOS7::TERM')
+    if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+
+my @init_size = AMOS7::TERM::terminal_size();
+<user-edit.form.term_cols> = $init_size[0] // 80;
+<user-edit.form.term_rows> = $init_size[1] // 24;
+
 <user-edit.form.watcher.stdin> = <[event.add_io]>->(
     {   qw| fd |      => 0,
         qw| poll |    => qw| r |,
@@ -46,6 +57,14 @@
     }
 );
 
+## register SIGWINCH handler so terminal resizes update the cached dimensions
+## and force a redraw with a recomputed vertical viewport
+<[event.add_signal]>->(
+    {   qw| signal |  => qw| WINCH |,
+        qw| handler | => qw| user-edit.handler.term_resize |,
+    }
+);
+
 return FALSE
     if not defined <user-edit.form.watcher.stdin>
     or not defined <user-edit.form.watcher.dirty>;
@@ -54,8 +73,8 @@ return FALSE
 
 return TRUE;
 
-#,,..,.,.,,,,,..,,...,,,.,,,,,,,,,,,.,..,,,.,,..,,...,...,..,,,..,.,,,.,.,,,,,
-#QD65LLK5W5PPKJABRURLHUOTYPK5QDJUCHDDNZ74YJPPFTAUIRU6RN6RRVYYNE6WMUWK2XBLYQJ7W
-#\\\|QVCELHHIXVBIRWGYI62TBXX47BS6GUTDEWCF2ZI2M54H3B4W7BM \ / AMOS7 \ YOURUM ::
-#\[7]LTLO3IW6FNGH4IQ5KKIYGEWOA6J3BVUAM7CKVMNWVE34XZ7X6CDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,..,,.,.,...,,,,,.,,,.,,,,,,,..,,...,...,...,...,..,,,,.,,,.,
+#3TBEZ6T74DS24DJ2RAADUE5W5PGECGALJPNMKHBUOK3JI5PZ4BGF5FO7DOI5OMHY2PWJOYSRWQT4I
+#\\\|GUEWMWK6HVH42HTYH2ZT2K7B3J5SP4M3FECPX2HC2VHSX5WXJ6I \ / AMOS7 \ YOURUM ::
+#\[7]QNHADBZLNZB45RCMWJYDQ5VHKJBQPI7GKD6SM2GOK6VARSXZOSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
