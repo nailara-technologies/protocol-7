@@ -832,15 +832,15 @@ our @tools = (
     {   'name'        => 'p7_memory_update',
         'description' =>
             'review and update the protocol-7 development memory. the main '
-            . 'MEMORY.md index should stay under ~180 lines so it fits '
-            . 'in a single context read. long or topic-specific updates '
-            . 'must be written to an external topic file in the same '
-            . 'data/ai-mem/<agent>/ directory and only linked from '
-            . 'MEMORY.md. review mode gathers recent git changes, memory '
-            . 'summary, and session summaries so the parent model can '
-            . 'identify gaps. apply mode delegates to the coding zenka '
-            . 'to append or write specific content to the memory file or '
-            . 'a topic file.',
+            . 'MEMORY.md index should stay under ~180 lines (claude) or '
+            . '~300 lines (kimi) so it fits in a single context read. '
+            . 'long or topic-specific updates must be written to an '
+            . 'external topic file in the same data/ai-mem/<agent>/ '
+            . 'directory and only linked from MEMORY.md. review mode '
+            . 'gathers recent git changes, memory summary, and session '
+            . 'summaries so the parent model can identify gaps. apply '
+            . 'mode delegates to the coding zenka to append or write '
+            . 'specific content to the memory file or a topic file.',
         'inputSchema' => {
             'type'       => 'object',
             'properties' => {
@@ -876,7 +876,7 @@ our @tools = (
                         . 'omitted, writes to MEMORY.md. '
                         . 'use this for topic-specific '
                         . 'updates to keep MEMORY.md under '
-                        . 'the ~180-line limit.'
+                        . 'the per-agent line limit.'
                 },
                 'content' => {
                     'type'        => 'string',
@@ -2224,8 +2224,10 @@ sub tool_p7_memory_update {
             my $content_lines = ( $content =~ tr/\n// ) || 0;
             $content_lines++
                 if length $content and substr( $content, -1 ) ne "\n";
-            my $MEMORY_MAX_LINES  = 200;
-            my $MEMORY_WARN_LINES = 180;
+            my ( $MEMORY_MAX_LINES, $MEMORY_WARN_LINES )
+                = $agent eq 'claude'
+                ? ( 200, 180 )
+                : ( 400, 300 );
             if ( $current_lines + $content_lines > $MEMORY_MAX_LINES ) {
                 return send_tool_result(
                     $id,
@@ -3924,8 +3926,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,.,,,,,,,.,,,..,...,,,.,.,,,.,,,,,,,,.,,..,,...,...,.,,,,.,,,,.,.,,,,,,,
-#XXYIUHQIDORQKHPO2S24L65TPOMVTFML5DBTTGCD4XVVXBUQKSFT5LI7TX2Y6PVDN3WSP2QIO7DTC
-#\\\|OTEUZHRWBT4TERJ32UPYAHOHVKI24NPCG36W4RQIP5I4J5UUJCU \ / AMOS7 \ YOURUM ::
-#\[7]6QBT4ZPGZIEXWN2YH66S6OLXIAEQAGYP3T3DH37GKPITQYGNUIAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,..,..,,...,.,.,.,,,.,,,,,,,..,,..,,...,...,.,,,..,,.,.,..,,.,.,
+#DBO33VRDU537AWIIK4B44WA3QBLF2E52AJP4Q4NPFHM4VNMFQ3MIONCLZOMWTDES4BJWIMDDRH6A2
+#\\\|VGQK3RMU3EYO2YEF2QIUFW5JZOE27JL3KLURNLMGP5XXVHLZSNK \ / AMOS7 \ YOURUM ::
+#\[7]FTF5YBLOMVXOSU2JKHRTE44UXYAXC2VODWQMG7BJGI76YILQNWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
