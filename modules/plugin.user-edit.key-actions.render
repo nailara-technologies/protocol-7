@@ -28,20 +28,19 @@ return $prompt_display if defined $prompt_display;
 
 my $last_result = <user-edit.key_actions.last_result>;
 
-return sprintf( q|last : %s|, $last_result ) if length( $last_result // '' );
+return sprintf( q|<<!>> %s|, $last_result ) if length( $last_result // '' );
 
 my $in_tab_mode
     = (
     ( $editor_state->{'mode'} // '' ) eq sprintf( qw| plugin:%s |, $field ) );
 
-return
-    q|enter : create a new key .,. r : rename .,. d : delete .,. left : back|
+return q{<<< *create key* .:. [r]ename .:. [d]elete}
     if $in_tab_mode;
 
-return q|[ enter : create a new key .,. r : rename .,. d : delete ]|;
+return q{'->  create key  .:. [r]ename .:. [d]elete};
 
-#,,.,,..,,...,...,,,,,..,,,.,,,.,,,..,.,.,.,.,..,,...,...,...,.,,,,,,,...,,.,,
-#6O7YCVJW3AIPX2TAERXXENLEQJPZSLLEOZI24IVJSYO7WQZO4KGBNB2WREZ4DFJPBDJM2LOPVYPYW
-#\\\|U3JE4SFUPMQTQBBWBIGDC5TWOT6K73GQDKELBUFIREKAA7NPN2W \ / AMOS7 \ YOURUM ::
-#\[7]CV7VFYLZ7IMEO4N7SUDHIXXEAJT773Z4UGSR55TXIVJSHM2WXYCQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,,,.,,.,,,,.,,..,.,.,,,.,.,.,..,,...,...,..,,,..,.,,,,.,,,..,
+#C6YF7BO2RQSZR2JNHPBNF7SRZ36Q3HVM7SOKIYUCZNS2MWLDB6GNJNLTFCIAYBAWNMUJPCHQYJOFK
+#\\\|A26BM6CV76YR3OMJCENXJY64CDCX4BBBIL4NZTHXF2RAELC43TX \ / AMOS7 \ YOURUM ::
+#\[7]L6AKMT2ZQL7VKUNXBRVPDRPYICFF4S6E3JCKGTDJJQEOCRNGQMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

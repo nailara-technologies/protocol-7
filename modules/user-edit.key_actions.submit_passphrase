@@ -27,7 +27,7 @@
 ## no user-edit.message calls anywhere in this flow : that module printf()s
 ## raw terminal output, which was fine for the old out-of-loop excursion with
 ## the terminal in canonical mode but would corrupt the live frame here -- the
-## key_actions row's own 'last : ..' display is the feedback.
+## key_actions row's own '<<!>> ..' display is the feedback.
 
 my ( $editor_state, $value, $prompt ) = @ARG;
 
@@ -43,7 +43,7 @@ my $done = sub {
     return $ok // FALSE;
 };
 
-return $done->(q|key create lost its name, nothing created|)
+return $done->(q|key create lost its name :. nothing created.|)
     if not length( $name // '' );
 
 ## the passphrase validation keys.console.create could never let us do.  TWO
@@ -54,20 +54,20 @@ return $done->(q|key create lost its name, nothing created|)
 ## passphrase passed the first guard, then failed the write AFTER gen_keys had
 ## already run.  checking 13 up front keeps that partial-write path
 ## unreachable
-return $done->(q|passphrase empty or too short, nothing created|)
+return $done->(q|passphrase empty or too short :. nothing created.|)
     if length $password <= 1;
 
-return $done->(q|passphrase too short [ min 13 ], nothing created|)
+return $done->(q|passphrase too short [ min 13 ] :. nothing created.|)
     if length $password < 13;
 
 my ( $key_ref, $gen_name ) = <[crypt.C25519.gen_keys]>->($name);
 
-return $done->( sprintf( q|key '%s' generation failed|, $name ) )
+return $done->( sprintf( q|key '%s' generation failed..|, $name ) )
     if ref $key_ref ne qw| HASH |;
 
 my $written = <[crypt.C25519.write_keys]>->( $name, $password );
 
-return $done->( sprintf( q|key '%s' could not be written|, $name ) )
+return $done->( sprintf( q|key '%s' could not be written..|, $name ) )
     if not $written;
 
 ## the on-disk key list just changed, and user_keys' own field_def/buffer were
@@ -93,8 +93,8 @@ if ( ref $user_keys_def eq qw| HASH | ) {
 
 return $done->( sprintf( q|created key '%s'|, $name ), TRUE );
 
-#,,,.,,,.,...,,,,,..,,,.,,...,.,.,..,,,..,.,,,..,,...,...,...,...,.,.,,,.,,,.,
-#FTRIOIHRK2CGCSZYIPH4D3GGC6HTJW3WKLSDCXN6M7VFURURZWCGMXY52UDZ2T3PESOTJW4E6B4QY
-#\\\|FCACWS2GIBQTOUGUB2UMHKMJEN3C4DWBXS4UIGEG3C5PGGG6IQF \ / AMOS7 \ YOURUM ::
-#\[7]GAWAFVSQNCXB67EO5EMFHIF7ANHHOPSZBEL5HKZ5HARLBTTO7UBY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,,..,...,...,,..,,.,,.,,,,,,,..,,...,..,,...,.,.,,,.,.,,,,,,,
+#2JHPDS3V4OBLGBSFXUD5ID7Y3UJDGU53G6ZTZMECNYZ4AGGV75U3GZYCZAUR7HGMNZ5GTM7NXVWIC
+#\\\|WG3D36MM4QKK3GUCKQJ5SLPDEXQO44UDUFTLFKC2SXGUIKI22NE \ / AMOS7 \ YOURUM ::
+#\[7]BBMGLGUK5GR5JUUXUPDGHPAUR3WVPW6XRWPBHJRNFKJ4PRNZVMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
