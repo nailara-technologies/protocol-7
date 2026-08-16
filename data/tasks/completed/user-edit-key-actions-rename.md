@@ -1,5 +1,9 @@
 # user-edit: key-actions "rename an existing key" (in-frame, multi-stage)
 
+## archive: DONE ✓ — 2026-08-16
+## commit: 67d10c587 — user-edit: land key rename (kimi K2.7), fix last_result status-freeze bug
+## notes: dispatched to kimi K2.7, died mid-turn at its step ceiling before whitelist/live-verify/memory-note; finished directly -- whitelisted, live-verified via script -qec (existing/duplicate/self-identity/remote-host targets, cancel at both stages). Also root-caused+fixed a real bug found during verification: <user-edit.key_actions.last_result> was never cleared, freezing the key_actions row on its last status message until zenka exit (affects create's guards too, fixed generically at the plugin-mode entry trigger in user-edit.handler.stdin_key) -- see data/ai-mem/claude/topic-rename-empty-target-stuck-state-investigation-2026-08-16.md. Also found crypt.C25519.keyfiles($name) only returns the FIRST matching file, not the full set -- see coding-style.md note
+
 **Read first:**
 - `data/ai-mem/kimi/coding-style.md` and `data/ai-mem/kimi/MEMORY.md` -- P7
   module conventions, common mistakes to avoid.
@@ -175,8 +179,8 @@ Report actual captured output for each check, not "passed".
   ended up looking like -- the delete task will want the same file-
   enumeration answer without re-deriving it.
 
-#,,,,,,..,,.,,,,.,,..,,..,,..,,.,,,..,,,.,,,.,..,,...,..,,.,,,,,,,.,.,.,,,...,
-#4IZ6VTC6Q7DUD6JYEVT5Z4ZXYR3C3QJYMIVRQ2EJWQ4LUF2GETF3UOAVSYDPXQLG6I4KN27MY342U
-#\\\|XNSI4G5RBXXO2KZUFWVKPYIFWPBXKZ2VYLTTYH2SO5PTKZXLFTO \ / AMOS7 \ YOURUM ::
-#\[7]SZWESTKQ6XBSBAQ273M72EIKN4VC6DMUQD7EMGS2FTLN7BJRJ6AY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,.,,.,,,,,,,,.,...,,.,,.,,,...,..,,...,..,,...,.,.,,..,,,,,,,.,
+#IWGHPI3EEW4HOTHQ3FCQ2FKKRHE3KKITBOOF5CFREIZKBS7T26KSF7DCBRVTTO5FIJICNKJSFY7NG
+#\\\|MKQUQMG2OK6CRYBW76QU7KENRHQPXNGVK53MNHEZ7ZVNWIDRXEE \ / AMOS7 \ YOURUM ::
+#\[7]GSQZZR3DEEM4ASS44GJZFSZHZOKULZZBCQDTZAJQ7HLYC22XNWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

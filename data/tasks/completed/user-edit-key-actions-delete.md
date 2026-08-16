@@ -1,5 +1,9 @@
 # user-edit: key-actions "delete an existing key" (in-frame, confirmation-gated)
 
+## archive: DONE ✓ — 2026-08-16
+## commit: e8ad5ce96 — user-edit: land key delete (kimi K2.7), fix pre-existing unload_key crash
+## notes: dispatched to kimi K2.7, died mid-turn at its step ceiling (same as rename) before whitelist/live-verify/memory-note; finished directly -- whitelisted, live-verified via script -qec with real filesystem checks at every step (wrong-confirmation attempts leave files on disk, correct confirmation removes them, self-identity refused before stage 2 opens, cancel at every stage leaves files untouched). Also found and fixed a real pre-existing crash, unrelated to this task's own code: crypt.C25519.del_keys_hash_entry's first live exercise of its "loaded-keys table but not in %keys" branch crashed the zenka -- a same-line trailing comment between a <[module.name]> bracket and its next-line ->() args made the translator silently auto-insert an empty ->(), whose return value then got invoked as a subroutine -- see data/ai-mem/kimi/coding-style.md's delete-flow note for the full mechanism
+
 **Read first:**
 - `data/ai-mem/kimi/coding-style.md` and `data/ai-mem/kimi/MEMORY.md` -- P7
   module conventions, common mistakes to avoid.
@@ -168,8 +172,8 @@ of evidence that actually matters, not a UI message alone.
   whatever the exact-match confirmation shape ended up looking like, and on
   the `crypt.C25519.unload_key` / loaded-key finding.
 
-#,,..,.,.,.,,,...,,.,,,..,..,,.,,,..,,,,,,..,,..,,...,...,,..,.,,,...,..,,,,.,
-#FV6HHAYKPNKVNOWW5MHOS3XOW45VFTUMYNUV6AZZQPCS5UTRRBBDXXSNAAD3BOYZ7IG6Z2NGBHHNM
-#\\\|DCL6LHND3GTA7AZO2KV5VEYAZ3W25HVQPNQD7LH2SFEILDPKXUL \ / AMOS7 \ YOURUM ::
-#\[7]P3ZK5JUVIO2MLENMCDTZZ7SO5FHVDB5GQJEP2Y7HYL33IDYIJ6BQ 7  DATA SIGNATURE ::
+#,,.,,...,...,..,,,..,..,,.,.,.,.,,.,,,.,,.,,,..,,...,..,,..,,,.,,.,.,..,,,.,,
+#C3G2MXF2VZAJT2WB2IJGX5MYSTQZMBXHASZQF6ZFN4T57DABKFY2FCBJUILDVIFWLR27QLQIO6YMA
+#\\\|NBJ3VBDFKJZBGPBEDETOTFKME4QK74W7IDSTNYNGYJZC3YPNKQG \ / AMOS7 \ YOURUM ::
+#\[7]OS7DFG3O5QLMFIF7DALCSBBXQCM2NXTGQP2NQSM247S4BNFORYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
