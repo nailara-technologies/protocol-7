@@ -1,0 +1,116 @@
+## [:< ##
+
+# name  = user-edit.key_actions.submit_rename_to
+# descr = key-rename stage 2 : validate new name, rename files, refresh list
+# param = $editor_state, $value, $prompt
+
+## on_submit for the key-actions rename-to prompt.  does the actual file
+## rename and refreshes the user_keys field so the new name appears
+## immediately.
+
+my ( $editor_state, $value, $prompt ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $new_name = $value // '';
+my $old_name = ref $prompt eq qw| HASH | ? $prompt->{'data'}{'name'} : undef;
+
+my $done = sub {
+    my ( $text, $ok ) = @ARG;
+    <user-edit.key_actions.last_result> = $text;
+    <[editor.control.prompt.cancel]>->($editor_state);
+    return $ok // FALSE;
+};
+
+return $done->(q|rename lost its source key, nothing renamed|)
+    if not length( $old_name // '' );
+
+## guard 1 : non-empty ##
+return $done->(q|no new key name entered, nothing renamed|)
+    if not length $new_name;
+
+## guard 2 : valid keyname [ validate_keyname applies the anchored key-name
+## regex plus the stricter character-sequence rules ]
+return $done->(
+    sprintf( q|'%s' is not a valid key name, nothing renamed|, $new_name ) )
+    if not <[crypt.C25519.validate_keyname]>->($new_name);
+
+## guard 3 : new name must NOT already exist ##
+return $done->(
+    sprintf( q|key '%s' already exists, nothing renamed|, $new_name ) )
+    if <[crypt.C25519.key_exists]>->($new_name);
+
+## guard 4 : new name must actually differ from old name ##
+return $done->(
+    sprintf( q|new name '%s' is the same as old name, nothing renamed|,
+        $new_name )
+) if $new_name eq $old_name;
+
+## perform the rename : enumerate the old key's files via
+## crypt.C25519.keyfiles and rename each one, swapping only the name prefix.
+## keyfiles($name) returns only the first match, so ask for the full directory
+## list and filter to the target keyname here.
+my @old_files
+    = grep { $old_name eq ( <[crypt.C25519.get_keyname]>->($ARG) // '' ) }
+    <[crypt.C25519.keyfiles]>->();
+
+return $done->(
+    sprintf( q|key '%s' has no files on disk, nothing renamed|, $old_name ) )
+    if not @old_files;
+
+my $renamed_count = 0;
+
+foreach my $old_file (@old_files) {
+    my $basename = $old_file;
+    $basename =~ s|^.*/||;
+
+    ## the file basename must start with the old key name ##
+    next if index( $basename, $old_name ) != 0;
+
+    my $suffix = substr( $basename, length($old_name) );
+    next if not defined $suffix or not length $suffix;
+
+    my $new_file = $old_file;
+    $new_file =~ s|\Q$basename\E$|$new_name$suffix|;
+
+    next if $old_file eq $new_file;
+
+    if ( not rename $old_file, $new_file ) {
+        return $done->(
+            sprintf(
+                q|rename failed for '%s' [ %s ], partial rename may remain|,
+                $basename, $!
+            )
+        );
+    }
+
+    $renamed_count++;
+}
+
+return $done->(
+    sprintf(
+        q|key '%s' had no renameable files, nothing renamed|, $old_name
+    )
+) if $renamed_count == 0;
+
+## refresh user_keys so the new name appears immediately.  mutate the EXISTING
+## field_def hashref in place and swap in a fresh buffer wholesale
+my ($user_keys_def)
+    = grep { ( $ARG->{'name'} // '' ) eq qw| user_keys | }
+    ( $editor_state->{'schema'}{'fields'} // [] )->@*;
+
+if ( ref $user_keys_def eq qw| HASH | ) {
+    my $fresh_def = <[user-edit.form.build_user_keys_field]>;
+    %$user_keys_def = %$fresh_def;
+    $editor_state->{'fields'}{'user_keys'}
+        = <[editor.buffer.memory.create]>->($fresh_def);
+}
+
+return $done->( sprintf( q|renamed '%s' to '%s'|, $old_name, $new_name ),
+    TRUE );
+
+#,,,,,..,,...,.,.,,,,,.,.,,.,,..,,,.,,,..,..,,..,,...,..,,.,.,...,...,,,,,,.,,
+#JCBQPA6JLGG5KLWQLC4FOG34XKUI5WGSOYYZYNAZGPYONLVWKZOONPZDVS7FKQRFPYQQZ3O2ZXZBQ
+#\\\|W3YV2ONE3Z2UJNWA4BUC3DV65JH2FZHTKOALQBRSQBQE6ZXUMJL \ / AMOS7 \ YOURUM ::
+#\[7]ILVWK4MUZNCDJIKQTFOT66PZ4JIN6SQOQ6KHJPSR57DLVHCKTUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

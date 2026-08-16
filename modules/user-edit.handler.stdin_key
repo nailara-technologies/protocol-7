@@ -337,6 +337,27 @@ while ( defined( my $key = <[editor.input.next_key]>->($input_buffer) ) ) {
             2, ': entering plugin mode [ %s ]',
             $focus_def->{'name'}
         );
+
+        ## a plugin's own transient status keyword [ the 'last_result'
+        ## convention plugin.user-edit.key-actions.render documents -- set by
+        ## a submit_* callback, shown until something newer replaces it ]
+        ## otherwise survives FOREVER once set : nothing else ever clears it,
+        ## so it kept overriding the tab's own active hint on every future
+        ## visit, no matter how many times Left/Esc left the tab and Right
+        ## came back in -- found live, "stuck status string" that only a full
+        ## zenka exit ever cleared.  a FRESH visit to the tab is the right
+        ## boundary for it to expire on -- the entry TRIGGER itself, since a
+        ## plugin's own handler.key is never even called for the keypress that
+        ## sets mode here [ this block 'next's below, it does not fall through
+        ## to dispatch -- see the block's own header note ], so clearing
+        ## inside handler.key instead would miss this exact keystroke's own
+        ## repaint.  namespaced dynamically off the field's own name rather
+        ## than hardcoded to key_actions : a harmless no-op for any plugin
+        ## that never writes the keyword, and covers every current writer [
+        ## create's submit_name/submit_passphrase, rename's
+        ## submit_rename_from/_to ] the same shared way, not just rename's
+        $data{'user-edit'}{ $focus_def->{'name'} }{'last_result'} = undef;
+
         $editor_state->{'mode'}
             = sprintf( qw| plugin:%s |, $focus_def->{'name'} );
         ## readonly is TRUE on every pinned field so ORDINARY typing is
@@ -539,8 +560,8 @@ if ( ( $input_buffer->$* // '' ) eq "\e"
 
 return TRUE;
 
-#,,..,...,.,,,..,,.,.,...,,.,,...,,,,,,,,,,,.,..,,...,...,..,,,.,,,,.,,.,,,.,,
-#2GSJVEUZBUU7SCDY3P7YMXGBBQDH2UR2DOSJIKVFG4GPJBWABOH6HH67LGAM3A7JVVL7QVKDO44GU
-#\\\|PNUPHBGMUO6K4D5WNCS7TB4ZCQXB4TS7E7T2XRH5TCDQQJF6F6M \ / AMOS7 \ YOURUM ::
-#\[7]QXDNBOBXJYG2DCT5VRLWSVBBISR5NRQWKIB22N4HKNEFPHTJQWBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,..,,...,..,,.,,,...,,.,,,,.,,,,,..,,...,.,,,...,,.,,,,.,,.,,,..,
+#WWVJ6TV2WEJFVPV2VYNGWITYASKNJ4YPRQXBKWYI62CSJ6VNZ4KOOPXCBUHPLU5ZSYRLS7HYJQGJ2
+#\\\|HFWZEUTWOORZ5K4XYNVV5B4ZOKD7X4B4PHIUJMVXRZ3DDI3HIMT \ / AMOS7 \ YOURUM ::
+#\[7]6FMV3Y2MONDNEMUELCHZ43LQR2GBG53D5OSWH73LC4UWTQ3WDACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
