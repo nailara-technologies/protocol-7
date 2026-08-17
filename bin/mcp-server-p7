@@ -517,8 +517,8 @@ our @tools = (
             'properties' => {
                 'task_id' => {
                     'type'        => 'string',
-                    'description' => '7-character task identifier '
-                        . '(optional, defaults to active task)'
+                    'description' => '7-character task identifier (optional, '
+                        . 'defaults to active task)'
                 },
                 'mode' => {
                     'type'        => 'string',
@@ -526,6 +526,24 @@ our @tools = (
                         'stop mode: "abort" (default, kills active '
                         . 'inference) or "stop" (sets stop flag for soft '
                         . 'stop)'
+                }
+            },
+            'required'             => [],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_task_restart_round',
+        'description' => 'restart the current inference round in place. '
+            . 'useful when a stream is still alive but '
+            . 'hitting the soft timeout ceiling, or to '
+            . 'manually retry a stalled round',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => '7-character task identifier '
+                        . '(optional, defaults to active task)'
                 }
             },
             'required'             => [],
@@ -1131,6 +1149,8 @@ sub handle_tools_call {
         tool_task_continue( $id, $args );
     } elsif ( $name eq 'p7_task_stop' ) {
         tool_task_stop( $id, $args );
+    } elsif ( $name eq 'p7_task_restart_round' ) {
+        tool_task_restart_round( $id, $args );
     } elsif ( $name eq 'p7_agent_spawn' ) {
         tool_agent_spawn( $id, $args );
     } elsif ( $name eq 'p7_agent_list' ) {
@@ -1488,6 +1508,18 @@ sub tool_task_stop {
     }
 
     my $cmd = $mode eq 'stop' ? 'coding.stop-task' : 'coding.abort-inference';
+    $cmd .= " $task_id" if length $task_id;
+
+    my ( $ok, $response ) = cube_command($cmd);
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_task_restart_round {
+    my ( $id, $args ) = @ARG;
+
+    my $task_id = $args->{'task_id'} // '';
+
+    my $cmd = 'coding.restart-round';
     $cmd .= " $task_id" if length $task_id;
 
     my ( $ok, $response ) = cube_command($cmd);
@@ -3970,8 +4002,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,,,,,..,,,.,,,.,.,.,.,.,,..,.,.,..,,,,,,..,,...,...,...,.,.,.,,,,,.,.,.,
-#YRNXWGY3Y3ECMXLUP7CGNEGTCL7WBY3KG32MGUZOCA4OTJSNKYGXU4JJM7XB72SMCP3ESB5T7MQR2
-#\\\|4IY34UU7KAZUYSB4N7GKUPDLXGPO62R7RBGZBRFIJG4MKQ4FIMR \ / AMOS7 \ YOURUM ::
-#\[7]ZNAC4TDVE5OSVTGAN6BVRSD4X2SQQEEAUNX3AT5NG7UAWUTPSIBI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,..,,,.,.,,,.,,,.,,,...,,,.,,..,..,,...,...,,..,..,,,,.,,.,,,.,,
+#436UZWXW3HX27JUBUPIWTVNEZF75YOROXYDFLHCQCCCJ4GC3Y47GLWQ5QNKIZH2SD4RGLGUFQHL3E
+#\\\|3CIE3SF46QDUG533EP7MPUCLBWKZMUB57GT4HO6TJKLVU2OK4N3 \ / AMOS7 \ YOURUM ::
+#\[7]B73H2E2O5FCETSSMVIHJ5DBMEPSA7LH536J3UMUBO26BKW2K7ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

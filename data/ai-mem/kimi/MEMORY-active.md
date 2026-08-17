@@ -3,6 +3,22 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
+## MCP coding zenka control tools — landed (2026-08-17)
+
+`bin/mcp-server-p7` gained first-class tools for controlling long-running coding zenka inference:
+- `p7_task_stop` — abort/soft-stop a coding task. `mode=abort` (default) calls
+  `coding.abort-inference` to tear down the active HTTP stream immediately; `mode=stop`
+  calls `coding.stop-task` to set the stop flag. optional `task_id` defaults to the
+  active inference task.
+- `p7_task_restart_round` — calls `coding.restart-round` to redispatch the current
+  round in place. useful for manually recovering from a soft-timeout ceiling on a
+  still-live stream. optional `task_id` defaults to the active task.
+
+`coding.restart-round` was also missing from the coding zenka command whitelist in
+`configuration/zenki/coding/start`; adding it back exposed the command and the MCP
+propagation path. `p7_task_stop` resolved todo `WW7`. `restart-round` coverage + the
+new MCP tool resolved todo `E3A`.
+
 ## todo zenka — styled detail editor + show command (2026-08-16)
 
 `bin/todo` gained a `details <id>` command and a `show <id>` command.
@@ -194,8 +210,8 @@ screen; the newline is now only emitted when the help block is visible. when the
 scrolls out of view, one empty content row is kept as top padding so fields do not sit
 flush against the terminal top. see [topic-user-edit-vertical-viewport.md](topic-user-edit-vertical-viewport.md)
 
-#,,..,,,,,.,,,,,,,,,.,.,,,.,,,.,.,.,,,...,..,,..,,...,...,..,,.,.,..,,,.,,.,,,
-#73Y7OI4FVO5IXFDGNOLSLCXGJUIUYTQXJYOE5N2A3VK53RP5GGPPPY2BAGQHIAVVLMMYLOWB3B2JC
-#\\\|F332GWD2WFVIVY7XPUEFURSUEZOQJ2XLGNNQ27KALOPD4GDT3K2 \ / AMOS7 \ YOURUM ::
-#\[7]PS4TCPLLNHYSUN3NVKMT2PUE2DKRIFJWT4YASUDQ2UYFQ27SMEAI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,,,,,...,.,,,,.,,.,.,,,,,,..,..,,...,...,..,,,..,..,,..,,,,.,
+#R5TJA4U56FOYYJFPPQOVOWE27FOG7NV6OZKHUORI2FDRLFG74KJR22NJQG4DUJ24OLYHBSVN2AJ5K
+#\\\|NPEC2MULFEZJSK27VZDPPVARSZXYRCY6MRWDXFEB57R6MPKP4SC \ / AMOS7 \ YOURUM ::
+#\[7]IVPUCJCC5GKHYGKNFUU4TYVJSHRNIWUAWFJ5C3EP6KUECIFYPEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
