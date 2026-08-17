@@ -901,46 +901,46 @@ sub edit_details_interactive {
         ## 1,1                                                             ##
         print "\e[?25l\e[H\e[2J";    ## hide cursor, clear screen ##
 
-        ## top border : .:[ title ]:.......................:. ##
+        ## top border : .:[ title ]:....................:. ## [meanw.updated]
         say AMOS7::TERM::frame_border_line(
             {   width    => $cols,
                 reset    => $C{R},
                 elements => [
                     { type => 'anchor', value => '.:[ ', color => $C{0} },
                     {   type  => 'anchor',
-                        value => ' .: todo details :. [ '
-                            . $item->{id} . ' ] ',
+                        value => ' todo details .:. ' . $item->{id} . ' :. ',
                         color => $C{T} . $C{B},
                     },
-                    { type => 'anchor', value => ' ]: ', color => $C{0} },
-                    { type => 'fill', char => '.', min => 1, color => $C{0} },
+                    { type => 'anchor', value => ' ]', color => $C{0} },
+                    { type => 'fill', char => ':', min => 1, color => $C{0} },
                     { type => 'anchor', value => ':.', color => $C{0} },
                 ],
             }
         );
 
-        ## summary line [ right-aligned task title, 2-space right pad ] ##
+        ## summary line [ left-aligned, 3-space left pad, 1-space right ##
+        ## pad, :: delimiter ]                                          ##
         my $summary     = $item->{text} // '';
-        my $max_summary = $inner_width - 2;
+        my $max_summary = $inner_width - 4;      ## <-- was '2'  ##
         if ( length($summary) > $max_summary ) {
-            $summary = substr( $summary, 0, $max_summary - 3 ) . '...';
+            $summary = substr( $summary, 0, $max_summary - 3 ) . ' .,';
         }
-        my $sum_pad  = ' ' x ( $inner_width - length($summary) - 2 );
-        my $sum_line = $sum_pad . $summary . '  ';
-        say $C{0} . ':' . $C{T} . $C{B} . $sum_line . $C{0} . ':' . $C{R};
+        my $sum_pad  = ' ' x ( $inner_width - length($summary) - 3 );
+        my $sum_line = $sum_pad . $summary . ' ';
+        say $C{0} . ': ' . $C{T} . $C{B} . $sum_line . $C{0} . '::' . $C{R};
 
-        ## separator ##
+        ## separator [ ::. details .:: ] ##
         say AMOS7::TERM::frame_border_line(
             {   width    => $cols,
                 reset    => $C{R},
                 elements => [
-                    { type => 'anchor', value => ':..[ ', color => $C{0} },
+                    { type => 'anchor', value => '::.', color => $C{0} },
                     {   type  => 'anchor',
                         value => ' details ',
                         color => $C{T}
                     },
-                    { type => 'anchor', value => ' ]', color => $C{0} },
-                    { type => 'fill', char => '.', min => 1, color => $C{0} },
+                    { type => 'anchor', value => '.::', color => $C{0} },
+                    { type => 'fill', char => ':', min => 1, color => $C{0} },
                     { type => 'anchor', value => ':', color => $C{0} },
                 ],
             }
@@ -960,26 +960,26 @@ sub edit_details_interactive {
             {   width    => $cols,
                 reset    => $C{R},
                 elements => [
-                    { type => 'anchor', value => ':..[ ',  color => $C{0} },
+                    { type => 'anchor', value => '::.',    color => $C{0} },
                     { type => 'anchor', value => ' keys ', color => $C{T} },
-                    { type => 'anchor', value => ' ]',     color => $C{0} },
-                    { type => 'fill', char => '.', min => 1, color => $C{0} },
-                    { type => 'anchor', value => ':', color => $C{0} },
+                    { type => 'anchor', value => '.::',    color => $C{0} },
+                    { type => 'fill', char => ':', min => 1, color => $C{0} },
+                    { type => 'anchor', value => '::', color => $C{0} },
                 ],
             }
         );
 
-        ## help line [ right-aligned, 2-space right pad ] ##
+        ## help line [ left-aligned, 1-space left pad, :: delimiter ] ##
         my $help_text
-            = '· ctrl-x save+quit · ctrl-c abort · ctrl-o save · ctrl-w '
+            = ' · ctrl-x save+quit · ctrl-c abort · ctrl-o save · ctrl-w '
             . 'del-word · ctrl-l del-line · arrows · enter · del ·';
         ## show status (e.g. 'saved') on the LEFT so it survives narrow ##
         ## terminals; truncation keeps the leftmost part                ##
         $help_text = "· $last_status · $help_text" if length $last_status;
         $help_text = substr( $help_text, 0, $inner_width - 2 );
-        my $help_pad = ' ' x ( $inner_width - length($help_text) - 2 );
-        my $help     = $help_pad . $help_text . '  ';
-        say $C{0} . ':' . $C{dim} . $C{3} . $help . $C{0} . ':' . $C{R};
+        my $help_pad = ' ' x ( $inner_width - length($help_text) - 1 );
+        my $help     = $help_pad . $help_text . '';
+        say $C{0} . ':' . $C{dim} . $C{3} . $help . $C{0} . '::' . $C{R};
 
         ## bottom border [ no trailing newline to avoid scrolling ] ##
         print AMOS7::TERM::frame_border_line(
@@ -1376,8 +1376,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,,.,,,.,,..,,.,,,...,,,,,,,.,...,.,,,,.,,..,,...,...,..,,.,.,.,.,.,,,,,.,
-#OWHVZNKAV3GTPKUAW6TJWNT66EUGVOR4BI3FB2ASMK7UR5USNU7JTG72TZBIG5VKC2RXEILB4IPD4
-#\\\|KWVDEAUJZQ43QWIYWHBWORY5JNL5UZNPAIR4RDPPMDB3LXI6VCB \ / AMOS7 \ YOURUM ::
-#\[7]6LOK4BQFTQUQGHWQYY2QE4AONX5RZ652FRRXTV7EJ66G2TDAGKCY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,,,,,,..,.,,,,..,,,.,,,.,,.,,..,,...,..,,,,,,.,.,.,,,,,,,,.,,
+#NBYOOTBDMIK5QMXUOA2JBXQKZ2MM33PVRCQNX7BLWJXCCYLOLQNH7KAIONYJ6VGTZE35XV5CLMIX2
+#\\\|VQ7FIAYBGADYM2WX3XXOCF25ZR436E4LOIBLAZ6SKSDJZII5JCV \ / AMOS7 \ YOURUM ::
+#\[7]CVPADCUCFSNX7C6IIUTFCRDRQ3T7ZNQEWANDRQX72T6GABN42ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
