@@ -728,7 +728,7 @@ sub detail_editor_draw_line {
     my ( $text, $width, $is_cursor, $cur_col ) = @_;
     $text //= '';
 
-    my $vw = $width - 6;    ## room for ':   ' ... '   :' ##
+    my $vw = $width - 4;    ## room for ':  ' ... '  :' ##
     $vw = 4 if $vw < 4;
 
     my $display;
@@ -747,23 +747,52 @@ sub detail_editor_draw_line {
     $display .= ' ' x ( $vw - length($display) ) if length($display) < $vw;
     $display = substr( $display, 0, $vw );
 
+    # Cursor line ':' markers use bold TRUE blue for highlighting; other
+    # lines keep the purple frame color.
+    my $border_color = $is_cursor ? $C{T} . $C{B} : $C{0};
     return
-          $C{0} . ':'
+          $border_color . ':'
         . $C{T}
-        . $C{B} . '   '
-        . $display . '   '
-        . $C{0} . ':'
+        . $C{B} . '  '
+        . $display . '  '
+        . $border_color . ':'
         . $C{R};
 }
 
-sub read_editor_key {
-    my ($aborted_ref) = @_;
+sub editor_leave_line {
+    my ( $lines_ref, $line_idx ) = @_;
+    return 0 if $line_idx < 0 or $line_idx > $#$lines_ref;
+    my $old = $lines_ref->[$line_idx];
+    $lines_ref->[$line_idx] =~ s/ +$//;
+    return $old ne $lines_ref->[$line_idx];
+}
 
-    ## short-timeout poll so a ctrl-c (SIGINT) is noticed promptly ##
+sub editor_pad_line_to_col {
+    my ( $lines_ref, $line_idx, $col ) = @_;
+    return 0 if $line_idx < 0 or $line_idx > $#$lines_ref;
+    my $len = length( $lines_ref->[$line_idx] );
+    return 0 if $col <= $len;
+    $lines_ref->[$line_idx] .= ' ' x ( $col - $len );
+    return 1;
+}
+
+sub editor_normalize_details {
+    my @lines = @_;
+    s/ +$// for @lines;
+    pop @lines while @lines and $lines[-1] eq '';
+    return @lines;
+}
+
+sub read_editor_key {
+    my ( $aborted_ref, $resized_ref ) = @_;
+
+    ## short-timeout poll so a ctrl-c (SIGINT) or terminal resize ##
+    ## (SIGWINCH) is noticed promptly                             ##
     my $key;
     while ( !$$aborted_ref ) {
         $key = Term::ReadKey::ReadKey(0.05);
-        last if defined $key;
+        last         if defined $key;
+        return undef if $$resized_ref;    ## let caller redraw for new size ##
     }
     return undef if not defined $key;
 
@@ -796,8 +825,10 @@ sub edit_details_interactive {
     my $first_visible = 0;
     my $dirty         = 0;
     my $aborted       = 0;
+    my $resized       = 0;
 
-    local $SIG{'INT'} = sub { $aborted = 1; };
+    local $SIG{'INT'}   = sub { $aborted = 1; };
+    local $SIG{'WINCH'} = sub { $resized = 1; };
 
     ## raw mode : ctrl-c is read as the byte \x03, not delivered as SIGINT ##
     Term::ReadKey::ReadMode(4);
@@ -833,8 +864,14 @@ sub edit_details_interactive {
         $cur_line = 0       if $cur_line < 0;
         $cur_line = $#lines if $cur_line > $#lines;
         $cur_col  = 0       if $cur_col < 0;
-        $cur_col  = length( $lines[$cur_line] )
-            if $cur_col > length( $lines[$cur_line] );
+
+        ## free-cursor : current line grows with spaces when cursor is past ##
+        ## its end; trailing spaces are stripped when leaving the line      ##
+        if ( $cur_col > length( $lines[$cur_line] ) ) {
+            $lines[$cur_line]
+                .= ' ' x ( $cur_col - length( $lines[$cur_line] ) );
+            $dirty = 1;
+        }
 
         ## vertical scroll ##
         if ( $cur_line < $first_visible ) {
@@ -854,8 +891,7 @@ sub edit_details_interactive {
                 elements => [
                     { type => 'anchor', value => '.:[ ', color => $C{0} },
                     {   type  => 'anchor',
-                        value => ' .: todo '
-                            . 'details :. [ '
+                        value => ' .: todo details :. [ '
                             . $item->{id} . ' ] ',
                         color => $C{T} . $C{B},
                     },
@@ -918,9 +954,11 @@ sub edit_details_interactive {
 
         ## help line [ right-aligned, 2-space right pad ] ##
         my $help_text
-            = '· ctrl-x save+quit · ctrl-c abort · ctrl-o '
-            . 'save · ctrl-w del-word · arrows · enter · del ·';
-        $help_text .= " · $last_status" if length $last_status;
+            = '· ctrl-x save+quit · ctrl-c abort · ctrl-o save · ctrl-w '
+            . 'del-word · ctrl-l del-line · arrows · enter · del ·';
+        ## show status (e.g. 'saved') on the LEFT so it survives narrow ##
+        ## terminals; truncation keeps the leftmost part                ##
+        $help_text = "· $last_status · $help_text" if length $last_status;
         $help_text = substr( $help_text, 0, $inner_width - 2 );
         my $help_pad = ' ' x ( $inner_width - length($help_text) - 2 );
         my $help     = $help_pad . $help_text . '  ';
@@ -949,19 +987,23 @@ sub edit_details_interactive {
         } else {
             $dcol = $vw - 2;
         }
-        my $cursor_col = 5 + $dcol;    ## ': [ ' puts text at visible col 5 ##
+        my $cursor_col = 4 + $dcol;    ## ':  ' puts text at visible col 4 ##
         $cursor_col = $cols - 2 if $cursor_col > $cols - 2;
         ## position and show cursor at the real edit point ##
         print "\e[$cursor_row;${cursor_col}H\e[?25h";
 
         ## read key ##
-        my $key = read_editor_key( \$aborted );
-        last if not defined $key;
+        my $key = read_editor_key( \$aborted, \$resized );
+        if ( not defined $key ) {
+            last if $aborted;
+            $resized = 0;
+            next;    ## terminal resized : redraw with the new dimensions ##
+        }
 
         $last_status = '';
 
         ## control keys ##
-        if ( $key eq "\x03" ) {        ## Ctrl-C : abort ##
+        if ( $key eq "\x03" ) {    ## Ctrl-C : abort ##
             $aborted = 1;
             last;
         } elsif ( $key eq "\x0f" ) {    ## Ctrl-O ##
@@ -973,25 +1015,53 @@ sub edit_details_interactive {
             last;
         }
 
-        ## navigation ##
-        elsif ( $key eq "\e[A" ) {
-            $cur_line-- if $cur_line > 0;
-        } elsif ( $key eq "\e[B" ) {
-            $cur_line++ if $cur_line < $#lines;
-        } elsif ( $key eq "\e[C" ) {
+        ## navigation [ free cursor: lines grow with spaces as needed ] ##
+        elsif ( $key eq "\e[A" ) {      ## up ##
+            if ( $cur_line > 0 ) {
+                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+                $cur_line--;
+                $dirty = 1
+                    if editor_pad_line_to_col( \@lines, $cur_line, $cur_col );
+            }
+        } elsif ( $key eq "\e[B" ) {    ## down ##
+            if ( $cur_line < $#lines ) {
+                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+                $cur_line++;
+                $dirty = 1
+                    if editor_pad_line_to_col( \@lines, $cur_line, $cur_col );
+            } else {
+                ## add a new line at EOF, padded to current column ##
+                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+                push @lines, ' ' x $cur_col;
+                $cur_line++;
+                $dirty = 1;
+            }
+        } elsif ( $key eq "\e[C" ) {    ## right ##
             $cur_col++;
-        } elsif ( $key eq "\e[D" ) {
-            $cur_col-- if $cur_col > 0;
-        } elsif ( $key eq "\e[H" or $key eq "\x01" ) {
+            if ( $cur_col > length( $lines[$cur_line] ) ) {
+                $lines[$cur_line]
+                    .= ' ' x ( $cur_col - length( $lines[$cur_line] ) );
+                $dirty = 1;
+            }
+        } elsif ( $key eq "\e[D" ) {    ## left ##
+            if ( $cur_col > 0 ) {
+                $cur_col--;
+            } elsif ( $cur_line > 0 ) {
+                $dirty = 1 if editor_leave_line( \@lines, $cur_line );
+                $cur_line--;
+                $cur_col = length( $lines[$cur_line] );
+            }
+        } elsif ( $key eq "\e[H" or $key eq "\x01" ) {    ## home ##
             $cur_col = 0;
-        } elsif ( $key eq "\e[F" or $key eq "\x05" ) {
+        } elsif ( $key eq "\e[F" or $key eq "\x05" ) {    ## end ##
             $cur_col = length( $lines[$cur_line] );
         }
 
         ## editing ##
-        elsif ( $key eq "\n" or $key eq "\r" ) {
+        elsif ( $key eq "\n" or $key eq "\r" ) {          ## enter ##
             my $rest = substr( $lines[$cur_line], $cur_col );
             $lines[$cur_line] = substr( $lines[$cur_line], 0, $cur_col );
+            $dirty = 1 if editor_leave_line( \@lines, $cur_line );
             splice @lines, $cur_line + 1, 0, $rest;
             $cur_line++;
             $cur_col = 0;
@@ -1002,13 +1072,14 @@ sub edit_details_interactive {
                 $cur_col--;
                 $dirty = 1;
             } elsif ( $cur_line > 0 ) {
+                $dirty   = 1 if editor_leave_line( \@lines, $cur_line );
                 $cur_col = length( $lines[ $cur_line - 1 ] );
                 $lines[ $cur_line - 1 ] .= $lines[$cur_line];
                 splice @lines, $cur_line, 1;
                 $cur_line--;
                 $dirty = 1;
             }
-        } elsif ( $key eq "\e[3~" ) {                     ## delete ##
+        } elsif ( $key eq "\e[3~" ) {    ## delete ##
             if ( $cur_col < length( $lines[$cur_line] ) ) {
                 substr( $lines[$cur_line], $cur_col, 1, '' );
                 $dirty = 1;
@@ -1017,7 +1088,13 @@ sub edit_details_interactive {
                 splice @lines, $cur_line + 1, 1;
                 $dirty = 1;
             }
-        } elsif ( $key eq "\x17" ) {    ## Ctrl-W : delete word backward ##
+        } elsif ( $key eq "\x0c" ) {     ## Ctrl-L : delete line ##
+            splice @lines, $cur_line, 1;
+            @lines    = ('')    if !@lines;
+            $cur_line = $#lines if $cur_line > $#lines;
+            $cur_col  = 0;
+            $dirty    = 1;
+        } elsif ( $key eq "\x17" ) {     ## Ctrl-W : delete word backward ##
             if ( $cur_col > 0 ) {
                 my $start = $cur_col;
                 ## skip trailing whitespace ##
@@ -1055,18 +1132,19 @@ sub edit_details_interactive {
     my ( $cols, $rows ) = Term::ReadKey::GetTerminalSize();
     $rows //= 24;
 
-    ## abort : clear screen so the shell prompt starts clean ##
+    ## abort : clear screen and leave cursor at home for the shell prompt ##
     if ($aborted) {
-        print "\e[?25l\e[H\e[2J";
+        print "\e[?25l\e[H\e[2J\e[H\e[?25h";
         STDOUT->flush();
+        return undef;
     }
 
     ## leave cursor on a fresh line below the frame, always visible, shape ##
     ## reset                                                               ##
     print "\e[$rows;1H\e[?25h\e[0 q\n";
 
-    return undef if $aborted;
-    return join( "\n", @lines );
+    ## strip trailing spaces per line and trailing empty lines on save     ##
+    return join( "\n", editor_normalize_details(@lines) );
 }
 
 sub cmd_details {
@@ -1090,31 +1168,49 @@ sub cmd_details {
         return if not defined $new_details;
     }
 
-    if ( ( $item->{details} // '' ) ne $new_details ) {
+    my $details_changed
+        = ( ( $item->{details} // '' ) ne $new_details ) ? 1 : 0;
+
+    if ($details_changed) {
         $item->{details} = $new_details;
         save_data($data);
+    }
 
-        if ($TTY) {
-            print "\e[H\e[2J";    ## clear screen before saved message ##
-            say '';
-            say AMOS7::TERM::frame_border_line(
-                {   width    => $TERM_WIDTH,
-                    reset    => $C{R},
-                    elements => [
-                        {   type  => 'anchor',
-                            value => ' .: saved :. ',
-                            color => $C{3},
-                        },
-                        {   type  => 'fill',
-                            char  => '─',
-                            min   => 1,
-                            color => $C{0},
-                        },
-                    ],
-                }
-            );
-            say '';
+    ## interactive path always gives visual feedback after ctrl-x          ##
+    if ($TTY) {
+        ## use the live terminal width: the user may have resized while the ##
+        ## editor was open, and $TERM_WIDTH is only the startup width       ##
+        my $status_width = $TERM_WIDTH;
+        if ( defined &Term::ReadKey::GetTerminalSize ) {
+            my ( $cols, $rows ) = Term::ReadKey::GetTerminalSize();
+            $status_width = $cols if defined $cols and $cols > 0;
         }
+
+        print "\e[H\e[2J";    ## clear screen before status message ##
+        say '';
+
+        my ( $anchor, $anchor_color )
+            = $details_changed
+            ? ( ' .: saved :. ', $C{3} )
+            : ( ' .: unchanged :. ', $C{0} );
+
+        say AMOS7::TERM::frame_border_line(
+            {   width    => $status_width,
+                reset    => $C{R},
+                elements => [
+                    {   type  => 'anchor',
+                        value => $anchor,
+                        color => $anchor_color,
+                    },
+                    {   type  => 'fill',
+                        char  => '─',
+                        min   => 1,
+                        color => $C{0},
+                    },
+                ],
+            }
+        );
+        say '';
     }
 }
 
@@ -1247,8 +1343,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,...,.,.,.,.,..,,,..,...,..,,,.,,,,,,.,,,..,,...,...,...,.,.,.,.,..,,,..,
-#WEQX2FFJ6J4V2AFODRTPDSI4M4DN7XVIUD7JYR52HFXIU3XMSJOUIVAKIH53FMEKIVHSNIR6NFKM4
-#\\\|BYTAQXXXISX3EFNLHPSY2RWJMNPXEGPYRNGTDLK2GYKQHOF3SCU \ / AMOS7 \ YOURUM ::
-#\[7]QAIL2GLSXXCVWNK5QNKIEOJPDN4VZAXAP4YCGIHOI72LKWSSBCBQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,,,,,..,,,,,,,.,,..,,,,,,,.,,..,,...,...,..,,,..,,,.,...,,,,,
+#72Z2VHFUOML5NEMQUK4XF7M33G2YNG2EGL52PBOJLUULA5MOHSK5DI26D2HLJLSZMS2N2DKB5GCZW
+#\\\|VOJN23S2QFE3GMVUEUHOO3RJFKXXAJ45XMRUDKM3T5MSBOWXWVO \ / AMOS7 \ YOURUM ::
+#\[7]BCVZFMGETLWQZQZWLPHKB5YJIEJW3JZQI6NZOHN2TZLFAEWZ5IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
