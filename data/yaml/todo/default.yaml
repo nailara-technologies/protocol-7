@@ -31,11 +31,23 @@ items:
   - clean-up
   text: review routines with SPDX marker and remove on pass
 - added: 2026-08-09T04:03:29
-  details: change group ownership of /dev/shm/.7/STDOUT/NIW7OAQ to read only <admin-user>..
-  done_at: null
+  details: |-
+    change group ownership of /dev/shm/.7/STDOUT/NIW7OAQ to read only <admin-user>..
+
+    example of how to find the admin user :
+
+    ::: [ search =~ m{admin-user}i ] :: modules/coding.start.chmod_child ::
+    :
+    : 022 : my $admin_user = <system.admin-user> // '';
+
+    ..and the location is : v7.setup_stdout_redir ..where currently it is
+      created as <system.amos-zenka-user> while it should be with group
+      of the admin user and readable for it when admin user is configured,
+      otherwise use the current setup as fallback owner and permissions only.
+  done_at: 2026-08-17T11:08:54
   id: W2O
   priority: high
-  status: open
+  status: done
   tags:
   - v7-zenka
   text: make SHM console system.admin-user group readable
@@ -113,8 +125,8 @@ items:
   - coding-zenka
   text: implement restart-round|reset-inference command
 
-#,,,,,...,...,,,.,.,.,..,,,,,,,..,,,,,,..,.,,,..,,...,...,,.,,,,.,,,,,.,.,,,.,
-#5U245ZUB7HBYZ76MM2R5UE2RYOMCNOYJBYSMRDZI4VMQEYK6RWFL3DJYVGQH2JETQ4HPPBJILRJ26
-#\\\|XAPKVWAZZ7WLQVB7BMPGE7QA5NPJI5BW7I4AEFRP3IY377W2TY4 \ / AMOS7 \ YOURUM ::
-#\[7]K2NENMWN6Z7GXUVD26NFJVBSRT7TPPQ26C2TS7YDZGEGENKODYDY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,.,.,,.,,,..,.,.,,,,,.,.,.,.,..,,...,...,...,...,...,.,.,.,.,
+#72NVKTVGOMXXMVKF4CPQG73WE4WJAXSUFZWVRLWSEIL4HUHB54VP3RLBCV7PY263R7XUBECDR2W46
+#\\\|II4WJU73N2RUYT7XOR6HXOMXCZ6D2ODCYPNRBSVMKKWFK3R6HZ5 \ / AMOS7 \ YOURUM ::
+#\[7]6MU4VIX25RNZLRB35GZYDDGK2627J56HKLLBXMGRSOGDWSFCQECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

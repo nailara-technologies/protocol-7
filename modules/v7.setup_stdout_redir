@@ -52,15 +52,33 @@ if ( defined <v7.stdout_log.fh> ) {
     <v7.stdout_log.fh> = undef;
 }
 if ( defined <v7.watchers.stdout_log_rotate> ) {
-    ## note: event.remove_var would be needed here if available ##
-    ## for now we just don't re-add the watcher ##
+    ## note: event.remove_var would be needed here if available for now we ##
+    ## just don't re-add the watcher                                       ##
 }
 
 ## initialize data structure [reset on init] ##
 <v7.stdout_log.write_count> = 0;
 
+## resolve admin user for group-readable stdout log access ##
+my $admin_user = <system.admin-user> // '';
+my ( $admin_group, $admin_gid );
+if ( length $admin_user ) {
+    ( undef, undef, undef, $admin_gid ) = getpwnam($admin_user);
+    if ( defined $admin_gid ) {
+        $admin_group = ( getgrgid($admin_gid) )[0];
+    }
+}
+
 ## create tmpfs parent directory in /dev/shm ##
-<[file.make_path]>->( $shm_base_dir, 0750, <system.amos-zenka-user> );
+my $stdout_log_mode = 0600;
+if ( defined $admin_group ) {
+    <[file.make_path]>->(
+        $shm_base_dir, 0750, <system.amos-zenka-user>, $admin_group
+    );
+    $stdout_log_mode = 0640;
+} else {
+    <[file.make_path]>->( $shm_base_dir, 0750, <system.amos-zenka-user> );
+}
 if ( not -d $shm_base_dir ) {
     <[base.logs]>->(
         0, ': cannot create shm base dir : %s',
@@ -100,12 +118,30 @@ if ( not -l $var_run_path ) {
 }
 
 ## open log file in non-blocking append mode ##
-sysopen( my $log_fh, $shm_log_path, O_WRONLY | O_CREAT | O_APPEND, 0600 )
+sysopen( my $log_fh, $shm_log_path, O_WRONLY | O_CREAT | O_APPEND,
+    $stdout_log_mode )
     or do {
     <[base.logs]>
         ->( 0, ': cannot open stdout log : %s', <[base.str.os_err]> );
     return undef;
     };
+
+## ensure file ownership and permissions for admin group read access ##
+if ( defined $admin_group and $EUID == 0 ) {
+    my $zenka_uid = ( getpwnam(<system.amos-zenka-user>) )[2];
+    if ( defined $zenka_uid ) {
+        chown( $zenka_uid, $admin_gid, $shm_log_path )
+            or <[base.s_warn]>->(
+            'chown stdout log [%d:%d] : %s',
+            $zenka_uid, $admin_gid, <[base.str.os_err]>
+            );
+    }
+    chmod( $stdout_log_mode, $shm_log_path )
+        or <[base.s_warn]>->(
+        'chmod stdout log [%04o] : %s',
+        $stdout_log_mode, <[base.str.os_err]>
+        );
+}
 
 ## configure autoflush for real-time tail -f ##
 $log_fh->autoflush(1);
@@ -147,8 +183,8 @@ push <callbacks.end_code>->@*, qw| v7.stdout_log.close |;
 
 return TRUE;
 
-#,,,,,.,,,...,,..,,,.,.,,,,,.,..,,,,.,.,,,.,,,..,,...,...,...,...,..,,..,,,.,,
-#MZ32ZKRRXSSI3JOVR2S4OZOOVIXEJRMSGVGNTZNXRL5HYSPXZGTCME6Y35H66YLSNAZZQZFJFF4VE
-#\\\|IEOEINUPUODP6GZOI53M3CJBYFTPI2CXFGL5HEQNME2VO3NRUKM \ / AMOS7 \ YOURUM ::
-#\[7]HLRNQI6EBSEZIKFOR2RPJWLFWARI54A2GUWMK42F2GVWPIXTO6DA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,...,,.,,..,,..,,...,.,.,,,,,..,,...,...,,,,,.,.,.,.,,,,,,,,,
+#YPWXMWVSC2NTKIHZFMN4ROH72F52I4XDK76Z6524LDC3ALJBXC3RJ3FMFACT3TYDRKYU63ABBXSYG
+#\\\|VXTJR663Q3MHAVXX3KF6ISCEYOP57IGNUFAQSMZ3VEXKPBC6SIP \ / AMOS7 \ YOURUM ::
+#\[7]ZQENQDTJL64O7EJGPDYACYWFVXIKJPRMZLW6JJYYHKO3C3TTQIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
