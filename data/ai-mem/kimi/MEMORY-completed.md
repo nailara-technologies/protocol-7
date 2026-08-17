@@ -56,10 +56,12 @@ followed by ascending length), dynamic label-width alignment, manual
 colorization fixing trailing unstyled characters, unified `.: title :.` frame
 rules with a `──` prefix, and removed the redundant id footer. added top/bottom
 padding in the `bin/todo details` interactive editor so the edited text no
-longer touches the frame bars. landed in commit `67f30d0a0`.
+longer touches the frame bars. `added` and `done` timestamps are now shown as
+relative durations (e.g. `8d 03 01'52" ago.`) instead of raw ISO strings.
+landed in commit `67f30d0a0` and extended in the following commit.
 
-#,,,,,,..,.,.,,.,,.,.,,,,,...,.,,,.,,,,..,,..,.,.,...,...,..,,,..,,,.,,,,,,.,,
-#CT5TYHUR3SUYFJ3AQSN3S3TEKDILAQFM5P6KINAU2XZQGEQVJPEHDOKW5JZKL2OIF2X6WLM3GUXGK
-#\\\|JAAXPF34AYUXM6DZRS7PO7IAY2IK7WVV24XG3U4WCYA74L7MB3L \ / AMOS7 \ YOURUM ::
-#\[7]BTMVYJ3HC4VBJZH4NBBHOED5AYGGW3PNWFWJLW6AQUQ5CP3YN2AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,,,,,.,,,,,,,..,,..,,,,,,,,.,.,.,...,...,,.,,,,.,.,.,...,,,.,
+#JL2VI2MFCVTS2CJ55C2S2QQ36CVQHVQFJ3JKXGJMNOYMXVKBAKTZFILYZNEIPTIORYJUTBNMDZ5B6
+#\\\|TMZUC4PUWICSHQOHRYSDIN25TI4AR3XVNHFTM4R6URLMWZC3ZWT \ / AMOS7 \ YOURUM ::
+#\[7]74L2A76NWAWTBHYI7PNVHCHNB2CETBZDDGD275J5YCWIRMBIHODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
