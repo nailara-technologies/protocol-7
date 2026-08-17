@@ -1169,12 +1169,12 @@ sub edit_details_interactive {
     if ($aborted) {
         print "\e[?25l\e[H\e[2J\e[H\e[?25h";
         STDOUT->flush();
-        return undef;
+        print "\e[0 m";
     }
 
     ## leave cursor on a fresh line below the frame, always visible, shape ##
     ## reset                                                               ##
-    print "\e[$rows;1H\e[?25h\e[0 q\n";
+    print "\e[$rows;1H\e[?25h\e[0 q\n\e[0 m";
 
     ## strip trailing spaces per line and trailing empty lines on save     ##
     return join( "\n", editor_normalize_details(@lines) );
@@ -1376,8 +1376,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,,..,,,,,,..,,,,,,..,.,,,,..,,,.,,,.,,.,,..,,...,..,,,,,,.,.,.,,,,,,,,.,,
-#NBYOOTBDMIK5QMXUOA2JBXQKZ2MM33PVRCQNX7BLWJXCCYLOLQNH7KAIONYJ6VGTZE35XV5CLMIX2
-#\\\|VQ7FIAYBGADYM2WX3XXOCF25ZR436E4LOIBLAZ6SKSDJZII5JCV \ / AMOS7 \ YOURUM ::
-#\[7]CVPADCUCFSNX7C6IIUTFCRDRQ3T7ZNQEWANDRQX72T6GABN42ODY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,.,,.,,,.,,,..,,.,,,,,,,,,.,..,,...,.,.,...,.,,,.,.,...,,,,,
+#3UP5BZXFRUENJD34WSZRCBN2JSG3C5JR6CCH7L7VNSWDLD77VPAFGT3UFLCWOGIMXOJLYN6SYDI4C
+#\\\|FSHDQLCCVR5ZNVJQ7DJ56OTSHORTKYATJRN33SVK4NFZ2EUKUX5 \ / AMOS7 \ YOURUM ::
+#\[7]5RNDR54KYSJQKXFSMEZOV5SLMR2JU674S6BW4RNP5PCT3TJ5Y6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
