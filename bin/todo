@@ -29,6 +29,7 @@ BEGIN {
 use AMOS7::TERM qw| frame_border_line |;
 use AMOS7::CHKSUM;
 use AMOS7::Assert::Truth;
+use Time::Local qw| timelocal_posix |;
 
 my $root      = $ENV{'P7_ROOT'} // '';
 my $list_name = 'default';
@@ -467,6 +468,43 @@ sub base_sort_keys {
     return sort { length $a <=> length $b } reverse sort @keys;
 }
 
+sub iso_to_epoch {
+    my $ts = shift;
+    return undef
+        unless defined $ts
+        and $ts =~ m{^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$};
+    my ( $y, $mon, $d, $h, $min, $s ) = ( $1, $2, $3, $4, $5, $6 );
+    return eval { timelocal_posix( $s, $min, $h, $d, $mon - 1, $y - 1900 ) };
+}
+
+sub format_relative_time {
+    my $ts    = shift // return undef;
+    my $epoch = iso_to_epoch($ts);
+    return $ts if not defined $epoch;
+
+    my $delta = int( time() - $epoch );
+    $delta = 0 if $delta < 0;
+
+    my $days = int( $delta / 86400 );
+    $delta %= 86400;
+    my $hours = int( $delta / 3600 );
+    $delta %= 3600;
+    my $mins = int( $delta / 60 );
+    $delta %= 60;
+    my $secs = $delta;
+
+    if ( $days > 0 ) {
+        return sprintf "%dd %02d %02d'%02d\" ago .,", $days, $hours, $mins,
+            $secs;
+    } elsif ( $hours > 0 ) {
+        return sprintf "%02d %02d'%02d\" ago .,", $hours, $mins, $secs;
+    } elsif ( $mins > 0 ) {
+        return sprintf "%d'%02d\" ago .,", $mins, $secs;
+    } else {
+        return sprintf "%ds ago .,", $secs;
+    }
+}
+
 sub draw_detail_line {
     my ( $label, $value, $label_width ) = @_;
     $label_width //= length($label);
@@ -541,10 +579,11 @@ sub draw_item_details {
         text   => $item->{text},
         tags   => $item->{tags}->@* ? join( ' · ', $item->{tags}->@* ) : '-',
         pri    => $item->{priority},
-        added  => $item->{added},
+        added  => format_relative_time( $item->{added} ),
         status => $item->{status},
     );
-    $fields{done} = $item->{done_at} // '-' if $item->{status} eq 'done';
+    $fields{done} = format_relative_time( $item->{done_at} ) // '-'
+        if $item->{status} eq 'done';
 
     my @keys      = base_sort_keys( keys %fields );
     my $max_label = 0;
@@ -1375,8 +1414,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,..,..,,,,,,.,.,.,,,,..,..,,,..,..,,..,,.,.,..,,...,...,...,,.,,,,,,..,,.,,,
-#44XXB326YFS3FLCQVX3GF3BF7GBBIHQPYME7CZXBKM2DA3IHUPPLTQXQKKZAWV4MALJEXTGOHUIUI
-#\\\|TSRYND4ILLPDSRN2LMLQIPPQDQN3DGPF2G4TJDMYBBQSFYRGSQ2 \ / AMOS7 \ YOURUM ::
-#\[7]VKPK3P62BNSG63YW22GV7SAXD2MWBYG26LX7YQRJW7IGAJ77PQBY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,,,,,.,.,...,,,,,...,,.,,.,.,..,,...,.,.,,..,..,,...,..,,.,,,
+#JGIXGNRMZINXKIMVQJZKK3Z3FMRMBFOR5SGEZHWT3IHJQ6ZCSYFWJSSOLZ6BWI5C7CLTSZHOA6NPU
+#\\\|54U535VGURJ467TSAO7UD32UVR3IXGEGW54AXJ6QCQQNFKV75QS \ / AMOS7 \ YOURUM ::
+#\[7]C6S7ZUQTKP2F2VOBJOL2QYRX2FTPKVSYQAFAC3YOKOSX6OEP3WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
