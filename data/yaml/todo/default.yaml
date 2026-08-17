@@ -109,10 +109,35 @@ items:
   - nshell
   text: capture design idea for block removal parser
 - added: 2026-08-16T03:57:16
-  done_at: null
+  details: |-
+    the coding zenka has an abort-inference and a stop-task command :
+
+
+    coding.commands abort
+
+                                       .: 'coding' zenka commands :.
+
+    abort-inference [task_id] __ abort the currently-running or specific inference call
+
+    coding.commands stop-task
+
+                                       .: 'coding' zenka commands :.
+
+    stop-task [task_id] __ stop a running coding task
+
+
+    ..the coding task is to check if current tools in bin/mcp-server-p7
+      exist that would stop a codinng zenka task, i.e. summarization, and
+      if so, if a propagation command for aborting inference is missing.
+
+      if there are no such p7_ tools in the MCP server list yet, the question
+      is if there should be added one for that. because often the coding zenka
+      is multiplexing inference tasks, and a summarization with rolling window
+      can occupy the coding zenka it for many more minutes.
+  done_at: 2026-08-17T18:49:31
   id: WW7
   priority: low
-  status: open
+  status: done
   tags:
   - coding-zenka
   text: propagate MCP stop task to coding zenka inference abort
@@ -125,8 +150,8 @@ items:
   - coding-zenka
   text: implement restart-round|reset-inference command
 
-#,,.,,.,,,.,.,,,.,.,.,,.,,,..,.,.,,,,,.,.,.,.,..,,...,...,...,...,...,.,.,.,.,
-#72NVKTVGOMXXMVKF4CPQG73WE4WJAXSUFZWVRLWSEIL4HUHB54VP3RLBCV7PY263R7XUBECDR2W46
-#\\\|II4WJU73N2RUYT7XOR6HXOMXCZ6D2ODCYPNRBSVMKKWFK3R6HZ5 \ / AMOS7 \ YOURUM ::
-#\[7]6MU4VIX25RNZLRB35GZYDDGK2627J56HKLLBXMGRSOGDWSFCQECI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,.,,.,,,,.,,..,,.,.,,..,,,,,.,.,..,,...,...,,.,,.,,,,..,,..,,,,,
+#UUILFRKFEE5SRHZMD2MLFWEXBQRZQLNB6ZRRXGQWSQ2O6XRQMQROXE7KXPRT26I7VWGEHJHB2R57C
+#\\\|JX75D4NYDPCDO5RIBPPICXTZ4OHE2KHIW76OWW7OJMCWJGSBIXV \ / AMOS7 \ YOURUM ::
+#\[7]SJPWTDWZ5TLMCPLBSAHECO2ST2R2SMJTBZMN7IWMLIAZB2VF5QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
