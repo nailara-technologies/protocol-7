@@ -590,14 +590,14 @@ sub draw_item_details {
     length $_ > $max_label and $max_label = length $_ for @keys;
 
     say '';
-    draw_detail_rule( $width, 'todo details' );
+    draw_detail_rule( $width, 'todo item' );
     say '';
 
     draw_detail_line( $_, $fields{$_}, $max_label ) for @keys;
 
     if ( item_has_details($item) ) {
         say '';
-        draw_detail_rule( $width, 'details' );
+        draw_detail_rule( $width, 'task details' );
         say '';
         draw_detail_content($_) for split "\n", $item->{details};
         say '';
@@ -1414,8 +1414,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,,.,,.,,,,.,,,,,,.,.,...,,,,,...,,.,,.,.,..,,...,.,.,,..,..,,...,..,,.,,,
-#JGIXGNRMZINXKIMVQJZKK3Z3FMRMBFOR5SGEZHWT3IHJQ6ZCSYFWJSSOLZ6BWI5C7CLTSZHOA6NPU
-#\\\|54U535VGURJ467TSAO7UD32UVR3IXGEGW54AXJ6QCQQNFKV75QS \ / AMOS7 \ YOURUM ::
-#\[7]C6S7ZUQTKP2F2VOBJOL2QYRX2FTPKVSYQAFAC3YOKOSX6OEP3WAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,...,,,,,,,,,.,.,,,.,,..,.,,,...,..,,...,...,..,,,,,,.,.,...,.,,,
+#BC5LYTN74EAOL4522P6VLDPE5CVIF74IMDP6ZMJ2XF7PCTJUU7VR34S4ZFIYWMMSH25C4R6JPZSAA
+#\\\|UICJA2KLSNP2UDKZZGJNXJF5UN4W3DCK6J6Z36L35N7XCRTBTPY \ / AMOS7 \ YOURUM ::
+#\[7]AOXPUUULYMMM7HJQ6D44KR63G4W6B4NHBX4TF53SOFRL46PMVQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
