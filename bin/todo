@@ -353,7 +353,9 @@ sub format_items {
         if ( $item->{tags} and $item->{tags}->@* ) {
             $tags = ' [ ' . join( ' · ', $item->{tags}->@* ) . ' ]';
         }
-        $tags .= ' ◆' if item_has_details($item);
+        ## keep the details-marker column width constant so tag columns ##
+        ## align                                                        ##
+        $tags .= item_has_details($item) ? ' ◆' : '  ';
 
         my $vis_len = length($prefix) + length($text) + length($tags);
         $max_width = $vis_len if $vis_len > $max_width;
@@ -1414,8 +1416,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,,,.,.,,,...,,,,,,,,,.,.,,,.,,..,.,,,...,..,,...,...,..,,,,,,.,.,...,.,,,
-#BC5LYTN74EAOL4522P6VLDPE5CVIF74IMDP6ZMJ2XF7PCTJUU7VR34S4ZFIYWMMSH25C4R6JPZSAA
-#\\\|UICJA2KLSNP2UDKZZGJNXJF5UN4W3DCK6J6Z36L35N7XCRTBTPY \ / AMOS7 \ YOURUM ::
-#\[7]AOXPUUULYMMM7HJQ6D44KR63G4W6B4NHBX4TF53SOFRL46PMVQDI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,,,.,..,,,,,,,.,,,.,,,,.,,,.,..,,...,...,...,..,,..,,..,,.,,,
+#WHO6DBNCIYCQF2GEF5QIJIUSQ6BHFQ3FVND2Z5CZU7VMR6PXEDR27EMADDWJPEFDGPBYC2FDTS3YC
+#\\\|36AXYR3BYLOANONHGUJHEO37S2COJB45B2KRFGTLBEYEQVPTHJW \ / AMOS7 \ YOURUM ::
+#\[7]WB4TE72LKRBE3H3WCO2IOOH2ZZV57LYDUMEV6TTGQ4UPILEM4OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
