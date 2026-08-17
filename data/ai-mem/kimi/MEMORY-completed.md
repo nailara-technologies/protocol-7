@@ -49,8 +49,17 @@ Encode+HTML::Entities once in jobsite.init_code; Gtk3 already in
 screen.setup.init_code so only Cairo+Glib added ]. `ptd -c` clean on all
 19 touched files. signatures left to the system.
 
-#,,,,,..,,..,,,,,,,..,,.,,,,,,.,.,.,.,,..,.,,,..,,...,...,..,,.,,,,..,,,,,,,.,
-#CF6QZGR2MHBNSP6JM3X7CPEZEUDZHWYE7M556KPWYN7HUNMILMOL3I7ZRVLAPCVWSKEOAEUGTBFCY
-#\\\|I6JL2355EYKY5QVQCSNX4KFMHHMT5GVVB4NOPXZ7UZYGFFREDMG \ / AMOS7 \ YOURUM ::
-#\[7]LJD5LU6DJLGAMILW3WBOE3T4F2UPJJEMOUBWKWOBLIMYMNTFLYBY 7  DATA SIGNATURE ::
+## bin/todo show style refinement and details editor padding — COMPLETE (2026-08-17)
+
+refined `bin/todo show` output: keys sorted via `base.sort` (reverse-alpha
+followed by ascending length), dynamic label-width alignment, manual
+colorization fixing trailing unstyled characters, unified `.: title :.` frame
+rules with a `──` prefix, and removed the redundant id footer. added top/bottom
+padding in the `bin/todo details` interactive editor so the edited text no
+longer touches the frame bars. landed in commit `67f30d0a0`.
+
+#,,,,,,..,.,.,,.,,.,.,,,,,...,.,,,.,,,,..,,..,.,.,...,...,..,,,..,,,.,,,,,,.,,
+#CT5TYHUR3SUYFJ3AQSN3S3TEKDILAQFM5P6KINAU2XZQGEQVJPEHDOKW5JZKL2OIF2X6WLM3GUXGK
+#\\\|JAAXPF34AYUXM6DZRS7PO7IAY2IK7WVV24XG3U4WCYA74L7MB3L \ / AMOS7 \ YOURUM ::
+#\[7]BTMVYJ3HC4VBJZH4NBBHOED5AYGGW3PNWFWJLW6AQUQ5CP3YN2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
