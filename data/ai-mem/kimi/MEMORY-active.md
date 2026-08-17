@@ -12,10 +12,12 @@
 - `details <id>` opens a custom full-screen editor built with `Term::ReadKey`
   and AMOS7::TERM styling — no external `$EDITOR` / vi. chrome uses the
   ascii-frame visual language [ `.:[ title ]:.....:.`, `:..[ details ].....:`,
-  `:..[ keys ].....:`, `:...................:` ]. cursor line gets phosphor
-  green `[ ]` brackets and a `|` marker; arrows / enter / backspace / delete
-  edit the buffer; ctrl-o saves, ctrl-c aborts, ctrl-x saves & quits,
-  ctrl-w deletes the previous word. abort clears the screen before returning.
+  `:..[ keys ].....:`, `:...................:` ]. the cursor line is marked
+  by single `:   :` borders drawn in bold TRUE-blue (same as the details
+  text) for clear highlighting; arrows / enter / backspace / delete edit the
+  buffer; ctrl-o saves,
+  ctrl-c aborts, ctrl-x saves & quits, ctrl-w deletes the previous word,
+  ctrl-l deletes the current line. abort clears the screen before returning.
   escape sequences are assembled by `read_editor_key` because `Term::ReadKey`
   in raw mode returns arrow keys as individual bytes; bottom border is printed
   without a trailing newline to avoid scrolling the header off-screen.
@@ -23,10 +25,23 @@
   the task title and entered details text use the same bold TRUE-blue color as
   the `.: todo details :.` header. the hardware cursor is hidden during frame
   redraws (`\e[?25l`) and shown only at the final edit position (`\e[?25h`) to
-  prevent flicker at the home position. the cursor line uses the same `:   :`
-  borders as non-cursor lines (no green `[ ]` brackets), and the terminal cursor
-  is set to a steady underscore (`\e[4 q`) while editing, reset to default
-  (`\e[0 q`) on exit.
+  prevent flicker at the home position. the terminal cursor is set to a steady
+  underscore (`\e[4 q`) while editing, reset to default (`\e[0 q`) on exit.
+  a `SIGWINCH` handler triggers a full redraw when the terminal is resized, so
+  narrowing the window no longer leaves stale wide lines on screen.
+- the help line truncates from the right when the terminal is narrow; the
+  `saved` indicator from `ctrl-o` is prepended on the left so it stays visible.
+- after a successful `ctrl-x` the screen is cleared and a status line is printed
+  using the live terminal width (`.:[ saved ]:.` if details changed,
+  `.:[ unchanged ]:.` if not), avoiding the stale startup `$TERM_WIDTH`.
+- abort (`ctrl-c`) clears the screen and leaves the cursor at the home position
+  (`1,1`) for the shell prompt.
+- `ctrl-l` deletes the current line.
+- free-cursor movement: pressing right at the end of a line adds spaces; pressing
+  down at EOF inserts a new line padded to the current column; moving to another
+  line strips trailing spaces from the line being left; saving strips trailing
+  spaces from every line and removes trailing empty lines. this makes aligning
+  ascii art and tables easier.
 - `details <id> <text>` also works non-interactively for scripts.
 - the list view appends a `◆` marker after tags when an item has non-empty
   details. tested `show`, non-interactive `details`, interactive editor via
@@ -176,8 +191,8 @@ screen; the newline is now only emitted when the help block is visible. when the
 scrolls out of view, one empty content row is kept as top padding so fields do not sit
 flush against the terminal top. see [topic-user-edit-vertical-viewport.md](topic-user-edit-vertical-viewport.md)
 
-#,,..,,,.,.,.,.,.,,.,,,,.,,,,,,..,..,,,,.,,.,,..,,...,..,,...,...,..,,..,,,.,,
-#NXRYPUP7H6SEMJYHI6TITACNUTOVRCBHNMJJLELNQEOOBB354RWU2SNBC6ZUANDE2435YKNQRB7Z2
-#\\\|4RPTWUZBISBYBPL2I3FCWRKF6TFNK7TWPRD47T656ZORCYHGA2C \ / AMOS7 \ YOURUM ::
-#\[7]TD3UROBIP3YK7FQ73B2RFZH4ZE5JFTLJPRJ4DZV2TY7HVQX2GOAY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,,,,,,,,..,,...,,,,,,,.,,.,,..,,...,...,,..,.,.,,.,,...,...,
+#6MFOETRNUE47KJKTCWDL24S4DWXHDOWL44Y5XCXN3HC5ILRFLGO3VMHX6PERHBFVQLLVPK6GM2BRG
+#\\\|RVQ5IKR7KE7RR2UHMRXTCJ5LEV6APXNHJDG7TX2STV2SACIFPFY \ / AMOS7 \ YOURUM ::
+#\[7]YC3ZEI5AMK3K2XYA6L3PMHERLLJXTP2JIY4CFTIG7MJOUO3OWAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
