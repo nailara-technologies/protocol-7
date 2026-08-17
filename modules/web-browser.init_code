@@ -1,6 +1,7 @@
 ## [:< ##
 
-# name = web-browser.init_code
+# name  = web-browser.init_code
+# descr = web-browser zenka initialization code
 
 <system.zenka.mode> //= qw| stand-alone |;
 
@@ -19,6 +20,9 @@ $ENV{'GDK_DEBUG'}    = qw| no |;
 ## native cursor glyph [ left_ptr, crosshair, .. ] uniformly. left unset, ##
 ## some environments render the default theme at an oversized pixel size  ##
 $ENV{'XCURSOR_SIZE'} = <web-browser.cfg.cursor_size> // 24;
+
+## ensure etc_P7 exists ##
+<[base.path-set-up.check-zenka-paths]>->( FALSE, 0770 );
 
 <web-browser.title_prefix> = qw| amos-desktop |;
 
@@ -73,7 +77,8 @@ $ENV{'XCURSOR_SIZE'} = <web-browser.cfg.cursor_size> // 24;
 <web-browser.redraw_fps.slowdown>     //= 0;
 <web-browser.redraw_fps.slowdown_target> //= 0;
 <web-browser.cfg.max_gpu_load> //= 67;    # % [ auto-speed mode load target ]
-<web-browser.cfg.snapshot_dir> //= '/var/protocol-7/visual-feedback/capture/';
+<web-browser.cfg.snapshot_dir> //= catfile( <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, qw| visual-feedback capture | );
 <web-browser.cfg.snapshot_region> //= 'WEBKIT_SNAPSHOT_REGION_VISIBLE';
 <web-browser.cfg.profile.active>  //= qw| kiosk |;
 
@@ -109,6 +114,7 @@ if (<web-browser.open_gtk_inspector>) {
 }
 
 package Browser::ScrolledWindow;
+use English;
 
 ## guard against re-registration on module reload -- glib types are   ##
 ## permanent use eval STRING: Glib::Object::Subclass has no callable  ##
@@ -117,7 +123,7 @@ package Browser::ScrolledWindow;
 unless ( eval { Browser::ScrolledWindow->isa('Gtk3::ScrolledWindow') } ) {
     eval 'package Browser::ScrolledWindow;
           use Glib::Object::Subclass qw| Gtk3::ScrolledWindow |;';
-    die $@ if $@;
+    die <[base.str.eval_error]> if $EVAL_ERROR;
 }
 {
     no warnings qw| redefine |;
@@ -152,7 +158,7 @@ unless ( eval { Browser::WebView->isa('Gtk3::WebKit2::WebView') } ) {
                 ),
             ];
     };
-    die $@ if $@;
+    die <[base.str.eval_error]> if $EVAL_ERROR;
 }
 {
     no warnings qw| redefine |;
@@ -163,14 +169,14 @@ unless ( eval { Browser::WebView->isa('Gtk3::WebKit2::WebView') } ) {
 }
 
 ## guard against duplicate registration on module reload ##
-my $profile_cb = 'web-browser.callback.profile_changed';
+my $profile_cb = qw| web-browser.callback.profile_changed |;
 push @{ <system.callbacks.profile_changed> //= [] }, $profile_cb
     unless grep { $ARG eq $profile_cb }
     <system.callbacks.profile_changed>->@*;
 
 push @{ <system.callbacks.initialized> //= [] },
-    'web-browser.subscribe-screen-change'
-    unless grep { $ARG eq 'web-browser.subscribe-screen-change' }
+    qw| web-browser.subscribe-screen-change |
+    unless grep { $ARG eq qw| web-browser.subscribe-screen-change | }
     ( <system.callbacks.initialized> // [] )->@*;
 
 $code{'base.handler.end_code'} = sub {
@@ -186,8 +192,8 @@ $code{'base.handler.end_code'} = sub {
 
 0;
 
-#,,.,,...,.,.,,.,,,,,,,..,.,,,..,,,..,,.,,,..,..,,...,...,...,.,.,.,.,.,,,,,.,
-#QNCFOLNMDL3QFRWJ7BNJXIU7QCYBBHYU4UWRFKBTCIWWKKMOWYWTU5UKV5IIEMVA3GE54LUM5VWOY
-#\\\|XJPNACJMD64HUHP5DCUX6IWGVMN5OGD3NHODBPBM42WLGUN7U2X \ / AMOS7 \ YOURUM ::
-#\[7]N3SNVWJ2KCMXXVUGTYE5PPMP47YWQVZXEX3IJM5SPGQPNLXFDMBY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,...,,..,,.,,,.,,,,,,,,.,.,,,..,,...,...,,,,,...,,,.,..,,,,,,
+#3QD743GK6MH6WWSK7WTFKBHKMG6432AOWWVYZT5ATVYYX6OJEVAUKHF7NKWNKZFXCLGDY2KS5SHGG
+#\\\|ZF76IPMQZZZORCVIKOVRMK62CFJI6EKTX5I4QUJQB6FY4PDI6YS \ / AMOS7 \ YOURUM ::
+#\[7]GGZCDWRYLAGBF2DEWYX232FODXCOTKGNRVQF7XWOR32ZQFMDJKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
