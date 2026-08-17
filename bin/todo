@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use English;
 use utf8;
+use Fcntl qw(F_SETFL O_NONBLOCK);
 
 ###         ###
 ##   todo    ##
@@ -784,31 +785,34 @@ sub editor_normalize_details {
 }
 
 sub read_editor_key {
-    my ( $aborted_ref, $resized_ref ) = @_;
+    my ($aborted_ref) = @_;
 
-    ## short-timeout poll so a ctrl-c (SIGINT) or terminal resize ##
-    ## (SIGWINCH) is noticed promptly                             ##
-    my $key;
-    while ( !$$aborted_ref ) {
-        $key = Term::ReadKey::ReadKey(0.05);
-        last         if defined $key;
-        return undef if $$resized_ref;    ## let caller redraw for new size ##
-    }
-    return undef if not defined $key;
+    ## read one byte; sysread() is interrupted by signals, so SIGWINCH and ##
+    ## SIGINT return control to the caller.                                ##
+    my $buf;
+    my $n = sysread( STDIN, $buf, 1 );
+    return undef if !defined $n or $n == 0;
 
     ## plain key or control char ##
-    return $key if $key ne "\e";
+    return $buf if $buf ne "\e";
 
-    ## ESC : poll the rest of the escape sequence with a short timeout ##
-    my $seq      = $key;
+    ## ESC : collect the rest of the escape sequence with a short timeout ##
+    my $seq      = $buf;
     my $deadline = Time::HiRes::time() + 0.1;
     while ( Time::HiRes::time() < $deadline and !$$aborted_ref ) {
-        my $b = Term::ReadKey::ReadKey(-1);
-        if ( defined $b ) {
-            $seq .= $b;
-            last if $b =~ m{[A-Za-z~]};
-        }
-        Time::HiRes::sleep(0.001);
+        my $r = '';
+        vec( $r, fileno(STDIN), 1 ) = 1;
+        my $timeout = $deadline - Time::HiRes::time();
+        $timeout = 0.001 if $timeout < 0.001;
+        my $ready = select( $r, undef, undef, $timeout );
+        next if !defined $ready or $ready <= 0;
+
+        my $b;
+        my $m = sysread( STDIN, $b, 1 );
+        next if !defined $m or $m == 0;
+
+        $seq .= $b;
+        last if $b =~ m{[A-Za-z~]};
     }
     return $seq;
 }
@@ -827,8 +831,19 @@ sub edit_details_interactive {
     my $aborted       = 0;
     my $resized       = 0;
 
-    local $SIG{'INT'}   = sub { $aborted = 1; };
-    local $SIG{'WINCH'} = sub { $resized = 1; };
+    ## self-pipe : signal handlers write a byte here so select() wakes up, ##
+    ## giving us event-driven resize/abort handling instead of polling.    ##
+    pipe( my $sig_r, my $sig_w );
+    $sig_w->autoflush(1);
+    fcntl( $sig_w, F_SETFL, O_NONBLOCK )
+        or die "todo: fcntl sig_w: $!";
+    fcntl( $sig_r, F_SETFL, O_NONBLOCK )
+        or die "todo: fcntl sig_r: $!";
+
+    local $SIG{'INT'}
+        = sub { $aborted = 1; syswrite( $sig_w, 'i', 1 ); };
+    local $SIG{'WINCH'}
+        = sub { $resized = 1; syswrite( $sig_w, 'w', 1 ); };
 
     ## raw mode : ctrl-c is read as the byte \x03, not delivered as SIGINT ##
     Term::ReadKey::ReadMode(4);
@@ -843,6 +858,8 @@ sub edit_details_interactive {
     my $last_status = '';
 
     while ( !$aborted ) {
+        $resized = 0;    ## resize consumed (or no resize) this redraw ##
+
         ## terminal size may change while editing ##
         my ( $cols, $rows ) = Term::ReadKey::GetTerminalSize();
         $cols //= 80;
@@ -992,11 +1009,27 @@ sub edit_details_interactive {
         ## position and show cursor at the real edit point ##
         print "\e[$cursor_row;${cursor_col}H\e[?25h";
 
-        ## read key ##
-        my $key = read_editor_key( \$aborted, \$resized );
+        ## wait for input or a signal, then read one key ##
+        my $key;
+        while ( !defined $key and !$aborted and !$resized ) {
+            my $rin = '';
+            vec( $rin, fileno(STDIN),  1 ) = 1;
+            vec( $rin, fileno($sig_r), 1 ) = 1;
+
+            my $n = select( my $rout = $rin, undef, undef, undef );
+            next if !defined $n or $n < 0;
+
+            if ( vec( $rout, fileno($sig_r), 1 ) ) {
+                my $sigbuf;
+                1 while sysread( $sig_r, $sigbuf, 256 );    ## drain ##
+            }
+            if ( vec( $rout, fileno(STDIN), 1 ) ) {
+                $key = read_editor_key( \$aborted );
+            }
+        }
+
         if ( not defined $key ) {
             last if $aborted;
-            $resized = 0;
             next;    ## terminal resized : redraw with the new dimensions ##
         }
 
@@ -1343,8 +1376,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,..,.,.,.,.,,,,,,,,,..,,,,,,,.,,..,,,,,,,.,,..,,...,...,..,,,..,,,.,...,,,,,
-#72Z2VHFUOML5NEMQUK4XF7M33G2YNG2EGL52PBOJLUULA5MOHSK5DI26D2HLJLSZMS2N2DKB5GCZW
-#\\\|VOJN23S2QFE3GMVUEUHOO3RJFKXXAJ45XMRUDKM3T5MSBOWXWVO \ / AMOS7 \ YOURUM ::
-#\[7]BCVZFMGETLWQZQZWLPHKB5YJIEJW3JZQI6NZOHN2TZLFAEWZ5IAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,..,,.,,,...,,,,,,,.,...,.,,,,.,,..,,...,...,..,,.,.,.,.,.,,,,,.,
+#OWHVZNKAV3GTPKUAW6TJWNT66EUGVOR4BI3FB2ASMK7UR5USNU7JTG72TZBIG5VKC2RXEILB4IPD4
+#\\\|KWVDEAUJZQ43QWIYWHBWORY5JNL5UZNPAIR4RDPPMDB3LXI6VCB \ / AMOS7 \ YOURUM ::
+#\[7]6LOK4BQFTQUQGHWQYY2QE4AONX5RZ652FRRXTV7EJ66G2TDAGKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

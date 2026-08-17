@@ -27,8 +27,11 @@
   redraws (`\e[?25l`) and shown only at the final edit position (`\e[?25h`) to
   prevent flicker at the home position. the terminal cursor is set to a steady
   underscore (`\e[4 q`) while editing, reset to default (`\e[0 q`) on exit.
-  a `SIGWINCH` handler triggers a full redraw when the terminal is resized, so
-  narrowing the window no longer leaves stale wide lines on screen.
+  input is read with `sysread()` and the main loop blocks in `select()` on
+  `STDIN` plus a self-pipe; `SIGWINCH` and `SIGINT` handlers write to the pipe
+  to wake `select()`, giving event-driven resize/abort handling without polling.
+  a resize triggers a full redraw so narrowing the window no longer leaves
+  stale wide lines on screen.
 - the help line truncates from the right when the terminal is narrow; the
   `saved` indicator from `ctrl-o` is prepended on the left so it stays visible.
 - after a successful `ctrl-x` the screen is cleared and a status line is printed
@@ -191,8 +194,8 @@ screen; the newline is now only emitted when the help block is visible. when the
 scrolls out of view, one empty content row is kept as top padding so fields do not sit
 flush against the terminal top. see [topic-user-edit-vertical-viewport.md](topic-user-edit-vertical-viewport.md)
 
-#,,.,,,..,..,,,,.,,,,,,,,,..,,...,,,,,,,.,,.,,..,,...,...,,..,.,.,,.,,...,...,
-#6MFOETRNUE47KJKTCWDL24S4DWXHDOWL44Y5XCXN3HC5ILRFLGO3VMHX6PERHBFVQLLVPK6GM2BRG
-#\\\|RVQ5IKR7KE7RR2UHMRXTCJ5LEV6APXNHJDG7TX2STV2SACIFPFY \ / AMOS7 \ YOURUM ::
-#\[7]YC3ZEI5AMK3K2XYA6L3PMHERLLJXTP2JIY4CFTIG7MJOUO3OWAAQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,,,,,.,.,,,.,,,.,.,.,,,...,..,,..,,...,...,..,,.,.,..,,,.,,.,,,
+#73Y7OI4FVO5IXFDGNOLSLCXGJUIUYTQXJYOE5N2A3VK53RP5GGPPPY2BAGQHIAVVLMMYLOWB3B2JC
+#\\\|F332GWD2WFVIVY7XPUEFURSUEZOQJ2XLGNNQ27KALOPD4GDT3K2 \ / AMOS7 \ YOURUM ::
+#\[7]PS4TCPLLNHYSUN3NVKMT2PUE2DKRIFJWT4YASUDQ2UYFQ27SMEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
