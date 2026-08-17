@@ -460,121 +460,114 @@ sub resolve_item {
     return undef;
 }
 
-sub draw_detail_line {
-    my ( $label, $value, $width ) = @_;
-    $width //= $TERM_WIDTH;
-    my $line = sprintf ' :  %-5s : %s', $label, $value // '';
-    if ($TTY) {
-        $line = AMOS7::TERM::frame_colorize_content(
-            $line,
-            {   label => $C{0},
-                value => $C{T},
-            },
-            $C{R}
-        );
-    }
-    say $line;
+sub base_sort_keys {
+    my @keys = @_;
+    ## same two-pass sort as modules/base.sort :  reverse alphabetical ##
+    ## first, then ascending by length                                 ##
+    return sort { length $a <=> length $b } reverse sort @keys;
 }
 
-sub draw_detail_separator {
-    my $width = shift // $TERM_WIDTH;
+sub draw_detail_line {
+    my ( $label, $value, $label_width ) = @_;
+    $label_width //= length($label);
+    my $indent = ' :  ';
+    my $sep    = ' :  ';
+    if ($TTY) {
+        printf "%s%s%-*s%s%s%s%s\n", $C{0}, $indent,
+            $label_width, $label,
+            $sep,
+            $C{T}, $value // '',
+            $C{R};
+    } else {
+        printf "%s%-*s%s%s\n",
+            $indent, $label_width, $label,
+            $sep, $value // '';
+    }
+}
+
+sub draw_detail_rule {
+    my ( $width, $title ) = @_;
+    $width //= $TERM_WIDTH;
+    my @elements;
+    if ( defined $title and length $title ) {
+        push @elements,
+            {
+            type  => 'anchor',
+            value => '──',
+            color => $C{0} // '',
+            },
+            {
+            type  => 'anchor',
+            value => ' .: ' . $title . ' :. ',
+            color => $C{T} // '',
+            };
+    }
+    push @elements,
+        {
+        type  => 'fill',
+        char  => '─',
+        min   => 1,
+        color => $C{0} // '',
+        };
     say AMOS7::TERM::frame_border_line(
         {   width    => $width,
             reset    => $C{R} // '',
-            elements => [
-                { type => 'anchor', value => ' :..[ ', color => $C{0} // '' },
-                {   type  => 'anchor',
-                    value => ' details ',
-                    color => $C{T} // ''
-                },
-                { type => 'anchor', value => ' ]', color => $C{0} // '' },
-                {   type  => 'fill',
-                    char  => '.',
-                    min   => 1,
-                    color => $C{0} // '',
-                },
-                { type => 'anchor', value => ': ', color => $C{0} // '' },
-            ],
+            elements => \@elements,
         }
     );
+}
+
+sub draw_detail_content {
+    my ( $text, $dim ) = @_;
+    my $prefix = '  : ';
+    $text = ' ' if not length $text;
+    if ($TTY) {
+        if ($dim) {
+            say $C{dim} . $C{3} . $prefix . $text . $C{R};
+        } else {
+            say $C{0} . $prefix . $C{T} . $text . $C{R};
+        }
+    } else {
+        say $prefix . $text;
+    }
 }
 
 sub draw_item_details {
     my ( $item, $width, $show_editor_hint ) = @_;
     $width //= $TERM_WIDTH;
 
-    say '';
-    say AMOS7::TERM::frame_border_line(
-        {   width    => $width,
-            reset    => $C{R} // '',
-            elements => [
-                {   type  => 'anchor',
-                    value => ' .: todo details :. ',
-                    color => $C{T} // '',
-                },
-                {   type  => 'fill',
-                    char  => '─',
-                    min   => 1,
-                    color => $C{0} // '',
-                },
-            ],
-        }
+    my %fields = (
+        id     => $item->{id},
+        text   => $item->{text},
+        tags   => $item->{tags}->@* ? join( ' · ', $item->{tags}->@* ) : '-',
+        pri    => $item->{priority},
+        added  => $item->{added},
+        status => $item->{status},
     );
+    $fields{done} = $item->{done_at} // '-' if $item->{status} eq 'done';
+
+    my @keys      = base_sort_keys( keys %fields );
+    my $max_label = 0;
+    length $_ > $max_label and $max_label = length $_ for @keys;
+
+    say '';
+    draw_detail_rule( $width, 'todo details' );
     say '';
 
-    draw_detail_line( 'id',   $item->{id},   $width );
-    draw_detail_line( 'text', $item->{text}, $width );
-    draw_detail_line( 'tags',
-        $item->{tags}->@* ? join( ' · ', $item->{tags}->@* ) : '-', $width );
-    draw_detail_line( 'pri',    $item->{priority},       $width );
-    draw_detail_line( 'added',  $item->{added},          $width );
-    draw_detail_line( 'status', $item->{status},         $width );
-    draw_detail_line( 'done',   $item->{done_at} // '-', $width )
-        if $item->{status} eq 'done';
+    draw_detail_line( $_, $fields{$_}, $max_label ) for @keys;
 
     if ( item_has_details($item) ) {
         say '';
-        draw_detail_separator($width);
+        draw_detail_rule( $width, 'details' );
         say '';
-        for my $dline ( split /\n/, $item->{details} ) {
-            my $out = ' :  ' . ( length $dline ? $dline : ' ' ) . ' ';
-            if ($TTY) {
-                $out = AMOS7::TERM::frame_colorize_content( $out,
-                    { value => $C{T} }, $C{R} );
-            }
-            say $out;
-        }
+        draw_detail_content($_) for split "\n", $item->{details};
         say '';
-        draw_detail_separator($width);
+        draw_detail_rule($width);
     } elsif ($show_editor_hint) {
         say '';
-        my $hint = ' :  [ no details yet ] ';
-        if ($TTY) {
-            $hint = AMOS7::TERM::frame_colorize_content( $hint,
-                { value => $C{dim} . $C{3} }, $C{R} );
-        }
-        say $hint;
+        draw_detail_content( '[ no details yet ]', 1 );
     }
 
-    say '';
-    say AMOS7::TERM::frame_border_line(
-        {   width    => $width,
-            reset    => $C{R} // '',
-            elements => [
-                {   type  => 'fill',
-                    char  => '─',
-                    min   => 1,
-                    color => $C{0} // '',
-                },
-                {   type  => 'anchor',
-                    value => ' [ ' . $item->{id} . ' ] ',
-                    color => $C{T} // '',
-                },
-                { type => 'anchor', value => '──', color => $C{0} // '' },
-            ],
-        }
-    );
-    say '';
 }
 
 sub cmd_list {
@@ -867,12 +860,12 @@ sub edit_details_interactive {
         $cols = 40 if $cols < 40;
         $rows = 10 if $rows < 10;
 
-        ## top border / summary / separator ##
-        my $header_rows = 3;
-        ## separator / help / bottom border ##
-        my $footer_rows  = 3;
+        ## top border / summary / separator / top padding ##
+        my $header_rows = 4;
+        ## bottom padding / separator / help / bottom border ##
+        my $footer_rows  = 4;
         my $content_rows = $rows - $header_rows - $footer_rows;
-        $content_rows = 3 if $content_rows < 3;
+        $content_rows = 1 if $content_rows < 1;
 
         my $inner_width = $cols - 2;
         $inner_width = 20 if $inner_width < 20;
@@ -946,6 +939,9 @@ sub edit_details_interactive {
             }
         );
 
+        ## top padding ##
+        say detail_editor_draw_line( '', $inner_width, 0, 0 );
+
         ## content area ##
         for my $i ( 0 .. $content_rows - 1 ) {
             my $line_idx  = $first_visible + $i;
@@ -954,6 +950,9 @@ sub edit_details_interactive {
             say detail_editor_draw_line( $line_text, $inner_width,
                 $is_cursor, $cur_col );
         }
+
+        ## bottom padding ##
+        say detail_editor_draw_line( '', $inner_width, 0, 0 );
 
         ## footer separator ##
         say AMOS7::TERM::frame_border_line(
@@ -1376,8 +1375,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,.,,,,,,..,.,,,.,.,..,,,,,,...,.,.,,,,,,..,..,,...,...,...,,,.,,..,.,,,,..,
-#7FRSMV2XF6UGYB7W7EXQAYLU3EYLVN3DKJSH43QXXRATN6VA2GW53IT5636Y2ONYLWE7XZK5JEUHY
-#\\\|Q7PGHQXZME5VDEIFVMKATP2BKQNQNWMCAYXUTYA76W2MYVHX2XQ \ / AMOS7 \ YOURUM ::
-#\[7]BHVJS3HFZ3HSFY3WEJGWERIIS66M6CIILJLEQMPTM6T3Z2C2HADQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,.,,,,..,..,,,..,..,,..,,.,.,..,,...,...,...,,.,,,,,,..,,.,,,
+#44XXB326YFS3FLCQVX3GF3BF7GBBIHQPYME7CZXBKM2DA3IHUPPLTQXQKKZAWV4MALJEXTGOHUIUI
+#\\\|TSRYND4ILLPDSRN2LMLQIPPQDQN3DGPF2G4TJDMYBBQSFYRGSQ2 \ / AMOS7 \ YOURUM ::
+#\[7]VKPK3P62BNSG63YW22GV7SAXD2MWBYG26LX7YQRJW7IGAJ77PQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
