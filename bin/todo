@@ -1209,7 +1209,12 @@ sub edit_details_interactive {
     my ( $cols, $rows ) = Term::ReadKey::GetTerminalSize();
     $rows //= 24;
 
-    ## abort : clear screen and leave cursor at home for the shell prompt ##
+    if ($aborted) {
+        print "\e[?25l\e[H\e[2J\e[H\e[?25h";
+        STDOUT->flush();
+        print "\e[0 m";
+        return undef; ## abort: return undef so caller knows nothing was saved
+    }
     if ($aborted) {
         print "\e[?25l\e[H\e[2J\e[H\e[?25h";
         STDOUT->flush();
@@ -1234,7 +1239,11 @@ sub cmd_details {
     my $new_details;
     if (@_) {
         ## non-interactive : set details from command line ##
-        $new_details = join ' ', @_;
+        $new_details = edit_details_interactive($item);
+
+        ## interactive editor returns undef when aborted without saving ##
+        return if not defined $new_details;
+
     } else {
         die "interactive details editor requires a tty\n"
             if not $TTY;
@@ -1243,6 +1252,10 @@ sub cmd_details {
 
         ## interactive editor returns undef when aborted without saving ##
         return if not defined $new_details;
+
+        say "\e[0K";    ## clear to end of line
+        say "  [ ctrl-c cancelled ]";
+
     }
 
     my $details_changed
@@ -1420,8 +1433,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,.,...,...,,.,,,,.,.,,,,..,,..,,..,,,.,.,,,..,,...,...,.,.,.,.,.,,,,,.,,,,,
-#7SNAYC3WJC74NFQJO3WXWHZCKS3PREGPJ72RJY5UVO444TKXCBCXYV3DD2LLGB2T5J6FCRNYMZDKO
-#\\\|CMG5QNR5RGWTEHD7MRCQJ7ONOAB6BRU4E3DVV5V3FJX6RKZCJAR \ / AMOS7 \ YOURUM ::
-#\[7]QTKBGEFM6S4BDOXAEISGT3DFGGO2E63J2DL4GSIYXM3OZKXUNQBA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,,,.,.,.,...,...,,..,,,.,...,..,,...,...,.,,,,,.,.,.,,..,,.,,
+#7BTQSK4UDSJTXMBN5JVXYO77H6IMGEIHLF6HFNZPFHCBKESMVRTY345QSLHM25GLJWVDFVWKALWGI
+#\\\|UBJ4AUV6UEBPLAKR5H5PDMZUNWJHZOAIQFOTAKO2GL4UB7KODNZ \ / AMOS7 \ YOURUM ::
+#\[7]M2WDHO4X7VPUUYYSGT3EN52JAWLK553TRF33XOXEYF46T4Q23QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
