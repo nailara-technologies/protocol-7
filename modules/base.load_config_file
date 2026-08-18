@@ -11,12 +11,12 @@ my $cfg_level  = <base.modules.cfg_level>++;
 my $max_level  = <system.zenka.initialized> ? 1                 : 2;
 my $log_level  = $cfg_level < 1             ? 1                 : $max_level;
 my $log_str    = $cfg_level                 ? ': ' x $log_level : '';
-my $cfg_str    = length($cfg_name) > 20     ? 'conf file' : qw|configuration|;
+my $cfg_str    = length($cfg_name) > 20     ? qq|:|             : qq|config |;
 my $log_msg
     = $cfg_name eq sprintf( qw| zenki/%s/%s |, $zenka_name, $start_cfg_name )
-    ? sprintf( '%s: loading %s zenka description', $log_str, $zenka_name )
+    ? sprintf( '%s: loading %s zenka set-up', $log_str, $zenka_name )
     : $cfg_name =~ m|/[^/]+/| ? "${log_str}loading cfg.: ,./$cfg_name"
-    :                           "${log_str}loading $cfg_str : $cfg_name";
+    :                           "${log_str}loading $cfg_str: $cfg_name";
 
 <[base.log]>->( $log_level, $log_msg );
 
@@ -65,8 +65,8 @@ my $status = <[base.execute_zenka_code]>->(
 return TRUE if <base.parser.config.errors>;
 return $status;
 
-#,,,.,,,.,,,,,...,..,,.,,,,..,.,,,.,,,...,.,.,..,,...,...,...,.,,,,,.,,,.,,,,,
-#64IRZXZ4775RY56HGY7WCZNBE6BYCIUN2C5JSS4WOEM5BEPHSA4ELBBC5RUIE3RMDQD4SQCBPQZZ4
-#\\\|4DTSIW7CGX3MJZ6I5FHKH34HXP3VFKXLZAQ64VYPESFAHFOOQSB \ / AMOS7 \ YOURUM ::
-#\[7]HUERLQKERKACOJ3QOE6XELUHLLUFBB2BGXVNYFA2EI3YDADJJ4DQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,.,,.,,,,..,.,,,,,.,...,,.,,,,,,..,,...,...,.,,,,.,,...,...,,,.,
+#TTPB4VNYLAMN262Q7Y2TTEAC2POZKA23B4YVWWAE5SR7GUNPHF4JQ6JNXH4RWGSCXZTQSCXB5VEB4
+#\\\|KFV6YSTOKLXVK2QHE22YSHUD4A6GEQAVQOYCSBUWL4J35A7FPVU \ / AMOS7 \ YOURUM ::
+#\[7]XWPJHI6EY4LJOVB36UP5KFWVDHEC4XG7WV53ENGZEYBAEDNUKSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
