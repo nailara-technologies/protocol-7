@@ -1723,6 +1723,8 @@ sub frame_border_line {
     my @fill_idx;
     for my $i ( 0 .. $#{$elements} ) {
         my $el = $elements->[$i];
+        return warn_err('element type not defined')
+            if not defined $el->{'type'};
         if ( $el->{'type'} eq qw| anchor | ) {
             $fixed_width += length( $el->{'value'} // '' );
         } elsif ( $el->{'type'} eq qw| slot | ) {
@@ -1890,8 +1892,8 @@ sub frame_bar {
 
 return TRUE ##################################################################
 
-#,,,,,,.,,.,.,,,,,...,,,.,..,,,,,,..,,,.,,..,,..,,...,...,..,,,..,,..,,..,,.,,
-#6456KLT5V7RAQPPSRGZSYKPVIPYUM5DS2SGBOFFKNY7SQTVVIGE7RPFZOEJRVP27JL7WBLD37UJW6
-#\\\|J6YO6VKNMVVCR2BFPJMG5E2FNA7X5CAIEDGBXTSPF6PZCZVQFCN \ / AMOS7 \ YOURUM ::
-#\[7]LAY7NDATG4OCILQBS6ZSCET6ZQKA52JC2IKBOES74MAXPK4M6KAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,..,...,..,,,..,,,.,,..,.,,,,,,,..,,...,..,,..,,,.,,,..,,,.,,.,,
+#2JGGD7Q3QGWCQU2QIDRJI56AGY6B3WMYTSDIN74MREAT6Y36A7FSNXGZKCLHBY5TJ7JRLP7T2PBNU
+#\\\|WEV7CTTA6NTBEWUUXSPNR5AENYH37KQT72EVW5HT4HMY73PISZV \ / AMOS7 \ YOURUM ::
+#\[7]GSKAUU5AFMKV45QOMXRZMW2XPDTQM6AUGPNLTBL63WLICOC45YBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
