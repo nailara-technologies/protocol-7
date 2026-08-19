@@ -5,6 +5,8 @@
 my $id     = shift;
 my $method = shift;
 
+my $log_level = 2;    ## 'selected auth method' log message level ##
+
 warn "[$id] expected auth _method_ parameter" if not defined $method;
 
 my $client_sock_fd = $data{'session'}{$id}{'handle'};
@@ -30,7 +32,7 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     if ( $method eq 'auth-keypair' ) {
         ## unconditional once reached : any zenka accepting auth-keypair  ##
         ## connections must have crypt.C25519 loaded [ cube does; a zenka ##
-        ## that reaches this without it is genuinely misconfigured ]     ##
+        ## that reaches this without it is genuinely misconfigured ]      ##
         my $pubkey_response = <[base.code.call_expected]>->(
             TRUE, qw| crypt.C25519.cmd.get-public-key |
         );
@@ -41,7 +43,7 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
 
           # Extract just the pubkey from format "[protocol-7.base] PUBKEY_B32"
             ($server_pubkey_b32)
-                = $pubkey_response->{'data'} =~ m/]\s+(\S+)$/;
+                = $pubkey_response->{'data'} =~ m|]\s+(\S+)$|;
         }
 
         if ( defined $server_pubkey_b32 and length $server_pubkey_b32 ) {
@@ -57,7 +59,10 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     } else {
         <[base.net.send_to_socket]>->( $client_sock_fd, "TRUE continue\n" );
     }
-    <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
+    <[base.logs]>->(
+        $log_level, "[%d] selected auth method '%s'.,",
+        $id,        $method
+    );
     return TRUE;
 } else {
     my $link_type
@@ -81,8 +86,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,,.,,,,,..,,..,,.,,,.,,,..,,,,,,,,.,...,,,,,..,,...,..,,...,,,.,...,...,...,
-#5LCYGM36ZNLLNHZ4UZEWLNYEZUC3MVQRIRFRFDJEWAIXYZ74WG4HQ2EQ7RQUPHGX4GSDWAT7BSNFC
-#\\\|JR3FP4KAYQMTMLYJ7C7MK6JEKIYHNZTNG5ZDCYLA2UTV7D2RWTH \ / AMOS7 \ YOURUM ::
-#\[7]36AF7SDFBXHQBXRJBWRX77DMFF5MQNBUTR453EQA544AIMAGCCDI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,..,,..,,,.,,..,,,,.,,,.,,,.,..,,...,..,,,..,,,.,,,,,,..,...,
+#7IQOH6KLRUTFA4XZCAFZ4BNXWY4PYW3L5353BOGECMTQI66VFR6A7GDRXBELLEW5VXZFFJNSAOCTO
+#\\\|IX54M6DOZQXPJHKRYTSYVZRQ3QBWKCABZ24I7VT5NIR74AKNY3J \ / AMOS7 \ YOURUM ::
+#\[7]JL76XHYB6XIFNMSBYPDQ2F3BEANZADILOREUVE7666RAKFKYQEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

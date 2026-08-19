@@ -5,6 +5,8 @@
 my $id     = $_[0]->w->data;
 my $fd_srv = $_[0]->w->fd;
 
+my $log_level = 2;    ## :: established :: message log level ##
+
 ##  closed server session  ##
 if ( not exists $data{'session'}->{$id} ) {
     ## removing from event management ##
@@ -98,7 +100,10 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
         if ( length($banner_string) and $mode eq qw| input | ) {
             <[base.net.send_to_socket]>->( $fd_client, $banner_string );
         }
-        <[base.logs]>->( 1, '[%d] :: established :: %s ::', $cid, $proto );
+        <[base.logs]>->(
+            $log_level, '[%d] :: established ' . ':: %s ::',
+            $cid,       $proto
+        );
 
     } else {
         <[base.logs]>->( 1, '[%d] connection was closed [?] .,', $id );
@@ -106,8 +111,8 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     }
 }
 
-#,,,.,..,,,.,,,.,,...,,..,,,.,,..,,,.,,,,,,,,,..,,...,..,,,,,,.,.,,..,,.,,,.,,
-#DYTOGXIKTDLHURWVELPAIOC6N2TMWWREVOMLNZBLD3S7MPKW6USOILI2MJA7B5BD2HWHLCCZLKTNW
-#\\\|5RC2GH6QL2QK7OE3M67NUBH2AOTFEVEXITYBMSWN2KHX6TMBZMU \ / AMOS7 \ YOURUM ::
-#\[7]BMOGNG4L4FGVREWRA6TZYV7PVBQG7CJBV5OMAHQFHMQ2MIAHMQCI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,...,,.,,.,.,.,,,.,,,.,.,.,.,,.,,..,,...,...,,.,,,..,.,,,,,.,..,,
+#KQF5X2JIZ7NNSCE6ZPGQNIE6HPLWEDAO57NLSRFJFIP2ANSIQNZSC3YKFVBZRFAV3VSBDEGJNI72E
+#\\\|ZB2Z2PQR422SGC4YCRFKSZJUXTTAP3JCVBYULQK5XBO5N7DMMIS \ / AMOS7 \ YOURUM ::
+#\[7]HQY3DJ4RHNGX27HP2CZ5GAYIPDLETZPH5KMHBXL3OVW26CKQ56CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
