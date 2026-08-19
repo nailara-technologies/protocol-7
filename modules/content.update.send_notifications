@@ -17,17 +17,18 @@ map {
 if (<content.content_changed>) {
     <[protocol-7.command.send.local]>->(
         {   'command'   => qw| cube.notify.msg_reload |,
-            'call_args' =>    ## implement base.squote routine ##
-                { 'args' => "'" . <locales.string.playlist_updated> . "'" }
+            'call_args' => {
+                'args' => <[base.squote]>->(<locales.string.playlist_updated>)
+            }
         }
     ) if <content.cfg.change_notifications>;
-    <content.content_changed> = 0;
+    <content.content_changed> = FALSE;
 }
 
 return $count;
 
-#,,,.,,,,,,.,,...,...,,,,,,,,,.,.,.,.,...,,,.,..,,...,...,...,.,.,,,,,...,.,.,
-#ZKEA44M64JEVUJIU56WYUHYEOTPOZRAULTMR44KLEOM2KVTFLKTPD7WTFK5Y55RTJWCNU6UQ7OI2U
-#\\\|FMAVF46GIWVBOG3GSKAGUDZAG7ZHXS4WWOYG3AGRHMRIYF7EL4M \ / AMOS7 \ YOURUM ::
-#\[7]MQ2XHOOJWSX6FOOPQVNQJZDJCFQ6WO25LE5NQDJFSR5ZPLYZ2SCY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,,,,,,,,..,,..,,,..,,..,.,,,..,,...,...,...,.,,,,,.,,..,,,.,
+#5SL76UQENGOYT7TBJDIYWGMJOFEYAGWJQBS2UWGFQDQ2A65LG3LPKYHGGSCKGZ3Y3FSXTVG5RHQNS
+#\\\|BYJMOUUXTLOZFBKHBNMDPOKOLSYL3R62ZKKVFW5O7IQ6GZTJCFY \ / AMOS7 \ YOURUM ::
+#\[7]4FQ5QYMDTU4C7KWHN3RJ53QOODU63LRJL6NSDG6H7D2CPFYPA2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
