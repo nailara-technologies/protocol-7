@@ -42,6 +42,24 @@ if ( $cycle =~ m{^(?:scanning|assessing)$} ) {
 }
 <jobsite.cycle> = $cycle;
 
+## sanity check : pending_count only ever means anything while a batch is   ##
+## actually being dispatched, i.e. cycle=assessing -- any OTHER cycle value ##
+## [ idle, reviewing, or a persisted scanning/assessing already coerced to  ##
+## idle above ] implies pending_count must be 0. a stray positive count     ##
+## persisted alongside a non-assessing cycle [ e.g. left over from a prior  ##
+## mismatched increment/decrement ] survives the reset branch above         ##
+## untouched, since that branch only fires for a persisted scanning/        ##
+## assessing cycle. uncorrected, it permanently prevents pending_count from ##
+## ever reaching 0 again once real work drains, wedging cycle on            ##
+## 'assessing' forever the next time dispatch.assessments runs              ##
+if ( <jobsite.cycle> ne 'assessing' and <jobsite.pending_count> ) {
+    <[base.logs]>->(
+        0, 'jss.load: cycle=%s but pending=%d, resetting stray count',
+        <jobsite.cycle>, <jobsite.pending_count>
+    );
+    <jobsite.pending_count> = 0;
+}
+
 ## migrate from monolithic store.yaml if present (one-time) ##
 my $jobs_dir
     = catdir( <system.path.zenka-dirs.var_P7>, <system.zenka.name>, 'jobs' );
@@ -89,8 +107,8 @@ if ( -f $store_file and not $has_jobs ) {
     <jobsite.cycle>, <jobsite.pending_count>
 );
 
-#,,,.,.,,,.,,,,..,,,,,...,,,.,,.,,,..,,.,,..,,..,,...,...,,..,,.,,,.,,.,,,,,.,
-#673JATHFIPSCA2E2JTWP3LVPF4VLEVGKGKA5XEIKYUPTIH37AZSATJAV3LYO3VSSGJHQ3YEZ3EQM6
-#\\\|LNRP76YJHJR5WYDRQMCXCE4JHLTOE52RPCE55YAVLXESGX6NQ7P \ / AMOS7 \ YOURUM ::
-#\[7]TMEYMICEI7QS4JIZRPZEHWXZ7I77MPP2EWNUUBK244KOVTDD5MCY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,.,,,,..,,..,.,.,,.,,.,,,,..,..,,...,...,..,,,..,,..,,,,,,,,,
+#G3IQCB7YGZDFNH5MPTHPDKB7JXYHWQP6Q767NWE7BV37VSETDECVFOUIAXKKLBDAIHZEH2IUN7BLC
+#\\\|WS7WHIZPVD7ECDMYRG6IJEQNFWCENBIZBG5XGPJWRQ2HPIPNH25 \ / AMOS7 \ YOURUM ::
+#\[7]HPSQBBRQHWQWD2WLI6CBC5H2Q2YSRS5RAWJHCEFYBSGCZHFND4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
