@@ -116,9 +116,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - key-actions-delete-landed-2026-08-16 — LANDED `e8ad5ce96`: third `key_actions` trigger (`d`), exact-phrase `delete key` confirmation gate, live-verified via `script -qec` with real filesystem checks at every step (wrong-confirm attempts, correct delete, self-identity refusal, cancel at every stage); also found+fixed a real pre-existing crash on its first live path, see [[reference-bracket-call-trailing-comment-misparse]]
 - [bracket-call-trailing-comment-misparse](reference-bracket-call-trailing-comment-misparse.md) — codebase-wide gotcha, NOT delete-specific: a `<[module.name]>` bracket with a trailing same-line comment, args on the next line, silently misparses as a zero-arg call whose return value gets invoked as the real subroutine; grep pattern and full mechanism in the file, worth a `modules/` sweep at some point
 - task-archiving-2026-08-16 — 4 completed task files moved to `data/tasks/completed/` with archive headers per `data/tasks/task-archiving-with-context-templates.md`'s documented (not yet automated) convention: `editor-inframe-prompt-primitive.md`, `user-edit-key-actions-create.md`, `user-edit-key-actions-rename.md`, `user-edit-key-actions-delete.md` — signatures now stale, staged for user signature same as every other change this session
+- [jobsite-coding-queue-paused-task-loss-landed-2026-08-19](bug-coding-async-send-request-enqueue-round-timer-mismatch.md) — LANDED `dd162183b`: coding zenka silently dropped any task retried while `queue_paused` was set (wrong `event.add_timer` shape — `'params'` key it never reads, `coding.task.enqueue_round` armed as a timer-handler when it's direct-call shaped); general bug, not jobsite-specific; live-verified via devmod. Also fixed same commit: [[bug-jobsite-pending-count-leak-nonassessing-cycle]] (jobsite cycle wedge) and `coding.cmd.list-tasks`' ntime-vs-base.time garbage elapsed-time display. Closes the "exact line" gap left open in [[topic-coding-zenka-wedged-backend-queue-gridlock-2026-08-05]]
 
-#,,.,,...,...,...,,..,,..,,.,,.,,,.,,,.,,,.,,,..,,...,...,...,...,,,,,...,.,.,
-#R574YUMGZABQBPYHWSUNS7H5Z6YISXDBYSS7X76PCTW4CFPSS2ZURRDW3TFQI7IWLBZTUWVSCIJGM
-#\\\|RGICWYWDGUKAX3N4XK3G3I535WY32ZX6F7UGW5V5B4F77O4QJD6 \ / AMOS7 \ YOURUM ::
-#\[7]3PXGZ3XOZOYXAUUH4KZUP5P2BWLU2GAZX3FKBYW2GEU2LGSBLGCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,.,...,,.,,,,.,,,,,.,.,,,,,,,.,..,,...,...,..,,.,.,.,.,.,.,...,
+#N5ZQR75SHL7FCORS7TOABW7RPOSFG7YZSQJCMHYXFM6GZS3SRL4ZV764UFJCUZ3VV3QGTV6IJABAW
+#\\\|ZA7GGDGL3ZANQMVDFCO3GEDAFJ5AATXPXR5T7SUTKRLPYEB3772 \ / AMOS7 \ YOURUM ::
+#\[7]2HHJJHAWIQDZEW6XXJ4ONYZTM26Y5BO4BXW7MWYKE26TWCRWTUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

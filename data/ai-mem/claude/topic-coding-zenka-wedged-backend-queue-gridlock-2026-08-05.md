@@ -73,8 +73,28 @@ now-fixed bug in the same neighborhood (LWP inactivity-timeout mid-generation
 surfacing as http_500); this incident is a different failure mode in the same
 subsystem, post-fix.
 
-#,,,.,...,.,,,,..,,,.,,..,,,.,.,,,,,.,,..,.,,,..,,...,...,..,,..,,.,.,...,.,.,
-#DBIK7JHIRACNKFVGGHGERL76K2HBFCI2X5HBMKEWS6WZZCWLV456SF6O2T5M2D6DRCTBFH36YAW2W
-#\\\|JRLMHEYT2NSH6XLF356AVXKYQU672JMBZPTERNWLD6GTGPDUET3 \ / AMOS7 \ YOURUM ::
-#\[7]WR7QXO7ABZOCHGIVP5HR3X5UKZO5JOFKO67FQX4ZBHWZTZCKCABQ 7  DATA SIGNATURE ::
+**UPDATE 2026-08-19 — the exact line IS found and fixed, see
+[[bug-coding-async-send-request-enqueue-round-timer-mismatch]]**: a
+DIFFERENT stuck task (jobsite assessment, task stuck at `round=0` for 2.5+
+hours, `chunks_received=0`) traced to `coding.async.send_request`'s
+`queue_paused` branch (the exact spot flagged as unlocated on 2026-08-05) —
+it armed its 5s retry via `event.add_timer` with a `'params'` key
+`base.event.add_timer` never reads, targeting `coding.task.enqueue_round`
+as if it were a timer-handler when every other call site invokes it
+directly with positional args (`my ($task_id, $round) = @ARG`). Any task
+retried while `queue_paused` was set got silently dropped forever after
+one reschedule attempt — this is the general mechanism, not specific to
+this incident's `verify_inference_startup` 120s-ceiling trigger. Live
+devmod test (`coding.set coding.task.queue_paused 1`, then
+`eval-code $code{'coding.async.send_request'}->('<task_id>')`, watch the
+log) confirmed the fix: the reschedule loop now correctly repeats every 5s
+instead of dying after one shot, and resumes cleanly once unpaused.
+`verify_inference_startup`'s fail-open design (still no health-check before
+its 120s ceiling) is unrelated and still stands as a separate, lower-value
+improvement if this recurs.
+
+#,,..,..,,..,,..,,.,.,..,,,..,.,,,,..,,,,,,,.,..,,...,...,,,,,,.,,.,.,.,.,,,.,
+#V2GRZTMPLBITHOYSWEQMALREB6QKVUV7N35HVT4H4PIW453WFOZMCLLI4JZE3HRQH54KZP25BSHLW
+#\\\|GPNGSCB2JD4PY2RKTS6ZEMXL7UIWDPWWZ2BHCHSH7B7MIDQZRZL \ / AMOS7 \ YOURUM ::
+#\[7]KKEY5DQU26W5PAQ2ZUPNDVVIYHVXUMKWZTTPJ2FEKR4ILSLSMQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
