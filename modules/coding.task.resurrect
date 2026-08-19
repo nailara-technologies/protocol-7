@@ -37,6 +37,9 @@ $task->{'execution'}->{'status'}         = 'queued';
 delete $task->{'execution'}->{'failed_at'};
 delete $task->{'execution'}->{'error'};
 delete $task->{'execution'}->{'failure_type'};
+## reset loop detection state [ avoid stale tool_history/patterns from the ##
+## failed run immediately re-triggering on retry ]                         ##
+delete $task->{'execution'}->{'loop_detection'};
 
 ## re-enqueue : restores queue/pending tracking + spawns a fresh job ##
 my $enqueue_result = <[coding.task.enqueue]>->($task);
@@ -55,8 +58,8 @@ return {
     }
 };
 
-#,,,.,...,,,.,...,..,,.,,,.,,,.,.,..,,...,.,,,.,.,...,...,,,,,.,,,,..,.,.,,,.,
-#PJYAX7TYGZWKKMG53TKXJ2KAUXKHZBN3S43JRCO62TD5ER6D3THKXI3VTSX6CLKOSIJHFNRFYYGHA
-#\\\|ML5YECFQY6QCTJDILWOQPXG626P57KPBZG7UAZ4NVMLTZNHJXZG \ / AMOS7 \ YOURUM ::
-#\[7]VSO4ZLPJXMA765RKPQDZS2VCHZ6XPAMKGLPYECU4YU2QGDBLZIAA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,,,.,.,,,,,,,..,,,..,,,,,.,,,.,.,...,...,,,,,..,,.,,,,..,,,.,
+#6V5ALHCT7YAOAHJUOB6V7PHU34LT24AUTQSPPYQ5UJZAVD7UKYSNVU3UARVGK5PBAAVVDVTBU7VMM
+#\\\|XA66UEFUKAPSQVLMSDTJ22U7GHLQOLOEIEMYYZ5LW2SCJXGJCK6 \ / AMOS7 \ YOURUM ::
+#\[7]OCA3SGCQ5SHJRBGGNB6D7ABR4M65AL6JWVMUEQH2ZO66KUGX5UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
