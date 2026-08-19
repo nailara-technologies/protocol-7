@@ -351,15 +351,15 @@ sub format_items {
         }
 
         my $id_str = sprintf "%-*s", $max_id_len, $item->{id};
-        my $prefix = "  $marker  $id_str ·  ";
+        my $prefix = "  $marker  $id_str  ·  ";
         my $text   = $item->{text} // '';
         my $tags   = '';
         if ( $item->{tags} and $item->{tags}->@* ) {
-            $tags = ' [ ' . join( ' · ', $item->{tags}->@* ) . ' ]';
+            $tags = sprintf ' ‧%s ┊', join( ' · ', $item->{tags}->@* );
         }
         ## keep the details-marker column width constant so tag columns ##
         ## align                                                        ##
-        $tags .= item_has_details($item) ? ' ◆' : '  ';
+        $tags .= item_has_details($item) ? '┋' : ' ';
 
         my $vis_len = length($prefix) + length($text) + length($tags);
         $max_width = $vis_len if $vis_len > $max_width;
@@ -802,7 +802,7 @@ sub editor_leave_line {
     my ( $lines_ref, $line_idx ) = @_;
     return 0 if $line_idx < 0 or $line_idx > $#$lines_ref;
     my $old = $lines_ref->[$line_idx];
-    $lines_ref->[$line_idx] =~ s/ +$//;
+    $lines_ref->[$line_idx] =~ s| +$||;
     return $old ne $lines_ref->[$line_idx];
 }
 
@@ -1230,7 +1230,7 @@ sub edit_details_interactive {
 }
 
 sub cmd_details {
-    my $id_str = shift // die "expected item id\n";
+    my $id_str = shift // die "\n  :: expected item id ::\n";
 
     my $data = load_data();
     my $item = resolve_item( $id_str, $data->{items} );
@@ -1254,7 +1254,7 @@ sub cmd_details {
         return if not defined $new_details;
 
         say "\e[0K";    ## clear to end of line
-        say "  [ ctrl-c cancelled ]";
+        say "  ::: SIGINT ::: terminated..";
 
     }
 
@@ -1433,8 +1433,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,,,.,..,,.,.,,,.,.,.,...,...,,..,,,.,...,..,,...,...,.,,,,,.,.,.,,..,,.,,
-#7BTQSK4UDSJTXMBN5JVXYO77H6IMGEIHLF6HFNZPFHCBKESMVRTY345QSLHM25GLJWVDFVWKALWGI
-#\\\|UBJ4AUV6UEBPLAKR5H5PDMZUNWJHZOAIQFOTAKO2GL4UB7KODNZ \ / AMOS7 \ YOURUM ::
-#\[7]M2WDHO4X7VPUUYYSGT3EN52JAWLK553TRF33XOXEYF46T4Q23QBA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,,..,.,.,.,.,.,,,,,.,,,,,..,,..,,...,...,.,.,,.,,...,..,,,.,,
+#75U4N5DU3U6M6GUNZC2F4PSFGQ4N5JJKB2RSID5V6JQDYHYBFWLCVBLUZZLKEQRSGYPTZ3KAWVOSY
+#\\\|FSHJYIN5H7RAJGRTGDKCQDLNIFDWDKKJ4DT23ZUEXRNNUOPPFND \ / AMOS7 \ YOURUM ::
+#\[7]DKU4FR726ALS5Q6BNH2XFLWGNIQ3K32WR6EFNFLDQEHPT4OKVMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
