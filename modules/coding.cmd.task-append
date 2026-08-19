@@ -108,6 +108,9 @@ if ( $status eq qw| completed | or $status eq qw| failed | ) {
     delete $task->{'execution'}->{'completed'};
     ## clear any prior stop so run proceeds ##
     delete $task->{'stop_requested'};
+    ## reset loop detection state [ avoid stale tool_history/patterns from ##
+    ## the failed run immediately re-triggering on resume ]                ##
+    delete $task->{'execution'}->{'loop_detection'};
 
     my $aref_completed = <coding.task.completed> // [];
     my $aref_active    = <coding.task.active> //= [];
@@ -135,8 +138,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,,.,,.,,.,,,,,.,..,,,,.,..,,...,,..,.,,,,..,..,,...,...,...,.,,,,,,,.,,,..,,
-#H67B4AJ3KNXEIDRJVF53TSRQPXAQGXQ2VCLEDZEOVZHJDAYS2ODUHNQTQZIH73NP2NMUYC47DDP5C
-#\\\|KV4BURJOWCX7BQ7HHJ33JU76BNGVPY6D24CJTYQ4NIKSXNVTYMR \ / AMOS7 \ YOURUM ::
-#\[7]ZKVJU4WBR47ECVN3B67WRXYEXJNJ5U4BKB4XLJSERIQGXQZ3POBY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,...,.,.,,.,,...,,,.,,,,,,..,.,,,..,,...,...,,,,,.,.,...,...,,.,,
+#QDAECET2EST3E35R7LUMX24AYM32H3JPBGTYYN2ZZGN33GZDY5GGD4NAMZHGRYXO5M22BI273JNNM
+#\\\|XD5ZZPOBA3VVFTC2SRJBNRM7QLDS2FENDVEC53ZWQK6OT7SWSRC \ / AMOS7 \ YOURUM ::
+#\[7]QMQXMXUQAQQCWZGRXWQ2CHEFLJH25UMMRRQ6MPMSVHAEMAQ4WGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
