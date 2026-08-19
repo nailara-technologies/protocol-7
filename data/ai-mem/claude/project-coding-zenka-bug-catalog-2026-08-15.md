@@ -61,6 +61,17 @@ session logs / task IDs directly if either matters for a decision. Root
 cause not investigated yet -- flagged for the same future dedicated
 coding-zenka bugfix session as the round-progress bug above.
 
+**UPDATE 2026-08-19, delta-time defect FIXED, see
+[[bug-coding-async-send-request-enqueue-round-timer-mismatch]]**: root cause
+was a units mismatch, not overflow -- `coding.task.execute` stamps
+`execution.started` via `base.ntime` (network-time units, /4200 for real
+seconds, see `base.ntime.delta_seconds`), but `list-tasks` subtracted it
+from plain `base.time()` epoch seconds as if they were the same unit.
+Fixed in `modules/coding.cmd.list-tasks` to use
+`base.ntime.delta_seconds($started)` instead. The requester-attribution
+("every row shares `ZDMAPAY:AR3OCKQ`") and garbled-template-text defects
+above were NOT investigated this pass -- still open.
+
 ## Two more loose ends, found live during the `user-edit` key-actions rescue, 2026-08-15 -- log only, not chased
 
 1. **`base.local_history.write:57` warns `expected absolute path [ to create ]`**
@@ -160,8 +171,8 @@ the zenka. Whether `gen-sub-whitelist` still DROPS the entry on a fresh
 regen was not re-tested -- the "always `git diff` the regen" advice above
 still stands, the stakes of missing it are just much lower now.
 
-#,,.,,,,,,,..,,.,,,,.,,,.,,,.,..,,,..,..,,.,,,..,,...,...,..,,.,,,,,,,...,,..,
-#SMHTOLDQDX4SEQY7N2S7XNXUEIJN6ZYLOIYTWAIGAWUVO5CUR4SA5335OOPFPU3LKW57TNI42LRQ6
-#\\\|OTIPL2SF5RNFTYGD5ESGYHASCUHK2JBRR634WAQVI4YGVUS423T \ / AMOS7 \ YOURUM ::
-#\[7]BOEPQ33HUDAQHQDQX76FEQK7JSKJTEUAUEWTDYICPALHPQSACQDA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,,,,..,,...,,..,,,.,...,,,,,..,,...,...,..,,,,,,,.,,..,,,..,
+#52OIFF6GZA3ZMRH2CQ2U4IVUJSAIXLQ3FARGX7WG7E5EH7Q5VTAA225W6475P23NDYU4OHONLV7F6
+#\\\|VTU5PFPEITLZ3UOJ6Y3QSWOFHTD4NPPY45Q2EXICIKFJKVE5RHI \ / AMOS7 \ YOURUM ::
+#\[7]FEDN3NHADGALQBURITF2CLDRSYSVRXLPBLBLIKF3UCQVJI6U54BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

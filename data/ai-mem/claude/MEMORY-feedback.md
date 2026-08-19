@@ -86,9 +86,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 - [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
 - [modal-prompt-navigation-never-loses-content](feedback-modal-prompt-navigation-never-loses-content.md) — a cancel-on-navigation key (Left-as-Esc in a modal prompt) must gate on buffer CONTENT being empty, never cursor position — ordinary cursor movement must never be able to discard typed text; caught live in editor.control.prompt.handler.key, applies to any future modal input control
+- [check-existing-safety-nets-before-adding-new-one](feedback-check-existing-safety-nets-before-adding-new-one.md) — coding zenka's async/self-test machinery has multiple deliberately-layered, cross-referencing watchdogs with a documented history of drifting out of sync (4c3cf0e73); grep for an existing timer on the same flag before writing a new one, advisor caught me about to duplicate `verify_inference_startup`'s fallback with an independent literal ceiling
 
-#,,..,,,.,.,.,,..,.,.,.,,,..,,...,.,,,.,.,..,,..,,...,...,...,..,,,..,.,,,,.,,
-#3HMZNOY6MOSGVA62ZAS555II2PKSICCUSLGOZVG2MSAKKZYH3LPJ44CUROPYXWRXZRQ2PAWLI7WKS
-#\\\|FRODWNGW4J64PFSHVTDARQQUMQAKJJU7OX4QKFYMU2DNO7FNPWV \ / AMOS7 \ YOURUM ::
-#\[7]TDKTXJE6MHL7Z62TRALQV7FAPXQJOCZWKKZD4BFQPCAHTCOGR2BI 7  DATA SIGNATURE ::
+#,,,.,...,...,,,.,.,,,,.,,,,,,...,...,,,,,.,.,..,,...,...,,..,,,.,,..,,.,,.,,,
+#BLRQY6JJSHPVZGFAZUHHDIKSTU4D346K75QH3PMDCCHWW7IZLTODMGCNWF57I7J35XHFUHJIOYFXM
+#\\\|WKV5UL6YS7PQWYTVQJW6XARFLSQ3SSEVB4WFRJV42GK5JMXBXQA \ / AMOS7 \ YOURUM ::
+#\[7]5CXW2XUVF6JPQD2IGHX6RJSVPC4RNBNLTIPFJFT64FL2GAVGDODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
