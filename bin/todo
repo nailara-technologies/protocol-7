@@ -646,6 +646,16 @@ sub cmd_list {
         reverse sort { $a->{text} cmp $b->{text} }
         grep { defined $_->{text} } @items;
 
+    ## third pass : group by priority [ high top, low bottom ], keeping the ##
+    ## length-sorted order from above intact within each group -- perl's    ##
+    ## sort() is stable, so a plain rank sort layered on top reorders       ##
+    ## groups without touching the existing order inside them               ##
+    my %pri_rank = ( high => 0, normal => 1, low => 2 );
+    @items = sort {
+        ( $pri_rank{ $a->{priority} } // 1 )
+            <=> ( $pri_rank{ $b->{priority} } // 1 )
+    } @items;
+
     my ( $lines, $content_width ) = format_items( \@items, $show_done );
     my $width = $TERM_WIDTH;
     $width = $content_width + 4 if $content_width + 4 > $width;
@@ -667,7 +677,6 @@ sub cmd_list {
     say "";
     my ( $open, $done, $high ) = count_items( $data->{items} );
     draw_footer( $width, $open, $done, $high );
-    say "";
 }
 
 sub cmd_add {
@@ -1433,8 +1442,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,..,.,.,..,,,,,,,..,.,.,.,.,.,,,,,.,,,,,..,,..,,...,...,.,.,,.,,...,..,,,.,,
-#75U4N5DU3U6M6GUNZC2F4PSFGQ4N5JJKB2RSID5V6JQDYHYBFWLCVBLUZZLKEQRSGYPTZ3KAWVOSY
-#\\\|FSHJYIN5H7RAJGRTGDKCQDLNIFDWDKKJ4DT23ZUEXRNNUOPPFND \ / AMOS7 \ YOURUM ::
-#\[7]DKU4FR726ALS5Q6BNH2XFLWGNIQ3K32WR6EFNFLDQEHPT4OKVMBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,,.,.,.,.,.,,,,,...,.,.,,,.,..,,...,...,,,,,..,,...,.,.,,,,,
+#RAFF6OXXB37KRPDUMLEB3SM5UNWP2APITULYZ4HRQFOTZIUQY5HKCKOUGFY4MOY6UEECRQWRMBVPK
+#\\\|IPFZPD6FHNMYF4LJ2LZRPRAAG3EWOWEK4KPMHNBCHZPUCUKPFYL \ / AMOS7 \ YOURUM ::
+#\[7]KU5UYXARWBG33EZKXHQE22IDM77HAG7G5VVVE6NJ4AF5ERQNRMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
