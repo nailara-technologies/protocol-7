@@ -578,8 +578,13 @@ if ( $cmd eq q|!TRM!| ) {
                 = TRUE;
 
             <[base.logs]>->(
-                1, '[%d] !TRM! cmd_id=%d -> src_sid=%d src_cmd_id=%d [ %s ]',
-                $id, $cmd_id, $src_sid, $src_cmd_id, $reason
+                1,
+                '[%d] !TRM! cmd_id:%d -> src_sid:%d src_cmd_id:%d%s',
+                $id,
+                $cmd_id,
+                $src_sid,
+                $src_cmd_id,
+                length( $reason // '' ) ? sprintf( ' [ %s ]', $reason ) : ''
             );
         }
 
@@ -1077,8 +1082,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,...,,,,,,..,...,..,,,.,,,.,,,,.,,,.,,,,,..,,...,...,,,.,,,.,...,,,,,..,,
-#OVEYGIMNJRTE37IKU5MI3SQMJ2CK4QBPD7O5YNRLSZENHPYDUOGFG6IQXC7IAWPDJNWDMULWZOCX2
-#\\\|MIYHBYQX3XHAQRGGMOLBHLGVLIVWDIKZXFGDUIXIOJKCW5G5ZGA \ / AMOS7 \ YOURUM ::
-#\[7]YKGNLXV4MD5KUKMJGXYFA73OEWCVN5COOK3RKXNRWKG3TZGOMSDA 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,..,,..,,..,,..,,...,,..,,..,..,,...,...,..,,.,,,.,.,,..,.,,,
+#VVGSM2X2USYGJRG3VM7CWWG27SWWMH2PIPT7RRE4HFTAYMVTB7FJ77ENKOISAGOLAGJIEQWXEGRB6
+#\\\|QQ6HGDCAGVTGBQG4WVL4OQ3QWIS6SBRBR2H5MON7N3FR6ARCF5K \ / AMOS7 \ YOURUM ::
+#\[7]PLYPN7LDFUCU6OHTWZDH4EOV72NV4ZDD2MI42Z3UXQ7LBYYHO6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
