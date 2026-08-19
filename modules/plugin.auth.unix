@@ -7,13 +7,16 @@ my $event = shift;
 my $id    = $event->w->data;
 my $re    = <regex.base>;
 
+## session authorized log level [ use 2 for silencing ] ##
+my $log_level = 1;
+
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
 ## brace delimiters, NOT s|..|..| : the alternation below needs a literal ##
 ## '|' in the pattern, which would terminate a '|'-delimited substitution ##
 ## early [ plugin.auth.zenka uses the same s{..}{} form for this reason ] ##
-if ( $input->$* =~ s{^auth ($re->{usr_str}|$re->{usr_subn_str})\n}{} ) {
+if ( $input->$* =~ s,^auth ($re->{usr_str}|$re->{usr_subn_str})\n,, ) {
 
     my $auth_user = $LAST_PAREN_MATCH;
 
@@ -107,11 +110,11 @@ if ( $input->$* =~ s{^auth ($re->{usr_str}|$re->{usr_subn_str})\n}{} ) {
         my $s_usr = $client_uname ne $auth_user ? " [$client_uname]" : '';
 
         <[base.logs]>->(    ## reports unix user seperated if different ##
-            "[%d] session authorized%s as '%s'",
+            $log_level, "[%d] session authorized%s as '%s'",
             $id, $s_usr, $auth_user
         );
         <[base.logs]>->(    ##  report matching template  ##
-            "[%d] .: unix user '%s' ['%s']",
+            2,   "[%d] .: unix user '%s' ['%s']",
             $id, $client_uname, $mapped_user_string
         ) if defined $mapped_user_string;
 
@@ -143,8 +146,8 @@ if ( $input->$* =~ s{^auth ($re->{usr_str}|$re->{usr_subn_str})\n}{} ) {
 
 return 2;
 
-#,,,.,.,,,,..,,..,,,.,.,.,,,.,,,,,.,,,..,,.,.,..,,...,..,,..,,,.,,.,,,...,,..,
-#XBGUMCHVJSM3C64RYA7WAFZWKZDRLLVBYBH2HI4IUCQZBHREN7UBOOFBXM3B4ZDBIZ5BG3QL7DFZA
-#\\\|QFL32APM76CAOMDDFEK7RPSS55N2ZSLLZILD4SJYPQKJCG2YO7V \ / AMOS7 \ YOURUM ::
-#\[7]HFFJIPGSKHMWUTDKTURMCBQZUYRXYNJNQYMD7KNPYKY6WQK6XUCA 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,.,,.,,.,.,.,,,,,.,,,,,.,.,...,..,,...,...,,.,,.,,,.,,,..,,...,
+#X5A26SWNKMAUJ533UAMWW76T2TLX52MMALQJOZZWVQKUGF5HSU5LTZGGU2YTZKLJGOO4ZOKOKCB4Y
+#\\\|CJHPTVZE5FYY76HOEO5C6JLASFGAYGRB7ZME35G2CLC4MS6XFRP \ / AMOS7 \ YOURUM ::
+#\[7]VV4AYISSNBQMFLSKA7NNSZDVCYA4U644BHNWGVHMIAYZ77ZXS4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,6 +6,8 @@ my $event   = shift;
 my $id      = $event->w->data;
 my $session = $data{'session'}->{$id};
 
+my $log_level = 2; ## ': :  disconnected  : :' message log level ##
+
 $event->w->cancel if $event->w->is_active;
 
 ## reporting server mode session close ##
@@ -125,13 +127,13 @@ map { <[base.clean_hashref]>->( $data{$ARG} ) } qw| user handle session |;
 if ( $session_mode eq qw| server | ) {    ##  closed server session  ##
     <[base.logs]>->( '[%d] : server-socket closed.,', $id );
 } else {    ##  client-mode session shutdown  ##
-    <[base.logs]>->( '[%d] : :  disconnected  : :', $id );
+    <[base.logs]>->( $log_level, '[%d] : :  disconnected  : :', $id );
 }
 
 <[base.session.check_remaining]>;
 
-#,,..,,,.,.,.,..,,,,,,..,,,.,,,,.,...,,,.,,,,,..,,...,..,,..,,...,,,.,,,.,,..,
-#TAEDZCGXYLKQYVGSTDWFIAHFWGQTBOHULKNBY4M4C367KSOZALHIS7YPKEFCLK3XGL4KJPKC43DFQ
-#\\\|GBRAIEP2OX24U732GDXQQS6JGFXRS7ETB5BHBS7FSCOIUDCHVTE \ / AMOS7 \ YOURUM ::
-#\[7]VF63EKX7PXOY5GQYWJ5YXRWJLSJVCNDZO32TG7D5CFCMJ3PWWWDI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,,.,,,,,,,..,,.,,,..,,..,,,.,..,,...,...,...,..,,,.,,...,,.,,
+#4TSUMI5K3SYQWZQG6HRBST2J5FF3L334CQ25OD2RDJUMBNVZSRZ7NKF3QBNBGAGA2NSYBDSKZBRIC
+#\\\|YNRPYZ3CEU5ELCJNE6RVVHTYMGO4UYQZJDPYF3L7GTDSHXLVXAO \ / AMOS7 \ YOURUM ::
+#\[7]Z7XEVTWR4WNOJQRPWW3EMXTX5BAN47KILIGQS3Z724NZR6V47CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
