@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = coding.handler.enqueue_round_timer
+# descr = event-timer adapter for coding.task.enqueue_round
+
+## coding.task.enqueue_round is direct-call shaped [ my ($task_id, $round)  ##
+## = @ARG, matching every other caller : coding.async.state_machine,        ##
+## coding.callback.http_complete, coding.async.complete,                    ##
+## coding.cmd.task-append ] - coding.async.send_request's queue_paused      ##
+## branch was arming it straight as an event-timer 'handler' instead,       ##
+## passing the payload under a 'params' key base.event.add_timer never      ##
+## reads. the timer fired with the raw Event watcher object as $task_id and ##
+## undef as $round, hit enqueue_round's own 'round required' guard, and     ##
+## returned silently - no log line, no reschedule, task dropped for good.   ##
+## confirmed live 2026-08-19 : task-4GEIBBA/EIGJ6FY sat frozen at round 0   ##
+## for hours after exactly this reschedule fired into the void              ##
+my $timer_data = eval { shift->w->data } // {};
+my $task_id    = $timer_data->{'task_id'};
+my $round      = $timer_data->{'round'};
+
+return unless defined $task_id and defined $round;
+
+<[coding.task.enqueue_round]>->( $task_id, $round );
+
+return;
+
+#,,,,,.,.,,..,,,.,,,.,..,,...,.,,,,,,,,.,,...,.,.,...,...,.,,,.,,,.,.,,,.,,,.,
+#X5SIEKS5BUNJSG2CB35JLXKIA2RF2FUDYD2LB4CCXDM7OBG67OV6QR3J72X2VN6VQYHOT6CJKPIYM
+#\\\|WKJCM5YSLBZM6VQ7H7JL5WIZ247QJALHPHN4DAG4EPIV663WH75 \ / AMOS7 \ YOURUM ::
+#\[7]KYTVKRPR5LW6KD52YXN4SLPYP6E6YKH34BXWIFM4QYH57JXT4AAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

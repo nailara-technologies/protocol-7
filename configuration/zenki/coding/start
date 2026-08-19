@@ -17,8 +17,12 @@
 #
 # coding.cfg.start_model = O72PLJY:G3IRILQ ## Phi 4 Mini Uncensored 9B -- INCOMPATIBLE: ik_llama.cpp build 4547 lacks tied-embedding fallback [ check_tensor_dims: 'output.weight' not found ]
 #
+# # incoming test models # #
+# coding.cfg.start_model = EMQFUAA:VHX3LOI  ##  Qwen3.5 9b Deepseek Opus Distilled  ##
+coding.cfg.start_model   = M7XXVGY:AH6BYCA  ##  Qwen3.8 9B Abliterated  ##
 
-coding.cfg.start_model = ZDMAPAY:AR3OCKQ   ## Qwopus3.5 9B v3 — more precise on analysis tasks
+#
+# coding.cfg.start_model = ZDMAPAY:AR3OCKQ  ## Qwopus3.5 9B v3 — more precise on analysis tasks
 #
 # coding.cfg.start_model = GT6M3CQ:UZ4G2YQ ## gemma the writer [5GB]
 # coding.cfg.start_model = IR65EUQ:W52XOLI ## Gemma 3 Glitter 4B Uncensored <-- CRASHING SERVER ?
@@ -226,7 +230,7 @@ coding.cfg.vision_switch_idle_timeout = 300
 ## at 52000 ]. 28000 tokens frees ~985MB of KV cache vs. 52000 [ 42KB/token *9B    ##
 ## class KV estimate ], comfortably covering the missing margin. revisit per-model ##
 ## if a future default is text-only and could again afford a much higher floor     ##
-inference.model.context_length = 35777
+inference.model.context_length = 37777
 ## inference.model.context_length = 52000 ## [ prior value, doubled for multi-round tool sessions -- unsafe for vision-capable defaults, see above ##
 ## inference.model.context_length = 32000 ## [ temporary override ] ##
 #inference.model.max_tokens = 32000  ## defaults to context_length if unset
@@ -245,7 +249,7 @@ coding.cfg.vram_safety_max_mb = 4000  ## cap to reserve VRAM for other use     #
 ## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
 ## code default is 131072; override here for this system                   ##
 
-coding.cfg.context_max = 38777
+coding.cfg.context_max = 144993
 
 ## Default model AMOS checksum [ resolved from models zenka during init ] ##
 ##
@@ -284,8 +288,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,,.,.,.,,..,...,,..,.,.,.,.,..,,..,,,,,,.,.,...,...,.,,,..,,,..,.,,,,..,
-#NGLYKE3URDF6U4SBZ3BROJUSJLIXXNWZEU2J3SUS2A25DMJGEBM24KAPUWVUABSWOPNDLJHAJ6ATK
-#\\\|QJIVVTMFLZOHUE3F3GVTKPUXZ6VACG3RC5Q2G2N3EV5GI33LQDT \ / AMOS7 \ YOURUM ::
-#\[7]OK54EQHPYJ4KHCSY4DZTL4RCBZ7B5L3BOUGDL4RCB5WFKOYEC2BY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,.,,,.,..,,..,,,.,,...,,,.,.,.,...,...,..,,,.,,...,.,,,,.,,
+#23NMSNRPXIZXUJNAXJ7OWO6YYOOIY32FNAOGBOAIXVYLOX56BPPW76OQVW3YAQ4PRR6SI4SH2TXNG
+#\\\|ZLS6AVMDZ5JD2KAAMWOFKVGJMNCLFD4LSX3OU2URIYREQE3PIS4 \ / AMOS7 \ YOURUM ::
+#\[7]ICVCVT547A3JPZLQ2AG5WGUSR7RKPD5WGMJ5HDAK2N6CM4STS4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
