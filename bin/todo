@@ -30,9 +30,11 @@ use AMOS7::TERM qw| frame_border_line |;
 use AMOS7::CHKSUM;
 use AMOS7::Assert::Truth;
 use Time::Local qw| timelocal_posix |;
+use Time::HiRes ();
+use Crypt::Misc qw| encode_b32r decode_b32r |;
 
 my $root      = $ENV{'P7_ROOT'} // '';
-my $list_name = 'default';
+my $list_name = 'base';
 
 ## parse -file / -list / $P7_TODO_FILE before other args
 my @argv_clean;
@@ -125,10 +127,46 @@ die "no yaml module found (need YAML::PP, YAML::XS, or YAML)\n"
 
 ##[ data access ]#############################################################
 
-sub iso_now {
-    my @t = localtime;
-    return sprintf '%04d-%02d-%02dT%02d:%02d:%02d',
-        $t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0];
+##[ ntime.B32 : protocol-7 network time, base32r encoded ]####################
+##
+## standalone port of bin/Protocol-7's p7_ntime / p7_ntime__b32 [ same shape
+## already used standalone by bin/dev/update-version's ntime/ntime_B32 ] --
+## network time is unix seconds since 2002-06-05, scaled *4200, so even whole
+## ntime units carry sub-millisecond resolution and no fractional component is
+## needed here. the harmonic retry keeps generated codes in
+## AMOS7::Assert::Truth's harmonic space, same as the zenka-side generator.
+
+use constant NTIME_START => 1023228000;
+
+sub ntime_B32_current {
+    my $encoded_ntime;
+
+    for ( 1 .. 9 ) {
+        my $ntime = sprintf '%.0f',
+            ( Time::HiRes::time() - NTIME_START ) * 4200;
+        $encoded_ntime = encode_b32r( pack( 'w', $ntime ) );
+        last if AMOS7::Assert::Truth::is_true($encoded_ntime) != 0;
+        Time::HiRes::sleep(0.013);
+    }
+
+    return $encoded_ntime;
+}
+
+sub ntime_b32_decode {
+    my $tstamp = shift;
+    return undef unless defined $tstamp and $tstamp =~ m{^[A-Z2-7]+$};
+
+    my $decoded = eval { decode_b32r($tstamp) };
+    return undef if not defined $decoded or length $EVAL_ERROR;
+
+    my @nt = unpack( 'w*', $decoded );
+    $nt[1] =~ s{^7}{} if @nt == 2;    ## '7' catches a prefixed 0 ##
+    my $ntime_value = join '.', @nt;
+    $ntime_value =~ s{(\.0)+$}{};
+
+    return undef unless $ntime_value =~ m{^\d{1,17}(\.\d{1,20})?$};
+
+    return $ntime_value / 4200 + NTIME_START;
 }
 
 ##[ item id : random 3-char amos-chksum code, collision + harmony checked ]##
@@ -421,7 +459,7 @@ my $option_list = <<'EOL';
     same item.
 
     -file <path> ...................  use given todo file
-    -list <name> ...................  use named list [ default : default ]
+    -list <name> ...................  use named list [ default : base ]
 
     -options / help ................  show this option list
 
@@ -484,8 +522,11 @@ sub iso_to_epoch {
 }
 
 sub format_relative_time {
-    my $ts    = shift // return undef;
-    my $epoch = iso_to_epoch($ts);
+    my $ts = shift // return undef;
+
+    ## iso_to_epoch handles pre-upgrade entries; ntime_b32_decode handles ##
+    ## current ntime.B32 timestamps                                       ##
+    my $epoch = iso_to_epoch($ts) // ntime_b32_decode($ts);
     return $ts if not defined $epoch;
 
     my $delta = int( time() - $epoch );
@@ -711,7 +752,7 @@ sub cmd_add {
         priority => $priority,
         tags     => [@tags],
         details  => '',
-        added    => iso_now(),
+        added    => ntime_B32_current(),
         done_at  => undef,
         };
 
@@ -730,7 +771,7 @@ sub cmd_done {
         foreach my $item ( $data->{items}->@* ) {
             next unless defined $id and $item->{id} eq $id;
             $item->{status}  = 'done';
-            $item->{done_at} = iso_now();
+            $item->{done_at} = ntime_B32_current();
             $found           = 1;
             last;
         }
@@ -1442,8 +1483,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,,,.,,,,,,,,,,,.,.,.,.,.,,,,,...,.,.,,,.,..,,...,...,,,,,..,,...,.,.,,,,,
-#RAFF6OXXB37KRPDUMLEB3SM5UNWP2APITULYZ4HRQFOTZIUQY5HKCKOUGFY4MOY6UEECRQWRMBVPK
-#\\\|IPFZPD6FHNMYF4LJ2LZRPRAAG3EWOWEK4KPMHNBCHZPUCUKPFYL \ / AMOS7 \ YOURUM ::
-#\[7]KU5UYXARWBG33EZKXHQE22IDM77HAG7G5VVVE6NJ4AF5ERQNRMAA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,.,,,.,,,..,,..,,,,,,.,.,,.,,..,,...,...,.,.,.,,,,..,,..,,.,,
+#W36IIVM7XJBBBBN3SYXO3HXCG2G6ZHMRE7N4P5D35V6JZ5QBKPQJWHBRENWBLBPHLWKIN4TGWAXMS
+#\\\|6JEFNIQZZO2CKFGAUF2FDMKNIIWNXBVU3ECYJ32LD6QIL3ONDJD \ / AMOS7 \ YOURUM ::
+#\[7]3QMF4BCATURSP4IYGSM4UYG7VCOGLAF2AGNEV5SASX5SAWQIZWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
