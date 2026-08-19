@@ -15,10 +15,16 @@ if (<coding.task.queue_paused>) {
     );
     my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
     my $round = $state->{'round'} // 0;
+
+    ## coding.task.enqueue_round is direct-call shaped, not an event-timer  ##
+    ## handler - route through the thin adapter rather than arming it as    ##
+    ## 'handler' here directly [ see coding.handler.enqueue_round_timer : a ##
+    ## prior version of this call used a 'params' key add_timer never       ##
+    ## reads, silently dropping the task forever once paused ]              ##
     <[event.add_timer]>->(
         {   'after'   => 5.0,
-            'handler' => 'coding.task.enqueue_round',
-            'params'  => { 'task_id' => $task_id, 'round' => $round }
+            'handler' => 'coding.handler.enqueue_round_timer',
+            'data'    => { 'task_id' => $task_id, 'round' => $round }
         }
     );
     return { success => FALSE, error => 'queue_paused' };
@@ -342,8 +348,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,.,,,...,...,.,,,,.,,.,,,,,.,.,.,,.,,...,..,,...,..,,,,,,..,,,..,...,...,
-#F67U3LAU5H7JOCKTVSPXMYXX7GHMUHVHKHBIMEA4MN4DSDFNYNXAFQFTYFOVLA5TAPB2AIQSPXI44
-#\\\|GYVGOKPUGKTMGX3BSSSMDDQG7BQZ43ESMR4J3VGVB3ENTMR46E3 \ / AMOS7 \ YOURUM ::
-#\[7]QWROKGEDM62EWAQ6H5HFIJQXAFMAIKHNMEQCSFUNLS4IEQAN6OCI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,,,,,.,,,.,.,.,.,,,.,.,.,.,,,..,,...,...,,..,,,.,,..,,.,,..,,
+#6C2AFV2D5P3OFGDAUHMTLYKXG7PWBO3NZ2YYDIQZVUV3PVQ2DQRQ2CE7KKIZYH7JVBKRDF5KDEDLU
+#\\\|KRHDL6KTTPRR4JDQZQV6R7LZPG2RNJFRBNHSR2K4JFUFU7TB2FJ \ / AMOS7 \ YOURUM ::
+#\[7]NA7AKXKV5SQZSD2VD5V74Y75RSC3UVR7XIHZIS3RGIRLJ6FF2KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
