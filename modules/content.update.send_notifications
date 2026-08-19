@@ -2,20 +2,22 @@
 
 # name  = content.update.send_notifications
 
-my $update_cmd = shift // 'playlist-update';
+my $update_cmd = shift // qw| playlist-update |;
 
 my $count = 0;
 map {
-    # LLL: check zenka name syntax!
-    <[protocol-7.command.send.local]>
-        ->( { 'command' => "cube.$ARG.$update_cmd" } );
+    ## [LLL] implement zenka name syntax check [base.regex?] ##
+    ## sending only when zenka is already present !! ## [LLL] make cofigurable
+    ##
+    <[protocol-7.route-send]>->(
+        { 'command' => join ' ', qw| when-present |, $ARG, $update_cmd } );
     $count++;
-} split( / +/, <update.notify_zenki> );
+} split( m| +|, <update.notify_zenki> );
 
 if (<content.content_changed>) {
     <[protocol-7.command.send.local]>->(
-        {   'command'   => "cube.notify.msg_reload",
-            'call_args' =>
+        {   'command'   => qw| cube.notify.msg_reload |,
+            'call_args' =>    ## implement base.squote routine ##
                 { 'args' => "'" . <locales.string.playlist_updated> . "'" }
         }
     ) if <content.cfg.change_notifications>;
@@ -24,8 +26,8 @@ if (<content.content_changed>) {
 
 return $count;
 
-#,,..,.,,,,..,,,.,...,,,,,..,,,..,..,,,..,,,.,..,,...,...,,..,.,,,.,,,,,,,,.,,
-#DPGIWGPKISS4ZFEEYH4V6BR4BJHCGWJLVENF6VM5Q5CI7XWENABXNWNKL2ASTW6ID4LUT6ZFZO54I
-#\\\|5NXB7JZ355OXSEUHH65EJTUGULYTRNCRVHIPL2RELRBNQ5Q337R \ / AMOS7 \ YOURUM ::
-#\[7]X5AMKBYC2W2CP2W7H4CFYJYVOBMFK6BN5LNYCCYQF2TWDE5QTCBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,...,...,,,,,,,,,.,.,.,.,...,,,.,..,,...,...,...,.,.,,,,,...,.,.,
+#ZKEA44M64JEVUJIU56WYUHYEOTPOZRAULTMR44KLEOM2KVTFLKTPD7WTFK5Y55RTJWCNU6UQ7OI2U
+#\\\|FMAVF46GIWVBOG3GSKAGUDZAG7ZHXS4WWOYG3AGRHMRIYF7EL4M \ / AMOS7 \ YOURUM ::
+#\[7]MQ2XHOOJWSX6FOOPQVNQJZDJCFQ6WO25LE5NQDJFSR5ZPLYZ2SCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
