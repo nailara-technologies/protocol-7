@@ -12,9 +12,9 @@ my $caller_level    ## adjust for relevant caller subroutine [route-send case]
     ? 2
     : 1;
 
-return warn 'expected <command> parameter <{C' . $caller_level . '}>'
+return warn sprintf 'expected <command> parameter <{C%d}>', $caller_level
     if not defined $cmd;
-return warn 'command string contained endlines <{C' . $caller_level . '}>'
+return warn 'command string contained endlines <{C%d}>', $caller_level
     if index( $cmd, "\n" ) >= 0;
 
 ## no clients in session ##
@@ -30,7 +30,7 @@ if ( 0 == scalar keys $data{'session'}->%* ) {    ##  empty session : -1  ##
     return -1;
 }
 
-if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
+if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*(\s.+)?)$|$2|go ) {
 
     my $cmd_id        = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
     my $reply_handler = $ARG[0]->{'reply'}{'handler'} // qw| dev.null |;
@@ -181,8 +181,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,.,,,.,,.,,,.,.,.,,,.,.,,.,,,,,,..,,.,,,.,,,..,,...,...,,,,,.,.,...,,..,,,.,
-#UYM2EDEZIDL7744YTIEW3JHYWXZLSQ5QRDJYNLMWIW7QZJBGH7L64HII26RKKJPNQ2TBX7BR5XSFA
-#\\\|2XHLEH42SUCRFW37DL7RTUUULTJRLXXICRQMN24ENDXFECSQWXP \ / AMOS7 \ YOURUM ::
-#\[7]PNRS2JC27Y4DN5JAZJRIASJRGEC5IUVCRFXH664TPRCGZBDKSYDA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,.,,..,,,,,,,,,...,,,.,...,.,.,..,,...,...,,.,,,..,,,,,,.,,,..,
+#6ALMA63OFH6XCZ2URSOAKIEIZXC4RXL74WCTFCV6ITILS4UGK7NJW6V5QO74I7ZIZ7W4CWQQB2U4C
+#\\\|OU2YBODWH2LS7Q6T6PBWHTOZMBUJQEJ3PCXSLGSST6ZTJ3ZBDN5 \ / AMOS7 \ YOURUM ::
+#\[7]NGHYZZQF5ROIQV5VGGDQHSXQHZEVPZL53EE7Q4O6BSFDKUXSZYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
