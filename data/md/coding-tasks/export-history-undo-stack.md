@@ -35,7 +35,7 @@ correctly on every browser, not just the one clicking undo.
 
 **Critically: the stack itself must live server-side**, not in browser
 localStorage. This session's actual incident: the `web-browser` zenka runs
-with `cfg.ephemeral = 1` (`configuration/zenki/web-browser/zenka-startup.v7`)
+with `cfg.ephemeral = 1` (`cfg/zenki/web-browser/zenka-startup.v7`)
 — a WebKit private-browsing-style context where localStorage/cookies/
 IndexedDB are wiped on every process restart. A client-local undo buffer
 would silently recreate the exact same class of data loss this feature
@@ -88,8 +88,8 @@ schema or the jobsite↔web sync/watermark machinery.
 - No hand-written AMOS7 signature/footer blocks in new/modified Perl files
   — the project's signing tool generates those at commit time.
 
-#,,..,.,,,.,.,,,.,...,,,,,...,,,,,.,,,..,,..,,..,,...,...,,,.,,,,,,..,.,,,..,,
-#MNNKQH7DVNRLIVI7LRDWDOAMAUAO2FQKN3RV2V6LO5HFMPLZGOGFZMI6XTY6IINHKI36W3HSEZXHK
-#\\\|ATACXWXPRQTYUGMHXNHYFR6MFFUDV3TMIETP3GG2L6V564ZNMXE \ / AMOS7 \ YOURUM ::
-#\[7]OYCIA6WYAZPWADHRBP6TNQEQRV2ZAL6QHVTQTH6CV44EIZ4DOQDQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,..,,.,,,,.,..,,,,.,,,,,...,..,,...,...,,..,,..,..,,,..,,.,,
+#Q5V5FRRWGNC7MAK4O3BFVEV6MTYE2CFPUB4Z5RZGXIRC7MH4YB6HAIJKWYYK7A4VYEL55CPML37WI
+#\\\|KTXMHFZCBS6HNU57IORP5ZAV4DUGKVGKIWP6PWT7OTGZ3KEIREI \ / AMOS7 \ YOURUM ::
+#\[7]5KZQ4YJMGZ645HIAV5EXTBZ46LRJH53OB5F3TOOJXKG4WSBHV6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

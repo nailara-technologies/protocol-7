@@ -121,7 +121,7 @@ fabric.ui.focus>->{'pending_action'} = 'grant_zenka'`. on the next
 input cycle, the input is captured as the zenka name and appended to
 the slot's `access_grants` list (new field; default `[]`). this is
 **advisory** for now — the actual access check still belongs to
-`configuration/zenki/cube/access.zenki`. mention this clearly in the
+`cfg/zenki/cube/access.zenki`. mention this clearly in the
 status line: `granted (advisory — update cube access for enforcement)`.
 
 **`approve`** — only valid on the auth-relay queue view. opens
@@ -319,8 +319,8 @@ do not add the `#,,..` stub to any new file. lowercase comments,
 
 #,,..,...,,,..,...,,,..,..,,..,..,,.,,..,,,..,,..,...,...,..,,,,.,,,..,..,...,
 
-#,,..,.,,,.,.,.,,,..,,...,,,,,,..,..,,,,.,,.,,..,,...,...,.,,,,,,,,,.,,.,,..,,
-#HGRZILE6QZWGAQJWI5RPP6V22P6CZ64KQUCWSA3BK4QILYOOX4I6EEXL36VUUFX6UCOK7Q6PPIODQ
-#\\\|PBFX3KB5L77YJVMUD3VP62TQ3ZQ5OX76ZR27ZXFSYQLLPEO3W2M \ / AMOS7 \ YOURUM ::
-#\[7]VUZIC5Q6V6WRW6M5GRJG3YIHP264UMCBLVA67YCLHR7IF5USISCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,..,,...,,..,...,.,,,.,.,.,.,..,,..,,...,...,,,.,,,,,...,,,.,..,,
+#SB2AZGWKWK4J2OJO24PJP5DICCWAM6ZGJYMHHPQIA7MMRDWSUBBHR4UUYAHXBL43CWZJJFI7O6KHY
+#\\\|BDWMNDBEWGB45ZBSS2KME3TGVZ355HSHILOUWHSJDJHZFRP333W \ / AMOS7 \ YOURUM ::
+#\[7]PFUSWSSUPD27GCIB6LWSS5PYU74SFX3OC2WD77ZMJWZRMA5KKKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,13 +57,13 @@ after creating all new modules and updating call sites:
 
 ## whitelist
 
-new modules must be added to `configuration/zenki/web/subroutine.white-list`:
+new modules must be added to `cfg/zenki/web/subroutine.white-list`:
 - plugin.web.content.util.format_size
 - plugin.web.content.util.calculate_checksum
 - plugin.web.content.util.generate_submenu
 
-#,,,,,..,,...,,..,,,.,...,...,,.,,,.,,.,,,.,,,..,,...,...,.,,,,,.,,,,,...,,.,,
-#CZQZSX254O3R465VQGXJRSMKB2CRFFRR62VS4KY6NUD7QNH6CC5TXOVXX5CTNWL4S2DHBKX2MGH6Y
-#\\\|NZFR66BYNPAKR3IVVZIANG6WPYIYDHVUS7JQQEBISHBCXSLCJFD \ / AMOS7 \ YOURUM ::
-#\[7]CAMPYN2FZ6QGUD7CUT5GXO4IFGQHUN33D44DEKXOTU6FMDWU3IBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,.,.,..,,...,,,,,.,,,...,.,.,..,,...,...,,.,,,,.,,,.,.,.,,..,
+#HSKFIZHW3SH5M26FJOBI5WRJCKLMVWRP4P7P5TAPEYVVT43IVG7SSHDATLMX5ITVVCIZSGD45EKIY
+#\\\|CEALUSHUOGRPCGZNVPHABYWF3HKXE6Y4GTA3CG5YLW6UIC2IFTT \ / AMOS7 \ YOURUM ::
+#\[7]JU2MHXECRKHFRFOXV5UCLGFVD6IM2CQCHTR4HHDYLTGYBSFSAYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

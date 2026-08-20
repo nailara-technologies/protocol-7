@@ -118,7 +118,7 @@ existing relevant infrastructure:
 ### httpd.init_code (or httpd start file)
 - add call to [httpd.vhost.init_code] during initialization
 - note: check if httpd has an init_code module or if this goes in the start file
-  read configuration/zenki/httpd/start to determine the right place
+  read cfg/zenki/httpd/start to determine the right place
 
 ## install paths
 
@@ -154,8 +154,8 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 8. modules/httpd.cmd.vhost-status
 9. note on where httpd.vhost.init_code should be called (start file or init_code)
 
-#,,,.,,,,,...,.,.,,,.,,..,,,.,,,,,,..,,.,,,.,,..,,...,...,..,,,.,,,..,,,,,.,.,
-#UQNRWDMCQD3PWLAV42MB6EEFRPJQBW3BLHTWMZ4VSUA2FDXAHEBTIXLMI7ZWBMSXFBHVM4WOPMOKI
-#\\\|7PBJHTXNEEISAJYX7MINGNDRXZIQWFFO25RMEICET7BJMAFYQPQ \ / AMOS7 \ YOURUM ::
-#\[7]HVQKNEV6NO6HWLMJZN6DC7MFQNOFZO47MAATEMWTQE4K6WR43CDY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,.,,,,.,,,..,,,,,.,.,.,,,,.,,..,,...,..,,...,,.,,.,.,,..,.,,,
+#OT6GOROVR77I7WNTGIL4NNKKRVTGNWYGU62BWV7WINY2TX77VGSLBTIUVNFGZGVM7WTDHZJJQAO4E
+#\\\|CRL2PGW4V5VLUV24K2QZITUVL2F2MGQGEELGMCMRRBH7KEK67XT \ / AMOS7 \ YOURUM ::
+#\[7]GVNLEFNI4VSAZ377O7TYO27EBNCGIYIDXDSRIH4733SLMHPAFICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

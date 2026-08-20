@@ -33,7 +33,7 @@ that walks through each item in `cred-mesh-wiring.md`'s
    on-demand; a command routed to them will start them, or use
    `p7c v7.restart <zenka>` to pick up reloaded modules)
 2. confirm `var/cred-mesh/registry.yaml` gets created from a
-   seed file — copy `configuration/zenki/cred-mesh/seed.yaml.
+   seed file — copy `cfg/zenki/cred-mesh/seed.yaml.
    example` to `var/cred-mesh/seed.yaml` as a starting point
 3. walk the acceptance list from the wiring task:
    - seeded slots visible via `p7c cred-mesh.list` (or equiv.)
@@ -75,8 +75,8 @@ that walks through each item in `cred-mesh-wiring.md`'s
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,..,..,,,..,..,,,,.,.,.,...,.,.,,,.,,.,,,..,..,,...,...,.,,,,,.,.,.,...,...,
-#ULNOSMTRDAPNIRWCB2Z36SHVZYENZ7I5AXLL7SCOCVEOOFKCWDD3TI7D6U4VQBHXRNOGIM7Q6RM7E
-#\\\|YGR4E5M5PLTFF2PC5E3VC4TZMPMWJPYZRDL6KL4TUVA7URU4EYJ \ / AMOS7 \ YOURUM ::
-#\[7]LX3NUFDWEXRVSIAB64P5KU7HQJ5FMWRVX5VPG7TZ3BXD27OTRUBI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,,,,,,..,,,.,,,,,.,.,,,.,..,,..,,...,...,,,.,,..,,..,...,,,.,
+#M7LED6W4DYWNYDS4M2XC6MW7U6NZEIB3TAGLK4JN5LEPXRONDUTFUT3AMMNIQZR6UA6MDPPUDFGV2
+#\\\|ENWCXKRTTUMJWDW6SZVXLCL4HLG6DDUB3G2EZCE7WHQRHHM6MZC \ / AMOS7 \ YOURUM ::
+#\[7]HPQ6SXNDDU5NVYQDM3WXQA5XMCNGFY2JXATPFATAI3JKPBX6MADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

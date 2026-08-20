@@ -83,13 +83,13 @@ common_debugging_workflows:
       - "View cube buffer: p7 cube.show-buffer zenka"
       - "Check system logs: tail /var/log/protocol-7/runsc.cube.zenka.log"
       - "Identify rejected user/connection"
-      - "Update configuration/zenki/cube/auth.users"
+      - "Update cfg/zenki/cube/auth.users"
       - "Reload cube: p7 cube.reload OR kill -HUP <cube-pid>"
       - "Test connection: p7 list sessions"
 
     example_fix:
       issue: "[auth unix] access as 'unix-root' denied [uname=protocol-7]"
-      location: "configuration/zenki/cube/auth.users:8"
+      location: "cfg/zenki/cube/auth.users:8"
       original: "auth.setup.usr.unix-root = :unix:root"
       fixed: "auth.setup.usr.unix-root = :unix:root,protocol-7"
 
@@ -199,7 +199,7 @@ examples_from_real_sessions:
     diagnosis:
       command: "p7 v7.show-buffer zenka | grep debian"
       output: "[base.log] << unknown zenka 'debian' >>"
-    solution: "Created configuration/zenki/debian/zenka-startup.v7"
+    solution: "Created cfg/zenki/debian/zenka-startup.v7"
     verification:
       command: "p7 v7.show-buffer zenka | grep 'loading.*zenka.*configurations'"
       output: "loading [ 67 ] zenka configurations (was 66 before)"
@@ -282,8 +282,8 @@ related_documentation:
 
 #,,.,,..,.,.,,,.,,..,...,...,.,.,,,.,,.,,..,,,.,,,,,,,..,,...,...,..,...,.,,.,.,
 
-#,,.,,,,,,,..,,,.,.,.,...,,..,..,,,..,.,.,.,.,..,,...,...,,.,,...,,..,,,.,.,.,
-#KUDFK2CBL7ENER3AYMRUKAX7A677EJPVV4BGQMML7Q642TCZSRBHM6NWEFJ7NWDU7VSCLN7KNXT42
-#\\\|KW4GKZYT2WXRN6KOHDQ44DP7VK7GUXCISEYOLRE5U3W3Z2G7JLG \ / AMOS7 \ YOURUM ::
-#\[7]HGRIF57NQ4OFEMC724H7O45U7UPHRKZRD6VHLXCI4U3CKX4STKBI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,..,,..,,..,,,.,,..,...,...,,,.,..,,...,..,,.,.,.,,,.,.,,,.,,,.,
+#Y7EZZN7JESCVVANXWZXEFFUZ4DTLFSE5ZKLBBK35NGYHEPDKANJT3NLX65V3BRHOFYI5Z2GB2NTDA
+#\\\|54O56QP6GS3FENRDVXBUYFRDORJT5OSLGJBRHB3ZPMEITP6ZYEG \ / AMOS7 \ YOURUM ::
+#\[7]KR2JPTAQRM7YKFQT37TCQXVAOTM7EEFBK3HG4CJPLETOBSBZ4OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

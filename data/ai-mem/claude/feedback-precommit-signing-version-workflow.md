@@ -1,6 +1,6 @@
 ---
 name: feedback-precommit-signing-version-workflow
-description: "pre-commit hook demands a version bump + valid signatures on EVERY commit, checked independently each time — splitting one batch of work into N commits means N rounds of update-version + update-signatures, not one; also source_path_set_up's configuration/zenki/*/* glob only reaches 2 path levels, missing 3-level paths like recipes/<name>.yaml or packages/<name>.yaml"
+description: "pre-commit hook demands a version bump + valid signatures on EVERY commit, checked independently each time — splitting one batch of work into N commits means N rounds of update-version + update-signatures, not one; also source_path_set_up's cfg/zenki/*/* glob only reaches 2 path levels, missing 3-level paths like recipes/<name>.yaml or packages/<name>.yaml"
 metadata:
   type: feedback
 ---
@@ -8,9 +8,9 @@ metadata:
 Two separate pre-commit hook gates, both re-checked fresh per commit —
 not once per session, not once per batch:
 
-1. **version mismatch** — `configuration/protocol-7.src-ver` must match
+1. **version mismatch** — `cfg/protocol-7.src-ver` must match
    `<network-timestamp>-<expected-commit-count>.0`. Bumped via
-   `./bin/dev/update-version` (touches `configuration/protocol-7.src-ver`,
+   `./bin/dev/update-version` (touches `cfg/protocol-7.src-ver`,
    `read-me/md/README.md`, `read-me/project-identity/source-code-versions.md`
    — see [[feedback-version-files-every-commit]]). Because expected commit
    count increments with each actual commit, splitting one logical change
@@ -40,14 +40,14 @@ not once per session, not once per batch:
 
 **Gotcha (2026-07-29, build-zenka/ext-pkg-zenka session): `update-signatures`
 only signs files reachable through `modules/sourcecode.source_path_set_up`'s
-`@copy_sources` glob list.** `configuration/zenki/*/*` reaches exactly two
+`@copy_sources` glob list.** `cfg/zenki/*/*` reaches exactly two
 path levels below `zenki/` (e.g. `<zenka>/README.md`) — it does NOT match
-three-level paths like `configuration/zenki/build/recipes/<name>.yaml` or
-`configuration/zenki/ext-pkg/packages/<name>.yaml`. Files outside the glob
+three-level paths like `cfg/zenki/build/recipes/<name>.yaml` or
+`cfg/zenki/ext-pkg/packages/<name>.yaml`. Files outside the glob
 silently get skipped by `update-signatures` (no error, no footer added) and
 then fail the "unsigned files in staged set" check at commit time with no
 obvious cause — the fix is adding an explicit `<zenka>/<subdir>/**` entry
-(see the existing `configuration/zenki/openvas/bin/**` precedent in the
+(see the existing `cfg/zenki/openvas/bin/**` precedent in the
 same file) alongside the `access.cmd.usr.*` fix, not re-running
 `update-signatures` harder. After adding the path, re-running
 `update-signatures` also silently re-signs any *other* already-committed
@@ -75,8 +75,8 @@ Retry the commit only after both gates pass. Don't try to pre-solve this
 by bumping/signing once for the whole batch up front — it won't survive
 past the first commit.
 
-#,,.,,,.,,.,,,.,,,,..,..,,,,.,.,,,.,,,...,..,,..,,...,..,,.,,,,,,,,..,.,.,,..,
-#ZV6RLTJIJV7HEF3OJESXPUKN6KOPGIYCSRZXCGJCDK3MYPVBUDVUOYMKEJGXYLLL2QH3QOONVZXCK
-#\\\|NOXOODOKKFGVG3NHMZT3YDOW72GMVRBCXTBMT2QGWSDIHVPK5PX \ / AMOS7 \ YOURUM ::
-#\[7]VWBIUKMUZPTYMGASBZYWPANSXUXI23H3XREB4OFLJOP6LCVMEODI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,...,..,,.,,,,,.,,,,,..,,..,,,.,,..,,...,...,..,,.,,,,,.,,,.,..,,
+#XJ5GWU63MELGMDFMHSZJGKMPQVK2BLEDIXQHHKAFGSOTJGA2FM3NNMKYLI6AEWY63ORQBVJV7K6FM
+#\\\|QNGG73ZXJMTINVIIZSLMKOLCHXVCAHSX677F4CFIYK5AU35U4BL \ / AMOS7 \ YOURUM ::
+#\[7]4QPO65ZKTJNA4O255TDE27ETPY3JJ7HD6ECRF2VZVFNPMUQ4XQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

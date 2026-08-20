@@ -9,7 +9,7 @@ metadata:
 
 When implementing logic that depends on zenka start-up config data, prefer reading
 the already-parsed `<v7.start_setup.zenki.config>->{$name}` tree over re-walking
-`configuration/zenki/*/zenka-startup.v7` files from disk.
+`cfg/zenki/*/zenka-startup.v7` files from disk.
 
 **Why:** At any post-init or reload time, v7 has already parsed every zenka-startup.v7
 into its `%data` tree (see `v7.load_zenka_startup_cfgs` + `v7.init_start_setup`).
@@ -24,8 +24,8 @@ parsed tree genuinely doesn't carry the answer.
 
 Related: [[topic-patterns]] (zenka idioms).
 
-#,,..,..,,,,.,,,.,...,..,,,,,,,..,,..,,..,,,,,..,,...,...,...,,,.,,..,.,,,,,.,
-#HRWVUXFDZW7YPADBLGROCYDMF5P372N2SFRN6F3P6E4UJ24E5Y6TUT5Z7TPNBHUZL5TVOYRDH66FC
-#\\\|F22OKOW475NWPP5XILNCCVXZTUC4VB3X3NKRRXDTAJGCLIZ4QEQ \ / AMOS7 \ YOURUM ::
-#\[7]VVPTXXODUHMWRRQKKYPQ3GT7NEFCYDZ4NQUUCB5HXQ27IRPL64AI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,,,,,,,.,.,,,.,..,,..,,,..,.,.,..,,...,..,,.,.,.,,,,.,,.,.,..,,
+#P73RAZTU3MX3IWBYYXJFUNKJX73C6E3UUYDTTZTJSFQN4H4EESKLCXDDIIQ5EZSFLPCKKFT2UR4KM
+#\\\|F7JVETBFWTC2BCXI4LYQQ7KQFY6IIO2QRVYU47VZD4PA6SRM46Y \ / AMOS7 \ YOURUM ::
+#\[7]VY5IG4HVWNLUIULUWFZXERBZ2MCQ3MHJCTX542JEJ6HVH3BMBKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

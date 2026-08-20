@@ -526,9 +526,9 @@ sub sort_by_length {
 }
 
 sub get_zenka_namespaces {
-    ## scan configuration/zenki/ to find zenka-owned namespaces returns ##
-    ## hash of namespace names that correspond to zenki configs these   ##
-    ## namespaces should only appear in whitelists when loaded          ##
+    ## scan cfg/zenki/ to find zenka-owned namespaces returns hash of    ##
+    ## namespace names that correspond to zenki configs these namespaces ##
+    ## should only appear in whitelists when loaded                      ##
     state %zenka_ns;
     return %zenka_ns if %zenka_ns;
 
@@ -1508,7 +1508,7 @@ sub find_variable_dispatch {
 ##[ PHASE 3: RULE PLUGIN INTERFACE ]##########################################
 
 sub load_rules {
-    ##  load dispatch resolution rules from configuration/dep-graph/rules/  ##
+    ##  load dispatch resolution rules from cfg/dep-graph/rules/  ##
     my $rules_dir = c_dir( $root_path, qw| configuration dep-graph rules | );
     my @rules;
     return \@rules unless -d $rules_dir;
@@ -1773,8 +1773,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,.,,,.,..,,,..,,.,,,.,,.,,,.,.,.,,,,.,,,,,,.,.,...,...,.,.,,.,,.,,,.,,,.,,,
-#AOQLHE72KKA2QZ47GOFHNIIZJHZJLU46JCRZUXEPAP6TFMDJ5QAEBH5QBE2TMV74WOJH7BSW3IRSM
-#\\\|LC23B76MP2RRTBC6HTRGJKVK2UFU6PD4CAVDUM6A4VN4772ZRPK \ / AMOS7 \ YOURUM ::
-#\[7]4TUMXXILWJLF6X5SA5D25TFQ5T3QDUE3BA4Y6AT4CSHNMMOEC6BY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,,,.,.,,..,,..,...,...,,,,,,..,.,.,...,...,.,,,.,.,.,,,.,,,.,.,
+#ILQGIGJUHTMXKBPIIXEFDZJR5YTIZZY7PDPQXAGNJQCDQIYKYHE2762HAHDQNWUXCHQISHHHJFFFI
+#\\\|KOQY26M5IEF7SEXMIK6LLGJ4AXBKFDVPMTM4YPMHUHTFVIHVTWD \ / AMOS7 \ YOURUM ::
+#\[7]AG7FY6SNHMPNY27MSBPFWHWX7VDLMDN7VOWA6STUBCS4K3Q55CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

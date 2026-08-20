@@ -17,7 +17,7 @@ implemented `task.handler.cold-queue-sweep`, `task.handler.gpu_temp_update`,
 during live testing found `<task.cfg.gpu_cold_temp_c>` default of 45°C was unreachable —
 idle floor with nothing running measured 59-61°C, loaded pushes 70+. **resolved to 57°C**
 based on live measurement, recorded in the task doc. also granted task zenka's missing
-`X-11.gpu_metric` access in `configuration/zenki/cube/access.zenki` (was causing repeated
+`X-11.gpu_metric` access in `cfg/zenki/cube/access.zenki` (was causing repeated
 crash-loop restarts before diagnosed).
 
 ## atomic-write fix, base.file.zenka_dir.write
@@ -76,7 +76,7 @@ touched the live binary until validated), fixed the build script's own gap (it o
 too, the actual binary the coding zenka spawns). validated both regression (Qwopus3.5
 still loads clean) and target-fix (Gemma4 loads clean, no crash) as standalone servers on
 a spare port before cutover. cut over by repointing `inference.backend.lib_path` /
-`inference.backend.gpu.binary` in `configuration/zenki/coding/start` — left the old
+`inference.backend.gpu.binary` in `cfg/zenki/coding/start` — left the old
 binary/libs at `/data/source/ik_llama.cpp/` completely untouched for instant rollback.
 confirmed live through the actual zenka afterward, not just standalone.
 
@@ -144,7 +144,7 @@ fixed this session.
 security-focused: `mradermacher/Qwen-security-auditor-14b` (`XFX2XIQ:734SX4I`),
 `Qwen-security-builder-14b` (`EBCVWUQ:734SX4I`) — both Q4_K_M, text-only, hackathon-derived
 Qwen2.5-Coder-14B fine-tunes, intended for a not-yet-built "forensics" zenka (currently
-only a placeholder name in `configuration/zenki/events/event-setup.base`'s example
+only a placeholder name in `cfg/zenki/events/event-setup.base`'s example
 timetable, no real design). also `MaralGPT-Mythos-9B-2606` (Q8_0, uncensored
 cybersecurity/bio/chem research focus), `mythos-9b-unhinged` (King3Djbl, Qwen3 not 3.5 —
 SLERP merge + FableForge-Mix-A finetune), `Qwable-9B-Claude-Fable-5` (empero-ai, agentic
@@ -166,8 +166,8 @@ scanner gap worth investigating before assuming the file itself is bad).
 - Debian/host system upgrade was requested and deliberately deferred — do it as its own
   isolated task, never stacked on top of a binary/deployment change in progress.
 
-#,,,.,.,.,,.,,.,,,...,,,,,,,.,..,,.,.,...,,.,,..,,...,..,,.,,,...,,,,,.,.,.,,,
-#TFX54UG6FOPPCHDF7ZBEM23OOV7YYVMUIQOPUNTN52U4R3MISD7VKUVPZWNYM6OQF3RYKZ5LYW64C
-#\\\|QCJEQX5I33467RZUVB2QZOIPEILGRUZFRDV3PBPDZCNI3UAZ6SC \ / AMOS7 \ YOURUM ::
-#\[7]CUZ4IBT3OCZ42IFI6ZA5DIIFJOA4KHHDSSL7ETRG5HYMLEVXAYDY 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,,.,,,,.,.,,,,..,,,,,,..,.,,,..,,...,...,,..,..,,,..,.,,,..,,
+#BEVMA7EM7CIEUPFKP2CPWK63IVQH5GVMK7CJXCVSWY7RZP6JU44BIXGIAK4OWQEGPT5COSIAFDEP4
+#\\\|X4CDS3IR3XPAZ2KO2T5TUVHTVH57XL4AYN6S7JNRETP4XQKYLRC \ / AMOS7 \ YOURUM ::
+#\[7]44JSBMPOQQ7DKJGIEXU2I6TVRU5KAZ7MEOITWWFTZDFJ4S5QKKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

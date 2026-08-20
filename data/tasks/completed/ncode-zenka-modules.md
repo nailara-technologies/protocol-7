@@ -15,7 +15,7 @@ all modules present: `ncode.init_code`, `.cmd.search`, `.replace`, `.sign`,
 `.format-code`, plus extensions (`tool_list`, `apply`, `suggest`,
 `transform`, `workflow`, `regex.*`). IPC::Open3 execution centralized in
 `ncode.util.run_cmd` (same pattern as `coding.spawn_inference_server`).
-on-demand config live at `configuration/zenki/ncode/` (420s idle timeout,
+on-demand config live at `cfg/zenki/ncode/` (420s idle timeout,
 `start.on-demand = 1`, `max_concurrency = 1`). access granted via
 cube/admin wildcard (`** ..*.**`) rather than `cube/access.zenki` per
 `data/ai-mem/claude/topic-ncode-access-gap.md`'s corrected mechanism.
@@ -187,7 +187,7 @@ p7c ncode.doc base.logt
 
 implement the ncode zenka on-demand zenka.
 
-1. create `configuration/zenki/ncode/start` — on-demand zenka config,
+1. create `cfg/zenki/ncode/start` — on-demand zenka config,
    420s idle timeout, load all ncode.* modules
 
 2. create all modules listed above: `ncode.init_code`, `ncode.cmd.search`,
@@ -207,8 +207,8 @@ check `bin/ncode` source for exact argument syntax before implementing
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,..,,.,,,..,,...,.,,,,,.,,..,,.,,...,.,.,..,,...,...,...,.,,,.,,,,,.,,..,
-#DR5UAJNDSFR24R6KDIISDHX7RR24NG4D7O2B5HVHQSWBJQ2KD5BSHHMN3TSQS77VSTV7MQAEMTK4Q
-#\\\|EMFKX4ODDDEFGQ57N7QHCOZ7WK3E4ORZK3HHJ6W7DHGQXDC2ZVI \ / AMOS7 \ YOURUM ::
-#\[7]S42JSSL6CONXRVL43CTIP4GI56EZIJ3E5J37NLW5APV5Q33CK6BY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,,,,,,..,,,,,,..,,,.,,.,,...,..,,...,..,,...,,..,.,.,..,,,,,,
+#T4A74NMXDK36HYMO37TWAVABF7LMIIWZHG3RK5N4QIDVMBNST4B622WUHMYMQR6XP4DDXZLF4MJQU
+#\\\|NZ3PA7PZJFBZTZOJNGRKD7HCZ4P2NX5P5IT7Q5WBE56FULT6OJS \ / AMOS7 \ YOURUM ::
+#\[7]K3AOMWWXRTSSCBY27CXEY3LZ2QANSOB43N33RIVB6YRZX2YK6CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

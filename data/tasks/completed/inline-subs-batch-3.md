@@ -109,7 +109,7 @@ after all 3 new modules are created and source files updated:
   long as the failure reason is unchanged ]
 - `p7c download.reload`, `p7c graphics-matrix.reload` complete with
   `reload source [success]` and `reinit source [success]`
-  [ check `configuration/zenki/*/start` for which zenki load
+  [ check `cfg/zenki/*/start` for which zenki load
   `web-browser.*` - it may not be a separate zenka / may not be
   running; if so just confirm `perl -c` passes and skip the reload
   step for it ]
@@ -135,8 +135,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 </content>
 
-#,,..,.,.,,.,,,.,,,,.,,..,.,.,,,,,...,.,,,,.,,..,,...,..,,,..,..,,,,,,.,.,,,,,
-#GCXL3ZZ6QX5MEQ4JEPVIRBPLOLAN4Y32SD6ESMY2FJQ7OQOKTC4I55VH3OPAXFCR3ONRRIUX3NH7U
-#\\\|OR65IVKKW5RBEFMZE6KTYVM2WR6ZXTKDTQSKJL2JXZBYUOJPN6W \ / AMOS7 \ YOURUM ::
-#\[7]OL3S24P4Z5T7T7XATCKYEWESTZPGZTYTAVVZM7ER452IZY2DB2BI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,...,...,...,,,.,.,,,,,.,...,..,,...,..,,.,,,,,.,,,.,...,..,,
+#464OKBYDZ6PEGKK7AGMFX4WR4FECQTI6CHY4FYVBGT2R5765DXGTAKT4LY45CCTPYKNQ5XR2INQ2E
+#\\\|PZJNARE325XWO7NTME4RWIRSW4VKAIGPBHD4ETOERM5R3KSQLFL \ / AMOS7 \ YOURUM ::
+#\[7]UBNXLZJEIOBBEFJ6BVK3W5ASR6C2Q2XSDADBT3JDFTCXZD6NFIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

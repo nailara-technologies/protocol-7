@@ -107,17 +107,17 @@ $SIG{'INT'} = sub { printf "%s%s\n\n", "\b" x 11, ' ' x 11; &aborted };
 ## implement deeper recusion [ levels ] ## [LLL]
 
 my %targets = (
-    qw| . |  => Cwd::cwd(),                        # current directory
-    'bin'    => $PATH->{'root'} . '/bin/',         # protcol-7 executable code
-    'dev'    => $PATH->{'root'} . '/bin/dev/',     # developement tools source
-    'admin'  => $PATH->{'root'} . '/bin/admin/',   # node administration tools
-    'src'    => $PATH->{'root'} . '/modules/',     # the nailara module source
-    'cfg'    => $PATH->{'root'} . '/configuration/', # configuration root path
-    'md'     => $PATH->{'root'} . '/read-me/md/',    # release [markdown] page
-    'zenki'  => $PATH->{'root'} . '/configuration/zenki/..,', # p7-zenka progs
-    'docs'   => $PATH->{'root'} . '/data/md/..,',  # design & docs [ recurse ]
-    'todo'   => $PATH->{'root'} . '/data/yaml/todo/..,', # todos [ recursive ]
-    'tasks'  => $PATH->{'root'} . '/data/tasks/..,',  # task queue [ recurse ]
+    qw| . | => Cwd::cwd(),                         # current directory
+    'bin'   => $PATH->{'root'} . '/bin/',          # protcol-7 executable code
+    'dev'   => $PATH->{'root'} . '/bin/dev/',      # developement tools source
+    'admin' => $PATH->{'root'} . '/bin/admin/',    # node administration tools
+    'src'   => $PATH->{'root'} . '/modules/',      # the nailara module source
+    'cfg'   => $PATH->{'root'} . '/cfg/',          # configuration root path
+    'md'    => $PATH->{'root'} . '/read-me/md/',   # release [markdown] page
+    'zenki' => $PATH->{'root'} . '/cfg/zenki/..,', # p7-zenka progs
+    'docs'  => $PATH->{'root'} . '/data/md/..,',   # design & docs [ recurse ]
+    'todo'  => $PATH->{'root'} . '/data/yaml/todo/..,',  # todos [ recursive ]
+    'tasks' => $PATH->{'root'} . '/data/tasks/..,',   # task queue [ recurse ]
     'pm-src' => $PATH->{'root'} . '/data/lib-path/pm',    # local perl modules
     'amos' => $PATH->{'root'} . '/data/lib-path/pm/AMOS7', # AMOS perl modules
     'amos-at'  => $PATH->{'root'} . '/data/lib-path/pm/AMOS7/Assert',
@@ -888,7 +888,7 @@ sub cmd_restore_backup {
     }
 
     # Restore files
-    system("cp -r $temp_dir/configuration/* $PATH->{'root'}/configuration/")
+    system("cp -r $temp_dir/cfg/* $PATH->{'root'}/cfg/")
         if -d "$temp_dir/configuration";
     system("cp -r $temp_dir/modules/* $PATH->{'root'}/modules/")
         if -d "$temp_dir/modules";
@@ -3156,8 +3156,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,.,,,..,.,,,..,,.,,,..,,.,.,,,.,,..,..,,,,.,..,,...,..,,,..,...,,.,,,.,,,,.,
-#J56EDE6F77LS6CA2X3GFUVZRRGORHQRDB5TB2KTMZAGBYPD7LEC3DQQBP2YUOZTKLTNRADP25BT44
-#\\\|27JLJDQAZVA7PPGX7DFCBZ4QUDTMY323KP2DEYJLETMUCY6WCAK \ / AMOS7 \ YOURUM ::
-#\[7]437NWP6H7NE7FN6FGZ3FD5ISK5OWPZTGS4LNZMI4KAIQ4HREWGAA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,,,,..,,.,,,,.,,,.,.,,,,,,,,..,..,,...,..,,...,.,,,.,.,..,,...,
+#JYZFIE2NIS6IWKSL7AHLB7C52RGESKYDLMDW6GCMB2G5SP5ZYNBZDEX6J4JFPASZWBHQY7E4LGZFO
+#\\\|ZFUERFME3SY2AFE5QWEULLZLI4RFTTQYF6BRWTVWOGUWTVJQ2OS \ / AMOS7 \ YOURUM ::
+#\[7]ANXA3DPTLK5SFHX7I2K25G54GKTIEPJJDWTOH4IIMJZAKIXO44DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -71,7 +71,7 @@ own independent dependency.** Side effect of (1): all ~16 nested
 `base.*` lifecycle hooks (plus, incidentally, any other nested module
 under an already-loaded top-level namespace, e.g.
 `sourcecode.console.sign` under `sourcecode`) now get individually
-registered as `configuration/zenki/<zenka>/source/<name>` touch-files on
+registered as `cfg/zenki/<zenka>/source/<name>` touch-files on
 every zenka, even though the parent namespace (`base`) is already
 registered and covers them.
 
@@ -126,8 +126,8 @@ update note.
 needed beyond adding the file" assumed the lifecycle-hook gate already
 handled nested namespaces correctly; it didn't, until this fix.
 
-#,,,.,,..,.,.,,.,,,..,.,,,,,,,,..,...,,,.,,..,..,,...,...,..,,,,,,...,.,.,...,
-#JOFYZGTK3257XG4YGKOT7B7JYJMBFINQQXX4DIIJTNZ2KVMUWEHH5OHRDWPDNTNDDRWBGPPWTU5W4
-#\\\|UBIDU7HMIPJQM456QUH3OTVDRSCGG3GDISVKHXJLTQBZ7TNXWBA \ / AMOS7 \ YOURUM ::
-#\[7]Y3HSQE2SSTAYE4E2LFECINOZP3YN2CLTUXERMFASMWIY72GO44CQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,.,,..,...,,..,,,,,,,,,,,,,,..,..,,...,...,,..,...,.,.,.,.,,.,,
+#TNETAEJB3O4RNXUOL3UXDEDXC5HQETVSDGGLGZP322WHUASHU4SOJFY2XX2UWQNR5ZTKQ7JFW6CHA
+#\\\|YG5ZE7Z3OJYMLJK62Y3RLDYUCRU24IQ35FQNGHNJCITSBGOPRBJ \ / AMOS7 \ YOURUM ::
+#\[7]OZMA5EM5DXLWSQSAYHN4PMQFGDPATK4P6PWIE6TVVEDDD2OLVKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

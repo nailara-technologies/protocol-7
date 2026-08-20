@@ -99,7 +99,7 @@ explicitly OUT of scope:
 full three-way split, so nothing falls into a categorical blind spot
 between the task files:
 
-    os-pkg zenka (configuration/zenki/os-pkg/, currently a stub —
+    os-pkg zenka (cfg/zenki/os-pkg/, currently a stub —
       modules/os-pkg.init_code is just `0;`) — OS-distro packages,
       apt/dpkg only, per its own `start` file description
     [[ext-pkg-zenka]] (new task, greenfield) — external package-manager
@@ -133,9 +133,9 @@ between the task files:
 ### task 1.1 — create build zenka
 ```
 ## dispatch + prompt
-create configuration/zenki/build/ following the zenka-startup.v7 +
-start script pattern from configuration/zenki/letsencr/ (access.zenki
-pattern from configuration/zenki/cube/ or configuration/zenki/transport/
+create cfg/zenki/build/ following the zenka-startup.v7 +
+start script pattern from cfg/zenki/letsencr/ (access.zenki
+pattern from cfg/zenki/cube/ or cfg/zenki/transport/
 — letsencr has none, see data/tasks/openvas-agent.md task 1.1 for the
 same note). bootable, stoppable, registered. no modules yet.
 ```
@@ -144,7 +144,7 @@ same note). bootable, stoppable, registered. no modules yet.
 ```
 ## dispatch + prompt
 design the recipe registry: one yaml file per recipe under
-configuration/zenki/build/recipes/<name>.yaml. top-level `kind` field
+cfg/zenki/build/recipes/<name>.yaml. top-level `kind` field
 selects the source/install shape, since four already exist in the repo
 as hand-run scripts or documented procedures:
 
@@ -258,8 +258,8 @@ attention after an upstream pull, instead of discovering it mid-build.
   explicitly out of scope — see [[NETWORK-BUILD-SYSTEM]] for the full
   vision; this task is layer 1 only.
 
-#,,..,...,,.,,.,,,,.,,.,.,..,,...,..,,.,.,...,..,,...,...,..,,,.,,,,.,...,,,,,
-#6AIETOHFLZALKZK5M6CPFS5NUPSTYFDWIRMN3Y4KXW6226OR6R43MILTUFFFH7WUZCNJMRMQKJI6C
-#\\\|PZTTGFZ6WZORMJUGEWCEF5HWVILJW7M2BI7O42MNJGNM2AQMCPG \ / AMOS7 \ YOURUM ::
-#\[7]KMPV5IDJ25MQ363MDMK4DHSIDZDAHNI7VK2UDCFTKA6WMAGGKUDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,.,,,.,,,.,,,,.,,.,,,..,...,.,,,..,,...,...,,.,,,.,,.,.,,,,,,..,
+#ZIHBIGD4FCNUMFMVMVXADYJTANWWMX3ITN6A3CENOFCMLX77MJSGDOC2WWRRJGIA7GP3L6B77MF4Y
+#\\\|UJUBZL5AFST2XO55C7Q6HS2OGO6XTJLDMEZWNPZJPJZ4GPZP3WL \ / AMOS7 \ YOURUM ::
+#\[7]QXKQL5I6JYDQ5CVOT25DUDYYIKDXQIMVKZZ7UTZ5RQIXMM2NWOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

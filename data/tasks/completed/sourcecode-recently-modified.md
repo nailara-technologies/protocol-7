@@ -32,7 +32,7 @@ output (two-column, left-aligned):
   4h ago          data/yaml/reasoning-templates/arrived-by-being.yaml
   4h ago          data/yaml/reasoning-templates/semantic-triangle.yaml
   1 day ago       modules/coding.async.send_request
-  3 days ago      configuration/zenki/coding/start
+  3 days ago      cfg/zenki/coding/start
   ...
 
 implementation:
@@ -129,8 +129,8 @@ p7 sourcecode.recently-modified '{"since":"ZDY6JCVRHY"}'
 - [ ] tool callable as recently_modified from within a coding task
 - [ ] tool result is the formatted two-column string
 
-#,,..,.,,,,,.,,.,,,,.,,,.,.,.,,..,...,,.,,,.,,..,,...,...,.,.,.,,,,,.,.,,,.,,,
-#HWPGQLMSYWXG6GPHV5UXZP3WGN6CDKLVPYSH53PGA3IPXJUU7KX6OJFR4F5MI64N5FIOORRSI3EFM
-#\\\|YFWQQVZFMVES7QUSJHSO3LAT4HAVOFZVQ6XUFNZUUR4LO5LPZMC \ / AMOS7 \ YOURUM ::
-#\[7]COP66LPSGAO5FAI3RGSIP4M74LE7HSTRM4B6VVUKTZOVG6J5OYBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,.,,,,.,,,,,,..,...,,,,,,,.,.,,,..,,...,...,..,,.,.,,.,,..,,.,,,
+#FL4UVPMQHUK6N3RJJUOP5VCB32Y7XKSVNITOMXBF557MKP3VVGHTZQGJLQFCZWF2GMIUT4WRZN5S2
+#\\\|EYMPHX2NGZPKTSMVVMEWR54HCDIXQGNOUOFWVM3VT5K6E55QYPL \ / AMOS7 \ YOURUM ::
+#\[7]6VRBM4QJEI5FMSKWGL2IZYY6XMUS4QTPHPIMTC6BS224XZCOE2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

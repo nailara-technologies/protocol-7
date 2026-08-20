@@ -310,7 +310,7 @@ modules/
   ├── base.file.make_path                      # Dir creation (FIXED)
   └── base.known_dependencies                  # Crypt module mappings
 
-configuration/zenki/
+cfg/zenki/
   ├── cube/start                               # Cube config (UPDATED)
   ├── test-link-upgrade/start                  # Test zenka config (UPDATED)
   └── keys/start                               # Key management zenka
@@ -396,7 +396,7 @@ use Crypt::PRNG;  # For random key generation
 ### Contact Points if Issues Arise
 - Review the fixed modules if scalar reference errors occur: `base.handler.link-upgrade:59-61`
 - Review umask handling if directory creation fails: `base.file.make_path:20-23`
-- Review autocreate configuration if zenkas won't start: `configuration/zenki/{cube,test-link-upgrade}/start`
+- Review autocreate configuration if zenkas won't start: `cfg/zenki/{cube,test-link-upgrade}/start`
 
 ---
 
@@ -406,8 +406,8 @@ Generated: November 18, 2025
 Phase 1 Status: ✅ COMPLETE
 Phase 2 Status: 📋 READY FOR IMPLEMENTATION
 
-#,,,,,,,,,,,,,..,,,..,.,,,,..,.,.,..,,,.,,,,.,..,,...,..,,.,,,.,.,.,,,,.,,...,
-#JEQ6WLB4FZMVZ3UXWEXR3OJBJCMSJ5GKRB263P7C7HIVR63ZY6GVLF7S52MT7UAFDP6OLYZVMTN6S
-#\\\|MH3CLGTOJ5J2BWXHBEIUZOYPYKBB5RS6LKOHMEF3Y246YW3QRZR \ / AMOS7 \ YOURUM ::
-#\[7]GOZDUTTIHIIG5GUPPIZBWCTHL6BEAQLDOARL5QHQA3AWVICUUKAQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,..,...,,,,,,..,...,..,,.,.,,..,..,,...,...,,,.,.,.,,,,,,,,,,..,
+#OLRJMOKZZFYZJ4THFIZVUFQ6FABOVFBF47HYRRZF6Q3EL7MTP3B5H6ZPMUB7VWALFXOLTWOROP33S
+#\\\|BB5G7PFRGNCW5BA5WNRH4UP45WN2MUJSQPX7RMYFQCTU3YBCIET \ / AMOS7 \ YOURUM ::
+#\[7]EVBWPYINGD7UMGHYS77WNNHJ2BB7IOJ2V3CBNR34CRPFTKLBUUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

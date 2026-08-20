@@ -6,9 +6,9 @@
 Three zenka stubs have been waiting for initialization:
 
 ```
-configuration/zenki/zulum/start    ##  stream-13 producer   [ stub ]
-configuration/zenki/cube-13/start  ##  division-13 router   [ stub ]
-configuration/zenki/decoder/start  ##  stream decoder       [ stub ]
+cfg/zenki/zulum/start    ##  stream-13 producer   [ stub ]
+cfg/zenki/cube-13/start  ##  division-13 router   [ stub ]
+cfg/zenki/decoder/start  ##  stream decoder       [ stub ]
 ```
 
 Research scripts (`bin/dev/division-13-table`, `bin/dev/gen-div`) already
@@ -184,8 +184,8 @@ sequence of cycle positions visited.
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,,,...,,..,.,.,.,.,,..,,..,.,.,,.,,.,.,..,,..,,...,...,,.,,,,,,,,.,,,,,...,
-#7DIKU5JYW7UQHFIU56HZMKDILGKN5KUBEKSELEYU3M576Y4DKN4JUO2WZSS2NGYTILKTHTVZK2AMW
-#\\\|EQ2536IPMITVMUDX63XPPOQJCP3DTF7TGXBQXSCKEJKP7DD63CQ \ / AMOS7 \ YOURUM ::
-#\[7]X7FBYID3PY2VODHH33HVG7M47HXXRAF4TM5ZMYHVFKJFY6T6ZICI 7  DATA SIGNATURE ::
+#,,..,...,...,..,,.,.,,,,,,,,,.,.,..,,.,.,.,,,..,,...,...,...,.,,,,..,,.,,,,,,
+#UUM77WYOJNHYS2GMWL62VSSXCRKPEKKWMYRSU2B3RWDOQIRUI4T4T56MXKLXTAUSEZAZHPHPR4G5O
+#\\\|JMUZONNBZUW22OVTN3OAV6QH2VRKR7LGAGIYS2MB66DQCSXM36X \ / AMOS7 \ YOURUM ::
+#\[7]SRGVUKULDYMYYJ2DDUIVEIM56IJ554K24XWADOPFMBDDHCNLNMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -260,7 +260,7 @@ With it live:
   in an access mask to regex `[^\.]+` (no-dots-allowed), so it never
   matches dotted command names like `handler.cred_rotated`. Fixed by
   explicitly listing `handler.cred_rotated` in
-  `configuration/zenki/proxy/start`'s `access.cmd.usr.cube` mask, ahead of
+  `cfg/zenki/proxy/start`'s `access.cmd.usr.cube` mask, ahead of
   the trailing `*`. Verified live: rotating `test.fixcheck` no longer logs
   "no perm".
 
@@ -300,7 +300,7 @@ be killing/corrupting an in-flight event handler mid-request).
 
 **RESOLVED 2026-06-16 (`26bae092c`):** F2/F8 — `transport.eval-code` "no perm"
 blocking harness scenarios 2/3. Fix was a 1-line `access.cmd.usr.cube` grant
-in `configuration/zenki/transport/start`.
+in `cfg/zenki/transport/start`.
 
 **RESOLVED 2026-06-15 (claude_dispatch opus, `0427e08cf`):** proxy.init_code
 now guards `<[proxy.listen]>` with `zenka.name eq 'proxy'` so cred-mesh
@@ -319,7 +319,7 @@ scenarios 2 (5/5) and 3 (2/2) now pass. Key fixes in this commit:
   style `($ctx, $reply)` — all demote/quality/active-recording logic preserved
 - `proxy.handler.post_auth` + `proxy.transport.select`: updated to new async
   convention, guarded so transport stays not-co-loaded in proxy production
-- `configuration/zenki/transport/start`: `profile_dir` was a relative path
+- `cfg/zenki/transport/start`: `profile_dir` was a relative path
   (`data/yaml/transport/profiles`) unreachable from cwd `/home/protocol-7` —
   fixed to `<system.root_path>/data/yaml/transport/profiles`
 - test harness scenarios 2/3: updated to `$data{transport}{registry}` syntax
@@ -330,8 +330,8 @@ scenario 2: 5/5; scenario 3: 2/2. Remaining OOS items: credential_fabric
 no v7 always-on/on-demand registration; on-demand auth 407/pending/approve
 end-to-end not verified.
 
-#,,.,,,.,,,.,,,,.,,..,..,,...,,.,,,,,,.,,,,,,,..,,...,..,,...,...,,,.,.,.,,..,
-#JIZIWQZWSS2ZRQIQSYE3PHDU4OUPQNTLAFOY2QZDMVZB7QFUFUS6RGDV5YOKAHM73VZS4YDJKGEEU
-#\\\|OA5MV46IE3GHJF47N6BVLGZR3UMLGKQRV5DULYA4252Y7DLBXRE \ / AMOS7 \ YOURUM ::
-#\[7]6O5WHYCBI4EDI6PJGOTPSMWEMFOVPPKCVNE2DBMX4RPCWLHXY4AA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,,.,,.,.,.,,,.,,,..,,..,,,,.,..,,...,...,..,,.,,,...,.,.,,,,,
+#MWTW2HRO3CSIZXKYRQGWH26CK6BVJHNXU3VMRMG7XHCYTT7AIAGDBH6XWBLSHWN6LMFAJUJC7TG72
+#\\\|H6VJML4HTHFR5U2WFZYJMXQ2FLH33EZULQU52XHRODSNQR3YGPW \ / AMOS7 \ YOURUM ::
+#\[7]35DAAWPDUTDKKJ33QSJTWK6BA5VWQTA6F77HG2PAGCRN4SWA4WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

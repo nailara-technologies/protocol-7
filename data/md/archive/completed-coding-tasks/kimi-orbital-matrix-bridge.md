@@ -63,7 +63,7 @@ update `plugin.web.space.orbital.json` to:
   handler, OR call synchronously via protocol-7.command.send.local if graphics-matrix
   is registered as accessible from web space plugin context.
 
-  **check** `configuration/zenki/cube/access.zenki` to see if graphics-matrix commands
+  **check** `cfg/zenki/cube/access.zenki` to see if graphics-matrix commands
   are accessible from the web/httpd context. if not, add them.
 
 ### step 3 — update visualization to consume enriched data
@@ -85,7 +85,7 @@ create `graphics-matrix.cmd.orbital-sync` — a command handler that:
 - calls graphics-matrix.glow.compute to refresh glow
 - calls graphics-matrix.graph.survey to get current cluster state
 - returns a summary: { cells: N, glow_total: F, clusters: N, channel: {...} }
-- register it in the access.cmd.usr.cube line in configuration/zenki/graphics-matrix/start
+- register it in the access.cmd.usr.cube line in cfg/zenki/graphics-matrix/start
 
 this gives `p7c graphics-matrix.orbital-sync` as a manual test command.
 
@@ -105,7 +105,7 @@ once implemented, test sequence:
 - modify: `modules/plugin.web.space.orbital.json` — add glow/channel/graph fields
 - modify: `data/web-root/vhosts/space.v7.ax/visualization.html` — consume new fields
 - create: `modules/graphics-matrix.cmd.orbital-sync`
-- possibly modify: `configuration/zenki/cube/access.zenki`
+- possibly modify: `cfg/zenki/cube/access.zenki`
 
 ## style
 
@@ -115,8 +115,8 @@ once implemented, test sequence:
 - use `$data{'zenka-name'}{'key'}` for zenka data tree access
 - use `protocol-7.route-send` for cross-zenka calls, `protocol-7.command.send.local` for same-zenka
 
-#,,,,,...,.,.,.,.,,,.,.,,,,..,.,.,..,,.,.,,,.,..,,...,...,...,.,.,,.,,.,,,,,.,
-#YN555ZCEFTEADNGOBEXVMM25ZTOPNLK3IHWFFAKE7QTUG2QPIXWDOCTY7MRPH7JSOUJLVRBFDTK2K
-#\\\|IPUW6BJAD3SXPHOOADOKMRP6PWAPQLPJBGLRYKQ2SLDNE3S5ZXC \ / AMOS7 \ YOURUM ::
-#\[7]HZQ7VDGV7BYO7XWFT3HZHFC3RZNBORQBFVKNKPHNDX2TRK4ANSAQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,...,,..,...,,..,..,,,,,,,,.,.,,,..,,...,...,..,,...,...,,.,,.,.,
+#EQF5RDA2VWDFA323QWSB7GCQGUPTNSAX2CNYESZSRJ6GTYKRUNOXXZ2RFBLHOBXMSFHGTYQLBK75M
+#\\\|B7RHKMGCV3QGTTOB2TJQKZ4YISQ34V2HD2VJRN3GMUICU4AESKA \ / AMOS7 \ YOURUM ::
+#\[7]B273B2YDLXLB2VPETOFGHLZ2J5BZSVST3LLYW5MOT5CXN2X45UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

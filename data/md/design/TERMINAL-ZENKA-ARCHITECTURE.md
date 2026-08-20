@@ -150,7 +150,7 @@ application logic lives in ui.app.* (or zenka.cmd.*) — never in adapters.
 
     ui.app.config
         → global system configuration editor
-        → data: configuration/ tree via data zenka
+        → data: cfg/ tree via data zenka
         → available on web adapter for remote admin
 
     ui.app.network
@@ -221,8 +221,8 @@ app logic receives abstract actions; adapters translate input → actions.
 this is the same principle as route-send vs direct socket calls —
 the transport is irrelevant to the message content.
 
-#,,.,,,.,,...,,.,,,,,,,,,,,.,,,,,,.,.,,..,..,,..,,...,...,..,,,,,,.,,,,.,,,..,
-#FKRUQX35SZ4IA76BP3R2H2KZFO4IBEHWG3C3OUHFBNPEUEQO6SD6QNHFSC2BB6QPPYJVG4YHKURNO
-#\\\|WA6Y34LZY4IKULZJOJYEY5GT4FTQP6QZHKVOHMMK5BQ3XEX3FNW \ / AMOS7 \ YOURUM ::
-#\[7]T5JGOUCI5ILDRPGVSEGMV4MWOHHTDLTAKGVW4EVW6CAZGZCKMOBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,...,...,..,,..,,,..,,.,,.,,,..,,...,...,.,,,.,.,,,.,,,,,.,,,
+#JZ6BG5FAQDXWMIHHPTXKNFV7LMWYGEJYEAM575ZEER3ZI3G6X6KM47GZ44MYGCBIV3NGB5VAZTZAW
+#\\\|25LH4WJDDJXFPINLMXASCXUSLTXU7BT4BWLEX6R55UYPQHDES66 \ / AMOS7 \ YOURUM ::
+#\[7]I3S4YSRI66FESSXCYCGNB65VFJLCKY25RZRWL2WCA3K2OBOLNIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

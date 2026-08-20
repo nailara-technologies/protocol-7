@@ -163,7 +163,7 @@ groups are meaningfully distinguishable in the first place.
 confirmed in the handler itself (`base.chk-sum.bmw.filesum` invoked as
 `<[chk-sum.bmw.filesum]>`, `base.event.add_timer` as `<[event.add_timer]>`).
 this gives the exact callable name both documents already use, with **zero
-change to `modules.load` in `configuration/zenki/lm-vision/start`** (which
+change to `modules.load` in `cfg/zenki/lm-vision/start`** (which
 loads by namespace prefix: `auth.client net protocol io.unix io.ip ui
 crypt.C25519 format.json lm-vision devmod`). the alternative,
 `modules/resource.gpu.loves_allocator`, would need `resource` added there and
@@ -320,8 +320,8 @@ test content:
 | `modules/lm-vision.handler.http_analyze` | **changed** — lines 19-58 replaced by one allocator call; drop `<[chk-sum.amos]>`; add `tier` to job metadata |
 | `modules/lm-vision.cmd.analyze_image` | **changed** — pass `amos_tokens` (and `requester`) through at :194 |
 | `bin/dev/tests/loves-allocator.t` | **new** — distribution / determinism / tier / zero-token tests |
-| `configuration/zenki/lm-vision/subroutines.load-early` | **changed, verify** — contains an explicit module list including `lm-vision.handler.http_analyze`; check whether the new base module needs an entry here |
-| `configuration/zenki/lm-vision/start` | **no change expected** with the `base.` naming; needs `resource` added to `modules.load` only if the un-prefixed name is chosen |
+| `cfg/zenki/lm-vision/subroutines.load-early` | **changed, verify** — contains an explicit module list including `lm-vision.handler.http_analyze`; check whether the new base module needs an entry here |
+| `cfg/zenki/lm-vision/start` | **no change expected** with the `base.` naming; needs `resource` added to `modules.load` only if the un-prefixed name is chosen |
 
 not changed by this task, noted as separately-scoped follow-up:
 `modules/amos-term.plugin-decoder.elf_match` (same class of defect, different
@@ -413,8 +413,8 @@ reference. open questions 1 and 4 are the blocking ones: 1 changes the
 allocator's signature, 4 decides whether phase 1 ends at a well-formed
 signal or must ship a consumer. everything else can proceed on defaults.
 
-#,,,,,,.,,.,,,,,.,.,,,,,.,..,,,.,,...,,.,,,,,,..,,...,...,.,.,,.,,,..,,..,...,
-#BVNJOSLETAOYFCLD64NLADSD45PZBGBCARHEWBMTCM6DUKN3KK7JPXJXCCAV5TS6DR4V4XTA67KMI
-#\\\|GGRM77RABXRFRKECCEA7R67TMN6MBEU6HGPEVPLRUCJPZBTMEW7 \ / AMOS7 \ YOURUM ::
-#\[7]NKWSMUHG6C622KGBQLICT24GZSPTCTVEPODKID6SCRJIIXZRZIBA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,.,,.,,,,..,,..,,..,.,,,.,.,,.,,..,,...,...,...,,,,,...,.,.,..,,
+#OT52QBPFDH2H2P5PB65U3HVT7PW255GT626VPNERCSJSAPOSJBDM6CIHCOAE37MX2ZRKX5XNH26ZC
+#\\\|MIMGPK7TPH3A6X4PP6GIXQ3GIRHGR3B2WHMP3NXSBBLQRCIQODN \ / AMOS7 \ YOURUM ::
+#\[7]GHETINHNVB5IVW3GD3IMELMMYG4QY3OP6MRQATNQUQDSUDK6JEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

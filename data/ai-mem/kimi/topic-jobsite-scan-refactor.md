@@ -86,8 +86,8 @@ Re-established clean separation: `site-yaml` is generic, `jobsite` owns job sema
 - `modules/site-yaml.handler.fetch_tick` JSON-encodes each fetched record and route-sends it to the configured `reply_handler`.
 - `modules/jobsite.stage.fetch` builds `skip_ids` from the authoritative `<jobsite.job.index>` (active/blocked/deleted/trash), sends one import per category, and polls the site-yaml fetch queue until drained.
 - Deleted `site-yaml.jobs.{upsert,init_code,save}`, `site-yaml.cmd.{list-jobs,set-status}`; added `jobsite.cmd.set-status`.
-- Updated `base.list.subroutines`, `configuration/zenki/*/start`, source placeholders, and `cube/access.zenki` for the swapped command names.
-- Added `jobsite.job-upsert` to `access.cmd.usr.cube` in `configuration/zenki/jobsite/start` so route-sends from `site-yaml` are accepted.
+- Updated `base.list.subroutines`, `cfg/zenki/*/start`, source placeholders, and `cube/access.zenki` for the swapped command names.
+- Added `jobsite.job-upsert` to `access.cmd.usr.cube` in `cfg/zenki/jobsite/start` so route-sends from `site-yaml` are accepted.
 
 ### Drain-detection race fix (commit `c27c6cf23`)
 The previous `fetch_queue_nonempty` guard only worked if the first queue-depth reply was non-zero. If the poll fired before imports populated the queue, the guard stayed false and the scan never left `scanning` even after the queue drained.
@@ -172,8 +172,8 @@ Title blocking removed:
 - The blocklist now only uses `ID` (source/posting id) and `URL`.
 - `site-yaml.cmd.import` no longer checks `title` for pre-fetch blocking.
 
-#,,..,,..,...,,,.,,.,,.,.,..,,.,.,,,.,.,.,...,..,,...,...,...,,,,,.,,,,,,,,..,
-#VSJ3ZLWDFEL2LEZCWU2ELVYH4GG7LM45WYCO6FJ7SJ7KYR32VXZAP7ZC62TCM2LLHR2FSY2GDQE7C
-#\\\|DM6NUE7FXSQSY6CZBPEI7B6FYFOMYCMH233OFU62K6E2R3MLHH3 \ / AMOS7 \ YOURUM ::
-#\[7]UJHTNWSLFORSEDDVOIB2GGEUJOVSZECQHDSVTQ5AB53WC4WKPSDI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,,..,,.,,,,,,,,.,,,.,,,,,,..,..,,...,...,...,..,,,,,,,..,...,
+#WA64V7ZFWO7SECTMWCISXADC34MNSV6L2XF6Z2VOVC7XFEQMLD25EJT22JJSOU3OQAGFB2HXVOSCS
+#\\\|Y6RKAEZQXRJHJQ6ODD2PMD7TEZ5PH7OI6PVT5IZJZN4WSEEGBA5 \ / AMOS7 \ YOURUM ::
+#\[7]543OSIAERURXKXLMU5IPE47YKAOACM5PILNMI6IO7XJLSBYLDWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

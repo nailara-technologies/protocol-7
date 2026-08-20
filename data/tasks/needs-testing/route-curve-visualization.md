@@ -157,7 +157,7 @@ JS: POST to `/iris/route` → registers route curve → re-render shows flying e
 # return: { curve_id, hop_count }
 ```
 
-add to configuration/zenki/httpd/routes:
+add to cfg/zenki/httpd/routes:
   POST  /iris/route    httpd.route.handler.iris-route
 
 ## the flying elements visualization
@@ -227,8 +227,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 τ = 2π (already available as τ constant)
 
-#,,..,.,.,,..,.,.,...,..,,.,.,.,.,,..,,,.,,.,,..,,...,..,,..,,.,.,,,.,.,,,..,,
-#ZGX35UDEL5D7KKZWOYAQWWFNWLFFVLFGG3Z63KGSPPGUH2LFJ7KVQIQARAVVM7XP2QPVGQPSGI75M
-#\\\|5EQIHE5UQUH5VSZHL3FS7CEUXXGRIS2TYCM73PADNX6BJ4QQ3KF \ / AMOS7 \ YOURUM ::
-#\[7]CQPO2M6B6VNJDIAD4XVSMFKT22KLJ3RTIN2YIZFMS65WVCAT3GCA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,.,...,,,,,,,.,,.,,,..,,,.,..,,..,,...,..,,,.,,.,.,.,.,,..,,.,,
+#AU22XGRRXV5XYIYSLVF64LCK4CT5OTFHNKLS7N3QZJOFKW6IKV3FDF7ZOXJRB6DVOIOXALU5WTTJE
+#\\\|4AVR5H7WWH3SDNB5HYII6ZGOTFLG5WIZGPR6BJBUZ37A22ALKEF \ / AMOS7 \ YOURUM ::
+#\[7]FKO6Q2ZWVR5FNNXMIBLILXCMMF2T2X2XSXM6ZMFSHHJ6FGQYKMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

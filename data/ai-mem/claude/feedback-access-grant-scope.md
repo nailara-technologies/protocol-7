@@ -13,7 +13,7 @@ wildcard access at the cube level.
 
 **Why:** user corrected a kimi-added
 `access.cmd.usr.unix-taeki = eval-code exec-sub` entry in
-`configuration/zenki/transport/access.zenki` as redundant
+`cfg/zenki/transport/access.zenki` as redundant
 (2026-06-15, transport.eval-code/F16 fix).
 
 **How to apply:** for "no perm" fixes, only two things are normally
@@ -44,7 +44,7 @@ call. If regenerating it ever appears to fix a "no perm" error, look
 for the actual cause elsewhere (e.g. it coincided with an access-list
 fix, or a module file went missing from disk after the zenka started).
 
-`configuration/zenki/cube/access.zenki` is only needed for *cross-zenka*
+`cfg/zenki/cube/access.zenki` is only needed for *cross-zenka*
 access (one zenka calling another's command), per
 [[feedback-buffer-access-control]]. Per-zenka `access.zenki` user grants
 are for non-admin users; don't add them for `taeki`.
@@ -67,8 +67,8 @@ inline in `start` (where it already has to live anyway) and put any
 future-grant documentation as a comment next to it; add the separate
 `access.zenki` file only when a real non-cube grant is being added.
 
-#,,,,,,.,,,..,,.,,,..,.,,,.,,,...,,,.,..,,,,.,..,,...,..,,..,,,,.,.,,,,,,,..,,
-#5X2TB3KEKA2ZLFC6ED2F2ZSZON7NAP2FZ5YL6FID4LJRG2I7N2XUAZ6POXHKQZ2X6KVWU4RK2EDAK
-#\\\|LUBMZVLMRVSMWUX5IEZHAPYOU7S5K3HYQ3IXB4DYNTKIVICLVCF \ / AMOS7 \ YOURUM ::
-#\[7]ZT7ABQN6BUPC6O67ZL5MHJ3XLI5KIA527AX7KI6EE3DA46J6UGBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,.,.,.,,,.,.,.,,,,.,,,.,,,.,,..,,...,...,..,,,..,,.,,..,,.,.,
+#IHFQK5ZR36ZARPEKNJ4HPEU4JFGTGLG4OYAFRVZRVY47UXQ34CK6YBIGMUBFQLV2YWMPBKJ2OIMOA
+#\\\|TYHOCDYQDD3T2PVNXLZGI6F2WK4SIH5G7ZTGAT6KIEHFC72WNRY \ / AMOS7 \ YOURUM ::
+#\[7]QZEJ2EZXOFRBSZNIOHZ2KAUPNKZVUTBWEIVXRFJIASOYDN4UUMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

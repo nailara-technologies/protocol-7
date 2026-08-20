@@ -56,8 +56,8 @@ Public commands (`fetch-files.cmd.*`):
 ## Configuration
 
 ```
-configuration/zenki/fetch-files/start
-configuration/zenki/fetch-files/zenka-startup.v7  (on-demand, 33s timeout)
+cfg/zenki/fetch-files/start
+cfg/zenki/fetch-files/zenka-startup.v7  (on-demand, 33s timeout)
 ```
 
 modules.load: `auth net protocol io.unix fetch.file fetch-files.cmd devmod`
@@ -71,8 +71,8 @@ modules.load: `auth net protocol io.unix fetch.file fetch-files.cmd devmod`
 `p7 fetch-files.hf-list '{"repo":"..."}` to see quantizations, then download with hf-download.
 LAN check happens automatically before HF download.
 
-#,,.,,.,,,,,,,.,.,.,,,.,.,,..,..,,..,,,,.,,.,,..,,...,...,,.,,.,.,,.,,.,.,.,.,
-#FTP5SUP4R23KVNCFICNDIDM24AZ5AK2ACZJCVRKKS4QJCXSTE5ZR2SUN2ZG7ISN6CZSB37PD4WRXY
-#\\\|DWX3PQ44FNDIW6XUD4TZ2C4EYSV4OIXK34UICKUSAUQBTMZAOER \ / AMOS7 \ YOURUM ::
-#\[7]VSWZN4UDYWTTZRAFMEHSLYGWIOCYYJBT2C3IX5VVIQURBMYH3CCQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,,.,,..,,,..,.,,,,,.,..,,,..,..,,...,...,..,,,.,,,..,...,...,
+#4ITCZ2UUWPKFZIJGHWVIKCAEO2ZN2UKDLXVX4WOFBHOUFMW2M25QANC67B6XQP33NDDS3O7UHUHAK
+#\\\|GZGBHXDCKXOIEKDA7FVK43GZTNWEFBJARHPY4UOTEUVNQQMUCF7 \ / AMOS7 \ YOURUM ::
+#\[7]ZCZ22EBHIO57WDQCJRLTL6E7UP4JGQ2EMU5YRTDAZTRSF3A6P2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

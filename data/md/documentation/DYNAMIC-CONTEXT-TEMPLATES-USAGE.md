@@ -22,7 +22,7 @@ Renders templates with context provider support.
 **Usage:**
 ```perl
 my $result = <[web.cmd.render-template]>->({
-    template_path => 'configuration/models/system-messages/coding-assistant.tmpl',
+    template_path => 'cfg/models/system-messages/coding-assistant.tmpl',
     meta => { model => 'kimi', task_id => '...' },
     budget => 4000,  ## token budget
 });
@@ -60,7 +60,7 @@ Returns file content, truncated to budget.
 
 ### 3. System Message Templates
 
-Templates stored in `configuration/models/system-messages/`:
+Templates stored in `cfg/models/system-messages/`:
 
 **coding-assistant.tmpl:**
 ```
@@ -89,7 +89,7 @@ To use in a models backend:
 my $template_result = <[protocol-7.route-send]>->(
     {   command   => qw| cube.web.render-template |,
         call_args => {
-            template_path => 'configuration/models/system-messages/coding-assistant.tmpl',
+            template_path => 'cfg/models/system-messages/coding-assistant.tmpl',
             budget => 4000,
         },
         reply => {
@@ -122,7 +122,7 @@ Manual test:
 p7c context.git.recent_changes budget=500
 
 ## Test template rendering ##
-p7c web.render-template template_path=configuration/models/system-messages/coding-assistant.tmpl budget=4000
+p7c web.render-template template_path=cfg/models/system-messages/coding-assistant.tmpl budget=4000
 ```
 
 ## Status
@@ -143,8 +143,8 @@ p7c web.render-template template_path=configuration/models/system-messages/codin
 
 *Created: 2026-03-03*
 
-#,,,.,,.,,..,,...,.,,,..,,.,.,,,,,.,.,.,,,..,,..,,...,...,..,,...,..,,.,,,...,
-#XPPHEA2ZY7RWCPOMZMG2WX7ASSFBZFG5WYAX2IZCMG63UPCLQPD4UJFIGUNHYIRF4HNOSIVQDECTK
-#\\\|IPZGPR3A34YQLUHJKKLYAP6G2GCPXL27OQI7RQBN224DWNMKZSS \ / AMOS7 \ YOURUM ::
-#\[7]RVNDUMDVKNPGCN4V463TJ7QTXVOXJMX6WLLBF5D5TTIFQJUWE4CQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,,.,,...,..,,,.,,..,,,.,,..,,.,.,..,,...,...,.,.,,.,,,.,,.,.,...,
+#5CACVGGUPGGQUOIWZ4JAR25VWQQFDLQGQNYLFHFRMM2USB3K3XUEMDITQLB6UXFNWYIN4H4XXI2ZY
+#\\\|TRKPIFPP3UZBYGUSGLOP3WWCFA7R3XO7ADW2YW6HRKSQXJX56SE \ / AMOS7 \ YOURUM ::
+#\[7]R6AAGIFRZEV7BB5P37QKDJ2LHLQOH4FK4MDMTZ52TWIFFBZAD6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

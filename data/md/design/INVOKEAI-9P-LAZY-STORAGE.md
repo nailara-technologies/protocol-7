@@ -48,8 +48,8 @@ needs at startup. running invoke-web should produce a clean startup after that.
 
 ## phase 2 — invokeai-web wrapper zenka
 
-stub dir: `configuration/zenki/invokeai/` (exists, empty)
-companion: `configuration/zenki/invokeai-web/` (to create)
+stub dir: `cfg/zenki/invokeai/` (exists, empty)
+companion: `cfg/zenki/invokeai-web/` (to create)
 
 pattern: same as `coding.handler.monitor_inference_startup` — start child process
 via IPC::Open3, read stdout/stderr via non-blocking io handlers.
@@ -74,8 +74,8 @@ parsing stderr is the ground truth source for what is actually missing.
 
 ```
 modules/coding.init_code → use coding zenka pattern as template
-configuration/zenki/invokeai-web/start
-configuration/zenki/invokeai-web/zenka-startup.v7
+cfg/zenki/invokeai-web/start
+cfg/zenki/invokeai-web/zenka-startup.v7
 modules/invokeai.handler.monitor_startup
 modules/invokeai.handler.parse_missing_model
 modules/invokeai.cmd.status
@@ -178,7 +178,7 @@ data/md/design/9P-IMPLEMENTATION.md              ## 9p server architecture
 data/md/design/9P-STORAGE-VISION.md              ## broader 9p storage mesh
 data/md/documentation/INVOKE-MIGRATION-PLAN.md   ## migration context
 data/md/coding-tasks/invoke-ai-model-storage-management.md  ## phase 2+3 task
-configuration/zenki/invokeai/                     ## stub dir, empty
+cfg/zenki/invokeai/                     ## stub dir, empty
 ```
 
 ---
@@ -193,8 +193,8 @@ configuration/zenki/invokeai/                     ## stub dir, empty
 - phase 3 9p server extension does not break existing amos-term buffer serving —
   `root` walk still checks `buffers` first, new `paths` registry is separate
 
-#,,.,,..,,,,,,..,,,.,,.,.,,,,,...,.,.,...,,.,,..,,...,...,.,,,,,,,.,,,,,.,..,,
-#4P6CSZIZ56ARDUDL7M7XQ6NA4NXJKHUPE6HDS5ZXU7PADMOVCPWIWFIESFH2ISFDHTAZTQO6YHUW4
-#\\\|NMXW2XBNJ42QM476L3WMK556LACPKOIXFQ2YWCOSEDQBDME4BL7 \ / AMOS7 \ YOURUM ::
-#\[7]4ZS77B4PZ3EOKJHQANMWRAEISVRPBAZPXOTRHRU6JS253OUPD6DY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,.,,,,,,,,.,...,...,,..,,,,,.,,,..,,...,...,...,,..,.,.,.,.,...,
+#2IKREKWGMTOCRRNAQPOIJAS7MVHFLPQ6T6UZDAP4MTXDA5YCFCD5ZPM27IIV2TQ6OOVWO7ZYKVP7Y
+#\\\|76RRI4K7BJPHYEWZYXLXUBQVF2RX4AVJAZJCGUL3T3TCB35Y2MF \ / AMOS7 \ YOURUM ::
+#\[7]UVXUS453FFDLEVWTVJRUOTUE5VTNJYITFJCAEIUJGWACOMQFZOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

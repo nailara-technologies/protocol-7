@@ -7,7 +7,7 @@
   specifically (search for that key). The rest of the doc (rendering, users-zenka
   integration, offline outbox, amos-term overlap) is NOT in scope here.
 
-The phase 1 skeleton (`configuration/zenki/user-edit/`, `modules/user-edit.init_code`)
+The phase 1 skeleton (`cfg/zenki/user-edit/`, `modules/user-edit.init_code`)
 already exists and is committed — this task extends `user-edit.init_code`, it does
 not create the zenka from scratch.
 
@@ -61,7 +61,7 @@ Register all three in a single `register_keywords({ ... })` call, matching
 - `format.yaml.*` usage, outbox, draft-save — later phases, not this task
 - anything from `phase_2_rendering`, `phase_3_form`, or the `users.*` command
   surface — not this task
-- do not touch `configuration/zenki/user-edit/start` or any other already-committed
+- do not touch `cfg/zenki/user-edit/start` or any other already-committed
   file except `modules/user-edit.init_code`
 
 ## Verification
@@ -91,8 +91,8 @@ Register all three in a single `register_keywords({ ... })` call, matching
 When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` if you hit anything non-obvious.
 
-#,,,.,,..,.,,,,..,.,,,,..,,.,,,,.,,.,,,,,,.,,,..,,...,..,,..,,...,.,.,..,,,.,,
-#O4ZWIBKGSPODP7B6KIHKPYGVJE2FQWDQAUQRYJYPLJU4BGHEAUT2Z3BYGDZGRQM7NUFBITKP2WXWO
-#\\\|BK77SFSILKGSJJZ2LQMGJNK2VV7ASW46XI6B2H4FGLBDNY6OQPX \ / AMOS7 \ YOURUM ::
-#\[7]WNBTJWA4X62E23R7QDZVBPRKN7YZ7G4SX7P7SNUJ7FMGIGOY7YBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,,,,..,,,,,.,.,,.,,..,,.,.,..,,..,,...,...,,,,,,,.,,,,,..,,..,,
+#OT5TA3KG624N6VSC6ZBR54VMUZELRQFU77QNHPIS5JLJUBNOQLL3PWN34GBTKVRSJGI6LPVROSBCU
+#\\\|L4NYV2KCH65MJJAM7B65EIPO4VUCIJT4YCOKE26ZV44WKJ2X6ZE \ / AMOS7 \ YOURUM ::
+#\[7]WNG6UAIIEZS2WP2ZPUMBD6G7WETCZ2BWHRAENC3OX5OCE2JNTKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

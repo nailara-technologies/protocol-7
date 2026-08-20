@@ -68,19 +68,19 @@ The codebase has **mature, production-ready dependency infrastructure**:
 ## Architecture: Three Dependency Types
 
 ### 1. PM Dependencies (Perl Modules)
-- **Location**: `configuration/zenki/{zenka}/pm-dep/`
+- **Location**: `cfg/zenki/{zenka}/pm-dep/`
 - **Format**: Empty marker files, `Module__Name` (underscores = `::``)
 - **Validation**: `eval { Module::Load::load() }`
 - **Installation**: Via `cpanm` (Level 2 infrastructure)
 
 ### 2. OS Dependencies (Debian Packages)
-- **Location**: `configuration/zenki/{zenka}/os-dep/debian/`
+- **Location**: `cfg/zenki/{zenka}/os-dep/debian/`
 - **Format**: Empty marker files, package names (e.g., `libimage-magick-perl`)
 - **Validation**: `dpkg -l | grep`
 - **Installation**: Via `apt-get install`
 
 ### 3. Binary Dependencies (Executables)
-- **Location**: `configuration/zenki/{zenka}/os-dep/binary/`
+- **Location**: `cfg/zenki/{zenka}/os-dep/binary/`
 - **Format**: Empty marker files, executable names (e.g., `git`, `convert`, `cpanm`)
 - **Validation**: `which` or `File::Which::which()`
 - **Installation**: **Cannot auto-install custom binaries—must alert admin**
@@ -501,8 +501,8 @@ The existing `base.dependency.*`, `v7.zenka.*`, and `debian.parent.*` systems ar
 
 Result: **Self-healing dependency system that catches and repairs issues continuously, not just at startup.**
 
-#,,,.,..,,,..,,,,,,..,...,,..,,..,..,,..,,,,.,..,,...,...,..,,.,,,,..,,,.,,..,
-#TINHMVL5ZJCPZ3MLL2GRZSNMUGJ6R5IALNTVTUAXJJDIQQUEZ4YS56IUNMAEOZTXOT77PSPOLRX5I
-#\\\|6FKBG2SWHWKBOPRIONJTHOFBY74DIRGNZDNEIOPKYC4WKZY7H2X \ / AMOS7 \ YOURUM ::
-#\[7]7ZIQQPQ3IBRH34EUMSCZCL2PAOG6PIARPA2VRJU45XTHVMMXYUDY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,,,.,.,,,..,,,.,,.,,,,,.,.,.,..,,...,...,,..,,.,,,..,,,.,,.,,
+#Q46J2RFQTKFULKEYBMRNNT5EEOFFOXQHIYKDPFVOARX7SJMPDMYGYJJV4NECUQRPSR2NUZRO2PQL2
+#\\\|YTMMW4O5HT2ECPDGPFNLTE3AIY5NLLMEOVNQEQMKKW4KF7Y5WNP \ / AMOS7 \ YOURUM ::
+#\[7]4PKSHTYXFJWJSQF2UBT547H4LW4R6AW5WZ2IAFDTVBIQD45W36CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

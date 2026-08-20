@@ -15,7 +15,7 @@ record management via commands for letsencr dns-01 integration.
 
 ## start file layout
 
-file: `configuration/zenki/nameserv/start`
+file: `cfg/zenki/nameserv/start`
 
 ```
  .:[ protocol-7 authoritative dns server zenka ]:.
@@ -32,7 +32,7 @@ system.zenka.verbosity.console = 2
 ## configuration ##
 nameserv.cfg.listen_addr = 0.0.0.0
 nameserv.cfg.listen_port = 53
-nameserv.cfg.zones_dir   = configuration/zenki/nameserv/zones
+nameserv.cfg.zones_dir   = cfg/zenki/nameserv/zones
 nameserv.cfg.default_ttl = 300
 nameserv.cfg.log_queries = 1
 
@@ -97,7 +97,7 @@ map { <[base.perlmod.load]>->($ARG) } qw| Net::DNS Net::DNS::Packet |;
 ## configuration defaults ##
 <nameserv.cfg.listen_addr> //= qw| 0.0.0.0 |;
 <nameserv.cfg.listen_port> //= 53;
-<nameserv.cfg.zones_dir>   //= qw| configuration/zenki/nameserv/zones |;
+<nameserv.cfg.zones_dir>   //= qw| cfg/zenki/nameserv/zones |;
 <nameserv.cfg.default_ttl> //= 300;
 <nameserv.cfg.log_queries> //= 1;  ## 0=off 1=errors 2=all ##
 
@@ -125,7 +125,7 @@ return TRUE;
 ## zone file format
 
 uses `format.yaml.load_str` and `format.yaml.dump_str` via `yaml::xs`.
-zone files stored in `configuration/zenki/nameserv/zones/`.
+zone files stored in `cfg/zenki/nameserv/zones/`.
 
 ### example: `example.com.yaml`
 
@@ -558,7 +558,7 @@ format: `YYYYMMDDNN` where `nn` is 2-digit daily revision [ or simple increment 
    - **recommendation**: option a for phase 1 [ simplest ]
 
 2. **zone storage path**
-   - `configuration/zenki/nameserv/zones/` — version controlled
+   - `cfg/zenki/nameserv/zones/` — version controlled
    - `/var/protocol-7/nameserv/zones/` — runtime writable
    - **recommendation**: config path for base zones, var path for dynamic updates
 
@@ -593,8 +593,8 @@ format: `YYYYMMDDNN` where `nn` is 2-digit daily revision [ or simple increment 
 
 ---
 
-#,,,,,,,.,..,,.,.,,,,,,,,,..,,,,,,,.,,...,.,.,.,.,...,...,,..,,..,..,,...,,,.,
-#5YB4JJZOVFGP66U2PSMN2K5WFMOGLVS2RHH62BI3DDXBT4COTRWYMBDKCXVFCQSWPMTL7USGFZVBQ
-#\\\|DUCUMMTM7ZHIOEAJSB4ZQ4YSFVLL3GXIDFQCNEOWQOBYEVURR37 \ / AMOS7 \ YOURUM ::
-#\[7]VBLXG5NCYN53CLIE3S3BD6M4OSO3IAD5E4DL6OCCE462VEWDQKCA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,...,.,,,,.,,..,,,,.,.,.,,,.,.,.,...,...,,.,,.,,,,.,,,,,,...,
+#HBF7JSVV7I46PMUP2YZAPOQ3YWP75LUQ3WSOPOYEPASDSZ4M3D6KUKK4O2VTM3PH6QOIMQFUWXZB2
+#\\\|VMFH7FAGL4SN7WQQOXGX75GBCGT7QXOHAJPN4NIEEN27LEFD63N \ / AMOS7 \ YOURUM ::
+#\[7]RCHBCDY3DR5SMNJMGRHVYTCDJ6KRSD3XBNLX6CGJCDER3JAPLEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

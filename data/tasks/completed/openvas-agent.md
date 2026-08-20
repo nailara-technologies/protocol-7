@@ -43,7 +43,7 @@ from there into the self-improvement reasoning branches.
 ### task 1.1 — create openvas zenka
 ```
 ## dispatch + prompt
-create configuration/zenki/openvas/ following the pattern of an
+create cfg/zenki/openvas/ following the pattern of an
 existing single-purpose zenka (e.g. letsencr for zenka-startup.v7 +
 start script; cube or transport for access.zenki, since letsencr has
 none). bootable, stoppable, registered in network configs. no modules
@@ -91,7 +91,7 @@ pipeline can join scanner findings with forensic investigation results.
 ### task 3.1 — event slot (optional)
 ```
 ## dispatch + prompt
-evaluate adding a periodic scan slot to configuration/zenki/events/
+evaluate adding a periodic scan slot to cfg/zenki/events/
 (daily/weekly, scoped targets only). default: manual invocation only
 until the forensics agent is live — do not scan without a consumer.
 ```
@@ -106,8 +106,8 @@ until the forensics agent is live — do not scan without a consumer.
   (weekly freshness, see security-intel task 2.2).
 - no external AI calls for enrichment — embeddings + local models only.
 
-#,,,,,,.,,.,.,.,,,,,,,..,,...,..,,..,,,.,,,,.,..,,...,...,,..,.,,,...,,.,,.,.,
-#PQ4ETLQCKQAJZBIT63Z442CGLCL3BT6MXNABD6ZVOSZLYZ2OMYN3OQL57CHHACRASJ4CYVTXHFNMU
-#\\\|H4PIG5ZCJ53KJPWGO3XGVOQ7YMYJICV7N6FOBYY7X54RKU3OKXX \ / AMOS7 \ YOURUM ::
-#\[7]IVHH6DSI4AYWG5IKM3VJ77QUQBXBGYFLRDAHIOYLXA7F5U62AYAY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,..,,,,.,.,.,...,,.,,,,,,,.,,..,,...,...,,,.,.,,,..,,.,.,.,.,
+#C2Z4VUFEMEWDTDIBDCV76FDIGOGY4SUUZQPGO4CXFD7BTNNSQ3P4L5PBBMBIT6LXKS3PWDFLG76O6
+#\\\|FAFWUBTEHC4VXNIZY5D3RZ2JOY5GOU56BTLGLHUNCLN5NG6W7FJ \ / AMOS7 \ YOURUM ::
+#\[7]CGWM5QDM5BKT43RKBSSKHBDIYKNM6KA4STEV45LOFH2YG3PERUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

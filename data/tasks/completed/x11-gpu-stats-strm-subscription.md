@@ -86,7 +86,7 @@ the subscriber decides how to interpret it.
 files to read first:
 ```bash
 cat modules/coding.init_code          ## init pattern, timer setup
-cat configuration/zenki/coding/start  ## modules.load
+cat cfg/zenki/coding/start  ## modules.load
 ```
 
 in `modules/coding.init_code` (or a new `modules/coding.gpu_monitor`),
@@ -192,8 +192,8 @@ prompt: |
   and nothing more — leave utilization-based decision logic for later.
   No signature stubs, no update-signatures run.
 
-#,,.,,...,.,.,...,,..,...,...,,,.,,.,,...,,,.,..,,...,...,.,,,.,,,,.,,,..,..,,
-#IGALRYPLKVWK7B7MZ36RMXRIDXEMZXYLJW62FCEDKKRFWWTPFZZ7H5LBCSMCVEFTYXSZXPZEXLAH4
-#\\\|QWQK4QHXG3DU5QRMCYOYSQZCRXVS34CTHAURIWKKN64IDDEGGT5 \ / AMOS7 \ YOURUM ::
-#\[7]3ROAUOUYI4IKVFDUFZNLZUCJAYGAESHJZYAV55H3MNIT5PV7FIAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,,..,,,.,,.,,..,,,,,,.,.,,.,,..,,...,...,..,,..,,,.,,..,,.,,,
+#RQFG3MHJZ4NYVRJNUYLZWLVDZUNASL7L4OCW5ZSZFTH3OLADEI3HNSCQSHGNOBHCSPRF5MCV7DMBW
+#\\\|PN6ECZIKJIUCSBFC34TKF6R7D63FFTYXA2RUPENLE3XPRZB46JT \ / AMOS7 \ YOURUM ::
+#\[7]FUJ5T5AJ6C4HQLQNBBCRXOX3WOYPCM4C3JOYFUFHVN2GWHFJIGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

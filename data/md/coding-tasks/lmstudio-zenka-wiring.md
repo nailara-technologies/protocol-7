@@ -27,9 +27,9 @@ zenka that can be queried by coding, models, and lm-vision zenki.
 
 ## read these files first (understand patterns before writing)
 
-    configuration/zenki/calc/start         — minimal on-demand zenka pattern
-    configuration/zenki/models/start       — full-featured zenka with adapter commands
-    configuration/external-inference-models — lmstudio config keys
+    cfg/zenki/calc/start         — minimal on-demand zenka pattern
+    cfg/zenki/models/start       — full-featured zenka with adapter commands
+    cfg/external-inference-models — lmstudio config keys
     modules/models.storage.adapter.lmstudio.discover  — main data source
     modules/models.storage.adapter.lmstudio.resolve   — path resolution
     modules/models.storage.adapter.lmstudio.repair    — validation
@@ -39,7 +39,7 @@ zenka that can be queried by coding, models, and lm-vision zenki.
 
 ## what to create
 
-### 1. configuration/zenki/lmstudio/start  (new file, replaces .placeholder)
+### 1. cfg/zenki/lmstudio/start  (new file, replaces .placeholder)
 
 on-demand zenka — starts when first queried, shuts down after idle timeout.
 
@@ -182,7 +182,7 @@ we will create those modules next.
     return <[lmstudio.cmd.discover]>->($call);
 
 
-## also create: configuration/zenki/lmstudio/subroutine.white-list
+## also create: cfg/zenki/lmstudio/subroutine.white-list
 
 list all lmstudio.cmd.* module names (one per line):
     lmstudio.init_code
@@ -192,7 +192,7 @@ list all lmstudio.cmd.* module names (one per line):
     lmstudio.cmd.status
     lmstudio.cmd.list
 
-look at configuration/zenki/models/subroutine.white-list for format reference.
+look at cfg/zenki/models/subroutine.white-list for format reference.
 
 
 ## do NOT create
@@ -205,7 +205,7 @@ look at configuration/zenki/models/subroutine.white-list for format reference.
 ## verify
 
     ptd -c on all 6 module files
-    check configuration/zenki/lmstudio/start looks syntactically reasonable
+    check cfg/zenki/lmstudio/start looks syntactically reasonable
     check subroutine.white-list has correct format
 
     to test after signing:
@@ -221,8 +221,8 @@ look at configuration/zenki/models/subroutine.white-list for format reference.
     - models zenka unified discover spans invoke + lmstudio via shared adapter modules
     - foundation for lmstudio inference API integration (next step)
 
-#,,,.,.,,,,,,,,.,,...,,..,.,.,.,.,,,.,.,,,.,,,..,,...,...,,,.,..,,...,.,,,.,.,
-#MU5E5AZFVAJ7ZL4EVRQBJBI2UVQXPZOJF6RWE6XTFMR4UMP3VAVAFCKKFRHDGGZ7S5EJNWGVX6QQQ
-#\\\|7HSMG26VS7EZXCOLMLKOHAAXV7E7SHB6TWEISKCOYZ6IQZAKD3J \ / AMOS7 \ YOURUM ::
-#\[7]RX7X23EXUA6WX2EAKZJUAXBFOEJBCTDGG2D3ZWBJTNVCRSLFRCCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,.,.,.,,,..,,,,.,.,,,,,,,,,,,..,,...,...,...,,..,.,.,,.,,,..,
+#EAGWMVBKCMM7JFY36B4QPROQH2T5PQGELBPEVYLKPXSXXZ6M6NSGOOTAQM5SGKSJTE6SB4ILFCICS
+#\\\|I4PPVKBLCCALNC4VEAQ6MYXGZCZJLM4Y3WK2K54MNAGWKFZ6IIS \ / AMOS7 \ YOURUM ::
+#\[7]UEPFGM5JEGYPRWRJSXGBGZ6JDADDCIJKB5KEXUAHZLOTML44TYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -45,12 +45,12 @@ way any other cross-zenka command works. See part 2 below for exactly how.
 
 Before any of this routing logic even matters: `v7.start X-11[xvfb-0000]`
 today fails outright with `"reached configured maximum concurrency for
-zenka 'X-11'"`. `configuration/zenki/X-11/zenka-startup.v7` currently has
+zenka 'X-11'"`. `cfg/zenki/X-11/zenka-startup.v7` currently has
 `max_concurrency = 1`, which caps `X-11` (all instances combined,
 subname-less + every xvfb one) at exactly one running instance. Fix as
 part of this task:
 
-- raise `max_concurrency` in `configuration/zenki/X-11/zenka-startup.v7`
+- raise `max_concurrency` in `cfg/zenki/X-11/zenka-startup.v7`
   to something that allows the host instance plus multiple concurrent
   xvfb instances (check `modules/v7.zenka.cmd.start` for how this value
   is enforced — read the "check max concurrency" block — and pick a
@@ -93,7 +93,7 @@ every other file in this task.
   above), just edit the content and leave the existing footer alone
   (it'll be stale until the human re-signs, that's expected/normal).
 - do NOT run `git add`, `git commit`, or touch version files
-  (`configuration/protocol-7.src-ver`, `read-me/md/README.md`,
+  (`cfg/protocol-7.src-ver`, `read-me/md/README.md`,
   `read-me/project-identity/source-code-versions.md`).
 
 ## files to read for existing patterns
@@ -356,8 +356,8 @@ and why, the exact table-parsing approach you used for the `list
 subnames` reply, and what you decided about the cache-invalidation
 question (TTL-only vs. some disconnect-notification hook, and why).
 
-#,,.,,.,.,..,,.,.,,.,,,,,,,..,.,.,.,,,...,,.,,..,,...,...,..,,,,.,.,,,..,,.,.,
-#HQNCSTW2BRW7R3UE24ZX2EPI5YCRG5XU2LBVF7Z5LVKFR2W62N3SE7ROHUP3ASZVD2RIFB2TWNCQ2
-#\\\|VKJJKV7EWVAKK4V4FP4J52PI4L3ZN6PB4DXYMJTSMFXAPC4LMGN \ / AMOS7 \ YOURUM ::
-#\[7]SNOMK6JQYOMFIEIG44GX3DVTMGSXULWQ2RPS5DXWQWJ2GNDNDQAY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,.,.,,,.,...,,..,,.,,...,,,.,..,,...,...,..,,..,,,,,,,..,,.,,
+#LMVW4QNKNAYVHSXBZ6X6GQOKSFH3RRKHRHL56BKXF3F5CDKM7IFQOGT4I5KXH7MHPEGJAMFVIRDTY
+#\\\|P6CXP52O4VQJ5JTFYRTRFSSULKDRIE6DVGCVQ52THYOMIENGTNF \ / AMOS7 \ YOURUM ::
+#\[7]GAEZZZVPQN6AS6HKSIOHF77D2LBL2IGLXSC2DYWYXLGR3IJZQQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

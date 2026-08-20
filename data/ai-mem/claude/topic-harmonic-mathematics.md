@@ -670,7 +670,7 @@ finding, not a caveat on it.**
 - **`ZENKA = kitten, 07`** — real and load-bearing, not insights-tier:
   this is, plainly, the actual zenki-agent-naming convention used
   throughout this entire codebase [ `zenka`/`zenki` singular/plural,
-  `modules/`, `configuration/zenki/`, CLAUDE.md itself ]. The strongest
+  `modules/`, `cfg/zenki/`, CLAUDE.md itself ]. The strongest
   member of this table by a wide margin — but note what's confirmed is
   the *word*, not the *number*: nothing found ties zenka specifically to
   the digit `7` in running code the way `42` [ entropy width ] or `13`
@@ -730,8 +730,8 @@ structure's own source document — not shown, anywhere checked, to be a
 naming layer over structure (4)'s caravan. Cross-referenced into
 `recurring-cube-number-collision-audit.md`'s structure (3) entry.
 
-#,,..,...,,,.,.,,,,..,.,,,.,,,..,,..,,.,.,..,,..,,...,...,.,,,.,.,..,,...,..,,
-#IRUGRHH55KIBQDTL6E6YNZOLBWQOXOQPNYRWQTEVJKIOEUMYVDRX7GHEJP2CL46NI5773J2KL652C
-#\\\|BAN3T6CJPHJFSQVY4OFEF332HLJLIIRDFPP4ZGJP65HMN74PSWY \ / AMOS7 \ YOURUM ::
-#\[7]5H2CSUX4NLQEUC5R7FF3CZK4N5TQ7OM35UOVJEGBAUWM6JEGMCBY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,,,.,..,,.,,,.,.,.,.,..,,,.,,..,,...,..,,...,,.,,,.,,..,,,,.,
+#ULBY7ZCJAUYBZWBFXVKRZKRS5HMYPAQTMO5NFGN2NWG5FZ3ENXAJHEX7SZ4BX4JSMXFVO64QWUV5I
+#\\\|ZWKGGC4NLNEFTYDL32F7X5CL45FTLIZEDRIVIFNPDSJTMLUEKKD \ / AMOS7 \ YOURUM ::
+#\[7]EJXM2NJL6AJLJUNXXLYBNVFTKTSRDO76ALURQOLVZKYBSXNZV6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

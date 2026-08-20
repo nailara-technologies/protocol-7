@@ -63,7 +63,7 @@ mkdir -p data/web-root/shared/taws/
 ## or: configure web-browser.loading_page to load taws.ch directly
 ```
 
-add to `configuration/zenki/web-browser/zenka-startup.v7`:
+add to `cfg/zenki/web-browser/zenka-startup.v7`:
 ```
 web-browser.default_uri = https://taws.ch/WB.html?preset=os_4.1_boing_glow
 ```
@@ -141,7 +141,7 @@ and opens a window showing the zenka's current state / commands.
 configure the web-browser zenka to load TAWS as default page:
 
 ```
-## configuration/zenki/web-browser/zenka-startup.v7
+## cfg/zenki/web-browser/zenka-startup.v7
 web-browser.window.profile          = automatic
 web-browser.window.profile-fallback = fullscreen
 web-browser.default_uri             = https://taws.ch/WB.html?preset=random
@@ -207,8 +207,8 @@ p7c web-browser.cmd.load_uri \
 - [ ] web-browser zenka loads TAWS as default start page (phase 4)
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,.,,,,,,,,,...,.,,,,,.,..,,,.,,,,.,,..,..,,..,,...,...,.,.,..,,.,.,,..,,.,,
-#T5KIFNABFJLHWDJPCVFR4QEN4MXSDNOP24S4FL4ZJ33BVB5HVSBSSQL6653H3XL5NOS2QZ73SLSX2
-#\\\|XBBFMKKWHBNL5RXKYW6AXNCOHX3QMSOHIMOVIYLUFC6J3FNES3D \ / AMOS7 \ YOURUM ::
-#\[7]P7MQ3OZLK24WZZZXY6PLTM32MRLBCT34NPYKF74PHJYB2AC3XMAA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,,,.,.,...,.,.,.,,,,.,,.,,,,.,,..,,...,...,,,.,,.,,..,,,..,.,,,
+#N2DWNLBVADE5T6CRD2EX2FWZMQK3CEBUA2CRKKNVDGXL3CSWUWY7ISZOINSBK6EVNIQFVA6O3TM7I
+#\\\|BJVC7G45ACPW2EYJMZPTBMONOZQPY5YSKJUBJGRHNFHO7DP3ZCA \ / AMOS7 \ YOURUM ::
+#\[7]O7VDD4SEESAA55QZXNPZJSTHARIXRD3MYEX5M6YX3OFWB5FO2MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

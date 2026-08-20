@@ -378,7 +378,7 @@ exec "p7c smtpd.cmd.inject '$encoded'";
 ## configuration
 
 ```
-## configuration/zenki/smtpd/zenka-startup.v7
+## cfg/zenki/smtpd/zenka-startup.v7
 
 start.on-demand       = 1
 restart.disabled      = 1
@@ -454,8 +454,8 @@ p7c p7-log.show-buffer jobsite
 - [ ] jobsite.cmd.mail_received receives and logs routed mail
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,..,,.,.,...,,,.,.,,,...,..,,.,.,,.,,...,..,,...,...,..,,,,,,,.,,,,.,.,.,
-#PB6ZVC6TRT4SLFGBSBAEOTWGYAGMCGOG6KQM2LZXOSV3ALRR2MJWPTINEX3FZYOZ5LS5KFRLEBABA
-#\\\|MK2UYFTY4ZZSMRWBMKNKYWP2T5FTD6BC4D5PRIOYBBUC54LK6QD \ / AMOS7 \ YOURUM ::
-#\[7]HTZI3WHTPP62LBRBLRZJB6LLACA4N3HBCOAVHPND4KDMOTRAJYBY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,.,,,,.,,.,,,,..,..,,.,,,.,,,..,,...,..,,,.,,.,,,...,...,.,.,
+#6NZBAECJRZQZ376NJGE6HZHIFP2E25CQAJCPHOS6WFETNR6R6JORSFXWEHHCO3STCCY3OTXSDOFVA
+#\\\|AGCFXI3QG3FLUCEGET7CXQZFNBKX4ASJWYX3SQ4TDXTXZGM6Y4E \ / AMOS7 \ YOURUM ::
+#\[7]ZNYICNXOHAJS5CBD65PKKQKN63E5ZL5OWFW6KN3NKQPXYPKVGOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

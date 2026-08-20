@@ -9,7 +9,7 @@ Caught live 2026-08-09 wiring the new `editor.*` namespace into `nshell` (a
 zenka that already exists and runs fine) as part of the editor.* migration
 (see [[topic-editor-namespace-migration-status]]). After landing nshell's
 switch from `AMOS7::TERM::editor_*` to `editor.control.*` and adding the
-new call sites to `configuration/zenki/nshell/subroutines.load-early`
+new call sites to `cfg/zenki/nshell/subroutines.load-early`
 (which the module-dependency-graph auto-scanner correctly picked up), a
 live restart still failed on first Up-arrow press:
 
@@ -22,12 +22,12 @@ protocol-7 subroutine editor.control.create not defined
 already scheduled to load — it does not, by itself, cause a new module
 NAMESPACE to be loaded into the zenka at all. Two more pieces were needed:
 
-1. **`configuration/zenki/<zenka>/start`**: the namespace has to be added
+1. **`cfg/zenki/<zenka>/start`**: the namespace has to be added
    to the `modules.load = ...` line, e.g. `modules.load = ... editor
    nshell devmod`.
-2. **`configuration/zenki/<zenka>/source/<namespace>`**: an empty
+2. **`cfg/zenki/<zenka>/source/<namespace>`**: an empty
    (0-byte) marker file — every other namespace a zenka loads from has a
-   matching empty file here (`ls configuration/zenki/nshell/source/`
+   matching empty file here (`ls cfg/zenki/nshell/source/`
    shows `ascii`, `auth`, `base`, `net`, `nshell`, etc., all 0 bytes).
    This is presence-checked, not content-read.
 
@@ -61,8 +61,8 @@ for namespaces meant to load on-demand per-request rather than eagerly at
 zenka startup, which is not what `editor.*` needed here (nshell wants it
 loaded once at start, not recompiled per call).
 
-#,,.,,,.,,..,,...,,,,,,..,..,,.,.,,,.,.,,,...,..,,...,..,,,..,..,,.,.,,..,.,,,
-#5U5KI4APU625RYJZPQDERMPTO5UKBBIH4S6N2BSPB7QESZ3Z3M7Y6O4UTTIKXQD5ZLX42MHE23OKY
-#\\\|P6DEEMGMEMFENYJ46LS5IFQVRCKBACFEFYKHD7W2FH7AWUFW5A4 \ / AMOS7 \ YOURUM ::
-#\[7]JWCNSGXOFZTJM6MFDPHMQUTGF4WVYLYI25DOPWRJONYF5Y6P4CDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,.,.,..,,.,.,,,.,,,.,,,,,,..,..,,...,...,.,.,...,.,.,.,,,..,,
+#HCXP6GC6LIZI3DZYESC6OGZDHBTZFOE77KYJJTSHUEY4ZHCWOJ3OM6TNPOD3WYXKI7VOQE3DVNXOA
+#\\\|BGHSMONP6Z5X3377LWB5WV662C6U5FFAJC7GDSHTIWXK6TZ5H7U \ / AMOS7 \ YOURUM ::
+#\[7]RIA73XGUPDA2DKLY6245PWJWJCMIY6XLOICWCIWTNI544WYQHOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

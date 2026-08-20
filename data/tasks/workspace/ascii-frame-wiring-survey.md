@@ -56,7 +56,7 @@ Terminal
 | Gap | Location | Details |
 |-----|----------|---------|
 | **1. Memory data is flat, not slotted** | `context.memory.load` | Returns a single markdown string. There is **no parser** that turns `data/ai-mem/claude/*.md` into structured slot values (`ROLE`, `FOCUS`, `FACT`, `WHY`, `TASKS`, etc.) that `ascii.frame.slot.bind` expects. |
-| **2. No progress-mode driver** | missing module | `memory-composite.yaml` defines `progress` and `expanded` modes, but nothing animates the progress mode (`\r` loop updating `PROGRESS`/`STATUS` slots). `configuration/ascii-frame` documents `[modes]` flags (`border.only`, `animate`) but **no module references them**. |
+| **2. No progress-mode driver** | missing module | `memory-composite.yaml` defines `progress` and `expanded` modes, but nothing animates the progress mode (`\r` loop updating `PROGRESS`/`STATUS` slots). `cfg/ascii-frame` documents `[modes]` flags (`border.only`, `animate`) but **no module references them**. |
 | **3. No composed-frame assembler for memory** | missing module | `memory-composite.yaml` has block slots (`PROFILE`, `FEEDBACK`, `PROJECT`, `TASKS`) meant to contain rendered sub-frames. Nothing loads `user-profile.yaml`, `feedback.yaml`, etc., renders each, and composes them into the composite via `ascii.frame.compose`. |
 | **4. Terminal backend does not ingest frame output** | `amos-term.render.draw_buffer` | The amos-term voxel renderer draws 3D grids and cursors but **never unpacks SHM buffers to display characters**. All current terminal output in nshell bypasses amos-term and writes directly to `STDOUT`. A frame-rendered string would need to go through `nshell.handler.command_reply` or a new output path. |
 | **5. No memory zenka entry point** | missing module | There is no `modules/memory.*` or `modules/memory-zenka.init_code`. The closest existing module is `context.memory.load`, which is a provider, not a zenka. |
@@ -74,7 +74,7 @@ All **10 modules are implemented and functional** for basic use. No explicit `TO
 | `ascii.frame.from_mockup` | ✅ Complete | Convenience wrapper with strict/escalate logic. |
 | `ascii.frame.load` | ✅ Complete | Caches entries; supports single-mode (`mockup:`) and multi-mode (`mockup_progress:`/`mockup_expanded:`). Only `memory-composite.yaml` exercises multi-mode. **YAML `slots` metadata is NOT merged into the descriptor** — callers must look at both `$entry->{slots}` (metadata) and `$entry->{descriptor}{slots}` (geometry). |
 | `ascii.frame.render` | ✅ Functional | Width computation duplicated identically in `render.data` and `render.html` (lines 23–77). `corners` key is never read — corners are derived from border element arrays. `border_style` is never consulted. Composed inner frames are padded/truncated correctly. |
-| `ascii.frame.render.color` | ✅ Functional | Heuristic char-class coloring (border vs content). Loads `configuration/ascii-frame`. `progress = p7_fg_0003` is documented in config but **no special progress-slot logic exists**. |
+| `ascii.frame.render.color` | ✅ Functional | Heuristic char-class coloring (border vs content). Loads `cfg/ascii-frame`. `progress = p7_fg_0003` is documented in config but **no special progress-slot logic exists**. |
 | `ascii.frame.render.data` | ✅ Functional | Returns structured hashref. Makes recursive calls to both `ascii.frame.render` (for string) and itself (for data). |
 | `ascii.frame.render.html` | ✅ Functional | Emits CSS-classed HTML. **Composed inner frames become independent nested `<div>` blocks** without width reconciliation or outer-border wrapping — diverges semantically from ASCII renderer. |
 | `ascii.frame.slot.bind` | ✅ Complete | Binds a `SCALAR` ref to a slot; renderer derefs at render time. |
@@ -150,7 +150,7 @@ To create a working memory zenka that starts with progress-mode animation, loads
 ### Config gaps
 
 - `data/yaml/ascii-frames/` has no `memory-composite` sub-frame content spec. The YAML `slots` section documents intent (`descr`, `mockup`) but there is no automated mapping from `data/ai-mem/claude/*.md` file contents to slot values.
-- `configuration/ascii-frame` `[modes]` section is dead code; either remove it or wire `memory.render.progress` to read it.
+- `cfg/ascii-frame` `[modes]` section is dead code; either remove it or wire `memory.render.progress` to read it.
 
 ---
 
@@ -275,10 +275,10 @@ print STDOUT "\n$colored\n";
 | **Memory zenka bootstrap** | ❌ Missing | No `memory.init_code` or `memory.*` zenka modules |
 | **GTK3 renderer** | ❌ Missing | No `ascii.frame.render.gtk3` or equivalent |
 | **Border-style in engine** | ⚠️ Partial | Parsed in `load`, applied in `context.provider.frame`, ignored in `ascii.frame.render` |
-| **Modes config wiring** | ⚠️ Dead code | `configuration/ascii-frame [modes]` is not read by any module |
+| **Modes config wiring** | ⚠️ Dead code | `cfg/ascii-frame [modes]` is not read by any module |
 
-#,,.,,,,,,,,,,..,,...,.,,,,,,,.,.,,,,,,.,,,..,..,,...,...,.,.,,,,,,.,,..,,..,,
-#FTJKVB23XISUVOJYP5I3WQWPQ3N2SB5UNRVTW3TFEIB3LOGEAICJF5IWV4TD2C4BY3UA6XN4NTDLC
-#\\\|BFPHU4SQAWXIM7LZF3QGWDS27X6STG2UNF7N2QITECNKZ3OGYJH \ / AMOS7 \ YOURUM ::
-#\[7]IIGJ7IEP6ZP5C2DP7Y6JK4WC5D5I5UCPD4DTZYCP4KFQ7TX6UECA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,,.,,.,,,,..,.,.,.,.,,,,,.,,,..,,...,...,...,..,,,..,.,,,...,
+#Z6CBZNUAIIWCB5JMJETCYLKWABPJTIAIWVMHLMRPPGI5LQL4ZC24EWYKX7P2YAIARROD3WAXODL5Y
+#\\\|67UNTESTWG3DXAWJ7EN6WMEFIHK7IWRFOO7WCJUT5777YYB4XEK \ / AMOS7 \ YOURUM ::
+#\[7]G7CMOFKA5X2I7SCQPD3ERKSAYNQ4S76KNJTODNBXK2UVMHP6T4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

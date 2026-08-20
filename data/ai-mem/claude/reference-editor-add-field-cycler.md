@@ -349,7 +349,7 @@ way depending on how much of the frame's width the trailing fill consumes —
 and even on the border path, `ascii.frame.render.color.border_line` has no
 case for a bare LETTER inside a fill run, passing it through with no colour
 at all. Fixed by colouring the row BY HAND (matching
-`configuration/ascii-frame`'s own `fill.single`/`fill.dot` mapping) and
+`cfg/ascii-frame`'s own `fill.single`/`fill.dot` mapping) and
 shielding it from the automatic classifier with a **single otherwise-unused
 byte** (`\x06`) standing in for the finished row until AFTER colourisation —
 a length-1 line survives `content_line`'s classifier completely untouched
@@ -459,8 +459,8 @@ the PID had changed (session restarted) and the exclusion silently stopped
 matching. Fixed by filtering on the TTY column (`awk '$7 == "?"'`, only kill
 processes with NO controlling terminal) instead of a PID, going forward.
 
-#,,,.,..,,.,.,.,.,.,,,,,,,.,.,.,.,.,.,...,.,,,..,,...,.,.,,.,,...,,..,...,,.,,
-#3SR7JODDLRB5BJ5XD4UPDYFP7XEH5YATIYV27D632PYRHWGR77FEMDSAFPOI7GWPZEVM7G4VOKLLG
-#\\\|SUJE36AGUYDHDL6KUTNUZ3UILJHXMZSXJNINNX2WJLED6LL56PA \ / AMOS7 \ YOURUM ::
-#\[7]Z6PPWLDLBEADDR2RAP6PGRVPUPVJIWWYX4JO3PK5IL3JGSEXDIDA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,..,,.,,,,,.,.,.,,,,,.,.,,..,..,,...,...,...,,..,,..,...,,.,,
+#EODMMYU6TYEZUSN6TYGGEIFF7D3PQFLDXZ3EYQKB2VYBCQWZ77N7WHDC7LCOFIVPLUBP6OEAAFOD6
+#\\\|2N4YIFKOW5CY5BFBKEOARTWPUJICQFDRFGY7FC27HUEJLJKECSJ \ / AMOS7 \ YOURUM ::
+#\[7]BCWD54R4K4M6JMFRQOFHLQGOSIRRAE3QKJNPNV3I262RKOHFNKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

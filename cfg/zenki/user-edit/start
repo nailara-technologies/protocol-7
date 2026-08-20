@@ -1,0 +1,114 @@
+
+ .:[ protocol-7 user-edit console zenka ]:.
+
+[load_config_file:'shared-params']
+
+## detail-tab plugins [ data/yaml/coding-tasks/user-edit-plugin-detail-
+## tabs.yaml ], loaded and [load_plugins:...]'d BEFORE [load_modules:...]/
+## [init_modules] below, not after : [init_modules] only picks up
+## *.init_code/*.post_init for whatever is already compiled into %code at
+## the moment it runs [ base.init_modules:9-22's own phase-then-module walk
+## ], so a plugin loaded afterward would miss that automatic pass entirely.
+## plugin-namespaced modules go through [load_plugins:...], not
+## [load_modules:...], full stop -- confirmed against cfg/zenki/
+## web/start's own precedent [ plugins.load = plugin.web, alongside
+## modules.load's separate plugin.web.auth entry -- both plugin-prefixed,
+## both go through the plugin path one way or another ].
+##
+## plugin.user-edit.registry is the PERMANENT baseline entry here : 'registry'
+## is itself just a <name> under the plugin.user-edit.<name>.* convention [
+## not a special exception to it, per user ], always present regardless of
+## which THIRD-PARTY plugin.user-edit.<name> plugins get appended after it —
+## see modules/plugin.user-edit.registry.post_init for what it does
+plugins.load = plugin.user-edit.registry plugin.user-edit.example \
+               plugin.user-edit.address-cluster plugin.user-edit.key-details \
+               plugin.user-edit.key-actions
+[load_plugins:<plugins.load>]
+
+## deliberately NOT nshell's trailing '*' [ which enables everything for   ##
+## devmod debugging ] : user-edit's only reason to be reachable at all is  ##
+## char-add, the no-tty form driver, and char-add itself refuses unless    ##
+## the form was opened with '-no-tty'                                      ##
+access.cmd.usr.cube  =  commands heart verify-instance char-add
+
+## user_keys field : max chars a key NAME shortens to via base.parser.
+## ellipse_center before its checksum, so a long name plus a long checksum
+## [ e.g. an encrypted key's '<::[enc-key]::CCCCCCC:>' ] does not force the
+## row wider than editor.ui.ascii_frame.render_form's multiline viewport
+## floor accommodates -- see user-edit.form.schema_from_record. defaults to
+## 20 [ //= in the code ] when unset here
+# user-edit.cfg.user_keys_name_width = 20
+
+## user_keys field : display type. 'inline' shows each key's checksum on its
+## own row after the name ; 'detail' [ the default here, per user, once
+## proven live -- code still //= 'inline' when this var is entirely unset,
+## for any OTHER deployment that hasn't opted in ] shows name-only rows and
+## renders the SELECTED entry's checksum in that same field's existing
+## scrollinfo row, indented right of the names -- a plain content row, not a
+## frame-border corner [ an earlier attempt used a border corner and was
+## reverted: no colorer in this codebase applies value-coloring inside a
+## border line, and the placement was spatially disconnected from the list
+## it described besides -- see data/ai-mem/claude/topic-user-edit-console-
+## zenka-status.md's 2026-08-15 update ]. shares the scrollinfo row with
+## real pagination info rather than replacing it -- pagination text renders
+## flush-left, the checksum starts at a fixed column well right of it, so
+## they never overlap even if user_keys holds more than one window's worth
+## of entries -- see user-edit.form.build_frame and editor.ui.ascii_frame.
+## render_form's multiline block
+user-edit.cfg.user_keys_display_type = detail
+
+## identity_key field : name-length threshold [ chars ] past which the
+## checksum moves off the name's own row and into the row's existing blank
+## separator space instead -- same detail-display idea as user_keys above,
+## but AUTOMATIC rather than a manually toggled mode, since the identity
+## key's name doesn't change mid-session. below the threshold [ e.g.
+## 'taeki.base', 10 chars ] renders unchanged from always -- see
+## user-edit.form.schema_from_record, user-edit.form.build_frame, and
+## editor.ui.ascii_frame.render_form. defaults to 20 [ //= in the code ]
+## when unset here
+# user-edit.cfg.identity_key_name_threshold = 20
+
+## two families were missing from the original keys-clone [ keys is fully ##
+## standalone and needs neither ] : 'ui' provides base.event.* — without  ##
+## it base.zenka.loop dies on an undefined event.loop — and format.yaml   ##
+## is called directly by ascii.frame.load and by the outbox/draft modules ##
+## [ nshell/start loads both explicitly for exactly these reasons ]       ##
+modules.load  =  auth.client net protocol io.unix ui terminal editor \
+                                 crypt.C25519 ascii.frame format.yaml \
+                                 format.json keys user-edit
+
+[load_modules:<modules.load>]
+[init_modules]
+
+## authenticate as the invoking Unix user, not a zenka credential   ##
+## [ nshell/start precedent : personal interactive console, not a ] ##
+## [ managed zenka session -- system.auth-user set by user-edit.  ] ##
+## [ init_code during init_modules above ]                          ##
+## '<unix-user>[user-edit]' — the subname makes this console addressable ##
+## separately from any other zenka running as the same unix user [ e.g.  ##
+## nshell ].  built in user-edit.init_code, since '[user-edit]' written   ##
+## literally here would be read as a command invocation by the parser     ##
+system.auth-user = <user-edit.auth_name>
+
+[base.net.connect:'unix']
+
+## authenticates as Unix user above, not via cube session id --  ##
+## [base.get_session_id] intentionally NOT called [ nshell/start ##
+## precedent, same reasoning ]                                   ##
+
+[base.call.console_command:<system.args>]
+
+## HYBRID LOOP MODE [ resolved ] : there is deliberately NO [zenka.loop] ##
+## here.  console commands that need the event loop -- anything talking  ##
+## to the users zenka, where the reply arrives asynchronously and needs  ##
+## command/reply processing -- call [init-done:TRUE] + [zenka.loop]      ##
+## THEMSELVES as their last step [ see user-edit.console.show-form ].    ##
+## per-command, not per-zenka, because 'commands' and 'describe' must    ##
+## print and exit : a [zenka.loop] at this level would hang them, and    ##
+## plain 'v7.user-edit' would never return to the shell                  ##
+
+#,,..,,,.,,,.,..,,...,,,,,,,,,,,,,..,,.,,,,.,,..,,...,...,,,.,,.,,.,,,,,,,..,,
+#FCIJJ6XZAAHZZYGJV6FG6ROJTW7YWVA7OTIJ7CLOAE2RK5SRTLMGJGLDV5YYJBK3DMI6VGS6XGBNQ
+#\\\|34KEUI3YT3EV5OZDGV3P5QB7E36IIZG5P6IAQOJWO4S2LW4BGTK \ / AMOS7 \ YOURUM ::
+#\[7]OR2DMK2ZDVVS3E63NIMECGSVL5FR6UTXJDBGSLAX43JST3E2LCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

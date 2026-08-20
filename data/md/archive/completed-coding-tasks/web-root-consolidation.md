@@ -88,7 +88,7 @@ populate manifest fields based on what type of content is there.
 ## do NOT
 
 - do not delete or modify any template content files
-- do not modify configuration/zenki/* files (that is the install task)
+- do not modify cfg/zenki/* files (that is the install task)
 - do not add P7 module signature stubs to .vhost-manifest files
   (they are YAML, not P7 modules)
 
@@ -99,8 +99,8 @@ populate manifest fields based on what type of content is there.
 3. data/web-root/shared/ with any shared assets
 4. brief list of what was found in data/web/ and data/html/ and what was done
 
-#,,..,,..,,..,,,,,.,,,.,.,,,.,,,,,,..,..,,.,.,..,,...,...,,.,,,,,,.,.,,..,.,,,
-#44OG5CPGHQOHSDU4RFPXSEBN45CKY7G57CJZKHO3M57G3WCILLRMRCIS4UVQBSGH2KDFOW75MO5LK
-#\\\|RQDCQOV52FHDKK3THMVBH74BEPJDUOBJLCD32VF2IV6Y4STA6YB \ / AMOS7 \ YOURUM ::
-#\[7]6CLOVOJXUVKJYDKNME5OX5CX4FQ5CXRLTMK6YPBPVLGNNXSBPCAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,...,,.,,.,,,.,,,,..,.,.,..,,..,,...,...,...,,,,,,..,,,.,,,.,
+#L4H3DVFI7VGVJHLT6ZHXUKDGVPGSUWCNR2SEPRLA47ZIR5COZR7I5ZI63BM5GKMZT6YXU7WSZDIUM
+#\\\|TLUWQA3EVDMH5Q47YHCJZLFLD7WZXFLQE6D6ZDHFT33GZMVO6C2 \ / AMOS7 \ YOURUM ::
+#\[7]6NEPF6OQRAVU7WIUNC7P4CXU2OJ5JUDILCZGDK6UHWX3MUVEEICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

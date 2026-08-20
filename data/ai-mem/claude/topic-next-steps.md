@@ -240,7 +240,7 @@ and waiting to be pointed at.
   deletes the whole `<mpv.current>` cache on idle/stop — `mpv.snapshot.
   write` now skips the write instead of overwriting a good snapshot with
   an empty one; (2) `mpv.pulse.disable_idle_suspend` ran from
-  `configuration/zenki/mpv/start` before `[init_modules]`, too early for
+  `cfg/zenki/mpv/start` before `[init_modules]`, too early for
   `base.exec.with_timeout`'s transitive POSIX (`WNOHANG`)/`IPC::Open3`
   deps — call site moved into `mpv.init_code`. Curve-phase persistence
   (layer 5 of [[topic-mpv-persistence]]) deliberately NOT done — depends
@@ -259,7 +259,7 @@ and waiting to be pointed at.
 
 - **tile kiosk-mode stop_display_zenki disabled** ✓ — commented out
   `tile.startup.stop_zenki`, `tile.startup.restart_zenki`, and
-  `[tile.stop_display_zenki]` in `configuration/zenki/tile/start`; mpv
+  `[tile.stop_display_zenki]` in `cfg/zenki/tile/start`; mpv
   and display zenki survive tile restart cleanly
 - **X-11.get_pointer_scr_rect rename** ✓ — was `get_pointer_monitor_rect`
   (24 chars, too long for 23-char protocol limit); renamed + cube/access.zenki
@@ -354,7 +354,7 @@ and waiting to be pointed at.
 
 was previously blocked pending security-level design (see history below,
 kept for context). now landed: `*.ui-show` is granted generically in
-`configuration/zenki/cube/access.zenki`, gated by
+`cfg/zenki/cube/access.zenki`, gated by
 `modules/ui.caller.security-level` (per-group level resolution +
 `ui.unfold`'s `$caller_level` filtering). task file archived as
 `data/tasks/completed/ui-caller-security-level.md`; related fallback
@@ -495,7 +495,7 @@ what it should actually invoke.
 - ~~profile.txt: CV/skills for LLM scoring~~ **DONE** — lives at
   `/etc/protocol-7/jobsite/profile.txt` (not `/var/...` as the old note
   said), wired via `jobsite.cfg.profile_file` in
-  `configuration/zenki/jobsite/start` and read by
+  `cfg/zenki/jobsite/start` and read by
   `jobsite.util.build_prompt`/`jobsite.dispatch.assessments`/
   `jobsite.sync.apply_reverse`
 - ~~multi-page search: stepstone 25/page; cfg.max_pages per category~~
@@ -726,8 +726,8 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,,,,,..,,.,,...,,.,,...,,,.,...,,,.,.,.,,,,,..,,...,...,...,.,,,,..,.,,,...,
-#LDPAXRJBIQ537QCSQM3FBPTP4T3YHOJ7ZTH6CAQLLSAT7SMH7K3IRZAMHEG5PJJUUOIO5YRAOEJ6O
-#\\\|4OGDH6Q3LACWDTX6TQGCZZH4SJO2JIRS26OYUZMGGSTLPGJR6LJ \ / AMOS7 \ YOURUM ::
-#\[7]TYDUN4RK2ZEP4SDWZSROI2WNB6WFZLMUUEP6I7RROKLNT4TQIQDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,.,,..,,,.,,.,,,.,.,.,.,,,.,,,.,..,,...,..,,,..,,,.,,.,,...,,,.,
+#BYAISGGI4SVMMPU4LY7XB5HJAOMYSZHZFLKWFAW5NZVHQXDG3RF3AN5JUJCRZ5W6C4MPXSCTHH3PA
+#\\\|XHNO5L26Z3XXF2WCLPMEKYCCBKXQOIBNZX4TYGFFZTPIFQTYDEM \ / AMOS7 \ YOURUM ::
+#\[7]JUSLBFEPCGMSWOLS2TDNCPC73YZYV6TORNL2N57BNKBEZJT3TSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

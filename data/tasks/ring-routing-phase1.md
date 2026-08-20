@@ -36,7 +36,7 @@ $data{ring}{member}{<ring-id>}{center}    = <session ID of center>
 ### 2. modules
 
 #### `ring.key.load`
-load ring configuration from `configuration/zenki/cube/rings.cfg`
+load ring configuration from `cfg/zenki/cube/rings.cfg`
 (YAML format: ring-id, key-hex, members, center, expires).
 populate `$data{ring}{member}`. called from cube init.
 
@@ -70,7 +70,7 @@ resets on ring dissolution.
 
 ### 3. ring config format
 
-`configuration/zenki/cube/rings.cfg`:
+`cfg/zenki/cube/rings.cfg`:
 
 ```yaml
 rings:
@@ -87,13 +87,13 @@ actual key distribution (phase 3) replaces the static hex.
 
 ### 4. cube start integration
 
-add to `configuration/zenki/cube/start`:
+add to `cfg/zenki/cube/start`:
 ```
 modules.load = ... ring.key.load ring.member.has_key ring.boundary.recognize ...
 [ring.key.load]      ## load ring config at cube init
 ```
 
-add to `configuration/zenki/cube/subroutine.white-list`:
+add to `cfg/zenki/cube/subroutine.white-list`:
 ```
 ring.list
 ring.stats
@@ -129,9 +129,9 @@ create:
 - `modules/ring.boundary.recognize`
 - `modules/ring.cmd.list`
 - `modules/ring.cmd.stats`
-- `configuration/zenki/cube/rings.cfg` (one static test ring)
+- `cfg/zenki/cube/rings.cfg` (one static test ring)
 
-update `configuration/zenki/cube/start` to load ring modules and
+update `cfg/zenki/cube/start` to load ring modules and
 call `[ring.key.load]` during init.
 update cube `subroutine.white-list` for ring.list and ring.stats.
 
@@ -140,8 +140,8 @@ test ring loaded with 0 members and no active routes.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,.,,,.,.,,,.,,,.,,.,,,..,..,,,..,,.,,,..,..,,...,...,,,.,,,,,.,,,,,,,...,
-#UXD7IC3LSBSRQZACEGD2Z4PPKCTIY4DMFCU5M4EBD4WTFL2NYGH4RQOXTIWCSNIUXEXLMDRRKS6AM
-#\\\|X2O6TYUUWFOEPVMSPCENV5NDMUA7NFN5P7W3GKZORZ4F26CX7D7 \ / AMOS7 \ YOURUM ::
-#\[7]T6XVPOAPPJ3X2MOSUKOUBPSTE4GFAZWGEO6K4RB4MKHV7F6N3MBI 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,,..,,,.,,.,,,,,,.,,,,.,,,.,,..,,...,..,,.,.,.,,,.,,,.,.,,,,,
+#4JZ2CPAWJ4ADPQ6VQM3HU7RDBGET4X7ZBF74YSMLM44RYJFMFLBSB5VUJNICOELYQVNM7PCMKABKU
+#\\\|DAMYHKTX4GAE7D454DKQWMGWPLST56HMRK4CQCEXJBGKUEHHJBJ \ / AMOS7 \ YOURUM ::
+#\[7]S5VKTIUBSOQDEDZHCFTCUCJESTGLOPEBQ6OOVW5K7BDYIQHAN2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

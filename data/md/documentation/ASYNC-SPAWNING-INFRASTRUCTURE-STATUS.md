@@ -231,7 +231,7 @@ my %model_path_fallbacks = (
 - **Impact**: Models scanning and discovery
 - **Action**: Verify functionality and commit
 
-### 5. `configuration/zenki/mpv/start`
+### 5. `cfg/zenki/mpv/start`
 - **Status**: Unrelated to async spawning
 - **Changes**: MPV zenka configuration updates
 - **Action**: Review and handle separately
@@ -310,7 +310,7 @@ p7c coding.show-buffer zenka | tail -50
    - Message: "Integrate models registry with Protocol-7 list system"
 
 3. **Configuration Updates** (separate)
-   - `configuration/zenki/mpv/start` - MPV config
+   - `cfg/zenki/mpv/start` - MPV config
    - `modules/nshell.read_from_buffer` - nshell updates
    - Message per change as appropriate
 
@@ -378,8 +378,8 @@ Create: `ASYNC-INFERENCE-SPAWNING.md`
 - `modules/coding.handler.check-completion-chain` - Auto-resume
 
 ### Configuration
-- `configuration/zenki/coding/start` - Coding zenka startup
-- `configuration/zenki/coding/zenka-startup.v7` - V7 launch config
+- `cfg/zenki/coding/start` - Coding zenka startup
+- `cfg/zenki/coding/zenka-startup.v7` - V7 launch config
 
 ### Documentation
 - `data/md/documentation/CODING-COMPLETE-ANALYSIS.md` - Complete-analysis feature
@@ -436,8 +436,8 @@ Currently awaiting:
 **Status**: Infrastructure COMPLETE, Cleanup IN PROGRESS
 **Next Review**: After formatting cleanup and models integration
 
-#,,.,,,,,,...,..,,,,.,.,,,,..,.,.,,,,,,..,..,,..,,...,...,...,,..,.,.,,,,,,,,,
-#ZXZNNIDNKETWLVPPJ6W6LZWIS3LX34WOLPBUVJQGZUOQFVM5B3G5GR7XHMT6PG6YROCP3FTLYGGCI
-#\\\|ZHOTFTPXWNMQ33YO26EPXR2PINPY7VAOPZDSTOHZPWC7TQOMTC6 \ / AMOS7 \ YOURUM ::
-#\[7]SAUHB2TIDD23P6OPETYVXY5TQ6BMVHTNTHRLMUZVDZ2OUH3GEOAY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,...,,,,,..,,,,,,,.,,,,.,.,.,..,,...,...,..,,...,.,,,.,.,.,.,
+#NA32KUBGKQ6JELBZDV6BAN3AYUNFQ6DZDC6NFEBDAFPX3M6IJR6HBUZFYLNDQZLC3MZ4F7KVPSJ3Y
+#\\\|RH5XDC24FMGPQPXFWYPMFDVYIGREBNZFNTUCQ4GZ7W5HX6ILJSS \ / AMOS7 \ YOURUM ::
+#\[7]OEP5ES4SJENWTL2HT6B4DB7ZKR3UFMFTG36IXLJSM67M6DAG6MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

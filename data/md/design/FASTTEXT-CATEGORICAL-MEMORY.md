@@ -153,7 +153,7 @@ per category, a corpus assembler collects relevant files:
 - codebase: all modules, configs, docs in the relevant namespace
 - interaction-history: session summaries from memory/, reasoning chains
 - philosophical: data/yaml/reasoning-templates/, data/md/design/, data/md/vision/
-- network-topology: configuration/zenki/**, access.zenki files
+- network-topology: cfg/zenki/**, access.zenki files
 
 ### retrain and evaluate
 
@@ -220,8 +220,8 @@ inherits the full accumulated geometric context immediately.
 - [[AUTONOMOUS-MODEL-MANAGEMENT]]: the model selection layer determines
   which base model loads alongside which embedding categories
 
-#,,..,,,,,.,,,..,,.,,,..,,,..,,.,,,.,,.,,,.,,,..,,...,...,,..,.,,,,,.,.,.,..,,
-#LA65HUA3WC6UNOSWIT7IJ5PGDJ3GJ5H7CZXAJVFRO6UAXHQMR6XQ32IFJ7O3FOE3N77CRKHYAYU2E
-#\\\|ZSCFNOIHJYKGR3IZAPHSYWDKE25JUV53PWMDMJKS2TD3KL4YRV7 \ / AMOS7 \ YOURUM ::
-#\[7]O47IX7A4KSKSIMC4QCYLBEY54Z5BUFGFGK7R3AJLETGUZLOQLQDA 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,.,,,...,,,,,,.,,,.,,...,,..,..,,...,..,,...,.,.,,..,...,,..,
+#EW65L66EVQF544FTFFLKP3XOSGL2ANGIHIE2ORSLPWCCSXI4R6A3KFDG5JXECJ563Q3MOVD7K73GE
+#\\\|L4TOBD3BGCW7C6WLUS5O6DSGA37RD24TZXXG4ZAT7QPTNK75CKQ \ / AMOS7 \ YOURUM ::
+#\[7]4FSEZSJFB3E7PBHVW24IMHQDLH3X6FM2T3DGK32D72HSRU272YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,9 +57,9 @@ A complete automated certificate management system built as a Protocol-7 zenka, 
 ## Key Components Created
 
 ### Configuration
-- `configuration/zenki/letsencrypt/start` - Zenka startup sequence
-- `configuration/zenki/letsencrypt/zenka-startup.v7` - v7 management configuration
-- `configuration/zenki/letsencrypt/` - Complete dependency and access configuration
+- `cfg/zenki/letsencrypt/start` - Zenka startup sequence
+- `cfg/zenki/letsencrypt/zenka-startup.v7` - v7 management configuration
+- `cfg/zenki/letsencrypt/` - Complete dependency and access configuration
 
 ### Modules - Base Infrastructure
 - `modules/letsencrypt.base.pre_init` - Pre-initialization (library loading)
@@ -117,7 +117,7 @@ A complete automated certificate management system built as a Protocol-7 zenka, 
 
 ### With cube (Message Router)
 - Commands routed through cube (single session for parent)
-- Access control via `configuration/zenki/letsencrypt/access.*`
+- Access control via `cfg/zenki/letsencrypt/access.*`
 - Session authentication and lifecycle management
 
 ### With httpd (Web Server)
@@ -188,8 +188,8 @@ letsencrypt.ratelimit.max-per-hour = 5
 
 The letsencrypt zenka represents a significant addition to Protocol-7's service ecosystem, providing secure, automated certificate management integrated with the existing zenka architecture.
 
-#,,,.,...,,,.,..,,,.,,,.,,..,,,,.,,,.,..,,,..,..,,...,...,,,,,..,,.,,,,.,,,,.,
-#QJLNIGSB7J6LX5CMLEPBDG5R74366RXSWGU2477J7CYDKTWWAVAOU3IRERYNUXGWSUQ3T56JVMDHQ
-#\\\|K2ZRQKIGUDJGLZJKVY5Z2LY4JJVE6TNXDMZ23UZONCHQL4XLYRN \ / AMOS7 \ YOURUM ::
-#\[7]UFYX4LB4UGBBZOXNTPGW6DIDZ7PB3ADVP32J6SAZFLFLZXOPZODQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,.,.,,,.,,,,.,,...,,.,,.,,,,,.,..,,...,..,,.,,,..,,...,..,,,.,,
+#WFF25XF64SBJHGF5TIO44VFEPGPW7NGRBZLSZJMSWWU7QZTL3GZ7JVNUT44WCIGO4AZEC36R56YNA
+#\\\|C3WKE56IA6BL43BZESKM6QL66IKGYRGZQOJRHKDORMWAMCYZKFE \ / AMOS7 \ YOURUM ::
+#\[7]TK6TA2YK6XAU6LFXC5SOXM5J3ZYL7MOTGIUYS36SUQRX62SVY2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

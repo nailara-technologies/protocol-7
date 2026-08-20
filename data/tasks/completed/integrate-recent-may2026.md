@@ -29,7 +29,7 @@ note_write suggestion [ use note_write tool, do not create files ].
 
 ### 3. jinja template file config wiring [ record finding only ]
 
-`configuration/zenki/coding/start` line 45 sets:
+`cfg/zenki/coding/start` line 45 sets:
 `coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja`
 
 this is an absolute path. check whether `coding.spawn_inference_server`
@@ -41,7 +41,7 @@ do not change config or code for this item — record only.
 ### 4. gen-sub-whitelist namespace-only handling [ DONE ]
 
 `bin/dev/gen-sub-whitelist coding` was already run this session and
-regenerated `configuration/zenki/coding/subroutine.white-list` with
+regenerated `cfg/zenki/coding/subroutine.white-list` with
 1004 entries including the new `coding.buffer.task_write` module.
 no further action needed.
 
@@ -64,8 +64,8 @@ conventions. `$ARG` not `$_`.
 do not investigate or modify AMOS7 signatures. leave signature lines
 at end of module files untouched.
 
-#,,,,,...,,,,,,..,.,.,.,.,.,,,..,,.,,,,..,,.,,..,,...,...,...,..,,.,,,.,.,,,.,
-#RUPRFFNTSIITAI5GJEYLQTQ5VY2ZC2W36WSM5PFGKRXT54D27YKVKC52WBIZ2NUK2GK3PE6XEC53K
-#\\\|Q4JBEC7BDLP236C5BPUX26WMSLEP4LBGUBUFLJXB4235PRZTVZP \ / AMOS7 \ YOURUM ::
-#\[7]D3WWYJP2CQBUMWWVGTWC35LBOPHTIAHRTQ6UP54AGZYL5UDJF2DI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,.,,,...,.,,,.,.,,,,,,.,,.,.,..,,...,...,...,,,.,,,.,,,,,..,,
+#XS3FGIKWQ4WNUZ4OVVWU2DM3A7HIKODUWS2ENIU4UI2K6A5CGPA4AHPKGG2YA4U3EQF2CBXJ6YJBW
+#\\\|F36MHRBAKUNHALPOYPKWUZ42COHZ5NM6MQJXWNZFTY4UISNEKGO \ / AMOS7 \ YOURUM ::
+#\[7]IP4UQLXIIWN2VUCGRIW6HL6RZNV3MGGOCCI7WDD5KUKL4HU7IWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

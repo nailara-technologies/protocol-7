@@ -135,7 +135,7 @@ design that has no shared free-space arithmetic at all — see next.
 
 verified this session: **nothing in the codebase actually calls the ring at
 runtime.** `grep` for `data.channel.shm.*` callers across `modules/`, `bin/`,
-`configuration/`, `data/lib-path/` finds only `data.cmd.shm-self-test:20`
+`cfg/`, `data/lib-path/` finds only `data.cmd.shm-self-test:20`
 [ `<[data.channel.shm.test.basic]>`, the regression harness ] plus
 whitelist / `base.list.subroutines` index entries. there is **no production
 `create` / `write` / `read` / `poll` caller anywhere**. the ring is a
@@ -380,7 +380,7 @@ the precedent is `modules/base.cmd.verify-instance` + `v7.zenka.set_cube_sid`:
 v7 generates a private 13-char key [ `v7.zenka.set_cube_sid:43`,
 `uc(<[base.prng.chars-anum]>->(13))` ], hands it to the instance over a **direct
 command** [ `:57-61` ], and then watches the instance's own log stream for the
-echo [ `configuration/zenki/v7/zenka-output.patterns:29`,
+echo [ `cfg/zenki/v7/zenka-output.patterns:29`,
 `^instance verification \[KEY:([a-zA-Z\d]+)\]$` → `v7.handler.instance_verification` ].
 the security property: **only a process that actually received the privately
 injected key can produce the echo.** that is exactly what we reuse — but the
@@ -692,7 +692,7 @@ first, note the reuse potential.
   '<' : '+<'` ; no new code needed for the read side ] — and **this is a
   genuinely cross-user pair**: senders may run as `taeki`
   [ coding-admin-group ] or as bare `protocol-7` [ `task`, etc. ], while
-  **`p7-log` itself is bare `protocol-7`** [ `configuration/zenki/p7-log/start:24`,
+  **`p7-log` itself is bare `protocol-7`** [ `cfg/zenki/p7-log/start:24`,
   bare `[root.drop_privs:<system.amos-zenka-user>]` ]. a `taeki`-owned segment
   read by a bare-`protocol-7` p7-log is exactly the `'+<'`-EACCES case the
   read-only open fixes [ `/dev/shm` world-readable ]. **but** the sender here is
@@ -862,8 +862,8 @@ first, note the reuse potential.
    a partially-filled active slot?** this is the pool analogue of the old "ring
    capacity" choice, but with a real latency dimension the ring did not have.
 
-#,,.,,..,,.,,,.,.,..,,,,.,,..,..,,.,,,.,,,.,.,..,,...,..,,...,..,,,,.,,..,...,
-#6EJCCK5XIV5Y5EZZ4RZIJY6SN5CC5K6ODWHMW35RKW6UHJ6AJ2LTB3Z7VLFYGKZ7KMNWGAIMFBBNA
-#\\\|5RHAAABG2IM2O5R7WSZFBAV6OBGSVDYIWJWQUW5VUXKK5YFND4W \ / AMOS7 \ YOURUM ::
-#\[7]3QZFCSDPYXD6KKYXIK6EG5HCZOLYO5ISECMYWCDEKH5AFOFT66AA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,,,.,,,,,.,,,.,.,.,,,..,,,,.,..,,...,...,,,,,.,,,.,,,,..,,,,,
+#KG4M6VBZCXRX6TZVDAGP33KU4EOLKG4X2GGQVD4VJYYUJ7CR7TV6MEKKESTWMSO7AF2DMSW2AKKBS
+#\\\|O4IMCEWOR66YWF5QJ4KFNYAJETK5KFFPC3JSREO74OR3MKLTUU6 \ / AMOS7 \ YOURUM ::
+#\[7]HKKDCPAUVUZKZ7TD5CT2EHPU5KBM2XE4ZKD7PSVHO2A3HUFAPYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

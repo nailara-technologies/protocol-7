@@ -13,7 +13,7 @@ configuration directory to actually boot from. this task creates that
 scaffolding — read-write, not read-only.
 
 ## problem
-`configuration/zenki/transport/` does not exist at all:
+`cfg/zenki/transport/` does not exist at all:
 - no `start` file (defines `modules.load`, config, execution flow)
 - no `zenka-startup.v7` (runtime parameters)
 - no `subroutine.white-list`
@@ -35,7 +35,7 @@ infrastructure zenka created in the same wiring effort, also
 currently boot-blocked but config-complete) or another comparable
 on-demand zenka, and adapt zenka-specific values:
 
-1. **`configuration/zenki/transport/start`** — list
+1. **`cfg/zenki/transport/start`** — list
    `modules.load = ...` covering at minimum the modules named above
    (`transport.select`, `transport.profile.load`,
    `transport.handle.*`), plus whatever shared/base modules a
@@ -45,7 +45,7 @@ on-demand zenka, and adapt zenka-specific values:
    load` reference (grep the modules for `<transport.cfg.` to find
    what's expected).
 
-2. **`configuration/zenki/transport/zenka-startup.v7`** — runtime
+2. **`cfg/zenki/transport/zenka-startup.v7`** — runtime
    params. since this is on-demand infrastructure (started when first
    accessed, not always-on), follow the pattern in CLAUDE.md's
    "On-demand Management" section: likely `restart.disabled = 1`,
@@ -56,11 +56,11 @@ on-demand zenka, and adapt zenka-specific values:
    connections) — consider whether `max_concurrency = 1` applies here
    too; use your judgement and document the reasoning either way.
 
-3. **`configuration/zenki/transport/subroutine.white-list`** — list
+3. **`cfg/zenki/transport/subroutine.white-list`** — list
    the modules' callable subroutines per the convention used by
    `proxy/subroutine.white-list` or similar.
 
-4. **`configuration/zenki/transport/access.zenki`** — intra-zenka
+4. **`cfg/zenki/transport/access.zenki`** — intra-zenka
    command access, mirroring the `credential_fabric/access.zenki`
    pattern (note: per finding (d) in the doc, that file currently
    isn't loaded by its zenka's start config — don't repeat that
@@ -92,7 +92,7 @@ on-demand zenka, and adapt zenka-specific values:
   which parts are unverified
 
 ## acceptance
-- `configuration/zenki/transport/` exists with `start`,
+- `cfg/zenki/transport/` exists with `start`,
   `zenka-startup.v7`, `subroutine.white-list`, `access.zenki`, modeled
   on an existing comparable zenka
 - `cube/auth.zenki` grants `transport` zenka auth
@@ -108,8 +108,8 @@ on-demand zenka, and adapt zenka-specific values:
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,,,,,..,.,.,.,,,,,,,,..,.,.,,,,,,,,,.,.,..,,..,,...,...,...,,,.,..,,.,,,,,,,
-#YMXQN5B5HWAR7E3XRKKUZ4TXM36JIN6KD46Y4B2TLEVRBW3ZANVMYEX7EQHQGP2RVU55OIYLX44SK
-#\\\|OKJYZQ4YFODUHTOLDUOTTJVYS46RX3ZOZIPYYJYLERVYXZQPTFJ \ / AMOS7 \ YOURUM ::
-#\[7]RA7PZAYQ4VRSUQX7MF7SK2WJ2CG7VJOVGW57SKUEYE5W4YCDJOCY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,.,.,,,,,,,...,,,.,.,,,...,...,..,,...,...,.,,,..,,,.,,.,,,,,.,
+#QNX4UF5HJPP6JEBIKKLA4ATD4WWZTR5WUZJULDDHAGCBZXTYI2P4JZC2OQMK3MUWISVV62534JPIS
+#\\\|NTMBF4WFOEITL5QPVEOGKZZVL5TWNCNCIGIQ5FELNOQE5JMDI5K \ / AMOS7 \ YOURUM ::
+#\[7]7GC4SXSNLOB7FENCTVYK7OSNRC6BJ3H3SYOWJUZHFEPENC2MYQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

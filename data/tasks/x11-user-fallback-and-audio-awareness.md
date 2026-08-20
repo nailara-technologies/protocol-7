@@ -9,7 +9,7 @@ tcp:10.0.110.7` pointing at a manually-run Windows-host `pulseaudio.exe`
 that WSLg's own native bridge at `/mnt/wslg/PulseServer` makes entirely
 unnecessary) before discovering the actual mpv zenka runs as `taeki` (the
 interactive desktop user), not `protocol-7` — because `<system.AMOS-user>`
-(`configuration/X11-vars`) is currently pinned to `<system.admin-user>` as
+(`cfg/X11-vars`) is currently pinned to `<system.admin-user>` as
 a deliberate, acknowledged-temporary bridge for any X11-needing zenka,
 pending "automatic detection" (the file's own comment) and a
 not-yet-activated dedicated `amos7-x11` user already scaffolded
@@ -115,8 +115,8 @@ hardcoded per-zenka again.
   `amos7-x11` to exist at all — worth confirming before assuming an
   ordering dependency that isn't actually there).
 
-#,,.,,..,,...,,..,,,,,,,.,,,.,.,.,,,.,..,,,,,,..,,...,...,...,,,,,.,.,.,.,,..,
-#I4CSMDCI62L5IO3JMVAP4QYGFW6D2GFJSZN5KFSAATA3BPMXPQLJ6BZAZQ6YPHBIM3LUPAFZHNRHC
-#\\\|AIXSD4LF5WYXUAXZLIRHPNVDFID3GBPCZ7H3GVH2RY5C6WR47A3 \ / AMOS7 \ YOURUM ::
-#\[7]M5IPQNLCN6SQAL7LISZJ33YHHNTQ6RE3UCOYEBZK7JLE3VFGJODI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,...,...,...,,.,,,.,,..,,.,.,..,,...,...,.,,,.,.,..,,.,,,.,,,
+#6QFPZ7Y2P5FUCW2U6MR2222CFSOKYRG7QHDMYS6IXDTQCNB4I22R7ZUXGFMNGJ4BILBO6ICFNLN7S
+#\\\|YSSDGAG3I3XICYHRVIWEOEXVJS64KYL7WR4X2IKFOLSGVPCFZPE \ / AMOS7 \ YOURUM ::
+#\[7]24UJ6OJCSFGQSB5R72CPIPGW43FP4TJ32YF7BG7JE7NRQZZRACBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

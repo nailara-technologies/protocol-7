@@ -97,7 +97,7 @@ kimi vs coding: both use dynamic system messages + base32r encoding; task queue 
 
 ## Kimi + Kimi-Web Integration (April 2026)
 
-local agent spawn via `kimi-web.bridge.ensure_local_agent`; `kimi.cfg.use_local_agent = 1` in `configuration/zenki/kimi/start`.
+local agent spawn via `kimi-web.bridge.ensure_local_agent`; `kimi.cfg.use_local_agent = 1` in `cfg/zenki/kimi/start`.
 
 ## Algorithm Profile System — April 2026
 
@@ -120,8 +120,8 @@ see [topic-jobsite-scan-refactor.md](topic-jobsite-scan-refactor.md)
 
 see [topic-language-detection.md](topic-language-detection.md)
 
-#,,..,,,.,.,,,...,,.,,..,,...,,,,,..,,,,,,..,,..,,...,...,,,.,,,.,..,,.,,,.,,,
-#6HAOCSRFXZQCO4QYWMQDTDTU266PTKO6QIC5SUNB23HYCN453E6OIRULNGVG3453W2GHCBGYVYUTM
-#\\\|D7LJHBI3DZIW6ZZ3GKARBHK6QPIOBOZHC2A626YNNYQKXQEOT4M \ / AMOS7 \ YOURUM ::
-#\[7]OSWOVGJDJGV4764MWPMAAGA7P55HJR2PXHVSTLOPTFNAZY7EOGCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,,.,,,,.,,,.,..,,.,.,.,.,,..,..,,...,...,.,.,,.,,.,.,...,,..,
+#ZJXAEZQCTV6KPE6CMOKIL4FRE6DBHHN2JGI5N2BSCXK7D3FMJVBRF675EDXNIH2KM2TBPPEVGID4E
+#\\\|H5W2ZXJML5JUKKSSPIHVVDPECINCXCMPEYC5MR3MEIXP4DKP6FR \ / AMOS7 \ YOURUM ::
+#\[7]WB3BOSQLRNGC3B7LA2MJMLTZXQWOYZMUM6BTLNESWKC5G3W532DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
