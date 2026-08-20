@@ -16,8 +16,8 @@ return { 'mode' => qw| false |, 'data' => 'no active view' }
 ## determine output path
 my $snap_dir = <web-browser.cfg.snapshot_dir>
     // ( <system.root_path> . '/data/snapshots' );
-my $timestamp = time;
-my $out_path  = "$snap_dir/snapshot_${timestamp}_$$.png";
+my $stamp    = <[base.ntime.b32]>->( 5, TRUE );
+my $out_path = "$snap_dir/snapshot-$stamp.png";
 
 ## ensure output directory exists
 <[file.make_path]>->($snap_dir) unless -d $snap_dir;
@@ -53,8 +53,8 @@ if ($EVAL_ERROR) {
 ## return deferred : handler sends reply when snapshot completes
 return { 'mode' => 'deferred' };
 
-#,,.,,..,,,..,.,.,,..,,,.,,.,,...,,..,...,,.,,..,,...,...,.,,,,..,.,,,,.,,,.,,
-#I22HBGZSWAZWLRPXHYLMOUTDM236VZGRH5OHBYZBHYRGY7TV5OXGMOEQQA67L4WS6DDVU4UIO37LE
-#\\\|U4BYFG52O4UHJPKJYZB4ARIWCI23MLPXG6HBEA6XH556JEPXD25 \ / AMOS7 \ YOURUM ::
-#\[7]VVLYZGHJA6XXXPN4H2U62CGKE7QM7NTVA2BSHJIDDGJJZGTNAEAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,,,.,.,,.,,,..,.,.,.,.,,,.,.,,,..,,...,...,,,.,,..,,..,,,.,.,.,
+#JHMZJDT4MP277G6OQ5JQXWE6YH232MTT676KXNASJUVB3ZDIHB5FAVUK4BXEBXRBRP5X3GRMOZBS6
+#\\\|ZCIT5GYGBLWDRJSSR23HVEIN7E5OGSURP7O6MUEYB7RJYOPQQYW \ / AMOS7 \ YOURUM ::
+#\[7]KEGLTLCHNWEIVAQPXCKIBRY3NSGCM7BLD7LIN6UE3H7GHTUEWSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
