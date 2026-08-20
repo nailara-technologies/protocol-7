@@ -57,6 +57,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [ascii-frame-system](topic-ascii-frame-system.md), [frame-plugin-slots](topic-frame-plugin-slots.md), [frame-idiom-convergence](topic-frame-idiom-convergence.md) — parser/renderer/validator; 5 frames pending
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md), [ui-show-security-levels](topic-ui-show-security-levels.md) — border glyphs nest desktops; step 6 open
 - [bin-todo-style-refresh](topic-bin-todo-style-refresh.md) — port ascii.frame border/color logic into AMOS7::TERM for bin/todo; sized for one Opus/Kimi dispatch
+- [bin-todo-ntime-b32-timestamps-landed-2026-08-20](project-bin-todo-ntime-b32-timestamps-landed-2026-08-20.md) — LANDED: added/done_at now ntime.B32 not ISO8601, standalone-ported same shape as gen_id; all 35 pre-existing entries migrated in place (raw line-substitution, not YAML round-trip, to protect the signature footer); default.yaml renamed to base.yaml
+- [web-browser-snapshot-naming-landed-2026-08-20](project-web-browser-snapshot-naming-landed-2026-08-20.md) — LANDED: get_snapshot filenames now `snapshot.<amos-chksum of page url>.<ntime.B32>.png`, groups by page then capture time, chksum doubles as direct lookup key
 - [amos7-p7-loader](topic-amos7-p7-loader.md) — dep-graph loader vision now also covers standalone bin/* scripts, not just MCP handlers; duplication OK until it lands
 - [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
 - [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED: soft/hard ceiling, stall detect, restart-round; 2026-08-07 follow-up (4c3cf0e73): soft-ceiling gate was keyed on task_state existence not actual liveness (self-test could never take it), queue-resume ceiling misaligned with self-test's own watchdog, new degenerate-stream repetition detector
@@ -118,8 +120,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - task-archiving-2026-08-16 — 4 completed task files moved to `data/tasks/completed/` with archive headers per `data/tasks/task-archiving-with-context-templates.md`'s documented (not yet automated) convention: `editor-inframe-prompt-primitive.md`, `user-edit-key-actions-create.md`, `user-edit-key-actions-rename.md`, `user-edit-key-actions-delete.md` — signatures now stale, staged for user signature same as every other change this session
 - [jobsite-coding-queue-paused-task-loss-landed-2026-08-19](bug-coding-async-send-request-enqueue-round-timer-mismatch.md) — LANDED `dd162183b`: coding zenka silently dropped any task retried while `queue_paused` was set (wrong `event.add_timer` shape — `'params'` key it never reads, `coding.task.enqueue_round` armed as a timer-handler when it's direct-call shaped); general bug, not jobsite-specific; live-verified via devmod. Also fixed same commit: [[bug-jobsite-pending-count-leak-nonassessing-cycle]] (jobsite cycle wedge) and `coding.cmd.list-tasks`' ntime-vs-base.time garbage elapsed-time display. Closes the "exact line" gap left open in [[topic-coding-zenka-wedged-backend-queue-gridlock-2026-08-05]]
 
-#,,,,,,,.,,,.,,,.,...,,.,,,,.,,,,,.,.,,,,,,,.,..,,...,...,..,,.,.,.,.,.,.,...,
-#N5ZQR75SHL7FCORS7TOABW7RPOSFG7YZSQJCMHYXFM6GZS3SRL4ZV764UFJCUZ3VV3QGTV6IJABAW
-#\\\|ZA7GGDGL3ZANQMVDFCO3GEDAFJ5AATXPXR5T7SUTKRLPYEB3772 \ / AMOS7 \ YOURUM ::
-#\[7]2HHJJHAWIQDZEW6XXJ4ONYZTM26Y5BO4BXW7MWYKE26TWCRWTUBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,,,..,,,,,,,..,.,.,,,.,.,,,,.,,..,,...,...,.,.,,..,,,,,...,.,.,
+#VYGWXLVZHUYX4P44OIUHDY46AILD5NLSAE3OK3BZ56UJFGKFC7VTC7UOWYF2KZU763ZEGMAX3YBCI
+#\\\|GRA5W4FOO2T4L2QJQVB5G3AACSPWYPGQWYFK7QHQENFY3FVCH2T \ / AMOS7 \ YOURUM ::
+#\[7]EGO3QXCMS3A3T56XWUMDNLUKSUP6GQU6YAHYM3ZQQAW5SUERCWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
