@@ -84,8 +84,9 @@ if ( -d $deleted_root ) {
 
 DONE:
 
+my $log_level = $blocked_moved + $deleted_pruned ? 1 : 2;
 <[base.logs]>->(
-    1,              'web.jobs.store.prune: moved=%d pruned=%d',
+    $log_level,     'web.jobs.store.prune: moved=%d pruned=%d',
     $blocked_moved, $deleted_pruned
 );
 
@@ -94,8 +95,8 @@ return {
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,,.,,,.,,.,,,.,,,..,,,.,.,.,.,,,,,.,,.,,...,..,,...,.,.,,,,,,,.,...,...,.,,,
-#WX3Y4A4U4WW2777PSJV6IDYYBESMS65KFUFI6IEC33HT3YX6MNFTE2DSGYBWWRHGZMAWZQQ2B633M
-#\\\|GSD4E7NEHNNLBRNLA5WGFSQQQ2AJ7BYA6YGEBEI46SS3RDIGP7L \ / AMOS7 \ YOURUM ::
-#\[7]RGYVMC43HDLRMA5JDOW54DTSPBNPQYGKSZDJJ2EBTGTC272GA6AA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,,..,,,.,,,,,.,,,...,,,.,..,,..,,...,...,.,.,.,.,,,,,.,,,...,
+#UH3OXPOW6DB4BMNACX32DLNYKMIQ75FYK7PGWV5TEXNPE2H7EAAPFEAGVPMGTDUNXIORSAIG5OXMI
+#\\\|PJX3KUFC7EHUZZCECTFTK4K56GKLF4CAK2MWLEO7MT7WHZXHWWM \ / AMOS7 \ YOURUM ::
+#\[7]54GFYOLLVFK6UKJ4PHX26RCHZOCT7O7YN7NVVN3DX4X37TYFHQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

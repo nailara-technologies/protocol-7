@@ -52,10 +52,11 @@ if ( not defined $item ) {
     delete <jobsite.sync.push_queue>;
     <jobsite.sync.push_in_progress> = FALSE;
     <[jobsite.state.persist]>;
+    my $log_level = scalar $reverse->@* ? 1 : 2;
     <[base.logs]>->(
-        1,
+        $log_level,
         'sync push complete [reverse:%d]',
-        scalar @{$reverse}
+        scalar $reverse->@*
     );
     <[jobsite.sync.apply_reverse]>->($reverse);
 
@@ -143,8 +144,8 @@ if ( exists $code{'crypt.C25519.sign_data'} ) {
     }
 );
 
-#,,,,,,.,,,..,.,.,.,,,..,,..,,..,,..,,,.,,,.,,..,,...,...,,.,,,,,,...,.,,,...,
-#ZZXII5O6LJF7SLJU4NHSFG3M35RNGW3GUPR2OEBVMOLV55E4ILYDTJXE7HDB52CWX2QWXZ6BRUS7K
-#\\\|BNSX3CABKGUPN5PCUJI7G26HEKALT2BWQFNA5VPMK2NTTAREI4D \ / AMOS7 \ YOURUM ::
-#\[7]BA5DBGTWXVIVBEKHMXXWSPPQTPONXT534GRHSXX4SAWMKDKJ2MCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,,,,..,.,,,,..,.,,,,,,,.,,,,,,,..,,...,...,..,,...,.,,,...,,,.,
+#FPVDZNL3O5KNAVAF63HXLG5EJZZWA73NPZ6PDMZKSRKJKEXVZNBJBHFDAWRUYMUTNUF4F7J4GFWKG
+#\\\|W5WBZPPPJZZ2V33QNGNOL6KIPWTRT3WDFXSTQ5AFNKUCLMOI6TE \ / AMOS7 \ YOURUM ::
+#\[7]LKKHQ7LUSHJBEDNVEM7MXLWWZRKZJIFUHJO57VTGLQ3H6443OGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
