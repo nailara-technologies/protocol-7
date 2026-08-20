@@ -57,7 +57,7 @@ was never in that design.
 
 **The actual mechanism**: `v7.zenka.init_code` is a real file
 (`modules/v7.zenka.init_code`) that is *not* whitelisted in
-`configuration/zenki/v7/subroutines.load-early` — unlike its sibling
+`cfg/zenki/v7/subroutines.load-early` — unlike its sibling
 `v7.zenka.pre_init`, which is. The loader (`bin/Protocol-7`, commit
 `e90dd04ae`, "loader: make swap_subs-moved namespaces reachable without
 whitelist regen") installs a deferred-compile stub for such nested,
@@ -173,8 +173,8 @@ further architecture-level effort.
   no longer dangerous now that this fix is in, but the note's original
   reasoning (before the fix) was wrong to suggest it as safe.
 
-#,,..,.,,,...,,,.,,,.,..,,.,.,,,,,..,,.,,,..,,..,,...,...,,,.,,,,,.,,,,..,.,.,
-#3DEOQM6U3SDVNND46QTU4EI7KKFY6EDUB6YRMMSPBTVZEARGMXQTPC7JE5Y4LQK3HLLIU765IAFFY
-#\\\|LVVBTZ3ITK45NKFPNOWYSDMT55U4LQ4OT5Z5QX2LQRWYTTLMOM3 \ / AMOS7 \ YOURUM ::
-#\[7]7YFKCFBYJIRMRQYKAHGMVRZGPCJ6BJPSQCPZ47EM2CCUVW5LTYAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,,,,,.,,,.,,,,,...,..,,...,,,.,..,,...,...,.,.,,,.,,.,,,,,,,.,,
+#TIB6ULNQ5BMUCXHXXTZYFOZAYKXLCDJUFVOF7ZQCSQUAPYFJM2XHY53KLRWEF7CR4UMNBH22LKTRO
+#\\\|7PZ4LQGSI2M3RSUQ4CHXEGALU75OO6ZVYAHP4XFJRCON4SEHUVK \ / AMOS7 \ YOURUM ::
+#\[7]BGET7F43T56JAFZN6ALEV76IJOTDUCRQWCK25LVGBYQ644O47ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

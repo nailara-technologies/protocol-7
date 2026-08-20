@@ -131,7 +131,7 @@ or via a git alias in `.gitconfig`:
 ### local config
 
 ```yaml
-## configuration/zenki/git-watch/zenka-startup.v7
+## cfg/zenki/git-watch/zenka-startup.v7
 cfg.mode = local
 cfg.repo_path = /data/projects/protocol-7
 cfg.backup_dir = /data/projects/protocol-7/.git-backups
@@ -190,7 +190,7 @@ detected: force push on <url> ref <branch> old:<sha> new:<sha>
 ### watched repos config
 
 ```yaml
-## configuration/zenki/git-watch/watched-repos.yaml
+## cfg/zenki/git-watch/watched-repos.yaml
 repos:
   - url: git@github.com:org/protocol-7.git
     local_mirror: /data/backups/git/protocol-7/
@@ -298,7 +298,7 @@ git-watch.fetch
 ## zenka configuration
 
 ```
-## configuration/zenki/git-watch/start
+## cfg/zenki/git-watch/start
 [load_modules:git-watch.init_code git-watch.handler.poll-refs
               git-watch.detect.force-push git-watch.snapshot.create
               git-watch.snapshot.list git-watch.snapshot.restore
@@ -308,7 +308,7 @@ git-watch.fetch
 ```
 
 ```
-## configuration/zenki/git-watch/zenka-startup.v7
+## cfg/zenki/git-watch/zenka-startup.v7
 start.on-demand = 1
 restart.disabled = 1
 heartbeat.disabled = 1
@@ -360,8 +360,8 @@ do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures` wh
 - [ ] `git-watch.snapshot.restore` produces repo with all rescued commits reachable
 - [ ] zenka starts on-demand cleanly, poll timers staggered to avoid simultaneous ls-remote
 
-#,,..,..,,...,,..,,..,.,,,..,,,,,,.,.,...,,..,..,,...,...,,,.,..,,..,,,,,,,,.,
-#FJB3UUVFQ5CV6AUZUQPPUPM7TUDGEKADOD5NJ6Y5Y4CFJFXSSMMWWFWPOD6FSGO52JI4YKXW3ELN4
-#\\\|L6KCUIU56DCI3CQWTGL2NOHAH2FL3QJE5QOTAU5N56SDIU32N6U \ / AMOS7 \ YOURUM ::
-#\[7]TQCE3ZSK5AUVSIKKPJ3L4YUCWYJFWML736TW4HO37YRPZW56JGBA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,..,,..,,.,.,.,.,..,,.,.,..,,..,,...,...,.,.,.,,,,.,,...,.,.,
+#XSSZVSPIDL34NKUHDFLY76DQ3OP3DIA2Y6N6SPFH3TGKGSFAJ5JWKZBBW42D4RS42HVOLCV4IZ47W
+#\\\|HHRSCCZCERGPU3NC4WIGKPMQJJS724E2X4OVB2C7PDTFVSQXN6M \ / AMOS7 \ YOURUM ::
+#\[7]C5BVDLWRMGMNDP4HVFVCWA5YCCJVCDRMWQ4KEHCMUCIGP5KVR6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

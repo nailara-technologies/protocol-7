@@ -246,9 +246,9 @@ a3da12dfb feat: Implement nested skin system with menu generation (Phase 3)
 - `PHASE_4_INTEGRATION_TESTING_GUIDE.md` - Testing framework
 
 ### Configuration
-- `configuration/zenki/httpd/start` - HTTPSD startup
-- `configuration/zenki/web/start` - Web zenka startup
-- `configuration/protocol-7.src-ver` - Version tracking
+- `cfg/zenki/httpd/start` - HTTPSD startup
+- `cfg/zenki/web/start` - Web zenka startup
+- `cfg/protocol-7.src-ver` - Version tracking
 
 ---
 
@@ -344,8 +344,8 @@ cat modules/httpd.route_dispatcher
 
 **End Session Summary**
 
-#,,..,..,,...,.,.,,,,,.,.,.,,,,..,...,.,.,,,,,..,,...,..,,..,,...,...,,,.,,.,,
-#EPA52HJTKAZOV4T2NVRPCIWU3POZQV52YJQZJ7OTZMNLGWMRHIZSZ462C3FRHPCCYM5IHCLWULVAU
-#\\\|YFVG4GCIE4HH5EY6FHHI3ZJUA6PHUZEVEN3TWGFTCDW7FP3RAD5 \ / AMOS7 \ YOURUM ::
-#\[7]NF4WSNGU26OYOUWJO4CQJTCU3RRLAZHQPNSRGDMCBLGS7XL7RSAY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,..,,,,,.,.,.,,,.,.,.,,,,..,.,.,..,,...,..,,...,,..,.,,,...,.,,,
+#USIUH3NE4QEF3DA62TPDM7H3QMJG65XPYQSHH5Y7XVXES6BZGVNLRMDNNSZARIDD2SWW4V7SDCCGY
+#\\\|UQVC5H5TI3TZWFSFWK7OWARWEDBC7IQPJ4MOPU7K25UUJ2BSXQT \ / AMOS7 \ YOURUM ::
+#\[7]VX5I3ZNAMOM2EFBJP7MNS4UB2K24BMYEBRZLJMKSVQV24IZVFECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

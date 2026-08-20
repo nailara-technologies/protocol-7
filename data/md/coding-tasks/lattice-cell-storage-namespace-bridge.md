@@ -249,7 +249,7 @@ add cell initialization after address init, before `0;`:
     ## initialize cell storage ##
     <[graphics-matrix.cell.init]>;
 
-### configuration/zenki/graphics-matrix/start
+### cfg/zenki/graphics-matrix/start
 
 add `cell` to the access.cmd.usr.cube line.
 
@@ -265,8 +265,8 @@ add `cell` to the access.cmd.usr.cube line.
     verify cell.query accepts both hashref and string address
     verify cmd.cell survey subcommand feeds glow.compute and displays result
 
-#,,,.,,,,,.,,,.,.,,,.,.,,,.,,,...,.,,,,,.,.,,,..,,...,...,.,.,,,.,...,,.,,.,.,
-#6AWPK27G545VVLXBUYPWULVY6MJXKD2FK4YFVVDSITTPD6D5TM3ENWXUXJ5J4XMWEPIRAPNZ7I7BG
-#\\\|DWVVJS6TA7HCRMMVKGJEGH3DGWCKXPCE5XKHSG2YOA75FDP24XB \ / AMOS7 \ YOURUM ::
-#\[7]BIWBB2FLQVBD5YWA5ZEUE3CQFEWGW6SE4JQEM3BF25JNTNFLOODA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,,..,...,.,.,.,.,,,,,,.,,..,,..,,...,.,.,,,.,,..,.,,,,..,,.,,
+#U4LL6X4FIAUTXJPN7KZ7LTWLX3N4CW2NQL6RJH2F4FAUBX7WCG6BNC6ETPL7NXNFYFNZ2D2NJX6ZI
+#\\\|CDPRAI7ICZ6FB5CPYRLV3DNCPM5LMOUATEAEOTQYV4U45IARD4H \ / AMOS7 \ YOURUM ::
+#\[7]3NPPYMCBMHJSZKSVU5B6NFSES33XZUGDLCSR2GOZ4IKFRTX5OICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -215,7 +215,7 @@ Test context routing commands to other zenki (via delegate):
 
 ## Cube Access Configuration
 
-Ensure `configuration/zenki/cube/access.zenki` contains:
+Ensure `cfg/zenki/cube/access.zenki` contains:
 
 ```
 access.cmd.usr.context = * *.*
@@ -223,8 +223,8 @@ access.cmd.usr.context = * *.*
 
 This allows other zenki to route commands to the context zenka.
 
-#,,.,,,.,,,,,,,..,,..,..,,,,,,.,.,,,.,.,,,,.,,..,,...,...,,,.,,,,,,,.,,,.,...,
-#FELOV6GEAGDRB5KRHCOSI6HYOQJDPO2MD7HTKIAYF55VCFO2G54L43JWUMP7WDGMBVM2HMQ4EQRVS
-#\\\|QLQO37OJFF7T2GWSOTYZXFIOUQG2NOYWODM6QPKQ5GLWRINV5Z6 \ / AMOS7 \ YOURUM ::
-#\[7]WKAM5QGROGXU2LCM4SUICVZFVACFNJCWWC27WEPE36LBNCTF7YAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,,.,,,,,,...,.,,,,,.,..,,,,.,..,,...,...,.,.,,..,,.,,.,,,,,.,
+#WKULBCCBB2NGCLXOCN2PRH4B7ZQDPJQL5634M7OHQCWU5EUBGCG43CUBHH5O5GKBAYXT4KKGFSUT4
+#\\\|ETJYFZPHGLADL3D2XFWVX5TKDOPYFX7AQAZW56ZZ5LIDRARUIKE \ / AMOS7 \ YOURUM ::
+#\[7]ELDHJQYFJ5FBK4TMKIRZYLJ73LYPRB6VVPTNUGSI6GT54BWNCUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

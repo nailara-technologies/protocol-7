@@ -23,7 +23,7 @@ metadata:
   existing_work:
     - "Async file transfer system in httpd.file_transfer.* modules"
     - "Event-based I/O handling with base.event.* modules"
-    - "Template zenka configuration (configuration/zenki/template/)"
+    - "Template zenka configuration (cfg/zenki/template/)"
     - "Template.init_code (exists, needs refinement)"
     - "HTTP handler patterns (httpd.http_get, httpd.http_head, httpd.http_options)"
 
@@ -63,7 +63,7 @@ phase_1_analysis:
         - modules/httpd.path_info
         - modules/httpd.send_error_page
         - modules/httpd.new_header
-        - configuration/zenki/httpd/start
+        - cfg/zenki/httpd/start
 
       deliverable: "HTTP Handler Architecture Document"
       priority: "high"
@@ -81,7 +81,7 @@ phase_1_analysis:
         - modules/httpd.process_template
         - modules/httpd.handler.template_reply
         - modules/template.init_code
-        - configuration/zenki/template/start
+        - cfg/zenki/template/start
         - Any *.tmpl files in /var/httpd/
 
       deliverable: "Template System Architecture Document"
@@ -262,7 +262,7 @@ phase_3_implementation:
     title: "Stage 3: Refine & Complete Template Engine Zenka"
 
     note: |
-      Template zenka configuration already exists at configuration/zenki/template/.
+      Template zenka configuration already exists at cfg/zenki/template/.
       This stage refines the existing template.init_code and implements missing commands.
 
     tasks:
@@ -275,7 +275,7 @@ phase_3_implementation:
           - Add proper error handling and logging
 
         current_status: "AI-generated, needs refinement"
-        files: "modules/template.init_code, configuration/zenki/template/start"
+        files: "modules/template.init_code, cfg/zenki/template/start"
         output: "Refined template.init_code"
         priority: "high"
 
@@ -362,7 +362,7 @@ phase_3_implementation:
           - Setup certificate paths
           - HSTS header configuration
 
-        modification: "configuration/zenki/httpd/start"
+        modification: "cfg/zenki/httpd/start"
         priority: "high"
 
       - name: "Create httpd.tls.pre_init"
@@ -529,12 +529,12 @@ resources:
   - "Main codebase branch: base"
   - "Documentation: data/asc/LEVEL-3-ARCHITECTURE.md (just committed)"
   - "Dependency system: Just integrated (v7.verify_and_install_zenka_dependencies)"
-  - "Template configuration exists: configuration/zenki/template/"
+  - "Template configuration exists: cfg/zenki/template/"
   - "Existing patterns: review modules/httpd.* and modules/base.event.*"
   - "Task framework: Use ./bin/Protocol-7 workflow overview to track progress"
 
-#,,,,,,,,,...,,.,,,..,,..,.,,,.,.,,.,,...,,..,..,,...,...,.,,,,.,,,..,,,.,,,.,
-#W5CRPXITIVSRJISI57LGM3NBT7V76DHX66KSHCC5VGNJ7J5LUFO3FSUUGSDKR2TD6G2WPZJCHDOZE
-#\\\|TYRNTLWSJEWBXB3H5767ECOO4HXU3O4MEXSTEXKY2K3WW3STGXJ \ / AMOS7 \ YOURUM ::
-#\[7]24Q7TXLLIHLWAZL2E3KTV7K6MJVRE3GQ4XUICVSX5ZYBEITXIQCI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,,.,,,.,,.,,,.,,,,,,,.,,.,.,..,,...,...,,..,...,,,,,,.,,,,.,
+#UHYL65LZJGHONZA6NV3CTT7XWHG7M6ZUWHKHLZTCAWVN4RDUAVNLLSDUSG3RY2Q3N4PSOJZ7B62HQ
+#\\\|3MW5HQZNZLB7WYAHHXLJTN3VYQVXQN776YP656ZBHJQ6X5CVAWF \ / AMOS7 \ YOURUM ::
+#\[7]4E5ENLNXQI3RXFRE7RTJVVJG77E5WQUW4ATCMM5HLGXYU4SVDMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

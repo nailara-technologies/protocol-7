@@ -83,7 +83,7 @@ exercised for real. verify, on a real host:
 - `sys-deps` zenka starts on-demand, reads `var/sys-deps/tracked.yaml` on
   init, `sys-deps.cmd.undeclared` shows the tracked-but-undeclared package,
   `sys-deps.cmd.promote <pkg> <zenka>` writes the empty marker file to
-  `configuration/zenki/<zenka>/os-dep/debian/<pkg>` correctly
+  `cfg/zenki/<zenka>/os-dep/debian/<pkg>` correctly
 - `bin/p7-deps check` / `bin/os-pkg list` reflect the same state a running
   zenka would see (same `AMOS7::deps::*` backend, should already agree, but
   confirm)
@@ -108,7 +108,7 @@ verbatim: delete everything marked "retire" or "absorb into ..." (the absorb
 targets already exist in `AMOS7::deps::*` / `sys-deps.*`, confirmed present
 this session), keep `debian.cmd.install-history` and `base.debian.install_package`
 exactly as the audit says. decide separately whether the `debian` zenka
-config itself (`configuration/zenki/debian/`) still deserves to exist purely
+config itself (`cfg/zenki/debian/`) still deserves to exist purely
 as a home for `install-history`, or whether that command should move to a
 `debian-utils`-style zenka / standalone script instead, per the audit's own
 open question.
@@ -129,7 +129,7 @@ to the dependency-check half.
 after tasks 2-4, regenerate whitelists for every affected zenka
 (`v7`, `debian`, `session`, and anything else touched) via
 `bin/dev/gen-sub-whitelist`, then sign with
-`bin/Protocol-7 sourcecode update-signatures configuration/zenki/*/subroutine.white-list`.
+`bin/Protocol-7 sourcecode update-signatures cfg/zenki/*/subroutine.white-list`.
 run `v7.show-buffer undef-subs` after a real reload to confirm it's clean.
 
 ## signatures note
@@ -151,8 +151,8 @@ it. existing signatures on files you don't touch must not be modified.
   namespace-split gap — see that session's commits (`81403b3b8`, `c06c9d503`,
   `c80dfacfc`, `e1ca9351e`) for the trail that led here
 
-#,,,.,,,.,..,,,.,,,,,,,..,..,,.,.,...,,.,,..,,..,,...,...,,..,.,,,..,,,..,,..,
-#CJVM3PWVQMHHJEVWJYD6LQYNRAOWLGWZXY6ANPPL2UOFCRFPVBTZQNSTS66UK7M5QCOTKC66DLMCW
-#\\\|VID7BGPPHPZNQ65LET6POQ34LS4GVEXF3YOFH5NW3GYH3TS5SFQ \ / AMOS7 \ YOURUM ::
-#\[7]LHNM7BKO5WOLMHM6HMGZ7XQYSCQZGXDFCD75WZWFDNJ2O7FULUCA 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,..,,,,.,,,.,,.,,.,,,,..,.,.,..,,...,...,...,,,.,...,...,,.,,
+#IQUKKRD23GHKPWSHSR3TEYNJYJ55R7XFUHZT76LZIHDTG5TYI3736AJUCVWVCD2CTT7BGZSNVH342
+#\\\|WJ2PKW37BSAUBBIJPETPJB6YG6L756IKTR546XQ5JQPDOO7YPYF \ / AMOS7 \ YOURUM ::
+#\[7]F5GA6PN7R3SBH354QJK5Z3LKAJATAJW25WQW2B3THTCWNGPWOOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

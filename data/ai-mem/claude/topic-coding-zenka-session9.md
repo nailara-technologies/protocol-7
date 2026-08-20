@@ -44,7 +44,7 @@ originSessionId: 52ad77e6-5a2e-46a3-8178-ddcc1f410e55
 - `exec @cmd` list form avoids shell quoting issues with long B32 strings
 
 ### planned: model config and per-task model selection
-- Add to `configuration/zenki/coding/start`:
+- Add to `cfg/zenki/coding/start`:
   - `coding.cfg.base_work_model = <amos-id>` — default task model
   - `coding.cfg.base_compaction_model = <amos-id>` — faster model for compaction
 - Per-task model via `:model:<amos-id>:` keyword at start of prompt/task file
@@ -87,8 +87,8 @@ code path. Recovery is manual:
 
 [[coding-zenka-improvement-pipeline]]
 
-#,,..,,.,,,..,,.,,,.,,.,.,,,.,,..,,..,,,.,,,,,..,,...,...,..,,..,,,..,.,,,..,,
-#F6EDLRZK4XULAM7SIBQMWSDS5J7VZAA7V4QS6I5B4WNR5JBYNYUKH5TN6W42JQGHB3SUC4J4GVVAQ
-#\\\|4SQGHWB4FPSLSHTS344CM65QANHTOFSNO3UGK7WLQ34YKDX4D6R \ / AMOS7 \ YOURUM ::
-#\[7]HSTUEJKD3D65PYF6U4MO7HNTSEOHS5J3LCGGHF6OXUUISDYNB4BQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,.,,,,..,.,.,..,,.,,,,,.,..,,..,,...,...,..,,,..,,..,.,.,,.,,
+#4TVYQTYLVG67SSWCYYW6RQUBLG6NJJJPBMTHOK7RGW7JLQZUOHGC25JIYJVB4MQKKAL3IIL5HHHDA
+#\\\|5FOJ3KKZKBMGGKRUQZWHLC4MAXRWAI3NHDNF6RA6YMA2CJA36E7 \ / AMOS7 \ YOURUM ::
+#\[7]HTMVJ24L24KMGWEMHBVXXETXMOU5BJVQZBB26JGSL6553VRGOKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

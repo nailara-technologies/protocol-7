@@ -25,10 +25,10 @@ The initial report said "no change" after the viewport code was added. A tempora
 - `modules/user-edit.form.render`
 - `modules/user-edit.setup_stdin_watcher`
 - `modules/user-edit.handler.term_resize`
-- `configuration/zenki/user-edit/subroutines.load-early`
+- `cfg/zenki/user-edit/subroutines.load-early`
 
-#,,.,,,.,,..,,.,.,,,,,,.,,,..,...,,.,,.,.,,,,,..,,...,...,.,.,.,.,,,,,...,,..,
-#XHNW245Y2P4MAVVORIUCKUAJM5XU5ISI5575FAFRNIBJ264RTGEAYDCR4T2IWNXBFIBHTY5BREOC6
-#\\\|GOY5H3PWG2LJ2HSI3W2TC6S2XKE4GSWCQIO6FYRO7XWIX76OMPF \ / AMOS7 \ YOURUM ::
-#\[7]PIKUFZFQ3TZAQEKZFSWIA54KZODPWZQWL3JSASAEWARH7VQBG6BI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,,,,,,,.,,,.,,,,,...,.,.,,.,,..,,...,...,.,,,.,.,,.,,,.,,,,.,
+#YM4VM5LMAS3D52S6XVWRP7IRW2MQSX6B3Y6HNJ6HFMBHWQRFXI5ARQXKA3DMJVIAKCKJRD75KQXOQ
+#\\\|NAYMEW4XV37O4XUTD7WDV5NQC7JRCKVZNRW3WWAY2HNXSAUOQRP \ / AMOS7 \ YOURUM ::
+#\[7]C245UBYMWHWFBWZXCE5CIMYN3QZZYA5RSCQRD3V6M2TR7NANE2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

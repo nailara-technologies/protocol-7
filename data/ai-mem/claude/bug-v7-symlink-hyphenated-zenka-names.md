@@ -45,7 +45,7 @@ zenka-name derivation ~330 lines above it matches `m|^.*v7\.|i`.
 **Per user: `p7.*` is the OLD symlink form, `v7.*` is current** — so the
 peek silently never matched for any symlinked zenka, fell through to
 `$ARGV[0]` (i.e. the console command name, e.g. `commands`), found no
-whitelist at `configuration/zenki/commands/`, and returned early.
+whitelist at `cfg/zenki/commands/`, and returned early.
 
 Non-fatal on its own — it only means the early whitelist isn't loaded, so
 everything compiles eagerly instead of on demand — which is exactly why
@@ -63,8 +63,8 @@ Found while landing `user-edit`'s first console command; the user
 spotted the `p7.`/`v7.` mismatch and correctly predicted a second,
 `'-'`-related bug rather than accepting the first fix as complete.
 
-#,,,,,.,,,..,,.,,,.,,,,,,,.,,,,..,...,,,,,.,.,..,,...,..,,.,.,,,,,.,.,..,,,..,
-#IKAMUGCDUCIQGKL3BKX7AMWJEOWE4EQ4UQ2FLIGA6HO46VYWPMX67RCDRJXYWHLILZXMANIISHCNK
-#\\\|GXOSVMX4OL26UF5LPP5N3Y3QR445THBDEJQE3BRWTGRSDJ7TDEH \ / AMOS7 \ YOURUM ::
-#\[7]H3NJVG6LGSN6RNVF4WD7AAQUKMMAPPLQXB2L2U3XAFWBHHLMCACA 7  DATA SIGNATURE ::
+#,,.,,...,..,,,.,,..,,,.,,,,.,,..,,,.,.,.,..,,..,,...,..,,...,.,.,,..,..,,.,,,
+#ZBJDAQPOJGEOBGO5AJV4XCEJCIOHVWC3EJNNNSM2ZG74E2BTELY55RK5G5SZDAYGJGWYVTBTJ2OHM
+#\\\|WAULHYF7KU3RD425A7N5FVGTEWO4AIMDS4KYUF6WT4NZGRJK6ML \ / AMOS7 \ YOURUM ::
+#\[7]KWNTMK6P56X5EQXSHCHYZJDHTM3EKTWXZPXWXX4VZ4UJVVYNX2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

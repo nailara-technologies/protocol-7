@@ -31,7 +31,7 @@ do not add or modify subroutine whitelists — these are managed separately.
 cat modules/web-browser.open_window
 cat modules/web-browser.init_view
 cat modules/web-browser.init_code
-configuration/zenki/web-browser/zenka-startup.v7
+cfg/zenki/web-browser/zenka-startup.v7
 ```
 
 understand how the `WebKitWebContext` is currently created in `open_window`,
@@ -136,7 +136,7 @@ return "cookie policy: $policy";
 
 ### 5. add commands to start config
 
-file: `configuration/zenki/web-browser/zenka-startup.v7`
+file: `cfg/zenki/web-browser/zenka-startup.v7`
 
 add `cfg.ephemeral = 1` under the existing cfg settings (or confirm it's not
 already there). this makes ephemeral the default without needing init_code change.
@@ -162,8 +162,8 @@ already there). this makes ephemeral the default without needing init_code chang
 - [ ] no persistent storage created during normal rendering-engine operation
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,.,,,,,,..,.,.,,.,,,,.,..,,,,,,,,,,.,.,...,..,,...,...,.,.,..,,,.,,,,,,,..,
-#OMLSLJOXOTG26KRA3CLCNNBKOHQKACNBGV73LDWPKR5M5352IFDBQX2CZ6MYIGJAJ4HAFCTAOBSW2
-#\\\|MDYIPJH4X5E6WDXWZ3WB6WSEUFYDPFFWH72CXFH2LQ63RIDGOFM \ / AMOS7 \ YOURUM ::
-#\[7]IUWYFQZAVV6GSOG6KIJTXBONHBJNGBWCMZV6TD75IO2O4XJOVABY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,,..,.,,,..,,.,,,...,...,.,,,..,,...,...,..,,,,,,..,,.,.,.,,,
+#NJIPBXHAEPWQUNHPT54TRJ7UMTHW2TTKFZYDK4S7AMLQWOKLKT44NOA3K2BCF2PHSLZXH5OUDSHOG
+#\\\|BS2XOM7NTO4BWYZCRBGBQFP2Y7WFA4DFJAPKE3AOAGR3A4BPMZ2 \ / AMOS7 \ YOURUM ::
+#\[7]OW23NKXJLQWTJ53J4GMLLNUJRXFNGGHY7FLRRAAGOWMKOHHRZYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,7 @@ and any future host (comfyui, a1111, etc.) without touching core storage.
     models.storage.tier_management  — tier lifecycle
     models.storage.get_tier_path    — resolves tier root paths
 
-    configuration/external-inference-models:
+    cfg/external-inference-models:
         external.models.invokeai.path  = /mnt/ext-xfs-data/models-invoke
         external.models.lmstudio.path  = /mnt/ext-xfs-data/models-lmstudio
 
@@ -166,8 +166,8 @@ step 4 — export/import (collection profiles)
     - yaml snapshot format definition
     - invoke.import for fresh-install bootstrap
 
-#,,,,,,..,,..,..,,...,.,,,...,,,,,...,..,,..,,..,,...,...,,,,,...,,..,...,.,.,
-#65NPZLUN2C4RQDKJHYRUTBO5RRAYXTC5FDLS24ME2LABGJ2WSMZNBLF6KRXKDRY3SCKXHOK36TMDW
-#\\\|G5TVYYVQ2YOFJS45UDMXIWT6S3XCNC7AEC5IJGUQI57K77ZCVRB \ / AMOS7 \ YOURUM ::
-#\[7]6SRRUNAFFSVMJYHXQX5K6HYWEZCHT6FMTYKAMQSVQMH24QR4O4BQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,..,,.,.,,,.,.,,,..,,,,.,,.,,.,.,..,,...,..,,,,.,..,,.,,,,.,,,..,
+#QI4NZMI6WOBDJ2JUG3RP4IJICNCM2CB5AIYBZ7O7E4CAZYXDS2PAQPHEVCA2VERSWPFVITTO2PZMW
+#\\\|V5DM5UONTT5NGR6M5GCMYRXH56OVU7B4LN77ISGZVFO5FJ6PZAK \ / AMOS7 \ YOURUM ::
+#\[7]2XBYWYWEU5VQANV7SLU2CSFKUSSP7FPZSK65ZTYBVZZEIL344YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

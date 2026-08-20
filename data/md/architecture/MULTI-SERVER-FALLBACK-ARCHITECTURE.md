@@ -12,7 +12,7 @@ The coding zenka needs to support multiple llama-server instances as fallback op
 
 ### Server Registry
 
-Configuration file: `configuration/zenki/coding/llama-servers`
+Configuration file: `cfg/zenki/coding/llama-servers`
 
 ```ini
 # Server registry with priority-based fallback
@@ -197,19 +197,19 @@ sub invoke_with_failover {
 
 ### Existing Coding Zenka Files to Modify
 
-1. **`configuration/zenki/coding/start`**
+1. **`cfg/zenki/coding/start`**
    - Load llama-servers configuration
    - Initialize server registry module
    - Start health monitor child process
 
-2. **`configuration/zenki/coding/zenka-startup.v7`**
+2. **`cfg/zenki/coding/zenka-startup.v7`**
    - Add server registry settings
    - Add health check parameters
    - Add failover configuration
 
 ### New Files to Create
 
-1. **`configuration/zenki/coding/llama-servers`** - Server registry
+1. **`cfg/zenki/coding/llama-servers`** - Server registry
 2. **`modules/coding.server.registry`** - Config management
 3. **`modules/coding.server.health_check`** - Health monitoring
 4. **`modules/coding.server.router`** - Server selection
@@ -324,8 +324,8 @@ coding.llama_invoke:
 - `bin/dev/tests/ml/test-llama-server-gpu.sh` - Test script
 - `CLAUDE.md` - Project overview with zenka architecture
 
-#,,.,,...,,..,.,,,..,,...,,.,,.,,,,,,,,..,.,,,..,,...,...,...,...,..,,.,.,,.,,
-#CKQSLGNSZNHR65LNNVGH2BYBEMYT3YTVAJNG2ADTK42EJ27RM6CDGYF5P3BJERHKXH2SBKTEEJY3I
-#\\\|Y37JM3SEXHIZ7I4LIOKY3NBZE3O5SXODJ5FDOGWMSFL5CHKWFZJ \ / AMOS7 \ YOURUM ::
-#\[7]4QDASIR5FWYPOK2UPO2I7OWI3IPENW4UA5OXE6NTTBP3E5H66MDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,.,,,.,.,.,.,.,,,.,,..,,,,,,.,,..,,...,..,,.,.,.,,,,.,,.,.,,..,
+#GXYM5KFGYECVB4EGIXXKPJN4YN6LU2KDELVKY6ZSY5J4KBVHIWZNKLPV6E5265I2WVS5GHJSLKRTQ
+#\\\|GZWSIXTOYEJ5GAX4H5Y2U4YMKSGCYNGZ23TZQP5DWX7PL7FTVZG \ / AMOS7 \ YOURUM ::
+#\[7]UCPBGMEXGUGTTDUGVRHWZFYPUNVHRAL6CFWX2HU6WSWZCEBXPMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

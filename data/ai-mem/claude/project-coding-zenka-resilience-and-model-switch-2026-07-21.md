@@ -47,7 +47,7 @@ dispatched the same "migrate raw open() to file.* routines" task across several 
 candidates as a real bake-off: OmniCoder (DVEAZIA:GPAKBLA) dropped newlines reconstructing
 a string (misunderstood `split` LIMIT semantics); Sushi-Coder-RL (UU4JSVQ:MEHBONI) staged
 the wrong variable entirely (one new line instead of the whole file) — both models
-demoted/removed from `configuration/zenki/coding/start` candidate list as a result.
+demoted/removed from `cfg/zenki/coding/start` candidate list as a result.
 `file-io-fix.yaml` itself strengthened with a dedicated warning section citing both real
 failures — the pattern both times was the seam between per-line-array/filehandle code and
 the single-string argument `file.slurp`/`file.put` actually take.
@@ -122,8 +122,8 @@ function returns hardcoded fake data). neither schema has a `model_id` field, on
 the same backend slot over time. relevant if/when model-comparison-statistics work
 (discussed, not built) picks up.
 
-#,,.,,,..,,..,,.,,.,,,.,.,,,,,..,,..,,,,,,.,,,..,,...,..,,,.,,...,,,.,,,,,,..,
-#5MEL7PFC6TDPUIQAD6OPHP3FGC4YIBAPM6UNOPIBJ5PUCNKHCE7IMNLFKZZUJNGFCSFJVFM53KUDE
-#\\\|A3ARGUDZFEUVDMMS2EFSJVLXNA6P6AAIEBVXZL54USNP3VHNDDW \ / AMOS7 \ YOURUM ::
-#\[7]2QOOYYKXAOZNJHIKTRVFXAQHPMYM4XZFLWZQGBRYEIGVJJ6TWYAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,,,,,,,.,,..,,.,,,.,,,..,...,..,,...,...,,.,,.,,,,,.,,.,,...,
+#7YQITGWKDDMCRX4EGSN2NR6EPGUTMRFZHJ3HG25PYK7GBSMY7JAGVEUMKFWTCFND7PWOIEP7IG7QU
+#\\\|VG32AD2ICZMNR3U4AWPKSTAKS2O2ZY6RHGQHCWX6ZVO6ENVYSZ3 \ / AMOS7 \ YOURUM ::
+#\[7]XYW2BKG6Q2ZRFZTCTJKVNIPZLZH3RC7ZNWV5SAX4OR5STNQKIABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

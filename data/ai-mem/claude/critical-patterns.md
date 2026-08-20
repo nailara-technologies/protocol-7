@@ -88,7 +88,7 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 - `file.zenka_dir.data_path` returns caller's zenka dir not owner's
 
 ## Config keys
-- `coding.cfg.*` / `httpd.cfg.*` keys go in `configuration/zenki/<name>/start`
+- `coding.cfg.*` / `httpd.cfg.*` keys go in `cfg/zenki/<name>/start`
 - Never create `modules/<zenka>.cfg` — loader treats it as a Perl sub
 - Never set config key to empty string
 
@@ -149,8 +149,8 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 ## ptd usage
 - Use `ptd` (not `ptd -c`) after writing modules — formats + checks syntax in one pass
 
-#,,.,,...,...,,,.,,.,,...,,.,,,,,,,,,,,,,,,,.,..,,...,...,..,,,.,,...,..,,,,,,
-#5FHGO5U4YV6CK2JXWGWYFCNAR54NDUSS3EFJYUH5QNZWBFXBL55GBBHBTOOHUV7MVOKGCR2BV23CM
-#\\\|MHSXQ4TJIT5RDDMRUOHLTOBFMI452OBH4AV3U4BOEQAKU4SX3O3 \ / AMOS7 \ YOURUM ::
-#\[7]TN2QXGJ7AL2RYGOLVZGOPRRQQMUIZAGASI4NZTPAJDVTAZBPEKDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,,,,,.,.,,,.,,,.,,,,,,..,,.,,..,,...,...,,.,,,,.,..,,.,,,.,.,
+#IRJHXCNLNO3BZQ6OTKGG5T5MC46555KQANCHPIZDNJMK5CVTCNNYDA65E2HDMBJMBPDMHUZDY4LF4
+#\\\|L5T4SKOUQQMOM2TKMI2KDUAQLSCYA7F3UPJU7EZP7DUX6IVEZCK \ / AMOS7 \ YOURUM ::
+#\[7]WETVQOZRWGVSI5GGD7M42D6FNMJ62VOZF5EPS6YSF5M7HIKTOKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -99,7 +99,7 @@ decorative top → leading `..` explodes, e.g. `............[ … ]`). confirmed
 modules/ascii.frame.load               modules/ascii.frame.render
 modules/ascii.frame.render.border_line modules/ascii.frame.render.color
 modules/ascii.frame.init_code                         (NEW)
-configuration/zenki/memory/source/ascii.frame.init_code  (NEW source marker)
+cfg/zenki/memory/source/ascii.frame.init_code  (NEW source marker)
 data/yaml/ascii-frames/memory-tree-root.yaml
 data/yaml/ascii-frames/feedback.yaml
 data/md/handover/CLAUDE-CATCHUP-2026-06-04-s3-frame-idiom.md   (this file)
@@ -114,8 +114,8 @@ plus auto-generated whitelist / src-ver / dep-graph as usual.
   the NEXT layer after convergence; genuinely kimi-shaped work, unlike this taste-laden pass)
 - prior: git `e8eedf1de` (s3a), `7f2c04a03` (s2)
 
-#,,,.,.,.,,.,,,,,,.,.,.,,,,,,,,.,,,..,.,.,,,,,..,,...,...,..,,,,.,...,,.,,,..,
-#4KY5A5G4G7KHL23UDD7VYXUFS3UYT2DSRYCWLFDHMNYYEIXC4HUMS46ZLICASFH4ASY32OZTBJXXK
-#\\\|L2M6KPEBLJUT7AVM672YY3TAV3XRGGX36PLWLK2NNHMDFAICHOB \ / AMOS7 \ YOURUM ::
-#\[7]HMPWQ3M7LTV6NFQHDAK3JP6DIJMNPXH3VVX6HWYG3UYV7H22IWAA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,,,,,,,.,,..,,,,,.,.,..,,...,..,,...,...,,.,,.,,,..,,,.,,.,,,
+#ND45VGVKUWKPVXN2QFTF6UIUQBEP6AZZVVOC3FBIFUSUGXWLSC6PY7OTPFLHCNUKYSPHPYKDTZPYA
+#\\\|6GL35OXZB44UMW7QLVNMJS2Y37HHXWMGFQAHUCKRFWOS5EAWDDT \ / AMOS7 \ YOURUM ::
+#\[7]45QUSXX7HSNNVL3AYONLI7YM63ACPAGJBSMJOL5AR5VCOE2M7ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

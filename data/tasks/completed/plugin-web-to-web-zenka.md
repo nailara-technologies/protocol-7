@@ -17,8 +17,8 @@ the correct architecture:
 
 ## read first
 
-- configuration/zenki/httpd/start          (current httpd config)
-- configuration/zenki/web/start            (web zenka config)
+- cfg/zenki/httpd/start          (current httpd config)
+- cfg/zenki/web/start            (web zenka config)
 - modules/plugin.httpd.radio.handler.stream_request  (route-send + reply pattern)
 - modules/plugin.httpd.radio.handler.strm_open       (SIZE reply handler)
 - modules/httpd.route.handler.iris-svg               (current iris handler)
@@ -26,7 +26,7 @@ the correct architecture:
 
 ## step 1: httpd cleanup
 
-in configuration/zenki/httpd/start:
+in cfg/zenki/httpd/start:
   REMOVE: [base.white-list.register:'plugin.web.jobs']
   REMOVE: plugin.web.jobs from plugins.load
   REMOVE: plugin.web.iris from plugins.load (if present)
@@ -35,7 +35,7 @@ in configuration/zenki/httpd/start:
   (radio stays in httpd — it uses the STRM open-ended stream pattern
    which requires direct httpd socket access)
 
-in configuration/zenki/httpd/routes:
+in cfg/zenki/httpd/routes:
   keep: GET /iris/svg     httpd.route.handler.iris-svg
   keep: POST /iris/route  httpd.route.handler.iris-route
   keep: GET /jobs.json    → change to route through web zenka
@@ -43,7 +43,7 @@ in configuration/zenki/httpd/routes:
 
 ## step 2: web zenka loads plugin.web.*
 
-configuration/zenki/web/start already has:
+cfg/zenki/web/start already has:
   plugins.load = plugin.web
   [load_plugins:<plugins.load>]
 
@@ -124,7 +124,7 @@ $session->{'buffer'}->{'output'} .= $data_ref;
 
 ## step 4: update httpd routes to use web-relay
 
-in configuration/zenki/httpd/routes, change:
+in cfg/zenki/httpd/routes, change:
   GET   /jobs.json   plugin.web.jobs.data
   POST  /jobs-sync   plugin.web.jobs.sync
 
@@ -146,7 +146,7 @@ in the web zenka, add command handlers that the relay calls:
 these exist already in plugin.web.jobs.* — just need to be accessible
 as commands from outside the web zenka.
 
-add to configuration/zenki/web/start access.cmd:
+add to cfg/zenki/web/start access.cmd:
   access.cmd.usr.httpd = jobs.data jobs.sync ...
 
 ## step 6: iris web zenka integration
@@ -158,7 +158,7 @@ as the SIZE reply handler — it just writes SVG to the http session.
 ## step 7: add web zenka to httpd access.zenki
 
 if not already present, httpd needs permission to call web zenka:
-  in configuration/zenki/web/access.zenki or cube/access.zenki:
+  in cfg/zenki/web/access.zenki or cube/access.zenki:
   access.cmd.usr.httpd = jobs.data jobs.sync visual-wheel ...
 
 ## minimum viable migration (do this first)
@@ -190,8 +190,8 @@ new modules: leave clean. existing: re-signed on commit.
 $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 
-#,,,.,.,,,...,...,.,,,,,.,,..,..,,...,,.,,,..,..,,...,...,,.,,,,,,.,,,,.,,,,,,
-#JY64I5RNK2FBOEUE7H7AN6ZVBHEAH7L5O7M5MSCTXH6JTYKCCCNXO3ZIHFB6VG3KSEOKJXSBQKBDC
-#\\\|7V45UGGA2PQIADIVT7TGULYERMRD6KK6NFKMXM75ECC554RSQ7J \ / AMOS7 \ YOURUM ::
-#\[7]K3TWXSQRICIQG5B4C444FKIDUGATFKQ6XDGL4JKN7MQ4JLR5GKAY 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,,..,,.,,,,,,.,.,...,,.,,,.,,..,,...,...,..,,,..,.,,,.,.,,..,
+#IGMLU63AYQQEW5ONF4QFL4ADBOGIK4NPU3LIZY5EDKU45TV25UGOOIHRNXOSCNNLRG4LUCVOVBRTK
+#\\\|3EP6GFZTG2NUDQN4NJVERZE2BOGPVUD3P3IR3QQTCM5SOXKYGJP \ / AMOS7 \ YOURUM ::
+#\[7]SEZIK7E32AY7NFRAOEYT3EKJUAESE74ZDEGCN4PRKFK3VVGE72BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -343,7 +343,7 @@ discovery_integration:
     deferred reply once the async round-trip finishes). Verified via a
     loopback self-test against this host's own cube (127.0.0.1:42,
     identity 'test-auth-keypair', narrow access.cmd.usr.test-auth-keypair
-    = users.remote-get grant in configuration/zenki/cube/access.users) —
+    = users.remote-get grant in cfg/zenki/cube/access.users) —
     reliable across repeated runs, correctly rejects unknown users, no
     session leaks. NOT implemented in this slice: discover.orbital.known
     -> host:port resolution (still takes an explicit host[:port] arg),
@@ -617,12 +617,12 @@ external_source_hooks:
     wrong for this half): key generation is NOT a cross-zenka operation.
     users zenka should simply load crypt.C25519 directly into its own
     modules.load, exactly as the keys zenka's start file already does
-    (configuration/zenki/keys/start:8, `modules.load = crypt.C25519
+    (cfg/zenki/keys/start:8, `modules.load = crypt.C25519
     terminal keys`) — plain in-process module loading, nothing
     routable. crypt.C25519 already has a complete "ensure key
     loaded-or-generated" interface, just needs enabling: shared-params
     already sets `crypt.C25519.autocreate-user-key = yes`
-    (configuration/shared-params:22), and crypt.C25519.post_init
+    (cfg/shared-params:22), and crypt.C25519.post_init
     (lines ~44-61) checks on every init whether the private/public key
     files exist for the current key user and, if not, auto-generates
     and writes them via crypt.C25519.gen_keys + .write_keys — entirely
@@ -669,7 +669,7 @@ external_source_hooks:
     RAISED then EXPLICITLY DEFERRED (2026-08-11, per user): a v7-spawn-
     time trust-chain mechanism for zenka identity keys (extending the
     real, existing exclusive stdin channel v7 already uses for cube.key
-    / base.auth.set_v7_key — see configuration/zenki/*/zenka-startup.v7,
+    / base.auth.set_v7_key — see cfg/zenki/*/zenka-startup.v7,
     modules/base.auth.set_v7_key, base.cmd.verify-instance) does NOT
     belong in this doc — it's system-wide (every v7-spawned zenka), not
     users-zenka-specific. Per user: postpone until different topology-
@@ -754,7 +754,7 @@ external_source_hooks:
     caller-identity check in-module (register-master-key accepts any
     caller-supplied <username> <pubkey> pair and registers it as that
     username's master trust anchor; no access.zenki grep hit gates any
-    of the three by name anywhere in configuration/zenki/*/access.*,
+    of the three by name anywhere in cfg/zenki/*/access.*,
     and crypt.C25519 loads broadly across most zenki's
     subroutines.load-early). register-master-key's file also carries a
     broken/placeholder signature footer (literal "XYZABC123DEFGH456...",
@@ -775,15 +775,15 @@ external_source_hooks:
     as exactly this kind of "data lookup from other zenki." Grounds a
     thread from earlier this session that was discussed but never
     actually written down until now:
-      - udev zenka (configuration/zenki/udev/, modules/udev.*) is a
+      - udev zenka (cfg/zenki/udev/, modules/udev.*) is a
         real, working rule/action mechanism over `udevadm monitor`
-        output — confirmed live via configuration/zenki/udev/
+        output — confirmed live via cfg/zenki/udev/
         rules-set-up.U2F-tokens, which matches vendor/model IDs on
         device insert/remove and fires `net.cmd`-ROUTED commands
         (currently `notify.message`, but the action slot accepts any
         routed command) — this is the real hook point, not a pub/sub
         bus other zenki subscribe to.
-      - fs zenka (configuration/zenki/fs/, modules/fs.*) is a thin
+      - fs zenka (cfg/zenki/fs/, modules/fs.*) is a thin
         Sys::Filesystem wrapper: fs.get_filesystems (list mounted/
         unmounted), fs.cmd.mount/.re-mount/.unmount/.is_mounted. No
         2FA-specific detection lives here (that's udev's rule-matching
@@ -862,12 +862,12 @@ open_questions:
     constraint — per user, a currently-uninstalled fanless desktop node
     (16GB RAM, 1TB SSD) sitting behind them is the concrete case this
     will apply to. Per CLAUDE.md's existing deployment-option list
-    (Always-on: configuration/zenki/v7/start-set-up.base; On-demand:
+    (Always-on: cfg/zenki/v7/start-set-up.base; On-demand:
     start.on-demand = 1 in that node's own zenka-startup.v7), this is a
     PER-NODE CONFIG CHOICE already supported by the existing v7
     lifecycle mechanism, not something requiring new code in users
     zenka itself. CORRECTED (2026-08-11, caught mid-session): this
-    already exists — configuration/zenki/users/zenka-startup.v7 landed
+    already exists — cfg/zenki/users/zenka-startup.v7 landed
     in df2e83d85 (phase-1 CRUD skeleton commit), start.on-demand=1,
     4200s idle timeout, matching the calc/image2html precedent. An
     earlier draft of this note incorrectly claimed no such file existed
@@ -882,8 +882,8 @@ tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
        smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh,
        bmw-l13, addressing-trinity, signed-commands, crypt-c25519]
 
-#,,,,,,.,,,..,.,,,...,..,,,,.,,,,,..,,,..,,..,..,,...,...,.,.,,,.,.,.,..,,.,.,
-#5NIXBUZ5HRYDW6BFL4DSV334MODJVLL7SNX6LYVVBJEGWV5EXRWTDQSFFZDAENBAC7R27EE33TPXQ
-#\\\|AFLDNDPRGGYPJWFENFS4E4S7VGQ5N2AU4NXYFABAM7O5QJNUW2O \ / AMOS7 \ YOURUM ::
-#\[7]HHZ3XAH6Q7KUYGLT7FKAM4AC3QAGAMAN2ICOANOR2YNSY75MCUAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,,..,.,,,.,.,,,,,,..,.,,,,..,..,,...,...,...,,.,,.,,,,,,,.,,,
+#SIUGVJG5YQIGMLDPJI557ZHNY2FC2JP4BWN54AECVRUAXTK6Y7W553X57PHBM73ZUFE2D7LUGXG3U
+#\\\|SX2JD3BEMGCAD2TPVUFOF3SXJMUNSQ7RV7LYWMWTKSPHFPL4HV5 \ / AMOS7 \ YOURUM ::
+#\[7]RGGFFXMC2VUZKMIL7TT7ZSBWBL3FSMYYYIOYLATC2Z2LNAHM4UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

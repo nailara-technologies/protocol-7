@@ -3,12 +3,12 @@
 # name  = forensics.init_code
 # descr = forensics zenka initialization : sweep dir + boot-triggered sweep
 
-##  the 04:07 nightly slot [ configuration/zenki/events/event-setup.base ]  ##
-##  is type zenka-present : the events zenka sends cube.v7.start_once and   ##
-##  the boot itself IS the trigger. the sweep runs from a one-shot timer    ##
-##  so it executes inside zenka.loop [ after drop_privs + cube connect ],   ##
-##  not as root during init [ the sweep record dir would end up root-owned  ##
-##  -- same hazard build.init_code documents ]                              ##
+##  the 04:07 nightly slot [ cfg/zenki/events/event-setup.base ] is type    ##
+##  zenka-present : the events zenka sends cube.v7.start_once and the boot  ##
+##  itself IS the trigger. the sweep runs from a one-shot timer so it       ##
+##  executes inside zenka.loop [ after drop_privs + cube connect ], not as  ##
+##  root during init [ the sweep record dir would end up root-owned --      ##
+##  same hazard build.init_code documents ]                                 ##
 ##                                                                          ##
 ##  the sweep dir IS created here at init, with the zenka user as owner [   ##
 ##  p7-log.init_code precedent ] : file.make_path is only available during  ##
@@ -69,8 +69,8 @@ if ( not -d $reports_dir ) {
 
 return 0;
 
-#,,,,,.,.,,,,,,,,,...,.,.,,,.,...,..,,.,.,,.,,..,,...,...,..,,,..,.,,,.,,,,,,,
-#4ZL3LT74QMIRDXRIOSEKCOH3ZATA2NBSK35AGHUBWMJSKPW65XM34SFXTF7GURXAETNLGITIPFHYG
-#\\\|QTA2DZEZHSEAA4VZVANAA6YLPYAP22VEIPYQQNKR7GM3AHK24GK \ / AMOS7 \ YOURUM ::
-#\[7]ZCRC2IYVEFJILOOEE6U22HZB5MIQY5FAEMJKW5P5ZDYYWG25J2BQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,.,.,..,,.,,,.,,,...,,..,...,..,,...,...,...,...,,..,.,.,,,,,
+#A67VW3JOVPDOK6YTBCUAWCRZTHPD46JRV6JJWLDEKPB4BUNT3TRC3IVG6P5TAJYZVQFITP4B5NDDS
+#\\\|XBVTIK62X3L7OGG5ZBCI6L44Q3ECFTFEG3VD43V5VABDIRKD7ND \ / AMOS7 \ YOURUM ::
+#\[7]PAERXGE6RNKX6ENS7X5ZW2BEGBFFHERIY5XJMYSF5VKAG3KJAKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

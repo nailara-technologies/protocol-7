@@ -29,7 +29,7 @@ cannot be built as an ordinary stored field, and must not be added to
 `user-edit` already autocreates and holds its own `taeki.base`-style
 identity via `crypt.C25519` (confirmed live: `crypt.C25519.key_vars`,
 `key_exists`, `key_checksums`, `key_bin_checksums` are all already in
-`configuration/zenki/user-edit/subroutines.load-early` and already
+`cfg/zenki/user-edit/subroutines.load-early` and already
 exercised by this zenka's own bootstrap). Use:
 
 - `<[crypt.C25519.key_vars]>->{'key_name'}` — the zenka's own currently
@@ -160,7 +160,7 @@ present: `checksum`/`fields`/`metadata`/`name`/`timestamp`) instead of
 
 After wiring the `crypt.C25519.cmd.get-public-key` call site, run
 `bin/dev/gen-sub-whitelist user-edit` and confirm the new entry appears
-in `configuration/zenki/users/... ` — wait, `configuration/zenki/
+in `cfg/zenki/users/... ` — wait, `cfg/zenki/
 user-edit/subroutines.load-early` (this zenka is `user-edit`, not
 `users` — don't confuse the two, they are separate zenki with separate
 whitelist files). No other whitelist changes should be needed — the
@@ -211,8 +211,8 @@ Report actual command/capture output for each check, not just "passed."
   whatever minimal, narrow fix step 2's `tab_info` note above turns out
   to actually require (check before assuming — it may need nothing).
 
-#,,,,,,.,,.,,,.,.,.,.,.,,,..,,.,,,,,.,..,,,..,..,,...,...,.,,,,,,,..,,,,.,,,.,
-#YUTE7CAKKRA3LMDOKSBDCWPN6L42L5P7JCML45AXJXXIDD2KBJN3BEXRUGFQGZGWM5THPT7P6NAIQ
-#\\\|B4HW6UGM43MQMUC36AVRL6Q4NO4FQR2KUNK4PUQDBFWWICRMXIK \ / AMOS7 \ YOURUM ::
-#\[7]Z6KLXXOAYBZOQSPZJTLH5E3KF2MP2WVX2LCT4FIGQ6ITSEQYW6AQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,.,,,.,,,,,,,,,..,,..,,...,.,.,..,,...,...,.,,,...,.,,,,,.,..,,
+#2KJMI5ITBWF4QMNOFA2372WPIZ6KE76DLKGCESPOJXJ3IV2USQVXDZEUC6WU36N42GEMVS7JB3Y64
+#\\\|C4DUW4TXCDZD7H4FW63LRQSUUX6RC64CCH5U6BAQEE2VOAAH65C \ / AMOS7 \ YOURUM ::
+#\[7]JWGYK5PMLV5UUBBJ5E65O3WIGTOL7Y7IBS5LJCDSSORWF7HOGKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

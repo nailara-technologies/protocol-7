@@ -1,0 +1,52 @@
+
+### restore_p7_permissions configuration ###
+
+###[ SYNTAX ]###
+##
+## [0]<nnn> == octal file permission mode
+##
+## R == 'rest recursive'
+## C == create if missing
+## F == files only
+## L == links only
+## D == directories only
+##
+##      u:<user> g:<group>
+##
+##                    -->  <absolute|relative_path> [  -->  <:link-target:> ]
+
+
+DRF 755      -->     bin
+ RF 644      -->     bin/c_src
+DRF 755      -->     bin/admin
+ RF 644      -->     bin/dev/conf
+ CL          -->     bin/Protocol-7.gtk3  -->  Protocol-7
+
+ DR 755      -->     readme
+ RF 644      -->     readme
+
+  D 755      -->     modules
+ RF 644      -->     modules
+
+ DR 755      -->     data
+ RF 644      -->     data
+ RF 755      -->     data/scripts
+
+ DR 755      -->     configuration
+ RF 644      -->     configuration
+
+### NEEDS glob or wildcard support for zenki sub-directories : ###
+##
+# DR 775      -->     cfg/zenki/*/{pn-dep,source,os-dep}
+# RF 664      -->     cfg/zenki/*/{pn-dep,source,os-dep}
+
+ CL          -->    .restore_permissions --> cfg/p7-file-permissions
+
+ DR 755      -->     appliance-code
+ RF 644      -->     appliance-code
+
+#,,,,,.,,,.,.,,,,,..,,.,,,,..,.,,,,..,,,,,..,,..,,...,...,.,.,,,.,,.,,.,,,..,,
+#5LFFQK2NBUIFSZKFGHD3EOFX2Z52B2CKIQSM5YOZ5YI45ADWC43PUDJOSKR4ESGDVWXJZMDNOPCG4
+#\\\|T7KPTNBYE2U4WWERVM7G7CQNYIJXR4PLVXU42D6EH2UNH77RLKO \ / AMOS7 \ YOURUM ::
+#\[7]NYCG6SZUPMJ5V2UW3SOTUVEXFTZO5UBPHILRGOJMEXEOJ2WUDQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

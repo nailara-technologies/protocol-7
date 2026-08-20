@@ -187,7 +187,7 @@ This ensures:
 
 - `modules/keys.console.list` - current regex-based implementation (fragile)
 - `data/lib-path/pm/AMOS7.pm` - `%C` color definitions (foundation)
-- `configuration/zenki/cube/pm-dep/AMOS7__Assert__Truth` - ELF truth assertions
+- `cfg/zenki/cube/pm-dep/AMOS7__Assert__Truth` - ELF truth assertions
 
 ---
 
@@ -304,8 +304,8 @@ This is not aesthetic decoration. The harmonic color mappings emerge from:
 
 Colors reveal what text conceals. The blacklight canvas makes truth visible. 🌊🎨
 
-#,,..,,..,,..,,,.,...,...,,.,,.,.,.,,,...,.,,,.,.,...,...,,..,..,,,,,,,,,,,,,,
-#WDKXSZJAQLNVVWOFLDMRYZJMCOTA2WNPFWTBZ7GBDM35PYJRYD5TWWMGCFGCNZOOBUGWDSSWK3OPK
-#\\\|FGC6BF2YMN5FHXJYXLLHTUBPUH5YXXSIVWV4ODVG73W7YDGVMKN \ / AMOS7 \ YOURUM ::
-#\[7]DDJBQGOLFMRVUB2E4W5FWI5TS6NY4K32JF2WNBPREDJE64556WBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,,.,,..,,,.,,.,,,,..,,..,.,.,.,.,...,...,,.,,,..,.,,,,.,,,.,,
+#3HOSPDVJZAV3FPQMFTCUGUV46DEILBUPHMVLWB5VHGXP6BBGRKJ6PY73P54VSCJJ2ZBRGMMEIX2B6
+#\\\|VXZJJODHEVCN7KNJXG2D6PUNBQSKTH72H4BHQ3ZEOUTCVZH27WF \ / AMOS7 \ YOURUM ::
+#\[7]3MZGKJZGEON6HYKGGW5LM5EHS5OWYLHXL4AQ6ZBYMCJ4PAWRSSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

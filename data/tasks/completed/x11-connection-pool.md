@@ -27,7 +27,7 @@ Full design doc: `data/ai-mem/claude/topic-x11-protocol-hardening.md`
   existing `X-11.*` modules for the exact split, they use both correctly.
 - constants: `TRUE => 5`, `FALSE => 0`, `UNKNOWN => 2` — never bare `1`/`0`
   for these semantics.
-- every new/modified module needs an entry in `configuration/zenki/X-11/subroutine.white-list`
+- every new/modified module needs an entry in `cfg/zenki/X-11/subroutine.white-list`
   (new modules only, alphabetical-ish, follow existing ordering nearby) AND
   `modules/base.list.subroutines` (same list, different file, both must match
   or signature verification fails).
@@ -41,7 +41,7 @@ Full design doc: `data/ai-mem/claude/topic-x11-protocol-hardening.md`
   the human's signing pass after your changes land. Leave new files without
   one; don't fake it.
 - do NOT run `git add`, `git commit`, or touch version files
-  (`configuration/protocol-7.src-ver`, `read-me/md/README.md`,
+  (`cfg/protocol-7.src-ver`, `read-me/md/README.md`,
   `read-me/project-identity/source-code-versions.md`) — the human handles
   staging, signing, and commits.
 
@@ -155,7 +155,7 @@ New modules under `X-11.pool.*`:
 ### 3. config
 
 Add config keys following the `X-11.reconnect.*` naming style already in
-use (check `configuration/zenki/X-11/` for where `X-11.reconnect.enabled`
+use (check `cfg/zenki/X-11/` for where `X-11.reconnect.enabled`
 etc. are set, add siblings there):
 - `X-11.pool.enabled` (default off until this is verified — match how
   other experimental features in this codebase default, check a couple of
@@ -166,7 +166,7 @@ etc. are set, add siblings there):
 ### 4. after all edits
 
 Run `bin/dev/dep-graph` to regenerate `module-dependency-graph.asc`. Add
-every new module to both `configuration/zenki/X-11/subroutine.white-list`
+every new module to both `cfg/zenki/X-11/subroutine.white-list`
 and `modules/base.list.subroutines`.
 
 ## what NOT to do
@@ -186,8 +186,8 @@ you made (and why), any additional per-connection registrations you found
 beyond `RRSelectInput`/`GrabKey`, and any call sites you identified as
 needing the `X-11.pool.query` wrapper but didn't convert in this pass.
 
-#,,,.,..,,.,,,,..,,..,..,,.,.,...,..,,,.,,..,,..,,...,...,.,.,,,,,..,,,.,,,,,,
-#L5KH3XY6IUE5YJZ3TK2YNTE4P3E5ETWPD2GKCU3TFYPZSQNUZKYUVLVV4XNRTOJYUYZTXAUMPM6QC
-#\\\|ZKJSWZMASL4X3L3WLDOY2L7ABBKLE3USZAXL6TQJJA56U5OFN77 \ / AMOS7 \ YOURUM ::
-#\[7]E53QI4VRJDOP3K75EWQSXEEAPFYRJAPSZ7BBAAXGBKWSV6M5CEDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,,,.,,.,,,.,,,,,,,..,,,.,,..,..,,...,...,..,,..,,...,,,,,,..,
+#N72HAL3SDP5QJZRP4LF7XWMDCU7KEFS5AS3D3VXPMXLPLU4FNJ4GX6H3PFCMB2LAPJPXXYMVJDUP4
+#\\\|CBD3ZAADZQZPCOV6WMBO7TOM2T3ULBJK5774EDMMIFLVKH4FKGB \ / AMOS7 \ YOURUM ::
+#\[7]FFABOIWXDNAKLVHMZQAAU3JFAREKNRSTXPD4GGEMUL6V2V5LLQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

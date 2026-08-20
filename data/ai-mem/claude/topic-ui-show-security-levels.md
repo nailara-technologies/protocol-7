@@ -28,7 +28,7 @@ design doc: `data/md/design/UI-SHOW-SECURITY-LEVELS.md`. task files moved to
   to `[^\.]+\.ui-show` per `base.parser.access_conf`) is identical to
   already-proven patterns `*.subname`/`*.heart`/`*.host-status`/etc, and
   `system.access.wildcards.allow = yes` is set globally in
-  `configuration/shared-params` — no new wildcard infra needed.
+  `cfg/shared-params` — no new wildcard infra needed.
 - known minor gaps: `idle`, `restart-count`, `log-file` fields return
   empty for v7 (no generic tracker / `<log.protocol_7.path>` only set
   by `p7-log.init_code`, not loaded by all zenki) — not blocking,
@@ -58,8 +58,8 @@ vs 1 vs 2 vs admin) still pending.
   resolver beyond `ui-show` itself — could be the real-world driver for
   step 5/6.
 
-#,,,,,,,,,.,.,,,.,,,,,,,.,..,,,.,,,,,,..,,,.,,..,,...,...,,,.,,.,,.,.,,,.,.,,,
-#OEAA3JTFKSHXW4SWRN2F3QP63RTKUWOTVG4GVFF5P3RDPRC2I6EFLH2SFPZRDS6FWVADGNE4NCVW6
-#\\\|AT64HY2MUWTN2KO3DQRGNANGYVYFFOTHKVG6CR3YQIJQFZFBVJG \ / AMOS7 \ YOURUM ::
-#\[7]JFFGUIBMFVPWA2PNC5DGPV25ZIZN5ECGDHP72ZOJ52CB74UNF4BI 7  DATA SIGNATURE ::
+#,,..,,,,,...,,.,,,..,...,,.,,.,,,,,,,,..,,.,,..,,...,...,..,,..,,,.,,.,.,.,.,
+#6FA4C2V52DJFIOWERPXTD5KOAIHLYBT3LL6N7RTNO4CZAJ3EIDTIQHEV3BYWSC2DROTSK3ANFPXAI
+#\\\|6MZ2MREB7XPSXU7CVM2RCRLZLS4KDRTYEH5CHOAUCQWDRI2UPLB \ / AMOS7 \ YOURUM ::
+#\[7]ZBWP2IUEBSKN47MP4V6OVYHFSHWDAJZJHDZGJRNS2NBWA2GBOCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

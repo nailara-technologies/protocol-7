@@ -82,7 +82,7 @@ return {
 
 ### access permissions
 
-add to `configuration/zenki/jobsite/start`:
+add to `cfg/zenki/jobsite/start`:
 
 ```
 access.cmd.usr.taeki = jobsite.progress
@@ -107,8 +107,8 @@ to new files.
 
 ## dispatch
 
-#,,.,,...,,.,,,.,,,,,,...,,,,,,,,,...,,.,,.,.,..,,...,...,...,.,.,.,.,,.,,..,,
-#NKBKB5MRAKKGBZTMS6PY7VEEMTUT74J7UHW4LDVDMWIX6IEVMXAORUAZDCQUNHGMMSAVWHY7HR7MU
-#\\\|BCNFYJEL77WGJAL35FCHDBDYK5MYNZPP2XF56LCBOTSDE73YBDK \ / AMOS7 \ YOURUM ::
-#\[7]PTTIYHN7CJFUJVRFXKFRE6NC5OJDEAUXL3YFHBBSLIMKMQMVBGAY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,,.,,,..,,,,,,,,,...,,.,,..,,..,,...,...,.,.,,,.,,.,,..,,,.,,
+#7OQRZCFULSUDGKZAX2SKV2ZPBLM2FVDMCHWNGRRGKZTUH4SX7F5AP2VKAIIZFBAWSDHPXSG7OS422
+#\\\|2B4GN6L3CCVW2FNSRTLG3AXHYVYUSOWISWUBCOUML7GC4ULDG2P \ / AMOS7 \ YOURUM ::
+#\[7]ZEORZZJAJWFCSYTNBMOOXYGBFOEA6QPJK6LSKYVEAFZPLQZX56BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

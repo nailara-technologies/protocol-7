@@ -324,7 +324,7 @@ only matters as the tie-break for equal-length names.
 `context.cmd.review` is the established one, `ncode.cmd.review` is the new
 one — renamed `ncode.cmd.review` → `modules/ncode.cmd.pattern-review`
 (git mv + updated the `name` comment, `ncode.cmd.apply`'s two log/comment
-references, `configuration/zenki/ncode/start`'s `access.cmd.usr.cube`
+references, `cfg/zenki/ncode/start`'s `access.cmd.usr.cube`
 list, and `subroutines.load-early`). Live-verified post-reload:
 `p7c ncode.pattern-review` now correctly hits ncode's own `unknown
 pattern` logic (not `context`'s `no files matched`); `ls *cmd.review` in
@@ -434,7 +434,7 @@ before `transform` is ever whitelisted. Live-verified via real `p7c`
 calls: out-of-scope fixes skipped (new `out_of_scope_count`), widen
 resets the approval streak to 0, widened fix then applies while an
 unrelated namespace stays untouched. User confirmed all files signed +
-staged, including the `configuration/zenki/ncode/pm-dep/*` markers
+staged, including the `cfg/zenki/ncode/pm-dep/*` markers
 auto-registered by the zenka restart. Detail: see
 `data/ai-mem/kimi/topic-ncode-scope-stack-phase2.md` (kimi's own notes)
 and [[project-2026-07-30-gap-audit]].
@@ -444,8 +444,8 @@ and [[project-2026-07-30-gap-audit]].
 [[project-ncode-write-path-2026-07-24]], [[topic-write-access-security-infrastructure]],
 [[feedback-claude-dispatch-strategy]], [[reference-opus-dispatches-kimi-workflow]]
 
-#,,.,,,,,,..,,..,,,,,,,,.,,..,.,.,...,.,,,.,,,..,,...,...,,..,,..,.,.,.,,,..,,
-#ONNXGVQE47BCBDFCBHGN5IIYIGA3YX773UMLVDINRNNQPIK3IOGDB6KXJE4GCZBG676ZTM6BJAWIK
-#\\\|VRNIQMRUPUJI5AGUD4RUDSPXRURW3C6N4QNTSA4UUDMZUMMMANP \ / AMOS7 \ YOURUM ::
-#\[7]AX27PG4LZB6DA7GONYANUWIJZJ4DAWNVCMALYTUANJTELHRYOUDA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,...,,..,,.,,...,,.,,,.,,,.,,.,.,..,,...,...,,.,,,,,,.,.,.,,,..,,
+#UVD2QK2DYHJTSFX3ZUGJCRXTOFMZ5UB6ZFRTC3AKMLT3BJLRSNILK5HJGSAGKVCW5LW4IPILHPSX4
+#\\\|PGFIG2JKJ7MLHDWN5F6NECMG256O36XOOLTOZOBMIYNBKOKOVKG \ / AMOS7 \ YOURUM ::
+#\[7]T3QX4IIPDPTXCJ6M3TXIJWCSBH63K5ENZAJ7ATVM4BRNDLLOBEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

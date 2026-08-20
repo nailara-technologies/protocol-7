@@ -153,7 +153,7 @@ models:
     backend: external
     server_url: http://127.0.0.1:1234
     model_id: "local-model"  # Model ID to send to server
-    system_template: configuration/models/system-messages/coding-assistant.tmpl
+    system_template: cfg/models/system-messages/coding-assistant.tmpl
 
   ollama-llama3:
     name: "Ollama Llama 3"
@@ -259,8 +259,8 @@ ai-models:
 
 ---
 
-#,,,.,...,.,,,.,.,...,,..,,..,,..,.,.,..,,,,.,.,.,...,...,,,.,,..,,,.,,,,,..,,
-#G3Q32FL3SRPV3CWDMTQZBHZSV3XWWPGUNWGKO3NRUJHJZS3H7BKNG7IU5J2HYW6TCZFRVQ2LNJRYG
-#\\\|5OO3EBLLSJMBAMQZDCJZYJK7KUUK46RYWWH2WEMU4ARZ7LUXR7U \ / AMOS7 \ YOURUM ::
-#\[7]G6UKCQBGTOX3UXG6IS32KJGTNWNMXE7XWWM6HJTGSI6TLDJGYQDI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,,,.,.,.,,..,..,,,,,,,.,,...,.,.,...,...,...,...,,..,...,,..,
+#LKYRM6AVLTND6FNMV4NXBQWJHANY5R7BUP53RQ5VB32D5JVP7LCYICV4ZCYTCS5IBKBDTEHROPGTK
+#\\\|FC7G3AQNO7FLWI3BSHSTQG2AMAWQMBRPAZ7BWRXRBYVYC2FF62P \ / AMOS7 \ YOURUM ::
+#\[7]M53D7XWVJ4ITB3Z3F6KCNTHRUVN2NK6XFIHJ4PASXUWEK5GIGKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

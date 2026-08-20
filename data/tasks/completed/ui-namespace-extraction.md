@@ -114,7 +114,7 @@ intended pattern for zenka-specific UI:
 
 ### `modules.load` / whitelist updates
 
-`grep -rl base.ui. configuration/zenki/*/subroutine.white-list` (104
+`grep -rl base.ui. cfg/zenki/*/subroutine.white-list` (104
 files as of 2026-06-11) — these entries were added by
 `console-foldable-render-baseline`'s kimi run as part of the
 `subroutine.white-list` deferred-compile mechanism, NOT
@@ -168,8 +168,8 @@ harmony ui.budget.tty ui.estimate.cost
 harmony base.slot.fold base.slot.unfold base.slot.move base.slot.refresh
 ```
 
-#,,..,,,,,,,,,...,,.,,,..,,.,,...,,.,,,.,,.,.,..,,...,...,,,,,.,.,,..,,,.,,.,,
-#K6FCE7XLJXVBMADSSRWR7E3C63UENGWES7JG6G2XTFL3ZGBB5UCLJ3WDNB7EXV4JI7LJ6SH5DUQ74
-#\\\|WGRT35EOTLL57BQFN5AGQVMCD3RUR4NWYYLIFWLB64IORMVBCMZ \ / AMOS7 \ YOURUM ::
-#\[7]LUR4I2V6WESPOP2T756EBGDYKGHWZV77KSALDCAIIMXSTEN3ISDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,,,.,,.,,.,,,.,,,,..,,,.,,,.,..,,...,.,.,.,.,,.,,,..,,,.,,,,,
+#3PYFVSF2VQBB2FMMZEVBMLBABEPMEQI2CMU4MSPSHKAIYHGY5QICROUWQCMC2ZH5DWLEV5K2KTBY4
+#\\\|7Q6G6KG2HLSMR7RMD5UOS5QDTYJDIQ44M2ENUJAMLWIGVKPKPQ7 \ / AMOS7 \ YOURUM ::
+#\[7]67ZOQRWNC43RIVBBNMW6ZADL7EIFYRY6WAOW3ANWFXOUAMBXJECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

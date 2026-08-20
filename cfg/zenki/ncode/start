@@ -1,0 +1,52 @@
+
+ .:[ 'ncode' source-code command zenka ]:.
+
+[load_config_file:'shared-params']
+system.access.wildcards.allow = false
+
+## read-only : repo browsing/search/diff is public, zero-risk ##
+## write/sign commands mostly still pending the signature-gated approval ##
+## system [ see memory: topic-write-access-security-infrastructure ] --  ##
+## suggest/apply opened 2026-07-24 for live testing under taeki/admin,   ##
+## write is checksum-addressed [ suggest -> apply by fix_id/session ]    ##
+## and gated by ncode.cmd.apply's ptd -c syntax verify + revert-on-fail. ##
+## cube itself filters which of its own callers may reach these --       ##
+## taeki/unix-admin already covered via the cube-side admin wildcard     ##
+## [ cfg/zenki/cube/access.users ]                             ##
+access.cmd.usr.cube = commands heart verify-instance \
+                      list show-buffer get_url reload \
+                      child.cur-pid \
+                      search diff diff-staged doc parse-headers tool_list \
+                      suggest apply assess expand pattern-review graduate \
+                      widen-scope
+
+access.cmd.usr.parent = commands show-buffer cur-pid
+
+access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append
+
+## group-write grant on .git only [ needed for git diff/diff-staged index ##
+## refresh -- read-only git ops still need to write .git's lock/index ]   ##
+ncode.cfg.assume_admin_group = yes
+ncode.cfg.allow_chmod_apply  = yes
+
+## context : ncode.regex.assess's pattern-extraction pipeline depends on  ##
+## context.diff.*/context.pattern.*/context.string.* -- coding already    ##
+## loads this namespace for the same reason, ncode never got it added     ##
+modules.load = auth.client net protocol io.unix ui ncode context
+
+[load_modules:<modules.load>]
+[init_modules]
+
+## drop_privs moved to ncode.init_code [ after path setup + chmod child ] ##
+
+[base.net.connect:'unix']
+
+[get_session_id]
+
+[zenka.loop]
+
+#,,.,,,,.,.,.,,.,,...,,.,,.,.,,..,..,,.,.,,,.,.,.,...,...,,.,,,.,,,,,,.,.,..,,
+#QQW66TKC2XBA2NAKVEL5W2B22ECOT5KNICJ7MFL2EZPBX57QITNYY62HXQY6RCDZS3M5OOEITCHLG
+#\\\|H22USKPX2B7WJZ7HN654HCRANRGPLIBWWGCWIXN2DIWYGXGX2FQ \ / AMOS7 \ YOURUM ::
+#\[7]RJYRWLHV3JDKOWN3GR4YKL2MZCLVDIM6MW7EAJU3KW5ENFBBDQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

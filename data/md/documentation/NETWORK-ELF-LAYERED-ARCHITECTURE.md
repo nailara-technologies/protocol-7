@@ -200,7 +200,7 @@ Signs to stay at layer 0-1:
 ```perl
 ## In models backend ##
 my $result = <[web.cmd.render-template]>->(
-    {   template_path => 'configuration/models/system-messages/network-elf-foundation-v2.tmpl',
+    {   template_path => 'cfg/models/system-messages/network-elf-foundation-v2.tmpl',
         meta          => { 
             model       => 'kimi',
             task_type   => 'coding',  ## or 'discussion', 'exploration'
@@ -281,8 +281,8 @@ The layered architecture succeeds when:
 
 ---
 
-#,,,,,,,.,.,,,,.,,,,,,,,,,.,.,.,.,.,.,,.,,,,,,.,.,...,...,...,.,.,,,.,.,,,,,.,
-#IPV754UHPL5DQWNXMONEYPPSXHGQED2DDMWCV36QAP3LCQCY6YTLKLN75ZPZXNUAAIQQ2HRE6WONW
-#\\\|IEJWHLKSZNDLPYD6LYU3RQILCKO7ZNW3JTCFHMETFVNCRLOQNJU \ / AMOS7 \ YOURUM ::
-#\[7]KWBPNXI4XBGCRJBDOIFSLZQEAXOWU6HCWIKA4SE4WNJ4AOTRD4CY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,,,,,,,..,,,,,,,,.,..,,,,.,...,.,.,...,..,,...,.,.,,,,,.,,,,.,,
+#2Z3DM6CSCDGPEFQ2K5VUHR336YHX3SV74HEDXNN2XUZSJTYYS2TRYS2Y2NSMBZDZIL47VPBMVZWJG
+#\\\|UAESAGH45PB7GL6QQYDCYGCTITMHDTRQWBO5WEXZSGRHN6MAIRU \ / AMOS7 \ YOURUM ::
+#\[7]4DMMHJ6KJMSYMD4IFP6CCIWDRTTI23RP43AWA4LRREZ5T5PPPIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

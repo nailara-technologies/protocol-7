@@ -127,7 +127,7 @@ switch to. Without this field in stream state, `jump true` cannot resolve.
 ## Access Control: cube/access.zenki
 
 For any cross-zenka cube-routed command to succeed, the calling zenka needs
-permission in `configuration/zenki/cube/access.zenki`. The format is:
+permission in `cfg/zenki/cube/access.zenki`. The format is:
 
 ```
 access.cmd.usr.CALLING_ZENKA = list of commands it may call
@@ -279,7 +279,7 @@ my $callback = sub {
 push @{ $stream->{'attached'} }, $callback;
 ```
 
-### configuration/zenki/cube/access.zenki
+### cfg/zenki/cube/access.zenki
 
 Add:
 ```
@@ -405,8 +405,8 @@ echo "decoder.show-buffer 5" | p7 decoder
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,.,,..,,..,,.,,,,.,,.,,.,,,,,,,,..,,,,,,,,,..,,...,...,...,,.,,,,,,...,...,
-#MY7B7PBFC6SUMOYSR6F5T7L25HIEUWZFYQA27DUX2PYR4Q2OV7TAWGXNRN5XGZY7MO3DZ7EGJBIT4
-#\\\|7LCO7DHMDTIZ2GMREAVXMPQAOVGQKYREY2HAT6BRW67AP5BVSAM \ / AMOS7 \ YOURUM ::
-#\[7]6XK3KAEF6EDCFY4IHPE3WBMKTOVHZO2E32JVN2UHI74O5KCDO6BY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,..,,,,,.,.,...,,.,,.,,,..,,.,,,..,,...,...,...,,.,,..,,,,.,...,
+#V2SAAIUOJV6J33DSS3STVS6POWJVVIW3ECMEILWOK7QZQBGPKOGYWPXEX2OGDV463OYKPXORS23GK
+#\\\|HTYHYDW6OUI6Y7MAWGZB4LMQAW7HSM7WM7X2HNKBOWKIIPULIKL \ / AMOS7 \ YOURUM ::
+#\[7]RB2AYQ6BWBSMIDLLI72FCDR63664IJCWRF47F7DTLLAEVIQHEWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

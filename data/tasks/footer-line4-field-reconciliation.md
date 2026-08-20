@@ -732,7 +732,7 @@ in priority order, based on what this session found:
    zulum is actually generating live traffic; `p7c decoder.show-d13-
    types` after some run time is the fastest way to turn finding 7 from
    a structural claim into a measured one. reachability confirmed by
-   reading `configuration/zenki/decoder/start` [ `modules.load =
+   reading `cfg/zenki/decoder/start` [ `modules.load =
    auth.client net protocol io.unix ui decoder` ] and `bin/Protocol-7`'s
    `p7_load_code()`, which discovers modules by disk file-name prefix
    matching the loaded namespace rather than an explicit per-file list --
@@ -1095,8 +1095,8 @@ covers a follow-up on four distinct "5-of-7"-shaped structures and a
 bit-bookend-vs-heartbeat-sequence check. Not duplicated here — read
 that file for the full result.
 
-#,,,.,,,,,...,,,,,,,,,...,,,.,,,,,,,.,,.,,..,,..,,...,...,...,.,.,..,,.,,,.,,,
-#NJDMDIKXJ7B55PKEDBBMGCEYDGXU2SZQ477FAP2M2ULFXBHLUNYS4Z3BGQXPZWVBWSSR53INN4GDO
-#\\\|MWJ6UJNDUJFNENAMITH6A4WHMVLBEMESLSOYIAPW6GHNC762LHT \ / AMOS7 \ YOURUM ::
-#\[7]X2ET3K2FYQ3YU7SG4JIPPMDTON2DOQ3UOG5WITUXL25J5754JQCY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,.,,..,...,...,,,,,,,,,..,,..,,..,,...,..,,,..,,.,,,,,,,.,,..,,
+#4CNRK44P4QTUN46SGDSL3KESUEHBC7ZHTVQ5MHXHFOBVG3EGX3XBJEFVT2VNRNBFPCQX2VEOOEQJE
+#\\\|A662JYRUVBTEAS35C4GR4KMFIQYUT3L42OCO2PKEQLD4NDW64ZA \ / AMOS7 \ YOURUM ::
+#\[7]4RJBLXQQ6V7ZZRSM6QD4YCUJIAHKRGQJFTJSP53S3P2QLR4RUIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

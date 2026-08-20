@@ -93,7 +93,7 @@ source: bin/scripts/invoke-ai/invoke-symlink-repair (in full)
 
 ## wiring into models zenka
 
-add commands to configuration/zenki/models/start:
+add commands to cfg/zenki/models/start:
 
     models.cmd.adapter.discover     # list models from a host adapter
     models.cmd.adapter.resolve      # resolve a model to its disk path
@@ -143,8 +143,8 @@ and to subroutine.white-list.
     - terminal.app.models (list view data source → this discover)
     - safe model remove (add invoke.remove module next)
 
-#,,.,,.,.,.,,,...,,..,...,...,,,,,..,,.,.,..,,..,,...,...,...,.,,,...,,,.,,,.,
-#LI2GH3XFED6ZIKGYXVPOD3LCZ573A6OPLXFMZACTQRXLBAHYHZLNNTKCEGNHHEI4FOZ2ZBOQZKES4
-#\\\|LJXFBX3ALVKJPQIVZJVIDTJO7F5P4EAD3GKQA5GFWGU6QGSQ2Q2 \ / AMOS7 \ YOURUM ::
-#\[7]BYLH7CAMEFX3QHRNRXZT67ODH3TL3JFZRKGPHQVUTLN5BNLUJOBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,,,.,.,,,,,.,,,,,,.,,,..,..,,..,,...,.,,,..,,...,.,.,,.,,.,.,
+#BQBNZHN3QQPNBEG6OQSMYRRPTOTVLDOOZEM4YDGA4JGQOUUV7KGIBPKGJSTKDEDGBP2WXTJNN77GQ
+#\\\|PPPBT7YG62C25A3SBOSNPHPYSRE2YMK4ZEKOOVWPGVH3IX56ZLC \ / AMOS7 \ YOURUM ::
+#\[7]EOHF7KBIGE2X22IYVURTPH4M2FVANBIBUXB2C76JTFQYC26JDMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

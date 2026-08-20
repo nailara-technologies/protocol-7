@@ -56,7 +56,7 @@ opencv.optical.flow <video>                 - Optical flow computation
 ## Implementation Phases
 
 ### Phase 1: Core Infrastructure
-- [ ] Create `configuration/zenki/opencv/start`
+- [ ] Create `cfg/zenki/opencv/start`
 - [ ] Create `modules/opencv.init_code`
 - [ ] Add to `base.known_dependencies`
 - [ ] Add to `.deps/profiles.yaml`
@@ -108,8 +108,8 @@ p7c "opencv.dnn.infer /models/yolo.onnx /path/to/image.png"
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,,,.,,..,.,,,.,.,,..,,..,,,,,,,,,,.,,.,,,..,,...,...,...,...,,,.,...,,..,
-#HGVQTCJO373CONMRKUIXZGZAIMWFRSZ2Y5NLAMVVK7JJNR5Z2WZIH6Z234EDPD4LUXELD7GDKKB46
-#\\\|7NSEXYN2LYGLYWOYNNVBLOXQHS3YJX5N3ZEJQIXF3JRVFXGUFCN \ / AMOS7 \ YOURUM ::
-#\[7]V543PO3U7WJD4XD7Q7DIZ3CVYTLWLJMCVOJRFTIUN7FZZUBQY6DI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,,..,,.,,,..,...,,.,,.,,,,..,..,,...,...,..,,...,,.,,,.,,.,.,
+#CKDEFJOGR36N6KTNMDOQNNIKPQLCRYFFB4Y635EDTO6ALSMNBVOMCKAZQBJSU5FBTVDUSSIGW6KF2
+#\\\|BMKPSOIBRZZ6BXDKCXQCN6GGQX6U4SAD4Y63II2MXWNFX7BJMGR \ / AMOS7 \ YOURUM ::
+#\[7]HY65RO7QWQBKFAQRGE7B7HCCPMZEE4ZSHNE7EEFNUG6554Y4HCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

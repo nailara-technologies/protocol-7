@@ -48,7 +48,7 @@ idle-shutdown path itself hit a real, unrelated, systemic bug — see
 **Outcome**: 57 files touched, all still uncommitted pending human signing (`proto-7.sourcecode`
 passphrase — neither K3 nor the orchestrating session had it). `v7.show-buffer undef-subs` clean
 after a live reload. Two harmless untracked runtime marker files appeared
-(`configuration/zenki/sys-deps/source/{auth.client,ui}`) from live-testing the zenka — kept, same
+(`cfg/zenki/sys-deps/source/{auth.client,ui}`) from live-testing the zenka — kept, same
 pattern as other zenki's `source/` marker files. Test packages `sl`/`cowsay`/`cmatrix` (~180KB) remain
 apt-installed on the host from K3's live dep-install testing — no root to remove them.
 
@@ -57,8 +57,8 @@ apt-installed on the host from K3's live dep-install testing — no root to remo
 [[project-ondemand-zenki-registry-wipe]] · [[topic-auth-client-namespace-split]] ·
 [[project-kimi-k2.7-vs-k3-tier-economics]] · [[project-depgraph-conditional-calls-blindspot]]
 
-#,,,,,,.,,,..,,.,,.,,,,,.,.,,,..,,...,,.,,...,..,,...,...,.,,,,,,,..,,,,.,,..,
-#7E22GSVZTCYS3WSCXLD4XBSTECJP34BKIFPW3MTALYZI7CMTMQT435OSI6TNW7LLXPUFBBJFQ76K4
-#\\\|KI3QAERSEQFSW3S4UTOLBG7VPKMPLGUX6DH2XAUDKMEJPZAJZHI \ / AMOS7 \ YOURUM ::
-#\[7]BSZPBZWD7KHSAGZ7SBFEWPFTA6J635BVLRQCOCP4F4IXW4B57UDA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,..,...,,,.,,.,,..,,,.,,.,.,..,,..,,...,..,,.,,,...,,,,,,..,,,,,
+#CN6OSQV2DQE4IDN57FFNX3Z3LAJGR22AMF6BARIK7U3WUE54K3F5EHREWTPQJBQSMS4DTFFKFUDY4
+#\\\|YMPSIHVSAFCOHHDONODQF4GUSBRJMRGEYNXZZERUWACCZMUY2UY \ / AMOS7 \ YOURUM ::
+#\[7]WVBB23LA6AMNZRBACDHL3476Y4A4DO3X6KNIUSRWYYTUXOEF5KBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

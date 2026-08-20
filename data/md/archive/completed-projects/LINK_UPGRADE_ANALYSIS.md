@@ -219,7 +219,7 @@ if (encryption_enabled) {
 
 ### Test Infrastructure
 - ✅ `bin/test-link-upgrade-client.pl` - Reference implementation
-- ✅ `configuration/zenki/test-link-upgrade/start` - Test zenka config
+- ✅ `cfg/zenki/test-link-upgrade/start` - Test zenka config
 - ✅ `modules/protocol.protocol-7.link-upgrade.*` - Server handlers
 
 ---
@@ -336,8 +336,8 @@ All infrastructure is in place:
 
 **Next Action**: Start with nshell analysis and implementation
 
-#,,,,,,,.,...,.,,,,..,...,...,..,,,.,,.,,,...,..,,...,...,.,.,.,.,..,,,,.,,.,,
-#IVDCWPNNHGEKY2ELG2GWMH7E6DF4NDJAJBVQ2IKQZ36J7ZHHREP4GOEAU23OKR4GYZSXNHZFE3JAM
-#\\\|ZWCGA2TW2SRKZQ4B7B2SAUDKAB2JREFG5G6GULSRE3AEXCWZO5S \ / AMOS7 \ YOURUM ::
-#\[7]6GCNS2RFQEYWDPIH6WUSBCYNFQATBIZHJRX62JT2I4VLSHY6AUCA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,.,,,,..,,.,,...,...,,..,...,..,,...,...,..,,...,...,,.,,,,,,
+#FND3NMP47MMGXTY5ZDYKOFIWM47PZV52J33RZE4PF2FYLJCLSEMNGI5QERGQ65VRZYS4SZPPIBHKG
+#\\\|W33UKIHKVGHPU6EZDM6E4BCPA5TVDOXF4YADR4T5OZODWQXIWAE \ / AMOS7 \ YOURUM ::
+#\[7]JIYAUX7QHWUCULU3WTI2OWMWB5JGD4TXSTHGMGD5WXBTNOYS5ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

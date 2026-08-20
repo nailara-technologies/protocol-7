@@ -107,7 +107,7 @@ signing system (`bin/Protocol-7 sourcecode update-signatures` adds the real foot
 
 the new module must be added to the web zenka subroutine whitelist:
 
-file: `configuration/zenki/web/subroutine.white-list`
+file: `cfg/zenki/web/subroutine.white-list`
 
 add one line:
 
@@ -136,8 +136,8 @@ do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,.,,..,,,..,.,,,.,,,..,,,.,,..,,,..,...,.,.,..,,...,...,..,,,,,,,,,,...,...,
-#6OMZCYM6R7CTDS6PLMQZV36PVNK5XSI7MS6MU7SN3WOZ7DOR5B66VCQ4IK35S2OCFRBYWAT2SLENO
-#\\\|FXHW4XOTVRRYY72DYNZKUWI4C6NGNSQHXVGHZ63QRS6ZTX45OHK \ / AMOS7 \ YOURUM ::
-#\[7]WPECL7QBCKJONBV62D5DMOCUWXAAHKRAHUPSUAA5HQ3DVGAVPMAI 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,,,.,..,,,..,,.,,...,,..,..,,..,,...,...,,,,,...,.,.,.,,,,,.,
+#4ZRS24CW43WFPGI55ABJSUUNRUFG225MAIS6NB2KQZAGAB6WMQYN6FI5EWWQWRDDQAG3T4QUKR3XM
+#\\\|OX7ERT6CLDUL7223I7OKDLDODWLUQGQYNTJP7DP6JGNC5BOLX3J \ / AMOS7 \ YOURUM ::
+#\[7]BSLY4VKYWZXI4FXSRT3F7DPA2FQW5VBSJV72MMJM3Y3H2EN6IACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

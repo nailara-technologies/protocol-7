@@ -71,7 +71,7 @@ hard prerequisite for: `data/tasks/forensics-agent.md` task 1.1
   44-50, 78-83` — "entropic parasites" detected via vortex reading;
   anti-entropic operations target them for *non-destructive* removal
   (matches roadmap 10.3 "non-destructive: entangled structures freed").
-- `configuration/zenki/events/event-setup.base:8, 16-20, 33-34` — the
+- `cfg/zenki/events/event-setup.base:8, 16-20, 33-34` — the
   live slot: `enabled = forensics`, `type = zenka-present`,
   `zenka-name = forensics`, `at = 04:07` (also in
   `event-setup.letsencr` per forensics-agent.md:19).
@@ -113,9 +113,9 @@ the mechanical boot requirements:
 - slot: nightly `04:07`, `type = zenka-present` — the boot check is a
   presence check; until implemented it no-ops (concept doc :91-95).
 - scaffold target (forensics-agent.md task 1.1): create
-  `configuration/zenki/forensics/` with `zenka-startup.v7`,
+  `cfg/zenki/forensics/` with `zenka-startup.v7`,
   `access.zenki`, `start` — modeled on existing zenki (the openvas
-  zenka dir `configuration/zenki/openvas/access.zenki` already exists
+  zenka dir `cfg/zenki/openvas/access.zenki` already exists
   as a sibling pattern).
 - first entry point after boot: `forensics.event.nightly-sweep`
   (forensics-agent.md task 1.2) — collect the day's forensics-channel
@@ -272,10 +272,10 @@ operational offline.
 
 ## implementation hints
 
-- existing slot: `configuration/zenki/events/event-setup.base:8,16-20,
+- existing slot: `cfg/zenki/events/event-setup.base:8,16-20,
   33-34` (+ `event-setup.letsencr`) — scaffold must bind name
   `forensics` exactly.
-- sibling scaffold pattern: `configuration/zenki/openvas/` (has
+- sibling scaffold pattern: `cfg/zenki/openvas/` (has
   `access.zenki`); check other zenki dirs for `zenka-startup.v7` /
   `start` conventions.
 - zenka lifecycle / presence machinery already complete: roadmap 7.1
@@ -311,7 +311,7 @@ for `data/tasks/forensics-agent.md` task 1.1 (scaffold), the findings
 support this content:
 
 - **boot requirements (fill for task 1.1)**: name `forensics` (hard
-  requirement, slot-bound); `configuration/zenki/forensics/` with
+  requirement, slot-bound); `cfg/zenki/forensics/` with
   `zenka-startup.v7`, `access.zenki`, `start`; zenka-present check
   passes at 04:07; subscribe forensics channel on channels zenka;
   create zenka data dir for sweep records; log the no-op run.
@@ -332,8 +332,8 @@ support this content:
   roadmap :649-690, ZENKA-LIFECYCLE payload schema, HYBRID-LLM-GOVERNANCE
   offline invariant.
 
-#,,..,,..,.,,,...,,.,,,..,.,.,.,,,,.,,,.,,,.,,..,,...,...,,..,.,,,..,,,,.,,.,,
-#BMRC27W63PFP7TVV2JDKBWP7ZGE6OD252I3NFML4B7LCZ5M4ER2ZGBKOP7HZ3SFLZJKNTYX5CB4ME
-#\\\|2WIHQBU6D2KS65HKF5ULKDSTEDNC6FL2GYVR6HL4SN5PS2LNGRE \ / AMOS7 \ YOURUM ::
-#\[7]AMGTH2A4HHK5CQY4FRIGAQADVI4C2O7VXDNJXRUYGKNXUCU5NYDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,.,,,...,,,.,.,,,,,,,,,,,..,,..,,...,.,.,...,,..,,.,,.,.,,,,,
+#3XPXCPAJ2VVUESUVI5TAMICDN3WKZA5HXRRQKSUC5LHSKS66XE4WO3YPHY6XPO3IGV7ERUON47SQU
+#\\\|CNQP6LAZXUBLAEUXE4OSZWXVOXHOM7NAXIXQAWOCXA32V5OI3WD \ / AMOS7 \ YOURUM ::
+#\[7]ZD4ABRRAGPRUIUZKKKZDEVBFIE6A2RDJEGRTOJ24IJGBKLX364AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

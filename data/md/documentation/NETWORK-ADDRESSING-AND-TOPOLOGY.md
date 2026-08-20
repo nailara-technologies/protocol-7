@@ -121,7 +121,7 @@ The parent's `<protocol-7.network.parent_route>` is inherited and extended with
 ## Access Control
 
 All command routing in cube is **whitelist-only**. Access is configured per
-zenka in `configuration/zenki/cube/access.zenki`.
+zenka in `cfg/zenki/cube/access.zenki`.
 
 **Wildcards** serve two distinct roles:
 - *Convenience shortcut* — during development when command surfaces are not yet
@@ -285,8 +285,8 @@ mpv[top-right].pause  # pauses only top-right
 | Session ID      | single session  | ephemeral    | precise point-to-point targeting  |
 | Composition     | any of above    | —            | multi-hop routes, cross-segment   |
 
-#,,,.,,,,,,,,,,,.,..,,.,.,,,.,,,,,..,,.,.,,..,..,,...,...,...,..,,,..,,..,,..,
-#HXVV5P2NT3VB4NG5NZITKF5KSZDI43HZQUXQDTESM65Q4JC4AVBNXBG7KMJ7P73TEMB62TWNKZNFC
-#\\\|OYZJMF6GCLMVILKAKKGCOI2636LLMVZM3VCAKZRBHRGUTFCIE5M \ / AMOS7 \ YOURUM ::
-#\[7]EOPWGEFIV4IJPXP5ERN4HAJCGBS25DWXV37UBVM6DT5APT2MNKCQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,.,.,,..,,,.,,..,.,.,,..,,..,..,,...,..,,,..,,,.,.,.,.,.,,..,
+#D7P3XYHDILY3IVVDJDN7ED42FVR6PDWBE3C6QDZHLK4OCXF37CLBE7G3NMFRC2UXHW6KU7JIHODG4
+#\\\|C5IEJ7GU7X5WLQVUZZ5VVCOYHYOWHO77VOL2B2DWXUDPOUD7575 \ / AMOS7 \ YOURUM ::
+#\[7]5RFDK4CCS2PNTZHRT7UMCUDHZXRYT4XTDHAHX3Z4POHM2YNW4YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

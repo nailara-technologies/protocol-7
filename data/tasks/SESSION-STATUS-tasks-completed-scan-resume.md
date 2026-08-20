@@ -80,7 +80,7 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `jobsite-cmd-progress.md` was flagged "possibly completed" pending two
   gaps: (1) missing `access.cmd.usr.taeki = jobsite.progress` line — moot,
   user confirmed taeki already gets `access.cmd.usr.<admin-user> = ** ..*.**`
-  (wildcard) via `configuration/zenki/cube/access.users`, and the task's own
+  (wildcard) via `cfg/zenki/cube/access.users`, and the task's own
   spec says only add the line if no wildcard exists; (2) idle-bracket text
   differs from the spec's example — confirmed real but cosmetic: actual
   code shows `new/rev/assessed/apply` (superset, extra field) vs spec's
@@ -254,8 +254,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,.,,...,,,,,.,,,,,.,.,.,,,,,,.,,,..,,.,,,.,,..,,...,...,.,.,,..,,,,,,,,,.,.,
-#GZSSD2O76N6XN6PJX2R7RGL3PX24YOKPJ2UFX7M4TXNNABNPG6RLGLSFKOSNT2BKULV5BQ66ALOCW
-#\\\|MKSSSUVNTGGLXIOG7EG55A6OC4YXL4AY5NEAFWNT54OCTYYJPKX \ / AMOS7 \ YOURUM ::
-#\[7]VAWX4DWLZZQYT6XLGOZKCF75FOHEEA3T5467N4COBDE4PRR7M2BY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,.,,,.,.,,,,,,..,,,,,.,,,..,,..,,...,...,..,,...,,.,,,,,,,,.,
+#QVTK3A3ZRQKIW37EHA5ICEFDMG7QRP7PEUMNWQTMKW5OBL6LUCTSMAHXDEVHGVIXEWD74XYZD6GLY
+#\\\|JD6NF6WYTSDLSJVPS6R5U4SMR5BQ2LZOI6WUTQAZKGCK7WA5UWD \ / AMOS7 \ YOURUM ::
+#\[7]KGQKEZNOL3YLCRTTDB2TTYY7EWJR25VPJYKQTJ47EGRFIG6HRGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,7 +12,7 @@ access list. read first:
 `modules/memory.tree.score`,
 `modules/memory.tree.zoom`,
 `modules/memory.source.index`,
-`configuration/zenki/memory/start`.
+`cfg/zenki/memory/start`.
 do NOT touch signatures or unrelated logic.
 
 ## context: how focus + index wiring works
@@ -73,7 +73,7 @@ index relations from prior lookups. async index replies (which arrive within
 ~1s) update `<memory.focus>` for subsequent `memory.show` calls — no second
 render needed in this command.
 
-### `configuration/zenki/memory/start`
+### `cfg/zenki/memory/start`
 
 add `search` to the `access.cmd.usr.cube` list alongside the other commands:
 
@@ -92,8 +92,8 @@ access.cmd.usr.cube   = verify-instance commands heart reload \
 - async index lookups fire for each term (visible in logs at level 1)
 - no manual AMOS7 signature stubs in new or edited files
 
-#,,,.,..,,,,.,.,,,.,,,,,.,,,.,,,,,...,,,,,...,..,,...,...,.,.,..,,,.,,.,,,,,.,
-#2RMYFNJMQPLZSZD7HQULNMSIOCOXMCBNPAWUPIVOLGMDRF4XDYKI2P23FE5UBIVFX6SUQ3CVDQERQ
-#\\\|RFYXBQNTMCPQOEXGXGY46NWJ5ELES6EKTT4R3RV6L6SQYFSLYLT \ / AMOS7 \ YOURUM ::
-#\[7]47BVWYGHRIJB5YJWRFRJAYKH2OU3IDQISQVPRKJJBDJHNWPDAGDY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,,,.,.,,,,,.,,.,,.,,,,.,,..,,..,,...,..,,.,,,,.,,.,,,.,.,,.,,
+#AAQZIIQMKMZTYCTSLVWPYIVC432IJTPECZ6QA3EGXIBXNMJZDB3YGMFPONXMZTS5X33JLRW3TEGNI
+#\\\|HD5K2FTLA6UTAWTOJJZNIPVWYL7DMYE7HP4GHWLW6KBLP64MQNL \ / AMOS7 \ YOURUM ::
+#\[7]JD5WA7VXWVEPX76FMYPQ6L7K3JE4NPOGSBOFBEKVUWVC463RP6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

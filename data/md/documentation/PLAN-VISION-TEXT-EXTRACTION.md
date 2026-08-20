@@ -259,7 +259,7 @@ modules/coding.vision-parser.helper.dispatch_next_stage
 ## Files to Potentially Modify
 ```
 modules/coding.cmd.submit - May need to support optional routing back to vision-parser
-configuration/zenki/coding/start - Load new vision-parser modules
+cfg/zenki/coding/start - Load new vision-parser modules
 ```
 
 ## Success Criteria
@@ -281,8 +281,8 @@ configuration/zenki/coding/start - Load new vision-parser modules
 - Caching of vision analysis results
 - Direct callback chaining to avoid polling
 
-#,,,.,.,.,...,..,,,,,,...,...,,..,,,,,,,.,...,..,,...,...,...,..,,.,.,,,.,.,.,
-#WOWAEKSOT2ZZ666XAG6FCO4FTF3374XG7VOKHO4S3IQ5M4LSIQP54IZR7NFDM3R77ASHUYUOH5KMA
-#\\\|C6KNU6VPE3NQPUTU3U6VPMKA4WBZDAW7Z5C7C3U2UYMC3NHP3RO \ / AMOS7 \ YOURUM ::
-#\[7]PNKERH4SS4TLXN2YSOA27ZY2F3PLT5KDJPQP2DPY22T36BV6MGAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,,..,...,.,.,...,,..,.,,,...,..,,...,...,,,.,,..,,,,,.,.,,,.,
+#BP2HBQOCG4DYTOJKHDK3SVA3K2BAN544KBGG6P3YMTZALET4QCX7YZG526CN52J5TV3T6HJSVWBCG
+#\\\|DVND63PEHEXPXD3FU2YXO4MTKFY5LU5IFVANZYZKLJ2KG6BWFOG \ / AMOS7 \ YOURUM ::
+#\[7]5FVL6KWABJVUUY2IF7WPDHVUN6Y6I6UOS5DOQS4EC4LINRMAT6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

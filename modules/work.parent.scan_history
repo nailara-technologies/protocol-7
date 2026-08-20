@@ -93,7 +93,7 @@ if (   exists $keys{'C25519'}{$sig_key_name}
 
 ## Get paths
 my $repo_path        = <git.cfg.repository_path>;
-my $version_file_rel = 'configuration/protocol-7.src-ver';
+my $version_file_rel = 'cfg/protocol-7.src-ver';
 my $version_file_abs = File::Spec->catfile( $repo_path, $version_file_rel );
 
 <[base.logs]>->( 1, "  Repository path : '%s'", $repo_path );
@@ -163,8 +163,8 @@ foreach my $commit (@$commits) {
         $commits_scanned, $total, $hash_short, substr( $subject, 0, 60 )
     );
 
-    ## Optional: Track version numbers if present in commit message
-    ## (These will be added by fix_versions, so initially won't exist)
+    ## Optional: Track version numbers if present in commit message (These
+    ## will be added by fix_versions, so initially won't exist)
     if ( $subject =~ m|^\[[A-Z0-9]+-(\d+)\.\d+\]| ) {
         $versions_seen{$1} = 1;
     }
@@ -173,9 +173,9 @@ foreach my $commit (@$commits) {
     my $version_file_content
         = `cd $repo_path && git show $hash:$version_file_rel 2>&1`;
 
-    ## Check if content looks like a version file
-    ## (starts with version number, not an error)
-    ## SIGCHLD=IGNORE interferes with exit codes, so check content instead
+    ## Check if content looks like a version file  (starts with version
+    ## number, not an error)  SIGCHLD=IGNORE interferes with exit codes, so
+    ## check content instead
     my $looks_valid
         = (    length($version_file_content) > 0
             && $version_file_content !~ m|^fatal:|
@@ -229,8 +229,8 @@ foreach my $commit (@$commits) {
             && $footer_data->{'structure-was-valid'} ) {
             <[base.log]>->(
                 1,
-                "    Signature footer present and structurally"
-                    . " valid, validating cryptographically..."
+                "    Signature footer present and structurally "
+                    . "valid, validating cryptographically..."
             );
 
             ## Validate the signature (use the same copy we extracted from)
@@ -240,12 +240,10 @@ foreach my $commit (@$commits) {
 
             if ($is_valid) {
                 <[base.log]>->(
-                    1,
-                    "    ✓ Version file signature cryptographically "
-                        . "VALID"
+                    1, "    ✓ Version file signature cryptographically VALID"
                 );
-                ## Step 3: Version file signature is valid
-                ## validate ALL source files at this commit
+                ## Step 3: Version file signature is valid  validate ALL
+                ## source files at this commit
                 <[base.log]>->(
                     3, "  Validating all source files at commit $hash..,"
                 );
@@ -257,16 +255,16 @@ foreach my $commit (@$commits) {
                 my $invalid_files = 0;
 
                 foreach my $file_path (@source_paths) {
-                    ## Allow event processing for Ctrl+C abort
-                    ## during file validation
+                    ## Allow event processing for Ctrl+C abort  during file
+                    ## validation
                     <[event.once]>->(0.07);
 
                     ## Read file at this commit ## change method !!! [LLL]
                     my $file_content
                         = `cd $repo_path && git show $hash:$file_path 2>&1`;
 
-                    ## Check if content looks valid [not a git error
-                    ## message] SIGCHLD=IGNORE interferes with exit codes
+                    ## Check if content looks valid [not a git error message]
+                    ## SIGCHLD=IGNORE interferes with exit codes
                     next
                         if ( !length($file_content)
                         || $file_content =~ m|^fatal:|
@@ -302,8 +300,8 @@ foreach my $commit (@$commits) {
                     ## Found invalid source files at this commit
                     <[base.logs]>->(
                         1,
-                        "    ✗ Source file validation failed "
-                            . "[checked %d/%d] files",
+                        "    ✗ Source file validation "
+                            . "failed [checked %d/%d] files",
                         $valid_files,
                         $total_files
                     );
@@ -311,8 +309,8 @@ foreach my $commit (@$commits) {
                         type    => qw| invalid_sources |,
                         commit  => $commit,
                         message => sprintf(
-                            "Invalid or unsigned source "
-                                . "files at this commit [checked %d files]",
+                            "Invalid or unsigned source files "
+                                . "at this commit [checked %d files]",
                             $valid_files
                         )
                     };
@@ -322,8 +320,8 @@ foreach my $commit (@$commits) {
                     ## All source files valid!
                     <[base.logs]>->(
                         1,
-                        "    ✓ All %d source files VALID - "
-                            . "commit is fully validated!",
+                        "    ✓ All %d source files VALID "
+                            . "- commit is fully validated!",
                         $valid_files
                     );
                 }
@@ -348,8 +346,7 @@ foreach my $commit (@$commits) {
             my $struct_valid = $footer_data->{'structure-was-valid'} // 0;
             <[base.logs]>->(
                 1,
-                "    ✗ Signature footer issue (present=%s, "
-                    . "struct_valid=%s)",
+                "    ✗ Signature footer issue (present=%s, struct_valid=%s)",
                 $was_present,
                 $struct_valid
             );
@@ -404,8 +401,8 @@ foreach my $commit (@$commits) {
             && $consecutive_valid >= $abort_after_valid ) {
             <[base.logs]>->(
                 1,
-                "  EARLY ABORT: reached %d consecutive valid "
-                    . "commits [threshold: %d]",
+                "  EARLY ABORT: reached %d consecutive "
+                    . "valid commits [threshold: %d]",
                 $consecutive_valid,
                 $abort_after_valid
             );
@@ -468,8 +465,8 @@ $code{qw| work.parent.scan_history |} = \&workflow_parent_scan_history;
 
 0;
 
-#,,..,.,.,,,,,.,.,,,,,..,,,,.,.,.,.,,,.,,,,..,..,,...,...,..,,.,.,.,,,...,...,
-#NIFB7SDIGZ4BOVOJCLMEVAKYXM472SYKWVOYPUA45FIFBUFNH54ZENOOTHV3XJQSXJLVBMVRDPDZU
-#\\\|WA5VO6CXVE5B2Q6JUA65JD7OPION6EMKH7AUQRLN63SJVMBDFQR \ / AMOS7 \ YOURUM ::
-#\[7]RROKNIHJSK2GPVKCZCDFKJLTHAPZOBYYWE6I7BRZY276CAMNW6CY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,,,,,.,.,...,.,,,.,,,,..,,.,,..,,...,..,,,.,,..,,,..,...,,.,,
+#YATAMADBGLBSSLDIG55LGCVGMSA7LKLX3XHDXPLR2EE5L4YZL2NEIRHSKPW5LFX5NBK6X4WERDJZ4
+#\\\|OULAK3PKYD4BRTW4C2ZK63J4ALBMZCAL2EVI7L745DVQYXP5OXG \ / AMOS7 \ YOURUM ::
+#\[7]FYZAZVIRLDYUTOQLJMAUTCJ35IEW4PWVF3UH3VGAQ4P2M7ZW74CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

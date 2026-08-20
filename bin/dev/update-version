@@ -103,7 +103,7 @@ $git->add($rl_v_file)
     if !$amend
     and $version_string ne $old_version
     and -f $rl_v_file
-    and $git->ls_files(qw| configuration/protocol-7.rel-ver |);
+    and $git->ls_files(qw| cfg/protocol-7.rel-ver |);
 
 ## ./cfg/protocol-7.src-ver ##
 open( my $ver_fh, qw| > |, $vers_file ) or die " --> $vers_file : $!\n";
@@ -210,8 +210,8 @@ if ( length($release_version) and -f $rel_versions_md ) {
     }
 }
 
-say "$fg:\n${fg}:: $bl${CT}source version$rst$fg :: "
-    . "$bg$CT$version_string$fg$rst$fg .:\n$fg:$rst";
+say "$fg:\n${fg}:: $bl${CT}source version$rst$fg "
+    . ":: $bg$CT$version_string$fg$rst$fg .:\n$fg:$rst";
 
 ### SUBROUTINES ##############################################################
 
@@ -303,8 +303,8 @@ RETRY_BASE_NTIME_B32:              ## only choose harmonic values ##
     return $encoded_ntime;
 }
 
-#,,.,,.,,,...,..,,.,.,...,..,,,..,.,,,,,,,,.,,..,,...,...,..,,,,,,,,.,..,,.,,,
-#55CN4LUACDZLJEJRAFTFDJ2BNNEKUADPH343C3ROBHOJ3L6QM52JY5U7E43TXORF4V6QJAOOIMXMU
-#\\\|VSDFIGOAGD3BFTWFKM7HWRGJG5QUYFXLED5DBABKNEHGJ3MWLIM \ / AMOS7 \ YOURUM ::
-#\[7]R5DIP7SKTJBG4PLAXAFRLZ6QY2WMDXNRNVSSMR3WG5YR2YHT64AA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,..,,,.,,.,.,,,.,...,.,.,.,.,..,,...,...,...,,.,,,.,,.,,,,..,
+#YVHFK542DTXEKBVAMCT7AXI4PXTIEZJ2ILHHYZWQIY523Q2GAEAPV6562UZNNCDXZQKAFQHY5V6ZG
+#\\\|KR3D2KBBFMOB56KI6S5HKAKEWXEDCEDQWHKRDOPTZHNBS5FLINO \ / AMOS7 \ YOURUM ::
+#\[7]WAITQBXJ737QEQTV7S2AB5HF6X7VOJFN2KT5VQ43WUPDOAU6Q4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -78,7 +78,7 @@ modules/jobsite.cmd.reload-probe:
     return { 'mode' => 'true', 'data' => 'probe-v1' };
 ```
 added `reload-probe` to `access.cmd.usr.cube` in
-`configuration/zenki/jobsite/start`, `p7c jobsite.reload` → `p7c
+`cfg/zenki/jobsite/start`, `p7c jobsite.reload` → `p7c
 jobsite.reload-probe` → `probe-v1` (correct, first load).
 
 edited the file to return `'probe-v2'`, confirmed on disk, `p7c
@@ -260,7 +260,7 @@ live repo (2026-08-02):
   reload of an already-running process), but it's a second confirmed piece
   of unfinished phase-1 cleanup, not just this bug.
 - **phases 2 through 5 have zero implementation** — no `force-replace` /
-  `force-keep`, no `FINGERPRINT`, no `configuration/loader/rollback-rules/`,
+  `force-keep`, no `FINGERPRINT`, no `cfg/loader/rollback-rules/`,
   no `reload rollback` command, no `Protocol7::Source::*` tie backends
   anywhere in the repo. everything past phase 1 is design-only.
 - **the likely key divergence from the documented design**: the doc states
@@ -301,8 +301,8 @@ by the signing system. do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,.,,,,,,.,,,,.,,.,,,..,,,,,,.,.,...,...,..,,..,,...,...,,..,...,...,,..,...,
-#UX5NXAWDLGPWHSE5QTXOL5BA2FTSONYUU6XNTCTWFTAH4CTWNSEKPLX4AODGG2G5DPFB67YTGWLEK
-#\\\|JLQPEQS6ULS3N7TAIEXTLSG3YLPQTITJSRWGL2BQAZZMAHRMDMX \ / AMOS7 \ YOURUM ::
-#\[7]ANRCJY3PZDCZQ55MKR7LVU2WOJEF2WUP3U5RQMPNYWLWCHYD34DA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,.,..,,,..,.,.,,..,,,.,.,.,...,..,,...,..,,.,,,,.,,.,,,.,.,,.,,
+#EHDB6YJK2PZ4D4HX3CLOJWQ4HQKMRWGDB2KZDBKAKLTCRCVKUFL4TFWT6LWHZKE3V6L4DQQQWXFPM
+#\\\|3Z6CC2ZTTOHCGMZZZTCSB5IWECTHYRPSAJ4RXLL6JR7F3VPKIZD \ / AMOS7 \ YOURUM ::
+#\[7]QWVCOBSNVWS7GYQD57T36YXJDCJWR4OROHZMYMTJGPXAJRJ5I2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

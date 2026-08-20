@@ -23,7 +23,7 @@ start cleanly** against the running v7 instance.
 
 - **credential_fabric** — lacks `zenka-startup.v7`; v7 refuses to start it.
   also missing `auth.zenki` entry.
-- **transport** — has no `configuration/zenki/transport/` directory at all;
+- **transport** — has no `cfg/zenki/transport/` directory at all;
   missing `auth.zenki` entry.
 - **proxy** — after adding the missing `auth.zenki` entry for proxy at the
   user's request and reloading cube, proxy now authenticates successfully
@@ -46,16 +46,16 @@ the boot-time issues are fixed.
 - used `USER=taeki p7c ...` for cube queries
 - observed live v7 log output (proxy crash-loop) provided by the operator
 - read all landed modules and configuration files in `modules/` and
-  `configuration/zenki/`
-- copied `configuration/zenki/credential_fabric/seed.yaml.example` to
+  `cfg/zenki/`
+- copied `cfg/zenki/credential_fabric/seed.yaml.example` to
   `var/credential_fabric/seed.yaml` (explicitly permitted by the task)
 - at the user's request, added `auth.setup.usr.proxy = :zenka:` to
-  `configuration/zenki/cube/auth.zenki` and sent `p7c reload` to cube
+  `cfg/zenki/cube/auth.zenki` and sent `p7c reload` to cube
 - attempted to start credential_fabric by creating
-  `configuration/zenki/credential_fabric/zenka-startup.v7`, adding
+  `cfg/zenki/credential_fabric/zenka-startup.v7`, adding
   `auth.setup.usr.credential_fabric = :zenka:`, removing `proxy` from
   credential_fabric's `modules.load`, and adding credential_fabric to
-  `configuration/zenki/v7/start-set-up.base` — v7 reload did not pick up
+  `cfg/zenki/v7/start-set-up.base` — v7 reload did not pick up
   the new start-set-up entry, so credential_fabric remains unstartable
   via v7. manual `./bin/Protocol-7 credential_fabric` fails because it
   runs as unix user `taeki` and cube rejects the auth handshake
@@ -81,12 +81,12 @@ see log-buffer.
 v7 log shows:
 ```
 required file 'zenka-startup.v7' not present
-  :. configuration/zenki/credential_fabric/zenka-startup.v7
+  :. cfg/zenki/credential_fabric/zenka-startup.v7
 ```
 
-`configuration/zenki/credential_fabric/start` exists and loads the
+`cfg/zenki/credential_fabric/start` exists and loads the
 modules correctly, but v7-managed on-demand startup requires a
-`zenka-startup.v7` sibling file (see `configuration/zenki/proxy/zenka-startup.v7`
+`zenka-startup.v7` sibling file (see `cfg/zenki/proxy/zenka-startup.v7`
 for a working example).
 
 module review: `credential_fabric.seed_registry` (new in this commit)
@@ -211,7 +211,7 @@ confirmation is still needed once the zenki can talk to each other.
 ### a. proxy startup — auth fixed, two module errors remain
 
 after the user requested adding `auth.setup.usr.proxy = :zenka:` to
-`configuration/zenki/cube/auth.zenki` and reloading cube, proxy now
+`cfg/zenki/cube/auth.zenki` and reloading cube, proxy now
 authenticates successfully:
 ```
 [*] success., =), cube authorized session.
@@ -247,16 +247,16 @@ socket. two independent module errors remain:
    so this is a path-resolution / working-directory issue. the fallback
    path on line 6-7 uses `<system.root_path>` which would be safer;
    perhaps `<proxy.cfg.selector_config>` should be set to an absolute
-   path in `configuration/zenki/proxy/start`.
+   path in `cfg/zenki/proxy/start`.
 
 3. **missing `auth.zenki` entry for `proxy` — FIXED during verification:**
    `auth.setup.usr.proxy = :zenka:` was added to
-   `configuration/zenki/cube/auth.zenki` and cube was reloaded.
+   `cfg/zenki/cube/auth.zenki` and cube was reloaded.
    this blocker is resolved.
 
 ### b. transport zenka has no configuration directory
 
-`configuration/zenki/transport/` does not exist. there is no `start`
+`cfg/zenki/transport/` does not exist. there is no `start`
 file, no `zenka-startup.v7`, and no `auth.zenki` entry for `transport`.
 `v7.list available` does **not** list transport. even after creating the
 directory, the transport init_code depends on `<external.transports>`
@@ -265,7 +265,7 @@ being initialized by the `external` zenka. `external` is listed as
 
 ### c. missing `auth.zenki` entry for `credential_fabric`
 
-`configuration/zenki/cube/auth.zenki` has:
+`cfg/zenki/cube/auth.zenki` has:
 ```
 auth.setup.usr.credentials = :zenka:
 ```
@@ -276,9 +276,9 @@ handshake the same way it rejects proxy.
 
 ### d. `credential_fabric.access.zenki` vs cube `access.zenki` — possible confusion
 
-`configuration/zenki/credential_fabric/access.zenki` exists but defines
+`cfg/zenki/credential_fabric/access.zenki` exists but defines
 `access.cmd.usr.credential_fabric`. the cube's own
-`configuration/zenki/cube/access.zenki` **also** defines
+`cfg/zenki/cube/access.zenki` **also** defines
 `access.cmd.usr.credential_fabric` with the cross-zenka edges
 (`protocol-7-menu.input-text`, `proxy.handler.cred_rotated`, etc.).
 the credential_fabric-level file defines **intra-zenka** command access
@@ -318,9 +318,9 @@ runtime-tested.
 | # | issue | priority | blocks |
 |---|-------|----------|--------|
 | 1 | fix `proxy.handler.accept` line 6 syntax error (`$proxy` → `$data{'proxy'}{'listen_sock'}`) | **p0** | proxy init |
-| 2 | add `auth.setup.usr.credential_fabric = :zenka:` to `configuration/zenki/cube/auth.zenki` | **p0** | credential_fabric boot |
-| 3 | create `configuration/zenki/credential_fabric/zenka-startup.v7` (copy from proxy or another zenka) | **p0** | credential_fabric boot |
-| 4 | create `configuration/zenki/transport/` with `start`, `zenka-startup.v7`, `subroutine.white-list`, and `access.zenki`; add `auth.setup.usr.transport = :zenka:` | **p0** | transport boot |
+| 2 | add `auth.setup.usr.credential_fabric = :zenka:` to `cfg/zenki/cube/auth.zenki` | **p0** | credential_fabric boot |
+| 3 | create `cfg/zenki/credential_fabric/zenka-startup.v7` (copy from proxy or another zenka) | **p0** | credential_fabric boot |
+| 4 | create `cfg/zenki/transport/` with `start`, `zenka-startup.v7`, `subroutine.white-list`, and `access.zenki`; add `auth.setup.usr.transport = :zenka:` | **p0** | transport boot |
 | 5 | fix `proxy.selector.load` path resolution so `file.slurp` does not return undef (set absolute path in proxy start config or guard the `->$*` dereference) | **p0** | proxy init |
 | 6 | fix `credential_fabric.subscribe_rotation` to accept wildcard `*` without requiring a slot named `*` in the registry | **p1** | rotation cache flush |
 | 7 | confirm cross-zenka `protocol-7-menu.input-text` / `input-password` routing works end-to-end (first cross-zenka consumer of these cmd.* dialogs) | **p1** | on-demand auth relay |
@@ -329,7 +329,7 @@ runtime-tested.
 | 10 | add transport start config to `v7.list available` (may need v7 config reload or ondemand-zenka registration) | **p2** | transport visibility |
 | 11 | `credential_fabric.handler.auth-relay-reply` uses `->%*` postfix dereference (perl 5.24+); safe on current host (5.40.1) but document if target platform is older | **p3** | portability |
 | 12 | grant a console/admin user (e.g. `access.cmd.usr.taeki` or extend the `*` wildcard) access to `credential_fabric.list`/`.resolve`/`.rotate`/`.approve` — currently **nobody** at the console can call any of them (see addendum) | **p0** | acceptance #1, #4, #5 — entirely, independent of boot status |
-| 13 | add `max_concurrency = 1` to `configuration/zenki/proxy/zenka-startup.v7` (compare `acquire/zenka-startup.v7`) — proxy binds a fixed listening address (`127.0.0.1:8118`); concurrent instances will race on bind | **p1** | proxy stability |
+| 13 | add `max_concurrency = 1` to `cfg/zenki/proxy/zenka-startup.v7` (compare `acquire/zenka-startup.v7`) — proxy binds a fixed listening address (`127.0.0.1:8118`); concurrent instances will race on bind | **p1** | proxy stability |
 | 14 | second, distinct compile-time issue: `httpd.status_codes` reports "subroutine ... not defined" during `proxy.init_code` despite being listed in `modules.load` — likely a load-order issue (`httpd.status_codes` is the *last* entry, after `proxy`, whose `init_code` needs it already loaded); needs tracing through `base.load_modules`/`init_modules` sequencing to confirm | **p0** | proxy init (compounds #1 in this table) |
 | 15 | route all 6 hardcoded `'var/credential_fabric/...'` paths (`init_code`, `seed_registry`, `store.local`, `key_holder.child`, `cmd.approve`, `auth-relay-reply`) through `<[file.zenka_dir.write/load/data_path]>` — same class of cwd-relative-path bug as `proxy.selector.load` (additional finding a.2); works today only because cwd happens to be the project root | **p1** | portability / correct-deployment robustness |
 
@@ -374,22 +374,22 @@ modules (all read, none modified):
 
 configs (read; several modified during verification at user request or to
 unblock testing):
-- `configuration/zenki/cube/auth.zenki` — added `auth.setup.usr.proxy = :zenka:`
+- `cfg/zenki/cube/auth.zenki` — added `auth.setup.usr.proxy = :zenka:`
   and `auth.setup.usr.credential_fabric = :zenka:`
-- `configuration/zenki/cube/access.zenki`
-- `configuration/zenki/credential_fabric/start` — removed `proxy` from
+- `cfg/zenki/cube/access.zenki`
+- `cfg/zenki/credential_fabric/start` — removed `proxy` from
   `modules.load` (was causing compile failure due to broken
   `proxy.handler.accept`); temporarily commented out `[root.drop_privs]`
-- `configuration/zenki/credential_fabric/zenka-startup.v7` — created
-- `configuration/zenki/v7/start-set-up.base` — added `- credential_fabric`
+- `cfg/zenki/credential_fabric/zenka-startup.v7` — created
+- `cfg/zenki/v7/start-set-up.base` — added `- credential_fabric`
   (not picked up by v7 reload)
-- `configuration/zenki/credential_fabric/start`
-- `configuration/zenki/credential_fabric/access.zenki`
-- `configuration/zenki/credential_fabric/seed.yaml.example`
-- `configuration/zenki/proxy/start`
-- `configuration/zenki/proxy/zenka-startup.v7`
-- `configuration/zenki/proxy/subroutine.white-list`
-- `configuration/zenki/external/start`
+- `cfg/zenki/credential_fabric/start`
+- `cfg/zenki/credential_fabric/access.zenki`
+- `cfg/zenki/credential_fabric/seed.yaml.example`
+- `cfg/zenki/proxy/start`
+- `cfg/zenki/proxy/zenka-startup.v7`
+- `cfg/zenki/proxy/subroutine.white-list`
+- `cfg/zenki/external/start`
 - `data/yaml/web-proxy/template-selector.yaml`
 - `data/yaml/transport/profiles/default.yaml`
 - `data/yaml/transport/profiles/atom.yaml`
@@ -501,9 +501,9 @@ mid-pass, `proxy` briefly had **3 simultaneous online instances**
 (unique instance-ids `7509717`/`3553717`/`2597099`, unique
 session/job-ids; same zenka-*type*-id `2927039` — confirmed via
 operator clarification that this column identifies the zenka type,
-not a per-process collision). `configuration/zenki/proxy/
+not a per-process collision). `cfg/zenki/proxy/
 zenka-startup.v7` has no `max_concurrency` key; compare
-`configuration/zenki/acquire/zenka-startup.v7`, which sets
+`cfg/zenki/acquire/zenka-startup.v7`, which sets
 `max_concurrency = 1` — a real, working gate (read in
 `v7.zenka.cmd.start:102` / `v7.zenka.cmd.restart`, checked against
 `v7.start_count`). for a zenka that binds a fixed listening-socket
@@ -527,7 +527,7 @@ this is **separate from** (and not mentioned alongside) the
 documented — both fire during the same `proxy` boot attempt and
 compound each other. `httpd.status_codes` *is* already listed in
 `proxy`'s `modules.load`
-(`configuration/zenki/proxy/start:16` — `...format.yaml proxy
+(`cfg/zenki/proxy/start:16` — `...format.yaml proxy
 proxy.outbound.connect_or_use httpd.status_codes`, the *last* entry),
 and `proxy.init_code:14` calls `<[httpd.status_codes]>` to populate
 `<protocol.http.status_codes>`. the module file itself is a plain
@@ -623,7 +623,7 @@ independent confirmation of kimi's finding, still **p0**:
 
 verifier: kimi (harness-only pass, no zenka module edits)
 context: user added `site-yaml.fetch` to `access.cmd.usr.cred-mesh` in
-`configuration/zenki/cube/access.zenki` and reloaded cube to unblock the
+`cfg/zenki/cube/access.zenki` and reloaded cube to unblock the
 specific "no perm. [ src 'cred-mesh' cmd|usr 'site-yaml.fetch' ]" error
 seen in earlier runs.
 
@@ -683,7 +683,7 @@ per-scenario assertion counts from the run:
 
 - **location / error:**
   - `modules/proxy.auth.lookup:33` sends `command => 'cred-mesh.resolve'` via `protocol-7.route-send`.
-  - `configuration/zenki/cube/access.zenki:361-364` grants `cred-mesh.resolve` to `proxy`.
+  - `cfg/zenki/cube/access.zenki:361-364` grants `cred-mesh.resolve` to `proxy`.
   - v7 log shows:
     ```
     :. cube    :  [1200301] no perm. [ src 'proxy' cmd|usr 'credential_fabric.resolve' ]
@@ -695,8 +695,8 @@ per-scenario assertion counts from the run:
 #### F2. transport zenka lacks `eval-code` access/devmod, blocking scenarios 2 and 3
 
 - **location / error:**
-  - `configuration/zenki/transport/access.zenki:4-19` grants transport internal commands but does not include `eval-code`.
-  - `configuration/zenki/transport/source/ui` exists but `configuration/zenki/transport/source/devmod.cmd.eval-code` does not (cred-mesh has it).
+  - `cfg/zenki/transport/access.zenki:4-19` grants transport internal commands but does not include `eval-code`.
+  - `cfg/zenki/transport/source/ui` exists but `cfg/zenki/transport/source/devmod.cmd.eval-code` does not (cred-mesh has it).
   - v7 log shows on every `transport.eval-code` call:
     ```
     :. tr.,.rt :  [7023317] no perm. [ src 'cube' cmd|usr 'eval-code' ]
@@ -887,7 +887,7 @@ per-scenario assertion counts from the restarted run:
 #### F8. `transport.eval-code` still denied for the console user
 
 - **location / error:**
-  - `configuration/zenki/transport/access.zenki` / `configuration/zenki/cube/access.zenki`
+  - `cfg/zenki/transport/access.zenki` / `cfg/zenki/cube/access.zenki`
   - v7 log:
     ```
     :. tr.,.rt :  [7023317] no perm. [ src 'cube' cmd|usr 'eval-code' ]
@@ -1271,8 +1271,8 @@ per-scenario assertion counts from the restarted run:
 | 5 | make scenario 5 harness resilient to 502 HTML / configure site-yaml or hosts for `auth-relay-test.local` | **p1** | scenario 5 |
 | 6 | tighten harness seed assertions so `"failed to store rotated credential"` is reported as a failure | **p1** | test signal quality |
 
-#,,..,...,.,.,.,,,,..,...,,..,,.,,.,,,..,,,,.,.,.,...,...,...,.,,,...,...,.,.,
-#6LH5LRDH64M6XPEHPAXAKY72V6T3PEISGVN6V2W4E6WHVDHHNC67OHVOTAMBIBOQJWZERATAHMU2S
-#\\\|VAQ4QOZ3CC5U3MOTHWS4Z4SNVK6EBPDJPNQQJNGITKCGAF4JEJS \ / AMOS7 \ YOURUM ::
-#\[7]YVVVIWSZLF66DGAWOCCKL64QYYZN356SUEROJDWKHEVCCST2W6BY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,.,,,,..,,,.,,,.,,,.,.,.,,,,,.,.,...,..,,,.,,.,,,.,.,..,,,,,,
+#JNKQTNY3USYKMTEAYGWAW2RLLP6SAZGCVJGOGW6EF2EYTP62E6DX35P64FZLOOVH6ORLYR4B4HQZU
+#\\\|N2A7M7R7OCWOLA3HRZMLYQPOAJLJL56WSYJ4RLV67IQKW3XYFJ2 \ / AMOS7 \ YOURUM ::
+#\[7]CGNYGFT736YX3Y5IDEHHQYVVJ2IX3QLZOGNVIZRVYGZGQOMBDOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

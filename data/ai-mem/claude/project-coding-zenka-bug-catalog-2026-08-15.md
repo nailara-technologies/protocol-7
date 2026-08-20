@@ -114,7 +114,7 @@ NEXT `user-edit` start crashed outright --
 ERROR : deep recursion on anonymous subroutine
 [crypt.C25519.cmd.get-public-key:1]`, emergency exit. Confirmed live: the
 crashed zenka would not start at all until the dropped line was manually
-restored into `configuration/zenki/user-edit/subroutines.load-early`, after
+restored into `cfg/zenki/user-edit/subroutines.load-early`, after
 which `commands` and `show-form taeki` both loaded cleanly again.
 
 Per user: **this should never happen** -- the whitelist mechanism is
@@ -171,8 +171,8 @@ the zenka. Whether `gen-sub-whitelist` still DROPS the entry on a fresh
 regen was not re-tested -- the "always `git diff` the regen" advice above
 still stands, the stakes of missing it are just much lower now.
 
-#,,,.,..,,,..,...,,,,,..,,...,,..,,,.,...,,,,,..,,...,...,..,,,,,,,.,,..,,,..,
-#52OIFF6GZA3ZMRH2CQ2U4IVUJSAIXLQ3FARGX7WG7E5EH7Q5VTAA225W6475P23NDYU4OHONLV7F6
-#\\\|VTU5PFPEITLZ3UOJ6Y3QSWOFHTD4NPPY45Q2EXICIKFJKVE5RHI \ / AMOS7 \ YOURUM ::
-#\[7]FEDN3NHADGALQBURITF2CLDRSYSVRXLPBLBLIKF3UCQVJI6U54BA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,.,,.,,...,.,.,.,.,,.,,..,,,..,..,,...,...,,..,.,.,,,.,,,.,,..,
+#QHAGNECFHFWS7AIFWMWB75YOFFGOPQGSWDROGZS2IMNNULJSITP2VGTBRW4KVDXYVF2RDPL7DQ6NK
+#\\\|UVLKOZV7FCFU6NATX6SPF5BHZTVSZOQQIYWKKNSOAQSUGGOINNT \ / AMOS7 \ YOURUM ::
+#\[7]PFQSJW32NDY5JGICVESRWAWPMRUGBDVSN32DWXCWD6M34Z5TR6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -72,7 +72,7 @@ a real one).
 ## Whitelist registration
 
 Add `users.cmd.remove` to
-`configuration/zenki/users/subroutines.load-early` — `create-default` and
+`cfg/zenki/users/subroutines.load-early` — `create-default` and
 `value-get` are both already listed there (this is the users zenka's own
 subroutine whitelist, separate from cube-level access control). Prefer
 regenerating it via `bin/dev/gen-sub-whitelist users` over hand-editing, if
@@ -81,7 +81,7 @@ existing entries' format if not.
 
 **No `access.zenki`/`access.users` change is needed** — `users.*` commands
 are already reachable under the existing admin/root wildcard grants in
-`configuration/zenki/cube/access.users`. Do not add anything there.
+`cfg/zenki/cube/access.users`. Do not add anything there.
 
 ## Acceptance checks — run these live via `p7c`, not just `perl -c`
 
@@ -114,8 +114,8 @@ that aren't backed by shown output.
 - Do not touch anything under `credentials`/`cred-mesh`/`sessions` — this
   task is scoped to the `users` zenka's own record storage only.
 
-#,,,,,..,,..,,.,,,.,.,,,.,,,,,.,,,,.,,,,,,,,.,..,,...,..,,..,,.,.,,,,,...,,,.,
-#4XGC24V576KRWLBX45FJRB4LKVA2XCJXB5LZBK6X2H6BA27HM4ZZKZLSPW2GPCRRRHLB64PADZZ2M
-#\\\|MXPPRM6FQU7RPR2LVYMDP3G7PH7B4LWGML6CBMIRELRYMFQGODL \ / AMOS7 \ YOURUM ::
-#\[7]4V7SB4NNCBXYN3RXCJKE3UZEC2ACO4ASDMQEA7GMWM327YRH6EDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,..,,...,.,.,...,,,,,,.,,.,.,..,,..,,...,..,,,,,,,..,,..,...,..,,
+#BF3FK3TJ4OGAFIWQ3Y6ZK7HIAOFFCPAAN7P57OBBA5MUQTRCONL32UQKCV574IX7SJK6NT2TETBK6
+#\\\|W5IXLYLP363TFIK4IR6EIG6FQEDZAGYBAID7FMOHMHJMGJF7JGH \ / AMOS7 \ YOURUM ::
+#\[7]YZD4UJQPJ4Z2P4YX3MLARMVVWVHXWHODBSYV7CNXLHNW7H5DY2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

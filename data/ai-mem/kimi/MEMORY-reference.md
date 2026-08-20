@@ -12,7 +12,7 @@ directives. see [topic-memory-update-tool.md](topic-memory-update-tool.md)
 ## Project Workflow Rules (CRITICAL)
 
 - signature updates require user passphrase — ask user to run signing command, never skip hooks
-- version file: `configuration/protocol-7.src-ver` — update with `./bin/dev/update-version`
+- version file: `cfg/protocol-7.src-ver` — update with `./bin/dev/update-version`
 - pre-commit checks: permissions, version, signatures, source integrity
 
 ## %code Presence/Call Primitives + Rename Grep Caveat (July 2026) [ CRITICAL ]
@@ -71,8 +71,8 @@ wrapper owns its own relative-path prefix logic for var/etc dirs; the
 outbox file is already an absolute path from `[VAR_P7]/outbox/<id>.yaml`
 + `base.path.resolve_keywords`, so direct `unlink` is the simpler fit.
 
-#,,.,,,,,,,,.,...,,,.,...,,,,,..,,..,,.,,,..,,..,,...,...,.,.,,,.,.,,,,.,,,.,,
-#EAQSC6LHI5F3IJSDMMSPSQNAOT2WVVVTF6PRMD62KAOJ4QCJ2SASGFRBNZU6FSHFVKPVOAHBXQQJI
-#\\\|Q5ARNVWDX3H2H3G2LRGNOAGMQXSYIUQDQHL4MHZRKOTQSR436W7 \ / AMOS7 \ YOURUM ::
-#\[7]N4FYU7UYLSYDVTYFUBXMTBZNC76FIAV4KEPWP2OSMNUVRY343UDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,.,.,.,,,.,,,.,...,.,,,..,,..,,..,,...,...,,.,,..,,,,.,,..,,,,,
+#J3O46FZJO43TN4OCMXDUEBHP53SPKGLUXFPYCQT24ZP4MEIUYIKRCZPDY7ZHYBDCUQIJA56BKRLYY
+#\\\|JRZKTFYQZV3AX4Q65JIE35XTOYZHULXYZBESCLGDDGVLJWVK5WM \ / AMOS7 \ YOURUM ::
+#\[7]QY6UU6ZKTTDH6K4LGD6RR7VY2FPHUK3UU3U6CLWRDRA2NZXMGWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

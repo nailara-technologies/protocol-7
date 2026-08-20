@@ -7,7 +7,7 @@ Shared across all zenki (models, lm-vision, coding, etc.)
 
 ## Configuration File
 
-**Location:** `configuration/external-inference-models`
+**Location:** `cfg/external-inference-models`
 
 **Included:** After `shared-params` in all zenki that need model paths
 
@@ -73,7 +73,7 @@ export HF_CACHE_DIR=/var/cache/huggingface
 ### For Models Zenka
 
 ```perl
-## In configuration/zenki/models/start
+## In cfg/zenki/models/start
 #include <shared-params>
 #include <external-inference-models>
 
@@ -83,7 +83,7 @@ export HF_CACHE_DIR=/var/cache/huggingface
 ### For Other Zenki
 
 ```perl
-## In configuration/zenki/coding/start (or lm-vision, etc.)
+## In cfg/zenki/coding/start (or lm-vision, etc.)
 #include <shared-params>
 #include <external-inference-models>
 
@@ -139,15 +139,15 @@ my $dir = <external.models.lmstudio.path>;
 
 To permanently change a path, edit:
 ```
-configuration/external-inference-models
+cfg/external-inference-models
 ```
 
 And modify the default value at the top of the file.
 
 ---
 
-#,,.,,.,,,..,,,.,,.,,,..,,,..,...,,,.,,,,,,,.,.,.,...,.,,,.,,,,.,,.,.,.,.,.,.,
-#JYYUG2JUNE7SCRTMDITLDHESTNEKGC63WCF33QW7JJ6TEX4GDOBVTDKGMM7VNKIGRR3CXUVZWZC2Q
-#\\\|TNNMZH4R362D3D6PQAYSAUEMWZFMDQ4TVQVKYW7D2WVDE5Z4ZNY \ / AMOS7 \ YOURUM ::
-#\[7]U6YDCG5ML7YSXFB4XH4I5SUR6OKTAA3UUJ2UQMDYODHXTAWPB4CY 7  DATA SIGNATURE ::
+#,,,,,..,,...,..,,.,,,.,.,.,,,,,.,.,,,,,.,...,.,.,...,.,.,.,.,.,,,..,,,..,.,,,
+#VTUEL5XEB7BJTTQTRLZZTG5JHEERBOAXJGKFNUMLEBSKLGX6UIJCOUMANXXYPDOMXAHXC2ICQNVUQ
+#\\\|WYNRWA627GSTJNO6HM2ID5EKED2FSEYCO3XQR5MK7TZIZIB42UH \ / AMOS7 \ YOURUM ::
+#\[7]NYMFN67IVHQDR6GHGHKGN7UUSB3KDRO5BE2OUJPF5CDMMZRPDOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

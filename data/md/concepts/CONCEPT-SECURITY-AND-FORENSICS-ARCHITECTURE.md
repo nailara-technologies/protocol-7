@@ -91,7 +91,7 @@ nodes zenka wakes it at P1 priority → investigation proceeds.
 ## forensics zenka
 
 a nightly forensics zenka is already scheduled in the events timetable
-(`configuration/zenki/events/event-setup.base`, 04:07, `type = zenka-present`).
+(`cfg/zenki/events/event-setup.base`, 04:07, `type = zenka-present`).
 the slot has existed for years — it wakes when implemented, does nothing until then.
 
 with parameter-preserving compressed buffers as input (see
@@ -125,11 +125,11 @@ whole system smarter after each incident.
 - data/md/concepts/CONCEPT-CONTEXT-AWARE-LOG-MANAGEMENT.md
 - data/md/documentation/LOGGING-AND-VERBOSITY-REFERENCE.md
 - data/md/concepts/CONCEPT-SELF-MORPHING-CODE-STYLE-CONVERGENCE.md
-- configuration/zenki/events/event-setup.base
+- cfg/zenki/events/event-setup.base
 - modules/nodes.*
 
-#,,.,,...,,.,,,,.,.,.,.,.,,,,,.,.,...,..,,.,.,..,,...,...,..,,..,,,,,,...,.,,,
-#OYBVODAV6VBRXA77JG6VKLSSSMYJ7C2AKAKO54LELIXUV5KFGW35BX23FDFKCUP35LCLD5UQRK5I6
-#\\\|RBABFH6YZTTYWW2KFOAGPQESJFZP5EH22PNGERPAJ257KM2D2EA \ / AMOS7 \ YOURUM ::
-#\[7]SRPQIOT2DYQKWUQ6VXPVIKZQS7JUF5UG3GTIR26XKEISCV37L2CI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,,,,,,,.,,.,,,..,..,,,,,,.,,,..,,...,...,...,..,,..,,,..,.,,,
+#43A6PLCK7HSVRMUQVMAYYNWTC43C7XCDNIMAJPMYFS746NSO3DENFCME5H2GAQEFZM7WEBCXQE4KO
+#\\\|XLC4HSK3SHFJZQTALCZBDQDIWPZAQCKVYLT2MJNMPONW33XBKLG \ / AMOS7 \ YOURUM ::
+#\[7]BBAGIY4MYPNQXVDYC7LMDLO4FGHAC3XKA4FYIAETCNXZOPSCFIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

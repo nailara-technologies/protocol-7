@@ -34,7 +34,7 @@ foreach my $handler (@combined) {
 `route-send` executes with **cred-mesh's own** outbound identity/
 permissions — not the original subscriber's. So any zenka with access to
 `cred-mesh.subscribe_rotation` (currently `proxy` and `transport`, per
-`configuration/zenki/cube/access.zenki`) could subscribe with
+`cfg/zenki/cube/access.zenki`) could subscribe with
 `handler => 'system.host-poweroff'` (or any other command cred-mesh's own
 zenka identity happens to be authorized for) instead of a legitimate
 `zenka.cred-rotated`-shaped callback, and get it invoked for free on the
@@ -110,7 +110,7 @@ ready to dispatch as a narrow, cred-mesh-only fix — not the wider
 once this pattern is proven here first). the two current subscribers are
 `proxy.handler.subscribe_rotation_deferred` and
 `transport.handler.subscribe_rotation_deferred`
-(`configuration/zenki/cube/access.zenki` grants both `cred-mesh` access) —
+(`cfg/zenki/cube/access.zenki` grants both `cred-mesh` access) —
 both call `cred-mesh.subscribe_rotation` with
 `handler => "$self.cred-rotated"`-shaped strings today, so the fixed
 `cred-rotated` suffix this doc proposes matches their existing behavior
@@ -124,7 +124,7 @@ short) and whatever test coverage exists for
 
 **Caller-identity mechanism — confirmed, not an open question.** cube can
 de-anonymize the caller's zenka name (and, separately, its session id) for
-specific commands via `configuration/zenki/cube/command_aliases`:
+specific commands via `cfg/zenki/cube/command_aliases`:
 `setup.aliases.source_zenka` (name only) / `setup.aliases.source_zenka_sid`
 (name + sid) list commands that get the caller's authenticated identity
 prepended as leading space-separated token(s) of `$call->{'args'}` before
@@ -146,7 +146,7 @@ thin wrapper calls with a `{slot, handler}` hashref after parsing
 in `command_aliases`. The fix is concretely:
 
 1. add `cred-mesh.cmd.subscribe_rotation` to `setup.aliases.source_zenka`
-   in `configuration/zenki/cube/command_aliases` (name only needed, not
+   in `cfg/zenki/cube/command_aliases` (name only needed, not
    `_sid` — nothing here needs the session id, only the zenka identity)
 2. in `cred-mesh.cmd.subscribe_rotation`, parse the now-3-token args as
    `<source_zenka> <slot> <handler>` (mirror
@@ -185,8 +185,8 @@ independent and can be dispatched in either order or in parallel.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,.,,.,,,.,.,...,.,,,,,,,.,.,...,.,,,,,.,.,.,..,,...,...,..,,,,,,...,,..,,.,,
-#3S6XJIXK6A775GHE3HXAMFTJEGKLSR6Y7GD4WU6ABDWZCWYAPH6HBNKF3OSWIRQK2JWE76NOMB2KC
-#\\\|LJ4CZBC4GVUV4IRK5MOGERCK54T6BC52JBFSTPN63KG4MOCO6HE \ / AMOS7 \ YOURUM ::
-#\[7]KXSVNV75BDEUHNVKOKGQISANTJSFLVPK5EGKZXUUXIXJYX6HFSAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,.,.,,,.,,,,,.,,.,,,,,,,,,,,.,,..,,...,...,.,.,.,.,,..,,.,,,,.,
+#P2BLCL4ZDSFCUR7AI7JCPAJWWXI2CDAVW6E2S7VGDYIAG5ENDEKXWEPJVJ46G6ZG55Z4XU3C3FIWE
+#\\\|TA4EOUUDF6BGZ3QP7F2GLCRCBRBAA4GSOKE7Z7Y25T34I3JNP26 \ / AMOS7 \ YOURUM ::
+#\[7]EUO3QEFUVFL63X7N4AR3NGXCLQEYJFP4SMSKCW4HESRY6Y7Q5SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

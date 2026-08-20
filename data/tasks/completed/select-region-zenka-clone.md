@@ -16,7 +16,7 @@ to get a rect, then captures it itself.
 
 **`window-place` must keep working completely unchanged.** Do not edit, move,
 or delete anything under `modules/window.place.*` or
-`configuration/zenki/window-place/`. This is a clone, not a rename — the two
+`cfg/zenki/window-place/`. This is a clone, not a rename — the two
 zenki coexist; `window-place` may be retired later once `select-region` is
 proven, but that is a separate future task.
 
@@ -45,7 +45,7 @@ the `.cmd.` suffix is stripped for network routing same as everywhere else —
 ## source files to read first
 
 read every file under `modules/window.place.*` and
-`configuration/zenki/window-place/*` before writing anything — the clone
+`cfg/zenki/window-place/*` before writing anything — the clone
 needs the full interaction model (drag, resize-edge classification, damping,
 hover cursor, poll-based pointer fallback, key handling) intact. key files:
 `window.place.init_code`, `.start`, `.open_window`, `.commit`, `.cancel`,
@@ -178,8 +178,8 @@ hardcoded `'window.place [...]'` string.
 
 ## config files to create
 
-clone `configuration/zenki/window-place/{os-dep,pm-dep,source,start,subroutine.white-list,zenka-startup.v7}`
-into a new `configuration/zenki/select-region/` directory:
+clone `cfg/zenki/window-place/{os-dep,pm-dep,source,start,subroutine.white-list,zenka-startup.v7}`
+into a new `cfg/zenki/select-region/` directory:
 - `start`: update `modules.load` to load the `select.region.*`/`window.gtk`/
   `window.profile` modules under their new filenames; keep the
   `access.cmd.usr.cube = commands heart reload verify-instance * *.*` line
@@ -217,7 +217,7 @@ manual test sequence (report exact `p7c` output for each):
 
 - `window-place` zenka and all its modules/config are byte-for-byte
   untouched (`git diff` shows zero changes under `modules/window.place.*`
-  and `configuration/zenki/window-place/`)
+  and `cfg/zenki/window-place/`)
 - all 7 verification steps above pass
 - `bin/ptd -c` passes on every new module
 - no `die` calls, no `/.../ ` regex delimiters, no redeclared `$call` in any
@@ -234,8 +234,8 @@ manual test sequence (report exact `p7c` output for each):
 ## the full manual test sequence and report the actual output of each
 ## p7c command. do not modify any window.place.* or window-place/* file.
 
-#,,..,,.,,,,,,..,,.,.,,,.,,..,,,,,.,.,..,,.,,,..,,...,..,,,,.,...,...,..,,,,,,
-#CN7NYHLYAWL6Y3ZOAU7SKFHRZUISMJSMFSCUD33O2KOPIVTWBN7KB5AYU7NGOQLIP5OO7BE2B6AOG
-#\\\|C3FYEK7UICOIV6WUJMSTQEQBTCYQC4B36CRXYCF3YKFFHG4ZFY2 \ / AMOS7 \ YOURUM ::
-#\[7]IMTI7LH6PRTD2VSYOREADKCWO4DUJCDUO2ZPSRY5OP2ZOPTROQCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,,..,,,.,,,,,,,.,.,,,,,.,,.,,..,,...,...,.,.,...,,,.,,.,,,,.,
+#J2DCSCCS5NEYUC7BQSBMJDQ6VNUT4U3YQXXGN5SHBUNXOVJSBYTCUC3DBCRZSYTTU5XF2BASKJGC4
+#\\\|5DWLIGPR2MAOXKSF777CMNGKR4CQSLJZPUQ34DAH2ERPJR5OH45 \ / AMOS7 \ YOURUM ::
+#\[7]5RXLZWLSVO56K7TNATBJQJYDQTTXSOHJ3KSRA54RV222VBC46SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

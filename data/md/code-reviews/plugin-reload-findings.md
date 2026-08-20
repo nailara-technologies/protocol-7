@@ -19,7 +19,7 @@ the plugin reload subsystem had a critical data flow disconnect between the code
 ### initial load path (start files)
 
 1. **start file** calls `[load_plugins:<plugins.load>]`
-   *example: `configuration/zenki/cube/start` line 43*
+   *example: `cfg/zenki/cube/start` line 43*
 
 2. **`base.load_plugins`** (modules/base.load_plugins)
    - filters for `plugin.*` prefix (line 6)
@@ -225,8 +225,8 @@ for my $cb_type (qw| end_code start_code error pre_init |) {
 
 ---
 
-#,,,,,,..,,..,..,,...,,,.,.,,,...,,..,,.,,,,,,.,.,...,...,...,.,,,,.,,..,,,,,,
-#WQ2LQPEZUVRATTQQ4UQNJUFCW5MKEOOSVTP5U5UAHVKXJZG4CYUT6WURE5DE6E5LU5SA6I3MO3EN2
-#\\\|WM6OOK3VMN7TOODYQKRRMG57G73IBLWOACVGHKG4CIVVHC6RHFL \ / AMOS7 \ YOURUM ::
-#\[7]JHZOIKP4GA626T54BTP5ODCKNO24DZ4YICVJOIRVBEZRLPYUNQAA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,.,,..,,..,,.,.,,,.,,,.,.,,,,.,,.,.,...,...,...,.,.,,.,,,,.,,,,,
+#7KRFMWE2UZFSRW24P4KJA6L2KMKWLKNC7TYSPKMILVXH4YLVBWA6FD3ZYOIK3FWVD5NCSQKN7JOYI
+#\\\|VKWYZET6BC742C4ZGKUKF3VO6TXQVUJXQ66CT3UIKF4JZNEG3BW \ / AMOS7 \ YOURUM ::
+#\[7]CO5NDMLO5H3NOPWLUZTUIUB5FRKWB5QQ2HN7E2QV77DX27WUYYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

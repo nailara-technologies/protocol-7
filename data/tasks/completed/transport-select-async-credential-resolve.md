@@ -119,8 +119,8 @@ $transport_result` (if defined) and THEN calls
 `proxy.handler.request` call into the continuation. `proxy.transport.select`
 should be updated to pass through the new calling convention (or removed if
 it no longer adds value — your judgement, but if removed, update
-`configuration/zenki/proxy/subroutine.white-list` and
-`configuration/zenki/cred-mesh/subroutine.white-list` accordingly since both
+`cfg/zenki/proxy/subroutine.white-list` and
+`cfg/zenki/cred-mesh/subroutine.white-list` accordingly since both
 currently list it).
 
 Note: in the current live config, `proxy`'s `modules.load` does NOT include
@@ -186,8 +186,8 @@ similar helpers (`wait_for_log`, `proxy_port_ready`) as a pattern reference.
 - `transport.handle.socks5`'s own internal protocol logic (no credential
   resolution there, no changes needed beyond the calling convention)
 
-#,,..,,.,,,.,,,,,,..,,,..,,,.,.,.,...,.,,,,.,,..,,...,...,...,.,,,,..,.,,,,.,,
-#DFMOCT3MZLYHIBMH3NHQJMMU72NMCNK3G36HPSW3XOXMXRMPRFZRSMTTW7N4XYIVSKFVQWB2CS6JK
-#\\\|QT6PG7X57QE6XWZBLXGO5ECOQLRO2QQT2SCP6NUIN3E7Q2ACQR6 \ / AMOS7 \ YOURUM ::
-#\[7]7Q4RSBXYFZNOIOPS4BYTU2LKSBINYKSIMURQ3FAEPCO5WL7SOCBQ 7  DATA SIGNATURE ::
+#,,..,..,,...,...,.,.,,,,,...,,.,,,,,,...,,,.,..,,...,...,.,.,,.,,.,.,...,..,,
+#FJ67CYCMBQSKXKUSBVN2AJORHQTC3E5RYAANSYNPIBW3MP4ZI3UDDZCDT5Q4ZQKAJ2I7RZEOTZHBY
+#\\\|NFGCYKFYLBDLIP2AR3OUAUBUTBAE63CJC72KCJMN5KN5XB7AWCN \ / AMOS7 \ YOURUM ::
+#\[7]GGCFOISGGDYMYBYQ6Q7N23ZMZ76ARKLFRCTGKL74YXF73YLFBCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,7 @@ This session focused on **eliminating RSA dependencies** and **modernizing Proto
 
 #### Changes:
 - **File**: `modules/httpsd.init_code` (lines 12-14)
-- **File**: `configuration/zenki/httpsd/start` (lines 17-18)
+- **File**: `cfg/zenki/httpsd/start` (lines 17-18)
 
 #### Before:
 ```
@@ -237,7 +237,7 @@ harmony show-cipher-suites
 
 ### Production Configuration
 
-**File**: `configuration/zenki/httpsd/start`
+**File**: `cfg/zenki/httpsd/start`
 ```perl
 httpsd.cfg.tls_version              = TLSv1_3:TLSv1_2
 httpsd.cfg.cipher_suite             = ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256
@@ -315,7 +315,7 @@ httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
 | File | Changes | Lines | Purpose |
 |------|---------|-------|---------|
 | `modules/httpsd.init_code` | 2 | TLS version & cipher suite config |
-| `configuration/zenki/httpsd/start` | 2 | Runtime HTTPS configuration |
+| `cfg/zenki/httpsd/start` | 2 | Runtime HTTPS configuration |
 | `modules/letsencrypt.child.generate_csr` | 7 | Ed25519 key generation |
 | `modules/letsencrypt.init_code` | 1 | Update comment (remove RSA) |
 | `modules/letsencrypt.base.pre_init` | 2 | Remove Crypt::OpenSSL imports |
@@ -439,7 +439,7 @@ This session is **complete and production-ready**. All code has been committed a
 
 ### Key Files for Reference
 - `/home/user/protocol-7/modules/httpsd.init_code` - HTTPSD cipher config
-- `/home/user/protocol-7/configuration/zenki/httpsd/start` - Runtime config
+- `/home/user/protocol-7/cfg/zenki/httpsd/start` - Runtime config
 - `/home/user/protocol-7/modules/letsencrypt.child.generate_csr` - Ed25519 generation
 - `/home/user/protocol-7/modules/letsencrypt.cmd.show-cipher-suites` - User command
 
@@ -460,8 +460,8 @@ This session is **complete and production-ready**. All code has been committed a
 **Previous**: /home/user/protocol-7/docs/SESSION_STATUS_2025-11-15_web-zenka-progress.md
 **Related**: Also updated workspace-transfer/bin/deps with Nailara colors & path discovery
 
-#,,,.,,.,,,,.,.,.,..,,,.,,,,,,.,,,.,.,...,..,,..,,...,...,,.,,.,.,,..,.,,,,,.,
-#ES3DOIDZLXK7VIJJGAOMVQ6TFOZUDTCNDMRYCVR2KF5VFE2FQQX6LMF3UOTFZBNSLOHZBBD3PVPJO
-#\\\|RKAONSRNOG4QRVQQIOO56BEZYV7UBB7OFMYGXV2QMWXFN5KRYQR \ / AMOS7 \ YOURUM ::
-#\[7]NTITFIGIBHHTAB6UITQUT572RMOVITCYFHC4DPXS2CPMK37SBYAI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,,,,,..,,,.,,.,.,.,,,..,,.,,,..,,...,...,...,..,,,.,,..,,,,.,
+#XYHIMZK7I23FCXT4JI65XQUJERK4MDYIE6FCUFYGPO3XSKD4IKVWECJ2ZO4Z6DC6XTKVBMLDLYGCM
+#\\\|B6TJI3WDL62P726MQPXVST4GIDDODA3QJT4JXRAV7Y3A27GQHL7 \ / AMOS7 \ YOURUM ::
+#\[7]KAKME566RBDP7IXEUDEANRPOEQK3PU3A25RF7R4YKYVMU72WCKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

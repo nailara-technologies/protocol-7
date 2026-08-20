@@ -47,7 +47,7 @@ no fixed-delay timers anywhere.
   NOT `<[...]>`/`<...>` syntax — transformation happens only at module
   load.
 - runtime module loading: `$code{'base.load_runtime_modules'}->(@mods)`
-  bypasses the whitelist; auto-creates `configuration/zenki/<z>/source/<mod>`
+  bypasses the whitelist; auto-creates `cfg/zenki/<z>/source/<mod>`
   marker files as a side effect (cleaned up for proxy after the test).
 - `devmod.cmd.eval-code` evals with `use warnings FATAL` — snippets must
   be warning-clean.
@@ -70,8 +70,8 @@ publisher-restart re-affirm: `<base.strm.subscribe.registry>` entries
 persist after success so a future hook (e.g. on `command route
 collapsed` over a pending subscribe route) can re-issue attempts.
 
-#,,,,,,..,...,..,,.,.,..,,..,,,..,.,,,..,,,.,,..,,...,..,,,.,,.,.,.,,,...,,,,,
-#BX2YLR3ERO4KW25KINUKMNMJKR7GLMGV2AAUZTTBBT5UKWPX26A4TXMII2IE5PO54YVKLMZSAEDXW
-#\\\|Q7RLHTFZGWN4ZWLANUK34KM6XTFMUJPXA6JLHISVJEUWV37D7EF \ / AMOS7 \ YOURUM ::
-#\[7]GB6ZCH7T5ESLZDN4PM4HAJTQSMAZIN7RHR42KMB23GWX4MUCIMAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,,..,...,...,..,,,,,,.,.,.,,,..,,...,...,.,.,...,,,,,.,.,..,,
+#WV5MKHOBKDFHHBOOKVN2RCM3ISMD2RFUHH4MEKCNS3N4E5YBI3HOQAPSDXIUUYBJBA27AAAXK3ICI
+#\\\|YZGY2TOLBVGZGSU5JYBL53MQBTM6MT3WLM4KOCHHOEWPELNUCVE \ / AMOS7 \ YOURUM ::
+#\[7]DIBSU3SUILOCMJ4RYBKJ6UDVZBJ6FTABTJLD7NP26R2UN6AJ3UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

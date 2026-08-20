@@ -157,7 +157,7 @@ use the same format as the existing web-browser fix task files.
   check all `<!>` commits for follow-up that never happened
 - the project has dual commits (each change committed twice in some eras) —
   de-duplicate by message when counting
-- focus on modules/ and configuration/zenki/ — bin/ and data/ are lower priority
+- focus on modules/ and cfg/zenki/ — bin/ and data/ are lower priority
 - some LLL markers are intentional permanent notes (architecture decisions) —
   distinguish "this needs fixing" from "this is a known limitation"
 - the web-browser case is the template: proxy broken silently, request interception
@@ -172,8 +172,8 @@ use the same format as the existing web-browser fix task files.
 - [ ] stub task files created for all high-priority candidates
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,.,,,.,,.,,,.,.,,.,,.,.,,..,.,.,.,,,,,,,..,,..,,...,..,,,,,,.,.,...,,,,,.,,,
-#QUUZ3EVHJ3A4IBILZ3YUG52HG3O7UB27M6UPLK7ASNUOAMWYPDMNGPSETQZWRG7LRYMQSTZQSZ5CS
-#\\\|S7DRGVLJH2QSNDVQORQV4VE3GYMYWDYK5SV2S5GJNGF7OA6J6RG \ / AMOS7 \ YOURUM ::
-#\[7]ZF3HAOAFGHVATXUJ6U7AKMFKM3H3XSTYSGFMXJSOHV6YWNCERECA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,..,,..,,...,,,,,,.,,.,.,...,..,,...,...,.,.,,..,..,,..,,.,,,
+#IRFED35S54ZJM6W6XMUCHRVUKH4XBH6HNYRXF3FOG3UCGJBOUYOI5AUYNFZZLTIDG5Q2YFLYTI4KQ
+#\\\|TVPY5XDLQAUMCUK5ZXQBWVXVHHDHW4423RRKN3D6EQUH26UPPIR \ / AMOS7 \ YOURUM ::
+#\[7]7YHGAGASZXWXOXFTM5NE2TDI3PWV4KQLJ27DO3JJ4A34FLJG7CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

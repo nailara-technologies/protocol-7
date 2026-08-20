@@ -148,7 +148,7 @@ if (content_excluding_timestamps_changed) {
 - `modules/workflow.extract_workspace_todos`
 
 ### Version & Signatures
-- `configuration/protocol-7.src-ver` - Updated and signed
+- `cfg/protocol-7.src-ver` - Updated and signed
 - All modified modules have updated signature blocks
 
 ---
@@ -268,8 +268,8 @@ If issues arise:
 **Session Status:** ✅ COMPLETE & CLEAN
 **All Changes:** ✅ COMMITTED, ✅ TESTED, ✅ SIGNED, ✅ PUSHED
 
-#,,,,,...,,,.,,..,..,,,,,,.,,,,..,,.,,..,,,,.,..,,...,...,.,.,..,,,,,,,.,,,.,,
-#WAJD5YJU3RIGQQCGCHXHT5IVWFB6CRRAP4FIMM2KNE3TIH4CQBGSKO2KJFTFZYEG7RSMRWMWYIAQW
-#\\\|ZEWVJKHYFCVR7UQVYXIWZJWGMVMRENLMLFJYYSWGA24TEAQV3C6 \ / AMOS7 \ YOURUM ::
-#\[7]IEMJJTFAACQKS6XEERLNYRJGOXA4CTV3H6ZJGR32XRTYASLDRCBY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,..,,.,,..,,,,.,,,.,,..,...,,.,,..,,...,...,.,.,...,,.,,,,,,,.,,
+#54NPQBZVGC2VCFDM667QOFCU2GNPTLFRL2OGEH77P3EOL42QNR5IXEBFEZPCEESW3AX56MP2EYYCM
+#\\\|2TQMM3DTDFF77W6ZK33B2BXYEEMTDI6RJYDV3YW5SNS5ZATS64N \ / AMOS7 \ YOURUM ::
+#\[7]27JJHGPCWSE5KVJ7OQVHN7SR2KRCNKXXUR3AWUENHNPLLLLKXACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

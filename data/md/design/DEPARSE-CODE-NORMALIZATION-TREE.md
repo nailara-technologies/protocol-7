@@ -6,7 +6,7 @@
 
 `devmod.cmd.deparse-code` [ landed 2026-06-11, plus the companion
 `devmod.cmd.exec-sub`; per-zenka copies under
-`configuration/zenki/{proxy,models}/source/` ] returns the `B::Deparse`
+`cfg/zenki/{proxy,models}/source/` ] returns the `B::Deparse`
 output of a `%code` subroutine via
 `base.sourcecode.in-mem.sub-source`. on the surface this is a debug /
 introspection convenience. underneath, it is the first concrete piece
@@ -501,8 +501,8 @@ section 3 is settled enough to act on.
   captures the six pieces surfaced so far but is not claimed
   exhaustive.
 
-#,,,.,.,.,,.,,.,.,,.,,.,,,,,,,,,.,,,.,...,,.,,..,,...,...,,.,,,,.,,..,,,,,,,.,
-#6O55RKALSLWQITBSGOVIRDSLIR44H7T6X3ATUNP4JYAHDXRQIVYX3S3OH2MF6HF4MJKTNIVL3VFBS
-#\\\|CKCXNNDLPXB34JKKCHA3C3JUZGAVCIBFL47TGQ2RS5MFGZQZRAN \ / AMOS7 \ YOURUM ::
-#\[7]2BZHVO22GZHVM7ICLX72FFZRLD4C2GLJH7J5KIPYFIOSTEHFMIAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,.,.,,,.,,.,,,,,,,.,,,,.,,,,,..,,...,...,..,,.,,,.,.,...,...,
+#NH3JSDVUNCJB7MCOXXFLOSC3KDQQVRHSSA277XFI6NNLK6774YIA6GXRRAKJXKOBA5LBSI443BARA
+#\\\|Z732BS5U2LBIJ4CYP75XIA6KBKA6AKUBEF44VCTMPQA2U7RKV4R \ / AMOS7 \ YOURUM ::
+#\[7]57PA6O6IRB637XGCIK5YCC42HY4FWBMZNQF5IDABVYVQG6TIUSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

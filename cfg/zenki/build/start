@@ -1,0 +1,45 @@
+
+  .:[ build zenka [ unpackaged software build orchestration [ recipes ] ] ]:.
+
+[load_config_file:'shared-params']
+
+system.zenka.verbosity.buffer  = 2
+system.zenka.verbosity.console = 1
+
+## cube to build [ parent commands ]
+access.cmd.usr.cube = commands heart verify-instance name reload src-age \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      status src-ver show-access recipe-run
+                      ## recipe-run executes a named build recipe ..,    ##
+                      ## long-running : blocks the zenka for the build   ##
+                      ## duration [ async child-fork pattern is a        ##
+                      ## planned follow-up, see build.cmd.recipe-run header]##
+
+## no other zenka holds build command access yet -- delegated build      ##
+## dispatch uses the bare auto-registered cmd_name when a consumer       ##
+## arrives, e.g. :  access.cmd.usr.coding = recipe-run                   ##
+
+## recipe registry + runtime paths
+build.cfg.recipes_dir  = <system.root_path>/cfg/zenki/build/recipes
+build.cfg.data_dir     = <system.root_path>/data/build
+build.cfg.log_dir      = <system.root_path>/data/build/logs
+build.cfg.checksum_dir = <system.root_path>/data/build/checksums
+build.cfg.env_dir      = <system.root_path>/data/build/env
+
+modules.load = auth.client net protocol io.unix ui format.yaml build
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,,,,,.,,.,,.,,,,,,,,,.,,,,,...,,,,,.,.,,.,,..,,...,...,.,.,.,.,..,,,,,,,.,,
+#OZFAXMATSMU3RVRVSVPRLXOLZLAJK3I4IXQ35GUZ7U2BP67EKUHQXN2EUAOLQVNUZRVVYGJYPOWXC
+#\\\|CDLQ32YNX32QZLUCJU5AKGMDGU5YZ7ASCDUH7DTK7XTDE5Z32OG \ / AMOS7 \ YOURUM ::
+#\[7]F5B5XAPIQ5ZWF5BM5VGKL7H4ZXYVQZFEKBRVBBRZBWGKWNNJCOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

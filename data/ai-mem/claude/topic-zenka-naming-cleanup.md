@@ -16,7 +16,7 @@ dots (dots collide with `zenka.command` routing).
   zenka dir, all modules, `%data`/`<...>` namespace paths, access.zenki
   entries all renamed. missing weather/jobsite/web-browser grants
   transferred from the now-dead per-zenka `access.zenki` into
-  `configuration/zenki/cube/access.zenki`, then per-zenka file deleted.
+  `cfg/zenki/cube/access.zenki`, then per-zenka file deleted.
   also: live `/var/protocol-7/credential_fabric/` data dir manually
   renamed to `/var/protocol-7/cred-mesh/` by user (sudo, outside repo).
 - `window.place` → `window-place` (commit 9fd98f38e, 2026-06-15).
@@ -25,8 +25,8 @@ dots (dots collide with `zenka.command` routing).
   zenka dir+config name needed the hyphen). also fixed startup hang,
   see [[gtk-ondemand-zenka-startup]].
 
-**how to spot more candidates:** `ls -ld configuration/zenki/*_*` and
-`ls configuration/zenki/` for dotted names; cross-check with
+**how to spot more candidates:** `ls -ld cfg/zenki/*_*` and
+`ls cfg/zenki/` for dotted names; cross-check with
 `v7.list zenki` / `v7.list available <prefix>` for routing collisions.
 
 **how to apply:** when doing a rename like this, use `bin/ncode` —
@@ -34,8 +34,8 @@ add a target to `%targets` (`..,` suffix = recursive) for doc/task dirs,
 then `ncode -ai-friendly -confirm replace <target> <old> <new>`. user
 handles the src/cfg/module rename pass themselves typically.
 
-#,,..,.,.,..,,.,.,..,,...,.,,,,.,,,,.,,,,,...,..,,...,...,...,.,,,,..,,..,.,.,
-#C66AO3VBE64CRWLGKTUSQUGUJSTDVMKCU3JUENR4B54BZ4DTE7V5QSFRR3GG43JHJT7PKMJUPJROM
-#\\\|OEKG3N6QJ4WI6CH22XBNBF6THUB4NTZQOZRSY4ANWABT5UNUKKE \ / AMOS7 \ YOURUM ::
-#\[7]ON4BXPMKSD7NPIESCRFMCUXGIJYAYF75JCHDINWBRJUFND4N2SAA 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,,.,,...,.,,,.,,,,.,,.,.,...,..,,...,..,,,.,,,,,,..,,..,,,.,,
+#5ESX45Z5UMR7A33WROAJIKD424NM7EYZ6WJ2D2FTEYIZOALWTXMZ66PU7FC2AJSZJXPDG52TG3FSW
+#\\\|SDFEX7BFJIA5RJ3FB25JILSUG2S6R4JV5SRBFJTN6WAYLN5D52F \ / AMOS7 \ YOURUM ::
+#\[7]FWSVZO5N6RD77S7HMA3W536UWYMO5CML5X6VBS6ECOHZBJKIMWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

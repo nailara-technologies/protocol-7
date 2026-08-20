@@ -4,7 +4,7 @@
 
 `ui-namespace-extraction.md` (landed `f753e1a5d`) renamed `base.ui.*`
 -> `ui.*` and `base.cmd.ui-show` -> `ui.cmd.ui-show`, updating 104
-`configuration/zenki/*/subroutine.white-list` files. that rename
+`cfg/zenki/*/subroutine.white-list` files. that rename
 surfaced an open gap (recorded in memory `topic-next-steps.md`,
 "OPEN follow-up: ui.* not in any modules.load"):
 
@@ -28,23 +28,23 @@ surfaced an open gap (recorded in memory `topic-next-steps.md`,
 
 ## scope
 
-add `ui` to `modules.load = ...` in `configuration/zenki/<name>/start`
+add `ui` to `modules.load = ...` in `cfg/zenki/<name>/start`
 for every zenka whose `subroutine.white-list` already contains `ui.*`
 or `ui.cmd.ui-show` entries (the same ~104 zenki from
 `ui-namespace-extraction.md` — get the current list with
-`grep -rl 'ui\.' configuration/zenki/*/subroutine.white-list` and
+`grep -rl 'ui\.' cfg/zenki/*/subroutine.white-list` and
 cross-check filenames are the renamed ui.* ones, not stale leftover
 `base.ui.*` strings).
 
 for each matching zenka:
-- read `configuration/zenki/<name>/start`, find the
+- read `cfg/zenki/<name>/start`, find the
   `modules.load = ...` line
 - append `ui` to the space-separated list (placement: alongside other
   generic/shared namespaces already in that line — check a few
   examples for convention, e.g. `crypt.C25519`, `auth.zenka`)
 - if a zenka's `start` file has NO `modules.load` line at all (some
   minimal/standalone zenki may not), check whether it loads modules
-  another way (`grep -n load_modules configuration/zenki/<name>/start`)
+  another way (`grep -n load_modules cfg/zenki/<name>/start`)
   before adding one — do not invent a new loading mechanism, report
   any such zenki instead of guessing
 
@@ -62,7 +62,7 @@ other multi-namespace `modules.load` lines are written elsewhere.
 ## acceptance
 
 - every zenka from the `ui.*`-whitelist set has `ui` added to its
-  `modules.load` line in `configuration/zenki/<name>/start`
+  `modules.load` line in `cfg/zenki/<name>/start`
 - no zenka gets a newly-invented `modules.load` line where one didn't
   exist before — those are reported as exceptions instead
 - `base.slot.fold/move/refresh`'s `<[ui.fold]>`/`<[ui.unfold]>` calls
@@ -84,7 +84,7 @@ other multi-namespace `modules.load` lines are written elsewhere.
 
 no `#,,..` stubs. do NOT run update-signatures (pre-commit hook
 re-signs on commit). lowercase comments, `[ word ]` annotations,
-`$ARG` not `$_`. this task touches `configuration/zenki/*/start`
+`$ARG` not `$_`. this task touches `cfg/zenki/*/start`
 files, not `modules/` — confirm whether `start` files carry the same
 signature footer convention as modules before assuming none is needed.
 
@@ -92,11 +92,11 @@ signature footer convention as modules before assuming none is needed.
 
 ```
 perl -c modules/ui.fold modules/ui.unfold modules/ui.cmd.ui-show
-grep -c 'modules.load.*\bui\b' configuration/zenki/*/start
+grep -c 'modules.load.*\bui\b' cfg/zenki/*/start
 ```
 
-#,,,,,..,,...,,..,.,,,..,,.,.,.,.,,.,,,,,,..,,..,,...,...,.,.,.,.,...,..,,,..,
-#OJSYQANJJSTSQUYN6EG7D5WPGUIFRNNPLHNFQLKIXM3A45POJ6FEHH6CQRLXMTBZU7LUR27I2F32W
-#\\\|E3M22XGE727XEDAYBRSD2DV4XW7NDL2MBJ55VGRWKVNUWU5RSPU \ / AMOS7 \ YOURUM ::
-#\[7]ACM3MOE4PQDKYJJQUTM4ZGICCOORCISV46F5E73T5VBJA323Z4CY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,...,,.,,...,.,.,..,,..,,,,,,,,,,..,,...,...,..,,,,,,.,.,,,.,...,
+#CL7E7DVDOCN4P52YVHEDJVUBVERY67KPFHK664X24P7MHMAEAUBESNTYSFSKANOPC4RZIOAKYNE5O
+#\\\|HBGYZOVGYLIHARQ5KKRCLVD3JFFF34KJX6RBHNDP2ZGFYXNLY34 \ / AMOS7 \ YOURUM ::
+#\[7]KL5PTTIWHCWW3DGLFLDH2HWXBSC3J522IBNVYLUY6O6UNGG65CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

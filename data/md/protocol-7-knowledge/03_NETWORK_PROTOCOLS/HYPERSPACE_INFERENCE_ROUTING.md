@@ -198,8 +198,8 @@ Link spiral handoffs to tree traversal:
 - `base32.*` - 5-bit encoding/decoding
 - `graphics-matrix.cmd.assert-similarity` - Address validation
 
-### From configuration/:
-- `configuration/zenki/cube/access.zenki` - Inter-zenka permissions (already updated)
+### From cfg/:
+- `cfg/zenki/cube/access.zenki` - Inter-zenka permissions (already updated)
 
 ---
 
@@ -231,8 +231,8 @@ Each layer answers different questions without interference.
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,,,.,.,...,,,.,,..,.,,,..,,,.,,,.,,..,,,.,,..,,...,...,...,,..,..,,...,,,.,
-#ANUERSXG67SRKC7FRXE6BU24S7ISUJUIYQRORLCRXA5GIGMLRW7URP5ZH352V2TV6VPOAG5AEWDKG
-#\\\|TXHI7KEEUTNC46TTQF23CNNT5YJATKNTTBTXCSSBWZEZHVG5AD7 \ / AMOS7 \ YOURUM ::
-#\[7]PQOCFQMAO4MLALPD5G24JAIG2D4OW7S5V46VYOS7INR6FNBC4KBY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,,..,...,...,,,,,..,,.,,,,..,..,,...,...,,..,.,,,..,,...,.,,,
+#BSAMDCJQD7PT2ZZLON6Z46APX5Z7YQVTBNONBRBPLNAL3RG2MLNZBBMIRWEHKUOH63OHJ44K6RSJM
+#\\\|JFZAU5PEZIMRMJ7QPF7XZ53M7K6P4MT2XL7EGAMJFNCXTGDR4EY \ / AMOS7 \ YOURUM ::
+#\[7]G6CMO3VZ5EQ4YNTMVW4ET5MAN4ZK7KRUHDBRZX432UVGSFDZGYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

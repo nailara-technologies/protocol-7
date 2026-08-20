@@ -51,7 +51,7 @@ after all 5 new modules are created and source files updated:
   return no matches
 - all 10 modules [ 5 edited sources + 5 new ] pass `perl -c`
 - `p7c weather.reload` and `p7c <zenka>.reload` for whichever zenka
-  loads `base.language.*` [ check `configuration/zenki/*/start` for
+  loads `base.language.*` [ check `cfg/zenki/*/start` for
   `modules.load` entries ] complete with `reload source [success]` and
   `reinit source [success]`
 - the combined v7 console output is tailable at
@@ -72,8 +72,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,.,,,,,.,.,,,.,,,.,...,,,.,,..,.,.,,,.,,..,..,,...,...,.,.,...,...,...,...,
-#YDV6DQBB2FAHZQJLLUYVC3OZNBXRHBORQN7LUCD7TTMBHCQWNT2SHDSNFM32DK7X3UGPSV6RK6TKG
-#\\\|SUNFOEG25GMVUMH5WEMOOLAXSUNXYQWJENIFPI2SKS6WDSDQFSD \ / AMOS7 \ YOURUM ::
-#\[7]T2ATUIFS33MRHKHEEFZ7YASN6667QABCXKDH6XY433FCLQQ5SCAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,.,,,,.,,.,.,...,,..,,..,.,.,..,,...,...,..,,,.,,,,,,..,,...,
+#I6J2KX4RFJW4CEZFA2B5CILRBVWD7DPLTOCV5RADIZXB7KC7JEN7Y6NTK5QICXZU4WNZA2UABUISS
+#\\\|6SPVRDNIMQ7UI55HFYRYM22EBZXHENYWP33UBOZEP3NVUAYAT37 \ / AMOS7 \ YOURUM ::
+#\[7]UZ7P27ULIQVPIVG6S2OHNWLXLRWE3KD2VXFI2L6HXLYRDHNZXMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

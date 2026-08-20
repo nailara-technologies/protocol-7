@@ -12,7 +12,7 @@ zenka route is to support jobsite running on a separate host with no p7
 link back. a same-cube-only fix would need redoing later.
 
 **`auth.required` on `/jobs-sync` is disabled again for now**
-(`configuration/zenki/httpd/routes`) — this is safe, jobsite currently
+(`cfg/zenki/httpd/routes`) — this is safe, jobsite currently
 only runs local, and there's a real second host available to test the
 actual split-location case once a mechanism exists.
 
@@ -272,8 +272,8 @@ discovery) not started.
 - `data/ai-mem/claude/project-zenka-cryptographic-identity-survey.md`
   (ai memory) — ground-truth crypto/identity inventory this builds on.
 
-#,,.,,...,.,.,...,,.,,...,,.,,.,.,.,,,,.,,,,.,..,,...,...,..,,.,.,,,,,,,,,.,.,
-#O4R4XRL6LEURX6QNIRVQBKHXH2AI7FSU6FFJ6ZACDJUV2V4UMGTXQDBLA5KBJSW55EBEJSWFIJOUA
-#\\\|CTWSSKXCP4OSMDLJ4QXV55VO4KN4KVQWVWFCMV3C7TL45MZXYLI \ / AMOS7 \ YOURUM ::
-#\[7]4LSKILZH7TASCWSEZPKJIJVBSTDLY4F5AZUSYDJZQQF2W3RNHIAI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,,,,,,,.,...,.,,,,,.,,,.,.,,,..,,...,...,...,,,.,,,.,,,,,...,
+#R47JQQIS36SEWDAOKC5BOIU2QVGPPCKL27IGSC5JF7OCLK65QIMW5NL5RAFELNWTWFE6LKFECT72S
+#\\\|YEJXY4MNCCGOKRTYDHCQEXHK5T3VDP4YWDJYN7VVMGKU5SV6SLI \ / AMOS7 \ YOURUM ::
+#\[7]Q4WQTNDIDJSPRMXKPFEL7LX5ZPUN6U3JEZCKAAAALNB6LQ6AKKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

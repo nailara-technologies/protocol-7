@@ -7,7 +7,7 @@ metadata:
   originSessionId: 7c17eae7-f6c4-401f-9fec-c5f3fdcd8849
 ---
 
-`configuration/zenki/web-browser/zenka-startup.v7` sets `cfg.ephemeral = 1`
+`cfg/zenki/web-browser/zenka-startup.v7` sets `cfg.ephemeral = 1`
 (and `modules/web-browser.init_code` defaults it to 1 even if unset). This
 makes `modules/web-browser.open_window` construct a
 `Gtk3::WebKit2::WebsiteDataManager->new_ephemeral` context — a
@@ -37,8 +37,8 @@ investigated) or don't rely on this browser for it; a real Firefox/other
 non-ephemeral browser session is a separate, persistent client of the same
 sync API and unaffected by this.
 
-#,,..,,..,..,,...,,..,,.,,,..,.,.,,..,,..,..,,..,,...,...,.,,,,,,,,,.,...,.,.,
-#P6OTCSZCUV4HFPOWEKAZUUFQBJCH5GSMPO7EVOVNT6R5DML3SM3VNHILIDCR3K72BQPBXJNCC2CB4
-#\\\|7ZFSH33W5XZUGBSOEX6FOC7JWQ3H3X2EPREVCRR326K5ZH2MPCZ \ / AMOS7 \ YOURUM ::
-#\[7]2QVFWBJJO2ZQDGLJIUDXOEQHK3HW2JXCRNBZHNIWW3MJ4OGQYSCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,,.,,,.,,,.,,,.,,...,,,,,...,..,,...,...,.,.,...,...,..,,...,
+#R43S5XG3LXPBHYKGNBLFN2R3HIAVW5I5N6Y6X3HSXGUVRBJ3AL2BODMHEK7NBM3O7GDX4445QHHQK
+#\\\|OIBVHFW44SEK2AZZZ6RAEAKXZH5VGPRVQTZ4JHKXYV3HUPYTHPD \ / AMOS7 \ YOURUM ::
+#\[7]ZK5OAYWYCZ5UJ7EHBRFHDGFCXQBLFX25WJF56KCZ6GKH6QESIACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

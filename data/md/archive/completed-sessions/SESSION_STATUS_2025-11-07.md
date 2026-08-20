@@ -207,7 +207,7 @@ All planning documentation created, stub modules and configurations in place, an
 
 ### 5. ✅ Zenka Configuration Files
 
-**configuration/zenki/httpsd/start**
+**cfg/zenki/httpsd/start**
 - Protocol-7 compliant startup configuration
 - Module loading (auth, net, protocol, io.unix, io.ip, httpsd)
 - HTTPS address and port (0.0.0.0:443)
@@ -219,7 +219,7 @@ All planning documentation created, stub modules and configurations in place, an
 - User/group dropping
 - Proper signature placeholders
 
-**configuration/zenki/template/start**
+**cfg/zenki/template/start**
 - Protocol-7 compliant startup configuration
 - Module loading (auth, base, template)
 - Template engine selection (mustache)
@@ -231,7 +231,7 @@ All planning documentation created, stub modules and configurations in place, an
 - User/group dropping
 - Proper signature placeholders
 
-**configuration/zenki/letsencrypt/start**
+**cfg/zenki/letsencrypt/start**
 - Protocol-7 compliant startup configuration
 - Module loading (auth, base, crypt, letsencrypt)
 - ACME configuration (environment, email, domains)
@@ -245,9 +245,9 @@ All planning documentation created, stub modules and configurations in place, an
 - Proper signature placeholders
 
 **Configuration Directories**:
-- Created `configuration/zenki/httpsd/{source,pm-dep}/`
-- Created `configuration/zenki/template/{source,pm-dep}/`
-- Created `configuration/zenki/letsencrypt/{source,pm-dep}/`
+- Created `cfg/zenki/httpsd/{source,pm-dep}/`
+- Created `cfg/zenki/template/{source,pm-dep}/`
+- Created `cfg/zenki/letsencrypt/{source,pm-dep}/`
 - Ready for module source files and Perl module dependencies
 
 ---
@@ -404,12 +404,12 @@ All planning documentation created, stub modules and configurations in place, an
 6. `/data/projects/protocol-7/modules/letsencrypt.init_code` (83 lines)
 
 ### New Configuration Files
-7. `/data/projects/protocol-7/configuration/zenki/httpsd/start` (44 lines)
-8. `/data/projects/protocol-7/configuration/zenki/template/start` (46 lines)
-9. `/data/projects/protocol-7/configuration/zenki/letsencrypt/start` (59 lines)
+7. `/data/projects/protocol-7/cfg/zenki/httpsd/start` (44 lines)
+8. `/data/projects/protocol-7/cfg/zenki/template/start` (46 lines)
+9. `/data/projects/protocol-7/cfg/zenki/letsencrypt/start` (59 lines)
 
 ### New Configuration Directories
-10-15. `/data/projects/protocol-7/configuration/zenki/{httpsd,template,letsencrypt}/{source,pm-dep}/` (6 dirs)
+10-15. `/data/projects/protocol-7/cfg/zenki/{httpsd,template,letsencrypt}/{source,pm-dep}/` (6 dirs)
 
 ---
 
@@ -528,8 +528,8 @@ Ready to begin Phase 1: HTTPSD Zenka Implementation.
 **Session**: Protocol-7 Architecture Planning & Initialization
 **Next Session**: Phase 1 Implementation (HTTPSD Zenka)
 
-#,,..,..,,...,...,,..,...,...,,,,,...,,,.,,.,,..,,...,...,.,.,...,,.,,,..,,,,,
-#QCMOOED6MFTQ3536SCQQRQ4WH4QDJJ2MST32PGKAAH7LFJXX6GDI5XTC2DNR2WJUH4W7KWFJBZ5EQ
-#\\\|GHMKTUNHLFMCPHNCON6OCKETHGUJV6HC7THUROZVM3ROPWM242N \ / AMOS7 \ YOURUM ::
-#\[7]HCD23VW76RRUIS64EYXPNGUNCM6COMWVJWELSEM3HREBDM7KZUCQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,..,,,,,,,..,.,,,,,,,,,.,..,,..,,...,..,,.,,,...,..,,,,.,..,,
+#YIFI4D4CAYEJLRZAVWFN73GVTGTC4DOBEQC6UBSOXJT7R3LBNYE4QWXMKQUKQYKZ7S6L45UCOLWDG
+#\\\|ZJ4RVTX2LBI2ZD5AWU2JBGJCNCRHIIBKISYVWNLGBROHK2ZHQTM \ / AMOS7 \ YOURUM ::
+#\[7]PW7JSZHZAQGYHVL25IMH4SSICUCTGX5Z5SOMRUE527RTFR6SGUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,8 +35,8 @@ my $force = scalar grep {m{^(force|force=1|force-rebuild)$}} @words;
 
 return {
     'mode' => qw| false |,
-    'data' => 'expected : <recipe-name> [force] .., recipes '
-        . 'live in configuration/zenki/build/recipes/'
+    'data' => 'expected : <recipe-name> [force] .., '
+        . 'recipes live in cfg/zenki/build/recipes/'
     }
     if not length $name;
 
@@ -49,7 +49,7 @@ return {
 ##  load recipe yaml  ##
 my $root_path   = <system.root_path>;
 my $recipes_dir = <build.cfg.recipes_dir>
-    // sprintf( '%s/configuration/zenki/build/recipes', $root_path );
+    // sprintf( '%s/cfg/zenki/build/recipes', $root_path );
 my $recipe_path = sprintf( '%s/%s.yaml', $recipes_dir, $name );
 
 return {
@@ -578,8 +578,8 @@ $reply_text .= $reply_extra;
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,,,,,,.,.,.,,..,,..,.,.,...,,.,,.,.,,.,,..,,..,,...,...,...,..,,,.,,,,,,...,
-#G32FCTK5IWNUA4IAGGNYHG5WZYYVWOO4YD3Z2DWXXJRZEQ2MB7IXIOXC5VWQBYMEA67FSOJIKBWFW
-#\\\|Y5CJB5F4DHFMDD2NNXSVIASKY2DNVWTMA5VLCHIR7FGBJDDEKHR \ / AMOS7 \ YOURUM ::
-#\[7]B2OFRLHN4V4UGHRKDXXJWDHSX7IZZX7HVEUGR5REPXBO6ZTZJEBQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,...,,,,,..,,.,.,,..,,,,,,,.,,.,,..,,...,...,.,,,,.,,,..,,,,,.,.,
+#U2I2XCRP2TEKWVG5HDQSB6AZBA4A6AMIUGINEWTXXWR2K423ID26KFBQH5SQWF4GYUFN5763RZKNY
+#\\\|6CP3BQMP5DB5AFBIOTMGQDYBPUDKGFY7OVSDHVUBYH7TQLP7HGY \ / AMOS7 \ YOURUM ::
+#\[7]OR5N3ASEH5BAEANVHVSDNO2UQQHKQYUXCCTIMNZWXSKUTWFGFABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

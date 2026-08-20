@@ -14,7 +14,7 @@
   - [x] `modules/ticker.callback.draw` - Rendering loop
   - [x] `modules/ticker.calc_colors` - Blue translucency
   - [x] `modules/ticker.handler.fade_in` - Gaussian fade curves
-  - [x] Configuration: `configuration/zenki/ticker/start`
+  - [x] Configuration: `cfg/zenki/ticker/start`
 
 - [x] **Study web-browser zenka GTK3 patterns**
   - [x] WebKit2GTK integration
@@ -243,7 +243,7 @@ detach <attach_id>                  # Detach client
 ## amos-term.decoder.* (v7 pattern system adaptation)
 - init_patterns: Compile regex patterns to handlers
 - scan_buffer: Scan Z-layer, trigger matches
-- Pattern config: configuration/zenki/amos-term/decoder.patterns
+- Pattern config: cfg/zenki/amos-term/decoder.patterns
 ```
 
 **Pattern Format:**
@@ -400,7 +400,7 @@ sub sync_buffer {
 modules/ticker.init_code              # GTK3 init
 modules/ticker.callback.draw          # Render loop
 modules/ticker.calc_colors            # Blue colors
-configuration/zenki/ticker/start      # Transparency config
+cfg/zenki/ticker/start      # Transparency config
 ```
 
 ### GTK3 Patterns (from web-browser)
@@ -483,8 +483,8 @@ p7c v7.start amos-term-3d
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,..,,..,,,,,,.,.,...,,..,,,,,..,,,..,...,..,,...,..,,.,.,.,.,..,,,.,,..,,
-#CDACDC4QR6T72KRG3ARX2KSGCNM5PS5RZTJM7N6VD4VF26YG2ZJVLSB5EAAL64DZIYSUBLLCTBDAE
-#\\\|F7DCD5U44NEUOGZRZWHKZNPTUFIFUU4XU2RWWS4IQ6GUEIIZ3AJ \ / AMOS7 \ YOURUM ::
-#\[7]R756JOWXR25ZSEQNXO2VL7TBVIVN3BVCN3CYMDUILYD5PPAUPACY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,,..,,,,,..,,,,,,,,.,,..,.,.,..,,...,...,,.,,.,,,,,,,,.,,,,,,
+#NHTAQBTR4NPQO7XEOGDZWGIQJYNLUJH3PUGSJZFFNSRNSLJNPN6ZIZDZNHSCAFR54R3DVGCJJQUVC
+#\\\|YH2R2T56UETGNDTLCFUW5HWRD2GK6ITBNLY5FYJIZ34N3YNTVKG \ / AMOS7 \ YOURUM ::
+#\[7]NGMWFZPC3PATUYNHVWIBUF5KWSPQJ7XGPWAZG2IU7CTGHZVEEWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

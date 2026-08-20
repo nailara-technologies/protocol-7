@@ -111,11 +111,11 @@ $window->resize( $geometry->{'width'}, $geometry->{'height'} );
 ### base.window.profile.save
 
 saves current window position to zenka-local yaml (same path as protocol-7-menu):
-`configuration/zenki/<name>/window/position.yaml`
+`cfg/zenki/<name>/window/position.yaml`
 
 ```perl
 my ( $zenka_name, $x, $y, $width, $height ) = @_;
-## write yaml to configuration/zenki/<name>/window/position.yaml
+## write yaml to cfg/zenki/<name>/window/position.yaml
 ## format: { x: N, y: N, width: N, height: N, profile: 'saved' }
 ```
 
@@ -216,15 +216,15 @@ p7c ticker.cmd.set-window-profile bottom-strip
 - [ ] proportional math correct: `bottom-strip` on 2560x1440 → y≈1368, h≈72
 - [ ] anchor semantics work: `bottom-right` y% measured from bottom edge
 - [ ] `base.window.profile.apply` moves and resizes GTK window
-- [ ] `base.window.profile.save` / `.load` use yaml in configuration/zenki/<name>/
+- [ ] `base.window.profile.save` / `.load` use yaml in cfg/zenki/<name>/
 - [ ] ticker uses `bottom-strip` as default profile (not fullscreen on desktop)
 - [ ] `p7c ticker.cmd.set-window-profile <name>` switches at runtime
 - [ ] works without tile-groups running
 - [ ] `fullscreen` profile still works for kiosk deployments
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,..,.,,,..,,.,,,,..,,,.,,..,..,,...,.,,,..,,...,...,..,,,.,,..,,..,,...,
-#ZDTDR2ZRUQEXPCQXHMCAO4PWDPXZPSPE2L5XQLOKNCHEDMFRUSBOQ7SB4J6BH7KR4XVOPT7EZ3JHK
-#\\\|GNS3UG3NCPYAO6BNZTHILXXTZRSI3UT333SUZH2CYPAVYGGV6KX \ / AMOS7 \ YOURUM ::
-#\[7]M3SBQK7KZZ5BWQFZSSEJZCT5Y5RX5QGWGFSX5SI5TE3XDN4U5YDI 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,,,.,..,,,..,.,.,.,.,,,.,..,,..,,...,...,.,,,,,,,..,,,.,,...,
+#MVVNIM276RFHREKR4D34MEZWTGKJV3BFOLN55YJ3MDBKVHLLHXB3DAU376EKJ446C77DUDHLPC3IK
+#\\\|6ODHQDQGAYSBT4MSVXKRUVSTI434IO7MJMUIKZFNLC6WVAE37UX \ / AMOS7 \ YOURUM ::
+#\[7]UZPCKVWOBTMJGQWHN6FP6EFQCQAHUGEAE6NM3W3RC6ZO42FFZCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

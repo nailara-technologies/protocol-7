@@ -108,12 +108,17 @@ my @clean_argv
 ## returns FALSE for a missing path the same way it does for "exists but    ##
 ## isn't perl/P7 code" [ its own -f check, line ~1300 below ], so a missing ##
 ## file would otherwise vanish silently and surface as the generic          ##
-## "expected [perl] file name(s)" error instead of "not present"            ##
+## "expected [perl] file name(s)" error instead of "not present" test -e/-l ##
+## here, not -f : a symlink to a directory [ or a directory itself ] exists ##
+## but isn't a regular file -- that's not "missing", it's just not code,    ##
+## and is_perl_code() below already filters those out quietly. using -f     ##
+## here would wrongly abort the whole batch on a valid non-file             ##
+## changed-entry [ e.g. a renamed dir-symlink from vc-changed-files ]       ##
 map {
     die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
         . "not present $reset : "
         . "'$NEON_green_yellow$ARG$reset' $reset\n:\n"
-        if not -f $ARG
+        if not( -e $ARG or -l $ARG )
 } @clean_argv;
 
 ## remaining check : does it actually look like perl/P7 module code [   ##
@@ -121,11 +126,23 @@ map {
 my @files = grep { is_perl_code($ARG) }
     uniq sort { length $a <=> length $b } reverse sort @clean_argv;
 
-die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
-    . "expected ${NEON_green_yellow}[${NEON_orange}perl"
-    . "${NEON_green_yellow}]${NEON_orange} file name${NEON_green_yellow}"
-    . "[${NEON_orange}s${NEON_green_yellow}]${NEON_orange}.,$reset\n:\n"
-    if not @files;
+## "expected [perl] file name[s]." is a usage error -- reserve it for the   ##
+## case nothing was even passed in [ @ARGV empty ]. when args WERE given    ##
+## but every one of them legitimately filtered out, say nothing and exit    ##
+## clean : a big xargs run splits into many format-code sub-invocations,    ##
+## one per batch, and a batch landing all-config is just an artifact of     ##
+## where xargs happened to cut the list -- other batches in the same run    ##
+## may well have real files, so a per-batch "nothing to format" notice here ##
+## would be noise [ or worse, misread as the whole run finding nothing,     ##
+## when it didn't ]                                                         ##
+if ( not @files ) {
+    die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
+        . "expected ${NEON_green_yellow}[${NEON_orange}perl"
+        . "${NEON_green_yellow}]${NEON_orange} file name${NEON_green_yellow}"
+        . "[${NEON_orange}s${NEON_green_yellow}]${NEON_orange}.,$reset\n:\n"
+        if not @ARGV;
+    exit(0);
+}
 
 my $file_count = scalar @files;
 ( undef, my $file_maxlen ) = minmax map {length} @files;
@@ -1488,7 +1505,7 @@ sub is_perl_code {
     print color_msg( 'skipping config.,', $file, $blacklight )
         and return FALSE
         if $is_code
-        and index( abs_path($file), qw| /configuration/ |, 0 ) != -1;
+        and index( abs_path($file), qw| /cfg/ |, 0 ) != -1;
     close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     return $is_code;
 }
@@ -1515,8 +1532,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,,.,,...,.,,,.,,,,,.,,..,,,,,.,,,.,.,.,.,..,,...,...,,..,.,.,,..,,,.,,,.,
-#K6VXHEEUHUUENLANLNJ6C4CRLVNYGPVGJV2FD3PFBK2BT3WRURGGO35FSI5DJ6KFCL6E3IR4CFH76
-#\\\|3NIA6UOC2QDEIRNMPZ46H43EQYDUMZFKYWBONBOSKDNTODGLKVR \ / AMOS7 \ YOURUM ::
-#\[7]TSJQMM4C7YMFICD4BTC7TZ727J6WJ763RQYQJNHL5VC6WDLVYGDI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,.,,,,,.,,,,,,..,...,,..,.,,,..,,...,...,..,,.,,,...,.,.,.,.,
+#EALWEZBX4Y3DNEK577XQNDGKWEIYN6LTQXSVJ223FZJHYFPOBRTSDYQSNYWOPICX4OY7HFACUMGCI
+#\\\|SGNIBE5H2N5CLMJMZ6XDTV74JPRXGLEHDCRUDSM222FEA25BRHL \ / AMOS7 \ YOURUM ::
+#\[7]6NYEA23CCZ2CI5B57OBILTXA5DSVVRP34VDAJ4KE3F2BLE6S2QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

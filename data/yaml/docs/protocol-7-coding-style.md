@@ -268,7 +268,7 @@ Users can override configuration in several ways:
 #### 1. In Zenka Configuration Files
 
 ```perl
-## configuration/zenki/myservice/start
+## cfg/zenki/myservice/start
 debian.cfg.prefer_debian = 0    ## Prefer cpanm over debian packages
 debian.cfg.auto_install = 1     ## Enable auto-install even as non-root
 ```
@@ -293,14 +293,14 @@ $data{'debian'}{'cfg'}{'prefer_debian'} = 0;
 
 ```perl
 ## modules/debian.parent.init_code
-<debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/configuration/zenki';
+<debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/cfg/zenki';
 <debian.cfg.prefer_debian>     //= 1;
 ## Missing: use_cpanm not in config!
 
 ## modules/debian.parent.scan_zenki_dependencies
 sub scan {
     ## Redundant hardcoded fallback!
-    my $base = <debian.cfg.zenki_config_base> || '/data/projects/protocol-7/configuration/zenki';
+    my $base = <debian.cfg.zenki_config_base> || '/data/projects/protocol-7/cfg/zenki';
 }
 
 ## modules/debian.parent.install_missing
@@ -320,7 +320,7 @@ my $result = <[debian.parent.install_missing]>->({
 
 ```perl
 ## modules/debian.parent.init_code
-<debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/configuration/zenki';
+<debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/cfg/zenki';
 <debian.cfg.auto_install>      //= ($UID == 0 ? 1 : 0);
 <debian.cfg.prefer_debian>     //= 1;
 <debian.cfg.use_cpanm>         //= 1;  ## Complete config set
@@ -479,7 +479,7 @@ All zenki configuration follows the elegant `%data` pattern:
 **Override Example:**
 
 ```perl
-## In configuration/zenki/myservice/start
+## In cfg/zenki/myservice/start
 zenki.cfg.v7_startup_timeout = 20   ## Longer timeout for slow systems
 zenki.cfg.auto_start_v7 = 0         ## Never auto-start v7
 ```
@@ -825,7 +825,7 @@ Protocol-7 uses numeric log levels:
 Set verbosity levels in zenka configuration files for different output targets:
 
 ```perl
-## In configuration/zenki/httpd/start:
+## In cfg/zenki/httpd/start:
 system.zenka.verbosity.buffer   = 3  ## In-memory buffer
 system.zenka.verbosity.logfile  = 3  ## Persistent file logging
 system.zenka.verbosity.console  = 3  ## Console output
@@ -1117,7 +1117,7 @@ Create a `post_init` module that runs after module initialization but before pri
 Then reference it in configuration:
 
 ```perl
-## In configuration/zenki/service/start:
+## In cfg/zenki/service/start:
 [root.drop_privs:<service.system.user>]
 ```
 
@@ -1196,7 +1196,7 @@ return say join("\n", @output);
 Add console commands to zenka configuration's access list:
 
 ```perl
-## configuration/zenki/service/start
+## cfg/zenki/service/start
 
 access.cmd.usr.cube = commands heart reload \
                       install-deps check-deps list-status *
@@ -1381,7 +1381,7 @@ modules/httpd.json.decode                ## Decoding
 
 ### Loading Modules in Zenka Start Files
 
-In `configuration/zenki/<name>/start`, the `modules.load` list uses **namespace
+In `cfg/zenki/<name>/start`, the `modules.load` list uses **namespace
 names**, not individual module filenames. A single namespace entry loads all
 modules sharing that prefix:
 
@@ -1471,11 +1471,11 @@ Module A → Module B → Module A
 - **Event Loop**: See `modules/base.event.*` for event handling system details
 - **Module System**: See `modules/base.init_code` for module loading and initialization
 - **Logging**: Check `/var/log/protocol-7/` for actual log output patterns
-- **Configuration**: See `configuration/zenki/*/start` for zenka-specific configurations
+- **Configuration**: See `cfg/zenki/*/start` for zenka-specific configurations
 - **Dependency Management**: See `modules/debian.*` for example of complete zenka implementation
 
-#,,,.,...,,,.,.,.,,..,,..,...,,.,,,,.,...,..,,..,,...,.,.,..,,..,,,,,,,,,,,,.,
-#JVPGTR6TZSKLWVYTMXIQMZLG7VCHNYA4RPQGNIHSCIQNI6XSYDSYBPJOT5IJRAGB5H5ZDF7LWWSKM
-#\\\|DRNSSU6KID5JTJO5UEPTJ3NPDXWVIBTYZ75SQAIMHY4KMJQN2JT \ / AMOS7 \ YOURUM ::
-#\[7]OW3JXMVGCJPN4P3CQLUCONA2LSQKC4LGQOCDL4JJYXGXUISZYSDY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,...,,,.,.,,,..,,,,.,.,,,.,,,..,,...,...,,,,,...,.,,,,.,,,,,,
+#3RQ2QIQRFGU5YGYERLQXQCFWXPYWPLQSSLSNXZKEXKQXKA5R5TMDDF46PTA2ORKZXHEOMEARB7VDO
+#\\\|7LTY5KYZMUNKWNSNF4CN2V6UQJFBUDMKCQXNQ5AZ56UBNVS3JVF \ / AMOS7 \ YOURUM ::
+#\[7]E2XXEFJANI3OAGJYP674RNLL4W7Z4NS7JG2OSGSCYEGCI5PDJQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

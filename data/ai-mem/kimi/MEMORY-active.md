@@ -15,7 +15,7 @@
   still-live stream. optional `task_id` defaults to the active task.
 
 `coding.restart-round` was also missing from the coding zenka command whitelist in
-`configuration/zenki/coding/start`; adding it back exposed the command and the MCP
+`cfg/zenki/coding/start`; adding it back exposed the command and the MCP
 propagation path. `p7_task_stop` resolved todo `WW7`. `restart-round` coverage + the
 new MCP tool resolved todo `E3A`.
 
@@ -171,7 +171,7 @@ implemented data/tasks/audio-waveform-visualization.md : new `audio` zenka,
   lit-pixel budget 2% est → ~5-9% measured, per-pass allowances ∝ band
   energies. tested on purring aa/ab/ac + saturnians.mp3 [ psytrance,
   generalization test ] — deterministic, distinct outputs.
-- scaffold : configuration/zenki/audio/{start,zenka-startup.v7,source/,
+- scaffold : cfg/zenki/audio/{start,zenka-startup.v7,source/,
   pm-dep/[+Imager,PDL,PDL__FFT],os-dep/binary/ffmpeg}, cube auth.zenki +
   access.zenki [ audio.spatial-purr in access.cmd.usr.* ],
   subroutines.load-early generated. ALL UNSIGNED — operator signs.
@@ -210,8 +210,8 @@ screen; the newline is now only emitted when the help block is visible. when the
 scrolls out of view, one empty content row is kept as top padding so fields do not sit
 flush against the terminal top. see [topic-user-edit-vertical-viewport.md](topic-user-edit-vertical-viewport.md)
 
-#,,..,,,,,..,,...,,,,,...,.,,,,.,,.,.,,,,,,..,..,,...,...,..,,,..,..,,..,,,,.,
-#R5TJA4U56FOYYJFPPQOVOWE27FOG7NV6OZKHUORI2FDRLFG74KJR22NJQG4DUJ24OLYHBSVN2AJ5K
-#\\\|NPEC2MULFEZJSK27VZDPPVARSZXYRCY6MRWDXFEB57R6MPKP4SC \ / AMOS7 \ YOURUM ::
-#\[7]IVPUCJCC5GKHYGKNFUU4TYVJSHRNIWUAWFJ5C3EP6KUECIFYPEDI 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,.,,,...,,.,,,..,,..,.,,,,.,,..,,...,...,.,.,,..,..,,,,,,,.,,
+#RHOXXA2AUZPLHAQ3AXNLAAM2CN3FVJ2HSYVDRGZI7OGOZU33RT2A3O2VGK2H765FS4ZN4YG4A6HWG
+#\\\|LVKZ2IA22ZBDZRCW6KLQDCNJ2DA5TOYPO5EFJOTYLMQB4Q2RWCM \ / AMOS7 \ YOURUM ::
+#\[7]HSG37UWTADYFZACHDZARD2XF2PQUSV7SWT75ZYE37J5SE2RSIYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

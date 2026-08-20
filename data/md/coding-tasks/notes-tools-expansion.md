@@ -19,7 +19,7 @@ Each new tool requires 3 files + 2 config entries:
 1. **Backend module**: `modules/note.<name>` — core logic, uses `file.*` operations
 2. **Tool handler**: `modules/coding.tools.handler.note_<name>` — thin wrapper, returns `{ content => ... }`
 3. **Tool definition**: add to `modules/coding.tools.definitions` — OpenAI function schema
-4. **Whitelist**: add both module names to `configuration/zenki/coding/subroutine.white-list`
+4. **Whitelist**: add both module names to `cfg/zenki/coding/subroutine.white-list`
 
 ### Reference implementation — follow `note.write` / `coding.tools.handler.note_write`:
 - backend receives raw args, returns `{ mode => 'true'|'false', data => ... }`
@@ -146,7 +146,7 @@ parameters:
 - use `<[base.time]>->(2)` for human timestamps, `->(3)` for epoch float
 - tool handlers return `{ 'content' => $string }` — always a hashref with content key
 - backend modules return `{ 'mode' => 'true'|'false', 'data' => ... }`
-- add both module names to `configuration/zenki/coding/subroutine.white-list`
+- add both module names to `cfg/zenki/coding/subroutine.white-list`
 - add tool definition to `modules/coding.tools.definitions` following existing note_* pattern
 - verify syntax with `ptd -c modules/<name>` after writing each file
 
@@ -156,8 +156,8 @@ Implement one complete tool (backend + handler + definition + whitelist), verify
 
 ### Round budget: 5 rounds per tool (35 total for all 7)
 
-#,,,,,,.,,...,...,,..,.,.,,..,,.,,,..,,..,,,.,..,,...,...,..,,..,,,,.,,..,,..,
-#KJSKD7YXT42U3EYZDV2ZGVIROCMZFGU4W5T4QQTMBL2GP6LYSUVUVQDXL5IESQTQZNCNYA2BJ47U2
-#\\\|V3OR6GYCHXZARGY5K4YO72ENP64ZOWL7X2GHT6SYZPGIEFBO76B \ / AMOS7 \ YOURUM ::
-#\[7]ER34HXEZAZCO7MQBCTQSYAZZKVSB6XDKV6UK66RLORM6WMPKXYCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,.,.,,,.,..,,,,,,...,,,,,...,..,,...,..,,,..,...,,.,,.,,,,.,,
+#7MJ26JQQUKAAJQR5WNH4O7TGZKBDE2IYZBNJAUXIEWZ6XSR2HVQ6STQEWQXNQC2E64SRXVHOFZGQO
+#\\\|XJIUHKAT3OBH2JOAPBC2AGFT6V5K3UDVGBZ6SS2FFQUPKSNMSWZ \ / AMOS7 \ YOURUM ::
+#\[7]UVFT4U36RLUT6NUIMKRQG47WX3VTW62PZVAXDCYRLCWWPLVPYUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

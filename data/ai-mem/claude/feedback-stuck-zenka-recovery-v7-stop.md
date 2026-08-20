@@ -27,8 +27,8 @@ the next call.
 attempt aimed at "fixing" it instead spawned a SECOND live instance
 (`v7.stop` later reported "there were 2 of them running"). The zenka had no
 `max_concurrency` set in its `zenka-startup.v7` — added `max_concurrency = 1`
-afterward (precedent: `configuration/zenki/image2html/zenka-startup.v7`,
-`configuration/zenki/window-place/zenka-startup.v7` already had it).
+afterward (precedent: `cfg/zenki/image2html/zenka-startup.v7`,
+`cfg/zenki/window-place/zenka-startup.v7` already had it).
 
 **How to apply:**
 - If a zenka stops responding to ANY command (not just one specific call
@@ -49,8 +49,8 @@ afterward (precedent: `configuration/zenki/image2html/zenka-startup.v7`,
 
 [[bug-auth-keypair-client-composition-gotchas]]
 
-#,,.,,,,.,,,,,,..,,.,,.,,,,,.,,,.,,..,.,.,,.,,..,,...,...,.,,,.,.,...,,..,..,,
-#QZCJSBON3BCKFA6BBRSGMA32AX3GIOW6FGPFBXT6KHA27WLL6ABOZUMEWGBZGU5DQDJDAPHABDGQ4
-#\\\|O2WEHOBZCBXSB4E7MLXWL2LY34P3VUT6IHKUS3JYZ4IOFY3TZ4D \ / AMOS7 \ YOURUM ::
-#\[7]OISSKCX5ADWZN7UMYFGKOQ7OD3NYF3TEKSDJ3V3KOS5C2H62SKAI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,,,.,..,,..,,,.,,,..,,..,.,.,..,,...,...,.,,,..,,...,...,.,,,
+#X43RJPYQ5NMKQOO5234KYCAWHCS4Z74CBK2LXDU36UNHJLWODPJXLAGSC5BITDNKBOQCTT4XDQPNW
+#\\\|2SRHCCCVV6JJWA7NCJ2327RQSO7A2FSN4UKUY7TYTWMVRZZTUSO \ / AMOS7 \ YOURUM ::
+#\[7]YD35TL4OL2AOKKZZTMHOIOYUHQXN3T5YFO5QH2O6O6YHP6VWPCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

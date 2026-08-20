@@ -203,7 +203,7 @@ my @parts = map { sprintf '%d %d %d %d', @{$_}{qw| x y width height |} } @$monit
 return { 'mode' => qw| true |, 'data' => join( "\n", @parts ) };
 ```
 
-add `X-11.get_monitors` to `configuration/zenki/cube/access.zenki` in the `usr.*`
+add `X-11.get_monitors` to `cfg/zenki/cube/access.zenki` in the `usr.*`
 blocks that currently have `X-11.get_pointer_scr_rect`.
 
 ## acceptance
@@ -228,8 +228,8 @@ handles all footer blocks — leave them untouched.
 ## and window.geometry.resolve in that order. verify each step in the live system
 ## using `p7c X-11.get_monitors` and `p7c X-11.get_pointer_scr_rect` before moving on.
 
-#,,..,.,.,.,.,,,.,,,,,,,.,.,,,.,.,,.,,,..,..,,..,,...,...,.,.,,,,,,,,,,,.,,,.,
-#L2LIEAUVMISJHEQBTLXZ5MWJH66OEH4LDSPR3JDDUJHGGRPRLCAPLJISDJGGCMCWI7A7RMMDJEQI4
-#\\\|NJXDD3YVFLGBWDQVOMQQBJT6MRIS4WYT5NSWEEWACVAZZGU4XC4 \ / AMOS7 \ YOURUM ::
-#\[7]MDWTBZRTVSOP6HFDCL73QEBXQCMTOHJDWGH3O224ULJEOMP7FUCQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,..,,..,,..,...,,,,,,,.,,..,..,,...,..,,..,,.,.,,,.,,,.,...,
+#6MKK75MMSUZZUNZZCJFKW5C7YGNVTGEZU7Y7WHROSGPSNP7W62QPQQLR7VK2EWV7JBBWDAIF5JSKO
+#\\\|Z5MJ7UJ732WKK575UBWJOKBQA6DPKBNU44Q22NLNKCW265LPLRX \ / AMOS7 \ YOURUM ::
+#\[7]KBSEOK4LHK3W6QOCTJBG3YIGPEPW42FKRJD3UA7WTYIXXGVOM6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

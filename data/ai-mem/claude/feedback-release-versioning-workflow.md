@@ -19,11 +19,11 @@ hooks-under-loaded-ancestor]]):
    release version (deterministic AMOS7 harmonic-truth calculation from
    current `protocol-7.src-ver`, not a manual semver bump) to both
    stdout (decorated) and stderr (bare string).
-2. `./bin/dev/release-version 2>configuration/protocol-7.rel-ver` — the
+2. `./bin/dev/release-version 2>cfg/protocol-7.rel-ver` — the
    actual way to write it to the rel-ver file: redirect stderr only,
    since stdout carries ANSI box-drawing decoration and stderr carries
    the bare `AMOS7-vX.Y.Z` string.
-3. `./bin/dev/update-version` — bumps `configuration/protocol-7.src-ver`
+3. `./bin/dev/update-version` — bumps `cfg/protocol-7.src-ver`
    to a fresh value.
 4. Commit everything (`git add -A` / `git commit`) — **must happen
    before** step 5, not after.
@@ -64,8 +64,8 @@ correctly moves forward to a fresh commit-id with revision reset to
 past `-8893` since that id was already used/superseded in this test
 sequence).
 
-#,,..,,,.,..,,,,.,,,.,,..,,..,,.,,,..,..,,.,.,..,,...,...,.,,,,..,,,.,,.,,,,,,
-#OV2ZUWTCWXAZLD7LLB7HSD4EXATEC2RBML5SVDG3HFYZLD4NUK5B7T4IX7DJEVCKLWMHIZCK6SLXQ
-#\\\|RZP73K4B275IT4VWOEMF5QHFEOPH6JCY6YJUZEJWQFSU6P37IR2 \ / AMOS7 \ YOURUM ::
-#\[7]POHIHMIFVNHLUPEROEKPBGI65CSUSM6OV7UCMP7HNF5H6XZVGQBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,..,,,,.,,,,,,..,.,.,.,.,,,,,,.,,..,,...,...,.,.,.,,,.,.,,,,,..,,
+#TADFUWU5LQJPT6GJHPCVEWQMUS533M5EB75EHOJBF65QJHZQHGCCW2IPRQTFAAUQIHD3ITMJOHEL4
+#\\\|SZF4APZSK4YVKYJRWEXKB7BK54UNNULNNZEBQUCD55S2W6VHKNG \ / AMOS7 \ YOURUM ::
+#\[7]SUFXNEVXDFBCSX2EIKCWVY3HUZV5SSBLMGDNKACFFAMMM7PR6UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

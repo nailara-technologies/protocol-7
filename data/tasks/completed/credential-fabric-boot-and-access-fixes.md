@@ -18,7 +18,7 @@ don't duplicate already-working scaffolding. confirm exactly what's
 still missing before writing new files.
 
 ## problem — three related gaps
-1. **missing `auth.zenki` entry.** `configuration/zenki/cube/
+1. **missing `auth.zenki` entry.** `cfg/zenki/cube/
    auth.zenki` has `auth.setup.usr.credentials = :zenka:` — but
    `credentials` is a *different*, older zenka. there is no
    `auth.setup.usr.credential_fabric = :zenka:` entry, so cube rejects
@@ -27,7 +27,7 @@ still missing before writing new files.
    adding `auth.setup.usr.proxy = :zenka:` — use that as your
    template/precedent).
 
-2. **missing `zenka-startup.v7`.** `configuration/zenki/
+2. **missing `zenka-startup.v7`.** `cfg/zenki/
    credential_fabric/zenka-startup.v7` does not exist (per the
    findings doc's first pass — but the addendum's second pass found
    the zenka boots, so check current state first: it may have been
@@ -101,8 +101,8 @@ still missing before writing new files.
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,..,,.,,,.,,,.,,.,,,,,,,.,.,,.,,,,.,.,,,.,,,..,,...,..,,.,.,..,,...,...,...,
-#ZEBH54D4UX5G3YQWLQKIBRBA62IEDZCNPC6OLGRR7KLTBZFKIEUN6TF4WC7KUAXJX3GS3YEOCOHNW
-#\\\|4XURHHAVTOBPVCSNBTRCWAPOMAPV5FUDPXVOKU3SFCLVUG423XH \ / AMOS7 \ YOURUM ::
-#\[7]3H2IP5MWN54XXDEXGWR3LOEQWCAJ4H5IXM6SLTW3IPEIVKHMH2DI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,,,.,,,,,.,.,,,,,.,,.,,,..,.,.,..,,...,.,.,...,.,,,..,,...,...,
+#BUJW5U5NNWUDKPP4N4CJQL2FHUKMXFYBGJOTGSITAFHXIRMB2LBVWHHYLKSWDHMPBZUD5VHHTFNDC
+#\\\|HYCXOTQ23OE7A6KRRBAA2VFNEHLM7JJOLXH5DHQYRKCQBFVXAPU \ / AMOS7 \ YOURUM ::
+#\[7]HCZVSZCLQUCT6SXF2TLPB2CLSRYSWTCNOHQ6CSV5K2OKYMLTBABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

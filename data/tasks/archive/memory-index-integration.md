@@ -17,7 +17,7 @@ add the semantic-search layer over the memory tree.
 1. focused index instance — set up an `index.*` instance scoped to
    `data/ai-mem/` only:
    - back up the current index instance first (its config under
-     `configuration/zenki/index*/` and its data dir) so nothing is lost.
+     `cfg/zenki/index*/` and its data dir) so nothing is lost.
    - create a focused instance (either a new `index-mem` zenka config or a
      scoped data dir for the existing one — choose based on how index configs
      are structured; document the choice in the task notes).
@@ -64,8 +64,8 @@ stubs.
   unavailable.
 - no manual AMOS7 signature stubs in any new file.
 
-#,,.,,...,,,,,,,.,..,,..,,,,,,,,.,..,,.,.,,..,..,,...,...,...,.,,,..,,,..,,.,,
-#2EDD3DRPFJVNABM2NBR6ASN7EDG6WT33PJ47FQFDNKD45MNT4ZFHZRDNFEQMCF5VYT7ETIBFSEHPI
-#\\\|AJM5RGKACXV55VD55YPUM7OVGKYW54XGXE2LDWRCBMSTGOCMIC6 \ / AMOS7 \ YOURUM ::
-#\[7]V4RUE6G33OG2KXFRLKF26P5K5RZ6BJZDT47KSYUS55SQOM56G2BY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,..,,,..,,.,,...,,..,,..,,,,,,,.,..,,...,...,,..,,,.,,,.,,,.,,.,,
+#UQCQ7G6I34S3FNKF3R43UE5NDMORX53NTCIG7HCKCUDPP3DN5LB5YVFBBZ7QHIIVXNJAN3TWB3DJG
+#\\\|B3SZGB5DXKDTFZEXDBCMDF2CGYOXK3GOC5ACWVI3HI4XF6ZUQC6 \ / AMOS7 \ YOURUM ::
+#\[7]UYU2GEE4JO6KAX7VHULSLKETP44TBLL36HXJP7WPY5OV7AM26SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

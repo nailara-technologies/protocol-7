@@ -17,7 +17,7 @@ the storage zenka is currently a stub. all storage modules must gracefully fall
 back to local YAML persistence when the storage zenka is unavailable.
 use `$data{'branch.storage.backend'}` to track 'storage-zenka' | 'local-yaml'.
 
-local YAML path: `configuration/data/branch/nodes/` (one file per node_id).
+local YAML path: `cfg/data/branch/nodes/` (one file per node_id).
 
 ## what to implement
 
@@ -37,7 +37,7 @@ if backend = 'storage-zenka':
   on reply: store snapshot_id in $data{'branch.storage.snapshots'}{$id}
 
 if backend = 'local-yaml':
-  write to configuration/data/branch/nodes/<snapshot_name>.yaml
+  write to cfg/data/branch/nodes/<snapshot_name>.yaml
   create path if missing
 
 return { mode => 'true', data => $snapshot_id }
@@ -109,7 +109,7 @@ return query_id (async; result arrives via reply handler)
 ## local YAML fallback structure
 
 ```yaml
-## configuration/data/branch/nodes/<snapshot_name>.yaml
+## cfg/data/branch/nodes/<snapshot_name>.yaml
 snapshot_id: ABCDEFG
 created: <ntime>
 root_id: HIJKLMN
@@ -155,8 +155,8 @@ lowercase comments, `[ word ]` annotations, `$ARG`, no signature stubs.
 
 depends on round 1 complete. parallel-safe with `branch-layer7-resource-attach.md`.
 
-#,,,.,...,...,,..,,..,...,.,.,.,,,..,,.,.,,,,,..,,...,...,,..,.,,,,,.,.,,,,,,,
-#2Y44EJVWLOLH63UBR4JE3OWBDHFG3SL3MARGZLIWV7O7XD6ULZMEKITLOKMWD2QKQKV4CWF7A7S2S
-#\\\|MOYBR7LWTFDPB334JT43534PIPZZAYZGTK2I6VDO5DUQMQGR27L \ / AMOS7 \ YOURUM ::
-#\[7]DUEA2EM7ZJC43Q6LAJJ3YMUPZVTZD6J5MLSANVSDNDPYBVQQHKDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,..,,,..,,,.,,.,,.,,,.,,,.,,,,,.,..,,...,...,,,,,,..,,,,,,..,,,.,
+#LKYQGX7RPWJ4RKDIYDLF66KFY43TEQFOWTN6PTKLZWAAID7YFRE6TEJUWZVLVVGE5JZ2ICHGR6K4M
+#\\\|LDQI2IOPLWG6TSYNGYUQE5QUFFAVBL4BJCGN4SACXAPM6MCIGAY \ / AMOS7 \ YOURUM ::
+#\[7]CXGO7I4UMQLEZXP52UIQW5VEHOHDCETD5D7AW3AYYVYKL7GVN4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

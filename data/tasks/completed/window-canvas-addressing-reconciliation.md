@@ -121,11 +121,11 @@ implementation still isn't started), and update the frontmatter
 the existing one in place.
 
 Do not write any code, do not touch `modules/`, do not touch
-`configuration/`, do not run any signing/staging/commit commands. This
+`cfg/`, do not run any signing/staging/commit commands. This
 task's only output is the memory file edit above.
 
-#,,,.,,..,.,,,..,,..,,,..,...,.,.,,.,,,.,,,,.,..,,...,...,,.,,,..,...,.,.,,.,,
-#YUQHRSQ6MUJ3UJPYFCEHSZVKLYAYXFUQUUVA42AQ2I5BMGTMVIVA3KIBXEBTGO7MP5OH2P5575FB2
-#\\\|4C6JKKHHOTIY72533MUVI36QSMXGO4MWMUAJRM6C3KQU3INM5AY \ / AMOS7 \ YOURUM ::
-#\[7]MX76TIJGLNN2FNZIIWYK7BHBT3XAAU64LAQQCTLD6VUKQLOREYAI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,..,,.,,,,,.,.,.,.,.,.,.,..,,,..,..,,...,..,,.,,,,.,,,.,,...,.,,,
+#N5DLDKQCMMXCESOMTP2SFCSWSFA32JGIZZRCAF5GTEQH76E36UIOXVK7TKB2GJXO2KMMPKWE3HQHS
+#\\\|ZBBC7ID2AN4LV3LF6APTXIQ25ISYMZEZL4TLSUPY3NCVNPQCP7G \ / AMOS7 \ YOURUM ::
+#\[7]WXTGSPYJV5QVI6WEOWSB3XCCFVZPSL7K46P4LZRTL6DM4ZDJ6EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

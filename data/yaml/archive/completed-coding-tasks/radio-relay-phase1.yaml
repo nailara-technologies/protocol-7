@@ -18,8 +18,8 @@ task:
     - "IO watcher: modules/base.event.add_io"
 
   files_to_create:
-    - configuration/zenki/radio/start
-    - configuration/zenki/radio/zenka-startup.v7
+    - cfg/zenki/radio/start
+    - cfg/zenki/radio/zenka-startup.v7
     - modules/radio.init_code
     - modules/radio.connect
     - modules/radio.handler.stream-chunk
@@ -107,7 +107,7 @@ task:
       );
 
   configuration_start: |
-    file: configuration/zenki/radio/start
+    file: cfg/zenki/radio/start
 
     modules.load = radio.init_code radio.connect
                    radio.cmd.start radio.cmd.stop radio.cmd.status radio.cmd.listen
@@ -118,7 +118,7 @@ task:
     [zenka.loop]
 
   configuration_startup: |
-    file: configuration/zenki/radio/zenka-startup.v7
+    file: cfg/zenki/radio/zenka-startup.v7
 
     radio.stream.url          = https://cast.magicstreams.gr/sc/psyndora
     radio.stream.auto_connect = yes
@@ -211,7 +211,7 @@ task:
 
   acceptance: |
     - ptd -c all radio.* modules passes
-    - ptd -c configuration/zenki/radio/start passes
+    - ptd -c cfg/zenki/radio/start passes
     - radio.cmd.listen opens unbounded STRM to caller
     - radio.handler.stream-chunk parses ICY headers and extracts audio bytes
     - StreamTitle changes logged at level 2
@@ -220,8 +220,8 @@ task:
     - radio.cmd.stop closes all streams and kills curl
     - no jingle filtering, no gap filler, no keep-library in this phase
 
-#,,,,,..,,...,,..,,,,,,,.,.,.,,.,,,,.,...,,..,..,,...,...,.,,,,,.,,,,,...,,.,,
-#7NAORR5NR6IOMUC2TL6K5RZWTXHRWZ3GFNHJSL3SEJLWGLTLWZY6XWBNRUSMHL7KDGFHH6M2P4K4I
-#\\\|KO5THBZF5623AWFYETK67L6K2IEKZNJPHVNC4N6CWDU4XEMOHMJ \ / AMOS7 \ YOURUM ::
-#\[7]IR77SB6WAWBJ6NGYHP55AKLDPVUKDUPVRRPA3TQNGFDARG57A6CQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,,,,,,..,,..,...,...,,.,,,,,,..,,...,...,.,.,,,.,.,.,...,,,,,
+#EBEWU4QBH2EPOBL7S2SOLRNZMXBG75QBWPW7VQQJ57Z7ZLUDAPWPJPMQ4RN2ESDAIGXK73ZNPUZMG
+#\\\|GRX7WZ4BQAGERZF5FBJP7XDOKS5TEMMGKGEGNH6XJXEWAFG6GSV \ / AMOS7 \ YOURUM ::
+#\[7]WPV5IBBJ2C7LQGWWFKOJRCQ3QNMXOOBCULREUFL2ZSQOVU3WLCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

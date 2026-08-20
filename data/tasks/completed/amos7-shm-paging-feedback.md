@@ -55,7 +55,7 @@ cat modules/data.mount.shm.permission.verify          ## signed-grant authorizat
 cat modules/data.mount.shm.header.read                ## 512-byte text header pack/unpack
 cat modules/data.mount.shm.init_code                  ## SIGINT handler [ unlocks, does NOT unlink ]
 cat modules/data.mount.shm.test.basic                 ## current access = bare substr() at offset 512
-cat configuration/zenki/data/start                     ## confirms data.* = the data zenka's own load set
+cat cfg/zenki/data/start                     ## confirms data.* = the data zenka's own load set
 cat modules/data.channel.shm.create                    ## existing ring-buffer ; read before phase 3
 cat modules/data.cmd.shm-self-test                      ## the regression gate every phase must keep passing
 cat modules/jobqueue.event.register_job_queues        ## tested as a candidate, ruled out -- see RESOLVED
@@ -107,7 +107,7 @@ mounting with cryptographic access control. verified against the actual code:
 
 ### this is the **data zenka's own working internals**, not a neutral shared library
 
-`configuration/zenki/data/start` loads the bare `data` namespace token — every
+`cfg/zenki/data/start` loads the bare `data` namespace token — every
 `data.*` module, including all of `data.mount.shm.*`, is the **literal data
 zenka's** own loaded code, actively in service today. This is not a coincidence
 of dot-prefix naming to design around; it is a real backward-compatibility
@@ -776,8 +776,8 @@ prompt: |
   Follow the project's lowercase-comment, dot-notation style exactly. No
   signature stubs — the signing system adds them.
 
-#,,,,,,.,,,,,,.,,,,..,,,,,.,,,...,,..,,,,,,.,,..,,...,...,...,,,.,.,,,...,,,.,
-#Y2T4XA3GAOGKDKMIOHX4NMURW5IARQ3EHNDRXRXLAFIBCN7H4TBSS4Y4AON2MLKMFQD5FT2LLYC2I
-#\\\|Q5WMQDBN3NK7ASWGGSLZKO5VJJOWHTKHCYNPU5PE5IBWYT7TOY4 \ / AMOS7 \ YOURUM ::
-#\[7]42CK4ZRGN7V5LGV3LXZUCXL627UKQMXR5G3UNHOWXJSPWIW52MCQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,,,,,,.,,,,.,,,,,,.,,,..,..,,..,,...,...,..,,,,,,,.,,,,.,...,
+#YYGBZBPNEX7JJUSEJEQGIZ6KRTFTLO4QOUKHACJEDVJGU3JKL7BBMHPLX6EKP5JITA7BFY7WSOQQW
+#\\\|KPM4BYYJJDVUDQTGQCZNOWZG7OZWNBGTDMCGF73U5ACJ6HJKO7I \ / AMOS7 \ YOURUM ::
+#\[7]WLOHPB222MXMHRCVUUSUXEMGNZRO5FIIBE2SJCYXCALITYOI7CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

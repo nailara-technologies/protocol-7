@@ -110,11 +110,11 @@ Check zenka configuration:
 
 ```bash
 # Always-on (no disable flags)
-$ cat configuration/zenki/httpd/zenka-startup.v7
+$ cat cfg/zenki/httpd/zenka-startup.v7
 # No heartbeat.disabled line
 
 # On-demand (explicitly disabled)
-$ cat configuration/zenki/calc/zenka-startup.v7
+$ cat cfg/zenki/calc/zenka-startup.v7
 heartbeat.disabled = 1
 restart.disabled = 1
 ```
@@ -277,8 +277,8 @@ Both strategies work **because they match the operational model** of each class.
 
 Result: **Self-healing dependencies without performance overhead**, appropriate for each zenka class.
 
-#,,,,,,..,..,,,,.,,,,,...,.,,,..,,,.,,.,,,,,.,..,,...,...,..,,,.,,,..,.,.,..,,
-#TGM3SDREQN4ELP6G75JEKSKBNXFRZ6XZOJIGPMC7EWR3K547YTL6GSVQLO7GV5SWH75PZY3XI6OJK
-#\\\|LD56D47VE6KEXSARGSATHEOS2T6DUIZGM4F2IV2JWOM37RYUBZV \ / AMOS7 \ YOURUM ::
-#\[7]RP5HOTZBKGOWE3NEOTAZ4E63WH27A4JMTYUZMETVXBJ2ELMNMWCY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,.,,..,,,.,,,..,...,,..,.,,,...,..,,...,...,,.,,.,.,,,,,..,,...,
+#F7GXOAUVUPIPF5R3UEJFX6W72YZNHDRFKDB5N7RXKZ6G4MO5Z3FVF6HPBGL6SUCOGBXJAUO5JKGC6
+#\\\|VT4AEJ5JLXVHORH4U2VVUHXKXP5KD6OL64EJWH2XN7QG72ZAISN \ / AMOS7 \ YOURUM ::
+#\[7]XVJHJMJJW62KO6YCBQMKUUUPMXHOPVPQD4UXC4QJVRZ2U3VVLAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

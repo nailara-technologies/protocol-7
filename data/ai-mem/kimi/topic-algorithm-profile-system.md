@@ -39,7 +39,7 @@ $data{'chk-sum'}{'profile'}{'harmonic-slide'}{'X7K9'} = {
 Dynamic dispatch via `$code{$mod}` is invisible to `dep-graph` static analysis.
 Two solutions:
 
-1. **dep-graph rule** (`configuration/dep-graph/rules/*.rules`):
+1. **dep-graph rule** (`cfg/dep-graph/rules/*.rules`):
    ```
    chk-sum.profile.calc : mod ~ /chk-sum\.profile/ -> chk-sum.profile.*
    ```
@@ -95,8 +95,8 @@ module_glob : var_name ~ /context_pattern/ -> resolution_template
 | `modules/base.white-list.register` | whitelist + runtime verification |
 | `bin/dev/dep-graph` | parse white-list.register in start files |
 
-#,,,,,,.,,,,,,,.,,.,.,.,,,,.,,..,,,.,,,,.,,.,,..,,...,..,,..,,,,,,,.,,...,,..,
-#5GTETBFTOEMMRGTDQNJOFOBPNTZLLTR6IQLBDGBSZOTLBLRHGGTM3QULNMCUPBNAFJY4YNBSBZSLI
-#\\\|XUDPG5ZPIFAVOO6JRRGV3CSY63H72X6ISIRGZCMVZXKITYZYVNL \ / AMOS7 \ YOURUM ::
-#\[7]4J3WJZT74RMPD47QT5AAJBY7JBXEQVIHUVBJ55QOKFZGGU6Y5YBI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,.,...,.,.,.,.,..,,..,,..,,..,,..,,...,...,.,.,.,.,..,,..,,..,,
+#P3PMLKMOXYPEFD5AOGRLZHTQCABSHYGHXDZJ6QR24FYI6QSRLBL7OHHUD3PHJBJHN7WXPZZ2DHAY6
+#\\\|ARQYQZMPP7Y5UADJGJ22QYNFTBOFQKKJSKL5B3BZMURQRUEWW2O \ / AMOS7 \ YOURUM ::
+#\[7]IJ2ITM6ZKYQZLYPQWBIHOT3GK3VY5IWTXLJWJCQRCCJ4YWFTGSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

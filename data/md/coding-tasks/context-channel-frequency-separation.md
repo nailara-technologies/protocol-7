@@ -257,7 +257,7 @@ the collector zenka uses f4. it sees through — not its own color.
 
 ## modifications to existing files
 
-### configuration/zenki/graphics-matrix/start
+### cfg/zenki/graphics-matrix/start
 
 add `channel` to the access.cmd.usr.cube line.
 
@@ -301,8 +301,8 @@ ticker.cfg.font.calc_outline_col. do NOT reimplement HSV→RGB manually.
     verify channel f4 returns mode => 'alpha', not mode => 'color'
     verify cmd.channel displays alpha for f4, hex colors for f0-f3
 
-#,,,.,,,,,,,.,,,,,.,.,,.,,.,.,,.,,,..,.,,,.,,,..,,...,..,,..,,,.,,..,,.,.,,,,,
-#WDWXVL4UUNEA47TONRPM2DNLG5MSN4NXUPURLL2SSA32LRHCGUNJLQTNTR7BV5II7NMEEO3G2LIJG
-#\\\|DCY2UBPASTZW2LLE5HS6BKOUCAI2LYEOF2QHWNKH5PTXX2P3GV2 \ / AMOS7 \ YOURUM ::
-#\[7]BXUFJNRMWWQEM5QDQ545HSP2LUEHGFOGTQNIW34JD2Y6TXOWNYAY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,,,,,,..,.,.,,,,,..,,,,,,,,,,..,,...,...,...,...,.,,,...,,,.,
+#BEO5JS6QXYDUPC75ZTW3ZM6455S43V6TZNQZSIHMWWHLDCQMP75QQAGOD3IPWIH3YKEN2BUBMNX66
+#\\\|NNWYJYNRGJPFJQLUMCQIAAH7SLB2IJKYNNYBOK7QREVUGNIUGG3 \ / AMOS7 \ YOURUM ::
+#\[7]M6GDYHIRPDA5OYWH6S3LMGJUEHJMNCNVKRZTT6WGFQSZRCLBBCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

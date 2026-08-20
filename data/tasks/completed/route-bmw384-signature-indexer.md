@@ -39,7 +39,7 @@ etc. operate on.
 the normalized dot-path name of a module is derived from its filename:
   modules/base.chk-sum.init_code  →  base.chk-sum.init_code
   (strip leading directory prefix, keep the rest as-is)
-future: modules/ → code/, configuration/ → conf/ but use current names for now.
+future: modules/ → code/, cfg/ → conf/ but use current names for now.
 
 ## modules to create
 
@@ -148,8 +148,8 @@ returns { mode => 'size', data => $report }
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,..,...,.,,,,.,,,.,,,..,..,,,.,,...,..,,,.,,..,,...,...,,,,,.,,,..,,,,,,.,.,
-#C7GRBYSVCJX7IGXQV7XS2SU52ALGOAJBGP36PV63NCHSKUAUW22WY7EQDU5S6XC63GHT5GVT7EHAI
-#\\\|PIVLT73626PJQCPBTAO5H6FRUXQ7B63OPGZL7A7EO7GH5RASN7S \ / AMOS7 \ YOURUM ::
-#\[7]GSUYFNSLNBIGFYVMD7CNAVYAA23IH3HV2IFNRR6W5YQ3HIATP6BI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,,,,,..,,.,.,...,,.,,,..,,,,,..,,...,...,,,.,,,,,,,.,..,,...,
+#W5U4OUEZDFFB6KOLNWTJ4Q2W4OXK6XUHOTUPURFFEBH4FFHZM7IOTMIGLIQFFJOINJOWRP4XBYFU2
+#\\\|YSTCS2NB4THXMM5BBTATKTEI4TZQ5VFM323C26IZEXBLUNRTE7N \ / AMOS7 \ YOURUM ::
+#\[7]UYM4CVIXEWUHWJTFKWG4Y5VPOCTRUWILU3VKXG6LYV3FUVTHIQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
