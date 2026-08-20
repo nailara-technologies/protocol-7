@@ -161,15 +161,15 @@ do NOT add stub signature line to new files.
 
 ## reference
 
-- `modules/index.gen_path` — existing path generation (modes 5,7, offsets 0-6)
-- `modules/index.cmd.add-wordlist` — existing wordlist import
-- `modules/storage.map-dirs.*` — existing XFS mmap'd storage layer
+- `src/index.gen_path` — existing path generation (modes 5,7, offsets 0-6)
+- `src/index.cmd.add-wordlist` — existing wordlist import
+- `src/storage.map-dirs.*` — existing XFS mmap'd storage layer
 - `data/yaml/coding-tasks/phase-2-indexer-checksum-filesystem.yaml` — prior plan
 - `data/md/documentation/harmonic-storage-architecture.md`
 - `data/md/documentation/entropy-at-deduplication-root.md`
 
-#,,.,,,,,,.,,,.,.,..,,,,,,.,.,...,..,,,,.,,.,,..,,...,...,..,,.,,,,.,,.,.,,.,,
-#62JGSANF4BLT7AMFQQVGZFRJDJKJW7TZWFMNZ5GIATUTMWNRHKHTMP27JTZX2YBOQXXHUOC3GBTNQ
-#\\\|4KUCYH76N43WFFXCE6XEOB6JY2SI6MXMFZIVTMGTGONRCAGGOLH \ / AMOS7 \ YOURUM ::
-#\[7]36MNOYJKXNNWCWQZNQKI34MVZOWV2VE4KXYUJ7QCXR2EV6RD44AQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,.,,,...,...,,,.,..,,..,,.,.,..,,...,...,..,,,..,,.,,..,,,.,,
+#2WZQVPLI7U2NWWSAXYYOC4CFYQTPWFX4GHJ65372QSBHA2VOYDVYNF7QXN3VY5IQNDWQTZY5T3PD4
+#\\\|4LELEHYAFHS2LDPW3QXDPZNKJUD7WT45SLAJBF4UU7ZWJQ2U7E3 \ / AMOS7 \ YOURUM ::
+#\[7]DNMJOV3TLSMUYM5ILL2J2SPE5HEUQNZS4GOWPQ5USDJPBWCM6SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,15 +1,15 @@
 # task: implement iteration.template.delta
 
 ## objective
-create `modules/iteration.template.delta` — given a score record with
+create `src/iteration.template.delta` — given a score record with
 issues, produce a precise template patch that would prevent the most
 significant issue on the next attempt.
 
 ## read first
-- `modules/iteration.score_result` — understand score record structure:
+- `src/iteration.score_result` — understand score record structure:
   { score, passed, total, verdict, issues => [ { criterion, status,
     gap, fixable_by } ], attempt_n }
-- `modules/iteration.loop` — shows how delta is stored in state
+- `src/iteration.loop` — shows how delta is stored in state
 
 ## what to implement
 
@@ -49,8 +49,8 @@ logic:
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,,,,,,,,..,,,,.,,,,,...,,,.,,.,,.,.,.,.,..,,..,,...,...,...,...,..,,..,,,.,,
-#LU675THXXZGG76WYUPBLUIGN5AIRCJFH6QPPPGVHGSWMY7CVJSIPCUICKYCNTWMF2WYKR7AP73TAU
-#\\\|B67EWHHCTT263BOFWZ62ILOHMC6DNQKIW5ZS7553XAKDB4V53AV \ / AMOS7 \ YOURUM ::
-#\[7]3KKWI56D7RPX7BRPDRBHH5R52AY5FQ4GA7ODASGHP726CV7WZOBY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,.,,,,,,,..,,..,,,,,.,.,,,.,,.,,..,,...,...,...,.,,,,..,.,,,...,
+#F7UHH3DB4UHTN65VP6V45QLLDOACWV7CJHPIDEWKQI7HA6P4P576KJLIC6QCXTSWTZ2UA5F7S7GDS
+#\\\|PHRBBOJVJHO75DMDROOSE5DA6BB3H2GRUTUJQFGDIF5GRWYIINK \ / AMOS7 \ YOURUM ::
+#\[7]76XOVCL37PEJQOGRX5ARIYTSLY4Z6K7YKK4NYFX5335VVEEWCMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

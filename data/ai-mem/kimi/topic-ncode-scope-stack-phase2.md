@@ -4,14 +4,14 @@ Implemented data/tasks/ncode-pattern-scope-stack-phase2.md in full, live-verifie
 
 ## landed
 
-- **part 0**: `modules/ncode.regex.apply` — `llm-required` status gate before the
+- **part 0**: `src/ncode.regex.apply` — `llm-required` status gate before the
   confidence check (flagged `requires_review`, `stats.skipped++`, never auto-applied
   regardless of confidence vs `auto_apply_threshold`).
-- new helpers `modules/ncode.util.scope_match` (active-glob matching: `*` all,
+- new helpers `src/ncode.util.scope_match` (active-glob matching: `*` all,
   `foo.*` stem-or-below, plain = prefix, legacy `applicability.namespace` =
   one-entry stack, empty target ns never matches a scoped pattern) and
-  `modules/ncode.util.file_to_namespace` (path → dot-notation, strips up to
-  `modules/` + real source extension; braces delimiter — perltidy misparses
+  `src/ncode.util.file_to_namespace` (path → dot-notation, strips up to
+  `src/` + real source extension; braces delimiter — perltidy misparses
   `s|..(?:pl|pm|t)..||` with pipes inside pipe delimiters).
 - `ncode.regex.apply` + `ncode.cmd.apply` both gate via scope_match; cmd.apply
   derives target ns from `$fix->{'file'}`, out-of-scope = skipped (not applied,
@@ -19,7 +19,7 @@ Implemented data/tasks/ncode-pattern-scope-stack-phase2.md in full, live-verifie
 - `ncode.regex.assess` builds scope stack from `context.namespace`
   (exact → widen-by-stripping → `*`), `scope_active_idx: 0`; absent ns = no scope key.
 - `process_candidate` carries `scope`/`scope_active_idx` into the stored record.
-- new `modules/ncode.cmd.widen-scope` (graduate adapter shape): confirm required,
+- new `src/ncode.cmd.widen-scope` (graduate adapter shape): confirm required,
   re-checks live streak (`ncode.cfg.review_streak_needed`), idx+1, **streak reset
   to 0**, status untouched, base.logs level 1.
 - config: `widen-scope` added to `cfg/zenki/ncode/start`
@@ -41,8 +41,8 @@ Implemented data/tasks/ncode-pattern-scope-stack-phase2.md in full, live-verifie
   (on-demand respawn) did. Same lesson as the chmod-child incident.
 - `p7c v7.devmod-enable ncode` loads devmod fine, but eval-code still needs an
   access-list entry — not granted for ncode, deliberately not added.
-- cmd.apply end-to-end used scratch targets under `/tmp/.../modules/` (path only
-  needs a `modules/` component for ns derivation — no repo pollution), 0664
+- cmd.apply end-to-end used scratch targets under `/tmp/.../src/` (path only
+  needs a `src/` component for ns derivation — no repo pollution), 0664
   taeki:taeki so the dropped-priv zenka group-writes; full steps→ptd-c→chmod-child
   write path exercised.
 
@@ -53,8 +53,8 @@ zenka start/reload re-harmonized signatures: `cfg/protocol-7.src-ver`,
 plus auto-registered untracked `cfg/zenki/ncode/pm-dep/*` — system
 automation, not manual edits. `data/ai-mem/claude/*` was dirty from elsewhere.
 
-#,,,.,.,.,..,,..,,.,.,.,,,...,,,.,,.,,,.,,...,..,,...,...,.,.,..,,...,,,.,,,,,
-#JTUNMAJX7WRVFFVALZFEUHQKLWV523YGKVPDS3KS4BOFMKOCSS3HJGQ73LZ2ANI6MYJS4Z4IRVIYS
-#\\\|FW7J2CROETKOPI5X32QAYX2SN6ZI555M2NKZGUPNCMI3J37ESN3 \ / AMOS7 \ YOURUM ::
-#\[7]3YVNWMQHW4QZ3MCY7PUZ3IJJHGKQTWIDWNKL7QNXQBLIB6ITTOBI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,,,.,,,,,...,,.,,,,.,,.,,,.,,..,,...,...,,,.,..,,..,,..,,,,.,
+#XBGYKI5XYWZUJ3M5MUQBI2AQWOFOHWUSJT23Y6YFOBT3LJECKGNWVSEG7KWYFQGYKEZCKCKC5SF7O
+#\\\|5JZWRLG4VLU6G634UYD3S56LN4E4ALUIF5H2JI3FSHWOYEXYJVP \ / AMOS7 \ YOURUM ::
+#\[7]UKWLEVA6Z6W6OXUJKL55LCTSPSC7F75XNMULNA6KURQHEHWUNKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

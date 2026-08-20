@@ -241,11 +241,11 @@ data/yaml/intent-tree/                    ## per-zenka tree yamls (to create)
 data/yaml/intent-tree/_generic.yaml       ## shared orientation layer
 data/yaml/reasoning-templates/intent-tree-analysis.yaml
 data/yaml/cluster-registry/intent-classification.yaml
-modules/intent.*                          ## classifier zenka modules (to create)
+src/intent.*                          ## classifier zenka modules (to create)
 ```
 
-#,,,.,.,,,..,,,.,,..,,,.,,.,,,,,.,.,,,...,.,,,..,,...,..,,..,,.,.,..,,,..,,,,,
-#4PCB3NWYB3AUFDVOB5VY6II2XHXCQBXKL2UUFDTRW3TXLDYMTGSRLQMUUBWOXE4WUAA6KWRJHGWQY
-#\\\|WKAA6VVL6XLGWE3SQHQ4CIT2XDU7Q5AILASHX4APJHXOL5N2COE \ / AMOS7 \ YOURUM ::
-#\[7]M4VPS5D35K3JBK6FKPLMWA2KYU6RCCEHFSRLFAN2FAO6MPGSVIDA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,,,,,,,.,.,.,.,.,.,,,,..,..,,..,,...,...,,..,,..,,,,,,..,...,
+#QZMKYWZQTQANVHRZRUFB52GKK65BLMMOANTXFPPNDAJ257BRISDUOCCCBQ6NYBS5JZ3EDLYGGSQUK
+#\\\|OW45FKHXIDKEGRYESG4FQPHM7QG36APE6SNYJ6G6G2SGBVPY3LS \ / AMOS7 \ YOURUM ::
+#\[7]NCXKXYROKBWMY7VDZL2B4N3DGW3MDK6XJHVZBV2MRHGYMOR25ADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

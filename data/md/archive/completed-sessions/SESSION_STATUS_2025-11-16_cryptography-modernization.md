@@ -30,7 +30,7 @@ This session focused on **eliminating RSA dependencies** and **modernizing Proto
 **Impact**: Removes all RSA dependencies from HTTPSD configuration
 
 #### Changes:
-- **File**: `modules/httpsd.init_code` (lines 12-14)
+- **File**: `src/httpsd.init_code` (lines 12-14)
 - **File**: `cfg/zenki/httpsd/start` (lines 17-18)
 
 #### Before:
@@ -64,11 +64,11 @@ Cipher Suite: ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-
 **Impact**: CSR generation now uses Ed25519 instead of RSA-2048
 
 #### Changes:
-- **File**: `modules/letsencrypt.child.generate_csr` (line 21)
+- **File**: `src/letsencrypt.child.generate_csr` (line 21)
   - Replaced: `openssl genrsa -out '$key_file' 2048`
   - With: `openssl genpkey -algorithm Ed25519 -out '$key_file'`
 
-- **File**: `modules/letsencrypt.init_code` (line 9)
+- **File**: `src/letsencrypt.init_code` (line 9)
   - Updated comment to reflect Ed25519 ECDSA
 
 #### Key Benefits:
@@ -97,12 +97,12 @@ Let's Encrypt CSR Generation:
 **Impact**: Zero remaining RSA code in Let's Encrypt zenka
 
 #### Files Modified:
-1. **`modules/letsencrypt.base.pre_init`**
+1. **`src/letsencrypt.base.pre_init`**
    - Removed: `Crypt::OpenSSL::RSA` autoload (unused)
    - Removed: `Crypt::OpenSSL::X509` autoload (CSR via OpenSSL CLI now)
    - Updated comment to reflect Ed25519 ECDSA via OpenSSL
 
-2. **`modules/letsencrypt.child.extract_rsa_modulus`**
+2. **`src/letsencrypt.child.extract_rsa_modulus`**
    - Converted to deprecation stub
    - Logs clear warning if called
    - Explains why RSA no longer exists
@@ -110,7 +110,7 @@ Let's Encrypt CSR Generation:
 
 #### Verification:
 ```bash
-$ grep -r "Crypt::OpenSSL::RSA\|::RSA\|genrsa" modules/letsencrypt*
+$ grep -r "Crypt::OpenSSL::RSA\|::RSA\|genrsa" src/letsencrypt*
 # Result: ✓ No RSA references found
 ```
 
@@ -128,7 +128,7 @@ $ grep -r "Crypt::OpenSSL::RSA\|::RSA\|genrsa" modules/letsencrypt*
 **Commit**: 8a4fc6cf2 (refactor)
 **Impact**: User-discoverable cipher suite information
 
-#### File: `modules/letsencrypt.cmd.show-cipher-suites`
+#### File: `src/letsencrypt.cmd.show-cipher-suites`
 
 #### Features:
 - Displays all configured cipher suites in elegant table format
@@ -245,7 +245,7 @@ httpsd.cfg.certificate_path         = /etc/protocol-7/certs/current.pem
 httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
 ```
 
-**File**: `modules/httpsd.init_code`
+**File**: `src/httpsd.init_code`
 ```perl
 <httpsd.cfg.tls_version> //= 'TLSv1_3:TLSv1_2';
 <httpsd.cfg.cipher_suite>
@@ -314,13 +314,13 @@ httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
 
 | File | Changes | Lines | Purpose |
 |------|---------|-------|---------|
-| `modules/httpsd.init_code` | 2 | TLS version & cipher suite config |
+| `src/httpsd.init_code` | 2 | TLS version & cipher suite config |
 | `cfg/zenki/httpsd/start` | 2 | Runtime HTTPS configuration |
-| `modules/letsencrypt.child.generate_csr` | 7 | Ed25519 key generation |
-| `modules/letsencrypt.init_code` | 1 | Update comment (remove RSA) |
-| `modules/letsencrypt.base.pre_init` | 2 | Remove Crypt::OpenSSL imports |
-| `modules/letsencrypt.child.extract_rsa_modulus` | Complete | Deprecation stub |
-| `modules/letsencrypt.cmd.show-cipher-suites` | 98 | New cipher suite display command |
+| `src/letsencrypt.child.generate_csr` | 7 | Ed25519 key generation |
+| `src/letsencrypt.init_code` | 1 | Update comment (remove RSA) |
+| `src/letsencrypt.base.pre_init` | 2 | Remove Crypt::OpenSSL imports |
+| `src/letsencrypt.child.extract_rsa_modulus` | Complete | Deprecation stub |
+| `src/letsencrypt.cmd.show-cipher-suites` | 98 | New cipher suite display command |
 
 ---
 
@@ -438,10 +438,10 @@ httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
 This session is **complete and production-ready**. All code has been committed and pushed to `origin/base` in protocol-7 repository.
 
 ### Key Files for Reference
-- `/home/user/protocol-7/modules/httpsd.init_code` - HTTPSD cipher config
+- `/home/user/protocol-7/src/httpsd.init_code` - HTTPSD cipher config
 - `/home/user/protocol-7/cfg/zenki/httpsd/start` - Runtime config
-- `/home/user/protocol-7/modules/letsencrypt.child.generate_csr` - Ed25519 generation
-- `/home/user/protocol-7/modules/letsencrypt.cmd.show-cipher-suites` - User command
+- `/home/user/protocol-7/src/letsencrypt.child.generate_csr` - Ed25519 generation
+- `/home/user/protocol-7/src/letsencrypt.cmd.show-cipher-suites` - User command
 
 ### For Next Session
 - All RSA code paths have been removed
@@ -460,8 +460,8 @@ This session is **complete and production-ready**. All code has been committed a
 **Previous**: /home/user/protocol-7/docs/SESSION_STATUS_2025-11-15_web-zenka-progress.md
 **Related**: Also updated workspace-transfer/bin/deps with Nailara colors & path discovery
 
-#,,.,,...,,.,,...,,,,,..,,,.,,.,.,.,,,..,,.,,,..,,...,...,...,..,,,.,,..,,,,.,
-#XYHIMZK7I23FCXT4JI65XQUJERK4MDYIE6FCUFYGPO3XSKD4IKVWECJ2ZO4Z6DC6XTKVBMLDLYGCM
-#\\\|B6TJI3WDL62P726MQPXVST4GIDDODA3QJT4JXRAV7Y3A27GQHL7 \ / AMOS7 \ YOURUM ::
-#\[7]KAKME566RBDP7IXEUDEANRPOEQK3PU3A25RF7R4YKYVMU72WCKAY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,..,,,,.,.,,,.,,,...,...,...,.,,,..,,...,...,,,.,...,.,,,.,,,,..,
+#RVTMRABH3IC3DAYCHSEGHWGCRVYJGEZDRVPBMEBHAV7QLKZEA5RW6FXSN74OI5QTI7AJX2OW5HRKM
+#\\\|FJ7Q24FHO7L62KAZGZS6Z3YVLHPQPBVRD3YXNOUSN5YLRCVOU74 \ / AMOS7 \ YOURUM ::
+#\[7]EN4FKILNOAPPGDRUGXHVLZQI2X676ECV76UORNFYJOYPKQ6VFUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

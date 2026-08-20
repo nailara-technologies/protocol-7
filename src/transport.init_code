@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = transport.init_code
+# descr = load transport profiles, initialize quality state and probe timer
+
+## own transport registry [ borrowed key name, but per-zenka isolation   ##
+## means this is transport's private hash — seed it directly rather than ##
+## depending on the [ unrelated, orbital-specific ] external zenka       ##
+<transport.registry> //= {};
+
+## profile cache ##
+<transport.registry>->{'profiles'} //= {};
+
+## quality state per transport type per destination ##
+<transport.registry>->{'quality'} //= {};
+
+## demoted transports: { destination => { type => $demote_time } } ##
+<transport.registry>->{'demoted'} //= {};
+
+## active transport handles per destination ##
+<transport.registry>->{'active'} //= {};
+
+## profile directory ##
+<transport.cfg.profile_dir> = 'data/yaml/transport/profiles'
+    unless defined <transport.cfg.profile_dir>;
+
+## default probe interval (seconds) ##
+<transport.cfg.probe_interval> = 30
+    unless defined <transport.cfg.probe_interval>;
+
+## start global probe timer ##
+my $probe_timer = <[event.add_timer]>->(
+    {   'after'    => <transport.cfg.probe_interval>,
+        'interval' => <transport.cfg.probe_interval>,
+        'repeat'   => TRUE,
+        'handler'  => qw| transport.probe.timer |,
+    }
+);
+
+<transport.probe_timer> = $probe_timer;
+
+## subscribe to credential rotation events -- cred-mesh is a separate zenka ##
+## process with its own %data tree, so this must be a real cross-zenka      ##
+## route, not a local <[...]> call (a local call here would register the    ##
+## subscription into transport's OWN data tree instead of the real          ##
+## cred-mesh zenka's, and cred-mesh.rotate's push would never reach it).    ##
+## deferred via a short one-shot timer -- transport's own cube session      ##
+## isn't established yet this early in init_code, so a synchronous          ##
+## route-send here silently finds no matching session                       ##
+<[event.add_timer]>->(
+    {   'after'   => 0.5,
+        'handler' => qw| transport.handler.subscribe_rotation_deferred |,
+    }
+);
+
+<[base.logs]>->( 2, 'transport.init_code: transport selector initialized' );
+
+return TRUE;
+
+#,,.,,,..,,,.,,.,,.,.,..,,..,,,.,,,.,,,..,,..,..,,...,...,.,,,...,,..,,..,..,,
+#2RRM55EGJVJGS3UYKCMYWX6VWUFNZ7P55R6KPTKFDP44S7K3G3KVUW7BEMPBV4D5AB3KQT2NWEXYI
+#\\\|LDBUMZGS3H3FVT3EQ4VKW4Q74XRV3P5AG2KOP3IK7SBDQ7L2J7P \ / AMOS7 \ YOURUM ::
+#\[7]TXQEYDUMZWD4XXIBUOJD3R5N4KPVYGXRKKRWPA44PR46RQQMDACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

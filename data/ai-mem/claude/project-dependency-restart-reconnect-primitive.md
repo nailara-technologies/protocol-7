@@ -19,13 +19,13 @@ stops reflecting pointer movement after `powershell` restarts, with no reconnect
 
 ## design (dispatched to claude_dispatch model=opus, `data/tasks/dependency-restart-reconnect-primitive.md`)
 
-- `modules/v7.zenka.cmd.notify_restart` — persistent (not one-shot, unlike `v7.zenka.cmd.
+- `src/v7.zenka.cmd.notify_restart` — persistent (not one-shot, unlike `v7.zenka.cmd.
   notify_online`) restart-notify request; records a baseline identifier at registration time,
   fires once a *different* value shows up on the next online transition for that zenka name.
-- `modules/v7.handler.zenka_status` — fires all pending registrations for a zenka whenever it
+- `src/v7.handler.zenka_status` — fires all pending registrations for a zenka whenever it
   transitions to `online`/`extbin`, comparing against the recorded baseline; deletes fired
   entries (caller must re-register to keep watching).
-- `modules/base.zenka.on_restart` + `.reply-handler` — consumer-facing wrapper, mirrors `base.
+- `src/base.zenka.on_restart` + `.reply-handler` — consumer-facing wrapper, mirrors `base.
   strm.subscribe`'s registration shape: `<[base.zenka.on_restart]>->({publisher=>..., handler=>
   ...})`. The reply-handler fires the registered `%code` sub(s) then **immediately re-registers
   itself** — this is what makes the primitive persistent across unlimited future restarts, not
@@ -43,7 +43,7 @@ the intuition "a restart should get a new instance_id," and matching how this se
 instance>` first) — worked both times, hash ref and shm_ptr both changed as expected.
 
 Then tested `v7.restart powershell` (the actual common case, restarting while running) — **did
-not fire**. Confirmed via `git`-style live inspection: `modules/v7.zenka.instance.restart` (called
+not fire**. Confirmed via `git`-style live inspection: `src/v7.zenka.instance.restart` (called
 by `v7.zenka.cmd.restart`) operates on the *same* `$instance_id` throughout — it's an in-place
 restart of the existing tracked instance slot, not a remove-and-recreate. So `instance_id` never
 actually changes across a `v7.restart`, and the whole "fire when instance_id differs" check
@@ -97,8 +97,8 @@ as well as `kimi_dispatch`, not just a kimi-specific quirk.
 
 [[ondemand-idle-timeout-active-streams]] · [[topic-kimi-dispatch-infra-hardening]]
 
-#,,.,,,.,,.,.,,..,...,,,,,...,,.,,...,,,,,...,..,,...,...,,.,,,,.,,,,,,.,,...,
-#C2NKZDEOODE5HXPYJS7TRADZHRJK7W5LMKG4X7B5YDLPXFVGKM336U2VH7YZKB24NUTCHQG4F3BTG
-#\\\|M77FAQDLA4F7SZEFDSX7ZK7ON7WYHOZADISMGJ354EMK5JIF7PO \ / AMOS7 \ YOURUM ::
-#\[7]KPOBVS5CQR2TMKJ25BJJOKRWGEUDCHRDZNZJ6KDL3CFH4WC4AWDY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,,.,.,.,,.,,,,.,,..,.,.,.,.,..,,...,...,...,,,.,.,,,,,,,...,
+#EGTCVAJ22656LHSXOZ4367VP2YM45VDH3QVHPA3DH5RWRNBRNMVR7QOFDPZGO2TM75DPPBXTY42PY
+#\\\|2SEPOJPXR66V36RXUIONW3PUQ7WEZ5LILWAX25UYS7SG4O44LMD \ / AMOS7 \ YOURUM ::
+#\[7]PBIYZJDNI5A44DACEYBA23KGCNTXNZMHF7TMSVPKGFYOZKBJSMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

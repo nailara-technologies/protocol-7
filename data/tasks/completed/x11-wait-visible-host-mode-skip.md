@@ -36,17 +36,17 @@ do not add or modify subroutine whitelists — these are managed separately.
 ## what to read first
 
 ```bash
-cat modules/X-11.cmd.wait_visible         ## the full wait logic
-cat modules/X-11.init_code                ## where to set capability flag
-cat modules/X-11.get_window_ids           ## returns empty on WSL
-cat modules/base.X-11.wait_for_window     ## caller — handles FALSE gracefully
+cat src/X-11.cmd.wait_visible         ## the full wait logic
+cat src/X-11.init_code                ## where to set capability flag
+cat src/X-11.get_window_ids           ## returns empty on WSL
+cat src/base.X-11.wait_for_window     ## caller — handles FALSE gracefully
 ```
 
 ---
 
 ## fix 1: detect window enumeration capability during init
 
-file: `modules/X-11.init_code`
+file: `src/X-11.init_code`
 
 after X-11 connects to the display (in post_init or at end of init_code),
 add a capability probe:
@@ -69,7 +69,7 @@ callable.
 
 ## fix 2: early return in wait_visible when enumeration unavailable
 
-file: `modules/X-11.cmd.wait_visible`
+file: `src/X-11.cmd.wait_visible`
 
 add an early return after argument parsing, before the `get_window_ids` scan:
 
@@ -92,7 +92,7 @@ place this check after the argument validation block and before the
 
 ## fix 3: reduce log noise in callers (optional)
 
-file: `modules/base.X-11.wait_for_window`
+file: `src/base.X-11.wait_for_window`
 
 the current timeout message is:
 ```perl
@@ -158,8 +158,8 @@ prompt: |
   log noise in base.X-11.wait_for_window to distinguish "skipped" from "timed out".
   No signature stubs, no whitelist changes.
 
-#,,.,,.,,,,..,,,,,,..,..,,,.,,.,,,.,.,...,.,.,..,,...,...,,.,,,.,,.,.,.,.,.,,,
-#QUWIVCPII6KFNWQCNGKPL5SCUGBNQAGPKKVQ7ZBXR756DMTTIU5DANOFHSGYA3JT44D5POEQJYBTU
-#\\\|HCI6243FJVJFBPISKXLZDHAVUBCSEP7SYVMUIDGLL2LQZTZGKCI \ / AMOS7 \ YOURUM ::
-#\[7]PZGHSMRRACO46WU4R37VT63GYM247BCX5K4NAP44K4SQFJI4EUBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,.,,,,.,,...,,..,,,.,..,,,,,,..,,...,...,.,,,,,,,,,,,.,,,.,,,
+#JBK3A5YBLAYZ3QGGSP5UZ35MKM2Q2CVK27NJ77WIFSQZ6JTKV7BCJ2LXVUFP4XNL7KDSQSVVQZSJE
+#\\\|XITXXZZZOBGSQ5RVSEVKAW352CH55WITADVDNX7RWNV276MQLSN \ / AMOS7 \ YOURUM ::
+#\[7]G6PJX6YDTRHUVDWFY2ZAAQ6JAZFVODQJYIO2SNJ75KUK2WBN7MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,7 +39,7 @@ Identify and merge overlapping content across all knowledge documents while pres
 
 **Implementation approach**:
 ```
-modules/knowledge.dedup.paragraph_cluster
+src/knowledge.dedup.paragraph_cluster
 - Load all .md files
 - Parse paragraph boundaries
 - Generate fingerprints (existing: base.chk-sum.*)
@@ -60,7 +60,7 @@ modules/knowledge.dedup.paragraph_cluster
 
 **Implementation approach**:
 ```
-modules/knowledge.dedup.sentence_extract
+src/knowledge.dedup.sentence_extract
 - Split paragraphs into sentences
 - NLP tagging (or regex for harmonic terminology)
 - Build dependency graph
@@ -81,7 +81,7 @@ modules/knowledge.dedup.sentence_extract
 
 **Implementation approach**:
 ```
-modules/knowledge.dedup.concept_unify
+src/knowledge.dedup.concept_unify
 - Load fact graph
 - Apply synonym rules (configuration file)
 - Create concept URIs using checksum (content-addressed)
@@ -149,7 +149,7 @@ Store deduplicated knowledge fragments using AMOS checksum infrastructure.
 
 **Implementation approach**:
 ```
-modules/knowledge.storage.fragment_store
+src/knowledge.storage.fragment_store
 - Load concepts + facts
 - Chunk into fragments
 - Compute checksums (use base.chk-sum.*)
@@ -188,7 +188,7 @@ Expose knowledge through zenka-compatible query protocol supporting multiple fro
 
 **Implementation approach**:
 ```
-modules/knowledge.zenka.query_interface
+src/knowledge.zenka.query_interface
 - Receive query (cmd: search, navigate, related)
 - Query concept graph
 - Retrieve fragments from store
@@ -373,7 +373,7 @@ PRIORITY 6: Rendering templates (Phase 5)
 ## Related Resources
 
 - Knowledge base: `data/md/protocol-7-knowledge/`
-- AMOS checksum system: `modules/base.chk-sum.*`
+- AMOS checksum system: `src/base.chk-sum.*`
 - Cubic topology docs: `data/md/protocol-7-knowledge/02_CORE_STRUCTURES/`
 - httpsd templates: `cfg/httpsd/templates/`
 - Zenka architecture: `CLAUDE.md` (Multi-Agent System section)
@@ -386,8 +386,8 @@ This is a "straightforward work" task (Phase 6 especially) - no algorithmic brea
 
 Wave 2 refinement will happen naturally through reviewing and correcting the visual representations.
 
-#,,..,..,,..,,,.,,,.,,,.,,...,..,,,.,,.,.,.,,,..,,...,...,,,.,..,,...,,,,,...,
-#Q6X3V5PXCHBXP2ENR6XG7RQ2ILEHVC2TZ2U33Y2GUMHROEZEIVT6Z5UTCLCO3MHVVB2ZCDLT7YHYW
-#\\\|DAVVD5WWK7MVRJ3SIAN2UPGBZ62ANHOAREC5YZKXWZFU3GBL54E \ / AMOS7 \ YOURUM ::
-#\[7]TCS56QO6DJP4QC5X3YFBVFB74R7WWILC7G5Q7YZE6WUWZNJOL2CY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,.,,,.,,,,.,.,.,...,.,,,,,.,..,,..,,...,...,,.,,...,,.,,.,,,...,
+#YCPKEJJHZRFAB2FHMNY2FCX6BX4HDZQ6EZQ5IUQZU232VPYXWI52VQQPBBHRDBXENY5DELYMWRB6S
+#\\\|JWYJQEITF4SDQBCDJ6IDVYMCPMAQHLTBHOETL7EDNGB5NMV5JBN \ / AMOS7 \ YOURUM ::
+#\[7]YW2NM4AR4HP236VIFXWSB5SMA7XMKJR2GEPYDRB2WUJZVM456KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

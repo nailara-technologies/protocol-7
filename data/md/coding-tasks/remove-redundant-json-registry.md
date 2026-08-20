@@ -8,16 +8,16 @@ Two registry systems exist:
 Both now use flat format: `{ <id> => {...} }`
 
 ## Files to Remove/Consolidate
-- `modules/models.registry.load.load_registry`
-- `modules/models.registry.save.save_registry`
-- `modules/models.registry.base.get_registry`
-- `modules/models.registry.base.save_registry_internal`
-- `modules/models.registry.empty.create_empty_registry`
+- `src/models.registry.load.load_registry`
+- `src/models.registry.save.save_registry`
+- `src/models.registry.base.get_registry`
+- `src/models.registry.base.save_registry_internal`
+- `src/models.registry.empty.create_empty_registry`
 
 ## Callers to Update
-- `modules/models.registry.get_entry.get_model_entry` - use `<models.registry>`
-- `modules/models.registry.list_all.list_all_models` - use `<models.registry>`
-- `modules/models.registry.update_entry.update_model_entry` - use `yaml_save`
+- `src/models.registry.get_entry.get_model_entry` - use `<models.registry>`
+- `src/models.registry.list_all.list_all_models` - use `<models.registry>`
+- `src/models.registry.update_entry.update_model_entry` - use `yaml_save`
 
 ## Migration Path — COMPLETED
 1. ~~Ensure YAML registry has all data from JSON~~ (JSON never actually read after init)
@@ -111,21 +111,21 @@ This suggests the model ID resolution and spawn logic are using different data s
 Create generic model resolution routines to reduce redundancy:
 
 ```
-modules/models.resolve.with_mmproj      # unified lookup with mmproj handling
-modules/models.resolve.by_amos_id       # by composite checksum ID
-modules/models.registry.clear_and_refetch # [:re-fetch:] implementation
+src/models.resolve.with_mmproj      # unified lookup with mmproj handling
+src/models.resolve.by_amos_id       # by composite checksum ID
+src/models.registry.clear_and_refetch # [:re-fetch:] implementation
 ```
 
 All three zenki can then load these shared routines instead of duplicating logic.
 
 ### Files to Update
-- `modules/models.cmd.get_path_by_amos` — convert to YAML, add registry fallback
-- `modules/models.cmd.get_model_path` — convert to YAML
-- `modules/models.resolve.*` — NEW shared resolution routines
-- `modules/coding.resolve_model_path` — use shared routines
-- `modules/coding.handler.spawn_with_deps` — pass --mmproj flag when needed
-- `modules/lm-vision.*` — use shared routines
-- `modules/vision-batch.*` — use shared routines
+- `src/models.cmd.get_path_by_amos` — convert to YAML, add registry fallback
+- `src/models.cmd.get_model_path` — convert to YAML
+- `src/models.resolve.*` — NEW shared resolution routines
+- `src/coding.resolve_model_path` — use shared routines
+- `src/coding.handler.spawn_with_deps` — pass --mmproj flag when needed
+- `src/lm-vision.*` — use shared routines
+- `src/vision-batch.*` — use shared routines
 
 ### Registry Management Commands
 
@@ -157,8 +157,8 @@ zenka.clear-registry [:re-fetch:] # clear and re-fetch from models zenka
 - [ ] Non-vision models have empty mmproj_path
 - [ ] Config model ID matches spawned model ID
 
-#,,..,,,,,,..,,.,,,..,,,.,.,.,...,.,.,,..,.,,,..,,...,...,.,.,.,,,.,,,,.,,,,.,
-#BCWP5WAA7TW5FWPHIAI6VML4VJRQJIKLUURC2UWSNLRGWRCFE2MOKMRE6VQXDEQMPOSJQOJF2KMVM
-#\\\|SAGY2YB3JAUIM5WPI3JCZWNHSXZNRYTWCT5V7WKDF5WSRES4V6Q \ / AMOS7 \ YOURUM ::
-#\[7]KWNXGQPMDO6BZK4KWDJEVIEAUAYIRQVNOEHLH7OCJ74UTQUKP4BQ 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,,..,.,.,,,.,...,,,,,...,.,,,..,,...,...,..,,,..,,.,,,..,,,,,
+#3FWTLXZD5CBU7NCMSCE6BATUJVFLIDU6XYDALS3HQC4WPC33I7VR7K7EA2AWZQM2YHGELXTIHOGWM
+#\\\|H4TX2UO3VNBD4HBHHA56SEOVNIDDEAZDOXAGYOEKDQHOKS327DH \ / AMOS7 \ YOURUM ::
+#\[7]VRUPVYHRFHUW65I4VQZ6IK645LHM4BFE5EVDIE447KG3ZXIEUUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

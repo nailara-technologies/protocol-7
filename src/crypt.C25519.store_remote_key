@@ -1,0 +1,162 @@
+## [:< ##
+
+# name  = crypt.C25519.store_remote_key
+# descr = store remote server's Ed25519 public key with TOFU timestamp pinning
+# param = <hostname> [port] <pubkey_b32> [ntime_b32]
+# note  = port defaults to 42 if not specified
+
+my $hostname   = shift;    ## remote hostname
+my $port       = shift;    ## remote port (optional)
+my $pubkey_b32 = shift;    ## 52-char base32 Ed25519 pubkey
+my $ntime_b32 = shift; ## optional: high-res timestamp (e.g., "3L5KXEOOF64GS")
+
+## Handle optional port parameter  If pubkey_b32 looks like a port number, ##
+## shift everything                                                        ##
+
+if ( defined $port and $port =~ m|^[A-Z0-9]+$| and length $port == 52 ) {
+    ##  Port was actually the pubkey - shift back  ##
+    $ntime_b32  = $pubkey_b32;
+    $pubkey_b32 = $port;
+    $port       = <protocol-7.remote.default-port> // 42;
+}
+
+$port //= <protocol-7.remote.default-port> // 42;
+
+##  Validate inputs  ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <hostname> <pubkey_b32> '
+        . 'parameters (port optional, defaults to 42)'
+    }
+    if not defined $hostname
+    or not defined $pubkey_b32;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'hostname cannot be empty'
+    }
+    if not length $hostname;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'port must be numeric (1-65535)'
+    }
+    if $port !~ m|^\d+$|
+    or $port < 1
+    or $port > 65535;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'pubkey must be 52 characters base32 (C25519)'
+    }
+    if length $pubkey_b32 != 52
+    or $pubkey_b32 !~ m|^[A-Z0-9]+$|;
+
+##  Validate pubkey_b32 decodes properly  ##
+
+my $pubkey_bin = Crypt::Misc::decode_b32r($pubkey_b32);
+
+return {
+    'mode' => qw| false |,
+    'data' => 'pubkey base32 decoding failed'
+    }
+    if not defined $pubkey_bin
+    or length $pubkey_bin != 32;    ## C25519 keys are 32 bytes
+
+##  If ntime_b32 provided, validate it  ##
+
+if ( defined $ntime_b32 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'ntime_b32 must be valid base32 format'
+        }
+        if not length $ntime_b32
+        or not $ntime_b32 =~ m|^[A-Z0-9]+$|;
+
+    ## Verify it decodes  ##
+    my $ntime_bin = Crypt::Misc::decode_b32r($ntime_b32);
+    return {
+        'mode' => qw| false |,
+        'data' => 'ntime_b32 decoding failed'
+        }
+        if not defined $ntime_bin;
+}
+
+##  Use current ntime if not provided  ##
+
+$ntime_b32 //= <[base.ntime.b32]>->( 3, TRUE );
+
+##  Get key directory and build filename  ##
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+
+my $key_dir = $key_vars_ref->{'key_dir'};
+
+##  Ensure key directory exists (using existing utility)  ##
+
+$key_dir = <[crypt.C25519.chk_key_dir]>;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'cannot initialize key directory'
+    }
+    if not defined $key_dir;
+
+## Create normalized filename (safe for filesystem)  Format: ##
+## remote.<hostname>_<port>.public                           ##
+
+my $safe_hostname = $hostname;
+$safe_hostname =~ tr|:|_|;                 ## replace colons with underscores
+$safe_hostname =~ tr|/|_|;                 ## replace slashes with underscores
+$safe_hostname =~ s|[^a-zA-Z0-9._-]||g;    ## remove unsafe chars
+
+my $key_name  = sprintf 'remote.%s_%d', $safe_hostname, $port;
+my $file_path = catfile( $key_dir, sprintf '%s.public', $key_name );
+
+##  Write remote key file with atomic rename  ##
+
+my $tmp_file = sprintf '%s.%d.%s', $file_path, $$, <[base.ntime.b32]>->(3);
+
+open( my $fh, qw| > |, $tmp_file )
+    or return {
+    'mode' => qw| false |,
+    'data' => sprintf 'cannot open remote key file: %s',
+    $!
+    };
+
+chmod( 0600, $tmp_file );
+
+##  Store format: NTIME_B32:PUBKEY_B32  ##
+
+print {$fh} sprintf "%s:%s\n", $ntime_b32, $pubkey_b32;
+
+close($fh)
+    or return {
+    'mode' => qw| false |,
+    'data' => sprintf 'error writing remote key file: %s',
+    $!
+    };
+
+rename( $tmp_file, $file_path )
+    or return {
+    'mode' => qw| false |,
+    'data' => sprintf 'cannot write remote key file: %s',
+    $!
+    };
+
+chmod( 0600, $file_path );
+
+<[base.logs]>->( 2, "remote key stored : %s:%s", $hostname, $port );
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf "remote key for %s:%s pinned with timestamp %s",
+    $hostname, $port, $ntime_b32
+};
+
+#,,,,,...,.,,,...,.,.,,,,,,..,.,.,,..,,.,,.,.,..,,...,...,.,,,,,,,,..,.,,,.,.,
+#6EOZYOS5JMB63FGRU6675PWQML27Y55BPFMW7HROTZ665J3C5WAQD72IGT2QCAPGYE45XIU33LEXW
+#\\\|SB576O3CNPBEN27EWRJVHMRYK3546J7HYUOFKGAF4WQLWFDPBX7 \ / AMOS7 \ YOURUM ::
+#\[7]J2BB43235XIUKKX75DMHP2Q2DG7CWBMEAMEAIBJZ3WJMCZLJ6WAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

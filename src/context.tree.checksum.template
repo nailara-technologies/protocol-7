@@ -1,0 +1,179 @@
+## [:< ##
+
+# name  = context.tree.checksum.template
+# descr = validation template management for context tree checksums
+
+my $params = shift // {};
+
+my $action = $params->{'action'} // qw| set |;
+
+if ( $action eq qw| set | ) {
+    ## set validation template for branch ##
+    my $branch_id = $params->{'branch_id'} // '';
+    my $template  = $params->{'template'}  // '';
+
+    return { 'mode' => qw| false |, 'data' => 'branch_id required' }
+        unless length $branch_id;
+
+    return { 'mode' => qw| false |, 'data' => 'template required' }
+        unless length $template;
+
+    ## validate template syntax ##
+    my ( $valid, $error ) = AMOS7::TEMPLATE::is_valid_template($template);
+    unless ($valid) {
+        return {
+            'mode' => qw| false |,
+            'data' => "invalid template: $error"
+        };
+    }
+
+    <context.tree.checksum.templates> //= {};
+    <context.tree.checksum.templates>->{$branch_id} = $template;
+
+    <[base.logs]>->(
+        2,          ':. checksum.template: set for branch %s [ %s ]',
+        $branch_id, $template
+    );
+
+    return { 'mode' => qw| true |, 'data' => 'template set' };
+
+} elsif ( $action eq qw| validate | ) {
+    ## validate checksum against branch template ##
+    my $branch_id = $params->{'branch_id'} // '';
+    my $checksum  = $params->{'checksum'}  // '';
+
+    return { 'mode' => qw| false |, 'data' => 'branch_id required' }
+        unless length $branch_id;
+
+    return { 'mode' => qw| false |, 'data' => 'checksum required' }
+        unless length $checksum;
+
+    my $template = <context.tree.checksum.templates>->{$branch_id};
+    return { 'mode' => qw| false |, 'data' => 'no template for branch' }
+        unless defined $template;
+
+    ## set up template validation ##
+    AMOS7::TEMPLATE::assign_truth_templates($template);
+
+    ## get elf modes from config ##
+    my $elf_modes = <context.tree.checksum.cfg>->{'elf_truth_modes'}
+        // [ 4, 7 ];
+
+    ## validate ##
+    my $is_valid
+        = AMOS7::TEMPLATE::template_is_true( $checksum, @$elf_modes );
+
+    return {
+        'mode' => $is_valid ? qw| true | : qw| false |,
+        'data' => $is_valid
+        ? 'checksum valid'
+        : 'checksum invalid for branch'
+    };
+
+} elsif ( $action eq qw| generate | ) {
+    ## generate checksum with template constraint ##
+    my $branch_id = $params->{'branch_id'} // '';
+    my $data      = $params->{'data'}      // '';
+
+    return { 'mode' => qw| false |, 'data' => 'branch_id required' }
+        unless length $branch_id;
+
+    return { 'mode' => qw| false |, 'data' => 'data required' }
+        unless length $data;
+
+    my $template  = <context.tree.checksum.templates>->{$branch_id} // "%s";
+    my $elf_modes = $params->{'elf_modes'}
+        // <context.tree.checksum.cfg>->{'elf_truth_modes'} // [ 4, 7 ];
+
+    ## handle substring parameters ##
+    my $substr_start = $params->{'substring'}->{'offset'} // 0;
+    my $substr_len   = $params->{'substring'}->{'length'} // 7;
+
+    ## generate checksum with template validation ##
+    my $attempts     = 0;
+    my $max_attempts = $params->{'max_attempts'} // 10000;
+    my $checksum;
+    my $data_with_nonce = $data;
+
+    AMOS7::TEMPLATE::assign_truth_templates($template);
+
+    while ( $attempts < $max_attempts ) {
+        ## generate candidate checksum ##
+        $checksum
+            = AMOS7::CHKSUM::amos_chksum( \$data_with_nonce, @$elf_modes );
+
+        ## apply substring if requested ##
+        if ( $substr_start != 0 or $substr_len != 7 ) {
+            $checksum = substr( $checksum, $substr_start, $substr_len );
+        }
+
+        ## check if it satisfies template ##
+        if ( AMOS7::TEMPLATE::template_is_true( $checksum, @$elf_modes ) ) {
+            <[base.logs]>->(
+                2,
+                ':. checksum.template: generated '
+                    . 'after %d attempts [ branch=%s ]',
+                $attempts + 1,
+                $branch_id
+            );
+
+            return {
+                'mode' => qw| true |,
+                'data' => {
+                    'checksum'    => $checksum,
+                    'attempts'    => $attempts + 1,
+                    'template'    => $template,
+                    'full_length' => length $checksum == 7 ? TRUE : FALSE,
+                }
+            };
+        }
+
+        ## modify data with nonce and retry ##
+        $data_with_nonce = $data . "\0NONCE:$attempts";
+        $attempts++;
+    }
+
+    <[base.logs]>->(
+        0,
+        ':. checksum.template: generation '
+            . 'failed after %d attempts [ branch=%s ]',
+        $max_attempts,
+        $branch_id
+    );
+
+    return {
+        'mode' => qw| false |,
+        'data' => 'could not generate valid checksum'
+    };
+
+} elsif ( $action eq qw| list | ) {
+    ## list all branch templates ##
+    my $templates = <context.tree.checksum.templates> // {};
+
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'branches' => [ keys %$templates ],
+            'count'    => scalar keys %$templates,
+        }
+    };
+
+} elsif ( $action eq qw| clear | ) {
+    ## clear template for branch ##
+    my $branch_id = $params->{'branch_id'} // '';
+
+    return { 'mode' => qw| false |, 'data' => 'branch_id required' }
+        unless length $branch_id;
+
+    delete <context.tree.checksum.templates>->{$branch_id};
+
+    return { 'mode' => qw| true |, 'data' => 'template cleared' };
+}
+
+return { 'mode' => qw| false |, 'data' => 'unknown action' };
+
+#,,,,,.,.,.,,,.,,,,,,,,.,,,,.,.,,,,..,,,,,,,.,..,,...,...,.,,,.,.,,,.,..,,...,
+#SVXZTRJDI4CI7EZOZQVYH4EEJGPSVXH5ZS3RFFOJ5PSFN4JPTTQCJLM7VBPTYFLNSA4HNTSXFC2R2
+#\\\|GIUPESPJ7UBZ6PH4EMNWFA3HJ5ZR5Z3YXB46VTAJFHVJZ45CEHE \ / AMOS7 \ YOURUM ::
+#\[7]C6BVSO7N7UBORM6BR2MTBEUOD2GK52ZRPQ2IZ5U7BCGK62XK2EAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

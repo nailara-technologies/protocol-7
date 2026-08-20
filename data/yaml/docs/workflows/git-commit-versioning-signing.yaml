@@ -70,19 +70,19 @@ endline_state_normalization:
     reserved_1_4: "Future transformation types (currently state 1 is used)"
 
   encoding_location:
-    module: "modules/amos7.encode_octal_header"
+    module: "src/amos7.encode_octal_header"
     field: "endline-state-encoded (1 octal digit in position 11)"
     reversibility: "Delta allows reconstruction of original file-as-found state"
 
-  implementation_location: "modules/source.cmd.get-code-signed (lines 161-195)"
+  implementation_location: "src/source.cmd.get-code-signed (lines 161-195)"
 
 signature_system:
   components:
-    verify: "modules/sourcecode.console.verify-p7-signatures"
-    update: "modules/sourcecode.console.update-signatures"
-    sign: "modules/source.cmd.get-code-signed"
-    harmonize: "modules/source.create_harmonic_footer"
-    extract: "modules/source.extract_sig_body"
+    verify: "src/sourcecode.console.verify-p7-signatures"
+    update: "src/sourcecode.console.update-signatures"
+    sign: "src/source.cmd.get-code-signed"
+    harmonize: "src/source.create_harmonic_footer"
+    extract: "src/source.extract_sig_body"
 
   self_healing:
     trigger: "bin/Protocol-7 sourcecode update-signatures"
@@ -146,7 +146,7 @@ workflow_procedures:
 
     optional_flags:
       ":sign-silent:": "Suppress verbose output"
-      "path_pattern": "Sign only matching files (e.g., 'modules/*')"
+      "path_pattern": "Sign only matching files (e.g., 'src/*')"
 
 common_issues:
   version_mismatch:
@@ -164,7 +164,7 @@ common_issues:
   double_endlines:
     symptom: "Files have 2 newlines before signature instead of 1"
     cause: "Normalization adding endline when recalculating footer"
-    fix_location: "modules/source.cmd.get-code-signed line 195"
+    fix_location: "src/source.cmd.get-code-signed line 195"
     solution: "Append footer directly without extra newline prefix"
 
   amend_incorrectly_detected:
@@ -194,7 +194,7 @@ debugging:
 
 technical_details:
   endline_state_encoding:
-    location: "AMOS7 header (modules/amos7.encode_octal_header)"
+    location: "AMOS7 header (src/amos7.encode_octal_header)"
     format: "Single octal digit (0-7) at position 11 of encoded header"
     reversal: "Apply inverse transformation using encoded delta to restore original state"
 
@@ -214,8 +214,8 @@ versioning_philosophy:
   traceable: "Enables forensic analysis and precise code reproduction across distributed development"
   self_documenting: "Version identifier encodes full project state context"
 
-#,,,.,.,.,,..,..,,.,.,...,.,,,,.,,..,,.,,,,,.,..,,...,...,.,.,..,,..,,.,.,,.,,
-#E2AANEAQ74KG4TVWULJJJNP6GNWN5W2QAO4EKVWFZSGZUFSOFSO55R4J5W2KT7LUT47CZK5JIQNHG
-#\\\|GZRNAER74TRMCCVPXW5RPR3O5HWUL2VXDZ5VVRS35OC6R4DDS4C \ / AMOS7 \ YOURUM ::
-#\[7]TI6SL7Q7RM7LD2PQZYS2KTSLV4BPCHCKDNC7KOAXF3H2HW2OWKAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,,.,,,.,,,,.,,..,...,,,.,,,,,..,,...,...,...,.,,,..,,,.,,..,,
+#ZSFWLSIL3E4GH2GJGKULWQKPBUVEC7VGVGYCDTMVMG7NQJSQ3GCSPZEOHF3M7F5V76YY4PA6LKE54
+#\\\|EGT3ZQ6ZLCZ35DF4NMP5FXW62MGBMXUJP2HSSRNUTOLKBCDXJKU \ / AMOS7 \ YOURUM ::
+#\[7]RXGPLDCE3LGBKBHTQTZYH3WURJN2RN6FVX4AEPH6VD7F3NGFPCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

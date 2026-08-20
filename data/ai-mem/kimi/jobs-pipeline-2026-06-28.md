@@ -5,20 +5,20 @@ A series of regressions and missing features in the jobsite/web jobs pipeline we
 
 ## Root Cause: `skipped` status omitted from active indexes
 `skipped` jobs were manually asserted but disappeared from the web UI because no scanner treated `skipped` as an active status. Added `skipped` to active-status lists in:
-- `modules/jobsite.job.index.build`
-- `modules/jobsite.job.load_all`
-- `modules/jobsite.index.rebuild`
-- `modules/site-yaml.job.scan_stray`
-- `modules/plugin.web.jobs.init_code`
-- `modules/plugin.web.jobs.cache.read_all`
+- `src/jobsite.job.index.build`
+- `src/jobsite.job.load_all`
+- `src/jobsite.index.rebuild`
+- `src/site-yaml.job.scan_stray`
+- `src/plugin.web.jobs.init_code`
+- `src/plugin.web.jobs.cache.read_all`
 
 After the fixes, indexes were rebuilt and counts aligned (≈1409 jobs).
 
 ## Protected manual decisions during reassessment
-`modules/jobsite.handler.assess-done` now treats `applied interviewed responded rejected skipped archived` as protected stages, so reassessment does not overwrite manual skip/reject decisions.
+`src/jobsite.handler.assess-done` now treats `applied interviewed responded rejected skipped archived` as protected stages, so reassessment does not overwrite manual skip/reject decisions.
 
 ## Web sync improvements
-- `modules/plugin.web.jobs.sync` now carries `assertions` in the pipeline field list so the UI can render score suggestions and badges.
+- `src/plugin.web.jobs.sync` now carries `assertions` in the pipeline field list so the UI can render score suggestions and badges.
 - Delete action removes the job from web cache and in-memory index immediately.
 - Sync endpoint and reverse-sync queue flush correctly now.
 
@@ -41,21 +41,21 @@ Updated to current cube command syntax; `list-connections` also added to externa
 - Reverse-sync lag is expected: browser actions queue in web reverse queue and flush on the next sync pull.
 
 ## Related files
-- `modules/jobsite.job.index.build`
-- `modules/jobsite.job.load_all`
-- `modules/jobsite.index.rebuild`
-- `modules/site-yaml.job.scan_stray`
-- `modules/jobsite.handler.assess-done`
-- `modules/plugin.web.jobs.init_code`
-- `modules/plugin.web.jobs.cache.read_all`
-- `modules/plugin.web.jobs.sync`
-- `modules/jobsite.sync.apply_reverse`
+- `src/jobsite.job.index.build`
+- `src/jobsite.job.load_all`
+- `src/jobsite.index.rebuild`
+- `src/site-yaml.job.scan_stray`
+- `src/jobsite.handler.assess-done`
+- `src/plugin.web.jobs.init_code`
+- `src/plugin.web.jobs.cache.read_all`
+- `src/plugin.web.jobs.sync`
+- `src/jobsite.sync.apply_reverse`
 - `data/web-root/vhosts/jobs.vhost/index.html`
 - `bin/vax-int`
 - `cfg/zenki/external/start`
 
 ## Reassess task-record preservation
-`modules/jobsite.sync.apply_reverse` now copies the preserved `stage`/`status` from the on-disk job record into the in-memory task record before re-queuing an assessment. This closes a gap where `jobsite.handler.assess-done` treated reassessed jobs as unprotected and moved them to `assessed` even when they were already in `applied`/`interviewed`/`responded`/`rejected`/`skipped`/`archived`.
+`src/jobsite.sync.apply_reverse` now copies the preserved `stage`/`status` from the on-disk job record into the in-memory task record before re-queuing an assessment. This closes a gap where `jobsite.handler.assess-done` treated reassessed jobs as unprotected and moved them to `assessed` even when they were already in `applied`/`interviewed`/`responded`/`rejected`/`skipped`/`archived`.
 
 ## Delete tab scope
 The `löschen` tab and its counter now only show jobs whose `assertions.suggest.delete` is `true` **and** whose stage is not a user-owned decision (`to_apply`, `applied`, `interviewed`, `responded`, `rejected`, `skipped`, `archived`). Previously it also showed protected-state jobs such as `rejected` and `apply`.
@@ -101,8 +101,8 @@ Deletion now uses a recoverable compressed stage before permanent removal:
 Root cause: `plugin.web.jobs.sync` derived the UI `stage` from backend `status` only when `stage` was absent, and only mapped `apply` → `to_apply`. Legacy jobs with backend status `assessed` were stored in the web cache with `stage: assessed`, which the UI filter tabs do not include, so they never appeared.
 
 Fix:
-- `modules/plugin.web.jobs.sync` now maps `assessed` → `review` and `apply` → `to_apply`, and overwrites pipeline-owned stages (including `assessed`) while preserving user-owned stages (`to_apply`, `applied`, `interviewed`, `responded`, `rejected`, `skipped`, `archived`, `delete`).
-- `modules/plugin.web.jobs.data` normalizes legacy `assessed`/`apply` stage values to UI stages on read, so existing web-cache entries show up immediately without waiting for a fresh jobsite push.
+- `src/plugin.web.jobs.sync` now maps `assessed` → `review` and `apply` → `to_apply`, and overwrites pipeline-owned stages (including `assessed`) while preserving user-owned stages (`to_apply`, `applied`, `interviewed`, `responded`, `rejected`, `skipped`, `archived`, `delete`).
+- `src/plugin.web.jobs.data` normalizes legacy `assessed`/`apply` stage values to UI stages on read, so existing web-cache entries show up immediately without waiting for a fresh jobsite push.
 
 Status: code edited, needs `bin/Protocol-7 sourcecode update-signatures` and restart of `web` and `jobsite` zenki to take effect.
 
@@ -121,10 +121,10 @@ After mapping `assessed` → `review`, the review tab filled with jobs the user 
 4. **Reverse queue not persisted:** Pending browser delete/reassess actions were held only in memory and lost on web-zenka restart.
 
 Additional fixes staged:
-- `modules/jobsite.init_code`: migrate `status=assessed` jobs with empty/missing stage to trash.
-- `modules/plugin.web.jobs.cache.read_all`: drop `assessed` from active statuses so stale files are ignored.
-- `modules/plugin.web.jobs.sync`: skip re-adding jobs that have a pending reverse-delete and remove any resurrected on-disk cache copy.
-- `modules/plugin.web.jobs.reverse.queue/flush` and `plugin.web.jobs.init_code`: persist the reverse queue to `reverse-pending.yaml` and reload it on startup.
+- `src/jobsite.init_code`: migrate `status=assessed` jobs with empty/missing stage to trash.
+- `src/plugin.web.jobs.cache.read_all`: drop `assessed` from active statuses so stale files are ignored.
+- `src/plugin.web.jobs.sync`: skip re-adding jobs that have a pending reverse-delete and remove any resurrected on-disk cache copy.
+- `src/plugin.web.jobs.reverse.queue/flush` and `plugin.web.jobs.init_code`: persist the reverse queue to `reverse-pending.yaml` and reload it on startup.
 
 Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `jobsite` + `web` zenki.
 
@@ -137,7 +137,7 @@ Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signa
 
 After restart, the log showed duplicate jobs inheriting `status=assessed` from the checksum store. The checksum store's title dedup still resolves to the old `assessed` directory (and some entries are in `deleted`), so every duplicate title was resurrected as assessed and then migrated to trash.
 
-Fix staged in `modules/jobsite.dispatch.assessments`:
+Fix staged in `src/jobsite.dispatch.assessments`:
 - Map checksum `resolved_status` `assessed` → `trash`
 - Map checksum `resolved_status` `deleted` → `trash` (keeps duplicates recoverable)
 - Set `stage=trash` and `trash_epoch` when inheriting trash
@@ -157,8 +157,8 @@ After both zenki restarted, the empty review card for the reassessed job (LLF5Q)
 - Browser localStorage can also keep a deleted job visible until cleared.
 
 Additional fixes staged:
-- `modules/jobsite.sync.push`: strip `trash:<epoch>` to `trash`, and skip trash jobs from the push entirely.
-- `modules/plugin.web.jobs.init_code`: remove the legacy `assessed/` cache directory and any `trash*` directories on startup; also keep the in-memory prune for active dirs.
+- `src/jobsite.sync.push`: strip `trash:<epoch>` to `trash`, and skip trash jobs from the push entirely.
+- `src/plugin.web.jobs.init_code`: remove the legacy `assessed/` cache directory and any `trash*` directories on startup; also keep the in-memory prune for active dirs.
 
 Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `jobsite` + `web` zenki. After restart, clicking the UI "reset" button will clear any leftover localStorage ghosts.
 
@@ -175,8 +175,8 @@ Two regressions introduced by the previous fix:
 2. **`jobsite.sync.push` regex had no capture group**, causing `undef value $1` warnings because the pattern used non-capturing `(?:blocked|deleted|trash)`.
 
 Fixes staged:
-- `modules/plugin.web.jobs.init_code`: build the active-job set by scanning the jobsite status directories directly.
-- `modules/jobsite.sync.push`: use a capturing group `^((?:blocked|deleted|trash)):.*` so `$1` is defined.
+- `src/plugin.web.jobs.init_code`: build the active-job set by scanning the jobsite status directories directly.
+- `src/jobsite.sync.push`: use a capturing group `^((?:blocked|deleted|trash)):.*` so `$1` is defined.
 
 Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `jobsite` + `web` zenki.
 
@@ -232,8 +232,8 @@ Additional staged changes:
   - Print table now shows `date_applied` when set, otherwise `date_added`.
   - Added inline editable city input in each job card; changes persist to `userDecisions`, local cache, and are pushed to the server.
   - `mergeJobs()` restores user-edited `city` from `userDecisions` after server merge.
-- `modules/plugin.web.jobs.sync`: `city` added to browser-owned fields for single-browser updates.
-- `modules/jobsite.sync.apply_reverse`: `city` added to reverse-applied fields so browser edits reach the jobsite store.
+- `src/plugin.web.jobs.sync`: `city` added to browser-owned fields for single-browser updates.
+- `src/jobsite.sync.apply_reverse`: `city` added to reverse-applied fields so browser edits reach the jobsite store.
 
 Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures`, commit, and restart of `web` and `jobsite` zenki + browser hard-refresh.
 ## 2026-06-28 (continued) — Print dimension spacing
@@ -245,7 +245,7 @@ Status: staged and version-bumped; needs signature + commit + restart `web` and 
 
 Root cause of empty city fields: the web-cache copies of jobs did not contain the `city` field even though the jobsite YAMLs did (the field was likely added to jobsite after the initial sync, so the web cache never received it).
 
-Fix in `modules/plugin.web.jobs.init_code`:
+Fix in `src/plugin.web.jobs.init_code`:
 - When the web zenka initializes, scan active jobsite status directories.
 - For any active web-cache job that is missing `city`, load the corresponding jobsite YAML and copy `city` into the web cache.
 - Bump `last_modified` on the web-cache copy so browsers receive the update via delta sync.
@@ -263,8 +263,8 @@ Status: staged and version-bumped; needs signature + commit + restart `web` and 
 
 Commit `edda48f11` landed:
 - `data/web-root/vhosts/jobs.vhost/index.html`: print table uses `date_applied`, editable city input, dimension spacing.
-- `modules/plugin.web.jobs.init_code`: backfills missing `city` from jobsite YAML at web zenka startup.
-- `modules/plugin.web.jobs.sync` + `modules/jobsite.sync.apply_reverse`: `city` is a browser-owned field.
+- `src/plugin.web.jobs.init_code`: backfills missing `city` from jobsite YAML at web zenka startup.
+- `src/plugin.web.jobs.sync` + `src/jobsite.sync.apply_reverse`: `city` is a browser-owned field.
 
 Verified: after `v7 restart web jobsite` and browser hard-refresh, city fields populated.
 ## 2026-06-28 (continued) — Export rejected usability
@@ -295,7 +295,7 @@ Status: staged and version-bumped; needs signature + commit + restart `web` zenk
 Status: staged and version-bumped; needs signature + commit + restart `web` zenka.
 ## 2026-06-28 (continued) — date_added backfill + table tweak
 
-- `modules/plugin.web.jobs.init_code`: backfill now also copies `date_added` from jobsite YAML into web cache when missing. It tries `date_posted` first, then `fetched_at`.
+- `src/plugin.web.jobs.init_code`: backfill now also copies `date_added` from jobsite YAML into web cache when missing. It tries `date_posted` first, then `fetched_at`.
 - `data/web-root/vhosts/jobs.vhost/index.html`:
   - Slider step changed to 1 day; styled to match the min-score slider; clear-history button opacity reduced.
   - Removed the internal `Bew.` column from the printable overview table.
@@ -318,8 +318,8 @@ Commit `a8994ac5d` landed:
 
 Next: restart `web` zenka and hard-refresh browser.
 
-#,,..,...,.,,,.,,,,..,.,,,,..,..,,,,,,,,.,,.,,..,,...,...,.,.,...,,.,,,,.,,..,
-#6HAHF2DA7G6CYQQJ3VRIN323XFKLLD7NWPC23XZMGFHFGVJLF2UBU4ZE76DISRUYMIEO4PC3HLAIC
-#\\\|5PF33Z6L7EGCG3FN2CDGBT6OCR6G6OHMRFVNDNU3YPEW3WCNUAV \ / AMOS7 \ YOURUM ::
-#\[7]7PXY4NROIDTOJHUF75ANRKGGMLVEYIR2IKMDNDRU7KJWN3EK5QBI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,.,,,,.,..,,..,,..,,,..,.,,,..,,...,...,.,,,...,.,,,,,,,,.,,
+#M3VAKEU7ROBXGVALSXK3FUVI4QIULXORYSEBSJ575XF5KRMXCRK2THFLI622SBH6V3ULRYPEWFBPA
+#\\\|6HCH5H75MIVU2XAE2KRDCTZ5KC3KO4A257F6R3KMDKQZ2AZ4C4G \ / AMOS7 \ YOURUM ::
+#\[7]GM3HWWDIJGY5AX7K66Y5SF77S7P5U2QUMMEAAVIRE7DNOEIKEMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

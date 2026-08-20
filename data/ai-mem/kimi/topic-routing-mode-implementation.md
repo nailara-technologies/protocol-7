@@ -27,7 +27,7 @@ pattern ].
 
 ## swapped-family call sites + reload semantics [ critical ]
 
-- `v7.zenka.*` is swapped to `zenka.*` at runtime [ modules/v7.zenka.pre_init ].
+- `v7.zenka.*` is swapped to `zenka.*` at runtime [ src/v7.zenka.pre_init ].
   calling `<[v7.zenka.new_sub]>` at runtime = undef-sub crash. call sites must
   use the short form `<[zenka.new_sub]>`. the WHITELIST keeps the long
   filename-based name [ correct ].
@@ -71,8 +71,8 @@ pattern ].
   gained base.zenki.resolve_routing_sids; runtime ignores signatures,
   human re-signs before commit.
 
-#,,,.,.,.,.,,,,..,.,,,..,,,.,,,.,,.,,,.,,,,..,..,,...,...,.,,,,..,,.,,..,,...,
-#IXPTMBVR3VXJGLZCML2YFOP2IJQLQ5OTM5GMJJWKBVOAPCN5WKSZMNZFWZLHLJDCPEHDJDLD7NIIG
-#\\\|7H7C7SQTZYLSKVGMMZT4QQ2MT6QJ24JHFWN2JOWDM4H757IFQMY \ / AMOS7 \ YOURUM ::
-#\[7]77AWJRTBTKHKXUJRAJLC6EJWZF3PABHCMTMIHNJ3B7KRTC3TNADQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,,,..,,,,.,..,,,,.,.,,,,,,,,..,..,,...,...,.,.,...,.,,,,.,,,,,,
+#LGJJC7STI2Y4AFWLLJ5FH6ZZ2LVQOABISVG6IILBDSZ5KPXGV6ZMK6YKRZGXR7P5U4YOGHRV6LFKS
+#\\\|V5KJI3M4TNP6YVFACB3QOVWNWTTOGPPCMA6GT2CT7ABC7P5FVF3 \ / AMOS7 \ YOURUM ::
+#\[7]UFARJMFZRGZ6DC2JLI3G5LIMTD2MZKCA3JUTQ6OJKLBZ4RQHPACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

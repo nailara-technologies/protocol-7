@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = users.cmd.field-options
+# param = -none-
+# descr = optional fields a record may carry, and their shapes
+
+## the vocabulary a client offers when adding a field.  optionally filtered to
+## what a NAMED record does not already carry, so a console can show only what
+## is actually addable :
+##
+##   users.field-options            every optional field, with its shape
+##   users.field-options <user>     only those <user> lacks
+##
+## one '<name> <shape>' pair per line, shape being 'list' or 'line'.  the
+## SHAPE is half the vocabulary, not decoration : users.record.optional_fields
+## declares 'contact'-like fields as [] and plain ones as '', and a client
+## receiving bare names has no choice but to assume a line -- which is exactly
+## how a field declared as a list came to be stored as a scalar.
+##
+## a client that wants to know what a record could still gain AND what it may
+## give back needs the WHOLE vocabulary and filters locally ; the username
+## filter stays for callers that only ever add.
+##
+## reply contract requires a string 'data' payload, never a raw arrayref --
+## newline-joined, the same shape users.cmd.value-all returns.
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my $optional = <[users.record.optional_fields]>;
+
+my %present;
+
+if ( length $args ) {
+
+    my $username = $args;
+    $username =~ s|\s.*||s;
+
+    return {
+        'mode' => qw| false |,
+        'data' => 'username cannot contain path separators'
+        }
+        if $username =~ m|[/\\]|;
+
+    my $record
+        = <[format.yaml.load_keyword_path]>
+        ->( <[users.record.path]>->($username) );
+
+    %present = map { $ARG => TRUE } keys %{ $record->{'fields'} // {} }
+        if ref $record eq qw| HASH |;
+}
+
+my @addable = grep { not $present{$ARG} } sort keys %{$optional};
+
+## the shape IS the declaration [ users.record.optional_fields ] : an ARRAY
+## makes a collapsible multi-value list, a SCALAR ref makes a masked line [
+## 2026-08-14 ], anything else a plain line
+return {
+    'mode' => qw| size |,
+    'data' => join(
+        "\n",
+        map {
+            sprintf '%s %s', $ARG,
+                  ref $optional->{$ARG} eq qw| ARRAY |  ? qw| list |
+                : ref $optional->{$ARG} eq qw| SCALAR | ? qw| masked |
+                : qw| line |
+        } @addable
+    )
+};
+
+#,,..,,,.,...,,,.,,..,.,.,...,,..,,,.,...,...,..,,...,...,...,..,,...,,,.,.,.,
+#GFRFNJ7WOYHKUDWOTZXPM2NQ2WJMLCLFO5EGVYE7K7LKGWMII52K75G3TRDEU57W6VKFH57R3TEWC
+#\\\|K76WZQH7AQZPRHZET2AUD4ZHROGUINFA5J5473C3WCBFJ477KMW \ / AMOS7 \ YOURUM ::
+#\[7]QHZ7QDQ6J2YQGCGCVRLDNCJ7RWB2NFJAN6ZQ7ZYWCXJFZHJZ7WAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -280,7 +280,7 @@ to the full multi-modal stack when audio synthesis is added.
 ## Implementation Notes
 
 - `lm-vision.analyze_image` — already operational, on-demand zenka, Qwen3-VL-4B
-- `lm-vision.cmd.analyze_image` — module in `modules/`; scale, async IPC, preset prompts
+- `lm-vision.cmd.analyze_image` — module in `src/`; scale, async IPC, preset prompts
 - InvokeAI style loop — external toolchain; input/output paths can be data zenka SHM
 - Memory zenka pattern storage — AMOS7 checksum indexed, collision-free per TEMPLATE codec
 - Compositor — `layer 13` in VTERM layer system is the designated compositor output layer
@@ -293,13 +293,13 @@ to the full multi-modal stack when audio synthesis is added.
 
 - `data/md/design/DECODER-VTERM-ARCHITECTURE.md` — VTERM layer system, spiral sync, zulum-13
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md` — entropy research framework
-- `modules/lm-vision.cmd.analyze_image` — VLM image analysis module
+- `src/lm-vision.cmd.analyze_image` — VLM image analysis module
 - `bin/atom-delta-term` — biological interface reference (harmonic stream → visual cortex)
 - `bin/amos-data-pager-56` — 56-bit viewer with `true_int` harmonic coloring per row
 - `data/gfx/backgrounds/` — calibration image vocabulary
 
-#,,,.,,,.,...,.,.,.,,,,.,,,..,...,,,.,..,,,,.,..,,...,...,,,,,..,,,..,,,,,.,.,
-#3TQHHONGPTFK4TZVNTYY4ZU56KDETZSP2GKBT2ISAKV73OAJT5RFFZRVW57HOIUTH2J2MO5EAKUM6
-#\\\|2OF4Z7EBY5WFBXAKWXSNEX5XCOCF27Z64TYM5Q47ZPKH5N3U4JB \ / AMOS7 \ YOURUM ::
-#\[7]CB74TNHJUHHWE5P57SCAYCDPHIVQ7SHRQYLCYKI53LFIIUFWT2AA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,.,.,.,.,,,,,,,.,.,.,.,.,,.,,..,,...,..,,...,.,,,,,.,,,.,..,,
+#4WUIXF7ELQ543G7AFAVRCD3XMUQ63PQK2TLSSGYRG432OFFRM7OHAZEYEAEBYQ7C3H2UV3BSJHI42
+#\\\|AFLEPCHMA5BXSTVCURS7SJLD7D7GN6LJG6D4PWPCYGPVMV3MRES \ / AMOS7 \ YOURUM ::
+#\[7]44NXFA3FLAATXPIVQW4M5FBRLGBLWJVSJFCLIIQPFKI45EHVK4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

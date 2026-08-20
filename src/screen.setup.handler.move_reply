@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = screen.setup.handler.move_reply
+# descr = X-11.move-window reply : verify move landed, clear intent or retry
+
+my $reply = shift                       // {};
+my $id    = $reply->{'params'}{'id'}    // '';
+my $winid = $reply->{'params'}{'winid'} // '';
+
+return if not length $id or not length $winid;
+return if not exists $data{'screen-setup'}{'instances'}{$id};
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+
+my $entry;
+for my $win ( @{ $inst->{'windows'} // [] } ) {
+    if ( $win->{'winid'} eq $winid ) {
+        $entry = $win;
+        last;
+    }
+}
+return if not defined $entry;
+
+my $mode = lc( $reply->{'cmd'} // '' );
+if ( $mode eq qw| true | ) {
+    <[base.logs]>->(
+        1,
+        '[screen-setup.move_reply] id=%s '
+            . 'winid=%s move sent, verifying position',
+        $id,
+        $winid
+    );
+
+    ## keep intended_geo until geometry confirms the move landed [ weston ##
+    ## silently clamps cross-output moves : actual may still equal old    ##
+    ## coords even though move-window returned true ]                     ##
+    my $target_x = int( $entry->{'intended_geo'}{'x'} + 0.5 );
+    my $target_y = int( $entry->{'intended_geo'}{'y'} + 0.5 );
+
+    ## defer get_geometry so the compositor has time to apply the move   ##
+    <[event.add_timer]>->(
+        {   'after' => 0.2,
+            'cb'    => sub {
+                return
+                    if not exists $data{'screen-setup'}{'instances'}{$id};
+                <[base.zenki.resolve_primary_sid]>->(
+                    'X-11',
+                    sub {
+                        my $sid = shift;
+                        return if not defined $sid;
+                        <[protocol-7.route-send]>->(
+                            {   'command'   => "$sid.get_geometry",
+                                'call_args' => { 'args' => $winid },
+                                'reply'     => {
+                                    'handler' =>
+                                        qw| screen.setup.handler.geometry_reply |,
+                                    'params' => {
+                                        'id'       => $id,
+                                        'winid'    => $winid,
+                                        'target_x' => $target_x,
+                                        'target_y' => $target_y
+                                    }
+                                }
+                            }
+                        );
+                    }
+                );
+            }
+        }
+    );
+} else {
+    <[base.logs]>->(
+        1,
+        '[screen-setup.move_reply] id=%s winid=%s '
+            . 'move failed, intent stays pending',
+        $id,
+        $winid
+    );
+}
+
+my $window = $inst->{'window'};
+$window->queue_draw if defined $window;
+
+#
+
+#,,,,,.,.,,.,,,,,,,,.,,,.,...,,.,,...,.,,,..,,.,.,...,..,,,,,,...,..,,.,,,.,,,
+#VHYIDAAWUT3AINWU7HQTDQ4DCHSFC2AGI6T4MANR43SXQVQUPROB3XF4RJQXBEYH6S3TMAG75SRVC
+#\\\|5IJ3KE7KWOYUHV7LXL2LCH6W4XCVGVPT26FY7KUXKXCBJS5HJ4C \ / AMOS7 \ YOURUM ::
+#\[7]NWPIPN2FT7UY3JKLMLCUALIR7YQVIVBETN3V2NPBURFG7C5LPGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

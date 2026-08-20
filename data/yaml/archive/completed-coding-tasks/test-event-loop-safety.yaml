@@ -5,16 +5,16 @@ priority: high
 title: Test event-loop-safety template on process-queued-task
 template: event-loop-safety
 description: |
-  Submit a :review: task for modules/coding.handler.process-queued-task
+  Submit a :review: task for src/coding.handler.process-queued-task
   using the event-loop-safety template. Verify that it correctly identifies
   the LWP blocking loop as SUSPECT.
 
 modules:
-  - modules/coding.handler.process-queued-task
+  - src/coding.handler.process-queued-task
 
 actions:
   - :review:
-      module: modules/coding.handler.process-queued-task
+      module: src/coding.handler.process-queued-task
       template: event-loop-safety
 
 acceptance: |
@@ -22,8 +22,8 @@ acceptance: |
   because it contains a blocking LWP call (lines 500-504) without wrapping
   in event.add_io or forked child.
 
-#,,.,,.,,,.,,,..,,...,,,.,.,.,,..,.,.,,..,.,.,...,...,..,,,,.,,.,,,..,,,,,...,
-#3AIJF5QMZ66MPJQ3VQWXAHZY3AVPU2NVDZQASMNWY3HXVY5BVFVTQ5BPYCLREDKUPUJBDIKXDV5GU
-#\\\|WE64JVV2FFAFAOHHAFNBL2N7UXTSH6Z6TZPFEHEPHKFI74OUYMT \ / AMOS7 \ YOURUM ::
-#\[7]ASEVE6VJXHJS7FINYKLT7KTYR4Q6VY2ESZWNYBB73RHUZP4YHGCI 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,.,.,,..,,,.,..,,,,,,,..,,.,,...,...,...,...,..,,,..,,,.,..,,
+#PTQLDWLS26IN6H7GD3DBLRWFPAPL53ZP4ZHTVYEZBBJUQYTUNGMX6ICXG2IKKT7CQLB5JD3JV23HS
+#\\\|BALQF4V5G4XP6NHJFPSDZW7723SOCABUM5TOVMZG7AH2WRTBEAF \ / AMOS7 \ YOURUM ::
+#\[7]73UVHOGL5W4AHAMSJ4X5JTOACRAFJM7VKQMWZXDUYGYVUQL27QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

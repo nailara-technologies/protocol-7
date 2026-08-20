@@ -2,7 +2,7 @@ All verification complete. Here is the full report.
 
 ## 1. Empirical claims verified against the real code
 
-**Tier-1 offset-3 failure — confirmed.** Payloads 1,2,0,7 encode to `0010 0100 0001 1110`. Column extraction over the 16-bit stream shows **no** offset is strictly uniform — offset 3 (the true separator column) reads `0010` because the collapse frame (`0001`) inverts its separator. `detect_tier1` (exact replica of `/data/projects/protocol-7/modules/base.stream.frame.detect`) returns `undef`. Matches the task file's status note exactly: tier-1 fails safe (no false lock), but cannot lock.
+**Tier-1 offset-3 failure — confirmed.** Payloads 1,2,0,7 encode to `0010 0100 0001 1110`. Column extraction over the 16-bit stream shows **no** offset is strictly uniform — offset 3 (the true separator column) reads `0010` because the collapse frame (`0001`) inverts its separator. `detect_tier1` (exact replica of `/data/projects/protocol-7/src/base.stream.frame.detect`) returns `undef`. Matches the task file's status note exactly: tier-1 fails safe (no false lock), but cannot lock.
 
 **`true_int()` non-selectivity — confirmed against the real `AMOS7::CHKSUM::ELF` + `AMOS7::Assert::Truth` (Inline-C `true_int`), not a reimplementation.** Replicating `base.stream.frame.detect.harmonic` exactly (`elf_chksum(column, 0, 7, 13)` then `true_int`): offsets **1, 2, 3 all assert true**; only offset 0 happens to fall in the `230769` false-family (`elf=000796721`). 3-of-4 asserting true matches the module's own header note verbatim. The module as written would return offset 1 — a payload column — a **false lock**, worse than tier-1's honest `undef`.
 
@@ -108,8 +108,8 @@ Style matches the existing `base.stream.frame*` family: no pragmas, `$ARG`-free 
 
 No repo files were modified; the only artifact is the test script in the scratchpad.
 
-#,,.,,,,,,,,.,...,..,,,,.,,,.,...,,..,,.,,.,,,..,,...,...,,..,.,.,...,.,.,.,.,
-#J4QEFEB4YAOP7D6VBMIEMNG5PFN5VYT3SRLU3XSW4A2MKFJS3DXAHTW7PMCREG5NY7TE2V7CYGEH2
-#\\\|MRVOA3ZE5OIBNR7IHNWWPQNABG5753J3DADFSS7HBE4F3T5EAY5 \ / AMOS7 \ YOURUM ::
-#\[7]25IHRK2C2BI7APKSV7NU5OXYCJOMCS6M6JJDWSZ4INZXAMC6HIDA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,.,,,.,.,..,,.,,,.,.,.,,,,,.,..,,...,.,.,,,.,,..,,,.,,,,,...,
+#YHK2OCRVXNF3BD4GH7QVNZVU5WAT7WTARY4CTE7HABU3NSIRRGUET4INBXEE4KXNDGGUXBZRJUIDQ
+#\\\|4MV6SYIJ73W7QIZ2EZPFRRZXWS5SUVDHMM3PQL5FHKFUKT3FIAV \ / AMOS7 \ YOURUM ::
+#\[7]LTLVKXSNP63HL23BFABQGLZYODI3Q7YO45JLWCDN742WGC4OGMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

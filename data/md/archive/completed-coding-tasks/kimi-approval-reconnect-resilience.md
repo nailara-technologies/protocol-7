@@ -2,7 +2,7 @@
 
 ## context
 
-`modules/kimi.connect` now flushes `kimi.approval.pending` on reconnect (commit `b986f3335`).
+`src/kimi.connect` now flushes `kimi.approval.pending` on reconnect (commit `b986f3335`).
 this handles approvals that arrived during the disconnect window.
 
 however there is a second failure mode: if a reconnect happens *while* an approval request
@@ -12,14 +12,14 @@ hash deduplicates these, but only if the request_id survives the session reset.
 
 ## what to investigate
 
-1. read `modules/kimi.connect` — where is `kimi.approval.responded` initialized/reset?
+1. read `src/kimi.connect` — where is `kimi.approval.responded` initialized/reset?
    does a session reset (`:next:`) clear it, potentially allowing replay?
 
-2. read `modules/kimi.handler.approval_request` — the `session not ready` guard at the
+2. read `src/kimi.handler.approval_request` — the `session not ready` guard at the
    top skips replayed approvals during history catchup. does this fire correctly on
    reconnect when `kimi.session.acquired` is reset?
 
-3. read `modules/kimi.handler.session_liveness_timeout` — when a dead session triggers
+3. read `src/kimi.handler.session_liveness_timeout` — when a dead session triggers
    a fresh reconnect, is the approval state cleaned up correctly?
 
 ## goal
@@ -40,8 +40,8 @@ approvals exist, auto-approve them (same as the flush in kimi.connect).
 
 do NOT add stub signature line to modified files.
 
-#,,,,,,,.,,.,,...,,,.,,,,,,.,,...,,..,...,...,..,,...,...,...,,,,,,.,,.,,,.,.,
-#EAAYSC6XCL5PXRBG3FHK2TYU6XSNE5EZQLUBS4JJJC4PKOAEASKAP5RHVS6KG5TALOJJNOWYKMK7Q
-#\\\|BUIPNUZZVHAPZT3N37HKIAKCFZPNNCYRSSBH7KVWSDEPFSJF76L \ / AMOS7 \ YOURUM ::
-#\[7]5NNLZAUP554OXL4JIQ76JUXZKFBJ4W72YGE74TO4H64IH2CAK6AA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,.,,,,,.,,,.,,..,.,.,,,.,,,.,..,,...,...,,..,,,.,,,,,,..,..,,
+#C62FHSWCVP6WBZUYTMPNPFIWD63BAOB5DT3BUKE2CZCUF6WME7HB276RRZV5PG7Y2ETNSEBDME5ZC
+#\\\|54GB4LSXZKTRXTHRW5NS3I23FH6S5QXNYXE4346B27NJ72RAPII \ / AMOS7 \ YOURUM ::
+#\[7]EPKZCPQNDYGQ4OQYPZAVPWD2YXKDSRL6GHJBGRIESDMYKWJBOGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

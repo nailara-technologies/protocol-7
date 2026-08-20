@@ -73,7 +73,7 @@ never sends verify-instance at all. Symptom is identical to trap 1 (stuck in
 on the `site-yaml` zenka (`system.zenka.verbosity.console = 0` in its own start
 file), which stalled at exactly this point every restart.
 
-**Fix**: new shared helper `modules/base.log.forced_console` — same calling
+**Fix**: new shared helper `src/base.log.forced_console` — same calling
 convention as `base.logs` ([level] fmt args...), saves
 `<system.zenka.verbosity.console>`, forces it up to at least the log's own level
 only if it was lower, logs, restores. Used at both console-scraped call sites:
@@ -109,8 +109,8 @@ console specifically).
 
 [[topic-mpv-jobqueue-startup]]
 
-#,,.,,,..,,,,,,.,,,,,,.,,,.,,,..,,.,,,,.,,,,.,..,,...,...,.,,,..,,,,.,..,,.,.,
-#C753F56UV4TDIZKLPNU53HSC5W4BLPDCGWYASMMD67RT5EBS4OY45LT6J7S4GAIVAAIPH5IXPD5BY
-#\\\|VFWSL6G5F5MO5RN4UWYEO3UC6PL7KX7NSZU6ZDHHGWLQPUQ566O \ / AMOS7 \ YOURUM ::
-#\[7]4NRRFCNK7PV36CEHKELR47GDQFJKDIDQGRPVCTGQEBGKF7EEWICY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,.,,,.,,.,.,...,...,,..,...,,..,..,,...,...,,.,,...,,,.,,.,,.,.,
+#2DD7QGDD2ZDCS2J6IRZJ55EP56UHOIIEOTGWCBPHDMU55VXNPAQXPJDS5R2XATPYHS3WA5NFBDQAE
+#\\\|25KFT6TJMIMUSGIGE2SA5ZHXIGF25PIT33UXVDWKAS7WIDYVRP7 \ / AMOS7 \ YOURUM ::
+#\[7]QUM3EF62JLJ2BCV6XOQDMJNULAEJ4XW7XYVDTJ7UXAPJNRBEECBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

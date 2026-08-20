@@ -97,16 +97,16 @@ Coding zenka verbosity reset from 3 (debug) back to 2 in `cfg/zenki/coding/start
 
 ### Files Modified
 - Inline subs: pager.*, plugin.storage.*, context.* (45+ files)
-- Tree tools: `modules/coding.tools.handler.tree_*`, `modules/coding.cmd.tree_*`
-- Event loop: `modules/coding.handler.process-queued-task`, `modules/coding.async.complete`
-- Observations: `modules/coding.tools.handler.record_question`, `modules/coding.tools.handler.record_suggestion`
+- Tree tools: `src/coding.tools.handler.tree_*`, `src/coding.cmd.tree_*`
+- Event loop: `src/coding.handler.process-queued-task`, `src/coding.async.complete`
+- Observations: `src/coding.tools.handler.record_question`, `src/coding.tools.handler.record_suggestion`
 - Templates: 15+ autonomous task templates added
 - Commits: `42d44704a`, `4e9b5dfda`, `48bba2967`, `496e91f34`, `952cbe3b9`, `d75743f99`, `ca1925fc1`, `99ba2c161`, `3e65f857c`
 
 ---
 
-#,,,.,..,,,,,,,..,...,,.,,,,,,..,,.,.,.,.,...,...,...,..,,...,,,,,...,,.,,.,.,
-#BHGI44ZZRGNIMQKTGF3NPXE2Y674QGDFPLM5LOKANZEVCJUX7FVFICYE46SGTS6NYAMUDXNC64A3E
-#\\\|LWUGW736YGHRXHUUPTGK7PMTTMOTMLY6ULK75ONTWQVPGX4YZMA \ / AMOS7 \ YOURUM ::
-#\[7]RJQCXTFFAIPO6S4UVTNMY6YVUAPPFV4PVUDMDGL3VHOH436KZADI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,..,,,..,.,,,..,,.,.,..,,...,...,...,...,,,.,,.,,.,.,.,.,,,,,
+#CK6XDULLFVWHYSQK2O3RFKVWBESUDLDV6PY6OQEB4DP73UHJ5M4B5CERLQLSWPIFN4F6CJ4NHYBHK
+#\\\|LAQUAP6CWHZM75DVTL4DFPEGEMERWHJZWACVX22RHVIT52MPZF2 \ / AMOS7 \ YOURUM ::
+#\[7]XQ3OQWL55XDXNHY7J7S3JBV4B2M2LRJ74FOZVU3MCQMTAK65RADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

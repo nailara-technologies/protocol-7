@@ -18,7 +18,7 @@ to end through jobsite → web cache → browser.
 ### root causes and fixes
 
 1. **auto-trash on reassess of a review-stage job**
-   `modules/jobsite.handler.assess-done` — `protected_stage` (the set of
+   `src/jobsite.handler.assess-done` — `protected_stage` (the set of
    stages a re-score is never allowed to evict a job out of) was missing
    `review`. A manual reassess that came back below `<jobsite.cfg.threshold>`
    fell into the generic "below threshold → trash" branch and moved the job
@@ -28,7 +28,7 @@ to end through jobsite → web cache → browser.
    for the user's own judgement; placement no longer gets silently revoked.
 
 2. **delta-sync watermark race (web cache → browser)**
-   `modules/plugin.web.jobs.sync` copied jobsite's own write-time
+   `src/plugin.web.jobs.sync` copied jobsite's own write-time
    `last_modified` straight into the web cache when a batch push landed.
    Since that timestamp reflects when jobsite wrote its local file — not
    when the update actually became visible in the web cache — a browser
@@ -88,7 +88,7 @@ delete is suggested; `✗ skip` stays available alongside it.
 
 ### unrelated fix picked up along the way
 
-`modules/jobsite.cmd.job-upsert` — the gender/diversity-marker suffix strip
+`src/jobsite.cmd.job-upsert` — the gender/diversity-marker suffix strip
 (`(m/w/d)` etc.) was a hardcoded list of specific permutations. A live job
 title used `(f/m/x)`, a combination not in the list, so it survived into the
 title unstripped. Replaced the fixed list with a general pattern matching
@@ -112,9 +112,9 @@ any 2-4 letter permutation of `{m,w,f,d,x}` slash-separated in parens.
 
 ### files touched
 
-- `modules/jobsite.handler.assess-done`
-- `modules/plugin.web.jobs.sync`
-- `modules/jobsite.cmd.job-upsert`
+- `src/jobsite.handler.assess-done`
+- `src/plugin.web.jobs.sync`
+- `src/jobsite.cmd.job-upsert`
 - `data/web-root/vhosts/jobs.vhost/index.html`
 
 ### verification
@@ -133,8 +133,8 @@ any 2-4 letter permutation of `{m,w,f,d,x}` slash-separated in parens.
   (`apply: 1, review: 1, skipped: 1`) matching the three affected jobs'
   intended end states.
 
-#,,.,,,,.,,,.,,,,,.,.,.,.,.,.,,,,,..,,.,,,,..,..,,...,...,,,.,.,.,..,,..,,..,,
-#M57PW3CXUKR6KRPH6FSJ4VV2RMJV6F7IGKLMUCEF7HCTZ6UEKEKOJTV3MHZZMFL2MA4PGX2HDMVW4
-#\\\|SKGTHFJGBWTSF7TCP5FHK6TKNC776KVPE3LOHDYE7XSPMFUQWUH \ / AMOS7 \ YOURUM ::
-#\[7]MXLUT6ZH6SXKP37HBLNPEKU43PZEXNLC6DEBCE6HVGVFG55EZOBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,.,.,,.,,,..,,,,,,,,,.,.,.,.,..,,...,.,.,..,,,.,,.,,,,,.,,,.,
+#3DPZ574MLEJ4B3IQ3ACQUE2RW6MGK27TT27VSHGQYX7U2STZ5PO5FA4AGGASNLVR6RYNCS7QOAIOI
+#\\\|QU5O4M5JA3NMRIN3BETK7HE5UAR6FIZZ5SCGZQS2SDRYUBUXAIV \ / AMOS7 \ YOURUM ::
+#\[7]UIBVUJLI3KQTDGNWIA7BIZEN7LXEEKDT6UMDYWCLPJ4ZZ2YKZOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

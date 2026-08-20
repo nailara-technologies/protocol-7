@@ -20,7 +20,7 @@ scratchpad dirs, triaged all 6 as droppable (pure ephemeral debug capture / desi
 assets already shipped elsewhere in the repo / a task-completion audit report gone
 stale — checked directly against `data/tasks/completed/` and it had already
 diverged from what the report claimed / research whose conclusion was already
-shipped as `modules/base.stream.frame.detect.harmonic`), and deleted them. the
+shipped as `src/base.stream.frame.detect.harmonic`), and deleted them. the
 triage heuristic that mattered: **before keeping an import, grep the repo for
 whether the content already shipped, and for anything reporting task status,
 check `data/tasks/completed/` directly rather than trusting a frozen snapshot** —
@@ -103,8 +103,8 @@ directly from the coding zenka — that's a different location/owner/perms
 situation and `session_catchup` already solves it by extracting text in the
 privileged process and passing it as content. this task is scratchpad-only.
 
-#,,..,.,.,..,,..,,...,,..,,.,,,,,,...,.,,,..,,..,,...,...,.,,,,.,,...,.,.,,,.,
-#WZJN6BOVB7AW6NUSCDYLF5Z27C5JQ2AG7IXYQ75X4PG6NXEMBFP6SJYH6ZWCPSLYWIXKWSYZODF5Q
-#\\\|COJRLGLLHL23UQEW253T5B7AM4UXY32DNBWXLIOEYFJ3OI7D6BQ \ / AMOS7 \ YOURUM ::
-#\[7]WEZOHNEHYSBHFNLJMVQ66TXYJFXCOFM3VFM7EOJVKGWQR5Q2MOBY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,,..,.,,,.,.,..,,,,,,,,,,.,,,..,,...,...,..,,,,.,,,,,,.,,,..,
+#J3AVDOSBUCU3QJ3UFTAUPCQXSPTFR2SFQ3FRPLTX3TJIK4YM57ONGZCCIJIF7Q2BOEXBD27R5APZW
+#\\\|N7G7MCVD73DWHQ5GQIUCWXBMDDHG4LSAFNW6RDH2FRN5DRNXHEW \ / AMOS7 \ YOURUM ::
+#\[7]GIP6WTFTQ7U7VL53ZJLXXVZTIKQRHPU2B45K6OYFFSELPCDZGIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

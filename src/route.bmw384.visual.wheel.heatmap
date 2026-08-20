@@ -1,0 +1,189 @@
+## [:< ##
+
+# name  = route.bmw384.visual.wheel.heatmap
+# descr = BMW384 wheel as arc×ring density heatmap : no individual node dots
+
+return undef if not defined <bmw384.index>;
+
+my $by_name = <bmw384.index>->{'by_name'};
+my @names   = keys %$by_name;
+
+# [ optional namespace filter ]
+my $ns_filter = <route.bmw384.cfg.namespace_filter> // '';
+if ( length $ns_filter ) {
+    my $prefix_only = substr( $ns_filter, 0, 1 ) eq '^';
+    my $ns_pat      = $prefix_only ? substr( $ns_filter, 1 ) : $ns_filter;
+    my $anywhere    = not $prefix_only;
+    my @names_f;
+    for my $ARG (@names) {
+        push @names_f, $ARG
+            if $anywhere
+            ? index( $ARG, $ns_filter ) != -1
+            : index( $ARG, $ns_pat ) == 0;
+    }
+    @names = @names_f;
+}
+
+# [ parameters ]
+my $rings        = <route.bmw384.cfg.rings>        // 26;
+my $outer_radius = <route.bmw384.cfg.outer_radius> // 320;
+my $inner_radius = 30;
+
+my $PI          = 3.14159265358979;
+my $segment_deg = 360 / 26;
+my $band_width  = 16777216 / $rings;
+my $ring_step   = ( $outer_radius - $inner_radius ) / $rings;
+
+# [ precompute arc boundary angles ]
+my @theta;
+for my $arc ( 0 .. 26 ) {
+    $theta[$arc] = -$arc * $segment_deg * $PI / 180;
+}
+my @sin_theta = map { sin( $theta[$ARG] ) } 0 .. 26;
+my @cos_theta = map { cos( $theta[$ARG] ) } 0 .. 26;
+
+# [ count nodes per (arc, ring_band) cell ]
+my %cell;
+for my $ARG (@names) {
+    my $coord = $by_name->{$ARG};
+    my $arc   = $coord->{'arc'};
+    my $band  = int( $coord->{'color'} / $band_width );
+    $band = $rings - 1 if $band >= $rings;
+    $cell{"$arc:$band"}++;
+}
+
+# [ find max for color scale ]
+my $max_count = 1;
+for my $ARG ( values %cell ) {
+    $max_count = $ARG if $ARG > $max_count;
+}
+
+my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
+$svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
+
+# [ heatmap cells : annular sectors ]
+for my $arc ( 0 .. 25 ) {
+    my $theta_s = $theta[$arc];
+    my $theta_e = $theta[ $arc + 1 ];
+
+    for my $band ( 0 .. $rings - 1 ) {
+        my $count = $cell{"$arc:$band"} // 0;
+        next if $count == 0;
+
+        # [ band 0 = outermost ]
+        my $r_outer = $outer_radius - $band * $ring_step;
+        my $r_inner = $r_outer - $ring_step;
+        $r_inner = $inner_radius if $r_inner < $inner_radius;
+
+        next if $r_inner >= $r_outer;
+
+        # [ color by density ratio ]
+        my $ratio = $count / $max_count;
+        my $hue   = int( 240 - $ratio * 240 );    # blue → red
+        my $light = 25 + int( $ratio * 35 );      # 25% → 60%
+        my $op    = 0.3 + $ratio * 0.65;
+
+        my ( $ox1, $oy1 ) = (
+            400 + $r_outer * $sin_theta[$arc],
+            400 - $r_outer * $cos_theta[$arc]
+        );
+        my ( $ox2, $oy2 ) = (
+            400 + $r_outer * $sin_theta[ $arc + 1 ],
+            400 - $r_outer * $cos_theta[ $arc + 1 ]
+        );
+        my ( $ix2, $iy2 ) = (
+            400 + $r_inner * $sin_theta[ $arc + 1 ],
+            400 - $r_inner * $cos_theta[ $arc + 1 ]
+        );
+        my ( $ix1, $iy1 ) = (
+            400 + $r_inner * $sin_theta[$arc],
+            400 - $r_inner * $cos_theta[$arc]
+        );
+
+        my $d
+            = sprintf 'M %.2f %.2f A %.2f %.2f 0 0 0 %.2f %.2f '
+            . 'L %.2f %.2f A %.2f %.2f 0 0 1 %.2f %.2f Z',
+            $ox1, $oy1, $r_outer, $r_outer, $ox2, $oy2,
+            $ix2, $iy2, $r_inner, $r_inner, $ix1, $iy1;
+
+        $svg
+            .= sprintf
+            '  <path d="%s" fill="hsl(%d,80%%,%d%%)" opacity="%.2f">' . "\n",
+            $d, $hue, $light, $op;
+        $svg .= sprintf '    <title>arc %s  band %d  n=%d</title>' . "\n",
+            chr( ord('A') + $arc ), $band, $count;
+        $svg .= '  </path>' . "\n";
+    }
+}
+
+# [ arc spokes ]
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x2        = 400 + ( $outer_radius + 5 ) * sin($rad);
+    my $y2        = 400 - ( $outer_radius + 5 ) * cos($rad);
+    $svg
+        .= sprintf '  <line x1="400" y1="400" x2="%.2f" y2="%.2f"'
+        . ' stroke="rgba(255,255,255,0.06)" stroke-width="1"/>'
+        . "\n", $x2, $y2;
+}
+
+# [ arc labels ]
+my $label_r = $outer_radius + 18;
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg - $segment_deg / 2;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x         = 400 + $label_r * sin($rad);
+    my $y         = 400 - $label_r * cos($rad);
+    my $label     = chr( ord('A') + $ARG );
+    $svg
+        .= sprintf '  <text x="%.2f" y="%.2f" fill="rgba(255,255,255,0.4)"'
+        . ' font-size="9" text-anchor="middle"'
+        . ' dominant-baseline="middle">%s</text>'
+        . "\n", $x, $y, $label;
+}
+
+# [ color scale legend ]
+for my $ARG ( 0 .. 9 ) {
+    my $ratio = $ARG / 9;
+    my $hue   = int( 240 - $ratio * 240 );
+    my $light = 25 + int( $ratio * 35 );
+    my $lx    = 50 + $ARG * 30;
+    $svg
+        .= sprintf '  <rect x="%d" y="760" width="28" height="12"'
+        . ' fill="hsl(%d,80%%,%d%%)" opacity="0.8"/>'
+        . "\n", $lx, $hue, $light;
+}
+$svg
+    .= '  <text x="50" y="785" fill="rgba(255,255,255,0.4)" font-size="9">'
+    . 'low</text>' . "\n";
+$svg
+    .= sprintf
+    '  <text x="%d" y="785" fill="rgba(255,255,255,0.4)" font-size="9">'
+    . 'high (n=%d)</text>'
+    . "\n", 50 + 9 * 30, $max_count;
+
+# [ center logo : nailara at the darksun ]
+my $logo_size = 44;    # diameter covering the void circle (r=24)
+my $logo_xy   = 400 - $logo_size / 2;
+
+$svg
+    .= sprintf '  <image x="%.1f" y="%.1f" width="%d" height="%d"'
+    . ' href="%s" opacity="0.7"'
+    . ' style="mix-blend-mode:screen"/>' . "\n",
+    $logo_xy, $logo_xy, $logo_size, $logo_size,
+    '/gfx/logos/nailara_logo.trans-dark.png';
+
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>' . "\n";
+$svg .= '</svg>' . "\n";
+
+return $svg;
+
+#,,..,.,.,,.,,.,,,,,.,...,,.,,,,,,,,,,,.,,,,,,..,,...,...,..,,...,,..,...,,,,,
+#RNMXUKUSPJJN4GWRY64TAOPRK6ICPP5U4P7NPLUOYKU3ATDALVRWFYGJQQBEXKNBCKBDECQUY2PYG
+#\\\|TWSPGP6F4ZJ3OQ2XIET752QZWZJBLSN4M6OO565H2OXA6534NFQ \ / AMOS7 \ YOURUM ::
+#\[7]ZK3ALDB6LXF24FCQ5Q7VW4WP6TJKLLC6E6HNO42CSNTWN7EVUUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

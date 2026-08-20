@@ -14,7 +14,7 @@ processed by the web zenka and return HTML. two issues exist:
 
 ### 1. httpd.process_template (content-type detection)
 
-**file**: `modules/httpd.process_template`
+**file**: `src/httpd.process_template`
 
 line 14-15 currently:
 ```perl
@@ -33,7 +33,7 @@ $content_type = 'text/html' if $template_path =~ /\.(html|tmpl)$/;
 
 ### 2. httpd.http_head (index.tmpl resolution)
 
-**file**: `modules/httpd.http_head`
+**file**: `src/httpd.http_head`
 
 lines 33-36 currently only check for `index.html` in directories:
 ```perl
@@ -76,8 +76,8 @@ after modifying both modules:
 1. `ptd -c` both modified module files
 2. confirm no `$_` usage (should be `$ARG`)
 
-#,,..,...,.,.,,,.,..,,,,.,,.,,,.,,..,,,..,,.,,..,,...,...,,..,,,.,,.,,,,,,,.,,
-#44OURNNQ4PT5VXHLUG2REXT6BO7JCTJOJJ3RXZTUWK74UW5FEFUMKIM2BDSCCC3QSPEVIUEYSJCIM
-#\\\|EVKLSMJSKHIWF6KZWM5ESO2LNBB7YKNC36DYTWHIUTMDZH6PMTS \ / AMOS7 \ YOURUM ::
-#\[7]RWWFNRBO532MKUFZ6ZVFNMJSUMMOROPKKVQGCK3EN6HOEILRHECI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,.,,,,..,,,,,,..,...,...,,..,..,,...,...,...,,.,,,..,,.,,,..,
+#3A2GKUYTHXJO5YLH54XQTBRRJSZA2HCCPHHW7WJGSLMBU6BAZEFDZLD4IVDYEK4FNOVJ3WFQJXPS4
+#\\\|MLNCIC3RJRJEPIEBYJYI6MXIKZAA3A5BMPFWPI56LCNTL6H4HDA \ / AMOS7 \ YOURUM ::
+#\[7]2Y7J25VIJQJSSXPTZ6J57V5V4SGUHUOKFVAFFUVOVR4TMHAD42DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

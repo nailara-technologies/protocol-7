@@ -32,7 +32,7 @@ with rings=26 the full alphabet cycle completes both around and inward.
 
 ## what to modify
 
-### modules/route.bmw384.visual.wheel
+### src/route.bmw384.visual.wheel
 
 extend to support multiple rings. the index is re-used for all rings — same 3873
 nodes, plotted at different radii with different hue and label offsets.
@@ -87,8 +87,8 @@ set <route.bmw384.cfg.rings> temporarily for the render call.
 
 ## read first
 
-- modules/route.bmw384.visual.wheel  -- current implementation to extend
-- modules/route.bmw384.cmd.visual-wheel  -- command handler to update
+- src/route.bmw384.visual.wheel  -- current implementation to extend
+- src/route.bmw384.cmd.visual-wheel  -- command handler to update
 
 ## notes on signatures
 
@@ -101,8 +101,8 @@ set <route.bmw384.cfg.rings> temporarily for the render call.
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,..,..,,,,,,..,,,.,,,,.,,..,,,,,..,,...,,,.,..,,...,...,..,,..,,,,,,..,,.,,,
-#PF6JSUKEIIR3AOFWKPXI7PL6ZWEYQHL62KM2PZYGFRRUVVP2N2SIKN7SQB75N34PKKUAX6NY7NSUK
-#\\\|57IO3Y7ADEN5NSBHX72667E3EGUIFEOK53GKSK7K53TZP6RXYNB \ / AMOS7 \ YOURUM ::
-#\[7]ATOYHXKMS3S2KHNMQ77SD7F7FT66TT64WMTKA74M6NRKNPRHBEBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,,..,...,,,,,,.,,,,.,...,,.,,..,,...,..,,...,,..,,,,,,,,,.,,,
+#K4HYSRD7S25LQILTUOM4J6LOLCJM32QCHXNAKMZI3MKLET446KEU3ICC46EGMCXRR66LPE2EXYTBS
+#\\\|GGUHI6RQPAEKXYQWNGB4C2XOR63G467XDLTYKD6D7TUL7GHVKKC \ / AMOS7 \ YOURUM ::
+#\[7]YV7N3MDZYBK7G5ZTQOZSKIUYOTSVDR5XWUCA3P627V7V5BP6Z2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

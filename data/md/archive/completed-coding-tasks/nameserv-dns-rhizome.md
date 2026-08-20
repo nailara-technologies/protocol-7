@@ -105,14 +105,14 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 
 ## deliverables
 
-1. modules/nameserv.cmd.publish-node
-2. modules/nameserv.cmd.discover-nodes
-3. modules/nameserv.orbital.auto_publish
-4. modules/nameserv.handler.p7ref_lookup
-5. modified modules/nameserv.init_code (add discovered hash + timer)
+1. src/nameserv.cmd.publish-node
+2. src/nameserv.cmd.discover-nodes
+3. src/nameserv.orbital.auto_publish
+4. src/nameserv.handler.p7ref_lookup
+5. modified src/nameserv.init_code (add discovered hash + timer)
 
-#,,,,,..,,,.,,,.,,...,...,,,.,.,,,,,.,.,.,,,,,..,,...,...,.,.,,,,,,..,.,,,,..,
-#O374UISYHI3O7DVT4RHNUJQ5BB64OAP6JTUU6AT3DBVRSCSNSTWWCK6ONK2O7B5KWFLE74ZBQNPGG
-#\\\|EG2T4T2KIQBO4JG7TYZBTWM554JGP54UDS3G6NMCXVETMRMAQBM \ / AMOS7 \ YOURUM ::
-#\[7]YBFV2LEVFLV4TYEWBSKDRY45MP76ZZA7V2AGDNM5GLCANJB672DA 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,,,,..,,..,,.,,,,.,,,..,.,,,..,,...,...,..,,,..,...,,.,,...,
+#AV4BL6NGE5RHED5ABDCVCARZYOUZIJUBTKTDBFZ4LXYGPYZMB5THVGFE5SOZE53SFTPKWV326HNWA
+#\\\|SNKNWPGZUQYUNJPWBSK3BYZ36XZXPBPUT64D5DP35FSAFSHD5PX \ / AMOS7 \ YOURUM ::
+#\[7]WNSHJF3RK247644N4YJISI5YIRW2MGPEW2XTP23AUB4RQO6S7WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

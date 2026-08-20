@@ -38,7 +38,7 @@ return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
 
 The `\$\w+\s*(?:->|=>|\{|\[)` alternative allows arbitrary whitespace
 (`\s*`) between the sigil-variable and the following bracket/arrow. Two
-ordinary prose sentences in `modules/context.pattern.extract_from_change`
+ordinary prose sentences in `src/context.pattern.extract_from_change`
 (lines ~103, ~110 as currently written) match it purely because they
 reference a variable name immediately followed (after a space) by an
 English bracket annotation — e.g. `"the capture groups of $pattern [ the
@@ -79,7 +79,7 @@ return undef
 first line calling `comment_block_line_parts` on each subsequent line
 and does `last if not $parts;` to stop extending the block. So when the
 **3rd line of an otherwise-ordinary 3-line paragraph** happens to be
-entirely bracket-wrapped (e.g. `modules/ncode.regex.apply:42`,
+entirely bracket-wrapped (e.g. `src/ncode.regex.apply:42`,
 `"[ legacy single-string namespace handled inside scope_match ]"`), the
 scan silently stops at line 2 (confirmed: `comment_block_length` returns
 2, not 3, for that block) — the 3rd line is excluded from the block
@@ -116,12 +116,12 @@ not removing it.
    task file's already-confirmed evidence and go straight to verifying
    post-fix) — then confirm post-fix:
    - Running `bin/format-code` on a copy of
-     `modules/context.pattern.extract_from_change` now actually reformats
+     `src/context.pattern.extract_from_change` now actually reformats
      the block in question (no longer byte-identical to the original for
      that region), and the two previously-false-positive lines are
      confirmed NOT flagged by the tightened `code_marker_re` (test it
      directly against those two lines' content, quote the result).
-   - Running `bin/format-code` on a copy of `modules/ncode.regex.apply`
+   - Running `bin/format-code` on a copy of `src/ncode.regex.apply`
      now includes line 42 in the same block as lines 40-41, and all
      three end up padded to the same width (quote the actual before/after
      line lengths).
@@ -131,7 +131,7 @@ not removing it.
    untouched (the whole point of Bug A's detector, which must keep
    working for its real cases).
 4. Run `bin/format-code` across a broader real sample (e.g. everything
-   under `modules/` touched in the last few commits, or a reasonably
+   under `src/` touched in the last few commits, or a reasonably
    large sample) and confirm nothing gets mangled — this touches a
    widely-used dev tool, so a broad sanity pass matters more here than
    for a narrow application-code fix.
@@ -146,8 +146,8 @@ not removing it.
   arc) — apply the same standard of live verification here, not just
   code review.
 
-#,,,.,,..,,,,,,,.,..,,..,,,.,,,,,,,..,.,.,,..,.,.,...,...,..,,,,.,,,.,,,.,...,
-#36ZX6MJFGCZMYND27CR7FY3XCXFN4W6EMFVWH2IVA6ZQLJ4Y3G7DQ6XCGZY2547OTUYLN4WISPIF2
-#\\\|JUMRMZ6WEXENGJ6LW2K3BOC5PYIIYWOWDKMUMX6243KHAFN7B5I \ / AMOS7 \ YOURUM ::
-#\[7]5MAUVHHXCTWLYQ3NBRSCGYJZR5SIY2TBXZREAKKJY2HXF36G44BI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,..,.,,,..,,.,,,,..,,..,.,.,,.,,.,.,...,...,..,,.,,,,,,,,,,,,.,,
+#GX6MRTA77E5QXH3AOAXAJ7WWBHJXWHEUIL4XF4CPLQW7H2B4PZPQFVWN2CPC6Q3ZV26FBS5MPPBXE
+#\\\|MMAXWNHOD327D5GKN3F4ILZUD5ZUEASSKEOKDJMIYZYUUDFNLUD \ / AMOS7 \ YOURUM ::
+#\[7]ULTCYGULDQBMG7PQPF3WT6XO7TGO2VDKEPH5GEXNXR3EHZREKMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

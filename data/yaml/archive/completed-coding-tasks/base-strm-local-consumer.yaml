@@ -13,18 +13,18 @@ task:
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
 
   existing_modules_read_first:
-    - modules/base.handler.command
-    - modules/base.strm.local.register      ##  does not exist yet — read for context  ##
-    - modules/protocol-7.route-send
+    - src/base.handler.command
+    - src/base.strm.local.register      ##  does not exist yet — read for context  ##
+    - src/protocol-7.route-send
 
   files_to_create:
-    - modules/base.strm.local.register
-    - modules/base.strm.local.consume
-    - modules/base.strm.local.cancel
-    - modules/base.strm.callback.recv_test
+    - src/base.strm.local.register
+    - src/base.strm.local.consume
+    - src/base.strm.local.cancel
+    - src/base.strm.callback.recv_test
 
   files_to_modify:
-    - modules/base.handler.command   ##  three injection points — see below  ##
+    - src/base.handler.command   ##  three injection points — see below  ##
 
   local_consumer_state: |
     namespace: <base.strm.local>
@@ -105,7 +105,7 @@ task:
       }
 
   base_strm_local_register: |
-    file: modules/base.strm.local.register
+    file: src/base.strm.local.register
     descr = register a local STRM consumer for a cmd_id
     param = $cmd_id, \%opts  [ watcher=>, on_eof=>, max_buf=> ]
 
@@ -128,7 +128,7 @@ task:
     <[base.logs]>->( 2, '[strm.local] registered consumer cmd_id %d', $cmd_id );
 
   base_strm_local_consume: |
-    file: modules/base.strm.local.consume
+    file: src/base.strm.local.consume
     descr = consume bytes from a local STRM consumer buffer
     param = $cmd_id [, $max_bytes ]  ## undef max_bytes = consume all  ##
     returns = consumed data string [ '' if empty or not found ]
@@ -145,7 +145,7 @@ task:
     return substr( $lc->{'buf'}, 0, length( $lc->{'buf'} ), '' );
 
   base_strm_local_cancel: |
-    file: modules/base.strm.local.cancel
+    file: src/base.strm.local.cancel
     descr = remove a local STRM consumer registration
     param = $cmd_id
 
@@ -156,7 +156,7 @@ task:
     }
 
   base_strm_callback_recv_test: |
-    file: modules/base.strm.callback.recv_test
+    file: src/base.strm.callback.recv_test
     descr = attach quiet logging test consumer to a local STRM [ dev tool ]
     param = $cmd_id [, $label ]
 
@@ -228,8 +228,8 @@ task:
     - no existing STRM relay behaviour changed [ forward path still runs when
       no local consumer is registered for the cmd_id ]
 
-#,,,.,.,,,...,..,,.,,,,..,...,.,.,,,,,,..,...,..,,...,..,,...,.,.,...,.,,,.,.,
-#PDG3NAWHFR6YJIMHMKGCBCNSIWLMBIL66FOEO6I6EATJCZJVZIG7LOPDAJEVF6MHAQHYDQIAFY54O
-#\\\|36ZHQLP4JO7FVMCGKZI2PPX73LR47KSMLZWNMJAEPGA35JNVDDS \ / AMOS7 \ YOURUM ::
-#\[7]EA7UOMWHBONBT35JLHG44YY5LLGIU44WQTYEJ3QES3S43DQBU4BA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,,,,,..,,.,,,...,.,,,.,.,,,.,..,,...,...,...,,,.,,..,.,,,.,,,
+#PKA66O3E6AKV4CHWXO3FYXZXVNAD7Y4PD4U7F45CNPXWOI65JEW4FILKJGJ4Y25LCQHGNU2PKUTK2
+#\\\|L3JF52RNLQTH7TUA6TZQODU6PGCDLOAZLGB2O6JXPYVD4PDMYDY \ / AMOS7 \ YOURUM ::
+#\[7]P5TWC7JM3Y46YZ4EUMMI5YUMHDFGU6XAOGNOKVRECLPGDHPZHEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

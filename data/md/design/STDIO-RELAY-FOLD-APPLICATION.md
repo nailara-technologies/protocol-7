@@ -28,16 +28,16 @@ related primary sources [ read in order if new to this thread ]:
 - `data/md/design/LAYER-MATRIX-STATE-TRANSFER.md` — the layered overlay
   / reversible-state-transfer primitive a filter overlay actually rides
 - existing v7 plumbing this doc applies the philosophy to:
-  `modules/v7.handler.output_zenka_stdout`,
-  `modules/v7.handler.zenka_output`,
-  `modules/v7.handler.process_output_line`,
-  `modules/v7.setup_stdout_redir`,
-  `modules/v7.stdout_log.write`,
-  `modules/v7.callback.stdout_log_rotate`,
-  `modules/v7.init_zenka_output_patterns`,
-  `modules/v7.load_zenka_output_patterns`,
-  `modules/base.log`, `modules/base.logs`, `modules/base.log.format_entry`,
-  `modules/base.log-delayed`, `modules/base.log.send-buffer.*`
+  `src/v7.handler.output_zenka_stdout`,
+  `src/v7.handler.zenka_output`,
+  `src/v7.handler.process_output_line`,
+  `src/v7.setup_stdout_redir`,
+  `src/v7.stdout_log.write`,
+  `src/v7.callback.stdout_log_rotate`,
+  `src/v7.init_zenka_output_patterns`,
+  `src/v7.load_zenka_output_patterns`,
+  `src/base.log`, `src/base.logs`, `src/base.log.format_entry`,
+  `src/base.log-delayed`, `src/base.log.send-buffer.*`
 
 ## the framing in one paragraph
 
@@ -263,7 +263,7 @@ force. detailed task: `v7-console-per-zenka-tree-view.md` below.
 
 per `topic-global-ui-menu-tree`, `configure` is the planned generic
 fallback / decision-surface zenka. its current state
-[ `cfg/zenki/configure/` plus `modules/configure.init_code`
+[ `cfg/zenki/configure/` plus `src/configure.init_code`
 returning 0 ] is a stub.
 
 the proof-by-being-its-own-first-customer claim: **if the fold
@@ -293,7 +293,7 @@ detailed task: `configure-zenka-fallback-ui.md` below.
 ## the installer zenka — greenfield template-driven flow
 
 a new zenka [ `cfg/zenki/installer/`,
-`modules/installer.*` ] for guided template-driven install flows
+`src/installer.*` ] for guided template-driven install flows
 [ profile installation, dependency provisioning, key generation,
 zenka registration ]. the design move: **the installer is configure
 with a sequence policy** — it walks a template tree of nodes in a
@@ -384,8 +384,8 @@ framing by being the smallest possible consumers of that language —
 they have almost no zenka-specific code because, per the philosophy
 doc, *they don't need any*.
 
-#,,,.,,..,.,.,..,,...,...,,,.,..,,,.,,,,.,...,..,,...,...,.,.,...,...,,,.,..,,
-#XG2M56AGAEUTYO2DCE7D3VTR5RJHH6ONIN7E73VGKGHCY7TVCRMDHYJ4RSFGDYVW7C5TF3AKQJTQC
-#\\\|HHWR6QBEH5SGKEWXTVR4IUZQHBF6HRWIGU7MTY4BSDQHC625L5U \ / AMOS7 \ YOURUM ::
-#\[7]MWGUH2Z3LIJZWVCRMRNKXJN4C7V3R5HEZAQ25IWPP6ZY6AS22QDI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,,,...,,,.,...,.,,,...,,,.,,,.,..,,...,...,..,,,..,..,,...,.,.,
+#AWPG2W6AWGMIFPHCEPTXSNM4VZPX54XK7Y6ULXCPVWYXJRHUIO6ATGXNF2RWDR4ESYGMGQE4DT6LU
+#\\\|OWRI5ERJDTT2SOMMBQXHVCYWW57UHYIAWR6RU7QMTKWYVPY7KRC \ / AMOS7 \ YOURUM ::
+#\[7]DSQKGG4BWXJQ4E5HWSD4BKMZC3ROEKEQRS4OKTUJBDNEPI7D3CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

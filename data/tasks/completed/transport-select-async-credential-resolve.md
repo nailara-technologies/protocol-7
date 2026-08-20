@@ -2,7 +2,7 @@
 
 ## Background
 
-`modules/transport.handle.quic-hysteria` and `modules/transport.handle.udt-tunnel`
+`src/transport.handle.quic-hysteria` and `src/transport.handle.udt-tunnel`
 both call `<[cred-mesh.resolve]>->({ slot => ..., context => $ctx })` as if it
 were a local subroutine call. `cred-mesh` is a separate zenka — `transport`'s
 `%code` does not contain `cred-mesh.resolve`, and even if the module were
@@ -25,13 +25,13 @@ not part of this task).
 
 Reference pattern already in the codebase for this exact kind of cross-zenka
 resolve:
-- `modules/proxy.auth.lookup` — issues
+- `src/proxy.auth.lookup` — issues
   `protocol-7.route-send` with `command => 'cred-mesh.resolve'`,
   `call_args => { args => $slot }` (positional/string form — see
-  `modules/cred-mesh.resolve`'s `$as_size_reply = TRUE` branch, which returns
+  `src/cred-mesh.resolve`'s `$as_size_reply = TRUE` branch, which returns
   `{ mode => 'size', data => YAML::XS::Dump($result) }`), and a
   `reply => { handler => ..., params => {...} }`.
-- `modules/proxy.handler.auth_lookup_reply` — the corresponding reply
+- `src/proxy.handler.auth_lookup_reply` — the corresponding reply
   handler: checks `$reply->{'cmd'} eq 'size'`, `YAML::XS::Load`s
   `$reply->{'data'}`, checks `mode eq 'true'`, then continues the chain by
   calling `proxy.handler.post_auth`.
@@ -186,8 +186,8 @@ similar helpers (`wait_for_log`, `proxy_port_ready`) as a pattern reference.
 - `transport.handle.socks5`'s own internal protocol logic (no credential
   resolution there, no changes needed beyond the calling convention)
 
-#,,..,..,,...,...,.,.,,,,,...,,.,,,,,,...,,,.,..,,...,...,.,.,,.,,.,.,...,..,,
-#FJ67CYCMBQSKXKUSBVN2AJORHQTC3E5RYAANSYNPIBW3MP4ZI3UDDZCDT5Q4ZQKAJ2I7RZEOTZHBY
-#\\\|NFGCYKFYLBDLIP2AR3OUAUBUTBAE63CJC72KCJMN5KN5XB7AWCN \ / AMOS7 \ YOURUM ::
-#\[7]GGCFOISGGDYMYBYQ6Q7N23ZMZ76ARKLFRCTGKL74YXF73YLFBCBY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,,.,,...,,.,,..,,,.,,..,,,.,,..,,...,...,...,.,,,,,.,,,.,,,.,
+#SKHUVWPKS6B6SADOHQGCEJRNPRJCYCQU3RUIMTFISMLLDIRNK5UD7SMQCIK2NFTCEJFDF5TJZZYB2
+#\\\|4PFGYWZYV5ZHOH423GWH5GEYKUTNZWN3LVIDTXA2M7EHIQEKEIH \ / AMOS7 \ YOURUM ::
+#\[7]RPLDYROQDZL3GH7ELLRTXFXINMKMUWIKNC2JEW4R4IVI3CSNPIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

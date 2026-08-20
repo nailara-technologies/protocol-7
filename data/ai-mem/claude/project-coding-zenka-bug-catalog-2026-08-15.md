@@ -67,7 +67,7 @@ was a units mismatch, not overflow -- `coding.task.execute` stamps
 `execution.started` via `base.ntime` (network-time units, /4200 for real
 seconds, see `base.ntime.delta_seconds`), but `list-tasks` subtracted it
 from plain `base.time()` epoch seconds as if they were the same unit.
-Fixed in `modules/coding.cmd.list-tasks` to use
+Fixed in `src/coding.cmd.list-tasks` to use
 `base.ntime.delta_seconds($started)` instead. The requester-attribution
 ("every row shares `ZDMAPAY:AR3OCKQ`") and garbled-template-text defects
 above were NOT investigated this pass -- still open.
@@ -76,7 +76,7 @@ above were NOT investigated this pass -- still open.
 
 1. **`base.local_history.write:57` warns `expected absolute path [ to create ]`**
    (from `base.file.make_path`) during a `users.value-set` triggered by
-   `user-edit`. Read `modules/base.local_history.write:52-57`: it builds
+   `user-edit`. Read `src/base.local_history.write:52-57`: it builds
    `[VAR_P7]/history/<category>/<id>/<epoch>` and resolves it via
    `base.path.resolve_keywords` before calling `file.make_path`. Hypothesis,
    not confirmed: `VAR_P7` is a per-zenka keyword registered via
@@ -171,8 +171,8 @@ the zenka. Whether `gen-sub-whitelist` still DROPS the entry on a fresh
 regen was not re-tested -- the "always `git diff` the regen" advice above
 still stands, the stakes of missing it are just much lower now.
 
-#,,,,,...,,,.,,,.,,.,,...,.,.,.,.,,.,,..,,,..,..,,...,...,,..,.,.,,,.,,,.,,..,
-#QHAGNECFHFWS7AIFWMWB75YOFFGOPQGSWDROGZS2IMNNULJSITP2VGTBRW4KVDXYVF2RDPL7DQ6NK
-#\\\|UVLKOZV7FCFU6NATX6SPF5BHZTVSZOQQIYWKKNSOAQSUGGOINNT \ / AMOS7 \ YOURUM ::
-#\[7]PFQSJW32NDY5JGICVESRWAWPMRUGBDVSN32DWXCWD6M34Z5TR6BI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,..,,.,,,..,,,..,..,,.,,,.,.,..,,...,..,,...,.,,,..,,...,..,,
+#TBNACTSZAF44UGL24THTUNV6D7MDGU36YNA3ZUPLTEJQPAZBGY3HNLX5QRZMQXTFQZA2WTFR2SXHM
+#\\\|MD5QXTZHSPRNNZK6UV5W3NHRFANZSUOGOIEHR62WMOWOP43PFY4 \ / AMOS7 \ YOURUM ::
+#\[7]ZCAQJGIHKZI3XQSWM5V2ITHXBX3K3PF4JQAHZTGL55I75IW46GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

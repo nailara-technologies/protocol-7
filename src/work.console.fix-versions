@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = work.console.fix-versions
+# param = [exec] [key_phrase]
+# descr = fix missing version numbers in git history
+
+my $param1 = shift // '';
+my $param2 = shift // '';
+
+## Determine execute mode and key phrase
+my $dry_run    = 1;
+my $key_phrase = '';
+
+if ( $param1 eq 'execute' || $param1 eq 'exec' ) {
+    $dry_run    = 0;
+    $key_phrase = $param2;
+} elsif ( length $param1 ) {
+    $key_phrase = $param1;
+}
+
+<[base.log]>->( 1, "Fixing version numbers in git history..." );
+
+if ( length $key_phrase ) {
+    <[base.log]>->( 1, "  Filtering by key phrase : '$key_phrase'" );
+}
+
+if ($dry_run) {
+    <[base.log]>->(
+        1,
+        "DRY RUN mode - use 'fix-versions exec [key_phrase]' to apply changes"
+    );
+}
+
+$SIG{'CHLD'} = qw| IGNORE |;
+
+## Trigger fix
+my $result = <[work.parent.fix_versions]>->(
+    {   dry_run           => $dry_run,
+        key_phrase        => $key_phrase,
+        abort_after_valid => 13
+    }
+);
+
+if ( $result->{dry_run} ) {
+    my $count = $result->{would_fix} || 0;
+
+    if ( $count == 0 ) {
+        return say "::\n: ✓ All commits have version numbers\n::";
+    }
+
+    my $displayed = $result->{displayed} || 0;
+    my $has_more  = $result->{has_more}  || 0;
+
+    my @output;
+    push @output, "::";
+    push @output, ": Version Fix Analysis (DRY RUN)";
+    push @output, ":";
+    push @output, sprintf( ": Total commits needing fixes: %d", $count );
+
+    if ($has_more) {
+        push @output,
+            sprintf(
+            ": Showing first %d commits (use 'show_all' for full list)",
+            $displayed );
+    }
+
+    push @output, ":";
+    push @output, ": Commits that would be modified:";
+
+    foreach my $commit ( @{ $result->{commits} || [] } ) {
+        push @output,
+            sprintf( ":   %s: %s",
+            substr( $commit->{hash}, 0, 7 ),
+            $commit->{commit}{subject} );
+    }
+
+    if ($has_more) {
+        my $remaining = $count - $displayed;
+        push @output, sprintf( ":   ... and %d more commits", $remaining );
+    }
+
+    push @output, ":";
+    push @output, ": To apply fixes:";
+    push @output, ":   work fix-versions exec";
+    push @output, "::";
+
+    return say join( "\n", @output );
+}
+
+unless ( $result->{success} ) {
+    my $error = $result->{error} || 'unknown error';
+    return say "::\n: ✗ Fix failed: $error\n::";
+}
+
+my $fixed = $result->{fixed} || 0;
+return say "::\n: ✓ Fixed $fixed commits\n::";
+
+#,,,.,,,.,,.,,,,,,,,,,,..,,,,,...,.,.,.,.,..,,..,,...,...,...,.,,,,,,,,,,,..,,
+#6ILQYFDRMPKFHJIP5SOJL5ZKFPOYCWB46A2OKDZSWNR7F6LBCX7EX6XGLGYT5H6JMMEYACORIEGC2
+#\\\|XITNEDCYGXU4DQB2SKBUXFFJDM2EZL432CXC2ON66ZKRU7FZKDP \ / AMOS7 \ YOURUM ::
+#\[7]LQA47FGQSEKYQH2LCIA6X5ZLEBIHCFRMW5KRVEYNVSEEZ2SFPQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

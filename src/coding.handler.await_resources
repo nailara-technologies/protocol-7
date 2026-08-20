@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = coding.handler.await_resources
+# descr = poll GPU port and spawn inference server when free
+# purpose = allows coding zenka to start during :twin: handover
+
+my $event   = shift;
+my $backend = 'gpu';
+
+## find old instance's GPU server PID from sibling pid files  [
+## instance-scoped: state/inference.gpu.<pid>.pid, skip our own $$ ]
+my $zenka_dir = <[file.zenka_dir.data_path]>;
+my $old_pid   = 0;
+my $old_pidfile;
+for my $pf ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
+    next if $pf =~ m|\.\Q$$\E\.pid$|;    ## skip our own ##
+    my ( undef, $pid_str ) = <[file.timestamped_delta_s]>->($pf);
+    next unless defined $pid_str;
+    my ($pid) = split m|\s+|, $pid_str, 2;
+    if ( defined $pid and $pid =~ m|^\d+$| and $pid > 0 ) {
+        $old_pid     = $pid;
+        $old_pidfile = $pf;
+        last;
+    }
+}
+
+## if no sibling pid file found, fall back to TCP port probe
+if ( !$old_pid ) {
+    my $gpu_port   = <inference.backend.gpu.port> // 8000;
+    my $still_busy = 0;
+    {
+        use IO::Socket::INET;
+        my $probe = IO::Socket::INET->new(
+            PeerAddr => '127.0.0.1',
+            PeerPort => $gpu_port,
+            Proto    => 'tcp',
+            Timeout  => 1
+        );
+        if ( defined $probe ) { $probe->close; $still_busy = 1; }
+    }
+    if ($still_busy) {
+        <[base.logs]>->(
+            2, 'await_resources: port still occupied, no pid file'
+        );
+        return;
+    }
+    ## no process and port free — proceed
+} elsif ( -e "/proc/$old_pid" ) {
+    ## old server still alive [ /proc check — works across user boundaries ]
+    <[base.logs]>->(
+        2, 'await_resources: old server pid %d still running', $old_pid
+    );
+    return;    ## timer continues ##
+}
+
+## a deliberate switch-model is in flight - the gpu server being gone right ##
+## now is THAT operation's own kill-old-server step, not a twin handover    ##
+## completing. spawning here would race switch_model_reply's own intended   ##
+## spawn using stale/default config - confirmed live 2026-06-21. stay       ##
+## armed, re-check next tick instead of firing.                             ##
+if (<coding.switch_model_active>) {
+    <[base.logs]>
+        ->( 2, 'await_resources: switch-model in flight, deferring' );
+    return;
+}
+
+## old server is gone — cancel timer and spawn
+$event->w->cancel if defined $event->w;
+delete <coding.timer.await_resources>;
+delete <coding.awaiting_resources>;
+
+<[base.logs]>->( 1, 'await_resources: old server gone — spawning' );
+
+my $spawn_ok = <[coding.async_spawn_inference_servers]>;
+
+if ($spawn_ok) {
+    ## trigger dependency recheck for jobs that queued while waiting ##
+    <[jobqueue.check_dependencies]>;
+}
+
+return TRUE;
+
+#,,..,,..,...,,,.,.,,,.,,,...,.,.,,,,,.,.,.,,,..,,...,...,,,,,,,.,,,.,...,..,,
+#MZ66XOMDMKL5IZPALJKNLZL7EOXBRH75VPNDKUPHPCWZGHUBN3APN3ABCJAZJC4AI6VU3Y5QT4HX2
+#\\\|7MJCTETGNFWGYKUBI6SON7H5YSAL2X6P4MAZWPYSGMCKN6VE4U5 \ / AMOS7 \ YOURUM ::
+#\[7]JU3VJUTENO3G5V4XORG7X6ZQ45NN4KCNFDWQZJ7AWAPXUYSYBWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

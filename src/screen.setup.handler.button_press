@@ -1,0 +1,99 @@
+## [:< ##
+
+# name  = screen.setup.handler.button_press
+# descr = border band = drag handle [ compositor grab, crosses monitor
+#         seams ]; right-click dismisses; center hit-tests window rects
+#         and starts an intent drag
+
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+return TRUE if not defined $inst;
+
+## right-click dismisses, same as Escape  ungrab before close :             ##
+## begin_move_drag may leave a compositor grab that weston does not release ##
+## on window destruction, blocking button-1 for all clients [ same hazard   ##
+## documented in protocol-7-menu.graphical-startup-init ]                   ##
+if ( $event->button == 3 ) {
+    eval { Gtk3::Gdk::pointer_ungrab( $event->time ) };
+    <[screen.setup.close]>->($id);
+    return TRUE;
+}
+
+my $ex = $event->x;
+my $ey = $event->y;
+my $w  = $widget->get_allocated_width  // 900;
+my $h  = $widget->get_allocated_height // 620;
+
+## the translucent border band is the drag handle -- must match the border ##
+## width in screen.setup.handler.draw                                      ##
+my $border = 26;
+
+my $in_border
+    = (    $ex < $border
+        || $ey < $border
+        || $ex > $w - $border
+        || $ey > $h - $border );
+
+if ($in_border) {
+    ## hand the move to the compositor's interactive grab : the one         ##
+    ## mechanism that repositions reliably -- and crosses monitor seams --  ##
+    ## under this wslg/weston build [ see window.place.handler.button_press ##
+    ## ] mark the drag so button_release knows to persist the new position  ##
+    $inst->{'dragging'} = TRUE;
+    $widget->begin_move_drag( $event->button, $event->x_root,
+        $event->y_root, $event->time );
+    return TRUE;
+}
+
+## center : only left-drag starts a window-intent drag ##
+return TRUE if $event->button != 1;
+
+my $mp = $inst->{'map_params'};
+return TRUE if not defined $mp;
+
+## invert minimap pixel to virtual desktop coordinate [ mirror of map_x ] ##
+my $virtual_x = ( $ex - $mp->{'off_x'} ) / $mp->{'scale'} + $mp->{'min_x'};
+my $virtual_y = ( $ey - $mp->{'off_y'} ) / $mp->{'scale'} + $mp->{'min_y'};
+
+## find the topmost window containing the point [ last in array wins ]   ##
+my $windows = $inst->{'windows'} // [];
+my $hit_idx;
+my $idx = -1;
+for my $win (@$windows) {
+    $idx++;
+    my $geo = $win->{'intended_geo'} // $win->{'actual_geo'};
+    next if not defined $geo;
+    next if $geo->{'w'} <= 0 or $geo->{'h'} <= 0;
+    if (    $virtual_x >= $geo->{'x'}
+        and $virtual_x < $geo->{'x'} + $geo->{'w'}
+        and $virtual_y >= $geo->{'y'}
+        and $virtual_y < $geo->{'y'} + $geo->{'h'} ) {
+        $hit_idx = $idx;
+    }
+}
+
+return TRUE if not defined $hit_idx;
+
+## store drag context on the instance for motion + release handlers      ##
+my $geo = $windows->[$hit_idx]{'intended_geo'}
+    // $windows->[$hit_idx]{'actual_geo'};
+
+$inst->{'drag_win_idx'}       = $hit_idx;
+$inst->{'drag_start_minimap'} = { 'x' => $ex, 'y' => $ey };
+$inst->{'drag_start_geo'}     = {
+    'x' => $geo->{'x'},
+    'y' => $geo->{'y'},
+    'w' => $geo->{'w'},
+    'h' => $geo->{'h'}
+};
+
+return TRUE;
+
+#,,.,,..,,,.,,,,.,..,,..,,..,,,,,,...,,,,,,..,.,.,...,...,,..,,.,,,,,,...,.,,,
+#6HQRF6CLVFKEIFTQB7ASGPQNTVM4LPDTC23DN3A5WZPAJF6HZO74OLPXRX2YIZ75QLAD56JARIP6Y
+#\\\|CX45OMJVE32RNEUKIWWKK62FUQ52A5NWDVTIR6RWGCL4POOZ7F2 \ / AMOS7 \ YOURUM ::
+#\[7]JXO7FGTFHWAT7BBCK42IDKG2MDCLY7MYTTNZDOBBELR2M7IQIKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

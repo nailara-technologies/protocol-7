@@ -45,11 +45,11 @@ do not add or modify subroutine whitelists — these are managed separately.
 
 ```bash
 cat data/md/development/PARALLEL-REASONING-ORCHESTRATION.md  ## full design
-cat modules/task.init_code                  ## existing task zenka state
-cat modules/coding.handler.process-queued-task  ## existing coding zenka queue
-cat modules/letsencr.parent.handler_renewal_check  ## timer-based branch example
+cat src/task.init_code                  ## existing task zenka state
+cat src/coding.handler.process-queued-task  ## existing coding zenka queue
+cat src/letsencr.parent.handler_renewal_check  ## timer-based branch example
 ## check how task zenka currently tracks subtasks:
-ls modules/task.*
+ls src/task.*
 ```
 
 ---
@@ -276,7 +276,7 @@ fills them automatically from the DAG. no manual orchestration needed.
 
 ## vterm TTY buffer adapter
 
-the vterm zenka (modules/vterm.*) provides the terminal layer for
+the vterm zenka (src/vterm.*) provides the terminal layer for
 interactive steering of running branches directly from the TTY:
 
 ### compositor overlay (vterm.compositor.layout.stack)
@@ -368,8 +368,8 @@ p7c reasoning.branch.status
 - [ ] ANSI color when TTY (running=amber, paused=dim, resolved=green, rescue=violet)
 - [ ] no signature stubs, no whitelist changes
 
-#,,.,,.,,,,,.,.,,,...,.,,,,,,,.,,,.,,,.,.,..,,..,,...,...,...,,.,,..,,.,,,,.,,
-#GBYXDYDWJLXK4WO4EGWNKRLLEMDGAEHJW4BT52GSGYJJ2XNY5H56TCBAAHMSS6N5E45INRQXC3RDE
-#\\\|IVYCC7YC3NMZQO5QNKPG6IXW6BTTYTWQWH3YTRNW4LWKAYQ2BBH \ / AMOS7 \ YOURUM ::
-#\[7]WU2NISSLROPA7P5SQME2MF34ZMGG6RBTALGWC7UWCJET2NUFR2CY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,..,,,,,,.,.,.,.,...,..,,...,..,,...,...,,.,,,.,,,,.,,..,.,.,
+#YTNYRPZHBB7V45MIZORWFR6E2WAELA4U4TAZNTW4HVDKFQZZUGPBCZXGIKELPKVZHMEHYRZPE46YE
+#\\\|UW2I63TDWMXCZZRW7JLFG7MZOCS5EKJSWMSUELDGBHML2INIQGL \ / AMOS7 \ YOURUM ::
+#\[7]XBLUOYFDYPVDI6DQ32WW5QVJFR7KRLNYYXSTNBTU6A7BLZX5XOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

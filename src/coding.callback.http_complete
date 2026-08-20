@@ -1,0 +1,303 @@
+## [:< ##
+
+# name  = coding.callback.http_complete
+# descr = HTTP streaming complete callback
+
+my ( $task_id, $http_state, $req_seq ) = @ARG;
+
+<[base.logs]>->(
+    1,
+    "async.request: inference complete for %s [%d bytes, %d chunks]",
+    $task_id,
+    $http_state->{'bytes_received'},
+    $http_state->{'chunks_received'}
+);
+
+## check if state machine already handled this task ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+if ( !defined $state ) {
+    ## state already cleaned up by state machine completion ##
+    <[base.logs]>->(
+        2, "http_complete: no state for %s [ already handled ]", $task_id
+    );
+    return;
+}
+
+# eval { $state->{'io_watcher'}->fd->close() }; ## testing ##
+
+## check if this is a stale callback from a previous connection ##
+my $current_seq = $state->{'request_seq'} // 0;
+if ( defined $req_seq && $req_seq != $current_seq ) {
+    <[base.logs]>->(
+        2, "http_complete: stale callback for %s [ seq %d != %d ], ignoring",
+        $task_id, $req_seq, $current_seq
+    );
+    return;
+}
+
+## round finished cleanly [ no timeout fired for this attempt ] : drop any
+## ceiling escalation so the next round starts fast again rather than staying
+## at the full ceiling permanently — see coding.handler.http_timeout
+delete $state->{'timeout_ceiling'};
+
+my $sm_state = $state->{'state'} // '';
+
+## model_selection round already dispatched next request : do not interfere ##
+if ( $state->{'model_selection_applied'} ) {
+    delete $state->{'model_selection_applied'};
+    <coding.async.task_state>->{$task_id} = $state;
+    <[base.logs]>->(
+        2,
+        "http_complete: %s model_selection already handled, ignoring close",
+        $task_id
+    );
+    return;
+}
+
+<[base.logs]>->(
+    1,
+    "http_complete: %s sm_state=%s seq=%s/%s "
+        . "finish=%s tools=%d bytes=%d chunks=%d",
+    $task_id,
+    $sm_state,
+    $req_seq                  // 'undef',
+    $state->{'request_seq'}   // 0,
+    $state->{'finish_reason'} // 'undef',
+    scalar( @{ $state->{'tool_calls'} // [] } ),
+    $http_state->{'bytes_received'}  // 0,
+    $http_state->{'chunks_received'} // 0
+);
+
+## state machine drives all transitions : check what happened helper: ##
+## release backend lock if we own it                                  ##
+my $release_backend_lock = sub {
+    my $backend = $state->{'backend'} // '';
+    return unless length $backend;
+    <[coding.async.backend_release]>->( $task_id, $backend );
+};
+
+if ( $sm_state eq 'tool_exec' ) {
+    ## tool execution in progress : do not interfere ##
+    <[base.logs]>->(
+        1, "http_complete: task %s in tool_exec, deferring", $task_id
+    );
+    $release_backend_lock->('tool_exec');
+    return;
+}
+
+if ( $sm_state eq 'complete' || $sm_state eq 'error' ) {
+    ## state machine already finalized : nothing to do ##
+    <[base.logs]>->(
+        1,        "http_complete: task %s already %s",
+        $task_id, $sm_state
+    );
+    $release_backend_lock->($sm_state);
+    return;
+}
+
+if ( $sm_state eq 'subtask' ) {
+    ## parent transitioned to subtask-wait state during streaming          ##
+    ## compaction subtasks: lock NOT released by compact_context : release ##
+    ## here                                                                ##
+    ## tool subtasks: lock already released by subtask_spawn               ##
+    if ( defined $state->{'compaction_pending'} ) {
+        <[base.logs]>->(
+            2,
+            "http_complete: task %s compaction "
+                . "subtask-wait, releasing backend",
+            $task_id
+        );
+        $release_backend_lock->('compaction');
+    } else {
+        <[base.logs]>->(
+            2, "http_complete: task %s in subtask-wait, stream ended cleanly",
+            $task_id
+        );
+    }
+    return;
+}
+
+if ( $sm_state eq 'streaming' ) {
+    ## connection closed while still streaming [ current request ] no ##
+    ## finish_reason received : try to recover                        ##
+    my $content = $state->{'response_text'} // $state->{'content'} // '';
+
+    ## check chunk_context for partial content  [ model sent data but no ##
+    ## finish_reason ]                                                   ##
+    if ( !length($content) && defined $state->{'chunk_context'} ) {
+        $content = $state->{'chunk_context'}->{'content'} // '';
+    }
+
+    ## check for tool_calls in chunk_context [ model was generating tools ] ##
+    my $tool_calls = [];
+    if ( defined $state->{'chunk_context'} ) {
+        $tool_calls = $state->{'chunk_context'}->{'tool_calls'} // [];
+    }
+
+    if ( @{$tool_calls} ) {
+        ## partial tool_calls detected : transition to tool execution ##
+        <[base.logs]>->(
+            1, "http_complete: task %s connection closed with %d tool_calls",
+            $task_id, scalar( @{$tool_calls} )
+        );
+        <[coding.async.state_machine]>->(
+            'transition',
+            $task_id,
+            {   'event'      => 'finish_tool_calls',
+                'tool_calls' => $tool_calls,
+                'content'    => $content,
+            }
+        );
+    } elsif ( length($content) ) {
+        ## connection closed with content but no finish_reason model may ##
+        ## have run out of max_tokens before emitting tools              ##
+        <[base.logs]>->(
+            1,
+            "http_complete: task %s connection closed "
+                . "without finish_reason [ %d bytes, %d tool_calls ]",
+            $task_id,
+            length($content),
+            scalar( @{ $state->{'tool_calls'} // [] } )
+        );
+        ## if no tool_calls were emitted, assume model needs another round ##
+        ## rather than completing prematurely (e.g. hit max_tokens         ##
+        ## mid-thought)                                                    ##
+        if ( !@{ $state->{'tool_calls'} // [] } ) {
+            <[base.logs]>->(
+                1,
+                "http_complete: task %s no finish_reason + no tool_calls, "
+                    . "enqueuing another round instead of completing",
+                $task_id,
+            );
+            $state->{'round'}++;
+            <coding.async.task_state>->{$task_id} = $state;
+            <[coding.task.enqueue_round]>->( $task_id, $state->{'round'} );
+        } else {
+            <[coding.async.state_machine]>->(
+                'transition', $task_id,
+                { 'event' => 'finish_stop', 'content' => $content }
+            );
+        }
+    } else {
+        ## no content at all : check for raw response in buffer ##
+        my $body = $http_state->{'buffer'} // '';
+        if ( length($body) ) {
+            <[base.logs]>->(
+                1,
+                "http_complete: task %s non-sse "
+                    . "response [ %d bytes ], completing",
+                $task_id,
+                length($body)
+            );
+            ## try to extract content from json response ##
+            my $parsed = eval { JSON::PP::decode_json($body) };
+            if ( defined $parsed && ref $parsed eq 'HASH' ) {
+                my $text = $parsed->{'choices'}[0]{'message'}{'content'}
+                    // '';
+                <[coding.async.state_machine]>->(
+                    'transition', $task_id,
+                    { 'event' => 'finish_stop', 'content' => $text }
+                );
+            } else {
+                <[coding.async.state_machine]>->(
+                    'transition', $task_id,
+                    { 'event' => 'finish_stop', 'content' => $body }
+                );
+            }
+        } elsif ( ( $http_state->{'bytes_received'} // 0 ) > 0 ) {
+            ## data was received and processed via on_chunk but nothing     ##
+            ## usable accumulated : no content, no tool_calls and no        ##
+            ## finish_reason [ reasoning-only stream : thinking models      ##
+            ## closing after reasoning_content without ever emitting an     ##
+            ## answer ]. any finish/tool processing would have moved the    ##
+            ## state machine out of 'streaming' already, so reaching this   ##
+            ## branch always means the round produced nothing actionable.   ##
+            ## a silent no-op here orphans the task in sm_state 'streaming' ##
+            ## forever [ http_cleanup cancels all watchers, no timer        ##
+            ## pending ] : retry with an answer-nudge, bounded, then fail   ##
+            ## visibly [ mirrors chunk_handler's  unparseable-tool-call     ##
+            ## retry discipline ]. the reasoning trace itself is NOT        ##
+            ## injected into messages : a truncated thinking trace in the   ##
+            ## next round's prompt is worse than a bare retry               ##
+            my $retry_max = <coding.cfg.reasoning_only_retry_max> // 2;
+            my $retries   = $state->{'reasoning_only_retries'}    // 0;
+            my $reasoning_len
+                = length( $state->{'chunk_context'}->{'reasoning'} // '' );
+
+            if ( $retries < $retry_max ) {
+                $state->{'reasoning_only_retries'} = $retries + 1;
+                <[base.logs]>->(
+                    1,
+                    'http_complete: %s closed after %d bytes with no '
+                        . 'content/tool_calls/finish_reason [ reasoning %d '
+                        . 'bytes ] : enqueuing answer-nudge round [ attempt '
+                        . '%d/%d ]',
+                    $task_id,
+                    $http_state->{'bytes_received'},
+                    $reasoning_len,
+                    $retries + 1,
+                    $retry_max
+                );
+                push @{ $state->{'messages'} },
+                    {
+                    'role'    => 'user',
+                    'content' => 'Your previous response ended before any '
+                        . 'answer was produced [ the stream '
+                        . 'contained only reasoning ]. Respond '
+                        . 'now with your actual answer, or a '
+                        . 'properly formatted tool call if one '
+                        . 'is required.',
+                    };
+                $state->{'round'}++;
+                <coding.async.task_state>->{$task_id} = $state;
+                <[coding.task.enqueue_round]>
+                    ->( $task_id, $state->{'round'} );
+            } else {
+                <[base.logs]>->(
+                    0,
+                    'http_complete: %s reasoning-only close '
+                        . 'persisted across %d nudges : failing task',
+                    $task_id,
+                    $retry_max
+                );
+                <[coding.async.state_machine]>->(
+                    'transition',
+                    $task_id,
+                    {   'event' => 'error',
+                        'error' => 'model closed stream with reasoning-only '
+                            . 'output and no finish_reason across '
+                            . ( $retry_max + 1 )
+                            . ' attempts [ answer-nudge retries exhausted ]',
+                    }
+                );
+            }
+        } else {
+            <[base.logs]>->(
+                0, "http_complete: task %s connection closed with no data",
+                $task_id
+            );
+            ## route through http_error for retry support ##
+            <[coding.callback.http_error]>->(
+                $task_id, 'connection closed with no data'
+            );
+        }
+    }
+    ## release backend lock if we own it ##
+    my $backend = $state->{'backend'} // '';
+    <[coding.async.backend_release]>->( $task_id, $backend )
+        if length $backend;
+    return;
+}
+
+## release backend lock on early return paths ##
+my $backend_early = $state->{'backend'} // '';
+<[coding.async.backend_release]>->( $task_id, $backend_early )
+    if length $backend_early;
+
+return;
+
+#,,,.,,.,,,..,..,,,.,,...,,,.,,,,,,,,,.,.,...,..,,...,...,..,,..,,,,,,,.,,,.,,
+#7BKONWFWCIUNRG2WL3QWWSKV7NWH4L6IE5H5GPYYE2LGIXXXRU6TE52V6UOKDAEBU7JWGKYHUIFE6
+#\\\|W3LRM4SMFBIOA32JFVZRXT2ZXMGTUUFPCN7ZFF3JFK5EI4XTJ6Z \ / AMOS7 \ YOURUM ::
+#\[7]GGPB2C37MCH2XQHIZCTDT7X62CP3HG4V5GPUQDQWGZOPX4LFPIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

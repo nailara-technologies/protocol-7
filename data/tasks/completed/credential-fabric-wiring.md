@@ -4,17 +4,17 @@
 wire the three infrastructure zenki (credential_fabric, transport, proxy)
 into one working request path. read first:
 `data/md/design/CREDENTIAL-FABRIC-INTEGRATION-AND-UI.md` (part 1);
-`modules/proxy.handler.connection`, `modules/proxy.handler.request`,
-`modules/proxy.handler.passthrough_reply`, `modules/proxy.auth.lookup`,
-`modules/proxy.transport.select`;
-`modules/transport.select`, `modules/transport.profile.load`,
-`modules/transport.handle.direct-tcp`,
-`modules/transport.handle.hysteria-socks5`,
-`modules/transport.handle.udt-tunnel`;
-`modules/credential_fabric.resolve`, `modules/credential_fabric.register`,
-`modules/credential_fabric.handler.rotation_strm`,
-`modules/credential_fabric.request-authorization`,
-`modules/credential_fabric.handler.auth-relay-reply`.
+`src/proxy.handler.connection`, `src/proxy.handler.request`,
+`src/proxy.handler.passthrough_reply`, `src/proxy.auth.lookup`,
+`src/proxy.transport.select`;
+`src/transport.select`, `src/transport.profile.load`,
+`src/transport.handle.direct-tcp`,
+`src/transport.handle.hysteria-socks5`,
+`src/transport.handle.udt-tunnel`;
+`src/credential_fabric.resolve`, `src/credential_fabric.register`,
+`src/credential_fabric.handler.rotation_strm`,
+`src/credential_fabric.request-authorization`,
+`src/credential_fabric.handler.auth-relay-reply`.
 do NOT touch signatures, code-style, or unrelated logic. lowercase comments,
 `[ word ]` bracket annotations.
 
@@ -51,7 +51,7 @@ through `proxy.auth.lookup` (→ `credential_fabric.resolve`) and
 
 ## changes
 
-### 1. new helper module — `modules/proxy.outbound.connect_or_use`
+### 1. new helper module — `src/proxy.outbound.connect_or_use`
 single entry point used by every outbound path in the proxy. receives the
 proxy's request context hash. checks `context.transport.handle` (set by
 `proxy.handler.request` after calling `proxy.transport.select`). if present
@@ -67,7 +67,7 @@ to call this helper instead of opening their own socket. **do not change**
 the `clients.http.*` modules — keep the helper as the proxy-side adapter.
 
 ### 2. seed the registry from a yaml file
-add `modules/credential_fabric.seed_registry` called once at end of
+add `src/credential_fabric.seed_registry` called once at end of
 `credential_fabric.init_code` (only on first init, guarded by
 `<credential_fabric.seed.loaded>`). reads `var/credential_fabric/seed.yaml`
 if present and calls `credential_fabric.register` once per entry. yaml
@@ -105,8 +105,8 @@ the auth payload itself stays inside the handle module — do not leak it
 into the context hash. only the success/failure outcome propagates.
 
 ### 4. rotation subscribers
-two thin handlers — `modules/proxy.handler.cred_rotated` and
-`modules/transport.handler.cred_rotated`. each registers as a strm
+two thin handlers — `src/proxy.handler.cred_rotated` and
+`src/transport.handler.cred_rotated`. each registers as a strm
 consumer for `credential.rotated.*` via the same pattern radio uses
 (`base.strm.local.register`). on event, walks the local cache (proxy
 template selector cache, transport profile + handle cache) and removes
@@ -171,7 +171,7 @@ reply.mode == 'false' && reply.data eq 'input cancelled'
   proxy emits a 407 with the req_id in the body for clients that can
   surface it
 
-add a new command module `modules/credential_fabric.cmd.approve` taking
+add a new command module `src/credential_fabric.cmd.approve` taking
 `{ req_id => '...', payload => '...' }`. looks up the pending entry,
 calls the existing approval-completion path with a synthesised reply
 matching what the dialog would have returned. on success, clears the
@@ -248,8 +248,8 @@ the `#,,..` stub line** to new files — the signing system writes it.
 
 #,,..,...,,,.,.,,,,,,..,,...,..,,,,,,,,.,,,,,..,,...,..,,,,,,...,,...,,..,...,
 
-#,,,,,..,,.,.,.,.,...,,,.,,,.,...,,,,,,..,.,,,..,,...,...,,..,.,,,...,..,,,.,,
-#GIZUG23RFLARYI5KQ4ZQVQOOYLTUR4AEF2MVQ2ON43NOHUTPHRMRUI5CCQBVFYNPXBPYMQ64OJC5U
-#\\\|SYF5PAARM5HSELHMGEDIXBNFABVQDDYXGHQO3UXLSYVPMTCCIPI \ / AMOS7 \ YOURUM ::
-#\[7]CNKRJOCNA77K4TE226MD6WSF6KHD2KSG4GOD4FDZABFP4TA6WUBI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,,,.,.,,,,,.,...,..,,,,,,..,,..,,...,...,.,,,,.,,..,,.,.,,.,,
+#NO6U45LKQB3Y37PHIPENI55GPMLOSBLW7PTQ5RQYX46TWDCNOK7MOQUAQXUL2FBCWHZ3APQTYJMRE
+#\\\|GNE5J46OEOCXVBXSRFDCS2QK7PQV4NZJYJFMX4SZ6YP4TZFGDNA \ / AMOS7 \ YOURUM ::
+#\[7]WNTHXBNXMIYGUNAZKDQVXAUFKOPZ7Y6FAHUCATLTFBPSXFKLF6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

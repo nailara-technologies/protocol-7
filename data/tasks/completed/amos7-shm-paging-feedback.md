@@ -28,7 +28,7 @@ today there is no such generic path. the motivating incident
 [ see "why this design exists" ] was a one-off: `bin/mcp-server-p7` needed to
 checksum up to ~400KB of session text and routed it through a cube-exposed
 command [ `bmw-L13 :B32:<encoded content>` ] as a single command line.
-`modules/base.handler.command`'s single-line command buffer caps at
+`src/base.handler.command`'s single-line command buffer caps at
 **242707 bytes**; the ~640KB B32-encoded payload blew past it. the failure was
 not clean — a `session_catchup` against a 30MB session appeared to hang
 indefinitely with no buffer-exceeded message in the log, the connection simply
@@ -48,20 +48,20 @@ scripts get the same mechanism zenki do.
 ## what to read first
 
 ```bash
-ls modules/data.mount.shm.*                          ## the 27-module foundation
-cat modules/data.mount.shm.create                    ## file-backed mmap segment + $mount hashref
-cat modules/data.mount.shm.open                       ## owner-pubkey path/header cross-check
-cat modules/data.mount.shm.permission.verify          ## signed-grant authorization [ the real gate ]
-cat modules/data.mount.shm.header.read                ## 512-byte text header pack/unpack
-cat modules/data.mount.shm.init_code                  ## SIGINT handler [ unlocks, does NOT unlink ]
-cat modules/data.mount.shm.test.basic                 ## current access = bare substr() at offset 512
+ls src/data.mount.shm.*                          ## the 27-module foundation
+cat src/data.mount.shm.create                    ## file-backed mmap segment + $mount hashref
+cat src/data.mount.shm.open                       ## owner-pubkey path/header cross-check
+cat src/data.mount.shm.permission.verify          ## signed-grant authorization [ the real gate ]
+cat src/data.mount.shm.header.read                ## 512-byte text header pack/unpack
+cat src/data.mount.shm.init_code                  ## SIGINT handler [ unlocks, does NOT unlink ]
+cat src/data.mount.shm.test.basic                 ## current access = bare substr() at offset 512
 cat cfg/zenki/data/start                     ## confirms data.* = the data zenka's own load set
-cat modules/data.channel.shm.create                    ## existing ring-buffer ; read before phase 3
-cat modules/data.cmd.shm-self-test                      ## the regression gate every phase must keep passing
-cat modules/jobqueue.event.register_job_queues        ## tested as a candidate, ruled out -- see RESOLVED
-cat modules/base.event.add_var                         ## generic Event->var() wrapper jobqueue calls
+cat src/data.channel.shm.create                    ## existing ring-buffer ; read before phase 3
+cat src/data.cmd.shm-self-test                      ## the regression gate every phase must keep passing
+cat src/jobqueue.event.register_job_queues        ## tested as a candidate, ruled out -- see RESOLVED
+cat src/base.event.add_var                         ## generic Event->var() wrapper jobqueue calls
 cat data/lib-path/pm/AMOS7/CHKSUM.pm                   ## the standalone/hybrid precedent to mirror
-cat modules/base.chk-sum.amos                          ## thin zenka wrapper -> standalone package fn
+cat src/base.chk-sum.amos                          ## thin zenka wrapper -> standalone package fn
 sed -n '1,60p' data/tasks/shm-streaming-payload-pipeline.md  ## ADJACENT, DIFFERENT — do not merge [ see below ]
 ```
 
@@ -69,7 +69,7 @@ sed -n '1,60p' data/tasks/shm-streaming-payload-pipeline.md  ## ADJACENT, DIFFER
 
 ### what already exists [ the foundation — landed, real code ]
 
-`modules/data.mount.shm.*` [ 27 modules ] already implements file-backed SHM
+`src/data.mount.shm.*` [ 27 modules ] already implements file-backed SHM
 mounting with cryptographic access control. verified against the actual code:
 
 - **segment creation**: `data.mount.shm.create($pubkey, $size_bytes,
@@ -169,7 +169,7 @@ P7 zenka, via the project-wide hybrid pattern: check
 `defined $main::PROTOCOL_SEVEN` — if undefined, running standalone
 [ CLAUDE.md documents this; e.g. `AMOS7.pm`'s `error_exit` exits with a code
 standalone but returns undef in zenka mode ]. P7-side zenka modules
-[ e.g. `modules/base.chk-sum.amos` ] are thin wrappers calling straight into
+[ e.g. `src/base.chk-sum.amos` ] are thin wrappers calling straight into
 the standalone-capable package function.
 
 the new design follows this exact precedent. promote the core mmap / header /
@@ -185,7 +185,7 @@ the way `AMOS7::CHKSUM` already is — an umbrella `AMOS7/CHKSUM.pm` plus a
   data/lib-path/pm/AMOS7/SHM/Feedback.pm  ## feedback-variable channel [ phase 3 ]
 ```
 
-then existing / new `modules/data.mount.shm.*` P7 wrapper modules call through
+then existing / new `src/data.mount.shm.*` P7 wrapper modules call through
 to the standalone core — same as `base.chk-sum.amos` does for
 `AMOS7::CHKSUM::amos_chksum` — **or** call the new paging / feedback logic
 directly in-process where that is cleaner [ judgment call per function, the
@@ -245,7 +245,7 @@ clearly-scoped sibling under `data.*` ], **never `base.*`**.
 
 ## why `pager.*` was rejected as the paging base — decided, recorded so it is not re-litigated
 
-`modules/pager.*` [ 51 modules ] was investigated and **rejected** as a base for
+`src/pager.*` [ 51 modules ] was investigated and **rejected** as a base for
 the new paging layer. it is an **item-centric** framework [ structured records
 with fields like `path` / `name` / `size` / `mtime`, filter chains, multi-key
 sort, LRU item caching, viewport rendering ] built for listing / filtering
@@ -443,7 +443,7 @@ argues for the more distrustful `0` reset instead.
   verification mechanics into `data/lib-path/pm/AMOS7/SHM.pm` [ umbrella ],
   loadable standalone via a lib-path `BEGIN` block [ the pattern
   `bin/amos-chksum` uses ].
-- existing `modules/data.mount.shm.*` modules become thin wrappers calling into
+- existing `src/data.mount.shm.*` modules become thin wrappers calling into
   `AMOS7::SHM` — **zero behavior change on the zenka path** [ same as
   `base.chk-sum.amos` -> `AMOS7::CHKSUM::amos_chksum` ].
 - `$main::PROTOCOL_SEVEN` gates **only** the cleanup behavior [ see "the
@@ -475,16 +475,16 @@ acceptance:
   the real content length [ not the padded index+pages region ] — this is
   what lets `read_page` clip the final, possibly-partial page correctly
   without picking up trailing zero-padding.
-- thin zenka wrappers, same pattern as phase 1: `modules/data.mount.shm.page.{create,write,read}`,
+- thin zenka wrappers, same pattern as phase 1: `src/data.mount.shm.page.{create,write,read}`,
   `.page.index.{write,read}`. `page.create`'s wrapper injects the time source
   and re-adds the external mlock call, mirroring `data.mount.shm.create`'s
   wrapper exactly — `shm_create`'s standalone-only self-mlock branch
   [ phase 1 ] does not fire when called this way in zenka mode, same reason
   the original wrapper needed it.
-- `modules/data.mount.shm.page.test.basic` + a 4th test wired into
+- `src/data.mount.shm.page.test.basic` + a 4th test wired into
   `data.cmd.shm-self-test` (`p7c data.shm-self-test` now runs mount / channel
   / stats / **page** in one pass).
-- `modules/data.mount.shm.init_code` autoloads `AMOS7::SHM::Page` alongside
+- `src/data.mount.shm.init_code` autoloads `AMOS7::SHM::Page` alongside
   `AMOS7::SHM`.
 
 **verified live, not just unit-tested**: byte-identical reassembly with a
@@ -659,8 +659,8 @@ verified live ]: a verification test that called `lock_memory` [ which uses
 indefinitely. **root cause**: `IO::AIO`'s background worker-thread state does
 not survive `fork()` cleanly — this is a known, already-solved problem in this
 codebase, just not yet documented inside `AMOS7::SHM` itself.
-`modules/base.process-into-background`, `modules/vision-batch.parent.fork_child`,
-and `modules/weather.base.fork_weather_child` all call `IO::AIO::reinit()`
+`src/base.process-into-background`, `src/vision-batch.parent.fork_child`,
+and `src/weather.base.fork_weather_child` all call `IO::AIO::reinit()`
 immediately after `fork()` for exactly this reason — confirmed live, adding it
 resolves the hang completely.
 
@@ -776,8 +776,8 @@ prompt: |
   Follow the project's lowercase-comment, dot-notation style exactly. No
   signature stubs — the signing system adds them.
 
-#,,..,,.,,.,.,,,,,,,,,,.,,,,.,,,,,,.,,,..,..,,..,,...,...,..,,,,,,,.,,,,.,...,
-#YYGBZBPNEX7JJUSEJEQGIZ6KRTFTLO4QOUKHACJEDVJGU3JKL7BBMHPLX6EKP5JITA7BFY7WSOQQW
-#\\\|KPM4BYYJJDVUDQTGQCZNOWZG7OZWNBGTDMCGF73U5ACJ6HJKO7I \ / AMOS7 \ YOURUM ::
-#\[7]WLOHPB222MXMHRCVUUSUXEMGNZRO5FIIBE2SJCYXCALITYOI7CCQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,..,,...,,,,,..,,..,,,,,,,,.,,,.,..,,...,...,...,,.,,...,.,.,...,
+#FPR42UOWXKFJL3BVH5KWRBLUL5M73H2LCT665UUGXIH76PSCUNGRFPA6I2XK5ZPR7YRWG37ZZSY3G
+#\\\|VT6DBLMMUUN2YTHW6IEDQGSPWER4SRQIVEMGIVV6GQAESAEMJOT \ / AMOS7 \ YOURUM ::
+#\[7]LUZRNDNYPV3JHDAFV6N7BUMCZY22RWGM7JGZLZJYYE5BUYBZXODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

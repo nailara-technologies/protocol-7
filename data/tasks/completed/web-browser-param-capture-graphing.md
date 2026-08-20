@@ -69,16 +69,16 @@ renderers as a named template library, one file per variant, following
 the **exact existing module convention** already used for
 `web-browser.console_capture.js_source` — i.e. Perl modules that
 `return <<'JS_SRC'; ...JS...  JS_SRC` (NOT raw `.js` files in
-`modules/`, since the module system loads everything as Perl).
+`src/`, since the module system loads everything as Perl).
 
 Proposed layout:
 
 ```
-modules/web-browser.graph_template.default.js_source
-modules/web-browser.graph_template.sparkline.js_source
-modules/web-browser.graph_template.multi-axis.js_source
+src/web-browser.graph_template.default.js_source
+src/web-browser.graph_template.sparkline.js_source
+src/web-browser.graph_template.multi-axis.js_source
 ...
-modules/web-browser.graph_template.list          # like base.list.subroutines:
+src/web-browser.graph_template.list          # like base.list.subroutines:
                                                   # return [ qw[ default sparkline multi-axis ] ];
 ```
 
@@ -144,8 +144,8 @@ than purely as an eventual nice-to-have.
 
 Design-only, nothing implemented. No code written yet in this session.
 
-#,,.,,...,,.,,,..,,.,,,..,,.,,.,,,.,,,...,,,,,..,,...,...,,.,,,..,.,,,,,,,,,.,
-#N7UNBG7A4K7LJQM6OGSLUAYGPLIRR4ZSFATE2OQZ43TBGXZO3IEEU2KE66FJ6SBMGQHEYDNNHBYH4
-#\\\|TFJDU5LN5WNJLY73IXDCOJQIWFW6ITLLT4PCXW5RQ6WVDGYEQPM \ / AMOS7 \ YOURUM ::
-#\[7]FNWWZIDG5OD7OVZ4LSQPMURKUHVUUBMZV2Q2RYTGXYAJASVU5ODY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,.,,,.,.,...,,..,..,,,,.,.,.,..,,...,..,,..,,,..,,,,,,.,,..,,
+#FTTT3NAZUJXA2YQ362Q64ZHC75RJGVQ775HRXWR5CDMD2OOIGYK7YN5HZQEL3ANMFWADYXOXO73VA
+#\\\|MKHFTN6NSUP4RWSTPBHE5EKPG3XVRKDGMUPSKXPNE67O4TPTYEZ \ / AMOS7 \ YOURUM ::
+#\[7]DQMP4PLVWDMQVS6PL4USD7INQ745JWEB4BNKXXCKNG2TJO3BUABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

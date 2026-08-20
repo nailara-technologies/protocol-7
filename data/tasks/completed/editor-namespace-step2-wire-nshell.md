@@ -31,8 +31,8 @@ CRITICAL section below — do not skip it.
 
 ## new schema constant
 
-Create `modules/editor.control.process_key` schema... no — create ONE new
-small module, `modules/nshell.editor.default_schema`, returning:
+Create `src/editor.control.process_key` schema... no — create ONE new
+small module, `src/nshell.editor.default_schema`, returning:
 
 ```perl
 return {
@@ -53,7 +53,7 @@ it risks drift.
 
 ## exact conversions (verified against current file contents 2026-08-09)
 
-### modules/nshell.editor.process (the biggest change)
+### src/nshell.editor.process (the biggest change)
 
 - line 7: `my ( $editor, $key, $colors ) = @ARG;` — unchanged, `$colors` is
   still used elsewhere in this file for terminal output, just no longer
@@ -78,7 +78,7 @@ it risks drift.
 - line 60: `my $sig = $edit_result->{should_signal} // 'INT';`
   → `my $sig = $edit_result->{signal} // 'INT';` **key renamed**:
   `editor.control.process_key`'s signal result uses `{signal}`, not
-  `{should_signal}` (see `modules/editor.control.process_key` line ~58).
+  `{should_signal}` (see `src/editor.control.process_key` line ~58).
 - lines 68-69 (top of the renamed submit branch): same get_cursor/get_value
   swap as above.
 - line 97: `print $edit_result->{output};`
@@ -101,7 +101,7 @@ it risks drift.
   assume, since that's the actual contract per the design doc's
   `editor.control.submit` section).
 
-### CRITICAL — modules/nshell.read_from_buffer, lines 162-163
+### CRITICAL — src/nshell.read_from_buffer, lines 162-163
 
 ```perl
 $state_ref->{'editor'}->{buffer}     = '';
@@ -118,7 +118,7 @@ raw writes are now simply WRONG (there is no top-level `buffer`/
 directly does nothing useful and leaves the real field data untouched).
 
 Use `editor.control.reset`'s per-field mode, which was built specifically
-to match this old behavior (see `modules/editor.control.reset`'s own
+to match this old behavior (see `src/editor.control.reset`'s own
 comment: "per-field reset clears that field's text/cursor only... matches
 `AMOS7::TERM::editor_reset` semantics" for the full-reset case; passing a
 field name gives you the narrower per-field version, which does NOT touch
@@ -137,14 +137,14 @@ is a subtle live regression (yank-after-search-select would silently stop
 working), not a crash — verify this specific case manually, not just via
 `perl -c`.
 
-### modules/nshell.read_from_buffer, other lines
+### src/nshell.read_from_buffer, other lines
 
 - lines 28, 107: `$state_ref->{'editor'} //= AMOS7::TERM::editor_init();`
   → `$state_ref->{'editor'} //= <[editor.control.create]>->( <[nshell.editor.default_schema]> );`
 - lines 35, 158, 261 (`AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} )`):
   → `<[editor.control.get_value]>->( $state_ref->{'editor'}, 'command' )`
 
-### modules/nshell.render.viewport, lines 12-13
+### src/nshell.render.viewport, lines 12-13
 
 ```perl
 my $buffer     = AMOS7::TERM::editor_get_buffer($editor);
@@ -156,11 +156,11 @@ my $buffer     = <[editor.control.get_value]>->( $editor, 'command' );
 my $cursor_pos = <[editor.control.get_cursor]>->( $editor, 'command' );
 ```
 
-### modules/nshell.render.cursor, lines 9-10
+### src/nshell.render.cursor, lines 9-10
 
 Same conversion as render.viewport above.
 
-### modules/nshell.handler.ctrl_o_cycle
+### src/nshell.handler.ctrl_o_cycle
 
 - line 8: `AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} ) // '';`
   → `<[editor.control.get_value]>->( $state_ref->{'editor'}, 'command' ) // '';`
@@ -169,26 +169,26 @@ Same conversion as render.viewport above.
   (3-arg call, cursor defaults to `'end'` inside `load_field` — matches
   `editor_load`'s own default, no 4th arg needed)
 
-### modules/nshell.handler.ctrl_o_render_preload, line 15
+### src/nshell.handler.ctrl_o_render_preload, line 15
 
 Same `get_value` swap as render.viewport.
 
-### modules/nshell.render.empty_prompt, line 23
+### src/nshell.render.empty_prompt, line 23
 
 `AMOS7::TERM::editor_load( $editor, '' );`
 → `<[editor.control.load_field]>->( $editor, 'command', '' );`
 
-### modules/nshell.history.arrow_up (line 80), arrow_down (line 66),
+### src/nshell.history.arrow_up (line 80), arrow_down (line 66),
 ### page_up (line 77), page_down (line 60)
 
 All four: `AMOS7::TERM::editor_load( $editor, $state_ref->{'display_buffer'} );`
 → `<[editor.control.load_field]>->( $editor, 'command', $state_ref->{'display_buffer'} );`
 
-### modules/nshell.search.handler, lines 131, 191, 237
+### src/nshell.search.handler, lines 131, 191, 237
 
 Same `editor_load` → `load_field` conversion (3 sites, same shape as above).
 
-### modules/nshell.no-tty-debug.cmd.char-add, lines 250, 270, 310 (all
+### src/nshell.no-tty-debug.cmd.char-add, lines 250, 270, 310 (all
 `$diag_editor`) and line 325 (`$editor`)
 
 All four are `AMOS7::TERM::editor_get_buffer(...)` reads →
@@ -211,7 +211,7 @@ not just look stale.
 ## verification (required, not optional — this is a live-path change)
 
 1. `perl -c` every touched file.
-2. Grep the whole `modules/nshell.*` tree for `AMOS7::TERM::editor_` and
+2. Grep the whole `src/nshell.*` tree for `AMOS7::TERM::editor_` and
    for any remaining direct `->{buffer}` / `->{cursor_pos}` / `->{kill_buffer}`
    / `->{color_set}` touches on an editor object after your changes — there
    should be ZERO occurrences of either. If any remain, they were missed,
@@ -244,7 +244,7 @@ when done (will need taeki's passphrase — leave pending, that's fine).
 ## - p7-module-syntax-check on all 14 files: error sets normalized and
 ##   diffed against pristine HEAD copies -> IDENTICAL [ only pre-existing
 ##   checker limitation re runtime globals %colors/$call, no new errors ]
-## - grep checks [ task step 2 ]: 'AMOS7::TERM::editor_' in modules/nshell.*
+## - grep checks [ task step 2 ]: 'AMOS7::TERM::editor_' in src/nshell.*
 ##   -> ZERO matches. raw ->{buffer}/->{cursor_pos}/->{kill_buffer}/
 ##   ->{color_set} touches -> only nshell.hook.input_passthrough lines
 ##   20/29 remain, which are $session->{'buffer'}->{'input'} [ a session
@@ -284,8 +284,8 @@ when done (will need taeki's passphrase — leave pending, that's fine).
 ## - NOT done by agent: bin/Protocol-7 sourcecode update-signatures
 ##   [ interactive passphrase ], no git commit
 
-#,,..,,..,,,,,,,.,,,,,,,.,.,,,,,.,...,,.,,.,.,..,,...,...,,.,,,..,...,...,,,,,
-#3VJFRYLPSEE6KUSBBDQFOTP754IRGGXZVJ3H4D3Q23HVIZSLBNPOBKP5WWZDTM3Y5IN3QWDL7VVWE
-#\\\|2WJOEV45PBB2HDY5FKW6P6D34HGL5LLOFBBKWY6BERJOP3LS5LJ \ / AMOS7 \ YOURUM ::
-#\[7]BHA36QPC7HDWNMJJNSJXQUDUUYXX6NAKWJYW3XPGBCEIABAHAOCI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,...,,..,.,,,...,.,,,,.,,...,.,.,..,,...,...,...,,,.,...,.,,,...,
+#UVJK45VCCIMAX67XXXM7FZLD6OSDJR4GLN2DS2TW4EO3JCXDJOXW62HZ6BJU5C7FOABF5T2QABHEG
+#\\\|GZCRTCRNMSM2C5U6EVAKM5CW2YUFPLCGGGIQHL277G3KIB5N53V \ / AMOS7 \ YOURUM ::
+#\[7]AHXIQB6V75MXVFUQ4RX3FRQHFQF5SYXD7ITG3ODZNF5BFMWXKKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

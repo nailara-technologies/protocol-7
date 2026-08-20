@@ -42,7 +42,7 @@ the kimi-web zenka has a working HTTP agent architecture:
 
 4. **approval requests** — tool approval requests from kimi-cli are not
    consistently auto-approved for safe operations (ReadFile, BashCommand with
-   safe commands, WriteFile to modules/).
+   safe commands, WriteFile to src/).
 
 ## signatures note
 
@@ -55,24 +55,24 @@ do not add or modify subroutine whitelists — these are managed separately.
 
 ```bash
 ## full kimi-web module set
-cat modules/kimi-web.cmd.dispatch
-cat modules/kimi-web.cmd.dispatch_parallel
-cat modules/kimi-web.bridge.ensure_local_agent
-cat modules/kimi-web.internal.http_post_async
-cat modules/kimi-web.internal.http_post_sync
-cat modules/kimi-web.handler.batch_result
-cat modules/kimi-web.handler.agent_health_check
-cat modules/kimi-web.init_code
+cat src/kimi-web.cmd.dispatch
+cat src/kimi-web.cmd.dispatch_parallel
+cat src/kimi-web.bridge.ensure_local_agent
+cat src/kimi-web.internal.http_post_async
+cat src/kimi-web.internal.http_post_sync
+cat src/kimi-web.handler.batch_result
+cat src/kimi-web.handler.agent_health_check
+cat src/kimi-web.init_code
 cat cfg/zenki/kimi-web/zenka-startup.v7
 
 ## STRM pattern reference
-cat modules/base.stream.open
-cat modules/base.stream.push
-cat modules/base.stream.close
-cat modules/radio.cmd.listen      ## example of unbounded STRM in a command
+cat src/base.stream.open
+cat src/base.stream.push
+cat src/base.stream.close
+cat src/radio.cmd.listen      ## example of unbounded STRM in a command
 
 ## task queue pattern reference
-cat modules/coding.handler.process-queued-task
+cat src/coding.handler.process-queued-task
 ```
 
 ---
@@ -233,7 +233,7 @@ return TRUE if $tool eq 'ListDirectory';
 
 ## approve writes only to safe paths
 if ( $tool eq 'WriteFile' ) {
-    return TRUE if $path =~ m|^modules/|;
+    return TRUE if $path =~ m|^src/|;
     return TRUE if $path =~ m|^cfg/zenki/|;
     return TRUE if $path =~ m|^data/(tasks|md|yaml)/|;
 }
@@ -292,7 +292,7 @@ my $next = shift @{<kimi-web.task.queue>};
 ```bash
 ## dispatch with STRM and watch events
 p7c kimi-web.cmd.dispatch_stream '{
-  "prompt": "cat modules/X-11.init_code",
+  "prompt": "cat src/X-11.init_code",
   "fresh": 1
 }'
 ## expected: STRM opens, progress packets arrive, complete closes stream
@@ -319,8 +319,8 @@ p7c kimi-web.cmd.enqueue '{ "prompt": "task 2" }'
 - [ ] `kimi-web.process_queue` starts next task after STRM closes
 - [ ] no signature stubs added, no whitelist changes
 
-#,,,,,.,,,,..,.,.,...,.,.,,.,,...,,,,,.,.,.,.,..,,...,...,.,,,,..,.,.,,.,,,..,
-#L2S7YC5TAPB6BO5ANEVXECE3MWCSJS2PYGZ3QY7QI6336EC4PICKDEIUZUCK7IYNQACIW4TNRIWTQ
-#\\\|UURBCRGVZUZ2UWHJHAPAZL2W54NNPKYQMGT4OL7RL2JYZJUN4JR \ / AMOS7 \ YOURUM ::
-#\[7]JC4XC3RKHL3RVN77AB2B43BLXXO3OUASG7Y2CIOBGLZJMZXFBYDY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,,,,,,,,,,..,..,,,,.,.,.,.,.,..,,...,..,,.,.,...,,..,.,,,.,,,
+#HIXVQYHESTCFC7R2QIYDT7NBHKOMLHMAH3EFUHBLIE45XMAIAZFV55PNWWEPBXC3ZMEBJE3QUTGJA
+#\\\|VQ5F3HJJJXWF3NLRZRNGF7AVFL5KXBADXC2M74HRPUVHTBLT2J5 \ / AMOS7 \ YOURUM ::
+#\[7]LHCBLZTJQ6HCFK3QJMEOV7RME7C7TE7TW7EPQWB5KPZUS7FXA6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

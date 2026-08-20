@@ -19,7 +19,7 @@ verified live: three concurrent instances (host `:0`, `xvfb-0000` `:7`,
 ### commit `770553ad2` — routing
 
 - **`base.zenki.resolve_primary_sid`(`.pick`/`.reply`)** — new generic
-  (not X-11-specific) async resolver in `modules/`. Any zenka calls
+  (not X-11-specific) async resolver in `src/`. Any zenka calls
   `<[base.zenki.resolve_primary_sid]>->( $user_name, $callback, $caller_subname )`
   to get a target's routable sid instead of addressing by bare name.
   **Design principle: subname is a group tag, not a tie-breaker** — a
@@ -119,8 +119,8 @@ range, both use subname suffixes but different separators, `:WxH` vs
 [[topic-x11-protocol-hardening]] · [[topic-window-canvas-addressing]]
 (unrelated identity question, already solved differently)
 
-#,,..,.,,,.,.,,..,,..,,.,,,,,,,..,,,,,.,,,,,,,..,,...,...,.,.,.,.,,..,,.,,,,.,
-#TBOP3775JJP4YBKO3Q4INMYWGQXTGKQZGZCHR52HPYEDDM6SCCIBVIAZCWX57OMMVLUAALJU3VRIC
-#\\\|VQOPFSQS3Q6GQ234YHIMMVW56SDEIHGVKV3PQ2FGDHRLNLYDHOH \ / AMOS7 \ YOURUM ::
-#\[7]GLP24KIF7PJO6CM6GRS6LTO7W6PQTDTK3VF4KSVS7DH2OKRDSMAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,.,,,.,,,.,,,.,,,.,.,,.,,,.,,..,,...,..,,,,,,,,.,,,.,,,.,..,,
+#YVWNX4BHPZUC7G7UF44JT3V2OD6ZQNSWY4YUEHFYFYL5CIFLMAAND74TORMNB5XIVMWMULAM3R2SS
+#\\\|522G4JM2PSECHS2AF5JS72SB4MNUUHVNESOMM5SYG6EUJLKHLSB \ / AMOS7 \ YOURUM ::
+#\[7]TVFBRVIS6LOR62WXSTHXMMX4ESXJNLFZDADMUHLUGYE5NFBECACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

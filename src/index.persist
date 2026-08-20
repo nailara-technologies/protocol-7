@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = index.persist
+# descr = save corpus data compressed to zenka_dir [ .zxps ]
+
+return <[base.log]>->( 1, 'index.persist: corpus empty, skipping' )
+    unless ( <index.meta>->{'total'} // 0 ) > 0;
+
+## ensure derived structures are built before persist ##
+<[index.rank]> if <index.meta>->{'dirty'} // 0;
+
+my $schema_version = 2;
+
+my $state = {
+    'meta' =>
+        { %{ <index.meta> // {} }, 'schema_version' => $schema_version },
+    'freq'  => { %{ <index.freq> // {} } },
+    'level' => {
+        map { $ARG => { %{ <index.level>->{$ARG} } } }
+            keys %{ <index.level> // {} }
+    },
+    'terminal'         => { %{ <index.terminal>         // {} } },
+    'contributions'    => { %{ <index.contributions>    // {} } },
+    'sources'          => { %{ <index.sources>          // {} } },
+    'active_checksums' => { %{ <index.active_checksums> // {} } },
+    'chain_policy'     => { %{ <index.chain_policy>     // {} } },
+    'addr'             => { %{ <index.addr>             // {} } },
+    'packed_rank'      => { %{ <index.packed_rank>      // {} } },
+    'trie'             => { %{ <index.trie>             // {} } },
+};
+
+my $total = <index.meta>->{'total'} // 0;
+<[base.log]>->( 1, "index.persist: compressing [ $total chars ]" );
+
+my $frozen;
+IO::Compress::Xz::xz( \( nfreeze($state) ), \$frozen )
+    or return <[base.log]>->( 1, 'index.persist: xz compression failed' );
+
+my $rel_path = qw| numerical/numerical-index_state.zxps |;
+my $written
+    = <[file.zenka_dir.write]>->( $rel_path, \$frozen, qw| > |, 0640 );
+
+return <[base.log]>->( 1, "index.persist: write failed [ $rel_path ]" )
+    if not $written;
+
+## enqueue chunked cube persist as background job [ skip if already running ##
+## ]                                                                        ##
+<index.jobs>->{'persist-cube'} //= { 'job-type' => 'persist-cube' };
+<[index.tick.start]>;
+
+<[base.log]>->( 1, "index persisted [ $total chars -> $rel_path ]" );
+
+return TRUE;
+
+#,,..,.,,,,,.,..,,,.,,,.,,..,,,.,,,.,,,,,,,,.,..,,...,..,,,,.,.,.,,,.,,,,,,..,
+#BF4YH72QUYECXFQCUIX5MDYL4YFEOP5UZCR6S6MDVJHK5B3OKMFZAYXUPTOWHPTV2JVIVB7VSHCR6
+#\\\|YD5PJAAQDLBCS4UAYF4MAVKWGPCYRIGML2SULPZQFJMVAM7ZUUK \ / AMOS7 \ YOURUM ::
+#\[7]CAWW7TLO3JY7EFSDUUVKPSQXVYO6L3SLOVWXXUTEGFO2R5FY3CAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

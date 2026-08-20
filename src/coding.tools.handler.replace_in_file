@@ -1,0 +1,128 @@
+## [:< ##
+
+# name  = coding.tools.handler.replace_in_file
+# descr = content-based find and replace in existing files
+# param = $args[->{path}], old_string, new_string, replace_all, encoding
+
+my $args        = shift                  // {};
+my $path        = $args->{'path'}        // return 'path required';
+my $old_string  = $args->{'old_string'}  // return 'old_string required';
+my $new_string  = $args->{'new_string'}  // return 'new_string required';
+my $replace_all = $args->{'replace_all'} // FALSE;
+my $encoding    = $args->{'encoding'}    // qw| :encoding(UTF-8) |;
+
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+## auto-prefix src/ for dot-notation filenames without directory ##
+if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
+    $path     = catfile( qw| src |, $path );
+    $abs_path = catfile( $root,     $path );
+}
+
+## validate path stays within project [ resolve symlinks ] ##
+my $real_path = Cwd::abs_path($abs_path) // '';
+my $real_root = Cwd::abs_path($root)     // '';
+return ': error : path escapes project root'
+    if !length $real_path
+    or index( $real_path, "$real_root/" ) != 0;
+return ': error : file not found' unless -f $real_path;
+$abs_path = $real_path;
+
+## normalize encoding parameter ##
+my $norm_encoding = <[coding.parser.normalize_encoding]>->($encoding);
+return
+      ': error : unsupported encoding : '
+    . $encoding
+    . ' [ supported are :raw, :bytes, :encoding(UTF-8), :encoding(<other>)]'
+    unless length( $norm_encoding // '' );
+
+## read current content [ prefer staged version for accumulation ] ##
+my $stage_name = $path;
+$stage_name =~ s|/|__|g;
+my $stage_rel   = catfile( qw| staged |, $stage_name );
+my $content_ref = <[file.zenka_dir.load]>->( $stage_rel, $norm_encoding );
+$content_ref = <[file.slurp]>->( $abs_path, undef, $norm_encoding )
+    unless defined $content_ref;
+return ': error : cannot read file' unless defined $content_ref;
+my $content = $content_ref->$*;
+
+## find old_string in content ##
+my $idx = index( $content, $old_string );
+return ': error : old_string not found in file' if $idx == -1;
+
+## count total occurrences ##
+my $count  = 0;
+my $search = 0;
+while ( ( my $pos = index( $content, $old_string, $search ) ) != -1 ) {
+    $count++;
+    $search = $pos + 1;
+}
+
+## check for ambiguous matches [ must be unique unless replace_all ] ##
+if ( $count > 1 and not $replace_all ) {
+    return
+        sprintf ': error : old_string matches %d locations in file -- '
+        . 'use replace_all=true or provide more context', $count;
+}
+
+## perform replacement ##
+my $new_content;
+if ( $replace_all and $count > 1 ) {
+    $new_content = $content;
+    ## replace all occurrences from end to start [ preserve positions ] ##
+    my @positions;
+    $search = 0;
+    while ( ( my $pos = index( $content, $old_string, $search ) ) != -1 ) {
+        push @positions, $pos;
+        $search = $pos + 1;
+    }
+    $new_content = $content;
+    for my $pos ( reverse @positions ) {
+        substr( $new_content, $pos, length($old_string), $new_string );
+    }
+} else {
+    $new_content
+        = substr( $content, 0, $idx )
+        . $new_string
+        . substr( $content, $idx + length($old_string) );
+}
+
+## write back using chmod child if needed ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+my $mode_restore;
+if ( !-w $abs_path and defined $chmod_fh ) {
+    my $cur_mode = ( stat $abs_path )[2] // 0644;
+    $cur_mode &= 07777;
+    print {$chmod_fh} "gw $abs_path\n";
+    select undef, undef, undef, 0.01;    ## yield for child ##
+    $mode_restore = $cur_mode if -w $abs_path;
+}
+
+if ( -w $abs_path ) {
+    <[file.write_encoded]>->( $norm_encoding, $abs_path, \$new_content );
+    if ( defined $mode_restore and defined $chmod_fh ) {
+        print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
+            $abs_path;
+    }
+    return sprintf "replaced %d occurrence%s in %s [ -%d +%d chars ]",
+        $count, ( $count > 1 ? 's' : '' ),
+        $path, length($old_string) * $count, length($new_string) * $count;
+}
+
+## stage when no write access ##
+<[file.zenka_dir.write]>->(
+    $stage_rel, \$new_content, qw| > |, 0664, $norm_encoding
+);
+<[base.logs]>->(
+    1, ':. replace_in_file : staged %s [ no write access ]', $path
+);
+return sprintf "staged replace in %s [ -%d +%d chars, "
+    . "no write access ]\nstaged at : %s",
+    $path, length($old_string), length($new_string), $stage_rel;
+
+#,,,.,..,,,.,,.,,,...,,,,,...,,,,,..,,,..,.,,,..,,...,..,,...,,,,,,.,,.,.,.,.,
+#NPJJHBXT3VGJO2BFMQKEOPMBCRWR57ASMMAYR3SVE3LNRSBV3AD5TLZZTQLIDNKB37TXABGSMMEQM
+#\\\|P32F5NN2HDDNUFW6ZV3QOHII72DHSOIO4D6IUXHRC654GVEOT4Y \ / AMOS7 \ YOURUM ::
+#\[7]75PXQFDTGEWAB65V2BW5EFXUHOH5ONFFHQI3Q6KOMQAGB6PCMQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

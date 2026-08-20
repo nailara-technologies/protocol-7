@@ -23,16 +23,16 @@ design docs [ read first, in order ]:
 
 existing v7 relay plumbing to integrate with [ READ-ONLY for this
 task — do NOT rewrite ]:
-- `modules/v7.handler.output_zenka_stdout` — the `say $line` site
+- `src/v7.handler.output_zenka_stdout` — the `say $line` site
   that becomes the *default-view refresh hook*
-- `modules/v7.handler.process_output_line` — ingest entry point
-- `modules/v7.handler.zenka_output` — pipe-watcher dispatch
-- `modules/v7.setup_stdout_redir` — store-layer init
+- `src/v7.handler.process_output_line` — ingest entry point
+- `src/v7.handler.zenka_output` — pipe-watcher dispatch
+- `src/v7.setup_stdout_redir` — store-layer init
   [ `/dev/shm/.7/STDOUT/<sock>` ]
-- `modules/v7.stdout_log.write` — store-layer write
-- `modules/v7.callback.stdout_log_rotate` — store-layer rotation
-- `modules/v7.init_zenka_output_patterns`,
-  `modules/v7.load_zenka_output_patterns` — the pattern-table dispatch
+- `src/v7.stdout_log.write` — store-layer write
+- `src/v7.callback.stdout_log_rotate` — store-layer rotation
+- `src/v7.init_zenka_output_patterns`,
+  `src/v7.load_zenka_output_patterns` — the pattern-table dispatch
   this task generalises into a register of ingest-side hooks
 
 ## signatures note
@@ -227,8 +227,8 @@ harmony v7.stdout.filter.remove
 harmony v7.stdout.line.iter
 ```
 
-#,,,.,.,,,,,.,,.,,.,,,,..,..,,..,,,..,.,,,,,.,..,,...,...,...,.,,,,,,,,..,,.,,
-#VOTWRHYROVUONIW4QRO6IW6D66ONJNFMD3X3YYN4XBFEQ6GZBNOIKM7QO7OJFVZE3IM2U24HGJFF2
-#\\\|AXFL2CNUJ7SWXPAYTXNWCCKZQYZ4GBSYUU57KG5I2W6WV6AAEO4 \ / AMOS7 \ YOURUM ::
-#\[7]K73ROLPNLJJTO77F2NDB4M3J465QHTI3GZYT4WPYLRVEPSPHUCAI 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,.,.,.,,,.,.,,,,,,..,...,.,,,..,,...,...,,..,...,,.,,..,,,,,,
+#ESE5AUSTUZJ3FD36FYAUMH2FJMZJW6OEVEWZXAWU4JHCPXKPCUYQPA6NODEYVHCWXRYIV3FSI6FYM
+#\\\|PCDG7XBI4EBVHXDD2GC6K664L6VDVCMJ27FCT6ZVZMXD7I6EOOA \ / AMOS7 \ YOURUM ::
+#\[7]7MB5OP3XKI7JL2K2KDHJFGH6GTTS3QYBPSWNSWDGJZYK3S6MTYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

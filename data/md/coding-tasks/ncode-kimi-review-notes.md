@@ -7,18 +7,18 @@ modules reviewed: 6
 
 ## modules reviewed
 
-1. modules/ncode.regex.assess
-2. modules/ncode.regex.expand
-3. modules/ncode.transform.wave
-4. modules/ncode.transform.handler.wave_reply
-5. modules/ncode.cmd.transform
-6. modules/ncode.cmd.tool_list
+1. src/ncode.regex.assess
+2. src/ncode.regex.expand
+3. src/ncode.transform.wave
+4. src/ncode.transform.handler.wave_reply
+5. src/ncode.cmd.transform
+6. src/ncode.cmd.tool_list
 
 reference foundation modules:
-- modules/ncode.init_code
-- modules/ncode.regex.load
-- modules/ncode.regex.apply
-- modules/ncode.regex.save
+- src/ncode.init_code
+- src/ncode.regex.load
+- src/ncode.regex.apply
+- src/ncode.regex.save
 
 ---
 
@@ -170,8 +170,8 @@ total fixes applied: 0 [ formatting only ]
 
 ---
 
-#,,,.,..,,..,,,.,,.,,,,.,,...,,,.,..,,..,,...,.,.,...,...,.,.,,..,,,.,,,.,.,,,
-#X4CWRRQLJIPM7GAGK24CYE4E6G45LYR6USYGCIKOP4D3RW33N4KYHE323HONPTTH7GLMK43XG6AUM
-#\\\|ZGWCHVEBRVOY265HEYHFIAQUD55XYTTGJHNAQXKLJLPBKC63HWA \ / AMOS7 \ YOURUM ::
-#\[7]OKQUHW2XW66HQSVENSK2NDT7V3MFWZ3AB22PVEAMLZVE6CTG7KAI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,,,.,,.,,,,.,...,...,...,...,.,.,...,...,...,,,.,,..,,,,,..,,
+#TQ26YB6RBUJ7FSC4HYATLNM3XTWRLP4WFLVMCUQGAW75Z65MMFSDNMS3IZLJGOHAI4CPE7TGCOOOO
+#\\\|4ZR2S5M246KMNUD432BBYIM4OQH5PQY6BGAM7TIBGVWOKSN77SO \ / AMOS7 \ YOURUM ::
+#\[7]V7EAESBHY3NNW36PU4IWXIFDDVZEU5Y2BOPDY6CJOAIPR5ALICAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,121 @@
+## [:< ##
+
+# name  = zenki.parent.start_via_v7
+# descr = start zenka via v7's jobqueue system [integrates with v7's dependency resolution]
+
+my $params = shift || {};
+
+my $zenka_name = $params->{zenka_name} || $params->{zenka};
+
+unless ($zenka_name) {
+    return {
+        success => FALSE,
+        error   => 'zenka_name parameter required'
+    };
+}
+
+<[base.log]>->(
+    2, "zenki.start_via_v7: requesting v7 to start '$zenka_name'..."
+);
+
+## Ensure v7 is running [this is the dependency resolution entry point]
+my $v7_result = <[zenki.parent.ensure_v7]>;
+
+unless ( $v7_result->{success} ) {
+    return {
+        success => FALSE,
+        error   => "cannot start $zenka_name: v7 not available - "
+            . ( $v7_result->{error} || 'unknown error' ),
+        v7_error => $v7_result
+    };
+}
+
+<[base.log]>->( 3, "  ✓ v7 is running (PID: " . $v7_result->{pid} . ")" )
+    if exists $v7_result->{pid};
+
+## Now v7 is running - check if we're running INSIDE v7 or outside
+my $inside_v7 = (
+    exists $code{'zenka.cmd.start'} ||          # v7-specific function
+        exists $data{'v7'}{'zenka'}{'setup'}    # v7 data structures
+);
+
+if ($inside_v7) {
+    ## We're inside v7 - use v7's native start mechanism
+    <[base.log]>->( 3, "  Using v7's native zenka.cmd.start" );
+
+    ## Call v7's start command [with dependency resolution]
+    my $result = <[zenka.cmd.start]>->( { args => $zenka_name } );
+
+    if ( $result->{mode} eq qw| true | ) {
+        return {
+            success => TRUE,
+            via_v7  => 1,
+            message => $result->{data}
+        };
+    } else {
+        return {
+            success => FALSE,
+            via_v7  => 1,
+            error   => $result->{data}
+        };
+    }
+} else {
+    ## We're outside v7 - use IPC to request start via cube
+    <[base.log]>->( 3, "  Sending IPC command to v7 via cube" );
+
+    ## Check if we have required modules loaded
+    unless ( exists $code{'protocol-7.command.send.local'} ) {
+        return {
+            success => FALSE,
+            error   => 'zenki module not loaded with IPC '
+                . 'support - missing net/protocol modules',
+            hint => 'ensure zenki configuration includes: '
+                . 'modules.load = net protocol io.unix zenki'
+        };
+    }
+
+    ## Check if connected to cube
+    unless ( exists $data{'session'} && keys %{ $data{'session'} } ) {
+        return {
+            success => FALSE,
+            error => 'not connected to cube - cannot send IPC command to v7',
+            hint  =>
+                'zenki must connect to cube via [base.net.connect:\'unix\']'
+        };
+    }
+
+    ## Send command to v7 to start the zenka
+    my $cmd_count = <[protocol-7.command.send.local]>->(
+        {   'command'   => "v7.zenka.cmd.start",
+            'call_args' => { 'args' => $zenka_name },
+            'reply'     => {
+                'handler' => qw| zenki.handler.v7_start_reply |,
+                'params'  => { 'zenka_name' => $zenka_name }
+            }
+        }
+    );
+
+    if ( $cmd_count && $cmd_count > 0 ) {
+        <[base.log]>->( 2, "  ✓ Start request sent to v7 for '$zenka_name'" );
+
+        return {
+            success => TRUE,
+            via_ipc => 1,
+            message => "start request queued via v7 (reply pending)"
+        };
+    } else {
+        return {
+            success   => FALSE,
+            error     => 'failed to send IPC command to v7',
+            cmd_count => $cmd_count
+        };
+    }
+}
+
+0;
+
+#,,,,,..,,,,.,,,.,,,,,.,.,,,.,,.,,,.,,.,.,,,,,..,,...,..,,...,...,,..,..,,.,.,
+#323YW5IO2K6WJYAWW472I5YIPXNZESAF6SAWUGVW2HOMIJE5J73UQ2RBLTWCIQXXZOHCRHJOOXTB4
+#\\\|2CWTCHDY3673AVNFPJAFIGDEEXBLK4D2OADICRBFGCIK5D3IUAY \ / AMOS7 \ YOURUM ::
+#\[7]MVXXWPBNYPTNHYXY6LNS363VCNBYB7TWZZENRAK7W5FZBHUBYWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

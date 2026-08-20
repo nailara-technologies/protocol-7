@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = nameserv.cmd.status
+# descr = return nameserv zenka status information
+
+my $zones = <nameserv.zones>;
+my $stats = <nameserv.stats>;
+
+my @zone_list = map {
+    my $z = $zones->{$ARG};
+    sprintf(
+        "%s: %d records (serial %d)",
+        $ARG, scalar @{ $z->{'records'} // [] },
+        $z->{'serial'}
+    );
+} sort keys %$zones;
+
+my $data_str = sprintf(
+    "nameserv status:\n  bind: %s:%d\n  zones: %d loaded\n "
+        . " queries: %d\n  errors: %d\n  zone list:\n    %s",
+    <nameserv.bind.addr>, <nameserv.bind.port>,
+    scalar keys %$zones,  $stats->{'queries'},
+    $stats->{'errors'},   join( "\n    ", @zone_list ) || '(none)'
+);
+
+return { mode => 'size', data => $data_str };
+
+#,,,,,.,.,...,,..,,,,,..,,,.,,.,.,,,,,.,,,,,,,..,,...,...,.,,,,,,,,..,...,,.,,
+#ISQW3ZX6ZOFWXO3PEUXKV22TUBZF5F6JF7GCE7YZ3MWSZMX7KBX73NJOX6E33YYI7JZ56YG7A2SFO
+#\\\|PSL3TSS4C45L7OZ53LNGGPUCUJABQS3O7OEOLCXNIBJL3F5HC74 \ / AMOS7 \ YOURUM ::
+#\[7]MZ75LYPWHSAFOQCEHPERTNV4JIQNNHBJFF3FEFPARECNUU7TGGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

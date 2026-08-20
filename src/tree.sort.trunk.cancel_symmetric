@@ -1,0 +1,75 @@
+## [:< ##
+
+# name = tree.sort.trunk.cancel_symmetric
+# descr = eliminate symmetric pairs along the 7-axis
+
+my $grid = shift // [];
+
+return { unpaired => [], residuals => [] } if not @$grid;
+
+my @unpaired;
+my @residuals;
+
+for my $col ( 0 .. 4 ) {
+    next if not defined $grid->[$col];
+
+    ## [ scan symmetric pairs: R and 8-R (1-indexed) = R and 6-R ##
+    ## (0-indexed) ]                                             ##
+    my %seen;
+    for my $r ( 0 .. 6 ) {
+        next if $seen{$r};
+        my $mirror_r = 6 - $r;
+        $seen{$r}        = 1;
+        $seen{$mirror_r} = 1;
+
+        my $entries_r      = $grid->[$col][$r]        // [];
+        my $entries_mirror = $grid->[$col][$mirror_r] // [];
+
+        my $count_r      = scalar @$entries_r;
+        my $count_mirror = scalar @$entries_mirror;
+
+        if ( $count_r == 0 and $count_mirror == 0 ) {
+            next;
+        } elsif ( $count_r == 0 ) {
+            push @unpaired, @$entries_mirror;
+        } elsif ( $count_mirror == 0 ) {
+            push @unpaired, @$entries_r;
+        } else {
+            ## [ cancel pairs: match by count, residual = weight difference ##
+            ## ]                                                            ##
+            my $min_count
+                = $count_r < $count_mirror ? $count_r : $count_mirror;
+            my $weight_r      = 0;
+            my $weight_mirror = 0;
+            $weight_r      += ( $ARG->{'weight'} // 0 ) for @$entries_r;
+            $weight_mirror += ( $ARG->{'weight'} // 0 ) for @$entries_mirror;
+
+            ## [ record residual as net contribution ] ##
+            my $net_weight = abs( $weight_r - $weight_mirror );
+            if ( $net_weight > 0 ) {
+                push @residuals,
+                    {
+                    col    => $col,
+                    row    => $r < $mirror_r ? $r : $mirror_r,
+                    weight => $net_weight,
+                    };
+            }
+
+            ## [ unmatched entries survive ] ##
+            if ( $count_r > $min_count ) {
+                push @unpaired, @$entries_r[ $min_count .. $#$entries_r ];
+            } elsif ( $count_mirror > $min_count ) {
+                push @unpaired,
+                    @$entries_mirror[ $min_count .. $#$entries_mirror ];
+            }
+        }
+    }
+}
+
+return { unpaired => \@unpaired, residuals => \@residuals };
+
+#,,,.,.,.,,,,,..,,..,,,,.,,.,,...,,,.,.,.,,.,,..,,...,...,...,,..,,,.,...,,..,
+#T7GNASWGCFBV4S5B4YIJCYQSJDG7I5GQCA5CWDLGXIK6L3BA7GR4LGDN6U5ZJ6FINMDHVFTWZFUC4
+#\\\|KQ224XUHEMCXDFKALMW4QMZDKNHXONEB6WJAMSASMDAMR3NOB7O \ / AMOS7 \ YOURUM ::
+#\[7]IDEUBSJYINKTRAKRRW5HJJDB3KSIG67A26KN6ZYSRUDKQD6AZGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

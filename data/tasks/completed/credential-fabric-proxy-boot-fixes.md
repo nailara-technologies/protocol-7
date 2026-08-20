@@ -11,7 +11,7 @@ not read-only (the findings doc was a read-only verification pass;
 fixes land here).
 
 ## problem — four independent issues, all confirmed live
-1. **syntax error in `modules/proxy.handler.accept` line 6:**
+1. **syntax error in `src/proxy.handler.accept` line 6:**
    ```perl
    my $listen_sock = shift->w->data // $proxy . listen_sock;
    ```
@@ -24,7 +24,7 @@ fixes land here).
    weight — remove it, or replace with `// $data{'proxy'}{'listen_sock'}`
    if you determine the fallback is genuinely needed. prefer removing it.
 
-2. **`modules/proxy.selector.load` dies on undef deref at line 9:**
+2. **`src/proxy.selector.load` dies on undef deref at line 9:**
    ```perl
    my $yaml_str = <[file.slurp]>->($config_path)->$* // '';
    ```
@@ -91,8 +91,8 @@ fixes land here).
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,,,,.,,,.,.,.,.,,..,.,,,,,,,..,,,,.,...,.,,,..,,...,...,,..,,,.,.,.,,,.,...,
-#6K46EFBPA3V6ZLHQKKQQHPEJEZVIL23PMSIPJZI7PBZ37LK2DRAE6QPXJ7LMWPSJVZ2B6OVNOJLLK
-#\\\|NTAG2KYF7JQCWHYTUEIPZ6Y4Z2UQ2LI7TIWKS5PDY3ATFXYMGI4 \ / AMOS7 \ YOURUM ::
-#\[7]XJREFM542AZ4JPF4KYVGYYGWF3YBVQYEDQF3RFSMBMHBMBTOSUDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,,..,..,,..,,...,,,.,..,,.,.,..,,...,...,,.,,..,,.,,,...,.,.,
+#ZHYW4K4QEUIYS5U5UAPISVO4QVGURSPE67XP7VV6QUBAVQYLQRYXLAENPGRNO7KA7PXSSZGV2W6UO
+#\\\|BRUWYQIC3N5VGLNK7HMGQ53J6KYNY3T3YBNT5EAUSMHO5MGXRBO \ / AMOS7 \ YOURUM ::
+#\[7]VBSW3NGONTD2KIGQ7FUSQODVBRPBC5OYAGTMD2YE7F2FQNJA2MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

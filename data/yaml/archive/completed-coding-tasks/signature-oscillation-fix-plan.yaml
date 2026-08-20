@@ -16,11 +16,11 @@ description: |
   five targeted fixes to eliminate the oscillation and achieve single-pass signing.
 
 affected_modules:
-  - modules/source.cmd.get-code-signed
-  - modules/source.extract_sig_body
-  - modules/source.harmonize_payload_line_feed
-  - modules/source.create_harmonic_footer
-  - modules/source.restore_payload_endline_state
+  - src/source.cmd.get-code-signed
+  - src/source.extract_sig_body
+  - src/source.harmonize_payload_line_feed
+  - src/source.create_harmonic_footer
+  - src/source.restore_payload_endline_state
 
 oscillation_mechanics: |
   The oscillation occurs because of cascading logic inversions:
@@ -49,7 +49,7 @@ oscillation_mechanics: |
 implementation_order:
   - step: 1
     task: "Fix #1: Clear flag after adding separator"
-    module: "modules/source.cmd.get-code-signed"
+    module: "src/source.cmd.get-code-signed"
     location: "After line 138"
     time_estimate: "5 minutes"
     description: |
@@ -64,7 +64,7 @@ implementation_order:
 
   - step: 2
     task: "Fix #2: Correct inverted restoration condition"
-    module: "modules/source.extract_sig_body"
+    module: "src/source.extract_sig_body"
     location: "Lines 627-632"
     time_estimate: "10 minutes"
     description: |
@@ -89,7 +89,7 @@ implementation_order:
 
   - step: 3
     task: "Fix #3: Standardize harmonization logic"
-    module: "modules/source.harmonize_payload_line_feed"
+    module: "src/source.harmonize_payload_line_feed"
     location: "Lines 36-55"
     time_estimate: "15 minutes"
     description: |
@@ -109,7 +109,7 @@ implementation_order:
 
   - step: 4
     task: "Fix #4: Sync state encoding with actual modifications"
-    module: "modules/source.create_harmonic_footer"
+    module: "src/source.create_harmonic_footer"
     location: "Lines 175-213"
     time_estimate: "20 minutes"
     description: |
@@ -128,7 +128,7 @@ implementation_order:
 
   - step: 5
     task: "Fix #5: Simplify restoration logic"
-    module: "modules/source.restore_payload_endline_state"
+    module: "src/source.restore_payload_endline_state"
     location: "Lines 27-39"
     time_estimate: "15 minutes"
     description: |
@@ -220,14 +220,14 @@ risk_assessment: |
 related_documentation:
   - "data/yaml/docs/processing/signature-endline-handling.yaml"
   - "data/yaml/docs/formats/signature-footer.yaml"
-  - "data/yaml/code-reviews/modules/source.signature-endline-policy-system.yaml"
+  - "data/yaml/code-reviews/src/source.signature-endline-policy-system.yaml"
   - "data/yaml/archive/completed-fix-tasks/sourcecode-zenka.signature-endline-handling-glitch.yaml"
 
 created_date: 2025-11-10
 prepared_for_version: "3KZNJAMXLQ-5259.0"
 
-#,,,.,,..,,..,,,,,,.,,.,,,.,.,..,,..,,,.,,,,.,..,,...,...,,,,,.,,,.,,,...,..,,
-#LQJQSXHRNGMOKAUZJCSPG3H74JQ5US5OSE2BEZIYZCLXJYLKFMMI3E55U6C2C4LERN54DDS53CSUE
-#\\\|ZDSI5I7OQDSXXTO6DTVY5AYZQ5VAO7UPEJLYZSIC6XCBUVNIOL3 \ / AMOS7 \ YOURUM ::
-#\[7]5NP5HXS2WKOSHLNJVT222PUY55R57XTGFWT3REKMAKBVKJSNKACY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,.,.,,.,,,,.,...,..,,.,.,.,.,..,,...,...,..,,,,.,...,,..,,..,
+#UVU2JLBIKUKTXKHWBRT7D3TRN3TDLRAV32X46VLIPSO4E4QGVITYL55OUCZDCGP74KY3HDOJVL5R4
+#\\\|XVUZXYNVQUO2OLQPDAVZXXNVH5G6FTD7KLGXR3THJPOUKAFU4Z7 \ / AMOS7 \ YOURUM ::
+#\[7]RRU3TNISPC3W4KNOAGLSHS6E2AYFZZ7ESLHDFYAZY54G2ZYXRGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

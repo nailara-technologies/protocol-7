@@ -7,9 +7,9 @@ metadata:
   originSessionId: f868a396-75dc-4799-8328-ff97ebc7b708
 ---
 
-`modules/branch.session.dag.parallel_dispatch:26` called
+`src/branch.session.dag.parallel_dispatch:26` called
 `<[mcp.kimi_dispatch]>->({...})` — but `mcp.kimi_dispatch` is an MCP
-tool name (`mcp__protocol-7__kimi_dispatch`), not a `modules/*` P7
+tool name (`mcp__protocol-7__kimi_dispatch`), not a `src/*` P7
 module. This was the actual cause of the `reinit source [error]` /
 "found call to 1 non-existing subroutine" on every `branch` zenka
 reload (pre-existing, unrelated to the 2026-06-12 `branch.space.*`
@@ -36,8 +36,8 @@ RPC path (e.g. route via cube to `kimi.task.enqueue` — `branch`'s
 `base.protocol-7.command.send.local` is cube-side session routing, not
 a zenka-callable RPC primitive). Not scoped.
 
-#,,,,,...,..,,,,,,,,,,,..,.,,,...,.,.,..,,..,,..,,...,...,,.,,,,,,,..,..,,...,
-#PGLGXA5RROTAAUDIVGKSHARN7KYGF4VGGFQ6TQYQZLCPWGIKKPGGILQ555WCD3BBW2S3DP5SKD4DW
-#\\\|7JUH67BM3ZW5LCZHMEFEQBJVTHKWWPEURYOXSLUMDDCHK2BW7PV \ / AMOS7 \ YOURUM ::
-#\[7]I4PYXP3QMZE5YGKKNP425F5LEHUT732COB3IJQOVRMSB36KR2EBY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,.,,,,,.,..,,,.,,,.,,,,,,,,.,..,,...,...,,..,...,,,,,,..,..,,
+#OZZU2ZDSOXNU34AYW2DQZEAM4BYPUPNKL4ZTMF42NV3ZXYGGZZX2TZCVL4FX3JATOMZK24ELE7UUA
+#\\\|ZKNANXMLCQP5MRTX52N2GYMBSYTCSBSSGLAM3ETVFG33Z7HHC25 \ / AMOS7 \ YOURUM ::
+#\[7]JUKC4FIUHTHX3DEH7GLRGGJEGYNPQZVDGLXSULDXGRVVE7AUNIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

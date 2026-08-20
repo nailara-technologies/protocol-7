@@ -10,10 +10,10 @@ do NOT add #,,... stub lines. leave files clean for signing.
 
 ## read these files first
 
-    modules/models.registry.populate_from_discovery   (existing — to be updated)
-    modules/models.storage.adapter.invoke.discover    (returns invoke records)
-    modules/models.storage.adapter.lmstudio.discover  (returns lmstudio records)
-    modules/models.registry.create_entry              (how entries are built)
+    src/models.registry.populate_from_discovery   (existing — to be updated)
+    src/models.storage.adapter.invoke.discover    (returns invoke records)
+    src/models.storage.adapter.lmstudio.discover  (returns lmstudio records)
+    src/models.registry.create_entry              (how entries are built)
 
 
 ## record format differences to normalize
@@ -33,7 +33,7 @@ registry expects (from populate_from_discovery):
 
 ## module to create
 
-### modules/models.storage.adapter.discover_all
+### src/models.storage.adapter.discover_all
 
     # name  = models.storage.adapter.discover_all
     # descr = call all active adapters and return merged model record list
@@ -100,7 +100,7 @@ registry expects (from populate_from_discovery):
 
 ## module to update
 
-### modules/models.registry.populate_from_discovery
+### src/models.registry.populate_from_discovery
 
     current fallback (when no arrayref passed) is:
         $discovered = <[models.storage.discover_directory]>->(
@@ -119,8 +119,8 @@ registry expects (from populate_from_discovery):
 
 ## verification
 
-    ptd -c modules/models.storage.adapter.discover_all
-    ptd -c modules/models.registry.populate_from_discovery
+    ptd -c src/models.storage.adapter.discover_all
+    ptd -c src/models.registry.populate_from_discovery
 
     then test via p7c:
         p7c models.adapter-discover        ## should list invoke models
@@ -128,8 +128,8 @@ registry expects (from populate_from_discovery):
 
 report when done.
 
-#,,,,,.,.,.,,,..,,...,..,,,,,,...,,.,,,..,.,.,..,,...,...,.,.,.,.,...,.,,,.,.,
-#HQACA3BVUJSRPTMWDZ626QQLQUKMI5N66K4KF3KGGGJFPZA6XZ3UNV4LOO76NJTTZ66J7GZULIG6Q
-#\\\|XMNBEMCDKAUSPT54WIPOTI63QWIJJDXOWRESUBTCMYHWHSJW57P \ / AMOS7 \ YOURUM ::
-#\[7]TSNT2CS6JE2VZH7XJNSSHUQAPSFNPOXVSYYTPOLC5TBJQOEI24DQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,.,.,,.,,,.,,.,.,,,.,...,,.,,..,,...,...,.,,,,.,,,..,,.,,...,
+#27PVGO7XUQXVKK3UXPGWTGTCG42EL3274BCNTUNC3AUMF4B67F7DNTOTILOUL6653K4PGERCWC6MA
+#\\\|UXT2FQ2HOYV4GSXPPCKSXIDGCEELIS6FOCIYVL3LMUGTGAH673Y \ / AMOS7 \ YOURUM ::
+#\[7]F6ZECLER5DTBHUKLG7NUABWJXNB6HAOJT63WWQP5CQR6RIZQJ4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

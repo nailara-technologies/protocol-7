@@ -64,7 +64,7 @@ reported `status=failed` after the MCP idle timeout, but
 `~/.kimi/logs/kimi.log` showed the work (6 modules, live-verified
 against cred-mesh/proxy, self-recorded gotcha note) had already
 completed; only the final `write_new_file` for its own memory note got
-cut off mid-reply. Disk state (`git status`, `ls modules/`) confirmed
+cut off mid-reply. Disk state (`git status`, `ls src/`) confirmed
 everything landed. Same lesson: check disk/logs before treating a
 `failed` task-notification as lost work.
 
@@ -171,8 +171,8 @@ exercised sessions/synthetic text that happened to be pure ASCII.
 [[feedback-kimi-dispatch-pattern]] ·
 [[feedback-tasks-completed-scan-verdict-trust]]
 
-#,,.,,,.,,,,,,..,,..,,.,.,..,,,,.,,.,,,.,,,..,..,,...,...,,,.,..,,.,,,,.,,,,,,
-#5KQD54ZUBAYBUO5WG42DCG6G63EBKMUIMR4MRPSNVL7URY2I2RPJO3KC53TJFRBLSB5K4CGI6MZFG
-#\\\|3QLBPC2DFLX3PQWV2L3KPLAPE7O6LYMPZNEHRKX25Q3KFQDCAJM \ / AMOS7 \ YOURUM ::
-#\[7]SLBIZSUKWBU6JRFP6EKTFNJ7FP4QGVD7LX64SVZ3KDCIMFQBHGAY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,,.,,,..,.,,,..,,,.,,..,,...,..,,...,...,..,,.,,,,.,,,.,,.,,,
+#KJL62DROGR77UUAAQ3F4K45XZXKHCM7MWTKSV7STZUU7Q4LVXI55UR347VL6HYFLTVCFZLZ5YGTPO
+#\\\|G57RUVSQ4E7SQ2D2WXVZYQMDZVCRI2N7JRGWLY6ZIQA5TXWXYA2 \ / AMOS7 \ YOURUM ::
+#\[7]DN232SD7WA4ZWW7GIE6L6L4UOBSWO67LBNAYHB34H22ONRL4Z2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

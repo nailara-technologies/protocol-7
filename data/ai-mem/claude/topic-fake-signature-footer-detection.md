@@ -68,7 +68,7 @@ placement/pattern as the existing PLACEHOLDER-stub strips: detects a
 footer-shaped block whose checksum line matches `(?:[A-Z]\d){15,}`
 (15+ consecutive letter-digit pairs — essentially impossible to occur by
 chance in real BMW/checksum output, verified against all 4948 files in
-`modules/` with zero false positives at this threshold). Strips
+`src/` with zero false positives at this threshold). Strips
 unconditionally before real-footer extraction runs, so the real footer
 behind it becomes extractable and valid again. Verified via standalone
 regex equivalence tests AND a live `v7.sourcecode strip-signature-footer`
@@ -111,7 +111,7 @@ real-signature extraction pattern, which reuses the same
 `$footer_start_regex` as its start marker — so extract returned
 `extraction_failed_with_markers` without stripping and the console
 skipped the file. Fix: all footer-recognizing regexes in
-`modules/source.extract_sig_body` are now left-anchored /
+`src/source.extract_sig_body` are now left-anchored /
 right-tolerant (`{70,}` open minimums; recognition confidence carried
 by the `AMOS7`/`YOURUM`/`DATA-SIGNATURE`/`\\|`/`\[7]` marker tokens,
 not the char count), plus a caller fix in
@@ -125,8 +125,8 @@ Live-verified via the sourcecode console zenka; **LANDED `2528fb353`**.
 
 [[topic-format-code-bugs-fixed]]
 
-#,,..,,,,,,,.,,..,,..,,,,,,,,,,..,...,.,.,.,.,.,.,...,...,...,,..,...,...,,.,,
-#TFNZGCKP7XQXP5HCHHXY747EISOSY3C2WCFHYKAZGPBF2QZ4U4O2BGWC4PNAJHVIRHHQQEISS3YQ6
-#\\\|WBEYNUBXWS2UM56BIKWOQATACPVYSBICM7ZNYGDYJCVUJXGXSG2 \ / AMOS7 \ YOURUM ::
-#\[7]7A7CKESDXERUEVTFYQTQMBDWDFRSFXIKFNORPTNN3ZUC3R2D5EAY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,,..,,,,,,..,,,.,,..,..,,,,,,.,.,...,...,.,,,,,.,,..,.,.,..,,
+#XRRLZ7L6K3VM5ARWHQW2RR3BD3T62MRRRQJSHE6QAHKCWII3RUKK2JFWAUXMQYTTVEXDZMTOKBQYA
+#\\\|JHXDCFSAEQTXY4JRO6NX5O3B4SI73M7QIRRXJTZJZA34OBDM4DF \ / AMOS7 \ YOURUM ::
+#\[7]ZTR7MRTRE2PQOVMIFOFX6B4R22ENUFKGAFMTXQJZC4YOBPAJOSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

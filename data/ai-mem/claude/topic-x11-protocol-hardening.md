@@ -44,7 +44,7 @@ none is possible for the severe form of it either.
 
 **Decisive finding (same incident, continued)**: user recalled seeing
 this identical symptom before, during `powershell` zenka + pointer-hook.ps1
-(coordinate-stream) development — see `modules/powershell.pointer-stream`,
+(coordinate-stream) development — see `src/powershell.pointer-stream`,
 which spawns a persistent `powershell.exe`-hosted script on the Windows
 side streaming cursor coords into WSL via a shared-memory bridge. Ruled
 out as the *fix* though: restarting the `powershell` zenka did not clear
@@ -81,7 +81,7 @@ every STRM subscriber depending on it: `screen-setup`, `ticker`, `tile`,
 driver stalls.
 
 **Landed (COMMITTED 3b966708d 2026-07-11, verified working after host reboot — menu logo/web-browser no longer freeze on Wayland when backend is gone)**:
-- new `modules/base.exec.with_timeout` — reusable synchronous drop-in for
+- new `src/base.exec.with_timeout` — reusable synchronous drop-in for
   `system()`/`qx()` calls to external tools. Built on `select()` +
   `base.s_read` (same non-blocking read primitive `coding.handler.http_io`
   uses) rather than `alarm()`. On timeout, sends `SIGKILL` to the child but
@@ -118,7 +118,7 @@ that produced the design: `cdc77f2e`. Implemented by kimi from
   deadline across the *entire* multi-byte reply, header and body.
 - **self-inflicted bug, worth remembering**: assistant misdiagnosed
   correct `<[event.add_timer]>`/`<[event.add_io]>` calls (bare namespace)
-  as broken because `ls modules/` shows no file by that literal name, and
+  as broken because `ls src/` shows no file by that literal name, and
   told kimi to rename them to `<[base.event.add_timer]>`/
   `<[base.event.add_io]>` — the actually-broken direction.
   `base.event.pre_init` calls `<[base.swap_subs]>->('base.event','event')`,
@@ -127,7 +127,7 @@ that produced the design: `cdc77f2e`. Implemented by kimi from
   that runs. Zenka crashed on restart ("undefined value as subroutine
   reference"). User found + fixed via a global `ncode replace`, which also
   caught one pre-existing unrelated instance of the same wrong-direction
-  bug in `modules/data.mount.shm.feedback.watch`. Full writeup + the
+  bug in `src/data.mount.shm.feedback.watch`. Full writeup + the
   general `base.swap_subs` mechanism (a growing list of families get
   moved this way, not just `event`) now in
   [[feedback-base-prefix-stripped]] — check that before ever "fixing" a
@@ -136,7 +136,7 @@ that produced the design: `cdc77f2e`. Implemented by kimi from
 Design, in the order it was derived:
 
 - **existing replay gap, found by reading the code, not new to this
-  design**: `modules/X-11.reconnect` today only calls `<X-11.obj>->init(...)`
+  design**: `src/X-11.reconnect` today only calls `<X-11.obj>->init(...)`
   (re-dial the *same* object) + `X-11.init_display_states` (reload state
   from file). It never re-issues `RRSelectInput` (registered once, in
   `X-11.job.finalize_server` line 111) or `<[X-11.grab_key]>` (same file,
@@ -214,8 +214,8 @@ note for a future pass, not touched.
 
 [[topic-gtk-wsl-window-positioning]] · [[feedback-weston-move-unreliable-use-compositor-grab]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,,,,.,.,,.,,.,.,,,,,,,.,,,,,,,.,.,,,,..,,.,,..,,...,...,.,.,,.,,,,,,,,,,,.,,
-#EAS27VBTB5HF6XVQSOKJTT5GZK4YVKJZWTTUF7USFUK4OVF5WMRVPAXHRSETZF4E6RMUOZZ5EQGGS
-#\\\|6N3N5HXKSOYZF7CHYO3BNMTY64SX7NJFITXE4BNGZT6PCUAMYFR \ / AMOS7 \ YOURUM ::
-#\[7]7DMFJTGIMNP4FCJLKUQ6I2ICCKBBK7HTIKG37L2QVIVO7IUHAGCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,,,.,,.,,,..,...,,,,,...,.,,,..,,...,...,,,.,,,.,.,.,,,.,,..,
+#IKCEORVQDQS7AGUSZKZGKDQXFLB6LWK7JB5UYFS3SKAAILUOWCGFBCEQY3QZHJM3YS73DOJZFCPQC
+#\\\|JIDGIDSJTQVLPZCQ3L5PCU446AT6J7ZXN46HCUNZ4DKOZLH7LV3 \ / AMOS7 \ YOURUM ::
+#\[7]PCUYPJHO7WL7WF6F2YSJTW2RCLSE5YBPQKNGQYSPMGL6M7MTDMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ related prior art [ this document names the principle those already embody ]:
   `data/md/design/PLUGIN-SLOT-SELECTOR.md`) — closest existing implementation to
   the generalized form below: provider-based, interest-max selection, already
   resource-agnostic (`PROGRESS`/`STATUS` slots fed by arbitrary providers)
-- `modules/coding.cmd.round-progress` — bespoke, hand-rolled, the instance that
+- `src/coding.cmd.round-progress` — bespoke, hand-rolled, the instance that
   prompted this note
 
 ---
@@ -84,11 +84,11 @@ from outside the frame-system's own docs before.
   implementation this document names the principle of
 - `data/md/design/PLUGIN-SLOT-SELECTOR.md`, `data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md`
   — the wider ascii-frame/console design family this sits alongside
-- `modules/coding.cmd.round-progress`, `bin/dev/ptd` (`show_progress`) — independent
+- `src/coding.cmd.round-progress`, `bin/dev/ptd` (`show_progress`) — independent
   existing instances of the pattern named here
 
-#,,.,,,..,,.,,,,,,.,,,,.,,,,.,...,,..,,..,..,,..,,...,...,,.,,,,,,,..,..,,,.,,
-#AKUAZSSNDHGEWBUXF4OATRLQ64276OMKB6BNHAEKONMO4VPOSLIUFRR6WL22QCOBNETFY4ALPMQ6C
-#\\\|ENKJ2OSXDNSQSMLROQOWMJHSXDQMVQHUEF3NE2UWSCU6AL54XAH \ / AMOS7 \ YOURUM ::
-#\[7]HOMULTNM7WEBQ2GM5FOPNQ7I76NHAIZRB4YOBE2QUWBRR4RQEGAA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,.,..,,...,..,,.,,,.,,,,.,,...,..,,...,...,..,,.,.,,.,,,..,,,.,
+#SUYNJJ5ASSZTQ7JV6P7RNXNAFWKO4CX5SD6VJ37QXTJEOSXXPCAU4MU36YOMNMICRBEBSRDIGH3EO
+#\\\|LX4IQQ2EB623NUYKU3MNFRHJQNXIZI3XD5UTNEJ2GVAPCZEHENG \ / AMOS7 \ YOURUM ::
+#\[7]SNCOD3W5K5LDN66EJCVXX3J3IIVXOAXXCEGZEZO3UOBMSUKBSOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

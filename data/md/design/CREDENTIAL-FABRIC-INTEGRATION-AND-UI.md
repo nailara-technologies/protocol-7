@@ -227,7 +227,7 @@ each scenario is reproducible from a fresh `var/` and a seeded fabric:
 
 ### why a new ui
 
-`p7.keys list` (modules/keys.console.list) is the only surface today
+`p7.keys list` (src/keys.console.list) is the only surface today
 for any kind of credential state. it lists c25519 keypairs and
 hostkeys — useful for the keys zenka, useless for the credential
 fabric whose state is:
@@ -329,7 +329,7 @@ nshell wrapper moves down the slot list and re-renders.
 ### how it is built
 
 the ui is **not a new zenka**. it lives inside the credential_fabric
-zenka as `modules/credential_fabric.ui.*`, with three layers:
+zenka as `src/credential_fabric.ui.*`, with three layers:
 
 1. **query layer** — `credential_fabric.ui.query.{overview,slots,
    slot_detail,rotation_log,auth_relay,key_holder,access_map}` —
@@ -558,8 +558,8 @@ new modules needed:
    files — they assume the migration has happened or is concurrent.
    flag this before phase 3 starts.
 
-#,,,,,.,.,,,,,,..,,..,,,,,,..,..,,..,,,.,,...,..,,...,...,,..,,..,..,,..,,...,
-#HFL2BDYYI2JBMTU5ODECKMH3KHVCNICCF3I6BHUIISLZXCGMBEMYKNSPHDAH6DSUZEUQIDI7HFHDC
-#\\\|TVMW6KAWBYNF63AS23KPVTBXLZ7YHPDH7STP3HK6QQRLFAW3ATC \ / AMOS7 \ YOURUM ::
-#\[7]ZIQPMBL2Q5M3JIMEXGPU4YJUAD6QARYE7PAAESOJNA6GYGYYZCBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,,,,,,,,.,,,.,.,.,,,,,.,.,.,..,,...,...,..,,,,,,,..,...,,.,,
+#POO3IOHU2TDZWJ6AW4RMRKCPHUR7D5YWB72KAGNRZG6E7BBOOUQE2SRS24KKO46HSPDV4TIHZUT3E
+#\\\|LHTMNELXLNMKVJTXOA4ZLMXWKNYVKVDMTULKL6VX2SL65SOGTAJ \ / AMOS7 \ YOURUM ::
+#\[7]F2VZYPSA45RWVA5RKZN2ZQCNPCGZKQSOWNKB4ZSEHVNIVJBL5UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

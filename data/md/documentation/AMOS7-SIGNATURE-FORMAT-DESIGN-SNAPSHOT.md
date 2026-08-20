@@ -1,7 +1,7 @@
 # AMOS7 signature footer: design and security parameter snapshot
 
 - date: 2026-08-04
-- scope: the 5-line signature footer appended to every signed `modules/*`
+- scope: the 5-line signature footer appended to every signed `src/*`
   file (and other tracked source), as implemented today. This is a
   snapshot of a live, working mechanism — not a proposal, and not an
   independent security audit. Every code reference below was read
@@ -29,7 +29,7 @@ report comes from.
 ## 2. footer layout
 
 Five lines, defined as `<source.sign_template>` in
-`modules/source.init_code:76-82` (exactly 77 characters per content line,
+`src/source.init_code:76-82` (exactly 77 characters per content line,
 matching `7 commas + 70 dots` in the raw template before substitution):
 
 ```
@@ -41,7 +41,7 @@ matching `7 commas + 70 dots` in the raw template before substitution):
 ```
 
 Exact byte offsets within the assembled template (from
-`modules/source.fill_source_template:60-77`):
+`src/source.fill_source_template:60-77`):
 
 | field           | offset | length | content |
 |-----------------|-------:|-------:|---------|
@@ -53,8 +53,8 @@ Exact byte offsets within the assembled template (from
 
 ## 3. header-line encoding (line 1)
 
-Implemented in `modules/amos7.encode_octal_header` /
-`modules/amos7.decode_octal_bit_header`. 19 octal digits, each mapped to
+Implemented in `src/amos7.encode_octal_header` /
+`src/amos7.decode_octal_bit_header`. 19 octal digits, each mapped to
 3 bits, each bit mapped to a character: `0 -> ','`, `1 -> '.'`, each
 3-char group followed by a literal `,` separator — 19 x 4 = 76 characters
 plus the leading `#` = 77.
@@ -97,7 +97,7 @@ round-trip was verified directly in code.
 
 ## 4. the harmonization search
 
-`modules/source.create_harmonic_footer:245-431`. A `while` loop starting
+`src/source.create_harmonic_footer:245-431`. A `while` loop starting
 `$iterations_left = 0o7777777` and decrementing by 1 per candidate.
 Termination requires **every active check below to pass simultaneously
 on the same candidate** (`next if not $asserted_true` chaining — strict
@@ -140,10 +140,10 @@ from the identical seed that check #4 independently re-validates.
 ## 6. cryptographic / checksum primitives
 
 - **Signature**: `Crypt::Ed25519::sign` (standard CPAN Ed25519
-  implementation, `modules/crypt.C25519.sign_data:36`) over Curve25519
+  implementation, `src/crypt.C25519.sign_data:36`) over Curve25519
   keys. Not a custom signature construction.
 - **What actually gets signed**: by default (`$sign_full_payload = 0` in
-  `modules/source.fill_source_template:11`), the signature covers
+  `src/source.fill_source_template:11`), the signature covers
   `first-header-line + '#' + data-chksum + template-prefix` — **not** the
   raw file bytes directly. The link to the actual file content is
   transitive, via the BMW-384 `data-chksum`, which *does* cover the full
@@ -279,8 +279,8 @@ Reflects the code at commit range ending `08afe632a` /
 active/disabled check flags at the top of the harmonization loop change
 in the future.
 
-#,,,.,,.,,,,,,.,,,...,.,.,,,.,,..,,,,,.,,,..,,..,,...,..,,.,,,,,.,..,,.,.,,.,,
-#JP7J7YGTFRCM4J6BEFNYLGXISVLDGZFGWSVQSMZX4B3MLBBRU3S7JPWKDWSNWRK6WQKY4UD6EF6A4
-#\\\|EER7DYPPLMCR3JIWO2G3EVMBRCQF3ZB5DJETZDOYXCIVM3QKBYS \ / AMOS7 \ YOURUM ::
-#\[7]E4KV2ZGYUPHQODFUACSKSV4ZIUKXZIPU5FQ4Y425XGRW5MN3CMCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,.,,.,,,.,,,,,.,,,.,...,,,.,,..,..,,...,...,..,,.,.,,,,,,..,,..,
+#LJKBKLTBGGQ4ZYQQCXM7HGJAPVDIPAD2KXIMXOFX4SPZIZI4P7AIR6GCQ32PMAIHTAREQJLI7MONM
+#\\\|MSS4QGAX5ZKV2JG4FP3TDXSZVNHKYXX3RYSCR27FXYAI5MHWTMM \ / AMOS7 \ YOURUM ::
+#\[7]UIR6LAUGDAVHMMSQMRLOLDHQPOF3FRA5ZKVMLQXVABQFEQLLUYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

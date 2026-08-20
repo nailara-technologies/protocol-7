@@ -1,0 +1,169 @@
+## [:< ##
+
+# name  = context.pattern.extract_from_change
+# descr = extract regex pattern from a line change
+
+my $params = shift // {};
+
+my $old = $params->{'old'} // '';
+my $new = $params->{'new'} // '';
+
+return undef if $old eq $new;
+
+my $prefix_len
+    = <[context.string.common_prefix_len]>->( { 'a' => $old, 'b' => $new } );
+my $suffix_len
+    = <[context.string.common_suffix_len]>->( { 'a' => $old, 'b' => $new } );
+
+my $old_len = length $old;
+my $new_len = length $new;
+
+## extract middle parts ##
+my $old_middle = '';
+my $new_middle = '';
+
+if ( $prefix_len + $suffix_len < $old_len ) {
+    $old_middle
+        = substr( $old, $prefix_len, $old_len - $prefix_len - $suffix_len );
+}
+if ( $prefix_len + $suffix_len < $new_len ) {
+    $new_middle
+        = substr( $new, $prefix_len, $new_len - $prefix_len - $suffix_len );
+}
+
+## build pattern with capture groups ##
+my $pattern = '';
+my $replace = '';
+my @vars;
+
+## escape prefix for regex ##
+my $prefix = substr( $old, 0, $prefix_len );
+$prefix =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+
+## escape suffix for regex ##
+my $suffix = '';
+if ($suffix_len) {
+    $suffix = substr( $old, $old_len - $suffix_len );
+    $suffix =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+}
+
+## analyze the changed portion ##
+if ( length $old_middle and length $new_middle ) {
+    ## substitution pattern ##
+    my $var_num = 1;
+
+    ## check for numeric changes ##
+    if ( $old_middle =~ m|^\d+$| and $new_middle =~ m|^\d+$| ) {
+        ## number change - generic ##
+        $pattern = $prefix . '(\d+)' . $suffix;
+        $replace = $prefix . $new_middle . $suffix;
+        @vars    = qw| number |;
+    }
+    ## check for identifier changes ##
+    elsif ( $old_middle =~ m|^[a-zA-Z_]\w*$|
+        and $new_middle =~ m|^[a-zA-Z_]\w*$| ) {
+        ## identifier change ##
+        $pattern = $prefix . '([a-zA-Z_]\w*)' . $suffix;
+        $replace = $prefix . $new_middle . $suffix;
+        @vars    = qw| identifier |;
+    }
+    ## check for quoted string changes ##
+    elsif ( $old_middle =~ m|^['"].*['"]$|
+        and $new_middle =~ m|^['"].*['"]$| ) {
+        ## quoted string change ##
+        $pattern = $prefix . '([\'"][^\'"]*[\'"])' . $suffix;
+        $replace = $prefix . $new_middle . $suffix;
+        @vars    = qw| string |;
+    }
+    ## check for value assignment changes ##
+    elsif ( $old =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$|
+        and $new =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$| ) {
+        my ( $pre, $old_val, $post ) = ( $1, $2, $3 );
+        my $new_val = $2;
+        ( undef, $new_val, undef )
+            = ( $new =~ m|^(\s*\$?\w+\s*=\s*)(.+?)(\s*;?\s*)$| );
+
+        $pre  =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+        $post =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+
+        $pattern = $pre . '(.*?)' . $post;
+        $replace = $pre . $new_val . $post;
+        @vars    = qw| value |;
+    } else {
+        ## generic pattern with word/space capture ##
+        my $escaped_old = $old_middle;
+        $escaped_old =~ s{([\^\$\*\+\?\.\|\(\)\[\]\{\}\\])}{\\$1}g;
+        $escaped_old =~ s|\w+|([\\w\\-]+)|g;
+        $escaped_old =~ s|\d+|(\\d+)|g;
+        $escaped_old =~ s|\s+|\\s+|g;
+
+        $pattern = $prefix . $escaped_old . $suffix;
+
+        ## structural-wrap detection : the \w+ runs of $old_middle become  ##
+        ## the capture groups of $pattern [ the later \d+ and \s+ passes   ##
+        ## add none ] ; when there is exactly one such token and the new   ##
+        ## middle still contains it as a contiguous substring, the change  ##
+        ## is a wrap around the token [ e.g. ( word ) -> [ word ] ], so    ##
+        ## reconstruct $replace around the $1 backreference [ same stored  ##
+        ## backreference convention ncode.cmd.apply expands post-cb45d56d0 ##
+        ## ] instead of overfitting to the training line ; genuine content ##
+        ## changes and multi-token cases keep the literal $new [ correct   ##
+        ## positional multi-group mapping is a deliberate follow-up ]      ##
+        my @tokens = $old_middle =~ m|\w+|g;
+
+        if ( @tokens == 1 and index( $new_middle, $tokens[0] ) >= 0 ) {
+            my $token       = $tokens[0];
+            my $token_pos   = index( $new_middle, $token );
+            my $wrap_prefix = substr( $new_middle, 0, $token_pos );
+            my $wrap_suffix
+                = substr( $new_middle, $token_pos + length $token );
+
+            ## raw [ unescaped ] prefix/suffix : $replace is a literal ##
+            ## replacement string, not a regex                         ##
+            my $raw_prefix = substr( $old, 0, $prefix_len );
+            my $raw_suffix
+                = $suffix_len
+                ? substr( $old, $old_len - $suffix_len )
+                : '';
+
+            $replace
+                = $raw_prefix
+                . $wrap_prefix . '$1'
+                . $wrap_suffix
+                . $raw_suffix;
+        } else {
+            $replace = $new;    ## literal [ not a structural wrap ] ##
+        }
+        @vars = qw| token |;
+    }
+} else {
+    ## addition or deletion - flag only pattern ##
+    return undef if $suffix_len + $prefix_len < 5;
+
+    $pattern = $prefix . '.*?' . $suffix;
+    $replace = undef;                       ## flag only ##
+    @vars    = qw| content |;
+}
+
+## generate description ##
+my $descr = <[context.pattern.generate_description]>->(
+    {   'old'  => $old,
+        'new'  => $new,
+        'vars' => \@vars
+    }
+);
+my $note = sprintf 'line %s -> %s', $old, $new;
+
+return {
+    'pattern' => $pattern,
+    'replace' => $replace,
+    'descr'   => $descr,
+    'note'    => $note,
+    'vars'    => \@vars
+};
+
+#,,,,,,,.,..,,..,,.,,,.,,,.,,,,,.,,,.,,,,,..,,.,.,...,...,.,.,,,.,.,.,,..,.,.,
+#DF6US3N2EACGSLYKUB72J43QPMAGCVG2XYWVM3P2PKEK2EMWTY76SVVGP4E7QCJCK23WIVIWGSCXI
+#\\\|RV6HQPOYIFZZKYPEDBA2BGLQ6RFTNJGGCACN5CGBNEAMUOQZ3EU \ / AMOS7 \ YOURUM ::
+#\[7]IFH24GMSULPGRREIJSK4PODWQQB6WAL3FJDSRWRQC46SV2UQH4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

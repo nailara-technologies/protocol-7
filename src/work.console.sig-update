@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = work.console.sig-update
+# descr = update all source code signatures
+
+say '';
+say ' .:[ WORKFLOW: UPDATE ALL SIGNATURES ]:.';
+say '';
+
+system( './bin/Protocol-7', 'sourcecode', 'update-signatures' );
+my $exit_code = $? >> 8;
+
+say '';
+if ( $exit_code == 0 ) {
+    say ' : ✓ Signatures updated successfully';
+} else {
+    say sprintf ' : ✗ Update failed (exit code: %d)', $exit_code;
+}
+say '';
+
+return $exit_code;
+
+#,,,,,.,,,.,,,,..,,,,,,.,,...,...,,.,,.,.,,..,..,,...,...,..,,...,,..,,,,,,,,,
+#DOVD4I6YOAYSLS5DR64FLEZKNSSITEHSREBMSGSODMDG5H5QRDOCCXZMT6NBJ2BUJWN7L7LBXUNWU
+#\\\|6PP2NDKGRJG2UIYHJNK6Y3VVLFH247VCA2ZGXBR67RCSN2RUQ3S \ / AMOS7 \ YOURUM ::
+#\[7]Q6JXCOUGPLFTQFRZX5DERRB5ML3Q5J4KVR6XRYT7LJEGEU7X4EDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

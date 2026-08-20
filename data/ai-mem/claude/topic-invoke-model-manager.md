@@ -45,7 +45,7 @@ shared directory traversal under the old verbose-path storage scheme.
 
 ## origin of DBI/DBD::SQLite in .deps/profiles.yaml's `tools` profile (2026-07-26)
 
-`tools` installs `DBI`/`DBD::SQLite`, but `modules/` (the actual zenka
+`tools` installs `DBI`/`DBD::SQLite`, but `src/` (the actual zenka
 codebase) has zero references to either — confirmed via grep. Root cause:
 InvokeAI itself stores its model registry in a SQLite DB, and reading it
 (model list/inspect, the tooling described above,
@@ -62,8 +62,8 @@ around what a deployed zenka actually requires.
 is a zenka need or an invoke.ai/model-management dev-tooling need before
 assuming it's dead weight to prune.
 
-#,,,,,,,,,.,.,.,.,.,,,,,,,...,.,,,,.,,..,,,..,..,,...,...,...,.,.,,,.,.,,,,.,,
-#OIGERXB6GANBYCYI674VSSOW7QNBQCVI73TS2UQPRKZ6CHVWJ7UXPT4HU3C7UVEMYSZ57PFDAB7X2
-#\\\|Q5P3UQ65BG36MCZLX3TQU7REDUGCTORZZGE24VQDTPNWE3KYORO \ / AMOS7 \ YOURUM ::
-#\[7]4D32RER2NEYZ7Y57GKEVJMYSSWTV7255MFLY43HHRG2IB2ABOQAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,.,,,,.,,,.,...,.,.,.,,,.,.,,,,,..,,...,...,.,.,.,,,.,,,..,,...,
+#Q65VKE2B5PSYSTO2MIGABF33TBN2FWXG7Z4OB2NH2Q72CDETUHW7ZYQJCK4EMHK5I4VFQXGQKQWLQ
+#\\\|SHH4AFFDH52TS3P6ROQCOCTJMMS665UHJVLJJD6ZVO46KMCINEF \ / AMOS7 \ YOURUM ::
+#\[7]B7I6VVUSRFDBXCONNZURS6IWZWK37BOUUNL34BKCHBRXAGU6D6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

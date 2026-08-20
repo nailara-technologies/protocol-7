@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = jobsite.job.index.build
+# descr = scan all job status dirs and build in-memory id->status index
+
+my $jobs_root = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+
+my $index = {};
+my @active_statuses
+    = qw| new assessed review apply applied interviewed rejected skipped |;
+## trash is xz+base32-packed ( .yxz.B32 ), blocked/deleted are plain yaml ##
+my %epoch_statuses = (
+    blocked => qr/\.yaml$/,
+    deleted => qr/\.yaml$/,
+    trash   => qr/\.yxz\.B32$/
+);
+
+## scan epoch-bucketed [ terminal state ] dirs FIRST : an orphaned          ##
+## blocked/deleted/trash file left behind by an incomplete cleanup [ e.g. a ##
+## rescue that didn't remove the old trash copy ] must never win over a     ##
+## legitimate active-status record for the same id, so active statuses are  ##
+## scanned second and take priority on collision                            ##
+for my $status ( keys %epoch_statuses ) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+    my $file_re = $epoch_statuses{$status};
+    opendir my $dh, $dir or next;
+    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+        opendir my $edh, "$dir/$epoch_dir" or next;
+        for my $fn ( grep { $ARG =~ $file_re && !/^\./ } readdir($edh) ) {
+            my $enc_id = $fn;
+            $enc_id =~ s/$file_re//;
+            my $id = <[base.vax-int.decode]>->($enc_id);
+            $index->{$id} = "$status:$epoch_dir";
+        }
+        closedir $edh;
+    }
+    closedir $dh;
+}
+
+## scan active status dirs SECOND : wins on collision, see above ##
+for my $status (@active_statuses) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+        my $enc_id = $fn;
+        $enc_id =~ s/\.yaml$//;
+        my $id = <[base.vax-int.decode]>->($enc_id);
+        $index->{$id} = $status;
+    }
+    closedir $dh;
+}
+
+<jobsite.job.index> = $index;
+
+<[base.logs]>->(
+    1,
+    'jobsite.job.index: built with %d entries',
+    scalar keys %{$index}
+);
+
+return $index;
+
+#,,.,,...,,,.,...,.,,,,,.,,.,,.,.,..,,.,,,,..,..,,...,...,,.,,,,.,,..,,..,.,,,
+#6ICSITYIDLJPBZUKWFRPTFLBPJ5LKNXA4HM26OKUWIS2JH7ZDVTABPJT7GT7EQ5DGKKULZ36VJK5S
+#\\\|CLK6XLUJD7M6SP3QBJVQO36AXDHGVQ7AEBULZVEC5NBK6DXHTH3 \ / AMOS7 \ YOURUM ::
+#\[7]Q2SXCA4FNHPW6SZDEKFB4OGK7PAZMWBEFMS2BVWNJGQ5L5DT6MCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

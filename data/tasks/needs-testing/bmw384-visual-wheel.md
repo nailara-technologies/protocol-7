@@ -29,7 +29,7 @@ embedded in the jobs vhost or space.v7.ax dashboard.
 
 ## modules to create
 
-### modules/base.bmw384.visual.wheel
+### src/base.bmw384.visual.wheel
 
 generates the full SVG string. no params — reads from <bmw384.index> directly.
 returns a scalar containing the complete SVG document.
@@ -49,13 +49,13 @@ SVG structure:
       draw title element (SVG tooltip): node name + coordinate_str
   - center void: circle r=24, fill=none, stroke=rgba(255,255,255,0.15), stroke-width=1
 
-### modules/base.bmw384.visual.wheel-html
+### src/base.bmw384.visual.wheel-html
 
 wraps the SVG in a minimal HTML page for standalone browser viewing.
 adds: dark background body, centered SVG, title "BMW384 Field — [node count] nodes".
 returns complete HTML string.
 
-### modules/base.bmw384.cmd.visual-wheel
+### src/base.bmw384.cmd.visual-wheel
 
 command handler: p7c <zenka>.visual-wheel [html]
 
@@ -96,8 +96,8 @@ this makes redundancy visually apparent — a thick ring = multiple co-located n
 - no use statements or pragmas in zenka modules
 - SVG/HTML strings: use heredoc or concatenation, keep readable
 
-#,,,.,,,,,,.,,,..,,,,,...,,..,,,,,,..,,,,,..,,..,,...,...,...,,,.,,,.,,..,...,
-#H2QXBQ2TPZWMP4NB6IWXTVQRWHLTMZYGFCL3JRDCECVHHB3L7T6MLQTLYHH5RHKM7ESLOS2D53MJQ
-#\\\|FZNIYNBISWB57JFOZEYCMCXYED2ZFD76DTTESYIZBGQM4FN3HKT \ / AMOS7 \ YOURUM ::
-#\[7]6XDNMYCPYV5F3KRJNA4TBUCBBEHB3WGTAPWW3RADZ7QLEVH6UGDI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,,,,,,,.,,,.,...,,..,,.,,,..,..,,...,...,...,,..,..,,,.,,...,
+#I42ZIT6HUU4NWAWZLIMDDNTEISUMZGFO4KVBONFMKUQIHLBKZMAMBWKGN62UEZ3SRIOXARY26WIRM
+#\\\|4PNS44SISWAEGCML5T3MRGESO6G2NQ42HHZ6K4MGTVIVUABFHQT \ / AMOS7 \ YOURUM ::
+#\[7]2LH3HS55ZSSGGPJFLJMFIWVNVUNKVJ3TQPRAP7Z66Y3TEJLNHKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

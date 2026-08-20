@@ -16,7 +16,7 @@ critical_work_completed:
     description: Fixed AMOS7::13::key_32 parameter type causing 3659x slowdown
     root_cause: Numeric parameter instead of SCALAR ref (113 vs 4,072,410 iterations)
     files:
-      - modules/protocol.protocol-7.encryption.init
+      - src/protocol.protocol-7.encryption.init
     commit: 0621742d8
     result: Key derivation now completes in 20.3ms (instant)
 
@@ -50,8 +50,8 @@ critical_work_completed:
           issue: Returns FALSE instead of explicit 0 for success
           fix: Changed line 96 to return (0, $auth_user)
     files:
-      - modules/plugin.auth.zenka
-      - modules/plugin.auth.unix
+      - src/plugin.auth.zenka
+      - src/plugin.auth.unix
     commit: 5a14a91d2
     result: All auth failures now properly disconnect
 
@@ -64,11 +64,11 @@ git_commits:
 
     - hash: d2c520425
       message: "Merge: Resolve encryption.init conflicts - combine better documentation with code"
-      files: ["modules/protocol.protocol-7.encryption.init"]
+      files: ["src/protocol.protocol-7.encryption.init"]
 
     - hash: 5a14a91d2
       message: "fix: Critical authentication bypass vulnerabilities in auth plugins"
-      files: ["modules/plugin.auth.zenka", "modules/plugin.auth.unix"]
+      files: ["src/plugin.auth.zenka", "src/plugin.auth.unix"]
 
     - hash: 3e10a93c0
       message: "fix: Capture ChaCha20-Poly1305 ciphertext from encrypt_add() return value"
@@ -121,15 +121,15 @@ files_modified_summary:
   total_changes: 6
 
 critical_files_to_review:
-  - path: modules/plugin.auth.zenka
+  - path: src/plugin.auth.zenka
     lines: [116, 124, 131]
     change: "return 1 → return 2 on auth failures"
 
-  - path: modules/plugin.auth.unix
+  - path: src/plugin.auth.unix
     lines: [46, 96]
     change: "Apply template expansion and use explicit return code"
 
-  - path: modules/protocol.protocol-7.encryption.init
+  - path: src/protocol.protocol-7.encryption.init
     lines: [35, 37-40]
     change: "Key derivation uses SCALAR ref (\\$session_id) for safe iterations"
 
@@ -208,17 +208,17 @@ context_recovery_for_next_session:
   head_commit: 3c49def44
 
   critical_files_to_understand:
-    - modules/protocol.protocol-7.init_code (session state machine spec)
-    - modules/base.handler.auth (auth protocol implementation)
-    - modules/base.session.init_state (session initialization)
+    - src/protocol.protocol-7.init_code (session state machine spec)
+    - src/base.handler.auth (auth protocol implementation)
+    - src/base.session.init_state (session initialization)
     - docs/SESSION_STATUS_2025-11-28_encryption-auth-fixes.md (full details)
     - data/yaml/project-context/session-2025-11-28-encryption-auth-security.yaml (this file)
 
   quick_verification_commands:
     - "git log base -5" (verify commits are present)
     - "git show 3c49def44" (view final commit)
-    - "grep -n 'return 2' modules/plugin.auth.zenka" (verify auth fixes)
-    - "grep -n 'SCALAR ref' modules/protocol.protocol-7.encryption.init" (verify key derivation fix)
+    - "grep -n 'return 2' src/plugin.auth.zenka" (verify auth fixes)
+    - "grep -n 'SCALAR ref' src/protocol.protocol-7.encryption.init" (verify key derivation fix)
 
 summary_for_stakeholders:
   three_critical_vulnerabilities_fixed: true
@@ -231,8 +231,8 @@ summary_for_stakeholders:
 
 ---
 
-#,,,.,.,.,.,,,.,.,,..,.,,,,,,,.,,,.,,,...,,,,,..,,...,...,.,.,,.,,.,.,..,,.,.,
-#OWAGYJN7LN2EUFHSCS7VZL5JSQ5OPNNQ7SD74QE2Q3JKGCJ7MR23S33X4XLZYZKF3VI7KZ6VCQPBI
-#\\\|PSTTXMAAG7KOED2HYZXULZNALSA44QOQUQZCFYM4BICJZJ7ZQGN \ / AMOS7 \ YOURUM ::
-#\[7]KMA3EG3ICU4ORWP5ND2HA7PDGKUUKSVZCSNUJM6KQM73S2SFMADI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,.,,..,..,,.,.,...,.,,,.,.,.,,,..,,...,..,,...,..,,,,.,..,,,,,,
+#5DIJ3P3LRSZ4ZYJKILKX3MGOHOFUCS7KFHLSUGUWERPGOV3IBDZVKGQFPQNRD3B66BZ3Y7ZITXYCC
+#\\\|IG3PGEUDZYP3QETR7M6VUF25BBJGI5QNATV4R76H2FSUS6E7SBR \ / AMOS7 \ YOURUM ::
+#\[7]4CWUMOCY5TFVGGTN5V72IR336HPKW5BAQH2N35IOEGPWN7337ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

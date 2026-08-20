@@ -331,9 +331,9 @@ two further findings on this question, both new to this pass:
   and does not by itself decide the divisor question.
 - **the running code's `365` is deliberate, not a typed-in accident.**
   two independent call sites carry the same explanatory comment:
-  `modules/base.ntime.epoch_dec:20` — `state $epoch_days_per_year //=
+  `src/base.ntime.epoch_dec:20` — `state $epoch_days_per_year //=
   365 / 13;  ##  V7 network has 13 month year  ##` — and
-  `modules/base.ntime.epoch_to_ntime:8` — `## V7 network has 13 month
+  `src/base.ntime.epoch_to_ntime:8` — `## V7 network has 13 month
   year  ## [ 365 / 13 ]`. whatever the harmonic ideal turns out to be,
   the `365` in running code was written with intent stated alongside it.
   that is the strongest verifiable fact available on this question and
@@ -397,7 +397,7 @@ live via `./bin/harmony -n 364` / `-n 365` / `-n 28` / `-n 13`,
 2026-08-03. ]
 
 **esoteric-source survey, 2026-08-03 [ this pass ] — the two
-true/false `.asc` primary sources and `modules/source.init_code`'s
+true/false `.asc` primary sources and `src/source.init_code`'s
 handwritten notepad were re-read looking for anything new beyond the
 harmony-check above; both are already fully mined.** `topic-harmonic-
 mathematics.md`'s "Foreknowledge Document" section already quotes
@@ -697,11 +697,11 @@ are two different claims — this doc conflated them for one draft. ]
   **grounded, 2026-08-03 [ deeper pass ] — this is no longer
   hypothetical: the trust layer already depends on self-asserted local
   network time, in running code, with named call sites.**
-  `modules/crypt.C25519.create_signature_request:44` stamps every
+  `src/crypt.C25519.create_signature_request:44` stamps every
   vouching request with `my $req_timestamp = <[base.ntime.b32]>->( 1,
   TRUE );` — the subject signs `<ntime:subject-chksum:signer-chksum>`,
   so the timestamp is *inside the signed payload*, not metadata beside
-  it. `modules/crypt.C25519.store_remote_key:88,132` does the same for
+  it. `src/crypt.C25519.store_remote_key:88,132` does the same for
   TOFU pins: `$ntime_b32 //= <[base.ntime.b32]>->( 3, TRUE );` then
   writes `sprintf "%s:%s\n", $ntime_b32, $pubkey_b32` — a pin file *is*
   an ntime:pubkey pair. `ZENKA-IDENTITY-COMPONENT.md` builds its whole
@@ -832,8 +832,8 @@ because they are mathematically bound to that bucket's template.
 - no policy decisions about *which* trees adopt the epoch outer
   dimension. that's per-consumer; this dispatch ships the substrate.
 
-#,,,,,,..,.,.,.,,,,,.,.,,,,,,,,,,,,,,,.,.,,..,..,,...,...,.,.,,.,,,..,.,,,.,.,
-#4JNV2NZACOPFTTN6UAWB2QTN3QM3VH6PG73UK36CB7JM5G5P3HG3RTHXDQZ5XYOVNMF6ORUQHLCZI
-#\\\|XGX7XJ2R4ZBXSGXONQVVF6HZYQYLWIBH7KU4Q3CYNN6CTPYPM4Q \ / AMOS7 \ YOURUM ::
-#\[7]K4CISNWICDRO4IB4KISUNVT54CHB3OQEL7E2JK352VUHPT2CYABQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,,,.,..,,.,.,..,,,,.,...,,.,,..,,...,...,.,,,...,.,.,,.,,,,,,
+#VUQOPE6OIU4UTD6TJSPGRO66Q3U7G3G7KDDRJ4G2EW3Q6F2BCAJ3XRCECQLFM2SAE2GC4HNBRJV4G
+#\\\|5F4WVT6TC2CWFLTHX4CGWKUHGVO7GPIQHSWE3R6NZFD6DFBTLDF \ / AMOS7 \ YOURUM ::
+#\[7]WEBCCHNMXXHXGOAPTGXJVRTAMA5QM5SPOYDX47ANKQDWKQUCXOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

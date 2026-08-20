@@ -13,7 +13,7 @@ hosts the zenki default to fallback positions (often fullscreen or 0,0) which
 is wrong for desktop use.
 
 the protocol-7-menu zenka recently got save/restore of absolute pixel positions
-(modules/protocol-7-menu.position.*). tile-groups uses proportional % coordinates
+(src/protocol-7-menu.position.*). tile-groups uses proportional % coordinates
 calculated from screen dimensions. this feature combines both approaches:
 
 - **proportional profile** — position and size as % of screen, relative to anchor
@@ -24,12 +24,12 @@ calculated from screen dimensions. this feature combines both approaches:
 
 reference implementations to read:
 ```bash
-cat modules/tile-groups.calculate_coordinates   ## proportional % math
-cat modules/protocol-7-menu.position.load       ## yaml save/restore pattern
-cat modules/protocol-7-menu.position.save
-cat modules/protocol-7-menu.graphical-startup-init  ## how position is applied
-cat modules/ticker.init_code                    ## ticker window setup
-cat modules/ticker.open_window                  ## where GTK window is created
+cat src/tile-groups.calculate_coordinates   ## proportional % math
+cat src/protocol-7-menu.position.load       ## yaml save/restore pattern
+cat src/protocol-7-menu.position.save
+cat src/protocol-7-menu.graphical-startup-init  ## how position is applied
+cat src/ticker.init_code                    ## ticker window setup
+cat src/ticker.open_window                  ## where GTK window is created
 ```
 
 ## signatures note
@@ -135,7 +135,7 @@ fetches screen dimensions. tries in order:
 
 ## ticker integration
 
-### cfg defaults to add in `modules/ticker.init_code`
+### cfg defaults to add in `src/ticker.init_code`
 
 ```perl
 <ticker.window.profile>  //= 'bottom-strip';  ## sensible desktop default
@@ -147,7 +147,7 @@ fetches screen dimensions. tries in order:
 # <ticker.window.h_pct>  //= 5;
 ```
 
-### apply profile in `modules/ticker.open_window`
+### apply profile in `src/ticker.open_window`
 
 after the GTK window is created and before it is shown:
 
@@ -223,8 +223,8 @@ p7c ticker.cmd.set-window-profile bottom-strip
 - [ ] `fullscreen` profile still works for kiosk deployments
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,...,,,,,.,.,,,.,..,,,..,.,.,.,.,,,.,..,,..,,...,...,.,,,,,,,..,,,.,,...,
-#MVVNIM276RFHREKR4D34MEZWTGKJV3BFOLN55YJ3MDBKVHLLHXB3DAU376EKJ446C77DUDHLPC3IK
-#\\\|6ODHQDQGAYSBT4MSVXKRUVSTI434IO7MJMUIKZFNLC6WVAE37UX \ / AMOS7 \ YOURUM ::
-#\[7]UZPCKVWOBTMJGQWHN6FP6EFQCQAHUGEAE6NM3W3RC6ZO42FFZCAY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,...,.,,,.,,,,..,,,,,,..,...,..,,...,...,.,,,,.,,,,,,,,,,.,.,
+#DY5SAF7L7KU23WTT5WTVJ3FC4Y25AJHCWEIERW3GEX5MHTIPBKFWMAU4Z4YH27WR2HB22JUHLZQI2
+#\\\|OYEUDHWGDNVJCQ4GVSCK5GQGL2FQQ7CFD6YAAKQHZN2LFOM42FL \ / AMOS7 \ YOURUM ::
+#\[7]IJY52H3EE2M53RTOQADCUC7RLTBAGTEXYSS4VSXQ7DGYVHSDACBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

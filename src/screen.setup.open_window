@@ -1,0 +1,383 @@
+## [:< ##
+
+# name  = screen.setup.open_window
+# descr = create + show the scaled monitor-layout map window for an instance
+
+my $id = shift;
+
+if ( not defined $id or not exists $data{'screen-setup'}{'instances'}{$id} ) {
+    <[base.log]>->( 0, '[screen-setup.open_window] unknown instance id' );
+    return undef;
+}
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+
+<[screen.setup.ensure-display]>;
+
+## remember position per layout : key the saved-position 'caller' on the  ##
+## virtual-desktop resolution, so a position saved under one monitor      ##
+## arrangement never applies to a different one [ same idea as the menu's ##
+## screen-resolution keying, via window.profile's per-caller files ]      ##
+my $model  = $inst->{'model'};
+my $caller = sprintf 'display-layouts.%dx%d', $model->{'width'},
+    $model->{'height'};
+$inst->{'caller'} = $caller;
+
+## size relative to the pointer's monitor, capped ##
+my $pm = <[window.gtk.get_pointer_monitor_geometry]>
+    // $model->{'monitors'}[0];
+
+my $pm_x = $pm->{'x'}      // 0;
+my $pm_y = $pm->{'y'}      // 0;
+my $pm_w = $pm->{'width'}  // 1920;
+my $pm_h = $pm->{'height'} // 1080;
+
+my $win_w = int( $pm_w * 0.6 );
+my $win_h = int( $pm_h * 0.6 );
+$win_w = 900 if $win_w > 900;
+$win_h = 620 if $win_h > 620;
+
+## restore a previously dragged position for this layout, else center on  ##
+## the pointer's monitor [ the centered fallback is the first-run path -- ##
+## no saved file yet -- so it doubles as the isolated placement test ]    ##
+my $saved = <[window.profile.load]>->($caller);
+my ( $win_x, $win_y );
+if ( defined $saved ) {
+    $win_w = $saved->{'width'}  if defined $saved->{'width'};
+    $win_h = $saved->{'height'} if defined $saved->{'height'};
+    $win_x = $saved->{'x'};
+    $win_y = $saved->{'y'};
+} else {
+    $win_x = $pm_x + int( ( $pm_w - $win_w ) / 2 );
+    $win_y = $pm_y + int( ( $pm_h - $win_h ) / 2 );
+}
+
+## sanitize against the real monitor rects : a saved position can land in a ##
+## void if the layout changed, and this also keeps a cross-monitor restore  ##
+## honest [ snap onto a real device, never an off-output coord ]            ##
+( $win_x, $win_y )
+    = <[base.gtk.snap_to_monitor]>->( $win_x, $win_y, $win_w, $win_h );
+
+my $window = Gtk3::Window->new('toplevel');
+$inst->{'window'} = $window;
+
+$window->signal_connect(
+    delete_event => sub {
+        eval { <[screen.setup.close]>->($id) };
+        return TRUE;
+    }
+);
+
+$window->set_decorated(0);
+$window->set_keep_above(1);
+$window->set_app_paintable(1);
+$window->set_accept_focus(1);
+$window->set_focus_on_map(1);
+$window->set_title('screen-setup [display-layouts]');
+
+## RGBA visual for translucency ##
+my $screen = $window->get_screen;
+my $rgba   = $screen->get_rgba_visual();
+$window->set_visual($rgba) if $rgba;
+
+## position BEFORE show_all using the one programmatic-placement sequence  ##
+## empirically working on this wslg/weston stack [ matches protocol-7-menu ##
+## : set north-west gravity, default size, then move -- set_position() and ##
+## bare move() without this sequence both landed the window off ]          ##
+$window->set_gravity('north-west');
+$window->set_default_size( $win_w, $win_h );
+$window->move( $win_x, $win_y );
+
+$window->add_events(
+    [   qw| key-press-mask button-press-mask button-release-mask pointer-motion-mask |
+    ]
+);
+
+$window->signal_connect(
+    draw => sub {
+        eval { <[screen.setup.handler.draw]>->( $id, @ARG ) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return TRUE;
+    }
+);
+
+$window->signal_connect(
+    'key-press-event' => sub {
+        my $ret = eval { <[screen.setup.handler.key_press]>->( $id, @ARG ) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return defined $ret ? $ret : TRUE;
+    }
+);
+
+## border = drag handle [ compositor grab, crosses seams ], right-click ##
+## dismisses, center left-drags window rects to set intended geometry   ##
+$window->signal_connect(
+    'button-press-event' => sub {
+        eval { <[screen.setup.handler.button_press]>->( $id, @ARG ) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return TRUE;
+    }
+);
+
+## drag end : persist the new position for this layout ##
+$window->signal_connect(
+    'button-release-event' => sub {
+        eval { <[screen.setup.handler.button_release]>->( $id, @ARG ) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return TRUE;
+    }
+);
+
+## window rect drag inside the minimap [ center zone, not the border ] ##
+$window->signal_connect(
+    'motion-notify-event' => sub {
+        eval { <[screen.setup.handler.motion]>->( $id, @ARG ) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return TRUE;
+    }
+);
+
+## defer focus/raise to the map signal : show_all returning does not mean ##
+## the surface is mapped + focusable yet under wslg/xwayland              ##
+my $mapped_once = 0;
+$window->signal_connect(
+    qw| map | => sub {
+        return FALSE if $mapped_once++;
+        eval {
+            ## clear any stale compositor button-1 grab from another window;
+            ## without this, a stuck begin_move_drag grab from ticker or
+            ## window.place blocks all left-click events to newly-mapped
+            ## windows
+            eval {
+                Gtk3::Gdk::pointer_ungrab( Gtk3::get_current_event_time() );
+            };
+            $window->set_keep_above(1);
+            $window->present;
+            $window->grab_focus;
+
+            ## remember our own xid so the draw handler can skip ##
+            ## self-overlay                                      ##
+            my $xid = eval { $window->get_window->get_xid };
+            $inst->{'own_xid'} = $xid if defined $xid;
+        };
+        return FALSE;
+    }
+);
+
+$window->show_all;
+
+<[base.logs]>->(
+    1, '[screen-setup.open_window] id=%s shown %dx%d [placed by compositor]',
+    $id, $win_w, $win_h
+);
+
+## when no saved position exists, the pre-show_all centered default is only ##
+## a best guess. weston can silently place the window in a void, so verify  ##
+## post-map with real move+readback and cycle through corner candidates     ##
+## until one lands. fall back to a random unverified placement if nothing   ##
+## works. saved-position startup path is unchanged.                         ##
+if ( not defined $saved ) {
+    my $placement_attempts     = 0;
+    my $max_placement_attempts = 10;
+    my $margin                 = 20;
+    my $placement_timer;
+    $placement_timer = <[event.add_timer]>->(
+        {   'after'    => 0.2,
+            'interval' => 0.2,
+            'cb'       => sub {
+                return
+                    if not exists $data{'screen-setup'}{'instances'}{$id};
+
+                my $live_inst = $data{'screen-setup'}{'instances'}{$id};
+                return if not defined $live_inst->{'window'};
+
+                $placement_attempts++;
+
+                my $xid
+                    = eval { $live_inst->{'window'}->get_window->get_xid };
+                if ( not defined $xid ) {
+                    <[base.log]>->(
+                        0,
+                        '[screen-setup.open_window] no '
+                            . 'xid yet, deferring placement'
+                    );
+                    $placement_timer->cancel
+                        if $placement_attempts >= $max_placement_attempts;
+                    return;
+                }
+
+                my $monitors = <[base.gtk.list_monitors]> // [];
+                if ( not @$monitors ) {
+                    <[base.log]>->(
+                        0, '[screen-setup.open_window] no monitors detected'
+                    );
+                    $placement_timer->cancel
+                        if $placement_attempts >= $max_placement_attempts;
+                    return;
+                }
+
+                my $current = <[base.X-11.get_window_geometry]>->($xid);
+                my $preferred_index;
+                if ( defined $current ) {
+                    my $cx = $current->{'x'} + $current->{'width'} / 2;
+                    my $cy = $current->{'y'} + $current->{'height'} / 2;
+                    for my $i ( 0 .. $#$monitors ) {
+                        my $m = $monitors->[$i];
+                        if (    $cx >= $m->{'x'}
+                            and $cx < $m->{'x'} + $m->{'width'}
+                            and $cy >= $m->{'y'}
+                            and $cy < $m->{'y'} + $m->{'height'} ) {
+                            $preferred_index = $i;
+                            last;
+                        }
+                    }
+                }
+
+                my $use_width
+                    = defined $current ? $current->{'width'} : $win_w;
+                my $use_height
+                    = defined $current ? $current->{'height'} : $win_h;
+
+                my $candidates = <[window.place.build_corner_candidates]>->(
+                    $monitors, $use_width, $use_height, $margin,
+                    $preferred_index
+                );
+
+                my $safe = <[window.place.find_safe_position]>
+                    ->( $xid, $candidates );
+
+                if ( defined $safe ) {
+                    <[base.logs]>->(
+                        1,
+                        '[screen-setup.open_window] '
+                            . 'id=%s landed at x=%d y=%d',
+                        $id,
+                        $safe->{'x'},
+                        $safe->{'y'}
+                    );
+                    <[base.X-11.raise-window]>->($xid);
+                    <[base.X-11.keep_above]>->($xid);
+                    $placement_timer->cancel;
+                    delete $live_inst->{'placement_timer'};
+                    return;
+                }
+
+                <[base.logs]>->(
+                    0,
+                    '[screen-setup.open_window] id=%s '
+                        . 'placement attempt %d/%d failed',
+                    $id,
+                    $placement_attempts,
+                    $max_placement_attempts
+                );
+
+                return if $placement_attempts < $max_placement_attempts;
+
+                ## exhausted: one random unverified placement as last    ##
+                ## resort, still inset by margin so it never lands flush ##
+                ## against the screen border.                            ##
+                my $random_mon
+                    = $monitors->[ int( rand( scalar @$monitors ) ) ];
+                my $rand_x = $random_mon->{'x'} + $margin;
+                my $rand_y = $random_mon->{'y'} + $margin;
+                my $rand_x_range
+                    = $random_mon->{'width'} - $use_width - 2 * $margin;
+                my $rand_y_range
+                    = $random_mon->{'height'} - $use_height - 2 * $margin;
+                $rand_x += int( rand($rand_x_range) ) if $rand_x_range > 0;
+                $rand_y += int( rand($rand_y_range) ) if $rand_y_range > 0;
+
+                <[base.X-11.move-window]>->(
+                    $xid, $rand_x, $rand_y, $use_width, $use_height
+                );
+                <[base.logs]>->(
+                    1,
+                    '[screen-setup.open_window] id=%s '
+                        . 'random fallback to x=%d y=%d',
+                    $id,
+                    $rand_x,
+                    $rand_y
+                );
+
+                $placement_timer->cancel;
+                delete $live_inst->{'placement_timer'};
+            }
+        }
+    );
+    $inst->{'placement_timer'} = $placement_timer;
+}
+
+## periodic refresh : re-query the window list to discover new windows, ##
+## then update geometry for all confirmed (non-pending) windows         ##
+Glib::Timeout->add_seconds(
+    3,
+    sub {
+        return 0
+            unless exists $data{'screen-setup'}{'instances'}{$id};
+        my $live_inst = $data{'screen-setup'}{'instances'}{$id};
+
+        ## discover any windows opened since the last scan ##
+        <[base.zenki.resolve_primary_sid]>->(
+            'X-11',
+            sub {
+                my $sid = shift;
+                return if not defined $sid;
+                <[protocol-7.route-send]>->(
+                    {   'command'   => "$sid.get-windows",
+                        'call_args' => { 'args' => '' },
+                        'reply'     => {
+                            'handler' =>
+                                qw| screen.setup.handler.windows_reply |,
+                            'params' => { 'id' => $id }
+                        }
+                    }
+                );
+
+                ## refresh geometry for windows already tracked and not ##
+                ## pending move                                         ##
+                for my $win ( @{ $live_inst->{'windows'} // [] } ) {
+                    next if defined $win->{'intended_geo'};
+                    my $winid = $win->{'winid'};
+                    <[protocol-7.route-send]>->(
+                        {   'command'   => "$sid.get_geometry",
+                            'call_args' => { 'args' => $winid },
+                            'reply'     => {
+                                'handler' =>
+                                    qw| screen.setup.handler.geometry_reply |,
+                                'params' => { 'id' => $id, 'winid' => $winid }
+                            }
+                        }
+                    );
+                }
+            }
+        );
+        return 1;
+    }
+);
+
+## run the shared Gtk3 main loop only once; further maps open while the ##
+## loop is already pumping [ Glib::Event integrates Event watchers ]    ##
+if ( not <screen.setup.gtk.main_running> ) {
+    <screen.setup.gtk.main_running> = TRUE;
+    <[base.log]>->( 1, '[screen-setup.open_window] entering Gtk3 main loop' );
+    Gtk3->main;
+    <[base.log]>->( 1, '[screen-setup.open_window] left Gtk3 main loop' );
+}
+
+return 0;
+
+#,,..,..,,,,.,.,.,,..,.,,,,,.,...,,,,,,..,.,,,..,,...,...,.,,,.,.,.,,,.,.,,.,,
+#YA5EHWPTTAGAENOPZU6JYY47SRWQQH2VXAFY3TZRCYBBLXYXXX4VPSCKXWWX5CLPDMVZSWVB2Y5GK
+#\\\|Y4FIORVLJ5FTW7KO6HU464J7MYGHSELVBB5GRINOVGCCKGN7EPB \ / AMOS7 \ YOURUM ::
+#\[7]WC2VWBUHROXN4UMISSPHAXSFSYTNJZXUKT2ENCJ3CZ2QB7A2LSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

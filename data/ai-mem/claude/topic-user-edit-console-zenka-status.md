@@ -29,7 +29,7 @@ each reviewed against the actual diff before signing, not just the
 kimi auto-summary — see [[feedback-narrow-scoped-kimi-task-file-pattern]]
 for why this dispatch shape worked well four times in a row):
 1. **phase 1 skeleton** (`0fee40f7c`) — `cfg/zenki/user-edit/`
-   + `modules/user-edit.init_code`, cloned from `keys`' thin
+   + `src/user-edit.init_code`, cloned from `keys`' thin
    standalone-console shape (no crypt.C25519, no network modules). Kimi
    caught and fixed a real contradiction in the task prompt itself (a
    generic networked-zenka boot sequence I'd pasted, vs. the actual
@@ -150,7 +150,7 @@ infrastructure for other settings UIs too, per user direction).
   — its relationship to 5PN's `host-system/` storage claim is an open
   question flagged in both docs, not resolved.
 
-Also surfaced along the way: `modules/format.json.*`/`format.yaml.*`
+Also surfaced along the way: `src/format.json.*`/`format.yaml.*`
 are already-existing symmetric shared serialization modules (JSON::XS/
 YAML::XS-backed, `format.yaml.load_keyword_path` already composes with
 `base.path.resolve_keywords`) — used throughout the outbox/draft
@@ -187,9 +187,9 @@ Fixed in `c39873f93`.
 
 **2026-08-11 UPDATE — the "next step" above is stale; both paths have
 now moved.** 5PN's `users.*` surface is real, not design-only anymore:
-`modules/users.cmd.value-get/-set/-all` (phase 1, `df2e83d85`/
+`src/users.cmd.value-get/-set/-all` (phase 1, `df2e83d85`/
 `25a4bf1ab`) plus a proper envelope schema
-(`modules/users.record.build`/`.validate`, name/checksum/timestamp/
+(`src/users.record.build`/`.validate`, name/checksum/timestamp/
 metadata/fields, `24c58a9d1`) and, further out, a working `remote-get`/
 `remote-fetch` cross-host pair (`e4185e78b`, see
 [[project-users-zenka-unblocks-cross-host-testing]]). `external_source_
@@ -1290,7 +1290,7 @@ mid-dispatch on a real, unresolved bug after hitting its own 100-step limit
 (the initial diagnosis, "undefined subroutine reference … users.cmd.
 remove:42", was accurate but unresolved when the transcript cut off) — fixed
 directly rather than re-dispatched: the module called
-`<[base.file.remove_tree]>`, but `modules/base.file.pre_init` swaps the
+`<[base.file.remove_tree]>`, but `src/base.file.pre_init` swaps the
 whole `base.file.*` family to the short `file.*` alias
 (`<[base.swap_subs]>->('base.file','file')`), so the runtime key is
 `$code{'file.remove_tree'}`, never `$code{'base.file.remove_tree'}` — same
@@ -1319,7 +1319,7 @@ remove them: `p7-masktest2`, `p7-masktest3`, `zztest-addr`, `zztest-addr2`,
 `zztest-bootstrap`, `zztest-bootstrap2` — all gone, only `taeki` remains
 under `host-system/`.
 
-**Not yet committed** — `modules/users.cmd.remove` has no AMOS7 signature
+**Not yet committed** — `src/users.cmd.remove` has no AMOS7 signature
 footer (left off deliberately, per this file's own precedent above:
 "New files were left with an obvious `PLACEHOLDER...` signature block
 rather than a fabricated one"), and `cfg/zenki/users/
@@ -1352,14 +1352,14 @@ testing, not found by me first**:
   `note`/`address` confirmed unchanged
 - key names shortened via `base.parser.ellipse_center` — a real core sub
   defined directly in `bin/Protocol-7` (`p7_parser__ellipse_center`), NOT
-  a `modules/` file. I wrongly diagnosed it as a missing primitive first
-  (grepped only `modules/`, never checked core subs) and built a
-  duplicate `modules/base.parser.ellipse_center` before the user caught
+  a `src/` file. I wrongly diagnosed it as a missing primitive first
+  (grepped only `src/`, never checked core subs) and built a
+  duplicate `src/base.parser.ellipse_center` before the user caught
   it via `Protocol-7 -core-subs ellipse_center`; deleted, real one used
   instead. **Lesson: `bin/Protocol-7 -core-subs <pattern>` before
   concluding any `base.*`-looking primitive is missing** — core subs
-  aren't `modules/` files and won't show up in a `modules/`-only search
-  or `git log -- modules/...`.
+  aren't `src/` files and won't show up in a `src/`-only search
+  or `git log -- src/...`.
 - `identity_key`'s own render had THREE stacked padding layers (its own
   `q| %s %s |` leading/trailing space, `render_form`'s generic body wrap,
   and pad_l/pad_r framing) — trimmed the plugin's own redundant one,
@@ -1511,8 +1511,8 @@ plugin (stashing the checksum for render_form to pick up later) is
 visible to both — same hand-data-forward pattern `user_keys_names`
 already established for the same reason.
 
-#,,.,,,,.,.,.,,..,...,,,.,,.,,.,,,...,,,.,...,..,,...,...,,..,.,.,,,,,,..,.,,,
-#7VTRSDUOYMVP5T34WYWXE3FJCBJCEH6OXLJ3YUVJZJ4ZOY3FYXDRHKKNGDVVXEPL5CBYCYVV5ISUK
-#\\\|6JGPNUGD2L3LYHKQ2NRF75UNQTKISUXTRDLYPCKRAAMQUUZA26X \ / AMOS7 \ YOURUM ::
-#\[7]PORBJYXNWC5YB6CDL3F4EE3YUZQO376JBTRYGKREWSIADDHMY4DQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,,,,,,,,,,,.,.,,,,,...,,,,,.,,,..,,...,...,.,,,,,,,,.,,...,,,.,
+#NJXFK7UPZNSUEQZNO2J4JOOME35U67CZYITRRIBBIMCIKNGDRZF3SYN4ZO77G2ZYILC7UIXNN4TKI
+#\\\|JE3OWHEYJNSCNIRCEGQW6VVCZMVMDZGMRHFVTG55BCE6GJ7KD4I \ / AMOS7 \ YOURUM ::
+#\[7]GIN6WA5X2NCDRR7UHB7MEUOWORR4OVZYMAXWOXOTMUQ5OQE7VABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,18 +26,18 @@ context: >
      buffers and independent context per task. kimi needs the same to
      support parallel sub-agent dispatch from within the zenka.
 
-  reference implementation: modules/coding.* — specifically:
+  reference implementation: src/coding.* — specifically:
   - coding.state.*     — task state namespace design
   - coding.handler.*   — per-task context isolation
   - coding.async.*     — watcher-based I/O instead of timers
 
   relevant kimi modules to read first:
-  - modules/kimi.init_code
-  - modules/kimi.handler.ws_message
-  - modules/kimi.handler.approval_request
-  - modules/kimi.wire.approval_respond
-  - modules/kimi.handler.reconnect (if exists)
-  - modules/kimi.state.* (if exists)
+  - src/kimi.init_code
+  - src/kimi.handler.ws_message
+  - src/kimi.handler.approval_request
+  - src/kimi.wire.approval_respond
+  - src/kimi.handler.reconnect (if exists)
+  - src/kimi.state.* (if exists)
 
 problems_to_fix:
 
@@ -94,8 +94,8 @@ priority: >
   fix 1 (reconnect hang) first — it blocks current usage.
   fix 2 (multiplexing) second — enables future sub-agent parallelism.
 
-#,,..,.,,,,..,...,...,..,,.,.,...,,,,,,..,,..,..,,...,...,...,,,.,..,,,,,,...,
-#RCWE3K3OHO7UGOKYKQH6KGANMXVMZ5XOMDXTAYDR3UX46VOM5QH5HQZHI4H4PRXI4G3AUTNIFDF7Q
-#\\\|OEO2DKJT5RK4IOVCN3O7RHIS7F3EE2OOU6CBUX35GLIPWNWS4NG \ / AMOS7 \ YOURUM ::
-#\[7]FWONSKQ66XI4O5PQHI4LPFHLMYECTE63S2NAPN6BSM4CK5VG6QDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,,.,.,.,,,.,,.,,,,,,,,,,,,,,..,,...,...,.,.,,..,...,.,,,..,,
+#5T6Q7GFSOI2ZLW4FTCSSZ5ELHJNTPHGLYH2KQQTQDEUZ5A7AYRVU6BYJXCZPN2PRESH6TS7BOVHSC
+#\\\|Y7VBORSP4XLUBO2AEGL3DXXCLDRQFIP23NY5EZ2I63NZERTNZEC \ / AMOS7 \ YOURUM ::
+#\[7]YM4MCAKXOHGO5PFMR5TFWSTCMLHYTRRUIUQIDSPWYVOCSCJIZ2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

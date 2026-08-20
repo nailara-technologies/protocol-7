@@ -1,7 +1,7 @@
 # vterm Module System
 
 ## Overview
-22 modules in `modules/vterm.*` namespace — generic visual consensus buffer
+22 modules in `src/vterm.*` namespace — generic visual consensus buffer
 system for any zenka. Committed `b5dbe8db1` (2026-03-02).
 
 ## Cell Format
@@ -45,11 +45,11 @@ Known design issues (deferred to forensic mode implementation):
 
 ## Docs
 - Spec: `data/md/design/VTERM-BUFFER-SPECIFICATION.md`
-- Review: `data/yaml/code-reviews/modules/vterm-post-refactor-review.yaml`
-- Pre-refactor review: `data/yaml/code-reviews/modules/vterm-inline-subs-extraction.yaml`
+- Review: `data/yaml/code-reviews/src/vterm-post-refactor-review.yaml`
+- Pre-refactor review: `data/yaml/code-reviews/src/vterm-inline-subs-extraction.yaml`
 
-#,,.,,,..,...,...,,.,,,..,,..,,..,.,.,.,,,.,,,..,,...,.,.,.,.,.,,,...,,..,...,
-#GTNABCUQGA5ZIOFMZ7AG7G4XSOHB4F74TL34AAJV3UETSXMLU7ERZ7ZVL6N4BWWLP2CTJ4IMST5UK
-#\\\|KNQ3UIKPUX7M7DVCSF5LR63DX6AUPOFBYFPBFYOLPK52IKCATD4 \ / AMOS7 \ YOURUM ::
-#\[7]3EHVLNF7HAFMAG4OGWRR7RJCEZWA6NLKUWDS77ZTAUM5BH6ZIGCY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,..,,.,,,..,,.,,,,.,,,,,,,,.,,,,,..,,...,...,,,.,..,,,,.,.,.,,..,
+#II4CWLE2B7Q4DNU3EC4UL4DUYDAU65ZELLOADRWBRJDNZHL3SZZFW4GZGIBPZO3CVBTHZLJ6UUECA
+#\\\|7CD4VR3ISTLHKEB7IYW2GVJZDKYBVDMGSH7MLIYXHO2CDGA27EO \ / AMOS7 \ YOURUM ::
+#\[7]QWSS2M67D446PAYH7K24OX643WF6NB66ZCJJLKRXMLJ2YUEN7UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

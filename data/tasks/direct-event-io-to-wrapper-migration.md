@@ -36,20 +36,20 @@ see the anyevent-bridge-vs-replace memory file for why that consolidation
 matters: every variable/IO watcher registration being traceable from one
 place is what makes future event-core experiments tractable at all).
 
-## scope -- confirmed via `grep -rln "Event->io(" modules/`
+## scope -- confirmed via `grep -rln "Event->io(" src/`
 
 Exactly two files, three call sites (excluding `base.event.add_io` itself,
 the wrapper's own real implementation, and
 `httpd.route.handler.web-relay`, which is a **legitimate exception** --
 see below):
 
-1. `modules/base.session.init` -- two direct calls:
+1. `src/base.session.init` -- two direct calls:
    - `input_handler` watcher (~line 241): `poll => 'r'` or `'rt'`
      [ depends on `@timeout_callback` ], `prio => 1`, includes
      `@timeout_callback` splice for auth/http/generic input timeouts.
    - `input_error` watcher (~line 254): `poll => 'e'`, `prio => 2`.
 
-2. `modules/httpd.route.handler.web-relay` (~line 49) -- **check before
+2. `src/httpd.route.handler.web-relay` (~line 49) -- **check before
    migrating**: this call explicitly cancels and replaces
    `base.session.init`'s own `input_handler` watcher mid-session
    ("replace input watcher : keep EOF detection, disable timeout" --
@@ -98,7 +98,7 @@ $session->{'watcher'}->{'input_handler'} = <[event.add_io]>->(
 `cb` direct coderef -- not a raw `cb => sub {...}` closure the way
 `Event->io` takes directly. `base.handler.read`/`base.handler.session_error`
 are real `%code` entries (confirmed: `grep -rn "name.*base.handler.read"
-modules/`), so use the `handler` key form, not `cb`. Read
+src/`), so use the `handler` key form, not `cb`. Read
 `base.event.add_io` fully before writing the replacement calls -- do not
 assume every `Event->io` param maps 1:1 to a wrapper param without
 checking (e.g. confirm `timeout`/`timeout_cb` passthrough actually works
@@ -150,8 +150,8 @@ from a human watching results interactively rather than a cold dispatch
 self-certifying "looks fine." Scope it further / decide dispatch-vs-
 interactive once ready to pick this up.
 
-#,,,,,,,.,..,,..,,,,.,.,,,...,.,,,,.,,...,..,,..,,...,..,,..,,,..,...,...,,.,,
-#GQ56BSK2QMGOPD7PHBGOXOKJQ5EIWZBPFLNVKK542IOBGWVMSPRB7C637TBFUJOV6SRY6XUM6NIQG
-#\\\|MY7O6YBFHPOFC3JENYLP5IJK4R3SUZYBO7HENJXPYTYB6GTCLHQ \ / AMOS7 \ YOURUM ::
-#\[7]P45ZMMAIUMX45IEJWKP5YTQPEAC5FOMIN2BOTDP6IPLZXDDMEGCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,...,.,.,,..,,.,,.,.,,..,,..,.,,,..,,...,...,.,,,..,,,,.,.,,,..,,
+#OJLQE3QA2M4M6RPUZH5V7AZZJKYXHS2JMGE2HSA65N2IR5FG4H4HPLGVZCLDRNKL5UED6KKTQPON4
+#\\\|B3LE2O53YAFPOFJ3PF76R2U7CTA2LCWNBO65OBEH7PCCWTT6DCU \ / AMOS7 \ YOURUM ::
+#\[7]R4NMVRVIJJMC3OY2BO6J2F5T55OJNGYXDUDT2PR7QN5DVCP5AYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

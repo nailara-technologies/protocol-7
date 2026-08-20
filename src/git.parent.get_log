@@ -1,0 +1,126 @@
+## [:< ##
+
+# name = git.parent.get_log
+# descr = get git log with caching (efficient for large histories)
+
+my $params = shift || {};
+
+my $force_refresh = $params->{force}  // 0;
+my $limit         = $params->{limit}  // 0;
+my $format        = $params->{format} // 'full';
+my $branch_scope  = $params->{branch_scope}
+    // 'HEAD';    ## 'HEAD', 'all', or specific branch name
+
+## Check cache (keyed by branch scope to avoid cross-contamination)
+unless ($force_refresh) {
+    my $cache_key = "log_$branch_scope";
+    my $time_key  = "log_time_$branch_scope";
+
+    my $cache_age  = time() - ( $data{'git'}{'cache'}{$time_key} // 0 );
+    my $cached_log = $data{'git'}{'cache'}{$cache_key} // [];
+
+    if ( <git.cfg.cache_log> && $cache_age < 300 && @$cached_log ) {
+        <[base.log]>->(
+            3,
+            "git.log: using cached log for "
+                . "'$branch_scope' (age: ${cache_age}s)"
+        );
+        $data{'git'}{'stats'}{'cache_hits'}++;
+
+        return {
+            success => TRUE,
+            commits => $limit
+            ? [ @{$cached_log}[ 0 .. ( $limit - 1 ) ] ]
+            : $cached_log
+        };
+    }
+}
+
+<[base.log]>->( 2, "git.log: fetching from git..." );
+$data{'git'}{'stats'}{'cache_misses'}++;
+
+## Get git log via wrapper or direct command
+my @commits;
+
+## Determine git log arguments based on branch scope
+my @scope_args;
+if ( $branch_scope eq 'all' ) {
+    @scope_args = ('--all');
+} elsif ( $branch_scope eq 'HEAD' ) {
+    @scope_args = ('HEAD');
+} else {
+    @scope_args = ($branch_scope);    ## Specific branch name
+}
+
+if ( <git.cfg.use_wrapper> && exists $code{'git.parent.execute_wrapper'} ) {
+    ## Use Git::Wrapper for proper parsing
+    my $result = <[git.parent.execute_wrapper]>->(
+        {   command => 'log',
+            args    => [ @scope_args, '--format=%H|%an|%ae|%at|%s' ]
+        }
+    );
+
+    if ( $result->{success} ) {
+        foreach my $line ( @{ $result->{output} } ) {
+            my ( $hash, $author, $email, $timestamp, $subject ) = split /\|/,
+                $line, 5;
+
+            push @commits,
+                {
+                hash      => $hash,
+                author    => $author,
+                email     => $email,
+                timestamp => $timestamp,
+                subject   => $subject
+                };
+        }
+    }
+} else {
+    ## Fallback to direct git command
+    my $git_bin = <work.cfg.git_binary> || 'git';
+    my $repo    = <git.cfg.repository_path>;
+
+    my $scope_arg_str = join( ' ', @scope_args );
+    my $output
+        = `cd $repo && $git_bin log $scope_arg_str --format='%H|%an|%ae|%at|%s' 2>&1`;
+
+    foreach my $line ( split /\n/, $output ) {
+        next unless $line =~ m/\|/;
+
+        my ( $hash, $author, $email, $timestamp, $subject ) = split /\|/,
+            $line, 5;
+
+        push @commits,
+            {
+            hash      => $hash,
+            author    => $author,
+            email     => $email,
+            timestamp => $timestamp,
+            subject   => $subject
+            };
+    }
+}
+
+<[base.log]>->(
+    2, "  Fetched " . scalar(@commits) . " commits from '$branch_scope'"
+);
+
+## Update cache (keyed by branch scope)
+my $cache_key = "log_$branch_scope";
+my $time_key  = "log_time_$branch_scope";
+$data{'git'}{'cache'}{$cache_key} = [@commits];
+$data{'git'}{'cache'}{$time_key}  = time();
+
+return {
+    success => TRUE,
+    commits => $limit ? [ @commits[ 0 .. ( $limit - 1 ) ] ] : \@commits,
+    total   => scalar(@commits)
+};
+
+0;
+
+#,,,.,.,.,,,.,.,.,.,,,,..,,,,,,.,,,.,,,,.,,..,..,,...,...,.,,,.,,,...,...,.,.,
+#WC3XNZRFM7MGMXHYYE4EDSMXHXRLE3U3NW5ZK6HHI5W6FV5EHFTGNPTASTI7WQ3YH2HHTX2IH2W5M
+#\\\|RD7LACDG5CWNZTLEGAUXXGZMODNOHV3BQIZ25SUVNN4BUN4F6BI \ / AMOS7 \ YOURUM ::
+#\[7]W63HAFVKFAPWJ3ZG5F7KINPGGC5QZ7QMD6Q3KONJUNHITDUFFUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

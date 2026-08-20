@@ -135,10 +135,10 @@ idea as new.
 and they hold up the "everything is a session" framing with running
 code rather than contradicting it.** the concrete finding: a trust edge
 in this codebase is *already* timestamped inside its own signed
-payload. `modules/crypt.C25519.create_signature_request:44` stamps
+payload. `src/crypt.C25519.create_signature_request:44` stamps
 `<[base.ntime.b32]>->( 1, TRUE )` and the subject signs
 `<ntime:subject-chksum:signer-chksum>`;
-`modules/crypt.C25519.store_remote_key:88,132` writes each TOFU pin as
+`src/crypt.C25519.store_remote_key:88,132` writes each TOFU pin as
 `"%s:%s\n", $ntime_b32, $pubkey_b32` — a pin file *is* an ntime:pubkey
 pair. so "identity IS the edge set"
 [ `ZENKA-IDENTITY-COMPONENT.md` ] plus "every edge carries the time it
@@ -166,8 +166,8 @@ delegated/grouped key under a namespace prefix. User has not yet chosen
 between these two shapes, or may intend both to coexist under the same
 multi-perspective framing as everything else in this entry.
 
-#,,..,,,.,,,,,..,,,,,,..,,,..,...,...,.,.,.,,,..,,...,..,,,.,,,..,.,.,,.,,,..,
-#2I5OCGTWKUMKC6M5SCLX67F4WBBHPXOPZO2KJKTBYADYJQXWGZW46IIRIU5R2Z7JF3UZRIFVK5QNK
-#\\\|WHRQKPIETMJXQJJUW3FZEFPIMZBIEA34TRB7RFAJUENLYERQI25 \ / AMOS7 \ YOURUM ::
-#\[7]JGRGML3WVKUGGY73IYQRKSDGHVKLGNSNZNT35SSYXICRJIVZKUCY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,,..,,,,,..,,,,,,...,..,,,,,,..,,...,...,..,,..,,.,.,,.,,...,
+#5CETI6UOUFSKY4TRWURGNJ3RXQOP3DMWAMZHM7KZ6NVUTWABZ5DB5MC7YEFB4D2P5KJ4QAFIKWEUG
+#\\\|JWGTS3WXYAVGZ4VVFR7SEUHLVAJ7RJ2FRRESSGCFYKPBYFSEEMK \ / AMOS7 \ YOURUM ::
+#\[7]XA7BW6G2XJX6BZ4QR4LNBOZXMG3ZHA2F7OPAPD4AVVYQKLCS66CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

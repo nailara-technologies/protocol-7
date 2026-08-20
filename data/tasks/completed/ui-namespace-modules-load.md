@@ -11,7 +11,7 @@ surfaced an open gap (recorded in memory `topic-next-steps.md`,
 - `base.*` is unconditionally compiled for every zenka:
   `unshift( @module_names, qw| base | ) if $base;` in
   `bin/Protocol-7` (~line 1398)
-- `ui.*` has no such treatment — `modules/ui.*` files are only
+- `ui.*` has no such treatment — `src/ui.*` files are only
   compiled for a zenka if `ui` appears in that zenka's
   `modules.load = ...` line (see `bin/Protocol-7` ~line 1513:
   `$src_rel =~ m|^(.*/)?$code_name(\..+)?$|` matches `ui.fold` etc
@@ -52,7 +52,7 @@ for each matching zenka:
 
 pick 2-3 representative zenki (e.g. `v7`, one always-on zenka, one
 on-demand zenka) and confirm via `p7c <zenka>.list-subs` or similar
-(`grep -rn list-subs modules/base.*` to find the right introspection
+(`grep -rn list-subs src/base.*` to find the right introspection
 command) that `ui.fold`, `ui.unfold`, `ui.cmd.ui-show` etc now appear
 in `%code` for that zenka. if live verification against a running
 instance isn't possible in this environment, at minimum confirm the
@@ -85,18 +85,18 @@ other multi-namespace `modules.load` lines are written elsewhere.
 no `#,,..` stubs. do NOT run update-signatures (pre-commit hook
 re-signs on commit). lowercase comments, `[ word ]` annotations,
 `$ARG` not `$_`. this task touches `cfg/zenki/*/start`
-files, not `modules/` — confirm whether `start` files carry the same
+files, not `src/` — confirm whether `start` files carry the same
 signature footer convention as modules before assuming none is needed.
 
 ## checks
 
 ```
-perl -c modules/ui.fold modules/ui.unfold modules/ui.cmd.ui-show
+perl -c src/ui.fold src/ui.unfold src/ui.cmd.ui-show
 grep -c 'modules.load.*\bui\b' cfg/zenki/*/start
 ```
 
-#,,,.,.,,,,,.,...,,.,,...,.,.,..,,..,,,,,,,,,,..,,...,...,..,,,,,,.,.,,,.,...,
-#CL7E7DVDOCN4P52YVHEDJVUBVERY67KPFHK664X24P7MHMAEAUBESNTYSFSKANOPC4RZIOAKYNE5O
-#\\\|HBGYZOVGYLIHARQ5KKRCLVD3JFFF34KJX6RBHNDP2ZGFYXNLY34 \ / AMOS7 \ YOURUM ::
-#\[7]KL5PTTIWHCWW3DGLFLDH2HWXBSC3J522IBNVYLUY6O6UNGG65CDY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,,..,,.,,,,.,,..,..,,.,.,..,,..,,...,...,..,,,.,,,,.,...,.,,,
+#3JY46FLBJYO2U3XTH5KTZKD26BYHIQ55IZXHODOFYB2CAZIVRWVHBD4KAGZ2XZTRAR5ACZUQ42GN4
+#\\\|TJ7YFEDPCLCNT7TFXKJGEGFFPNJAIZJDPQQHUKAF44KDVEYDYIE \ / AMOS7 \ YOURUM ::
+#\[7]KJDQNVSRXN5ZJNPQOBFPR5PC6RK3LRMNFP7HRH4IFB6SYFH4IYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

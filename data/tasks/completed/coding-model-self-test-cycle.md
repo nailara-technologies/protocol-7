@@ -478,10 +478,10 @@ supports this with zero changes to routing/enqueue/check_dependencies:
 
 ```
 coding.task.enqueue gates every gpu-routed task on coding.dep.gpu_server's
-object_id (modules/coding.task.enqueue:60-76). base.dependency.ok walks
+object_id (src/coding.task.enqueue:60-76). base.dependency.ok walks
 EVERY dependency chained to that object_id and ANDs their type-callbacks
-together (modules/base.dependency.ok:33-64) - same pattern already used
-for memory_gpu/memory_system (modules/coding.init_code:~307-334).
+together (src/base.dependency.ok:33-64) - same pattern already used
+for memory_gpu/memory_system (src/coding.init_code:~307-334).
 
 minimal integration:
 1. register a new dependency type/object: coding.dep.gpu_self_test_pending,
@@ -608,33 +608,33 @@ p7c coding.self_test.status
 
 implement the coding zenka model self-test cycle.
 
-1. create `modules/coding.self_test.run` — sends the calibration prompt
+1. create `src/coding.self_test.run` — sends the calibration prompt
    sequence (arithmetic "7 × 13", then the cat/mouse riddle) to the
    specified model via the existing HTTP inference API
    (`coding.handler.process-queued-task` pattern), records TTFT +
    total time + answer per prompt, calls coding.self_test.evaluate +
    archive for each
 
-2. create `modules/coding.self_test.evaluate` — checks answer against
+2. create `src/coding.self_test.evaluate` — checks answer against
    the prompt's expected string (trim + case-fold), returns TRUE/FALSE;
    on FALSE, calls `coding.self_test.follow_up` before returning
 
-3. create `modules/coding.self_test.follow_up` — sends a second prompt
+3. create `src/coding.self_test.follow_up` — sends a second prompt
    to the same model asking it to explain its reasoning for the
    mismatched answer; returns the explanation text for archival
 
-4. create `modules/coding.self_test.archive` — stores result (+ anomaly
+4. create `src/coding.self_test.archive` — stores result (+ anomaly
    explanation if any) in `$data{coding}{self_test}{<epoch>}{<model_id>}`
    tree
 
-5. create `modules/coding.self_test.multiplier` — percentile_95 of
+5. create `src/coding.self_test.multiplier` — percentile_95 of
    TTFT samples × 1.5 → stores in `coding.cfg.timeout_stats`
 
-6. create `modules/coding.self_test.cmd.status` — SIZE reply showing
+6. create `src/coding.self_test.cmd.status` — SIZE reply showing
    all models × last self-test timestamp / TTFT / pass/fail / multiplier
    / anomaly count
 
-7. create `modules/coding.self_test.cmd.run-now` — accepts model_id arg,
+7. create `src/coding.self_test.cmd.run-now` — accepts model_id arg,
    triggers immediate self-test sequence, returns result (+ anomaly
    explanations if any)
 
@@ -647,8 +647,8 @@ to confirm it's initialized in `coding.init_code` or add it there.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,..,,.,,,,.,,..,.,.,.,,,,..,...,.,,,,.,,.,,,..,,...,...,.,.,,,.,,..,,,.,,..,
-#N6XB7GU5JU7BXBEVX76YM6UYX3QLLXYQZTA35HMOLAXYAR54QGYGQYORUSTURR4UCOIUPO564JOYO
-#\\\|LPE57MQZ5ZXL7AQES3G6A7HMHUW7LEADYV2YO5TPRPSEERWCE2W \ / AMOS7 \ YOURUM ::
-#\[7]UE7QR4EGAVCJENVEYZMTJCR5WADNPYCJQQFEELADFPLKV5JNI2AQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,,,,,,,,,.,,,.,...,...,,,.,..,,...,...,.,.,..,,,.,,.,.,,,,,
+#UMGC7JWOKVM6MO3UHS223GUJ4H6OQLRKE5K5G63BMWHGUIGSZVABJVOJ56WO4YFRREWFKDMGE6NRS
+#\\\|UALNWQU2QEXGYYV7Q5AV3SUT4ZIZTJS7JYVVYJWAX5AQSOLIVUX \ / AMOS7 \ YOURUM ::
+#\[7]B7LJT5FPYHNOYA4RMVIBOPBB2XGIJDSN37PU44LAJ6EOOSD7WGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

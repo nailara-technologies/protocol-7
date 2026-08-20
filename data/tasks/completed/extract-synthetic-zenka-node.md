@@ -21,7 +21,7 @@ extract the inline sub into a proper P7 module file so it is registered in
 
 ## extraction target
 
-file: `modules/plugin.web.space.orbital.json.context`
+file: `src/plugin.web.space.orbital.json.context`
 
 **remove lines 33–70** (the comment + entire sub body):
 
@@ -51,7 +51,7 @@ push @sub_known,
 
 ## new module to create
 
-file: `modules/plugin.web.space.orbital.synthetic-zenka-node`
+file: `src/plugin.web.space.orbital.synthetic-zenka-node`
 
 ```
 ## [:< ##
@@ -136,8 +136,8 @@ do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,..,.,,,...,...,,,.,..,,,..,,.,,...,,..,..,,..,,...,...,,,,,...,.,.,.,,,,,.,
-#4ZRS24CW43WFPGI55ABJSUUNRUFG225MAIS6NB2KQZAGAB6WMQYN6FI5EWWQWRDDQAG3T4QUKR3XM
-#\\\|OX7ERT6CLDUL7223I7OKDLDODWLUQGQYNTJP7DP6JGNC5BOLX3J \ / AMOS7 \ YOURUM ::
-#\[7]BSLY4VKYWZXI4FXSRT3F7DPA2FQW5VBSJV72MMJM3Y3H2EN6IACQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,,,...,..,,..,,...,,,,,,,,,.,,,..,,...,.,.,,,.,,,.,,..,,..,...,
+#EICNMKLHXCM2KLRAF2XBVQQ5J7G76X6UMXFAAFBRU5R5PVVFDN2FK7GPMEF7MZP5Q4HPFOAQILWRK
+#\\\|YIU3NE5QL72NZMDK24VGIRXAEPNJM2N45MBP25YCNQFF43QN3QE \ / AMOS7 \ YOURUM ::
+#\[7]XWXRLAFFR6APQG7Z6ZG5AJLOZDX2ZND6GLAAF3WJ5JIEUIKQOICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

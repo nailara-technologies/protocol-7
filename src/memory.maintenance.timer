@@ -1,0 +1,59 @@
+## [:< ##
+
+# name = memory.maintenance.timer
+# descr = three-gate maintenance trigger: size, batch, scheduled
+
+return TRUE if ref $ARG[0] ne 'HASH' or not $ARG[0]->{'_timer_event'};
+
+return TRUE if <memory.maintenance_lock>;
+
+my $total
+    = defined <memory.tree>
+    ? <[memory.maintenance.timer.count_leaves]>->(<memory.tree>)
+    : 0;
+
+my $size_gate = $total > 50;
+
+my $batch_count = <memory.insert_batch_count> // 0;
+my $batch_time  = <memory.insert_batch_time>  // 0;
+my $batch_gate
+    = $batch_count >= 10 && ( <[base.time]>->(3) - $batch_time ) <= 30;
+
+my $scheduled_gate = TRUE;
+
+if ( $size_gate or $batch_gate or $scheduled_gate ) {
+    <memory.maintenance_lock> = TRUE;
+
+    if ( $size_gate or $batch_gate ) {
+        eval {<[memory.tree.dedup.wave]>};
+        <[base.logs]>->( 2, 'maintenance dedup wave error: %s', $@ ) if $@;
+    }
+
+    if ( $size_gate or $batch_gate or $scheduled_gate ) {
+        eval {<[memory.tree.summarize.wave]>};
+        <[base.logs]>->( 2, 'maintenance summarize wave error: %s', $@ )
+            if $@;
+    }
+
+    delete <memory.maintenance_lock>;
+
+    if ($batch_gate) {
+        delete <memory.insert_batch_count>;
+        delete <memory.insert_batch_time>;
+    }
+}
+
+<[base.logs]>->(
+    2, 'maintenance timer: size=%d gates=[size=%s batch=%s]',
+    $total,
+    $size_gate  ? 'y' : 'n',
+    $batch_gate ? 'y' : 'n'
+);
+
+return TRUE;
+
+#,,.,,,,.,,.,,.,.,,..,,.,,..,,.,.,,..,,,.,...,..,,...,...,..,,.,.,,..,..,,,..,
+#ODDEJJKKHN2C2CWL444JTOKRRZHYJZCLVWBMACHWGTJLJMVWXZULBN4FSLMVKFVSHFMJ4A3WI3UAW
+#\\\|DYTHLO74NCSALFVL5WBUTSB3EOKTMICZ2776WCJDESUQTGF3YNU \ / AMOS7 \ YOURUM ::
+#\[7]EXMAAGLMNTMCD6YVYMA7WKM5CP2PXI37EFWUWE6UKKNAB7HZZKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

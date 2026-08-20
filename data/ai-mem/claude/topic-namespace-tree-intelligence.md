@@ -8,10 +8,10 @@ originSessionId: 941ef93c-3dcf-4d15-8c40-ccd709e0510b
 ## Normalized dot-namespace as universal routing primitive (May 2026)
 
 - **Canonical form**: dot-only notation, no mixed separators, no filesystem artifacts
-  - `modules/base.init_code` → `code.base.init_code`
+  - `src/base.init_code` → `code.base.init_code`
   - `cfg/zenki/cube/access.zenki` → `conf.zenki.cube.access.zenki`
   - `data/tasks/bmw384-route-discovery` → `data.tasks.bmw384-route-discovery`
-- **Planned directory renames**: `modules/` → `code/`, `cfg/` → `conf/` — both map cleanly to dot-only notation
+- **Planned directory renames**: `src/` → `code/`, `cfg/` → `conf/` — both map cleanly to dot-only notation
 - **Hybrid flat+directory form with precedence**: flat file `code/base.chk-sum.init_code` takes precedence over directory tree `code/base/chk-sum/init_code` when both exist; files supersede directories silently
 
 **Namespace as checksum chain — bidirectional routing:**
@@ -24,7 +24,7 @@ originSessionId: 941ef93c-3dcf-4d15-8c40-ccd709e0510b
 
 **Storage-layout independence:**
 - BMW384 coordinate computed from normalized dot-path, not filesystem path
-- Renaming `modules/` → `code/` does NOT change any module's coordinate
+- Renaming `src/` → `code/` does NOT change any module's coordinate
 - Dot-namespace IS the address; filesystem is one possible backing store
 
 ## Implementation Note (2026-05-07)
@@ -158,14 +158,14 @@ originSessionId: 941ef93c-3dcf-4d15-8c40-ccd709e0510b
 ## Why This Matters
 
 Tree unifies currently separate concepts into one namespace, one summarization engine, one access protocol:
-- Code organization (modules/) → tree branch
+- Code organization (src/) → tree branch
 - Runtime state (%data) → tree branch
 - Inference cache (observations/) → tree branch
 - Task history (results/) → tree branch
 - Planning (context-templates) → tree branch
 
-#,,,.,,.,,,,,,...,.,.,,..,,,.,.,,,..,,...,.,.,..,,...,...,,.,,,,,,.,.,..,,,,,,
-#H6OBDGAI5CEIWB776BD4RKSOGMX5XBDBY2WYZXTIRM7CVT2T42K6EXDVTFGSKYHGFJJ2GRJSPRICO
-#\\\|J3BW2BLZVZFH4F2XUQLXLXD3TIAOFYPCZCASYX7JKNTLKMLO55I \ / AMOS7 \ YOURUM ::
-#\[7]SGPD3QKFHH46ROMEI5H6KT6A7ORVOLCENMI22UCS45KZSL7G76DI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,,,...,..,,,,.,,,,,.,.,.,.,...,..,,...,...,,.,,..,,,,.,.,,,,..,
+#E4ETNNDPHW2CDXTKFTTHG7FGANCTDVAA3BFLFAA5OXT7GOQNQYXFPYKIXHZS64UP6264BN3FO63TC
+#\\\|X26OVWUEHFKQWUQXL2RHSKPXUW44JOE4MX5GYVXNHQDL6WGUXNK \ / AMOS7 \ YOURUM ::
+#\[7]EIB5XP3QLKKWOETRLKWWG3P6T65HC4VRSUOIYNRHW5CHKLUOWADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

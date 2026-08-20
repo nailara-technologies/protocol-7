@@ -7,26 +7,26 @@ leave files clean — the signing system adds the real footer automatically.
 
 ## objective
 
-create `modules/task.cmd.next` — returns the highest-priority task from
+create `src/task.cmd.next` — returns the highest-priority task from
 the queue that is ready to execute. this is the key command for autonomous
 operation: a model calls `task.next` to get its next unit of work without
 needing user input.
 
 ## what already exists — read these first
 
-- `modules/task.init_code` — shows queue structure:
+- `src/task.init_code` — shows queue structure:
   - `<task.queue>` — hashref { task_id => task_record }
   - `<task.queue.order>` — arrayref of task_ids in insertion order
-- `modules/task.cmd.show` — shows how to read a task record and format reply
-- `modules/task.cmd.create` — shows task record field names:
+- `src/task.cmd.show` — shows how to read a task record and format reply
+- `src/task.cmd.create` — shows task record field names:
   - `status`: 'pending' | 'claimed' | 'done' | 'failed'
   - `description`, `context`, `node_id`, `created_at`, `updated_at`
-- `modules/valued.resolve` — takes a node_id, returns refs + weight (effective priority)
+- `src/valued.resolve` — takes a node_id, returns refs + weight (effective priority)
   - returns undef if node not in valued tree — treat as priority 0.0
 
 ## what to implement
 
-`modules/task.cmd.next` should:
+`src/task.cmd.next` should:
 
 1. accept optional `assignee` filter from args (e.g. `task.next coding`)
 2. iterate `<task.queue.order>` to preserve deterministic ordering as tiebreak
@@ -54,8 +54,8 @@ needing user input.
 - returns 'nothing executable' when queue is empty or all tasks claimed/done
 - ties broken by insertion order [ first in queue wins ]
 
-#,,.,,.,,,,,,,,,.,..,,.,.,.,.,.,,,...,,,.,,..,..,,...,...,..,,..,,.,,,,.,,.,,,
-#M7T6KOVIJVSXQIB3MLSLI5BHV6HMQHLMZ5Z2MVPT76GLBVSGP3XZ3MLFYEAPHLZSETTSZZBSCZOME
-#\\\|OP67AFVWB6GTHSEXETGDPOORE74PIQFBOIP2M3NOIA43Q6SA4ZX \ / AMOS7 \ YOURUM ::
-#\[7]TFLFLM3YDD7NTZZHUFNNKKVTG5BW56PUUEMKFW4UUU7ETM56P4BQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,.,,,,.,,,.,.,,,,..,..,,,,.,,,,,..,,...,...,..,,.,.,..,,..,,.,.,
+#GAAJFMVPUKSNKZRSKHRJ5GSEPRPGBLIOIKYM3M6AHLJV4RX6T2PTE5YO2YAFZZUI6FCG5JAMX3J6Y
+#\\\|ICL7CYZCM2KBOWOEKEZG2JQYIIV3KMMPZ5XOBK6QPXA5P5732NV \ / AMOS7 \ YOURUM ::
+#\[7]ZRYTCTXD37AOM2FABIZ3RC6H4ZCEV7BKFACNWYPMNBUOEJNYMQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

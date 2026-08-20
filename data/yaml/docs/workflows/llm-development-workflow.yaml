@@ -155,7 +155,7 @@ commands:
 
     example_usage: |
       ./bin/Protocol-7 sourcecode verify-dev-signatures
-      ./bin/Protocol-7 sourcecode verify-dev-signatures modules/workflow.*
+      ./bin/Protocol-7 sourcecode verify-dev-signatures src/workflow.*
 
     output_format: |
       .:[ VERIFY LLM DEV SIGNATURES ]:.
@@ -165,8 +165,8 @@ commands:
       : Invalid signatures:  3
       : No signatures:       2
 
-      : ✗ INVALID: modules/workflow.console.commit
-      : ⚠ NO SIGNATURE: modules/new-file.pl
+      : ✗ INVALID: src/workflow.console.commit
+      : ⚠ NO SIGNATURE: src/new-file.pl
 
   workflow_fix_signatures:
     command: "./bin/Protocol-7 workflow fix-signatures [file-pattern]"
@@ -444,11 +444,11 @@ related_documentation:
   - "buffer-system-debugging.yaml - Real-time debugging workflow"
 
   modules:
-    - "modules/workflow.console.commit - Main LLM commit workflow"
-    - "modules/workflow.console.import-dev-key - Key import for users"
-    - "modules/sourcecode.console.verify-dev-signatures - Signature verification"
-    - "modules/source.cmd.get-code-signed - Core signing implementation"
-    - "modules/source.signature_valid - Signature validation"
+    - "src/workflow.console.commit - Main LLM commit workflow"
+    - "src/workflow.console.import-dev-key - Key import for users"
+    - "src/sourcecode.console.verify-dev-signatures - Signature verification"
+    - "src/source.cmd.get-code-signed - Core signing implementation"
+    - "src/source.signature_valid - Signature validation"
 
 future_enhancements:
   - "Automatic LLM dev key rotation after N commits"
@@ -459,8 +459,8 @@ future_enhancements:
 
 #,,,.,,,.,.,.,.,.,.,,,.,,.,,.,,,,.,,.,,,.,,,,.,,,,.,,,.,.,.,,,,,..,,...,...,,,.,.
 
-#,,,,,,,,,,,.,,.,,.,,,,,,,,,.,,,,,,.,,.,.,.,,,..,,...,...,,,.,,.,,...,.,,,,,.,
-#MXWMAEORYO7RMSD7Y33PDWSFZHOA3ODP3SCKHUREX7LZLPA5OCW44WM36O2EADVERR63TDXLHIYLK
-#\\\|RRSTTXNNDF7H6N4WXCIVUM5C3EAHYSE6JY42SE5TKHS6JO2RJ6Q \ / AMOS7 \ YOURUM ::
-#\[7]MBHOFBUGSAYSB4YSWMEHSNJAMMFIBKFVBIR4PD7HME4662FLRACI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,..,,,.,...,,.,,,.,,,,.,.,.,...,..,,...,...,..,,,,.,.,.,...,.,,,
+#HBA5AXZ7533WWBPR3DNVW6QMGLXNHSZDTP3RGJZTNVQEZFHMZHTYUNL3NBLV6DTSKDQJY437FI2QU
+#\\\|AGBNVBEAPKI2LHLLWKMYRXJE57T7JV6O3BGO465G7KBD4SMY3KT \ / AMOS7 \ YOURUM ::
+#\[7]AKSGMRXHHFTR35GJT2PEXKU7NS4RSPGETO33F2BQG5XAUYM2DADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,140 @@
+## [:< ##
+
+# name  = context.review.consolidate
+# descr = merge page reviews into final output and write result directory
+
+my $params = shift // {};
+
+my $plan       = $params->{'plan'}       // {};
+my $results    = $params->{'results'}    // [];
+my $result_dir = $params->{'result_dir'} // $plan->{'result_dir'}
+    // 'data/review/style';
+
+my $review_type = $plan->{'review_type'} // qw| style |;
+
+return { 'mode' => qw| false |, 'data' => 'no results to consolidate' }
+    unless @$results;
+
+## ensure result directory exists ##
+if ( not -d $result_dir ) {
+    my @parts = split m|/|, $result_dir;
+    my $path  = '';
+    foreach my $part (@parts) {
+        $path .= "$part/";
+        mkdir $path, 0775 unless -d $path;
+    }
+}
+
+## write per-module review files ##
+my %by_module;
+my @all_findings;
+
+foreach my $page_result (@$results) {
+    my $page_num = $page_result->{'page_num'} // 0;
+    my $review   = $page_result->{'review'}   // '';
+    my $files    = $page_result->{'files'}    // [];
+
+    ## store raw page result ##
+    my $page_file = sprintf '%s/page-%03d.md', $result_dir, $page_num;
+    if ( open my $fh, '>', $page_file ) {
+        print $fh "## review page $page_num ##\n\n";
+        print $fh "files: " . join( ', ', @$files ) . "\n\n";
+        print $fh $review;
+        close $fh;
+        chmod 0664, $page_file;
+    }
+
+    ## split review into per-module sections ##
+    foreach my $module (@$files) {
+        $by_module{$module} //= [];
+
+        ## extract lines mentioning this module ##
+        foreach my $line ( split m|\n|, $review ) {
+            if ( $line =~ m|\Q$module\E|i ) {
+                push $by_module{$module}->@*, $line;
+                push @all_findings,
+                    { 'module' => $module, 'finding' => $line };
+            }
+        }
+    }
+}
+
+## write per-module review files [ mirroring source path ] ##
+foreach my $module ( sort keys %by_module ) {
+    my $findings = $by_module{$module};
+    next unless @$findings;
+
+    ## create module review path [ src/a.b.c → result_dir/a.b.c.review.md ] ##
+    my $review_file = "$result_dir/$module.review.md";
+
+    if ( open my $fh, '>', $review_file ) {
+        printf $fh "## %s review [ %s ] ##\n\n", $module, $review_type;
+        printf $fh "%s\n", $ARG foreach @$findings;
+        close $fh;
+        chmod 0664, $review_file;
+    }
+}
+
+## write summary ##
+my $summary_file = "$result_dir/SUMMARY.md";
+if ( open my $fh, '>', $summary_file ) {
+    printf $fh "## %s review summary ##\n\n", $review_type;
+    printf $fh "- review type: %s\n",         $review_type;
+    printf $fh "- total pages: %d\n",         scalar @$results;
+    printf $fh "- total files: %d\n",         $plan->{'total_files'} // 0;
+    printf $fh "- total findings: %d\n",      scalar @all_findings;
+    printf $fh "- generated: %s\n\n",         scalar localtime;
+
+    if ( @{ $plan->{'targets'} // [] } ) {
+        print $fh "### targets\n\n";
+        printf $fh "- %s\n", $ARG foreach $plan->{'targets'}->@*;
+        print $fh "\n";
+    }
+
+    ## findings by severity if parseable ##
+    my %by_severity;
+    foreach my $f (@all_findings) {
+        if ( $f->{'finding'} =~ m{\[ *(high|medium|low) *\]}i ) {
+            push $by_severity{ lc $1 }->@*, $f;
+        } else {
+            push $by_severity{'unclassified'}->@*, $f;
+        }
+    }
+
+    foreach my $sev (qw| high medium low unclassified |) {
+        my $items = $by_severity{$sev} // [];
+        next unless @$items;
+        printf $fh "### %s [ %d ]\n\n", $sev, scalar @$items;
+        foreach my $f (@$items) {
+            printf $fh "- **%s**: %s\n", $f->{'module'}, $f->{'finding'};
+        }
+        print $fh "\n";
+    }
+
+    close $fh;
+    chmod 0664, $summary_file;
+}
+
+<[base.logs]>->(
+    1, ':. review.consolidate: %s : %d findings across %d files → %s :.',
+    $review_type,
+    scalar @all_findings,
+    scalar keys %by_module, $result_dir
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'result_dir'       => $result_dir,
+        'total_findings'   => scalar @all_findings,
+        'modules_reviewed' => scalar keys %by_module,
+        'summary_file'     => $summary_file,
+        'by_module'        => \%by_module
+    }
+};
+
+#,,,.,...,,.,,,,,,,..,.,.,..,,,,.,,,.,.,.,.,.,..,,...,...,.,,,.,.,..,,.,.,.,.,
+#X2O76GWVKMJADNMFDMH4EEAQ565YNAA5JA6HK6A5KCUENQJK75RHBTP7RQOZE5DUWHMBSNATWWOWO
+#\\\|A44WTCSYH3KXZM3JOUT5E75LG6EFZ7GXO57J5IHXUSXIVZDJX4J \ / AMOS7 \ YOURUM ::
+#\[7]AI7SWRX7WUUVQI4AYEBIA6P4NAXWDCU7DJJP6M7UYMWQTSSHDGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

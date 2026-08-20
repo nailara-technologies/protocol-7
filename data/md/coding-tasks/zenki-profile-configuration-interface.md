@@ -159,7 +159,7 @@ suggests:
   zenki:     [ models ]
 ```
 
-Discovery scans `cfg/zenki/` (not `modules/`) since zenka identity
+Discovery scans `cfg/zenki/` (not `src/`) since zenka identity
 is defined by configuration, not module filenames.
 
 ## Implementation Phases
@@ -230,8 +230,8 @@ cleanly regardless of how many commands are present.
 - `-no-config` / `auto_start: true` flag for automation / headless deployments
   should be addressed in phase 5 alongside the args interface
 
-#,,.,,.,.,,,,,,,.,.,.,,..,,,.,.,.,,,,,.,.,,.,,..,,...,..,,.,.,.,,,..,,,,,,,.,,
-#LU2WIVNZ6UEK2B5OOAUALX2R37COZ3NX57MKWGG4UUFLZTWR3IGMVBZ4BVKDNND2QZMMZV2QVQGV6
-#\\\|BMRBURACPRC7TEZAIJQT5AOI27SJ2LUAJFNPSADLPREDHSSSIFY \ / AMOS7 \ YOURUM ::
-#\[7]46C63BIO44KATFKUD3QT2RLGY3DGR6J5WZVVXSAGW3UYRRLTPWBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,,,.,,,,,,,,,.,.,.,,..,..,,,.,,..,,...,..,,.,,,.,.,...,...,...,
+#OWK5JS2XAIQ3DKFOBNYQY4OLW53KI5FJV6CJINUARVNP6NJFZQYOCMN4OUYGRAB5YBI344LCKMTFE
+#\\\|POYRF4VILBQJB3QNLFWAOLU754ZLGXC55LVI7CAI4MXME5AEJHZ \ / AMOS7 \ YOURUM ::
+#\[7]ZSY32LX2VY5JGQNF5CH36RVJ5LYK3D5USDEG22XLONJA3YLBKQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,12 +1,12 @@
 # task: implement valued.cmd.stats
 
 ## objective
-create `modules/valued.cmd.stats` — returns a summary of the valued
+create `src/valued.cmd.stats` — returns a summary of the valued
 tree: total nodes, average priority, highest and lowest priority node.
 
 ## read first
-- `modules/valued.resolve` — returns refs + weight for a node id
-- `modules/valued.cmd.list` — reference for iteration pattern
+- `src/valued.resolve` — returns refs + weight for a node id
+- `src/valued.cmd.list` — reference for iteration pattern
 
 ## what to implement
 
@@ -21,8 +21,8 @@ return format: `{ 'mode' => 'size', 'data' => $str }` where $str is:
 
 empty tree returns "no nodes".
 
-#,,,.,,,,,...,...,,,,,,,,,,.,,,,,,...,..,,.,.,..,,...,...,.,,,...,..,,,.,,,,,,
-#XEC6TCAUNQ4B6KADQDHUZ2ULKEYHR7FSOT3A7XG6J2U2VKEXFI5XUWZE3E4NREFXBYEABXRMLRV4O
-#\\\|PE7KFP2NSF4CZKHY74ZZLGIDZDSDOI7OOYJ5XGRPJGX2AVDEIJB \ / AMOS7 \ YOURUM ::
-#\[7]3XNLYWPMJEXFOWKNQKJ5UP6JSXLRQSNUUHAVLKERHDRQAM2ZQKBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,.,.,...,...,.,,,,,,,,.,,,,.,..,,...,...,...,,..,,.,,.,.,,.,,
+#UA5DXPXOKCMHADP6RBCH4W2M4N67HS6XYPBPGPPZBU2MY7R7ZZ4MA4URRC5KJFXBQ7S4NK3JBYQ7Q
+#\\\|GRIO77LAYAZKYGKOYLSMYMMVBZJYFRCBKOC2AO3ESLJEJP7R3DP \ / AMOS7 \ YOURUM ::
+#\[7]PXG3JR65J22IJHW5VJTVIAD3IGHZDFFOSF3D6QK2IOENYP6KBWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

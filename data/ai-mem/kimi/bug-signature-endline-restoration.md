@@ -28,7 +28,7 @@ appearing during signing runs.
    - checksum matches (payload unchanged).
    - `get-code-signed` returns `$is_valid = TRUE` and `update-signatures` with
      `skip-valid => TRUE` **skips the file entirely**.
-   - fix: `modules/source.cmd.get-code-signed:86` — changed early-return gate from
+   - fix: `src/source.cmd.get-code-signed:86` — changed early-return gate from
      `if ($is_valid)` to `if ( $is_valid and not $footer_data->{'needs_separator_endline'} )`.
 
 2. **short footer (1 newline before footer, encoded state 7)**
@@ -37,7 +37,7 @@ appearing during signing runs.
    - `restore_payload_endline_state(state=7)` tries to remove 2, clamps to 1,
      emits warning, continues with `structure-was-valid = TRUE`.
    - verify/update both treat the file as valid because no structured error is set.
-   - fix: `modules/source.extract_sig_body:710-721` — after calling
+   - fix: `src/source.extract_sig_body:710-721` — after calling
      `restore_payload_endline_state`, compare the actual length change against the
      expected change (`5 - state`). if they differ (clamping occurred), set
      `$footer_data->{'encountered-error'}` and return early with
@@ -56,7 +56,7 @@ silently did nothing.
 ### Test result
 
 running `update-version ; us ;` on a clean repo triggered the warning exactly once
-for `modules/source.extract_sig_body` itself (a legacy malformed file). with both
+for `src/source.extract_sig_body` itself (a legacy malformed file). with both
 fixes applied, the file was caught by the clamp guard, forced to re-sign, and all
 subsequent runs are warning-free. `cfg/protocol-7.src-ver` (no footer) does
 **not** trigger the warning — confirming the warning only originates from signed files
@@ -64,8 +64,8 @@ with a structural mismatch, never from unsigned files.
 
 ### Files changed
 
-- `modules/source.cmd.get-code-signed` — `skip-valid` gate now checks `needs_separator_endline`
-- `modules/source.extract_sig_body` — clamp detection returns structured error
+- `src/source.cmd.get-code-signed` — `skip-valid` gate now checks `needs_separator_endline`
+- `src/source.extract_sig_body` — clamp detection returns structured error
 
 ### Related
 
@@ -73,8 +73,8 @@ with a structural mismatch, never from unsigned files.
 - commit `26bad5e0e` — removed `harmonize_payload_line_feed` state 0/7 early-return
 - `bin/dev/tests/timing/test-endline-state7-oscillation` — regression net for the original bug
 
-#,,,.,.,.,...,,,.,,,,,..,,,,,,..,,.,.,..,,.,,,.,.,...,...,.,.,.,.,,.,,.,,,.,.,
-#QF7XAU7R2DZWJUP7KWCRUW5MKXMYE7ZMQTGMQ4C2CRGZYK63WXI3PLBQ3JZZVF27MCNGVSID4SN2Q
-#\\\|VFOPFQAEZ2OLUD5BRI2RPHQYCTRXZN77VB4FRWCBC55IUILS7ID \ / AMOS7 \ YOURUM ::
-#\[7]NBJ3FJHNIIZBFMPWNQ2IULHMSF6TNOKB4RKF2D5ND4BJNI3R7UCI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,,,,,.,.,,,,.,,,,,,,,.,,..,.,,,.,.,...,...,.,.,,,,,.,,,..,,.,,,
+#OCL5OSG26YMZW5H5KJGPSQ7CBBWAF2V6CWZHU2PLFQ2GTVUFJNCEAZHYTNZQWJVPQEVXB64L4I5R4
+#\\\|OG5NJHAN6IMXL35AXD3LPO6CNRFCLZO5YDFKIQG2O5FHIYFMQ4C \ / AMOS7 \ YOURUM ::
+#\[7]RP2RCRFHPGTEWKEUUMIYLK6XA6P2PIAZ5LQJNBXTZ23OKDF4LCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

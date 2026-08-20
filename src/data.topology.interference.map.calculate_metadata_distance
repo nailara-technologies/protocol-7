@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = data.topology.interference.map.calculate_metadata_distance
+# descr = Topology calculation subroutine
+
+my $hash = shift;
+
+my $max_rgb_dist = <[data.topology.interference.map.MAX_RGB_DIST]>;
+
+# abstract "distance" in metadata space
+# determines translucency based on data characteristics
+my $type_hash
+    = <[chk-sum.amos.truth_template_chksum]>->( $hash . "type_marker", \0 )
+    // 0;
+return ( $type_hash % 1000 ) / 1000 * $max_rgb_dist;
+
+#,,,.,,,.,,,.,,,.,..,,.,.,,,.,,,.,,..,...,..,,.,.,...,...,...,...,,..,,,.,.,.,
+#ROZAI7U7KZG4XYFBKNKRQQ3KKZWIGX665SOC4M5FJKPUJRXWTNK73CT3LHUBW3O5FU2XDVK6EIWFK
+#\\\|RRRP3SDW2VLH5PYW5QZSTH4NRL33G6XCOTSMELGGADALBLJFVBI \ / AMOS7 \ YOURUM ::
+#\[7]4RSC5LFIUVJODGESASM2HUBAG5EFDXNY5KDIFC25OCXXKJHEKICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

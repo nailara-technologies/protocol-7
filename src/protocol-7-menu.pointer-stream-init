@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = protocol-7-menu.pointer-stream-init
+# descr = start pointer-stream and request shm path on zenka init
+
+<[protocol-7.route-send]>->(
+    {   'command' => 'powershell.pointer-stream',
+        'reply'   =>
+            { 'handler' => 'protocol-7-menu.handler.pointer-stream-start' },
+    }
+);
+
+## re-run this handshake whenever powershell restarts : idempotent, the ##
+## on_restart registry dedups the (publisher,handler) pair              ##
+<[base.zenka.on_restart]>->(
+    {   'publisher' => 'powershell',
+        'handler'   => 'protocol-7-menu.pointer-stream-init',
+    }
+);
+
+#
+
+#,,..,.,.,...,...,,,,,.,.,,,.,,,.,.,.,.,.,,..,..,,...,..,,...,,,,,,,.,,,.,.,.,
+#KTVR5BNDQDAZUMSTHWLZGLTB7PLVYOPIRTFQ5X4ZMJODSA2BIDQ4IW5P3NVT6RCSJFKD6PTK4JOEO
+#\\\|XRIKLB6LDDA47OVA2D4UAC57ULSNQL67LKD73ZCMSHHEPRL2HSK \ / AMOS7 \ YOURUM ::
+#\[7]QLFAPBPVZUROKCXXWS7A7YF3QSKOCB7UEAVLW2OWGM3AN62M7ADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

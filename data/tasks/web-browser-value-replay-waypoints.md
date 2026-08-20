@@ -133,7 +133,7 @@ of `.pick`:
   'command' => "$sid.goto-waypoint", 'call_args' => { 'args' => "<name>
   duration=<duration> path=<path> ..." } })` — the exact `"$sid.command"`
   addressing convention already established (bare sid, no zenka-name
-  segment; confirmed live pattern, see e.g. `modules/mpv.handler.reposition_reply`).
+  segment; confirmed live pattern, see e.g. `src/mpv.handler.reposition_reply`).
   Fire-and-forget reply (report how many sids it fanned out to); does not
   wait for/aggregate each instance's own verify result in this pass.
 
@@ -201,8 +201,8 @@ space as ambient substrate, parent-space nesting, dedicated inter-instance
 sync channels including `httpd` zenki) remains open for a future pass,
 not designed in detail.
 
-#,,,,,,,,,,.,,.,,,...,.,,,,.,,,.,,..,,.,,,..,,..,,...,...,.,.,...,..,,..,,,,.,
-#B2DXATPLFPZZD6JJECJJBY5KS27HS2WQWAIBQZZASFVMQNE4YN6OZUYOOSYZPQUWGT3MOS36RMBGO
-#\\\|GGB4ILQW7X4XFOKUIYF7SEHLDZGANHKYKYN7QBI3KSDZLQ3KJDO \ / AMOS7 \ YOURUM ::
-#\[7]VC3KHS5Z3MX56A5WCPU36TCIJOZOEHP5TEMDI7AV77XDS372FCDY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,.,,,,..,...,..,,,,.,..,,.,,,..,,...,...,.,,,,,.,.,.,,,.,,.,,
+#6TODOP23BBAFPCHUZXF7OW7PRPFZBWBR6YZ6CW3JEE7PNNTXU6M5NZSTHLS7LL5MONYDRZIKME2MO
+#\\\|BFHAU6CEBSFHPQORMXQDG6MOYPF3SHTDYLF5E5SZ5OX6CQLCBJQ \ / AMOS7 \ YOURUM ::
+#\[7]LV3BPMMEFPSFGSZZRRYAV5MZYGDQ3VVLGK5OTUAAEU6CBMYSQAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

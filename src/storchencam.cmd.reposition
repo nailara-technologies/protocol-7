@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = storchencam.cmd.reposition
+# descr = reposition storchencam window seeded from profile
+
+my $caller = <system.zenka.name> // qw| storchencam |;
+
+## force=1 : always opens the interactive placement ui [ rather than        ##
+## instantly re-serving the saved profile ], but still seeds it from that   ##
+## same saved profile - so calling reposition again before a window is ever ##
+## opened continues from the last commit instead of resetting to a          ##
+## blank/default position each time                                         ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'window-place.coords',
+        'call_args' => { 'args'    => sprintf 'caller=%s force=1', $caller },
+        'reply'     => { 'handler' => 'storchencam.handler.reposition_reply' }
+    }
+);
+
+return {
+    'mode' => 'true',
+    'data' => sprintf( 'repositioning requested [caller=%s]', $caller )
+};
+
+#,,..,.,,,...,...,...,,.,,.,,,,,.,..,,,,.,..,,..,,...,...,,,,,,..,,.,,.,,,,.,,
+#ZX3UZIKNA66IHHDAIWHHAJNPJSZGSRK3AQOJ4D6UZLXH5KLU2QKEHMLWZAABLJ2MXYMK4TJRJWKWC
+#\\\|G4S5KASM3JILJ2YKJGFD3H5FIPAXHFTHZHBXIXS4WN3RWABXJPP \ / AMOS7 \ YOURUM ::
+#\[7]3GXHUHR46IRX4S4LZA67CJOZ6UIEVTBWKVTOB76RXEFUCPXZXEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,7 +44,7 @@ when we stop fragmenting the payload.
 **How to apply:** when building overlays, skins, or template output,
 embed `<style>` and `<script>` blocks directly. Reserve `/static/*` for
 binary assets that genuinely can't be inlined [ fonts, images, large
-media ]. The asset registry [ `modules/web.assets.*` ] remains relevant
+media ]. The asset registry [ `src/web.assets.*` ] remains relevant
 for those cases but doesn't need to be primed for text-only vhosts.
 
 ## future: dependency-resolved JS via dynamic templates
@@ -55,8 +55,8 @@ includes rather than script tags. At that point format choice
 [ JSON vs YAML vs native ] becomes a per-call decision rather than a
 per-endpoint decision. For now, the parallel-endpoint default stands.
 
-#,,,.,,,.,.,.,,,.,,,,,,..,.,.,,..,.,,,.,.,,,,,..,,...,..,,.,,,,.,,..,,,,.,,.,,
-#6VH5OPWDPRPLH2AJ4VH2PVQAIEE4DQE6Z6QOSMFAPZYHCRSYWT6J4N3FBFTUWX3CDOVGNMOTL6VPY
-#\\\|EGTT7ZWBCCHPZ5SSIPM6VJ5II3AF5NGKQ6Q6HTQSF3HPBV3BSP2 \ / AMOS7 \ YOURUM ::
-#\[7]TOTMJXLTBMBD7DIALUOO7PLGGK72TIGDCRYQ6TJ2KIPCNA3N5OBY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,,,,,..,,,,,,.,.,,..,...,,.,,..,,...,..,,,,.,.,,,,,.,.,.,,..,
+#XUZIP7YTIJQVJ7YLDZWLFA4FBDKDROVNOLKS55EEIIMA375APQJDA6JTJRFVBTNIQFZKZ7C2IROBO
+#\\\|QXLDRFNUM6VY3MTAWRKTDIGHANOL2LXVPYCRHU4GXF3JQRNSOMB \ / AMOS7 \ YOURUM ::
+#\[7]HCUFOIF4LGQENHYQ2UX7XQD5ZH2CEVQL6JX4SOJXNDY2IZN2DAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

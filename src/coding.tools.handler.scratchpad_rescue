@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = coding.tools.handler.scratchpad_rescue
+# descr = import one claude session scratchpad into data/scratchpad/<bmw>
+
+my $args = shift // {};
+
+my $session = $args->{'session'} // return 'session required [ uuid ]';
+
+return 'error: invalid session uuid'
+    if $session !~ m{^[0-9a-f\-]{36}$};
+
+my ($scr) = grep {-d} glob("/tmp/claude-*/*/$session/scratchpad");
+return "no scratchpad dir found for $session" if not defined $scr;
+return "scratchpad dir not readable [ permission bridge pending ] : $scr"
+    if not -r $scr;
+
+my $f_aref = <[file.match_files]>->( $scr, qw| ** | ) // [];
+my @files  = sort {
+    ( File::stat::stat($a)->mtime // 0 )
+        <=> ( File::stat::stat($b)->mtime // 0 )
+} @$f_aref;
+return "scratchpad is empty : $scr" if not @files;
+
+my $session_tmp = $scr;
+$session_tmp =~ s{/scratchpad$}{/};
+my $bmw = <[chk-sum.bmw.L13-str]>->($session_tmp) // '';
+return 'bmw-L13 key computation failed' if not length $bmw;
+
+my $dest     = <system.root_path> . "/data/scratchpad/$bmw";
+my $chmod_fh = <coding.chmod_child.w_fh>;
+
+## create dest dir : privileged child [ taeki-owned ] or direct ##
+if ( not -d $dest ) {
+    if ( defined $chmod_fh ) {
+        print {$chmod_fh} "mkdir $dest\n";
+        <[coding.chmod_child.readline]>;    ## wait for mkdir reply ##
+    }
+    if ( not -d $dest ) {
+        eval { File::Path::make_path($dest) };
+        return "cannot create $dest : $@" if $@ or not -d $dest;
+    }
+}
+
+my @out;
+push( @out, '.:[ scratchpad rescued ]:.' );
+push( @out, "  source : $scr" );
+push( @out, "  dest   : $dest" );
+push( @out, "  bmw    : $bmw" );
+
+my @mtimes;
+my $copied = 0;
+for my $file (@files) {
+    my $name = $file;
+    $name =~ s{.*/}{};
+    my $size  = File::stat::stat($file)->size  // 0;
+    my $mtime = File::stat::stat($file)->mtime // 0;
+    my $df    = "$dest/$name";
+
+    ## create as admin user [ 0664 ] so content write works via group bit ##
+    if ( not -e $df and defined $chmod_fh ) {
+        print {$chmod_fh} "create $df\n";
+        <[coding.chmod_child.readline]>;
+    }
+    my $content = do {
+        open( my $in, '<:raw', $file ) or next;
+        local $/;
+        <$in>;
+        }
+        // '';
+    if ( open( my $out_fh, '>:raw', $df ) ) {
+        print {$out_fh} $content;
+        close($out_fh);
+        $copied++;
+        push( @mtimes, sprintf '%s %d',     $name, $mtime );
+        push( @out,    sprintf '  %8d  %s', $size, $name );
+    } else {
+        push( @out, "  FAILED   $name : $OS_ERROR" );
+    }
+}
+
+## IMPORT-INFO : provenance + per-file original mtimes  [ chmod child has ##
+## no utime command — mtimes recorded, not applied ]                      ##
+my $info = join '',
+    "original_path : $scr\n",
+    "session_tmp   : $session_tmp [ bmw-L13 key source ]\n",
+    "session_uuid  : $session\n",
+    "bmw_l13       : $bmw\n",
+    "imported_at   : "
+    . POSIX::strftime( '%Y-%m-%d %H:%M:%S %z', localtime ) . "\n",
+    "imported_by   : coding-zenka\n",
+    "files         : $copied\n",
+    map {"mtime         : $_\n"} @mtimes;
+
+my $info_file = "$dest/IMPORT-INFO";
+if ( not -e $info_file and defined $chmod_fh ) {
+    print {$chmod_fh} "create $info_file\n";
+    <[coding.chmod_child.readline]>;
+}
+if ( open( my $fh, '>:raw', $info_file ) ) {
+    print {$fh} $info;
+    close($fh);
+    push( @out, '  IMPORT-INFO written [ source path + mtimes recorded ]' );
+} else {
+    push( @out, "  IMPORT-INFO FAILED : $OS_ERROR" );
+}
+
+return join( "\n", @out );
+
+#,,,,,.,.,,..,...,.,.,.,,,,.,,.,.,...,,,.,,.,,..,,...,...,...,,..,,..,...,,,.,
+#NZHFRFHARDWOK2WU7VR5SOITYJYHSBYT5DN5GCTSDUDRO6OJJUEMKAVSIKK7IAO2WJ3BEKUNPZOBC
+#\\\|BMBWSJUZ2PJ73FZNQIOYCIS5IH6TW4JTENYHOAPRSR66B4AEP32 \ / AMOS7 \ YOURUM ::
+#\[7]NFB5OPGGLDDABTGXNEISM3UXNTWSV4I7PFWPKILEMUHAFTW7P6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,7 +30,7 @@ the destination's angular position, narrowing both color and angle distance per 
 
 ## modules to create
 
-### modules/base.bmw384.route.find
+### src/base.bmw384.route.find
 
 main entry point. params: ( $src_name, $dst_name )
 both must be registered in the field index.
@@ -46,7 +46,7 @@ both must be registered in the field index.
        resonant => $bool,   ## true if all hops share arc with destination
      }
 
-### modules/base.bmw384.route.direct
+### src/base.bmw384.route.direct
 
 same-arc routing. params: ( $src_coord, $dst_coord, $src_name, $dst_name )
 nodes are in the same arc — check angular proximity:
@@ -57,7 +57,7 @@ nodes are in the same arc — check angular proximity:
        direct route: path = [ src, dst ], hops = 0, resonant = true
   3. otherwise: fall through to vortex with hint that arc is already matched
 
-### modules/base.bmw384.route.vortex
+### src/base.bmw384.route.vortex
 
 cross-arc routing. params: ( $src_coord, $dst_coord, $src_name, $dst_name )
 
@@ -71,7 +71,7 @@ cross-arc routing. params: ( $src_coord, $dst_coord, $src_name, $dst_name )
   4. pick best candidate as the single intermediate hop
   5. return path: [ src_name, best_candidate_name, dst_name ]
 
-### modules/base.bmw384.route.hamming-dist
+### src/base.bmw384.route.hamming-dist
 
 utility: count differing bits between two 360-char '0'/'1' strings.
 params: ( $bits_a, $bits_b )
@@ -84,7 +84,7 @@ params: ( $bits_a, $bits_b )
 
 ## zenka command module to create
 
-### modules/base.bmw384.cmd.find-route
+### src/base.bmw384.cmd.find-route
 
 command handler: p7c <zenka>.find-route <src_name> <dst_name>
 parses two space-separated names from $call->{'args'}.
@@ -108,8 +108,8 @@ returns { mode => 'size', data => $output }
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,,,,.,.,,,,,.,,,.,,,,,,,...,,..,,.,,.,.,..,,..,,...,...,.,.,..,,,,,,,,,,,,.,
-#CAUQW7KF2XB326FT2V553XQMIIJ6Q3J6M55ABX6YRHJXDFFXZAPPL46OH6XLQYZG4LEWFN3CVUGZU
-#\\\|N3A2EBKHFXIPJGETIUM3ARKWSDAGAI3ZYVXL2QLJEKWYOOEVXJE \ / AMOS7 \ YOURUM ::
-#\[7]YUEDKEEL57KD2NZNM2CT5D24G2CD7UYOAKTXUYNS5TDF3SZAEGCA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,.,.,..,,..,,.,.,,.,,...,,..,..,,...,...,..,,,,,,,.,,.,,,,,,,
+#56GWN5K2B6AOMS64XJXHMGFJ2VNECLONCQ5SGGW34IGWWESOENSEMOJZ3GYK6PMU73J4G3U2JCYAW
+#\\\|USJPQ3WGX5M653DMNA46DQDBWEPDULHK7UKK4GN7CYDQGDSCKML \ / AMOS7 \ YOURUM ::
+#\[7]R57IWMG7HUFAP6KKT7676KPMQW6K5XXCPNHRQWEB3RVYZUVQGMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

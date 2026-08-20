@@ -1,0 +1,139 @@
+## [:< ##
+
+# name = nshell.init_code
+# descr = Protocol-7 native shell as first-class zenka with buffer I/O
+
+## setting STDIN, STDOUT and STDERR to binary mode  for consistent raw byte
+## handling. this allows  sysread on STDIN and syswrite on STDOUT\STDERR
+## without encoding layer interference :
+#
+map { binmode($ARG) } ( *STDIN, *STDOUT, *STDERR );
+
+### enable LLM capable debug interface? ##
+##
+<nshell.mode.no_tty_debug> //= FALSE;
+if ( length <system.args> ) {
+    foreach my $arg ( split m{\ +}, <system.args> ) {
+        if ( $arg eq qw| -no-tty-debug | ) {
+            <nshell.mode.no_tty_debug> = TRUE;
+            <[base.log]>->( 1, '::: DEBUG MODE : enabled no-tty-debug :::' );
+        }
+    }
+}
+##
+
+STDOUT->autoflush(1);    ## Ensure bytes are sent immediately to terminal
+
+## Load AMOS7 for colors and protocol utilities
+<[base.perlmod.load]>->('AMOS7');
+<[base.perlmod.load]>->('AMOS7::TERM');
+<[base.perlmod.load]>->(
+    'AMOS7::Protocol::P7', qw| calc_port calc_unix_path |
+);
+
+## loading terminal modules ## [ remainder in Protocol-7 and base.init_code ]
+<[base.perlmod.load]>->('Linux::Termios2');
+
+$AMOS7::TERM::title_prefix         = ' .:';
+$AMOS7::mesg_prefix_string         = ' ::';
+$AMOS7::TERM::prompt_prefix_string = ' ::';
+
+## current Unix user for authentication [configurable : nshell.login_user ]
+my $current_user = <nshell.login_user> // $ENV{'USER'} // getpwuid($EUID);
+
+##  terminal history [ring] buffers  ##
+##
+if ( not exists <buffer.terminal-history> ) {   ## init msg has a timestamp ##
+    <buffer.terminal-history.max_size> = 42 * 1024;    ## 42K buffer size ##
+    my $log_msg    = '.   .  . .:[ terminal buffer initialized ]:. .  .   .';
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );   # BASE32 encoded #
+    ## endline padding ##
+    <[base.buffer.add_line]>->( 'terminal-history', '' );
+    <[base.buffer.add_line]>->(
+        qw| terminal-history |,  ## gets initialized on zenka start-up only ##
+        sprintf( '%s %s', $time_stamp, $log_msg ) #[timestamp but no loglevel]
+    );
+}
+##
+
+if (<nshell.mode.no_tty_debug>) {    ## present only in no-tty-debug mode ##
+    ## [ debug log buffer ]
+    #
+    if ( not exists <buffer.no-tty-debug> ) {
+        <buffer.no-tty-debug.max_size> = 24 * 1024;    ## 24K buffer size ##
+        my $log_msg    = '::: DEBUG BUFFER INITIALIZED ::.';
+        my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+        <[base.buffer.add_line]>->(
+            qw| no-tty-debug |,   ## initialized whenever mode gets enabled ##
+            sprintf( '%s %s', $time_stamp, $log_msg )    # [ timestamp only ]
+        );
+        <[base.buffer.add_line]>->(
+            qw| terminal-history |,    ## log enabled debug mode ##
+            ':. no-tty-debug mode is enabled .. remote input possible..,'
+        );
+    }
+    ## endline padding ##
+    <[base.buffer.add_line]>->( 'terminal-history', '' );
+
+    ## [ debug input buffer and watcher ]
+    #
+
+    ## alternate input buffer for char-add testing ##
+    <nshell.buffer.debug_input> //= '';
+
+    ## testing only , extract if worx : ##
+    #
+    $code{'nshell.handler.debug_input'} = sub { };
+
+    <nshell.watcher.buffer.debug_input> = <[event.add_var]>->(
+        {   'var'     => \<nshell.buffer.debug_input>,
+            'poll'    => qw| w |,
+            'handler' => qw| nshell.handler.debug_input |,
+            'repeat'  => TRUE,
+            'desc'    => 'alternate [no-tty-debug] input buffer watcher'
+        }
+    );
+} # use: <[base.buffer.add_line]>->( qw[ no-tty-debug ], $debug_message_line );
+##
+
+## Initialize command history  Load previous history entries from
+## ~/.protocol-7/nshell.history
+my $history_count = AMOS7::TERM::history_init( 'nshell.history', 1000, 300 );
+<[base.logs]>->( 2, "loaded %d history entries", $history_count )
+    if $history_count > 0;
+
+## Initialize terminal output color to TRUE blue [p7_fg_0004] so first command
+## echoes in correct color
+printf "%s\r", $colors{'p7_fg_0004'} // '';
+
+## Hide system cursor and enable custom colored cursor
+print "\e[?25l";    ## Hide terminal cursor
+AMOS7::TERM::cursor_enable();
+
+<base.sig_int.log-level> = 1;    ## override default log level 0 for SIGINT ##
+
+## Initialize terminal using POSIX::Termios [ portable, no XS dependencies ]
+<[nshell.term_init]>;
+
+## Set end_code callback to restore terminal mode before exit
+$code{'base.handler.end_code'} = sub {
+    <[base.log]>->( 2, ': restoring terminal mode ..,' );
+    print "\e[?25h";    ## Show terminal cursor before exit
+    <[nshell.term_restore]>;
+    <[base.exit]>->( '[ terminal restored ]', 1 );
+};
+
+## Initialize nshell state
+<nshell.state> //= <[nshell.state.init]>;    ## editor and navigation state ##
+<nshell.buffer_id>        //= qw| nshell-001 |;
+<nshell.unix_user>        //= $current_user;
+<nshell.authenticated>    //= FALSE;
+<nshell.passthrough_mode> //= FALSE;   ## After auth: transparent pass-through
+
+return 0;
+
+#,,.,,,,.,.,,,,,.,.,,,...,,.,,,.,,,..,,,,,.,,,..,,...,...,.,.,,.,,..,,,,.,.,.,
+#IF7RMRQAGIEXRV6HHRUYD2NHCRF5BMDTGWPN4Q6FYSAGK6SDGUQZU4Z2O2CZKBYOBFEEYNTYJX6TM
+#\\\|HMSY5MELDZJEX4DK7RQIVJBACBNG3YBAPPYRIE22PE4U2WJ2M4P \ / AMOS7 \ YOURUM ::
+#\[7]2JI2Z7MYNME7MTKE4WRFTQJV4G2336MEDVFPNH7BJDO3DUVOBSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -532,7 +532,7 @@ Examples (FABRIC-INTEGRATION-EXAMPLES.md)
     ├→ Logs (aggregation)
     └→ Dynamic Registry (service discovery)
 
-Implementation (modules/protocol-7-menu.*)
+Implementation (src/protocol-7-menu.*)
     └→ Reference implementation of the patterns
 ```
 
@@ -554,8 +554,8 @@ If you're returning to this work:
 
 Welcome to the data fabric. Build with confidence. ✨
 
-#,,,.,,,.,.,,,.,.,,..,.,,,.,.,..,,,..,,.,,..,,..,,...,...,,.,,,,,,,..,.,.,,.,,
-#D243TAOMWMFUWJAV36Q4WNYPY5US5MTYTS3OAY4LVCM5BDPON3TDHP6FOM4GIUDTIFD4BIOWNXTEA
-#\\\|STHA4ERD2IZHLMSAT2F7AAQFNBKH26QVWD3YWC6I5UBSNHGSSJX \ / AMOS7 \ YOURUM ::
-#\[7]JRUG2AXQJL6SOQQKCJI4Y7TF6BC5MK4NEJYOQ2VSUWBZOINALABY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,.,,,,,.,.,,,.,,,.,...,,..,,.,,..,,...,...,...,.,.,.,.,..,,..,,
+#6DS4GO6NG3JK3ULJMZRIFO5GRI344IYQHLL56OG37W25XA5LCF5G2FFWVG7SIUOCTPZOGFU365L3U
+#\\\|MAVPLEEHCSUCBCNNKOCDRTSY2ODQVPSZDQH5KIFI7YHV45LCYRI \ / AMOS7 \ YOURUM ::
+#\[7]EO3ISJLIRGLK246LE435FE2R6CKHUQIPSVYRWLD2LBRQZWH4WKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

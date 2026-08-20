@@ -16,13 +16,13 @@ of kimi's landing — see full account below and
 context. The priming-call workaround described further down in this file
 is now DEAD, removed from `user-edit.form.schema_from_record`.
 
-**The root fix** (`modules/crypt.C25519.key_vars`): swapped which branch of
+**The root fix** (`src/crypt.C25519.key_vars`): swapped which branch of
 the `if (defined $key_name)` claims `base_key_name` — moved from the
 explicit-name branch to the bare-call branch. A bare `key_vars()` call
 ("who am I") now persists its resolution; an explicit-name call ("look up
 this specific key") never mutates `base_key_name` as a side effect again.
 
-**Two follow-up bugs found live**, both in `modules/source.load_signature_key`
+**Two follow-up bugs found live**, both in `src/source.load_signature_key`
 — the sourcecode-signing zenka's own bare `crypt.C25519.sign_data()` call
 (via `source.sign_data`/`source.fill_source_template`) turned out to be
 *relying* on the old hijack: the FIRST explicit `key_vars('proto-7.sourcecode')`
@@ -214,8 +214,8 @@ enforces or checks.
 
 [[topic-user-edit-console-zenka-status]]
 
-#,,..,,..,.,.,,,.,...,..,,,,.,,.,,.,,,.,,,.,,,..,,...,..,,.,.,,..,,..,.,,,,,.,
-#HZMJJNAH4HNDWOCKP2RMMXTA5QN3S7DPJ2LFQM2EVE2ENRWAA5FDVIM3D3C67MYLCYSIAXAPPIKZE
-#\\\|LVJTA2OEHFJT26MZPKDH6HZKBAGULNR4XQBWBHQQT6RVAJ6EJRF \ / AMOS7 \ YOURUM ::
-#\[7]XPGQ7ZMPTWRMP5DZ2HX2GXQOQJLHLCVYIQJPHEHAG5DHBA3FNCDA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,.,...,,,,,,..,,.,,..,,..,,..,,..,,...,...,.,,,...,,,,,...,..,,
+#5R4QBEJBLNAXO72FSUYKHYQ6JJXBKXSHDUUVTOAX4WC4VSDS4V35W2PC35THDQMKI4QUTJRTIMFWO
+#\\\|FCQHFYFTTJPQQL2X754FEO46XYS424ASU3MN2YNFGXRVEKXIQER \ / AMOS7 \ YOURUM ::
+#\[7]A3ZYHOMK7E65YMYDSV6NKVC2XZTT3K3M25DHZCSPJORJPPJSWABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

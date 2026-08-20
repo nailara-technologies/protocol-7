@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = decoder.cmd.show-vterm
+# descr = dump current vterm 25×80 screen content
+
+return { 'mode' => qw| false |, 'data' => 'vterm not initialized' }
+    unless defined $data{'decoder'}{'vterm'};
+
+my $screen = $data{'decoder'}{'vterm_screen'};
+
+return { 'mode' => qw| false |, 'data' => 'vterm screen not available' }
+    unless defined $screen;
+
+## read full 25×80 surface via get_text ##
+my $rect = Term::VTerm::Rect->new(
+    start_row => 0,
+    end_row   => 25,
+    start_col => 0,
+    end_col   => 80,
+);
+
+my $text = $screen->get_text($rect);
+
+## annotate with row numbers for readability ##
+my @rows = split /\n/, $text, -1;
+my @display
+    = map { sprintf( "%02d| %s", $ARG, $rows[$ARG] // '' ) } ( 0 .. 24 );
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @display ),
+};
+
+#,,..,,.,,..,,.,.,.,,,...,..,,..,,,.,,,.,,,.,,..,,...,...,.,,,,,,,,,,,.,.,.,.,
+#GSPSB3VSHD6CPNB7ZFZVQK3YSFDMGKBXSLAGF5QS36EPEXQIO6B2BG5JFEVTX5ICQRCPRER2PSVOM
+#\\\|YDMUNY6UOOAMGRMCJPDP7BVD6ID2YXCBUTYEV6PR5FBVRG77VMA \ / AMOS7 \ YOURUM ::
+#\[7]3VNINENH2FY7TGV36EBRPKEZANRF5NTDM6MZI2V5ZMAZCVC6SWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

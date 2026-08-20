@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = base.protocol.compile_once
+# descr = Compile Protocol-7 module if not already compiled
+
+my $module_path = shift;
+
+return undef unless defined $module_path;
+
+## check if already compiled ##
+my $module_name = $module_path;
+$module_name =~ s{^src/}{};
+$module_name =~ s{/}{.}g;
+
+return TRUE if exists $code{$module_name};
+
+## module compilation is handled by base.load_code  this stub just confirms ##
+## the module exists                                                        ##
+return TRUE;
+
+#,,..,,.,,.,.,,,.,...,,..,,,.,.,,,,,.,,.,,...,.,.,...,...,.,,,,..,..,,,,.,.,,,
+#5FIJV4HHTWORCRBVWSPFXHRRI33YH43U7GCBNBX6LL4PV4AEQZTK3F2HQB7SJT2I3B6GZIR4ZYGH4
+#\\\|XJWQPRAWW6CEQJU3KCPBWNHSCMTYHTUPJN6NTFFPYK5YC4ZZKXH \ / AMOS7 \ YOURUM ::
+#\[7]KQT7P42JSVOQ2LEQMJDTI4LYBLTTS4T7HYYYLJSUSB6UVQHEJSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

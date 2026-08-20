@@ -108,7 +108,7 @@ system that only checks a subset:
   (send the placeholder-substituted version externally, reconstruct
   locally on the response). pick a specific free/open implementation to
   reference once evaluated — not chosen yet.
-- **existing in-project precedent for reversible protection**: `modules/
+- **existing in-project precedent for reversible protection**: `src/
   p7-log.anon.*` already does domain-separated Twofish key derivation
   from the system key-tree (`p7-log.anon.key`) and stores
   `[checksum, twofish(plaintext)]` pairs, reversible via `p7-log.anon.
@@ -165,8 +165,8 @@ they should be a runbook, not re-derived each time):
 
 #,,,.,.,,,,,,,.,,,,.,,..,,.,.,,,,,.,,,...,.,,,..,,...,...,...,,.,,,.,,.,,,,,.,
 
-#,,,,,...,,,,,,..,.,,,,,,,.,.,,..,.,.,,..,.,,,..,,...,..,,.,.,.,.,..,,...,,..,
-#V42G23VHZLJKTVUPVOT3GQT5U2DDUOVGQJ2IBXDG4YZZDIC64FRADMLDK2QY6ZSEQE6BXIJC4VGJW
-#\\\|ZAECN2RAS5R2TYU35WNZX67U54GNM4MEGCYXBY7IYLOL7V37KPF \ / AMOS7 \ YOURUM ::
-#\[7]HU5KRR62GGKJ7XXCOACIIK2Z7FHRC2EDZSVICO3ER73VC5HE4QAA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,..,,..,,.,,,.,.,.,,,.,,,,,,,.,,,..,,...,...,.,.,,.,,.,.,,.,,.,,,
+#ZGOGM4IW53U5FX5IKRHJONTO5RFXYXKGVW3334O7T2PFYQOFSWGFJTBSCHIRAX6JQBZ6HKMWN52NY
+#\\\|FJIMMZ2HV2BAMEDFHOJK4H2QZYAVRRPAY5RKVQOQ6PYES5TOKIT \ / AMOS7 \ YOURUM ::
+#\[7]I2T3SIYA4QT2EOSNLGYQBXHUK6ZR2CNOD66N7KTRZHM7ZE6OY6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

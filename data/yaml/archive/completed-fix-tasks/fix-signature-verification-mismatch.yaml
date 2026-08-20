@@ -21,7 +21,7 @@ how signing and verification process these specific files.
 ## CURRENT STATE
 
 ### What Works ✓
-- Most code files (modules/, bin/) sign and verify correctly
+- Most code files (src/, bin/) sign and verify correctly
 - Normalization policy correctly identifies which files to normalize
 - State 7 encoding works for normalized files
 - Signature calculation and generation functions correctly
@@ -33,18 +33,18 @@ how signing and verification process these specific files.
 - This suggests verification is processing content DIFFERENTLY than signing
 
 ### Files Modified in This Session
-1. **modules/source.cmd.get-code-signed**
+1. **src/source.cmd.get-code-signed**
    - Changed extract_sig_body mode: 'strict' → 'repair' (line 47)
    - Disabled fast-path temporarily (lines 150-162)
    - Added normalization before signature calculation (lines 164-196)
    - Ensured signature comparison happens (lines 203-257)
 
-2. **modules/sourcecode.console.verify-p7-signatures**
+2. **src/sourcecode.console.verify-p7-signatures**
    - Added normalization during verification (lines 139-147)
 
 3. **Created Previously:**
-   - modules/source.normalize_endlines
-   - modules/source.policy.should_normalize_endlines
+   - src/source.normalize_endlines
+   - src/source.policy.should_normalize_endlines
 
 ## THE PROBLEM
 
@@ -107,7 +107,7 @@ content restoration, leading to different checksums!**
 Compare the exact byte-level content that signing vs verification produces:
 
 ```perl
-# In modules/source.cmd.get-code-signed, after line 172:
+# In src/source.cmd.get-code-signed, after line 172:
 use Data::Dumper;
 open my $debug_sign, '>>', '/tmp/sign-content-debug.txt';
 print $debug_sign "FILE: $code_name\n";
@@ -118,7 +118,7 @@ close $debug_sign;
 ```
 
 ```perl
-# In modules/sourcecode.console.verify-p7-signatures, after line 143:
+# In src/sourcecode.console.verify-p7-signatures, after line 143:
 use Data::Dumper;
 open my $debug_verify, '>>', '/tmp/verify-content-debug.txt';
 print $debug_verify "FILE: $path_rel\n";
@@ -141,7 +141,7 @@ Verify that both signing and verification apply the same policy:
 
 ```bash
 # Check if read-me/author should be normalized
-grep -A50 "should_normalize_endlines" modules/source.policy.should_normalize_endlines
+grep -A50 "should_normalize_endlines" src/source.policy.should_normalize_endlines
 ```
 
 ### Step 3: Compare Extraction Modes
@@ -149,13 +149,13 @@ The key difference is extraction mode:
 - Signing: 'repair' mode (more lenient)
 - Verification: 'strict' mode (more stringent)
 
-Check `modules/source.extract_sig_body` around lines 7, 576-580 to see how
+Check `src/source.extract_sig_body` around lines 7, 576-580 to see how
 'strict' vs 'repair' affects content restoration.
 
 ### Step 4: Check State Restoration
 For files with existing state 7 signatures:
 - Does 'repair' mode restore differently than 'strict' mode?
-- Check `modules/source.restore_payload_endline_state` lines 40-45
+- Check `src/source.restore_payload_endline_state` lines 40-45
 
 ## POTENTIAL FIXES
 
@@ -188,7 +188,7 @@ If cfg/read-me files need special treatment:
 
 ```perl
 # Check if these files should use preserve mode instead of normalize mode
-# In modules/source.policy.should_normalize_endlines
+# In src/source.policy.should_normalize_endlines
 
 # Current logic might incorrectly normalize configuration files
 # that should be preserved
@@ -230,7 +230,7 @@ After implementing a fix:
    - Invalid: 0
 
 6. **After successful verification, re-enable fast-path:**
-   Uncomment lines 158-162 in `modules/source.cmd.get-code-signed`
+   Uncomment lines 158-162 in `src/source.cmd.get-code-signed`
 
 ## TECHNICAL DETAILS
 
@@ -296,16 +296,16 @@ $src_ref =~ s|\n*$|\n|s;
 ## FILES TO EXAMINE
 
 ### Primary Files
-- `modules/source.cmd.get-code-signed` - Signing logic
-- `modules/sourcecode.console.verify-p7-signatures` - Verification logic
-- `modules/source.extract_sig_body` - Footer extraction and restoration
-- `modules/source.restore_payload_endline_state` - State restoration
-- `modules/source.policy.should_normalize_endlines` - Policy determination
+- `src/source.cmd.get-code-signed` - Signing logic
+- `src/sourcecode.console.verify-p7-signatures` - Verification logic
+- `src/source.extract_sig_body` - Footer extraction and restoration
+- `src/source.restore_payload_endline_state` - State restoration
+- `src/source.policy.should_normalize_endlines` - Policy determination
 
 ### Supporting Files
-- `modules/source.normalize_endlines` - Normalization implementation
-- `modules/source.create_harmonic_footer` - Signature generation
-- `modules/source.signature_valid` - Signature verification
+- `src/source.normalize_endlines` - Normalization implementation
+- `src/source.create_harmonic_footer` - Signature generation
+- `src/source.signature_valid` - Signature verification
 
 ### Test Files (failing verification)
 - `read-me/author`
@@ -348,7 +348,7 @@ $src_ref =~ s|\n*$|\n|s;
 
 - The user has no passphrase issues (keys loaded without passphrase prompt)
 - Fast-path is currently disabled to force full signature recalculation
-- Most files (modules/, bin/) work correctly - only config/doc files fail
+- Most files (src/, bin/) work correctly - only config/doc files fail
 - The signature system itself works - this is purely a content processing mismatch
 - Branch: dev/httpd-async-implementation (has other async work, be careful with merges)
 
@@ -362,8 +362,8 @@ Key insight: The problem is NOT in the signature crypto or the normalization
 logic itself - it's in how 'strict' vs 'repair' mode affects content extraction
 and restoration. Fix the extraction mode consistency and everything should work.
 
-#,,..,,,,,,,.,,,.,,.,,.,.,,.,,.,,,,,,,.,,,,.,,..,,...,...,.,,,.,,,,,,,,.,,,,,,
-#DBKUM7BICVAI6YJRLDLP2MTXTC752NUTRZ47ON62YCEZBEMASE7Y6R3SBZB45BN447NP4RCU5C2EI
-#\\\|E5JNXSAW5HEVEWHVULVWGVA5VXT3BOFAULHZFEDOFISHM57FQQZ \ / AMOS7 \ YOURUM ::
-#\[7]ZX3OK5II6HJ3KS5DIPSQCEI6E5AQRDG5PD7564LNCGAXA7KTLCDQ 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,.,,,.,.,.,.,,..,.,,,,,,,.,.,..,,...,...,...,,.,,,,.,,,.,.,,,
+#SOGHT6V2XY2TXTM4HOEZ7XBOMXGMZTE4M4SME6SZJEFHNKR4A3O4SYBRXIQ5DDGDPYNZVC6M6HJH6
+#\\\|JNNJN7VANDL2ZPTENHDWL6SVIT6ZDNREKWKW26FPRM7CVEAZAZ6 \ / AMOS7 \ YOURUM ::
+#\[7]JQKIR7CHHDRN5QLTGCB45U3WYESSN3Z5Z44L3QA5GOZ5ANUSUKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

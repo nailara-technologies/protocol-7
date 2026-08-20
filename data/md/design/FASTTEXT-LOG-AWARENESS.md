@@ -144,7 +144,7 @@ log-forensics       full ring buffer          high            per epoch
 log-test-traces     bin/Protocol-7 -vvv out   very high       per commit
 log-commands        routing events only       medium          per epoch
 log-errors          error+warn lines only     low             per epoch
-module-headers      modules/* name+descr      low             per release
+module-headers      src/* name+descr      low             per release
 ```
 
 ## relation to signal-cancel-log-library
@@ -179,8 +179,8 @@ relates to:
   data/tasks/coding-model-self-test-cycle.md (calibration + test harness)
   data/md/design/HARMONIC-SILENCE.md         (canvas of absence concept)
 
-#,,.,,,.,,.,.,,,.,.,,,,..,,.,,,.,,,,.,.,.,...,..,,...,...,,,,,.,,,..,,,.,,.,,,
-#JUCJDS6W26YUMNZ3EN3YFOZDRPR3A5RKNX7BVUZT4HMAP2MDKVTVEYHSYUL3GSSA26BWKSHI52RY6
-#\\\|JSTW26ZUJT555ALZGXZMCGJG27DL5R3M44DRKRFEAUF4OW2C3VS \ / AMOS7 \ YOURUM ::
-#\[7]W4OMRLERPL6TXKZOYAAJ6ECRLZJJYTPE7YJD6PMHXNT25KTSNKBI 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,,,,,.,..,,,..,,,.,.,,,,.,,.,.,..,,...,..,,,..,,..,,.,,,,.,,,,,
+#GOWRBYGBI4T4UEX7XQ6WADTWSVYDC5WKNBSIUFAXEBTINR57Y4BNRHIYMNQVYUMLYYGMK2HJCRANQ
+#\\\|IEFYUFYSGSZUB7NZSXGKI7Z2A3IE4ESIXXEMKSPYJG67V2EV2EK \ / AMOS7 \ YOURUM ::
+#\[7]ADTDVDCTPQSWV4OPBDV56FMNI7F76JDA4YIOO2T6FALS76HRCICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

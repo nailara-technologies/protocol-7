@@ -280,12 +280,12 @@ p7c coding.dump coding.task.queue.<task_id>
 
 ## Implementation Files
 
-- `modules/coding.cmd.complete-analysis` - Command entry point
-- `modules/coding.handler.process-queued-task` - Task executor
-- `modules/coding.task.complete` - Completion marker
-- `modules/coding.event.on_task_complete` - Completion detector
-- `modules/coding.handler.check-completion-chain` - Continuation orchestrator
-- `modules/coding.cmd.resume-analysis` - Manual resumption
+- `src/coding.cmd.complete-analysis` - Command entry point
+- `src/coding.handler.process-queued-task` - Task executor
+- `src/coding.task.complete` - Completion marker
+- `src/coding.event.on_task_complete` - Completion detector
+- `src/coding.handler.check-completion-chain` - Continuation orchestrator
+- `src/coding.cmd.resume-analysis` - Manual resumption
 - `cfg/zenki/coding/start` - Configuration
 
 ## Current Status
@@ -324,8 +324,8 @@ All infrastructure in place:
 **Implementation**: Event-driven variable watcher approach (user-specified design)
 **Architecture**: Async task execution with automatic continuation detection
 
-#,,..,.,.,...,..,,.,.,.,.,.,.,,.,,..,,...,,.,,..,,...,...,.,,,...,,,.,.,,,..,,
-#GCFWZKIPOAQNNMB3BLG5Z7APEN5L2EWOGBM4Y4ZMLCQOGIQVCXEP7EFJ2IBQL2BFMG653ZASBMTDY
-#\\\|G4Y6VDPKUKMHTLZDSI5BRSV6RJN2K4GMTEFAVDNGFX52YQNEGJV \ / AMOS7 \ YOURUM ::
-#\[7]3VIXDKM3ZYCRLCQZSYDZICA53TZHATY2UX35X65GPHHZ2FJGIGDA 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,,,,,,,,.,,..,,,..,..,,..,,.,,,..,,...,...,...,,..,.,,,,.,,,,,,
+#M2Q6XDO4DSMOUARU64UKXVPLRSEDSNUJDZ5OHQVYNCYZJRIZWJRY653MEIK73P33LEUKS6ZCAM6OC
+#\\\|I2WCIARE772VWFWYNWJ6OU33HKYWPVXARHTOB3ER2NQ7IJVD2BK \ / AMOS7 \ YOURUM ::
+#\[7]MD36KTDXKV4FAX2YEWV2OQSCVZ6WLUNPJ6FH6FRWGHAKN6IDYWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

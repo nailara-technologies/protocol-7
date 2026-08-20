@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = X-11.cmd.get_geometry
+# param = <w_id>
+# descr = return window position, width and height
+
+my $window_id = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ /^\d+$/;
+
+my $xtops = <X-11.WM>;
+<[X-11.update_X11_WM]>;
+
+my $window;
+for my $w ( @{ $xtops->sorted } ) {
+    if ( $w->id eq $window_id ) {
+        $window = $w;
+        last;
+    }
+}
+
+## fallback to raw X11 GetGeometry (needed for WSLg/Weston where WM sorted ##
+## tree may not list the window)                                           ##
+if ( not defined $window ) {
+    my $X = <X-11.obj>;
+    if ( defined $X ) {
+        my @geo = eval { $X->GetGeometry($window_id) };
+        if ( not length $EVAL_ERROR and @geo >= 6 ) {
+            my %geo = @geo;
+
+            ## GetGeometry returns x/y relative to the window's parent, not ##
+            ## the root window. under WSLg/Weston the client is reparented  ##
+            ## into a small WM/decoration frame, so this is a near-constant ##
+            ## offset [eg 32,32] regardless of the window's screen          ##
+            ## position.  translate (0,0) of the window into root           ##
+            ## coordinates to get the actual on-screen position.            ##
+            my ( $same_screen, $child, $dst_x, $dst_y ) = eval {
+                $X->TranslateCoordinates( $window_id, $X->root, 0, 0 );
+            };
+            if ( not length $EVAL_ERROR and defined $dst_x ) {
+                $geo{'x'} = $dst_x;
+                $geo{'y'} = $dst_y;
+            }
+
+            ## keep the same "w h x y" ordering the WM path has always used ##
+            return {
+                'mode' => qw| true |,
+                'data' => join( ' ', @geo{qw| width height x y |} )
+            };
+        }
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'no such window' }
+    if not defined $window;
+
+return { 'mode' => qw| true |, 'data' => join( ' ', $window->geometry ) };
+
+#,,.,,,,.,,..,,.,,.,,,.,,,,.,,,,,,,,,,.,.,.,,,..,,...,...,...,..,,,..,.,,,...,
+#BK7LCHS2MGRMLQBGB5DEDH6JCODHIV7CFYHZ5423KNLW3226BHBJSA2A6PY7D6FOBS5NAHOE5YJPK
+#\\\|3JK7MXBWEJAWZ66QFD3PJLAZRMGFC4JOZE6T7DV53UXCVNRICRG \ / AMOS7 \ YOURUM ::
+#\[7]YRYSJG6SSG4J65SHDEUK3NZTOGVXRZLSBP2GGHLSRIMADPSDEECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

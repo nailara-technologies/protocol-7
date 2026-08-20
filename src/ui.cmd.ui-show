@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = ui.cmd.ui-show
+# descr = base ui-show command
+# param = { address?, view? }
+# note  = [ overridden by zenka-specific <namespace>.cmd.ui-show ]
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s|^\s+||;
+$args_str =~ s|\s+$||;
+
+## default to the current zenka name [ cube strips prefix before dispatch ] ##
+my $address = <system.zenka.name> // '';
+my $view    = '';
+
+## allow explicit override from argument tokens ##
+if ( length $args_str ) {
+    foreach my $token ( split qr|\s+|, $args_str ) {
+        if ( $token =~ m|^address=(.+)$| ) {
+            $address = $1;
+        } elsif ( $token =~ m|^view=(.+)$| ) {
+            $view = $1;
+        }
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'address required' }
+    if not length $address;
+
+## derive slot budget from current tty ##
+my $slot_budget = eval {<[ui.budget.tty]>} // { 'cols' => 80, 'rows' => 24 };
+
+## render the address using the generic unfold primitive ##
+my $unfolded = eval {
+    <[ui.unfold]>->(
+        {   'address'     => $address,
+            'slot_budget' => $slot_budget
+        }
+    );
+} // { 'mode' => qw| true |, 'data' => '' };
+
+my $body
+    = ( ref $unfolded eq qw| HASH | and exists $unfolded->{'data'} )
+    ? $unfolded->{'data'}
+    : '';
+
+## one-line header frame using the .:[ ]:. idiom ##
+my $header      = '';
+my $frame_entry = eval { <[ascii.frame.load]>->('ui-show-fallback-header') };
+
+if ( defined $frame_entry ) {
+    my $descriptor;
+    if ( exists $frame_entry->{'descriptor'} ) {
+        $descriptor = $frame_entry->{'descriptor'};
+    } elsif ( exists $frame_entry->{'descriptors'} ) {
+        my $mode = $frame_entry->{'modes'}[0] // 'expanded';
+        $descriptor = $frame_entry->{'descriptors'}{$mode};
+    }
+
+    if ( defined $descriptor ) {
+        $header = eval {
+            <[ascii.frame.render]>->(
+                {   descriptor => $descriptor,
+                    values     => { 'TITLE' => $address }
+                }
+            );
+        } // '';
+    }
+}
+
+my $output
+    = length $header && length $body ? "$header\n$body"
+    : length $header                 ? $header
+    :                                  $body;
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,.,,,..,..,,.,,,..,,...,.,,,.,,,,,.,,..,.,.,..,,...,...,.,.,,.,,.,.,.,.,,..,
+#RCLOCNKBR3E5LU24GPZSPBBYOVFW6EABXBWRUYUQWTOP2N7WRX4732H6HQGFMBQNBMU5U7KPHIQK2
+#\\\|MAQLRGUIDJPJTRKALKLLFOO32KDA6TE7A66YIECNWPW47UB66SP \ / AMOS7 \ YOURUM ::
+#\[7]FK7AB2N6ZOJZOT6AZ2E4YV356ARYN74IHGRT6XAPVFSE2MGKR6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = base.cmd.verify-instance
+# param = <rnd_str>
+# descr = verify root instance id through log feedback
+
+my $random_string = $call->{'args'} // '';
+return { 'mode' => qw| false |, 'data' => 'no random string supplied' }
+    if not length $random_string;
+
+## v7 confirms this instance is alive by reading the KEY back off console ##
+## output -- see base.log.forced_console for why this can't be a plain    ##
+## base.logs call.,                                                       ##
+<[base.log.forced_console]>->(
+    'instance verification [KEY:%s]',
+    $random_string
+);
+
+<[base.disable_command]>->('verify-instance');    # used only once by v7 zenka
+
+map {
+    ref($ARG) eq 'CODE'
+        ? <[event.add_timer]>->( { 'after' => 0, 'cb'      => $ARG } )
+        : <[event.add_timer]>->( { 'after' => 0, 'handler' => $ARG } );
+} @{ <system.callbacks.initialized> //= [] };
+
+## triggering instance reports before the timer does ##
+<system.timer>->{'send_reports'}->now
+    if defined <system.timer>->{'send_reports'}
+    and <system.timer>->{'send_reports'}->is_active;
+
+return { 'mode' => qw| true |, 'data' => 'verification code logged' };
+
+#,,,,,.,,,,.,,,.,,.,.,...,,..,...,.,.,,.,,.,,,..,,...,...,,,,,.,.,.,,,...,,..,
+#ATXT26BICP3PNX2RMZCZNLX56AMM6D2R4UL2QXSQXC7TT5GTINZ6BUD2ZUAVUPCBR7WVFUWBEBAIO
+#\\\|YAKGHSB6CQGOX57USQ24W4ZHLPGONSGSCOPNBONQBEOLUNZXTDF \ / AMOS7 \ YOURUM ::
+#\[7]UWULQ6UW2YEJCS2JDWDN3DGQ7JF5TFBMXUEGGFZJ2CLPRIS5GCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

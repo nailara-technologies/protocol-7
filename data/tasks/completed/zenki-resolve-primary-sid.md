@@ -3,7 +3,7 @@
 ## context, read first
 
 `data/ai-mem/claude/topic-x11-bare-name-routing-ambiguity.md` — full
-diagnosis, read it before starting. Short version: `modules/base.handler.command.route_to_target`
+diagnosis, read it before starting. Short version: `src/base.handler.command.route_to_target`
 routes a bare `X-11.foo` command (no `[subname]` qualifier) to *every*
 session registered under user name `X-11` — the subname-less "desktop"
 instance and every `xvfb-000N` instance alike — because its session-loop
@@ -52,7 +52,7 @@ part of this task:
 
 - raise `max_concurrency` in `cfg/zenki/X-11/zenka-startup.v7`
   to something that allows the host instance plus multiple concurrent
-  xvfb instances (check `modules/v7.zenka.cmd.start` for how this value
+  xvfb instances (check `src/v7.zenka.cmd.start` for how this value
   is enforced — read the "check max concurrency" block — and pick a
   reasonable number; ask in your summary if genuinely unsure rather than
   guessing something arbitrary like 10).
@@ -82,7 +82,7 @@ every other file in this task.
 - constants: `TRUE => 5`, `FALSE => 0`, `UNKNOWN => 2` — never bare `1`/`0`
   for these semantics.
 - every new/modified module needs an entry in the `subroutine.white-list`
-  of every zenka that will call it, AND `modules/base.list.subroutines`
+  of every zenka that will call it, AND `src/base.list.subroutines`
   (both must match or signature verification fails).
 - comments: lowercase, `[ word ]` brackets not `( word )`.
 - do NOT hand-edit `data/md/documentation/module-dependency-graph.asc` —
@@ -98,19 +98,19 @@ every other file in this task.
 
 ## files to read for existing patterns
 
-- `modules/base.handler.command.route_to_target` — the routing logic this
+- `src/base.handler.command.route_to_target` — the routing logic this
   task works around (read in full — understand the `sid_str`/`usr_str`/
   `usr_subn_str` branches, and confirm a bare command with no dot segments
   at all is treated as "execute here" by whichever zenka receives it,
   since that's the mechanism part 2 below relies on).
-- `modules/base.regex` — `$re->{sid_str}`, `$re->{usr_str}`,
+- `src/base.regex` — `$re->{sid_str}`, `$re->{usr_str}`,
   `$re->{usr_subn_str}`, `$re->{subname}`.
-- `modules/base.init_code` (~line 117-145) — existing `<list.users>` and
+- `src/base.init_code` (~line 117-145) — existing `<list.users>` and
   `<list.sessions>` definitions, both sourced from `$data{'session'}`/
   `$data{'user'}`. This is the shared, base-loaded list-command system
   every zenka (including cube) already has. You're adding a sibling
   `<list.subnames>` here.
-- `modules/v7.init_code` (~line 245) — v7's own `<list.subnames>`
+- `src/v7.init_code` (~line 245) — v7's own `<list.subnames>`
   definition, sourced from `<v7.zenka.instance>` (v7's private instance-
   tracking hash, NOT the same data as cube's session table — v7 tracks
   its own managed zenki with fields like `root_sid`, `subname`, `status`).
@@ -124,19 +124,19 @@ every other file in this task.
   collision, this is expected/existing behavior — every OTHER zenka
   (cube included, since cube does not currently define its own
   `<list.subnames>`) gets the new base-level one.
-- `modules/base.cmd.list` — the generic `list <name> [pattern]` command
+- `src/base.cmd.list` — the generic `list <name> [pattern]` command
   handler that reads `<list.$name>` definitions and formats a plain-text
   table via `base.parser.list` / `base.parser.list_filtered` (reply is
   `{ mode => 'size', data => "<header>\n<key1> <key2> ...\n---\n<row>\n<row>..." }`
   — a preformatted STRING, not structured data). Read `base.parser.list`
   and `base.parser.list_filtered` too, to understand exact table/column
   formatting (this determines how the resolver has to parse the reply).
-- `modules/v7.callback.get_x11_display` — a live example of the exact gap
+- `src/v7.callback.get_x11_display` — a live example of the exact gap
   this task fixes. It currently works around the missing resolver with a
   crude placeholder (`# take first one [ for now ]`, grabbing literally
   the first session of any kind) then sends `"$root_sid.X-11.get_display"`.
   Replace this placeholder with a real call to the new resolver.
-- `modules/base.session.check.close` — session-teardown handler; you'll
+- `src/base.session.check.close` — session-teardown handler; you'll
   add a small cache-invalidation call here (see caching section below).
   Note this file lives in cube's process (sessions close on cube), so the
   invalidation you add here only matters for whichever zenka's own
@@ -146,10 +146,10 @@ every other file in this task.
   `base.session.check.close` at all — figure out where cache invalidation
   actually needs to live (client-side TTL alone may be sufficient here,
   see caching section) and say what you decided in your summary.
-- `modules/base.cmd.subname` — shows `<system.zenka.subname>`, the
+- `src/base.cmd.subname` — shows `<system.zenka.subname>`, the
   data-path already exposing a zenka's own subname. Used as the default
   `$caller_subname`.
-- `modules/protocol-7.route-send`, `modules/protocol-7.command.send.local`
+- `src/protocol-7.route-send`, `src/protocol-7.command.send.local`
   — the two send helpers used by current bare-name `X-11.*` callers.
   Confirm which one is right for sending an *undotted* command (`list
   subnames X-11`) up to cube specifically, and how to attach a reply
@@ -157,7 +157,7 @@ every other file in this task.
 
 ## what to build
 
-### 1. `<list.subnames>` in `modules/base.init_code`
+### 1. `<list.subnames>` in `src/base.init_code`
 
 Add, near the existing `<list.users>`/`<list.sessions>` definitions
 (~line 117-145), sourced from `session` (same `var`/`key` as
@@ -180,7 +180,7 @@ Add, near the existing `<list.users>`/`<list.sessions>` definitions
 
 (adjust field names/filters if `mode`'s raw values don't read naturally as
 a "status" column, or if `session`'s actual field name differs from what's
-shown above — verify against `modules/base.handler.command.route_to_target`'s
+shown above — verify against `src/base.handler.command.route_to_target`'s
 usage of `$data{'session'}{$sid}{...}` for the authoritative field names.)
 
 **Verify the rendered output, don't just write the `align` values and move
@@ -202,7 +202,7 @@ overridden `<list.subnames>` (i.e. every zenka except v7) returns a table
 whose `instance` column is the real, directly-routable cube SID — not an
 indirect id needing further lookup.
 
-### 2. `modules/base.zenki.resolve_primary_sid`
+### 2. `src/base.zenki.resolve_primary_sid`
 
 This is an **async, cross-zenka** operation, not a local synchronous
 lookup — it sends `list subnames $user_name` (no dots — an undotted
@@ -288,16 +288,16 @@ similar string-built commands (do your own grep — the list below is what
 surfaced in an initial pass and may not be exhaustive; note any additional
 ones you find in your summary):
 
-- `modules/window.place.handler.wingeom_reply` (~line 32) — `'X-11.get_geometry'`
-- `modules/window.place.cmd.place-for-window` (~line 72) — `'X-11.get_geometry'`
-- `modules/mpv.handler.reposition_reply` (~line 41) — `'X-11.set_geometry'`
-- `modules/storchencam.handler.reposition_reply` (~line 41) — `'X-11.set_geometry'`
-- `modules/impressive.handler.reposition_reply` (~line 41) — `'X-11.set_geometry'`
-- `modules/tile.handler.transition` (~lines 47, 102) — `'X-11.get_window_ids'`,
+- `src/window.place.handler.wingeom_reply` (~line 32) — `'X-11.get_geometry'`
+- `src/window.place.cmd.place-for-window` (~line 72) — `'X-11.get_geometry'`
+- `src/mpv.handler.reposition_reply` (~line 41) — `'X-11.set_geometry'`
+- `src/storchencam.handler.reposition_reply` (~line 41) — `'X-11.set_geometry'`
+- `src/impressive.handler.reposition_reply` (~line 41) — `'X-11.set_geometry'`
+- `src/tile.handler.transition` (~lines 47, 102) — `'X-11.get_window_ids'`,
   `'X-11.fade_out'`
-- `modules/coding.init_code` (~line 543) — `'X-11.gpu_load'`
-- `modules/web-browser.handler.auto_slowdown` (~line 8) — `'X-11.gpu_load'`
-- `modules/v7.callback.get_x11_display` — replace the `# take first one
+- `src/coding.init_code` (~line 543) — `'X-11.gpu_load'`
+- `src/web-browser.handler.auto_slowdown` (~line 8) — `'X-11.gpu_load'`
+- `src/v7.callback.get_x11_display` — replace the `# take first one
   [ for now ]` placeholder entirely (see above)
 
 For each: wrap the existing send in `<[base.zenki.resolve_primary_sid]>->( 'X-11', sub {
@@ -327,7 +327,7 @@ similar per-feature keys are set):
 Run `bin/dev/dep-graph` to regenerate `module-dependency-graph.asc`. Add
 `base.zenki.resolve_primary_sid` to the `subroutine.white-list` of every
 zenka you modified in step 3 (window-place, mpv, storchencam, impressive,
-tile, coding, web-browser, v7) plus `modules/base.list.subroutines`.
+tile, coding, web-browser, v7) plus `src/base.list.subroutines`.
 
 ## what NOT to do
 
@@ -356,8 +356,8 @@ and why, the exact table-parsing approach you used for the `list
 subnames` reply, and what you decided about the cache-invalidation
 question (TTL-only vs. some disconnect-notification hook, and why).
 
-#,,..,,,,,..,,,,,,.,.,,,.,...,,..,,.,,...,,,.,..,,...,...,..,,..,,,,,,,..,,.,,
-#LMVW4QNKNAYVHSXBZ6X6GQOKSFH3RRKHRHL56BKXF3F5CDKM7IFQOGT4I5KXH7MHPEGJAMFVIRDTY
-#\\\|P6CXP52O4VQJ5JTFYRTRFSSULKDRIE6DVGCVQ52THYOMIENGTNF \ / AMOS7 \ YOURUM ::
-#\[7]GAEZZZVPQN6AS6HKSIOHF77D2LBL2IGLXSC2DYWYXLGR3IJZQQAI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,..,,.,,,,.,,,,.,..,,,.,,.,,,,.,,..,,...,...,.,.,...,...,.,,,...,
+#I7ZIRKXYUBAZ3VGXSW25RFCEFV67SD52WKW6CAAG7V2CYSSUSZ3RJ22O7XPXMIN2IMYTC34CZZ26K
+#\\\|2YIBTNOZ5FEU5OV2DAA6EOW3LZKJBT4C5JTD55A7L3GQVLEQE2G \ / AMOS7 \ YOURUM ::
+#\[7]CHJBENFKZMJL45XAKR4GJ5CZ7XBSZW2UHNXDIPLTTHH56NWDQUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

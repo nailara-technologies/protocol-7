@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = powershell.exec
+# descr = run a fixed powershell.exe -Command script
+#        [ array-form, no shell ] and returns stdout text or undef
+
+my ($ps_script) = @ARG;
+
+if ( not defined $ps_script or not length $ps_script ) {
+    warn 'expected a powershell script string <{C1}>';
+    return undef;
+}
+
+my $exe = <powershell.cfg.exe_path>;
+if ( not defined $exe or not length $exe ) {
+    warn 'powershell.exe not available <{C1}>';
+    return undef;
+}
+
+my $out_fh = IO::Handle->new();
+my $err_fh = IO::Handle->new();
+
+## open3 only ends up imported into this process as a side effect of other
+## framework code paths [ decompression, etc. ] running first; this zenka may
+## never trigger those, so import it explicitly here too.
+<[base.perlmod.autoload]>->( 'IPC::Open3', qw| open3 | );
+
+my $ps_pid = eval {
+    open3( undef, $out_fh, $err_fh,
+        $exe, '-NoProfile', '-NonInteractive', '-Command', $ps_script );
+};
+
+my $spawn_err = <[base.str.eval_error]>;
+if ( not defined $ps_pid or length $spawn_err ) {
+    warn "failed to spawn powershell.exe [ $spawn_err ] <{C1}>";
+    return undef;
+}
+
+my @out_lines = $out_fh->getlines;
+my @err_lines = $err_fh->getlines;
+close($out_fh) if $out_fh->opened;
+close($err_fh) if $err_fh->opened;
+
+<[base.waitpid]>->( $ps_pid, 0 );
+my $exit_code = $CHILD_ERROR >> 8;
+
+if ($exit_code) {
+    my $err_str = join( ' ', map { chomp; $ARG } @err_lines );
+    warn "powershell.exe exited $exit_code [ $err_str ] <{C1}>";
+    return undef;
+}
+
+## powershell.exe writes CRLF line endings regardless of host platform;
+## normalize here so every plugin's output is plain \n, not \r\n.
+my $out_str = join( '', @out_lines );
+$out_str =~ s|\r\n|\n|g;
+
+return $out_str;
+
+#,,..,...,...,,..,,.,,,,.,..,,,.,,,.,,,.,,..,,..,,...,...,,,,,.,,,..,,..,,,,.,
+#TPQ5NOLO3EMQ3AMVRA67Z23VZWB4P3OHI7MI4BE5LMDJPGMBOQBDTJ3EFTJZ4EJ3Z44O7M3SKFKFU
+#\\\|U3Q5FIR4CTR6G653JLOIUU45XURO3ZTVQN77WJBR7V4N4WC3PFS \ / AMOS7 \ YOURUM ::
+#\[7]K5YD7HSQZ4MBODINNV3BHFZPQKGBE3J6VANRH6OXJPPVM2IDU4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

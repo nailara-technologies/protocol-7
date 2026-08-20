@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = coding.tools.handler.task_complete
+# descr = signal task completion and stop the inference loop
+
+my $args    = shift              // {};
+my $summary = $args->{'summary'} // 'task completed';
+
+## flush any queued non-urgent questions before the task ends ##
+if (<[base.code.exists]>->(
+        qw| coding.tools.handler.flush_pending_questions |)
+) {
+    <[coding.tools.handler.flush_pending_questions]>;
+}
+
+## set the stop flag that process-queued-task checks ##
+<coding.tool_loop.stop>         = TRUE;
+<coding.tool_loop.stop_reason>  = 'task_complete';
+<coding.tool_loop.stop_summary> = $summary;
+
+my $oneliner = <[coding.filter.summarize_oneline]>->($summary);
+<[base.logs]>->( 1, ':. task_complete: %s', $oneliner );
+
+return $summary;
+
+#,,.,,,,,,..,,,.,,..,,,.,,,,,,,,.,.,,,..,,,,,,.,.,...,...,...,.,,,...,.,.,,..,
+#RKS2WPQGXZ5JJG2NSLVLXXMJHGYVV2DEK4NZ46AOW5KFFX4JD5CUWFDZATHWDZH7TZG3G4NU5EKOC
+#\\\|R6H3L5IS3TBVW52UUFQYQ74S3ADQAKBYDSKUPPAPGWBZZ63AUTX \ / AMOS7 \ YOURUM ::
+#\[7]FGQWGZX2RCEOPTREBDRK2WDXGHZHJCF45O47EZTNE4ECVWGSIKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

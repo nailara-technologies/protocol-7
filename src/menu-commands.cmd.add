@@ -1,0 +1,82 @@
+## [:< ##
+
+# name = menu-commands.cmd.add
+# descr = Add a new menu command mapping
+
+my $args = defined $call->{'args'} ? $call->{'args'} : '';
+$args =~ s{^\s+|\s+$}{}g;
+
+# Parse arguments handling quoted strings
+my @parts;
+my $current    = '';
+my $in_quote   = 0;
+my $quote_char = '';
+
+foreach my $char ( split //, $args ) {
+    if ( ( $char eq '"' || $char eq "'" ) && !$in_quote ) {
+        $in_quote   = 1;
+        $quote_char = $char;
+    } elsif ( $char eq $quote_char && $in_quote ) {
+        $in_quote = 0;
+    } elsif ( $char =~ /\s/ && !$in_quote ) {
+        push @parts, $current if $current;
+        $current = '';
+    } else {
+        $current .= $char;
+    }
+}
+push @parts, $current if $current;
+
+unless ( @parts >= 3 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Usage: add <mapping-id> <label> <command> [category]'
+    };
+}
+
+my $mapping_id = $parts[0];
+my $label      = $parts[1];
+my $command    = $parts[2];
+my $category   = $parts[3];
+
+# Validate mapping-id
+unless ( $mapping_id =~ /^[a-zA-Z0-9_-]+$/ ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Mapping ID must contain only alphanumeric '
+            . 'characters, underscores, and dashes'
+    };
+}
+
+# Check if mapping already exists
+if ( exists <menu-commands.mappings>->{$mapping_id} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Mapping already exists: ' . $mapping_id
+    };
+}
+
+# Add to mappings hash
+<menu-commands.mappings>->{$mapping_id} = {
+    'label'    => $label,
+    'command'  => $command,
+    'category' => $category,
+    'enabled'  => 1,
+};
+
+# Save to disk
+<[menu-commands.save-state]>;
+
+# Push update to protocol-7-menu
+<[menu-commands.update-menu]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => 'Added mapping: ' . $mapping_id
+};
+
+#,,..,,,.,,.,,.,,,,.,,,.,,,..,,,.,.,,,..,,..,,..,,...,...,..,,,,,,..,,.,.,...,
+#2EGE3S4BB5DRD3GMBWDX2VFEEPPT36IZ2X4VQLAO46XTKSJJUT34QIW2GFNK6DKCZAUAVSVAQ7QHI
+#\\\|PZ6DS2PCHVW3VXYWBFBKGZMQSRJBHSQVOSTKWVZQUBNYY2E6ZGZ \ / AMOS7 \ YOURUM ::
+#\[7]ZMM2STOQFZNFJZBBGERTIG2J4M5355JFIGARLNXW4WGOLGTR3EBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

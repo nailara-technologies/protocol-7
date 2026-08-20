@@ -9,7 +9,7 @@ metadata:
 When verifying whether an "open" item in a memory/task file is actually
 already done, check `git log --oneline --all --grep=<keyword>` (and
 `git log --oneline --all -- <path>` for a known file) BEFORE reading
-files/modules directly.
+files/src directly.
 
 **Why:** user feedback during a topic-next-steps.md staleness sweep — git
 log search is cheaper and reads less into context than opening the actual
@@ -23,8 +23,8 @@ actual files when git log doesn't turn up a relevant commit, or when the
 detail needed (e.g. exact config key name, exact code path) isn't in any
 commit message.
 
-#,,..,...,,.,,,,,,,,,,.,,,.,,,..,,,,.,,..,,,.,..,,...,...,...,,..,,,,,,..,,,.,
-#E5OMYZHIGNPEWUQTBBC3XDFJ2LNERHK3BQDXNECJ33U72XU5TH5ZU5M2VZQSZS3GM3NHHNRC5CVJG
-#\\\|XJ2XC6UQ52ZYH5PZJM5ZNGPGPC4ZWBNS4G6334X2EWVBJDPM4MY \ / AMOS7 \ YOURUM ::
-#\[7]WS4X3EYIRXLWYNVWIOMH2F4DYG6XAN5TVHSS7FQQTGJZV2MK42DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,,.,..,,...,..,,,.,,,..,.,.,..,,...,.,.,..,,,,,,...,,..,,..,
+#CI6L76B3AI3B64NIT3ZV34LGV5PA2LNMJR5BEECOPQ5S77AWWSAOMMW3A75KPCNOLDA7WLYM62SQ4
+#\\\|MUL3EF5HY7CQDEPYWJ43OMGDWHCHPCUCX3JVE7W2T37NCKKOLGW \ / AMOS7 \ YOURUM ::
+#\[7]NEEUT7IMXTICPJB54TFTHUNXJEYT5FWLZDRJONJ7TEKK724SNOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

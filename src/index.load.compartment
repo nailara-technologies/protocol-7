@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = index.load.compartment
+# descr = lazy-load missing trie data from .zxps when .zxpc cube is present
+
+my ( $depth, $prefix ) = @ARG;
+
+## data already available in memory ##
+return TRUE
+    if defined <index.trie>->{$depth}
+    and scalar @{ <index.trie>->{$depth} };
+
+## .zxps already loaded by another path : all depths available ##
+return TRUE if scalar keys %{<index.trie>};
+
+## no cube file mapped : nothing to load from ##
+return FALSE if not defined <index.cube.mmap>;
+
+## already attempted restore and failed ##
+return FALSE if <index.cube.lazy_failed>;
+
+## .zxpc binary compartments do not store sequence labels or  rank-to-sequence
+## mappings. locating a compartment by prefix  requires <index.addr> and
+## <index.packed_rank>, which are not present in the cube file itself.
+##
+## the safe fallback is to load the full .zxps storable, which  contains all
+## mappings and all trie structures. this allows  index.search and
+## index.lookup to function at any depth.
+
+my $restored = <[index.restore]>;
+
+if ($restored) {
+    <index.cube.lazy_restored> = TRUE;
+    return TRUE;
+}
+
+<index.cube.lazy_failed> = TRUE;
+return FALSE;
+
+#,,,.,,..,,..,.,.,,,,,.,.,,,.,.,.,.,.,.,,,.,.,..,,...,..,,,,.,..,,...,.,.,,.,,
+#LAF4KYFON2LXXV5PHHTOXGVA7II44EKC52KYFSLHYGKJC2Z2OAVPWRGSKYUAVBI5RTSQAWCW4TQ4Y
+#\\\|2DROEKL3SFFASVY3B2MILCH2CRGG4FAO2IQX4X4Y3OFF7AJ76JC \ / AMOS7 \ YOURUM ::
+#\[7]ZTUC5O74BT4X64PNN3PY5SUFDN3GOTYIMSW5U74HHRJCOSASASDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

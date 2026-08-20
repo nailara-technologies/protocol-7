@@ -113,12 +113,12 @@ fixes_applied:
   session_id_requirement:
     issue: "models.chat.append required defined session_id, blocking global chat"
     fix: "Changed validation to only require sender (session_id optional)"
-    file: "modules/models.chat.append:12"
+    file: "src/models.chat.append:12"
 
   source_tracking:
     issue: "Sender hardcoded to 'Claude', no zenka identification"
     fix: "Extract source_zenka from cube alias using ${^CAPTURE} array"
-    file: "modules/models.cmd.chat:22-28"
+    file: "src/models.cmd.chat:22-28"
 
   cube_alias:
     issue: "models.chat not registered for source_zenka alias"
@@ -128,7 +128,7 @@ fixes_applied:
   no_args_handling:
     issue: "Empty check didn't account for source_zenka prefix from cube"
     fix: "Check for empty OR single word (just source_zenka)"
-    file: "modules/models.cmd.chat:11"
+    file: "src/models.cmd.chat:11"
 
 ## ═══════════════════════════════════════════════════════════════════════════
 ## TESTING VERIFICATION
@@ -207,8 +207,8 @@ commits:
   - hash: "6b1382aa4"
     message: "Add content-addressed announcement system with AMOS checksums"
 
-#,,.,,,.,,...,..,,,,.,..,,...,,,,,..,,..,,,.,,..,,...,...,...,,..,,..,,.,,,,,,
-#INLOGSVTQMZONEATWQ2DEQE367MUBVIX6ETTSNAAZVPX5H6JBJIAIDJGLVEXTKQ6DBNZ3G65AFI3E
-#\\\|7Z2F34QWQ2FO2N5XOR36CZKY6OYGDNDFA26XEW5V5CT4AV5KBGX \ / AMOS7 \ YOURUM ::
-#\[7]23XSHNOP5VHGJOMVCH3JZP7QRLLMGX2FLVPUOGAQM63SGLI7U6BI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,.,.,...,,,.,...,,..,,,,,.,,,..,,...,..,,..,,,..,,..,.,,,,,.,
+#B6NMG6OQKKXHJ4VWC23C7UEZL3D3NKUDAK6G67DIP4OZHSNZXQVXNBA7YAFOMNXWXU3HWSKLUUMFK
+#\\\|TKDLABUTJPW4AZAKBN5FYPA7OF27DQGBCILTU6RRHTU4A5MLFAS \ / AMOS7 \ YOURUM ::
+#\[7]CVSRW5JWSH2IAEFRPNNL56CTNVJ7NFCRT4SQC6LC3QWVUZJLS6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

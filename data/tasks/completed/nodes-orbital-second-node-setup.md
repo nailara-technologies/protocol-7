@@ -45,7 +45,7 @@ then do option B (KVM) for real multi-node validation.
 
 ## option C implementation
 
-create `modules/discover.cmd.inject-orbital`:
+create `src/discover.cmd.inject-orbital`:
 
   args: "<hostname> <pkey_b32> <p7ref>"
   calls: <[discover.orbital.store_remote]>->($hostname, $pkey_b32, $p7ref)
@@ -60,8 +60,8 @@ the p7ref ADDR_B32 suffix encodes position — change last chars for different c
 
 do NOT add stub signature line to new files.
 
-#,,.,,,..,.,,,...,.,.,.,.,,,,,.,.,,.,,,,,,,,,,..,,...,..,,.,.,..,,,,.,,,.,.,,,
-#7Q4FIWA2SVV4D22AQSD4B67Z5UD2QS6EMQPW4N2YNHA25JY6S57TJJ5O5RFBCUQ64F2SLNSL2YNHE
-#\\\|OKWBM345YM4UNQH6FCNM5D57MGCXT6XXRD7Z4DAT5J5N3Z2E52L \ / AMOS7 \ YOURUM ::
-#\[7]KKGUQCK7QGVRJKJ7Z7UQXFSOUMIFINSRIW3GG3TD37VCMZR4XEAI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,.,.,,,.,.,,,.,,.,,,,.,,,,,,,,,..,,...,...,...,.,.,,,.,,,,,...,
+#L5WOWEIEEI7QT3DNRTUMHR3I5ZGVDSZQZ567JX6AWQUS4XBSSLUR3VNVF7SPIRL2VSLZMVAOEMXYW
+#\\\|LNTEV4M7ZB3Z6SFFZVGS4FFN4E6XXMIWDZNI3SHJQ7UNVY5GXUE \ / AMOS7 \ YOURUM ::
+#\[7]HXEI4INQUBW2EMPLK4QURWWJ2LAJS3DMJ6MGJ67426U4A6B7WWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

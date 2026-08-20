@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = data.topology.interference.map.hash_to_cube_3d
+# descr = Topology calculation subroutine
+
+my $hash = shift;
+
+my $cube_size = <[data.topology.interference.map.CUBE_SIZE]>;
+
+# Use existing BMW/ELF checksum infrastructure
+my $chksum = <[chk-sum.amos.truth_template_chksum]>->( $hash, \0 ) // 0;
+
+# Map 64-bit checksum to 13³ space
+# Using division-13 entropy distribution
+my $x = ( $chksum >> 42 ) % $cube_size;
+my $y = ( $chksum >> 21 ) % $cube_size;
+my $z = $chksum % $cube_size;
+
+return [ $x, $y, $z ];
+
+#,,..,.,,,..,,.,.,,,,,.,.,.,.,.,.,.,,,...,,.,,.,.,...,...,,..,..,,,,.,.,.,,.,,
+#5XHZEWSNEUACZ7BMJASZWO2C53G4ICBRCLHF5WOWBFHJJOZITFTFY6JLBHA5BIQS7MKXN3BDHIAGA
+#\\\|ZINX5HBQTP4IFDTBLYWX6F3JDG6I254QYABLRYZFRTQKMSVMMVN \ / AMOS7 \ YOURUM ::
+#\[7]C5UI435YRPIWDXMI4WZBOKNVTOXYKWX22BI5JMN6GC3GVP7JB6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

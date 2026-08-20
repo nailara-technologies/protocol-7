@@ -37,9 +37,9 @@ instance that has `replaces_instance` (i.e. it was a twin replacement):
 
 ### key files
 
-- `modules/v7.handler.zenka_status` — main change; lines 228-238 is the hook point
-- `modules/v7.zenka.instance.track_handover` — adds `replaces_instance` to new instance
-- `modules/v7.zenka.instance.handover_cleanup` — clears both sides of pair
+- `src/v7.handler.zenka_status` — main change; lines 228-238 is the hook point
+- `src/v7.zenka.instance.track_handover` — adds `replaces_instance` to new instance
+- `src/v7.zenka.instance.handover_cleanup` — clears both sides of pair
 
 ### what NOT to change
 
@@ -64,8 +64,8 @@ p7c v7.restart :twin: httpd
 # no second httpd spawned
 ```
 
-#,,.,,.,.,,..,...,..,,.,,,.,,,...,.,.,,..,,,.,..,,...,...,...,,..,..,,,,,,..,,
-#IU22QOSC3OGQ6CL43BMQEYSODOFYAGZ7LQMYF6EQDP7LCYCDTCGQCIQT6VZAOQJ7FWIEYBNW5AJ2G
-#\\\|X5FYMURLA5ANJ47XDXCXP5HEPTYEVSQ7L3PF6O7DPR4QTRU43AV \ / AMOS7 \ YOURUM ::
-#\[7]CVJ5MS5GVOOSFIEDNM4RYC7JB3CAZYSLCQG5RDEHV3Y3LKMBASBI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,,.,,,..,,.,,...,,..,,,,,.,,,..,,...,...,,.,,.,,,,.,,...,.,.,
+#WMU5AYEW42IIOWFB3EII3C6NHIGR4JDLFJMDQJTFUXSLKRSM7KA4EUB6Y4EU62QBUX4Q4DJK7AIPG
+#\\\|BWEYJ7HA2G3VKNYIOD7IVDUGNIAU6WIX5TBFDEXN6YPPTIUE5GS \ / AMOS7 \ YOURUM ::
+#\[7]HDKRXBVTIX2M45JTOQYFRITSJRBQB27ZUUTRVEQBJ7KKLFFX4GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

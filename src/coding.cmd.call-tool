@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = coding.cmd.call-tool
+# descr = call a tool directly and return its output
+# param = tool_name [json_args]
+
+my $args = $call->{'args'} // '';
+
+## parse tool name and arguments ##
+my ( $tool_name, $json_args ) = $args =~ m|^\s*(\S+)(?:\s+(.*))?$|s;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: call-tool <tool_name> [json_args]'
+    }
+    unless defined $tool_name && length $tool_name;
+
+## parse arguments if provided ##
+my $tool_args = {};
+if ( defined $json_args && length $json_args ) {
+    $tool_args = eval { JSON::PP::decode_json($json_args) };
+    if ($@) {
+        return {
+            'mode' => qw| false |,
+            'data' => "invalid JSON arguments: $@"
+        };
+    }
+}
+
+## check if tool exists ##
+my $handler_mod          = "coding.tools.handler.$tool_name";
+my $dispatch_table_tools = {
+    'list_files'        => 1,
+    'search_code'       => 1,
+    'dep_graph'         => 1,
+    'ncode_search'      => 1,
+    'edit_file'         => 1,
+    'record_question'   => 1,
+    'record_suggestion' => 1,
+    'ask_user_choice'   => 1,
+    'ask_user_text'     => 1,
+    'ask_user_stream'   => 1,
+    'suggest_new_topic' => 1,
+};
+
+if (    not exists $dispatch_table_tools->{$tool_name}
+    and not exists $code{$handler_mod} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "tool '$tool_name' not found"
+    };
+}
+
+## call the tool via dispatch ##
+my $result;
+if ( exists $dispatch_table_tools->{$tool_name} ) {
+    ## dispatch table tool - call through tools.dispatch ##
+    my $tool_call = {
+        'id'       => 'call-tool-' . <[base.ntime.b32]>,
+        'type'     => 'function',
+        'function' => {
+            'name'      => $tool_name,
+            'arguments' => JSON::PP::encode_json($tool_args),
+        }
+    };
+    $result = $code{'coding.tools.dispatch'}->($tool_call);
+} else {
+    ## handler module - call directly ##
+    $result = eval { $code{$handler_mod}->($tool_args) };
+    if ($@) {
+        $result = { 'content' => "error: $@" };
+    }
+}
+
+## format output ##
+my $output = ".:[ tool call: $tool_name ]:.\n";
+$output .= ".:[ args: " . ( $json_args // '{}' ) . " ]:.\n\n";
+
+if ( ref $result eq qw| HASH | ) {
+    $output .= $result->{'content'} // $result->{'data'} // '[no output]';
+} else {
+    $output .= $result // '[no output]';
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => $output
+};
+
+#,,,.,,..,,,,,,,.,,,,,...,,,.,.,,,.,,,.,.,,,,,.,.,...,...,,.,,..,,,..,..,,,,.,
+#KBJFSUBZFAPS46EH2ES3NK5CLSAB3QUXDAVDLBH7QAIW35VJWSPYZTL2MLKKBJ5L36VA7HUWN7X5Y
+#\\\|N6H4CBB2ZV464B4CETS4BIUPNVWM7GOI62DSGWGXFCRKZINE6YK \ / AMOS7 \ YOURUM ::
+#\[7]7LRBXJMG3AM6FL73NXKYEUD4EGOMKP2TZ2O5ZZ2IVLAL34Y5VIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

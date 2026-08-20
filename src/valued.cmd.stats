@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = valued.cmd.stats
+# descr = valued tree stats [ total, avg, highest, lowest ]
+
+my @nodes;
+
+## iterate all nodes in valued.index ##
+foreach my $id ( keys %{<valued.index>} ) {
+    my $priority = <[valued.resolve]>->($id);
+    push @nodes, { 'id' => $id, 'priority' => $priority };
+}
+
+my $total = scalar @nodes;
+
+return { 'mode' => 'size', 'data' => 'no nodes' } unless $total;
+
+my @sorted = sort { $b->{'priority'} <=> $a->{'priority'} } @nodes;
+
+my $sum = 0.0;
+$sum += $ARG->{'priority'} foreach @sorted;
+
+my $avg     = $sum / $total;
+my $highest = $sorted[0];
+my $lowest  = $sorted[-1];
+
+my $output = sprintf
+    'nodes : %d  avg : %.2f  highest : %s [%.2f]  lowest : %s [%.2f]',
+    $total, $avg,
+    $highest->{'id'}, $highest->{'priority'},
+    $lowest->{'id'},  $lowest->{'priority'};
+
+return { 'mode' => qw| true |, 'data' => $output };
+
+#,,,,,,,.,...,...,..,,,.,,.,,,,,,,...,.,.,,,,,..,,...,...,..,,,.,,..,,,.,,.,.,
+#FOZVHBVR2XGK5GCF7FKR45IA7HLRZRX2OMTYXXRO6HEK4CSJ6D26KRSQHKNZACBYDPECMS7FHRQMM
+#\\\|632S6HGRDZDPRBPNR33GKJ77FWTKUZEMSOJGUSGB6UXGH4RDOMY \ / AMOS7 \ YOURUM ::
+#\[7]MF2OEGXJNBWODEWAXVU2EQGLB7BOLUOAKKLGXQSEJQGKVHZVU2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

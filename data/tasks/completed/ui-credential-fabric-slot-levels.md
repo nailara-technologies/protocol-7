@@ -14,10 +14,10 @@ security-level` resolver, and the generic `*.ui-show` grant in
 ## the gap
 
 `credential_fabric.cmd.ui-show` is a tier-2 "specific ui-show command"
-in `ui.unfold`'s dispatch (see `modules/ui.unfold`, tier 2: `defined
+in `ui.unfold`'s dispatch (see `src/ui.unfold`, tier 2: `defined
 $code{"$address.cmd.ui-show"}`). per the design doc, tier-2 renderers
 are "trusted to do their own filtering" — but
-`modules/credential_fabric.cmd.ui-show` currently does **none**. any
+`src/credential_fabric.cmd.ui-show` currently does **none**. any
 caller who can reach `credential_fabric.ui-show` [ now anyone, via the
 generic `*.ui-show` grant from step 4 ] sees:
 
@@ -38,26 +38,26 @@ already correct and out of scope.
   "per-zenka interesting base values map" — "slot *names* at level 1,
   slot *metadata* at level 2, and never expose slot *values* via
   `ui-show` at any level")
-- `modules/ui.caller.security-level` — the resolver to call. returns a
+- `src/ui.caller.security-level` — the resolver to call. returns a
   plain non-negative integer; `0` = default/unauthenticated
-- `modules/ui.unfold` — confirms tiers 1/2 are unfiltered by design,
+- `src/ui.unfold` — confirms tiers 1/2 are unfiltered by design,
   tier 3 already does field-map + level filtering. this task brings
   tier-2 `credential_fabric.cmd.ui-show` in line with that intent
   using the SAME resolver, not a new mechanism
-- `modules/credential_fabric.cmd.ui-show` — the dispatcher to modify
-- `modules/credential_fabric.ui.render.registry_list` and
+- `src/credential_fabric.cmd.ui-show` — the dispatcher to modify
+- `src/credential_fabric.ui.render.registry_list` and
   `.registry_detail` — the two views to gate. both already render via
   `<[ascii.frame.load]>` / `<[ascii.frame.render]>` — do NOT touch the
   frame templates (`credential-fabric/registry-list`,
   `credential-fabric/registry-detail`) or `ascii.frame.*`, only gate
   whether these renderers are *called*
-- `modules/credential_fabric.ui.render.overview` — confirm it stays
+- `src/credential_fabric.ui.render.overview` — confirm it stays
   reachable at level 0 (counts only, no names) — no change expected
   here, just verify
 
 ## scope
 
-### `modules/credential_fabric.cmd.ui-show`
+### `src/credential_fabric.cmd.ui-show`
 
 at the top of the dispatch (after `$view`/`@rest` are parsed), resolve:
 
@@ -133,7 +133,7 @@ covered by this task ]
 
 ## acceptance
 
-- `perl -c modules/credential_fabric.cmd.ui-show` clean
+- `perl -c src/credential_fabric.cmd.ui-show` clean
 - with `<[ui.caller.security-level]>` resolving to `0` [ e.g. an
   unauthenticated/non-admin caller — see [[ui-caller-security-level]]
   for how to construct such a context, or temporarily stub the
@@ -161,11 +161,11 @@ the existing header comment block and signature footer.
 ## checks
 
 ```
-perl -c modules/credential_fabric.cmd.ui-show
+perl -c src/credential_fabric.cmd.ui-show
 ```
 
-#,,..,,.,,...,,,.,,,.,,..,.,.,.,,,.,,,.,.,,,,,..,,...,...,...,...,,,,,.,.,..,,
-#JFYF2ZRWRRGWDPJ5DI5T3H3HXDC3Z3PBHPAOVE5QMALYAEXZZFNOSAZ5HKENZQ5WMWNL5U7V2ULBQ
-#\\\|RWC465KAEPQ46ASKDWHXZDAISDQFNBWW6OO5YNWUCKVSU3AKUGD \ / AMOS7 \ YOURUM ::
-#\[7]IAXWSOBCIANQX3QKD266BIBNFN2XTXFVMEOADRSZVWWXE4KIFMAQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,...,.,.,.,.,.,.,,,.,,,.,,,,,.,.,..,,...,...,,,.,...,,.,,,.,,.,.,
+#EXRYAWLEU3I2LRTXSM4PV4I64AC6HNPAIF7XROQOEZLQS2R7NR6ME3S4JPGVPA2OVY22SGJAR3KHC
+#\\\|RGQHZ4XEOSIV6QAFOQEOVEX5GCYVNKSUIH5SUEP4SGZ6GX4HDN6 \ / AMOS7 \ YOURUM ::
+#\[7]NNWXFMCA36O6DSGQAXLYESN7G6BW64K2NEPH7Y7VDANJAS6Q3SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

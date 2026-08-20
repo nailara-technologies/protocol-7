@@ -10,15 +10,15 @@ use $data{'models'}{'external.models.invokeai.path'} for config access (not cfg)
 
 ## read these files first
 
-    modules/models.storage.adapter.invoke.discover   (returns model records)
-    modules/models.storage.adapter.invoke.resolve    (resolves to disk path)
-    modules/models.registry.populate_from_yaml       (how yaml snapshots work)
+    src/models.storage.adapter.invoke.discover   (returns model records)
+    src/models.storage.adapter.invoke.resolve    (resolves to disk path)
+    src/models.registry.populate_from_yaml       (how yaml snapshots work)
     bin/scripts/invoke-ai/invoke-model-recover       lines 146-207 (dry_run + list logic)
 
 
 ## modules to create (2 files)
 
-### modules/models.storage.adapter.invoke.export
+### src/models.storage.adapter.invoke.export
 
     # name  = models.storage.adapter.invoke.export
     # descr = export invoke model collection to portable yaml snapshot
@@ -53,7 +53,7 @@ use $data{'models'}{'external.models.invokeai.path'} for config access (not cfg)
         - return hashref: { path => $output_path, total => N, on_disk => N, missing => N }
 
 
-### modules/models.storage.adapter.invoke.import
+### src/models.storage.adapter.invoke.import
 
     # name  = models.storage.adapter.invoke.import
     # descr = restore invoke model collection from yaml snapshot
@@ -81,7 +81,7 @@ use $data{'models'}{'external.models.invokeai.path'} for config access (not cfg)
 
 ## also create cmd wrappers
 
-### modules/models.cmd.adapter-export
+### src/models.cmd.adapter-export
 
     # name  = models.cmd.adapter-export
     # descr = cmd: export model collection snapshot for a host adapter
@@ -102,7 +102,7 @@ use $data{'models'}{'external.models.invokeai.path'} for config access (not cfg)
     return { mode => qw| false | };
 
 
-### modules/models.cmd.adapter-import
+### src/models.cmd.adapter-import
 
     # name  = models.cmd.adapter-import
     # descr = cmd: restore model collection from snapshot
@@ -135,8 +135,8 @@ add to access.cmd.usr.cube: adapter-export adapter-import
 
 ptd -c on all 4 files, report done.
 
-#,,..,..,,..,,.,,,,,,,,,,,,,.,.,.,.,.,,,.,,.,,..,,...,...,..,,.,,,.,.,...,,..,
-#WF6A7F3BBHHGWR3NRK26PLLC5A5ZQ2K4SGRC7OLPGLQ3XGHTPCFWN3NYC2KQ533I5U2SUNEJRF3PS
-#\\\|AZXESQWIC7P4ZHKBPH7FWT2OHGCUDTEJZ4YT37YWCDXZKRNKSEH \ / AMOS7 \ YOURUM ::
-#\[7]KUEJQJG2GRGN4CLNBJPPBCCJ5KYIAPHDYAR32JQYG3YFZQULMCCY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,...,...,,,,,..,,,.,,.,,,,,.,..,,...,.,.,,,,,,,.,,,.,,,,,,,,,
+#AHBFJJD4P5SRMMGAYN6ON7HF2DBM7ZO34SUBYJQ4RCKNQPMGPZ3HO555ZQS5VGOSNDNESS3I4QQ4W
+#\\\|4MCXJ76LDFVS4B2LT7CADLI7KHL3CQO3NQZTEJ7SNBUOJ7LUVWK \ / AMOS7 \ YOURUM ::
+#\[7]4NUS7DC3M4OGZQ2LKOITQOTT33TWIS5IUPXICKULKTUWCBCMESCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,7 @@ the plugin reload subsystem had a critical data flow disconnect between the code
 1. **start file** calls `[load_plugins:<plugins.load>]`
    *example: `cfg/zenki/cube/start` line 43*
 
-2. **`base.load_plugins`** (modules/base.load_plugins)
+2. **`base.load_plugins`** (src/base.load_plugins)
    - filters for `plugin.*` prefix (line 6)
    - calls `<[base.load_code]>->(@plugins_to_load)` (line 13)
    - **does NOT populate any plugin registry**
@@ -35,7 +35,7 @@ the plugin reload subsystem had a critical data flow disconnect between the code
 1. **`base.cmd.reload`** with `plugins` or `all` argument (line 123-136)
    - calls `<[base.reload_plugins]>` (line 126)
 
-2. **`base.reload_plugins`** (modules/base.reload_plugins, line 16)
+2. **`base.reload_plugins`** (src/base.reload_plugins, line 16)
    - reads `@loaded_plugins = <[base.sort]>->(<plugins.status>)`
    - `<plugins.status>` resolves to `$data{'plugins'}{'status'}`
    - **DATA hash is usually empty** → returns empty list → nothing reloads
@@ -225,8 +225,8 @@ for my $cb_type (qw| end_code start_code error pre_init |) {
 
 ---
 
-#,,.,,..,,...,,.,,..,,..,,.,.,,,.,,,.,.,,,,.,,.,.,...,...,...,.,.,,.,,,,.,,,,,
-#7KRFMWE2UZFSRW24P4KJA6L2KMKWLKNC7TYSPKMILVXH4YLVBWA6FD3ZYOIK3FWVD5NCSQKN7JOYI
-#\\\|VKWYZET6BC742C4ZGKUKF3VO6TXQVUJXQ66CT3UIKF4JZNEG3BW \ / AMOS7 \ YOURUM ::
-#\[7]CO5NDMLO5H3NOPWLUZTUIUB5FRKWB5QQ2HN7E2QV77DX27WUYYBI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,,.,,,..,..,,,..,.,,,,..,,,.,.,.,...,...,..,,,.,,,,.,,,.,,,,,
+#LKHURCDKHGXZKACJFJSOJHYX7UJHYGABK5PMBFXC2CDYN4HNYTWRXLPGYHOJGFFLFM2RUGMT6B6GI
+#\\\|O3SZRPJKFZXWODPXZTCH3J34YT6EJDMFFT364KFJAOJO2N6VYN3 \ / AMOS7 \ YOURUM ::
+#\[7]YAMQTUFDQR2PNU6SDI3YJCAZS6FFY4OILF2VEPXEYF3KBP6HMWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,10 +47,10 @@ Based on successful implementation of kimi-web zenka, this guide covers creating
 ### File Structure
 
 ```
-modules/<zenka-name>.init_code                    # required
-modules/<zenka-name>.cmd.<command>                 # exposed commands
-modules/<zenka-name>.handler.<event>               # event handlers
-modules/<zenka-name>.internal.<helper>             # utilities
+src/<zenka-name>.init_code                    # required
+src/<zenka-name>.cmd.<command>                 # exposed commands
+src/<zenka-name>.handler.<event>               # event handlers
+src/<zenka-name>.internal.<helper>             # utilities
 
 cfg/zenki/<zenka-name>/
 ├── start                                          # main config
@@ -81,7 +81,7 @@ From kimi-web implementation:
 
 ```bash
 # 1. Syntax check
-./bin/dev/ptd modules/<zenka-name>.*
+./bin/dev/ptd src/<zenka-name>.*
 
 # 2. Start zenka
 p7c v7.start <zenka-name>
@@ -100,7 +100,7 @@ p7c show-buffer <zenka-name>
 | "my variable $call masks earlier declaration" | `my $call = shift` in cmd | Remove `my $call = shift` |
 | "file.zenka_dir.make_path not defined" | Using non-existent function | Use `file.make_path` or create on-demand |
 | "user not accepted for auth type :zenka:" | Missing auth.zenki entry | Add `auth.setup.usr.<name>` |
-| "no match /modules/<zenka-name>" | Loading self in modules.load | Remove from modules.load |
+| "no match /src/<zenka-name>" | Loading self in modules.load | Remove from modules.load |
 
 ### Template Usage
 
@@ -111,13 +111,13 @@ p7c coding.ask template=zenki-create zenka_name=my-zenka zenka_type=standard
 
 ### Files to Know
 - `data/yaml/context-templates/zenki-create.yaml` <- Base creation template
-- `modules/v7.register_child_zenka` <- Child zenka registration
-- `modules/cube.auth.zenki` <- Auth routing
+- `src/v7.register_child_zenka` <- Child zenka registration
+- `src/cube.auth.zenki` <- Auth routing
 
 ---
 
-#,,..,.,.,.,,,.,,,...,,..,...,.,.,..,,,,,,...,...,...,...,,..,.,,,,,,,..,,...,
-#EZSCEO64QAGMYCAWDQFWGEMFRYT2K4QDFSD6YEDH43IXBOLYKGOKY7FDMRDUGLNODKQO55PKSESJY
-#\\\|PKC67M6J7SZOTKDZOOBJGMO6NUYX4GVE54QNIWQUNDZ6DZTBVBA \ / AMOS7 \ YOURUM ::
-#\[7]YTEMNAWJKA6EGFDR5UBPOTA3JFPQMYCOETDIXKGJOIUCWSNQ4KCY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,...,.,.,,,.,,,,,,,,,,,,,.,,,...,...,...,...,...,,..,,..,...,,.,,
+#YKTFBHYF3WR3EGTRTFME63QTVDF6CGOC56UQLQPX6TO5HVT4STQMZNW7GIYDT5GVL7IGTLOWHW7HU
+#\\\|NHF52QS5YL4RE6HZLGHVCK4ZYGHJEDSKPK7MC3SFASGJRNFQP7C \ / AMOS7 \ YOURUM ::
+#\[7]LYY7R3ZWJKSJA5NUOSTFWAR3WN2KQ37FOKTD36DSEWJJC7HRTYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

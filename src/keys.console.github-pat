@@ -1,0 +1,155 @@
+## [:< ##
+
+# name  = keys.console.github-pat
+# param = <repository>
+# descr = configure GitHub Personal Access Token for repository
+
+my $repository = shift || 'workspace-transfer';
+
+<[base.perlmod.load]>->('AMOS7::TERM')
+    if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+
+say '';
+say '=' x 70;
+say sprintf "Configure GitHub Personal Access Token for '%s'", $repository;
+say '=' x 70;
+say '';
+say 'This will configure authenticated GitHub access.';
+say 'Your PAT will be stored securely in .credentials file.';
+say '';
+say 'To create a PAT:';
+say '  1. Visit https://github.com/settings/tokens';
+say '  2. Generate new token (classic)';
+say '  3. Select scopes: repo, workflow';
+say '';
+
+my $github_token
+    = AMOS7::TERM::read_password_single( 'GitHub Personal Access Token',
+    sprintf( "configure '%s' remote", $repository ) );
+
+if ( not defined $github_token or length($github_token) < 10 ) {
+    say '';
+    say '⚠ Token configuration cancelled or invalid token.';
+    <[base.exit]>->(qw| 0110 |);
+}
+
+# Validate token format (should start with ghp_ or github_pat_)
+if ( $github_token !~ m/^(?:ghp_|github_pat_)/ ) {
+    say '';
+    say '⚠ Warning: Token doesn\'t match expected GitHub PAT format.';
+    print 'Continue anyway? [y/N] ';
+    my $response = <STDIN>;
+    chomp $response;
+    <[base.exit]>->(qw| 0110 |) unless $response =~ /^y/i;
+}
+
+# Get GitHub username
+say '';
+print 'GitHub username [nailara-technologies]: ';
+my $github_user = <STDIN>;
+chomp $github_user;
+$github_user ||= 'nailara-technologies';
+
+# Determine workspace directory
+my $workspace_dir;
+if ( $repository eq 'workspace-transfer' ) {
+    $workspace_dir = '/var/run/.7/workspace-transfer';
+} elsif ( $repository eq 'protocol-7' ) {
+    $workspace_dir = <[base.fs.get_root]>;
+} else {
+    say '';
+    say sprintf "⚠ Unknown repository: %s", $repository;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+if ( not -d $workspace_dir ) {
+    say '';
+    say sprintf "⚠ Repository directory not found: %s", $workspace_dir;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+# Change to workspace directory
+chdir $workspace_dir or do {
+    say '';
+    say sprintf "⚠ Cannot change to directory: %s", $workspace_dir;
+    <[base.exit]>->(qw| 0110 |);
+};
+
+# Write to .credentials file
+my $credentials_file = '.credentials';
+my $email = sprintf "%s\@nailara-technologies.v7.ax", $github_user;
+
+open my $fh, '>', $credentials_file or do {
+    say '';
+    say sprintf "⚠ Cannot write %s: %s", $credentials_file, $!;
+    <[base.exit]>->(qw| 0110 |);
+};
+
+print $fh "# GitHub Credentials for $repository\n";
+print $fh sprintf "# Generated: %s\n", scalar(localtime);
+print $fh "\n";
+print $fh sprintf "GITHUB_TOKEN=%s\n", $github_token;
+print $fh sprintf "GITHUB_USER=%s\n",  $github_user;
+print $fh sprintf "GITHUB_EMAIL=%s\n", $email;
+close $fh;
+
+chmod 0600, $credentials_file;    # Secure permissions
+
+say '';
+say sprintf "✓ Credentials saved to %s", $credentials_file;
+
+# Configure git remote with token
+my $remote_url = sprintf
+    "https://%s:%s\@github.com/nailara-technologies/%s.git",
+    $github_user, $github_token, $repository;
+
+system( 'git', 'remote', 'set-url', 'origin', $remote_url ) == 0
+    or do {
+    say '';
+    say '⚠ Failed to configure git remote';
+    <[base.exit]>->(qw| 0110 |);
+    };
+
+say '✓ Git remote configured with authentication';
+
+# Configure git identity
+system( 'git', 'config', 'user.name',  $github_user );
+system( 'git', 'config', 'user.email', $email );
+
+say '✓ Git identity configured';
+
+# Test connection
+say '';
+say 'Testing connection to GitHub...';
+my $test_result = system( 'git', 'ls-remote', '--heads', 'origin' ) >> 8;
+
+if ( $test_result == 0 ) {
+    say '';
+    say '=' x 70;
+    say '✓ GitHub PAT Configuration Complete!';
+    say '=' x 70;
+    say '';
+    say 'You can now use:';
+    say '  - todo-commit to add todos with auto-push';
+    say '  - bug-commit to report bugs with auto-push';
+    say '  - checkpoint to save work with auto-push';
+    say '';
+} else {
+    say '';
+    say '=' x 70;
+    say '⚠ Configuration Saved but Connection Test Failed';
+    say '=' x 70;
+    say '';
+    say 'The credentials were saved, but couldn\'t connect to GitHub.';
+    say 'Please verify:';
+    say '  1. Token has correct permissions (repo, workflow)';
+    say '  2. Token hasn\'t expired';
+    say '  3. Network connectivity';
+    say '';
+}
+
+#,,,,,,,.,..,,,,,,...,,,.,,..,.,,,.,,,,,.,,..,..,,...,...,,,,,.,,,...,,.,,.,.,
+#5AFRI5WCLCTTJ7VB4EK3C4QDCZFNSJU45S5WCIBRU3OE56QPGKJA2IU32WR337FJFKJZH3CEACTMS
+#\\\|QMU5IWKLMEZZBARIQSVN6JYQPYZAN6HIXR7OMB4E6UU66Q2AKVS \ / AMOS7 \ YOURUM ::
+#\[7]7CMCJSOGVX4Y6GFWNLAREK47DBFG536W7U23GU2BOFEOHBH3GYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

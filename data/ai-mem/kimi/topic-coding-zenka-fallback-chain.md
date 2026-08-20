@@ -72,20 +72,20 @@ module.
 
 ## files touched
 
-- `modules/coding.tools.handler.ask_user_choice`
-- `modules/coding.tools.handler.ask_user_text`
-- `modules/coding.tools.handler.ask_user_stream`
-- `modules/coding.tools.handler.suggest_new_topic`
-- `modules/coding.tools.handler.flush_pending_questions`
-- `modules/coding.tools.handler.write_answered_note`
-- `modules/coding.tools.handler.task_complete`
-- `modules/coding.handler.user_stream_reply`
-- `modules/coding.tools.definitions`
-- `modules/coding.cmd.call-tool`
+- `src/coding.tools.handler.ask_user_choice`
+- `src/coding.tools.handler.ask_user_text`
+- `src/coding.tools.handler.ask_user_stream`
+- `src/coding.tools.handler.suggest_new_topic`
+- `src/coding.tools.handler.flush_pending_questions`
+- `src/coding.tools.handler.write_answered_note`
+- `src/coding.tools.handler.task_complete`
+- `src/coding.handler.user_stream_reply`
+- `src/coding.tools.definitions`
+- `src/coding.cmd.call-tool`
 - `data/yaml/context-templates/system-tools.yaml`
 
-#,,.,,...,...,,,.,,.,,.,,,.,.,,.,,.,,,,..,.,.,..,,...,..,,.,.,.,.,,,,,,,,,..,,
-#MDZOO3CVGLXTDC2PQG4ZHJXBZOIDYNRKMJGXZBTB7DCTSKHGDI2KA6PXVQZPPG7W54CSRMFSI3HW6
-#\\\|ZFVWHYULFKMWOBRVZXZ5G2NJK7YFOXY4TILIQEJF7S4D6GK2WYA \ / AMOS7 \ YOURUM ::
-#\[7]MYO4ZUKNN4LZ6HIFCDX4AJIXEDFC7LUYXVSEQIL27ENYNCIPTWCY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,.,,,,,.,.,.,.,,,,.,,,..,...,..,,...,...,,,.,,..,...,,,,,,..,
+#N4I756HETEJHYWZ2MOSQ4UFCMWDJBUNT4TMFVXHYGDX7N6YYKH7FYK4IAWGUDEREYQ63ED43QWDZK
+#\\\|XOL2HM34F2YLUZ7YNTRKJOLG5AEEIYM2M6IBU262PST5OZSICBR \ / AMOS7 \ YOURUM ::
+#\[7]LLNFQOHAHFRZDBGBBM5IK5RVE2GYPVLR5C657GIKCYILDNMFDCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

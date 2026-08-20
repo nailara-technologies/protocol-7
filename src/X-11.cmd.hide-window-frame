@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = X-11.cmd.hide-window-frame
+# param = <w_id>
+# descr = hide the window manager frame/decoration of a window
+
+my $X         = <X-11.obj>;
+my $window_id = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ m|^\d+$|;
+
+return { 'mode' => qw| false |, 'data' => 'no such window' }
+    if not <[X-11.window_id_found]>->($window_id);
+
+## under WSLg/Weston the registry may hold the client window; find the    ##
+## top-level frame so we can re-map the window the wm/compositor manages. ##
+my $frame_id = <[X-11.find_top_level_frame]>->($window_id);
+
+my $target_id   = $window_id + 0;
+my $motif_hints = $X->atom('_MOTIF_WM_HINTS');
+
+## set the hint on both the client and the frame so every wm/compositor   ##
+## that honours _MOTIF_WM_HINTS sees it, no matter which window it reads. ##
+eval {
+    $X->ChangeProperty( $target_id, $motif_hints, $motif_hints, 32, 'Replace',
+        pack( 'I5', 2, 0, 0, 0, 0 ) );
+    $X->ChangeProperty( $frame_id, $motif_hints, $motif_hints, 32, 'Replace',
+        pack( 'I5', 2, 0, 0, 0, 0 ) );
+};
+
+if ( length $EVAL_ERROR ) {
+    <[base.logs]>->(
+        1,          '[hide-window-frame] ChangeProperty id=%s : %s',
+        $window_id, <[base.str.eval_error]>
+    );
+    return { 'mode' => qw| false |, 'data' => 'ChangeProperty failed' };
+}
+
+<[X-11.WM.update]>;
+
+## trigger the wm/compositor to apply the decoration change  [ +0 +0 move ##
+## is a no-op positionally but forces re-evaluation ]                     ##
+<[X-11.cmd.move-window]>->( { 'args' => "$window_id x+0 y+0" } );
+<[X-11.cmd.move-window]>->( { 'args' => "$window_id x+0 y+0" } );
+
+<[X-11.WM.update]>;
+
+return { 'mode' => qw| true |, 'data' => 'window frame hidden' };
+
+#,,..,..,,...,...,.,,,,..,,,.,.,,,,.,,..,,,..,.,.,...,...,..,,,,,,...,.,,,..,,
+#6TARTLLPYZNEKWCWG3ZOYJV73OFJRRYG7FUYAKEMMJCIII4ZFABOGCHARENWXYYBRX2A2ZDOQXZL2
+#\\\|7NHAXIEMK3K3OF2GMMZUXYSBTMVGQJOSZKEWEYN5L7N2F4SNSRU \ / AMOS7 \ YOURUM ::
+#\[7]2SP4T53GSGRJ6LERPHVESSMZ6TOXH5NOR47MBCSHDLDFXT77P6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

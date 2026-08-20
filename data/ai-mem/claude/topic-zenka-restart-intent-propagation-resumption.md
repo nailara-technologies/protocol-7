@@ -57,11 +57,11 @@ crash-report mechanism that attaches to the resumed intent rather than
 just logging the crash separately. relates to existing zenka lifecycle
 concepts (`v7.zenka.instance.track_handover`,
 `v7.zenka.instance.handover_cleanup` — see handover/restart infra already
-in `modules/v7.zenka.*`) but those handle *zenka* handover between
+in `src/v7.zenka.*`) but those handle *zenka* handover between
 instances, not *intent* surviving an actual crash.
 
-#,,,,,...,..,,.,,,,.,,..,,.,.,...,.,.,.,.,...,..,,...,...,.,.,...,...,,,.,,..,
-#ZOECRDW2KPU5ISHEC3ZAZEE3H2Z6IOY5XXFKBKTC7GEGKOQFJBNJYMBYEO44CYWJMF5VJLP4YLVE2
-#\\\|5DRBMEGQPW2FTXAMRNAUVKVTB3IGEYOTVK3MB3JBL4VFFJQWY75 \ / AMOS7 \ YOURUM ::
-#\[7]WP7CK3QWBSWJTNY54OMIN6MG2VMFFCYPOGO5YLU7CTJ25XHNCAAA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,.,.,.,,,,.,,.,.,.,.,,,.,,..,..,,...,...,,,,,.,.,..,,...,.,.,
+#FG4B2CN5F75IXOYDXD3MUBGNMNM3K4F333Y3OCOUM5AXZBZZKPL4QWDNJHJHW5JE4VTHFD5FYLEYO
+#\\\|6XD23X4H3JNOBK7UBG3TLTPBWHKGFNU76Z7BU624RRBGW7JSUN4 \ / AMOS7 \ YOURUM ::
+#\[7]EK53ZKAXZBLQA2AQEOHJNZXQKFOVSSC647P47UYK2NG5QEUAMUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = keys.init_code
+# todo = add native fallback method for empty environment case .,
+
+<[base.perlmod.load]>->('AMOS7::13');
+<[base.perlmod.load]>->('AMOS7::TERM');
+<[base.perlmod.load]>->('AMOS7::Twofish');
+<[base.perlmod.load]>->( 'AMOS7::FILE', qw| last_existing_directory | );
+
+<[base.perlmod.load]>->( 'File::Copy', qw| cp | );
+
+## no network [logging] when 'keys' zenka itself
+delete <buffer.zenka.log_cmd> if <system.zenka.name> eq qw| keys |;
+
+## C25519 key path owner can be overridden with USER environment ##
+## variable..,                                                   ##
+<system.amos-zenka-user> = $ENV{'USER'} // getpwuid($EUID) // $ENV{'LOGNAME'};
+
+<keys.bin_path.shred> = <[base.required_bin_path]>->('shred');
+
+<keys.size.archive_block> = 13312;    ##  13 K initial size  ##
+
+0;
+
+#,,,,,..,,.,.,.,.,,,.,,,,,.,.,,.,,...,...,...,..,,...,..,,,..,.,,,..,,.,.,,.,,
+#UQI72N7QQXZU2PPCOWLSCT7H4YN36LK4GCC5GIDBQEAL4FLVCBUUSLDACHIUXB2TDKICZLAYSAF6C
+#\\\|L62YU3NK5KI4IQITYOLQF2V5BW3IFZX5V4C227II6N4IVN4ROME \ / AMOS7 \ YOURUM ::
+#\[7]KRRPXOCSPUZGRF4WGMJDZ4MGERKBJNKICGKM2FMWZTCI33FRGMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

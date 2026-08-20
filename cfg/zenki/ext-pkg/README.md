@@ -80,7 +80,7 @@ p7c ext-pkg.package-ensure kimi-cli
 p7c ext-pkg.package-ensure claude
 ```
 
-module implementing this command : `modules/ext-pkg.cmd.package-ensure`
+module implementing this command : `src/ext-pkg.cmd.package-ensure`
 [ auto-registered cmd_name : `package-ensure` , the `.cmd.` filename
 segment is what the loader uses to derive it -- see CLAUDE.md module
 file format ]
@@ -95,8 +95,8 @@ file format ]
 - unsigned files : sign before commit with
   `bin/Protocol-7 sourcecode update-signatures <path>`
 
-#,,,.,..,,..,,.,.,.,.,.,.,,.,,,,.,,,.,.,,,...,..,,...,...,.,,,,.,,.,.,,..,,.,,
-#3O75EOPJFOY2DTSYWZZSIOWBAHOD6GNJABJXDIZ5XODA7NDVTSFVFPSSPZSAUA2BGFEM6MFBS274Y
-#\\\|IDY772U6IO4FBQVX2CCSZHQIA3ZHEH5DPP7Z336TQPJH4T3GAX5 \ / AMOS7 \ YOURUM ::
-#\[7]AL6FOOQCUO446ZLHM4HJZEXNYSK6QH7L72KV2IZULQKBBKMZTECQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,,,..,,.,,,..,,,.,,.,.,,,,,,,,,..,,...,...,...,..,,...,.,.,...,
+#XVUB5RHEUK33EIRGDN5KVR74K44W5XDYSP52UGSQ3IO3NQNMRXPLFDX5U5PJTJ6IDCDMLP4Q4KD7A
+#\\\|HIY3PD57NVQAGBML5FPPV4KYARYX46ZMRZWJG7S72MEIW4MFBH3 \ / AMOS7 \ YOURUM ::
+#\[7]VPYXEDAB5YDN36EZMQ7G7JXJ4G4J7I4VALEZ4IUQLSTCGHXO2ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

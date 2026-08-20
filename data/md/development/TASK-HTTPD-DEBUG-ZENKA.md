@@ -44,15 +44,15 @@ httpd-debug.cfg.max_stored_states = 10000
 ```
 
 **New Modules**:
-- `modules/httpd-debug.init_code` - Initialize storage, create directories, load handlers
-- `modules/httpd-debug.handler.store_request` - Receive serialized request, store by AMOS checksum
-- `modules/httpd-debug.handler.reproduce_request` - Load request state and trigger reprocessing
-- `modules/httpd-debug.handler.list_states` - List captured request states
-- `modules/httpd-debug.handler.query_state` - Retrieve details of specific request state
+- `src/httpd-debug.init_code` - Initialize storage, create directories, load handlers
+- `src/httpd-debug.handler.store_request` - Receive serialized request, store by AMOS checksum
+- `src/httpd-debug.handler.reproduce_request` - Load request state and trigger reprocessing
+- `src/httpd-debug.handler.list_states` - List captured request states
+- `src/httpd-debug.handler.query_state` - Retrieve details of specific request state
 
 ### Phase 2: Request State Hook in httpd
 
-**Modified Module**: `modules/httpd.request_handler`
+**Modified Module**: `src/httpd.request_handler`
 
 Add hook point at request start:
 
@@ -77,7 +77,7 @@ return <[httpd.send_error_page]>->($session_id, 500)
 # ... existing handler code ...
 ```
 
-**New Module**: `modules/httpd.send_debug_state`
+**New Module**: `src/httpd.send_debug_state`
 - Serialize request state to JSON/AMOS format
 - Send to httpd-debug zenka
 - Wait for acknowledgement with AMOS checksum
@@ -86,9 +86,9 @@ return <[httpd.send_error_page]>->($session_id, 500)
 ### Phase 3: Request Reproduction Infrastructure
 
 **New Modules**:
-- `modules/httpd-debug.replay_request` - Simulate request processing from stored state
-- `modules/httpd-debug.handler.benchmark` - Run performance benchmarks with captured requests
-- `modules/httpd-debug.handler.regression_test` - Validate stored requests still process cleanly
+- `src/httpd-debug.replay_request` - Simulate request processing from stored state
+- `src/httpd-debug.handler.benchmark` - Run performance benchmarks with captured requests
+- `src/httpd-debug.handler.regression_test` - Validate stored requests still process cleanly
 
 ## Data Storage Format
 
@@ -156,8 +156,8 @@ httpd-debug.query_state($amos_checksum)
 - No impact to production code (separate zenka)
 - Can be deployed alongside existing httpd without risk
 
-#,,,.,,..,.,.,,.,,.,,,.,,,,.,,,,.,,..,.,.,.,.,..,,...,.,,,..,,..,,,.,,,,,,,,,,
-#NTIANU6EZ4RCVED3CWZACXXJPMIHADSS7RXPWD6X5TVHRKSCONW6UBQ3RW7GLCIM6LLICGQZCJT36
-#\\\|4FUOGZXDFZKHTHS4WDVVES6KGM3AXLCOE3P4AXH3ISIOTMR5IIP \ / AMOS7 \ YOURUM ::
-#\[7]662T6XBSXC7DCKUMJ3JE2DKSVKSSDWXTQT4K55PMAGI5ETOJGABY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,,..,,..,,,.,.,.,,,.,,..,...,..,,...,...,..,,..,,.,,,.,.,.,.,
+#PKSQCV22MZAYH2YWBPE7GAFRFP2I33TZEK3GBROCS4M4XGOZIV7GVASNPGCWACKXY3YX3L3HRKTR4
+#\\\|K7LGLMMPPCZNJ4O556A7LPMVPCPNGXQTIKEZ3G6XFT6TAED6ZNW \ / AMOS7 \ YOURUM ::
+#\[7]OSK4EJKEMFFUMNBTCUM7FL5KPKOBPEFGWKAOYP46EFFCI2GWSEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

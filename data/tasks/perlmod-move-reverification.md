@@ -62,65 +62,65 @@ get handed to an actual refactor pass.
 ## The 59 rows to re-verify
 
 ```
-modules/base.file.temp ||| File::Path ||| hot (core helper) ||| core temp-file helper called frequently; File::Path should be in base.init_code
-modules/base.file.tie_array ||| Tie::File ||| hot (core helper) ||| core file helper called whenever tied arrays are needed
-modules/base.handler.read.encryption-wrapper ||| Crypt::AuthEnc::ChaCha20Poly1305 ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
-modules/base.handler.write.encryption-wrapper ||| Crypt::AuthEnc::ChaCha20Poly1305 ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
-modules/base.stdio.transport.connect ||| IO::Socket::UNIX ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
-modules/base.stdio.transport.listen ||| IO::Socket::UNIX ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
-modules/base.tmp_dir ||| File::Path ||| hot (core helper) ||| called on every (core helper) invocation, modules should be in init_code
-modules/channels.cmd.ai-review-approve ||| JSON::PP ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/channels.cmd.ai-review-feedback ||| JSON::PP ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/channels.cmd.ai-review-status ||| JSON::PP ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/channels.cmd.ai-review-submit ||| JSON::PP ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/channels.handler.content-detected ||| JSON::PP ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
-modules/channels.handler.playlist-integration ||| JSON::PP ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
-modules/channels.memory-sync.batch-send ||| JSON::PP ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
-modules/channels.util.yaml_decode ||| YAML::XS ||| hot (helper) ||| utility called whenever channels decode YAML; should be preloaded
-modules/channels.util.yaml_encode ||| YAML::XS ||| hot (helper) ||| utility called whenever channels encode YAML; should be preloaded
-modules/coding.tools.handler.git_diff_output ||| Git::Wrapper ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
-modules/branch.data.bind ||| YAML::XS ||| hot (branch cmd) ||| branch data command invoked per bind operation; YAML::XS should be in branch.init_code
-modules/branch.data.query ||| YAML::XS ||| hot (branch cmd) ||| branch data command invoked per query; YAML::XS should be in branch.init_code
-modules/branch.data.unbind ||| YAML::XS ||| hot (branch cmd) ||| branch data command invoked per unbind; YAML::XS should be in branch.init_code
-modules/branch.storage.list ||| YAML::XS ||| hot (helper) ||| storage helper called when listing snapshots; YAML::XS should be in branch.init_code
-modules/branch.storage.persist ||| YAML::XS ||| hot (helper) ||| storage helper called when persisting snapshots; YAML::XS should be in branch.init_code
-modules/branch.storage.restore ||| YAML::XS ||| hot (helper) ||| storage helper called when restoring snapshots; YAML::XS should be in branch.init_code
-modules/branch.storage.sync ||| YAML::XS ||| hot (helper) ||| storage helper called when syncing snapshots; YAML::XS should be in branch.init_code
-modules/jobsite.dispatch.assessments ||| Encode, HTML::Entities ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
-modules/jobsite.util.build_prompt ||| HTML::Entities, Encode ||| hot (helper) ||| used for every new job assessment prompt; preload in jobsite.init_code
-modules/context.delegate.collect ||| Crypt::Misc ||| hot (.handler) ||| async delegation result handler; Crypt::Misc should be in context.init_code
-modules/context.delegate.dispatch ||| Crypt::Misc ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
-modules/context.git.recent_changes ||| Git::Wrapper ||| hot (helper) ||| context helper called per context build; Git::Wrapper should be preloaded
-modules/context.review.handler.page_result ||| Crypt::Misc ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
-modules/context.share.export ||| JSON ||| hot (helper) ||| context sharing helper called frequently; JSON should be in context.init_code
-modules/context.share.import ||| JSON ||| hot (helper) ||| context sharing helper called frequently; JSON should be in context.init_code
-modules/ncode.cmd.workflow ||| YAML::XS ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/ncode.transform.handler.wave_reply ||| Crypt::Misc ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
-modules/ncode.transform.wave ||| Crypt::Misc ||| hot (helper) ||| called in transform loops; preload Crypt::Misc in ncode.init_code
-modules/image-quality.analyze ||| Time::HiRes ||| hot (helper) ||| main image-quality entry point called per image; Time::HiRes is lightweight and should be preloaded
-modules/image-quality.vision.encode_image ||| MIME::Base64 ||| hot (helper) ||| called for every analyzed image; preload in image-quality.init_code
-modules/image-quality.vision.http_api ||| HTTP::Tiny, JSON::XS ||| hot (helper) ||| vision API client invoked per analyzed image; preload both modules
-modules/image-quality.vision.parse_response ||| JSON::XS ||| hot (helper) ||| parses every successful vision response; preload JSON::XS
-modules/plugin.auth.auth-keypair.tofu-notification ||| JSON::PP ||| hot (event callback) ||| TOFU callback fires during auth; preload JSON::PP in plugin.auth.auth-keypair.init_code
-modules/plugin.web.jobs.list ||| YAML::XS, HTML::Entities ||| hot (web render) ||| YAML::XS already in plugin.web.jobs.init_code; add HTML::Entities and remove inline load
-modules/plugin.web.space.orbital.synthetic-zenka-node ||| Digest::SHA, Crypt::Misc ||| hot (helper) ||| synthetic node builder called repeatedly; preload in orbital init_code
-modules/workspace-transfer.cmd.bug ||| POSIX ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/workspace-transfer.cmd.checkpoint ||| POSIX ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/powershell.exec ||| IPC::Open3 ||| hot (helper) ||| core PowerShell invocation helper; preload IPC::Open3 in powershell.init_code
-modules/powershell.pointer-stream-path ||| Crypt::Misc, AMOS7::SHM ||| hot (.cmd wrapper) ||| exposed via cmd wrapper; preload Crypt::Misc and AMOS7::SHM in powershell.init_code
-modules/site-yaml.cmd.export-stray-job ||| JSON::XS, YAML::XS ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/site-yaml.cmd.list-stray-jobs ||| JSON::XS ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/httpd.vhost.dns_matches_local ||| IO::Interface::Simple, Net::DNS::Resolver ||| hot (helper) ||| DNS check helper likely used per vhost routing decision; preload in httpd.init_code
-modules/models.backend.kimi_web ||| Crypt::Misc ||| hot (helper) ||| routes every kimi chat/task request; preload Crypt::Misc in models.init_code
-modules/protocol-7-menu.handler.pointer-stream-path ||| AMOS7::SHM ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
-modules/screen.setup.cmd.snapshot ||| Cairo ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/screen.setup.ensure-display ||| Gtk3, Cairo, Glib ||| hot (helper) ||| Gtk3 already in screen.setup.init_code; add Cairo/Glib and drop redundant inline load
-modules/transport.handle.socks5 ||| IO::Socket::Socks ||| hot (helper) ||| shared SOCKS5 connection helper; preload in transport.init_code
-modules/calc.cmd.val.eval_bigrat ||| Math::BigRat ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/invoke-web.cmd.health ||| LWP::UserAgent ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
-modules/llm.service.subprocess_wrapper ||| JSON::PP ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
-modules/websocket.send ||| Protocol::WebSocket::Frame ||| hot (helper) ||| core websocket send helper; preload in websocket.init_code
-modules/zulum.cmd.export-streams ||| JSON ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/base.file.temp ||| File::Path ||| hot (core helper) ||| core temp-file helper called frequently; File::Path should be in base.init_code
+src/base.file.tie_array ||| Tie::File ||| hot (core helper) ||| core file helper called whenever tied arrays are needed
+src/base.handler.read.encryption-wrapper ||| Crypt::AuthEnc::ChaCha20Poly1305 ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
+src/base.handler.write.encryption-wrapper ||| Crypt::AuthEnc::ChaCha20Poly1305 ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
+src/base.stdio.transport.connect ||| IO::Socket::UNIX ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
+src/base.stdio.transport.listen ||| IO::Socket::UNIX ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
+src/base.tmp_dir ||| File::Path ||| hot (core helper) ||| called on every (core helper) invocation, modules should be in init_code
+src/channels.cmd.ai-review-approve ||| JSON::PP ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/channels.cmd.ai-review-feedback ||| JSON::PP ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/channels.cmd.ai-review-status ||| JSON::PP ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/channels.cmd.ai-review-submit ||| JSON::PP ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/channels.handler.content-detected ||| JSON::PP ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
+src/channels.handler.playlist-integration ||| JSON::PP ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
+src/channels.memory-sync.batch-send ||| JSON::PP ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
+src/channels.util.yaml_decode ||| YAML::XS ||| hot (helper) ||| utility called whenever channels decode YAML; should be preloaded
+src/channels.util.yaml_encode ||| YAML::XS ||| hot (helper) ||| utility called whenever channels encode YAML; should be preloaded
+src/coding.tools.handler.git_diff_output ||| Git::Wrapper ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
+src/branch.data.bind ||| YAML::XS ||| hot (branch cmd) ||| branch data command invoked per bind operation; YAML::XS should be in branch.init_code
+src/branch.data.query ||| YAML::XS ||| hot (branch cmd) ||| branch data command invoked per query; YAML::XS should be in branch.init_code
+src/branch.data.unbind ||| YAML::XS ||| hot (branch cmd) ||| branch data command invoked per unbind; YAML::XS should be in branch.init_code
+src/branch.storage.list ||| YAML::XS ||| hot (helper) ||| storage helper called when listing snapshots; YAML::XS should be in branch.init_code
+src/branch.storage.persist ||| YAML::XS ||| hot (helper) ||| storage helper called when persisting snapshots; YAML::XS should be in branch.init_code
+src/branch.storage.restore ||| YAML::XS ||| hot (helper) ||| storage helper called when restoring snapshots; YAML::XS should be in branch.init_code
+src/branch.storage.sync ||| YAML::XS ||| hot (helper) ||| storage helper called when syncing snapshots; YAML::XS should be in branch.init_code
+src/jobsite.dispatch.assessments ||| Encode, HTML::Entities ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
+src/jobsite.util.build_prompt ||| HTML::Entities, Encode ||| hot (helper) ||| used for every new job assessment prompt; preload in jobsite.init_code
+src/context.delegate.collect ||| Crypt::Misc ||| hot (.handler) ||| async delegation result handler; Crypt::Misc should be in context.init_code
+src/context.delegate.dispatch ||| Crypt::Misc ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
+src/context.git.recent_changes ||| Git::Wrapper ||| hot (helper) ||| context helper called per context build; Git::Wrapper should be preloaded
+src/context.review.handler.page_result ||| Crypt::Misc ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
+src/context.share.export ||| JSON ||| hot (helper) ||| context sharing helper called frequently; JSON should be in context.init_code
+src/context.share.import ||| JSON ||| hot (helper) ||| context sharing helper called frequently; JSON should be in context.init_code
+src/ncode.cmd.workflow ||| YAML::XS ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/ncode.transform.handler.wave_reply ||| Crypt::Misc ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
+src/ncode.transform.wave ||| Crypt::Misc ||| hot (helper) ||| called in transform loops; preload Crypt::Misc in ncode.init_code
+src/image-quality.analyze ||| Time::HiRes ||| hot (helper) ||| main image-quality entry point called per image; Time::HiRes is lightweight and should be preloaded
+src/image-quality.vision.encode_image ||| MIME::Base64 ||| hot (helper) ||| called for every analyzed image; preload in image-quality.init_code
+src/image-quality.vision.http_api ||| HTTP::Tiny, JSON::XS ||| hot (helper) ||| vision API client invoked per analyzed image; preload both modules
+src/image-quality.vision.parse_response ||| JSON::XS ||| hot (helper) ||| parses every successful vision response; preload JSON::XS
+src/plugin.auth.auth-keypair.tofu-notification ||| JSON::PP ||| hot (event callback) ||| TOFU callback fires during auth; preload JSON::PP in plugin.auth.auth-keypair.init_code
+src/plugin.web.jobs.list ||| YAML::XS, HTML::Entities ||| hot (web render) ||| YAML::XS already in plugin.web.jobs.init_code; add HTML::Entities and remove inline load
+src/plugin.web.space.orbital.synthetic-zenka-node ||| Digest::SHA, Crypt::Misc ||| hot (helper) ||| synthetic node builder called repeatedly; preload in orbital init_code
+src/workspace-transfer.cmd.bug ||| POSIX ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/workspace-transfer.cmd.checkpoint ||| POSIX ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/powershell.exec ||| IPC::Open3 ||| hot (helper) ||| core PowerShell invocation helper; preload IPC::Open3 in powershell.init_code
+src/powershell.pointer-stream-path ||| Crypt::Misc, AMOS7::SHM ||| hot (.cmd wrapper) ||| exposed via cmd wrapper; preload Crypt::Misc and AMOS7::SHM in powershell.init_code
+src/site-yaml.cmd.export-stray-job ||| JSON::XS, YAML::XS ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/site-yaml.cmd.list-stray-jobs ||| JSON::XS ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/httpd.vhost.dns_matches_local ||| IO::Interface::Simple, Net::DNS::Resolver ||| hot (helper) ||| DNS check helper likely used per vhost routing decision; preload in httpd.init_code
+src/models.backend.kimi_web ||| Crypt::Misc ||| hot (helper) ||| routes every kimi chat/task request; preload Crypt::Misc in models.init_code
+src/protocol-7-menu.handler.pointer-stream-path ||| AMOS7::SHM ||| hot (.handler) ||| called on every (.handler) invocation, modules should be in init_code
+src/screen.setup.cmd.snapshot ||| Cairo ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/screen.setup.ensure-display ||| Gtk3, Cairo, Glib ||| hot (helper) ||| Gtk3 already in screen.setup.init_code; add Cairo/Glib and drop redundant inline load
+src/transport.handle.socks5 ||| IO::Socket::Socks ||| hot (helper) ||| shared SOCKS5 connection helper; preload in transport.init_code
+src/calc.cmd.val.eval_bigrat ||| Math::BigRat ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/invoke-web.cmd.health ||| LWP::UserAgent ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
+src/llm.service.subprocess_wrapper ||| JSON::PP ||| hot (helper) ||| called on every (helper) invocation, modules should be in init_code
+src/websocket.send ||| Protocol::WebSocket::Frame ||| hot (helper) ||| core websocket send helper; preload in websocket.init_code
+src/zulum.cmd.export-streams ||| JSON ||| hot (.cmd) ||| called on every (.cmd) invocation, modules should be in init_code
 ```
 
 ## For each row
@@ -155,8 +155,8 @@ of the 59 rows the deeper check actually moved.
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,.,,..,,,..,,..,...,.,,,.,,,...,,,,,.,.,,..,..,,...,...,...,...,..,,,..,,..,
-#I7773ZWBFY45V54HQVRO3XD2XE676JY232CTYMMMPQCR4HD5IJAOJMQPXSK3WGXCET7QFJNBQXJVA
-#\\\|VX5V5C22XR3KP46PIXMQGDOLBL5FB5G7X2APBB4QZUDJLNUTXPA \ / AMOS7 \ YOURUM ::
-#\[7]NDXQB7WZ5LLBTI5Y7RI5XHXY2VNWSREZUDD7JKTNGG6PXGJ2N6AA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,.,,,,,...,...,,.,,.,.,...,...,..,,...,..,,.,.,,,.,,,.,.,.,,.,,
+#MBO4ADYU24X3QFLRLCQYE2N3ABFYYJTALYFNPEECKBTX7IJHI4CAG5FZAV2TEUMTXNLJ3VVTVBBGQ
+#\\\|Z7CKOCRDKFFNA44BN5NGFVYYHU7WSU22HD5BEDGWQCWI3KLOT6E \ / AMOS7 \ YOURUM ::
+#\[7]XKLYP3BTGQEMDOKEHPMDMGHASFPYB3A6HLK357PZZT7G77A4PWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

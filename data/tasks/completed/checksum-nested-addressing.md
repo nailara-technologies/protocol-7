@@ -147,9 +147,9 @@ implement the collision-free nested checksum addressing primitive.
 2. extend `bin/amos-chksum` with `--nest <parent_chksum> <name>` flag
 
 3. add zenka modules:
-   `modules/amos.chksum.cmd.nest`
-   `modules/amos.chksum.cmd.verify-nested`
-   `modules/amos.chksum.cmd.parse-nested`
+   `src/amos.chksum.cmd.nest`
+   `src/amos.chksum.cmd.verify-nested`
+   `src/amos.chksum.cmd.parse-nested`
 
 4. validate round-trip and collision exclusion as described above
 
@@ -159,8 +159,8 @@ amos checksum, only the nesting convention layer.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,..,,,,,...,,..,..,,.,,,,.,,,.,,.,.,,,.,...,..,,...,...,..,,,,,,,.,,,..,,.,,
-#ARSMMD3RFEIUT3YHASAJM7IW4L63KGKP6JOO77EWBS4R4CP5B6FRRVSVMVR5OGZQP5DOSJEJDIXZA
-#\\\|T2XACOI62LYDRNUM5W26WKERJGME2H4XNDISPRZ4HXL4VJMT5XF \ / AMOS7 \ YOURUM ::
-#\[7]UJ45QHVEBMQRPQTOBMZN5P2MIA3YHCUZPVRJNSCAXQSJYSJ6ZUAY 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,.,,,,..,..,,.,,,,,.,,..,...,..,,...,..,,...,,.,,,,.,,,.,,.,,
+#YENFVLANSAJERTDM5RJ3TPGLJYOTYSYCH4RUQPQO7SGVLGAZ2SLD762L3Z5CTR6RNNG5JVDTROSMA
+#\\\|OFNE6HHPWHZCW2BISHVG2I6FXHIM7BT3IXSF7CAURNEQEDDU6LY \ / AMOS7 \ YOURUM ::
+#\[7]EQSONYBMYI42B3JO77OYNKDQF3WTC5OSFT6VKFEEUXZLVCNFNEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

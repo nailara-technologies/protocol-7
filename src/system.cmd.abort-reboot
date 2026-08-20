@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = system.cmd.abort-reboot
+# descr = abort or disable automatic [xcrash] reboot
+
+( my $cube_user, undef ) = split( m| +|, $call->{'args'}, 2 );
+my $hostname = <system.host.hostname>;
+my $uname_re = <regex.base.usr_str>;
+
+if ( $cube_user =~ m|^$hostname.($uname_re)$| ) { $cube_user = $1 }
+else {
+    return {
+        'mode' => qw| true |,
+        'data' => "only '$hostname' users can invoke this command."
+    };
+}
+
+my $reply_message = 'scheduled host reboot aborted ., =)';
+my $log_message   = "$reply_message [ by '$cube_user' ]";
+
+<system.X-11_crash.admin_reboot_abort> = 1;
+
+if ( defined <system.timer.host_reboot> ) {
+    my $reboot_timer = <system.timer.host_reboot>;
+    $reboot_timer->cancel if $reboot_timer->is_active;
+    delete <system.timer.host_reboot>;
+    delete <system.timer> if !keys( %{<system.timer>} );
+} else {
+    $reply_message
+        = "automatic 'xcrash' reboot deactivated, "
+        . "call 'system.reenable-reboot' to reactivate.";
+    ( $log_message = $reply_message ) =~ s|,.+$|. [ by '$cube_user' ]|;
+    <system.X-11_crash.perform_host_reboot> = 0;
+}
+
+<[base.log]>->( 0, $log_message );
+
+return { 'mode' => qw| true |, 'data' => $reply_message }
+
+#,,,,,,.,,.,.,.,.,..,,..,,.,,,.,,,.,,,,.,,,,,,..,,...,..,,,,.,..,,,.,,,,,,,,.,
+#6EJMRRFVWBIEEXXMCAI53C7BEV7WS5FJGGIJFASGEWSA2J7T7QTE3IUTRKY5SAMACZV23PGFNHQP4
+#\\\|I5BV37UNMSKNHXXUIA3HOGWQ6AAT4BNKULNKHBUMIXCTTT5WIET \ / AMOS7 \ YOURUM ::
+#\[7]Y76Z34RHNZW4CLF7Y3BZWI3NUUJCJM6SP35URQRN7RXEAW6QLOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

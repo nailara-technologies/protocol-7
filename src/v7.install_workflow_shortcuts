@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = v7.install_workflow_shortcuts
+# descr = install common workflow shorthand aliases for faster command access
+#
+##        [[[ .. feature requires completion of implementation .. ]]]
+###
+####
+return warn 'called disabled routine [ requires a second level feature ]';
+####[ THIS FEATURE IS NOT FUNCTIONAL YET, REQUIRES PARAMETER PROPAGATION ]###
+### [ ,.might get merged with the incomind 'aliases' zenka implementation ]##
+##
+#
+
+my $root_path     = <system.root_path>;
+my $protocol7_bin = sprintf( '%s/bin/Protocol-7', $root_path );
+my $symlink_dir   = <v7.cfg.zenka_symlink_dir> || '/usr/local/bin';
+my $enabled       = <[base.cfg_bool]>->(<v7.cfg.install_workflow_shortcuts>);
+
+return FALSE unless $enabled;
+return FALSE unless $UID == 0;                             ## root only
+return FALSE unless -x $protocol7_bin;
+return FALSE unless -d $symlink_dir and -w $symlink_dir;
+
+## common workflow command shortcuts for faster access  format: shorthand =>
+## full_command_pattern
+my %workflow_shortcuts = (
+    'w'    => 'work',
+    'wc'   => 'work.console',
+    'wo'   => 'workflow overview',
+    'wt'   => 'workflow todo-list',
+    'ws'   => 'workflow commit',
+    'src'  => 'sourcecode',
+    'srcd' => 'sourcecode verify-dev-signatures',
+    'srcu' => 'sourcecode update-signatures',
+    'sc'   => 'sourcecode console',
+    'h'    => 'httpd',
+    'wth'  => 'weather',
+    'i2h'  => 'image2html',
+    'calc' => 'calc',
+    'q'    => 'query',
+);
+
+my $installed_count = 0;
+my $updated_count   = 0;
+
+## install shorthand aliases
+foreach my $shorthand ( sort keys %workflow_shortcuts ) {
+    my $symlink_path = "$symlink_dir/p7.$shorthand";
+
+    ## check if symlink already exists and is current
+    if ( -l $symlink_path ) {
+        my $current_target = readlink($symlink_path);
+        if ( $current_target eq $protocol7_bin ) {
+            ## already correct, skip
+            next;
+        } else {
+            ## update symlink
+            unlink($symlink_path) or do {
+                <[base.log]>->(
+                    0, ": cannot update shortcut symlink: $symlink_path"
+                );
+                next;
+            };
+            $updated_count++;
+        }
+    }
+
+    ## create symlink
+    if ( symlink( $protocol7_bin, $symlink_path ) ) {
+        $installed_count++;
+    } else {
+        <[base.log]>->(
+            0,
+            ": failed to create shortcut symlink: $symlink_path [ $OS_ERROR ]"
+        );
+    }
+}
+
+if ( $installed_count > 0 or $updated_count > 0 ) {
+    <[base.log]>->(
+        1,
+        sprintf(
+            ": installed %d workflow shortcut%s to %s",
+            $installed_count + $updated_count,
+            $installed_count + $updated_count == 1 ? '' : 's',
+            $symlink_dir
+        )
+    );
+
+    if ( $installed_count > 0 ) {
+        <[base.log]>->(
+            2, sprintf( ": :. new shortcuts: %d", $installed_count )
+        );
+    }
+    if ( $updated_count > 0 ) {
+        <[base.log]>->( 2, sprintf( ": :. updated : %d", $updated_count ) );
+    }
+}
+
+return $installed_count + $updated_count;
+
+#,,.,,,.,,,,,,...,,..,,..,,..,,,.,,.,,...,,,,,..,,...,.,,,...,.,.,,..,.,,,.,.,
+#FCCKDSAXMIWO5VSYPH4PIGRNOKKHLFCP6WCHAK7KSVCWE2Q5KAXGIKAMM4AHI6TTT24ZU4ROLHG3I
+#\\\|OVHO57ZXXRS33VXWDRVGRZCFIJCQX3TNB4RQGOD3POBVEKQCM7Y \ / AMOS7 \ YOURUM ::
+#\[7]XKL4QZQKFH2JOX5PL77IBZYLM2YFKBY3GA54N6BHRSAYTBBJ4ADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

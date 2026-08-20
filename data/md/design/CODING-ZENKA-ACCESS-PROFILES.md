@@ -9,7 +9,7 @@
 
 fixing two real bugs in the coding zenka's http-inference and file-tool pipeline
 (stall-timeout race + `context.file` forcing absolute paths into repo-relative
-resolution — see git log on `modules/context.file`) reopened a real question:
+resolution — see git log on `src/context.file`) reopened a real question:
 once `read_file` honors absolute paths, matching what `list_files` already did,
 the coding zenka can read anywhere the process user can, with zero scoping. the
 write-side tools have the same gap. this document is the plan for closing it —
@@ -51,8 +51,8 @@ computing paths themselves.
 
 ## ownership is already structural — no new mechanism needed for it
 
-`modules/base.path-set-up.zenka-directories` and
-`modules/base.path-set-up.check-zenka-paths` establish the real convention
+`src/base.path-set-up.zenka-directories` and
+`src/base.path-set-up.check-zenka-paths` establish the real convention
 already in force:
 
 ```
@@ -72,7 +72,7 @@ cfg/zenki/httpsd/start:  httpsd.system.user  = httpsd
 ```
 
 each `start` file declares `<zenka>.system.user`, `[root.drop_privs:<...>]`
-actually calls `setuid`/`setgid` to it (`modules/base.root.drop_privs`) and
+actually calls `setuid`/`setgid` to it (`src/base.root.drop_privs`) and
 records the result in `<system.zenka-user.current>`, which is exactly what
 `check-zenka-paths` later chowns the zenka's own data/config dirs to. the first
 path segment after `var_P7`/`etc_P7` **is** the ownership tag — already,
@@ -83,7 +83,7 @@ mechanically, with real, already-running OS permissions behind it.
 default `root.drop_privs` falls back to when a zenka declares no
 `<zenka>.system.user` of its own — and httpd/httpsd/p7-ssh are simply the
 current opt-outs. the auto-creation machinery
-(`modules/base.root.check_system_user`) already does `useradd --system` on
+(`src/base.root.check_system_user`) already does `useradd --system` on
 first use of any username `root.drop_privs` is pointed at, and already
 consults a preferred-UID map (`base.root.pref-uid.<name>`,
 `cfg/system-user-map` — `protocol-7 = 777`, `p7-ssh = 722`) before
@@ -100,10 +100,10 @@ many system users vs. today's few), not a blocker for phases 1–5.
 
 **further still — shared filesystem read access to source is a practical
 stand-in, not an architectural requirement.** the `source` zenka
-(`modules/source.cmd.get-code-signed`) already delivers individual named
+(`src/source.cmd.get-code-signed`) already delivers individual named
 modules over the network, C25519-signed and verified per request, with no
 dependency on the requester having filesystem read access to the file at all.
-as this generalizes past `modules/*` to arbitrary files, `ro` scope for a
+as this generalizes past `src/*` to arbitrary files, `ro` scope for a
 profile stops needing to mean "which directories can this unix user `stat()`"
 — it can mean "which file/module names will the source zenka hand to this
 requester," checked and signed per delivery. a zenka could be chrooted away
@@ -367,15 +367,15 @@ execution-time backstop already present in dispatch from phase 1.
   this design embodies
 - `data/md/concepts/CONCEPT-SECURITY-AND-FORENSICS-ARCHITECTURE.md` — adjacent,
   complementary incident-response layer
-- `modules/coding.tools.dispatch`, `modules/coding.async.tool_executor`,
-  `modules/context.file`, `modules/coding.tools.definitions`,
-  `modules/coding.prompt.assemble` — implementation entry points
-- `modules/base.path-set-up.zenka-directories`,
-  `modules/base.path-set-up.check-zenka-paths` — the existing per-zenka
+- `src/coding.tools.dispatch`, `src/coding.async.tool_executor`,
+  `src/context.file`, `src/coding.tools.definitions`,
+  `src/coding.prompt.assemble` — implementation entry points
+- `src/base.path-set-up.zenka-directories`,
+  `src/base.path-set-up.check-zenka-paths` — the existing per-zenka
   ownership convention this design relies on rather than reinventing
 
-#,,.,,,.,,,,,,.,.,.,.,,,.,.,.,...,,,,,...,,..,..,,...,...,..,,,,,,..,,...,.,,,
-#4VNRHOMCMXWR2LZQEQOSQOP775Z3BBVRYXQZLORKXSEVH3VCZORESWOYSAL7D6I5NAF7B7WJI2QOK
-#\\\|IVX7SURG5IHXTNXSM4MBIIXO6B6RFOBDEJPIRJMZRSSBH3AG7XQ \ / AMOS7 \ YOURUM ::
-#\[7]HE5CMPRSKMVJDPLBELATYA2EOAKVADZW335JDTMR5P5FR3RECICI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,,,,,..,,...,...,.,.,,,,,..,,..,,...,...,.,.,,,,,.,,,...,.,,,
+#KCUMHMUWRSDHYTGJHTL4ZGASIXNTARJF3ZNOQCER3XJDNSADCKAI7LEOAANROQP2QWVVZHJI5HZ26
+#\\\|ZBD6TG6WUZJCEPZGP4NYCLKPJDMD5G3DJYDWGVCTA7VTSUKRSMB \ / AMOS7 \ YOURUM ::
+#\[7]ARLIZ2NZBVXW4BO4UEOAWUV2OAI5UX47IS7THTI2QY2WNFGOGECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

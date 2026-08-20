@@ -51,7 +51,7 @@ detector idea, and the LLM-assesses-with-empty-input side-finding.
 
 ## root cause
 
-`jobsite.job.write` (`modules/jobsite.job.write`, ~line 47) derives the
+`jobsite.job.write` (`src/jobsite.job.write`, ~line 47) derives the
 *old* file path to rename-away from purely by reading
 `<jobsite.job.index>->{$job_id}` — the in-memory status index — and
 computing where that status implies the file should currently live. If
@@ -144,8 +144,8 @@ now." two shapes worth considering, not mutually exclusive:
   producing a plausible-looking but groundless score? separate from the
   orphaned-file bug itself, but discovered via the same incident.
 
-#,,,,,,,.,,.,,,.,,,.,,.,,,..,,,.,,,,,,,..,..,,.,.,...,...,.,,,,..,.,,,...,.,.,
-#24AB7YH76BIQ7WW7JVGNZWJ4EUS5SFIXFPTDVJX4D5AGJYYUKC3EZG2R26UVA6VTACUL3HUSRQWO4
-#\\\|EFIFBW6WZZT5XA4WS5NCJXIU7JXBKQRWQGIWG6CUHQEDVOORD4E \ / AMOS7 \ YOURUM ::
-#\[7]WKITTOXNYBUAKAZAPCUMCJO2RAPIL2IEIZICKWLXFMDVKQOL7OAI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,..,...,.,,,,,.,.,.,,..,,.,,,.,,.,.,...,...,...,,,,,..,,.,.,.,,,
+#ZHD6XOFHCOSDBJDBBQDZ36VSFXKHCO5DWH6DFNXFBS7X6CNFDK3HEW2EJ6RXPPNMUNROAHQVFKGJC
+#\\\|FYP3KSGG7XT34HPK4KZDQLWGXMU24RIECYPI23W4KFXPTTI6YJI \ / AMOS7 \ YOURUM ::
+#\[7]EIOALQSI3F25ZPT5ATCUG7B7GMLNHL67WTEPK3VAQRD4T6S6LGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,10 +26,10 @@ do not add or modify subroutine whitelists — these are managed separately.
 ## what to read first
 
 ```bash
-cat modules/X-11.init_code           ## binary detection loop (lines ~35-45)
-cat modules/X-11.start_gpu_top       ## intel-specific startup
-cat modules/X-11.handler.read_gpu_top ## intel JSON parser + stats update
-cat modules/X-11.cmd.gpu_load        ## stats consumer — should need no changes
+cat src/X-11.init_code           ## binary detection loop (lines ~35-45)
+cat src/X-11.start_gpu_top       ## intel-specific startup
+cat src/X-11.handler.read_gpu_top ## intel JSON parser + stats update
+cat src/X-11.cmd.gpu_load        ## stats consumer — should need no changes
 cfg/zenki/X-11/start       ## cfg.collect_intel_gpu_stats setting
 ```
 
@@ -37,7 +37,7 @@ cfg/zenki/X-11/start       ## cfg.collect_intel_gpu_stats setting
 
 ## phase 1: vendor detection in init_code
 
-file: `modules/X-11.init_code`
+file: `src/X-11.init_code`
 
 replace the Intel-only binary entries in the detection loop with a broader set,
 and add vendor auto-detection logic after the loop:
@@ -78,7 +78,7 @@ read the start config file to see how it is currently set.
 
 ## phase 2: vendor-aware startup in start_gpu_top
 
-file: `modules/X-11.start_gpu_top`
+file: `src/X-11.start_gpu_top`
 
 replace the Intel-only logic with a vendor branch:
 
@@ -116,7 +116,7 @@ if ( $vendor eq 'nvidia' ) {
 
 ## phase 3: new handler for nvidia output
 
-new file: `modules/X-11.handler.read_gpu_nvidia`
+new file: `src/X-11.handler.read_gpu_nvidia`
 
 `nvidia-smi -l 1 --query-gpu=utilization.gpu --format=csv,noheader,nounits`
 outputs one integer per second: `42\n67\n51\n...`
@@ -150,7 +150,7 @@ look at `X-11.handler.read_gpu_top` for the exact stats update pattern to reuse.
 
 ## phase 4: rename cfg key (backward-compatible)
 
-file: `modules/X-11.init_code` and `cfg/zenki/X-11/start`
+file: `src/X-11.init_code` and `cfg/zenki/X-11/start`
 
 `X-11.collect_intel_gpu_stats` → accept both old and new key:
 ```perl
@@ -189,8 +189,8 @@ p7 X-11.cmd.gpu_load 5
 - [ ] `collect_intel_gpu_stats` config key still accepted (backward compat)
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,..,,...,...,,,,,..,,...,.,.,,..,...,.,.,..,,...,...,.,.,,,.,,.,,,,,,,.,,
-#FUUG7KTI5QR72ALJJCMEHOF7HDZCU5M7LW3JP6PAZC2PEWAT2HIFLMA5W76JFNKPPUVQ6JEZC7AY2
-#\\\|TJX3BBQGWH4LR56TTLRF2YCHLKWAGUNCK6FHA5DJJE3S2W6UTTG \ / AMOS7 \ YOURUM ::
-#\[7]JMNOA3UEMXTLHQ5GUQWYU24TIOYBAUVU6R4T5XMP4KC5GV3CIIAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,..,,...,,,.,...,.,,,,.,,...,..,,..,,...,...,,.,,,,.,,.,,,,.,,,,,
+#KE6FQ6SKJGOKEMKSDUFE3MS77IXCUCENBPFTQGUPMF5CNM4Z5RFQST5XROVJGZQCBV45G4OFEODHS
+#\\\|MCQWFSG4F5AAYPYJPE5BWMHCGYNKDWKAEWITX5ZKVEJMK3CUSUS \ / AMOS7 \ YOURUM ::
+#\[7]UZNSLJPC4YT4NKAVEXBV27I3FIBGXFVU5UIHAHLMN7K7BACES4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

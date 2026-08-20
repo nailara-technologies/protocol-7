@@ -4,12 +4,12 @@
 
 `p7c branch.reload` / `branch.show-buffer compile-errors` reports 4
 warnings (no errors). all 4 are small, well-understood, one-line-ish
-fixes in `modules/branch.route.calc.*` and
-`modules/branch.calc.fraction.*`.
+fixes in `src/branch.route.calc.*` and
+`src/branch.calc.fraction.*`.
 
 ## the fixes
 
-### 1. `modules/branch.route.calc.decode` line 37
+### 1. `src/branch.route.calc.decode` line 37
 
 ```perl
 } elsif ( $char eq qw| , | ) {
@@ -24,7 +24,7 @@ plain quoted string:
 } elsif ( $char eq ',' ) {
 ```
 
-### 2. `modules/branch.route.calc.encode` line 32
+### 2. `src/branch.route.calc.encode` line 32
 
 ```perl
 push @segments, qw| , |;
@@ -36,7 +36,7 @@ same issue, same fix:
 push @segments, ',';
 ```
 
-### 3. `modules/branch.calc.fraction.symmetry` lines 20-21 and 34-35
+### 3. `src/branch.calc.fraction.symmetry` lines 20-21 and 34-35
 
 ```perl
     ## [ inline greatest common divisor ] ##
@@ -78,7 +78,7 @@ parts of the scaled value ]. rename the second pair to `$int_part` /
 
 leave the gcd `$a`/`$b` (lines 20-26) and `$g`/`$yy`/`$k`/`$n` as-is.
 
-### 4. `modules/branch.calc.fraction.reverse_scale` lines 20-21 and 36-37
+### 4. `src/branch.calc.fraction.reverse_scale` lines 20-21 and 36-37
 
 same pattern:
 
@@ -149,8 +149,8 @@ use `@ARG` for params — keep that).
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,.,,,,,,.,,.,.,,,,,,.,,...,.,.,,,,,,,,,..,,..,,...,...,.,.,,..,,,,,.,.,,,.,
-#OPGKIVQ7HZ3S3YYPASQX25OXIDCRBU3EUTSZ2JMN36FTZEARAO2FQQ4XYCNWTXPX2ELKTE7RLDZ4W
-#\\\|TE72YX35SD6SZADA2YXYZI4DN2G7SSUSD2L22D5AGNKFYTY6LPB \ / AMOS7 \ YOURUM ::
-#\[7]HMA2UPDHEH2677U3EO6SJWA3TFIZDWERG2XKOOWO57K36C2PYWAA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,,,.,.,.,,,,,,,,.,,...,,,.,,.,,..,,...,...,,.,,,,,,,..,...,.,,,
+#GMKRU6KFWPS4F4ERCBJGOOUX4XVHUG5CNKVNS56V7QD2ZFUKUFROIHBCMFJERUXHVV6RKYX7DYBBW
+#\\\|PRLUV3V2J6OSQNDWZZLSHN2XLFWOKEXJF3VA6XJAM4DWLWWSANE \ / AMOS7 \ YOURUM ::
+#\[7]JTZ4A3SEM3OSLMRZVB7CEOQAS2K3VA22YCWJPP44YGS5QGVVLGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

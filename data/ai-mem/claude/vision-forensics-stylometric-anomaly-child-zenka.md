@@ -25,7 +25,7 @@ low-weight input among many, never a sole gate.
   existing pattern, which is a much narrower and harder attack.
 - **Belongs on the existing `forensics` zenka** (nightly sweep +
   investigation + report pipeline already live — see
-  `modules/forensics.init_code`, `forensics.investigate.finding`,
+  `src/forensics.init_code`, `forensics.investigate.finding`,
   `forensics.report.assemble`), not a new top-level zenka. It's the same
   shape of work: ingest something suspicious, produce a generalized
   finding, don't leak raw source material into the aggregate record.
@@ -55,8 +55,8 @@ This is a shape/architecture note, not an implementation plan.
 adapter onto a shared regex/pattern-registry engine generalized from
 ncode's self-refining-regex design, rather than inventing its own store.
 
-#,,,,,,,,,,.,,,,.,..,,...,.,,,,.,,.,,,.,,,,,,,..,,...,...,...,.,.,.,,,,,.,.,.,
-#46T6N2FMOYB4UK3E3LHW527DPDVE4FGWYRD7VP2BDYQBRGG2RRYYRG2RXMWH2TDPAY5HROFAMMWMQ
-#\\\|4C23UPXTZKHAH5TD7IRQ5JBXHBSITH4HFTYRIMZ33SIQ5YCDPYG \ / AMOS7 \ YOURUM ::
-#\[7]OB6GPRN5JKXX7D62A2TYAGNDQWL5UD2PBDIY7KZUERDXFXEHQCAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,...,,..,,..,,,.,.,,,,.,,,..,..,,...,.,.,...,...,,.,,...,,,.,
+#D3VM6EXUPDECP4HS7NBJNZPLTQFECBOZOWSVMT3RWUDIVUJP5ZKPW4VN4A5LLLV57TYAQB5XYGKXC
+#\\\|VNZWX2R7ZOPYHNHKGOSBD27LUZATN5CXJ2R3NG7POEOY2PQOFAQ \ / AMOS7 \ YOURUM ::
+#\[7]57DVQST4TZK3FSSFBBXY7LUI43KOTV7OOVOFDUUGUKJQJXEKRMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

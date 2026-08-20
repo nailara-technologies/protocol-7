@@ -9,14 +9,14 @@ keys in %data use `<key.sub>->{}` syntax, parsed to nested form.
 `<[module.name]>->($arg)` to call a module with args.
 
 ## objective
-create `modules/valued.tree.top_n` — return the N nodes with highest
+create `src/valued.tree.top_n` — return the N nodes with highest
 effective priority, with optional parent-branch filter.
 
 ## read first
-- `modules/valued.resolve` — returns refs + weight for a node id
-- `modules/valued.node.create` — shows node structure:
+- `src/valued.resolve` — returns refs + weight for a node id
+- `src/valued.node.create` — shows node structure:
   { id, refs, weight, parents => [], children => [] }
-- `modules/valued.init_code` — shows storage:
+- `src/valued.init_code` — shows storage:
   `<valued.index>` is hashref { id => node_href }
 
 ## what to implement
@@ -46,8 +46,8 @@ sorted highest first.
 - `<[base.logs]>->( N, fmt, args )` for logging
 - lowercase comments, `[ word ]` bracket annotations
 
-#,,,.,.,.,...,..,,...,...,...,,,.,.,.,,,.,.,.,..,,...,...,.,,,,..,,..,,..,,,.,
-#U2Y4TXIMDDJHSA2RDXQZ5T25YXBMPJ4MCLOSIVWLWH4TFIH5D46UTMZ4PGDMCYDTUVUXDRISKZAPI
-#\\\|LW5BNJWEZMC7CF3TQJCXWF2V2NITKUS6LHYNHQ3JEXIH2FZLUIS \ / AMOS7 \ YOURUM ::
-#\[7]T3NJWZMQNM22GB4VHYAU5PBUDVOFXMT5UK5MYF5KTTIMA4FGPODQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,.,,,,,,,,..,,..,.,.,,.,,,,,,..,,...,...,..,,...,.,,,,,,,,.,,
+#HUS2UE4L3BP2PUXSZ5LS57TUWDTFZ6I6RSFOBGNIS2GL37BYDLWZEQLFFS7ZFXC5XPZDPHVXUXFD6
+#\\\|RIMXWIBA5NRCWYZ3TZE7WQH7UMAJIEKIGXIBDK5LYQ34RQ5ED2Y \ / AMOS7 \ YOURUM ::
+#\[7]GZI6O6OKYM2YRDS3LZQ2WYYRLBMESBFZEP6ROYUE6HQJI5K4AEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

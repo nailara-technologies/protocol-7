@@ -125,7 +125,7 @@ the P7 data namespace tree maps naturally to Workbench drawers:
 Work:                    → <system.root_path>/data/
   Tasks/                → data/tasks/ (open tasks as icons)
   Completed/            → data/tasks/completed/
-  Modules/              → modules/ (zenka source as icons)
+  Modules/              → src/ (zenka source as icons)
   Documentation/        → data/md/development/
   Tools/                → bin/dev/ (development tools as icons)
   Music/                → (radio zenka stream sources)
@@ -190,7 +190,7 @@ p7c web-browser.cmd.load_uri 'https://taws.ch/WB.html?preset=os_1.3'
 
 ## 3. test HippoPlayer with modland stream
 p7c web-browser.cmd.load_uri \
-  'https://taws.ch/WB.html?playmod=https://ftp.modland.com/pub/modules/Protracker/BlackStar/the%20race.mod'
+  'https://taws.ch/WB.html?playmod=https://ftp.modland.com/pub/src/Protracker/BlackStar/the%20race.mod'
 
 ## 4. once backend wired: open a drawer and verify P7 directory listing
 ## (visual check — Work: drawer shows data/tasks/ contents)
@@ -207,8 +207,8 @@ p7c web-browser.cmd.load_uri \
 - [ ] web-browser zenka loads TAWS as default start page (phase 4)
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,..,,,.,,,,,,.,.,...,.,.,.,,,,.,,.,,,,.,,..,,...,...,,,.,,.,,..,,,..,.,,,
-#N2DWNLBVADE5T6CRD2EX2FWZMQK3CEBUA2CRKKNVDGXL3CSWUWY7ISZOINSBK6EVNIQFVA6O3TM7I
-#\\\|BJVC7G45ACPW2EYJMZPTBMONOZQPY5YSKJUBJGRHNFHO7DP3ZCA \ / AMOS7 \ YOURUM ::
-#\[7]O7VDD4SEESAA55QZXNPZJSTHARIXRD3MYEX5M6YX3OFWB5FO2MCI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,.,,,..,,.,.,...,..,,...,,..,..,,...,...,,,,,,,,,...,,,.,,..,
+#TLJXV6AKXVQH3UDAAHXQZY3CYJUD33DJP6PPKS3WJLINOJSU35TKKE2WGK5AMBTT5J6TJICVHWVYY
+#\\\|WY3KM2GBUTOSOV2IUTHZE7XFBRV2TFMRC3VE35RKZRFUEJ7OQRV \ / AMOS7 \ YOURUM ::
+#\[7]ANHFUQKIW3UAPRFE6INQIVYVYNA7OXFJIBGPDH7SOMDS5KYYPABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

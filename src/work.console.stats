@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = work.console.stats
+# descr = show workflow statistics
+
+<[base.log]>->( 1, "Workflow statistics:" );
+
+my @output;
+push @output, "::";
+push @output, ": Workflow Orchestration Statistics";
+push @output, ":";
+
+my $wf_stats  = $data{'work'}{'stats'} || {};
+my $git_stats = $data{'git'}{'stats'}  || {};
+
+push @output, ": Git Operations:";
+push @output,
+    sprintf( ": %-30s: %d",
+    "  Commands executed",
+    $git_stats->{'commands_executed'} || 0 );
+push @output,
+    sprintf( ": %-30s: %d",
+    "  Commits accessed",
+    $git_stats->{'commits_accessed'} || 0 );
+push @output,
+    sprintf( ": %-30s: %d", "  Cache hits", $git_stats->{'cache_hits'} || 0 );
+push @output,
+    sprintf( ": %-30s: %d",
+    "  Cache misses",
+    $git_stats->{'cache_misses'} || 0 );
+push @output, ":";
+
+push @output, ": History Analysis:";
+push @output,
+    sprintf( ": %-30s: %d",
+    "  Total commits",
+    $wf_stats->{'commits_total'} || 0 );
+push @output,
+    sprintf( ": %-30s: %d",
+    "  Commits analyzed",
+    $wf_stats->{'commits_analyzed'} || 0 );
+push @output,
+    sprintf( ": %-30s: %d",
+    "  Issues found",
+    $wf_stats->{'issues_found'} || 0 );
+push @output,
+    sprintf( ": %-30s: %d",
+    "  History scans",
+    $wf_stats->{'history_scans'} || 0 );
+push @output, ":";
+
+push @output, ": Modifications:";
+push @output,
+    sprintf( ": %-30s: %d",
+    "  Commits rewritten",
+    $wf_stats->{'commits_rewritten'} || 0 );
+push @output,
+    sprintf( ": %-30s: %d",
+    "  Commits resigned",
+    $wf_stats->{'commits_resigned'} || 0 );
+push @output, ":";
+
+push @output, ": Configuration:";
+push @output,
+    sprintf( ": %-30s: %s",
+    "  Signing key loaded",
+    <work.cfg.signing_key_loaded> ? 'yes' : 'no' );
+push @output,
+    sprintf( ": %-30s: %s",
+    "  Auto-scan on start",
+    <work.cfg.auto_scan_on_start> ? 'yes' : 'no' );
+
+my $scan_age
+    = <work.history.scanned> ? ( time() - <work.history.scanned> ) : 0;
+push @output,
+    sprintf( ": %-30s: %s",
+    "  Last scan", $scan_age ? "${scan_age}s ago" : 'never' );
+
+push @output, "::";
+
+return say join( "\n", @output );
+
+#,,,.,,.,,,,,,,.,,,.,,.,,,..,,.,.,,,.,..,,.,.,..,,...,...,,,.,...,.,,,,,,,...,
+#JGUCUOXDYJ7NZE4RUK2LOPJDFEXSGNMCYNN5G7Q4KJENRFDUIEHJBQEPK6RWUX6G7M62ONBDK4FVC
+#\\\|D24VQENKVD4FY7L75XHBGUSUNJS2SQSLPMHGSYUMXLK7LIBZ6R2 \ / AMOS7 \ YOURUM ::
+#\[7]OV737GRMVLILN5MF3CZT3LPRUE3JVPUTCFGQKCPPFJU4R2FBXEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

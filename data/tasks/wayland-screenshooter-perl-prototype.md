@@ -127,7 +127,7 @@ every Wayland message on the wire is:
 this is explicitly a **standalone prototype script**, not yet integrated into
 the screenshot or X-11 zenka. write it as a plain script under `/tmp/` or a
 scratch location, runnable directly with `perl script.pl output.png` —
-do NOT touch `modules/screenshot.*` or `modules/X-11.*` in this task.
+do NOT touch `src/screenshot.*` or `src/X-11.*` in this task.
 
 ## acceptance
 
@@ -152,8 +152,8 @@ do NOT touch `modules/screenshot.*` or `modules/X-11.*` in this task.
 ## finding, even if the prototype fails — a precise failure report is still
 ## useful here.
 
-#,,,,,,.,,.,,,.,.,.,.,..,,.,.,.,.,.,,,.,.,,,,,..,,...,...,..,,.,,,..,,,,.,,,,,
-#VELIJHQDNPKVTAWNEGSKMO76WJ7254VQVHQBC6S5PFZTPN5RTEIZWJXVDXPE35DZEPHBVYMWLL7Q6
-#\\\|BXGX5ZEWJ6PXDTB27OURNTOLUHVZ7QW7U3OD3EUNGXLXA2TOCVV \ / AMOS7 \ YOURUM ::
-#\[7]VM6CNDPNYCUJZXQQD3OWYO6M5NR453K76T2IBA52ACO4EYMASGAQ 7  DATA SIGNATURE ::
+#,,..,...,...,,..,.,.,,,.,,..,...,.,,,,,.,,.,,..,,...,...,,.,,,.,,.,,,.,,,.,.,
+#T4SXFRHRVKSUDBD4GX6TMPQXYBTHAHX26BGFNFK6HTZFT7ONVMIN7YQ7PVUFGYGWCLU67XHVLPZPS
+#\\\|ARABNUXLAJLG42A24WR6A6MNVQJHJHYAOSBUTWNNESQ6KD4RGIU \ / AMOS7 \ YOURUM ::
+#\[7]G2KECYD6J67OZMETNUSDIYASY3VTUAD6JGXB56FO3LGYXSR75YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

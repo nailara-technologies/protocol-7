@@ -12,15 +12,15 @@ implement the full cursor address resolution layer as specified in:
 
 this includes:
 1. create 5 new modules:
-   - `modules/graphics-matrix.address.init`
-   - `modules/graphics-matrix.address.register`
-   - `modules/graphics-matrix.address.resolve`
-   - `modules/graphics-matrix.address.encode`
-   - `modules/graphics-matrix.cmd.address`
+   - `src/graphics-matrix.address.init`
+   - `src/graphics-matrix.address.register`
+   - `src/graphics-matrix.address.resolve`
+   - `src/graphics-matrix.address.encode`
+   - `src/graphics-matrix.cmd.address`
 2. modify 4 existing files:
-   - `modules/graphics-matrix.init_code` — add `<[graphics-matrix.address.init]>;`
-   - `modules/graphics-matrix.cursor.set` — register position after set
-   - `modules/graphics-matrix.cursor.move` — register position after move
+   - `src/graphics-matrix.init_code` — add `<[graphics-matrix.address.init]>;`
+   - `src/graphics-matrix.cursor.set` — register position after set
+   - `src/graphics-matrix.cursor.move` — register position after move
    - `cfg/zenki/graphics-matrix/start` — add `address` to `access.cmd.usr.cube`
 3. run `ptd -c` syntax checks on all new and modified module files
 
@@ -28,9 +28,9 @@ this includes:
 - read all reference files (`cursor.set`, `cursor.position`, `cursor.checksum`, `cursor.move`, `cmd.cursor`, `channel.current`, `channel.init`, `channel.select`, `init_code`, `division-13-table`, `cmd.channel`, `cursor.init`, `base.encode.b32`)
 - wrote the 5 new modules (see file list above)
 - discovered that 4 existing files were **already modified** (pre-existing state in working tree):
-  - `modules/graphics-matrix.init_code` already contains `<[graphics-matrix.address.init]>;`
-  - `modules/graphics-matrix.cursor.set` already contains the `address.register` call after setting position
-  - `modules/graphics-matrix.cursor.move` already contains the `address.register` call after moving
+  - `src/graphics-matrix.init_code` already contains `<[graphics-matrix.address.init]>;`
+  - `src/graphics-matrix.cursor.set` already contains the `address.register` call after setting position
+  - `src/graphics-matrix.cursor.move` already contains the `address.register` call after moving
   - `cfg/zenki/graphics-matrix/start` already has `address` appended to `access.cmd.usr.cube`
 - ran `ptd -c` on all 5 new modules → all syntax ok
 - ran `ptd -c` on the 3 modified perl modules (`init_code`, `cursor.set`, `cursor.move`) → all syntax ok
@@ -64,15 +64,15 @@ once both sides have appended, a human (or a single resumed agent) can decide ho
 
 **what files were created/modified:**
 - independently created the same 5 new modules:
-  - `modules/graphics-matrix.address.init`
-  - `modules/graphics-matrix.address.register`
-  - `modules/graphics-matrix.address.resolve`
-  - `modules/graphics-matrix.address.encode`
-  - `modules/graphics-matrix.cmd.address`
+  - `src/graphics-matrix.address.init`
+  - `src/graphics-matrix.address.register`
+  - `src/graphics-matrix.address.resolve`
+  - `src/graphics-matrix.address.encode`
+  - `src/graphics-matrix.cmd.address`
 - independently applied the same 4 modifications:
-  - `modules/graphics-matrix.init_code` — added `<[graphics-matrix.address.init]>;`
-  - `modules/graphics-matrix.cursor.set` — added `address.register` call after setting position
-  - `modules/graphics-matrix.cursor.move` — added `address.register` call after moving
+  - `src/graphics-matrix.init_code` — added `<[graphics-matrix.address.init]>;`
+  - `src/graphics-matrix.cursor.set` — added `address.register` call after setting position
+  - `src/graphics-matrix.cursor.move` — added `address.register` call after moving
   - `cfg/zenki/graphics-matrix/start` — added `address` to `access.cmd.usr.cube`
 
 **verification performed:**
@@ -91,8 +91,8 @@ once both sides have appended, a human (or a single resumed agent) can decide ho
 - run a live test of `address goto <addr>`, `address resolve`, and `address label` to verify runtime behavior
 - confirm the channel task (`context-channel-frequency-separation.md`) was fully completed by this agent in the prior turn, since the address task depends on it
 
-#,,..,.,.,,..,,,,,,,,,..,,...,,.,,.,,,..,,,,.,..,,...,...,.,.,,.,,..,,.,,,,,,,
-#ILHB7TAGHMG3LYJU7I6A5BOZ6XPSUJO5FZ6RGCXIRIT6F7ERR6ULOPQK26RGJHJOBWRRKQJLH6MY4
-#\\\|DMCQYM3OZKPLZCWPIX7XBE6SL5J72CFWFEVYCX5W3PRQLN3PGAC \ / AMOS7 \ YOURUM ::
-#\[7]SETXSZIY7PYUJIT2FKTCXJ73W5VC44TNWHALPKIVXO34TCKQESBY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,.,,.,.,.,,,.,,,...,,,.,..,,..,,...,.,.,...,..,,,.,,.,.,...,
+#PDC4P4Z72ZNKIQWIPAU4MY7MO6JAGP3ILGVBITVQU5Y3KHKWCV2VDWPD3NVVOH2G6AUXBEPZNAU4O
+#\\\|4SRRNYQRTBLUJ4TK7KIBYFCL7Q3OXMZLNDEBMTJFPJEBZOVDJTF \ / AMOS7 \ YOURUM ::
+#\[7]JG4NMX5IOPIA4UWJGFH5IAPY2XSR4BUTS5OEIIWKNNLC4PNITMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

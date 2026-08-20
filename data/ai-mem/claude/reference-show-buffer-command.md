@@ -19,7 +19,7 @@ buffer's tail content or filtering it, use `show-buffer`:
 - `[pattern]`: everything after `[lines]` (or after `<name>` if `[lines]` is absent) is a
   Perl regex, compiled via `<[base.eval.comp_regex]>` and matched against each line.
   Tail is applied first, then the pattern filters within that window.
-- Implemented in `modules/base.cmd.show-buffer`; added 2026-08-07 (`bin/todo` item 7).
+- Implemented in `src/base.cmd.show-buffer`; added 2026-08-07 (`bin/todo` item 7).
 
 **Why:** in an earlier session I tried calling a nonexistent `p7-log.tail` command,
 guessing at a name instead of checking what actually exists (`list buffers` /
@@ -28,7 +28,7 @@ then had me implement `[lines]`/`[pattern]` support on `show-buffer` directly.
 
 **How to apply:** when asked to check zenka log/buffer output, use `show-buffer` (with
 `list buffers` first if the buffer name is unknown) — never invent a `.tail`/`.log`-style
-command name without verifying it exists in `modules/`.
+command name without verifying it exists in `src/`.
 
 **Companion devmod commands for live %code/%data introspection** (found 2026-08-12,
 radio/mpv WSLg-audio debugging session): `<zenka>.dump-keys <pattern>` prints a key tree
@@ -63,8 +63,8 @@ bearing for it. (The user separately lowered the coding zenka's `verbosity.buffe
 match console level 1, which stopped the chunk-spam eviction problem for future review —
 but that was a review-quality fix, not a correctness one.)
 
-#,,,.,,,.,,.,,,..,,,,,.,.,..,,,,,,...,,,.,.,.,..,,...,...,,,,,,..,,..,...,,.,,
-#3ZAUDBGQWYUESAX2L33ZQ4JJQ34BPNVJ5UOGHXR74OGUWNZU3IBFUXLITMHP73TAVUGBCFJQZXQBY
-#\\\|UG6KJPKOUTJCM7R7LFVUBZDL2LJE636DVAIA7UXJXTSP37YQCMD \ / AMOS7 \ YOURUM ::
-#\[7]TU3DLE2BCFSJT34TF5Z37IZENCGNC74W2I7G5ZBNQW5FG343RKBA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,,,...,,,.,.,.,,,,,,,.,..,,,,,,..,,...,...,.,.,,..,..,,...,.,,,
+#YKUDIGO3DT73LCGCSZWP4GIO7MKDYMY5G77EOOPPVDLJVEF5AANG45QQA626W3YR4ERKUZ7IUVOBE
+#\\\|MHIRPQDSKP3A6DDHO2KDCV2KV63VGUYWIVRLGNOLGO7SYT5IAGR \ / AMOS7 \ YOURUM ::
+#\[7]6DTAD7R5EJCDSD76TNM4SJYZPC3WNL73ALKBCYSHIRXVTBF33IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

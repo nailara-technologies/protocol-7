@@ -252,8 +252,8 @@ candidates — the strongest spikes in the parallel-assertions framework.
 
 ## Implementation References
 
-- `modules/decoder.zenka.init_code` — stub, ready for implementation
-- `modules/zulum.init_code` — stub with `Math::BigFloat` loaded
+- `src/decoder.zenka.init_code` — stub, ready for implementation
+- `src/zulum.init_code` — stub with `Math::BigFloat` loaded
 - `cfg/zenki/decoder/start` — connects to cube-13 + cube
 - `cfg/zenki/zulum/start` — connects to cube-13 + cube
 - `bin/atom-delta-term` — reference implementation for stream rendering
@@ -261,8 +261,8 @@ candidates — the strongest spikes in the parallel-assertions framework.
 - `bin/amos-data-pager-56` — reference for `AMOS7::INLINE` true_int coloring
 - `Term::VTerm` v0.08 — installed, full surface available
 
-#,,,.,,,,,.,,,,..,..,,,,,,,,.,,.,,..,,,,.,,..,..,,...,...,,,,,,,,,,..,,.,,..,,
-#3MD5VAFEBFDUNZTDBTP5R6GY4OX33CBQBDVFM2JODAVMCO5SOJZLWPUPDYQDPZDKPYQZ4KIIJO3CC
-#\\\|VQF6I245FKGLLL3VJV7TOCS6BA7LGURYE7SDT7CQOZUTDDC27GZ \ / AMOS7 \ YOURUM ::
-#\[7]DG4QN7Y24IHZ5M5UTBEANMLXUQDMZYSMQ7BH5HEKDUXX7YLXEQCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,...,...,.,.,,,.,,..,,,.,..,,,..,..,,...,...,..,,..,,,,,,.,.,,..,
+#HLY3PZ3A336VXCIHX5IDCSGPB3APTKV4KZDOGSX5KSVKI7M4Z7ZSF2V533XINGO3JKGKIKN2PXT4W
+#\\\|6HVMIYDEOUJICODU3KFZKKPTZMVKSXSBJRC74PFWEOLHRKPQAPX \ / AMOS7 \ YOURUM ::
+#\[7]2AX3XNBQWIYG52J6RAMK6XGAH2OEEDUFNTSOXV6WO7DRCS5EY6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,14 +16,14 @@ ncode s src:branch.space 'sub _'
 four `branch.space.*` modules define 7 inline helper subs total, with
 significant duplication across files:
 
-- `modules/branch.space.balance`:
+- `src/branch.space.balance`:
   - `_collect_subtree_balance( $root_id )` [ ~line 105 ]
-- `modules/branch.space.magnetic_force`:
+- `src/branch.space.magnetic_force`:
   - `_position_for( $id, $scope )` [ ~line 60 ]
-- `modules/branch.space.rank`:
+- `src/branch.space.rank`:
   - `_ref_count( $id )` [ ~line 100 ]
   - `_collect_subtree( $root_id )` [ ~line 115 ]
-- `modules/branch.space.visible`:
+- `src/branch.space.visible`:
   - `_build_visible_result( $observer_node, $node_set_aref, $scope )`
     [ ~line 105 ]
   - `_ref_count_visible( $id )` [ ~line 155 ]
@@ -124,7 +124,7 @@ create 4 new sibling modules under `branch.space.util.*`:
 ### registration
 
 after all 4 new modules are created and source files updated:
-- add all 4 new module names to `modules/base.list.subroutines`
+- add all 4 new module names to `src/base.list.subroutines`
   [ insert near other `branch.space.*` / `branch.*` entries, no
   strict alphabetical ordering required — follow existing local
   pattern ].
@@ -176,8 +176,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,.,,,,,,,,,,..,,..,,,..,...,,,,,...,.,,,,.,,..,,...,..,,..,,,..,,..,,.,,.,,,
-#Q5ZN7CX7IGMKRGRE62VPYDKUFVBBMA2ZX7DMJT7DCE2CJANNBZN7T6XH6F2AN45TMHQEIZW5YOVRC
-#\\\|TU7V7T5GT7F7PTZKGFMVW5VMVVO2DORTU3IMIH44KQKPH6T5MVR \ / AMOS7 \ YOURUM ::
-#\[7]N2GGFYKBVTPT5X3LXITHAG3HAQQ2MPFHJP3WO54WTMVP4WNGYOCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,.,,,,.,...,,..,.,.,...,,.,,,,.,..,,...,...,..,,,,.,..,,,,,,..,,
+#LLRAP7D55L4UN7IT7X57LQDO4LKUXKKMCY3SY7JUDSJJGEQ3OOXPWASSHAXNLQNF4HBHZDP5WVVT4
+#\\\|3Y6PNYG7IJPRMAEF65ENVF5PIOCEPDEMDWM4YNWJ3RD77H3VMCN \ / AMOS7 \ YOURUM ::
+#\[7]PUY7O6LNWUICK37ABPVLFYFRTBSCC5BTYHT3DEO4SS5P4ATSPSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

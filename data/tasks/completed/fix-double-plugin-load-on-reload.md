@@ -30,7 +30,7 @@ code with side effects.
 
 ### root cause hypothesis
 
-in `base.cmd.reload` (modules/base.cmd.reload), the reload sequence for `arg=all`:
+in `base.cmd.reload` (src/base.cmd.reload), the reload sequence for `arg=all`:
 
 1. **reload source** (line 55–125):
    ```perl
@@ -53,10 +53,10 @@ the fix should ensure plugins are loaded exactly once per reload cycle.
 
 ### investigation steps
 
-1. read `modules/base.clear_p7_mods` to confirm it returns `plugin.*` entries
-2. read `modules/base.load_modules` to confirm it loads plugin modules when
+1. read `src/base.clear_p7_mods` to confirm it returns `plugin.*` entries
+2. read `src/base.load_modules` to confirm it loads plugin modules when
    they appear in its argument list
-3. read `modules/base.reload_plugins` to understand its loading path
+3. read `src/base.reload_plugins` to understand its loading path
 4. determine the correct fix — likely one of:
    - **option A**: filter `plugin.*` out of `@reload_modules` in `base.cmd.reload`
      before passing to `base.load_modules` (source reload skips plugins; plugins
@@ -94,8 +94,8 @@ by the signing system. do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,.,,.,,,..,,.,,,,..,..,,..,,.,,,..,,.,.,..,,..,,...,...,...,,,.,,,.,.,,,..,,
-#P2BCSH74Q7Y2UIPZKI23WIIKSYVZZU7XXGFGWHWHD7P2KII77RC2SPEKBHKB5WHH7L5GG2S6XUPEG
-#\\\|C4P6YY6TZGOV677M4VJRNNVSHW5OV2MLSOE6UROKS4BY2PY7M5L \ / AMOS7 \ YOURUM ::
-#\[7]JAQRX5VHCHNPZOLOAUGTFIEVTQHVU3HXEKH5UE7BCMVPE6GYCUAY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,.,,,.,.,.,.,,,.,,.,,,,,,,..,..,,...,...,.,.,...,.,,,..,,,,,,
+#ITSQE5DVVSWDRDQTXW3JEPL2ZSDR2OMP7W2VDQQTZB2D4NWDNFJ3BIZWGPHPCAA6MYGFISQZG5TNM
+#\\\|7GAGGET56VZIZC7NZIXAUQH6EDVWKYKYHRQSFRL46JLVGV7G3GW \ / AMOS7 \ YOURUM ::
+#\[7]OBE2EI4GYFNKH4DUQKLROX7THEKOP7EKIKWZQ7BMIYYI7CYJW2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,9 +63,9 @@ both rejections came from reading the actual code, not preference:
 **draft 1**: `bin/mcp-server-p7` itself notifies the task zenka via a new
 `task.summary-reference` command + a note-based correlation registry, after
 dispatching a summarize job to the coding zenka. rejected: that correlation
-problem is already solved. `modules/task.cmd.summarize` already dispatches to
-`modules/coding.cmd.summarize-context` with a `callback_id=$task_id`, and
-`modules/coding.handler.deferred_reply` already routes the completed result
+problem is already solved. `src/task.cmd.summarize` already dispatches to
+`src/coding.cmd.summarize-context` with a `callback_id=$task_id`, and
+`src/coding.handler.deferred_reply` already routes the completed result
 back to `task.cmd.summarize-done` by that id [ task-context case ]. a parallel
 note-prefix registry would duplicate working, tested infrastructure instead of
 extending it.
@@ -116,13 +116,13 @@ when they disagree ] for no benefit.
 ```bash
 sed -n '1,104p' data/tasks/valued-tree-task-zenka-integration.md  ## format + tone twin
 grep -n 'session_catchup\|store_summary_focus' bin/mcp-server-p7  ## summarize dispatch + cube_command
-cat modules/coding.cmd.summarize-context     ## existing dispatch : focus/store/callback_id parsing
-cat modules/coding.handler.deferred_reply    ## existing coding->task relay : extend this, don't replace it
-cat modules/task.cmd.summarize                ## existing task->coding dispatch pattern [ task-context case ]
-cat modules/task.cmd.summarize-done           ## existing coding->task callback receiver
-head -60 modules/task.init_code               ## task data layout to match
-ls modules/task.cmd.*                         ## existing .cmd. command shape
-ls modules/coding.self_test.*                 ## tier-0/tier-1 escalation to mirror
+cat src/coding.cmd.summarize-context     ## existing dispatch : focus/store/callback_id parsing
+cat src/coding.handler.deferred_reply    ## existing coding->task relay : extend this, don't replace it
+cat src/task.cmd.summarize                ## existing task->coding dispatch pattern [ task-context case ]
+cat src/task.cmd.summarize-done           ## existing coding->task callback receiver
+head -60 src/task.init_code               ## task data layout to match
+ls src/task.cmd.*                         ## existing .cmd. command shape
+ls src/coding.self_test.*                 ## tier-0/tier-1 escalation to mirror
 ```
 
 ## context
@@ -133,14 +133,14 @@ ls modules/coding.self_test.*                 ## tier-0/tier-1 escalation to mir
   `coding.summarize-context` via blocking `cube_command`, unchanged by this design
 - existing coding<->task relay for the task-context case [ the pattern this
   design extends, not replaces ]:
-  `modules/task.cmd.summarize` -> `modules/coding.cmd.summarize-context`
-  [ `callback_id=$task_id` ] -> `modules/coding.handler.deferred_reply`
-  [ cross-zenka route-send ] -> `modules/task.cmd.summarize-done`
+  `src/task.cmd.summarize` -> `src/coding.cmd.summarize-context`
+  [ `callback_id=$task_id` ] -> `src/coding.handler.deferred_reply`
+  [ cross-zenka route-send ] -> `src/task.cmd.summarize-done`
   [ stores `$task->{'summary'}`, fires original caller's reply ]
-- task zenka: `cfg/zenki/task/`, `modules/task.init_code`,
-  `modules/task.cmd.*` [ create/claim/complete/result/summarize/... already
+- task zenka: `cfg/zenki/task/`, `src/task.init_code`,
+  `src/task.cmd.*` [ create/claim/complete/result/summarize/... already
   present ]
-- coding self-test tiered escalation: `modules/coding.self_test.*`
+- coding self-test tiered escalation: `src/coding.self_test.*`
   [ tier-0 local / tier-1 / tier-2 ] — the classification step below mirrors
   this escalation shape
 - ai-mem precedent: `data/ai-mem/kimi/MEMORY.md` + per-topic files — the exact
@@ -169,7 +169,7 @@ ls modules/coding.self_test.*                 ## tier-0/tier-1 escalation to mir
 ## namespace
 
 topic files are addressed via a **dot-separated semantic namespace**,
-mirroring the project's module dot-notation [ e.g. `modules/base.init_code` ]
+mirroring the project's module dot-notation [ e.g. `src/base.init_code` ]
 — but purely as a *semantic topic subtree*, never a literal module/file path.
 proposed scheme:
 
@@ -199,7 +199,7 @@ value ] must be:
 
 ```
   checksum( focus . content )    ## as built: bmw-L13 [ 13-char base32,
-                                  ## ~65 bits — modules/base.chk-sum.bmw.* /
+                                  ## ~65 bits — src/base.chk-sum.bmw.* /
                                   ## the harmonize_L13 division-by-13 loop ],
                                   ## switched from the original 7-char
                                   ## amos_chksum [ ~35 bits, project-wide
@@ -347,7 +347,7 @@ a brand-new subtopic file ] reuses the classification / parenting approach from
   + one-line descriptors, pick the best-fit subtopic, or signal "new subtopic"
 - **escalate** to a stronger model only when the tier-0 result is ambiguous
   [ low confidence / tie ], mirroring the existing tier-0/tier-1 self-test
-  escalation in `modules/coding.self_test.*`
+  escalation in `src/coding.self_test.*`
 - a brand-new subtopic gets a checksum-parented name under its parent namespace
   to avoid collisions [ per the checksum-parenting design ]
 
@@ -366,14 +366,14 @@ landed ] so the strong model is selected deterministically for the write step.
 ### phase 1 — DONE, live-verified 2026-06-21
 
 **task zenka** [ flat storage, no routing/classification yet — that's phase 2 ]:
-- `modules/task.cmd.summary-tree-query` — lookup by `chk`. two call shapes:
+- `src/task.cmd.summary-tree-query` — lookup by `chk`. two call shapes:
   direct synchronous reply [ `mode=>size|false` ] for `cube_command` callers,
   and a `callback_query_id=` cross-zenka fire-style variant that route-sends
   the result to `coding.tree-query-reply` instead
-- `modules/task.cmd.summary-tree-notify` — upsert-by-`chk` store; decodes
+- `src/task.cmd.summary-tree-notify` — upsert-by-`chk` store; decodes
   B32-wrapped `result`/`origin`/`focus` [ focus is free text, must be
   B32-wrapped by every sender — seeBug note below ]
-- `modules/task.persist.summary_tree.{save,load}` — yaml persistence,
+- `src/task.persist.summary_tree.{save,load}` — yaml persistence,
   mirroring `task.persist.{save,load}`; wired into `task.init_code`
 - `cfg/zenki/task/start`: whitelisted both new commands; added
   `format.json` to `modules.load` [ needed for `format.json.decode` ]
@@ -382,16 +382,16 @@ landed ] so the strong model is selected deterministically for the write step.
 
 **coding zenka** [ mechanism for the coding-native origin; not yet triggered
 by anything — see "why the relay differs by origin" ]:
-- `modules/coding.cmd.summarize-context`: `tree=1` + `origin=` params; on
+- `src/coding.cmd.summarize-context`: `tree=1` + `origin=` params; on
   `tree=1`, computes `chk`, fires the cross-zenka query with a 3s fallback
-  timer [ `modules/coding.handler.tree_query_timeout` ], registers a pending
+  timer [ `src/coding.handler.tree_query_timeout` ], registers a pending
   entry in `$data{'coding'}{'tree_query_pending'}`
-- `modules/coding.cmd.tree-query-reply` — receives the async query result;
+- `src/coding.cmd.tree-query-reply` — receives the async query result;
   hit → reply directly, skip inference; miss → proceed to enqueue
-- `modules/coding.tools.handler.summarize_enqueue` — the original inference-
+- `src/coding.tools.handler.summarize_enqueue` — the original inference-
   enqueue body, extracted into a shared helper so the tree-absent path, the
   query-miss path, and the timeout path all call the identical code
-- `modules/coding.handler.deferred_reply`: dual action — reply to caller
+- `src/coding.handler.deferred_reply`: dual action — reply to caller
   first [ unchanged ], then fire-and-forget notify to the task zenka when
   `chk` is present
 - `cfg/zenki/coding/start`: whitelisted `tree-query-reply`
@@ -510,7 +510,7 @@ acceptance:
 - use `<[base.logs]>->( N, fmt, args )` for logging, not warn/print
 - config paths via `<system.root_path>/...`; never bare relative
 - TRUE/FALSE constants, never literal 0/1
-- check `modules/task.init_code` for the existing task data layout before
+- check `src/task.init_code` for the existing task data layout before
   writing — match the keys it already uses
 - never let a task-zenka query/notify block or fail the MCP caller's reply —
   every new task-zenka touchpoint in phase 1 is best-effort with a fallback
@@ -546,8 +546,8 @@ prompt: |
   routing/classification) next.
 
   Read the "phase 1 — DONE" section first to see what already exists:
-  modules/task.cmd.summary-tree-query, modules/task.cmd.summary-tree-notify,
-  modules/task.persist.summary_tree.{save,load}, the coding-zenka relay
+  src/task.cmd.summary-tree-query, src/task.cmd.summary-tree-notify,
+  src/task.persist.summary_tree.{save,load}, the coding-zenka relay
   mechanism (coding.cmd.summarize-context, coding.cmd.tree-query-reply,
   coding.tools.handler.summarize_enqueue, coding.handler.tree_query_timeout,
   coding.handler.deferred_reply), and the mcp-server-p7 relay (_tree_chk,
@@ -555,7 +555,7 @@ prompt: |
   extends task.cmd.summary-tree-notify's flat storage into the dot-separated
   namespace + on-disk tree under data/topic-tree/ described in "namespace"
   and "topic routing / classification" above — it does not replace phase 1's
-  wiring. Also read modules/coding.self_test.* for the tier-0/tier-1
+  wiring. Also read src/coding.self_test.* for the tier-0/tier-1
   escalation shape the routing/classification step reuses.
 
   Before writing tree-routing code, be aware of two phase-1 limitations
@@ -569,8 +569,8 @@ prompt: |
   dot-notation style exactly. No signature stubs — the signing system adds
   them.
 
-#,,.,,..,,,.,,,,,,...,.,.,..,,,,.,,.,,,..,.,.,..,,...,...,.,.,,..,.,.,.,,,.,.,
-#JTJRHVDSQIAKNSLKGPYNAH5RQBWZAGPBBSNB66EO4LUSSFV44DXERBFMYM7PYBCDRSUTTYTY44Z3S
-#\\\|VTXUA2N4VACMYIWWP6PCOLLG5ZAIGUF5FSHIFF3FEHCDN4CI35Z \ / AMOS7 \ YOURUM ::
-#\[7]TOK5IVUEDHUFDSXTOHLTYF3DFZH6F7PCEMED26QXJHUFRBT7GGAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,...,...,,.,,...,.,.,,,,,.,.,..,,...,...,.,,,,,,,.,,,...,...,
+#DZ2CZCZTXWAMUEJUJXOTK5I4RKMQEDJPC5BBL3PBUIFHX47DZVVMZM3I44DLFKM373XRPS7EFVBYG
+#\\\|XPV2KY2RRVVR5FDWWH2XCE5POVJRDT5WTWE346WFBWVGB2SWG5A \ / AMOS7 \ YOURUM ::
+#\[7]NIE6V2MIYAYRWIXHW4SSJGW4S6T7BMSWZIDB73S7IS4CQIUNDSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

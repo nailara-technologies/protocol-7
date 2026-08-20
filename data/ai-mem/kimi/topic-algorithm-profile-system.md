@@ -88,15 +88,15 @@ module_glob : var_name ~ /context_pattern/ -> resolution_template
 
 | file | purpose |
 |------|---------|
-| `modules/base.chk-sum.profile.calc` | generic checksum wrapper |
-| `modules/base.chk-sum.profile.harmonic-slide` | spatial coordinate category |
-| `modules/base.chk-sum.profile.gen-path` | path generation category |
-| `modules/base.chk-sum.profile.pre_init` | swap_subs |
-| `modules/base.white-list.register` | whitelist + runtime verification |
+| `src/base.chk-sum.profile.calc` | generic checksum wrapper |
+| `src/base.chk-sum.profile.harmonic-slide` | spatial coordinate category |
+| `src/base.chk-sum.profile.gen-path` | path generation category |
+| `src/base.chk-sum.profile.pre_init` | swap_subs |
+| `src/base.white-list.register` | whitelist + runtime verification |
 | `bin/dev/dep-graph` | parse white-list.register in start files |
 
-#,,,,,,,,,.,,,.,.,...,.,.,.,.,..,,..,,..,,..,,..,,...,...,.,.,.,.,..,,..,,..,,
-#P3PMLKMOXYPEFD5AOGRLZHTQCABSHYGHXDZJ6QR24FYI6QSRLBL7OHHUD3PHJBJHN7WXPZZ2DHAY6
-#\\\|ARQYQZMPP7Y5UADJGJ22QYNFTBOFQKKJSKL5B3BZMURQRUEWW2O \ / AMOS7 \ YOURUM ::
-#\[7]IJ2ITM6ZKYQZLYPQWBIHOT3GK3VY5IWTXLJWJCQRCCJ4YWFTGSBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,.,,,,,,,...,,..,,.,,.,,,,..,..,,...,...,,.,,.,,,,,,,,.,,,.,,
+#PJW54PZFB7NNKBRZ7ANYYTPBIQDDGKCOZFMVAKN7GJENWKIYIDWOKLUW7KOCBKPT66R5656WXBOJY
+#\\\|AVCATJB2B2WEH5JUDAIFXVKIPJLSYIJ3NJOZI7V2NNVCLRBAM74 \ / AMOS7 \ YOURUM ::
+#\[7]NVNMPM7SWQSFSILJ6B4GRKIKKYJ2SIPBADMG6CEHHNSXJI2SYMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

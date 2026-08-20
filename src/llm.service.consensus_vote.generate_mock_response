@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = llm.service.consensus_vote.generate_mock_response
+# descr = produce synthetic response for testing and fallback scenarios
+# param = $model, $prompt
+
+my ( $model, $prompt ) = @ARG;
+
+if ( $model eq 'qwen' ) {
+    return "This is a reasoning response from "
+        . "Qwen focusing on logical analysis. ";
+}
+if ( $model eq 'mathstral' ) {
+    return "This is a mathematical reasoning response "
+        . "from Mathstral with detailed steps. ";
+}
+if ( $model eq 'aya' ) {
+    return "This is a multilingual response from "
+        . "Aya considering cross-cultural context. ";
+}
+
+return "Response from $model regarding: " . substr( $prompt, 0, 50 ) . "...";
+
+#,,..,,,.,,..,...,,,.,,..,..,,,..,,..,.,.,,,,,.,.,...,.,.,,,.,,.,,...,...,,.,,
+#C37FQRPTUQFAB66EVARQUPAD5YUNL7JGGZIQUEBCBCJBURE3DOKXQNEYYL75MSKXTAML56YQJEJWQ
+#\\\|TSLKFIATH6YRCWZWRUW4U7USJNUEDTLOA5PMBGRMQQZLJG3YHEQ \ / AMOS7 \ YOURUM ::
+#\[7]FNAXV4CNETDOJANHXIGF76UFJWXWZ3H2KRAJSYI5H4NTYJNSIUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
