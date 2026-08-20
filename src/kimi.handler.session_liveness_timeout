@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = kimi.handler.session_liveness_timeout
+# descr = detect dead/archived kimi-web session and force fresh reconnect
+
+## if status is still 'connecting' after timeout, session is dead
+return
+    if <kimi.ws.status> eq qw| ready |
+    or <kimi.ws.status> eq qw| busy |;
+
+## don't clear session if we have active prompts : session is alive but busy
+## with our work [ init fails because agent turn is in progress ]
+my $has_pending_prompt = FALSE;
+foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
+    if ( ( <kimi.wire.pending>->{$pend_id}->{'type'} // '' ) eq qw| prompt | )
+    {
+        $has_pending_prompt = TRUE;
+        last;
+    }
+}
+if ($has_pending_prompt) {
+    <[base.logs]>
+        ->( 2, ': liveness timeout skipped : active prompt pending' );
+    return;
+}
+
+## tear down websocket
+if ( defined <kimi.ws.io_watcher> ) {
+    <kimi.ws.io_watcher>->cancel
+        if <kimi.ws.io_watcher>->is_active;
+    <kimi.ws.io_watcher> = undef;
+}
+if ( defined <kimi.ws.socket> ) {
+    eval { shutdown( <kimi.ws.socket>, 2 ) };
+    close <kimi.ws.socket>;
+}
+<kimi.ws.connected> = FALSE;
+<kimi.ws.status>    = qw| disconnected |;
+
+## if session was previously working, keep the session id and just reconnect
+## the websocket : the kimi-web session is likely still alive [ agent turn may
+## still be running in the background ]
+if ( <kimi.session.was_ready> // FALSE ) {
+    <[base.logs]>->(
+        1,
+        ': liveness timeout [ status=%s ] : session was '
+            . 'previously ready, preserving session_id for reconnect',
+        <kimi.ws.status>
+    );
+    <[kimi.connect.schedule_retry]>;
+    return;
+}
+
+## session never reached ready state : clear and create fresh
+<[base.logs]>->(
+    0, ': session liveness timeout [ status=%s ] : clearing dead session',
+    <kimi.ws.status>
+);
+<kimi.session_id> = undef;
+<[file.zenka_dir.write]>->( 'session_id', \'' );
+
+<[base.logs]>->( 1, ': cleared dead session : scheduling fresh connect' );
+
+## watcher only fires if value changed : call schedule_retry directly
+<kimi.ws.status> = qw| disconnected |;
+<[kimi.connect.schedule_retry]>;
+
+#,,..,...,,..,...,,..,,,.,...,,,.,...,,,.,,..,.,.,...,...,,,.,.,.,.,,,.,.,..,,
+#PCL4NOG7ZWWMI7XXQ26VQ7RNHM2JAEE6WK4NOCK2YOTQ2BVDFN66WNG6DFMR6KTBTUDP5YXLBJO2C
+#\\\|DGRQDIM47YMGTDTKGIMXPY7ZREU3BPCAEF5QWLVEYRN2ZIF6W64 \ / AMOS7 \ YOURUM ::
+#\[7]QG3XMNV5K6LI4AJVJHIVB5KLXUVLPQ6OZEMK6XMFYXCEQQNRESDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

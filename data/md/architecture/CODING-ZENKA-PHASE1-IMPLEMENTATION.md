@@ -481,7 +481,7 @@ foreach my $task (@batch_tasks) {
 
 ## File Inventory
 
-### Modules (in /data/projects/protocol-7/modules/)
+### Modules (in /data/projects/protocol-7/src/)
 - `coding.task.intake` - Task parsing and ingestion
 - `coding.task.queue` - Queue management
 - `coding.task.analyze` - Task analysis and classification
@@ -561,8 +561,8 @@ All commands should execute without errors and return proper status information.
 
 **Phase 1 Complete** - Foundation ready for LLM integration and sensory services.
 
-#,,.,,,.,,,,.,,,,,...,..,,,.,,.,.,..,,,,,,,,.,..,,...,...,.,,,,,.,..,,,,,,...,
-#JZT2KTGVXVEHW35DGSHLBUOW2QCTY6Q3OB62GPUHNATH7PZHIOBDJKCTUIHWQ27UFNWQO6ZWCOXGM
-#\\\|B2CPOA4ZO5CCFGCVMIIOVMKNIFNHIOW35EJFC2B4NYTOLSWWKEP \ / AMOS7 \ YOURUM ::
-#\[7]IXNGWXLK3GCHVNBFXNQ3FUPWIB47Y3YCA2RB3EBLKNMKLCPAPWBI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,...,,..,,,.,,.,,,,,,...,.,.,.,,,..,,...,...,.,,,...,..,,.,.,.,.,
+#Y7AHCIBQWFLLAMX5AE7WAPG3FNNRXNDKK32A73KT6MSIDNCGZZKNQNB62DMQDWI2VHBHUA5OQV2ZK
+#\\\|2W2DBWXVQJQEGRO52WASCQ2JRKDLMVZQURL4HPM5GH57OH22T7G \ / AMOS7 \ YOURUM ::
+#\[7]CZUI2JUILELWLLIOVL2KDR4JF5Z2B7D3CB4Y3NY3E7YGMNUQJCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

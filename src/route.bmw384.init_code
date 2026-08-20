@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = route.bmw384.init_code
+# descr = initialize BMW384 field index and alias bmw384.* namespace
+
+<[route.bmw384.index.init]>;
+
+# [ populate index at startup if modules dir exists ]
+my $code_path = <system.code_path> // qw| src |;
+if ( -d $code_path
+    and not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
+    <[route.bmw384.index.from-path]>->($code_path);
+}
+
+0;
+
+#,,,,,,.,,,,.,,,.,...,...,.,,,.,.,.,.,,..,.,,,..,,...,...,,,.,,..,,..,...,...,
+#ERUY5TL5YWD27IN3NPX5M3T4PUYH7JHLX4UDX6GWHEIBZVCW426OZVCLRGCM2NJLTTPSW643R7NNS
+#\\\|FL4XEI3EINK3LX2IJQEW3ULC3SE53HCKLPI5K4FR7W5OGUIQY7P \ / AMOS7 \ YOURUM ::
+#\[7]OKFGXZTF3HIKBV4NHBDF2ARPDFD3HHYQI7GVYPA65SKHLOTKSUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

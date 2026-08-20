@@ -1,6 +1,6 @@
 ## task: task.cmd.start
 
-Create module `modules/task.cmd.start` — transitions a pending task to in_progress.
+Create module `src/task.cmd.start` — transitions a pending task to in_progress.
 
 ### context
 
@@ -14,8 +14,8 @@ Use `<[base.ntime.b32]>` for timestamps (already used in claim/complete).
 
 ### reference modules
 
-- `modules/task.cmd.claim` — param parsing pattern, status guard, timestamp update
-- `modules/task.cmd.complete` — same param style with id + optional result
+- `src/task.cmd.claim` — param parsing pattern, status guard, timestamp update
+- `src/task.cmd.complete` — same param style with id + optional result
 
 ### spec
 
@@ -49,8 +49,8 @@ Do NOT copy or invent AMOS7 signatures. Leave the new file without any signature
 footer — `bin/Protocol-7 sourcecode update-signatures` will add the real footer.
 The fake single-line stub `#,,.,,,...` blocks signing — never add it.
 
-#,,,.,,..,...,,..,,..,.,,,..,,,.,,,.,,.,.,,.,,..,,...,...,...,,..,.,,,,.,,,,.,
-#2QCRVFRA2ACHWKDEPA25RJHHTUMXMRTFJYGRGFT2FJRRYGKRFMOFX3F6PYXKYW7Z37CLLZLXSMABG
-#\\\|UVRZW7DIPPLTJBGPF54HJLTMEIQHQWFZEGUZTZRZAUZJ5ULVGPM \ / AMOS7 \ YOURUM ::
-#\[7]QYBLJL6F4QMILSNJ4DE6CD2VZJUVBZX3HAGPZKYZR6XVRPQCTADI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,..,,.,.,.,,,.,,,..,,.,.,.,.,..,,...,...,.,.,,.,,,,,,..,,,,.,
+#2TOW3Q75BX4LTIK33VZSJQWEDF3M47W35GDC5NCWOAIVUW5QR4TWBLC476GE7ML2G525TTIHIKIR6
+#\\\|6IJWEVC6PKTDXOUMS52RXS23XOQQTMIMVBWSMNZDDLC7IHYWYCN \ / AMOS7 \ YOURUM ::
+#\[7]A2RUVCWCBSI32COM7G45GYLZT7Q6WRRAW3PFXSTEUR6FRUZZVCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

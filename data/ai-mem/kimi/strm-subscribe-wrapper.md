@@ -8,16 +8,16 @@ implemented `data/tasks/strm-generic-subscribe-wrapper.md` (archived in
 six modules, mirroring `base.zenka.push` layout + `zenka.push`
 namespace-swap convention:
 
-- `modules/base.strm.subscribe` — entry: validation, registry,
+- `src/base.strm.subscribe` — entry: validation, registry,
   defer-or-attempt
-- `modules/base.strm.subscribe.attempt` — single route-send attempt
-- `modules/base.strm.subscribe.wait-online` — v7.notify_online wait with
+- `src/base.strm.subscribe.attempt` — single route-send attempt
+- `src/base.strm.subscribe.wait-online` — v7.notify_online wait with
   push-shaped 2**n backoff (60s cap, waiting_no/last_attempt gating)
-- `modules/base.strm.subscribe.reply-handler` — TRUE=subscribed,
+- `src/base.strm.subscribe.reply-handler` — TRUE=subscribed,
   `client not present`=offline wait, else definitive error (no blind retry)
-- `modules/base.strm.subscribe.reply-handler.notify-online` — TRUE
+- `src/base.strm.subscribe.reply-handler.notify-online` — TRUE
   resubscribes immediately, FALSE backs off increasingly
-- `modules/base.strm.subscribe.pre_init` — swap to `strm.subscribe`
+- `src/base.strm.subscribe.pre_init` — swap to `strm.subscribe`
 
 ## usage (from any zenka's init_code)
 
@@ -70,8 +70,8 @@ publisher-restart re-affirm: `<base.strm.subscribe.registry>` entries
 persist after success so a future hook (e.g. on `command route
 collapsed` over a pending subscribe route) can re-issue attempts.
 
-#,,,.,,..,,.,,..,,,..,...,...,..,,,,,,.,.,.,,,..,,...,...,.,.,...,,,,,.,.,..,,
-#WV5MKHOBKDFHHBOOKVN2RCM3ISMD2RFUHH4MEKCNS3N4E5YBI3HOQAPSDXIUUYBJBA27AAAXK3ICI
-#\\\|YZGY2TOLBVGZGSU5JYBL53MQBTM6MT3WLM4KOCHHOEWPELNUCVE \ / AMOS7 \ YOURUM ::
-#\[7]DIBSU3SUILOCMJ4RYBKJ6UDVZBJ6FTABTJLD7NP26R2UN6AJ3UAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,...,...,.,,,..,,.,.,,,,,..,,..,,...,...,.,.,,,.,.,,,,,,,.,.,
+#5K5RBENZJ7KW3CEVDTQN5TY7FV4ZULWE7KP2YT3LZM3YCH4YMYP5FTNFVGHTXPZF6CYV7QBZXVRL4
+#\\\|P7XLLWQDBQVZ4N3D3VTZGBW5WXA25XDDNA4AYZMSVTIUHVQXVAF \ / AMOS7 \ YOURUM ::
+#\[7]IQ5JODKJJ7SV6MM2A3XZZOYF4I5UEG2ZZTWXVEF4LRUX5PMNZECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

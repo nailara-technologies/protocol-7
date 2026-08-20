@@ -55,7 +55,7 @@ Lists modules in a namespace.
 #### context.file
 Returns file content, truncated to budget.
 ```
-<[context.file:path=modules/base.handler.command:budget=2000]>
+<[context.file:path=src/base.handler.command:budget=2000]>
 ```
 
 ### 3. System Message Templates
@@ -83,7 +83,7 @@ you are a protocol-7 module writer. work in the existing code style.
 To use in a models backend:
 
 ```perl
-## in modules/models.backend.kimi_web ##
+## in src/models.backend.kimi_web ##
 
 ## 1. Render system message template ##
 my $template_result = <[protocol-7.route-send]>->(
@@ -143,8 +143,8 @@ p7c web.render-template template_path=cfg/models/system-messages/coding-assistan
 
 *Created: 2026-03-03*
 
-#,,,.,...,..,,,.,,...,..,,,.,,..,,,.,,..,,.,.,..,,...,...,.,.,,.,,,.,,.,.,...,
-#5CACVGGUPGGQUOIWZ4JAR25VWQQFDLQGQNYLFHFRMM2USB3K3XUEMDITQLB6UXFNWYIN4H4XXI2ZY
-#\\\|TRKPIFPP3UZBYGUSGLOP3WWCFA7R3XO7ADW2YW6HRKSQXJX56SE \ / AMOS7 \ YOURUM ::
-#\[7]R6AAGIFRZEV7BB5P37QKDJ2LHLQOH4FK4MDMTZ52TWIFFBZAD6CQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,,..,,.,,..,,,..,,,,,.,.,.,,,..,,...,...,...,,,.,,.,,,..,.,.,
+#5IP7J4DA5LVPUB4GCOST5I2DT7YWXCMYVH4JI6C2YA6AW6UGXFQJFASVWYLYZ46MQCW3LPKOMN3DC
+#\\\|A6ED2UR5BS34NI4MZ7DRX2TGCSR6JWJJEG2W6KR2BUQN26U6CGG \ / AMOS7 \ YOURUM ::
+#\[7]7LN4Z4X2ELCPDQB5WAVGPYNCNPFXV7OCGKV5WDLRWHACVHK2UMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:< ##
+
+# name = storchencam.init_code
+
+<[base.perlmod.autoload]>->('SDL');
+<[base.perlmod.autoload]>->('SDL::TTF');
+<[base.perlmod.autoload]>->('SDL::Rect');
+<[base.perlmod.autoload]>->('SDL::Color');
+<[base.perlmod.autoload]>->('SDL::Video');
+<[base.perlmod.autoload]>->('SDL::RWOps');
+<[base.perlmod.autoload]>->('SDL::Image');
+<[base.perlmod.autoload]>->('SDL::Mouse');
+<[base.perlmod.autoload]>->('SDL::Event');
+<[base.perlmod.autoload]>->('SDL::Events');
+<[base.perlmod.autoload]>->('SDL::Surface');
+<[base.perlmod.autoload]>->('SDL::GFX::Rotozoom');
+<[base.perlmod.autoload]>->('LWPx::ParanoidAgent');
+
+## plain LWP::UserAgent instead of ParanoidAgent when a proxy is configured ##
+## [ ParanoidAgent refuses proxies outright - the SSRF checks it does       ##
+## become the proxy's job at that point ] - see storchencam.http_proxy      ##
+## below                                                                    ##
+<[base.perlmod.autoload]>->('LWP::UserAgent');
+<[base.perlmod.autoload]>->('Date::Parse');
+
+<storchencam.user_agent> //= '';
+
+## optional http proxy for the image download agent [ eg. the local        ##
+## hysteria-backed proxy zenka at http://127.0.0.1:8118 ] - empty string [ ##
+## default ] disables it, connects direct as before                        ##
+<storchencam.http_proxy> //= '';
+
+## subscribe to X-11 screen-change events once connected to cube ##
+push @{ <system.callbacks.initialized> //= [] },
+    'storchencam.subscribe-screen-change';
+
+0;
+
+#,,,,,.,,,..,,,.,,...,,,,,,.,,..,,,,.,..,,.,,,..,,...,.,.,.,,,,,.,...,,,.,,..,
+#S64RECXKMJOA34OAM3XR3NINQQSJL3WM3G7UMRZ67JZBII346D75ZNRJJCUGKDZTBXEXVEQ6EN73Q
+#\\\|KEYPGBIDJWQFFWWIEUD3ZQ4CVLFSKUFWPOO32VEHERRATFUYSVI \ / AMOS7 \ YOURUM ::
+#\[7]R7JHCQWM4CHIIJECZHPFT74K76VP3FMF6Y77OQXGP46D7IUOCCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

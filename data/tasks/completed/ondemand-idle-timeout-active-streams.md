@@ -7,7 +7,7 @@
 (`base.zenki.set_ondemand_timeout`) even while actively serving a subscriber via an open STRM
 push stream. Confirmed live: `web` subscribes to `graphics-matrix.orbital-sync` (args
 `subscribe`), the subscribe succeeds, but graphics-matrix's own `push_state_if_subscribed`
-timer (see `modules/graphics-matrix.orbital.push_state_if_subscribed`) only ever *writes out* to
+timer (see `src/graphics-matrix.orbital.push_state_if_subscribed`) only ever *writes out* to
 the subscriber — no further *inbound* command ever arrives once subscribed. The result: the
 zenka idle-shuts-down mid-subscription every `ondemand_timeout` seconds regardless of the live
 consumer, which then presumably has to notice the drop and re-request/re-subscribe, producing a
@@ -15,7 +15,7 @@ visible on-demand-restart loop even though nothing is actually wrong with the su
 
 ## root cause
 
-`modules/base.event.callback.io-idle-restart:33-47` re-arms the shutdown timer whenever the
+`src/base.event.callback.io-idle-restart:33-47` re-arms the shutdown timer whenever the
 event loop goes idle, gated only by:
 
 ```perl
@@ -25,7 +25,7 @@ or not keys $data{'route'}->%*;   ## no outstanding command replies ##
 
 `$data{'route'}` tracks commands *this zenka itself sent out and is waiting on a reply for* —
 unrelated to whether other zenki are currently subscribed to *this* zenka's push output.
-`modules/base.handler.command:114-121` cancels the timer on inbound command traffic only.
+`src/base.handler.command:114-121` cancels the timer on inbound command traffic only.
 Neither path accounts for open outbound STRM streams this zenka is producing.
 
 ## the fix
@@ -33,10 +33,10 @@ Neither path accounts for open outbound STRM streams this zenka is producing.
 `base.stream.open` / `base.stream.push` / `base.stream.close` already maintain exactly the state
 needed, generically, with no new bookkeeping required:
 
-- `base.stream.open` (`modules/base.stream.open:40-47`) creates
+- `base.stream.open` (`src/base.stream.open:40-47`) creates
   `$session->{'streams'}->{$cmd_id}` with `{'producer'} = 1` when this zenka opens a push stream
   to a subscriber.
-- `base.stream.close` (`modules/base.stream.close:25-41`) deletes that entry on close.
+- `base.stream.close` (`src/base.stream.close:25-41`) deletes that entry on close.
 
 So "does this zenka currently have any open producer stream to anyone" is answerable purely by
 checking whether any `$data{'session'}{$sid}{'streams'}{$cmd_id}{'producer'}` exists across all
@@ -46,7 +46,7 @@ push loop; don't touch or depend on it — the fix should live entirely in `base
 already-generic `base.stream.*` state, so it covers every current and future STRM-producing
 on-demand zenka automatically, not just graphics-matrix).
 
-Add a check in `modules/base.event.callback.io-idle-restart`, before arming the shutdown timer
+Add a check in `src/base.event.callback.io-idle-restart`, before arming the shutdown timer
 (around line 45's existing condition): also require that no session currently has an open
 producer stream. Something in the shape of:
 
@@ -80,7 +80,7 @@ sketch of the logic, not a literal diff)
   [[project-ondemand-zenki-registry-wipe]]) is unaffected — it has no STRM producer streams, so
   this change should be a no-op for it.
 - check whether any *other* currently-running on-demand zenka uses `base.stream.open` as a
-  producer (grep `base.stream.open` across `modules/*.cmd.*` for `type => 'STRM'` push-subscribe
+  producer (grep `base.stream.open` across `src/*.cmd.*` for `type => 'STRM'` push-subscribe
   patterns) and sanity-check the fix covers them too, without needing per-zenka changes.
 
 ## signatures note
@@ -101,8 +101,8 @@ touch must not be modified.
   long-standing, previously-deferred restart-loop annoyance, which turned out to be this
   unrelated bug, not the same one
 
-#,,.,,,,.,...,..,,.,.,.,,,.,,,,..,.,,,...,,,,,..,,...,...,,.,,,..,.,.,,,,,,,,,
-#MR2DOGIJXIRYERCB4L54JQTUFAE4EL4NFUKRDWSIKLCOTOOMN7XFZRA4GH5OURJPNPGCMGZMU4O4G
-#\\\|U4MT3CN5J6SDZ4ZOAEI5RVZUI3HV7FPYHQYRKPT5ZZG6RQBHIU2 \ / AMOS7 \ YOURUM ::
-#\[7]42XCYR74LR3JFYY2QYI7YT4I2BV6WQMXENGFKQPSJIE3LAPOFABI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,,,,..,,,,.,.,.,,,.,.,,,..,,..,,...,...,.,.,..,,,..,.,.,..,,
+#CDX44ANOUBYVKBJ2GYCNOBNNDL36A3QY33PVHRFEAHG6VSVY5KCWUDM3B6PRGJVPTKDN6CPG3VEE2
+#\\\|XI7VEGXYQ7GT2V4OFZYX3HYA7BCVNIPHJD4WNKMYNEF4F3TUYCQ \ / AMOS7 \ YOURUM ::
+#\[7]R7526OAGHHZHPEWIYYGJU3B6VVOTXSJJORGWHB4ZMIDBINFWOODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

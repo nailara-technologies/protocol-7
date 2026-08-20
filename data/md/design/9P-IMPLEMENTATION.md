@@ -107,7 +107,7 @@ All messages follow the 9P2000 format:
 
 ## Configuration
 
-Edit `modules/plan-9.config`:
+Edit `src/plan-9.config`:
 
 ```perl
 return {
@@ -148,8 +148,8 @@ return {
 - [Linux 9P Documentation](https://www.kernel.org/doc/Documentation/filesystems/9p.txt)
 - [cat-v.org 9P Resources](http://cat-v.org/plan_9/4th_edition/papers/9p/)
 
-#,,.,,..,,.,.,,..,...,,,,,,,.,.,,,,.,,.,.,...,..,,...,...,,..,...,.,,,..,,,,,,
-#PD5MV5RNSTTRCRVC7VA4FG5YQNQZAVVPW6ZH6YDDFSQTEQRCF2GMA6EOEQIVSQ2APR5TAY5YL5GRS
-#\\\|PEPEMYAQG5UR2A4QVX3U3BUSWA3LEKXMRTWEP3XCEB7MFLYQSN4 \ / AMOS7 \ YOURUM ::
-#\[7]KVJ3JZUQ5E2U2QAFUR2SGV3ID47XCSSTID6GQ7JCOCAV4LRSTGBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,.,.,,,,,...,.,,,,,,,,.,,.,.,..,,...,...,..,,,..,.,,,..,,,.,,
+#5P7XBNAVWLFTO547XK6HESLT6SQIL34H4G5PVY4XJRFXV6FUSG6GKAQWK6Z5DTBR3E7YZZQMM7QEQ
+#\\\|TP7WBB6PXE65DAIOJMS5ZXL6JL36XVOWTKM7FK7XSXA3NGYM4RG \ / AMOS7 \ YOURUM ::
+#\[7]YWWXC57TDFLTREXSWCRH53F426TUK4AW7LR6BOELOPHATT4LCKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

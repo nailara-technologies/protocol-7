@@ -93,7 +93,7 @@ Initializes coding zenka state and registers timer for deferred server spawning:
 - Registers 100ms timer to spawn servers asynchronously
 - Returns immediately (non-blocking)
 
-**File**: `modules/coding.init_code`
+**File**: `src/coding.init_code`
 
 #### 2. **coding.async_spawn_inference_servers** (Async Spawner)
 Timer-triggered handler that spawns both CPU and GPU backends:
@@ -102,7 +102,7 @@ Timer-triggered handler that spawns both CPU and GPU backends:
 - Calls `coding.spawn_inference_server` for each backend
 - Stores spawn parameters for later reference
 
-**File**: `modules/coding.async_spawn_inference_servers`
+**File**: `src/coding.async_spawn_inference_servers`
 
 #### 3. **coding.spawn_inference_server** (Server Executor)
 Core spawning logic using `IPC::Open3`:
@@ -113,7 +113,7 @@ Core spawning logic using `IPC::Open3`:
 - Reports PID to v7 for lifecycle management
 - Registers I/O handlers for stdout and stderr
 
-**File**: `modules/coding.spawn_inference_server`
+**File**: `src/coding.spawn_inference_server`
 
 **Key Fix**: Sets `LD_LIBRARY_PATH` environment variable before spawning:
 ```perl
@@ -131,7 +131,7 @@ Monitors server startup output and detects readiness:
 - Logs actual errors (not whitelisted patterns)
 - Closes handler on EOF
 
-**File**: `modules/coding.handler.monitor_inference_startup`
+**File**: `src/coding.handler.monitor_inference_startup`
 
 **Whitelist Filter**:
 ```perl
@@ -204,19 +204,19 @@ my %model_path_fallbacks = (
 
 ## Currently Modified Files (Awaiting Cleanup)
 
-### 1. `modules/coding.handler.check-completion-chain`
+### 1. `src/coding.handler.check-completion-chain`
 - **Status**: Formatting cleanup only
 - **Changes**: Line breaking, alignment, indentation
 - **Impact**: No functional changes, just style
 - **Action**: Review formatting and commit
 
-### 2. `modules/coding.handler.process-queued-task`
+### 2. `src/coding.handler.process-queued-task`
 - **Status**: Formatting cleanup
 - **Changes**: Line alignment, spacing
 - **Impact**: No functional changes
 - **Action**: Review and commit
 
-### 3. `modules/models.init_code`
+### 3. `src/models.init_code`
 - **Status**: Needs integration and testing
 - **Changes**:
   - Added `<models.scan_paths>` list definition
@@ -225,7 +225,7 @@ my %model_path_fallbacks = (
 - **Impact**: Significant - adds models list support
 - **Action**: Test list operations, then commit
 
-### 4. `modules/models.{discover,storage,registry,local_discover}.*`
+### 4. `src/models.{discover,storage,registry,local_discover}.*`
 - **Status**: Supporting changes for models discovery
 - **Changes**: Updates to work with new list structure
 - **Impact**: Models scanning and discovery
@@ -236,7 +236,7 @@ my %model_path_fallbacks = (
 - **Changes**: MPV zenka configuration updates
 - **Action**: Review and handle separately
 
-### 6. `modules/nshell.read_from_buffer`
+### 6. `src/nshell.read_from_buffer`
 - **Status**: Unrelated to async spawning
 - **Changes**: nshell buffer reading updates
 - **Action**: Review and handle separately
@@ -300,18 +300,18 @@ p7c coding.show-buffer zenka | tail -50
 ### Planned Commits
 
 1. **Cleanup & Formatting** (next)
-   - `modules/coding.handler.check-completion-chain` - formatting only
-   - `modules/coding.handler.process-queued-task` - formatting only
+   - `src/coding.handler.check-completion-chain` - formatting only
+   - `src/coding.handler.process-queued-task` - formatting only
    - Message: "Clean up code formatting in coding handler modules"
 
 2. **Models List Integration** (after testing)
-   - `modules/models.init_code` - list definitions
-   - `modules/models.{discover,storage,registry,local_discover}.*` - supporting changes
+   - `src/models.init_code` - list definitions
+   - `src/models.{discover,storage,registry,local_discover}.*` - supporting changes
    - Message: "Integrate models registry with Protocol-7 list system"
 
 3. **Configuration Updates** (separate)
    - `cfg/zenki/mpv/start` - MPV config
-   - `modules/nshell.read_from_buffer` - nshell updates
+   - `src/nshell.read_from_buffer` - nshell updates
    - Message per change as appropriate
 
 ---
@@ -367,15 +367,15 @@ Create: `ASYNC-INFERENCE-SPAWNING.md`
 ## Files Involved
 
 ### Core Async Spawning
-- `modules/coding.init_code` - Timer registration
-- `modules/coding.async_spawn_inference_servers` - Main spawner
-- `modules/coding.spawn_inference_server` - Execution logic
-- `modules/coding.handler.monitor_inference_startup` - Startup monitor
+- `src/coding.init_code` - Timer registration
+- `src/coding.async_spawn_inference_servers` - Main spawner
+- `src/coding.spawn_inference_server` - Execution logic
+- `src/coding.handler.monitor_inference_startup` - Startup monitor
 
 ### Task Execution
-- `modules/coding.handler.process-queued-task` - Task runner
-- `modules/coding.event.on_task_complete` - Completion event
-- `modules/coding.handler.check-completion-chain` - Auto-resume
+- `src/coding.handler.process-queued-task` - Task runner
+- `src/coding.event.on_task_complete` - Completion event
+- `src/coding.handler.check-completion-chain` - Auto-resume
 
 ### Configuration
 - `cfg/zenki/coding/start` - Coding zenka startup
@@ -436,8 +436,8 @@ Currently awaiting:
 **Status**: Infrastructure COMPLETE, Cleanup IN PROGRESS
 **Next Review**: After formatting cleanup and models integration
 
-#,,..,,,.,,,.,,,.,...,,,,,..,,,,,,,.,,,,.,.,.,..,,...,...,..,,...,.,,,.,.,.,.,
-#NA32KUBGKQ6JELBZDV6BAN3AYUNFQ6DZDC6NFEBDAFPX3M6IJR6HBUZFYLNDQZLC3MZ4F7KVPSJ3Y
-#\\\|RH5XDC24FMGPQPXFWYPMFDVYIGREBNZFNTUCQ4GZ7W5HX6ILJSS \ / AMOS7 \ YOURUM ::
-#\[7]OEP5ES4SJENWTL2HT6B4DB7ZKR3UFMFTG36IXLJSM67M6DAG6MAQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,..,,,..,,..,,..,.,.,..,,,.,,..,,...,...,.,.,.,,,.,.,...,,.,,
+#5XNVLJE236RHLWMFF477OMERG4GGLXB67VE4CFBW6UGTSBO4NAWVMZCU3U3H3MQJA7LWY26G2H5VE
+#\\\|Z7DUFNGCPVUTWYMIKANWAOUT2STSG2KQB5C56C5SP7NNHGY6NH5 \ / AMOS7 \ YOURUM ::
+#\[7]22GVFCZGUNV6DTHH6NPP5HAMHCUKWWLAAOUBQG4CLKA44JM4D4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

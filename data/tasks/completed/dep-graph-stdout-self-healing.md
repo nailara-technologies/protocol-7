@@ -35,7 +35,7 @@ dep-graph stays a pure dependency scanner. one concern stays in one place.
 
 ## signature validation via source.*
 
-`modules/source.*` already owns signature concerns:
+`src/source.*` already owns signature concerns:
 - `source.signature_valid` — validates AMOS7 signature of a module file
 - `source.extract_sig_body` — extracts payload for verification
 
@@ -124,13 +124,13 @@ handles all footer blocks — leave them untouched.
 ## files to create / modify
 
 - `bin/dev/dep-graph` — no changes needed for this task
-- `modules/base.modules.check_migrated` — new helper: checks
+- `src/base.modules.check_migrated` — new helper: checks
   `<base.modules.moved_to>` for a given name, returns new target or undef.
   handler delegates to this without knowing registry internals.
-- `modules/source.target_namespace` — new helper: resolves a module name to
+- `src/source.target_namespace` — new helper: resolves a module name to
   its on-disk path and namespace root. used before `source.signature_valid`
   so the handler never needs to know path conventions.
-- `modules/base.handler.whitelist_miss` — new on-demand self-healing handler;
+- `src/base.handler.whitelist_miss` — new on-demand self-healing handler;
   delegates to check_migrated + target_namespace + source.signature_valid
 - hook into NOT FOUND path (locate in `base.init_modules` or whitelist check)
 - policy config keys in relevant zenka start files (opt-in per zenka)
@@ -152,8 +152,8 @@ in place first — the stdout + subprocess approach sidesteps the file-write
 signing requirement entirely. policy is applied at read time in the handler,
 not at write time to a file.
 
-#,,,.,,,.,..,,,.,,.,.,,..,,.,,...,,,,,...,..,,..,,...,...,.,.,,,,,.,,,,,,,,,.,
-#WYTVOYVFJ2DY5EME3XUZ2BLSJCMCFZQQ4MUBJK55RWEC4KX4OGDUPMP4Q6ICYMMDDV5C2FGUP23OO
-#\\\|UKSZZB5YVRLKSOU6YORGLB7PHQI3TLP5Z77NUBKUO5VLQUFGYMS \ / AMOS7 \ YOURUM ::
-#\[7]46AD5OEGZC2WAEJDQQTVR36RRA7UG4KLNKYGZF2X4HAIHUED2IAA 7  DATA SIGNATURE ::
+#,,..,..,,...,..,,,,,,.,,,.,.,,.,,,,.,,,,,,,,,..,,...,...,,,.,,.,,.,,,.,.,...,
+#OR34SDYXNTMKNJ7GMGTSKV23YKRUME6MTZPW64R45QAL2TNCLSMPOPUNWH67V3FCNVVSBRB7RYFJ6
+#\\\|O6CXU767BRR4QZQUFI2ORI4ZEXAV3RKMPLTPZOQWEGGIEA2KK7N \ / AMOS7 \ YOURUM ::
+#\[7]QBBFLO2ICQRWAFWZMAIWJJNC3GG3JMBGM7XMZ5YAFQZRYCZWHYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

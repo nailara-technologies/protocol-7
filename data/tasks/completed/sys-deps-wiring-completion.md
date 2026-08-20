@@ -15,10 +15,10 @@ verified while auditing v7's `show-buffer undef-subs` output this session:
 - `bin/p7-deps` — already refactored onto `AMOS7::deps::module` /
   `os_package` / `debp` / `dist_upgr`, no more hardcoded fallback map. **done.**
 - `bin/os-pkg` — already using `AMOS7::deps::os_package` / `debp`. **done.**
-- `modules/sys-deps.cmd.{check,install,missing,promote,state,undeclared}` —
+- `src/sys-deps.cmd.{check,install,missing,promote,state,undeclared}` —
   all present. **done.**
-- `modules/v7.check_zenka_deps` — the phase-1 pre-start hook from task 7 of
-  the original plan — is wired into `modules/v7.autostart_zenki:9`. **done,**
+- `src/v7.check_zenka_deps` — the phase-1 pre-start hook from task 7 of
+  the original plan — is wired into `src/v7.autostart_zenki:9`. **done,**
   scans pm/os/binary deps per zenka via `AMOS7::deps::*`, auto-installs when
   `v7.cfg.auto_install_deps` is truthy and root/sudo is available, logs to
   `var/sys-deps/tracked.yaml`.
@@ -26,19 +26,19 @@ verified while auditing v7's `show-buffer undef-subs` output this session:
 what's still hanging around, unreachable, calling into namespaces that are
 never loaded:
 
-- `modules/v7.init_code:128-167` — guarded block calling
+- `src/v7.init_code:128-167` — guarded block calling
   `debian.parent.scan_zenki_dependencies` then
   `v7.verify_and_install_zenka_dependencies`. `debian` has not been in v7's
   own `modules.load` since `ffc44add6` (Nov 2025, "temporarily disabled...
   for testing", never restored) — this entire block has been dead for 8+
   months, superseded in practice by `v7.check_zenka_deps`.
-- `modules/v7.verify_and_install_zenka_dependencies` — only caller is the
+- `src/v7.verify_and_install_zenka_dependencies` — only caller is the
   block above. dead alongside it.
-- `modules/base.ensure_zenka_dependencies` — guards a call to
+- `src/base.ensure_zenka_dependencies` — guards a call to
   `debian.parent.ensure_zenka_dependencies`. **nothing calls this module at
   all** (checked: no references outside itself and the generated
   `base.list.subroutines`). fully orphaned, not just inert.
-- `modules/debian.parent.ensure_zenka_dependencies` — the audit already
+- `src/debian.parent.ensure_zenka_dependencies` — the audit already
   flagged this as "move to v7 pre-start hook + sys-deps zenka" — that move
   happened (`v7.check_zenka_deps`), this one was never deleted.
 - the whole `session` zenka's dependency-check half (`session.parent.check_and_resolve_deps`,
@@ -49,7 +49,7 @@ never loaded:
   "crude mechanism, superseded" story one layer further back. `session.console.setup-keys`
   / `session.console.config` are a separate concern (AMOS7 signature key dir
   setup) — do not touch those without checking they're not still load-bearing.
-- `modules/debian.*` (28 files) — the completed audit already has a
+- `src/debian.*` (28 files) — the completed audit already has a
   per-module disposition table (retire / absorb / keep). none of the
   "retire" or "absorb" dispositions were executed — the files are all still
   there, most now fully superseded by `AMOS7::deps::*` + `sys-deps`.
@@ -93,11 +93,11 @@ mechanism is only safe once the replacement is confirmed live.
 
 ## task 2 — retire the dead debian.parent chain in v7
 
-- remove the guarded block in `modules/v7.init_code:128-167`
+- remove the guarded block in `src/v7.init_code:128-167`
   (`debian.parent.scan_zenki_dependencies` → `v7.verify_and_install_zenka_dependencies`)
-- delete `modules/v7.verify_and_install_zenka_dependencies`
-- delete `modules/base.ensure_zenka_dependencies` (confirmed zero callers)
-- regenerate `modules/base.list.subroutines`
+- delete `src/v7.verify_and_install_zenka_dependencies`
+- delete `src/base.ensure_zenka_dependencies` (confirmed zero callers)
+- regenerate `src/base.list.subroutines`
   (`bin/Protocol-7 sourcecode update-sub-list`) and v7's whitelist
   (`bin/dev/gen-sub-whitelist v7`) after
 
@@ -151,8 +151,8 @@ it. existing signatures on files you don't touch must not be modified.
   namespace-split gap — see that session's commits (`81403b3b8`, `c06c9d503`,
   `c80dfacfc`, `e1ca9351e`) for the trail that led here
 
-#,,..,,..,...,,,.,..,,,,.,,,.,,.,,.,,,,..,.,.,..,,...,...,...,,,.,...,...,,.,,
-#IQUKKRD23GHKPWSHSR3TEYNJYJ55R7XFUHZT76LZIHDTG5TYI3736AJUCVWVCD2CTT7BGZSNVH342
-#\\\|WJ2PKW37BSAUBBIJPETPJB6YG6L756IKTR546XQ5JQPDOO7YPYF \ / AMOS7 \ YOURUM ::
-#\[7]F5GA6PN7R3SBH354QJK5Z3LKAJATAJW25WQW2B3THTCWNGPWOOCQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,,,...,.,.,,,,,,,,,,.,,,,,,.,,,..,,...,...,.,.,,..,,,.,...,,..,
+#2AOTZASIG7Z3NVWQIS7QJETJF5MBFNI4N424HX5I2IZQAJI77W35GN5UMOLTLRLMDM7OWVAQORENA
+#\\\|QTKLB2J55KILYVWUDCBS6RW6U2LPECJJYRPMVCXYMVB3ZG4QFES \ / AMOS7 \ YOURUM ::
+#\[7]BHWEY2RJTGR2XUVTYAL5BWXK35SQYR44SG46GCKW6755X3SDE2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = graphics-3d.render.cursor
+# descr = Render cursor in 3D terminal space with translucency curve
+#
+# Cursor position: (x, y, z) in 8×7×13 voxel grid
+# Each voxel: 2 bytes (color index + attributes)
+# Cursor voxel: OR with cursor_bit in attribute byte
+
+my ( $buffer_3d, $cursor_pos, $time_now, $colors ) = @ARG;
+
+$cursor_pos //= { qw| x | => 0, qw| y | => 0, qw| z | => 0 };
+$time_now   //= <[base.time]>->(3);
+$colors     //= <graphics-3d.cfg.cursor_colors>;
+
+## ensure 3D buffer exists ##
+if ( not defined $buffer_3d or ref($buffer_3d) ne 'ARRAY' ) {
+    <[base.log]>->( 0, ":: invalid 3D buffer for cursor render" );
+    return undef;
+}
+
+## calculate translucency from curve ##
+my $blink_start = <graphics-3d.cursor.blink_start> // $time_now;
+my $elapsed     = $time_now - $blink_start;
+
+my $translucency = <[graphics-3d.calc.cursor-translucency]>->(
+    $elapsed, <graphics-3d.cfg.cursor_curve>
+);
+
+## cursor voxel index: z * (8*7) + y * 8 + x ##
+my $voxel_index
+    = $cursor_pos->{'z'} * 56 + $cursor_pos->{'y'} * 8 + $cursor_pos->{'x'};
+
+## bounds check ##
+if ( $voxel_index < 0 or $voxel_index >= 728 ) {    # 8*7*13 = 728
+    <[base.log]>->(
+        0,
+        ":: cursor out of bounds: "
+            . "($cursor_pos->{'x'},$cursor_pos->{'y'},$cursor_pos->{'z'})"
+    );
+    return undef;
+}
+
+## get voxel (2 bytes: color_idx, attributes) ##
+my $voxel_ref  = \$buffer_3d->[$voxel_index];
+my $color_idx  = ord( substr( $$voxel_ref, 0, 1 ) ) // 0;
+my $attributes = ord( substr( $$voxel_ref, 1, 1 ) ) // 0;
+
+## apply cursor bit (bit 7 of attributes) ##
+$attributes |= 0x80;    # set cursor bit
+
+## apply translucency to cursor alpha (bits 4-6, 0-7 scale) ##
+my $alpha_bits = int( $translucency * 7 ) & 0x07;
+$attributes = ( $attributes & 0xF8 ) | $alpha_bits;
+
+## update voxel with cursor state ##
+substr( $$voxel_ref, 1, 1 ) = chr($attributes);
+
+## store for render pass ##
+<graphics-3d.cursor.voxel_index>  = $voxel_index;
+<graphics-3d.cursor.translucency> = $translucency;
+<graphics-3d.cursor.last_render>  = $time_now;
+
+return {
+    qw| voxel_index  | => $voxel_index,
+    qw| translucency | => $translucency,
+    qw| color_idx    | => $color_idx,
+    qw| attributes   | => $attributes,
+    qw| xyz          | =>
+        [ $cursor_pos->{'x'}, $cursor_pos->{'y'}, $cursor_pos->{'z'} ]
+};
+
+#,,..,.,.,,,.,..,,,.,,,,,,.,.,...,..,,,..,,,,,.,.,...,...,,,.,..,,.,,,,,.,,,,,
+#SCSMD2HZOML7V5QKQ7IXJC6VCFPGDGB47HSVNQDYSPYU2K4IS5KUMMEGS7BOCYXXMYQAECXDQNZ2C
+#\\\|CTPO6Y3XJNVVEJNIY7ZTVRQS4IAXWMB6TQCJ37ARJFE37636LQE \ / AMOS7 \ YOURUM ::
+#\[7]A5NKAXNO7UKVEMFG2K72NTB3SAPPHXLTLFFFJURSW7VTY4HAKIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

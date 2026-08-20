@@ -192,10 +192,10 @@ my $route = <[httpd.route_dispatcher]>->(
 ## File Locations
 
 **New Modules** (Commit 6eec27655):
-- `/home/user/protocol-7/modules/httpd.vhost_template_resolver`
-- `/home/user/protocol-7/modules/web.skin_resolver`
-- `/home/user/protocol-7/modules/web.menu_generator`
-- `/home/user/protocol-7/modules/httpd.route_dispatcher`
+- `/home/user/protocol-7/src/httpd.vhost_template_resolver`
+- `/home/user/protocol-7/src/web.skin_resolver`
+- `/home/user/protocol-7/src/web.menu_generator`
+- `/home/user/protocol-7/src/httpd.route_dispatcher`
 
 **Architecture Docs**:
 - `/home/user/protocol-7/docs/architecture/NEW_ZENKA_ARCHITECTURE.md`
@@ -311,8 +311,8 @@ This session focused on creating the **infrastructure** for web-zenka template p
 **Previous**: /home/user/protocol-7/docs/SESSION_STATUS_2025-11-14_template-auth-completion.md
 **Next**: Follow up with integration testing and sample content creation
 
-#,,.,,.,.,...,,,,,..,,...,.,,,,,.,,,.,,..,,..,..,,...,...,...,.,.,...,,,.,,..,
-#LDOV24NLNFR2XUDGC2E5DJXK67JS22KI6E4S6RVXN55FNKEFUNCRPAHWVLBMDDA3UFVDUGFUZB6UI
-#\\\|BB5TWWYAOBUGH2DN6VWTZMJDNH7FLT2CO7QG42NCNW6UPSFOUOI \ / AMOS7 \ YOURUM ::
-#\[7]FPJNAVPTJFNUQ5VJGWIHU3GMFH7J6VO4PMPSDUZ323YWTTXNXSBA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,,,.,,,.,...,.,.,,..,,,.,...,..,,...,.,,,.,.,.,.,...,,,,,...,
+#MHYAUTQSMJ2OEWCGCYGLVITR2W3ATKC4QGHEGPTGKBFLPI2XRHG6KGTJ44IZF6RURD7D35HK4RV22
+#\\\|AOFJAEAHQUZD5LSLLIXCSJXC3FJP5YSNHSBM5BNCADRHWXJILFU \ / AMOS7 \ YOURUM ::
+#\[7]MF5FJ6GCONLFD4BECKSPWKQTECHJELBGWQVHV5YFG6WZ2KYCVIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

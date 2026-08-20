@@ -26,20 +26,20 @@ so commands resume flowing — it should keep running normally.
 inverse of `cube.cmd.set-initialized`. sets `initialized` back to 0/false for
 a zenka session, pausing cube command delivery (only replies pass through).
 
-model on `cube.cmd.set-initialized` (modules/cube.cmd.set-initialized):
+model on `cube.cmd.set-initialized` (src/cube.cmd.set-initialized):
 - param: `<sid>` (session id of the zenka to pause)
 - validate: session exists, is in 'zenka' auth mode, IS currently initialized
 - set `$data{'session'}{$sid}{'initialized'} = 0`
 - log: "[%s] zenka '%s' [uninitialized — drain mode]"
 - return true
 
-file to create: `modules/cube.cmd.unset-initialized`
+file to create: `src/cube.cmd.unset-initialized`
 
 ---
 
 ### 2. v7.zenka.cmd.drain-instance — add cube pause before drain signal
 
-file: `modules/v7.zenka.cmd.drain-instance`
+file: `src/v7.zenka.cmd.drain-instance`
 
 currently sends `<cube_sid>.drain` and starts drain timeout timer.
 add before the drain command send:
@@ -66,7 +66,7 @@ to get the exact call pattern for sending to cube from v7.
 
 ### 3. web.cmd.drain — new module
 
-file to create: `modules/web.cmd.drain`
+file to create: `src/web.cmd.drain`
 
 web is the application layer zenka (not the HTTP server). it handles cross-zenka
 requests via route-send patterns. check for active in-flight routes:
@@ -81,7 +81,7 @@ if active > 0: log count, set up a short poll timer (0.5s) to re-check
                using `event.add_timer` with handler `web.handler.drain_check`
                (create this handler too, same pattern as httpsd.handler.drain_check)
 
-read `modules/web.init_code` first to understand what data web tracks,
+read `src/web.init_code` first to understand what data web tracks,
 specifically look for anything that tracks active/pending requests or routes.
 if web is effectively stateless between requests (no such tracking), just
 terminate immediately — web doesn't hold long-lived connections.
@@ -90,7 +90,7 @@ terminate immediately — web doesn't hold long-lived connections.
 
 ### 4. v7.handler.zenka_status — restore initialized on twin failure
 
-file: `modules/v7.handler.zenka_status`
+file: `src/v7.handler.zenka_status`
 
 in the new-twin-instance failure path (around line 262, where `defined $old_instance_id`):
 after the notify_online resolution and before the stop call, restore the old
@@ -116,12 +116,12 @@ use the same cube command-sending pattern as step 2.
 
 ### key files to read first
 
-- `modules/cube.cmd.set-initialized` — model for unset-initialized
-- `modules/v7.zenka.cmd.drain-instance` — add cube pause here
-- `modules/httpsd.cmd.drain` — reference for web.cmd.drain pattern
-- `modules/httpsd.handler.drain_check` — reference for web.handler.drain_check
-- `modules/web.init_code` — understand web's active-request tracking
-- `modules/v7.handler.zenka_status` — twin failure path ~line 262
+- `src/cube.cmd.set-initialized` — model for unset-initialized
+- `src/v7.zenka.cmd.drain-instance` — add cube pause here
+- `src/httpsd.cmd.drain` — reference for web.cmd.drain pattern
+- `src/httpsd.handler.drain_check` — reference for web.handler.drain_check
+- `src/web.init_code` — understand web's active-request tracking
+- `src/v7.handler.zenka_status` — twin failure path ~line 262
 
 ### signatures note
 
@@ -129,8 +129,8 @@ do not modify the 4-line checksum footer. module format: `## [:< ##` header,
 no `sub {}` wrappers. `<[module.name]>->()` invocation; `<data.key>` for tree.
 `$ARG` is loop variable; `@ARG` is args array. comments lowercase.
 
-#,,.,,,..,.,.,,,.,.,.,..,,,,.,,,,,...,..,,,,,,..,,...,...,.,,,,,,,.,,,.,.,,,,,
-#2A6GKGWIVXDRKR3SE3J7VQFFWFNDJEAFXYMPUDMDCCDNRFOFHF3FPY7SHFP5SDCQ5JP3TG4J2HZO2
-#\\\|FI6CYFMHAPAVBZL2OEQBNEILBHHD7YKTV6QCDXMIZWN3HC4PZQE \ / AMOS7 \ YOURUM ::
-#\[7]O3ZC5E6F2SDQ6QNQRK7XF2UXFPTXDLMJFAX5ECWEFXFWSDJ5F2DI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,..,,.,,.,.,.,.,..,,...,,.,,,..,..,,...,...,,.,,,,.,,,.,,,.,,,.,
+#V6IWBUAFLPM4WT6DFAG3AV4S4ILP2NSBK57QWTLPXHFO2BJ3QXDQSXOW7IODL3N77FTSDFUELZHCM
+#\\\|MGBRT6EMWODRKVP4TF6HN2JSZOVSKPM5HQK5QZW7J24ZTEVKEMP \ / AMOS7 \ YOURUM ::
+#\[7]HIXCBBI7QJOM2TA4QZVSZQCXEYN5OALTG6FXH6XKBULWRLGF7UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,7 +2,7 @@
 
 ## context, read first
 
-`modules/X-11.*` — the X-11 zenka holds a single `X11::Protocol` connection
+`src/X-11.*` — the X-11 zenka holds a single `X11::Protocol` connection
 in `<X-11.obj>` (a P7 data-path expression, expands to `$data{'X-11'}{'obj'}`).
 Under WSLg/Weston this connection can silently stall mid-round-trip (compositor
 issue, not a protocol-7 bug — see `data/ai-mem/claude/topic-x11-protocol-hardening.md`
@@ -29,7 +29,7 @@ Full design doc: `data/ai-mem/claude/topic-x11-protocol-hardening.md`
   for these semantics.
 - every new/modified module needs an entry in `cfg/zenki/X-11/subroutine.white-list`
   (new modules only, alphabetical-ish, follow existing ordering nearby) AND
-  `modules/base.list.subroutines` (same list, different file, both must match
+  `src/base.list.subroutines` (same list, different file, both must match
   or signature verification fails).
 - comments: lowercase, `[ word ]` brackets not `( word )`. see any existing
   `X-11.*` module for the narrative style.
@@ -47,29 +47,29 @@ Full design doc: `data/ai-mem/claude/topic-x11-protocol-hardening.md`
 
 ## files to read for existing patterns
 
-- `modules/X-11.reconnect` — current reconnect logic (re-dial + exponential
+- `src/X-11.reconnect` — current reconnect logic (re-dial + exponential
   backoff). You're adding a replay step to this.
-- `modules/X-11.connect_X11` — how the primary connection is dialed today
+- `src/X-11.connect_X11` — how the primary connection is dialed today
   (`X11::Protocol->new(...)`, retry loop, `X-11.WM->new(...)`). Your standby
   dial logic should mirror the connection-establishment part of this but
   must NOT call `<[base.exit]>`/`kill` on failure — a failed standby dial is
   not fatal to the zenka, just means no pool coverage until the next attempt.
-- `modules/X-11.job.finalize_server` — line ~111 `RRSelectInput`, line ~247
+- `src/X-11.job.finalize_server` — line ~111 `RRSelectInput`, line ~247
   `<[X-11.grab_key]>` — the two per-connection registrations that currently
   get silently dropped on reconnect. There may be others; grep `X-11.*` for
   any other `SelectInput`/`ChangeWindowAttributes`/`Grab*` calls on
   `<X-11.obj>` and include them in the replay function too.
-- `modules/X-11.grab_key` — trivial, shows the `GrabKey` call shape.
-- `modules/base.exec.with_timeout` — the `select()`-with-deadline pattern to
+- `src/X-11.grab_key` — trivial, shows the `GrabKey` call shape.
+- `src/base.exec.with_timeout` — the `select()`-with-deadline pattern to
   reuse (NOT the open3/subprocess parts, just the `select()` + deadline
   loop shape) for bounding a socket read without blocking the event loop.
   The X11 connection's fh is `$X->{connection}->fh` (or `<X-11.obj>->{connection}->fh`
   in P7 dot-path — verify this resolves correctly, `X11::Protocol::Connection`
   and `X11::Protocol::Connection::Socket` in `X11::Protocol`'s own source have
   the `fh` accessor if you need to check).
-- `modules/base.s_read` — non-blocking sysread primitive, same one
+- `src/base.s_read` — non-blocking sysread primitive, same one
   `base.exec.with_timeout` uses. Reuse it for the socket-read-with-timeout too.
-- `modules/X-11.WM.update`, `modules/X-11.get_window_ids` — two call sites
+- `src/X-11.WM.update`, `src/X-11.get_window_ids` — two call sites
   that do direct `<X-11.obj>->GetProperty(...)` / `QueryTree` / etc. reads;
   wire the query-reroute wrapper into at least these two as the worked
   example (don't need to convert every caller in this pass — note remaining
@@ -79,7 +79,7 @@ Full design doc: `data/ai-mem/claude/topic-x11-protocol-hardening.md`
 
 ### 1. replay-registration function (fixes an existing bug, needed regardless of the pool)
 
-New module, e.g. `modules/X-11.reconnect.replay_registrations` — takes no
+New module, e.g. `src/X-11.reconnect.replay_registrations` — takes no
 args (operates on whatever `<X-11.obj>` currently points to), re-issues:
 - `RRSelectInput` (as done in `X-11.job.finalize_server` line ~111)
 - `<[X-11.grab_key]>` (as called in `X-11.job.finalize_server` line ~247 —
@@ -88,7 +88,7 @@ args (operates on whatever `<X-11.obj>` currently points to), re-issues:
   in `X-11.job.finalize_server` or its config)
 - anything else per-connection you find via the grep mentioned above
 
-Wire this into `modules/X-11.reconnect` — call it right after
+Wire this into `src/X-11.reconnect` — call it right after
 `<X-11.obj>->init(...)` succeeds, before `<[X-11.init_display_states]>`.
 
 ### 2. standby connection pool
@@ -105,7 +105,7 @@ New modules under `X-11.pool.*`:
   both callers). On failure, log via `<[base.logs]>` and leave
   `<X-11.obj.standby>` undef — don't retry synchronously in a blocking loop,
   schedule a retry via `<[base.event.add_timer]>` (check its signature in
-  `modules/base.event.add_timer` or any existing caller like
+  `src/base.event.add_timer` or any existing caller like
   `X-11.update_X11_WM` for the exact args) a reasonable delay out (e.g. 5s),
   don't retry more than a few times before backing off further.
 
@@ -167,7 +167,7 @@ etc. are set, add siblings there):
 
 Run `bin/dev/dep-graph` to regenerate `module-dependency-graph.asc`. Add
 every new module to both `cfg/zenki/X-11/subroutine.white-list`
-and `modules/base.list.subroutines`.
+and `src/base.list.subroutines`.
 
 ## what NOT to do
 
@@ -186,8 +186,8 @@ you made (and why), any additional per-connection registrations you found
 beyond `RRSelectInput`/`GrabKey`, and any call sites you identified as
 needing the `X-11.pool.query` wrapper but didn't convert in this pass.
 
-#,,,,,,,,,,..,,,.,,,.,,.,,,.,,,,,,,..,,,.,,..,..,,...,...,..,,..,,...,,,,,,..,
-#N72HAL3SDP5QJZRP4LF7XWMDCU7KEFS5AS3D3VXPMXLPLU4FNJ4GX6H3PFCMB2LAPJPXXYMVJDUP4
-#\\\|CBD3ZAADZQZPCOV6WMBO7TOM2T3ULBJK5774EDMMIFLVKH4FKGB \ / AMOS7 \ YOURUM ::
-#\[7]FFABOIWXDNAKLVHMZQAAU3JFAREKNRSTXPD4GGEMUL6V2V5LLQDA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,..,,...,,,,,.,.,.,.,,.,,,..,..,,...,...,...,.,.,,..,,..,,,,,
+#U5I6JJZVQKXRXTWQYQ7DMTD5RBETXCMNKJFZ4VCN3L7GNYF52TVFM5WCCBXGXRFROZ5D5RNWM4A3Q
+#\\\|BTI22WUWPMDYDXGLVXEFJ5P2DFUNCQS7XPLJ5YSAA3T4TQAMOHF \ / AMOS7 \ YOURUM ::
+#\[7]XMNTWGXMJOAN6RSEZWTM6FAV5F6LBTCG3YSWTI3KBUMJGYQX7SCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

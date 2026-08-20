@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = data.mount.shm.feedback.process
+# descr = Writer-side ding processing : freshness + clock-regression guard
+
+# thin zenka wrapper -> AMOS7::SHM::Feedback::process_feedback
+# injects the real <[base.ntime]> [ no parameter, harmony-validated ] as the
+# time_source used for the writer's own "now" check. the caller maintains the
+# last_seen_ntime state across dings.
+
+my ( $mount, $state, $options ) = @ARG;
+
+$state   //= {};
+$options //= {};
+
+## zenka path : real network time through p7_ntime's harmony-retry loop ##
+$options->{'time_source'} //= sub {<[base.ntime]>};
+
+return AMOS7::SHM::Feedback::process_feedback( $mount, $state, $options );
+
+#,,,,,.,.,..,,.,,,,,,,.,.,.,,,.,,,,,.,,.,,,,,,..,,...,..,,.,.,.,.,..,,,.,,..,,
+#DSH6F64OWQ6WFQH6KGARZRAHCSR6TNOK7AYL3KWE5HXVISM67277FP5MYST6VYSB6AS544W3OHRJQ
+#\\\|WJJ42MTYLBGP62APRXOLWV66JE5RXUZLBLZLYNTJZLUYXSJ5I6N \ / AMOS7 \ YOURUM ::
+#\[7]WLESDBICJ3C7LEJAMZD7Y25D5L3NTDPF7XZXJMVQKCGYZZUURKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

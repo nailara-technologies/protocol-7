@@ -1,0 +1,198 @@
+## [:< ##
+
+# name = web.process_template_recursive
+# descr = recursively process template with nested commands
+#         using base.parser.pattern_split
+
+my $params = shift;
+
+my $template_content = $params->{content};
+my $meta_vars        = $params->{meta}  // {};
+my $depth            = $params->{depth} // 0;
+my $template_id      = $params->{template_id};
+my $session_id       = $params->{session_id};
+
+my $max_depth = <web.cfg.recursion_depth_max> // 8;
+
+## Guard against infinite recursion ##
+if ( $depth >= $max_depth ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] template recursion depth limit "
+            . "reached ($max_depth) for template $template_id"
+    );
+    <web.metrics>->{recursion_depth_max_hit}++;
+    return {
+        status  => qw| error |,
+        message => qq| template recursion depth limit exceeded |,
+        content => $template_content,
+    };
+}
+
+<[base.log]>->(
+    3, "[$session_id] processing template at depth $depth (id: $template_id)"
+);
+
+## Step 1: Process meta variables <{var_name}> ##
+my $meta_pattern = <web.template.meta_pattern>;
+$template_content =~ s|$meta_pattern|
+    my $var_name = $1;
+    if (exists $meta_vars->{$var_name}) {
+        $meta_vars->{$var_name};
+    } else {
+        <[base.log]>->(2,
+            "[$session_id] undefined meta variable : $var_name");
+        "<{$var_name}>";  ## Leave unchanged if undefined
+    }
+|ge;
+
+## Step 2: Extract and parse commands using base.parser.pattern_split ##
+my $command_pattern = <web.template.command_pattern>;
+my @commands        = ();
+my $command_index   = 0;
+
+## Parse template and extract commands with their positions ##
+my $parsed_content = <[base.parser.pattern_split]>->(
+    \$template_content,    ## Must pass as scalar ref
+    $command_pattern,
+    sub {
+        my ( $before, $after, $captured ) = @_;
+
+        ## $captured is a scalar ref from pattern_split : dereference ##
+        my $cmd_str = ref($captured) eq qw| SCALAR | ? $$captured : $captured;
+        my $cmd_id = sprintf( '%s_cmd_%03d', $template_id, $command_index++ );
+
+        push @commands,
+            {
+            id     => $cmd_id,
+            raw    => $cmd_str,
+            result => undef,
+            status => qw| pending |,
+            depth  => $depth + 1,
+            nested => ( $cmd_str =~ /<\[/ ? 1 : 0 ),
+            };
+
+        ## Return placeholder that will be replaced with command result ##
+        return "<<COMMAND:$cmd_id>>";
+    }
+);
+
+<[base.log]>->(
+    2,
+    "[$session_id] extracted "
+        . scalar(@commands)
+        . " commands at depth $depth"
+);
+
+## Update metrics ##
+<web.metrics>->{commands_executed} += scalar(@commands);
+<web.metrics>->{commands_nested}++
+    if grep { $_->{nested} } @commands;
+
+## Step 3: Process nested commands first (recursive) ##
+foreach my $cmd (@commands) {
+    if ( $cmd->{nested} ) {
+        <[base.log]>->(
+            3, "[$session_id] processing nested command: $cmd->{raw}"
+        );
+
+        ## Recursively process the nested command content ##
+        my $nested_result = <[web.process_template_recursive]>->(
+            {   content     => $cmd->{raw},
+                meta        => $meta_vars,
+                depth       => $depth + 1,
+                template_id => $cmd->{id},
+                session_id  => $session_id,
+            }
+        );
+
+        if ( $nested_result->{status} eq qw| success | ) {
+            $cmd->{raw} = $nested_result->{content};
+        } else {
+            <[base.log]>->(
+                1,
+                "[$session_id] nested command processing failed: "
+                    . $nested_result->{message}
+            );
+            $cmd->{status} = qw| failed |;
+        }
+    }
+}
+
+## Step 4: Execute all commands ##
+foreach my $cmd (@commands) {
+    next if $cmd->{status} eq qw| failed |;
+
+    ## Execute command via web.execute_template_command ##
+    my $exec_result = <[web.execute_template_command]>->(
+        {   command     => $cmd->{raw},
+            template_id => $template_id,
+            session_id  => $session_id,
+            depth       => $depth,
+        }
+    );
+
+    if ( $exec_result->{status} eq qw| success | ) {
+        $cmd->{result} = $exec_result->{result};
+        $cmd->{status} = qw| completed |;
+    } else {
+        <[base.log]>->(
+            1,
+            "[$session_id] command execution failed: $cmd->{raw} - "
+                . $exec_result->{message}
+        );
+        $cmd->{result} = qq| <!-- command failed: $cmd->{raw} --> |;
+        $cmd->{status} = qw| failed |;
+        <web.commands.failed>++;
+    }
+}
+
+## convert parsed content from array ref to string before substitution ##
+## base.parser.pattern_split returns array ref with scalar refs        ##
+if ( ref($parsed_content) eq 'ARRAY' ) {
+    my @deref
+        = map { ref($ARG) eq 'SCALAR' ? $$ARG : $ARG } @{$parsed_content};
+    $parsed_content = join( '', @deref );
+}
+
+## Step 5: Substitute command results back into template ##
+foreach my $cmd (@commands) {
+    my $placeholder = "<<COMMAND:$cmd->{id}>>";
+    my $result      = $cmd->{result} // '';
+    $parsed_content =~ s|\Q$placeholder\E|$result|g;
+}
+
+<web.commands.completed> += scalar(@commands);
+
+## Step 6: Check if further recursion is needed  If the result contains new ##
+## commands, recurse again                                                  ##
+if ( $parsed_content =~ /<\[/ and $depth < $max_depth - 1 ) {
+    <[base.log]>->(
+        3,
+        "[$session_id] template still contains "
+            . "commands after substitution, recursing again"
+    );
+
+    return <[web.process_template_recursive]>->(
+        {   content     => $parsed_content,
+            meta        => $meta_vars,
+            depth       => $depth + 1,
+            template_id => $template_id,
+            session_id  => $session_id,
+        }
+    );
+}
+
+my $final_content = $parsed_content;
+
+return {
+    status  => qw| success |,
+    content => $final_content,
+    depth   => $depth,
+};
+
+#,,,,,,,.,...,,.,,,,.,,,,,..,,.,,,..,,,,.,.,.,..,,...,...,...,.,,,.,,,,..,,..,
+#DGLEEGZDE3J4RQZNU2HGYYXY62PCUPXK7DXFBZ4X4YDVFJPBKIAQSJN4HUDQDDITF3IAEYVFDHXJY
+#\\\|ZKLUZZKEAZDADM44H5KIY2K2DTKQHYLDZMXXQ7UWYUFFCWYIROI \ / AMOS7 \ YOURUM ::
+#\[7]AP473GNJVYAWKEK5BFTPNYQCGVPVULXLKLULYHCGPLAJ7C7P2GDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

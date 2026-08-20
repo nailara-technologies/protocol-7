@@ -36,12 +36,12 @@ this task depends on: context-channel-frequency-separation.md
 
 ## key reference files — read these first
 
-    modules/graphics-matrix.cursor.set          — current absolute position setter
-    modules/graphics-matrix.cursor.position     — returns cursor state copy
-    modules/graphics-matrix.cursor.checksum     — AMOS checksum of position
-    modules/graphics-matrix.cursor.move         — relative movement
-    modules/graphics-matrix.cmd.cursor          — existing command interface
-    modules/graphics-matrix.channel.current     — active channel context
+    src/graphics-matrix.cursor.set          — current absolute position setter
+    src/graphics-matrix.cursor.position     — returns cursor state copy
+    src/graphics-matrix.cursor.checksum     — AMOS checksum of position
+    src/graphics-matrix.cursor.move         — relative movement
+    src/graphics-matrix.cmd.cursor          — existing command interface
+    src/graphics-matrix.channel.current     — active channel context
     bin/dev/division-13-table
         — directional routing protocol: UP/LEFT/RIGHT/DOWN + hop count
           from the 7-bit decoded field (lines 139-199)
@@ -125,7 +125,7 @@ the address registry lives at:
 
 ## files to create
 
-### modules/graphics-matrix.address.resolve
+### src/graphics-matrix.address.resolve
 
     # name  = graphics-matrix.address.resolve
     # descr = resolve any addressing scheme to grid coordinates
@@ -150,7 +150,7 @@ the address registry lives at:
     on error: return { mode => 'false', data => 'reason' }
 
 
-### modules/graphics-matrix.address.encode
+### src/graphics-matrix.address.encode
 
     # name  = graphics-matrix.address.encode
     # descr = encode grid position in a specific addressing scheme
@@ -172,7 +172,7 @@ the address registry lives at:
     for checksum: also register in the address registry.
 
 
-### modules/graphics-matrix.address.register
+### src/graphics-matrix.address.register
 
     # name  = graphics-matrix.address.register
     # descr = register a position in the address registry
@@ -199,7 +199,7 @@ the address registry lives at:
     return { checksum => $chk, position => $pos }
 
 
-### modules/graphics-matrix.address.init
+### src/graphics-matrix.address.init
 
     # name  = graphics-matrix.address.init
     # descr = initialize address registry
@@ -213,7 +213,7 @@ the address registry lives at:
     log at level 2: "address registry initialized"
 
 
-### modules/graphics-matrix.cmd.address
+### src/graphics-matrix.cmd.address
 
     # name  = graphics-matrix.cmd.address
     # descr = resolve, encode, and manage cursor addresses
@@ -243,14 +243,14 @@ the address registry lives at:
 
 ## modifications to existing files
 
-### modules/graphics-matrix.init_code
+### src/graphics-matrix.init_code
 
 add address initialization after channel init, before `0;`:
 
     ## initialize address registry ##
     <[graphics-matrix.address.init]>;
 
-### modules/graphics-matrix.cursor.set
+### src/graphics-matrix.cursor.set
 
 after setting position (before the log line), register new position:
 
@@ -263,7 +263,7 @@ after setting position (before the log line), register new position:
         },
     } );
 
-### modules/graphics-matrix.cursor.move
+### src/graphics-matrix.cursor.move
 
 same registration after computing new position.
 
@@ -300,8 +300,8 @@ natural for a given layer will emerge from usage.
     verify goto command moves cursor and registers new position
     verify cursor.set and cursor.move register in address registry
 
-#,,,,,..,,...,...,,..,...,..,,.,.,,,.,.,.,,,,,..,,...,...,..,,,..,,,.,.,,,..,,
-#NBDKGULMVGZUQTMGSL5XKM5WNYGAGWRPZOA722TISY7MSLS5ZEDJSIKE7ZLCGSPNRDKE5KVARKRIW
-#\\\|CPI4LICOZCMIO7NMSLP6F5BR6L6X4PADNMIDPGQFKTGDHQTSUTH \ / AMOS7 \ YOURUM ::
-#\[7]QWP6QVYJDLUBLNXAQITXEJNHKWORFXKKUXGA2IRETNUAIEKIW2BA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,,,.,.,...,.,,,..,,,,,,..,,.,.,..,,...,...,..,,.,.,..,,,,,,,,.,
+#NNVFREAUYBKEPRPP3L5HEEOQVPZ5LLJ5WREVEQFFFOOZEGB43JPODARCKGB4NKNJZPJQ3QACQ5BBA
+#\\\|QRDD2775YH3HYDLWSRZUJ6HRTJZKFBUMUEYIVJ3A4WR7O2QUVRC \ / AMOS7 \ YOURUM ::
+#\[7]MOO3NJCRXKZUFFTH4N45CRFKIFPEAXO6RZPPIRE3KVEYRHUXK4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

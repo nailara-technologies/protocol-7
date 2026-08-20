@@ -15,21 +15,21 @@ names ].
 
 ## scope : 5 inline subs across 5 modules
 
-### 1. `modules/weather.cmd.current` line 36 : `sub _format_current_widget`
-extract to `modules/weather.current.util.format_current_widget`
+### 1. `src/weather.cmd.current` line 36 : `sub _format_current_widget`
+extract to `src/weather.current.util.format_current_widget`
 [ drop `.cmd.` per convention: `weather.cmd.current` -> `weather.current` ]
 
-### 2. `modules/weather.cmd.forecast` line 61 : `sub _format_forecast_widget`
-extract to `modules/weather.forecast.util.format_forecast_widget`
+### 2. `src/weather.cmd.forecast` line 61 : `sub _format_forecast_widget`
+extract to `src/weather.forecast.util.format_forecast_widget`
 
-### 3. `modules/weather.cmd.widget` line 29 : `sub _get_weather_widget_css`
-extract to `modules/weather.widget.util.get_weather_widget_css`
+### 3. `src/weather.cmd.widget` line 29 : `sub _get_weather_widget_css`
+extract to `src/weather.widget.util.get_weather_widget_css`
 
-### 4. `modules/base.language.detect` line 64 : `sub _wordlist_detect`
-extract to `modules/base.language.util.wordlist_detect`
+### 4. `src/base.language.detect` line 64 : `sub _wordlist_detect`
+extract to `src/base.language.util.wordlist_detect`
 
-### 5. `modules/base.language.heuristic` line 14 : `sub _encoding_special_chars`
-extract to `modules/base.language.util.encoding_special_chars`
+### 5. `src/base.language.heuristic` line 14 : `sub _encoding_special_chars`
+extract to `src/base.language.util.encoding_special_chars`
 
 for each: read the full source module first, find all call sites of
 the inline sub [ may be called more than once ], replace every call
@@ -39,7 +39,7 @@ declaration [ and any `## [ ... ] ##` divider comment around it ].
 ## registration
 
 after all 5 new modules are created and source files updated:
-- add all 5 new module names to `modules/base.list.subroutines`
+- add all 5 new module names to `src/base.list.subroutines`
   [ no strict alphabetical ordering required — follow existing local
   pattern, group near related `weather.*` / `base.language.*` entries ]
 - regenerate `data/md/documentation/module-dependency-graph.asc` via
@@ -60,8 +60,8 @@ after all 5 new modules are created and source files updated:
 ## non-goals
 
 - no behavior change — pure refactor, same logic moved to sibling files
-- do not touch `modules/download.*`, `modules/letsencr.*`,
-  `modules/source.*`, `modules/space.*`, `modules/work.*` — those are a
+- do not touch `src/download.*`, `src/letsencr.*`,
+  `src/source.*`, `src/space.*`, `src/work.*` — those are a
   separate batch
 
 ## signatures note
@@ -72,8 +72,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,,,.,.,,,,,.,.,.,,,,.,,.,.,...,,..,,..,.,.,..,,...,...,..,,,.,,,,,,..,,...,
-#I6J2KX4RFJW4CEZFA2B5CILRBVWD7DPLTOCV5RADIZXB7KC7JEN7Y6NTK5QICXZU4WNZA2UABUISS
-#\\\|6SPVRDNIMQ7UI55HFYRYM22EBZXHENYWP33UBOZEP3NVUAYAT37 \ / AMOS7 \ YOURUM ::
-#\[7]UZ7P27ULIQVPIVG6S2OHNWLXLRWE3KD2VXFI2L6HXLYRDHNZXMAI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,,.,,..,,,,.,...,...,.,.,,,.,..,,...,...,...,,.,,.,.,..,,,,,,
+#GYMCQBE6WW36JZTK7TF65VDNCUGUFL765DMS5S3AS2ZHBHJTX5HXS6EDBSAUOQU3BHH2QMKO4WACI
+#\\\|QIDGP2FP5ABCHHQMYBJAA53CIAR532JJ2DSHJSWCQOVMESCEY2D \ / AMOS7 \ YOURUM ::
+#\[7]B3I7NHGZFSOZ6LTGBMLTFBWTHRKJWIC5ZXC5EPEUAFLYAEHOJSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

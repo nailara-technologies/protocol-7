@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = branch.init_code
+# descr = initialize branch namespace per-zenka state
+
+## node registry: id → { id, name, parent, created, pubkey, face, meta, ##
+## groups }                                                             ##
+$data{'branch.nodes'} //= {};
+
+## children index: parent_id → { name → child_id } ##
+$data{'branch.children'} //= {};
+
+## reference groups: group_name → { members → [ node_id, ... ] } ##
+$data{'branch.groups'} //= {};
+
+## root node id [ undef until first branch.node.create with no parent ] ##
+$data{'branch.root'} //= undef;
+
+## dependency graph: from_id → { to_id → { type, declared_at } } ##
+$data{'branch.deps'} //= {};
+
+## reverse dependency index: to_id → { from_id → TRUE } ##
+$data{'branch.dep.reverse'} //= {};
+
+## discover integration state ##
+$data{'branch.discover.pending'}  //= {};
+$data{'branch.discover.results'}  //= {};
+$data{'branch.discover.queries'}  //= {};
+$data{'branch.discover.watchers'} //= {};
+
+## interest propagation counts [ observer -> ancestor -> count ] ##
+$data{'branch.interest'} //= {};
+
+## interest routes: route_id -> route record ##
+$data{'branch.routes'} //= {};
+
+## route indexes for fast lookup ##
+$data{'branch.routes.by_observer'} //= {};
+$data{'branch.routes.by_target'}   //= {};
+
+## route cache for wave propagation [ hop_id -> target_id -> { next_hop, ##
+## ntime } ]                                                             ##
+$data{'branch.route.cache'} //= {};
+
+## storage backend: 'storage-zenka' | 'local-yaml' ##
+$data{'branch.storage.backend'} //= 'local-yaml';
+
+## snapshot registry: snapshot_id -> { snapshot_id, node_id, created, ##
+## node_count, backend }                                              ##
+$data{'branch.storage.snapshots'} //= {};
+
+## data zenka bindings: node_id -> { namespace, zenka } ##
+$data{'branch.data.bindings'} //= {};
+
+## branch field nodes: open/closed/field state per continuation region ##
+$data{'branch.field'} //= {};
+
+## register ttl cleanup timer ##
+<[event.add_timer]>->(
+    {   'interval' => 60,
+        'repeat'   => TRUE,
+        'handler'  => 'branch.route.timer.cleanup',
+    }
+);
+
+<[base.logs]>->( 2, 'branch: namespace initialized' );
+
+#,,..,..,,...,,..,...,.,,,,.,,,..,,,.,.,.,,,,,..,,...,...,...,..,,..,,.,,,...,
+#EWCY2NUT3OF342SYIY7AUUSWW6GV6D7MRCHERVHO4Z24AS2C6FQ7XSEEY2DJ7J37O6QJUWCUDOKGG
+#\\\|N7ZFH2PCRUXKC5OXMVY6TRQEM2JZ2EQJPEN5IYMTUWDRY3UENMF \ / AMOS7 \ YOURUM ::
+#\[7]6ZPGBLRJNOZJNEX4FQD55WGCMYTEKLCK3DWMCXODZEKAOIMYTADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

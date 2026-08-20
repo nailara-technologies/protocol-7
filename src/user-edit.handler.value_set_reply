@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = user-edit.handler.value_set_reply
+# descr = clear the outbox entry once the users zenka confirms the write
+
+## reply-handler call signature is a SINGLE hashref { sid, cmd, call_args,
+## params, data? } ; TRUE/FALSE carry their message in call_args->{'args'}
+
+my ($info) = @ARG;
+
+my $cmd       = uc( $info->{'cmd'} // '' );
+my $call_args = $info->{'call_args'}      // {};
+my $username  = <user-edit.form.username> // '?';
+
+## FAN-IN path [ 2026-08-14 ] : a submit with masked fields also has one or
+## more sessions.hold calls in flight, and the combined outcome is owned by
+## user-edit.form.submit_maybe_finish, not this handler directly -- record the
+## result and return. everything below this guard is the ORIGINAL,
+## single-reply body, untouched -- it never inspected $values, so no other
+## change was needed for the ordinary [ no masked field ] case
+if ( ref <user-edit.form.submit_pending> eq qw| HASH | ) {
+
+    if ( $cmd eq qw| TRUE | ) {
+        <[user-edit.outbox.clear]>->($username);
+        <[user-edit.draft.clear]>->($username);
+        <[user-edit.form.submit_note_value_set_result]>->(
+            TRUE, $call_args->{'args'} // "user '$username' stored"
+        );
+    } else {
+        <[user-edit.form.submit_note_value_set_result]>->(
+            FALSE, $call_args->{'args'} // 'no detail'
+        );
+    }
+
+    return TRUE;
+}
+
+if ( $cmd eq qw| TRUE | ) {
+
+    ## confirmed stored : the staged copy has served its purpose ##
+    <[user-edit.outbox.clear]>->($username);
+    <[user-edit.draft.clear]>->($username);
+
+    <user-edit.form.exit_message> = sprintf( 'saved : %s',
+        $call_args->{'args'} // "user '$username' stored" );
+    <user-edit.form.exit_class> = qw| ok |;
+
+} else {
+    ## staged entry deliberately LEFT IN PLACE for a later retry — losing the
+    ## edit because the zenka rejected one attempt is the failure mode the
+    ## outbox exists to prevent.  a form holding a secret was never staged [
+    ## see user-edit.form.submit ], so say so rather than claiming a
+    ## recoverable copy exists when it does not
+    <user-edit.form.exit_class>   = qw| fail |;
+    <user-edit.form.exit_message> = (
+        sprintf(
+            'not saved [ %s ] : %s — %s',
+            lc($cmd),
+            $call_args->{'args'} // 'no detail',
+            <user-edit.form.staged>
+            ? 'edit is staged in the outbox and kept'
+            : 'nothing was staged, this edit is not recoverable'
+        )
+    );
+}
+
+STDOUT->flush();
+
+<[user-edit.form.quit]>->(
+    <user-edit.form.exit_message>, <user-edit.form.exit_class>
+);
+
+return TRUE;
+
+#,,..,.,.,...,.,.,..,,,.,,,..,,.,,.,,,..,,,,.,..,,...,...,.,.,.,.,,..,,,,,,..,
+#ES3C5MH55LA3JJOM7UZIZIIXLDM7H7PAHNKRXX3NNYQNQFHMRA6KWY7IJCT67KCW2HGXGPN4CJRTK
+#\\\|IBZ2FKCKTFUEDCA7PVWTA4EQG5JE2S3T5CLHE6LMANF3QIV6O7T \ / AMOS7 \ YOURUM ::
+#\[7]C3RPNLELKRTZNWGEOLO5G2ARS5T45JW3OSLCOC5D5YMCGSDMZ6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

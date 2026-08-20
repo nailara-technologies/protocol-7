@@ -9,7 +9,7 @@ translates them into concrete first steps.
 
 current state on disk:
 
-- `modules/povray.init_code` — stub, `0;` and nothing else
+- `src/povray.init_code` — stub, `0;` and nothing else
 - `cfg/zenki/povray/{start,zenka-startup.v7,os-dep,pm-dep,
   source,subroutines.load-early}` — scaffolding already wired up
   [ auth.client, net, protocol, io.unix, ui, povray loaded ; wildcard
@@ -70,8 +70,8 @@ architectural commitments this plan defers to rather than re-decides.
 
 **structural precedents inside the repo:**
 
-- `modules/audio.init_code`, `modules/audio.decode_to_pcm`,
-  `modules/audio.handler.pcm_data`, `modules/audio.handler.
+- `src/audio.init_code`, `src/audio.decode_to_pcm`,
+  `src/audio.handler.pcm_data`, `src/audio.handler.
   decode_timeout` — the cleanest existing precedent for async
   external-process spawning : `IPC::Open3`, non-blocking pipes,
   `event.add_io` watchers, `event.add_timer` timeout, per-run state
@@ -136,7 +136,7 @@ pipeline side.
 
 ## what `povray.init_code` needs to do
 
-modelled on `modules/audio.init_code`. concretely :
+modelled on `src/audio.init_code`. concretely :
 
 ```perl
 ## [:< ##
@@ -480,8 +480,8 @@ things this plan considered and rejected :
   to milestone 2+. one symlink at finalize is fine ; a real cache
   index is not.
 
-#,,,,,...,,..,.,,,..,,.,,,.,,,.,,,,,.,,,,,.,,,..,,...,...,...,..,,.,,,,..,...,
-#PWO7IXN6D3XBH2ECQ22EX4PIDPKZ6GEBDYEINFHN2IFROIWNYIIRSTV7BTU764IGUWWOSIYCGYBIO
-#\\\|AUKCP7XDKZVTLAQCNRGHTRMPZF5XVBGOXLPNBYLT6QDC55QBX5P \ / AMOS7 \ YOURUM ::
-#\[7]OCT27AJ4SH6FBOIMJNWG2WX76XRFURJWBMR6MZPMSODP2RZYVECQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,.,.,,..,.,.,,,,,...,,,.,.,,,..,,...,...,..,,,,.,.,,,,..,.,.,
+#RUE4JOXTNM7DGU5SXOZGCR4TWQXQKYHVLVF4M43TWPVLDUSTIPUFVFB5TQVOY7RE6TFDKW4NBRI4Y
+#\\\|77DU23CGTEI5RLLLI5OVTVPLETB7QYEVWDMCHTDQPSIVJIJSDVJ \ / AMOS7 \ YOURUM ::
+#\[7]J5AZ5RAK3OBO5J6MYRZ23SR5PC25DPAZRNLH3U6HSZZ4EQRHRSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

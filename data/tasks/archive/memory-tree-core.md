@@ -4,9 +4,9 @@
 implement the tree structure and the three-pass weighting:
 `memory.tree.init`, `memory.tree.insert`, `memory.tree.score`,
 `memory.tree.render`. read first: `data/md/design/MEMORY-TREE-SYSTEM.md`
-sections A, B, C, E; `modules/base.curve.eval` (the PURE evaluator — use this,
-NOT base.curve.compose); `modules/base.sort`, `modules/base.sort-num`;
-`modules/ascii.frame.compose` (frame nesting); the ntime feedback (b32 not
+sections A, B, C, E; `src/base.curve.eval` (the PURE evaluator — use this,
+NOT base.curve.compose); `src/base.sort`, `src/base.sort-num`;
+`src/ascii.frame.compose` (frame nesting); the ntime feedback (b32 not
 sortable → `base.ntime_BASE32_to_numerical`). depends on
 `memory.tree.node.render` (frames task) for rendering and on source adapters for
 leaf input, but `init`/`insert`/`score` can be unit-tested with hand-built
@@ -85,8 +85,8 @@ narrative comments, `[ word ]` annotations, NO manual signature stubs.
   compact and expanded variants; passing a smaller `n` visibly shrinks the tree.
 - no manual AMOS7 signature stubs in any new file.
 
-#,,..,...,.,.,.,,,,.,,..,,...,,,.,,..,,..,..,,..,,...,...,..,,,,,,,.,,,,,,,.,,
-#R7NGF7UM5KOCH5NKMSSCPFK5XYUPOMVSQVW2RIY3ALPGSKY3DCQ6LPTLJHWDCFK3QYPPEBDV7QA6I
-#\\\|AVYVR7ATACXNWPXEAJ2R4M2PA4GONKB7U6BHJD3ES2T3ZI3ZCOO \ / AMOS7 \ YOURUM ::
-#\[7]QKOALUELIONZTUOTSIXJWWTPU4JA62PFGPQBP3SPTD4ZQIJYNKBA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,,,,..,,.,,.,.,..,,,..,,,.,.,.,..,,...,...,..,,.,.,,,,,,,.,,,,,
+#UFNZBXQAQ65QVSZIIAJJ7VJAN3ASEDK2L22ECDXHQE7I4ZFJKESD3C5PI4MCG5VAPQCQDVR5CCF7Q
+#\\\|JZ7OPIKKP3B6K4GU6CQUWVVZBIJIK4UY2W7VNDW3U64BT6YQHW3 \ / AMOS7 \ YOURUM ::
+#\[7]JZRIAW7BQBYO4C53ROBLZRPNXOCTQUHIVKUDHHK2EN3E5BJS6KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ design_doc: data/md/design/CODING-ZENKA-USER-INTERACTION-SURFACES.md
 context: |
   amos-term is already a plugin-typed, hot-reloadable extension system
   [ amos-term.plugin-init_code ]: types decoder / routing / render / input, each with a
-  hook and a modules/amos-term.plugin-<type>/ dir, registry watched by inotify for
+  hook and a src/amos-term.plugin-<type>/ dir, registry watched by inotify for
   hot-reload. it already has the primitive needed for a live back-and-forth:
   buffer-attach_generic( buffer_id, kind, { cursor_x, cursor_y, cursor_z, write, read,
   data => { on_buffer_change => ... } } ) — the same mechanism amos-term.nshell.bridge uses
@@ -23,7 +23,7 @@ scope:
   new_plugin_type:
     name: interaction
     hook: agent.query
-    dir: modules/amos-term.plugin-interaction
+    dir: src/amos-term.plugin-interaction
     registration: |
       add to <amos-term.plugin-types> alongside decoder/routing/render/input, following
       the exact structure already used for those four.
@@ -107,12 +107,12 @@ notes: |
 prototype_results: |
   PROTOTYPED live 2026-08-04 against the nshell.bridge pattern [ in the running
   amos-term zenka, headless ]:
-    modules/amos-term.interaction.ask               [ core, mirrors nshell.bridge ]
-    modules/amos-term.handler.interaction-changed   [ reply accumulation + delivery ]
-    modules/amos-term.handler.interaction-deliver   [ default delivery endpoint ]
-    modules/amos-term.cmd.interaction-ask           [ test entry: ask ]
-    modules/amos-term.cmd.interaction-reply         [ test entry: simulated user reply ]
-    modules/amos-term.cmd.interaction-status        [ channel state inspection ]
+    src/amos-term.interaction.ask               [ core, mirrors nshell.bridge ]
+    src/amos-term.handler.interaction-changed   [ reply accumulation + delivery ]
+    src/amos-term.handler.interaction-deliver   [ default delivery endpoint ]
+    src/amos-term.cmd.interaction-ask           [ test entry: ask ]
+    src/amos-term.cmd.interaction-reply         [ test entry: simulated user reply ]
+    src/amos-term.cmd.interaction-status        [ channel state inspection ]
     amos-term.buffer-write                          [ scope item (a) DONE:
       on_buffer_change notify dispatch, re-entrancy-guarded, optional client_type
       param so a writer can filter its own writes ]
@@ -142,13 +142,13 @@ prototype_results: |
   remaining scope [ NOT done ]:
     - timeout degrade timer -> record_question [ verification 3 ]
     - inotify hot-reload watcher on plugin dirs [ verification 4 ]
-    - 5th plugin-type registration + modules/amos-term.plugin-interaction/
+    - 5th plugin-type registration + src/amos-term.plugin-interaction/
       scaffolding [ unblocked: lifecycle resolved, mechanism proven ]
     - GTK window-open path [ prototype ran headless; window-open untested ]
     - new modules are UNSIGNED: run bin/Protocol-7 sourcecode update-signatures
 
-#,,..,.,,,.,,,,..,,.,,,..,..,,,.,,,,.,...,,,,,..,,...,...,.,,,,,,,..,,.,,,...,
-#7ORK3RBLBI3BCBLNJWXRISMOVZINSUMHW2TH7NF4AFT5T7WDMUHGYSDHRIESNJMFR3EI236IW6OWG
-#\\\|DLLHK2DCW7USOAFE5ZBLUVQ2A4MDBIDUUMKELRYKSANYY67JZVS \ / AMOS7 \ YOURUM ::
-#\[7]Z3GBDENCWFN6OL3YJUVQ6Q2EMV7DZKRPTFU7ATC4TT2JCQHASEBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,..,,...,,..,...,,..,,,.,.,,,..,,...,...,.,,,.,.,,.,,,.,,,,,,
+#EAUQWLQVRQQB4J2V7QRK5FXDR4ZNE47JG4F6WUNRNGBO6LN4LADHDMMXS55OHOCSDBUG4YHNNDK7G
+#\\\|SFASHBZH65TEGMSCE564POP7SSWXTGDYIOK6K5NVJS5P435IXY5 \ / AMOS7 \ YOURUM ::
+#\[7]NPGKUHEN527Y5XAJLAETEIXXRA32NWMS76VHOK5KUICPKTFSLIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

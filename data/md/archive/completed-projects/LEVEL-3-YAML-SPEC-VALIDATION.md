@@ -346,7 +346,7 @@ Continuous benefit: Regressions detected immediately
 │  └─ pre-commit (NEW)
 │     └─ Validates: commit msg → YAML specs → code changes
 │
-├─ modules/
+├─ src/
 │  └─ yaml-validator.* (NEW zenka - Phase 2)
 │     ├─ yaml-validator.base.validate_scenario
 │     ├─ yaml-validator.base.compare_to_baseline
@@ -428,8 +428,8 @@ workflow.testing:
 
 This is a **meta-level quality system** that uses the architecture documentation itself as the validation mechanism, reinforced by workflow integration.
 
-#,,..,...,.,.,,,.,,,,,,..,..,,,,,,..,,,..,..,,..,,...,...,,..,,..,,,.,...,.,,,
-#ML7TRXPJ6GS6C45HLWYXTJ4XV7LVXI4IUPI3PP2JSV2DZOLISBOZ7EQOARY3X3FVAH5RQOYPGC6MK
-#\\\|ZX7BFBO5R73BXBIR4MICWE2ISTKXPDVZFECPQ4LU4Y3WEZTGSBC \ / AMOS7 \ YOURUM ::
-#\[7]TTVHDHOBGW2E73HAWFMRBXJ7TUEDUVNJIIVPVXON4JSRZZO7SCDI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,...,.,,,,,.,...,,.,,,,.,,..,..,,...,...,.,,,.,,,.,.,..,,,,,,
+#ZB5NV4YL7YL7JMVQNGRAKOXNFVX3AJPR4MBFD66KCFHLE2QM2NCFSCM46V6ZSJBNINHXRZMV5HZ3Q
+#\\\|CF4GH45DE7YVWLLDKJMZJBZSTAC3YLDN34W26OC5EVIBXXKBTHC \ / AMOS7 \ YOURUM ::
+#\[7]LZN7LGKU5G2TOEWVKYNDHYHL7MBLER5MN4KUM44VPTA3TDWNHQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

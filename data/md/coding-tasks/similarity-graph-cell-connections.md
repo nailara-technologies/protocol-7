@@ -39,13 +39,13 @@ this task depends on: lattice-cell-storage-namespace-bridge.md
 
 ## key reference files — read these first
 
-    modules/graphics-matrix.cell.place           — cell creation and reference counting
-    modules/graphics-matrix.cell.query           — cell lookup by position or address
-    modules/graphics-matrix.cell.survey          — hop-distance counting for glow bridge
-    modules/graphics-matrix.cell.list            — listing cells with sorting
-    modules/graphics-matrix.glow.compute         — intensity computation from counts
-    modules/graphics-matrix.address.resolve      — address resolution
-    modules/graphics-matrix.cmd.cell             — command pattern with survey→glow bridge
+    src/graphics-matrix.cell.place           — cell creation and reference counting
+    src/graphics-matrix.cell.query           — cell lookup by position or address
+    src/graphics-matrix.cell.survey          — hop-distance counting for glow bridge
+    src/graphics-matrix.cell.list            — listing cells with sorting
+    src/graphics-matrix.glow.compute         — intensity computation from counts
+    src/graphics-matrix.address.resolve      — address resolution
+    src/graphics-matrix.cmd.cell             — command pattern with survey→glow bridge
 
 
 ## architecture
@@ -97,7 +97,7 @@ the graph influences glow through two mechanisms:
 
 ## files to create
 
-### modules/graphics-matrix.graph.init
+### src/graphics-matrix.graph.init
 
     # name  = graphics-matrix.graph.init
     # descr = initialize similarity graph state
@@ -110,7 +110,7 @@ the graph influences glow through two mechanisms:
     log at level 2: "graph initialized"
 
 
-### modules/graphics-matrix.graph.connect
+### src/graphics-matrix.graph.connect
 
     # name  = graphics-matrix.graph.connect
     # descr = create or update an edge between two cells
@@ -138,7 +138,7 @@ the graph influences glow through two mechanisms:
     return the edge hashref.
 
 
-### modules/graphics-matrix.graph.disconnect
+### src/graphics-matrix.graph.disconnect
 
     # name  = graphics-matrix.graph.disconnect
     # descr = remove an edge between two cells
@@ -155,7 +155,7 @@ the graph influences glow through two mechanisms:
     return { removed => boolean }
 
 
-### modules/graphics-matrix.graph.neighbors
+### src/graphics-matrix.graph.neighbors
 
     # name  = graphics-matrix.graph.neighbors
     # descr = find all cells connected to a given cell
@@ -173,7 +173,7 @@ the graph influences glow through two mechanisms:
     sorted by weight descending.
 
 
-### modules/graphics-matrix.graph.cluster
+### src/graphics-matrix.graph.cluster
 
     # name  = graphics-matrix.graph.cluster
     # descr = auto-cluster connected cells by edge weight
@@ -200,7 +200,7 @@ the graph influences glow through two mechanisms:
     return { clusters => N, cells => N, threshold => F }
 
 
-### modules/graphics-matrix.graph.survey
+### src/graphics-matrix.graph.survey
 
     # name  = graphics-matrix.graph.survey
     # descr = survey cells with graph-weighted influence
@@ -225,7 +225,7 @@ the graph influences glow through two mechanisms:
     this output feeds glow.compute just like cell.survey does.
 
 
-### modules/graphics-matrix.cmd.graph
+### src/graphics-matrix.cmd.graph
 
     # name  = graphics-matrix.cmd.graph
     # descr = manage similarity graph and visualize connections
@@ -271,7 +271,7 @@ the graph influences glow through two mechanisms:
 
 ## modifications to existing files
 
-### modules/graphics-matrix.init_code
+### src/graphics-matrix.init_code
 
 add graph initialization after cell init, before `0;`:
 
@@ -295,8 +295,8 @@ add `graph` to the access.cmd.usr.cube line.
     verify graph.cluster produces correct connected components
     verify cmd.graph connect parses addresses correctly
 
-#,,,,,,..,..,,,..,,,,,.,.,..,,,,.,..,,.,,,..,,..,,...,...,.,.,.,.,,.,,..,,...,
-#BB3QKGVWD7SSF73ZSIEYDLDCOMQWQAKYFC7UKHGWSIS3PKC54YZX7SKVYFHLV2RPMKDXDF7DFPVA4
-#\\\|2F6HPLRNVHFN5KGV5JEQSICISZ3ZEII5N5BFZ7NLL735CT7DDZI \ / AMOS7 \ YOURUM ::
-#\[7]P4S5HG73X53EKDETH4LKLRQA2HVOLUNKLRTY32A35GQLSMUFBOBA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,,,.,,,,.,,.,,,.,,,.,,,,..,,..,..,,...,...,...,.,,,,,,,,.,,..,,
+#4Q2AETQTKUA2YYKBDFIHROAE4JLPBPLS5N6JM4YNBXW4RETX7EH5HTAUAHOZBKSVTFURIGGMT5PYO
+#\\\|BKXFEEQRFZSWSR53LLEA6BWNP3MA2IPLHA2VHUXIGLDXHZVPZ32 \ / AMOS7 \ YOURUM ::
+#\[7]IQIMFJGM7CA7Q4JBUQ3XBRYKTCZR5LBYJ5HTLD2IHLB6BIGVWQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

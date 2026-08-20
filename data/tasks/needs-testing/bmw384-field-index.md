@@ -40,7 +40,7 @@ and finds candidates by geometric proximity alone.
 
 ## modules to create
 
-### modules/base.bmw384.index.init
+### src/base.bmw384.index.init
 
 initialize <bmw384.index> to empty structure if not already present.
 called once from zenka init_code or on first use.
@@ -50,7 +50,7 @@ called once from zenka init_code or on first use.
       <bmw384.index>->{'by_arc'}{$arc} //= [];
   }
 
-### modules/base.bmw384.index.register
+### src/base.bmw384.index.register
 
 register a node by name. params: ( $name, $input )
 $input is the scalar to hash (may equal $name, or be a checksum, IP, etc.)
@@ -63,17 +63,17 @@ $input is the scalar to hash (may equal $name, or be a checksum, IP, etc.)
      $name, $coord->{'arc'}, $coord->{'segment_label'}
   5. return $coord
 
-### modules/base.bmw384.index.lookup
+### src/base.bmw384.index.lookup
 
 exact lookup by name. param: ( $name )
 returns coordinate hashref or undef if not found.
 
-### modules/base.bmw384.index.query-arc
+### src/base.bmw384.index.query-arc
 
 return all nodes in a given arc segment. param: ( $arc )
 returns arrayref of { name => $name, coord => $coord } sorted by color ascending.
 
-### modules/base.bmw384.index.query-radius
+### src/base.bmw384.index.query-radius
 
 return all nodes within color distance $radius of a center coordinate.
 params: ( $center_coord, $radius )
@@ -83,13 +83,13 @@ params: ( $center_coord, $radius )
   3. collect nodes where dist <= $radius
   4. return arrayref of { name, coord, dist } sorted by dist ascending
 
-### modules/base.bmw384.index.query-neighbors
+### src/base.bmw384.index.query-neighbors
 
 convenience wrapper: given a node name and radius, look up its coordinate
 and call query-radius. params: ( $name, $radius )
 returns same format as query-radius, excluding the named node itself.
 
-### modules/base.bmw384.index.stats
+### src/base.bmw384.index.stats
 
 return a summary hashref:
   {
@@ -100,7 +100,7 @@ return a summary hashref:
 
 ## zenka command module to create
 
-### modules/base.bmw384.cmd.index-stats
+### src/base.bmw384.cmd.index-stats
 
 command handler: p7c <zenka>.index-stats
 calls base.bmw384.index.stats and returns formatted table:
@@ -122,8 +122,8 @@ returns { mode => 'size', data => $table }
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,..,,,,,.,,,,,.,.,.,..,,,,.,,..,,,.,...,.,,,..,,...,...,..,,...,.,.,,,.,.,.,
-#QMADDT72AMIUAD4RHG3KQQLHXJXNUWCCQWG5Y7C4YP2URVISBS3SSZKVNX4BO7SNOQMBKLTVCJ63Y
-#\\\|FQYHXOSPBQMULCKP3TJGXGCUORFNIDGZMNF25AG5PLCJINSFEDT \ / AMOS7 \ YOURUM ::
-#\[7]KXFDZEJUY24KQCQF44J3JUUXGUESICCQ7XLWJUWWDRNDNJVSMWBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,..,,.,.,.,.,...,.,,,,.,,..,,..,,...,...,.,,,,.,,...,,,.,,.,,
+#RCZN6VNSLSRTRMGBJU56ZZ6VYU3OP5NOUOQKEW2K4XK6LMK3NPKVNBNII2LS6MW2FE4FYF74LGWVE
+#\\\|6SZW5EDESP6Z7BILXOQJDWCKOIAJTAEQ57KZH7XPMVEJFEIPSRM \ / AMOS7 \ YOURUM ::
+#\[7]FN5WQCYOM3KO6QEN2RPLWDS3DDKFA2ODCNKAORCVPEAPSRYOZOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

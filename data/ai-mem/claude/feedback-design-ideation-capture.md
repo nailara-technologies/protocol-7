@@ -20,7 +20,7 @@ the pattern that worked, both times:
    threads explicitly, name the structural insight in concrete terms,
    not just "interesting idea!"
 2. when the idea visibly outgrows its origin context (spans more
-   modules/threads than the doc it would naturally append to), say so
+   src/threads than the doc it would naturally append to), say so
    plainly and offer a concrete choice: fold into existing doc vs.
    spin off a new one
 3. once confirmed ("yes definitely"), WRITE the doc immediately —
@@ -37,8 +37,8 @@ whether it's interesting.
 when a riff visibly converges several open threads into one shape,
 that convergence itself is the signal to propose durable capture.
 
-#,,.,,,,.,,.,,.,,,.,.,...,.,,,,,,,,..,,,,,,,,,..,,...,...,.,.,.,.,,..,..,,,,,,
-#F6DCGRNZKCF35VALD54CIPZGZJTRPL4FRCGTKS5JDF7FLLQN6BSYYJ6WPSNVCLASGMAYKZ2FIKLLY
-#\\\|ILM6COOZXLDZXVG7P56QL5F4SSZKNZXZMGGWN5OVGEXVZPJ2RIN \ / AMOS7 \ YOURUM ::
-#\[7]NUZJ2SCBD45U5OAZX54MJU6YBQC6NNBFHQY5J5B4B6QI6QP55CCI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,.,,,,.,,,.,,,,,,,..,.,.,.,,,..,,...,...,.,,,.,,,,,,,,,.,,,,,
+#TWCVOCCJBS23QTCRWMVMEJYOE6H3MJ6GWHMRV6OPMQEVTUGD56SZVMXL66KTUKWWLJYDDBCXCTSYG
+#\\\|D2YRZKTB4BLQHQYON3KFVHNMQECJYNMJPQOPF25JTR74MGKAD6A \ / AMOS7 \ YOURUM ::
+#\[7]2T2FBEFB3R57OOGTFOWUVBB5HWS4RMEV3AYYMWEZNXKVA7WMU2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

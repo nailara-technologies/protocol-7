@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = smtpd.classify
+# descr = classify parsed mail intent, sentiment, action_required
+# param = $parsed_hash (modified in place)
+# note  = llm call optional : defaults apply if service offline
+
+my $parsed = shift // {};
+return $parsed if ref $parsed ne qw| HASH |;
+
+my $text    = substr( $parsed->{'body_text'} // '', 0, 800 );
+my $subject = $parsed->{'subject'} // '';
+my $from    = $parsed->{'from'}    // '';
+
+## build classification prompt ##
+my $prompt
+    = sprintf(
+    "classify this email. respond with YAML only, no explanation.\n\nfrom: "
+        . "%s\nsubject: %s\nbody:\n%s\n\nfields: summary (1 sentence), "
+        . "intent, sentiment, action_required (true/false), action_type, "
+        . "urgency",
+    $from, $subject, $text );
+
+## try llm subprocess wrapper if available ##
+my $llm_result;
+my $have_llm = eval {
+    my $check = <[llm.service.subprocess_wrapper]>->(qw| check |);
+    $check->{'success'};
+};
+
+if ($have_llm) {
+    my $response = eval {
+        <[llm.service.subprocess_wrapper]>->( qw| query |, 'qwen', $prompt );
+    };
+    if (    defined $response
+        and ref $response eq qw| HASH |
+        and $response->{'success'} ) {
+        my $answer = $response->{'response'}{'answer'} // '';
+        $llm_result = eval { YAML::XS::Load($answer) };
+    }
+}
+
+## merge llm result or apply defaults ##
+if ( defined $llm_result and ref $llm_result eq qw| HASH | ) {
+    for my $k (
+        qw| summary intent sentiment action_required action_type
+        urgency |
+    ) {
+        $parsed->{$k} = $llm_result->{$k}
+            if defined $llm_result->{$k};
+    }
+}
+
+## keyword fallback for intent when llm unavailable or failed ##
+if ( not defined $parsed->{'intent'} ) {
+    my $combined = lc("$subject $text");
+    if ( $combined =~ m{\binterview\b} ) {
+        $parsed->{'intent'} = 'interview_request';
+    } elsif (
+        $combined =~ m{\b(ablehnung|rejection|regret|unfortunately|
+        nicht\s+berücksichtigt|nicht\s+ausgewählt)\b}x
+    ) {
+        $parsed->{'intent'} = 'rejection';
+    } elsif ( $combined =~ m{\b(angebot|offer|stellengespräch|einladung)\b}x )
+    {
+        $parsed->{'intent'} = 'offer';
+    } elsif (
+        $combined =~ m{\b(dokument|document|unterlage|cv|lebenslauf)\b}x ) {
+        $parsed->{'intent'} = 'document_request';
+    } elsif ( $combined =~ m{\b(reply|antwort|feedback|status)\b}x ) {
+        $parsed->{'intent'} = 'reply';
+    } else {
+        $parsed->{'intent'} = 'information';
+    }
+}
+
+## apply defaults for all classification fields ##
+$parsed->{'intent'}          //= 'information';
+$parsed->{'sentiment'}       //= 'neutral';
+$parsed->{'action_required'} //= 0;
+$parsed->{'action_type'}     //= 'none';
+$parsed->{'urgency'}         //= 'normal';
+$parsed->{'summary'}         //= $parsed->{'subject'} // '';
+
+## derive action_required from intent if still unset ##
+if ( not $parsed->{'action_required'}
+    and $parsed->{'intent'}
+    =~ m{^(interview_request|offer|document_request|reply)$} ) {
+    $parsed->{'action_required'} = 1;
+}
+
+if (    $parsed->{'action_required'}
+    and $parsed->{'action_type'} eq 'none' ) {
+    if ( $parsed->{'intent'} eq 'interview_request' ) {
+        $parsed->{'action_type'} = 'schedule_interview';
+    } elsif ( $parsed->{'intent'} eq 'document_request' ) {
+        $parsed->{'action_type'} = 'upload_cv';
+    } elsif ( $parsed->{'intent'} eq 'reply' ) {
+        $parsed->{'action_type'} = 'reply';
+    } elsif ( $parsed->{'intent'} eq 'offer' ) {
+        $parsed->{'action_type'} = 'review';
+    }
+}
+
+return $parsed;
+
+#,,,.,.,,,,.,,..,,,..,...,...,,.,,.,,,,.,,.,.,.,.,...,...,..,,.,.,.,,,,.,,,.,,
+#NIRUAHXWYJ7GTMNP7VMBZOHHHFLBTJ5WMEJN5OSELUI5YAF6SLOHYKU6VBBBTAMK63D3L3UADWVTI
+#\\\|GUG6QAY42NYAACUO3QFGFE4GNKZ7PNHSYAUZB37UP7XO2STOKIG \ / AMOS7 \ YOURUM ::
+#\[7]54F7K33TBB5BD32AGJ5TLBTMHZULIRTCSNSYVTIZDUYD7Q667GCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

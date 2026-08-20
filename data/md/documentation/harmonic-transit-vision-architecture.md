@@ -1641,11 +1641,11 @@ its own boundary address.
 - `bin/dev/division-13-table`       — 42/7/15 bit split visualization
 - `bin/dev/octal-stream-window`     — 4-bit window safety proof
 - `read-me/documentation/dev/decimal_to_binary_0050_switch.asc` — sunbursts
-- `modules/source.init_code`        — dimensional table (lines 32-64)
+- `src/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,.,,,..,,,,,,.,,..,,,,,,.,.,.,.,,,.,,.,,,.,,.,.,...,...,...,,,.,,,,,...,,..,
-#75N2VXMYDXVRTBTLBBEXY3YKB24I2UAYRTFXVNM6HAELVADOW3YFSZMQJ3GZFFVDULSP4TVA4C6U4
-#\\\|7DI3IU3T7KCAKEYYCIM6WPT4LAFPEAFQSZ62R32KFDI6DA3XP2A \ / AMOS7 \ YOURUM ::
-#\[7]YFQCH2H3QXXJHMR4DZX6LD7CM6WDBNKMEJ2WFRS7IQKD5ICZQGBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,..,,,,.,,.,,..,,,,,,.,.,...,,..,.,.,...,...,.,,,.,.,,,.,.,,,,.,,
+#HZWZTGIWDFRNYR4UZTZKJKHI5N7QVCR6C36HMJJ5KAJKAAR5JYO5JBRG4NCFUI4Z7MO7NBMWI7Z6U
+#\\\|NTJ2HLAF54MNSDTHHCVGIB6AEESBRRLPX7BBMQD6HOYBSFVE2MD \ / AMOS7 \ YOURUM ::
+#\[7]YAMEOHZ3IJOX56NE4LONARLHO2BH5AG3S36MGIL72DSAENNJV6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

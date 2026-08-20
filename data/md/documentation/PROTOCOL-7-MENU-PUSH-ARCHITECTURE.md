@@ -226,7 +226,7 @@ Natural session-aware menu lifetime
 
 ## Usage Example
 
-See `modules/protocol-7-menu.example-provider` for complete example.
+See `src/protocol-7-menu.example-provider` for complete example.
 
 Quick start:
 ```perl
@@ -250,8 +250,8 @@ Quick start:
 
 **Architecture Vision**: Menu is a **living network dashboard** where services register themselves and push updates. Protocol-7-menu stays clean, simple, and focused purely on rendering changes. All complexity externalized to provider zenki. ✨
 
-#,,,,,...,,.,,,,.,,,.,,,,,..,,...,,,,,.,,,,,.,..,,...,...,.,.,,,,,.,,,,,,,,,,,
-#6JN7KSLAP66YFADXSM2OGT2LZV74LDGVDDR42ZB2MCDYWUV4XOJYD7UVQOZWVE4S3CZ6P4KVIOFV2
-#\\\|IL3QXP5QHHJYEGURA62MPUW64FMT6PXRWVVQNYBZHCHMWUQ3XWB \ / AMOS7 \ YOURUM ::
-#\[7]CW3BOTK5LZJQ7IDQMBDRC2DBBWEKOUIB46HMBBVNRANPAPVALKDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,,,.,.,,,...,.,,,.,,,,..,,.,,..,,...,...,,,.,,,,,.,.,...,,.,,
+#23J7A7ZD33DU5SGZTGM6TACDTCKJIG6T6FJK6M75ME32H7KEJATJLXDAIQZ6TZFW5WLLTIIXYSDQY
+#\\\|ASSBSPDDB4YOOKNVUH2Z3Q7Y44Y6BIE3UI37VOF47QTNTM2F5YO \ / AMOS7 \ YOURUM ::
+#\[7]O3CJRW2XU6BBFP7EXM2OYEVYHVKDTMSQR66H6ZZBM2MA3SUMOQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

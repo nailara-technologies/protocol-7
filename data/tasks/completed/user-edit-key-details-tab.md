@@ -33,7 +33,7 @@ identity via `crypt.C25519` (confirmed live: `crypt.C25519.key_vars`,
 exercised by this zenka's own bootstrap). Use:
 
 - `<[crypt.C25519.key_vars]>->{'key_name'}` — the zenka's own currently
-  loaded session key name (e.g. `taeki.base`). Read `modules/crypt.
+  loaded session key name (e.g. `taeki.base`). Read `src/crypt.
   C25519.cmd.get-public-key` first: it resolves the same way (`my $name
   = <[crypt.C25519.key_vars]>->{'key_name'};`) and is the exact precedent
   to mirror for "the zenka's own key, no name param needed."
@@ -67,7 +67,7 @@ not with the precedent number.
 
 ## Self-record-only gating — exact precedent to mirror
 
-`modules/user-edit.handler.value_get_reply` already does this comparison
+`src/user-edit.handler.value_get_reply` already does this comparison
 for the create-admin gate:
 
 ```perl
@@ -81,7 +81,7 @@ present: `checksum`/`fields`/`metadata`/`name`/`timestamp`) instead of
 
 ## What to build
 
-1. **`modules/user-edit.form.schema_from_record`** — after the existing
+1. **`src/user-edit.form.schema_from_record`** — after the existing
    `foreach my $name ( <[base.reverse-sort]>->($fields) ) { ... }` loop
    that builds `@field_defs`, and BEFORE the `if ( not @field_defs ) {
    return undef; }` empty-guard (a self-viewing bootstrap record with
@@ -146,7 +146,7 @@ present: `checksum`/`fields`/`metadata`/`name`/`timestamp`) instead of
      matches the existing decline-signal convention already established.
      Do not build any editing/scrolling interaction for this field.
 
-3. **`modules/user-edit.form.submit`** — `identity_key` must NEVER reach
+3. **`src/user-edit.form.submit`** — `identity_key` must NEVER reach
    `users.value-set`'s JSON payload, same reasoning as masked fields (see
    the existing `@masked_fields` / `%secret_values` block a few lines into
    this file — read it first). Simplest correct fix: delete
@@ -211,8 +211,8 @@ Report actual command/capture output for each check, not just "passed."
   whatever minimal, narrow fix step 2's `tab_info` note above turns out
   to actually require (check before assuming — it may need nothing).
 
-#,,,,,..,,,,.,,,.,,,.,,,,,,,,,..,,..,,...,.,.,..,,...,...,.,,,...,.,,,,,.,..,,
-#2KJMI5ITBWF4QMNOFA2372WPIZ6KE76DLKGCESPOJXJ3IV2USQVXDZEUC6WU36N42GEMVS7JB3Y64
-#\\\|C4DUW4TXCDZD7H4FW63LRQSUUX6RC64CCH5U6BAQEE2VOAAH65C \ / AMOS7 \ YOURUM ::
-#\[7]JWGYK5PMLV5UUBBJ5E65O3WIGTOL7Y7IBS5LJCDSSORWF7HOGKCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,,,,,.,.,..,,,..,,..,.,,,..,,..,,...,...,,..,.,.,,.,,,.,,,.,,
+#YM4UX2EDJ24QTRE6LO5K6ISGN33GK3QOJLEQF3PILAPUBFEEPPLDL4DSKP6Y4FQGTNMYKCBMYNR3E
+#\\\|LI3VUH46UF5EQEJC52OFVVPIYH76DIO5ORKO7I5QHMMZR4YS4X5 \ / AMOS7 \ YOURUM ::
+#\[7]VT2DZJ67CPVMYAEEKG6PGABD65WZHXSV2HDRYYT6BDCT4RQC5UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

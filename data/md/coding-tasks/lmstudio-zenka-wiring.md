@@ -30,11 +30,11 @@ zenka that can be queried by coding, models, and lm-vision zenki.
     cfg/zenki/calc/start         — minimal on-demand zenka pattern
     cfg/zenki/models/start       — full-featured zenka with adapter commands
     cfg/external-inference-models — lmstudio config keys
-    modules/models.storage.adapter.lmstudio.discover  — main data source
-    modules/models.storage.adapter.lmstudio.resolve   — path resolution
-    modules/models.storage.adapter.lmstudio.repair    — validation
-    modules/models.cmd.adapter-lmstudio-discover      — existing cmd pattern
-    modules/models.cmd.app-models                     — thin cmd wrapper pattern
+    src/models.storage.adapter.lmstudio.discover  — main data source
+    src/models.storage.adapter.lmstudio.resolve   — path resolution
+    src/models.storage.adapter.lmstudio.repair    — validation
+    src/models.cmd.adapter-lmstudio-discover      — existing cmd pattern
+    src/models.cmd.app-models                     — thin cmd wrapper pattern
 
 
 ## what to create
@@ -78,11 +78,11 @@ on-demand zenka — starts when first queried, shuts down after idle timeout.
 
     [zenka.loop]
 
-note: `modules.load = ... lmstudio` — this loads all modules/lmstudio.* files.
+note: `modules.load = ... lmstudio` — this loads all src/lmstudio.* files.
 we will create those modules next.
 
 
-### 2. modules/lmstudio.init_code
+### 2. src/lmstudio.init_code
 
     # name  = lmstudio.init_code
     # descr = lmstudio zenka initialization
@@ -96,7 +96,7 @@ we will create those modules next.
     - log model root path and API url at verbosity 2
 
 
-### 3. modules/lmstudio.cmd.discover
+### 3. src/lmstudio.cmd.discover
 
     # name  = lmstudio.cmd.discover
     # descr = cmd: scan lmstudio model directory and list models
@@ -119,7 +119,7 @@ we will create those modules next.
     return { mode => qw| size |, data => $out };
 
 
-### 4. modules/lmstudio.cmd.resolve
+### 4. src/lmstudio.cmd.resolve
 
     # name  = lmstudio.cmd.resolve
     # descr = cmd: resolve model name to on-disk path
@@ -142,7 +142,7 @@ we will create those modules next.
     return { mode => qw| size |, data => $out };
 
 
-### 5. modules/lmstudio.cmd.repair
+### 5. src/lmstudio.cmd.repair
 
     # name  = lmstudio.cmd.repair
     # descr = cmd: validate gguf files and report corrupt/missing
@@ -158,7 +158,7 @@ we will create those modules next.
     return { mode => qw| size |, data => $out };
 
 
-### 6. modules/lmstudio.cmd.status
+### 6. src/lmstudio.cmd.status
 
     # name  = lmstudio.cmd.status
     # descr = cmd: show lmstudio zenka status and config
@@ -173,7 +173,7 @@ we will create those modules next.
     return { mode => qw| size |, data => $out };
 
 
-### 7. modules/lmstudio.cmd.list
+### 7. src/lmstudio.cmd.list
 
     # name  = lmstudio.cmd.list
     # descr = cmd: alias for discover — list available lmstudio models
@@ -221,8 +221,8 @@ look at cfg/zenki/models/subroutine.white-list for format reference.
     - models zenka unified discover spans invoke + lmstudio via shared adapter modules
     - foundation for lmstudio inference API integration (next step)
 
-#,,.,,.,.,.,.,.,,,.,.,.,,,..,,,,.,.,,,,,,,,,,,..,,...,...,...,,..,.,.,,.,,,..,
-#EAGWMVBKCMM7JFY36B4QPROQH2T5PQGELBPEVYLKPXSXXZ6M6NSGOOTAQM5SGKSJTE6SB4ILFCICS
-#\\\|I4PPVKBLCCALNC4VEAQ6MYXGZCZJLM4Y3WK2K54MNAGWKFZ6IIS \ / AMOS7 \ YOURUM ::
-#\[7]UEPFGM5JEGYPRWRJSXGBGZ6JDADDCIJKB5KEXUAHZLOTML44TYAY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,.,,,,,,.,.,,,,,...,..,,,,,,.,.,..,,...,..,,,..,,..,,,,,...,.,,,
+#EQCBIKFZR3MXZKPINGZ7ESUM6WTNAYJQ7ECV6BI4VCJVCNS4F2SYLOPXN3Q5QUHKVWZJCTVV7HETK
+#\\\|75J44SYDAVSUWN265VRE554H3JUGTHBP5EG2CT7DNJAFLKCLTHV \ / AMOS7 \ YOURUM ::
+#\[7]6TERT7I7C7LBHFRBADGSMMXGTCI44LWS6LQRQQAJ5WLG2X7TI4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

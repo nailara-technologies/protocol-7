@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = decoder.cmd.inject
+# param = <bit_string> [stream_id]
+# descr = inject raw bit string into decoder pipeline
+
+my $params = shift             // {};
+my $arg    = $params->{'args'} // '';
+
+## parse args: bit_string [stream_id] ##
+my ( $bit_str, $stream_id ) = split m|\s+|, $arg, 2;
+$stream_id //= 1;
+
+return { 'mode' => qw| false |, 'data' => 'bit string required' }
+    unless defined $bit_str and length $bit_str;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid characters (use only 0 and 1)'
+    }
+    unless $bit_str =~ m|^[01]+$|;
+
+## pad with zeros to multiple of 42 bits ##
+my $remainder = length($bit_str) % 42;
+if ( $remainder > 0 ) {
+    $bit_str .= '0' x ( 42 - $remainder );
+}
+
+my $total_bits   = length $bit_str;
+my $frame_count  = $total_bits / 42;
+my $frames_done  = 0;
+my $chunks_total = 0;
+
+## process in 42-bit chunks ##
+while ( length $bit_str >= 42 ) {
+    my $chunk = substr( $bit_str, 0, 42, '' );
+
+    my $result = <[decoder.zenka.receive_entropy]>->(
+        {   'stream_id' => $stream_id,
+            'entropy'   => $chunk
+        }
+    );
+
+    $frames_done++;
+    $chunks_total += $result->{'data'}{'chunks_added'} // 0;
+}
+
+## get current stream state ##
+my $L5 = <decoder.level5>->{$stream_id} // {};
+my $L6 = <decoder.level6>->{$stream_id} // {};
+
+return {
+    'mode' => qw| size |,
+    'data' => sprintf(
+        "stream     : %s\nbits       : %d\nframes     : %d\nchunks     : "
+            . "%d\nL5_values  : %d\nL5_pending : %d bits\nL6_pending : %d "
+            . "chars\n",
+        $stream_id,                           $total_bits,
+        $frames_done,                         $chunks_total,
+        scalar( @{ $L5->{'values'} // [] } ), $L5->{'bit_count'} // 0,
+        length( $L6->{'accumulator'} // '' )
+    )
+};
+
+#,,,.,...,,,.,,..,,,,,,..,.,,,,,,,...,..,,.,.,.,.,...,...,.,,,..,,,..,.,,,,,,,
+#77N7U6IV6RWUGURIB2OI5IGM62UOKD47AOCRCUJL7NODYAFEWFI5II7UY3LXTINHAYNZIGGM5ILRC
+#\\\|OZRMCR5M3KM3JN2FJ2BTLAL3NSFX562KGMZR7COI3TMQKGQUGIA \ / AMOS7 \ YOURUM ::
+#\[7]4W25IY636SVARFFDCKDLI3P6ZW2AJ6ZF6WG3DUUKD4O3465XTSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

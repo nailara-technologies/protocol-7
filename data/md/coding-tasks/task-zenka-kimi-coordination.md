@@ -60,7 +60,7 @@ swap-boundary safety [ see CLAUDE.md swap-boundary section ].
   created_at  : 3PRJPU5QOQ
   updated_at  : 3PRJPU6RRR
   description : implement X
-  context     : see modules/foo.bar
+  context     : see src/foo.bar
   result      : <kimi output>
   ```
 - returns `{ mode => 'size', data => $text }` or error if not found
@@ -123,7 +123,7 @@ access.cmd.usr.cube = commands heart reload verify-instance \
 
 ### location
 
-add a polling timer to `modules/kimi.init_code` that checks for pending
+add a polling timer to `src/kimi.init_code` that checks for pending
 tasks and auto-submits them.
 
 ### polling loop
@@ -176,11 +176,11 @@ if `<kimi.task.active_id>` is set when connection drops, call
 
 ## related files
 
-- `modules/kimi.init_code` — add polling timer here
-- `modules/kimi.cmd.ask-reply` — existing prompt submission
-- `modules/kimi.handler.ws_message` — response arrives here via TurnEnd
+- `src/kimi.init_code` — add polling timer here
+- `src/kimi.cmd.ask-reply` — existing prompt submission
+- `src/kimi.handler.ws_message` — response arrives here via TurnEnd
 - `cfg/zenki/kimi/start` — kimi zenka config
-- `modules/base.ntime.b32` — timestamps
+- `src/base.ntime.b32` — timestamps
 - `bin/Protocol-7` — module loading / code hash structure
 - CLAUDE.md — swap-boundary dispatch pattern for amos checksum
 
@@ -197,8 +197,8 @@ if `<kimi.task.active_id>` is set when connection drops, call
 
 #,,,,
 
-#,,..,,,,,.,,,.,,,..,,,..,,,,,...,,..,,,.,.,,,..,,...,...,...,,.,,,,,,,,,,,,.,
-#PJYRVJUVORXXUT53UVP54P7JXYB4736UCT534JQLN6OAN4KPIRLIF6JKXFMP2YBAZK2ADHMK74NC4
-#\\\|L33GUCO2A3S5JLFMRMRPD3Q6MJYU7I4HXYXHOT26BWQJB6637AO \ / AMOS7 \ YOURUM ::
-#\[7]QJYTNYORJASGJXSVKYUFIP3XATWKJG2DR7FW4HOWIUQZCEKBFMAA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,,,.,,.,,,.,,.,.,...,,..,,,.,..,,...,...,,,.,,.,,,,,,..,,..,,
+#YZB4NDP4M37ZWCRMFBALKJYP562RMEWFHMHI2LVPIWEN7UUSCFXIWSGALGXRBPRZS7WH4FAOO5DGW
+#\\\|LGRT4G3NO4RSC2C3E7KD7YYQGQTFAI5UYDE2K37FU72AE3SR32Y \ / AMOS7 \ YOURUM ::
+#\[7]YA6XQUQYUDBHZBZTWWDX77RES3Z4TSWERQRNEX6AGC6OL4DIJMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

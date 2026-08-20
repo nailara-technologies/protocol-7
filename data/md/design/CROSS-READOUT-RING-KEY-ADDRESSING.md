@@ -81,7 +81,7 @@ flagged as the one still-open number in the structure as of this writeup.
 The C25519 secret/public key format's `52`-character length (see
 [[topic-harmonic-correlation-ledger]]) comes from `32` raw bytes encoded in
 base32 (`⌈32×8/5⌉=52`) — confirmed, traced directly in
-`modules/crypt.C25519.write_keys`. It is **not** built from four concatenated
+`src/crypt.C25519.write_keys`. It is **not** built from four concatenated
 `BMW-L13` checksums, despite `52=4×13` holding numerically for both. Keep
 these separate: one is how an *existing* key format happens to be exactly
 `52` characters; this document is a *proposed* addressing scheme that
@@ -96,7 +96,7 @@ been built to catch.
 **No longer open.** This project already has a working, live, production
 implementation of exactly this class of problem — self-marking an
 all-zero payload rather than declaring zero "transparent" by fiat.
-`modules/amos7.encode_octal_header:22-23` / `modules/
+`src/amos7.encode_octal_header:22-23` / `src/
 amos7.decode_octal_bit_header:21`, confirmed full round-trip in real
 running code: when a payload value is entirely zero, the encoding
 *inverts* its bit-to-character mapping (normal mode `0→,`/`1→.`,
@@ -140,8 +140,8 @@ allowed to change without destabilizing an in-progress readout.
 `data/md/design/ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md` — the
 pre-existing `-90° CCW` rotation material this may or may not connect to.
 
-#,,,.,,,.,...,,.,,,,.,...,,..,..,,,..,,..,.,.,.,.,...,...,..,,...,,,.,..,,,.,,
-#6PD2SRGDQQXYXZK3MJBYS4IF6AWBTO2RZ7QQS2ATLHKN7FMCPIOB4F5M3UFCUZ3URFZ7SPBL7VIQG
-#\\\|VS6DVWWBMFLF4DGJRTLH6CIK7ZTN53FIRJBMQRIGNSAKLAUVSXX \ / AMOS7 \ YOURUM ::
-#\[7]FONY2SLMZ4Z73LAFV52SHVDTCXADZXN5VXMP54AELDJQUNWI5GDY 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,..,,..,,.,,,..,,..,.,.,..,,.,.,...,...,,..,,..,.,.,,,.,.,,,
+#KFBBSDXXFQWPNLBCQY3P4XCDN2J3AI4IWADEWBFV2RQ5OQ3DA4ES4DN5XL7VLKZUV6QJALNLGDC5S
+#\\\|6LUFGLBMNS5STXSG3RHOMY7VE3QGVQ7ISPJNUQBCWC73ZGPHAHV \ / AMOS7 \ YOURUM ::
+#\[7]CK5ZY6IV42XECOSJIVNP3HAFEK3ZEU5NQIUUXJIAPNJCJ6WPWUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

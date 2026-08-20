@@ -19,7 +19,7 @@ data/ai-mem/claude/reference-spdx-marker-flags-suspect-session.md.
 ## scope (as of 2026-08-09)
 
 ```
-grep -rl "SPDX-License-Identifier" modules/
+grep -rl "SPDX-License-Identifier" src/
 ```
 
 mostly `pager.*` (pager.buffer.virtual, pager.source.*, pager.filter.*,
@@ -46,8 +46,8 @@ reviewed — it is the only record of which files still need attention.
 
 ## status: not started
 
-#,,,.,,,.,,,.,...,.,.,..,,..,,,,,,.,.,...,...,..,,...,...,,..,,.,,,,.,,..,,,.,
-#AZ4ALZRTRD7CPTGOCEMOD2BW6HUR4GKUAILTFKX4QPOGTQ5UF6KQDQH4DQ3PSP4PCXCBUXEBTKLDC
-#\\\|DOFEZ6ZP6GHVXTF6SM63UXD3UX56XKTE52RYHJ5JOD576C2GZ5T \ / AMOS7 \ YOURUM ::
-#\[7]5HXUPUG566NI23GXZOHRZPUW46EQNZ7R36BKON6MJGDYHYJY26BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,,.,...,.,,,.,,,.,.,.,,,,,.,..,,...,...,..,,,.,,,,.,,..,,,,,
+#DU5K4W6FISQIFLCHHG3PAS2XCZ6ES262EOU2PTJ6QR6QNH3DGGQAYPR2JAODUFH4WALVKMLWD53TA
+#\\\|DEKT3W75LWFPYQ5GMLAEEBK7C75PYY3YGVNKYNWS5PLEHIR6HHF \ / AMOS7 \ YOURUM ::
+#\[7]RCUJWAFE7O2GHBWG3WRWJCWYKSNQYZEOUMKHC7CKOQRM2E7YTKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

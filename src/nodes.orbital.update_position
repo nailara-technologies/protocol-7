@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = nodes.orbital.update_position
+# descr = recompute orbital position from stored params and current time
+
+my $params        = <nodes.orbital.params> // {};
+my $session_start = <nodes.orbital.session_start>;
+
+return unless defined $session_start;
+
+my $theta = $params->{'theta'} // 0;
+my $phi   = $params->{'phi'}   // 0;
+my $psi   = $params->{'psi'}   // 0;
+my $omega = $params->{'omega'} // 0;
+
+my $current_time = <[base.time]>->(5);
+my $dt           = $current_time - $session_start;
+
+## simple orbital mechanics  theta rotates with angular velocity omega  phi ##
+## oscillates with inclination psi                                          ##
+my $orbital_theta = $theta + $omega * $dt * 0.001;
+$orbital_theta -= int( $orbital_theta / 360 ) * 360;
+
+my $orbital_phi = $phi + $psi * sin( $dt * 0.001 );
+$orbital_phi -= int( $orbital_phi / 360 ) * 360;
+
+my $addr_b32 = <[nodes.orbital.addr_b32]>->(
+    {   'theta'       => $orbital_theta,
+        'phi'         => $orbital_phi,
+        'psi'         => $psi,
+        'omega'       => $omega,
+        'time_offset' => int($dt)
+    }
+);
+
+## compute CHKSUM7 using local ip as seed input ##
+my $local_ip    = <nodes.orbital.local_ip> // '127.0.0.1';
+my $amos_chksum = $code{'chk-sum.amos'}    // $code{'base.chk-sum.amos'};
+my $chksum7     = substr( $amos_chksum->($local_ip), 0, 7 );
+
+my $p7ref = sprintf( "NODE:%s:%s", $chksum7, $addr_b32 );
+
+<nodes.orbital.current_p7ref> = $p7ref;
+
+<[base.logs]>->( 3, "[orbital.update_position] %s", $p7ref );
+
+## push current p7ref to discover zenka for mcast propagation ##
+<[zenka.push]>->(
+    {   qw| command |   => qw| discover.orbital-p7ref-update |,
+        qw| args |      => { qw| args | => $p7ref },
+        qw| queue_max | => 1,    ## only latest position matters
+    }
+);
+
+return $p7ref;
+
+#,,.,,,,.,,..,.,,,,,,,,,.,,.,,,..,,.,,,..,...,..,,...,..,,...,..,,,,,,,.,,.,.,
+#XTCPAYGR3CFNK6E3BBLV7FXPEB777YGGTBY3ESUDN4M4LV7IOK5ODMPASFWOSD4ISSF72ZEGHEODU
+#\\\|HQT7QZZ763RGA2NRRZM5ODF6TEOW2WFLEL6U2Z44O6SKH2S6DSW \ / AMOS7 \ YOURUM ::
+#\[7]TWG5COGWWP4YMIJOWFDQGBNSMF2IZR5ID7UJXX3EFMXKPEPASADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

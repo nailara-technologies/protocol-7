@@ -7,26 +7,26 @@ task:
     refactor-and-generalize task, not build-from-scratch.
 
     existing infrastructure to build on:
-      modules/base.calc_gauss             — gaussian PDF, keep as-is
-      modules/graphics-3d.calc.cursor-translucency — 6 curve profiles
-      modules/mpv.volume.calc_incr        — gaussian fade increment
-      modules/mpv.handler.audio_fade      — timer-driven fade loop
-      modules/mpv.cmd.fade                — fade command entry point
+      src/base.calc_gauss             — gaussian PDF, keep as-is
+      src/graphics-3d.calc.cursor-translucency — 6 curve profiles
+      src/mpv.volume.calc_incr        — gaussian fade increment
+      src/mpv.handler.audio_fade      — timer-driven fade loop
+      src/mpv.cmd.fade                — fade command entry point
 
   scope:
     new_modules:
-      - modules/base.curve.eval      # pure: curve type × t → value
-      - modules/base.curve.register  # create and start a named curve
-      - modules/base.curve.cancel    # stop and remove a running curve
-      - modules/base.curve.tick      # internal: advance all, fire callbacks
-      - modules/base.curve.compose   # combine factor curves into output
+      - src/base.curve.eval      # pure: curve type × t → value
+      - src/base.curve.register  # create and start a named curve
+      - src/base.curve.cancel    # stop and remove a running curve
+      - src/base.curve.tick      # internal: advance all, fire callbacks
+      - src/base.curve.compose   # combine factor curves into output
     refactor:
-      - modules/mpv.handler.audio_fade   # use base.curve.eval instead of calc_incr
-      - modules/mpv.volume.calc_incr     # may become a thin shim or be retired
+      - src/mpv.handler.audio_fade   # use base.curve.eval instead of calc_incr
+      - src/mpv.volume.calc_incr     # may become a thin shim or be retired
     unchanged:
-      - modules/base.calc_gauss          # math primitive, keep as-is
-      - modules/mpv.cmd.fade             # external interface unchanged
-      - modules/graphics-3d.calc.cursor-translucency  # keep working, no changes
+      - src/base.calc_gauss          # math primitive, keep as-is
+      - src/mpv.cmd.fade             # external interface unchanged
+      - src/graphics-3d.calc.cursor-translucency  # keep working, no changes
 
   curve_types: |
     extract these profiles from graphics-3d.calc.cursor-translucency
@@ -114,8 +114,8 @@ task:
 </content>
 </invoke>
 
-#,,..,...,.,,,,,,,..,,,,,,,.,,,,,,...,,..,,,,,...,...,...,..,,,,.,.,,,,,,,,..,
-#3EOOECO7PRQJEYZJIDBHDU5IL5AUXA4AJIYPLWULLTQTM6JST7BHHVPFFGOH6ZZ65PMTML4575PE6
-#\\\|YDHSSVW4YCPBVY2SK7ANDQVZWCBM7HWHNCD3AEU3B2MQMEBV4TK \ / AMOS7 \ YOURUM ::
-#\[7]6I3SJQMARN647I4LAHHMWTUXSYESHRVVSWCWMDBGDGUFPI3NSADA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,..,,.,.,.,,,.,,,,.,,,.,,.,,,,..,...,...,..,,.,,,,.,,..,,.,,,,.,,
+#2OAHPURJGYWIXOO5U2MJXVZMZY76JJNTSYKFEM6FSKRGXSHVN55IYUDP6NLNODTZOJZUTZDPGU66Q
+#\\\|7ZEBYJWDUVSD7GTJVWL2FT2VVVWNY4AFJZYE75IJ3IODO57DFUA \ / AMOS7 \ YOURUM ::
+#\[7]LW5HZXFP7UA52APEDLOURNSMA63HX66CJGRUGZTVLDTCJQ2DSABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

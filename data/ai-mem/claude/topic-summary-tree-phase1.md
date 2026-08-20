@@ -65,7 +65,7 @@ Single source of truth is the task-zenka-owned tree (`task.cmd.summary-tree-quer
 
 User asked to switch the cache/dedup key from 7-char `amos_chksum` (~35 bits,
 real collision risk) to bmw-L13 (13-char base32, ~65 bits,
-`modules/base.chk-sum.bmw.*`, the project's own division-by-13 harmonic-truth
+`src/base.chk-sum.bmw.*`, the project's own division-by-13 harmonic-truth
 identity primitive).
 
 **A real incident happened mid-implementation**: first attempt routed
@@ -83,7 +83,7 @@ short values only (the resulting 13-char chk itself is fine for query/notify).
 `bin/mcp-server-p7` now computes bmw-L13 **locally**, standalone, by porting
 the `harmonize_L13` division-by-13 loop directly (no P7 module form exists as
 a standalone `AMOS7::*` package — only as a zenka module
-`modules/base.chk-sum.bmw.harmonize_L13`). Uses the same lib-path `BEGIN`
+`src/base.chk-sum.bmw.harmonize_L13`). Uses the same lib-path `BEGIN`
 trick `bin/amos-chksum` uses, plus `Digest::BMW`, `AMOS7::Assert::Truth`,
 `AMOS7::TEMPLATE` (all standalone-usable, confirmed via CLAUDE.md). Verified
 byte-identical to the live cube `bmw-L13` command's output for the same
@@ -124,8 +124,8 @@ applies there.
   sessionId" jsonl structure) — when they state a hard constraint, trust it
   and act on it rather than re-deriving/re-verifying from scratch first.
 
-#,,,.,...,,,.,...,,,.,,,.,,..,,,,,..,,..,,.,.,..,,...,...,,,,,.,,,,..,,..,,..,
-#5IVM5YZCUKIS23BIC3S4KNUW5CXOZXSUTOX46GJCND77UQL3KVEUWSAIL6RVMGVITQDZPIKOXQRTM
-#\\\|J42DNYGJQL33MAUXVRS5U6VECNWJ3DPM4ZIR2WJOQLHG7CT54YJ \ / AMOS7 \ YOURUM ::
-#\[7]4FDOSFLNN76SERDG2SBSVAY6FYDZFUKA4KIFUVVSFACMC3EAMECY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,...,.,.,...,...,,,,,...,.,,,..,,...,...,,..,...,,,.,.,.,,,,,
+#BSUM5RKCXVWXBKLERXQC2YGNTVBLJTYMB6S3FOOCQCAA5HBVMO5XJORFZN5ZTG4VURK22AZZKTQXK
+#\\\|2ENAVRDCMD2QKRPFQVQZHSE2OWBSBMK2T4G5IBMV4WZ5AM3QOCS \ / AMOS7 \ YOURUM ::
+#\[7]4F2JC3NOHVZ5E6VUPOOKAYKHXLL2ZFWBK3AJHWFRZ37JD7CILYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

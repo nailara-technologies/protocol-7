@@ -190,7 +190,7 @@ event.timer (100ms)
 ### Implementation Sketch
 
 ```perl
-## modules/models.backend.local.invoke ##
+## src/models.backend.local.invoke ##
 
 ## Add request to async queue
 my $request = HTTP::Request->new(POST => $url, $headers, $json);
@@ -205,7 +205,7 @@ my $id = <local.async.http>->add($request);
 ## Return immediately
 return { pending => TRUE, inference_id => $inference_id };
 
-## modules/models.handler.check_local_responses ##
+## src/models.handler.check_local_responses ##
 
 ## Called by periodic timer
 while (my $response = <local.async.http>->next_response) {
@@ -250,8 +250,8 @@ Next step: prototype the integration in `models.backend.local.invoke`.
 
 ---
 
-#,,,,,.,,,.,,,.,,,...,.,.,..,,.,.,.,.,,.,,.,,,.,.,...,...,.,.,,.,,.,,,..,,,.,,
-#ZLNHRGRRVTQWIV26CGUHOBOINGDWZTTBPJ2P6SCFAYTV6F7U2PL5PCSRGDSHQC24LEQBVT3KE2DLU
-#\\\|TY2NB3E3PMMMPRQPTD7RA7EEH5UMIPIBKQAKL6RABZT2T6A52PN \ / AMOS7 \ YOURUM ::
-#\[7]YKX6CP3ES636OXWT4EL6PWU74PH7G6ANYQO33R7PW537YUMW7WAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,.,,.,,,,.,,,,,,.,,,,.,,..,.,.,.,.,...,...,,,.,,.,,.,,,...,...,
+#5NNOZT67KV4OITQXKSLSPQ2N3OZ23SBPMB3BNW6EBAK2XMNYJTNTHZ4U5XNSZDSVMUNYGT43XCZ5E
+#\\\|3UY3N5DHSRANMA6WODXEOQS6KJRS6UEKXKU2VFYO3XH3B73BKT6 \ / AMOS7 \ YOURUM ::
+#\[7]NRWVKYXYY77FKBYP4MHOUBCEMLSGXJE3S6AYMW2AOJ4R5GSDSWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

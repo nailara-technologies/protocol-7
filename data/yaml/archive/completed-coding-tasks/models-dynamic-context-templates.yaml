@@ -56,7 +56,7 @@ components:
       and provides a clean interface for models.* and other zenki to render templates
       via route-send to web zenka.
     implementation: |
-      modules/web.cmd.render-template
+      src/web.cmd.render-template
         - accepts template_path or inline content
         - accepts meta vars hash
         - accepts budget parameter (token budget)
@@ -87,7 +87,7 @@ components:
     initial_providers:
       - id: context.git.recent_changes
         status: ✅ COMPLETE
-        file: modules/context.git.recent_changes
+        file: src/context.git.recent_changes
         returns: |
           recent git diff summary or changed file list, truncated to budget.
           useful for: code review, continuation tasks, kimi context injection.
@@ -95,14 +95,14 @@ components:
 
       - id: context.task.active
         status: ✅ COMPLETE
-        file: modules/context.task.active
+        file: src/context.task.active
         returns: |
           current active task description from yaml/task system, if any.
           useful for: orienting the model to what is being worked on.
 
       - id: context.modules.list
         status: ✅ COMPLETE
-        file: modules/context.modules.list
+        file: src/context.modules.list
         returns: |
           list of modules in a given namespace, truncated to budget.
           args: [ namespace, budget ]
@@ -110,7 +110,7 @@ components:
 
       - id: context.file
         status: ✅ COMPLETE
-        file: modules/context.file
+        file: src/context.file
         returns: |
           content of a specific file, truncated to budget.
           args: [ path, budget, from_line, to_line ]
@@ -176,7 +176,7 @@ components:
       models.chat.messages_to_prompt remains unchanged (clean separation).
       system message is rendered and prepended before messages_to_prompt call.
     implementation: |
-      modules/models.backend.kimi_web:
+      src/models.backend.kimi_web:
         - calls web.cmd.render-template to render system message
         - defaults to coding-assistant.tmpl
         - accepts system_template parameter to override
@@ -191,10 +191,10 @@ components:
       phase 1: newest-first inclusion until history_budget exhausted
       phase 2: relevance-scored selection within budget
     files_modified:
-      - modules/models.backend.kimi_web         ## ✅ integrated system message rendering
-      - modules/models.backend.coding.invoke    ## ✅ integrated system message rendering
+      - src/models.backend.kimi_web         ## ✅ integrated system message rendering
+      - src/models.backend.coding.invoke    ## ✅ integrated system message rendering
     files_pending:
-      - modules/models.chat.messages_to_prompt  ## add budget-aware assembly
+      - src/models.chat.messages_to_prompt  ## add budget-aware assembly
     status: ✅ COMPLETE (basic integration, 2026-03-04)
 
 ---
@@ -234,8 +234,8 @@ related_tasks:
 
 ---
 
-#,,..,,.,,,,.,.,,,.,.,..,,,..,,,.,,,.,,..,,,.,..,,...,...,..,,..,,..,,,,,,,,,,
-#JOJVTP6FBIENW4GK5RWNKVOB2WLFLLJELKI7YWJOK3QZBNDYJQGNI7D6EO2GHTFYWWV5T4PDTLG5W
-#\\\|MCTJSZBIY2V74AIF44VDMP5UEWCNQEDCW7ZTUEY35CXXAEVGGAA \ / AMOS7 \ YOURUM ::
-#\[7]7SDVJDY52ODJSL7N7DEXIFMTF6KLCIRY2572NS2PTCVAPAQYHQDY 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,,,,,..,,..,,,.,,.,.,...,..,,..,,...,...,.,,,,,,,.,,,.,,,,,,,
+#NQKKKAXMB27J7ZJLQ74JAK55ESMQZ67UMIUHZJL3WAQR5ATU2V362TGZ3ZTHOOTW6PNVCJTHNDJRS
+#\\\|MOGLMMMZKCM7HUKEZANOOT2BLL4LH6CTPGVJOKWVCJ6ASHY6MAF \ / AMOS7 \ YOURUM ::
+#\[7]JGU2U5B63PAEOV7BZEWR47Z3YMD3F636B2UVDWH5UMT7SFAZRWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

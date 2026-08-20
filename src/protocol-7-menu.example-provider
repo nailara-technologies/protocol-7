@@ -1,0 +1,110 @@
+## [:< ##
+
+# name = protocol-7-menu.example-provider
+# descr = Example: How to integrate a zenka with protocol-7-menu via push updates
+
+## ============================================================================
+## PATTERN: External Zenka Provider Registration with Protocol-7-Menu
+## ============================================================================
+
+## 1. ON STARTUP - Register with protocol-7-menu
+## =============================================
+
+my $menu_data = {
+    'items' => {
+        'status' => {
+            'label'   => 'Weather: Loading...',
+            'command' => 'weather.show_detail',
+        },
+        'alerts' => { 'label' => 'No Alerts', },
+    }
+};
+
+<[protocol-7.command.send.local]>->(
+    {   'command'   => 'protocol-7-menu.menu-update',
+        'call_args' =>
+            { 'args' => 'weather ' . JSON::encode_json($menu_data) }
+    }
+);
+
+<[base.log]>->( 1, "registered with protocol-7-menu as 'weather' provider" );
+
+## 2. WHEN DATA CHANGES - Push update via menu-update
+## ===================================================
+
+## Fetch new weather data (example)
+my $new_forecast = get_weather_data();
+
+## Update menu structure with new data
+my $updated_menu = {
+    'items' => {
+        'status' => {
+            'label' =>
+                "Weather: $new_forecast->{temp}°C, $new_forecast->{condition}",
+            'command' => 'weather.show_detail',
+        },
+        'alerts' => {
+              'label' => $new_forecast->{alert_count} > 0
+            ? "Weather Alerts ($new_forecast->{alert_count})"
+            : 'No Alerts',
+        },
+    }
+};
+
+## Push the update (reverse route - zenka sends to protocol-7-menu)
+<[protocol-7.command.send.local]>->(
+    {   'command'   => 'protocol-7-menu.menu-update',
+        'call_args' =>
+            { 'args' => 'weather ' . JSON::encode_json($updated_menu) }
+    }
+);
+
+<[base.log]>->( 1, "pushed weather menu update to protocol-7-menu" );
+
+## 3. ON DISCONNECT/SHUTDOWN - Unregister
+## ====================================
+
+## Remove menu items when zenka shuts down
+<[protocol-7.command.send.local]>->(
+    {   'command'   => 'protocol-7-menu.menu-update',
+        'call_args' => { 'args' => 'weather' }         ## No data = unregister
+    }
+);
+
+<[base.log]>->( 1, "unregistered weather from protocol-7-menu" );
+
+## ============================================================================
+## HOW IT WORKS
+## ============================================================================
+
+## • Weather zenka maintains its own data and update cycles
+## • When weather data changes, it PUSHES the new menu representation to
+## protocol-7-menu
+## • protocol-7-menu.cmd.menu-update receives the push and updates the
+## structure hash
+## • Hash watcher (protocol-7-menu.structure-changed) fires automatically
+## • Handler computes diff and updates GUI (add/remove/update items)
+## • Menu stays in sync with provider's current state
+## • No polling, no timers - all event-driven via hash watchers
+## • Providers can be independent or coordinated (intermediate formatters)
+
+## ============================================================================
+## OPTIONAL: Multi-level Provider (Weather Display Applet Pattern)
+## ============================================================================
+
+## A weather-display zenka could:
+## 1. Subscribe to weather.zenka updates (via their own timestamp polling)
+## 2. Format the data beautifully
+## 3. Push the formatted result to protocol-7-menu
+##
+## This creates:  weather.zenka (raw data)  → weather-display.zenka
+## (formatting/intelligence)  → protocol-7-menu (GUI rendering)
+##
+## Each layer uses the same timestamp-based .updated pattern or direct hash
+## updates.
+
+#,,,,,,.,,,.,,...,,,,,.,,,..,,.,,,,,.,,,.,.,.,..,,...,...,.,,,.,.,.,,,..,,.,,,
+#G7KLJC7BSN2M4IIJJVDTCOCEMAJG2P4CHYPGGIFYEHR2H3N4G6PWQE3ASOAR5NO3QTHZXOE4OVBWI
+#\\\|TF6QOFCLK5A4W5RSCP63T2JOGSVDG3PEBNDCUHJD5TEYWDSKKH6 \ / AMOS7 \ YOURUM ::
+#\[7]OMVZZOP5MYH5JHSIZ6DO4DDGUDIFYGPXXSALVGRL652FWQ4JROAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

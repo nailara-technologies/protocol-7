@@ -141,17 +141,17 @@ selector. the config is the interface today; the learner mutates it later.
 
 ## modules to create
 
-- `modules/transport.init_code` — load profiles, initialize quality state
-- `modules/transport.select` — main entry point: context → transport handle
-- `modules/transport.profile.load` — load + cache profile yaml for destination
-- `modules/transport.profile.match` — match context hash to profile
-- `modules/transport.quality.measure` — update quality metrics for active transport
-- `modules/transport.quality.probe` — active probe for demoted transports
-- `modules/transport.demote` — mark transport as demoted, schedule probe timer
-- `modules/transport.promote` — restore demoted transport after probe success
-- `modules/transport.handle.direct-tcp` — direct TCP connection handler (baseline)
-- `modules/transport.handle.quic-hysteria` — hysteria tunnel handler (stub, config-driven)
-- `modules/transport.handle.udt-tunnel` — UDT tunnel handler (stub, implement when lib available)
+- `src/transport.init_code` — load profiles, initialize quality state
+- `src/transport.select` — main entry point: context → transport handle
+- `src/transport.profile.load` — load + cache profile yaml for destination
+- `src/transport.profile.match` — match context hash to profile
+- `src/transport.quality.measure` — update quality metrics for active transport
+- `src/transport.quality.probe` — active probe for demoted transports
+- `src/transport.demote` — mark transport as demoted, schedule probe timer
+- `src/transport.promote` — restore demoted transport after probe success
+- `src/transport.handle.direct-tcp` — direct TCP connection handler (baseline)
+- `src/transport.handle.quic-hysteria` — hysteria tunnel handler (stub, config-driven)
+- `src/transport.handle.udt-tunnel` — UDT tunnel handler (stub, implement when lib available)
 
 ## configuration
 
@@ -192,8 +192,8 @@ handles all footer blocks — leave them untouched.
 ### existing patterns to reuse
 
 **Async HTTP/HTTPS client modules (18 files):**
-- `modules/clients.http.init_code`, `clients.http.pre_init`, `clients.http.request`, `clients.http.get`, `clients.http.post`, `clients.http.parse_response`, `clients.http.handler.io`, `clients.http.handler.timeout`, `clients.http.cleanup`
-- `modules/clients.https.init_code`, `clients.https.pre_init`, `clients.https.request`, `clients.https.get`, `clients.https.post`, `clients.https.handler.handshake`, `clients.https.handler.io`, `clients.https.handler.timeout`, `clients.https.cleanup`
+- `src/clients.http.init_code`, `clients.http.pre_init`, `clients.http.request`, `clients.http.get`, `clients.http.post`, `clients.http.parse_response`, `clients.http.handler.io`, `clients.http.handler.timeout`, `clients.http.cleanup`
+- `src/clients.https.init_code`, `clients.https.pre_init`, `clients.https.request`, `clients.https.get`, `clients.https.post`, `clients.https.handler.handshake`, `clients.https.handler.io`, `clients.https.handler.timeout`, `clients.https.cleanup`
 
 These provide the **baseline TCP connection pattern** that `transport.handle.direct-tcp` should follow:
 - `IO::Socket::IP->new(PeerHost, PeerPort, Type=>SOCK_STREAM, Timeout=>7)` → blocking connect → `$sock->blocking(0)` → register `<[event.add_io]>` with `poll=>'r'` and handler → timer watcher for timeout.
@@ -201,14 +201,14 @@ These provide the **baseline TCP connection pattern** that `transport.handle.dir
 - Socket I/O primitives: `<[base.s_read]>->($sock, \$chunk, 65536)` for reads; direct `syswrite` for writes.
 - **Reuse for:** `transport.handle.direct-tcp` can wrap `clients.http.request` and `clients.https.request`, adding quality measurement hooks around connect, read, and write operations.
 
-**Network primitives in `modules/base.net.*`:**
-- `modules/base.net.connect` — core cube connection logic supporting `unix`, `ip.tcp`, and `pipe` types. Authenticates via `auth.zenka.authenticate` or `auth.unix.authenticate`. Calls `<[base.session.init]>` on success.
-- `modules/base.net.send_to_socket` — writes data to client filehandle, respects session-bound `output.handler` filter chain, tracks `bytes.in`.
-- `modules/base.net.client.auth_with_pwd` — plain-text password auth client-side.
+**Network primitives in `src/base.net.*`:**
+- `src/base.net.connect` — core cube connection logic supporting `unix`, `ip.tcp`, and `pipe` types. Authenticates via `auth.zenka.authenticate` or `auth.unix.authenticate`. Calls `<[base.session.init]>` on success.
+- `src/base.net.send_to_socket` — writes data to client filehandle, respects session-bound `output.handler` filter chain, tracks `bytes.in`.
+- `src/base.net.client.auth_with_pwd` — plain-text password auth client-side.
 - Underlying: `base.s_read`, `base.s_write`, `base.open` (used as `<[base.open]>->(qw| ip.tcp output |, $host, $port)` for blocking TCP).
 
 **Cross-zenka dispatch via `protocol-7.route-send`:**
-- `modules/base.protocol-7.route-send` — prepends `protocol-7.network.parent_route` hops to a command string and calls `<[protocol-7.command.send.local]>->($params)`.
+- `src/base.protocol-7.route-send` — prepends `protocol-7.network.parent_route` hops to a command string and calls `<[protocol-7.command.send.local]>->($params)`.
 - Used by `radio.handler.stream-chunk` to send commands to `mpv[audio-0]`:
   ```perl
   <[protocol-7.route-send]>->(
@@ -224,19 +224,19 @@ These provide the **baseline TCP connection pattern** that `transport.handle.dir
 - `STRM-SIZE` transparently fragments large responses across zenki-to-zenki routes. Cube fragments, reassembles, delivers as single SIZE response with idle + absolute dual timers.
 - **Reuse for:** if the transport selector needs to stream large data or push quality metrics to other zenki, STRM-SIZE is the native path.
 
-**External transport registry (`modules/external.init_code`):**
+**External transport registry (`src/external.init_code`):**
 - Already initializes `<external.transports>` with `available`, `preferred`, `registry`, `connections`, and `stats` (`bytes_sent`, `bytes_received`, `connections_ok`, `connections_fail`).
 - Also initializes `<external.bridges>` and `<external.connections>`.
 - Has auto-connect logic to orbital neighbors.
 - **This is a significant existing foundation.** The transport selector can extend `<external.transports>` rather than invent a new registry.
 
-**UDT transport stub (`modules/plugin.external.udt.init_code`):**
+**UDT transport stub (`src/plugin.external.udt.init_code`):**
 - Checks for `UDT::Simple` Perl module.
 - If available, registers `udt` in `<external.transports>->{'registry'}` with capabilities: `reliable`, `ordered`, `message_oriented`, `high_bdp`, `nat_traversal`. Priority 100.
 - Default config: `default_port: 9000`, `listen_backlog: 128`, `buffer_size: 8192`, `timeout_ms: 5000`.
 - **Reuse for:** `transport.handle.udt-tunnel` should build on this stub rather than start from scratch. The stub already knows how to register with the external transport system.
 
-**SSH tunnel reference (`modules/ssh.connection.start`):**
+**SSH tunnel reference (`src/ssh.connection.start`):**
 - Uses `Net::SSH2` + `IO::Socket::IP`. Authenticates via public key, verifies remote hostkey against configured ELF+BMW224 hashes.
 - Opens `tcpip` channel to remote proto-7 address/port.
 - Registers `ssh.handler.ssh_io` IO watcher and heartbeat timer.
@@ -261,14 +261,14 @@ These provide the **baseline TCP connection pattern** that `transport.handle.dir
 
 ### naming conflicts or overlaps
 
-- `modules/external.init_code` already owns the `<external.transports>` registry. The transport selector's state should nest under this or use a distinct namespace like `<transport.profiles>` to avoid collisions.
-- `modules/ssh.connection.start` uses `ssh.handler.ssh_io`. Transport handlers should use `transport.handler.*` to avoid collision.
-- `modules/plugin.external.udt.init_code` already registers `udt` in `<external.transports>`. `transport.handle.udt-tunnel` should coordinate with (or replace) this stub rather than create a parallel registration.
-- **No existing `modules/transport.*` files** — the namespace is clean.
+- `src/external.init_code` already owns the `<external.transports>` registry. The transport selector's state should nest under this or use a distinct namespace like `<transport.profiles>` to avoid collisions.
+- `src/ssh.connection.start` uses `ssh.handler.ssh_io`. Transport handlers should use `transport.handler.*` to avoid collision.
+- `src/plugin.external.udt.init_code` already registers `udt` in `<external.transports>`. `transport.handle.udt-tunnel` should coordinate with (or replace) this stub rather than create a parallel registration.
+- **No existing `src/transport.*` files** — the namespace is clean.
 
 ### gaps in the task spec
 
-1. **No connection-quality measurement infrastructure exists.** The task assumes `loss_rate`, `rtt_ms`, `goodput_kbps` can be measured. There are no RTT probes, packet-loss counters, or throughput testers in `modules/`. These must be designed from scratch.
+1. **No connection-quality measurement infrastructure exists.** The task assumes `loss_rate`, `rtt_ms`, `goodput_kbps` can be measured. There are no RTT probes, packet-loss counters, or throughput testers in `src/`. These must be designed from scratch.
 2. **Hysteria is a manual workaround, not a p7 module.** The task lists `transport.handle.quic-hysteria` but there is zero QUIC code in the codebase. The hysteria binary runs externally (SOCKS5 at `10.0.110.7:1040`, HTTP proxy at `:4040` per `data/docker-script/Dockerfile.cuda-build`). The stub should call an external hysteria client or SOCKS5 proxy, not implement QUIC in Perl.
 3. **UDT is only a stub.** `UDT::Simple` may not be installed. The scratchpad tests in `bin/dev/script-scratchpad/udt_test_*.pl` show basic usage but no integration with the event loop. The transport selector needs to bridge UDT sockets to the p7 `event.add_io` system.
 4. **Graceful degradation timer/probe mechanism is underspecified.** How are demoted transports probed? A background timer per demoted transport? A single global probe timer? The task says "probed on a background timer" but doesn't specify the implementation pattern. The existing heartbeat pattern in `ssh.connection.start` is a good model.
@@ -316,17 +316,17 @@ These provide the **baseline TCP connection pattern** that `transport.handle.dir
 ## refined module list
 
 **Additions:**
-- `modules/transport.handle.socks5` — shared SOCKS5 client for external tunnel proxies (hysteria, future WireGuard SOCKS5, etc.)
-- `modules/transport.quality.derive_passive` — application-layer quality proxy when transport doesn't expose native metrics
-- `modules/transport.probe.timer` — global probe timer, walks demoted transports (extracted from `transport.quality.probe` to separate timer orchestration from probe logic)
+- `src/transport.handle.socks5` — shared SOCKS5 client for external tunnel proxies (hysteria, future WireGuard SOCKS5, etc.)
+- `src/transport.quality.derive_passive` — application-layer quality proxy when transport doesn't expose native metrics
+- `src/transport.probe.timer` — global probe timer, walks demoted transports (extracted from `transport.quality.probe` to separate timer orchestration from probe logic)
 
 **Renames:**
-- `modules/transport.handle.quic-hysteria` → `modules/transport.handle.hysteria-socks5` (clarifies that it uses the external SOCKS5 proxy, not native QUIC)
+- `src/transport.handle.quic-hysteria` → `src/transport.handle.hysteria-socks5` (clarifies that it uses the external SOCKS5 proxy, not native QUIC)
 
 **Removals (none):** the original list is otherwise sound.
 
-#,,.,,,.,,,,.,,,.,.,.,,,.,...,,,.,.,,,,.,,...,..,,...,...,..,,..,,,..,,..,.,,,
-#EBZV333P7S7FXCMUGI2MVC2VJVPMR5WNGO4GDOQOYUAIDQKUK6YQ4HJLHN64MX6DSBLHKKJ5GS6R2
-#\\\|M6ABJZ5W3GSHBFVN3JYDNELI4ACXOHGZ5VZBUVF25D2SFHV7AQ2 \ / AMOS7 \ YOURUM ::
-#\[7]PX3JCSFZ2MAMKUWTUZIQEM4TFINVCCTAOILKUDBEZOK6NTNCIEAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,...,,..,.,.,,..,...,,.,,.,.,..,,...,...,.,,,...,.,,,.,,,...,
+#G7TYYY3SI7HUDWPTKVQCZ256F6XE7FNXYSGAA7IF4LYXXD2LNGMGDGPXG3HAEQFVNEASLXB35S3RA
+#\\\|J3GW2RIEQBZ5GEOONHORVYRNVQKT47NWPZACQWQ3DLF3RDYLXKD \ / AMOS7 \ YOURUM ::
+#\[7]PRNBSMICYRIJULNUP7X566DYGWTF3E2YDKKL73SCOANGHICW3YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,9 +25,9 @@ This session focused on cryptographic key security, workflow automation improvem
 - Otherwise (console commands, no privilege drop): use current user's keys
 
 **Key Files Modified:**
-- `modules/crypt.C25519.init_code` - Smart detection logic
-- `modules/crypt.C25519.get_usr_keys_dir` - Context-aware path resolution
-- `modules/crypt.C25519.key_vars` - Consistent user determination
+- `src/crypt.C25519.init_code` - Smart detection logic
+- `src/crypt.C25519.get_usr_keys_dir` - Context-aware path resolution
+- `src/crypt.C25519.key_vars` - Consistent user determination
 
 **Security Properties:**
 - Workflow zenka running as root keeps its own keys in `/root/.n/user-keys`
@@ -128,24 +128,24 @@ if (content_excluding_timestamps_changed) {
 ## Files Modified in This Session
 
 ### Cryptographic Key User Detection
-- `modules/crypt.C25519.init_code`
-- `modules/crypt.C25519.get_usr_keys_dir`
-- `modules/crypt.C25519.key_vars`
+- `src/crypt.C25519.init_code`
+- `src/crypt.C25519.get_usr_keys_dir`
+- `src/crypt.C25519.key_vars`
 - All 6 privilege-dropping zenka (cube, cube-13, discover, nodes, source, test-link-upgrade)
 
 ### Index Generation
-- `modules/workflow.generate_todos_index`
-- `modules/workflow.generate_workspace_index`
+- `src/workflow.generate_todos_index`
+- `src/workflow.generate_workspace_index`
 
 ### System Infrastructure (from earlier commit)
-- `modules/base.env.detect_environment`
-- `modules/base.path.resolve_keywords`
-- `modules/base.path.to_keywords`
-- `modules/base.path.open`
-- `modules/base.yaml.load_keyword_path`
-- `modules/base.zenka.is_v7_started`
-- `modules/workflow.scan_yaml_tasks`
-- `modules/workflow.extract_workspace_todos`
+- `src/base.env.detect_environment`
+- `src/base.path.resolve_keywords`
+- `src/base.path.to_keywords`
+- `src/base.path.open`
+- `src/base.yaml.load_keyword_path`
+- `src/base.zenka.is_v7_started`
+- `src/workflow.scan_yaml_tasks`
+- `src/workflow.extract_workspace_todos`
 
 ### Version & Signatures
 - `cfg/protocol-7.src-ver` - Updated and signed
@@ -268,8 +268,8 @@ If issues arise:
 **Session Status:** ✅ COMPLETE & CLEAN
 **All Changes:** ✅ COMMITTED, ✅ TESTED, ✅ SIGNED, ✅ PUSHED
 
-#,,..,...,,,,,,..,,.,,..,,,,.,,,.,,..,...,,.,,..,,...,...,.,.,...,,.,,,,,,,.,,
-#54NPQBZVGC2VCFDM667QOFCU2GNPTLFRL2OGEH77P3EOL42QNR5IXEBFEZPCEESW3AX56MP2EYYCM
-#\\\|2TQMM3DTDFF77W6ZK33B2BXYEEMTDI6RJYDV3YW5SNS5ZATS64N \ / AMOS7 \ YOURUM ::
-#\[7]27JJHGPCWSE5KVJ7OQVHN7SR2KRCNKXXUR3AWUENHNPLLLLKXACY 7  DATA SIGNATURE ::
+#,,.,,...,...,,..,,,,,.,,,,,,,..,,,..,,,,,,.,,..,,...,...,,,.,..,,,..,,..,..,,
+#7EUNJ6DS3PWIHAWQDVQAWM4LBB7TQMVBSBH6K5BBW2R6AOFVAFDIU6WXE577UQIECJYYUQNHRXNJ2
+#\\\|TWFZBJI2INDEZVBIL5JUV3NKCMNA46PGPVGYAPN3XR6IU463R2H \ / AMOS7 \ YOURUM ::
+#\[7]XVLQS2WR2Z3DF5VYWQ4TJ3KVTT6UCPIXNMDB6FZSRFHHUZTFMMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

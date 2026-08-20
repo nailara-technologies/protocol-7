@@ -20,11 +20,11 @@ characteristics and format policy:
 ### code
 
 - **entropy**: controlled — variations are intentional, signed, traceable
-- **entry points**: signing gate (modules/), direct load (bin/Protocol-7)
+- **entry points**: signing gate (src/), direct load (bin/Protocol-7)
 - **format**: single canonical form, ptd-formatted, endline normalized
 - **signature**: required, strict — unsigned artifacts not loaded
-- **current paths**: `modules/`, `bin/`, future `code/`
-- **dot namespace**: `base.callback.cmd_reply` ↔ `modules/base.callback.cmd_reply`
+- **current paths**: `src/`, `bin/`, future `code/`
+- **dot namespace**: `base.callback.cmd_reply` ↔ `src/base.callback.cmd_reply`
 
 ### configuration
 
@@ -72,7 +72,7 @@ prefixes to their contract:
 
 ```
 namespace prefix    format          endline policy      ptd     sig required
-modules/            P7 module       LF, strict          yes     yes
+src/            P7 module       LF, strict          yes     yes
 bin/dev/            Perl script     LF, strict          no      yes
 cfg/      v7 / YAML       LF, relaxed (+2)    no      yes
 data/yaml/          YAML            LF, relaxed (+1)    no      yes
@@ -125,7 +125,7 @@ lifecycle closes:
 edit → sign (normalizes, records, checksums) → load (verifies, drops if invalid)
 ```
 
-unnormalized or unsigned artifacts dropped into `modules/` are either
+unnormalized or unsigned artifacts dropped into `src/` are either
 transitional (will be signed before use) or flagged and not loaded. no
 persistent unsigned state possible in the code namespace.
 
@@ -140,7 +140,7 @@ ptd-formatted module, because signing made it so.
 
 **`bin/dev/create-code`**
 minimal stub creator. given a module name, writes `## [:< ##` header and
-`# name = ...` to `modules/<name>`. guards against overwrite. covers the
+`# name = ...` to `src/<name>`. guards against overwrite. covers the
 immediate pain of writing headers by hand in high-iteration sessions.
 
 **`bin/dev/dep-graph`**
@@ -148,11 +148,11 @@ static dependency graph generator. `--zenka=NAME --list-subs` produces the
 scoped reachable module set for a zenka. foundation for whitelist generation
 and self-healing scans. three swap_subs forms now parsed.
 
-**`bin/ncode`** with `modules/ncode.*`
+**`bin/ncode`** with `src/ncode.*`
 pattern-based code modification. `parse-headers`, `suggest`, `apply`,
 `workflow`. higher-level, code-as-code awareness.
 
-**`modules/source.*`**
+**`src/source.*`**
 signature integrity and provenance. `signature_valid`, `extract_sig_body`,
 `sign_data`, `acquire_checksums`, `create_harmonic_footer`.
 
@@ -243,8 +243,8 @@ ncode.* (now)      →  policy-aware modification with signing integration
 no premature abstraction. each tool has clear lineage. the working system
 is the foundation, wrappers have immediate multiplier effect.
 
-#,,,,,.,.,...,,..,,.,,,..,,,.,,..,,,.,,,.,,.,,..,,...,...,...,,,,,,.,,,,,,.,.,
-#LWYJGHZCRZ76HSGAVP7M3EA245ANF66V22KWKDOOTHK65EO6OHXCQQWJLVIHPEOEWK55TE7WWW6ZE
-#\\\|6DTLRHZ2UK6OVKQLUI3BDXOUQETYFYFMUKYLPN6RZ3R376BLWCB \ / AMOS7 \ YOURUM ::
-#\[7]CUS2XMSTCKNPCWVPXEPF34WTBGY73BUNJMFEBP4LLYVFHD76UKCY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,.,,,.,,...,,.,,,.,,..,,.,,,,,,,..,,...,...,..,,...,,.,,.,,,,,,,
+#IRSG6JKPDVEBMKODE6YBPR4VU3LNP3JUDDWQR5ZCY6RU5FQXB4OPKU4TSH3G7BPAWYDXMT7T42BZ2
+#\\\|VWXKHVG4Z4ZCW2UGG6O2RXGMHH4NXRFE5MDHDMG4GDWL6AUMSHT \ / AMOS7 \ YOURUM ::
+#\[7]HE7EWKE55QOHATM5AOBC3C4GONUH3T5QRUQEO2PQH4LEHOFZVEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -99,7 +99,7 @@ if ( defined $before_hash ) {
 
 ### coding.tools.rewind.apply — restore file to state N
 
-New module: `modules/coding.tools.rewind.apply`
+New module: `src/coding.tools.rewind.apply`
 
 ```perl
 # name  = coding.tools.rewind.apply
@@ -142,7 +142,7 @@ return { ok => 1, rewound => $rewound };
 
 ### coding.cmd.rewind — network command
 
-New module: `modules/coding.cmd.rewind`
+New module: `src/coding.cmd.rewind`
 
 ```perl
 ## usage: p7c coding.rewind <task_id> [round=N] ##
@@ -197,7 +197,7 @@ explicit allowlist.
 
 Parse from description prefix — extends the existing `:model:`, `:review:` pattern:
 ```
-:local: :read-only: investigate modules/coding.handler.process-queued-task
+:local: :read-only: investigate src/coding.handler.process-queued-task
 :local: :read-only: :write=data/yaml/tool-hints/staged/: review ...
 ```
 
@@ -274,8 +274,8 @@ Read-only tasks produce no rewind_stack entries (nothing to undo by definition).
 - rewind.apply uses direct file.write bypassing chmod child since it
   restores to a known-good previous state (already existed with right perms)
 
-#,,,.,,,.,...,,.,,,,.,.,,,...,.,.,...,,,.,,..,..,,...,...,,,.,,,,,,.,,,,,,.,.,
-#KACYXJU4WEGDDCUCEBZVVRB2YYVE3TRCWTXGGS3IYWTKIPJHZNHSZOV33U42EIVUQQR66UBGXBBPO
-#\\\|U5MVW6TRJLWEAQCTLCJF3U3T3QBZR5DE3J2DMS6ONCXT77KNM7H \ / AMOS7 \ YOURUM ::
-#\[7]HYI2SPW7BSXSB2ECMD6335UVCBBPWWLEGRNENGEIUGKV4RPIFAAQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,,,,..,,,,,,,.,,..,,,.,,.,.,..,,...,...,.,.,,,,,.,,,.,,,..,,
+#HSTULBKRXWQJUTJZCXHKWRR7Q5RL5EEUXQT7IYRKLJ2XZHA6LONWZ4JCBXGPAYMXJYYGXSOKKVHEI
+#\\\|CXWQS7XYRMUBFEIFKE4POGBLWICD2S77QZAC4CQFF53IWBBTERJ \ / AMOS7 \ YOURUM ::
+#\[7]V6PUOEXA3CDROWFTXSEUKPRLTKXV6OPRRBQT75IVB4Q6UAXVHMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

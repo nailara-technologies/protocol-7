@@ -5,11 +5,11 @@
 - `data/ai-mem/kimi/coding-style.md` and `data/ai-mem/kimi/MEMORY.md` — P7
   module conventions (this is a small task but the pitfalls below still
   apply: `base.logs` not `base.log`, no fake signature stubs, TRUE=5/FALSE=0)
-- `modules/site-yaml.stepstone.job` — current JSON-LD extractor, the file
+- `src/site-yaml.stepstone.job` — current JSON-LD extractor, the file
   you will extend
-- `modules/site-yaml.http.get` — existing fetch helper, use it, don't add
+- `src/site-yaml.http.get` — existing fetch helper, use it, don't add
   a second HTTP client
-- `modules/jobsite.util.build_prompt` — assessment prompt builder, the
+- `src/jobsite.util.build_prompt` — assessment prompt builder, the
   second file you will extend
 
 ---
@@ -34,7 +34,7 @@ this task) an actual anchor for a salary ask.
 
 ### step 1 : find the real markup
 
-`modules/site-yaml.stepstone.job` currently only parses the JSON-LD
+`src/site-yaml.stepstone.job` currently only parses the JSON-LD
 `<script type="application/ld+json">` block. Stepstone's salary *estimate*
 widget is a site feature, not part of the JobPosting JSON-LD schema — it
 is very unlikely to be in that block. You need to fetch a live page and
@@ -88,7 +88,7 @@ always an annual gross range in the examples above).
 
 ### step 3 : wire into the assessment prompt
 
-In `modules/jobsite.util.build_prompt`, when `$job->{'salary_estimate_min'}`
+In `src/jobsite.util.build_prompt`, when `$job->{'salary_estimate_min'}`
 and `$job->{'salary_estimate_max'}` both exist, add a line to the prompt
 telling the model the real range instead of leaving it to guess, e.g.
 something like:
@@ -135,8 +135,8 @@ fake/stub signatures to new files.
 
 ## dispatch
 
-#,,.,,,,,,,,.,,,.,,.,,.,,,,.,,...,.,.,.,,,..,,..,,...,...,.,,,...,,,.,,..,.,,,
-#ZVLQ3X6ALSHPZ2VVBHFE7V4DDM4DMXFBUHPL7QMMXSCNI7F6NVV4JTAC5EXLTSNTKOFYJO7NTGT6Y
-#\\\|W7V44SJNVPQDVJUUTDNAJLCW6RYIYHJHSTQEDP3CIOZO2NX2RE2 \ / AMOS7 \ YOURUM ::
-#\[7]LWF2TBHNOX56XYU4O755A5RPDM7O5QUYZVZHWTWMKENIWFC46OBY 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,,.,,.,,,,..,...,...,..,,.,,,..,,...,...,...,,,.,..,,,,.,,.,,
+#WETCBWCRZP63GQNQJIKUIPOBPMUOIEIVPT4LYVQT2FK2K5RGP7DU23IFCU6TGS2FFEO3NNB364S62
+#\\\|34CO2UZFXX72YSSCHQIBKTUJFBQ22MMRMRDLFZPTKQNVUFS7QAT \ / AMOS7 \ YOURUM ::
+#\[7]PZ7XJAKOPVJPUET374DKGEOWCIVC5BUWTVEQJTKSHT5SOVAXZCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

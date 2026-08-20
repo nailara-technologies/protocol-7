@@ -1,0 +1,187 @@
+## [:< ##
+
+# name  = forensics.handler.rule-proposal
+# descr = receive coding-zenka rule proposal, validate, write candidate
+#         rule yaml [ gated : status candidate, review before activation ]
+# param = $reply - { cmd, call_args, data, params }
+
+## validation gates [ anti-hallucination, mirrors the ncode tier-B stance : ##
+## a proposal that cannot detect its own source anomaly is rejected, never  ##
+## activated ] :                                                            ##
+## 1. NAME / DESCR / REGEX / CONFIDENCE fields parse                        ##
+## 2. REGEX compiles as a perl regex                                        ##
+## 3. REGEX positively matches the source anomaly message  rejected         ##
+## proposals are still written to disk [ status rejected, raw response kept ##
+## ] -- auditable either way.                                               ##
+
+my $reply = shift;
+
+require Digest::SHA;
+
+my $cmd       = $reply->{'cmd'}       // '';
+my $call_args = $reply->{'call_args'} // {};
+my $params    = $reply->{'params'}    // {};
+my $raw       = $reply->{'data'}      // '';
+my $data      = ref $raw ? $raw->$* : $raw;
+
+my $response;
+if ( $cmd eq 'TRUE' ) {
+    $response = $call_args->{'args'} // '';
+} elsif ( $cmd eq 'SIZE' ) {
+    $response = $data;
+} elsif ( $cmd eq 'FALSE' ) {
+    $response = sprintf qw| error : %s |, $call_args->{'args'} // qw| ? |;
+} else {
+    $response = sprintf qw| error : unknown reply type %s |, $cmd;
+}
+
+my $anomaly_key = $params->{'anomaly_key'} // '';
+my $class       = $params->{'class'}       // qw| ? |;
+my $e_zenka     = $params->{'zenka'}       // qw| ? |;
+my $message     = $params->{'message'}     // '';
+my $sweep_date  = $params->{'sweep_date'}  // '';
+
+my $var_p7   = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+my $rule_dir = <forensics.cfg.rule_dir>        // sprintf qw| %s/%s/rules |,
+    $var_p7, <system.zenka.name>;
+my $state_path    = sprintf qw| %s/synthesis-state.yaml |, $rule_dir;
+my $candidate_dir = sprintf qw| %s/candidates |,           $rule_dir;
+
+## --- parse proposal fields [ last occurrence wins -- thinking models may ##
+## restate the answer after a </think> block ]                             ##
+
+my ( $name, $descr, $regex_str, $confidence );
+for my $line ( split m|\n|, $response ) {
+    $name       = $1 if $line =~ m{^NAME:\s*(\S+)\s*$}i;
+    $descr      = $1 if $line =~ m{^DESCR:\s*(.+?)\s*$}i;
+    $regex_str  = $1 if $line =~ m{^REGEX:\s*(.+?)\s*$}i;
+    $confidence = $1 if $line =~ m{^CONFIDENCE:\s*([\d\.]+)\s*$}i;
+}
+$regex_str =~ s{^`+|`+$}{}g if defined $regex_str;    ## strip backticks ##
+
+my @reject_reasons;
+
+if ( not defined $name
+    or $name !~ m{^[a-z0-9][a-z0-9\-]{2,60}$} ) {
+    push @reject_reasons, qw| invalid-or-missing-name |;
+    $name = sprintf qw| fr-%s-%s |, lc($class) =~ s{[^a-z0-9]+}{-}gr,
+        substr( $anomaly_key, 0, 7 );
+}
+
+my $regex_ok;
+if ( not length $regex_str // '' ) {
+    push @reject_reasons, qw| missing-regex |;
+} else {
+    $regex_ok = eval {qr|$regex_str|};
+    push @reject_reasons,
+        sprintf( qw| regex-does-not-compile [ %s ] |, $EVAL_ERROR // qw| ? | )
+        if not defined $regex_ok or length $EVAL_ERROR;
+}
+
+## positive structural verify : must match its own source anomaly ##
+if ( defined $regex_ok and length $message ) {
+    push @reject_reasons, qw| regex-misses-source-anomaly |
+        if $message !~ $regex_ok;
+}
+
+$confidence = 0.5 if not defined $confidence or $confidence !~ m{^\d*\.?\d+$};
+$confidence = 1   if $confidence > 1;
+
+my $status = @reject_reasons ? qw| rejected | : qw| candidate |;
+
+## --- candidate record [ schema mirrors ncode pattern store ] ---------- ##
+
+my @gm = gmtime;
+my $created_str
+    = sprintf qw| %04d-%02d-%02dT%02d:%02d:%02dZ |,
+    $gm[5] + 1900, $gm[4] + 1, $gm[3], $gm[2], $gm[1], $gm[0];
+
+my $candidate = {
+    'name'           => $name,
+    'descr'          => $descr     // '',
+    'pattern'        => $regex_str // '',
+    'replace'        => undef,      ## detect-only rule ##
+    'status'         => $status,    ## candidate = review-gated, not active ##
+    'origin'         => qw| llm-suggested |,
+    'synthesized_by' => qw| coding zenka [ local model, :simple: ] |,
+    'applicability'  => {
+        'file_type'  => qw| p7-log |,
+        'namespace'  => qw| forensics |,
+        'confidence' => $confidence + 0,
+    },
+    'stats'          => { 'applied' => 0, 'false_positive' => 0 },
+    'source_anomaly' => {
+        'class'       => $class,
+        'zenka'       => $e_zenka,
+        'message'     => $message,
+        'count'       => $params->{'count'} // 1,
+        'sweep_date'  => $sweep_date,
+        'first_seen'  => $params->{'first_seen'} // '',
+        'last_seen'   => $params->{'last_seen'}  // '',
+        'anomaly_key' => $anomaly_key,
+    },
+    'created'      => $created_str,
+    'created_unix' => time,
+};
+
+$candidate->{'reject_reasons'} = \@reject_reasons if @reject_reasons;
+$candidate->{'raw_response'}   = $response        if @reject_reasons;
+
+my $candidate_path = sprintf qw| %s/%s.yaml |, $candidate_dir, $name;
+$candidate_path = sprintf qw| %s/%s-%d.yaml |, $candidate_dir, $name, time
+    if -e $candidate_path;
+
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $candidate_path, $candidate );
+
+<[base.logs]>->(
+    0,
+    'rule-proposal : candidate write failed [ %s ]',
+    $write_err // qw| ? |
+) if not $ok;
+
+## --- update synthesis state -------------------------------------------- ##
+
+my $state = -r $state_path ? <[format.yaml.load_file]>->($state_path) : {};
+$state = {} if ref $state ne qw| HASH |;
+$state->{'processed'} //= {};
+
+if ( length $anomaly_key ) {
+    $state->{'processed'}{$anomaly_key} = {
+        'status'     => $status,
+        'class'      => $class,
+        'zenka'      => $e_zenka,
+        'sweep_date' => $sweep_date,
+        'candidate'  => $ok ? $candidate_path : '',
+        'completed'  => time,
+        @reject_reasons
+        ? ( 'reject_reasons' => \@reject_reasons )
+        : (),
+    };
+    my ( $st_ok, $st_err )
+        = <[format.yaml.write_file]>->( $state_path, $state );
+    <[base.logs]>->(
+        0,
+        'rule-proposal : state write failed [ %s ]',
+        $st_err // qw| ? |
+    ) if not $st_ok;
+}
+
+<[base.logs]>->(
+    $status eq qw| candidate | ? 1 : 0,
+    'rule-proposal : %s : %s [ %s ]%s',
+    $status,
+    $name,
+    $candidate_path,
+    @reject_reasons
+    ? sprintf( qw| rejected : %s |, join( q|, |, @reject_reasons ) )
+    : ''
+);
+
+return TRUE;
+
+#,,,,,,..,.,.,..,,.,.,.,.,.,.,.,,,,.,,.,,,,,.,..,,...,..,,...,,..,,,,,...,.,.,
+#3UW3GUKYRA5JWK6QWOKD62GJTA4DQRQFG7OZPTIZKTBWXPMTP4MLRAYMVQ3YOJMAQVVJJJCZ2B7IG
+#\\\|PYHRUNKUQ25WPVBFOZUTAF4HAZPBS2XOPF5JBSUS2N3AJXDH2VA \ / AMOS7 \ YOURUM ::
+#\[7]67NDT6IQBJYFCJWUWM73GSU3U474CGVYQZO6ELS55354CEPUZGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

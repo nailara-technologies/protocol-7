@@ -59,12 +59,12 @@ regardless of how many callers are waiting.
 
 ## modules to create
 
-- `modules/base.zenka.push` — main helper, handles routing + offline detection
-- `modules/base.zenka.push.reply-handler.offline` — reply handler: detects
+- `src/base.zenka.push` — main helper, handles routing + offline detection
+- `src/base.zenka.push.reply-handler.offline` — reply handler: detects
   offline response, registers notify_online, queues payload
-- `modules/base.zenka.push.reply-handler.notify-online` — handles
+- `src/base.zenka.push.reply-handler.notify-online` — handles
   `v7.notify_online` reply: dequeues and resends
-- `modules/base.zenka.push.pre_init` — swap `base.zenka.push` → `zenka.push`
+- `src/base.zenka.push.pre_init` — swap `base.zenka.push` → `zenka.push`
   (optional, if short form desired)
 
 ## immediate fix: nodes.orbital.update_position
@@ -93,7 +93,7 @@ older queued positions are stale and should be dropped.
 
 ## companion: base.cmd.when-present
 
-`modules/base.cmd.when-present` exists but is a stub (marked "not implemented / testing").
+`src/base.cmd.when-present` exists but is a stub (marked "not implemented / testing").
 it is the command-handler face of the same pattern: forward a command to a zenka when
 it is present/online. as part of this task, complete its implementation using the same
 offline-detection + notify_online + queue logic as `base.zenka.push`, but in command-
@@ -101,9 +101,9 @@ handler form (receives `$call->{'args'}` = "user command [params]" from the rout
 
 ## reference implementation
 
-see `modules/base.log.send-buffer.send-idle-callback` lines 58-79 for the
+see `src/base.log.send-buffer.send-idle-callback` lines 58-79 for the
 `v7.notify_online` dispatch pattern.
-see `modules/base.zenki.ondemand.handler.startup_reply` for the notify_online
+see `src/base.zenki.ondemand.handler.startup_reply` for the notify_online
 reply handler pattern.
 
 ## core subs
@@ -119,8 +119,8 @@ check before implementing any runtime load paths.
 do not modify or regenerate any AMOS7 signature lines. the signing system
 handles all footer blocks — leave them untouched.
 
-#,,,,,,..,,,.,,..,.,.,.,.,..,,.,,,.,,,,,.,.,,,..,,...,...,,,.,.,,,..,,..,,.,.,
-#H3VLL5LPK4YLOC3EIIO5XWG4CGM7YB6PJXTWLLLUHP7RGSSBARVQE5UDVRWGOPCNBF3PRCYBBNDKE
-#\\\|IB6F5KUF7LT3UJXY55AYTZMKUM5LYDUZ7KT6LE2W3FQY7Z3V6RX \ / AMOS7 \ YOURUM ::
-#\[7]UH7P2BK4PYU7AADOEDIGTYOZ353UVWD6TYIL4PFYXRCAE4AHDWDI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,.,,..,,..,,.,,,..,,,,.,...,..,,...,...,...,.,.,.,.,..,,.,.,
+#ATSEOSBUDCUNBNSU4IERRPMCHCBTCEAVHT7GC6HVR6MJA2RWQW4AZDKVECSYNK6AJJI5SZPE77J6Q
+#\\\|OU4IN6PVNBYOJVMQX7RZEC72GZW4DIVLQUJKX4ZPSKVFPPLK3CT \ / AMOS7 \ YOURUM ::
+#\[7]GOAV3LIBPBIU2KGQEJSD3DD63DUEKX5IZRQY5TN2GJAIHGMYVADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

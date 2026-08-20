@@ -26,11 +26,11 @@ class of bug is subtle because:
 - only heartbeat timeout or external kill recovers it
 
 Known while loops in coding zenka (some safe, some suspected):
-- modules/coding.handler.http_io      line 127  buffer regex — appears safe
-- modules/coding.handler.http_poll    line 116  buffer regex — appears safe
-- modules/coding.handler.process-queued-task line 204  LWP blocking loop — SUSPECT
-- modules/coding.cmd.wait-done        line 27   event.once poll — safe
-- modules/coding.handler.drain_pipe   line 24   sysread loop — safe
+- src/coding.handler.http_io      line 127  buffer regex — appears safe
+- src/coding.handler.http_poll    line 116  buffer regex — appears safe
+- src/coding.handler.process-queued-task line 204  LWP blocking loop — SUSPECT
+- src/coding.cmd.wait-done        line 27   event.once poll — safe
+- src/coding.handler.drain_pipe   line 24   sysread loop — safe
 
 ## Your Task
 
@@ -53,9 +53,9 @@ prefer reading modules directly over searching for complex patterns.
    - use search_code(pattern: "event.once") and search_code(pattern: "event.add_timer")
 
 2. Read examples of good event integration:
-   - modules/base.event.* — the event primitives themselves
-   - modules/coding.async.* — async request/response patterns
-   - modules/coding.handler.drain_pipe — sysread-safe example
+   - src/base.event.* — the event primitives themselves
+   - src/coding.async.* — async request/response patterns
+   - src/coding.handler.drain_pipe — sysread-safe example
    - At least one zenka that handles network I/O cleanly
 
 3. Identify the taxonomy of while loop risks:
@@ -126,7 +126,7 @@ sections:
 
 After writing the template:
 1. `ptd -c data/yaml/context-templates/event-loop-safety.yaml` — verify syntax
-2. Test it: submit a review of `modules/coding.handler.process-queued-task`
+2. Test it: submit a review of `src/coding.handler.process-queued-task`
    using the new template and report what it finds
 3. Write a brief note (note_write) summarizing the key patterns discovered
    during research — this becomes training data for future reviews
@@ -148,8 +148,8 @@ After writing the template:
 - if you find a clear DANGER case during research, note it in note_write
   with the module name and line — a separate fix task will address it
 
-#,,.,,..,,..,,..,,,,.,,.,,.,,,.,.,,..,,.,,,.,,..,,...,..,,.,,,.,.,.,,,,,,,..,,
-#4TIDQMAOCLIVKK5IOJOMD2BVC5IRAJH7FE2XNXLAXNM4ADE4XKKNHXMHYEZ4FV5KIRPDLJVWG3FJW
-#\\\|LJA7KQEFHX26P2WNIZR2H7RHGQIEWVVXVO372YJJXD3KG7TTZA7 \ / AMOS7 \ YOURUM ::
-#\[7]6PZH36I2TLGO4UO27U2W7PMC3OHVZPPM4I2FD5PV5TPKI7ICRECQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,.,.,,,,,.,,,.,,,.,.,..,,,,,,..,,...,...,...,,.,,.,,,,..,.,.,
+#4PTYZ3BAIQFL6ICUUDDTUHOSFDQGFP4DW72TWOT4YPOM7NKJBV2EJ447SOEDF35MG7YWYRAQPHSLA
+#\\\|DVMCLZ2HDPIMLGXWFH3WMYZPR7IIT52CTIRUVIRIE2EC7BEPKGJ \ / AMOS7 \ YOURUM ::
+#\[7]VS267SYXZDOEQSU2DQIDNM4OLTANQYTT2UPOJU6RHPOMRJ6HHAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

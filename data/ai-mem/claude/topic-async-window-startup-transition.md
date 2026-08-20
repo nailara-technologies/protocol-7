@@ -152,20 +152,20 @@ tonight since the screen-change subscriber list was always empty/broken):**
    to inspect/patch live data state without a restart.
 
 **Files touched this session (uncommitted, verify against `git status`):**
-modules/X-11.cmd.move-window (mismatch detection + 0.1s recheck before
-logging), modules/X-11.handler.screen_change (decrease-triggered toggle +
+src/X-11.cmd.move-window (mismatch detection + 0.1s recheck before
+logging), src/X-11.handler.screen_change (decrease-triggered toggle +
 settle-check timer; reconnect logic ADDED then REMOVED, see below),
-modules/X-11.handler.monitor_settle_check (new), modules/X-11.cmd.
-refresh-monitors (new), modules/X-11.handler.global_hotkeys (RandR
-sub-event warning suppression), modules/X-11.init_code, modules/X-11.
-emit.screen-change, modules/X-11.cmd.subscribe-screen-change, modules/
-powershell.cmd.display-switch-toggle (new), modules/window.place.
-find_safe_position (new), modules/window.place.build_strip_candidates
-(new), modules/ticker.move_to_profile, modules/ticker.cmd.swap_profile,
-modules/ticker.handler.check_pointer, modules/ticker.open_window, modules/
-tile.cmd.screen-change (renamed from tile.handler.screen-change), modules/
+src/X-11.handler.monitor_settle_check (new), src/X-11.cmd.
+refresh-monitors (new), src/X-11.handler.global_hotkeys (RandR
+sub-event warning suppression), src/X-11.init_code, src/X-11.
+emit.screen-change, src/X-11.cmd.subscribe-screen-change, src/
+powershell.cmd.display-switch-toggle (new), src/window.place.
+find_safe_position (new), src/window.place.build_strip_candidates
+(new), src/ticker.move_to_profile, src/ticker.cmd.swap_profile,
+src/ticker.handler.check_pointer, src/ticker.open_window, src/
+tile.cmd.screen-change (renamed from tile.handler.screen-change), src/
 protocol-7-menu.cmd.screen-change (new, renamed from a .handler. version),
-modules/protocol-7-menu.subscribe-screen-change (new), modules/
+src/protocol-7-menu.subscribe-screen-change (new), src/
 protocol-7-menu.init_code, cfg/zenki/{X-11,ticker,tile,
 protocol-7-menu,powershell}/{start,subroutines.load-early}, cfg/
 zenki/cube/access.zenki.
@@ -216,7 +216,7 @@ with coordinates is an open optimization.
 COMMITTED 2026-06-24 as `44c83d2b0` (ticker: bounded fallbacks for tile-
 dependent startup, 24 files). Earlier this session: `eae0be7da` (gtk monitor
 helpers + menu/screen-setup), `eec8a9e8e` (tile openbox dep drop). HELD BACK
-uncommitted: modules/X-11.cmd.move-window + base.X-11.move-window (entangled
+uncommitted: src/X-11.cmd.move-window + base.X-11.move-window (entangled
 with the mpv-jobqueue thread, volatile values — do NOT bundle).
 STILL OPEN [ ACTIVE NOW ]: the centered-on-WRONG-monitor regression (3rd
 monitor on) — geo_ready shapes the correct rect [1920,2448,5360,2520] but
@@ -345,7 +345,7 @@ still unstaged; the _NET_WM_MOVERESIZE attempt is reverted.
 - UNSIGNED/UNCOMMITTED file inventory (this transition): modules
   base.gtk.{strip_on_monitor,centered_on_monitor,ensure_display},
   base.X-11.{get_coordinates_async,handler.coordinates_reply},
-  ticker.startup.geo_ready (new); edits modules/ticker.startup (main_loop
+  ticker.startup.geo_ready (new); edits src/ticker.startup (main_loop
   removed), cfg/zenki/ticker/start, ticker subroutines.load-early.
   ALSO from earlier this session, signed-but-CHECK-IF-COMMITTED: base.gtk.
   {list_monitors,snap_to_monitor}, protocol-7-menu.graphical-startup-init,
@@ -433,7 +433,7 @@ the `base.X-11.*` namespace:**
 **ticker reference files (built):** modules base.gtk.{strip_on_monitor,
 centered_on_monitor}, base.X-11.{get_coordinates_async,
 handler.coordinates_reply}, ticker.startup.geo_ready (new); edits
-cfg/zenki/ticker/start, modules/ticker.startup (main_loop removed).
+cfg/zenki/ticker/start, src/ticker.startup (main_loop removed).
 ticker white-list regen'd (588). ALL NEED SIGNING.
 
 **SESSION-ID SEMANTICS (critical — taeki corrected me twice here):**
@@ -609,8 +609,8 @@ commented out) and cfg/zenki/v7/start-set-up.base
 ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
 a leftover debug toggle from a prior session, taeki wants it disabled for now.
 
-#,,..,,,,,..,,...,..,,,.,,,.,,.,,,.,.,.,.,...,..,,...,...,...,.,,,,.,,,,.,...,
-#7PYFDFE2VYIKLH4X2IGONABJTZLMKU3ULITDIAAQX5XEYP555APOX6KQK2ONVTXDVZ5WWLPNRRSL6
-#\\\|ILWD4R5G57TYGWJBBMWRKYACIRXMDGIXAZGH6DWDMU3D2DBKGOE \ / AMOS7 \ YOURUM ::
-#\[7]4LY4QXMBKBC6R2QWXLW2BXDBQIYKZHOGFJBMVAPFYP5M75E4AWCA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,,.,,,,,,..,,,.,,..,,,..,,.,,..,,...,...,,..,...,,..,,,.,,,,,
+#VVP4WHEZB3L7TACWCAFRYXIHFF27TI7TBSHBV4RJ3DHHEHWTNQLGCSSY7IWPO54X63NIN2PQT2MBK
+#\\\|3LIW6TQDVABWEPMF35LAK4XYV2HQZLKUT4ISOBHT4C5BUA3JLOY \ / AMOS7 \ YOURUM ::
+#\[7]PHO7THOWL52YJHM33KDM7ZN4LOIAZDBG6ZC4OHKUTR6MGHNK2GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

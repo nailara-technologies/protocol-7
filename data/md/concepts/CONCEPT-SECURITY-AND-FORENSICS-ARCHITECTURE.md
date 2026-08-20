@@ -59,18 +59,18 @@ the `nodes` zenka already integrates with `discover` and maintains awareness of
 known nodes in frequented networks:
 
 ```
-modules/nodes.init_code
-modules/nodes.handler.discover_node_online
-modules/nodes.handler.discover_details_reply
-modules/nodes.callback.local_network.offline-node
-modules/nodes.send_host_details_request
-modules/nodes.parser.connection_status
-modules/nodes.parser.connection_target
-modules/nodes.parser.node_pkey
-modules/nodes.cmd.host-status
-modules/nodes.cmd.add-group-user
-modules/nodes.cmd.add-trunc
-modules/nodes.cmd.update-protocol-elf
+src/nodes.init_code
+src/nodes.handler.discover_node_online
+src/nodes.handler.discover_details_reply
+src/nodes.callback.local_network.offline-node
+src/nodes.send_host_details_request
+src/nodes.parser.connection_status
+src/nodes.parser.connection_target
+src/nodes.parser.node_pkey
+src/nodes.cmd.host-status
+src/nodes.cmd.add-group-user
+src/nodes.cmd.add-trunc
+src/nodes.cmd.update-protocol-elf
 ```
 
 planned: wake-on-lan capability so node availability can be managed with priority
@@ -126,10 +126,10 @@ whole system smarter after each incident.
 - data/md/documentation/LOGGING-AND-VERBOSITY-REFERENCE.md
 - data/md/concepts/CONCEPT-SELF-MORPHING-CODE-STYLE-CONVERGENCE.md
 - cfg/zenki/events/event-setup.base
-- modules/nodes.*
+- src/nodes.*
 
-#,,.,,,,.,,,,,.,.,,,,,,,.,,.,,,..,..,,,,,,.,,,..,,...,...,...,..,,..,,,..,.,,,
-#43A6PLCK7HSVRMUQVMAYYNWTC43C7XCDNIMAJPMYFS746NSO3DENFCME5H2GAQEFZM7WEBCXQE4KO
-#\\\|XLC4HSK3SHFJZQTALCZBDQDIWPZAQCKVYLT2MJNMPONW33XBKLG \ / AMOS7 \ YOURUM ::
-#\[7]BBAGIY4MYPNQXVDYC7LMDLO4FGHAC3XKA4FYIAETCNXZOPSCFIDA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,,,,..,,.,,...,.,.,,,,,...,,,,,..,,...,...,,..,.,.,,.,,,..,.,,,
+#47QCZZ7ZFSYXU4R34NZ3OGWHXNNK5ZTDBYBJFWTL6XMEPALFVVPGJ4JRE3ZEDWPIEE7CTV2QHEB6O
+#\\\|E7H6UOU5ZRE3N3YCL53VV7GRQR5BIPWTBBPWUBN77EJJ647IRGN \ / AMOS7 \ YOURUM ::
+#\[7]QHPKCM3YQUZDHPKCL2VVSBNBATWJIXMKMLSMHJOECW6BW5PIVKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

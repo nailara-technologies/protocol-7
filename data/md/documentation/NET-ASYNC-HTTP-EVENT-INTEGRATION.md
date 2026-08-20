@@ -44,7 +44,7 @@ All event handling still goes through Event.pm underneath - no duplicate loops!
 ### 1. Init Code (One-time setup)
 
 ```perl
-## modules/models.init_code ##
+## src/models.init_code ##
 
 ## Load required modules
 <[base.perlmod.autoload]>->('IO::Async::Loop::Event');
@@ -69,7 +69,7 @@ All event handling still goes through Event.pm underneath - no duplicate loops!
 ### 2. Invocation (Non-blocking)
 
 ```perl
-## modules/models.backend.local.invoke ##
+## src/models.backend.local.invoke ##
 
 my $request = HTTP::Request->new(
     POST => "$llama_server_url/v1/chat/completions",
@@ -250,8 +250,8 @@ Next step: Verify IO::Async::Loop::Event availability, then prototype.
 
 ---
 
-#,,.,,,..,...,,..,...,..,,,,,,,,,,,,.,,.,,..,,.,.,...,...,,,.,.,.,.,,,..,,,,.,
-#IHOP3HTPZTULEYXG23BINVPKU4NANQM3DJPFCPUHZ7WITGQFRG7ID3UBBKQFE2ZXI442OT6XRMSFK
-#\\\|C7WVUTAHR62UDZOEOFFYVRA44FNG2KH4Q2ERGRDR3BAXTQNB2FJ \ / AMOS7 \ YOURUM ::
-#\[7]4DYJVKBIYARE2O5MZJ54VTQMO2JANR4BHLUNJOMIAKNAPWS5F6BA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,,.,,..,.,,,,.,,...,,,,,,..,,.,,.,.,...,...,.,,,,,.,...,..,,.,,,
+#BHGUWCITCVEIMVPAJQXY7EB2WX56WFHXDX4PN5WEUMKXDUU7E363WTBRLWWI35VDSS2IL2LRTI6VG
+#\\\|OAMDEYSGP6HC7ILPBXEOVEXOO6XRFF5RNSWJQS4RGCCGLZQPHWY \ / AMOS7 \ YOURUM ::
+#\[7]JYUDVRVWKS6WWUKX3PSBDULNMB7HXTOREQINUUHFMQZ7HHTLQECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

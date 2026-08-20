@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.download_stderr
+# descr = parse wget/huggingface-cli stderr output for progress
+
+my $event = shift;
+my $data  = $event->w->data;
+my $dl_id = $data->{'dl_id'} // '';
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+my $fh    = $event->w->fd;
+my $buf   = '';
+my $bytes = <[base.s_read]>->( $fh, \$buf, 4096 );
+
+return if $bytes <= 0;
+
+## parse wget progress lines  example:  45% [========>      ] 1,234,567 ##
+## 2.31MB/s  eta 45s                                                    ##
+while ( $buf
+    =~ m|(\d+)%\s+\[.*?\]\s+([\d,]+)\s+([\d.]+[KMGT]?B/s)\s+eta\s+(\d+\w+)|g )
+{
+    my ( $pct, $downloaded_str, $speed_str, $eta_str ) = ( $1, $2, $3, $4 );
+    $downloaded_str =~ s|,||g;
+    $dl->{'percent'}   = $pct;
+    $dl->{'speed_str'} = $speed_str;
+    $dl->{'eta_str'}   = $eta_str;
+}
+
+## parse huggingface-cli progress  example: Downloading README.md: ##
+## 100%|████████████████| 12.3k/12.3k [00:02<00:00, 5.12kB/s]      ##
+while ( $buf =~ m|(\d+(?:\.\d+)?)\s*(\w+)/\s*(\d+(?:\.\d+)?)\s*(\w+)|g ) {
+    my ( $down, $down_unit, $total, $total_unit ) = ( $1, $2, $3, $4 );
+    $dl->{'downloaded_str'} = "$down $down_unit";
+    $dl->{'total_str'}      = "$total $total_unit";
+}
+
+#,,,.,.,.,,,.,,.,,,,.,,,.,,,.,,,.,.,.,,..,.,,,..,,...,..,,.,.,...,..,,,.,,,.,,
+#O2EDZJ7F555B34V6SZUXXFNLVZDNKZ2Y54ZZN5SI3D6J4BW46BM3TUF77X7PBDRB7O7W3FSF66B24
+#\\\|2FHDOPVP7DEF45DH2UND5YOJ2FPL5ZTAPVP4XJJHPETVW2I4BK4 \ / AMOS7 \ YOURUM ::
+#\[7]INNNBB42PJRDTZEOCDZFFKL7XEIC4NPCXDU5T5K7IAMP46UQPMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

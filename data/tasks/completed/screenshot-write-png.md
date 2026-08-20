@@ -22,7 +22,7 @@ the human will run it manually. do not add or modify subroutine whitelists.
 
 ## fix 1: remove stub return
 
-file: `modules/screenshot.cmd.write_png`
+file: `src/screenshot.cmd.write_png`
 
 remove the early return:
 ```perl
@@ -60,7 +60,7 @@ return {
 };
 ```
 
-from reading `modules/screenshot.init_code`: no `cfg.output_dir` or output
+from reading `src/screenshot.init_code`: no `cfg.output_dir` or output
 path default exists. add to init_code alongside existing display defaults:
 ```perl
 <screenshot.cfg.output_dir> //= '/var/protocol-7/screenshot/';
@@ -91,8 +91,8 @@ captured region.
 - [ ] test run produces a valid PNG file
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,,,.,..,,,,,,,.,,.,.,.,,,...,,..,.,,,.,.,..,,...,...,...,,..,.,,,,.,,,.,,
-#AQ6BGJ2IQKESASZQ5FIOTO5J4JWCFEKB65PMW6HGUCFZKEOCEE4FMYVDLKBPXF2SOWM3A7JADHRMI
-#\\\|WTEN442Y6PAOM4VI756UDDIYDAFHDFWTRHCUSETTCCC3FA5TVQJ \ / AMOS7 \ YOURUM ::
-#\[7]3XBWGVA2GHDMVEQV76DGSE2JBBR2STFU6QMLEGAXGRZXBPIOEKAQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,..,,..,,.,,,,..,.,,,,,,,.,.,..,,...,...,...,.,,,..,,,,.,.,,,
+#EWWQ6YI5LCXS7T65BNAO67II2RH7XC6NSDQM2COZ72Q4YN6UCGPOWXOSF2B2MHTGFGOO62YMXNK7G
+#\\\|5NKF2DJ2INP2JVHFVJKZJMR2ZADXYIQU2ZELMAY5SJ3LM5JLULG \ / AMOS7 \ YOURUM ::
+#\[7]FA4JTHJN3FUUQFFYU4TY7HE6XN434SGRBZOGH3B3CRX6KFJTAKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

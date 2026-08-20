@@ -5,7 +5,7 @@
 
 ## context
 
-`modules/weather.parent.extract_forecast` disables humidity extraction:
+`src/weather.parent.extract_forecast` disables humidity extraction:
 
 ```perl
 # 'humidity' is disabled as it always returned '0%'
@@ -37,7 +37,7 @@ check whether `humidity` is present and non-zero in the `list` elements.
 ## fix 2: re-enable the field
 
 if humidity data is valid, uncomment or re-add the line in
-`modules/weather.parent.extract_forecast`:
+`src/weather.parent.extract_forecast`:
 
 ```perl
 'humidity' => $element->{'humidity'},
@@ -58,8 +58,8 @@ verify that the forecast output includes humidity and the value is reasonable
 - [ ] downstream display commands show humidity correctly
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,.,,,..,,,.,,..,,...,...,,..,,,,,.,.,,.,,..,,...,...,,,.,,.,,,,.,,,.,...,
-#M4YIRGIGGVM66TM3HYPOKR3REHDGALX3IYPX3YZMMR6POXRL6G23HODSB4NAX5OVMIM47A2UKQK3S
-#\\\|QZEJJ2UIW6EL4LAPQ7HQHGMPIBBWGDDPNBM54LJ7XUUPSDLACLN \ / AMOS7 \ YOURUM ::
-#\[7]LH4MVAWRTP7QSHYJ6YIAYVRIYRDSEPNILRBTCARVLBPG2ALRPWDI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,,,.,,,,,,,.,,.,,,.,,..,,.,.,..,,...,...,,,,,,,,,,.,,...,,..,
+#UTCCTVUU72VOWAQZUSNGRERHAJPT5OGZDMFQPRXKE2WV7R4FAS2OCATJNLCN27TI6YKFJPGF6FSMY
+#\\\|NLVEWNYWORSYDBBF7FIMJO3MB5LT6NTCWWOBCH6SY7CPYGUDJ56 \ / AMOS7 \ YOURUM ::
+#\[7]WXUK3OCH52ERN6LWDZA4DEZPJXHUJFT253KSBJYONXZNPHD2WUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

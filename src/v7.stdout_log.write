@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = v7.stdout_log.write
+# args  = <log_line>
+# descr = writes line to in-memory stdout log buffer
+
+my $log_line = shift              // return FALSE;
+my $log_fh   = <v7.stdout_log.fh> // return FALSE;
+
+## use say with autoflush (syswrite doesn't work with :utf8 layer) returns ##
+## false on failure, true on success                                       ##
+my $result = say {$log_fh} $log_line;
+
+if ( not $result ) {
+    ## check for non-blocking errors ##
+    if ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} ) {
+        <[base.logs]>->( 2, ': stdout log buffer full, dropping line' );
+        return FALSE;
+    }
+    ## other error - log and disable ##
+    <[base.logs]>->( 0, ': stdout log write error: %s', <[base.str.os_err]> );
+    <v7.stdout_log.fh> = undef;
+    return FALSE;
+}
+
+return TRUE;
+
+#,,.,,.,,,.,,,,.,,,,,,.,,,,,,,,,.,,,,,,.,,,,,,.,.,...,..,,...,...,.,.,...,,..,
+#SZR2AUEYL747VOEA7V7U4ETQCLV4RKYY36BD7ABDNC6KNW5FZJ7TLGC3MOISBSFZLOYEM3YIAOQXA
+#\\\|EZW3NKDJG2OZUD5ZQTW27JRNT5OYTDVNLFMKK6AXZ6AG56SCGCJ \ / AMOS7 \ YOURUM ::
+#\[7]JDNTPWTK7XXVJLT6DBOPF4SC6N2YZU2XPUZEPLP376WTQVM6JKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -213,12 +213,12 @@ is lateral (node → network).
 data/md/design/INTENT-CLASSIFICATION-AND-SELF-IMPROVEMENT.md
 data/yaml/reasoning-templates/semantic-dedup-tree.yaml   (companion template)
 data/yaml/intent-tree/                                   (shared tree format)
-modules/semantic.*                                       (to create)
-modules/backchannel.*                                    (to create)
+src/semantic.*                                       (to create)
+src/backchannel.*                                    (to create)
 ```
 
-#,,,,,,,.,,.,,..,,...,..,,.,,,..,,.,.,,.,,..,,..,,...,...,..,,,.,,,,.,...,,..,
-#3FXCH6IYGNJKB5J5AZYWHHIWFIZUG5N7SQMXJCHVQ2RRK7PCSACXD3SKX4K5NTA5DHYPJWOCYKUS4
-#\\\|2NZP4RZGK6KGMHHFDHHT2WGR43OOSRIYPQ5EKY2T2I7I3FAZ5PV \ / AMOS7 \ YOURUM ::
-#\[7]WUULX6OZZ2E4CVEJHYFOJKV7US2OIB64WBAY77M3ARX6ISI7TYCA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,..,,,,,.,.,.,.,,..,.,,,.,.,..,,...,...,...,.,,,,,,,.,,,,,,,
+#FRSKEXAUO7T2B3UUX3EVQPIJ3B4RKOOUUMYDQ3WDIEKVC3LP6ZQ4TQLCNZASXXJJ3F2EYTMOA26SA
+#\\\|UTP2UNZNT5VFZXPW64RUTY2DMF5INEIS5MVESHRM74TLL4EKGOY \ / AMOS7 \ YOURUM ::
+#\[7]F6ESN5DF4ZE5MWTSZD2QIDBFTR6ZHYOVWWGLYCTTZ4OUOH4BOMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

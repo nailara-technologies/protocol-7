@@ -14,7 +14,7 @@ space.
 `AMOS7::CHKSUM` today exports `amos_chksum` + `amos_template_chksum`.
 the rest of the digest family [ BMW raw digests, BMW-L13 harmony,
 BMW-56 AMOS7::13 key derivation, JHA fast 32-bit hash ] lives only as
-`modules/base.chk-sum.bmw.*` and `modules/base.chk-sum.jha.*` zenka
+`src/base.chk-sum.bmw.*` and `src/base.chk-sum.jha.*` zenka
 modules. standalone callers [ `bin/amos-chksum`, `bin/is-true`, the
 AMOS7::P7 loader path, smtpd classifiers ] have to bootstrap the P7
 module loader to reach those families. consolidating them into
@@ -89,20 +89,20 @@ use AMOS7::CHKSUM::BMW384;
 
 ### zenka-module collapse
 
-after the AMOS7 side lands, rewrite each `modules/base.chk-sum.bmw.*`
-and `modules/base.chk-sum.jha.*` body to one-line wrappers:
+after the AMOS7 side lands, rewrite each `src/base.chk-sum.bmw.*`
+and `src/base.chk-sum.jha.*` body to one-line wrappers:
 
 ```perl
-##  modules/base.chk-sum.jha.b32  ##
+##  src/base.chk-sum.jha.b32  ##
 return AMOS7::CHKSUM::jha_b32(@ARG);
 
-##  modules/base.chk-sum.bmw.512_32  ##
+##  src/base.chk-sum.bmw.512_32  ##
 return AMOS7::CHKSUM::bmw_b32( 512, @ARG );
 
-##  modules/base.chk-sum.bmw.calculate_L13_sum  ##
+##  src/base.chk-sum.bmw.calculate_L13_sum  ##
 return AMOS7::CHKSUM::bmw_l13(@ARG);
 
-##  modules/base.chk-sum.bmw.truth_template_L13  ##
+##  src/base.chk-sum.bmw.truth_template_L13  ##
 return AMOS7::CHKSUM::bmw_template_l13(@ARG);
 ```
 
@@ -144,15 +144,15 @@ style [ standard Perl, `$ARG[0]` via English ].
 ## harmony checks
 
 ```
-harmony modules/base.chk-sum.bmw.*
-harmony modules/base.chk-sum.jha.*
+harmony src/base.chk-sum.bmw.*
+harmony src/base.chk-sum.jha.*
 ```
 
 [ a full family sweep after consolidation; any rewrapped module
 should pass cleanly. ]
 
-#,,,.,,,,,.,.,.,,,,.,,,.,,.,,,,..,...,,,.,,,.,..,,...,...,...,,..,,.,,,,,,..,,
-#SLCFMFBIDDKAZB5IRZVAZVYLBXZD6V4UPEOAVRXPDN7XJUWJSSFXX7AHVUTCSBRV5DAO6WIBREYE2
-#\\\|Q6GSXSO4PWXWIO6LTDYZKVUBC6MG7QCTJI4ZHFLR6I5T5LW26RK \ / AMOS7 \ YOURUM ::
-#\[7]NW5DWA7FS6TV6NADACGZS6UXXPBC3FDRMPLZE6C7RC4HG4DFCEAI 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,.,,,..,,.,.,.,.,..,,,..,..,,..,,...,...,.,.,...,,.,,,,,,.,,,
+#U7HOQYQ3XP6IO3XKS6BB5NILQNTN4TZHRVRLFQ4WUWPUDNDGRUCPGPXUHXTCBMAA5P73YWPEISXQ2
+#\\\|HAXVGV66YYXGMBKU5YTI66MINISRKT2PXFQM3JDA5V5CIMZQG5W \ / AMOS7 \ YOURUM ::
+#\[7]VNTRUY2KE5K6OAGGK5CDE7A57RHYJE5UF7A7ULH7EDRVHRI64YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

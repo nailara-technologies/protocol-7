@@ -19,10 +19,10 @@ subsequent requests may also be slow depending on SVG generation cost.
 
 ## read first
 
-- modules/httpd.route.handler.iris-svg      (the handler)
-- modules/route.bmw384.visual.wheel         (main SVG generator)
-- modules/route.bmw384.index.from-path      (index population)
-- modules/route.bmw384.visual.flying-elements (new — may have issues)
+- src/httpd.route.handler.iris-svg      (the handler)
+- src/route.bmw384.visual.wheel         (main SVG generator)
+- src/route.bmw384.index.from-path      (index population)
+- src/route.bmw384.visual.flying-elements (new — may have issues)
 
 ## what to investigate and fix
 
@@ -32,7 +32,7 @@ the index should be populated when httpd initializes,
 not on first request. look for httpd's init or post-init hook
 and add index population there.
 
-check: modules/httpd.init_code or route.bmw384.init_code
+check: src/httpd.init_code or route.bmw384.init_code
 look for where to add:
   <[route.bmw384.index.from-path]>->()
   if not scalar keys %{ <bmw384.index>->{'by_name'} // {} };
@@ -80,7 +80,7 @@ consider: sort once when indexing, store sorted in the index.
 
 ### 5. flying elements overhead
 
-modules/route.bmw384.visual.flying-elements is new and called on
+src/route.bmw384.visual.flying-elements is new and called on
 every SVG render. if <bmw384.route.curves> is empty (no routes added),
 it should return immediately with minimal overhead:
 
@@ -117,8 +117,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 no use statements or pragmas in zenka modules
 
-#,,,,,..,,...,,,.,.,,,.,,,,,.,...,...,,,,,,,,,..,,...,...,.,,,,,.,,,.,,.,,,..,
-#MRU76U3UPCMWIGMHWAV6XOIW4BQ3MQ3ZHR6YU6UUNQ5OIJXTDFZGEY4QVAK5DJ5PCQJ4RKUYRR4DA
-#\\\|CNCBAKZCXEVDCVP4ATOVYT42EUPIOLIBDNE7SU63XAIJLHMOZUW \ / AMOS7 \ YOURUM ::
-#\[7]WJWYE4BXY2OIZQSLAVZX7ST5LTWCHV2MSYZ6DENE3MOJF4H4I2AY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,.,.,,,.,,,,,,,.,.,.,...,...,..,,...,...,..,,.,.,...,,..,..,,
+#SPCF65VRHQSNGI6XV7OK3YUYYQNV53ZQIUJN3OGEN6X72S5YYXFRD44ZY6A5AJOK3D2O7UWLYVTUY
+#\\\|5O43IFQZTCXZLZGPVEUY7AXFDTQ6LYCB7WVWPWUJVSJH5A4DIHT \ / AMOS7 \ YOURUM ::
+#\[7]SIKUPXV23PWBLWYH57CJ2NPQHEXYSGQJCMP7XBQLLYSFAATQVMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

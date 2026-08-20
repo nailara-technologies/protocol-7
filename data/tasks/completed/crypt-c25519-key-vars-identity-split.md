@@ -2,7 +2,7 @@
 
 ## Goal
 
-Fix a real, twice-confirmed bug in `modules/crypt.C25519.key_vars`: the
+Fix a real, twice-confirmed bug in `src/crypt.C25519.key_vars`: the
 process's own identity (`<crypt.C25519.base_key_name>`) gets silently
 claimed by whichever key name is FIRST passed EXPLICITLY to `key_vars` in
 the process's lifetime — not by the process's own deliberate "who am I"
@@ -17,7 +17,7 @@ and `data/ai-mem/claude/bug-auth-keypair-client-composition-gotchas.md`
 exact bug, in unrelated code, on different days. This task fixes the root
 cause both were worked around instead of fixed.
 
-## Root cause — read `modules/crypt.C25519.key_vars` directly first
+## Root cause — read `src/crypt.C25519.key_vars` directly first
 
 Around lines 29-37:
 
@@ -75,14 +75,14 @@ one genuinely load-bearing piece of the whole key system today. Traced
 already, both resolve it via a **hardcoded explicit name**, never through
 `base_key_name`/the bare-call fallback:
 
-- `modules/work.console.commit:19` — `my $sig_key_name = qw|
+- `src/work.console.commit:19` — `my $sig_key_name = qw|
   proto-7.sourcecode |;` (local literal). The one bare `key_vars` call in
   that file, at line 23, only opportunistically loads the *user's own* key
   into memory (a separate, unrelated `$base_key_name` local var) — it has
   nothing to do with which key actually signs the commit.
-- `modules/work.console.commit:31-33` and
-  `modules/sourcecode.console.update-signatures:20-22` /
-  `modules/source.load_signature_key` — all load/resolve the signing key
+- `src/work.console.commit:31-33` and
+  `src/sourcecode.console.update-signatures:20-22` /
+  `src/source.load_signature_key` — all load/resolve the signing key
   by explicit hardcoded name, regardless of `base_key_name` state.
 
 So this fix should not change sourcecode-signing behavior at all. Still,
@@ -94,7 +94,7 @@ gate** — prove this live, do not rely on the reasoning above alone.
 `crypt.C25519` only ever had one concept — the zenka PROCESS's own key
 (`base_key_name`), inherited across forked children, with no guaranteed
 relationship to any human user. `user-edit`'s `identity_key` tab
-(`modules/user-edit.form.schema_from_record`, look for the `identity_key`
+(`src/user-edit.form.schema_from_record`, look for the `identity_key`
 field def and its explanatory comments referencing the hijack bug) borrows
 `base_key_name` today as a stand-in for "the human's own key" — valid for
 `user-edit` specifically (a zenka that represents exactly one human) but
@@ -109,7 +109,7 @@ a dedicated setter sub. Match the existing convention already documented in
 <crypt.C25519.base_key_name> to override the '<user>.base' pattern`) — add
 an equivalent one-line note for `user_key_name`.
 
-Then in `modules/user-edit.form.schema_from_record`, the `identity_key`
+Then in `src/user-edit.form.schema_from_record`, the `identity_key`
 field switches from reading `<crypt.C25519.base_key_name>` to reading
 `<crypt.C25519.user_key_name>`. The existing priming-call workaround (look
 for the comments referencing "base_key_name hijack" / "locks base_key_name
@@ -173,8 +173,8 @@ Report each check's actual result (not just "passed") — this project
 distrusts self-reported dispatch summaries and always re-verifies the diff
 and live behavior independently after any dispatch.
 
-#,,.,,..,,,..,,,,,,..,.,.,,,,,.,,,,,,,...,,,,,..,,...,..,,,,.,,.,,,,.,.,,,...,
-#PXD5MM7U5ZASWE5RDIU5EIITHMAIFDRHWWBQA4BLXVQ4SED7EFQO4ZWGELFLSQNJJS23ZCL2YEECM
-#\\\|SJ4GR6BDFV5EQNIVB45VM5YLD6Z2WQEO5S24Y3F2WOCGBN55XZJ \ / AMOS7 \ YOURUM ::
-#\[7]JBLCJPNN74BDVSXLQBL6VR47YS3XR2SADLGNMIB5GEWR2VWZI2AY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,..,,,,,,,.,,...,,,,,,..,,.,,,,.,..,,...,...,,..,,..,...,,.,,..,,
+#V7EOOXD7P2JS6VSUPHZUXMCYZCOJUYILAQGQ6MPA5VUEV5MRPLW3N45VJSA4EIZ7732GZLLWQDKUI
+#\\\|OIPUS3MY4DTOMKYO5J24XL5LRUDFA2FLV6XFPWSZ4622D4YLZGD \ / AMOS7 \ YOURUM ::
+#\[7]7MAHHPHUODHFHOGBD6XEKZSQWGUKGUL5FZNHBJ32I4LLTI4IWKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

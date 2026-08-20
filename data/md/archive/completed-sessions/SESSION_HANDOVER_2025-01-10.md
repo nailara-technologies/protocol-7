@@ -32,11 +32,11 @@ This session implemented **4 major systems** in Protocol-7 style:
 **Solution:** Centralized configuration with `//=` pattern
 
 **Files Modified:**
-- `modules/debian.parent.init_code` - Added `<debian.cfg.use_cpanm>`
-- `modules/debian.parent.scan_zenki_dependencies` - Removed redundant fallback
-- `modules/debian.parent.ensure_zenka_dependencies` - Use config references
-- `modules/debian.parent.install_missing` - Use config references
-- `modules/debian.console.install-deps` - Use config references
+- `src/debian.parent.init_code` - Added `<debian.cfg.use_cpanm>`
+- `src/debian.parent.scan_zenki_dependencies` - Removed redundant fallback
+- `src/debian.parent.ensure_zenka_dependencies` - Use config references
+- `src/debian.parent.install_missing` - Use config references
+- `src/debian.console.install-deps` - Use config references
 
 **Pattern:**
 ```perl
@@ -62,22 +62,22 @@ my $pref = $params->{prefer_debian} // <debian.cfg.prefer_debian>;
 **New Modules Created:**
 
 **Core System:**
-- `modules/zenki.parent.init_code` - Configuration and registries
-- `modules/zenki.parent.start` - Main smart launcher entry point
-- `modules/zenki.parent.resolve_dependencies` - Chain resolver (v7 → cube → zenka)
-- `modules/zenki.parent.ensure_v7` - Auto-start v7 when needed (requires root)
-- `modules/zenki.parent.ensure_cube` - Auto-start cube (via v7)
-- `modules/zenki.parent.ensure_zenka` - Auto-start specific zenka
-- `modules/zenki.parent.check_running` - Process detection via `ps aux`
-- `modules/zenki.parent.request_v7_start` - Request v7 to start zenka (currently fork, TODO: IPC)
+- `src/zenki.parent.init_code` - Configuration and registries
+- `src/zenki.parent.start` - Main smart launcher entry point
+- `src/zenki.parent.resolve_dependencies` - Chain resolver (v7 → cube → zenka)
+- `src/zenki.parent.ensure_v7` - Auto-start v7 when needed (requires root)
+- `src/zenki.parent.ensure_cube` - Auto-start cube (via v7)
+- `src/zenki.parent.ensure_zenka` - Auto-start specific zenka
+- `src/zenki.parent.check_running` - Process detection via `ps aux`
+- `src/zenki.parent.request_v7_start` - Request v7 to start zenka (currently fork, TODO: IPC)
 
 **Console Commands:**
-- `modules/zenki.console.start` - Usage: `zenki start httpd`
-- `modules/zenki.console.status` - Show running zenki status
+- `src/zenki.console.start` - Usage: `zenki start httpd`
+- `src/zenki.console.status` - Show running zenki status
 
 **Log Streaming (Foundation):**
-- `modules/v7.parent.attach_zenka_logs` - Attach to zenka output
-- `modules/v7.parent.stream_zenka_log` - Stream via unix socket (TODO: full implementation)
+- `src/v7.parent.attach_zenka_logs` - Attach to zenka output
+- `src/v7.parent.stream_zenka_log` - Stream via unix socket (TODO: full implementation)
 
 **Usage:**
 ```bash
@@ -114,18 +114,18 @@ Protocol-7 zenki status         # Show all running zenki
 **New Modules Created:**
 
 **Core System:**
-- `modules/session.parent.init_code` - Configuration and statistics
-- `modules/session.parent.check_and_resolve_deps` - Smart decision logic
-- `modules/session.parent.check_minimal_deps` - Detect unambiguous case
-- `modules/session.parent.show_startup_help` - Interactive helper
+- `src/session.parent.init_code` - Configuration and statistics
+- `src/session.parent.check_and_resolve_deps` - Smart decision logic
+- `src/session.parent.check_minimal_deps` - Detect unambiguous case
+- `src/session.parent.show_startup_help` - Interactive helper
 
 **Console Commands:**
-- `modules/session.console.check-deps` - Manual trigger
-- `modules/session.console.config` - Configure behavior
-- `modules/session.console.stats` - Show statistics
+- `src/session.console.check-deps` - Manual trigger
+- `src/session.console.config` - Configure behavior
+- `src/session.console.stats` - Show statistics
 
 **Integration:**
-- `modules/v7.post_init_code` - Triggers check after module initialization
+- `src/v7.post_init_code` - Triggers check after module initialization
 - `cfg/zenki/v7/start` - Added 'session' to modules.load
 - `cfg/zenki/session/start` - Standalone session zenka (FIXED in 7e9ef7a85)
 
@@ -168,20 +168,20 @@ Protocol-7 session stats             # View statistics
 **New Modules Created:**
 
 **Git Operations:**
-- `modules/git.parent.init_code` - Git module configuration
-- `modules/git.parent.get_log` - Cached git log (5min cache)
+- `src/git.parent.init_code` - Git module configuration
+- `src/git.parent.get_log` - Cached git log (5min cache)
 
 **Workflow Core:**
-- `modules/workflow.parent.init_code` - Configuration and registries
-- `modules/workflow.parent.scan_history` - Scan for missing versions, unsigned commits, gaps
-- `modules/workflow.parent.fix_versions` - Surgical version number fixes (TODO: implementation)
-- `modules/workflow.parent.load_signing_key` - Key management (decrypt once per session)
+- `src/workflow.parent.init_code` - Configuration and registries
+- `src/workflow.parent.scan_history` - Scan for missing versions, unsigned commits, gaps
+- `src/workflow.parent.fix_versions` - Surgical version number fixes (TODO: implementation)
+- `src/workflow.parent.load_signing_key` - Key management (decrypt once per session)
 
 **Console Commands:**
-- `modules/workflow.console.scan` - Scan git history
-- `modules/workflow.console.fix-versions` - Fix missing versions
-- `modules/workflow.console.stats` - Show statistics
-- `modules/workflow.console.commit` - LLM-friendly auto-signing commit (TODO: signing)
+- `src/workflow.console.scan` - Scan git history
+- `src/workflow.console.fix-versions` - Fix missing versions
+- `src/workflow.console.stats` - Show statistics
+- `src/workflow.console.commit` - LLM-friendly auto-signing commit (TODO: signing)
 
 **Replaces Bash Scripts:**
 
@@ -338,7 +338,7 @@ Release ver.: AMOS7-v3.11.9
 ### 1. Elegant Configuration Pattern
 
 ```perl
-## In modules/*parent.init_code - Define ONCE with overridable defaults
+## In src/*parent.init_code - Define ONCE with overridable defaults
 <module.cfg.setting> //= default_value;
 
 ## In all other modules - Reference consistently (no fallbacks!)
@@ -376,7 +376,7 @@ elsif (ambiguous) { show_helper; }
 ### 4. Console Command Pattern
 
 ```perl
-## modules/module.console.command
+## src/module.console.command
 my $param = shift;
 
 ## Process parameter
@@ -479,7 +479,7 @@ if (time() - <git.cache.log_time> < 300) {
 
 - `<[function]>`  - Call with no arguments -   equal to <[function]>->()
 - `<[function]>->($arg)` - Call with args, becomes $code{'function'}->()
-- Currently only files in modules/* get parsed for special protocol-7 syntax
+- Currently only files in src/* get parsed for special protocol-7 syntax
 - Code directly in bin/Protocol-7 or the AMOS7 module is in plain perl only!
 
 ### Configuration
@@ -535,21 +535,21 @@ Protocol-7 debian list-zenki
 ## Files Changed This Session
 
 **New Files (40+ modules):**
-- `modules/zenki.parent.*` (8 files)
-- `modules/zenki.console.*` (2 files)
-- `modules/session.parent.*` (4 files)
-- `modules/session.console.*` (3 files)
-- `modules/workflow.parent.*` (4 files)
-- `modules/workflow.console.*` (4 files)
-- `modules/git.parent.*` (2 files)
-- `modules/v7.parent.attach_zenka_logs`
-- `modules/v7.parent.stream_zenka_log`
-- `modules/v7.post_init_code`
+- `src/zenki.parent.*` (8 files)
+- `src/zenki.console.*` (2 files)
+- `src/session.parent.*` (4 files)
+- `src/session.console.*` (3 files)
+- `src/workflow.parent.*` (4 files)
+- `src/workflow.console.*` (4 files)
+- `src/git.parent.*` (2 files)
+- `src/v7.parent.attach_zenka_logs`
+- `src/v7.parent.stream_zenka_log`
+- `src/v7.post_init_code`
 - `cfg/zenki/session/start`
 
 **Modified Files:**
 - `cfg/zenki/v7/start` - Added session module
-- `modules/debian.parent.*` (5 files) - Configuration refactoring
+- `src/debian.parent.*` (5 files) - Configuration refactoring
 - `data/yaml/protocol-7-coding-style.md` - 2 major sections added
 
 ---
@@ -681,8 +681,8 @@ Protocol-7 session setup-keys                 # Create key directory
 
 ### UPDATE: 'workflow' zenka renamed to 'work', in PATH as 'p7.work' [symlink]
 
-#,,.,,,..,...,,,,,...,,,,,.,,,..,,.,.,.,,,,.,,..,,...,...,..,,,..,,.,,.,,,,,.,
-#BVNZKFJOBLVHAXVREP6JGKNJEIPGNRGIHNSMN6G4F7YUBGQFI4TOCIFEO2AWJRGZWQLOCHTKXAPH2
-#\\\|CYKKP6LTMQCAU6IRSHQTYACV4CUEV3DX6AR7F3SXFTQPOYCZGTU \ / AMOS7 \ YOURUM ::
-#\[7]U6RT7BVMUPUBVUL7LJLPFMI6SCE2X736RHXRVL5H3ZKGNAFWIKBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,,..,,..,.,,,,,.,,..,..,,,..,..,,...,...,...,,..,..,,,.,,.,,,
+#DIQKELWOGMDBA6MEUZKY7A5527DHHOW5CLZ2FHSTTBYEPXV5SUCE7Z422RFBTHEZJTCVN3JUT4N5W
+#\\\|NFBM6THMKZ7DN6JEZZFL6IHH4C7FZ3VQMCNXIXTDD6VCUB7Z4O6 \ / AMOS7 \ YOURUM ::
+#\[7]LUA27QMNMDHCAMELYKKO56GBSBT2C2KX2DKJFHZBWBA6MNDHR2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

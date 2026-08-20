@@ -33,18 +33,18 @@ this task depends on: cursor-glow-reference-intensity.md
 
 ## key reference files — read these first
 
-    modules/graphics-matrix.glow.init              — glow state initialization
-    modules/graphics-matrix.glow.compute           — glow intensity computation
-    modules/graphics-matrix.cursor.init            — cursor state setup pattern
-    modules/graphics-matrix.cmd.glow               — glow command (extend or reference)
-    modules/graphics-matrix.cmd.cursor             — cursor command pattern
+    src/graphics-matrix.glow.init              — glow state initialization
+    src/graphics-matrix.glow.compute           — glow intensity computation
+    src/graphics-matrix.cursor.init            — cursor state setup pattern
+    src/graphics-matrix.cmd.glow               — glow command (extend or reference)
+    src/graphics-matrix.cmd.cursor             — cursor command pattern
     data/md/design/VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md
         — section "Spatial Tuning — Frequency Selection Through Geometric Angle"
         — section "division-13-table as spatial frequency generator"
     bin/dev/division-13-table
         — source algorithm: 5 protocol types from 7-bit decoded field
           mirror the 5 selectable channel frequencies
-    modules/ticker.cfg.font.calc_outline_col
+    src/ticker.cfg.font.calc_outline_col
         — existing HSV color code using Convert::Color::HSV
           use same pattern: ->new($hue,$sat,$val), ->as_rgb8->hex, ->rgb
 
@@ -122,7 +122,7 @@ the collector zenka uses f4. it sees through — not its own color.
 
 ## files to create
 
-### modules/graphics-matrix.channel.init
+### src/graphics-matrix.channel.init
 
     # name  = graphics-matrix.channel.init
     # descr = initialize context channel state
@@ -136,7 +136,7 @@ the collector zenka uses f4. it sees through — not its own color.
     log: "channels initialized [%d channels, active=%s]"
 
 
-### modules/graphics-matrix.channel.select
+### src/graphics-matrix.channel.select
 
     # name  = graphics-matrix.channel.select
     # descr = select active context channel by index or label
@@ -154,7 +154,7 @@ the collector zenka uses f4. it sees through — not its own color.
     return the full channel definition hashref for the selected channel.
 
 
-### modules/graphics-matrix.channel.current
+### src/graphics-matrix.channel.current
 
     # name  = graphics-matrix.channel.current
     # descr = return currently selected channel definition
@@ -163,7 +163,7 @@ the collector zenka uses f4. it sees through — not its own color.
     including the channel index.
 
 
-### modules/graphics-matrix.channel.translate
+### src/graphics-matrix.channel.translate
 
     # name  = graphics-matrix.channel.translate
     # descr = translate glow intensity to channel-specific color
@@ -201,7 +201,7 @@ the collector zenka uses f4. it sees through — not its own color.
               mode => 'color' }
 
 
-### modules/graphics-matrix.channel.palette
+### src/graphics-matrix.channel.palette
 
     # name  = graphics-matrix.channel.palette
     # descr = generate full palette for current channel from glow shells
@@ -216,7 +216,7 @@ the collector zenka uses f4. it sees through — not its own color.
     ## color hashref includes 'mode' key: 'color' or 'alpha' ##
 
 
-### modules/graphics-matrix.cmd.channel
+### src/graphics-matrix.cmd.channel
 
     # name  = graphics-matrix.cmd.channel
     # descr = select and display context channel state
@@ -261,7 +261,7 @@ the collector zenka uses f4. it sees through — not its own color.
 
 add `channel` to the access.cmd.usr.cube line.
 
-### modules/graphics-matrix.init_code
+### src/graphics-matrix.init_code
 
 add Convert::Color autoload (after Graphics::Magick line):
 
@@ -301,8 +301,8 @@ ticker.cfg.font.calc_outline_col. do NOT reimplement HSV→RGB manually.
     verify channel f4 returns mode => 'alpha', not mode => 'color'
     verify cmd.channel displays alpha for f4, hex colors for f0-f3
 
-#,,,.,,..,,,,,..,,,,,,,..,.,.,,,,,..,,,,,,,,,,..,,...,...,...,...,.,,,...,,,.,
-#BEO5JS6QXYDUPC75ZTW3ZM6455S43V6TZNQZSIHMWWHLDCQMP75QQAGOD3IPWIH3YKEN2BUBMNX66
-#\\\|NNWYJYNRGJPFJQLUMCQIAAH7SLB2IJKYNNYBOK7QREVUGNIUGG3 \ / AMOS7 \ YOURUM ::
-#\[7]M6GDYHIRPDA5OYWH6S3LMGJUEHJMNCNVKRZTT6WGFQSZRCLBBCBA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,..,,,,,..,,..,,,.,,...,.,.,...,..,,...,..,,,,.,,.,,,,,,..,,...,
+#GGFSA63N7CCWPZ2CXXRNXEQNRRVUPBYKNXQYQ76HIVLR4VNYWSBYWRAULM64QGGCU7MIRG6OIJAVM
+#\\\|6NYX3AMQMFTJ346Z7UJ5H7MWFIASTGYA3GWRWKUR55MAOENYYUU \ / AMOS7 \ YOURUM ::
+#\[7]RDAPEZKSWVBVRCJOBZDEZCBYO5DEVGEFZ6I32RIPUCRR5W6ZIIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -82,12 +82,12 @@ the same local-wins principle should apply recursively to module
 *loading*, not just to session/connection routing:
 
 ```
-current:    flat, fully-qualified dotted filenames in modules/
-            (e.g. modules/coding.self_test.run) — one file, one name,
+current:    flat, fully-qualified dotted filenames in src/
+            (e.g. src/coding.self_test.run) — one file, one name,
             no nesting
 
-possible future: submodule directories within the modules/ namespace
-            (nested organization, e.g. modules/coding/self_test/run)
+possible future: submodule directories within the src/ namespace
+            (nested organization, e.g. src/coding/self_test/run)
 
 precedence: if/when nested submodule directories are ever supported,
             the CURRENT flat fully-qualified-filename resolution stays
@@ -117,8 +117,8 @@ precedence: if/when nested submodule directories are ever supported,
   cube technology existing at all — purely speculative until then
 ```
 
-#,,,,,...,,,.,.,,,,,.,..,,,..,,..,.,.,.,,,.,.,..,,...,...,.,,,..,,,.,,,,.,,.,,
-#IV4324UR3K2ESNTGB47P5WOXF5NPPEJBN6YJRCUXVA2CVL7RN5K74ZIBRMFX7JCZJ6ZNAKZ6AQA3M
-#\\\|MIUGZ44CW23G6B56ADYXHAWWYVA5UXDKMCBQLHSYGMUN3LCJOSH \ / AMOS7 \ YOURUM ::
-#\[7]ZX7OCIGICDFGHZSY2747HXAFMR54DYQJUGCWA66QIYG5NY7MG6DQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,.,,,,.,,...,.,.,.,.,,.,,.,.,..,,...,...,..,,,.,,,,,,.,.,.,.,
+#QA3SGJ5ENKFTCC43FORAHHSAIFN7RPJDRTNMR3BV6INCH2CELK6SRARBSPFJWIJCWFUK4KEUWFBFE
+#\\\|FFDEFN5WGFTP6JJOJIOVCN4FLOLJZN7TKFGHO25CZAK6AFZFHEM \ / AMOS7 \ YOURUM ::
+#\[7]MP4CXTEENIGUOAM4OHB2RKZXLPSSUVH43EAWJ7G6NPZ3NDSOQ4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

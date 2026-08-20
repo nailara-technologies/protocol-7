@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = amos-term.fuse.getattr
+# descr = FUSE getattr handler for 3D terminal buffers
+
+my ( $file_path, $amos_id ) = @ARG;
+
+$file_path =~ s|^/||;    # Remove leading slash
+my $window = <[amos-term.fuse.get_window]>->($amos_id);
+return -ENOENT() unless defined $window;
+
+## === root directory === ##
+if ( $file_path eq '' or $file_path eq '.' ) {
+    return (
+        0,                             # dev
+        1,                             # ino
+        <data.fuse.const.MODE_DIR>,    # mode
+        1,                             # nlink
+        $>,                            # uid
+        $),                            # gid
+        0,                             # rdev
+        0,                             # size
+        $window->{'created'},          # atime
+        $window->{'created'},          # mtime
+        $window->{'created'},          # ctime
+        4096,                          # blksize
+        1                              # blocks
+    );
+}
+
+## === symlinks === ##
+if ( $file_path eq 'current' ) {
+    my $target_z = $window->{'buffer'}->{'cursor'}->{'z'} // 0;
+    return (
+        0,                                1,
+        <data.fuse.const.S_IFLNK> | 0777, 1,
+        $>,                               $),
+        0,                                length("z-$target_z"),
+        $window->{'created'},             $window->{'created'},
+        $window->{'created'},             4096,
+        1
+    );
+}
+
+## === Z-layers (z-0 to z-12) === ##
+if ( $file_path =~ m{^z-(\d+)$} ) {
+    my $z = $1;
+    return -ENOENT() if $z < 0 or $z > 12;
+
+    my $size  = <amos-term.fuse.layer_size>;
+    my $mtime = $window->{'buffer'}->{'layer_mtime'}[$z]
+        // $window->{'created'};
+
+    return ( 0, 2 + $z, <data.fuse.const.S_IFREG> | 0644,
+        1, $>, $), 0, $size, $mtime, $mtime, $mtime, 4096, 1 );
+}
+
+## === metadata file === ##
+if ( $file_path eq 'metadata' or $file_path eq 'metadata.json' ) {
+    my $meta = <[amos-term.fuse.build_metadata]>->($window);
+    my $size = length($meta);
+
+    return (
+        0,                                15,
+        <data.fuse.const.S_IFREG> | 0644, 1,
+        $>,                               $),
+        0,                                $size,
+        $window->{'created'},             $window->{'created'},
+        $window->{'created'},             4096,
+        1
+    );
+}
+
+## === cursor file === ##
+if ( $file_path eq 'cursor' or $file_path eq 'cursor.txt' ) {
+    my $cursor  = $window->{'buffer'}->{'cursor'};
+    my $content = sprintf( "%d,%d,%d\n",
+        $cursor->{'x'}, $cursor->{'y'}, $cursor->{'z'} );
+
+    return (
+        0,                                16,
+        <data.fuse.const.S_IFREG> | 0644, 1,
+        $>,                               $),
+        0,                                length($content),
+        $window->{'created'},             $window->{'created'},
+        $window->{'created'},             4096,
+        1
+    );
+}
+
+## === attachments file === ##
+if ( $file_path eq 'attachments' or $file_path eq 'attachments.txt' ) {
+    my @attach = $window->{'attachments'} ? $window->{'attachments'}->@* : ();
+    my $content = join( "\n", @attach ) . "\n";
+
+    return (
+        0,                                17,
+        <data.fuse.const.S_IFREG> | 0644, 1,
+        $>,                               $),
+        0,                                length($content),
+        $window->{'created'},             $window->{'created'},
+        $window->{'created'},             4096,
+        1
+    );
+}
+
+return -ENOENT();
+
+#,,,.,...,,..,,,.,..,,,,.,,,,,.,,,.,.,.,.,,..,.,.,...,...,.,.,,,.,..,,,,.,,.,,
+#GYKZ2FXZTCJRW65X22IJJKE57Y7XYEEYEM3B5BNENLH6YDPLB5WJJH4SXJUYYXBCQW2DAONY446KK
+#\\\|NKETNX7HLJ64I5LBMKEJLRK6AHTM3S4N7VRMUQEY6DYTF6ZN2D6 \ / AMOS7 \ YOURUM ::
+#\[7]UJJZWDMYV2TM3SPC2DJ2WRM4P7OI7IHF4FLCUYXKVP2U4LL4UUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

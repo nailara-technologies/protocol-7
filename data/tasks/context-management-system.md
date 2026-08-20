@@ -139,10 +139,10 @@ coding.model.review     = <model_id>   ## code review / verification pass
 - use `task_complete` when done with each phase so progress is checkpointed
 - $ARG not $_ for loop variables
 - do not add inline subroutines — extract to named modules
-- verify syntax with `ptd -c modules/<name>` after each module change
+- verify syntax with `ptd -c src/<name>` after each module change
 
-#,,..,,,,,,,.,,,,,,,.,,,,,..,,..,,,,.,..,,,..,..,,...,...,...,..,,.,.,...,...,
-#UKNLY54TUKU2PSNMIF5Z7A3NQVTLUFIHHCXEXD3FIKPW63BOLUZQ4NNSVHS3UG3EMFSFGOM6BJ7Q2
-#\\\|2AZWTIFYMYM5QETXM4ZPEAEEQTM5JA2ULFZSILVLP63GEXQVDHW \ / AMOS7 \ YOURUM ::
-#\[7]PYYJQXLH7GFT5FRKERJMR3BQMAIAIJVLBOCMG7OQ5IDNV3J6TQCA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,.,...,,..,.,.,,..,,,,,.,,,,,,,..,,...,..,,...,,,,,,,,,...,,..,
+#TMCXYL6C6C4NPNAUAVZIEXI7PZFLANDKJP6TFQHLPYJY5F62E4IB3OFPDBUCRZW5RAZR2XEZLMBQC
+#\\\|3UXEIY6HDHXMRGQ2D634G6W25EQGEAKXP52FEYPX5ZTCVKNIAR6 \ / AMOS7 \ YOURUM ::
+#\[7]TL57OCCJAKNL3PFJTCTLTN5YX54MBLWZWZQISXNW5BO6M7WSL2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,20 +5,20 @@
 built as `base.strm.subscribe` — six modules, mirroring
 `base.zenka.push`'s layout and `zenka.push` namespace-swap convention:
 
-- `modules/base.strm.subscribe` — entry point: param validation,
+- `src/base.strm.subscribe` — entry point: param validation,
   variable-target/fixed-suffix construction, registry, defer-or-attempt
-- `modules/base.strm.subscribe.attempt` — single route-send attempt,
+- `src/base.strm.subscribe.attempt` — single route-send attempt,
   falls back to the notify_online wait on immediate failure
-- `modules/base.strm.subscribe.wait-online` — `v7.notify_online`
+- `src/base.strm.subscribe.wait-online` — `v7.notify_online`
   registration with push-shaped exponential backoff (`2**n`, 60s cap,
   `waiting_no`/`last_attempt` gating)
-- `modules/base.strm.subscribe.reply-handler` — subscribe reply:
+- `src/base.strm.subscribe.reply-handler` — subscribe reply:
   TRUE marks subscribed, `client not present` falls back to the wait,
   anything else is logged as definitive error [ no blind retry ]
-- `modules/base.strm.subscribe.reply-handler.notify-online` —
+- `src/base.strm.subscribe.reply-handler.notify-online` —
   notify_online reply: TRUE resubscribes immediately, FALSE backs off
   with increasing delay and re-attempts
-- `modules/base.strm.subscribe.pre_init` — `base.swap_subs` into the
+- `src/base.strm.subscribe.pre_init` — `base.swap_subs` into the
   `strm.subscribe` namespace
 
 call shape (the one live test call used against cred-mesh):
@@ -84,7 +84,7 @@ subscribe is wired as a pending route) can re-issue the attempt as-is.
 
 **signatures note**: module files intentionally left unsigned (no stub
 signatures, per below) — sign with
-`bin/Protocol-7 sourcecode update-signatures modules/base.strm.subscribe*`
+`bin/Protocol-7 sourcecode update-signatures src/base.strm.subscribe*`
 when the key password is available.
 
 ## why
@@ -116,7 +116,7 @@ chance to reintroduce bug 2 or skip the retry logic entirely.
 ## the actual signal: 'command route collapsed', not !TERM!
 
 `!TERM!` was a dead end for this direction — confirmed via
-`modules/base.session.cancel_route` and `ncode s src:radio TERM`
+`src/base.session.cancel_route` and `ncode s src:radio TERM`
 (`plugin.httpd.radio.handler.strm_open`'s own comment: "send !TERM! to
 radio via the route: stops the STRM at the source") that `!TERM!` is a
 hard-unsubscribe signal traveling **consumer→producer**, the wrong
@@ -198,7 +198,7 @@ one doesn't imply the other.
 
 ## the existing pattern to build on
 
-`base.zenka.push` (`modules/base.zenka.push`) already solves the general
+`base.zenka.push` (`src/base.zenka.push`) already solves the general
 "offline-safe fire-and-forget delivery" problem properly, with no fixed
 delays: attempt an immediate `route-send`, and only if that fails, ask
 `v7.notify_online` to tell it when the target comes up
@@ -236,8 +236,8 @@ a generic wrapper (naming TBD, something like `base.strm.subscribe` or
   yet, flag as an open question rather than assuming a specific mechanism
 - variable-target/fixed-suffix by construction, per
   `cred-mesh-subscribe-handler-reflection.md` — the project already has
-  this pattern working elsewhere (`modules/content.update.send_notifications`,
-  `modules/rss.ticker.send_update`: target zenka list is variable/
+  this pattern working elsewhere (`src/content.update.send_notifications`,
+  `src/rss.ticker.send_update`: target zenka list is variable/
   configurable, but the command suffix invoked on each target is a fixed,
   locally-known string, never taken verbatim from the remote party). the
   wrapper should enforce this shape structurally: the subscriber's zenka
@@ -286,8 +286,8 @@ yet.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,,,,..,,,,,,,..,,.,,.,,,.,.,,.,,...,.,.,.,,,..,,...,...,...,.,,,.,,,.,,,.,.,
-#JSXETOACEOII7JF6GAE6ASTPOZSPOSBC4GCPESLM7B3A4HP44TXR6KW3PHBXGZRC3L6PD7ALC4BYK
-#\\\|UPTRCM7ZRVA6M3BK7BMXZISYV75LZXVQ6N6WUM4TIB7CXIYIDQ6 \ / AMOS7 \ YOURUM ::
-#\[7]5MXFDR4L7UIXR34GKDIJFRZIOELOM3ODO3GDGN4RAFMKTS6BUOAI 7  DATA SIGNATURE ::
+#,,..,,.,,...,...,,,,,,,.,...,.,.,,,.,,.,,...,..,,...,...,,.,,,,.,.,,,,,.,...,
+#KV7MTDL6UAZRSGBVMJZG576TI2QHKW62NZVY5UVPWM4CIMP7BI2DBQO7A4L2CCUNCYQDUSXCVPTZK
+#\\\|M7NAQZJQIFUTSR6RYK3M7HNG7ZP4RWABWQVZRPWEYNDR5LGB23G \ / AMOS7 \ YOURUM ::
+#\[7]LJM3TCINBPELYHIXOTTAFG4V745NW2DPVOPANOQ5Z6WX5DEVM6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

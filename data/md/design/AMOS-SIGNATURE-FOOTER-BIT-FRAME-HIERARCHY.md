@@ -50,8 +50,8 @@ competing answers — they serve different purposes and coexist.**
 
 ### 1a. the runtime encoding — 57 + 20
 
-**[ running code ]**. `modules/amos7.encode_octal_header` /
-`modules/amos7.decode_octal_bit_header`:
+**[ running code ]**. `src/amos7.encode_octal_header` /
+`src/amos7.decode_octal_bit_header`:
 
 ```
 19 octal digits [ %011o + %o + %07o, AMOS-chksum + endline-state
@@ -132,7 +132,7 @@ flagged as open, not claimed either way.
 ### 1b. the template placeholder — 70 + 7
 
 **[ running code, template only — see frame 2 for what actually goes
-here ]**. `modules/source.init_code:77`:
+here ]**. `src/source.init_code:77`:
 
 ```
 #..........,..........,..........,..........,..........,..........,..........,
@@ -192,7 +192,7 @@ replaces the 70-dot placeholder: **"first line replaced later \ BMW-B32
 ```
 1 AMOS checksum = 7 base32 chars × 5 bits/char = 35 bits
   [ base32 alphabet confirmed 32-char = 2^5:
-    modules/base.stdio.frame.encode.encode_b32,
+    src/base.stdio.frame.encode.encode_b32,
     AMOS7::CHKSUM $str_length = 7 default ]
 
 70 footer payload bits = 2 × 35 = BMW-B32 checksum + C25519-B32 checksum
@@ -250,7 +250,7 @@ turns up — none has one yet.
   annotation: `source.init_code:63` labels a 4-digit window
   `[signed BCD]` in its own scratch notes; `protocol7-comprehensive-
   research-feb2026.md:405-416` lists "4-bit BCD" as one leg of a
-  "multi-base analysis" technique. `ack -ri BCD` across `modules/`,
+  "multi-base analysis" technique. `ack -ri BCD` across `src/`,
   `data/md/`, `data/yaml/`, `data/ai-mem/` found **no actual BCD
   encode/decode implementation** — every other hit was a coincidental
   substring inside hex-looking test data or signature hashes.
@@ -391,8 +391,8 @@ rather than starting a new one:
   throughout? currently: no evidence either way, flagged open rather
   than assumed.
 
-#,,,.,,,,,.,.,.,.,,,.,...,,,,,.,,,,,.,,.,,,..,..,,...,...,,..,,.,,...,.,.,.,.,
-#24XBZXCRCQVVONW2SAAN2RZYNP2VQS6E4UUOGZD7HP66HMCKECF3PW2IISZGT2GMOT2YTMDODNNN4
-#\\\|CPZS7UWDU3IXOCCZC4MTRBSYAV2PSWCGKVF4J3OJVTFO5LFR4J2 \ / AMOS7 \ YOURUM ::
-#\[7]AFMXT5GSLISORJSNBVKC6IF3CQTP6QQ26ZNN7IGFJFWTW7ZNE4CY 7  DATA SIGNATURE ::
+#,,..,,..,...,..,,,.,,.,,,.,.,,,,,..,,.,,,..,,..,,...,..,,,,.,.,.,,.,,.,.,..,,
+#UEL6MMTXZ7774GMVKZJDN6XPVW4E5AUNTJQM7XZFC4WH4QGO5LBUVOAHJHZHEENXI2QPYLXRH6NXY
+#\\\|JIRFPLVK4JPJT5CMVNIGELAQHT43D7XU3ZCUDT7NNJAVZGO2OVB \ / AMOS7 \ YOURUM ::
+#\[7]UOCAB35NN23VGI3FCDUBGMZBKWWW47U47W4FMNHHYRHTWGUWKWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

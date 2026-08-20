@@ -1,0 +1,12 @@
+## [:< ##
+# name  = plan-9.protocol.codec.decode-qid
+my ($data) = @ARG;
+my ( $type, $version, $plo, $phi ) = unpack( 'C V VV', $data );
+my $path = ( $phi << 32 ) | $plo;
+return ( $type, $version, $path );
+
+#,,,.,.,,,...,,,.,,..,,..,,,,,..,,.,.,.,.,,..,.,.,...,..,,.,,,..,,.,.,...,.,,,
+#WCLJ4DCRKR4VX6XUJPWU57YKTYZBCGF2SB2VSETWQ7QBOVYVLGR6FJYUOR3T5CXNI2Y6G3FOFI2A4
+#\\\|ABQIK627637IIQY55FGRAHGFBSNUGZTUUBOVUWV3LE453KCVRXK \ / AMOS7 \ YOURUM ::
+#\[7]EVCDVLA4P3MWFRES2N7YOHNY4UXD4JZM76K4HNLXEJJY74QJOGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

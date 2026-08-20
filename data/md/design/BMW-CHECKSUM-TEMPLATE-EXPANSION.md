@@ -285,7 +285,7 @@ package AMOS7::CHKSUM;
     amos_chksum
     amos_template_chksum
 
-    ##  BMW  [ new — moved from modules/base.chk-sum.bmw.* ]
+    ##  BMW  [ new — moved from src/base.chk-sum.bmw.* ]
     bmw_digest                 ##  ( $bits, $data )   → binary digest
     bmw_b32                    ##  ( $bits, $data )   → BASE32 string
     bmw_l13                    ##  ( $data )          → 13-char B32 L13
@@ -303,7 +303,7 @@ package AMOS7::CHKSUM;
     bmw384_coordinate_str
     bmw384_group
 
-    ##  JHA  [ new — moved from modules/base.chk-sum.jha.* ]
+    ##  JHA  [ new — moved from src/base.chk-sum.jha.* ]
     jha_num                    ##  ( @data ) → 32-bit unsigned int
     jha_hex                    ##  ( @data ) → 8-char hex
     jha_b32                    ##  ( @data ) → BASE32 string
@@ -337,11 +337,11 @@ family — same ergonomic shape standalone callers expect [ e.g.
 
 ### zenka-module collapse
 
-after consolidation, every `modules/base.chk-sum.bmw.*` and
-`modules/base.chk-sum.jha.*` becomes a one-line wrapper:
+after consolidation, every `src/base.chk-sum.bmw.*` and
+`src/base.chk-sum.jha.*` becomes a one-line wrapper:
 
 ```perl
-##  modules/base.chk-sum.jha.b32  ##
+##  src/base.chk-sum.jha.b32  ##
 return AMOS7::CHKSUM::jha_b32(@ARG);
 ```
 
@@ -353,7 +353,7 @@ without needing the P7 module-loader bootstrap.
 the L13 harmonize chokepoint lives at `AMOS7::CHKSUM::bmw_harmonize_l13`
 [ inside `CHKSUM/BMW.pm` ]. `bmw_template_l13` builds the validator
 closure + assigns templates via `AMOS7::TEMPLATE` + delegates. the
-zenka-side `modules/base.chk-sum.bmw.harmonize_L13` becomes the same
+zenka-side `src/base.chk-sum.bmw.harmonize_L13` becomes the same
 one-line wrapper pattern as every other family member.
 
 ### what this buys
@@ -400,7 +400,7 @@ so the *full* template+exclusion vocabulary lands at L13 first
 the consolidation does NOT block the L13 chokepoint task. preferred
 order:
 
-1. **L13 chokepoint** lands as `modules/base.chk-sum.bmw.harmonize_L13`
+1. **L13 chokepoint** lands as `src/base.chk-sum.bmw.harmonize_L13`
    first [ task `bmw-harmonize-l13-helper.md` ]. proves the contract
    inside the P7 module space where regression is easy to bisect.
 2. **L13 templated wrapper** lands next [ task
@@ -433,8 +433,8 @@ EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md           [ outer doc ]
                                                    harmonize placeholder ]
 ```
 
-#,,,.,.,,,,.,,..,,...,,..,..,,,.,,,..,,,.,.,.,..,,...,...,,,,,.,.,,,,,.,,,...,
-#MBWSEO2HNGP3YGTGVNAGAVNF577TEJNXQSJNP6OB5YO3SUHOEZBEZOFZHKDAR2KH7JSGNIG4U5K7U
-#\\\|XQYY533GHZDPECRCWYPZIBWG3N3TS4PLQ2P2I2GMAAOXKAAEWTJ \ / AMOS7 \ YOURUM ::
-#\[7]WCNGQBX3T36PSJX476KSK45HCIPL6I5ARHXEVQTJHQOIN7ONAOAI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,,,..,,,,.,,,,,..,,..,,,,,,,,,,..,,...,...,...,,,,,..,,,..,,.,,
+#RF4OMYTNCFOD6VYOPE4NU6RS5SJAQI4SKIQRV3PWPXSR5XF56KW7VQ7K2E7KSTOMMYVVUINVCGBXW
+#\\\|WURPLWL75R6W63VB6XFKYR3GVGBQWB2IQ7B3YZSOCQFN7MZMLIV \ / AMOS7 \ YOURUM ::
+#\[7]YOM2LAVUG6AFF6F7PPQGK4YKLBDCTOTDGOCSHW2PFMUR4EMWP6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

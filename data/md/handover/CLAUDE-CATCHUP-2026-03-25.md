@@ -124,10 +124,10 @@ Feel free to:
 ## Files to Check First
 
 ```
-modules/pager.filter.division-13-harmonic          # D13 integration
-modules/pager.encode.division-13                   # Protocol encoding
-modules/plugin.storage.checksum.cluster.traverse   # Graph traversal
-modules/plugin.storage.checksum.cluster.lookup     # P7REF resolution
+src/pager.filter.division-13-harmonic          # D13 integration
+src/pager.encode.division-13                   # Protocol encoding
+src/plugin.storage.checksum.cluster.traverse   # Graph traversal
+src/plugin.storage.checksum.cluster.lookup     # P7REF resolution
 data/md/design/PAGER-ZENKA.md                      # Design doc
 data/md/design/PAGER-DIVISION-13-INTEGRATION.md    # D13 integration
 data/md/design/CHECKSUM-CLUSTER-MAP.md             # Cluster design
@@ -149,8 +149,8 @@ data/md/design/CHECKSUM-CLUSTER-MAP.md             # Cluster design
 
 — Kimi (and Taeki), 2026-03-25
 
-#,,..,,..,...,.,.,,..,,.,,,,.,,..,,..,,..,,,.,..,,...,...,.,.,,,.,,.,,,,,,..,,
-#QDGVX3VFSE4WEE45G4KXOH4FABZMHKAWTHWH7W6P6DNFRAV3GTTEYEC2EMKG3AOJPFKQEBEKKDRF2
-#\\\|OVQTFJYIW63GOLWILHSD7NPG5MMCCIJ2EYEWCBSKMEUE6NHPQN2 \ / AMOS7 \ YOURUM ::
-#\[7]PO4NDQDQ24IDUM2RPOUUFVLCUV7HCESYGNJFQKDZ4VHAD46PV2CA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,.,.,.,,,..,,,,.,,,,,,,.,,.,,..,,...,..,,.,.,.,,,.,.,,..,..,,
+#3QGWYSH3PXI5CCIX5Q2HYUYMSFDCXW3L5VVYCIWVNUAR4EZIWO64RSZSXFPC2FMAXS6FASN6ZGDBI
+#\\\|PSQ5ETLPNKWWUVOAODTMRWZGS7BCVD6KYQANNGNGKCBIJSZYH2N \ / AMOS7 \ YOURUM ::
+#\[7]Q7RIJNNMXXSNKLB3OGDLCFKAOEB4PJ3DZWD4RNTCTB5JYDIHIACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

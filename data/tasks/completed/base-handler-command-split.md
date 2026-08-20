@@ -52,7 +52,7 @@ reads/writes: `$cmd`, `$cmd_id`, `$id`, `$user`, `$call_args`,
 
 create 2 new sibling modules:
 
-- `modules/base.handler.command.process_reply`
+- `src/base.handler.command.process_reply`
   - body = branch A, lifted into its own module.
   - called from `base.handler.command` via `<[...]>->()`, passed
     whatever subset of `$event`, `$session`, `$id`, `$user`, `$cmd`,
@@ -70,7 +70,7 @@ create 2 new sibling modules:
     the new module, or replace with structured control flow
     (if/elsif/last) if that reads more cleanly — your call.
 
-- `modules/base.handler.command.route_to_target`
+- `src/base.handler.command.route_to_target`
   - body = branch B, lifted into its own module.
   - same call-signature design freedom as above; same `return 0`
     semantics to preserve (branch B's paths all `return 0` —
@@ -121,7 +121,7 @@ after the new modules are created:
 - add `base.handler.command.process_reply` and
   `base.handler.command.route_to_target` (and
   `base.handler.command.delete_route` if created) to
-  `modules/base.list.subroutines`, near the existing
+  `src/base.list.subroutines`, near the existing
   `base.handler.command` entry (~line 1175).
 - update `data/md/documentation/module-dependency-graph.asc`:
   - extend the `base.handler.command : ...` deps line (~line 899) to
@@ -157,8 +157,8 @@ under 55 chars.
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,..,,,,,,.,,,,,,,..,.,.,,,.,.,.,.,.,,.,,.,.,..,,...,...,,..,.,,,..,,,,.,..,,
-#D2GK3YG6VPRRAPQSEV3GGXBOGRCH7KRVZCTAZFZN2FHQPTD622WY2NHO2MGLBO22MI35ADH4MLRWG
-#\\\|MRJ2IRF357PVNZIQN5MTFT5XWHXBROAHKXAJ3AEIUCTG4PEXHZN \ / AMOS7 \ YOURUM ::
-#\[7]SEAP3HSMWFIFJPC3VCWAY7PMLBUWFMWCXXPIC4FQZUH43YHMKGBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,,..,.,.,,.,,,,,,,,.,..,,.,.,..,,...,...,,.,,..,,,..,...,,,,,
+#ZITROINMTHKPE4IKNJCITLDVL2ISE7ALUZBZ3MNND6FPNER6GSTJOWRWJTIUSRKMVCCAPPCQSKFF2
+#\\\|OUVQ72HMDSEW2PVVHTVXWL7CLVMHX36WVUSINLHWLO4J4CHPBCW \ / AMOS7 \ YOURUM ::
+#\[7]H7KYAPIHMHLHFJODMRCMC5AQAZ4N6M3C47ZLTENTX7RQDYPFC2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

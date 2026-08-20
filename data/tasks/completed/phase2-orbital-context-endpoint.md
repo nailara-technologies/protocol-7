@@ -21,7 +21,7 @@ footer automatically.
 
 #### 1. pass URI query string into session meta — httpd.process_template
 
-file: `modules/httpd.process_template`
+file: `src/httpd.process_template`
 
 at line 48, `$session->{'meta'} // {}` is where meta vars come from.
 before that line, parse the raw request URI's query string and merge any params
@@ -70,7 +70,7 @@ if `meta.context` is empty string (no query param), the section arg becomes
 
 #### 3. plugin.web.space.state — route orbital-json with optional context
 
-file: `modules/plugin.web.space.state`
+file: `src/plugin.web.space.state`
 
 the `orbital-json` branch currently does:
 ```perl
@@ -90,7 +90,7 @@ change it to also handle a context p7ref argument:
 
 #### 4. new module — plugin.web.space.orbital.json.context
 
-file: `modules/plugin.web.space.orbital.json.context`
+file: `src/plugin.web.space.orbital.json.context`
 
 this is the main new module. it receives a context p7ref, asks discover zenka
 for nodes that have that p7ref as a known peer (or: returns the known[] list from
@@ -217,10 +217,10 @@ function navPush(node) {
 
 | file | action |
 |------|--------|
-| `modules/httpd.process_template` | add query string → meta_vars merge |
+| `src/httpd.process_template` | add query string → meta_vars merge |
 | `data/web-root/vhosts/space.v7.ax/orbital.json.tmpl` | pass `<[meta.context]>` arg |
-| `modules/plugin.web.space.state` | regex match orbital-json with optional context arg |
-| `modules/plugin.web.space.orbital.json.context` | new module (main work) |
+| `src/plugin.web.space.state` | regex match orbital-json with optional context arg |
+| `src/plugin.web.space.orbital.json.context` | new module (main work) |
 | `data/web-root/vhosts/space.v7.ax/visualization.html` | replace mock navPush with fetch |
 
 ### testing
@@ -237,8 +237,8 @@ curl -s 'https://space.v7.ax/orbital.json?context=NODE:NODENAME:ADDR' | python3 
 the context response should have `self.p7ref` equal to the context arg, and
 `known[]` should contain real nodes (minus the context node itself).
 
-#,,,.,,.,,.,.,,,.,...,..,,...,,..,...,...,,,,,..,,...,...,..,,.,,,..,,.,.,,,.,
-#C3UES5PRHDCKBHIJFFUP27LXV2Q67EYHQPI3XBKWVSQ6UGX6BNSTMXDS77UXTLLPNM4KJN4C6ATWK
-#\\\|OPSVFJIXDIF36NDUEI6ZCBWMPSHYAWEC3Y6N7XW3LYQSVDNBGT6 \ / AMOS7 \ YOURUM ::
-#\[7]DAVKFJDA54J472VWJF3G43TOHAD7AIFSIMRAHEJTRUZDJVE3JWDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,,,,..,,,,,...,..,,,,.,,..,.,.,..,,...,.,.,..,,..,,..,,..,,,.,,
+#IDTFEVDYL3EBKU36AHONM6R4EVIJXMWUGTDSJ5GT26JAMBBCQC64KXLG6WY45ZXEH3O3KQQG4DKH6
+#\\\|X7WKKFJBJNQT6UKSAAOCZM5TFVN233ESAKVVMZKFDB5MNQGCWZK \ / AMOS7 \ YOURUM ::
+#\[7]S2HN4LSUXPY43WH5CZT252ZVN3LGQ2APFAUNBUGDIAS7MCWRXYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

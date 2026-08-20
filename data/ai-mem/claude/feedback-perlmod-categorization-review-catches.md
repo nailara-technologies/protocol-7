@@ -37,7 +37,7 @@ My first instinct after finding those 4 was to grep caller counts for *all*
 59 remaining `MOVE` rows the same way — this doesn't work. `.cmd.*` and
 `.handler.*` files are invoked through cube's dynamic string-based command
 routing (a client sends the literal command name over the wire), not through
-a static `<[module.name]>->()` reference anywhere in `modules/`. Zero grep
+a static `<[module.name]>->()` reference anywhere in `src/`. Zero grep
 hits for one of these is completely expected and proves nothing about real
 invocation frequency — it's not the same signal as zero hits for a genuine
 helper sub (which *is* always called via a real, greppable macro call site).
@@ -141,8 +141,8 @@ design over a swap-on-load/restore-on-unload design — same behavior, but
 needs zero changes to `devmod.pre_init`/`devmod.cmd.unload-devmod`, so
 nothing to forget to keep in sync.
 
-#,,..,,.,,,,.,.,,,,,.,,,.,,.,,,..,,,.,,.,,,..,..,,...,...,.,,,,..,,,,,,.,,,.,,
-#V7XBK6FUPNCXMPMQYTBLINZT6PX3W7PKSWVKSEPKTKVG2Z6DKBU2QVX662CVOMF5H3YXIMDMY5BSG
-#\\\|AYXFXB4YQQFMOPZQOHNOABQHKIICGREKWHYMTIWSSJA63AS2UPY \ / AMOS7 \ YOURUM ::
-#\[7]JNRAP5LFSUJAQWJ5Z3F4V4TNROTNC6WY22FCM2QGHPKH7CJLFIBY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,...,,.,,.,,,,,,,...,..,,..,,,,.,..,,...,..,,,..,,,.,.,.,...,.,,,
+#4CTRWFZX5E7AC6KTBLS3R4G3RSJVJ6E7N4GD6CGM4BD6UAGLVQ46MOZKTSMK7S5S3FQ6OIKVHUCDU
+#\\\|GFDBZKNANER5FYC3VI5NKCQPW6VWFM2KZZOIL62UG4KTMHYIACH \ / AMOS7 \ YOURUM ::
+#\[7]SVZ4EDE2ETP3DVH7CLMMBAXCGCGPAPWQWVTWI5BJ7UJXG5RJMCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

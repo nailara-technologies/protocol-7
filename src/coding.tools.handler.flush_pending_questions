@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = coding.tools.handler.flush_pending_questions
+# descr = present queued non-urgent choice questions and persist answers
+
+my $params = shift // {};
+
+my $questions = <coding.pending_questions> // [];
+
+return 'no pending questions' unless @$questions;
+
+my $target = qw| protocol-7-menu.cmd.input-choice |;
+
+unless ( <[base.code.exists]>->($target) ) {
+    return 'input-choice module not loaded; questions remain queued';
+}
+
+my @answered;
+my @remaining;
+
+foreach my $q (@$questions) {
+    unless ( ref $q eq qw| HASH |
+        and $q->{'type'} eq qw| choice |
+        and ref $q->{'options'} eq qw| ARRAY |
+        and scalar @{ $q->{'options'} } ) {
+        next;
+    }
+
+    my $question = $q->{'question'};
+    my $options  = $q->{'options'};
+
+    my $payload
+        = { 'args' => JSON::PP::encode_json( [ $question, $options ] ) };
+    my $result = eval { $code{$target}->($payload) };
+
+    if ($@) {
+        <[base.logs]>
+            ->( 0, "flush_pending_questions: dialog failed: %s", $@ );
+        push @remaining, $q;
+        next;
+    }
+
+    if (    ref $result eq qw| HASH |
+        and $result->{'mode'} eq qw| true |
+        and defined $result->{'data'} ) {
+        my $answer = $result->{'data'};
+        <[coding.tools.handler.write_answered_note]>->(
+            {   'question' => $question,
+                'answer'   => $answer,
+            }
+        );
+        push @answered, { 'question' => $question, 'answer' => $answer };
+    } else {
+        ## no answer: keep in queue for next checkpoint ##
+        push @remaining, $q;
+    }
+}
+
+<coding.pending_questions> = \@remaining;
+
+return sprintf "asked %d pending question(s); %d answered, %d remain",
+    scalar @$questions,
+    scalar @answered,
+    scalar @remaining;
+
+#,,.,,...,.,,,,,.,,,,,,.,,,..,,.,,,..,,,.,.,.,..,,...,...,.,,,,.,,..,,..,,...,
+#AHX54F6HVSZP777624OXVP3RCLSRQMPCBQET2HMC3GAQJLSUJJIXZZ24FMAGTCHWCXLIWOEX3WWMK
+#\\\|K76II63M2Q4BQV3Z4UTOT22TU3C2RXM6EC42AIQXDUDYW42CPPF \ / AMOS7 \ YOURUM ::
+#\[7]KM66F76GF2EIIOV3LIZDDK4KXQ2TKFX6BR55ELOOABFRQ3MC6YAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

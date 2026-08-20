@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = task.post_init
+# descr = set up reasoning branch stuck-check timer
+#         + register reasoning branch commands for direct access
+
+## register reasoning branch commands ##
+my @rb_cmds = qw|
+    reasoning.branch.register
+    reasoning.branch.checkpoint
+    reasoning.branch.stuck_score
+    reasoning.branch.spawn_rescue
+    reasoning.branch.resolve
+    reasoning.branch.inject
+    reasoning.branch.status
+    reasoning.branch.internal.check_stuck
+    |;
+
+foreach my $cmd (@rb_cmds) {
+    $data{'base'}{'cmd'}{$cmd} = $cmd;
+}
+
+my $interval = <reasoning.branch.check_interval> // 300;
+
+<[event.add_timer]>->(
+    {   'after'    => $interval,
+        'interval' => $interval,
+        'repeat'   => TRUE,
+        'handler'  => 'reasoning.branch.internal.check_stuck',
+    }
+);
+
+<[base.logs]>->(
+    2,
+    'task.post_init: reasoning branch stuck-check timer '
+        . 'started [interval=%ds, %d commands registered]',
+    $interval,
+    scalar @rb_cmds
+);
+
+## cold-queue sweep : periodic check for un-integrated summary-tree entries ##
+## against the cold gate [ gpu temp / debounce fallback ]                   ##
+my $sweep_interval = 15;
+<[event.add_timer]>->(
+    {   'after'    => $sweep_interval,
+        'interval' => $sweep_interval,
+        'repeat'   => TRUE,
+        'handler'  => 'task.handler.cold-queue-sweep',
+    }
+);
+<[base.logs]>->(
+    2, 'task.post_init: cold-queue sweep timer started [interval=%ds]',
+    $sweep_interval
+);
+
+0;
+
+#,,..,..,,,..,.,.,.,,,,,,,,,,,...,,.,,.,,,...,..,,...,...,.,.,.,.,.,.,.,,,.,,,
+#5QC4E45U32HVIQUV3Z4MUS2LTIH6VPWTJJ5IBS6R2J7O2WTPJ6KJQZJB3CAUFMF7XGRQO52ME65CS
+#\\\|BQ3DQYHSITOIOYKEYDTLNXJXVUAB2JQFMB4CCDFNZLBPND4KQPX \ / AMOS7 \ YOURUM ::
+#\[7]JPLPDYSTCH6O6MPXGDRCQAKC7EY4BQEP5G2O32PVT2LFBWD3RACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

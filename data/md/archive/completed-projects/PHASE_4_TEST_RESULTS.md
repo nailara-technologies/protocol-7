@@ -63,7 +63,7 @@ The route_dispatcher correctly:
 - Sets cache TTL to 3600 seconds (1 hour)
 - Includes path in handler_args
 
-**Code verification** (modules/httpd.route_dispatcher):
+**Code verification** (src/httpd.route_dispatcher):
 ```perl
 # Route 4: Static files (default fallback)
 my $route = {
@@ -90,7 +90,7 @@ The route_dispatcher correctly:
 - Calls `httpd.handler.acme_request` with token
 - Sets cache TTL to 0 (no caching for challenges)
 
-**Code verification** (modules/httpd.route_dispatcher):
+**Code verification** (src/httpd.route_dispatcher):
 ```perl
 if ($path =~ m|^/.well-known/acme-challenge/(.+)$|) {
     my $token = $1;
@@ -120,7 +120,7 @@ The route_dispatcher correctly:
 - Calls `letsencrypt.http.api_handler` with endpoint
 - Sets cache TTL to 300 seconds (5 minutes)
 
-**Code verification** (modules/httpd.route_dispatcher):
+**Code verification** (src/httpd.route_dispatcher):
 ```perl
 if ($path =~ m|^/api/(.+)$|) {
     my $endpoint = $1;
@@ -153,7 +153,7 @@ The route_dispatcher correctly:
 - Exists: ✅ YES
 - Readable: ✅ YES
 
-**Code verification** (modules/httpd.route_dispatcher):
+**Code verification** (src/httpd.route_dispatcher):
 ```perl
 if (defined $vhost) {
     my $template_path = <[httpd.vhost_template_resolver]>->($vhost, $path);
@@ -204,7 +204,7 @@ Expected cascade: [dark, default]
 Result: ✅ PASS (verified in code)
 ```
 
-**Code verification** (modules/web.skin_resolver):
+**Code verification** (src/web.skin_resolver):
 ```perl
 ## Step 2: Determine skin cascade based on preferences ##
 my @cascade = ();
@@ -286,7 +286,7 @@ The httpd.serve_static handler correctly:
 - Adds Last-Modified and ETag headers
 - Returns directly without async download
 
-**Code verification** (modules/httpd.serve_static):
+**Code verification** (src/httpd.serve_static):
 ```perl
 if ($content_size <= 16 * 1024 and not exists $request->{'range'}) {
     <[base.log]>->(2, "[$session_id] serving small file directly ($content_size bytes)");
@@ -321,7 +321,7 @@ The httpd.serve_static handler correctly:
 - Defers actual content transmission
 - Enables streaming transfer
 
-**Code verification** (modules/httpd.serve_static):
+**Code verification** (src/httpd.serve_static):
 ```perl
 # For large files, use download transfer mechanism
 <[base.log]>->(2, "[$session_id] serving large file via download handler ($content_size bytes)");
@@ -351,7 +351,7 @@ return <[httpd.download_init]>->({\n    'sid'    => $session_id,
 - ✅ Handler dispatch pattern (lines 73-92)
 - ✅ Each handler has correct signature
 
-**Code verification** (modules/httpd.http_get):
+**Code verification** (src/httpd.http_get):
 ```perl
 # Call route_dispatcher to determine the appropriate handler
 my $route = <[httpd.route_dispatcher]>->('GET', $uri_path, $http_host, $id);
@@ -446,8 +446,8 @@ Phase 4 integration testing shows:
 
 **Status**: Phase 4 integration complete and ready for live testing
 
-#,,,.,.,,,,,.,,.,,,.,,,,.,,.,,...,,,,,,,,,..,,..,,...,..,,...,..,,...,..,,,..,
-#OKINU3MYQAUAGW3A47PPADRK3JDXEYSTVG4NPD5EF54NB3ZU2IKUEKLVE2YUNIV34UCGJMOY7XSRO
-#\\\|TFM6L6GYZTRVJ6QVSSRYSXMSWCKGYBK733F6HUM2G4ZARTYB3F5 \ / AMOS7 \ YOURUM ::
-#\[7]DNSQYA2UE5ZU7QYQ6F4PJRP5PZWVEXXKFAU2EJG2AO4BXQZJQWAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,.,,,.,,.,.,,,.,...,...,,,,,.,.,..,,...,...,.,.,,.,,,,.,,,.,..,,
+#XZVPKYJFO3HMEHN77PDAQ3GSM4AQ3ERXV5KQAEELTHCX2H75RCWXGZDZMQC6TZLDXW7273JVMKO4G
+#\\\|CA6ZTSFQDQIDLS4U5JD5X3WC7D3NGER75HTNRHM4YEAMYXNZT7D \ / AMOS7 \ YOURUM ::
+#\[7]V7BCQBBFQTC6FMDTMRQ7XZGC6O2OCJTZT7TOGOHD7JCYXR6FTCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

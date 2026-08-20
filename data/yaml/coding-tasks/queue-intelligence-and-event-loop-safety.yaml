@@ -36,14 +36,14 @@ phases:
       event.yield patterns so the EV loop always returns to poll().
 
     known_loops:
-      - file: modules/coding.cmd.wait-done
+      - file: src/coding.cmd.wait-done
         line: 27
         was: while(1) { ... event.once(0.5) }
         fix: while(<[event.once]>->($poll_interval)) { ... }
         fix_status: done_on_disk_unstaged
         note: single line change, already tested
 
-      - file: modules/coding.handler.drain_pipe
+      - file: src/coding.handler.drain_pipe
         line: 24
         was: while(1) { sysread(...) }
         fix: io watcher with bounded read + self-cancel on EOF/EBADF
@@ -53,14 +53,14 @@ phases:
           errno other than 9/22. replace with read-ready watcher that
           reads once per invocation and reschedules via event loop.
 
-      - file: modules/coding.handler.http_io
+      - file: src/coding.handler.http_io
         line: 127
         was: while( $buffer =~ s/^...// ) { }
         risk: regex matches empty string → infinite loop on malformed data
         fix: add max_iter guard + length check before loop entry
         fix_status: planned
 
-      - file: modules/coding.handler.http_poll
+      - file: src/coding.handler.http_poll
         line: 116
         was: while( $buffer =~ s/^...// ) { }
         risk: same as http_io
@@ -68,7 +68,7 @@ phases:
         fix_status: done
 
     acceptance: |
-      - no while(1) remains in modules/coding.* except drain_pipe (which uses
+      - no while(1) remains in src/coding.* except drain_pipe (which uses
         watcher-bound single-read pattern)
       - all buffer-regex loops have max-iteration guards
       - event loop responsiveness verified under load (subtask spawn + inference)
@@ -270,8 +270,8 @@ next_session_primer: |
 
 #,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
 
-#,,.,,,,.,.,.,,,.,,,.,..,,,,.,...,,..,,,,,,,,,..,,...,...,,.,,.,,,,..,.,,,.,,,
-#CICSJXE6Y6KHXKCKJV2Y4YWQ6X6WKRDD3UV4WINHJTH62434AP4RGIX4QOB5SKH5T3RXSDLQA2DW6
-#\\\|IBDJTHIEQESXWKEIKB7TWZMEYAFZ42PLQ6VSB6P45OHZASEZ2GF \ / AMOS7 \ YOURUM ::
-#\[7]74ECHHMBESSEL35VAXGKZB2KU7SHZI4SU3G5KQWHOIIIVAF7DOCI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,,.,,,.,...,.,,,,,.,..,,,..,..,,...,...,,.,,,,.,,,,,...,..,,
+#U2WYA6H5PWDL36I7RMQBOV3GDYT4RDRA3JSHVFEVFDNMMCOJ4EV7U5WR2XLSS5UU4XJ7VD2UJJ2NM
+#\\\|IWAS756XV6S255NXYNRH7CHCA6VKCYAYWV4GSID27UJMJG3JNF2 \ / AMOS7 \ YOURUM ::
+#\[7]6TJZEGH7R5QCJYEDRHZTXWWKKUMLQRIADN2IAK3QDIEWY6SCDSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

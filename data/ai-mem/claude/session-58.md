@@ -77,7 +77,7 @@ embeds context in `$prompt`) → `coding.ask-reply` → `coding.intake.work` sto
 ## open items (resolved in session 59)
 
 - tool calls regression: NOT a regression — tested in session 59 with
-  `p7c coding.ask-reply "read modules/coding.init_code first line only"` → read_file
+  `p7c coding.ask-reply "read src/coding.init_code first line only"` → read_file
   tool called correctly. CN467XY 369-byte result was model getting no document content
   (context injection test failed — model correctly said "I don't have the document")
 - context injection: context path through `models.handler.task-poll-step` works IF the
@@ -92,8 +92,8 @@ embeds context in `$prompt`) → `coding.ask-reply` → `coding.intake.work` sto
 build.zenka → build graph → network distribution → 5/7 consensus → LLM audit
 intake → minimal OS end state. layer 1 buildable now.
 
-#,,,.,.,,,,,.,..,,...,..,,,,,,,,.,,.,,,..,..,,..,,...,...,...,,,.,,.,,,,,,.,,,
-#N577UIXX7YYP4EGWOT4HRFYMZMWDO5IRCQVKG7HDNTL4L6USXEF3ZEJXMBAJMT6O2I6RIFIQ63NKC
-#\\\|4T4IUYZ3PCCSQ5JBWD5LILDSMWZRXXWEI4RCJ2FSPQB5OH4USFY \ / AMOS7 \ YOURUM ::
-#\[7]HAKG46FBCXFFCIDRJ2NT75PSHQMCT6OZ5PZV2YS63T7ZPERUAWCI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,..,,...,,..,.,.,,..,,..,...,...,..,,...,..,,..,,,,,,..,,,.,,..,,
+#I3KQQG63WMPH44T3B6DX46AFJQFBS4YX3MZ2T4TCZQDFQDTNCXUGB72XHNMLPNIBHROYUOTD52C6S
+#\\\|4W6JDZ2JU7CMHEWTFVBEPAFJSGF6FMFFM3ETMZ5S5VIF6RXRRMD \ / AMOS7 \ YOURUM ::
+#\[7]RL5Q6X265T2KTIETOTWL3WKS3WQPNJWH767EIJ2PFWPMG3IQ6UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

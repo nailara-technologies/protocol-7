@@ -11,9 +11,9 @@
 
 Three prior phases already exist and are committed — read the most recent one
 closely, it's your primary precedent:
-- `cfg/zenki/user-edit/`, `modules/user-edit.init_code` (skeleton,
+- `cfg/zenki/user-edit/`, `src/user-edit.init_code` (skeleton,
   registers `VAR_P7`/`ETC_P7`/`HOME_N` path keywords — do not touch this file)
-- `modules/user-edit.outbox.write`, `.list`, `.clear` — the outbox module set.
+- `src/user-edit.outbox.write`, `.list`, `.clear` — the outbox module set.
   **This task builds the same shape for drafts, under a different directory.**
   Read all three outbox files closely and mirror their structure, conventions,
   and id-validation exactly — you are not designing something new, you are
@@ -34,7 +34,7 @@ strictly: given an id and a data structure, write/load/clear a draft file.
 ## Key difference from the outbox task: the empty-state guard
 
 Per `draft_auto_save` in the design doc, mirroring `mpv.snapshot.write`'s
-precedent (`modules/mpv.snapshot.write` if it still exists under that name —
+precedent (`src/mpv.snapshot.write` if it still exists under that name —
 search for it, read it): a draft write must NOT overwrite an existing good
 draft with blank/empty data. The outbox module you're mirroring did NOT need
 this (a submit always carries real values by definition) — a draft write might
@@ -57,16 +57,16 @@ extra check the outbox write doesn't have:
 
 ## What to build
 
-1. `modules/user-edit.draft.write` — params: an entry identifier and a data
+1. `src/user-edit.draft.write` — params: an entry identifier and a data
    structure (hashref). Same path-resolution/mkdir/write shape as
    `user-edit.outbox.write`, but resolving `[VAR_P7]/draft/<id>.yaml`, and with
    the empty-state guard described above added before the write.
-2. `modules/user-edit.draft.load` — params: an entry identifier. Resolves
+2. `src/user-edit.draft.load` — params: an entry identifier. Resolves
    `[VAR_P7]/draft/<id>.yaml` and loads it via `format.yaml.load_file` (mirror
    `format.yaml.load_keyword_path`'s resolve-then-load shape, same as the
    outbox precedent's write-side equivalent). Returns undef if no draft exists
    for that id (not an error — a fresh session has no draft, that's normal).
-3. `modules/user-edit.draft.clear` — identical shape to
+3. `src/user-edit.draft.clear` — identical shape to
    `user-edit.outbox.clear`, just pointed at `[VAR_P7]/draft/<id>.yaml`
    instead.
 
@@ -83,7 +83,7 @@ exactly, don't rewrite it differently.
 - `restore_on_startup` UX (prompt vs auto-load) — no startup flow exists to
   hook this into
 - any `phase_2_rendering`, `phase_3_form`, or `users.*` integration
-- do not touch `modules/user-edit.init_code`, `modules/user-edit.outbox.*`,
+- do not touch `src/user-edit.init_code`, `src/user-edit.outbox.*`,
   or `cfg/zenki/user-edit/start`
 
 ## Verification
@@ -116,8 +116,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 chose for the "skipped" return value and why, or if `mpv.snapshot.write`
 turned out not to exist under that name).
 
-#,,..,,..,..,,.,.,,.,,,,,,.,,,..,,,..,..,,,..,..,,...,...,.,.,,..,,.,,.,.,,,.,
-#L37X7VRKUBDBSYX3VS25D3NETUBEIJ2OS5KS3SUJRFYH4LOMWWBDVZADHIPVS3N4UOWFSX5RCE2JM
-#\\\|KJ2KXOJ67BI4CZDKHCQRJ5NXGCMZPSE6TDBYZDVKO6MF4LC7LRC \ / AMOS7 \ YOURUM ::
-#\[7]RVJ7J4YJTGPQU24GSZZP3BYT2FU7FZ5JLX52MTVBIEDCRHRB42CA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,..,..,,.,.,,,,,,,.,,..,.,,,..,,...,...,,..,,,.,.,.,,,.,,.,,
+#IHNXTJSCMADHRWVXNCS3AF6KXEOUMNCG4554AQM5LV74DXNIZ4S5ZAHQWBJCJCOOVDUDISZHGHIGC
+#\\\|5LLZQAYQGDODB6OTIJRHXWA4BDKCCXDAVCRKWFUCWT3SYCUEVZ6 \ / AMOS7 \ YOURUM ::
+#\[7]GUYORCA6UQWPQYIC5LS2VUIYY2HHYQNWAEKCMKMVTR5KFRP3JMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

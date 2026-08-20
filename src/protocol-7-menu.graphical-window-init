@@ -1,0 +1,346 @@
+## [:< ##
+
+# name = protocol-7-menu.graphical-window-init
+# descr = Initialize Gtk3 window with nailara logo image and styling
+
+return 0 unless <protocol-7-menu.init-graphical>;
+
+<[base.log]>->( 1, ":. graphical-window-init : starting window creation" );
+
+## Make scale factor configurable with default matching prototype
+my $scale_factor = <protocol-7-menu.cfg.scale_factor>
+    //= 0.043;    ## nailara icon size [ screen width ] ##
+
+die 'display environment variable not set' if not defined $ENV{'DISPLAY'};
+
+## Create Gtk3 window (Gtk3::init already called by graphical-init)
+my $window = Gtk3::Window->new('toplevel');
+
+## Set up image path and load
+my $logo_image_path = <protocol-7-menu.image_path>
+    //= File::Spec->catfile( <system.root_path>,
+    qw| data/gfx/logos/nailara.png | );
+
+die "image file '$logo_image_path' not found" if !-f $logo_image_path;
+
+## Set up window properties
+$window->signal_connect( qw| delete_event | => sub { Gtk3->main_quit } );
+$window->signal_connect( qw| configure-event | =>
+        sub { <[protocol-7-menu.graphical-position-changed]>->( $_[0] ) } );
+
+## Touch event support (for X220T touchscreen and similar)
+$window->signal_connect(
+    qw| touch-event | => sub {
+        my ( $widget, $event ) = @ARG;
+        <[base.logs]>->(
+            1,         "touch-event at x=%.0f y=%.0f",
+            $event->x, $event->y
+        );
+        return 0;    # Let other handlers process
+    }
+);
+
+my $use_transparency = $window->is_composited ? 1 : 0;
+$window->set_opacity(1) if $use_transparency;
+$window->set_border_width(0);
+$window->set_keep_below(1);
+$window->set_decorated(0);
+$window->stick;
+
+$window->set_app_paintable(1);
+my $screen = $window->get_screen;
+
+if ($use_transparency) {
+    my $rgba = $screen->get_rgba_visual();
+    $window->set_visual($rgba);
+}
+
+## Apply CSS styling to menu
+my $css_prov = Gtk3::CssProvider->new();
+$css_prov->load_from_data(<<'EOT');
+          menu { background-color:#000013; border-color:#000042;
+                 color:#0055CC; font-size:x-large }
+          menu *:hover { background-color:#000042; color:#0088FF }
+          menu *:focus { background-color:#000042; color:#0088FF }
+EOT
+Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
+
+## Load and scale image
+my $pbuf  = Gtk3::Gdk::Pixbuf->new_from_file($logo_image_path);
+my $img_w = $pbuf->get_width();
+my $img_h = $pbuf->get_height();
+my $scr_w = $screen->get_width();
+my $scr_h = $screen->get_height();
+
+my $win_width = sprintf( qw|%.0f|, $scr_w * $scale_factor );
+my $win_height
+    = sprintf( qw|%.0f|, $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) );
+
+my $image = Gtk3::Image->new_from_pixbuf(
+    $pbuf->scale_simple( $win_width, $win_height, 'hyper' ) );
+
+## Enable pointer events on image widget for drag-to-move
+$image->set_events(
+    [qw(button-press-mask button-release-mask pointer-motion-mask)] );
+
+## Button handlers on image widget
+$image->signal_connect(
+    'button-press-event' => sub {
+        <[base.log]>->( 1, "image button-press event" );
+        return 0;
+    }
+);
+
+$image->signal_connect(
+    'button-release-event' => sub {
+        <[base.log]>->( 1, "image button-release event" );
+        return 0;
+    }
+);
+
+$window->add($image);
+
+## Enable pointer events for drag-to-move on window as well
+$window->set_events(
+    [qw(button-press-mask button-release-mask pointer-motion-mask)] );
+
+## Drag-to-move detection: circular zones based on distance from center
+my $menu_radius = $win_width * 0.35;    # ~35% of window width = menu zone
+my $is_dragging = FALSE;
+
+## forward-declare: assigned below after opacity config, used in
+## button-release
+my $menu_deactivate_connected = 0;
+my $connect_menu_deactivate;
+my ( $drag_offset_x, $drag_offset_y, $window_x, $window_y ) = ( 0, 0, 0, 0 );
+my $window_center_x = $win_width / 2;
+my $window_center_y = $win_height / 2;
+
+<[base.logs]>->(
+    1, "menu window: size=%.0fx%.0f center=(%.0f,%.0f) radius=%.0f",
+    $win_width, $win_height, $window_center_x, $window_center_y, $menu_radius
+);
+
+## Button press: detect if in drag zone  (dark corners) or menu zone (bright
+## center)
+$window->signal_connect(
+    'button-press-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        my $click_x = $event->x;
+        my $click_y = $event->y;
+
+        ## Distance from window center
+        my $dist = sqrt( ( $click_x - $window_center_x )**2
+                + ( $click_y - $window_center_y )**2 );
+
+        <[base.logs]>->(
+            1,
+            "button-press: x=%.0f y=%.0f dist=%.0f "
+                . "radius=%.0f center=(%.0f,%.0f)",
+            $click_x,
+            $click_y,
+            $dist,
+            $menu_radius,
+            $window_center_x,
+            $window_center_y
+        );
+
+        if ( $dist >= $menu_radius ) {
+            ## In drag zone (dark corners) - start drag
+            $is_dragging = TRUE;
+            my @win_pos = $widget->get_position();
+            $window_x      = $win_pos[0];
+            $window_y      = $win_pos[1];
+            $drag_offset_x = $click_x;
+            $drag_offset_y = $click_y;
+            <[base.logs]>->(
+                1,         "  → drag started at window (%.0f,%.0f)",
+                $window_x, $window_y
+            );
+            return 1;    # Consume event
+        }
+        <[base.log]>->( 1, "  → menu zone" );
+        return 0;        # Let button-release handle menu click
+    }
+);
+
+## Motion notify: move window while dragging
+$window->signal_connect(
+    'motion-notify-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        return 0 unless $is_dragging;
+
+        my $new_x = $window_x + ( $event->x - $drag_offset_x );
+        my $new_y = $window_y + ( $event->y - $drag_offset_y );
+        <[base.logs]>
+            ->( 1, "motion : moving to (%.0f,%.0f)", $new_x, $new_y );
+        $widget->move( $new_x, $new_y );
+        return 1;    # Consume event
+    }
+);
+
+## Button release: end drag or open menu
+$window->signal_connect(
+    'button-release-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        <[base.logs]>->( 1, "button-release: dragging=%d", $is_dragging );
+
+        if ($is_dragging) {
+            $is_dragging = FALSE;
+            <[base.log]>->( 1, "  → drag ended" );
+            return 1;    # Consume event
+        }
+
+        ## Otherwise, open menu (if click was in center zone)
+        my $click_x = $event->x;
+        my $click_y = $event->y;
+        my $dist    = sqrt( ( $click_x - $window_center_x )**2
+                + ( $click_y - $window_center_y )**2 );
+
+        <[base.logs]>->(
+            1,     "  → checking menu open at dist=%.0f radius=%.0f",
+            $dist, $menu_radius
+        );
+        if ( $dist < $menu_radius ) {
+            <[base.log]>->( 1, "  → opening menu" );
+            my $menu = <protocol-7-menu.graphical-menu>;
+            if ( defined $menu ) {
+                $connect_menu_deactivate->();
+                <protocol-7-menu.menu_open> = TRUE;
+                $menu->popup_at_widget( $widget, qw| east east | );
+            }
+            return 1;
+        }
+        return 0;
+    }
+);
+
+## Position at top-right with equal margin BEFORE show_all  (must set position
+## before window is mapped to the window manager)
+$window->set_gravity('north-east');
+my $screen_width = $screen->get_width();
+my $margin       = 20;
+$window->move( $screen_width - $margin, $margin );
+
+## Store window and screen references for later use
+<protocol-7-menu.graphical-window> = $window;
+<protocol-7-menu.graphical-screen> = $screen;
+
+## distance-aware opacity defaults
+my $opacity_min      = <protocol-7-menu.cfg.opacity.min>      //= 0.47;
+my $opacity_max      = <protocol-7-menu.cfg.opacity.max>      //= 0.70;
+my $opacity_distance = <protocol-7-menu.cfg.opacity.distance> //= 420;
+
+## menu-open state and fade re-enable timer
+<protocol-7-menu.menu_open> = FALSE
+    unless defined <protocol-7-menu.menu_open>;
+
+$connect_menu_deactivate = sub {
+    my $menu = <protocol-7-menu.graphical-menu>;
+    return if not defined $menu;
+    return if $menu_deactivate_connected;
+    eval {
+        $menu->signal_connect(
+            'deactivate' => sub {
+                <[base.log]>->( 1, "menu deactivated, delaying fade resume" );
+                my $rt = <protocol-7-menu.opacity.reenable_timer>;
+                $rt->cancel if defined $rt;
+                Glib::Timeout->add(
+                    400,
+                    sub {
+                        <protocol-7-menu.menu_open> = FALSE;
+                        return FALSE;    ## one-shot
+                    }
+                );
+            }
+        );
+        $menu_deactivate_connected = 1;
+    };
+};
+
+$connect_menu_deactivate->();
+
+## update window opacity based on cursor distance from window center
+my $opacity_log_tick = 0;
+my $update_opacity   = sub {
+    if (<protocol-7-menu.menu_open>) {
+        eval { $window->set_opacity($opacity_max) };
+        return;
+    }
+
+    my $display = eval { Gtk3::Gdk::Display::get_default() };
+    if ( not defined $display ) {
+        <[base.log]>->( 1, "opacity: no display" )
+            if ++$opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my $seat = eval { $display->get_default_seat };
+    if ( not defined $seat ) {
+        <[base.log]>->( 1, "opacity: no seat" )
+            if $opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my $pointer = eval { $seat->get_pointer };
+    if ( not defined $pointer ) {
+        <[base.log]>->( 1, "opacity: no pointer" )
+            if $opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my $gdk_win = eval { $window->get_window };
+    if ( not defined $gdk_win ) {
+        <[base.log]>->( 1, "opacity: no gdk_win" )
+            if $opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my ( undef, $rel_x, $rel_y )
+        = eval { $gdk_win->get_device_position($pointer) };
+    if ( not defined $rel_x or not defined $rel_y ) {
+        <[base.log]>->( 1, "opacity: get_device_position failed: $@" )
+            if $opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my $dist = sqrt(
+        ( $rel_x - $win_width / 2 )**2 + ( $rel_y - $win_height / 2 )**2 );
+
+    my $t = $dist / $opacity_distance;
+    $t = 1 if $t > 1;
+    $t = 0 if $t < 0;
+
+    my $curved  = ( 1 - cos( $t * 3.14159 ) ) / 2;
+    my $opacity = $opacity_max - $curved * ( $opacity_max - $opacity_min );
+
+    if ( $opacity_log_tick++ % 20 == 0 ) {
+        <[base.logs]>->(
+            1,
+            "opacity: rel=(%.0f,%.0f) center=(%.0f,%.0f) "
+                . "dist=%.0f t=%.2f opacity=%.2f",
+            $rel_x,
+            $rel_y,
+            $win_width / 2,
+            $win_height / 2,
+            $dist,
+            $t,
+            $opacity
+        );
+    }
+
+    eval { $window->set_opacity($opacity) };
+};
+
+## start repeating opacity update timer (Glib loop, not IO::Async)
+Glib::Timeout->add( 50, sub { $update_opacity->(); return TRUE } );
+
+$window->show_all;
+
+return 0;
+
+#,,,,,,,,,,..,..,,.,,,,,.,,.,,,.,,,,.,,,.,...,.,.,...,...,,..,,..,..,,.,.,.,.,
+#AZ65OE3PMRXINSZE6AI5HAFI6RAXBYW5XDGECQ2PC6BCB2KRKNAH5ZX7XEDQ5M6EMDNXRQDBFZAF4
+#\\\|PWXZBQFLOCO2W5SJWC2NLYM3LN5GFTELGNM2CA5FHDDR3BV76JG \ / AMOS7 \ YOURUM ::
+#\[7]LGYJBTNGBULBAQV7OYK3U3FC76SRLYAPE7TWNWPNMZH3S6ZZXWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

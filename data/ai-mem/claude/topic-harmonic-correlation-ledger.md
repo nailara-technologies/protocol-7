@@ -283,7 +283,7 @@ layer is built on.
 
 ## C25519 key lengths — REAL-BUT-WEAK (byte-count coincidence, not a shared mechanism)
 
-Traced live in `modules/crypt.C25519.write_keys`: secret/public keys are
+Traced live in `src/crypt.C25519.write_keys`: secret/public keys are
 `32` raw bytes, base32-encoded to exactly `52` characters
 (`⌈32×8/5⌉=52`, confirmed for both, secret carries an extra 3-char `KU5`/
 `FY5` format header on top). The "private" key is `64` raw bytes →
@@ -406,8 +406,8 @@ not a usable review-priority signal.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,..,,,,,,.,,.,,,,,.,.,,,,,.,,.,,,..,...,,..,.,.,...,...,.,,,..,,,,.,..,,.,,,
-#OJ2ALVWG3AYO7IKHAPGPXPK55MQNSLTJGTOZDERT7IH7HEBPUXO6ZMISDZNEOOYJZHFBELCD6A7ZS
-#\\\|EZJN3WPXGL3SXTYGIA7VTPBPCKRGWTKMVN5QSPIKB5N74WEP52M \ / AMOS7 \ YOURUM ::
-#\[7]7PZ7AJDSS7HYCW3VLR4XMTYXIEWZZE2Z47GTSLNGJ27YIC4WJCBA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,.,,,,,,.,,,,,,...,,,,,,,.,,,,,.,.,...,...,.,.,.,.,,,,,.,,,,..,
+#ZIEVZIIOJCX6EPFBPQYCLSQLYQ2VVHYZ7AZOJ3ARJ5NIBV75ITVK4KWT23KHC7SJFCYTHNQ2VVJFU
+#\\\|YWDFKJDQ42CNKGBTL54G4UPKUAEY2AU7WXBGAVKKUMETLHRV2NB \ / AMOS7 \ YOURUM ::
+#\[7]6KEESMSV6YS6HYOQUFQ2DBF37JMENN6BOKXB226IYVQY6AK7RACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

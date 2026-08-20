@@ -41,8 +41,8 @@ reported above no longer reproduces. `mod-test.reload all` (covering
 
 **priority raised 2026-08-04 — second independent confirmation.** Hit again
 on the `kimi` zenka this session: after landing the `QuestionRequest`
-silent-hang fix (`modules/kimi.wire.question_respond` [new] +
-`modules/kimi.handler.ws_message`), `kimi.reload source` reported success
+silent-hang fix (`src/kimi.wire.question_respond` [new] +
+`src/kimi.handler.ws_message`), `kimi.reload source` reported success
 but the edited handler branch did not actually take effect — the user had
 to explicitly direct a `v7.restart kimi` instead, and K3 discovered the
 staleness itself mid-verification rather than trusting the reload's own
@@ -74,7 +74,7 @@ reproduced cleanly with a minimal isolated probe, to rule out confounds from
 the report-pipeline work itself (JSON parsing, encoding, etc):
 
 ```
-modules/jobsite.cmd.reload-probe:
+src/jobsite.cmd.reload-probe:
     return { 'mode' => 'true', 'data' => 'probe-v1' };
 ```
 added `reload-probe` to `access.cmd.usr.cube` in
@@ -301,8 +301,8 @@ by the signing system. do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,,,,,..,.,,,.,.,..,,,..,.,.,,..,,,.,.,.,...,..,,...,..,,.,,,,.,,.,,,.,.,,.,,
-#EHDB6YJK2PZ4D4HX3CLOJWQ4HQKMRWGDB2KZDBKAKLTCRCVKUFL4TFWT6LWHZKE3V6L4DQQQWXFPM
-#\\\|3Z6CC2ZTTOHCGMZZZTCSB5IWECTHYRPSAJ4RXLL6JR7F3VPKIZD \ / AMOS7 \ YOURUM ::
-#\[7]QWVCOBSNVWS7GYQD57T36YXJDCJWR4OROHZMYMTJGPXAJRJ5I2CY 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,,.,,.,.,,,,,,..,,,.,,.,,,,.,..,,...,...,.,,,,.,,.,.,,.,,..,,
+#GD2S2GFURE4AJEB5QE7VELSMMK3MW3Y6YINUWQM2UQQNYATVPCIN77VZGY7Q5G3HRSYCTXVWYM4R6
+#\\\|WZR4CI37W7CGIMV5LDZXQ3PWFKQUUXHJYIWUBGWHMMWZS3VCZMJ \ / AMOS7 \ YOURUM ::
+#\[7]77JMKQU26MQ7MRUQ4O3SKJFCKMOE5UDYMX7OHACHX7J7ZJ7CSUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

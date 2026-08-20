@@ -873,7 +873,7 @@ The theory explains WHY the algorithm works.
 The implementation demonstrates it works in practice.
 ```
 
-### VAX-Encodable Dimensional Progression (modules/source.init_code)
+### VAX-Encodable Dimensional Progression (src/source.init_code)
 
 **Mathematical visualization showing dimensional scaling through bit-width encoding:**
 
@@ -2513,8 +2513,8 @@ The +1[+1] logic creates additional phase transitions:
 - Oscillation logic as basic segmentation principle
 **Priority for Follow-up**: Critical (oscillation logic appears to be foundational)
 
-#,,,,,..,,,,.,...,,..,...,,.,,..,,,..,,..,,,,,..,,...,...,..,,.,,,,.,,..,,.,,,
-#6Y7K2MPQEP3MO2QVLTXABR7PVTFKQ5ROGFCUSORR52DGESRZZB3BNYT7FKUALHPB5EFNTZ3VSXNKK
-#\\\|MYZW3TZYI2LMAVZBDFMJ5KPMEHEXTX6T7OUIA46BATJJYFIMXJ5 \ / AMOS7 \ YOURUM ::
-#\[7]QDQVBMWBGVWWMVD354OKWW7ROVN7MFSGG7T73TDXJ2WV5LOOFABA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,,.,,,..,.,.,,,.,,,,,,.,,...,..,,...,...,.,.,..,,,..,,,,,,,.,
+#DSNMXCSZEQKIDC2Q3J7A5BSEWRGSXFXW3RL7LBJFYKKX5SIWALUFGJJR3LVC47XBCMJ2NVJUBIFQM
+#\\\|VDDOXPMLUNI7B34BCTU6XLUYZQX6WQTB34WYURZQBJ2BA2YFBPT \ / AMOS7 \ YOURUM ::
+#\[7]W5D4POBUTBSV5SQRMWVRDPRHPJ6M63O4PIF4WNOPSP5D27UOSYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

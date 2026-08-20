@@ -10,8 +10,8 @@
   form/submit flow, users-zenka integration, draft-auto-save) is NOT in scope here.
 
 Two prior phases already exist and are committed:
-- `cfg/zenki/user-edit/`, `modules/user-edit.init_code` (skeleton)
-- `modules/user-edit.init_code` also already registers three path keywords via
+- `cfg/zenki/user-edit/`, `src/user-edit.init_code` (skeleton)
+- `src/user-edit.init_code` also already registers three path keywords via
   `base.path.register_keywords`: `VAR_P7` (→ this zenka's own var dir),
   `ETC_P7`, `HOME_N` (→ `~/.n`). Read the current file to see the exact
   registration — do not re-register these, they already exist.
@@ -29,37 +29,37 @@ later be built on top of. Do not build the submit flow itself.
 
 ## Precedent to follow (do not invent new mechanisms)
 
-- `modules/format.yaml.write_file` — takes `($path, $yaml_data)`, an ALREADY
+- `src/format.yaml.write_file` — takes `($path, $yaml_data)`, an ALREADY
   RESOLVED absolute path (not a `[KEYWORD]` string) plus a Perl data structure.
   Read it.
-- `modules/format.yaml.load_file` — the read counterpart, same absolute-path
+- `src/format.yaml.load_file` — the read counterpart, same absolute-path
   convention. Read it.
-- `modules/format.yaml.load_keyword_path` — shows the pattern for combining
+- `src/format.yaml.load_keyword_path` — shows the pattern for combining
   keyword resolution with a format.yaml.* call: it calls
   `<[base.path.resolve_keywords]>->($path)` first, then passes the RESOLVED
   path to `format.yaml.load_file`. There is no `write_keyword_path` sibling —
   your write function needs to do the same two-step (resolve, then write_file)
   itself. Read this file as the exact shape to mirror.
-- `modules/base.path.resolve_keywords` — read it, confirm the exact substitution
+- `src/base.path.resolve_keywords` — read it, confirm the exact substitution
   behavior (`[NAME]` → registered path).
-- `modules/base.file.make_path` — recursive directory creation, signature
+- `src/base.file.make_path` — recursive directory creation, signature
   `($path, $mode, $owner, $group)`. At runtime this is called as
   `<[file.make_path]>->(...)` (swapped family, no `base.` prefix — see the
   coding-style.md section on this). The outbox directory
   (`[VAR_P7]/outbox/`, resolved) will not exist on a fresh zenka — your write
   function must ensure the directory exists before calling `format.yaml.write_file`.
-  Look at `modules/base.path-set-up.check-zenka-paths` for a real call-site
+  Look at `src/base.path-set-up.check-zenka-paths` for a real call-site
   example of `<[file.make_path]>` (mode/owner arguments) to match conventions —
   though your case is simpler (no owner/group juggling needed, this is the
   zenka's own working directory).
-- `modules/base.file.all_files` — directory listing, runtime name `<[file.all_files]>`
+- `src/base.file.all_files` — directory listing, runtime name `<[file.all_files]>`
   (also a swapped family). Read its signature and return shape before using it.
 
 ## What to build
 
 Three new modules:
 
-1. `modules/user-edit.outbox.write` — params: an entry identifier (string,
+1. `src/user-edit.outbox.write` — params: an entry identifier (string,
    e.g. a filename-safe id) and a data structure (hashref) to persist.
    Resolves `[VAR_P7]/outbox/<id>.yaml` via `base.path.resolve_keywords`,
    ensures the outbox directory exists (`file.make_path`), then calls
@@ -68,14 +68,14 @@ Three new modules:
    file for exactly how it signals success/failure and propagate the same
    shape, don't invent a different one).
 
-2. `modules/user-edit.outbox.list` — no params, or an optional filter — lists
+2. `src/user-edit.outbox.list` — no params, or an optional filter — lists
    entry ids currently staged in `[VAR_P7]/outbox/` (i.e. the `.yaml` files
    present, with the `.yaml` suffix stripped back to the bare id). Uses
    `file.all_files` against the resolved outbox directory. Returns an arrayref
    of ids (empty arrayref if the directory doesn't exist yet or is empty — not
    an error in that case).
 
-3. `modules/user-edit.outbox.clear` — params: an entry identifier. Removes the
+3. `src/user-edit.outbox.clear` — params: an entry identifier. Removes the
    corresponding `[VAR_P7]/outbox/<id>.yaml` file. Use a plain Perl `unlink`
    with the resolved path (check whether there's a `base.file.*`/`file.*`
    wrapper preferred over bare `unlink` elsewhere in this codebase for
@@ -86,7 +86,7 @@ Three new modules:
 
 All three: validate the entry identifier is a safe bare string before building
 a path from it (no `/`, no `..` — mirror the validation style already used in
-`modules/protocol-7-menu.position.save` or similar path-building code you find
+`src/protocol-7-menu.position.save` or similar path-building code you find
 in this codebase, don't invent ad hoc validation).
 
 ## Explicitly out of scope — do not implement
@@ -97,7 +97,7 @@ in this codebase, don't invent ad hoc validation).
   `phase_3_form`
 - any `users.*` command surface or network calls of any kind
 - do not touch `cfg/zenki/user-edit/start` or
-  `modules/user-edit.init_code`'s existing keyword registration
+  `src/user-edit.init_code`'s existing keyword registration
 
 ## Verification
 
@@ -128,8 +128,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` if you hit anything non-obvious (e.g. whichever
 unlink approach you picked and why, if it wasn't obvious).
 
-#,,,.,...,,,,,.,.,,.,,,.,,,.,,,..,...,.,,,...,..,,...,...,...,,,.,,,,,,..,..,,
-#SQ2QUK57ZDK54O7HLTWYFFCZ26LVM4KATK4PW7NGKHU3K2ZRGNTU3NMFUXQZ2N7EPIQJXX3AJQZMS
-#\\\|AKUVWD4KTDIS27VGHNKRRKLCBIRY6D25SDGMQZOJYPUIABCYKNO \ / AMOS7 \ YOURUM ::
-#\[7]OTZVZTHW5EQ34BBENDUBL4SCDKPJGBYGW6VPWSYD5DXUV4HTOGAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,.,.,,,...,,..,,,,,.,,,...,.,,,..,,...,...,...,,,,,,..,,..,,..,
+#CQLZDKAMUPZRGUQFZZQ2IF6X4VZQY66ENCZDEGX4KS7VPO2JH4AVCUS5FUDSPJVQNNXNJNXJBIZP4
+#\\\|RR6CQBVRDMYNPA4BYYLPHHRLUWECP4JNK7QAWUM73XBTEYXXWXQ \ / AMOS7 \ YOURUM ::
+#\[7]VIBCTIM4DORGCECJ77HANORI6VTPEAVNUPTWKGTGJYDONHRQWIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

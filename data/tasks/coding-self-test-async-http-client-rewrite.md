@@ -63,12 +63,12 @@ primary:
 
 | file | current role | change |
 |---|---|---|
-| `modules/coding.tools.http_inference_client` | blocking client | step 1 only: `stream` flag experiment |
-| `modules/coding.self_test.run` | straight-line loop over 2 prompts | → timer-driven state machine |
-| `modules/coding.self_test.evaluate` | synchronous tier1 reformat, up to 2 attempts | → continuation-driven |
-| `modules/coding.self_test.handler.poll_switch` | switch→test→restore state machine | new `testing` phase |
-| `modules/coding.handler.monitor_inference_startup` | auto-trigger + cat-fail/seed-retry logic | → completion callback |
-| `modules/coding.self_test.cmd.self-test-run` | manual trigger, direct-return reply | → `mode => deferred` + callback |
+| `src/coding.tools.http_inference_client` | blocking client | step 1 only: `stream` flag experiment |
+| `src/coding.self_test.run` | straight-line loop over 2 prompts | → timer-driven state machine |
+| `src/coding.self_test.evaluate` | synchronous tier1 reformat, up to 2 attempts | → continuation-driven |
+| `src/coding.self_test.handler.poll_switch` | switch→test→restore state machine | new `testing` phase |
+| `src/coding.handler.monitor_inference_startup` | auto-trigger + cat-fail/seed-retry logic | → completion callback |
+| `src/coding.self_test.cmd.self-test-run` | manual trigger, direct-return reply | → `mode => deferred` + callback |
 
 new modules (suggested names):
 
@@ -621,10 +621,10 @@ self-test's logic and content are not in scope.
 ### verify
 
 ```bash
-grep -n "http_inference_client" modules/coding.self_test.* modules/coding.handler.monitor_inference_startup
-grep -n "base.sleep\|select( undef" modules/coding.self_test.*
-grep -n "stall\|data-start\|cold_start" modules/coding.async.http_client
-grep -n "task_id" modules/coding.abort.check_stream modules/coding.handler.http_timeout
+grep -n "http_inference_client" src/coding.self_test.* src/coding.handler.monitor_inference_startup
+grep -n "base.sleep\|select( undef" src/coding.self_test.*
+grep -n "stall\|data-start\|cold_start" src/coding.async.http_client
+grep -n "task_id" src/coding.abort.check_stream src/coding.handler.http_timeout
 ```
 
 after conversion, the first grep should return **no hits** in
@@ -692,8 +692,8 @@ prompt: |
   use $ARG not @_ where the file already does; lowercase comments; bracket
   annotations [ like this ]; do not touch the trailing signature blocks.
 
-#,,..,.,,,.,,,,,,,.,,,,.,,.,.,,,,,,..,,,.,,..,..,,...,...,,.,,.,.,,,.,..,,,,.,
-#WWUOLXKKIOH2X4NJY2GU46EY65S5BQQEAVW2GY7Q3VNEC3RMHDQ2J53QGPXJ6L6QEICW5OVK5DP2Y
-#\\\|36CQST456XMOK6KFNDBWH2RV7YORXEVFVUVLR6CH5XQZ5AOBPVT \ / AMOS7 \ YOURUM ::
-#\[7]FNFMM74MADLD4BHUYTT7R5HQSBP6VSJPWFBWXT5H6AWWI5FBMOBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,...,...,.,.,...,..,,.,.,..,,..,,...,...,.,,,,,.,,,,,.,.,,..,
+#WIFXQVUXN7TQDGQJHWKJI5VVJST44L4FZDCSYKYX7KOI7GWU4UECZGF6D65AT7BZSRXXJEWKDQOTA
+#\\\|Z3WKAZ3IU5LM7BMMZI5VO3EBZ57HSJNLVD4KTVF7I2WAFHOGX36 \ / AMOS7 \ YOURUM ::
+#\[7]Y7FHWVUCMFVCTDKOLH7LAGGDTYLAU3OEL5VHW57BHRHNAP2JBSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

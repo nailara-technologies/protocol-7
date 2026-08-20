@@ -231,29 +231,29 @@ Render Timer → amos-term.handler.render → Cairo → GTK3 Window
 ## Implementation Modules
 
 ```
-modules/protocol.amos-term.init_code         # Protocol registration
-modules/protocol.amos-term.connect_callback  # [none - API only]
-modules/protocol.amos-term.command-handler   # Window commands
+src/protocol.amos-term.init_code         # Protocol registration
+src/protocol.amos-term.connect_callback  # [none - API only]
+src/protocol.amos-term.command-handler   # Window commands
 
-modules/amos-term.init_code                  # Zenka init
-modules/amos-term.window.create              # Window factory
-modules/amos-term.window.open                # GTK3 window open
-modules/amos-term.window.close               # GTK3 window close
-modules/amos-term.window.move                # Position control
-modules/amos-term.window.fullscreen          # Fullscreen toggle
+src/amos-term.init_code                  # Zenka init
+src/amos-term.window.create              # Window factory
+src/amos-term.window.open                # GTK3 window open
+src/amos-term.window.close               # GTK3 window close
+src/amos-term.window.move                # Position control
+src/amos-term.window.fullscreen          # Fullscreen toggle
 
-modules/amos-term.buffer.create              # 3D buffer allocation
-modules/amos-term.buffer.write               # Write voxel
-modules/amos-term.buffer.read                # Read voxel
-modules/amos-term.buffer.shm_attach          # SHM mapping
+src/amos-term.buffer.create              # 3D buffer allocation
+src/amos-term.buffer.write               # Write voxel
+src/amos-term.buffer.read                # Read voxel
+src/amos-term.buffer.shm_attach          # SHM mapping
 
-modules/amos-term.render.loop                # 60 FPS render
-modules/amos-term.render.cairo_draw          # Cairo drawing
-modules/amos-term.render.cursor              # Cursor overlay
+src/amos-term.render.loop                # 60 FPS render
+src/amos-term.render.cairo_draw          # Cairo drawing
+src/amos-term.render.cursor              # Cursor overlay
 
-modules/amos-term.plugin.load                # Plugin loader
-modules/amos-term.plugin.reload              # Hot reload
-modules/amos-term.handler.decode.pattern     # Pattern decoder plugin
+src/amos-term.plugin.load                # Plugin loader
+src/amos-term.plugin.reload              # Hot reload
+src/amos-term.handler.decode.pattern     # Pattern decoder plugin
 ```
 
 ## Next Steps
@@ -269,8 +269,8 @@ modules/amos-term.handler.decode.pattern     # Pattern decoder plugin
 *Architecture for first-class window objects in Protocol-7*
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,..,,,.,,,.,,...,,..,...,.,,,.,,,,.,,,.,,..,,...,...,,.,,.,.,,,.,.,.,,,.,
-#M7QNVDOJ2THIDE45LTRYK6CFOQ3S2TNTGS74F6VARWJ6TNKQDEK6RM573QDGP733W5D6Y5F4LMETS
-#\\\|LW25YBLQ6T5V7VXMYPKFZRVVXEJ37AZTXWRW4MG2QQPBOFON77J \ / AMOS7 \ YOURUM ::
-#\[7]PG4ZVOKZQOPIGMDU4IMUXB2SZPCU4L3ZCDYEJSJAW3JZMDRXJ4AY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,.,,,,.,,,..,.,,,,,,,,.,,,.,,..,,...,...,,,,,,,,,..,,.,.,,,.,
+#BL7LJESXIE24SPI2ZPI3UAQVR2Y4SMJXA47UGKDDJN6DQG4D4YIKNTO4FNQRF6UI4H2YVRBJPC4FA
+#\\\|SHBE2YKE522JEFFKFZFHOUYCQJLBILNJCM7WZLKWT67PZFFIZZ4 \ / AMOS7 \ YOURUM ::
+#\[7]J6P3JNLMOSYKQJXNQM4KJI4GAPW6BJUGCO4T6KOCYKZZC42GNCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

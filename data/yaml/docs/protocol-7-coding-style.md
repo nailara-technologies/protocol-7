@@ -54,10 +54,10 @@ All modules follow a consistent structure:
 
 ### Function Call Syntax
 
-The `<[...]>` notation is a Protocol-7 parser feature. **The key in `%code` is EXACTLY the module filename** from `modules/*`.
+The `<[...]>` notation is a Protocol-7 parser feature. **The key in `%code` is EXACTLY the module filename** from `src/*`.
 
 ```perl
-## Module filename: modules/debian.parent.scan_zenki_dependencies
+## Module filename: src/debian.parent.scan_zenki_dependencies
 ## %code key: 'debian.parent.scan_zenki_dependencies'
 ## Function call:
 my $result = <[debian.parent.scan_zenki_dependencies]>;
@@ -100,7 +100,7 @@ Protocol-7 uses different syntax for data access depending on context:
 Use `<data.key.path>` notation for initialization:
 
 ```perl
-## modules/service.init_code
+## src/service.init_code
 
 ## ✓ CORRECT - Init_code data notation
 <service.config.port> //= 8080;
@@ -112,7 +112,7 @@ Use `<data.key.path>` notation for initialization:
 Use `$data{...}` hash notation:
 
 ```perl
-## modules/service.cmd.list
+## src/service.cmd.list
 
 ## ✓ CORRECT - Regular hash access
 my $clients = $data{'service'}{'registry'}{'clients'};
@@ -128,7 +128,7 @@ This is the fundamental difference between the two notations:
 
 #### `<[function.name]>` - Function Calls (key is EXACTLY the module filename)
 ```perl
-# Module file: modules/debian.parent.scan
+# Module file: src/debian.parent.scan
 # Function call:
 <[debian.parent.scan]>;
 # Parses to: $code{'debian.parent.scan'}->()
@@ -153,7 +153,7 @@ my $timeout = $data{'debian'}{'cfg'}{'timeout'};
 **Module Namespace Pattern: Files use dot notation for namespacing**
 
 - **`<[module.name.function]>`** = Function call: Uses exact module filename as %code key
-  - Module file: `modules/module.name.function`
+  - Module file: `src/module.name.function`
   - Parser converts to: `$code{'module.name.function'}->()`
   - Dots in filename become dots in key (NOT nested hash structure)
 
@@ -168,13 +168,13 @@ my $timeout = $data{'debian'}{'cfg'}{'timeout'};
 
 ```perl
 ## MISTAKE 1: Module filenames use dot notation for namespacing
-# Module file: modules/debian.parent.scan
+# Module file: src/debian.parent.scan
 # ✓ CORRECT: <[debian.parent.scan]>;
 #            Parses to: $code{'debian.parent.scan'}->()
 # ✗ WRONG:   $code{'debian'}{'parent'}{'scan'}->()  - NOT nested!
 
 ## MISTAKE 2: The %code key is EXACTLY the module filename
-# If file is: modules/zenki.parent.ensure_cube
+# If file is: src/zenki.parent.ensure_cube
 # Then key is: 'zenki.parent.ensure_cube' (with all the dots)
 # Call it with: <[zenki.parent.ensure_cube]>;
 
@@ -212,7 +212,7 @@ Protocol-7 uses the `%data` hash with the `//=` operator to create **elegantly o
 ### Pattern Overview
 
 ```perl
-## In modules/service.parent.init_code
+## In src/service.parent.init_code
 ## Define configuration ONCE with overridable defaults
 <service.cfg.listen_port>      //= 8080;
 <service.cfg.max_connections>  //= 100;
@@ -220,7 +220,7 @@ Protocol-7 uses the `%data` hash with the `//=` operator to create **elegantly o
 <service.cfg.data_directory>   //= '/var/lib/service';
 
 ## In all other modules - reference consistently
-## modules/service.parent.start_server
+## src/service.parent.start_server
 sub service_parent_start_server {
     my $port = <service.cfg.listen_port>;      ## No fallback needed
     my $max_conn = <service.cfg.max_connections>;
@@ -228,7 +228,7 @@ sub service_parent_start_server {
     # Server startup logic using config values...
 }
 
-## modules/service.cmd.configure
+## src/service.cmd.configure
 sub service_cmd_configure {
     my $params = shift || {};
 
@@ -283,7 +283,7 @@ $data{'debian'}{'cfg'}{'prefer_debian'} = 0;
 #### 3. In Other Modules' init_code
 
 ```perl
-## modules/custom.init_code (loaded before debian)
+## src/custom.init_code (loaded before debian)
 <debian.cfg.zenki_config_base> = '/custom/path/zenki';
 ```
 
@@ -292,24 +292,24 @@ $data{'debian'}{'cfg'}{'prefer_debian'} = 0;
 **Before refactoring (inelegant):**
 
 ```perl
-## modules/debian.parent.init_code
+## src/debian.parent.init_code
 <debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/cfg/zenki';
 <debian.cfg.prefer_debian>     //= 1;
 ## Missing: use_cpanm not in config!
 
-## modules/debian.parent.scan_zenki_dependencies
+## src/debian.parent.scan_zenki_dependencies
 sub scan {
     ## Redundant hardcoded fallback!
     my $base = <debian.cfg.zenki_config_base> || '/data/projects/protocol-7/cfg/zenki';
 }
 
-## modules/debian.parent.install_missing
+## src/debian.parent.install_missing
 sub install {
     my $prefer = $params->{prefer_debian} // <debian.cfg.prefer_debian>;
     my $cpanm = $params->{use_cpanm} // 1;  # Hardcoded! Not in config!
 }
 
-## modules/debian.console.install-deps
+## src/debian.console.install-deps
 my $result = <[debian.parent.install_missing]>->({
     prefer_debian => 1,  # Hardcoded!
     use_cpanm => 1       # Hardcoded!
@@ -319,24 +319,24 @@ my $result = <[debian.parent.install_missing]>->({
 **After refactoring (elegant):**
 
 ```perl
-## modules/debian.parent.init_code
+## src/debian.parent.init_code
 <debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/cfg/zenki';
 <debian.cfg.auto_install>      //= ($UID == 0 ? 1 : 0);
 <debian.cfg.prefer_debian>     //= 1;
 <debian.cfg.use_cpanm>         //= 1;  ## Complete config set
 
-## modules/debian.parent.scan_zenki_dependencies
+## src/debian.parent.scan_zenki_dependencies
 sub scan {
     my $base = <debian.cfg.zenki_config_base>;  ## No fallback needed
 }
 
-## modules/debian.parent.install_missing
+## src/debian.parent.install_missing
 sub install {
     my $prefer = $params->{prefer_debian} // <debian.cfg.prefer_debian>;
     my $cpanm = $params->{use_cpanm} // <debian.cfg.use_cpanm>;
 }
 
-## modules/debian.console.install-deps
+## src/debian.console.install-deps
 my $result = <[debian.parent.install_missing]>->({
     prefer_debian => <debian.cfg.prefer_debian>,
     use_cpanm => <debian.cfg.use_cpanm>
@@ -466,7 +466,7 @@ zenki status cube
 All zenki configuration follows the elegant `%data` pattern:
 
 ```perl
-## modules/zenki.parent.init_code
+## src/zenki.parent.init_code
 
 <zenki.cfg.v7_binary>            //= '/data/projects/protocol-7/bin/Protocol-7';
 <zenki.cfg.v7_startup_timeout>   //= 10;   ## Seconds
@@ -487,7 +487,7 @@ zenki.cfg.auto_start_v7 = 0         ## Never auto-start v7
 ### Dependency Chain Resolution
 
 ```perl
-## modules/zenki.parent.resolve_dependencies
+## src/zenki.parent.resolve_dependencies
 
 sub zenki_parent_resolve_dependencies {
     my $params = shift || {};
@@ -524,7 +524,7 @@ sub zenki_parent_resolve_dependencies {
 ### Process Detection
 
 ```perl
-## modules/zenki.parent.check_running
+## src/zenki.parent.check_running
 
 sub zenki_parent_check_running {
     my $params = shift || {};
@@ -578,7 +578,7 @@ View with: `zenki status`
 **Planned Enhancement:** Unix domain socket log streaming
 
 ```perl
-## modules/v7.parent.stream_zenka_log
+## src/v7.parent.stream_zenka_log
 
 ## Features:
 ## 1. Create unix socket: /var/run/.7/logs/<zenka>.<instance_id>
@@ -678,8 +678,8 @@ The system provides clear, actionable error messages:
 **Session IDs:**
 ```perl
 ## After zenka connects to cube, it gets a session ID
-## See: modules/base.get_session_id
-## See: modules/base.async.get_session_id
+## See: src/base.get_session_id
+## See: src/base.async.get_session_id
 
 my ($local_sid) = keys( $data{'user'}{$usr_str}{'session'}->%* );
 $data{'session'}{$local_sid}{'cube_sid'} = $cube_session_id;
@@ -688,7 +688,7 @@ $data{'session'}{$local_sid}{'cube_sid'} = $cube_session_id;
 **Output Patterns:**
 ```perl
 ## V7 already has pattern matching for zenka output
-## See: modules/v7.init_zenka_output_patterns
+## See: src/v7.init_zenka_output_patterns
 
 ## Format: zenka_name::regex_pattern::flags
 <v7.patterns.zenka_output>->{$zenka_name}->{$pattern_re} = $code_ref;
@@ -1105,7 +1105,7 @@ my $dir = '/var/cache/letsencrypt';
 Create a `post_init` module that runs after module initialization but before privilege drop:
 
 ```perl
-## modules/service.base.post_init
+## src/service.base.post_init
 
 ## Create required directories with proper permissions
 <[service.base.check_dirs]>;
@@ -1130,7 +1130,7 @@ Console commands provide a simple command-line interface to zenka functionality.
 ### Module Naming
 
 ```
-modules/service.console.command-name
+src/service.console.command-name
 ```
 
 - **Prefix**: `module.console.*`
@@ -1211,7 +1211,7 @@ access.cmd.usr.cube = commands heart reload \
 **Critical**: During `init_code` execution, functions from the same module aren't yet available via `<[...]>` notation.
 
 ```perl
-## modules/debian.parent.init_code
+## src/debian.parent.init_code
 
 ## ✗ WRONG - Function not yet exported during init
 my $result = <[debian.parent.scan_zenki_dependencies]>;
@@ -1231,7 +1231,7 @@ my $result = <[debian.parent.scan_zenki_dependencies]>;
 ### Init Code Best Practices
 
 ```perl
-## modules/service.init_code
+## src/service.init_code
 
 ## 1. Initialize data structures
 <service.registry.items> //= {};
@@ -1270,10 +1270,10 @@ If you need to perform operations during init:
 #### Option 1: Defer to First Use
 
 ```perl
-## modules/service.init_code
+## src/service.init_code
 <service.initialized> = 0;  # Flag for first-use scan
 
-## modules/service.cmd.list
+## src/service.cmd.list
 unless ( $data{'service'}{'initialized'} ) {
     <[service.scan_data]>;  # Now function is available
     $data{'service'}{'initialized'} = 1;
@@ -1285,7 +1285,7 @@ unless ( $data{'service'}{'initialized'} ) {
 Define a helper sub WITHIN init_code:
 
 ```perl
-## modules/service.init_code
+## src/service.init_code
 
 sub _init_helper {
     my $data = shift;
@@ -1303,11 +1303,11 @@ my $result = _init_helper($some_data);
 #### Option 3: Separate Initialization Module
 
 ```perl
-## modules/service.init_code
+## src/service.init_code
 <service.data> //= {};
 0;
 
-## modules/service.parent.initialize
+## src/service.parent.initialize
 ## This can be called after init completes
 ## Perform initialization
 <[service.parent.scan_data]>;  # Functions available now
@@ -1320,7 +1320,7 @@ my $result = _init_helper($some_data);
 All modules are compiled by the parser and made available as code references. Just return the code and result at the end:
 
 ```perl
-## modules/service.process_data
+## src/service.process_data
 
 my $params = shift;
 # Implementation
@@ -1370,13 +1370,13 @@ Group related modules together:
 
 ```perl
 ## Certificate management
-modules/httpd.handler.acme_request       ## Dispatcher
-modules/letsencrypt.request-certificate  ## Implementation
-modules/letsencrypt.parent.status        ## Status checking
+src/httpd.handler.acme_request       ## Dispatcher
+src/letsencrypt.request-certificate  ## Implementation
+src/letsencrypt.parent.status        ## Status checking
 
 ## JSON handling
-modules/httpd.json.encode                ## Encoding
-modules/httpd.json.decode                ## Decoding
+src/httpd.json.encode                ## Encoding
+src/httpd.json.decode                ## Decoding
 ```
 
 ### Loading Modules in Zenka Start Files
@@ -1419,7 +1419,7 @@ Module A → Module B → Module A
 
 ### Do's ✓
 
-- **Module filenames become %code keys directly**: File `modules/zenki.parent.start` → key `'zenki.parent.start'`
+- **Module filenames become %code keys directly**: File `src/zenki.parent.start` → key `'zenki.parent.start'`
 - **Use `<[module.name]>` to call modules**: The bracketed name matches the module filename exactly
 - **Remember: Module filename dots are LITERAL keys**: `<[foo.bar]>` → `$code{'foo.bar'}->()` (NOT nested!)
 - **Pass arguments with `->(...)`**: `<[function]>->({...})` or `<[function]>->($arg)`
@@ -1440,7 +1440,7 @@ Module A → Module B → Module A
 
 ### Don'ts ✗
 
-- **Don't try to nest module filename keys** - File `modules/zenki.parent.start` creates key `'zenki.parent.start'`, NOT nested!
+- **Don't try to nest module filename keys** - File `src/zenki.parent.start` creates key `'zenki.parent.start'`, NOT nested!
 - **Don't write `$code{'module'}{'name'}->()`** - Module keys are single strings with dots, not nested hashes
 - **Don't use `$code{...}->()` directly** - Use `<[module.name]>` syntax instead, the parser handles it
 - **Don't confuse module dots with data dots** - Function calls preserve dots literally, data init converts them to nesting!
@@ -1466,16 +1466,16 @@ Module A → Module B → Module A
 - **Function Calls**: See [Function Calls and Data Access](#function-calls-and-data-access) for critical syntax patterns
 - **Init Code**: See [Init Code Constraints](#init-code-constraints) for circular dependency avoidance
 - **Console Commands**: See [Console Commands](#console-commands) for simple CLI interface patterns
-- **Variable Watchers**: See `modules/base.session.init` for comprehensive watcher setup
-- **HTTP Handlers**: See `modules/httpd.http_post` for POST request handling patterns
-- **Event Loop**: See `modules/base.event.*` for event handling system details
-- **Module System**: See `modules/base.init_code` for module loading and initialization
+- **Variable Watchers**: See `src/base.session.init` for comprehensive watcher setup
+- **HTTP Handlers**: See `src/httpd.http_post` for POST request handling patterns
+- **Event Loop**: See `src/base.event.*` for event handling system details
+- **Module System**: See `src/base.init_code` for module loading and initialization
 - **Logging**: Check `/var/log/protocol-7/` for actual log output patterns
 - **Configuration**: See `cfg/zenki/*/start` for zenka-specific configurations
-- **Dependency Management**: See `modules/debian.*` for example of complete zenka implementation
+- **Dependency Management**: See `src/debian.*` for example of complete zenka implementation
 
-#,,,,,,..,,.,,,,,,...,,,.,.,,,..,,,,.,.,,,.,,,..,,...,...,,,,,...,.,,,,.,,,,,,
-#3RQ2QIQRFGU5YGYERLQXQCFWXPYWPLQSSLSNXZKEXKQXKA5R5TMDDF46PTA2ORKZXHEOMEARB7VDO
-#\\\|7LTY5KYZMUNKWNSNF4CN2V6UQJFBUDMKCQXNQ5AZ56UBNVS3JVF \ / AMOS7 \ YOURUM ::
-#\[7]E2XXEFJANI3OAGJYP674RNLL4W7Z4NS7JG2OSGSCYEGCI5PDJQDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,,,.,..,,.,.,.,,,,.,,,,,,,.,,..,,...,..,,...,...,,,,,,.,,...,
+#XPYAAWCEZ46AW7Q3LZKAKYL6CLAV2BLYCH67Q22O3TAVBCJNRKBDUUWHYQI7V53EX7BPBY57HVSO6
+#\\\|ALV3JXZY22ZNMH3364HMGQUNICPXCZH7ZOLNUPZWIMSVVOUW4YX \ / AMOS7 \ YOURUM ::
+#\[7]6TRNKCCXHUDOR5CY37L573AROXAZDZUL5X24AAVOROH4PUU74MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = vision-batch.parent.cmd.status
+# descr = Query batch processing status (optionally by batch_id)
+
+my $batch_id = shift;
+
+# Call the main vision-batch.status module
+my $result = <[vision-batch.parent.status]>->($batch_id);
+
+# Check if we got a valid result
+return { 'mode' => qw| FALSE |, 'data' => 'Invalid status response' }
+    unless defined $result && ref($result) eq qw| HASH |;
+
+# Return status data in network format
+if ( $result->{'success'} ) {
+
+    # Remove internal 'success' field before sending to client
+    my %batch_data = %$result;
+    delete $batch_data{'success'};
+
+## Return as YAML string for human-readable output  [ multi-line requires
+## 'size' mode ]
+    <[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
+    my $yaml = YAML::XS::Dump( \%batch_data );
+    return { 'mode' => qw| size |, 'data' => $yaml };
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => $result->{'error'} // 'Failed to get batch status'
+    };
+}
+
+#,,..,..,,,,,,.,.,,..,,.,,,..,,,.,.,,,.,,,.,.,..,,...,..,,.,.,,,,,,..,.,.,,..,
+#FUGGE5CP6KEWSTSTVIYQJWIW54UYR7CDWKPBNN2QT2NU22FIOO5JNCGTUK3EBRCGJXSB5DAV2UX3I
+#\\\|G6GUGI774PMOQTLGE7IDDMD3IIJ5RR46IGCPMOS7EWWY23ZCA3T \ / AMOS7 \ YOURUM ::
+#\[7]NH6JPPXIKQJGKNHEMRQVIRH2AS5TKUYGMWSMMZK544EQ7QIZI4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

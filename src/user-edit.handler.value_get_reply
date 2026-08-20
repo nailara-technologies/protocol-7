@@ -1,0 +1,224 @@
+## [:< ##
+
+# name  = user-edit.handler.value_get_reply
+# descr = turn a users.value-get reply into a live editor form
+
+## reply-handler call signature is a SINGLE hashref { sid, cmd, call_args,
+## params, data? } — 'cmd' is the wire-level mode keyword, and only SIZE mode
+## carries its payload in the top-level 'data' key [ confirmed against
+## base.handler.command.process_reply, see
+## bug-auth-keypair-client-composition-gotchas ]
+
+my ($info) = @ARG;
+
+my $cmd       = uc( $info->{'cmd'} // '' );
+my $call_args = $info->{'call_args'}      // {};
+my $username  = <user-edit.form.username> // '?';
+
+my $abort = sub {
+    my ($msg) = @ARG;
+    print sprintf( "\n  << %s >>\n\n", $msg );
+    ## must exit in BOTH modes : the zenka is already inside zenka.loop by the
+    ## time a reply lands, so simply returning would leave it spinning with no
+    ## watchers and no way out.  form.quit restores the terminal first, which
+    ## matters once interactive mode has gone raw
+    <[user-edit.form.quit]>;
+    return FALSE;
+};
+
+if ( $cmd ne qw| SIZE | ) {
+
+    my $detail = $call_args->{'args'} // '';
+    $detail =~ s|^\s+||;
+    $detail =~ s|\s+$||;
+
+    ## OFFER TO CREATE : only for a record that genuinely does not exist.
+    ##
+    ## 'false' mode is overloaded on the users side -- it also carries "user
+    ## '%s' record invalid: %s" and the usage errors -- so this matches
+    ## users.cmd.value-get's not-found string EXACTLY.  a substring test would
+    ## offer to overwrite a CORRUPT but existing record.  [ the counterpart
+    ## string lives in src/users.cmd.value-get ]
+    my $not_found_msg = sprintf( "user '%s' not found", $username );
+
+    if (<user-edit.offer.create>    ## the caller owns the event loop ##
+        and not <user-edit.create.attempted>
+        and <user-edit.unix_user> eq ( <system.admin-user> // '' )
+        and $detail eq $not_found_msg
+    ) {
+
+        ## hand control back OUT of the event loop : base.term.ask is blocking
+        ## and must not run inside a handler.  the console command resumes
+        ## after its own <[base.zenka.loop]> and asks there.  function form --
+        ## Event->unloop() would pass 'Event' as the unloop result
+        <user-edit.pending.create> = TRUE;
+        Event::unloop();
+        return FALSE;
+    }
+
+    ## a near-miss is worth seeing : if the users-side wording ever drifts
+    ## this feature would otherwise just silently stop triggering
+    <[base.logs]>->(
+        1, ': create-offer declined a false reply [ %s ]', $detail
+    ) if <user-edit.offer.create> and not <user-edit.create.attempted>;
+
+    return $abort->(
+        sprintf(
+            'users.value-get failed [ %s ]: %s',
+            lc($cmd), $call_args->{'args'} // 'no detail'
+        )
+    );
+}
+
+my ( $record, $yaml_error )
+    = <[format.yaml.load_str]>->( $info->{'data'} // '' );
+
+return $abort->( sprintf( 'record parse failed: %s', $yaml_error ) )
+    if defined $yaml_error;
+
+return $abort->('record is not a mapping')
+    if ref $record ne qw| HASH |;
+
+<user-edit.form.record> = $record;
+
+## field list is DERIVED from the record — the settings payload is  ##
+## deliberately open, no declared schema exists to validate against ##
+my $schema = <[user-edit.form.schema_from_record]>->(
+    $record, <user-edit.form.submit_on>
+);
+
+if ( not defined $schema ) {
+
+    ## a record whose 'fields' hash is genuinely empty is a real, reachable
+    ## case now that users.record.default_fields returns {} -- see that
+    ## module's own note.  $record is already confirmed a HASH above [ the
+    ## 'record is not a mapping' guard ], so schema_from_record's OTHER undef
+    ## cause [ 'ref $record ne HASH' ] is unreachable at this call site --
+    ## this is unambiguously its "no editable scalar fields" guard.
+    ##
+    ## one-shot [ show-form ] mode still aborts here : it has no round trip to
+    ## chain a vocabulary fetch onto, and no return-and-retry path for an
+    ## abort either -- bootstrapping is an interactive-only concern
+    return $abort->(
+        sprintf( "user '%s' has no editable scalar fields", $username ) )
+        if not <user-edit.form.interactive>;
+
+    ## raw mode + the stdin/redraw watchers do not depend on any editor state
+    ## existing yet -- same setup the populated-record path below does, just
+    ## reached before a schema exists rather than after
+    if ( not <user-edit.mode.no_tty_debug> ) {
+
+        return $abort->('could not put the terminal into raw mode')
+            if not <[user-edit.term_init]>;
+
+        if ( not <[user-edit.setup_stdin_watcher]> ) {
+            <[user-edit.term_restore]>;    ## never leave the shell raw ##
+            return $abort->('could not register the form watchers');
+        }
+    }
+
+    return $abort->(
+        'no cube session to ask for the optional-field vocabulary')
+        if not defined <user-edit.cube_sid>;
+
+    ## same field-options round trip the populated-record path makes below,
+    ## but routed to the BOOTSTRAP reply handler : that one founds a schema
+    ## from nothing [ the add-a-field cycler as its one and only row ] instead
+    ## of attaching a row onto a form that is already on screen
+    <[protocol-7.command.send.local]>->(
+        {   qw| command | =>
+                sprintf( '%d.users.field-options', <user-edit.cube_sid> ),
+            qw| call_args | => { qw| args | => '' },
+            qw| reply |     => {
+                qw| handler | =>
+                    qw| user-edit.handler.field_options_bootstrap_reply |
+            }
+        }
+    );
+
+    return TRUE;
+}
+
+my $editor_state = <[editor.control.create]>->($schema);
+
+return $abort->('editor.control.create rejected the derived schema')
+    if not defined $editor_state;
+
+my $frame_name = <user-edit.form.frame_name> //= qw| user-edit-form |;
+
+return $abort->('could not generate a frame for the derived field set')
+    if not defined <[user-edit.form.build_frame]>->(
+    $editor_state, $frame_name, <user-edit.form.title>
+    );
+
+<user-edit.form.state> = $editor_state;
+
+## the cmd-list toggle and its discovery hint are per-CARD, not per-session :
+## opening a different record starts hidden again, with the hint ready to show
+## once more -- see user-edit.form.render and  user-edit.handler.stdin_key
+<user-edit.form.help_visible> = FALSE;
+<user-edit.form.hint_seen>    = FALSE;
+
+## the watched redraw counter must exist as a real scalar BEFORE anything
+## takes a reference to it — autovivifying it later would leave the watcher
+## registered on a detached scalar [ base.event.add_var ]
+<user-edit.form.dirty> //= 0;
+
+## interactive mode : raw terminal and the watchers go up BEFORE the first
+## paint, so the screen-clear lands on an already-raw terminal and no
+## keystroke typed during setup is echoed or lost  no-tty mode skips both :
+## there is no terminal to put into raw mode, and an event.add_io on fd 0
+## would fire continuously on a non-tty descriptor.  keys arrive via
+## user-edit.cmd.char-add instead, which appends to the same input buffer,
+## calls the same handler and renders on demand — so no redraw watcher is
+## needed either
+if ( <user-edit.form.interactive> and not <user-edit.mode.no_tty_debug> ) {
+
+    return $abort->('could not put the terminal into raw mode')
+        if not <[user-edit.term_init]>;
+
+    if ( not <[user-edit.setup_stdin_watcher]> ) {
+        <[user-edit.term_restore]>;    ## never leave the shell raw ##
+        return $abort->('could not register the form watchers');
+    }
+}
+
+## the form opens with focus already on a field : if that field is a list, the
+## cursor is "in" it from the start and it must open expanded, same as if it
+## had been navigated into
+<[user-edit.form.sync_list_mode]> if <user-edit.form.interactive>;
+
+## ask for the optional-field vocabulary AFTER the form is up : it costs a
+## round trip and the add-a-field row is only occasionally used, so the form
+## is rendered and usable first and the row appears when the answer lands
+##
+## asked WITHOUT the username, i.e. for the whole vocabulary rather than only
+## what this record lacks.  the addable subset is a local filter [
+## user-edit.form.addable_fields ], and the part the server-side filter throws
+## away -- the optional fields the record already HAS -- is exactly what says
+## which present fields may be given back again
+if ( <user-edit.form.interactive> and defined <user-edit.cube_sid> ) {
+    <[protocol-7.command.send.local]>->(
+        {   qw| command | =>
+                sprintf( '%d.users.field-options', <user-edit.cube_sid> ),
+            qw| call_args | => { qw| args | => '' },
+            qw| reply |     => {
+                qw| handler | => qw| user-edit.handler.field_options_reply |
+            }
+        }
+    );
+}
+
+<[user-edit.form.render]>;
+
+## one-shot mode is done the moment the form is on screen ; interactive mode
+## hands over to the input side instead
+<[base.exit]> if not <user-edit.form.interactive>;
+
+return TRUE;
+
+#,,..,...,...,,,.,,..,,.,,..,,..,,,..,.,.,,..,..,,...,...,...,,,,,.,.,..,,,,,,
+#FEXSLGMP2RSRQH2O275EU7M274SLOQP7BJYASYQXUX3IJ3SRARCMQM3Q3BK56PN3BX65GUM4LGJVQ
+#\\\|GBV5DLODSICYKPD2Y7M5IZUTXN36S7QYU4CX4FSCT6NGYWKQLBV \ / AMOS7 \ YOURUM ::
+#\[7]X56F6HM3TNPLUCAE5KZ3FDDTPAS4M5NBTWIQ2CUP73V7E3Y3OICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

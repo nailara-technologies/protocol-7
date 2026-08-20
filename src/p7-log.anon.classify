@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = p7-log.anon.classify
+# descr = regex classifier for sensitive fragments in log lines,
+#         returns aref of [ start, end, label ] spans [ end exclusive ]
+
+my $line = shift // '';
+
+return [] if not length $line;
+
+my @spans;
+
+## [ class : path ]  user home paths  /<home-root>/<user>/...  home-root    ##
+## varies by install [ /home is common but not universal -- some systems    ##
+## rename it /users, chroots may use something else entirely ] -- configure ##
+## additional roots via <p7-log.anon.home_roots> aref                       ##
+<p7-log.anon.home_roots> //= [qw| home users |];
+my $home_root_alt = join( '|', @{<p7-log.anon.home_roots>} );
+while ( $line =~ m{(/(?:$home_root_alt)/[\w\-\.]+/[^\s'",;)]+)}g ) {
+    push( @spans, [ $-[1], $+[1], qw| path | ] );
+}
+
+## [ class : quoted ]  quoted multi-word content > 40 chars ##
+while ( $line =~ m{'([^']{40,})'}g ) {
+    push( @spans, [ $-[1], $+[1], qw| quoted | ] );
+}
+while ( $line =~ m{"([^"]{40,})"}g ) {
+    push( @spans, [ $-[1], $+[1], qw| quoted | ] );
+}
+
+## [ class : uuid ]  session \ object identifiers ##
+while ( $line =~ m{([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})}g )
+{
+    push( @spans, [ $-[1], $+[1], qw| uuid | ] );
+}
+
+## sort by start [ longest first on tie ], drop overlapping spans ##
+@spans = sort { $a->[0] <=> $b->[0] or $b->[1] <=> $a->[1] } @spans;
+
+my @result;
+my $covered_until = -1;
+foreach my $span (@spans) {
+    next if $span->[0] < $covered_until;    ## overlaps previous span ##
+    push( @result, $span );
+    $covered_until = $span->[1];
+}
+
+return \@result;
+
+#,,..,,..,.,.,..,,,.,,...,,,,,..,,.,,,..,,,,,,..,,...,...,...,,,,,.,.,,..,..,,
+#3QVHMBTRU32DUQG7PTIRTIAQK5JIHPG7G4QJ2J2BL55QVVAMEMEJMFX7YV4BBWWUAJLNFOW24IVDC
+#\\\|QXNRNE3LWKZJV7HXEOEQBU2S3GFCJS5HX6ZOQW6I3QRJ2DOYIHA \ / AMOS7 \ YOURUM ::
+#\[7]ROWOWIL3QBRHW7WISJWTJUH6C5X2ILDK5KVUOJ2UYJ25HOZ5JODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

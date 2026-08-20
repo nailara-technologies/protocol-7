@@ -1,14 +1,14 @@
 # task: wire iteration loop into models.handler.task-result
 
 ## objective
-modify `modules/models.handler.task-result` so that when a task has
+modify `src/models.handler.task-result` so that when a task has
 `iteration: true`, the backend reply is fed into `iteration.loop`
 instead of directly completing the task.
 
 ## read first
-- `modules/models.handler.task-result` — the handler to modify
-- `modules/models.task.execute` — shows how iteration params are stored
-- `modules/iteration.loop` — params: {task_id, result, criteria,
+- `src/models.handler.task-result` — the handler to modify
+- `src/models.task.execute` — shows how iteration params are stored
+- `src/iteration.loop` — params: {task_id, result, criteria,
   node_id, max_attempts}; returns {mode=>'retry'|'escalate'|'true'}
 
 ## where to add
@@ -43,8 +43,8 @@ and before the final task completion logic, insert:
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,.,,,,.,.,.,,,,,,.,,.,,,,..,.,.,,,,,...,...,..,,...,...,.,,,.,,,.,,,,..,,,,,
-#3SCRB4SNGSSHDGWBMVHL2ELCXUUR7HIDCYMM2IISUVFPS7IL5GRNXHXLXOI3VJ5ABE4XJFTKGVNWU
-#\\\|KWFB7EA6SSTUOXZSOGUYSPEVEZX6MOMFJDDPPJLAFA322E4ESFZ \ / AMOS7 \ YOURUM ::
-#\[7]6R5RWBHDSPGHFJNYSXGNYYOZLQ54G3U3FX4HO6RC7JQECZ6ME6DQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,,.,,...,,..,,.,,,,,,.,.,,..,..,,...,...,...,..,,,..,,,.,,,.,
+#FTJZO3BKDIGSQSI5YMN6U4BS6PVRDKC6V2NONBLBAWOEMKNABFGNTWJKPYT5V7LDEYKWMBCCXLNC6
+#\\\|DDCZJTUSONHBBQ2F3IOLZSCRPSOR3NIIYAAYCGY2PN67BJMHFKI \ / AMOS7 \ YOURUM ::
+#\[7]SXOM2OZ7BPSG4HIGVY256FMJ5VHLSR45CZUVZPTM4WK5M7Q77UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

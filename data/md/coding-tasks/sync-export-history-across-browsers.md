@@ -37,17 +37,17 @@ browser-owned fields like `stage`/`notes`/`date_applied` already work via
 that branch first, this is the same shape of change.
 
 ## Read first
-- `modules/plugin.web.jobs.sync` — the single-browser-update branch (not
+- `src/plugin.web.jobs.sync` — the single-browser-update branch (not
   the `is_batch` branch) is where a new browser-owned field/action gets
   handled. See how `stage`/`notes`/`date_applied` are read from
   `$job_data`, applied to `$cached`, and how `%changed` + `reverse.queue`
   work for propagating a change back out to other browsers on their next
   poll.
-- `modules/plugin.web.jobs.cache.write` — where a job record actually gets
+- `src/plugin.web.jobs.cache.write` — where a job record actually gets
   persisted to disk; confirm a new field just rides along in the job hash
   without special-casing needed (it likely does, check for an explicit
   allow-list of fields before assuming).
-- `modules/plugin.web.jobs.data` — the `/jobs.json` GET response builder;
+- `src/plugin.web.jobs.data` — the `/jobs.json` GET response builder;
   confirm any new field on a job record is already included in what gets
   served (it likely is, this endpoint mostly just serializes the cached
   job hash) — needed so a job's `exported_stage` is visible to every
@@ -116,8 +116,8 @@ that branch first, this is the same shape of change.
 - [ ] Explicit migration-tradeoff decision (above) documented in the PR/
       commit message, not silently chosen.
 
-#,,,.,,.,,..,,..,,..,,,,.,..,,,.,,...,,..,.,.,..,,...,...,...,,,,,.,.,.,.,.,.,
-#EUIJ4OU6SKVR3CIJGZ76O6ASEPIQ4XQX52DRQTPYKQWITWM6HGH4WK4FGY6LKQA2EPAPSIAK5VIB6
-#\\\|T6EZCK7ZOCGVJ3B6AIXQQORGAWIPHTLUX7NZLG2WICJICHZFGQJ \ / AMOS7 \ YOURUM ::
-#\[7]LEGDJK6LH5CDWA6QG6XZSUGEE7TJMC36DDLKUQ2WXXBZBSQWM4CY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,..,,,..,.,,,.,.,,,.,..,,,..,..,,...,..,,...,,,,,,.,,.,,,..,,
+#QI462B5F2RULVK7QW5MTB3JJELRHKDUHUAPOFLTXGTBAM6UKMWMIS6ZPJVRUZX5UZOTUHPYPJXFHS
+#\\\|F3BJIKUTDMHVJE7WCXTGEFE2IASDPAOMFYZX4QYG7J57HV6S6P5 \ / AMOS7 \ YOURUM ::
+#\[7]NPYAO6VSD7IBBEQSQQ5TDKZHXANHMLFTUCHYJ4WHNQUTSLGXWOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

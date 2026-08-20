@@ -59,7 +59,7 @@ Terminal
 | **2. No progress-mode driver** | missing module | `memory-composite.yaml` defines `progress` and `expanded` modes, but nothing animates the progress mode (`\r` loop updating `PROGRESS`/`STATUS` slots). `cfg/ascii-frame` documents `[modes]` flags (`border.only`, `animate`) but **no module references them**. |
 | **3. No composed-frame assembler for memory** | missing module | `memory-composite.yaml` has block slots (`PROFILE`, `FEEDBACK`, `PROJECT`, `TASKS`) meant to contain rendered sub-frames. Nothing loads `user-profile.yaml`, `feedback.yaml`, etc., renders each, and composes them into the composite via `ascii.frame.compose`. |
 | **4. Terminal backend does not ingest frame output** | `amos-term.render.draw_buffer` | The amos-term voxel renderer draws 3D grids and cursors but **never unpacks SHM buffers to display characters**. All current terminal output in nshell bypasses amos-term and writes directly to `STDOUT`. A frame-rendered string would need to go through `nshell.handler.command_reply` or a new output path. |
-| **5. No memory zenka entry point** | missing module | There is no `modules/memory.*` or `modules/memory-zenka.init_code`. The closest existing module is `context.memory.load`, which is a provider, not a zenka. |
+| **5. No memory zenka entry point** | missing module | There is no `src/memory.*` or `src/memory-zenka.init_code`. The closest existing module is `context.memory.load`, which is a provider, not a zenka. |
 
 ---
 
@@ -127,7 +127,7 @@ The three string renderers (`render`, `render.color`, `render.html`) do **not** 
 
 ## D. Memory Zenka Minimal Wiring
 
-To create a working memory zenka that starts with progress-mode animation, loads memory files, renders each section via its frame, and outputs the expanded composite to the terminal, the following **new modules/config** are required:
+To create a working memory zenka that starts with progress-mode animation, loads memory files, renders each section via its frame, and outputs the expanded composite to the terminal, the following **new src/config** are required:
 
 ### New modules needed (concrete names + purpose)
 
@@ -158,7 +158,7 @@ To create a working memory zenka that starts with progress-mode animation, loads
 
 ### What it does today
 
-`modules/context.memory.load` (96 lines):
+`src/context.memory.load` (96 lines):
 
 - Expects `$params->{zenka}`, `$params->{topics}`, `$params->{budget}`.
 - Resolves `data/ai-mem/$zenka/` directory (falls back to first subdirectory if `zenka` not found).
@@ -207,7 +207,7 @@ None of these are YAML or follow a strict schema. A regex/heuristic parser is re
 
 ### Concrete 5-minute wiring
 
-Create a temporary test module (e.g., `modules/memory.render.profile`) that does exactly this:
+Create a temporary test module (e.g., `src/memory.render.profile`) that does exactly this:
 
 ```perl
 ## 1. load the user-profile frame
@@ -256,19 +256,19 @@ print STDOUT "\n$colored\n";
 
 | Component | Status | Evidence |
 |-----------|--------|----------|
-| Frame parser (`ascii.frame.parse`) | ✅ Exists | `modules/ascii.frame.parse` |
-| Frame validator (`ascii.frame.validate`) | ✅ Exists | `modules/ascii.frame.validate` |
-| Frame loader (`ascii.frame.load`) | ✅ Exists | `modules/ascii.frame.load` |
-| ASCII renderer (`ascii.frame.render`) | ✅ Exists | `modules/ascii.frame.render` |
-| ANSI color post-processor (`ascii.frame.render.color`) | ✅ Exists | `modules/ascii.frame.render.color` |
-| HTML renderer (`ascii.frame.render.html`) | ✅ Exists | `modules/ascii.frame.render.html` |
-| Data renderer (`ascii.frame.render.data`) | ✅ Exists | `modules/ascii.frame.render.data` |
-| Slot binder (`ascii.frame.slot.bind`) | ✅ Exists | `modules/ascii.frame.slot.bind` |
-| Frame composer (`ascii.frame.compose`) | ✅ Exists | `modules/ascii.frame.compose` |
-| Context provider bridge (`context.provider.frame`) | ✅ Exists | `modules/context.provider.frame` |
-| Context template resolver | ✅ Exists | `modules/context.template.load/render/resolve` |
-| Memory file loader (flat) | ✅ Exists | `modules/context.memory.load` |
-| Terminal output (nshell STDOUT) | ✅ Exists | `modules/nshell.handler.command_reply` |
+| Frame parser (`ascii.frame.parse`) | ✅ Exists | `src/ascii.frame.parse` |
+| Frame validator (`ascii.frame.validate`) | ✅ Exists | `src/ascii.frame.validate` |
+| Frame loader (`ascii.frame.load`) | ✅ Exists | `src/ascii.frame.load` |
+| ASCII renderer (`ascii.frame.render`) | ✅ Exists | `src/ascii.frame.render` |
+| ANSI color post-processor (`ascii.frame.render.color`) | ✅ Exists | `src/ascii.frame.render.color` |
+| HTML renderer (`ascii.frame.render.html`) | ✅ Exists | `src/ascii.frame.render.html` |
+| Data renderer (`ascii.frame.render.data`) | ✅ Exists | `src/ascii.frame.render.data` |
+| Slot binder (`ascii.frame.slot.bind`) | ✅ Exists | `src/ascii.frame.slot.bind` |
+| Frame composer (`ascii.frame.compose`) | ✅ Exists | `src/ascii.frame.compose` |
+| Context provider bridge (`context.provider.frame`) | ✅ Exists | `src/context.provider.frame` |
+| Context template resolver | ✅ Exists | `src/context.template.load/render/resolve` |
+| Memory file loader (flat) | ✅ Exists | `src/context.memory.load` |
+| Terminal output (nshell STDOUT) | ✅ Exists | `src/nshell.handler.command_reply` |
 | **Structured memory parser** | ❌ Missing | No module turns `*.md` into slot hashrefs |
 | **Progress-mode animator** | ❌ Missing | No module drives `\r` loop with `memory-composite` progress mode |
 | **Composite assembler** | ❌ Missing | No module loads sub-frames and composes them into `memory-composite` |
@@ -277,8 +277,8 @@ print STDOUT "\n$colored\n";
 | **Border-style in engine** | ⚠️ Partial | Parsed in `load`, applied in `context.provider.frame`, ignored in `ascii.frame.render` |
 | **Modes config wiring** | ⚠️ Dead code | `cfg/ascii-frame [modes]` is not read by any module |
 
-#,,,.,...,,,,,,,,,,.,,.,,,,..,.,.,.,.,,,,,.,,,..,,...,...,...,..,,,..,.,,,...,
-#Z6CBZNUAIIWCB5JMJETCYLKWABPJTIAIWVMHLMRPPGI5LQL4ZC24EWYKX7P2YAIARROD3WAXODL5Y
-#\\\|67UNTESTWG3DXAWJ7EN6WMEFIHK7IWRFOO7WCJUT5777YYB4XEK \ / AMOS7 \ YOURUM ::
-#\[7]G7CMOFKA5X2I7SCQPD3ERKSAYNQ4S76KNJTODNBXK2UVMHP6T4DI 7  DATA SIGNATURE ::
+#,,..,...,...,..,,,.,,.,.,...,.,.,,.,,...,.,.,..,,...,...,...,,..,...,.,.,,,.,
+#O7GRB7SR2BCA64VAJ6ZIWUAR24D7V7UHWDBLZBS2RNB3HZD4DE6TNQBLRYMAU2WKS7WG6MBQI7436
+#\\\|X5N3VGCEZRQWYCHSY2J33ZFULWM774H7QK5ZCN2IDXKE323GZN2 \ / AMOS7 \ YOURUM ::
+#\[7]YMESFEJ5YZ5JEDLSEQ5P355ITXKHHEMZFTUMI3QBQWSWUG3I3IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

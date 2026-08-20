@@ -5,7 +5,7 @@ implement three source adapters that read a source and emit lists of universal
 leaf hashrefs: `memory.source.file`, `memory.source.session`,
 `memory.source.git`. read first: `data/md/design/MEMORY-TREE-SYSTEM.md`
 sections B (node schema) and F (source adapters);
-`modules/context.memory.load` (markdown reading + signature-strip regex it
+`src/context.memory.load` (markdown reading + signature-strip regex it
 already uses); the ntime feedback note (`encode_b32r` is NOT sortable).
 adapters do NOT touch the tree — they only return leaf lists. they can be
 demoed standalone by printing the emitted leaf list.
@@ -66,8 +66,8 @@ guidelines for every adapter:
 - no manual AMOS7 signature stubs written into any source file or output.
 - comments lowercase narrative; `[ ... ]` annotation style.
 
-#,,,.,...,...,..,,,..,...,,,,,,,.,.,.,,..,..,,..,,...,...,,,,,.,.,...,,,,,.,,,
-#G2VYPJ4PE4WFBH6SELZXXS4NACUXMZN4HZABHCUYXC7YSEURLM7BFFYG3XILMTPALMKHV32UN2NQA
-#\\\|2OTCSNWXR5ZSYCYH5DWRR2SJMV6YRHEMYKULLOOZ3BMBOBU6ANF \ / AMOS7 \ YOURUM ::
-#\[7]UIEOJ7MNICDUMCNGMQHBGKWGLRG23PY4HVCPKXI34ZEEAIJ2SAAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,.,,,.,...,,,,,.,,,.,,,..,,..,,..,,...,...,,,,,,..,,..,.,.,,..,
+#UJE7RWY25MOHYQSNEHW7WMQONKOSO6ZHHV5SNIEINVBCKX7O2WVM7QM3KCZBMSLFXAVVISMF4E3A2
+#\\\|FU4JD2DGWIV2SR524LK2N4J5YESO7N63PK636WSTLY42JD5OPWE \ / AMOS7 \ YOURUM ::
+#\[7]PCVFUADLQRHZONS5MGWQW7LBTDOYBP2K6LGEHHSIAPJEQIAT6GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

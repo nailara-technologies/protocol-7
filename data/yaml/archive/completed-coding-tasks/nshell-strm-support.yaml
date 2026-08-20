@@ -20,7 +20,7 @@ context: |
       → nshell.handler.command_reply   (TRUE, FALSE, SIZE replies)
       → nshell.hook.unknown_reply_type (anything unrecognised — prints raw)
 
-  nshell.handler.command_reply (modules/nshell.handler.command_reply):
+  nshell.handler.command_reply (src/nshell.handler.command_reply):
     - receives $reply hashref with keys: cmd, call_args.args, data
     - for SIZE/multi-line replies: $reply->{'data'} contains the payload,
       printed directly with print $payload_str
@@ -52,28 +52,28 @@ context: |
       - once with cmd='STRM' and the open frame info when stream starts
       - once per chunk with the chunk data
       - once with cmd='STRM' and 'close' signal when done
-    check modules/base.handler.command for exact dispatch shape —
+    check src/base.handler.command for exact dispatch shape —
     look at how SIZE replies are dispatched as a reference since STRM
     likely follows the same pattern. the key question is whether chunks
     arrive as separate handler calls or accumulated into $reply->{'data'}.
 
   existing hooks to wire:
-    nshell.register_hooks (modules/nshell.register_hooks) registers all
+    nshell.register_hooks (src/nshell.register_hooks) registers all
     reply handlers. add STRM registration there mirroring the SIZE pattern.
 
   key existing modules:
-    modules/nshell.handler.command_reply  — main reply handler (reference)
-    modules/nshell.register_hooks         — hook registration
-    modules/nshell.hook.unknown_reply_type — current STRM fallthrough
-    modules/nshell.init_code              — zenka init
-    modules/base.handler.command          — upstream parser (read-only ref)
+    src/nshell.handler.command_reply  — main reply handler (reference)
+    src/nshell.register_hooks         — hook registration
+    src/nshell.hook.unknown_reply_type — current STRM fallthrough
+    src/nshell.init_code              — zenka init
+    src/base.handler.command          — upstream parser (read-only ref)
 
 investigation_first: |
   Before writing any code, read:
-  1. modules/nshell.register_hooks — understand how handlers are registered
-  2. modules/base.handler.command  — search for STRM dispatch: how does it
+  1. src/nshell.register_hooks — understand how handlers are registered
+  2. src/base.handler.command  — search for STRM dispatch: how does it
      call the reply handler for STRM chunks? does it accumulate or stream?
-  3. modules/nshell.handler.command_reply — understand $reply structure for
+  3. src/nshell.handler.command_reply — understand $reply structure for
      SIZE replies (closest analogue to STRM)
   then design the handler based on what you find.
 
@@ -108,8 +108,8 @@ verification: |
   5. run: weather.desc
      → normal TRUE reply still works (regression check)
 
-#,,,,,,,.,,..,.,.,,,.,...,..,,.,,,,,,,,..,,,,,..,,...,...,.,.,.,.,,,.,.,.,..,,
-#WLDHI4XOVZLCSQ2L7KFR5KRILIHQXBFAGZLSMDAKSUJOPXENZJDF7YODX3YBVVCUOVLTMNE3HSO44
-#\\\|TRW4DUYFZWZ6CNY7774JDPNSBXHZGZUI2GTNOWBZWQ4YBWUYFO2 \ / AMOS7 \ YOURUM ::
-#\[7]BTPVSSVSBOTADAKX57FHJVJLGP3L5IJP5SUKW64BCQ6V7MZ5NADQ 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,.,.,.,,,.,,,...,...,...,..,,..,,...,...,.,.,..,,,..,...,.,.,
+#FUMSOLQOPK73HSQF4T6KNNIGK6CL3E55HJOFIGBMKVOSVJU432GKPONA4WTXUCK6WSMTON7OPI5OS
+#\\\|UYM2DUZLSDGUWTC6YELFLSVPEENMT73ONG4FM7AR4JUY5MHVAPG \ / AMOS7 \ YOURUM ::
+#\[7]7YBWT43ER56DYFBLQ2RLS2SSDS3RLQCNKDA6YEOQLHPMISDVKWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

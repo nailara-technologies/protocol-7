@@ -44,7 +44,7 @@ users.* calls. Just a zenka that boots and loads its modules without error.
      sequence.
 2. `cfg/zenki/user-edit/source/` — one empty placeholder file per
    loaded namespace: `base`, `terminal`, `editor`, `ascii.frame`, `user-edit`.
-3. `modules/user-edit.init_code` — minimal stub. Look at a small, similarly-thin
+3. `src/user-edit.init_code` — minimal stub. Look at a small, similarly-thin
    zenka's own `<zenka-name>.init_code` for the minimal working shape (e.g.
    `ascii.frame.init_code` is a good minimal example — it just does one small
    thing and returns TRUE). user-edit.init_code at this stage should do the
@@ -65,7 +65,7 @@ users.* calls. Just a zenka that boots and loads its modules without error.
 
 - the new files exist, `start`'s module load order matches `keys/start`'s
   pattern
-- confirm modules/user-edit.init_code has valid P7 module header format (see
+- confirm src/user-edit.init_code has valid P7 module header format (see
   any existing `*.init_code` file for the exact `## [:< ##` / `# name = ` /
   `# descr = ` header shape)
 - do NOT attempt to actually boot the zenka against the live network — no
@@ -90,8 +90,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` (whichever fits) if you hit anything non-obvious
 along the way — same as any other task.
 
-#,,,.,...,,.,,...,,,.,..,,..,,,,,,..,,.,.,,,.,..,,...,...,.,,,.,.,,.,,..,,,..,
-#7ZZEVWJRCA7PNWWKZ6SMQW3INRMVQK32UHEHYDND7DWEUFLVHIZ6QBVPOVXGM7ZOEUPV7GK42MOPG
-#\\\|MRVNGN3GY7ZZMK3UFNAVTGI65UXFUHG7F4MPN6Y345WK2BI3R7L \ / AMOS7 \ YOURUM ::
-#\[7]CLNV7IPM5YQ6LUMSAW2V5H7TFFDQFK2FQJBQ4UYBM4RJBB4ZD6DY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,.,.,,,,,...,..,,,..,.,.,,,,,..,,...,...,...,,.,,,,,,..,,..,,
+#RW3JQNN5MJ6MFGFL45YTD6D7MDVAAFLP27P4PVFEINW33O3I2QQJPRVTA3XOOWVHKOL5YJPFEXCN2
+#\\\|NPE52RKNWTPQFQOX7MLZLEIADUOK465QGDZXDK2UWYUMPUHMCNE \ / AMOS7 \ YOURUM ::
+#\[7]RTLMQP6RPXT2KR5WM2AY56ZGVGE5UZBZDE4L4BMFNQSS4XSLHQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

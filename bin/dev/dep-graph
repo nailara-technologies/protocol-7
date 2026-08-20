@@ -16,7 +16,7 @@ use Crypt::Misc      qw| encode_b32r |;
 ###           ###
 
 ## static dependency graph generator for protocol-7 modules  maps ##
-## module-to-module call sites across the modules/ directory      ##
+## module-to-module call sites across the src/ directory          ##
 
 #:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
 ##[ LOCAL PM LIB PATH ]#######################################################
@@ -105,7 +105,7 @@ die ":: -list-subs requires -zenka=NAME\n"
 ##[ CONFIGURATION ]###########################################################
 
 our $root_path;    ##  from BEGIN block  ##
-my $modules_dir = c_dir( $root_path, qw| modules | );
+my $modules_dir = c_dir( $root_path, qw| src | );
 my $output_dir
     = c_dir( $root_path, qw| data |, qw| md |, qw| documentation | );
 
@@ -132,7 +132,7 @@ if ($any_list) {
     if ( $opt{stdin} ) {
         @lines = <STDIN>;
     } else {
-        my $start_file = c_dir( $root_path, qw| configuration zenki |,
+        my $start_file = c_dir( $root_path, qw| cfg zenki |,
             $opt{zenka}, qw| start | );
         die ":: zenka start file not found: $start_file\n" if !-f $start_file;
         open my $fh, qw| < |, $start_file
@@ -532,7 +532,7 @@ sub get_zenka_namespaces {
     state %zenka_ns;
     return %zenka_ns if %zenka_ns;
 
-    my $zenki_dir = c_dir( $root_path, qw| configuration zenki | );
+    my $zenki_dir = c_dir( $root_path, qw| cfg zenki | );
     return () unless -d $zenki_dir;
 
     opendir my $dh, $zenki_dir or return ();
@@ -705,7 +705,7 @@ sub analyze_zenka_reachability {
             = parse_start_lines($lines_ref);
     } else {
         ##  file mode: locate and parse start file  ##
-        my $start_file = c_dir( $root_path, qw| configuration zenki |,
+        my $start_file = c_dir( $root_path, qw| cfg zenki |,
             $zenka_name, qw| start | );
         die ":: zenka start file not found: $start_file\n" if !-f $start_file;
         ( $loaded_set, $entry_commands, undef, undef, $whitelist_register )
@@ -793,7 +793,7 @@ sub analyze_zenka_reachability {
     #  these lines are injected over stdin by v7 at startup and eval'd      #
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
         my $startup_file = c_dir(
-            $root_path,  qw| configuration zenki |,
+            $root_path,  qw| cfg zenki |,
             $zenka_name, qw| zenka-startup.v7 |
         );
         if ( -f $startup_file ) {
@@ -895,7 +895,7 @@ sub analyze_zenka_reachability {
             my @to_scan = keys %reachable;
             while (@to_scan) {
                 my $mod  = shift @to_scan;
-                my $file = c_dir( $root_path, qw| modules |, $mod );
+                my $file = c_dir( $root_path, qw| src |, $mod );
                 next unless -f $file;
                 open my $fh, '<', $file or next;
                 while ( my $line = <$fh> ) {
@@ -1279,7 +1279,7 @@ sub parse_access_cmd_config {
     ## returns hashref: { target => qr/compiled_regex/ }                 ##
     my $zenka_name = shift;
 
-    my $start_file = c_dir( $root_path, qw| configuration zenki |,
+    my $start_file = c_dir( $root_path, qw| cfg zenki |,
         $zenka_name, qw| start | );
     return {} if !-f $start_file;
 
@@ -1334,7 +1334,7 @@ sub parse_access_cmd_config {
                 my $cfg
                     = $arg =~ m|^/|
                     ? $arg
-                    : c_dir( $root_path, qw| configuration |, $arg );
+                    : c_dir( $root_path, qw| cfg |, $arg );
                 push @config_stack, $cfg if -f $cfg;
             }
         }
@@ -1421,7 +1421,7 @@ sub find_variable_dispatch {
 
     my @ambiguous;
     my @resolved;
-    my $modules_dir = c_dir( $root_path, qw| modules | );
+    my $modules_dir = c_dir( $root_path, qw| src | );
     my @files       = get_module_files($modules_dir);
 
     ##  build reverse lookup: module name -> file path  ##
@@ -1509,7 +1509,7 @@ sub find_variable_dispatch {
 
 sub load_rules {
     ##  load dispatch resolution rules from cfg/dep-graph/rules/  ##
-    my $rules_dir = c_dir( $root_path, qw| configuration dep-graph rules | );
+    my $rules_dir = c_dir( $root_path, qw| cfg dep-graph rules | );
     my @rules;
     return \@rules unless -d $rules_dir;
 
@@ -1773,8 +1773,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,.,.,,,..,,.,,,.,.,,..,,..,...,...,,,,,,..,.,.,...,...,.,,,.,.,.,,,.,,,.,.,
-#ILQGIGJUHTMXKBPIIXEFDZJR5YTIZZY7PDPQXAGNJQCDQIYKYHE2762HAHDQNWUXCHQISHHHJFFFI
-#\\\|KOQY26M5IEF7SEXMIK6LLGJ4AXBKFDVPMTM4YPMHUHTFVIHVTWD \ / AMOS7 \ YOURUM ::
-#\[7]AG7FY6SNHMPNY27MSBPFWHWX7VDLMDN7VOWA6STUBCS4K3Q55CBY 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,,,,,,,,..,.,,,...,,.,,,..,,,.,.,.,...,...,..,,,,.,..,,,,,,.,,,
+#CPTBYR2RRJKORF2TMUSTAJNLM2YYWPSKVL5PGTLRZVJAXIBXOPILZUROZ2E6ED2MDQKHNTH5YKSCE
+#\\\|DL4RBOG5X5PRQAPVGHE3GHCV7D6RAS3GSGIVT6TLHL64H7BF35J \ / AMOS7 \ YOURUM ::
+#\[7]PLSMSBTR77SHIPLDOD4VZYCGCQLPI2J4KQ55UWF6Q723P6GMHMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = plugin.user-edit.example.tab_info
+# descr = minimal reference plugin's self-description
+# param = -none-
+
+## THROWAWAY / reference only -- see plugin.user-edit.example.init_code's own
+## note.
+##
+## REAL BUG, found live and fixed : this originally pinned 'location' -- a
+## REAL default field on every actual record [ users.record.default_fields ]
+## -- to make live testing easy.  plugin.user-edit.example stayed wired into
+## plugins.load afterward [ per user, "keep it and clean it up later" ], so
+## that pin was ACTIVE against every real user's real record too, not just
+## test ones : 'location' silently became readonly, two-stage-Right-to-enter,
+## test-plugin-append-only-edited for EVERYONE, the moment phase_2 shipped.
+## pinned_keys must NEVER name a key from users.record.default_fields /
+## .optional_fields while this plugin stays wired for live smoke-testing --
+## 'example_test_field' [ below ] cannot collide with anything real, and a
+## throwaway test record can still carry it directly via users.value-set [
+## schema_from_record derives fields from whatever a record actually has, not
+## a fixed list, so an arbitrary extra key works fine for this ].
+return {
+    qw| label |       => qw| example |,
+    qw| pinned_keys | => [qw| example_test_field |],
+};
+
+#,,,,,..,,.,,,.,.,...,,,,,,.,,,..,,,.,,,,,,..,..,,...,...,,,,,.,,,,..,...,,.,,
+#U2ELLUEE7SFV3M4JSNHODTYWYLYH2AFLDOSR72FTXGIGXH6WQVP5DYCG3LY4T2BHMAAI43SXQM5KO
+#\\\|L2MBOCE66CQXLZX3JQHJOUT3M6J3XUB5YA3APVI3EYURB66RLYX \ / AMOS7 \ YOURUM ::
+#\[7]NQVBAKD63T3YHC73FEVZ2FGJEPZG6FMVXVOFHZEBSP2N7NV2JGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

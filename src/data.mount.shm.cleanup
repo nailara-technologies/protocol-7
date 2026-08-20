@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = data.mount.shm.cleanup
+# descr = end_code callback : unlock + unlink creator-owned SHM segments on
+#         normal shutdown [ phase 4 part A ]
+
+<[base.log]>->( 2, "SHM subsystem cleaning up on shutdown" );
+
+# Unlock all mlocked segments
+for my $path ( keys %{ $data{'mount'}{'shm'}{'segments'} } ) {
+    my $seg = $data{'mount'}{'shm'}{'segments'}{$path};
+    if ( $seg && $seg->{'mlocked'} ) {
+        eval { <[data.mount.shm.lock.unlock]>->( $seg->{'mmap_ptr'} ) };
+    }
+}
+
+## phase 4 : unlink every creator-owned segment [ + its FIFO, handled      ##
+## already inside data.mount.shm.remove ] on graceful shutdown. reader-    ##
+## opened segments are never in this hash — see data.mount.shm.init_code / ##
+## the phase-4 task doc's "critical correctness rule" — so this never      ##
+## touches a segment this process did not create.                          ##
+for my $path ( keys %{ $data{'mount'}{'shm'}{'segments'} } ) {
+    eval { <[data.mount.shm.remove]>->($path) };
+}
+
+return TRUE;
+
+#,,..,.,,,.,,,,.,,,..,,.,,.,.,.,.,,.,,,,.,..,,..,,...,...,..,,,,,,.,.,...,.,.,
+#GM7WNNRO3IGZV6WSUWRC4KV7SBSHOGRPYRGA5DNUOJ44XG4ZUAYKJXYRVB3PMENLRKPA3O5QT4BO4
+#\\\|QKAORXZRSWOIF73GIBE4IW2YZGJI57EHXNQRA5SA4QBVQICMNNI \ / AMOS7 \ YOURUM ::
+#\[7]Y54XJVQCF4BMZQ7TJ5F3JY7OWA3DH3BHF52LRAZBIIV3GZTOSOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

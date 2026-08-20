@@ -1,0 +1,158 @@
+## [:< ##
+
+# name  = io.ssl.ip.handler.handshake
+# descr = handle non-blocking SSL handshake completion via accept_SSL
+#         [ called by event loop when SSL socket is ready for handshake IO ]
+# note  = handles SSL_WANT_READ/SSL_WANT_WRITE retry and handshake completion
+
+my $w     = $_[0]->w;
+my $hs_id = $w->data;
+
+## validate handshake state exists ##
+if ( not exists $data{'ssl_handshake'}{$hs_id} ) {
+    ## handshake state already cleaned up [ likely by timeout ] ##
+    $w->cancel if $w->is_active;
+    return undef;
+}
+
+my $hs         = $data{'ssl_handshake'}{$hs_id};
+my $ssl_client = $hs->{'socket'};
+my $server_id  = $hs->{'server_id'};
+
+## verify socket is still valid ##
+if ( not defined $ssl_client or not fileno($ssl_client) ) {
+    <[base.logs]>->(
+        2, '[%s] ssl handshake: socket closed during handshake', $server_id
+    );
+    <[io.ssl.ip.handshake.cleanup]>->( $hs_id, 0 );
+    return undef;
+}
+
+## attempt to complete ssl handshake ##
+my $result = $ssl_client->accept_SSL();
+
+if ($result) {
+    ## handshake complete ##
+    <[base.logs]>->(
+        2, '[%s] ssl handshake completed for %s:%s',
+        $server_id, $hs->{'peerhost'}, $hs->{'peerport'}
+    );
+
+    ## register accepted client connection in handle data structure ##
+    my $client_fd = fileno($ssl_client);
+
+    $data{'handle'}{$ssl_client} = {
+        'encryption' => qw| tls |,
+        'mode'       => qw| input |,
+        'link'       => qw| ip.ssl |,
+        'peerhost'   => $hs->{'peerhost'},
+        'peerport'   => $hs->{'peerport'},
+        'v4_over_6'  => $hs->{'peerhost'} =~ s|^::ffff:|| ? 1 : 0
+    };
+
+    ## also register by numeric fd for event loop lookup
+    $data{'handle'}{$client_fd} = $data{'handle'}{$ssl_client};
+
+    <[base.logs]>->(
+        2,          '[%s] ssl socket registered: fd=%d [ ref and numeric ]',
+        $server_id, $client_fd
+    );
+
+    ## clean up handshake state but keep socket open ##
+    <[io.ssl.ip.handshake.cleanup]>->( $hs_id, 1 );
+
+    ## initialize session for the accepted connection  [ mirrors what ##
+    ## base.handler.connect does after getting client socket ]        ##
+    my $cid = <[base.session.init]>->( $ssl_client, 'https', 'input', undef );
+
+    if ( not defined $cid ) {
+        <[base.logs]>->(
+            0, '[%s] session init not successful, closing connection .,',
+            $server_id
+        );
+        eval { $ssl_client->shutdown(2) };
+        close($ssl_client);
+        return undef;
+    }
+
+    <[base.logs]>->(
+        1,    '[%s] :. %s .: connection established. ::',
+        $cid, 'https'
+    );
+
+    ## return the ssl socket ##
+    return $ssl_client;
+
+} else {
+    ## handshake not complete : check if we should continue or fail ##
+    my $ssl_err = IO::Socket::SSL::errstr();
+
+    ## check for SSL_WANT_READ or SSL_WANT_WRITE : need to wait for more IO ##
+    if (   $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_READ()
+        or $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_WRITE() )
+    {
+        ## normal : handshake needs more data, keep waiting  event watcher ##
+        ## will fire again when ready                                      ##
+        return undef;
+    }
+
+    ## handshake failed with fatal error ##
+    my $log_level = 0;
+    my $known_lvl = 2;
+    my $err_msg   = <[base.format_error]>->($ssl_err);
+
+    ## classify common ssl errors ##
+    if ( $err_msg =~ m|error:0A000126| ) {
+        $err_msg = 'client session shutdown';
+        $log_level
+            = $known_lvl;    ## expected : client closed before handshake ##
+    } elsif ( $err_msg =~ m|0[Aa]000412|
+        or $err_msg =~ m|bad.certificate| ) {
+        ## client rejected server certificate [ tls alert 42 ] ##
+        $err_msg   = 'tls: client rejected certificate [bad_certificate]';
+        $log_level = 1;
+    } elsif ( $err_msg =~ m|handshake failure|i ) {
+        $err_msg   = 'tls: handshake failure';
+        $log_level = 1;
+    } elsif ( $err_msg =~ m|unknown ca|i ) {
+        $err_msg   = 'tls: unknown certificate authority';
+        $log_level = 1;
+    } elsif ( $err_msg =~ m|wrong version|i ) {
+        $err_msg   = 'tls: protocol version mismatch';
+        $log_level = 1;
+    }
+
+    $err_msg = lc($err_msg) if $err_msg =~ s| attempt||g;
+
+    ## format final error message ##
+    if ( length( $err_msg // '' ) ) {
+        my $os_err = <[base.str.os_err]>;
+        $err_msg = sprintf( '%s [%s]', $err_msg, $os_err )
+            if length $os_err;
+        $log_level = $known_lvl
+            if $err_msg =~ s|connection reset|reset|
+            or $err_msg =~ s|broken pipe|sigpipe|
+            or not length $os_err;
+    } else {
+        $err_msg = <[base.str.os_err]> if not length( $err_msg // '' );
+    }
+
+    $err_msg =~ s|broken pipe|sigpipe|;
+
+    <[base.log]>->(
+        $log_level, "[$server_id] : IP-TCP-SSL-handshake : $err_msg"
+    );
+
+    ## clean up failed handshake ##
+    <[io.ssl.ip.handshake.cleanup]>->( $hs_id, 0 );
+
+    return undef;
+}
+
+0;
+
+#,,..,,,,,,..,,..,...,..,,,.,,.,.,,..,.,,,.,.,.,.,...,...,...,,.,,.,.,..,,.,.,
+#4IN6OROHLEU7I74JDPWVAGMTA5YS42MWVOUZJG2WMMX5HUEG7F56SQPYJQZOHQ5LMZEAJPDJBWKIQ
+#\\\|3IYNB6CWN6RN4WFPLQ4K5V5DJIYPKYYJUK6ZSWXW53TP64Y6MMG \ / AMOS7 \ YOURUM ::
+#\[7]3NPFSJMTMF7PWEIUTMY3U3TNRECSMP7MG575WVDA2QHILFODSACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -96,9 +96,9 @@ decorative top → leading `..` explodes, e.g. `............[ … ]`). confirmed
 ## uncommitted batch (sign together, then commit)
 
 ```
-modules/ascii.frame.load               modules/ascii.frame.render
-modules/ascii.frame.render.border_line modules/ascii.frame.render.color
-modules/ascii.frame.init_code                         (NEW)
+src/ascii.frame.load               src/ascii.frame.render
+src/ascii.frame.render.border_line src/ascii.frame.render.color
+src/ascii.frame.init_code                         (NEW)
 cfg/zenki/memory/source/ascii.frame.init_code  (NEW source marker)
 data/yaml/ascii-frames/memory-tree-root.yaml
 data/yaml/ascii-frames/feedback.yaml
@@ -114,8 +114,8 @@ plus auto-generated whitelist / src-ver / dep-graph as usual.
   the NEXT layer after convergence; genuinely kimi-shaped work, unlike this taste-laden pass)
 - prior: git `e8eedf1de` (s3a), `7f2c04a03` (s2)
 
-#,,.,,...,,.,,,..,,,,,,,.,,..,,,,,.,.,..,,...,..,,...,...,,.,,.,,,..,,,.,,.,,,
-#ND45VGVKUWKPVXN2QFTF6UIUQBEP6AZZVVOC3FBIFUSUGXWLSC6PY7OTPFLHCNUKYSPHPYKDTZPYA
-#\\\|6GL35OXZB44UMW7QLVNMJS2Y37HHXWMGFQAHUCKRFWOS5EAWDDT \ / AMOS7 \ YOURUM ::
-#\[7]45QUSXX7HSNNVL3AYONLI7YM63ACPAGJBSMJOL5AR5VCOE2M7ECY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,...,...,.,,,,..,,,.,,..,..,,..,,..,,...,...,...,...,,,,,...,,,.,
+#JKRQTEEQBMJHEB2KZDWO7ZWVXDS5T2OXWME3CPY7ANTNCMWXYNX55IFIWZXZ3B6KXMWHKY2OZJGB4
+#\\\|32E5U3CFJHBAFOQVVPO67UIU7TBAKDE5N4TZTZG4JKY7PK5WFUK \ / AMOS7 \ YOURUM ::
+#\[7]A6WJA3E7O5TGOKD5XQ4TAXPZOTTB5GAYFW7432FFRD4NO2E3ZMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

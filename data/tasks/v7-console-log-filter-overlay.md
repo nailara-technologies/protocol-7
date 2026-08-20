@@ -19,10 +19,10 @@ design docs:
   layer-diff substrate a filter overlay rides
 
 existing fragments to integrate with:
-- `modules/v7.init_zenka_output_patterns`,
-  `modules/v7.load_zenka_output_patterns` — proven regex compilation
+- `src/v7.init_zenka_output_patterns`,
+  `src/v7.load_zenka_output_patterns` — proven regex compilation
   + per-zenka match dispatch idioms; reuse, do not re-implement
-- `modules/v7.handler.output_zenka_stdout` — adjusted by
+- `src/v7.handler.output_zenka_stdout` — adjusted by
   `v7-stdout-foldable-relay.md` task; this task assumes those changes
   are present
 
@@ -190,8 +190,8 @@ harmony v7.console.view.default.render
 harmony v7.console.cmd.ui-show
 ```
 
-#,,.,,.,.,,,,,.,,,..,,,,.,...,.,.,,.,,,,.,,,.,..,,...,...,,,.,.,,,,,,,...,.,.,
-#GFXVJ4ILIL6DF7VONZX4F4NKCERHAAJMXTDA6QSM56EXCPFXOPLTTYKBIQIVQTVGAPVSL3QOCMWKM
-#\\\|BLGISOEOERQHPVAD2C4TFHJLPM66NFE6IGG2CPNEZY2XE7TAR5M \ / AMOS7 \ YOURUM ::
-#\[7]VCEPMAUHP3RYWERY274X45HJ7AN6P2ZXDZFQGJKPOQCFZ3UAWABQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,..,.,,,...,,.,,,,.,,,,,,,,,,..,..,,...,...,...,..,,...,,.,,,,,,
+#LDACKNOQDED2WULKWGDYUDML6EA3XHEFJREB67ZJHUQ7ULEDKXI26DSYZWQYF5BSCW5O6UCYMHH5E
+#\\\|DCH62HKZJ5G45PUNTMJWZNK67K4Q7S5FLF2BEKIRSCLEMNTH4LS \ / AMOS7 \ YOURUM ::
+#\[7]U4J4G4W7PMRKWGWRC3LMSH35CDXTNPO34BBDP4BN254XFM35U2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

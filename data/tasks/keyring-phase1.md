@@ -15,7 +15,7 @@ then derive K_base_net_connect — each step one-way from parent.
 design doc: `data/md/design/KEY-TREE-AUTHORITY-FIELD.md`
 reasoning template: `data/yaml/reasoning-templates/key-tree-authority-field.yaml`
 
-existing codebase: `modules/crypt.C25519.*` — Curve25519 operations already
+existing codebase: `src/crypt.C25519.*` — Curve25519 operations already
 present. this task adds HKDF-based namespace key derivation on top.
 
 ## phase 1 scope
@@ -204,25 +204,25 @@ implement phase 1 of the keyring namespace key derivation system.
 read `data/md/design/KEY-TREE-AUTHORITY-FIELD.md` for full context first.
 
 create:
-- `modules/keyring.init`
-- `modules/keyring.derive`
-- `modules/keyring.sign`
-- `modules/keyring.verify`
-- `modules/keyring.distance`
-- `modules/keyring.cmd.show`
-- `modules/keyring.cmd.distance`
+- `src/keyring.init`
+- `src/keyring.derive`
+- `src/keyring.sign`
+- `src/keyring.verify`
+- `src/keyring.distance`
+- `src/keyring.cmd.show`
+- `src/keyring.cmd.distance`
 
 use HMAC-SHA256 as the derivation and signing primitive (available via
 `Crypt::Mac::HMAC` or equivalent — check what's already used in
-`modules/crypt.C25519.*` and the AMOS7 module for hash/HMAC primitives).
+`src/crypt.C25519.*` and the AMOS7 module for hash/HMAC primitives).
 
 verify the path-composability property and sign/verify round-trip
 before marking complete.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,,,.,,,.,.,,,.,,,..,,,.,,,..,..,,,,,,...,..,,...,...,.,,,...,,.,,,..,...,
-#J4Z6AJD5XE4P3H6JVIEJWOQXSQKEA5UMIBM7ONI6YOUB7ITCT3CY337T4TQD7BKD5ZZHHVXCSTYT4
-#\\\|MJLSE54B2ELDS7EDOQCFM46QHLZXBFYSZ6PGPGIQJ2FBHZZYIYI \ / AMOS7 \ YOURUM ::
-#\[7]5BL2YGV3QKM437GLXXEEVK7LGK54TL7NHJBUUP52MYQNL6DBX4DQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,..,,..,,.,,,...,...,.,,,,,,,..,,...,...,.,.,,.,,.,.,...,,..,
+#UO7PHWOG4PGJLURQDQ25WA3USFWZ3MMNQXPSDZZUVWFCTND5ZUJ4WGEW4T43XUGPLDMSAX5YBES3E
+#\\\|DSFHUE4GTLVEDEIUXIANJL3O2A62WO2H5P5K5BPYVBGDEINIWZ5 \ / AMOS7 \ YOURUM ::
+#\[7]5RUF5T33B2PHCZVZFIRFTQZEVM5REHS3GGSQSW3TIJTUXV7U6CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

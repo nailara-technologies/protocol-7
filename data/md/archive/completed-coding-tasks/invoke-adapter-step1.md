@@ -20,7 +20,7 @@ module invocations: <[module.name]>->($args).
 
 ## modules to create (6 files)
 
-### modules/models.storage.adapter.invoke.discover
+### src/models.storage.adapter.invoke.discover
 
 module header:
     # name  = models.storage.adapter.invoke.discover
@@ -42,7 +42,7 @@ look at how other models.* modules access config (e.g. models.discover or
 models.storage.discover) to get the right config access pattern.
 
 
-### modules/models.storage.adapter.invoke.resolve
+### src/models.storage.adapter.invoke.resolve
 
 module header:
     # name  = models.storage.adapter.invoke.resolve
@@ -76,7 +76,7 @@ logic (from get_filename in invoke-model-recover + symlink-repair path logic):
 use URI::Escape (autoload if not present).
 
 
-### modules/models.storage.adapter.invoke.repair
+### src/models.storage.adapter.invoke.repair
 
 module header:
     # name  = models.storage.adapter.invoke.repair
@@ -105,7 +105,7 @@ return hashref: { created => N, skipped => N, missing => N, failed => N }
 print summary line regardless of dry_run status.
 
 
-### modules/models.cmd.adapter.discover
+### src/models.cmd.adapter.discover
 
 module header:
     # name  = models.cmd.adapter.discover
@@ -126,7 +126,7 @@ thin command wrapper:
     }
 
 
-### modules/models.cmd.adapter.resolve
+### src/models.cmd.adapter.resolve
 
 module header:
     # name  = models.cmd.adapter.resolve
@@ -151,7 +151,7 @@ module header:
     }
 
 
-### modules/models.cmd.adapter.repair
+### src/models.cmd.adapter.repair
 
 module header:
     # name  = models.cmd.adapter.repair
@@ -189,20 +189,20 @@ edit cfg/zenki/models/start:
 
 ## verification after creating files
 
-check each file with:  ptd -c modules/models.storage.adapter.invoke.discover
-                       ptd -c modules/models.storage.adapter.invoke.resolve
-                       ptd -c modules/models.storage.adapter.invoke.repair
-                       ptd -c modules/models.cmd.adapter.discover
-                       ptd -c modules/models.cmd.adapter.resolve
-                       ptd -c modules/models.cmd.adapter.repair
+check each file with:  ptd -c src/models.storage.adapter.invoke.discover
+                       ptd -c src/models.storage.adapter.invoke.resolve
+                       ptd -c src/models.storage.adapter.invoke.repair
+                       ptd -c src/models.cmd.adapter.discover
+                       ptd -c src/models.cmd.adapter.resolve
+                       ptd -c src/models.cmd.adapter.repair
 
 do NOT add the #,,.,,... signature stub line. leave files clean — the signing
 system adds the real 4-line AMOS7 footer.
 
 when all 6 files pass ptd -c and the start file is updated, report done.
 
-#,,..,,.,,...,,,,,,.,,,.,,,,,,,..,,.,,,.,,,.,,..,,...,..,,,.,,,,.,,.,,.,.,,,,,
-#62RJCRKVK5H6KD5H4DOQ6JQ5W7KUZVSP2NP67Q4QCKF5QLR2MX2I4QZ7V4LBSJZALVPAGPHSJMEVA
-#\\\|J6MLR2NVI3R5UU5NXSR2SKNXOJEROWNT24H4AJDUUVOPIXQONBE \ / AMOS7 \ YOURUM ::
-#\[7]2GP2DLQELDIGQF2H5TZT2HKNHRN4CBGA2NCAICQZLH6NSGMTTUDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,..,,,.,,,,,,..,,,,.,,,,,,..,..,,...,.,.,..,,,,.,,,.,.,,,,,,,
+#ZD7XBDHYGTBZ3LX2IM5SE5UUW5PD7VCNDQNMGQKBOTGLOEQFDTGW5UCQ6VGTEEXRR7JOTOZIWPW5S
+#\\\|IO7CRDKQVH4FF5JVN23Y2MJSSSD256C2U47HHFLA5A2MRQLQFYB \ / AMOS7 \ YOURUM ::
+#\[7]JF7H27SK2VO44QV37FMKOCDJ56KF5BMCSNI2RTX5H44AW636WYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ the visualization uses parseFloat() as a workaround, but orbital.json should be 
 
 ## fix
 
-in `modules/graphics-matrix.cmd.orbital-sync`, force numeric context on each value:
+in `src/graphics-matrix.cmd.orbital-sync`, force numeric context on each value:
 
   push @$glow_shells, ( <[graphics-matrix.glow.query]>->($hop) // 0 ) + 0;
 
@@ -22,8 +22,8 @@ change to just `$glow_total + 0` (or keep sprintf and accept string — low prio
 
 do NOT add stub signature line to modified files.
 
-#,,.,,,.,,..,,...,.,,,...,..,,...,,,.,...,.,.,..,,...,...,...,,,,,...,...,,,,,
-#4TF2QRNEVYG6XVPY5TZBVK4XHMIEKQKB4YCETHUSFWECXGZQ4L5OXDE6WAR4NKL2ES3MAKHYXUCCE
-#\\\|VGNVDEJ5VWD72G4NJKJEIYFV2YCKHPTXWDYSVFLUE6QX3CYF2ZQ \ / AMOS7 \ YOURUM ::
-#\[7]GES5BYRFPQB5GCJOE3GAX5TMTLOKC3OOLKS32WOF5ZB4GZOKHECQ 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,,..,.,.,...,.,.,..,,,,,,..,,..,,...,...,.,.,..,,,.,,.,.,.,.,
+#MWHFSKV6O7K4VNMKKRZQ7QMOYGQMV2XUBLIUFOY6BYYQPPDJSXLAVKKS2IBZTOWXA4VNEEPSBJL46
+#\\\|TA3G6HB4FWATUCSZBWKHMXTNPBWEZZBVPBZKQPZPDQT7ZHE5QK6 \ / AMOS7 \ YOURUM ::
+#\[7]K5KRWNRW3O65MW77RFGDKROKQFJHU45MYQ6YTYRLGWFD3SY7P2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,13 +37,13 @@ decoding it gives the raw binary digest that `bmw384_color`, `bmw384_angle_bits`
 etc. operate on.
 
 the normalized dot-path name of a module is derived from its filename:
-  modules/base.chk-sum.init_code  →  base.chk-sum.init_code
+  src/base.chk-sum.init_code  →  base.chk-sum.init_code
   (strip leading directory prefix, keep the rest as-is)
-future: modules/ → code/, cfg/ → conf/ but use current names for now.
+future: src/ → code/, cfg/ → conf/ but use current names for now.
 
 ## modules to create
 
-### modules/route.bmw384.index.from-file
+### src/route.bmw384.index.from-file
 
 index a single file. params: ( $filepath )
 
@@ -57,8 +57,8 @@ index a single file. params: ( $filepath )
      if decode fails or length != 48, log warning and return undef
   5. derive normalized dot-path name from filepath:
        $name = $filepath;
-       $name =~ s{.*/modules/}{};   ## strip path prefix up to modules/
-       $name =~ s{^modules/}{};     ## or just modules/ at start
+       $name =~ s{.*/src/}{};   ## strip path prefix up to src/
+       $name =~ s{^src/}{};     ## or just src/ at start
   6. register in route.bmw384 index with stored digest:
        <[route.bmw384.index.register]>->( $name, $raw_digest )
        [ note: index.register currently hashes its $input arg — we need a variant
@@ -69,7 +69,7 @@ index a single file. params: ( $filepath )
   8. return { name => $name, color => $coord->{'color'},
               arc => $coord->{'arc'}, digest_len => length($raw_digest) }
 
-### modules/route.bmw384.index.register-digest
+### src/route.bmw384.index.register-digest
 
 variant of index.register that accepts a pre-computed raw 48-byte digest
 instead of hashing an input string. params: ( $name, $raw_digest )
@@ -79,10 +79,10 @@ instead of hashing an input string. params: ( $name, $raw_digest )
   3. store in <route.bmw384.index> same as index.register
   4. return $coord
 
-### modules/route.bmw384.index.from-path
+### src/route.bmw384.index.from-path
 
 walk a directory and index all signed files. params: ( $path )
-default path: <system.root_path> . '/modules'
+default path: <system.root_path> . '/src'
 
   1. opendir, readdir, filter files only (no dirs, no dotfiles)
   2. for each file call <[route.bmw384.index.from-file]>->( $filepath )
@@ -90,7 +90,7 @@ default path: <system.root_path> . '/modules'
   3. log progress every 100 files at level 2
   4. return { indexed => $count, skipped => $skip_count, path => $path }
 
-### modules/route.bmw384.cmd.index-path
+### src/route.bmw384.cmd.index-path
 
 command handler: p7c <zenka>.index-path [path]
 calls route.bmw384.index.from-path with optional path arg.
@@ -99,7 +99,7 @@ logs result summary. returns { mode => 'size', data => $summary_line }
   format: "indexed N modules from [path] — arcs: A:12 B:8 C:15 ..."
   show top 5 arcs by count
 
-### modules/route.bmw384.cmd.verify-coordinate
+### src/route.bmw384.cmd.verify-coordinate
 
 command handler: p7c <zenka>.verify-coordinate <module-name>
 
@@ -127,12 +127,12 @@ returns { mode => 'size', data => $report }
 
 ## read first (for context, not as trusted working code)
 
-- modules/plugin.storage.checksum.cluster.init-code
-- modules/plugin.storage.checksum.cluster.add
-- modules/plugin.storage.util.visual.checksum_distance
-- modules/route.bmw384.index.register
-- modules/route.bmw384.index.init
-- modules/base.chk-sum.bmw384.coordinate
+- src/plugin.storage.checksum.cluster.init-code
+- src/plugin.storage.checksum.cluster.add
+- src/plugin.storage.util.visual.checksum_distance
+- src/route.bmw384.index.register
+- src/route.bmw384.index.init
+- src/base.chk-sum.bmw384.coordinate
 
 ## notes on signatures
 
@@ -148,8 +148,8 @@ returns { mode => 'size', data => $report }
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,..,..,,.,,,,,.,,,,,..,,.,.,...,,.,,,..,,,,,..,,...,...,,,.,,,,,,,.,..,,...,
-#W5U4OUEZDFFB6KOLNWTJ4Q2W4OXK6XUHOTUPURFFEBH4FFHZM7IOTMIGLIQFFJOINJOWRP4XBYFU2
-#\\\|YSTCS2NB4THXMM5BBTATKTEI4TZQ5VFM323C26IZEXBLUNRTE7N \ / AMOS7 \ YOURUM ::
-#\[7]UYM4CVIXEWUHWJTFKWG4Y5VPOCTRUWILU3VKXG6LYV3FUVTHIQBQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,...,..,,,,,,.,,,..,,,.,,,..,..,,...,...,,,.,,.,,.,,,,,.,..,,
+#RUIJZFA2PIHUCE664SUCYZ6MUMRKGCXSWQIU2CJA6D2MYQZON6PCO32GONKINHZJGAH6UNODV334I
+#\\\|53WRCUYTTXJTHRLV24I7J5RS4GF636EWDAVJEJWRHRRNAKT2RC5 \ / AMOS7 \ YOURUM ::
+#\[7]6LMS4EB5R3ZNDKVOYTLZ7NXSA2757TQVFTWWEBNE4VEVXBMJEICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

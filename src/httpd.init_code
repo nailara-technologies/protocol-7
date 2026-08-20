@@ -1,0 +1,137 @@
+## [:< ##
+
+# name = httpd.init_code
+# todo = check for shared-mime-info, handle absence and also hashing at start..,
+
+<[base.perlmod.autoload]>->('URI');
+## explicit import list : default export set also includes str2time, which  ##
+## this namespace never calls -- importing it anyway collided with          ##
+## httpsd.check_certificate_available's Date::Parse::str2time [ differently ##
+## prototyped, same process via shared httpd route table ]                  ##
+<[base.perlmod.autoload]>->( 'HTTP::Date', qw| time2str | );
+<[base.perlmod.autoload]>->('HTTP::Request');
+<[base.perlmod.autoload]>->('URI::QueryParam');
+<[base.perlmod.autoload]>->('File::MimeInfo::Magic');
+<[base.perlmod.load]>->(
+    'Crypt::Misc', qw| encode_b64u decode_b64u encode_b32r decode_b32r |
+);
+
+<protocol.http.state> = {
+    '0' => {
+        'input'  => { 'handler' => qw| httpd.request_handler | },
+        'output' => { 'handler' => qw| base.handler.write | },
+    },
+};
+
+<http.nailara_tun_uri> =~ s|/+$|| if defined <http.nailara_tun_uri>;
+
+<protocol.http.connect.banner> = '';
+
+<protocol.http.status_codes> = <[httpd.status_codes]>;
+
+<httpd.cfg.external_sitedirs> //= 0;
+<httpd.cfg.uploads_enabled>   //= 0;
+<httpd.downloads.in_progress> //= 0;
+<httpd.downloads.max_buffer_size>
+    //= 128 * 1024;    # <-- (session output buffer)
+<httpd.downloads.total_bufsize_max>
+    //= 100 * <httpd.downloads.max_buffer_size>;
+
+# check user \ group existence
+<[base.log]>->( 2, 'checking whether httpd user and group exists.,' );
+my $httpd_user  = <httpd.system.user>  //= qw| httpd |;
+my $httpd_group = <httpd.system.group> //= qw| httpd |;
+
+my ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
+if ( not defined $httpd_uid ) {
+    <[base.log]>->(
+        0, "httpd user '$httpd_user' does not exist, creating..,"
+    );
+    system( 'useradd', '-r', $httpd_user ) == 0
+        or die
+        "<< unable to create httpd user '$httpd_user': $CHILD_ERROR >>";
+    $httpd_uid = getpwnam($httpd_user);
+    die "unable to create httpd user '$httpd_user'" if not defined $httpd_uid;
+    <[base.log]>
+        ->( 0, ": httpd user '$httpd_user' created [UID=$httpd_uid]" );
+    ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
+
+} else {
+    <[base.log]>->( 2, ": http user '$httpd_user' : UID $httpd_uid" );
+}
+
+# [ set zenka identity so check-zenka-paths uses correct owner ]
+<system.zenka-user.current>  //= $httpd_user;
+<system.zenka-group.current> //= $httpd_group;
+
+my $site_dir = <httpd.site_dir> //= '/var/httpd';
+if ( !-d $site_dir ) {
+    <[base.log]>->( 0, "creating site_dir '$site_dir'..," );
+    <[file.make_path]>->(
+        "$site_dir/default", 0770, $httpd_user, $httpd_group
+        )
+        or die "<< unable to create httpd dir '$site_dir' >> [ \l$OS_ERROR ]";
+}
+
+<[httpd.scan_site_dir]>;
+
+## Initialize vhost list infrastructure
+<httpd.vhosts.registry>  //= {};
+<httpd.vhosts.by_domain> //= {};
+
+<list.httpd-vhosts> = {
+    'var'      => qw| data |,
+    'key'      => qw| httpd.vhosts.registry |,
+    'descr'    => 'installed vhosts registry',
+    'sort_key' => 'alpha-len:hostname',
+    'mask'     => 'hostname install_mode install_path cert_status',
+    'align'    => {
+        'hostname'     => 'left+2',
+        'install_mode' => 'center',
+        'install_path' => 'left+1',
+        'cert_status'  => 'center'
+    },
+    'filters' => {}
+
+};
+
+<[base.list.init]>->(
+    {   'name'         => qw| httpd-vhosts |,
+        'key_ref'      => \$data{'httpd'}{'vhosts'}{'registry'},
+        'max_elements' => 512
+    }
+);
+
+my $upload_dir = <httpd.upload_dir> //= '/var/httpd/..incoming..';
+if (<httpd.cfg.uploads_enabled>) {
+    if ( -d $upload_dir ) {
+        ## already exists : nothing to do ##
+    } elsif ( !$UID ) {
+        ## running as root : safe to create ##
+        <[base.log]>->( 0, "creating upload_dir '$upload_dir'..," );
+        if (not <[file.make_path]>->(
+                "$upload_dir", 0770, $httpd_user, $httpd_group
+            )
+        ) {
+            <[base.logs]>->(
+                1,           "<< cannot create upload dir '%s' >> [ %s ]",
+                $upload_dir, lc $OS_ERROR
+            );
+            <httpd.cfg.uploads_enabled> = FALSE;
+        }
+    } else {
+        ## non-root reload : dir may exist but be untraversable; skip ##
+        ## silently                                                   ##
+        <[base.logs]>->(
+            2, "upload_dir not verified [ non-root, skipping check ]"
+        );
+    }
+}
+
+0;
+
+#,,.,,...,,.,,.,.,,..,,.,,.,,,,,,,,,,,,.,,.,.,..,,...,...,.,,,.,,,...,.,.,,,,,
+#AQQUR7ZO6OSPDT4SRQEZSNE5AREZLINP2ZJ7WMLSWJVAQJR7MPOMBE5ZKKFNVGLHB5VZO2MVVRH36
+#\\\|NUGSLJTTLQW3ZK3IUKKSQF3WCBP2GWP7TIRSZ7BGOST4QBHKNC7 \ / AMOS7 \ YOURUM ::
+#\[7]W2EVAQGSD2U2DYHLDPEG6N77KPT6AJVEB2GYD4Q4S4SRCQS6RWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

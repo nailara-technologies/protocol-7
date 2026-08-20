@@ -206,7 +206,7 @@ extending them could unlock:
   the intent, and the zenka resolves its own startup shape from it
 - **backporting that principle up the tree** — toward a `Protocol-7
   v7[profile]` type syntax, or via the *other* possible command
-  parameters that `modules/v7.call_cmd` is already positioned to
+  parameters that `src/v7.call_cmd` is already positioned to
   process (the module exists, sits ready, and currently routes *no*
   defined commands — an empty slot waiting for exactly this)
 - **v7 can already background itself** — `-B` / `-BK` flags exist
@@ -250,8 +250,8 @@ extending them could unlock:
   when available — the same intent, resolved through whichever
   resolution-capable substrate the local environment actually offers
 
-#,,..,.,.,,..,...,.,.,,,,,,..,,..,,.,,,.,,,,,,..,,...,...,.,,,,..,.,.,..,,...,
-#I4LS34XWDFTDNMLNH75ERNZQZ3SQYVWHLUEGUX3WE2GM3VKIZZAZDR5XGWHN3I3QYGVFNC26UBGKI
-#\\\|IWFUTG24EBJHE5X4EIFHMZ2CJC6GHXYR5MR3YG4HJCVL7FOF22J \ / AMOS7 \ YOURUM ::
-#\[7]N6U5GTSJCCQ6ORANCAZPSMWM4JAOOYQ2IHLAHRMJGZI4XLDUQWCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,,..,,,,,..,,.,,,.,.,.,.,.,.,..,,...,..,,,..,..,,..,,,.,,,,,,
+#KUTS4EPQX7WOYKIPB27GEUJTJWYRZNKPX3NNJNRM7QKWVYOGZHKX2OESVAMZTCQMRQFU3EQ5NR2NM
+#\\\|4JB5L2XWTZS2XGYJWL5F27MR47EG3R4OXZDURKKQIL4SE2HCFW3 \ / AMOS7 \ YOURUM ::
+#\[7]JPVHESPKFN6KUR4XWDLVB5UQ3SZZVGZBMVHMBHICIKIVPBDF6SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

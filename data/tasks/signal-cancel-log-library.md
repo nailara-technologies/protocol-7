@@ -217,19 +217,19 @@ implement phase 1 and 2 of the signal cancellation log library:
    for live examples if available, otherwise use common log patterns from
    the codebase)
 
-2. implement `modules/signal.cancel.load` — loads all YAML files from
+2. implement `src/signal.cancel.load` — loads all YAML files from
    `data/signal-cancel/patterns/`, compiles each pattern's regex,
    stores in `$data{signal}{cancel}{library}` keyed by category
 
-3. implement `modules/signal.cancel.match` — takes one log line,
+3. implement `src/signal.cancel.match` — takes one log line,
    applies all compiled patterns, returns `{ matched => 1/0, category =>
    'name', pattern => 'name' }` or undef if no match
 
-4. implement `modules/signal.cancel.cmd.filter` — reads from STDIN or
+4. implement `src/signal.cancel.cmd.filter` — reads from STDIN or
    file path arg, applies match per line, emits only unmatched lines
    (the anomaly surface)
 
-5. implement `modules/signal.cancel.cmd.stats` — returns per-category
+5. implement `src/signal.cancel.cmd.stats` — returns per-category
    match counts + total matched/unmatched since last reset
 
 6. add `signal` to a standalone start config so it can run on-demand,
@@ -240,8 +240,8 @@ should return only lines that don't match any known pattern.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,.,,.,,,,.,,,.,,,.,,...,.,,,...,,,.,,,,,,,.,..,,...,...,.,.,,.,,...,..,,.,.,
-#25UWNRAPRHBEVFC4FYVUGM7R55ZJ5C5SA24MQNXVG4BP7QZVQQAAYL3ZFZUGZWMH4PMNE4MOWKIYY
-#\\\|NBQ5OVDDS3O27GCYTCVCIPHX3WUM2IOOZQY4MYLZVMXNALZCMIJ \ / AMOS7 \ YOURUM ::
-#\[7]J4R2EDMVBPXO3CJCDA2GDAHOUEFQYH6SHDAZ3ROIFBM3YRDDUUBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,,,.,,,.,.,.,..,,...,,,.,,,,,..,,...,...,..,,.,.,,,,,.,,,.,,,
+#4F4JXN2DARFM36QYXPZ6Y2WLG6RHZMNOAUFEAKFAWVJX2U4W4P3NSN7KS3H3HWKIUYKVRCE2CG372
+#\\\|JBVRLX7PGXDVFUJJXEEXKYQ3A7D3NCYI64356AG4DM5KQIR3XIN \ / AMOS7 \ YOURUM ::
+#\[7]BBBBW7XKERQXPHEUPC3OLOBMMZPL3ILNW7OBK5SL5HOLMC4XMKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

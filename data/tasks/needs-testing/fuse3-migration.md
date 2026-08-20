@@ -37,7 +37,7 @@ current setup:
    - `data.mount.fuse.read` — returns (errno, data)
    - `data.mount.fuse.open` / `release` / `statfs` — check return formats
 
-5. ~~**update `modules/base.known_dependencies`**~~ — **DONE** (session 48):
+5. ~~**update `src/base.known_dependencies`**~~ — **DONE** (session 48):
    `Fuse` entry removed; `Filesys::Fuse3` added with `debian => ['libfuse3-dev']`,
    `cpan => 'Filesys::Fuse3'`.
 
@@ -59,8 +59,8 @@ current setup:
 - module file format: starts with `## [:< ##` header block, no `sub {}` wrappers,
   module name = filename, invoked as `<[module.name]>->()`
 
-#,,,,,..,,..,,,..,,.,,...,..,,.,,,,..,,..,..,,..,,...,...,.,.,,.,,.,,,,..,.,.,
-#KTS5AFDB7FNG7WIDHZSW4OC34UUZFFSSEAOCCBXGN7BEHIHUCF3C374JGINTSRHXK7FJGZOQQXOPU
-#\\\|Z2PTZZ7Z6IZOIVZOZMDBJWPECM55Q6WCCAQVDPLZCLKOIURZN24 \ / AMOS7 \ YOURUM ::
-#\[7]QLOKCAVH5XHJ4BSYE3U6T2G5ZA43DPVQB5BW2L46TD5IJHFFKWBA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,,,.,.,,,,,,..,,..,,..,.,,,,..,..,,...,...,.,,,,,.,.,,,,..,..,,
+#FTWLOB7SPPMYHAI6A3YKJA4H7KLEBSFHNWCHUFAMTZNT6ZGQU43TCEZOEFWPDM5GL6GPGDAFCBXK4
+#\\\|KZ6Z4W6YKAP2CVWEI6IEJU3XZ2J73N6RS5MJW4XBNCD5I44Y4A7 \ / AMOS7 \ YOURUM ::
+#\[7]2UZK6S2WOHGP3ENUMIRPAV2LU25XRQ5OB7KVHGV3GKNKI6VCB6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

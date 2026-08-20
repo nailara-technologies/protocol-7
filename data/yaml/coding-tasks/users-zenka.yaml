@@ -59,7 +59,7 @@ storage_layout:
     keywords via base.path.register_keywords per
     user-edit-console-zenka.yaml's phase_1b (e.g. USERS_HOST,
     USERS_REMOTE_IN, USERS_REMOTE_OUT), not hardcoded path strings.
-    Format: YAML throughout, read/written via modules/format.yaml.*
+    Format: YAML throughout, read/written via src/format.yaml.*
     (load_keyword_path/write_file — load_keyword_path already calls
     base.path.resolve_keywords internally, the exact read-side
     counterpart to the keyword registration above), not JSON. set-up's
@@ -176,7 +176,7 @@ storage_layout:
 
 discovery_integration:
   finding: >
-    modules/discover.* already exists and does real distributed
+    src/discover.* already exists and does real distributed
     discovery: mcast-based host announcement (discover.mcast.init_code,
     discover.format_discover_mcast_packet, discover.send_packet), an
     incoming/outgoing packet handling split
@@ -235,7 +235,7 @@ discovery_integration:
     either end — "as if unencrypted," i.e. wire-protocol-transparent,
     with any encryption happening at a layer below the zenka code, not
     as a zenka-visible concern. Real, complete precedent for exactly
-    this shape already exists: the `ssh` zenka (modules/ssh.connection.
+    this shape already exists: the `ssh` zenka (src/ssh.connection.
     start opens a real authenticated+hostkey-verified SSH tunnel via
     Net::SSH2, then ssh.handler.nailara_io / ssh.handler.ssh_io pipe RAW
     protocol-7 wire bytes bidirectionally between a local protocol-7
@@ -280,7 +280,7 @@ discovery_integration:
     p-7-r.c (protocol-7-remote) is a COMPLETE, ALREADY-WORKING,
     already-installed standalone C client — confirmed live at
     /usr/local/bin/p-7-r, auto-compiled+installed by the v7 zenka
-    (modules/v7.compile_bin_p7r, same auto-install pattern CLAUDE.md
+    (src/v7.compile_bin_p7r, same auto-install pattern CLAUDE.md
     documents for p7c) — not a stub, not aspirational. Usage: `p-7-r
     <hostname[:port]> <command> [args]`, default port 42. Real,
     working handshake against a live remote protocol-7 host: reads the
@@ -464,7 +464,7 @@ discovery_integration:
     sha256(dh_secret . session_id) and use matching per-direction nonce
     counters. Real hooks turned out to be
     protocol.protocol-7.encryption.init (state-3 setup) +
-    modules/base.handler.link-upgrade.{input,output} (new files) — NOT
+    src/base.handler.link-upgrade.{input,output} (new files) — NOT
     the .response placeholder, which is confirmed dead/unused code, left
     alone. Verified end-to-end against the live installed
     /usr/local/bin/p-7-r (reinstalled via the standard v7
@@ -542,11 +542,11 @@ central_registration_point: >
   peripheral/personal data — not just what user-edit console's form edits,
   but things like personal email addresses and similar — with OTHER zenki
   resolving their own config FROM these records rather than duplicating it:
-    - smtpd (modules/smtpd.* — real, live mail archive/route/classify
+    - smtpd (src/smtpd.* — real, live mail archive/route/classify
       zenka today) would resolve a user's mail identity/routing data from
       here instead of its own separate config, once wired.
     - nameserv's PLANNED TXT/SRV record features (per user — confirmed not
-      yet built: grepped modules/nameserv.* for literal TXT/SRV record
+      yet built: grepped src/nameserv.* for literal TXT/SRV record
       generation, found none; only coincidental substring hits like
       discover-nodes/p7ref_lookup) would generate DNS TXT/SRV records FROM
       user-zenka data (e.g. SPF/DKIM/MX-relevant fields tied to a user's
@@ -670,7 +670,7 @@ external_source_hooks:
     time trust-chain mechanism for zenka identity keys (extending the
     real, existing exclusive stdin channel v7 already uses for cube.key
     / base.auth.set_v7_key — see cfg/zenki/*/zenka-startup.v7,
-    modules/base.auth.set_v7_key, base.cmd.verify-instance) does NOT
+    src/base.auth.set_v7_key, base.cmd.verify-instance) does NOT
     belong in this doc — it's system-wide (every v7-spawned zenka), not
     users-zenka-specific. Per user: postpone until different topology-
     based key types exist; likely becomes safer/more feasible
@@ -775,7 +775,7 @@ external_source_hooks:
     as exactly this kind of "data lookup from other zenki." Grounds a
     thread from earlier this session that was discussed but never
     actually written down until now:
-      - udev zenka (cfg/zenki/udev/, modules/udev.*) is a
+      - udev zenka (cfg/zenki/udev/, src/udev.*) is a
         real, working rule/action mechanism over `udevadm monitor`
         output — confirmed live via cfg/zenki/udev/
         rules-set-up.U2F-tokens, which matches vendor/model IDs on
@@ -783,7 +783,7 @@ external_source_hooks:
         (currently `notify.message`, but the action slot accepts any
         routed command) — this is the real hook point, not a pub/sub
         bus other zenki subscribe to.
-      - fs zenka (cfg/zenki/fs/, modules/fs.*) is a thin
+      - fs zenka (cfg/zenki/fs/, src/fs.*) is a thin
         Sys::Filesystem wrapper: fs.get_filesystems (list mounted/
         unmounted), fs.cmd.mount/.re-mount/.unmount/.is_mounted. No
         2FA-specific detection lives here (that's udev's rule-matching
@@ -794,7 +794,7 @@ external_source_hooks:
     (or similar) instead of/alongside notify.message, which would do a
     merge-safe base.path.register_keywords call (NOTE:
     register_keywords REPLACES the whole keyword table wholesale per
-    its own implementation — modules/base.path.register_keywords:56 —
+    its own implementation — src/base.path.register_keywords:56 —
     so a dynamic add here MUST read-existing -> merge -> write-back;
     every current caller only calls it once at init with a static set,
     so this would be the first read-modify-write caller) to add e.g.
@@ -844,11 +844,11 @@ open_questions:
   - RESOLVED IN IMPLEMENTATION — record format for host-system/,
     phase 1 shipped as one YAML file per user at [USERS_HOST]/<user>.yaml,
     read/written via format.yaml.load_keyword_path — see
-    modules/users.cmd.value-get / .value-set / .value-all and
-    modules/users.init_code's USERS_HOST keyword registration.
+    src/users.cmd.value-get / .value-set / .value-all and
+    src/users.init_code's USERS_HOST keyword registration.
     RESOLVED IN IMPLEMENTATION (2026-08-11): the remaining per-field
     ENVELOPE schema (as opposed to the still-intentionally-open settings
-    payload inside it) has shipped — modules/users.record.build /
+    payload inside it) has shipped — src/users.record.build /
     .validate wrap value-set/value-get's arbitrary JSON fields in a
     name/checksum/timestamp/metadata.updated_at/fields envelope,
     checksum = AMOS7(7-char) of "host-system:<name>" (name-derived only,
@@ -882,8 +882,8 @@ tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
        smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh,
        bmw-l13, addressing-trinity, signed-commands, crypt-c25519]
 
-#,,,,,.,.,.,,,,..,,..,.,,,.,.,,,,,,..,.,,,,..,..,,...,...,...,,.,,.,,,,,,,.,,,
-#SIUGVJG5YQIGMLDPJI557ZHNY2FC2JP4BWN54AECVRUAXTK6Y7W553X57PHBM73ZUFE2D7LUGXG3U
-#\\\|SX2JD3BEMGCAD2TPVUFOF3SXJMUNSQ7RV7LYWMWTKSPHFPL4HV5 \ / AMOS7 \ YOURUM ::
-#\[7]RGGFFXMC2VUZKMIL7TT7ZSBWBL3FSMYYYIOYLATC2Z2LNAHM4UDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,...,...,.,.,.,.,...,,,.,...,..,,...,..,,,.,,,,,,.,,,,,.,.,,,
+#26PILH2RGNOXROVKLJ4C2EFYGSD3O5P4K4LWHJLVVEAKZ2PGZM4SA75PVUXQ72CKTSFZT5PKYV4KM
+#\\\|F4N6RSUCDTNGRNCKBULWRCILEDBAAAMJGIETXEOIRZTMIUBAGKD \ / AMOS7 \ YOURUM ::
+#\[7]L7I4PJLJ36WEJB4PE6V4WEDHW6EDL7KOZFVGU65YPQMO4Q5SNUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

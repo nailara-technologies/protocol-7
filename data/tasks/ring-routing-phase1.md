@@ -123,12 +123,12 @@ implement the ring key infrastructure for the cube zenka as described.
 read `data/md/design/RING-ROUTING-PROTOCOL.md` for full context first.
 
 create:
-- `modules/ring.key.load`
-- `modules/ring.key.rotate`
-- `modules/ring.member.has_key`
-- `modules/ring.boundary.recognize`
-- `modules/ring.cmd.list`
-- `modules/ring.cmd.stats`
+- `src/ring.key.load`
+- `src/ring.key.rotate`
+- `src/ring.member.has_key`
+- `src/ring.boundary.recognize`
+- `src/ring.cmd.list`
+- `src/ring.cmd.stats`
 - `cfg/zenki/cube/rings.cfg` (one static test ring)
 
 update `cfg/zenki/cube/start` to load ring modules and
@@ -140,8 +140,8 @@ test ring loaded with 0 members and no active routes.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,.,...,,..,.,.,,..,,,.,,.,,,,,,.,,,,.,,,.,,..,,...,..,,.,.,.,,,.,,,.,.,,,,,
-#4JZ2CPAWJ4ADPQ6VQM3HU7RDBGET4X7ZBF74YSMLM44RYJFMFLBSB5VUJNICOELYQVNM7PCMKABKU
-#\\\|DAMYHKTX4GAE7D454DKQWMGWPLST56HMRK4CQCEXJBGKUEHHJBJ \ / AMOS7 \ YOURUM ::
-#\[7]S5VKTIUBSOQDEDZHCFTCUCJESTGLOPEBQ6OOVW5K7BDYIQHAN2CY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,.,.,,,..,,,.,,,,,,.,,,.,.,.,,,..,,...,...,...,,,.,...,.,.,,,.,
+#PNU2KIY6H6VNFBR3Q4LHZ7ZFQMNNDHSSLKNPZGOCRQCAEH3IU7RC7LC4NTYVHLOKJBXV62PHUYVEE
+#\\\|RJE74GCKIJTOV57IRZI5S46GM25QXC5B7II232HOUEKY6CCLLHF \ / AMOS7 \ YOURUM ::
+#\[7]EK5EJFG2KJ2OGU5BDQEMXQGKXREYLS2SHZ3BPA64SX3J3DSBCGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

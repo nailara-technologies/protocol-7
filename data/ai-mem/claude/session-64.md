@@ -27,7 +27,7 @@ This is DOUBLE-ENCODING: each UTF-8 byte treated as individual Latin-1 code poin
 Chain: jobsite JSON (raw UTF-8, correct) → HTTP POST → httpd → route-send → web zenka `$call->{'args'}` (utf8 flag set, bytes as code points) → `decode_json` → double-encoded strings → YAML::XS → Mojibake
 
 ### fix applied
-`modules/plugin.web.jobs.sync` line 9 (before decode_json):
+`src/plugin.web.jobs.sync` line 9 (before decode_json):
 ```perl
 utf8::downgrade( $body, 1 );    ## strip utf8 flag — route path may set it
 ```
@@ -47,9 +47,9 @@ Fixed to `<plugin.web.jobs.cache>` (correct P7 nested form = `$data{'plugin'}{'w
 
 ## pending: commit all three fixes
 Files changed (not yet committed):
-- `modules/plugin.web.jobs.sync` — stage field + utf8::downgrade fix
-- `modules/plugin.web.jobs.cache.write` — %data key fix
-- `modules/plugin.web.jobs.cache.read_all` — %data key fix
+- `src/plugin.web.jobs.sync` — stage field + utf8::downgrade fix
+- `src/plugin.web.jobs.cache.write` — %data key fix
+- `src/plugin.web.jobs.cache.read_all` — %data key fix
 
 User said "let's not commit yet, with bugs present" — this was BEFORE the encoding fix was identified. Now that the encoding fix is applied, user can commit all three.
 
@@ -71,8 +71,8 @@ Actually cleanest: reset `<jobsite.sync.last_server_ntime> = ''` (or clear jobsi
 - [[session-63]] — investigation start, simulation showed correct results but actual still broken
 - [[plugin-web-jobs]] — delta sync, stage fix
 
-#,,.,,,,,,,,.,.,,,.,,,,,,,.,,,.,,,.,,,.,.,,,.,..,,...,...,,..,.,.,,..,.,.,,,.,
-#J2J5SOXNDQNJHGU2OMHHGIDUOLHAOLJO4WXSYRE7YU3RAHPC5NVH4BSF2YRI7JYUFDNA3YWKH2MK6
-#\\\|MNLNILEHLVQ4SLKLPSTEULYAMIUGNDQK4TUHTE5KFM4RAM772VP \ / AMOS7 \ YOURUM ::
-#\[7]WYU3MWBYINUWEHFUX5EMAKJM2YSPUZRHG743EKTSHKWO6BTQPQBI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,,.,,,,,,...,,..,.,,,.,,,,,,,..,,...,...,...,...,.,,,.,.,.,,,
+#RSG3ZYY226UNWNYKG2EKHP4ZR3F6TQJM2FVPSGQXP3XK6BXOPQG6XIZM4XTUWXX54DBN5FM5QIY6A
+#\\\|DEZT3CR2GZPJADCKWEJ2HU52LJ5FBWBCMSNH6WHSLXY2RPAY2UD \ / AMOS7 \ YOURUM ::
+#\[7]YH6Q4I6IPRYQAN575DD6QPR2EJFE4DGVZXQFQBHTU5MXEDVI56BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

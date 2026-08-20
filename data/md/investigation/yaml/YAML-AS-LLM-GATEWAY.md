@@ -162,7 +162,7 @@ YAML specifications can route LLM operations:
 
 task:
   name: analyze_security
-  target: modules/crypt.C25519.init_code
+  target: src/crypt.C25519.init_code
 
 tool_definition:
   name: "security_analysis"
@@ -210,7 +210,7 @@ task:
   version: "2.0"
 
 input:
-  target: "[modules/]crypt.C25519.init_code"
+  target: "[src/]crypt.C25519.init_code"
   language: "perl"
   analysis_depth: "comprehensive"
 
@@ -421,8 +421,8 @@ All three insights align perfectly:
 
 **This is the right architecture for LLM-based operations in Protocol-7.**
 
-#,,.,,,,.,.,,,.,.,..,,,..,,..,,..,,,,,,..,,.,,..,,...,...,,..,.,.,..,,,..,.,,,
-#JJIHYAO7EXTHAISKJZTKL6CJ4KBFZ5OS5ZETU3QR6R72U7B6LLOCCHEUESJ4ZULO6JBA7ATCYAWPW
-#\\\|G35OHUZHSCPWBUQTDE2SDRWMFVHXPQ65ZOQ22PHMHYBYI5ERZYO \ / AMOS7 \ YOURUM ::
-#\[7]CCT77ZPYHXRJHJ6FS2HWDXI7APXPSSKEMYR5ISAQFEMQZ4KNTECY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,,.,,,..,...,,..,..,,.,,,,,,,..,,...,...,...,,,.,,,.,,..,...,
+#JSB4R2RQWEENUQMBN2I2KQJ275BHKIUXW3QU5WWA4WL7QONSFXV6TEFG5BXPIU3LJLQSUIFXDJLIE
+#\\\|HLTRRLIDT7COF5BFRRINGCDDQBLXRMEFXHKEP3IW4CPZM4GPRGS \ / AMOS7 \ YOURUM ::
+#\[7]BI4DLOROMDQVCA76LBQTSKBZXVG5JVN7SJLUOVGVD6DX3AAJFMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

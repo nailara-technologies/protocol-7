@@ -26,7 +26,7 @@ design docs:
 reference patterns:
 - `configure-zenka-fallback-ui.md` [ sibling task ] — the
   decision-prompt and navigation primitives this task uses
-- `modules/set-up.*` — existing `create-profile` / `install-profile`
+- `src/set-up.*` — existing `create-profile` / `install-profile`
   / `export-config` / `fetch-zenka-config` surface; the installer
   composes these, does NOT duplicate them
 - the existing `bin/p7-deps` profile-based dependency installer is
@@ -283,8 +283,8 @@ harmony installer.ui.render.run
 harmony installer.cmd.ui-show
 ```
 
-#,,,,,.,.,...,..,,,.,,..,,,..,.,,,,,.,,.,,,.,,..,,...,...,..,,.,,,,..,,,,,,.,,
-#7PTD34J6A3E27BDSFQSVHTYPHOKZALYXMKKCIMOIUOURNTX3YLJ353BAXA2DNSIWSRLLJ4XN2CJ56
-#\\\|GJYCE3ITTV6XK33TQFQDXI7N5Y4BYZIV55TZCSKX7OIYCIEJXRJ \ / AMOS7 \ YOURUM ::
-#\[7]MRQ5BGO3NXO26OPIERYJRGJSLG2POWFFRWMS6DM6HRCDROOQJUBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,..,,.,.,,,,,,.,,,..,.,.,,.,,..,,...,...,,,,,.,.,.,.,..,,..,,
+#T3IVQBON5FPNXG2DIPXXVIBTZESZKK56GMXUSMLNQ5L54TDS7HBPIEWRANP6LTQWMNC4CTQQSS6T4
+#\\\|3476FQUFVQXR6EJGYXQ3VMIQ6CMPLZZOVYRFOZK2UHJUKIJAKE3 \ / AMOS7 \ YOURUM ::
+#\[7]RCTX7ZXRHNXL3YKHG7XU3IMOVJHLNHYNMNFUGJVD2XBWRSUX7QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

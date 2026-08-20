@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = window.place.handler.wingeom_reply
+# descr = X-11.get_geometry reply for place-for-window: open overlay on success
+
+my $reply = shift // {};
+
+my $id   = $reply->{'params'}{'instance_id'} // '';
+my $inst = $data{window}{place}{instances}{$id};
+
+if ( not defined $inst ) {
+    <[base.logs]>->( 1, '[wingeom_reply] instance %s gone, discarding', $id );
+    return;
+}
+
+if ( ( $reply->{'cmd'} // '' ) ne qw| TRUE | ) {
+    ## retry once before giving up — transient X11 bad-window errors can    ##
+    ## happen when window-place first initializes; a 200ms delay is enough  ##
+    ## for the X11 server to settle. keeping the instance alive also means  ##
+    ## the duplicate guard in place-for-window stays effective during retry ##
+    if ( not $inst->{'geom_retry_done'} ) {
+        $inst->{'geom_retry_done'} = TRUE;
+        <[base.logs]>->(
+            1, '[wingeom_reply] id=%s geometry query failed, retrying ..,',
+            $id
+        );
+        <[event.add_timer]>->(
+            {   'after' => 0.2,
+                'cb'    => sub {
+                    return if not exists $data{window}{place}{instances}{$id};
+                    <[base.zenki.resolve_primary_sid]>->(
+                        'X-11',
+                        sub {
+                            my $sid = shift;
+                            return if not defined $sid;
+                            <[protocol-7.route-send]>->(
+                                {   'command'   => "$sid.get_geometry",
+                                    'call_args' =>
+                                        { 'args' => $inst->{'target_winid'} },
+                                    'reply' => {
+                                        'handler' =>
+                                            'window.place.handler.wingeom_reply',
+                                        'params' => { 'instance_id' => $id }
+                                    }
+                                }
+                            );
+                        }
+                    );
+                }
+            }
+        );
+        return;
+    }
+    <[base.logs]>->(
+        1,   '[wingeom_reply] id=%s geometry query failed [%s]',
+        $id, $reply->{'call_args'}{'args'} // 'no data'
+    );
+    my $reply_id = $inst->{'reply_id'};
+    if ( defined $reply_id and $reply_id =~ /^\d+$/ ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            { 'mode' => 'false', 'data' => 'window geometry unavailable' }
+        );
+    }
+    delete $data{window}{place}{instances}{$id};
+    return;
+}
+
+## X-11.get_geometry returns "w h x y" ##
+my $args = $reply->{'call_args'}{'args'} // '';
+my ( $w, $h, $x, $y ) = split /\s+/, $args;
+
+if ( not defined $w or not defined $h ) {
+    <[base.logs]>->(
+        1,   '[wingeom_reply] id=%s unparseable geometry [%s]',
+        $id, $args
+    );
+    delete $data{window}{place}{instances}{$id};
+    return;
+}
+
+$x //= 0;
+$y //= 0;
+
+## normalize overlay geometry to screen bounds — the target window may be  ##
+## partially off-screen (e.g. y=-8 under a panel), which prevents gtk from ##
+## mapping the overlay. policy: move first, clamp only if the window is    ##
+## larger than the screen. multi-monitor layout is handled by the user     ##
+## dragging the overlay after it opens.                                    ##
+my $geom_str = <x11.geometry> // '1920x1080';
+my ( $sw, $sh )
+    = ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| )
+    ? ( $1 + 0, $2 + 0 )
+    : ( 1920, 1080 );
+$x = $sw - $w if $x + $w > $sw;       ## shift left before clamping ##
+$y = $sh - $h if $y + $h > $sh;       ## shift up   before clamping ##
+if ( $x < 0 ) { $x = 0; $w = $sw }    ## clamp only if still off    ##
+if ( $y < 0 ) { $y = 0; $h = $sh }
+
+my $geo = { 'x' => $x, 'y' => $y, 'width' => $w, 'height' => $h };
+
+<[base.logs]>->(
+    1,   '[wingeom_reply] id=%s opening overlay at %dx%d+%d+%d',
+    $id, $w, $h, $x, $y
+);
+
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub {
+            <[window.place.open_window]>
+                ->( { 'id' => $id, 'geometry' => $geo } );
+        }
+    }
+);
+
+#,,.,,,,,,,,.,.,,,...,..,,.,.,,,.,...,,.,,.,.,..,,...,...,.,,,...,,..,.,.,,,.,
+#CTRJBVCLTTQH45XDCMEGFZG2WSNQDAK2Z3OYIDZVK7SAY77HIALDEQXUM4ABHSLDOWTZI2H6M3OOU
+#\\\|OT5ZTX4SVF2V7ZQKNAGAW2OF2USJUNBDL4OJDCDA6K34IFPSBQR \ / AMOS7 \ YOURUM ::
+#\[7]KXENQEBNVE6PXQ5NQYO4WAHSRSBACMSJGZIYAZDIE7BTLZ6LQMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

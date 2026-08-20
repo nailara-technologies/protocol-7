@@ -119,15 +119,15 @@ is a literal single-char string, never confused with a multi-char sequence.
 
 - `data/md/design/RING-TRIE-GEOMETRY.md` — geometry and rationale
 - `data/yaml/reasoning-templates/ring-trie-tight-packing.yaml` — template 22
-- `modules/index.deduplicate` — step 1 change here
-- `modules/index.rank` — step 2 change here
-- `modules/index.init_code` — remove `<index.seq>`, add `<index.trie>`
-- `modules/index.address` — step 4 change here
-- `modules/index.stats` — step 5 change here
-- `modules/index.export` — step 6 change here
+- `src/index.deduplicate` — step 1 change here
+- `src/index.rank` — step 2 change here
+- `src/index.init_code` — remove `<index.seq>`, add `<index.trie>`
+- `src/index.address` — step 4 change here
+- `src/index.stats` — step 5 change here
+- `src/index.export` — step 6 change here
 
-#,,,,,,,,,..,,.,,,,.,,.,.,,,,,...,,,,,,,.,.,.,..,,...,...,..,,..,,.,,,,..,.,.,
-#PQSEG3IKJ32ZNJHYRU5N4RXMWVAGMUNB46GALFTFUOVV2CX4IBCBKGJXOEWL2ZH2LJR2FGPXQ4NHG
-#\\\|WPIWJUXEDZQYZXC7PHC2CTJIIWGQBCXRPJBQ7W4YQY62DQ45KB7 \ / AMOS7 \ YOURUM ::
-#\[7]XDQIHTWDUHBB4DYVCAOLRMHJT3BRDHS4HXCQ2KKI6VGIGY4Y6ACY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,.,,,..,,,.,..,,...,,.,,,,.,,,.,..,,...,...,,..,.,.,,,.,,.,,,,,,
+#KE2ILMDUZNEKS2LRKV53ZTKNAMGDTSLQSQMFHZ7QATVV74HUF2ATV46WEWYJRJRCVCUWEOSNA4GJW
+#\\\|FZALOWYTRHUYTL2URW2MS3C2OMHV3RDTWAXNHE4EFFT3JVDSJVB \ / AMOS7 \ YOURUM ::
+#\[7]NJV5JKTVXUVUYJDM33N3FUKO5O7JMROVRBTJH6JMJLTHK4YFFGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

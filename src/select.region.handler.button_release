@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = select.region.handler.button_release
+# descr = end drag operation
+
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{select}{region}{instances}{$id};
+return TRUE if not defined $inst;
+
+$inst->{'drag'}{'active'} = FALSE;
+delete $inst->{'drag'}{'region'};
+delete $inst->{'drag'}{'start_x'};
+delete $inst->{'drag'}{'start_y'};
+delete $inst->{'drag'}{'start_geom'};
+
+## right-click release : submit, same as the enter key [ see  ##
+## handler.button_press for why this is deferred to release ] ##
+if ( $event->button == 3 ) {
+    <[base.logs]>->(
+        1, '[region.button_release] id=%s right-click commit', $id
+    );
+    <[select.region.commit]>->($id);
+}
+
+return TRUE;
+
+#,,,,,.,,,..,,..,,.,,,,..,...,.,.,..,,...,,,.,..,,...,...,...,...,,,.,..,,.,.,
+#ANXC6D2UJPMO2MTVBACEWJZY5XXZIYALETQZLI55PQFQFIQL6ISWZCFKWJFUOEHKCQM6FJF3YOFK6
+#\\\|FUSHXMVL7JLMYPMGOUFCOQKFR43QZ3LZGVBKUMSJWBR6ERHIGUS \ / AMOS7 \ YOURUM ::
+#\[7]ID5T7YPYBLS5MLRNZHNYO7QK7JXNBYFH22ZBL7GJSFRMBVB5CCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ metadata:
 ## thread 1 : v7.zenka.start prio starvation -- RESOLVED, prio=>0 confirmed live
 
 `base.event.add_io`'s prio copy-paste bug (fixed [[feedback-base-prefix-stripped]]-adjacent
-commit `fbe0b6f21`) had an undiscovered side effect: `modules/v7.zenka.start`'s
+commit `fbe0b6f21`) had an undiscovered side effect: `src/v7.zenka.start`'s
 `zenka_output` watcher (reads a managed child's stdout) had `'prio' => 5` sitting
 inert for 11 years -- under the bug, `$params->{'prio'}` actually read
 `$params->{'desc'}` (undef here, no desc key passed), and `Event->io(prio=>undef)`
@@ -58,7 +58,7 @@ most branches ruled out:
   split is provably always byte-safe. initial theory here was wrong, retracted
   after re-derivation.
 - **not** (provably ruled out via live test) a partial/short write in either of
-  the two real write sites found: `modules/v7.handler.output_zenka_stdout` (v7's
+  the two real write sites found: `src/v7.handler.output_zenka_stdout` (v7's
   own relay of a child's stdout to the terminal) and `bin/Protocol-7`'s
   `p7_devmod_sub` [ aka `base.devmod_sub` via `-core-subs` ] (any traced zenka's
   own `say sprintf(...)` emitting its call-argument trace line into its stdout
@@ -150,9 +150,9 @@ rendering architecture ].
 
 **agreed scope, explicitly NOT the full multiplex protocol**: extracted the
 raw-fd-duplicate-plus-redirect-override logic that previously existed twice
-[ near-identically, once in `modules/v7.handler.output_zenka_stdout`, once
+[ near-identically, once in `src/v7.handler.output_zenka_stdout`, once
 inline in `bin/Protocol-7`'s `p7_devmod_sub` ] into one shared module,
-`modules/base.stdout.raw_fh`, with an explicit override slot
+`src/base.stdout.raw_fh`, with an explicit override slot
 (`<base.stdout.redirect_fh>`) a future redirect command/feature can
 pre-populate, and a lazily-cached default (`<base.stdout.default_fh>`) that's
 the original raw-STDOUT-dup behavior, unchanged. both write sites now call
@@ -172,15 +172,15 @@ thread 3) before it worked cleanly.
 everything in this memory landed in commit `1391ba11b` on `base`:
 `v7.zenka.start` (`prio=>0`), `bin/Protocol-7` (devmod tracer write-loop +
 reentrancy-guard recursion fix + raw-fd/binmode handling),
-`modules/v7.handler.output_zenka_stdout` (relay write-completion-loop, the
+`src/v7.handler.output_zenka_stdout` (relay write-completion-loop, the
 temporary diagnostic scan already stripped back out before commit), and the
-new `modules/base.stdout.raw_fh`. `modules/source.cmd.get-code-signed`
+new `src/base.stdout.raw_fh`. `src/source.cmd.get-code-signed`
 remains separately uncommitted -- unrelated, pre-existing pending TOCTOU work
 from earlier in the same session, see [[feedback-base-prefix-stripped]]'s
 sibling context / task history.
 
-#,,.,,.,,,,,,,,,.,,,.,,,,,..,,...,,..,,,,,..,,..,,...,..,,,.,,...,,,,,.,.,,.,,
-#IQYGAWUQPAO43BW6AOFVX5CN2TD2LPELFETCWYTYJUKY6D6JSG24MNIHEF3CDK4SY65K6UZFLAY6O
-#\\\|P3TRGQ55ZFNYSBU5V2WJAX7JHU5PQY34WBFDCNZ4CSKARVNBCJU \ / AMOS7 \ YOURUM ::
-#\[7]WCW5P3PFD6CIOYPEX3UGY3IWLRKKG773YYH7WJ23EGQEP34C4UDY 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,.,,,,.,,,,,,,.,,.,,,,,.,,.,,..,,...,...,,..,,..,,,,,,..,...,
+#SIHN2YSTLNEML4WPUB6UMEU7DEPCUM77HXEEUD5KGUBLDDSPIIT4P7VT2QTET7CNLT3ASNGKLOEMS
+#\\\|P44EIGBWWGQGXBBB3MAXBNE2UKSYXDY5BMDBGVTNHBEP7PLOTPS \ / AMOS7 \ YOURUM ::
+#\[7]PMZ6VRWYMWNHSMLK57ENOFKOE25ZCJS2Q2HUXYVTRL33UZEY4MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

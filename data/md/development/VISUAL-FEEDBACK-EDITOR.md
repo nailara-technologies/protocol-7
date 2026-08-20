@@ -258,12 +258,12 @@ visual-feedback.loop
 ## module file locations
 
 ```
-modules/visual-feedback.capture-sequence
-modules/visual-feedback.analyze-delta
-modules/visual-feedback.render-minimap
-modules/visual-feedback.evaluate
-modules/visual-feedback.apply-corrections
-modules/visual-feedback.loop
+src/visual-feedback.capture-sequence
+src/visual-feedback.analyze-delta
+src/visual-feedback.render-minimap
+src/visual-feedback.evaluate
+src/visual-feedback.apply-corrections
+src/visual-feedback.loop
 
 cfg/zenki/visual-feedback/start
 cfg/zenki/visual-feedback/zenka-startup.v7
@@ -424,8 +424,8 @@ the vision model evaluates against the structured spec:
   overall convergence: weighted mean of field scores
   structured feedback: field-by-field corrections
 
-#,,.,,...,..,,...,.,,,,,,,,.,,,.,,,,.,.,.,..,,..,,...,..,,..,,,,,,.,.,..,,,.,,
-#PHYAC42NWSF2XJGURVSLGRK25F2KNU7EEG5BOWDK3VDDFE76QNHDRHTB3QEARE245Q2J3YIXF2PBE
-#\\\|VIB3U6T5L5NMG5FYFGCBDS5BIPM4FKEHH4AUSFLATAMJ6J7ELCL \ / AMOS7 \ YOURUM ::
-#\[7]BBKH6HB6D42CNWY33T7EU57U27EAYMUPK22GI73BOI4PEHQGBCAY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,.,,..,,,,,,..,.,,,,,.,.,.,,,,,..,,...,...,...,...,...,,,,,,..,
+#47JMT2W7Q7YKXQXBPJNHQVBCWIRNXT56K3DS6DEHTP2I4LW4QFDILKRTDRVLYUEP5GCMVAWWXFM2Y
+#\\\|DP2QQJBHICFJ7FG5JGBGUPRNLPYMK2DBEWDBGFKDZ2BSEIEQFA3 \ / AMOS7 \ YOURUM ::
+#\[7]MCLT5W6ZTKWSXE5UEZVJ7XRAJSKS5TJVSGCDJUTWAHQREJYAKYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@ do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures` wh
 
 ## fix 1: rewrite web-browser.proxy_setup
 
-file: `modules/web-browser.proxy_setup`
+file: `src/web-browser.proxy_setup`
 
 read the current file first. it creates an `HTTP::Soup::URI` but never applies it.
 
@@ -49,7 +49,7 @@ that should be preserved — if so, add those hosts to the array.
 
 ## fix 2: rewrite web-browser.disable_proxy
 
-file: `modules/web-browser.disable_proxy`
+file: `src/web-browser.disable_proxy`
 
 read the current file first. it calls `get_default_session()` which is broken.
 
@@ -65,7 +65,7 @@ $web_context->set_network_proxy_settings(
 
 ## fix 3: remove HTTP::Soup import from init_code
 
-file: `modules/web-browser.init_code`
+file: `src/web-browser.init_code`
 
 remove:
 ```perl
@@ -73,13 +73,13 @@ remove:
 ```
 
 verify no other module in the web-browser namespace uses `HTTP::Soup` before
-removing. search: `grep -r 'HTTP::Soup\|Soup::' modules/web-browser.*`
+removing. search: `grep -r 'HTTP::Soup\|Soup::' src/web-browser.*`
 
 if any other module still uses it, leave the import and note it in a comment.
 
 ## fix 4: clean up init_code proxy flag default
 
-file: `modules/web-browser.init_code`
+file: `src/web-browser.init_code`
 
 check if `<web-browser.cfg.use_proxy>` default is set. keep it — proxy enable/
 disable logic still needs the flag. just ensure the default makes sense
@@ -110,8 +110,8 @@ perl -e "
 - [ ] perl one-liner above confirms `NetworkProxySettings->new()` works
 - [ ] signatures updated
 
-#,,,.,,..,,,.,,,,,,,,,...,,,.,,,,,,..,.,,,,.,,..,,...,...,.,.,.,.,,,,,,..,,..,
-#SW2COIVREWJ46LYPVO6ENZLKGXWHJRZ5424FBO7DQVCW4QY5YSNOLYL2LYND3SFDUYXASTRQAFQQU
-#\\\|PUHLO74W5VEQHKSWATYYQ6VTCN3YFZMMMBRCYYFJUIYGEFRS45L \ / AMOS7 \ YOURUM ::
-#\[7]EHFFZU4SU3J22QUEL6CH234QLMULCPJQYYTQP5JWE6JE74ERBKAY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,,,.,.,.,.,.,,,...,.,,,,.,,...,..,,...,..,,.,,,,.,,,,.,,..,..,,
+#HTTOQLPEJ2XY23EYL3CRBPRED54MF7CLHLX5HJ6TUMX4RPYBILUWHJEHSKS4XH7UUB6OO6XCBNVDM
+#\\\|ZZL2CXP5ZTWB5MF5BCE33I6CROTYBUX4CLF2BDIBU5H5ZIGRVJG \ / AMOS7 \ YOURUM ::
+#\[7]4YBCLGH2HHD3KJ6GVUCHG6FFRCFWJNXWH6IHXM4V7NVDRUSP4YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

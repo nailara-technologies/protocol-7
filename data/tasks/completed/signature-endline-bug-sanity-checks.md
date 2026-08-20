@@ -56,14 +56,14 @@ read these first, do not re-derive:
 
 - `data/yaml/coding-tasks/signature-endline-state-verification.yaml`
   ( completed task — documents state encoding 5 / 6 / 7 and states 0-4,
-  test files modules/test.0/1/2/empty, restore semantics )
+  test files src/test.0/1/2/empty, restore semantics )
 - `data/ai-mem/claude/bug-signature-endline-restoration.md`
   ( bug memory — root cause framing : stale encoded delta from prior
   signature applied without sanity check vs current trailing newline
   count )
 - `data/yaml/docs/processing/signature-endline-handling.yaml`
   ( normalize-then-encode-delta architecture spec )
-- `data/yaml/code-reviews/modules/source.signature-endline-policy-system.yaml`
+- `data/yaml/code-reviews/src/source.signature-endline-policy-system.yaml`
   ( policy review )
 - `data/asc/dev/reminders/signature_oscillation_after_create-code.asc`
   ( failure modes catalogue )
@@ -266,7 +266,7 @@ payload tail before any byte is added or removed ?
    delta from the *current* payload at restore + sign time .
 
 5. write a test that exercises the captured failure mode under multiple
-   path roots ( `modules/` , `data/tasks/` , `data/ai-mem/` ) so any
+   path roots ( `src/` , `data/tasks/` , `data/ai-mem/` ) so any
    future regression is caught regardless of normalize-paths config.
 
 ## sanity checks to add ( minimum )
@@ -311,12 +311,12 @@ new ad-hoc shell scripts unless a real gap appears :
 
 reproducer recipe per trigger :
 
-- **trigger A** : `printf 'content without trailing newline' > modules/test.0` ,
-  then `bin/dev/tests/timing/test-oscillation-simple modules/test.0` — expect
+- **trigger A** : `printf 'content without trailing newline' > src/test.0` ,
+  then `bin/dev/tests/timing/test-oscillation-simple src/test.0` — expect
   pass after fix , currently fails with concatenation in step 1.
-- **trigger B** : start from `modules/test.1` ( one trailing `\n` ) , sign
-  once via `test-oscillation-simple modules/test.1` to confirm baseline ,
-  then edit to drop the trailing newline ( `truncate -s -1 modules/test.1` )
+- **trigger B** : start from `src/test.1` ( one trailing `\n` ) , sign
+  once via `test-oscillation-simple src/test.1` to confirm baseline ,
+  then edit to drop the trailing newline ( `truncate -s -1 src/test.1` )
   and re-run the script — second sign should *not* concatenate.
 
 fixtures :
@@ -342,8 +342,8 @@ fixtures :
 - a clean re-sign of all currently corrupted files in the repo ( one
   pass , no further oscillation )
 
-#,,..,,..,,,,,.,.,,,,,,.,,.,.,.,,,.,.,..,,,,,,..,,...,...,.,.,..,,,..,..,,,.,,
-#STCVBOTGLOBCQLCEFKODMVXRU2756BSKCX27PP766CTJRA2KNQQEUCQ4O3QJSISPAIIVPUCUHYLJG
-#\\\|E5OUBUHC7KVRBLKLSYJCCTDSVJ2ZUHXZ4B3BQZ33AQN2VS45JPH \ / AMOS7 \ YOURUM ::
-#\[7]6RHMRZPE5BNYLWGKL3RJP476QRAZBPH43SUPT7MR77B77RMV2UCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,,,,,,,..,,.,.,.,,,,..,..,,..,,..,,...,...,,.,,..,,,,,,,..,.,.,
+#72ANVHI2QWD2QTSE7TEQCIFSBPQD2FQWKOY6YMRM77T3BC5NC2LYDKRBZ7HV33X3CCARVOKFIHBIA
+#\\\|3OHADV7LH5NYMEVWAMUTBGLWQA2CU6F3HN5I3NO4PGX4PICTMJG \ / AMOS7 \ YOURUM ::
+#\[7]PN7DTMZG35Q3OMSPOVL4TWEY2DB7GPXRIHU4NLIPWAFLW6OAK6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

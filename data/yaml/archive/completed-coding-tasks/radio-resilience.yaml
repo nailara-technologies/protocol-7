@@ -7,7 +7,7 @@ context: |
   The radio zenka relays a live HTTPS/Icecast stream to HTTP clients via STRM.
   It is otherwise working (STRM cancel, TLS connect, jingle detection, gap filler,
   mpv[audio-0] background player). Four resilience issues need fixing in this task.
-  All changes are within modules/radio.* plus one new module.
+  All changes are within src/radio.* plus one new module.
 
   architecture summary:
     radio.connect → IO::Socket::SSL → radio.handler.stream-chunk (Event->io)
@@ -186,8 +186,8 @@ verification: |
      reconnects and resumes playing within a few seconds
   6. gap filler activates on jingle — no CPU spike, no mpv disconnect
 
-#,,,.,.,,,...,.,.,...,,..,.,,,..,,,..,.,.,...,..,,...,...,,,,,...,,.,,,,,,,,,,
-#UJ5BX4N5PYZNTY67JV4L3MRUOFDFKIJGPZ6FZY4DT52NZ4UOUMU5LXMNJ3664ODS2JDKE3A3UHQHA
-#\\\|B6T6E2DJDR6PCIYLK23NNPHE46BYHUEABENFD55MUHZKGIEJMUW \ / AMOS7 \ YOURUM ::
-#\[7]U56GDCC4K6IVGIIXPHWGWDGYAAPKUEYC3OWWAELRZ5CZK77NX2AY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,.,,,..,..,,.,.,.,,,...,,,,,...,..,,...,...,,..,.,,,.,.,,..,..,,
+#5W6JPGFAXFMRUNJSJYDKTX5AUZEL2I34LG4OVATJGDK3RC7IZXARSXIQE2VCFZIMBP25PZ7NCNJMI
+#\\\|QB6N6ZLZRXLNLPTK2KEJ343NU5ZXLKDYNT5XEWWFUBKYCKAISKR \ / AMOS7 \ YOURUM ::
+#\[7]IH375QA5YGO5RYPSKDK5T6OF5N7IIUD5W7OB2J4LKKRTGMPGVSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

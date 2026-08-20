@@ -14,7 +14,7 @@ section below for why).
 
 one shared backend primitive, two callers, per the "proposed shape":
 
-1. **`modules/site-yaml.cmd.import-url`** (new) — takes `url=<posting-url>`
+1. **`src/site-yaml.cmd.import-url`** (new) — takes `url=<posting-url>`
    (bare url also accepted, same arg convention as `site-yaml.cmd.import`),
    validates the `stepstone.de` host + `--\d+-inline\.html` suffix pattern
    `site-yaml.stepstone.job` relies on for id extraction, refuses ids/urls
@@ -25,7 +25,7 @@ one shared backend primitive, two callers, per the "proposed shape":
    `site-yaml.fetch.schedule` if no fetch timer is running, and saves queue
    state. `site-yaml.handler.fetch_tick` is reused completely unchanged:
    fetch/backoff/retry/route-to-upsert all come from the existing code.
-2. **`modules/jobsite.cmd.import-url`** (new) — the p7c/console command
+2. **`src/jobsite.cmd.import-url`** (new) — the p7c/console command
    (`p7c jobsite.import-url url=https://www.stepstone.de/...`). re-validates
    the url pattern server-side, then checks the two synchronous dedup
    sources before queueing: `<jobsite.job.index>` by extracted numeric id
@@ -35,7 +35,7 @@ one shared backend primitive, two callers, per the "proposed shape":
    the same posting under a changed listing id). only then route-sends to
    `site-yaml.import-url` and immediately replies "queued" — the fetch is
    async by design, so this is an ack, not a fetch result.
-3. **`modules/jobsite.handler.import-url-reply`** (new) — receives the
+3. **`src/jobsite.handler.import-url-reply`** (new) — receives the
    `site-yaml.import-url` reply and logs it: queue-level rejections
    (url rejected by site-yaml, already in fetch queue) land at log level 0
    in the jobsite buffer, success at level 1. this is the visible endpoint
@@ -54,7 +54,7 @@ one shared backend primitive, two callers, per the "proposed shape":
      "queued" ack.
    - an exact precedent already exists: `/jobs-trash-rescue` → httpd
      web-relay → `jobsite.rescue-http`. the new
-     **`modules/jobsite.cmd.import-url-http`** mirrors it: parses the plain
+     **`src/jobsite.cmd.import-url-http`** mirrors it: parses the plain
      POST body, delegates to `jobsite.cmd.import-url` (so validation,
      dedup and queueing exist exactly once, shared with the CLI path), and
      wraps the result as strm+json `{ok, message}` — the web-relay reply
@@ -98,9 +98,9 @@ one shared backend primitive, two callers, per the "proposed shape":
 
 ### files touched
 
-- new: `modules/site-yaml.cmd.import-url`, `modules/jobsite.cmd.import-url`,
-  `modules/jobsite.cmd.import-url-http`,
-  `modules/jobsite.handler.import-url-reply`
+- new: `src/site-yaml.cmd.import-url`, `src/jobsite.cmd.import-url`,
+  `src/jobsite.cmd.import-url-http`,
+  `src/jobsite.handler.import-url-reply`
 - `cfg/zenki/jobsite/start` — `import-url` added to
   `access.cmd.usr.cube` (only change there; `jobsite.cfg.*` untouched)
 - `cfg/zenki/site-yaml/start` — `import-url` added to
@@ -166,7 +166,7 @@ category-scan-discovered job does.
 ## what already exists and can be reused
 
 the single-URL-fetch primitive already exists and does not need to be
-built: `site-yaml.stepstone.job($url)` (`modules/site-yaml.stepstone.job`)
+built: `site-yaml.stepstone.job($url)` (`src/site-yaml.stepstone.job`)
 fetches one stepstone job page, extracts the JSON-LD `JobPosting` block,
 and returns a fully-populated job hash (title/company/city/description/
 salary estimate/etc) — this is the same extraction a normal category scan
@@ -175,7 +175,7 @@ outside of the search → link-list → per-link fetch chain.
 
 the full plumbing for "fetch one URL, hand the result to
 `jobsite.job-upsert`" also already exists in `site-yaml.handler.fetch_tick`
-(`modules/site-yaml.handler.fetch_tick`): it dequeues one
+(`src/site-yaml.handler.fetch_tick`): it dequeues one
 `{ id, url, reply_handler }` entry from `$data{'site-yaml'}{'fetch_queue'}`,
 calls `site-yaml.stepstone.job`, and on success routes the resulting job
 hash to `reply_handler` via `route-send` — currently always
@@ -183,7 +183,7 @@ hash to `reply_handler` via `route-send` — currently always
 allow-list). a manual single-URL add just needs to seed **one** entry into
 that same queue directly, skipping the `site-yaml.stepstone.search`
 listing-page step entirely (`site-yaml.cmd.import` currently always starts
-from a search URL — see `modules/site-yaml.cmd.import` lines 106-181,
+from a search URL — see `src/site-yaml.cmd.import` lines 106-181,
 the per-link queueing block at lines 131-168 is the part that needs a
 direct-URL equivalent).
 
@@ -193,7 +193,7 @@ job to everything downstream (`jobsite.dispatch.assessments`, the
 checksum/blacklist index, threshold scoring) — no changes needed there.
 
 there is also already an extensible browser → jobsite reverse-action
-channel: `jobsite.sync.apply_reverse` (`modules/jobsite.sync.apply_reverse`)
+channel: `jobsite.sync.apply_reverse` (`src/jobsite.sync.apply_reverse`)
 dispatches on an `action` field (currently `delete` / `blacklist` /
 `reassess`) arriving through the existing `jobs-sync` reverse-push path.
 adding `action: 'add_url'` there (rather than inventing a brand new HTTP
@@ -292,7 +292,7 @@ security).
 
 scope for this half: read `data/jobsite` profile/context used to build the
 assessment prompt (`jobsite.cfg.profile_file`,
-`modules/jobsite.util.build_prompt`) to understand what role families the
+`src/jobsite.util.build_prompt`) to understand what role families the
 candidate actually targets, then propose additions/renames to
 `jobsite.cfg.categories`/`jobsite.cfg.url.*` — this needs the user's
 judgment on which title variants are worth a dedicated search url
@@ -353,8 +353,8 @@ handles the local-vs-remote judgment once a posting is found.
   vs. leaning more on manual submission for one-off finds — not obviously
   one or the other, likely both.
 
-#,,,.,,,.,,.,,.,,,,.,,,.,,,,,,,.,,.,.,.,,,,..,.,.,...,..,,...,.,.,,,.,,,.,...,
-#4CSDAHIO2X64P2L4I6CWIUY6XUUQUX37Q3CVKG455Q7COQWHXGGOII7FFFZKSTARESTKQL4RQAJ26
-#\\\|3ESHVV4VCH3AF5S7CN5L7KUEERC5AF3HJ24M3FCCL7TBSOSOMBR \ / AMOS7 \ YOURUM ::
-#\[7]6DTA4KJJLOYGYAUNLMS65UITM4VVJHGW623ZGJCLJCDNAMPHFQAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,.,,,.,,,.,,.,.,,..,,,,,,,.,.,.,.,.,...,...,...,.,,,,.,,,..,...,
+#HYKCX2IUMMTDIB6IHKVRX7KZWAYRE3UMOGT336GC6ZFE2W6LUJ24VYT2OVKOYP4ZTIVALGM4FB6BS
+#\\\|SRFIIWELA7W7O26YBJYT3X2LSIUJABM25DSSIYCS7ELAQ42PAZS \ / AMOS7 \ YOURUM ::
+#\[7]LX27GFAS54W7T3NTA5CUDGPCN2EPMHARTE25XCPZAMI2QCS3EYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

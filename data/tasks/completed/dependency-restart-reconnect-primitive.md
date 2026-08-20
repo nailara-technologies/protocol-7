@@ -7,7 +7,7 @@ stateful relationship with another zenka (a STRM subscription, or an SHM handsha
 *other* zenka later restarts while the first one keeps running, and nothing re-establishes the
 relationship. Found in the same session, independently:
 
-**1. STRM subscriptions** — `modules/base.strm.subscribe` (generic offline-safe subscribe
+**1. STRM subscriptions** — `src/base.strm.subscribe` (generic offline-safe subscribe
 wrapper, `data/tasks/completed/strm-generic-subscribe-wrapper.md`) already handles "subscriber
 restarts, publisher already up" and "publisher not up yet, comes up later via backoff retry" —
 both tested and working. Its own doc header says explicitly:
@@ -29,9 +29,9 @@ now-orphaned memory. Nothing re-triggers the handshake since only `powershell` r
 
 ## what's already available to build on
 
-- `modules/v7.zenka.cmd.notify_online` — reply-once-when-online request. Confirmed this session:
+- `src/v7.zenka.cmd.notify_online` — reply-once-when-online request. Confirmed this session:
   strictly one-shot, the registration is `delete`d the moment it fires
-  (`modules/v7.handler.zenka_status:287,386,422`). It tells you "X just came online" but by
+  (`src/v7.handler.zenka_status:287,386,422`). It tells you "X just came online" but by
   itself can't distinguish first-ever-startup from a restart of something already running, and
   doesn't persist for future restarts unless the caller re-registers after every fire.
 - Zenka instance restarts already get a fresh `instance_id` (used throughout this session's own
@@ -46,7 +46,7 @@ now-orphaned memory. Nothing re-triggers the handshake since only `powershell` r
   against a *fresh, independent* open+header-read later (not through the already-held mmap —
   once a segment is unlinked and recreated, an existing mmap keeps pointing at the orphaned old
   pages and will never see the new header).
-- `base.zenka.push` (`modules/base.zenka.push`, referenced as the shape `base.strm.subscribe`
+- `base.zenka.push` (`src/base.zenka.push`, referenced as the shape `base.strm.subscribe`
   mirrors) is a third existing "push-with-backoff-and-restart-awareness" pattern in this
   codebase — read it too, it may already have solved pieces of this for its own use case.
 
@@ -115,8 +115,8 @@ don't touch must not be modified.
   `protocol-7-menu`/`powershell` pointer-stream gap as a second, independent instance of the same
   underlying architectural hole
 
-#,,,.,.,.,,.,,...,.,.,,,.,,,.,.,,,.,,,,.,,,..,..,,...,..,,,,,,...,.,.,.,.,..,,
-#6NQ4OQVW3ELSM5HAMJVRMNOFHOKW3FYTPEIF3EFEI6DQSCHA2AATYPNVPKD6PBMDPAMJGQMCNVP6W
-#\\\|CPYBSLF4ICZGMIZBSQ5AS7HAMQSFXEDPYEDIGCV47PCNEVNFKF7 \ / AMOS7 \ YOURUM ::
-#\[7]YSABYLT3ATEBI2UKTJMSRNP5YXCMKQUSWNUHDL2UF65AHEO7JSBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,..,,,.,,,,,,..,,,..,,,.,,.,,..,,...,...,.,.,..,,,,,,,,.,.,,,
+#ZREZEKUNIA7PQROHTPDM2PNW6QEPN3GHTYGRQNV7L4PHV3T7Y7CQOFXJPT6XWTA2NZIEORQUZKMEE
+#\\\|DJZTOTPSQ6BLAF7FGFFSY7LOYFYO5KD53RVHHYPVQOVF4M4V27V \ / AMOS7 \ YOURUM ::
+#\[7]QTQV43BUZQ66BTSF7E5ESKH7557BKCLSM5KK4KBMVPHIGFNRL6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

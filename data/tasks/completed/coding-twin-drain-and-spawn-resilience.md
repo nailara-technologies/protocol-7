@@ -13,7 +13,7 @@ four targeted fixes across four existing modules. no new modules needed.
 
 ### fix 1 — instance-scoped pid file with timestamped routines
 
-**file**: `modules/coding.spawn_inference_server`
+**file**: `src/coding.spawn_inference_server`
 
 replace the orphan-detection block (currently lines 74-101) and the pid-file
 write (currently line 410) with instance-scoped versions using the timestamped
@@ -99,7 +99,7 @@ declarations that are no longer used.
 
 ### fix 2 — remove pkill from restart_server
 
-**file**: `modules/coding.handler.restart_server`
+**file**: `src/coding.handler.restart_server`
 
 remove these lines (roughly lines 31-35):
 ```perl
@@ -119,7 +119,7 @@ llama-server on that port including the new twin's just-spawned server.
 
 ### fix 3 — skip crash-restart when draining (inference_server_sigchld)
 
-**file**: `modules/coding.handler.inference_server_sigchld`
+**file**: `src/coding.handler.inference_server_sigchld`
 
 inside the `for my $backend (qw| gpu cpu |)` loop, after the
 `$server_info->{'exit_status'} = $exit_status` assignment and before the
@@ -144,7 +144,7 @@ this mirrors the identical guard already in `coding.handler.inference_crash_rest
 
 ### fix 4 — await_resources: stop → cancel
 
-**file**: `modules/coding.handler.await_resources`
+**file**: `src/coding.handler.await_resources`
 
 find:
 ```perl
@@ -176,27 +176,27 @@ it eligible to re-fire — wrong for the one-shot "port is free, spawn now" path
 
 after implementing:
 ```
-grep -n 'inference\.[a-z]*\.pid' modules/coding.spawn_inference_server
+grep -n 'inference\.[a-z]*\.pid' src/coding.spawn_inference_server
 ```
 should show `$backend.$$.pid`, not bare `$backend.pid`
 
 ```
-grep -n 'pkill' modules/coding.handler.restart_server
+grep -n 'pkill' src/coding.handler.restart_server
 ```
 should return nothing
 
 ```
-grep -n 'draining' modules/coding.handler.inference_server_sigchld
+grep -n 'draining' src/coding.handler.inference_server_sigchld
 ```
 should show the new guard
 
 ```
-grep -n 'cancel' modules/coding.handler.await_resources
+grep -n 'cancel' src/coding.handler.await_resources
 ```
 should show the fix
 
-#,,..,,,.,.,.,..,,,.,,.,.,.,.,...,,..,,,.,,.,,..,,...,...,,,,,.,.,,,.,.,,,,,,,
-#GOEE3BC3BXKVS2DU3IMIDGAZLCYTT6JE7U7GYUQZQ3MQTAFPRUTWE6Z6PEOU73ER3FU4P4HVFVLJE
-#\\\|SUHYVNIG6QONYU6MQL2WEDIGHOXSI36UKD3ABVG76RPN5XYWJGO \ / AMOS7 \ YOURUM ::
-#\[7]ONUW55GQ4RH4GVXI3MZGRA6CXMYG7MS7AWEIEWMEOR7LVD5EHSBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,.,,,,,,,,,,,,.,,.,,,...,,,.,..,,...,...,...,..,,...,.,,,.,,,
+#523PFZ77BHTPVK76UEI52YGSRLYNSRS4JVU4FEBYCL2OFN2YQGF26JH4ANISPW3ELZ2OSDBR5GCEG
+#\\\|XFFLZIL6JX5DRFFWRW5M25ZCT2ONATGEDNNFMTCUEUA6F7BUX22 \ / AMOS7 \ YOURUM ::
+#\[7]IWKNPNNHK7OLQRYFOKSJXNIAJLST7GXENTFTRHAKS2CZSLXYHMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

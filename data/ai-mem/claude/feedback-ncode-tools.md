@@ -13,7 +13,7 @@ use it instead of ad-hoc perl/sed one-liners which risk corrupting files.
 
 **rename workflow (confirmed working):**
 
-1. rename files manually (`mv modules/old.name modules/new.name`)
+1. rename files manually (`mv src/old.name src/new.name`)
 2. fix `# name =` headers: `ncode -no-color -ai-friendly -confirm parse-headers src`
    (or `ncode r src 'old\.name' 'new.name'` which also catches name headers)
 3. fix all callers: `ncode -no-color -ai-friendly -confirm r src 'old\.name\.' 'new.name.'`
@@ -54,8 +54,8 @@ step (files were already git-tracked, so this is safe/reversible). Prefer
 verified plain-perl one-liner + git-diff review for `\K`-based patterns
 or conditional/branching bulk edits.
 
-#,,,,,,..,,,,,.,.,,.,,,..,.,.,.,,,..,,...,,.,,..,,...,...,,.,,..,,..,,..,,...,
-#5JI2YK4FT7B5I2MOMIJSH6SGAO3LZ3OSBTF6VMPRIOBCW6I6BIXR5PJR63YL3NRTQAMELG6VCZYQW
-#\\\|OJ7H5C7QOKAA74F7LYWOZIYKMEW7RM5NVS6EED7J3H73POFZ2LY \ / AMOS7 \ YOURUM ::
-#\[7]XBA6YYHGEAMIFQJG7GW7WBDWD56ISDAJFLOUPOI5XH3YFHYA6IAQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,.,,,..,.,,,.,,,...,.,.,,.,,..,,..,,...,..,,...,.,,,.,.,,..,...,
+#23WGVKT3E3OPZ4QGYCK4G2ADEKPVJOEIWT5F2BPDS7ORNRUUIBRM55UAI4MK2GDVRXEHGXIGFUEQO
+#\\\|I7HDV7ETKYFAHWPMNKYSDYPEDTULDEIEK4FQTL3WZCFF6AP33SA \ / AMOS7 \ YOURUM ::
+#\[7]CJFOCRET62HBT4DDAEESSN6OC5SL6F3R3EDXAVNXZXQP2J43B2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

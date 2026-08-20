@@ -9,15 +9,15 @@ do NOT add `#,,.,,,...` stub. leave files clean.
 write the module to disk — do not return code in the response.
 
 ## objective
-create `modules/iteration.loop` — the controller that runs a task
+create `src/iteration.loop` — the controller that runs a task
 through multiple attempts, scores each result, applies template deltas,
 and advances the best result when done.
 
 ## read first (understand these before writing)
-- `modules/iteration.score_result` — takes {result, criteria, attempt_n},
+- `src/iteration.score_result` — takes {result, criteria, attempt_n},
   returns {score, passed, total, verdict, issues, attempt_n}
-- `modules/valued.tree.record_outcome` — takes {node_id, outcome}
-- `modules/task.cmd.complete` — shows how task completion works
+- `src/valued.tree.record_outcome` — takes {node_id, outcome}
+- `src/task.cmd.complete` — shows how task completion works
 - `data/yaml/context-templates/iteration-loop.yaml` — the template this
   controller drives; shows config fields and on_complete hooks
 
@@ -58,7 +58,7 @@ logic:
      [ caller re-runs with template delta applied ]
    - verdict=escalate → return { mode=>'escalate', data=>$score_record }
 
-create `modules/iteration.finish` too — takes task_id, returns
+create `src/iteration.finish` too — takes task_id, returns
 formatted summary of all attempts with best result highlighted:
   "iteration complete: N attempts, best score=X.XX (attempt M)\n
    unfixed issues: ..."
@@ -77,8 +77,8 @@ formatted summary of all attempts with best result highlighted:
 - valued tree updated on advance or escalate
 - iteration.init_code exists and initializes <iteration.state>
 
-#,,,,,.,,,,,,,.,.,...,,,,,,.,,..,,...,.,.,...,..,,...,...,,,,,...,,..,,,,,,,,,
-#APEXDVNECZ5LGQOTJSQDWOREHBZARR6Y5XBFMFCO2TC7GVL4N7I7M5WFCU7QFPOAGMXFSFCLC25AY
-#\\\|FHHJGGATK54BCARZF6X2I4THXAOVX3RTFKG6B3XKXSZI3PB7OLO \ / AMOS7 \ YOURUM ::
-#\[7]DAEL5PCKPSCTMQGM544AIVZMCSHJSIWKLMVE23CDK36A4UC2TMAA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,,..,...,,..,..,,,,,,...,,,.,..,,...,...,...,...,...,,,.,...,
+#U6IPU7JYJMWL3VSVRRUNEVUE66B4U2OL5NN33W5Y3PRCINFNIRC3QMSUKM6HHFM7IKFE7DLM4VSMM
+#\\\|NXKWQZO7UHEIAUZ35UK2WN4YKWCSATSLGMC5QMTZBPIGC3LEU55 \ / AMOS7 \ YOURUM ::
+#\[7]CFOOE225KZ3R6NQ3TZK7M5T5LDLZOSHQ25NNRYEMZLXVVRXIMEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

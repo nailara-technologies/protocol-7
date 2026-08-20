@@ -34,7 +34,7 @@ it well.
   Storage: `~/.n/user-keys/<name>.{secret,private,public}`, base32,
   `U:`/`.:` prefix (unencrypted/Twofish-encrypted). Commands:
   `keys.console.{list,create,remove,rename,sign-key,...}`.
-- **Doc correction**: CLAUDE.md says user keys live in `modules/USR.
+- **Doc correction**: CLAUDE.md says user keys live in `src/USR.
   [username].*` — verified these are actually a baked-in **public**
   keyring (each file `return`s one public key string), not where
   private material lives. Real private/secret keys are under
@@ -51,7 +51,7 @@ it well.
   `remote.<host>_<port>.public`, but the display code
   (`keys.console.list`, `keys.list_remote_keys`) scans for
   `remote-host.<host>_<port>.public` — different prefix. No writer of
-  the `remote-host.*` pattern was found in `modules/`. **Resolve this
+  the `remote-host.*` pattern was found in `src/`. **Resolve this
   before building anything on "the" TOFU filename convention** — unclear
   which is current vs. legacy, or if a third code path produces the
   observed `remote-host.local_42.public` files.
@@ -121,8 +121,8 @@ top of an already-ambiguous one.
 [[topic-write-access-security-infrastructure]]
 [[topic-ncode-safe-refactor-workflow]]
 
-#,,,.,.,.,.,,,,,.,,..,,,.,,.,,...,...,..,,..,,..,,...,...,...,,..,,,.,,,,,...,
-#2JEFOMO3KTTWI5IQDPNVCURI7COUFSYOWAO2FGHEQDJPQNPLM7SLLBZIZLXJD2IPIWKAGSN4X4UQW
-#\\\|D6PLQZXWCGWANXUKAS2XHRZMRBN5THQIJHGEW5X5SJKTZRFCSNV \ / AMOS7 \ YOURUM ::
-#\[7]RCHFH5RNZVBAOQCSENL6YOPVZKFEPKJUW4TGN6QQM4RYF4JI3QCI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,..,,,,.,...,,,.,.,.,.,,,,..,,,.,..,,...,...,,.,,.,.,..,,.,,,,.,,
+#CXLJMKDINRWRLWNA7RZGZOF4EMJMPH4FUIMIW24L4QT2VKAGPI44CYTXW54YM5EMH6TGNEX2OHYJC
+#\\\|TZ2TILRW5KOH7VXFJVG6NLRKQQRLQESRBEBZB32FFBNBNGMULAD \ / AMOS7 \ YOURUM ::
+#\[7]LT4F753E6KVURM6JRZHNJHFAFVTXLYR75MCL4F3JL6UIMXRDXKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

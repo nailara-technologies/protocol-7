@@ -116,7 +116,7 @@ making it a complete integration test with known-correct expected output.
 
 ### Phase 1 : zulum module
 
-Implement `modules/zulum` — initialize 13 streams from cycle positions,
+Implement `src/zulum` — initialize 13 streams from cycle positions,
 expose `stream-attach` to connect a consumer (decoder or any zenka),
 `stream-add` / `stream-remove` for dynamic consumer management.
 
@@ -132,7 +132,7 @@ $Z <<= is_true($Z) ? 2 : 1;
 
 ### Phase 2 : cube-13 jump routing
 
-Implement jump table in `modules/cube-13` — accept jump commands, switch
+Implement jump table in `src/cube-13` — accept jump commands, switch
 active stream, notify attached decoder of stream change with a boundary
 marker so the decoder can close the previous level buffers cleanly.
 
@@ -184,8 +184,8 @@ sequence of cycle positions visited.
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,..,...,...,..,,.,.,,,,,,,,,.,.,..,,.,.,.,,,..,,...,...,...,.,,,,..,,.,,,,,,
-#UUM77WYOJNHYS2GMWL62VSSXCRKPEKKWMYRSU2B3RWDOQIRUI4T4T56MXKLXTAUSEZAZHPHPR4G5O
-#\\\|JMUZONNBZUW22OVTN3OAV6QH2VRKR7LGAGIYS2MB66DQCSXM36X \ / AMOS7 \ YOURUM ::
-#\[7]SRGVUKULDYMYYJ2DDUIVEIM56IJ554K24XWADOPFMBDDHCNLNMCQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,,,.,,,,,.,,..,..,,,.,,,..,,,,,..,,...,.,.,..,,..,,.,.,..,,.,,,
+#M4EBNDVGGXOUJVW43MOUC2VEX5P5UNFVMRJALXISHTGNNWQ633RBSI44NKQSCADZBBYONR37U2J3G
+#\\\|VODB5VBQAJF7CZOOMU3PVVMNUDQIFBNLCSPUWSGTBKMOX5MJPLN \ / AMOS7 \ YOURUM ::
+#\[7]OVBBA2BGQFQYXJTFIFJWMZQTM2TRZK2PRHP4OF3I4Y3BUWMMAYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

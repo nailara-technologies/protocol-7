@@ -27,7 +27,7 @@ the actual diff/test output, not just the auto-summary):
   Also deleted two lines in `nshell.editor.process` that were redundant
   (already covered by `editor_submit`'s internal `editor_reset` call).
 - `step_1` (commit `e039f1912`): built new, isolated
-  `modules/editor.buffer.memory.*` (8 files) and `modules/editor.control.*`
+  `src/editor.buffer.memory.*` (8 files) and `src/editor.control.*`
   (11 files) — a single-field (`freeform_line`) implementation ported from
   `AMOS7::TERM::editor_process_key`'s byte-offset key-dispatch logic to
   character offsets, with a semantics-only `process_key` return contract
@@ -57,7 +57,7 @@ the actual diff/test output, not just the auto-summary):
   [[reference-new-module-namespace-existing-zenka]] — caught live by a
   real Up-arrow runtime error after first restart, fixed and confirmed
   working. Verified independently: zero remaining `AMOS7::TERM::editor_*`
-  or raw editor-hash touches anywhere in `modules/nshell.*`, step_1's
+  or raw editor-hash touches anywhere in `src/nshell.*`, step_1's
   parity test still 334/334, and live nshell exercise after restart.
 
 **Status: step_0/1/2 landed and live-verified, and step_4 also found
@@ -92,8 +92,8 @@ eventually un-stub) are among the files from a prior low-quality session —
 treat their existing code as unverified scaffolding, not a design
 reference, until that cleanup task reviews them.
 
-#,,,,,,.,,,.,,...,...,,,.,,.,,,,,,,,.,.,.,.,,,..,,...,...,...,.,.,.,,,,..,,,.,
-#MUU2YNSFJTI3Q37PZFEZFZLBPJ3BDWCFCSMJ6EBKBXUIMNYWYIJOHXF5DAOSNPNDHTF6WQI6S6VNE
-#\\\|ULLUHPIRMR7PM346Z7GYLX64HFRJBKMXSJOMNUDQS3WSZSBQKVM \ / AMOS7 \ YOURUM ::
-#\[7]AQT7TC43HNYUPSDHC6GX3GE326N7A5LCFWJPK4BUYRMZM52JEUBA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,.,,,.,,..,,.,,,.,,,,.,..,,...,..,,...,...,...,..,,,,,,.,.,,,,,
+#UVFZZRVC4OHUD43ERMHFPI3D2P4ZWE6ZHOPLMTNMF7TLMH6P26FXAHXFEMCE62L2267BQFZIM6BM4
+#\\\|UQH5M3TUS7D3EIOBTMZEB3QPDCRXCXL6IS26WTLW4N3ZZHVO2YT \ / AMOS7 \ YOURUM ::
+#\[7]J5A6FAYRKQUHQPC3WN4LWYGB35I2KXN26FUBURNJ4GLIYBOLEOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,7 +25,7 @@ below.
 
 ## root cause, reproduced 2026-08-01
 
-Every footer-recognizing regex in `modules/source.extract_sig_body`
+Every footer-recognizing regex in `src/source.extract_sig_body`
 caps how long the comma-line / colon-line of a footer may be:
 
 - `$footer_start_regex = qr|#[\.,]{70,85}|` (line 49) -- also reused as
@@ -111,9 +111,9 @@ match on the left:
 4. Run a **real, valid, currently-signed file** through the same path
    before and after the fix and confirm its genuine signature is still
    extracted/stripped/restored identically -- no regression on the
-   common case. Pick at least one real file from `modules/`.
+   common case. Pick at least one real file from `src/`.
 5. Run `v7.sourcecode strip-signature-footer` (or the live zenka
-   equivalent) against a small batch of real files under `modules/` to
+   equivalent) against a small batch of real files under `src/` to
    confirm no false-positive footer detection on ordinary trailing
    comment blocks that aren't signature footers.
 6. Quote real command output for all of the above -- don't just
@@ -134,8 +134,8 @@ match on the left:
   updated) once this lands, since the "still open" line there needs
   replacing with the real root cause and fix.
 
-#,,,,,...,,.,,.,.,..,,..,,..,,,..,...,..,,,.,,..,,...,...,,..,,,.,..,,...,...,
-#APJHSAYWD2DTPWKDQRUXWM4RA7QQITL7RL7TL27RL7KQNWAIIIJ7KAFVGRIRDXYLIBCIXYQTE5ZQ2
-#\\\|3EL5QYHVI2VZDFCU3XZBEWT5YWYS3FBGGEZJJ7G377LN7XPFITU \ / AMOS7 \ YOURUM ::
-#\[7]YRMZSWGRIPP62CDTN73NTZH7MGD5GDLMDBPSL5J3UUHJR2B7K6DY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,...,..,,,,,,.,,,,.,,...,,,,,..,,...,...,.,,,.,.,.,.,,..,..,,
+#FQHBDQLAKBPP4MNBJ2LHQOF5WBT7H4ZOLNZL6BG3MBSRIGXYHU52Q63KWZD3V7KP2B2U4PXSMWWEC
+#\\\|EB3JCYVESJFTSIRVTXDERY7RXSFNCQAZC42AWG6GCHNXFOUTFQ2 \ / AMOS7 \ YOURUM ::
+#\[7]O6SDQU2IQWPQMSJVEHP2EIDVLIDZ4ECVGHSIW73SQCJJFC22VGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,20 +22,20 @@ read first:
 - `data/md/design/UI-SHOW-SECURITY-LEVELS.md` (whole doc, especially
   "per-zenka interesting base values map" and the field-shape
   `{ value => sub|address, level => N }`)
-- `modules/ui.unfold` (current implementation — three-tier custom /
+- `src/ui.unfold` (current implementation — three-tier custom /
   specific-cmd / fallback dispatch; the fallback path is what this task
   changes)
-- `modules/ui.render.fallback` (current implementation — delegates to
+- `src/ui.render.fallback` (current implementation — delegates to
   `<[ui.render.tree]>` over raw `%data`; this task replaces that with
   field-map iteration)
-- `modules/ui.render.tree` (kept as the renderer for individual field
+- `src/ui.render.tree` (kept as the renderer for individual field
   values, not for whole subtrees of `%data` anymore)
-- `modules/ui.fields.fallback` from [[ui-fields-fallback]] (the shape
+- `src/ui.fields.fallback` from [[ui-fields-fallback]] (the shape
   this task consumes)
 
 ## scope
 
-### `modules/ui.unfold`
+### `src/ui.unfold`
 
 current tier 3 [ fallback renderer ] passes `address` straight to
 `<[ui.render.fallback]>` and leaks whatever is under
@@ -57,7 +57,7 @@ unchanged — zenki that opt into a fully custom renderer or a specific
 ui-show command are trusted to do their own filtering. only the
 generic fallback path needs this gate.
 
-### `modules/ui.render.fallback`
+### `src/ui.render.fallback`
 
 current implementation calls `<[ui.render.tree]>->({ address,
 slot_budget })`. change to accept `{ address, fields, slot_budget }`:
@@ -88,7 +88,7 @@ it already calls `<[ui.unfold]>` and treats the return as opaque
 
 ## acceptance
 
-- `perl -c modules/ui.unfold modules/ui.render.fallback` clean
+- `perl -c src/ui.unfold src/ui.render.fallback` clean
 - for a zenka with NO declared `<namespace>.ui.fields`,
   `ui.unfold->({ address => '<zenka>' })` returns a rendering composed
   only of `ui.fields.fallback` level-0 fields — no raw `%data` leakage
@@ -127,11 +127,11 @@ signature footer; the pre-commit hook will refresh the footer ].
 ## checks
 
 ```
-perl -c modules/ui.unfold modules/ui.render.fallback
+perl -c src/ui.unfold src/ui.render.fallback
 ```
 
-#,,..,,..,,..,.,.,,..,.,,,.,,,,,,,.,,,,,,,.,.,..,,...,...,.,.,,,,,...,,,,,.,,,
-#CXR43KADS452QQBHQG2R5LQIVWG7XC2DRRPOWD7BZ243KVQDFGQG2OP4VURVSU3PYSRYDWX4KBLE6
-#\\\|FPF4MKMRFJAVRVVXTE5FT6XIK7T7QPNPLD4EC273A2LX4LJVHOB \ / AMOS7 \ YOURUM ::
-#\[7]R2YNTZ2HO6FNNCY2ML332AG3UTG3EZSKDZO4EPPFNKIS2BTHLEDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,.,.,.,,,...,,,,,,..,,,,,.,,,..,,...,...,,,.,...,.,,,,.,,,.,,
+#O7XEAV67QS2NC227NEQBO7D5QVPKRSSMDHCOOFV5TAMALR5PFY4T653WCITXWKVL4S4GK6YYZT7SY
+#\\\|4E54QUVHOEPMCN7D5Y25K2CMWYJP7WDL7UL6VV6WEQEQM6HTZZ2 \ / AMOS7 \ YOURUM ::
+#\[7]XWB3DZRGS2CPWDR4WNP3ITXUJZFWI4S3KWHQ35LUVRW4HWBHE4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

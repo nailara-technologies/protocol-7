@@ -18,7 +18,7 @@ string with no Perl UTF8 flag. `p7-log.add_line` then printed those bytes
 through a `>>:encoding(UTF-8)` filehandle, which re-encoded each byte as its
 own Latin-1 codepoint.
 
-**Fix:** one line in `modules/p7-log.add_line` right before the `print`:
+**Fix:** one line in `src/p7-log.add_line` right before the `print`:
 `utf8::decode($$log_msg_ref) if not utf8::is_utf8($$log_msg_ref);`
 Landed 2973129e6 on `base`.
 
@@ -33,7 +33,7 @@ missing `utf8::decode`) rather than forward from the string's origin — that's
 how this one was found quickly despite several unrelated utf8 fixes already
 landed elsewhere in the codebase.
 
-**Live test tool:** `modules/devmod.cmd.echo`, loadable into any zenka's start
+**Live test tool:** `src/devmod.cmd.echo`, loadable into any zenka's start
 file (`<zenka>.commands echo` — jobsite already had devmod loaded, just needed
 the command enabled), round-trips a string through `p7c <zenka>.echo "str"`
 and logs it — lets you inject a wire-transported test string and inspect the
@@ -41,8 +41,8 @@ resulting log file bytes directly (`hexdump -C`) to confirm/bisect encoding
 fixes without waiting for real traffic. Remove the command from the start
 file again once done testing.
 
-#,,.,,.,.,,..,.,.,...,,,,,,,,,,.,,,,.,,.,,,,.,..,,...,.,.,..,,.,.,.,.,.,.,,,.,
-#5VECZ3VKNKQL6ZWRYCNWGX2OMMNJDU5REFXTFDU4YZOF2GTFTXC6KZ7DPIJXTSKPQPAO3OEOSGOPW
-#\\\|U55BG7UIQV7HFFSBAYWOPKMZOFJDGVH5AJUWR4NQSSAKR2VWPRJ \ / AMOS7 \ YOURUM ::
-#\[7]DFXUV4UAFV3RR5ZQ5TIHJXNMIZXUCZNR4NB26UOVWO4ZFFGV6WDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,,.,,..,,,,,,...,..,,.,,,...,..,,...,...,.,,,...,,,,,...,,.,,
+#VFWMH4OQCFPURSTSDHVRCICGGHZHX6N3LPV3QGU4RQ6WVJSBPIYE4MPI5N6BXKEQKMWM2YQDO2D2K
+#\\\|76Q3KCFB5MK633RQNBZQ6DPD73ZO2LZT36YDBVFG5UP5RYTWRT5 \ / AMOS7 \ YOURUM ::
+#\[7]2JBDUFHJ3WLTARETLIR5YWTSBPUCISHGFPWUHZMTQ5SZVEPR4ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

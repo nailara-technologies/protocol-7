@@ -48,21 +48,21 @@ also skim [ quickly, just for context ]:
 ## code scan — map specified modules to actual state
 
 for each doc, cross-reference the modules it mentions against what
-actually exists in `modules/`. use `list_modules` or `search_code` tools.
+actually exists in `src/`. use `list_modules` or `search_code` tools.
 
 key namespaces to survey:
 
 | namespace | specified in | actual state to verify |
 |---|---|---|
-| `modules/index.*` | topic-file + implicit everywhere | some modules exist, `add-path` is stub |
-| `modules/storage.*` + `plugin.storage.*` | storage zenka files | kimi-generated, style issues, largely untested |
-| `modules/base.indexcube.*` | CONTEXT-TREE doc [ phase 1 "DONE" ] | 5 modules exist — verify they work as specified |
-| `modules/context.tree.*` | CONTEXT-TREE doc [ phase 1 "DONE" ] | ~10 modules exist — list them and their roles |
-| `modules/base.checksum-fs.*` | phase-2 yaml [ 7 modules planned ] | confirm: NONE exist |
-| `modules/search.*` | INDEXER-SEARCH doc | confirm: NONE exist [ not even the zenka ] |
-| `modules/indexer.*` | INDEXER-SEARCH doc | confirm: NONE exist |
-| `modules/knowledge.*` | KNOWLEDGE_BASE_INDEXING doc | confirm: NONE exist |
-| `modules/base.p7ref*` / `*.p7ref.*` | CONTEXT-TREE doc | several exist — list roles |
+| `src/index.*` | topic-file + implicit everywhere | some modules exist, `add-path` is stub |
+| `src/storage.*` + `plugin.storage.*` | storage zenka files | kimi-generated, style issues, largely untested |
+| `src/base.indexcube.*` | CONTEXT-TREE doc [ phase 1 "DONE" ] | 5 modules exist — verify they work as specified |
+| `src/context.tree.*` | CONTEXT-TREE doc [ phase 1 "DONE" ] | ~10 modules exist — list them and their roles |
+| `src/base.checksum-fs.*` | phase-2 yaml [ 7 modules planned ] | confirm: NONE exist |
+| `src/search.*` | INDEXER-SEARCH doc | confirm: NONE exist [ not even the zenka ] |
+| `src/indexer.*` | INDEXER-SEARCH doc | confirm: NONE exist |
+| `src/knowledge.*` | KNOWLEDGE_BASE_INDEXING doc | confirm: NONE exist |
+| `src/base.p7ref*` / `*.p7ref.*` | CONTEXT-TREE doc | several exist — list roles |
 
 produce a "module status matrix" section in the output doc.
 
@@ -136,7 +136,7 @@ for each sub-component, include:
 - no emoji
 - heading levels: `#` for title, `##` for top sections, `###` for sub-sections
 - when referencing code, use backticks and full module paths
-  [ e.g. `modules/index.gen_path` not `index.gen_path` ]
+  [ e.g. `src/index.gen_path` not `index.gen_path` ]
 - when referencing the 8 source docs, use relative paths from repo root
 
 ## verification
@@ -163,8 +163,8 @@ before marking task complete:
 the output doc becomes the input to the NEXT implementation task. keep it
 useful as a reference, not as implementation instructions.
 
-#,,..,,..,,.,,.,,,.,.,,,.,,,.,,,,,...,...,,,.,..,,...,...,,.,,,,.,,..,...,,,,,
-#I33QXOP7GIQG4SJYBFYSMZOCBNYUOPSIMDXIQNR7BOPYEJNSLD2OQZGSCUVODXBBVN7DCUPWQI536
-#\\\|FZN74S3R2CPT4AWNJDOPXUN53BRX5VIRFC6SCUFEBDEHFYT2QIB \ / AMOS7 \ YOURUM ::
-#\[7]Q5UEZSWCTM44IWEFPPFXEB3SR7KNDCA6X6XHFZKZ2HT2DGKMEOBQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,,,,,..,,.,,,,,,,...,,,.,..,,..,,...,...,.,.,,,.,...,.,.,,..,
+#OLKCANJSCPGDPZUAU3CP2RXL3LUGW5CFRKK5XI4EQ4UHZYD35D7XVDF2QSHGBF5FTRPJV2UTHZIOC
+#\\\|6LUZPSH4XKUFLBMIL6MINFBZWZV2RARMKXPTUTT5K3AKJL7L5MJ \ / AMOS7 \ YOURUM ::
+#\[7]ZDADN7XN5MMYDLSJ7VYBDE6M3VZJCAXAOAAISYTBML3GX7XGC6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

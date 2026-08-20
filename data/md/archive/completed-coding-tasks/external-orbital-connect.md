@@ -114,15 +114,15 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 
 ## deliverables
 
-1. modules/external.cmd.connect-orbital
-2. modules/external.handler.orbital_connect_reply
-3. modules/external.cmd.list-connections
-4. modules/external.cmd.orbital-status
-5. modules/external.orbital.sync_grid_fragment
-6. modified modules/external.init_code (connections hash + auto_connect)
+1. src/external.cmd.connect-orbital
+2. src/external.handler.orbital_connect_reply
+3. src/external.cmd.list-connections
+4. src/external.cmd.orbital-status
+5. src/external.orbital.sync_grid_fragment
+6. modified src/external.init_code (connections hash + auto_connect)
 
-#,,..,.,,,,,,,..,,,,,,.,.,...,,,,,.,.,,..,,,,,..,,...,...,.,,,,,,,,..,...,,,.,
-#A4BKBD6HXJ2PH23Y34C2KBNIBQDUB4DTRJ3AXTBKMZMJYO6M54XJRVS7VEEYP4VU7ROGMALTUO7H4
-#\\\|Y2QX7CAWK6LVWVCTQEEKV3QV4ZAYFV5E26NC4DOGCTG72L7ZFQD \ / AMOS7 \ YOURUM ::
-#\[7]4VXGYAI766JKJEPSMKMJHKBFPFSEXB4HBRRQRUQPYVZ4V35LYMAA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,..,,.,,,.,,,,.,,.,,,,,,,.,,,..,,...,...,...,,.,,,.,,.,.,..,,
+#ON46FNU674DPMTXKM2ZO36KGNEDBI3EKJ4WCPA2YMZ5D6TO4E5JE6O3BW4VEFIUF7AA5OQXYYB2MG
+#\\\|H65GACCZCQLBBAM5CPEOBCZGONDSYEG5PFX7Y5JWRQ4TOPZGC4G \ / AMOS7 \ YOURUM ::
+#\[7]5TMP7Y6LANMZGC6ZKKNASLTMP23S26P5KGNZZBWNFVBEQUJNFWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

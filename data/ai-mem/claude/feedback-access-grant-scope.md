@@ -1,6 +1,6 @@
 ---
 name: access-grant-scope
-description: per-zenka access.zenki entries for the taeki/admin user are redundant — only cube/access.zenki (cross-zenka) and <zenka>/start (enabling commands/modules) are needed
+description: per-zenka access.zenki entries for the taeki/admin user are redundant — only cube/access.zenki (cross-zenka) and <zenka>/start (enabling commands/src) are needed
 metadata: 
   node_type: memory
   type: feedback
@@ -67,8 +67,8 @@ inline in `start` (where it already has to live anyway) and put any
 future-grant documentation as a comment next to it; add the separate
 `access.zenki` file only when a real non-cube grant is being added.
 
-#,,.,,,,,,..,,,,,,.,.,.,,,.,.,.,,,,.,,,.,,,.,,..,,...,...,..,,,..,,.,,..,,.,.,
-#IHFQK5ZR36ZARPEKNJ4HPEU4JFGTGLG4OYAFRVZRVY47UXQ34CK6YBIGMUBFQLV2YWMPBKJ2OIMOA
-#\\\|TYHOCDYQDD3T2PVNXLZGI6F2WK4SIH5G7ZTGAT6KIEHFC72WNRY \ / AMOS7 \ YOURUM ::
-#\[7]QZEJ2EZXOFRBSZNIOHZ2KAUPNKZVUTBWEIVXRFJIASOYDN4UUMDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,.,,,,.,,...,,.,,.,.,.,.,,.,,..,,...,...,...,..,,,.,,...,.,.,
+#L5LG4NXJBAXXQ7SDGJWXZD4BYLNFRRYJDVQLGMI66YSA2RPD6OSSRMT3MTRWHCNZP6LWSCMSPOG7W
+#\\\|SJZUUU6OC2BRNRRAG6OTFH2U6FPSGSMZESOPDGWIQGFX2ZT2BD2 \ / AMOS7 \ YOURUM ::
+#\[7]ZCBM23NVDN2T3MH7AGTG3W24FUNCMEMIORTXEHWZY2V5EK2UFKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

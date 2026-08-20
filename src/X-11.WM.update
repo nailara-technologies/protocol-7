@@ -1,0 +1,125 @@
+## [:< ##
+
+# name  = X-11.WM.update
+# todo  = make WM->update obsolete
+
+return unless defined <X-11.WM>;
+
+my $rescan_retries = 13;    ##  maximum number of update call retries  ##
+my $log_level      = 2;     ## start log-level [ reduced with retries ] ##
+
+while ( $rescan_retries-- > 0 ) {
+
+    eval { <X-11.WM>->update };    ##  catching 'bad 3 (Window)' error  ##
+
+    if ( length $EVAL_ERROR ) {
+        <[base.logs]>->(
+            $log_level,
+            'error during WM->update %s',
+            scalar <[base.caller]>
+        );
+        $log_level-- if $log_level > 0;
+    } else {
+        $rescan_retries = 0;
+    }
+}
+
+## [ WSL / no-WM fallback: build registry from root window tree ] ##
+if ( not keys %{ <X-11.WM>->byid } ) {
+    my $X    = <X-11.obj>;
+    my $root = $X->root;
+
+    my $wm_name     = $X->atom('WM_NAME');
+    my $net_wm_name = $X->atom('_NET_WM_NAME');
+    my $utf8_string = $X->atom('UTF8_STRING');
+    my $string      = $X->atom('STRING');
+
+    ## [ helper: fetch a property value, ignoring errors and empty replies ##
+    ## ]                                                                   ##
+    my $fetch_title = sub {
+        my ( $wid, $atom, $req_type ) = @ARG;
+        return undef unless defined $wid and defined $atom;
+        my ($val) = eval {
+            <[X-11.pool.query]>->(
+                'GetProperty', $wid, $atom, $req_type, 0, 256, 0
+            );
+        };
+        return undef if $EVAL_ERROR or not defined $val or not length $val;
+        return $val;
+    };
+
+    ## [ helper: try atom with explicit type and fall back to any type ] ##
+    my $try_title = sub {
+        my ( $wid, $atom, $type ) = @ARG;
+        return undef unless defined $atom;
+        my $val = $fetch_title->( $wid, $atom, $type );
+        return $val if defined $val;
+        return $fetch_title->( $wid, $atom, 'AnyPropertyType' );
+    };
+
+    ## [ helper: find first titled descendant, returns ( xid, title ) ] ##
+    my $find_title;
+    $find_title = sub {
+        my ($wid) = @ARG;
+        return undef unless defined $wid and $wid ne 'None';
+
+        my $title;
+        $title = $try_title->( $wid, $net_wm_name, $utf8_string );
+        return [ $wid, $title ] if defined $title;
+        $title = $try_title->( $wid, $wm_name, $string );
+        return [ $wid, $title ] if defined $title;
+
+        my ( undef, undef, @children )
+            = eval { <[X-11.pool.query]>->( 'QueryTree', $wid ) };
+        return undef if $EVAL_ERROR;
+        foreach my $child (@children) {
+            next unless defined $child and $child ne 'None';
+            my $pair = $find_title->($child);
+            return $pair if defined $pair;
+        }
+        return undef;
+    };
+
+    eval {
+        my ( undef, undef, @root_children )
+            = <[X-11.pool.query]>->( 'QueryTree', $root );
+        foreach my $wid (@root_children) {
+            next unless defined $wid and $wid ne 'None' and $wid =~ m|^\d+$|;
+            my %wa = eval {
+                <[X-11.pool.query]>->( 'GetWindowAttributes', $wid );
+            };
+            next if $EVAL_ERROR or not %wa;
+            next if ( $wa{'map_state'} // '' ) eq 'Unmapped';
+
+            my $pair = $find_title->($wid);
+            next unless defined $pair;
+            my ( $titled_id, $title ) = @$pair;
+            next
+                unless defined $titled_id
+                and defined $title
+                and length $title;
+
+            my $wm_c = bless { wm => <X-11.WM>, id => $titled_id },
+                'X11::WM::class';
+            $wm_c->{'instance'} = '';
+            <X-11.WM>->choosechar($wm_c);
+            <X-11.WM>->{'byid'}{$titled_id} = $wm_c;
+        }
+    };
+
+    if ($EVAL_ERROR) {
+        <[base.logs]>->( 0, 'QueryTree fallback failed: %s', $EVAL_ERROR );
+    } else {
+        <X-11.WM>->sort;
+        my $injected = scalar keys %{ <X-11.WM>->byid };
+        <[base.logs]>->(
+            2, 'injected %d window(s) via QueryTree fallback', $injected
+        ) if $injected;
+    }
+}
+
+#,,..,,..,..,,,,.,,,,,..,,,,,,..,,...,.,,,,,,,..,,...,...,..,,.,.,,,,,,,,,,,,,
+#4FIEKBW3AA3OVLXUEMZTAZJYYAPCLDELE2JHJNVVGEH4PMIVEIX32QRXZCQAFLH2TKETGVBWLD3RY
+#\\\|NJ32Y35JL7SFTJNJ4ST3TEAPBPBBCD5SDVLCSAJQM3LBIGK5GER \ / AMOS7 \ YOURUM ::
+#\[7]AP3WT6A55KRINIZZWTPWWPVRBDLGRYRXMXGLT2KW27UXKNDHYYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,7 +24,7 @@ explicitly noted — the *same* idea applies equally to P7 subroutines:
    immediately, right then — never silently missing, never a crash.
 3. **Self-optimization, later**: once (1)+(2) exist, the system can watch
    its own dependency graph (`bin/dev/dep-graph`) plus real timing
-   statistics (which subs/modules actually get hit early vs. late, how
+   statistics (which subs/src actually get hit early vs. late, how
    often preemption fires vs. the deferred window firing on schedule) and
    adaptively tune which things get which treatment, instead of a fixed
    human-authored policy.
@@ -68,8 +68,8 @@ noise-driven cleanup starts surfacing enough per-call loads that a
 systemic fix becomes worth the design cost over one-off `init_code`
 placement moves.
 
-#,,,.,,,.,.,,,,,,,,,,,.,,,...,,..,,.,,,,,,.,,,..,,...,.,.,,,.,,..,,.,,,.,,,,,,
-#MLOKLDO4CVSZEY3NKN5SV4AHDUQMCPO7GEMRUZT2KPCAYLWFOQY5DRBIJYIH2YO4SIS5DYUX5BWSU
-#\\\|TWQEYXYKNPMKAQ4MJENXDO5IXROV5MT2XA6CR5WTLR7XB2NG6CM \ / AMOS7 \ YOURUM ::
-#\[7]Q4FMQEARRHVZVJIBDB333WWQWPJYH2JYQSEEHIXZX64RR4WTCKBI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,,,.,.,.,..,,.,.,,,,,.,,,,.,,..,,...,...,,,.,.,.,,,,,,,,,.,,,
+#AAUF265AR4SSN74AA3MCX4XKRELDT5EXNETQNZVD53UKVAO6V44ISSWXQZTCIU4OUVP7OAXHR25B4
+#\\\|37FT64OHGEELY7YAIJCV5RQEQ2OBCGC62SRNXM2Y2CCXYF4MVH7 \ / AMOS7 \ YOURUM ::
+#\[7]VQPE4M7JAHQNPRTTGDLW5J5OLP7EORNGNFBPZX7ZF7W4AE4SHWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

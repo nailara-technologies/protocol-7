@@ -1,0 +1,123 @@
+## [:< ##
+
+# name = nshell.handler.command_reply
+# descr = process and display cube command replies to terminal and history
+
+my $reply = shift // return FALSE;
+
+return FALSE unless defined $reply;
+
+my $cmd = $reply->{'cmd'} // '';
+
+## delegate STRM replies to dedicated stream handler
+return <[nshell.handler.strm_reply]>->($reply)
+    if $cmd =~ m|^STRM\b|;
+
+## extract reply components [ already parsed by base.handler.command ]
+my $args = $reply->{'call_args'}->{'args'} // '';    # content from call_args
+my $payload_str = $reply->{'data'};    # raw payload for multi-line replies
+
+### logging to terminal-history with endline padding ###
+## precede with blank line, log reply type and args with two-space prefix,
+## then payload [if present], then blank line
+
+## encode control characters for safe history storage
+my $encoded_args = <[nshell.parser.term_encode]>->($args);
+my $encoded_payload
+    = defined $payload_str
+    ? <[nshell.parser.term_encode]>->($payload_str)
+    : undef;
+
+## blank line before reply
+<[base.buffer.add_line]>->( qw| terminal-history |, '' );
+
+## reply type and args with two-space prefix
+<[base.buffer.add_line]>->(
+    qw| terminal-history |,
+    sprintf '  %s %s',
+    $cmd, $encoded_args
+);
+
+## log data payload if present [SIZE, STRM, ..] - also with two-space prefix
+if ( defined $encoded_payload ) {
+    map {
+        <[base.buffer.add_line]>->(
+            qw| terminal-history |,
+            sprintf '  %s', $ARG
+        )
+    } split "\n", $encoded_payload;
+}
+## blank line after reply
+<[base.buffer.add_line]>->( qw| terminal-history |, '' );
+
+## print to console [STDOUT] and handle cursor display
+#
+## [ clear current line if a history entry is displayed, so reply appears
+## clean ]
+my $_nshell_state = <nshell.state> // {};
+print "\r\e[2K"
+    if $_nshell_state->{'current_mode'} == 2
+    and length( $_nshell_state->{'display_buffer'} // '' );
+
+my $cursor_mode = $data{'nshell'}{'cfg'}{'cursor_after_reply'} // 'all';
+
+if ( not defined $payload_str ) {
+
+    ## single-line reply : colorize and print to console for immediate display
+    ## TRUE replies  : standard text color [p7_fg_0004]  FALSE replies :
+    ## emphasis color [p7_fg_0003]
+    my $reply_color
+        = ( $cmd eq 'FALSE' ) ? $colors{'p7_fg_0003'} : $colors{'p7_fg_0004'};
+
+    printf "\n%s%s\e[0m\n\n", $reply_color, $args;
+
+    ## re-display cursor after single-line reply output
+    if ( $cursor_mode eq 'line' or $cursor_mode eq 'all' ) {
+        print "\r"
+            . $colors{'p7_fg_0003'}
+            . "_\e[K\r" . "\e[0m"
+            . $colors{'p7_fg_0004'};
+    }
+
+} else {    ## print multi-line output directly without padding to console
+
+    print $payload_str;
+
+    ## track whether payload had no trailing newline  next prompt will add
+    ## separation if needed
+    if ( $payload_str !~ m{\n\z} ) {
+        <nshell.state>->{'needs_newline_prefix'} = TRUE;
+    } else {
+        delete <nshell.state>->{'needs_newline_prefix'};
+    }
+
+    ## redraw cursor after SIZE/payload reply if configured
+    if ( $cursor_mode eq 'all' ) {
+        print "\n"
+            if $payload_str !~ m{\n\z};
+        print "\r"
+            . $colors{'p7_fg_0003'}
+            . "_\e[K\r" . "\e[0m"
+            . $colors{'p7_fg_0004'};
+        delete <nshell.state>->{'needs_newline_prefix'};
+    }
+}
+
+## [ re-display history entry if reply arrived while in VIEWING_HISTORY mode ]
+my $nshell_state = <nshell.state> // {};
+if ( $nshell_state->{'current_mode'} == 2
+    and length( $nshell_state->{'display_buffer'} // '' ) ) {
+    print "\r\e[2K";
+    $nshell_state->{'view_offset'} = 0;
+    <[nshell.render.viewport]>->( $nshell_state->{'editor'}, \%colors );
+}
+
+STDOUT->flush();
+
+return TRUE;
+
+#,,..,..,,,.,,.,.,,,.,..,,,.,,,..,,.,,.,,,,..,.,.,...,...,,..,...,,..,.,.,,,.,
+#73N5EAE322RSDPWN63VOOXFS26BQRCS5QDCIGFYMCJP2UG6WAX6XN2PNCGFBGDFLT3UUHBF6ZETVM
+#\\\|B2HWBJRAJR3GZFF7HUHI6EWEJHTTFMLDKO6Z6TJPYSLLIIHYUNQ \ / AMOS7 \ YOURUM ::
+#\[7]5C2DBTLWV5WJS57UQ4T7OQIXM5LDUKSC3MWGH6JDW63MBLXAWUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -86,7 +86,7 @@ observation that solving it has independent value.
 **Why this would be tractable, not just desirable — user's point**:
 `base.event.add_var` is the single, central gate every variable-watcher
 registration goes through — confirmed live, exactly 15 real call sites
-codebase-wide (`grep -rl "event\.add_var\b" modules/`: `v7.init_code`,
+codebase-wide (`grep -rl "event\.add_var\b" src/`: `v7.init_code`,
 `protocol-7-menu.menu-structure-init`, `v7.setup_stdout_redir`,
 `jobqueue.event.register_job_queues`, `httpd.http_post`,
 `base.log.send-buffer.init`, `coding.cmd.complete-analysis`,
@@ -140,8 +140,8 @@ preserve exactly this seam, not just "watch a variable" in the abstract.
 [[feedback-base-prefix-stripped]] (the swap_subs mechanism + the scanner
 false-positive this stub currently causes), [[feedback-swap-subs-not-fragile]]
 
-#,,,.,,,,,,.,,...,.,.,,,.,,,.,,,,,.,.,...,.,.,..,,...,...,.,.,,.,,.,,,,..,.,,,
-#CUWV5N53N3XM66MHTFTYU67CLNZCVC5L55N6WOPKLC6KT3CNTVJFU4L57LQ5SWWSYWRR2NUTBE5W6
-#\\\|XLZ4ZUBZTNOO6SGQYX6PPC54IVXTDJ45RSFSCNFMHE4QIGUTX4W \ / AMOS7 \ YOURUM ::
-#\[7]Q5GAOIVPPUR3GGJB7EY6TFFAR3L7LX4LYDLCKPESALGVJZQQBWDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,.,.,.,.,...,,..,.,.,...,.,,,..,,...,..,,.,.,.,,,..,,.,.,.,.,
+#GFA2RHOCRVF37UALJJUTED5KAE7ZXSUNXCXEAONNY4PAIP5B4PHNPJQ2YFCUS5T7CTJXNULPGDOBY
+#\\\|OM4J53DHU5SV5VALWTCUL3ZVRLFHU3WTDGOF7STIX7ZVAWAV6PX \ / AMOS7 \ YOURUM ::
+#\[7]7DFQVLMWGQJMHG7MENFKS7PGMI7TBKS4OSZE4A75BTI63HLWMUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

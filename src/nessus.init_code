@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = nessus.init_code
+# descr = nessus zenka initialization : scan result data dir creation
+
+## the scan result data dir IS created here at init, with the zenka user as ##
+## owner [ p7-log.init_code + forensics.init_code precedent ] :             ##
+## file.make_path is only available during the init phase -- post-init the  ##
+## deferred-compile sources are cleaned and the sub resolves to undef [     ##
+## verified live 2026-07-29 : see                                           ##
+## data/ai-mem/kimi/feedback-new-zenka-boot-checklist.md ]                  ##
+
+my $data_dir = <nessus.cfg.data_dir> // sprintf qw| %s/data/nessus |,
+    <system.root_path>;
+
+if ( not -d $data_dir ) {
+    <[file.make_path]>->( $data_dir, 0750, <system.amos-zenka-user> )
+        and <[base.log]>->( 1, 'created scan data dir [ %s ]', $data_dir )
+        or
+        <[base.log]>->( 0, 'cannot create scan data dir [ %s ]', $data_dir );
+}
+
+return 0;
+
+#,,,.,,,,,,..,,,.,,,.,.,,,.,.,.,.,.,.,,.,,.,,,.,.,...,...,,,,,,..,.,.,,.,,.,,,
+#EMUWPIYV243FXKSY2IUAWZ4H5MQOKZRZJM4M6EBRUIUVMIVY2MEALEQGLUUPGUSUGGAXXBE56WDAE
+#\\\|TNSKIJPOMQPEJUQGL5J6FA4IT6JD23W4KD3Z3QTCG6DFDADVVA7 \ / AMOS7 \ YOURUM ::
+#\[7]EVBFVYAOTJYLSRORLI4CCY6CZ4PA3UUCT5TUL7WOUD2S5QKRWQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

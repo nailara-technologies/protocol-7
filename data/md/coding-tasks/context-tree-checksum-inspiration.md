@@ -7,7 +7,7 @@
 
 ## overview
 
-    `modules/source.signature_valid`
+    `src/source.signature_valid`
     demonstrates production-grade truth assertion patterns that should inform
     context tree checksum validation
     .
@@ -317,8 +317,8 @@ my $report = $validation_result->{'truth_status'};
 
 #,,.,,...,,.,,.,,,,,,,,,.,.,,,,.,,.,,,,,,,,..,..,,...,...,.,.,,..,.,.,.,,,,..,
 
-#,,..,,,.,,,,,,.,,..,,..,,,,.,,..,,..,,,,,,,.,..,,...,...,...,..,,...,.,,,,..,
-#CSHWSMKTGNIPP27WZV3LTO35WQIFBER6IC2CYL4DHPJ4Y7QI43AWVDJRW5XSANLXLMKWLLPOJKD3K
-#\\\|WCDLCFPOOWELFJUCLI5PT2HOPVHS2WFZ2BDO7JLK74VCFCFLMUP \ / AMOS7 \ YOURUM ::
-#\[7]PYPDZROBROQLD2667IGTZZYHK2EEPLQN4E2RMRXLZWZGXVRTIMAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,.,.,..,,,.,,..,,,,,,.,,,...,..,,...,..,,...,,,,,...,,.,,.,.,
+#UU52QUHFLJPKWFEFLSMM46AQQOEUVOIX3ETSXWFSBODCJKRUDDHVNMRVUEQNEURUQPMMCDFQGHK3A
+#\\\|CNAWDAPJ7MTTCVPNH5OIJGVP6GPT2XSJUE2PPKFWY2SAWMQG34N \ / AMOS7 \ YOURUM ::
+#\[7]WP7V2OS5CLDRQKF6VN6P5WRVKM2EQDHIFZ5C6OXAH7ZYESVFB2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

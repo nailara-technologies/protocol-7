@@ -257,11 +257,11 @@ prompt: |
   the separator inversion flash at count=0, and the new modules (route.bmw384.ledger.*
   and route.bmw384.visual.wheel.ledger). Also adds a ledger mode button to the iris UI
   with drain/fill simulation controls and a POST /iris/ledger endpoint. Read
-  modules/route.bmw384.visual.wheel first for SVG rendering patterns. New modules:
+  src/route.bmw384.visual.wheel first for SVG rendering patterns. New modules:
   leave clean, no signature stubs. Use $ARG not $_, lowercase comments.
 
-#,,,,,,,.,,..,,..,...,.,,,.,,,..,,,,,,.,.,,,,,..,,...,...,,,,,,.,,,.,,,,,,.,.,
-#JO3BXFEGLQ7WY6T72UJM4ZM54CQI7YCINND7DKMZ5OH5IBBEFNCPV3FHOJSPCMA2SHGSVLGWPMKD6
-#\\\|2FH5DP63DS6A6HK2FHKCCOSBAFSD334ITFBMF7BBBJLMNBGL45P \ / AMOS7 \ YOURUM ::
-#\[7]HFWNU7DIBU3XEIGJPN47ANIVE5CAODKMQBHYC7OZXZVI5GJGUOAY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,..,,,,,..,,...,.,.,...,,.,,..,,...,..,,..,,.,,,.,,,...,,,,,
+#AXG6WSZG4YGISWVTK22AHHUKXDPNV6FLS2QJWBBTJA5YMIKA4QMXMMOWDJUY3UG3B4GLROBRGFJB2
+#\\\|GYASHZR6RCW5AZXSQ6KD4ZU56AFRTZBVJQBJ5D46FU2HRXPW7PI \ / AMOS7 \ YOURUM ::
+#\[7]7GRAVEMCZ4NIYDGXD3KZNQVPTUCXY34X2YDTACLARRRA7GRXOEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

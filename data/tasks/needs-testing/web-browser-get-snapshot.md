@@ -26,9 +26,9 @@ do not add or modify subroutine whitelists — these are managed separately.
 ## what to read first
 
 ```bash
-cat modules/web-browser.init_view
-cat modules/web-browser.open_window
-cat modules/web-browser.cmd.get_uri
+cat src/web-browser.init_view
+cat src/web-browser.open_window
+cat src/web-browser.cmd.get_uri
 cat cfg/zenki/web-browser/zenka-startup.v7
 ```
 
@@ -41,7 +41,7 @@ stored, and how existing async commands return deferred results, before implemen
 
 ### 1. add cfg defaults in init_code
 
-file: `modules/web-browser.init_code`
+file: `src/web-browser.init_code`
 
 add alongside other `cfg.*` defaults:
 ```perl
@@ -51,7 +51,7 @@ add alongside other `cfg.*` defaults:
 
 ### 2. implement web-browser.cmd.get_snapshot
 
-new file: `modules/web-browser.cmd.get_snapshot`
+new file: `src/web-browser.cmd.get_snapshot`
 
 ```perl
 ## [:< ##
@@ -94,7 +94,7 @@ return undef;
 
 ### 3. implement web-browser.handler.snapshot_result
 
-new file: `modules/web-browser.handler.snapshot_result`
+new file: `src/web-browser.handler.snapshot_result`
 
 ```perl
 ## [:< ##
@@ -163,8 +163,8 @@ ls -la /var/protocol-7/visual-feedback/capture/snapshot_*.png
 - [ ] async callback pattern matches existing zenka reply conventions
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,.,.,.,,,...,.,,,,,.,,..,,.,,,..,.,.,.,,,..,,...,...,..,,..,,,,,,..,,,.,,
-#GMTPI2FQPLOZKCPRGLP5AJB5T4KPXBKMGOIEXVSQFUKORKRT77H55D42ZEEELCK5QGTCHOZS2EUFM
-#\\\|V5I6UMH4PAR6WIMJ5FTV5QI7MGYGB5SW7SW6BD27MCHCMH6WA7S \ / AMOS7 \ YOURUM ::
-#\[7]JA2YKWCBPOW663OMD2VJNNO73CWY2Q7QLU4EL5FIM3R2BIOHD4CA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,.,,...,,.,,.,.,...,,.,,,,.,.,,,..,,...,...,,..,,,,,,,.,.,,,.,.,
+#2AACY42E7TISJMWK6IPH7V53BEJBP37S3JPRUKYR5FPTX5A4LDWJPOPFDRUNUIMVPCNMITFUGKVKK
+#\\\|Y5BFLRW3EGCUYITO4SQWGTRTM47Z7R32PTOMAIDWEQDNCRBVAT6 \ / AMOS7 \ YOURUM ::
+#\[7]AONOEWR32AKF2AODOTWXBNCH2K6MJ55K7EP5O7EV5BWCRIITT6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

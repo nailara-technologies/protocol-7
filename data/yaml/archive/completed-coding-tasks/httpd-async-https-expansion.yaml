@@ -55,14 +55,14 @@ phase_1_analysis:
         - Module naming conventions
 
       files_to_review:
-        - modules/httpd.http_get
-        - modules/httpd.http_head
-        - modules/httpd.http_options
-        - modules/httpd.request_handler
-        - modules/httpd.determine_host
-        - modules/httpd.path_info
-        - modules/httpd.send_error_page
-        - modules/httpd.new_header
+        - src/httpd.http_get
+        - src/httpd.http_head
+        - src/httpd.http_options
+        - src/httpd.request_handler
+        - src/httpd.determine_host
+        - src/httpd.path_info
+        - src/httpd.send_error_page
+        - src/httpd.new_header
         - cfg/zenki/httpd/start
 
       deliverable: "HTTP Handler Architecture Document"
@@ -78,9 +78,9 @@ phase_1_analysis:
         - Error handling in template processing
 
       files_to_review:
-        - modules/httpd.process_template
-        - modules/httpd.handler.template_reply
-        - modules/template.init_code
+        - src/httpd.process_template
+        - src/httpd.handler.template_reply
+        - src/template.init_code
         - cfg/zenki/template/start
         - Any *.tmpl files in /var/httpd/
 
@@ -97,10 +97,10 @@ phase_1_analysis:
         - Session lifecycle in async operations
 
       files_to_review:
-        - modules/base.event.*
-        - modules/httpd.file_transfer.*
-        - modules/letsencrypt.base.fork_letsencrypt_child
-        - modules/base.callback.cmd_reply
+        - src/base.event.*
+        - src/httpd.file_transfer.*
+        - src/letsencrypt.base.fork_letsencrypt_child
+        - src/base.callback.cmd_reply
 
       deliverable: "Async Patterns Documentation"
       priority: "high"
@@ -181,7 +181,7 @@ phase_3_implementation:
           - Returns array of alternating text/callback_result
           - Comprehensive documentation and error handling
 
-        output: "modules/base.parser.pattern_split"
+        output: "src/base.parser.pattern_split"
         priority: "high"
 
       - name: "Create parser test suite"
@@ -211,7 +211,7 @@ phase_3_implementation:
           - ACME challenges: /.well-known/acme-challenge/*
           - Template endpoints: /dynamic/*
 
-        output: "modules/web.http.route_dispatcher"
+        output: "src/web.http.route_dispatcher"
         priority: "high"
 
       - name: "Create web.http.handler_api"
@@ -222,7 +222,7 @@ phase_3_implementation:
           - Handle async replies
           - Format JSON responses
 
-        output: "modules/web.http.handler_api"
+        output: "src/web.http.handler_api"
         priority: "high"
 
       - name: "Create web.http.handler_acme"
@@ -233,7 +233,7 @@ phase_3_implementation:
           - Handle deferred replies
           - Return status/certificate data
 
-        output: "modules/web.http.handler_acme"
+        output: "src/web.http.handler_acme"
         priority: "high"
 
       - name: "Create web.http.handler_dynamic_template"
@@ -244,7 +244,7 @@ phase_3_implementation:
           - Route to template-engine zenka
           - Handle async template rendering
 
-        output: "modules/web.http.handler_dynamic_template"
+        output: "src/web.http.handler_dynamic_template"
         priority: "high"
 
       - name: "Extend httpd.http_get with dispatcher"
@@ -254,7 +254,7 @@ phase_3_implementation:
           - Route to appropriate handler
           - Maintain backward compatibility
 
-        modification: "modules/httpd.http_get"
+        modification: "src/httpd.http_get"
         approach: "Add route check at beginning, fallback to existing logic"
         priority: "high"
 
@@ -275,7 +275,7 @@ phase_3_implementation:
           - Add proper error handling and logging
 
         current_status: "AI-generated, needs refinement"
-        files: "modules/template.init_code, cfg/zenki/template/start"
+        files: "src/template.init_code, cfg/zenki/template/start"
         output: "Refined template.init_code"
         priority: "high"
 
@@ -288,7 +288,7 @@ phase_3_implementation:
           - Support async processing with callbacks
 
         parameters: "template_path, context, options"
-        output: "modules/template.cmd.process_template"
+        output: "src/template.cmd.process_template"
         priority: "high"
 
       - name: "Create template.handler.render_complete"
@@ -298,7 +298,7 @@ phase_3_implementation:
           - Send callback reply to httpd
           - Handle errors and timeouts
 
-        output: "modules/template.handler.render_complete"
+        output: "src/template.handler.render_complete"
         priority: "high"
 
       - name: "Create template.processor.nailara_syntax"
@@ -311,7 +311,7 @@ phase_3_implementation:
           - Filter application
 
         uses: "base.parser.pattern_split for parsing"
-        output: "modules/template.processor.nailara_syntax"
+        output: "src/template.processor.nailara_syntax"
         priority: "high"
 
       - name: "Create template.lib.filters"
@@ -324,7 +324,7 @@ phase_3_implementation:
           - JSON encoding/decoding
           - Custom filter registration
 
-        output: "modules/template.lib.filters"
+        output: "src/template.lib.filters"
         priority: "medium"
 
       - name: "Create template.cache.manager"
@@ -336,7 +336,7 @@ phase_3_implementation:
           - Cache statistics
           - Size-based eviction
 
-        output: "modules/template.cache.manager"
+        output: "src/template.cache.manager"
         priority: "medium"
 
       - name: "Create template.lib.security"
@@ -347,7 +347,7 @@ phase_3_implementation:
           - CSRF token handling
           - Safe variable interpolation
 
-        output: "modules/template.lib.security"
+        output: "src/template.lib.security"
         priority: "high"
 
   stage_4_https_support:
@@ -372,7 +372,7 @@ phase_3_implementation:
           - Crypt::OpenSSL::X509
           - Certificate utilities
 
-        output: "modules/httpd.tls.pre_init"
+        output: "src/httpd.tls.pre_init"
         priority: "high"
 
       - name: "Create httpd.tls.init_code"
@@ -382,7 +382,7 @@ phase_3_implementation:
           - Setup SSL context
           - Configure cipher suites
 
-        output: "modules/httpd.tls.init_code"
+        output: "src/httpd.tls.init_code"
         priority: "high"
 
       - name: "Create httpd.https_listener"
@@ -392,7 +392,7 @@ phase_3_implementation:
           - Register SSL protocol
           - Setup TLS context
 
-        output: "modules/httpd.https_listener"
+        output: "src/httpd.https_listener"
         priority: "high"
 
       - name: "Create httpd.http_redirect_https"
@@ -402,7 +402,7 @@ phase_3_implementation:
           - Generate 301/302 redirect
           - Preserve request path
 
-        output: "modules/httpd.http_redirect_https"
+        output: "src/httpd.http_redirect_https"
         priority: "high"
 
       - name: "Create httpd.tls.certificate_loader"
@@ -413,7 +413,7 @@ phase_3_implementation:
           - Support renewal (ACME integration)
           - Hot-reload capability
 
-        output: "modules/httpd.tls.certificate_loader"
+        output: "src/httpd.tls.certificate_loader"
         priority: "high"
 
 ---
@@ -530,11 +530,11 @@ resources:
   - "Documentation: data/asc/LEVEL-3-ARCHITECTURE.md (just committed)"
   - "Dependency system: Just integrated (v7.verify_and_install_zenka_dependencies)"
   - "Template configuration exists: cfg/zenki/template/"
-  - "Existing patterns: review modules/httpd.* and modules/base.event.*"
+  - "Existing patterns: review src/httpd.* and src/base.event.*"
   - "Task framework: Use ./bin/Protocol-7 workflow overview to track progress"
 
-#,,.,,,,,,.,,,,,.,,,.,,,.,,.,,,.,,,,,,,.,,.,.,..,,...,...,,..,...,,,,,,.,,,,.,
-#UHYL65LZJGHONZA6NV3CTT7XWHG7M6ZUWHKHLZTCAWVN4RDUAVNLLSDUSG3RY2Q3N4PSOJZ7B62HQ
-#\\\|3MW5HQZNZLB7WYAHHXLJTN3VYQVXQN776YP656ZBHJQ6X5CVAWF \ / AMOS7 \ YOURUM ::
-#\[7]4E5ENLNXQI3RXFRE7RTJVVJG77E5WQUW4ATCMM5HLGXYU4SVDMBA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,.,,,..,,,,.,...,..,,,,.,.,,,..,,...,...,.,.,.,.,...,.,.,..,,
+#CU5LPKWJSJIGBBYFSVBY2BMDG4MDNT7NWEK2XDGSIXYMOFOU55SQXH3UOHSUXPJ4BK5BZOBVS4LEA
+#\\\|JHL2YQR7FFDZDXYPDQMG6O5IHHSQB4N64DXGC3HSYIDE43DZLQ7 \ / AMOS7 \ YOURUM ::
+#\[7]BHINECRTHBO3ONZXFHI7EMPZQL223PCSEZDVGYCNETLCSNQ2EODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,7 @@ second dot in the action segment would read as routing to a child zenka
 named `spatial`, which isn't intended here. the actual module/wire name
 would be flat and dash-separated, e.g. `audio.cmd.spatial-purr` →
 `audio.spatial-purr`. this implies a dedicated `audio` zenka namespace that
-does not exist yet — nothing in `modules/` currently touches CLAP embeddings,
+does not exist yet — nothing in `src/` currently touches CLAP embeddings,
 FFT analysis, or waveform rendering. this task is scoped to just the
 image-generation step (audio buffer/file → PNG), not the full spatial-audio
 pipeline (embedding extraction, selective-hearing attenuation, dream-layer
@@ -128,8 +128,8 @@ both out of scope here and already tracked as delegated in the retired
   async-proxy pattern from `x11-capture-commands-rewrite.md` if shelling
   out to ffmpeg)
 
-#,,.,,,,,,,,,,.,,,..,,..,,,..,..,,.,,,,.,,.,.,..,,...,...,,,.,,..,,.,,,,,,,.,,
-#4KVBMIJQAXHT5FMAQNVP3AY64SZN5A4YBWJDCXPOA4QEIXCJSAJ3YCILLUH2DLXRIHW6XDNK5J7KU
-#\\\|XF5IEMDAVKHPEU3RHWXRCNL6V3YL6TKUQCBWAYRPLF52D7F6352 \ / AMOS7 \ YOURUM ::
-#\[7]X5P4CQZN5LCAOLNVDLINSU5YDKCPE5VWIAQXBKR7GV4VUKTIWUBY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,..,,..,,.,,,..,..,,.,,,.,.,.,,,..,,...,...,...,.,,,...,.,.,,,.,
+#6QGSPBZLXWXWHDUEK6BQRJJ6U2HYY5UWPKWRQGNUEZCP6OLRNBHBZTHBZFCZ5H252WT4XG6UWBJYM
+#\\\|ZELGMIQSYZ3K4TSDPCZUY24M25BZPG46AS6NZN2ZTHMQWBIORMD \ / AMOS7 \ YOURUM ::
+#\[7]5PCQ3PD32OWWOFTDUWKHHSOMICQPRN2NFUFNPNYU4IPDERBYUGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

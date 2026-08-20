@@ -26,7 +26,7 @@ related existing work:
 - `topic-nshell-terminal-rendering` (memory) — terminal buffer
   conventions, overflow path, color reset
 - `topic-frame-plugin-slots` (memory), `topic-frame-idiom-convergence`
-- `modules/base.parser.list` — existing width-aware column rendering
+- `src/base.parser.list` — existing width-aware column rendering
   patterns
 
 ## signatures note
@@ -169,8 +169,8 @@ harmony base.ui.render.tree
 harmony base.ui.render.tree.invalidate
 ```
 
-#,,,,,..,,.,,,.,.,...,...,..,,,.,,,.,,,,.,,,.,..,,...,..,,.,,,,..,,,.,,.,,.,.,
-#KBANEMAQQICHHTXDS4I3T6V3COIXQUCZ2D7TMJ5K3IPTL2ACRW2WB3Q3V4WTC2JZ7KV4D3VP67MTM
-#\\\|LZHJWXXZNDT64ZQ3T2QCQI2V3EUVOSBRKNPTXGNSKIIDJ7VF3OO \ / AMOS7 \ YOURUM ::
-#\[7]CCGOBWG3THREWKZGTYHK4L6X6PGFJDRKWNFTDJXJREQFW2YHV6BQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,..,,.,,,.,,,,.,,...,,,,,,,,,,,.,..,,...,..,,,..,.,.,..,,,.,,.,,,
+#63BJNIAXUUCEYEGP32LYK7CINIMHFYKG74V273THV7JJVLUVVUL3IPF3PMA4KQPMQSX4JSUOGB7ZA
+#\\\|7JV7H7T7NJ6H7P477GDRMVNUPEFURA3JGAH2KAC67WBOCQVFGOF \ / AMOS7 \ YOURUM ::
+#\[7]555KJQMPULVHH3U7TANP3RO2BTABTFWYC7CKOKDFM36RVXAB5QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

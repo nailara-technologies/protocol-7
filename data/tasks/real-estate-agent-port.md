@@ -2,8 +2,8 @@
 
 ## context
 
-existing: jobsite framework — modules/jobsite.*, modules/site-yaml.job.*,
-modules/plugin.web.jobs.*, data/web-root/vhosts/jobs.vhost/index.html
+existing: jobsite framework — src/jobsite.*, src/site-yaml.job.*,
+src/plugin.web.jobs.*, data/web-root/vhosts/jobs.vhost/index.html
 (categorized status tabs UI, scoring, bulk actions, export/report tables)
 memory: data/ai-mem/kimi/jobs-pipeline-2026-06-28.md,
 data/ai-mem/kimi/topic-jobsite-scan-refactor.md
@@ -26,7 +26,7 @@ machinery) has its test case.
 ### task 1.1 — extract the generic pipeline
 ```
 ## dispatch + prompt
-survey modules/jobsite.* + plugin.web.jobs.* and factor the domain-
+survey src/jobsite.* + plugin.web.jobs.* and factor the domain-
 specific parts (job boards, scoring keys, status names, export formats)
 from the generic machinery (scan → store → score → categorize → UI tabs
 → export). propose the minimal abstraction: a domain config (yaml) per
@@ -74,8 +74,8 @@ contact/appointment state tracked per listing in the existing tab UI.
   precedes this in priority — but both ride the same abstraction from
   task 1.1, so doing 1.1 first serves both.
 
-#,,,.,,.,,,,,,..,,,,,,.,.,,,,,,,,,,.,,...,..,,..,,...,...,...,.,,,.,,,.,.,.,.,
-#OKSQES26ZCHU5OKGFGN3OWK6ZEMXBU7UURWNJV3CB6W6FDNUQOEM6WRCK67IPWEKKYCHMQ4OW3A7A
-#\\\|CHGGHTKF3DSM37U5ZZGLWZHYW3EFENHFAOKH27WHDKHR7YANUQR \ / AMOS7 \ YOURUM ::
-#\[7]U2JHSJTNIERWHZS2U6ECK6WPDJSHDEO7CUELQOHQQRGINBBEN6BY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,..,,.,,,.,,,,,,.,.,...,..,,.,,,..,,...,..,,..,,,.,,,,,,,.,,,,,,
+#UE2WL62BYSAPICBSXRGYLXN3WQCEX6WE3TLNZYKJ2CXB7TQ7DWOLYHG5ZOQ4VTT3N2TLNBULKJWVC
+#\\\|APJP5C3ALL4A4TJXCH4IZJULL2OY5QU2NBWFQA5XXAHGXIKUDSO \ / AMOS7 \ YOURUM ::
+#\[7]HOQOPSJV53CS6DVUVFASEBQMHXJN4OMYVIMM7EWFB3OEINLBMOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

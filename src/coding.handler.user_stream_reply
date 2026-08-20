@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = coding.handler.user_stream_reply
+# descr = persist a reply from the amos-term interaction buffer to notes
+
+my ( $question, $reply ) = @ARG;
+
+return unless defined $question and length $question;
+return unless defined $reply    and length $reply;
+
+<[coding.tools.handler.write_answered_note]>->(
+    {   'question' => $question,
+        'answer'   => $reply,
+    }
+);
+
+return TRUE;
+
+#,,..,.,,,,..,.,,,,.,,,,.,...,,,.,,,,,.,.,,,,,..,,...,..,,.,.,,..,,,,,,,,,..,,
+#VOVH67ZY7I3ZJGFYR5JIB3ED6AZEKLVJI6OMAYCPXY7XN7EVCX5WTZZOQQMOSYPVFOQJ4HPHCVZ3U
+#\\\|VQ4B2EBGO6XINAYTQK6A5FJI6OKIVF34KSG4GQSRN2Z2O2JTRSL \ / AMOS7 \ YOURUM ::
+#\[7]YKC77JHPYJWQT7IHCDWXVO2M4CZK6V2YCCZOIM4NSCOAXNN4HYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

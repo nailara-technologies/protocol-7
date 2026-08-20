@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = user-edit.form.parse_field_options
+# descr = parse users.cmd.field-options' wire text into a name => shape map
+# param = $raw_text
+
+## factored out of user-edit.handler.field_options_reply once user-edit.
+## handler.field_options_bootstrap_reply needed the identical parsing -- two
+## implementations of one wire format would drift, same reasoning
+## editor.control.list.summary documents for itself.
+##
+## '<name> <shape>' per line, shape 'list', 'line', or 'masked' [ the third
+## joined 2026-08-14 -- see users.cmd.field-options ].  a line without a shape
+## is not tolerated silently : it would mean an old zenka is answering, and
+## assuming 'line' there is what used to store a list-shaped field as a
+## scalar.
+
+my ($raw_text) = @ARG;
+
+my %vocabulary;
+
+foreach my $line ( split m|\n|, ( $raw_text // '' ) ) {
+    next if not length $line;
+    my ( $name, $shape ) = split m|\s+|, $line;
+    next if not defined $name or not length $name;
+    ## compared, not matched : an alternation inside m|..| would end the
+    ## pattern at its own '|'
+    if (not defined $shape
+        or (    $shape ne qw| list |
+            and $shape ne qw| line |
+            and $shape ne qw| masked | )
+    ) {
+        <[base.logs]>->(
+            1, ': field-options gave no shape for [ %s ] -- ignored', $name
+        );
+        next;
+    }
+    $vocabulary{$name} = $shape;
+}
+
+return \%vocabulary;
+
+#,,..,,,.,,,,,,.,,.,,,,,,,.,,,.,,,...,.,,,,..,..,,...,..,,...,.,.,...,.,.,.,,,
+#G7CUWXHZA5OTLWDBSMURDOHO5TFIXRUH3PKLW65RVYK4BQZ4DLQHVEBY3MXDR3LJOO6TDJECDJDQO
+#\\\|6EIF42FIXASOWKZTOKZKDNZWEUZRUA5IQPIWCYXBPLXV7E2FQSP \ / AMOS7 \ YOURUM ::
+#\[7]JY4FQWNTD3CT6T44SSQWS3X7GDJ4HOHR5KP323JF44ZEIEDKQACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

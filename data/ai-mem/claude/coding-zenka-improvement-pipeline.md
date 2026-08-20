@@ -23,33 +23,33 @@ a point-in-time snapshot):
 confirmed committed by 2026-07-17): generic `result_constraint` + tiered
 escalation (tier-0/1/2).
 
-`modules/coding.self_test.check_constraint` (round 1, tier-0 structural
+`src/coding.self_test.check_constraint` (round 1, tier-0 structural
 checker) is already **COMMITTED as `a54280245`**.
 
 All remaining files for this feature are **signed + staged by the user
 right now** (confirmed via `git status --short` showing all `M`/`A`
 with zero unstaged diff) — committing only awaits a clean final live
 verification round, not a sign-off blocker:
-- `modules/coding.self_test.run` (M) — 2 calibration prompts now carry
+- `src/coding.self_test.run` (M) — 2 calibration prompts now carry
   `result_constraint` (numeric/word_count types).
-- `modules/coding.self_test.evaluate` (M) — tier-0 check, then **tier-1
+- `src/coding.self_test.evaluate` (M) — tier-0 check, then **tier-1
   reformat with up to TWO attempts**: attempt 1 uses a generic
   constraint-type hint; if it fails, attempt 2 uses a STRICTER hint
   built only from the constraint type + the prior violation (e.g. "you
   used 56 words, limit is 2") — **never from the expected answer**,
   scope explicitly confirmed with user 2026-06-21. Returns
   `needs_tier2=>TRUE` only if both attempts fail.
-- `modules/coding.self_test.apply_tier2` (NEW) — judges deferred
+- `src/coding.self_test.apply_tier2` (NEW) — judges deferred
   `needs_tier2` results, re-archives, falls through to existing
   `follow_up` anomaly explainer on NO/ambiguous.
-- `modules/coding.self_test.tier2_judge` (NEW) — fresh one-shot YES/NO
+- `src/coding.self_test.tier2_judge` (NEW) — fresh one-shot YES/NO
   semantic judgment via `http_inference_client`; degrades to
   `verdict=>'ambiguous'` on inference failure (load-bearing for the fix
   below — never throws).
-- `modules/coding.self_test.cmd.self-test-run` (M) — no-switch fast
+- `src/coding.self_test.cmd.self-test-run` (M) — no-switch fast
   path: same model judges its own deferred tier2 results in a fresh
   context.
-- `modules/coding.self_test.handler.poll_switch` (M) — cross-model
+- `src/coding.self_test.handler.poll_switch` (M) — cross-model
   case: tier-2 dispatch factored into a shared `$apply_pending_tier2`
   closure, called from **BOTH** the restore-success branch AND the
   restore-timeout/crash branch (this second call site is a same-session
@@ -118,8 +118,8 @@ BMW-L13 checksum switch on top is also **LANDED, commit `932a539b8`**.
 Read [[topic-summary-tree-phase1]] before touching this area again — don't
 re-derive the architecture or re-hit the same bugs.
 
-#,,.,,,..,...,..,,.,,,,..,..,,,..,,,.,.,,,...,..,,...,...,.,.,..,,.,.,,,,,.,.,
-#SYWG6WQZ4GTDC4T42YUB3GGMST24KFP32WZKCRLP442CZMS4QVGFN22UB33ORJSE2XMRUM3KTDO6O
-#\\\|PK7CEHV5XWILMAZWD2V2MVXGIJUDL4LJK6OZR4ULOMNC4NKCDFN \ / AMOS7 \ YOURUM ::
-#\[7]67X23O63NVHB43EVQBKQIZB3MALKA7NHJOWL7X2ACV3R7HACM2AA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,..,,,,.,...,.,.,,,.,.,,,,,,,..,,...,...,,..,,.,,.,.,,..,.,.,
+#HRKOIWG5IBAPT5LPMGEUWJW3RTJ5A32EPAWYOQ35YBOQML75LMESU7N3QPEK33OYW7ZOHNNXEDAUQ
+#\\\|JNEGJGY4ZDXVUUAZJIJK56B2RUTYLDRALWW65LMQZAUPLDJOF56 \ / AMOS7 \ YOURUM ::
+#\[7]KZELSIDAVRVBNOCWM23UUTUULG2UL57EHUECQCQVUA7DPRUCZGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

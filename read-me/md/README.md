@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3WYY3I6ZMY-9139.0 :::
+::: SOURCE-CODE VERSION :: 3WZJHMUQPQ-9139.1 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -44,7 +44,7 @@ Protocol-7 is a multi-agent system framework written in Perl. It implements a ha
 
 - **[bin/](bin/)**: Executables and utilities including the [Protocol-7](bin/Protocol-7) interpreter
 - **[cfg/](cfg/)**: Zenki configuration files and system settings
-- **[modules/](modules/)**: Core functionality modules loaded by zenki at runtime
+- **[src/](src/)**: Core functionality modules loaded by zenki at runtime
 - **[data/](data/)**: Resources, assets, libraries and supporting files
 - **[read-me/](read-me/)**: Additional documentation and license information
 
@@ -53,7 +53,7 @@ Protocol-7 is a multi-agent system framework written in Perl. It implements a ha
 Protocol-7 uses a sophisticated dependency tracking system to manage Perl module requirements:
 
 - **Core Dependencies**: Perl 5.28.0 or newer
-- **Perl Modules**: Required modules are tracked in the `pm-dep` directory of each zenka and mapped in [modules/base.known_dependencies](modules/base.known_dependencies)
+- **Perl Modules**: Required modules are tracked in the `pm-dep` directory of each zenka and mapped in [src/base.known_dependencies](src/base.known_dependencies)
 - **Package Management**: Dependencies can be resolved from Debian packages or CPAN as specified in the dependency mappings
 - **Dependency Manager**: [bin/p7-deps](bin/p7-deps) provides comprehensive dependency analysis and installation
 
@@ -364,8 +364,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,..,,,.,,..,.,.,.,.,.,,,..,,...,,,,,,..,,..,..,,...,...,,..,..,,,..,.,,,,..,
-#FXCMFLJOFQFTMQWC2DH43A5ZOCNZP3LPWIP2Z7KY7CAPZ7PYBNSUEKDMI7AYEJXWVQ7TQTRKKBRCU
-#\\\|CS7Y4HTPUXCGPHWQP6JSC3JYOPDOT4KMGQJXLBSCSYNONK3VADE \ / AMOS7 \ YOURUM ::
-#\[7]VMS4EFR6W5VNN2OJTIMYAQPQ4G3BHBYIH2P3THZ4SFU5DOADDUAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,,..,,,,,.,,,,..,,..,,,.,.,,,..,,...,...,...,,,.,,.,,,..,.,.,
+#I6WLE3HMN3LVYUPRZOSOA6AEFAMT66RL4GVKMJVH73OEIZOHEDT5PNTCNQK4WZYWT6WJ7EDVOJ2MG
+#\\\|DAYD3AW7WYFHQ4ODNP2CX4SW7Y66IGQ7I2FZ4KNVRJIFUKJMKWI \ / AMOS7 \ YOURUM ::
+#\[7]JDTDL32U43UA46IJCXMAN6W5CKLRYVVTYHTMQZP5ZM2KDJYRGIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

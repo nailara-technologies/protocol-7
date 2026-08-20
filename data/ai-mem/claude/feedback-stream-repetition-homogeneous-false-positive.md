@@ -22,7 +22,7 @@ AMOS7 signature footer's trailing `#::::::...` line (verified separately,
 these are the actual failure mode the check exists to catch (a model
 looping on a real multi-character phrase/token).
 
-**Fix** (`c39873f93`, `modules/coding.detect_stream_repetition`): after a
+**Fix** (`c39873f93`, `src/coding.detect_stream_repetition`): after a
 match, check whether the matched unit is homogeneous
 (`$matched_unit =~ m|^(.)\1*$|s` — all one character). If so, require the
 full matched span (`$+[0] - $-[0]`, not `$&` — avoids the classic Perl
@@ -50,8 +50,8 @@ new class of legitimate repeated content has shown up that the fix
 didn't anticipate — don't assume the fix fully closed the false-positive
 surface, only the two specific cases it was verified against.
 
-#,,,.,,.,,..,,..,,,..,,,,,...,.,,,.,,,,.,,..,,..,,...,...,.,.,.,.,,..,.,,,,.,,
-#GJ2PYDAACZEMQXVTEZFPBEHBOSRKP24VVDEHWXKOKCM6MEQHM2IU6GW2GPWK2R7S7KGFQACKZT6YG
-#\\\|PTDBQFLSUJ3KIZTW35D4CAZT4PPDAZN5XHRZDZT6POAXCIR6I4R \ / AMOS7 \ YOURUM ::
-#\[7]JJZHBEORLWECOT6BANJBHIGFXPPXV6DRSFLHKCXBCIQGGBIVWECQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,.,,,,,,..,,...,,..,..,,.,.,.,,,..,,...,...,...,..,,...,,.,,.,.,
+#GX2VPNI24D7DOUMG2XIPQ6MVQU6VGKZUC6F5SB7BWP7CORU55Q2XNVFSTJKTBSADRN5LMEDIZFE3O
+#\\\|USL4N6OAGOJRFBMJIRYHKNKO6DMNLYSTFDUD3KEWN2E7LYSEZPG \ / AMOS7 \ YOURUM ::
+#\[7]CPWA5U6YTTXSYHVDWTMNW55NYK7ZOVY6FEO5UFVZY7FUICGWGWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

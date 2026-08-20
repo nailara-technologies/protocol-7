@@ -56,9 +56,9 @@ caused Perl warnings "Use of uninitialized value in concatenation".
 
 ### File Readability Tracking (Line 1417-1419)
 ```perl
-my $src_rel = $code{'base.check_bin_p7'}->("modules/$file_name");
+my $src_rel = $code{'base.check_bin_p7'}->("src/$file_name");
 my $source_not_readable = not defined $src_rel;    ## track readability
-$src_rel //= sprintf qw| modules/%s |, $file_name;
+$src_rel //= sprintf qw| src/%s |, $file_name;
 ```
 
 ### Flag Storage (Line 1496)
@@ -159,14 +159,14 @@ Implements a global encoding registry separate from Perl's default UTF-8 mode:
 ---
 metadata:
   session_duration: ~45 minutes
-  files_modified: 2 (bin/Protocol-7, 3x modules/base.fh-encoding.*)
+  files_modified: 2 (bin/Protocol-7, 3x src/base.fh-encoding.*)
   lines_changed: ~85 modified + ~100 added
   test_status: syntax validated, pre-commit hooks passed
   breaking_changes: None
   compatibility: Full backward compatibility maintained
 
-#,,,,,..,,.,,,.,,,..,,,..,,.,,.,.,.,.,,,.,.,,,..,,...,...,,.,,,..,,..,,,,,,,.,
-#FYVJ2QYTEK6QEW5HLVQQSBAWADIPF4PT2BTEYCAO2GFXAMJZX6PAVVBVPICW5NEDSNGZ2HBDTI4XG
-#\\\|336NQ4AYD5LIBXXQWPR4Y23WOYH3A3QFPXG4XJAQYUXL2SUFIIT \ / AMOS7 \ YOURUM ::
-#\[7]QTZZENKA3KYZETTK3P6ID4GVMVGWO4LYGY4IIETDZKQ6URGP5GBI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,.,...,..,,,..,.,.,..,,..,,,..,..,,...,..,,,.,,..,,.,,,,,,,,,.,
+#SFO6M5RTRCNEHKIYWPTEJTPJHXLSB3KJSS4TL2SPHM3KLRBFJUG542ZZVGE3ZQJMIQLQVJXMWJXMA
+#\\\|2C3SJ3GMKJ3ZJEUADXQBMR7RGIY457YL3HAKLG24R4NL3GEG3LE \ / AMOS7 \ YOURUM ::
+#\[7]RJ77HNANFMX7GGH4CUZGXE2ZLADAUPBWZZ2VA75EA7JRUDIAMCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

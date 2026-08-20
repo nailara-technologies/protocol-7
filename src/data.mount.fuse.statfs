@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = data.mount.fuse.statfs
+# param = <fuse_path>
+# descr = FUSE statfs callback - return filesystem statistics
+# return = list: (bsize, frsize, blocks, bfree, bavail, files, ffree, favail)
+
+my $fuse_path = shift // '/';
+
+# Return reasonable defaults for the virtual filesystem
+# These values represent a generic filesystem with plenty of space
+
+my $namelen = 255;            # Max name length
+my $files   = 65536;          # Total file nodes
+my $ffree   = 65000;          # Free file nodes
+my $blocks  = 1024 * 1024;    # Total blocks (4GB)
+my $bavail  = 512 * 1024;     # Available blocks for non-root
+my $bsize   = 4096;           # Block size
+
+return ( $namelen, $files, $ffree, $blocks, $bavail, $bsize );
+
+#,,..,,..,..,,..,,.,,,.,,,..,,,,,,,,.,,..,,,.,.,.,...,...,.,.,...,,,,,,,.,,..,
+#CM6XCY3APIJ24S4XTA7JRHETL5PYWSYXO5JTBEO4A3I6AVDWSWFXYA6KTU6UNEZL4V5HDH37W75BQ
+#\\\|EQEKRRIMLFPVFD4NDMTROREE32OXVAYYEXJSDZQBEMOZYXPHCPO \ / AMOS7 \ YOURUM ::
+#\[7]ZOVRUMM62LZTFLYU774YQDNOD7GPMCTK3UKUKVZCQJB3QSPM2EBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

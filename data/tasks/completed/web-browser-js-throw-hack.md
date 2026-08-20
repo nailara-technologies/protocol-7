@@ -5,7 +5,7 @@
 
 ## context
 
-`modules/web-browser.js_call` and `modules/web-browser.cmd.run_js` use a
+`src/web-browser.js_call` and `src/web-browser.cmd.run_js` use a
 workaround to capture javascript return values:
 
 ```perl
@@ -30,7 +30,7 @@ when done.
 
 ## fix 1: migrate web-browser.js_call
 
-file: `modules/web-browser.js_call`
+file: `src/web-browser.js_call`
 
 remove the throw prefix:
 ```perl
@@ -63,7 +63,7 @@ $view->evaluate_javascript(
 
 ## fix 2: migrate web-browser.cmd.run_js
 
-file: `modules/web-browser.cmd.run_js`
+file: `src/web-browser.cmd.run_js`
 
 apply the same pattern. the callback must send a P7 reply instead of calling a
 Perl sub directly.
@@ -83,8 +83,8 @@ test commands that exercise `js_call`:
 - [ ] existing JS callers (scroll, run_js) work without regressions
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,..,.,.,,,,,.,.,.,,,,,.,,.,,.,,,.,.,,,.,...,..,,...,...,,.,,,.,,,.,,..,,,,,,
-#GL76UF6TLORFGWBSX57EVK3JH2PFDWRW7XAGAQ4C352DLRHK4H7SZ4MQ53XGAWFD3LFUU7PLGYMYG
-#\\\|EHSPRTNQEXKAEOEO7DN55QFWCD6MCJTW6YIM6OQGJEQWT4EQEHD \ / AMOS7 \ YOURUM ::
-#\[7]XOUWKDDNB4LBQZK7GAKWMO3TZNAU37MWEBH62E3AF5FQLCFEZYBQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,..,,..,,.,,,,,,.,,,...,..,,,,.,..,,...,...,.,.,,.,,...,,..,,,.,
+#JF3CO4WRGVXGO4JQUXRU244EKUUOEGCWHCVKK4273QIAKHYFQ72XL7CQEGTTLXR2ETEWYW5JL6JKE
+#\\\|PQUAWIJNUV2NQQVB3RRDAAZQC3XXMMVQ6ML76YPBPNRYSYBBGP7 \ / AMOS7 \ YOURUM ::
+#\[7]7NYM7WLJ35M4QVUW7MEIJ4YNGMNOF6C3SWVF7SYFFC5UNREG5CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

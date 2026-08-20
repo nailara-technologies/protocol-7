@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = radio.cmd.status
+# descr = current track, listener count, connection status
+
+my $icy           = <radio.stream.icy>;
+my $current_title = $icy->{'current_title'} // '';
+my $listeners     = scalar( <radio.listeners>->@* );
+my $connected
+    = defined <radio.stream.sock>
+    ? qw| yes |
+    : qw| no |;
+my $jingle_state = $icy->{'is_jingle'} ? qw| yes | : qw| no |;
+
+my $duration_str = '';
+if ( defined $icy->{'track_started'} ) {
+    my $dur = <[base.time]>->(3) - $icy->{'track_started'};
+    $duration_str = sprintf "\ntrack duration: %.0f seconds", $dur;
+}
+
+my $gap_fill_state = <radio.gap_fill.active> ? qw| yes | : qw| no |;
+
+my $library_str = '';
+my $lib_dir     = <radio.keep_library.path> // '';
+if ( -d $lib_dir ) {
+    my @files = glob("$lib_dir/*.mp3");
+    $library_str = sprintf "\nlibrary: %d track%s", scalar @files,
+        @files == 1 ? '' : 's';
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "current track: %s\nlisteners: %d\nconnected: "
+            . "%s\njingle: %s\ngap filler: %s%s%s",
+        length $current_title ? $current_title : '(none)',
+        $listeners,      $connected,    $jingle_state,
+        $gap_fill_state, $duration_str, $library_str
+    )
+};
+
+#,,,.,.,.,,,.,,,.,,..,,,,,,..,.,.,,,,,,,.,.,.,..,,...,.,.,,,.,,,,,.,.,,.,,..,,
+#GK3JQJO25UOOBO6FUUU6ESSTXC3EEWXIVPUOWRMARSCDTJCR63VCNHQ3Q5J244NUGZFYOKAX53QJY
+#\\\|PA6WIHTJOBBLBPSS4MH65WDR5MBEFQLIER6BLZYR6L2DWI2ERKG \ / AMOS7 \ YOURUM ::
+#\[7]R2JTFBS2UW4QG3IWQGP7YFMAKEJOE6WMSCRNAB5KNSDRWODJFKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

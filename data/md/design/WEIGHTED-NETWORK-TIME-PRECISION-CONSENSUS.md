@@ -195,11 +195,11 @@ one that honestly reports lower precision and hits it.
   it is an existing exposure rather than a future design concern.**
   the trust layer stamps self-asserted local network time *inside signed
   payloads* today:
-  `modules/crypt.C25519.create_signature_request:44` —
+  `src/crypt.C25519.create_signature_request:44` —
   `my $req_timestamp = <[base.ntime.b32]>->( 1, TRUE );`, where the
   subject signs `<ntime:subject-chksum:signer-chksum>`, so the
   timestamp is part of what the signature attests, not metadata beside
-  it; and `modules/crypt.C25519.store_remote_key:88,132` — TOFU pins
+  it; and `src/crypt.C25519.store_remote_key:88,132` — TOFU pins
   default to `<[base.ntime.b32]>->( 3, TRUE )` and are written as
   `sprintf "%s:%s\n", $ntime_b32, $pubkey_b32`, i.e. **a pin file
   literally is an `ntime:pubkey` pair**.
@@ -231,8 +231,8 @@ likely the same as other design seeds in this lineage: fold into a task
 file once enough of the mechanism is nailed down to be actionable,
 distinct from the philosophical framing captured here.
 
-#,,,.,...,,,,,..,,.,,,,,,,.,,,..,,,..,,..,.,.,..,,...,...,...,,,.,,,,,,,.,,,.,
-#7KYZ7IZYUUR6ZBHJUSK2JRZHXRFO2JPGCWIEZ45R6BI6OCL4UK3CIM2VKYCWPDPDQZBOSGPVCIZBG
-#\\\|A3XFWL3OS7IIWI5TV5KZKBBJRQOOJEJQ4VJIFKEPZNYFOUHN5LG \ / AMOS7 \ YOURUM ::
-#\[7]OQLSTVMRQOPAWMHYAE2ADK2HXCYMV6H34ZM2BXNOGPVU2BHTDWBQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,..,,..,,,,,,,.,,..,,..,,,..,..,,...,...,..,,..,,,.,,,,.,...,
+#GUAK3UFCZJVA7HB2CDZEZQ7GLWNONN3EGZAF4CPY2Z5KIZ4TTJGOWK766Z4AC7V64BKWPJAROKXTY
+#\\\|MVSSTJA7FSLZ7A4YHUKRW3PIAXGSQ7KK42OORJSZDYDXLNOVEBB \ / AMOS7 \ YOURUM ::
+#\[7]XJ47S5EUHUUJLMQMZJH3BLWRLQHH7XCGFSDC6UPSSMRXWK4O4KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

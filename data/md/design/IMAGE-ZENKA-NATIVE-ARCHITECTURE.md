@@ -250,7 +250,7 @@ image.tournament.*                tier-1/tier-2 slot management
 ### phase 3 — image viewer zenka (1 session)
 ```
 cfg/zenki/image-viewer/ start, access, zenka-startup
-modules/image-viewer.*            GTK3 + SHM display loop
+src/image-viewer.*            GTK3 + SHM display loop
   image-viewer.init_code          GTK3 init + window-place request
   image-viewer.cmd.show           receive path, load into SHM buffer
   image-viewer.cmd.slideshow      directory mode, key navigation
@@ -325,8 +325,8 @@ architectural vocabulary it already speaks. [:
 - [[FASTTEXT-CATEGORICAL-MEMORY]] — the rolling triple-window that makes
   visual style memory stable across sessions
 
-#,,.,,,.,,,..,,.,,,,.,.,.,.,,,,,.,,,.,...,,.,,..,,...,...,,.,,...,.,.,,..,,,.,
-#7LVAGFEY3HREAEB3UJ5UA5KR4JK56GJL3BXWDZBD7BQXLFITUO3DVV33A6MPJTLDNYGBNAXEKJKK2
-#\\\|ID5DUJVTXFM76JEDSEYVWE3SI5SGMXJ7WQWU6OUV7IYG3GLEKOV \ / AMOS7 \ YOURUM ::
-#\[7]YWQHQX6SLEMHFNOLPBGMCGARMPUJG5WDMZ4LR2H4PJOWDKQ4LCBY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,...,.,,,.,.,,,.,...,.,.,..,,..,,...,..,,.,.,...,,,,,,..,,..,
+#MORG24XZBC4HYNQAIMRGNSNXP6TJEHUVZSEXVYWR56TJA2PRCGEPFRD36OYLLQBM6F3HFWKVK2BWG
+#\\\|DCEMTRNEYFMNRSSF6ONYVALTC4YFNVRYA43C7Y3X47ZU5YDX2FJ \ / AMOS7 \ YOURUM ::
+#\[7]CHZLXYJFJQILBZ34EYWAZA7ER5CLONS2AUG3YEJ6OEAAG2UI3CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

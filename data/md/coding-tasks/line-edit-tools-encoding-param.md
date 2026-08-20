@@ -3,7 +3,7 @@
 **Priority:** Low
 **Type:** Feature — Tool Enhancement
 **Component:** coding zenka line-edit tools
-**Related:** modules/coding.tools.handler.delete_lines, insert_line, replace_line, modules/coding.tools.definitions
+**Related:** src/coding.tools.handler.delete_lines, insert_line, replace_line, src/coding.tools.definitions
 
 ## Overview
 
@@ -68,8 +68,8 @@ This follows the same pattern used in the recent `base.file.read` encoding fix
 (commit 6e3cef26b). The line-edit tools were not addressed in that fix because
 they use `file.write_encoded` directly rather than going through `base.file.read`.
 
-#,,.,,.,,,.,,,,,.,.,,,.,,,,,.,,..,,..,,.,,,,,,..,,...,...,,.,,.,.,,.,,...,,..,
-#AK7YDHSMC5LYQDFLN54Z5S3C7L7FNEI7J6YUY4FTGZNCKCVZAEVETN43CVKUEWVSUH7ZALDCZOODA
-#\\\|2ISP7LIDR6NZHU7UYWRE6GIADL3HHUSSALUEPZIJFZ7RKEXTGPL \ / AMOS7 \ YOURUM ::
-#\[7]XVX6VN6KUTTMLFSHG6ANEF6UKAJSWMKMHR3MM5LQOPIBLKHEQQBA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,.,,,,..,,,.,..,,.,.,,,,,..,,..,,...,...,..,,,,.,,,,,.,,,...,
+#EYQH7QPCN7PE7XDGXBGV3ZVRHW4TFW2PZYAOED6W7LQNO2T5E734YNY7SSM5FHSTTLCWQ7JAFUAUW
+#\\\|E4CRRI5UOUAN4VAVUQ5RKWEAC57NJ4H7MUI7P5VPGYYALQ4CB4F \ / AMOS7 \ YOURUM ::
+#\[7]NJPTL4NNOLC62F2EDV5FCRPBMYMVAVOZ2HLMMHWMN6QDIG3XIYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
