@@ -63,7 +63,7 @@ Background: `data/ai-mem/claude/topic-coding-self-test-http500-and-hint-fixes-20
   (guarded on phase still == testing); testing has own max_wait window,
   timeout falls through to restore with `$state->{'error'}`.
   `$start_restore` helper dedups the restore-initiation block.
-- Registered in `configuration/zenki/coding/subroutines.load-early` via
+- Registered in `cfg/zenki/coding/subroutines.load-early` via
   `bin/dev/gen-sub-whitelist coding`.
 
 ## verified live [ one restart-and-observe per step ]
@@ -104,8 +104,8 @@ counter reset ].
 - `follow_up` + `tier2_judge` still use the blocking client — deliberately
   out of scope (post-test disposition path), separate lower-value task.
 
-#,,.,,,,.,,,.,.,.,,,,,.,,,,,,,...,.,.,.,.,,.,,..,,...,...,,,,,...,.,.,...,..,,
-#NECUSZKYNYSGHM5ZEOMOXLUQEYDTID63WB6MEHGYFSDWCGVFXCPAUD2V4LY57LCPNQAOYPSH32RHQ
-#\\\|IJKPMC2ZVINUZVLFTWCFC5DTQWOQFDDC6D4A6DE6DZKOPCWO2UR \ / AMOS7 \ YOURUM ::
-#\[7]3LNHGXUN4HTCEPRGR3N2WULTIVDSFWFNZ6QPRFYN332Y4QKWJKAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,...,,,.,..,,..,,,.,,,..,,..,,,,,..,,...,..,,...,..,,,,,,,,,,,..,
+#VPPDEGP32WEVP6WHCRV2CU3O4Z6G4Q6PDDJVR6TDP2YORYU745FOS3LYKHE4XQG5AGX224OWN4622
+#\\\|IIHP65JJ3KDWCJHQDCCOBLHSWANZE5CEF7ZLWUQW2VIUR3VTAA3 \ / AMOS7 \ YOURUM ::
+#\[7]XMB73SU4QD4BBSYV2ZWB3GVMUDELXI6AXIUIJRT3CL7CXCADG4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

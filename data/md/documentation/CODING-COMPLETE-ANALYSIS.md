@@ -118,7 +118,7 @@ If response doesn't meet completion criteria, and resume_count < max_resumes, th
 
 ## Configuration
 
-Via `configuration/zenki/coding/start`:
+Via `cfg/zenki/coding/start`:
 
 ```perl
 ## Auto-resume limits
@@ -286,7 +286,7 @@ p7c coding.dump coding.task.queue.<task_id>
 - `modules/coding.event.on_task_complete` - Completion detector
 - `modules/coding.handler.check-completion-chain` - Continuation orchestrator
 - `modules/coding.cmd.resume-analysis` - Manual resumption
-- `configuration/zenki/coding/start` - Configuration
+- `cfg/zenki/coding/start` - Configuration
 
 ## Current Status
 
@@ -324,8 +324,8 @@ All infrastructure in place:
 **Implementation**: Event-driven variable watcher approach (user-specified design)
 **Architecture**: Async task execution with automatic continuation detection
 
-#,,,.,,,,,...,.,.,,..,,..,..,,,.,,,,,,..,,...,..,,...,...,,.,,.,,,,..,,,.,.,.,
-#GCIEBJA72SHKCXZYVGWAKQN7G2J3T3SCAE2CDVNRDHGQX6YJCU7SYTB26WX72SSJBQAD5NZYKZIFU
-#\\\|BGZSGWWXUGFCVV3EJRVC7QWN5HFJXVVTZTAKNWLBS3WRMROSU4M \ / AMOS7 \ YOURUM ::
-#\[7]E6XGMLSVEPKKGW7J4GVGSE5GIOFAOKOTEKUQFNWRU4BG4OK3QWAQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,..,,.,.,.,.,.,.,,.,,..,,...,,.,,..,,...,...,.,,,...,,,.,.,,,..,,
+#GCFWZKIPOAQNNMB3BLG5Z7APEN5L2EWOGBM4Y4ZMLCQOGIQVCXEP7EFJ2IBQL2BFMG653ZASBMTDY
+#\\\|G4Y6VDPKUKMHTLZDSI5BRSV6RJN2K4GMTEFAVDNGFX52YQNEGJV \ / AMOS7 \ YOURUM ::
+#\[7]3VIXDKM3ZYCRLCQZSYDZICA53TZHATY2UX35X65GPHHZ2FJGIGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

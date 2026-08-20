@@ -21,7 +21,7 @@ unused helpers.
 
 ## scope
 
-### opt in to multiplex [ `configuration/zenki/calc/zenka-startup.v7` ]
+### opt in to multiplex [ `cfg/zenki/calc/zenka-startup.v7` ]
 
 - add `stdio.multiplex = yes` as a top-level config line [ same level
   as `start.on-demand = 1`, `restart.disabled = 1`,
@@ -77,8 +77,8 @@ no `#,,..` stubs. do NOT run update-signatures. do NOT modify
 subroutine whitelists. lowercase comments, `[ word ]` annotations,
 `$ARG` not `$_`, one-sub-per-file [ no inline `sub {}` helpers ].
 
-#,,,,,,,.,...,,,,,,,,,,,.,.,.,...,,,.,..,,,,.,.,.,...,...,,..,.,,,..,,,..,,,,,
-#XCCUHK6OZ2K3OIZK4LESZUROSWJJVG5S6YGDZMABNALQET4G5JXBERGRKQGF247C76D3WBGFZVEYC
-#\\\|QRZFNZUWEUXGQ7JSVG5I6HXVDQPTTV7CPJBICTG7RMD6RUGBNMK \ / AMOS7 \ YOURUM ::
-#\[7]3LLNGNS6Y7X2UU32TP6GCWFOVAXVIXLYNN4Y5YKXYG3GDADA6IDA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,.,,,.,,,,,.,.,,,..,,.,,,..,,.,.,...,..,,..,,,..,.,,,...,.,,,
+#C3S2JPHHD7B7QCSIF56JATQA7PVGZYLT64XC7L4T3HXKKFYXT52ZW2P65NYSTE4LLDRL6JYFFBCYE
+#\\\|EXJYJCEH23RF4JSVKOWSYA27GVMPMTBX57DSEXXB55F2MZ4ZQ6B \ / AMOS7 \ YOURUM ::
+#\[7]DQMEIPE5KY52MES33CUNAGZ6O6GUIHFOAWQVJZJHET3IF3GSDMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

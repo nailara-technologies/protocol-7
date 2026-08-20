@@ -20,10 +20,10 @@ pending-question ambient indicator.
 
 - `modules/protocol-7-menu.init_code` now calls `dialog-types` and
   `pending-questions-init`
-- `configuration/zenki/protocol-7-menu/start` grants cube access to
+- `cfg/zenki/protocol-7-menu/start` grants cube access to
   `input-choice` and `pending-question-*`
-- `configuration/zenki/cube/access.zenki` mirrors that grant for `cred-mesh`
-- `configuration/zenki/protocol-7-menu/subroutines.load-early` regenerated
+- `cfg/zenki/cube/access.zenki` mirrors that grant for `cred-mesh`
+- `cfg/zenki/protocol-7-menu/subroutines.load-early` regenerated
 
 ## Non-obvious gotchas
 
@@ -59,8 +59,8 @@ pending-question ambient indicator.
 - coding-zenka tool wrappers (`ask_user_choice`, `ask_user_text`, etc.)
 - amos-term `interaction` plugin track
 
-#,,,.,,,,,,,,,,.,,,,.,...,.,.,,..,,,.,,,,,,,.,..,,...,...,.,.,,.,,...,.,.,.,,,
-#ZX4DER4CSNYQQYBXRR5YTKFB54Y44QLH6IZ4WX5FGYPNP65F6KIKLPUSP3WPR3QLG6AGX6DZNQ4Q6
-#\\\|PQL7HNZDY3EM5PGPC7A5C7PBO6VDKYR4652G3PM23QJBMDOQFU5 \ / AMOS7 \ YOURUM ::
-#\[7]OWENDBK6PQE5QFLK65A2PM3HW452X3ZDZSDY4QJHGIMTVE7RHMDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,.,..,,,,.,,,.,.,.,...,,.,,...,..,,...,...,,..,.,.,,,,,...,,..,
+#5YHACV5BZJELS7BGVWEPHQ3LZGFVCHK6HBOZSAHVH2GXB5YNTBZUOI3GLI5AP6MQ5SNMFTDMH4TSM
+#\\\|ICS25BE2LN6ZLUIQT5JYKTG3WUNKEO3BV5DDWXEBY6MVCQUKWQJ \ / AMOS7 \ YOURUM ::
+#\[7]R5VXFLGUHERX4T2YSH6Z6FYSKH5ST4SABEWILYEO3KFR3YEYPMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,9 +40,9 @@ it listens on http://127.0.0.1:9090 and takes 30-90 seconds to become ready.
                                                         readiness detection,
                                                         crash detection + EOF
     modules/coding.async_spawn_inference_servers      — timer-based deferred spawn
-    configuration/zenki/calc/start             — minimal on-demand zenka
-    configuration/zenki/coding/start           — full zenka with spawn infra
-    configuration/external-inference-models    — invokeai config keys
+    cfg/zenki/calc/start             — minimal on-demand zenka
+    cfg/zenki/coding/start           — full zenka with spawn infra
+    cfg/external-inference-models    — invokeai config keys
 
 
 ## invoke.ai process facts
@@ -67,7 +67,7 @@ it listens on http://127.0.0.1:9090 and takes 30-90 seconds to become ready.
 
 ## files to create
 
-### configuration/zenki/invoke-web/start
+### cfg/zenki/invoke-web/start
 
 on-demand zenka. starts when queried, shuts down after idle timeout if
 invoke.ai process is not running.
@@ -107,7 +107,7 @@ invoke.ai process is not running.
     [zenka.loop]
 
 
-### configuration/zenki/invoke-web/subroutine.white-list
+### cfg/zenki/invoke-web/subroutine.white-list
 
     invoke-web.init_code
     invoke-web.cmd.start
@@ -118,7 +118,7 @@ invoke.ai process is not running.
     invoke-web.handler.monitor_startup
     invoke-web.handler.check_health
 
-look at configuration/zenki/models/subroutine.white-list for exact format.
+look at cfg/zenki/models/subroutine.white-list for exact format.
 
 
 ### modules/invoke-web.init_code
@@ -355,8 +355,8 @@ look at configuration/zenki/models/subroutine.white-list for exact format.
     do not attempt to run — invoke.ai process management requires the
     full zenka environment. report any uncertainties as inline comments.
 
-#,,,.,,..,,,,,..,,,,.,,,,,...,..,,.,,,...,.,,,..,,...,...,.,,,,..,...,...,,..,
-#7Y66HK33YSFU5EGZ7UTAIIYBVF4AJJI2N3ZGGM4ECG7VC6Z5LJZMLAIYRUPCQ2XC3L57CDZXAM34Q
-#\\\|4LOPWRGGYOVJQSQY6LNDROGXJAXKPWOZRRB5YSYTK53IQ2OLN75 \ / AMOS7 \ YOURUM ::
-#\[7]VYVJ2E3GX5I4SIWGB7LCEFW33YXJH5ENWWLKFE6EJWJSLUDUTOAI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,.,.,..,,...,,.,,.,,,,,,,.,.,..,,...,...,...,.,.,.,,,.,,,.,,,
+#6HEQUQRPNL3K436NNII24UU3EPJKM6KKGOAZFBASEMETOY6ZIYUDT757ELJEBAVKRW5MJX26OBWNO
+#\\\|QHACMZ7IQZSDNGD7Y55RBZ4RK3ONZAFZ3HCHHXIZ6LLH5JCYFAS \ / AMOS7 \ YOURUM ::
+#\[7]6ITXGF26KTEC4JIYVAYSRG7XTAQAI56N47TJMOEWGFZ4XCQ7K4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

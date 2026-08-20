@@ -5,14 +5,14 @@ metadata:
   type: reference
 ---
 
-Having `configuration/zenki/<name>/start` (with `start.on_demand = 1`) and
+Having `cfg/zenki/<name>/start` (with `start.on_demand = 1`) and
 the zenka's own modules loaded is NOT sufficient for `v7.start <name>` to
 work. Verified live end-to-end bringing up a real zenka (`opencv`, which
 had `start` + `subroutines.load-early` but nothing else) — three more
 pieces are required, each failing with a distinct, informative error if
 missing:
 
-1. **`configuration/zenki/<name>/zenka-startup.v7`** — the actual file
+1. **`cfg/zenki/<name>/zenka-startup.v7`** — the actual file
    `v7` reads to register the zenka for start-up at all. Missing →
    `. . not configured for v7 start-up . . required file
    'zenka-startup.v7' not present`. Copy from a sibling on-demand zenka
@@ -25,7 +25,7 @@ missing:
    picked up until reloaded. Without this: `v7.start <name>` →
    `zenka <name> not found in start set-up ..,` even though the file now
    exists on disk.
-3. **`configuration/zenki/cube/auth.zenki`** — needs
+3. **`cfg/zenki/cube/auth.zenki`** — needs
    `auth.setup.usr.<name> = :zenka:` (copy the line for a sibling zenka,
    e.g. `povray`). Missing → the zenka process actually spawns and
    connects to the unix socket, then fails immediately: `[#]
@@ -33,7 +33,7 @@ missing:
    >>` / `terminating zenka start-up`. This is a distinct, later failure
    stage than #1/#2 — the zenka gets further before dying, which is the
    tell that this specific piece is what's missing.
-4. **`configuration/zenki/cube/access.zenki`** — needs
+4. **`cfg/zenki/cube/access.zenki`** — needs
    `access.cmd.usr.<name> = v7.register_child` (again, copy a sibling's
    line, e.g. `povray`'s). Grouped with #3 in practice — add both auth.zenki
    and access.zenki entries together, they're both cube-side registration.
@@ -53,8 +53,8 @@ spawning and connecting, `auth.zenki` + `access.zenki` + cube's own
 produces a different, specific error message — use the error stage to
 tell which piece is still missing rather than guessing.
 
-#,,,.,,,,,,.,,,..,,.,,,.,,,,,,..,,...,...,,..,..,,...,...,.,,,...,,,,,..,,...,
-#WQYTWFWU2KY34HZT6FL36FPYE45HZORCVQGME2LZBTTRFHCDODV3TXWIQIMRSCK3R5KSHYJYMXLRO
-#\\\|KH7EDOES4XLAFBZSDPNNO5CFJCUGNEKVYCYO4EEZRHXZNBLWYUR \ / AMOS7 \ YOURUM ::
-#\[7]EMANI7VPYAYJHARAVOP6HD5SMBWAGAVCAAN3VT6UQCLH2RWE5YDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,,,.,,..,.,.,,,.,...,...,,,,,..,,...,...,,..,...,,,.,,..,..,,
+#MGHJSSIXHR3YE3YD6GGW2ORWNSI3DBXRGHF4KA7ZRXX65ZTQIWTICGH2BA2QZ4NFELHAYIZLL6FV4
+#\\\|34YH75PFDSGPPAI6T376C2EKG3WY44722IZB4BFK42IWY3INGHD \ / AMOS7 \ YOURUM ::
+#\[7]V6XPMBBOWBPLJWPUSLOKC6OHIYX4AAOBBJPKC6BHOHSOFWNVIGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

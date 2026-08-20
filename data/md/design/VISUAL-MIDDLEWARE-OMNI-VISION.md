@@ -448,7 +448,7 @@ modules/
 ### Configuration
 
 ```yaml
-# configuration/zenki/visual-middleware/start
+# cfg/zenki/visual-middleware/start
 .:[ 'visual-middleware' omni-vision infrastructure ]:.
 
 modules.load = protocol visual.middleware visual.middleware.xvfb \
@@ -497,8 +497,8 @@ The network sees. The network knows. The network validates what it sees.
 
 *"The network has omnipresent visions, and multiple perspective layers. What you see as a user is one angle of what the network sees as a whole."*
 
-#,,..,,,.,...,,..,..,,.,.,...,,,,,..,,...,...,..,,...,..,,.,,,...,...,,.,,,.,,
-#BCMPT6JHA5BV4OYW3X4PMF3VPPKK3CXMGWYKI32M5WRSTL6PTGTAHCZJHKLPC2P5WREZLGT5SRJVM
-#\\\|FJVLFOL2FZMYKIRQ5NH3CFAL3BNXMDRHPW7YCZ7S6IWUNMNHVVX \ / AMOS7 \ YOURUM ::
-#\[7]2ISENIEL4IEZRSWXL5DAD6UUE3GWDPUP7JDZ2KF2N3E3NYKJAICI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,,.,,,.,.,.,,.,,...,,.,,,,,,..,,...,.,,,...,.,,,,,,,,,,,..,,
+#X5XGVZVMLZ63IGPO4OMSSJZ3BOVORBBTE3JDTOGJ2BER6UH4BP4SBANBAR6DK7JEHYB2UUSX5XX5E
+#\\\|E2ROI4CFZ7BTRCTOJAJD6FBDAPBFDQCHHM7RU7JEC2QMX75AAVM \ / AMOS7 \ YOURUM ::
+#\[7]TWBYKPIKOAOFLYPAXS26DE5WMW3N7ZZEWCD5FHGAI42PEDBKQWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3WYYXE7FEA-9138.0 :::
+::: SOURCE-CODE VERSION :: 3WYY3I6ZMY-9139.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -43,7 +43,7 @@ Protocol-7 is a multi-agent system framework written in Perl. It implements a ha
 ## Directory Structure
 
 - **[bin/](bin/)**: Executables and utilities including the [Protocol-7](bin/Protocol-7) interpreter
-- **[configuration/](configuration/)**: Zenki configuration files and system settings
+- **[cfg/](cfg/)**: Zenki configuration files and system settings
 - **[modules/](modules/)**: Core functionality modules loaded by zenki at runtime
 - **[data/](data/)**: Resources, assets, libraries and supporting files
 - **[read-me/](read-me/)**: Additional documentation and license information
@@ -263,8 +263,8 @@ Three primary methods for interacting with the Protocol-7 network:
 
 The Protocol-7 system consists of interconnected zenki (agents) that communicate through a standardized message protocol:
 
-1. The [v7](configuration/zenki/v7/start) zenka manages the lifecycle of other zenki
-2. The [cube](configuration/zenki/cube/start) zenka routes messages between other zenki
+1. The [v7](cfg/zenki/v7/start) zenka manages the lifecycle of other zenki
+2. The [cube](cfg/zenki/cube/start) zenka routes messages between other zenki
 3. Specialized zenki perform tasks ranging from system management to user interface presentation
 4. Custom zenki can be created by adding configuration files and module code
 
@@ -364,8 +364,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,..,.,,,..,,,.,,,,,,.,,,,,,,,,,,,.,,...,.,.,..,,...,...,.,,,,,,,.,.,.,.,.,.,
-#AIGV34ARUVCK4PID5HYLHPMQVPM2MYL2H2YAKJ627UAFKBX7QZ2PXDIRXNH5MCJS43GK5WZH5M7AU
-#\\\|KJH7MBP5C7ACGT4UZLXOMDMXZ3YKGAPRCUKD34TML6DQ3BRYGQO \ / AMOS7 \ YOURUM ::
-#\[7]HZNBEWA27L4XVNXWW6CDE475NVG647KQIAIJ22S4PODKCXQ56OBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,.,.,.,,,..,,...,,,,,,..,,..,..,,...,...,,..,..,,,..,.,,,,..,
+#FXCMFLJOFQFTMQWC2DH43A5ZOCNZP3LPWIP2Z7KY7CAPZ7PYBNSUEKDMI7AYEJXWVQ7TQTRKKBRCU
+#\\\|CS7Y4HTPUXCGPHWQP6JSC3JYOPDOT4KMGQJXLBSCSYNONK3VADE \ / AMOS7 \ YOURUM ::
+#\[7]VMS4EFR6W5VNN2OJTIMYAQPQ4G3BHBYIH2P3THZ4SFU5DOADDUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

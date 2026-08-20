@@ -20,7 +20,7 @@ Based on successful implementation of kimi-web zenka, this guide covers creating
 
 2. **Auth wiring is mandatory**
    ```
-   # configuration/zenki/cube/auth.zenki:
+   # cfg/zenki/cube/auth.zenki:
    auth.setup.usr.<zenka-name> = :zenka:
    ```
    Missing this causes: "user not accepted for auth type :zenka:"
@@ -52,7 +52,7 @@ modules/<zenka-name>.cmd.<command>                 # exposed commands
 modules/<zenka-name>.handler.<event>               # event handlers
 modules/<zenka-name>.internal.<helper>             # utilities
 
-configuration/zenki/<zenka-name>/
+cfg/zenki/<zenka-name>/
 ├── start                                          # main config
 ├── zenka-startup.v7                               # v7 integration
 ├── pm-dep/                                        # perl deps
@@ -116,8 +116,8 @@ p7c coding.ask template=zenki-create zenka_name=my-zenka zenka_type=standard
 
 ---
 
-#,,,,,,..,,.,,,,,,..,,...,.,.,.,,,,.,,,,.,.,.,...,...,...,.,.,...,,.,,.,.,,,.,
-#NSDBRKPWNIEW4DRGQDQK4C43EMVFGGFATVZH4CWJ6K5FNF6LYSOH6LPDNDGFDLSU6XFNLGR3WHHSG
-#\\\|O4LCVBMGHNJAD7HEJIAAKGOWLZYR57MBHLXJVLBRM2Z6UT3HWXM \ / AMOS7 \ YOURUM ::
-#\[7]C7XH76LZGUP55DGNIGNGWL3CYK3VKLHS4ZRSNOXPKC34TN5LNSAA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,...,,..,...,.,.,..,,,,,,...,...,...,...,,..,.,,,,,,,..,,...,
+#EZSCEO64QAGMYCAWDQFWGEMFRYT2K4QDFSD6YEDH43IXBOLYKGOKY7FDMRDUGLNODKQO55PKSESJY
+#\\\|PKC67M6J7SZOTKDZOOBJGMO6NUYX4GVE54QNIWQUNDZ6DZTBVBA \ / AMOS7 \ YOURUM ::
+#\[7]YTEMNAWJKA6EGFDR5UBPOTA3JFPQMYCOETDIXKGJOIUCWSNQ4KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

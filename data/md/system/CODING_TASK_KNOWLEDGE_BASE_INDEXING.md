@@ -375,7 +375,7 @@ PRIORITY 6: Rendering templates (Phase 5)
 - Knowledge base: `data/md/protocol-7-knowledge/`
 - AMOS checksum system: `modules/base.chk-sum.*`
 - Cubic topology docs: `data/md/protocol-7-knowledge/02_CORE_STRUCTURES/`
-- httpsd templates: `configuration/httpsd/templates/`
+- httpsd templates: `cfg/httpsd/templates/`
 - Zenka architecture: `CLAUDE.md` (Multi-Agent System section)
 
 ---
@@ -386,8 +386,8 @@ This is a "straightforward work" task (Phase 6 especially) - no algorithmic brea
 
 Wave 2 refinement will happen naturally through reviewing and correcting the visual representations.
 
-#,,.,,..,,...,,.,,,,,,,,,,..,,,,,,.,.,.,.,..,,..,,...,...,...,,.,,.,,,.,,,..,,
-#KYZOFDJXVHRBVQWW2YYB7XDEG3AJK6RUP6KPLDROPEBBQS3A6XGKUGCKHDWPLCXBPDYHVYMONBEXO
-#\\\|4CLX3V4CW23SGOD47MLYIZLRR4UVAZOG3TPWTZC3Q5D6SXJJQGL \ / AMOS7 \ YOURUM ::
-#\[7]TF5PSURX64HFZJRXMBUCY3E4MCCYTZE7ZNIGXMOS22SIWPPSFCBI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,,.,,,.,,...,..,,,.,,.,.,.,,,..,,...,...,,,.,..,,...,,,,,...,
+#Q6X3V5PXCHBXP2ENR6XG7RQ2ILEHVC2TZ2U33Y2GUMHROEZEIVT6Z5UTCLCO3MHVVB2ZCDLT7YHYW
+#\\\|DAVVD5WWK7MVRJ3SIAN2UPGBZ62ANHOAREC5YZKXWZFU3GBL54E \ / AMOS7 \ YOURUM ::
+#\[7]TCS56QO6DJP4QC5X3YFBVFB74R7WWILC7G5Q7YZE6WUWZNJOL2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

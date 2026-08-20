@@ -10,7 +10,7 @@
   consume it once, then guarantee it's gone" an actual property a start
   file can declare, safely across both initial boot AND every future
   reload cycle, not just the first boot. paused deliberately before
-  implementation to allow more thinking time; `configuration/zenki/
+  implementation to allow more thinking time; `cfg/zenki/
   mod-test/start` carries a `[base.prune_key:'modules.load']` line as an
   intentional, known-incomplete placeholder/reminder — it only helps the
   boot case, not reload, until this design lands. ]
@@ -234,7 +234,7 @@ expensive to discover missing later.
 
 - `modules/base.del_key`, `modules/base.prune_key` — landed, `0425b210f`.
   Useful standalone regardless of this design.
-- `configuration/zenki/mod-test/start` — carries
+- `cfg/zenki/mod-test/start` — carries
   `[base.prune_key:'modules.load']` as a **known-incomplete**
   placeholder: fixes the boot case only, resets on reload exactly as
   described above. Intentionally left in as an active reminder rather
@@ -253,8 +253,8 @@ expensive to discover missing later.
   and live-verified (not just `ptd -c`, since start-file syntax isn't
   Perl), one commit per tier.
 
-#,,,.,,,,,,..,..,,..,,.,.,,,.,,,,,..,,.,,,,..,..,,...,..,,...,..,,,,,,,.,,.,,,
-#LUKUJTDWPCDTIAN3BLWAE22HHWWRXG7Y7R2D7DA3MKZ7XJTFMCJX5FGM6QIXXGCTCGS4ZPQMKBH4E
-#\\\|HLPC5G5IQZP4SFWMZAF3HURSNJ6KSQKREZYQQ5GVHKFT6XNUWHO \ / AMOS7 \ YOURUM ::
-#\[7]K5CHHYDI2VZ2PEPXGDFWNFQTMBJU6E2ZFP7FQ5R2PVAM5ZSRRYCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,,.,,,,.,.,.,,,.,,.,,..,,,,,,..,,...,...,,,,,.,.,,.,,,.,,...,
+#UVPTGRRQYCSFQGALIYIVULQH5GTZFF6LJGWDZFF53EISL7Q6A6UNNSQTLYZ75OXYWMQA23MUID5KW
+#\\\|FOPMYASMV5SCBFSP2QAMLHDVNX6PMDNTNMDCKRLWIXB6CQSEXYA \ / AMOS7 \ YOURUM ::
+#\[7]EXQQFQGQ4DPWDH2SIZNJRCZUYFRXZH5EX5RV35PX3QGNYFOYTYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

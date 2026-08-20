@@ -178,7 +178,7 @@ module header:
 
 ## wiring into models zenka
 
-edit configuration/zenki/models/start:
+edit cfg/zenki/models/start:
 
 1. add to modules.load line (after 'models'):
        storage.adapter.invoke cmd.adapter
@@ -201,8 +201,8 @@ system adds the real 4-line AMOS7 footer.
 
 when all 6 files pass ptd -c and the start file is updated, report done.
 
-#,,,.,.,.,,..,,.,,,,.,,,.,...,,,,,,.,,.,.,...,..,,...,...,..,,,.,,,,,,.,,,...,
-#6UHP3AKNP5DRXPGODZA4RWE7S3YM5GG4OHSHTE3BCNLBZR7WTVTULWOUGSQCI2OD2NLMKWFCYLVFA
-#\\\|JXZKRTPGP3I7UST7COCFQGBO7NQ2XRR6QQ3GYD6IADRLOLM6JK6 \ / AMOS7 \ YOURUM ::
-#\[7]5YTYV2A7ZDIFIJ6PPKPUINA4XQC2BRTCJNA7JG5UUJHKLYSNNSAQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,,,,.,,,.,,,,,,,..,,.,,,.,,,.,,..,,...,..,,,.,,,,.,,.,,.,.,,,,,
+#62RJCRKVK5H6KD5H4DOQ6JQ5W7KUZVSP2NP67Q4QCKF5QLR2MX2I4QZ7V4LBSJZALVPAGPHSJMEVA
+#\\\|J6MLR2NVI3R5UU5NXSR2SKNXOJEROWNT24H4AJDUUVOPIXQONBE \ / AMOS7 \ YOURUM ::
+#\[7]2GP2DLQELDIGQF2H5TZT2HKNHRN4CBGA2NCAICQZLH6NSGMTTUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

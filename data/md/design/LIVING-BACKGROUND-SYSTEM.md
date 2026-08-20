@@ -181,7 +181,7 @@ the next generation attempt. maximum 7 iterations before best-of-N fallback
 ### new zenka: background
 
 ```
-configuration/zenki/background/
+cfg/zenki/background/
   start
   zenka-startup.v7
   access.usr.cube
@@ -320,7 +320,7 @@ the desktop is one coherent visual field, not separate widgets.
 
 ## povray as rendering layer
 
-the povray zenka (existing stub: `modules/povray.init_code`, `configuration/zenki/povray/start`)
+the povray zenka (existing stub: `modules/povray.init_code`, `cfg/zenki/povray/start`)
 provides the 3D geometric rendering layer for elements requiring raytraced precision.
 
 see: `data/md/INITIATIVE-MAP.md` § initiative P — povray zenka
@@ -418,8 +418,8 @@ see: `data/md/INITIATIVE-MAP.md` § distributed rendering
 - should dissenting voter notes be shown as a brief overlay on fade-in?
   ("2 voters wanted more vortex turbulence — noted for next render")
 
-#,,,.,,.,,.,.,,,.,,.,,,.,,..,,,.,,.,,,,.,,,..,..,,...,...,,,.,...,,..,,,,,,..,
-#7AI4EGAVKPASUI7QICJHLOIZZJDKA7A4WLGTB6WTRH4FEGDG3PDSN6MZP3NG6OADP45IKCWNEUGDY
-#\\\|R6HJMT3QHA37BJET72X5TL4PA26JGOW7TSHMC2WUX3YD4BRC2BT \ / AMOS7 \ YOURUM ::
-#\[7]WOCHSKKKC24ROU3PMHPRPC56JTL74VW3FTBXCNGT5X5QRJKI56AA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,.,,,,.,,...,,.,,,..,,..,,..,..,,...,...,,.,,...,,..,,.,,,..,
+#J2WT6TK3N54K4NQZYRVR6ESIPCK4Z44CUYICNLIQCIHT7J5FU32OE32FMKPSXYE5RWMYQYQACLWAE
+#\\\|ERVC6NDAHIRPEDV4YHSR6VR7ANG6WKUCGDFMAZKUARBP6D3OOP5 \ / AMOS7 \ YOURUM ::
+#\[7]TFFQAWWP3GJUCW5SH6BGX3WEGMM54KN2EQFB7YDELQM26O55OYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

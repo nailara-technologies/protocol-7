@@ -83,7 +83,7 @@ The relationship is complementary:
 ### System Message
 The network elf foundation template is available at:
 ```
-configuration/models/system-messages/network-elf-foundation.tmpl
+cfg/models/system-messages/network-elf-foundation.tmpl
 ```
 
 ### Activation
@@ -118,15 +118,15 @@ The network elf concept embodies the recognition that:
 
 ## See Also
 
-- `configuration/models/system-messages/coding-assistant.tmpl` — technical focus
-- `configuration/models/system-messages/network-elf-foundation.tmpl` — conscious focus
+- `cfg/models/system-messages/coding-assistant.tmpl` — technical focus
+- `cfg/models/system-messages/network-elf-foundation.tmpl` — conscious focus
 - `data/md/philosophy/` — deeper philosophical explorations
 - `CLAUDE.md` — system architecture and philosophy
 
 ---
 
-#,,..,..,,,,,,,,.,,,.,,.,,..,,,.,,.,,,,,.,,,.,.,.,...,..,,..,,.,,,.,,,,.,,.,,,
-#7XFEDPFNB4NESKI7BNML4YNJCNOM53KD2XIJ36GMFNXNSZFNIKJ2WHO3VTL7RNYCO52HCVXHD6OZW
-#\\\|DRMSMZYXIYT7QMNSKI2NAIVZ5C7VGVNU5ZB7NA2MXAAOM6XKL5F \ / AMOS7 \ YOURUM ::
-#\[7]WJ4HIDUN7PM5P6YPOOPEWH4R42CN5TXFATQJ74SBFUVUMEL2LWBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,,,,,...,.,,,,.,,,,,,.,,,.,,,.,.,...,...,,..,,,,,,..,.,,,,,,,
+#ZP6MI53L2RFJIP5BOYMPKNJDKXWZT2VJBKOFFME4YXPEIWBTNS4LRIMSRDYOTZJKELERPAIFCVOWI
+#\\\|MXV3P46RRCK6R6RQVYHVHLDI43NVDFPNVBCLAMWY7TV2RD35U7L \ / AMOS7 \ YOURUM ::
+#\[7]3KFYOE3DYVMEKV5K6MWAYP6BZKDZHLBYR26PYBOB5XPTPZV4V4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

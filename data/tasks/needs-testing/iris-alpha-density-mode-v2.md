@@ -88,7 +88,7 @@ read the file first. add one button to the mode buttons row:
 
 ## step 6: update subroutine whitelist
 
-add to configuration/zenki/httpd/subroutine.white-list:
+add to cfg/zenki/httpd/subroutine.white-list:
   route.bmw384.visual.wheel.alpha-density
 
 ## style notes
@@ -98,8 +98,8 @@ add to configuration/zenki/httpd/subroutine.white-list:
 - new module: leave clean, no footer stub
 - existing modules: signatures will be updated on commit
 
-#,,.,,.,.,...,..,,,.,,.,.,.,.,.,.,,..,,..,,,,,..,,...,..,,.,,,,..,.,,,...,,..,
-#HMS3PNBOGREVNF5J67ZFVAXUZHDGYPRA2JQXW6VDGHODWT64SYYX2FMMIP5JSMUPCZP5AS7G57NJK
-#\\\|GNEQ43623OX2LNLWQ5QBFMEDDR6WT4YU4WMEVI6EVCKXOL7YFZM \ / AMOS7 \ YOURUM ::
-#\[7]NJCLHS32NLTKWJD5US46P646SFIMXLSZ5MM5EP3DR7UEFKVGC4CA 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,.,,,...,,,,,.,,,,,.,..,,...,..,,...,...,.,,,..,,,,,,,.,,,,.,
+#XHMC6XIEJ6AZNKLUZZF55Y56RDOL5JM3ECBDTGGPE4F2544MEYHECPL7AREU5EL3ZASWBPNK7NQHC
+#\\\|4N42ADUO3OUWVAXQD3VFJ3RP6BYTH733TOYRBYN3F5WHGSBO7C4 \ / AMOS7 \ YOURUM ::
+#\[7]MLE6KO5XOYGMAU3FMNKK3XZMDXIEAKSTVVM6UYF5UMVCXYV5GUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

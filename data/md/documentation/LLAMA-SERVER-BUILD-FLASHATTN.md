@@ -89,7 +89,7 @@ export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH
 
 ### Method 2: Update Coding Zenka Configuration
 
-Edit `/data/projects/protocol-7/configuration/zenki/coding/start`:
+Edit `/data/projects/protocol-7/cfg/zenki/coding/start`:
 
 ```perl
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
@@ -166,7 +166,7 @@ If successful, you should see:
 ## Related Files
 
 - Build script: `/data/projects/protocol-7/bin/build-scripts/llama-cpp/build-llama-server-cuda-flashattn.sh`
-- Coding zenka config: `/data/projects/protocol-7/configuration/zenki/coding/start`
+- Coding zenka config: `/data/projects/protocol-7/cfg/zenki/coding/start`
 - Coding zenka source: `/data/projects/protocol-7/modules/coding.*`
 - Auto-resume docs: `/data/projects/protocol-7/data/md/documentation/CODING-COMPLETE-ANALYSIS.md`
 
@@ -185,8 +185,8 @@ After building and testing llama-server with flash attention:
 **Priority**: CRITICAL - Blocks coding zenka inference execution
 **Last Updated**: 2025-01-17
 
-#,,.,,.,.,,,.,.,,,.,,,,,,,,.,,,,,,.,.,...,,..,..,,...,.,.,.,,,...,,..,...,,.,,
-#AAGG6KH6RW3UFQSGFIGZQIMWXGEVBP57R5PQPNXGUBVKKFXNRCECYUVM5WATIXUV22KGSSUE6LAFO
-#\\\|YXHOEXGU3MMT3QSF52ITWUCVDWC7DF5IYKS66UYKJ76WNZDEGWD \ / AMOS7 \ YOURUM ::
-#\[7]7I5UU5CR7GMQJFEKVZ2UQDDNMT5FXU5CLPRSLSY44XMQ4PGEFUBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,.,,,,.,,,,,,,,,,..,,...,.,,,..,,...,...,...,.,.,.,,,...,,,,,
+#5SRUU37L24R2RHNGSUMUFOBMJ2O4FDPPPILDVMWKAQY6LGFYG3VFO4IBQK4ZMBYDSJI72TBC7UOBC
+#\\\|OMMLIKC5RKPAOPXNAZZDA3TIXNOLJIONE7RSASQ5DLK4KPPZIZU \ / AMOS7 \ YOURUM ::
+#\[7]VOOL42ZYKI3ALO5OGQ4YKTFLLT2O65ZAGZTBAB2A2JSK3GFOA6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

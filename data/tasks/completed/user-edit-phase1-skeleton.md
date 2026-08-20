@@ -17,22 +17,22 @@ users.* calls. Just a zenka that boots and loads its modules without error.
 
 ## Precedent to clone (structure, not content)
 
-`configuration/zenki/keys/` is the shape to copy:
-- `configuration/zenki/keys/start` — thin start file, loads modules, drops into
+`cfg/zenki/keys/` is the shape to copy:
+- `cfg/zenki/keys/start` — thin start file, loads modules, drops into
   `[base.call.console_command]`
-- `configuration/zenki/keys/source/` — one empty placeholder file per top-level
+- `cfg/zenki/keys/source/` — one empty placeholder file per top-level
   module namespace loaded (`base`, `crypt.C25519`, `keys`, `terminal` — `base` is
   implicit, not listed in `modules.load` but still has a placeholder)
-- `configuration/zenki/keys/pm-dep/` — DO NOT hand-author these. They are
+- `cfg/zenki/keys/pm-dep/` — DO NOT hand-author these. They are
   tool-generated (empty marker files, one per required CPAN module). Leave this
   directory out of your changes entirely; the user will regenerate it separately.
-- `configuration/zenki/keys/subroutines.load-early` — also tool-generated
+- `cfg/zenki/keys/subroutines.load-early` — also tool-generated
   (`bin/dev/gen-sub-whitelist <zenka>`, see the file's own header comment). Do
   NOT hand-author this either. Leave it out.
 
 ## What to build
 
-1. `configuration/zenki/user-edit/start` — modeled on `keys/start`, but:
+1. `cfg/zenki/user-edit/start` — modeled on `keys/start`, but:
    - `modules.load = terminal editor ascii.frame user-edit`
    - do NOT load `crypt.C25519` — user-edit has no key-management role (see
      design doc's phase_1_skeleton for why)
@@ -42,7 +42,7 @@ users.* calls. Just a zenka that boots and loads its modules without error.
      `[base.net.connect:'unix']`, `[base.get_session_id]`, `[zenka.loop]` — check
      `keys/start` for the exact working order and copy it, don't improvise the
      sequence.
-2. `configuration/zenki/user-edit/source/` — one empty placeholder file per
+2. `cfg/zenki/user-edit/source/` — one empty placeholder file per
    loaded namespace: `base`, `terminal`, `editor`, `ascii.frame`, `user-edit`.
 3. `modules/user-edit.init_code` — minimal stub. Look at a small, similarly-thin
    zenka's own `<zenka-name>.init_code` for the minimal working shape (e.g.
@@ -58,7 +58,7 @@ users.* calls. Just a zenka that boots and loads its modules without error.
 - `access.cmd.usr.cube` grants, cube `auth.zenki` grants, or any change to
   shared access-control config — this stays a local skeleton only; wiring it
   into the live zenka network is a manual step the user will do themselves
-- `configuration/zenki/v7/start-set-up.base` registration (always-on/on-demand
+- `cfg/zenki/v7/start-set-up.base` registration (always-on/on-demand
   wiring) — not this task
 
 ## Verification
@@ -90,8 +90,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` (whichever fits) if you hit anything non-obvious
 along the way — same as any other task.
 
-#,,.,,,..,.,,,.,.,,,.,.,.,,,.,,.,,,,,,,.,,...,..,,...,.,.,,,,,,,,,..,,...,..,,
-#HZ62HCOPCFXMPJF3MECGISPM3T4QZLHLK6TLW5Q7F365ESHUR3362DUY3SOGQ4NYI7FEHY6ANFRA2
-#\\\|5VQORR5MCCUELIJQ62SSYYTH3ZKEJWRFSF2WLE3FDYNG4RZT66P \ / AMOS7 \ YOURUM ::
-#\[7]TWASJYI2XP2TBRFV22GKC6RLC2YVCZHNLBPMWVBS2I563WN5WMBY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,...,,,.,..,,..,,,,,,..,,.,.,,,.,..,,...,...,.,,,.,.,,.,,..,,,..,
+#7ZZEVWJRCA7PNWWKZ6SMQW3INRMVQK32UHEHYDND7DWEUFLVHIZ6QBVPOVXGM7ZOEUPV7GK42MOPG
+#\\\|MRVNGN3GY7ZZMK3UFNAVTGI65UXFUHG7F4MPN6Y345WK2BI3R7L \ / AMOS7 \ YOURUM ::
+#\[7]CLNV7IPM5YQ6LUMSAW2V5H7TFFDQFK2FQJBQ4UYBM4RJBB4ZD6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

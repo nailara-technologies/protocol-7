@@ -7,7 +7,7 @@ landed as `coding: add vision-model :switch: for idle-gated model switching`.
 checksum/timeout, short-circuits when already vision; new
 `modules/coding.handler.vision_switch_poll` implements the two-phase
 (waiting_idle/switching) timer state machine; both whitelisted in
-`configuration/zenki/coding/subroutine.white-list`. confirmed live
+`cfg/zenki/coding/subroutine.white-list`. confirmed live
 (2026-07-23): `coding.commands vision` lists `vision-model [:switch:
 [<id>] [<timeout>]]`, `coding.vision-model` (no-arg report) returns the
 loaded model checksum; `coding.vision-model :switch:` (no checksum, a
@@ -211,7 +211,7 @@ added `coding.vision-model` to cube's `access.zenki` (lm-vision, line 255) and t
 `access.cmd.usr.cube` (line 54). those cover the `:switch:` path unchanged.
 
 **whitelist (required):** add every new module file name to
-`configuration/zenki/coding/subroutine.white-list` (round-1 reference: `coding.cmd.vision-model`
+`cfg/zenki/coding/subroutine.white-list` (round-1 reference: `coding.cmd.vision-model`
 at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper module split out).
 
 ---
@@ -222,8 +222,8 @@ at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper mod
   checksum/timeout, resolve target, short-circuit already-vision, arm the poll timer, return
   `{ mode => deferred }`. round-1 report path preserved for the no-arg / non-`:switch:` case.
 - `modules/coding.handler.vision_switch_poll` — NEW: the two-phase timer state machine above.
-- `configuration/zenki/coding/subroutine.white-list` — add new module name(s).
-- (optional) `configuration/zenki/coding/start` — add `coding.cfg.vision_switch_idle_timeout`
+- `cfg/zenki/coding/subroutine.white-list` — add new module name(s).
+- (optional) `cfg/zenki/coding/start` — add `coding.cfg.vision_switch_idle_timeout`
   default if a dedicated key is preferred over reusing `concurrent.drain_timeout`.
 
 **signatures:** new/changed module files MUST be left UNSIGNED. the owner signs interactively
@@ -250,8 +250,8 @@ at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper mod
    for clarity.
 3. confirm the **no-new-access-grant** framing (parameter of an already-granted command).
 
-#,,,.,.,.,,,.,.,,,,.,,,,.,...,,.,,,.,,...,,,,,..,,...,...,.,,,..,,..,,,.,,.,,,
-#Q4RSCORJO7USS6QFD4PCPBM7PQPLP6RU7EFFOUZHP5WKVWLVLPRYHBTNZL4Q5ACQQBYSS44ZJJEIS
-#\\\|AO2WR74ZOGR6U5TA7V32R5VXPBIQ4V6WINTNSUMEHNSBW2I5N7L \ / AMOS7 \ YOURUM ::
-#\[7]WPQIARYENYZYVAD3WKA2X34D3P6BMTZ2YQHEJTJLCP2VSEUTT4BI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,,..,.,.,...,..,,.,,,...,,..,..,,...,...,,..,.,.,,.,,,,.,.,.,
+#NRSRUW6ZZS7QRBN7XM3U6EFPX6DINSGBACHKA2XD37RQLLYWKNPL2GWLU4FVWMIEU4EXTCPFJUOMI
+#\\\|UMIJ2XIFFVJUANCXQU5FEBFK4IAALKF74PR6DHYJKKTNKTE7AQP \ / AMOS7 \ YOURUM ::
+#\[7]MZMAXXSEEW2N6JOF3EVQCGXOJFUN46CO6OUODVTJDTTCGOMM54AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

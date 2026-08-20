@@ -21,7 +21,7 @@ Four prior phases already exist and are committed (skeleton, path registry,
 outbox, draft storage) — none of them are directly relevant to this task
 (this is pure rendering, no filesystem I/O), but do not touch any of their
 files: `modules/user-edit.init_code`, `modules/user-edit.outbox.*`,
-`modules/user-edit.draft.*`, `configuration/zenki/user-edit/start`.
+`modules/user-edit.draft.*`, `cfg/zenki/user-edit/start`.
 
 ## Goal
 
@@ -112,7 +112,7 @@ form for any particular set of fields.
   any `users.*` integration
 - `editor.ui.gtk3`/`editor.ui.vterm` or any other backend — ascii_frame only
 - do not touch `modules/user-edit.init_code`, `modules/user-edit.outbox.*`,
-  `modules/user-edit.draft.*`, `configuration/zenki/user-edit/start`, or
+  `modules/user-edit.draft.*`, `cfg/zenki/user-edit/start`, or
   `data/yaml/ascii-frames/user-profile.yaml`
 
 ## Verification
@@ -146,8 +146,8 @@ When done, write a note to `data/ai-mem/kimi/coding-style.md` or
 this is genuinely useful for whoever builds the interactive loop next,
 whether it worked or not.
 
-#,,..,,..,...,,,.,,..,,,.,.,.,.,,,,,.,..,,,,,,..,,...,...,,,.,.,.,.,,,.,.,,..,
-#5DN7DZZLT72VDSTY4U67NTJAHHS5JCEITYK4N64RR6OM73BMR33N4CZ2DD7UI4GXXINS5GZOTTMOA
-#\\\|KU2CDJ5MUNTSERSSUQHIDIK5PKT2IBSD4OEQFNI2N3FPO6RZRMN \ / AMOS7 \ YOURUM ::
-#\[7]LN6CKT32327VSXR4OI2XNUSVL5TGJ4OLX2LYTA7B4LMBM5ESXOBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,,,.,,..,.,,,.,,,,,,,..,,..,,..,,...,...,,,,,.,,,,,.,,.,,.,,,
+#R5JTCJSZ26TJNLQ3LMIVIZ7AMFLE3LD6RWWZMV6HLLUAYXY5KVG6IGVECOMTUP4HZNY37AVYIGA6I
+#\\\|LF2MIEMU3HAI63TPIHTSFCAURFQHDQRQQJWBSRX4UI7K2OFWIKM \ / AMOS7 \ YOURUM ::
+#\[7]5O2WLSTEYJZEFHFJ4CN4EPRS3JJA6DJ65F2NRRDZR2NPMG62G4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

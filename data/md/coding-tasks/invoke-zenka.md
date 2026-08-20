@@ -35,8 +35,8 @@ replies back to the caller.
     modules/invoke-web.cmd.start          — IPC::Open3 spawn pattern (style ref)
     modules/invoke-web.cmd.status         — status cmd pattern
     modules/invoke-web.handler.check_health — timer handler pattern
-    configuration/zenki/invoke-web/start  — on-demand zenka config pattern
-    configuration/external-inference-models — invokeai config keys
+    cfg/zenki/invoke-web/start  — on-demand zenka config pattern
+    cfg/external-inference-models — invokeai config keys
 
 
 ## invoke.ai REST API reference
@@ -143,7 +143,7 @@ provide two variants: one for sd-1/sd-1.5, one for sdxl.
 
 ## files to create
 
-### configuration/zenki/invoke/start
+### cfg/zenki/invoke/start
 
 on-demand zenka. starts when queried, shuts down after 5-minute idle timeout.
 
@@ -181,9 +181,9 @@ on-demand zenka. starts when queried, shuts down after 5-minute idle timeout.
     [zenka.loop]
 
 
-### configuration/zenki/invoke/subroutine.white-list
+### cfg/zenki/invoke/subroutine.white-list
 
-look at configuration/zenki/invoke-web/subroutine.white-list for exact format.
+look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
 
     invoke.init_code
     invoke.cmd.generate
@@ -581,14 +581,14 @@ look at configuration/zenki/invoke-web/subroutine.white-list for exact format.
 
     ptd -c on all 9 module files
     check zero footer lines in all files
-    check subroutine.white-list format matches configuration/zenki/invoke-web/subroutine.white-list
-    check configuration/zenki/invoke/start loads modules.load = auth net protocol io.unix invoke
+    check subroutine.white-list format matches cfg/zenki/invoke-web/subroutine.white-list
+    check cfg/zenki/invoke/start loads modules.load = auth net protocol io.unix invoke
 
     do not attempt to run — requires live invoke.ai instance.
     note any uncertain API field names as inline comments.
 
-#,,.,,..,,...,...,,..,,,,,.,.,.,.,...,,,,,.,,,..,,...,...,..,,,,,,,.,,..,,.,,,
-#CGXK22S7LUNF72SGMGXIADZWQZYETCHF5SZU7EKTZIHGB4IFESWWXXGK7ONB5GS5ITOZOX22BCKXY
-#\\\|D3BZKQLCF4476SGKSC5LYTH7T5WBTJR5QVXBQA7IP4ZOMKZY2FM \ / AMOS7 \ YOURUM ::
-#\[7]VK7OA7OIGNH3FEPWNCZPAK77PIPMMNOYUQ7BYT3QPMA6O5LCL6BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,..,,,,,,,..,,..,.,.,.,.,.,.,.,,,..,,...,...,,.,,.,,,...,.,.,,,.,
+#7DRNYUEZGTKCWHKWTN3R4V3CDLNX7ENFYXJUH42YZGFMFMMFJTWLZXIV5OPY6S6IC3CK5LPKQTJTC
+#\\\|SHFIEFHEDUH7IEKHQX2KTHS5DW24YJ5PBF3OVTUBWMDXV5IG5B6 \ / AMOS7 \ YOURUM ::
+#\[7]LEJT6DIMIKTZKX5D47FZZYJDUUKXZMNKX5XVQ6XOB4JWFN5JHWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,63 @@
+
+  .:[ nessus zenka [ vulnerability scan orchestration [ tenable ] ] ]:.
+
+[load_config_file:'shared-params']
+
+system.zenka.verbosity.buffer  = 2
+system.zenka.verbosity.console = 1
+
+## cube to nessus [ parent commands ]
+access.cmd.usr.cube = commands heart verify-instance name reload src-age \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      status src-ver show-access scan-run ## TEMP-LIVE-TEST ##
+                      ## scan-run intentionally not network-exposed :    ##
+                      ## nessus.cmd.scan-run is called directly via      ##
+                      ## <[nessus.cmd.scan-run]> module syntax ..,       ##
+                      ## network exposure [ bare cmd_name : scan-run ]   ##
+                      ## arrives with phase 2                            ##
+
+## backend control path [ see modules/nessus.cmd.scan-run header for reasoning ]
+## nessus professional [ trial, expires 2026-08-05 ] runs on this host as
+## systemd service 'nessusd', REST API on https://127.0.0.1:8834/ with a
+## self-signed cert [ helper disables cert verification, localhost only ]
+nessus.cfg.helper        = <system.root_path>/cfg/zenki/nessus/bin/nessus_scan.py
+nessus.cfg.base_url      = https://127.0.0.1:8834
+nessus.cfg.username      = taeki           ## local scanner UI user ..
+nessus.cfg.password      = PTOvbP9JcdaRGH5NQdIQcu4n  ## SET ME : trial allows ONE user
+                                           ## only [ no service account
+                                           ## possible ] -- enter the UI
+                                           ## password here, or switch the
+                                           ## helper to API keys [ X-ApiKeys ]
+                                           ## generated in the nessus UI ..,
+nessus.cfg.poll_interval = 15              ## seconds between status polls
+nessus.cfg.scan_timeout  = 14400           ## 4h max per scan
+
+## zenka data dir [ scan result yaml written here, created by
+## nessus.init_code with the zenka user as owner ]
+nessus.cfg.data_dir      = <system.root_path>/data/nessus
+
+## named scan profiles [ map to nessus scan template names, resolved at
+## runtime via GET /editor/scan/templates ]
+## fast recon : host discovery only .., full : basic network scan ..,
+## compliance-shaped profile placeholder until a policy is defined
+nessus.profile.fast.name       = Host Discovery
+nessus.profile.full.name       = Basic Network Scan
+nessus.profile.compliance.name = Policy Compliance Auditing
+
+modules.load = auth.client net protocol io.unix ui format.yaml nessus
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,.,,,,,.,,,.,,,.,..,,...,,..,,.,,,,,,..,,.,.,...,...,...,.,,,,,,,,..,,,.,
+#F2US6YSCS7GZTRAYYBUUQWLUV4FKHCJFYAC2KLGLL74T5XUVAI64VNCP4XW533IVNHH2Q4PRJWZM6
+#\\\|MGRK22VI5TIGTQD6PXSS3KO3PSDUAQDD6OGSX2E5FYGUNEVIJ7J \ / AMOS7 \ YOURUM ::
+#\[7]U2MT34DUHC7OBLXSVVJKJ3FOLPF63SU7YBTZ4ZZAB3A4BCO74MCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -263,7 +263,7 @@ force. detailed task: `v7-console-per-zenka-tree-view.md` below.
 
 per `topic-global-ui-menu-tree`, `configure` is the planned generic
 fallback / decision-surface zenka. its current state
-[ `configuration/zenki/configure/` plus `modules/configure.init_code`
+[ `cfg/zenki/configure/` plus `modules/configure.init_code`
 returning 0 ] is a stub.
 
 the proof-by-being-its-own-first-customer claim: **if the fold
@@ -292,7 +292,7 @@ detailed task: `configure-zenka-fallback-ui.md` below.
 
 ## the installer zenka — greenfield template-driven flow
 
-a new zenka [ `configuration/zenki/installer/`,
+a new zenka [ `cfg/zenki/installer/`,
 `modules/installer.*` ] for guided template-driven install flows
 [ profile installation, dependency provisioning, key generation,
 zenka registration ]. the design move: **the installer is configure
@@ -384,8 +384,8 @@ framing by being the smallest possible consumers of that language —
 they have almost no zenka-specific code because, per the philosophy
 doc, *they don't need any*.
 
-#,,..,,.,,.,.,.,,,...,..,,...,,.,,..,,,,,,...,..,,...,...,...,..,,,..,,..,,,,,
-#DW2ZNL4U6FHSCQ3HNNQFZEOZT642HNYA22AEY2VDMN6JE7QCITVLWEL53L7B222XF2LLA5PIJFN3W
-#\\\|QBKDPJ6IHQ7VDH3BHO6QLIYB6P64OCM3ZNZSYKRAPYBKKRGETXZ \ / AMOS7 \ YOURUM ::
-#\[7]3SGNR4TIKSEPAL5RX2F3YVGDQHX526IVHH7RY3HLOT75NF6IQEDI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,...,...,,,.,..,,,.,,,,.,...,..,,...,...,.,.,...,...,,,.,..,,
+#XG2M56AGAEUTYO2DCE7D3VTR5RJHH6ONIN7E73VGKGHCY7TVCRMDHYJ4RSFGDYVW7C5TF3AKQJTQC
+#\\\|HHWR6QBEH5SGKEWXTVR4IUZQHBF6HRWIGU7MTY4BSDQHC625L5U \ / AMOS7 \ YOURUM ::
+#\[7]MWGUH2Z3LIJZWVCRMRNKXJN4C7V3R5HEZAQ25IWPP6ZY6AS22QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

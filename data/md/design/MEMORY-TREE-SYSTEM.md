@@ -273,7 +273,7 @@ commands (`memory.focus.*` namespace):
 
 **rate-limiting / poisoning policy.** focus is influence over what memory
 surfaces, so it must not be writable by arbitrary zenki. the real gate is
-`configuration/zenki/cube/access.zenki` — only zenki whitelisted there can route
+`cfg/zenki/cube/access.zenki` — only zenki whitelisted there can route
 `memory.focus.set`/`boost`, and cross-zenka calls are route-send + SIZE-reply
 only (no shared-FS path). a per-source cap (`max boost contribution per topic per
 interval`) prevents a chatty trusted zenka from pinning the vector. that single
@@ -561,8 +561,8 @@ new frame YAMLs (`data/yaml/ascii-frames/`):
 - **deferred init** — push the first tree build onto `system.callbacks.initialized`.
 - **json** — `from_json`, not `decode_json`, for coding-zenka summary output.
 
-#,,,,,..,,,,.,,..,,,.,,.,,.,.,,.,,,..,..,,.,,,..,,...,...,,,.,..,,.,.,,,,,...,
-#K2APO2UT2WAAFGQDYKOFNLA3FW3TZBB724AJJWRTEHST3VHVFIKRC7GAZDT5CIPDLFTWC2CUD3O56
-#\\\|JF5NLAFI7YQ23HKGMI5AOZMYWM3GXJ7N6WYQXQOUJTDU475BTWD \ / AMOS7 \ YOURUM ::
-#\[7]FQ7GTRARYJDQVIET76334F2QZX5FYEU3O6S6X6MOBRMPNF2JKOBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,,,.,.,.,...,...,.,,,,,,,...,..,,...,..,,...,,..,,,,,,,.,,,.,
+#ET4MBXVDTP2IROYNC6KBTKCY5LX27DXR7TSXHIPMUFJZ37ENPHVR55MZ754VWSRZOFE6GUHMHUASK
+#\\\|NEDCYEZA235SVCBN5ZZGI2R7PIHYEHG4CIJUJQYTYUGMBQ25T3Q \ / AMOS7 \ YOURUM ::
+#\[7]AIHWRUBM4OPUA24EJ6DC7I3JWAW7TLNHU6ONBSP7KJLDBDE6UMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -70,7 +70,7 @@ whitelist regenerated [ 652 subs ]; signatures pending - user re-signs.
   [ bare-sid addressing, cf. mpv.handler.reposition_reply ], deferred reply
   with fan-out count.
 - GOTCHA [ cost a debug round ]: zenka->zenka routed commands need a CALLER
-  grant in `configuration/zenki/cube/access.zenki`. cube rewrites
+  grant in `cfg/zenki/cube/access.zenki`. cube rewrites
   `<sid>.<cmd>` to `<target-user>.<cmd>` for the has_access check
   [ base.handler.command :496 ], so `access.cmd.usr.web-browser` needed
   `web-browser.goto-waypoint` added. route-send returns send count > 0 even
@@ -82,8 +82,8 @@ whitelist regenerated [ 652 subs ]; signatures pending - user re-signs.
   live-tested [ no v7-resident caller in this pass ].
 - whitelist regenerated [ 655 subs ]; signatures pending - user re-signs.
 
-#,,,.,...,,,.,.,,,.,,,,,,,..,,.,,,,.,,..,,.,,,..,,...,...,.,.,,.,,.,,,..,,..,,
-#M3WU6KPDLG5XQF3IUE7ZOW4X5WHWTCTAHXPUHJIHVBSE5WDVX75S6T6PARXLTSK2PISPQMM3OABXW
-#\\\|7OHRBHQDBENVWVAXWSXC3CGUQTNRCUPPHCQBAJZP37RKYD5Q3QW \ / AMOS7 \ YOURUM ::
-#\[7]NOIYPF4TI2SCUJZGHBFTBMXMIUHCKDQBQQLT7P4SAC6Z62OSO4CI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,..,...,,..,,..,,,,,...,..,,.,,,..,,...,...,.,.,.,,,,,.,.,.,,,,,
+#FM3KEHAMRG67LXQONU4AW357V436QOMNIO254H2REYYYZU2VDSD42FHFNNBVRIKCBDR6SOHCG6UME
+#\\\|6SH6UJM2R5PKFE6VNJT2PBYFREQPBAWYS7GBQ44GDJEEZMHIZ5P \ / AMOS7 \ YOURUM ::
+#\[7]3GKQVIK3GOLSOP4AWGP4AC7UFGGET7QJWXZKJZH2VNZGVKZ5IYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

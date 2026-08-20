@@ -8,10 +8,10 @@ originSessionId: 982c43a3-00c1-40ac-9d1c-a6fafdb428c8
 
 **Why:** Much faster than restarting each zenka individually when config changes (e.g. access.zenki) affect the whole network.
 
-**How to apply:** After editing `configuration/zenki/cube/access.zenki` or other global cube config, use `v7.restart cube` instead of reloading cube + restarting each zenka.
+**How to apply:** After editing `cfg/zenki/cube/access.zenki` or other global cube config, use `v7.restart cube` instead of reloading cube + restarting each zenka.
 
-#,,,,,,.,,,.,,...,..,,.,.,.,,,,,,,.,.,.,.,.,,,..,,...,...,,.,,,,,,..,,,.,,.,.,
-#V34FC5KKB7SCQ6T3KQ5J5RVASEAVU7TFB2AYDTELKNMZNSL5NB6YDYD2PBVNZUULMS64CIAIFHMLC
-#\\\|2YNGKWCAB4EX5XDM5SRKH3ZI2U3XOY7RHISUMJUFM7FPFP4RMF6 \ / AMOS7 \ YOURUM ::
-#\[7]DRYZSPHH3YPJLDMS5X66MWIAWNWFFL2CYFFCGENTTQKTMV7TJSAI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,,..,,..,.,,,.,.,...,,.,,.,.,..,,...,...,...,.,.,,..,,,.,,,,,
+#N4XAZWTZNFSLPLW3MYYSDBPM3C56ZEQCSYV3SCFFZO7ZJKMJIB56MAFUJHNO2S6P536G3ELFOD3FQ
+#\\\|QMFX7UHUKA2AUR3PFGWVOQTEKRDHQZLNVMQ7MKKOT2N5A3M2FFD \ / AMOS7 \ YOURUM ::
+#\[7]XKQ6Y23U6DZX5ZI5RIB7JU53VQG4F4TOTXXLSMTBA46UCPGKVWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

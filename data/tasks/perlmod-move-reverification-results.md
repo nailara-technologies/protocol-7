@@ -5,7 +5,7 @@ per `data/tasks/perlmod-move-reverification.md`. Read-only; no module files edit
 
 Method: real callers traced via grep (both long and runtime-swapped short names),
 false positives excluded (own `# name =` headers, nested-namespace siblings),
-`.cmd.*`/`.handler.*` files corroborated via `configuration/zenki/*/access.zenki`
+`.cmd.*`/`.handler.*` files corroborated via `cfg/zenki/*/access.zenki`
 grants + route-send handler references, and callers traced one level up.
 
 **Outcome: 11 of 59 MOVEs confirmed, 48 changed to KEEP / KEEP (unverified).**
@@ -21,7 +21,7 @@ grants + route-send handler references, and callers traced one level up.
 | modules/base.stdio.transport.connect | IO::Socket::UNIX | startup/one-shot | no | KEEP | sole caller base.stdio_multiplex.connect:37, invoked once per zenka startup only in calc's zenka-startup.v7 init block | yes |
 | modules/base.stdio.transport.listen | IO::Socket::UNIX | startup/one-shot | no | KEEP | sole caller v7.handler.stdio_multiplex_listen:48, itself called exactly once from v7.post_init:21 | yes |
 | modules/base.tmp_dir | File::Path | startup/one-shot (conditional) | no | KEEP | only caller is the temp-home branch of base.root.drop_privs:187, reached at most once per zenka lifetime | yes |
-| modules/channels.cmd.ai-review-approve | JSON::PP | rare (manual dev workflow) | no | KEEP | no static caller; reachable only via the dev-only cube wildcard grant in configuration/zenki/channels/start, part of a manual 4-step review workflow in an on-demand zenka | yes |
+| modules/channels.cmd.ai-review-approve | JSON::PP | rare (manual dev workflow) | no | KEEP | no static caller; reachable only via the dev-only cube wildcard grant in cfg/zenki/channels/start, part of a manual 4-step review workflow in an on-demand zenka | yes |
 | modules/channels.cmd.ai-review-feedback | JSON::PP | rare (manual dev workflow) | no | KEEP | dynamic cube routing only; invoked once per review round in the same occasional ai-review workflow | yes |
 | modules/channels.cmd.ai-review-status | JSON::PP | rare (manual dev workflow) | no | KEEP | zero static callers; user-polled status command in the on-demand channels zenka | yes |
 | modules/channels.cmd.ai-review-submit | JSON::PP | rare (manual dev workflow) | no | KEEP | no static invocation anywhere; manually-triggered first step of a rarely-used review pipeline | yes |
@@ -108,8 +108,8 @@ grants + route-send handler references, and callers traced one level up.
    vision-batch.child.init_code already preloads JSON::XS — moving loads to
    image-quality.init_code would not cover the real execution path.
 
-#,,,.,.,,,,,,,,,.,,,,,.,.,,,.,.,.,,..,.,.,..,,..,,...,...,.,,,,,.,.,,,..,,..,,
-#O6J7WYHCGVF44N7H2MV5QKNYG6A7I6A3PMYFE2TWMBZKVOATXXSSQXJWIM5SZWINPCBPYY44DZL46
-#\\\|KEFHC3SGSOPFAXJISPFNZEYRDSIDNCDBY6XRTBWB4T2L7EE4JPP \ / AMOS7 \ YOURUM ::
-#\[7]EOR3C6CJEY3S4XRAONHBLYVAMAVRETK4H76T6PAV5BAFC42XNAAA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,,,,..,.,,,.,,,..,,,,.,.,.,,..,..,,...,...,.,.,.,.,,..,..,,,,.,
+#J2HHT5Y7E7GJYGO74KCQJV5VBKLK5CBNGGKAADFAJORM2L3DMLYBPXXTOOAZRCK4NHKGRZI5XIRWK
+#\\\|QVJVNMAY54SM75G3JZ6GOMLATO2WXJGULHMZFUR6WWXTWMIV4WR \ / AMOS7 \ YOURUM ::
+#\[7]LXIUEUJZ5NK5BF2PRFEWNSZUXKOBZ2RZACY7IEL4LEMKHH4AQUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

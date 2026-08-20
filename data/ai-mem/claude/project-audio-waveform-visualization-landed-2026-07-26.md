@@ -29,7 +29,7 @@ output_path per the x11-capture-commands-rewrite precedent),
 dependencies** — reusable as a bare Perl library), `audio.init_code`
 (PDL/PDL::FFT/Imager setup). Full zenki scaffolding (start file,
 zenka-startup.v7, pm-dep/os-dep markers, subroutines.load-early) plus
-2-line edits each to `configuration/zenki/cube/access.zenki` and
+2-line edits each to `cfg/zenki/cube/access.zenki` and
 `auth.zenki`.
 
 ## rendering approach
@@ -77,14 +77,14 @@ using `audio.reload source` for its own module iteration instead.
 - human sign-off (AMOS7 signatures) on all 7 modules + 4 zenki config
   files + 2 cube config edits — nothing here is committed yet.
 - `access.cmd.usr.audio = v7.register_child` was added to
-  `configuration/zenki/cube/access.zenki` separately (permission gap
+  `cfg/zenki/cube/access.zenki` separately (permission gap
   Kimi hit when its ffmpeg children tried to register) — confirmed
   working live (`v7.start audio` → online → `v7.stop audio` clean).
 - task file `data/tasks/audio-waveform-visualization.md` not yet moved to
   `completed/` — pending final review/sign-off.
 
-#,,,.,,.,,..,,...,,,,,,..,..,,..,,.,,,,.,,,,,,..,,...,...,...,.,.,.,.,.,,,.,,,
-#YI2PJNY47AVEPT6COSTWW5J4VGUCLTJEUMZXUY6P7CXKUWCZ3DHBMLRZRFEB5BQZZNVS3ZGTDJATY
-#\\\|SHHC4B53UQONGKSW27LCEOOXDWNLDY5MLQUDA7ICSQOG35JZPIO \ / AMOS7 \ YOURUM ::
-#\[7]QMR2NJWROOWVVLDEXZ73UY2VH5W3UFDU6VKXPJWXUY4U3R7KUOBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,.,.,,..,,,,,.,,,,..,,.,,..,,..,,...,...,.,,,,..,...,,,.,.,,,
+#LAKU5TSA2WHZJTBWTRFXVRPJKU5ODP36ZMUTVHJKC33ZOTKRSWXGAVYIHVMCR2CNQPP2RR22XOSPU
+#\\\|HBRYRFZ24D2CI6D77SDXPHCLDTE2KRIEXAJXW3VJPUIR3FLUFZO \ / AMOS7 \ YOURUM ::
+#\[7]2HXBNSSNHINQXR35SATA4ULK67KG2AHZOH2HEB6VLWCVKPUILICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

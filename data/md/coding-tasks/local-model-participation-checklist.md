@@ -79,7 +79,7 @@ but nothing assembles them into the inference prompt yet.
   system prompt loaded via `$code{'coding.system_prompt'}` if available.
 
 - [ ] **1.3 add plugin.storage.inference to coding module load**
-  modify `configuration/zenki/coding/start` modules.load to include
+  modify `cfg/zenki/coding/start` modules.load to include
   `plugin.storage.inference`. requires whitelist regeneration.
 
 - [ ] **1.4 test: basic ask-reply with system prompt**
@@ -269,12 +269,12 @@ noticeably better local model experience.
 - `data/md/handover/LOCAL-LLM-INTEGRATION-2026-03-25.md` — kimi's roadmap
 - `data/md/coding-tasks/plugin-storage-inference-cache.md` — cache design
 - `data/md/coding-tasks/next-steps-plan.md` — overall priorities
-- `configuration/zenki/coding/start` — coding zenka config
+- `cfg/zenki/coding/start` — coding zenka config
 - `modules/coding.handler.process-queued-task` — integration point
 - `data/yaml/context-templates/` — existing templates
 
-#,,,.,.,,,...,,,.,...,,.,,.,.,,,,,,.,,...,.,,,..,,...,..,,.,,,,,,,,.,,,..,..,,
-#67NSHPXIE4E4R7B3M3KOOXXDLBRK6WXFAJKQQP6KKDF4QMXM2M5QCX62DUHVEQS3CTFSPC2XY4WNM
-#\\\|FS7SVMGLTW2WGFVT7WFKI7FW336WH4BQE745RG6YFFSTKGK7ZBP \ / AMOS7 \ YOURUM ::
-#\[7]P2FAVQ3ERFKDGUXVVOIWLV6DOWZ7GGRD6HPRSAVKJQ4ZUYOJYSAY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,,,,...,.,.,,,,,..,,.,.,,.,,..,,...,..,,,..,,.,,,,,,,.,,.,.,
+#RONXXFXANQ4BNMMVWXXB5NWLQRELIYDO5THWWPZJRANW6LPKOTCIO7ORQSEJJC6LYTK6A3P3MQR5C
+#\\\|FE5PLTJBNN7LAJC4GO4INRZWJCQGWVE3HXJADRFGWQZSH5LJRN2 \ / AMOS7 \ YOURUM ::
+#\[7]J42STZ6Z424B2W3SLKPVMQJZIADDIBVCFDCPMKTFV25UFRGSIABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

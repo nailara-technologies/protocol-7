@@ -28,7 +28,7 @@ no p7 link back. A fix that only works same-cube would need redoing.
 
 ## cred-mesh, surveyed fresh
 
-`cred-mesh` (configuration/zenki/cred-mesh/, modules/cred-mesh.*) is a
+`cred-mesh` (cfg/zenki/cred-mesh/, modules/cred-mesh.*) is a
 **local secret storage/rotation broker**, not an identity or trust
 mechanism: `register` declares a slot's metadata (owner, type, rotation),
 `resolve` decrypts and formats the stored secret for use
@@ -38,7 +38,7 @@ at-rest protection — unrelated to TOFU/peer-auth C25519 usage elsewhere.
 Cross-zenka only via intra-cube `protocol-7.route-send` to an owning
 zenka; **no cross-host concept at all**. jobsite/weather already have
 `cred-mesh.register`/`.resolve` access grants in
-`configuration/zenki/cube/access.zenki` but **zero real call sites** —
+`cfg/zenki/cube/access.zenki` but **zero real call sites** —
 scaffolding provisioned ahead of use.
 
 ## confirmed: the gap is real, not something earlier research missed
@@ -118,7 +118,7 @@ each individually complete, rather than one jobs-sync-specific fix):
    later-phase, not a blocker for 1-3.
 
 **Update 2026-07-18 (same session)**: `auth.required` removed from the
-`/jobs-sync` route again (`configuration/zenki/httpd/routes`) — sync
+`/jobs-sync` route again (`cfg/zenki/httpd/routes`) — sync
 works, zero risk since jobsite is local-only today. Open questions and
 the full "already exists" map captured in
 `data/md/design/ZENKA-IDENTITY-AND-TRUST-TOPOLOGY.md` (umbrella doc,
@@ -151,8 +151,8 @@ working-style takeaway.
 [[project-zenka-cryptographic-identity-survey]]
 [[topic-write-access-security-infrastructure]]
 
-#,,.,,,..,,..,.,.,..,,.,,,.,.,..,,..,,,.,,.,,,..,,...,...,...,.,,,.,.,...,.,,,
-#Y43FXE2OXVPX752USOIUULLCMBDKJ325FHPZ2R6VNH3H2G4RHIOZPKHLA4S4FMQ764YEGONA3CWB6
-#\\\|BKV7C66TGFQQWF256GZ2W6NI6CRJHFVT7Q366LO6L7JCXLN45Q4 \ / AMOS7 \ YOURUM ::
-#\[7]OQJKYZ2CWXYVN7R4F45YHF7OBPL2TD6FCZDLBLIHR3ZHQBJO6YDI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,.,.,.,,,,,..,,.,.,,.,,...,.,,,..,,...,...,..,,.,,,...,,,.,.,,,
+#FMTGEAPQ7QPZJ2XINFMZL2NUXXH4U2PDYLNN5N2GQNM72Z7SL3EPZEYEJDZV2DC3K2567Q2HMUSOA
+#\\\|MYHZ4MF54726YBQ3GDZCHY6Z3REHOHEJOGYWV36U2TSB3ZO6OGN \ / AMOS7 \ YOURUM ::
+#\[7]HSDVHAKK2NQKVUN5E7DOFN336JVRYZCRXNXLVCJOIPTIXZYXQWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

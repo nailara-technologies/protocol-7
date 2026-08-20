@@ -41,7 +41,7 @@ as routable namespace state — so other zenki can query and set the cursor.
     modules/graphics-3d.render.cursor            — cursor rendering with translucency
     modules/graphics-3d.cfg.cursor               — cursor config setup pattern
     modules/graphics-matrix.init_code            — existing graphics-matrix init (extend this)
-    configuration/zenki/graphics-matrix/start    — existing start file (add new cmds to access list)
+    cfg/zenki/graphics-matrix/start    — existing start file (add new cmds to access list)
     data/md/design/GRID-HARDNODE-CURSOR-MODEL.md — full cursor design spec
 
 
@@ -176,7 +176,7 @@ the checksum is computed on demand, not cached.
 
 ## modifications to existing files
 
-### configuration/zenki/graphics-matrix/start
+### cfg/zenki/graphics-matrix/start
 
 add `cursor cursor-state` to the access.cmd.usr.cube line.
 do NOT rewrite the file — just add the two command names.
@@ -188,13 +188,13 @@ add cursor initialization at the end, before the `0;` return:
     ## initialize cursor state ##
     <[graphics-matrix.cursor.init]>;
 
-### configuration/zenki/graphics-matrix/subroutine.white-list
+### cfg/zenki/graphics-matrix/subroutine.white-list
 
 if this file exists, add the new modules. if not, check whether the zenka
 uses wildcard loading — the start file loads `modules.load = ... graphics-matrix
 graphics.matrix` which may already include all matching modules. in that case,
 no white-list update is needed. look at other zenki white-lists for format
-reference: `configuration/zenki/invoke-web/subroutine.white-list`
+reference: `cfg/zenki/invoke-web/subroutine.white-list`
 
 
 ## verify
@@ -206,8 +206,8 @@ reference: `configuration/zenki/invoke-web/subroutine.white-list`
     verify $ARG not $_ throughout
     verify lowercase comments
 
-#,,,,,.,,,..,,..,,.,,,,..,...,,,,,.,.,.,.,,.,,..,,...,...,,,.,,,.,...,...,.,,,
-#4NI3X2SGKNGD2NIIKJQG3NFAVKWVCYYE2CYOBNXV5DCN6NWI5QDOTZVYNOUVZMJTQLRN3YT3LIMRE
-#\\\|GWFOB2UFNYBGVR3AV3LCN3VYYLY64LVXT2ELYRLHGL7A25WGRW5 \ / AMOS7 \ YOURUM ::
-#\[7]PPKNEDDOAJADPLSO7DEFC73HVWK3IJ52TABFS7ISC7CBAOSHG4BQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,.,,.,,,..,,.,.,.,,,...,...,,..,..,,...,...,..,,,,,,,..,.,.,...,
+#6VNPJZDBXUJTZZ7YCISRXJNDDDS6CMTJ52ZWBGNVAD2PYILIOWWXMDIQHIEJA2HLYMVQRADJ3R34C
+#\\\|LE7EVNTEPVO3ERH7JAGLRUHFNNTBIVFSIJSXON6T2GKKSEPOP36 \ / AMOS7 \ YOURUM ::
+#\[7]JXC5MQFKKXQUR4KAHU4LXRQ5I6RUWSHSC33AJ76BB7PKXNH2NICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

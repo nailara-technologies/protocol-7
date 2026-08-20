@@ -27,21 +27,21 @@ if ( !length $pattern ) {
     say "  Usage: ${neon_orange}work search <pattern>${reset}";
     say '';
     say "  Search locations:";
-    say "    ${dim_blue}•${reset} data/yaml/"
-        . " ${dim_blue}(workflow data)${reset}";
-    say "    ${dim_blue}•${reset} data/asc/what-AI-thinks/"
-        . " ${dim_blue}(AI notes)${reset}";
-    say "    ${dim_blue}•${reset} modules/work.*"
-        . " ${dim_blue}(workflow code)${reset}";
-    say "    ${dim_blue}•${reset} configuration/zenki/workflow/"
-        . " ${dim_blue}(workflow config)${reset}";
+    say "    ${dim_blue}•${reset} "
+        . "data/yaml/ ${dim_blue}(workflow data)${reset}";
+    say "    ${dim_blue}•${reset} "
+        . "data/asc/what-AI-thinks/ ${dim_blue}(AI notes)${reset}";
+    say "    ${dim_blue}•${reset} "
+        . "modules/work.* ${dim_blue}(workflow code)${reset}";
+    say "    ${dim_blue}•${reset} "
+        . "cfg/zenki/workflow/ ${dim_blue}(workflow config)${reset}";
     say '';
     return TRUE;
 }
 
 say '';
-say "${blacklight}.:[ ${TRUE_blue}WORKFLOW SEARCH${blacklight} ]:."
-    . " ${dim_blue}pattern: ${neon_orange}$pattern$reset";
+say "${blacklight}.:[ ${TRUE_blue}WORKFLOW SEARCH${blacklight} "
+    . "]:. ${dim_blue}pattern: ${neon_orange}$pattern$reset";
 say '';
 
 ## Use Protocol-7 auto-detected system paths ##
@@ -162,8 +162,8 @@ foreach my $location (@search_paths) {
 
     if ($section_header_shown) {
         say "${blacklight}│$reset";
-        say "${blacklight}│${reset}   ${dim_blue}Found $section_matches"
-            . " matches$reset";
+        say "${blacklight}│${reset}  "
+            . " ${dim_blue}Found $section_matches matches$reset";
         say "${blacklight}└$reset";
         say '';
     }
@@ -174,22 +174,22 @@ if ( $total_matches > 0 ) {
     say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         . "━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
     say '';
-    say "  ${neon_green}✓${reset} Found ${neon_orange}$total_matches${reset}"
-        . " total matches";
+    say "  ${neon_green}✓${reset} "
+        . "Found ${neon_orange}$total_matches${reset} total matches";
     say '';
 } else {
     say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         . "━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
     say '';
-    say "  ${dim_blue}No matches found for pattern:"
-        . " ${neon_orange}$pattern$reset";
+    say "  ${dim_blue}No matches found for "
+        . "pattern: ${neon_orange}$pattern$reset";
     say '';
 }
 
 return FALSE;
 
-#,,,.,...,,..,..,,,.,,..,,,.,,,.,,,.,,,..,,..,..,,...,...,..,,.,,,,,,,.,.,,,,,
-#KKUDVPBMRSVZFZ5M34EQE7WF4FH5HVQDZ5RQOIGLRY24GTXMOAVWRQFK4FCXUUT2HUKB4LLHPUF7K
-#\\\|EGBANCTHDF6TTKUSUMGUQWHXGQACE7TIDUPQWJBWXHTKCTW3E5S \ / AMOS7 \ YOURUM ::
-#\[7]BS66SLC23VX5TN7EPUZS5JD7DY636F266ZNDTFQHGOG7TT5JTOBA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,...,..,,,,.,,,,,,.,,.,.,,,.,..,,...,...,...,..,,..,,,,,,,.,,
+#7VTSEGIH3GLDRTKUEVAERZXXZMKKKAD6UDEQ2TDL6AOHV2AW5M7LRKTQM2PGZWAZ3QQYMI3WG7ZQM
+#\\\|4YZTAGPEPRWAG4EKV3S6WEUHZJTGCWMC7OGDVJGDXDW4WN6KXA3 \ / AMOS7 \ YOURUM ::
+#\[7]ZDQFEDVL4CSLUNHMHBRQ4MOPSFQBSSXHLQL2SFFFKV7FHSHUSEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

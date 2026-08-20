@@ -192,7 +192,7 @@ N_days       ## auto-expires after N days, re-enters buffer on next use
 the buffer lives in a dedicated `auth` zenka — isolated, minimal, auditable:
 
 ```
-configuration/zenki/auth/
+cfg/zenki/auth/
   start
   zenka-startup.v7
   access.usr.cube          ## who can read/approve buffer entries
@@ -283,8 +283,8 @@ one approve, remembered forever.
 - `data/tasks/credentials-zenka.md` — auth buffer as credential release gate
 - `data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md` — signature-as-identity
 
-#,,..,..,,...,,,.,,,.,,.,,,,.,,..,,..,...,...,..,,...,..,,,..,...,,..,,..,,,.,
-#EXVIS544PAEPPW64ASTT25ETZO7VL76ESFIE7LTRUG2ONBAJIR2CZGO232YAPDE5YT45U2UL6SJYE
-#\\\|QURRE4B4XXI7LLH32TI6NN6K5M4SEZPIO3PI57R47SHZZJHZRWH \ / AMOS7 \ YOURUM ::
-#\[7]DGHSX3XG2BXHQVB2YAJ6QZYN3Z3A6JUZ2Z365WZI63GOQHZIM2BI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,,,,,.,,,,..,,,.,.,,,...,..,,..,,...,...,.,.,.,.,.,,,,,,,,,.,
+#SO4CS2L2ZTG6XGDVHEVZ54ONBXGJ6JB2V2OSSOCOQ3MX5VAWAANOANGLSIR7DJUJCX5C6UM3DEJNC
+#\\\|WGNUQJDV52QC2TG54C75LFECZASIKQWKZQA43WF4EPMML6P75S2 \ / AMOS7 \ YOURUM ::
+#\[7]O6QZZ5DJHVC7HBAA6FPOYKZQ6S7QRKYHGBPN2DF77B7HQ657WYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

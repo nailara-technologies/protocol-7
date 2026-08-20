@@ -56,7 +56,7 @@ Pattern:
 ### Hybrid Anomaly Cases ⚠️
 
 #### Case 1: coding zenka
-**Location:** `configuration/zenki/coding/start`
+**Location:** `cfg/zenki/coding/start`
 
 **Issue:** Privilege drop is **COMMENTED OUT**
 ```perl
@@ -77,7 +77,7 @@ Pattern:
 - v7 monitoring/restart may not work properly
 - Other zenka may not trust coding (wrong UID)
 
-**v7 Configuration:** See `configuration/zenki/coding/zenka-startup.v7`
+**v7 Configuration:** See `cfg/zenki/coding/zenka-startup.v7`
 ```
 start_mode = stdin-zenka
 [base.auth.set_v7_key:<random-key>]
@@ -88,7 +88,7 @@ start_mode = stdin-zenka
 - Will be started as root subprocess by v7
 
 #### Case 2: data zenka
-**Location:** `configuration/zenki/data/start`
+**Location:** `cfg/zenki/data/start`
 
 **Issue:** Same as coding - privilege drop is **COMMENTED OUT**
 ```perl
@@ -174,8 +174,8 @@ start_mode = stdin-zenka
 - **Network daemon zenka:** ⚠️ 2 known anomalies (coding, data)
 - **Desktop/X11 zenka:** ? Requires user auto-discovery (needs testing)
 
-#,,,,,,.,,,.,,.,,,,..,,.,,...,,,.,.,.,...,,..,..,,...,...,...,..,,...,.,.,...,
-#C5MG4SQMB3UCRQFFUUL33IQ356YGUGBIJGWWUXCKEDV6TDO52JK74ZBDLZFOKURQUCSQ2NOKD5WNE
-#\\\|CEIFJVEX5F7NSA3L4BN4CJMS4J3WMXBRT443TW43CZVTDB7CUL6 \ / AMOS7 \ YOURUM ::
-#\[7]BJS5K5EB5FKQCAU7ZNVWUAWML5O54O73FOQ4CKHWZSH3LQ624ABI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,.,,,..,,,..,.,.,..,,.,.,,.,,..,,...,...,,..,,..,...,..,,..,,
+#U4LZRC5WOLJ2ND423SD2QMS32SXW5LXGXKTUTZEJ74FZLU4XWXRPBQLM6OQU5TA5ADTHULDLFAY42
+#\\\|NNMLI3HHYUULCYET3RVHGVBDDO4WNGXZI2WZMAVCM2CQZR6ZQJA \ / AMOS7 \ YOURUM ::
+#\[7]D5GL7HYDXEL52OTZJIJICABUDWAF5QPZAUKDEMOWZU7V4ARCT2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

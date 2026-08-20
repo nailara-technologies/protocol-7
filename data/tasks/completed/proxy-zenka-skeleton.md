@@ -177,8 +177,8 @@ as candidates for native zenka adapters.
 
 ## configuration
 
-`configuration/zenki/proxy/start` — standard zenka start file
-`configuration/zenki/proxy/zenka-startup.v7` — runtime params:
+`cfg/zenki/proxy/start` — standard zenka start file
+`cfg/zenki/proxy/zenka-startup.v7` — runtime params:
 
 ```
 proxy.cfg.listen_port    = 8118
@@ -234,8 +234,8 @@ handles all footer blocks — leave them untouched.
 ### existing patterns to reuse
 
 **httpd handler registration — four patterns available:**
-1. **Protocol method binding** (`configuration/zenki/httpd/start`): `http.handler.get = httpd.http_get` — `httpd.request_handler` looks up `<http.handler>->{ lc $request->{method} }` and calls the coderef with `$id`. The proxy handler should register as `http.handler.connect = proxy.handler.request` (and potentially override GET/POST when proxy mode is active).
-2. **Route registry** (`configuration/zenki/httpd/routes`): parsed by `httpd.route.init_code` into `$data{'httpd'}{'route'}{'exact'}{$method}{$path}`. `httpd.route_dispatcher` returns `{ handler => 'module.name', handler_args => { ... } }`. Good for proxy status/debug endpoints.
+1. **Protocol method binding** (`cfg/zenki/httpd/start`): `http.handler.get = httpd.http_get` — `httpd.request_handler` looks up `<http.handler>->{ lc $request->{method} }` and calls the coderef with `$id`. The proxy handler should register as `http.handler.connect = proxy.handler.request` (and potentially override GET/POST when proxy mode is active).
+2. **Route registry** (`cfg/zenki/httpd/routes`): parsed by `httpd.route.init_code` into `$data{'httpd'}{'route'}{'exact'}{$method}{$path}`. `httpd.route_dispatcher` returns `{ handler => 'module.name', handler_args => { ... } }`. Good for proxy status/debug endpoints.
 3. **Hard-coded routes in `httpd.route_dispatcher`**: the `plugin.httpd.radio` stream endpoint is checked via state vars (`<plugin.httpd.radio.active>`, `<plugin.httpd.radio.stream.path>`). The proxy could use the same pattern for an intercept toggle.
 4. **Async dispatch via `protocol-7.route-send`**: used by `httpd.process_template` and `httpd.route.handler.web-relay`. The proxy should use this to call `site-yaml.extract` and later the credential fabric.
 
@@ -267,8 +267,8 @@ Inside any handler receiving `$id`, the session hash `$data{'session'}{$id}{'htt
 ### integration points confirmed
 
 **Where the proxy hooks into httpd:**
-1. Add `proxy` to `modules.load` in `configuration/zenki/httpd/start` (or run as standalone zenka). Given the task spec says "register as httpd child or standalone", note that httpd config **does not declare child zenki** — it loads modules/plugins into the current zenka via `[load_modules:...]`. A standalone proxy zenka would need to be spawned by v7 and communicate over route-send.
-2. Register method handler in `configuration/zenki/httpd/start`: `http.handler.connect = proxy.handler.request`.
+1. Add `proxy` to `modules.load` in `cfg/zenki/httpd/start` (or run as standalone zenka). Given the task spec says "register as httpd child or standalone", note that httpd config **does not declare child zenki** — it loads modules/plugins into the current zenka via `[load_modules:...]`. A standalone proxy zenka would need to be spawned by v7 and communicate over route-send.
+2. Register method handler in `cfg/zenki/httpd/start`: `http.handler.connect = proxy.handler.request`.
 3. For full interception of GET/POST, the proxy needs to either:
    - Override `http.handler.get` / `http.handler.post` when proxy mode is on, OR
    - Use a hard-coded check in `httpd.route_dispatcher` (like radio), OR
@@ -293,14 +293,14 @@ Inside any handler receiving `$id`, the session hash `$data{'session'}{$id}{'htt
 
 1. **How does the proxy intercept ordinary GET/POST?** The task says "web-browser zenka ↓ all HTTP/HTTPS requests (configured proxy)" but doesn't specify the mechanism. The web-browser uses WebKit; configuring it as a proxy client requires calling `web-browser.proxy_setup` with `localhost:8118`. This is a **required integration step** not listed in the task.
 2. **site-yaml has no generic extractor.** The task assumes `site-yaml.fetch_and_parse 'example.com/article'` works for any domain. In reality only `stepstone.de` is implemented. Generic extraction (LLM reframe or heuristic HTML→YAML) needs to be built or the fallback to "raw-but-cleaned HTML" must be the primary path.
-3. **No httpd child-zenka mechanism exists.** The task says "register as httpd child or standalone." httpd config does not spawn child zenki. If the proxy runs inside httpd, it's a module. If standalone, it needs its own `configuration/zenki/proxy/` directory and v7 startup config.
+3. **No httpd child-zenka mechanism exists.** The task says "register as httpd child or standalone." httpd config does not spawn child zenki. If the proxy runs inside httpd, it's a module. If standalone, it needs its own `cfg/zenki/proxy/` directory and v7 startup config.
 4. **Renderer adapter "HTML" for browser is underspecified.** The task references `TEMPLATE-RESOLUTION-ENGINE.md` but there is no existing HTML renderer adapter in the codebase. `httpd.process_template` uses a template engine, but it's not the same as the deferred rendering model described in the design doc.
 5. **passthrough template forwarding** — "forward the request unchanged" implies the proxy makes an outbound HTTP request and streams the response back. The async client pattern (`clients.http.handler.io`) accumulates the full response before firing `on_done`. For true passthrough (streaming), a different pattern is needed: register an IO watcher that copies bytes from the outbound socket to the HTTP session's output buffer as they arrive.
 6. **visit-log.yaml and adapter-candidates.yaml atomic updates** — appending to YAML files from multiple concurrent requests requires locking. The task doesn't mention this. Existing patterns: `credentials.read_archive` / `write_archive_file` use file-based locking via `IO::AIO` or simple rename swaps.
 
 ### suggested refinements
 
-1. **Run proxy as standalone zenka, not httpd child.** The httpd zenka has no child-zenka spawning mechanism. A standalone `proxy` zenka with `configuration/zenki/proxy/start` and `zenka-startup.v7` is cleaner. It listens on `localhost:8118`, accepts HTTP proxy requests, and uses `clients.http.*` / `clients.https.*` for outbound. Integration with httpd is then just a route for health/status if desired.
+1. **Run proxy as standalone zenka, not httpd child.** The httpd zenka has no child-zenka spawning mechanism. A standalone `proxy` zenka with `cfg/zenki/proxy/start` and `zenka-startup.v7` is cleaner. It listens on `localhost:8118`, accepts HTTP proxy requests, and uses `clients.http.*` / `clients.https.*` for outbound. Integration with httpd is then just a route for health/status if desired.
 2. **Reuse `clients.http.request` for outbound, but add a streaming variant.** The existing client accumulates full response. For passthrough/images/assets, create `clients.http.request_streaming` that copies chunks directly to a target filehandle/session via `base.stream.push` or direct `base.s_write`.
 3. **Defer generic site-yaml extraction to Phase 2.** Since only stepstone.de has extractors, the Phase 1 skeleton should treat generic extraction as a stub that returns `{ error => 'no_extractor' }` and falls back to passthrough with content-type-based stripping (HTML gets ad-stripped, images pass through).
 4. **Use `base.handler.hooks` for proxy lifecycle hooks if needed.** It exists but is unused by httpd. The proxy zenka could use it for pre-request / post-request hooks without inventing new infrastructure.
@@ -321,8 +321,8 @@ The `proxy.handler.request` module should be split into two variants if both mod
 
 **Recommendation:** commit to standalone model and add `proxy.listen` + `proxy.handler.connection`.
 
-#,,..,.,,,,.,,,,,,,,.,...,...,,,,,,..,...,.,,,..,,...,..,,.,,,..,,,,.,.,.,,.,,
-#XRRSD65TGW4TNZKCTZA56STQMS4JYMEWD7WGNGQDZD3CTBWSRMEEKY6IV3TO54T5IEFZJKF3R3JPK
-#\\\|CFTLPDPLH6FSCM3JYYAIWEIVGFZ7B664DFL4YKFFH3J2GS6PYOU \ / AMOS7 \ YOURUM ::
-#\[7]KR7CGPTGMTJRQMO6ZLFYWBOYOTMNKGTK55JTME7YABUYV3RNAWBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,.,,..,.,.,,.,,,.,,.,.,,,,,..,,..,,...,...,..,,,,,,,,,,.,.,..,,
+#CCZQFIDKY3UB62NXB73DWWE6RNJOFDP4SKROIO4J35C6A3V6S42VBPBQKNBNLYMQXYY2GDGWBRGAC
+#\\\|YP5AHJP72VZYMYMMTO6QNMCAG7LPS5W5MM546LSRKC7U4PCREEM \ / AMOS7 \ YOURUM ::
+#\[7]3LPK67SHTG56C6TOVPJME5QTTEWI3WZJOYGI3SVCXNQLRGRPZ4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

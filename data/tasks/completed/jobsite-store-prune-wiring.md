@@ -53,7 +53,7 @@ before wiring, read the current module and verify:
 from the kimi dispatch. verify with:
 
 ```bash
-grep "store.prune" configuration/zenki/jobsite/subroutine.white-list
+grep "store.prune" cfg/zenki/jobsite/subroutine.white-list
 ```
 
 if missing, run `./bin/dev/gen-sub-whitelist jobsite` to regenerate.
@@ -64,8 +64,8 @@ do NOT manually write or edit signature lines. do not add stubs to new files.
 
 ## dispatch
 
-#,,..,..,,,,.,,,,,,..,..,,...,,,,,,,,,.,.,,..,..,,...,.,,,,,,,,..,...,..,,...,
-#VX5DUOK2DAF5M7YMUUYFMOW3EBX6KZPVHFFW3JWORS7UWVPNQQRITATV56QDMJQVOYV2BFOWGDZVU
-#\\\|YOOKLPNZHPTB4ZEWOALEHROF7KAB7IVG2RYOUTSZWRTIGPY4TCA \ / AMOS7 \ YOURUM ::
-#\[7]6LXRNRD5NGNTSRIYGBE6EENUT6YBI3FWXNRJJ475BMIEZFQJGGDA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,,.,,,,,.,,,...,..,,,,,,,..,..,,...,...,...,...,,..,...,,,,,
+#T6GRB5JPC5G4D6IE5ATIGO4M6DAFQVFMTC3JNEOQALIZXEDIFVCY3CMBB5E6Q4ORV6IGB62PGZ3E2
+#\\\|UMFJUOYVYCIBMV3G7MCY3OXSUPUUGGULMQJRP3DVNHLNL5VJ4EF \ / AMOS7 \ YOURUM ::
+#\[7]NSYJD65PFNAUOO4JWVX6B6VYLQDXS4TWFJWEROLWVN5OGXKQASDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

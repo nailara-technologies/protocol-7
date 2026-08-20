@@ -271,7 +271,7 @@ This comment suggests known broken functionality. Either fix or document as limi
 But `ssh.connection.stop` doesn't check these return values.
 
 ### 20. **Access Pattern Comment Outdated**
-**File:** `configuration/zenki/ssh/start` (line 8)
+**File:** `cfg/zenki/ssh/start` (line 8)
 
 ```
 access.cmd.usr.cube = ... #<-FIX
@@ -336,8 +336,8 @@ All critical and high-priority issues have been addressed:
 
 The SSH zenka now starts cleanly and maintains its robust connection recovery behavior that was refined over years of laptop sleep/wake cycle testing. The fixes bring the 11-year-old codebase into better alignment with modern Protocol-7 conventions.
 
-#,,.,,..,,,.,,.,,,...,,,,,,,,,,,,,.,.,,..,,,,,.,.,...,...,,.,,,.,,,,,,,..,...,
-#6ZWPQQV75FVG5JX3HYEG5XA75MTTXNAIOO4TH6W3IUQS4DU2UTVYCCWC3PZE7SWKAQQGI3TKRNJ3E
-#\\\|3PZXZI55NWKU6MYNIBHX5P5N4UE4J3B6LWRRM467NFDYZOOKAOG \ / AMOS7 \ YOURUM ::
-#\[7]VBAHLQ5HMSEWQAKNHS5OWGGJ3LREEBEGELR3NZBEGNJ7GD3JRCAI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,,,..,,..,,,,.,..,,,,.,,.,,..,,.,.,...,...,,..,,,.,,,,,...,.,,,
+#7IDSLD72JVMJAYSA5G4WSA5JYDZLSQZDV5H5HCD5GX36OQIICEMORC63WEJRF5IZWBWXJIJW5434U
+#\\\|XO2EWJCFXY5E2LOYX3KDSYYTDZPXPLNESVTHCTJCRCPYWPLCZYA \ / AMOS7 \ YOURUM ::
+#\[7]AXOMDOU57BS7TVKYDXZK7KXPW3552E5TV2H7TSA3YGQF6KYB3GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

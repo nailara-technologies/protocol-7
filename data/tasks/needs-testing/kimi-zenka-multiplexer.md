@@ -63,7 +63,7 @@ cat modules/kimi-web.internal.http_post_sync
 cat modules/kimi-web.handler.batch_result
 cat modules/kimi-web.handler.agent_health_check
 cat modules/kimi-web.init_code
-cat configuration/zenki/kimi-web/zenka-startup.v7
+cat cfg/zenki/kimi-web/zenka-startup.v7
 
 ## STRM pattern reference
 cat modules/base.stream.open
@@ -234,7 +234,7 @@ return TRUE if $tool eq 'ListDirectory';
 ## approve writes only to safe paths
 if ( $tool eq 'WriteFile' ) {
     return TRUE if $path =~ m|^modules/|;
-    return TRUE if $path =~ m|^configuration/zenki/|;
+    return TRUE if $path =~ m|^cfg/zenki/|;
     return TRUE if $path =~ m|^data/(tasks|md|yaml)/|;
 }
 
@@ -319,8 +319,8 @@ p7c kimi-web.cmd.enqueue '{ "prompt": "task 2" }'
 - [ ] `kimi-web.process_queue` starts next task after STRM closes
 - [ ] no signature stubs added, no whitelist changes
 
-#,,..,,..,,..,,.,,,..,.,.,.,,,...,,,.,..,,..,,..,,...,..,,...,...,,,,,,,,,,,.,
-#G75ZWMPID6IZGFX3DUL6TTYSKSRS4CHUF36O277KBTPXL2C2JER5PWI2GU5BT772O5YLS5JAB5V7S
-#\\\|QFJ6PTAXZEUS3XTWWGBTJX7W6Y62ZNMBPABCXGXAPJX3UX67UHP \ / AMOS7 \ YOURUM ::
-#\[7]3X3Z4PGRMMN7RM3EZCR6IZTCL3Z72WHL5FJUK6EOJF36A3AYPWBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,.,...,.,.,,.,,...,,,,,.,.,.,.,..,,...,...,.,,,,..,.,.,,.,,,..,
+#L2S7YC5TAPB6BO5ANEVXECE3MWCSJS2PYGZ3QY7QI6336EC4PICKDEIUZUCK7IYNQACIW4TNRIWTQ
+#\\\|UURBCRGVZUZ2UWHJHAPAZL2W54NNPKYQMGT4OL7RL2JYZJUN4JR \ / AMOS7 \ YOURUM ::
+#\[7]JC4XC3RKHL3RVN77AB2B43BLXXO3OUASG7Y2CIOBGLZJMZXFBYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

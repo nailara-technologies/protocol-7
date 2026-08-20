@@ -3,7 +3,7 @@
 
 ## Existing Infrastructure
 
-`configuration/zenki/decoder/start` already defines:
+`cfg/zenki/decoder/start` already defines:
 
 ```
 modules.load  = auth net protocol io.unix decoder.zenka
@@ -187,8 +187,8 @@ Routing decisions use cube neighborhood queries for nearest downstream buffer.
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,,,,,.,...,.,.,,,.,..,,,..,..,,,..,...,.,,,..,,...,...,,,.,,,,,,,.,,..,.,,,
-#72G2U42Y33DJLFCURBBPRMOX7PWPL5LDUKNUX4OCVLLSOYECT7CSKUZNFEL5YSHON47HJ5WA6NDTG
-#\\\|RE3IT7HRVNYCCCPGYIVBMM2EYWF6JO7WOURH4LFANUBOFBL6PWT \ / AMOS7 \ YOURUM ::
-#\[7]6LHPS7R5RW3SFQXU6QWV75VQJQOO4TJF6ECMEWZMFXTMYBIXMYBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,.,,,,..,,,.,,,.,...,...,,,,,..,,...,...,.,,,..,,,..,...,.,.,
+#B3LYRUJ6R5AD6YLC7KQYJWUQXSXTIULR7VCXE2OLU4TRDRSS47F56TIZTCEXMGFF5ONV55ISNKN4Y
+#\\\|72KSGPOYPXKR2MH7QT5EBCFVWTBP4CX3M2HUB6QFRZPRJOZ3SH7 \ / AMOS7 \ YOURUM ::
+#\[7]WNU62LU47CGH5MK5TM2NI5RUP4DWYPP5SWBGKLHGOK2MAHIZ3WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

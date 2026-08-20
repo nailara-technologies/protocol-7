@@ -17,7 +17,7 @@ loop-detection reset fix), `4f9a57d59` (this), `33aba773b` and
 own network-time primitive (`(unix - 1023228000) * 4200`, base32r
 encoded via `Crypt::Misc::encode_b32r`), matching the format the rest
 of the project already uses everywhere (`<[base.ntime.b32]>`, e.g.
-`configuration/protocol-7.src-ver`'s own version stamps).
+`cfg/protocol-7.src-ver`'s own version stamps).
 
 **Same shape as [[bin-todo-random-id-scheme]]'s `gen_id()`**: `bin/todo`
 is a standalone script, not a zenka module, so it can't call
@@ -61,7 +61,7 @@ copy first). Diff was exactly 35 changed lines, nothing else touched.
 
 `bin/todo`'s `$list_name` default changed from `'default'` to
 `'base'` (matching this branch's own name, i.e. the same convention
-`configuration/zenki/*` and `modules/base.*` already follow) — the
+`cfg/zenki/*` and `modules/base.*` already follow) — the
 backing file was `git mv`'d from `data/yaml/todo/default.yaml` to
 `data/yaml/todo/base.yaml` in the same commit as the timestamp
 migration, so code and data stayed in sync. `-list <name>` help text
@@ -76,8 +76,8 @@ are all precedent for the same pattern (`bin/Protocol-7`'s core subs
 can't be called via `<[...]>` outside a running zenka; port the exact
 formula/algorithm instead, don't approximate it).
 
-#,,,.,...,.,,,,,.,...,,..,,.,,,,.,...,,..,.,.,.,.,...,...,..,,.,,,..,,,,.,,..,
-#AV3WAJ3ZL2JU5ARE7K5R4PHTXUAGKXH365JSXVCRN6V6IIFYOTFDYL2LP4KY7TBRGCBK6GK2RAGOA
-#\\\|CDI7A6S5PNRZL3WV4ZUZJKLWEMSSMNV3M5BKLSVGTRQCBE5KQCF \ / AMOS7 \ YOURUM ::
-#\[7]WZIRMRTJ7HC44PQUJLXYMGM5EK7AJDOSBMDRE73XORWPHEW6HWBY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,,,.,...,,.,,...,,,.,.,,,...,.,.,...,...,,,,,...,,,.,,..,,..,
+#RZ3W6A3NIH72UOBRSKDYECTZ6QARFDFHTAS4KBEWNVKMMMEND7QWTHXG45FBAFIXNTU7XJN5TVGMW
+#\\\|SUPITBOT7LUYEAJ7JZDU5P2N6NWQFEKI4QXO2F4T474DSTGCZEC \ / AMOS7 \ YOURUM ::
+#\[7]ZGFW7PGFWYP5ICY2SJK6WN6QGDXLOY4C5HQ5APDNRF3C25EYBEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,7 @@ markers that were never resolved.
 note: the project has dual commits (each change committed twice in some eras).
 duplicate messages were de-duplicated when counting.
 
-focus areas: `modules/` and `configuration/zenki/` — `bin/` and `data/` are lower
+focus areas: `modules/` and `cfg/zenki/` — `bin/` and `data/` are lower
 priority.
 
 ---
@@ -61,9 +61,9 @@ priority.
 
 ### candidate: mpv-xephyr-vo-override
 - **commit**: `0c22a313c` (2019-12-03) "overriding 'xephyr.vo' in 'mpv' agent config [ as SDL is suddently broken ]"
-- **files**: `configuration/zenki/mpv/start`, `modules/mpv.init_code`
+- **files**: `cfg/zenki/mpv/start`, `modules/mpv.init_code`
 - **what was lost**: the mpv zenka forces `mpv.xmode.xephyr.vo = sdl` (and `mpv.xmode.nxagent.vo = sdl`) because SDL was "suddenly broken" in 2019. the default `mpv.vo_backend` is `gpu` (with `sdl` commented out), but xephyr mode overrides it back to `sdl`.
-- **current state**: `configuration/zenki/mpv/start:57` still contains `mpv.xmode.xephyr.vo = sdl # [sdl|xv] <-- override if SDL is broken [dev.feature]`. `modules/mpv.init_code:51` defaults `<mpv.xmode.xephyr.vo> //= qw| sdl |;`. SDL on Debian unstable in 2026 is likely stable again. forcing sdl instead of gpu loses hardware decoding and performance in nested X sessions.
+- **current state**: `cfg/zenki/mpv/start:57` still contains `mpv.xmode.xephyr.vo = sdl # [sdl|xv] <-- override if SDL is broken [dev.feature]`. `modules/mpv.init_code:51` defaults `<mpv.xmode.xephyr.vo> //= qw| sdl |;`. SDL on Debian unstable in 2026 is likely stable again. forcing sdl instead of gpu loses hardware decoding and performance in nested X sessions.
 - **fix**: test mpv with `gpu` (or `xv`) under xephyr. if stable, remove the override and let `mpv.vo_backend` propagate.
 - **complexity**: trivial
 - **value**: performance / functionality
@@ -170,8 +170,8 @@ features that were disabled and forgotten.
 *commits scanned: ~5,000+ (full git history)*
 *modules scanned: 3,900+ files in `modules/`*
 
-#,,,,,...,,,,,..,,,..,.,,,,,,,,..,.,.,.,,,.,.,.,.,...,..,,..,,.,.,.,,,..,,,..,
-#MKJHKMABPY5GXUDSZMYFEKUPGP75XCUCBI6XTML26YZHH7SV2DC6NAC6BBBMTXNQ5XP4L5SMZZATY
-#\\\|KNT4EBRJUYPN3B7FVXKMLKHCX2SFOOY6IGXPGR5FP6UG2EKQL56 \ / AMOS7 \ YOURUM ::
-#\[7]UCAGPYGLIRU5CBL5H5ONVG2B3NG6Y7QXZAHKGE7CS2KFZ2LOUSDY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,.,,,..,,,,,,.,,,.,,,..,,.,.,.,.,...,...,,.,,,,,,.,.,,..,,,.,
+#47L3DZWVK34QFRGRROB3K2ASSRX7PMNOILYUMR52THLI2ZGHB3FWAUXM4LJKZ3CGUNV5TZ6BXVVW4
+#\\\|Y2KRJPZDQD4F6IPPAMSKXZVQ4GVPUTK7LADT2CQU4E6AYAWVAR3 \ / AMOS7 \ YOURUM ::
+#\[7]AJPNZ4L4MLTGRGTNZFPWCEQZDLP7TZ4SO4QM5UX2ZK5D7FQIDGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

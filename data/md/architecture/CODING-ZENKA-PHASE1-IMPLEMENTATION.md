@@ -131,7 +131,7 @@ A fully autonomous system that:
 
 ### 6. Zenka Infrastructure - Hybrid Console + Network
 
-**File**: `/data/projects/protocol-7/configuration/zenki/coding/start`
+**File**: `/data/projects/protocol-7/cfg/zenki/coding/start`
 - Zenka startup configuration following Protocol-7 patterns
 - **Hybrid Mode**: Enables both Unix socket (console) and IP socket (network)
 - Loads auth, plugins, modules
@@ -143,7 +143,7 @@ A fully autonomous system that:
   - `coding.network.port = auto` - Auto-assigned from Protocol-7 network config
   - `coding.network.address = 127.0.0.1` - Local network access
 
-**File**: `/data/projects/protocol-7/configuration/zenki/coding/zenka-startup.v7`
+**File**: `/data/projects/protocol-7/cfg/zenki/coding/zenka-startup.v7`
 - V7 startup configuration for launching coding zenka
 - Heartbeat timeout: 7 seconds
 - Max concurrency: 1
@@ -494,7 +494,7 @@ foreach my $task (@batch_tasks) {
 - `coding.cmd.budget` - Console command: show budget
 - `llm.service.consensus_vote` - Multi-model consensus voting
 
-### Configuration (in /data/projects/protocol-7/configuration/zenki/coding/)
+### Configuration (in /data/projects/protocol-7/cfg/zenki/coding/)
 - `start` - Zenka startup configuration
 - `zenka-startup.v7` - V7 launch configuration
 - `auth.users` - Authentication configuration
@@ -561,8 +561,8 @@ All commands should execute without errors and return proper status information.
 
 **Phase 1 Complete** - Foundation ready for LLM integration and sensory services.
 
-#,,,.,,.,,..,,.,,,,,.,,,,,...,,,,,,,.,,..,,.,,..,,...,...,,,.,..,,.,.,,,,,.,.,
-#AEDRWVNOXKEVHIOJNNGCQBMKLYYY2ILRT66EEUXQLHQCI5FXWJX5PTLKEKJUQYQ2PGNKCXDFLRGU6
-#\\\|45OJOWPIGVDCKISD73KGS5OHGENRTG7Z6GATNFVTZNGGJSIJZ5S \ / AMOS7 \ YOURUM ::
-#\[7]BNJSVJTD2J3KCLFRCUTWC5RVW67S3KOC42F4YPOKO7DKD3L7VGCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,...,..,,,.,,.,.,..,,,,,,,,.,..,,...,...,.,,,,,.,..,,,,,,...,
+#JZT2KTGVXVEHW35DGSHLBUOW2QCTY6Q3OB62GPUHNATH7PZHIOBDJKCTUIHWQ27UFNWQO6ZWCOXGM
+#\\\|B2CPOA4ZO5CCFGCVMIIOVMKNIFNHIOW35EJFC2B4NYTOLSWWKEP \ / AMOS7 \ YOURUM ::
+#\[7]IXNGWXLK3GCHVNBFXNQ3FUPWIB47Y3YCA2RB3EBLKNMKLCPAPWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

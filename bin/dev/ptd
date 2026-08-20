@@ -104,15 +104,18 @@ my @clean_argv
     @ARGV;    ### remove excluded files ###
 ##
 
-## existence check comes first, with its own message : is_perl_code()      ##
-## returns FALSE for a missing path the same way it does for "exists but   ##
-## isn't perl/P7 code", so a missing file would otherwise vanish silently  ##
-## and surface as the generic "expected [perl] file name(s)" error instead ##
-## of "not present"                                                        ##
+## existence check comes first, with its own message : is_perl_code()       ##
+## returns FALSE for a missing path the same way it does for "exists but    ##
+## isn't perl/P7 code", so a missing file would otherwise vanish silently   ##
+## and surface as the generic "expected [perl] file name(s)" error instead  ##
+## of "not present"  test -e/-l here, not -f : a symlink to a directory [   ##
+## or a directory itself ] exists but isn't a regular file --               ##
+## is_perl_code() below already filters those out quietly, so -f here would ##
+## wrongly abort the whole batch on a valid non-file changed-entry          ##
 map {
     die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange not "
         . "present $reset : '$NEON_green_yellow$ARG$reset' $reset\n:\n"
-        if not -f $ARG
+        if not( -e $ARG or -l $ARG )
 } @clean_argv;
 
 ## filter filenames for protocol-7 \ perl code ##
@@ -120,11 +123,22 @@ map {
 my @files = grep { is_perl_code($ARG) }
     uniq sort { length $a <=> length $b } reverse sort @clean_argv;
 
-die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange "
-    . "expected ${NEON_green_yellow}[${NEON_orange}perl"
-    . "${NEON_green_yellow}]${NEON_orange} file name${NEON_green_yellow}"
-    . "[${NEON_orange}s${NEON_green_yellow}]${NEON_orange}.,$reset\n:\n"
-    if not @files;
+## "expected [perl] file name[s]." is a usage error -- reserve it for the   ##
+## case nothing was even passed in [ @ARGV empty ]. when args WERE given    ##
+## but every one of them legitimately filtered out, say nothing and exit    ##
+## clean : a big xargs run splits into many ptd sub-invocations, one per    ##
+## batch, and a batch landing all-config is just an artifact of where xargs ##
+## happened to cut the list -- other batches in the same run may well have  ##
+## real files, so a per-batch "nothing to format" notice here would be      ##
+## noise [ or worse, misread as the whole run finding nothing ]             ##
+if ( not @files ) {
+    die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange "
+        . "expected ${NEON_green_yellow}[${NEON_orange}perl"
+        . "${NEON_green_yellow}]${NEON_orange} file name${NEON_green_yellow}"
+        . "[${NEON_orange}s${NEON_green_yellow}]${NEON_orange}.,$reset\n:\n"
+        if not @ARGV;
+    exit(0);
+}
 
 my $file_count = scalar @files;
 
@@ -396,7 +410,7 @@ sub is_perl_code {
     print color_msg( 'skipping config.,', $file, $blacklight )
         and return FALSE                                  ##  false  ##
         if $is_code
-        and index( abs_path($file), qw| /configuration/ |, 0 ) != -1;
+        and index( abs_path($file), qw| /cfg/ |, 0 ) != -1;
 
     close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     return $is_code;
@@ -425,8 +439,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,,.,,,,.,,.,,,..,,..,.,,,,,,,...,,.,,.,.,..,,...,...,...,,..,.,,,.,.,,,.,
-#CLZVVTUPZ2I2ZLJY3V732LS25325VZSWGFLNN2SOSUVF6CRB6RE2C2GZMP7UPYEQYFKM45Y2M673O
-#\\\|HDC44PE6MTDWFWCADIT244FU4OXWB27LL5F5O47AKL5TLRCDVSE \ / AMOS7 \ YOURUM ::
-#\[7]IKA4NPDIY7OMJDQQ3QWYSL7V4AGNGXT6JCQVVCNAQYGAXB5U6SCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,...,.,.,..,,,,,,,.,,,.,,.,,,..,,...,...,,,.,.,,,..,,,,.,,.,,
+#4UHUNAEDM7CUTLI5KT7AE4FYZYHNONAC44B2UWMNEEQGZ4TZ5KFAGO4BTA3XW7XHKQHZ7M7QGJCTM
+#\\\|OCWEFV5UJU3H3D5XSCVZ64BGNK3QQO5ZPNXPA4ROUJ7DSS2ESUB \ / AMOS7 \ YOURUM ::
+#\[7]RGQ5NE44QVCIGH72L6VTU3ZX2KJJQWXIUUPI3AJZ5QZR2MOI5GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

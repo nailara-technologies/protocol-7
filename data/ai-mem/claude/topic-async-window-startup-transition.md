@@ -166,8 +166,8 @@ modules/ticker.handler.check_pointer, modules/ticker.open_window, modules/
 tile.cmd.screen-change (renamed from tile.handler.screen-change), modules/
 protocol-7-menu.cmd.screen-change (new, renamed from a .handler. version),
 modules/protocol-7-menu.subscribe-screen-change (new), modules/
-protocol-7-menu.init_code, configuration/zenki/{X-11,ticker,tile,
-protocol-7-menu,powershell}/{start,subroutines.load-early}, configuration/
+protocol-7-menu.init_code, cfg/zenki/{X-11,ticker,tile,
+protocol-7-menu,powershell}/{start,subroutines.load-early}, cfg/
 zenki/cube/access.zenki.
 **REMOVED entirely (regressed, no confirmed benefit):** an in-handler
 X-11 reconnect-on-every-screen-change-notification approach — structurally
@@ -346,7 +346,7 @@ still unstaged; the _NET_WM_MOVERESIZE attempt is reverted.
   base.gtk.{strip_on_monitor,centered_on_monitor,ensure_display},
   base.X-11.{get_coordinates_async,handler.coordinates_reply},
   ticker.startup.geo_ready (new); edits modules/ticker.startup (main_loop
-  removed), configuration/zenki/ticker/start, ticker subroutines.load-early.
+  removed), cfg/zenki/ticker/start, ticker subroutines.load-early.
   ALSO from earlier this session, signed-but-CHECK-IF-COMMITTED: base.gtk.
   {list_monitors,snap_to_monitor}, protocol-7-menu.graphical-startup-init,
   screen.setup.{open_window,enumerate-monitors,handler.*}, cube/auth.zenki —
@@ -433,7 +433,7 @@ the `base.X-11.*` namespace:**
 **ticker reference files (built):** modules base.gtk.{strip_on_monitor,
 centered_on_monitor}, base.X-11.{get_coordinates_async,
 handler.coordinates_reply}, ticker.startup.geo_ready (new); edits
-configuration/zenki/ticker/start, modules/ticker.startup (main_loop removed).
+cfg/zenki/ticker/start, modules/ticker.startup (main_loop removed).
 ticker white-list regen'd (588). ALL NEED SIGNING.
 
 **SESSION-ID SEMANTICS (critical — taeki corrected me twice here):**
@@ -603,14 +603,14 @@ against the real 3-monitor overlap layout (needs beamer on to reproduce) —
 open issue #2 (the separate "shadow only, no content"/"no draw callback"
 compositor-paint glitch that followed void-landing recoveries) is UNCHANGED,
 still unconfirmed whether placement patience reduces or fixes it.
-Left configuration/zenki/graphics-matrix/zenka-startup.v7 (on-demand
-commented out) and configuration/zenki/v7/start-set-up.base
+Left cfg/zenki/graphics-matrix/zenka-startup.v7 (on-demand
+commented out) and cfg/zenki/v7/start-set-up.base
 (`zenki.disabled = graphics-matrix`) AS-IS per taeki — confirmed unrelated to
 ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
 a leftover debug toggle from a prior session, taeki wants it disabled for now.
 
-#,,,.,.,,,.,.,...,.,,,,.,,.,.,,,.,,,,,,.,,..,,..,,...,...,...,,.,,,.,,...,,,,,
-#VU6JIDH7E4N43UXDC7OMLYFMAZPRCTDCKJUNJQNN7U4F7RHGLOUFV5O3MK33ACSMZJAILOGM2IMHU
-#\\\|ZTLBIMKIQ6V4ESYN3ZYBATEGXE3KGDTTQCFDCXFPH5UY4HL452U \ / AMOS7 \ YOURUM ::
-#\[7]YQRLKPKI2VTJCQEFWXLKEWMFTBMOTHTQ5UDWEO2AEXQAGYLYI4BI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,..,,,.,,,.,,.,,,.,.,.,.,...,..,,...,...,...,.,,,,.,,,,.,...,
+#7PYFDFE2VYIKLH4X2IGONABJTZLMKU3ULITDIAAQX5XEYP555APOX6KQK2ONVTXDVZ5WWLPNRRSL6
+#\\\|ILWD4R5G57TYGWJBBMWRKYACIRXMDGIXAZGH6DWDMU3D2DBKGOE \ / AMOS7 \ YOURUM ::
+#\[7]4LY4QXMBKBC6R2QWXLW2BXDBQIYKZHOGFJBMVAPFYP5M75E4AWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

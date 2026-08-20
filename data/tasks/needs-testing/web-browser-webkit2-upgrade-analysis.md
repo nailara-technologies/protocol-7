@@ -107,8 +107,8 @@ cat modules/web-browser.disable_proxy
 cat modules/web-browser.swap_views
 cat modules/web-browser.handler.swap_views
 cat modules/web-browser.handler.fade_in_view
-configuration/zenki/web-browser/zenka-startup.v7
-configuration/zenki/web-browser/start
+cfg/zenki/web-browser/zenka-startup.v7
+cfg/zenki/web-browser/start
 ```
 
 also read the pre-migration WebKit1 versions from git for comparison:
@@ -217,8 +217,8 @@ structure:
 - [ ] upgrade plan produces at least 3 concrete follow-up task descriptions
 - [ ] document written to `data/md/development/WEB-BROWSER-WEBKIT2-UPGRADE-ANALYSIS.md`
 
-#,,..,..,,,,,,,,,,.,,,,,.,,..,.,.,,.,,..,,.,.,..,,...,...,.,,,,,.,,,.,,..,,..,
-#J4AAIY5XQG2VGKFHHNRCXLJX4S4S7X2SEJPOQ56YP7UWOUGIZ3T62KERLAACBIGEM4FQY6TK3CN2S
-#\\\|J5FEILBX7A2IAFDAHJKI4ECYMEKU6QSKUXO2MRSXGAXEQKFG3MU \ / AMOS7 \ YOURUM ::
-#\[7]UV6N2L4GRCYGMDABBH326O5HMMWOWZ6R2NRBXPFFVAPR6YB2FADI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,,,,,.,,,...,,..,.,,,...,.,,,..,,...,...,.,.,,.,,,,,,,,.,,,,,
+#DZ5LHJLT3PRUQ5QQQQTZEVKVIILKSZZEOSSGL5FZO4MWW2SMD6E6OFVRKFFE2O7HXG2L35B2UW3LW
+#\\\|YW4MUWZ3BRJTA4TJIBA5G7E4UYBL36F7OVROJOWTOWGT75MHMDO \ / AMOS7 \ YOURUM ::
+#\[7]53QC4K2ISTR3J3AST3I34FR5SZ4RZTGLF3EWVPKFHODCMGK3LWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

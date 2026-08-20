@@ -72,7 +72,7 @@ sketch of the logic, not a literal diff)
 
 - confirm `graphics-matrix` stays online (does not idle-shutdown) while `web` has a live
   `orbital-sync subscribe` STRM open to it — leave it subscribed past the configured
-  `ondemand_timeout` (64s per `configuration/zenki/graphics-matrix/zenka-startup.v7`) and confirm
+  `ondemand_timeout` (64s per `cfg/zenki/graphics-matrix/zenka-startup.v7`) and confirm
   no shutdown/restart happens.
 - confirm it *does* still idle-shutdown normally once the subscriber's stream actually closes
   (no regression to the base on-demand-timeout behavior for the no-subscriber case).
@@ -101,8 +101,8 @@ touch must not be modified.
   long-standing, previously-deferred restart-loop annoyance, which turned out to be this
   unrelated bug, not the same one
 
-#,,,.,.,,,,,,,.,.,,,,,,,.,,..,...,..,,..,,.,,,..,,...,...,.,,,,,,,...,..,,,,,,
-#MZA2WPYGLMME6FJTHTSUCM4C3DU4E7SMNDTNDDRB27CP5THYK243BMWKSGPJ76VUWSWKM5RW3RIDK
-#\\\|L3RLCHGT4IFHOEB2VG7JX2L24GTUUEYISXNPK46HEH6JKT3C573 \ / AMOS7 \ YOURUM ::
-#\[7]4EL54F577IY5ZIJQSJ2FME4FAOSI7CLUG7DFUFEPTBCE672ROIDA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,..,,.,.,.,,,.,,,,..,.,,,...,,,,,..,,...,...,,.,,,..,.,.,,,,,,,,,
+#MR2DOGIJXIRYERCB4L54JQTUFAE4EL4NFUKRDWSIKLCOTOOMN7XFZRA4GH5OURJPNPGCMGZMU4O4G
+#\\\|U4MT3CN5J6SDZ4ZOAEI5RVZUI3HV7FPYHQYRKPT5ZZG6RQBHIU2 \ / AMOS7 \ YOURUM ::
+#\[7]42XCYR74LR3JFYY2QYI7YT4I2BV6WQMXENGFKQPSJIE3LAPOFABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

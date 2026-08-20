@@ -40,7 +40,7 @@ cd /home/user/protocol-7
 
 ### ✅ test-link-upgrade Zenka
 
-- [x] Configuration file exists at `configuration/zenki/test-link-upgrade/start`
+- [x] Configuration file exists at `cfg/zenki/test-link-upgrade/start`
 - [x] crypt.C25519 module is loaded
 - [x] link-upgrade command is enabled
 - [x] Automatic user key creation enabled
@@ -453,8 +453,8 @@ After running tests, document:
 - Tester: [To be filled after testing]
 - Results: [To be filled after testing]
 
-#,,,.,,..,.,.,.,,,,.,,,,.,,,.,,,,,,,.,.,,,...,.,.,...,...,,.,,,.,,,,.,.,.,,..,
-#4SN4Q4KSJBC3XHPLPOYOY5KQZHIOZLNG7PZ3JRFLZZWCL3VPUISM2UB4AFBL7XXZQ2JBIXIX5E4K4
-#\\\|6BO2I7PNEC5GZWVLHDBSN5LOYDEA3BKQUND7RSBFEQ4GUJZFYNH \ / AMOS7 \ YOURUM ::
-#\[7]4Q6VMOUDYXXWKK4Y5UZC7BIA6WPMLLO4CHNPHGJMH2JYCYXEREDQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,...,,,.,,.,,...,,.,,...,,,,,.,.,...,...,...,,..,.,,,...,,..,
+#ZJFBJIC2NNDB36MZYYMPTDDLCVVDCDN2PT2TMXPVM65DQ5MUAAG5IXUZG6DIHB5UCOB4TPKXBWBIC
+#\\\|YB6T6FFBU4MQ3GYJIQOYCY5U57SZA4QU5DVWEJQHAYJK235ZL6S \ / AMOS7 \ YOURUM ::
+#\[7]SLVZHXLFNGEKMAPJE4VJWM4OHQ3LAHZLEENLGTBVZH3QJLHMEOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

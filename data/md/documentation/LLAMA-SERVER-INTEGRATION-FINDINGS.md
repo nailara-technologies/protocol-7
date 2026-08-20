@@ -128,7 +128,7 @@ For coding zenka integration, we need:
 3. **Automatic Failover**: Route requests to next healthy server if primary fails
 4. **Configuration Template**:
    ```
-   # configuration/zenki/coding/llama-servers
+   # cfg/zenki/coding/llama-servers
    servers = [
        { variant: "gpu-optimized", port: 8080, cuda: "12.8", priority: 1 },
        { variant: "cpu-fallback", port: 8081, cuda: "none", priority: 2 }
@@ -147,8 +147,8 @@ For future testing reference:
 3. **Medium-term**: Implement multi-server registry in coding zenka for fallback support
 4. **Long-term**: Consider Unix socket transport for production (avoids proxy/port issues)
 
-#,,..,,..,...,,,.,.,,,..,,...,,.,,,,,,.,,,..,,..,,...,..,,.,.,..,,...,,,,,,,.,
-#PEF4U65NTIMI6UUAESDELGV6VJPDNIIOWLSOESH6JR66ZYCERITMC7QBPZRXGRBF7TVTNPU3OLJFO
-#\\\|7PXIPRCDHLC2H2MY54FGJSOSLY2O2LKTN6FALSAMTNVM6ELXIYW \ / AMOS7 \ YOURUM ::
-#\[7]7JZNGCM4BNISTYK4CJC2HZR2KOAC6F5F3MOYABGR6VTBJY3HD4CY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,.,,,,,..,,..,,.,,,,.,,,..,..,,...,...,.,,,.,.,...,.,.,,.,,
+#Y4EAMSDV7URKFD5JZBZ3SVALIYZL7JRXRVK4QQ7Q3G5V3WHKSXJD37VRIJGCWNJMG65K24JKPIL5I
+#\\\|WYK6HKDI5QCFSI63UBVL6GPBNWBK7IYCP7RAPLKBASJCOAG53T6 \ / AMOS7 \ YOURUM ::
+#\[7]WXOPZH6UTETSF47KXPVOOXSMZINXT6VRU4UAGK6UARVMYJ36IQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

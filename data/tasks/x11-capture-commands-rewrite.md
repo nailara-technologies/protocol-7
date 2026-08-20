@@ -145,7 +145,7 @@ my $data = $reply->{'call_args'}{'args'} // $reply->{'data'} // '';
 
 ## access control
 
-add to `configuration/zenki/cube/access.zenki` wherever
+add to `cfg/zenki/cube/access.zenki` wherever
 `X-11.get_pointer_scr_rect` or `X-11.get_monitors` appear — same pattern:
 
 ```
@@ -153,7 +153,7 @@ X-11.capture-window
 X-11.capture-region
 ```
 
-add to `configuration/zenki/X-11/subroutine.white-list`:
+add to `cfg/zenki/X-11/subroutine.white-list`:
 ```
 X-11.handler.capture_reply
 ```
@@ -185,8 +185,8 @@ X-11.handler.capture_reply
 ## create X-11.handler.capture_reply as described above.
 ## verify with p7c after each module. do not modify signature footer lines.
 
-#,,.,,,,.,,,.,..,,.,,,...,,.,,,,.,.,,,,,,,.,,,..,,...,...,.,.,.,,,,..,,..,,,,,
-#KLYKRHXIC6YG7VJV2NSJBETWOKV2KMWEJ4G4DDYM4TYZNUSKIPS5IJBH5772STCZZHGG5DD3PLHJG
-#\\\|XST2TLAG6THZGJQ6MLE2GCBKPX247X2YWXCC46JCAQQG4GXVYW4 \ / AMOS7 \ YOURUM ::
-#\[7]YBBEXAK54MTYQ27RJZNBSUKXHOHG7XMK7QNWWPSV5SAYDL23K2DA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,,,.,,..,,,.,,,,,.,,,.,.,...,..,,...,..,,...,,,.,.,.,..,,,..,
+#XHILMK462T34CXULHOCZDVLDRAHWLFSJDFCEYDI7RUX5GULGLRGX52GRCBJ2TOJ6VK3W4CYQX4IAI
+#\\\|UQ2LMK43CXFKSS7LQFP5FJLTYLGZJ6QUBH4YMH6INULNDJNWA7E \ / AMOS7 \ YOURUM ::
+#\[7]HJJJFZEY5U2TADW25HMBSOPPILX3KNTEWAI3VI65WWXL7KYXAACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -49,7 +49,7 @@ best way is to make it generic, addressable and made available").
 
 - **`settings`** — renamed to **`set-up`** (corrected 2026-06-08, per
   `v7.list available set-up` showing it live). Already substantially built —
-  not a blank slate: `configuration/zenki/set-up/` + `modules/set-up.*`
+  not a blank slate: `cfg/zenki/set-up/` + `modules/set-up.*`
   ship `create-profile`/`install-profile`/`export-config`/
   `fetch-zenka-config`/`list-exportable`/`get-config` commands, plus
   `handler.export_reply`/`handler.zenka_reply`. v7-managed, network
@@ -152,7 +152,7 @@ best way is to make it generic, addressable and made available").
   a significant scope expansion to keep in mind: the menu tree could end up
   being a UI not just *for* zenki, but *into the substrate zenki are built
   from*.
-- **`configure`** — exists at `configuration/zenki/configure/` but is
+- **`configure`** — exists at `cfg/zenki/configure/` but is
   currently a stub (`configure.init_code` returns `0`, start file just does
   `[base.call.console_command:<system.args>]`). Planned as a **console zenka**
   that interactively displays all mappable configuration values — becoming a
@@ -204,12 +204,12 @@ local-vs-HTTP branch does.
 Confirmed live (2026-06-08) — protocol-7 already has exactly the
 console/network split this substrate would need, as an existing working
 pair:
-- **`sourcecode`** — `configuration/zenki/sourcecode/` — "nailara source
+- **`sourcecode`** — `cfg/zenki/sourcecode/` — "nailara source
   code management **[console]** zenka." Standalone/console-only:
   `[base.call.console_command:<system.args>]`, no network logging
   (`buffer.zenka.log_cmd = ''`), loads `source crypt.C25519 amos7
   sourcecode`.
-- **`source`** — `configuration/zenki/source/` — "nailara protocol-7
+- **`source`** — `cfg/zenki/source/` — "nailara protocol-7
   source code zenka," the **network-managed counterpart**: full
   `zenka.loop`, `[base.net.connect:'unix']`, `access.cmd.usr.cube = * *.*`
   (wide open — marked `# <-- LLL: dev, strict later`), C25519 signature-key
@@ -370,7 +370,7 @@ speculative — confirmed live (2026-06-08) that all three legs already exist
 as mature module families, not aspirational stubs:
 - **`crypt.C25519.*`** — already used for zenka identity/signing (e.g.
   `source.C25519.signature_key_name = proto-7.sourcecode`, seen earlier in
-  `configuration/zenki/source/start`); and tellingly,
+  `cfg/zenki/source/start`); and tellingly,
   `crypt.C25519.cached_chksum` / `crypt.C25519.chksum_cache.{add,retr}`
   already **bridge keys and checksums directly** — i.e. the "C25519 keys
   ⇄ checksum abstraction" link the user is describing isn't a proposed
@@ -666,8 +666,8 @@ becomes an *exception channel* for the rare cases where "correct" and
 "wanted" come apart. That is a dramatically smaller, sharper, and more
 buildable thing than "an authorization protocol for the network."
 
-#,,..,..,,,..,,..,,,.,,,,,,,.,.,,,,..,...,...,..,,...,...,.,.,,,,,...,.,,,.,,,
-#DFGGVL7LIMCJUH2L5P4BBYMRLYPV4EKR6YC6N5K7SJQOFGZFT7WO7MPBNNWL6365GTO7B6VPE7K2K
-#\\\|ZDFSAG7XT2ZGNMTUS2ITMMAJCSMGLRJKZJDARXDFPO73HCFWY3J \ / AMOS7 \ YOURUM ::
-#\[7]QBWTRCGWVICM23I6BCICZWNSZ35T7TUWNOMHBAKQONMXZS3VTKAQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,,..,..,,.,,,...,.,,,,,.,,.,,,..,..,,...,...,,,.,,,.,..,,,.,,,..,
+#AWQO3DN67PTLF4ZRQMNSRGIZP5RU33PB5LJDQPBCHQTSFYWJQ4ZUJY54Z573RL73LEPADWCIF5X4O
+#\\\|4HW2VZON3BKCIPG5WVI2QVKH3T35D2M3UA2E3POBA2NTQQJKKFH \ / AMOS7 \ YOURUM ::
+#\[7]FV5ULELEEWWSA3Q4JXXSTPXVDCPUGPXBD2DNESQMJUF3OELRBKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

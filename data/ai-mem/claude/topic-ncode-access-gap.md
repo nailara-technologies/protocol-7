@@ -21,7 +21,7 @@ only ever connects to **cube**. So from `ncode`'s own
 `base.handler.command`, `<[base.session.user]>->($id)` will **always**
 resolve to `'cube'`, regardless of who originally issued the dot-routed
 command (`taeki`, `unix-taeki`, another zenka, anything) — **unless**
-`configuration/zenki/cube/command_aliases` explicitly aliases that
+`cfg/zenki/cube/command_aliases` explicitly aliases that
 specific command via `setup.aliases.source_zenka` /
 `setup.aliases.source_zenka_sid`, which makes cube prefix the relayed
 command with the originating zenka name and/or sid so the destination
@@ -40,7 +40,7 @@ sees those unames as `$user` — only `'cube'`. **Corrected fix**: grant
 the commands to the existing `access.cmd.usr.cube` group instead (the
 one entity `ncode` actually talks to). Cube itself is then the real
 trust boundary: it filters *its own* callers via its own config —
-`configuration/zenki/cube/access.users` already has
+`cfg/zenki/cube/access.users` already has
 `access.cmd.usr.<admin-user> = ** ..*.**` and
 `access.cmd.usr.<unix-admin> = ** ..*.**`, a pre-existing wildcard that
 covers `taeki`/`unix-taeki` (since `taeki` is `<system.admin-user>`)
@@ -85,8 +85,8 @@ never to the human's own uname. Then check whether cube's own
 
 [[topic-write-access-security-infrastructure]]
 
-#,,,.,..,,...,,,,,,,.,...,.,.,,..,.,.,,.,,,..,..,,...,...,.,,,.,,,,..,,,,,,,,,
-#BRYGKSHUXSV442BUVRQE2DLK3XO4PQ2IFSFNPZQAURFRR2ZQQGVDDUNZVQUEICZI7EENJSIY2AH6C
-#\\\|VKRISDNHMY3OD4DEYUUGYQWKAASQJUTGEDFSNS5RZQRY6YYNPBQ \ / AMOS7 \ YOURUM ::
-#\[7]5F3D4CFBFJQP5GECHGV37CABRGW3526J7CIAYON2GKS3MZHWJCCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,,,.,.,,,.,,,.,,,,,.,,..,,,.,..,,...,...,.,.,,,,,,,.,.,.,,,.,
+#KNBBKATORRXKSKWR4YLRI36AOF2BU22EIOMB3S3NABSIP4DH6RZQVRMIHB5KGT3EICXRTWGM7PF5Q
+#\\\|Z262GV2BAB2QRADL2YRT3IGI55QP6DFBYR2IWYPSSA4ERV5IJHG \ / AMOS7 \ YOURUM ::
+#\[7]ZAQL232ZJFKDLTALSKSWSAVCNMLZLO5B5YBY7FEQ3POQBIN3G2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

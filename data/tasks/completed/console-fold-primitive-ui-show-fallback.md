@@ -100,10 +100,10 @@ auto-registered by the loader in `bin/Protocol-7` (line ~1519) under
 
 no `#,,..` stubs. do NOT run update-signatures. do NOT modify
 subroutine whitelists (add `base.cmd.ui-show` to
-`configuration/zenki/v7/subroutine.white-list` and any other zenki
+`cfg/zenki/v7/subroutine.white-list` and any other zenki
 whitelist that already contains `base.ui.fold`/`base.ui.unfold`,
 following the exact pattern used when those were added — check with
-`grep -rl base.ui.unfold configuration/zenki/*/subroutine.white-list`).
+`grep -rl base.ui.unfold cfg/zenki/*/subroutine.white-list`).
 lowercase comments, `[ word ]` annotations, `$ARG` not `$_`.
 
 ## harmony checks
@@ -112,8 +112,8 @@ lowercase comments, `[ word ]` annotations, `$ARG` not `$_`.
 harmony base.cmd.ui-show
 ```
 
-#,,,.,,.,,,,.,,,,,..,,...,.,.,,,.,..,,.,,,,.,,..,,...,...,,,.,...,.,.,,,.,,..,
-#Y7XDE4OJOVUK4IHF4IDCSOA6CDFE3TKMPLA7PJCZJAUL74ISVU754THQUBLLZGHBU7SHM67J6MTIO
-#\\\|LLASI3MO6EOPP33XZLJPXU3T6LKLAENWFV3CIVT4CBVYM3LAUPJ \ / AMOS7 \ YOURUM ::
-#\[7]BRA6SXVUHRGAIN7HZ6RDOODODJSZ7CFZZXNSYNM3P3KDCP4TLYAY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,.,.,,..,,.,,...,,,,,,,,,...,..,,...,..,,.,.,,..,.,,,...,,,,,
+#F4RZENJJFB36ILT2GOMEBTEUP6AD2MINBZMUSZTERBO57JG2OGE5VTSR23EKW2WMUWDESZWSLXIX2
+#\\\|IGVMSPEQTBZYKI3BQKYYQ4I2AF2LDE7FMPYIPQXQEH5QJPF5GJP \ / AMOS7 \ YOURUM ::
+#\[7]KCZR7AEZGLC2GAL4KVWCYOVYWD55V3WDURSXG3LIHJUVAIJR7WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

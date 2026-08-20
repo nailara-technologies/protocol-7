@@ -443,7 +443,7 @@ $view->get_snapshot(
 
 **Caveats:**
 - `get_snapshot()` is **asynchronous**. For a sequence of frames, each snapshot must wait for the previous to complete.
-- The WebView must be **realized and rendered** before snapshotting. In a headless environment without a display, `Gtk3::Gdk::Window` creation may fail unless a display is available. However, if the web-browser zenka is already running on a real X11 display (which it is, via `configuration/zenki/web-browser/start`), snapshots can be taken directly.
+- The WebView must be **realized and rendered** before snapshotting. In a headless environment without a display, `Gtk3::Gdk::Window` creation may fail unless a display is available. However, if the web-browser zenka is already running on a real X11 display (which it is, via `cfg/zenki/web-browser/start`), snapshots can be taken directly.
 - For true headless capture, `Xvfb` is still needed to provide the display, but `scrot`/`chromium` are eliminated.
 
 #### priority: **HIGH**
@@ -803,7 +803,7 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 **Priority:** LOW — research task, not blocking
 
 ### Task 8: UI zenka separation — control routing architecture
-**Files:** `configuration/zenki/web-browser-ui/`, new modules `web-browser-ui.cmd.*`
+**Files:** `cfg/zenki/web-browser-ui/`, new modules `web-browser-ui.cmd.*`
 **Work:**
 - Design P7 command API surface: `web-browser-ui.cmd.navigate`, `.cmd.back`, `.cmd.reload`, `.cmd.set_zoom`, etc.
 - Implement `web-browser-ui` zenka as a GTK3 toolbar window (no WebView)
@@ -818,8 +818,8 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 *WebKit2GTK version analyzed: 2.50.5 (libwebkit2gtk-4.1-0)*
 *System: Debian unstable / libgtk3-webkit2-perl 0.06-6*
 
-#,,,,,,..,,,.,,,,,,..,,,.,,,,,,..,,,,,,,,,.,.,..,,...,...,.,,,...,,,.,..,,,..,
-#R6ISAKJCXYOYHIPEONNBFSIEZSTWBB7OGJBX7YQQVK3VX7AE5SPHQ53BKM4UW5HDUTZ6ZK6BWXO4O
-#\\\|66ODAWUIJF6OGUXJLVJDN55O7TN24T342OOG2ZYLFCVAG5TTJU7 \ / AMOS7 \ YOURUM ::
-#\[7]NNCGVNXNLMKZ6BWSIML3MN6DDK53HEX7K2IYLVNDALLMQQPBWABY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,..,,...,,,,,,.,,.,,,.,,,.,,,..,,...,...,..,,...,.,,,,,.,.,,,
+#XXFPERAM3QUFJOV6BZUJ3HZHLRWZTU5MKTDBICWI3NKVDNCPSVQZVXNC4WMMDR3E4JXROX35V56Q2
+#\\\|YC2Z6GC2VMXPFPL7ANXEUYLYNWSZKEOTE37Z2PCR4NTAJ23BYIE \ / AMOS7 \ YOURUM ::
+#\[7]VH22ISRL7TGH6Z5QFO2HCHQHUYJC2NM34GSP2SD5NMPCDABBIGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
