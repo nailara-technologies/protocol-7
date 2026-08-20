@@ -41,7 +41,7 @@ get handed to an actual refactor pass.
    normal, not evidence of rarity. You cannot determine their real
    invocation frequency from source alone. For these files: look for
    corroborating signals instead of guessing — is the command granted
-   broadly in `configuration/zenki/*/access.zenki` (`access.cmd.usr.cube`)
+   broadly in `cfg/zenki/*/access.zenki` (`access.cmd.usr.cube`)
    or narrowly? Does the zenka itself seem to be a core/ubiquitous one or a
    niche feature? If you still can't tell confidently, say so explicitly —
    report `MOVE (unverified — cmd/handler frequency not determinable
@@ -155,8 +155,8 @@ of the 59 rows the deeper check actually moved.
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,..,,,,,,,.,.,.,,.,,.,.,...,,,.,.,.,...,,,,,..,,...,...,..,,..,,,..,..,,.,,,
-#FC5PCAAQMQIG3HBTWSJKFUF5TRMOWURYSBZXPSSNUUFPNIG32FDAZEVQDYRLZGAG5PPWMT3SDM4L2
-#\\\|62224ISRLIVKHFR4NXAU6JHK4WNBIOF6ESOKEK2GAVB6XUYOOD6 \ / AMOS7 \ YOURUM ::
-#\[7]LIYO66457LP23CPVDOWMVVJNAYNJ6CKQO2CQKDAJAEPTBGQXJSBI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,..,...,.,,,.,,,...,,,,,.,.,,..,..,,...,...,...,...,..,,,..,,..,
+#I7773ZWBFY45V54HQVRO3XD2XE676JY232CTYMMMPQCR4HD5IJAOJMQPXSK3WGXCET7QFJNBQXJVA
+#\\\|VX5V5C22XR3KP46PIXMQGDOLBL5FB5G7X2APBB4QZUDJLNUTXPA \ / AMOS7 \ YOURUM ::
+#\[7]NDXQB7WZ5LLBTI5Y7RI5XHXY2VNWSREZUDD7JKTNGG6PXGJ2N6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

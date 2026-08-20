@@ -137,7 +137,7 @@ ls modules/coding.self_test.*                 ## tier-0/tier-1 escalation to mir
   [ `callback_id=$task_id` ] -> `modules/coding.handler.deferred_reply`
   [ cross-zenka route-send ] -> `modules/task.cmd.summarize-done`
   [ stores `$task->{'summary'}`, fires original caller's reply ]
-- task zenka: `configuration/zenki/task/`, `modules/task.init_code`,
+- task zenka: `cfg/zenki/task/`, `modules/task.init_code`,
   `modules/task.cmd.*` [ create/claim/complete/result/summarize/... already
   present ]
 - coding self-test tiered escalation: `modules/coding.self_test.*`
@@ -375,9 +375,9 @@ landed ] so the strong model is selected deterministically for the write step.
   B32-wrapped by every sender — seeBug note below ]
 - `modules/task.persist.summary_tree.{save,load}` — yaml persistence,
   mirroring `task.persist.{save,load}`; wired into `task.init_code`
-- `configuration/zenki/task/start`: whitelisted both new commands; added
+- `cfg/zenki/task/start`: whitelisted both new commands; added
   `format.json` to `modules.load` [ needed for `format.json.decode` ]
-- `configuration/zenki/cube/access.zenki`: `access.cmd.usr.coding` can call
+- `cfg/zenki/cube/access.zenki`: `access.cmd.usr.coding` can call
   both task commands; `access.cmd.usr.task` can call `coding.tree-query-reply`
 
 **coding zenka** [ mechanism for the coding-native origin; not yet triggered
@@ -394,7 +394,7 @@ by anything — see "why the relay differs by origin" ]:
 - `modules/coding.handler.deferred_reply`: dual action — reply to caller
   first [ unchanged ], then fire-and-forget notify to the task zenka when
   `chk` is present
-- `configuration/zenki/coding/start`: whitelisted `tree-query-reply`
+- `cfg/zenki/coding/start`: whitelisted `tree-query-reply`
 
 **mcp server** [ the actual `session_catchup` relay — see status note at top
 of this doc for why it ended up here instead of the coding zenka ]:
@@ -569,8 +569,8 @@ prompt: |
   dot-notation style exactly. No signature stubs — the signing system adds
   them.
 
-#,,.,,,,,,...,.,,,,,.,,,,,..,,..,,,,.,,,.,,..,..,,...,...,..,,,,,,.,,,,,,,.,.,
-#7STJEVQZDXXIXKSPZ6F5MAA6PDSJSNEWAOFVTGNQE5PUEAHZI63FUAAN46ATJT6ASUO5MCFMZVKUA
-#\\\|EV573UHYOVI5ZR4ENSOGEBHKGSKGV3ZLFWG6DW4RGDHWKS7DT4E \ / AMOS7 \ YOURUM ::
-#\[7]TQVTVEL4XZHS2FZY67VVKIGMXX72FERUU6TKY5HCTEAKE33XKYAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,...,.,.,..,,,,.,,.,,,..,.,.,..,,...,...,.,.,,..,.,.,.,,,.,.,
+#JTJRHVDSQIAKNSLKGPYNAH5RQBWZAGPBBSNB66EO4LUSSFV44DXERBFMYM7PYBCDRSUTTYTY44Z3S
+#\\\|VTXUA2N4VACMYIWWP6PCOLLG5ZAIGUF5FSHIFF3FEHCDN4CI35Z \ / AMOS7 \ YOURUM ::
+#\[7]TOK5IVUEDHUFDSXTOHLTYF3DFZH6F7PCEMED26QXJHUFRBT7GGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,7 +12,7 @@ not httpd/jobs/). Verify the endpoints work correctly end-to-end.
 - web.jobs.data: reads from plugin.web.jobs.cache.read_all (web cache)
 - web.jobs.sync: reads/writes web cache, queues reverse changes
 
-## Routes (configuration/zenki/httpd/routes)
+## Routes (cfg/zenki/httpd/routes)
 
 ```
 GET  /jobs.json  -> httpd.route.handler.web-relay [command=web.jobs.data]
@@ -60,8 +60,8 @@ Report what passed, what failed, and any relevant log output.
 Do NOT modify any module files. Leave signature blocks (lines starting with
 #,,,  #\\\|  #\[7]) completely untouched — the signing system manages these.
 
-#,,,.,.,.,,,.,.,,,..,,...,..,,,.,,,.,,,.,,,..,..,,...,...,.,,,,,.,...,,,.,,..,
-#PB6T5EX6YWA4NQZGNNRAAFVZWNG4NNP4B5HPNLHTSGZ5HDXMUUXYYWNRRHUMKQWINPIUUM4BQGJGM
-#\\\|GIFPCXENPGM7DNYSA2CMD7CV3YREVBVEIKJ6UXQNMFWPOWHTDB4 \ / AMOS7 \ YOURUM ::
-#\[7]HXVHATEVHUP4S7WYXXFDNHPUVFVDYT3OMR7K4ANYHSOWMPHKE4CI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,,,,,,,.,.,.,,,,,...,.,,,..,,..,,...,...,..,,..,,.,.,,,,,,,.,
+#KDIBULTKC6EYIQ7M7V7ZJ7M3HFBUZ4SSSWQXFL25NRWY4YOPX3K7UDSRDZDAXO7MNMNPP6QS3SQIS
+#\\\|OHPMIQL3I47QBFYKZYLU2C43C3L6ME6NRY6XK4PVK7XMBIDPIXC \ / AMOS7 \ YOURUM ::
+#\[7]I73BPJO67L44QQWPZSBRRZYCTJSBE5SBLSKMV47OKZ5WEIMXMKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

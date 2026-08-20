@@ -36,7 +36,7 @@ meaning.
 ## current state
 
 - `modules/base.del_key`, `modules/base.prune_key` — landed, `0425b210f`.
-- `configuration/zenki/mod-test/start` — carries
+- `cfg/zenki/mod-test/start` — carries
   `[base.prune_key:'modules.load']` as a **known-incomplete**
   placeholder/reminder (boot-only, resets on reload); left in
   intentionally, not reverted.
@@ -58,8 +58,8 @@ meaning.
 `modules/base.reload_config`, `modules/base.execute_zenka_code`,
 `modules/base.pre_init`, `modules/devmod.cmd.unload-devmod`
 
-#,,,.,...,...,.,.,,,.,.,.,.,.,,.,,..,,,,,,,,.,..,,...,..,,..,,..,,,,.,,,.,,,.,
-#VAQDOQQRRT7AX4EGJ3PFRS5LAV2RS5E4EAZ4U6ZCGO6IWZVXX2J3PBU22NXPUJJTEVNC2QH4KNCLE
-#\\\|HOZ5XBWLH6GPNWHMLRRWT5YGCEWNGLNU5MGTD2KHOCT3PSSBR3H \ / AMOS7 \ YOURUM ::
-#\[7]ACJNBLONHVRDWDYKUOTPOY45IGWIOHORONWKXJ4K3LJFQ3KKCQDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,,,,,..,,,,,,.,,,...,,.,,,.,,..,,...,...,..,,..,,,..,,,.,.,.,
+#DGFWXOBR6QMZ2Y4XKMDBRVDBPXNI2VMUAZCTK6O5SA4BNFEPQGPP3C3INWZSAVI4TZYY3EHVZKKKG
+#\\\|KXFJS6CEEDSVYFFEHGS5A4Y6QDSU7KEU5FMLHFE6YEXPQHJIMFG \ / AMOS7 \ YOURUM ::
+#\[7]R5WNCSEYTUO6RPVTA4N3JD3BIMWBZUUNRRY3SSM6N5736CHMOWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

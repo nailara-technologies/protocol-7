@@ -101,7 +101,7 @@ on each mutation (create/claim/complete/fail/reset), serialize
 
 on init, load the file if it exists to restore queue across restarts.
 
-### config [ configuration/zenki/task/start ]
+### config [ cfg/zenki/task/start ]
 
 ```
 system.zenka.name = task
@@ -179,7 +179,7 @@ if `<kimi.task.active_id>` is set when connection drops, call
 - `modules/kimi.init_code` — add polling timer here
 - `modules/kimi.cmd.ask-reply` — existing prompt submission
 - `modules/kimi.handler.ws_message` — response arrives here via TurnEnd
-- `configuration/zenki/kimi/start` — kimi zenka config
+- `cfg/zenki/kimi/start` — kimi zenka config
 - `modules/base.ntime.b32` — timestamps
 - `bin/Protocol-7` — module loading / code hash structure
 - CLAUDE.md — swap-boundary dispatch pattern for amos checksum
@@ -187,7 +187,7 @@ if `<kimi.task.active_id>` is set when connection drops, call
 ## notes
 
 - the `task` zenka follows the standard zenka pattern exactly —
-  see `configuration/zenki/calc/start` as a minimal reference
+  see `cfg/zenki/calc/start` as a minimal reference
 - `kimi.cmd.ask-reply` already supports a reply callback via `reply_id` —
   use that mechanism for the result write-back
 - keep the prompt format simple — kimi should receive the task as plain
@@ -197,8 +197,8 @@ if `<kimi.task.active_id>` is set when connection drops, call
 
 #,,,,
 
-#,,.,,,..,,,.,...,,,,,.,.,,,,,,.,,,..,,,,,...,..,,...,...,,..,,..,.,,,,.,,.,.,
-#2DR5TSRJ4UW2S2YINKDLAPPMZ2T3OVQRXZW6NBMT6NUZ7IFMDH4BT6LMJD4KL3DVEV6AGDQR4Z7ZC
-#\\\|BQ2CIA3BKYAV7FLSPKEXVEMQSCJ6PFQ6YXBWMEGMFVRQ5EQPXRE \ / AMOS7 \ YOURUM ::
-#\[7]KH2ON6TZJDGJEFF37JZBXOZNL24UTAF66FKTS6N4V2WAZUDLLADQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,,,..,,,..,,,,,...,,..,,,.,.,,,..,,...,...,...,,.,,,,,,,,,,,,.,
+#PJYRVJUVORXXUT53UVP54P7JXYB4736UCT534JQLN6OAN4KPIRLIF6JKXFMP2YBAZK2ADHMK74NC4
+#\\\|L33GUCO2A3S5JLFMRMRPD3Q6MJYU7I4HXYXHOT26BWQJB6637AO \ / AMOS7 \ YOURUM ::
+#\[7]QJYTNYORJASGJXSVKYUFIP3XATWKJG2DR7FW4HOWIUQZCEKBFMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

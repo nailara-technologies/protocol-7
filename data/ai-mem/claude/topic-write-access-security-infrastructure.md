@@ -124,13 +124,13 @@ Landed `ncode.cmd.review`/`.graduate`/`.expand` and added them to `ncode`'s
 own `access.cmd.usr.cube` start-file whitelist (same pattern as
 `suggest`/`apply`/`assess`). But that whitelist only controls what `ncode`
 itself will *accept* — reaching it at all still requires an entry in
-`configuration/zenki/cube/access.zenki` for the calling zenka's
+`cfg/zenki/cube/access.zenki` for the calling zenka's
 `access.cmd.usr.<caller>` block, and **no such entry exists for `ncode` as a
 target, for any caller.** Confirmed directly: `access.zenki` has no
 `access.cmd.usr.ncode`-style grant anywhere, and no other zenka's block
 (`access.cmd.usr.coding`, `.kimi`, `.task`, etc.) lists any `ncode.*` target
 either. The only thing that can reach `ncode.*` today is the wildcard in
-`configuration/zenki/cube/access.users`:
+`cfg/zenki/cube/access.users`:
 
 ```
 access.cmd.usr.<admin-user>  =  ** ..*.**
@@ -142,8 +142,8 @@ during phase-1 verification — they went out via `p7c`, which resolves to
 `<unix-admin>` (see below), not because any real zenka-to-zenka grant exists.
 
 **Two separate principal identities, not one "admin" bucket** — confirmed in
-`configuration/system-user-map` (`system.admin-user = taeki`) and
-`configuration/zenki/cube/auth.users`
+`cfg/system-user-map` (`system.admin-user = taeki`) and
+`cfg/zenki/cube/auth.users`
 (`auth.setup.usr.<admin-user> = :unix:<unix-admin>,:unix:<admin-user>,:auth-keypair:`
 vs. `auth.setup.usr.<unix-admin> = :unix:<unix-admin>,:unix:<admin-user>`):
 - **`taeki`** — nshell path, keypair/session auth (`nshell: whoami` → `taeki`)
@@ -241,8 +241,8 @@ deferred there pending this decision.
 [[topic-jobsite-ui-usability]]
 [[topic-ncode-pattern-learning-loop]]
 
-#,,..,...,.,,,,,,,..,,..,,,,.,.,,,...,.,.,.,.,..,,...,...,..,,,,.,..,,.,,,,,,,
-#WTCW7VWQFISJOQ65XSAOCZBLJQP3N4IYQ26DDKHQKILEJ53QVD2LUYLHCBAAFH2Y34CHCVYRAQFNE
-#\\\|GBLG62OJRTODQH3BO5U2UNXVWC474L6W2CILWAIR6TUVW5LF4DS \ / AMOS7 \ YOURUM ::
-#\[7]ZSBMUGVK2ONZOY3PUNI3BZ4G65AKIZIBOTVYQE4B3QOJMTDFW4AI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,.,,,,,.,,,,,.,,,.,.,,,,,,,,,..,,...,..,,,.,,.,.,.,.,,,.,,..,
+#REOU6JJALJ7LX6XJYGMEYMXUFHLHSK2WH2MHHDIICFMY7RBNSGCUJUOABRD26JNZMGIO3Y6BRADF4
+#\\\|G7UBZT5T5OHODLGQAGKJWZBXXPJX5CFWIFQ3A7MJQPRN6TWC7OL \ / AMOS7 \ YOURUM ::
+#\[7]DVSEUZBXMVTCRLYZO633FFY5GVM5BKYI3WP4E7ZQXQ6SR5GCQUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

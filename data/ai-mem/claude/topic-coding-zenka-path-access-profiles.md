@@ -51,7 +51,7 @@ the primary interface — auditable, no surprise behavior — with tag-based aut
 guardrail underneath, not the primary mechanism.
 
 **interface surface (tentative):** config-seeded default policy (durable, e.g.
-`configuration/zenki/coding/path-policy`) + a runtime command (`coding.path-allow ro|rw <path>` /
+`cfg/zenki/coding/path-policy`) + a runtime command (`coding.path-allow ro|rw <path>` /
 `path-deny` / `path-list`) for fast iteration, ephemeral-by-default unless explicitly saved back to config +
 per-task-assignable extra paths (`task->{execution}->{allowed_paths}`), scoped to that task's lifetime only.
 
@@ -157,7 +157,7 @@ funnel instead of the coding zenka growing a second, competing one.
 1. **filesystem/unix permissions (today's practical layer, this whole design doc).** most zenki share one user
    (`system.amos-zenka-user = protocol-7`); httpd/httpsd/p7-ssh already have their own (`<zenka>.system.user` in
    their `start` files) via a fully-working auto-creation chain (`root.drop_privs` → `base.root.check_system_user`
-   → `useradd --system`, with a preferred-UID map in `configuration/system-user-map`, e.g. `protocol-7 = 777`).
+   → `useradd --system`, with a preferred-UID map in `cfg/system-user-map`, e.g. `protocol-7 = 777`).
    generalizing to "every zenka has its own user, small groups sharing one where sensible" is populating config,
    not building infrastructure.
 2. **network-mediated signed source delivery (partially exists now).** the `source` zenka
@@ -184,8 +184,8 @@ taint-declaration channel (open question in the design doc) are the remaining op
 mechanism: that one gates *write actions* on approval, this one scopes *what's even reachable* per task/profile
 before approval would apply).
 
-#,,,,,,.,,,..,.,.,,..,,..,,..,..,,.,.,,,,,,,,,..,,...,..,,...,,,.,,,.,.,.,,,,,
-#GYYWPRNYU7NSRLFPE5F7NJGSC7AHPHNFPM26SEUV3VY3XHJLL3JFNCBLT2LKWEIWJUZRCWRE55JNG
-#\\\|YYNBG5PX2FH7AKM52XK2RW73GITBTWYBW2R7P5TVD5SYNJG5FCM \ / AMOS7 \ YOURUM ::
-#\[7]7EK2L4XA3W3CX7OWAWMGW3MT4XCMCGFBVZCR5IE6K5LVKQQRXEAA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,.,,,.,,,,,,,.,,,..,,,,,,...,..,,...,...,..,,.,,,,.,,,.,,..,,
+#ENGADPZPFO4SAIFG7GWDPT45IU3GWZAIRLKZWRWW57OYKZ3UBPEEVT4QWV7Z5JSGXZIXE6ZOSWQ6C
+#\\\|3G2OY3S626YZUJQA3D5MSUZDPCM6ZQLJNUF2OJSGOF5GMXTZ3MG \ / AMOS7 \ YOURUM ::
+#\[7]UMLXTLPIW4O5U5HN2MLVB6K5ORXESKYJJ6RB7ZLEUTZYYFPA5WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -49,7 +49,7 @@ nameserv:
       - nameserv.status command: running state, zone count, query rate
 
     zone_management:
-      - zones loaded from configuration/zenki/nameserv/zones/ directory
+      - zones loaded from cfg/zenki/nameserv/zones/ directory
       - one YAML file per zone: zone name, TTL, SOA fields, records list
       - nameserv.reload-zones: reparse all zone files without restart
       - nameserv.list-zones: show loaded zones and record counts
@@ -99,12 +99,12 @@ nameserv:
   configuration:
     nameserv.cfg.listen_addr  = 0.0.0.0
     nameserv.cfg.listen_port  = 53
-    nameserv.cfg.zones_dir    = configuration/zenki/nameserv/zones
+    nameserv.cfg.zones_dir    = cfg/zenki/nameserv/zones
     nameserv.cfg.default_ttl  = 300
     nameserv.cfg.log_queries  = 0   ## 0=off 1=errors 3=all
 
   zone_file_format: |
-    ## example: configuration/zenki/nameserv/zones/example.com.yaml
+    ## example: cfg/zenki/nameserv/zones/example.com.yaml
     ---
     domain:  example.com
     ttl:     300
@@ -385,8 +385,8 @@ verification:
     - cache flush: nameserv.flush-cache clears entries, next query re-resolves
     - hybrid mode: local zone answers authoritative, external recursive
 
-#,,..,.,,,,.,,,..,,,.,,,,,.,,,.,,,.,.,,,.,,,.,..,,...,...,.,,,,.,,,.,,,..,,..,
-#NPQVCVAQCZCVBUPYDVC5LCVCSQA6SM7SDCZW5U65BZYIYDK7CXCANMB5SAO2Q7LDKWKWF7V3NFWZA
-#\\\|LB4DXELS43LLV3AGBXRMFUNRJAUBT7WTCQSXZY3L24HGYRTGDBB \ / AMOS7 \ YOURUM ::
-#\[7]C5ZUMOODGDALBTRORIAGS7SC6VG6M7CM2LJFHQTC4BI4V5N5GEAI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,..,,,.,,.,,,,,,,..,,,.,,.,,,.,,..,,...,..,,.,,,...,,.,,,,,,...,
+#7MLHC2TMVQHJWPJRSUHCQFIJMRS2C3Q62BQWEUFICSWF6BSRNKEGAETQX5IO5CR5DHPGUNXZZLTKU
+#\\\|VCIM6GPYLS2QX3HNDBIROPVDQNHZTB7SJ3OJHVSRWHIFKIFXW64 \ / AMOS7 \ YOURUM ::
+#\[7]QDWNZTALRXDSXLAQPW3H5OEQ7LKJZK5FE7PKGX6GD5P35C4YLYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ still applies once a second node exists, separately.
 ## gaps to fix (each independently verifiable by reading the named file)
 
 1. **No cube access grant for `external` as a caller, at all.**
-   `configuration/zenki/cube/access.zenki` has an `access.cmd.usr.<name>`
+   `cfg/zenki/cube/access.zenki` has an `access.cmd.usr.<name>`
    block for nearly every zenka that calls into another one, but there is
    no `access.cmd.usr.external` block anywhere in the file. That means
    every outbound `route-send` external makes — `nodes.cmd.add-tronk`
@@ -35,8 +35,8 @@ still applies once a second node exists, separately.
    for the exact `\` continuation / indentation convention used in this file).
 
 2. **`external` is not started by anything.**
-   `configuration/zenki/v7/start-set-up.base`'s `zenki.enabled` line does
-   not include `external`, and `configuration/zenki/external/zenka-startup.v7`
+   `cfg/zenki/v7/start-set-up.base`'s `zenki.enabled` line does
+   not include `external`, and `cfg/zenki/external/zenka-startup.v7`
    has no `start.on-demand = 1` line either (compare to `tile` or `web`'s
    `zenka-startup.v7`, which use on-demand). Decide and apply the on-demand
    pattern (mirroring `web`'s `zenka-startup.v7`: `start.on-demand = 1`, no
@@ -45,7 +45,7 @@ still applies once a second node exists, separately.
    on-demand that doesn't apply here.
 
 3. **Missing `discover` dependency declaration.**
-   `configuration/zenki/external/zenka-startup.v7` declares
+   `cfg/zenki/external/zenka-startup.v7` declares
    `dependencies = cube nodes` but `external.init_code`'s `auto_connect`
    block reads `$data{'discover'}{'orbital'}{'known'}` directly. If
    `discover` isn't up yet when `external.init_code` runs, that read
@@ -54,7 +54,7 @@ still applies once a second node exists, separately.
 
 4. **`connect-orbital` and `orbital-status` are not reachable by anyone.**
    Only `external.list-connections` is exposed (to `web`, in
-   `configuration/zenki/cube/access.zenki` around line 322-326,
+   `cfg/zenki/cube/access.zenki` around line 322-326,
    `access.cmd.usr.web`). There is no grant anywhere for any zenka or user
    group to call `external.connect-orbital` or `external.orbital-status`.
    Decide what should be able to trigger a connection — at minimum `web`
@@ -93,7 +93,7 @@ still applies once a second node exists, separately.
    orbital data poller elsewhere in this codebase for the same reason).
 
 7. **Devmod wildcard in `external/start`.**
-   `configuration/zenki/external/start` has:
+   `cfg/zenki/external/start` has:
    `access.cmd.usr.cube = ... * ## <-- devmod`
    — the trailing bare `*` grants cube blanket access to every command on
    `external`, including any future eval-code/exec-sub if those are ever
@@ -151,8 +151,8 @@ For each of the 7 gaps: state what file(s) you changed and why, or — if you
 decided NOT to fix a gap as written (e.g. gap 4's access decision) — say so
 explicitly and explain what you flagged back instead of guessing.
 
-#,,.,,.,.,,,.,..,,,.,,,,,,.,.,,,.,,..,,.,,,,.,..,,...,...,...,.,,,,,.,..,,,,.,
-#U5UI5FEGEOEHVYFI64P7EYU2WRSERHRUBMZB3BYFPN3NVMYWBBGMFRPZYAP7TX62VW6N2DWSPV6XK
-#\\\|C3FWL4G5XJSR4LSVZQ336D36XUN6L55NIV3EWJBKO67X3ZII6EW \ / AMOS7 \ YOURUM ::
-#\[7]AAVRJJIYE4UQE6MZGGXKSXH4P3HQVHW7JD4WXDHLOBT55Y4GDCAI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,...,.,.,,.,,.,.,..,,..,,...,..,,...,...,,,.,.,.,,.,,,,.,,.,,
+#UAFKB6ZE5LGOVYFT7JRU5LCQMJPARVKOEDRRQ4GHKCGD5PQ5JNZKKXY5BHBDBEKUHHZXI3CEPIKAE
+#\\\|W6RSOVEGZ2TO5J6A4TMPV6GYHRMJP44LZZD5DD7NO2STA5YD5OZ \ / AMOS7 \ YOURUM ::
+#\[7]LWCOMZ5YMQE6SR2PW7KX637YJCWI22NAWW7CUM5JWEME3DGBI4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

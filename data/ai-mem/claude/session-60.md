@@ -12,7 +12,7 @@ metadata:
 All jobs now produce parsed YAML with score/reason/summary. Series of bugs fixed:
 
 ### 1. Model config — switch to 9B
-`configuration/zenki/coding/start`: `coding.cfg.start_model = WZIZD6Y:2BIZKWY`
+`cfg/zenki/coding/start`: `coding.cfg.start_model = WZIZD6Y:2BIZKWY`
 **Why:** 4B model (YYZYSXQ:ZSNYLYY) produced empty/garbage YAML. 9B loads as fast as 4B with new llama build.
 
 ### 2. state_machine no_tools content loss (`modules/coding.async.state_machine`)
@@ -68,8 +68,8 @@ jobsite → `task.create` (task zenka) → `models.task-notify` → models/codin
 
 **How to apply:** When touching jobsite assessment pipeline, YAML parsing in assess-done/repair-done, or models.handler.task-result, refer to these fixes.
 
-#,,..,.,.,,,.,.,.,..,,...,.,,,,..,.,.,,,.,,..,..,,...,..,,,..,.,.,..,,,,,,,,,,
-#LBE6YY3RACPG2KBRWLRBG3PH7FYV6PFQGZRRUYMW5COOU577IJPJP6PZMHEQCUGTJAJJKA46FFYIC
-#\\\|4VVBPY6EI27H6ODAIOEZLT7WE3FUZHTSSZ7R2QEJUEO447RFGE2 \ / AMOS7 \ YOURUM ::
-#\[7]TW2I2AYMY5LCMCFT26UDFO4FEAIGNIXESTD5ECJ2BJ4T7BY4TGBY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,.,,...,,,,,,,,,.,,,,,.,,,,,.,,,..,,...,..,,,.,,.,,,.,,,,,,,,,,,
+#3OB4YRHXHQOKLYBHR73U5PEZ7XX2WJSQI57JOFZQXA63MPUGYKNIVMI4FBAJJLAZFWP33WLRNWRT6
+#\\\|FTOUHQ2FF5BIF2OMM7I2WEON4FQ6XW73GKG2ESTJH6D6VUUUOLG \ / AMOS7 \ YOURUM ::
+#\[7]6HBTY4ANV6LH55ATAEC2N7C4IW5KS7X6DWEEWAXDRK4O6XP344BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

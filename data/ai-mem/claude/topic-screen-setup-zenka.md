@@ -86,16 +86,16 @@ legible. This live layout: XWAYLAND0 1920x1080+0+1860, XWAYLAND1
 **Files (all need signing — user signs, passphrase):**
 modules: screen.setup.{init_code,startup,ensure-display,enumerate-monitors,
 layout-model,monitor-at-point,cmd.display-layouts,open_window,close,
-handler.key_press,handler.draw}; configs: configuration/zenki/screen-setup/
+handler.key_press,handler.draw}; configs: cfg/zenki/screen-setup/
 {start,zenka-startup.v7,subroutines.load-early}; edit:
-configuration/zenki/cube/auth.zenki (added `auth.setup.usr.screen-setup =
+cfg/zenki/cube/auth.zenki (added `auth.setup.usr.screen-setup =
 :zenka:`). Access needs nothing else — `access.cmd.usr.*` wildcard already
 grants X-11 read cmds + the `get_display` it uses.
 
 **Bring-up (UNTESTED — never parsed under the real loader; gen-sub-whitelist
 `0 failed` only proves the `<[...]>` refs extracted, not a compile):**
 1. sign: `bin/Protocol-7 sourcecode update-signatures` on the new modules +
-   config files + the white-list. **NB: configuration/zenki/cube/auth.zenki
+   config files + the white-list. **NB: cfg/zenki/cube/auth.zenki
    was already signed — the edit invalidated its signature; it MUST be
    re-signed too or `reload config` may reject it.** (white-list regen cmd:
    `./bin/dev/gen-sub-whitelist screen-setup`, already run, 521 subs.)
@@ -221,8 +221,8 @@ Deferred: (1) STRM-based live window list (X-11 pushes on open/close);
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,,,,..,,.,,,...,.,.,.,.,,.,,...,,.,,..,,,..,..,,...,...,,.,,,..,,,.,.,.,,,,,
-#BWXAAYMF3RMJJNWE3DZJ4ALPYEYP7R4JPU6QCVJN2T26RMWEZSYLG3VTMG47EPZYGB6XMZXLEKVVY
-#\\\|QPKOLE75RTEGUIX32P6HJJ2W5SNXIWOLQJC3OINUQJONO5DV6FA \ / AMOS7 \ YOURUM ::
-#\[7]CRH4RLTM3KHXPDQCR2EVHQD3TSPMS5Y2N2IW5VFM4AU62N7YQGAI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,,..,.,,,,.,,,.,,..,,..,,...,..,,...,..,,..,,.,.,.,,,,.,,,,.,
+#4IK4P5FRPMQDG4T664J7BAX7TUH64CBNROKNUBIUU46AHFLOTN3XQONE736OYOFC2GWFBR6LTZXB2
+#\\\|JJARA47ASN76VH2MF62DRHQQYKZVRPUCDN6FVN6GRF745VSJ3CE \ / AMOS7 \ YOURUM ::
+#\[7]COIIJPKGILFU2OLRI57BQD6NS5H34YXVWFHNTFJ3JCCOQADHLWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

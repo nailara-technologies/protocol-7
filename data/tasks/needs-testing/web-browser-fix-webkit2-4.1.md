@@ -75,7 +75,7 @@ file: `modules/web-browser.init_code`
 check if `<web-browser.cfg.plugins_enabled> //= 0;` is still set in init_code.
 if so, remove it — the setting is no longer referenced anywhere after fix 2.
 
-also check `configuration/zenki/web-browser/zenka-startup.v7` for any
+also check `cfg/zenki/web-browser/zenka-startup.v7` for any
 `cfg.plugins_enabled` line and remove it if present.
 
 ## verification
@@ -102,8 +102,8 @@ perl -e "
 - [ ] `cfg.plugins_enabled` default and any config reference removed
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,,,...,,.,,,.,,,..,.,.,.,,,,.,,.,,,.,.,,,.,..,,...,...,.,,,,,,,,,,,..,,,.,,
-#4B5PDIJJNEY72S4JOEKIJEQOXP5NRD3CAW5JSFB7PVCD36CH3JVSMNCUGGNJFV6UAEVJ7PZDTKAVY
-#\\\|24GT5UL6PTDQ4F5KF4CY6QRERUZDWNCVKQPP7RHGBNJ45IFN4CA \ / AMOS7 \ YOURUM ::
-#\[7]QKNOB4OYJJZIZIMX7JIH7QKWK76K5VPSU466JO5BN6DRF4XUBGBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,.,,,...,..,,.,,,,.,,..,,,.,,..,,...,...,,.,,,,,,..,,...,,..,
+#PMKDJESRD2D4727RODPUOXURGMKRB665COBDRTLKOPLIONTLPMLX4VO2LT3TLAJEVNMLOHYSZOVYY
+#\\\|TB5S7WFRNRUNR4EQ4HIFVNIJOSQUGFXO46WRR4IX63QIDDV22RW \ / AMOS7 \ YOURUM ::
+#\[7]SJVQLEDUFNKZ6ROJTUYIPCEH7IST2CJRMIIVFTFFPLGLTMJWUUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ the forensics zenka (phase 1, task data/tasks/forensics-agent.md):
 
 1. **cube auth grant** — without
    `auth.setup.usr.<zenka> = :zenka:` in
-   `configuration/zenki/cube/auth.zenki` the zenka boots, then dies with
+   `cfg/zenki/cube/auth.zenki` the zenka boots, then dies with
    exit code 0004 ("cannot to connect to local cube") in a limitless
    v7 restart loop (same failure as commit 2f11bc91c fixed for
    build/openvas). Fix: add the line, then `p7c reload` (unprefixed =
@@ -50,8 +50,8 @@ and running gen-sub-whitelist, do: auth.zenki grant → `p7c reload` →
 0110 = drop_privs when run unprivileged manually). Create needed dirs
 in init_code, never lazily in post-init handlers.
 
-#,,.,,...,,.,,.,.,.,,,...,,.,,..,,,.,,.,.,...,..,,...,..,,...,,,,,,.,,.,.,,,,,
-#LBJMTWQTSQYULSDI6YC7GIVY6OY3M22KKGJLNGMEZV4Y4SSS5D7KCGXICGRVX4HVQWRJYDD6G4DXA
-#\\\|UY6ODDKL2EN3X6CEYKTD2KS6IJK23OTDDKVJ7SMEMK7QKGTDO44 \ / AMOS7 \ YOURUM ::
-#\[7]UHDJFE2M3BZM3RYO4HSVXUQ2DCZFIMJP4F6DTVCHLN6K5J5JP6DY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,..,,..,,.,.,..,,...,,,.,...,..,,...,...,,,,,,..,,.,,,.,,,,.,
+#RUKWY4JNW5AFRT654Z7R5GC7TWJP3IYWTBDWVFOUR7ECUVATE6E4SK2UAINPJXLYT7224OR6RSSDW
+#\\\|B4LBIRQ7L3EDZQVSZWPOVT6XS277ASEAMPO7PK3SVBOGJSNUGTF \ / AMOS7 \ YOURUM ::
+#\[7]MVFBENQLJUURSU7PGSTLWPTLYSSWNFLURFVI5BVAGZICEK3ATSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

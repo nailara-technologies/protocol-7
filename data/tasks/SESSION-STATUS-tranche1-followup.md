@@ -4,7 +4,7 @@
 
 - bmw-harmonize-l13-helper: v7 boot crash resolved.
   - whitelist: added `base.chk-sum.bmw.harmonize_L13` to 111
-    `configuration/zenki/*/subroutine.white-list` files (next to existing
+    `cfg/zenki/*/subroutine.white-list` files (next to existing
     `calculate_L13_sum` entries)
   - infinite-loop guard: added 100_000-iteration cap in
     `modules/base.chk-sum.bmw.harmonize_L13` (no time-based timeout when
@@ -60,11 +60,11 @@
    fold-primitive overlap decision above
 4. amos7-template-epoch-exclusion: `AMOS7/TEMPLATE.pm` — pending
    acceptance-criteria check
-5. `configuration/zenki/coding/start` — taeki's manual context-size edit
+5. `cfg/zenki/coding/start` — taeki's manual context-size edit
    (37000 -> 30000), unrelated to tranches, can commit independently
 
-#,,..,,.,,..,,,..,,,.,,,,,.,.,.,.,.,,,,.,,,,.,..,,...,...,.,.,,..,...,...,,.,,
-#IOJPBF2FVAXLTELTTLTWGICGYU4MPFEFJZLUNKVJHS43QP777LSPE7JHLM4FOCS55V36V2UZCQDLW
-#\\\|4DTB7EHIMC2ZLZG6LCWQ6NVAVZHTT7R3P3J74F3J3UTUBAFZEZC \ / AMOS7 \ YOURUM ::
-#\[7]CL52DVGHOGDLWKTPB7L2TRFPNOQZCHSS2GQBA77JFCB4UVQRBWBI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,,..,,,,,...,,..,,,.,,..,,,.,..,,...,...,.,.,,,.,,..,...,...,
+#XTA34QIX2W76U4ERKYW6TT3M5TJRMXNNPEWJFDB5JV53ADYCKQ3BC3VRLC3CZXWBSLFGLCKIV2DNG
+#\\\|T2M3BQGK7JAPZSWBXSMN4TWBRW774I666PMJ6GRSW4J5K26BO5L \ / AMOS7 \ YOURUM ::
+#\[7]KWP7PFUCM3A5I4U4UWPUML5VJNCJUPNDE5E74ABJO5OMBFQTAUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

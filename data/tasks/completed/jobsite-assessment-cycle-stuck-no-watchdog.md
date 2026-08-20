@@ -33,7 +33,7 @@ wiped there too (a pre-existing, separate latent gap — fixed as a
 byproduct, not a regression).
 
 new config: `jobsite.cfg.assess_timeout` (default 600s), in
-`configuration/zenki/jobsite/start`.
+`cfg/zenki/jobsite/start`.
 
 ## status (superseded, kept for history)
 
@@ -120,8 +120,8 @@ has conventions for.
 - confirm the exact recovery semantics wanted: retry the same job,
   skip it and move on, or mark it failed/blocked pending manual review?
 
-#,,.,,...,...,,..,...,...,..,,,.,,...,...,...,..,,...,...,,..,,..,..,,,,,,,,.,
-#G5BX7CGLUPZ4OVHQRIIRCLWLAYIGOLLTHWBSNNZZSMCR4VFUECUR6OWR56DVZ2VBST3HUFCS4VTQO
-#\\\|YRAZLGA2I5WEYFODQFHAJXYUGO5RBI2AMAPNVLZZJRP44LC4FEB \ / AMOS7 \ YOURUM ::
-#\[7]327JRMTQORAYV7PQONXUP7ZY4WHP3DJ6MBAATWXKNPLCVZJ3HSDY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,..,,.,,,.,.,,,,,,,,,,,.,...,,,,,..,,...,.,.,...,,,,,,,,,..,,..,,
+#PYQTYUEDEUVE7KH2OU5RT5SHDZK4MJECVMPX6IYMXSTSQS4UKYDE45HTP7QZP54FEWN4P2RP6FFU4
+#\\\|ECTWC4REJPFE5TKBHAD3RNAHOPINXEZMB32MDLEVH36RLIBJ5HD \ / AMOS7 \ YOURUM ::
+#\[7]QF3IWR5NSEQSMWDHMTO7WHFN7JCJHC7ACLUMOKP7RLXXXRKJQ2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

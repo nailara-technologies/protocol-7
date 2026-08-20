@@ -28,7 +28,7 @@ task:
     - modules/radio.handler.stream-chunk  ##  write chunks to file when flagged  ##
     - modules/radio.cmd.keep         ##  trigger gap_fill if currently jingle  ##
     - modules/radio.cmd.status       ##  add library size + gap_fill state  ##
-    - configuration/zenki/radio/zenka-startup.v7  ##  add library path config  ##
+    - cfg/zenki/radio/zenka-startup.v7  ##  add library path config  ##
 
   keep_library_state: |
     add to <radio.stream.icy> in radio.init_code:
@@ -204,7 +204,7 @@ task:
       <[base.perlmod.autoload]>->( 'List::Util',  qw| shuffle   | );
 
   access_list: |
-    add 'library' to access.cmd.usr.cube in configuration/zenki/radio/start
+    add 'library' to access.cmd.usr.cube in cfg/zenki/radio/start
 
   acceptance: |
     - ptd -c all modified and new radio.* modules passes
@@ -219,8 +219,8 @@ task:
     - radio.cmd.library lists files with sizes
     - no background saturation source in this phase
 
-#,,.,,,,,,...,,.,,,.,,,,,,...,,,,,,..,..,,.,.,..,,...,.,.,,.,,,,.,.,.,,,.,,..,
-#AR7WBBQU5SLVWZVLKDIWWB73BTHHEMVUNBLWMNH5OPCVZGTN6YQFRFCOAG3IKVFU5NGX2PJJOSUZU
-#\\\|AUHUI44UNGINNN2DUSIY6MEQ44V2Y6ZBNLCNZA7U2ISCBXZIXHQ \ / AMOS7 \ YOURUM ::
-#\[7]BMKT7TI2CEKQQWMWHINW736KU2PWGSC6MF3NK6NZOCYOOC5H34BI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,.,,,,,,,..,..,,...,.,.,.,,,,,,,..,,...,...,.,,,,,.,..,,.,,,...,
+#ZNY3CEOLIIZHNTLQPQKBW5FFDFO53HIZTFS6SZKGV4AKB7KD7L3M7UZY7QVW6YW2CIRHVO57GJQ5S
+#\\\|ZMDS2NIENDPWDMAS5KU37R3Z7F2HLVGOOOLMOEQVTZ34WOWE2PY \ / AMOS7 \ YOURUM ::
+#\[7]XFETBNPMW3UFZDF5QEPLZTSDOSCU6BDN6WK2WDLIUW2VASSXGIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

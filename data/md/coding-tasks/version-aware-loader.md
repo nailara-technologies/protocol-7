@@ -173,7 +173,7 @@ stored alongside the version: `$FINGERPRINT{$version}`.
 - if unexpected error rate exceeds threshold → revert active version pointer
 - triggers a log event and optional alert via cube routing
 - rollback rules (phase 2): declarative rules in
-  `configuration/loader/rollback-rules/` specifying conditions under which
+  `cfg/loader/rollback-rules/` specifying conditions under which
   auto-rollback is safe or should be forced
 
 #### fallback machinery protection
@@ -309,7 +309,7 @@ stale bookkeeping, not "not started".
 - [ ] manual rollback command: `reload rollback`
 - [ ] configurable rollback window timer
 - [ ] auto-rollback: error counter monitoring + threshold trigger
-- [ ] rollback rules in `configuration/loader/rollback-rules/`
+- [ ] rollback rules in `cfg/loader/rollback-rules/`
 
 #### phase 4: %SOURCE + deferred compilation
 
@@ -370,8 +370,8 @@ step does NOT need to be re-run on lazy compilation, only the `eval`.
 - `## todo-list` comment at line 1730 documents the known intent this task fulfills
 - speed/memory profiles should be adjustable at runtime without restart
 
-#,,,,,,,,,,..,.,.,...,.,.,...,...,,,,,..,,.,.,..,,...,..,,...,,.,,,..,.,,,,..,
-#WQS7GSL65ITJVK7LJTYSHM3REM5JM5Y65FTJPCV473GW6SXCUEKYDJBQKVJSFWC3GIU3DO3GXJYU4
-#\\\|Z7UZZWKOYNTRTRWHYTRCGBDD6GT6GKZZV62VFLY3JDFBHDYK7UE \ / AMOS7 \ YOURUM ::
-#\[7]RZXMA5IA4G6WMXACYNWMFAWB2P342VMCA46E6H2IJ4ZGTMCW34DA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,...,...,,,.,,..,,,,,..,,...,,,,,..,,...,...,..,,..,,.,.,,..,,.,,
+#HM2DD4A7CX7RDIYQOK3AFB5XIOAEGE4RPQCNQIVQB7222JN567SBL5T36NKXR4P26VAWG2VEMWSAE
+#\\\|QHB2X4OB3LXT56YCTDB65W2DQF5I24U3XG7C76QHLA4NOLTSAF5 \ / AMOS7 \ YOURUM ::
+#\[7]H7OOKKBC4Z4QFGD3SYH7QQS5GXYRO773MUANWKYWPRCVM6TK7YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

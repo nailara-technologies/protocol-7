@@ -109,7 +109,7 @@ unless something else registers those package symbols that hasn't been
 found yet ]. **before editing, determine which case you're in**:
 
 1. check whether the `workspace-transfer` zenka [ or any zenka that
-   loads `workspace-transfer.*` modules, per `configuration/zenki/*/
+   loads `workspace-transfer.*` modules, per `cfg/zenki/*/
    start` ] is currently running, and if so, run one of the 11 callers
    live [ e.g. `p7c workspace-transfer.status-check` or whatever the
    actual command name is ] to see if `workspace_transfer::
@@ -186,7 +186,7 @@ reloading the `workspace-transfer` zenka [ if running - check `p7c
 list` or similar ], call one of the 11 external commands that uses
 `workspace_transfer::chdir_workspace()`, e.g. `p7c
 workspace-transfer.status-check` [ check
-`configuration/zenki/workspace-transfer/start` for the right command
+`cfg/zenki/workspace-transfer/start` for the right command
 name / whether it's a separate zenka at all ]. if it returns the
 workspace dir / doesn't error, the extraction is correct. if it errors
 with "Undefined subroutine &workspace_transfer::chdir_workspace" or
@@ -246,8 +246,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,,,,,,,,..,..,,.,,,,..,...,,,,,.,.,,..,..,,..,,...,...,..,,..,,.,.,,,,,..,,
-#D76CAKMQXR5IPGLEC3GLQSPYH3JF2QDEVKEZB2JMRSSGT3DSN7MIYBPYAHZZWKBI7N4EIJV6C57T6
-#\\\|GBT5RKKDFSZ4UPCZHXMAJUIQ537AKFK6JAEXZTXBWLHV3NMM6ZL \ / AMOS7 \ YOURUM ::
-#\[7]CXLRH6MATHCOE3W53MDE53BQ24LAVZXUVNDCE7VZPU4GPMU6MKAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,,.,,,..,,,,,,.,,,.,,,,,,,.,,..,,...,...,.,.,..,,...,..,,.,,,
+#3GV4G7D47T3ZTSRPKJI5JIAE27EX67ABJKHSZYPQOKCDX5DIKFCRLLHBS2LO4N2AXW47ZRKP5H3C6
+#\\\|MI4EP4MQOXMUEXBXCJJFGDWF6K5RIHIR2YYEIVAP57K7BAUV5VX \ / AMOS7 \ YOURUM ::
+#\[7]I43KQIAKV7ZSEYO3U2TOMAZRW7E6OOGECDCEUWSVQHK2OWVCW2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@ Audit of 171 task files (70 feature specs in `data/md/coding-tasks/`, 101
 iteration tasks in `data/tasks/` — 94 top-level + 5 `unicode/` + 1
 `needs-rewrite/` + 1 `research-findings/`). Read-only audit — no task files
 were modified. Evidence = module/command existence in `modules/`, `bin/`,
-`configuration/`, `data/web-root/vhosts/`, `data/lib-path/pm/`, plus
+`cfg/`, `data/web-root/vhosts/`, `data/lib-path/pm/`, plus
 `git log -S`/path history for ambiguous cases. Run via kimi k3 dispatch.
 
 **Result: 89 done, 30 partial, 52 pending.**
@@ -61,7 +61,7 @@ disagrees with this one.
 - space-index-grid-endpoint.md : `plugin.web.space.grid.{init_code,scan}` + `handler.state_reply` + `state` exist
 - summarize-context-command.md : `coding.cmd.summarize-context` + `task.cmd.summarize` + `task.handler.summarize-reply` exist
 - sync-export-history-across-browsers.md : exported_stage synced via `modules/plugin.web.jobs.sync` (line 55)
-- task-zenka-kimi-coordination.md : task zenka (`configuration/zenki/task/start`) + `models.handler.task-poll-step` + `kimi.cmd.ask-reply` exist
+- task-zenka-kimi-coordination.md : task zenka (`cfg/zenki/task/start`) + `models.handler.task-poll-step` + `kimi.cmd.ask-reply` exist
 - verify-finish-reason-propagation.md : file records Status: VERIFIED; `coding.handler.check-completion-chain` exists
 - web-plugin-inline-sub-extraction.md : `plugin.web.content.util.{calculate_checksum,format_size,generate_submenu}` + menu.tree extracted
 - zulum-cube13-decoder-integration.md : `zulum.*` (6), `cube-13.cmd.*` (4), `decoder.*` (22) modules + all three zenki configs exist
@@ -103,9 +103,9 @@ disagrees with this one.
 - v7-lpw-sync-debug.md : fix commits `e77cbaf7b` + `b777eff17` ("lpw sync") on `v7.calc_prefix_lengths` et al.
 - web-auth-plugin.md : full `plugin.web.auth.*` suite (create/verify/destroy_session, handler.login/logout/status, session.*)
 - web-browser-value-replay-waypoints.md : `web-browser.cmd.{goto-waypoint,goto-waypoint-group,waypoint-set,state-play}` + `replay.dispatch` exist
-- x11-capture-commands-rewrite.md : screenshot zenka landed (`screenshot.cmd.capture-to-disk` + `configuration/zenki/screenshot`)
+- x11-capture-commands-rewrite.md : screenshot zenka landed (`screenshot.cmd.capture-to-disk` + `cfg/zenki/screenshot`)
 - zenka-name-routing-modes.md : configurable `routing_mode` disambiguation in `base.handler.command.route_to_target` (line 234)
-- research-findings/forensics-zenka.md : research artifact; forensics zenka scaffolded (commit `86424b80c`, `configuration/zenki/forensics/`)
+- research-findings/forensics-zenka.md : research artifact; forensics zenka scaffolded (commit `86424b80c`, `cfg/zenki/forensics/`)
 - unicode/test-double-encoded.txt, test-normal.txt, test-utf8-notes.md, utf8-test-content.md, tools-encoding.txt : test fixtures / pasted session log — data artifacts, nothing to implement
 
 ## partial — keep (30)
@@ -144,7 +144,7 @@ disagrees with this one.
 - signal-cancel-log-library.md : `signal.cancel.{load,match,init_code,cmd.filter,cmd.add-pattern,cmd.scan-baseline}` exist; `cmd.stats` + categorize missing
 - v7-stdout-foldable-relay.md : stdout_log write/rotate + output handlers exist; `v7.stdout.view.{bind,unbind}` + `address.resolve`/`filter.*` missing
 - valued-tree-task-zenka-integration.md : `valued.tree.record_outcome` exists; `task.cmd.block` + `task.transition` missing
-- x11-user-fallback-and-audio-awareness.md : `mpv.callback.silenced` + `configuration/X11-vars` + X-11 multi-server commits exist; intelligent user/fallback selection not evident
+- x11-user-fallback-and-audio-awareness.md : `mpv.callback.silenced` + `cfg/X11-vars` + X-11 multi-server commits exist; intelligent user/fallback selection not evident
 
 ## pending — keep (52)
 
@@ -156,13 +156,13 @@ disagrees with this one.
 - checksum-route-binary-framing-harmonic-foundations.md : pure math-grounding companion doc; no implementation target exists
 - context-tree-octal-encoding.md : no `context.tree.encode_*` modules (`amos7.encode_octal_header` exists but the context-tree application doesn't)
 - export-history-undo-stack.md : no undo stack anywhere in `plugin.web.jobs.*` (grep: no hits)
-- lmstudio-zenka-wiring.md : `configuration/zenki/lmstudio/` is an empty dir; no `lmstudio.*` modules
+- lmstudio-zenka-wiring.md : `cfg/zenki/lmstudio/` is an empty dir; no `lmstudio.*` modules
 - multi-model-design-chat.md : `bin/models-chat` + `models.chat.{design_session,expand_inline_refs,export_task}` missing; git shows only the task-doc commits
 - rewind-stack-file-diffs.md : `coding.cmd.rewind`/`coding.tools.rewind.*` never existed; git log shows only task-file-addition commits
 - tool-hints-and-extended-docs.md : `coding.tools.handler.{register_hint,tool_help}` + `hints.check` missing; git -S shows only docs commits
-- version-aware-loader.md : no `configuration/loader/`, no loader-versioning git evidence
+- version-aware-loader.md : no `cfg/loader/`, no loader-versioning git evidence
 - zenki-elves-network-habitat.md : philosophical design doc, no code targets referenced or found
-- zenki-profile-configuration-interface.md : no profile interface; only `configuration/zenki/v7/start-set-up.base` exists
+- zenki-profile-configuration-interface.md : no profile interface; only `cfg/zenki/v7/start-set-up.base` exists
 
 ### data/tasks/ (39)
 
@@ -171,7 +171,7 @@ disagrees with this one.
 - branch-layer5-9p-bridge.md : no `branch.9p.*` modules at all
 - branch-layer6-file-abstraction.md : no `branch.file.*` modules at all
 - coding-self-error-processing-cycle.md : no `coding.error.*` modules; no git evidence
-- command-relay-zenka.md : requirement note; no command-relay zenka in `configuration/zenki` or `modules`
+- command-relay-zenka.md : requirement note; no command-relay zenka in `cfg/zenki` or `modules`
 - cosmic-space-visualization-layer.md : no `cosmic.scene.*` modules (only an unrelated mention in lm-vision)
 - crop-circle-acquisition-pipeline.md : no `image.crop-circle.*` modules
 - crop-circle-assertion-mask.md : no `route.bmw384.visual.mask` modules
@@ -190,16 +190,16 @@ disagrees with this one.
 - kitten-acquisition-pipeline.md : no `image.kitten.*` modules
 - litter-row-encoding.md : no `base.module.litter*`; no git evidence
 - mcp-kimi-status-check-reattach.md : no status-check/reattach tool in `bin/mcp-server-p7` (only dispatch/continue)
-- mcp-regex-approval-system.md : no `configuration/mcp/approval-patterns.yaml`; no approval logic in mcp-server-p7
+- mcp-regex-approval-system.md : no `cfg/mcp/approval-patterns.yaml`; no approval logic in mcp-server-p7
 - network-elf-avatar-pipeline.md : no elf avatar artifacts/modules
-- real-estate-agent-port.md : zero real-estate references in `modules/`, `bin/`, `configuration/`
-- ring-routing-phase1.md : no `ring.*` modules, no `configuration/zenki/cube/rings.cfg`
+- real-estate-agent-port.md : zero real-estate references in `modules/`, `bin/`, `cfg/`
+- ring-routing-phase1.md : no `ring.*` modules, no `cfg/zenki/cube/rings.cfg`
 - space-engine-grid-orbit.md : no `space.grid.*` / `space.orbit.*` modules (space-engine-template landed, this one didn't)
 - task-archiving-with-context-templates.md : no `bin/dev/archive-task`
 - taws-integration.md : no `web.handler.taws_*` modules; no taws files anywhere
 - v7-console-log-filter-overlay.md : no `v7.console.filter.*` modules
 - v7-console-per-zenka-tree-view.md : no `v7.console.view.by-zenka.*` modules
-- visual-feedback-capture-analyzer.md : no `configuration/zenki/visual-feedback/`
+- visual-feedback-capture-analyzer.md : no `cfg/zenki/visual-feedback/`
 - visual-feedback-vision-loop.md : no `llm.service.vision_query` / `cfg.vision.*`; same missing zenka
 - visual-mask-model-layer.md : no `image.mask.*` modules
 - wayland-screenshooter-perl-prototype.md : no wayland files anywhere in repo
@@ -246,8 +246,8 @@ disagrees with this one.
 - Human confirmation needed before any file is actually moved/archived —
   this document is the audit trail, not an archival action itself.
 
-#,,.,,..,,..,,...,,.,,,.,,...,,,,,...,..,,.,.,..,,...,...,...,,,,,,,.,..,,..,,
-#UVNL3UJHX5VAHJLU3QJUQ35HEUYBNGJGN7EFIKFZCFAXS5CDNUSP4N7RGWNT2ILEKVTGQISR6ASH6
-#\\\|RAOHU76RX5T6JNIP2V7NW5OX4SP5EILDIOBTUMBKZZ243MYAH2E \ / AMOS7 \ YOURUM ::
-#\[7]KXNY7BDJJL7OUKK7C35OKOZMVBISC7SFJEAGLRPEEIWYK6PD3MBA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,,,.,,.,,,.,,.,,,.,,,,..,,..,..,,...,...,,..,.,.,,,.,,,.,..,,
+#R43ICHWPKBOO43ZDU2X22YA37BSZ622M4NDAPNZDJKOKOSNV5RGDJ7555M75OB6PP7QTX7HGZTVLQ
+#\\\|2XZZPLRWV6XBAUNPYOHKR3EXKNSFL74NGLJJPZG7S7RM2PC3IHC \ / AMOS7 \ YOURUM ::
+#\[7]5J4TTDEQKMPXEDO2B2G2H4WHPVMVMA7RKTE4R22AEGK4KK3PVMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,14 +9,14 @@ the existing `memory.focus.*` modules as callable zenka commands. read first:
 `modules/memory.focus.decay`,
 `modules/memory.cmd.show`,
 `modules/memory.startup`,
-`configuration/zenki/memory/start`.
+`cfg/zenki/memory/start`.
 do NOT touch signatures or unrelated logic.
 
 ## problem
 `memory.focus.set` and `memory.focus.boost` are implemented but unreachable
 as commands — there is no `memory.cmd.focus` dispatch module. users must
 resort to `eval-code` to set focus. `focus` is already in the access list
-(`configuration/zenki/memory/start` line 13), so it will route correctly
+(`cfg/zenki/memory/start` line 13), so it will route correctly
 once the module exists.
 
 ## implementation
@@ -82,8 +82,8 @@ for the dispatch pattern, or `memory.render.term` for SIZE reply format).
 - `p7c memory.focus apply` → TRUE (triggers index lookup if focus changed)
 - no manual AMOS7 signature stubs in new or edited files
 
-#,,.,,..,,.,.,.,.,,.,,...,.,,,,,,,..,,...,.,,,..,,...,...,.,.,..,,.,.,,,,,.,,,
-#6PTC7LS5AXOPU2SLXPKEQUMDWCJWU6E75LRDLEIS22VUWTRM4EFEBXOE5WUGZCUYXPMB2QAJABWKM
-#\\\|EOU4X2WFQLPECEDKSVYNP7A3JRXGIVG3MWU5LV4C7KHZWFLHHSO \ / AMOS7 \ YOURUM ::
-#\[7]NQUVGQBZ3XIXNYGULCZABNBP3CC55WZ6RFVNI5ZRUILV3AMTAWDI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,,,,,.,...,..,,..,,,,,,,..,.,.,..,,...,..,,.,.,.,.,,,,,...,,,,,
+#D75O2DJQ2WRHFNTTQQRC3UJPBG4SM5PJQQ6HVKOLREDRI5X7CLH4A3J4YE2X5GIZICSKHZJPVYHGQ
+#\\\|O2QKGZFLVXY74JPS4B2OO67I6BVKHDXHUSEQ2NBNW36D2RFKY23 \ / AMOS7 \ YOURUM ::
+#\[7]HIKWKMMAX7IS2NS6WFAI3D6RYCWMQQVVH4Q5F5VAFWPJNU4NVSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

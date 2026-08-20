@@ -27,7 +27,7 @@ leave files clean — signatures are added by the signing system automatically.
 
 ### what exists
 
-- task zenka scaffold: `configuration/zenki/task/` — start, zenka-startup.v7
+- task zenka scaffold: `cfg/zenki/task/` — start, zenka-startup.v7
 - task zenka init: `modules/task.init_code` — loads yaml files from
   `data/yaml/coding-tasks/` via `format.yaml.load_file`
 - valued tree: `modules/valued.*` — node create/add_ref/remove_ref/resolve,
@@ -97,8 +97,8 @@ my $note    = $params->{'note'}   // '';
 - history section present in yaml after each transition
 - no regression in task.init_code yaml loading
 
-#,,..,.,,,.,,,.,.,.,.,,.,,,,,,.,.,,..,,..,,,,,..,,...,..,,...,,,,,,,.,.,.,,,,,
-#DJFAOTPLE2WT5GNN6IDF6CXN4QAPGEC4JIFTUKXWLAALVFEMMIIUE7HI44J7JXXYRAWOXZNKCD5A4
-#\\\|FHYCBHDTVM7IXFKHBIRCH2D626CKI2DVVAQ7BALFGIY5UZWZ3YU \ / AMOS7 \ YOURUM ::
-#\[7]BYAAOQEQJAMFDPV3DWDW4OHP54VXJT3FEADFJ6YJJDXBBOWNTAAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,,,.,,..,,,.,,.,,.,.,.,,,...,..,,...,...,..,,,,.,..,,,,.,..,,
+#GIPFVBILYCI5JTKPE7UKAPX2NBQXK3JSDSAAFNA72SWRH5R3QISRLLP45RZNSRYGW4YP5SIYMSTYY
+#\\\|VQTRLZYXZ6SEKWFWXTQTII43NTQ5T3O5ZCKUEDIYIEZ6BSOSX4H \ / AMOS7 \ YOURUM ::
+#\[7]WPPYOU2WH4JIIJKJ6V4PEFMVOGSJWIW2WTR2LTMMU74RLJ2UNEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

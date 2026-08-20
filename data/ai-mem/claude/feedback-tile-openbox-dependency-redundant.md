@@ -10,7 +10,7 @@ metadata:
 The tile zenka's "flapping / hangs / won't restart cleanly" problem
 (2026-06-24) was NOT the on-demand configuration and did NOT need
 "make tile always-on". Root cause: tile listed **openbox** (and **set-up**)
-as `dependencies` in `configuration/zenki/tile/zenka-startup.v7`. openbox is
+as `dependencies` in `cfg/zenki/tile/zenka-startup.v7`. openbox is
 **redundant when a window manager / compositor like Weston (WSLg) is already
 running**, and the dependency was what broke clean restart.
 
@@ -32,8 +32,8 @@ openbox as a zenka dependency when a compositor/WM is already running. If a
 window zenka won't restart cleanly, suspect a redundant WM dependency before
 suspecting on-demand/keepalive. Related: [[feedback-wslg-deiconify-limitation]].
 
-#,,,.,.,.,,.,,,.,,.,.,,.,,.,,,,.,,.,.,,,,,,.,,..,,...,..,,...,,,.,,..,,,,,,,,,
-#5O3XHEOYWJQT32T4VQNBMUC5INIZ6DFO5GIPHVTLV7N5VJSVO7LTBTWIPRBJ2UBPHNE6DLBM55XM4
-#\\\|ONPYGOCFHPBPOKCHEGFAD2IOVVEE2ZF6L6M4ZOIMGARSO3FCQXD \ / AMOS7 \ YOURUM ::
-#\[7]EA5JECTZLD6DMX3RAD6XOFZ55IIXCM2EQD2GSWDDN426QITZMMAA 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,.,.,,.,,,.,,...,..,,,.,,..,,..,,...,...,,..,.,,,...,.,,,.,,,
+#VOKV452KWJ567Q3LC24DX3KHKPQ2CHTYCXOXVKDT53N4YIEDHMSUNEHQZM26ARH77MPBUACREAJ3A
+#\\\|GGCWD4PLPX65HQFHAQLWKNW4DJ24FXJ32VANNQ3MKFPOS37YSMT \ / AMOS7 \ YOURUM ::
+#\[7]HMKQGAPQWHVSXMUTUZWJBLHCD6DEJDMIGKQZMHNPMFBTRCAKQEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

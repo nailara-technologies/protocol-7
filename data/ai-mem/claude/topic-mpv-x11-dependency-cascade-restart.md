@@ -17,7 +17,7 @@ even removing `X-11` from mpv's own dependency line would not have prevented the
 openbox hop re-triggers it (`v7.handler.zenka_status` fires again when openbox's own status
 transitions through `restart`).
 
-**Root cause:** `configuration/zenki/mpv/zenka-startup.v7:6` declares
+**Root cause:** `cfg/zenki/mpv/zenka-startup.v7:6` declares
 `dependencies = cube X-11 openbox` at the zenka-*type* level. `v7.set_up_zenka_dependencies` and
 `v7.zenka.instance.get_ids` have no subname/instance granularity at all — restart cascades hit
 every instance of a dependent zenka type regardless of whether that specific instance (e.g. an
@@ -38,7 +38,7 @@ audio-only subname) actually needs the failed dependency.
 - IMPLEMENTED already (code side): `v7.zenka.start` seeding logic, `v7.handler.zenka_status`
   enforcement check, and a new `modules/mpv.startup.resolve_x11_info` module (replaces the
   previously-unconditional `[base.X-11.get_mode]`/`[base.X-11.get_display]` in
-  `configuration/zenki/mpv/start`, skipped for `^audio(?:-\d+)?$` subnames — matches the existing
+  `cfg/zenki/mpv/start`, skipped for `^audio(?:-\d+)?$` subnames — matches the existing
   `<mpv.audio_only>` convention already used in `mpv.open_player`/`mpv.startup.init`).
 
 **OPEN — config directive syntax, not yet finalized (user said "not sure" as of last check-in):**
@@ -64,8 +64,8 @@ viable syntax (mpv only needs one rule today, so this is not urgent to perfect),
 user to propose a shorter naming convention. The mechanism/code side does not need to change
 regardless of which directive syntax wins.
 
-#,,..,,..,,,.,...,..,,,,.,...,.,.,,,,,,,,,,,,,..,,...,...,...,.,,,.,.,...,,,.,
-#6YPU32SZXNASGAOL3IAYK7OOTLKAZG7LP7NKR6YSJQJK5T2DPDODNVVLUQ37KLWXYYZHUC7FQPVF2
-#\\\|62OCXFLQ4U2SQW5BDQBKHHMZ3EZJTG7KSLDNOB7B5WD3UGT6VOR \ / AMOS7 \ YOURUM ::
-#\[7]FZ24RNEKVCXLQISW4NO7KTQK2CBLOV5NVGTGBQFCNUGQHYA2SUBI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,,,.,.,.,.,,,,..,.,,,.,.,.,,,..,,...,...,...,.,,,,..,,.,,,,.,
+#DBOAMREW2HZJF25O3IR43PMUAGJOY2T7UYVH46LHOJCSYRINJFVO7ZAKFQHDIVHK2FIBQG34GN62A
+#\\\|J4E5MCAMVRAABIK56TLIJ4OS4TKYM2VVSTE5IXA5JR7RATJMLPW \ / AMOS7 \ YOURUM ::
+#\[7]QSVC6LSQAWHBN335JJNO3UQUQPFQ7C5R6BVGJEMPZSAOB7IKC2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

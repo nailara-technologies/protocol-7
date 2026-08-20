@@ -63,7 +63,7 @@ First-class 3D terminal window management for Protocol-7 using AMOS checksum IDs
 ### Pattern Matching / Decoder (5)
 | Module | Purpose |
 |--------|---------|
-| `configuration/zenki/amos-term/decoder.patterns` | Pattern definitions (YAML) |
+| `cfg/zenki/amos-term/decoder.patterns` | Pattern definitions (YAML) |
 | `amos-term.decoder.init_patterns` | Compile patterns to regex handlers |
 | `amos-term.decoder.scan_buffer` | Scan layer, trigger pattern matches |
 | `amos-term.buffer.get_layer` | Extract Z-layer data from SHM |
@@ -241,8 +241,8 @@ GTK3 Window
 *Architecture: Object-oriented, event-driven, hot-reloadable*
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,,,,,,,,,,.,,.,.,,.,,..,,,,.,.,,,,,.,..,,..,,...,...,...,,,.,.,.,,..,,.,,
-#6CK2IP73LYOIJ2DDFOR65SGKBI4W7OU6TDQ6B2MHFDZJPSTRZA5ZRR3QS77XSPX3SHLA6FVLEHB4I
-#\\\|X3KXGVBMHCD4GJN7IZXZKXLXU7XZ4EBBKOEYDL3O4WBC272XTCV \ / AMOS7 \ YOURUM ::
-#\[7]ARYREKO7KQHH3N6YYGO7A6NELIGB4JZMTUYAUJTHFMAC3PBBTSCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,...,...,..,,,,.,.,,,,.,,,..,..,,...,...,.,.,.,,,...,...,,..,
+#FXEGMCC36BA3TV43SO3ICJY2E4NYSB3ITEY53CL7QALPQPBWCXRZAFKM3LYGUWFUIZIQR3N6PYLT2
+#\\\|YGJZLEOH74RWTLDCYXWFNUAIRZE7EXZWX5DTFHRVDL6SB3LBQKK \ / AMOS7 \ YOURUM ::
+#\[7]TAPA7CUJBWXBS3OIYZQTKOWV23C65LUNEU6RZLDP2RTMLGS7DUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

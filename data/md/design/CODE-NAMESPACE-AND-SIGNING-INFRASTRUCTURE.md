@@ -33,8 +33,8 @@ characteristics and format policy:
 - **format**: v7 config syntax or YAML depending on node; relaxed trailing
   endline tolerance (authors use whitespace deliberately for visual separation)
 - **signature**: required, slightly relaxed normalization rules
-- **current paths**: `configuration/`
-- **dot namespace**: `conf.zenki.radio.start` ↔ `configuration/zenki/radio/start`
+- **current paths**: `cfg/`
+- **dot namespace**: `conf.zenki.radio.start` ↔ `cfg/zenki/radio/start`
 
 ### application data
 
@@ -54,7 +54,7 @@ projection of it. the loader resolves transparently:
 
 ```
 conf.zenki.radio.start
-  → configuration/zenki/radio/start   (path fallback)
+  → cfg/zenki/radio/start   (path fallback)
   → in-memory cache                   (if warm)
   → network-addressed sub             (if remote)
 ```
@@ -74,7 +74,7 @@ prefixes to their contract:
 namespace prefix    format          endline policy      ptd     sig required
 modules/            P7 module       LF, strict          yes     yes
 bin/dev/            Perl script     LF, strict          no      yes
-configuration/      v7 / YAML       LF, relaxed (+2)    no      yes
+cfg/      v7 / YAML       LF, relaxed (+2)    no      yes
 data/yaml/          YAML            LF, relaxed (+1)    no      yes
 data/md/            Markdown        LF, permissive      no      no
 ```
@@ -169,11 +169,11 @@ given a file path or module name:
 
 **`prepare-zenka`**
 given a name and type (on-demand / always-on / standalone / child):
-- creates `configuration/zenki/<name>/` skeleton
+- creates `cfg/zenki/<name>/` skeleton
 - fills `start` from type template
 - populates `auth.zenki`, `access.zenki` from policy template
 - adds `zenka-startup.v7` with correct lifecycle hooks
-- cross-references `configuration/zenki/cube/access.zenki`, flags additions needed
+- cross-references `cfg/zenki/cube/access.zenki`, flags additions needed
 - one call from zero to a correctly wired, policy-complete zenka skeleton
 
 **signing gate extensions** (incremental additions to signing pipeline):
@@ -243,8 +243,8 @@ ncode.* (now)      →  policy-aware modification with signing integration
 no premature abstraction. each tool has clear lineage. the working system
 is the foundation, wrappers have immediate multiplier effect.
 
-#,,,.,..,,,..,..,,.,.,.,,,.,,,,,.,,..,...,..,,..,,...,...,.,.,.,,,,,,,...,..,,
-#7MDYFRACGLXWW63U3GDDDLVS7VI5EMFWJTK3RG4N67RZX2ZQVE32MFR4ILB7LHLSZHOIF65JIXRD2
-#\\\|POWSYIZR4Y6Z6FI3WBB6JIFT2NRI5SPHVJBX2JK5DQFNJ2VPHMU \ / AMOS7 \ YOURUM ::
-#\[7]H5ALREEZWRIUJTM7EXAYLQ2J7HPDSGASIEPM2KMPU6HRRPMIUADA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,..,,.,,,..,,,.,,..,,,.,,,.,,.,,..,,...,...,...,,,,,,.,,,,,,.,.,
+#LWYJGHZCRZ76HSGAVP7M3EA245ANF66V22KWKDOOTHK65EO6OHXCQQWJLVIHPEOEWK55TE7WWW6ZE
+#\\\|6DTLRHZ2UK6OVKQLUI3BDXOUQETYFYFMUKYLPN6RZ3R376BLWCB \ / AMOS7 \ YOURUM ::
+#\[7]CUS2XMSTCKNPCWVPXEPF34WTBGY73BUNJMFEBP4LLYVFHD76UKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

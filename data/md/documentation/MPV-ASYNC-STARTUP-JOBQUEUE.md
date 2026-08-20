@@ -67,8 +67,8 @@ is ready (or after binary crash) drain automatically when socket resolves.
 | `mpv.startup.handler.coords_reply` | modified — calls fork_player |
 | `mpv.startup.handler.placement_online` | modified — calls fork_player |
 | `mpv.startup.request_geometry` | modified — calls fork_player |
-| `configuration/zenki/mpv/start` | modified — added jobqueue |
-| `configuration/zenki/mpv/subroutine.white-list` | modified |
+| `cfg/zenki/mpv/start` | modified — added jobqueue |
+| `cfg/zenki/mpv/subroutine.white-list` | modified |
 
 ## open next steps
 
@@ -85,8 +85,8 @@ is ready (or after binary crash) drain automatically when socket resolves.
 - **`:twin:` restart integration**: zero-downtime player config reload using v7
   twin restart when zenka is still processing traffic
 
-#,,.,,,.,,.,,,,,,,...,..,,,,.,,,.,,,,,,..,.,,,..,,...,...,,,.,...,...,..,,,..,
-#YGX7OMPEFUBQBF2WDJUOKRFK2SUMHZ63CAGHICML2SK2PM2Q4HXBMQDTGBAV5UA7SVVZKKSBQWF4A
-#\\\|YNSVYV3WRJ2GRXC3HVLQZLU52IJWG45XTE5UUNT36QUWADPULWU \ / AMOS7 \ YOURUM ::
-#\[7]RH6447H2GD5CANIZSOK44ELNZQIDJ42LKSTJHBXM4GXFLCTDHCAA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,,,,..,,..,.,,,,,.,.,,,.,.,,.,,..,,...,...,...,,..,.,,,,..,..,,
+#QT6JHC3T4JGJAVAIMQICO4RH4IHI5CRW4W42FHMCABHSEVPMR7VWFWOKSR7QDYARGBVC5OYQJXHJU
+#\\\|3GTLXGEBSDDX3BZDB5TDB35WTGNXZI53FH2YQLW4HE7OZYFSF4O \ / AMOS7 \ YOURUM ::
+#\[7]AYCRJGQKRVGX2X2ABM7C5LTQXT5YBS2S33HVUPX2WC6ASHYDKMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

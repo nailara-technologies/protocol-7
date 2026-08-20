@@ -19,7 +19,7 @@ the goal is a working pipeline that:
 ### task 1.1 — codebase corpus
 ```
 ## dispatch + prompt
-collect all modules/* files, configuration/zenki/** configs,
+collect all modules/* files, cfg/zenki/** configs,
 data/md/documentation/**, data/md/architecture/** into a flat text corpus.
 strip AMOS7 signature blocks (last 5 lines of each file).
 output: /etc/protocol-7/embeddings/codebase/corpus.txt
@@ -45,8 +45,8 @@ output: /etc/protocol-7/embeddings/philosophical/corpus.txt
 ### task 1.4 — network-topology corpus
 ```
 ## dispatch + prompt
-collect all configuration/zenki/*/access.zenki,
-configuration/zenki/*/start, configuration/zenki/*/zenka-startup.v7.
+collect all cfg/zenki/*/access.zenki,
+cfg/zenki/*/start, cfg/zenki/*/zenka-startup.v7.
 focus on access control patterns, module load lists, routing structure.
 output: /etc/protocol-7/embeddings/network-topology/corpus.txt
 ```
@@ -72,7 +72,7 @@ write bin/dev/train-embedding:
 
 ### task 2.2 — drift threshold configuration
 ```
-per-category drift thresholds (configurable in configuration/shared-params):
+per-category drift thresholds (configurable in cfg/shared-params):
   codebase:           0.15  (structural, slow — low tolerance)
   interaction-history: 0.30  (biographical, medium — moderate tolerance)
   philosophical:      0.20  (foundational, slow — low-medium tolerance)
@@ -107,7 +107,7 @@ write modules/embeddings.cmd.retrain-category:
 
 ### task 3.3 — access control
 ```
-add to configuration/zenki/cube/access.zenki:
+add to cfg/zenki/cube/access.zenki:
   access.cmd.usr.* = embeddings.retrain-category
   access.cmd.usr.embeddings = v7.notify_online v7.register_child
 ```
@@ -219,8 +219,8 @@ modify coding.complete-analysis:
   to support deduplication and parenting? likely yes — aligns with
   checksum-parenting-namespace-trees design
 
-#,,,,,.,,,,..,..,,,,,,,..,,,,,,..,,.,,.,.,,,.,..,,...,..,,.,.,...,.,,,,,.,.,.,
-#VITXXJTOVZ57ZWQHWI7EKXTRC4ICJEYJKQ3IOURTYWWUFXUI6WJPNCQADUZF2PJOJYUVGCDQEPN2M
-#\\\|6ZO7SJRRGTWIYXRNX64LLW6DLENRWU6FYY6DM4DYXSU5GXR75GV \ / AMOS7 \ YOURUM ::
-#\[7]PVGVOFXVUZMJEDUUSRX7POBRUMVYRHFZQJ6JQAD553LGW65AKYBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,...,.,.,.,,,.,,,.,.,...,,.,,..,,...,...,.,,,...,,.,,,..,,.,,
+#ZNM2LHLJUC3XEU4HMDURNXRVAS6BBI7R2EWB6QYD2LVRIVINA523OMYACZWHMEDZEQQUFKDZMKRNM
+#\\\|QPTI52NJRWLR75TVIFSEWLE626CAQDIFBOYPRODUD5C6F5RON27 \ / AMOS7 \ YOURUM ::
+#\[7]AJATRLP4LXMUCIGYKSVBKD5OCYWENGVFXK64QJTM2GTKZ3QB4OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

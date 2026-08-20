@@ -11,7 +11,7 @@ branch: dev/httpd-async-implementation
 After implementing policy-based normalization for the Protocol-7 signature system,
 most files (1891+) now verify correctly. However, approximately 193 files still
 fail verification, primarily in:
-- configuration/ directories (zenki configs, system configs)
+- cfg/ directories (zenki configs, system configs)
 - read-me/ directories (documentation files)
 
 Manual re-signing of affected files (e.g., read-me/author) has NO EFFECT - they
@@ -28,7 +28,7 @@ how signing and verification process these specific files.
 - Fast-path optimization (currently disabled) works when signatures match
 
 ### What's Broken ✗
-- ~193 files in configuration/ and read-me/ fail verification
+- ~193 files in cfg/ and read-me/ fail verification
 - Re-signing these files doesn't fix them (they immediately fail again)
 - This suggests verification is processing content DIFFERENTLY than signing
 
@@ -184,7 +184,7 @@ my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip |, qw| str
 But this might prevent signing files with minor issues.
 
 ### Fix Option 3: Special Handling for Configuration Files
-If configuration/read-me files need special treatment:
+If cfg/read-me files need special treatment:
 
 ```perl
 # Check if these files should use preserve mode instead of normalize mode
@@ -310,10 +310,10 @@ $src_ref =~ s|\n*$|\n|s;
 ### Test Files (failing verification)
 - `read-me/author`
 - `read-me/license`
-- `configuration/X11-vars`
-- `configuration/shared-params`
-- `configuration/zenki/*/start`
-- `configuration/zenki/*/zenka-startup.v7`
+- `cfg/X11-vars`
+- `cfg/shared-params`
+- `cfg/zenki/*/start`
+- `cfg/zenki/*/zenka-startup.v7`
 
 ## SUCCESS CRITERIA
 
@@ -362,8 +362,8 @@ Key insight: The problem is NOT in the signature crypto or the normalization
 logic itself - it's in how 'strict' vs 'repair' mode affects content extraction
 and restoration. Fix the extraction mode consistency and everything should work.
 
-#,,,,,,,,,...,,,,,.,.,.,.,..,,..,,.,.,,..,.,.,..,,...,..,,,..,,,,,...,,..,...,
-#WWURU3WP4JZ246CNU7LGTNY67DP5H5QJFSPMZZNJEV72I635OFUPV2VBH6JHUENRS654WKOXOW6VG
-#\\\|BCWPL24OK42MNNB24CL5EYZL7HUQRXTM62EPZ2GX7HMRDY3A2QI \ / AMOS7 \ YOURUM ::
-#\[7]XKYUHUEST75CI36B6CRYEK25GYJKYF3IWIUMPEXILEHNJNFUWYAI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,.,,.,,.,.,,.,,.,,,,,,,.,,,,.,,..,,...,...,.,,,.,,,,,,,,.,,,,,,
+#DBKUM7BICVAI6YJRLDLP2MTXTC752NUTRZ47ON62YCEZBEMASE7Y6R3SBZB45BN447NP4RCU5C2EI
+#\\\|E5JNXSAW5HEVEWHVULVWGVA5VXT3BOFAULHZFEDOFISHM57FQQZ \ / AMOS7 \ YOURUM ::
+#\[7]ZX3OK5II6HJ3KS5DIPSQCEI6E5AQRDG5PD7564LNCGAXA7KTLCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

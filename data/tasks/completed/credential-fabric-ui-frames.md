@@ -213,7 +213,7 @@ approach, adapted to slot names and column markers).
 ### the entry command
 
 register `credential_fabric.ui.show` as a callable command in
-`configuration/zenki/credential_fabric/access.zenki` (or wherever the
+`cfg/zenki/credential_fabric/access.zenki` (or wherever the
 cube access list lives for this zenka — confirm during implementation).
 the user invokes via `p7c credential_fabric.ui.show <view>`. on no view,
 default to `overview`.
@@ -274,8 +274,8 @@ it. lowercase comments, `[ word ]` annotations. no emoji.
 
 #,,..,...,,,..,...,,,..,,,,..,..,,.,,,,..,,..,..,,...,...,...,..,,...,,,.,...,
 
-#,,.,,.,,,..,,,,,,.,,,..,,,.,,..,,,,.,,,,,.,,,..,,...,...,.,.,,.,,.,,,.,.,,,.,
-#ZSNXUYKFXRX4HRYSI6JSDCUWNVAPHYH2B7T2KWSYIRN4SDDSSK3EEDYRTXQ5GPWK3SYWIEGISWSGE
-#\\\|KGFEGKFNHJTULNB5366WMHMOMWCWKO76DLXP5DAU5CFZ54YP2R3 \ / AMOS7 \ YOURUM ::
-#\[7]LCJSVH6PBQYC6SX2DSSUAX4EYUNVFBODIXTC67OJNDDEMDF7UWBI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,..,,..,,..,,,,,,...,.,,,,,.,..,,...,...,...,...,.,,,.,.,,,,,
+#KLQQYP2KV7CZXUN7I5EMRLEAHIELFVSMJT3VWJFHQL6NTIAE2WFWMHU5L2ACH63TQQWWXW6JVFK34
+#\\\|6WNND5IFZNYS4LOXGV3OPERSYOAYTKWCOHHARWYWPRPLNQPRR3E \ / AMOS7 \ YOURUM ::
+#\[7]OHBAPPHPFSM5H2DG4IFUZ346MW65CRLXNET5IR4ID2IXWWYR6GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

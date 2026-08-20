@@ -67,7 +67,7 @@ directly-relevant example: `ls modules/*cmd*update*` shows this
 receive-a-push-via-`.cmd.` shape is already used by many zenki).
 
 Also found and cleaned up a previous, undocumented workaround attempt in
-`configuration/zenki/proxy/start`: an explicit
+`cfg/zenki/proxy/start`: an explicit
 `access.cmd.usr.cube = ... handler.cred_rotated * # <-- !!!` grant with a
 comment already describing this exact multi-dot problem — someone hit
 this before and patched around it with a permission grant instead of
@@ -77,12 +77,12 @@ which only matches single-segment commands).
 
 **Access grants updated** (all needed a manual `access.zenki`/`start`
 edit + reload/restart, not just a code fix):
-- `configuration/zenki/cube/access.zenki`: `access.cmd.usr.cred-mesh` now
+- `cfg/zenki/cube/access.zenki`: `access.cmd.usr.cred-mesh` now
   lists `proxy.cred-rotated`/`transport.cred-rotated` instead of the old
   `.handler.` names.
-- `configuration/zenki/transport/start`: `access.cmd.usr.cube` didn't have
+- `cfg/zenki/transport/start`: `access.cmd.usr.cube` didn't have
   proxy's bare `*` wildcard — added `cred-rotated` explicitly.
-- **Important operational note**: editing `configuration/zenki/cube/
+- **Important operational note**: editing `cfg/zenki/cube/
   access.zenki` requires an explicit `reload` sent to cube afterward
   (config isn't hot — cube keeps running with the old rules in memory
   until told to reload). `v7.restart`ing the zenki that call cube is NOT
@@ -259,11 +259,11 @@ simpler than that):
    → the **entire** `proxy.*` namespace is compiled into cred-mesh's own
    `%code`, including `proxy.init_code` and
    `proxy.handler.subscribe_rotation_deferred`.
-2. `configuration/zenki/cred-mesh/start:29` — cred-mesh's own
+2. `cfg/zenki/cred-mesh/start:29` — cred-mesh's own
    `modules.load` explicitly includes `proxy` as a full namespace token:
    `modules.load = auth net protocol io.unix ui cred-mesh credential proxy \
    ascii.frame format.yaml httpd.status_codes devmod`.
-3. `configuration/zenki/cred-mesh/start:35` calls `[init_modules]` with
+3. `cfg/zenki/cred-mesh/start:35` calls `[init_modules]` with
    **no arguments**. `modules/base.init_modules` lines 22-23, when called
    unscoped, does `<[base.sort]>->( \%code )` over **every** compiled sub
    in `%code` regardless of zenka-namespace origin, and executes (line 68:
@@ -275,8 +275,8 @@ simpler than that):
    is running there), so the resulting `route-send` genuinely originates
    from cred-mesh, targeting itself. Exact match for the observed log.
 
-Confirmed this is **one-directional**: `configuration/zenki/proxy/start`
-and `configuration/zenki/transport/start` do not list `cred-mesh` in their
+Confirmed this is **one-directional**: `cfg/zenki/proxy/start`
+and `cfg/zenki/transport/start` do not list `cred-mesh` in their
 own `modules.load`, so they don't run cred-mesh's `init_code` in reverse.
 Scope of the fix is cred-mesh's own `start` file only.
 
@@ -296,7 +296,7 @@ rotation-subscribe timer, the very last thing in the file — was left
 unguarded**, the one spot the original author missed.
 
 **FIXED**: added `if $is_proxy_zenka` to that one `event.add_timer` call
-in `modules/proxy.init_code`. `configuration/zenki/cred-mesh/start` itself
+in `modules/proxy.init_code`. `cfg/zenki/cred-mesh/start` itself
 does not need changing — keeping `proxy` in cred-mesh's `modules.load` is
 fine now that the guard is complete; cred-mesh may still reference plain
 `proxy.*` helper subs directly, just never runs proxy's own init side
@@ -386,8 +386,8 @@ resolved to `undef` in **transport**, while the byte-identical call in
 which route through proxy never hit this).
 
 ruled out already:
-- not a whitelist gap — `configuration/zenki/proxy/subroutine.white-list`
-  and `configuration/zenki/transport/subroutine.white-list` both list
+- not a whitelist gap — `cfg/zenki/proxy/subroutine.white-list`
+  and `cfg/zenki/transport/subroutine.white-list` both list
   `base.base32.decode` (confirmed identical lines, both present)
 - not a stale process — transport was freshly spawned by the same test run
   that hit this
@@ -414,8 +414,8 @@ longer throws `undefined value as subroutine reference`.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,.,,..,,..,,,..,...,,,.,,,,,...,,,.,...,.,,,..,,...,...,...,.,.,.,.,,..,...,
-#JGZOCWOS4GQKSKKBLC34FUTLMSMG3BMFVBNRUZ7MIUO6AM4HNNUP63LCPVHPA4NWBRQZZJ3UBV4ZS
-#\\\|AJKW7HUM3E7WQYWDPE3TWN67PV6TKBYU3I42RIL4VBKL7DM2QVW \ / AMOS7 \ YOURUM ::
-#\[7]6LQ6IP7ROTHMN5WNUN6BUOVSBJOXUFUXYQFRDODWYBZHFLTQ7MCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,..,..,,...,,,,,...,...,...,.,.,..,,...,...,.,,,,,.,,..,,..,.,,,
+#COHMFEAOUV6WUK42ZX4LMPVPIOUB73AHA2HPQWQOHFTQI24HLEN73XC74ANEXCCVIFYWH5LG27DYM
+#\\\|WOFT47ZE65ONCKOY4WF4EIEBWDQX7RO2R6SYWYREHXNWTP2TY76 \ / AMOS7 \ YOURUM ::
+#\[7]FQCJUYY7AUO73K3OTKPODAM3OKRHSVSBPK23QIDFJEU3NQQR2UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

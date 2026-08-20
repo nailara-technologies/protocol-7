@@ -54,7 +54,7 @@ verification round, not a sign-off blocker:
   closure, called from **BOTH** the restore-success branch AND the
   restore-timeout/crash branch (this second call site is a same-session
   bugfix, see below).
-- `configuration/zenki/coding/start` (M) — added
+- `cfg/zenki/coding/start` (M) — added
   `coding.cfg.switch_model_max_wait = 300` (was hardcoded 120).
 
 **Real bug found+fixed same session**: `poll_switch`'s tier-2 dispatch
@@ -118,8 +118,8 @@ BMW-L13 checksum switch on top is also **LANDED, commit `932a539b8`**.
 Read [[topic-summary-tree-phase1]] before touching this area again — don't
 re-derive the architecture or re-hit the same bugs.
 
-#,,.,,,,,,.,.,,,.,,,,,,,.,...,,,,,..,,,.,,..,,..,,...,...,,,.,,,,,...,,..,.,.,
-#OPP5Z4ATICDGMAPT5VZH5ONWTW756RYFZGI6NKTKDFDTQJF5WHQKKEOLHUWAPE6EXFD7TD6W324KY
-#\\\|5KOWMAWOFW5K6VACKFD36CZTSF4V2JJMKQI3NGNLLTA3NKU2BIY \ / AMOS7 \ YOURUM ::
-#\[7]NR4TDF4JFQBE5I4K4EJX3CLVNUG2EUQHZEURUD3WLF7RI3MYQ2AQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,..,,.,,,,..,..,,,..,,,.,.,,,...,..,,...,...,.,.,..,,.,.,,,,,.,.,
+#SYWG6WQZ4GTDC4T42YUB3GGMST24KFP32WZKCRLP442CZMS4QVGFN22UB33ORJSE2XMRUM3KTDO6O
+#\\\|PK7CEHV5XWILMAZWD2V2MVXGIJUDL4LJK6OZR4ULOMNC4NKCDFN \ / AMOS7 \ YOURUM ::
+#\[7]67X23O63NVHB43EVQBKQIZB3MALKA7NHJOWL7X2ACV3R7HACM2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

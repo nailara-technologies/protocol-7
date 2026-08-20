@@ -9,9 +9,9 @@ originSessionId: 941ef93c-3dcf-4d15-8c40-ccd709e0510b
 
 - **Canonical form**: dot-only notation, no mixed separators, no filesystem artifacts
   - `modules/base.init_code` → `code.base.init_code`
-  - `configuration/zenki/cube/access.zenki` → `conf.zenki.cube.access.zenki`
+  - `cfg/zenki/cube/access.zenki` → `conf.zenki.cube.access.zenki`
   - `data/tasks/bmw384-route-discovery` → `data.tasks.bmw384-route-discovery`
-- **Planned directory renames**: `modules/` → `code/`, `configuration/` → `conf/` — both map cleanly to dot-only notation
+- **Planned directory renames**: `modules/` → `code/`, `cfg/` → `conf/` — both map cleanly to dot-only notation
 - **Hybrid flat+directory form with precedence**: flat file `code/base.chk-sum.init_code` takes precedence over directory tree `code/base/chk-sum/init_code` when both exist; files supersede directories silently
 
 **Namespace as checksum chain — bidirectional routing:**
@@ -164,8 +164,8 @@ Tree unifies currently separate concepts into one namespace, one summarization e
 - Task history (results/) → tree branch
 - Planning (context-templates) → tree branch
 
-#,,..,,,,,,.,,.,.,,..,.,,,.,,,,,,,...,,.,,,,.,..,,...,...,..,,...,.,,,..,,.,,,
-#WJYL72ZF7NQJHELGWWNXNU6UQMFT5YGHOEQ5BJVAUFQOEANONQFSIEOPK6EE4X4UQOM2VIYZ57I4M
-#\\\|GCW3JDVM23PETTCG6CNH33DADVWLGS3VJBAB6S7LENAXXRMSXIC \ / AMOS7 \ YOURUM ::
-#\[7]OW2O723UJWFE2TO5O7O6IH4LKYXCQ6LB4KOTRJTX3UFIE5RTT2CA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,...,.,.,,..,,,.,.,,,..,,...,.,.,..,,...,...,,.,,,,,,.,.,..,,,,,,
+#H6OBDGAI5CEIWB776BD4RKSOGMX5XBDBY2WYZXTIRM7CVT2T42K6EXDVTFGSKYHGFJJ2GRJSPRICO
+#\\\|J3BW2BLZVZFH4F2XUQLXLXD3TIAOFYPCZCASYX7JKNTLKMLO55I \ / AMOS7 \ YOURUM ::
+#\[7]SGPD3QKFHH46ROMEI5H6KT6A7ORVOLCENMI22UCS45KZSL7G76DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -115,7 +115,7 @@ return $svg;
 
 ## add protocol-7.call module to httpd source if not present
 
-check configuration/zenki/httpd/source/ for protocol-7 or base.call modules.
+check cfg/zenki/httpd/source/ for protocol-7 or base.call modules.
 if zulum is not reachable from httpd, fall back to reading
 <zulum.stream.N> data keys if httpd and zulum share memory (same zenka).
 
@@ -139,8 +139,8 @@ stop interval when mode changes.
 
 new module: leave clean. existing: re-signed on commit.
 
-#,,,.,..,,...,.,.,..,,,..,.,.,,,.,,.,,,,,,.,,,..,,...,...,..,,,,.,.,.,,.,,...,
-#J3ZZFUNHVXVQQZOLVUAEMTW5JK6Z2YCHW63DDJYQQZFQ5SHDZ34JLM7GPF5UYYRMJUEUHZ5QYLN2O
-#\\\|D22JISMEKA3BNJ7MMSL26BXTZ5LOC2ACFM5G6TEDDIN744L6IR3 \ / AMOS7 \ YOURUM ::
-#\[7]G7DCPMV2GLAJE5WRPA2W7B7SK6RB2GSHKDJRVTG72K4U5MR7BMAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,...,,..,...,..,,..,,,,,,...,...,..,,...,...,...,.,,,.,,,,,.,...,
+#54KU65Q34YKQFR2MBJ2QLDIEV263AYEPJTFJGCVAMK72YR4ZXU4QPOGDBEFVBERMRIYNFVBIJBLAG
+#\\\|H4BXVZP32Y25J5XXFULY63H3LLLGG5Q6WK7WX7M6JFTXEPTJSUY \ / AMOS7 \ YOURUM ::
+#\[7]VZ6QIIIYMJQFYSAFM7HBNIRFGIYZVEAAHSQVJVUFPO4JA44OGKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

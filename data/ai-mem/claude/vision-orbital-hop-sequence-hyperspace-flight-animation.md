@@ -114,7 +114,7 @@ and is now confirmed running (brought up live during this same session —
 see [[reference-add-new-ondemand-zenka]] for the general procedure this
 surfaced: needed a missing `zenka-startup.v7`, missing `cube` `auth.zenki`
 + `access.zenki` entries, and reloads on both `v7` and `cube` before it
-would connect). `configuration/zenki/opencv/start` declares a full
+would connect). `cfg/zenki/opencv/start` declares a full
 planned command surface: `features-detect`, `features-match`,
 `faces-detect`, `objects-detect`, `filter-apply`, `transform-warp`. None
 of those command modules exist yet (only `opencv.init_code` itself —
@@ -184,8 +184,8 @@ is verified.
 
 **Status**: vision-only, freshly discovered, not scoped or estimated.
 
-#,,,,,..,,.,.,..,,...,...,,.,,..,,,,,,,,,,...,..,,...,...,.,.,,,.,.,.,,..,..,,
-#7YJVRAJGBMPNC56BXPADHRPKFV3O555KXQ76RQKVFZ4H52SMUJV3P3LPQUOOPWCUBQZ4NEASJI6QE
-#\\\|FBHBCU6OXQRKQD76GD25KZ4P532FAGMJ56QLVNPUKUDMZVATQLY \ / AMOS7 \ YOURUM ::
-#\[7]ULZLLGXFREYFISSM7GILW25EHPMFTQSIG2MZW2I3GPQFQQWP3YCI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,..,,,,,,,,,.,.,,,,,.,,,.,.,..,,..,,...,...,,,.,.,.,,,.,,..,,..,
+#NPMGYGA6YNPXU4373JBOOLXKTDUJ7IRPATCOV7TMQDWLYRCGQQKGKMDSORK2TOCEBY64NLLLHDLTK
+#\\\|RPABKVZH32AR3DZ6P4EQCLCI23DVGCCKGOHLUZCKH5PYRMBXJF4 \ / AMOS7 \ YOURUM ::
+#\[7]POS6FWGLBKZNST5BJD4HWIAXINOCG2DP5R62DRNOH73O6SXQRMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

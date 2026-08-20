@@ -13,7 +13,7 @@ live and working: on-demand startup, 64s idle shutdown, `sys-deps.state`/`check`
 
 ### architecture
 
-- `sys-deps` zenka: on-demand, scans `configuration/zenki/*/pm-dep/` and `os-dep/` dirs
+- `sys-deps` zenka: on-demand, scans `cfg/zenki/*/pm-dep/` and `os-dep/` dirs
 - `sys-deps.cmd.install` → routes to `debian.install` via `protocol-7.route-send` (fire-and-forget)
 - `debian.cmd.install` auto-scans if registry is empty (handles fresh on-demand startup)
 - `AMOS7::deps::*` shared library: `module.pm`, `os_package.pm`, `debp.pm`, `dist_upgr.pm`
@@ -86,11 +86,11 @@ needs: cpanm install (not in apt repos) + pmindex apt source + `apt-pm update`.
 ### task zenka fix (same session)
 
 `reasoning.branch.*` not loaded → `task.post_init` timer callback failed at startup.
-fix: added `reasoning.branch` to `modules.load` in `configuration/zenki/task/start`.
-also added `configuration/zenki/task/source/reasoning.branch` empty source marker.
+fix: added `reasoning.branch` to `modules.load` in `cfg/zenki/task/start`.
+also added `cfg/zenki/task/source/reasoning.branch` empty source marker.
 
-#,,.,,,,,,,..,,..,,,,,..,,,,,,.,.,.,,,.,.,.,.,..,,...,...,,,,,,..,,..,..,,,,.,
-#3EEVGG67IOGZEYFRJTMMH2JGY4DI24U47YK2SAWZSL4UT7XZGOG25CT67ACELZF3DTL5OL2PL2DCG
-#\\\|JLW2VSWNQMLCQPWYW5BGWQNXB6PXZDDPFDVVXOE6BAVLSH5ICUX \ / AMOS7 \ YOURUM ::
-#\[7]S5JMGC4BE4S4K6B2YUJCHVRKURRULHUU6YKOHNQC4RIXJ4H2W2CA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,,,,,,,,,,,,..,,.,,,..,,,,,,.,,..,,...,...,..,,,,,,.,,,..,,.,.,
+#LP2V4BAIBATAYE4SUXGONX7L54AFA6MCD6R6R6PIRT5YAGWMNLMGI6J2T5LOZPDN3YXJBN5OYSDMY
+#\\\|R4MWJUC46ZY45UBRNDRXIZGQ7YWAD76G2NA62V73M3SNSR4BK4P \ / AMOS7 \ YOURUM ::
+#\[7]JLLDV5PVYYAC4URCKKGQQQYK44VSA5OLTUYYIEPYEJRVQKQNVODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

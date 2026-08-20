@@ -76,7 +76,7 @@ dead/unwired caller worth flagging back rather than silently fixing.
 causes — don't conflate them.** This scanner/`clear_from_disk` path is one
 (a genuine compile-time gap). The other, separate mechanism:
 `bin/Protocol-7`'s `p7_early_whitelist_load` (~line 374) loads each
-zenka's own `configuration/zenki/<name>/subroutines.load-early` *before*
+zenka's own `cfg/zenki/<name>/subroutines.load-early` *before*
 base modules even compile, and uses it to gate which subs get fully
 compiled at all vs. deferred/skipped (lazy-load, not a reporting/
 suppression list — confirmed live 2026-07-22: a new cross-namespace sub
@@ -108,8 +108,8 @@ See also [[topic-auth-client-namespace-split]] for the concrete namespace-
 split case this methodology was built around, and [[feedback-ncode-tools]]
 for a caveat on `ncode replace` hit during the same session.
 
-#,,,.,,..,.,.,.,,,,,.,,,.,..,,...,,,.,.,.,..,,..,,...,...,.,,,.,,,,,.,.,.,,,.,
-#OHBWOURNNRFVGW2CSCRJPGGAFYRH3GYYGU5LNW5MBP4X3GXWLPCM4DP4R3OGXRF3MGRZTPEMWK5M2
-#\\\|BK55MQ2K4BIPUYM2CYMO7WMUHEPDJ4PVEG7CO5Y54DQDTBHEFO2 \ / AMOS7 \ YOURUM ::
-#\[7]VUGOAWK5WBYUOQ2QB24H5VH7L7UDQSRJMCZNRYD2O2TJ64HTG4CI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,.,,.,,,,,,,..,,,..,,,.,,,,,..,,..,,...,...,,.,,,.,,,,,,,..,..,,
+#Y5LAIP2DSQK6B7KAIDL6LAAR6BS2GOG3HAKXQCVMECAM4IVMH4SKV2LYAELMTHHAVSEYLZ5JPQOY4
+#\\\|V2QCJG5IY4RZOE6SJK7UEJ2VXYGAYMTORZT5GH7QCR2JLBDXMMZ \ / AMOS7 \ YOURUM ::
+#\[7]IAKR5VTFYYSBA4FICASIJAFG55C3YQYQ5RIFKFBX7CEBAXELIMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

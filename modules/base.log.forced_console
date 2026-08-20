@@ -4,7 +4,7 @@
 # descr = base.logs wrapper that guarantees the line reaches console output
 #          regardless of configured verbosity -- for lines an external
 #          process depends on reading back off raw stdout [ eg v7's
-#          zenka-output pattern matcher, see configuration/zenki/v7/
+#          zenka-output pattern matcher, see cfg/zenki/v7/
 #          zenka-output.patterns : 'cube session id received [...]' triggers
 #          zenka.set_cube_sid, which is what sends verify-instance in the
 #          first place, and 'instance verification [KEY:...]' confirms it ].
@@ -17,8 +17,7 @@
 my $level = ( scalar @ARG > 1 and $ARG[0] =~ m|^\d$| ) ? $ARG[0] : 1;
 
 my $console_verbosity_bak = <system.zenka.verbosity.console>;
-my $forced
-    = ( not defined $console_verbosity_bak )
+my $forced                = ( not defined $console_verbosity_bak )
     || ( $console_verbosity_bak < $level );
 <system.zenka.verbosity.console> = $level if $forced;
 
@@ -26,8 +25,8 @@ my $forced
 
 <system.zenka.verbosity.console> = $console_verbosity_bak if $forced;
 
-#,,,.,,,,,..,,,..,,,,,.,.,,,,,,,.,..,,.,.,,..,.,.,...,...,..,,,,.,,..,.,.,,,,,
-#EWH5KEK7A6XGOAUB7ETSQ64MZSQGSXEXZ6F22FW2LRB3TIHNMBA7HQDVS4RJ6EJ23WWDTXXSONIBO
-#\\\|R2KLNQ3RJEYVMTOH3IMUUH7UVB77JXXHSA5TDTYO7SLBZQSQNZT \ / AMOS7 \ YOURUM ::
-#\[7]P5K3PGFEQJ25PG6EK5YI5FNMFH234HU33K7EL5DO5IWH2UD6WQBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,,,,,,,.,,,,,..,,..,,,,,,.,.,.,.,...,...,.,.,,.,,,..,,,.,.,.,
+#6PDDJF4NQ3LHID2LOE37AO7XYU6APPXMCN7HZBCM2B3SQVJL3C2DWKG4MFKC65JLEXB6SWOP4EEQ6
+#\\\|4GCXGBLG5ZFNJCOMINZCQEEQG4SRT55JE3LELAT36EITJAIX47O \ / AMOS7 \ YOURUM ::
+#\[7]IZOZTBWVF3TSUBONWSQ42BVJG67R3W6WKOQ4WXNA4ZXXCONDQ6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

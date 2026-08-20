@@ -69,7 +69,7 @@ after all 7 new modules are created and source files updated:
   `ncode s src:work 'sub _'` return no matches
 - all 12 modules [ 5 edited sources + 7 new ] pass `perl -c`
 - for whichever zenki load `download.*`, `letsencr.*`, `source.*`,
-  `space.*`, `work.*` [ check `configuration/zenki/*/start` for
+  `space.*`, `work.*` [ check `cfg/zenki/*/start` for
   `modules.load` entries ], `p7c <zenka>.reload` completes with
   `reload source [success]` and `reinit source [success]`
 - the combined v7 console output is tailable at
@@ -89,8 +89,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,,,.,.,.,.,.,.,..,,...,.,,,..,,...,,.,,..,,..,,...,...,.,,,,.,,,,,,,..,,,.,
-#T2XI3IMQUIOYOCZYIUCH5RB47RUDWWKGRWJ3QVOYQDCAT25NPWWBQSPFHE7TXR6TAMRA4TNWJXGO2
-#\\\|75RFZDZMX5VFCAKHX6A5WAPGS3NWX6VMHEWJYBSJAV5HLEHDF6W \ / AMOS7 \ YOURUM ::
-#\[7]IOK3YHNE3PSYYXP5DZF5Y4K4STPIM6MHTPO6HZ7TUBOGCA3USYAA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,,.,,.,.,,,,,,,.,,..,,..,.,,,..,,...,...,...,,.,,.,,,...,..,,
+#JMSMT7OO7IRSIGA7VBIDGNBVEMBKSCZWVGQ7UQC2YHHTGVZPAAK2ZDQCWQDHTAWMGFCQ6IGAGHSRU
+#\\\|X6ET64VKVESZ7ZQDLKXR5ESAK44JE34RYSWZOO2CVAGVFMOYJKY \ / AMOS7 \ YOURUM ::
+#\[7]3D4IMWMVUA2C6SCBECWB6DL6VW5CMYD27X2DSYHA7ZGNAWEFZGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

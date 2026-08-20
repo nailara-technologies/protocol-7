@@ -10,7 +10,7 @@
   form/submit flow, users-zenka integration, draft-auto-save) is NOT in scope here.
 
 Two prior phases already exist and are committed:
-- `configuration/zenki/user-edit/`, `modules/user-edit.init_code` (skeleton)
+- `cfg/zenki/user-edit/`, `modules/user-edit.init_code` (skeleton)
 - `modules/user-edit.init_code` also already registers three path keywords via
   `base.path.register_keywords`: `VAR_P7` (→ this zenka's own var dir),
   `ETC_P7`, `HOME_N` (→ `~/.n`). Read the current file to see the exact
@@ -96,7 +96,7 @@ in this codebase, don't invent ad hoc validation).
 - draft_auto_save, retry_mechanism, anything from `phase_2_rendering` or
   `phase_3_form`
 - any `users.*` command surface or network calls of any kind
-- do not touch `configuration/zenki/user-edit/start` or
+- do not touch `cfg/zenki/user-edit/start` or
   `modules/user-edit.init_code`'s existing keyword registration
 
 ## Verification
@@ -128,8 +128,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` if you hit anything non-obvious (e.g. whichever
 unlink approach you picked and why, if it wasn't obvious).
 
-#,,..,,,,,..,,...,,..,...,,..,...,,,,,,..,,..,..,,...,...,...,.,.,,.,,,.,,,.,,
-#W4RRWBTF5CH6FOF7BOTP7VEUWVZ7J7QRRRR23QLXRZPW2BYSEHLJX4CQ4ACJ3NAHFPWPLB64725PS
-#\\\|ZAE5VDZ55TBAGI2TLEURRSIR7MC2XBI2YC53KDI7FCUUKBDRYPR \ / AMOS7 \ YOURUM ::
-#\[7]4S5GINZGQW6BKPTAULUJP63U5O7LOP5LOGWVYPYX3A55XRQA2SAY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,.,,,.,,,.,,,..,...,.,,,...,..,,...,...,...,,,.,,,,,,..,..,,
+#SQ2QUK57ZDK54O7HLTWYFFCZ26LVM4KATK4PW7NGKHU3K2ZRGNTU3NMFUXQZ2N7EPIQJXX3AJQZMS
+#\\\|AKUVWD4KTDIS27VGHNKRRKLCBIRY6D25SDGMQZOJYPUIABCYKNO \ / AMOS7 \ YOURUM ::
+#\[7]OTZVZTHW5EQ34BBENDUBL4SCDKPJGBYGW6VPWSYD5DXUV4HTOGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

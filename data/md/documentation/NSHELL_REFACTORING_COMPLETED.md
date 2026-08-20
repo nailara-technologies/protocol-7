@@ -448,14 +448,14 @@ and extended the debug infrastructure. All fixes are in production.
 - `modules/nshell.no-tty-debug.cmd.char-add` — extended key mappings + dual syntax
 - `modules/nshell.handler.debug_input` — new module
 - `modules/nshell.init_code` — register debug_input handler
-- `configuration/zenki/nshell/start` — char-add and debug-status commands
+- `cfg/zenki/nshell/start` — char-add and debug-status commands
 
 ### Commits
 - `b2777cc0b` — Ctrl+O cycle fixes + enhanced debug infrastructure
 - `df7568781` — Enter display, TRUE reply colors, Ctrl+O debug logging
 
-#,,.,,,.,,...,,.,,,,,,,,.,.,.,...,,..,,,,,...,..,,...,...,.,.,,.,,...,.,,,..,,
-#Z5TU5NIZ3WNDH77HBT772MZP3QDBHP3P5OT5XBS2I6ZAZ5CLIUFE4ONF545UUJ2KHY65QHP3YJWZY
-#\\\|EY77SFCXCYIWTHOBT7ZPVERU6WG3R2GUU3SXTPBFHG52NJPQ543 \ / AMOS7 \ YOURUM ::
-#\[7]ZIV6AKLGJFQIKNE5FQSU5SQEOFTYKB7QY3JAFPSMPLOBDC2RVIAY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,,.,,,,,,,..,,..,...,.,,,.,.,..,,...,...,.,.,..,,...,.,,,..,,
+#A7WYW4FF4V4F7JUHD3UF6KYLKRCLSE4D4GU3BALS6LSER3MP5MVFWG4QPI42IIOKTDAY356GDTJJS
+#\\\|ABZUAL3IVD2ZTZYTURDVFG5XKMBEPGIKQONYSPV53HTKLURZOTL \ / AMOS7 \ YOURUM ::
+#\[7]OIR2PEX3DI6NTYSAVMPKBXOKFUSBY3KKSIDBFOSYY2S2ORYHYWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -579,7 +579,7 @@ desktop's `taeki`/`root` accounts), not where any of them get invented.
 
 Uncommitted, working tree only (`modules/sessions.holder.*`,
 `sessions.util.holder.*`, `sessions.cmd.*`, `base.buffer.erase_secure`,
-plus `configuration/zenki/sessions/start` gaining the command list). Built
+plus `cfg/zenki/sessions/start` gaining the command list). Built
 against a plan file, then debugged live for a long stretch — the section
 below is what actually survived, not what was designed on paper.
 
@@ -1015,8 +1015,8 @@ flexible-recreatability]].
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,.,,,.,.,,,.,,,,..,.,,,..,,,,.,.,.,,,.,..,,.,.,...,...,,..,,,,,.,.,.,,,...,
-#WPOTUKUJ75WGGOGTP2ZKON5HUKW6R537XCK3ZN3QW4OBDVKHZLYET2NDZCN23MSBIAIEQOWNK52B2
-#\\\|DMO6AG6LNCCBV6RCNPJRH6ZIGVHZGMFGP3U7AKMVAIGSJ4WQUOU \ / AMOS7 \ YOURUM ::
-#\[7]HQO2RQBGIYBC7P4LYSSJF5DOM7MD6SUIAUVSYW27H7VNO3UZYOAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,,,.,,,.,.,,,.,.,...,..,,.,.,.,.,...,...,.,,,,,.,.,,,...,,.,,
+#L4C2T6RQAGTFRHVH7QUWRJPEPWHZYHEYHNLSSJEFHZBDXVZO2LILDW5DH7JINX3PMWU3SWL2THUQK
+#\\\|33DYKNTY3KENRM5BNPRSYGENEEE2WXOPHUVZ545VNFPYWTLVES4 \ / AMOS7 \ YOURUM ::
+#\[7]MDBN7L4XIETBYK2U6SEQJJ3S53VEKUE26GPIZPKZK2ZYHXGEVCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,7 +37,7 @@ so `base.log` appears as a subtree root hundreds of times across the file.
 
 ## the problem to solve
 
-the per-zenka subroutine whitelist (`configuration/zenki/<name>/subroutine.white-list`)
+the per-zenka subroutine whitelist (`cfg/zenki/<name>/subroutine.white-list`)
 is a **flat deduplicated reachable set** — correct and cheap. the full graph
 however needs to retain **edge information** [ which module calls which, with
 call counts ] to remain useful for tooling like reachability analysis and dead
@@ -97,8 +97,8 @@ base.buffer.add_line -> base.s_warn [ 1 call  ]
 call each other — the format must handle cycles gracefully without infinite
 expansion ]
 
-#,,,.,...,,,.,...,...,...,..,,.,,,.,.,.,.,.,.,..,,...,...,.,.,,,.,,.,,.,.,...,
-#ML7AOHDC6WJ5PK65WN7F6P2IE6DSHJCYMGFWVZZTO6L27QALRMUI6UUXFM7LFFGP7I2TIIHF7RA5Q
-#\\\|BWMCCSHBZ4ASG5W5URH2RZ6A76OUQOTNGMJASJKH4KJGZVWPZHG \ / AMOS7 \ YOURUM ::
-#\[7]Y5WP66TKVKCUDND4AXAKBWE6X75EYHDBHIPJQHLBCVDLSU3MKGBI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,.,,,.,,,..,...,.,.,...,.,,,,.,,..,,...,...,,,.,,..,...,.,,,,..,
+#3IQ5VUBXHKMI3IALCONDZ7DN35B244FKAW6XMGAZPLJ7MWUTMMEYPPIRW77LE2W7XQBMS5HULJWAU
+#\\\|K3EAZWZATJAVIFLU2BCHAAI2BETFVV767HK6V5GGNL2IRJ5QGSZ \ / AMOS7 \ YOURUM ::
+#\[7]744LRFZ7KD37P37C52EYELL3ZZAO2PGC3VUORC6SXJLDRAHFD4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

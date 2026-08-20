@@ -30,7 +30,7 @@ cat modules/X-11.init_code           ## binary detection loop (lines ~35-45)
 cat modules/X-11.start_gpu_top       ## intel-specific startup
 cat modules/X-11.handler.read_gpu_top ## intel JSON parser + stats update
 cat modules/X-11.cmd.gpu_load        ## stats consumer — should need no changes
-configuration/zenki/X-11/start       ## cfg.collect_intel_gpu_stats setting
+cfg/zenki/X-11/start       ## cfg.collect_intel_gpu_stats setting
 ```
 
 ---
@@ -150,14 +150,14 @@ look at `X-11.handler.read_gpu_top` for the exact stats update pattern to reuse.
 
 ## phase 4: rename cfg key (backward-compatible)
 
-file: `modules/X-11.init_code` and `configuration/zenki/X-11/start`
+file: `modules/X-11.init_code` and `cfg/zenki/X-11/start`
 
 `X-11.collect_intel_gpu_stats` → accept both old and new key:
 ```perl
 <X-11.collect_gpu_stats> //= <X-11.collect_intel_gpu_stats> // 0;
 ```
 
-update `configuration/zenki/X-11/start` to use `X-11.collect_gpu_stats` with
+update `cfg/zenki/X-11/start` to use `X-11.collect_gpu_stats` with
 the old key commented as deprecated alias.
 
 ---
@@ -189,8 +189,8 @@ p7 X-11.cmd.gpu_load 5
 - [ ] `collect_intel_gpu_stats` config key still accepted (backward compat)
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,..,.,.,..,,,,,,,,,,,..,.,.,,,.,,.,,.,.,..,,...,...,.,.,.,.,,,.,,.,,.,,,
-#GEDMDXDHQNPGSDB4HMZ7MSTD47DPLZVQ56OPZHJICLRY2JQU2C7N2PZ6EAH5UANOXMB7YRYKY2KZY
-#\\\|ESKFSQPJUBU5WZ4RUJDRCI6EZPUXHFLKFX44P2RSCSRY5W3GK72 \ / AMOS7 \ YOURUM ::
-#\[7]XTMPZE2MIVBPV7AZQQRZC4E3S3L77KCR4NJZQ7NBFANFQHSXO4CQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,...,,,,,..,,...,.,.,,..,...,.,.,..,,...,...,.,.,,,.,,.,,,,,,,.,,
+#FUUG7KTI5QR72ALJJCMEHOF7HDZCU5M7LW3JP6PAZC2PEWAT2HIFLMA5W76JFNKPPUVQ6JEZC7AY2
+#\\\|TJX3BBQGWH4LR56TTLRF2YCHLKWAGUNCK6FHA5DJJE3S2W6UTTG \ / AMOS7 \ YOURUM ::
+#\[7]JMNOA3UEMXTLHQ5GUQWYU24TIOYBAUVU6R4T5XMP4KC5GV3CIIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

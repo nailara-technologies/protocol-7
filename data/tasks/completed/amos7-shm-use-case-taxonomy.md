@@ -164,7 +164,7 @@ candidates are marked explicitly and carry no code claim.
   [ `coding.cmd.submit:14-66`, no `path=` option ] ; `summarize-context` has a
   partial `path=` file escape [ `coding.cmd.summarize-context:46-57` ]. both
   inherit the 242707-byte session-buffer ceiling
-  [ `configuration/shared-params:33-34` ].
+  [ `cfg/shared-params:33-34` ].
 - **`web.cmd.process_template_ipc`** [ VERIFIED this session — confirm it is
   carried in doc #2's motivating-callers section if not already ]. the module
   [ `modules/web.cmd.process_template_ipc` ] takes a **single `args` string** of
@@ -590,8 +590,8 @@ given everything now known:
   `AMOS7::SHM::*`, **never** `base.*`
 - guard any timer with a fallback interval [ undef interval = max-rate loop ]
 
-#,,,,,.,.,.,.,..,,,,.,.,,,..,,...,,,,,,..,..,,..,,...,...,...,,,.,,,,,..,,.,.,
-#3TULCFTTLOMT2UNF6RMB6OJ2PDX7U5MOJV724V2YRJGLMMB3RACUO5B3GGCAZ3Q45YAUZGRXBY3HM
-#\\\|ET7OPJN3UAXC7LH5AYXPBWEA7ME3HXXQCMEG3EDQALHK44TYVSN \ / AMOS7 \ YOURUM ::
-#\[7]P47EVXGOXXL37MGTD332CUN7644RH3JRO6WJ4KPANJ3VFXSUKCCI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,,,,,...,,..,,.,,..,,,,,,,..,..,,...,...,...,,,.,...,...,,.,,
+#IT6YCTY6GRFEPQKLCWFGXEC23XLB5OREFDQ5NWKYDDF2TFVIYTXWE4YWK5LO2NJKBCSPLTDOVTPLK
+#\\\|NWXRRDLG37BG52R524SGCD3P26W4SSSLJKUJ5SBFIEBP2GMHH7N \ / AMOS7 \ YOURUM ::
+#\[7]7BAWCSVQZW7GFPRL4FP3B2ABPWFF3PO5YQOG4DVHTFT22UIOPKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

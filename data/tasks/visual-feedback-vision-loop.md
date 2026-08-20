@@ -220,7 +220,7 @@ return {
 ## model configuration
 
 ```
-## configuration/zenki/visual-feedback/zenka-startup.v7 (additions)
+## cfg/zenki/visual-feedback/zenka-startup.v7 (additions)
 
 cfg.convergence_threshold = 90
 cfg.max_iterations        = 8
@@ -315,8 +315,8 @@ p7 visual-feedback.loop '{
 - [ ] model adapter works with at least one available vision model
 - [ ] the CCW/CW correction is detectable from minimap (integration test)
 
-#,,..,,,,,.,.,,.,,..,,..,,,.,,,,.,,,.,..,,,,.,..,,...,...,...,,,.,.,,,..,,.,.,
-#RNNG3CPQXGNHZTV26M3FOWJ65EGBEABZIIYIM722QL3BKKS653TVGC6RYWK6NKKNCIMOQKQEB5J2W
-#\\\|JC6IYHWXF4DD3N6562RBWD2CMKQ3CFHVGJA6QFPIO3IKDGAZH67 \ / AMOS7 \ YOURUM ::
-#\[7]UYVMECLYXHN5GGVVWO6VLJIUDKW4RTYSGRKHAOK3V2AZW52LCYBY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,...,..,,,,,,...,,,.,,,.,,..,..,,...,...,...,,,,,,,,,..,,.,.,
+#UY5KL7DMN6DCXO7MOQQ5563F7Y6CG7CG7LPYE4JYIGCHJZBFO43K7ODRCEI6JMJNR56R6IM65XS7C
+#\\\|QTKHITVM33UH5WJF2CSCJMLKMYWVIW7HOUIKRULB6YZ66JT7WYX \ / AMOS7 \ YOURUM ::
+#\[7]POEW5MDUZM37HSGMAYWAUQX5KEAHJUFBDE6B7CGVDUBWIEFX6WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

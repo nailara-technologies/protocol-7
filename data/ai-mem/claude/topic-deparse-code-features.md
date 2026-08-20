@@ -10,8 +10,8 @@ metadata:
 flagged 2026-06-11, right after `devmod.cmd.deparse-code` /
 `devmod.cmd.exec-sub` modules appeared (existing on disk:
 `modules/devmod.cmd.deparse-code`, plus per-zenka source copies under
-`configuration/zenki/{proxy,models}/source/devmod.cmd.deparse-code`,
-`configuration/zenki/models/source/devmod.cmd.exec-sub`).
+`cfg/zenki/{proxy,models}/source/devmod.cmd.deparse-code`,
+`cfg/zenki/models/source/devmod.cmd.exec-sub`).
 
 `devmod.cmd.deparse-code` returns the deparsed source of a `%code`
 subroutine via `base.sourcecode.in-mem.sub-source`.
@@ -367,8 +367,8 @@ enough that it may warrant promotion to its own design doc
 following the [[topic-ui-show-security-levels]] precedent of
 doc-then-split-into-tasks.
 
-#,,.,,,..,,.,,...,..,,,..,...,,,,,.,.,...,..,,..,,...,...,,,.,,,.,.,,,..,,,.,,
-#E75TH234L3HNJIZFX36XGJZSYPHKZXRCXOREUIKT5QEKNKQSDL2JW6SUSSVYP52RISHEKUIFNR3KI
-#\\\|YAPC5HD7I3QWVZQYYXQGRZX3IXV5F5WRRQHKY4Q5G2L6OLIMIHA \ / AMOS7 \ YOURUM ::
-#\[7]AKRH7KMXCCKSMZA2HXTEZ5TQA2DMMXHWBPKM2FFXD3F3AH54JSAY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,..,,,..,,..,,,.,,.,,,..,,,,,..,,...,...,.,.,..,,,.,,,,,,,.,,
+#SQ7BJLEHG4DFHHD4VFVASJZ7YSQP6TR3JNYYR7FAURQE577OXDCNJUWLJHULGWXZABCZQMHHNCS4Q
+#\\\|AD2JMVZPXXJ74S3QAVPQ2DQF276NBIASTOGK5DA7JDZ7G56IVP5 \ / AMOS7 \ YOURUM ::
+#\[7]GOBD6XV4UM73YTHZYBVDY6WU4YEY74Z272C2V3TI7IVPMJCRNEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

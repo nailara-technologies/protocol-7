@@ -38,7 +38,7 @@ command format.
 
 ### the cap is real and shared, confirmed from source
 
-`configuration/shared-params` lines 33-34:
+`cfg/shared-params` lines 33-34:
 
 ```
 size.buffer.input            =  242707
@@ -297,15 +297,15 @@ state it as a constraint, not discover it at implementation:
   this never surfaced. **the coding flow is NOT the cross-user blocker** —
   correction recorded after direct verification: `modules/coding.init_code:33-48`
   drops privileges to `<system.amos-zenka-user>` [ = `protocol-7`, per
-  `configuration/system-user-map:6` ] but **also resolves and joins a secondary
+  `cfg/system-user-map:6` ] but **also resolves and joins a secondary
   admin group for project-file access**, and in this deployment the coding zenka
   actually runs as `taeki` [ the admin / human user ] with `protocol-7` as a
   supplementary group [ project owner, direct ]. `bin/mcp-server-p7` runs as
   `taeki` too. so a `taeki`-owned segment is readable by the coding zenka via
   shared user / group anyway — **coding is not the genuine cross-user case.**
   the genuine cross-user beneficiary is a **bare-`protocol-7`** zenka with **no**
-  secondary admin-group grant [ e.g. `task`, `configuration/zenki/task/start:28`,
-  and `p7-log`, `configuration/zenki/p7-log/start:24`, both call bare
+  secondary admin-group grant [ e.g. `task`, `cfg/zenki/task/start:28`,
+  and `p7-log`, `cfg/zenki/p7-log/start:24`, both call bare
   `[root.drop_privs:<system.amos-zenka-user>]` with no group resolution like
   coding's ] — a `taeki`-owned segment is **not** readable by such a process
   with no group overlap. the structural problem below is the same either way;
@@ -558,8 +558,8 @@ as a gate, not a hope.
      pair even the current `'+<'` read-write open would succeed and there is no
      cross-user blocker at all. the genuine cross-user case is a writer owned by
      `taeki` handing to a **bare-`protocol-7`** reader zenka [ `task`,
-     `configuration/zenki/task/start:28`; `p7-log`,
-     `configuration/zenki/p7-log/start:24` — bare `[root.drop_privs:<system.amos-zenka-user>]`,
+     `cfg/zenki/task/start:28`; `p7-log`,
+     `cfg/zenki/p7-log/start:24` — bare `[root.drop_privs:<system.amos-zenka-user>]`,
      no admin-group grant ]. the one-shot read-only-open path above is what makes
      **that** pair work [ `/dev/shm` world-readable ], and it still **must be
      verified with a genuinely cross-user test** [ a `taeki`-owned segment read
@@ -591,8 +591,8 @@ as a gate, not a hope.
    leaning prefix-string for symmetry with the existing convention, but worth a
    nod.
 
-#,,..,.,.,.,,,...,...,,,.,,,,,,.,,,..,,,.,,,.,..,,...,...,...,..,,...,.,,,,,.,
-#CDQLAX6JBMBZLYKGO53DDJ52U4OQM3UT73XCLHLW4FVP5J24YAZMLFZQ3GWBCDBJDCB37EHYBGLCU
-#\\\|DD5LQUSTL352XMYCCMTNRMS72MXQYVBZ3Y3KIRKJMZ225E3MP4K \ / AMOS7 \ YOURUM ::
-#\[7]YSDNDYIW6QJERTPS6G3JOJV4533NO4EUUL6F4QNQ4VBSCIJO64AI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,..,,,.,,.,,,.,,,...,...,,,,,..,,...,...,...,,,,,,,,,..,,,..,
+#FFCDGGAASXLG5PA4NS6DAVLFJKX7WTESMJS6KJOI5XFXKASLEQD5NCTU756FHDFSSQTMM4QX44PGC
+#\\\|DYCJTYOPRHSLWNRQHCTDMA3LXKMZEXXHH4VXQKI5FNNVGRIZ53X \ / AMOS7 \ YOURUM ::
+#\[7]G4HSNVG27RLP6YCRZDRU24ZDRMI4JO4LYVZ2OYTIX5L5LX2SQSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

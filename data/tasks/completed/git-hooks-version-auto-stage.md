@@ -12,13 +12,13 @@ discussed with the user.
 every commit leaves these three files modified-but-unstaged afterward:
 
 ```
-modified:   configuration/protocol-7.src-ver
+modified:   cfg/protocol-7.src-ver
 modified:   read-me/md/README.md
 modified:   read-me/project-identity/source-code-versions.md
 ```
 
 `bin/dev/git-hooks/pre-commit` validates the version by reading
-`configuration/protocol-7.src-ver` **from the working tree** (`open $fh,
+`cfg/protocol-7.src-ver` **from the working tree** (`open $fh,
 '<', $vers_file`, around line 144-155) and comparing its embedded commit
 count against `(git log count) + 1`. `bin/dev/update-version` is the tool
 that bumps these three files on disk.
@@ -90,7 +90,7 @@ watch out for:
 
 - `git commit -m "test commit"` (with some unrelated staged change)
   results in a single commit containing both the unrelated change and
-  the updated `configuration/protocol-7.src-ver` +
+  the updated `cfg/protocol-7.src-ver` +
   `read-me/md/README.md` + `read-me/project-identity/source-code-versions.md`,
   with `git status` clean immediately afterward.
 - a second commit afterward also passes its version check cleanly (no
@@ -106,8 +106,8 @@ watch out for:
 do not add the `#,,..` stub to any new file. the signing system writes
 it. lowercase comments, `[ word ]` annotations.
 
-#,,.,,.,,,...,,..,..,,,,,,.,.,.,.,,,,,,.,,.,.,..,,...,...,...,,..,..,,,.,,..,,
-#CCH6655SETC5WKRUVZ5ZQTFPXNTGEBJ64WOF6LUL5SXVGKPA74ZO5AQXANB6VM22ESL37OP3QI7V4
-#\\\|U2LRXMSZJSMENBKOLJUQQFRLUGTCDPKLQUFOZP5UGFWDJ6MM3HW \ / AMOS7 \ YOURUM ::
-#\[7]UTALLTOM2OBZUJCT6DTJOXWXNKWEH5IUFKD5VTFDBNTDQLSHXWBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,..,,,..,,.,,,..,...,,,,,,.,,..,,...,...,..,,..,,,.,,..,,,.,,
+#VUCZNP6HQAKBKXUTN4J5UJC5USPDTFYZAEW5MXU3ZJ4YFWNP5TQ32XD2WVYJO4XHR3XTSJESYV6LE
+#\\\|NUIL6RGT4JWFUPDV44BOOFY4UFIQDOUUV4WTEDBG674IAOU5WVN \ / AMOS7 \ YOURUM ::
+#\[7]MWDKOGSAX56XEPRCNIM2SCGLWTJD3IB5ZNVP3VQQWXVYBMEQUWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

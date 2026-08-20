@@ -144,7 +144,7 @@ eligibility logic in one place so it's easy to extend later.
 no `#,,..` stubs. do NOT run update-signatures. do NOT modify
 subroutine whitelists. lowercase comments, `[ word ]` annotations,
 `$ARG` not `$_`. add any new modules to
-`configuration/zenki/coding/subroutine.white-list` if the existing
+`cfg/zenki/coding/subroutine.white-list` if the existing
 deferred-compile mechanism requires it (check how `compact_context`
 itself is whitelisted and follow the same pattern).
 
@@ -156,8 +156,8 @@ harmony coding.task.chunked_summary_eligible
 harmony coding.task.execute
 ```
 
-#,,.,,,,,,,.,,,..,,..,,.,,,.,,,..,,..,...,..,,..,,...,...,..,,,.,,.,.,.,,,,.,,
-#5L64JIIXNMHAYTKMGC2FLL6B2K3BT3ID677ZSIXM5A55SUZBQPOLXIUU7JSWF4K7W7J2RMQJSI42E
-#\\\|ZY62F4BUK3Q5GPAWA3LUD77UCRN3POELLJ4DCRVADB6GOW2VC6S \ / AMOS7 \ YOURUM ::
-#\[7]3ONR6LP2IXDT4X2RCF6LGNYVIPKI7XT3Q444RG3YOXUKRCTF3YDA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,.,,,,.,.,.,...,.,,,,.,,,..,,,.,..,,...,...,...,,,,,..,,,,.,,,.,
+#KDFMBWZNLS4LCIX3K3VGYU5E2GJJBDBQ3R4JQXIZP26JZWTYESIHKD2FH5HC3AEBLE5BFTRPWS3XE
+#\\\|DY3G7WORY6WFCBBOFEOFLKXIPZOU5N2RU7REK5VESZLGRUYVIP2 \ / AMOS7 \ YOURUM ::
+#\[7]FMBQCUYY6JY2INZLGJXKRYNX4QXH7XUVYONF5SLWKPP6YYZCXCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

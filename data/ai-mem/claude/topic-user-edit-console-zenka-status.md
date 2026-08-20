@@ -28,7 +28,7 @@ K2.7 via self-contained task files in `data/tasks/user-edit-phase*.md`,
 each reviewed against the actual diff before signing, not just the
 kimi auto-summary — see [[feedback-narrow-scoped-kimi-task-file-pattern]]
 for why this dispatch shape worked well four times in a row):
-1. **phase 1 skeleton** (`0fee40f7c`) — `configuration/zenki/user-edit/`
+1. **phase 1 skeleton** (`0fee40f7c`) — `cfg/zenki/user-edit/`
    + `modules/user-edit.init_code`, cloned from `keys`' thin
    standalone-console shape (no crypt.C25519, no network modules). Kimi
    caught and fixed a real contradiction in the task prompt itself (a
@@ -277,7 +277,7 @@ see [[feedback-backslash-keyword-is-not-a-reference]].
 - **the offline retry trigger** and the `end_code` draft flush.
 - **no `taeki` record exists** — `show-form` errors with "user 'taeki' not
   found". Design in progress per user: detect the case where the invoking
-  unix user equals `<system.admin-user>` (`configuration/system-user-map`,
+  unix user equals `<system.admin-user>` (`cfg/system-user-map`,
   resolved via `base.access.special-user-map`'s `<admin-user>`) and offer
   to create a default record, interactively unless a `:create-admin:` tag
   is passed. `base.term.ask` was built for exactly this. **BLOCKED on deciding
@@ -789,7 +789,7 @@ tasks/user-edit-multiline-note.yaml`. Committed as `7592bdbc0`/`7d66dfa6d`
    the one `process_key` bypass first assumed.
    **CRITICAL LIVE BUG, immediately after shipping**: the kept-around
    throwaway test plugin (`plugin.user-edit.example`, deliberately left
-   wired into the real `configuration/zenki/user-edit/start` per an
+   wired into the real `cfg/zenki/user-edit/start` per an
    earlier "keep it for testing" decision) had `pinned_keys => ['location']`
    — a REAL, universally-present field, not a placeholder name. This
    silently made `location` readonly/plugin-mode/test-edited on every
@@ -1060,7 +1060,7 @@ body:...` prefix could not be turned off even for a single entry — no
 longer a free-form field at all — and the storage format was an embedded
 YAML document inside the `address` scalar, which any OTHER display path
 would show as raw YAML text, not a plain address. Reverted cleanly rather
-than patched: plugin removed from `configuration/zenki/user-edit/start`,
+than patched: plugin removed from `cfg/zenki/user-edit/start`,
 all 8 `plugin.user-edit.address-cluster.*` files deleted,
 `subroutines.load-early` regenerated (`bin/dev/gen-sub-whitelist
 user-edit`), live data hand-converted back to a plain multi-line scalar.
@@ -1300,7 +1300,7 @@ swapped-family trap this file's own 2026-08-10 entry noted kimi getting
 `subroutines.load-early` whitelist entry correctly stays `base.file.
 remove_tree` (whitelist keys are filenames, not runtime swap targets).
 
-Kimi's dispatch also added `remove` to `configuration/zenki/users/start`'s
+Kimi's dispatch also added `remove` to `cfg/zenki/users/start`'s
 own `access.cmd.usr.cube` list — outside the task file's literal
 "no `access.zenki`/`access.users` change" scope note, but a genuinely
 different, necessary mechanism (the zenka's OWN per-command whitelist for
@@ -1322,7 +1322,7 @@ under `host-system/`.
 **Not yet committed** — `modules/users.cmd.remove` has no AMOS7 signature
 footer (left off deliberately, per this file's own precedent above:
 "New files were left with an obvious `PLACEHOLDER...` signature block
-rather than a fabricated one"), and `configuration/zenki/users/
+rather than a fabricated one"), and `cfg/zenki/users/
 subroutines.load-early` LOST its pre-existing signature footer when
 `bin/dev/gen-sub-whitelist users` regenerated it — a real, reproducible bug
 in that script worth a separate look (it silently drops the trailing
@@ -1511,8 +1511,8 @@ plugin (stashing the checksum for render_form to pick up later) is
 visible to both — same hand-data-forward pattern `user_keys_names`
 already established for the same reason.
 
-#,,..,.,.,...,,..,...,,..,...,..,,.,,,..,,.,,,..,,...,..,,.,,,..,,.,.,..,,.,,,
-#3IIIAQIZ323JQDJ3DGHAPRKACXWP4YKXGADBFDMJAPCASQ637JAU4ODVICBDYUYCSXOJ3SDI2HB3S
-#\\\|S3SJSP2MJQTHRM7LYCNWB5SLMGO7NAHRNIM6ZBHWVOFGVP22N54 \ / AMOS7 \ YOURUM ::
-#\[7]GMTAMW2BTNEXMRD4RUNJ5P3HWMBUQIZBBE2QN5R6EAL42UGAXKCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,...,,,.,,.,,.,,,...,,,.,...,..,,...,...,,..,.,.,,,,,,..,.,,,
+#7VTRSDUOYMVP5T34WYWXE3FJCBJCEH6OXLJ3YUVJZJ4ZOY3FYXDRHKKNGDVVXEPL5CBYCYVV5ISUK
+#\\\|6JGPNUGD2L3LYHKQ2NRF75UNQTKISUXTRDLYPCKRAAMQUUZA26X \ / AMOS7 \ YOURUM ::
+#\[7]PORBJYXNWC5YB6CDL3F4EE3YUZQO376JBTRYGKREWSIADDHMY4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

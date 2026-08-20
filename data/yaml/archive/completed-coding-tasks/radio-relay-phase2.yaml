@@ -27,7 +27,7 @@ task:
     - modules/radio.init_code      ##  add jingle state init  ##
     - modules/radio.handler.stream-chunk  ##  add track timing + jingle mute  ##
     - modules/radio.cmd.status     ##  add jingle state to output  ##
-    - configuration/zenki/radio/start  ##  add new modules to load list  ##
+    - cfg/zenki/radio/start  ##  add new modules to load list  ##
 
   track_state: |
     add to <radio.stream.icy> in radio.init_code:
@@ -130,7 +130,7 @@ task:
       track duration: N seconds (if known)
 
   startup_config: |
-    add to configuration/zenki/radio/zenka-startup.v7:
+    add to cfg/zenki/radio/zenka-startup.v7:
       radio.jingle.min_track_seconds = 90
 
     radio.jingle.patterns is initialized in radio.filter.jingle as a default;
@@ -148,8 +148,8 @@ task:
     - radio.cmd.status includes jingle state
     - no background source, no keep-library playback, no disk writes in this phase
 
-#,,.,,,,.,.,,,...,,..,..,,..,,...,.,,,..,,,.,,..,,...,..,,.,.,,,.,.,.,,,,,,..,
-#KC3DP5FWLQAR3Y53NRTZITVUZF3R4C6I3SXBIM6IE4S4YRLWMKPZF32O3OEKUFAVCH2P2CANJ32HG
-#\\\|F3EGI6OSCLQETVI3WNLIMWN6COYYJ3GJOJNI35HPI5WK2H54N4Q \ / AMOS7 \ YOURUM ::
-#\[7]MLKDFDWG7MOEHADUG3PZVM4LGNU5DSPYWVCVROBHUZZA2NAVT4DA 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,,.,,,,,,.,,,,.,,.,.,,.,,,.,,..,,...,...,.,.,.,,,,.,,..,,,.,,
+#SLKMLCBKQFXYU5UH2A3V26KAA76CEUPFJNBDCQNKZQPJUG7LMQO3KD43SR2QSNJ7H77S3X54CM7HO
+#\\\|JAQWXEY2OUBWR6WGYZWD5OEHN5X36C6HJTWFRRFM7JQ33EQOHQT \ / AMOS7 \ YOURUM ::
+#\[7]YGKKFFN4XK5KXRX4CXGQI55T3K7OIRR4VYTKZSKPUNCHHL4UZ2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

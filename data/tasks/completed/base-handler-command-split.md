@@ -140,7 +140,7 @@ after the new modules are created:
   syntax check.
 - `base.handler.command` is reduced to roughly 1000-1100 lines.
 - whichever zenka loads `base.handler.command` (check
-  `configuration/zenki/*/start` for it in `modules.load` — it's
+  `cfg/zenki/*/start` for it in `modules.load` — it's
   loaded essentially everywhere) reloads with no load errors via
   `p7c <zenka>.reload`.
 - manual smoke test: a simple single-line command round trip (e.g.
@@ -157,8 +157,8 @@ under 55 chars.
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,.,,..,,.,,,,,.,..,,,..,,,.,,,,,,,,,,..,.,,,..,,...,...,...,..,,,.,,,,.,.,.,
-#INVQGHUVTHRXHCU6BRQ3NGEGW33WMBVX5PKKTKI7QOEPSM6SSFUAZFKN5RGVKIQULBZBDFB647UYW
-#\\\|4TUUI2DQAQLBDORDDJFSWCQ3WCP3F5MYXFC4HI5UCXOKL4SLZW2 \ / AMOS7 \ YOURUM ::
-#\[7]GKM2PFDXMHKAR4BDRC25S5FE74KEDKBJGSR6UPRLVQ45XDFI7WAA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,,..,.,.,,,.,.,.,.,.,,.,,.,.,..,,...,...,,..,.,,,..,,,,.,..,,
+#D2GK3YG6VPRRAPQSEV3GGXBOGRCH7KRVZCTAZFZN2FHQPTD622WY2NHO2MGLBO22MI35ADH4MLRWG
+#\\\|MRJ2IRF357PVNZIQN5MTFT5XWHXBROAHKXAJ3AEIUCTG4PEXHZN \ / AMOS7 \ YOURUM ::
+#\[7]SEAP3HSMWFIFJPC3VCWAY7PMLBUWFMWCXXPIC4FQZUH43YHMKGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

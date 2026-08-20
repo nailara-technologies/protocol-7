@@ -32,12 +32,12 @@ source [success]`. Verified via `branch.show-buffer compile-errors`
 **Still open / future work:** if `branch.session.dag.parallel_dispatch`
 is ever wired into a real scheduling loop, it needs a real zenka→kimi
 RPC path (e.g. route via cube to `kimi.task.enqueue` — `branch`'s
-`configuration/zenki/branch/start` doesn't load any kimi modules, and
+`cfg/zenki/branch/start` doesn't load any kimi modules, and
 `base.protocol-7.command.send.local` is cube-side session routing, not
 a zenka-callable RPC primitive). Not scoped.
 
-#,,,.,,..,,.,,,,,,,.,,...,...,...,,.,,,,.,,,.,..,,...,...,..,,..,,,..,.,.,,,,,
-#VHGLWHNK654C7CMWPSHD3VVWYVV7OJIPMFMMCKSG3C4T3RSP7MBEGNMRTR3K24FRHRVXIIBI2YWU4
-#\\\|KEDT4ORI2BHBYYQWNF3KNK4UWERH54YZIVJB4QUEXVEVUX2JSXQ \ / AMOS7 \ YOURUM ::
-#\[7]PRJXSYVCQJHEE5UEPNLSHYGXS6SKDSWMFX5HEG52WKARWVHMPGAI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,,,,,,..,.,,,...,.,.,..,,..,,..,,...,...,,.,,,,,,,..,..,,...,
+#PGLGXA5RROTAAUDIVGKSHARN7KYGF4VGGFQ6TQYQZLCPWGIKKPGGILQ555WCD3BBW2S3DP5SKD4DW
+#\\\|7JUH67BM3ZW5LCZHMEFEQBJVTHKWWPEURYOXSLUMDDCHK2BW7PV \ / AMOS7 \ YOURUM ::
+#\[7]I4PYXP3QMZE5YGKKNP425F5LEHUT732COB3IJQOVRMSB36KR2EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

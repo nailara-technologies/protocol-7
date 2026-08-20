@@ -66,8 +66,8 @@ for the top-level roots. this is not theoretical — it's live for at least two
 zenki today:
 
 ```
-configuration/zenki/httpd/start:   httpd.system.user   = httpd
-configuration/zenki/httpsd/start:  httpsd.system.user  = httpsd
+cfg/zenki/httpd/start:   httpd.system.user   = httpd
+cfg/zenki/httpsd/start:  httpsd.system.user  = httpsd
                                     ## httpsd runs as httpsd:httpd for /var/httpd access
 ```
 
@@ -79,14 +79,14 @@ path segment after `var_P7`/`etc_P7` **is** the ownership tag — already,
 mechanically, with real, already-running OS permissions behind it.
 
 **this generalizes further than it looks.** most zenki today share one user —
-`system.amos-zenka-user = protocol-7` (`configuration/system-user-map`) is the
+`system.amos-zenka-user = protocol-7` (`cfg/system-user-map`) is the
 default `root.drop_privs` falls back to when a zenka declares no
 `<zenka>.system.user` of its own — and httpd/httpsd/p7-ssh are simply the
 current opt-outs. the auto-creation machinery
 (`modules/base.root.check_system_user`) already does `useradd --system` on
 first use of any username `root.drop_privs` is pointed at, and already
 consults a preferred-UID map (`base.root.pref-uid.<name>`,
-`configuration/system-user-map` — `protocol-7 = 777`, `p7-ssh = 722`) before
+`cfg/system-user-map` — `protocol-7 = 777`, `p7-ssh = 722`) before
 falling back to an OS-assigned UID. getting from "a few zenki have their own
 user" to "every zenka has its own user, except small groups sharing one where
 that makes more sense" is populating `<zenka>.system.user` +
@@ -237,8 +237,8 @@ migration has something correct to default to:
 
 ## interface surface
 
-**durable config**: `configuration/zenki/coding/path-policy` (new file, loaded
-from `configuration/zenki/coding/start` alongside the existing `coding.cfg.*`
+**durable config**: `cfg/zenki/coding/path-policy` (new file, loaded
+from `cfg/zenki/coding/start` alongside the existing `coding.cfg.*`
 block). declares the default profile, named profiles, and this zenka's own
 taint declarations for subtrees it owns. resolves through the existing
 `<coding.cfg.*>` template-accessor mechanism.
@@ -374,8 +374,8 @@ execution-time backstop already present in dispatch from phase 1.
   `modules/base.path-set-up.check-zenka-paths` — the existing per-zenka
   ownership convention this design relies on rather than reinventing
 
-#,,,,,.,,,...,,,,,,,,,,,,,...,,,.,,..,...,,.,,..,,...,...,...,,,,,,,,,,,.,,,.,
-#DZ4S57S67D2ZUGQTGAGGMU4W7JZD2MJWYI7QP5633PC7U7XVLQC5BZ55KJPVVORTLCNHEIEEK24WI
-#\\\|TWQJ3CD42ZW4POB34PJ2VZJPAPGX5ZVPVJN623DNRITP2LJQ3WC \ / AMOS7 \ YOURUM ::
-#\[7]LYGZA46IGRH5M2GS3OLGRAXSN2IM7AQGZEFD75L3PNC7F3PHAABI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,.,.,,,.,.,.,...,,,,,...,,..,..,,...,...,..,,,,,,..,,...,.,,,
+#4VNRHOMCMXWR2LZQEQOSQOP775Z3BBVRYXQZLORKXSEVH3VCZORESWOYSAL7D6I5NAF7B7WJI2QOK
+#\\\|IVX7SURG5IHXTNXSM4MBIIXO6B6RFOBDEJPIRJMZRSSBH3AG7XQ \ / AMOS7 \ YOURUM ::
+#\[7]HE5CMPRSKMVJDPLBELATYA2EOAKVADZW335JDTMR5P5FR3RECICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

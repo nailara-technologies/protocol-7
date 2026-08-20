@@ -45,7 +45,7 @@ to chase ad-hoc per-file as they're noticed.
 `data/yaml/context-templates/no-hardcoded-paths.yaml` already exists
 as a context template covering this exact convention (`<system.code_path>`,
 `<system.cfg_path>`, `<system.root_path>` instead of hardcoded
-`modules/`/`configuration/`/project-root paths) — this task extends
+`modules/`/`cfg/`/project-root paths) — this task extends
 that same convention specifically to zenka var-dir paths
 (`<system.path.zenka-dirs.var_P7>` + `<system.zenka.name>` via
 `catdir`, per `base.path-set-up.check-zenka-paths`'s own pattern),
@@ -63,8 +63,8 @@ which the existing template doesn't explicitly call out.
 3. include `base.*` modules in scope, not just zenka-specific ones —
    user explicitly flagged base as containing instances too.
 
-#,,..,..,,,,.,,..,,.,,,,.,,,,,.,.,.,,,,,.,,,.,..,,...,...,...,.,,,,.,,,,.,.,,,
-#RJF5LEXK5IVYRPATLUBLFNXNYBVKLLWRQS3NQUP52XVR67TCHOA3DNRKDFTZQFIJ7U5ND6KEBT3SM
-#\\\|UMZVDROUPIIH3HNZH7YXOYKDZ4KFROGWAN5IGMLUI2YDKT2DHSS \ / AMOS7 \ YOURUM ::
-#\[7]RWTNBSXHBW3VSOGUJDWYFVIWU7S4BXOO6QUT7TP5AIX6AJPQ7SAA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,...,,.,,.,,,,,,,,..,,..,.,,,...,..,,...,...,.,,,,,,,,,,,,,,,,,,,
+#I4Q5EOXROY2RSYHMGIWO7BLYVE45D757BEELO2JIKVQYPKIAWIXV5DHBV267TNONOKZTCBU42J5HK
+#\\\|H3725E4D6IIIPVAC74P3KVLAIWCI4DKMOEKURE4NJ7LZP5EP3F7 \ / AMOS7 \ YOURUM ::
+#\[7]UJEDZQHDR2ZQJUSY4PVN4ZP6VXFZHDEQGHQRYDIAGH5WGRMYUOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

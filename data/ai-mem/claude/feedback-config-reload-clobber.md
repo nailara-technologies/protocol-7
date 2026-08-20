@@ -19,7 +19,7 @@ time), completely masking the corruption — it only surfaced as
 `model not found: null` crash-loop the next time something forced a fresh
 respawn (e.g. a timeout-triggered restart). User noted "many sessions tried
 [to find this] before" — found + fixed 2026-06-08, commit 89a6817c7
-(removed the placeholder line from `configuration/zenki/coding/start`).
+(removed the placeholder line from `cfg/zenki/coding/start`).
 
 **Why**: generic `base.reload_values` has no concept of "runtime-owned" vs
 "config-declared" keys — it treats the start file as the sole source of
@@ -43,8 +43,8 @@ appears there, regardless of how that value got there.
   see [[topic-coding-state-machine]]) — worth re-testing that scenario now
   that this clobber is fixed.
 
-#,,.,,..,,,,,,,..,,,.,,.,,,,,,,..,.,.,.,,,...,..,,...,...,.,,,,..,.,,,,,.,,,,,
-#AFR4BVRTUNKCSMZZQM4FXHIRITUB55APDSXPDEWYGNVGHRDVOXCFTPISSFQ4K4TI3I2GQWYWILSLC
-#\\\|NNKUKAS5GDNT6XCZ6EVGLANNYCZEYC4SYWWJ4V6QULSO3ID3IO4 \ / AMOS7 \ YOURUM ::
-#\[7]FD2FEFQZJPGEG3S7RQ47OSLMJQVUW7LHJQ6IDKWH5N7PG6SPKMCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,,,.,,,.,,,,.,,.,,,,..,...,,.,,..,,...,...,...,,..,,,,,,.,,.,.,
+#5SRPKLZJYW4WUEXQAX6EBTZT6QNHXRW3ZVOUIGM4H7ZGYCPKJP2SBEEEADQY6BPXFMX5CLUU5J6BW
+#\\\|DI4NANLEA7F7HLME24KENXRHVFY3G2J7JGWEKJFVNNM2GOIQRK5 \ / AMOS7 \ YOURUM ::
+#\[7]VGHNVEXWOV5PCMYXUPTUZQG4RU5QMJS6GS5RHGYEXY5DN6C3R6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

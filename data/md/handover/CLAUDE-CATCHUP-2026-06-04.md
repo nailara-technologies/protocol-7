@@ -49,7 +49,7 @@ the winner. inspiration: `read-me/documentation/dev/research-notes/user-interfac
     of children with flow_focus>0). spikes above everything when focus is active.
   - `rebuild_age` — `:. rebuilt Ns ago .,` flash; interest 0.6 for <10s, else
     0.04 (yields to the resting default).
-- **config:** `memory.cfg.status_providers` in `configuration/zenki/memory/start`.
+- **config:** `memory.cfg.status_providers` in `cfg/zenki/memory/start`.
 - **yaml:** `memory-tree-root.yaml` top border is now `..[{{PROGRESS}}]..[ memory tree ]:.`
 - **VERIFIED 4-state ladder:** <10s rebuilt-flash → branch-count resting →
   focus bar (focus set); width rigid at 57, no jitter.
@@ -100,7 +100,7 @@ modules/ascii.frame.parse                          (parser fix)
 modules/ascii.frame.slot.select   modules/ascii.frame.bar
 modules/memory.status.provider.{branch_count,weight_captured,focus_saturation,rebuild_age}
 modules/memory.tree.node.render   modules/memory.startup
-configuration/zenki/memory/start                   (status_providers + list-subs/exec-sub access)
+cfg/zenki/memory/start                   (status_providers + list-subs/exec-sub access)
 data/yaml/ascii-frames/memory-tree-root.yaml
 data/yaml/ascii-frames/memory-tree-root.example.asc
 data/md/design/PLUGIN-SLOT-SELECTOR.md
@@ -114,8 +114,8 @@ plus auto-generated: whitelist / src-ver / dep-graph / source-markers.
 - inspiration: `read-me/documentation/dev/research-notes/user-interfaces.00007.asc`
 - prior session: git `db76d35fb`, `data/ai-mem/claude/topic-memory-tree-zenka.md`
 
-#,,,,,,,.,,,,,.,.,,..,.,,,...,...,,.,,,..,,.,,..,,...,...,,.,,,..,...,,.,,.,,,
-#YL7P2BWMWKIWXZUZSO6PPBNB7LXQQ7XYNDS7UCMRSX2SAKJ3WK3DU4XHNU76DYYCYUATQJOPALFFK
-#\\\|JFJE2U4CVROJRSXGDNBELRKNE6C7KSVKAHRA65WIWBP662QOWFH \ / AMOS7 \ YOURUM ::
-#\[7]5VJDOR5SRHOYSO2XSYOE6MV4R37TQO6NDJIOX2IDMVEBQKCN3CBY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,..,,..,,,,,,,.,,...,.,,,..,,...,..,,...,...,.,,,,.,,...,..,,.,.,
+#NBWIR54CCNLBFE2KTFYKM3GMWL4RMUVMSN6PP6JHKYGS2NVIUANDUDXIUTEKTFCECZZL2VJC7KQHM
+#\\\|SPZOO2ZQYKUMYDRXNW5YXKWAZUZF36GBLVZPJVG7QESBQOGFAKP \ / AMOS7 \ YOURUM ::
+#\[7]73JYRJ5TVDC3JALZNHECG7V6SJ7VXAIUWHKXWROLN2QEYZOP6MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

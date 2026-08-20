@@ -103,7 +103,7 @@ deferred_send_command` is now dead and deleted. `jobqueue` stays loaded —
 gated on the socket dependency) are untouched and still legitimate uses of
 it.
 
-Mid-fix, deferring `[base.get_session_id]` (in `configuration/zenki/mpv/
+Mid-fix, deferring `[base.get_session_id]` (in `cfg/zenki/mpv/
 start`) until `socket_ready` looked like the correct move — it seemed to
 be what unlocks cube's routing-ready flag too early — but caused a real
 startup deadlock instead. See [[feedback-verify-instance-callbacks-initialized-deadlock]]
@@ -163,8 +163,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,,.,,,,,,,,,.,.,,,.,.,,,..,,,,,,,,.,.,,,,,.,..,,...,...,..,,.,,,.,.,,..,,,,,
-#BWLXY4DIRSSAIODO4OSX23JTJYGDZUPMDHVSB6OOFGGUBWEOUQLFBXL2BG4Q4IH4QGP4XAWRLUT26
-#\\\|WAWXD4O4WOGN4PEHYJ5HHGV32CTRPE4FGKICQK4VQJ6DOJKL3Z7 \ / AMOS7 \ YOURUM ::
-#\[7]Q3GYW5YK2JFFVPZNFLCIQUJ66MNUAFBY3SIQ36Q2UNFLXXIWMACI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,..,,...,,..,...,,,,,,,,,...,..,,...,...,.,,,.,.,,,,,,,.,,,.,
+#ENJJZIAMZCF6PRN7KO2HZ5N7PSBKEWLKS5HIPRGLOLBYVMK7VPVTKEK3JCAVJUKSS4KG5LH3VTZW4
+#\\\|EMWMCQ6Z4C7YVNTSMXAGOABQFPALI6T4K6JTR32SMTING3XHQ5P \ / AMOS7 \ YOURUM ::
+#\[7]WYOJVXCZZV7DA6L4ZCLZCSJCMY2M7BWZVPHU5F2XEOBEQB6WU4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

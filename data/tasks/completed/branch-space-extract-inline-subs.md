@@ -165,7 +165,7 @@ after all 4 new modules are created and source files updated:
   `branch.space.visible` ] and all 4 new
   `branch.space.util.*` modules pass `perl -c` / syntax check.
 - `p7c <zenka>.reload` [ whichever zenka loads `branch.*` modules —
-  check `configuration/zenki/*/start` for `branch.space` in
+  check `cfg/zenki/*/start` for `branch.space` in
   `modules.load` ] completes with no load errors.
 
 ## signatures note
@@ -176,8 +176,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,..,,..,,.,,...,,,,,..,,,,.,.,.,,,.,,,,,.,,,..,,...,...,,.,,,.,,.,.,...,,,,,
-#UJPR45FKOEFXY6SRFJYJGVZO5V4U6V5ELM6L5JD75RPRMWJLOCDMQ2D32FTCWL7OTIGGUZD4AOTYA
-#\\\|557VZR4HGYNMBXEXG43NBA3ZOMJBKJNFINQPMZYQSN2ZRRB5XIV \ / AMOS7 \ YOURUM ::
-#\[7]RUW6VWRBPOZA4QGD7SCVMSUBMQND4OX5RZFNJEZFUI6QGHAPMABQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,..,,,..,...,,,,,...,.,,,,.,,..,,...,..,,..,,,..,,..,,.,,.,,,
+#Q5ZN7CX7IGMKRGRE62VPYDKUFVBBMA2ZX7DMJT7DCE2CJANNBZN7T6XH6F2AN45TMHQEIZW5YOVRC
+#\\\|TU7V7T5GT7F7PTZKGFMVW5VMVVO2DORTU3IMIH44KQKPH6T5MVR \ / AMOS7 \ YOURUM ::
+#\[7]N2GGFYKBVTPT5X3LXITHAG3HAQQ2MPFHJP3WO54WTMVP4WNGYOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -189,7 +189,7 @@ sub parse_module_command {
 ##[ BUILD COMMAND REGISTRY ]##################################################
 
 sub build_command_registry {
-    my $zenka_root = shift;    # path to configuration/zenki
+    my $zenka_root = shift;    # path to cfg/zenki
     my $root_path  = shift;    # path to protocol-7 root (optional)
     my $registry   = {};
 
@@ -236,8 +236,8 @@ sub build_command_registry {
     ## Protocol-7 console commands with simple name/param/descr format
     if ( not defined $root_path ) {
         ## Try to infer root path from zenka_root  zenka_root is typically
-        ## configuration/zenki
-        if ( $zenka_root =~ m{^(.+)/configuration/zenki$} ) {
+        ## cfg/zenki
+        if ( $zenka_root =~ m{^(.+)/cfg/zenki$} ) {
             $root_path = $1;
         }
     }
@@ -440,8 +440,8 @@ sub registry_to_yaml {
 
 1;
 
-#,,.,,,,,,,,.,...,,..,,..,,.,,,,.,,.,,,.,,...,..,,...,...,,..,.,,,,,,,..,,,..,
-#4KLWH7BSZV77B3PBLPDVEKXBUZYX623U6ZZGLKOGWO5RBXI6AMMK6B5AI4HFIFCCWS2FRBDVVV3H6
-#\\\|VMZS67N5AG2SIV6AUSKYLRC7XQBVYJ532F375Z4R3WLZBMV7AWV \ / AMOS7 \ YOURUM ::
-#\[7]JCUIIYNPM5OLS4DI5E3M6EQ6XSK743NOCFCDX4QUBP5HDTGWQUCA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,,,,,,..,,,,,..,,...,.,,,,..,..,,...,...,...,,,.,..,,.,.,..,,
+#5HGISSKDRPA5RDAWG4H3JXYCDWFMCZHHJ2TJMLMA4UH2FXB2TD6WHNBLXRZCC7X2CKEOB6TU2NLVM
+#\\\|CILCVKMDDYUWTM3JLTUXIEQGGYQQ3ISC2YCJCXLRJHKXOYIV462 \ / AMOS7 \ YOURUM ::
+#\[7]TFZTUA5O7QO5JSLG5UHIM44OU3FXPXB6PUPXQEME5MSNSXOAUQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

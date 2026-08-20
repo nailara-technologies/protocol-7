@@ -245,7 +245,7 @@ zenka profile
 ```
 
 The packing tool also embeds:
-- `configuration/zenki/<name>/start` inline
+- `cfg/zenki/<name>/start` inline
 - Any data files the zenka needs at boot (yaml configs, certs)
 - Version metadata and AMOS7 checksums for the whole bundle
 
@@ -370,8 +370,8 @@ The adapter plugin generalizes this pattern:
 - `data/md/documentation/module-dependency-graph.asc` — current dep-graph
 - `data/yaml/coding-tasks/modules-subdir-pm-extraction.yaml` — .pm cleanup
 
-#,,..,.,.,,.,,,,.,.,,,,..,,..,.,,,,,.,.,.,,.,,..,,...,...,...,,,,,.,,,,..,..,,
-#QUPPQUS6VBRNGKDYWI3HXUFRKSWAWHJHQV3S4MO74SDV57VFJWHOF4XYIBRGZXWXCD7HCAXZ2ZNIK
-#\\\|O5IITRIYVOUTY2VULSRP656JOMNVKDXEX6YMGSE34MNSF3AKWVL \ / AMOS7 \ YOURUM ::
-#\[7]KUQY7TDFX4CX3EHKWBSO3O32BIPW3OKPBGOKV7TY2QT45OD5IEAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,...,.,.,.,,,,,,,,,.,,,.,.,,,.,.,..,,...,...,..,,...,...,,,,,.,,,
+#T7Q6THNSKZX3BKYNIKWK5BDTNBEAUWDPSRIBHSB66NUTOFGTUCZTUQBFBAPK6RUJJACE5HNMOHY2S
+#\\\|OFZ6FFBNFS53APHLLVLLPJAZZCPZTG5HR5PRP4K6C3HN7NR2L3C \ / AMOS7 \ YOURUM ::
+#\[7]PFXWJLARFMJZBGH3FX3R5RLWCEM7I7VQHJJ7WM2Y24XJJ6CGV4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

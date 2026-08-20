@@ -110,7 +110,7 @@ return {
 
 ## access list
 
-add to `configuration/zenki/index/start` access.cmd entry:
+add to `cfg/zenki/index/start` access.cmd entry:
 
 ```
 replace remove
@@ -120,7 +120,7 @@ replace remove
 
 ## whitelist
 
-add to `configuration/zenki/index/subroutine.white-list`:
+add to `cfg/zenki/index/subroutine.white-list`:
 
 ```
 index.activate index.deactivate index.source.register
@@ -142,8 +142,8 @@ index.activate index.deactivate index.source.register
   deactivate all ancestors, not just HEAD; under snapshot policy it is always
   exactly one deactivate call
 
-#,,,.,...,.,,,...,.,,,,,,,.,,,.,,,,.,,,.,,.,,,.,.,...,...,..,,.,.,...,,,,,.,,,
-#4N27OFFBLVMJLXX4EJMM72VIR53BZBGHSIUBHGL3EFXACDNL6TO5K5BYN7VH2D3UHUUIZIIXN6Z3A
-#\\\|DKDAHSL66TN5XPYEL5JGSOEDCPPJ4EB4YQ3OF4HHL53RVDLFKFC \ / AMOS7 \ YOURUM ::
-#\[7]AGCESZXI2L5YLGWNEHRHUTEPZGFUZM3TSXEB6DUI4GVREXBRGEBI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,..,,,.,,.,,,,..,..,,,,.,,.,,.,.,...,...,,..,,..,,,,,.,,,...,
+#2S4DTFFANIXBNYAZJGUQRRNHIJ5E6OKRGRIAZAUTMBSQ3WUD4R4Y6ZDTWPHM4DAX3NMQAX2E5FCWO
+#\\\|IT2GHKJSL4XMOI3BPPQEEIECKADXBGQUKL4SLHGNWL24H2RHDCD \ / AMOS7 \ YOURUM ::
+#\[7]IHE4GJA5TCKOIKE4CVJKCHM3YJG2QZ6UMW3B7MG65EPNBILNXEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

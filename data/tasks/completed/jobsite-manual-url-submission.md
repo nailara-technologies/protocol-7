@@ -101,16 +101,16 @@ one shared backend primitive, two callers, per the "proposed shape":
 - new: `modules/site-yaml.cmd.import-url`, `modules/jobsite.cmd.import-url`,
   `modules/jobsite.cmd.import-url-http`,
   `modules/jobsite.handler.import-url-reply`
-- `configuration/zenki/jobsite/start` — `import-url` added to
+- `cfg/zenki/jobsite/start` — `import-url` added to
   `access.cmd.usr.cube` (only change there; `jobsite.cfg.*` untouched)
-- `configuration/zenki/site-yaml/start` — `import-url` added to
+- `cfg/zenki/site-yaml/start` — `import-url` added to
   `access.cmd.usr.cube` (symmetric with existing `import`)
-- `configuration/zenki/cube/access.zenki` — `site-yaml.import-url` added to
+- `cfg/zenki/cube/access.zenki` — `site-yaml.import-url` added to
   `access.cmd.usr.jobsite`, `jobsite.import-url-http` added to
   `access.cmd.usr.httpd`
-- `configuration/zenki/httpd/routes` — `POST /jobs-import-url` route
-- `configuration/zenki/site-yaml/subroutines.load-early`,
-  `configuration/zenki/jobsite/subroutines.load-early` — new modules added
+- `cfg/zenki/httpd/routes` — `POST /jobs-import-url` route
+- `cfg/zenki/site-yaml/subroutines.load-early`,
+  `cfg/zenki/jobsite/subroutines.load-early` — new modules added
   next to their siblings (compile-timing whitelist; regenerable with
   `bin/dev/gen-sub-whitelist`)
 - `data/web-root/vhosts/jobs.vhost/index.html` — import row in the
@@ -229,7 +229,7 @@ and expose it both ways from day one:
    `site-yaml.handler.fetch_tick`'s existing fetch/backoff/retry/upsert
    handling completely unchanged.
    add `import-url` (or whatever it ends up named) to
-   `configuration/zenki/jobsite/start`'s `access.cmd.usr.cube` list so
+   `cfg/zenki/jobsite/start`'s `access.cmd.usr.cube` list so
    it's `p7c`-invokable directly, independent of the UI ever landing —
    useful on its own for one-off manual imports from a terminal.
 2. **UI caller**: the `[ + manuell ]` panel's new URL-submission area (see
@@ -271,7 +271,7 @@ and expose it both ways from day one:
 
 ## search key list review/optimize (secondary, smaller task)
 
-separately requested: review `configuration/zenki/jobsite/start`'s
+separately requested: review `cfg/zenki/jobsite/start`'s
 `jobsite.cfg.categories` / `jobsite.cfg.url.*` list (currently
 `linux-sysadmin linux-developer devops platform-engineer security-engineer
 ki-infrastruktur backend-architect`, each mapped to one stepstone category
@@ -353,8 +353,8 @@ handles the local-vs-remote judgment once a posting is found.
   vs. leaning more on manual submission for one-off finds — not obviously
   one or the other, likely both.
 
-#,,,,,,.,,,,,,,..,.,.,,,.,,,,,.,.,.,,,,..,...,.,.,...,..,,..,,...,.,.,...,...,
-#OE2SRVBD2RFTXCSTXBD4QI3RIMG7AJV6VDD5ME54OQAXC4BYWVGQ5G4SFMOJYKZFMKGQ377QKCFMS
-#\\\|R3C7RXKX4XHEBHRUEYACZQZGLQCCIPAVUKKFUKQ7LBMBO5YXBKY \ / AMOS7 \ YOURUM ::
-#\[7]X7TPKAAUI7VEZVG4FGYKSWYX2FHJKXPI4BAN62LVKZUMLGLVLWAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,,.,,,.,,,,,,,.,,.,.,.,,,,..,.,.,...,..,,...,.,.,,,.,,,.,...,
+#4CSDAHIO2X64P2L4I6CWIUY6XUUQUX37Q3CVKG455Q7COQWHXGGOII7FFFZKSTARESTKQL4RQAJ26
+#\\\|3ESHVV4VCH3AF5S7CN5L7KUEERC5AF3HJ24M3FCCL7TBSOSOMBR \ / AMOS7 \ YOURUM ::
+#\[7]6DTA4KJJLOYGYAUNLMS65UITM4VVJHGW623ZGJCLJCDNAMPHFQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

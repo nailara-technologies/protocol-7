@@ -215,7 +215,7 @@ appends to audit log with timestamp, zenka, credential, decision:
 
 ## cube command_aliases addition
 
-file: `configuration/zenki/cube/command_aliases`
+file: `cfg/zenki/cube/command_aliases`
 
 add to `source_zenka` list:
 ```
@@ -296,8 +296,8 @@ tail /var/protocol-7/credentials/audit.log
 - [ ] cube command_aliases updated so source_zenka injects caller identity
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,,.,,..,.,.,...,.,,,,..,...,,,,,,,,,,..,..,,...,...,..,,,,.,..,,,.,,...,
-#4EQ4C3X7MZFALDQ3I3ZVU7AVYOAIL4UTJOJ75QHM5BZCMWOR57ZRNVKOBYNPBTDPPLO2QFSA4UJ5K
-#\\\|WMMC43IC2NNK5MLT65Q3Q4ZWCW7RZHAHVRWKMRWUQN6CA662WWS \ / AMOS7 \ YOURUM ::
-#\[7]SWSYFJUR2JQ3EYH2CGEBDPUEDJYK7HEMAUN2OWIWCADNY26UQ4BA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,,..,,,.,,,.,,..,.,,,,,,,,.,,..,,...,...,.,.,.,,,,,.,.,.,,,,,
+#MXBCTEUQFDGJRICMR726SRXIG3C7QGHAORQHXMRCXKKP4Z5AMMQGA67PRJAM4O2MPNMVDIGZ7YUE6
+#\\\|X5IJMM7Y4SRMKOACUAEXHFPGBEICLBWZP7XE4P5KNNBP6HNQOWE \ / AMOS7 \ YOURUM ::
+#\[7]RT2XWVEDGERCXIMZR26YAUME32DYH2AP46WI5WRHURBS23BGZ6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -95,7 +95,7 @@ during the first live render — the exact same gap Kimi hit building
 the `audio` zenka originally (per
 `project-audio-waveform-visualization-landed-2026-07-26.md`).
 fixed by adding `access.cmd.usr.povray = v7.register_child` to
-`configuration/zenki/cube/access.zenki`, mirroring the existing
+`cfg/zenki/cube/access.zenki`, mirroring the existing
 `access.cmd.usr.audio` line, then `p7c reload config` (bare cube
 command, not dotted `cube.reload` — that returned "client not
 present"). re-tested clean afterward.
@@ -138,8 +138,8 @@ anywhere in the povray-side code) rather than something narrower and
 audio-icon-specific — that genericity is the actual point, not
 incidental design hygiene.
 
-#,,.,,...,..,,,,.,.,.,,..,,.,,...,...,.,.,.,,,..,,...,...,...,...,,.,,,.,,...,
-#5TI3CKVMALXLP6BRQ57PZDG6XIFQSDMQR4UNQNKPZIW2OIAIVG7XWFNJTXOFZN6MQDLVMQNVGOPUI
-#\\\|BCSZRRKVW65REWNTMHBKNXIQRSG46GDGMU6XFSXRVMK6XPUD4XF \ / AMOS7 \ YOURUM ::
-#\[7]26UY7T57CVAH7F2YUF57GCPNQHVR6RPMXOMK3EK72OZUEXRSIEBA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,..,,,..,...,,,,,.,.,.,,,,,.,..,,...,..,,...,,..,.,.,...,..,,
+#N5YZNAY7HJ4KINEKP2EEIO2EIQZDJZ7KRLTGYEYC2HSFPJDRAWJ2Z32E5BYVEA7N7PWJI7N54ZJ76
+#\\\|LPX7LHWXASWFKXJPNGJO6TH4HFLADJQCMFOAYEXCCKPHHOZDNTC \ / AMOS7 \ YOURUM ::
+#\[7]V6TENZH6VV5D52APSX6HLCLLOSKFEWOX2UOBPHOBEMHLWH2QV2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

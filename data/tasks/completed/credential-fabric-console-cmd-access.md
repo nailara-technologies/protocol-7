@@ -69,7 +69,7 @@ known or no permission". two compounding issues:
    return-value `mode`/`data` conventions, and error strings — your
    wrappers must surface those faithfully, not swallow or reshape them
 
-2. **wire console/admin access** in `configuration/zenki/cube/
+2. **wire console/admin access** in `cfg/zenki/cube/
    access.zenki`:
    - grant whichever admin user(s) exist there already (search for
      `taeki` / `:unix:` patterns — if none exist for credential_fabric,
@@ -86,7 +86,7 @@ known or no permission". two compounding issues:
      granting them widens the credential-write surface unnecessarily)
 
 3. **`subroutine.white-list`** — add the new `.cmd.` module names to
-   `configuration/zenki/credential_fabric/subroutine.white-list`
+   `cfg/zenki/credential_fabric/subroutine.white-list`
    following its existing alphabetical-ish grouping (grep for
    `credential_fabric.cmd.approve` to find where it currently sits)
 
@@ -116,8 +116,8 @@ known or no permission". two compounding issues:
   findings doc are walkable from a `p7c` console session as an admin
   user (verified live, or explicitly marked unverified with reason)
 
-#,,..,,..,..,,,..,,.,,,,.,..,,,.,,..,,..,,,..,..,,...,...,..,,.,.,..,,.,.,,,.,
-#57EWWTYSF7KYAORQM2R5EPXC5D7JHXIQXECO3BUINE623UVXLSXZSAVRTNOH4RIRLJYBC2V2TEN7Y
-#\\\|6CTWFXJ3P2E2OFKJBADCUVBHI4EW2NOYXOXVLU6CUG4542OX2AW \ / AMOS7 \ YOURUM ::
-#\[7]LXJ6JAAV4M76UOACXPOALW62WCNIMUVM5I6P5BMDIP2FR5JOC2DQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,,,,,,..,,,,,,,.,,,,,,,,,,,.,..,,...,...,..,,.,,,,..,,,.,...,
+#VETOTLRYU5ODNYSTXYAJOIND5D4GXQCD5M5TVBIN2UK5QXZUWPZEXI4CWFHZMSBPTFT5JSA6DS7H2
+#\\\|RVSBT3CI5Z7OOX4VAUILRGN4D5BI3FKMBE7RUG72IQ262PBSVXS \ / AMOS7 \ YOURUM ::
+#\[7]FHR6MGTFLSZFXJGMD3Y5Q5W54ZL3MT3SVCN6XPSGVQS7CABO5ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

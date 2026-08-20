@@ -57,10 +57,10 @@ on first use. Ensure modules load at startup or whitelist regeneration includes 
 
 ### ncode restore-backup fix (session 45/46)
 
-`ncode restore-backup` only restored configuration/ — missing modules/ restore.
+`ncode restore-backup` only restored cfg/ — missing modules/ restore.
 Fixed: both branches now conditional on directory existence:
 ```perl
-system("cp -r $temp_dir/configuration/* ...") if -d "$temp_dir/configuration";
+system("cp -r $temp_dir/cfg/* ...") if -d "$temp_dir/configuration";
 system("cp -r $temp_dir/modules/* ...")       if -d "$temp_dir/modules";
 ```
 Also: validation check changed from `!-d configuration` to
@@ -78,8 +78,8 @@ Guard added: `return if defined <nodes.orbital.session_start>`.
 - nodes.orbital.update_position — immediate fix applied (first consumer)
 - [[topic-base32-namespace]] — same session, swap_subs lessons apply here too
 
-#,,,.,.,.,,,.,,,.,...,,,.,.,.,...,.,,,.,.,,..,..,,...,...,,..,,..,..,,.,.,,.,,
-#O6SLD37F3JCQBQSLVOIAGJVAAV4UTXA4FADLO736HKATUD2IF4KKCH2RQDZM2HQT4PIDD7JAQCKCM
-#\\\|QGGKNI5K766MD4ZVM4UMMTMHJBCLZBHJPGRG3PCXHDO6BAKSJYD \ / AMOS7 \ YOURUM ::
-#\[7]GAW4PNA3CQQT7G5N4MZGZVVGMCMLVYIVSZ7RIV3KASXCEUQ5EQBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,,.,,...,,..,,,,,,,.,,,,,,.,,..,,...,...,,,,,.,.,,..,...,,.,,
+#KPZLLXSYJF5PAT7WKSJIAATQ7EBS6AVUMYNMYL3X2V52JEI2JOVIPNLHEZ6ZSUQDDDISXYBLCGY6W
+#\\\|ZMQYGQTNAXR7WBTRKEUSHGVULREBW5CV7HIWYATFSESD67XQES3 \ / AMOS7 \ YOURUM ::
+#\[7]LEIDGMGQU7FOSSJANXZVJP6JPUGXROZSNABNYPYNKEH5MKUYEKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

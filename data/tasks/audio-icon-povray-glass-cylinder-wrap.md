@@ -108,7 +108,7 @@ from audio duration/detail (e.g. longer files get more, thinner rows).
 ## how this connects to existing infrastructure
 
 - `povray` zenka already exists as a stub (`povray.init_code`,
-  `configuration/zenki/povray`) — plan already anticipated using it for
+  `cfg/zenki/povray`) — plan already anticipated using it for
   UI elements and images-with-embedded-images generally, this would be
   a concrete first real use.
 - `data/pov/` already has water-surface scenes as scaffolding/precedent
@@ -148,8 +148,8 @@ new module *extracts* the waveform back out for povray's texture input
 4. if waveform-only is chosen, build the `graphics-matrix.filter.alpha`
    extraction step feeding into it.
 
-#,,..,,,.,.,.,.,,,..,,,,.,,,.,,,.,.,.,,.,,.,.,..,,...,...,,.,,,,.,...,,,.,,.,,
-#4S3DG3S4DTIYTL6H6UNS6RABMWD42GQZ6WZITON57EJJNMWCTXL6DH3GUSSQY4KCNDIHO72SBX5M4
-#\\\|6HDQTDXWVARFLT6WS6XQHXQUOGELOYMQRWL2OOBZMVT44BQQEL6 \ / AMOS7 \ YOURUM ::
-#\[7]7CXWFRYK47XNHGLTBLVCZLMBSX4TQI7IGBXT6ACE5A2QAQQQHQCY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,.,,.,,,..,,.,.,,,,,.,.,,..,.,,,..,,...,...,.,.,,,.,,,.,,.,,..,,
+#2NBVQMT3WEZ2IPG34L3QGUIQQJCP3EPWAC2655UKVV6JC4SAA3UTR2BOV25GGP34T6VO2KMG6SWHC
+#\\\|HIQWSZB4NNTDQ2WETNOMNUK7QLOOMHQJZ6PKXMDX5ELYXXPFLSB \ / AMOS7 \ YOURUM ::
+#\[7]H42LSZ3K3GEYWIGRM2FNY3Q32YJFENBKQBW2CJTWV3LI4UZQFABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

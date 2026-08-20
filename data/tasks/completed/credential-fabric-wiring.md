@@ -85,7 +85,7 @@ slots:
     sensitivity: high
     storage:     local
 ```
-also ship a checked-in example `configuration/zenki/credential_fabric/
+also ship a checked-in example `cfg/zenki/credential_fabric/
 seed.yaml.example` documenting the format. the live file at
 `var/credential_fabric/seed.yaml` stays operator-controlled; do not
 commit it.
@@ -191,15 +191,15 @@ connect_or_use` reads in step 1.
 
 ## configuration changes
 
-add to `configuration/zenki/credential_fabric/start` (create if absent):
+add to `cfg/zenki/credential_fabric/start` (create if absent):
 - load `credential_fabric` modules
 - run `credential_fabric.init_code` (which now seeds the registry)
 - on-demand zenka, no idle timeout (already required by design)
 
-add to `configuration/zenki/proxy/start`:
+add to `cfg/zenki/proxy/start`:
 - load `proxy.outbound.connect_or_use` alongside other proxy modules
 
-verify `configuration/zenki/cube/access.zenki` allows:
+verify `cfg/zenki/cube/access.zenki` allows:
 - proxy → credential_fabric.resolve, credential_fabric.request-authorization
 - transport → credential_fabric.resolve
 - credential_fabric → protocol-7-menu.cmd.input-text, protocol-7-menu.cmd.input-password
@@ -248,8 +248,8 @@ the `#,,..` stub line** to new files — the signing system writes it.
 
 #,,..,...,,,.,.,,,,,,..,,...,..,,,,,,,,.,,,,,..,,...,..,,,,,,...,,...,,..,...,
 
-#,,.,,,,.,,,,,,,.,.,,,,,.,..,,.,.,,,.,,..,,.,,..,,...,...,,..,,,,,,,.,,,.,..,,
-#IYYPO4UT56AJNJE3PVJKSJ4EVCS5WHAWOXYMH4ATNK5NI27L3UTHZAEDUE7M5AKRETDCFLRZLFOEK
-#\\\|5TT5IZSL7UTDIXLVYIWN4NUHCHFPC3D2VIHURB4E2SKE2T3WLQF \ / AMOS7 \ YOURUM ::
-#\[7]EEWJ2TYTD3QMIPJJ3SSRJD3GXIVQ2K6O6JJA2NXMOGGLY5WBEQAI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,...,,,.,,,.,...,,,,,,..,.,,,..,,...,...,,..,.,,,...,..,,,.,,
+#GIZUG23RFLARYI5KQ4ZQVQOOYLTUR4AEF2MVQ2ON43NOHUTPHRMRUI5CCQBVFYNPXBPYMQ64OJC5U
+#\\\|SYF5PAARM5HSELHMGEDIXBNFABVQDDYXGHQO3UXLSYVPMTCCIPI \ / AMOS7 \ YOURUM ::
+#\[7]CNKRJOCNA77K4TE226MD6WSF6KHD2KSG4GOD4FDZABFP4TA6WUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

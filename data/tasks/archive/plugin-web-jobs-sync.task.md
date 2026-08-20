@@ -131,7 +131,7 @@ already handled there — check first and only add if missing.
 
 **7. add to web zenka subroutine whitelist**
 
-file: `configuration/zenki/web/subroutine.white-list`
+file: `cfg/zenki/web/subroutine.white-list`
 
 add these lines (in the plugin.web.jobs section, alphabetically):
     plugin.web.jobs.handler.get
@@ -164,8 +164,8 @@ after writing all modules, run:
 
 report any syntax errors and fix them before marking complete.
 
-#,,..,,,.,,,,,,,,,,,.,,,,,.,,,,..,,,.,.,,,..,,..,,...,..,,.,.,...,,,,,,,.,,.,,
-#HISXAO4VXCN3RSCE7LJP4JXBAOCL7RLVDM4UMPKEGS2Y4XFT2IEHSPWRKNKYZW5SZOECI4SVRPH2Y
-#\\\|GTDHRQJ634VL3KTA5PGRHDIUBPFMS7GGBE6TS5BVIDTCCQNZFOH \ / AMOS7 \ YOURUM ::
-#\[7]K5OG5JDCEGVFGYIKVNC5RAUZJSZIG77BN5EANL64FLQVCPIF2CCI 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,,,,,...,,,.,,,,,,,.,.,.,,,,,..,,...,...,.,.,,.,,.,.,.,,,,,.,
+#U5SU5SSQEGJIBMQOWRIPUMMYPBBPQR5PWNYVAWTBZM6YVLXDZK2PTQA2YHUI2NMQTVNA5EDZG27WI
+#\\\|MKYV6W7MURRWL4MRUTXCWOXNXOZI7MUITOHT7FYJ7YCODY77B5A \ / AMOS7 \ YOURUM ::
+#\[7]ZQACMLD6GJJSRFFMUAEHQZM37442TLZOFWKMJJ3JX2OW22PPO6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

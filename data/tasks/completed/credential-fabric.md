@@ -212,9 +212,9 @@ encrypted blobs: `var/credential/store/` (one file per slot, encrypted)
 
 ## configuration
 
-`configuration/zenki/credential/start` — standard zenka start file,
+`cfg/zenki/credential/start` — standard zenka start file,
 runs as dedicated user with restricted filesystem access
-`configuration/zenki/credential/access.zenki` — which zenki can call
+`cfg/zenki/credential/access.zenki` — which zenki can call
 `credential.resolve` and `credential.register`
 
 credential zenka is on-demand with no idle timeout — always available
@@ -312,7 +312,7 @@ handles all footer blocks — leave them untouched.
 - `plugin.auth.zenka` — server-side zenka auth. Compares `blake2b_384_b64($key_str)` against `$keys{'auth'}{'zenka'}{$user}`. Single-use keys (deleted after success).
 - `plugin.auth.twofish` — Twofish/C25519 auth protocol handler. Commands: `get-version`, `get-srv-key`, `get-key-sig`, `set-key`.
 
-**Keys zenka (`configuration/zenki/keys/`):**
+**Keys zenka (`cfg/zenki/keys/`):**
 - Configures the standalone `keys` zenka — a privileged console tool for key generation, encryption, backup, signing, splitting, renaming.
 - Loads modules `crypt.C25519 terminal keys`.
 - **This is NOT a runtime "key holder" service for other zenki.** It is a human-operated management zenka.
@@ -338,7 +338,7 @@ handles all footer blocks — leave them untouched.
 - **`modules/credentials.*` (plural, 14 modules) already exists.** The task proposes `modules/credential.*` (singular). This is a **critical naming collision.** The existing `credentials` system handles SMTP/IMAP/API creds, web sessions, and encrypted archives. The new task's `credential` fabric is a broader, multi-owner system with STRM rotation, tiered storage, and zenka ownership.
    - **Options:** (a) merge into existing `credentials.*` namespace, (b) use distinct prefix like `cred-mesh.*` or `auth.fabric.*`, (c) rename existing `credentials.*` to something else (invasive).
    - **Recommendation:** the new system should use `cred-mesh.*` or `cred_fabric.*` as its module prefix to avoid collision, and explicitly call out how it relates to (and may eventually subsume) `credentials.*`.
-- `configuration/zenki/keys/` — the standalone `keys` zenka is for human key management. The new "detached key-holder child process" is a runtime component, not the same thing. Names should not collide: use `credential.key_holder.child` or similar, not `keys.child`.
+- `cfg/zenki/keys/` — the standalone `keys` zenka is for human key management. The new "detached key-holder child process" is a runtime component, not the same thing. Names should not collide: use `credential.key_holder.child` or similar, not `keys.child`.
 - `crypt.C25519.*` namespace is safe to call into. No collision.
 
 ### gaps in the task spec
@@ -351,7 +351,7 @@ handles all footer blocks — leave them untouched.
 6. **BMW384 content-addressing is mentioned in `PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md` but not in the task.** The task says "stored in tier-1 storage" without specifying the addressing scheme. The design doc says credentials are content-addressed by BMW384. This should be explicit in the task.
 7. **`credential.subscribe_rotation` STRM integration is underspecified.** How does a zenka subscribe? Via `protocol-7.route-send`? Via a direct data tree registration? The existing STRM system uses `base.strm.local.register` (as seen in `plugin.httpd.radio.handler.strm_open`). The fabric should specify the STRM registration mechanism.
 8. **`credential.request-authorization` auth relay flow needs the web-browser zenka.** The task says "web-browser zenka shows approval dialog." This requires the web-browser zenka to expose a command for showing dialogs and returning user input. Does such a command exist? `web-browser.*` modules are GTK3/WebKit — they likely have dialog primitives, but the exact command name is not specified.
-9. **`configuration/zenki/credential/access.zenki` format is unspecified.** The task mentions this file for access control but doesn't define its format. The existing `authorized_zenki` check in `credentials.cmd.request_session` uses a list or hash — the format should match.
+9. **`cfg/zenki/credential/access.zenki` format is unspecified.** The task mentions this file for access control but doesn't define its format. The existing `authorized_zenki` check in `credentials.cmd.request_session` uses a list or hash — the format should match.
 
 ### suggested refinements
 
@@ -429,8 +429,8 @@ handles all footer blocks — leave them untouched.
 - `cred-mesh.store.local` should wrap `credentials.read_archive` / `credentials.write_archive_file` for the actual file I/O, passing the C25519-derived key instead of the old password-derived key.
 - `credentials.cmd.request_session` and `credentials.spawn_web_session` remain in use for SMTP/IMAP/web sessions until the fabric subsumes them.
 
-#,,,.,...,..,,,.,,,..,,.,,.,,,,..,..,,,,,,,,.,..,,...,..,,..,,,..,,.,,,..,.,,,
-#YGXOFM5M6M3TXHIKIR5TRY6NVJFJDXCMA4VDE54WSYDG3A5N4HPC4SQOBNEG7LX4JZLPU2C353SV2
-#\\\|X7AQTDOF6N4TZ5G3MVOLHK3S3WWXKVONGMYKMZTGCGQPH354NU7 \ / AMOS7 \ YOURUM ::
-#\[7]MNZ7E4OFDDYDZK3PD6S6GERJZBVCKEI2LZWSAX5MX2BDXYAAQOCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,,,...,,..,,,,,,,,,.,,,,..,...,..,,...,...,.,.,..,,,.,,,,.,,,.,
+#N65QWA4NULBSFNW3C55F255DUFXAQS3LWUMMG5WTOA7NYZ33BTG4BVNQKUP24TMDZNJ34TFMHFLEW
+#\\\|E6IYKOADGLFZFWKOIGC7OVCJBITPZF26DO43M7X7EQLDPPY3TTM \ / AMOS7 \ YOURUM ::
+#\[7]X3ZDDOAQYJAUKFWVFVVPC62XKWMZX2ZC5UAK4PNNPOLALTP4N6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

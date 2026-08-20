@@ -8,7 +8,7 @@ metadata:
 v7 learns a freshly-spawned instance exists, and later confirms it, **purely by
 pattern-matching the instance's raw console stdout** — not via any reply, not via
 `base.session.send_init_reports`. Two config-driven regexes in
-`configuration/zenki/v7/zenka-output.patterns` (matched by `v7.handler.zenka_output`
+`cfg/zenki/v7/zenka-output.patterns` (matched by `v7.handler.zenka_output`
 → `v7.handler.process_output_line`) drive the whole handshake:
 
 ```
@@ -109,8 +109,8 @@ console specifically).
 
 [[topic-mpv-jobqueue-startup]]
 
-#,,..,,.,,..,,..,,.,,,,.,,,..,..,,,.,,.,,,..,,..,,...,...,.,,,,,,,.,,,.,.,..,,
-#UDBUKM6VWIPCACNUTHJE47IIPOEUGLZXRRWVC64QMMFINESGLLUHUFPUQSS6W7QW6EHNCBELXMZ7A
-#\\\|AYDJDGWN3O64J7K6OIVG2UQFXRUR7NK24YBF6XS73RWKCA2PALJ \ / AMOS7 \ YOURUM ::
-#\[7]HIOM4XZ7KPYVITZKNEWRAQLKF7WRS6EBWXAZF2JLUTZMEXN4L6AA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,,,,,.,,,.,,,..,,.,,,,.,,,,.,..,,...,...,.,,,..,,,,.,..,,.,.,
+#C753F56UV4TDIZKLPNU53HSC5W4BLPDCGWYASMMD67RT5EBS4OY45LT6J7S4GAIVAAIPH5IXPD5BY
+#\\\|VFWSL6G5F5MO5RN4UWYEO3UC6PL7KX7NSZU6ZDHHGWLQPUQ566O \ / AMOS7 \ YOURUM ::
+#\[7]4NRRFCNK7PV36CEHKELR47GDQFJKDIDQGRPVCTGQEBGKF7EEWICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ auth.setup.usr.<admin-user>      = :unix:<system.admin-user>,:unix:root
 access.cmd.usr.unix-<admin-user> = ** ..*..**
 ```
 
-**Single source of truth** in `configuration/system-user-map`:
+**Single source of truth** in `cfg/system-user-map`:
 ```
 system.admin-user  =  taeki   # Change here, everything updates!
 ```
@@ -66,13 +66,13 @@ system.admin-user  =  taeki   # Change here, everything updates!
 
 ### Configuration File Examples
 
-#### `configuration/system-user-map` (source of truth)
+#### `cfg/system-user-map` (source of truth)
 ```
 system.admin-user       =  taeki
 system.AMOS-user        =  protocol-7
 ```
 
-#### `configuration/zenki/cube/auth.users` (uses templates)
+#### `cfg/zenki/cube/auth.users` (uses templates)
 ```
 # Taeki admin user setup
 auth.setup.usr.unix-<admin-user> = :unix:root,<system.admin-user>
@@ -83,7 +83,7 @@ auth.setup.usr.<admin-user>      = :unix:root,<system.admin-user>
 # auth.setup.usr.admin-user      = :unix:root,taeki
 ```
 
-#### `configuration/zenki/cube/access.users` (uses templates)
+#### `cfg/zenki/cube/access.users` (uses templates)
 ```
 access.cmd.usr.unix-<admin-user> = ** ..*..**
 ```
@@ -184,10 +184,10 @@ git diff
 ### New System (With Templates)
 ```bash
 # Single change
-echo "system.admin-user = alice" > configuration/system-user-map
+echo "system.admin-user = alice" > cfg/system-user-map
 
 # Review minimal diff
-git diff configuration/system-user-map
+git diff cfg/system-user-map
 
 # list sessions shows alice, unix-alice automatically
 # All auth.users files unchanged
@@ -228,10 +228,10 @@ Different session context, possibly different permissions
 
 ## Files Using Templates
 
-- `configuration/zenki/cube/auth.users` - User authentication setup
-- `configuration/zenki/cube/auth.zenki` - Zenka authentication
-- `configuration/zenki/cube/access.users` - User access permissions
-- `configuration/zenki/cube/access.zenki` - Zenka access permissions
+- `cfg/zenki/cube/auth.users` - User authentication setup
+- `cfg/zenki/cube/auth.zenki` - Zenka authentication
+- `cfg/zenki/cube/access.users` - User access permissions
+- `cfg/zenki/cube/access.zenki` - Zenka access permissions
 - Other zenka configs that reference admin users
 
 ## Parser Implementation & Fixes (November 2025)
@@ -278,7 +278,7 @@ unix-taeki 5314413  ✓ NOW WORKING WITH TEMPLATES!
 
 ### Configuration Updates
 
-Template syntax in `configuration/zenki/cube/auth.users` (lines 8-9):
+Template syntax in `cfg/zenki/cube/auth.users` (lines 8-9):
 ```perl
 ## [ taeki + unix-taeki setup - TEMPLATE-BASED ]
 auth.setup.usr.<admin-user> = :unix:<unix-admin>,:unix:<admin-user>
@@ -306,8 +306,8 @@ auth.setup.usr.unix-admin  = :unix:unix-taeki,:unix:taeki
 - Template dependency analysis (detect unused templates)
 - Enhanced error reporting for unrecognized templates
 
-#,,,,,,..,,..,.,.,,.,,..,,,.,,.,,,.,.,.,.,...,..,,...,...,.,,,,..,,,,,,,,,,,.,
-#FA5226HE7QHS6XZHFK4XANXLGN75LYUWSIWZU3OYTOFPBZ2KSLGFMZ35UAOF5RAHWJFQFEJJPO7Y2
-#\\\|J4ZT4GA6R3EOL4ORODLVAGVY4QI2R44NZFREWX2LK47A7DH5BGQ \ / AMOS7 \ YOURUM ::
-#\[7]CMMIMFWQVGV3MCZKY4OGUIZIMLSV66LAJBCUJUJ7HPQAQR5B3OAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,,..,...,.,.,.,.,.,.,..,,..,,..,,...,...,.,,,.,,,,..,,,.,,..,
+#W3LVOVUB2J6JQBBVFXXIX4IDWKKXAMBXVY7TCBNTI6QIIZHPZJZVCG5LYMKSE2N3NCPGNGK6HW426
+#\\\|PG3X7SZE4LR5C6TMYSW6YEOG73Y2PP5UJ6KUT7SV7EC2OZX7OPW \ / AMOS7 \ YOURUM ::
+#\[7]FODXQ2ZYBWZC43MKNBK2BFFXERAIXLBNWDBMNEHFHL2JFBWSXIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

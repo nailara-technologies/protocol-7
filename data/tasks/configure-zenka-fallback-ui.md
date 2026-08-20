@@ -16,7 +16,7 @@ design docs:
 - `data/md/design/STDIO-RELAY-FOLD-APPLICATION.md`
 
 existing stub state:
-- `configuration/zenki/configure/` — start file invokes
+- `cfg/zenki/configure/` — start file invokes
   `[base.call.console_command:<system.args>]` and exits; no real
   console behaviour
 - `modules/configure.init_code` — currently returns `0` [ which per
@@ -181,7 +181,7 @@ proof-by-thinness claim from the design doc.
 
 ### configure start file changes
 
-`configuration/zenki/configure/start`: switch from one-shot
+`cfg/zenki/configure/start`: switch from one-shot
 console-command exec to the standard module load + zenka loop
 pattern. minimal:
 
@@ -193,8 +193,8 @@ modules.load = base.init crypt.C25519 amos7 configure
 [zenka.loop]
 ```
 
-add `configuration/zenki/configure/zenka-startup.v7` and
-`configuration/zenki/configure/access.zenki` matching the existing
+add `cfg/zenki/configure/zenka-startup.v7` and
+`cfg/zenki/configure/access.zenki` matching the existing
 zenka patterns [ e.g. cred-mesh's ]; refer to live zenki for
 exact required keys.
 
@@ -214,7 +214,7 @@ exact required keys.
   decision.
 - `harmony configure.cmd.ui-show` etc. clean.
 - starts under v7 management at boot when added to
-  `configuration/zenki/v7/start-set-up.base` [ or on-demand otherwise ].
+  `cfg/zenki/v7/start-set-up.base` [ or on-demand otherwise ].
 
 ## non-goals
 
@@ -242,8 +242,8 @@ harmony configure.ui.render.decisions
 harmony configure.cmd.ui-show
 ```
 
-#,,,.,,.,,..,,.,,,...,,,.,,,.,,.,,,.,,.,.,...,..,,...,...,,..,.,,,.,,,..,,.,.,
-#C4ABCAB6ZOZ2RRLIAGYMXZCS2MEY4TFOAFPJC2NBCDGPJRGX6XM7Q63QIWHMDRBZA46WRDJJNMTTE
-#\\\|YPTDTMZSIHN534BAAOZ4FQQWXV3FVDDAQFWXXDDMJYIGAM2E2G5 \ / AMOS7 \ YOURUM ::
-#\[7]TD263RTWIYZEXCQGO5O5HJQBZQIUY5WBDGCKGV566UGH26UJKGCQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,...,,.,,.,,,,.,,,,.,.,.,,,.,.,,,..,,...,.,.,...,.,.,...,...,.,,,
+#THIKRBRXFKF6LPFYBNWGI7MYECPLKRTK5J26Z7DUPKA3ERDFFZB25W5TZISAIVNJJDSIYUG4EWLFQ
+#\\\|PQTPUQS5NOWSCM6V7SG7NKX4QYD52T3WF3O4J7BGOWPETHYD44S \ / AMOS7 \ YOURUM ::
+#\[7]HVBLH5SAYMPOF7HON3IIIKBA22GDEPLTTP5ZGNSX3AH7R7K7OECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

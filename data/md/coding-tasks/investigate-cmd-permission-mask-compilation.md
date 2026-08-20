@@ -50,9 +50,9 @@ Document the difference:
 ### Phase 4: Multi-Level Access Control
 
 cube-13 has TWO access control layers:
-1. `configuration/zenki/cube/access.zenki` - for cube-routed commands
-2. `configuration/zenki/cube-13/access.zenki` - for direct connections
-3. `configuration/zenki/cube-13/access.users` - for authenticated users
+1. `cfg/zenki/cube/access.zenki` - for cube-routed commands
+2. `cfg/zenki/cube-13/access.zenki` - for direct connections
+3. `cfg/zenki/cube-13/access.users` - for authenticated users
 
 Investigate:
 - [ ] Which file is actually being checked for zulum → cube-13 routing?
@@ -90,12 +90,12 @@ Using wildcard `*.receive-entropy` instead of `cube-13.receive-entropy` allows z
 
 - `modules/base.parser.access_conf` - permission mask compilation
 - `modules/base.cmd.reload` - reload phases
-- `configuration/zenki/cube/access.zenki` - main cube access
-- `configuration/zenki/cube-13/access.zenki` - cube-13 specific access
-- `configuration/zenki/cube-13/access.users` - user authentication
+- `cfg/zenki/cube/access.zenki` - main cube access
+- `cfg/zenki/cube-13/access.zenki` - cube-13 specific access
+- `cfg/zenki/cube-13/access.users` - user authentication
 
-#,,,.,..,,,..,,..,.,,,,.,,..,,,.,,...,,..,.,.,..,,...,..,,..,,,..,...,.,,,,.,,
-#5IYCDOOPKNXJSNUE3JK4HKGP4ZGEQD5R3IFEGYUX357BZUXKUZ5GVSTAVNUJRNJSU2FM7YDL5FA3U
-#\\\|KJ3DYQLIBVWE22GYYAXEKXBAPUOP3P3OHZSWY2CY5S4I5AA5LXD \ / AMOS7 \ YOURUM ::
-#\[7]GM2V2WBO6HM5HBFNEIT2XT5YIIBIYS6YIFDOPZ6WVBMCW25SASCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,..,,.,,,..,,..,,.,.,,.,,..,,..,,...,..,,,.,,,..,.,.,,..,,,,,
+#FEZTMJUNCPVV5DOJA4T7JRKMKMMACNLZSLBXYQO54M2XOWNN3OPF3P4NJIHMGT5VUFATZMU65Q36K
+#\\\|6RTP4M4RJ2YRI62KNPJJQDLPTZ6WMRPHAX5DWAOJXWOL7TYWJKS \ / AMOS7 \ YOURUM ::
+#\[7]QZRZXMW74TZEX2YAYYMUEGAFOIY4UFMZML3KATNN26CTRP5VRKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,10 +21,10 @@ modules in `plugin.web.auth.*` must work when loaded in either:
 
 the start file opt-in pattern:
 ```
-## in configuration/zenki/web/start:
+## in cfg/zenki/web/start:
 modules.load = ... plugin.web.auth
 
-## in configuration/zenki/httpd/start (future, opt-in):
+## in cfg/zenki/httpd/start (future, opt-in):
 modules.load = ... plugin.web.auth
 ```
 
@@ -34,7 +34,7 @@ my $zenka = <system.zenka.name>;    ## 'web' or 'httpd' or other
 ```
 
 both zenki must whitelist the auth modules. auth config lives at
-`configuration/zenki/web/auth.*` (shared by reference or symlink for httpd).
+`cfg/zenki/web/auth.*` (shared by reference or symlink for httpd).
 
 #### route-level gating
 
@@ -150,7 +150,7 @@ implement in this order:
    `plugin.web.auth.*` modules exist and session storage is wired
    (commits `f5dd2648f`, `f91bbbd80`)
 2. gate `/jobs-sync` POST behind session check — DONE 2026-07-17
-   (`configuration/zenki/httpd/routes`: added `auth.required=1` to the
+   (`cfg/zenki/httpd/routes`: added `auth.required=1` to the
    `/jobs-sync` route; found ungated via independent re-verification —
    the write endpoint was live and public despite this requirement)
 3. session create/destroy + token distribution — DONE,
@@ -167,8 +167,8 @@ closed.
 
 ## dispatch
 
-#,,,.,.,.,.,,,,..,...,..,,,..,.,,,.,,,,.,,,.,,..,,...,...,,,,,,..,,,,,.,,,,.,,
-#OHGT7EZW75PGJPSLK3BMI6L4R7WE4Y6MZVSRL6323I2HYPXZJ6S4XIPDHBEEXIUMDOKSOVZYK7W3S
-#\\\|ZNZCUUKXPYD72OWP7G4BB54NCHJCUQE6WL3BQ52MR7CBJQZCGHI \ / AMOS7 \ YOURUM ::
-#\[7]B7337WP2V7PMQSCDECCKAIK6ATSW5OEI5NMELSTA2A5RQJXTMUAI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,,,,,,,.,..,,,,.,,.,,.,,,,..,..,,...,...,...,..,,.,.,.,.,...,
+#F6VBICEKOR3NU5BE3DKUTQLSC65MN2DZDBG6SOZCQJZ2Q5CKI5AAFEGKEESWS26PBC6OW5UYHJNPW
+#\\\|UPEDNRFV5DPATT36Q4SVPIYV5J3I3EKSPTFENNRQXODWLC424VH \ / AMOS7 \ YOURUM ::
+#\[7]RTKI5IACK4IXSMYJQIDHWHFCYGPBFS7O5CLSTUXFDXF3N4M7BMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

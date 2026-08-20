@@ -118,7 +118,7 @@ hashes, following the *same* case convention one level up:
   i.e. `%CODE` becomes a version-indexed registry of `%code` snapshots
   — every loaded module's source/compiled-form addressable by the
   `protocol-7.src-ver` style version string seen in
-  `configuration/protocol-7.src-ver` and the signing pipeline
+  `cfg/protocol-7.src-ver` and the signing pipeline
   [ see `data/md/design/CODE-NAMESPACE-AND-SIGNING-INFRASTRUCTURE.md` ].
 
 this is a clean fit with the dot-path notation's case rule extended
@@ -228,8 +228,8 @@ pair implementing the forward [ string -> path ] direction first
 [ always safe ], with reverse serialization gated on auditing
 precondition 3 across whatever subtree it's applied to.
 
-#,,..,,,.,,.,,,,,,..,,.,.,,..,,,.,,.,,.,,,.,.,..,,...,.,,,.,.,,..,.,.,.,,,,..,
-#3OZQAINVW2IPZAXI4LMB7C2VSVXHJKIJFZDE6VQQCZY4PTYP7QT2ORYG6LPS2Y6EBHL72L7UQBS6I
-#\\\|4DOJM62LN2ZC4WDAMP4JOV4QL73R2JAM5KX5RXAWJW7DAOL7CZZ \ / AMOS7 \ YOURUM ::
-#\[7]FCLD56LLSYHPQ4NANVXPXTEIOZ4BI6I5MQVO5ISXY456IKBSNQCI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,,..,,,.,..,,,.,,,,.,...,,,.,..,,...,...,...,.,.,,..,,,.,.,,,
+#O3R4CBMZAMJSHE3LBOGJFXRRSZXIG7VOGPGZPBG5A4PPZ3UEEOCN7BMN4HR4JGVNDFF7SNI2VIZHQ
+#\\\|GU4CPDUNDEZHDZYSWAOXMWSDWHY4BSDGGX5UUYZWZ5EIIFMDUZN \ / AMOS7 \ YOURUM ::
+#\[7]HE3QBMOMQZGEEZECD6FP2AQEBSYV64C2FPQDCCXCQA3O3G5QUIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

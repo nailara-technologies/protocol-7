@@ -29,10 +29,10 @@ read all of these before implementing:
 - `bin/dependencies/debian_dist_upgrade.sh` — dist-upgrade script: dpkg
   auto-recovery first, then upgrade with full confold/confdef/confmiss/overwrite
   flags, `pam-auth-update`, cache cleanup, autoremove
-- `configuration/zenki/*/pm-dep/` — per-zenka perl module declarations (empty
+- `cfg/zenki/*/pm-dep/` — per-zenka perl module declarations (empty
   files, `__` replaces `::` in filename)
-- `configuration/zenki/*/os-dep/debian/` — per-zenka apt package declarations
-- `configuration/zenki/*/os-dep/binary/` — per-zenka binary/PATH declarations
+- `cfg/zenki/*/os-dep/debian/` — per-zenka apt package declarations
+- `cfg/zenki/*/os-dep/binary/` — per-zenka binary/PATH declarations
 - `.deps/profiles.yaml` — named install profiles (minimal, runtime, development)
 - `.deps/protocol7_full.yaml` — generated consolidated apt list (not authoritative)
 - `modules/debian.*` — existing debian zenka (see task 1 audit)
@@ -60,7 +60,7 @@ phase 0 — bin/Protocol-7 (before cube, before any zenka)
   → hard fail with clear message if core deps missing
 
 phase 1 — v7 pre-start (cube up, sys-deps not yet running)
-  → reads configuration/zenki/$zenka/{pm-dep,os-dep} directly
+  → reads cfg/zenki/$zenka/{pm-dep,os-dep} directly
   → AMOS7::deps::* for probing — no network, no zenka
   → installs missing via AMOS7::deps::deb-pkg (or bin/p7-deps as fallback)
   → writes tracked installs to var/sys-deps/tracked.yaml for later collection
@@ -88,7 +88,7 @@ AMOS7::deps::deb-pkg::d-upgr → deb-pkg/d-upgr.pm — dist-upgrade
 
 ## task 1 — audit debian zenka
 
-read all `modules/debian.*` files and `configuration/zenki/debian/start`.
+read all `modules/debian.*` files and `cfg/zenki/debian/start`.
 produce a short inventory:
 - what commands are live and functional
 - what is dead code or stub
@@ -109,7 +109,7 @@ authoritative perl module dependency library. standalone, no zenka deps.
 # returns hashref: module_name => { debian => [...], cpan_fallback => '...' }
 sub load_known_deps { my ($p7_root) = @_; ... }
 
-# scan all configuration/zenki/*/pm-dep/ dirs
+# scan all cfg/zenki/*/pm-dep/ dirs
 # returns hashref: module_name => [ zenka_name, ... ]
 sub scan_zenki_pm_deps { my ($zenki_base) = @_; ... }
 
@@ -145,7 +145,7 @@ appear automatically when their `os-dep/<type>/` dirs exist in any zenka config.
 # checks /etc/os-release, /etc/debian_version
 sub detect_os { ... }
 
-# scan all configuration/zenki/*/os-dep/*/ dirs generically
+# scan all cfg/zenki/*/os-dep/*/ dirs generically
 # returns hashref: { $os_type => { $pkg => [$zenka,...] }, binary => { $bin => [$zenka,...] } }
 sub scan_zenki_os_deps { my ($zenki_base) = @_; ... }
 
@@ -292,7 +292,7 @@ new standalone script. installs OS packages and tracks them:
 bin/os-pkg install <pkg> [<pkg> ...]   — install and track
 bin/os-pkg list                        — show tracked installs
 bin/os-pkg undeclared                  — tracked but not in any os-dep/ dir
-bin/os-pkg declare <pkg> <zenka>       — promote to configuration/zenki/<zenka>/os-dep/debian/
+bin/os-pkg declare <pkg> <zenka>       — promote to cfg/zenki/<zenka>/os-dep/debian/
 ```
 
 uses `AMOS7::deps::deb-pkg` for installation and `AMOS7::deps::os-pkgs` for
@@ -325,7 +325,7 @@ sys-deps.cmd.promote <pkg> <zenka>  — write to os-dep/ config dir
 
 create:
 
-### configuration/zenki/sys-deps/start
+### cfg/zenki/sys-deps/start
 
 on-demand zenka, no idle timeout. load modules: `auth net protocol io.unix sys-deps`
 `start.on-demand = 1`, `restart.disabled = 1`, `heartbeat.disabled = 1`
@@ -349,7 +349,7 @@ packages in tracking log not yet promoted to any `os-dep/` config dir.
 
 ### modules/sys-deps.cmd.promote
 `# param = <pkg> <zenka>` — write empty file to
-`configuration/zenki/<zenka>/os-dep/debian/<pkg>`.
+`cfg/zenki/<zenka>/os-dep/debian/<pkg>`.
 
 ---
 
@@ -366,8 +366,8 @@ packages in tracking log not yet promoted to any `os-dep/` config dir.
 - do not modify `.deps/protocol7_full.yaml` — generated output, not source
 - `var/sys-deps/` directory must be created if missing (tracked.yaml lives here)
 
-#,,.,,.,.,,..,..,,.,,,,,.,...,,.,,,,.,,..,,.,,..,,...,...,.,,,,,.,.,,,,,.,.,.,
-#NNWVSSTY56KBZJSPQ6ZA3QXZQA3CY5FX7LBCVT6UAN2YCIQFMRQ45FPEFB76WK67JFHNHG3TY4LPE
-#\\\|2K5I7ELXELEZMY4P2KRYTTN54NMF2NZ62CJH7KRED5ZZKPSRFBC \ / AMOS7 \ YOURUM ::
-#\[7]BLD7BX7CWF3YDNWVESH4Y3SQWRZJTAZ2KTKKREE6WCO7ESH4JCBI 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,.,,,...,.,,,.,.,.,.,..,,.,.,..,,...,...,,,.,,,.,.,,,...,...,
+#L73ZF66EDS3XPOP5BFIYZHZE3FJP5LTCT5CRBNRUV2NWRW5GA2RBXYYFRU5K7CPAMR4S6EQYXQRLQ
+#\\\|W4HZ477BQ26RZQHPD3RBANHJNYP634PVTQLD76T4XYU2JN6FRGJ \ / AMOS7 \ YOURUM ::
+#\[7]42VGOOZ7KULY6O5ZVGW2DLXLV5YIZ4HUOSZDRO7XI63QQYJ6WMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

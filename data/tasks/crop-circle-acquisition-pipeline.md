@@ -193,7 +193,7 @@ the mapping IS the usage:
 ### site-yaml template: yandex-image-search
 
 ```
-# configuration/site-yaml-templates/yandex-image-search.yaml
+# cfg/site-yaml-templates/yandex-image-search.yaml
 url_pattern: https://images.yandex.ru/search
 params:
   text: {query}
@@ -313,8 +313,8 @@ the iris overlaid with crop circle assertion mask:
 
 leave new files clean. no stub footer.
 
-#,,..,,..,,..,.,,,.,.,,.,,.,,,,,.,,..,.,,,,..,..,,...,...,,.,,,,,,,..,,,.,,.,,
-#QP57T7B224NTIJAY6NZ7NKICLEWGU66MBEN2TNNFQHJRIMJVISU2LKZYJPPEWWRSM77WVVMPBMRLC
-#\\\|X62HXNJJOEJWCLXUCYU3JOOR6RDQTQVMMRDZW7LLIXPN6ZGQMUM \ / AMOS7 \ YOURUM ::
-#\[7]IUOLNA75G2IOOQUQMCLEYLIUNDDF7HRA6U6JOXRCXZXNFASZQADY 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,,..,..,,,,,,,..,..,,,,.,,,,,..,,...,...,,,,,,..,,,,,.,,,.,.,
+#6EGL645KLXUN5FSAQLJABGJ3LDKPLWT2MMXTUAXU3GVSKGPOERX5GSXMGYS6ALNIU5YZMPY7OQISY
+#\\\|3LIGNM2SQ5QIZTCYMK34CRO2B4HNNT4NCYRGCH65GHQGNRBIED7 \ / AMOS7 \ YOURUM ::
+#\[7]LVI5XL4ZDR5YL72PGZAPZZJX7HDEPVNVIILQCKIX4YX7C4GUL4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

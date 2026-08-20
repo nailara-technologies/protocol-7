@@ -206,9 +206,9 @@ if (    $bottom_visible
     ## on how much of the frame it fills, and even on the border path
     ## border_line has no case for a bare LETTER inside a fill run -- it
     ## passes those through with no colour at all, which is what showed up as
-    ## plain white text.  matches configuration/ascii-frame's own fill.single
-    ## / fill.dot mapping, so it reads as the same border tone as every other
-    ## ':' and '.' on the card
+    ## plain white text.  matches cfg/ascii-frame's own fill.single / fill.dot
+    ## mapping, so it reads as the same border tone as every other ':' and '.'
+    ## on the card
     my $colon_color = length $colors{'reset'} ? $colors{'p7_fg_0000'} : '';
     my $fill_color  = length $colors{'reset'} ? $colors{'p7_fg_0001'} : '';
     my $reset_color = $colors{'reset'} // '';
@@ -234,8 +234,8 @@ if (    $bottom_visible
 $rendered = join( "\n", @frame_lines );
 
 ## colourise by character class through the shared frame colouriser --
-## config-driven from configuration/ascii-frame [ purple structure, TRUE blue
-## slot values ], the same call memory.render.term and  context.provider.frame
+## config-driven from cfg/ascii-frame [ purple structure, TRUE blue slot
+## values ], the same call memory.render.term and  context.provider.frame
 ## already use
 $rendered = <[ascii.frame.render.color]>->($rendered) // $rendered;
 
@@ -448,8 +448,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,.,,,.,,,..,...,,..,,,,,,..,.,,,,..,.,.,..,,..,,...,...,.,.,,,.,,,.,.,,,,..,
-#2AXZRTKKUCAKP3KXWS5BSRY7O2IBGNMVBIZRUSZSKECHPKREJ6TE4RRQAKA45Y42FTL357TFXKM6K
-#\\\|R65735FCMEFFWM3374XKMIVZPPADXK7PFKO3JFOFDFOAXGSOWLT \ / AMOS7 \ YOURUM ::
-#\[7]43C2NAXV5P5TVNKYO4HRXSQDMRKLDAOG534UK4UCQODP5BNKHACY 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,,,.,..,,,.,,,,.,,,,,,..,.,,,..,,...,...,,..,...,,,,,,.,,.,.,
+#PBDXXAYJC24V5DL66IFXC7VN777SLFHZJ3TEKKLVLSVCZRF77HD4KCUG3LMREXQEISWRAMFABT55W
+#\\\|C4YEKF45MMCLRXKJPAW6I6M6JWWUQJ5JY5INCNVZ2CCZHHGLRNV \ / AMOS7 \ YOURUM ::
+#\[7]66GEI6FYB2IOHBZDKQ4PZY3XDDMAITF345TMTMUTPRRB6TQPC2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

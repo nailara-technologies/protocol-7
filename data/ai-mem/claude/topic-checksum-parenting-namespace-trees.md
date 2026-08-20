@@ -785,7 +785,7 @@ amos-chksum -v P.KY.62.BY
 - **Namespace separation by hop length, checked against real data**:
   claim was "zenki names start with 3 characters, so 1 and 2 character
   routes stay available for routing/coordinate hops." Checked
-  `configuration/zenki/` (125 entries): **1-char is fully free — zero
+  `cfg/zenki/` (125 entries): **1-char is fully free — zero
   1-char zenki names exist.** **2-char is *mostly* free but not
   entirely** — `v7` and `fs` are real 2-char zenki names already in use
   (2 of 125), so a 2-char hop segment isn't unconditionally
@@ -965,8 +965,8 @@ User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,,,,.,.,.,.,,.,,...,.,,,.,,,,,,,,,.,.,,,,,,,..,,...,.,.,,,.,,..,,..,,,.,.,,,
-#JO7A2S2JA5HTEAIMKXA4VERKBGDJ5VYCMEUPNTDSKFNH5BNUZYWDA6BY7L6WC3L6KMJKAIMZMIHJK
-#\\\|VBT4KTACMWLOOL34ON5P7NMNPZFMND7IOTVHODCAZRIPDWWTMWH \ / AMOS7 \ YOURUM ::
-#\[7]U2QQ6NH6UZ57BXN5H35X2YANRGVGZQWMDP4CU4W35PEWUS5OGEAI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,,,.,,,.,,..,.,,,...,,,,,,,,,..,,...,...,...,,,.,...,.,,,,,,,
+#O55EXL5PKALYFTF6KI6B43NY5J3JOC7EPJHIPEUNIZ7N5EIIE5EEDCPG37H5NZTCCVPP5RACK6HGE
+#\\\|73XECTU24LPAI6KR6W42QINLUGGDGNMS6P5LZ4USPRSSSGRRIYX \ / AMOS7 \ YOURUM ::
+#\[7]GTXXJN6H65G3PJJQQEES2YJOPDKDMIHDIOOSVMA5VOA3V35MVAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

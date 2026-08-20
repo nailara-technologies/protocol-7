@@ -58,7 +58,7 @@ Reference for design decisions and implementation notes.
 ## ✅ What's Already Complete (Don't Redo!)
 
 ### HTTPSD Zenka (100% Complete)
-- ✅ Configuration ready at `configuration/zenki/httpsd/start`
+- ✅ Configuration ready at `cfg/zenki/httpsd/start`
 - ✅ TLS 1.2+ with secure ciphers
 - ✅ HSTS enabled (31536000 seconds)
 - ✅ Let's Encrypt integration complete (8 phases done)
@@ -66,7 +66,7 @@ Reference for design decisions and implementation notes.
 - ✅ Certificate symlinks working (`/etc/protocol-7/certs/current.pem`)
 
 ### Web Zenka (100% Complete)
-- ✅ Configuration ready at `configuration/zenki/web/start`
+- ✅ Configuration ready at `cfg/zenki/web/start`
 - ✅ Recursive template parsing with depth limit (8 levels)
 - ✅ Module: `modules/web.process_template_recursive`
 - ✅ Async IPC handler: `modules/web.process-template-ipc`
@@ -447,8 +447,8 @@ This ensures zero knowledge loss for future sessions.
 - Other ACME phases: `letsencrypt-*.yaml` (reference only, don't touch)
 
 **Configuration:**
-- `/home/user/protocol-7/configuration/zenki/httpsd/start`
-- `/home/user/protocol-7/configuration/zenki/web/start`
+- `/home/user/protocol-7/cfg/zenki/httpsd/start`
+- `/home/user/protocol-7/cfg/zenki/web/start`
 
 **Modules (Already Complete):**
 - `modules/web.process_template_recursive`
@@ -487,8 +487,8 @@ This ensures zero knowledge loss for future sessions.
 
 **You got this! 🚀**
 
-#,,.,,,,,,,,,,.,,,.,.,,..,.,,,...,.,.,.,.,,,.,..,,...,...,..,,,,,,...,.,.,.,.,
-#JCMNM5D2GIFQEVPHSNHGZKV3DPWYGVCPY2OGPWXNRBQOU6UYUUOWB5P55P6IZQ4WTC2D44T6HII6C
-#\\\|X2M2MNJOLPHOLEUS55DUBUXNSIVWAF75U5BQ4JUZKKAHQ2HSSFZ \ / AMOS7 \ YOURUM ::
-#\[7]XLZ4MIIUL4NY6VUVLLJNRIKREMZODZOL4D6JAMO2LFKT6VSAVAAA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,...,,.,,,,.,,..,.,.,,.,,...,,,,,..,,...,...,,,.,..,,,,.,...,..,,
+#ZZ4G5XZU2H4P6OW6MQBVZQLV37WTFZGPPC4SCBNUBSQWNCWYFCO3HCCZOUUHESBQCHGPTXT746F54
+#\\\|MOUDVM62U5NCZSGAFEIRJ7GBKQWHL2K2UQORJDZQKFK6QYNIXJK \ / AMOS7 \ YOURUM ::
+#\[7]2G3QLKQSD3NLUOOG4SKWHLZUNDCKGTKS756RYVL7P5HHOKNVF6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

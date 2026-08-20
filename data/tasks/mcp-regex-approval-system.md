@@ -39,7 +39,7 @@ the model must explicitly choose this path; silence = store the regex.
 
 #### approval library
 
-stored at `configuration/mcp/approval-patterns.yaml`:
+stored at `cfg/mcp/approval-patterns.yaml`:
 ```yaml
 ---
 patterns:
@@ -90,8 +90,8 @@ the generated regex must satisfy:
 
 ## dispatch
 
-#,,,.,,.,,.,.,,.,,,,,,,..,...,,.,,,,,,,,.,.,,,..,,...,..,,...,,..,,,.,.,.,..,,
-#GIAR6YIVTE65CZMYQFCXADER4CMMPPP5KPICN3MX7NMPX4WGH7JBRS63TDQM6GMD2IPQBGQ4WGYVE
-#\\\|CA5RTFWCAB37OJLYDP4KSATFXQQZNHYQ6IPFWBC7GFNQDVBTDXC \ / AMOS7 \ YOURUM ::
-#\[7]TEC3PZVJHDJQYYZKV2ZDEKURYVIPEQ6ZP2MAC7BUIFMX5YGSR2AY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,..,,.,,..,,.,,,,.,,,.,,.,.,..,,...,...,..,,...,,,,,.,.,,..,
+#L4MKTHMGFUVV5NBR2TLYKMKYFGH2JQE73OJXG7DSH2NNPXXADJWZJLVY2GSVFFJMSX7WMT2X2PCGE
+#\\\|BORR6QKVOPFA6PBWAH5N3M6O27NSZGVJBRNXDJIMQAW3GG2FP6W \ / AMOS7 \ YOURUM ::
+#\[7]B53SZ2RVH6RTFEEVGTHAWOJHXALMA6MZW7DQJQ4XGIHIG4RS5SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

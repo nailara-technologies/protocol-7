@@ -131,7 +131,7 @@ fetch.file.hf_token  = <token>                   ## same as external.hf.token al
 ## zenka config
 
 ```
-## configuration/zenki/fetch-file/start
+## cfg/zenki/fetch-file/start
 [load_modules:fetch.file.huggingface fetch.file.huggingface.list
               fetch.file.huggingface.search fetch.file.huggingface.lan-check
               fetch.file.huggingface.status]
@@ -140,7 +140,7 @@ fetch.file.hf_token  = <token>                   ## same as external.hf.token al
 ```
 
 ```
-## configuration/zenki/fetch-file/zenka-startup.v7
+## cfg/zenki/fetch-file/zenka-startup.v7
 start.on-demand = 1
 restart.disabled = 1
 heartbeat.disabled = 1
@@ -192,8 +192,8 @@ p7 fetch.file.huggingface.status
 - [ ] zenka starts on-demand cleanly
 - [ ] downloaded file appears in `p7c coding.list-models` output after completion
 
-#,,..,,,.,,..,,.,,,.,,,.,,,..,,.,,,,,,..,,,..,..,,...,...,.,.,.,.,.,,,..,,.,,,
-#7VPAK2MF3UKP5OTULQBZU4GDI7NZR7MTSEIPPG5L2PMCCVMRDNKY6EATRHZCD5KSOTTFKRLI6E45E
-#\\\|5BXJJXV56ERP4KLPZGMPEEPNIQOKKQFMVEPAHUTUDBTJHLD7ZMN \ / AMOS7 \ YOURUM ::
-#\[7]OJK6NPKV2SFUEK7FSKA2BXAOL6PGRLEWDQ2AQQNQFH57NKW6MAAY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,...,,,,,...,,.,,,,,,,,.,,,.,..,,...,.,.,,..,.,,,..,,,,,,,.,,
+#PRXQ36FQ4F6DIQZM76NDP3AAXXQ4NFMNYASDI2SDCWYQ4HHYHXBJ4IDWF5U2NROFISYGISBOBIPD4
+#\\\|4CKXGMI54BU3CXZAWCHMC433QCXAFND66QVLYIC7YM2N4OAX54Y \ / AMOS7 \ YOURUM ::
+#\[7]PM4NSS46EBFVV2CSFK7WCD2RBEGEETEOTGIZN3QAYCATVYYV2WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

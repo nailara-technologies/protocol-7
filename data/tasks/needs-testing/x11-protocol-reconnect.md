@@ -46,14 +46,14 @@ do not add or modify subroutine whitelists — these are managed separately.
 cat modules/X-11.post_init           ## find the LLL error handler (lines ~135-148)
 cat modules/X-11.connect_X11         ## existing retry loop to extract from
 cat modules/X-11.init_code           ## cfg defaults pattern
-cat configuration/zenki/X-11/start   ## where to add new cfg keys
+cat cfg/zenki/X-11/start   ## where to add new cfg keys
 ```
 
 ---
 
 ## fix 1: add cfg defaults in init_code or start
 
-file: `modules/X-11.init_code` or `configuration/zenki/X-11/start`
+file: `modules/X-11.init_code` or `cfg/zenki/X-11/start`
 
 add reconnect configuration defaults:
 ```perl
@@ -172,8 +172,8 @@ grep -n 'reconnect\|error_handler' modules/X-11.post_init
 - [ ] sleep/timer approach matches existing event loop pattern
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,,.,.,,,,.,,.,.,...,..,,...,,..,..,,..,,..,,...,...,,,.,,.,,,.,,,,,,.,,,
-#64F7TVKBH3NKM7Y266IKMXJWOE5VQOR4SNFHD53MKDIFEVIQ6YX7KENF5YWPRCHJFKT6FOCCNJRN2
-#\\\|NKJHPMFKXABKZBWULJHKA3KNBEXXG4HEWIWNMMPHO4CDYASSTAR \ / AMOS7 \ YOURUM ::
-#\[7]IKGXATDGNI3WF6DAZBE5P4U45YDWWOXYVFVL7V634ZBOYAW77ICY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,..,,.,.,,,,,,.,,,..,.,.,,,.,,..,..,,...,...,.,,,..,,,,.,...,,..,
+#AVFWH5SYEFCMSBPPKEK5BZYHG65L7IIXCXXWMA5YB7PUZB35KY25QPR35PZJEDPS6CSORRZXOGUVY
+#\\\|PDSER2K522Z65O4DRCNLHI4PHLWJK6W5VKBHB7RS462RZK72MKK \ / AMOS7 \ YOURUM ::
+#\[7]Q5YNW7X5REM42LPD6VZFVFNY6OCLWWKQXC4EFRDYJZJ2FSRJTMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

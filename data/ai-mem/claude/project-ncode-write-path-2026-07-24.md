@@ -57,7 +57,7 @@ full live shakeout of `ncode`'s never-before-tested write path. See
   (file, group-write) became ncode's `"gwd"` (directory only), and `create`/
   `mkdir` were never ported at all. User's framing: "it was only ported,
   never used."
-- **`configuration/zenki/ncode/{start,subroutines.load-early}`** — `suggest`/
+- **`cfg/zenki/ncode/{start,subroutines.load-early}`** — `suggest`/
   `apply` opened on `ncode`'s cube command whitelist (previously withheld
   pending the signature-gated approval system, see
   [[topic-write-access-security-infrastructure]]) explicitly for this
@@ -113,7 +113,7 @@ shape as `suggest`) to expose it via `p7c`.
 **Root cause of why it silently failed at first** (`"subroutine
 context.diff.find_line_changes not defined"` despite the whitelist looking
 right): `context` is its own zenka namespace
-(`configuration/zenki/context/`), and `ncode`'s `modules.load` never
+(`cfg/zenki/context/`), and `ncode`'s `modules.load` never
 included it — same class of incomplete port as the `chmod_child` gap above;
 `coding` already loads `context` for the same reason, `ncode` never got it
 added. `bin/dev/gen-sub-whitelist`'s namespace-leak-prevention filter
@@ -166,8 +166,8 @@ bug the fix exposed and also fixed, in [[topic-next-steps]]'s done log.
   or reviewer-gated, or gets folded into that bigger design is an open
   decision, not yet made.
 
-#,,,,,,,.,,,.,,,,,.,,,,,,,,..,,,,,,,,,.,,,.,.,..,,...,..,,.,.,.,.,.,.,,,.,...,
-#MQOUDXR33IJIPMABZALN7EDEQRPUXQMKI2XBNTYVN32QF3QKFEQRZSV7MHBMERCSVDEG2KYPA2ME2
-#\\\|BGAQTDHYO4CD3CMFOW4XHWMTLHZKZDE7DUFIVPXKD5IXYA5HIJN \ / AMOS7 \ YOURUM ::
-#\[7]6XYUAHHZTKDWW73VQEOPNOF4AETIF6YV7NHAG7EPNAW3BVMZ3MBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,,,.,,,.,.,.,,,.,,..,,,.,..,,..,,...,...,.,.,,,,,.,.,.,.,...,
+#HNEHD2Z6D7ZRJRKZDQ6FTDATPE3YV6JPKZKDFYMXCGNEETDEERRWZ53LFO3G4RH7EESD5QDZ4DF2Q
+#\\\|UZBIYH3M6TE4D3BFOWWKGLOYM3QL73WXSTIFM24YLHEK6BINLGB \ / AMOS7 \ YOURUM ::
+#\[7]EP6BP2GMULL7T333KUHB3XR2PJDBRWPWH52SWPESAYDP7UEM3ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

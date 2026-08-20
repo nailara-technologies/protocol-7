@@ -57,7 +57,7 @@ user's backup) into repo artifacts. committed as `737836d5d`.
   (jobs-pipeline-2026-06-28.md); real-estate port = greenfield + the
   framework's generalization test case.
 - **hybrid LLM governance (cloud)**: greenfield. terminology trap:
-  `configuration/external-inference-models` = LOCAL backends (lmstudio/
+  `cfg/external-inference-models` = LOCAL backends (lmstudio/
   ollama on 127.0.0.1), NOT cloud APIs. `coding.sanitize.jinja_messages`
   is jinja-safety, NOT privacy sanitization — a real `sanitize.request`
   module for the layer-2 boundary is still to be built.
@@ -83,8 +83,8 @@ user's backup) into repo artifacts. committed as `737836d5d`.
   relationship-to-existing-systems table when overlapping implemented areas
 - user signs + bumps version afterwards; commit only after their go
 
-#,,,.,.,.,,..,,,.,,,,,,..,...,,.,,,,,,.,,,.,.,..,,...,...,,,,,.,,,,..,,..,,,,,
-#OZFCFKKN3IRSGR3T5FZIINW3JRVEZK5GZIBDHXQCVLOYHU64ZCNF2MQHZ4EB3ND6IU46UHHKW4GHA
-#\\\|R6LIBN7OQQJ5T6I7PG5UXACWCFCMDPA4JPO4JXC6ZJ32LRSWH65 \ / AMOS7 \ YOURUM ::
-#\[7]SR7BGYQBRRTSVA46AOIX7WY4UMCYH6W57T4NGG5JAK76NFPFYIDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,.,.,,,.,.,,,,.,,.,,,..,,,,.,..,,...,..,,...,...,,,.,.,.,...,
+#B4HEHUSE2VZWNJJH4ZCR4DC7XS3JRPQYEQV2EMRKXE25XJUIDSGYZTENTYCFLBS7UVW7QINAXDO2O
+#\\\|HDY7R6C44BET2GITK3V6YQMY3S5A5MQLCEEHAJT4CF2RJKQQHQG \ / AMOS7 \ YOURUM ::
+#\[7]WBXNFI2CGMCUZPPHWAVPQT7NYLAZMPHSW3LPIRNUZXMYAZMXTYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

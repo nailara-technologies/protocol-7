@@ -523,7 +523,7 @@ sub restore_backup {
     }
 
     # Restore files
-    system("cp -r $temp_dir/configuration/* $target_root/configuration/");
+    system("cp -r $temp_dir/cfg/* $target_root/cfg/");
 
     if ($verbose) {
         print ":: backup restored successfully ::\n";
@@ -554,8 +554,8 @@ sub _add_path {
 
 1;
 
-#,,,,,,..,.,,,..,,,,.,,.,,.,.,,..,..,,...,..,,..,,...,...,.,.,.,.,.,.,.,,,,,,,
-#F5U3IBPZ3OI5ITXHIZXXDLYTUXCSZTBDY3G7MRPAYVAW4KYWD32TQE7QCUC5Y72OKUA2QJT7ZJRX4
-#\\\|WSEI73BSMZOR2HEZOV5A2NTQJWLXA33OT63PYMSUB7GNKRQTLWB \ / AMOS7 \ YOURUM ::
-#\[7]5PPVKRLXFKIQHRPOCAYE6GPRH6EKNNC6LZW37KAAI37EF6G4Y6CA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,.,.,,..,.,,,,..,,,.,,..,,,.,..,,...,...,,..,,..,...,.,,,.,,,
+#FXUEAGRMCA44V34T5OZKU2DQPIB7SXRX45CWO5OU6RFJVZZCVFT4K5LGALASI3SUAHBAYOLWBUS62
+#\\\|ATJVFESOQWILRFUY6MR22XHK4ZQKZAQ5TMZETZIU3DGDRI3HDEV \ / AMOS7 \ YOURUM ::
+#\[7]ROS4IAGOGABWUUG2WUHJUCP6HYPIWSFGMHRPF4F26LTYIK4ETECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

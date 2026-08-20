@@ -249,7 +249,7 @@ image.tournament.*                tier-1/tier-2 slot management
 
 ### phase 3 — image viewer zenka (1 session)
 ```
-configuration/zenki/image-viewer/ start, access, zenka-startup
+cfg/zenki/image-viewer/ start, access, zenka-startup
 modules/image-viewer.*            GTK3 + SHM display loop
   image-viewer.init_code          GTK3 init + window-place request
   image-viewer.cmd.show           receive path, load into SHM buffer
@@ -284,8 +284,8 @@ invoke.handler.poll_jobs          → ✗ replaced by async http client pattern
 invoke.init_code                  → ✗ retired
 invoke-web.cmd.*                  → ✗ retired (spawn handled by image zenka)
 invoke-web.handler.*              → ✗ retired
-configuration/zenki/invoke/       → ✗ archived
-configuration/zenki/invoke-web/   → ✗ archived
+cfg/zenki/invoke/       → ✗ archived
+cfg/zenki/invoke-web/   → ✗ archived
 ```
 
 the InvokeAI process itself may still be available as an optional backend
@@ -325,8 +325,8 @@ architectural vocabulary it already speaks. [:
 - [[FASTTEXT-CATEGORICAL-MEMORY]] — the rolling triple-window that makes
   visual style memory stable across sessions
 
-#,,,,,,,,,,..,,,,,...,..,,.,.,,,,,,,,,.,.,...,..,,...,...,,.,,...,.,,,...,,.,,
-#FZTYL766ZRNEGVSV3VJ2OZNPHEYZE3JW6O3O3YYSDFW3MSYL5YS52CUKGUXYALWGMMSMLRHMVOUFC
-#\\\|F2RYRNNXYJXHXAPRPFUBSEO3K5AVDDLEHXW3LALTS47EHO4ZK4B \ / AMOS7 \ YOURUM ::
-#\[7]IVEYUK4QVGWZ74XQZDRBA6P6KBBPKG52YCI4P6UDJ2NFFGWIH6DI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,.,,,,.,.,.,.,,,,,.,,,.,...,,.,,..,,...,...,,.,,...,.,.,,..,,,.,
+#7LVAGFEY3HREAEB3UJ5UA5KR4JK56GJL3BXWDZBD7BQXLFITUO3DVV33A6MPJTLDNYGBNAXEKJKK2
+#\\\|ID5DUJVTXFM76JEDSEYVWE3SI5SGMXJ7WQWU6OUV7IYG3GLEKOV \ / AMOS7 \ YOURUM ::
+#\[7]YWQHQX6SLEMHFNOLPBGMCGARMPUJG5WDMZ4LR2H4PJOWDKQ4LCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,80 @@
+
+.:[ variables shared by most zenki ]:.
+
+[load_config_file:'network/protocol-version']
+[load_config_file:'network/net.name']
+
+[load_config_file:'system-user-map']
+[load_config_file:'devmod-commands']
+
+[load_config_file:'system-language']
+[load_config_file:'logging-configuration']
+
+################################### #
+system.access.wildcards.allow = yes #  <--  disable later [ command security ]
+################################### #
+
+devmod.exec-sub.allow-params = 1  ##   <--  security relevant  ##
+devmod.reduce-devmod-loglevel = yes ## <-- not log level 0 for devload loading
+
+system.local_config_dir      = /etc/protocol-7
+
+crypt.C25519.autocreate-user-key = yes ## enable to auto-generate user keys ##
+
+chk-sum.elf.allow_external   =  yes    ## allow calling of /usr/bin/elf
+
+buffer.zenka.max_size        =  130777 ##  zenka log buffer size
+default.max_size.log_buffers =  130777 ##  adjust as desired ..,
+
+limits.client_sessions       =  77777
+limits.routes.combined       =  57777
+limits.routes.per_client     =  7777
+
+size.buffer.input            =  242707
+size.buffer.output           =  242707
+
+##  protocol 7 authentication timeout  ##
+protocol-7.connection-timeout = <protocol.protocol-7.authentication-timeout>
+
+##  auth-keypair [ remote server ] default port  ##
+#
+protocol-7.remote.default-port  =  42
+
+## manual [ listen port ] override ####
+## protocol-7.network.external.addr  =  0.0.0.0
+## protocol-7.network.external.port  =  47
+
+## protocol-7.network.internal.addr  =  127.0.0.1
+## protocol-7.network.internal.port  =  57
+
+## local 'zulum-13' entropy channel ##
+protocol-7.network.zulum.addr = 127.0.0.1
+protocol-7.network.zulum.port = 13
+
+net.local.web.addr           =  127.0.0.1
+net.local.web.port           =  847       #  <-- ..calculate as well., [ LLL ]
+
+## web content paths ##
+system.web-root-dir          =  data/web-root
+system.web-root-vhosts       =  data/web-root/vhosts
+system.web-root-shared       =  data/web-root/shared
+system.web-root-templates    =  data/web-root/shared/templates
+system.web-root-static       =  data/web-root/shared/static
+
+sigterm.timeout              =  5
+system.max_routes            =  13747
+
+
+## prefix command parameters with source zenka name ##
+alias.when-present = when-present SOURCE_ZENKA
+
+# base.devmod.keep_on_reload  = 0  # <-- whether devmod module persists reload
+
+### feel free to override these values in       ###
+### './cfg/zenki/<zenka-name>/start' ###
+
+#,,,.,,,,,,..,,.,,,,.,,.,,...,.,,,.,,,...,,,,,..,,...,...,...,,..,.,,,...,,,,,
+#W3V6MP5ESUSXPKOZDQKPRKBB4ZSJ5NJ7HVYUTCDNPE2V2JH3EU6AOEB2FA33T3S3V474CSQLYXQZQ
+#\\\|TD74BVMFU2SB2DAYQUMFHJYSG6JH5OAC7FW3TLS24PBJWU5B3WU \ / AMOS7 \ YOURUM ::
+#\[7]OL4M7TYOBWR2NECRRVW7GZTYLUMWZMV3Y56MXNB7U7WKCDLPOWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

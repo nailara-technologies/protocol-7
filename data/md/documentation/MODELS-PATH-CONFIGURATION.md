@@ -2,13 +2,13 @@
 
 ## Centralized Path Management
 
-All model storage paths are now defined in **one location**: `configuration/external-inference-models`
+All model storage paths are now defined in **one location**: `cfg/external-inference-models`
 
 This file is included in zenka startup after `shared-params` and provides consistent paths across all zenki (models, lm-vision, coding, etc.).
 
 ## Configuration File
 
-**Location:** `configuration/external-inference-models`
+**Location:** `cfg/external-inference-models`
 
 **Included in:** Models zenka (and other zenki that need model paths)
 
@@ -77,7 +77,7 @@ my $path = $ENV{'MODELS_LMSTUDIO_DIR'} // <external.models.lmstudio.path>;
 To use these paths in other zenki (lm-vision, coding, etc.):
 
 ```perl
-## In configuration/zenki/YOUR_ZENKA/start
+## In cfg/zenki/YOUR_ZENKA/start
 #include <shared-params>
 #include <external-inference-models>
 
@@ -126,15 +126,15 @@ export HF_CACHE_DIR=/var/cache/huggingface
 
 To permanently change a path, edit:
 ```
-configuration/external-inference-models
+cfg/external-inference-models
 ```
 
 And modify the value at the top of the file. All zenki will pick up the change on next start.
 
 ---
 
-#,,..,,,,,,.,,,..,,.,,,,,,,.,,,.,,..,,.,,,,.,,.,.,...,...,.,,,..,,..,,,..,,..,
-#6E2OY32P66HO2NLYU2TNSCV5RL3F46IMA2GU2PGO6XAEFVRR47THKIBNYPLJRRTAN4GYEU5G4DSA2
-#\\\|SYQPGSEPIYNXC7ZIFLDW6CFYCI3EBMQJHLFE7HAZIECEZJB5AKJ \ / AMOS7 \ YOURUM ::
-#\[7]EVKQFUEZR3ZBFDZ6H5UUSS3AUXKC3CMA2MUBRYUDHGOSLCUGBMAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,,..,..,,.,.,.,,,,,.,.,,,..,,.,.,...,...,,.,,,,,,,,.,.,.,,.,,
+#SNA7VJY3JGYW7RASEYKDFEOFDZY46WM2VWHIQMNCM5RA2WNVACKXILL7SMJW2PAEGIBQ46E2XJQQ6
+#\\\|2RBXTQPOOKDIUQHIYB5PVNBZ7CSGIKPTJY465EIKESNODJOQSDQ \ / AMOS7 \ YOURUM ::
+#\[7]EDYNMKXKJYESIKLIRN7RA4NWMEOPLIS3BDMLZKP6COG6D2GBR4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

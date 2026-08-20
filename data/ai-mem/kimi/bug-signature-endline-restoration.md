@@ -58,7 +58,7 @@ silently did nothing.
 running `update-version ; us ;` on a clean repo triggered the warning exactly once
 for `modules/source.extract_sig_body` itself (a legacy malformed file). with both
 fixes applied, the file was caught by the clamp guard, forced to re-sign, and all
-subsequent runs are warning-free. `configuration/protocol-7.src-ver` (no footer) does
+subsequent runs are warning-free. `cfg/protocol-7.src-ver` (no footer) does
 **not** trigger the warning — confirming the warning only originates from signed files
 with a structural mismatch, never from unsigned files.
 
@@ -73,8 +73,8 @@ with a structural mismatch, never from unsigned files.
 - commit `26bad5e0e` — removed `harmonize_payload_line_feed` state 0/7 early-return
 - `bin/dev/tests/timing/test-endline-state7-oscillation` — regression net for the original bug
 
-#,,..,,,.,,..,...,.,,,,..,..,,.,,,,.,,..,,,,,,.,.,...,..,,,,,,..,,,,.,...,.,,,
-#EQZEINDQDGWW2PRNASRRAC43JG33NCLD2Z2BM562UEZ4XIN3SMJNOCDQAFVUM6HQAGHEKLG7HGTV6
-#\\\|3STAJCMW5WPMRBZ4SB5SSBSNRBZQLARSKG5X7YWP5PAJK5YCHKW \ / AMOS7 \ YOURUM ::
-#\[7]ZW3CEL7VQP23DNHWPJ555YMAIPB3FLJE4CE5QCTIZPNX5BFSWYCI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,,,,,..,,,,,,..,,.,.,..,,.,,,.,.,...,...,.,.,.,.,,.,,.,,,.,.,
+#QF7XAU7R2DZWJUP7KWCRUW5MKXMYE7ZMQTGMQ4C2CRGZYK63WXI3PLBQ3JZZVF27MCNGVSID4SN2Q
+#\\\|VFOPFQAEZ2OLUD5BRI2RPHQYCTRXZN77VB4FRWCBC55IUILS7ID \ / AMOS7 \ YOURUM ::
+#\[7]NBJ3FJHNIIZBFMPWNQ2IULHMSF6TNOKB4RKF2D5ND4BJNI3R7UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

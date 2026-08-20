@@ -75,7 +75,7 @@ for genuinely external state is to stop writing it inside the repo tree.
    don't exist on disk today. Confirmed superseded, not just unused: e.g.
    `index`/`index-mem` zenki already moved to absolute
    `/data/index/...`/`/data/index-mem/...` paths
-   (`configuration/zenki/index/start`, `configuration/zenki/index-mem/start`),
+   (`cfg/zenki/index/start`, `cfg/zenki/index-mem/start`),
    not `var/index` at all. Re-grep at implementation time to be sure nothing
    new picked these paths back up, then delete the four lines.
 4. **`inbox/` and `archive/` under the renamed chat dir** — remove both
@@ -108,8 +108,8 @@ for genuinely external state is to stop writing it inside the repo tree.
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,,.,,.,,,,,,,.,,,.,,..,,.,.,..,,,.,,.,.,...,..,,...,...,...,..,,,,.,,,.,...,
-#TTZIWWTWIE7TVR5WJGHTR4XYUPXSLKNLKC6HPGDUUUQ34TWH5WGFXTTWK6NFYL5G4BPNSJPOTPED6
-#\\\|HSQSQJPDZMVSB7VO27ZEZD75QOINV3PQHOT6PIQHPUWE4UHWPBV \ / AMOS7 \ YOURUM ::
-#\[7]P7BSAMIN7CP3VFWOYJWHDWF6V7JKWDAZNH346AEU72D42SOCFQDA 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,,,.,..,,...,...,,.,,.,,,,,.,..,,...,...,,..,,,,,.,,,,.,,.,.,
+#A6ZKPPNMOQLUCNX5I7MQBZNNEQXVRJUPSAWBQNH2A7RHFXNYYDHIZFARJNKUFYFBGKRUMH3HHHOUU
+#\\\|RTNIMC4T3QDXK3XWLXGHOUDB7B5MJWTAIZD2BSQRH5BYH7F7NFF \ / AMOS7 \ YOURUM ::
+#\[7]ZYQECEAOM66ADKAYLFYK7TNPNTOX4SGYADMWMI4BW7EJIM4DX6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

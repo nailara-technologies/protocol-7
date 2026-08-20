@@ -184,7 +184,7 @@ render the minimap HTML using the browser zenka / xvfb:
 ## zenka configuration
 
 ```
-## configuration/zenki/visual-feedback/start
+## cfg/zenki/visual-feedback/start
 [load_modules:visual-feedback.capture-sequence visual-feedback.analyze-delta
               visual-feedback.render-minimap]
 [init_modules]
@@ -192,7 +192,7 @@ render the minimap HTML using the browser zenka / xvfb:
 ```
 
 ```
-## configuration/zenki/visual-feedback/zenka-startup.v7
+## cfg/zenki/visual-feedback/zenka-startup.v7
 start.on-demand = 1
 restart.disabled = 1
 heartbeat.disabled = 1
@@ -252,8 +252,8 @@ p7 visual-feedback.render-minimap '{
 - [ ] peak frames in minimap have gold border (visual distinction)
 - [ ] full sequence from iris.html → minimap.png completes in under 30 seconds
 
-#,,,.,,,.,...,,.,,...,.,,,,..,..,,.,.,...,,..,..,,...,...,.,.,..,,,.,,,.,,,,,,
-#ZFJFGDBHEK3SC42OLXXAWKAABW4TIBMFXYTTKV6U4TJ2JGPAUQZAQC2R5H4DHJRNSNVVXHSCRJCVA
-#\\\|JD3YJ4TUOWXA37MXRJXNMP6Q76GSKST4FN5FKY3GRKLKIJ6O4TB \ / AMOS7 \ YOURUM ::
-#\[7]W7EYRI57BI2VBP7FAN5XUWH3PCKANFLQI6GS42KQWLHLZVGXM6AA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,.,,,..,.,.,,..,,.,,,,,,,..,...,..,,...,...,..,,,..,...,,,,,..,,
+#45JCZRSMGA34NSL2GFU35K75YRSCCLKYF4PNVOIPUZSY6RPG5WGFKQTMZR7FUQY5IL7HY5QLHXCIK
+#\\\|MOLLR7DIQ6A6BAEJAOWFMM2VOLSXGMKLWGCCZDM5QS7LCAZZX2R \ / AMOS7 \ YOURUM ::
+#\[7]GSTW7NR2TA6RKXM2SOIXGT4VVDWSDDYAMOC5U2CQTBCSP52E4YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

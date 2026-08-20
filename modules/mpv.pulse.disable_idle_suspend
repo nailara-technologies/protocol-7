@@ -17,7 +17,7 @@ return FALSE if $pulse_server !~ m|^unix:|;
 local $ENV{'PULSE_SERVER'} = $pulse_server;
 
 ## NOTE: this must run after base.init_code [ POSIX/IPC::Open3 autoload ] ##
-## has executed -- see the call site in mpv.init_code, not configuration/ ##
+## has executed -- see the call site in mpv.init_code, not cfg/           ##
 ## zenki/mpv/start, which runs before [init_modules]                      ##
 
 my $result = <[base.exec.with_timeout]>->(
@@ -34,8 +34,8 @@ my $result = <[base.exec.with_timeout]>->(
 
 return TRUE;
 
-#,,.,,.,,,,.,,.,,,.,,,,,.,,..,.,.,,,.,.,.,.,.,..,,...,...,...,.,.,,.,,,,,,,,,,
-#TXO2EBRADLXAZ3BK2L4LV7DXOJYK4WSKGSCFYO4VFZYZYI6YYYWIUBLWMVO5S4JQYFAXT4PXBT3RG
-#\\\|5GWDOALWULUOQ7S6BIZBK4MWRI66FDKD53Y7KY5GNZNFYE4EHEI \ / AMOS7 \ YOURUM ::
-#\[7]ONJH6QONLLBIX2352ANZOBOAWUXYLVRUVUPJEAQHZYFJLB5KXWAI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,.,,,.,,,...,..,,..,,.,.,..,,..,,...,..,,,.,,,,,,,.,,,,,,.,.,
+#7XPF34OKXI4VUHTXBFVT2HL2EEWNWQ67SJ7WMPAOIJYEFQJVDGBDKGF3ST6TRXDLDXQ5ROD7NULH6
+#\\\|S77JS6E3VPGS24U6JGXYBQXHP72XIGLJJBGXV32KUCN6OQ3574X \ / AMOS7 \ YOURUM ::
+#\[7]HHNQYQ6IZ2NN7WFAPQB7FGYT65PMCUCWXQED2J5PMDK77WQJYMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

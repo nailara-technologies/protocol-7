@@ -33,7 +33,7 @@ proxy and failing. Fix: explicitly set
 `WEBKIT_NETWORK_PROXY_MODE_NO_PROXY` in the `else` branch instead of
 leaving WebKit at its default.
 
-**RESOLVED same day**: `configuration/zenki/web-browser/start` originally
+**RESOLVED same day**: `cfg/zenki/web-browser/start` originally
 called `[web-browser.proxy_setup]` at line 127, **before**
 `[web-browser.open_window]` at line 128 — and `open_window` is what
 assigns `<web-browser.gtk_obj.web_context>`. So on every normal boot,
@@ -66,8 +66,8 @@ not scoped to one host). The proxy call-order issue is now fixed, so
 `use_proxy='no'` reliably means no proxy on every boot, not just when
 timing happens to work out.
 
-#,,.,,,,,,..,,,.,,,,.,.,,,,..,,.,,,.,,,,,,.,,,..,,...,...,...,,,,,,.,,.,,,,,,,
-#3JB3EKR2G37P7CVXLRA4PYNIUCVDCSDX4TWRQIMGARRZPCKYS6D7MZGF2FOEJPZOASOPWGEJJPVMQ
-#\\\|6QCSNXLDMRSNEAZN4QBQKTZZOGKX7JVB3MFCRNDU2M3B752BVG4 \ / AMOS7 \ YOURUM ::
-#\[7]JYN3I7VG2ZI4JM3NR557BL7C2X274DMRZLPQFIYXKZNADBCET2CA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,..,,,,,,,.,,,,,,,,.,.,,,,,.,..,,...,...,..,,,,.,,,.,.,.,..,,
+#4DACS7Z4C7MBKZ63JSPGLTPIIZXKHSS4SYWZRCBW4LV3XUODTH2QYJOSDZYU2BPRLTJPFNAUMFJQ2
+#\\\|PC2BIGDTOK5MBGH32VVGVVEN6YRIXK6AN36HQ4HA7IUAMMCZUYW \ / AMOS7 \ YOURUM ::
+#\[7]6BLJVCOO4XZWPATHVKVXTKYK7SJ4THIUR3C762XT7MNJIO6Q6IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

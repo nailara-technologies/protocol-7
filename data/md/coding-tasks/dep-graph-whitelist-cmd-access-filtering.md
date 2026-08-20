@@ -52,12 +52,12 @@ shared namespaces are loaded by most/all zenki via `base.*` and are always
 valid targets: `base`, `io`, `net`, `auth`, `protocol`, `plugin`, `event`,
 `file`, `chk-sum`, `log`, `crypt`.
 
-zenka-owned namespaces correspond to directories in `configuration/zenki/`
+zenka-owned namespaces correspond to directories in `cfg/zenki/`
 — these should only appear in the whitelist if they are in the loaded set.
 
 the filter logic:
 1. build `%loaded_ns` from `$loaded_set` top-level prefixes [ already done at line 856 ]
-2. build `%zenka_ns` by scanning `configuration/zenki/` directory names
+2. build `%zenka_ns` by scanning `cfg/zenki/` directory names
 3. for each sub in `%reachable`: extract top-level namespace prefix
 4. if prefix is in `%zenka_ns` AND NOT in `%loaded_ns`: remove from reachable
 5. subs with non-zenka prefixes [ shared namespaces ] are always kept
@@ -94,8 +94,8 @@ no special handling needed — the two filters compose correctly.
   (line ~628), `$loaded_set` construction, lifecycle-subs loop (line ~846),
   access.cmd filter (line ~884)
 - `bin/dev/gen-sub-whitelist` — whitelist file writer
-- `configuration/zenki/*/subroutine.white-list` — generated output
-- `configuration/zenki/*/start` — `modules.load` defines loaded set
+- `cfg/zenki/*/subroutine.white-list` — generated output
+- `cfg/zenki/*/start` — `modules.load` defines loaded set
 - `modules/plugin.auth.auth-keypair.tofu-notification` — example leak path
   [ calls channels.cmd.update ]
 
@@ -103,15 +103,15 @@ no special handling needed — the two filters compose correctly.
 
 - do NOT hardcode namespace lists to filter [ httpd, httpsd, etc. ].
   the filter must be generic: derive zenka-owned namespaces from
-  `configuration/zenki/` directory listing, check against loaded set.
+  `cfg/zenki/` directory listing, check against loaded set.
 - `walk_reachable` itself should remain unconstrained — the filter is
   a post-pass, not a walk boundary. this keeps the walk simple and
   avoids breaking the reachability analysis for other output modes.
 - the existing access.cmd filter (Phase A) is already correct and
   composes with this fix — no changes needed there.
 
-#,,,,,,..,.,.,,,.,,.,,,.,,.,,,,,,,,.,,...,,..,..,,...,..,,...,..,,,..,.,,,...,
-#AEDASVB6ZCKGUCCO5RF4GC5ALDSAC2L5OZ5CEQBDOLSMAPAEAI7AJIWJ2ZV7KKACREUX5S7RBVIWY
-#\\\|BQ74P2EB3UPG7NZSFZI3LNZZDUEJMPOEYRC4O3I2ZYRDBECBIPW \ / AMOS7 \ YOURUM ::
-#\[7]OHTWBPXCPH5RMXWLE5N5HC3FFAXKYVQOWRT2IBGPYBEY6HPVLIAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,,..,..,,,.,,..,,,,.,.,,,,,,,..,,...,...,.,.,..,,...,,.,,,.,,
+#VLBVXDFZ6IYE7EVGKZRT5XPPZ5OIZG7C5SJFLL775TM6LXZ5PVDSMFRIOCQEN5OBJLRFAEEVAGJDS
+#\\\|E63WRRPASALALZFLIO3D3EU6PR7VJ3DMVDNBAMX2QQLDD43NOVJ \ / AMOS7 \ YOURUM ::
+#\[7]3OZXN7MIL2HPE52RMDDCSCV3M6N6677ICATBWDPOJDOHT6BJX2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

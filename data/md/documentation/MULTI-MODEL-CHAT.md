@@ -99,13 +99,13 @@ Default: 10 spaces (configurable via `<models.cfg.tab_width>`)
 ## Integration Points
 
 ### Cube Alias
-`configuration/zenki/cube/command_aliases`:
+`cfg/zenki/cube/command_aliases`:
 ```
 setup.aliases.source_zenka = ... models.chat
 ```
 
 ### Access Permissions
-`configuration/zenki/models/start`:
+`cfg/zenki/models/start`:
 ```
 access.cmd.usr.cube = ... chat request ...
 ```
@@ -157,8 +157,8 @@ p7c models.chat  # Shows last 20 exchanges
 - `310ea2236` - Use bracket notation for content markers
 - `6b1382aa4` - Add content-addressed announcement system
 
-#,,..,,,,,...,.,,,.,.,.,.,,..,..,,,,.,,,.,,,,,..,,...,..,,...,..,,...,,.,,.,,,
-#UJRJVW4ANOG6XSNLNDMKAE7SKH2UMCYKAWTIEDRHDK7C4IXMOWOQFRODJDY24D5VNDWJNHMLEHPLS
-#\\\|ZWKFWCTFEGYHPNIZT6Q5TCYIDL2IY3L5EI3V5LSY6KR3FXQNWJC \ / AMOS7 \ YOURUM ::
-#\[7]GMUIHXIX6TATLT6BPRNZH7BOACOW7CQAT4SUV62AQPHEYL3HQCBQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,,..,,,.,,.,,,,,,,,.,,,,,,..,..,,...,...,,,.,,..,,..,...,.,.,
+#XQWRQKB2AF2QK77ZY56YFMEW5KTVZWQEHR6A2UMC7M72DIO7I4YTIZPDLQ2CKRI3CM2WPAMQRT7DI
+#\\\|2466FR46BUNL4JQOMRKBQWOFIZ7VTXX6RTWFZYXAXCVNHRQ3N7W \ / AMOS7 \ YOURUM ::
+#\[7]W4JGMTEIFCOGVVJ6QLEYCQA3QEHPRMTD5Z4KAGRTQPY5G6ZOCICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

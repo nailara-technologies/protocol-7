@@ -13,7 +13,7 @@ mark checklist items as completed alongside the corresponding commits.
 `bin/dev/dep-graph` already maps all module-to-module call sites statically.
 the dep-graph data structure is `$graph->{caller}{callee} = call_count`.
 
-each zenka has a start file at `configuration/zenki/NAME/start` that defines:
+each zenka has a start file at `cfg/zenki/NAME/start` that defines:
 - which modules are loaded: `modules.load = mod1 mod2 ...` (may span lines
   with `\` continuation)
 - the entry-point invocation sequence: bracketed `[cmd:param]` calls that
@@ -48,7 +48,7 @@ in the dep-graph, skip silently if not.
 
 - [x] add `-zenka=NAME` option to `%opt` and `GetOptions`
 - [x] when `-zenka` is set, locate start file at
-      `configuration/zenki/NAME/start` — die with clear message if not found
+      `cfg/zenki/NAME/start` — die with clear message if not found
 
 ### start file parsing (static only — no execution)
 
@@ -151,8 +151,8 @@ and `-stdin`.
 
 start files can include config files alongside module loading:
 ```
-load_config = configuration/shared-params
-load_config = configuration/zenki/cube/zenka-startup.v7
+load_config = cfg/shared-params
+load_config = cfg/zenki/cube/zenka-startup.v7
 modules.load = auth net protocol cube ...
 ```
 
@@ -238,7 +238,7 @@ these calls are detectable by the dep-graph scanner (already scans
 
 - [x] declarative rule format for resolving ambiguity
 - [x] LLMs write rules: `module_glob : var ~ /context_pattern/ -> resolution`
-- [x] rules stored in `configuration/dep-graph/rules/*.rules`
+- [x] rules stored in `cfg/dep-graph/rules/*.rules`
 - [x] rules applied automatically during analysis
 - [x] resolved sites removed from ambiguous list, reported as `[rule-resolved]`
 - [x] resolved targets added to reachable set (with `.*` prefix wildcard support)
@@ -258,8 +258,8 @@ these calls are detectable by the dep-graph scanner (already scans
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,,.,.,.,.,.,..,,,,.,,.,,,.,,.,,,.,.,.,.,.,,,..,,...,.,.,...,,.,,...,...,.,.,
-#FHLJYLASWW5LLRMRUJ5IRQ6AZUK2U6U6K2MHWMKG3LWUPEI2G37A34P57X5CJZSVJS5YGFHSZFYFA
-#\\\|B4OQGOYNLVKAOP66IV37V7AJ2GPNO2K2JWTX4VIXQX5CMUNCQTD \ / AMOS7 \ YOURUM ::
-#\[7]GOZJAITANUDI2KJIKUD32OKZFOWCUKNWYQNE7FW6MDTVUSQAQUDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,.,,,.,.,...,.,.,...,,..,,.,,..,,...,...,.,.,...,..,,...,..,,
+#XHUKV4KUAPF6HVN5ZOG22I2QJECNN57J35YEEMG67646QIRPO5Z3G4M2NNBRT5MEOSQ4MSABJMNHG
+#\\\|JZPVWHH4BNTBBH7QNTJIAHX545QIIXH57SBI32PRXNZMKD2LUCH \ / AMOS7 \ YOURUM ::
+#\[7]YHGXW3U3XO4WIXF5N5OBE3F5DGBPXTM4UKFQ6AI26E2CMIGUKABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ metadata:
 
 Two distinct, easily-conflated mechanisms in a zenka's config:
 
-- **`configuration/zenki/<zenka>/subroutines.load-early`** (renamed
+- **`cfg/zenki/<zenka>/subroutines.load-early`** (renamed
   2026-07-25 from `subroutine.white-list` — same file, same purpose, new
   name, see below) — governs **when** a module gets compiled. Listed:
   compiled eagerly at zenka startup, so a syntax/compile error surfaces
@@ -17,7 +17,7 @@ Two distinct, easily-conflated mechanisms in a zenka's config:
   way, except that when compilation is deferred with the enabled
   whitelist, compilation errors surface with usage instead of at module
   load time."
-- **`access.cmd.usr.cube`** (inside `configuration/zenki/<zenka>/start`)
+- **`access.cmd.usr.cube`** (inside `cfg/zenki/<zenka>/start`)
   — governs **whether cube routes a command name to the zenka at all**.
   Missing an entry here means the command isn't recognized as routable,
   regardless of whether the underlying module is already compiled and
@@ -37,7 +37,7 @@ control. Landed via `ncode.cmd.replace` for the string references (5
 files: `bin/Protocol-7`, `bin/dev/gen-sub-whitelist`,
 `modules/base.reload_whitelist`, `modules/coding.validate.module`,
 `modules/base.zenka.load_sub_list`) + `rename` for the on-disk
-`configuration/zenki/*/subroutine.white-list` → `subroutines.load-early`
+`cfg/zenki/*/subroutine.white-list` → `subroutines.load-early`
 files themselves, then `bin/Protocol-7 sourcecode update-signatures`.
 `bin/dev/gen-sub-whitelist` (the generator script) kept its own old name
 — only its output filename and the header it writes changed. That
@@ -71,8 +71,8 @@ so if a command is "not known" or "no permission," check `access.cmd.
 usr.cube`/`access.zenki` first, and only reach for `subroutines.load-early`
 if the actual symptom is a deferred compile error.
 
-#,,,.,,.,,..,,,,,,.,.,,,.,..,,.,.,.,,,,.,,.,.,..,,...,...,,.,,...,,..,.,.,,..,
-#KKLSKRDX6GB7VHJCMZERWRGOAOCP4AOIZ6CXZ5UX5IBDDKEV5GSPEHML6JMVHTG32V6LW62WLHVTK
-#\\\|HLKSI6PXQRIZO7H5JCTU3XHLLZABWUSLA6GSND5WBNYOAEGGLRY \ / AMOS7 \ YOURUM ::
-#\[7]KGLY7ZXLA6MTOQIZ63IAS5SK2P6XVUUCS5JEGS5MTVCCN7D76KCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,,,,,.,.,,,,,,.,,..,,.,.,,..,..,,...,...,..,,.,.,.,,,...,.,.,
+#AVAPEAGP6JMTJ3NBAZZPZ5CBLRLIZFGS6M6F7NGC3QJFPEG73VQMCN57LXGD4LPLELZJHNIAFU6FY
+#\\\|OP2HKTNXGMELK7HTWPIJVLJDC3HSCTDKKVDAL7YQQ2D2HPCCZC4 \ / AMOS7 \ YOURUM ::
+#\[7]ZCHXMF6VU56KORVWX3ZY6SXSL5C7YIB7YARTC2WR57GAVESJCYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -265,8 +265,8 @@ modules/visual-feedback.evaluate
 modules/visual-feedback.apply-corrections
 modules/visual-feedback.loop
 
-configuration/zenki/visual-feedback/start
-configuration/zenki/visual-feedback/zenka-startup.v7
+cfg/zenki/visual-feedback/start
+cfg/zenki/visual-feedback/zenka-startup.v7
 ```
 
 ---
@@ -274,7 +274,7 @@ configuration/zenki/visual-feedback/zenka-startup.v7
 ## configuration
 
 ```yaml
-## configuration/zenki/visual-feedback/zenka-startup.v7
+## cfg/zenki/visual-feedback/zenka-startup.v7
 
 cfg.capture_frames        = 60          ## frames to capture per cycle
 cfg.capture_interval_ms   = 50          ## ms between frames (20fps capture)
@@ -424,8 +424,8 @@ the vision model evaluates against the structured spec:
   overall convergence: weighted mean of field scores
   structured feedback: field-by-field corrections
 
-#,,,,,,..,,,,,,..,,,.,,.,,,.,,,..,,,.,,,,,,..,..,,...,...,,..,...,,.,,.,,,,..,
-#KJMCLA5FQEQCRAT3VLS3F3W436KDBIEJ3UC7OISCBTG5FCI2TYDH73KCYAYEQSLI3MD5QVBYPFEKS
-#\\\|PVQULVGB2TOPFFGEEDLVMB3B4A2OO7OWQPVUXSM5OOCALJ3O7HP \ / AMOS7 \ YOURUM ::
-#\[7]45G2CGOZIXJ2YOA5AMMS7ZHWV2ZA2ODKCVTBYIOMVLYMVK4ZAQDY 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,.,,,,,,,,.,,,.,,,,.,.,.,..,,..,,...,..,,..,,,,,,.,.,..,,,.,,
+#PHYAC42NWSF2XJGURVSLGRK25F2KNU7EEG5BOWDK3VDDFE76QNHDRHTB3QEARE245Q2J3YIXF2PBE
+#\\\|VIB3U6T5L5NMG5FYFGCBDS5BIPM4FKEHH4AUSFLATAMJ6J7ELCL \ / AMOS7 \ YOURUM ::
+#\[7]BBKH6HB6D42CNWY33T7EU57U27EAYMUPK22GI73BOI4PEHQGBCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@
 
 Three prior phases already exist and are committed — read the most recent one
 closely, it's your primary precedent:
-- `configuration/zenki/user-edit/`, `modules/user-edit.init_code` (skeleton,
+- `cfg/zenki/user-edit/`, `modules/user-edit.init_code` (skeleton,
   registers `VAR_P7`/`ETC_P7`/`HOME_N` path keywords — do not touch this file)
 - `modules/user-edit.outbox.write`, `.list`, `.clear` — the outbox module set.
   **This task builds the same shape for drafts, under a different directory.**
@@ -84,7 +84,7 @@ exactly, don't rewrite it differently.
   hook this into
 - any `phase_2_rendering`, `phase_3_form`, or `users.*` integration
 - do not touch `modules/user-edit.init_code`, `modules/user-edit.outbox.*`,
-  or `configuration/zenki/user-edit/start`
+  or `cfg/zenki/user-edit/start`
 
 ## Verification
 
@@ -116,8 +116,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 chose for the "skipped" return value and why, or if `mpv.snapshot.write`
 turned out not to exist under that name).
 
-#,,,,,,..,,..,,.,,.,,,,,.,,,.,...,,,,,.,,,,,,,..,,...,...,...,,.,,..,,,,,,,,,,
-#3JBQ4LFUCLJ2NJ5EJVZGA7BWAFQLZGZL6GBHV375XVLWE4BXOCEJ27PPMKFS4PBLEW7WH3MDO3ST6
-#\\\|U4QMFZMTYE5GHVSMOK6M3A7ICGRPK5GSCJHOMAM4HM3DZCQ7EGR \ / AMOS7 \ YOURUM ::
-#\[7]34IM2XI64EENUF276KVMU6Q4PJBU5ENYID2HZFTZPJK2EWMMR6BA 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,.,,.,,,,,,.,,,..,,,..,..,,,..,..,,...,...,.,.,,..,,.,,.,.,,,.,
+#L37X7VRKUBDBSYX3VS25D3NETUBEIJ2OS5KS3SUJRFYH4LOMWWBDVZADHIPVS3N4UOWFSX5RCE2JM
+#\\\|KJ2KXOJ67BI4CZDKHCQRJ5NXGCMZPSE6TDBYZDVKO6MF4LC7LRC \ / AMOS7 \ YOURUM ::
+#\[7]RVJ7J4YJTGPQU24GSZZP3BYT2FU7FZ5JLX52MTVBIEDCRHRB42CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

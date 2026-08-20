@@ -134,7 +134,7 @@ depends on B1-B5 proven locally first
 
 **existing infrastructure** (tested, load-bearing):
 ```
-configuration/zenki/graphics-matrix/start     — full start file, wired to cube
+cfg/zenki/graphics-matrix/start     — full start file, wired to cube
 modules/graphics-matrix.init_code             — cache dir, permissions, Graphics::Magick
 modules/graphics-matrix.cmd.assert-similarity — similarity assertion command
 modules/graphics-matrix.cmd.filter-c2a        — color-to-alpha filter
@@ -491,7 +491,7 @@ infrastructure being stable.
 
 **existing infrastructure**:
 ```
-configuration/zenki/povray/start   — full start file (auth, net, unix, zenka loop)
+cfg/zenki/povray/start   — full start file (auth, net, unix, zenka loop)
                                      wildcard filter command access
 modules/povray.init_code           — stub (0;), ready for implementation
 ```
@@ -578,7 +578,7 @@ enables the rendering pipeline for G, P, and B without additional work.
 ### web-browser zenka (78 modules)
 
 ```
-configuration/zenki/web-browser/start        — WebKit2/GTK3 kiosk browser
+cfg/zenki/web-browser/start        — WebKit2/GTK3 kiosk browser
 modules/web-browser.init_code                — WebKit2 4.0, transparency, GPU awareness
 modules/web-browser.cmd.load_uri             — load URL from P7 command
 modules/web-browser.cmd.run_js               — execute JavaScript from P7 command
@@ -603,8 +603,8 @@ modules/web-browser.handler.gpu_load_reply   — GPU load awareness
 ### X-11 zenka (95+ modules)
 
 ```
-configuration/zenki/X-11/start               — full X11 server management
-configuration/zenki/X-11-pointer/start       — cursor control sub-zenka
+cfg/zenki/X-11/start               — full X11 server management
+cfg/zenki/X-11-pointer/start       — cursor control sub-zenka
 modules/X-11.init_code                       — X11 connection, display init
 modules/X-11.cmd.set_opacity                 — per-window opacity control
 modules/X-11.cmd.set_geometry                — window positioning
@@ -841,8 +841,8 @@ D3 (lmstudio inference)  ·  independent, low priority
 E1-E3 (bugs)  ·  independent, opportunistic
 ```
 
-#,,.,,,,.,.,.,...,,..,...,,.,,..,,,..,..,,,,.,..,,...,...,.,.,,.,,,..,.,.,.,.,
-#RZ2KSYEKJSU3TFKYOVU3VHR2BATAKMPZVAPM3WRQYPGKGC4L3UHU7W7RROXG23JX4FPHJPMLYY7L2
-#\\\|AVMMNFVN3RAZ2ZORFE5ROJPMGYMZQFQVG26YQSGRB2ELUHDVKDN \ / AMOS7 \ YOURUM ::
-#\[7]3ZR7VID3BVELBOMRXE4QJDMHFF4WUTCHMPRZHYOAPKGGI2KO4GDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,,,,,.,,,.,.,.,,,,..,...,...,..,,...,..,,...,.,,,...,...,..,,
+#6B2G6BXTCGHGOX3KYR4NYQXQML6ZSDWUMEKDWVJDYSJWM3DLOCOEFM77NIUCURVZ6E4YYTGCIBQFM
+#\\\|TBMTTE5TCHM53SRZJDXWABFUQVFSS3EW7SBIITYUZHJDUU46EI5 \ / AMOS7 \ YOURUM ::
+#\[7]JJLNO3IQAIGCH6CX7EWWF4WZNXA6ZZ3CGDGQ4IASHZD7PKYF2WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

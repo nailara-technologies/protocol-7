@@ -36,7 +36,7 @@ confirmed this session: `stat -c '%A' /dev/shm` → `drwxrwxrwt`. the trailing
 may unlink it**, regardless of the file's own read/write permission bits.
 consequence, stated as a hard constraint, not a detail: **a sweep can only
 ever reap segments owned by the same OS user it runs as.** a sweep run as the
-`data` zenka's user [ `protocol-7`, bare, per `configuration/zenki/data/start`
+`data` zenka's user [ `protocol-7`, bare, per `cfg/zenki/data/start`
 — confirm if curious ] can never reap a `taeki`-owned orphan, and vice versa,
 no matter what permission grants are inside the segment's header — those
 grants are about **read access to content**, never about **who may delete the
@@ -222,8 +222,8 @@ natural — a hashref here ]. when done, state plainly: every file changed/creat
 with line ranges, full test output, and the one explicit non-goal [ no timer ]
 restated so it isn't mistaken for an oversight later.
 
-#,,,,,..,,.,,,.,,,...,,,.,..,,,,.,,..,,,.,...,..,,...,...,..,,,.,,,,.,,.,,.,.,
-#RYRTTUTLZ5RQNF3TOFDNE2O357R5XSRPJAWNHCGRTZFZ2DFFV3BK2ZH3XTPBY3YPTBK3MIYR52LBK
-#\\\|GDBTXEK2P4PZQNT577PIO3TZWMN7IG5R2XJAOTANJH7PMGMAQG5 \ / AMOS7 \ YOURUM ::
-#\[7]XFS25PLG5NKD6R6FIKDZFAV6DS5CFGHPM3OGDEL2OA4RQAETFUCQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,,,.,,,,,.,,,,,,,.,.,,.,,,,,,..,,...,...,,,,,,,,,,,.,,.,,..,,
+#2NRGFQYUZ5FL2GWUMU7IWMNLAD72YFRCCY3Q2N7MNQE45OR7VAQWYYZEICIDVREPO2PIEPUR7K2AK
+#\\\|7J3S5X4G4PI3IGUPSVVEPHC6WIYXEVPNNXCE4JVT63CUFYMSJJV \ / AMOS7 \ YOURUM ::
+#\[7]YDLDVVFGWS6Q3NE67ASY6T365YQ7POJIDFZZ3TCZXWKM7SLF7SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

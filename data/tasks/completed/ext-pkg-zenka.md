@@ -4,7 +4,7 @@
 
 ## context
 
-related: [[build-zenka]], os-pkg zenka (configuration/zenki/os-pkg/,
+related: [[build-zenka]], os-pkg zenka (cfg/zenki/os-pkg/,
 currently a stub — modules/os-pkg.init_code is just `0;`)
 source: dependency-coverage discussion 2026-07-29 — while scoping
 build-zenka's recipe registry, kimi-cli and claude turned out to be
@@ -63,11 +63,11 @@ contract (see goals below), not just the install step.
 ### task 1.1 — create ext-pkg zenka
 ```
 ## dispatch + prompt
-create configuration/zenki/ext-pkg/ following the zenka-startup.v7 +
-start script pattern from configuration/zenki/os-pkg/ (closest existing
+create cfg/zenki/ext-pkg/ following the zenka-startup.v7 +
+start script pattern from cfg/zenki/os-pkg/ (closest existing
 sibling — same "given a package name, install it" shape, just a
 different package-manager family). access.zenki pattern from
-configuration/zenki/cube/ or configuration/zenki/transport/. bootable,
+cfg/zenki/cube/ or cfg/zenki/transport/. bootable,
 stoppable, registered. no modules yet.
 ```
 
@@ -75,7 +75,7 @@ stoppable, registered. no modules yet.
 ```
 ## dispatch + prompt
 design a registry: one yaml file per external package under
-configuration/zenki/ext-pkg/packages/<name>.yaml — fields: package
+cfg/zenki/ext-pkg/packages/<name>.yaml — fields: package
 manager (pip | npm | uv-tool), package name, presence-check command
 (e.g. `which kimi && kimi --version`), install command. decide during
 this task whether cpan (currently under bin/p7-deps /
@@ -130,8 +130,8 @@ looking up a source and installing something by hand.
   global-install permission questions) stay isolated per zenka instead
   of accumulating as special cases in one shared module.
 
-#,,,,,...,,,.,,.,,,..,,.,,...,..,,.,.,,,.,,.,,..,,...,...,,,.,,..,,.,,..,,,.,,
-#EBGT3XKVP5LKO5UISDRAZUHRFU3GMYNQHBWWMVTMPF6JYEPZDAZ6ZYYGUU2UPYLQS23MLAUMRELQM
-#\\\|PDZJQO5URRR7AE3SB5NVKCYVIFRU6GBABFXYEOUBTPCVYRLURG5 \ / AMOS7 \ YOURUM ::
-#\[7]O5LUKVJRWCQXHD7XEMH4XOSLWXBHAW4JKYA2HUNSU72LE2WIWYAI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,.,,,,..,,..,,,,,..,,,..,..,,..,,...,...,,,.,...,,,,,.,.,,,,,
+#4BAYJHSATIUT6SCHWP5SPQT3WZNDB3KHQEZG4AIHKXBT5ZLUUWM2M5JJFTE43YUAJJNVYYEUG3EDO
+#\\\|W5M7SZ4PSWX5IXXRRPWCBTFPGPCXSS22X63GWJ3YSBHIYOEFEVL \ / AMOS7 \ YOURUM ::
+#\[7]2VIGQBOYAF4NN7J7N3GECTAS5BL6QKWEJ5AYS36U2YH65YK6UAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

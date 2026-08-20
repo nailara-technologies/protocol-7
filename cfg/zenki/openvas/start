@@ -1,0 +1,68 @@
+
+  .:[ openvas zenka [ vulnerability scan orchestration [ greenbone ] ] ]:.
+
+[load_config_file:'shared-params']
+
+system.zenka.verbosity.buffer  = 2
+system.zenka.verbosity.console = 1
+
+## cube to openvas [ parent commands ]
+access.cmd.usr.cube = commands heart verify-instance name reload src-age \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      status src-ver show-access report-to-forensics
+                      ## scan-run intentionally not network-exposed :    ##
+                      ## openvas.cmd.scan-run is called directly via     ##
+                      ## <[openvas.cmd.scan-run]> module syntax ..,      ##
+                      ## phase 2 exposes report-to-forensics [ enrich +  ##
+                      ## forensics handoff ]                             ##
+
+## backend control path [ see modules/openvas.cmd.scan-run header for reasoning ]
+## greenbone community containers provide gvmd + ospd-openvas + nvt feed ..
+## control via gvm-tools [ GMP protocol ] over the gvmd unix socket
+openvas.cfg.helper        = <system.root_path>/cfg/zenki/openvas/bin/openvas_scan.py
+openvas.cfg.gvmd_socket   = /run/gvmd/gvmd.sock
+openvas.cfg.container     = openvas-gvmd    ## docker container exposing socket
+openvas.cfg.gvmd_user     = admin           ## community container defaults ..
+openvas.cfg.gvmd_pass     = admin           ## override for production use ..,
+openvas.cfg.poll_interval = 15              ## seconds between status polls
+openvas.cfg.scan_timeout  = 14400           ## 4h max per scan
+
+## zenka data dir [ scan result yaml written here ]
+openvas.cfg.data_dir      = <system.root_path>/data/openvas
+
+## phase 2 : per-finding enrichment via security-intel embedding domains ##
+## [ data/tasks/completed/openvas-agent.md task 2.1 ]                    ##
+## domains are queried against the committed skipgram vector exports     ##
+## [ data/embeddings/<domain>.vec ] ; a domain without a trained model   ##
+## or protocol dir [ nvt : unbuilt feed-sync ; cve : deferred ] degrades ##
+## to per-domain status 'pending', the finding is attached as-is         ##
+openvas.cfg.enrich.domains         = cve mitre cwe cisa nvt
+openvas.cfg.enrich.embeddings_dir  = <system.root_path>/data/embeddings
+openvas.cfg.enrich.protocols_dir   = <system.root_path>/data/protocols
+openvas.cfg.enrich.neighbors       = 5
+openvas.cfg.enrich.max_proto_bytes = 32768
+
+## named scan profiles [ map to greenbone scan config names ]
+## fast recon : discovery-shaped .., full : complete nvt run ..,
+## compliance-shaped profile placeholder until feed policy is defined
+openvas.profile.fast.name       = Host Discovery
+openvas.profile.full.name       = Full and fast
+openvas.profile.compliance.name = Base
+
+modules.load = auth.client net protocol io.unix ui format.yaml openvas
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,,,,..,,.,,,,,,,..,,.,,,.,,,,,,.,.,,.,,...,.,.,...,...,...,.,,,.,.,,,.,..,,
+#PB5GVCCHPVYU3IZ32DCY5UA7FJ73VDUK7HTPFBL2HYIONIUKKQ72TSFSVVP2Y43XURSSGMBDQ3AP4
+#\\\|JYO3KLSSSHO6P2URL6FFWDVZSJIM2DJ2O5FTOHSIIFXZCTZ3276 \ / AMOS7 \ YOURUM ::
+#\[7]624FX5Z2OCQBNZCACFXADDKLDMPB7OEE6OJNNUJKOCBWTV7INKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

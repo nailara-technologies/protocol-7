@@ -8,7 +8,7 @@ metadata:
   modified: 2026-07-22T13:30:28.946Z
 ---
 
-In a `configuration/zenki/<name>/zenka-startup.v7` file, only **top-level**
+In a `cfg/zenki/<name>/zenka-startup.v7` file, only **top-level**
 `key = value` lines (outside any `: section-name :` block) get parsed into
 `<v7.start_setup.zenki.config>->{$zenka_name}` — the hash `v7.zenka.cmd.start`
 actually reads for things like `max_concurrency` / `max_subname_concurrency`.
@@ -16,13 +16,13 @@ Lines placed inside a section like `: v7-init :` are executable init-code
 that runs in the *spawned instance's own* namespace instead — they silently
 never reach v7's own config hash.
 
-Found live: `configuration/zenki/web/zenka-startup.v7` had `max_concurrency = 1`
+Found live: `cfg/zenki/web/zenka-startup.v7` had `max_concurrency = 1`
 nested inside `: v7-init :`. The concurrency gate's own
 `exists $zenka_config->{'max_concurrency'}` check was always false for `web`,
 so v7 never rejected extra starts — an on-demand-triggered spawn (httpd
 routing to `web` with none live) raced against a manual `v7.start web`, both
 succeeded, and `web` (meant as a singleton) ended up with multiple live
-sessions under one name. Compare `configuration/zenki/cube/zenka-startup.v7`,
+sessions under one name. Compare `cfg/zenki/cube/zenka-startup.v7`,
 which has `max_concurrency = 1` correctly at top level and enforces
 correctly (`v7.start cube` rejects as expected).
 
@@ -62,8 +62,8 @@ See [[zenka-name-routing-modes]] for the downstream design work this
 incident motivated (bare-name routing ambiguity when a supposedly-singleton
 zenka ends up with multiple live sessions).
 
-#,,,,,.,,,,..,..,,,,,,,.,,...,.,.,.,.,,,,,,,.,..,,...,...,,,.,.,,,,,.,...,.,.,
-#2YOEZX6V2AVO4DXWOKHEADJSKATBTXNP3KXUPPI44VNQXCTKRGYJ4F6JRYQ37A2V3Y6AP5EV7T4GW
-#\\\|FVAEGZ3EQZ6LI4CP2TYFU7WQ6U3NFEXFNNY7BRHUFPVVZMGRYLM \ / AMOS7 \ YOURUM ::
-#\[7]4KRL5FFLAT55XQSZBJJUAP5DIOT23CC6637QLI6JAS6UWMV2PWAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,..,,..,,.,.,..,,...,,..,..,,..,,...,...,...,,.,,.,,,...,,.,,
+#ID2Q3AGZ67YXWZWU44CPTO4ACFBOWXME4WN4374ZMP32LLPR2FYQJEWQW4EHAG5TYRLY5IYHSEJXO
+#\\\|XBANXV35S7Z7Q6SE7QHLFLQ7L4LGKNMFKAW2IE3XYROLSNVCEIK \ / AMOS7 \ YOURUM ::
+#\[7]VPVX56P4PYXECVKSSKP6AIJQZFTQUGTIRJ67AHMKVBAOUPMGZ2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

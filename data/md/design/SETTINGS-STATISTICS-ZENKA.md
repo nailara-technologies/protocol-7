@@ -329,7 +329,7 @@ modules/
 ### Configuration Example
 
 ```yaml
-# configuration/zenki/settings/start
+# cfg/zenki/settings/start
 .:[ 'settings' configuration zenka ]:.
 
 modules.load = protocol settings settings.get settings.set \
@@ -352,7 +352,7 @@ access.cmd.usr.cube = get set list reset diff inherit
 ```
 
 ```yaml
-# configuration/zenki/statistics/start
+# cfg/zenki/statistics/start
 .:[ 'statistics' analytics zenka ]:.
 
 modules.load = protocol statistics statistics.collect \
@@ -438,8 +438,8 @@ access.cmd.usr.cube = report status opt-out
 
 *Privacy-preserving configuration through inheritance and minimal diffs.*
 
-#,,.,,...,.,,,...,.,,,,..,,.,,,,,,,.,,,,.,,..,..,,...,...,...,,.,,.,.,.,,,.,.,
-#AKSTNTDHKEW3KVLWVA3J47ZOH3NJDEZBDHOZUXJYO7DNVZT5QJD2MLRIPWSTMQ5L2HUDAJ3WD4KAO
-#\\\|PD3CGD3LNKCXTW7JTOFNP3UADBMX3ZSBFHATFNXBAXBFGEIE3QQ \ / AMOS7 \ YOURUM ::
-#\[7]BM3FWRPOXI5PF6V3S6VYMQ5LAN2RYOJOO4JEBWYOO7ALV6NHFGBI 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,,..,...,,..,...,,,,,,..,,..,..,,...,...,,,,,.,,,,,.,...,,,.,
+#5NLDQ7E3FLMTIQHNNR6QT5G6VAIS3DOUYPXSYT4JIP2AT7UJ7CX6RJPIXPX2AGY5PAR23X7VUI5EA
+#\\\|73LT623P6L33OB6EQ5OHXX6RQG2DQK4KFZR3LYK6Z5I5UAEVO3R \ / AMOS7 \ YOURUM ::
+#\[7]6WUVD3Z4ABWQ6JALUTE7HFZAK65RELFA34LDFVG5I6TTW3FHHKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

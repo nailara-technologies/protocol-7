@@ -160,7 +160,7 @@ pushes lifecycle events to subscribers over a STRM stream.
 
 **cube command_aliases addition:**
 ```
-# configuration/zenki/cube/command_aliases
+# cfg/zenki/cube/command_aliases
 setup.aliases.source_zenka_sid = ... X-11.register_window X-11.unregister_window
 ```
 
@@ -267,8 +267,8 @@ then wrapper.
 - `X11-WAIT-VISIBLE-HOST-MODE-SKIP.md` (task) — superseded by window registry
   (keep as fallback for external-process windows not using self-registration)
 
-#,,..,...,,,,,.,.,,,,,.,.,.,.,,.,,,.,,...,,..,..,,...,...,,..,.,,,.,,,...,.,,,
-#5XYPE7WXEL5NRPWQAU4WCFMFUW5FJEYIQJBIAGZ3SQPQSF6YICKGQN2L3QJXWJEBDCB476S26D7LE
-#\\\|FJFNLVBMPWMFXMDLCZ3JDFZNJY2HPA7KU275E633NYCD5VLDFJN \ / AMOS7 \ YOURUM ::
-#\[7]IIW3AQ6SYFSNBBL3MAMVXVVCMVVEPP4Y73252RBMLHMWODKIRCBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,.,,,,,,,,.,...,,..,.,.,.,,,...,..,,...,.,.,.,.,...,,.,,.,,,,..,
+#4SURAYSW6RAGIORWMWOHGAP3UW2WPDQ23MKNTNNSJEIPSEXHY4YWB6FX36NJ3WYGPSMOF3TKBZQXM
+#\\\|GPCZQLSNBBKOU4K52MTVMX45GB5RVYNG2KYYPRSJ5PHAWEZQ7W3 \ / AMOS7 \ YOURUM ::
+#\[7]DZSB4TOU5WG5T44LBEISK53446BBFSCMAGW4GSCAWQFMRJKL7SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
