@@ -29,7 +29,7 @@ style_guidance: |
     - do not add backward-compat shims
 
 goal: |
-  Implement one new module: modules/context.provider.frame
+  Implement one new module: src/context.provider.frame
   This is a context template SECTION PROVIDER. It is called by
   context.template.resolve when a template section has:
     provider: context.provider.frame
@@ -213,7 +213,7 @@ design_spec:
     rather than skipping the section.
 
 module_file: |
-  Save as: modules/context.provider.frame
+  Save as: src/context.provider.frame
   Begin with the standard header:
 
     ## [:< ##
@@ -226,7 +226,7 @@ module_file: |
 usage_example: |
   In a context template yaml:
 
-    ## modules/.../my-context.yaml ##
+    ## src/.../my-context.yaml ##
     name: example
     sections:
       - label: user profile
@@ -253,7 +253,7 @@ testing_notes: |
   syntax to $code{...} and $data{...} prior to compilation ].
 
 acceptance_criteria:
-  - module file modules/context.provider.frame exists and parses cleanly
+  - module file src/context.provider.frame exists and parses cleanly
   - named frame loading via ascii.frame.load works
   - inline mockup path works and caches by length+elf checksum
   - mode selection picks correct descriptor for dual-mode frames
@@ -264,8 +264,8 @@ acceptance_criteria:
   - all error paths return a string of form <!-- frame '...' not available: ... -->
   - no signature stub footer is added
 
-#,,,,,,,.,,..,..,,...,.,.,,.,,,,,,,.,,...,..,,..,,...,...,.,,,,..,..,,,,.,,..,
-#DCHGSY2OIZCXYKCVMEGZ7S7HVCKPEBFMGK2VFTRYVQCDBXKT4R5D32T5POZDRKMATW4YIE7K7HNRW
-#\\\|HH27T5IJJ3SPJCXLQH723TGNOKUKXPKYCLPU7ICZN44Y7H7CIXP \ / AMOS7 \ YOURUM ::
-#\[7]QB46ISY4FAPJD2TQNXKOXZSE2H3IQACGXQEDBRHRF7KXV6DW3CBA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,..,,,..,,..,...,.,.,,.,,,..,..,,...,...,..,,.,.,...,,,.,,.,,
+#MLF6Q4PMSFDC7MHQSNWY4XY4MO2NE5PG5WLMJHXJXUUS7QFKV275PE3MNRNSB2D6BW5FIPC2LTKRA
+#\\\|QIMHJ43OOEREWCBRR2R46GAU4PCBFDDJLUM7GKW32D4DMFNGDY3 \ / AMOS7 \ YOURUM ::
+#\[7]UA7C7QNAZM3X6OFOOXP4PQ253NEJFKSK34575VTXZUY2I5BXZUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

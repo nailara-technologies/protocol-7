@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = plugin.web.jobs.list
+# descr = render job store as html for web template
+
+map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS HTML::Entities |;
+
+my $filter = shift // '';
+
+my $store = <[jobsite.job.load_all]>;
+
+my @ids = sort {
+    ( $store->{$b}{'fetched_at'} // 0 )
+        <=> ( $store->{$a}{'fetched_at'} // 0 )
+} keys %{$store};
+
+@ids = grep { ( $store->{$ARG}{'status'} // '' ) eq $filter } @ids
+    if length $filter;
+
+if ( not @ids ) {
+    return sprintf '<p class="jobs-empty">no jobs%s</p>',
+        length($filter) ? " with status: $filter" : '';
+}
+
+my @lines;
+push @lines, '<div class="jobs-list">';
+
+for my $id (@ids) {
+    my $j      = $store->{$id};
+    my $status = $j->{'status'} // 'new';
+    my $score  = $j->{'score'}  // '';
+    my $title  = HTML::Entities::encode_entities( $j->{'title'}    // '' );
+    my $co     = HTML::Entities::encode_entities( $j->{'company'}  // '' );
+    my $city   = HTML::Entities::encode_entities( $j->{'city'}     // '' );
+    my $ind    = HTML::Entities::encode_entities( $j->{'industry'} // '' );
+    my $url    = $j->{'url'} // '#';
+    my $date   = substr( $j->{'date_posted'} // '', 0, 10 );
+
+    my $score_html
+        = length($score)
+        ? sprintf '<span class="job-score score-%s">%s/10</span>',
+        ( $score >= 7 ? 'high' : $score >= 4 ? 'mid' : 'low' ), $score
+        : '<span class="job-score score-none">:</span>';
+
+    push @lines,
+          sprintf '<div class="job-card status-%s"><div '
+        . 'class="job-header"><a class="job-title" href="%s" '
+        . 'target="_blank">%s</a>%s<span '
+        . 'class="job-status">%s</span></div><div '
+        . 'class="job-meta"><span '
+        . 'class="job-company">%s</span><span '
+        . 'class="job-city">%s</span><span '
+        . 'class="job-industry">%s</span><span '
+        . 'class="job-date">%s</span><span '
+        . 'class="job-id">%s</span></div></div>',
+        $status, $url, $title, $score_html, $status,
+        $co, $city, $ind, $date,
+        <[base.vax-int.encode]>->($id);
+}
+
+push @lines, '</div>';
+
+return join( "\n", @lines );
+
+#,,,.,,.,,.,.,,..,,.,,,,.,,,.,.,.,,,,,...,,,,,..,,...,...,...,.,.,,.,,..,,...,
+#HS72RTVHX3ZCKY7EFWOLEWRTBHM5WOGMS7LEWOYQCJ7KNWY3UHDQTIRF5IUAIWDRTEPHA43FZVGBG
+#\\\|EF5BQDAWAP4H6YWWJMU5CHH2EG5PENY6OOSTUZ6M2DRPJKZFH2R \ / AMOS7 \ YOURUM ::
+#\[7]U5OEKJWXEDVCYTP5CYTRU5MCFHCEG6GR6LUGXKFCPMEBVI6HHMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

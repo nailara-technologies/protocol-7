@@ -18,7 +18,7 @@ primary path" — part A is the primary path, this is the backstop.
 ### 1. `created` is plain unix epoch time, not ntime
 
 `AMOS7::SHM::shm_create` sets `created = defined $time_source ? $time_source->()
-: time()`. the zenka wrapper [ `modules/data.mount.shm.create` ] injects
+: time()`. the zenka wrapper [ `src/data.mount.shm.create` ] injects
 `$options->{'time_source'} //= sub { <[base.time]>->(2) }` — and `base.time` is
 installed from `Time::HiRes` [ `bin/Protocol-7` ~line 325,
 `$code{'base.time'} = \&{ $TH_aref->[0] }` ], so `<[base.time]>->(2)` returns
@@ -137,7 +137,7 @@ to the package's export list** alongside the existing exports [ check the
 
 ### 2. a manually-invokable zenka wrapper — NOT wired to a timer
 
-add `modules/data.mount.shm.reap` [ a thin wrapper, same relationship every
+add `src/data.mount.shm.reap` [ a thin wrapper, same relationship every
 other `data.mount.shm.*` file has to its `AMOS7::SHM` core sub ]:
 
 ```perl
@@ -160,7 +160,7 @@ return $summary;
 [ leave off the fake signature, as always -- the `#,,...` above is a
 reminder not a literal instruction, do not write that line ]
 
-and a `.cmd.` whitelisted entry point, `modules/data.cmd.shm-reap`, following
+and a `.cmd.` whitelisted entry point, `src/data.cmd.shm-reap`, following
 the `{mode, data}` string-reply convention [ same shape as
 `data.cmd.shm-self-test` — read it for the formatting idiom ] that calls
 `<[data.mount.shm.reap]>` and renders the summary hash into a short readable
@@ -222,8 +222,8 @@ natural — a hashref here ]. when done, state plainly: every file changed/creat
 with line ranges, full test output, and the one explicit non-goal [ no timer ]
 restated so it isn't mistaken for an oversight later.
 
-#,,..,...,,,.,,,.,,,.,,,,,.,,,,,,,.,.,,.,,,,,,..,,...,...,,,,,,,,,,,.,,.,,..,,
-#2NRGFQYUZ5FL2GWUMU7IWMNLAD72YFRCCY3Q2N7MNQE45OR7VAQWYYZEICIDVREPO2PIEPUR7K2AK
-#\\\|7J3S5X4G4PI3IGUPSVVEPHC6WIYXEVPNNXCE4JVT63CUFYMSJJV \ / AMOS7 \ YOURUM ::
-#\[7]YDLDVVFGWS6Q3NE67ASY6T365YQ7POJIDFZZ3TCZXWKM7SLF7SCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,.,.,,,.,.,.,,,,,.,,,,..,...,..,,...,...,..,,.,,,..,,..,,.,,,
+#35HR64ZFYRQ4XHJCNHMRSW25UR7RNIGADZU46XRC55ANURKVGMYKPB76PONKS2ZI6Y4KVGBNSOPA6
+#\\\|N4CXQCBRHPGEVHOJSAOEV5R2WB5Z2CUIGG2J5SLHFWCKRF6HM7H \ / AMOS7 \ YOURUM ::
+#\[7]TKO6TW627V4FWHOT3AGV37JKCOYFLVYY2N5FWP3MO37YN5HP5EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

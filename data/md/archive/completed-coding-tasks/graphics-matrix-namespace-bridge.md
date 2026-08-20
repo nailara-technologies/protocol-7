@@ -36,11 +36,11 @@ as routable namespace state — so other zenki can query and set the cursor.
 
 ## key reference files — read these first
 
-    modules/graphics-3d.init_code                — 8x7x13 voxel grid, cursor state, 60fps render
-    modules/graphics-3d.handler.cursor_navigate  — cursor navigation with wrap-around
-    modules/graphics-3d.render.cursor            — cursor rendering with translucency
-    modules/graphics-3d.cfg.cursor               — cursor config setup pattern
-    modules/graphics-matrix.init_code            — existing graphics-matrix init (extend this)
+    src/graphics-3d.init_code                — 8x7x13 voxel grid, cursor state, 60fps render
+    src/graphics-3d.handler.cursor_navigate  — cursor navigation with wrap-around
+    src/graphics-3d.render.cursor            — cursor rendering with translucency
+    src/graphics-3d.cfg.cursor               — cursor config setup pattern
+    src/graphics-matrix.init_code            — existing graphics-matrix init (extend this)
     cfg/zenki/graphics-matrix/start    — existing start file (add new cmds to access list)
     data/md/design/GRID-HARDNODE-CURSOR-MODEL.md — full cursor design spec
 
@@ -63,7 +63,7 @@ the checksum is computed on demand, not cached.
 
 ## files to create
 
-### modules/graphics-matrix.cursor.init
+### src/graphics-matrix.cursor.init
 
     # name  = graphics-matrix.cursor.init
     # descr = initialize cursor state in graphics-matrix namespace
@@ -81,7 +81,7 @@ the checksum is computed on demand, not cached.
     log: "cursor initialized at [%d,%d,%d]"
 
 
-### modules/graphics-matrix.cursor.move
+### src/graphics-matrix.cursor.move
 
     # name  = graphics-matrix.cursor.move
     # descr = move cursor by relative offset
@@ -97,7 +97,7 @@ the checksum is computed on demand, not cached.
     return the new position hashref { selX => N, selY => N, selZ => N }.
 
 
-### modules/graphics-matrix.cursor.position
+### src/graphics-matrix.cursor.position
 
     # name  = graphics-matrix.cursor.position
     # descr = return current cursor position and state
@@ -106,7 +106,7 @@ the checksum is computed on demand, not cached.
     do not return a reference to the live hash.
 
 
-### modules/graphics-matrix.cursor.set
+### src/graphics-matrix.cursor.set
 
     # name  = graphics-matrix.cursor.set
     # descr = set cursor to absolute position
@@ -122,7 +122,7 @@ the checksum is computed on demand, not cached.
     return the new full state hashref (copy).
 
 
-### modules/graphics-matrix.cursor.checksum
+### src/graphics-matrix.cursor.checksum
 
     # name  = graphics-matrix.cursor.checksum
     # descr = compute content-address checksum of current cursor state
@@ -136,7 +136,7 @@ the checksum is computed on demand, not cached.
     return the checksum string.
 
 
-### modules/graphics-matrix.cmd.cursor
+### src/graphics-matrix.cmd.cursor
 
     # name  = graphics-matrix.cmd.cursor
     # descr = query or move the grid-hardnode cursor
@@ -161,7 +161,7 @@ the checksum is computed on demand, not cached.
     return { mode => 'size', data => $out }
 
 
-### modules/graphics-matrix.cmd.cursor-state
+### src/graphics-matrix.cmd.cursor-state
 
     # name  = graphics-matrix.cmd.cursor-state
     # descr = return cursor state as structured data for other zenki
@@ -181,7 +181,7 @@ the checksum is computed on demand, not cached.
 add `cursor cursor-state` to the access.cmd.usr.cube line.
 do NOT rewrite the file — just add the two command names.
 
-### modules/graphics-matrix.init_code
+### src/graphics-matrix.init_code
 
 add cursor initialization at the end, before the `0;` return:
 
@@ -206,8 +206,8 @@ reference: `cfg/zenki/invoke-web/subroutine.white-list`
     verify $ARG not $_ throughout
     verify lowercase comments
 
-#,,..,,,,,,.,,,.,,.,,,..,,.,.,.,,,...,...,,..,..,,...,...,..,,,,,,,..,.,.,...,
-#6VNPJZDBXUJTZZ7YCISRXJNDDDS6CMTJ52ZWBGNVAD2PYILIOWWXMDIQHIEJA2HLYMVQRADJ3R34C
-#\\\|LE7EVNTEPVO3ERH7JAGLRUHFNNTBIVFSIJSXON6T2GKKSEPOP36 \ / AMOS7 \ YOURUM ::
-#\[7]JXC5MQFKKXQUR4KAHU4LXRQ5I6RUWSHSC33AJ76BB7PKXNH2NICA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,,..,.,,,,,.,,,,,..,,.,,,.,.,..,,...,..,,..,,,,,,.,,,.,.,.,.,
+#U4HRENJM52HTREF2LUMVNO2QNPHTH67GU7OAMJO5UUNCFKIRSRA4G37OXEOUUI4EEZQMVNLPVOUYW
+#\\\|RODKDWLZC7FQJWPOEQO2XALHQG4LAWNCPFTFFHBZSFWV5JUQJFM \ / AMOS7 \ YOURUM ::
+#\[7]Y556RWF6Y2LOPG47IAXRMBS6BWMJ4AW5VSHIRCUNNTMX5IPGN2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

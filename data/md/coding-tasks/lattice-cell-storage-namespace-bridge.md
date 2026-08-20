@@ -38,13 +38,13 @@ this task depends on: cursor-address-resolution-layer.md
 
 ## key reference files — read these first
 
-    modules/graphics-matrix.glow.compute         — reads reference counts to compute intensity
-    modules/graphics-matrix.address.resolve      — resolves any address scheme to coordinates
-    modules/graphics-matrix.address.register     — registers positions in address registry
-    modules/graphics-matrix.cursor.position      — returns cursor state
-    modules/graphics-matrix.channel.translate    — translates intensity to channel color
-    modules/graphics-matrix.cmd.glow             — glow command pattern
-    modules/graphics-matrix.cmd.address          — address command pattern
+    src/graphics-matrix.glow.compute         — reads reference counts to compute intensity
+    src/graphics-matrix.address.resolve      — resolves any address scheme to coordinates
+    src/graphics-matrix.address.register     — registers positions in address registry
+    src/graphics-matrix.cursor.position      — returns cursor state
+    src/graphics-matrix.channel.translate    — translates intensity to channel color
+    src/graphics-matrix.cmd.glow             — glow command pattern
+    src/graphics-matrix.cmd.address          — address command pattern
 
 
 ## architecture
@@ -85,7 +85,7 @@ no new rendering code. the grid lights up where elements are placed.
 
 ## files to create
 
-### modules/graphics-matrix.cell.init
+### src/graphics-matrix.cell.init
 
     # name  = graphics-matrix.cell.init
     # descr = initialize lattice cell storage
@@ -97,7 +97,7 @@ no new rendering code. the grid lights up where elements are placed.
     log at level 2: "cell storage initialized"
 
 
-### modules/graphics-matrix.cell.place
+### src/graphics-matrix.cell.place
 
     # name  = graphics-matrix.cell.place
     # descr = place an element at a grid position
@@ -121,7 +121,7 @@ no new rendering code. the grid lights up where elements are placed.
     return the cell hashref.
 
 
-### modules/graphics-matrix.cell.remove
+### src/graphics-matrix.cell.remove
 
     # name  = graphics-matrix.cell.remove
     # descr = remove an element reference from a grid position
@@ -142,7 +142,7 @@ no new rendering code. the grid lights up where elements are placed.
     return { removed => boolean, refs => remaining count }
 
 
-### modules/graphics-matrix.cell.query
+### src/graphics-matrix.cell.query
 
     # name  = graphics-matrix.cell.query
     # descr = query cell state at a grid position
@@ -159,7 +159,7 @@ no new rendering code. the grid lights up where elements are placed.
     if empty: return { empty => 1, position => { ... } }
 
 
-### modules/graphics-matrix.cell.survey
+### src/graphics-matrix.cell.survey
 
     # name  = graphics-matrix.cell.survey
     # descr = survey occupied cells by hop distance from cursor
@@ -182,7 +182,7 @@ no new rendering code. the grid lights up where elements are placed.
         <[graphics-matrix.glow.compute]>->( { qw| counts | => $survey->{'counts'} } );
 
 
-### modules/graphics-matrix.cell.list
+### src/graphics-matrix.cell.list
 
     # name  = graphics-matrix.cell.list
     # descr = list occupied cells with optional filtering
@@ -199,7 +199,7 @@ no new rendering code. the grid lights up where elements are placed.
         [ { key => "x:y:z", refs => N, distance => N, elements => N }, ... ]
 
 
-### modules/graphics-matrix.cmd.cell
+### src/graphics-matrix.cmd.cell
 
     # name  = graphics-matrix.cmd.cell
     # descr = place, query, and manage lattice cells
@@ -242,7 +242,7 @@ no new rendering code. the grid lights up where elements are placed.
 
 ## modifications to existing files
 
-### modules/graphics-matrix.init_code
+### src/graphics-matrix.init_code
 
 add cell initialization after address init, before `0;`:
 
@@ -265,8 +265,8 @@ add `cell` to the access.cmd.usr.cube line.
     verify cell.query accepts both hashref and string address
     verify cmd.cell survey subcommand feeds glow.compute and displays result
 
-#,,,.,,,,,..,,.,.,,..,...,.,.,.,.,,,,,,.,,..,,..,,...,.,.,,,.,,..,.,,,,..,,.,,
-#U4LL6X4FIAUTXJPN7KZ7LTWLX3N4CW2NQL6RJH2F4FAUBX7WCG6BNC6ETPL7NXNFYFNZ2D2NJX6ZI
-#\\\|CDPRAI7ICZ6FB5CPYRLV3DNCPM5LMOUATEAEOTQYV4U45IARD4H \ / AMOS7 \ YOURUM ::
-#\[7]3NPPYMCBMHJSZKSVU5B6NFSES33XZUGDLCSR2GOZ4IKFRTX5OICQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,...,..,,,,.,,,,,..,,,,,,,.,,..,,...,...,,.,,...,,,,,,.,,,,,,
+#5AER2G4ZL3DY4W322ABBK4GRTUT7NE7HO6Y6AYLZEGGGVMQB5VJQJAUSOTQRUK5GW3YVI3HH32BEK
+#\\\|W7B67AQOZETSIYCLDXSKCOMZWRY5RSD2WKOBTUTEPLPG2SQZ66Z \ / AMOS7 \ YOURUM ::
+#\[7]5QQU4FGPDDTDKMVANA7SL6LXFINHOWIIP3KL3EO6M6GJDL73V4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

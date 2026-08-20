@@ -16,7 +16,7 @@ bug is still in the code.
 
 ## root cause, confirmed 2026-07-31 by reading the actual code
 
-`modules/coding.cmd.task-append`, line 82:
+`src/coding.cmd.task-append`, line 82:
 
 ```perl
 my $prev_backend = $task->{'execution'}->{'backend'} // 'gpu';
@@ -107,8 +107,8 @@ trace; if there's a second site, fix that too and explain why.
   state for testing, that's fine — it's your own dispatch target, not a
   shared resource other work depends on right now.
 
-#,,,,,.,.,,..,.,.,,,.,.,.,.,,,,..,,.,,,..,,.,,.,.,...,...,...,..,,.,.,...,...,
-#2MGHHI4OYYEQCU37NQPCMPSULCEHZXMXFCARPKA3LRT3MTIRMKPR235ZVKDW6BBS22R4D2W23LPRW
-#\\\|GRFTHXG5KNJJRJFFXV4Z26W24CF4ZPEFE4XJ5WAMHVTPHJ6LJQ7 \ / AMOS7 \ YOURUM ::
-#\[7]KMPJ3U6MW5Z3VLN67WOWCSMETV3SXBIOQSIVNHIDJ2QZV4JP24DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,..,,,.,,,,,..,,..,,.,.,,,.,.,.,...,...,..,,,..,,.,,,,.,...,
+#H4MHE66BFWJYG5YNOXIEHWETA2TIKYPNBGBS45NYKFEEJ4YJJTOY72IXNFIKWT6OIC2KDFUAHG2YC
+#\\\|SUNF2VHJWGH7VJPUTZTCREQ26XRER6U3QRDTTTGAO3UEFXC2EAA \ / AMOS7 \ YOURUM ::
+#\[7]FQHRHC5TMA4NTJIXLRDGOGFULBJQR5P6A33PPDY4RVVTHRPG7KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

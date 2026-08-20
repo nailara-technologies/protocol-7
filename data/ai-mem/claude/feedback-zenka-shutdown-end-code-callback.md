@@ -9,7 +9,7 @@ metadata:
 
 A zenka module must never do `$SIG{'INT'} = sub {...}` / `$SIG{'TERM'} = ...`
 directly. Perl only keeps the last assignment per signal, so this silently
-clobbers the framework's own `modules/base.sig_int` / `modules/base.sig_term`
+clobbers the framework's own `src/base.sig_int` / `src/base.sig_term`
 handlers — which do v7 teardown, cross-zenka shutdown notification
 (`base.net.send_to_all_initialized`), and `<system.kill_list>` child killing.
 A module-local direct signal assignment breaks all of that for the whole
@@ -26,7 +26,7 @@ currently not supported", `bin/Protocol-7` ~line 3768). Register with:
 push <callbacks.end_code>->@*, qw| your.module.name |;
 ```
 
-Precedent: `modules/v7.setup_stdout_redir` → `push <callbacks.end_code>->@*,
+Precedent: `src/v7.setup_stdout_redir` → `push <callbacks.end_code>->@*,
 qw| v7.stdout_log.close |`. The callback module itself is plain cleanup logic,
 no `exit()` call inside it — the process is already exiting via whatever path
 triggered the END block; the callback just does its cleanup and `return TRUE`.
@@ -40,7 +40,7 @@ run before the process exits — e.g. a `route-send` that needs a follow-up
 `END { $code{'base.handler.end_code'}->() }` fires during Perl global
 destruction, after the main event loop has already stopped; reentering
 `Event::loop` from that context is unsupported territory for the `Event`
-XS module and segfaulted in practice (`modules/radio.end_code`, trying to
+XS module and segfaulted in practice (`src/radio.end_code`, trying to
 fade `mpv[audio-0]` out via a `route-send` + `event.once` before exit —
 removed).
 
@@ -63,7 +63,7 @@ via `event.add_signal`, chaining to the default handler for parity.
 
 **Why this surfaced (original finding)**: found while reviewing kimi's AMOS7::SHM phase-4
 cleanup-on-exit work — the *original* phase-1 code already had this bug for
-SIGINT alone (`modules/data.mount.shm.init_code`); kimi's phase-4 task asked
+SIGINT alone (`src/data.mount.shm.init_code`); kimi's phase-4 task asked
 it to add SIGTERM cleanup too, and it extended the same direct-`$SIG`-assignment
 pattern, which would have also clobbered `base.sig_term`. Fixed by replacing
 the direct assignment with the `<callbacks.end_code>` push (see
@@ -76,8 +76,8 @@ real `$SIG{...}`/`END` block of their own; `AMOS7::SHM.pm`'s standalone-mode
 `END` block is the correct counterexample, gated on `not defined
 $main::PROTOCOL_SEVEN`.
 
-#,,,.,,,.,,,,,.,,,,,,,.,,,.,.,,..,...,.,.,,,,,..,,...,...,...,,,,,.,,,,,,,,..,
-#Z3V77DPFVUPOMLSOLVRFZERFVXM53YGBARGLF7H7TFDAP7APCTW5BS6B24XP4RQUS4QO5FX6HT2X4
-#\\\|KLPBPGK5FIEZBFFYT47WSEJOSWA4FMQF3LWPCQWFY4YNZWN7VQU \ / AMOS7 \ YOURUM ::
-#\[7]FKCRLQKTAQDGLC73CR53G62LW4YGXNAGHWV356AW4UXWHDWNXUBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,..,,...,.,.,,,,,.,,,.,.,.,.,..,,...,...,,.,,,.,,,.,,,..,,..,
+#IKWDMVFOH7TMBFDC4PHLHBTBCGDM47TRF36BZVNRZNUW6EKMU227WIOFG3U3QBZRYTO4WPSGD4GOW
+#\\\|PTUHK5EGRZUQABXIVVM3RH3IU6KZKU23WQXNFM2AIFSX4QVQRM2 \ / AMOS7 \ YOURUM ::
+#\[7]KXM343IRYQOHDH7QLMRUPISUTWQNPMJYS2SVRBM4NO35ZKX7DMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

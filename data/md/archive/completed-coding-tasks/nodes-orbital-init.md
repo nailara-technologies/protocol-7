@@ -102,14 +102,14 @@ just note where the new init hook goes (cfg/zenki/nodes/start).
 
 ## deliverables
 
-1. modules/nodes.orbital.init_code
-2. modules/nodes.orbital.update_position
-3. modules/nodes.orbital.current_position
-4. modules/nodes.orbital.addr_b32
+1. src/nodes.orbital.init_code
+2. src/nodes.orbital.update_position
+3. src/nodes.orbital.current_position
+4. src/nodes.orbital.addr_b32
 5. brief note on the start file integration point
 
-#,,,,,,.,,,..,..,,,.,,,,.,,,.,,,.,.,,,,.,,,..,..,,...,...,.,,,,,,,,,.,,,,,.,,,
-#KBTA66HZD3OPUIFEKHH6IP5HSEQ7B7YMVOD2JIIH7DE4SADS344P2VJ2H64VEPQXRE5R4JPUAXTES
-#\\\|HVVUDZZG62HNJBPTEBTKPZTB52OL5C4JP7JQRHCXDDYOW67M36G \ / AMOS7 \ YOURUM ::
-#\[7]AHQSUPGUBRKZOWFQJMVSF52TQJA7NCG3OFKSJ5O7GIFJLZM2FGDA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,..,,,.,,,..,,,.,.,,,..,,.,,,..,,...,...,,..,,,,,,,.,...,,..,
+#CRMK7UHDCKU5R4ESYIT7VTWARPTBXALOEZZA5ZTJ7IEGOOI6CN4VLAYMRIXOOMMXXLFTII7WHNATO
+#\\\|4MJERJR5I3U2ZCP362LYUFATRUYOH77EPOKNPEMVT3L42IODIBS \ / AMOS7 \ YOURUM ::
+#\[7]FS36ZA5EF7LYG64FK43ERTNYRUKKMVWGJKVSQWTVDV37BNJ3PMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

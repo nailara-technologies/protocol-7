@@ -1,0 +1,171 @@
+## [:< ##
+
+# name  = ncode.cmd.tool_list
+# descr = self-describing tool to query ncode capabilities
+# param = $call [ no params needed ]
+
+## define available tools ##
+my $tools = [
+    {   'name'   => qw| transform |,
+        'descr'  => 'apply refinement waves to code',
+        'params' => [
+            {   'name'     => 'input',
+                'type'     => 'string',
+                'required' => qw| true |,
+                'descr'    => 'code text to transform'
+            },
+            {   'name'     => 'file_type',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => qw| module |,
+                'descr'    => 'type of file being processed'
+            },
+            {   'name'     => 'namespace',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => '',
+                'descr'    => 'namespace context for patterns'
+            },
+            {   'name'     => 'target',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => qw| p7-style |,
+                'descr'    => 'style target name'
+            },
+            {   'name'     => 'waves',
+                'type'     => 'integer',
+                'required' => qw| false |,
+                'default'  => '1',
+                'descr'    => 'number of refinement waves'
+            },
+            {   'name'     => 'llm_cmd',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => '',
+                'descr'    => 'LLM command for escalation'
+            },
+            {   'name'     => 'llm_budget',
+                'type'     => 'integer',
+                'required' => qw| false |,
+                'default'  => '0',
+                'descr'    => 'max tokens for LLM calls'
+            },
+            {   'name'     => 'mode',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => qw| apply |,
+                'descr'    => "transformation mode: 'apply' or 'scan'"
+            }
+        ],
+        'example' => 'ncode.transform { input: $code, '
+            . 'target: qw| p7-style |, waves: 3 }'
+    },
+    {   'name'   => qw| regex.list |,
+        'descr'  => 'show current patterns with stats',
+        'params' => [
+            {   'name'     => 'file_type',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => '',
+                'descr'    => 'filter by file type'
+            },
+            {   'name'     => 'namespace',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => '',
+                'descr'    => 'filter by namespace'
+            }
+        ],
+        'example' => 'ncode.regex.list { file_type: qw| module | }'
+    },
+    {   'name'   => qw| regex.test |,
+        'descr'  => 'test a pattern against sample input',
+        'params' => [
+            {   'name'     => 'pattern',
+                'type'     => 'string',
+                'required' => qw| true |,
+                'descr'    => 'regex pattern to test'
+            },
+            {   'name'     => 'input',
+                'type'     => 'string',
+                'required' => qw| true |,
+                'descr'    => 'sample input to test against'
+            },
+            {   'name'     => 'replace',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => '',
+                'descr'    => 'replacement string (optional)'
+            }
+        ],
+        'example' => "ncode.regex.test { pattern: 'm|foo|', input: \$code }"
+    },
+    {   'name'   => qw| regex.suggest |,
+        'descr'  => 'ask model to propose new patterns from diff',
+        'params' => [
+            {   'name'     => 'before',
+                'type'     => 'string',
+                'required' => qw| true |,
+                'descr'    => 'original code'
+            },
+            {   'name'     => 'after',
+                'type'     => 'string',
+                'required' => qw| true |,
+                'descr'    => 'transformed code'
+            },
+            {   'name'     => 'context',
+                'type'     => 'hash',
+                'required' => qw| false |,
+                'default'  => '{}',
+                'descr'    => 'context: file_type, namespace, task_id'
+            }
+        ],
+        'example' => 'ncode.regex.suggest { before: $orig, after: $fixed }'
+    },
+    {   'name'   => qw| coverage.report |,
+        'descr'  => 'show which style rules have regex coverage',
+        'params' => [
+            {   'name'     => 'target',
+                'type'     => 'string',
+                'required' => qw| false |,
+                'default'  => '',
+                'descr'    => 'target style to report on'
+            },
+            {   'name'     => 'threshold',
+                'type'     => 'float',
+                'required' => qw| false |,
+                'default'  => '0.0',
+                'descr'    => 'minimum coverage threshold to include'
+            }
+        ],
+        'example' => 'ncode.coverage.report { threshold: 0.50 }'
+    },
+    {   'name'  => qw| doc |,
+        'descr' =>
+            'look up documentation for a perl class, built-in function, or '
+            . 'p7 module -- auto-selects perldoc / introspection / '
+            . 'source',
+        'params' => [
+            {   'name'     => 'arg',
+                'type'     => 'string',
+                'required' => qw| true |,
+                'descr'    => 'class name (Gtk3::WebKit2::WebView), built-in '
+                    . '(push, splice), or p7 module '
+                    . '(web-browser.open_window)',
+            },
+        ],
+        'example' => "ncode.doc { arg: 'Gtk3::WebKit2::WebView' }",
+    }
+];
+
+## return tool list ##
+return {
+    'mode' => qw| true |,
+    'data' => { 'tools' => $tools }
+};
+
+#,,,.,...,,,.,.,,,...,,,,,,..,...,...,,..,,,,,..,,...,..,,.,.,,..,.,.,...,..,,
+#K35GB4QTTDKDHKN3HOQVOBSMYZT7IOOVR4TKJPOD6GE2YQANZ7TQ36W5VYRL43GJ7SMG7MAWPE6EQ
+#\\\|UEFOOMGUJUKVIVF2CVPUASUVFEQQ6BXVHP224YA2BZZIUCLSAQT \ / AMOS7 \ YOURUM ::
+#\[7]7TOPFKH63EWK5XGA7HG743ZE7EOBGHZTLMHFYZISYZGHSJXHN6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

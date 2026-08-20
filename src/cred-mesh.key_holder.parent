@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = cred-mesh.key_holder.parent
+# descr = parent-side dispatcher to the key-holder child process.
+#         call with ('start') to fork child, or ('ENCRYPT'|'DECRYPT'|'SIGN',
+#         $slot, $data) to perform an operation.
+
+my $op   = shift // '';
+my $slot = shift // '';
+my $data = shift // '';
+
+## start / ensure child is running ##
+if ( $op eq qw| start | ) {
+    return <[cred-mesh.util.key_holder.start_child]>;
+}
+
+my $pipe = <cred-mesh.key_holder.pipe>;
+my $pid  = <cred-mesh.key_holder.pid>;
+
+## verify child is alive — child forks before drop_privs and keeps running  ##
+## as root, so kill(0,$pid) from the unprivileged parent always reads EPERM ##
+## as dead; base.exists.sub-process checks the parent-child relation via    ##
+## waitpid instead, which needs no uid match                                ##
+if ( defined $pid and $pid > 0 ) {
+    my $alive = <[base.exists.sub-process]>->($pid);
+    if ( not $alive ) {
+        undef $pipe;
+        <cred-mesh.key_holder.pipe> = undef;
+        <cred-mesh.key_holder.pid>  = undef;
+    }
+}
+
+## restart if needed ##
+if ( not defined $pipe or not defined $pid ) {
+    my $ok = <[cred-mesh.util.key_holder.start_child]>;
+    return undef if not $ok;
+    $pipe = <cred-mesh.key_holder.pipe>;
+}
+
+## encode arguments ##
+my $slot_b32 = encode_b32r($slot);
+my $data_b32 = encode_b32r($data);
+
+## send request ##
+my $req_line = sprintf( "%s %s %s\n", $op, $slot_b32, $data_b32 );
+my $written  = syswrite( $pipe, $req_line );
+if ( not defined $written or $written != length($req_line) ) {
+    warn 'key_holder.parent: failed to write to child pipe <{C1}>';
+    return undef;
+}
+
+## read response with timeout (non-blocking via select) ##
+my $response;
+my $buf     = '';
+my $start   = <[base.time]>->(1);
+my $timeout = 7;
+
+while ( ( <[base.time]>->(1) - $start ) < $timeout ) {
+    my $rin = '';
+    vec( $rin, fileno($pipe), 1 ) = 1;
+    my $nfound = select( $rin, undef, undef, 0.05 );
+    next if not defined $nfound or $nfound <= 0;
+
+    my $n = sysread( $pipe, $buf, 65536, length($buf) );
+    if ( defined $n and $n > 0 ) {
+        if ( $buf =~ s|^(.+)\n||s ) {
+            $response = $1;
+            last;
+        }
+    } elsif ( defined $n and $n == 0 ) {
+        last;    ## EOF ##
+    }
+}
+
+if ( not defined $response ) {
+    warn 'key_holder.parent: timeout waiting for child response <{C1}>';
+    return undef;
+}
+
+if ( $response =~ s|^OK\s+|| ) {
+    return eval { decode_b32r($response) };
+} else {
+    $response =~ s|^ERR\s+||;
+    <[base.s_warn]>->( 'key_holder.parent: child error: %s', $response );
+    return undef;
+}
+
+#,,,,,,..,,.,,,,.,,,.,..,,..,,.,,,.,.,,.,,.,,,..,,...,..,,..,,,,,,...,...,.,.,
+#4FNHL3BZ6XIF5ZOAO3WCVXHXAQAB4VQKOCXAPIVYKI63UMM3GHK2GHUBOJ7OVZZDNMPUXW2ROSISQ
+#\\\|Z6Y2BNYZU4MSB7RLYJPNOAJ4LWHXXFGD75LUZCEAQBW7IB4ER7F \ / AMOS7 \ YOURUM ::
+#\[7]J2RSGFU6ZTMEKQXCWVN66SUQHKYIFOZP6VDY4VNKN5K3ZXPCDSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

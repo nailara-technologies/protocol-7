@@ -19,7 +19,7 @@ data/tasks/spdx-license-string-cleanup.md: review each flagged file, fix/rewrite
 needed, and only then strip the line — with no replacement license string, since the
 repo doesn't use per-file tags at all.
 
-As of 2026-08-09, `grep -rl "SPDX-License-Identifier" modules/` turns up ~30 files,
+As of 2026-08-09, `grep -rl "SPDX-License-Identifier" src/` turns up ~30 files,
 overwhelmingly the `pager.*` namespace (`pager.buffer.virtual`, `pager.source.*`,
 `pager.filter.*`, `pager.sort.*`, `pager.view.*`, `pager.init-code`, `pager.editor.*`,
 the three `base.editor.*` stubs), plus `storage.9p.mount`/`umount`, a few `context.tree.*`
@@ -32,8 +32,8 @@ reading it closely first. This came up while assessing pager.editor.integration 
 "safe" first integration target for [[editor-namespace-interface-design]] work — it's
 low blast-radius (dead stub code) but NOT necessarily sound code to copy.
 
-#,,.,,,.,,,.,,.,.,.,.,,.,,,,.,,,,,,.,,.,.,,,,,..,,...,...,..,,...,.,.,,,.,..,,
-#AAC47HJ6QVQR7FXKG76OLI4KPRZTXHZTZ3DZPCG5FZUITGWJOJO2WYQQJYVJSMS5SJFBNPUHQSSW2
-#\\\|TGO66M7G6SFONNASIA4ATHAMW5UXDK4JZRTAPW7LM7PIIUYD5G6 \ / AMOS7 \ YOURUM ::
-#\[7]SQFBX67FXHSNTAAUF6YY6KRHORM26I3GBZZH5RRDA2XDYPB5KMBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,..,,,.,,.,.,,,.,.,.,,,.,..,,..,,...,..,,,..,,..,,,.,.,.,,,.,
+#PXEMQGW27L37X6H45ZEE6SIXRQWQLV6OVCGHBELDCOY5ZPL32HNCCQJPEYLCPCHDVTYBRK3BT6VYC
+#\\\|O5RXA3DBXBDBSG4UHIKYKPFYZQW7WMPIEOZZSCC4PLCOSPV4ZXJ \ / AMOS7 \ YOURUM ::
+#\[7]KFGAWJMV5BZID2T75K3UAUZ22FCZDD2F2OOK3Y53WY7AFPOSYQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

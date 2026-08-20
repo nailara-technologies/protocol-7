@@ -8,7 +8,7 @@
 |--------|---------|-------------|
 | `debian.parent.init_code` | Initializes registries (packages, cpan_modules, zenki_deps, binaries), loads `base.known_dependencies`, sets up list views | **Retire** — registries move to `sys-deps`; list views are zenka-specific UI |
 | `debian.parent.scan_zenki_dependencies` | Scans `cfg/zenki/*/pm-dep/`, `os-dep/debian/`, `os-dep/binary/` | **Absorb into `AMOS7::deps::module` + `AMOS7::deps::os-pkgs`** |
-| `debian.parent.check_installed` | Uses dpkg-query + eval require to probe packages/modules, updates registry status | **Absorb into `AMOS7::deps::*`** |
+| `debian.parent.check_installed` | Uses dpkg-query + eval require to probe packages/src, updates registry status | **Absorb into `AMOS7::deps::*`** |
 | `debian.parent.ensure_zenka_dependencies` | Zenka startup gatekeeper: checks deps, auto-installs if root | **Move to v7 pre-start hook + `sys-deps` zenka** |
 | `debian.parent.install_missing` | Collects missing deps, calls `base.debian.install_package` + cpanm | **Absorb into `AMOS7::deps::deb-pkg`** |
 | `debian.parent.resolve_cpan_to_debian` | Looks up `base.known_dependencies`, applies `libfoo-bar-perl` naming convention | **Absorb into `AMOS7::deps::module::resolve_install`** |
@@ -51,8 +51,8 @@
 - **Dead / stub code:** `debian.console.*` (superseded by CLI tools), `debian.parser.*` (display-only), `debian.parent.callback.*` (registry boilerplate)
 - **Keep as-is:** `base.debian.install_package`, `bin/dependencies/debian_dist_upgrade.sh` (until `AMOS7::deps::deb-pkg::d-upgr` replaces it), `debian.cmd.install-history` (unique dpkg-log parser)
 
-#,,..,,.,,.,,,,..,,.,,,,,,,.,,,..,...,,.,,...,..,,...,...,...,,,,,,..,..,,.,.,
-#FIEPZP72TAWKGFMVQ7GHOTKWQSKEOQZLO3KV36OWCZCMFVAKDGS4WWQZAICFR62YGR5W4NALDCXKM
-#\\\|OLIAU7TYSPKFIKTKU7LJR2SCSFUT7ZZ56MTLJX6VSWFAPQADUNJ \ / AMOS7 \ YOURUM ::
-#\[7]I63ZVHJMTT5ISP2WZU7KEKY3MP464GK77TJXDZOXUFUBFKEFFSCI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,.,,,,,..,,..,,...,.,,,,,.,.,.,..,,...,...,,,,,.,.,,.,,,..,.,.,
+#M6R2PSL6BOLMPRVN6XUGSVFMNBQIR2RIBSWPI6C4ESZ4D6TY5EPM7YQQ4Y3VMSRTP76SS6R6TPDYA
+#\\\|ZPLMGTJGHQHMWX7MYID735QWSFGBGK4AHINYTV4O5WFWHY4OSOL \ / AMOS7 \ YOURUM ::
+#\[7]LTWNZXPEWSUHOQWRAJUSU3YME7KI4MBT4X2KUMYI2LDAN3Q55WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

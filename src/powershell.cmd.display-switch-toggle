@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = powershell.cmd.display-switch-toggle
+# descr = re-push host display topology [ internal+extend ]
+
+## fixes weston/WSLg retaining stale per-output placement state after a   ##
+## monitor disappears - confirmed live: a monitor-count drop without this ##
+## leaves windows unable to be placed anywhere within the now-removed     ##
+## monitor's former Y-range. see X-11.handler.screen_change, the caller.  ##
+
+my $out
+    = <[powershell.exec]>->( 'DisplaySwitch.exe /internal; Start-Sleep '
+        . '-Milliseconds 400; DisplaySwitch.exe '
+        . '/extend' );
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    if not defined $out;
+
+return { 'mode' => qw| true |, 'data' => 'display switch toggled' };
+
+#,,,,,..,,.,.,,..,,,.,,..,.,,,,,,,,.,,,,,,,,,,..,,...,...,...,,.,,,.,,.,.,.,.,
+#XGPDDSZCTBTVFDGNCII7WLUH6U54Z2KCAFWYRTSN4ZJ5SDX3LLBXNBA7X2KCDJXDJP2KV6ZO2PR7S
+#\\\|N4YTHERKSJBEMFWSWV2GDHRCATT7DI7BRFVILV6ZTNMRGY44VP7 \ / AMOS7 \ YOURUM ::
+#\[7]PFEIIBDNBPRU3TA6GOZMCJSPGESYP7YER3PWEPVM55R6O2GAV6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

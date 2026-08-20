@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = branch.space.effective_position
+# descr = combine grid rank with magnetic force, normalized to bounds
+# param = { node_id, scope }
+#
+# grid = rank position, magnetic = force delta
+# effective = grid + magnetic, clipped to ±n/2
+
+my $params  = shift                // {};
+my $node_id = $params->{'node_id'} // '';
+my $scope   = $params->{'scope'}   // 'global';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+## resolve grid position ##
+my $rank_res = { 'position' => 0, 'n' => 0 };
+if ( exists $data{'branch.space.positions'}{$scope}{$node_id} ) {
+    $rank_res = $data{'branch.space.positions'}{$scope}{$node_id};
+} else {
+    my $res = <[branch.space.rank]>->(
+        {   'node_id' => $node_id,
+            'scope'   => $scope,
+        }
+    );
+    $rank_res = $res->{'data'} // {}
+        if ref $res eq qw| HASH | and $res->{'mode'} eq 'true';
+}
+
+my $grid = $rank_res->{'position'} // 0;
+my $n    = $rank_res->{'n'}        // 0;
+
+## resolve magnetic force ##
+my $magnetic = { 'magnitude' => 0 };
+if ( exists $data{'branch.space.magnetic'}{$node_id} ) {
+    $magnetic = $data{'branch.space.magnetic'}{$node_id};
+} else {
+    my $res = <[branch.space.magnetic_force]>->( { 'node_id' => $node_id } );
+    $magnetic = $res->{'data'} // {}
+        if ref $res eq qw| HASH | and $res->{'mode'} eq 'true';
+}
+
+my $delta = $magnetic->{'magnitude'} // 0;
+
+## determine direction of magnetic adjustment  use vector x component to ##
+## preserve pull direction                                               ##
+my $vec = $magnetic->{'vector'} // {};
+my $dir = ( $vec->{'x'} // 0 ) >= 0 ? 1 : -1;
+$delta = $delta * $dir;
+
+## combine and normalize ##
+my $combined = $grid + $delta;
+my $limit    = $n > 0 ? $n : abs($grid);
+$limit = 1 if $limit < 1;
+
+$combined = $limit  if $combined > $limit;
+$combined = -$limit if $combined < -$limit;
+
+my $shell = abs($combined);
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'grid'      => $grid,
+        'magnetic'  => $delta,
+        'effective' => $combined,
+        'shell'     => $shell,
+    }
+};
+
+#,,..,,,.,...,...,,.,,..,,.,,,,..,.,.,.,.,,..,.,.,...,...,..,,,..,,..,.,.,,,,,
+#ATJ5EGMVX3MT3AX3W5QYCQL6D4KFSMSU2BHRL3KWDPHMGV4HXR3CLZTLPPF4YFNSCFUPPYIWWGLFE
+#\\\|OXM64B6GHFC5HLZ62QTOAIAMO2JF2WP46WUGYTO47CBARANM4EX \ / AMOS7 \ YOURUM ::
+#\[7]JKWIV6HWIIC76GTTSM5TXMK6ONO4224DODUQGZDNSTFALD6YKSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

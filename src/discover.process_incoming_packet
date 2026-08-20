@@ -1,0 +1,183 @@
+## [:< ##
+
+# name  = discover.process_incoming_packet
+
+my $packet_str = shift // '';    ## packet payload string param ##
+my $log_level  = shift // 2;     ##  optional  ##
+
+if ( not length $packet_str ) {
+    warn 'expected packet payload parameter <{C1}>';
+    return undef;
+}
+
+##  discarding packets with time drift above  ##
+##
+my $time_delta_limit = 777.777;
+
+## log packets [ when configured ] ##
+##
+if ( <[base.cfg_bool]>->(<discover.cfg.log-packets.incoming>) ) {
+    <[discover.log_mcast_packet]>->( qw| incoming |, $packet_str );
+}
+
+return ( warn 'discover packet format error <{C1}>' and undef )
+    if $packet_str !~ m{^(?<signed_data>\[:<\|(?#
+        )(?<type>[A-Z0-9_\-\.]{3,24})\|(?#
+        )(?<hostkey>[A-Z2-7]{52})\n(?#
+        )(?<signatures>(?: {3}+(?#
+        )[A-Z0-9_\-\.]{1,32}:[A-Z2-7]{103}\n)*)(?#
+        )(?<payload>(?: {6}+[^\n]+\n)+)(?#
+        )(?<timestamp>[A-Z2-7]{11,15}):)(?<packet_sig>[A-Z2-7]{103})\n};
+
+my $matched_field = { map { $ARG => $+{$ARG} } keys %+ };
+
+$matched_field->{'tstamp-adj'} = <[base.ntime]>->(3);
+
+$matched_field->{'payload'}    =~ s|^ {6}||mg;   ##  remove space prefixes  ##
+$matched_field->{'signatures'} =~ s|^ {3}||mg;
+chomp $matched_field->{'signatures'};
+my $packet_signature_ref = {};
+foreach my $line ( split "\n", $matched_field->{'signatures'} ) {
+    next if $line !~ m|^(?<name>[^:]{1,32}):(?<psig_b32>[A-Z2-7]{103})$|;
+    $packet_signature_ref->{ $+{'name'} } = $+{'psig_b32'};
+}
+foreach my $name (qw|  hostkey  packet_sig  |) {
+    $matched_field->{$name}    ##  replacing field with decoded value  ##
+        = Crypt::Misc::decode_b32r( $matched_field->{$name} );
+    if ( not defined $matched_field->{$name} ) {
+        <[base.s_warn]>->(
+            "BASE32 decoding of '%s' field failed <{C1}>", $name
+        );
+        return undef;
+    }
+}
+
+foreach my $name ( <[base.sort]>->($packet_signature_ref) ) {
+    my $spkey;
+    my $signature_key_present = FALSE;    ##  check if signature key known  ##
+    foreach my $hostkey ( keys %signatures ) {
+        next if not exists $signatures{$hostkey}->{$name};
+        $signature_key_present = TRUE;
+        $spkey = $signatures{$hostkey}->{$name}->{'sk'};    ##[ public key ]##
+        last;
+    }
+
+    if ( not $signature_key_present ) {  ##  abort processing when no pkey  ##
+        <[base.s_warn]>->(
+            "no %s signature loaded [ skipping %s packet ] .,",
+            $name, $matched_field->{'type'}
+        );
+        return FALSE;
+    }
+
+    $packet_signature_ref->{$name}
+        = Crypt::Misc::decode_b32r( $packet_signature_ref->{$name} );
+
+    if ( not defined $packet_signature_ref->{$name} ) {
+        <[base.s_warn]>->(
+            "BASE32 decoding of signature field '%s' failed <{C1}>", $name
+        );
+        return undef;
+    }
+
+    if (not Crypt::Ed25519::verify(    ##  verifying key signatures  ##
+            $matched_field->{'hostkey'}, $spkey,
+            $packet_signature_ref->{$name}
+        )
+    ) {
+        <[base.s_warn]>->(
+            "; '%s' host key signature verification failed <{C1}>", $name
+        );
+        return undef;
+    } else {    ##  cache signature verification .., [LLL]  ##
+        <[base.logs]>->(
+            $log_level, ": '%s' key signature verified =)", $name
+        );
+    }
+
+}
+
+if (not Crypt::Ed25519::verify(    ## verifying packet signature ##
+        $matched_field->{'signed_data'}, $matched_field->{'hostkey'},
+        $matched_field->{'packet_sig'}
+    )
+) {
+    warn ': packet signature verification failed <{C1}>';
+    return FALSE;
+
+} else {    ## check timestamp .., [LLL] ##
+    <[base.log]>->( $log_level, ':  packet payload signature verified =)' );
+    delete $matched_field->{'signed_data'};    ##  done with it.  ##
+}
+
+<[base.log]>->( $log_level, ':  : checking packet timestamp ..,' );
+
+my $timestamp_num    ##  converting timestamp value [ format validation ]  ##
+    = <[base.ntime_BASE32_to_numerical]>->( $matched_field->{'timestamp'} );
+
+if ( not defined $timestamp_num ) {
+    warn 'packet timestamp format not valid [ decoding error, skipping ]';
+    return FALSE;
+}
+
+my $timestamp_delta_secs = sprintf qw| %.3f |,    ##  ntime to seconds ##
+    ( $timestamp_num - $matched_field->{'tstamp-adj'} ) / 4200;
+
+if ( abs($timestamp_delta_secs) > $time_delta_limit ) {
+    <[base.logs]>->(
+        1,
+        'packet timestamp delta above limit by %.3fs [ skipped it ]',
+        $timestamp_delta_secs - $time_delta_limit
+    );
+    return FALSE;
+}
+
+## collecting host clock offset [ + network latency ] ##
+$matched_field->{'time-delta-seconds'} = $timestamp_delta_secs;
+
+## per-sender ntime watermark : generic replay protection for all packet   ##
+## types keyed by sender hostkey L13 : bounded by number of unique signing ##
+## keys seen                                                               ##
+my $key_L13    = <[chk-sum.bmw.L13-str]>->( $matched_field->{'hostkey'} );
+my $last_ntime = $data{'discover.ntime_watermark'}{$key_L13} // 0;
+## 3 seconds : covers delivery jitter + mild desync ##
+my $slack_units = 3 * 4200;
+
+if ( $timestamp_num < $last_ntime - $slack_units ) {
+    <[base.logs]>->(
+        1, 'packet ntime behind watermark [ possible replay, skipping ]'
+    );
+    return FALSE;
+}
+
+## advance watermark forward only : accept-but-don't-advance for lagging ##
+## packets                                                               ##
+$data{'discover.ntime_watermark'}{$key_L13} = $timestamp_num
+    if $timestamp_num > $last_ntime;
+
+if ( $matched_field->{'type'} ne qw| ANNOUNCE | ) {
+    <[base.s_warn]>->(
+        "no handler for '%s' type packets [ skipping ]",
+        $matched_field->{'type'}
+    );
+    return FALSE;
+}
+
+<[base.logs]>->(
+    $log_level,
+    ":, processing '%s' packet.,",
+    $matched_field->{'type'}
+);
+
+<[discover.process_host_packet]>->(    ##  packet is valid \ processing  ##
+    delete $matched_field->{'payload'},
+    $matched_field
+);
+
+<[discover.check_packet_timeouts]>; ##  applying timeouts \ setting timers  ##
+
+#,,..,,.,,,,.,.,,,,..,,,.,,,,,,,,,,..,,,.,..,,..,,...,...,,,,,,..,...,.,.,,,.,
+#V6AWKO4ZHCZ7LBP5YL5LH7GW4IQMCRZNILYOMHFX7YBY35OY7I5ZASGLJRNQQIXHQUNZQR4JK2GHK
+#\\\|BVZEYYHRLINKRDAOCQNTLTXNEP24TWDW4C3SZWRDOEAJTMKAXNQ \ / AMOS7 \ YOURUM ::
+#\[7]IQE4LTO4PFIK7LXLL4632D7G655YQWHKLIJZ5SZ3XESF7Y3KBWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

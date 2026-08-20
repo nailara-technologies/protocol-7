@@ -54,14 +54,14 @@ originSessionId: c1117ac8-6abc-4bfb-87da-871e78f681bc
 - 9B Claude distilled v2 (WZIZD6Y) remains default; keep for now
 
 ### open: remaining inline sub extractions
-- modules/kimi.handler.approval_request: sub flush_on_acquisition (line 81)
-- modules/letsencr.child.continue_challenge_processing: sub _cleanup_challenge (line 11)
-- modules/plugin.web.space.orbital.json.context: sub _synthetic_zenka_node (line 34)
-- modules/graphics-matrix.cmd.cell: sub cell_output (line 148) — may warrant cmd split
-- modules/AMOS7.key-32-safeguard: sub key_32_safe (line 24) — dead code, delete it
+- src/kimi.handler.approval_request: sub flush_on_acquisition (line 81)
+- src/letsencr.child.continue_challenge_processing: sub _cleanup_challenge (line 11)
+- src/plugin.web.space.orbital.json.context: sub _synthetic_zenka_node (line 34)
+- src/graphics-matrix.cmd.cell: sub cell_output (line 148) — may warrant cmd split
+- src/AMOS7.key-32-safeguard: sub key_32_safe (line 24) — dead code, delete it
 
-#,,.,,..,,.,.,,,.,.,,,..,,..,,..,,...,.,,,,..,..,,...,...,...,,,.,,.,,,..,,,,,
-#TC3KXP3MELFNPRDJRFC57XHUVE23PDIKAK5RYGV45SAA4CIAG4FPMSZCOUNPC5CCDBPKGDPTXWN2U
-#\\\|GZEUBLVO6MGJYAT4B5IKMFILAHJXSI4AB3LMW6L6LDRUHMVCZSS \ / AMOS7 \ YOURUM ::
-#\[7]OP573KW7IPFA7A6Q75CQO7EMH2YG7EXTTJVHKU7L5IGHW2GMZ4BQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,..,,,.,,,,,,,.,,,,.,,,,,,,.,..,,...,...,...,,..,,,.,.,,,,..,
+#OWLCAXAGHIGSK5ENNDIJZ53G7ALMOBSQWWL6OIZBAYITUIGZ5UR2KFWE33CD2TZKONKMUAVUUVXKS
+#\\\|5KSD73YC774FKAXNTLMHFYS7MDXHCF44LUYNGT5OLG3NKV2RYNG \ / AMOS7 \ YOURUM ::
+#\[7]3YP5E5DRIVIS2LL6VUZJSTX4JE263JKFJO3J23OXLEXXVV63P2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

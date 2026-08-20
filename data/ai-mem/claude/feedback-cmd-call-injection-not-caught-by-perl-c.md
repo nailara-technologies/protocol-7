@@ -23,13 +23,13 @@ registration mechanic is identical for both `cmd` and `console`.
 {$call->{'args'} = $ARG[0]}`) — the surrounding code literally comments
 `## not for console commands ##`. `.console.` modules do NOT receive
 `$call`; they read args positionally instead (`my $name = shift // ...`,
-see `modules/keys.console.create`). Using `$call->{'args'}` in a
+see `src/keys.console.create`). Using `$call->{'args'}` in a
 `.console.`-named module would hit the exact same "Global symbol '$call'
 requires explicit package name" failure as a plain module with no
 `.cmd.`/`.console.` marker at all — the filename segment alone isn't
 enough, it must specifically be `.cmd.` for `$call` to exist.
 
-Confirmed at the invocation site, `modules/base.call.console_command`:
+Confirmed at the invocation site, `src/base.call.console_command`:
 it splits the raw console input line into `($console_cmd,
 $console_params) = split(/ +/, shift, 2)`, looks up
 `$data{'base'}{'console'}{$console_cmd}` for the handler sub name, then
@@ -47,7 +47,7 @@ keys.** The `.cmd.` module-filename marker is a *loader* convention
 (`bin/Protocol-7`'s compile step) that separates command-type subs from
 regular subs. `access.cmd.usr.<who> = <space-separated patterns>` is an
 unrelated *access-control* convention, parsed by
-`modules/base.parser.access_conf` — the `cmd` there just labels "this
+`src/base.parser.access_conf` — the `cmd` there just labels "this
 mask governs command-type access," not a reference to the `.cmd.`
 filename mechanism. `access_conf` compiles each whitespace-separated
 value into a regex and does a strict `^pattern$` match against whatever
@@ -104,8 +104,8 @@ symbol '$call'` error visible when the target zenka is actually booted
   `subroutines.load-early` to verify, then revert the whitelist to the
   tool-generated state
 
-#,,,.,...,,,,,.,.,,,.,.,.,,.,,,,,,..,,...,,,,,..,,...,...,,..,,,,,,,.,.,.,,,,,
-#BJKBHXYUK2GCTCNS4YGP7MXCFFCIAYHIBGGQT7JRTCRPL73M25BK5E7GODXTWXDNP754HBZNRM5F6
-#\\\|ZZMWN4XPGXXH53ZB2G7GZC5PBOT62O4HGRAY27UZLPB7TQ6DU7R \ / AMOS7 \ YOURUM ::
-#\[7]GUYVGHDHDFEOWJFSC7XXQAJQNUDQD7L25DGH2UPAIQQUGNZ3AUBI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,..,,,,,,...,..,,...,,,.,,.,,..,,...,...,,,.,,,.,,,.,..,,.,.,
+#YDJRLMZ4RVXSNLEPRNGLS7UEPCFBKKYFIRCKEL2U2Q6TXJCTGDZY3JN4QRC7ABIEVU2KJVN77IOIE
+#\\\|HB6GME6WLSBKMTVIB36CB4NSX3XPM7ANSQCMIZ24PUGUWS52CMM \ / AMOS7 \ YOURUM ::
+#\[7]TXUZUEGINRHHHZKBLGIWFPDN5PJ5BVDFP7QO6FZ7BDXER3UPOQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

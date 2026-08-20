@@ -22,7 +22,7 @@ review/graduate streak, applied to *breadth* instead of *approval count*.
 
 ## part 0 -- prerequisite, do this first, independently useful on its own
 
-`modules/ncode.regex.apply` is a **second, separate apply engine** (used by
+`src/ncode.regex.apply` is a **second, separate apply engine** (used by
 `ncode.transform.wave`/`ncode.cmd.transform`, not by `ncode.cmd.apply`) that
 reads the same `<ncode.patterns>` store but has **no concept of `status` or
 `reviewed`** -- it auto-applies purely based on its own
@@ -32,7 +32,7 @@ command list or subroutine whitelist -- confirmed by grep), so this isn't
 an active hole, but it must be fixed **before** anyone ever whitelists
 `transform`, or doing so silently bypasses the entire phase-1 gate.
 
-Fix: in `modules/ncode.regex.apply`, before the existing confidence-vs-
+Fix: in `src/ncode.regex.apply`, before the existing confidence-vs-
 threshold check (~line 75, `if ( $conf < $threshold or not defined $replace
 or $mode eq qw| scan | )`), add: treat a pattern whose `status` is
 `llm-required` (i.e. `$def->{'status'} // 'llm-required' eq 'llm-required'`)
@@ -49,11 +49,11 @@ Current state, already working, to build on rather than replace:
 - `applicability.namespace` is a single string on the pattern record
 - `ncode.regex.apply` already matches it: `$app->{'namespace'} eq '*'` or
   `$namespace =~ m|^\Q$app->{'namespace'}\E|` (simple prefix match against
-  a caller-supplied namespace string -- read `modules/ncode.regex.apply`
-  lines 40-44 and `modules/ncode.transform.wave` for how `namespace` gets
+  a caller-supplied namespace string -- read `src/ncode.regex.apply`
+  lines 40-44 and `src/ncode.transform.wave` for how `namespace` gets
   passed in from a caller)
 - `ncode.regex.assess`/`ncode.cmd.assess` already accept a `namespace`
-  context param (`modules/ncode.regex.assess` line 12) but it's currently
+  context param (`src/ncode.regex.assess` line 12) but it's currently
   unused beyond being threaded through to the candidate's
   `applicability.file_type` -- it does NOT get set as
   `applicability.namespace` on the candidate today. Confirm this before
@@ -85,8 +85,8 @@ the thing `ncode.cmd.apply` later reads `$fix->{'file'}` from) has no
 accept a caller-*supplied* namespace string, they don't derive one from a
 path either. This needs new logic, not reuse of existing logic: derive a
 namespace string from the target file's basename using P7's dot-notation
-module-naming convention -- strip the `modules/` directory and any
-extension, e.g. `modules/ncode.regex.expand.util.process_candidate` ->
+module-naming convention -- strip the `src/` directory and any
+extension, e.g. `src/ncode.regex.expand.util.process_candidate` ->
 namespace `ncode.regex.expand.util.process_candidate`. Add this as a small
 new helper (e.g. `ncode.util.file_to_namespace` or similar, check
 `ncode.util.run_cmd` for the existing naming convention for small ncode
@@ -99,7 +99,7 @@ applied, not failed), reported as its own counter alongside
 
 ## part 2 -- widening is earned, same shape as graduate
 
-New module `modules/ncode.cmd.widen-scope`, same p7c JSON-args adapter
+New module `src/ncode.cmd.widen-scope`, same p7c JSON-args adapter
 shape as `ncode.cmd.review`/`.graduate` (copy that pattern exactly). Params:
 `{ pattern_name, confirm }`.
 
@@ -162,8 +162,8 @@ this is the security-sensitive gate itself, don't let a cold dispatch
 invent the scope-matching semantics). Once confirmed, this is
 self-contained enough to hand to Kimi K3 the same way phase 1 was.
 
-#,,,,,,,.,.,,,,.,,,.,,,,,,.,,,...,.,.,,,,,.,,,..,,...,...,,..,.,.,...,,.,,,..,
-#2M7YXQ6YTULSBIIOGR5GR67GKK2DVK7AZOHGFNWSB7KXI622MQNVIPWIZSARRX3MNQTXI2KXXQ37E
-#\\\|UMY7TVO5UH2XGUMOYZMS47F55GLAKPOXUJJRU2NF6NVEE6I2EPL \ / AMOS7 \ YOURUM ::
-#\[7]ESJGPISFJDZMTCGWSCFLQIUUSNUHGIOF7VUBMKAQ7O26ETWTZWDA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,.,.,.,.,,,,,,,.,,..,,.,,...,..,,...,...,,..,,.,,,..,.,.,.,,,
+#7QSADDP3WZDHTZMEZOWN7IJKIGW6C3HPX7D5D7UTGQHALVOYPVYZN5NABEUUAHIT4RQHCPPAIBGRI
+#\\\|XTWWHO56AXZJDLBVBVQ36XVA66XLBQHI47C7DS7B6XZM7WFA5R7 \ / AMOS7 \ YOURUM ::
+#\[7]JWOS3QPGJU4GNSO2SPCVGQ2GMDXKFPRJWSZHQU27SGKRM3KADEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

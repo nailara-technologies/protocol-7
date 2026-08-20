@@ -1,0 +1,178 @@
+## [:< ##
+
+# name  = task.cmd.handover
+# descr = package task queue state as handover document
+
+my $task_id = '';    ## optional task id for single-task handover ##
+
+## parse params [ task id optional ] ##
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'} // '';
+} else {
+    $task_id = $call->{'args'} // '';
+}
+
+my $handover = '';
+
+if ( length $task_id ) {    ## single task handover ##
+    my $task = <task.queue>->{$task_id};
+    return {
+        'mode' => 'false',
+        'data' => "task $task_id not found"
+        }
+        unless defined $task;
+
+    my $desc     = $task->{'description'} // '';
+    my $assignee = $task->{'assignee'}    // 'unassigned';
+    my $priority = $task->{'priority'}    // 0.0;
+
+    $handover = sprintf(
+        "id          : %s\nstatus      : %s\nassignee    : %s\npriority    : "
+            . "%.1f\ndescription : %s\ncreated_at  : %s\nupdated_at  : "
+            . "%s\ncontext     : %s\n",
+        $task_id,  $task->{'status'},
+        $assignee, $priority,
+        substr( $desc, 0, 120 ), $task->{'created_at'} // 'N/A',
+        $task->{'updated_at'} // 'N/A', $task->{'context'} // ''
+    );
+} else {    ## full queue handover ##
+
+    my @in_progress     = ();
+    my @next_executable = ();
+    my @blocked         = ();
+    my @recent_done     = ();
+
+    ## collect tasks by status ##
+    for my $task_id ( @{<task.queue.order>} ) {
+        my $task = <task.queue>->{$task_id};
+        next unless defined $task;
+
+        if ( $task->{'status'} eq 'claimed' ) {
+            push @in_progress, $task_id;
+        } elsif ( $task->{'status'} eq 'blocked'
+            or $task->{'status'} eq 'failed' ) {
+            push @blocked, $task_id;
+        } elsif ( $task->{'status'} eq 'done' ) {
+            push @recent_done, $task_id;
+        }
+    }
+
+    ## in progress section ##
+    if (@in_progress) {
+        $handover .= "## in progress ##\n";
+        for my $tid (@in_progress) {
+            my $task     = <task.queue>->{$tid};
+            my $desc     = $task->{'description'} // '';
+            my $assignee = $task->{'assignee'}    // 'unassigned';
+            my $priority = $task->{'priority'}    // 0.0;
+
+            $desc = substr( $desc, 0, 60 ) if length $desc > 60;
+
+            $handover .= sprintf( "  %s  [%s]  %s  (priority: %.1f)\n",
+                $tid, $assignee, $desc, $priority );
+        }
+        $handover .= "\n";
+    }
+
+    ## next executable section [ top 3 pending by valued.resolve priority ] ##
+    my @pending_by_priority = ();
+
+    for my $task_id ( @{<task.queue.order>} ) {
+        my $task = <task.queue>->{$task_id};
+        next unless defined $task;
+        next if $task->{'status'} ne 'pending';
+
+        my $priority = <[valued.resolve]>->( $task->{'node_id'} // '' )
+            // 0.0;
+        push @pending_by_priority,
+            {
+            id       => $task_id,
+            task     => $task,
+            priority => $priority
+            };
+    }
+
+    @pending_by_priority
+        = sort { $b->{'priority'} <=> $a->{'priority'} } @pending_by_priority;
+
+    my $top_count = min( 3, @pending_by_priority );
+    if ( @pending_by_priority > 0 ) {
+        $handover .= "## next executable ##\n";
+        for my $i ( 0 .. $top_count - 1 ) {
+            my $entry    = $pending_by_priority[$i];
+            my $task     = $entry->{'task'};
+            my $desc     = $task->{'description'} // '';
+            my $assignee = $task->{'assignee'}    // 'unassigned';
+
+            $desc = substr( $desc, 0, 60 ) if length $desc > 60;
+
+            $handover .= sprintf( "  %s  [%s]  %s  (priority: %.1f)\n",
+                $entry->{'id'}, $assignee, $desc, $entry->{'priority'} );
+        }
+        $handover .= "\n";
+    }
+
+    ## blocked section ##
+    if (@blocked) {
+        $handover .= "## blocked ##\n";
+        for my $tid (@blocked) {
+            my $task   = <task.queue>->{$tid};
+            my $desc   = $task->{'description'} // '';
+            my $reason = $task->{'reason'}      // 'no reason provided';
+            my $status = $task->{'status'};
+
+            $desc = substr( $desc, 0, 60 ) if length $desc > 60;
+
+            $handover .= sprintf(
+                "  %s  [%s]  %s  (status: %s, reason: %s)\n",
+                $tid,  $task->{'assignee'} // 'unassigned',
+                $desc, $status, substr( $reason, 0, 40 )
+            );
+        }
+        $handover .= "\n";
+    }
+
+    ## recent completions section [ last 3 done tasks ] ##
+    if ( @recent_done > 0 ) {
+        @recent_done = reverse sort {
+            ( <task.queue>->{$b}->{'updated_at'} // '' )
+                cmp( <task.queue>->{$a}->{'updated_at'} // '' )
+        } @recent_done;
+        my $recent_count = min( 3, @recent_done );
+
+        $handover .= "## recent completions ##\n";
+        for my $i ( 0 .. $recent_count - 1 ) {
+            my $tid  = $recent_done[$i];
+            my $task = <task.queue>->{$tid};
+
+            my $desc   = $task->{'description'} // '';
+            my $result = $task->{'result'}      // '';
+
+            $desc   = substr( $desc,   0, 60 ) if length $desc > 60;
+            $result = substr( $result, 0, 80 ) if length $result > 80;
+
+            $handover .= sprintf(
+                "  %s  [%s]  %s  (result: %s)\n",
+                $tid,  $task->{'agent'} // '(none)',
+                $desc, $result || '(none)'
+            );
+        }
+        $handover .= "\n";
+    }
+}
+
+## empty queue ##
+if ( !length $handover ) {
+    return {
+        'mode' => 'false',
+        'data' => 'no tasks in queue'
+    };
+}
+
+return { 'mode' => 'true', 'data' => $handover };
+
+#,,..,,..,..,,,..,.,.,.,.,.,,,.,,,,,,,,.,,...,..,,...,...,.,.,...,,,,,,,.,,..,
+#BI7WNJB4KZ6SM6F2RR364AU2QFQCRBGC5W7B4POHQLUZ56O6VSFCQMS53S4IQVNQFDTCAWNDHBE2M
+#\\\|KW5YI5FBUG6IKF7AF74MKZSJY6XLZVICYSJWLUDRW22UNH37M6L \ / AMOS7 \ YOURUM ::
+#\[7]EJVPGT6JTSGR2ECQWJO2DIRSSGPR7WGEXSDW5FZ5HL3O5Y4AMAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

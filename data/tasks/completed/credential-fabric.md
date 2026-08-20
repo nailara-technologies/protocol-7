@@ -193,16 +193,16 @@ detached key holder child process.
 
 ## modules to create
 
-- `modules/credential.init_code` — initialize storage, load slot registry
-- `modules/credential.register` — zenka registers a credential slot
-- `modules/credential.resolve` — resolve slot to auth result or handle
-- `modules/credential.store.local` — tier 1: twofish+C25519 storage
-- `modules/credential.store.local.key-holder` — detached child: holds key,
+- `src/credential.init_code` — initialize storage, load slot registry
+- `src/credential.register` — zenka registers a credential slot
+- `src/credential.resolve` — resolve slot to auth result or handle
+- `src/credential.store.local` — tier 1: twofish+C25519 storage
+- `src/credential.store.local.key-holder` — detached child: holds key,
   performs decrypt operations, returns results via pipe
-- `modules/credential.subscribe_rotation` — register STRM rotation handler
-- `modules/credential.rotate` — perform rotation, notify subscribers
-- `modules/credential.request-authorization` — on-demand auth relay flow
-- `modules/credential.handler.auth-relay-reply` — handle browser approval response
+- `src/credential.subscribe_rotation` — register STRM rotation handler
+- `src/credential.rotate` — perform rotation, notify subscribers
+- `src/credential.request-authorization` — on-demand auth relay flow
+- `src/credential.handler.auth-relay-reply` — handle browser approval response
 
 ## storage location
 
@@ -257,7 +257,7 @@ handles all footer blocks — leave them untouched.
 
 ### existing patterns to reuse
 
-**C25519 implementation (`modules/crypt.C25519.*` — 63 modules):**
+**C25519 implementation (`src/crypt.C25519.*` — 63 modules):**
 - `crypt.C25519.pre_init` — loads `Crypt::Ed25519`, `AMOS7::Twofish`, `Crypt::Curve25519`
 - `crypt.C25519.sign_data` — `Crypt::Ed25519::sign($msg, $pub, $priv)`
 - `crypt.C25519.verify_sign` — `Crypt::Ed25519::verify($msg, $pub, decode_b32r($sig))`
@@ -285,7 +285,7 @@ handles all footer blocks — leave them untouched.
 - `Digest::BMW` (224/256/384/512) — used throughout
 - `blake2b_384_b64` — used by `plugin.auth.zenka` for session key hashing
 
-**Existing credentials system (`modules/credentials.*` — 14 modules):**
+**Existing credentials system (`src/credentials.*` — 14 modules):**
 - `credentials.init_code` — loads `AMOS7::13`, `AMOS7::Twofish`. Sets store dir `/var/protocol-7/credentials/`, session TTL 3600s, archive block size 13K. Starts cleanup timer every 5 min.
 - `credentials.load` — decrypts credential archive (`$cred_name.yaml.enc`) using Twofish (password = `$cred_name . ':' . $instance_id`)
 - `credentials.save` — encrypts and writes credential archive with same derivation
@@ -330,12 +330,12 @@ handles all footer blocks — leave them untouched.
 - The credential fabric must resolve these slots even though they are owned by the transport zenka.
 
 **Existing credentials directory:**
-- `/var/protocol-7/credentials/` is already used by `modules/credentials.*`.
+- `/var/protocol-7/credentials/` is already used by `src/credentials.*`.
 - The new credential fabric should either extend this directory or use a separate path to avoid collisions.
 
 ### naming conflicts or overlaps
 
-- **`modules/credentials.*` (plural, 14 modules) already exists.** The task proposes `modules/credential.*` (singular). This is a **critical naming collision.** The existing `credentials` system handles SMTP/IMAP/API creds, web sessions, and encrypted archives. The new task's `credential` fabric is a broader, multi-owner system with STRM rotation, tiered storage, and zenka ownership.
+- **`src/credentials.*` (plural, 14 modules) already exists.** The task proposes `src/credential.*` (singular). This is a **critical naming collision.** The existing `credentials` system handles SMTP/IMAP/API creds, web sessions, and encrypted archives. The new task's `credential` fabric is a broader, multi-owner system with STRM rotation, tiered storage, and zenka ownership.
    - **Options:** (a) merge into existing `credentials.*` namespace, (b) use distinct prefix like `cred-mesh.*` or `auth.fabric.*`, (c) rename existing `credentials.*` to something else (invasive).
    - **Recommendation:** the new system should use `cred-mesh.*` or `cred_fabric.*` as its module prefix to avoid collision, and explicitly call out how it relates to (and may eventually subsume) `credentials.*`.
 - `cfg/zenki/keys/` — the standalone `keys` zenka is for human key management. The new "detached key-holder child process" is a runtime component, not the same thing. Names should not collide: use `credential.key_holder.child` or similar, not `keys.child`.
@@ -356,7 +356,7 @@ handles all footer blocks — leave them untouched.
 ### suggested refinements
 
 1. **Resolve the `credential` vs `credentials` naming collision immediately.** Options ranked:
-   - **(Recommended)** Use `cred-mesh.*` as the module prefix. e.g., `modules/cred-mesh.init_code`, `cred-mesh.resolve`, `cred-mesh.store.local`. This is unambiguous and leaves `credentials.*` untouched during transition.
+   - **(Recommended)** Use `cred-mesh.*` as the module prefix. e.g., `src/cred-mesh.init_code`, `cred-mesh.resolve`, `cred-mesh.store.local`. This is unambiguous and leaves `credentials.*` untouched during transition.
    - Merge the new modules into `credentials.*` by adding `credentials.fabric.*` sub-modules. This is cleaner long-term but risks breaking the existing SMTP/IMAP session code.
    - Keep `credential.*` (singular) and rename existing `credentials.*` to `legacy.credentials.*`. Highly invasive, not recommended.
 
@@ -415,22 +415,22 @@ handles all footer blocks — leave them untouched.
 - All modules renamed from `credential.*` to `cred-mesh.*` to avoid collision with existing `credentials.*` (14 modules).
 
 **Additions:**
-- `modules/cred-mesh.key_holder.child` — the detached child process that holds the C25519 private key and performs decrypt/sign operations (replaces the underspecified `credential.store.local.key-holder`)
-- `modules/cred-mesh.key_holder.parent` — parent-side IPC over socketpair, dispatches operations to child
-- `modules/cred-mesh.encrypt` — encrypt a credential blob using C25519-derived Twofish key (shared secret pattern)
-- `modules/cred-mesh.decrypt` — decrypt a credential blob
-- `modules/cred-mesh.handler.rotation_strm` — pushes STRM notifications on rotation
+- `src/cred-mesh.key_holder.child` — the detached child process that holds the C25519 private key and performs decrypt/sign operations (replaces the underspecified `credential.store.local.key-holder`)
+- `src/cred-mesh.key_holder.parent` — parent-side IPC over socketpair, dispatches operations to child
+- `src/cred-mesh.encrypt` — encrypt a credential blob using C25519-derived Twofish key (shared secret pattern)
+- `src/cred-mesh.decrypt` — decrypt a credential blob
+- `src/cred-mesh.handler.rotation_strm` — pushes STRM notifications on rotation
 
 **Removals / merges:**
-- `modules/credential.store.local.key-holder` → merged into `cred-mesh.key_holder.child` + `cred-mesh.key_holder.parent`
-- `modules/credential.store.local` → keep but renamed to `cred-mesh.store.local`, and have it delegate encryption/decryption to the key-holder pair rather than doing it inline
+- `src/credential.store.local.key-holder` → merged into `cred-mesh.key_holder.child` + `cred-mesh.key_holder.parent`
+- `src/credential.store.local` → keep but renamed to `cred-mesh.store.local`, and have it delegate encryption/decryption to the key-holder pair rather than doing it inline
 
 **Relationship to existing `credentials.*`:**
 - `cred-mesh.store.local` should wrap `credentials.read_archive` / `credentials.write_archive_file` for the actual file I/O, passing the C25519-derived key instead of the old password-derived key.
 - `credentials.cmd.request_session` and `credentials.spawn_web_session` remain in use for SMTP/IMAP/web sessions until the fabric subsumes them.
 
-#,,,.,.,,,,,.,.,,,...,,..,,,,,,,,,.,,,,..,...,..,,...,...,.,.,..,,,.,,,,.,,,.,
-#N65QWA4NULBSFNW3C55F255DUFXAQS3LWUMMG5WTOA7NYZ33BTG4BVNQKUP24TMDZNJ34TFMHFLEW
-#\\\|E6IYKOADGLFZFWKOIGC7OVCJBITPZF26DO43M7X7EQLDPPY3TTM \ / AMOS7 \ YOURUM ::
-#\[7]X3ZDDOAQYJAUKFWVFVVPC62XKWMZX2ZC5UAK4PNNPOLALTP4N6BY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,,..,,..,.,.,..,,,..,...,,,,,..,,...,...,.,,,,.,,,,.,,.,,...,
+#D44T4KXLKTJGESRD72HLJCJYWG745TNTTNIUWFGQ4HVQAO6NB2DHNRB4BCWJD77JRFHI7WVN6GTUQ
+#\\\|54L2TJ3MD3SOXGDKSM3MQMHJXAPVZKGPXLMCGKOLGHUF56KB2IX \ / AMOS7 \ YOURUM ::
+#\[7]ZECMJMTQKPI5K6FVBSMGYPEZVNGWS6QOCWKCFCUGABCEIUY7HUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

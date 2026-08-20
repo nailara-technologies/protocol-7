@@ -63,38 +63,38 @@ intent vectors:
 ## modules to create
 
 ### checksum chain
-- `modules/branch.session.round.checksum` — bmw384(prev_hash + content)
-- `modules/branch.session.chain.verify` — walk from genesis, confirm each link
+- `src/branch.session.round.checksum` — bmw384(prev_hash + content)
+- `src/branch.session.chain.verify` — walk from genesis, confirm each link
 
 ### jump mechanics
-- `modules/branch.session.jump` — load context at checksum, create dag node
+- `src/branch.session.jump` — load context at checksum, create dag node
   with two parents (resumed_state + decision_point); update children list
   of both parents
-- `modules/branch.session.return_slot.register` — attach return handler to
+- `src/branch.session.return_slot.register` — attach return handler to
   current node; set node state to `awaiting_return`
-- `modules/branch.session.return_slot.resolve` — deliver result to return
+- `src/branch.session.return_slot.resolve` — deliver result to return
   handler; set node state to closed; trigger caller to resume
-- `modules/branch.session.fork` — jump with no return slot; bind new intent;
+- `src/branch.session.fork` — jump with no return slot; bind new intent;
   node state open on new branch, caller never resumes
 
 ### dag management
-- `modules/branch.session.dag.node_add` — add node, record parent pair,
+- `src/branch.session.dag.node_add` — add node, record parent pair,
   append to parents' children lists
-- `modules/branch.session.dag.edges_from` — list all child checksums from
+- `src/branch.session.dag.edges_from` — list all child checksums from
   a given node
-- `modules/branch.session.dag.open_list` — all nodes with state `open`
+- `src/branch.session.dag.open_list` — all nodes with state `open`
   (continuation capacity available)
-- `modules/branch.session.dag.parallel_dispatch` — for each open node above
+- `src/branch.session.dag.parallel_dispatch` — for each open node above
   score threshold, dispatch to kimi session via `<[mcp.kimi_dispatch]>`
 
 ### hop policy
-- `modules/branch.session.policy.score` — query valued tree for
+- `src/branch.session.policy.score` — query valued tree for
   `f(target_checksum, intent_vector)`; return numeric score
-- `modules/branch.session.policy.intent_bind` — bind intent vector to branch
+- `src/branch.session.policy.intent_bind` — bind intent vector to branch
   node; stored in dag node `intent` field
-- `modules/branch.session.policy.next_hop` — for a node, enumerate candidate
+- `src/branch.session.policy.next_hop` — for a node, enumerate candidate
   hops, score all, return highest-scoring above threshold
-- `modules/branch.session.policy.threshold` — configurable minimum score
+- `src/branch.session.policy.threshold` — configurable minimum score
   for dispatch; below = branch demoted (equivalent to transport demotion)
 
 ## integration with task zenka
@@ -130,8 +130,8 @@ a task IS a branch node with a bound intent vector. task state transitions
 - registered return slot fires correctly when subtask resolves
 - parallel dispatch calls kimi_dispatch for each open node above threshold
 
-#,,..,,.,,..,,.,,,.,,,,.,,,,,,,.,,..,,.,,,.,,,..,,...,...,..,,.,,,...,,,,,,,,,
-#7EUQ7IBWHMU6TTYNHNEUVYBHYRLALMCZZ4NJK7DETBTEV77WCD5KJUTFGYRLO5QBSOXAV3AGLVA7E
-#\\\|WSAOIJXIYETIFIQBXJWRWZ2O4SELV2ONAZQJCKURIDHW6GFXRF3 \ / AMOS7 \ YOURUM ::
-#\[7]N64CVLNMOOLKMB5PJMRJB4EQHXPDJG5LLGDMK5ILRRBHOLDTWOAI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,.,,..,,.,,,,.,,,.,,,.,.,.,,,,,..,,...,...,.,.,..,,,,.,...,,.,,
+#MZLUGKNZVBDPZQZSMJJFX7TTKSXZC4PDYG2UYPFOKEWOFQW2HKC6IO5LZIX2QXHQ4TY4X6IV6RLXK
+#\\\|JLAYV7MYEXT4WJSPKDX7XASQL42UR7ZYKAKTSLWMO7TTVI6MVYY \ / AMOS7 \ YOURUM ::
+#\[7]N5NS5ZA3GO4VJKINWWOY34GAZ23YILG4XFTZFKHRXTDMT4EYUWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

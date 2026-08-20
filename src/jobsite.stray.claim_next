@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = jobsite.stray.claim_next
+# descr = pop next stray entry, request it from its source zenka
+
+my $queue = <jobsite.stray_claim_queue> // [];
+
+if ( not @{$queue} ) {
+    <[base.logs]>->( 1, 'stray-claim: queue drained' );
+    delete <jobsite.stray_claim_source>;
+
+    ## recovered jobs land with status=new like any fresh scan result -  ##
+    ## kick the normal assessment dispatcher so they actually get queued ##
+    if ( delete <jobsite.stray_claim_recovered> ) {
+        <[jobsite.dispatch.assessments]>;
+    }
+
+    return;
+}
+
+my $entry  = shift @{$queue};
+my $source = <jobsite.stray_claim_source> // '';
+
+<[protocol-7.route-send]>->(
+    {   'command'   => "$source.export-stray-job",
+        'call_args' => { 'args' => $entry->{'id'} },
+        'reply'     => {
+            'handler' => 'jobsite.handler.stray-job-exported',
+            'params'  => { 'source' => $source, 'id' => $entry->{'id'} },
+        },
+    }
+);
+
+return;
+
+#,,,.,,,,,,,,,..,,.,,,...,...,..,,..,,.,,,...,..,,...,.,.,.,,,,..,,..,...,...,
+#5SBSFIWOETADQEJ7OAMIISIKZZG574FDIIZHBG2FPGVDTSV26PCWUQ4WZJVTAUOZOJ34HBXXIOQSM
+#\\\|7UCVILBNQIRVMY36PWF5HKAGCKTUUHNQCV6KQFGEH3SWJC2KGEF \ / AMOS7 \ YOURUM ::
+#\[7]CTQD6Q5HGDMOGHR6HG52QREIMFO3TGDUM5GB4FMYQQRMWWPY3YDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

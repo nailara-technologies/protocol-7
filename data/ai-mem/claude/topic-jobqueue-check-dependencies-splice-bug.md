@@ -16,9 +16,9 @@ clearing the dependency."
 
 ## root cause (confirmed, not the cascade itself)
 
-`modules/jobqueue.check_dependencies` iterates the live array reference
+`src/jobqueue.check_dependencies` iterates the live array reference
 `$prio_queue->{$prio}` (the `depending` queue's `by_priority` bucket).
-`modules/jobqueue.move_job`, called inline for every resolved job, splices
+`src/jobqueue.move_job`, called inline for every resolved job, splices
 that *exact same array* to relocate the id to `queued`. Perl's `foreach`
 holds an internal index into the array being walked — a `splice` mid-loop
 shifts every later element down one slot, so the iterator's next fetch skips
@@ -52,7 +52,7 @@ it at the same priority.
 
 ## fix (landed)
 
-`modules/jobqueue.check_dependencies`: snapshot the priority bucket into a
+`src/jobqueue.check_dependencies`: snapshot the priority bucket into a
 plain array before the `foreach`, so `move_job`'s splice mutates a
 disconnected copy of the `depending` queue, not the array being walked:
 ```perl
@@ -93,8 +93,8 @@ don't just confirm the mechanism you fixed is now correct in isolation.
 [[topic-mpv-jobqueue-startup]] [[topic-mpv-ipc-reply-request-id-matching]]
 [[topic-jobqueue-queued-drain-starvation]]
 
-#,,..,,..,...,.,.,.,,,,,,,..,,.,,,..,,,.,,.,,,.,.,...,..,,.,.,,.,,..,,,..,,.,,
-#DUZVFXPKLZZGPKJPAYHXQ74IKQJ7DKOSRSPXWHXUABN35D7X25S5T2BNPDVDHBTHG7KT2CNOIYJ6E
-#\\\|ZPXACUK64DWZFVAA73KUY32ZI45OFRGCPCA5RAJOO4HVG7BEKEW \ / AMOS7 \ YOURUM ::
-#\[7]WKO3IWGE3GISTU7DVQY4KD5U2A3PQ4SVUZLQDXPPPSA7L3B7OGDQ 7  DATA SIGNATURE ::
+#,,..,...,...,...,,.,,.,.,...,,,,,.,.,.,,,...,.,.,...,...,,.,,.,.,.,.,...,.,,,
+#G7IAZCNFP72O2LSOXS6F35UVOUQBJYEKN4FQMKZQEOFVCQUA5HAQKMLFQRAHKOFILGTWLN3OGF5QQ
+#\\\|VH7HUZN2VBF6G3YDDYXJTY32HYHA66J7IRH25762ON3JKQEY4F4 \ / AMOS7 \ YOURUM ::
+#\[7]VK7BEFBL2VC6A3TLRSTEVNCEYY56NEOWBIEK7Z4L36LDYD6JJIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,13 +1,13 @@
 # task: implement task.cmd.handover
 
 ## objective
-create `modules/task.cmd.handover` — packages current task queue state
+create `src/task.cmd.handover` — packages current task queue state
 into a structured handover document for next-session pickup.
 
 ## read first
-- `modules/task.init_code` — queue structure: <task.queue>, <task.queue.order>
-- `modules/task.cmd.show` — how to read and format a task record
-- `modules/task.cmd.next` — how to use <[valued.resolve]> for priority
+- `src/task.init_code` — queue structure: <task.queue>, <task.queue.order>
+- `src/task.cmd.show` — how to read and format a task record
+- `src/task.cmd.next` — how to use <[valued.resolve]> for priority
 
 ## what to implement
 
@@ -40,8 +40,8 @@ empty queue: return 'no tasks in queue'
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,,,,..,,,,,,...,.,.,,.,,.,.,,.,,.,,,.,.,..,,..,,...,..,,..,,.,.,..,,.,,,.,,,
-#3PJYJ2JRXUWSXC62HG5BFCNQ23B2P2IB5B6AJBQ3G7I7UYWG2OS6AD4RYKJQ6QQXBT4PKS5YL4NLU
-#\\\|6FRZ2CROHUCPYUXULV6FTFSHRCTBMTGAYD6M72KFHEIZLEMH6GE \ / AMOS7 \ YOURUM ::
-#\[7]UONMFPKWI5YYM65VU7N444VJT6BLL6AXUOJAQ5CJKWQFATLSVMBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,..,,...,.,.,,.,,.,,,.,.,,.,,..,,..,,...,.,.,.,.,,,,,,,,,,..,,.,,
+#A6TD37A6UTT6AZXMLCKR2K5QORMOTRX77UAQSWSFDSHNITHXQ44SXEQ6ZHIFRN3CWWWXR52ENRKXS
+#\\\|YVKLX4VJV45KSCQDKOVG5Q3Z46AW5M2RDMOLDAHB6H7IK5ZTBZX \ / AMOS7 \ YOURUM ::
+#\[7]T3HJ6USGGPSLISUMLYAHCWA6KURSEZKMSCH6VGJ52P3H4RDTQMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

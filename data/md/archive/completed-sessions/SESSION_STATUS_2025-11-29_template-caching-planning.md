@@ -173,10 +173,10 @@ All 4 new modules have:
 5. ✅ Success criteria established
 
 ### Minimal Friction Path to Features
-1. Create `modules/web.scan_content_directories` (simple file indexing)
-2. Create `modules/web.template_cache.get` (cache lookup with TTL)
-3. Create `modules/web.template_cache.set` (cache storage)
-4. Create `modules/httpsd.route_template_request` (intelligent routing)
+1. Create `src/web.scan_content_directories` (simple file indexing)
+2. Create `src/web.template_cache.get` (cache lookup with TTL)
+3. Create `src/web.template_cache.set` (cache storage)
+4. Create `src/httpsd.route_template_request` (intelligent routing)
 5. Test each independently with mock data
 6. Test with live v7 zenka environment
 7. Optionally integrate into httpd handler
@@ -237,7 +237,7 @@ docs/
 ├── TEMPLATE_SYSTEM_STATUS_SUMMARY.md              (370 lines)
 │   └── Current state, existing modules, gaps
 │
-├── modules/
+├── src/
 │   ├── TEMPLATE-SYSTEM-MODULE-REFERENCE.md       (1,080 lines)
 │   │   └── API reference, specifications, data structures
 │   │
@@ -274,8 +274,8 @@ All files committed and available for next session reference.
 **Commits**: 2 (both documented and clean)  
 **Status**: Documentation phase COMPLETE, ready for implementation phase
 
-#,,..,.,,,,,,,...,.,,,...,,.,,...,,..,.,,,,.,,..,,...,..,,...,...,.,.,.,,,..,,
-#GYA6KBIMHVUJOM2W5GCHRUYN4WK6GQIWI6I57QQWQBII7LFA26FICRM6ETC6F73E7TRM62SAJCHT6
-#\\\|JXPWV7REX6NP7SJJKKHGKLPLPJY2TXZIZ56NTOPCOS7XC5Q2BLD \ / AMOS7 \ YOURUM ::
-#\[7]Y4KNSADYIIEVSSIPVDLFHC6HU3YEVRGSP7KTB5HUS7HC6QJPVEAQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,..,,...,,,,,.,.,.,,,.,,,,..,..,,...,...,,..,.,,,...,..,,,..,
+#FVT3BBRAJTUDCJBOD6Q4W65GHIIJ5K23GPY22XK4T4CG3ZGMWDWIG4W32IITX65DG6XM2PMAK3QXW
+#\\\|IAAMKEN5HY5DPC2N2CJQUXEJETX6UUDQSE3DXXT25HYIVSUBSF7 \ / AMOS7 \ YOURUM ::
+#\[7]4XR7GTNECCPTVYKPDOX4YZXPNS64HSQNM4C2EPUTJ6CX3VQZVMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

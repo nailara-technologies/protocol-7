@@ -164,8 +164,8 @@
 │ ## Output
 │ 
 │ ## move to completed [ high confidence ] ##
-│ - proxy-zenka-skeleton — all 8 proxy modules implemented and wired in base.list.subroutines [ modules/proxy.* ]
-│ - reasoning-branch-orchestration — all 7 reasoning.branch modules implemented and registered in task.post_init [ modules/reasoning.branch.* ]
+│ - proxy-zenka-skeleton — all 8 proxy modules implemented and wired in base.list.subroutines [ src/proxy.* ]
+│ - reasoning-branch-orchestration — all 7 reasoning.branch modules implemented and registered in task.post_init [ src/reasoning.branch.* ]
 │ - repo-root-cleanup-var-local-batches — var/httpd/static/ empty, var/httpd/skins/default.tmpl moved/deleted, batches/test_vision_batch.yaml moved/deleted [ cleanup verified ]
 │ 
 │ ## possibly completed [ needs a human look ] ##
@@ -236,10 +236,10 @@
 │ **Status: Not Started**
 │ 
 │ No evidence of implementation:
-│ - No `modules/sourcecode.console.normalize-endline-state` found
+│ - No `src/sourcecode.console.normalize-endline-state` found
 │ - No references to `sourcecode.normalize_endline_paths` config
-│ - No `modules/source.cmd.get-code-signed` modifications for path-based normalization
-│ - No `modules/source.restore_payload_endline_state` safety check implemented
+│ - No `src/source.cmd.get-code-signed` modifications for path-based normalization
+│ - No `src/source.restore_payload_endline_state` safety check implemented
 │ 
 │ This task has not been started.
 │ 
@@ -323,7 +323,7 @@
 │ ## **jobsite-ui-reassess-button.md** — STILL OPEN
 │ 
 │ **Evidence searched:**
-│ - `action.*reassess` — found in `modules/jobsite.sync.apply_reverse` (lines 87-158)
+│ - `action.*reassess` — found in `src/jobsite.sync.apply_reverse` (lines 87-158)
 │ - `btn-reassess` — **no matches found**
 │ - CSS class `.btn-reassess` — not found
 │ 
@@ -450,7 +450,7 @@
 │ - No keyring modules found in codebase
 │ - Searched for: `keyring.derive`, `keyring.sign`, `keyring.verify`, `keyring.distance`, `keyring.init`, `keyring.cmd.show`, `keyring.cmd.distance` — no matches
 │ - No HKDF-based key derivation code found
-│ - No `modules/keyring.*` files exist
+│ - No `src/keyring.*` files exist
 │ - Ncode search for "keyring" only found the task file itself
 │ 
 │ ---
@@ -463,7 +463,7 @@
 │ - No kitten modules found in codebase
 │ - Searched for: `image.kitten.classify`, `image.kitten.normalize`, `image.kitten.archetype`, `route.bmw384.visual.mask.kitten` — no matches
 │ - No `data/gfx/kittens/` directory or kitten-related image processing code
-│ - Only found one reference to "kittens" in `modules/lm-vision.cmd.analyze_image:162-174` which is just a prompt text reference, not the full pipeline implementation
+│ - Only found one reference to "kittens" in `src/lm-vision.cmd.analyze_image:162-174` which is just a prompt text reference, not the full pipeline implementation
 │ 
 │ ---
 │ 
@@ -533,12 +533,12 @@
 │ - **research-knowledge-base-extraction.md** — No commits or existing code found for any of the five research topics (dancing zenki formation, council of 13, personal HUD grid, forensics zenka, loves.,.
 │ 
 │ - **ring-routing-phase1.md** — No commits or existing code found for any of the six deliverables:
-│   - `modules/ring.key.load` — not found
-│   - `modules/ring.key.rotate` — not found
-│   - `modules/ring.member.has_key` — not found
-│   - `modules/ring.boundary.recognize` — not found
-│   - `modules/ring.cmd.list` — not found
-│   - `modules/ring.cmd.stats` — not found
+│   - `src/ring.key.load` — not found
+│   - `src/ring.key.rotate` — not found
+│   - `src/ring.member.has_key` — not found
+│   - `src/ring.boundary.recognize` — not found
+│   - `src/ring.cmd.list` — not found
+│   - `src/ring.cmd.stats` — not found
 │   
 │   The configuration file `cfg/zenki/cube/rings.cfg` does not exist, and no commits related to ring routing were found in recent git history.
 └──────────────────────────────────────────────────
@@ -552,7 +552,7 @@
 │ 
 │ **Evidence search:**
 │ - Searched for `eval_bigrat` and `format_truncated` — **no matches found**
-│ - Searched for `Math::BigRat` integration in `modules/calc.cmd.val` — **no matches found**
+│ - Searched for `Math::BigRat` integration in `src/calc.cmd.val` — **no matches found**
 │ - No commits found matching task keywords
 │ 
 │ **Status:** No implementation code found. This task is still open.
@@ -632,7 +632,7 @@
 =================== 1784169103.2223389-WCT3JJY ===================
 ┌──[ assistant | round 8 [CTX:37%] ]──────────────────────────────
 │ ## move to completed [ high confidence ] ##
-│ - **fix-double-plugin-load-on-reload.md** — The double plugin load fix is implemented in `modules/base.cmd.reload` at line 57 with `grep { $ARG !~ m{^plugin\.} }` filtering plugin modules from sourc.,.
+│ - **fix-double-plugin-load-on-reload.md** — The double plugin load fix is implemented in `src/base.cmd.reload` at line 57 with `grep { $ARG !~ m{^plugin\.} }` filtering plugin modules from sourc.,.
 │ 
 │ ## possibly completed [ needs a human look ] ##
 │ - **generate-all-spec-pages.md** — No HTML spec pages found. The iris.v7.ax/prompts directory either does not exist or contains no HTML files. Need to verify if iris.v7.ax directory exists and check.,.
@@ -681,7 +681,7 @@
 │ 
 │ **1. select-region-zenka-clone.md**
 │ - **Status**: Still open
-│ - **Evidence**: No code implementation exists. The only references to `select.region` are in the task file itself and one comment in `modules/base.handler.auth`. The task has not been implemented.
+│ - **Evidence**: No code implementation exists. The only references to `select.region` are in the task file itself and one comment in `src/base.handler.auth`. The task has not been implemented.
 │ 
 │ **2. SESSION-STATUS-tranche1-followup.md**
 │ - **Status**: Still open (this is a meta-status file, not a task)
@@ -756,9 +756,9 @@
 │ 
 │ ## **Partially done**
 │ - **ncode-workflow-patterns.md** — The three main command modules are implemented:
-│   - `modules/ncode.cmd.suggest` exists
-│   - `modules/ncode.cmd.apply` exists
-│   - `modules/ncode.cmd.workflow` exists
+│   - `src/ncode.cmd.suggest` exists
+│   - `src/ncode.cmd.apply` exists
+│   - `src/ncode.cmd.workflow` exists
 │ 
 │   **Missing:** The pattern YAML file `data/yaml/ncode-patterns/p7-common.yaml` and its 5 patterns (p7-tree-syntax-fix, p7-exists-code-guard, p7-arg-regression, p7-comment-style, p7-signature-stub) a.,.
 │ 
@@ -789,7 +789,7 @@
 │ ### **epoch-bmw-l13-truth-templates.md** — STILL OPEN
 │ 
 │ **Evidence found:** None
-│ - No file `modules/base.chk-sum.bmw.truth_template_L13` exists
+│ - No file `src/base.chk-sum.bmw.truth_template_L13` exists
 │ - No code implementing `AMOS7::TEMPLATE::assign_truth_templates` inside a BMW-L13 bit-harvest loop
 │ - No code calling `template_is_true` + `true_int` in the described configuration
 │ - No recent commits mentioning `truth_template_L13`, `BMW-L13`, or `amos_template_chksum`
@@ -799,7 +799,7 @@
 │ ### **epoch-chksum-path-helper.md** — STILL OPEN
 │ 
 │ **Evidence found:** None
-│ - No file `modules/base.path.epoch-chksum` exists
+│ - No file `src/base.path.epoch-chksum` exists
 │ - No code implementing `configure_epoch_window_callback` anywhere
 │ - No code with the described path-generation logic (`V7xxxxx/UUUUUUU` format)
 │ - No recent commits mentioning `epoch-chksum`, `V7L36RY`, or `epoch-window callback`
@@ -925,7 +925,7 @@
 │ ### Task 1: index-cube-storage-reader.md
 │ **Status: COMPLETED**
 │ 
-│ - ✅ Module `index.restore.cube` exists in `modules/index.restore.cube`
+│ - ✅ Module `index.restore.cube` exists in `src/index.restore.cube`
 │ - ✅ Implements schema detection (magic 'P7IC', storable fallback)
 │ - ✅ Validates header checksum using AMOS7
 │ - ✅ Eagerly loads rings 0 and 1 (lines 91-107)
@@ -956,7 +956,7 @@
 │ ## move to completed [ high confidence ] ##
 │ - inline-subs-batch-weather-language — not completed: all 5 inline subs (`_format_current_widget`, `_format_forecast_widget`, `_get_weather_widget_css`, `_wordlist_detect`, `_encoding_special_chars`.,.
 │ - installer-zenka-template-flow — not completed: no modules in the `installer.*` namespace were found; this is a new implementation task with no prior code to migrate.
-│ - jobsite-checksum-store-dirs — not completed: no filesystem-based checksum store exists. The only code found is a migration stub in `modules/jobsite.checksum.index` that references the old YAML fil.,.
+│ - jobsite-checksum-store-dirs — not completed: no filesystem-based checksum store exists. The only code found is a migration stub in `src/jobsite.checksum.index` that references the old YAML fil.,.
 └──────────────────────────────────────────────────
 
 
@@ -1023,7 +1023,7 @@
 │ **Evidence:**
 │ - No code matches the `.:[ ]:.` fold handle format described in the task
 │ - No commits reference console fold primitives or ui.show fallback
-│ - The task references `modules/cred-mesh.ui.show` as a proven pattern, but searching for cred-mesh ui modules also yields no results matching that pattern
+│ - The task references `src/cred-mesh.ui.show` as a proven pattern, but searching for cred-mesh ui modules also yields no results matching that pattern
 │ 
 │ ---
 │ 
@@ -1062,7 +1062,7 @@
 │ 
 │ ## move to completed [ high confidence ] ##
 │ 
-│ **index-persist.md** — All four modules implemented with exact matching behavior: `index.persist`, `index.restore`, `index.cmd.persist`, `index.cmd.restore` in modules/ with Storable serialization o.,.
+│ **index-persist.md** — All four modules implemented with exact matching behavior: `index.persist`, `index.restore`, `index.cmd.persist`, `index.cmd.restore` in src/ with Storable serialization o.,.
 │ 
 │ **index-source-map-active-set.md** — Complete source tracking layer implemented: `index.sources`, `index.active_checksums`, `index.chain_policy` all initialized in `index.init_code` with matching `i.,.
 │ 
@@ -1118,8 +1118,8 @@
 │ - Task 3 has no corresponding implementation found; both referenced tasks (`dispatch-template-param.md` and `dispatch-create-template.md`) lack code presence in the codebase
 └──────────────────────────────────────────────────
 
-#,,,,,,..,.,.,,.,,,,.,,.,,..,,.,,,...,.,.,.,,,.,.,...,...,.,.,...,,..,,..,,.,,
-#OPBUK2S5H7RW3TJFSV5LT5TXUZLN66UIRE74HNRKGG5JWIIL6IDNGRYL4LNYCTBNAF4DXI7JFRI56
-#\\\|4Y2MSH5LB6QV35QFEQ4OIKHFKJ23MWLU5FA5LZC3AWUSCPAQ6WG \ / AMOS7 \ YOURUM ::
-#\[7]RKUMXOJDJWGZWP6KIF3NDGVVXBO37QL2BGLQB5BR7CNQVAEU66AQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,..,..,,..,,..,,,.,,..,,.,.,.,.,...,...,,..,..,,...,,..,..,,
+#XKH6XM4G6QU5RFGJWLEPTEMS4NOKJKOHBPEIXTUK3WDF26EX6I4X6O5OFXYWG2T77ATKR6NOVIFDC
+#\\\|SZ2FFSHUNKMQBQX7UR3QIX5XJ7Y4VKMWABFL2AD2P3TEIINUWFZ \ / AMOS7 \ YOURUM ::
+#\[7]T3THSM5F6SR65K6UQS7J3CPZ3OZHVKR5XPY5226XDKEIJACDVYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

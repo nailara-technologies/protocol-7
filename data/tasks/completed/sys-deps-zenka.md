@@ -21,9 +21,9 @@ read all of these before implementing:
 - `bin/p7-deps` — standalone pre-bootstrap CLI; reads per-zenka `pm-dep/`/
   `os-dep/` dirs and `.deps/profiles.yaml`; has a hardcoded `%fallback_map`
   (10 entries) that duplicates `base.known_dependencies`
-- `modules/base.known_dependencies` — authoritative hash: perl module name →
+- `src/base.known_dependencies` — authoritative hash: perl module name →
   `{ debian => [...], cpan_fallback => '...' }`
-- `modules/base.debian.install_package` — zenka-side debian installer with
+- `src/base.debian.install_package` — zenka-side debian installer with
   dpkg lock-wait, retry loop (max 5), non-interactive env vars, early exit on
   "Unable to locate package"
 - `bin/dependencies/debian_dist_upgrade.sh` — dist-upgrade script: dpkg
@@ -35,7 +35,7 @@ read all of these before implementing:
 - `cfg/zenki/*/os-dep/binary/` — per-zenka binary/PATH declarations
 - `.deps/profiles.yaml` — named install profiles (minimal, runtime, development)
 - `.deps/protocol7_full.yaml` — generated consolidated apt list (not authoritative)
-- `modules/debian.*` — existing debian zenka (see task 1 audit)
+- `src/debian.*` — existing debian zenka (see task 1 audit)
 - `data/lib-path/pm/AMOS7/` — project AMOS7 library modules
 
 standalone scripts load AMOS7 modules via:
@@ -88,7 +88,7 @@ AMOS7::deps::deb-pkg::d-upgr → deb-pkg/d-upgr.pm — dist-upgrade
 
 ## task 1 — audit debian zenka
 
-read all `modules/debian.*` files and `cfg/zenki/debian/start`.
+read all `src/debian.*` files and `cfg/zenki/debian/start`.
 produce a short inventory:
 - what commands are live and functional
 - what is dead code or stub
@@ -168,7 +168,7 @@ sub install_os_pkgs { my ($os_type, @pkgs) = @_; ... }
 create `data/lib-path/pm/AMOS7/deps/deb-pkg.pm`
 
 debian-specific package operations. called by `os-pkgs` when `detect_os` returns
-`'debian'`. replaces the logic in `modules/base.debian.install_package`.
+`'debian'`. replaces the logic in `src/base.debian.install_package`.
 
 ```perl
 # check if a debian package is installed (dpkg-query)
@@ -176,7 +176,7 @@ debian-specific package operations. called by `os-pkgs` when `detect_os` returns
 sub probe_apt { my ($pkg) = @_; ... }
 
 # install debian packages — non-interactive, with dpkg lock-wait and retry
-# replicates modules/base.debian.install_package:
+# replicates src/base.debian.install_package:
 #   - set env: APT_LISTCHANGES_FRONTEND=none, DEBCONF_PRIORITY=critical,
 #     UCF_FORCE_CONFFOLD=true, UCF_FORCE_CONFMISS=true, PAGER=/bin/true
 #   - wait for dpkg lock: lslocks|grep ^dpkg, retry with backoff
@@ -330,24 +330,24 @@ create:
 on-demand zenka, no idle timeout. load modules: `auth net protocol io.unix sys-deps`
 `start.on-demand = 1`, `restart.disabled = 1`, `heartbeat.disabled = 1`
 
-### modules/sys-deps.init_code
+### src/sys-deps.init_code
 
 scan zenki pm/os deps via AMOS7 libs, read tracking log, detect host OS.
 load AMOS7 library modules via `<[base.perlmod.load]>` with lib path setup.
 
-### modules/sys-deps.cmd.state
+### src/sys-deps.cmd.state
 full dependency state report: declared + probe status for all zenki.
 
-### modules/sys-deps.cmd.check
+### src/sys-deps.cmd.check
 `# param = <zenka-name>` — dep status for one zenka.
 
-### modules/sys-deps.cmd.missing
+### src/sys-deps.cmd.missing
 all unsatisfied deps across all zenki.
 
-### modules/sys-deps.cmd.undeclared
+### src/sys-deps.cmd.undeclared
 packages in tracking log not yet promoted to any `os-dep/` config dir.
 
-### modules/sys-deps.cmd.promote
+### src/sys-deps.cmd.promote
 `# param = <pkg> <zenka>` — write empty file to
 `cfg/zenki/<zenka>/os-dep/debian/<pkg>`.
 
@@ -366,8 +366,8 @@ packages in tracking log not yet promoted to any `os-dep/` config dir.
 - do not modify `.deps/protocol7_full.yaml` — generated output, not source
 - `var/sys-deps/` directory must be created if missing (tracked.yaml lives here)
 
-#,,,.,..,,...,.,,,.,,,...,.,,,.,.,.,.,..,,.,.,..,,...,...,,,.,,,.,.,,,...,...,
-#L73ZF66EDS3XPOP5BFIYZHZE3FJP5LTCT5CRBNRUV2NWRW5GA2RBXYYFRU5K7CPAMR4S6EQYXQRLQ
-#\\\|W4HZ477BQ26RZQHPD3RBANHJNYP634PVTQLD76T4XYU2JN6FRGJ \ / AMOS7 \ YOURUM ::
-#\[7]42VGOOZ7KULY6O5ZVGW2DLXLV5YIZ4HUOSZDRO7XI63QQYJ6WMAI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,.,,...,.,,,,..,...,.,.,,..,,,,,..,,...,...,..,,..,,,,,,..,,,,.,
+#FUNRE4WCSVIUNA6P5HGCMX5ULO6E2RKDXDSNR4C4KPV35LFLYTMP5XRF5O2SQ6KYB3LVPJRX3ABYW
+#\\\|C5BS4TANG6IA4LGHJUSFDYAYH3RH3OL5QURWPCVD26UN7VPL3WM \ / AMOS7 \ YOURUM ::
+#\[7]KAIXG6JYMQZ4SLNG7KEJYNJSK6IWFYSUEP3RDUMA24XWDKBZ6IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

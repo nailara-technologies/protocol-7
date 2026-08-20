@@ -17,7 +17,7 @@ footer directly onto the last content line with no separator.
 (zero trailing newlines is valid for json/yaml/binary — can't distinguish
 intentional from bug), add:
 
-1. **per-path normalization config** — directories like `modules/` are declared
+1. **per-path normalization config** — directories like `src/` are declared
    as canonical paths where content must end with exactly 1 `\n`. during signing,
    files in these paths always get normalized to exactly 1 trailing newline before
    the footer, regardless of what the encoded state says. this silently repairs
@@ -65,9 +65,9 @@ output style (match `report-endline-state` and `update-signatures` patterns):
 
 ```
 .:[ normalizing endline state ]:.
-: modules/some.module : state 7 → 6 : normalized
-: modules/other.module : state 5 → 6 : normalized
-: modules/already.fine : state 6 : ok
+: src/some.module : state 7 → 6 : normalized
+: src/other.module : state 5 → 6 : normalized
+: src/already.fine : state 6 : ok
 : : N normalized, M already canonical
 ```
 
@@ -94,11 +94,11 @@ path-based heuristics.
 
 ## affected modules
 
-- `modules/source.cmd.get-code-signed` — add normalize path check before delta
+- `src/source.cmd.get-code-signed` — add normalize path check before delta
   counting
-- `modules/source.restore_payload_endline_state` — add underflow guard
-- `modules/sourcecode.init_code` or config — add normalize_endline_paths config
-- new: `modules/sourcecode.console.normalize-endline-state`
+- `src/source.restore_payload_endline_state` — add underflow guard
+- `src/sourcecode.init_code` or config — add normalize_endline_paths config
+- new: `src/sourcecode.console.normalize-endline-state`
 
 ## verification
 
@@ -107,7 +107,7 @@ after implementation:
 ```bash
 ## check no state 7 files remain in canonical paths after normalize
 v7.sourcecode normalize-endline-state -vvq
-v7.sourcecode report-endline-state modules/ -vvq | grep 'state 7'
+v7.sourcecode report-endline-state src/ -vvq | grep 'state 7'
 ## should return empty
 
 ## check signing a newly-created file without trailing \n stays canonical
@@ -121,8 +121,8 @@ v7.sourcecode report-endline-state /tmp/test-no-newline -vvq
 ## should log warning and not corrupt the file
 ```
 
-#,,.,,,,,,.,.,.,,,.,,,..,,..,,..,,...,,,.,...,..,,...,...,..,,,,,,,..,...,..,,
-#SCN5HFGYHFHGRWI4WNJICB466OGKKV2SJUZGSBE5CROSOREVBLTMNMBFVF523HSPOFZVJNKQIYBCY
-#\\\|AL5NUDFJIBV3CUU3W7SY3SGAGX2SDY2RPZNIPPQYTQYUKOBMDWA \ / AMOS7 \ YOURUM ::
-#\[7]RP2I7SIW2VPXYH4N5R434WNT5YYNC62P3S73THVJS6G2EDKYXWCY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,...,,,.,...,...,,.,,..,,,.,,.,.,..,,...,...,.,,,,..,.,.,,.,,,.,,
+#TXF6CP2PWOLIEMFSUK26K7IRASOTNMKGYKEMSSH3JLINRJL5HRESL3AEPP4254SKQ7BD4LLIEO3VK
+#\\\|AH7DUZSW3LDHXIO3NEFQZAUGPEMLQ3JREUYTM2QFRNRA3QI5OAU \ / AMOS7 \ YOURUM ::
+#\[7]E6CERRQXH5FTZ3FE5QSW5UL36OFTGOXOQFQDYIQ3Y4NLMRXHZSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

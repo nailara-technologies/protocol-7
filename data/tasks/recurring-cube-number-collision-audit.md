@@ -523,7 +523,7 @@ meaning this connection was sitting one file-hop away in material this
 audit had already opened, not a new discovery invented here.
 
 **one piece of this is confirmed live code, not just design material**:
-`modules/space.jump.bubble` takes a `{ setup, ground, collector, target
+`src/space.jump.bubble` takes a `{ setup, ground, collector, target
 }` formation hash and dispatches a jump route from it — the `setup` /
 `ground` [ array ] / `collector` fields are a direct, real
 implementation of the dancing-zenki role shape. **Caveat, checked and
@@ -621,7 +621,7 @@ this thread's central phenomenon, not a new bridge.
 
 ## status
 
-design-only, no code, not committed [ except `modules/space.jump.bubble`,
+design-only, no code, not committed [ except `src/space.jump.bubble`,
 which is pre-existing live code identified and read during this audit,
 not written by it ]. `data/tasks/footer-line4-field-
 reconciliation.md` findings 11-13 remain as written; this file is the
@@ -635,8 +635,8 @@ messages; same design-only, not-committed status applies.
 
 ## unsigned : new file, signing system adds the real footer on commit
 
-#,,,,,.,.,,,.,.,.,,.,,.,.,..,,.,.,,..,..,,...,..,,...,...,...,.,,,,.,,.,,,...,
-#TMZUJWUELWESD6CPL4TSZYGKS63PRPMSDE5ZNDJIQ46UTPS7PQFOWO5QMFR33EAY6LT32DNMRFJEI
-#\\\|GMK24I2CSEH4EFNCGJK77S77JH7A2A5D5RJJRPIO4QTCIWG55M3 \ / AMOS7 \ YOURUM ::
-#\[7]DPQSAF7ROZXDTHWU47IVOK3VPPBKDLODNQDGJA2ABRHWROSGUCBY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,,,.,...,.,,,...,,.,,,,.,,,,,..,,...,...,...,...,,,.,,.,,...,
+#7C4IFOK33VNLN2PDNHHTMV5NFUPTEDCKNLXUFXQOTL25YFNR3YDBDC3YG4LB2H4YUF2OJGG5RLIFG
+#\\\|LKSKWO3E7R3XJMXCDQJD43TUBWRXGLJWLONF7XCFJZHE4OVJ5VS \ / AMOS7 \ YOURUM ::
+#\[7]US6TGFXNU7D2ROOGT6M6XUURZDDYE3S2MHGPO7X2P3TKJL6GKKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

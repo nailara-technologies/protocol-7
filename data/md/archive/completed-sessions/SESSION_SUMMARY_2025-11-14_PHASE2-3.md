@@ -129,10 +129,10 @@ a3da12dfb feat: Implement nested skin system with menu generation (Phase 3)
 ```
 
 **Files Modified/Created**:
-- `modules/httpd.http_get` - Refactored for route_dispatcher
-- `modules/httpd.serve_static` - NEW static file handler
-- `modules/web.skin_resolver` - NEW skin resolution system
-- `modules/web.cmd.skin` - NEW skin management command
+- `src/httpd.http_get` - Refactored for route_dispatcher
+- `src/httpd.serve_static` - NEW static file handler
+- `src/web.skin_resolver` - NEW skin resolution system
+- `src/web.cmd.skin` - NEW skin management command
 - `data/examples/skins/{default,dark,mobile}/` - NEW example skins
 - `PHASE_4_INTEGRATION_TESTING_GUIDE.md` - NEW testing framework
 
@@ -231,13 +231,13 @@ a3da12dfb feat: Implement nested skin system with menu generation (Phase 3)
 ## Files & References
 
 ### Core Modules
-- `modules/httpd.http_get` - HTTP handler with route_dispatcher
-- `modules/httpd.route_dispatcher` - Route decision tree
-- `modules/httpd.vhost_template_resolver` - 3-level template resolution
-- `modules/httpd.process_template` - Template processing offload
-- `modules/web.skin_resolver` - Skin cascade resolution
-- `modules/web.menu_generator` - Menu auto-generation
-- `modules/web.cmd.skin` - Skin management operator
+- `src/httpd.http_get` - HTTP handler with route_dispatcher
+- `src/httpd.route_dispatcher` - Route decision tree
+- `src/httpd.vhost_template_resolver` - 3-level template resolution
+- `src/httpd.process_template` - Template processing offload
+- `src/web.skin_resolver` - Skin cascade resolution
+- `src/web.menu_generator` - Menu auto-generation
+- `src/web.cmd.skin` - Skin management operator
 
 ### Examples & Examples
 - `data/examples/skins/default/` - Light theme example
@@ -300,7 +300,7 @@ git status
 ./bin/Protocol-7 cmd web menu list vhost.name
 
 # View module content
-cat modules/httpd.route_dispatcher
+cat src/httpd.route_dispatcher
 ```
 
 ---
@@ -344,8 +344,8 @@ cat modules/httpd.route_dispatcher
 
 **End Session Summary**
 
-#,,.,,..,,,,.,,..,,,,,.,.,.,,,.,.,.,,,,..,.,.,..,,...,..,,...,,..,.,,,...,.,,,
-#USIUH3NE4QEF3DA62TPDM7H3QMJG65XPYQSHH5Y7XVXES6BZGVNLRMDNNSZARIDD2SWW4V7SDCCGY
-#\\\|UQVC5H5TI3TZWFSFWK7OWARWEDBC7IQPJ4MOPU7K25UUJ2BSXQT \ / AMOS7 \ YOURUM ::
-#\[7]VX5I3ZNAMOM2EFBJP7MNS4UB2K24BMYEBRZLJMKSVQV24IZVFECQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,...,,,.,..,,,.,,,..,,..,,..,.,,,..,,...,...,,..,...,,.,,..,,,,,,
+#35LETCQMHL67IP5XNWJHWZPOT4WPNT5HZ3DGY3SNILT6UHSCNSGLBOWX3RG3IT4BO2H6PNKVPFWXE
+#\\\|5LW43VV5GIAE24PMK6XVCM4DLBQOE5DWM7QJU47E34HZVOSGCIP \ / AMOS7 \ YOURUM ::
+#\[7]SNJQPPOPBJEEOLS2X573I3F7OMNIYUFDKEBULAJC3CSK2FM3GMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

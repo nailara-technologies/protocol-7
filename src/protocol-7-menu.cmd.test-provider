@@ -1,0 +1,185 @@
+## [:< ##
+
+# name = protocol-7-menu.cmd.test-provider
+# descr = test provider for validating menu structure
+
+## Test provider registration and update cycle  This module exercises the
+## complete menu update flow for validation
+
+my $call_args = $call->{'args'} // 'status';
+my ( $action, $subaction ) = split( m|\s+|, $call_args, 2 );
+
+## ACTION: status - show current test provider state
+if ( $action eq 'status' ) {
+    my $menu_structure = <protocol-7-menu.menu-structure>;
+    my $test_data = $menu_structure->{'providers'}{'test-provider'} // {};
+    my $item_count
+        = defined $test_data->{'items'}
+        ? scalar( keys %{ $test_data->{'items'} } )
+        : 0;
+
+    return {
+        'mode' => qw| size |,
+        'data' => "Test Provider Status:\n  Items: $item_count\n"
+    };
+}
+
+## ACTION: populate - initialize test provider with sample data
+elsif ( $action eq 'populate' ) {
+    my $update_data = {
+        'items' => {
+            'test-item-1' => {
+                'label'   => 'Test Item 1',
+                'enabled' => 1,
+                'action'  => 'test.action.1',
+            },
+            'test-item-2' => {
+                'label'   => 'Test Item 2',
+                'enabled' => 1,
+                'action'  => 'test.action.2',
+            },
+            'test-item-3' => {
+                'label'   => 'Test Item 3 (disabled)',
+                'enabled' => 0,
+                'action'  => 'test.action.3',
+            },
+        }
+    };
+
+    ## Use menu-update to push data into structure
+    my $json_data = JSON::to_json($update_data);
+    <[protocol-7-menu.cmd.menu-update]>
+        ->( { 'args' => "test-provider $json_data" } );
+
+    <[base.log]>->( 1, 'test-provider populated with 3 items' );
+
+    return {
+        'mode' => qw| true |,
+        'data' => 'test-provider populated'
+    };
+}
+
+## ACTION: update - modify existing test provider data
+elsif ( $action eq 'update' ) {
+    my $update_type = $subaction // 'add';
+
+    if ( $update_type eq 'add' ) {
+        ## Add a new item
+        my $update_data = {
+            'items' => {
+                'test-item-1' => {
+                    'label'   => 'Test Item 1',
+                    'enabled' => 1,
+                    'action'  => 'test.action.1',
+                },
+                'test-item-2' => {
+                    'label'   => 'Test Item 2',
+                    'enabled' => 1,
+                    'action'  => 'test.action.2',
+                },
+                'test-item-3' => {
+                    'label'   => 'Test Item 3 (disabled)',
+                    'enabled' => 0,
+                    'action'  => 'test.action.3',
+                },
+                'test-item-4' => {
+                    'label'   => 'Test Item 4 (NEW)',
+                    'enabled' => 1,
+                    'action'  => 'test.action.4',
+                },
+            }
+        };
+
+        my $json_data = JSON::to_json($update_data);
+        <[protocol-7-menu.cmd.menu-update]>
+            ->( { 'args' => "test-provider $json_data" } );
+
+        <[base.log]>->( 1, 'test-provider: added item 4' );
+        return { 'mode' => qw| true |, 'data' => 'item added' };
+
+    } elsif ( $update_type eq 'remove' ) {
+        ## Remove an item
+        my $update_data = {
+            'items' => {
+                'test-item-1' => {
+                    'label'   => 'Test Item 1',
+                    'enabled' => 1,
+                    'action'  => 'test.action.1',
+                },
+                'test-item-2' => {
+                    'label'   => 'Test Item 2',
+                    'enabled' => 1,
+                    'action'  => 'test.action.2',
+                },
+            }
+        };
+
+        my $json_data = JSON::to_json($update_data);
+        <[protocol-7-menu.cmd.menu-update]>
+            ->( { 'args' => "test-provider $json_data" } );
+
+        <[base.log]>->( 1, 'test-provider: removed items 3,4' );
+        return { 'mode' => qw| true |, 'data' => 'items removed' };
+
+    } elsif ( $update_type eq 'toggle' ) {
+        ## Toggle enabled state of item - preserve current structure
+        my $menu_structure = <protocol-7-menu.menu-structure>;
+        my $current_items
+            = $menu_structure->{'providers'}{'test-provider'}{'items'} // {};
+
+        ## Create update preserving all current items but toggling item-1
+        my $update_data = { 'items' => {} };
+        foreach my $item_id ( keys %$current_items ) {
+            my $item = $current_items->{$item_id};
+            if ( $item_id eq 'test-item-1' ) {
+                ## Toggle item-1's enabled state
+                $update_data->{'items'}{$item_id} = {
+                    'label'   => $item->{'label'} // 'Test Item 1',
+                    'enabled' => !$item->{'enabled'},
+                    'action'  => $item->{'action'} // 'test.action.1',
+                };
+            } else {
+                ## Keep other items unchanged
+                $update_data->{'items'}{$item_id} = $item;
+            }
+        }
+
+        my $json_data = JSON::to_json($update_data);
+        <[protocol-7-menu.cmd.menu-update]>
+            ->( { 'args' => "test-provider $json_data" } );
+
+        <[base.log]>->( 1, 'test-provider: toggled item 1 enabled state' );
+        return { 'mode' => qw| true |, 'data' => 'item state toggled' };
+    }
+
+    return { 'mode' => qw| false |, 'data' => 'unknown update type' };
+}
+
+## ACTION: clear - remove test provider completely
+elsif ( $action eq 'clear' ) {
+    <[protocol-7-menu.cmd.menu-update]>->(
+        {   'args' => "test-provider"    # empty data removes provider
+        }
+    );
+
+    <[base.log]>->( 1, 'test-provider cleared' );
+    return { 'mode' => qw| true |, 'data' => 'test-provider cleared' };
+
+} else {
+    return {
+        'mode' => qw| size |,
+        'data' => "Test Provider Usage:\n  test-provider status           - "
+            . "Show current state\n  test-provider populate        "
+            . " - Create with 3 items\n  test-provider update add  "
+            . "     - Add 4th item\n  test-provider update remove  "
+            . "  - Remove 3rd and 4th items\n  test-provider "
+            . "update toggle    - Toggle item 1 enabled state\n  "
+            . "test-provider clear            - Remove all items\n"
+    };
+}
+
+#,,,.,,,,,...,.,.,.,.,..,,,,.,..,,,.,,,,,,,..,.,.,...,...,..,,,,,,.,.,...,,,.,
+#RYN5HLBRTQY6X6CFFQVV6KXB2IUHBHOYQHI7X6B35TZOVBIKP42ZUCTN6Y2P4LLSNZBUQ5BEHQXTU
+#\\\|VWMIEKXX5OFTXX6ALW4PGHYUFIYPNIJK34BZ7F2OLGYGVVIY2SF \ / AMOS7 \ YOURUM ::
+#\[7]RPRMU2LV7XB6SUYYGUBYP2Z66CCDXXFRS2ES3QXV6LUE6HLK6KDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

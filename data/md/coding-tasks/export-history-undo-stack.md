@@ -55,12 +55,12 @@ schema or the jobsite↔web sync/watermark machinery.
   - `clearExportHistory()` — same pattern for the clear-all batch.
   - `migrateLegacyExportHistory()` — recently added; not directly relevant
     but nearby code, same file region.
-- `modules/plugin.web.jobs.sync` — `@browser_fields` handling; the backup
+- `src/plugin.web.jobs.sync` — `@browser_fields` handling; the backup
   stack likely needs its own small server-side storage (new field or a
   dedicated small cache file under `plugin.web.jobs.cache.path`), not a
   per-job field like `exported_stage` — it's a single shared stack, not
   per-job state.
-- `modules/plugin.web.jobs.cache.write` / `cache.path` — existing pattern
+- `src/plugin.web.jobs.cache.write` / `cache.path` — existing pattern
   for where/how the web zenka persists its own state to disk.
 
 ## Definition of done
@@ -88,8 +88,8 @@ schema or the jobsite↔web sync/watermark machinery.
 - No hand-written AMOS7 signature/footer blocks in new/modified Perl files
   — the project's signing tool generates those at commit time.
 
-#,,..,...,,,.,,..,,..,,.,,,,.,..,,,,.,,,,,...,..,,...,...,,..,,..,..,,,..,,.,,
-#Q5V5FRRWGNC7MAK4O3BFVEV6MTYE2CFPUB4Z5RZGXIRC7MH4YB6HAIJKWYYK7A4VYEL55CPML37WI
-#\\\|KTXMHFZCBS6HNU57IORP5ZAV4DUGKVGKIWP6PWT7OTGZ3KEIREI \ / AMOS7 \ YOURUM ::
-#\[7]5KZQ4YJMGZ645HIAV5EXTBZ46LRJH53OB5F3TOOJXKG4WSBHV6CA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,..,,.,,,,,,,..,.,,,..,,..,,...,..,,...,..,,...,.,.,,.,,..,,,.,,
+#ZBDRDE5OKUGTNMAEX46H5REHEZLU3I47YW5QWR3I346YAJLC6XEDPKG3VQSA7UYY3E2FQMBIBOGLA
+#\\\|2CDOXDRNGKPI5A46CD7FW2P5G5XIHKYLN6XGWE2XDQDZ3MIQ22U \ / AMOS7 \ YOURUM ::
+#\[7]72PFU3DQIJVEDPKLAZPORTZXHDYP7GUQ3TSH6YUGDMVZIVWMKCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

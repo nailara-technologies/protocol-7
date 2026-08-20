@@ -68,7 +68,7 @@ sleep 10
 # Parallel dispatch
 p7c kimi-web.dispatch_parallel \
     agent_ids='["kw-0001","kw-0002","kw-0003"]' \
-    prompt="Review modules/coding.cmd.inference-status" \
+    prompt="Review src/coding.cmd.inference-status" \
     aggregation=merge \
     timeout=300
 ```
@@ -140,8 +140,8 @@ p7_template_resolve -> kimi-web.resolve_template
 - `kimi-web.handler.batch_timeout_check` - Timeout handling
 - `kimi-web.internal.*` - HTTP helpers and aggregation
 
-#,,,,,,.,,,,,,.,.,...,,,,,.,,,.,,,,..,..,,,,.,..,,...,...,,,.,.,.,,.,,,..,,..,
-#7PCLC4YSNC5QSWRR3CMO2YGU6HBMSJJDMKBL6UBRVOAMVWMBO6MHP65UNRZJ6XRKJLLWV6MKIXIG6
-#\\\|RCHECWCYIAOJOXNKJVKYTVU7OOJRK723WILVQNMLJAQINF7IGUF \ / AMOS7 \ YOURUM ::
-#\[7]UAN4BFWRCSIM5NAXLARAEP5N36ZXEM2LJT5DQD6V2IM73CXPJWAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,.,.,.,.,,,.,..,,...,,,.,,..,..,,...,...,.,,,.,.,...,,.,,...,
+#EQGKZY672UMZUXAJI7YDAJ5JGEYY37IOBJXJJ52TNY74J6T24NDKY6OMZPCSVHU2RNQSRC5INJ42M
+#\\\|X7GWHARPIKR6QKAFIVJGTKHIO2WVDRXUTT7ZKMIKP6GGPOXDWBH \ / AMOS7 \ YOURUM ::
+#\[7]EO7WJJCTDDMDL5HYEBAI3ZSG35WC6LO4UEBPMISW5NOBI6VLHQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

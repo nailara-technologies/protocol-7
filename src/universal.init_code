@@ -1,0 +1,64 @@
+## [:< ##
+
+# name = universal.init_code
+
+<[base.perlmod.load]>->('IPC::Open2');
+<[base.perlmod.load]>->( 'File::Copy', qw| move | );
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+## tracking state ##
+<universal.state> //= {
+    'playlist' =>
+        { 'entries' => 0, 'last_request' => 0, 'last_success' => 0 },
+    'zenki' => {
+        'start_time' =>
+            { 'start-anim' => 0, 'web-browser' => 0, 'mpv' => 0, },
+        'init_reported' =>
+            { 'start-anim' => 0, 'web-browser' => 0, 'mpv' => 0, },
+    },
+    'windows' => {
+        'raised' => qw| none |,
+        'xids'   => { 'mpv' => undef, 'web-browser' => undef, }
+    }
+};
+##
+
+<universal.vid_frame_dir> //= '/var/protocol-7/ffmpeg/video_frames';
+
+$SIG{'CHLD'} = $code{'universal.handler.sig_chld'};
+
+<universal.lsp_name>
+    = defined <system.zenka.subname>
+    ? 'start-anim[' . <system.zenka.subname> . ']'
+    : 'start-anim[' . $PID . ']';
+
+my @dis_cmds = @{ $data{'disabled_commands'} };
+$data{'disabled_commands'} = [];
+map { push( @{ $data{'disabled_commands'} }, $ARG ) if $ARG ne 'whoami' }
+    @dis_cmds;
+$data{'base'}{'cmd'}{'whoami'}        = 'base.cmd.whoami';
+$data{'base'}{'cmd'}{'cancel-stream'} = 'base.cmd.cancel-stream';
+
+<universal.cmdline_mods>
+    = { 'web-browser' => 'Gtk3 Glib::Event Gtk3::WebKit2' };
+
+<[universal.reroute_commands]>;
+
+<universal.zenki_started>   //= 0;
+<universal.switch_timeout>  //= 7; # restart zenka after 7 secs resume timeout
+<universal.children_ready>  //= 0;
+<universal.declared_online> //= 0;
+<universal.start-anim_timeout>    //= 17;
+<universal.playlist_was_empty>    //= 0;
+<universal.cfg.autospeed_notrans> //= 1;
+<universal.cfg.can_self_restart>  //= 1;
+
+<[base.log]>->( 1, "[ self-restart is disabled ]  << ! >>" )
+    if !<universal.cfg.can_self_restart>;
+
+0;
+
+#,,,.,...,,,.,,,.,.,,,,..,,,.,,.,,.,.,.,,,.,.,..,,...,...,.,.,,.,,,.,,,,.,...,
+#OA6JNAV6MV3AK5ZGXUVIKKK3RFSPVU25XSNOOODAYOCMVLUPXHGLK4W7LME4DCKCOIE6ONNF6U4H2
+#\\\|T7R7SGERNY3HKD4WK5C7B32JEMYZKSG6A33R7MJHZ7UYXRZAHPJ \ / AMOS7 \ YOURUM ::
+#\[7]JW5AS6OE22Y7XDDR656RUWIRM7IW6MOWNBPEVWEEWMEU4HKWVEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

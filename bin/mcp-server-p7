@@ -542,8 +542,8 @@ our @tools = (
             'properties' => {
                 'task_id' => {
                     'type'        => 'string',
-                    'description' => '7-character task identifier '
-                        . '(optional, defaults to active task)'
+                    'description' => '7-character task identifier (optional, '
+                        . 'defaults to active task)'
                 }
             },
             'required'             => [],
@@ -998,7 +998,7 @@ our @tools = (
 
 ##[ load chat tool definitions ]##
 {
-    my $chat_tools_fn = do "$ROOT_PATH/modules/mcp.tools.chat";
+    my $chat_tools_fn = do "$ROOT_PATH/src/mcp.tools.chat";
     if ( ref $chat_tools_fn eq qw| CODE | ) {
         $chat_tools_fn->( \@tools );
     } elsif ($@) {
@@ -2607,10 +2607,9 @@ sub _extract_stream_content {
 ## summary-tree cache key : content-addressed over instruction+text, so     ##
 ## growing content [ same session, more days of conversation ] always       ##
 ## misses and re-summarizes rather than returning a stale cached answer     ##
-## bmw-L13 harmony loop, ported from modules/base.chk-sum.bmw.harmonize_L13 ##
-## + calculate_L13_sum + L13-str. computed LOCALLY — see the BEGIN block    ##
-## note above for why this must never go over the cube wire as one command  ##
-## line                                                                     ##
+## bmw-L13 harmony loop, ported from src/base.chk-sum.bmw.harmonize_L13 +   ##
+## calculate_L13_sum + L13-str. computed LOCALLY — see the BEGIN block note ##
+## above for why this must never go over the cube wire as one command line  ##
 sub _bmw_l13_harmonize {
     my ( $bmw_512_bin, $validator ) = @ARG;
     return undef unless length( $bmw_512_bin // '' ) == 64;
@@ -4002,8 +4001,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,..,,,,,,,..,,,.,.,,,.,,,.,,,...,,,.,,..,..,,...,...,,..,..,,,,.,,.,,,.,,
-#436UZWXW3HX27JUBUPIWTVNEZF75YOROXYDFLHCQCCCJ4GC3Y47GLWQ5QNKIZH2SD4RGLGUFQHL3E
-#\\\|3CIE3SF46QDUG533EP7MPUCLBWKZMUB57GT4HO6TJKLVU2OK4N3 \ / AMOS7 \ YOURUM ::
-#\[7]B73H2E2O5FCETSSMVIHJ5DBMEPSA7LH536J3UMUBO26BKW2K7ODY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,,,..,,..,,.,,,.,,,,.,,..,,,.,,..,,...,...,.,,,,.,,.,.,...,,.,,
+#PBJ36XUJ6YDMGJIVV6I6VRDLOTU4K764NIJPFY6VOFELEP6PS5CGW3WHRYLEP4IDLQW7BMMVAANKI
+#\\\|GTHEDYNQKJJUBNPQCXYCI6DUTFRM3L3F6EGX4D2IO2XELKDCEU7 \ / AMOS7 \ YOURUM ::
+#\[7]CUJWNM7FPIXM6SZVNLAFDOKBGS2DRL6DEFLVCZH7MS6Z4W4B4KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

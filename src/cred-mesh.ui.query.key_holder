@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = cred-mesh.ui.query.key_holder
+# descr = return key-holder child process status
+
+my $pid   = <cred-mesh.key_holder.pid>;
+my $state = 'not started';
+
+## child forks before drop_privs and keeps running as root — kill(0,$pid) ##
+## from the now-unprivileged parent would always read EPERM as 'dead';    ##
+## base.exists.sub-process checks the parent-child relation via waitpid   ##
+## instead, which needs no uid match                                      ##
+if ( defined $pid and $pid > 0 ) {
+    $state = <[base.exists.sub-process]>->($pid) ? 'running' : 'terminated';
+}
+
+## key material is mlocked in child — treat as locked when running ##
+my $locked = ( $state eq 'running' ) ? 'yes' : 'n/a';
+
+## no operation tracking yet — phase 1 placeholder ##
+my $last_op       = '';
+my $last_op_age_s = 0;
+
+return {
+    'state'         => $state,
+    'pid'           => $pid // '',
+    'locked'        => $locked,
+    'last_op'       => $last_op,
+    'last_op_age_s' => $last_op_age_s,
+};
+
+#,,,,,..,,...,..,,,,.,.,,,.,.,,..,,.,,,,.,..,,..,,...,...,.,.,.,.,,,.,,,,,,,.,
+#GEDOALJ2YIKBAC3CQA6XSYPOLVBYP2IUTULWDSRPP4YU7IMLU6Y5BVZHOVKMUXXXWBQGSTRIKJGRE
+#\\\|GTLXXAJOHZWVEBZ2ZJIEF3VLZ3LVHGW4LMYJ6YVWDFXCJ7MKCQJ \ / AMOS7 \ YOURUM ::
+#\[7]DSUYP4THYNKZ6NNXDCJPTZQND5WGGGTHK2R4Y6OZJOKZ2NQ7LQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

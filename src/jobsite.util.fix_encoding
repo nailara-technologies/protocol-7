@@ -1,0 +1,166 @@
+## [:< ##
+
+# name  = jobsite.util.fix_encoding
+# descr = repair mojibake using encoding tables +
+
+my ( $s, $lang ) = ( shift // '', lc( shift // 'german' ) );
+return $s unless length $s;
+
+## load encoding candidates from centralized map ##
+my $enc_list = <[base.language.encoding_map]>->($lang);
+
+## east asian languages: validate-not-substitute path  do NOT run ja/zh/ko ##
+## through latin/cyrillic FFFD bigram repair                               ##
+my $is_east_asian
+    = ( $lang =~ m{^(?:ja|zh|ko|japanese|chinese|korean)$} ) ? 1 : 0;
+
+## bigram context tables : compact alternative to word lists prev/next are ##
+## sets of chars that commonly surround each special char                  ##
+##
+my %lang_bigrams = (
+    german => {
+        'ä' => { prev => 'bdfghklmnrst', next => 'hlnrstu' },
+        'ö' => { prev => 'bdfghklmnrs',  next => 'fklnrs' },
+        'ü' => { prev => 'bdfghklmnrs',  next => 'blnrs' },
+        'ß' => { prev => 'aeiou',        next => 'aeilnst' },
+        'Ä' => { prev => '',             next => 'hlnrstu' },
+        'Ö' => { prev => '',             next => 'fklnrs' },
+        'Ü' => { prev => '',             next => 'blnrs' },
+        'é' => { prev => 'aeilnrs',      next => 'cilnrst' },
+    },
+    french => {
+        'é' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+        'è' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+        'ê' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+        'à' => { prev => '',             next => 'aeilnrstu' },
+        'ç' => { prev => 'aeiou',        next => 'aeiou' },
+        'ô' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+        'û' => { prev => 'bcdfglmnprst', next => 'aeilnrst' },
+    },
+);
+
+## _encoding_special_chars now lives in base.language.heuristic imported ##
+## here for FFFD candidate generation                                    ##
+
+##[ REPAIR: MOJIBAKE ]########################################################
+## utf-8 flag set, contains classic latin-1-misread utf-8 sequences ##
+
+if ( utf8::is_utf8($s) and $s =~ /[\xC3\xC2][\x80-\xBF]|\x{00C3}|\x{00C2}/ ) {
+    for my $enc ( @{$enc_list} ) {
+        my $table = <[jobsite.util.fix_encoding.mojibake-table]>->($enc);
+        my $fixed = $s;
+        my $did_replace = 0;
+
+        ## replace longest matches first ##
+        for my $bad ( sort { length($b) <=> length($a) } keys %{$table} ) {
+            my $correct = $table->{$bad};
+            if ( $fixed =~ s/\Q$bad\E/$correct/g ) {
+                $did_replace++;
+            }
+        }
+
+        ## validate: result should be valid utf-8 with no residual mojibake ##
+        if ( $did_replace and $fixed !~ /[\xC3\xC2][\x80-\xBF]/ ) {
+            $s = $fixed;
+            last;
+        }
+    }
+}
+
+##[ REPAIR: U+FFFD REPLACEMENT CHARACTERS ]###################################
+## replacement char appeared because a byte was invalid in the detected  ##
+## encoding; use context-scored candidate set from the target encoding's ##
+## special chars                                                         ##
+
+if ( utf8::is_utf8($s) and $s =~ /\x{FFFD}/ ) {
+    if ($is_east_asian) {
+        ## east asian: try each encoding, validate decoded result ##
+        my $repaired = 0;
+        for my $enc ( @{$enc_list} ) {
+            my $decoded
+                = eval { Encode::decode( $enc, $s, Encode::FB_CROAK ) };
+            next unless defined $decoded and not $@;
+            ## validate: plausible kana/kanji/hangul ratio? ##
+            my $kana = 0;
+            $kana++ while $decoded =~ /[\x{3040}-\x{309F}\x{30A0}-\x{30BF}]/g;
+            my $kanji = 0;
+            $kanji++ while $decoded =~ /[\x{4E00}-\x{9FFF}]/g;
+            my $hangul = 0;
+            $hangul++ while $decoded =~ /[\x{AC00}-\x{D7AF}]/g;
+            my $total_cjk = $kana + $kanji + $hangul;
+            my $total_len = length($decoded);
+            ## accept if > 20% of text is recognizable east asian chars ##
+            if ( $total_len > 0 and $total_cjk / $total_len > 0.20 ) {
+                $s        = $decoded;
+                $repaired = 1;
+                last;
+            }
+        }
+        ## if no encoding validated, strip replacement chars as last resort ##
+        $s =~ s/\x{FFFD}//g unless $repaired;
+    } else {
+        ## latin/cyrillic: context-scored bigram substitution ##
+        my @candidates
+            = <[base.language.encoding_special_chars]>->( $enc_list->[0] );
+        my $bigrams = $lang_bigrams{$lang} // {};
+        my $repair  = $s;
+        my $pos     = 0;
+
+        while ( $repair =~ /\x{FFFD}/g ) {
+            my $at   = pos($repair) - 1;
+            my $prev = $at > 0 ? substr( $repair, $at - 1, 1 ) : undef;
+            my $next
+                = $at < length($repair) - 1
+                ? substr( $repair, $at + 1, 1 )
+                : undef;
+
+            ## skip adjacent filler or non-alpha context : too ambiguous ##
+            next
+                if ( defined $prev and $prev =~ /\x{FFFD}/ )
+                or ( defined $next and $next =~ /\x{FFFD}/ );
+
+            my $best_char  = undef;
+            my $best_score = 0;
+
+            for my $candidate (@candidates) {
+                my $score = <[jobsite.util.fix_encoding.score-candidate]>->(
+                    $candidate, $prev, $next, $bigrams
+                );
+                if ( $score > $best_score ) {
+                    $best_score = $score;
+                    $best_char  = $candidate;
+                }
+            }
+
+            ## minimum score 2 : at least one context match required ##
+            if ( defined $best_char and $best_score >= 2 ) {
+                substr( $repair, $at, 1 ) = $best_char;
+            }
+        }
+
+        ## strip any unresolved replacement chars ##
+        $repair =~ s/\x{FFFD}//g;
+        $s = $repair;
+    }
+}
+
+##[ REPAIR: RAW BYTES ]#######################################################
+## no utf-8 flag: try decode as utf-8 first, then fall through encoding ##
+## list                                                                 ##
+
+if ( not utf8::is_utf8($s) ) {
+    my $decoded = eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) };
+    return $decoded if defined $decoded and not $@;
+    for my $enc ( @{$enc_list} ) {
+        my $fixed = eval { Encode::decode( $enc, $s, Encode::FB_CROAK ) };
+        return $fixed if defined $fixed and not $@;
+    }
+}
+
+return $s;
+
+#,,.,,.,,,,.,,.,,,..,,,..,,.,,,..,.,.,.,.,,,.,.,.,...,...,...,,..,.,,,,,.,,,.,
+#2MADBVBPDRF2HMDAQH2E7NHBZH5WO6CWYX2UN4AKIIPNNUDKGWAQAG646AAD5KIOGNE72KHJPYTYM
+#\\\|4N6DZ252WXDIF3RIAWLJMEAI376DODJE2N4GFY2K3HYSHUYCHUV \ / AMOS7 \ YOURUM ::
+#\[7]G6QINI6X7ZZSUJYWKPS3NAV7R2AY5HLRX2C5LUGJ64ABOKH6VOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

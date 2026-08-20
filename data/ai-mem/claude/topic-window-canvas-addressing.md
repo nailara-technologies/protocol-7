@@ -16,7 +16,7 @@ per-purpose resolution profiles, not just one fixed appliance-sim size).
 
 ## the gap
 
-`modules/window.profile.calculate` computes window geometry as percentages
+`src/window.profile.calculate` computes window geometry as percentages
 of a screen, but the screen itself is just raw caller-supplied numbers
 (`screen_w`/`screen_h`/`screen_x`/`screen_y`) — nothing treats the canvas
 (the display itself, physical or virtual) as a first-class addressable
@@ -181,8 +181,8 @@ content for virtual canvases, to group+tree-path for physical ones).
 [[topic-checksum-addressing]] · [[topic-routing-crystal]] ·
 [[topic-reference-bubble]] · [[feedback-source-identity-spoofing]]
 
-#,,..,.,,,.,,,...,..,,...,..,,...,,,.,,..,,.,,..,,...,...,.,,,.,.,,,.,.,,,,,.,
-#7SIGGFKQWH2AZATZPKJ5OXMPZOGDEZMI5NEQQ735SK4AKFSM75JTONFVE6KVNQXFFQHY25KDXGHBE
-#\\\|TFE23F4VIVRC676C5DS26R7AECA2VMUW4VDHYJZNDTM62JA2XQD \ / AMOS7 \ YOURUM ::
-#\[7]IZN6F7GDACQ4RZLWFHBMWYXX33T3RFKYEZF2KFYRGNMMX74WV2AA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,..,,,,.,,.,,..,,.,.,,,,,,.,,..,,...,...,.,.,,.,,,.,,,..,,,.,
+#ZMXSYHS2RZZT6ISIB3SQD4FJVLYETELXLJIFQYKIGM4CF3LAIY7IGOCRFOVXQMXNKACHZEWFUFE76
+#\\\|2436TVZFVATDRNHWTXIFDOLQX2FMGUNA3K2K5A5ULTOC2BSKW7M \ / AMOS7 \ YOURUM ::
+#\[7]L6LWYTSXMKJU52NEUNB6OZ5PDFKC2B5FHEPWKZ2YIXOJLUBW74AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

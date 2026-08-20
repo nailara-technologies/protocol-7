@@ -16,20 +16,20 @@ zenki that haven't opted in.
 read first:
 - `data/md/design/UI-SHOW-SECURITY-LEVELS.md` (whole doc, especially
   "per-zenka interesting base values map" and "security level 0")
-- `modules/ui.unfold`, `modules/ui.render.fallback` — these will be
+- `src/ui.unfold`, `src/ui.render.fallback` — these will be
   taught to read this map in [[ui-unfold-fields-filtering]]
-- `modules/base.cmd.list` and similar for the SIZE-mode reply shape
+- `src/base.cmd.list` and similar for the SIZE-mode reply shape
 - where pid/uptime/restart-count/source-mtime live in `%data` already —
   grep `<system.` and `<v7.` in modules to find what's there:
   - `<system.zenka.name>`, `<system.zenka.startup-time>` etc
   - `<system.callbacks.initialized>` (init-completion timestamp)
-  - check `modules/system.*` and `modules/v7.*` for what's broadly
+  - check `src/system.*` and `src/v7.*` for what's broadly
     available across zenki [ this is generic, so only use addresses
     that every zenka has after init ]
 
 ## scope
 
-### `modules/ui.fields.fallback`
+### `src/ui.fields.fallback`
 
 ```perl
 ## [:< ##
@@ -76,7 +76,7 @@ the producer from the consumer keeps each task small and reviewable.
 
 ## acceptance
 
-- `perl -c modules/ui.fields.fallback` clean
+- `perl -c src/ui.fields.fallback` clean
 - calling the module returns a hash-ref with all level-0 keys above,
   every entry `{ value => CODE, level => 0 }`
 - each `value` sub, called with no args from any zenka context, returns
@@ -106,11 +106,11 @@ not `$_`.
 ## checks
 
 ```
-perl -c modules/ui.fields.fallback
+perl -c src/ui.fields.fallback
 ```
 
-#,,,,,,.,,,,.,,.,,.,,,.,.,,,.,,,,,,.,,,,,,.,.,..,,...,...,.,,,..,,,,.,.,,,,..,
-#C7NNIWPY6UXIYWA7DHXYIQIVEWXPG32LTRLPYLTVYNYQ3NCAJ5GK3MGI3ZQ6PSKNDUM2SHMTZ7GKU
-#\\\|6TUMIYDE6VCLUP4ECUDAVRL5XMCYYXFV4GWMQNWFFUVXW7S2GE7 \ / AMOS7 \ YOURUM ::
-#\[7]6XRUG6XSUV3HSM2AHCMY4GSOO5TIOQZPJ64XOAEFQEA6MDRPMIBI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,.,...,.,,,.,.,.,,,...,..,,,..,..,,...,...,,,,,..,,.,,,..,,,.,,
+#AQOLJYIHHVHNXTXZH75CC7OSNMUWPLPNVDP6RARCYSYLJIIVKA5KM7NILOYJLXHTRPIH6BXBPRQEU
+#\\\|OFBQUNBPCN2YO3VGFAIH4KSAS3MA6LDJHMUA6AKDDOB3UBX5B6S \ / AMOS7 \ YOURUM ::
+#\[7]T7FTY5Z2LYDDZBDOYHV3MVNCAGXNMKLCECD7C4O5MKYKYJUGWCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

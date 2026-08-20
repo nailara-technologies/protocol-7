@@ -12,21 +12,21 @@ task:
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
 
   existing_modules_read_first:
-    - modules/radio.connect
-    - modules/radio.init_code
-    - modules/radio.handler.stream-chunk
-    - modules/io.ip.tcp.output.open
+    - src/radio.connect
+    - src/radio.init_code
+    - src/radio.handler.stream-chunk
+    - src/io.ip.tcp.output.open
 
   files_to_modify:
-    - modules/radio.connect
-    - modules/radio.handler.stream-chunk
-    - modules/radio.init_code
+    - src/radio.connect
+    - src/radio.handler.stream-chunk
+    - src/radio.init_code
     - cfg/zenki/radio/start
 
   ##  radio.connect rewrite  ##
 
   new_radio_connect: |
-    file: modules/radio.connect
+    file: src/radio.connect
     descr = open TCP connection to ICY stream host and send HTTP GET request
 
     complete replacement. no curl subprocess, no IPC::Open3.
@@ -90,7 +90,7 @@ task:
   ##  stream-chunk disconnect block  ##
 
   stream_chunk_disconnect: |
-    file: modules/radio.handler.stream-chunk
+    file: src/radio.handler.stream-chunk
 
     the disconnect block at the top of the handler currently does:
 
@@ -121,7 +121,7 @@ task:
   ##  init_code cleanup  ##
 
   init_code_cleanup: |
-    file: modules/radio.init_code
+    file: src/radio.init_code
 
     remove the three autoload calls that are no longer needed:
 
@@ -147,8 +147,8 @@ task:
     io.ip loads io.ip.tcp.init_code which registers IO::Socket::IP and
     wires up the base.open ip.tcp handler used in radio.connect.
 
-#,,,.,.,,,,,,,.,,,,,,,,,,,.,.,...,,,.,,.,,..,,..,,...,...,,,,,.,.,,,.,.,.,.,,,
-#TEOFT4ISWMH7URU3BLWKK46OTWFUBEXINREHB6OEJFHZJZII5QS7OTJTXKHCXFAADPVMPEOEJGSNS
-#\\\|54P7W3QHTOFNKRPS2Q6QK2FVK7I7BSYZEQPT7OUFYMO5V7N5ZU5 \ / AMOS7 \ YOURUM ::
-#\[7]AQYQDIQ25KMU6HNVNZAJ5CJU5SCDTPCXLMQBQMHJOFMYCKJMZADQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,.,,,,.,,,,,,.,,,...,..,,,,.,..,,...,.,.,...,,.,,,,.,.,.,,,,,
+#WOUO5TQCZX4NHEO3UQXKWB5UJIJDDCYN2I4QZWT5W43J7YWU4TDEAMY2YA6DNXQ2NIXZ5LS6QRGI4
+#\\\|FQCRMJWOM4N6CB3CJIETXZGP5DU2PLKWX64UH5XFGLREWO7OODO \ / AMOS7 \ YOURUM ::
+#\[7]ZJUO2E7BOC2HLR5W5X7A7GTHDPFQEHPFB33SGFTBHPWM26K76UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

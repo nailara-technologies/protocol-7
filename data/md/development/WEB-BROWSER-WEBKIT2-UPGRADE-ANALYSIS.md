@@ -47,7 +47,7 @@ Typelib file for namespace 'WebKit2', version '4.0' not found
 
 ### required change
 
-Change the setup line in `modules/web-browser.init_code`:
+Change the setup line in `src/web-browser.init_code`:
 
 ```perl
 Glib::Object::Introspection->setup(
@@ -64,7 +64,7 @@ The code still imports `HTTP::Soup` (libsoup 2.4 bindings). The system also has 
 
 ## 2. deprecated settings in set_properties
 
-Current `modules/web-browser.set_properties` sets the following properties. Their status in WebKit2GTK 4.1 (2.50.5) is:
+Current `src/web-browser.set_properties` sets the following properties. Their status in WebKit2GTK 4.1 (2.50.5) is:
 
 | setting | status in 4.1 | replacement / action | notes |
 |---------|---------------|----------------------|-------|
@@ -235,13 +235,13 @@ This was connected to the `resource-request-starting` signal on the WebView.
 
 #### current state
 
-The file `modules/web-browser.handler.request_starting_signal` still exists with the **WebKit1 signature** in its parameter list:
+The file `src/web-browser.handler.request_starting_signal` still exists with the **WebKit1 signature** in its parameter list:
 
 ```perl
 my ( $view, $frame, $resource, $request, $response ) = @_;
 ```
 
-But it is **never connected** anywhere in the codebase. Searching `modules/web-browser.load_uri` and `modules/web-browser.init_view` shows no `signal_connect` for `decide-policy` or any request interception.
+But it is **never connected** anywhere in the codebase. Searching `src/web-browser.load_uri` and `src/web-browser.init_view` shows no `signal_connect` for `decide-policy` or any request interception.
 
 The module header even says:
 ```perl
@@ -744,7 +744,7 @@ If a single visual frame is absolutely required, the `web-browser-ui` zenka can 
 The following tasks are ordered by priority and dependency. Each is designed to be approximately one Kimi session of work.
 
 ### Task 1: Fix 4.0 → 4.1 introspection and remove deprecated settings
-**Files:** `modules/web-browser.init_code`, `modules/web-browser.set_properties`
+**Files:** `src/web-browser.init_code`, `src/web-browser.set_properties`
 **Work:**
 - Change `version 4.0` → `version 4.1` in `init_code`
 - Remove `enable-plugins`, `enable-offline-web-application-cache`, `enable-html5-local-storage`, `enable-html5-database`, `enable-frame-flattening` from `set_properties`
@@ -752,7 +752,7 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 **Priority:** CRITICAL — currently broken on the system
 
 ### Task 2: Rewrite proxy setup with WebKitNetworkProxySettings
-**Files:** `modules/web-browser.proxy_setup`, `modules/web-browser.disable_proxy`, `modules/web-browser.init_code`
+**Files:** `src/web-browser.proxy_setup`, `src/web-browser.disable_proxy`, `src/web-browser.init_code`
 **Work:**
 - Remove `HTTP::Soup` import from `init_code`
 - Implement proxy activation using `Gtk3::WebKit2::NetworkProxySettings->new()` and `$web_context->set_network_proxy_settings()`
@@ -761,7 +761,7 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 **Priority:** HIGH — proxy is completely broken
 
 ### Task 3: Implement request interception via `decide-policy`
-**Files:** `modules/web-browser.handler.request_starting_signal`, `modules/web-browser.init_view`, `modules/web-browser.load_uri`
+**Files:** `src/web-browser.handler.request_starting_signal`, `src/web-browser.init_view`, `src/web-browser.load_uri`
 **Work:**
 - Rewrite `request_starting_signal` with the WebKit2 `decide-policy` signature: `($view, $decision, $decision_type)`
 - Connect the signal in `init_view` for all new views
@@ -770,7 +770,7 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 **Priority:** HIGH — security feature missing since 2019 migration
 
 ### Task 4: Replace JS `throw` hack with `evaluate_javascript()`
-**Files:** `modules/web-browser.js_call`, `modules/web-browser.cmd.run_js`
+**Files:** `src/web-browser.js_call`, `src/web-browser.cmd.run_js`
 **Work:**
 - Replace `run_javascript` + `throw` prefix with `evaluate_javascript` + `evaluate_javascript_finish`
 - Extract return values properly from `JSCValue->to_string()` instead of parsing exception strings
@@ -778,7 +778,7 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 **Priority:** MEDIUM — code quality and robustness
 
 ### Task 5: Implement `get_snapshot()` for native screenshot capture
-**Files:** new module `modules/web-browser.cmd.get_snapshot`, possibly `modules/web-browser.handler.snapshot_result`
+**Files:** new module `src/web-browser.cmd.get_snapshot`, possibly `src/web-browser.handler.snapshot_result`
 **Work:**
 - Implement async `get_snapshot('WEBKIT_SNAPSHOT_REGION_VISIBLE', ...)` call
 - Convert resulting `GdkPixbuf` to PNG and save to configurable path
@@ -787,7 +787,7 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 **Priority:** HIGH — unblocks visual-feedback pipeline simplification
 
 ### Task 6: Add ephemeral/private-browsing mode support
-**Files:** `modules/web-browser.init_view`, `modules/web-browser.open_window`
+**Files:** `src/web-browser.init_view`, `src/web-browser.open_window`
 **Work:**
 - Create ephemeral `WebsiteDataManager` and `WebContext` when `cfg.private_mode = 1`
 - Ensure `is-ephemeral` is set at WebView construction time
@@ -795,7 +795,7 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 **Priority:** MEDIUM — privacy hardening for kiosk mode
 
 ### Task 7: Evaluate `WebKitUserContentManager` for auto-scroll injection
-**Files:** `modules/web-browser.init_view`, `modules/web-browser.handler.auto_scroll`, `modules/web-browser.js_call`
+**Files:** `src/web-browser.init_view`, `src/web-browser.handler.auto_scroll`, `src/web-browser.js_call`
 **Work:**
 - Prototype injecting a scroll controller script via `UserContentManager->add_script()` at `document-start`
 - Compare performance and reliability against runtime `run_javascript` scrolling
@@ -818,8 +818,8 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 *WebKit2GTK version analyzed: 2.50.5 (libwebkit2gtk-4.1-0)*
 *System: Debian unstable / libgtk3-webkit2-perl 0.06-6*
 
-#,,,.,.,,,.,.,,.,,..,,...,,,,,,.,,.,,,.,,,.,,,..,,...,...,..,,...,.,,,,,.,.,,,
-#XXFPERAM3QUFJOV6BZUJ3HZHLRWZTU5MKTDBICWI3NKVDNCPSVQZVXNC4WMMDR3E4JXROX35V56Q2
-#\\\|YC2Z6GC2VMXPFPL7ANXEUYLYNWSZKEOTE37Z2PCR4NTAJ23BYIE \ / AMOS7 \ YOURUM ::
-#\[7]VH22ISRL7TGH6Z5QFO2HCHQHUYJC2NM34GSP2SD5NMPCDABBIGAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,,,,...,,,.,,,.,,,.,,,,,..,,..,,...,...,.,.,,,.,,..,,.,,.,.,
+#S4RZJ3PPWTHFLGPNDMA7VLMDPGLUQD36IIWK6MD37FBIVVEHFNYHLHF3BQXLJFU274KNPK2QLIWOQ
+#\\\|6EHHYMN74UPZ7YE3WX4CC2XET2OAUMFLSYR6F7DDXUJQKTCN7FA \ / AMOS7 \ YOURUM ::
+#\[7]F25AEGMEVT3LBSVPZ4ZOEWTFOA7OCKRAXJSZ65ZKZ2SRY673ZMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

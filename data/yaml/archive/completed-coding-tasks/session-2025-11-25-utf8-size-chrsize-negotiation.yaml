@@ -51,21 +51,21 @@ solution:
 
 core_changes:
   - name: Global Byte Semantics
-    file: modules/base.init_code
+    file: src/base.init_code
     change: Added global 'use bytes;' pragma to eliminate UTF-8 flag surprises
     impact: All length() calls count bytes by default
 
   - name: Session-Level Mode Selection
     files:
-      - modules/protocol.protocol-7.auth.select-size-mode (NEW)
-      - modules/base.handler.auth (lines 110-154)
+      - src/protocol.protocol-7.auth.select-size-mode (NEW)
+      - src/base.handler.auth (lines 110-154)
     change: |
       Pre-auth 'select-size-mode' command with rate limiting
       (3 call limit, 2 error limit, auto-disconnect)
     impact: Clients negotiate SIZE or CHRSIZE during authentication
 
   - name: Response Mode Translation
-    file: modules/base.handler.command (lines 470-620)
+    file: src/base.handler.command (lines 470-620)
     change: |
       Automatic translation based on session preference:
       - SIZE responses converted to CHRSIZE if needed
@@ -73,7 +73,7 @@ core_changes:
     impact: Clients receive preferred format seamlessly
 
   - name: SIGCHLD Signal Isolation
-    file: modules/v7.compile_bin_p7 (lines 33-36, 57-58)
+    file: src/v7.compile_bin_p7 (lines 33-36, 57-58)
     change: Save/restore SIGCHLD handler during gcc compilation
     impact: Eliminates child process signal context leakage
 
@@ -165,8 +165,8 @@ potential_enhancements:
 
 ---
 
-#,,.,,..,,,,.,...,,..,.,.,...,.,.,,..,...,,.,,..,,...,.,.,...,,..,..,,.,,,,.,,
-#C7Z4A7VDY5I3XVTSUVY22MG42H2WIJOJFYBWV23BFEPNKNFUVTT6YOPYQCIDN52CZRSVN3MRSCU3O
-#\\\|OPTB63QATC3NYZ45C2OOW5E24ZBGFC2QMTS5KJEXZNRALDNT5MN \ / AMOS7 \ YOURUM ::
-#\[7]2OECWUISLL3Q74YHF3UAEI2WDGREIROD7MKKRVRIBNIU637OBAAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,.,.,,.,,.,.,...,..,,,,.,,,.,..,,...,...,,,.,,.,,...,,..,,.,,
+#WOLPCKWTGNOSSGQWRNXZQOXZEDUDHPCB7YC4AQ3ZWG36MRKB4EQRDCENTOXXS232YMWJTJUJ4ITEO
+#\\\|JNLD7IKBGTBW333CQTJXDIWVQCIAXBS53W6XGHZPWG6F2YG6G5S \ / AMOS7 \ YOURUM ::
+#\[7]ZQX7AKF3ZH2REP3NECWXX2AZYSB3I5JLGAPGOTKQP2USNSFO7YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

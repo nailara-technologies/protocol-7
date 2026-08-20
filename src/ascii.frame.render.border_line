@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = ascii.frame.render.border_line
+# descr = render a border line with elasticity
+
+my ( $elements, $values, $width ) = @_;
+return '' if not @{$elements};
+
+## a border line stretches at exactly ONE spring so corners and separators
+## keep their drawn shape :
+## - with a slot present, the slot IS the spring — its value is padded to fill
+## the line while every fill stays rigid at its minimum [ pins the .:  ::  :.
+## and widens the bracketed content, matching the reference ]
+## - with no slot, the largest fill is the spring [ e.g. the dotted bottom
+## rule's dots stretch while the : corners stay put ]
+
+my @fill_idx
+    = grep { $elements->[$_]->{'type'} eq qw| fill | } 0 .. $#{$elements};
+my @slot_idx
+    = grep { $elements->[$_]->{'type'} eq qw| slot | } 0 .. $#{$elements};
+
+## fixed width = anchors + every fill minimum + every slot value ##
+my $fixed = 0;
+for my $el ( @{$elements} ) {
+    if ( $el->{'type'} eq qw| anchor | ) {
+        $fixed += length( $el->{'value'} // '' );
+    } elsif ( $el->{'type'} eq qw| fill | ) {
+        $fixed += $el->{'min'} // 1;
+    } elsif ( $el->{'type'} eq qw| slot | ) {
+        $fixed += length( $values->{ $el->{'name'} } // '' );
+    }
+}
+
+my $slack = $width - $fixed;
+$slack = 0 if $slack < 0;
+
+## every fill defaults to its rigid minimum ; the spring takes the slack ##
+my %fill_w = map { $_ => ( $elements->[$_]->{'min'} // 1 ) } @fill_idx;
+my %slot_pad;
+
+if (@slot_idx) {
+    ## slot-spring : first slot absorbs the slack [ padded on its right ] ##
+    $slot_pad{ $slot_idx[0] } = $slack;
+} elsif (@fill_idx) {
+    ## no-slot fallback : the largest fill absorbs the slack ##
+    my $spring = $fill_idx[0];
+    for my $idx (@fill_idx) {
+        $spring = $idx
+            if ( $elements->[$idx]->{'min'} // 1 )
+            > ( $elements->[$spring]->{'min'} // 1 );
+    }
+    $fill_w{$spring} += $slack;
+}
+
+## build line ##
+my $line = '';
+for my $i ( 0 .. $#{$elements} ) {
+    my $el = $elements->[$i];
+    if ( $el->{'type'} eq qw| anchor | ) {
+        $line .= $el->{'value'} // '';
+    } elsif ( $el->{'type'} eq qw| slot | ) {
+        $line
+            .= ( $values->{ $el->{'name'} } // '' )
+            . ( ' ' x ( $slot_pad{$i} // 0 ) );
+    } elsif ( $el->{'type'} eq qw| fill | ) {
+        $line .= $el->{'char'} x ( $fill_w{$i} // 1 );
+    }
+}
+
+return $line;
+
+#,,,,,,,,,.,,,,..,.,,,,,,,.,.,,,,,,.,,,,.,...,..,,...,...,...,...,,,,,,,.,,,.,
+#NGJAPLK6ZP5IZDALRXA4L64HBIN2HTTAZTOU3ZMLAY4EIAGUYBGA3NUZKJ3XTH6YDO657FPHGMUII
+#\\\|LS2WEJG347WFQDFEDZCBUJ7FZWVQS2VSBTCICI7KFFECVIRU43S \ / AMOS7 \ YOURUM ::
+#\[7]PKXZUOISCAUGYMMKODOMNFRQTSITU2VHZ57AAKUDCXIJFWPYHEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

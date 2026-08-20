@@ -104,7 +104,7 @@ ruling out the session/seat-confound theory from earlier. Findings:
 
 ### checked and ruled out as the differentiator
 
-Read `modules/window.gtk.profile.apply` (the actual function `window-place`
+Read `src/window.gtk.profile.apply` (the actual function `window-place`
 calls for positioning, via `window.place.apply_geometry`). Its only
 non-obvious technique: call `resize()`/`set_default_size()` **before**
 `move()`, because under Wayland the initial-placement configure request is
@@ -158,8 +158,8 @@ about focus/stacking, not position, and contains no `move()`.
 [[feedback-source-identity-spoofing]] · [[topic-mpv-jobqueue-startup]] ·
 [[topic-zenka-naming-cleanup]] (select-region clone landed this session)
 
-#,,,,,,,,,,..,,.,,,,.,..,,.,.,,,.,,.,,,..,..,,..,,...,...,,.,,..,,,,,,,,.,,.,,
-#M7S7ZSKRIR3MYMIA2BVYXHQWMWURJLEAKDHXECTBAIYSM6QNLNK2JFCNE4QGTVWNTRS6SBQLH3QTE
-#\\\|QXMCEISCVFYXMSE6JQPMUUQNJDGKS4JDCJDSNFXG5H7AUC6SOSX \ / AMOS7 \ YOURUM ::
-#\[7]RRFN5R3ISTTCUDA7R3HBPOEU2WRTBGBMS2R6BRYA6ZMTMP3JXIBY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,..,,,,.,,.,,...,,.,,,,.,,,,,..,,...,...,...,,.,,,,.,.,.,...,
+#Z72TJYAYUFVUSM7NQ7ETSGAVHA2OK6GPOENXK45ZHHFKHPG2LMXJZ2RHPWZNAB34WUT3PXTYCR6TQ
+#\\\|EDNDS37TJSZ6PFAZOGJVJT2TSHYA2XIF2YNYYTUSRBLMJTIJYNZ \ / AMOS7 \ YOURUM ::
+#\[7]WP3DDGER546JZ6AGZ2V5OC5Z2GRB46DU772FTJZXW3QZL2MMVIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

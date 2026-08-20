@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = data.cmd.shm-reap
+# param = [ttl-seconds]
+# descr = on-demand TTL safety-net sweep of stale SHM segments
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my $ttl;
+$ttl = $args if length $args and $args =~ m|^\d+$|;
+
+my $summary = <[data.mount.shm.reap]>->($ttl);
+
+my $output = sprintf(
+    "\n: SHM TTL reap summary\n:\n: scanned .............. %d\n: reaped "
+        . "............... %d\n: skipped fresh ........ %d\n: skipped other "
+        . "owner .. %d\n: skipped unreadable ... %d\n:\n",
+    $summary->{'scanned'}             // 0,
+    $summary->{'reaped'}              // 0,
+    $summary->{'skipped_fresh'}       // 0,
+    $summary->{'skipped_other_owner'} // 0,
+    $summary->{'skipped_unreadable'}  // 0,
+);
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,..,.,,,,,.,,..,,,.,,.,,...,,,.,.,.,,,.,,,.,..,,...,...,..,,..,,,..,,,,,,,,,
+#6XZ7AVW4OTDBQPAQXHBFGBYMJJG3GARDW3IMJ4C7DHNG2KM6JL4SYFY2FFZKER3M5DT3MMCKLEQCQ
+#\\\|2M3OYKM6KVDTAJGQDHWSZZZMWD4AEY4I5TX7W6NOFSQJI37NT7G \ / AMOS7 \ YOURUM ::
+#\[7]KLNL6QCS326XIXDJF2J5AHMUBAZF2WRWDWFTDMUZPV5TI36LYYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

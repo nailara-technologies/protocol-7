@@ -12,7 +12,7 @@ modules_reviewed:
 # Context: Protocol-7 module system rules
 
 p7_module_rule: |
-  In Protocol-7 EVERY callable must be a separate file in modules/.
+  In Protocol-7 EVERY callable must be a separate file in src/.
   The filename IS the subroutine name. There are no inline sub declarations.
   The module system loads files into %code as:
     $code{'vterm.compositor.blend.consensus'} = sub { <file contents> };
@@ -25,7 +25,7 @@ p7_module_rule: |
   any other module via <[name]>->(). They must be extracted.
 
   Likewise, any call written as <[some.dotted.name]>->() REQUIRES a real
-  module file named 'some.dotted.name' in modules/. If that file does not
+  module file named 'some.dotted.name' in src/. If that file does not
   exist the call will fail at runtime with a 'nonexistent callback' error.
 
 # Issue 1: inline sub declarations that must be extracted
@@ -109,18 +109,18 @@ phantom_module_calls:
     - call:    <[vterm.shm.path]>->( $instance_id, $layer_id )
       problem: 'vterm.shm' already has a 'path' action in its dispatcher,
                but 'vterm.shm.path' is NOT a separate module file.
-      fix_option_a: extract path action into modules/vterm.shm.path  [ preferred ]
+      fix_option_a: extract path action into src/vterm.shm.path  [ preferred ]
       fix_option_b: change call to <[vterm.shm]>->( qw| path |, $instance_id, $layer_id )
 
   vterm.subbit:
     - call:    <[vterm.subbit.check_threshold]>->( $cell_ref, $channel )
       problem: 'check_threshold' is an action in vterm.subbit dispatcher,
                but 'vterm.subbit.check_threshold' is NOT a separate module file.
-      fix:     extract into modules/vterm.subbit.check_threshold
+      fix:     extract into src/vterm.subbit.check_threshold
 
     - call:    <[vterm.subbit.determine_route]>->( $cell_ref->{alternation_history} )
       problem: same -- 'determine_route' action exists in dispatcher but no file.
-      fix:     extract into modules/vterm.subbit.determine_route
+      fix:     extract into src/vterm.subbit.determine_route
 
 # Suggested namespace layout after extraction
 # ────────────────────────────────────────────
@@ -174,8 +174,8 @@ extraction_pattern: |
 
 ---
 
-#,,..,.,.,.,,,..,,..,,.,.,..,,...,..,,,..,.,.,..,,...,...,..,,,.,,.,.,,.,,,.,,
-#WXH53UFJSUXSP3SUCXZC5L3JJVDCFJ6XPXMDQ5TUBRR5AXUMFFCAPZ7Z6HY6SCC2TWFX2HD6AYV2W
-#\\\|SVQYFBREYZIOFW3JGEKZOX7AOGNKW3H7D7Y5JL2Y7XOU5QNQCX5 \ / AMOS7 \ YOURUM ::
-#\[7]MR32CIOQYILFTWR2B33KLZHXOBQW77ENLLO2CSIDNTWCACZHYGAQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,.,,.,.,.,,,.,,,,.,,.,,,,,,,,,,,..,,...,...,,.,,.,.,...,,.,,,..,
+#2CAULQX4D5EQ7ZZKHWAO3P2VAMUFQ65ZGZTBUWXSPKCUVQCXJP7J3PZV3DUQQ2TRZOCZALM4TIBYU
+#\\\|H2S3UEZQP6IE324EM7QSKV6YH3LC3QCH7YARKP5YFKDZG5N4S2F \ / AMOS7 \ YOURUM ::
+#\[7]UBD4PLKEINERLXZUMK6JRMWFF24HLBOL265QROJLYJ5T45TQOWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

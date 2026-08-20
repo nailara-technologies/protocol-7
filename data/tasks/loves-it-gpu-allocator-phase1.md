@@ -12,7 +12,7 @@ then followed through a long adversarial-review pass over the resource-token
 economy design (`RESOURCE-ECONOMY-DEMYSTIFICATION.md`, same session) — most
 objections raised there resolved cleanly to existing, working mechanisms.
 this one didn't. reading the actual code behind `loves_it` scoring
-(`modules/lm-vision.handler.http_analyze:19-58`) instead of the design docs
+(`src/lm-vision.handler.http_analyze:19-58`) instead of the design docs
 turned up a real defect: the score is computed from string-length checks and
 a permissive regex, not from anything that varies meaningfully with the
 input. `ack -ri 'loves.it' data/` surfaced the full design surface this
@@ -31,7 +31,7 @@ two more things worth recording here directly: the design doc's own
 reference pseudocode calls a function (`<[amos7.elf.check]>`) that doesn't
 exist anywhere in the codebase, and the one piece of code in-tree that looked
 like a correct reference pattern for this
-(`modules/amos-term.plugin-decoder.elf_match`) turned out, on inspection, to
+(`src/amos-term.plugin-decoder.elf_match`) turned out, on inspection, to
 be a second independent instance of the same class of defect — not a
 template to follow. the real primitive is `AMOS7::Assert::Truth::is_true`,
 confirmed against four existing in-tree call sites, and its behavior under
@@ -61,7 +61,7 @@ shared place rather than inlined per call site.
 
 three concrete defects to close:
 
-1. **the proxy checks in `modules/lm-vision.handler.http_analyze:19-58` are
+1. **the proxy checks in `src/lm-vision.handler.http_analyze:19-58` are
    not truth checks.** confirmed by reading: `mode4` is "did
    `<[chk-sum.elf]>` return a non-empty string" (true for every successful
    call — `base.chk-sum.elf` returns `sprintf %09d` unconditionally),
@@ -84,7 +84,7 @@ three concrete defects to close:
 
 3. **`amos_tokens` is a dead parameter.** `http_analyze` accepts it, defaults
    it to `0`, and forwards it verbatim as the `X-AMOS-Tokens` header. the
-   only call site — `modules/lm-vision.cmd.analyze_image:194` — does not
+   only call site — `src/lm-vision.cmd.analyze_image:194` — does not
    pass it at all, so the header is always `0`. the design doc's allocator
    pseudocode makes `tokens` the *base* of the allocation
    (`$base_allocation = $tokens * 4200`), which with a zero balance yields a
@@ -97,9 +97,9 @@ three concrete defects to close:
 the elf checksum at `elf_mode = $mode` with `$elf_shift_bits = 13`
 (`data/lib-path/pm/AMOS7/Assert/Truth.pm`, `is_true` mode loop) and asserts
 division-by-13 truth via `calc_true`, returning `TRUE = 5` / `FALSE = 0`.
-existing in-tree call sites: `modules/devmod.cmd.true`,
-`modules/branch.route.calc.resonance:59`, `modules/base.gen_id:28`,
-`modules/base.prng.harmonic_seed:24`. `Truth.pm` ships `@assertion_modes =
+existing in-tree call sites: `src/devmod.cmd.true`,
+`src/branch.route.calc.resonance:59`, `src/base.gen_id:28`,
+`src/base.prng.harmonic_seed:24`. `Truth.pm` ships `@assertion_modes =
 qw| 4 7 |` as the default set; mode 13 is a legitimate third elf mode
 (`base.chk-sum.elf.inline` accepts any `elf_mode <= 64`), and
 `read-me/documentation/dev/NRT.NRD.asc` names exactly this triple in its
@@ -158,7 +158,7 @@ groups are meaningfully distinguishable in the first place.
 
 ### step 1 — create the shared allocator
 
-**new: `modules/base.resource.gpu.loves_allocator`**, callable as
+**new: `src/base.resource.gpu.loves_allocator`**, callable as
 `<[resource.gpu.loves_allocator]>` — the four-segment base-prefix strip is
 confirmed in the handler itself (`base.chk-sum.bmw.filesum` invoked as
 `<[chk-sum.bmw.filesum]>`, `base.event.add_timer` as `<[event.add_timer]>`).
@@ -166,7 +166,7 @@ this gives the exact callable name both documents already use, with **zero
 change to `modules.load` in `cfg/zenki/lm-vision/start`** (which
 loads by namespace prefix: `auth.client net protocol io.unix io.ip ui
 crypt.C25519 format.json lm-vision devmod`). the alternative,
-`modules/resource.gpu.loves_allocator`, would need `resource` added there and
+`src/resource.gpu.loves_allocator`, would need `resource` added there and
 in every future consumer's start file. cost of the base variant: it is loaded
 into every zenka — acceptable for a pure scoring function with no state and
 no init hook, and see the open question on namespace if that is not wanted.
@@ -244,7 +244,7 @@ token — with no implementation anywhere. so "wire real AMOS-token-balance
 reading" cannot mean an actual balance read in this task.
 
 **explicit warning against a plausible wrong turn:** `coding.budget.*`
-(`modules/coding.cmd.budget`, `modules/coding.helper.refund_tokens`,
+(`src/coding.cmd.budget`, `src/coding.helper.refund_tokens`,
 `<coding.budget.allocated>` / `<coding.budget.used>`) is LLM-inference token
 accounting for the coding zenka. it is unrelated to AMOS resource tokens
 despite the shared word, and must not be wired in as the balance source.
@@ -255,7 +255,7 @@ what this step does deliver:
   documented default of `0`, and — critically — **decouples `weight` from
   `tokens`**, so a zero balance still yields a valid score and weight for
   the priority headers even though `granted` computes to `0`.
-- `modules/lm-vision.cmd.analyze_image:194` gains an explicit `amos_tokens`
+- `src/lm-vision.cmd.analyze_image:194` gains an explicit `amos_tokens`
   pass-through into the `http_analyze` call args (currently absent
   entirely — only `image_path`, `prompt`, `reply_id` are passed), so the
   parameter stops being structurally dead even while the source of the value
@@ -265,7 +265,7 @@ what this step does deliver:
 
 ### step 4 — replace the handler's inlined block
 
-`modules/lm-vision.handler.http_analyze` lines 19-58 collapse to one call.
+`src/lm-vision.handler.http_analyze` lines 19-58 collapse to one call.
 keep `<[chk-sum.bmw.filesum]>->( 256, $image_path )` as the workload-hash
 source (unchanged), drop the now-unused `<[chk-sum.amos]>` call, and pass the
 result plus `requester` / `amos_tokens` into the allocator. everything
@@ -316,15 +316,15 @@ test content:
 
 | file | change |
 |------|--------|
-| `modules/base.resource.gpu.loves_allocator` | **new** — shared scoring + tier/weight/granted, callable as `<[resource.gpu.loves_allocator]>` |
-| `modules/lm-vision.handler.http_analyze` | **changed** — lines 19-58 replaced by one allocator call; drop `<[chk-sum.amos]>`; add `tier` to job metadata |
-| `modules/lm-vision.cmd.analyze_image` | **changed** — pass `amos_tokens` (and `requester`) through at :194 |
+| `src/base.resource.gpu.loves_allocator` | **new** — shared scoring + tier/weight/granted, callable as `<[resource.gpu.loves_allocator]>` |
+| `src/lm-vision.handler.http_analyze` | **changed** — lines 19-58 replaced by one allocator call; drop `<[chk-sum.amos]>`; add `tier` to job metadata |
+| `src/lm-vision.cmd.analyze_image` | **changed** — pass `amos_tokens` (and `requester`) through at :194 |
 | `bin/dev/tests/loves-allocator.t` | **new** — distribution / determinism / tier / zero-token tests |
 | `cfg/zenki/lm-vision/subroutines.load-early` | **changed, verify** — contains an explicit module list including `lm-vision.handler.http_analyze`; check whether the new base module needs an entry here |
 | `cfg/zenki/lm-vision/start` | **no change expected** with the `base.` naming; needs `resource` added to `modules.load` only if the un-prefixed name is chosen |
 
 not changed by this task, noted as separately-scoped follow-up:
-`modules/amos-term.plugin-decoder.elf_match` (same class of defect, different
+`src/amos-term.plugin-decoder.elf_match` (same class of defect, different
 zenka, has its own `<amos-term.windows.by_id>` side effects — should be fixed
 to call the allocator once the allocator exists, but not in this task).
 
@@ -336,7 +336,7 @@ to call the allocator once the allocator exists, but not in this task).
    content lottery: a given image gets the same priority forever, and a
    requester who wants loves_it treatment perturbs their input until it
    scores 13 (cheap to do, and it is the obvious gaming path). but
-   `modules/base.chk-sum.elf.get-true` exists specifically to *search* for a
+   `src/base.chk-sum.elf.get-true` exists specifically to *search* for a
    true elf checksum by iterating start-sums until
    `AMOS7::Assert::Truth::true_int` holds, and `NRT.NRD.asc`'s proof-of-work
    section frames modes 4/7/13 as something a participant must *achieve*
@@ -363,7 +363,7 @@ to call the allocator once the allocator exists, but not in this task).
    enforced yet (see 4).
 4. **is the priority signal a no-op today?** repo-wide grep for
    `X-Loves-It-Score` / `X-Priority-Weight` / `X-AMOS-Tokens` finds only
-   `modules/lm-vision.handler.http_analyze:121-125` and the two design
+   `src/lm-vision.handler.http_analyze:121-125` and the two design
    documents. nothing reads them: llama-server ignores unknown request
    headers, and `granted` / GPU cycles are not enforced anywhere. so the
    coding-task spec's success criterion "loves_it 13 requests get measurable
@@ -373,7 +373,7 @@ to call the allocator once the allocator exists, but not in this task).
    scope, and what this plan delivers) or whether it must also include a
    consumer — a local admission/queue gate in `lm-vision` ordering
    `<lm-vision.pending_requests>` by weight is the smallest real one, and
-   `modules/lm-vision.cmd.analyze_image` already has that queue.
+   `src/lm-vision.cmd.analyze_image` already has that queue.
 5. **namespace: `base.resource.*` or `resource.*`?** `base.` gets the exact
    documented callable token for free and loads everywhere; a top-level
    `resource.*` namespace is cleaner conceptually and keeps a
@@ -413,8 +413,8 @@ reference. open questions 1 and 4 are the blocking ones: 1 changes the
 allocator's signature, 4 decides whether phase 1 ends at a well-formed
 signal or must ship a consumer. everything else can proceed on defaults.
 
-#,,,.,.,,,...,,.,,.,,,,..,,..,,..,.,,,.,.,,.,,..,,...,...,...,,,,,...,.,.,..,,
-#OT52QBPFDH2H2P5PB65U3HVT7PW255GT626VPNERCSJSAPOSJBDM6CIHCOAE37MX2ZRKX5XNH26ZC
-#\\\|MIMGPK7TPH3A6X4PP6GIXQ3GIRHGR3B2WHMP3NXSBBLQRCIQODN \ / AMOS7 \ YOURUM ::
-#\[7]GHETINHNVB5IVW3GD3IMELMMYG4QY3OP6MRQATNQUQDSUDK6JEDQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,.,,,.,.,,,.,,,,,.,.,.,,..,...,..,,...,...,..,,,,.,,..,,..,,,,,
+#4GQQBCSFBTQACEOPDJ3Z4PIVWPXZQDV2EUJTR7LLNZB6LGHER6V5EROVMNL5IBFK6OS6FXYYL2C3W
+#\\\|WCPQUUD4MO4EYDRIBCS4QE33GC6NHSVIYQQCGJ5RNEQSZ6VNC7S \ / AMOS7 \ YOURUM ::
+#\[7]3GGNXROYZNHFB47DMOONTZIKZDN76BKOYPLB6U5GVEDAKDQGMIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

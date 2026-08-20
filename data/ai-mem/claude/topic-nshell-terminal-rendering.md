@@ -87,14 +87,14 @@ These are separate from the no-endline fix — the fix handles defensive recover
 
 ## Key files
 
-- `modules/base.handler.command` — cmd_id validation, orphaned route handler, `!TERM!` backchannel
-- `modules/base.protocol-7.command.send.local` — cmd_id wrapping for protocol-7 routing
-- `modules/nshell.editor.process` — newline submit, overflow path, color reset
-- `modules/nshell.handler.command_reply` — reply display, cursor redraw, history restore
-- `modules/nshell.render.viewport` — terminal width, horizontal scroll, cursor rendering
+- `src/base.handler.command` — cmd_id validation, orphaned route handler, `!TERM!` backchannel
+- `src/base.protocol-7.command.send.local` — cmd_id wrapping for protocol-7 routing
+- `src/nshell.editor.process` — newline submit, overflow path, color reset
+- `src/nshell.handler.command_reply` — reply display, cursor redraw, history restore
+- `src/nshell.render.viewport` — terminal width, horizontal scroll, cursor rendering
 
-#,,,,,,,.,...,,.,,.,.,,..,.,.,...,...,,.,,.,,,..,,...,...,..,,.,,,.,.,,..,,..,
-#USMVNN3WKVCHNYYJSQWVUCLA5GJ4AX7EU652I2VUIMZ3E7RJBDKED6DY5OM2BMD3C7J6VBBYJTQGC
-#\\\|5B2HBSVUABHLSZBP2EO2J223U3Q5C667Y4ETFLXODVY45ZDNLI5 \ / AMOS7 \ YOURUM ::
-#\[7]UKOZY2L4FIUUGJ3YYAS7DWMJHMLD5HJNR6INICZ6D3XNPS5OYCCY 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,,,,,.,,.,,...,...,,,,,,,.,..,,..,,...,...,,..,,,,,,.,,,,,,,,.,
+#YFQDI5SGDQDHW7PTSBTNHTOJD4PMI4O7FOLB3C3LZSVKAE4ONESLCVUGXTMB3LORAWV6TVOZQDSP6
+#\\\|C5GAJPUF2OIWWTOJXVPLOWXYBRWM67BPKQC2B242CQNTH3AIV4T \ / AMOS7 \ YOURUM ::
+#\[7]MP3WC6IL3PHD2BFTRDSMN2KXNONQHLMJL5KDVN6XKB3J5E4UJIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

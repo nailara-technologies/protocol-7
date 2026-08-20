@@ -21,7 +21,7 @@ This silently receives `undef`/`{}` for every network-dispatched call —
 `[UNDEF]` even though the command *did* dispatch to the right sub (its
 own usage-error string came back, proving routing/access were fine).
 Root cause: `.cmd.` modules invoked via the network command dispatcher
-(`modules/base.handler.command`, `$code{ <base.cmd>->{$cmd} }->
+(`src/base.handler.command`, `$code{ <base.cmd>->{$cmd} }->
 ($call_args)`) receive their args through **`$call`**, a variable
 already populated by the dispatcher — not `$ARG` (that's only ever set
 in `map`/`grep`/`for` contexts, see [[arg-calling-convention]] for the
@@ -69,8 +69,8 @@ any `.cmd.` module, alongside the `$ARG`/`shift` mistake above.
 [[arg-calling-convention]]
 [[topic-ncode-safe-refactor-workflow]]
 
-#,,,,,..,,,.,,,,.,...,,.,,..,,.,,,...,,..,.,.,..,,...,...,..,,,..,,..,..,,,,,,
-#ABTQ55YSHYA2C2ENKU5IC7DQIPNJFELXWACSXHSMYKPWIT2HWZ4MQYEWXM74B2H5S323DQAF66WJC
-#\\\|OKZJPUERKKOTIFCLYAFISLI24PEB3S23RNLV3PD6BYYBAFJX5DQ \ / AMOS7 \ YOURUM ::
-#\[7]OJYRJJV7E2RK32USJVYICD2IFH4EV3E2XXK27PSLWXI7Y3NIE6DA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,..,,,,,,,.,,.,,,.,,,...,.,,,..,,...,...,.,.,,..,,,,,,..,...,
+#UIE5EWLJRW77YUZ5WMEXALR26HQR7AL4FY7VKL4TIPK63ZLHIOWEXUO2VDW2MGEK3SLOYYTQ54IFU
+#\\\|FGWJQRLI2ZKB2B4VHQICF74J4GJ3LWZ22QNGGMZGUZE236ZHZGZ \ / AMOS7 \ YOURUM ::
+#\[7]YG47OKLZVD3RKE5UGMKVDIWCSR4ZQTPMZLXUGTATQDGANM5AWQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

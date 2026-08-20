@@ -1,0 +1,113 @@
+## [:< ##
+
+# name = vision-batch.parent.fork_child
+# descr = Fork single child process for blocking image analysis operations
+
+use Socket;
+
+( my $session_id ) = keys <user.cube.session>->%*;
+
+<vision-batch.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, 'forking vision-batch child.,' );
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair. [ \l$OS_ERROR ]";
+map { binmode($ARG) } ( $child_pipe, $parent_pipe );     ## ipc pipe : raw ##
+map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
+    ( $child_pipe, $parent_pipe );
+
+# NOTE: Not setting up CHLD signal handlers here
+# Child process doesn't fork further, so CHLD handling not needed
+# And CHLD signal handlers in this context cause "expected numerical reply_id" error in v7
+
+<vision-batch.child.pid> = <[base.fork]>;
+
+if ( !<vision-batch.child.pid> ) {
+
+    # CHILD PROCESS
+
+    close($child_pipe);
+    delete <vision-batch.pipe.child> if exists <vision-batch.pipe.child>;
+
+    # Reinitialize IO::AIO after fork
+    IO::AIO::reinit();
+
+    <vision-batch.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.zenka.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.zenka.subname> = sprintf 'child%s', $sn_str;
+    $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
+
+    ## closing inherited cube session in child [ parent keeps its own copy ##
+    ## ]                                                                   ##
+    $data{'session'}{$session_id}{'shutdown'} = TRUE;
+
+    ## logging uses automatic route over parent ##
+    <buffer.zenka.log_cmd> = qw| p7-log.append |;
+
+    ## removing not required entries ## [ only used in 'parent' itself ]
+    delete <access.cmd.usr.cube>;
+    delete <access.cmd.regex.usr.cube>;
+
+    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    unshift <protocol-7.network.parent_route>->@*, qw| parent |;
+    my $id = <[base.session.init]>->(
+        $parent_pipe, qw| protocol-7 client parent |
+    );
+
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
+
+    <[base.log]>->( 1, 'preparing to load child modules .,' );
+
+    <[base.load_runtime_modules]>->('vision-batch.child');
+    <[base.load_runtime_modules]>->('image-quality');
+    <[base.init_modules]>->('vision-batch.child');
+    <[base.init_modules]>->('image-quality');
+
+} else {
+
+    # PARENT PROCESS
+
+    close($parent_pipe);
+    delete <vision-batch.pipe.parent> if exists <vision-batch.pipe.parent>;
+    <vision-batch.pipe.child> = $child_pipe;
+
+# Load parent-specific modules ONLY in parent process [not inherited by child]
+    <[base.load_runtime_modules]>->('vision-batch.parent');
+    <[base.init_modules]>->('vision-batch.parent');
+
+    ## removing not required entries ## [ only used in 'child' ]
+    delete <access.cmd.usr.parent>;
+    delete <access.cmd.regex.usr.parent>;
+
+    $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
+    my $id = <[base.session.init]>
+        ->( $child_pipe, qw| protocol-7 client child | );
+
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
+
+    ## enables routing commands to child zenka ##
+    $data{'session'}{$id}->{'authenticated'} = qw| yes |;
+
+    ## authenticate cube session to allow routed commands ##
+    $data{'session'}{$session_id}->{'authenticated'} = qw| yes |;
+
+    <vision-batch.child.session_id> = $id;
+
+    ## reporting child PID to v7 zenka so it is able to terminate it ##
+    <[base.zenki.report_child_pid]>->(<vision-batch.child.pid>);
+
+    <[base.async.get_session_id]>;    ## --> 'online' ##
+
+    <[base.log]>->( 1, 'child process forked and ready for commands.,' );
+}
+
+#,,,.,.,.,,.,,.,.,.,.,,,.,.,.,..,,.,,,...,.,.,..,,...,...,,..,,,,,..,,,,,,,,,,
+#HNEKS4MALHQ4DULGIUQZUR5USXLIUVCB3ZY4YNQRTK3ICSUTSTA2VORX6T45HSWTKZKXOH3C5RDEM
+#\\\|AEIUJKKFV5IF5UBDP6OM3UHFSWBIXP4Q74PIQBQZVG34O75G6SC \ / AMOS7 \ YOURUM ::
+#\[7]SQCZYVG4L5TVDMN4FUVECR53ZGHKDNB2XH2L4T3GYZHHEVGFNWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

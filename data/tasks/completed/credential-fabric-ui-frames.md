@@ -13,19 +13,19 @@ the working reference implementation live; the generic
 build the read-only credential-fabric management ui as a set of ascii frame
 templates plus query and render modules. read first:
 `data/md/design/CREDENTIAL-FABRIC-INTEGRATION-AND-UI.md` (part 2);
-`modules/keys.console.list` (the only existing credential-state ui — model
+`src/keys.console.list` (the only existing credential-state ui — model
 the visual style on this);
-`modules/ascii.frame.load`, `modules/ascii.frame.compose`,
-`modules/ascii.frame.render`, `modules/ascii.frame.slot.bind`,
-`modules/ascii.frame.from_mockup`;
+`src/ascii.frame.load`, `src/ascii.frame.compose`,
+`src/ascii.frame.render`, `src/ascii.frame.slot.bind`,
+`src/ascii.frame.from_mockup`;
 `data/yaml/ascii-frames/task-queue.yaml`,
 `data/yaml/ascii-frames/session-catchup.yaml`,
 `data/yaml/ascii-frames/memory-tree-root.example.asc` for the separator-stretch
 + block-slot idiom and concrete examples;
-`modules/context.provider.frame` for the inline mockup path;
-`modules/credential_fabric.init_code`, `modules/credential_fabric.register`,
-`modules/credential_fabric.resolve`, `modules/credential_fabric.rotate`,
-`modules/credential_fabric.subscribe_rotation` for the state the queries
+`src/context.provider.frame` for the inline mockup path;
+`src/credential_fabric.init_code`, `src/credential_fabric.register`,
+`src/credential_fabric.resolve`, `src/credential_fabric.rotate`,
+`src/credential_fabric.subscribe_rotation` for the state the queries
 must surface.
 do NOT add interactive selection — that is the next task. do NOT modify
 ascii.frame.* internals — use them as-is.
@@ -133,7 +133,7 @@ each template includes the standard `border_style: single`, `modes:
 ## modules to create
 
 ### query layer
-under `modules/credential_fabric.ui.query.*` — pure reads, no rendering:
+under `src/credential_fabric.ui.query.*` — pure reads, no rendering:
 
 - `credential_fabric.ui.query.overview` — returns `{ slot_count, owner_count,
   relay_count, holder_state, last_rotation_b32 }`
@@ -162,7 +162,7 @@ state sources:
   initialise the in-memory ring buffer in `init_code`.
 
 ### render layer
-under `modules/credential_fabric.ui.render.*` — load template, fill slots,
+under `src/credential_fabric.ui.render.*` — load template, fill slots,
 return string:
 
 - `credential_fabric.ui.render.overview`
@@ -195,7 +195,7 @@ template width (left after subtracting borders + padding) and the data
 
 ### dispatch layer
 
-`modules/credential_fabric.ui.show` — entry point. args: view name + optional
+`src/credential_fabric.ui.show` — entry point. args: view name + optional
 slot name. dispatches to the right render module(s):
 
 - `overview` → compose `render.overview` + `render.registry_list` (compact)
@@ -274,8 +274,8 @@ it. lowercase comments, `[ word ]` annotations. no emoji.
 
 #,,..,...,,,..,...,,,..,,,,..,..,,.,,,,..,,..,..,,...,...,...,..,,...,,,.,...,
 
-#,,..,,,,,.,.,.,,,..,,..,,..,,,,,,...,.,,,,,.,..,,...,...,...,...,.,,,.,.,,,,,
-#KLQQYP2KV7CZXUN7I5EMRLEAHIELFVSMJT3VWJFHQL6NTIAE2WFWMHU5L2ACH63TQQWWXW6JVFK34
-#\\\|6WNND5IFZNYS4LOXGV3OPERSYOAYTKWCOHHARWYWPRPLNQPRR3E \ / AMOS7 \ YOURUM ::
-#\[7]OHBAPPHPFSM5H2DG4IFUZ346MW65CRLXNET5IR4ID2IXWWYR6GBY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,,.,,,,,,,,.,.,.,..,,,..,,,.,..,,...,...,.,,,,,.,,,.,,,,,.,,,
+#KWHDSRDOPFS2TNWVP65BY3OZSPCWLQNKGFUVZTIKKZOJFA3NODE56NSLUNC25IG4HBL7UUV24ILGY
+#\\\|IL5VSZ7QBPTTPA5JVM2IUS3RGT3TP7DGFPMY6XLH5TOOWE4DB4X \ / AMOS7 \ YOURUM ::
+#\[7]ZHH7CDMAXBLPFXWEDCE35IJFLJFYN4WIITQPGC4Q6J6DLW2GMKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

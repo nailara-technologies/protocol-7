@@ -96,10 +96,10 @@ hints:
 
 ## Layer 2: Hint Injection in coding.tools.dispatch
 
-**File:** `modules/coding.tools.dispatch` — add after result is obtained,
+**File:** `src/coding.tools.dispatch` — add after result is obtained,
 before returning to the state machine.
 
-New module: `modules/coding.tools.hints.check` — called from dispatch.
+New module: `src/coding.tools.hints.check` — called from dispatch.
 
 ```perl
 # name  = coding.tools.hints.check
@@ -146,7 +146,7 @@ $raw_result .= $hint if length $hint;
 
 ## Layer 3: tool_help Tool
 
-**File:** `modules/coding.tools.handler.tool_help`
+**File:** `src/coding.tools.handler.tool_help`
 
 ```perl
 # name  = coding.tools.handler.tool_help
@@ -199,7 +199,7 @@ return $output || "no extended documentation for '$tool_name'";
 
 ## Layer 4: register_hint Tool
 
-**File:** `modules/coding.tools.handler.register_hint`
+**File:** `src/coding.tools.handler.register_hint`
 
 ```perl
 # name  = coding.tools.handler.register_hint
@@ -285,8 +285,8 @@ return "hint '$name' staged at data/yaml/tool-hints/staged/$name.yaml\n"
 - hint injection adds minimal overhead: only loads registry file once (cache after first load
   via `state $registry` in the hints.check module if performance matters)
 
-#,,,,,..,,,,,,...,,,.,.,,,,..,..,,..,,...,,,,,..,,...,..,,..,,.,.,,,.,,.,,.,,,
-#ML4RT3ATZKBHT6SVMSS2DYZP5MDYJ7EKAW35UNS43RHKEC7EOFLXEOQ3EG6ZPAKEJOY3QYQU3Y76A
-#\\\|4EPZ7Z2J3F3TZUVBNFBGZ2MTOBCVZFS5PGJTQVIWWDUKHSSVPSX \ / AMOS7 \ YOURUM ::
-#\[7]VFJLYWF3KAJKQF2DGE45IMKTT57OCK3LIXVUM7VANJ3VFAGHEKCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,...,,,,,,,.,.,,,,.,,,,.,,,,,..,,...,...,.,.,,,.,..,,,,.,,,,,
+#FXRYL4WPSY7TIIUXY5Q4DE6LMQDDLLPRNWFARCE6S4CB2PFSIFOFQLKA2C5BPUKA4M7733F4WY6DG
+#\\\|ZI7Q7TYFLKGAHODA6ACOXCLAQPCOUI57JFG2OCWMNLZDNE7IJ6F \ / AMOS7 \ YOURUM ::
+#\[7]TTNYYNFEJQRTZLZ244HBKAMQ2DAZV6Z2MWABIPKKUJ6GNINAN4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

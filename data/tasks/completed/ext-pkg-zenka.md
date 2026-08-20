@@ -5,7 +5,7 @@
 ## context
 
 related: [[build-zenka]], os-pkg zenka (cfg/zenki/os-pkg/,
-currently a stub — modules/os-pkg.init_code is just `0;`)
+currently a stub — src/os-pkg.init_code is just `0;`)
 source: dependency-coverage discussion 2026-07-29 — while scoping
 build-zenka's recipe registry, kimi-cli and claude turned out to be
 normal package-manager packages (pip/npm), not unpackaged software, so
@@ -130,8 +130,8 @@ looking up a source and installing something by hand.
   global-install permission questions) stay isolated per zenka instead
   of accumulating as special cases in one shared module.
 
-#,,,,,,..,,..,..,,.,,,,..,,..,,,,,..,,,..,..,,..,,...,...,,,.,...,,,,,.,.,,,,,
-#4BAYJHSATIUT6SCHWP5SPQT3WZNDB3KHQEZG4AIHKXBT5ZLUUWM2M5JJFTE43YUAJJNVYYEUG3EDO
-#\\\|W5M7SZ4PSWX5IXXRRPWCBTFPGPCXSS22X63GWJ3YSBHIYOEFEVL \ / AMOS7 \ YOURUM ::
-#\[7]2VIGQBOYAF4NN7J7N3GECTAS5BL6QKWEJ5AYS36U2YH65YK6UAAY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,.,.,,,,,,,,,.,.,,,.,.,..,,,,,,..,,...,..,,,,.,,,.,.,,,...,..,,
+#G4CELSDG4WLAORB52IQRGHAZIXCI5FNFV4GBPRPHOF2XOVWUCX3NLBPGKOOFEPBSQL54RTBKGQOT2
+#\\\|ISI35VCZ6Y53PEWSZ4AAM3ISYHIQU2OVW3FPTLGZMI5MFAQ5FJO \ / AMOS7 \ YOURUM ::
+#\[7]KR5LF2JRNW2C3F4E4NRRZK7KEEBX6KE5FZCJ7RP4SVGELURGBGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

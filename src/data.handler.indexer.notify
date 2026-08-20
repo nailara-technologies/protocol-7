@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = data.handler.indexer.notify
+# descr = handle notifications from data zenka for indexing
+
+my ($args_str) = @ARG;
+$args_str //= '';
+
+my ( $hash_path, $count, $size ) = split( / +/, $args_str, 3 );
+
+<[base.logs]>->(
+    1, ": indexer notified of import: '%s' (%s files, %s bytes)",
+    $hash_path,
+    $count // '?',
+    $size  // '?'
+);
+
+## trigger index job for this path  in full implementation, this would ##
+## queue an indexing job                                               ##
+
+return TRUE;
+
+#,,,.,.,.,,..,.,.,...,,.,,,.,,,.,,.,,,,,,,.,.,.,.,...,...,.,.,,,.,..,,.,.,.,.,
+#ZHTTPNYLFPDKUCD5NHWVTJEWY2W35PNMNRVXRIHHKX4N2KBN62X6JGSOVL75Y5DURDPOIUNQBMCGY
+#\\\|7PEIJWK36SHKI6IVZYPSZ6EXCHDUBMS7YUDL6NDQXIUYF3CDAZX \ / AMOS7 \ YOURUM ::
+#\[7]KLIPO2YLNY6AANESNBQMD6OB7G5YJNJPKLPP6EBR277FQC43BWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

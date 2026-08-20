@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = screen.setup.screen-change
+# descr = refresh layout + retry pending moves on screen-change
+
+my $args = shift // '';
+return if not length $args;
+
+my ( $w, $h ) = split( ' ', $args );
+$w //= 0;
+$h //= 0;
+
+<[base.logs]>->( 1, '[screen-setup.screen-change] %dx%d', $w, $h );
+
+## re-enumerate monitors so every instance sees the new layout; without    ##
+## this the minimap keeps stale min_x/min_y/scale and windows draw outside ##
+## monitor bounds on topology changes                                      ##
+my $new_monitors = <[screen.setup.enumerate-monitors]>;
+
+for my $id ( keys %{ $data{'screen-setup'}{'instances'} // {} } ) {
+    my $inst = $data{'screen-setup'}{'instances'}{$id};
+
+    if ( defined $new_monitors and @$new_monitors ) {
+        my $new_model = <[screen.setup.layout-model]>->($new_monitors);
+        if ( defined $new_model ) {
+            $inst->{'monitors'} = $new_monitors;
+            $inst->{'model'}    = $new_model;
+            <[base.logs]>->(
+                1,
+                '[screen-setup.screen-change] '
+                    . 'id=%s layout updated %dx%d virtual',
+                $id,
+                $new_model->{'width'},
+                $new_model->{'height'}
+            );
+        }
+    }
+
+    ## force a redraw so the minimap reflects the new layout immediately ##
+    my $win = $inst->{'window'};
+    $win->queue_draw if defined $win;
+
+    ## retry every window with an intended_geo not yet applied ##
+    for my $win_entry ( @{ $inst->{'windows'} // [] } ) {
+        next if not defined $win_entry->{'intended_geo'};
+
+        my $ig    = $win_entry->{'intended_geo'};
+        my $winid = $win_entry->{'winid'};
+        my $x     = int( $ig->{'x'} + 0.5 );
+        my $y     = int( $ig->{'y'} + 0.5 );
+
+        <[base.logs]>->(
+            1,
+            '[screen-setup.screen-change] id=%s '
+                . 'winid=%s retry intent x=%d y=%d',
+            $id,
+            $winid,
+            $x,
+            $y
+        );
+
+        <[base.zenki.resolve_primary_sid]>->(
+            'X-11',
+            sub {
+                my $sid = shift;
+                return if not defined $sid;
+                <[protocol-7.route-send]>->(
+                    {   'command'   => "$sid.move-window",
+                        'call_args' => { 'args' => "$winid $x $y" },
+                        'reply'     => {
+                            'handler' =>
+                                qw| screen.setup.handler.move_reply |,
+                            'params' => { 'id' => $id, 'winid' => $winid }
+                        }
+                    }
+                );
+            }
+        );
+    }
+}
+
+return;
+
+#,,..,,,,,,,,,,.,,,..,,,,,,.,,.,.,,,,,,,.,.,.,..,,...,...,,..,...,,.,,.,,,.,,,
+#HT2R3NTE4T5B6HS6DVHPC7B53W3DFUI5UTHIOYRUWWDTHJG7KAZP6FF3Z4U5R4NY7FGKWX2EO4LS2
+#\\\|XUR3YTKV7PLW7USR7QUWQUPHENB7M76JN6JE3TAUKF5357LJ4MF \ / AMOS7 \ YOURUM ::
+#\[7]QP2KEXCIOI2OM7WL64FHPSPVQTNCASWSCTMCIILPEYNSJ7R52IAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

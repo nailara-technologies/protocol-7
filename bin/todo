@@ -171,7 +171,7 @@ sub ntime_b32_decode {
 
 ##[ item id : random 3-char amos-chksum code, collision + harmony checked ]##
 ##
-## mirrors modules/base.gen_id's shape [ random candidate, retry on collision,
+## mirrors src/base.gen_id's shape [ random candidate, retry on collision,
 ## optional harmonic gate via AMOS7::Assert::Truth::is_true ] -- base.gen_id
 ## itself can't be called here: it's a zenka module using the <[...]> routing
 ## syntax and depends on <base.prng.fortuna>, a PRNG object living in a
@@ -507,8 +507,8 @@ sub resolve_item {
 
 sub base_sort_keys {
     my @keys = @_;
-    ## same two-pass sort as modules/base.sort :  reverse alphabetical ##
-    ## first, then ascending by length                                 ##
+    ## same two-pass sort as src/base.sort :  reverse alphabetical first, ##
+    ## then ascending by length                                           ##
     return sort { length $a <=> length $b } reverse sort @keys;
 }
 
@@ -678,11 +678,11 @@ sub cmd_list {
         } @items;
     }
 
-    ## id is now a random code, not a creation-ordered sequence, so it's   ##
-    ## meaningless as a sort key. use this project's default two-pass sort ##
-    ## [ modules/base.sort : ascending length, ties broken by descending   ##
-    ## alpha, via a reverse-then-stable-sort ] on item text instead of     ##
-    ## base.sort's plain scalars -- same shape, keyed on ->{text}          ##
+    ## id is now a random code, not a creation-ordered sequence, so it's    ##
+    ## meaningless as a sort key. use this project's default two-pass sort  ##
+    ## [ src/base.sort : ascending length, ties broken by descending alpha, ##
+    ## via a reverse-then-stable-sort ] on item text instead of base.sort's ##
+    ## plain scalars -- same shape, keyed on ->{text}                       ##
     @items = sort { length( $a->{text} ) <=> length( $b->{text} ) }
         reverse sort { $a->{text} cmp $b->{text} }
         grep { defined $_->{text} } @items;
@@ -1483,8 +1483,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,.,.,.,.,.,..,,.,,,.,,,..,,..,,,,,,.,.,,.,,..,,...,...,.,.,.,,,,..,,..,,.,,
-#W36IIVM7XJBBBBN3SYXO3HXCG2G6ZHMRE7N4P5D35V6JZ5QBKPQJWHBRENWBLBPHLWKIN4TGWAXMS
-#\\\|6JEFNIQZZO2CKFGAUF2FDMKNIIWNXBVU3ECYJ32LD6QIL3ONDJD \ / AMOS7 \ YOURUM ::
-#\[7]3QMF4BCATURSP4IYGSM4UYG7VCOGLAF2AGNEV5SASX5SAWQIZWDA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,.,,..,.,,,,.,,,.,,..,,...,.,.,..,,...,...,..,,..,,,.,,,,.,,.,,
+#6A76JO5GP7I75MV4UXYY3DIL2KBIW7CAIR6CU47TQPFPDJUAPSONWO7NGIGBCPEON7CLKH24DDW6O
+#\\\|2VBHVM6JINCYJYCMJR5SIP4FBMEBEQRRI7AV5KHCPE2CADFXVRG \ / AMOS7 \ YOURUM ::
+#\[7]DBZXNTBNLYECTEZLDFGD3UVSGM7YNMTJ7D6KRR64KODRYPFN3YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -131,7 +131,7 @@ scratch in a future session.
   [[topic-next-steps]] still said "expected results"/in-flight; corrected in
   place.
 - `base.devmod.dump_var` wrapper is committed (confirmed live in
-  `modules/base.init_code`, clean working tree) — [[topic-next-steps]] said
+  `src/base.init_code`, clean working tree) — [[topic-next-steps]] said
   "unstaged, pending sign/stage"; corrected in place.
 - audio-waveform "pending human sign-off" note in [[MEMORY-active]] is
   *likely* stale (clean tree, later commits build on top) but not
@@ -145,8 +145,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,,,,..,,,,.,..,,.,.,,..,,,,,,,,,.,.,..,,...,.,.,...,..,,...,,,.,,,.,...,,,,,
-#CTIEUGMQ6JIR3R7Y6WDAXQYE56RTMVTBWCKBP4FJJ7K6EQKHZJTAWS2A3TYOLIYJJZPNVZ6UM3KGW
-#\\\|4B6KEQFJL7Q7EZTGO4S4O4O2G5B7TFVJCB6JUGRKZDTPNC3BAHC \ / AMOS7 \ YOURUM ::
-#\[7]7F5YU4JKDQVFHUJGVI4NA4EW6ZVOJ4GCXX2GKCOGY2WP4QANJ4AA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,,.,,,..,,..,.,.,,,.,,..,..,,.,.,...,...,,..,...,.,,,.,,,,..,
+#2S56EFGDLMPUQXYHSAWHQKVFSVEM6GEE5FKKY2SLXLZ7J3TFIWPEQWKNTM2DAIRKXSIH2ITDBNVNA
+#\\\|XKMR4N4DPEYF3P7ITSVSAOTQG6YQ5XZRA2TEPEINKYMCHLKKV62 \ / AMOS7 \ YOURUM ::
+#\[7]4DJYWU5CSWR4IR6A3HBXPDFRF6PYEPBUYI3XKL2K6PRWWES43WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = X-11.pool.query
+# descr = read-only X11 call wrapper with primary timeout and standby reroute
+
+## this wrapper is only for read-only queries: GetProperty, QueryTree,     ##
+## GetWindowAttributes, GetGeometry, TranslateCoordinates, GetInputFocus.  ##
+## mutating requests [ GrabKey, SelectInput, ChangeWindowAttributes, ... ] ##
+## must stay pinned to whichever connection currently owns the registered  ##
+## state.                                                                  ##
+
+my $method_name = shift;
+return undef if not defined $method_name;
+
+my @args = @_;
+
+## pool disabled: fall back to direct blocking call on primary ##
+if ( not <[base.cfg_bool]>->(<X-11.pool.enabled>) ) {
+    my $X = <X-11.obj>;
+    return undef if not defined $X;
+    return $X->$method_name(@args);
+}
+
+my $timeout = <X-11.pool.query_timeout> // 2;
+
+## try primary first ##
+my @result = <[X-11.pool.req_with_timeout]>->(
+    <X-11.obj>, $timeout, $method_name, @args
+);
+return @result if scalar @result;
+
+## primary stalled or failed: use standby as health oracle ##
+if (<[X-11.pool.ping_standby]>) {
+    <[base.logs]>->(
+        1, '[pool.query] primary stalled, rerouting %s to standby',
+        $method_name
+    );
+    my @standby_result = <[X-11.pool.req_with_timeout]>->(
+        <X-11.obj.standby>, $timeout, $method_name, @args
+    );
+    return @standby_result if scalar @standby_result;
+}
+
+## standby also failed or absent: systemic / compositor-level failure ##
+<[base.logs]>->(
+    0,
+    '[pool.query] primary stalled and standby '
+        . 'unhealthy for %s -- systemic X11 failure',
+    $method_name
+);
+
+return;
+
+#,,..,,,,,...,..,,,,,,,.,,.,,,,.,,,..,,,.,,,.,..,,...,...,..,,..,,.,.,,,,,,.,,
+#4GRBV5WDZA7QWJSJHV2Y4AL2P2MASH5XY22B6ZOTB625B7QWTH6NDY2HDAARF7BPIYBNLCVUO6HQU
+#\\\|VHW47GDE67ERTI2Y7A7IPY2TITQAR6IXTAQBH7EJLJM6YBPUP3T \ / AMOS7 \ YOURUM ::
+#\[7]T7DWMUTVEL452ZBBXRQ7VYP57TKDBJKSPPMSQGMKOWGOGX3F2QAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

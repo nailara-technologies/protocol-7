@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = X-11.cmd.refresh-monitors
+# descr = force RANDR monitor-registry rebuild without waiting
+
+## the registry is normally rebuilt only on a screen-change notification or ##
+## at startup [ X-11.job.finalize_server ] - if the topology settles into a ##
+## final state with no further notification arriving [ observed live: the   ##
+## registry stayed on stale flat-2-monitor values while a fresh connection  ##
+## immediately saw the correct current 3-monitor vertical-offset layout ],  ##
+## the cache has no other way to catch up short of a full zenka restart.    ##
+
+return { 'mode' => qw| false |, 'data' => 'RANDR not available' }
+    if not <X-11.has_randr>;
+
+<[X-11.build_monitor_registry]>;
+
+my $monitors = <X-11.monitors> // [];
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'monitor registry refreshed : found %d device%s',
+        scalar @$monitors,
+        <[base.cnt_s]>->( scalar @$monitors )
+    )
+};
+
+#,,,,,,,,,...,..,,,,,,.,.,.,.,.,.,,,.,,..,.,.,..,,...,..,,..,,...,...,,,,,..,,
+#IC5WTU2KK5OD2YTTRZUZHXKC6SUSRDFD566IF3SUWSTNCFXENMMNP5B5Q5BVUVGEPVE3SF7YZZAYK
+#\\\|ZAXBGXZSLVXTIMWOEEMKIO2J2YZ7MV3XWTLGYH3NTQZA7KUAMGV \ / AMOS7 \ YOURUM ::
+#\[7]Y7PTRWJ22BGOCMRPTLBYVYG4TA36MOUIEMRNPRULQYYZIWYLUOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

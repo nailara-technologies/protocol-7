@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = coding.tools.handler.regex_replace_preview
+# descr = preview regex replacement in file [read-only]
+# param = path, pattern, replacement, flags
+
+my $args = shift // {};
+
+my $path        = $args->{'path'}        // return 'error: path required';
+my $pattern     = $args->{'pattern'}     // return 'error: pattern required';
+my $replacement = $args->{'replacement'} // '';
+my $flags       = $args->{'flags'}       // qw| g |;
+
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+## auto-prefix src/ for dot-notation filenames without directory ##
+if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
+    $path     = catfile( qw| src |, $path );
+    $abs_path = catfile( $root,     $path );
+}
+
+## validate path stays within project ##
+my $real_path = Cwd::abs_path($abs_path) // '';
+my $real_root = Cwd::abs_path($root)     // '';
+return 'error: path escapes project root'
+    if !length $real_path
+    or index( $real_path, "$real_root/" ) != 0;
+return 'error: file not found' unless -f $real_path;
+$abs_path = $real_path;
+
+## read file content ##
+my $content_ref
+    = <[file.slurp]>->( $abs_path, undef, qw| :encoding(UTF-8) | );
+return 'error: cannot read file' unless defined $content_ref;
+my $content = $content_ref->$*;
+
+## compile regex with flags ##
+my $re_flags = $flags;
+$re_flags =~ s|g||g;    ## g is substitution modifier, not regex flag ##
+my $re
+    = eval { length $re_flags ? qr/(?$re_flags:$pattern)/ : qr/$pattern/; };
+if ( not defined $re ) {
+    my $err = <[base.str.eval_error]> // 'unknown regex error';
+    $err =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;
+    return sprintf "error: invalid regex [ %s ]: %s", $pattern, $err;
+}
+
+## apply replacement to compute preview ##
+my $new_content = $content;
+my $count       = 0;
+
+if ( $flags =~ m|g| ) {
+    $count = $new_content =~ s|$re|$replacement|g;
+} else {
+    $count = $new_content =~ s|$re|$replacement|;
+}
+
+return sprintf "<!-- no matches for pattern '%s' in %s -->", $pattern, $path
+    unless $count;
+
+## compute checksums ##
+my $preview_key = join( "\0", $path, $pattern, $replacement, $flags );
+my $preview_id  = <[chk-sum.amos]>->( \$preview_key );
+my $file_bmw    = <[chk-sum.bmw.filesum]>->( 256, $abs_path );
+
+## store preview state ##
+my $previews = <coding.regex_replace.previews> // {};
+$previews->{$preview_id} = {
+    'path'        => $path,
+    'abs_path'    => $abs_path,
+    'pattern'     => $pattern,
+    'replacement' => $replacement,
+    'flags'       => $flags,
+    'file_bmw'    => $file_bmw,
+    'match_count' => $count,
+    'created_at'  => <[base.ntime]>,
+};
+<coding.regex_replace.previews> = $previews;
+
+## generate unified diff ##
+my $diff = <[coding.tools.handler.regex_replace_diff]>->(
+    {   'path'    => $path,
+        'old'     => $content,
+        'new'     => $new_content,
+        'context' => 3
+    }
+);
+
+return
+    sprintf "preview id: %s\nfile bmw:   %s\nmatches:    %d\n---\n%s",
+    $preview_id, $file_bmw, $count, $diff;
+
+#,,,.,,..,,.,,.,.,.,,,,..,...,,,.,..,,,,.,.,.,..,,...,...,,.,,,.,,,,.,...,.,.,
+#M64JXYF5LNX5H2PE6SMKVMLGH2MJACWOCUVFCGS2OYRX6HINOZ6ZVXTUY2DBJUCP3AUG52BP7PDRW
+#\\\|URDDYAAIFTRE7CRZPWZES2A6X3EN7T4FIPM73G7EMEUNHJIZSI7 \ / AMOS7 \ YOURUM ::
+#\[7]H5IJDT7HC2VXIMHSNXJCBKIDUMM5IVJIZRTBMAO4TK6MP2J5MWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

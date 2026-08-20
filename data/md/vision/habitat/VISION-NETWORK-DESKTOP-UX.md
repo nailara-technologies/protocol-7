@@ -124,7 +124,7 @@ A Protocol-7 session window shows a **positioned context**:
 │                                                     │
 │ > working on httpsd certificate discovery           │
 │   found: prefer .pem over .cert (chain complete)    │
-│   tool: read modules/httpsd.discover_active_cert    │
+│   tool: read src/httpsd.discover_active_cert    │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
 │ [ crystallized — wave-1 compacted ]                 │
@@ -248,8 +248,8 @@ unexplored, and how to navigate toward what they need.
 The map is the documentation. The topology is the organizational memory.
 The visualization is access to all of it at a glance.
 
-#,,.,,,,,,.,,,,,,,,.,,.,,,,..,..,,,.,,.,,,,.,,..,,...,...,...,..,,.,.,,.,,...,
-#4U2XBWZKJ536ERXAM7NVZWZSFCKC5GX743XK3JAZORAYAK63WRBC32KOIXEQNMMCSDDIPPEXYVRZG
-#\\\|N43ZLAYHXSIHTYOGWV56WSIED47X3WVAB7CXZ3CT6HNWFXCVXYF \ / AMOS7 \ YOURUM ::
-#\[7]U7OZNRZV5LN5RNWCA6PVAP5HMGK4FO2DOOPEWQ4RYZOKIUMSQ6BY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,,,,,.,,,,.,,,,,,.,.,,,.,.,.,..,,...,...,,,.,.,,,..,,,.,,.,,,
+#M4V2Z52LQSKBMO423CD25ALZTSXXRMFGE46B3XMMMJ7CEV4V2LYBBDBPTMXVYLUAPJVJDX6VEZF4O
+#\\\|6QJVXEOCW54A7RP4ELXGMVYGXXOTFI3VTLKJAIZCLG2UH4N6RYN \ / AMOS7 \ YOURUM ::
+#\[7]IHWWIMM2TZZYCFSLJUNTNPAIH36PSDEZJQULDXPTIJ7DQZXI6YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

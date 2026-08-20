@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = mpv.cmd.reposition
+# descr = reposition player, seeded from last committed position
+
+my $caller = <mpv.startup.caller> // <system.zenka.name> // 'mpv';
+
+## force=1 : always opens the interactive placement ui [ rather than      ##
+## instantly re-serving the saved profile ], but still seeds it from that ##
+## same saved profile - so calling reposition again before mpv is next    ##
+## started continues from the last commit instead of resetting to a       ##
+## blank/default position each time                                       ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'window-place.coords',
+        'call_args' => { 'args'    => sprintf 'caller=%s force=1', $caller },
+        'reply'     => { 'handler' => 'mpv.handler.reposition_reply' }
+    }
+);
+
+return {
+    'mode' => 'true',
+    'data' => sprintf( 'repositioning requested [caller=%s]', $caller )
+};
+
+#,,,.,..,,.,.,,,.,...,,..,.,,,,.,,,.,,,,.,,..,..,,...,...,.,.,,,.,...,,,,,,.,,
+#67HEAZ535VEW6B2UBXVFB24MGZGS55GARFJD5BDH6PO5M6R7BY34SN6OMQP52EHIUCTJ2ZPPKYHEM
+#\\\|OU5ZO52ZQFKKOZFZBUEMDQL3QT3GPXPXNSCGUWSHSIJFCTMQYRQ \ / AMOS7 \ YOURUM ::
+#\[7]KZIMCH3GDFIJ54OCP6MT222I7E2Y3MZBMFFBSBBCSL24OL3QPCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

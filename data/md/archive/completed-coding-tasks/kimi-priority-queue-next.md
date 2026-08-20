@@ -120,7 +120,7 @@ From `harmonic-cycle-correlations.md` §"The /0.7 Operator":
 230769 / 0.7 = 329670     ## true digit reversal — 076923 → 329670  ##
 ```
 
-### 2.1 Check modules/cube-13.cmd.jump
+### 2.1 Check src/cube-13.cmd.jump
 
 Read the current `jump reverse` implementation. If it switches to stream 7,
 correct it to switch to stream 3 (or, if it reverses the current position
@@ -325,8 +325,8 @@ Architecture section 8 prefix table as live lookup module in decoder. Creative/a
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,,..,,,,,..,,.,,,..,,...,.,,,.,,,,..,..,,.,.,...,...,,..,.,.,,,.,,..,,,,,
-#NCSKOWPRCYAQBORIGXOAJFHSLIVKPHISJBU5PEEAI6KYRFAIOLTJ3WB4AICYO3CTN7J2QKSIKCQUK
-#\\\|JP42GFTN3GUPTNLZ2V5L6VGJDF4CDSKXIRY73WVRBS7L7SWO5BI \ / AMOS7 \ YOURUM ::
-#\[7]7HFLEXWNLD4VHPNBTP6LLJFWDTWTMYF2CUX5WU5EFBQYM54QSIAY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,,,,.,,..,,...,..,,..,,.,.,..,,.,.,...,...,,..,,,,,,,,,.,,,,,.,
+#XJTDQOW4UDYQH5ZBS6RUS7CGJBYK5YDAFMPFWQS3G2U642OO5VZKNG6LR7E5CCRDTYB5ZWDD3F4M4
+#\\\|LM5JSXI4P47JFYOAXHE424DXVYXBEUQWRRLUQLRGDJDWMVPVSWP \ / AMOS7 \ YOURUM ::
+#\[7]G4ANIZZIORNC3XYVJCWPURH6U23L4HMJGZ7YV4TOOSGAUJA53IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

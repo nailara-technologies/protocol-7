@@ -68,8 +68,8 @@ more naturally.
 ## what to read first
 
 ```bash
-cat modules/base.has_access          ## current matching logic
-cat modules/base.parser.access_conf  ## how access lines are parsed
+cat src/base.has_access          ## current matching logic
+cat src/base.parser.access_conf  ## how access lines are parsed
 grep -n 'usr\.' cfg/zenki/cube/access.zenki | head -20
 grep -n 'access.cmd' cfg/zenki/v7/start
 ```
@@ -167,8 +167,8 @@ prompt: |
   change. The goal: access.cmd.usr.cube.system = teardown works correctly
   alongside access.cmd.usr.cube = *. No signature stubs, no whitelist changes.
 
-#,,,,,,.,,,.,,,.,,,.,,.,.,.,.,,,.,.,,,.,.,,..,..,,...,...,..,,..,,,,,,..,,,,.,
-#TCDMCWLTDIBK7Y2UP3WJ5QE6REJU6PFC3WE257MUIKGGZOOQGCU5CYMZLVH7GZDKPW27WG2D6VDM4
-#\\\|RIFIK4PHD4BHHLRAP3Q5UM5D6RFEVFH6KXCT5SXY7PF5LRWABTN \ / AMOS7 \ YOURUM ::
-#\[7]WKNT2HLKVHDHWZRP466VCWKIHCVD4P764ROYHNCKNXULQYJQ7CCI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,,,.,,,,,.,,,.,.,,,,,,,.,...,..,,...,...,.,.,,,.,.,,,.,,,...,
+#QOZGCFORMULV2O7VZEEJ24LP327DYFFOH43GPW22IVUIZQM7N34PNL4UPA7D7BZ733MEYJJRYLGLI
+#\\\|4IGM4GHOU57V6MFABALYMHHGHKFJO4DHJSIJXMMB2OV35J64SDW \ / AMOS7 \ YOURUM ::
+#\[7]PU7OQ43M7CQZV45DDUYBO5CKI5QHQLQWWJOGOWOLX2U2BWSBL6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ prerequisites:
     note: "For LLM development workflow, use LLM-dev.sourcecode (see llm-development-workflow.yaml)"
 
   module_mapping:
-    file: "modules/base.known_dependencies"
+    file: "src/base.known_dependencies"
     entry: "'Crypt::Curve25519' => { 'cpan' => 'Crypt::Curve25519' }"
     purpose: "Protocol-7 module dependency tracking"
 
@@ -74,7 +74,7 @@ available_commands:
       - "Creates test key if not present"
       - "Backs up original signatures to .test-signature-backups/"
       - "Prepares for test signing workflow"
-    example: "./bin/Protocol-7 sourcecode test-sign-with-temp-key modules/events*"
+    example: "./bin/Protocol-7 sourcecode test-sign-with-temp-key src/events*"
     note: "Requires file pattern parameter"
 
   test_cycle:
@@ -93,7 +93,7 @@ available_commands:
         - "Automatic backup and restore"
         - "Safe testing without permanent changes"
         - "Verifies signatures before restoration"
-    example: "./bin/Protocol-7 sourcecode test-cycle modules/base.*"
+    example: "./bin/Protocol-7 sourcecode test-cycle src/base.*"
     note: "Requires test key to exist first"
 
   test_diagnose:
@@ -142,7 +142,7 @@ common_workflows:
     steps:
       - "Ensure test key exists: ./bin/Protocol-7 keys list"
       - "If not: ./bin/Protocol-7 keys create -U test-proto7-sourcecode"
-      - "Run test cycle: ./bin/Protocol-7 sourcecode test-cycle modules/test.*"
+      - "Run test cycle: ./bin/Protocol-7 sourcecode test-cycle src/test.*"
       - "Verify all steps complete successfully"
       - "Original signatures automatically restored"
 
@@ -313,9 +313,9 @@ related_documentation:
   - "llm-development-workflow.yaml - NEW: LLM development with persistent keys"
   - "git-commit-versioning-signing.yaml - Git workflow integration"
   - "buffer-system-debugging.yaml - Real-time debugging workflow"
-  - "modules/source.cmd.get-code-signed - Signing implementation"
-  - "modules/source.signature_valid - Verification implementation"
-  - "modules/source.extract_sig_body - Signature extraction"
+  - "src/source.cmd.get-code-signed - Signing implementation"
+  - "src/source.signature_valid - Verification implementation"
+  - "src/source.extract_sig_body - Signature extraction"
 
 note:
   "This workflow is primarily for manual testing. For LLM-assisted development,
@@ -324,8 +324,8 @@ note:
 
 #,,.,,.,,,..,,,.,,.,,,,,,,..,.,,,.,.,.,,,..,,..,,...,...,,,,,,,,.,,,.,..,,.,,.,
 
-#,,..,,,,,,.,,,.,,..,,.,.,...,,..,.,.,,,.,,..,..,,...,...,,,.,.,,,..,,,..,,.,,
-#GEXYYU3P3LFKD5FR35YSY36436KWHVAF6ROGLZC3DYHU6Q55XAA6HVV5VVW6XYEOFTY45G3AVSKX2
-#\\\|5HCX2KYK5UFYZPUGKV5N2M235VX6KTGZX2S65A7A6P2IEJSQ35S \ / AMOS7 \ YOURUM ::
-#\[7]MX4DWLPCQTXI2M4Z6UASMIP4BGZ54JT7C5C4HDLWQMAZ4SRDPEAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,.,,..,,,,,,,.,,..,.,.,.,.,,.,,..,,...,...,.,.,,.,,,.,,...,.,,,
+#DK7FSEBFMTC42632NWRU2YLKLMV43WGT62F6CSDZOGU24OHIHB3ZISQ2TGTT5VOPNA7ACXMOGOBN2
+#\\\|GBQK6IVBVBMLPLE3C5ES5HGB62OG72ZVCOV5POJHVCUOFKTE32Z \ / AMOS7 \ YOURUM ::
+#\[7]4GYSYAU6QSR5JU6MZ2EWCDLXQMEJIWIMI6EXUUPWHDF7BHEPPEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

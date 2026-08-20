@@ -39,66 +39,66 @@ file's existing style — most `init_code` files call
 `<[base.perlmod.load]>->('Module::Name');` as a bare statement near their
 other preload calls).
 
-1. **`modules/base.file.temp`** — `File::Path` → `modules/base.init_code`.
+1. **`src/base.file.temp`** — `File::Path` → `src/base.init_code`.
    Real path: `<[file.temp]>` called by `base.file.zenka_dir.write:126` on
    every atomic `>`-mode write; that helper has 60+ callers.
 
-2. **`modules/base.handler.read.encryption-wrapper`** —
-   `Crypt::AuthEnc::ChaCha20Poly1305` → `modules/base.init_code`. Installed
+2. **`src/base.handler.read.encryption-wrapper`** —
+   `Crypt::AuthEnc::ChaCha20Poly1305` → `src/base.init_code`. Installed
    as the state-3 session input handler by
    `protocol.protocol-7.init_code:91` / `encryption.init:106` — per-message
    read path of every encrypted session.
 
-3. **`modules/base.handler.write.encryption-wrapper`** — same module,
-   `Crypt::AuthEnc::ChaCha20Poly1305` → `modules/base.init_code`. Factory
+3. **`src/base.handler.write.encryption-wrapper`** — same module,
+   `Crypt::AuthEnc::ChaCha20Poly1305` → `src/base.init_code`. Factory
    for the per-session output encryption handler
    (`protocol.protocol-7.encryption.init:115-127`), installed on every
    encrypted link. (Since both #2 and #3 need the same module in
    `base.init_code`, add it once, not twice.)
 
-4. **`modules/channels.util.yaml_decode`** — `YAML::XS` →
-   `modules/channels.init_code`. Single YAML entry point for
+4. **`src/channels.util.yaml_decode`** — `YAML::XS` →
+   `src/channels.init_code`. Single YAML entry point for
    `channels.cmd.update:34`, the central write path for every channel
    publication; `channels` runs `start.on-demand = 1`, so this loads on
    virtually every activation.
 
-5. **`modules/coding.tools.handler.git_diff_output`** — `Git::Wrapper` →
-   `modules/coding.init_code`. Called by `git_diff_staged:17` /
+5. **`src/coding.tools.handler.git_diff_output`** — `Git::Wrapper` →
+   `src/coding.init_code`. Called by `git_diff_staged:17` /
    `git_diff_unstaged:17` on every git-diff tool call in the coding-agent
    loop. `coding.init_code` already preloads other tool-path deps — this
    one was missing.
 
-6. **`modules/jobsite.dispatch.assessments`** — `Encode`, `HTML::Entities`
-   → `modules/jobsite.init_code`. Every completed fetch batch funnels into
+6. **`src/jobsite.dispatch.assessments`** — `Encode`, `HTML::Entities`
+   → `src/jobsite.init_code`. Every completed fetch batch funnels into
    this via several handler paths; `jobsite.init_code` already preloads
    `YAML::XS`+`JSON::XS` but not these two.
 
-7. **`modules/jobsite.util.build_prompt`** — `HTML::Entities`, `Encode` →
-   `modules/jobsite.init_code`. Same two modules as #6 — add once. Called
+7. **`src/jobsite.util.build_prompt`** — `HTML::Entities`, `Encode` →
+   `src/jobsite.init_code`. Same two modules as #6 — add once. Called
    per-job inside every assessment batch by
    `jobsite.dispatch.assessments:132` and per-repair by `dispatch.repair`.
 
-8. **`modules/context.git.recent_changes`** — `Git::Wrapper` →
-   `modules/context.init_code`. Rendered via
+8. **`src/context.git.recent_changes`** — `Git::Wrapper` →
+   `src/context.init_code`. Rendered via
    `<[context.git.recent_changes:budget=N]>` in `coding-assistant.tmpl` on
    every coding-backend model request, plus per tool call and per
    context-compose build.
 
-9. **`modules/models.backend.kimi_web`** — `Crypt::Misc` →
-   `modules/models.init_code`. Reached via
+9. **`src/models.backend.kimi_web`** — `Crypt::Misc` →
+   `src/models.init_code`. Reached via
    `models.cmd.chat → models.chat.invoke_model → models.backend.kimi_web`
    on every kimi/kimi-code chat request; `models.init_code` doesn't
    currently preload this.
 
-10. **`modules/screen.setup.ensure-display`** — `Cairo`, `Glib` →
-    `modules/screen.setup.init_code`. `screen.setup.init_code` already
+10. **`src/screen.setup.ensure-display`** — `Cairo`, `Glib` →
+    `src/screen.setup.init_code`. `screen.setup.init_code` already
     loads `Gtk3` and calls `Gtk3->init` — only `Cairo`/`Glib` need adding
     alongside it. Called by `screen.setup.open_window:15` and
     `enumerate-monitors:8` in this already-GUI-only zenka (no boot-cost
     concern here — the whole zenka is GUI-only).
 
-11. **`modules/zulum.cmd.export-streams`** — `JSON` →
-    `modules/zulum.init_code`. `zulum.init_code:55-62` itself schedules
+11. **`src/zulum.cmd.export-streams`** — `JSON` →
+    `src/zulum.init_code`. `zulum.init_code:55-62` itself schedules
     this on a 200ms repeating timer for the entire zulum zenka lifetime —
     it always runs, so eager-loading at boot is strictly correct.
 
@@ -127,8 +127,8 @@ other preload calls).
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,..,,..,.,,,,,,,,..,,.,,,.,,,..,,..,,.,,.,.,..,,...,...,.,,,..,,...,,.,,...,
-#BW5EQU77SBCSRZD5D5IAQECZHE66BLFXE4BVSJ3I25U3T3WBALSUFUXCTCZSEZRSXJBAW4YIED23K
-#\\\|TZIX5ABREEOHAMMZPSQ6MO4AMKPXAVFZ7MOPEEOKHUKREPB4NYR \ / AMOS7 \ YOURUM ::
-#\[7]IPKMNM6P2JNLVNLA5WCCMYSO7XCB4MUL7CTW3PK4XWVBBJSPKUBA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,,,...,,,.,..,,.,,,,..,,,,,,,,,..,,...,..,,...,..,,,,.,,,.,.,,,
+#ZT5HQFKKYOALXWTFJNE7LITC3MM4WLUF6IGO6EJ6CQN5CUBNMJHAAGXOASNJRSZ5VDYNKBXVUDZCS
+#\\\|OF4AWUTHPO7VJBF7WDCH3A6HWA7RPFNMELM4QRRGZQ6Q2ATWZJQ \ / AMOS7 \ YOURUM ::
+#\[7]MO3KWXPHHF24JMT7DT4G2B44SVSAZG2RVD7TNDQNHPSS6RJEZQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,7 @@ on the color wheel.
 
 ## module to create: jobsite.chksum.branch-color
 
-file: modules/jobsite.chksum.branch-color
+file: src/jobsite.chksum.branch-color
 
 given a job_id and a dimension name, compute the BMW384 color of that branch:
 
@@ -37,7 +37,7 @@ given a job_id and a dimension name, compute the BMW384 color of that branch:
 
 ## module to create: jobsite.chksum.group-by-branch
 
-file: modules/jobsite.chksum.group-by-branch
+file: src/jobsite.chksum.group-by-branch
 
 given a dimension name, a center job_id, and a radius:
 
@@ -49,7 +49,7 @@ given a dimension name, a center job_id, and a radius:
 
 ## module to create: jobsite.cmd.group-jobs
 
-file: modules/jobsite.cmd.group-jobs
+file: src/jobsite.cmd.group-jobs
 
 command handler: p7c jobsite.group-jobs <dimension> <job_id> [radius]
 
@@ -85,13 +85,13 @@ prompt: |
 
   Read the task file carefully. The dependency (bmw384-color-extract.md) is already
   implemented — base.chk-sum.bmw384.color and base.chk-sum.bmw384.color-dist are
-  available. Read modules/jobsite.job.read and modules/jobsite.job.load_all first to
+  available. Read src/jobsite.job.read and src/jobsite.job.load_all first to
   understand the job data structure. Return format for the list command:
   { mode => 'size', data => $formatted_string }. New modules: leave clean, no signature
   stubs. Use $ARG not $_, lowercase comments.
 
-#,,..,,..,.,,,,..,,,.,.,.,,,,,...,.,.,.,,,.,,,..,,...,...,,.,,,.,,,,.,.,.,,,.,
-#ILNDHMPXE3MQAI5N5FA5HDCE6W5FDVT6NIG2HB7LDBNWHBOUJKQFQXM2WTK5BIXUQRO7IKVMBCHES
-#\\\|SLKH6URLGENSXZKMPICXHJRFMOHAYQOOQ5ZRJUAJCXYGDKWGF4C \ / AMOS7 \ YOURUM ::
-#\[7]Q3IMN7GNAJPXCDSLXLZ6WKWYR6O55E3UGMW4O2XZR6NJPB7HGOCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,..,,..,,,..,.,,,.,.,.,,,.,.,,,,,..,,...,...,,.,,,.,,.,,,,,.,,,.,
+#IYEAKTXAQKHBYTCD6CFIQGGGSNAMUWTKUNHJY67RHECFT5HISZJEAOMGTZSORDCYJCUZGMF44JZOM
+#\\\|TU76CXBKAV35MLVKZL7GKNV7EJS3NWFCIZC7T7DWFC27G6CQJEE \ / AMOS7 \ YOURUM ::
+#\[7]BN5V24VRLTRVZH7QAN2KEJGZWSQUQ5DIWOX3DP3DOJKRNNUJYCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

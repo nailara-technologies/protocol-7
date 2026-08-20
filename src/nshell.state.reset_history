@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = nshell.state.reset_history
+# descr = Reset history navigation state when user begins editing
+
+my ($state_ref) = @_;
+
+## Reset navigation state when user edits in VIEWING_HISTORY mode This returns
+## us to NORMAL mode for further editing
+if ( $state_ref->{'current_mode'} == 2 ) {    # VIEWING_HISTORY
+    $state_ref->{'current_mode'}          = 0;     # NORMAL
+    $state_ref->{'current_history_index'} = -1;
+    $state_ref->{'paging_index_stack'}    = [];    # Clear paging stack
+
+    ## [ also reset ctrl+o cycle state to prevent stale state issues ]
+    $state_ref->{'ctrl_o_start_position'}   = -1;
+    $state_ref->{'ctrl_o_entries_added'}    = 0;
+    $state_ref->{'ctrl_o_redraw_cursor'}    = FALSE;
+    $state_ref->{'display_preloaded_entry'} = FALSE;
+}
+
+return;
+
+#,,,,,..,,.,.,...,.,.,,,,,,..,..,,,.,,,,.,,.,,.,.,...,...,,,,,,.,,,,.,,..,...,
+#CHUK2SVEKRBLGTG3KJV5W3UWAVF4VVRFQS4OCQP6D5PLWEA73LGLRZNI2GOU6FACTN273YGSYP5KK
+#\\\|AUQKCZASCLL2PJAU25JHZVE7NOZHQVZ6UYAO4RZ5COAZSMW6KUC \ / AMOS7 \ YOURUM ::
+#\[7]LBQ3OCZ6XXRMCBDE75M3LEOLCAWBD3IXP4E3OJDSC4453M7FZQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

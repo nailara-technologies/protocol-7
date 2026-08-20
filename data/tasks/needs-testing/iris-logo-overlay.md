@@ -79,13 +79,13 @@ $svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
 ### 2. apply to all wheel modes
 
 the image element should appear in:
-  modules/route.bmw384.visual.wheel          (base wheel)
-  modules/route.bmw384.visual.wheel.gauss    (gauss mode)
-  modules/route.bmw384.visual.wheel.heatmap  (heatmap mode)
-  modules/route.bmw384.visual.wheel.arc-width
-  modules/route.bmw384.visual.wheel.overlay
-  modules/route.bmw384.visual.wheel.metric
-  modules/route.bmw384.visual.wheel.density
+  src/route.bmw384.visual.wheel          (base wheel)
+  src/route.bmw384.visual.wheel.gauss    (gauss mode)
+  src/route.bmw384.visual.wheel.heatmap  (heatmap mode)
+  src/route.bmw384.visual.wheel.arc-width
+  src/route.bmw384.visual.wheel.overlay
+  src/route.bmw384.visual.wheel.metric
+  src/route.bmw384.visual.wheel.density
 
 in each: find the '# [ center void ]' comment block
 replace with the logo + reduced-opacity void circle
@@ -132,8 +132,8 @@ new symlinks: not signed (not perl modules)
 $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 
-#,,..,.,,,,.,,,,.,,,,,,..,,,,,,..,,,,,..,,,.,,..,,...,...,...,,,,,,,,,.,,,,.,,
-#3NLELWBHYNXNSDXHXO2EZTCSPZRZF6BBGNNE75XK4T255GTRX6IZVWSL4MPFLW4IYH5RSABCVHJQI
-#\\\|YC6TO3VQO2G4ZMX6JRCUIKIOQDXFOMPHK4N2ZQWGXTAMLSS274M \ / AMOS7 \ YOURUM ::
-#\[7]FTCAORTJCBY3P3PV6FZHBUTWCB5AWF2Q52KZ7YSP6WYY4C5VOCDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,,..,...,..,,.,,,,,.,,.,,..,,..,,...,...,,..,,,,,,,.,.,,,.,.,
+#HR54VAXLWMWVZWPQ7QBRTQGLRQCSRHUYJDKXRPWE5BOTLIAZZRB5JLL2DFMN7B3J2ZR6X4BH4GHSS
+#\\\|EZTUJHZPN353BBUINWSQSXZWO3XRRNUG2QCF4AEDSUDJP4WI2AO \ / AMOS7 \ YOURUM ::
+#\[7]3R3FYU4TB2AACRMU55ZCB2K7XDEX6X7NDEMNAPPNLOB72L35O6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -302,8 +302,8 @@ ls /mnt/m/lmstudio-community/*/Q4_K_M.gguf 2>/dev/null | wc -l  # Should be 3+
 ls /data/projects/protocol-7/cfg/zenki/coding/start
 
 # 4. Verify modules exist
-ls /data/projects/protocol-7/modules/coding.* | wc -l  # Should be 11+
-ls /data/projects/protocol-7/modules/llm.* | wc -l     # Should be 2+
+ls /data/projects/protocol-7/src/coding.* | wc -l  # Should be 11+
+ls /data/projects/protocol-7/src/llm.* | wc -l     # Should be 2+
 
 # 5. Check documentation
 ls /data/projects/protocol-7/docs/*PHASE*.md
@@ -350,8 +350,8 @@ Next: Submit tasks and watch the orchestration engine work!
 
 Session End - Commit and Deploy ✅
 
-#,,..,..,,.,.,,.,,,,.,,..,...,,,.,,.,,.,.,,.,,..,,...,...,.,,,...,,,.,,.,,.,.,
-#ARBHCIY656PPQUTHMKOERURTZ3DVZOE2ODJDZBBRYUGPX52F5ISDXRAHXFBPKBBQV7G7C5EHG2M7K
-#\\\|65D6YRUEW4VBVSQKVZYXSQGUIXSETLE37VVY65V2VR3CIBCQI2N \ / AMOS7 \ YOURUM ::
-#\[7]UZWKC2ZVW4MX6VWE7U3N4FTPPR2OORQDSJBO2XARIHT5CN242SAI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,,..,.,,,..,,.,,,,..,.,.,,,,,..,,...,...,,,.,.,.,.,.,.,,,,.,,
+#75PSGLID44MG7AGAPALVOT5DAYVO6YK6FYGO7UWR33NSA2CX3WZMB7MVI4TB5PJD2LBUGRDZ4HBDS
+#\\\|HK4OOHN3ULIN3H2FCIEVEWMUYEHTQW3SZLRNOEM6YLETRP2KMRM \ / AMOS7 \ YOURUM ::
+#\[7]EFXSFKS77WPVSP5FED467UNF36G74R2FMEMGE5RKGXQ6KCVTOCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

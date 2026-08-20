@@ -1,0 +1,132 @@
+## [:< ##
+# name  = storage.cmd.p7ref
+# descr = P7REF unified reference commands
+
+my $args = $call->{'args'} // '';
+
+# Parse: <subcommand> <p7ref> [options]
+my ( $cmd, $p7ref, @opts ) = split /\s+/, $args, 3;
+
+$cmd   //= '';
+$p7ref //= '';
+
+if ( not length $cmd ) {
+    return {
+        'mode' => 'false',
+        'data' =>
+            "Usage: p7ref <resolve|parse|index|search> <p7ref> [:option: "
+            . "value ...]\nExamples:\n  p7ref resolve "
+            . "p7://checksum:AMOS7ABC123\n  p7ref parse "
+            . "p7://9p:localhost:5640/mnt/c/file.txt\n  p7ref index "
+            . "p7://path:/home/user/doc :type: document\n  p7ref search "
+            . ":by: checksum :value: AMOS7ABC123"
+    };
+}
+
+my $result;
+
+if ( $cmd eq 'resolve' ) {
+    return { 'mode' => 'false', 'data' => 'p7ref required' }
+        unless length $p7ref;
+    $result = <[plugin.storage.p7ref.resolve]>->( { 'p7ref' => $p7ref } );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        my $data   = $result->{'data'};
+        my $output = "P7REF: $data->{p7ref}\n";
+        $output .= "Type: $data->{type}\n";
+        $output .= "Protocol: $data->{protocol}\n" if $data->{protocol};
+        $output .= "Path: $data->{path}\n"         if $data->{path};
+        $output .= "Authority: $data->{authority}\n"
+            if $data->{authority};
+        return { 'mode' => 'size', 'data' => $output };
+    }
+} elsif ( $cmd eq 'parse' ) {
+    return { 'mode' => 'false', 'data' => 'p7ref required' }
+        unless length $p7ref;
+    $result = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        my $data   = $result->{'data'};
+        my $output = "P7REF Parsed:\n";
+        $output .= "  Original: $data->{original}\n";
+        $output .= "  Type: $data->{type}\n";
+        $output .= "  Address: $data->{address}\n";
+        $output .= "  Authority: $data->{authority}\n"
+            if $data->{authority};
+        $output
+            .= "  Segments: " . join( ', ', @{ $data->{'segments'} } ) . "\n"
+            if @{ $data->{'segments'} };
+        $output
+            .= "  Nested: "
+            . scalar( @{ $data->{'nested'} } )
+            . " level(s)\n"
+            if @{ $data->{'nested'} };
+        return { 'mode' => 'size', 'data' => $output };
+    }
+} elsif ( $cmd eq 'index' ) {
+    return { 'mode' => 'false', 'data' => 'p7ref required' }
+        unless length $p7ref;
+    my %meta;
+    for ( my $i = 0; $i < @opts; $i += 2 ) {
+        my $k = $opts[$i]       // '';
+        my $v = $opts[ $i + 1 ] // '';
+        $k =~ s/^://;
+        $k =~ s/:$//;
+        $meta{$k} = $v;
+    }
+    $result = <[plugin.storage.p7ref.index]>->(
+        {   'p7ref'    => $p7ref,
+            'metadata' => \%meta,
+        }
+    );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        return {
+            'mode' => 'size',
+            'data' => "Indexed: $p7ref\nType: $result->{data}{type}\n"
+        };
+    }
+} elsif ( $cmd eq 'search' ) {
+
+    # Parse search options
+    my ( $by, $value );
+    for ( my $i = 0; $i < @opts; $i += 2 ) {
+        my $k = $opts[$i]       // '';
+        my $v = $opts[ $i + 1 ] // '';
+        $k =~ s/^://;
+        $k =~ s/:$//;
+        $by    = $v if $k eq 'by';
+        $value = $v if $k eq 'value';
+    }
+    return {
+        'mode' => 'false',
+        'data' => 'search requires :by: and :value:'
+        }
+        unless $by and $value;
+
+    $result = <[plugin.storage.p7ref.search]>->(
+        {   'by'    => $by,
+            'value' => $value,
+        }
+    );
+
+    if ( $result->{'mode'} eq 'true' ) {
+        my $data   = $result->{'data'};
+        my $output = "Search by $by = $value\n";
+        $output .= "Found: $data->{count} result(s)\n\n";
+        for my $ref ( @{ $data->{results} } ) {
+            $output .= "  $ref\n";
+        }
+        return { 'mode' => 'size', 'data' => $output };
+    }
+} else {
+    return { 'mode' => 'false', 'data' => "Unknown command: $cmd" };
+}
+
+return $result;
+
+#,,,,,.,,,,..,...,..,,...,,.,,..,,,,.,,.,,...,.,.,...,...,.,.,..,,.,.,.,.,.,,,
+#LTLV7PXIYB2FE6S2CD674SVUJ2RY6ATCL2MIU43F65EOVQKPU3FUDHYOQUE5EHRK36GJJ4IFGQWT6
+#\\\|2N5SGMKWL6GNVILC3YI3PT7GSLHXBBCSEF7AJCHABEMLNJQOERF \ / AMOS7 \ YOURUM ::
+#\[7]ITW6OTCZ5YGQSIHVJQPHA5B4V3XIHGGX5SNTQCKBTRBXNCOTZIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

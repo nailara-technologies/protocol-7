@@ -51,8 +51,8 @@ are left for follow-up work.
 
 A new helper pair should be added so consumers do not shell out:
 
-- `modules/base.vax-int.encode` — encode a numeric ID, pass non-numeric through
-- `modules/base.vax-int.decode` — decode a VAX string back to numeric,
+- `src/base.vax-int.encode` — encode a numeric ID, pass non-numeric through
+- `src/base.vax-int.decode` — decode a VAX string back to numeric,
   pass non-numeric through
 
 Both helpers must be idempotent and preserve non-numeric IDs unchanged.
@@ -90,8 +90,8 @@ Both helpers must be idempotent and preserve non-numeric IDs unchanged.
 ### migration steps (execution order)
 
 1. **Add helper modules.**
-   - `modules/base.vax-int.encode`
-   - `modules/base.vax-int.decode`
+   - `src/base.vax-int.encode`
+   - `src/base.vax-int.decode`
    - register both in relevant subroutine white-lists (jobsite, site-yaml, web)
 
 2. **Stop writers.** Ensure no site-yaml fetch, jobsite assessment, or web sync
@@ -129,116 +129,116 @@ Both helpers must be idempotent and preserve non-numeric IDs unchanged.
 
 #### core storage
 
-- `modules/jobsite.job.write`
+- `src/jobsite.job.write`
   - encode `$job_id` when building filename
   - store encoded `id` in the YAML record
   - update `<jobsite.job.index>` key (numeric or encoded per decision)
 
-- `modules/jobsite.job.read`
+- `src/jobsite.job.read`
   - if index key is numeric, encode when building path
   - decode ID from filename only if needed
 
-- `modules/jobsite.job.load_all`
+- `src/jobsite.job.load_all`
   - decode filename stem to numeric for in-memory store, or use encoded per decision
 
-- `modules/jobsite.job.index.build`
+- `src/jobsite.job.index.build`
   - same as load_all
 
-- `modules/jobsite.index.rebuild`
+- `src/jobsite.index.rebuild`
   - rebuild `index.yaml` with encoded keys
 
 #### jobsite handlers / commands
 
-- `modules/jobsite.init_code`
+- `src/jobsite.init_code`
   - flat-layout migration fallback deriving ID from filename must handle both forms
 
-- `modules/jobsite.dispatch.assessments`
+- `src/jobsite.dispatch.assessments`
   - encode `job_id` in queue entries if sync/JSON uses encoded form
 
-- `modules/jobsite.dispatch.next`
+- `src/jobsite.dispatch.next`
   - decode before `task.create` if task needs numeric ID
 
-- `modules/jobsite.handler.assess-done`
-- `modules/jobsite.handler.repair-done`
-- `modules/jobsite.handler.task-created`
-- `modules/jobsite.handler.repair-created`
-- `modules/jobsite.handler.translate-done`
-- `modules/jobsite.handler.rewire-all`
-- `modules/jobsite.handler.rewire-assess`
-- `modules/jobsite.cmd.approve`
-- `modules/jobsite.cmd.reject`
-- `modules/jobsite.cmd.list-jobs`
-- `modules/jobsite.cmd.status`
-- `modules/jobsite.cmd.progress`
-- `modules/jobsite.cmd.show-prompt`
-- `modules/jobsite.cmd.group-jobs`
-- `modules/jobsite.stage.review`
-- `modules/jobsite.assert.init`
+- `src/jobsite.handler.assess-done`
+- `src/jobsite.handler.repair-done`
+- `src/jobsite.handler.task-created`
+- `src/jobsite.handler.repair-created`
+- `src/jobsite.handler.translate-done`
+- `src/jobsite.handler.rewire-all`
+- `src/jobsite.handler.rewire-assess`
+- `src/jobsite.cmd.approve`
+- `src/jobsite.cmd.reject`
+- `src/jobsite.cmd.list-jobs`
+- `src/jobsite.cmd.status`
+- `src/jobsite.cmd.progress`
+- `src/jobsite.cmd.show-prompt`
+- `src/jobsite.cmd.group-jobs`
+- `src/jobsite.stage.review`
+- `src/jobsite.assert.init`
   - adapt to the chosen in-memory key format
 
-- `modules/jobsite.cmd.reset`
+- `src/jobsite.cmd.reset`
   - replace hard-coded `m{^(\d+)\.yaml$}` with a regex that accepts VAX strings
     or use the helper to decode any filename stem
 
-- `modules/jobsite.sync.push`
-- `modules/jobsite.sync.push_chunk`
-- `modules/jobsite.sync.apply_reverse`
+- `src/jobsite.sync.push`
+- `src/jobsite.sync.push_chunk`
+- `src/jobsite.sync.apply_reverse`
   - encode IDs in outbound JSON; decode inbound IDs before resolving paths
 
-- `modules/jobsite.handler.stray-jobs-listed`
-- `modules/jobsite.stray.claim_next`
-- `modules/jobsite.handler.stray-job-exported`
+- `src/jobsite.handler.stray-jobs-listed`
+- `src/jobsite.stray.claim_next`
+- `src/jobsite.handler.stray-job-exported`
   - transfer IDs stay checksums; filename stems from site-yaml must be decoded
     if they arrive encoded, or encoded if they arrive numeric
 
 #### site-yaml
 
-- `modules/site-yaml.stepstone.search`
-- `modules/site-yaml.stepstone.job`
+- `src/site-yaml.stepstone.search`
+- `src/site-yaml.stepstone.job`
   - continue extracting numeric ID from Stepstone URL
   - encode it before passing to `site-yaml.jobs.upsert` or storing in queue
 
-- `modules/site-yaml.cmd.import`
-- `modules/site-yaml.handler.fetch_tick`
-- `modules/site-yaml.fetch.state`
+- `src/site-yaml.cmd.import`
+- `src/site-yaml.handler.fetch_tick`
+- `src/site-yaml.fetch.state`
   - encode numeric IDs in fetch queue and known-job store
 
-- `modules/site-yaml.jobs.upsert`
-- `modules/site-yaml.jobs.save`
-- `modules/site-yaml.jobs.init_code`
-- `modules/site-yaml.cmd.set-status`
-- `modules/site-yaml.cmd.list-jobs`
-- `modules/site-yaml.init_code`
+- `src/site-yaml.jobs.upsert`
+- `src/site-yaml.jobs.save`
+- `src/site-yaml.jobs.init_code`
+- `src/site-yaml.cmd.set-status`
+- `src/site-yaml.cmd.list-jobs`
+- `src/site-yaml.init_code`
   - use encoded IDs consistently
 
-- `modules/site-yaml.job.scan_stray`
-- `modules/site-yaml.cmd.export-stray-job`
-- `modules/site-yaml.cmd.confirm-stray-claimed`
+- `src/site-yaml.job.scan_stray`
+- `src/site-yaml.cmd.export-stray-job`
+- `src/site-yaml.cmd.confirm-stray-claimed`
   - filename stems are now encoded IDs
 
 #### web cache
 
-- `modules/plugin.web.jobs.cache.write`
+- `src/plugin.web.jobs.cache.write`
   - encode ID when building filename
 
-- `modules/plugin.web.jobs.cache.read_all`
+- `src/plugin.web.jobs.cache.read_all`
   - decode filename stem when populating in-memory cache
 
-- `modules/plugin.web.jobs.data`
-- `modules/plugin.web.jobs.list`
-- `modules/plugin.web.jobs.sync`
-- `modules/plugin.web.jobs.sync.merge`
-- `modules/plugin.web.jobs.state.save`
-- `modules/plugin.web.jobs.reverse.queue`
-- `modules/plugin.web.jobs.reverse.flush`
-- `modules/plugin.web.jobs.store.prune`
-- `modules/plugin.web.jobs.stats`
+- `src/plugin.web.jobs.data`
+- `src/plugin.web.jobs.list`
+- `src/plugin.web.jobs.sync`
+- `src/plugin.web.jobs.sync.merge`
+- `src/plugin.web.jobs.state.save`
+- `src/plugin.web.jobs.reverse.queue`
+- `src/plugin.web.jobs.reverse.flush`
+- `src/plugin.web.jobs.store.prune`
+- `src/plugin.web.jobs.stats`
   - adapt to chosen key format; encode IDs sent to browser
 
 #### web relay
 
-- `modules/web.cmd.jobs-data`
-- `modules/web.cmd.jobs-sync`
+- `src/web.cmd.jobs-data`
+- `src/web.cmd.jobs-sync`
   - no direct ID logic, but verify JSON contract
 
 #### dev / admin scripts
@@ -319,8 +319,8 @@ The script must refuse to run if any of the expected zenki are still online
 - Do any external consumers (backups, reports, mail templates) reference numeric IDs?
 - Should the migration also rewrite historical `store.yaml` if it still exists?
 
-#,,,.,,.,,..,,,,,,,.,,,,.,.,,,,..,.,,,,..,.,.,..,,...,..,,...,,..,...,,,,,...,
-#UEEX4WNOTZE36KYTYSXM7OB7WMGXMS4MCJJGFNXLLTXXLYT4IVQCO26YKIWR4MJBAKIV5WCQHW3N6
-#\\\|DQ7DGD3TFPC2CILGBGR724UAWKT5UKX3WDD4TTO3AHOAC5TXBGC \ / AMOS7 \ YOURUM ::
-#\[7]VLP7MJ5JSZTA6VRXDVGGPCKRS5JKTXYLB2JI7QMRWMMK6JT6OMDI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,.,.,.,.,.,,,,.,,..,,...,...,..,,...,...,..,,,.,,,,,,,..,...,
+#T34QFJD7RUNSFT5PQWNWL7EVHXZIENOP4PN6OJADZZNVDNLY5R4RBVUDOBXLF2POXFPMUOJZDA5FK
+#\\\|GSDMH4I5W7BLFDW5DCJ2BIV46WH3HXHHDCEFM2DWSMDIQ6TV4JL \ / AMOS7 \ YOURUM ::
+#\[7]4PMWKICZTK3WF7OIBFWOTMPVM6SDDLUSRGNGL7GEK6NT4LPYPWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

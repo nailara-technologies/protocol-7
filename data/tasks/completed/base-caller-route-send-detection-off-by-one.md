@@ -5,7 +5,7 @@ cred-mesh-rotation-subscription-cross-zenka.md investigation
 
 ## the bug
 
-`modules/base.protocol-7.command.send.local` determines whether it was
+`src/base.protocol-7.command.send.local` determines whether it was
 called directly or via `base.protocol-7.route-send` (to pick the right
 frame depth for its `<{CN}>` warn annotations) with:
 
@@ -83,8 +83,8 @@ done as part of this investigation — scope was this one file.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,..,,..,,,.,,.,,..,,..,,,,.,,,.,.,,,,.,,.,.,..,,...,...,.,,,...,,,.,.,,,,,.,
-#4W7PRVZLOFVL4BYZJGQQL4P56CDIBF7RI4LII54XCUU5CYLCDASU3V74K53QFE4AUFLUTYYWYKPSK
-#\\\|SUQEM456JN6OP3Z2QJOD2MZMEJPR4WWPDAHMORXGISQR3FSSCIZ \ / AMOS7 \ YOURUM ::
-#\[7]3NDWJDELINQ7NIJ7U2GJ76YHBWRYN6I3ICG53BU4QL5Q52PAF2AY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,..,,,.,...,.,.,...,.,,,,,,,,..,..,,...,...,,,.,,..,,,.,..,,,..,
+#JXAKJ2HONMBYA7OEOWRKO4PW44P5JKVW526ZPYAAJVD5KTKNW2INTQWVSO7ZXPOV65HWP4JNVZJWI
+#\\\|4XLZC4XEZ2D25WPCZR2MEC7TIJ7U3QNROR6N4UIUWGN3E4UX6EP \ / AMOS7 \ YOURUM ::
+#\[7]BKJAOW3YZF42C7QSX2S62QQPADPMUPG73K73CWGEI4TB3BL2GEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

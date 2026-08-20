@@ -7,9 +7,9 @@ metadata:
   modified: 2026-07-20
 ---
 
-`modules/base.log` — "generate a log entry", signature `(log_level, log_msg, [log_buffer],
+`src/base.log` — "generate a log entry", signature `(log_level, log_msg, [log_buffer],
 [time-stamp])`, exactly those 4 positional args, shifted in that fixed order. **It never
-sprintfs the message.** `modules/base.logs` — "'base.log' sprintf wrapper", does
+sprintfs the message.** `src/base.logs` — "'base.log' sprintf wrapper", does
 `sprintf(shift @ARG, @ARG)` on the template + remaining args, then calls `base.log` with the
 already-formatted result. The two look identical at call sites
 (`<[base.log]>->(...)` vs `<[base.logs]>->(...)`, one letter apart) but have incompatible
@@ -49,8 +49,8 @@ and the message never gets substituted.
 
 [[project-sys-deps-wiring-completion]] · [[project-ondemand-zenki-registry-wipe]]
 
-#,,,,,.,,,,.,,.,,,,.,,,,.,,.,,.,.,..,,,,.,.,,,..,,...,..,,..,,,,.,...,.,.,...,
-#5UA4L4H25WYP6VM73WGVDIEGCZXQMZGYEKNRTTXKHJRZ3BPSKAP52ANAT5MN3PXFBI6KRM5EO7B5C
-#\\\|ZEQU2UKPUSPF37HMR7TIF2J2HIUESK23WUF3U6QGANFIXZ3LP7U \ / AMOS7 \ YOURUM ::
-#\[7]7ZAHW2Q2YLZ2V3HHOF7LXBKOITRH7T4JSVPZGE2UX4SH6BCN5IDY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,...,,,,,.,,,,,.,,..,,.,,,..,..,,...,..,,..,,,,,,,,.,...,,,,,
+#NXX7SV65W3TQA4SD2A5AXNQUFGSJJW3K6DBIXAAADOT3XICUALHX4H6XTOY5AOJQOQK7FRCPUYI3E
+#\\\|NUTN5UUNJQGWS5BBMELCC7JXAHKAMYWOQ52Y4UCUYWB3YFGXXBO \ / AMOS7 \ YOURUM ::
+#\[7]3GG3TJYCP753P3J3LKF624TLO5SMV4GNYLPJQEIOJVKPNUCJFQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

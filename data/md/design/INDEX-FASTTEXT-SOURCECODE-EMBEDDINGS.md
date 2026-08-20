@@ -145,7 +145,7 @@ All perspectives flow through the same index → FastText pipeline. The richer
 the set, the more fully the embedding space captures the living system.
 
 **Structural perspectives** — what the system IS:
-- `modules/` — module source files; primary structural corpus
+- `src/` — module source files; primary structural corpus
 - `cfg/zenki/*/start` — co-occurrence of modules in zenki start files
 - `data/yaml/` — configuration and template files; structural patterns
 - `data/tasks/` — task descriptions; intent patterns
@@ -158,7 +158,7 @@ the set, the more fully the embedding space captures the living system.
 - subroutine whitelists — which modules are co-permitted; access cluster structure
 
 **Temporal perspectives** — how the system EVOLVED:
-- `git log --follow modules/*` — commit message history per module; why things changed
+- `git log --follow src/*` — commit message history per module; why things changed
 - code review history — past reviewer comments; which areas are fragile or contested
 - bug history — patterns of what broke where; prior for risky areas
 - summarized recent session activity — compressed recent changes, not full history
@@ -230,7 +230,7 @@ regularity in the training signal.
 ## Corpus Scope
 
 Feed all of:
-- `modules/` — module source files (primary structural corpus)
+- `src/` — module source files (primary structural corpus)
 - `cfg/zenki/*/start` — co-occurrence of modules in zenki
 - `data/md/` — design docs and documentation (semantic layer)
 - `data/yaml/` — configuration and template files (structural patterns)
@@ -248,7 +248,7 @@ projection of the same contribution vectors — no re-reading files.
     'type'        => 'fasttext',
     'token'       => 'namespace+content',
     'storage'     => 'mmap',
-    'corpus'      => [ 'modules/', 'cfg/', 'data/md/', 'data/yaml/' ],
+    'corpus'      => [ 'src/', 'cfg/', 'data/md/', 'data/yaml/' ],
     'dim'         => 256,        ## embedding dimension
     'minn'        => 2,          ## min N-gram window
     'maxn'        => 8,          ## max N-gram window (matches index.meta.max_window)
@@ -278,8 +278,8 @@ Related design documents:
 - `RING-TRIE-GEOMETRY.md` — current trie structure and geometry
 - `ADDRESSING-TRINITY.md` — checksums + names + timestamps as coordinate systems
 
-#,,,.,.,,,,,.,,..,,,.,..,,,,,,,.,,,.,,,,,,,,,,.,.,...,..,,...,,.,,,..,,..,,,,,
-#VUKGSNG2UU6GYEIFVWGQUMMAIHCRWOOSGGTCE3CCVIZ6JC65AEMZEFFKMWD2EXXZQKJWP7B5EEANK
-#\\\|YCTP7FZIAGLU4Q5REZGN3R2IUGTCKZX4ZKZHWPT5UQRTTMVPGRT \ / AMOS7 \ YOURUM ::
-#\[7]WDZHZ22X3QOTBGHPD7JAPYV4GNIJ4R3XCZE6LEG63DHOTRRRGUCA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,..,.,.,,,.,,,,,..,,...,,,.,.,.,...,...,...,,..,,.,,,.,,.,.,
+#SQ3RQWQUSSADSX2QWJFVXAL5VQTYGHFUEKD3VEAXQVDEEXVJY4YY54LWLPR3HRUORGQSCKSD57Y3C
+#\\\|VFU4NSWUDIYGGL6WM62QPCEYBGQU6XOF3XVYHNMPL5TV4PXPSE6 \ / AMOS7 \ YOURUM ::
+#\[7]SRXGJTCLCH7HUGSTOZ3VVQS5BOVA7LC3O2TDKWOUSCIRBQG6DGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

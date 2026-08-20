@@ -93,20 +93,20 @@ the pre-migration (Gtk3::WebKit era) code had:
 
 read these modules to understand the current state before analyzing:
 ```bash
-cat modules/web-browser.init_code
-cat modules/web-browser.set_properties
-cat modules/web-browser.init_view
-cat modules/web-browser.open_window
-cat modules/web-browser.handler.load_changed
-cat modules/web-browser.handler.signal.load_failed
-cat modules/web-browser.handler.request_starting_signal
-cat modules/web-browser.js_call
-cat modules/web-browser.cmd.run_js
-cat modules/web-browser.proxy_setup
-cat modules/web-browser.disable_proxy
-cat modules/web-browser.swap_views
-cat modules/web-browser.handler.swap_views
-cat modules/web-browser.handler.fade_in_view
+cat src/web-browser.init_code
+cat src/web-browser.set_properties
+cat src/web-browser.init_view
+cat src/web-browser.open_window
+cat src/web-browser.handler.load_changed
+cat src/web-browser.handler.signal.load_failed
+cat src/web-browser.handler.request_starting_signal
+cat src/web-browser.js_call
+cat src/web-browser.cmd.run_js
+cat src/web-browser.proxy_setup
+cat src/web-browser.disable_proxy
+cat src/web-browser.swap_views
+cat src/web-browser.handler.swap_views
+cat src/web-browser.handler.fade_in_view
 cfg/zenki/web-browser/zenka-startup.v7
 cfg/zenki/web-browser/start
 ```
@@ -120,7 +120,7 @@ git show e13607469^:src/browser.open_window
 git show e13607469^:src/browser.handler.load_status_signal
 git show e13607469^:src/browser.proxy_setup
 ```
-(note: modules were in `src/` before the rename to `modules/`)
+(note: modules were in `src/` before the rename to `src/`)
 
 ---
 
@@ -217,8 +217,8 @@ structure:
 - [ ] upgrade plan produces at least 3 concrete follow-up task descriptions
 - [ ] document written to `data/md/development/WEB-BROWSER-WEBKIT2-UPGRADE-ANALYSIS.md`
 
-#,,..,,,.,,,,,.,,,,,,,.,,,...,,..,.,,,...,.,,,..,,...,...,.,.,,.,,,,,,,,.,,,,,
-#DZ5LHJLT3PRUQ5QQQQTZEVKVIILKSZZEOSSGL5FZO4MWW2SMD6E6OFVRKFFE2O7HXG2L35B2UW3LW
-#\\\|YW4MUWZ3BRJTA4TJIBA5G7E4UYBL36F7OVROJOWTOWGT75MHMDO \ / AMOS7 \ YOURUM ::
-#\[7]53QC4K2ISTR3J3AST3I34FR5SZ4RZTGLF3EWVPKFHODCMGK3LWDI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,...,.,,,,,,,.,.,,.,,,,,,..,,..,,...,...,..,,...,,,.,..,,,,,,
+#W3TZ3PUYUPVCLICVU6CF2H2DK67SMXUO7QAI4H5R3S4HLDWRLU56GNDWMG7DPUJJRZTEPCTLKY64C
+#\\\|M6EQB7Q5PL7COBTNTGD5DHIYBBQOXKV4QAJSSQM7F2M4WLONX4X \ / AMOS7 \ YOURUM ::
+#\[7]QYJFQP7HOZT62GOK2ZYQALNMS7HAUENSF5UHUTWVMFKFBHFOGEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

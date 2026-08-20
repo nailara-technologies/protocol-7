@@ -1,6 +1,6 @@
 ---
 name: cmd-data-must-be-string
-description: "any modules/*.cmd.* (or whitelisted) routine must return {mode=>true|false, data=>STRING} - never a raw hashref/undef"
+description: "any src/*.cmd.* (or whitelisted) routine must return {mode=>true|false, data=>STRING} - never a raw hashref/undef"
 metadata: 
   node_type: memory
   type: feedback
@@ -13,8 +13,8 @@ metadata:
 
 **How to apply:** if a routine needs to return structured data (hashref/arrayref) to internal `<[...]>` callers, give it a plain name (no `.cmd.` segment, not on the white-list) and write a separate thin `.cmd.` wrapper that calls it and formats the result as a string `data` payload (see [[feedback-list-return-format]] for the related size-vs-true mode distinction). Don't try to make one routine serve both contracts.
 
-#,,.,,,..,...,.,.,...,.,.,...,,..,...,..,,,,.,..,,...,...,.,.,,.,,,,,,.,.,...,
-#RN6SRTUQZPV7JQUN3X33TRZ5EMHGVNANRIOLKYYSPWFDM62JEKW77ELMJMXQU7UAPH4ASLOO54DEQ
-#\\\|TQVMXKVDLHE566NCS5DAUEO44BISO4N7UVDXYWQWQIME4XZADWJ \ / AMOS7 \ YOURUM ::
-#\[7]JIFCVHW6SL6BFG2LOBIEDDLZVWKAB7WRU3CSZBIR2CKNVOMYDKCY 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,,,.,...,...,,,,,,,.,,..,,,,,..,,...,...,...,..,,,.,,,..,,,,,
+#3ALEQUSO2HACFR2RCDQFOWKLVQGQMXOHRYATGRUFM2UWJGRK5R2WI6AXWHGMFX4EK3AD4OV7ODIMS
+#\\\|BIWM7IUSOEOHUJJNM7JV2YY7IEUXZWTWAFG6DGLQ2XOKCOITWIZ \ / AMOS7 \ YOURUM ::
+#\[7]ZCVR5YDFRH5MQPWA5C2LGPOBTIPMI542G5SKCKE46SJFHQCWRGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

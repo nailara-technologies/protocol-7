@@ -16,11 +16,11 @@ implements just that remainder.
 read first:
 - `data/tasks/console-fold-primitive.md` (section "base.cmd.ui-show.fallback"
   and "wiring", near the end of the file)
-- `modules/base.ui.unfold`, `modules/base.ui.render.fallback`,
-  `modules/base.ui.budget.tty` (existing, to call from the fallback)
-- `modules/credential_fabric.ui.show` for the proven `.cmd.ui-show`
+- `src/base.ui.unfold`, `src/base.ui.render.fallback`,
+  `src/base.ui.budget.tty` (existing, to call from the fallback)
+- `src/credential_fabric.ui.show` for the proven `.cmd.ui-show`
   pattern this generalises
-- `modules/ascii.frame.compose` / `ascii.frame.load` for the `.:[ ]:.`
+- `src/ascii.frame.compose` / `ascii.frame.load` for the `.:[ ]:.`
   header idiom
 
 ## scope
@@ -56,7 +56,7 @@ read first:
 
 ### wiring
 
-no manual wiring is required. `modules/base.cmd.ui-show` is
+no manual wiring is required. `src/base.cmd.ui-show` is
 auto-registered by the loader in `bin/Protocol-7` (line ~1519) under
 `$data{'base'}{'cmd'}{'ui-show'}` because its filename matches the
 `\.(cmd|console)\.(.+)$` pattern.
@@ -64,7 +64,7 @@ auto-registered by the loader in `bin/Protocol-7` (line ~1519) under
 - the cube routing layer strips the `<zenka>.` prefix before dispatch,
   so the target zenka receives the literal command `ui-show`. that
   command is looked up in `$data{'base'}{'cmd'}{'ui-show'}` by
-  `modules/base.handler.command`.
+  `src/base.handler.command`.
 - zenki-specific `<namespace>.cmd.ui-show` modules are also
   auto-registered by the same loader using `//=` against the same key,
   so whichever loads first wins and the base handler only fires for
@@ -112,8 +112,8 @@ lowercase comments, `[ word ]` annotations, `$ARG` not `$_`.
 harmony base.cmd.ui-show
 ```
 
-#,,,.,.,,,..,,...,.,.,,..,,.,,...,,,,,,,,,...,..,,...,..,,.,.,,..,.,,,...,,,,,
-#F4RZENJJFB36ILT2GOMEBTEUP6AD2MINBZMUSZTERBO57JG2OGE5VTSR23EKW2WMUWDESZWSLXIX2
-#\\\|IGVMSPEQTBZYKI3BQKYYQ4I2AF2LDE7FMPYIPQXQEH5QJPF5GJP \ / AMOS7 \ YOURUM ::
-#\[7]KCZR7AEZGLC2GAL4KVWCYOVYWD55V3WDURSXG3LIHJUVAIJR7WAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,.,..,,..,,,.,,.,,,,,.,...,,,.,..,,...,..,,...,,,,,,..,,,.,,,,,
+#U73ITNXVRTY2ORV6MJPUX52D54DAGMMNO667IA3NUMBPXQVA2JDOZZZ5XNNDSGWNVCNDAFAUOHFYS
+#\\\|Q5EQ3XYF7CCF43DKOPLMTFOF4H365KUENTH5ZOF6EAKTQQTZLP3 \ / AMOS7 \ YOURUM ::
+#\[7]25CRGXV4CDVPNGFRAPQMAGE2BAFMJHZQMW53CPW75YRJPDZ5CICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

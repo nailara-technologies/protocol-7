@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = format.json.init_code
+# descr = initialize JSON handling for shared use across zenki
+
+<[base.perlmod.autoload]>->('JSON::XS');
+
+<format.json.parser> = JSON::XS->new();
+<format.json.parser>->convert_blessed(1);
+<format.json.parser>->allow_nonref(1);
+<format.json.parser>->canonical(1);
+<format.json.parser>->relaxed(1);
+<format.json.parser>->pretty(1);
+## keep utf8 capable for logging and standard operations  only use utf8(0) in
+## format.json.encode for octets mode output
+
+return FALSE;
+
+0;
+
+#,,.,,..,,...,.,,,,,.,.,,,,..,,..,..,,..,,...,..,,...,...,...,.,.,.,,,,.,,.,,,
+#QY7TEBVGT5EJLW3ROOPBHECPJHHCGMFNACQZSFBIMLAT45OMXZMMK5RFAJFHQCZLQPKOY63VGFGH2
+#\\\|526QZVMBKDP7N7JRTBXHSCXW4R7GYUYGXPHYZH7LW2LH4QJ7DTI \ / AMOS7 \ YOURUM ::
+#\[7]AMFW2DSROYS25C327DZ3X7BDFUYWBVXMDENIYBMXXG5FEBNKVCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,7 +47,7 @@ moves a bounded scalar once and can simply retry.
 
 ### the per-line round-trip, confirmed from source [ the cost ]
 
-`modules/base.log.send-buffer.send-idle-callback` is the sender side. for each
+`src/base.log.send-buffer.send-idle-callback` is the sender side. for each
 buffered log line it does **one full command + reply round-trip**:
 
 - `:81-84` pops `$b_ref->{'data'}->[0]` [ one buffered line, a scalar ref ].
@@ -61,7 +61,7 @@ buffered log line it does **one full command + reply round-trip**:
   sessions, other zenki ask `v7.notify_online` ]. so the path is not only
   one-command-per-line, it is one-command-per-line-gated-on-liveness.
 
-`modules/p7-log.cmd.append` is the receiver side. it parses
+`src/p7-log.cmd.append` is the receiver side. it parses
 `node_zenka instance_id buffer_name log_time log_level log_message` out of the
 **single `args` string** [ `:8-12`, `split( m| |, $param_str, 6 )` ], validates
 [ `:17-28` ], normalizes the timestamp [ `:53-102` ], and writes via
@@ -96,7 +96,7 @@ segment-pool design" further down ; read that for what is actually proposed.
 
 ## the ring buffer as it existed — read it, this is WHY it was rejected
 
-`modules/data.channel.shm.*` [ 7 modules: `create`, `write`, `read`, `poll`,
+`src/data.channel.shm.*` [ 7 modules: `create`, `write`, `read`, `poll`,
 `close`, `init_code`, `test.basic` ] is the existing ring-buffer channel built
 on `data.mount.shm.create`. confirmed against the actual code:
 
@@ -134,7 +134,7 @@ design that has no shared free-space arithmetic at all — see next.
 ### is the ring still relevant as a building block? — NO, it is orphaned for this purpose
 
 verified this session: **nothing in the codebase actually calls the ring at
-runtime.** `grep` for `data.channel.shm.*` callers across `modules/`, `bin/`,
+runtime.** `grep` for `data.channel.shm.*` callers across `src/`, `bin/`,
 `cfg/`, `data/lib-path/` finds only `data.cmd.shm-self-test:20`
 [ `<[data.channel.shm.test.basic]>`, the regression harness ] plus
 whitelist / `base.list.subroutines` index entries. there is **no production
@@ -295,7 +295,7 @@ ran.
 
 ### secure erase — the project's own `base.erase_buffer_content` idiom, adapted
 
-the precedent is `modules/base.erase_buffer_content`. read in source: it
+the precedent is `src/base.erase_buffer_content`. read in source: it
 overwrites the buffer with PRNG entropy via
 `substr( $buffer_sref->$*, 0, $r_cnt, <[base.prng.characters]>->($r_cnt) )`
 [ `:26` ] where `$r_cnt` is the real content length **plus randomized padding**
@@ -355,7 +355,7 @@ port**:
 
 the precedent the project owner pointed at is the C25519 key-locking pattern
 `IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'}, 0, 64 )` — the real
-occurrences live in `modules/crypt.C25519.gen_keys:114` [ and `:375`,
+occurrences live in `src/crypt.C25519.gen_keys:114` [ and `:375`,
 `load_keys_from_secret:147`, etc. ], **not** in `AMOS7::SHM.pm`. confirmed from
 `AMOS7::SHM`'s `shm_create`: **`mlock` is already a default-on option** —
 `'mlocked' => $options->{'mlock'} // 1` [ `data/lib-path/pm/AMOS7/SHM.pm:537` ],
@@ -376,7 +376,7 @@ build item.
 the nonce; the sender echoes it back through the new SHM channel.** this is the
 backward-compatible direction and it gets the security property right.
 
-the precedent is `modules/base.cmd.verify-instance` + `v7.zenka.set_cube_sid`:
+the precedent is `src/base.cmd.verify-instance` + `v7.zenka.set_cube_sid`:
 v7 generates a private 13-char key [ `v7.zenka.set_cube_sid:43`,
 `uc(<[base.prng.chars-anum]>->(13))` ], hands it to the instance over a **direct
 command** [ `:57-61` ], and then watches the instance's own log stream for the
@@ -486,7 +486,7 @@ non-upgraded sources and the fallback target. the reader loop is driven by the
 **FIFO ding**, exactly the phase-3 `AMOS7::SHM::Feedback` mechanism, watched via
 `base.event.add_io`:
 
-- `modules/base.event.add_io` takes a filehandle + `handler` + `timeout` /
+- `src/base.event.add_io` takes a filehandle + `handler` + `timeout` /
   `timeout_cb` [ `base.event.add_io:3-4,16-46` ] — install one watcher on the
   read end of the channel's `.notify` FIFO. when the sender dings, the handler
   reads each **un-consumed active slot in order** [ `shm_open` read-only, unpack
@@ -672,7 +672,7 @@ that **composes**:
   generalized: "the first active slot must contain a nonce delivered over the
   trusted path" ].
 
-thin zenka wrappers `modules/data.channel.shm.transport.*` follow the same
+thin zenka wrappers `src/data.channel.shm.transport.*` follow the same
 pattern as the prompt-transport doc's `data.mount.shm.transport.*` — **these are
 new modules, NOT the legacy `data.channel.shm.{create,write,read,poll}` ring
 modules**, which stay untouched and unused. **stays under `data.channel.shm.*` /
@@ -862,8 +862,8 @@ first, note the reuse potential.
    a partially-filled active slot?** this is the pool analogue of the old "ring
    capacity" choice, but with a real latency dimension the ring did not have.
 
-#,,,,,.,,,..,,,,,,,,.,,,,,.,,,.,.,.,,,..,,,,.,..,,...,...,,,,,.,,,.,,,,..,,,,,
-#KG4M6VBZCXRX6TZVDAGP33KU4EOLKG4X2GGQVD4VJYYUJ7CR7TV6MEKKESTWMSO7AF2DMSW2AKKBS
-#\\\|O4IMCEWOR66YWF5QJ4KFNYAJETK5KFFPC3JSREO74OR3MKLTUU6 \ / AMOS7 \ YOURUM ::
-#\[7]HKKDCPAUVUZKZ7TD5CT2EHPU5KBM2XE4ZKD7PSVHO2A3HUFAPYCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,..,,,.,,..,,,,,,,,.,,.,,,.,,...,..,,...,...,..,,,.,,...,,,.,...,
+#5IG33UQUM7OIVAZNHTONUTZWDSFLIOLVNP3MXKADL3IWSDWVUKPMBICU2WY3I4OAP764SO7GJPRG4
+#\\\|WW4Z3CCOHGBEXQWKL52MBTRVMSXJJR3MTQZHYQRWG6W6SFRO6DQ \ / AMOS7 \ YOURUM ::
+#\[7]EK5YOADWISVQZXZ5YL4UHVN2G3TI6NHIMEDVLXJFAVHVUW7XEEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

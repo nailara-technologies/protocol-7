@@ -1,0 +1,178 @@
+## [:< ##
+
+# name  = base.callback.cmd_reply
+# descr = deliver deferred reply to local command caller
+
+my ( $reply_id, $reply ) = @ARG;
+
+## 'silent' [no] reply mode ##
+return if defined $reply_id and $reply_id eq qw| silent |;
+
+die sprintf( 'expected numerical reply_id %s', scalar <[base.caller]> )
+    if @ARG != 2
+    or not defined $reply_id
+    or $reply_id !~ m|^\d+$|;
+
+warn 'expected reply data hash reference <{C1}>'
+    if not defined $reply
+    or ref $reply ne qw| HASH |;
+
+return <[base.s_warn]>->(
+    "no command meta data set up for id '%s' [ zenka gone? ] <{C1}>",
+    $reply_id
+) if not exists <base.cmd_reply>->{$reply_id};
+
+my $meta_data  = <base.cmd_reply>->{$reply_id};
+my $cmd        = $meta_data->{'cmd'};
+my $cmd_id     = $meta_data->{'cmd_id'};
+my $output     = $meta_data->{'output_fh'};
+my $session_id = $meta_data->{'session_id'};
+
+if ( not defined $data{'session'}{$session_id} ) {    ## session gone ., ##
+    delete <base.cmd_reply>->{$reply_id};
+    <[base.logs]>->( 2, 'cmd_reply to %d skipped, gone.,', $session_id );
+    return;                                           ## nothing to do ., ##
+}
+
+my $_cmd_id = '';
+if ( $cmd_id > 0 ) { $_cmd_id = sprintf '(%d)', $cmd_id }
+
+# reply data error check
+
+if ( not defined $reply or ref $reply ne qw| HASH | ) {
+    $reply           = {};
+    $reply->{'mode'} = qw| false |;
+    $reply->{'data'} = 'error during command invocation [ details logged ]';
+    <[base.logs]>->(
+        0,           "[%d] cmd ['%s'] err [ href expected ]",
+        $session_id, $cmd
+    );
+
+} elsif (
+    not defined $reply->{'data'}
+    or ( defined $reply->{'mode'}
+        and $reply->{'mode'} !~ m{^(size|data|tree)$}io )
+    and not length $reply->{'data'}
+) {
+    <[base.logs]>->(
+        0, '[%d] empty %s-reply attempted %s',
+        $session_id,
+        uc( $reply->{'mode'} // 'undef' ),
+        scalar <[base.caller]>
+    );
+    $reply->{'mode'} = qw| false |;
+    $reply->{'data'}
+        = 'error during command invocation [ details are logged ]';
+}
+
+# check answer mode
+
+my $reply_mode = $reply->{'mode'} // '';
+
+if ( $reply_mode =~ m{^(TRUE|FALSE|WAIT)$}io ) {
+    $reply->{'data'} =~ s|\n|\\n|go;
+    $output->$* .= sprintf "%s%s %s\n",
+        $_cmd_id, uc($reply_mode), $reply->{'data'};
+} elsif ( uc($reply_mode) eq qw| SIZE | ) {
+    my $data = $reply->{'data'};
+
+    ## Ensure data ends with newline for protocol coherence
+    $data .= "\n" unless $data =~ /\n$/;
+
+    ## SIZE mode reports BYTE count for buffer/socket operations [ bytes::
+    ## loaded via perlmod.autoload : not a lexical pragma ]
+    my $byte_count = bytes::length($data);
+
+    $output->$* .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $byte_count, $data );
+
+} elsif ( uc($reply_mode) eq qw| CHRSIZE | ) {
+    my $data = $reply->{'data'};
+
+    ## Ensure data ends with newline for protocol coherence
+    $data .= "\n" unless $data =~ /\n$/;
+
+    ## CHRSIZE mode reports CHARACTER count (UTF-8 aware)  Explicitly upgrade
+    ## to count UTF-8 character boundaries
+    utf8::upgrade($data);
+    my $char_count = length($data);
+
+    ## Downgrade for buffer operations (restore byte semantics)
+    utf8::downgrade( $data, 1 );
+
+    $output->$*
+        .= sprintf( "%sCHRSIZE %d\n%s", $_cmd_id, $char_count, $data );
+
+} elsif ( uc($reply_mode) eq qw| DATA | ) {
+
+    my $stream_id = $reply->{'stream_id'} // '';
+    my $total     = $reply->{'total'}     // qw| STREAM |;
+
+    ## encode total if numeric ## [LLL] specification will likely change !!
+    my $total_enc
+        = ( $total =~ m|^\d+$| )
+        ? <[base32.encode]>->( \$total )
+        : $total;    ## 'STREAM' | 'DELTA ...' passed through ##
+
+    ## open frame ##
+    $output->$* .= sprintf "%sDATA %s %s\n", $_cmd_id, $stream_id, $total_enc;
+
+    ## chunk lines: 47 raw bytes = 76 base32 chars per line ##
+    my $data  = $reply->{'data'} // '';
+    my $chunk = 47;
+    while ( length $data ) {
+        my $slice = substr( $data, 0, $chunk, '' );
+        $output->$* .= <[base32.encode]>->( \$slice ) . "\n";
+    }
+
+    ## close frame with AMOS checksum ##
+    my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+    my $checksum  = $chksum_fn->( \$reply->{'data'} );
+    $output->$* .= sprintf "%sDATA END %s %s\n",
+        $_cmd_id, $stream_id, $checksum;
+
+} elsif ( uc($reply_mode) eq qw| TREE | ) {
+
+    my $tree_id = $reply->{'tree_id'} // '';
+    my $root    = $reply->{'root'}    // '';
+
+    ## open frame ##
+    $output->$* .= sprintf "%sTREE %s %s\n", $_cmd_id, $tree_id, $root;
+
+    ## node lines : sorted by ref_count descending (base.reverse-sort) ##
+    my @nodes = <[base.reverse-sort]>->( @{ $reply->{'nodes'} // [] } );
+
+    for my $node (@nodes) {
+        my $meta_b32 = $node->{'meta_b32'} // '';
+
+        $output->$* .= sprintf "%s %s %s\n",
+            $node->{'id'},
+            $node->{'parent'} // 'ROOT',
+            $meta_b32;
+
+        ## emit REF line if DATA stream registered ##
+        if ( my $stream_id = $node->{'stream_id'} ) {
+            $output->$* .= sprintf "TREE REF %s %s %s\n",
+                $tree_id, $node->{'id'}, $stream_id;
+        }
+    }
+
+    ## close frame with AMOS checksum of all node IDs ##
+    my $chksum_fn = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+    my $all_ids   = join ' ', map { $ARG->{'id'} } @nodes;
+    my $checksum  = $chksum_fn->( \$all_ids );
+    $output->$* .= sprintf "%sTREE END %s %s\n",
+        $_cmd_id, $tree_id, $checksum;
+
+} elsif ( uc($reply_mode) eq qw| TERM | ) {
+    <[base.session.shutdown]>->( $session_id, $reply->{'data'} );
+}
+
+## clean-up ##
+
+delete <base.cmd_reply>->{$reply_id};
+
+#,,,.,...,,..,,..,...,..,,..,,,,,,,,,,,.,,,.,,..,,...,..,,.,.,.,.,,.,,...,...,
+#G2LFDQ46YJHKZK6REUOG2QGTKWNABIBPH62J3URLQKC2FZENYWJUWABIQONYR5MB4PAL64DGM6UJG
+#\\\|GJFJDVAOKLRO4Q5XB4TUX7US2GX5VFKXAGGBGRUCPXEB4GK2MXJ \ / AMOS7 \ YOURUM ::
+#\[7]2JM7K2KT75FD5WUWUWHXGLUF3TKRUJV3XPFSDKCJMKR4YTOEQ4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

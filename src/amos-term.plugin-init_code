@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = amos-term.plugin-init_code
+# descr = Plugin system for reloadable amos-term extensions
+
+## === plugin registry === ##
+<amos-term.plugin-registry> //= {};
+
+## === built-in plugin types === ##
+<amos-term.plugin-types> = {
+    qw| decoder | => {
+        qw| desc | => qw| Buffer content decoder |,
+        qw| hook | => qw| buffer.decode |,
+        qw| dir |  => qw| src/amos-term.plugin-decoder |,
+    },
+    qw| routing | => {
+        qw| desc | => qw| Event routing extension |,
+        qw| hook | => qw| event.route |,
+        qw| dir |  => qw| src/amos-term.plugin-routing |,
+    },
+    qw| render | => {
+        qw| desc | => qw| Custom render pipeline |,
+        qw| hook | => qw| render.frame |,
+        qw| dir |  => qw| src/amos-term.plugin-render |,
+    },
+    qw| input | => {
+        qw| desc | => qw| Input handler extension |,
+        qw| hook | => qw| input.key |,
+        qw| dir |  => qw| src/amos-term.plugin-input |,
+    },
+    qw| interaction | => {
+        qw| desc | => qw| Model/user interaction extension |,
+        qw| hook | => qw| agent.query |,
+        qw| dir |  => qw| src/amos-term.plugin-interaction |,
+    }
+};
+
+## === default plugins === ##
+<amos-term.plugin-defaults> //= [
+    qw|
+        decoder.pattern-match
+        decoder.entropy
+        |
+];
+
+## === plugin loader cache === ##
+<amos-term.plugin-loaded>  //= {};
+<amos-term.plugin-watcher> //= undef;    # inotify watcher for hot-reload
+
+<[base.logs]>->( 2, ":: amos-term plugin system initialized" );
+
+0;
+
+#,,,.,...,,.,,...,...,,,.,,..,.,.,.,,,..,,.,,,..,,...,...,.,.,,,.,,.,,..,,,..,
+#DYYYI2SYAV7A6N2P5J6QP5EA3LU2UDFDSTOQQD2AIJWEVIX2WIB3332KY4NWTI5X57LI5NI3LPONY
+#\\\|GL2CIKTUFA4Q7V42QSO37YTKEIPM2FDWXUKVPWIFHDOWQ2BYKEM \ / AMOS7 \ YOURUM ::
+#\[7]GVH74AA5QSBQUUDONYYWXRVTV74X6CS6B4I76IIUSIETYCOVH6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -50,9 +50,9 @@ base.cmd.ui-show                -> ui.cmd.ui-show   [ see below ]
 ```
 
 use `git mv`. update `# name = ...` headers and all internal
-`<[base.ui....]>` call sites (`grep -rn 'base\.ui\.' modules/` to find
+`<[base.ui....]>` call sites (`grep -rn 'base\.ui\.' src/` to find
 all of them — includes cross-references between these modules
-themselves, plus `modules/base.slot.*`, see below).
+themselves, plus `src/base.slot.*`, see below).
 
 ### `base.cmd.ui-show` placement — DECIDE, don't assume
 
@@ -121,7 +121,7 @@ files as of 2026-06-11) — these entries were added by
 `modules.load`. update each matching whitelist entry from
 `base.ui.*`/`base.cmd.ui-show` to the new `ui.*` names. `base.*` is
 compiled for every zenka regardless of whitelist (loader scans
-`modules/` unconditionally — see `bin/Protocol-7`); confirm whether
+`src/` unconditionally — see `bin/Protocol-7`); confirm whether
 `ui.*` modules need the same blanket compilation or whether they should
 ONLY be compiled for zenki that reference them (this is the actual
 "gradual loading" taeki asked about — find where the loader decides
@@ -131,7 +131,7 @@ before assuming either way).
 
 ## acceptance
 
-- `grep -rn 'base\.ui\.' modules/` returns nothing (all renamed/updated)
+- `grep -rn 'base\.ui\.' src/` returns nothing (all renamed/updated)
 - `harmony ui.fold ui.unfold ui.render.fallback ui.render.tree
   ui.render.tree.invalidate ui.summarise ui.layout.fit ui.budget.tty
   ui.estimate.cost` all pass
@@ -168,8 +168,8 @@ harmony ui.budget.tty ui.estimate.cost
 harmony base.slot.fold base.slot.unfold base.slot.move base.slot.refresh
 ```
 
-#,,,,,,.,,.,.,,,.,,,.,,.,,.,,,.,,,,..,,,.,,,.,..,,...,.,.,.,.,,.,,,..,,,.,,,,,
-#3PYFVSF2VQBB2FMMZEVBMLBABEPMEQI2CMU4MSPSHKAIYHGY5QICROUWQCMC2ZH5DWLEV5K2KTBY4
-#\\\|7Q6G6KG2HLSMR7RMD5UOS5QDTYJDIQ44M2ENUJAMLWIGVKPKPQ7 \ / AMOS7 \ YOURUM ::
-#\[7]67ZOQRWNC43RIVBBNMW6ZADL7EIFYRY6WAOW3ANWFXOUAMBXJECA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,..,,.,.,,,,,.,,,.,,,.,,,,,.,..,,...,...,.,.,,.,,,,.,,.,,.,.,
+#GA4NBOHOI3F6DF6DTSTRLP3H6OKWSX5QKDJA42ZQFQWZF6ZBLNYJFN7FOHFPQAT5AZAML6AYGVTLI
+#\\\|HH3G3R4HVAA37IYMAD2WUAZMYPFGR73RNCTUSLVHH353J22P4HM \ / AMOS7 \ YOURUM ::
+#\[7]KUU4VZAUG763UFDM75BVBKQNXITFMFPESDGECM4Y7LUZB6DXXADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

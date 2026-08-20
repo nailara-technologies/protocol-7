@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = user-edit.key_actions.submit_delete_name
+# descr = key-delete stage 1 : validate target key name, open confirm stage
+# param = $editor_state, $value, $prompt
+
+## on_submit for the key-actions delete-name prompt [
+## editor.control.prompt.open ].  runs INSIDE the event loop, synchronously,
+## from prompt.handler.key's Enter branch -- nothing here may block on the
+## terminal.
+##
+## these guards pre-empt the actual delete : the target key must exist, must
+## not be the self identity key, and must not be a remote-host key -- the same
+## exclusions user-edit.form.build_user_keys_field applies to the displayed
+## list.
+
+my ( $editor_state, $value, $prompt ) = @ARG;
+
+return FALSE if ref $editor_state ne qw| HASH |;
+
+my $name = $value // '';
+
+my $fail = sub {
+    my ($text) = @ARG;
+    <user-edit.key_actions.last_result> = $text;
+    <[editor.control.prompt.cancel]>->($editor_state);
+    return FALSE;
+};
+
+## guard 1 : non-empty ##
+return $fail->(q|no key name entered, nothing deleted|) if not length $name;
+
+## guard 2 : key must actually exist [ a virtual key's sentinel return of 4 is
+## truthy and correctly counts as 'exists' ]
+return $fail->(
+    sprintf( q|key '%s' does not exist, nothing deleted|, $name ) )
+    if not <[crypt.C25519.key_exists]>->($name);
+
+## guard 3 : refuse self identity key and remote-host.* keys -- same
+## exclusions user-edit.form.build_user_keys_field applies to the displayed
+## list.  <crypt.C25519.user_key_name> is the canonical identity name, with
+## <crypt.C25519.base_key_name> as its fallback.
+<crypt.C25519.user_key_name> //= <crypt.C25519.base_key_name>;
+my $identity_name = <crypt.C25519.user_key_name> // '';
+
+return $fail->(
+    sprintf( q|'%s' is the self identity key, cannot delete|, $name ) )
+    if $name eq $identity_name;
+
+return $fail->(
+    sprintf( q|'%s' is a remote-host key, cannot delete|, $name ) )
+    if $name =~ m|^remote-host\.|;
+
+## stage 2 : the confirmation prompt, same anchoring row.  the target name ##
+## travels in the new prompt's opaque 'data' slot                          ##
+<[editor.control.prompt.open]>->(
+    $editor_state,
+    {   qw| field | => qw| key_actions |,
+        qw| label | =>
+            sprintf( q|confirm with "delete key" removing key '%s'|, $name ),
+        qw| type |      => qw| freeform_line |,
+        qw| on_submit | => qw| user-edit.key_actions.submit_delete_confirm |,
+        qw| data |      => { qw| name | => $name },
+    }
+);
+
+return TRUE;
+
+#,,..,.,.,...,..,,,.,,,.,,..,,,.,,,..,,.,,,,,,..,,...,...,,.,,,,,,,..,,,.,...,
+#AJN3RLXTT2PQU22NTOSWCJKKKTHAX75T3FDHGHQ5UTJRS6TJH5QMWQU6VIMWQJPJ4D5O5EUS6UE6Q
+#\\\|YDYZEAMRN7YML7672ML7KLR4HVQSVIQZIP5J3OFGEHBQDYW33C3 \ / AMOS7 \ YOURUM ::
+#\[7]V47XB3AFWIX7OYFJUNVGWJZUFBZVY3S4IVMMYZGTFHUYRQEJ5WAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

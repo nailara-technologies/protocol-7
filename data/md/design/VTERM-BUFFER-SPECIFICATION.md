@@ -204,28 +204,28 @@ The `decoder` zenka will use vterm as its rendering backend:
 ## Files Created (22 modules)
 
 ```
-modules/vterm.init_code
-modules/vterm.cell
-modules/vterm.instance
-modules/vterm.shm
-modules/vterm.shm.path
-modules/vterm.subbit
-modules/vterm.subbit.check_threshold
-modules/vterm.subbit.determine_route
-modules/vterm.consensus
-modules/vterm.consensus.check_channel
-modules/vterm.consensus.declaration_value
-modules/vterm.consensus.interference_pattern
-modules/vterm.consensus.ghosts
-modules/vterm.consensus.cell_fingerprint
-modules/vterm.compositor
-modules/vterm.compositor.blend.consensus
-modules/vterm.compositor.blend.normal
-modules/vterm.compositor.blend.additive
-modules/vterm.compositor.layout.grid
-modules/vterm.compositor.layout.stack
-modules/vterm.compositor.layout.diff
-modules/vterm.util.clamp
+src/vterm.init_code
+src/vterm.cell
+src/vterm.instance
+src/vterm.shm
+src/vterm.shm.path
+src/vterm.subbit
+src/vterm.subbit.check_threshold
+src/vterm.subbit.determine_route
+src/vterm.consensus
+src/vterm.consensus.check_channel
+src/vterm.consensus.declaration_value
+src/vterm.consensus.interference_pattern
+src/vterm.consensus.ghosts
+src/vterm.consensus.cell_fingerprint
+src/vterm.compositor
+src/vterm.compositor.blend.consensus
+src/vterm.compositor.blend.normal
+src/vterm.compositor.blend.additive
+src/vterm.compositor.layout.grid
+src/vterm.compositor.layout.stack
+src/vterm.compositor.layout.diff
+src/vterm.util.clamp
 ```
 
 ---
@@ -278,8 +278,8 @@ modules/vterm.util.clamp
 *Authors: taeki / claude*
 *Status: Ready for review*
 
-#,,..,...,,..,,,.,...,..,,,.,,,..,.,.,..,,...,.,.,...,...,,,.,,.,,,..,,,,,...,
-#PJHKQDGLM34SLWAX3ND5TFEU3UIIU63GJ5WLO3ZOYAJ3DXE35VSEAYWZDD3WW6DNSO4EGAHAEKRF6
-#\\\|WE7Z4QC3YJQKRTIFJQ36A7IVYOUXARE6CS4PDY3M4BFQB5UQAN5 \ / AMOS7 \ YOURUM ::
-#\[7]67Y4AMADCWTQ6U5SJW6EHXYZ6NW6SX6K5NI3PDZMBJQKK4S57UAY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,..,,..,,,,.,...,...,,,,,.,.,...,.,.,...,..,,..,,,,,,,..,...,..,,
+#4JHXSO6FN2XID6CS7FA7XWKAZANPX3VOQN6N3QRHKM3RXDZQGGGOPS7IIKJ2NBVXLSCE5F2S7NTTS
+#\\\|QU4A5PVNKMNEFPVJRVHVWGGR7NKV4M5C6DJCRVKLGGCCSVIFSWH \ / AMOS7 \ YOURUM ::
+#\[7]RH4KY33NPLX53Z2LTKH4I5P4QXTYWEPSVUJQU2ESIFWKV7YBTGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

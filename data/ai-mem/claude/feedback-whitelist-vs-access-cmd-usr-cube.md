@@ -35,8 +35,8 @@ real fix, same day: **`subroutine.white-list` was renamed to
 controls (compile timing) instead of a word that sounds like access
 control. Landed via `ncode.cmd.replace` for the string references (5
 files: `bin/Protocol-7`, `bin/dev/gen-sub-whitelist`,
-`modules/base.reload_whitelist`, `modules/coding.validate.module`,
-`modules/base.zenka.load_sub_list`) + `rename` for the on-disk
+`src/base.reload_whitelist`, `src/coding.validate.module`,
+`src/base.zenka.load_sub_list`) + `rename` for the on-disk
 `cfg/zenki/*/subroutine.white-list` → `subroutines.load-early`
 files themselves, then `bin/Protocol-7 sourcecode update-signatures`.
 `bin/dev/gen-sub-whitelist` (the generator script) kept its own old name
@@ -71,8 +71,8 @@ so if a command is "not known" or "no permission," check `access.cmd.
 usr.cube`/`access.zenki` first, and only reach for `subroutines.load-early`
 if the actual symptom is a deferred compile error.
 
-#,,,.,.,,,.,,,,.,,,,,,.,.,,,,,,.,,..,,.,.,,..,..,,...,...,..,,.,.,.,,,...,.,.,
-#AVAPEAGP6JMTJ3NBAZZPZ5CBLRLIZFGS6M6F7NGC3QJFPEG73VQMCN57LXGD4LPLELZJHNIAFU6FY
-#\\\|OP2HKTNXGMELK7HTWPIJVLJDC3HSCTDKKVDAL7YQQ2D2HPCCZC4 \ / AMOS7 \ YOURUM ::
-#\[7]ZCHXMF6VU56KORVWX3ZY6SXSL5C7YIB7YARTC2WR57GAVESJCYBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,,,.,.,,,,,.,.,,,.,,,,.,,,,.,..,,...,...,...,,.,,.,.,..,,..,,
+#SYNBWUIW53EMLUPUTY4QBVRHR4N3Q3LHZ33WH4RWCSG675DDGKK5KKH7BNAWTIPS6GDHBGKECQPNE
+#\\\|PZQDJJABPFKFSWXYHM4AJ5OLERWLMT47BPY3TYMR72R3WZBOK25 \ / AMOS7 \ YOURUM ::
+#\[7]H63NZ5TRUIG6HUJSPEAFIWDNK2XI4W4SP7G5POUI5E6JHBW6WSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

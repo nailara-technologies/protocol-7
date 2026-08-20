@@ -9,7 +9,7 @@ work.
 
 ## the vulnerability
 
-`cred-mesh.subscribe_rotation` (`modules/cred-mesh.subscribe_rotation`)
+`cred-mesh.subscribe_rotation` (`src/cred-mesh.subscribe_rotation`)
 takes a caller-supplied `handler` string and stores it verbatim:
 
 ```perl
@@ -18,7 +18,7 @@ my $handler = $params->{'handler'} // '';
 push $subs->@*, $handler;
 ```
 
-`cred-mesh.handler.rotation_strm` (`modules/cred-mesh.handler.rotation_strm`)
+`cred-mesh.handler.rotation_strm` (`src/cred-mesh.handler.rotation_strm`)
 later fires that stored string directly as a `route-send` command target:
 
 ```perl
@@ -66,8 +66,8 @@ worth an audit, not just a cred-mesh-specific patch.
 the project already has an established safe pattern for exactly this
 shape of problem — a variable list of targets to notify, without letting
 any of them dictate what gets executed. see
-`modules/content.cmd.update` / `modules/content.update.send_notifications`
-/ `modules/rss.ticker.send_update`:
+`src/content.cmd.update` / `src/content.update.send_notifications`
+/ `src/rss.ticker.send_update`:
 
 - `<update.notify_zenki>` (which zenki to notify) is variable, even
   dynamically configurable
@@ -116,8 +116,8 @@ both call `cred-mesh.subscribe_rotation` with
 `cred-rotated` suffix this doc proposes matches their existing behavior
 exactly; nothing about their call site needs to change, only
 `cred-mesh.subscribe_rotation`/`cred-mesh.handler.rotation_strm`
-(`modules/cred-mesh.subscribe_rotation`,
-`modules/cred-mesh.handler.rotation_strm` — read both in full, they're
+(`src/cred-mesh.subscribe_rotation`,
+`src/cred-mesh.handler.rotation_strm` — read both in full, they're
 short) and whatever test coverage exists for
 `cred-mesh-rotation-subscription-cross-zenka.md`'s three earlier bug fixes
 (don't regress those).
@@ -130,16 +130,16 @@ specific commands via `cfg/zenki/cube/command_aliases`:
 prepended as leading space-separated token(s) of `$call->{'args'}` before
 the module runs — the module itself never supplies or controls this
 prefix, cube does. Confirmed precedent, same security shape as this fix:
-`modules/credentials.cmd.request_session` (listed under `source_zenka`) —
+`src/credentials.cmd.request_session` (listed under `source_zenka`) —
 its own comment says it outright: `## SOURCE_ZENKA alias prepends the
 caller's identity as the first token ##`, then
 `my ($zenka_name, $cred_name) = split(m|\s+|, $args, 2)`. Other consumers:
-`modules/tile.cmd.get_geometry`, `modules/v7.zenka.cmd.restart_own-zenka`
+`src/tile.cmd.get_geometry`, `src/v7.zenka.cmd.restart_own-zenka`
 (uses the `_sid` variant: `split(m| |, $call->{'args'}, 3)` → zenka + sid
 + rest).
 
 The routed command is **`cred-mesh.cmd.subscribe_rotation`**
-(`modules/cred-mesh.cmd.subscribe_rotation`) — not
+(`src/cred-mesh.cmd.subscribe_rotation`) — not
 `cred-mesh.subscribe_rotation` itself, which is an internal function that
 thin wrapper calls with a `{slot, handler}` hashref after parsing
 `$call->{'args'}` as `"<slot> <handler>"`. It is **not currently listed**
@@ -185,8 +185,8 @@ independent and can be dispatched in either order or in parallel.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,,,,.,.,,..,,,.,.,,,.,,,,,.,,.,,,,,,,,,,,.,,..,,...,...,.,.,.,.,,..,,.,,,,.,
-#P2BLCL4ZDSFCUR7AI7JCPAJWWXI2CDAVW6E2S7VGDYIAG5ENDEKXWEPJVJ46G6ZG55Z4XU3C3FIWE
-#\\\|TA4EOUUDF6BGZ3QP7F2GLCRCBRBAA4GSOKE7Z7Y25T34I3JNP26 \ / AMOS7 \ YOURUM ::
-#\[7]EUO3QEFUVFL63X7N4AR3NGXCLQEYJFP4SMSKCW4HESRY6Y7Q5SBA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,.,.,.,,,.,,,,.,,,..,.,.,,..,..,,...,...,,,.,...,,..,,..,...,
+#2ZBSQYFKB45TLA37GID4FGEM22ALA3KCY5UJWP3GNG5XKUZAY2TE6W6P37F5VJ5ESSKC2WWDTRGZS
+#\\\|IQI6ZDAKZFNKFYWJX2CETRDDRTIAPM65FHBSZUBS2XTGTYJMLZI \ / AMOS7 \ YOURUM ::
+#\[7]XDCGC5DW7M7CBD3M4NRJVC7HPW6ED3NQDGTVQR2JBIBYXXZKSSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

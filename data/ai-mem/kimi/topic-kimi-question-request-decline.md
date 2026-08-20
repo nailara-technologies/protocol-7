@@ -1,8 +1,8 @@
 # kimi zenka : QuestionRequest wire protocol + decline fix [ 2026-08-04 ]
 
 task : data/tasks/kimi-zenka-question-request-silent-hang-fix.md
-fix  : modules/kimi.wire.question_respond [ new ] + QuestionRequest branch in
-       modules/kimi.handler.ws_message. staged, unsigned, uncommitted.
+fix  : src/kimi.wire.question_respond [ new ] + QuestionRequest branch in
+       src/kimi.handler.ws_message. staged, unsigned, uncommitted.
 
 ## the wire shape [ ground truth : kimi_cli/wire/types.py + wire/server.py ]
 
@@ -53,8 +53,8 @@ request server-side, so just respond every time.
   error with empty $@ ]. building JSON in-code via JSON::encode_json hit a
   transport-level "syntax error near '})'". prefer real-path triggers.
 
-#,,..,,,.,,..,,..,.,,,.,,,,..,,,.,.,.,,,,,,..,..,,...,...,,,,,...,,.,,,.,,,..,
-#ERQMPDNH366QF7VMA7WWSKFVLHDNJZCULP34Y53XMHX77URN6QNDEDDKYJBTH4GQZZCG2XPPM2UIY
-#\\\|6KTMCFZ7JCEGSHTSSIZM7JA3AAN3ZAC4ZGZYATVTH5RX5FXM6DU \ / AMOS7 \ YOURUM ::
-#\[7]D7MMOVI7F4Y2FJTGHYMJFD44N7SKE7KY2BVL4KYU5OQZFDNTV2CQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,...,,,.,...,,,.,,.,,,..,..,,..,,...,...,..,,,,,,,,,,,,,,.,.,
+#JDTHPILRRYM7EBQGF2AXG34FNQWSRMWV7B3KDGSEICEUJ6IXS7PEXI4VJ2FXN2ECSM4GSQ2T7UZEM
+#\\\|6FXHZFPDICPA63ZEXAE3L3DTS4A5AL3ZCKTD3ELYFBIUC577T3D \ / AMOS7 \ YOURUM ::
+#\[7]NLDR4TJHKV7RLRTHTWQ55WFYKFUB2RH72FHZ2N2XEHGJEVJQ3MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

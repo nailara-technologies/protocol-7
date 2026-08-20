@@ -144,17 +144,17 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 
 ## deliverables
 
-1. modules/plugin.web.space.template-resolver.init_code
-2. modules/plugin.web.space.template-resolver.resolve
-3. modules/plugin.web.space.template-resolver.update_context
-4. modules/plugin.web.space.template-resolver.json
-5. modules/plugin.web.space.template-resolver.available_data
-6. modified modules/plugin.web.space.init_code (add resolver init)
-7. modified modules/plugin.web.space.state (add template-json section)
+1. src/plugin.web.space.template-resolver.init_code
+2. src/plugin.web.space.template-resolver.resolve
+3. src/plugin.web.space.template-resolver.update_context
+4. src/plugin.web.space.template-resolver.json
+5. src/plugin.web.space.template-resolver.available_data
+6. modified src/plugin.web.space.init_code (add resolver init)
+7. modified src/plugin.web.space.state (add template-json section)
 8. data/web-root/space.v7.ax/templates.json.tmpl
 
-#,,,.,,,.,,,,,,,,,.,.,..,,,.,,,,,,.,,,..,,,..,..,,...,...,...,...,.,,,.,,,,,,,
-#3ZUNNGNBDRYD322VM5L6AFJNEGKJUF5W7B7HWWCRSE2CAVOC7R6XKCRCCEBUWFCDILU2KCTCPOLDW
-#\\\|H7KBWPL4Z27GHH7ASYUXRFPMDMKDJZS2IJY6FCPVVBMFEHDNRP5 \ / AMOS7 \ YOURUM ::
-#\[7]A6NMV4TDVYQAV4NFOQVOQU7T4C4EA6NZUI7G4OWHTZQKXBHDBEBA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,,,...,,..,,..,.,.,.,.,,.,,..,,..,,...,...,,.,,..,,,..,...,.,,,
+#3YRZOJ4CVLSC7D64PSWWJJD4KSKFFJPLQPCWY5HY4PIISN7LCY5YN3CPNHIBAXKEW74BH3LBVMMQA
+#\\\|LBVAVBHMSAJ43JG3ZK7VQTFVYOQE5LFDJJF2QFDEHMF3VHDMAYL \ / AMOS7 \ YOURUM ::
+#\[7]L6I2CCEMPUSZZOKPRVIBQ4IBND5ZBAX5YTE4PVCUC55E3JOE36CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

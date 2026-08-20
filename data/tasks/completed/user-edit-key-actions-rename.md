@@ -9,9 +9,9 @@
   module conventions, common mistakes to avoid.
 - **Style/shape reference -- read these FOUR files in full before writing
   anything, they are the actual template this task copies, not just
-  background**: `modules/plugin.user-edit.key-actions.handler.key`,
-  `modules/plugin.user-edit.key-actions.render`, `modules/user-edit.
-  key_actions.submit_name`, `modules/user-edit.key_actions.submit_passphrase`.
+  background**: `src/plugin.user-edit.key-actions.handler.key`,
+  `src/plugin.user-edit.key-actions.render`, `src/user-edit.
+  key_actions.submit_name`, `src/user-edit.key_actions.submit_passphrase`.
   These just shipped (commit `b056a04c4`), are independently live-verified
   (real pty, not headless), and are the CURRENT correct shape for everything
   this task needs: opening a prompt from a plugin's `handler.key`, chaining a
@@ -179,8 +179,8 @@ Report actual captured output for each check, not "passed".
   ended up looking like -- the delete task will want the same file-
   enumeration answer without re-deriving it.
 
-#,,..,.,.,.,.,.,.,,.,,,,,,,,.,...,,.,,.,,,...,..,,...,..,,...,.,.,,..,,,,,,,.,
-#IWGHPI3EEW4HOTHQ3FCQ2FKKRHE3KKITBOOF5CFREIZKBS7T26KSF7DCBRVTTO5FIJICNKJSFY7NG
-#\\\|MKQUQMG2OK6CRYBW76QU7KENRHQPXNGVK53MNHEZ7ZVNWIDRXEE \ / AMOS7 \ YOURUM ::
-#\[7]GSQZZR3DEEM4ASS44GJZFSZHZOKULZZBCQDTZAJQ7HLYC22XNWAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,,,,,,.,,,,.,,.,,,,,,,,,,,.,,..,,...,..,,.,.,,.,,,..,.,.,...,
+#BHAINZNKOLVNJ5ZGLZNEBDJ27VEQPPY67VD7QEERYBCB3VO3FPIM6AO7SOV4MQQGDZVWBSIAPSAAM
+#\\\|MP53RNT4IO26Q5VI64ZDXWBMZ6AK26SOSPTT3DWTVQR5ROUYAUS \ / AMOS7 \ YOURUM ::
+#\[7]EV6BR5AEYGJBLCE7VGM4XXWJCV7YTJNWYG7PHTY34ZYKWRRJKWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

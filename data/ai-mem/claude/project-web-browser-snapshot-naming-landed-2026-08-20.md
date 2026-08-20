@@ -10,7 +10,7 @@ follow-on idea, same session).
 
 ## what changed
 
-`modules/web-browser.cmd.get_snapshot` built output filenames from raw
+`src/web-browser.cmd.get_snapshot` built output filenames from raw
 `time` + `$$` (pid): `snapshot_<unix_time>_<pid>.png`. Two-step
 upgrade, both landed same session:
 
@@ -49,8 +49,8 @@ two-field pattern (`<amos-chksum of the grouping key>.<ntime.B32>`)
 is the one to reach for — cheap, needs no index file, sorts correctly
 by construction.
 
-#,,.,,,..,...,.,.,,,.,.,.,,.,,...,,,.,..,,,,,,.,.,...,...,...,..,,..,,,,.,,..,
-#TG4BHFFUFEADOKOIC6Z3JUC5CWRBQ2Y6V7CJNDGKKBTOJLYFDEQKATEBTLW3BHFO56P43LOPAIOV2
-#\\\|2OBJY2OEPNHAZMA5MRCRIT74DBIYQJVENKVMCTH2TF5OSNVWJW4 \ / AMOS7 \ YOURUM ::
-#\[7]BODQNCFHNP7LCYXCG4HTTN4M6ZC5I5LGD2XRM3EQNMLPNDW2SUBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,..,,,..,.,.,.,,,,,.,..,,,,,,...,.,.,...,..,,.,,,,..,,..,..,,,,.,
+#QM5EG3636ZOQ53UT5YBEPJCWXKIUSBLBLBQVKQOJDZSD4BHMI4VZV5F54F335R33DJO4Q4UQZB7PQ
+#\\\|C7CPBDOWDHLB2WO5O2XWF5QGQWBBJS327KNXJTILOCI4CH4VU4Z \ / AMOS7 \ YOURUM ::
+#\[7]OYVQJI7UAJFAY6JAO7UOR4JJUC5ZGT3PYXFZZPJTQZWWORQMJAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

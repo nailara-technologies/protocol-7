@@ -67,8 +67,8 @@ if ( -e $amend_file and -z $amend_file ) {
 $skip_version_check = 1 if $is_amend;
 
 ## Version file path
-my $vers_file = File::Spec->catfile( $root_path, 'configuration',
-    'protocol-7.src-ver' );
+my $vers_file
+    = File::Spec->catfile( $root_path, qw| cfg |, 'protocol-7.src-ver' );
 
 print ":\n: running 'pre-commit' checks ..,\n:\n";
 print ": [ amend mode ]\n:\n" if $is_amend;
@@ -122,11 +122,12 @@ unless ($skip_descr_check) {
             print STDERR "${fg}::     $v->{content}\n";
             print STDERR "${fg}::\n";
         }
-        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} :"
-            . " shorten to 55 chars or less\n";
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} "
+            . ": shorten to 55 chars or less\n";
         print STDERR "${fg}::\n";
         print STDERR "${fg}:: to override this check: ${bl}git commit "
-            . "--no-verify$rst or ${bl}SKIP_DESCR_CHECK=1 git commit$rst\n";
+            . "--no-verify$rst or ${bl}SKIP_DESCR_CHECK=1 git "
+            . "commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1;
     }
@@ -142,10 +143,10 @@ my $commit_count = eval { $git->log } - 1;
 
 ## [ auto-stage already-bumped version files for upcoming commit ]
 ## note: only stages -- never runs update-version itself. update-version
-## rewrites these files without re-signing them, which the signature
-## check below would then reject. bumping + signing remains a manual
-## step ( update-version && v7.sourcecode update-signatures ) until a
-## signing-service zenka exists for that. <{C1}>
+## rewrites these files without re-signing them, which the signature check
+## below would then reject. bumping + signing remains a manual step (
+## update-version && v7.sourcecode update-signatures ) until a signing-service
+## zenka exists for that. <{C1}>
 unless ( $skip_version_check or $is_amend ) {
     my $expected_count = $commit_count + 1;
 
@@ -184,8 +185,8 @@ open my $fh, '<', $vers_file or do {
 my $version_content = <$fh>;
 close $fh;
 
-## Extract commit count from version string (format: XXXXXX-CCCC.R)
-## where CCCC is the commit count and R is revision
+## Extract commit count from version string (format: XXXXXX-CCCC.R) where CCCC
+## is the commit count and R is revision
 my $version_from_file = $version_content;
 $version_from_file =~ s|\n+.+$||sg;    # Strip signature and newlines
 
@@ -208,17 +209,16 @@ unless ($skip_version_check) {
             . ( $commit_count + 1 )
             . ".$file_revision$rst\n";
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} :"
-            . " run ${bl}./bin/dev/update-version$rst$fg to fix\n";
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : "
+            . "run ${bl}./bin/dev/update-version$rst$fg to " . "fix\n";
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: ${no}hint${rst}${fg} : version numbers ensure "
-            . "commits are properly tracked\n";
+        print STDERR "${fg}:: ${no}hint${rst}${fg} : version "
+            . "numbers ensure commits are properly tracked\n";
         print STDERR "${fg}::\n";
 
-        print STDERR "${fg}:: do _not_ override with : "
-            . "${bl}git commit -bypass-sig-check$rst "
-            . "or ${bl}SKIP_SIGNATURE_CHECK=1 "
-            . "git commit$rst\n";
+        print STDERR "${fg}:: do _not_ override with : ${bl}git commit "
+            . "-bypass-sig-check$rst "
+            . "or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
 
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
@@ -251,8 +251,12 @@ unless ($skip_signature_check) {
     my @unsigned_files;
     for my $file (@staged_files) {
         next if $skip_backup_files and $file =~ m|~$|;
-        next if $file =~ m{^data/development/chat/};  ## runtime chat data — not signed ##
-        next if grep { my $e = $_; $e =~ /\$$/ ? $file =~ m{$e} : $file =~ m{^\Q$e\E} } @sig_exclude_paths;
+        ## runtime chat data — not signed ##
+        next if $file =~ m{^data/development/chat/};
+        next if grep {
+            my $e = $_;
+            $e =~ /\$$/ ? $file =~ m{$e} : $file =~ m{^\Q$e\E}
+        } @sig_exclude_paths;
         next
             unless $file =~ /\.(pl|pm|yaml|sh)$/
             or $file =~ m{^(modules|bin|configuration)/}
@@ -287,10 +291,9 @@ unless ($skip_signature_check) {
             . "update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
 
-        print STDERR "${fg}:: do _not_ override with : "
-            . "${bl}git commit -bypass-sig-check$rst "
-            . "or ${bl}SKIP_SIGNATURE_CHECK=1 "
-            . "git commit$rst\n";
+        print STDERR "${fg}:: do _not_ override with : ${bl}git commit "
+            . "-bypass-sig-check$rst "
+            . "or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     }
@@ -312,10 +315,9 @@ unless ($skip_signature_check) {
             . "run ${bl}bin/Protocol-7 sourcecode "
             . "update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: do _not_ override with : "
-            . "${bl}git commit -bypass-sig-check$rst "
-            . "or ${bl}SKIP_SIGNATURE_CHECK=1 "
-            . "git commit$rst\n";
+        print STDERR "${fg}:: do _not_ override with : ${bl}git commit "
+            . "-bypass-sig-check$rst "
+            . "or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     } else {
@@ -326,8 +328,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,,,,,,.,..,,...,..,,...,,..,..,,,.,,...,,,.,..,,...,...,..,,,.,,.,.,,,,,.,.,
-#C5CYQGKESFXV4VNRXLHPIEXOZJ7SW4DFUKNXQN2KRG76U5YN34TVVRURFLTXM2U6PDCHW2QN5TSA6
-#\\\|6FDY3SPX2JGHE63ADNL6RZJHA7TWZ3BTU25NCDHQK7P2AHZY67R \ / AMOS7 \ YOURUM ::
-#\[7]P6FLRY4YMZ2FVQIFNLSNQWMATLDFFDZ2WJ3CTFHA3D6MHGGN4EBA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,,,.,,,.,,,,,.,.,,,,,,..,...,..,,...,..,,...,,..,.,,,..,,.,.,
+#QQP2OBMRFO73XB6WQRAYNYRGXAVXJXDRWKPRWFGFY4MQM7KRGD56ME2IMGP424NSCAAP47B7HWLN6
+#\\\|BALGN2TONTIR672T3NXTS5727UK2G3TIZHAFNPXXE5FKAF2ZRMI \ / AMOS7 \ YOURUM ::
+#\[7]GW2CJZWLJGKAI53UL35B4TJV6SRXHAVQE4KNERAHFK5M2S3MVUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

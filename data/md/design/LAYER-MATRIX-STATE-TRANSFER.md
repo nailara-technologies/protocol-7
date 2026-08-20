@@ -21,7 +21,7 @@ child-zenka stdio is just the one structurally-special case of that
 same path), an async passphrase prompt could become a **layered
 overlay directly on the zenka's own already-flowing console** —
 intelligently placed over the ascii-frame-rendered output using the
-buffer/geometry layering `modules/vterm.*` already provides, and
+buffer/geometry layering `src/vterm.*` already provides, and
 restored cleanly behind it on close. terminal-only, local to the
 requesting zenka, no new cross-zenka dialog convention to get right —
 and it slots into the *existing* async event-loop machinery rather
@@ -140,8 +140,8 @@ enough that the convergence felt less like invention and more like
 recognition of a shape already implied by `V7-HOT-SELF-RESTART.md`'s
 broader-vision section.
 
-#,,.,,..,,...,,.,,...,,.,,,.,,...,..,,,.,,,..,..,,...,.,.,...,.,.,..,,,,,,,,,,
-#7N5MEQY2TMYV67GV2562LAZ3A2P3GEMEJGGOVQHHENXVAX4GHIOPCMFRG4GZAN3WTB6LMBLEYQLKU
-#\\\|DFRFXUKJJXKP3Z6V53UVJFDGECIKUZFAS257HT4JB5CNFL7M26N \ / AMOS7 \ YOURUM ::
-#\[7]YTWU5GLDGYJLEW4ZPJK3C4BICG3XHDZCCV24DMFI5VMMNNO3WSAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,...,,..,.,,,,..,,..,.,,,.,,,..,,...,..,,.,,,..,,...,,,,,,,,,
+#EPEM5ZFPNTTKELNVOWSURJDGDNA325YSUFJNHNLNSRKJBAH66WA2Y53YWKDDXGB3QV32LB5YSM5OM
+#\\\|V4QQGM2LHPWGJCWUHTUJTGGSYRI3GNGHRYUFYI4Z2MEG62SNTCP \ / AMOS7 \ YOURUM ::
+#\[7]SUWXD63ZSXURF6HTUW4SVIF2UP7FQX4DYZPLPAEYQ2VC7KGKVSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

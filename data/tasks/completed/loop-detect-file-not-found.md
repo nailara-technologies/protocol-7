@@ -1,14 +1,14 @@
 # task: add file-not-found loop detection pattern
 
 ## objective
-add a new pattern to `modules/coding.tool.detect_loop` that fires when
+add a new pattern to `src/coding.tool.detect_loop` that fires when
 `read_file` repeatedly returns "file not found" — even across different
 paths. this catches the case where a model searches for core subs as
 module files and keeps trying variants (base.ntime, base.ntime.b32,
 base.time, etc.) without finding anything.
 
 ## read first
-- `modules/coding.tool.detect_loop` — understand existing pattern
+- `src/coding.tool.detect_loop` — understand existing pattern
   format (lines 62-221) and tool_history structure (lines 228-270)
 - existing patterns: stuck_retry (line 119), research_spiral (line 158)
   — follow the same { name, priority, min_hits, check, confidence } format
@@ -71,8 +71,8 @@ add after the existing `stuck_retry` pattern (after line ~136):
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,,.,.,.,,,,,.,.,.,.,,..,,,,,,.,,.,,,.,.,..,,..,,...,...,...,,..,,,,,,,,,,,,,
-#IQLS3MDXXGTQAP2TFDVKORRLEXWJ7ZMJ2LHIEBFPTYVEGAGLZXAQKNXJUTFUXEBJGQGCVI2JPRVJO
-#\\\|WUMWRT6LMELNY3NAQSC7DVN6HVB2RBD4WGX64Q34EHJRRUJFHWF \ / AMOS7 \ YOURUM ::
-#\[7]EGVIYSLVDGAUR77FGPTVUNNXLU3YYSPOFPKMKPDGWAVVSM64ZWAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,,..,.,,,,..,,,.,..,,,.,,...,..,,...,...,.,,,..,,,,,,,.,,,,,,
+#VAQ6WI5Y5E4L5QKELB3FN25ZX5YP456FIYKPBNJXN36YW2AKGNMKFQFU3VSSGWFQZYYRTAHDVZUAE
+#\\\|XPFUMVYP2H2IQXIJFLA6VKGZUEF4ACBCPY77EF25FXAFSXZTDHL \ / AMOS7 \ YOURUM ::
+#\[7]T2LXXLXWPSDI7CDK6F45IUSQ7JUNOK2UR724HYKBSB67G2XSUOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

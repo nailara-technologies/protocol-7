@@ -470,7 +470,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
     $data{'system'}{'perl_version'}  = $PERL_VERSION;
     $data{'system'}{'perl_unicode'}  = ${^UNICODE};
     my $root_path = $data{'system'}{'root_path'};
-    $data{'system'}{'code_path'} = catdir( $root_path, qw| modules | );
+    $data{'system'}{'code_path'} = catdir( $root_path, qw| src | );
     $data{'system'}{'conf_path'}
         = catdir( $root_path, qw| cfg | );
     $data{'system'}{'lmod_path'}
@@ -1183,7 +1183,7 @@ sub p7_check_bin_p7 {    ## LLL: reduce calls \ exposure .,
     }
     $data{'modules'}{'warned'} //= {};    ## <-- cleaned up later
     my $reason = -e $f_path ? qw| readable | : qw| found |;
-    $chk_path =~ s|^modules/|| if $reason eq qw| readable |; ## LLL:improve ##
+    $chk_path =~ s|^src/|| if $reason eq qw| readable |;    ## LLL:improve ##
     warn( sprintf ":::[ NOT %s ]::: '%s' <{C2}>", uc($reason), $chk_path )
         if not $data{'modules'}{'warned'}{$f_path}++;
     return undef;
@@ -1469,9 +1469,8 @@ sub p7_load_code {
             my $read_len = length($remote_data_str);
             @subroutine_names = split( m|\n|, $remote_data_str );
             $data{'base'}{'httpc'}{'remote_source'} = {};
-            map {
-                $data{'base'}{'httpc'}{'remote_source'}->{"modules/$ARG"} = 1
-            } @subroutine_names;
+            map { $data{'base'}{'httpc'}{'remote_source'}->{"src/$ARG"} = 1 }
+                @subroutine_names;
             $data{'base'}{'source'}{'code_files'} = \@subroutine_names;
         } else {
             $code{'log.error'}
@@ -1526,11 +1525,11 @@ sub p7_load_code {
             next if not defined $file_name or not length $file_name;
             ## todo : reconcile with code_path ##
             my $src_abs_path;
-            my $src_rel = $code{'base.check_bin_p7'}->("modules/$file_name");
+            my $src_rel = $code{'base.check_bin_p7'}->("src/$file_name");
             ## tracking readability ##
             my $source_not_readable = not defined $src_rel ? TRUE : undef;
 
-            $src_rel //= sprintf qw| modules/%s |, $file_name;    # <-- warn.
+            $src_rel //= sprintf qw| src/%s |, $file_name;    # <-- warn.
 
             $src_abs_path
                 = abs_path(
@@ -1669,7 +1668,7 @@ sub p7_load_code {
                     ####
                 } else {
                     ## loading code from disk [ including ext directory ]
-                    $src_rel =~ s|^modules/|m.,/|;    ## shorten. ##
+                    $src_rel =~ s|^src/|m.,/|;    ## shorten. ##
                     $code{'log.devmod'}->(":[src]: $src_rel");
                     open( my $src_fh, qw| <:encoding(UTF-8) |, $src_abs_path )
                         or die ":$src_abs_path : \l$OS_ERROR";
@@ -5991,8 +5990,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,,,,.,,..,,,,.,...,.,.,,,,,,.,,.,.,.,.,..,,...,...,.,,,,..,..,,...,.,.,
-#LHIQB4FGEZ4VEJDMOL3F53A3HN26K4ALOUVJOGU6FJWRZ2YOEG3WZSAHDWZNJAXIAVLGHHVCHKMN4
-#\\\|UEMI43AAR47TNGNELW5FE7BB26BHCYZ7A5R2UKX6JI6KZRGXFOV \ / AMOS7 \ YOURUM ::
-#\[7]6EXW6IENWYY4COJ6EWYBKOSF4KJXDVW6FJCUUEA7C2QCQHKOWUBQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,,,,,,..,...,,,,,,.,,...,,.,,..,,...,...,,.,,,,.,.,.,,,.,.,,,
+#POA2XBGYY7CJZ6PIGUFXZQY7UTHMIE6OFQIUMSVS6JHXGDNLRGIISTP3V7OLDXOFG3UQHTHN3JBRU
+#\\\|6DCJBXDXMKBLLMQW4NRTKYF76L2VPJOH22DVQS7MDY32FFVGCMN \ / AMOS7 \ YOURUM ::
+#\[7]524FUAAZE5IEU3VVD7M5HVLM3MENU2QPBCFAMKO2ANR2STTZ54DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

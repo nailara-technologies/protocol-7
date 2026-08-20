@@ -16,7 +16,7 @@ periodic rescan (`jobsite.handler.rescan-timer`) is gated on
 `jss.load: cycle=idle, pending=1` — a `pending_count=1` persisted
 alongside an already-`idle` cycle from some earlier session (root cause of
 *that* leak not chased — a separate mismatched increment/decrement
-somewhere). `modules/jobsite.state.load`'s existing reset logic only
+somewhere). `src/jobsite.state.load`'s existing reset logic only
 zeroes `pending_count` when the *persisted* `cycle` was itself
 `scanning`/`assessing` — a stray positive count under any other persisted
 value (idle, reviewing) survives untouched into the fresh process. From
@@ -50,8 +50,8 @@ non-assessing cycle at that exact line is the fingerprint.
 
 #,,,,,.,.,,,,,...,..,,...,.,.,..,,,..,...,..,,.,.,...,..,,...,,..,.,,,,..,.,,,
 
-#,,.,,,..,,,,,,,,,,..,.,.,,..,...,.,,,...,,,,,..,,...,..,,...,.,,,...,..,,,.,,
-#V5YE4BO4RPXTW3CWJC7YSZDS6FC3QNM66U4MA22IDV7VNIPSTS4C625GXOBKCR45BN5RBRCGMDF52
-#\\\|XAJXJZQQ7N3I3PUIN6ID223BDUXTTDNU5ANTEOYUZCSQXEGLMYA \ / AMOS7 \ YOURUM ::
-#\[7]S6RRQ3Q7CAMK6OO4TNVFC56RO3SKOE2SFSAX5J7CIWH43KFTZUAY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,,,,.,,,,,,,,.,.,.,..,,,,.,,,,,..,,...,...,,..,,..,.,.,.,.,.,.,
+#BG7JBR6RFD4P6WGQ2UYGHXLAUMZGDIR2ONI2LIUINS77XZOCMW2LNQ6IXSOMCPU43TQJTUHU2Y3ZW
+#\\\|GDPBGST756DRQINPH4PVHS7XZRVMMQAF25TKZK7QBDREQQ52DGS \ / AMOS7 \ YOURUM ::
+#\[7]NUMFB6LMPNXU2QGT3RNGRK2UW3Q2U77NTE2ONP3RZ7NJOU2IVEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

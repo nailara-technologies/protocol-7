@@ -36,7 +36,7 @@ audio-only subname) actually needs the failed dependency.
   whether restart happens — so blocking the call site in `zenka_status` is the correct, sole
   chokepoint.
 - IMPLEMENTED already (code side): `v7.zenka.start` seeding logic, `v7.handler.zenka_status`
-  enforcement check, and a new `modules/mpv.startup.resolve_x11_info` module (replaces the
+  enforcement check, and a new `src/mpv.startup.resolve_x11_info` module (replaces the
   previously-unconditional `[base.X-11.get_mode]`/`[base.X-11.get_display]` in
   `cfg/zenki/mpv/start`, skipped for `^audio(?:-\d+)?$` subnames — matches the existing
   `<mpv.audio_only>` convention already used in `mpv.open_player`/`mpv.startup.init`).
@@ -64,8 +64,8 @@ viable syntax (mpv only needs one rule today, so this is not urgent to perfect),
 user to propose a shorter naming convention. The mechanism/code side does not need to change
 regardless of which directive syntax wins.
 
-#,,.,,,..,.,.,,,.,,,.,.,.,.,,,,..,.,,,.,.,.,,,..,,...,...,...,.,,,,..,,.,,,,.,
-#DBOAMREW2HZJF25O3IR43PMUAGJOY2T7UYVH46LHOJCSYRINJFVO7ZAKFQHDIVHK2FIBQG34GN62A
-#\\\|J4E5MCAMVRAABIK56TLIJ4OS4TKYM2VVSTE5IXA5JR7RATJMLPW \ / AMOS7 \ YOURUM ::
-#\[7]QSVC6LSQAWHBN335JJNO3UQUQPFQ7C5R6BVGJEMPZSAOB7IKC2BQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,.,,.,.,...,,.,,,.,,,..,.,.,,..,..,,...,...,...,,,.,...,,..,,.,,
+#7XHHKR5FZIIV5TTMMPWZQK42RUOBKUFXV6NAOEO6O2WNR67SPPDWJZK5C7Y2HWFI7YHEUMTHF6I4A
+#\\\|TYNZPLM2VFFBTNO3XR5BNRFMHXWZ7SUHGHPLLE7E5WN7EWNUJ7G \ / AMOS7 \ YOURUM ::
+#\[7]QVM7V4WWUZPCHNT5S2XRCPW7LYXNY34HHLXHU36HJ6KXBUGWU4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

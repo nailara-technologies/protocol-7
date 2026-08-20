@@ -17,7 +17,7 @@ form is affected, which is why this went unnoticed for so long. Roughly
 25+ hyphenated zenki were affected (`amos-term`, `auto-hide`, `cred-mesh`,
 `p7-log`, `web-browser`, `protocol-7-menu`, `workspace-transfer`, …).
 
-## bug 1 — the fatal one : `modules/base.init`
+## bug 1 — the fatal one : `src/base.init`
 
 ```perl
 if ( $_[0] =~ m{([^\.]+)\.([\w|\.]+)$} ) {
@@ -63,8 +63,8 @@ Found while landing `user-edit`'s first console command; the user
 spotted the `p7.`/`v7.` mismatch and correctly predicted a second,
 `'-'`-related bug rather than accepting the first fix as complete.
 
-#,,.,,...,..,,,.,,..,,,.,,,,.,,..,,,.,.,.,..,,..,,...,..,,...,.,.,,..,..,,.,,,
-#ZBJDAQPOJGEOBGO5AJV4XCEJCIOHVWC3EJNNNSM2ZG74E2BTELY55RK5G5SZDAYGJGWYVTBTJ2OHM
-#\\\|WAULHYF7KU3RD425A7N5FVGTEWO4AIMDS4KYUF6WT4NZGRJK6ML \ / AMOS7 \ YOURUM ::
-#\[7]KWNTMK6P56X5EQXSHCHYZJDHTM3EKTWXZPXWXX4VZ4UJVVYNX2AA 7  DATA SIGNATURE ::
+#,,,.,...,...,,,.,...,,,.,,..,.,.,..,,,.,,.,,,..,,...,..,,.,,,.,.,,,.,,.,,,,,,
+#55E3ZSV3EF5DN4EEUHFNBQI52GH5M72E2ZTXFBFBWOFEFWURJEXFI25SPMK5OBGSTJPH6FMEWLELM
+#\\\|MDIDXSKP5WJMCAYR3QBHW42BVRBE7SASNGREYIEU6FBFZJ4WHDL \ / AMOS7 \ YOURUM ::
+#\[7]XXJPQJX5ARBFKUGPY4VFTNN7WJFL3U2LJW7BDMGFWD3WTP5S76CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

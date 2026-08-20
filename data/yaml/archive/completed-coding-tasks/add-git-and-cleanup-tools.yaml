@@ -18,18 +18,18 @@ tool_1:
     git_restore_file <path> [--staged] [--source=<commit>]
     
   parameters:
-    path: Relative path from repo root (e.g., "modules/coding.tools.dispatch")
+    path: Relative path from repo root (e.g., "src/coding.tools.dispatch")
     --staged: Restore from staged version (git restore --staged)
     --source=<commit>: Restore from specific commit (default: HEAD)
     
   examples:
-    - git_restore_file "modules/coding.tools.dispatch"
+    - git_restore_file "src/coding.tools.dispatch"
       # Restore to last committed version
       
-    - git_restore_file "modules/coding.tools.dispatch" --staged
+    - git_restore_file "src/coding.tools.dispatch" --staged
       # Unstage changes, restore to HEAD
       
-    - git_restore_file "modules/coding.tools.dispatch" --source=HEAD~1
+    - git_restore_file "src/coding.tools.dispatch" --source=HEAD~1
       # Restore to previous commit
       
   safety_checks:
@@ -63,10 +63,10 @@ tool_2:
     --check-only: Report what would be changed without modifying
     
   examples:
-    - strip_trailing_spaces "modules/coding.tools.dispatch"
+    - strip_trailing_spaces "src/coding.tools.dispatch"
       # Remove trailing spaces from file
       
-    - strip_trailing_spaces "modules/" --check-only
+    - strip_trailing_spaces "src/" --check-only
       # Report all files with trailing spaces
       
   safety_checks:
@@ -97,9 +97,9 @@ motivation:
   These tools would have prevented the issue and enabled recovery.
 
 files_to_modify:
-  - modules/coding.tools.dispatch (add to dispatch table)
-  - modules/coding.tools.handler.git_restore_file (new)
-  - modules/coding.tools.handler.strip_trailing_spaces (new)
+  - src/coding.tools.dispatch (add to dispatch table)
+  - src/coding.tools.handler.git_restore_file (new)
+  - src/coding.tools.handler.strip_trailing_spaces (new)
 
 acceptance_criteria:
   - git_restore_file safely restores files from git
@@ -110,8 +110,8 @@ acceptance_criteria:
 
 ## [data checksum: 8MR9UM6YTX======] ##
 
-#,,..,.,,,..,,..,,..,,.,,,.,.,..,,,,,,,.,,..,,..,,...,...,...,,..,,,,,,..,,..,
-#XHM7ASKFUULY3BZD65CN2UO76YECBOXTD7ICZMRYF7B4WULPDWAMWJIFA5NVXNCSCAM5HVS4XC23G
-#\\\|FGTNF65Z5DYGWLSRT4TBYNV6GTDOQCUFMSIGQ4MGSSOCNHGETOB \ / AMOS7 \ YOURUM ::
-#\[7]GM2SNC52P66OC5TFRUZJMKBJPY7ULZPN5YNJASLSYN5UTQV3NCCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,.,...,..,,,,,,.,.,,..,.,.,..,,..,,...,...,...,,.,,.,,,.,,,,..,
+#SVQH6GJBPYIAX73W6YD643GHKDEH57YZJE5337NZ2XDF3GBYGUZVGBVXEUONWWYTWFI7SFVP7VZ4I
+#\\\|3QW4FEPRHQFBDZK4QTIAPYYR5G6WZ34QZYXHWGZ73I7TDT7JX2L \ / AMOS7 \ YOURUM ::
+#\[7]3GKGZ66ZK3BE7ZG3QQPGGIZ6GHUTEG7YN5M4BUFT5O4VY4XHV4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

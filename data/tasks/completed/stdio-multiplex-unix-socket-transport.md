@@ -39,8 +39,8 @@ per zenka, carrying multiplexed typed runs in both directions.
 implementation notes:
 
 - IO::Async event-loop integration, matching the existing P7 socket
-  plumbing patterns [ see modules under `modules/base.net.*` and
-  `modules/base.stream.*` for the existing IO::Async idioms in this
+  plumbing patterns [ see modules under `src/base.net.*` and
+  `src/base.stream.*` for the existing IO::Async idioms in this
   codebase ]
 - per-connection inbound byte buffer feeds `base.stdio.frame.decode`
   on every readable event; the decoder's output records are
@@ -97,13 +97,13 @@ subroutine whitelists. lowercase comments, `[ word ]` annotations,
 ## syntax checks
 
 ```
-perl -c modules/base.stdio.transport.listen
-perl -c modules/base.stdio.transport.connect
-perl -c modules/base.stdio.transport.emit
+perl -c src/base.stdio.transport.listen
+perl -c src/base.stdio.transport.connect
+perl -c src/base.stdio.transport.emit
 ```
 
-#,,,,,,..,.,,,,,,,..,,,..,,..,,.,,.,.,,..,,,,,..,,...,...,.,,,...,..,,.,,,,,.,
-#5RSDI27HNL6HBSYUPR5QKY6OXBGOXDE77XACIBOZTCIPTQ4O3AORTJAKJGXPBFAF3CTSQ4KNJYX4Q
-#\\\|AOFIJXUR3QQETPSJ2IVAU4DCAXP3RLIFNTL5ED3RZWR3KDZK4GF \ / AMOS7 \ YOURUM ::
-#\[7]Q6WYFK7THVI5VWIQMN3RXD6HQI22DTMEEDWOF7KUSSDWOUHNSYBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,,,.,.,,,..,,,,,,,.,,,..,,,.,..,,...,...,,..,.,,,.,,,..,,.,,,
+#HX5C4YFZ6XUSORMHTE63UYC42WKO72ECARGGUXRPEI6L2FT2UMOG3TQX33LSNOWZ5ZYLINVH3IS4Y
+#\\\|WEMCVVYR6SJ4FB4D6B45LBDAYLINO43ZQXOOX3ESII54QMPZFSE \ / AMOS7 \ YOURUM ::
+#\[7]TILTFUPFPWI4FPSYICCELS7Q6DWHQV4LWY246QNYK5N45KV524DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

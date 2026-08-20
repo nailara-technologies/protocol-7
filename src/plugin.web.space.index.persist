@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = plugin.web.space.index.persist
+# descr = write index cache atomically to disk as json + yaml
+
+my $cache       = <web.space.index.cache>           // {};
+my $persist_dir = <web.space.index.cfg.persist_dir> // qw| space-index |;
+
+my $json_file = "$persist_dir/src.json";
+my $yaml_file = "$persist_dir/src.yaml";
+
+## encode json ##
+my $json_str = eval { JSON::XS::encode_json($cache) };
+if ( not defined $json_str or length $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0,
+        'plugin.web.space.index.persist : json encode error : %s',
+        $EVAL_ERROR // qw| unknown |
+    );
+    return FALSE;
+}
+
+## encode yaml ##
+require YAML::XS;
+my $yaml_str = eval { YAML::XS::Dump($cache) };
+if ( not defined $yaml_str or length $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0,
+        'plugin.web.space.index.persist : yaml encode error : %s',
+        $EVAL_ERROR // qw| unknown |
+    );
+    return FALSE;
+}
+
+## write via zenka_dir [ handles mkdir, perms, ownership ] ##
+my $json_ok
+    = <[file.zenka_dir.write]>->( $json_file, \$json_str, qw| > |, 0644 );
+if ( not defined $json_ok ) {
+    <[base.logs]>->(
+        0, 'plugin.web.space.index.persist : json write failed [ %s ]',
+        $json_file
+    );
+    return FALSE;
+}
+
+my $yaml_ok
+    = <[file.zenka_dir.write]>->( $yaml_file, \$yaml_str, qw| > |, 0644 );
+if ( not defined $yaml_ok ) {
+    <[base.logs]>->(
+        0, 'plugin.web.space.index.persist : yaml write failed [ %s ]',
+        $yaml_file
+    );
+    return FALSE;
+}
+
+## cache pre-encoded strings for fast http serving ##
+<web.space.index.json_cached> = $json_str;
+<web.space.index.yaml_cached> = $yaml_str;
+
+<[base.logs]>->(
+    2,          'plugin.web.space.index.persist : wrote %s [ %d files ]',
+    $json_file, $cache->{'file_count'} // 0
+);
+
+return TRUE;
+
+#,,..,,.,,,..,,,.,.,,,..,,.,.,.,,,,..,,,.,,..,..,,...,...,..,,..,,..,,..,,,..,
+#DS6TAUUAXLTETUQRZVFRNIXVNXV6Q324527Z2SWPZ5D2YOPQV6EKSHWF4ZMLD7SBKGKFZ7VMCTRP2
+#\\\|GIFUOYVT3KYTJYCHF7L5LQ2KQB6WHRWT7IIRZ6ACVD6J6RKVA6U \ / AMOS7 \ YOURUM ::
+#\[7]3QIL4OUZPJCAK2HU2K2UD3JKGEO3IXSNJI7YLODMUWJGHXJTTECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

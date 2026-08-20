@@ -1,0 +1,201 @@
+## [:< ##
+
+# name  = site-yaml.cmd.import
+# descr = queue search results for async detail fetching
+#
+# args format (single line, key=value pairs):
+#   url=<search-url> handler=<reply-module> skip=<space-separated-ids>
+#   [block_file=<path>] [full=1]
+# legacy bare url is also accepted.
+#
+# The reply handler is restricted to a small allow-list to avoid routing
+# fetched records to arbitrary or destructive subroutines.
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s/^\s+|\s+$//g;
+
+## parse key=value pairs; values are non-whitespace ##
+my %param = ( $args_str =~ m/(\w+)=([^\s]+)/g );
+
+my $url = $param{'url'} // $param{'search_url'} // '';
+if ( not length $url ) {
+    ## legacy: bare url as the whole argument line ##
+    $url = $args_str;
+}
+$url = $data{'site-yaml'}{'cfg'}{'stepstone_search_url'} // ''
+    if not length $url;
+
+return { 'mode' => 'false', 'data' => 'no url' }
+    if not length $url;
+
+my $full_mode = $param{'full'} // 0;
+
+my $reply_handler = $param{'handler'} // $param{'reply_handler'} // '';
+if ( length $reply_handler ) {
+    my %allowed_handler = map { $ARG => 1 } qw| jobsite.job-upsert |;
+    if ( not $allowed_handler{$reply_handler} ) {
+        <[base.logs]>->(
+            0, 'site-yaml.import: disallowed reply handler %s',
+            $reply_handler
+        );
+        return { 'mode' => 'false', 'data' => 'disallowed reply handler' };
+    }
+} else {
+    <[base.logs]>->(
+        0,
+        'site-yaml.import: no reply_handler '
+            . 'set, fetched records will be dropped'
+    );
+}
+
+my $skip_ids_str = $param{'skip'} // $param{'skip_ids'} // '';
+my %skip;
+if ( length $skip_ids_str ) {
+    %skip = map { $ARG => 1 } split m|\s+|, $skip_ids_str;
+}
+
+## optional pre-fetch field-block file  [ generic: caller provides ##
+## [<EPOCH>:]<FIELD>:<chksum> ]                                    ##
+my $block_file = $param{'block_file'} // '';
+my %block;
+if ( length $block_file and -r $block_file ) {
+    if ( open my $fh, '<', $block_file ) {
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            next if $line =~ m{^\s*$};
+            my ( $field, $sum );
+            if ( $line =~ m{^([A-Z2-7]+):(\w+):([A-Z2-7]+)$} ) {
+                ( $field, $sum ) = ( lc($2), $3 );    ## epoch-prefixed ##
+            } elsif ( $line =~ m{^(\w+):([A-Z2-7]+)$} ) {
+                ( $field, $sum ) = ( lc($1), $2 );    ## legacy ##
+            } else {
+                next;
+            }
+            $block{"$field:$sum"} = 1;
+        }
+        close $fh;
+    }
+}
+
+## drop stale queue entries that predate the generic fetch refactor
+my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+if ( @{$queue} ) {
+    my $stale = scalar grep { not length( $ARG->{'reply_handler'} // '' ) }
+        @{$queue};
+    if ( $stale == @{$queue} ) {
+        <[base.logs]>->(
+            1,
+            'site-yaml.import: dropping %d stale fetch-queue entries',
+            scalar @{$queue}
+        );
+        $data{'site-yaml'}{'fetch_queue'} = [];
+    }
+}
+
+## if queue already has items from a prior scan, keep fetching
+my $queue_preload     = scalar @{ $data{'site-yaml'}{'fetch_queue'} // [] };
+my $allow_early_break = ( not $full_mode and not $queue_preload ) ? 1 : 0;
+
+my $max_pages = <site-yaml.import_max_pages> // 1;
+$max_pages = 1 if $max_pages < 1;
+$max_pages = 5 if $max_pages > 5;    ## safety cap
+
+my $delay_search = <site-yaml.import_delay_search> // 1.5;
+
+my ( $queued_count, $skip_count, $err_count ) = ( 0, 0, 0 );
+
+for my $page ( 1 .. $max_pages ) {
+    my $page_url = $url;
+    if ( $page > 1 ) {
+        $page_url .= ( $url =~ m{\?} ) ? '&' : '?';
+        $page_url .= "page=$page";
+    }
+
+    <[base.logs]>->(
+        1, '<import> fetching page %d of %d [break:%d]',
+        $page, $max_pages, $allow_early_break
+    ) if $max_pages > 1;
+
+    my $links = <[site-yaml.stepstone.search]>->($page_url);
+    if ( ref $links ne 'ARRAY' ) {
+        <[base.logs]>->(
+            0,     'import: page %d search failed : %s',
+            $page, $links
+        );
+        last;
+    }
+
+    ## stop if empty page [end of results]
+    last if not @{$links};
+
+    my $page_new = 0;
+    for my $link ( @{$links} ) {
+        my $id = $link->{'id'};
+
+        ## skip ids supplied by the caller [e.g. already-known jobs]
+        if ( length $id and $skip{$id} ) {
+            $skip_count++;
+            next;
+        }
+
+        ## optional pre-fetch field blocking ##
+        if ( length $block_file ) {
+            my $blocked = 0;
+            for my $field (qw| id url company city |) {
+                my $value = $link->{$field} // '';
+                next if not length $value;
+                my $sum = <[site-yaml.util.field-checksum]>->($value);
+                next if not length $sum;
+                if ( $block{"$field:$sum"} ) {
+                    $blocked = 1;
+                    last;
+                }
+            }
+            if ($blocked) {
+                $skip_count++;
+                next;
+            }
+        }
+
+        ## queue for async fetch with adaptive backoff ##
+        push @{ $data{'site-yaml'}{'fetch_queue'} },
+            {
+            'id'            => $id,
+            'url'           => $link->{'url'},
+            'reply_handler' => $reply_handler,
+            };
+        $queued_count++;
+        $page_new++;
+    }
+
+    ## early break when every listing on this page is skipped
+    if ( $allow_early_break and $page_new == 0 ) {
+        <[base.logs]>->(
+            1, 'import: page %d all duplicates : stopping early', $page
+        );
+        last;
+    }
+
+    ## delay between search pages
+    select( undef, undef, undef, $delay_search )
+        if $page < $max_pages;
+}
+
+## start async fetch timer if queue has items and timer not running ##
+if ( $queued_count and not defined $data{'site-yaml'}{'fetch_timer'} ) {
+    <[site-yaml.fetch.schedule]>;
+}
+
+<[site-yaml.fetch.state]>->('save');
+
+my $summary = sprintf 'import queued: %d new, %d skipped, %d errors',
+    $queued_count, $skip_count, $err_count;
+<[base.logs]>->( 1, 'site-yaml.import : %s', $summary );
+
+return { 'mode' => 'size', 'data' => $summary };
+
+#,,,,,,.,,.,,,.,.,.,.,...,..,,,,,,,..,.,.,..,,.,.,...,...,.,.,...,...,..,,,,.,
+#7JLVYYEGY5WKAM73M7AHQIRMKFM42WHKYVEC2PU2NDLJ77AYL2SXNSGVO5IXCNVKVVXCFSUB4ZEPG
+#\\\|LG67V52AXTMPHU6PC5UR2JNGT4EYEUQVC72HY2UARVUGRA777MK \ / AMOS7 \ YOURUM ::
+#\[7]E6HH26XXAF6XQ3LM6OFLIADHNJ7A22GVKQQ5PW7WUSRGS2D2GQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

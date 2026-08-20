@@ -112,7 +112,7 @@ the observer does not configure proximity — the key tree determines it.
 ### current state
 
 the codebase has:
-- `modules/crypt.C25519.*` — Curve25519 key generation and operations
+- `src/crypt.C25519.*` — Curve25519 key generation and operations
 - dot-notation namespace throughout (module names, routing paths)
 - `$data{<path>}` addressing mirrors the namespace structure
 - per-session numerical IDs (cube session IDs)
@@ -260,8 +260,8 @@ phase 5:  antenna / attractor field
   visual proximity sorting by key distance is the synesthetic
   space rendered through the authority lens
 
-#,,,,,..,,.,,,,.,,,,.,,.,,,,,,...,.,,,...,,,,,..,,...,...,,,.,,..,,.,,,.,,..,,
-#DOUQEDYA4KAUBFQH7VAFFPHHMKZSPHD4KXDOHIY7G7GKCQQXB35NIOWJIAGJQHPXBAUQ4PEOGVZVK
-#\\\|4365G76LYVXAVEE54LGXREZXN3C5TTNCJ5EUZWRZESLHI27ABVH \ / AMOS7 \ YOURUM ::
-#\[7]IB64IW6N2DA2PJ2SKTJOQISLHQN4VDX7RW7FRUYW3G5G5SJHLYAY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,,.,,,,.,,..,..,,...,,.,,...,..,,...,...,...,..,,,,.,...,,,,,
+#77VA5ZXIVN5FVVFOL25X5BS6KLOYHJ7U2IIZQCYNTDIY77YJVRIXWKR7CY6SQQBFVMVB235ZV5ABG
+#\\\|4UM2CXVJLTV2L6V6KBZDTDQYMU2VCFUE4KNJIPRKLKV4EGYRVPO \ / AMOS7 \ YOURUM ::
+#\[7]ZFDWUQBYXIU6ZTZSCUKSOEU7PVWE7BCPIUQHUYZC4RNF5NXG6WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

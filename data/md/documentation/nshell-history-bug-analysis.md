@@ -25,7 +25,7 @@ our @history_entries;  # Array of [timestamp, [lines]]
 
 ## Bug 1: Arrow-Up Navigation Direction Inverted
 
-**File:** `modules/nshell.history.arrow_up`
+**File:** `src/nshell.history.arrow_up`
 
 ### Current (Buggy) Behavior:
 ```perl
@@ -116,7 +116,7 @@ Let me check arrow_down...
 
 ## Bug 2: Arrow-Down Navigation Direction Inverted
 
-**File:** `modules/nshell.history.arrow_down`
+**File:** `src/nshell.history.arrow_down`
 
 ```perl
 ## We're viewing history - navigate relative to current position
@@ -429,8 +429,8 @@ Priority fixes:
 2. Ensure arrow keys handle edge cases when Ctrl+O left stale state
 3. Correct comments to prevent future confusion
 
-#,,.,,.,,,.,,,...,,,.,...,.,,,.,.,.,,,..,,.,,,..,,...,...,,..,.,.,,.,,.,.,..,,
-#2QOWN2DROBBKVSSVLLNCX6ZOXNE355GVXCTXHA4VJFNZNSUNW7FI6NNI7OR2SOQ3TTPZ5OKPX3HAY
-#\\\|3EUYKBW2PIKYJY5MGMOG7LRYYE3HVTEN3RZOD4Q36HGOZOIUGAT \ / AMOS7 \ YOURUM ::
-#\[7]3LY76TH5NGIWIJJ3UCERUYRX4DKRWJGMN45WLEIFM2Y46Z5T5UDA 7  DATA SIGNATURE ::
+#,,..,...,...,..,,.,,,,.,,,.,,..,,,.,,...,.,.,..,,...,...,.,.,,,,,.,.,.,.,,,,,
+#5WRHEXL734USCEFKEVLA7FPXMWZGKFSQFD5IJUIQAJGPDIK5WB7MNZVKMSK7TFWY6BFYDCQOVBDTY
+#\\\|AYKK7VFXVVPGURE4IPFGZ6XQVCOIOMZRKWDGGF2HQLP3VJJ7YY2 \ / AMOS7 \ YOURUM ::
+#\[7]XR5XSMEI2P5W5NZ33CGK6GSEIZ5I7OD7T7DHASQVDXA6CRDI5GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

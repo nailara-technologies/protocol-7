@@ -117,25 +117,25 @@ The architecture replaces five scattered diagrams from the source docs with a si
 
 | Namespace | Specified In | Actual State |
 |---|---|---|
-| `modules/index.*` | Topic file + implicit | **7 modules exist**: `index.init_code`, `index.gen_path`, `index.callback.wordlist-import`, `index.cmd.add-wordlist`, `index.cmd.gen-path`, `index.cmd.stop-job`, `index.cmd.add-path` (stub — returns "not implemented yet") |
-| `modules/storage.*` + `plugin.storage.*` | Phase-2 YAML, storage zenka docs | **Many exist**, largely kimi-generated: `storage.init_code`, `storage.9p.*` (13 modules), `storage.map-dirs.*` (7 modules), `storage.cmd.*` (5 modules), `plugin.storage.checksum.*` (12 modules), `plugin.storage.inference.*` (3 modules), `plugin.storage.p7ref.*` (7 modules), `plugin.storage.visual.*` (3 modules), `plugin.storage.util.*` (10 modules). Style issues noted; largely untested |
-| `modules/base.indexcube.*` | CONTEXT-TREE doc (phase 1 "DONE") | **5 modules exist**: `base.indexcube.push`, `base.indexcube.pop`, `base.indexcube.here`, `base.indexcube.depth`, `base.indexcube.reset`. Basic implementations in place; no signing or route-log sync yet |
-| `modules/context.tree.*` | CONTEXT-TREE doc (phase 1 "DONE") | **10 modules exist**: 4 checksum modules (`checksum.init_code`, `checksum.state`, `checksum.stream`, `checksum.template`), 1 index stub (`index.position`), 5 summary modules (`summary.add-event`, `summary.checkpoint`, `summary.compact.check` [stub], `summary.get-branch`, `summary.init-code`) |
-| `modules/base.checksum-fs.*` | Phase-2 YAML (7 modules planned) | **NONE exist**. Planned: `init`, `store`, `retrieve`, `verify`, `deduplicate`, `cow-create`, `metadata-update` |
-| `modules/search.*` | INDEXER-SEARCH doc | **NONE exist**. Specified: `search`, `search.harmonic`, `search.coordinates`, `search.visual`, `search.wave` |
-| `modules/indexer.*` | INDEXER-SEARCH doc | **NONE exist**. Specified: `indexer.harmonic`, `indexer.checksum`, `indexer.visual`, `indexer.wave` |
-| `modules/knowledge.*` | KNOWLEDGE_BASE_INDEXING doc | **NONE exist**. Specified: `knowledge.dedup.paragraph_cluster`, `knowledge.dedup.sentence_extract`, `knowledge.dedup.concept_unify`, `knowledge.storage.fragment_store`, `knowledge.zenka.query_interface` |
-| `modules/base.p7ref*` / `*.p7ref.*` | CONTEXT-TREE doc | **10+ modules exist**: `base.p7ref.self`, `base.p7refs.gen_template_chksum`, `base.p7refs.get_refaddr_prefix`, `plugin.storage.p7ref.*` (7 modules: `init_code`, `index`, `nested-resolve`, `parse`, `resolve`, `search`), `storage.cmd.p7ref` |
+| `src/index.*` | Topic file + implicit | **7 modules exist**: `index.init_code`, `index.gen_path`, `index.callback.wordlist-import`, `index.cmd.add-wordlist`, `index.cmd.gen-path`, `index.cmd.stop-job`, `index.cmd.add-path` (stub — returns "not implemented yet") |
+| `src/storage.*` + `plugin.storage.*` | Phase-2 YAML, storage zenka docs | **Many exist**, largely kimi-generated: `storage.init_code`, `storage.9p.*` (13 modules), `storage.map-dirs.*` (7 modules), `storage.cmd.*` (5 modules), `plugin.storage.checksum.*` (12 modules), `plugin.storage.inference.*` (3 modules), `plugin.storage.p7ref.*` (7 modules), `plugin.storage.visual.*` (3 modules), `plugin.storage.util.*` (10 modules). Style issues noted; largely untested |
+| `src/base.indexcube.*` | CONTEXT-TREE doc (phase 1 "DONE") | **5 modules exist**: `base.indexcube.push`, `base.indexcube.pop`, `base.indexcube.here`, `base.indexcube.depth`, `base.indexcube.reset`. Basic implementations in place; no signing or route-log sync yet |
+| `src/context.tree.*` | CONTEXT-TREE doc (phase 1 "DONE") | **10 modules exist**: 4 checksum modules (`checksum.init_code`, `checksum.state`, `checksum.stream`, `checksum.template`), 1 index stub (`index.position`), 5 summary modules (`summary.add-event`, `summary.checkpoint`, `summary.compact.check` [stub], `summary.get-branch`, `summary.init-code`) |
+| `src/base.checksum-fs.*` | Phase-2 YAML (7 modules planned) | **NONE exist**. Planned: `init`, `store`, `retrieve`, `verify`, `deduplicate`, `cow-create`, `metadata-update` |
+| `src/search.*` | INDEXER-SEARCH doc | **NONE exist**. Specified: `search`, `search.harmonic`, `search.coordinates`, `search.visual`, `search.wave` |
+| `src/indexer.*` | INDEXER-SEARCH doc | **NONE exist**. Specified: `indexer.harmonic`, `indexer.checksum`, `indexer.visual`, `indexer.wave` |
+| `src/knowledge.*` | KNOWLEDGE_BASE_INDEXING doc | **NONE exist**. Specified: `knowledge.dedup.paragraph_cluster`, `knowledge.dedup.sentence_extract`, `knowledge.dedup.concept_unify`, `knowledge.storage.fragment_store`, `knowledge.zenka.query_interface` |
+| `src/base.p7ref*` / `*.p7ref.*` | CONTEXT-TREE doc | **10+ modules exist**: `base.p7ref.self`, `base.p7refs.gen_template_chksum`, `base.p7refs.get_refaddr_prefix`, `plugin.storage.p7ref.*` (7 modules: `init_code`, `index`, `nested-resolve`, `parse`, `resolve`, `search`), `storage.cmd.p7ref` |
 
 ### Existing Module Roles
 
 The following modules are worth calling out because they can be reused rather than rebuilt:
 
-- **`modules/index.gen_path`** — Takes a string or scalar ref, generates an anti-entropic directory path from AMOS checksum character matrix with truth filtering. Already used for checksum-derived directory trees. This is the closest thing to a "directory structure specification" that is actually running.
-- **`modules/base.indexcube.push`** — Validates a P7REF (`TYPE:CHKSUM7:ADDR_B32`), timestamps it, and appends it to `@INDEXCUBE`. No cryptographic signing yet, but the data structure and validation logic are solid.
-- **`modules/plugin.storage.checksum.map-file`** — Maps a filesystem path to its checksum (with mtime/size cache). Operates on the legacy path-based filesystem; useful as a migration bridge, not a replacement for content-addressed storage.
-- **`modules/context.tree.checksum.state`** — Full resumable checksum state for incremental AMOS/ELF/BMW calculation. 389 lines, action-based interface (`create`, `add`, `finalize`, `save`, `load`, `clone`).
-- **`modules/context.tree.checksum.stream`** — Position-aware stream checksums with `open`, `add_chunk`, `checksum_at`, `close` actions.
+- **`src/index.gen_path`** — Takes a string or scalar ref, generates an anti-entropic directory path from AMOS checksum character matrix with truth filtering. Already used for checksum-derived directory trees. This is the closest thing to a "directory structure specification" that is actually running.
+- **`src/base.indexcube.push`** — Validates a P7REF (`TYPE:CHKSUM7:ADDR_B32`), timestamps it, and appends it to `@INDEXCUBE`. No cryptographic signing yet, but the data structure and validation logic are solid.
+- **`src/plugin.storage.checksum.map-file`** — Maps a filesystem path to its checksum (with mtime/size cache). Operates on the legacy path-based filesystem; useful as a migration bridge, not a replacement for content-addressed storage.
+- **`src/context.tree.checksum.state`** — Full resumable checksum state for incremental AMOS/ELF/BMW calculation. 389 lines, action-based interface (`create`, `add`, `finalize`, `save`, `load`, `clone`).
+- **`src/context.tree.checksum.stream`** — Position-aware stream checksums with `open`, `add_chunk`, `checksum_at`, `close` actions.
 
 ---
 
@@ -149,7 +149,7 @@ The topic vision file describes nodes as "single base32 character in namespace g
 
 ### Tension 2: `index.gen_path` vs phase-2 directory structure specification
 
-`modules/index.gen_path` already implements anti-entropic path generation via AMOS checksum character matrix with truth filtering. The phase-2 YAML separately calls for a "directory structure specification" task.
+`src/index.gen_path` already implements anti-entropic path generation via AMOS checksum character matrix with truth filtering. The phase-2 YAML separately calls for a "directory structure specification" task.
 
 **Resolution:** `index.gen_path` **subsumes the index-specific directory structure** question. It already splits checksum entropy into a deterministic, filtered directory tree. However, the phase-2 YAML's broader concern — metadata format, copy-on-write semantics, deduplication transactions, and migration tooling — is **not covered** by `index.gen_path`. The existing module is a building block, not a replacement for the full `base.checksum-fs.*` layer. The recommended path is to reuse `index.gen_path` inside `base.checksum-fs.store` rather than invent a second layout scheme.
 
@@ -167,7 +167,7 @@ Phase-2 YAML proposes 7 new `base.checksum-fs.*` modules. The CONTEXT-TREE doc s
 
 ### Tension 5: `search` zenka as standalone vs expanded `index.*`
 
-The INDEXER-SEARCH doc specifies a standalone `search` zenka. No `search.*` or `indexer.*` modules currently exist, while `modules/index.*` is an older path/wordlist indexing system.
+The INDEXER-SEARCH doc specifies a standalone `search` zenka. No `search.*` or `indexer.*` modules currently exist, while `src/index.*` is an older path/wordlist indexing system.
 
 **Resolution:** Given the current state, the **cleanest incremental path** is to introduce `search.*` modules as a command/query layer that interfaces with the existing `index.*` infrastructure and the planned checksum filesystem. A full "search zenka" vs "index zenka" split is premature when neither the indexer nor the filesystem backend exists yet. The first implementation should be `search.checksum` and `search.visual` commands that can query whatever indexes are available, without requiring a fully separate zenka process. Once the backends mature, the command layer can be promoted to a zenka without changing its interface.
 
@@ -183,7 +183,7 @@ Ordered by: (1) unblock visualization, (2) validate architecture on small test c
 - **Blockers / dependencies:** none — `space.v7.ax` template pipeline is already working
 - **Acceptance criteria:**
   - A new HTTP endpoint (e.g., `/index/grid.json`) returns JSON describing the current checksum-derived namespace grid
-  - Consumes output from `modules/index.gen_path` to map a small test directory (e.g., `modules/` or `data/md/`) into coordinate tuples
+  - Consumes output from `src/index.gen_path` to map a small test directory (e.g., `src/` or `data/md/`) into coordinate tuples
   - `space.v7.ax` renders at least one interactive view (grid or tree) from this endpoint
   - Endpoint is idempotent and reloadable for development
 
@@ -192,7 +192,7 @@ Ordered by: (1) unblock visualization, (2) validate architecture on small test c
 - **Effort:** medium
 - **Blockers / dependencies:** 5.1 (endpoint spec defines output shape)
 - **Acceptance criteria:**
-  - Batch process all files under `modules/` (or a representative subset), compute checksums via existing `base.chk-sum.*`, and generate a persistent JSON index
+  - Batch process all files under `src/` (or a representative subset), compute checksums via existing `base.chk-sum.*`, and generate a persistent JSON index
   - Index maps each file to `{ checksum, path, gen_path_result, size, mtime }`
   - The index is reloadable and idempotent (same input = same output)
   - No deduplication logic required at this stage
@@ -262,8 +262,8 @@ Ordered by: (1) unblock visualization, (2) validate architecture on small test c
 
 *Last updated: 2026-04-17. This document is a synthesis reference; implementation tasks should use Section 5 as their starting checklist.*
 
-#,,,.,,.,,.,.,,.,,.,,,,.,,,..,.,.,.,.,.,.,.,,,.,.,...,...,.,,,..,,,,,,..,,.,.,
-#5JPSI53UI2GSHMDGQOUMTLSFOJUJICGRBVADUDPMAT573CLKSDNOC4KQZ5B2LVW5TGTRCYQ7SMWRS
-#\\\|ZCBDFZNPP74IBXCSFZHAHMSQDRTLPVOHVYBK62RM3RYI2JA2LXY \ / AMOS7 \ YOURUM ::
-#\[7]FAKJT3SSOKBK4M75X36DTPXGE57CHZYXUVXWPBEVLSU7ZTZLEODI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,.,,,.,,,..,,,,,,.,.,.,.,,,,,.,.,...,..,,,..,,.,,,,,,,.,,.,,,
+#4KTEXSRACS23GXC4U6UMNZSBURKAGR4GQQISUPZXC6TNZIXTLTOFVYZXLXDLHJ5LNQFNCPKSLUP54
+#\\\|KMQZKA5YTCH5H3XLJLHCFCUCWLLJ2WDZSN5PDWMP4RICC3SGORJ \ / AMOS7 \ YOURUM ::
+#\[7]MVIHWIP5BHV5IUKTYS4BJE56SSXJODISHUWJLTVLLZL6MB7ZFUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -77,8 +77,8 @@ just keyed for this purpose).
 both fan-out sites resolve `@send_sids` from `$data{'user'}{$target_name}`
 before their `##[ PROCESS \ GROUP MODE ]` loops:
 
-- `modules/base.handler.command.route_to_target`
-- `modules/base.protocol-7.command.send.local`
+- `src/base.handler.command.route_to_target`
+- `src/base.protocol-7.command.send.local`
 
 a shared resolver reading `routing_mode` from
 `<v7.start_setup.zenki.config>->{$target_name}` (default `group` if absent,
@@ -307,7 +307,7 @@ read/reply access.
 ### complementary, independent fix: duplicate-slot guard in base.strm.local.register
 
 separate from all of the above (this closes the *symptom* silently, the
-routing_mode work prevents the *cause*): `modules/base.strm.local.register`
+routing_mode work prevents the *cause*): `src/base.strm.local.register`
 unconditionally overwrites `<base.strm.local>->{$cmd_id}` with no check for
 whether that slot already holds an active, unclosed stream. add a guard —
 if `exists <base.strm.local>->{$cmd_id}` and that entry hasn't reached
@@ -324,8 +324,8 @@ cause produced it (this bug, or anything else, ever). would have turned
 this entire incident into one loud log line instead of a silent
 byte-corruption mystery.
 
-#,,.,,,,.,.,,,,,.,,,,,,..,,,.,,.,,.,.,..,,,,,,..,,...,...,,.,,,,.,,,.,.,.,,.,,
-#JIOFRYHLAXRDC2PVJD7MINBMXDJL7WSS3B3HW5PGTACQS5RW7W23PJPO4FHH7WMR6D56ENZZZ7YLC
-#\\\|VX7AEGXZTC4HEOHF6JHBMO5MGPUE6GTXEUJZURK2U3FBKDQ4DKX \ / AMOS7 \ YOURUM ::
-#\[7]NUCNAFNNASK4SYXLV26ESR4JHBCTRJPCDXLJTMCWTTTMHG2SYABQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,,,.,,,,,,,.,.,...,,.,,.,.,...,..,,...,...,...,,,,,,..,,,,,...,
+#LDYPWSRRAAWEQWWKFQAYFDQG7L2SCLLG4C3DX3UCYUHLKATAASA3QBM5O3UEJU6FYZ5HMEBEJUOKY
+#\\\|PRBL4X22ROLAMOWRVPAPAPCIS5O7B6XC77JJAUR4KCOAIAPFETB \ / AMOS7 \ YOURUM ::
+#\[7]KG2FV5A72HDRXAZAOPGRFUIJC27VLFIILYNUR3BQZTJJ6K6EPGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

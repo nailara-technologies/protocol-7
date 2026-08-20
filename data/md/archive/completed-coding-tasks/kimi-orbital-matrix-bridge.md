@@ -100,11 +100,11 @@ once implemented, test sequence:
 
 ## files to create/modify
 
-- create: `modules/plugin.web.space.orbital.to_cells`
-- modify: `modules/plugin.web.space.fetch` — add to_cells call
-- modify: `modules/plugin.web.space.orbital.json` — add glow/channel/graph fields
+- create: `src/plugin.web.space.orbital.to_cells`
+- modify: `src/plugin.web.space.fetch` — add to_cells call
+- modify: `src/plugin.web.space.orbital.json` — add glow/channel/graph fields
 - modify: `data/web-root/vhosts/space.v7.ax/visualization.html` — consume new fields
-- create: `modules/graphics-matrix.cmd.orbital-sync`
+- create: `src/graphics-matrix.cmd.orbital-sync`
 - possibly modify: `cfg/zenki/cube/access.zenki`
 
 ## style
@@ -115,8 +115,8 @@ once implemented, test sequence:
 - use `$data{'zenka-name'}{'key'}` for zenka data tree access
 - use `protocol-7.route-send` for cross-zenka calls, `protocol-7.command.send.local` for same-zenka
 
-#,,..,.,.,...,...,,..,...,,..,..,,,,,,,,.,.,,,..,,...,...,..,,...,...,,.,,.,.,
-#EQF5RDA2VWDFA323QWSB7GCQGUPTNSAX2CNYESZSRJ6GTYKRUNOXXZ2RFBLHOBXMSFHGTYQLBK75M
-#\\\|B7RHKMGCV3QGTTOB2TJQKZ4YISQ34V2HD2VJRN3GMUICU4AESKA \ / AMOS7 \ YOURUM ::
-#\[7]B273B2YDLXLB2VPETOFGHLZ2J5BZSVST3LLYW5MOT5CXN2X45UAY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,...,,..,,..,.,.,,..,..,,,,,,,,.,..,,...,...,,..,,.,,,.,,,,,,,,,,
+#BWNYCOTYBQRTVL3WQQXBJEIPD4Y5PGBQHWRDF34CIIJKPZKPGDQ3SH56LQV6UMQISJJLHKILQWT3A
+#\\\|NHNPS6WP35VRSSUVNEZFTVAYV7WBE3OPQDQJE7J3RAQJEUY5ZKC \ / AMOS7 \ YOURUM ::
+#\[7]7B4EQMGVPUHMTNGPC2VWIBLIZXNSSMBXATZAKSKDADTVFBZP2YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

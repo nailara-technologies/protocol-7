@@ -66,21 +66,21 @@ the child's `%code` (which only has `letsencr.child.*` modules).
 
 ```bash
 ## the renewal flow
-cat modules/letsencr.parent.handler_renewal_check
-cat modules/letsencr.parent.queue_renewal_requests
-cat modules/letsencr.parent.handler_renewal_reply
-cat modules/letsencr.child.cmd.renew-certificate
-cat modules/letsencr.child.continue_challenge_processing
+cat src/letsencr.parent.handler_renewal_check
+cat src/letsencr.parent.queue_renewal_requests
+cat src/letsencr.parent.handler_renewal_reply
+cat src/letsencr.child.cmd.renew-certificate
+cat src/letsencr.child.continue_challenge_processing
 
 ## the working enrollment flow for comparison
-cat modules/letsencr.parent.cmd.request-certificate
-cat modules/letsencr.child.cmd.request-certificate
-cat modules/letsencr.parent.handler_enrollment_reply
+cat src/letsencr.parent.cmd.request-certificate
+cat src/letsencr.child.cmd.request-certificate
+cat src/letsencr.parent.handler_enrollment_reply
 
 ## the routing mechanism
-cat modules/base.handler.command    ## around lines 715-735 and 810-820
-cat modules/base.callback.cmd_reply
-cat modules/letsencr.base.fork_letsencr_child   ## how parent/child pipe is set up
+cat src/base.handler.command    ## around lines 715-735 and 810-820
+cat src/base.callback.cmd_reply
+cat src/letsencr.base.fork_letsencr_child   ## how parent/child pipe is set up
 ```
 
 ## task
@@ -111,8 +111,8 @@ do not add or modify subroutine whitelists — these are managed separately.
 - [ ] cert bundle correctly saved via save_certificate after reply
 - [ ] no signature stubs, no whitelist changes
 
-#,,,,,.,,,...,,,,,,.,,.,.,,.,,.,.,..,,...,,.,,..,,...,...,,,.,,.,,,..,,,.,,.,,
-#ETIKIZBXIVEQIT4WLDZB3ZPWFSXB3VWARCQRNHOB2B7CWRJNJGUFGWN5WD4YI3YE6UNDMPIULZFBW
-#\\\|44DSMMN7OHALHHWS7ZX6U53UOIK7725MXUIR4363NBVRCMFY4SI \ / AMOS7 \ YOURUM ::
-#\[7]2SYJ7T3S5KTAAVLTYQTSQHU3N7CGV32UQPM7LIVXZIJKWZQQBODA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,.,,,..,,.,,,,.,,,,,,,.,,,,,.,.,..,,...,...,...,.,.,.,,,.,,,,,,,
+#XFPVRJG7RCIIV3AXX2FBX5CH27JMO4HXS444X5V74VUQBT7D2ZXY42ZPERAVQA5AE6ZEAY2HE6OJI
+#\\\|ZKAWRHWVG3VXXBUIW5YSYA6ZARNIME7YYD2ZUEVGRP4GAUMWZ4W \ / AMOS7 \ YOURUM ::
+#\[7]ORVHBYU6E3OGDRKQHRIWOXCDFGKU2VXRY2EP5UTXAWCRLVPWPAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

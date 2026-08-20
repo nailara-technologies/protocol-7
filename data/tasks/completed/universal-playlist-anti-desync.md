@@ -5,7 +5,7 @@
 
 ## context
 
-`modules/universal.handler.get_list_reply` contains a temporary workaround from
+`src/universal.handler.get_list_reply` contains a temporary workaround from
 2016:
 
 ```perl
@@ -29,7 +29,7 @@ when done.
 
 ## fix 1: understand the desync mechanism
 
-read `modules/mpv.handler.rescale_video_reply` (line 27 references the
+read `src/mpv.handler.rescale_video_reply` (line 27 references the
 quick-fix). understand:
 - when does rescale finish relative to playlist updates?
 - what state becomes inconsistent if the playlist changes mid-rescale?
@@ -62,8 +62,8 @@ verify that:
 - [ ] no visible interruption from zenka restart
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,.,,.,.,,,.,,.,,..,,.,,,.,,,.,,,.,,,,,,,...,..,,...,..,,..,,,,,,...,.,.,,.,,
-#C4B3W6L5QCIJA6CQUYHKAQGKMJASY2Z4TP5BM2QW3XVXIDHJV4AG3Z37WBULAMWGCOGEMZZNRXURW
-#\\\|EDCTJOUZICDGVNC6AIPOJUBIKZ2SWURVXHBLPGWWQ5BDF6NW42F \ / AMOS7 \ YOURUM ::
-#\[7]GC5ASJ32QI5GF3FBJIBFSTCRFN2KIKEHEANVU3VZ5QNFH7OATCAA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,,,,,,,.,.,..,,.,.,,,,,,,,,...,..,,...,..,,.,,,,..,..,,,,,,,..,
+#KLN22PH2M2JUWAU7RTJ7YBK4FSLHFPX55VQX4742PAMW3KIAWJF3P2T52ERKUCE52EK4FALPAWQQU
+#\\\|YIJTXDAP3GCYEAXPVE22KLG53R4NH2YD5ZHMNWRE75IPOL7EAE7 \ / AMOS7 \ YOURUM ::
+#\[7]QOAS5HC2VZ72BRFWZCR34EAL5MXY2OZZMUGPLIPIBWT3KJ7BB6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

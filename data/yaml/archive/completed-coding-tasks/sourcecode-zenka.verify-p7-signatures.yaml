@@ -10,20 +10,20 @@ description: |
   verification to be performed in more contexts without exposing sensitive cryptographic material.
 
 affected_files:
-  - modules/sourcecode.console.verify-p7-signatures (new)
-  - modules/base.list.subroutines (update)
-  - modules/sourcecode.init_code (update)
+  - src/sourcecode.console.verify-p7-signatures (new)
+  - src/base.list.subroutines (update)
+  - src/sourcecode.init_code (update)
 
 dependencies:
-  - modules/source.signature_valid
-  - modules/source.extract_sig_body
-  - modules/sourcecode.console.update-signatures (reference)
-  - modules/sourcecode.source_path_set_up
-  - modules/base.resolve_data_key.regex (for variable resolution)
-  - modules/base.resolve_hash (for key-to-hash translation)
-  - modules/base.resolve_key (for hash key resolution)
-  - modules/base.parser.data_hkey_tree (for parsing data keys)
-  - modules/base.validate.data_key_syntax (for validating data keys)
+  - src/source.signature_valid
+  - src/source.extract_sig_body
+  - src/sourcecode.console.update-signatures (reference)
+  - src/sourcecode.source_path_set_up
+  - src/base.resolve_data_key.regex (for variable resolution)
+  - src/base.resolve_hash (for key-to-hash translation)
+  - src/base.resolve_key (for hash key resolution)
+  - src/base.parser.data_hkey_tree (for parsing data keys)
+  - src/base.validate.data_key_syntax (for validating data keys)
 
 requirements:
   - Must verify signatures without modifying any files
@@ -39,12 +39,12 @@ implementation_plan: |
      - Interaction with Protocol-7's %data and %code hash structures
      - Parser requirements (bin/Protocol-7, line 1434)
      - All intricacies specific to Protocol-7's code pattern
-  2. Create a new module `modules/sourcecode.console.verify-p7-signatures` that exactly
+  2. Create a new module `src/sourcecode.console.verify-p7-signatures` that exactly
      matches the style and functional structure of update-signatures
   3. Remove any code that modifies files while maintaining identical structure and patterns
   4. Enhance the reporting functionality to provide clear status for each file
-  5. Add to the subroutines list in `modules/base.list.subroutines`
-  6. Update any necessary references in `modules/sourcecode.init_code`
+  5. Add to the subroutines list in `src/base.list.subroutines`
+  6. Update any necessary references in `src/sourcecode.init_code`
 
   Note: Maintaining exact style and structural similarity to the existing code is critical
   for proper functioning with Protocol-7's parser and code management system.
@@ -279,8 +279,8 @@ tags:
   - verification
   - sourcecode
 
-#,,..,...,,,.,...,..,,.,.,..,,...,,.,,..,,,,,,...,...,...,..,,..,,.,.,..,,,.,,
-#ECG6MZDNRJPJXRO6ZETSSR2HXIEIIKJZPFSUBAWRYQNWYPGCHX5MS2TNEVKM5FHXEVNO5WTH3NKC4
-#\\\|JGFX7BWRBGEYQRNNBHK5WKY3KWKEX4VYOUBH6NDSRQSR5ZCEULT \ / AMOS7 \ YOURUM ::
-#\[7]YFRMCZH6FURAP26LIKTPXG4ZHORQ4BUNWOLNMQXNDHVQYBIUWGDA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,.,,,,,...,..,,,.,,.,,,,..,,..,...,...,...,,,.,...,,,.,,.,,..,,
+#AALNRJO3NPGWYCM2AVECS33C675UXFBBAY7SG6VV6WE6MJ342W5Z6ZRHNV2XM6VA2N5QFM5BXDHOY
+#\\\|QRPJQJWZEYBTJY2PXUOY64ANK5ZFCBHXGSW2K4OML533C27WKXL \ / AMOS7 \ YOURUM ::
+#\[7]7YCSZEAUGLLCX2R4V3T4CM2QFL26UQ5GY65I6BUIDVIVX53CUSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = httpsd.discover_active_certificate
+# descr = scan certs directory and return path to active certificate
+
+use File::Spec;
+use File::Find;
+
+my $certs_dir = '/etc/protocol-7/certs';
+
+unless ( -d $certs_dir ) {
+    <[base.logs]>->( 1, 'certs directory not found: %s', $certs_dir );
+    return undef;
+}
+
+## scan for certificate files (.pem or .cert, excluding .key)
+my @cert_files;
+opendir( my $dh, $certs_dir ) or do {
+    <[base.logs]>->(
+        1, 'cannot read certs directory: %s',
+        <[base.str.os_err]>
+    );
+    return undef;
+};
+
+while ( my $file = readdir($dh) ) {
+    next if $file     =~ m{\.key$|\.meta$|\.chain$|^\.};
+    next unless $file =~ m{\.pem$|\.cert$};
+    push @cert_files, File::Spec->catfile( $certs_dir, $file );
+}
+closedir($dh);
+
+unless (@cert_files) {
+    <[base.logs]>->( 1, 'no certificate files found in: %s', $certs_dir );
+    return undef;
+}
+
+## prefer .pem files [ contain full chain : leaf + intermediates ] fall back
+## to .cert [ end-entity only ] when no .pem available
+my @cert_only = grep {m{\.pem$}} @cert_files;
+@cert_only = @cert_files unless @cert_only;
+
+## filter to certs whose domain matches a known vhost hostname  [
+## httpd.cfg.hostnames is populated by httpd.scan_site_dir ]
+my $known_hosts = <httpd.cfg.hostnames> // {};
+my @matching    = grep {
+    my ($name) = m{/([^/]+)\.(?:pem|cert)$};
+    $name && exists $known_hosts->{$name}
+} @cert_only;
+
+## fall back to all certs if no hostname match [ no scan data yet ]
+@cert_only = @matching if @matching;
+
+## prefer cert closest to root domain [ fewest domain levels ]  e.g. v7.ax [ 2
+## parts ] preferred over visual.v7.ax [ 3 parts ] within same depth, prefer
+## most recently modified
+my $active_cert = (
+    sort {
+        my ($an) = $a =~ m{/([^/]+)\.(?:pem|cert)$};
+        my ($bn) = $b =~ m{/([^/]+)\.(?:pem|cert)$};
+        ( scalar split m|[.]|, $an // '' )
+            <=> ( scalar split m|[.]|, $bn // '' )
+            || -M $b <=> -M $a
+    } @cert_only
+)[0];
+
+unless ( -f $active_cert ) {
+    <[base.logs]>->(
+        1, 'discovered certificate file not readable: %s', $active_cert
+    );
+    return undef;
+}
+
+<[base.logs]>->( 2, 'discovered active certificate: %s', $active_cert );
+
+## also look for corresponding key
+my $key_file = $active_cert;
+$key_file =~ s{\.(pem|cert)$}{.key};
+
+unless ( -f $key_file ) {
+    <[base.logs]>->( 1, 'corresponding key file not found: %s', $key_file );
+    return undef;
+}
+
+return {
+    cert_path => $active_cert,
+    key_path  => $key_file,
+};
+
+#,,.,,,,.,,..,.,,,.,.,,.,,,.,,,,.,...,,.,,,,.,.,.,...,...,,,,,.,,,,..,,,.,.,,,
+#ARA6UVV2HFBC6DYELBVAXY6MDRTJYB4BZFF7FA3YIHGWJV4KHIQF5XUJZONQKJ7RD6P6F2BJP4SYI
+#\\\|7UXNNEKDT4OBV62CI23BHLWAUS6FGTRSHN426QDXDVGEV7UMD3C \ / AMOS7 \ YOURUM ::
+#\[7]2JCMGGCGFJZ6XGGE4XMEHWVM234CHY7YISIJCIK5IKUUBOLEXYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

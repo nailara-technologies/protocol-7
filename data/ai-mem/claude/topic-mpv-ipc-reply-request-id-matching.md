@@ -17,7 +17,7 @@ the fingerprint of a misrouted reply.
 
 ## root cause
 
-`modules/mpv.handler.pipe_output` matched every incoming mpv IPC reply to
+`src/mpv.handler.pipe_output` matched every incoming mpv IPC reply to
 the correct in-flight command by `shift()`-ing `mpv.reply_ids` /
 `mpv.command.reply` in **arrival order**, with no id embedded in the
 JSON payload. Every one of mpv's own `command`/`request_id` fields was
@@ -124,8 +124,8 @@ plausible-on-paper/wrong-live guessing.
 
 [[topic-jobqueue-check-dependencies-splice-bug]] [[critical-patterns]]
 
-#,,..,,,,,..,,.,,,,.,,..,,,,,,,..,...,..,,,..,..,,...,...,.,.,.,.,.,,,,.,,,,,,
-#ZLYE5QJ4XOKTZK3EWXJQFWBZJPBYQBU5XMP6D4V4M5IAVD5CBPJPSGWIPVCSH4F5NDEYHHYGRHKZA
-#\\\|TK4YQXIZOJKYYNEPR2R7OAMJGXT4ZIWMOGHAGNOFPU63V5KN4UX \ / AMOS7 \ YOURUM ::
-#\[7]NAYO5KIEYIP3EK3VBX4AGCSXUWH7VNDVHEA772RRMSPKZN24BGBI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,...,,,.,,,.,.,.,,,.,.,,,.,.,..,,...,...,,.,,,,.,...,,,.,,,,,
+#EGSAUIGNTUYEGBOJDDF6RMZEWG3NBEJ442RPRZ6MWALE27RBML4SNQRDRKBGOJ75TF2DCT3DYLZNC
+#\\\|EZSFRUH3TT3Q6GBYS2EFHBKQUWMM56NKDE53I4ODNNVILD67USR \ / AMOS7 \ YOURUM ::
+#\[7]Y7RPC4I3JURXZQEABTNJE2VQ2XJLURNCUTYWMC56TTV623D6Q4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

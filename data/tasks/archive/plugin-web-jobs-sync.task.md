@@ -37,7 +37,7 @@ neither side overwrites the other's domain.
 
 ### what to do
 
-**1. rewrite `modules/plugin.web.jobs.init_code`** (replace entirely)
+**1. rewrite `src/plugin.web.jobs.init_code`** (replace entirely)
 
 the correct init_code should:
 - register template command aliases for use in .tmpl files:
@@ -50,11 +50,11 @@ the correct init_code should:
 
 do NOT implement any "pipeline state manager". that is wrong.
 
-reference pattern: `modules/plugin.web.space.init_code`
+reference pattern: `src/plugin.web.space.init_code`
 
 ---
 
-**2. rewrite `modules/plugin.web.jobs.state.load`** (replace entirely)
+**2. rewrite `src/plugin.web.jobs.state.load`** (replace entirely)
 
 this module is vestigial — the correct approach is to call
 `<[jobsite.job.load_all]>` directly wherever job data is needed.
@@ -67,7 +67,7 @@ this keeps it usable as a template command.
 
 ---
 
-**3. write `modules/plugin.web.jobs.state.save`** (new file)
+**3. write `src/plugin.web.jobs.state.save`** (new file)
 
 saves a single job record update from browser. accepts ($id, $delta_hashref).
 - loads existing job via YAML::XS::LoadFile from
@@ -79,7 +79,7 @@ saves a single job record update from browser. accepts ($id, $delta_hashref).
 
 ---
 
-**4. write `modules/plugin.web.jobs.handler.get`** (new file)
+**4. write `src/plugin.web.jobs.handler.get`** (new file)
 
 GET endpoint handler — called from `httpd.http_post` routing (or a new
 GET route) to serve `/jobs.json`.
@@ -98,7 +98,7 @@ the session id `$id` is passed as the first argument (same as all httpd handlers
 
 ---
 
-**5. write `modules/plugin.web.jobs.handler.sync`** (new file)
+**5. write `src/plugin.web.jobs.handler.sync`** (new file)
 
 POST endpoint handler — called when browser POSTs a delta to `/jobs-sync`.
 
@@ -113,7 +113,7 @@ POST endpoint handler — called when browser POSTs a delta to `/jobs-sync`.
 
 ---
 
-**6. add routing in `modules/httpd.http_post`**
+**6. add routing in `src/httpd.http_post`**
 
 add two new branches in the elsif chain after the `/cursor` branch:
 
@@ -124,7 +124,7 @@ add two new branches in the elsif chain after the `/cursor` branch:
 
 add before the `else { ## unsupported }` branch.
 
-also add routing for GET in `modules/httpd.http_get` if `/jobs.json` is not
+also add routing for GET in `src/httpd.http_get` if `/jobs.json` is not
 already handled there — check first and only add if missing.
 
 ---
@@ -155,17 +155,17 @@ add these lines (in the plugin.web.jobs section, alphabetically):
 ### verification
 
 after writing all modules, run:
-    ptd -c modules/plugin.web.jobs.init_code
-    ptd -c modules/plugin.web.jobs.state.load
-    ptd -c modules/plugin.web.jobs.state.save
-    ptd -c modules/plugin.web.jobs.handler.get
-    ptd -c modules/plugin.web.jobs.handler.sync
-    ptd -c modules/httpd.http_post
+    ptd -c src/plugin.web.jobs.init_code
+    ptd -c src/plugin.web.jobs.state.load
+    ptd -c src/plugin.web.jobs.state.save
+    ptd -c src/plugin.web.jobs.handler.get
+    ptd -c src/plugin.web.jobs.handler.sync
+    ptd -c src/httpd.http_post
 
 report any syntax errors and fix them before marking complete.
 
-#,,..,.,.,...,,,.,,,,,...,,,.,,,,,,,.,.,.,,,,,..,,...,...,.,.,,.,,.,.,.,,,,,.,
-#U5SU5SSQEGJIBMQOWRIPUMMYPBBPQR5PWNYVAWTBZM6YVLXDZK2PTQA2YHUI2NMQTVNA5EDZG27WI
-#\\\|MKYV6W7MURRWL4MRUTXCWOXNXOZI7MUITOHT7FYJ7YCODY77B5A \ / AMOS7 \ YOURUM ::
-#\[7]ZQACMLD6GJJSRFFMUAEHQZM37442TLZOFWKMJJ3JX2OW22PPO6AA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,.,.,.,.,...,,,.,..,,,..,.,.,..,,...,...,,,.,,,.,,,,,,..,,,,,
+#CTIJQ6XQSTICJZFTO5QLH6P52A2V4QZ5GSENXE46PNUNN3KWBIB6RP5ETYDRB5LTARXJ3DOLQ6ZTC
+#\\\|5XGSFDCBGVFWH2CEOXMZDGFJ2PB3HCI4Q6WSDWMGFWOQJ23IIM3 \ / AMOS7 \ YOURUM ::
+#\[7]EUCIKUSKWT7C5P2UYFR6ID4W4VZ44BP7Q3SWYEBCVL6N5BDKVKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

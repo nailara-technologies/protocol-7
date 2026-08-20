@@ -1,0 +1,81 @@
+## [:< ##
+
+# name = work.setup_module_dependencies
+# descr = setup dependency tracking for perl modules from suggestions yaml
+
+<[base.log]>->( 2, 'setting up perl module dependency tracking..' );
+
+## Load suggestions if not already loaded ##
+my $suggestions_data = <work.suggestions>;
+unless ($suggestions_data) {
+    <[work.load_suggestions]>;
+    $suggestions_data = <work.suggestions>;
+}
+
+return unless $suggestions_data;
+
+## Install callbacks for dependency validation ##
+<[dependency.install_callbacks]>->('work');
+
+## Get dependencies from suggestions yaml ##
+my $dependencies = $suggestions_data->{dependencies} // {};
+
+## Track essential modules ##
+my $essential = $dependencies->{essential} // [];
+foreach my $dep (@$essential) {
+    my $module_name = $dep->{name};
+    my $install_cmd = $dep->{install} // '';
+
+    <[base.log]>->( 3, "  registering essential module : $module_name" );
+
+    ## Create dependency object ##
+    my $object_id = <[dependency.add_object]>->(
+        {   type        => 'perl_module',
+            module_name => $module_name,
+            install_cmd => $install_cmd,
+            priority    => 'essential'
+        }
+    );
+
+    ## Store for easy lookup ##
+    <work.dependencies.essential>->{$module_name} = $object_id;
+}
+
+## Track optional modules ##
+my $optional = $dependencies->{optional} // [];
+foreach my $dep (@$optional) {
+    my $module_name = $dep->{name};
+    my $install_cmd = $dep->{install} // '';
+
+    <[base.log]>->( 3, "  registering optional module : $module_name" );
+
+    ## Create dependency object ##
+    my $object_id = <[dependency.add_object]>->(
+        {   type        => 'perl_module',
+            module_name => $module_name,
+            install_cmd => $install_cmd,
+            priority    => 'optional'
+        }
+    );
+
+    ## Store for easy lookup ##
+    <work.dependencies.optional>->{$module_name} = $object_id;
+}
+
+my $essential_count = scalar(@$essential);
+my $optional_count  = scalar(@$optional);
+<[base.log]>->(
+    2,
+    "  ✓ registered $essential_count "
+        . "essential, $optional_count optional modules"
+);
+
+return TRUE;
+
+0;
+
+#,,..,...,,,.,,,,,,,,,,.,,...,...,,..,,,,,,.,,..,,...,...,..,,...,,,.,,,.,,,,,
+#B3W5SRJUPHNGCU432TPTQRIWK4Y74UUHVWNGKCSBMBCT23NWNBE3PS6JNCWOMDGBPJHMLRCUXL64K
+#\\\|MAOXLZ3GTQVQUIXLY5HMSMNBKIG75QS4DVLWNPQAHXEJP3GDULK \ / AMOS7 \ YOURUM ::
+#\[7]HKEEQJHDNEAAED436NALK6HPAE7VTWX3PE37TN56NJECB6YTGEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

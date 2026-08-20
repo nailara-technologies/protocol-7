@@ -50,7 +50,7 @@ exports `p7_syntax__translate` (P7 `<[module.name]>` / `<data.key>` -> plain per
 inline copy also lives in `bin/Protocol-7` itself (`sub p7_syntax__translate`, kept in
 lockstep by hand, see the comment above it there) for that reason. Consumers: `bin/dev/ptd`,
 `bin/format-code` (running `perl -c` after translating), and inside a running zenka
-`modules/devmod.cmd.eval-code` calls the zenka-side wrapper `<[base.syntax.translate]>`
+`src/devmod.cmd.eval-code` calls the zenka-side wrapper `<[base.syntax.translate]>`
 so `eval-code` accepts P7 syntax, not just pure perl. Per user (2026-08-05): the
 perl<->P7 conversion is now bi-directional (perl syntax foldable back to `<[..]>`/`<..>`
 style too), making this the first real consumer of the code-parser extraction goal. the
@@ -60,17 +60,17 @@ affected scope (e.g. whether a `$code{'x'}->()` call is safe/intended to fold in
 blocker, just asymmetric in difficulty.
 
 **Same vision applies to bin/* standalone scripts**, not just MCP handlers: the shim a
-modules/ routine needs to run outside a full zenka is generally small — a `%data` hash
+src/ routine needs to run outside a full zenka is generally small — a `%data` hash
 seeded with a few init values (matching `bin/Protocol-7` / `base.init_code`), plus a
 static whitelist of subs known to work without the `%code` dispatch or zenki network.
 Until AMOS7::P7 exists, porting/duplicating logic out of zenka modules (e.g.
-`modules/ascii.frame.*`) into standalone-usable AMOS7::* packages is fine — see
+`src/ascii.frame.*`) into standalone-usable AMOS7::* packages is fine — see
 [[topic-bin-todo-style-refresh]]. don't over-optimize to avoid that duplication now;
 prioritize not degrading style/functionality/flexibility. revisit consolidation once
 AMOS7::P7 lands.
 
-#,,,.,.,.,.,.,,,,,..,,,.,,,..,..,,,,,,.,,,,,,,..,,...,..,,.,,,.,.,,.,,,,,,.,,,
-#J4WO7LQPF7XQZAHY4DWLPLIGJR34CEQUMNBIQTIFMQ4UAUNLUFCC3QUTCFCC5FTOPAOVFLHWGBN5U
-#\\\|VY5UGRKX6YP33HEXWJHEEKDJ4LRHUMDYWN73ZOZXC7VOYTQR6CJ \ / AMOS7 \ YOURUM ::
-#\[7]SH7WSL3HZX2MNSMFGS3M33MUF3PGUIMIC43ML6JO23GQA4NO6MAA 7  DATA SIGNATURE ::
+#,,..,...,,,,,..,,,,.,.,,,,,,,.,.,,..,..,,,,,,..,,...,...,...,...,..,,..,,,,,,
+#FYQPZEEDIMMUQNE2WFSR732OMZNJR2X5S4D5OSVUE4JHXVCQZWSZQKUYSF4QBZT5RVXEQICUJRTJY
+#\\\|ZYAZFQATO2EBOUNYZ44OSCP272HD3CF6GVUXWZMTWZABQFCHDWV \ / AMOS7 \ YOURUM ::
+#\[7]CPYMVKMSNVQ67A63AY3Q5DTFNYZZYKPCLJNZ7WYCQ4TJ22YLBQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = jobsite.handler.queue-depth-reply
+# descr = receive site-yaml queue depth; when zero, stop polling and claim strays
+
+my $call  = shift           // {};
+my $raw   = $call->{'data'} // '0';
+my $depth = ref $raw ? $raw->$* : $raw;
+$depth =~ s|\D||g;
+$depth = 0 if not length $depth;
+
+if ( $depth > 0 ) {
+    ## queue has been populated for this scan ##
+    <jobsite.fetch_saw_queue> = TRUE;
+    <[base.logs]>->( 2, 'fetch : site-yaml queue depth = %d', $depth );
+    return;
+}
+
+## ignore early zero-depth replies that race ahead of the import queueing ; ##
+## once fetch-done has reported queued items [ or we have seen depth > 0 ], ##
+## a zero reply means the queue is drained                                  ##
+<[base.logs]>->(
+    2,
+    'fetch  : site-yaml queue depth = 0 [saw_queue=%s]',
+    <jobsite.fetch_saw_queue> ? 'yes' : 'no'
+);
+return if not <jobsite.fetch_saw_queue>;
+
+## queue drained : cancel poll timer, pull stray jobs, then assess ##
+if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
+    $data{'jobsite'}{'queue_poll_timer'}->cancel;
+    $data{'jobsite'}{'queue_poll_timer'} = undef;
+}
+
+<[base.logs]>->( 1, 'fetch : site-yaml queue empty, claiming strays' );
+<[jobsite.stray.check]>;
+<[jobsite.dispatch.assessments]>;
+
+return;
+
+#,,,,,,..,.,.,..,,.,,,..,,...,,,.,.,.,,..,.,,,.,.,...,...,...,...,,,.,..,,.,.,
+#YE5YHMD44SLKG3OG7TV5CIESOYF423BRCTXIOCBG24I4ELJZLRFCDZB7Y5IHUKR7KQIS3YZOOAWP2
+#\\\|3BNSR5I7TQNBMTLVQWQTI4CBG2TGGCHTSI6WL37BBXZHGGPXWXY \ / AMOS7 \ YOURUM ::
+#\[7]BGMAOGLQGXVNLZJPBVEEN3IG3ZJOOCW7NLIDDSVF5R3YYPONOYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

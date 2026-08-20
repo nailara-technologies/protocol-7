@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = io.ssl.ip.input.open
+# descr = initialize accepted SSL client socket for input handling (called after accept)
+# param = client socket returned from connect handler
+
+my $client_sock = shift;
+
+return undef if not defined $client_sock;
+
+# Verify it's an SSL socket
+if ( ref($client_sock) ne 'IO::Socket::SSL' ) {
+    <[base.logs]>->(
+        0, '[open] invalid socket type: expected IO::Socket::SSL, got %s',
+        ref($client_sock)
+    );
+    return undef;
+}
+
+# SSL socket is ready for input - no special initialization needed beyond what accept() does
+# The socket is already in SSL handshake state if we got here
+
+<[base.logs]>->(
+    2, '[open] SSL client socket opened, fd=%d, ready for input',
+    fileno($client_sock)
+);
+
+return $client_sock;
+
+0;
+
+#,,,.,...,.,.,,.,,.,,,...,..,,..,,...,..,,...,..,,...,..,,,.,,...,.,,,...,.,.,
+#GHXO4EX65HE6PQPY5PFLJ2JJYXZQ6O3OFZBJG7YBE6OIL3S7IL53YKSQVFRZSUNZN6KFJGUPVIJHM
+#\\\|7RLHIHOOEGRWPMY6DJUOTE35HTM2IRHA35EXC63XA5T5YJAEKQU \ / AMOS7 \ YOURUM ::
+#\[7]HM53WIMNLNYLK5DGCYOFBVRHS4JMNXPL7NPCO27RZOP4SG3UI4DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

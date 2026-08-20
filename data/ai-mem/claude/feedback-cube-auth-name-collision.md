@@ -8,7 +8,7 @@ metadata:
 `base.handler.auth`'s capability-negotiation branch used to match a *bare*
 `(declare|select)-(\S+)\s*(.*?)\n` line (the `auth.` prefix was optional).
 The zenka-auth wire format is literally `"$zenka_name $key\n"`
-(`modules/auth.zenka.authenticate:97`), so any zenka named like
+(`src/auth.zenka.authenticate:97`), so any zenka named like
 `select-region` or `declare-foo` produces a line this branch greedily
 matched and silently swallowed (`return 1`, no output) *before* the real
 `plugin.auth.zenka` handler ever saw it — the client then just sits until
@@ -32,8 +32,8 @@ chasing anything more exotic.
 against `(declare|select)-` is cheap insurance, though the real fix already
 landed so new names should be safe now.
 
-#,,.,,...,,.,,,,,,,.,,,,.,,,.,.,,,.,,,,..,..,,..,,...,...,,,.,.,.,,..,,.,,,,,,
-#JPD3JL5EP2IDBNV3K4AWKY2ESHNI4TVLCGKFPZ35767SXZYINGKYUUA2VBKZY5TAGNS7MKAFXQNLS
-#\\\|WVE2JJDV54B4BIE5KOTPOVFA4TK7C4ABGFDHORSDKRJXVDB2R6W \ / AMOS7 \ YOURUM ::
-#\[7]Z6524RZWQIHJZ5PS7D725D5ELQR5N2YHG6HWNCPWWZMJL3XCTWBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,...,,.,,,,.,...,,..,,..,,..,..,,...,...,,..,.,,,,..,,,.,,,.,
+#4MJRQ6UZHYCWLNEJ3QQBZCKHXENMAC5UV3GUJNHKXPYBYCCGUKHJC4ZALREXEAKWI434NAWGUBAQS
+#\\\|JFTQXG7CJO3U47JHAQR475XKW36Y6JEAU7RS7POTIRQJJUJMNPX \ / AMOS7 \ YOURUM ::
+#\[7]GT577QDSVZ4C7ASP77RPHJAZM556O4E6PWUHJ7FI7CO4RVQ7ICBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

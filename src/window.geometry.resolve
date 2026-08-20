@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = window.geometry.resolve
+# descr = resolve window geometry: profile, tile, or centered default
+
+my $zenka  = <system.zenka.name> // '';
+my $sub    = <system.zenka.subname>;
+my $caller = defined $sub ? "${zenka}[${sub}]" : $zenka;
+
+## layer 1 : saved profile from disk [ no cube connection required ] ##
+my $profile = <[window.profile.load]>->($caller);
+
+if ( defined $profile ) {
+    my ( $x, $y, $w, $h ) = @{$profile}{qw| x y width height |};
+    $data{$zenka}{'geometry'} = sprintf '%dx%d+%d+%d', $w, $h, $x, $y;
+    <[base.logs]>->(
+        1,       '[geometry.resolve] %s : profile [%s]',
+        $caller, $data{$zenka}{'geometry'}
+    );
+    return $data{$zenka}{'geometry'};
+}
+
+## layer 2 : tile query via cube [ sets <x11.coordinates> as side-effect, ##
+## including screen-bounds fallback when no tile entry exists ]           ##
+my ($local_sid) = keys %{ $data{'user'}{'cube'}{'session'} // {} };
+
+if ( defined $local_sid ) {
+    <[base.X-11.get_coordinates]>;
+    if ( not <x11.coordinates_were_undefined> ) {
+        my $c = <x11.coordinates>;
+        my $x = $c->{'left'};
+        my $y = $c->{'top'};
+        my $w = $c->{'right'} - $c->{'left'};
+        my $h = $c->{'bottom'} - $c->{'top'};
+        $data{$zenka}{'geometry'} = sprintf '%dx%d+%d+%d', $w, $h, $x, $y;
+        <[base.logs]>->(
+            1,       '[geometry.resolve] %s : tile [%s]',
+            $caller, $data{$zenka}{'geometry'}
+        );
+        return $data{$zenka}{'geometry'};
+    }
+    ## <x11.coordinates> now holds screen bounds from the fallback ##
+}
+
+## layer 3 : fixed default size, centered, clamped to 90% of screen ##
+
+## prefer pointer-monitor bounds when available — avoids virtual-screen ##
+## centering that places windows in the middle of a multi-monitor span  ##
+my ( $screen_x, $screen_y, $screen_w, $screen_h );
+
+if ( defined $local_sid ) {
+    my $mon = <[base.X-11.get_pointer_scr_rect]>;
+    if ( defined $mon ) {
+        ( $screen_x, $screen_y, $screen_w, $screen_h )
+            = @{$mon}{qw| x y width height |};
+    }
+}
+
+## last resort: virtual screen bounds or hardcoded defaults ##
+if ( not defined $screen_w ) {
+    my $c = <x11.coordinates>;
+    if ( defined $c ) {
+        $screen_x = $c->{'left'};
+        $screen_y = $c->{'top'};
+        $screen_w = $c->{'right'} - $c->{'left'};
+        $screen_h = $c->{'bottom'} - $c->{'top'};
+    } else {
+        $screen_x = 0;
+        $screen_y = 0;
+        $screen_w = <x11.screen.width>  // 1920;
+        $screen_h = <x11.screen.height> // 1080;
+    }
+}
+
+## configurable per-zenka via window.geometry.default.width/height ##
+my $def_w = <window.geometry.default.width>  // 1280;
+my $def_h = <window.geometry.default.height> // 720;
+
+my $w = $def_w < $screen_w * 0.9 ? $def_w : int( $screen_w * 0.9 );
+my $h = $def_h < $screen_h * 0.9 ? $def_h : int( $screen_h * 0.9 );
+
+my $x = $screen_x + int( ( $screen_w - $w ) / 2 );
+my $y = $screen_y + int( ( $screen_h - $h ) / 2 );
+
+$data{$zenka}{'geometry'} = sprintf '%dx%d+%d+%d', $w, $h, $x, $y;
+
+<[base.logs]>->(
+    1,       '[geometry.resolve] %s : default [%s]',
+    $caller, $data{$zenka}{'geometry'}
+);
+
+return $data{$zenka}{'geometry'};
+
+#,,..,.,,,,..,,,.,,,,,,,.,,,.,..,,,.,,..,,..,,..,,...,...,...,,,,,,,,,,,.,,.,,
+#BY5DQGANAYH3X4G34LZFVMX27TCAEA62WMYH7K4EHDUYTCY67QVPDNMYYABL7APEEAPCXIVOS2L4M
+#\\\|XLA2YKEJCR53W6NIBXYO35CHSN7PNCILM4YL24QYMJRFDAJTMYO \ / AMOS7 \ YOURUM ::
+#\[7]YWIJZZNKUK5JWCN4FTKSJMZ7WVRZBJ35BPK7PTWHJGOFCTA2OKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

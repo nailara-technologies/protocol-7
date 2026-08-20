@@ -21,7 +21,7 @@ disrupt window management either.
 
 ### current state
 
-`modules/X-11.post_init` lines 135-148 registers a custom error handler:
+`src/X-11.post_init` lines 135-148 registers a custom error handler:
 ```perl
 <X-11.obj>->{'error_handler'} = sub {
     ...
@@ -33,7 +33,7 @@ disrupt window management either.
 the reconnect was planned, marked LLL, commented out. on protocol error the
 handler logs and returns — the next X11 call will then die, causing zenka exit.
 
-`modules/X-11.connect_X11` already retries indefinitely on *initial* connection.
+`src/X-11.connect_X11` already retries indefinitely on *initial* connection.
 the reconnect logic needs to be extracted and reused from the error handler.
 
 ### implementation
@@ -267,8 +267,8 @@ then wrapper.
 - `X11-WAIT-VISIBLE-HOST-MODE-SKIP.md` (task) — superseded by window registry
   (keep as fallback for external-process windows not using self-registration)
 
-#,,.,,.,.,,..,,.,,,,,,,,.,...,,..,.,.,.,,,...,..,,...,.,.,.,.,...,,.,,.,,,,..,
-#4SURAYSW6RAGIORWMWOHGAP3UW2WPDQ23MKNTNNSJEIPSEXHY4YWB6FX36NJ3WYGPSMOF3TKBZQXM
-#\\\|GPCZQLSNBBKOU4K52MTVMX45GB5RVYNG2KYYPRSJ5PHAWEZQ7W3 \ / AMOS7 \ YOURUM ::
-#\[7]DZSB4TOU5WG5T44LBEISK53446BBFSCMAGW4GSCAWQFMRJKL7SDQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,...,.,.,,..,,.,,,..,,,,,,..,,,.,..,,...,...,..,,.,.,...,.,,,,,.,
+#Q2YA5QVVTT2G6CIF63S24EHIXIYOYH7W76I2LA7UZYMEP7JPA4WEPNIK2N7EWH3GJ3WMZI5GU4BQG
+#\\\|TIIAOJAC2XISX2MWIBNOOVHRIHFV2ZKFCYB2VW4QMFQCVA55X3A \ / AMOS7 \ YOURUM ::
+#\[7]WYJL3ZXGBNVGAMHS6MAVSOGIJGZP4BF5TNFXT73LYX5GIXN5E2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

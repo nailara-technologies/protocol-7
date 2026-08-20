@@ -28,9 +28,9 @@ do not add or modify subroutine whitelists — these are managed separately.
 ## what to read first
 
 ```bash
-cat modules/web-browser.open_window
-cat modules/web-browser.init_view
-cat modules/web-browser.init_code
+cat src/web-browser.open_window
+cat src/web-browser.init_view
+cat src/web-browser.init_code
 cfg/zenki/web-browser/zenka-startup.v7
 ```
 
@@ -43,7 +43,7 @@ and how views are constructed in `init_view`, before making changes.
 
 ### 1. add cfg default in init_code
 
-file: `modules/web-browser.init_code`
+file: `src/web-browser.init_code`
 
 add alongside other `cfg.*` defaults:
 ```perl
@@ -55,7 +55,7 @@ sets this to 0 in `zenka-startup.v7` to allow persistent storage.
 
 ### 2. create ephemeral context when cfg.ephemeral = 1
 
-file: `modules/web-browser.open_window`
+file: `src/web-browser.open_window`
 
 read the current file. find where `WebKitWebContext` is created. the current
 code likely calls `Gtk3::WebKit2::WebContext->get_default` or `->new`.
@@ -80,7 +80,7 @@ update that assignment. preserve any existing context setup that follows
 
 ### 3. add P7 command: web-browser.cmd.clear_data
 
-new file: `modules/web-browser.cmd.clear_data`
+new file: `src/web-browser.cmd.clear_data`
 
 clears all website data from the current context on demand:
 ```perl
@@ -106,7 +106,7 @@ return 'ok';
 
 ### 4. add P7 command: web-browser.cmd.set_cookie_policy
 
-new file: `modules/web-browser.cmd.set_cookie_policy`
+new file: `src/web-browser.cmd.set_cookie_policy`
 
 controls cookie acceptance policy at runtime:
 ```perl
@@ -162,8 +162,8 @@ already there). this makes ephemeral the default without needing init_code chang
 - [ ] no persistent storage created during normal rendering-engine operation
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,.,.,.,..,,,.,,,..,.,,,..,,.,,,...,...,.,,,..,,...,...,..,,,,,,..,,.,.,.,,,
-#NJIPBXHAEPWQUNHPT54TRJ7UMTHW2TTKFZYDK4S7AMLQWOKLKT44NOA3K2BCF2PHSLZXH5OUDSHOG
-#\\\|BS2XOM7NTO4BWYZCRBGBQFP2Y7WFA4DFJAPKE3AOAGR3A4BPMZ2 \ / AMOS7 \ YOURUM ::
-#\[7]OW23NKXJLQWTJ53J4GMLLNUJRXFNGGHY7FLRRAAGOWMKOHHRZYBI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,.,,.,,,,,,,...,,,.,...,,.,,..,,...,..,,...,,..,.,.,,.,,.,,,
+#XUA4WPWXS7T6AUW4EGDCNKWTNKFSICK3AVDT4T2C2WFA6B2OHA6HY6MBK6F5VUAJWHRBY2GDVHPHU
+#\\\|A36T3MUPJVD53IOUYQSFUNFRYGLJFYVFGW6SCE3G24LZS4QNWQ5 \ / AMOS7 \ YOURUM ::
+#\[7]K4BJPK4PBZLMXSOEUDTR6KDLF7SDXQPNYGMDRRWFN4HS6NWGKKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -210,7 +210,7 @@ per the umbrella doc's question 8, checked before adding structure:
   downstream credential-storage component must reconcile this first.
 - **`remote.*` vs `remote-host.*` TOFU pin filenames** — **resolved
   2026-07-30**: exhaustive re-check confirmed *no programmatic writer
-  of the `remote-host.*` pattern exists anywhere in `modules/`*. the
+  of the `remote-host.*` pattern exists anywhere in `src/`*. the
   `remote-host.local_42.public`-style files seen on disk were manually
   created test artifacts, not evidence of a missing writer function.
   the canonical writer is `crypt.C25519.store_remote_key` →
@@ -264,8 +264,8 @@ per the umbrella doc's question 8, checked before adding structure:
   (ai memory) — ground-truth inventory establishing that delegation
   needs structure, not new primitives.
 
-#,,,.,,..,.,,,.,,,.,,,.,.,...,.,,,.,,,..,,,.,,..,,...,..,,,.,,,..,...,,,.,,.,,
-#UBNCUZODMA6B7LUPKP4GMEK3W2EXAQTXZ3LSJ6CHG4OIZJBCJUAKYWSJRL26B7J4AEU64EUJZ6UDA
-#\\\|2XAMVIOY7Y6QM2BJHTTIDNUL2WBR7ZX5CNBQJDQETSLZBYERLMI \ / AMOS7 \ YOURUM ::
-#\[7]XIE2XTKCNI2QJYLPI5SKHJHD4TAN2WM5SZNY5XITWVFQMYRYXSCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,,,..,,,.,,,.,,,,,,,,.,...,,.,,..,,...,...,,,.,.,,,.,,,..,,,.,,
+#EFSI4RPGZ3MUFJXBKEDIQ6NRYIXTSUOQZUG2HBDR7332L7OZ6RX7WKFLDOBYSA2NMK4DMUONMA6SE
+#\\\|ZGQAQBXFAQHEU2NTHBXCHQYFRLAXWBLNWBGASOPRORNOBNGQ7ND \ / AMOS7 \ YOURUM ::
+#\[7]TFL2KODFIHPLLBL52IE7XSEAEWQX5FOZEDDCUO4QWCEZBCO35SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

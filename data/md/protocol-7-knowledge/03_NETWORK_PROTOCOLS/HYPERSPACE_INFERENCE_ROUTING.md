@@ -192,7 +192,7 @@ Link spiral handoffs to tree traversal:
 - `data/md/data-zenka/DATA_ZENKA_HOLOGRAPHIC_TOPOLOGY.md` - Interference mapping
 - `data/asc/what-AI-thinks/perl-form/core-concepts/harmonic-computing/routing/*.pl` - Existing routing implementations
 
-### From modules/:
+### From src/:
 - `data.channel.shm.*` - Shared memory transport
 - `graphics.matrix.visual.*` - Spatial encoding/decoding
 - `base32.*` - 5-bit encoding/decoding
@@ -231,8 +231,8 @@ Each layer answers different questions without interference.
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,.,,..,,..,,..,,,..,...,...,,,,,..,,.,,,,..,..,,...,...,,..,.,,,..,,...,.,,,
-#BSAMDCJQD7PT2ZZLON6Z46APX5Z7YQVTBNONBRBPLNAL3RG2MLNZBBMIRWEHKUOH63OHJ44K6RSJM
-#\\\|JFZAU5PEZIMRMJ7QPF7XZ53M7K6P4MT2XL7EGAMJFNCXTGDR4EY \ / AMOS7 \ YOURUM ::
-#\[7]G6CMO3VZ5EQ4YNTMVW4ET5MAN4ZK7KRUHDBRZX432UVGSFDZGYBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,,,.,,,,.,,,,.,,,,,,,,,,.,,...,..,,...,...,.,,,...,...,...,.,.,
+#ZJDVKTLG5JDB6AD7LKWUCU4RCL43OG2R4YR3OEBQP3A2NONEA5GFTLBS6WRLQ4MTG2Q53ZUC6O2W4
+#\\\|L62O4C3LWKAQOH4U3OWG44BT3GGVDPTVKZ23DXWZVKNZ34XVYQP \ / AMOS7 \ YOURUM ::
+#\[7]BM7O4IQCXWBS4XP4BMVYA34WAM7IH3UMDPVRBSG4JHWXPFC4B2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

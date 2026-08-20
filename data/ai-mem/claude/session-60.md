@@ -15,11 +15,11 @@ All jobs now produce parsed YAML with score/reason/summary. Series of bugs fixed
 `cfg/zenki/coding/start`: `coding.cfg.start_model = WZIZD6Y:2BIZKWY`
 **Why:** 4B model (YYZYSXQ:ZSNYLYY) produced empty/garbage YAML. 9B loads as fast as 4B with new llama build.
 
-### 2. state_machine no_tools content loss (`modules/coding.async.state_machine`)
+### 2. state_machine no_tools content loss (`src/coding.async.state_machine`)
 `no_tools` branch called `complete_task` without saving `$data->{'content'}` to state first → empty result.
 Fix: `$state->{'content'} = $data->{'content'} // $state->{'content'} // ''` before complete_task.
 
-### 3. chunk_handler reasoning tool-call false trigger (`modules/coding.async.chunk_handler`)
+### 3. chunk_handler reasoning tool-call false trigger (`src/coding.async.chunk_handler`)
 For `:no_tools:` tasks, skip checking `context->reasoning` for XML tool calls — model hallucinating tool calls in thinking trace incorrectly routes to STATE_TOOL_EXEC.
 Fix: added `$task_flags_ch->{'no_tools'}` guard. Lines ~184-190.
 
@@ -61,15 +61,15 @@ $yaml_src =~ s/[^\x09\x0A\x0D\x20-\x7E\xA0-\x{FFFD}]//g;
 ```
 
 ### 6. Prompt engineering — model compliance
-`modules/jobsite.util.build_prompt`: changed preamble to "Output ONLY YAML. No prose. No analysis. No markdown. Start your response with: score:" and added "Beginne jetzt mit: score:" as last line before closing.
+`src/jobsite.util.build_prompt`: changed preamble to "Output ONLY YAML. No prose. No analysis. No markdown. Start your response with: score:" and added "Beginne jetzt mit: score:" as last line before closing.
 
 ### Data flow (for future reference)
 jobsite → `task.create` (task zenka) → `models.task-notify` → models/coding zenka → inference → `models.handler.task-result` → B32-encode → `task.complete` → task zenka stores → `task.wait-done` SIZE reply → `base.handler.command` SIZE handler → assess-done callback (no `mode` field — normal for callbacks).
 
 **How to apply:** When touching jobsite assessment pipeline, YAML parsing in assess-done/repair-done, or models.handler.task-result, refer to these fixes.
 
-#,,,.,..,,,,,,,.,,...,,,,,,,,,.,,,,,.,,,,,.,,,..,,...,..,,,.,,.,,,.,,,,,,,,,,,
-#3OB4YRHXHQOKLYBHR73U5PEZ7XX2WJSQI57JOFZQXA63MPUGYKNIVMI4FBAJJLAZFWP33WLRNWRT6
-#\\\|FTOUHQ2FF5BIF2OMM7I2WEON4FQ6XW73GKG2ESTJH6D6VUUUOLG \ / AMOS7 \ YOURUM ::
-#\[7]6HBTY4ANV6LH55ATAEC2N7C4IW5KS7X6DWEEWAXDRK4O6XP344BA 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,..,,,.,,,..,,,,,,,.,.,.,,..,..,,...,...,...,.,.,,,,,,,,,...,
+#PUBGWZC7BISYTPB5UFQCBPCYCILZ2XHUAJKB2QSYTMKRM5BESQ6DCK7NU5FIY6WOWCBMG2SRXDHEA
+#\\\|NQ2JSQRAFJMTWX7L3DDIYHAWYU5CM5BMV6CKMIVGEPZQ75H22S5 \ / AMOS7 \ YOURUM ::
+#\[7]3AMOUHBCATTPLTNTDTYBRYCNTX6DZH7QCNMNLJVSTABDTU33YMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,10 +29,10 @@ Phase 1 (server-side encryption infrastructure) is **COMPLETE and TESTED**. All 
    - Authentication tag validation on decryption
 
 3. **Link-Upgrade Protocol (State 2→3 Transition)**
-   - `modules/protocol.protocol-7.link-upgrade.init` - Initial key generation and capability negotiation
-   - `modules/base.handler.link-upgrade` - Handles client's public key, computes DH, stores shared secret
-   - `modules/protocol.protocol-7.encryption.init` - Derives encryption key, installs encryption wrappers
-   - `modules/cube.cmd.link-upgrade` - Triggers state transitions from v7 client
+   - `src/protocol.protocol-7.link-upgrade.init` - Initial key generation and capability negotiation
+   - `src/base.handler.link-upgrade` - Handles client's public key, computes DH, stores shared secret
+   - `src/protocol.protocol-7.encryption.init` - Derives encryption key, installs encryption wrappers
+   - `src/cube.cmd.link-upgrade` - Triggers state transitions from v7 client
 
 4. **Automatic Key Management**
    - Fixed: `base.file.make_path` umask handling for reliable recursive directory creation
@@ -299,7 +299,7 @@ Display to user
 
 ### Encryption Infrastructure (Complete)
 ```
-modules/
+src/
   ├── crypt.C25519.gen_keys                    # Ephemeral keypair generation
   ├── crypt.C25519.compute_shared              # DH computation (FIXED)
   ├── protocol.protocol-7.link-upgrade.init    # Server state 2 setup
@@ -406,8 +406,8 @@ Generated: November 18, 2025
 Phase 1 Status: ✅ COMPLETE
 Phase 2 Status: 📋 READY FOR IMPLEMENTATION
 
-#,,..,,..,,.,,,..,...,,,,,,..,...,..,,.,.,,..,..,,...,...,,,.,.,.,,,,,,,,,,..,
-#OLRJMOKZZFYZJ4THFIZVUFQ6FABOVFBF47HYRRZF6Q3EL7MTP3B5H6ZPMUB7VWALFXOLTWOROP33S
-#\\\|BB5G7PFRGNCW5BA5WNRH4UP45WN2MUJSQPX7RMYFQCTU3YBCIET \ / AMOS7 \ YOURUM ::
-#\[7]EVBWPYINGD7UMGHYS77WNNHJ2BB7IOJ2V3CBNR34CRPFTKLBUUBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,.,.,,,,..,,,,,,,.,...,,.,,..,,..,,...,...,,..,,.,,,,,,,,,,,,,,
+#EMNMPWDKS4Z3CSMTAS4HZIL7YJIXWG4RBNN6YXS6RM5IVRH5CXTE4B67YA3L75ZXAE5VRNVSHJQZY
+#\\\|B6O3EUUOUWMDEDPCBCKR4BEOKFUWOAWXNWFCESP2VWXMM3UDJK2 \ / AMOS7 \ YOURUM ::
+#\[7]ZGNCVAKMXSVNZK2NU5FVNA3MQJTOWZQ56N3X4X77RQ2ZK3QMAYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

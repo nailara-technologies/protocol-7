@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = channels.cmd.next-data-timestamp
+# descr = block until channel data changes [ push notification ]
+# param = [<channel-path>] [since:<timestamp>]
+# return = { mode => 'timestamp', data => 'TRUE <timestamp_b32>' } on change
+#          { mode => 'false', data => 'FALSE' } on disconnect/error
+
+my $args   = $call->{'args'} // '';
+my %params = ( 'channel' => '', 'since' => '' );
+
+##  Parse parameters: channel-path and since:timestamp  ##
+foreach my $arg ( split( m|\s+|, $args ) ) {
+    if ( $arg =~ m|^since:(.+)$| ) {
+        $params{'since'} = $1;
+    } else {
+        $params{'channel'} = $arg if length $arg;
+    }
+}
+
+my $channel_path = $params{'channel'} // '';
+my $since_ts     = $params{'since'}   // '';
+
+## Register blocking client for push notifications  (In real ##
+## implementation, this would use event system or select)    ##
+
+my $request_id = <[base.gen_id]>->(<channels.blocking_clients>);
+
+<channels.blocking_clients>->{$request_id} = {
+    'channel_path' => $channel_path,
+    'since_ts'     => $since_ts,
+    'timestamp'    => <[base.time]>->(3),
+    'session_id'   => $call->{'session_id'} // 'unknown'
+};
+
+<[base.logs]>->(
+    2,
+    "channels: blocking client registered "
+        . "for channel '%s' since %s (req_id: %s)",
+    ( length $channel_path ? $channel_path : '(all)' ),
+    ( length $since_ts     ? $since_ts     : '(all)' ),
+    $request_id
+);
+
+## Return holding pattern response  (In production, this would be handled  ##
+## by event loop / select mechanism) (Protocol-7's no-timeout design means ##
+## connection stays open indefinitely)                                     ##
+
+return {
+    'mode' => qw| holding |,
+    'data' => {
+        'request_id'   => $request_id,
+        'channel_path' => $channel_path,
+        'message'      => 'waiting for data change...'
+    }
+};
+
+1;
+
+#,,,.,...,..,,.,,,,..,..,,,,,,.,,,...,..,,,..,.,.,...,...,.,,,.,.,..,,..,,,..,
+#FRPSFW3L3LNAAYP7GIHRIBW2L7UWK5VXCQVLWIYQSO5LXZD6LX5MDRMWTLHUJHQW6KKAPFDNWT66O
+#\\\|ZG2MWRKNGTPNEXGHKOFXRCYEH5OP6ATK3DTINE3BAUVZ5KZ67YZ \ / AMOS7 \ YOURUM ::
+#\[7]LOYILUPUVE6WUGIKGTEAHW2FSR6IAAECCKYXFKCZG4LXSZ2BN2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

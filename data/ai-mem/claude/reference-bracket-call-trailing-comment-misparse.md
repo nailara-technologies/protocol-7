@@ -64,12 +64,12 @@ line — move the comment elsewhere first. A comment ABOVE the whole statement
 is always safe; a comment trailing the bracket itself is not, whenever the
 args live on a following line. Grep pattern to spot existing instances:
 `<\[[a-zA-Z0-9._-]+\]>\s*##.*##\s*$` followed by a line starting with
-`->(`. Worth a sweep of `modules/` at some point — this was found by
+`->(`. Worth a sweep of `src/` at some point — this was found by
 accident during live testing, not a deliberate search, so more instances
 likely exist unnoticed.
 
-#,,.,,.,,,..,,,.,,,..,.,.,,.,,.,,,,..,...,.,,,..,,...,...,.,,,,..,.,,,..,,,.,,
-#XSEFBGS2CITS6XGKYQC5NTHD4DYA6LDORT5GHJEEJWEOT6KAKMPHBD5UHTTPKAQ677X42KABDUTSW
-#\\\|QYD2WKQDOLT5J3U55QEBNORSP2O35EIGIGNC2OTSSN4JUE2F7P2 \ / AMOS7 \ YOURUM ::
-#\[7]AOVHTSTII7S2D4WCJ57IGS4CJ7EDQMVGGIS25QR6V5PDR2MFL4DA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,,..,...,..,,,.,,.,,,,,.,..,,..,,...,...,...,.,.,..,,...,..,,
+#UQYVRMTPKH3JYTL75BII7WCEWBU7LJ4ETFXDILMBEO4HYH4YK4EG5A2D5XIKUHRTGSTNPTXDZ4NZW
+#\\\|CNZGYSRPMYM7MZ5PFMLPBNQVBA46N4C2IPZZ2Y7HVFOGPH7NMLN \ / AMOS7 \ YOURUM ::
+#\[7]BL5RX4FBF4HS6II4DIJEYNY63C2XFOIXTHG3BBG3YRC3U56LVIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

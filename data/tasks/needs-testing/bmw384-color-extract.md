@@ -68,19 +68,19 @@ return arrayref of digests whose color is within $radius of $center_color
 
 these are thin pass-throughs callable as <[base.chk-sum.bmw384.color]>->($digest):
 
-### modules/base.chk-sum.bmw384.color
+### src/base.chk-sum.bmw384.color
   calls bmw384_color( $ARG ) and returns the integer color value
 
-### modules/base.chk-sum.bmw384.angle-bits
+### src/base.chk-sum.bmw384.angle-bits
   calls bmw384_angle_bits( $ARG ) and returns the 360-char bit string
 
-### modules/base.chk-sum.bmw384.color-dist
+### src/base.chk-sum.bmw384.color-dist
   calls bmw384_color_dist( $ARG[0], $ARG[1] )
 
-### modules/base.chk-sum.bmw384.arc-segment
+### src/base.chk-sum.bmw384.arc-segment
   calls bmw384_arc_segment( $ARG )
 
-### modules/base.chk-sum.bmw384.group
+### src/base.chk-sum.bmw384.group
   calls bmw384_group( $ARG[0], $ARG[1], @ARG[2..$#ARG] )
 
 each wrapper must autoload AMOS7::CHKSUM::BMW384 via:
@@ -100,8 +100,8 @@ or load it once via <[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384').
 - no use statements or pragmas in zenka modules (wrappers)
 - AMOS7::CHKSUM::BMW384.pm may use standard Perl pragmas (strict, warnings, Exporter)
 
-#,,..,.,,,,,.,,..,,..,,,,,,,.,...,.,,,..,,,,,,..,,...,..,,...,,,.,,..,,.,,...,
-#Q5VPDZUWY4IAX3MB7W5MR7PKXILCATX7HFNPBOWYIYGWRA2ELL4OQQTQA7TMP7Z4FDBY3EPT5YFQ2
-#\\\|5PE7OCFHHMHQMV6G7TPDEGPRW74KDDOBBBC6YZVVIHW2VGHUHTR \ / AMOS7 \ YOURUM ::
-#\[7]B7JWSK6UU5ZWMPUPLQX6QDWWWGR774ZCXKTTJJIVXY5Z4Z6ZFMBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,,,.,,,,,,..,,..,,,.,.,,,.,,,..,,...,...,,..,.,.,.,.,...,...,
+#AZ4J2CPWEPKSI4UISIVAGGADMTO4HT424DEGBOMC6ADQFI5W3KSRVEJQKDYLULZMQOEJT5ME2ZXCO
+#\\\|YRDKU3ZSPXFTEXNYGD3OQCD6ZK42W64YJKWEWJPWTVFPCVX4A2K \ / AMOS7 \ YOURUM ::
+#\[7]ANLQZF7PFYTVFFNSDYTU7D5LNJEXH5L4ZUFBLALT7KSKLTCLJCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

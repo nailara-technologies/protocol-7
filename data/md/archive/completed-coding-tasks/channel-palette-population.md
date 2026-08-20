@@ -11,13 +11,13 @@ cmd.channel) separates frequency bands using the division-13-table (generator 07
 
 ## what to investigate
 
-1. read `modules/graphics-matrix.channel.init` — how are channels initialized?
+1. read `src/graphics-matrix.channel.init` — how are channels initialized?
    what data does `$data{'graphics-matrix'}{'channel'}` contain after init?
 
-2. read `modules/graphics-matrix.channel.palette` — what does it return?
+2. read `src/graphics-matrix.channel.palette` — what does it return?
    does it depend on cells being placed, or is the palette static per channel?
 
-3. read `modules/graphics-matrix.cmd.orbital-sync` — it calls:
+3. read `src/graphics-matrix.cmd.orbital-sync` — it calls:
    `my $palette_raw = eval { <[graphics-matrix.channel.palette]> } // [];`
    `$channel->{'palette'} = [ map { $ARG->{'color'}{'hex'} // '' } @$palette_raw ];`
    what format does channel.palette actually return?
@@ -44,8 +44,8 @@ c) if channel.palette returns wrong format: fix the map in orbital-sync to match
 
 do NOT add stub signature line to modified files.
 
-#,,..,..,,,,,,.,.,,..,.,.,.,,,.,.,.,.,...,..,,..,,...,...,.,,,,.,,,,,,,..,.,.,
-#Q4YUS5JTCEYNVJT5PHY4AU6NAQ2AM2Z3GLX7OPX3KXY6LBKG4KXFEYIUHVUTOSPLEB6UOONE7G43K
-#\\\|D2QO5DHDUPFCPNEYMC4HI4FIIPB4TXRE7O2CSGWLJLD6NOPJT32 \ / AMOS7 \ YOURUM ::
-#\[7]VMLQI623DLYB4UMZPIUDQQQMLZMGVJMBZJB6D26FF3IAKPQRDUAA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,..,,,,,,.,,,.,,...,.,,,,..,,.,,..,,...,...,.,,,.,,,.,,,,.,,.,.,
+#GFLS7X73A4VJQ77WKRLJQVSI7D2G4SRMJHIJGASPYKSO76QKNAGTYJC2BITFKSFMAXDP6RZPMBLFO
+#\\\|3KGXMT62ZBQAKFQBI62KRIZKQD3XNB7YWJDFTVZIKDYFGOHDGJ5 \ / AMOS7 \ YOURUM ::
+#\[7]QIHLWNATHUQSJZ5ORTERYOYTRXMA75D5N2V5LS4P6TALECWBAOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

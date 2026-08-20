@@ -18,11 +18,11 @@ of either fix** — it's a different, never-implemented code path in the same
 file that produces the same user-visible symptom (silent hang, manual UI
 intervention required).
 
-`kimi` is a P7 zenka (`modules/kimi.*`) connecting as a client to a
+`kimi` is a P7 zenka (`src/kimi.*`) connecting as a client to a
 manually-started external `kimi-web` process. Do not touch
-`modules/kimi-web.*` (separate, unrelated, immature zenka-management layer).
+`src/kimi-web.*` (separate, unrelated, immature zenka-management layer).
 
-## the gap — `modules/kimi.handler.ws_message`, lines 237-243
+## the gap — `src/kimi.handler.ws_message`, lines 237-243
 
 ```perl
 if ( $type eq qw| QuestionRequest | ) {
@@ -67,7 +67,7 @@ stuck until the user manually answered it via the kimi-web UI directly.
 
 ## what to do
 
-1. **Verify live first**: read `modules/kimi.wire.approval_respond` (already
+1. **Verify live first**: read `src/kimi.wire.approval_respond` (already
    fixed this session — TOCTOU-safe now) to confirm its signature accepts a
    `request_id`/`response`/optional `message`, same shape `ToolCallRequest`
    already uses for its reject call. Confirm whether `QuestionRequest`'s
@@ -113,7 +113,7 @@ stuck until the user manually answered it via the kimi-web UI directly.
    `devmod.cmd.eval-code` calling the handler directly with a synthesized
    `QuestionRequest`-shaped message instead). Confirm the fix sends a
    real response and doesn't just move the silent-hang problem elsewhere.
-6. No existing test harness for `modules/kimi.*` — live verification via
+6. No existing test harness for `src/kimi.*` — live verification via
    `devmod.cmd.eval-code` is the house-appropriate substitute.
 
 ## style / house conventions
@@ -128,8 +128,8 @@ stuck until the user manually answered it via the kimi-web UI directly.
 Add to `data/ai-mem/kimi/coding-style.md` and/or `data/ai-mem/kimi/
 MEMORY.md` in your own established format.
 
-#,,..,,,.,,..,,,,,...,.,,,,,,,..,,...,...,.,.,.,.,...,...,...,.,.,,.,,,,.,.,.,
-#NT5IWGOKJNPFLZSJSD7FHJO7MQYLMDTTZFSGSMTM5VOLT3VP2G7TXWH3LQDFITHNTYW2FNCWE3WEO
-#\\\|HAXG2TFLKYJMFUOMODOTFTOOIPZLEIXXTAP26DJZXU2ZCYGNFBK \ / AMOS7 \ YOURUM ::
-#\[7]JDEVAYFMMMR6FXGVJDPQ7XIBLYBXX5FP47JQO5SPTDGX7NU36SDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,,,,,.,,,,.,,..,,...,,,.,..,,.,.,...,..,,..,,,,,,,,.,.,,,...,
+#VZYY76ULWV4ESROY75AU4D3NVWMBHNIN7YCNP4RRVJTYJSNSWYALZ2TW23RDUTC6GR4TEARDVFPDM
+#\\\|EZ242AEM2BJNUKO3LMYZPKRQ44RHVPRUC6DSSXPM2DSAKACXSC5 \ / AMOS7 \ YOURUM ::
+#\[7]ACYJCQUDW22RD5VHVIJDLFRATE37TREZSFBLBZYQCVMAXUDXBIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

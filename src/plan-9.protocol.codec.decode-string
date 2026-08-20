@@ -1,0 +1,11 @@
+## [:< ##
+# name  = plan-9.protocol.codec.decode-string
+my ($data) = @ARG;
+my $len = unpack( 'v', substr( $data, 0, 2 ) );
+return ( substr( $data, 2, $len ), substr( $data, 2 + $len ) );
+
+#,,,,,,.,,,..,,,.,.,.,,,.,,..,,..,,.,,,.,,,,.,.,.,...,..,,,.,,.,.,,..,.,.,,.,,
+#CJNUUXQDGICYG6UT6SALN4UVTUORWJ36LCGZ2KDQ24LFJJ37MXFLKZT2QR523KXMR4REJABPORL5Y
+#\\\|AP56OR7FAMQRQZ35YBJCL5LUYPAUPNEN5VNZ25V66TB7VL5NOCQ \ / AMOS7 \ YOURUM ::
+#\[7]4XYLVRMWGH7ZTU2AGP32E3M3RXARIEYIGVWNEYKZQNVJAE5KEMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

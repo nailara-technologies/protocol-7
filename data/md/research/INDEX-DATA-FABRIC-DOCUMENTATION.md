@@ -278,7 +278,7 @@ data/yaml/
 
 ### Implementation (Modules)
 ```
-modules/
+src/
 ├── protocol-7-menu.menu-structure-init
 ├── protocol-7-menu.structure-changed
 ├── protocol-7-menu.cmd.menu-update
@@ -294,10 +294,10 @@ modules/
 ## 🔄 Related Systems
 
 ### Already Implemented
-- **Hash Watchers**: `modules/base.event.add_var`
-- **Timestamps**: `modules/base.cmd.timestamp`
-- **Event Loop**: `modules/base.event.*`
-- **Protocol-7-Menu Reference**: `modules/protocol-7-menu.*`
+- **Hash Watchers**: `src/base.event.add_var`
+- **Timestamps**: `src/base.cmd.timestamp`
+- **Event Loop**: `src/base.event.*`
+- **Protocol-7-Menu Reference**: `src/protocol-7-menu.*`
 
 ### In Development
 - **Remote Mounting**: `<[event.mount_remote_branch]>` (foundation ready)
@@ -607,8 +607,8 @@ Complete Vision:
 **Last Updated**: 2026-01-25 (Ultimate Vision: Cubic Hyperspace as Unified Desktop)
 **Status**: COMPLETE ✨✨✨ - All nine layers, complete unified ecosystem vision, trust mechanisms, visual habitat self-organization, holographic desktop interface, concepts, scenarios, and advanced architectures fully documented. The cubic space IS the interface. The interface IS the operating system. Everything visible, nothing hidden. (Ready for implementation and testing)
 
-#,,.,,...,.,.,.,,,.,.,,.,,...,,.,,,.,,,.,,,,.,..,,...,...,,.,,..,,...,.,,,..,,
-#64MLX3D4OVBI3SZ2PE7HABBNOARNOXVWOVRIFSO2EZEGFWE367XFIBWIK6ZRVJWY7NLYPNPCPYSTE
-#\\\|MRS2BJSM4ICR67HFP2XVBNRUDE4VEG5LRSPB4DZ4VLUYS3OBI2G \ / AMOS7 \ YOURUM ::
-#\[7]CPAWRQVTKIIFBBC7UBKLI6RZFELPVRLBHR4RRBUFFUMYLCU4GQCY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,..,...,.,.,.,,,,,,,,..,..,,..,,...,..,,...,,.,,.,,,.,.,..,,
+#536GJESBXKF4YW4GTMT75NZGBHQGUCKPEQ2CFY36NLHR6T63MJPCKDTBLW7WUI3JMOASAZGZ7ZRMW
+#\\\|GH74FPF3AUTMUSIS7QU434JGGQDDOIIQV55UJOXNUGRPXMSZMFD \ / AMOS7 \ YOURUM ::
+#\[7]PF76MCPVZHXI73BWKBDCWOZZJQOA6Q6BMYOGPMTO2VBQB4LRKOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

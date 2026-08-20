@@ -6,7 +6,7 @@
 **agreed as the intended default presentation** for the audio-icon
 pipeline going forward — not just an optional extra. deferred / not
 started as an implementation: `povray.init_code` is currently just a
-stub (`modules/povray.init_code`), and `data/pov/` only has three
+stub (`src/povray.init_code`), and `data/pov/` only has three
 water-surface test scenes (`water.000.pov`, `water.000.1.pov`,
 `water.001.pov`), no cylinder template yet. the flat-square 3-stage
 pipeline (`render_style` + `post_process` + `overlay.waveform_trace.v1`)
@@ -148,8 +148,8 @@ new module *extracts* the waveform back out for povray's texture input
 4. if waveform-only is chosen, build the `graphics-matrix.filter.alpha`
    extraction step feeding into it.
 
-#,,,,,,..,..,,,.,,.,,,..,,.,.,,,,,.,.,,..,.,,,..,,...,...,.,.,,,.,,,.,,.,,..,,
-#2NBVQMT3WEZ2IPG34L3QGUIQQJCP3EPWAC2655UKVV6JC4SAA3UTR2BOV25GGP34T6VO2KMG6SWHC
-#\\\|HIQWSZB4NNTDQ2WETNOMNUK7QLOOMHQJZ6PKXMDX5ELYXXPFLSB \ / AMOS7 \ YOURUM ::
-#\[7]H42LSZ3K3GEYWIGRM2FNY3Q32YJFENBKQBW2CJTWV3LI4UZQFABA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,,,.,,,.,,,,..,,,.,..,,..,,.,,,..,,...,...,..,,,..,,.,,.,,,,,.,
+#MEF6NZWAOZXPO3RRVOZ4FBYESBIHE225ZJ4OMOKFWWHU7X5RL5CXFH3VOCDVQO5LIEFS4HLSD5E22
+#\\\|YYRPNZEECDNDFEZYXWYCBE2QOA7HOP3UZE7J2N6JWB243EVUSC5 \ / AMOS7 \ YOURUM ::
+#\[7]OH6CD7CKNYOUWGZLCTE7DYZTLXYWCYYSX6UGOOWO2PYNDJZPU6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

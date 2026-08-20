@@ -14,7 +14,7 @@ ncode s src:base.stdio sub _
 
 ## the gap
 
-`modules/base.stdio.frame.encode` defines 5 inline helper subs after
+`src/base.stdio.frame.encode` defines 5 inline helper subs after
 its `return $out;` [ lines ~109-186 ]:
 
 - `_pack_nibble( $payload, $sep )`
@@ -23,7 +23,7 @@ its `return $out;` [ lines ~109-186 ]:
 - `_encode_byte_pack( $bytes )`
 - `_serialize_meta( $header )`
 
-`modules/base.stdio.transport.emit` defines one inline helper:
+`src/base.stdio.transport.emit` defines one inline helper:
 
 - `_stdio_transport_disconnect( $socket, $reason )` [ near top of
   file, ~line 36 ]
@@ -98,8 +98,8 @@ subroutine whitelists. lowercase comments, `[ word ]` annotations,
 keep `# descr =` lines under 55 chars [ split to a second `#` line
 if needed, but keep each line under 55 ].
 
-#,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
-#BNO6YBXQXA4ELGRZLRP62YKU6PFHTSV75OURTBNBH5IDOWEIAVIH3YLDFI3HU7YGLIVF7FGZC46EG
-#\\\|R7C6EM5JJQZZJTLIQEQT7DYJ46OGESHEIPW3CJ4KKGJTNGWXF3Z \ / AMOS7 \ YOURUM ::
-#\[7]3DGSYYN2ULDKYOUSU42BKGVY27VW2GKYF6NYTBTWLW4CB4BEP4CI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,..,,,,.,,.,,,..,.,,,,.,,,.,,.,.,...,...,..,,..,,,..,,,.,.,.,
+#VXCU6UDDJ3ZSPSHYVID754HDYKTGVOUTC5PR2N2REY4XHCRWYWXRVWT2R2V4T6CCA6YWIUX35DUOG
+#\\\|274H6PD6PDMGX7BGPIUKEBCAACLZEKLEKQGFCDDXZ4YPJZZ3KDU \ / AMOS7 \ YOURUM ::
+#\[7]PJUHUVTZJSYW6ZSVG24DT54RUEJN2QDO2ZH6N4GRJASXQPUWN6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

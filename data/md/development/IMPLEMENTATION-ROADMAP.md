@@ -382,8 +382,8 @@ sub-topics:
                [ task: pending ]
 ```
 
-**reference:** modules/sourcecode.console.regen-checksum-symlinks
-             modules/sourcecode.console.undo-checksum-symlinks
+**reference:** src/sourcecode.console.regen-checksum-symlinks
+             src/sourcecode.console.undo-checksum-symlinks
              data/md/design/NETWORK-RESOURCE-TOKEN-ARCHITECTURE.md
 
 ---
@@ -787,8 +787,8 @@ the desirable will be supported automatically.
 
 =)
 
-#,,,.,,,,,.,,,,.,,,,,,,.,,..,,.,,,.,.,,,.,,,.,..,,...,...,,..,,,,,,..,...,,.,,
-#OOJTHVWYFC5YWTZJXLVCKEDQ7OOO3EKKCBGUFBS6GK4YHPREQU6RZYGCPS777SUQQ6SE42TZXGVQC
-#\\\|DB2UK62ELLHANFIQQCGXGB4RNUXLZIHFC27RNZGYCLCMQURW423 \ / AMOS7 \ YOURUM ::
-#\[7]D6OFZDXNDZTEC4M72IKQUDD5XTTC4RZBA4DQ6PY2MJ4UYRPWEICY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,.,,,..,,,..,.,,,,,,,,,,,..,,..,,...,...,.,.,,.,,.,,,,,,,,,.,
+#5DAPTZE5M334MJLEMH4URKYPLXQBDWLGTEX6W4QQDPSFU7NSY5LPNYZECDUD4ZE6G5SWGS2VHKL5E
+#\\\|FOOPLWUP2VLPQYBUFLW7AJRIEUD6EUXQDHGEG3ZWSVQEFPDSEEL \ / AMOS7 \ YOURUM ::
+#\[7]RFSMAIVEZTI4QUEEDDFWOKJ7SGNRNT6PYKWMHBZMRP2C3LOSRAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@
 
 ## context
 
-`modules/base.parser.list` has carried a TODO since at least 2016:
+`src/base.parser.list` has carried a TODO since at least 2016:
 
 ```perl
 # todo = fix alignment [width] bug. [ex0:ex1 case]
@@ -72,8 +72,8 @@ test cases:
 - [ ] TODO comment removed or updated
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,,,,,.,,,,,,.,,..,,,,,,,,,,,.,,,,.,..,,...,..,,...,...,.,.,,,,,,,.,.,.,.,,,
-#23GDR4U37SIHLSQGCB5NLHORIYTIBUA42MUTFZZEZDCCTOOLHZANT62IPGVXP2OWSP6532FMMOSNK
-#\\\|2ADO6I7PKASRT7NG4G532267D6KWWLBTFSYX2H66DZJ477FI6EP \ / AMOS7 \ YOURUM ::
-#\[7]MA7SY6PFTSXUQGL4ZXZTPR4FM6NCKM27QXQ3AEQP7SLRTBXIQ4BI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,..,,,,,.,,,,..,..,,..,,.,,,..,,..,,...,...,...,,,.,,.,,,,.,,.,,
+#37HEVT67SJFXK53KOHOE7LBIO4BEOLGQSZI4SS2S66IWBAY3CMKUTTUJIR6XYJGYL56OLK44LL34G
+#\\\|CPMJHIGIJHNZCRC43SC4EUAZD556QO6GAGXQOSNPFYULCE2XU2R \ / AMOS7 \ YOURUM ::
+#\[7]PRDLFGEFUPJDPSYGCFBGRM6PLQBCNQY4CXZWU5E7VNPRGIM4ZOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

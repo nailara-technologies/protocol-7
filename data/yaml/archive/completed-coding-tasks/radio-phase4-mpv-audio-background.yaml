@@ -27,20 +27,20 @@ task:
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
 
   existing_modules_read_first:
-    - modules/mpv.open_player
-    - modules/mpv.callback.start_reenc_msg
-    - modules/mpv.handler.reenc_notify_reply
-    - modules/mpv.cmd.add_file
-    - modules/mpv.cmd.fade
-    - modules/radio.init_code
-    - modules/radio.handler.stream-chunk
-    - modules/radio.gap_fill.start
-    - modules/protocol-7.route-send
+    - src/mpv.open_player
+    - src/mpv.callback.start_reenc_msg
+    - src/mpv.handler.reenc_notify_reply
+    - src/mpv.cmd.add_file
+    - src/mpv.cmd.fade
+    - src/radio.init_code
+    - src/radio.handler.stream-chunk
+    - src/radio.gap_fill.start
+    - src/protocol-7.route-send
 
   ##  step 1: one-line fix in mpv.open_player  ##
 
   fix_mpv_open_player: |
-    file: modules/mpv.open_player
+    file: src/mpv.open_player
 
     current lines 17-20:
       <mpv.audio_only> = TRUE
@@ -59,13 +59,13 @@ task:
   ##  step 2: new modules  ##
 
   files_to_create:
-    - modules/radio.audio.init
-    - modules/radio.audio.handler.player_online
+    - src/radio.audio.init
+    - src/radio.audio.handler.player_online
 
   files_to_modify:
-    - modules/mpv.open_player
-    - modules/radio.handler.stream-chunk
-    - modules/radio.init_code
+    - src/mpv.open_player
+    - src/radio.handler.stream-chunk
+    - src/radio.init_code
     - cfg/zenki/radio/zenka-startup.v7
     - cfg/zenki/radio/start
     - cfg/zenki/cube/access.zenki
@@ -83,7 +83,7 @@ task:
   ##  module: radio.audio.init  ##
 
   module_audio_init: |
-    file: modules/radio.audio.init
+    file: src/radio.audio.init
     descr = start mpv[audio-0] background player via v7 on-demand
 
     called from radio.init_code via a timer (after 2.0s, one-shot).
@@ -117,7 +117,7 @@ task:
   ##  module: radio.audio.handler.player_online  ##
 
   module_player_online_handler: |
-    file: modules/radio.audio.handler.player_online
+    file: src/radio.audio.handler.player_online
     descr = v7.notify_online reply: load stream URL into mpv[audio-N]
 
     fired when mpv[audio-N] comes online. increments online_count.
@@ -260,7 +260,7 @@ task:
 
   caveats: |
     1. mpv[audio-0].set_volume — check if 'set_volume' is the correct command
-       name. see modules/mpv.cmd.set_volume for the exact name. the mpv start
+       name. see src/mpv.cmd.set_volume for the exact name. the mpv start
        file lists 'set_volume' in access.cmd.usr.cube so it exists.
 
     2. v7.zenka.cmd.start resolves config for mpv[audio-0] using the base
@@ -274,7 +274,7 @@ task:
        which means only one mpv instance at a time. since we need a subnamed
        audio-0 instance alongside a potential regular mpv, either raise
        max_concurrency = 2 or rely on max_subname_concurrency = 1. read
-       modules/v7.zenka.cmd.start lines 93-146 for the exact logic.
+       src/v7.zenka.cmd.start lines 93-146 for the exact logic.
 
     3. do NOT add set_volume to cube access for mpv[audio-0] by name if the
        route already matches via mpv wildcard entry. check cube/access.zenki
@@ -283,8 +283,8 @@ task:
     4. <radio.audio.current_vol> must be kept in sync if the user later
        changes volume interactively. for now it is set once at startup.
 
-#,,,,,,,.,.,.,...,,.,,,..,..,,,.,,,,,,..,,,,.,..,,...,...,...,,,.,.,.,,.,,,.,,
-#OZQ62POM2Q3TXAQN4VVSDOHDEAIVCUABVCKQDS73WE2XOTDUBOQPIUCJGUV2FFZI76T6UETP37KE2
-#\\\|CV2BLBPV5ZNRSHXB3LMQIV75GMJRCTY7LWH7IXIRRIEU25FC3WX \ / AMOS7 \ YOURUM ::
-#\[7]XU3U7EB7NYLGDEOBLPSFWWJMQWSCLJXUS2MAQWR66BEIXDZN4ICQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,,.,,,..,,,.,,..,,,.,,..,,.,,..,,...,...,..,,,..,...,,.,,..,,
+#C4QJT5HTP72SPKYA7JKUP77VS7C4W36WOXPUZOZXGDAUWCZX4UDRTLRT5SDMCWDCX3VOCCBXEF5XG
+#\\\|LOF53MWCL7L7D4GGY6AX4HMJBXLRXXWOER6V3N7AXBZNL6QYBTG \ / AMOS7 \ YOURUM ::
+#\[7]2YTZPCZ4BM3LNMQT26QLORCL3WZPNSXEUQWEJROPWD5GBOZXTGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

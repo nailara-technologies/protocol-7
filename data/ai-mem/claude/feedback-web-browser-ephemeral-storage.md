@@ -8,8 +8,8 @@ metadata:
 ---
 
 `cfg/zenki/web-browser/zenka-startup.v7` sets `cfg.ephemeral = 1`
-(and `modules/web-browser.init_code` defaults it to 1 even if unset). This
-makes `modules/web-browser.open_window` construct a
+(and `src/web-browser.init_code` defaults it to 1 even if unset). This
+makes `src/web-browser.open_window` construct a
 `Gtk3::WebKit2::WebsiteDataManager->new_ephemeral` context — a
 private-browsing-style profile where localStorage, cookies, and IndexedDB
 all live in memory only and are **wiped the instant the zenka process
@@ -37,8 +37,8 @@ investigated) or don't rely on this browser for it; a real Firefox/other
 non-ephemeral browser session is a separate, persistent client of the same
 sync API and unaffected by this.
 
-#,,,.,.,,,,..,,,,,,.,,,.,,,.,,,.,,...,,,,,...,..,,...,...,.,.,...,...,..,,...,
-#R43S5XG3LXPBHYKGNBLFN2R3HIAVW5I5N6Y6X3HSXGUVRBJ3AL2BODMHEK7NBM3O7GDX4445QHHQK
-#\\\|OIBVHFW44SEK2AZZZ6RAEAKXZH5VGPRVQTZ4JHKXYV3HUPYTHPD \ / AMOS7 \ YOURUM ::
-#\[7]ZK5OAYWYCZ5UJ7EHBRFHDGFCXQBLFX25WJF56KCZ6GKH6QESIACI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,,,.,..,,,.,,,.,,,,,,,.,,.,,,..,,...,...,..,,..,,.,,,...,,,.,
+#WP7XYVLH3EUIEXRHCSPQH3PHKIOIASI52VFAXZ5DXKDUQXDR2UBP5IZH46W6Y57ZS3FJ2C5V6J4IO
+#\\\|WQZCEF5AD7LHLFVX4NIML7QP232ZYDB3UTSMXSWZWN3BTZSPBMV \ / AMOS7 \ YOURUM ::
+#\[7]MIA4L4TKWDFVZT54VNMNESI43S4IEIPKBVLMLMX7Y622346GCGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

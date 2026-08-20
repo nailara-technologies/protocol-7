@@ -5,7 +5,7 @@
 
 ## context
 
-`modules/ticker.cmd.reread_config` begins with an unconditional return that
+`src/ticker.cmd.reread_config` begins with an unconditional return that
 disables the command entirely:
 
 ```perl
@@ -27,7 +27,7 @@ the human will run it manually. do not add or modify subroutine whitelists.
 
 ## fix 1: remove disabling return
 
-file: `modules/ticker.cmd.reread_config`
+file: `src/ticker.cmd.reread_config`
 
 remove:
 ```perl
@@ -65,8 +65,8 @@ if a bug appears, fix it before declaring the command stable. common candidates:
 - [ ] repeated reloads do not leak memory or crash
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,,.,,,.,,,,.,,,,,.,.,,.,,,,,,,..,..,,,,,,..,,...,...,,..,.,.,,,.,,,.,,,,,
-#SJJL4QW5IDOCY4GYT2OUY3W3MNXIGC4MEOMQV7VZ3YKOEZFABRWKD4U2VWHWC7HULSTQAIWPZ4LCI
-#\\\|Z2MYQJDRRSVKLWAXWBUTNSARTCTGOA23ZP4JTTEHAMR7BCSQ63Y \ / AMOS7 \ YOURUM ::
-#\[7]72UXS25NJNEARYAWKSWN5LDPZ7U5E3DXT57L2WBJFJE44SIFH2AY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,,.,,,..,...,,.,,,,,,,..,,..,..,,...,..,,..,,...,...,,,,,,..,
+#QJNMQPTMHB5I2VJPJSCJKSL63WLAJKSCVRAQXFQDBFK7UVLNYH3FAHP562B2OWVJW7UHX4RGHMFC2
+#\\\|AX3EJXVHMPOUPQGFGI54DZOF6CVTOYZ3LOO5RDWH626OXSNE6JB \ / AMOS7 \ YOURUM ::
+#\[7]B4EC665W7KBROUL3TE2SSUNLCOC2PD4464BIYCZBIMCLPTX7YMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

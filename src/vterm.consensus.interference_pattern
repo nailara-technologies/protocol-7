@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = vterm.consensus.interference_pattern
+# descr = calculate sub-visible interference pattern from totals
+
+my ( $tr, $tg, $tb ) = @ARG;
+
+## sub-visible: the blur represents dissent  normalize -35..+35 (7 layers ×
+## ±5) to 0..255
+my $normalize = sub {
+    my $val = shift;
+    my $max = <vterm.consensus.layers_typ> * <vterm.subbit.threshold>;   ## 35
+    return int( 127.5 + ( 127.5 * $val / $max ) );
+};
+
+return [ $normalize->($tr), $normalize->($tg), $normalize->($tb), ];
+
+#,,,.,,.,,,..,,,.,.,,,.,,,,,,,,..,..,,..,,,,.,..,,...,...,...,,,.,.,.,,,.,...,
+#TEGKS3FCVM2OJARZ4YML5N6LOQQPY5VWOTD2I3YN4NEQVQAHSNH7QI4WZS653L7VRODVLMN56XJVI
+#\\\|J5PFVENYH2275P5UBSEBEGE5XSGQPACDNDFMFFCDPO5FZCQQBSD \ / AMOS7 \ YOURUM ::
+#\[7]4BZSRYN32ISIVRFQTSMDQA25LTNILNLIXUTU7QNYESG3UZWRWQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

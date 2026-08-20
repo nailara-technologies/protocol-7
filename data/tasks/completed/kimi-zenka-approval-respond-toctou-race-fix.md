@@ -10,7 +10,7 @@
 
 This is a follow-up to `data/tasks/kimi-zenka-approval-reconnect-
 disassociation-fix.md` (already fixed and deployed, staged/committed
-separately) — that fix addressed `modules/kimi.flush_on_acquisition`
+separately) — that fix addressed `src/kimi.flush_on_acquisition`
 never being called on reconnect, for requests that were still genuinely
 *pending* (never yet approved/rejected). **This task is a different,
 deeper bug in the same area**, found live this session: it happens even
@@ -19,14 +19,14 @@ which is why the user kept hitting "user has to open the web-UI to
 nudge it" even when nothing should have been sitting pending for manual
 review.
 
-`kimi` is a P7 zenka (`modules/kimi.*`) connecting as a client to a
+`kimi` is a P7 zenka (`src/kimi.*`) connecting as a client to a
 manually-started external `kimi-web` process over websocket. Do not
-touch `modules/kimi-web.*` (separate, unrelated, immature zenka-
+touch `src/kimi-web.*` (separate, unrelated, immature zenka-
 management layer).
 
 ## root cause found this pass — TOCTOU in `kimi.wire.approval_respond`
 
-`modules/kimi.wire.approval_respond`:
+`src/kimi.wire.approval_respond`:
 
 ```perl
 unless ( <kimi.ws.connected> and defined <kimi.ws.socket> ) {   # line 13
@@ -55,7 +55,7 @@ task showed reconnects on the order of seconds during normal operation),
 `websocket.send` either fails silently or the write is lost, but
 `<kimi.approval.responded>` already believes it succeeded.
 
-The consequence, traced through `modules/kimi.handler.approval_request`:
+The consequence, traced through `src/kimi.handler.approval_request`:
 
 ```perl
 <kimi.approval.responded> //= {};
@@ -80,7 +80,7 @@ get marked as delivered anyway).
 ## what to do
 
 1. **Verify live** before fixing, same discipline as the prior task: read
-   `modules/websocket.send` to confirm what it returns on a genuinely
+   `src/websocket.send` to confirm what it returns on a genuinely
    failed/half-closed-socket write (not just the already-checked
    disconnected case) — does it return undef, 0, or throw? Confirm the
    TOCTOU window is real and not already guarded some other way you
@@ -88,7 +88,7 @@ get marked as delivered anyway).
 2. Fix: reorder so `<kimi.approval.responded>` is only set (in memory)
    and persisted (to disk) **after** confirming `<[websocket.send]>`
    returned a real success value (a defined, truthy byte count — check
-   what `modules/websocket.send` actually returns on success to pick the
+   what `src/websocket.send` actually returns on success to pick the
    right truthiness check, don't assume). On send failure: do NOT mark
    responded, log at level 0 (this is a real failure, not routine), and
    leave the request recoverable — check whether it needs to go back
@@ -119,7 +119,7 @@ get marked as delivered anyway).
    narrow window between an approval decision and its send, do so to
    directly exercise the race; otherwise document clearly what you were
    able to confirm vs. what remains theoretical.
-6. No existing test harness for `modules/kimi.*` (confirmed in the prior
+6. No existing test harness for `src/kimi.*` (confirmed in the prior
    task) — live `eval-code` verification is the house-appropriate
    substitute; don't invent a new test style.
 
@@ -138,8 +138,8 @@ Add to `data/ai-mem/kimi/coding-style.md` and/or `data/ai-mem/kimi/
 MEMORY.md` in your own established format, same as any other task
 instruction.
 
-#,,.,,...,..,,,,,,.,,,.,.,.,.,,..,..,,.,.,,,.,.,.,...,...,..,,,,,,...,.,.,,,.,
-#HSOXYNTOFS47BV6WGDY5L5BJXFKH63DVYQE22NCN3N6HFMDOLFGZHEDHOSNF3AJOFCRLGFQDEAAWE
-#\\\|UYBYVH4PPIYEODHK4U7MD6AXB2ZS3X2P74AHBRVBLNJI7CGZZO2 \ / AMOS7 \ YOURUM ::
-#\[7]7GUJBQAILZL4QXX6I52UZVX2CHE54MM7ML35RCJQUEI734GAYKCI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,.,.,...,,.,,,..,,,.,.,.,,..,.,.,...,...,.,.,,,,,,,.,...,,,,,
+#CO5JG6JNK472COOA6GHKAVS7YMJCKSYI35GGD6AY64SV6ETOCPZDCUDTIOQYLBANRXY5TOGBCAR5S
+#\\\|OPZ5H22AXNNFAQNDJ3GPA45KDPTAGTCJNURQONSN4IUZAYNUM6Y \ / AMOS7 \ YOURUM ::
+#\[7]LODU4UT6NQOS55QNPOYWFGO5PTRWNN7L2GNR4ICZ2X5IPQKSSGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -83,7 +83,7 @@ my $task_b = {
     description => 'Update API docs',
     dependencies => {
         logical => ['task-api-changes'],  # Wait for task-id
-        files   => ['modules/new_api.pm'], # Or file existence
+        files   => ['src/new_api.pm'], # Or file existence
     },
 };
 
@@ -486,8 +486,8 @@ When multiple tasks waiting:
 4. Implement Phase 2 (non-blocking HTTP)
 5. Benchmark vs blocking implementation
 
-#,,..,.,,,,,,,.,,,,..,,,,,...,,,,,...,,.,,,..,..,,...,...,,.,,,,.,..,,,.,,,.,,
-#VTTELJXRHO3JIGPA3HACMCNR5T4555VFLQT7RRCKX67TQPASSNSBAOGA642VYDS5FUW5NHSSB3UJA
-#\\\|R5O6IUCODSL4THLYKOFOK5PZ4COF7BE4B2PQIB6DUX4S5CWUGPY \ / AMOS7 \ YOURUM ::
-#\[7]HICJNY7UQ247OEEOTWJJFICT72AWR4OAGQTLAFA3WZRYNPI5COCY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,..,,..,.,.,.,,,...,..,,..,,,.,,..,,...,...,,,.,,.,,,,.,,,.,,,,,
+#LYQYTAK5XEWXNA5BRSLB3YVHK4NZJLL5NIFFMUUBNYIBGD5354UV6CSMAOBOMYMZXHTTFW6ND2TIU
+#\\\|FOHZRZ3BO37GJFVJYZ6A2VJ6BL4VV5BXRNXEEQT46GCZDON7GDN \ / AMOS7 \ YOURUM ::
+#\[7]B4S3IF76CA7ATUKBG4Q4Y4DHLTAEWRMZ3KS37LCMCXSJWSG2GWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

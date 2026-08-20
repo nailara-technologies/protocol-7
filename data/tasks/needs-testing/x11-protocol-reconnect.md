@@ -15,7 +15,7 @@ cat data/ai-mem/kimi/topic-zenki-creation-guide.md
 
 ## context
 
-`modules/X-11.post_init` lines ~135-148 registers a custom X11 error handler
+`src/X-11.post_init` lines ~135-148 registers a custom X11 error handler
 but the reconnect call is commented out with an LLL marker:
 
 ```perl
@@ -27,7 +27,7 @@ on X11 protocol error the handler logs and returns — the next X11 call then
 dies, causing the zenka to exit. v7 restarts the zenka, which restarts the X
 server, disrupting all running X11 applications.
 
-`modules/X-11.connect_X11` already retries indefinitely on initial connection —
+`src/X-11.connect_X11` already retries indefinitely on initial connection —
 the retry infrastructure exists and needs to be extracted into a shared module.
 
 design reference: `data/md/development/X11-RELIABILITY-AND-WINDOW-REGISTRY.md`
@@ -43,9 +43,9 @@ do not add or modify subroutine whitelists — these are managed separately.
 ## what to read first
 
 ```bash
-cat modules/X-11.post_init           ## find the LLL error handler (lines ~135-148)
-cat modules/X-11.connect_X11         ## existing retry loop to extract from
-cat modules/X-11.init_code           ## cfg defaults pattern
+cat src/X-11.post_init           ## find the LLL error handler (lines ~135-148)
+cat src/X-11.connect_X11         ## existing retry loop to extract from
+cat src/X-11.init_code           ## cfg defaults pattern
 cat cfg/zenki/X-11/start   ## where to add new cfg keys
 ```
 
@@ -53,7 +53,7 @@ cat cfg/zenki/X-11/start   ## where to add new cfg keys
 
 ## fix 1: add cfg defaults in init_code or start
 
-file: `modules/X-11.init_code` or `cfg/zenki/X-11/start`
+file: `src/X-11.init_code` or `cfg/zenki/X-11/start`
 
 add reconnect configuration defaults:
 ```perl
@@ -67,7 +67,7 @@ check where other X-11 cfg defaults live and add there consistently.
 
 ## fix 2: new module X-11.reconnect
 
-new file: `modules/X-11.reconnect`
+new file: `src/X-11.reconnect`
 
 extract and generalise the retry loop from `X-11.connect_X11`:
 
@@ -132,7 +132,7 @@ at how `X-11.connect_X11` handles the wait between retries and match the pattern
 
 ## fix 3: wire the error handler in post_init
 
-file: `modules/X-11.post_init`
+file: `src/X-11.post_init`
 
 find the error handler block (~line 135-148). replace:
 ```perl
@@ -151,14 +151,14 @@ the LLL comment and commented-out line should both be removed.
 
 ```bash
 ## check LLL is gone:
-grep -n 'LLL\|reconnect here' modules/X-11.post_init
+grep -n 'LLL\|reconnect here' src/X-11.post_init
 ## expected: no matches
 
 ## check new module exists:
-ls modules/X-11.reconnect
+ls src/X-11.reconnect
 
 ## check error handler calls reconnect:
-grep -n 'reconnect\|error_handler' modules/X-11.post_init
+grep -n 'reconnect\|error_handler' src/X-11.post_init
 ```
 
 ## success criteria
@@ -172,8 +172,8 @@ grep -n 'reconnect\|error_handler' modules/X-11.post_init
 - [ ] sleep/timer approach matches existing event loop pattern
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,.,,,.,,,..,..,,.,.,,,,,,.,,,..,.,.,,,.,,..,..,,...,...,.,,,..,,,,.,...,,..,
-#AVFWH5SYEFCMSBPPKEK5BZYHG65L7IIXCXXWMA5YB7PUZB35KY25QPR35PZJEDPS6CSORRZXOGUVY
-#\\\|PDSER2K522Z65O4DRCNLHI4PHLWJK6W5VKBHB7RS462RZK72MKK \ / AMOS7 \ YOURUM ::
-#\[7]Q5YNW7X5REM42LPD6VZFVFNY6OCLWWKQXC4EFRDYJZJ2FSRJTMAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,,.,,.,.,..,,.,.,.,,,,.,,,..,..,,...,...,,,.,...,,,,,,,,,,,.,
+#4TLMZMJNBPINCFXJILAIHTTMTFJTK7K27GVY2AUTF5GE3ZF2IEKFWJB2HZF62FUFMW6LPWNDLWWQ2
+#\\\|ZGI5LI6CG2GPP6PEWGVCWL7GORBWRUKE4CLAIQPQCM2HEBLI7GE \ / AMOS7 \ YOURUM ::
+#\[7]NARPK25M6YLUAUJ5XKNZOFV7TV7Q2RXL6NF5NIPFCWGS5WBDEYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

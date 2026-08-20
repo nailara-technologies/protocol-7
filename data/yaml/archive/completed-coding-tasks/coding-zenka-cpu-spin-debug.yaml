@@ -3,10 +3,10 @@ name: coding-zenka-cpu-spin-debug
 descr: investigate and fix 100% CPU spin in coding zenka event loop
 impact: critical
 affects:
-  - modules/coding.handler.*
-  - modules/coding.async.*
-  - modules/coding.tool.*
-  - modules/coding.cmd.wait-done
+  - src/coding.handler.*
+  - src/coding.async.*
+  - src/coding.tool.*
+  - src/coding.cmd.wait-done
 
 ## symptom ##
 # coding zenka process pegs one CPU core at ~100%
@@ -23,12 +23,12 @@ affects:
 # no error logged — silent transition into spin state
 
 ## known while loops in coding zenka (candidates) ##
-# modules/coding.cmd.wait-done          line 27  while(1) + event.once(0.5)  -- safe
-# modules/coding.handler.drain_pipe     line 24  while(1) + sysread           -- safe
-# modules/coding.handler.http_io        line 127 while buffer regex           -- SUSPECT
-# modules/coding.handler.http_poll      line 116 while buffer regex           -- SUSPECT
-# modules/coding.handler.process-queued-task line 204 while tool_round       -- SUSPECT
-# modules/coding.handler.inference_server_sigchld line 14 while waitpid      -- low risk
+# src/coding.cmd.wait-done          line 27  while(1) + event.once(0.5)  -- safe
+# src/coding.handler.drain_pipe     line 24  while(1) + sysread           -- safe
+# src/coding.handler.http_io        line 127 while buffer regex           -- SUSPECT
+# src/coding.handler.http_poll      line 116 while buffer regex           -- SUSPECT
+# src/coding.handler.process-queued-task line 204 while tool_round       -- SUSPECT
+# src/coding.handler.inference_server_sigchld line 14 while waitpid      -- low risk
 
 ## investigation approach ##
 #
@@ -60,20 +60,20 @@ task: |
 
   ## your investigation steps ##
 
-  1. read modules/coding.handler.http_io and modules/coding.handler.http_poll
+  1. read src/coding.handler.http_io and src/coding.handler.http_poll
      — focus on the while-regex buffer loops. can they spin if the regex
      matches an empty string or the buffer contains malformed data?
 
-  2. read modules/coding.handler.process-queued-task around the INFERENCE_LOOP
+  2. read src/coding.handler.process-queued-task around the INFERENCE_LOOP
      (line 204). map all exit conditions. is there any path where $tool_round
      never increments and the loop runs without yielding properly?
 
-  3. search for all AnyEvent watcher registrations (io/timer) in modules/coding.*
+  3. search for all AnyEvent watcher registrations (io/timer) in src/coding.*
      list each one and check: is it guaranteed to be cancelled when done?
      a watcher that fires continuously on a readable-but-empty fd is a classic
      spin source.
 
-  4. check modules/coding.async.state_machine — is there any timer or io watcher
+  4. check src/coding.async.state_machine — is there any timer or io watcher
      that could get stuck firing without consuming data or advancing state?
 
   5. for each suspect found: propose a specific fix — either a cancellation guard,
@@ -90,8 +90,8 @@ task: |
 
 #,,,,,,,.,.,.,,,.,.,,.,,.,.,,.,,,,,.,.,,,,..,,..,,...,...,.,.,,,..,,.,.,,,,.,
 
-#,,..,...,.,.,,.,,,.,,,,,,,,,,..,,,,,,.,.,...,..,,...,...,,,,,.,.,...,.,,,.,.,
-#ELBVPYM6DSFU2WX6TOZSFCRHMGN2SOVB2UDRIRMAP4XJ5MPZFSIJGK3WPJG6BVJLFPAFIMB764FXU
-#\\\|IUNQFQESK6HJRA5P22K2MJKGSCXECFWL6XA6XOGX6WORUZHMXNK \ / AMOS7 \ YOURUM ::
-#\[7]IGGQHSBVJKVQLBGFTM7BSS3MWXEPYQ5NLYGGRZMCO3WLHGYE3KCA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,..,,,..,..,,...,,.,,..,,...,...,..,,...,...,...,,,,,,,,,.,,,.,.,
+#4T52CJ2PUEQAZHH4LENIHNJNLEFHGEK3LAG3SVQWRNYPONMG2N3C7726SQA2YXODL5TPMM7NUJPIW
+#\\\|2BPC35D6SEVS5B4VUCBI6RIPLGVLQJPLRD4RDTDIH3REGKG6YCF \ / AMOS7 \ YOURUM ::
+#\[7]UJ5JYVA4O46TWWRGTEBXJZQ2YMJMG4ZQKRSQ4HV6FP3QFXPSPUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

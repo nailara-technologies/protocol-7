@@ -120,7 +120,7 @@ would destroy the alignment regardless of line-grouping.
 12. **New step5: `##[ title ]###...` fill-bar normalization** (`7f0b039ba`):
     a third bracket convention (`##[` — no space before the bracket)
     entirely bypassed every existing step. Corpus analysis across
-    `modules/`+`bin/` (452 real occurrences, filtered to 4+ trailing
+    `src/`+`bin/` (452 real occurrences, filtered to 4+ trailing
     hashes to exclude the unrelated short `##[ title ]##` label
     convention) showed 74% already sit at exactly `LINE_MAX` with only
     single-off drift around it and no secondary cluster at any other
@@ -360,7 +360,7 @@ whole 15-bug arc is that principle in practice.
   explicitly deferred as its own separate, riskier feature — noted that
   the wrap threshold would need adjusting for the stripped prefix length
   when it's eventually built.
-- Not yet applied broadly across all of `modules/`+`bin/` — has been
+- Not yet applied broadly across all of `src/`+`bin/` — has been
   deliberate zenka-by-zenka dogfooding (jobsite → letsencr →
   `bin/Protocol-7` → web-browser → httpd → ticker → source → sourcecode →
   AMOS7 modules → base → coding) rather than a mass apply, matching the
@@ -461,7 +461,7 @@ gotcha, worth remembering).
 
 **Bug A — `code_marker_re`'s dereference-chain branch has no
 "immediately adjacent" requirement, false-triggering on ordinary prose.**
-`modules/context.pattern.extract_from_change:102-111`: this whole
+`src/context.pattern.extract_from_change:102-111`: this whole
 10-line prose block is passed through **completely untouched**
 (confirmed via debug instrumentation: `$code_line_count = 2`, crossing
 the `>= 2` "commented-out code, don't touch it" threshold at
@@ -488,7 +488,7 @@ deciding whether to touch a lone standalone line.** `comment_block_length`
 (~line 468-489) walks forward calling `comment_block_line_parts` per
 line and does `last if not $parts;` — so a **continuation line** that
 happens to be entirely bracket-wrapped (e.g.
-`modules/ncode.regex.apply:42`, `"[ legacy single-string namespace
+`src/ncode.regex.apply:42`, `"[ legacy single-string namespace
 handled inside scope_match ]"`) gets silently treated as if it weren't
 part of the block at all, even though it's the natural 3rd line of a
 paragraph that started 2 lines earlier. Confirmed via direct
@@ -527,7 +527,7 @@ copies of both files matches expectations), and a direct regression
 check confirms genuine dereference code (`$formula->value`, `$data{key}`,
 `$arr[0]`, `$key => $val`) is still detected while the two originally
 false-positive prose lines are correctly ignored. K3's own 53-file sweep
-(all `modules/` files touched in the last 5 commits + 40 random ones):
+(all `src/` files touched in the last 5 commits + 40 random ones):
 pre-fix vs post-fix byte-identical everywhere except pre-existing,
 unrelated first-apply transforms (step0 rejoin/resplit, perltidy
 re-indent), verified content-preserving. Correctly declined to run
@@ -538,8 +538,8 @@ its own doc comment — would corrupt that pass).
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,.,,,.,,,..,,..,,.,,..,,..,,..,,...,,.,,.,.,..,,...,...,.,.,,..,,,,,,,,,,,.,
-#DTOA6HFSAKXGG3Q3QZSYORGESGCYZHXH743O44AZKBHGMGHJ4OVP5NM6FBMOHJZ2JNURGJPN5NTA2
-#\\\|5B2LI4X5PJDK26WBRQXBUJWBKOUQOP5D6EC6NPFOW2CWOYNXC22 \ / AMOS7 \ YOURUM ::
-#\[7]OXPFR76OS3PYIIWJ3YOMCK233J23VIVOQOLWWLAV4LZC2YKSQABQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,...,,,.,,,,,,.,,,.,,.,,,,,,,...,..,,...,..,,,.,,..,,,..,,,,,..,,
+#LFXX4EXLV273UQ7HN25OR4VU5XXR64WLMWQ6KWXNOBWOXU2KONRR5K2HBYUCM5DZLXFRMAZ77ZJQA
+#\\\|HNIGOOXIEUHZHO4JQKIQJIN7I67P72Z7XPOSSVJ5PX2MYGZ2LCD \ / AMOS7 \ YOURUM ::
+#\[7]PLYOSGRM3CKLO7HOFX45VKOIKDUXKX75KTGMV7LXFAIKXEGG7SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

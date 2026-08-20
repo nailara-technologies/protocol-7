@@ -147,8 +147,8 @@ p7c models.chat  # Shows last 20 exchanges
 ## See Also
 - `data/yaml/project-context/session-2025-02-20-multi-model-chat.yaml` - Full implementation details
 - `SIZE_PROTOCOL_MODES.md` - SIZE response format specification
-- `modules/models.chat.*` - Chat system modules
-- `modules/models.escape.*` - Escape sequence handling
+- `src/models.chat.*` - Chat system modules
+- `src/models.escape.*` - Escape sequence handling
 
 ## Commits
 - `7fe6c1493` - Implement multi-model chat system with source zenka tracking
@@ -157,8 +157,8 @@ p7c models.chat  # Shows last 20 exchanges
 - `310ea2236` - Use bracket notation for content markers
 - `6b1382aa4` - Add content-addressed announcement system
 
-#,,..,...,,..,,..,,..,,,.,,.,,,,,,,,.,,,,,,..,..,,...,...,,,.,,..,,..,...,.,.,
-#XQWRQKB2AF2QK77ZY56YFMEW5KTVZWQEHR6A2UMC7M72DIO7I4YTIZPDLQ2CKRI3CM2WPAMQRT7DI
-#\\\|2466FR46BUNL4JQOMRKBQWOFIZ7VTXX6RTWFZYXAXCVNHRQ3N7W \ / AMOS7 \ YOURUM ::
-#\[7]W4JGMTEIFCOGVVJ6QLEYCQA3QEHPRMTD5Z4KAGRTQPY5G6ZOCICA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,.,,,,.,,,,,,.,,,,.,,...,,,,,..,,...,...,...,,.,,..,,,..,..,,
+#7ETGADQA3W6JBCT7EXHAQZUTTCI5YXD3PF55BTHPLPMDX2V373HIMEQZQF436BFAEUNWUD3SMJCJS
+#\\\|R2LE4ZNGRH3TTPBRQCCXHRYTOTEP2D55DQWQ4GYY65WGFJKKZ74 \ / AMOS7 \ YOURUM ::
+#\[7]VORFKSK6H2W6FFI3NK25JBFVZZ73WJX4UQNEX577UPZFZUGAKOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

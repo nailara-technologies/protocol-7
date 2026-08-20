@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = transport.handler.subscribe_rotation_deferred
+# descr = deferred cred-mesh rotation subscription (own cube session not yet up at init)
+
+my $event = shift;
+
+<[base.logs]>->(
+    1,
+    'transport: deferred rotation-subscribe '
+        . 'timer fired, subscribing to cred-mesh'
+);
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| cred-mesh.subscribe_rotation |,
+        'call_args' =>
+            { 'args' => join( ' ', qw| * transport.cred-rotated | ) },
+    }
+);
+
+<[base.logs]>->(
+    ( $sent and $sent > 0 ) ? 1 : 0,
+    'transport: rotation-subscribe route-send result : %s',
+    $sent // 'undef'
+);
+
+$event->w->stop if defined $event->w;
+
+#,,,,,,.,,,,,,,,,,.,.,.,,,,,,,...,.,,,,..,..,,.,.,...,...,..,,,,.,.,,,..,,,,.,
+#WLQZQCOBYRVQIDEXHD7X2LSI2V4N3XUTISGBCNOH4PTAMKZC4KVIFWUR545UBSNUKKZMMPRSOPLUA
+#\\\|25APPK5TE2RYS7UFJ2S42NQOD4U6Z4BQ5XVJGLGF6LWDVP4ZP5V \ / AMOS7 \ YOURUM ::
+#\[7]ZPOLNAUGA2JFOQ6MS4KLTHBC4RTZDTVDKLWXIRTGIYCBRQABXKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

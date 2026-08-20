@@ -1,0 +1,18 @@
+## [:< ##
+
+# name = data.topology.interference.map.determine_security_zone
+# descr = Topology calculation subroutine
+
+my $layer_depth = shift;
+
+# Inner layers = higher trust
+return 'core'     if $layer_depth < 2;
+return 'trusted'  if $layer_depth < 4;
+return 'standard' if $layer_depth < 6;
+return 'perimeter';
+
+#,,,,,,.,,...,...,..,,,..,,,.,,..,,..,,.,,.,.,.,.,...,...,.,.,...,.,,,,,,,.,.,
+#NPTZCQFNUPN2QYBHCVM7JAVSSGZ6DE7GX4AO4IGKWET63JTA6EDF7H4WXXEYBDAV5WPTVH3EBBN4S
+#\\\|J3KK4A2MZUSYNLT24K4WMHPZ2YS5QWPWVQQ7ZO772PRZT3F433W \ / AMOS7 \ YOURUM ::
+#\[7]LASDRCL4U5NYEA7XGYUCAMWOURBS3EGEBAHDPDENP7KI7BNZOYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,7 +54,7 @@ why this is deliberately not being solved in one pass.
   vs `remote-host.<host>_<port>.public` used by `keys.console.list`) —
   confirmed real files exist under the `remote-host.*` name on disk
   (`v7.keys list` output, 2026-07-18) so a writer for that pattern
-  exists somewhere, just not found in `modules/` yet. resolve before
+  exists somewhere, just not found in `src/` yet. resolve before
   building on either convention.
 
 ### namespace / derivation models
@@ -111,7 +111,7 @@ why this is deliberately not being solved in one pass.
   in this thread yet and deserves attention.
 
 ### protocol version as a practical (not authority) logical root
-- `nodes.cmd.update-protocol-elf` (`modules/nodes.cmd.update-protocol-elf`)
+- `nodes.cmd.update-protocol-elf` (`src/nodes.cmd.update-protocol-elf`)
   computes a content-derived checksum (`chk-sum.elf.get-true` over a
   defined set of protocol-relevant source paths from
   `protocol.protocol-7.protocol-version-path-set-up`), written as
@@ -272,8 +272,8 @@ discovery) not started.
 - `data/ai-mem/claude/project-zenka-cryptographic-identity-survey.md`
   (ai memory) — ground-truth crypto/identity inventory this builds on.
 
-#,,,,,,,.,..,,.,.,,,,,,,.,...,.,,,,,.,,,.,.,,,..,,...,...,...,,,.,,,.,,,,,...,
-#R47JQQIS36SEWDAOKC5BOIU2QVGPPCKL27IGSC5JF7OCLK65QIMW5NL5RAFELNWTWFE6LKFECT72S
-#\\\|YEJXY4MNCCGOKRTYDHCQEXHK5T3VDP4YWDJYN7VVMGKU5SV6SLI \ / AMOS7 \ YOURUM ::
-#\[7]Q4WQTNDIDJSPRMXKPFEL7LX5ZPUN6U3JEZCKAAAALNB6LQ6AKKBA 7  DATA SIGNATURE ::
+#,,.,,...,..,,,.,,,,.,,,,,,,.,.,,,.,,,,.,,...,..,,...,...,.,.,.,,,,..,,.,,,,,,
+#OIT4M4WJCCKPVUFHXK33MDOOZW2FXZ5RP6BTXPS4J2CYO3KSHIZJRPY5N444HDYC676YGLVCBCRFM
+#\\\|TAMSGFX2YCTVVVW446VT5VEGUFUUGDU6HYQUDXZ562AHXEHZCNG \ / AMOS7 \ YOURUM ::
+#\[7]XYGNS655OPVDWKIGI4UBHEZUF4JQ2P2AXJTNHS7EGKWOYZLWAEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

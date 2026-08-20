@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = data.cmd.mount-cube
+# param = <cube-coords> <path> [options]
+# descr = mount cubic space coordinates as FUSE filesystem
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+# Parse options [ format : key=value,key2=value ]
+my $options = {};
+if ( $args =~ s|\s+--\s*(.+)$|| || $args =~ s|\s+:\s*(.+)$|| ) {
+    my $opt_str = $1;
+    for my $pair ( split m|,\s*|, $opt_str ) {
+        my ( $k, $v ) = split '=', $pair, 2;
+        $v = 1 if !defined $v;
+        $options->{$k} = $v;
+    }
+}
+
+my ( $cube_coords, $local_path ) = split( m| +|, $args, 2 );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <cube-coords> and <local-path> arguments'
+    }
+    unless defined $cube_coords and defined $local_path;
+
+$local_path =~ s|/+$|| if length($local_path) > 1;
+
+## validate cube coordinates format ##
+my $hash_path;
+
+if ( $cube_coords =~ m|^cubic\\.| ) {
+
+    # Direct cubic path in data hash [e.g., cubic.hosts.7-7-7]
+    $hash_path = $cube_coords;
+} elsif ( $cube_coords =~ m|^\\d{1,2}-\\d{1,2}-\\d{1,2}$| ) {
+
+    # Coordinate format [ e.g., 7-7-7 ]
+    $hash_path = join '.', qw| cubic |, $cube_coords;
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => "invalid cube coordinates '$cube_coords' - "
+            . "expected format: x-y-z [0-12] or cubic.path"
+    };
+}
+
+## validate hash path exists ##
+my $ref = <[data.resolve_hash_path]>->($hash_path);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "cube path '%s' does not exist", $hash_path )
+    }
+    unless defined $ref;
+
+## create mount directory if needed ##
+if ( !-d $local_path ) {
+    <[file.make_path]>->( $local_path, 0755 )
+        or return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            "cannot create mount directory '%s' : %s",
+            $local_path, <[base.str.os_err]>
+        )
+        };
+}
+
+## initialize FUSE subsystem if needed ##
+if ( !<data.fuse.mounts> ) {
+    <[data.mount.fuse.init_code]>;
+}
+
+## spawn FUSE child process ##
+my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_path, $options );
+
+return $result;
+
+#,,,.,..,,,,.,,..,.,,,.,.,,,,,,.,,,.,,.,,,..,,.,.,...,...,.,,,.,,,,,,,...,,..,
+#2UT4KGGAN26YNVMZKQ5E76CJNWAV6ESDQZPG6KGRWGCH4RHT6HTB6CGBZU7ICPEJHORMXIGXUKUO6
+#\\\|YDE5B7CT54XMIJB2MCX3CBV6AOPP4MVWKAWAK5O7KNP7ZN5JL33 \ / AMOS7 \ YOURUM ::
+#\[7]4RLOKYAO742FVZZRTUIKS3EKSDSFPVIRBINTSSJWJCDOYH3IQGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

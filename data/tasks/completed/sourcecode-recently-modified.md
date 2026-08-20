@@ -20,18 +20,18 @@ do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures` wh
 
 ```
 args: {
-  filter  => 'modules/coding',   ## optional path prefix or glob pattern
+  filter  => 'src/coding',   ## optional path prefix or glob pattern
   limit   => 26,                 ## number of files to show (default 26)
   since   => undef,              ## optional: only files changed since ntime/date
 }
 
 output (two-column, left-aligned):
 
-  2h ago          modules/coding.callback.http_error
-  2h ago          modules/coding.sanitize.jinja_messages
+  2h ago          src/coding.callback.http_error
+  2h ago          src/coding.sanitize.jinja_messages
   4h ago          data/yaml/reasoning-templates/arrived-by-being.yaml
   4h ago          data/yaml/reasoning-templates/semantic-triangle.yaml
-  1 day ago       modules/coding.async.send_request
+  1 day ago       src/coding.async.send_request
   3 days ago      cfg/zenki/coding/start
   ...
 
@@ -75,7 +75,7 @@ description: >
 parameters:
   filter:
     type: string
-    description: optional path prefix or glob to filter results (e.g. 'modules/coding', 'data/yaml')
+    description: optional path prefix or glob to filter results (e.g. 'src/coding', 'data/yaml')
     required: false
   limit:
     type: integer
@@ -91,7 +91,7 @@ tool dispatch:
 
 ## where to add the tool registration
 
-check modules/coding.tools.* or the tool registry initialization for where
+check src/coding.tools.* or the tool registry initialization for where
 existing tools are defined. add `recently_modified` following the same pattern.
 the tool name uses underscore (recently_modified) matching the existing
 convention (read_file, search_code, list_modules etc.)
@@ -105,7 +105,7 @@ convention (read_file, search_code, list_modules etc.)
 p7 sourcecode.recently-modified
 
 ## filter to coding modules only
-p7 sourcecode.recently-modified '{"filter":"modules/coding"}'
+p7 sourcecode.recently-modified '{"filter":"src/coding"}'
 
 ## show last 13 changes in reasoning templates
 p7 sourcecode.recently-modified '{"filter":"data/yaml/reasoning-templates","limit":13}'
@@ -129,8 +129,8 @@ p7 sourcecode.recently-modified '{"since":"ZDY6JCVRHY"}'
 - [ ] tool callable as recently_modified from within a coding task
 - [ ] tool result is the formatted two-column string
 
-#,,.,,.,,,,,,,,.,,,,.,,,,,,..,...,,,,,,,.,.,,,..,,...,...,..,,.,.,,.,,..,,.,,,
-#FL4UVPMQHUK6N3RJJUOP5VCB32Y7XKSVNITOMXBF557MKP3VVGHTZQGJLQFCZWF2GMIUT4WRZN5S2
-#\\\|EYMPHX2NGZPKTSMVVMEWR54HCDIXQGNOUOFWVM3VT5K6E55QYPL \ / AMOS7 \ YOURUM ::
-#\[7]6VRBM4QJEI5FMSKWGL2IZYY6XMUS4QTPHPIMTC6BS224XZCOE2AY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,.,.,.,.,,..,,,.,,.,,,.,,.,.,..,,...,...,..,,..,,..,,...,..,,
+#WJU4HNFPFYVT35HBNTQXXY5JHOA4ARGZWX5LVYVCJDRYEWUNJTSCLRFSSJV6Y3XZPP5GGHHUVPS3I
+#\\\|NAWEP4KD264RI2MLU5V4OGCNVSBQ6YKM64UEC6QGNDQ7LZVNR5A \ / AMOS7 \ YOURUM ::
+#\[7]T5DQQK23MQ6EPPOITCVHDQ24IYM5YTU3L74I6DM2V3I4GRN3EGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

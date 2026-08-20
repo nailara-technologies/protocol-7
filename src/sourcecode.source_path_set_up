@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = sourcecode.source_path_set_up
+
+###                         ###
+##  BASE SOURCE-FILES SET-UP ##
+###                         ###
+
+my @copy_sources = qw [
+
+    src
+    bin
+    bin/admin/**
+    bin/build-scripts/**
+    bin/dependencies/**
+    bin/dev/**
+    bin/ai-scripts/**
+    bin/install-scripts/**
+    bin/scripts/**
+    bin/test-scripts/**
+    read-me/**
+    data/md/**
+    data/yaml/**
+    data/tasks/**
+    data/ai-mem/**
+    data/planning/**
+    data/openvas/**
+    cfg
+    cfg/zenki/*
+    cfg/zenki/*/*
+    cfg/zenki/openvas/bin/**
+    cfg/zenki/build/recipes/**
+    cfg/zenki/ext-pkg/packages/**
+
+    !.lua$
+    data/lib-path/pm/**
+    data/web-root/*.bmw
+
+    !test-fixtures
+    !.xml$
+    !c_src
+    !bin/dev/html
+    !INTEGRATION_GUIDE.html$
+    !dev/lib
+    !read-me/documentation/dev/reminders
+    !llama-compiled
+    !cfg/backup
+
+];
+
+if ( not chdir(<system.root_path>) ) {
+    <[base.s_warn]>
+        ->( ': cannot change workdir to : %s', <system.root_path> );
+    return undef;
+} else {
+
+    return <[base.source.collect_file_list]>->( \@copy_sources );
+}
+
+#,,,.,,,.,,,,,..,,...,,,,,..,,,..,.,.,.,,,...,..,,...,...,.,.,...,,,.,,..,.,,,
+#K6X74FHWTVPXP7BL4KQBJ275OUMM4JVRPLCNDDH3T4Z7LNQTMYSWIWXMOR3XI6NEBFVLTB7ZCQJNA
+#\\\|QKEZBR3AIJVRIIQKEOW44Q63RKGKATUAZ5CPGPOPREELPJR2F65 \ / AMOS7 \ YOURUM ::
+#\[7]RUCH6TZJXEQUQNBZW623OHI6Y5X7FPU5UKMIDBLORLFO3WN4EADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

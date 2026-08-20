@@ -30,16 +30,16 @@ read the design doc first:
 
 ## existing foundation to read first
 
-    modules/terminal.curses_ui.load_lang     (style reference, Curses::UI usage)
-    modules/terminal.curses_ui.modified.english  (language mod pattern)
-    modules/models.storage.adapter.invoke.discover  (data source for widget)
-    modules/models.storage.adapter.lmstudio.discover
+    src/terminal.curses_ui.load_lang     (style reference, Curses::UI usage)
+    src/terminal.curses_ui.modified.english  (language mod pattern)
+    src/models.storage.adapter.invoke.discover  (data source for widget)
+    src/models.storage.adapter.lmstudio.discover
     data/md/design/TERMINAL-ZENKA-ARCHITECTURE.md   (full UI adapter design)
 
 
 ## modules to create
 
-### 1. modules/terminal.curses_ui.widget.list
+### 1. src/terminal.curses_ui.widget.list
 
     # name  = terminal.curses_ui.widget.list
     # descr = curses list widget — paginated filterable model list
@@ -69,7 +69,7 @@ read the design doc first:
     return the selected model record hashref, or undef if cancelled
 
 
-### 2. modules/terminal.curses_ui.widget.detail
+### 2. src/terminal.curses_ui.widget.detail
 
     # name  = terminal.curses_ui.widget.detail
     # descr = curses detail widget — single model record display
@@ -92,7 +92,7 @@ read the design doc first:
     use human_size logic: show bytes as GB/MB/KB as appropriate
 
 
-### 3. modules/terminal.curses_ui.keybindings
+### 3. src/terminal.curses_ui.keybindings
 
     # name  = terminal.curses_ui.keybindings
     # descr = shared keybinding definitions for curses UI widgets
@@ -115,7 +115,7 @@ read the design doc first:
         my $keys = <[terminal.curses_ui.keybindings]>;
 
 
-### 4. modules/terminal.curses_ui.app.models
+### 4. src/terminal.curses_ui.app.models
 
     # name  = terminal.curses_ui.app.models
     # descr = standalone curses model manager application
@@ -146,7 +146,7 @@ read the design doc first:
         text:       light grey
 
 
-### 5. modules/models.cmd.app-models
+### 5. src/models.cmd.app-models
 
     # name  = models.cmd.app-models
     # descr = cmd: launch curses model manager
@@ -174,8 +174,8 @@ read the design doc first:
     lists all invoke + lmstudio models, navigate with j/k, view detail with d,
     repair symlinks with r. foundation for full ui.app.models.
 
-#,,..,.,.,,,.,,,,,.,,,,..,,.,,.,,,.,.,...,...,..,,...,...,..,,...,...,..,,,.,,
-#PHP636JDJ5AU2N7V7IKV6CFK6FEUDJKA5NI4XV2PCEMPRVX2F3LHW6PSLUYAUWB2EFUW2Y6UXP4YE
-#\\\|KLFJT7YQIOWQY5DUUFVRAUZ25NV4LXKKHDCA3V4MQ6CO2ELKG2D \ / AMOS7 \ YOURUM ::
-#\[7]NCKFHYJLIUBQ4SP2DJVJTX47ZMDKKVGXBQFBQCVMEEXNHTVJSQAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,..,,,,,,,,,,..,,,.,,,,.,,.,,.,,,..,,...,...,.,.,..,,..,,,..,...,
+#UU4AZRQARV42H3TJUMZROFUTEQFCF6FWPA74LXCU7TY3NP5QS7UCWGWJEAK6FCTNBIQ7S32OA2JIY
+#\\\|7WJL25AS6X4NUMYNEC36VJDRFBQBJTNJJYXCSTAZK6MHP72WWRQ \ / AMOS7 \ YOURUM ::
+#\[7]M3F34QXOC2B4KJEDH5GTTTSRVV44NZJJZCEGFQT25BFAIS4ORIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

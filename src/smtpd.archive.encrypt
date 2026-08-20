@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = smtpd.archive.encrypt
+# descr = encrypt compressed mail blob with AMOS7::Twofish
+# param = \$compressed_data, $key_name
+# return = $encrypted_bytes or undef
+
+my $data_ref = shift;
+my $key_name = shift // '';
+
+return undef
+    if ref $data_ref ne qw| SCALAR |
+    or not length $data_ref->$*
+    or not length $key_name;
+
+## ensure twofish module is loaded ##
+my $have_twofish = eval { AMOS7::Twofish->import(); 1 };
+if ( not $have_twofish ) {
+    <[base.logs]>->( 0, 'smtpd: AMOS7::Twofish not available' );
+    return undef;
+}
+
+## derive symmetric key from key name + project salt  [LLL] proper ##
+## C25519-based key exchange for encrypt-to-public-key ]]          ##
+my $sym_key = <[chk-sum.bmw]>->( $key_name . <protocol-7.instance-id> );
+$sym_key = substr( $sym_key, 0, 32 );
+while ( length($sym_key) < 32 ) {
+    $sym_key .= "\0";
+}
+
+my $status
+    = AMOS7::Twofish::key_init( $sym_key, qw| encryption smtpd-archive | );
+return undef if not defined $status or not $status;
+
+my $enc_ref = AMOS7::Twofish::encrypt( qw| smtpd-archive |, $data_ref );
+
+AMOS7::Twofish::delete_table_entry(qw| smtpd-archive |);
+
+return undef
+    if not defined $enc_ref
+    or ref $enc_ref ne qw| SCALAR |;
+
+return $enc_ref->$*;
+
+#,,,,,,.,,,..,..,,.,.,...,..,,,,.,,,,,,,,,..,,.,.,...,...,,,.,..,,,,,,,..,.,,,
+#UK3BJKW2JSDFE5N6XQIUTN3ZAOPQ2CWDSN6VUXJFTSLLAXE3EZWAYZMFGZCDRQGTMEE6LLBKKRV7M
+#\\\|YCR66YNBHJ4USLRPFO2UOXGUICOKANMMIYDP2VQUDHSSM7N6Q3E \ / AMOS7 \ YOURUM ::
+#\[7]C7XNXS46TGYM5R6D4BUR4SZ6ATEDRZEQLESBQ7P245IECYW4FGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

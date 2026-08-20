@@ -7,8 +7,8 @@
 
 ## overview
 
-    `modules/amos7.encode_octal_header`
-    and `modules/amos7.decode_octal_bit_header`
+    `src/amos7.encode_octal_header`
+    and `src/amos7.decode_octal_bit_header`
     demonstrate extremely compact binary-to-visual encoding using octal
     digits represented as comma / dot patterns
     .
@@ -260,7 +260,7 @@ my $diff_ref = <[context.tree.encode_diff_ref]>->({
 
 ## footer template integration
 
-    From `modules/source.init_code` :
+    From `src/source.init_code` :
 
     ```perl
 <source.sign_template> = <<'EOT';
@@ -319,8 +319,8 @@ return sprintf "#%s\n", $visual;
 
 #,,.,,.,.,,,,,,,.,,..,,,.,,,.,,,.,,,,,,..,...,..,,...,...,.,.,,.,,...,,..,..,,
 
-#,,,,,,.,,..,,,.,,.,,,,..,...,..,,..,,..,,...,..,,...,...,..,,...,.,,,,,.,..,,
-#7VIXSQHO3LIOU2JDZGCLOJGLR5IBAXUG2JX44JEUZ3EJEEPHL3ZNHX5KAO4QEWLMHXZG4M2IMFTE4
-#\\\|A33YLQZTZCHDWOBUKQVIXH5M4CY4LTQ7PCUWQRO463CPP4S3Q7X \ / AMOS7 \ YOURUM ::
-#\[7]APN2RAE5C3IZUNC3F2P5WZNPTPO6X2HYECTINSXL7TP2IKSJYUCQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,,,,,.,.,.,.,.,..,,,,.,...,.,.,..,,...,...,...,.,.,,..,,,,,.,,,
+#LB6BUUJWDFCE6NXAPMKYQRD3YLFJWOOISYKQZQLIFYLI7LKYAP4JX4ZIA2FUJIJHRC5PMS5PNDCXQ
+#\\\|L46DT73KYX52HYOK2YCGQBLOUZ2YYNWWNLQHLLVRGHSTAR7REJR \ / AMOS7 \ YOURUM ::
+#\[7]ILF4SHIMFCIHZASQU5VWZGOOYSE2GNCKMYAT3WTKPRQ72AYNIEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

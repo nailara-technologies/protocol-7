@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = jobsite.handler.fetch-done
+# descr = receive site-yaml.import reply, dispatch assessments when all done
+
+my $call = shift // {};
+
+my $mode     = $call->{'mode'} // '';
+my $raw      = $call->{'data'} // '';
+my $data_str = ref $raw ? $raw->$* : $raw;
+my $category = $call->{'params'}{'category'} // '';
+
+if ( lc($mode) eq qw| false | ) {
+    <[base.logs]>->(
+        0,         'jss.fetch-done [%s]: import failed: %s',
+        $category, $data_str
+    );
+} else {
+    <[base.logs]>->( 1, 'jss.fetch-done [%s]: %s', $category, $data_str );
+}
+
+## accumulate total items queued in site-yaml across all category replies ##
+if ( lc($mode) ne qw| false | ) {
+    my ($n_new) = $data_str =~ /(\d+) new/;
+    <jobsite.fetch_total_queued> //= 0;
+    <jobsite.fetch_total_queued> += ( $n_new // 0 );
+}
+
+## decrement fetch counter : only proceed when all categories replied
+<jobsite.fetch_pending> //= 1;
+<jobsite.fetch_pending>--;
+
+return if <jobsite.fetch_pending> > 0;
+
+my $total_queued = delete <jobsite.fetch_total_queued> // 0;
+
+if ( $total_queued > 0 ) {
+
+    ## remember that we queued items so a later zero-depth reply means ##
+    ## drained                                                         ##
+    <jobsite.fetch_saw_queue> = TRUE;
+
+    ## site-yaml is still async-fetching job details : poll until drained ##
+    <[base.logs]>->(
+        1, 'fetch: %d items queued in site-yaml, polling for drain',
+        $total_queued
+    );
+
+    if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
+        $data{'jobsite'}{'queue_poll_timer'}->cancel;
+        $data{'jobsite'}{'queue_poll_timer'} = undef;
+    }
+
+    $data{'jobsite'}{'queue_poll_timer'} = <[event.add_timer]>->(
+        {   after    => 3,
+            repeat   => TRUE,
+            interval => 3,
+            handler  => qw| jobsite.handler.queue-poll |,
+        }
+    );
+    return;
+}
+
+## nothing queued : check for any pre-existing strays and assess ##
+<[base.logs]>->( 1, 'fetch: nothing new queued, checking strays' );
+<[jobsite.stray.check]>;
+
+## reset sync watermark so the next push sends the full jobsite state ; ##
+## this catches jobs whose last_modified is older than the current      ##
+## watermark (e.g. after a restart or a cache rebuild on the web side)  ##
+for my $url ( keys %{ <jobsite.sync.last_ntime> // {} } ) {
+    <jobsite.sync.last_ntime>->{$url} = '';
+}
+<jobsite.sync.last_server_ntime> = '';
+
+<[jobsite.dispatch.assessments]>;
+
+## if no assessments were queued, push changes immediately so the web cache ##
+## catches up with whatever the scan produced/changed                       ##
+if ( <jobsite.pending_count> == 0 ) {
+    <[jobsite.sync.push]>->( undef, FALSE );
+}
+
+#,,,.,,..,..,,,,.,,.,,,,.,,.,,.,.,,..,,,.,..,,..,,...,...,.,.,.,,,,..,,,.,,,.,
+#QZIF6XTFNTFTXRKIJEVPGSKYU35IOSMTQBAG55HFN7RALIFSPPVGECOYVVAIX32ASGVNDVXWBKTSQ
+#\\\|VH5MM4EFCT7UO62VI64PBM6TKS2ES42XLARUXK7ZCSFXPZBMWC6 \ / AMOS7 \ YOURUM ::
+#\[7]BLK6ECBPVDJKT6FU6DEJLDQUZVVYO4TKR55IMM76H2OJSVWOPMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

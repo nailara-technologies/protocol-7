@@ -9,7 +9,7 @@ metadata:
 
 ## change (landed 9eba08e3d, then extended a4fdfa300)
 
-`modules/base.event.callback.io-idle-restart` now checks whether any session has an open
+`src/base.event.callback.io-idle-restart` now checks whether any session has an open
 outbound STRM producer stream (`$data{'session'}{$sid}{'streams'}{$cmd_id}{'producer'}`) before
 re-arming the on-demand shutdown timer. If any producer stream is open, the timer is not armed.
 
@@ -44,7 +44,7 @@ before dropping the handle from their own list.
 
 **2. Idle-watcher needed a nudge** (`a4fdfa300`): even after fixing #1, `base.stream.close`
 cleared the producer state but the shutdown timer still didn't fire promptly. Root cause:
-`base.event.callback.io-idle-restart` (`modules/base.event.init_code:14-17`) is a genuine
+`base.event.callback.io-idle-restart` (`src/base.event.init_code:14-17`) is a genuine
 `Event->idle(..., repeat => 1)` watcher, but the callback calls `$event->w->stop` on itself every
 time it fires — a one-shot in practice, only re-`start`ed by `base.handler.input:118-119` /
 `base.handler.write:140-141` after real inbound/outbound I/O. A failed push writes nothing
@@ -61,7 +61,7 @@ reload (failing with permission-denied after `root.drop_privs` already ran once)
 re-registered its 45s orbital-push timer on every reload with no dedup (would have stacked
 duplicate timers across repeated reloads, unnoticed until now since reloads were rare). Fixed with
 the standard `my $reinit = shift // TRUE; my $already_initialized = $reinit;` guard pattern (see
-`modules/models.init_code` for the reference example) around both the mkdir block and the timer
+`src/models.init_code` for the reference example) around both the mkdir block and the timer
 registration. Worth checking other zenki's `init_code` for the same two anti-patterns
 (root-requiring setup and unconditional timer registration) if this surfaces again elsewhere.
 
@@ -82,8 +82,8 @@ registration. Worth checking other zenki's `init_code` for the same two anti-pat
 [[project-sys-deps-wiring-completion]] · [[project-ondemand-zenki-registry-wipe]] ·
 [[feedback-base-log-vs-logs-sprintf]]
 
-#,,,,,,,,,...,...,.,.,.,,,,,,,,,.,,,.,...,..,,..,,...,...,,..,.,,,.,.,.,.,,.,,
-#JJ5XJ2PBZDFLSY3UI3UJRWJVPNCEMEVNV53HUSYJL2LZ74QHSYU733HWKOD3HEYLRVNVJ55WFVFES
-#\\\|JC33AVZAQ4ZAISLGQ6D75GE3HBW6TARJQZSI6BIRCGMVJFZXA3S \ / AMOS7 \ YOURUM ::
-#\[7]MRY4IK7UBMAM5MJQWICRMQCFWM3EE6ULRKMNYXSN3ZXQR6K7GADI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,.,,,...,.,,,.,.,,..,,,.,.,.,..,,...,...,.,,,,..,.,.,.,.,,,.,
+#OJ5NFPDE4JRS7AHFIK66L5IJFRZRUNLKJRVXFEERJXKPF6DE2FAQS2JXHKR7UU6GWNCNWKWTY7J7I
+#\\\|7FZ76HSOCX2DLQAKHRI2ZKV3TQ372IN63VOI4HRGJK6KKKQRICQ \ / AMOS7 \ YOURUM ::
+#\[7]GJDLWUZQEKIKZXPEWKTV33ND2NMS42XR6CQSYDSJUALCM3W2T6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,12 +9,12 @@
 
 ### context
 
-`modules/site-yaml.stepstone.job` was just extended to extract
+`src/site-yaml.stepstone.job` was just extended to extract
 `salary_estimate_min`/`salary_estimate_max` (integers, annual gross EUR)
 from Stepstone job pages, and store them on the job record when present
 (both keys are simply absent when Stepstone shows no estimate — never
 `0`/`null`). This already flows unchanged through the live sync path
-(`modules/plugin.web.jobs.data` spreads the full stored job hash,
+(`src/plugin.web.jobs.data` spreads the full stored job hash,
 `%{ $jobs->{$job_id} }`, into the JSON it serves) — **no backend changes
 are needed**, the field is already reaching the browser today, just
 unused by the frontend.
@@ -96,8 +96,8 @@ fake/stub signatures to new files.
 
 ## dispatch
 
-#,,.,,,,,,...,,.,,..,,,,,,,.,,,..,,..,..,,...,..,,...,..,,..,,,..,...,...,.,,,
-#7DKNFW5ZWLUQ42YU4CQVMUOLPTK3OPA3Y3XXZBG5SWCXECWU4EZVIGGULEHCTMOOXK7HPJMUZD2WA
-#\\\|AOTM5TGKFRAZ2TU5D7AV5DGK7E3JKGB5F2KIHPIHQ6BUXVA3L5R \ / AMOS7 \ YOURUM ::
-#\[7]LEJ2MYHUESHDPAASJBRJDOH3T5B4ATKQXFUEFZNCNJD6PO6LQSBA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,.,,,.,,.,,.,.,,,,,,,.,.,.,.,.,..,,...,.,.,..,,...,...,,,.,,,.,
+#VGCSLWZSI442B45HQS5E2TY5OMXTR6E3XQN6BBZNG77755OZY6W3M5JGFGXSLSLR4SF4WHR6NAQUK
+#\\\|R4MXS5W6Q3EXWLGPIYS2AOB5BDL63CAJDEAZ6IAK5HCZWL2NNLE \ / AMOS7 \ YOURUM ::
+#\[7]FMPNEQTDWT42OEOXNMBAQME72FJDXRO2TK5B2WAXOABX3XSVUKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

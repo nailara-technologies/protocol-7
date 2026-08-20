@@ -2,7 +2,7 @@
 
 ## relation
 
-improvement to `calc.cmd.val` [ `modules/calc.cmd.val` ], the same
+improvement to `calc.cmd.val` [ `src/calc.cmd.val` ], the same
 module touched by `data/tasks/completed/calc-stdio-multiplex-wiring.md`.
 unrelated to the multiplex emitter wiring itself — purely a numeric
 formatting change.
@@ -149,8 +149,8 @@ no `#,,..` stubs. do NOT run update-signatures. do NOT modify
 subroutine whitelists. lowercase comments, `[ word ]` annotations,
 `$ARG` not `$_`, one-sub-per-file [ no inline `sub {}` helpers ].
 
-#,,,.,.,,,,,,,,,.,...,.,.,.,,,...,.,.,,.,,.,,,.,.,...,...,...,...,.,,,,,,,...,
-#R6EV2XNPJVFC4PCMKFJVRH7GPI3CRQFMGN4GBFAAZGXJSHRWEBOSG6KEAKGNHV2S7KEDAURM5ZNDG
-#\\\|BZPTKR6L3OAYDH2AAQK36I2AN2HF6C2N26OKAM6FGOL4S365RE4 \ / AMOS7 \ YOURUM ::
-#\[7]4XTFJX3AQS4OOZQ4NF272ZCBK7EZE3NIZWOJKGJG2KSUW7NOYODI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,..,,.,,,,.,,...,.,.,,,,,,.,,.,.,...,...,,.,,,..,..,,,.,,,,,,
+#B6ULNUVI3L7JHT3BLFAMC3INI7KJM4RLAQZ4JZ3ADVF7MPL7GGNC5PHNHACABPND474B3GOF4C7YS
+#\\\|XCRC3NEMQFAMGCB5W6FGLC66MGX7LXLNDPAIWWUWXTSN4EO6HCC \ / AMOS7 \ YOURUM ::
+#\[7]SPVODUGGH7BTR2UYCCHAXQNQ5P6DIEXCUDPU2NVIPMZZ2PB4Q4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

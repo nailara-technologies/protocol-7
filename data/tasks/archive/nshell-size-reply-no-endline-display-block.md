@@ -2,12 +2,12 @@
 
 ## dispatch
 fix the nshell display stall that occurs when a SIZE reply payload has no
-trailing newline. read first: `modules/nshell.handler.command_reply` (full);
-`modules/nshell.render.empty_prompt`; `modules/nshell.render.cursor`.
+trailing newline. read first: `src/nshell.handler.command_reply` (full);
+`src/nshell.render.empty_prompt`; `src/nshell.render.cursor`.
 do NOT touch signatures or unrelated logic.
 
 ## background
-`modules/route.bmw384.cmd.visual-wheel` was sending a SIZE reply whose payload
+`src/route.bmw384.cmd.visual-wheel` was sending a SIZE reply whose payload
 had no trailing `\n`. after that reply, nshell stopped displaying ALL subsequent
 replies — received correctly but never rendered. the root cause is that
 `nshell.handler.command_reply` currently injects `\n` immediately after the
@@ -82,8 +82,8 @@ raw-ANSI SIZE replies.
 - TRUE/FALSE and SIZE-with-`\n` replies show no regression in visual spacing.
 - no manual AMOS7 signature stubs in edited files.
 
-#,,,,,,..,,,,,..,,..,,,,,,,.,,,,,,.,,,...,,,,,..,,...,...,,.,,,,.,..,,,.,,,..,
-#FXNC63KMMYNTRHQHCFTR3DXFXJSDI3KSG76RXJRZGEQXMGHPP7BBKEHC6GDE3RPRT5LK3ELSLKUD4
-#\\\|E2M36CKBJNJQ3D56FXDLRKUAOY4W5UD3CQYBBNUHHE6XTXYQXAF \ / AMOS7 \ YOURUM ::
-#\[7]KRWVWST57CDOCQPDEWU4W2GXJO2YBVMAZ6LTNBH3BX2EBAYAPGDA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,..,,,,.,.,.,.,,,,..,.,,,,,,,,..,..,,...,..,,.,,,,.,,,..,.,.,..,,
+#CX2LKSP4DHB6EVJD7CSAC74HQSX7W7DJYXC5YEGPPVYKK37RSS5ASCCHVVJEXHOHZR4Z3Z2EMNWPY
+#\\\|MNYTJIYJLI6FQEPWNHJUTIRPV4ODBN4226J3KZMGBFRL5FN2J3C \ / AMOS7 \ YOURUM ::
+#\[7]4YXKQRYZ7NZG55REEX2C42H4ALLCZFALSJMECNWDGH6W7OM7LQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

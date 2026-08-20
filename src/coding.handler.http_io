@@ -1,0 +1,176 @@
+## [:< ##
+
+# name  = coding.handler.http_io
+# descr = HTTP I/O handler for async streaming client
+# purpose = Handle socket I/O for HTTP request/response
+
+my $event     = shift->w;
+my $state     = $event->data;
+my $sock      = $state->{'sock'};
+my $callbacks = $state->{'callbacks'};
+
+## Read response ##
+#
+my $buffer    = '';
+my $read_size = 16384;
+#
+my $bytes = <[base.s_read]>->( $sock, \$buffer, $read_size );
+#
+<[base.logs]>->( 2, ': async io bytes : %s :', $bytes // '[undef]' );
+#
+##
+
+## EAGAIN / EWOULDBLOCK : no data available yet ##
+if ( !defined $bytes && ( $!{EAGAIN} || $!{EWOULDBLOCK} ) ) {
+    return;
+}
+
+## Read error (other than EAGAIN) ##
+if ( !defined $bytes ) {
+    my $error = "Read error: $!";
+    <[base.logs]>->( 0, "async.http_io: %s", $error );
+    $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+    <[coding.async.http_cleanup]>->($state);
+    return;
+}
+
+## EOF : connection closed by peer ##
+if ( $bytes == 0 ) {
+    my $buf_len = length( $state->{'buffer'} );
+    <[base.log]>->( 2, "http_io : EOF : connection closed. [ bytes : 0 ]" );
+
+    ## process any remaining data in buffer ##
+    if ( length( $state->{'buffer'} ) ) {
+        my $remaining = $state->{'buffer'};
+        $remaining =~ s|\r$||;
+        $state->{'buffer'} = '';
+        <[coding.handler.http_io_parse_line]>->(
+            $remaining, $state, $callbacks
+        );
+        return if $state->{'abort_triggered'};
+    }
+
+    ## Complete ##
+    $state->{'completed'} = TRUE;
+    $callbacks->{'on_complete'}->($state)
+        if exists $callbacks->{'on_complete'};
+    <[coding.async.http_cleanup]>->($state);
+    return;
+}
+
+## $bytes > 0 : data received ##
+$state->{'last_activity'} = <[base.time]>->(3);
+$state->{'bytes_received'} += $bytes;
+$state->{'buffer'} .= $buffer;
+
+## (re-)arm stall watcher : fresh silence-window starts from this chunk, ##
+## independent of the total-duration ceiling timer [ never re-armed ].   ##
+## first chunk arms it for the first time — deliberately not armed at    ##
+## connection setup, see coding.async.http_client                        ##
+{
+    eval { $state->{'stall_watcher'}->cancel() }
+        if defined $state->{'stall_watcher'};
+    $state->{'stall_watcher'} = <[event.add_timer]>->(
+        {   'after'   => $state->{'stall_timeout_sec'} // 77,
+            'handler' => qw| coding.handler.http_stall_timeout |,
+            'data'    =>
+                { state => $state, io_watcher => $state->{'io_watcher'} },
+        }
+    );
+}
+
+<[base.logs]>->(
+    2,      "async.http_io: received %d bytes [ total : %d ]",
+    $bytes, $state->{'bytes_received'}
+);
+
+## Debug: show raw buffer preview ##
+my $preview = substr( $state->{'buffer'}, 0, 100 );
+$preview =~ s/\n/\\n/g;
+$preview =~ s/\r/\\r/g;
+<[base.logs]>->( 2, "async.http_io : buffer preview [%s]", $preview );
+
+## Parse headers if not yet done ##
+if ( !$state->{'headers_parsed'} ) {
+    if ( $state->{'buffer'} =~ s/^(.+?)\r?\n\r?\n//s ) {
+        my $header_text = $1;
+        my @lines       = split( /\r?\n/, $header_text );
+
+        ## Parse status line ##
+        my $status_line = shift @lines;
+
+        if ( $status_line =~ m{HTTP/\d\.\d\s+(\d+)\s*(.*)} ) {
+            my $code = $1 // '???';
+            $state->{'status_code'}    = $code;
+            $state->{'status_message'} = $2 // '';
+
+            <[base.logs]>->( 2, "http_io : %s : streaming started.", $code );
+
+            if ( $state->{'status_code'} !~ m{^2} ) {
+                my $error = "HTTP error: " . $state->{'status_code'};
+                ## capture response body for debugging ##
+                if ( length( $state->{'buffer'} ) > 0 ) {
+                    my $body = $state->{'buffer'};
+                    $body =~ s/^\s+|\s+$//g;
+                    $body = substr( $body, 0, 200 )
+                        if length($body) > 200;
+                    <[base.logs]>->( 0, "http_io: error body: %s", $body );
+                }
+                $callbacks->{'on_error'}->($error)
+                    if exists $callbacks->{'on_error'};
+                <[coding.async.http_cleanup]>->($state);
+                return;
+            }
+
+            $callbacks->{'on_header'}
+                ->( { Status => $state->{'status_code'} } )
+                if exists $callbacks->{'on_header'};
+        }
+
+        ## Parse headers ##
+        foreach my $line (@lines) {
+            if ( $line =~ /^([^:]+):\s*(.+)/ ) {
+                $state->{'headers'}{ lc($1) } = $2;
+            }
+        }
+
+        $state->{'headers_parsed'} = TRUE;
+    }
+}
+
+## Process body data (SSE format: data: {...}) ##
+if ( $state->{'headers_parsed'} ) {
+    ## process complete lines [ terminated by \n ] ##
+    while ( $state->{'buffer'} =~ s/^([^\r\n]*)\r?\n// ) {
+        <[coding.handler.http_io_parse_line]>->( $1, $state, $callbacks );
+        return if $state->{'abort_triggered'};
+    }
+    ## process remaining buffer if it looks like a complete SSE data line [ ##
+    ## handles responses that arrive without trailing newline ]             ##
+    if ( length( $state->{'buffer'} )
+        and $state->{'buffer'} =~ m/^data:\s*(\{.+)/ ) {
+        ## verify it's complete JSON before consuming [ avoid partial reads ##
+        ## ]                                                                ##
+        my $maybe_json = $1;
+        $maybe_json =~ s/\r$//;
+        my $test = eval { $state->{'json_decoder'}->decode($maybe_json) };
+
+        if ( defined $test ) {
+            my $remaining = $state->{'buffer'};
+            $remaining =~ s/\r$//;
+            $state->{'buffer'} = '';
+            <[coding.handler.http_io_parse_line]>->(
+                $remaining, $state, $callbacks
+            );
+            return if $state->{'abort_triggered'};
+        }
+    }
+}
+
+return;
+
+#,,.,,,.,,...,,,.,,.,,,,,,,,.,.,,,,.,,,,,,,.,,.,.,...,...,...,...,,,.,..,,.,,,
+#J5YA6CI3QQ2H6Q47CEIF3YFI6F6XOZEQANTWBZFSOJ6QBCDTMK3RZ72LRR452P3LZHMS6FJK235KM
+#\\\|WJ4ZLABXWPYTK5VGCA55GZ3RFWGHFJD7E47X536YIBI7C4UUYOK \ / AMOS7 \ YOURUM ::
+#\[7]GUUPMJLF6VUQDGHTBAOCJGQ2QIBXS6JVVR6YA3WEPUQCWA7HLCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

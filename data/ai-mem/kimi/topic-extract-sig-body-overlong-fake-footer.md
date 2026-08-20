@@ -5,7 +5,7 @@ in full, live-verified via the sourcecode console zenka. Uncommitted (human revi
 
 ## root cause
 
-Every footer-recognizing regex in `modules/source.extract_sig_body` capped
+Every footer-recognizing regex in `src/source.extract_sig_body` capped
 comma/colon-line length (`{70,85}`, `{70,90}`, `{70,80}`, checksum `{60,100}`).
 A hand-typed/hallucinated fake footer with 95+ char lines matched NO pattern —
 including the generic real-signature extraction pattern, which reuses
@@ -16,7 +16,7 @@ including the generic real-signature extraction pattern, which reuses
 
 ## fix
 
-- `modules/source.extract_sig_body`: all length ceilings replaced with
+- `src/source.extract_sig_body`: all length ceilings replaced with
   open-ended minimums (`{70,}`, checksum `{60,}`) — left-anchored structural
   markers (`#` + long `.`/`,` run, `\\\|` / `\[7]` prefixes, AMOS7/YOURUM/
   DATA-SIGNATURE/PLACEHOLDER tokens) carry recognition confidence, not the
@@ -25,7 +25,7 @@ including the generic real-signature extraction pattern, which reuses
   detection + template validation), all three PLACEHOLDER stub strips, the
   sequential-fake stub strip, all four repair-mode extraction patterns, and
   the separator-issue detection check.
-- `modules/sourcecode.console.strip-signature-footer`: keeps a copy of the
+- `src/sourcecode.console.strip-signature-footer`: keeps a copy of the
   original content; when extract returns `was-present=0` but modified the
   buffer in-memory (stub-only file), the cleaned content is now written back
   instead of silently discarded. Pre-existing gap that affected ALL stub
@@ -67,8 +67,8 @@ including the generic real-signature extraction pattern, which reuses
 - `git stash`/`stash pop` touch only the pathspec'd files; ai-mem dirt from
   other sessions was left alone.
 
-#,,..,,.,,,,.,,,,,.,.,,..,...,..,,,,.,.,,,,..,..,,...,...,,.,,,..,,.,,...,..,,
-#OK6KF3MPET7LYCMLN3IMPW4BC27NT4EAIWJVBXNM5ROJK3CEYPPKMQ6O5GRVZBVXE7LPALI6UIWG4
-#\\\|2FDNPHURBP6KPYBJNFJYVIAQWXJ4CY76O6K7XIYSRE3SYZHEHSF \ / AMOS7 \ YOURUM ::
-#\[7]LLZHQVJKFNTGV5IGOGAC5VNOL35MQ32NXW622CCIUD2N3JKFIEDY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,,.,,,,.,...,.,.,.,,,...,..,,..,,...,...,...,..,,.,.,...,,,,,
+#TYNN3G24KQKCKKXTMLUVQAVVAF2R2ZRIMLQ2M6I5YBNIHZJMQ5C6TQNQKCNYAH237YW6BELJGKFUW
+#\\\|R2EUT67SGTC7XKD3N3PRGXIM64QNKONQ74LE4S6X2TN4AMWQVCO \ / AMOS7 \ YOURUM ::
+#\[7]W5H47NIJQCTXBOLESO6RRP3HNBUH43MKMOYKJ44DI725U7HJLCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

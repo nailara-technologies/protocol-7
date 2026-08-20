@@ -26,8 +26,8 @@ do NOT add the #,,... stub line. leave files clean for signing.
         — already extracted as models.storage.adapter.invoke.repair
         — no new logic needed from here for lmstudio
 
-    modules/models.storage.adapter.invoke.discover  — use as style reference
-    modules/models.storage.adapter.invoke.resolve   — use as style reference
+    src/models.storage.adapter.invoke.discover  — use as style reference
+    src/models.storage.adapter.invoke.resolve   — use as style reference
 
 
 ## on-disk path structure (confirmed from live system)
@@ -42,7 +42,7 @@ do NOT add the #,,... stub line. leave files clean for signing.
 
 ## modules to create (4 files)
 
-### modules/models.storage.adapter.lmstudio.discover
+### src/models.storage.adapter.lmstudio.discover
 
     # name  = models.storage.adapter.lmstudio.discover
     # descr = scan lmstudio model dir and return list of model records
@@ -79,7 +79,7 @@ do NOT add the #,,... stub line. leave files clean for signing.
         return arrayref
 
 
-### modules/models.storage.adapter.lmstudio.resolve
+### src/models.storage.adapter.lmstudio.resolve
 
     # name  = models.storage.adapter.lmstudio.resolve
     # descr = resolve lmstudio model record to absolute on-disk path
@@ -95,7 +95,7 @@ do NOT add the #,,... stub line. leave files clean for signing.
         return -f $abs ? $abs : undef;
 
 
-### modules/models.storage.adapter.lmstudio.install
+### src/models.storage.adapter.lmstudio.install
 
     # name  = models.storage.adapter.lmstudio.install
     # descr = download a model from huggingface into lmstudio storage
@@ -124,7 +124,7 @@ do NOT add the #,,... stub line. leave files clean for signing.
     (utf-8 global pragma in p7 would corrupt binary writes without :raw)
 
 
-### modules/models.storage.adapter.lmstudio.repair
+### src/models.storage.adapter.lmstudio.repair
 
     # name  = models.storage.adapter.lmstudio.repair
     # descr = validate gguf headers and report corrupt or incomplete files
@@ -157,9 +157,9 @@ edit cfg/zenki/models/start:
 
 ## also create cmd wrappers (same pattern as invoke cmd modules)
 
-    modules/models.cmd.adapter-lmstudio-discover
-    modules/models.cmd.adapter-lmstudio-resolve
-    modules/models.cmd.adapter-lmstudio-repair
+    src/models.cmd.adapter-lmstudio-discover
+    src/models.cmd.adapter-lmstudio-resolve
+    src/models.cmd.adapter-lmstudio-repair
 
     thin wrappers — same pattern as models.cmd.adapter-discover etc.
     use $call->{'args'} (not $call_args)
@@ -173,8 +173,8 @@ edit cfg/zenki/models/start:
     do NOT add #,,... stub lines
     report when done
 
-#,,.,,...,.,,,.,.,,..,,,,,,.,,.,.,,..,.,.,...,..,,...,...,...,..,,..,,,,,,..,,
-#CN6QBFJRR2TCGHIKNLODUDQQQ2UBJ3KKTU4FM32GHOHQVP3VINOD6ABPC2RD2V4TH2VOQYFD3E5AM
-#\\\|HVIC3ERVS6ZJOXLFG5WZY75RXGBOIFRV2TGLXEGLUFNWQMGOEJ3 \ / AMOS7 \ YOURUM ::
-#\[7]HTTRWAET4OJ5JKQQAZ5JNXKLNGZ4E6OGA35YU675SQQDIKAAOADI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,..,,,.,,..,.,.,..,,.,,,,,,,,,,,..,,...,...,,..,,.,,.,,,,,.,...,
+#IOPSA3KHIPJ55P4FJTY4S4CEVVCTWFSPWVMLEVFYSE23IXMOD744TU7PME2AXAJIXICUNWM4D6WIG
+#\\\|DEAFTWJ5SQIDIVXP6EBETACRC4CLME2AGC236Z5VU7KEEP5QWCS \ / AMOS7 \ YOURUM ::
+#\[7]UX7YWULH3EHXFDVARGNDZJANDK26VRH4U3JXCT73PP2ZCN3NQCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

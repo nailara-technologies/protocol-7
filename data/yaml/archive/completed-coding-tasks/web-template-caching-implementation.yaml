@@ -21,7 +21,7 @@ metadata:
   planning_session: "context-compilation-and-documentation"
   
   architecture_context:
-    - "docs/modules/TEMPLATE-SYSTEM-MODULE-REFERENCE.md (complete API reference)"
+    - "docs/src/TEMPLATE-SYSTEM-MODULE-REFERENCE.md (complete API reference)"
     - "docs/TEMPLATE_SYSTEM_STATUS_SUMMARY.md (status summary)"
     - "docs/SESSION_STATUS_2025-11-15_web-zenka-progress.md (infrastructure status)"
     - "docs/architecture/NEW_ZENKA_ARCHITECTURE.md (overall design)"
@@ -59,7 +59,7 @@ phase_1:
         - "Wait for startup (sleep 7)"
         - "List loaded zenki: p7 v7.list zenki"
         - "List active sessions: p7 list sessions"
-        - "Verify modules are present: grep -l 'web.init_code\|httpd.vhost_template' modules/*"
+        - "Verify modules are present: grep -l 'web.init_code\|httpd.vhost_template' src/*"
       
       success_criteria:
         - "v7 zenka starts without errors"
@@ -74,9 +74,9 @@ phase_1:
     - name: "Validate Module Naming Conventions"
       tokens: 0.25
       actions:
-        - "Review existing modules: ls modules/ | grep -E '^(web|httpsd)\\.' | head -20"
-        - "Check naming patterns: grep '# name = ' modules/web.* | head -10"
-        - "Verify namespace structure: grep '<web\\.|<httpsd\\.' modules/* | head -10"
+        - "Review existing modules: ls src/ | grep -E '^(web|httpsd)\\.' | head -20"
+        - "Check naming patterns: grep '# name = ' src/web.* | head -10"
+        - "Verify namespace structure: grep '<web\\.|<httpsd\\.' src/* | head -10"
       
       success_criteria:
         - "Naming patterns consistent (dots preserved in keys, not nested hashes)"
@@ -86,9 +86,9 @@ phase_1:
     - name: "Confirm Cache Storage Strategy"
       tokens: 0.25
       actions:
-        - "Review web.init_code: grep -A5 'web.templates.cache' modules/web.init_code"
-        - "Check existing cache patterns: grep -n 'data{' modules/web.menu_generator"
-        - "Understand TTL pattern: grep -B2 -A2 'time -' modules/weather.parent.cache.read_cache_data"
+        - "Review web.init_code: grep -A5 'web.templates.cache' src/web.init_code"
+        - "Check existing cache patterns: grep -n 'data{' src/web.menu_generator"
+        - "Understand TTL pattern: grep -B2 -A2 'time -' src/weather.parent.cache.read_cache_data"
       
       success_criteria:
         - "Understand that <web.templates.cache> is `$data{'web.templates.cache'}`"
@@ -108,7 +108,7 @@ phase_2:
     - name: "Implement: web.scan_content_directories"
       tokens: 0.75
       actions:
-        - "Create: modules/web.scan_content_directories"
+        - "Create: src/web.scan_content_directories"
         - "Function: Recursively scan /var/httpd/{vhost}/ for template candidates"
         - "Return: Hash of { path => { has_template, template_path, mtime, ... } }"
         - "Store: Results in $data{'web.content_index'} with mtime tracking"
@@ -154,7 +154,7 @@ phase_2:
     - name: "Implement: web.template_cache.get"
       tokens: 0.5
       actions:
-        - "Create: modules/web.template_cache.get"
+        - "Create: src/web.template_cache.get"
         - "Function: Retrieve cached template by key"
         - "Return: Content if exists and not expired, else undef"
         - "Check: Timestamp-based TTL expiration"
@@ -194,7 +194,7 @@ phase_2:
     - name: "Implement: web.template_cache.set"
       tokens: 0.5
       actions:
-        - "Create: modules/web.template_cache.set"
+        - "Create: src/web.template_cache.set"
         - "Function: Store rendered template with TTL"
         - "Return: 1 on success, 0 if size exceeded"
         - "Check: Size limit against <web.cfg.template_max_size>"
@@ -237,7 +237,7 @@ phase_2:
     - name: "Implement: httpsd.route_template_request"
       tokens: 1
       actions:
-        - "Create: modules/httpsd.route_template_request"
+        - "Create: src/httpsd.route_template_request"
         - "Function: Route HTTP request to appropriate handler"
         - "Routes: ACME → API → Template → Static (priority order)"
         - "Normalize: Remove query strings, fragments, double slashes"
@@ -378,7 +378,7 @@ phase_4:
     - name: "Document Module API & Usage"
       tokens: 0.25
       actions:
-        - "Create: docs/modules/TEMPLATE-CACHING-IMPLEMENTATION.md"
+        - "Create: docs/src/TEMPLATE-CACHING-IMPLEMENTATION.md"
         - "Document: Each module's signature and behavior"
         - "Include: Code examples and usage patterns"
         - "Include: Integration points in httpd.http_get"
@@ -593,7 +593,7 @@ Realistic total with buffer: 4.4-5.9 tokens
 
 If continuing in a new session:
 
-1. Read: docs/modules/TEMPLATE-SYSTEM-MODULE-REFERENCE.md (complete API)
+1. Read: docs/src/TEMPLATE-SYSTEM-MODULE-REFERENCE.md (complete API)
 2. Read: docs/TEMPLATE_SYSTEM_STATUS_SUMMARY.md (current state)
 3. Review: data/yaml/coding-tasks/web-template-caching-implementation.yaml (this file)
 4. Check: git log --grep="[CLAUDE]" --oneline (see what was committed)
@@ -633,8 +633,8 @@ If continuing in a new session:
 
 end_of_task_definition: true
 
-#,,..,.,.,,,,,,.,,..,,,,,,,,.,..,,,,.,..,,.,,,..,,...,...,,,.,,.,,,,,,.,,,,.,,
-#GS423GNNEU37SRDPMJGXYOSYFJ6NIUHW7QNNL4NBKMSSHTBNJYNIBXFZXHG7ZUD2WY2TLBK54PR26
-#\\\|RXDJNGJ5S4VFUAB2N3WUG4E724E6PZ7GLMAMLNLMXEGC6Y6UU7L \ / AMOS7 \ YOURUM ::
-#\[7]XAISOII6IYFL7KZNV2FDZA56NC6RDCIWP2OB6NZX3R5XSMKYD2CI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,...,..,,,.,,,.,,,,.,,.,,.,.,..,,...,...,..,,,..,,..,,,.,,.,,
+#5TIFMVXNSP3PT4J5LEWIAZEVBTHI2UA5Y5KVVUXZQDUH2HRNFDSIB7L66F7EL6G27XUUKWHFCEJEG
+#\\\|T65OHE6CURHEZKER4FUPAAAV4Y7Q6FAJI6AR7ATATF2MU3FF5JE \ / AMOS7 \ YOURUM ::
+#\[7]SB5GPA2EXFJZBTV7NXLA4U53SIIBDUI5C2PNIDVIR4ROXUIIIKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

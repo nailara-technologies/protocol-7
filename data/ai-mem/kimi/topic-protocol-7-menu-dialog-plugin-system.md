@@ -18,7 +18,7 @@ pending-question ambient indicator.
 
 ## Wiring changes
 
-- `modules/protocol-7-menu.init_code` now calls `dialog-types` and
+- `src/protocol-7-menu.init_code` now calls `dialog-types` and
   `pending-questions-init`
 - `cfg/zenki/protocol-7-menu/start` grants cube access to
   `input-choice` and `pending-question-*`
@@ -59,8 +59,8 @@ pending-question ambient indicator.
 - coding-zenka tool wrappers (`ask_user_choice`, `ask_user_text`, etc.)
 - amos-term `interaction` plugin track
 
-#,,,.,.,,,,,,,,,.,..,,,,.,,,.,.,.,...,,.,,...,..,,...,...,,..,.,.,,,,,...,,..,
-#5YHACV5BZJELS7BGVWEPHQ3LZGFVCHK6HBOZSAHVH2GXB5YNTBZUOI3GLI5AP6MQ5SNMFTDMH4TSM
-#\\\|ICS25BE2LN6ZLUIQT5JYKTG3WUNKEO3BV5DDWXEBY6MVCQUKWQJ \ / AMOS7 \ YOURUM ::
-#\[7]R5VXFLGUHERX4T2YSH6Z6FYSKH5ST4SABEWILYEO3KFR3YEYPMDI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,,..,.,.,,.,,,,,,.,,,..,,,,,,..,,...,...,...,,,,,...,.,.,,..,
+#CWJOC6VFC4QC4SWFISYU26H3RIIBVXG4E4K3R7B4ZOK5KFXM7X7XW4JD2HU5FSZU7SNFQBWOI5MHO
+#\\\|VLD5SDPXLYWIPF3LWC543IW4KE7K6KQEHZJJYZZTBEPUCGAOULJ \ / AMOS7 \ YOURUM ::
+#\[7]6NH3WHU3EVIKNWRUKA3W2ABGK32JIUY6VYJRM6SASRYUTJN6EQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

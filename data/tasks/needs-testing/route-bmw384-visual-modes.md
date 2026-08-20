@@ -16,8 +16,8 @@ all modes share the same coordinate → SVG pipeline. they are controlled by
 
 ## read first
 
-- modules/route.bmw384.visual.wheel  — current implementation
-- modules/route.bmw384.cmd.visual-wheel  — command handler
+- src/route.bmw384.visual.wheel  — current implementation
+- src/route.bmw384.cmd.visual-wheel  — command handler
 
 ## mode 1: arc-width distribution [ visual_mode = 'arc-width' ]
 
@@ -125,7 +125,7 @@ set <route.bmw384.cfg.visual_mode> and mode-specific params before render call.
 
 ## new module to create
 
-### modules/route.bmw384.visual.wheel-mode
+### src/route.bmw384.visual.wheel-mode
 
 dispatcher: reads <route.bmw384.cfg.visual_mode> and calls the appropriate
 render variant. default ('ring') calls the existing wheel module unchanged.
@@ -164,8 +164,8 @@ implement in this order (simplest first):
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,.,,,.,,.,.,.,.,,..,,,.,.,,,,,.,,.,,,,.,..,,..,,...,..,,...,,,.,,,.,,..,,.,,
-#YT44JXSHYH2V26XCWHHNE2DJPHZNV3NY3CO2CX26KKDZNKUWSBHY3BH5IVMWWHJRSSDIIUGVWLK2S
-#\\\|PI2YGO2TVLJLYCZCCAAKJYONC3ZXO2CH55SYQ4VZAOYFH7ASTCP \ / AMOS7 \ YOURUM ::
-#\[7]MFR55LSHRLDULQGOGBJDGLZJ7HNHX76NT4LCR3EIT4QICHUSNGDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,..,,.,.,,,,,...,...,,,,,,,.,...,..,,...,...,,,,,,..,.,,,.,.,..,,
+#V3BEOG657Q53EGVHMA3N4LLXVYFGAXQNNQ5BF2QIJ24DO2UQQVV4GEF262DRTO6QVV2QTGDLPZVII
+#\\\|MEPPA4IZFYUUKDM4X2H7P634B3K4MHXDNV723W2X6DRLS64IMA2 \ / AMOS7 \ YOURUM ::
+#\[7]QK36CYHCGTTP763HJLDNUFSTGMK3I2QXYMRKGZUDHA4ZR4CCMKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

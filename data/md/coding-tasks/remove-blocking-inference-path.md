@@ -17,7 +17,7 @@ Investigation confirmed (task V7CUGSQ, 2026-05-09):
 
 ### 1. coding.task.execute — remove blocking fallback
 
-**File:** `modules/coding.task.execute`
+**File:** `src/coding.task.execute`
 
 The blocking fallback is at the end of the function after the async path:
 ```perl
@@ -39,7 +39,7 @@ Do not fall back to blocking. The async path failure reason is already logged.
 
 ### 2. coding.cmd.complete-analysis — redirect to async
 
-**File:** `modules/coding.cmd.complete-analysis`
+**File:** `src/coding.cmd.complete-analysis`
 
 Currently calls `coding.handler.process-queued-task` via jobqueue callback.
 Redirect to use `coding.async.request` directly, or route through
@@ -49,7 +49,7 @@ Read the module first to understand the exact call pattern, then redirect.
 
 ### 3. Delete blocking handler
 
-**File:** `modules/coding.handler.process-queued-task`
+**File:** `src/coding.handler.process-queued-task`
 
 Once callers are removed, delete this module (992 lines, LWP dependency).
 Use `remove_file` tool with reason "blocking inference path removed — superseded
@@ -61,13 +61,13 @@ Also check for and remove:
 
 ## Execution Order
 
-1. Read `modules/coding.task.execute` — find and remove the blocking fallback branch
-2. Read `modules/coding.cmd.complete-analysis` — find and redirect the handler call
+1. Read `src/coding.task.execute` — find and remove the blocking fallback branch
+2. Read `src/coding.cmd.complete-analysis` — find and redirect the handler call
 3. `ptd -c` on both modified modules
-4. Read `modules/coding.handler.process-queued-task` — verify no remaining callers
+4. Read `src/coding.handler.process-queued-task` — verify no remaining callers
    use `search_code(pattern: "process-queued-task")` to confirm
-5. Delete `modules/coding.handler.process-queued-task` with `remove_file`
-6. Check `modules/kimi.handler.process-queued-task` — assess separately
+5. Delete `src/coding.handler.process-queued-task` with `remove_file`
+6. Check `src/kimi.handler.process-queued-task` — assess separately
 
 ## Acceptance Criteria
 
@@ -90,8 +90,8 @@ Also check for and remove:
   after the blocking path is gone (set to 0 would just cause task failures
   with a clear error, which is safer than a silent freeze)
 
-#,,,,,..,,,..,,,.,,,,,,.,,.,.,.,,,..,,...,,..,..,,...,...,,,,,.,,,..,,..,,.,,,
-#YFOXHJV6P5VBGFZVO7GQSLOPXKNDKB7S2H4GZOF55AUEDMLEHHGHXE7GMFOVWLPPOO2BARMBD675C
-#\\\|5ZFHCKKSUOTYPJXHMGLFFQLW5AO7X43DT7FYFFJL6MBLTZU67MX \ / AMOS7 \ YOURUM ::
-#\[7]TXGKY2M4PBMOZGSPITIU6B5QW2JX463256EFG5UABHML7WAVDGAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,...,...,..,,,,.,,..,,,.,...,..,,...,...,.,.,.,,,..,,,..,,..,
+#YEKUKUB7BSE32OKIMELDFWA6PCZ4FVHML3VLVAYWSUGZE4YWPI6WV5Y2J2B347GJFOV7GFM73ZQYQ
+#\\\|RXKK6WLZL6ZGL4OFE4PBRVYT5JMCMGKNFRJN5HYEZBJIXYYRIKN \ / AMOS7 \ YOURUM ::
+#\[7]SLYXSUOT2Z3TPQG6C6BZSBV7ELTHAULUIXCTL5UH3JZO4HPIXMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -130,7 +130,7 @@ return $ok
 
 ## auto-restore on startup
 
-in `modules/index.init_code`, after the data structure initialization block,
+in `src/index.init_code`, after the data structure initialization block,
 add:
 
 ```perl
@@ -164,8 +164,8 @@ add `index.persist index.restore` to
 - the storable file will be ~10-50MB for a full data/md corpus
 - index.init_code already loads the path config before this runs
 
-#,,.,,,,.,,.,,,.,,,,,,,..,,,.,.,,,,,,,,..,..,,..,,...,...,,..,,,,,.,.,,.,,...,
-#BKVNYSLXBOESC3EPYM6RFGGWNHQC52KBVX5XETB7OBJP3CLH2IT2ITBTVPNKCT4J5NXM6AFTUTTDS
-#\\\|YUCA6IZ4V2DZM7UMPVXZEQR242NXX6JNOBJYBVKCC63K7ZTS4GQ \ / AMOS7 \ YOURUM ::
-#\[7]7J7UQ6VNV36SZKKYCHPQOR6GUZX7TBJO2PHXSDSBHCPFFHJ6VQBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,.,,.,,,,,,,.,,,.,,,..,,,,,,..,,...,..,,,..,,,,,.,.,.,.,,,.,
+#6AC7UXNII2TIXR35WQ2QVYKP4POTFJ2UNIMOZTNXXIINT42GJ3FXMSIHEPUSENDVE6GLFARTMTZLM
+#\\\|YBTVLMWEIA5LPDTGMWUMWISTYORI2SGJ3U4VZL6N3M3K3U56ICU \ / AMOS7 \ YOURUM ::
+#\[7]B5RMM3MH5D7JJCXSFE3TJYL554GQF7LKIDOOBFJA2JWODRLHNEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

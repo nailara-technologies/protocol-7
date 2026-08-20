@@ -206,7 +206,7 @@ sub encode_to_blue_mask {
 
 ### Fluorescent Drift Encoding
 
-From `modules/ticker.cfg.font.calc_outline_col`:
+From `src/ticker.cfg.font.calc_outline_col`:
 - CCW rotating hue → Directional metadata
 - Four offset colors → Multi-layer information
 - Hue distance limits → Coherence constraints
@@ -304,13 +304,13 @@ This poem, discovered during namespace research and now encoded in every Protoco
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| Hash resolution | ✅ Complete | `modules/data.resolve_hash_path` |
-| Filesystem roundtrip | ✅ Complete | `modules/data.cmd.*-fs` |
-| Hook notification | ✅ Complete | `modules/data.hooks.*` |
-| **Interference mapping** | 🔄 In Progress | `modules/data.topology.interference.map` |
-| POV-Ray integration | 🔄 Planned | `modules/data.visual.povray.*` |
-| AI dream layers | 📋 Designed | `modules/data.ai.dream.*` |
-| Intuition grids | 📋 Designed | `modules/data.intuition.*` |
+| Hash resolution | ✅ Complete | `src/data.resolve_hash_path` |
+| Filesystem roundtrip | ✅ Complete | `src/data.cmd.*-fs` |
+| Hook notification | ✅ Complete | `src/data.hooks.*` |
+| **Interference mapping** | 🔄 In Progress | `src/data.topology.interference.map` |
+| POV-Ray integration | 🔄 Planned | `src/data.visual.povray.*` |
+| AI dream layers | 📋 Designed | `src/data.ai.dream.*` |
+| Intuition grids | 📋 Designed | `src/data.intuition.*` |
 
 ---
 
@@ -330,8 +330,8 @@ This poem, discovered during namespace research and now encoded in every Protoco
 
 🖖🔮✨
 
-#,,.,,,,,,.,,,,..,,.,,,,,,.,,,...,...,,,.,.,,,..,,...,...,,,.,..,,.,,,...,.,.,
-#3444BANGDVX3G6UGY6H6OEYU6Y3I24FI7MSIRWXA24W72O7WJUA6TA6Q5CDCBB227XP3PVFY7UD72
-#\\\|U2MURIEGQCHKHFXZRKGH4HSSY4IFMGS7FYEDRPC22LNN3QG3HTW \ / AMOS7 \ YOURUM ::
-#\[7]MCZAYKSYBOPN7WRZTNXAF2WHBC25DENQCSA4QTRE3PQKH5RJBSAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,.,,,,.,,,,,,..,,.,.,,.,,.,,,..,,...,...,,..,,,,,,.,,..,,,.,,
+#NAHRBIX56UO6MKN3QIH266ZDCINSGL4XZ4YBQAE6UNU2YB7ARIOZTNROKYWL3Z7NXTIOA3EMXWG22
+#\\\|IZAMROSYN4MIK4N5DJTEDHCKS56MVGERBE6YMG2TCUDIKDCP7O7 \ / AMOS7 \ YOURUM ::
+#\[7]4FJIKUTDNGYYK7ARQ5BHB7FP45HOAYOJQRHCGFDNAHYYX2EHY2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

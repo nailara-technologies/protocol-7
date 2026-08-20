@@ -2,7 +2,7 @@
 
 **Priority:** Medium
 **Type:** Path-config cleanup
-**Component:** bin/chat, bin/mcp-server-p7, modules/sys-deps.*, bin/dev/git-hooks/pre-commit, .gitignore
+**Component:** bin/chat, bin/mcp-server-p7, src/sys-deps.*, bin/dev/git-hooks/pre-commit, .gitignore
 
 ## Overview
 
@@ -18,7 +18,7 @@ multiple zenki — unrelated bug, already fixed separately in
    has been moving *away* from. Fix: move these under the project's existing
    external-runtime convention (`<system.path.zenka-dirs>{'var_P7'}`, i.e.
    `/var/protocol-7` or `$ENV{PROTOCOL_7_VAR}`, set up by
-   `modules/base.path-set-up.zenka-directories`).
+   `src/base.path-set-up.zenka-directories`).
 2. **`data/chat/`** — task- and development-related chat history between
    models/zenki, explicitly intended to be committed alongside the code
    state it discusses. `data/chat/channel/*/history`, `summary.md`, and
@@ -35,7 +35,7 @@ multiple zenki — unrelated bug, already fixed separately in
 
    Also rename `data/chat/` → `data/development/chat/` while touching these
    same files — `data/coding/chat/` was considered and rejected: `coding` is
-   already the name of a real zenka (`modules/coding.*`), so it read as "the
+   already the name of a real zenka (`src/coding.*`), so it read as "the
    coding zenka's chat" rather than "dev conversations in general" the
    moment it was written down. `git mv` to preserve history, then update the
    hardcoded paths in `bin/chat` (`$CHAT_DIR`, ~line 58),
@@ -51,8 +51,8 @@ for genuinely external state is to stop writing it inside the repo tree.
 ## Step-by-step plan
 
 1. **`var/sys-deps/`** (live, needs a real code change) — used by
-   `modules/sys-deps.init_code`, `modules/sys-deps.cmd.install`,
-   `modules/sys-deps.cmd.promote`, `modules/v7.check_zenka_deps`, and
+   `src/sys-deps.init_code`, `src/sys-deps.cmd.install`,
+   `src/sys-deps.cmd.promote`, `src/v7.check_zenka_deps`, and
    `bin/os-pkg` (currently `File::Spec->catdir($P7_ROOT, qw|var sys-deps|)`).
    All of these build the path from `<system.root_path>` / `$P7_ROOT`
    (repo root) — switch them to `<system.path.zenka-dirs>{'var_P7'}` (or
@@ -108,8 +108,8 @@ for genuinely external state is to stop writing it inside the repo tree.
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,..,.,.,...,.,,,,,.,..,,...,...,,.,,.,,,,,.,..,,...,...,,..,,,,,.,,,,.,,.,.,
-#A6ZKPPNMOQLUCNX5I7MQBZNNEQXVRJUPSAWBQNH2A7RHFXNYYDHIZFARJNKUFYFBGKRUMH3HHHOUU
-#\\\|RTNIMC4T3QDXK3XWLXGHOUDB7B5MJWTAIZD2BSQRH5BYH7F7NFF \ / AMOS7 \ YOURUM ::
-#\[7]ZYQECEAOM66ADKAYLFYK7TNPNTOX4SGYADMWMI4BW7EJIM4DX6DI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,..,,,,.,.,,,.,.,.,,,.,,,.,,,,,,,..,,...,...,,..,,.,,,.,,,,,,.,,,
+#V7AIBMLLIGG52ACGDDRHWXJVVNNKBXBGXCEY2LKI6GX7U2ICC7JKLHE3LAIW4TIY7TBX4AYZZUJN4
+#\\\|UWESNDRB5PJOO3W462H26VBYVZW25U3GWQBZ4GVKSUY6M2PRO5S \ / AMOS7 \ YOURUM ::
+#\[7]DVQ6F2ATHBEGT2YWQTJD74XGSV7ISKSNYZ3NRBQVG5KVGK2JQCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

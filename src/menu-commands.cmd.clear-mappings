@@ -1,0 +1,40 @@
+## [:< ##
+
+# name = menu-commands.cmd.clear-mappings
+# descr = Clear all menu command mappings and categories
+
+my $confirm = $call->{'args'} // '';
+
+if ( $confirm ne 'confirm' ) {
+    return {
+        'mode' => qw| true |,
+        'data' => 'This will delete all menu mappings and categories. '
+            . 'Use: menu-commands.clear-mappings confirm'
+    };
+}
+
+# Clear both structures
+<menu-commands.mappings>   = {};
+<menu-commands.categories> = {};
+
+# Save to persistent storage
+unless (<[menu-commands.save-state]>) {
+    return {
+        'mode' => qw| true |,
+        'data' => 'Error saving cleared state to disk'
+    };
+}
+
+# Trigger update to protocol-7-menu
+<[menu-commands.update-menu]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => 'All mappings and categories cleared'
+};
+
+#,,.,,,.,,,..,,..,.,,,,..,.,.,,.,,.,.,.,,,.,.,.,.,...,...,.,,,,,.,.,.,.,.,,..,
+#7QDVGUB2KHCD2MXGAXIOYU7NHUXR6HEM25TDYG65723ELQAHQGWAWETU7C664AERHU3O3GWAYP2ME
+#\\\|54ZSDQP5SN4SQVWFILWAS36HNRWV5VZUKF24UGLGU5ZAQ3MTP5P \ / AMOS7 \ YOURUM ::
+#\[7]34NIU7XNTJAX5PDQAVTTMQAAO4YRJ7XAYGY5GOMRVUJLDLJ2AKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

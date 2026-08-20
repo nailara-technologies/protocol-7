@@ -1,0 +1,182 @@
+## [:< ##
+
+# name  = letsencr.child.acme_finalize_order
+# descr = finalize ACME order by submitting CSR and polling for certificate
+
+<[base.log]>->( 2, 'finalizing ACME order' );
+
+## Ensure we have order and CSR
+my $current_order = <letsencr.child.current_order>;
+my $csr           = <letsencr.child.current_csr>;
+
+unless ( $current_order && $csr ) {
+    <[base.log]>->( 1, 'error: no current order or CSR' );
+    return undef;
+}
+
+my $finalize_url = $current_order->{finalize_url};
+
+unless ($finalize_url) {
+    <[base.log]>->( 1, 'error: no finalize URL in order' );
+    return undef;
+}
+
+## Get fresh nonce
+my $nonce = <[letsencr.child.get_fresh_nonce]>;
+unless ($nonce) {
+    <[base.log]>->( 1, 'error: failed to get fresh nonce' );
+    return undef;
+}
+
+## Create finalization payload with CSR
+my $payload = { csr => $csr->{b64url}, };
+
+## Submit finalization request
+my $response = <[letsencr.child.acme_http_request]>->(
+    'POST', $finalize_url, $payload, $nonce,
+    <letsencr.child.acme_client>->{account_url}
+);
+
+unless ($response) {
+    <[base.log]>->( 1, 'error: finalization request failed' );
+    return undef;
+}
+
+unless ( $response->{status} == 200 ) {
+    <[base.log]>->(
+        1, "error: finalization returned status $response->{status}"
+    );
+    return undef;
+}
+
+<[base.log]>->( 2, 'finalization request submitted' );
+if ( $response->{data}{status} ) {
+    <[base.log]>->( 2, "  order status : $response->{data}{status}" );
+} elsif ( $response->{data}{type} ) {
+    <[base.log]>->( 1, "  error response : $response->{data}{detail}" );
+}
+
+## Update nonce
+<letsencr.child.acme_client>->{nonce} = $response->{nonce};
+
+## Store finalization response
+<letsencr.child.current_order>->{finalized_at} = time();
+
+## Poll for certificate (order processing)
+<[base.log]>->( 2, 'polling for certificate issuance...' );
+
+my $order_url = <letsencr.child.current_order>->{order_url};
+my $cert_url;
+
+## Poll until certificate is ready
+my $max_polls  = 60;
+my $poll_count = 0;
+my $backoff    = 1;
+
+while ( $poll_count < $max_polls ) {
+    $poll_count++;
+
+    ## Get fresh nonce
+    $nonce = <[letsencr.child.get_fresh_nonce]>;
+    unless ($nonce) {
+        <[base.log]>->( 1, 'error: failed to get fresh nonce' );
+        last;
+    }
+
+    ## Check order status (POST-as-GET)
+    my $order_response = <[letsencr.child.acme_http_request]>->(
+        'POST',
+        $order_url,
+        '',    # empty payload
+        $nonce,
+        <letsencr.child.acme_client>->{account_url}
+    );
+
+    unless ($order_response) {
+        <[base.log]>->( 2, "poll $poll_count: request failed" );
+        sleep($backoff);
+        $backoff = $backoff < 10 ? $backoff * 1.5 : 10;
+        next;
+    }
+
+    my $order_data = $order_response->{data};
+    unless ( $order_data
+        && ref($order_data) eq qw| HASH |
+        && defined $order_data->{status} ) {
+        <[base.log]>->(
+            1,
+            "error: invalid order response - missing or invalid status field"
+        );
+        <[base.log]>->(
+            2,
+            "response data: "
+                . ( $order_data ? ref($order_data) : 'undefined' )
+        );
+        sleep($backoff);
+        $backoff = $backoff < 10 ? $backoff * 1.5 : 10;
+        next;
+    }
+
+    my $order_status = $order_data->{status};
+
+    <[base.log]>->( 2, "poll $poll_count: order status = $order_status" );
+
+    if ( $order_status eq 'valid' ) {
+        $cert_url = $order_data->{certificate};
+        <[base.log]>->( 2, 'certificate ready!' );
+        <letsencr.child.acme_client>->{nonce} = $order_response->{nonce};
+        last;
+    } elsif ( $order_status eq 'invalid' ) {
+        <[base.log]>->( 1, 'order became invalid during processing' );
+        return undef;
+    }
+
+    sleep($backoff);
+    $backoff = $backoff < 10 ? $backoff * 1.5 : 10;
+}
+
+unless ($cert_url) {
+    <[base.log]>->( 1, 'error: certificate URL not obtained within timeout' );
+    return undef;
+}
+
+## download certificate with dedicated raw PEM handler  [ endpoint returns raw
+## PEM/DER, not JSON ]
+my $fresh_nonce = <[letsencr.child.get_fresh_nonce]>;
+unless ($fresh_nonce) {
+    <[base.log]>->( 1, 'error: failed to get fresh nonce for cert download' );
+    return undef;
+}
+
+my $account_url   = <letsencr.child.acme_client>->{account_url};
+my $cert_response = <[letsencr.child.download_certificate]>->(
+    $cert_url, $fresh_nonce, $account_url
+);
+
+unless ($cert_response) {
+    <[base.log]>->( 1, 'error: failed to download certificate' );
+    return undef;
+}
+
+my $cert_pem = $cert_response->{certificate};
+
+## Update nonce from certificate download
+<letsencr.child.acme_client>->{nonce} = $cert_response->{nonce}
+    if $cert_response->{nonce};
+
+<[base.log]>->( 2, 'certificate downloaded successfully' );
+
+## Return certificate and key
+return {
+    certificate   => $cert_pem,
+    key           => <letsencr.child.cert_key>->{pem},
+    domains       => <letsencr.child.current_order>->{domains},
+    cert_url      => $cert_url,
+    poll_attempts => $poll_count,
+};
+
+#,,.,,.,.,..,,,.,,,,,,.,.,,..,...,.,.,,,.,,,.,..,,...,...,.,,,.,.,.,.,.,,,,.,,
+#44T3Y2PO73SZ2XR2URBGIPRN4OYA3WDS2N22EQDRPPALAK25LJL2R7EAXVDF2XRI4X3G7LNBMULCW
+#\\\|LR4OJCOOE3L56KBJMAR4I36ATHPYPEVBD5QEEZDI4KNZZ4KHXWJ \ / AMOS7 \ YOURUM ::
+#\[7]AKTPXZWFEYNTP4ZT7BP7XFT62VQGAPJKE6LAHGUWRETGH77CFYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

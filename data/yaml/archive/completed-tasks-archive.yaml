@@ -99,7 +99,7 @@ key_architectural_patterns:
 
     reserved_states: "0, 2, 3, 4, 7 available for future enhancements"
 
-    implementation_location: "modules/source.cmd.get-code-signed:161-195"
+    implementation_location: "src/source.cmd.get-code-signed:161-195"
 
     key_benefits:
       - "Cleaner: only 3 active states vs complex 8-state recovery system"
@@ -108,10 +108,10 @@ key_architectural_patterns:
       - "Self-healing: files normalize on re-signing"
 
     related_modules:
-      - "modules/source.cmd.get-code-signed: Core normalization logic"
-      - "modules/source.create_harmonic_footer: Encodes delta in signature"
-      - "modules/source.extract_sig_body: Detects current endline state"
-      - "modules/amos7.encode_octal_header: Stores state in AMOS7 header position 11"
+      - "src/source.cmd.get-code-signed: Core normalization logic"
+      - "src/source.create_harmonic_footer: Encodes delta in signature"
+      - "src/source.extract_sig_body: Detects current endline state"
+      - "src/amos7.encode_octal_header: Stores state in AMOS7 header position 11"
 
   verification_and_validation:
     title: "Signature Verification Strategy"
@@ -138,19 +138,19 @@ common_issues_and_solutions:
     symptom: "Signature footer appended directly to last content line without separator"
     root_cause: "extract_sig_body treating missing endlines as fatal error"
     solution: "Flag endline issues for repair instead of failing immediately"
-    affected_code: "modules/source.extract_sig_body, modules/source.cmd.get-code-signed"
+    affected_code: "src/source.extract_sig_body, src/source.cmd.get-code-signed"
 
   issue_oscillation_on_resigning:
     symptom: "Signatures invalidate after content changes and re-signing"
     root_cause: "Stale endline-state values not matching current file format"
     solution: "Detect current endline state and normalize to exactly 1 before signing"
-    affected_code: "modules/source.cmd.get-code-signed:161-195"
+    affected_code: "src/source.cmd.get-code-signed:161-195"
 
   issue_verification_requires_key_access:
     symptom: "Cannot verify signatures in restricted environments (CI/CD)"
     root_cause: "Old system required full signing key access"
     solution: "Implement separate verify module that only needs public key"
-    affected_code: "modules/sourcecode.console.verify-p7-signatures"
+    affected_code: "src/sourcecode.console.verify-p7-signatures"
 
 testing_strategies_learned:
   comprehensive_test_coverage:
@@ -207,8 +207,8 @@ git_commits_implementing_changes:
     date: "2025-10-17"
     version: "3KJOD64SNI-5193.0"
 
-#,,..,..,,..,,,,.,,.,,...,,.,,,.,,..,,...,.,.,..,,...,...,.,.,,,.,...,.,,,.,,,
-#C5GSTSUUH6VZKZDHAMV3DN477W6NB36LMCD74LIF6P7ZLESO5LFVR3WCEXWWVKA5SIZVPR3GYPB6O
-#\\\|4JHV6POXVBC4JICIUPTPVPYFFSM57PIRW7PKRUF54VH2X5FRRBG \ / AMOS7 \ YOURUM ::
-#\[7]VYCHWZ2T5B6ZEPWZHVXSMDGPKAEWMQJTNFLV3AEYOQP4Z7XAMIAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,.,,,,..,.,,,..,,,.,,,,,,.,,,..,,...,...,.,,,...,,,,,,,,,..,,
+#4YR6442EGFXFPKUI54R5T6PQVYE6EM3ENALVENYUGJICQB6I2UHE2SJ5NVDWMI7UCUMNYI3GUBENM
+#\\\|MWHNALY44EZOPOTKQSACDJW3EUZ2WNUBPNRXDNPB2LGHCFVVQAE \ / AMOS7 \ YOURUM ::
+#\[7]WKPEJQR342UWKJ5BBOTPTTXS6LVGYGSLP7I4NE2LYWIABGNJY2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

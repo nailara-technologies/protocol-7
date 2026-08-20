@@ -7,7 +7,7 @@
   specifically (search for that key). The rest of the doc (rendering, users-zenka
   integration, offline outbox, amos-term overlap) is NOT in scope here.
 
-The phase 1 skeleton (`cfg/zenki/user-edit/`, `modules/user-edit.init_code`)
+The phase 1 skeleton (`cfg/zenki/user-edit/`, `src/user-edit.init_code`)
 already exists and is committed — this task extends `user-edit.init_code`, it does
 not create the zenka from scratch.
 
@@ -22,14 +22,14 @@ resolvable.
 
 ## Precedent to follow (do not invent a new mechanism)
 
-- `modules/base.path.register_keywords` — takes one hashref `{ NAME => path, ... }`.
+- `src/base.path.register_keywords` — takes one hashref `{ NAME => path, ... }`.
   Read this file's source to see the exact call signature and what it validates.
-- `modules/base.path.resolve_keywords` — resolves `[NAME]/rest` strings back to
+- `src/base.path.resolve_keywords` — resolves `[NAME]/rest` strings back to
   the real path. Read this file too.
-- `modules/workspace-transfer.pre_init` — the one existing call site in this repo
+- `src/workspace-transfer.pre_init` — the one existing call site in this repo
   that calls `register_keywords`. Look at how it's invoked (single call, one
   hashref) — mirror that shape, don't build something more elaborate.
-- `modules/base.path-set-up.zenka-directories` — defines `<system.path.zenka-dirs>`
+- `src/base.path-set-up.zenka-directories` — defines `<system.path.zenka-dirs>`
   (the hash with `var_P7`/`etc_P7` keys) that this task reads from. Read it to
   confirm the exact keys available (`var_P7`, `etc_P7`, others) — don't guess.
 - `data/lib-path/pm/AMOS7/FILE.pm`'s `get_homepath()` sub — the existing helper
@@ -42,7 +42,7 @@ resolvable.
 
 ## What to build
 
-In `modules/user-edit.init_code` (append to the existing minimal stub, don't
+In `src/user-edit.init_code` (append to the existing minimal stub, don't
 replace the existing `base.logs` init line), register three keywords:
 
 - `VAR_P7` → the zenka's own var directory: `<system.path.zenka-dirs.var_P7>` +
@@ -62,11 +62,11 @@ Register all three in a single `register_keywords({ ... })` call, matching
 - anything from `phase_2_rendering`, `phase_3_form`, or the `users.*` command
   surface — not this task
 - do not touch `cfg/zenki/user-edit/start` or any other already-committed
-  file except `modules/user-edit.init_code`
+  file except `src/user-edit.init_code`
 
 ## Verification
 
-- run `bin/dev/ptd -c modules/user-edit.init_code` and confirm it reports
+- run `bin/dev/ptd -c src/user-edit.init_code` and confirm it reports
   syntax ok
 - after registering, confirm (by reading the code, not by executing — this
   zenka is not network-reachable yet) that `base.path.resolve_keywords`
@@ -91,8 +91,8 @@ Register all three in a single `register_keywords({ ... })` call, matching
 When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` if you hit anything non-obvious.
 
-#,,.,,.,.,,..,,,,,,..,,,,,.,.,,.,,..,,.,.,..,,..,,...,...,,,,,,,.,,,,,..,,..,,
-#OT5TA3KG624N6VSC6ZBR54VMUZELRQFU77QNHPIS5JLJUBNOQLL3PWN34GBTKVRSJGI6LPVROSBCU
-#\\\|L4NYV2KCH65MJJAM7B65EIPO4VUCIJT4YCOKE26ZV44WKJ2X6ZE \ / AMOS7 \ YOURUM ::
-#\[7]WNG6UAIIEZS2WP2ZPUMBD6G7WETCZ2BWHRAENC3OX5OCE2JNTKCA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,..,..,,,,.,...,...,...,.,.,,..,..,,...,...,,,,,.,,,,..,,,,,..,,
+#AB3IM3VQTOP4TQZU62CKELFRDQQMOSYZJ6OBUW3AXUVGV6DEYWAOO67HBHJPFZZ5CW3U6AIATQWFQ
+#\\\|LO3SGQV73IJXL5KA2NLNT6DA74CTMC4XXONFHAJABJOTXCCTJYP \ / AMOS7 \ YOURUM ::
+#\[7]MDXMQ6C5GVLIHMCCAMIAVV5OEGPAIRFQ633QU3X3R7J3RWCQMEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

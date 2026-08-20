@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = letsencr.parent.install_certificate_to_httpsd
+# param = $domain
+# descr = notify httpsd to reload certificates
+#         [ certs already saved to /etc/protocol-7/certs/ by save_certificate ]
+# return = { status => 'success'|'partial'|'error', message => ... }
+
+my $domain = shift;
+
+return {
+    qw| status |  => qw| error |,
+    qw| message | => qq| domain parameter required |
+    }
+    unless defined $domain && length($domain);
+
+<[base.logs]>->( 2, 'installing certificate for %s to httpsd', $domain );
+
+<[letsencr.parent.activity_logger]>->(
+    qw| install |, $domain, qw| pending |, qq| installing to httpsd |
+);
+
+## verify certificate files exist in certs directory
+my $certs_dir = '/etc/protocol-7/certs';
+my $cert_file = "$certs_dir/$domain.cert";
+my $key_file  = "$certs_dir/$domain.key";
+
+unless ( -f $cert_file && -f $key_file ) {
+    <[base.logs]>->(
+        1,          'certificate files not found: %s or %s',
+        $cert_file, $key_file
+    );
+    <[letsencr.parent.activity_logger]>->(
+        qw| install |, $domain, qw| failed |,
+        qq| cert files missing from $certs_dir |
+    );
+    return {
+        qw| status |  => qw| error |,
+        qw| message | => qq| certificate files not found |
+    };
+}
+
+<[base.logs]>->( 2, 'certificate files verified in: %s', $certs_dir );
+
+## signal httpsd to reload certificates  [ httpsd.discover_active_certificate
+## will find new cert automatically ]
+my $reload_result = <[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.httpsd.reload-certificates |,
+        'call_args' => {}
+    }
+);
+
+unless ($reload_result) {
+    <[base.logs]>->( 1, 'failed to trigger httpsd reload' );
+    <[letsencr.parent.activity_logger]>->(
+        qw| install |, $domain, qw| partial |,
+        qq| cert saved but httpsd reload failed |
+    );
+    return {
+        qw| status |  => qw| partial |,
+        qw| message | => qq| certificate saved but httpsd reload failed |
+    };
+}
+
+<[base.logs]>->( 2, 'httpsd certificate reload triggered' );
+
+<[letsencr.parent.activity_logger]>->(
+    qw| install |, $domain, qw| success |,
+    qq| certificate installed and httpsd reloaded |
+);
+
+return {
+    qw| status |  => qw| success |,
+    qw| message | => qq| certificate installed successfully |
+};
+
+#,,,,,,.,,..,,.,,,,.,,,.,,,,,,,,,,.,,,,..,...,.,.,...,..,,...,,,.,,,,,,..,.,,,
+#GWR77H54IRTBUEPC6NHWUDOXPX4S4J75CGRTX2FDKBMBNX2CIMORRIGI23BVROLCGWFLZUR5T6T6U
+#\\\|NUCFCPN5R2LGIS7LACDLFS7WDMPMBGG45TTYBTE5GGRSEBDQJ5L \ / AMOS7 \ YOURUM ::
+#\[7]LQJZM77PTXTP7R6HYADW2MVK3DANNFBZK3TVGAYPEDVRHC4QUGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

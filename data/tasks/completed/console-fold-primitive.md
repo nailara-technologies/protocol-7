@@ -15,9 +15,9 @@ namespace node a default rendering without per-zenka boilerplate.
 design doc [ read first ]:
 - `data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md`
 - memory note `topic-global-ui-menu-tree` for the stdio-slot vision
-- `modules/cred-mesh.ui.show` (and `.ui.query.*`, `.ui.render.*`)
+- `src/cred-mesh.ui.show` (and `.ui.query.*`, `.ui.render.*`)
   — the concrete proven pattern this generalises
-- `modules/ascii.frame.compose`, `modules/ascii.frame.load`
+- `src/ascii.frame.compose`, `src/ascii.frame.load`
 - `data/yaml/ascii-frames/cred-mesh/*` for the frame idiom
 
 the cred-mesh tri-layer (query / render / dispatch) is proven
@@ -142,7 +142,7 @@ returns the concatenated multi-line string.
 
 ## wiring
 
-in `modules/base.init_code` [ at the appropriate late-init stage so
+in `src/base.init_code` [ at the appropriate late-init stage so
 fallbacks are present before any zenka's first ui-show call ]:
 
 - register `base.cmd.ui-show.fallback` as the default dispatch for any
@@ -188,8 +188,8 @@ harmony base.ui.summarise
 harmony base.cmd.ui-show.fallback
 ```
 
-#,,..,,,.,,..,,..,.,,,,.,,,.,,,..,,,.,.,,,,,,,..,,...,...,,,.,,,.,..,,,.,,,..,
-#BNNTR64WGF7VLEZZFDMUT34KQDHFJHIRUV2LXOWB5WY3PRZF3KQN4N2A4P22TVFIS674PYJLXVA6M
-#\\\|SBC43FRHK2PYMQAK5X7PLYSZEXIGFTTLEQQRUREDZXNVE623IPP \ / AMOS7 \ YOURUM ::
-#\[7]SWZM3NYHO3YMEIF3EFK653XP7A7OQ2TZ3ULUMLFZKFIFJMESX6DQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,,,,,.,.,..,,,.,,,,,,,.,,.,,,..,,...,...,.,,,,..,,.,,,,,,,..,
+#ZVA67N5FUNXFXC2BZGM4HTSFCSUEBS3C7XB64EAVE7ZHXZFKQEPNY6LFAO3JRAV6FAAV5ZEAIQ2PA
+#\\\|PKNON5KG3TU72K3YIWUU4KLC577VCFW7XTTLRZNUNENJ2D47DYE \ / AMOS7 \ YOURUM ::
+#\[7]VJHOOVBHFAQPUT3IOOQA5QAW5RB7I6FXXNVEVH54KNYXEXUZB6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

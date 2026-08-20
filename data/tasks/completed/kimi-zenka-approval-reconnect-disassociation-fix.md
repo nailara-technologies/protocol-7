@@ -7,9 +7,9 @@
 
 ## context — read first
 
-`kimi` is a P7 zenka (`modules/kimi.*`) that connects as a client to a
+`kimi` is a P7 zenka (`src/kimi.*`) that connects as a client to a
 **manually-started, external `kimi-web` process** over websocket — NOT the
-separate `modules/kimi-web.*` zenka-management modules (`kimi-web.cmd.
+separate `src/kimi-web.*` zenka-management modules (`kimi-web.cmd.
 spawn_agent`, `kimi-web.bridge.ensure_local_agent`, etc.), which are new,
 unrelated, and not yet confirmed to replace the manual-start workflow.
 **Do not touch or assume anything about `kimi-web.*` in this task** — scope
@@ -28,22 +28,22 @@ different code path entirely). Also distinct from the unrelated `--afk`
 flag on `kimi_dispatch`/`kimi_continue` (that flag auto-dismisses
 `AskUserQuestion` in the spawned `kimi-legacy` CLI process — it has no
 relationship to this zenka's websocket approval-request flow at all;
-confirmed by grep, `afk` does not appear anywhere under `modules/kimi*`).
+confirmed by grep, `afk` does not appear anywhere under `src/kimi*`).
 
 ## root cause found this pass, needs live verification
 
-**`modules/kimi.flush_on_acquisition` is defined but never called.**
-Grepped every file under `modules/` — its only other appearance is its own
-self-listing in the generated `modules/base.list.subroutines` index. The
+**`src/kimi.flush_on_acquisition` is defined but never called.**
+Grepped every file under `src/` — its only other appearance is its own
+self-listing in the generated `src/base.list.subroutines` index. The
 one place that should call it doesn't:
 
-`modules/kimi.handler.ws_message:274-281` — on a successful `initialize`
+`src/kimi.handler.ws_message:274-281` — on a successful `initialize`
 response, distinguishes first-handshake (`not <kimi.session.acquired>`,
 sets it TRUE, logs "kimi-web ready to serve requests") from **reconnect**
 (`else` branch, just logs "kimi: reconnected : status ready") — neither
 branch calls `<[kimi.flush_on_acquisition]>`. So any approval request that
 arrived (and got stored into `<kimi.approval.pending>` by
-`modules/kimi.handler.approval_request:34`) while the session was
+`src/kimi.handler.approval_request:34`) while the session was
 mid-reconnect is never re-processed after the reconnect completes — it
 just sits in `<kimi.approval.pending>` forever, orphaned, matching the
 user's symptom exactly.
@@ -52,7 +52,7 @@ user's symptom exactly.
 reading it** (matter once the call-site gap above is fixed — fixing only
 the call site would surface these next):
 
-1. `modules/kimi.flush_on_acquisition:17` — `<kimi.approval.pending> = [];`
+1. `src/kimi.flush_on_acquisition:17` — `<kimi.approval.pending> = [];`
    resets the pending store to an **arrayref**, but it's used as a
    **hashref** everywhere else (`->{$request_id} = {...}` in
    `kimi.handler.approval_request:34`; `keys %{$href_pending}` in this
@@ -60,7 +60,7 @@ the call site would surface these next):
    this throws (`Not a HASH reference` under strict refs) or silently
    misbehaves — either way it corrupts the pending store for every
    session after the first flush.
-2. `modules/kimi.flush_on_acquisition:8-15` — re-invokes
+2. `src/kimi.flush_on_acquisition:8-15` — re-invokes
    `<kimi.handler.approval_request>` with a **fabricated blank payload**
    (`tool_call_id`/`sender`/`action`/`description` all empty strings),
    not the original request data already sitting in
@@ -94,7 +94,7 @@ the call site would surface these next):
    something downstream already silently depends on the current (buggy)
    behavior.
 5. Add a regression test if this codebase's existing test patterns for
-   `modules/kimi.*` support one (check for existing `.t` files or a test
+   `src/kimi.*` support one (check for existing `.t` files or a test
    harness pattern first — match house convention, don't invent a new
    test style).
 6. Read `data/ai-mem/kimi/coding-style.md` and `data/ai-mem/kimi/
@@ -123,8 +123,8 @@ instruction, if this surfaces a codebase gotcha worth remembering (e.g.
 anything about `<kimi.approval.pending>`'s type history, or the
 reconnect/flush lifecycle in general).
 
-#,,.,,,..,.,,,.,.,.,,,,..,,,.,.,,,..,,...,,..,.,.,...,..,,,..,,..,.,,,,,.,.,.,
-#T5EJXQAZFKXNVY3AXE7UPPX7YEZPBWJPCWF6QWL3OTB2VAGZRCZIOKWGQHFKANGQBGBKY3ED7IFWM
-#\\\|7FNLW7ZUS52WBNC3ZRO5ODN7DOB7WOIQ6Y66PVJQXTOQ5X6UX32 \ / AMOS7 \ YOURUM ::
-#\[7]ZFEICV4DXVGGCRI2CNA6SLNPLJBO2IEKDHXZZNNFASQ2VFOSN6AA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,.,.,.,.,.,.,.,.,.,,.,,,,,,..,,.,.,...,..,,,,.,.,,,.,,,,,,,,.,,
+#JFNNEXXD62FVPAFYIM5QFGPIQ7BWTPNFQJ377JEW455RGK2SE4JFXXTGABWWLVL3IG7ELLFLTQAWM
+#\\\|ZQETZIZV5ZT3SUDFL7VP34WS2SZGIPEVIC5YPRQB6OG5O3M2UP7 \ / AMOS7 \ YOURUM ::
+#\[7]LFIT3WF7P4I5HORQ6YLACDO5BBQVRM7KDTLQBOSAVORHMQXIVIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

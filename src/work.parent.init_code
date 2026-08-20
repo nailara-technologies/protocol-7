@@ -1,0 +1,57 @@
+## [:< ##
+
+# name = work.parent.init_code
+# descr = initialize workflow orchestration zenka for git/release management
+
+<[base.log]>->( 2, 'initializing workflow orchestration zenka..,' );
+
+## configuration : always use auto-detected root path ##
+<work.cfg.git_binary> //= '/usr/bin/git';
+<work.cfg.root_path> = <system.root_path>;
+<work.cfg.signing_key_loaded> //= 0;    ## Track if key decrypted this session
+<work.cfg.auto_scan_on_start> //= 0;    ## Auto-scan history at startup
+<work.cfg.version_seed>       //= 54;   ## AMOS7 version seed
+<work.cfg.readme_path>        //= 'read-me/md/README.md';
+<work.cfg.versions_path>
+    //= 'read-me/project-identity/source-code-versions.md';
+
+## Registries
+<work.history.scanned> //= 0;           ## Timestamp of last scan
+<work.history.commits> //= {};          ## All commits analyzed
+<work.history.issues>
+    //= {};    ## Issues found (missing versions, wrong emails, etc.)
+<work.history.gaps>     //= [];    ## Version number gaps
+<work.history.unsigned> //= [];    ## Unsigned commits
+
+## Issue types registry
+<work.issues.types> = {
+    missing_version => 'Commit missing version number',
+    wrong_email     => 'Commit author email mismatch',
+    unsigned        => 'Commit not signed with AMOS7',
+    bad_signature   => 'Invalid or corrupted signature',
+    version_gap     => 'Version sequence has gaps'
+};
+
+## Statistics - initialize all fields to prevent undefined warnings
+<work.stats>                   //= {};
+<work.stats.commits_total>     //= 0;
+<work.stats.commits_analyzed>  //= 0;
+<work.stats.issues_found>      //= 0;
+<work.stats.commits_rewritten> //= 0;
+<work.stats.commits_resigned>  //= 0;
+<work.stats.history_scans>     //= 0;
+
+## Email harmonization map
+<work.email.canonical> = {
+    ## Map various email forms to canonical ones  Will be populated from scan
+};
+
+<[base.log]>->( 2, 'workflow orchestration zenka initialized' );
+
+0;
+
+#,,,,,,,.,,,.,.,,,,.,,,,.,.,.,.,,,.,,,...,.,.,..,,...,..,,.,.,,..,.,.,.,.,..,,
+#DZTSYA4IJPQYIFZRXOKQAAA3QUI7NQWGRHIXR6DRCTQQ6UKUSNVKCWOXD7IG6PF625MJ6GSFTNRFS
+#\\\|FTWZPN7CMK3QZDUP2AMZ55MMQPWFL2VVDECARIA36GHO6CDO2CC \ / AMOS7 \ YOURUM ::
+#\[7]MSXJULO6HATSJEEKSYDJZQESYBQMODZPBUPLPD6MM72VU7OAH2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

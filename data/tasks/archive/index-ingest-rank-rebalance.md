@@ -28,7 +28,7 @@ the signature block begins with a line matching `^#,,`.
 
 ## modules to create
 
-### `modules/index.ingest`
+### `src/index.ingest`
 
 ```
 ## [:< ##
@@ -56,7 +56,7 @@ for my $char ( split //, $text ) {
 <index.meta>->{'dirty'}  = TRUE;
 ```
 
-### `modules/index.rank`
+### `src/index.rank`
 
 ```
 ## [:< ##
@@ -93,7 +93,7 @@ for my $token ( @ranked ) {
 <index.level>->{0} = { %{ <index.addr> } };
 ```
 
-### `modules/index.rebalance`
+### `src/index.rebalance`
 
 ```
 ## [:< ##
@@ -131,8 +131,8 @@ my $total = scalar keys %{ <index.freq> };
 - [ ] no stub signatures
 - [ ] all modules pass ptd
 
-#,,,.,,,.,...,.,,,.,,,,,,,,.,,,,.,,..,,.,,...,..,,...,..,,.,,,.,.,,..,..,,..,,
-#7WS3SAIFSBYXPR2AXJYTB6TFF6326D6A4K6ODERUCARNQ5PKTFO2WE2QWLVPY2JG6WXD2XY3JMQO4
-#\\\|Q5G3FVLKC44WDLXNSQKJV7HKLWCH7OIH7XNEWDILN6T67WWCVAE \ / AMOS7 \ YOURUM ::
-#\[7]FZHV3SQENAKCJV3VLUBB2KJN5K7NDTTRJD3DRK37KA42L52NUWBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,.,,..,,..,,,.,..,,,,.,...,,..,..,,...,...,.,,,,..,,,.,,,,,,..,
+#7A4PJUV44MVH4HPNDDSNFAXXT6OLNFFV2L7ZRER52AH6EOKP3WJAI6E76OKLP7JUDEAGL3XIAYXF6
+#\\\|RHFO6PW4RFVK6HPMEYIPGA4LQHXZHP2A466PYUH3CUSGYIPWC3V \ / AMOS7 \ YOURUM ::
+#\[7]D4V62VBGMEXVDMILHTMEOT73LFYLNX25MMFFOL6CJKKWJ6LQSCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

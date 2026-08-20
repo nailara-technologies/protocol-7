@@ -39,7 +39,7 @@ version / litter ]. real footers on disk confirm the line is exactly this:
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ```
 
-[ see modules/base.init_code footer, or any signed module — the 4-line
+[ see src/base.init_code footer, or any signed module — the 4-line
 shape matches litter-row-encoding.md's diagram exactly. ]
 
 harmonic-transit-vision-architecture.md calls it "footer line 5" in its
@@ -85,7 +85,7 @@ each other. they were independently sized to leave room for the other
 without either author knowing about it.
 
 alphabets don't collide: litter's base32r payload comes from
-`Crypt::Misc::encode_b32r` [ see `modules/base.base32.encode` ] — RFC4648
+`Crypt::Misc::encode_b32r` [ see `src/base.base32.encode` ] — RFC4648
 base32, alphabet `A-Z2-7`, no `.` and no `:` in it. harmonic uses only
 `.` and `:`. so the litter zone can never produce the `..` sequence
 harmonic's validator treats as structurally invalid, and harmonic's
@@ -330,19 +330,19 @@ as a serious follow-up rather than a one-off idea.
 pipeline**, confirmed by tracing actual module code:
 
 ```
-modules/zulum.*      13 parallel entropy-generation streams
+src/zulum.*      13 parallel entropy-generation streams
                       [ zulum.cmd.step -> zulum.loop.generate_entropy,
                         stream_id 1..13 — same 13 as the harmonic cycle ]
         |
         v
-modules/cube-13.*     tracks per-stream is_true state, routes only the
+src/cube-13.*     tracks per-stream is_true state, routes only the
                       active stream's entropy+boundary onward
                       [ cube-13.cmd.receive-entropy ->
                         protocol-7.command.send.local ->
                         "decoder.receive-entropy" ]
         |
         v
-modules/decoder.base.decode_d13_bits
+src/decoder.base.decode_d13_bits
                       7-bit-chunk decoder, VERBATIM reimplementation of
                       division-13-table's type-prefix dispatch and the
                       identical `qw| 00 U 10 L 01 R 11 D |` turn table
@@ -368,9 +368,9 @@ case, and `'01'` is documented as always resolving further into BASE32
 (`'010'`) or a document header (`'0110'`/`'0111'`) — so the dead
 `'01'`/`PIX[...]` line was simply erroneous, not a sign of a missing
 extension rule. Removed the dead line from both `bin/dev/
-division-13-table`'s `decoded_bits()` and `modules/
+division-13-table`'s `decoded_bits()` and `src/
 decoder.base.decode_d13_bits` [ the live production port ]. Verified: no
-code anywhere in `modules/` or `bin/` referenced the `PIX[...]` output;
+code anywhere in `src/` or `bin/` referenced the `PIX[...]` output;
 both files pass their respective syntax checks (`perl -c`,
 `bin/dev/ptd -c`) after the removal. Not committed, left for review.
 
@@ -509,7 +509,7 @@ computed. `decoder.cmd.receive-entropy`'s parse regex was `^(\d+)
 even looking for a trailing token.
 
 meanwhile `decoder.base.decode_d13_bits` — confirmed by
-`grep -rn decode_d13_bits modules/ bin/` — has exactly one caller in
+`grep -rn decode_d13_bits src/ bin/` — has exactly one caller in
 the entire tree: `decoder.cmd.D13-collection`, a manual/dev command
 that reseeds its own `$Z` from a user-supplied value or the level-5
 accumulator's last value and runs its own independent `Z <<= 4; Z /=
@@ -592,7 +592,7 @@ bin/dev/division-13-table :: decoded_bits_BASE32()
     return $num + 2 if $num <= 5;   ## 2 .. 7 ##
     return chr( 59 + $num );        ## A .. Z ##
 
-modules/decoder.base.decode_d13_bits  [ before this fix ]
+src/decoder.base.decode_d13_bits  [ before this fix ]
     my $char = $num <= 5 ? chr( 48 + $num ) : chr( 55 + $num );
 ```
 
@@ -609,7 +609,7 @@ enumeration of both formulas over num 0-31 ]. so the "verbatim port,
 not a rewrite" characterization in finding 6 was correct for the type-
 prefix dispatch and the routing branch, but not for this one branch.
 
-fixed in modules/decoder.base.decode_d13_bits to `$num <= 5 ? $num + 2
+fixed in src/decoder.base.decode_d13_bits to `$num <= 5 ? $num + 2
 : chr( 59 + $num )`, now byte-for-byte matching the reference formula.
 in scope [ decoder.base.decode_d13_bits is one of the two division-13-
 table-family files this whole thread has always covered ], small,
@@ -632,30 +632,30 @@ and a new counter/buffer; it does not change any existing routing,
 jump, or entropy-generation behavior. No footer/signing files touched.
 
 ```
-modules/zulum.loop.generate_entropy
+src/zulum.loop.generate_entropy
   - extracts $decode_chunk = substr($num_bits_64, 42, 7) [ same offset
     division-13-table's display_result() uses for $decoded ]
   - stores it on $stream->{'decode_chunk'}, passes it as a 4th arg to
     attached-consumer callbacks, includes it in the returned data hash
 
-modules/zulum.cmd.stream-attach
+src/zulum.cmd.stream-attach
   - callback wrapper now accepts the 4th ($decode_chunk) callback arg
     and appends it as a 4th token in the args string sent to cube-13
 
-modules/cube-13.cmd.receive-entropy
+src/cube-13.cmd.receive-entropy
   - split limit bumped 3 -> 4 to actually capture the new token instead
     of letting it corrupt $is_true [ see finding 7's corollary bug ]
   - forwards the chunk on to decoder.receive-entropy as an optional
     trailing token [ empty string if not present -- decoder tolerates
     a missing/short chunk ]
 
-modules/decoder.cmd.receive-entropy
+src/decoder.cmd.receive-entropy
   - parsing switched from a fixed regex to split-based token parsing;
     validates entropy is exactly 42 bits and, if present, decode_chunk
     is exactly 7 bits, else drops it to undef rather than erroring
   - # param updated to document the now-optional trailing field
 
-modules/decoder.zenka.receive_entropy
+src/decoder.zenka.receive_entropy
   - if a valid 7-bit decode_chunk arrived, calls
     decoder.base.decode_d13_bits on it
   - increments $data{'decoder'}{'d13_types'}{$type}++ [ type tag parsed
@@ -669,17 +669,17 @@ modules/decoder.zenka.receive_entropy
     for a reviewer since the other two levels behave differently
   - includes 'd13_decoded' in its own return payload
 
-modules/decoder.base.decode_d13_bits  [ bug fix, finding 10 below ]
+src/decoder.base.decode_d13_bits  [ bug fix, finding 10 below ]
   - the BASE32 branch's character mapping did not actually match
     division-13-table's decoded_bits_BASE32() despite finding 6's
     "verbatim port" claim -- see finding 10. fixed to match exactly.
 
-modules/decoder.zenka.init_code
+src/decoder.zenka.init_code
   - initializes $data{'decoder'}{'d13_types'} = {} and the new
     level-7-D13 rolling buffer, mirroring the level-5/level-6 init
     blocks already present
 
-modules/decoder.cmd.show-d13-types  [ new file ]
+src/decoder.cmd.show-d13-types  [ new file ]
   - new read-only command, modeled directly on decoder.cmd.show-
     indexcube's shape: prints the d13_types histogram [ counts and
     percentages per decoded tag ] accumulated from live stream traffic
@@ -737,7 +737,7 @@ in priority order, based on what this session found:
    `p7_load_code()`, which discovers modules by disk file-name prefix
    matching the loaded namespace rather than an explicit per-file list --
    the new `decoder.cmd.show-d13-types` file needs no separate
-   registration to be picked up on decoder zenka start. `modules/
+   registration to be picked up on decoder zenka start. `src/
    base.list.subroutines` [ the flat name index some commands appear in
    ] looks generated and was deliberately left untouched.
 2. **finding 9's INDEXCUBE-triple projection** is the most promising
@@ -1011,7 +1011,7 @@ grouped layouts somewhere," not as evidence for the specific 35-bit or
 
 design reconciliation only for findings 1-6 and this section's findings
 7-11 — no signing-system changes. the code change described in
-"change made" above is real and does touch modules/, scoped additively
+"change made" above is real and does touch src/, scoped additively
 per the reasoning there; everything else in this file, including this
 finding, remains design-only. leave the signing-relevant portions of
 this file clean; the signing system adds the real footer on commit,
@@ -1095,8 +1095,8 @@ covers a follow-up on four distinct "5-of-7"-shaped structures and a
 bit-bookend-vs-heartbeat-sequence check. Not duplicated here — read
 that file for the full result.
 
-#,,,.,..,,,,.,.,.,,..,...,...,,,,,,,,,..,,..,,..,,...,..,,,..,,.,,,,,,,.,,..,,
-#4CNRK44P4QTUN46SGDSL3KESUEHBC7ZHTVQ5MHXHFOBVG3EGX3XBJEFVT2VNRNBFPCQX2VEOOEQJE
-#\\\|A662JYRUVBTEAS35C4GR4KMFIQYUT3L42OCO2PKEQLD4NDW64ZA \ / AMOS7 \ YOURUM ::
-#\[7]4RJBLXQQ6V7ZZRSM6QD4YCUJIAHKRGQJFTJSP53S3P2QLR4RUIAY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,.,.,,..,,.,,,,,,,,,,...,,,,,..,,...,...,...,..,,..,,.,,,...,
+#FZWTPDCBWCZFDRZRAB2WFL3B2YEVHIZJUIMTMRFLAYS7SIDNXKBTH3YAQDOERBK4L5DCBFIESGQJC
+#\\\|CAVNIAOOAHQEH4EGBCGYYDISJPKOMKMRXB5OGZWDX3BUI3T72F5 \ / AMOS7 \ YOURUM ::
+#\[7]PS7C3TGR2XC733375BJH5FTMDOJVWN7YC4EJKVBDZ5VJIZGPN2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ a memory update, that a later implementation task will build on.
 `data/ai-mem/claude/topic-window-canvas-addressing.md` — the seed design.
 Read it fully first; it frames the problem precisely and lists the open
 question this task exists to answer. Short version: protocol-7 needs a
-`window.canvas.*` counterpart to the existing `modules/window.profile.*`
+`window.canvas.*` counterpart to the existing `src/window.profile.*`
 family, treating screens/displays (physical and virtual — Xvfb, Xephyr,
 eventually networked/remote) as first-class addressable objects instead
 of raw caller-supplied pixel dimensions. Two canvas categories were
@@ -120,12 +120,12 @@ implementation still isn't started), and update the frontmatter
 `description` line accordingly. Do not create a new file for this — edit
 the existing one in place.
 
-Do not write any code, do not touch `modules/`, do not touch
+Do not write any code, do not touch `src/`, do not touch
 `cfg/`, do not run any signing/staging/commit commands. This
 task's only output is the memory file edit above.
 
-#,,..,.,,,,.,,..,,.,,,,,.,.,.,.,.,.,.,..,,,..,..,,...,..,,.,,,,.,,,.,,...,.,,,
-#N5DLDKQCMMXCESOMTP2SFCSWSFA32JGIZZRCAF5GTEQH76E36UIOXVK7TKB2GJXO2KMMPKWE3HQHS
-#\\\|ZBBC7ID2AN4LV3LF6APTXIQ25ISYMZEZL4TLSUPY3NCVNPQCP7G \ / AMOS7 \ YOURUM ::
-#\[7]WXTGSPYJV5QVI6WEOWSB3XCCFVZPSL7K46P4LZRTL6DM4ZDJ6EDQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,,,.,,,,,.,,,.,,..,..,,.,.,...,..,,...,...,...,.,.,.,,,,,.,,..,
+#EENPIAPA5PCICVUOTWG3ERJ4SA34SBHNEBV26RHYPMKIXFWGGXGEPDE7FS4DESAWWXAPFULIQDAQY
+#\\\|4IGQ63SKEWJ3WAIVBCQCIVZDGSTSPIBRG52TC5J6IIRVLXQ3PKT \ / AMOS7 \ YOURUM ::
+#\[7]NGSOHQYNV5ETOPY6ZCIAWRWNU2UD7R77GVORUMHR2J7VOEMB7KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

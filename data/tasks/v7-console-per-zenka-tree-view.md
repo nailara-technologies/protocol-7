@@ -17,7 +17,7 @@ design docs:
 - `data/md/design/STDIO-RELAY-FOLD-APPLICATION.md`
 
 existing fragments:
-- `modules/v7.handler.process_output_line` already maintains
+- `src/v7.handler.process_output_line` already maintains
   per-zenka `instance_id → zenka_name` mapping in
   `v7.zenka.instance` / `v7.zenka.setup` — the grouping data is
   already extracted; this task only adds a renderer over it
@@ -188,8 +188,8 @@ harmony v7.console.view.by-zenka.cmd.ui-show
 harmony v7.console.cmd.swap-view
 ```
 
-#,,,.,..,,,.,,,..,.,,,...,..,,.,.,..,,..,,.,,,..,,...,...,..,,,.,,.,,,.,.,.,,,
-#XHKZJBRRG5V5IGSPHWSTSMCYY2CH6CCK47D6LT64JKC27MA7ORRILRPI7YH7D76RSYM5UXGIQRCBY
-#\\\|FCYXDWLQKY54Y3AX4BYHJD26VJBF6BP2RQU4ZHAMW4HKMAUOH2X \ / AMOS7 \ YOURUM ::
-#\[7]SIS7DH2LSUUNGWQU3SYBL6HCAMNNSEWQOWNVDMV7BD2U2RDNFUAQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,..,,.,,,,,.,..,,,,.,,..,,,,,,,.,..,,...,...,...,,..,.,,,,,,,.,.,
+#GVWDYQ3XBW3X35D6PYTJHHAJB6ZJUL5DKDDX5HNIZ3N5SXZIAAYED6ZEI4BO2HHLVRGEYTWAGXWLW
+#\\\|WJOCQALYUAWHUD7TW7PMJXBIMBWC3SE2ORDYK64L4QEEIAGUWJG \ / AMOS7 \ YOURUM ::
+#\[7]HY3W3YZC532T4JZCD5KZTU4GLPMIF4X4Y3VPG5NIYEHWUYX5T6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

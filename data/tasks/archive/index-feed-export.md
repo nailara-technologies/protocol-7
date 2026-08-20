@@ -20,7 +20,7 @@ the signature block begins with a line matching `^#,,`.
 
 ## modules to create
 
-### `modules/index.feed.file`
+### `src/index.feed.file`
 
 ```
 ## [:< ##
@@ -51,7 +51,7 @@ return FALSE if not defined $content;
 return TRUE;
 ```
 
-### `modules/index.feed.dir`
+### `src/index.feed.dir`
 
 ```
 ## [:< ##
@@ -94,7 +94,7 @@ for my $file ( @files ) {
 return $count;
 ```
 
-### `modules/index.export`
+### `src/index.export`
 
 ```
 ## [:< ##
@@ -153,8 +153,8 @@ after all tasks complete, feeding `data/md/` should:
 3. `p7c index.address .` — should return 0 or low address
 4. `p7c index.decode 0` — should return most frequent character
 
-#,,,,,,..,,,.,,,,,,,.,.,,,.,.,,,.,,.,,,.,,.,,,..,,...,.,.,...,.,,,,.,,,,,,..,,
-#52KKHGR3HUQUDLUJQCVTTNVTKP3Y7VDJMNSG6GRAUCDJSEDI3JR4ZG75UERDYODM2THHRSBMZ3CT6
-#\\\|OF4EQ3V55CSA7X7CEU5TMEYJ2DFUPDRLNQMISICPYRYFDOP65R3 \ / AMOS7 \ YOURUM ::
-#\[7]U3AYVVZISL756SS2D6U7IXQ7EHXHYJGQHSNSKZ4NPVF2R42QCYCI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,.,.,.,,,.,...,.,.,,..,,..,,,,,..,,...,...,.,,,,..,,,,,..,,,.,,
+#WT4GRNZKYRF2WHML55OYCIJPPQLPNWH5MAJEPRCHOHLGQUMUDQRBYNMJW7Z7RIRFOICDIGBRBIEWC
+#\\\|H2FRFP72LJURLE7JM6KZZVBU2QBL2JZ4ZYRRAPNBXRWZYTDKFSC \ / AMOS7 \ YOURUM ::
+#\[7]VAS2WHRIZD3BF5V5TKVGNBWVSUNT5RYTEWI572MXCUNKTOCZ7WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

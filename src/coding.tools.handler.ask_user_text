@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.tools.handler.ask_user_text
+# descr = blocking modal text-input dialog routed to protocol-7-menu
+
+my $args = shift // {};
+
+my $question = $args->{'question'} // return 'question required';
+
+my $target = qw| protocol-7-menu.cmd.input-text |;
+
+return 'input-text dialog module is not loaded'
+    unless <[base.code.exists]>->($target);
+
+my $result = eval { $code{$target}->( { 'args' => $question } ) };
+
+if ($@) {
+    return sprintf "dialog failed: %s", $@;
+}
+
+if (    ref $result eq qw| HASH |
+    and $result->{'mode'} eq qw| true |
+    and defined $result->{'data'} ) {
+    my $answer = $result->{'data'};
+    <[coding.tools.handler.write_answered_note]>->(
+        {   'question' => $question,
+            'answer'   => $answer,
+        }
+    );
+    return $answer;
+}
+
+my $detail
+    = ( ref $result eq qw| HASH | )
+    ? ( $result->{'data'} // 'cancelled' )
+    : 'unknown';
+return 'no answer: ' . $detail;
+
+#,,..,.,,,,.,,.,.,,..,..,,,,.,,,.,,,,,,.,,,.,,..,,...,..,,...,.,.,.,.,.,,,,..,
+#PZT32QY3OKGLOOJCHJTRJMYOIWR5XZYFMEKUS6GORESX7O6V6GDHZNQ4546UNU7SWVPOINDYQNPRE
+#\\\|K2EE3ZN47Y5BWKLUEC3G3DHMSSJTKCJXBUWEGPWOVYRUQ3NAYCD \ / AMOS7 \ YOURUM ::
+#\[7]NBUNCR5PM6IXPAQKTKNF5EVB35GPM7GYES6EVRAYKOZTCFPHNWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

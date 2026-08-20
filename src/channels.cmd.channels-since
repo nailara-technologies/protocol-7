@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = channels.cmd.channels-since
+# descr = query channels changed since timestamp [ delta ]
+# param = <since_b32>
+# return = { mode => 'size', data => "channel.path1\nchannel.path2\nCHECKSUM <checksum_b32>" }
+
+my $args         = $call->{'args'} // '';
+my $since_ts_b32 = $args;
+$since_ts_b32 =~ s|^\s+||;    ## trim leading whitespace ##
+$since_ts_b32 =~ s|\s+$||;    ## trim trailing whitespace ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <timestamp_b32> parameter'
+    }
+    unless length $since_ts_b32;
+
+## For MVP: return list of all channels with any data  (In future, track ##
+## per-channel timestamps for real deltas)                               ##
+
+my @changed_channels;
+foreach my $channel_path ( keys %{<channels.data>} ) {
+    ##  Skip empty channels  ##
+    next unless defined <channels.data>->{$channel_path};
+    next unless ref <channels.data>->{$channel_path} eq qw| HASH |;
+    next unless keys %{ <channels.data>->{$channel_path} };
+
+    push @changed_channels, $channel_path;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no channels changed since timestamp'
+    }
+    unless @changed_channels;
+
+##  harmonic checksum of changed channels tree  ##
+my $checksum_input = join( '|', sort @changed_channels );
+my $checksum_b32   = <[chk-sum.amos]>->( \$checksum_input );
+
+my $reply_data = join( "\n", @changed_channels );
+$reply_data .= "\nCHECKSUM $checksum_b32\n";
+
+return {
+    'mode' => qw| size |,
+    'data' => $reply_data
+};
+
+1;
+
+#,,..,..,,...,.,.,..,,...,.,.,.,.,,,.,...,...,.,.,...,...,,,.,.,,,,,.,.,,,.,,,
+#I5LKYDKOJZN7JKIPSVROV2FI46ND7FH3FNQQIIJHTXEMAOUFLUGU6ONH24AEYQWKCWGOTOAHLAJ7Y
+#\\\|TEEELG5ESK5EYLWCRNERZEQ4YAIRYSC7QJPUKCAWO7KHNNMIB5K \ / AMOS7 \ YOURUM ::
+#\[7]3KRNXDKXDQAL7WDK4RERY3RWR74NBRSA4YX4HHJNIQKEAQ3STMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

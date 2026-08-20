@@ -9,15 +9,15 @@ sections:
       
       | instead of | use |
       |------------|-----|
-      | `modules/` | `<system.code_path>` |
+      | `src/` | `<system.code_path>` |
       | `cfg/` | `<system.cfg_path>` |
       | project root | `<system.root_path>` |
       
       ## examples ##
       
       wrong:
-        my $path = "$root/modules/$module";  # hardcoded
-        my $path = catfile($root, 'modules', $module);  # still hardcoded
+        my $path = "$root/src/$module";  # hardcoded
+        my $path = catfile($root, qw| src |, $module);  # still hardcoded
       
       right:
         my $path = catfile(<system.code_path>, $module);
@@ -38,8 +38,8 @@ sections:
 #,,.,,,,,,,,.,,..,,..,,..,.,.,..,,...,,.,,..,,..,,...,...,,..,.,,,,,,,,,,,,,,,,
 #PLACEHOLDER_SIGNATURE_WILL_BE_FIXED_BY_PRE_COMMIT
 
-#,,,.,,,.,,,.,,,,,,,.,.,.,..,,,..,.,.,.,.,,,.,..,,...,..,,,.,,,..,.,,,.,,,.,,,
-#OSZRSPSYSS5SSJTAT5UIXKWQ7D65DCQ4LPKWJQ6R2YVFNGQAPQVO7C43BAOHBC6QQAVFMO7KG5DDI
-#\\\|2THSFOB55F2HP6EGD3YECVKDMFJAYXIH2ZBYSIM5XPXYOQFHGAH \ / AMOS7 \ YOURUM ::
-#\[7]DI3NBJJHGWTWLCXOQ3W6HQMA5E5YSML2NLH2OUNSJGKN2IRDQUAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,.,.,.,,.,,,,,,..,,...,.,,,...,..,,...,...,.,,,..,,..,,.,,,.,,,
+#AQA7LWY7HLZGFGMBIDZLSLWLF2NDBYDJ7GU5VKLHKTVHO2WMSRIKSERMGPSBS3VPV54RFV3FPO23M
+#\\\|2SJDSSHVLGR2I52J2DAXVRVOX4RJO3CTDZ63LFSC5UA76MRJIZW \ / AMOS7 \ YOURUM ::
+#\[7]UE2UITRPOVFXLWBB6RAMX6OQA4OLVK3IBDP2SIN7ZQ3CWOQ7R6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = task.cmd.show
+# param = <task_id>
+# descr = get full details of a specific task
+
+my $task_id = '';
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'} // '';
+} else {
+    $task_id = $call->{'args'} // '';
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+my $task = <task.queue>->{$task_id} // <task.history>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+my $result_str = '';
+if ( defined $task->{'result'} ) {
+    $result_str = $task->{'result'};
+    ## truncate long results for display
+    if ( length $result_str > 500 ) {
+        $result_str = substr( $result_str, 0, 497 ) . '...';
+    }
+    ## escape newlines for clean display
+    $result_str =~ s{\n}{\\n}g;
+    $result_str =~ s{\r}{}g;
+}
+
+my $turns = $task->{'history'} // [];
+
+my $iter_line = '';
+if ( $task->{'iteration'} ) {
+    $iter_line = sprintf(
+        "iteration   : true  [max_attempts: %s]\n" . "criteria    : %s\n",
+        $task->{'max_attempts'}        // '?',
+        $task->{'acceptance_criteria'} // ''
+    );
+}
+
+my $output = sprintf(
+    "id          : %s\nstatus      : %s\ncreated_at  : %s\nupdated_at  : "
+        . "%s\ndescription : %s\ncontext     : %s\nagent       : %s\nturns   "
+        . "    : %d\n%sresult      : %s\n",
+    $task->{'id'},
+    $task->{'status'},
+    $task->{'created_at'} // 'N/A',
+    $task->{'updated_at'} // 'N/A',
+    do { ( my $d = $task->{'description'} // '' ) =~ s{\n}{\\n}g; $d },
+    do { ( my $c = $task->{'context'}     // '' ) =~ s{\n}{\\n}g; $c },
+    $task->{'agent'} // '(none)',
+    scalar(@$turns) + 1,
+    $iter_line,
+    $result_str || '(none)'
+);
+
+## append turn history if present
+if (@$turns) {
+    $output .= "--- history ---\n";
+    foreach my $turn (@$turns) {
+        my $t_result = $turn->{'result'} // '';
+        if ( length $t_result > 200 ) {
+            $t_result = substr( $t_result, 0, 197 ) . '...';
+        }
+        $t_result =~ s{\n}{\\n}g;
+        $output .= sprintf( "turn %d      : %s\n  result    : %s\n",
+            $turn->{'turn'}, $turn->{'prompt'} // '', $t_result );
+    }
+}
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,..,,..,..,,.,.,,.,,,..,,,.,,.,,,.,,,,.,.,.,..,,...,...,,.,,,,,,.,.,...,...,
+#EDXEWMBLXTVM772JJYN4N6B2E62PUS4ZC2GR2XSGBJHQRVDOJZZWL25MZPDVM56UGQX53WNK6USTI
+#\\\|QNBDYZMMUID32YIFJIVOFVEC4WZGIIUU7YEPTRDXAIPDQOH63E5 \ / AMOS7 \ YOURUM ::
+#\[7]EFOY4V76U7PMDWZ5Z6Z3YNDPT6ZWYJIMK73KYVQH4JUB2OWETECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

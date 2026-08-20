@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = mpv.check_rescale_path
+
+<mpv.rescale_path> =~ s|\/$||;
+<[base.log]>->( 2, "checking rescale_path '" . <mpv.rescale_path> . "'" );
+if ( !-d <mpv.rescale_path> ) {
+    my $resc_path = <mpv.rescale_path>;    # LLL: check path on demand ..,
+    <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
+    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+        or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
+    my $err;
+    make_path(
+        $resc_path,
+        {   'mode'  => 0750,
+            'uid'   => $uid,
+            'group' => $gid,
+            'error' => \$err
+        }
+    );
+    if ( defined $err and ref($err) eq 'ARRAY' and @{$err} ) {
+        warn "unable to create local config "
+            . "directory '$resc_path' [ \l$OS_ERROR ]";
+        <mpv.autorescale> = 0;
+        <[base.log]>->(
+            0, "autorescale disabled! (unable to create target directory)"
+        );
+        delete <mpv.rescale_path> if !-d <mpv.rescale_path>;
+    } else {    # LLL: if files disappeared..,
+        delete <mpv.playlist_bmw>;
+        <[mpv.cmd.playlist-update]>;
+    }
+
+}    # LLL: } else { check permissions..,
+
+# LLL: restart if it needs to recreate directory instead [files disappeared] ..,
+
+#,,.,,,,,,...,...,...,..,,..,,,,,,,..,..,,.,,,..,,...,...,.,,,,,,,,.,,,..,,,.,
+#SUIUO5JVQOKC7FSQ3K2EJ4CM4HUEPPCEY3D6GOQVQJADVB4KLY5LOOZVP3EYFIA2JNZMVRXQDAY3E
+#\\\|FSJHECWQZDSWPPM7OGIMAE24WUOA74UDRMKVFA5PSE6AURUL22M \ / AMOS7 \ YOURUM ::
+#\[7]D735KR3MJNLV4LDAQF337HYQRMVEOTUFTJJONRDI6WOHTOSPB4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

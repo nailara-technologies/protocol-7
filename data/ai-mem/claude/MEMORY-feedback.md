@@ -20,7 +20,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [web-browser-tls-ignore-and-proxy-no-proxy](feedback-web-browser-tls-ignore-and-proxy-no-proxy.md) — ignore_tls_errors toggle (global, opt-in) + NO_PROXY fix (18e79492d); proxy call-order race (proxy_setup ran before open_window assigned web_context) RESOLVED same day by moving the call inside open_window; bare `<[X]>` macro call needs a trailing `;` before a comment+foreach line or ptd -c mis-locates the syntax error
 - [web-browser-js-form-fill-reset-on-submit](feedback-web-browser-js-form-fill-reset-on-submit.md) — synthetic React-input fill via run_js worked fine, but an XPath text-match click likely hit a nearby "Reset" button instead of "Continue"; verify which element a selector actually resolved to before assuming app-level validation is misbehaving
 - [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
-- [base-prefix-stripped](feedback-base-prefix-stripped.md) — base.X→X swap_subs families (event, file, base32, templates, chk-sum, zenka.push, etc.); never conclude a bare call is broken from `ls modules/` alone; two families swapping to the same short name confuses dep-graph's scanner
+- [base-prefix-stripped](feedback-base-prefix-stripped.md) — base.X→X swap_subs families (event, file, base32, templates, chk-sum, zenka.push, etc.); never conclude a bare call is broken from `ls src/` alone; two families swapping to the same short name confuses dep-graph's scanner
 - [filter-repo-amend](feedback-filter-repo-amend.md) — `AMEND=1` prefix required for any git history-rewrite: filter-repo AND plain `commit --amend` both, else silently blocked by pre-commit's version-mismatch check
 - [whitelist-vs-access-cmd-usr-cube](feedback-whitelist-vs-access-cmd-usr-cube.md) — subroutine.white-list renamed to subroutines.load-early 2026-07-25 (compile timing only); access.cmd.usr.cube (cube routing) is the separate mechanism, don't conflate
 - [file-stat-shadowing](feedback-file-stat-shadowing.md) — bin/Protocol-7's global `use File::stat` makes bare `stat()` return an object everywhere, not a 13-elem list; use `File::stat::stat(...)->mtime` etc. (was orphaned/unindexed — cost a live debugging detour before being found)
@@ -88,8 +88,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [modal-prompt-navigation-never-loses-content](feedback-modal-prompt-navigation-never-loses-content.md) — a cancel-on-navigation key (Left-as-Esc in a modal prompt) must gate on buffer CONTENT being empty, never cursor position — ordinary cursor movement must never be able to discard typed text; caught live in editor.control.prompt.handler.key, applies to any future modal input control
 - [check-existing-safety-nets-before-adding-new-one](feedback-check-existing-safety-nets-before-adding-new-one.md) — coding zenka's async/self-test machinery has multiple deliberately-layered, cross-referencing watchdogs with a documented history of drifting out of sync (4c3cf0e73); grep for an existing timer on the same flag before writing a new one, advisor caught me about to duplicate `verify_inference_startup`'s fallback with an independent literal ceiling
 
-#,,,.,...,...,,,.,.,,,,.,,,,,,...,...,,,,,.,.,..,,...,...,,..,,,.,,..,,.,,.,,,
-#BLRQY6JJSHPVZGFAZUHHDIKSTU4D346K75QH3PMDCCHWW7IZLTODMGCNWF57I7J35XHFUHJIOYFXM
-#\\\|WKV5UL6YS7PQWYTVQJW6XARFLSQ3SSEVB4WFRJV42GK5JMXBXQA \ / AMOS7 \ YOURUM ::
-#\[7]5CXW2XUVF6JPQD2IGHX6RJSVPC4RNBNLTIPFJFT64FL2GAVGDODY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,,..,..,,.,.,.,.,,.,,.,.,,,.,..,,...,...,.,.,,,.,...,,..,,,.,
+#4EDJBV2U4O2UF4SXROWXS23X67VVNMM2J7FALOU75FHCVTULOEE6I5DC54VB6YFHNY7AKW4MNNUVY
+#\\\|IKOR3AZ63EFF4GHEYTLVXSJKO2GS7HQZ5DQ47D2UVCYF3GCUPJY \ / AMOS7 \ YOURUM ::
+#\[7]2CWYLOLY57EQJSYNKDPEQOAN2JOEEDQYJGWBCAFHCOG5VRTG2AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

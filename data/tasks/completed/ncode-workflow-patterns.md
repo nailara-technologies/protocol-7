@@ -8,13 +8,13 @@ them into a usable workflow system: content-addressed fix listing, apply-by-id,
 workflow frames that sequence what comes next, and pre-seeded common patterns.
 
 existing modules to understand first:
-- `modules/ncode.init_code` — state setup, <ncode.patterns>
-- `modules/ncode.regex.load` — load YAML → <ncode.patterns>
-- `modules/ncode.regex.save` — save <ncode.patterns> → YAML
-- `modules/ncode.regex.apply` — apply a named pattern to files
-- `modules/ncode.regex.assess` — score pattern usefulness
-- `modules/ncode.transform.wave` — LLM-backed batch transform
-- `modules/ncode.cmd.search` — existing search command
+- `src/ncode.init_code` — state setup, <ncode.patterns>
+- `src/ncode.regex.load` — load YAML → <ncode.patterns>
+- `src/ncode.regex.save` — save <ncode.patterns> → YAML
+- `src/ncode.regex.apply` — apply a named pattern to files
+- `src/ncode.regex.assess` — score pattern usefulness
+- `src/ncode.transform.wave` — LLM-backed batch transform
+- `src/ncode.cmd.search` — existing search command
 
 ## part 1: ncode.cmd.suggest
 
@@ -35,8 +35,8 @@ algorithm:
         push result: { fix_id, pattern_name, file, line, preview }
 
 output format (one line per fix):
-  KQQ6E7A  flat-key→tree   modules/space.jump.available:14
-  ABCDE7F  exists-guard    modules/space.register.node:46
+  KQQ6E7A  flat-key→tree   src/space.jump.available:14
+  ABCDE7F  exists-guard    src/space.register.node:46
   ...
   session: ROOTCHK
   apply one:  p7c ncode.apply KQQ6E7A
@@ -85,7 +85,7 @@ ncode.cmd.workflow  { name, files }
 ```yaml
 name: kimi-output-review
 detect:
-  trigger: any new modules/space.* or modules/branch.space.*
+  trigger: any new src/space.* or src/branch.space.*
 sequence:
   - pattern: p7-tree-syntax-fix
     verify:   no $<space. remaining, no ->$var}, no ->//
@@ -206,7 +206,7 @@ after implementing, verify this workflow:
 p7c ncode.regex.load '{"file":"data/yaml/ncode-patterns/p7-common.yaml"}'
 
 ## 2. suggest fixes on a test file with known issues
-p7c ncode.cmd.suggest '{"files":["modules/space.search"]}'
+p7c ncode.cmd.suggest '{"files":["src/space.search"]}'
 ## expect: listing with AMOS IDs for any detected issues
 
 ## 3. apply by ID
@@ -250,8 +250,8 @@ no signature stubs.
 - [ ] test data cleaned, patterns persist in YAML
 - [ ] all pass ptd, no signature stubs
 
-#,,,.,..,,,,,,.,,,,..,,,,,...,,.,,,..,.,.,.,,,..,,...,...,.,,,.,.,.,.,,..,,..,
-#QVUNDNH3UA46OV5L4PUHRA2UXEI7CAZW2GUQWSUQ4TUF3E4GSAQX5MFB6L44G7BLTLQT2QTB7EG5G
-#\\\|5ZY7XNK6KAVMJEAJW7MDKFZAJDXXH2UHNCYUCUGMCM7SRKINCWQ \ / AMOS7 \ YOURUM ::
-#\[7]WEYZ2C7Y3BLIJFJW2JJO5OTK5SJ3TJ3F2ZRGLIMPUKZGRNNVDQAY 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,.,,.,,,,,,...,.,.,,,.,,,.,,,.,..,,...,...,..,,...,,.,,,..,,,,,
+#5N5QQHUK2YKA3GUL63NQ42AL7XVWJU463WXNBZSYNQ245BO6KDNPIRBI3H4I6AEDEEWOBRTSR6S24
+#\\\|6Q2JFT2HKLEKSOUEWRAEB6V2VPCHMVIMWS6XBWAAOZHKKBUP2QT \ / AMOS7 \ YOURUM ::
+#\[7]F5TTBAXU342FXF6OF67EXQNISUNTMPGFMGN6K3SNYKRXE34Y4GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

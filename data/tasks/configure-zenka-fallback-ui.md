@@ -19,14 +19,14 @@ existing stub state:
 - `cfg/zenki/configure/` — start file invokes
   `[base.call.console_command:<system.args>]` and exits; no real
   console behaviour
-- `modules/configure.init_code` — currently returns `0` [ which per
+- `src/configure.init_code` — currently returns `0` [ which per
   [[feedback-init-code-return-values]] is *valid* success but
   semantically empty ]
 
 reference patterns to mirror but not duplicate:
-- `modules/cred-mesh.ui.query.*`,
-  `modules/cred-mesh.ui.render.*`,
-  `modules/cred-mesh.cmd.ui-show` — the proven tri-layer
+- `src/cred-mesh.ui.query.*`,
+  `src/cred-mesh.ui.render.*`,
+  `src/cred-mesh.cmd.ui-show` — the proven tri-layer
 - memory: `topic-global-ui-menu-tree` — configure's planned role as
   generic fallback / decision surface
 
@@ -242,8 +242,8 @@ harmony configure.ui.render.decisions
 harmony configure.cmd.ui-show
 ```
 
-#,,.,,...,.,.,...,,.,,.,,,,.,,,,.,.,.,,,.,.,,,..,,...,.,.,...,.,.,...,...,.,,,
-#THIKRBRXFKF6LPFYBNWGI7MYECPLKRTK5J26Z7DUPKA3ERDFFZB25W5TZISAIVNJJDSIYUG4EWLFQ
-#\\\|PQTPUQS5NOWSCM6V7SG7NKX4QYD52T3WF3O4J7BGOWPETHYD44S \ / AMOS7 \ YOURUM ::
-#\[7]HVBLH5SAYMPOF7HON3IIIKBA22GDEPLTTP5ZGNSX3AH7R7K7OECQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,,..,,.,,,.,,..,,.,,,,..,...,..,,...,...,.,,,,..,,..,,.,,,,.,
+#HRX3UGUP6YQTJLPUXIEBQI4VTT3JS5YSM2YZEXD5KTBXVP24NMDX5DTSVDWZIJZ2TII2A263RZR6W
+#\\\|SDW423TC5FFEUCX6I4VGKZ5FAIYFL3BUX5KHECACNWTQZZULGXG \ / AMOS7 \ YOURUM ::
+#\[7]RWIUAR2Y3RHBAKTLOHYPTBKU3DX7P6QHF3RPGCWX6BC2342JMIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

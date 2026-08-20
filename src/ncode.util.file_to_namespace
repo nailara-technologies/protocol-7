@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = ncode.util.file_to_namespace
+# descr = derive p7 dot-notation namespace from a module file path
+# param = $path [ e.g. src/ncode.regex.expand -> ncode.regex.expand ]
+
+my $path = shift // '';
+
+return '' unless length $path;
+
+## only flat p7 module paths carry a derivable namespace : take the name ##
+## below the src/ directory [ no deeper hierarchy exists there ]         ##
+return '' unless $path =~ m{(?:^|/)src/([^/]+)$};
+
+my $namespace = $1;
+
+## strip a real source extension if any [ p7 modules themselves have none ] ##
+$namespace =~ s{\.(?:pl|pm|t)$}{};
+
+return $namespace;
+
+#,,.,,.,.,,..,.,,,,,.,...,...,...,,,,,..,,,,,,..,,...,...,..,,.,,,,.,,..,,,,,,
+#I6HUYYXAHS4LCOXARLU6OGDVZKF3QSJE2QKSV6C7ITZO7BB55RFQBK7UF7RWXCGIV62QOHDQZUY56
+#\\\|LEU6A2EGK3RJDLC4WBU2JIYJW3W4GPPX233QIEC4CCUTJ72BIK3 \ / AMOS7 \ YOURUM ::
+#\[7]CXQIQPIYZSB7VPWOIAJ6MOYMCEZWL2HCXCRROC52OIQFOR3E4ADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

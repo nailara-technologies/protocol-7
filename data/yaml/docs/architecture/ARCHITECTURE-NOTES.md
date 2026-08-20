@@ -16,7 +16,7 @@ Protocol-7's template + conversation system is designed as a **lightweight conse
 ## Three Interconnected Systems
 
 ### 1. Template System (Phase 1)
-**Location:** `modules/models.template.substitute`
+**Location:** `src/models.template.substitute`
 **Purpose:** Variable substitution and context injection
 
 Features:
@@ -29,7 +29,7 @@ Features:
 Templates are how models receive structured information. The `<{var}>` syntax is intentionally simple because models need to understand it.
 
 ### 2. Conversation System (Phase 2)
-**Location:** `modules/models.conversation.*`
+**Location:** `src/models.conversation.*`
 **Purpose:** Multi-turn state management with token budgets
 
 Features:
@@ -43,7 +43,7 @@ Features:
 Conversations are the "shared truth space" where all agents (models, validators, routers) see the same information. This enables consensus through context.
 
 ### 3. YAML Tool Calling (Phase 3+)
-**Location:** (To be implemented) `modules/models.tool-router.*`
+**Location:** (To be implemented) `src/models.tool-router.*`
 **Purpose:** Native tool execution alternative to MCP
 
 Features (Planned):
@@ -235,8 +235,8 @@ This architecture positions Protocol-7 as:
 
 All while being **simpler and lighter** than traditional AI agent frameworks.
 
-#,,.,,.,,,,,,,,..,.,.,,..,,..,.,,,,.,,.,.,,..,..,,...,..,,.,.,,,.,...,,..,.,,,
-#42YDWVDQP4YAAUGGMERNFBJLAUFCVMORPI7ZU66TE6A47C5OKHN5PTHTCUJKR3DGLEMW2Y6234KSM
-#\\\|3JPEONPTSE7M266AWF2E3WB37JPS5B3LWJS3LBCBWQYJYLGA6EU \ / AMOS7 \ YOURUM ::
-#\[7]3GLYFABHQ4IUVV4U3J6LAYBHNHEGTMXQHPJXGV2W5X6DACEYNKDQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,,.,,.,.,,,.,..,,,,,,...,.,,,..,,...,...,...,.,,,.,,,...,.,,,
+#WYJNJUJHGJSOJ3I3HPMILLHTEEBT4BTASXOT7O5OBDCVMSVRIFXWLFGCIGEIB4ZFR6QQOTM3U4VZ4
+#\\\|RB2KXOCEFUYC5L2W7E445H6UP6GQSWZDRHT7DLZKWIK4XLZVDNJ \ / AMOS7 \ YOURUM ::
+#\[7]FMDZMTRC3VVKO4ZDZ667HGYISGSSCE2KNYZSDDOWLE7UAZNZTGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

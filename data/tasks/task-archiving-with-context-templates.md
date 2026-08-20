@@ -56,7 +56,7 @@ template should include:
 - gotchas discovered during implementation (encoding issues, API quirks,
   wrong assumptions that had to be corrected)
 - how to test/verify the feature
-- related modules/files for future work in this area
+- related src/files for future work in this area
 - open items or known limitations discovered
 
 #### self-optimizing templates
@@ -105,8 +105,8 @@ directories.
 
 ## dispatch
 
-#,,..,.,.,,,.,,..,..,,.,,,.,,,,,,,,,.,.,,,,..,..,,...,...,..,,...,..,,.,,,..,,
-#RGJC43CK34TAWSAJ6A3OXIJOR5F65J4XQKTF44GQPCRWIGRKFKJOMQ3E6HTRAA5TTUBWKLV6RCXG4
-#\\\|BDNK7XHOAU563GZMYIA3MCAEFZVUPPAJW3P2IUVECO3BH3ZWZ3Q \ / AMOS7 \ YOURUM ::
-#\[7]WGZ3IZJXSPFL6ITYSYMRRZCQSTSTDQEMZVZOOAUG6FIPGAAXXGAA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,.,,,,..,..,,.,,,...,.,,,.,,,..,,...,..,,.,,,.,.,,..,.,.,,,,,
+#I7SR7FEV3MMQ2DMLLLIHDS2UK5VOLHIXSHFKLXPQVTJEG6WQWY3AEV7ZBSVKQKINJVQWOHUGPZBXA
+#\\\|LK4YN32LTGDJHHF566BIBWILPFESCGT6TNH2B5WXY35UIOJP3CA \ / AMOS7 \ YOURUM ::
+#\[7]355SJINAP3HSJBQX2WTQ63HSMGGEYQ23KMOPSFMV7EQLMYG6KGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

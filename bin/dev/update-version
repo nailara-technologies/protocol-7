@@ -64,7 +64,7 @@ my $u = File::Spec->updir;
 my $root_path
     = abs_path(
     File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
-my $cfg_path = File::Spec->catdir( $root_path, 'configuration' );
+my $cfg_path = File::Spec->catdir( $root_path, qw| cfg | );
 our $vers_file = File::Spec->catfile( $cfg_path, 'protocol-7.src-ver' );
 our $rl_v_file = File::Spec->catfile( $cfg_path, 'protocol-7.rel-ver' );
 my $readme_md       = File::Spec->catfile( $root_path, $readme_file_path );
@@ -81,7 +81,7 @@ die ":\n:: not found './cfg/protocol-7.rel-ver'\n\n" if !-f $rl_v_file;
 $commit_count-- if $amend;
 
 my $version_base = gen_ver_string( $commit_count + 1 - $reset );
-my $minor        = $down ? -1 : 1;
+my $minor        = $down ? -1 : +1;
 my $new_minor    = 0;
 
 if ( $old_version =~ m|^(.+)\.(\d+)$| ) {
@@ -303,8 +303,8 @@ RETRY_BASE_NTIME_B32:              ## only choose harmonic values ##
     return $encoded_ntime;
 }
 
-#,,..,.,.,,,.,,,,,..,,,.,,.,.,,,.,...,.,.,.,.,..,,...,...,...,,.,,,.,,.,,,,..,
-#YVHFK542DTXEKBVAMCT7AXI4PXTIEZJ2ILHHYZWQIY523Q2GAEAPV6562UZNNCDXZQKAFQHY5V6ZG
-#\\\|KR3D2KBBFMOB56KI6S5HKAKEWXEDCEDQWHKRDOPTZHNBS5FLINO \ / AMOS7 \ YOURUM ::
-#\[7]WAITQBXJ737QEQTV7S2AB5HF6X7VOJFN2KT5VQ43WUPDOAU6Q4BI 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,,,,.,,...,,..,...,..,,,..,,..,..,,...,...,.,,,,,,,,..,,.,,.,,,
+#NHGMSOWPCZOT6OSQI6PMBKBAZFNVEHH3QL6ZP5VDNVE7V3NLIQOHOT5PZ6YE6Y6ZOKO3KKVDZBPSG
+#\\\|KQK3KLYBDDITIELBQDXC454U2274X2TRBIMAALHGVDPFSXHP55W \ / AMOS7 \ YOURUM ::
+#\[7]NJ6ISJVPGJWWIFTZWXHE5EKTH6VCJJ4VASZMUSCHALG5IMSHZSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

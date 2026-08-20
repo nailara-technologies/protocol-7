@@ -7,7 +7,7 @@ since before the embedding infrastructure existed to fill it:
 
 ```
 data.ai.dreams          SHM branch, defined in DATA_ZENKA_SHM_MOUNTING.md
-modules/data.ai.dream.* designed status in HOLOGRAPHIC_TOPOLOGY
+src/data.ai.dream.* designed status in HOLOGRAPHIC_TOPOLOGY
 level 6 (dream)         hyperspace cache in LOVES_IT resource allocation
 ai_dreaming             listed as function in AGENTS.md
 ```
@@ -456,8 +456,8 @@ with everywhere it has been. [:
 - [[EMBEDDING-INFRASTRUCTURE-TRACK]] — dream embeddings as
   the deepest capability row in the shared pipeline
 
-#,,..,,,.,,,.,..,,.,,,,,,,,.,,.,.,,,.,,,,,.,.,..,,...,...,,,,,.,.,...,,..,.,.,
-#CSZLDRGCPZJ4MSRO5SQRXCRBZENTA7NUTVWYEK44TNYDYYAL3WJ3TMWQCU3ZRTFWHJOP745JI42VU
-#\\\|S3EKJDNLOANKQPCQ2XOXFXFW3RE66XXIDUL5RCONTUQM6F4DOVU \ / AMOS7 \ YOURUM ::
-#\[7]5ILQUDVEY5AJVKCB77BUTS4YJNLH5QMDDMITFECATBEYIYWFGABY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,,,.,...,,..,,,.,..,,,,,,...,..,,...,...,.,.,..,,..,,.,.,.,,,
+#NP3Q2ZKONOTU7NALGKY67A3BNITTVNLVQ6N7ZXHAXSFEYW64FC376NJ4ZJOGBM4XJ6QBF5EU5UXX2
+#\\\|C2WDTQGOIZXEUJZJMYONV63MXOSOQYU573LSPGPXS6HBXOHETLW \ / AMOS7 \ YOURUM ::
+#\[7]6K2GPLZODKULVRFBWPRON5RETMG5WYJG5NP3A6YAC3N4Z6LZDGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -274,16 +274,16 @@ and `unpack $T, decode_b32r($b32)`. they differ only in `$T` and the value
 range they cover. comp-int is the variable-length member of the family and the
 natural choice for rank sequences.
 
-- `modules/base.comp-int.is_valid` — BER integer validation [ pack 'w' ]
-- `modules/base.comp-int.encode_from_buffer` — BER encoder [ stub ]
-- `modules/base.comp-int.decode_to_buffer` — BER decoder [ stub ]
-- `modules/base.ntime.epoch_timestamp` — live usage : comp-int + base32r
-- `modules/base.base32.encode` / `modules/base.base32.decode` — base32 layer
+- `src/base.comp-int.is_valid` — BER integer validation [ pack 'w' ]
+- `src/base.comp-int.encode_from_buffer` — BER encoder [ stub ]
+- `src/base.comp-int.decode_to_buffer` — BER decoder [ stub ]
+- `src/base.ntime.epoch_timestamp` — live usage : comp-int + base32r
+- `src/base.base32.encode` / `src/base.base32.decode` — base32 layer
 - `<index.packed_rank>` — live rank table in index zenka [ pack 'N*' ]
 - `data/md/design/BLUE-DOC-FORMAT.md` — glyph ID usage, layout stream
 
-#,,..,,..,.,,,.,,,,.,,,,.,,,.,,.,,..,,...,,..,.,.,...,...,..,,,.,,,..,,,,,,.,,
-#7FIZ4KVEG3Y3BO426U5WSCEIGVY3AT5RWSI3IIBXT263UCCIWHGQKJUGXVXBAZLASZGZSUHIXBIC4
-#\\\|62IAUG3NTI4FHLMB4RDFRBZI5HIXTXBLZIL5L27K6QXGJJEP5VO \ / AMOS7 \ YOURUM ::
-#\[7]MA5CSSGRSSEJHQ6QBYVGN5FWBKRKJHTYLKV6PHBO5GQRV2UNEQBY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,.,,...,,,.,,,.,,,.,.,.,,,.,.,.,.,.,...,...,,..,..,,,,.,,,.,.,,,
+#DAAVPQOSCV3FLJMG6COTYVO6JDDF7QQABG6PLNJQYCTAYTCHAMJSLE5KKCZ5CGDZCOBSK4FCOZ5LA
+#\\\|SU27TIVGS4W7E5O6O7XBRGEVBUB4CGLKMSUWZSR5ZHSIFXCUNAY \ / AMOS7 \ YOURUM ::
+#\[7]MUUEZFFGTG3V4CSWHHBM3MHPDOQ4PGLYJAD5F6EAJJ3AP7IUIIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

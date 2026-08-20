@@ -439,23 +439,23 @@ and extended the debug infrastructure. All fixes are in production.
 - **New module**: `nshell.handler.debug_input` — routes debug input events to state tracker
 
 ### Files Modified
-- `modules/nshell.handler.ctrl_o_cycle` — index calc order, color reset, debug logging
-- `modules/nshell.state.reset_history` — Ctrl+O state reset added
-- `modules/nshell.read_from_buffer` — check `display_preloaded_entry` flag
-- `modules/nshell.editor.process` — Enter key display fix
-- `modules/nshell.handler.command_reply` — TRUE reply color fix
-- `modules/nshell.shell_loop` — command trace logging
-- `modules/nshell.no-tty-debug.cmd.char-add` — extended key mappings + dual syntax
-- `modules/nshell.handler.debug_input` — new module
-- `modules/nshell.init_code` — register debug_input handler
+- `src/nshell.handler.ctrl_o_cycle` — index calc order, color reset, debug logging
+- `src/nshell.state.reset_history` — Ctrl+O state reset added
+- `src/nshell.read_from_buffer` — check `display_preloaded_entry` flag
+- `src/nshell.editor.process` — Enter key display fix
+- `src/nshell.handler.command_reply` — TRUE reply color fix
+- `src/nshell.shell_loop` — command trace logging
+- `src/nshell.no-tty-debug.cmd.char-add` — extended key mappings + dual syntax
+- `src/nshell.handler.debug_input` — new module
+- `src/nshell.init_code` — register debug_input handler
 - `cfg/zenki/nshell/start` — char-add and debug-status commands
 
 ### Commits
 - `b2777cc0b` — Ctrl+O cycle fixes + enhanced debug infrastructure
 - `df7568781` — Enter display, TRUE reply colors, Ctrl+O debug logging
 
-#,,..,,,.,,..,...,,.,,,,,,,..,,..,...,.,,,.,.,..,,...,...,.,.,..,,...,.,,,..,,
-#A7WYW4FF4V4F7JUHD3UF6KYLKRCLSE4D4GU3BALS6LSER3MP5MVFWG4QPI42IIOKTDAY356GDTJJS
-#\\\|ABZUAL3IVD2ZTZYTURDVFG5XKMBEPGIKQONYSPV53HTKLURZOTL \ / AMOS7 \ YOURUM ::
-#\[7]OIR2PEX3DI6NTYSAVMPKBXOKFUSBY3KKSIDBFOSYY2S2ORYHYWDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,..,.,,,,,,,.,.,,,,,.,.,.,.,..,,..,,...,..,,...,.,.,,.,,.,,,.,.,
+#NS6M5GDU4FJHPVXU6SBMNNJORIORW2FV7WGD2LJ476Z2DFM7SUJVPGMEZLICGFF5SCDPT26CN74PO
+#\\\|EHLG3VQHTDSDN6NYGPYVPQS7DIVSHDI6PF5PUJQHLKWTDIKMHWM \ / AMOS7 \ YOURUM ::
+#\[7]BCA36DD4O6N6WMSVCUY2VKA25YKCHLADH4TKQRJBYEZUTDXZAACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

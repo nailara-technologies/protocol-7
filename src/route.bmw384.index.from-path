@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = route.bmw384.index.from-path
+# args  = $path
+# descr = walk directory and index all signed P7 module files
+
+my $path = shift // <system.root_path> . '/src';
+
+if ( not -d $path ) {
+    <[base.logs]>->( 1, 'directory not found: %s <{C1}>', $path );
+    return undef;
+}
+
+opendir my $dh, $path
+    or do {
+    <[base.logs]>->( 1, 'cannot opendir %s: %s <{C1}>', $path, $OS_ERROR );
+    return undef;
+    };
+
+my @entries = readdir $dh;
+closedir $dh;
+
+my $count      = 0;
+my $skip_count = 0;
+my $file_num   = 0;
+
+for my $ARG (@entries) {
+    next if $ARG eq '.' or $ARG eq '..';
+
+    my $filepath = "$path/$ARG";
+    next if not -f $filepath;
+    next if $ARG =~ m{^\.};     # [ skip dotfiles ]
+
+    $file_num++;
+
+    my $result = <[route.bmw384.index.from-file]>->($filepath);
+    if ( defined $result ) {
+        $count++;
+    } else {
+        $skip_count++;
+    }
+
+    <[base.logs]>->( 2, 'indexed %d files from %s', $count, $path )
+        if $file_num % 100 == 0;
+}
+
+return {
+    qw| indexed | => $count,
+    qw| skipped | => $skip_count,
+    qw| path    | => $path,
+};
+
+#,,.,,.,.,..,,.,.,,.,,,.,,.,.,,..,...,.,,,.,,,..,,...,...,.,,,,.,,,.,,...,,,,,
+#Z7NXQJT4KE52OYJRA5T6BCIKZVMK4XVWHA7YLU6MAQLSV3ATNTHIPSU265WLHC3SZXCI5AIJBDC2C
+#\\\|L2TCJIEWD3YAZ2UR266WI5LK22FVXDTTHOSHNGR2PCWM6GDMBHM \ / AMOS7 \ YOURUM ::
+#\[7]NGEJYIU5TYYGQWWZUCXJ7GDL6KYL5GFAVZVNP7UR57S33MZ4GGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

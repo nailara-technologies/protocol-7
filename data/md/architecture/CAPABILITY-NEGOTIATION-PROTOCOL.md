@@ -301,7 +301,7 @@ Level 2: unload-entire-capability
 
 ### Step 1: Create Handler Module
 
-**File**: `modules/auth.callback.cap-neg.<action>-<capability>`
+**File**: `src/auth.callback.cap-neg.<action>-<capability>`
 
 **Template**:
 ```perl
@@ -489,8 +489,8 @@ By using **modular handlers with dynamic dispatch**, the system remains:
 
 **Adding new**: Create `auth.callback.cap-neg.<action>-<capability>` module → auto-discovered
 
-#,,..,.,,,,.,,,.,,,,.,,.,,.,.,,.,,,..,.,.,,.,,..,,...,...,.,,,,,.,,..,..,,..,,
-#YFY4TDN4LBJEOSIJKGDUUK3XARFVB6AMAGQXNYHYDMMG5SJDJ4XSKZUVBKGHB5H7LXPKEJBRUX6R2
-#\\\|7BX2QIZESRYBUKMSZ4HBZVDQGI6MAN3ZTTTD2G2V3Y25DILOW57 \ / AMOS7 \ YOURUM ::
-#\[7]GDJDYS7XZRJCM4QL6HGJG4NK5KEC5PODSJMZZQSQAP7CCBRAG6BA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,..,,,..,,,.,,.,,.,,,,,.,,..,,.,,..,,...,...,..,,...,,.,,..,,,.,,
+#PP5KABPRE3DGFL2EKMTGMR4Q4CGESRH3HDWCNQU5HD247SHQGYTI4HN6SS4WMHKUE44TV73R2W4GQ
+#\\\|BAOPGJW6XJ7RDSJ4RAWCFFFBDC5XLLGFPJ7M3DE34VIIGFZ2I3D \ / AMOS7 \ YOURUM ::
+#\[7]UANXOCSV2TGUKYD6I5GGQYEGYTN6JWJDQWYMUGUVLV6YSI6YDADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

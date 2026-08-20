@@ -34,9 +34,9 @@ against a version of this code already proven correct here).
 
 ## scope
 
-### 1. `modules/editor.buffer.memory` (or split into per-operation files if
+### 1. `src/editor.buffer.memory` (or split into per-operation files if
 that matches this project's module-per-file convention better — check
-`modules/data.mount.shm.*` for the convention of one topic split across
+`src/data.mount.shm.*` for the convention of one topic split across
 many small `topic.verb` files vs one file per contract method)
 
 Implements the buffer contract from the design doc's `editor.buffer.*`
@@ -148,7 +148,7 @@ yet.
 
 ## explicitly out of scope (do not build)
 
-- anything touching `modules/nshell.*` or `data/lib-path/pm/AMOS7/TERM.pm`
+- anything touching `src/nshell.*` or `data/lib-path/pm/AMOS7/TERM.pm`
   — step_2's job, not this task's.
 - `enum`/`masked`/`readonly`/`freeform_multiline` field types.
 - multi-field schemas, `field_next`/`field_prev` actual behavior,
@@ -192,9 +192,9 @@ leave it pending and say so).
 ##   taeki's interactive sourcecode key passphrase — same as step_0 ]
 ##
 ## delivered [ all NEW files, nothing existing touched ]:
-##   modules/editor.buffer.memory.{create,load,save,insert,delete,
+##   src/editor.buffer.memory.{create,load,save,insert,delete,
 ##     get_line,get_text,length}                    [ 8 files ]
-##   modules/editor.control.{create,active_buffer,process_key,load_field,
+##   src/editor.control.{create,active_buffer,process_key,load_field,
 ##     get_value,get_cursor,reset,submit,
 ##     commands.insert,commands.delete,commands.move_cursor} [ 11 files ]
 ##   bin/test-scripts/test-editor-control-parity.pl
@@ -224,8 +224,8 @@ leave it pending and say so).
 ## - NOT done by agent: bin/Protocol-7 sourcecode update-signatures
 ##   [ interactive passphrase ], no git commit
 
-#,,,,,,..,...,.,,,,,.,...,..,,...,,,.,...,.,,,..,,...,..,,...,,,.,..,,...,,,,,
-#Z2TSPCTMGH2URM23WI3IFCBSOP3PEFQ56AP7CCICA3HLWWTGXW34N4MI6LRYPNK5PJOV7OHL3TRHK
-#\\\|NOIXJ3YNX7FVX75YKCJWAMQ3DCCWPWTP7ZABBXFQIXJ7FXNTGEM \ / AMOS7 \ YOURUM ::
-#\[7]B5L6JG52EWH22JQPH2GN64QF6FAZ7M5RGZXPEN3KWW52NE63COAI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,...,,,,,,..,...,...,.,,,,,,,..,,..,,...,...,.,.,..,,.,.,,..,.,,,
+#GPG3RUIMUUMXTWIZLGNUIGA2U37WH7KPI356TNZ2Y4IXI2X7QX4GXAAH6ELHALRAUNKDSABTRLRFC
+#\\\|KTWX4RRH2GAZTIP6CZPTMNVN6DJCOVDTY3MWG7KBIYW5ZTBUCYL \ / AMOS7 \ YOURUM ::
+#\[7]WEYZ3NZL5HRWG5WAMTBEEWV4UFZRFFO7YHV65MGZATBOJGIAJ4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

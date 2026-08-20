@@ -75,7 +75,7 @@ this is not new machinery — `split_truth_templates()` /
 `template_is_true()` require **all** comma-separated clauses to pass
 `is_true()` before the convergence loop exits, and this exact
 "harmonized checksums that are true combined and separately" pattern
-already exists in `modules/crypt.C25519.key_bin_checksums`:
+already exists in `src/crypt.C25519.key_bin_checksums`:
 
 ```perl
 my $checksum_template         = qw| <:%s:> |;
@@ -301,7 +301,7 @@ forward/reverse ["lambda"] principle was not developed for routing in the
 abstract — it was developed specifically for **C25519 keypairs**, "one
 forward, one reverse," and only later found to generalize.
 
-checked directly against code rather than guessed: `modules/
+checked directly against code rather than guessed: `src/
 crypt.C25519.init_code`'s `keys.sizetype` table shows an unencrypted
 private key is `64` bytes = secret(32) `.` public(32), a straight
 concatenation — **not** a literal byte/string reversal. so "forward" and
@@ -312,7 +312,7 @@ is the real-world instance the abstract mirror-principle material in
 `topic-checksum-addressing.md` was generalized *from* — not an application
 of it.
 
-`modules/crypt.C25519.key_bin_checksums` [ cited already in section 1 as
+`src/crypt.C25519.key_bin_checksums` [ cited already in section 1 as
 the precedent for comma-joined simultaneous-truth templates ] is the same
 module family this correction is grounded in — the "harmonized checksums
 that are true combined and separately" pattern and the lambda/forward-
@@ -433,8 +433,8 @@ is already a closed, tested task
 future pass turning sections 3 or 4 into task files would need to resolve
 the open cost/termination and encapsulation questions first.
 
-#,,.,,,,.,.,,,,,.,.,.,,..,,,,,,,,,..,,,,.,,,.,..,,...,...,...,,,.,,..,...,...,
-#4FMAMNODJWUYWLOX5LGKHKPRT4ZPZ6YJPECWXZM6FO6IJES3UNQFUJ4OPMNKNHHP7MNYWI43XWSQK
-#\\\|TNSCCJH6PASZCZUWGMEUK5W53KWD5IERIFOIQEBVBZ5WCWL7CUN \ / AMOS7 \ YOURUM ::
-#\[7]CJ6IB26KT4RD3VZJDBDNQQ2SJH5EA5KF2PO4OVDOUQD7KJ4VM4BQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,.,,,,..,.,.,,,.,...,,,.,,..,..,,...,...,,,,,,,.,.,.,,..,,..,
+#25SCHUSRAOYSED452IXPOBHFCY3KFPNCAYS2LQ2VU7II7KXEAVNZLZVWLXOFRNMCJWP34KIILMS72
+#\\\|5NGEV2LOK7OKM2XQ6JKIKWTG2USCCRQUGBVJGT6R5DFXQWIM2KR \ / AMOS7 \ YOURUM ::
+#\[7]5MRFZGYVREUXJMN4DQNJNECCFRHLSJPVSHQ5FRATY6B272M4L6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

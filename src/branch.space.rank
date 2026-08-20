@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = branch.space.rank
+# descr = compute signed position for node by reference count ranking
+# param = { node_id, scope }
+#
+# scope = 'local' | 'regional' | 'global'
+# assigns interleaved signed ranks:
+# highest ref = +1, second = -1, third = +2 ..
+
+my $params  = shift                // {};
+my $node_id = $params->{'node_id'} // '';
+my $scope   = $params->{'scope'}   // 'global';
+
+return { 'mode' => 'false', 'data' => 'node id required' }
+    unless length $node_id;
+return { 'mode' => 'false', 'data' => 'node not found' }
+    unless exists $data{'branch.nodes'}{$node_id};
+
+## resolve node set for scope ##
+my $node = $data{'branch.nodes'}{$node_id};
+my @node_set;
+
+if ( $scope eq 'local' ) {
+    my $parent = $node->{'parent'} // '';
+    if ( length $parent ) {
+        @node_set = keys %{ $data{'branch.children'}{$parent} // {} };
+    } else {
+        @node_set = grep {
+            my $n = $data{'branch.nodes'}{$ARG} // {};
+            not defined $n->{'parent'} or not length $n->{'parent'};
+        } keys %{ $data{'branch.nodes'} // {} };
+    }
+} elsif ( $scope eq 'regional' ) {
+    my $parent = $node->{'parent'} // '';
+    if ( length $parent ) {
+        @node_set = <[branch.space.util.collect_subtree]>->($parent);
+    } else {
+        @node_set = <[branch.space.util.collect_subtree]>->($node_id);
+    }
+} else {
+    ## global ##
+    @node_set = keys %{ $data{'branch.nodes'} // {} };
+}
+
+return { 'mode' => 'false', 'data' => 'no nodes in scope' }
+    if not @node_set;
+
+## deduplicate and ensure target is included ##
+my %in_set = map { $ARG => 1 } @node_set;
+$in_set{$node_id} = 1;
+@node_set = keys %in_set;
+
+## collect reference counts ##
+my @ranked = map {
+    { 'id' => $ARG, 'ref_count' => <[branch.space.util.ref_count]>->($ARG), }
+} @node_set;
+
+## sort descending by ref_count, then id for stability ##
+@ranked = sort {
+           $b->{'ref_count'} <=> $a->{'ref_count'}
+        || $a->{'id'} cmp $b->{'id'}
+} @ranked;
+
+## assign interleaved signed ranks  positive for odd position (1-based), ##
+## negative for even                                                     ##
+my $total_nodes = scalar @ranked;
+my $n           = int( $total_nodes / 2 ) + ( $total_nodes % 2 );
+my $signed_rank = 0;
+
+for my $i ( 0 .. $#ranked ) {
+    my $rank = $i + 1;                     ## 1-based ##
+    my $pos  = int( ( $rank + 1 ) / 2 );
+    $pos = -$pos if $rank % 2 == 0;        ## negative for even rank ##
+
+    if ( $ranked[$i]->{'id'} eq $node_id ) {
+        $signed_rank = $pos;
+    }
+
+    $data{'branch.space.positions'}{$scope}{ $ranked[$i]->{'id'} } = {
+        'position' => $pos,
+        'shell'    => abs($pos),
+        'n'        => $n,
+    };
+}
+
+return {
+    'mode' => 'true',
+    'data' => {
+        'position' => $signed_rank,
+        'shell'    => abs($signed_rank),
+        'n'        => $n,
+    }
+};
+
+#,,,,,.,.,.,,,.,.,.,.,.,,,...,...,,,,,,..,...,.,.,...,..,,..,,,,,,.,,,,..,,,.,
+#275UV57SNU2VMNG43NE424ON2ZO5OQZPTFR6L4B3JWVLSWZNX35ZO5WYU7ZVTFDRYBJS2N6WZRAFI
+#\\\|FKTKOI22BMEX3YVIBZPF6V77Y6LTE4VMXHBJNDRCKLA2QWQLXWY \ / AMOS7 \ YOURUM ::
+#\[7]XZPIC5CAPXJFKQ6PH6NY2GQNS2CA5ZGCWMM2VW2AYB4HRRL2P2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -93,7 +93,7 @@ overarching_theme: >
   users/os-dep/ — that's the ordinary per-OS pm-dep/binary convention
   every zenka can have, not an account-adapter mechanism, so no
   precedent there. A closer real precedent DOES exist though, per user:
-  the powershell zenka (cfg/zenki/powershell/, modules/
+  the powershell zenka (cfg/zenki/powershell/, src/
   powershell.exec) is a genuine windows-host bridge — it spawns real
   powershell.exe via IPC::Open3 (WSL interop) and returns parsed
   stdout, already used for screenshot-capture/pointer-stream/display-
@@ -218,8 +218,8 @@ set_up_format_gap: >
   for a given use, YAML is the sane fallback — consistent with
   YAML-AS-GATEWAY-FORMAT.md's stated philosophy above.
   CORRECTION, per user follow-up: there is no near-term-unblock problem
-  at all — modules/format.json.* (encode/decode/init_code, JSON::XS-
-  backed) and modules/format.yaml.* (load_str/dump_str/load_file/
+  at all — src/format.json.* (encode/decode/init_code, JSON::XS-
+  backed) and src/format.yaml.* (load_str/dump_str/load_file/
   write_file/load_keyword_path, YAML::XS-preferred-with-pure-YAML-
   fallback via format.yaml.pre_init) are ALREADY symmetric, shared,
   ready-to-use modules — not something set-up or anyone else has to
@@ -267,7 +267,7 @@ blockers:
     or can wait for a later field.
   no_settings_data_format_exists: >
     grepped repo-wide: there is no "user settings" storage format today.
-    modules/USR.<user>.* holds only public keys (3 files total, all
+    src/USR.<user>.* holds only public keys (3 files total, all
     base-key). There is nothing resembling a settings mask, profile
     record, or per-user config tree to bind editor fields to. Per
     users_zenka_relationship below, this format is owned and designed by
@@ -500,7 +500,7 @@ phase_1_skeleton:
       wholesale; most of it (Crypt::Ed25519, Digest::BMW, Compress::Raw::Lzma)
       is C25519/checksum-specific and unused here
     - cfg/zenki/user-edit/source/ — placeholders per loaded module
-    - new modules/user-edit.* namespace (or user-edit-console.* — pick one;
+    - new src/user-edit.* namespace (or user-edit-console.* — pick one;
       keys.console.* precedent suggests <zenka-name>.console.* subcommands
       if an interactive console mode is wanted in addition to the form)
   boot_checklist: >
@@ -610,7 +610,7 @@ phase_1b_path_discovery:
     by construction, not a fixed enum this design has to fully specify.
   reads_and_writes_through_format_yaml: >
     every path this zenka resolves via [KEYWORD]/... should be read/
-    written through modules/format.yaml.* (load_keyword_path already
+    written through src/format.yaml.* (load_keyword_path already
     calls base.path.resolve_keywords internally — it's the direct
     read-side counterpart to this phase; write_file is the equivalent
     write-side call), not a bespoke YAML::XS or File::Slurp call site.
@@ -680,7 +680,7 @@ amos_term_plugin_overlap: >
 
 phase_2_rendering:
   motivation: >
-    ascii.frame.* (modules/ascii.frame.*, 23 files) is an existing
+    ascii.frame.* (src/ascii.frame.*, 23 files) is an existing
     mockup-driven layout engine: parse a text mockup into a frame
     descriptor (ascii.frame.parse / from_mockup), bind scalar refs to
     named slots for live updates (ascii.frame.slot.bind), compose nested
@@ -882,8 +882,8 @@ open_questions:
 created: 2026-08-09
 tags: [new-zenki, editor, ascii-frame, user-settings, forms, keys-clone, path-registry, amos-term, installer, nshell, event-driven, network-connectivity]
 
-#,,,,,.,,,..,,,..,,..,,,,,,,.,.,,,,.,,,..,..,,..,,...,...,..,,,.,,,..,..,,.,,,
-#NRJ27N775LGYIUVXN4NTFUC7VMDEP67CNHU7RTES7UNRFFI7LZKU5TEJ5U22O2WFQ7IJ7KDGA7HQC
-#\\\|AEI5JFHATRJYED375IT2ZKMD2VXKBJHQ5TW4H5DQVYCKXJODRRZ \ / AMOS7 \ YOURUM ::
-#\[7]OBZWV6DS6EJ5CGGIM7IGGUJ3BPZV2UZEULQVBMA3AKVG3Y6EV4BI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,..,,,.,.,,,,,,,,,,,..,,.,,,.,.,..,,...,...,...,,.,,.,.,,,,,,.,,
+#ISAV7I3MFFENMSM3IWQ3TI45BIYO6KOFRVSISUR4CITBFRY44TM6UANKV5AN2JMIJMHVSK3V4GRDO
+#\\\|X35AUIPHW56CHLKYQD2SNCGBP52YYLE6N7J5N7SH5W6HTVWFI5T \ / AMOS7 \ YOURUM ::
+#\[7]C7LUE5TDWWWHKSHCL3DL3KR4DQA4DNK5JAUDXKSIBLDBKLJZQUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

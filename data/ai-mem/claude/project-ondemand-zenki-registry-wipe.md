@@ -16,13 +16,13 @@ Surfaced while live-testing the `sys-deps` zenka's on-demand idle-shutdown path 
 
 Two pieces combine to cause this:
 
-1. `modules/v7.post_init` (pre-fix) only called `<[v7.set_up_ondemand_zenki]>->( @{$added_all_ref} )`
+1. `src/v7.post_init` (pre-fix) only called `<[v7.set_up_ondemand_zenki]>->( @{$added_all_ref} )`
    inside `if ( @{$added_all_ref} )` — `$added_all_ref` is the diff between the zenki config list this
    run and the list from the *previous* `v7.post_init` run (`<[base.diff_array]>->( $prev_all,
    \@all_zenki )`), i.e. only zenki whose config is *newly discovered* since last time. On a fresh v7
    boot `$prev_all` is empty so this happens to be everything — but on any subsequent `v7.reload` it's
    only whatever's new in that specific reload.
-2. `modules/v7.set_up_ondemand_zenki` does `<v7.ondemand_zenki> = [];` unconditionally, then rebuilds
+2. `src/v7.set_up_ondemand_zenki` does `<v7.ondemand_zenki> = [];` unconditionally, then rebuilds
    strictly from `@_` (whatever it was called with). It's a full-state-rebuild function being fed a
    partial delta.
 
@@ -32,7 +32,7 @@ name, wiping every previously-known ondemand zenka off the list — including on
 touched, never reconfigured, just already-known. Over enough reloads the list decays toward whatever
 was most recently "new," in this case ending at empty.
 
-**Why this breaks idle shutdown specifically**: `modules/v7.process_zenka_end:78-106` sets
+**Why this breaks idle shutdown specifically**: `src/v7.process_zenka_end:78-106` sets
 `$next_status = 'error'` whenever `$current_status` was `online|error|starting` (which a healthy
 running-then-idle zenka always is), then has an override block that flips it back to `'offline'` *only
 if* the zenka's name is found in `<v7.ondemand_zenki>`. `base.handler.ondemand_timeout` calls `exit(0)`
@@ -44,7 +44,7 @@ itself) — the zenka is misclassified as crashed before that gate is reached. N
 every on-demand zenka on the host was exposed, including a graphics-matrix restart-loop the user had
 separately tried to fix with a timeout increase (which didn't help, for the same reason).
 
-**Fix** (`modules/v7.post_init`): moved `<[v7.set_up_ondemand_zenki]>->(@all_zenki)` out of the
+**Fix** (`src/v7.post_init`): moved `<[v7.set_up_ondemand_zenki]>->(@all_zenki)` out of the
 `if (@{$added_all_ref})` gate entirely, calling it unconditionally every `v7.post_init` run with the
 *full* current zenki list, not the delta. `v7.set_up_zenka_dependencies` stayed delta-gated — not
 touched, out of scope, no evidence it has the same full-state-rebuild shape.
@@ -58,8 +58,8 @@ cycle (not independently re-verified in this session, same mechanism).
 [[project-sys-deps-wiring-completion]] · [[project-reload-modules-load-registry-fix]] (a sibling
 "reload doesn't fully refresh derived state" bug in the same area, found the same week)
 
-#,,,,,..,,,.,,,..,,.,,...,.,.,.,,,..,,,..,,,.,..,,...,...,..,,,.,,,.,,,,.,,,,,
-#CVCCNB6G2ZQEMIZBVMPHULETRVKMPN3FSXD2GZXYIYQUV3LTCLL2G2B7UP4LP2LTGB5KCVHV5CTQI
-#\\\|63ZNJLCYG4W2U54CT2THHTHU7SA3YUAZ3K3HN2DWKMMUY5ZARZX \ / AMOS7 \ YOURUM ::
-#\[7]ZFGVBK2R3JHXMWEPKV6CMRQ5BIUA7VTEDDDCXXCA3OBM54KRNUCI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,,,.,.,.,,,,,..,,,.,,,.,,,,.,..,,...,...,,.,,,,.,,,,,...,,..,
+#ZYZ5KEGJTOLGMUOATKRL6YD7A3M6XJPGXSWBSRXQL5HOECZSHT4DAW7LX4E6LQXYCTZ6TQRQXGPJS
+#\\\|SNAXWPDGHYQUFMMCXE4MEHJTF3PKPCGME7Y4ZPYZKDYS5INTCKQ \ / AMOS7 \ YOURUM ::
+#\[7]WINLYAW2B7EAIIAE3T7N3X6IU5VF2A6HT22OLEMH7B4PTJ5WFCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

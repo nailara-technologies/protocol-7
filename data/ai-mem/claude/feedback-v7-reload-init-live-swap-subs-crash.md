@@ -56,7 +56,7 @@ it's correct: confirmed working the same way for other families (e.g.
 was never in that design.
 
 **The actual mechanism**: `v7.zenka.init_code` is a real file
-(`modules/v7.zenka.init_code`) that is *not* whitelisted in
+(`src/v7.zenka.init_code`) that is *not* whitelisted in
 `cfg/zenki/v7/subroutines.load-early` — unlike its sibling
 `v7.zenka.pre_init`, which is. The loader (`bin/Protocol-7`, commit
 `e90dd04ae`, "loader: make swap_subs-moved namespaces reachable without
@@ -173,8 +173,8 @@ further architecture-level effort.
   no longer dangerous now that this fix is in, but the note's original
   reasoning (before the fix) was wrong to suggest it as safe.
 
-#,,,,,,..,,,.,.,,,,,.,,,.,,,,,...,..,,...,,,.,..,,...,...,.,.,,,.,,.,,,,,,,.,,
-#TIB6ULNQ5BMUCXHXXTZYFOZAYKXLCDJUFVOF7ZQCSQUAPYFJM2XHY53KLRWEF7CR4UMNBH22LKTRO
-#\\\|7PZ4LQGSI2M3RSUQ4CHXEGALU75OO6ZVYAHP4XFJRCON4SEHUVK \ / AMOS7 \ YOURUM ::
-#\[7]BGET7F43T56JAFZN6ALEV76IJOTDUCRQWCK25LVGBYQ644O47ECQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,,..,.,,,.,.,.,,,.,.,,,,,,..,..,,...,...,.,.,.,,,...,,,.,..,,
+#M3Z5ONIZZYFAN3SWKAD6CYMNEQOIVSBSPQ7G3TAMBVNH26QC7JXWNQXFY5YQS54CY54AMISRLHNZY
+#\\\|PSVFD7YIL3FXFT2PRXXZJXW76MJGEAYDA3DAYVE3KCCRYD6DDP3 \ / AMOS7 \ YOURUM ::
+#\[7]AR2PVF4G6SNI3RWYZYW3N2HOW7ZBT2LC67XA2HOKIXCZNUVCTOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

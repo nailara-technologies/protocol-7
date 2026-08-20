@@ -1,6 +1,6 @@
 ---
 name: feedback-combined-grep-conflated-caller-counts
-description: "grep -rln 'funcA|funcB' modules/ reports files matching EITHER pattern, not files calling a specific one -- conflated base.ntime.B32_2_unix's real caller count (2) with base.ntime_BASE32_to_numerical's (19) when scoping a bug-fix dispatch, caught by kimi's own verification pass, not by me"
+description: "grep -rln 'funcA|funcB' src/ reports files matching EITHER pattern, not files calling a specific one -- conflated base.ntime.B32_2_unix's real caller count (2) with base.ntime_BASE32_to_numerical's (19) when scoping a bug-fix dispatch, caught by kimi's own verification pass, not by me"
 metadata:
   type: feedback
 ---
@@ -9,7 +9,7 @@ Scoping `bug-ntime-b32-2-unix-missing-compint-float-support.md` for
 dispatch, I ran:
 
 ```
-grep -rln "base\.ntime\.B32_2_unix\|base\.ntime_BASE32_to_numerical" modules/
+grep -rln "base\.ntime\.B32_2_unix\|base\.ntime_BASE32_to_numerical" src/
 ```
 
 and reported "confirmed: base.ntime.B32_2_unix is called by 23 other
@@ -45,8 +45,8 @@ reporting a count attributed to just one of them. Also: verify a
 just the one already suspected broken — an input that's bad everywhere
 isn't evidence of a gap between two paths.
 
-#,,..,,,.,.,.,,..,...,.,.,...,.,,,,.,,,,,,,..,..,,...,...,...,...,,.,,...,,.,,
-#MMGK5PVNBO53JO2OYHOUKVKPUOJTLYRUE2IJSXR4Q6K7NJ3HBHA6BT37FOAOMSTRPPZ3D2KX2QWVK
-#\\\|IPKPO3CFQFIOQXRS4NREBMGIUG752DHG72M6KA4BSHPSSIGQQJF \ / AMOS7 \ YOURUM ::
-#\[7]SF2EF2ACRRDLGMXSMA3OHAK4J5SMOFFJQFD2JWV6DLXA4NDNDMAY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,,..,,,,,...,,,.,,..,...,,..,..,,...,..,,...,,.,,,,,,.,.,.,,,
+#5LTQ3ERTPKYRGEH5EZ6USNRO5GEZJBR5TGG2N7HRZUFAY6YDU6VEKDEQXH5R7RQK22NU7QC4QFECI
+#\\\|5AQIECAW3745UMCHMNAG7MXBNBQZSX7ONDQA72O4M7SEB6SRK6Z \ / AMOS7 \ YOURUM ::
+#\[7]HNLY5BP3JA6XL5ZIU7PJEUWBMLIEBGCAUSBG6TIUWGO36OG2BKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

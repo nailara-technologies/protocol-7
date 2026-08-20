@@ -27,10 +27,10 @@ orientation task — no code changes, just building understanding.
    - `data/md/coding-tasks/ncode-zenka-self-refining-regex.md` — ncode design
 
 3. read the ncode foundation modules to understand what exists:
-   - `modules/ncode.init_code`
-   - `modules/ncode.regex.load`
-   - `modules/ncode.regex.apply`
-   - `modules/ncode.regex.save`
+   - `src/ncode.init_code`
+   - `src/ncode.regex.load`
+   - `src/ncode.regex.apply`
+   - `src/ncode.regex.save`
    - `data/yaml/ncode-patterns/p7-style.yaml` — 12 seed patterns
 
 4. read the context zenka start file to understand module loading:
@@ -64,8 +64,8 @@ include pipe-delimiter detection, comment style, qw-quoting, module
 call syntax, and other P7 conventions that ncode should eventually
 enforce automatically during code generation.
 
-#,,,.,..,,...,,,,,,,,,.,.,,,.,,,.,,,,,.,.,,..,..,,...,...,...,,,.,,..,.,,,,,,,
-#LDPSDDVDN7232BX3JAUVT4HRDLHOZL3N4DNXM67BP4Y3OTDORKHX5TJLNA4NPSYJSOKB6CNZ72QWA
-#\\\|F7QP5SEH2HNLHTLQOYD573RW53GRYEUFT7FNWJP4HOIHXB3ERUQ \ / AMOS7 \ YOURUM ::
-#\[7]JXCM75ULUUWW64C4LJWY757WWB6LUX43G2I7MICA7AW6TJXN2ABI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,,,..,,,..,...,,,,,.,,,,,.,...,..,,...,...,,.,,,.,,,..,,,.,..,,
+#7K5HOV3T2RVD7SRJT7MD35HGWBD5MZWYSDLCK6XF3HZD5LT3C2F2W32OFZEGAGRQIEVJG76QJWSZA
+#\\\|MAYBQZYK3DYNOPQR7JDDXK6QSGJJZYEFWWS4KRRIMTNU75IO7FD \ / AMOS7 \ YOURUM ::
+#\[7]IH7ILZEA73PFNPVKN6Q5GGWVX2MCT5WL2YLBQWT5UV3WZGAPYIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

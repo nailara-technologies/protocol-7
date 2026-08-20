@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = window.place.find_safe_position
+# param = <window_id> <candidates_aref>
+# descr = try each candidate rect [ x,y,width,height ] in order via a real
+#         move + geometry readback, return the first one that actually
+#         lands where requested, or undef if none did
+
+## generic recovery for the class of bug X-11.cmd.move-window's mismatch   ##
+## detector caught live: a requested position can silently fail to apply [ ##
+## window stays at its PRIOR position ] after a monitor topology change,   ##
+## for reasons not fully/reliably modeled analytically [ only empirically  ##
+## observed ]. rather than computing whether a rect SHOULD be safe, this   ##
+## just tries candidates in order and verifies each one for real - the     ##
+## exact same move+readback pattern already proven in move-window itself.  ##
+## candidate ORDERING/prioritization is a separate, later concern [ eg     ##
+## success-history statistics ] - this only tries them in the order given. ##
+
+my ( $window_id, $candidates ) = @ARG;
+
+return undef
+    if not defined $window_id
+    or ref($candidates) ne qw| ARRAY |
+    or not @$candidates;
+
+for my $candidate (@$candidates) {
+    my ( $x, $y, $w, $h ) = @{$candidate}{qw| x y width height |};
+    next if not defined $x or not defined $y;
+
+    my $move_ok = <[base.X-11.move-window]>->( $window_id, $x, $y, $w, $h );
+    next if not $move_ok;
+
+    my $actual = <[base.X-11.get_window_geometry]>->($window_id);
+    next if not defined $actual;
+
+    my $matched
+        = $actual->{'x'} == $x
+        && $actual->{'y'} == $y
+        && ( not defined $w or $actual->{'width'} == $w )
+        && ( not defined $h or $actual->{'height'} == $h );
+
+    next if not $matched;
+
+    <[base.logs]>->(
+        1,
+        '[find_safe_position] id=%s landed at x=%d y=%d w=%d h=%d',
+        $window_id,
+        $actual->{'x'},
+        $actual->{'y'},
+        $actual->{'width'},
+        $actual->{'height'}
+    );
+
+    ## merge over the candidate so caller-supplied metadata [ eg which   ##
+    ## named profile this candidate represents ] survives the round trip ##
+    return {
+        %$candidate,
+        'x'      => $actual->{'x'},
+        'y'      => $actual->{'y'},
+        'width'  => $actual->{'width'},
+        'height' => $actual->{'height'},
+    };
+}
+
+<[base.logs]>->(
+    1,          '[find_safe_position] id=%s : none of %d candidate(s) landed',
+    $window_id, scalar @$candidates
+);
+
+return undef;
+
+#,,.,,,.,,,..,,,,,.,,,..,,,,,,,,.,,..,,,,,,,,,..,,...,...,,..,,..,,,.,.,,,.,,,
+#VALQOB6MIB4C6R2BBHCN46ISPPLCPLV54X4V75ABKQAL6BAPHXV7K74H2JZSGVKHCJCIJV6DBBR6S
+#\\\|IIIQA3652BLOR7B543SXI7CZAYV74JVU7P2JU32TVPMIN343UH4 \ / AMOS7 \ YOURUM ::
+#\[7]BV2DXAOECYURQXHAU2DQ5H4D3CCB3ETVI77BR5PPR3ZTYTSMQIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

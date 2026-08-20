@@ -34,7 +34,7 @@ my $root_path = abs_path(
     File::Spec->catdir( $RealBin, File::Spec->updir, File::Spec->updir ) );
 
 my $dep_graph = File::Spec->catfile( $root_path, qw| bin dev dep-graph | );
-my $zenki_dir = File::Spec->catdir( $root_path, qw| configuration zenki | );
+my $zenki_dir = File::Spec->catdir( $root_path, qw| cfg zenki | );
 
 my @targets = @ARGV;
 
@@ -64,7 +64,7 @@ for my $zenka (@targets) {
     $num++;
     my $zenka_dir = File::Spec->catdir( $zenki_dir, $zenka );
     my $out_path
-        = File::Spec->catfile( $zenka_dir, 'subroutines.load-early' );
+        = File::Spec->catfile( $zenka_dir, qw| subroutines.load-early | );
 
     ## namespace-only targets [ no zenka start file ] have no whitelist ##
     ## their subs are covered by the loading zenka's whitelist          ##
@@ -209,8 +209,8 @@ sub print_result {
         $result_color, $result,     $reset;
 }
 
-#,,..,,,.,.,,,,..,.,.,...,.,.,,..,.,,,.,,,,.,,..,,...,...,,..,,,,,.,,,,,,,..,,
-#DG4WPV5ZRBQNLHM4ERJQYWFHJZBCV6IV3J35SKYYP5XHROBW5P3WK3356QFNWO6YRGABXXEIX2ZT6
-#\\\|2DSEJQF555X5YNR3GIY4J5BGG5FN4FVOXCL54S2BY6XVGSB6FZA \ / AMOS7 \ YOURUM ::
-#\[7]7LOD5KI2B7Q4BXDCIFYOMGCXEDCZ4P2O73A3RKZNK5YQ3EDZ2EAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,...,...,,..,,,.,.,.,..,,,,.,..,,...,...,.,.,.,,,,,,,,..,,,.,
+#4A2TQTR6W2GZ4IGQ2XC7CZNUPXDTLWK7A7FRDTCOIUSG5NEUVO6KWCCE6BE4SURZQ2OVSQRMCIDSG
+#\\\|VKQGK3KWTGFAANY33GVQGPFI5R2ISWXPK2YA6QSNJLUUJNCKARY \ / AMOS7 \ YOURUM ::
+#\[7]HPZ6KK5BTOOJER4XOCHWGQYTY7VWSK3ZQA3JXOZPKAEFFGODH2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

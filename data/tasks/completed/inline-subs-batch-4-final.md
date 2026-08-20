@@ -6,7 +6,7 @@ final batch of the inline-sub cleanup series [ prior landings:
 `eff1ee210`, `4c5d518b9`, `119eed733`, `dc027b0c7` and its predecessors ].
 once this lands, `ncode s src '^sub [a-z][A\w_]+ '` AND
 `ncode s src 'sub _'` should both return empty across all of
-`modules/` - zero remaining inline helper subs, convention fully
+`src/` - zero remaining inline helper subs, convention fully
 enforced.
 
 use `data/yaml/context-templates/extract-inline-subs.yaml` as the
@@ -17,7 +17,7 @@ namespaces ].
 
 ## scope : 7 inline subs across 4 modules
 
-### 1+2. `modules/reenc-msg.open_window` lines 49 (`cairo_draw`) and 74
+### 1+2. `src/reenc-msg.open_window` lines 49 (`cairo_draw`) and 74
 (`screen_changed`)
 
 these are **GTK signal-handler callbacks**, referenced as coderefs:
@@ -28,8 +28,8 @@ $window->signal_connect( 'screen_changed', \&screen_changed, $window );
 screen_changed($window);
 ```
 
-extract to `modules/reenc-msg.window.util.cairo_draw` and
-`modules/reenc-msg.window.util.screen_changed` [ both standalone, no
+extract to `src/reenc-msg.window.util.cairo_draw` and
+`src/reenc-msg.window.util.screen_changed` [ both standalone, no
 package-global dependencies - `cairo_draw` reads `<reenc-msg.display_txt>`
 and `<reenc-msg.shadow_alpha>`/`<reenc-msg.text_alpha>` via normal P7
 data accessors, which work fine from any module ].
@@ -48,8 +48,8 @@ $window->signal_connect( 'screen_changed',
 then remove the two `sub cairo_draw {...}` / `sub screen_changed {...}`
 declarations.
 
-### 3. `modules/remote-cam.sdl_loop` line 209 : `sub loop_wait {...}`
-extract to `modules/remote-cam.util.loop_wait`
+### 3. `src/remote-cam.sdl_loop` line 209 : `sub loop_wait {...}`
+extract to `src/remote-cam.util.loop_wait`
 
 standalone helper [ `my $tw = shift // 0;`, uses `<[base.time]>->(3)`,
 `<[event.once]>->($tw)`, `SDL::delay(...)` - no package globals ].
@@ -57,11 +57,11 @@ called 4 times in the same file [ lines 79, 102, 201, 206 ] - replace
 each `loop_wait(...)` call with `<[remote-cam.util.loop_wait]>->(...)`.
 remove the `sub loop_wait {...}` declaration.
 
-### 4+5. `modules/storchencam.sdl_loop` line 327 (`loop_wait`) and 338
+### 4+5. `src/storchencam.sdl_loop` line 327 (`loop_wait`) and 338
 (`mask_scan`)
 
 `loop_wait` here is a **near-duplicate** of remote-cam's [ identical
-body ] - extract to its own `modules/storchencam.util.loop_wait` [ do
+body ] - extract to its own `src/storchencam.util.loop_wait` [ do
 NOT try to share remote-cam's module - keep them separate, same as the
 existing near-duplicate pattern between the two camera zenki ]. called
 4 times [ lines 158, 176, 319, 324 ] - replace each `loop_wait(...)`
@@ -69,7 +69,7 @@ call with `<[storchencam.util.loop_wait]>->(...)`.
 
 `mask_scan` [ lines 338-382 ] is a standalone helper [ `my $surface =
 shift; my $s_y_offset = shift // 0;`, reads `<storchencam.mask_areas>`,
-no other package globals ] - extract to `modules/storchencam.util.mask_scan`.
+no other package globals ] - extract to `src/storchencam.util.mask_scan`.
 called once at line 269: `mask_scan( $screen, $s_y_offset )` - replace
 with `<[storchencam.util.mask_scan]>->( $screen, $s_y_offset )`. keep
 the `# LLL: works on day images only(?) ...` comment line - move it
@@ -79,7 +79,7 @@ header line in the new module if that fits the convention better).
 remove both `sub loop_wait {...}` and `sub mask_scan {...}`
 declarations from `storchencam.sdl_loop`.
 
-### 6+7. `modules/workspace-transfer.init_code` lines 15 (`ensure_workspace`)
+### 6+7. `src/workspace-transfer.init_code` lines 15 (`ensure_workspace`)
 and 36 (`chdir_workspace`)
 
 **read this section twice before starting - this is the highest-risk
@@ -87,11 +87,11 @@ extraction in the whole series.**
 
 these two subs are called from **11 other modules** as fully-qualified
 package functions: `workspace_transfer::chdir_workspace()` [ e.g.
-`modules/workspace-transfer.cmd.bug`, `.cmd.checkpoint`, `.cmd.todo`,
+`src/workspace-transfer.cmd.bug`, `.cmd.checkpoint`, `.cmd.todo`,
 `.cmd.todo-commit`, `.cmd.bug-commit`, `.cmd.status-check`,
 `.console.bug`, `.console.bug-commit`, `.console.checkpoint`,
 `.console.todo-commit`, `.console.status-check` - run `grep -rn
-"workspace_transfer::" modules/` to confirm the full list before and
+"workspace_transfer::" src/` to confirm the full list before and
 after your edit, the count must be unchanged ].
 
 `workspace-transfer.init_code` itself has NO `package` statement, and
@@ -153,8 +153,8 @@ extracted module only needs `our $WORKSPACE_DIR;` ], in whichever
 package matches case 2 or 3 above.
 
 extract to:
-- `modules/workspace-transfer.util.ensure_workspace`
-- `modules/workspace-transfer.util.chdir_workspace`
+- `src/workspace-transfer.util.ensure_workspace`
+- `src/workspace-transfer.util.chdir_workspace`
 
 `chdir_workspace` currently calls `ensure_workspace()` internally
 [ same-package call ] - rewrite that internal call as
@@ -197,7 +197,7 @@ why, report back instead.
 ## registration
 
 after all 7 new modules are created and source files updated:
-- add all 7 new module names to `modules/base.list.subroutines`
+- add all 7 new module names to `src/base.list.subroutines`
   [ group near related `reenc-msg.*` / `remote-cam.*` /
   `storchencam.*` / `workspace-transfer.*` entries ]
 - regenerate `data/md/documentation/module-dependency-graph.asc` via
@@ -206,7 +206,7 @@ after all 7 new modules are created and source files updated:
 ## verification
 
 - `ncode s src '^sub [a-z][A\w_]+ '` returns completely empty across
-  all of `modules/` [ this is the final batch - confirms zero
+  all of `src/` [ this is the final batch - confirms zero
   remaining inline helper subs project-wide ]
 - `ncode s src 'sub _'` also still returns empty [ from prior batches -
   don't break this ]
@@ -229,7 +229,7 @@ after all 7 new modules are created and source files updated:
 ## non-goals
 
 - no behavior change - pure refactor, same logic moved to sibling files
-- do not touch `modules/base.protocol-7.command.send.local` or any
+- do not touch `src/base.protocol-7.command.send.local` or any
   route-send related work - unrelated in-progress work by someone else
 - do not try to start any zenka that is not already running
 - if the workspace-transfer package-wrapping theory turns out to be
@@ -246,8 +246,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,.,,..,,..,.,.,,.,,,..,,,,,,.,,,.,,,,,,,.,,..,,...,...,.,.,..,,...,..,,.,,,
-#3GV4G7D47T3ZTSRPKJI5JIAE27EX67ABJKHSZYPQOKCDX5DIKFCRLLHBS2LO4N2AXW47ZRKP5H3C6
-#\\\|MI4EP4MQOXMUEXBXCJJFGDWF6K5RIHIR2YYEIVAP57K7BAUV5VX \ / AMOS7 \ YOURUM ::
-#\[7]I43KQIAKV7ZSEYO3U2TOMAZRW7E6OOGECDCEUWSVQHK2OWVCW2AI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,.,.,,,,,,,,,..,,.,,,,,.,,..,..,,...,...,.,.,,.,,,..,,,,,,.,,
+#DAIM2J436LYBHPZZUSCC6QEKPHHLJZFB54QP4AFWH2NSNJG33BAZ6YEVEU3VOBLLABC6Q36IVJHSS
+#\\\|ZH35VSARZF4J2B7XEURXIWCU6U46MDRAUOBL7PJFGSL4X66R6Z5 \ / AMOS7 \ YOURUM ::
+#\[7]N4FRVJDMBHQHRHGNJD6FATASSGUIQN7SJAX3TIIUW5JJXQUETWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

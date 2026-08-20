@@ -1,0 +1,164 @@
+## [:< ##
+
+# name = X-11.post_init
+
+<X-11.initialized>         //= FALSE;
+<X-11.host_mode_unchanged> //= TRUE;
+
+my $modes_re = <X-11.modes_re>;
+
+if ( <X-11.mode> !~ $modes_re ) {
+    <[base.log]>->(
+        0, sprintf( "configured X-11 mode '%s' is not valid", <X-11.mode> )
+    );
+    <[base.exit]>->(qw| 0110 |);
+}
+<X-11.params>->{<X-11.mode>} //= '';
+
+my $mode = <X-11.mode>;
+my $display_str;
+
+if ( $mode eq qw| host | ) {
+    if ( <[base.cfg_bool]>->(<X-11.host_mode_unchanged>) ) {
+        <X-11.keep_unchanged>  = TRUE;
+        <X-11.keep_background> = TRUE;
+    }
+    $display_str = <X-11.display.host>
+        // ( defined $ENV{'DISPLAY'} ? $ENV{'DISPLAY'} : ':0' );
+    <X-11.display>->{$mode} = $display_str;
+    <X-11.connect_timeout> = 15 if <X-11.connect_timeout> < 15;
+    <[base.log]>->( 1, 'running in host mode [ using existing X11-server ]' );
+
+    ##  drop before connecting., ##
+    <[base.root.drop_privs]>->(<system.AMOS-user>);
+} else {
+    <X-11.display>->{$mode} //= qw| :1 |;
+
+    ## configured value is the BASE of the range [ user-controlled in       ##
+    ## zenki/X-11/start ]; this instance's actual display is base + subname ##
+    ## index [ 'xvfb-0000' -> base+0, 'xvfb-0001' -> base+1, etc; plain     ##
+    ## 'xvfb' [ no index ] behaves exactly as before ]. overwritten in      ##
+    ## place -- this is this zenka's own private %data [ one process per    ##
+    ## instance ], not shared state, and every other X-11.* module [        ##
+    ## connect_X11, reconnect, pool.dial_standby, cmd.get_display ] reads   ##
+    ## <X-11.display>->{$mode} directly as the live display to use.         ##
+    my $index = <X-11.mode_index> // 0;
+    if ( $index > 0 and <X-11.display>->{$mode} =~ m|^:(\d+)$| ) {
+        <X-11.display>->{$mode} = ':' . ( $1 + $index );
+    }
+    $display_str = <X-11.display>->{$mode};
+    <X-11.keep_unchanged> = FALSE;
+}
+<X-11.primary_display> = $display_str;
+
+<[base.logs]>->(
+    0, "<< X-11 mode changed to '%s', restart required >>", $mode
+) if defined <X-11.old_mode> and $mode ne <X-11.old_mode>;
+
+## image checksum cache file [ in /var/protocol-7/X-11/.., ] ##
+##
+<X-11.path.chksum_cache_name> //= qw| bg-image.name-checksum.cache |;
+
+##  create '/var/protocol-7/X-11/' to store checksum cache  ##
+<[base.path-set-up.check-zenka-paths]>->(TRUE);
+
+## loading checksum cache ##
+<[X-11.background.chksum-cache.reload_from_file]>;
+
+return FALSE if <X-11.initialized>;
+
+<X-11.connect_timeout> //= 7.7;
+<X-11.orientation>     //= qw| normal |;
+<X-11.old_mode> = $mode;
+
+<X-11.params>->{'xephyr'} .= ' -glamor'
+    if $mode eq qw| xephyr |
+    and <X-11.orientation> eq qw| normal |
+    and !<X-11.disable_glamor>;
+
+## start-up \ connect ##
+die 'X-11.mode is not defined' if not defined $mode or not length $mode;
+
+## register primary server entry ##
+<X-11.servers>->{$display_str} //= {};
+my $server = <X-11.servers>->{$display_str};
+$server->{'mode'}    = $mode;
+$server->{'display'} = $display_str;
+
+## create dependency object for the primary display ##
+my $dep_id = <[dependency.add_object]>
+    ->( { 'type' => 'x11_display_flag', 'display' => $display_str } );
+<[dependency.add]>->( $dep_id, $dep_id );
+$server->{'dep_id'} = $dep_id;
+
+if ( $mode ne qw| host | ) {
+
+    my $bin_name = $mode eq qw| xorg | ? qw| Xorg | : qw| Xephyr |;
+    $bin_name = qw|  Xvfb   | if $mode eq qw|  xvfb   |;
+    $bin_name = qw|  Xnest  | if $mode eq qw|  xnest  |;
+    $bin_name = qw| nxagent | if $mode eq qw| nxagent |;
+
+    my $server_bin = <X-11.bin_path>->{$bin_name};
+
+    die "X-11 binary '$bin_name' not found. [ installed ? ]"
+        if not defined $server_bin or not -x $server_bin;
+
+    $server->{'bin_name'} = $bin_name;
+
+    <X-11.startup.display>       = $display_str;
+    <X-11.startup.mode>          = $mode;
+    <X-11.startup.server_params> = <X-11.params>->{$mode} // '';
+    <X-11.startup.bin_name>      = $bin_name;
+    <X-11.startup.primary>       = TRUE;
+
+    <[base.logs]>->(
+        1,             "deferring %s server startup on %s to event loop",
+        lc($bin_name), $display_str
+    );
+
+    push @{ <system.callbacks.initialized> //= [] },
+        qw| X-11.job.start_server |;
+
+} else {
+    $server->{'bin_name'}   = '[host] x11';
+    $server->{'host_ready'} = FALSE;
+
+    ## queue finalize job now; it runs once the host display is verified ##
+    <[jobqueue.add_job]>->(
+        {   'name'            => "X-11 finalize server $display_str",
+            'job_callback'    => qw| X-11.job.finalize_server |,
+            'object_id'       => $dep_id,
+            'callback_params' => {
+                'display' => $display_str,
+                'primary' => TRUE
+            }
+        }
+    );
+
+    ## host display already exists: connect and resolve dep in one shot ##
+    push @{ <system.callbacks.initialized> //= [] }, sub {
+        my $host_server = <X-11.servers>->{$display_str};
+        return if not defined $host_server;
+
+        eval { $host_server->{'conn'} = X11::Protocol->new($display_str); };
+        if ( length $EVAL_ERROR or not defined $host_server->{'conn'} ) {
+            <[base.logs]>->(
+                0,            ': : connection error [ display %s ]: %s',
+                $display_str, $EVAL_ERROR
+            );
+            return;
+        }
+        $host_server->{'connected'}  = TRUE;
+        $host_server->{'host_ready'} = TRUE;
+        <[base.logs]>->( 1, '[%s] host display connected.', $display_str );
+        <[jobqueue.check_dependencies]>;
+    };
+}
+
+return 0;    ## success
+
+#,,..,.,.,...,...,.,,,,,.,.,,,..,,.,,,...,,,,,..,,...,...,...,...,..,,,..,..,,
+#L6NA76PNMWW3GGUSJKTEWMBSVIP3WLBVXGVYSFHY33FDA25CU7OSJ45BNJBX6UHFI3DCB6IXBMMX4
+#\\\|LMTKUAGW4DBG7MS5QH35Q7SGVNRGBQKUNIJSTZNCZFV4YT2HERY \ / AMOS7 \ YOURUM ::
+#\[7]INNM5B5LWLBKHCNCGDHG27TA5MW34WW6ALB7UYZ7QUVF6TDSIMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

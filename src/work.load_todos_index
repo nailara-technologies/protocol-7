@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = work.load_todos_index
+# descr = load or generate todos index
+
+my $todos_index = <work.index.todos>;
+
+if ( <[work.index_needs_regeneration]>->($todos_index) ) {
+    return <[work.generate_todos_index]>;
+}
+
+my $index_data;
+eval { $index_data = YAML::XS::LoadFile($todos_index); };
+
+if ($EVAL_ERROR) {
+
+    # If load fails, regenerate
+    return <[work.generate_todos_index]>;
+}
+
+return $index_data;
+
+#,,..,,..,,.,,,..,..,,..,,,,.,,..,,..,.,,,,..,..,,...,..,,,.,,..,,..,,.,.,,..,
+#BER7DPUGAIBZPW3SFRHOMUPDKIVYMRQXYSQIXHENJ6SUWQNHPNLDTBZTEXBMATIC42FXGYCN27HIY
+#\\\|TNQMZQYRD4JRCOJOIHSMNLE7KFORS4KQXU52LJU7YS4GB6DD3KI \ / AMOS7 \ YOURUM ::
+#\[7]NFHZONBT6HXZHWCIEJQFUZHPUIDYONPWBOE2IKOVWNNAKHP6NIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

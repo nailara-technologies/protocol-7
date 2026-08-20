@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = letsencr.child.get_rsa_jwk
+# descr = get public key in JWK (JSON Web Key) format
+#         for ACME (RFC 7517 - RSA)
+
+<[base.log]>->( 3, 'generating JWK from RSA account key (RFC 7517)' );
+
+my $account_key_name = <letsencr.child.acme_client>->{account_key_name};
+return undef unless $account_key_name;
+
+## validate key type
+my $key_type = <letsencr.child.acme_client>->{account_key_type};
+unless ( $key_type && $key_type eq 'RSA' ) {
+    <[base.log]>->( 1, "error : expected RSA account key, got $key_type" );
+    return undef;
+}
+
+## get RSA key components from global hash
+unless ( exists $keys{'RSA'}->{$account_key_name} ) {
+    <[base.log]>->(
+        1, "error: RSA account key '$account_key_name' not found"
+    );
+    return undef;
+}
+
+my $modulus_b64  = $keys{'RSA'}->{$account_key_name}->{'modulus'};
+my $exponent_b64 = $keys{'RSA'}->{$account_key_name}->{'exponent'};
+
+unless ( defined $modulus_b64 && defined $exponent_b64 ) {
+    <[base.log]>->( 1, 'error: RSA key missing modulus or exponent' );
+    return undef;
+}
+
+## create JWK structure per RFC 7517 (JSON Web Key)  [ RSA public key format
+## with modulus and exponent ]
+my $jwk = {
+    kty => 'RSA',            # Key type: RSA
+    n   => $modulus_b64,     # Modulus (base64url)
+    e   => $exponent_b64,    # Exponent (base64url)
+};
+
+## encode to canonical JSON with sorted keys (required by ACME spec)
+my $jwk_json = JSON::XS->new->canonical(1)->encode($jwk);
+
+<[base.log]>->( 3, 'JWK (RSA) generated successfully for ACME' );
+
+## return decoded JWK hash for embedding in JOSE header
+return JSON::XS::decode_json($jwk_json);
+
+#,,,.,,,,,,.,,,..,,.,,.,.,.,.,.,,,...,.,,,,.,,..,,...,...,...,.,,,...,,.,,.,,,
+#AD2NCLWTGJDDDGSBGKRYJRVEDXAARQACDQHTE25P2W6Y54QYUKO6ZTQXZIXQLK57HMUDYCOTTKUNU
+#\\\|RJXAN7K3KXX43CTFQ3VQ5BPJEGF7UNVWM3KIL24BSREY3KTC5RD \ / AMOS7 \ YOURUM ::
+#\[7]P7AQR4YHPLEJ5FV7ECZK7OQCC4TQY73SXA4B5IK7KCDSVC4SCODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

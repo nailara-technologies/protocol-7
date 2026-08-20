@@ -35,10 +35,10 @@ which could explain why `reload plugins` loads nothing.
 
 ## key files
 
-- `modules/base.load_plugins`    — loads named plugins, filters for `plugin.*` prefix
-- `modules/base.reload_plugins`  — purges plugin callbacks, reloads from `<plugins.status>`
-- `modules/base.cmd.reload`      — calls `base.reload_plugins` in the `plugins` block
-- `modules/plugin.*`             — actual plugin modules [ auth, web, image-resize, etc. ]
+- `src/base.load_plugins`    — loads named plugins, filters for `plugin.*` prefix
+- `src/base.reload_plugins`  — purges plugin callbacks, reloads from `<plugins.status>`
+- `src/base.cmd.reload`      — calls `base.reload_plugins` in the `plugins` block
+- `src/plugin.*`             — actual plugin modules [ auth, web, image-resize, etc. ]
 - `cfg/zenki/*/start`  — start files use `[load_plugins:<plugins.load>]`
 
 ## known issues and questions to investigate
@@ -77,8 +77,8 @@ cover :
 - suspected regression points with file and line references
 - concrete recommendations for each finding
 
-#,,,.,,..,,,.,...,.,.,,,,,.,,,.,.,.,,,,,.,..,,..,,...,...,...,,.,,,.,,..,,,,,,
-#73UQXIIO5PE5UGFJX3UIF2DZ5XSN53LZNUZXR74E7MWLVGL2BVBKMVEFMRA5PEJ2HHO6TNWK63MDQ
-#\\\|FMVXAHJHQYLLU33QL7UFODDO4QPCHUPCLNT2CHDKS555TOQUSX3 \ / AMOS7 \ YOURUM ::
-#\[7]3NRNW2RI2QXTTEBKW4EJOTII7DSOTCQ5HJOUBF7OGDEBOB7EQCDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,..,...,...,,,.,.,.,.,.,.,.,,,,,..,,...,...,,.,,...,,.,,.,,,,.,,
+#BQ5PEBHGAKJYCFNWTMBFFQ6FI7DSYUHQ3PJISV4XTUM4E6D3YOWJCL24OWPHLYJ4UPJ4EVSH437DO
+#\\\|CIUKYCU37DF7JP2SYGB2K7WASJDJ6XYUE6RNSSXPGQBWSFCJC4F \ / AMOS7 \ YOURUM ::
+#\[7]PAWKRVBCRTG36ZTTVCVUSQU6NYECMSAS2FNIVKMUTRIQMMSA3KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

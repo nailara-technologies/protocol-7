@@ -80,7 +80,7 @@ still applies once a second node exists, separately.
    Add a retry mechanism for failed/errored entries using exponential
    backoff with a cap and a reset-after-stable-success window — this
    project's existing canonical pattern for that shape is in
-   `modules/v7.handler.zenka_status` / `modules/v7.init_restart_timer`
+   `src/v7.handler.zenka_status` / `src/v7.init_restart_timer`
    (look at how `restart_delay` multiplies by 1.2 per failure, caps at
    `max_restart_delay`, and gets reset via a `reset_restart_delay` timer
    after a stable period) — copy that shape, scaled appropriately for a
@@ -151,8 +151,8 @@ For each of the 7 gaps: state what file(s) you changed and why, or — if you
 decided NOT to fix a gap as written (e.g. gap 4's access decision) — say so
 explicitly and explain what you flagged back instead of guessing.
 
-#,,.,,,,.,.,,,...,...,.,.,,.,,.,.,..,,..,,...,..,,...,...,,,.,.,.,,.,,,,.,,.,,
-#UAFKB6ZE5LGOVYFT7JRU5LCQMJPARVKOEDRRQ4GHKCGD5PQ5JNZKKXY5BHBDBEKUHHZXI3CEPIKAE
-#\\\|W6RSOVEGZ2TO5J6A4TMPV6GYHRMJP44LZZD5DD7NO2STA5YD5OZ \ / AMOS7 \ YOURUM ::
-#\[7]LWCOMZ5YMQE6SR2PW7KX637YJCWI22NAWW7CUM5JWEME3DGBI4CQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,,,.,,,,,...,,.,,,,.,,,.,,..,..,,...,...,,,.,,.,,,,,,,,,,..,,
+#FO4SIPCTUJ4SY6VICG5RTOFSQSDGNEOY52ZX3LAZJW7US2XIJDF4GZ7YZFYT7CXSAFD6K6WFNNY2U
+#\\\|UZLAWZZNFDC7FE6XBXJYXOOIZO7FDKMUE55ME7J2UZUV3GVSZDM \ / AMOS7 \ YOURUM ::
+#\[7]46CN6TN542UXKP4F6WZNBUTPQXVURA567Q46WPLXEDYDRXCLUKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = powershell.init_code
+
+## v7 spawns zenki with a hardcoded, sanitized PATH [ bin/Protocol-7,
+## $ENV{'PATH'} reset ] that excludes the windows interop mount, so `which`
+## never finds it here even though it resolves fine in an interactive shell.
+## fall back to the standard WSL2 mount location instead of relying on PATH.
+<powershell.cfg.exe_path> //= <[file.which]>->('powershell.exe')
+    // '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe';
+
+if ( not -x <powershell.cfg.exe_path> ) {
+    warn 'powershell.exe not found or not executable <{C1}>';
+}
+
+## v7 itself runs as a boot-time root process [ no interactive WSL login
+## session ], so WSL_DISTRO_NAME is never present in its environment to begin
+## with - inheriting it from v7 down to this zenka is not possible.
+## /etc/wsl-distribution.conf [ defaultName ] is filesystem-based install-time
+## state and does not depend on process environment at all.
+if ( not defined <powershell.cfg.wsl_distro> ) {
+    my $distro = $ENV{'WSL_DISTRO_NAME'};
+
+    if ( not defined $distro and -r '/etc/wsl-distribution.conf' ) {
+        my $conf_sref
+            = <[file.slurp]>->( '/etc/wsl-distribution.conf', qw| :raw | );
+        $distro = ${^CAPTURE}[0]
+            if defined $conf_sref
+            and $conf_sref->$* =~ m|^\s*defaultName\s*=\s*(\S+)|m;
+    }
+
+    if ( not defined $distro ) {
+        warn 'could not determine wsl distro name <{C1}>';
+    } else {
+        <powershell.cfg.wsl_distro> = $distro;
+    }
+}
+
+0;
+
+#,,,.,,.,,...,.,,,.,,,,,.,,..,.,.,.,,,,,,,..,,..,,...,..,,.,.,.,,,...,,,,,.,.,
+#7VNXULB7UPYCGO7625NP2GXSW6FENBF4LVTQEA6JUWPKFL2NDK2ADHVXZYYV2QI5FPD3VF5SNKAUK
+#\\\|OTJZP4HG3HTMPKJEPWGTIWA755G2GI52AEXWNKQGNBRICEMWRGL \ / AMOS7 \ YOURUM ::
+#\[7]GJR5MABYJ2HQNGQAJPG2NAIT6FAFMUZHL5HC23XZ3PIYRMDM6ODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,10 +19,10 @@ the correct architecture:
 
 - cfg/zenki/httpd/start          (current httpd config)
 - cfg/zenki/web/start            (web zenka config)
-- modules/plugin.httpd.radio.handler.stream_request  (route-send + reply pattern)
-- modules/plugin.httpd.radio.handler.strm_open       (SIZE reply handler)
-- modules/httpd.route.handler.iris-svg               (current iris handler)
-- modules/httpd.handler.iris-svg.relay               (current relay handler)
+- src/plugin.httpd.radio.handler.stream_request  (route-send + reply pattern)
+- src/plugin.httpd.radio.handler.strm_open       (SIZE reply handler)
+- src/httpd.route.handler.iris-svg               (current iris handler)
+- src/httpd.handler.iris-svg.relay               (current relay handler)
 
 ## step 1: httpd cleanup
 
@@ -190,8 +190,8 @@ new modules: leave clean. existing: re-signed on commit.
 $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 
-#,,,,,,..,...,...,,..,,.,,,,,,.,.,...,,.,,,.,,..,,...,...,..,,,..,.,,,.,.,,..,
-#IGMLU63AYQQEW5ONF4QFL4ADBOGIK4NPU3LIZY5EDKU45TV25UGOOIHRNXOSCNNLRG4LUCVOVBRTK
-#\\\|3EP6GFZTG2NUDQN4NJVERZE2BOGPVUD3P3IR3QQTCM5SOXKYGJP \ / AMOS7 \ YOURUM ::
-#\[7]SEZIK7E32AY7NFRAOEYT3EKJUAESE74ZDEGCN4PRKFK3VVGE72BA 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,..,,..,,,,.,..,,.,.,.,,,.,.,..,,...,...,...,.,.,,,.,.,.,,.,,
+#ZD345YS2E37ELKLWRV2VZVOIIHKSLIPD23P45TWW2JA4V42KCHEL72EFCF656C4MO7OORDU3K3ZL2
+#\\\|OI7LYAW3EGKXBO7ADA4MWECDWCLY33XRTJYMOK7JXVQI26VTL4G \ / AMOS7 \ YOURUM ::
+#\[7]PITKCXQCTR45RVWAAJQ2ITRKCYBNFJXKJVYFXJGXYLL52AWKHKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

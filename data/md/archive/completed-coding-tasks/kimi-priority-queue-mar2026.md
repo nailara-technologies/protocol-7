@@ -15,7 +15,7 @@ if credits run low — each tier is independent.
 ### 1.1 Multiline command — finish and test
 `data/md/coding-tasks/add-multiline-command-support-to-clients.md`
 
-- Finish `modules/devmod.cmd.receive-multiline`
+- Finish `src/devmod.cmd.receive-multiline`
 - Add socat test script: `bin/dev/test-multiline-socat`
 - Verify round-trip: multiline input → correct dispatch → reply
 - Document any edge cases found during testing
@@ -36,7 +36,7 @@ if credits run low — each tier is independent.
 ### 2.2 zulum Phase 1 — 13 entropy streams
 `data/md/coding-tasks/zulum-cube13-decoder-integration.md` → Phase 1
 
-- Implement `modules/zulum` inner loop (port from `bin/dev/division-13-table`)
+- Implement `src/zulum` inner loop (port from `bin/dev/division-13-table`)
 - Initialize 13 streams from gen×1..gen×13 seeds
 - Expose `stream-attach` to connect a consumer
 - Verify stream output against `bin/dev/gen-div` expected values
@@ -44,7 +44,7 @@ if credits run low — each tier is independent.
 ### 2.3 decoder Phase 1 — level-5 base32 stream handler
 `data/md/coding-tasks/decoder-zenka-stream-protocol.md` → Phase 1
 
-- Implement `modules/decoder.zenka` level-5 accumulator
+- Implement `src/decoder.zenka` level-5 accumulator
 - Accept base32 stream from zulum via `stream-attach`
 - `show-buffer 5` displays current accumulated value
 - `buffer-erase-level 5` clears on clean 5-bit boundary
@@ -55,7 +55,7 @@ if credits run low — each tier is independent.
 ## Tier 3 : models.chat Fine-Tuning [ ~2h ]
 
 ### 3.1 Verify finish_reason propagation
-`modules/models.handler.llm_response` already captures finish_reason —
+`src/models.handler.llm_response` already captures finish_reason —
 confirm it reaches `coding.handler.check-completion-chain` correctly
 for all active backends (local llama-server, any remote endpoints).
 
@@ -85,14 +85,14 @@ base.indexcube.depth   ## scalar @INDEXCUBE
 ### 4.2 lm-vision HTTP backend — Phase 1
 `data/md/coding-tasks/lm-vision-http-backend.md` → Phase 1
 
-- `modules/lm-vision.handler.http_analyze`: base64-encode image, POST
+- `src/lm-vision.handler.http_analyze`: base64-encode image, POST
   to llama-server `/v1/chat/completions`, return response text (LWP blocking)
 - Backend selection in `lm-vision.cmd.analyze_image`: check
   `<coding.inference_servers>->{'gpu'}->{'status'} eq 'ready'`
 - Test with a vision model, verify CLI fallback still works
 
 ### 4.3 cube-13 jump routing — Phase 2 of zulum integration
-- Implement jump table in `modules/cube-13`
+- Implement jump table in `src/cube-13`
 - Commands: `jump true`, `jump reverse`, `jump next`
 - Wire to zulum streams, notify decoder of stream change with boundary marker
 
@@ -126,8 +126,8 @@ These need more design, live system testing, or are lower urgency:
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,..,,,.,.,.,.,.,...,,,,,,.,,.,.,,..,.,,,,,,,..,,...,...,.,,,..,,,..,...,.,.,
-#7PTMGH544ENYEANDIZKZFGN7EGQE64GMUIFWV4JF24L7IHHKORA3B7ZGYP7OK7GKBRUEC5H7LH5MC
-#\\\|NGSAYPUERIA4T36UPMC7HGATBIPHZNNDBCQJDCBWC7PP44JVJP2 \ / AMOS7 \ YOURUM ::
-#\[7]WQU3YU2LKBPUHM33OP7BPQUS2AKV2B5GH2CGX6LKH6LNS3IALAAA 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,.,.,...,...,...,..,,,..,,,.,..,,...,...,,,.,,..,.,.,..,,,,.,
+#Z2MX6IL4FFIUTTJIVE42DNYGI5FS34E5V6VZV6SNARIBXMILSRIDTXNWSYNLHBE5DRCY23KBV2GE2
+#\\\|YTLEGHLFBP64QQKBPCECUJGODQK7YX3YADHCN6YGJ3NZX55TIQQ \ / AMOS7 \ YOURUM ::
+#\[7]F3CWNXRGQZXHN4L3REVZLBXQPZPVTOLXNPSZ7Z5BTRLADPVUGQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

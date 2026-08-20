@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = data.cmd.shm-self-test
+# descr = Run comprehensive SHM self-tests with styled output
+
+my $prefix = ':';             # visual separator
+my $output = "\n$prefix\n";
+
+##[ TEST 1: SHM Mount ]#######################################################
+
+<[base.log]>->( 2, 'running SHM mount test..,' );
+my $mount_result = <[data.mount.shm.test.basic]>;
+my $mount_ok     = ( defined $mount_result && $mount_result == 5 );
+$output .= sprintf "%s shm mount test    [ %s ]\n", $prefix,
+    $mount_ok ? 'success' : ' fail  ';
+
+##[ TEST 2: Channel SHM ]#####################################################
+
+<[base.log]>->( 2, 'running channel SHM test..,' );
+my $channel_result = <[data.channel.shm.test.basic]>;
+my $channel_ok     = ( defined $channel_result && $channel_result == 5 );
+$output .= sprintf "%s channel shm test  [ %s ]\n", $prefix,
+    $channel_ok ? 'success' : ' fail  ';
+
+##[ TEST 3: SHM Stats ]#######################################################
+
+<[base.log]>->( 2, 'checking SHM stats..,' );
+my $stats    = <[data.mount.shm.stats]>;
+my $stats_ok = defined $stats;
+$output .= sprintf "%s shm stats check   [ %s ]\n", $prefix,
+    $stats_ok ? 'success' : ' fail  ';
+
+##[ TEST 4: SHM Paging [ phase 2 ] ]##########################################
+
+<[base.log]>->( 2, 'running SHM page test..,' );
+my $page_result = <[data.mount.shm.page.test.basic]>;
+my $page_ok     = ( defined $page_result && $page_result == 5 );
+$output .= sprintf "%s shm page test     [ %s ]\n", $prefix,
+    $page_ok ? 'success' : ' fail  ';
+
+##[ TEST 5: SHM Feedback [ phase 3 ] ]########################################
+
+<[base.log]>->( 2, 'running SHM feedback test..,' );
+my $feedback_result = <[data.mount.shm.feedback.test.basic]>;
+my $feedback_ok     = ( defined $feedback_result && $feedback_result == 5 );
+$output .= sprintf "%s shm feedback test [ %s ]\n", $prefix,
+    $feedback_ok ? 'success' : ' fail  ';
+
+##[ OUTPUT ]##################################################################
+
+$output .= "$prefix\n";
+
+# Return as size reply for proper protocol handling
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,..,,,,,...,,,,,,..,...,,,,,,,,,.,,,.,.,,,,,..,,...,...,..,,,,.,,,.,,.,,,..,
+#RAGVWBN64E3QY3DBHI76O7M54I4RMEIKLRGQV7GVFOERPBZXDQT436FR3LK6XHJTU5MTKI7ZPWKSS
+#\\\|MNSAKD6K5TO6ZTNXO2ROGTTYUZY3VTN6NZ723XDP2QJKOFZCRMU \ / AMOS7 \ YOURUM ::
+#\[7]TCPOAZI4TLOK3TRJG6QEXSIII6WFLIVSULNEXL5CCV3VGHHI3QDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

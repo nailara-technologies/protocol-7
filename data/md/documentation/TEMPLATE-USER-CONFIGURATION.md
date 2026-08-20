@@ -119,7 +119,7 @@ access.cmd.usr.unix-<admin-user> = ** ..*..**
 
 ### Template Expansion in Config Parser
 
-**File**: `modules/base.parser.config` (lines 115-124)
+**File**: `src/base.parser.config` (lines 115-124)
 
 When parsing a config line like:
 ```
@@ -138,7 +138,7 @@ The parser:
 
 ### Template Expansion at Runtime
 
-**File**: `modules/plugin.auth.unix` (lines 43-52)
+**File**: `src/plugin.auth.unix` (lines 43-52)
 
 When user authenticates via nshell/p7:
 ```
@@ -153,7 +153,7 @@ The handler:
 
 ### Special User Map
 
-**File**: `modules/base.access.special-user-map`
+**File**: `src/base.access.special-user-map`
 
 Maps template names to actual values:
 ```perl
@@ -224,7 +224,7 @@ Different session context, possibly different permissions
 - **`base.parser.config`**: Parses and expands templates at startup
 - **`base.access.special-user-map`**: Maps template names to actual values
 - **`plugin.auth.unix`**: Handles runtime template expansion for authentication
-- **`modules/base.session.check_remaining`**: Session state tracking with templates
+- **`src/base.session.check_remaining`**: Session state tracking with templates
 
 ## Files Using Templates
 
@@ -306,8 +306,8 @@ auth.setup.usr.unix-admin  = :unix:unix-taeki,:unix:taeki
 - Template dependency analysis (detect unused templates)
 - Enhanced error reporting for unrecognized templates
 
-#,,.,,..,,,..,.,,,,..,...,.,.,.,.,.,.,..,,..,,..,,...,...,.,,,.,,,,..,,,.,,..,
-#W3LVOVUB2J6JQBBVFXXIX4IDWKKXAMBXVY7TCBNTI6QIIZHPZJZVCG5LYMKSE2N3NCPGNGK6HW426
-#\\\|PG3X7SZE4LR5C6TMYSW6YEOG73Y2PP5UJ6KUT7SV7EC2OZX7OPW \ / AMOS7 \ YOURUM ::
-#\[7]FODXQ2ZYBWZC43MKNBK2BFFXERAIXLBNWDBMNEHFHL2JFBWSXIAI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,,,.,..,,,..,,,,,..,,,,,,,,.,..,,...,.,,,.,,,,..,,.,,,,.,.,.,
+#6TVF25GODMR6UJYWHFB66IK2EI6REVQYWCJ7XQ6TD4XUWWL2DFIGMGIFU5LLFNZ56UMTJUF4DQZXA
+#\\\|OROZO3BCQAYTIVK6ZB765RHULMWUQSQ5WKQXAEMFB4N5QYD5Q3D \ / AMOS7 \ YOURUM ::
+#\[7]OR3LYCRDMRZ3Y4UXVAJQ2FMUMJHYJIHN55SCHJNQM4XAVLFX4SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

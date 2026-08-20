@@ -1,13 +1,13 @@
 # task: implement valued.cmd.list
 
 ## objective
-create `modules/valued.cmd.list` — a network command that returns all
+create `src/valued.cmd.list` — a network command that returns all
 valued tree nodes as a formatted list, sorted by effective priority.
 
 ## read first
-- `modules/valued.resolve` — returns refs + weight for a node id
-- `modules/valued.init_code` — shows <valued.index> structure
-- `modules/task.cmd.show` — reference for cmd module return format
+- `src/valued.resolve` — returns refs + weight for a node id
+- `src/valued.init_code` — shows <valued.index> structure
+- `src/task.cmd.show` — reference for cmd module return format
 
 ## what to implement
 
@@ -24,8 +24,8 @@ return: `{ 'mode' => 'size', 'data' => $formatted_str }`
 - empty tree returns 'no nodes' message
 - correct return format: mode=size, data=string
 
-#,,,,,,,.,,.,,.,.,..,,...,,..,,.,,,,,,.,,,,.,,..,,...,...,.,.,...,..,,,,.,,.,,
-#I22CZZ32AI2BI6DFYXASNDF3ABORRMISK6ECR47XJHFPFDB7NJ24OLJ5LGTIROIMXO3YTZO2TIIFW
-#\\\|AMKTOYN7AGKEIQY5SW56ERB4BMVAQGHIMC3FJQMYDWQU3JYXHZB \ / AMOS7 \ YOURUM ::
-#\[7]YPBRDOWQGX6Z6GK7UQB2UCFV7YDUN3Q7YWOQIR2H4Y32Z2O4IKAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,,,,,.,,,.,,,.,.,.,...,...,,.,,..,,...,..,,.,.,.,.,.,.,,.,,...,
+#F6OPFIOA7MHJD45CHUFIXGY2OXUEFX3OKD32CGZ4GFYTQ6P73ATIF6CNYDPPQLTFB7L5KOSDKMLJG
+#\\\|MYIJJA34HBWLWAA74JHU5EXL4QMPCJXHCZIPLRPPP75HZJKM5VO \ / AMOS7 \ YOURUM ::
+#\[7]FRUG3EYOD6NWUWFIAXTJW5ES46ISVHDOJ7UQEC2NMGQ4CZTJHABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

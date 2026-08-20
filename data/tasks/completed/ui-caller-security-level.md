@@ -20,17 +20,17 @@ read first:
   + "future: generic key-based authorization" — the latter must be
   designable as a second source ORed/maxed in later, without reshaping
   this task's API)
-- `modules/base.handler.command` — the live access path. line ~1588 has
+- `src/base.handler.command` — the live access path. line ~1588 has
   `<[base.has_access]>->( $user, $cmd_usr_str )`; surrounding code
   (lines ~459-505) shows how `$user` and `$cmd_usr_str` are derived
   from `$session` and `$data{'session'}{$sid}{'user'}`. THIS is the
   identity resolution to reuse — not a new one
-- `modules/base.has_access` (26 lines — short; read in full to
+- `src/base.has_access` (26 lines — short; read in full to
   understand the access-conf check it delegates to)
-- `modules/base.parser.access_conf` (the access-conf parser; gives the
+- `src/base.parser.access_conf` (the access-conf parser; gives the
   vocabulary of "groups" — admin-user, AMOS-user — that this task
   reads attributes from)
-- `modules/base.access.special-user-map` (the `<admin-user>` /
+- `src/base.access.special-user-map` (the `<admin-user>` /
   `<AMOS-user>` / `<unix-admin>` group expansion table; identifies
   which groups exist for attribute pinning)
 - design-doc session note 2026-06-11: `taeki` resolves through both
@@ -39,7 +39,7 @@ read first:
 
 ## scope
 
-### `modules/ui.caller.security-level`
+### `src/ui.caller.security-level`
 
 ```perl
 ## [:< ##
@@ -101,7 +101,7 @@ do not add a new mechanism.
 
 ### where the resolver lives
 
-`modules/ui.caller.security-level` is a `ui.*` module so it loads
+`src/ui.caller.security-level` is a `ui.*` module so it loads
 alongside the rest of `ui.*` via the `modules.load = ... ui ...`
 change from [[ui-namespace-modules-load]]. it does NOT live in `base.*`
 — the security-level system is a `ui.*` concern, even though it reads
@@ -109,7 +109,7 @@ ambient session state that the base handler also reads.
 
 ## acceptance
 
-- `perl -c modules/ui.caller.security-level` clean
+- `perl -c src/ui.caller.security-level` clean
 - called from a context where `$data{'session'}{$sid}{'user'}` resolves
   to `taeki` [ confirmed admin-user + AMOS-user member per session note
   2026-06-11 ], returns the "unbounded" sentinel — sufficient to admit
@@ -145,11 +145,11 @@ not `$_`.
 ## checks
 
 ```
-perl -c modules/ui.caller.security-level
+perl -c src/ui.caller.security-level
 ```
 
-#,,,,,.,,,,,.,.,,,,,.,...,,..,,.,,,,.,.,.,.,,,..,,...,..,,.,,,,.,,.,.,.,.,,..,
-#KC6VMJCN5G52C67Q5GZ5JIZ52UFBW27QXKDH7O7Z3BNCAIDPR53YPZKMACJDLETZOPWWIRMPYLOGM
-#\\\|ZIIGBIRV3NYJQKSMZAIGA672GGQTKAG6ZEQHVMBRX73DU6FB4WK \ / AMOS7 \ YOURUM ::
-#\[7]EL2QZR464WLR5HVVXL3PNCBBCAKOQSK4XAURBJQRBKTT6OML7WCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,...,.,.,...,..,,,.,,,..,..,,,..,..,,...,...,,.,,.,.,.,,,..,,,..,
+#FRURJZZX52QIBOHTO4HAPYUTBE7KDDPTJFIMIOEOMF37XTT25IXGDHZWVGOULNIM6X5QGV3KDKJFE
+#\\\|GZP4JHTLUQHO6HWYBCVBAICGTJ3OBAMHW557D7MS34UBCHBBJCX \ / AMOS7 \ YOURUM ::
+#\[7]GWBUQ7HRE66A2ADJJZMDOPLHXLIO57CYQDUXWFMH2I3KMDDJD6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

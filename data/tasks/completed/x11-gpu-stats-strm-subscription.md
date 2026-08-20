@@ -13,18 +13,18 @@ automatically.
 ### what to read first
 
 ```bash
-cat modules/X-11.handler.read_gpu_nvidia  ## stats update loop (bottom of file)
-cat modules/X-11.cmd.gpu_load             ## how stats are read + formatted
-cat modules/radio.cmd.listen              ## STRM open pattern to follow
-cat modules/radio.gap_fill.tick           ## base.stream.push usage example
-cat modules/base.callback.cmd_reply       ## STRM reply mode reference
+cat src/X-11.handler.read_gpu_nvidia  ## stats update loop (bottom of file)
+cat src/X-11.cmd.gpu_load             ## how stats are read + formatted
+cat src/radio.cmd.listen              ## STRM open pattern to follow
+cat src/radio.gap_fill.tick           ## base.stream.push usage example
+cat src/base.callback.cmd_reply       ## STRM reply mode reference
 ```
 
 ---
 
 ### phase 1: X-11.cmd.gpu_load — add STRM subscription mode
 
-file: `modules/X-11.cmd.gpu_load`
+file: `src/X-11.cmd.gpu_load`
 
 add a subscription mode: when called with arg `subscribe`, open a STRM stream
 and register the caller's stream handle in `<X-11.gpu_top.listeners>`.
@@ -54,8 +54,8 @@ if ( defined $call->{'args'} and $call->{'args'} eq 'subscribe' ) {
 
 ### phase 2: emit stats to listeners after each update
 
-file: `modules/X-11.handler.read_gpu_nvidia`
-file: `modules/X-11.handler.read_gpu_top`
+file: `src/X-11.handler.read_gpu_nvidia`
+file: `src/X-11.handler.read_gpu_top`
 
 after the existing stats log line (the `< GPU >  %3s%%` log), add an emit
 to all registered listeners. follow the radio.gap_fill.tick pattern:
@@ -85,11 +85,11 @@ the subscriber decides how to interpret it.
 
 files to read first:
 ```bash
-cat modules/coding.init_code          ## init pattern, timer setup
+cat src/coding.init_code          ## init pattern, timer setup
 cat cfg/zenki/coding/start  ## modules.load
 ```
 
-in `modules/coding.init_code` (or a new `modules/coding.gpu_monitor`),
+in `src/coding.init_code` (or a new `src/coding.gpu_monitor`),
 after initialization completes, subscribe to the X-11 GPU stats stream:
 
 ```perl
@@ -102,7 +102,7 @@ after initialization completes, subscribe to the X-11 GPU stats stream:
 );
 ```
 
-add a new handler `modules/coding.handler.gpu_stats_update`:
+add a new handler `src/coding.handler.gpu_stats_update`:
 
 the handler is the **single writer** to the gpu stats namespace. all other
 coding zenka modules read from it directly — no subscription or acquisition
@@ -134,7 +134,7 @@ can use these keys for throttling, model selection, error state detection
 (GPU idle during active inference = possible stall), or a `coding.gpu_load`
 command.
 
-also add `modules/coding.gpu_sparkline` — reads
+also add `src/coding.gpu_sparkline` — reads
 `<coding.stats.gpu.sparkline_buf>`, renders and returns an ASCII string:
 
 ```
@@ -184,16 +184,16 @@ reasoning: medium
 prompt: |
   Implement the task at data/tasks/x11-gpu-stats-strm-subscription.md
 
-  Read modules/X-11.cmd.gpu_load, modules/X-11.handler.read_gpu_nvidia,
-  modules/X-11.handler.read_gpu_top, modules/radio.cmd.listen, and
-  modules/coding.init_code before writing anything.
+  Read src/X-11.cmd.gpu_load, src/X-11.handler.read_gpu_nvidia,
+  src/X-11.handler.read_gpu_top, src/radio.cmd.listen, and
+  src/coding.init_code before writing anything.
 
   Implement all 3 phases. The coding zenka handler should store the values
   and nothing more — leave utilization-based decision logic for later.
   No signature stubs, no update-signatures run.
 
-#,,,.,.,,,,,,,,,,,,..,,,.,,.,,..,,,,,,.,.,,.,,..,,...,...,..,,..,,,.,,..,,.,,,
-#RQFG3MHJZ4NYVRJNUYLZWLVDZUNASL7L4OCW5ZSZFTH3OLADEI3HNSCQSHGNOBHCSPRF5MCV7DMBW
-#\\\|PN6ECZIKJIUCSBFC34TKF6R7D63FFTYXA2RUPENLE3XPRZB46JT \ / AMOS7 \ YOURUM ::
-#\[7]FUJ5T5AJ6C4HQLQNBBCRXOX3WOYPCM4C3JOYFUFHVN2GWHFJIGAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,,.,,.,.,...,,,.,.,,,.,.,...,..,,...,...,,,.,,..,.,.,..,,.,,,
+#AQIZOB6W6URO5XN2Z4FNPJI3NLEFIJ7XOGOXP7PGGDUGWOKDIOVJMDBDY4UDVJT77HZW5PTA5KLZQ
+#\\\|CM6N5WIHMQ2JKD55TJPLOVJYFCTMHG7W5CLPCU3O752FLYOZ2JL \ / AMOS7 \ YOURUM ::
+#\[7]3B4ZMMNC3OPKVU6DZMYSYW52MYLBNXPVWBHSRHHIS2PA2BZ642BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

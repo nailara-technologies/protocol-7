@@ -30,7 +30,7 @@ Two mature zenki, both real, neither a stub:
   `key_holder.parent`/`.child`, `handler.rotation_strm`/
   `auth-relay-reply`/`route_reply`, `register`. See
   [[topic-credential-fabric-proxy-transport]].
-- `modules/credential.resolve` (singular) also exists, separate from
+- `src/credential.resolve` (singular) also exists, separate from
   both.
 
 ## concrete blocker found 2026-08-12
@@ -162,8 +162,8 @@ inside a running form. `base.term.ask` is BLOCKING and pre-loop only — see
 [[reference-console-question-ask-primitive]]. And `enum` remains
 interface-only.
 
-#,,..,...,,,.,,..,,..,,..,,.,,...,..,,,,,,,,.,..,,...,...,...,...,...,,,.,,.,,
-#6KZTPBA53KLTUNVF3K4NG6HHWG7M3DRNWRV6RCNGCQL355DKPV4ACWVH3RGLXZ4ALONO75TC4ZV6U
-#\\\|CLI7U4RONXLF4LGB3AIPW2PAC5FKCFUJZW2WOE6YIKB4ESNK7AK \ / AMOS7 \ YOURUM ::
-#\[7]3NH67B6DDVNADXQKO6JSTPYACCCXCXSHO3GIJT7RGZCW4UVNCICQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,.,,,...,..,,..,,..,,,..,...,..,,...,...,..,,,,.,..,,.,,,..,,
+#XA7OAPBWWPAUOGVSH5JSLKYBAOMKNZKQ2AZLUVONGJLETOUCNK5LKFGJERXGXN3T4C7BXKDHE47BO
+#\\\|UBG4JIJ4VDMWDKLXO4BBWGCR7RT2CEDH2NW2LX5KK4ME424DRBL \ / AMOS7 \ YOURUM ::
+#\[7]FPR6JOIY6RBEWGQW6467AEFRD4BHN4ANJPNHPB7ECCNYDVRIQWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

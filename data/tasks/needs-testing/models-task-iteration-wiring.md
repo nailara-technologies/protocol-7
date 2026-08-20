@@ -1,16 +1,16 @@
 # task: wire iteration loop into models.task.execute
 
 ## objective
-modify `modules/models.task.execute` to check for `iteration: true`
+modify `src/models.task.execute` to check for `iteration: true`
 in the task config and route through `iteration.loop` instead of
 direct single-shot dispatch.
 
 ## read first
-- `modules/models.task.execute` — existing dispatch flow
-- `modules/iteration.loop` — params: {task_id, result, criteria,
+- `src/models.task.execute` — existing dispatch flow
+- `src/iteration.loop` — params: {task_id, result, criteria,
   node_id, max_attempts}; returns {mode=>'retry'|'escalate'|'true'}
-- `modules/iteration.score_result` — shows criteria/score structure
-- `modules/task.cmd.complete` — how task completion is recorded
+- `src/iteration.score_result` — shows criteria/score structure
+- `src/task.cmd.complete` — how task completion is recorded
 
 ## what to change in models.task.execute
 
@@ -46,8 +46,8 @@ cmd modules and handler modules receive context differently —
 check how models.task.execute currently receives its task_id and result
 before modifying [ read the module first ]
 
-#,,,.,...,,.,,,,.,,,,,.,.,,,,,..,,.,,,,,.,,,,,..,,...,...,...,.,.,,,.,,,,,,,.,
-#Q5XG7TAKNVSWJ3OQEW2KCJYXEK3PQA2TSSHHABWIRDZTTAWZCJIBSN7A27JQ4JCXLRLBI5ZWQFEZG
-#\\\|ME2TKJWK6INN74CSBIN3A45CGQ3WMPRUJLYBAGOKCKP5CSVXRRK \ / AMOS7 \ YOURUM ::
-#\[7]DK7SSRCW3H5YPE5XHSCVVVLBHQO3BKQAQIUOFYG3FVHTDUYEOCBQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,..,,..,,.,.,..,,,..,...,,,,,.,,,..,,...,...,..,,..,,..,,...,...,
+#TX555CFJTTOM4SYZOV65HFRUXUNFKDRSUQSW3PCPBOJ3TZP4UFPQAMHIKUAQYPAKD67X2YM6POV6W
+#\\\|EEVKSBOAPHD3H4YXI6CYIRAJ2YTC3XQNXCMYV227M6JDZXLXLKO \ / AMOS7 \ YOURUM ::
+#\[7]QQVCNR5RSJG6YTZHRYUUT2EK6KYF6VD6TJFTBEDQF53K43KAC2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

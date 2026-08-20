@@ -128,7 +128,7 @@ it's structurally impossible for an open system built on others' work by constru
 grounded in real code: `coding.tools.dispatch` never receives `task_id`, three incompatible per-handler path-
 resolution styles already exist, `chmod_child` escalation must be gated before write-check fires). key discovery
 during that pass: axis-1 (ownership/reachability) needs **no new declaration mechanism** — it's already structural
-via `modules/base.path-set-up.check-zenka-paths` (`<var_P7|etc_P7>/<zenka-name>/`, chowned to that zenka's own
+via `src/base.path-set-up.check-zenka-paths` (`<var_P7|etc_P7>/<zenka-name>/`, chowned to that zenka's own
 unix user). axis-2 (taint/provenance declaration channel) remains the one genuinely open piece.
 
 ## the base.file abstraction was built for exactly this — and several coding-zenka call sites broke out of it
@@ -161,9 +161,9 @@ funnel instead of the coding zenka growing a second, competing one.
    generalizing to "every zenka has its own user, small groups sharing one where sensible" is populating config,
    not building infrastructure.
 2. **network-mediated signed source delivery (partially exists now).** the `source` zenka
-   (`modules/source.cmd.get-code-signed`) already delivers individual named modules over the network, C25519-signed
+   (`src/source.cmd.get-code-signed`) already delivers individual named modules over the network, C25519-signed
    and verified per request — no filesystem read access to the file required at all. as this generalizes past
-   `modules/*` to arbitrary files, "read scope" for a profile can mean "which names will source hand to this
+   `src/*` to arbitrary files, "read scope" for a profile can mean "which names will source hand to this
    requester," checked per delivery, rather than "which directories can this uid `stat()`". a zenka could be
    chrooted away from the shared source tree entirely and still function. tighter fit for translucent-layering
    than a directory grant: every crossing individually checked, not just gated by a boundary.
@@ -184,8 +184,8 @@ taint-declaration channel (open question in the design doc) are the remaining op
 mechanism: that one gates *write actions* on approval, this one scopes *what's even reachable* per task/profile
 before approval would apply).
 
-#,,,.,,..,..,,,..,.,,,.,,,,,,,.,,,..,,,,,,...,..,,...,...,..,,.,,,,.,,,.,,..,,
-#ENGADPZPFO4SAIFG7GWDPT45IU3GWZAIRLKZWRWW57OYKZ3UBPEEVT4QWV7Z5JSGXZIXE6ZOSWQ6C
-#\\\|3G2OY3S626YZUJQA3D5MSUZDPCM6ZQLJNUF2OJSGOF5GMXTZ3MG \ / AMOS7 \ YOURUM ::
-#\[7]UMLXTLPIW4O5U5HN2MLVB6K5ORXESKYJJ6RB7ZLEUTZYYFPA5WDA 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,.,,,..,,,..,.,.,..,,,..,,..,..,,...,...,,.,,,..,..,,,..,,..,
+#CRTFHFUDIYXD2XRK5SS4KV53WZKT2MOAVODHLQHF36CJON3XAX67LLMBRTPJMRTTODZ347JCKX4HK
+#\\\|CFGHNYQ5BUKEFCSRCLB7PWPFMPQP5MVPO77QL5DKIQKPIHHUB2H \ / AMOS7 \ YOURUM ::
+#\[7]NJUMTKVLQKZNLVK3OFJSMY5HSAE2MVS2MAUPKPRC3IP2UYG57UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

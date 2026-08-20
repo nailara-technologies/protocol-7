@@ -56,7 +56,7 @@ directly (do NOT touch `editor_process_key` itself, and do NOT touch
 `$editor->{kill_buffer}` or `$editor->{color_set}` — those are out of
 scope for step_0):
 
-- `modules/nshell.editor.process` lines 51-52, 68-69: read-only
+- `src/nshell.editor.process` lines 51-52, 68-69: read-only
   `$editor->{cursor_pos}` / `$editor->{buffer}` -> accessors.
   Lines 103-104 (`$editor->{buffer} = ''; $editor->{cursor_pos} = 0;`) are
   VERIFIED REDUNDANT, not merely convertible: two lines above (line 100)
@@ -65,11 +65,11 @@ scope for step_0):
   kill_buffer, AND color_set). Lines 103-104 re-zero two of those four
   fields a second time for no effect. Delete lines 103-104 outright — this
   is a correctness cleanup, not a risk, since the state was already reset.
-- `modules/nshell.render.viewport` lines 12-13: same read-only pattern.
-- `modules/nshell.render.cursor` lines 9-10: same read-only pattern.
-- `modules/nshell.handler.ctrl_o_cycle` line 8: `$state_ref->{'editor'}->{'buffer'}` read.
-- `modules/nshell.handler.ctrl_o_render_preload` line 15: `$editor->{'buffer'}` read.
-- `modules/nshell.read_from_buffer` lines 36, 154, 256: reads.
+- `src/nshell.render.viewport` lines 12-13: same read-only pattern.
+- `src/nshell.render.cursor` lines 9-10: same read-only pattern.
+- `src/nshell.handler.ctrl_o_cycle` line 8: `$state_ref->{'editor'}->{'buffer'}` read.
+- `src/nshell.handler.ctrl_o_render_preload` line 15: `$editor->{'buffer'}` read.
+- `src/nshell.read_from_buffer` lines 36, 154, 256: reads.
   Lines 157-158 (`$state_ref->{'editor'}->{buffer} = ''; ...->{cursor_pos} = 0;`,
   in the Ctrl+R search "command selected" branch) are DIFFERENT from the
   case above — NOT preceded by an `editor_submit`/`editor_reset` call on
@@ -78,7 +78,7 @@ scope for step_0):
   change. Step_0's mandate is zero behavior change — leave these two lines
   as direct writes, do not substitute `editor_reset()`, no note needed
   (this is settled, not a judgment call to make at implementation time).
-- `modules/nshell.no-tty-debug.cmd.char-add` lines 249, 266, 303, 316: reads
+- `src/nshell.no-tty-debug.cmd.char-add` lines 249, 266, 303, 316: reads
   (diagnostic/debug tool, lower priority, but part of the direct-access
   surface — convert if straightforward, skip and note if the debug output
   format depends on hash internals in a way that resists a clean accessor
@@ -139,7 +139,7 @@ when done.
 ##   backspace, ctrl-c signal path with buffer preservation:
 ##   before [ HEAD modules + HEAD TERM.pm ] vs after [ modified ] transcripts
 ##   are BYTE-IDENTICAL (14568 bytes each, diff empty)
-## - modules/nshell.no-tty-debug.cmd.char-add: 4 diagnostic reads converted
+## - src/nshell.no-tty-debug.cmd.char-add: 4 diagnostic reads converted
 ##   (equivalence: (($e // {})->{buffer} // '') == (editor_get_buffer($e)
 ##   // '')); not exercised by the harness [ it IS the debug entrypoint ],
 ##   covered by syntax parity + trivial read equivalence
@@ -149,8 +149,8 @@ when done.
 ## - NOT done by agent: bin/Protocol-7 sourcecode update-signatures
 ##   [ requires interactive key decryption password ], no git commit
 
-#,,,.,.,.,,,,,..,,.,,,...,,..,,,,,.,.,...,,,.,..,,...,...,..,,.,.,,.,,.,.,,,.,
-#X4JJ6GM3CK2NR7QU4LPX4RUNJFJ6MV3SYZF72Q3GMRP6DOBHNB47U5UJ4YR6PK54SWHQOYYUG646U
-#\\\|SCZE3Y7TPUNNQOPGBWGHDXS42R56YR237YH2OOTC4HWELNK7AJB \ / AMOS7 \ YOURUM ::
-#\[7]VCGETYPWEED7V2WQTGR2IEV5PFAV3V4GK2Y57GTJKMQFT6U54AAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,.,..,,,..,.,.,,..,,,,,,,.,,,.,..,,...,...,..,,,,.,,.,,,,,,,,,,
+#YU4O6SDAOSYAYWR662DSINEOR6ABQEMB7M5SYZOOJ32NNFPGGY3XZVY2GTCL4ZC45WD64574MVAKS
+#\\\|O37I3GGQQXBJRQHYKAOOB3CCAKWKR7QIQNYIJNJS2JBFHEYTCJC \ / AMOS7 \ YOURUM ::
+#\[7]IJGQ5276M7DYL6ZKFMUFYEEMTFO4C3YCTCVO7YLGLZ2HGDDKQCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

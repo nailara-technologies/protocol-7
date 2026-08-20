@@ -7,13 +7,13 @@
 
 ## context — verified live this session, not guessed
 
-`kimi` is a P7 zenka (`modules/kimi.*`) connecting as a client to a
+`kimi` is a P7 zenka (`src/kimi.*`) connecting as a client to a
 manually-started external `kimi-web` process over websocket + a small
-REST API. Do not touch `modules/kimi-web.*` (separate, unrelated,
+REST API. Do not touch `src/kimi-web.*` (separate, unrelated,
 immature zenka-management layer).
 
 The zenka predates K3's introduction and has no `model` concept anywhere
-in `modules/kimi.*` (confirmed by grep). Verified directly against the
+in `src/kimi.*` (confirmed by grep). Verified directly against the
 live running `kimi-web` backend this session:
 
 ```
@@ -70,18 +70,18 @@ specific in-flight session uses.
    in case anything has changed since this task was written. Also fetch
    `UpdateGlobalConfigResponse`'s schema (not inspected here) so you know
    what a successful PATCH actually returns.
-2. Extend `modules/kimi.session.start_api_child`'s child mini-protocol
+2. Extend `src/kimi.session.start_api_child`'s child mini-protocol
    (the `verify <url>` / `create <url> <json_body>` text commands already
    there) with two more: something like `get <url>` (generic GET,
    returns the JSON body) and `patch <url> <json_body>` (generic PATCH).
    Prefer generic verbs over hardcoding config-specific commands in the
    child, matching the existing pattern's shape — but use judgment if a
    generic verb doesn't fit the existing line-protocol cleanly.
-3. Add `modules/kimi.cmd.list-models` — calls the new `get` verb against
+3. Add `src/kimi.cmd.list-models` — calls the new `get` verb against
    `<kimi.web.base_url>/api/config/`, formats the `models` array
    (name, max_context_size, capabilities) plus which one is
    `default_model`, similar output style to `kimi.cmd.status`.
-4. Add `modules/kimi.cmd.set-model <model-name>` — validates the given
+4. Add `src/kimi.cmd.set-model <model-name>` — validates the given
    name against the `models` list from a fresh `GET /api/config/` (don't
    trust a stale cached list), then `PATCH /api/config/` with
    `{"default_model": "<name>"}`. Decide live, after reading the
@@ -92,7 +92,7 @@ specific in-flight session uses.
    default — err toward not force-restarting anything without the user
    explicitly asking, given this zenka's history of reconnect-related
    bugs fixed this session.
-5. Update `modules/kimi.commands`' help text (or wherever the command
+5. Update `src/kimi.commands`' help text (or wherever the command
    list shown by `p7c kimi.commands` is generated — grep for the
    existing command descriptions' source) so the two new commands show
    up there.
@@ -107,7 +107,7 @@ specific in-flight session uses.
    then `p7c kimi.list-models` again should show the new default; set it
    back to `kimi-code/k3` afterward so the live system isn't left on a
    different default than before this task ran.
-8. No existing test harness for `modules/kimi.*` — live verification via
+8. No existing test harness for `src/kimi.*` — live verification via
    `devmod.cmd.eval-code` / direct `p7c` calls is the house-appropriate
    substitute, same as the two prior fixes this session.
 
@@ -123,8 +123,8 @@ specific in-flight session uses.
 Add to `data/ai-mem/kimi/coding-style.md` and/or `data/ai-mem/kimi/
 MEMORY.md` in your own established format.
 
-#,,,.,,,,,...,,,.,.,,,...,,.,,,,.,.,.,...,,.,,.,.,...,...,...,..,,...,,..,,..,
-#RXLBGK5K5P6ZHNEK3KSTKV6UOAHLBV2TSDC3QBLGUM5TAS5MAOZIFCI4H7QSD3FRORKQHQIFHXKHE
-#\\\|BKWJERGLVWHRP6EWIKAZNJNYTQ7LDRYT6G3QF5BDHKA3735SYW3 \ / AMOS7 \ YOURUM ::
-#\[7]4UHJ6TAGQZ37UGFJRLF36N6F2OVH2CLAOQRVJMCU6UXDHDC73QDY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,.,.,,,,..,.,,,,..,,,,,,,.,.,.,...,..,,,,,,.,,,.,.,...,.,,,
+#3HX4I2DWNJ4BXO74JP6B7TXFTIBPTSSUQHQXMEMUAWIKEAHKAHKMIU4REJ5UDVWHIDZZBA3RA7ZDM
+#\\\|GQUU4CA6TTDHAUKD3J7BMOH3BCMJXV6ZGBE2TS4H7CE74POTIS5 \ / AMOS7 \ YOURUM ::
+#\[7]T3MMVXDU6X4FKBCPLBY7BOKDOXQZT2W24VTWSWYQHANHTD7ZKABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

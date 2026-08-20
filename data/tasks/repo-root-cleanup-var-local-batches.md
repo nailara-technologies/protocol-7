@@ -11,7 +11,7 @@ there. some contain tracked files that need decisions before removal.
 
 ### 1. var/httpd/static/ path — absolute vs relative
 
-`modules/web.assets.load_registry` uses:
+`src/web.assets.load_registry` uses:
 ```perl
 my $registry_file = "$project_root/var/httpd/static/.asset-registry.yaml";
 ```
@@ -62,7 +62,7 @@ or just remove if no longer needed.
 
 ## code to update
 
-- `modules/web.assets.load_registry` — change `$project_root/var/httpd/static/`
+- `src/web.assets.load_registry` — change `$project_root/var/httpd/static/`
   to absolute path; add config key `<web.cfg.static_dir>` defaulting to
   `/var/httpd/static` for consistency with `<web.cfg.skins_dir>`
 - add install/deploy command for skins (similar to `httpd.cmd.install-vhosts`)
@@ -76,8 +76,8 @@ or just remove if no longer needed.
 once tracked files are removed and `var/httpd/static/` moves to absolute
 path, add `var/` entirely to `.gitignore`.
 
-#,,.,,...,,..,.,,,,,,,.,.,,,,,.,.,...,.,,,,.,,..,,...,...,.,.,,,.,.,.,.,,,...,
-#WHNKS24OTEWSYY6QHCOGRLXVLTAJCOMANVUBGGQ6TR7RQQNLHGFIJSP3RHH5DX2W6AOKUAJDLWOWU
-#\\\|GYLEZ7VXDII7RQSFRLDPLK2VCXIOE2WQT2QSCH6GVKWZWGANKH2 \ / AMOS7 \ YOURUM ::
-#\[7]KUSQYDVDFQZAOD3RBYIXOEGWAIUZW7NFL4UJFCHOLY7C7EW6WMBA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,...,,,.,...,,..,,.,,..,,,..,..,,...,..,,.,.,,,.,.,.,...,,..,
+#Q4BG5JBBRQS7MMOWNHAYODQMYYXTC4NM75NK665HLLMR3KD6QFV4PDK2RZW466LZBE4OX5WRJJYZK
+#\\\|7JX22ZAPSWRB3PN4IN5VHGRFM45MMPCBWNGLQ25V5FF6BTPORW6 \ / AMOS7 \ YOURUM ::
+#\[7]YDGGVBTW32UXHWTXPQX5HUYNVAJX6SXNLXZWREMWK6CGSPZZO4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

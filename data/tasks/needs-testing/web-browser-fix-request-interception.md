@@ -24,7 +24,7 @@ do not add or modify subroutine whitelists — these are managed separately.
 
 ## fix 1: rewrite handler signature and logic
 
-file: `modules/web-browser.handler.request_starting_signal`
+file: `src/web-browser.handler.request_starting_signal`
 
 read the current file first. the current (broken) WebKit1 signature is:
 ```perl
@@ -65,7 +65,7 @@ the logic. if no whitelist is configured, allow all navigation.
 
 ## fix 2: connect the signal in init_view
 
-file: `modules/web-browser.init_view`
+file: `src/web-browser.init_view`
 
 read the current file. find where other signals are connected to `$view`
 (e.g., `load-changed`, `load-failed`, `notify::estimated-load-progress`).
@@ -81,7 +81,7 @@ $view->signal_connect(
 
 search for any remaining connection to `resource-request-starting` signal:
 ```bash
-grep -r 'resource.request.starting\|request_starting' modules/web-browser.*
+grep -r 'resource.request.starting\|request_starting' src/web-browser.*
 ```
 
 if found connected anywhere, remove that connection.
@@ -91,11 +91,11 @@ if found connected anywhere, remove that connection.
 after fixes:
 ```bash
 ## check no WebKit1 signature remains:
-grep -n 'my.*frame.*resource.*request.*response' modules/web-browser.handler.request_starting_signal
+grep -n 'my.*frame.*resource.*request.*response' src/web-browser.handler.request_starting_signal
 ## should return nothing
 
 ## check signal is connected:
-grep -n 'decide-policy\|request_starting_signal' modules/web-browser.init_view
+grep -n 'decide-policy\|request_starting_signal' src/web-browser.init_view
 ## should show the signal_connect line
 ```
 
@@ -118,8 +118,8 @@ grep -n 'decide-policy\|request_starting_signal' modules/web-browser.init_view
 - [ ] whitelist logic preserved with correct WebKit2 `$decision->ignore` call
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,.,,.,,,.,,...,,,.,,..,.,.,...,...,..,,.,.,..,,...,...,,,.,.,,,,..,,,.,..,,
-#SRQEYVKV2XNNMDV7T3LUYUFKI4XDTDPBA7V7SVL27ZV4O7Y3575BNVK6K2Q64PA2HAQQZ7MB2Q2EM
-#\\\|2NTYZOQ4YBDCK3AATW6IXNBQA3NG37KBCBWCXSLOFC3WXV62EL2 \ / AMOS7 \ YOURUM ::
-#\[7]6WDGNISN42W4HUZO7TICQHZSQQJYQDDA52YRUTFOJNTW2577O4CY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,..,,...,.,.,,.,,...,,.,,...,..,,...,...,...,,.,,,,,,..,,...,
+#XLQ2CPFQGFNESI54LRUCBSPVIDDRBMZE5BQ4HRUX4GTI2NER5QP2B3WT3ZQPR324CS5FRIMRUCKHG
+#\\\|2NQS54A7PZSDF7MP3S4CS2H3V2LGJGEUZ6VOR3ZFUXNH6LHXV63 \ / AMOS7 \ YOURUM ::
+#\[7]KNLFHMDELD6RDFKJP5NMPWAPKZ4KMXKSOWIJ2BW2AWJ2U7VQJMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -104,7 +104,7 @@ common_debugging_workflows:
 
     example_fix:
       issue: "<< loading '%s' event set-up >> (literal %s instead of value)"
-      location: "modules/events.init_code:52"
+      location: "src/events.init_code:52"
       cause: "Used base.log instead of base.logs"
       solution: "Change <[base.log]> to <[base.logs]> for sprintf formatting"
       test: "p7 v7.restart events && p7 events.show-buffer zenka | grep 'loading.*event set-up'"
@@ -219,7 +219,7 @@ examples_from_real_sessions:
     diagnosis:
       command: "p7 events.show-buffer zenka | grep 'loading.*event set-up'"
       output: "<< loading '%s' event set-up >>"
-    solution: "Changed base.log to base.logs in modules/events.init_code:52"
+    solution: "Changed base.log to base.logs in src/events.init_code:52"
     verification:
       command: "p7 v7.restart events && p7 events.show-buffer zenka | grep 'loading.*event set-up'"
       output: "<< loading 'base' event set-up >>"
@@ -282,8 +282,8 @@ related_documentation:
 
 #,,.,,..,.,.,,,.,,..,...,...,.,.,,,.,,.,,..,,,.,,,,,,,..,,...,...,..,...,.,,.,.,
 
-#,,..,,,,,,..,,..,,..,,..,,,.,,..,...,...,,,.,..,,...,..,,.,.,.,,,.,.,,,.,,,.,
-#Y7EZZN7JESCVVANXWZXEFFUZ4DTLFSE5ZKLBBK35NGYHEPDKANJT3NLX65V3BRHOFYI5Z2GB2NTDA
-#\\\|54O56QP6GS3FENRDVXBUYFRDORJT5OSLGJBRHB3ZPMEITP6ZYEG \ / AMOS7 \ YOURUM ::
-#\[7]KR2JPTAQRM7YKFQT37TCQXVAOTM7EEFBK3HG4CJPLETOBSBZ4OAA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,,,,,,,.,.,,..,,.,,.,,,.,,,.,.,..,,...,...,.,.,,..,,,.,...,.,,,
+#F6TUZQEAC4UKQ733WVYMKAHT7XGVBFJLVDS4DZWTYQCX4RFS4GD3YUIJHLLYSYON5RJQ7VTVI7B66
+#\\\|SK4CJY2YRH6QQ3W6ELU7CYNBINBAPH3JFV5OYVQCYUEYWRTXNL4 \ / AMOS7 \ YOURUM ::
+#\[7]KRL5DMHFAJKXTUI5HRZD3Z2FSMOGJXMD3ACWSJ22TDDGJ6W5KUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

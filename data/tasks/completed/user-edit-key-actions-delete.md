@@ -9,9 +9,9 @@
   module conventions, common mistakes to avoid.
 - **Style/shape reference -- read these FOUR files in full before writing
   anything, they are the actual template this task copies, not just
-  background**: `modules/plugin.user-edit.key-actions.handler.key`,
-  `modules/plugin.user-edit.key-actions.render`, `modules/user-edit.
-  key_actions.submit_name`, `modules/user-edit.key_actions.submit_passphrase`.
+  background**: `src/plugin.user-edit.key-actions.handler.key`,
+  `src/plugin.user-edit.key-actions.render`, `src/user-edit.
+  key_actions.submit_name`, `src/user-edit.key_actions.submit_passphrase`.
   These just shipped (commit `b056a04c4`), are independently live-verified
   (real pty, not headless), and are the CURRENT correct shape for everything
   this task needs. Do not invent a new shape -- copy this one's conventions
@@ -172,8 +172,8 @@ of evidence that actually matters, not a UI message alone.
   whatever the exact-match confirmation shape ended up looking like, and on
   the `crypt.C25519.unload_key` / loaded-key finding.
 
-#,,.,,...,...,..,,,..,..,,.,.,.,.,,.,,,.,,.,,,..,,...,..,,..,,,.,,.,.,..,,,.,,
-#C3G2MXF2VZAJT2WB2IJGX5MYSTQZMBXHASZQF6ZFN4T57DABKFY2FCBJUILDVIFWLR27QLQIO6YMA
-#\\\|NBJ3VBDFKJZBGPBEDETOTFKME4QK74W7IDSTNYNGYJZC3YPNKQG \ / AMOS7 \ YOURUM ::
-#\[7]OS7DFG3O5QLMFIF7DALCSBBXQCM2NXTGQP2NQSM247S4BNFORYDA 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,,,.,,..,,,,,...,...,.,,,,,.,..,,...,...,..,,,,,,,..,,.,,..,,
+#TWV5DXTUJNW3LNWGUVZ7UNFWCMZDTOLADRRYC2J2RNZKNJQ4IQSUTNWJSUTGFW6BNG73A6SCE23HM
+#\\\|F62DY3J3DBZOPDBHNZNBYS5B3VEDABAG3G2ES2XEIGFZHHVFUPR \ / AMOS7 \ YOURUM ::
+#\[7]UWE323DUV7D2JOLZGRAOIAYUH3WZPBRV4P4HS6BWA2INY6H6GUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

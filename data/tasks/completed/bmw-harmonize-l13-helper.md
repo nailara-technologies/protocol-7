@@ -10,8 +10,8 @@ onto this helper ] and for the family-wide tranche
 
 ## the gap
 
-`modules/base.chk-sum.bmw.calculate_L13_sum` and
-`modules/base.chk-sum.bmw.template_L13` carry **identical** L13
+`src/base.chk-sum.bmw.calculate_L13_sum` and
+`src/base.chk-sum.bmw.template_L13` carry **identical** L13
 harmony-loop bodies. only the per-candidate validator differs:
 
 - `calculate_L13_sum:33-40`  uses `AMOS7::Assert::Truth::is_true`
@@ -25,7 +25,7 @@ extract once, route everything through one helper.
 ## what to ship
 
 ```perl
-##  modules/base.chk-sum.bmw.harmonize_L13  ##
+##  src/base.chk-sum.bmw.harmonize_L13  ##
 
 # name  = base.chk-sum.bmw.harmonize_L13
 # param = $bmw_512_bin   [ 64-byte binary BMW512 digest ]
@@ -111,8 +111,8 @@ harmony base.chk-sum.bmw.calculate_L13_sum
 harmony base.chk-sum.bmw.template_L13
 ```
 
-#,,.,,.,,,.,,,,..,,..,,..,...,..,,.,.,.,,,,.,,..,,...,...,...,,..,..,,.,.,..,,
-#2NS64NRWEXYKDYZQZAISMYY3SVOIVAR5PZRSQPXBP5A4ATEAEENI2E7ACF2NSXWJFJHBT2CWH7MAA
-#\\\|NIU2IKWS3VFWIJLUECZVMVMERAK6YOJJMFW6GUOXZPQHM7NHDL4 \ / AMOS7 \ YOURUM ::
-#\[7]5N3X766RYGLFT3EKZ4TUK7UTT22WMK3ORTQR4JGS5HIJTMXXY6DY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,.,,,..,,..,,,,,,,,,,,,.,..,,..,,...,...,.,.,,,,,,.,,.,,,..,,
+#DOZIINM5ESAOMRSOTNZQZY55QZ2I5D3Z5BAURJHENRAPACLZGBHJX33ZQEMQ437WSEU7DQFPDI7PK
+#\\\|TUEAHOUV2NH3L2LA6BVMYDFGBCWPZTRWVBPZA6D5DLXK2IGLPHY \ / AMOS7 \ YOURUM ::
+#\[7]TLHQEGSUPKTZUNTFQICK42KNRYYTF3SCT6OF7H3525M65ZUES4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

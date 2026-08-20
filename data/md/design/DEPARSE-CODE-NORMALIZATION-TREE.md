@@ -54,7 +54,7 @@ related design docs:
 ### current state
 
 `base.load_code` is referenced as the intended compile-on-demand entry
-point in a comment in `modules/base.protocol.compile_once`:
+point in a comment in `src/base.protocol.compile_once`:
 
 ```
 ## module compilation is handled by base.load_code ##
@@ -63,7 +63,7 @@ return TRUE;
 ```
 
 but the module **does not exist on disk yet** [ checked 2026-06-11 ].
-the existing module-loading path is `modules/base.load_modules` plus
+the existing module-loading path is `src/base.load_modules` plus
 the compile-once stub — they walk the modules tree, slurp source, and
 compile module bodies into `%code` under their dot-notation keys.
 that path is whole-tree, eager, and one-shot per zenka start; it
@@ -501,8 +501,8 @@ section 3 is settled enough to act on.
   captures the six pieces surfaced so far but is not claimed
   exhaustive.
 
-#,,,.,,,,,,..,,,.,.,.,,,.,,.,,,,,,,.,,,,.,,,,,..,,...,...,..,,.,,,.,.,...,...,
-#NH3JSDVUNCJB7MCOXXFLOSC3KDQQVRHSSA277XFI6NNLK6774YIA6GXRRAKJXKOBA5LBSI443BARA
-#\\\|Z732BS5U2LBIJ4CYP75XIA6KBKA6AKUBEF44VCTMPQA2U7RKV4R \ / AMOS7 \ YOURUM ::
-#\[7]57PA6O6IRB637XGCIK5YCC42HY4FWBMZNQF5IDABVYVQG6TIUSAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,.,...,,.,,,..,.,,,,.,,.,,,..,,..,,...,...,...,..,,,,,,,,,,.,.,
+#7JPKK4PA5TDOX2IAX3K6NX5IMDQL3TAGWFF322HVOV67BWV4RF2I5R4ZN32H6A76WWIN3IDUUPLVI
+#\\\|N4LGYMYY2OHXCSTZXRPJMLSYKFZ3RSDJOLB4PYBIVEXOJXFIZ3Z \ / AMOS7 \ YOURUM ::
+#\[7]RAMR6BMQKSMPUPRTIHPNHXKPSOGIOGPT4SKOQ7CWC5LKRQDS2MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

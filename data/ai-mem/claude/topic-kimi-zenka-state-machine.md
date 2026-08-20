@@ -34,7 +34,7 @@ multiplexing foundation laid. full round-trip verified: `p7c kimi.ask-reply` →
 
 ## correction, 2026-08-04 — the arrayref/hashref fix above did not survive
 
-Live-read `modules/kimi.flush_on_acquisition` this session: line 17 is
+Live-read `src/kimi.flush_on_acquisition` this session: line 17 is
 `<kimi.approval.pending> = [];` — an **arrayref** reset, while every other
 use of `<kimi.approval.pending>` (`kimi.handler.approval_request:34`, and
 this same file's own `keys %{$href_pending}` at line 7) treats it as a
@@ -42,7 +42,7 @@ this same file's own `keys %{$href_pending}` at line 7) treats it as a
 the "fixed" note above described a different pass than what's live now —
 not re-investigated here, just flagged as contradicted by current code,
 not silently trusted. Also found, separately: `kimi.flush_on_acquisition`
-is never actually *called* anywhere in `modules/` outside its own
+is never actually *called* anywhere in `src/` outside its own
 self-listing in `base.list.subroutines` — the reconnect branch of
 `kimi.handler.ws_message` (~line 279-281) should call it and doesn't,
 which is the likely root cause of
@@ -71,7 +71,7 @@ surviving reconnect. Live testing (real natural reconnects observed —
 seconds during normal operation, not hypothetical) surfaced a **second,
 deeper bug** the user correctly predicted might exist ("none of the many
 fixes so far truly solved the problem, only made it slightly less often
-occurring"): `modules/kimi.wire.approval_respond` marks
+occurring"): `src/kimi.wire.approval_respond` marks
 `<kimi.approval.responded>->{$request_id} = 1` and persists it to disk
 *before* confirming the actual `websocket.send` succeeded (lines 42-49).
 If the connection drops between the line-13 connectivity check and the
@@ -85,11 +85,11 @@ auto-approve *decision* was always fine, it's the *delivery* of that
 decision that could silently fail while being marked as succeeded.
 **Fixed, live-verified, staged 2026-08-04** (task id `k0sawgih1`, task
 file `data/tasks/kimi-zenka-approval-respond-toctou-race-fix.md`).
-`modules/kimi.wire.approval_respond` now sends first, marks+persists
+`src/kimi.wire.approval_respond` now sends first, marks+persists
 `responded` only after a confirmed send (`defined $sent and $sent > 0`,
 where `$sent` is `websocket.send`'s return — byte count on success,
 undef on syswrite error). **K3 also found and fixed a second instance of
-the identical bug**, not in the original task scope: `modules/
+the identical bug**, not in the original task scope: `src/
 kimi.connect`'s reconnect-flush loop pre-marked `responded` before
 calling `approval_respond` (redundant even before the fix, since
 `approval_respond` already marks it) — now only deletes from `pending`
@@ -128,7 +128,7 @@ footers left stale for user re-signing per house convention.
 
 ## model-awareness gap — closed, 2026-08-04
 
-**Was**: `modules/kimi.*` had zero model concept at all. **Now fixed and
+**Was**: `src/kimi.*` had zero model concept at all. **Now fixed and
 committed** (`f332c2e41`, K3 dispatch `kcbdrrlm1`): verified live against
 `kimi-web`'s own `GET/PATCH /api/config/` REST API (real model keys —
 `kimi-code/kimi-for-coding` = k2.7, `-highspeed` = k2.7-fast, `kimi-code/
@@ -146,7 +146,7 @@ correctly in this same real dispatch (two genuine `ApprovalRequest`s
 round-tripped cleanly, including across a natural reconnect). This is a
 third, separate, never-implemented code path producing the same
 user-visible symptom (silent hang, forced manual kimi-web-UI
-intervention). `modules/kimi.handler.ws_message`'s `QuestionRequest`
+intervention). `src/kimi.handler.ws_message`'s `QuestionRequest`
 branch (lines 237-243) logs a bare message-id and returns — no response
 sent to kimi-web at all, unlike the adjacent `ToolCallRequest` branch
 (lines 222-235, same file) which is *also* unimplemented but explicitly
@@ -168,8 +168,8 @@ question-answering (that's the much larger, already-designed
 [[topic-next-steps]]-adjacent fallback-chain/interaction-surfaces thread,
 `db8e3cbba`, `data/md/design/CODING-ZENKA-USER-INTERACTION-SURFACES.md`).
 
-#,,,,,,,,,,.,,..,,,.,,..,,.,,,,,,,,,,,...,,,,,..,,...,...,,,.,..,,.,,,,.,,..,,
-#4LOWBIWZXIMCZGHZEL37XFRJOSQ3CALF2GRAQ3HX2YJUQ4R6P27VEU2WEK4GQ62JJDU3I3V5DIELG
-#\\\|G6M5EL465VITIHTAGQTONIGEPLZ6VYVPBIKKNBK3XTG2XP5ZA7R \ / AMOS7 \ YOURUM ::
-#\[7]Q3SZLYN6MYSVOVK5UHKACUIPRH5T6ZKHJYMICI4GNT62K76TEWAI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,.,,.,.,...,,..,.,,,...,..,,,,.,..,,...,...,..,,.,,,..,,,..,.,,,
+#I5ETOSMZYNJG6HDRSE5TV4CWYTF4INLWEEZ7D2Y7BWC4BZGOO4I43PLXWR3JJCMOFUF5T5DUBFGXU
+#\\\|PYJBDSZYILWCXGDIFHKV2DB5TDRLVJ6FDV5MBTUCXZJCIGMDBZW \ / AMOS7 \ YOURUM ::
+#\[7]VYGATHMG2OGIKY2OM5Q6LGFKIKEPH56Q6A22PVDV7EPXCB2FI2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,16 +13,16 @@ User-spotted 2026-07-31 from a commit message mentioning
 (`ls *.cmd.* | sed 's|^.*\.cmd\.|- |' | ack '\.'`) and found the complete
 set — **6 files across 4 zenki**, not just the original 2:
 
-- `modules/forensics.cmd.sweep.run` — bare command `sweep.run`
-- `modules/forensics.cmd.investigate.finding` — bare command
+- `src/forensics.cmd.sweep.run` — bare command `sweep.run`
+- `src/forensics.cmd.investigate.finding` — bare command
   `investigate.finding`
-- `modules/build.cmd.recipe.run` — bare command `recipe.run`
-- `modules/ext-pkg.cmd.package.ensure` — bare command `package.ensure`
-- `modules/calc.cmd.val.eval_bigrat` — bare command `val.eval_bigrat`
-- `modules/calc.cmd.val.format_truncated` — bare command
+- `src/build.cmd.recipe.run` — bare command `recipe.run`
+- `src/ext-pkg.cmd.package.ensure` — bare command `package.ensure`
+- `src/calc.cmd.val.eval_bigrat` — bare command `val.eval_bigrat`
+- `src/calc.cmd.val.format_truncated` — bare command
   `val.format_truncated`
 
-(`modules/forensics.investigate.finding`, no `.cmd.` in the name, is a
+(`src/forensics.investigate.finding`, no `.cmd.` in the name, is a
 separate sibling — the internal implementation the `.cmd.` wrapper
 calls directly via `%code`, not itself subject to this bug.)
 
@@ -38,7 +38,7 @@ assumed uniform**:
 - **not a routing bug at all, confirmed by user 2026-07-31 — a
   misapplied `.cmd.` segment (2 files, 1 zenka)**: `calc/start`'s
   `access.cmd.usr.cube` grants bare `val`, which routes to
-  `modules/calc.cmd.val` — the real, correctly-named command. Read
+  `src/calc.cmd.val` — the real, correctly-named command. Read
   `calc.cmd.val` directly: it calls both
   `<[calc.cmd.val.eval_bigrat]>->($formula)` and
   `<[calc.cmd.val.format_truncated]>->($bigrat, $digits)` as plain
@@ -65,7 +65,7 @@ assumed uniform**:
   syntactically-valid-but-pointless bare command name.
 
 **Root cause, confirmed via the actual protocol regex**
-(`modules/base.regex`):
+(`src/base.regex`):
 
 ```perl
 my $cmd_re = qr|[a-z][$anum\-_]{1,22}|;   ## command [name] string: LEN=1-23
@@ -168,8 +168,8 @@ adjacent command-naming/routing gotcha (bare-name collision across
 zenki sharing a process, not a regex-shape violation) found the same
 general class of naming trap in this project before.
 
-#,,.,,.,,,,,.,,..,,,.,...,.,.,,,,,,..,,..,.,.,.,.,...,..,,.,.,,.,,,,.,,..,.,,,
-#3LXDJ3Q4MGY2Q3WNY47PIDI3BHYFNIUJU7FQLZS62OHBUH55P6QPI4AW2WX62AJLAPCPXB55SALHI
-#\\\|XMOXLG5R76SUUWGZFO7U255FXBLWH2FX7KQO32NUOG2GDXLVGYL \ / AMOS7 \ YOURUM ::
-#\[7]XI53WLD6NL7T3FX4S6DTWM7PGPN6IPUG7G5RTGVKMNT7DQCWW4BA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,,,,.,.,.,.,...,,.,,,,,,...,.,.,...,...,...,,,,,..,,,,.,.,,,
+#4RUXABQG45FLLVYP6TZ75LNU2QK6HEYLTMQCYX2TYDOWKBQSQHP7JW3UXQAOVYNKSOGEJ3UCVKVB2
+#\\\|4WS67OKKZ7SGM7O6L64FR734N6CCX5SEAUYE6BL44QU54UJPCVO \ / AMOS7 \ YOURUM ::
+#\[7]EB6FF7FSOT3HCNUYNE5JXKVYUIABX2WJR4INKVIJSHUB73BEOWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

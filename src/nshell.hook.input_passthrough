@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = nshell.hook.input_passthrough
+# descr = Input hook for nshell - passes raw keyboard input
+#                to session buffer without protocol parsing
+
+## This hook is registered as 'input-pre' on nshell sessions  The input buffer
+## contains data FROM cube (shell output)  We intercept it to write directly
+## to STDOUT instead of protocol parsing Returns: 0 (complete) to indicate we
+## handled it  Don't call the normal protocol-7 handler
+
+my ($event) = @ARG;
+
+## Get session ID from event
+my $id = $event->w->data;
+return 1 unless defined $id and defined $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+my $input   = $session->{'buffer'}->{'input'};
+
+## nshell input hook: Take data FROM cube and write to STDOUT  Don't parse it
+## as a protocol-7 command
+if ( defined $input and length $input ) {
+    print $input;
+    STDOUT->flush();
+
+    ## Clear the buffer since we handled it
+    $session->{'buffer'}->{'input'} = '';
+
+    ## Trigger input watcher to display cursor after output
+    my ($nshell_sid) = keys <user.cube.session>->%*;
+    if ( defined $nshell_sid and defined $data{'session'}{$nshell_sid} ) {
+        my $nshell_session = $data{'session'}{$nshell_sid};
+        if ( defined $nshell_session->{'watcher'}{'stdin_handler'} ) {
+            $nshell_session->{'watcher'}{'stdin_handler'}->now();
+        }
+    }
+}
+
+## Return 0 = complete, processed  This prevents base.handler.input from
+## calling the protocol handler
+return 0;
+
+#,,,.,...,,.,,,,.,..,,...,.,.,.,.,...,...,..,,.,.,...,...,.,,,..,,,,.,.,,,,,,,
+#SIHGYYB2S33LW7JAVSHBNHRDMLF4BCGKXMVDQHIJQHZ26UDKBV2PKBTOOK4W23FHMM7T3P7QA3XAY
+#\\\|MNBIONI2NVBFFQBRJIBSWIFRCEGO2VACZEWYKANOSFS3KXMFVHM \ / AMOS7 \ YOURUM ::
+#\[7]7PZBSCFEX5Q3T36KBDVW75HO3BKN4LK4TNMF3IQB7WSOBSCOLWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

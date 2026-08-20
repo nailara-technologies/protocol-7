@@ -19,7 +19,7 @@ part of that visual vocabulary. Writing `0` or `1` for booleans visually
 collides with numeric counters/IDs and breaks the narrative flow. The user has
 flagged this on multiple occasions and silently fixes it post-edit.
 
-**How to apply:** Whenever writing/editing any module under `modules/`,
+**How to apply:** Whenever writing/editing any module under `src/`,
 substitute `TRUE`/`FALSE` for `1`/`0` when the value is semantically boolean.
 This includes:
 - flag initialization: `my $found = FALSE;` not `= 0`
@@ -32,8 +32,8 @@ Leave actual numeric literals (counts, IDs, indices, math) alone.
 
 Related: [[style-philosophy]] (lowercase narrative, visual cohesion).
 
-#,,.,,..,,.,.,...,.,,,,..,,,.,.,.,.,.,,,.,,,,,..,,...,..,,..,,,..,,.,,,,,,,.,,
-#OMKES5UAAPLLZXWZUUN6WUSSEBAGV7UHSQI6EFOLS5GZTRGEUXCACV4GJVS2P7FMDJU5XXIJT242A
-#\\\|UA7WKY2DHE4YTKN5GUGDAMIMKAIJ2MQ7PF52GN2GEVRBLBZ7K2P \ / AMOS7 \ YOURUM ::
-#\[7]XEXCSOCZHDSO3JONIDXPLDQ33IJCC3W3CBQPY6S72CBRXBMMMKBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,,,.,,..,.,,,...,.,,,.,,,,,,,..,,...,...,.,.,.,,,,.,,.,.,,,,,
+#G56FV33RRNIDUJSGWPYOIMIUGGIY7VRK7T7J67I7NP56EPQNIUZVV2MUVDZY3QKQTWS7MSPBGAYIM
+#\\\|QNC6W6EHMGI42IHGSRH2VHCEQ4GEPRGJAZLDDMTQB7MVYF26AUG \ / AMOS7 \ YOURUM ::
+#\[7]KIGODVQYMUEVBGXAOZAJKLSZVERNPG3M5GA356DXXR273B25HCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

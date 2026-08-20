@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = vterm.subbit
+# descr = sub-bit voting and accumulator logic
+# note  = the 11-member body: -5..0..+5, 0 holds routing secret
+
+my $action = shift // qw| vote |;
+
+if ( $action eq qw| vote | ) {
+    ## cast a sub-bit vote on a cell
+    my ( $cell_ref, $vote, $direction, $channel ) = @ARG;
+    return FALSE if not defined $cell_ref or not defined $vote;
+
+    ## $vote: +1 or -1 (this layer's contribution)  $direction: 'even' or
+    ## 'odd' alternation phase  $channel: 'r', 'g', 'b', or 'attr'
+
+    $channel //= 'r';    ## default to red channel
+
+    if ( $channel eq 'r' ) {
+        $cell_ref->{subbit_r} += $vote;
+    } elsif ( $channel eq 'g' ) {
+        $cell_ref->{subbit_g} += $vote;
+    } elsif ( $channel eq 'b' ) {
+        $cell_ref->{subbit_b} += $vote;
+    } elsif ( $channel eq 'attr' ) {
+        $cell_ref->{subbit_attr} += $vote;
+    }
+
+    ## track alternation history for 0-state routing
+    push @{ $cell_ref->{alternation_history} }, $direction // 'even';
+    if ( @{ $cell_ref->{alternation_history} }
+        > <vterm.compositor.temporal_window> ) {
+        shift @{ $cell_ref->{alternation_history} };
+    }
+
+    ## increment vote count
+    $cell_ref->{vote_count}++;
+    $cell_ref->{last_update} = <[base.time]>;
+
+    ## check for declaration threshold
+    <[vterm.subbit.check_threshold]>->( $cell_ref, $channel );
+
+    return TRUE;
+
+} elsif ( $action eq qw| check_threshold | ) {
+    ## proxy to extracted module
+    return <[vterm.subbit.check_threshold]>->(@ARG);
+
+} elsif ( $action eq qw| determine_route | ) {
+    ## proxy to extracted module
+    return <[vterm.subbit.determine_route]>->(@ARG);
+
+} elsif ( $action eq qw| reset | ) {
+    ## reset sub-bit accumulators (keep declared state)
+    my $cell_ref = shift // return FALSE;
+    $cell_ref->{subbit_r} = $cell_ref->{subbit_g} = $cell_ref->{subbit_b} = 0;
+    $cell_ref->{subbit_attr}         = 0;
+    $cell_ref->{alternation_history} = [];
+    $cell_ref->{vote_count}          = 0;
+    return TRUE;
+}
+
+return FALSE;
+
+#,,,,,,..,,.,,,,.,.,,,,,.,.,,,,..,,.,,.,,,...,..,,...,...,..,,,,.,.,,,,,,,,,,,
+#NMC5NPHJQL77KP5QWZKZDYR5G3RO2MFBAETLKSSYZLMCKVGYOZJNQYA746VUKCH6IVS4PRUJYWKXS
+#\\\|6NSUS4ZG7U6FBRZKJDHB5K32UU4SFBUSRVKN7EHPOIMCVTSVVV2 \ / AMOS7 \ YOURUM ::
+#\[7]QZHTUXMMUQRWALMINELXLXXTKTSY6NWA4TNLHQQU4VQ225KDQADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = zenki.console.attach-logs
+# param = <zenka_name>
+# descr = attach to zenka log stream (like screen/tmux)
+
+my $zenka_name = shift;
+
+unless ($zenka_name) {
+    <[base.log]>->( 0, "Error : zenka name required" );
+    return
+        say "::\n: Usage: zenki attach-logs <zenka_name>\n: "
+        . "Example: zenki attach-logs httpd\n::";
+}
+
+<[base.log]>->( 1, "Attaching to logs for zenka : $zenka_name" );
+
+## Check if zenka is running
+my $check = <[zenki.parent.check_running]>->( { zenka => $zenka_name } );
+
+unless ( $check->{running} ) {
+    return
+        say "::\n: ✗ Zenka '$zenka_name' is not running\n: "
+        . "Start it first: zenki start $zenka_name\n::";
+}
+
+<[base.log]>->( 1, "  Zenka PID : $check->{pid}" );
+
+## TODO: Implement log attachment via unix domain socket  This should:
+## 1. Connect to /var/run/.7/logs/<zenka_name>.<instance_id>
+## 2. Stream log output to stdout
+## 3. Support Ctrl+D to detach (socket stays alive)
+## 4. Show history buffer from v7.log_streams
+
+<[base.log]>->( 1, "  ⚠ Log streaming not yet implemented" );
+<[base.log]>->( 1, "    Socket would be : /var/run/.7/logs/$zenka_name.*" );
+<[base.log]>->( 1, "    For now, check v7 console output" );
+
+return
+    say "::\n: ⚠ Log streaming TODO\n: Zenka is running "
+    . "(PID: $check->{pid})\n: Check v7 console for output\n::";
+
+#,,..,.,.,,..,,,,,...,,,,,,,.,...,,..,...,,,,,..,,...,...,...,.,.,,,.,.,,,,.,,
+#EYWUDRBJ54S6RFETYUI6H2YTTGSWCYNCY36D7OR2QYZWNPOA6AUCQ5DKAUKUQ7TTUBAXY3V4AYFTC
+#\\\|GXK5QSJSN672BEXAZB5OOGG7BWUS4ZW3S7LWVUXGQFXRBU3N5K2 \ / AMOS7 \ YOURUM ::
+#\[7]D6CYEM2QTNKXF65L52JXDCFZM46A36XO4DW5KUM7HFKVZVIEGMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

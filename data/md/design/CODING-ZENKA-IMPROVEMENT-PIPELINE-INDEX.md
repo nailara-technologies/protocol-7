@@ -14,11 +14,11 @@ implementable coding-zenka pipeline that grew out of tonight's session.
 
 ```
 tier 0 (LANDED, 2026-06-20):
-  modules/X-11.cmd.set_geometry, X-11.cmd.move-window,
+  src/X-11.cmd.set_geometry, X-11.cmd.move-window,
   X-11.handler.screen_change — WM.update before/after ConfigureWindow
   fix; confirmed live by user. not gated, already shipped.
 
-  modules/coding.tools.http_inference_client, coding.self_test.run,
+  src/coding.tools.http_inference_client, coding.self_test.run,
   coding.self_test.evaluate, coding.self_test.follow_up,
   coding.self_test.archive, coding.self_test.multiplier,
   coding.self_test.cmd.self-test-status, coding.self_test.cmd.self-test-run
@@ -161,8 +161,8 @@ tier 2: NOT READY — 3 open decisions block dispatch
 tier 3: GATED — awaiting tier 2 stability milestone
 ```
 
-#,,..,...,,,,,.,.,.,,,.,,,,.,,,,,,.,,,...,,,.,..,,...,...,.,.,,,.,,,.,.,,,...,
-#HGLX2PGAS4G2MK62M7LH36KA2IVWUDWZAC6WE7GYVWSKJ4XUNJ5UNYFDH5ES3CSRTCDA4SEPXH2L2
-#\\\|KJQJLB3F3ZNNIWSL4EDK5ZT4F6R2DZI3HNOPMRTZZYKDSTWLEFK \ / AMOS7 \ YOURUM ::
-#\[7]4QMTNESKLHGR24TB6XCW2DVLLRHKTKRDFGLHBPKTZAONLHIWK2CY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,...,.,.,.,.,,,,,,,,,,..,..,,..,,...,...,...,...,,,,,...,,,.,
+#GTXY44EK7EG4TSPVR7CMJIPXNPDQXBWSTWGESQVBFVAUUF2YNOICQVIACLMYWS43TNASFJSA4AOSU
+#\\\|LCPFGPTZPFFTEY76KUITF43MSMFNDKDZWA5LQ74DZFXLVXG427X \ / AMOS7 \ YOURUM ::
+#\[7]NRW6SKIEQPOG5L3XORBJSXX5IKBR4IYHNAEXOXVNC4O2GZC6TABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

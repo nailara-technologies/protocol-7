@@ -67,29 +67,29 @@ ring arithmetic:
 
 ## modules to create
 
-- `modules/branch.cluster.address` — compute bmw384 of cluster content
+- `src/branch.cluster.address` — compute bmw384 of cluster content
   (concatenation of all layer paths + cluster name). return hex string.
   this is the gate address — the ring position is derived from it.
 
-- `modules/branch.cluster.ring_position` — map bmw384 address to
+- `src/branch.cluster.ring_position` — map bmw384 address to
   1001-ring harmonic index (0..12). use:
     `index = bmw384_as_bigint mod 13`
   return integer 0..12 identifying which of the 13 harmonics owns
   this cluster.
 
-- `modules/branch.cluster.layers_list` — given cluster name, return
+- `src/branch.cluster.layers_list` — given cluster name, return
   hashref of all five layer entries from the registry yaml. error if
   registry yaml not found.
 
-- `modules/branch.cluster.gate_node` — return the gate node identifier
+- `src/branch.cluster.gate_node` — return the gate node identifier
   (+1 node that closes the cluster). the gate is the bmw384 address
   itself, stored as a branch node in the dag.
 
-- `modules/branch.cluster.family` — return '076923' or '153846' for a
+- `src/branch.cluster.family` — return '076923' or '153846' for a
   given layer type ('task'|'template'|'design' → lower; 'intent'|'address'
   → upper). the gate always returns '13th'.
 
-- `modules/branch.cluster.mirror` — given a cluster, generate the
+- `src/branch.cluster.mirror` — given a cluster, generate the
   meta-cluster (the 5+1+5 reflection). the meta-cluster has the same
   five layers, but each layer is the meta-equivalent of the original:
     task → task-about-task
@@ -97,13 +97,13 @@ ring arithmetic:
     etc.
   return the meta-cluster structure without writing to disk.
 
-- `modules/branch.cluster.validate` — check that a cluster has:
+- `src/branch.cluster.validate` — check that a cluster has:
   - all five layer entries populated (non-empty lists)
   - a gate address computed
   - ring position consistent with address
   return list of missing/invalid items.
 
-- `modules/branch.cluster.register` — write cluster yaml to
+- `src/branch.cluster.register` — write cluster yaml to
   `data/yaml/cluster-registry/<name>.yaml`. compute address and ring
   position if not already set. refuse to register if validate() fails.
 
@@ -155,8 +155,8 @@ cred-mesh cluster:
 - register writes yaml and updates _index.yaml
 - mirror returns valid 5+1+5 structure without writing to disk
 
-#,,..,.,,,.,,,,..,,.,,.,,,...,..,,.,,,,,,,,,.,..,,...,...,.,,,,,.,,,,,,..,...,
-#NRNKSN73227X6F5JWIKMWXTUYN3YNBLABB7X32JS5CDFEOSXUOOHT2WQWZNWWRUVFZSKU5VLDHGPG
-#\\\|74MSPISRXNCJSM2JCQXANXQ7FJZ4MZ7VFFHH2SHC27CROLZTJW4 \ / AMOS7 \ YOURUM ::
-#\[7]3XJEKTWNAU2JBN6LI6CEZO2A24JX76XIKM5ZLA2TV5LLAPPRU4DQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,,,,,.,.,,,,,.,.,...,,,,,,,,,..,,...,...,...,..,,,,.,,,,,..,,
+#3KPLZHGPLNYGXXGZKJANB2EJFLIC4RG5UORODFTOPAK5L2BGSZAVKXBCEGRZMLBMPXQEW6BR4AA3E
+#\\\|UK3SXIC3MPWLZBYKCYAS2OEL4PZVVJ4TY2OPUTDZYB6XTF4AHTX \ / AMOS7 \ YOURUM ::
+#\[7]LX76U2ZGIWTFN6YW572CJIWMGB4NKK63LZZPORUOU4MF2XQFGIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

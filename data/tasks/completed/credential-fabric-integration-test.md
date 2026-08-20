@@ -6,12 +6,12 @@ cred-mesh + transport + proxy zenki working together. read first:
 `data/md/design/CRED-MESH-INTEGRATION-AND-UI.md` (part 1, "test
 scenarios" section);
 `data/tasks/cred-mesh-wiring.md` (the wiring this verifies);
-`modules/proxy.handler.request`, `modules/proxy.handler.passthrough_reply`;
-`modules/transport.select`, `modules/transport.demote`,
-`modules/transport.promote`, `modules/transport.probe.timer`;
-`modules/cred-mesh.resolve`, `modules/cred-mesh.rotate`,
-`modules/cred-mesh.handler.rotation_strm`,
-`modules/cred-mesh.request-authorization`;
+`src/proxy.handler.request`, `src/proxy.handler.passthrough_reply`;
+`src/transport.select`, `src/transport.demote`,
+`src/transport.promote`, `src/transport.probe.timer`;
+`src/cred-mesh.resolve`, `src/cred-mesh.rotate`,
+`src/cred-mesh.handler.rotation_strm`,
+`src/cred-mesh.request-authorization`;
 existing test scripts under `bin/dev/` for shape conventions
 (`bin/dev/comp-test`, `bin/dev/bit-count` etc.).
 do NOT modify zenka modules themselves — this task only adds the harness.
@@ -173,8 +173,8 @@ it. lowercase comments, `[ word ]` annotations.
 
 #,,...,,..,,..,...,,,..,..,,,,,.,,...,..,,,,,,,..,,...,...,...,,,..,,,..,,...,
 
-#,,.,,.,,,...,,,.,.,.,...,,.,,,.,,...,.,.,,,,,..,,...,...,,.,,,,.,.,.,,,,,,.,,
-#QTZTAON2JHUX5LIGUGKMU7YX5LMUY7BRCIFGUJQ7AFJHSRLYMMDUPL6CMAQ4FIJOYE7VVMFIADEQW
-#\\\|INLGAD6K3RPDRXYRA4NQBAARBVIGLCEIO5FGSTQ7F5O4NKJ2H6B \ / AMOS7 \ YOURUM ::
-#\[7]NQARBSBLB5G2MPYIAVW6CMJLZYA2RD3IXNYSQIATZWJ3I2LCFUBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,..,,...,.,,,,,,,,,,,...,...,..,,...,...,.,,,..,,,,.,,.,,,..,
+#MR7DMFGBWB6CF7VOBIWOO574JRM5LRUN6YXGTZNY2RPWRKCZW4RFF45HPOAVDISE4BFMXHL4LIN46
+#\\\|VJHYIMYLPH5OWH6RUPZB4HOTOHRPDTTNVVJGAZEYBPQOCI7BNVV \ / AMOS7 \ YOURUM ::
+#\[7]UPSHY7DONBFJRDMH33ED6H4LTQKFPWQ3CGGSXLQZ6JNWRXHH54DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

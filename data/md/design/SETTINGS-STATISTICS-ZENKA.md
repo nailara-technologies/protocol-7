@@ -298,7 +298,7 @@ Week 6+:
 ### Proposed Module Structure
 
 ```
-modules/
+src/
 ├── settings/                           # Settings zenka core
 │   ├── settings                        # Main zenka module
 │   ├── settings.get                    # Get setting with inheritance
@@ -438,8 +438,8 @@ access.cmd.usr.cube = report status opt-out
 
 *Privacy-preserving configuration through inheritance and minimal diffs.*
 
-#,,.,,...,..,,.,.,,..,...,,..,...,,,,,,..,,..,..,,...,...,,,,,.,,,,,.,...,,,.,
-#5NLDQ7E3FLMTIQHNNR6QT5G6VAIS3DOUYPXSYT4JIP2AT7UJ7CX6RJPIXPX2AGY5PAR23X7VUI5EA
-#\\\|73LT623P6L33OB6EQ5OHXX6RQG2DQK4KFZR3LYK6Z5I5UAEVO3R \ / AMOS7 \ YOURUM ::
-#\[7]6WUVD3Z4ABWQ6JALUTE7HFZAK65RELFA34LDFVG5I6TTW3FHHKCI 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,..,,,,.,.,,,.,.,,,.,,..,,,,,..,,...,...,,.,,,,,,,..,,,.,,..,
+#T25Y4F5VNUVKCFX6IF2FZOKD5JWY4BJUUZFL3ZSK4I6V4G5HGWHUAQO6TOTYQCF3PC536JELTP2JW
+#\\\|7YIHPKMRZPI5C5TFMWFEK7OKHSCHXY7JBTYYJBKNCXVYHHHNQRB \ / AMOS7 \ YOURUM ::
+#\[7]Z5M6SFZWKSKTLJJUKLWEKIXZVP3SYHE2CARBGPEPHYDS3TQNDOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

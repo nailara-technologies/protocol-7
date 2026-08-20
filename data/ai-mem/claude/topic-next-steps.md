@@ -296,7 +296,7 @@ and waiting to be pointed at.
   `base.window.profile.*`; actual modules landed as `window.profile.*` +
   `window.gtk.profile.*`; ticker integrated; moved needs-testing/ → completed/
 - **zenka-side-stdio-multiplex-emitter** ✓ — `base.stdio_multiplex.connect` +
-  `emit_eout` + `emit_str` + `emit_num` all in modules/; moved to completed/
+  `emit_eout` + `emit_str` + `emit_num` all in src/; moved to completed/
 
 ## done (2026-06-16)
 
@@ -355,7 +355,7 @@ and waiting to be pointed at.
 was previously blocked pending security-level design (see history below,
 kept for context). now landed: `*.ui-show` is granted generically in
 `cfg/zenki/cube/access.zenki`, gated by
-`modules/ui.caller.security-level` (per-group level resolution +
+`src/ui.caller.security-level` (per-group level resolution +
 `ui.unfold`'s `$caller_level` filtering). task file archived as
 `data/tasks/completed/ui-caller-security-level.md`; related fallback
 work in `data/tasks/completed/console-fold-primitive-ui-show-fallback.md`.
@@ -441,7 +441,7 @@ what it should actually invoke.
 
 ## pending tasks (from session 37 queue)
 
-- **zenka-side-stdio-multiplex-emitter** ✓ — `base.stdio_multiplex.connect` + `emit_eout` + `emit_str` + `emit_num` all present in `modules/`; task file moved to `data/tasks/completed/`
+- **zenka-side-stdio-multiplex-emitter** ✓ — `base.stdio_multiplex.connect` + `emit_eout` + `emit_str` + `emit_num` all present in `src/`; task file moved to `data/tasks/completed/`
 - `data/tasks/kimi-zenka-multiplexer.md` — STRM dispatch + queue + sudo auto-decline (no task file yet)
 - `data/tasks/credentials-zenka.md` — encrypted credential store, per-zenka authorization (no task file yet)
 - `data/tasks/zenka-window-placement-profiles.md` — window.* namespace (re-dispatch after rename; no task file yet)
@@ -619,7 +619,7 @@ what it should actually invoke.
   Two real fixes landed ahead of the bulk cleanup: `Perl::Tidy` →
   `coding.init_code`, `AMOS7::Twofish` → `p7-log.init_code`.
 - **`base.devmod.dump_var` / `*main::dump_var` wrapper**: implemented in
-  `modules/base.init_code`, gated on `ref($code{'devmod.dump'}) eq 'CODE'`
+  `src/base.init_code`, gated on `ref($code{'devmod.dump'}) eq 'CODE'`
   (same canary `devmod.cmd.unload-devmod` already uses) — confirmed
   committed as of 2026-07-30 (working tree clean, wrapper present); the
   "unstaged, pending sign/stage" note above was stale.
@@ -710,7 +710,7 @@ forensics/openvas integration work):**
 **still genuinely open, not started:**
 
 - **os-pkg zenka** — still a bare stub on this branch
-  (`modules/os-pkg.init_code` is `0;`), referenced by
+  (`src/os-pkg.init_code` is `0;`), referenced by
   build-zenka/ext-pkg-zenka as the apt/dpkg sibling. note: a `sys-deps`
   zenka + `bin/os-pkg` implementation exists in history (`11e21a163`,
   2026-05-23) but is **not an ancestor of current HEAD** — it's on a
@@ -726,8 +726,8 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,.,,.,,,,..,,.,,..,,,.,,.,,,.,.,.,.,,,.,,,.,..,,...,..,,,..,,,.,,.,,...,,,.,
-#BYAISGGI4SVMMPU4LY7XB5HJAOMYSZHZFLKWFAW5NZVHQXDG3RF3AN5JUJCRZ5W6C4MPXSCTHH3PA
-#\\\|XHNO5L26Z3XXF2WCLPMEKYCCBKXQOIBNZX4TYGFFZTPIFQTYDEM \ / AMOS7 \ YOURUM ::
-#\[7]JUSLBFEPCGMSWOLS2TDNCPC73YZYV6TORNL2N57BNKBEZJT3TSAY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,..,,.,,,.,.,.,.,,,,,,..,...,..,,...,...,,.,,.,,,.,,,..,,,.,,
+#H4YX73CBJL3YWEQ3P3NC6VTUWICJXN4D6X3NITC447CIUKI3BTDRRBM6GICFDHFHSRSY5OEPHMCHM
+#\\\|NUWDDE352DTLSCXRCRHE5M3TW6FOTORE7P4KG3EYAGEXRRMR46K \ / AMOS7 \ YOURUM ::
+#\[7]6ZV2SRB2NU5EX6MTYMYKSZGWZDNHX47XBQ6AASSD7AHQJLKHEYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

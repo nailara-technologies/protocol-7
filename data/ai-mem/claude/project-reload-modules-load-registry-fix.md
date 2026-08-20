@@ -12,7 +12,7 @@ on a live `cube` zenka after adding `ascii`/`format.yaml` to `cfg/zenki/cube/sta
 `modules.load`.
 
 **Bug 1 — reload ignored new modules.load entries.** `base.cmd.reload`'s "source" phase
-(`modules/base.cmd.reload:57`, pre-fix) built its reload list purely from
+(`src/base.cmd.reload:57`, pre-fix) built its reload list purely from
 `<[base.clear_p7_mods]>` — the namespaces already tracked as loaded — never consulting the
 freshly re-read `<modules.load>` config value. So editing `modules.load` and running `reload`/
 `reload all` any number of times would never compile in a brand-new namespace; only a fresh
@@ -42,7 +42,7 @@ that these don't reappear from reload itself — one-time pollution from an earl
 
 Root cause: `p7_load_code` (== `base.load_code`, `bin/Protocol-7:1481-1482,2039`) unconditionally
 writes `$data{base}{p7_mod}{loaded}{$code_name}` for *whatever name it's given* — namespace or
-leaf sub, no distinction. `base.register_p7_mod_load` (`modules/base.register_p7_mod_load`,
+leaf sub, no distinction. `base.register_p7_mod_load` (`src/base.register_p7_mod_load`,
 called only from `base.load_modules`) is the intended, sole namespace-level writer — but
 `base.handler.whitelist_miss`'s heal-policy loop calls `<[base.load_code]>->($sub_name)` *directly*
 or a single missing sub, bypassing `base.load_modules` entirely, so that one leaf name gets
@@ -56,7 +56,7 @@ loads. Removing it would make every `base.load_modules` call register as loaded 
 on a hard compile failure.
 
 Fix instead applied at the actual pollution source: in `base.handler.whitelist_miss`'s heal-policy
-loop (`modules/base.handler.whitelist_miss`, right after
+loop (`src/base.handler.whitelist_miss`, right after
 `eval { <[base.load_code]>->($sub_name) }`), delete `<base.p7_mod.loaded>->{$sub_name}`
 immediately — a single healed sub is not a loaded namespace. The `moved_to` fast-path's parallel
 `else` branch (`base.load_code` call for a substituted leaf name) is effectively dead code today
@@ -91,8 +91,8 @@ the zenka actually uses `modules.preload` or a literal `load_modules` call inste
 `modules.load` (the union fix doesn't cover those), (c) `dump base.p7_mod.loaded` for stray
 leaf-level pollution if something was recently self-healed via `whitelist_miss`.
 
-#,,,,,.,.,..,,.,.,,..,.,.,.,.,,,.,.,,,...,,,.,..,,...,...,.,.,...,,,,,...,,,,,
-#ODHY26H4A2J5BU63B44TC2X37B4AJYX2AIAXYNBFIBWI2DHVLIA24DWTWKVZVMCWQ2ANFHN5MPA52
-#\\\|TFTQD7GRHP6OEXGVLMJ4YZS5XPKITEQVULB6FQ7E65WQ2C7DHFO \ / AMOS7 \ YOURUM ::
-#\[7]BQBLXIFRCIAMOUULIHBFNOXBVHPD7D4I4D2DRBXTALEOVH322UCY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,,,.,,.,,,.,,.,.,.,,,...,.,.,..,,...,...,.,,,,..,..,,,..,,,.,
+#J7OFO6OLX3NIBYOOTZOBEGY566WRI2LP2S3HH5ZFXQAEPB44XADB6DUJW2HU5IIWBQ6YQ6XFOXQLW
+#\\\|FJ63MWLIGSY2CZ4UQ4CRCXF6UQJPPORT7B3FKHYSHDXUMBBVW3H \ / AMOS7 \ YOURUM ::
+#\[7]CBOEYT44BEPCWLVULHHDN3JNXUODRC65R5CRPZXTPNYDTQRIKEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

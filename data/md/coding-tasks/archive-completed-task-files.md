@@ -27,7 +27,7 @@ files in parallel batches of 5-8 files each. Each subtask should:
 
 There are NO completion markers in these files — do NOT look for `# [DONE]` or
 similar. Classification must be based on whether the described code actually
-exists in the `modules/` directory or recent git commits.
+exists in the `src/` directory or recent git commits.
 
 After all subtasks complete, use `summarize_context` with `focus=archive-candidates`
 to produce a dense summary of the done/partial/pending breakdown — this is useful
@@ -65,8 +65,8 @@ Produce a final report structured as:
 - subtask_spawn is available and preferred for parallel evaluation
 - summarize_context tool accepts: content, focus, model, backend, max_len, store, node_id
 
-#,,,,,,.,,...,...,,,,,.,.,,..,.,,,...,.,,,.,,,.,.,...,...,...,,..,,,,,,..,...,
-#67U2WCNO3PDDFCKO2TR4AJOAKLUROOFCYDET6LUCNUZHKKETONYRRRQ6USDGAHBCVER7J5OHO4RPS
-#\\\|STMEWPYXOJO4FHNG5LUK37UHRE5NA7U6KNJCY64UAONCESTJNMA \ / AMOS7 \ YOURUM ::
-#\[7]YBMMUHAR4O2NURCKE2JHDDSKF2VQDSAZGIY3TN2LOMHU6YIZB4CY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,,,,.,,,..,.,,,,..,...,.,.,...,.,.,...,...,..,,...,,,,,..,,..,,
+#SQF4RBBLFEK5FQA27NYHDIAKABAO2CXSXNI4AROCBJ4MWSMUST75GG3YNWVSV2R4MJR4T24GDPBY6
+#\\\|IJKQXJ3JTXQW3FPKVGDXS32IFPNJPSWRX746L47EJ4IL5E4QLS5 \ / AMOS7 \ YOURUM ::
+#\[7]ALXGXH7BKCX4N3R7QR6MJ7QYLSLRP3JZUEEK5FRNGQH4255Y7CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

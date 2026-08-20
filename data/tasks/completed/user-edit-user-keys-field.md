@@ -16,7 +16,7 @@ precedent this extends.
 
 ## Why this does NOT reuse `identity_key`'s `display_override` mechanism
 
-Read `modules/editor.ui.ascii_frame.render_form`'s multiline block first
+Read `src/editor.ui.ascii_frame.render_form`'s multiline block first
 (search for `$field_def->{'multiline'}`). It calls `<[editor.control.
 get_value]>->($editor_state, $name)` directly for the text to render —
 **not** `get_display_value`, which is the only accessor that honours
@@ -73,7 +73,7 @@ gracefully).
 
 ## What to build
 
-1. **`modules/user-edit.form.schema_from_record`** — inside the SAME
+1. **`src/user-edit.form.schema_from_record`** — inside the SAME
    `if ( <user-edit.unix_user> eq ( $record->{'name'} // '' ) ) { ... }`
    block that currently only pushes `identity_key`, ALSO push a
    `user_keys` field_def, inserted BEFORE `identity_key` in that block (so
@@ -91,14 +91,14 @@ gracefully).
    };
    ```
 
-2. **`modules/user-edit.form.submit`** — `user_keys` must never reach
+2. **`src/user-edit.form.submit`** — `user_keys` must never reach
    `users.value-set`, same treatment as `identity_key` (read that block
    first — it's currently one hardcoded `delete $values->{'identity_key'};`
    line with a comment; add a second line for `user_keys` right next to
    it, do not generalize into a list for two entries either, matching this
    file's own established "one name check per synthetic field" precedent).
 
-3. **`modules/user-edit.form.add_field`** — the resort fix from the
+3. **`src/user-edit.form.add_field`** — the resort fix from the
    PREVIOUS dispatch (`data/tasks/user-edit-add-field-sort-order.md`,
    already landed) currently pulls out and re-appends ONLY `identity_key`
    by name before resorting the rest. Now there are TWO synthetic fields
@@ -155,8 +155,8 @@ Report actual captured output for each check, not just "passed."
 - No hostkey (`remote-host.*`) entries in the list — named keys only.
 - No changes to `identity_key`'s own existing render/plugin mechanism.
 
-#,,.,,.,,,,..,,..,,..,..,,,,,,.,.,.,,,...,...,..,,...,...,,..,.,.,..,,...,..,,
-#SAMEPLSPN3KSWBLPLDHOORHC56UVVC3WSHEF7YK766ICIEBC7GW54D7HCYTHZDOMD3X3BPBN7FXJQ
-#\\\|AV6GYBG74RVDSC2ALNIGHD7M5LNO76QU54Q2IE4JONQFT5E7OYD \ / AMOS7 \ YOURUM ::
-#\[7]BQEHKYREE5QJAEKEJYF7LX5TDCF6TU7MWIOV5HMJTC7TWVXHTMCA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,,,.,,,,,..,,,..,...,,..,,,.,..,,...,...,.,.,,,,,..,,...,,..,
+#7DVVFCIW6VOOUKFUMOY3TKBTCZDX2DOX72U6BWNNJX5VVPNYO6FIDEHTPKTHAUANFS5QL7WF2IDXO
+#\\\|L45IMHSPIGBR6R4XB6EMH5MKO545XL34PRRH3TJ5IQ4S6SGNUNK \ / AMOS7 \ YOURUM ::
+#\[7]Q453K7MRPFYLDAHWRW5MUFXFGS5GD2VZUR5SFMFMUSNADYCWNQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

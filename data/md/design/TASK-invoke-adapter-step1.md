@@ -119,12 +119,12 @@ and to subroutine.white-list.
 
 ## files to create
 
-    modules/models.storage.adapter.invoke.discover
-    modules/models.storage.adapter.invoke.resolve
-    modules/models.storage.adapter.invoke.repair
-    modules/models.cmd.adapter.discover    (thin cmd wrapper)
-    modules/models.cmd.adapter.resolve     (thin cmd wrapper)
-    modules/models.cmd.adapter.repair      (thin cmd wrapper)
+    src/models.storage.adapter.invoke.discover
+    src/models.storage.adapter.invoke.resolve
+    src/models.storage.adapter.invoke.repair
+    src/models.cmd.adapter.discover    (thin cmd wrapper)
+    src/models.cmd.adapter.resolve     (thin cmd wrapper)
+    src/models.cmd.adapter.repair      (thin cmd wrapper)
 
 
 ## dependencies
@@ -143,8 +143,8 @@ and to subroutine.white-list.
     - terminal.app.models (list view data source → this discover)
     - safe model remove (add invoke.remove module next)
 
-#,,,.,,,,,,,.,.,.,,,.,.,,,,,.,,,,,,.,,,..,..,,..,,...,.,,,..,,...,.,.,,.,,.,.,
-#BQBNZHN3QQPNBEG6OQSMYRRPTOTVLDOOZEM4YDGA4JGQOUUV7KGIBPKGJSTKDEDGBP2WXTJNN77GQ
-#\\\|PPPBT7YG62C25A3SBOSNPHPYSRE2YMK4ZEKOOVWPGVH3IX56ZLC \ / AMOS7 \ YOURUM ::
-#\[7]EOHF7KBIGE2X22IYVURTPH4M2FVANBIBUXB2C76JTFQYC26JDMAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,.,,..,,.,,.,,,,.,,,,.,.,.,..,,..,,...,...,..,,..,,.,,,,.,,,.,,
+#JNAISK5EZLYV2D25XO6IXFP3VTLST6HEWBLQSXEZX63RCUQTMXBCMIX7ETFKDGVG4QF5MTK56DE6Y
+#\\\|K7CVC4TJP7TXPOBZHNJXP2BVCTX2EJBKZYS53J5YRNTVVQIYTXQ \ / AMOS7 \ YOURUM ::
+#\[7]7QEPZZVBDKN4RBAGH7VQFFO3A23RYQSNGHE7CLCAWIYUQMMTK6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

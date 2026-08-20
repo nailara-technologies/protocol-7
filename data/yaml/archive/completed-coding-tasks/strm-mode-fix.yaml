@@ -10,7 +10,7 @@ task:
     is only deleted on STRM close (or !TERM!).
 
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
-  file: modules/base.handler.command
+  file: src/base.handler.command
   section: "around line 836 — the '} elsif ( $cmd eq qw| STRM | )' block"
 
   current_behaviour: |
@@ -92,7 +92,7 @@ task:
     that is a separate extension.
 
   acceptance: |
-    - ptd -c modules/base.handler.command passes
+    - ptd -c src/base.handler.command passes
     - STRM open frame forwarded immediately to source with translated cmd_id
     - each STRM data chunk forwarded immediately, no buffering
     - STRM close forwarded, route + stream state cleaned up
@@ -103,8 +103,8 @@ task:
 </content>
 </invoke>
 
-#,,,.,...,...,,,,,,.,,,,,,..,,,,.,,,,,..,,.,,,...,...,...,..,,,..,,.,,...,,.,,
-#AYGQXTYRAYB2YW33QJTENO3CCUI7C5HEI4M4LPUS4R4WVHOXWTVGSSDMFW5FK2634IPKS7FPBOFRO
-#\\\|EPHWTJ3YXUIEP6FSZA4DAVJ25XXHVM2N2SMJA6UDHD4SVSU2GGW \ / AMOS7 \ YOURUM ::
-#\[7]LUOTWJBFQI4ICKVQHCIA6QRB535EX75UCNWRJORN6FCE5GGTTUAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,.,.,.,,,,..,,,,,.,.,..,,,,.,...,...,...,,,.,,,.,,.,,.,.,,..,
+#BUNNYPVVPCYMKPRK5U5UQWN34GVZ3N74MRR3GCKFMBHVKFN43O67IDOCO6YSG4VXEQL6P3R6FDRCW
+#\\\|RTJOSYTZLDV3ECBBYNA3VRDX7VAWCSLH4XYHTVIUV25PE64UFKW \ / AMOS7 \ YOURUM ::
+#\[7]CKQYOWGN2JVVY3ZXOLCLXFHQM762SCOF2ZNWEVY6Q7HKT2G7NCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

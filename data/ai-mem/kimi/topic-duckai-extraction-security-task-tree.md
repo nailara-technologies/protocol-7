@@ -41,8 +41,8 @@ user's backup) into repo artifacts. committed as `737836d5d`.
   stack task open. "regex-only agent" = tier-A + ptd gate, not a named agent.
 - **dep-graph → embeddings**: GREENFIELD — only a one-bullet mention in
   INDEX-FASTTEXT-SOURCECODE-EMBEDDINGS. `.asc` is already word-neighbor
-  format; module name = filepath under modules/ (no registry).
-- **memory tree**: IMPLEMENTED — 52 `modules/memory.*` modules.
+  format; module name = filepath under src/ (no registry).
+- **memory tree**: IMPLEMENTED — 52 `src/memory.*` modules.
   ⚠️ `MEMORY-TREE-SYSTEM.md` header still claims "nothing built yet" — STALE.
   `memory.tree.checkpoint`/`memory.tree.diff` still unimplemented.
 - **forensics agent**: rich design (`CONCEPT-SECURITY-AND-FORENSICS-
@@ -83,8 +83,8 @@ user's backup) into repo artifacts. committed as `737836d5d`.
   relationship-to-existing-systems table when overlapping implemented areas
 - user signs + bumps version afterwards; commit only after their go
 
-#,,,.,.,,,,..,,,,,.,.,,,.,.,,,,.,,.,,,..,,,,.,..,,...,..,,...,...,,,.,.,.,...,
-#B4HEHUSE2VZWNJJH4ZCR4DC7XS3JRPQYEQV2EMRKXE25XJUIDSGYZTENTYCFLBS7UVW7QINAXDO2O
-#\\\|HDY7R6C44BET2GITK3V6YQMY3S5A5MQLCEEHAJT4CF2RJKQQHQG \ / AMOS7 \ YOURUM ::
-#\[7]WBXNFI2CGMCUZPPHWAVPQT7NYLAZMPHSW3LPIRNUZXMYAZMXTYAY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,..,,,,,,..,,.,,,...,.,,,..,,.,,,..,,...,...,,..,...,.,,,,,,,..,,
+#7UK4UK7SP3BXRFX7BT2PFISYUI2FN7KZGOVN6ZT5ULUQNLLXLI4K7YHOU62223J56OCTT2PPHMJCC
+#\\\|RLPZJG74EF772BYKKU5FC6W7ESI3RJDSN2PHNHISAZD6TVYLEYI \ / AMOS7 \ YOURUM ::
+#\[7]2UUOEFEDJC5HAFQSDPAIP5D6CNWNTAYQ6E7XOVBI7T6EFZ435QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

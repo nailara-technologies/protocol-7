@@ -1,0 +1,111 @@
+## [:< ##
+
+# name = data.channel.shm.test.basic
+# descr = Basic test for SHM-backed channels
+
+<[base.log]>->( 2, "=== SHM Channel Test ===" );
+
+##[ TEST 1: Create Channel ]##################################################
+
+my $test_pubkey  = 'CHANNELTEST' . ( 'X' x 41 );
+my $channel_name = 'test_channel';
+
+<[base.log]>->( 2, "Creating SHM channel: $channel_name" );
+
+my $channel = <[data.channel.shm.create]>->(
+    $channel_name,
+    $test_pubkey,
+    {   'size' => 65536,    # 64KB for testing
+    }
+);
+
+if ( !defined $channel ) {
+    <[base.log]>->( 0, "TEST FAIL: Could not create SHM channel" );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: Created channel $channel->{'channel_id'}" );
+
+##[ TEST 2: Write Messages ]##################################################
+
+my @test_messages = (
+    "Hello from Protocol-7 SHM channel!",
+    "Message 2: Testing ring buffer",
+    "Message 3: Third time's the charm",
+);
+
+<[base.log]>->( 2, "Writing " . scalar(@test_messages) . " messages..," );
+
+for my $msg (@test_messages) {
+    my $written
+        = <[data.channel.shm.write]>->( $channel->{'channel_id'}, $msg );
+    if ( !$written ) {
+        <[base.log]>->( 0, "TEST FAIL: Write failed for: $msg" );
+        <[data.channel.shm.close]>->( $channel->{'channel_id'} );
+        return 0;
+    }
+}
+
+<[base.log]>->( 2, "TEST PASS: All messages written" );
+
+##[ TEST 3: Poll for Data ]###################################################
+
+my $poll = <[data.channel.shm.poll]>->( $channel->{'channel_id'} );
+if ( !$poll || !$poll->{'has_data'} ) {
+    <[base.log]>->( 0, "TEST FAIL: Poll shows no data" );
+    <[data.channel.shm.close]>->( $channel->{'channel_id'} );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: Poll shows data available" );
+
+##[ TEST 4: Read Messages ]###################################################
+
+my $read_msgs = <[data.channel.shm.read]>->( $channel->{'channel_id'}, 3 );
+
+if ( !defined $read_msgs || @$read_msgs != 3 ) {
+    <[base.log]>->(
+        0,
+        "TEST FAIL: Expected 3 messages, got "
+            . ( defined $read_msgs ? scalar(@$read_msgs) : "undef" )
+    );
+    <[data.channel.shm.close]>->( $channel->{'channel_id'} );
+    return 0;
+}
+
+for ( my $i = 0; $i < @test_messages; $i++ ) {
+    if ( $read_msgs->[$i] ne $test_messages[$i] ) {
+        <[base.log]>->( 0, "TEST FAIL: Message $i mismatch" );
+        <[base.log]>->( 0, "  Expected: $test_messages[$i]" );
+        <[base.log]>->( 0, "  Got: $read_msgs->[$i]" );
+        <[data.channel.shm.close]>->( $channel->{'channel_id'} );
+        return 0;
+    }
+}
+
+<[base.log]>->( 2, "TEST PASS: All messages read correctly" );
+
+##[ TEST 5: Verify Empty After Read ]#########################################
+
+$poll = <[data.channel.shm.poll]>->( $channel->{'channel_id'} );
+if ( $poll && $poll->{'has_data'} ) {
+    <[base.log]>->( 0, "TEST FAIL: Channel not empty after read" );
+    <[data.channel.shm.close]>->( $channel->{'channel_id'} );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: Channel empty after reading all messages" );
+
+##[ CLEANUP ]#################################################################
+
+<[data.channel.shm.close]>->( $channel->{'channel_id'} );
+
+<[base.log]>->( 2, "=== All SHM Channel Tests Passed ===" );
+
+return TRUE;    ## [success] ##
+
+#,,.,,,,.,,,,,,.,,,,,,...,,,.,,.,,,..,,,,,,..,..,,...,...,...,..,,..,,,..,.,,,
+#LYXJDKXZUF7IUPJVIMXWERP34IUB4D24SE5L7OAR7IKM2F5X2H2MMXMRQMNG2HJKPKQKBQAMR4CXI
+#\\\|I7YNCBLDQ2U5LCU7W2BAVJJ5JH7AHYKQLNM2XN7DA5L2M2YEJOM \ / AMOS7 \ YOURUM ::
+#\[7]DCKQ67W3ZN2H43XQ6M4TGAVT46W3O44AL7DB4OA7MXI3L3SWBADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

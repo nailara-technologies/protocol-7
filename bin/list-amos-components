@@ -89,7 +89,7 @@ sub find_protocol7_root {
         pop @dir_parts;
         my $test_dir = File::Spec->catdir( $volume, @dir_parts );
         if (   -d catdir( $test_dir, 'bin' )
-            && -d catdir( $test_dir, 'configuration', 'zenki' ) ) {
+            && -d catdir( $test_dir, 'cfg', 'zenki' ) ) {
             return $test_dir;
         }
     }
@@ -187,7 +187,7 @@ sub show_command_details {
 ## ============================================================================
 
 my $protocol7_root = find_protocol7_root();
-my $zenka_root     = catdir( $protocol7_root, 'configuration', 'zenki' );
+my $zenka_root     = catdir( $protocol7_root, 'cfg', 'zenki' );
 
 ## Parse command-line arguments
 my $output_format  = 'human';
@@ -272,8 +272,8 @@ if ( $output_format eq 'json' ) {
     }
 }
 
-#,,.,,.,.,,,,,,,,,,..,,.,,.,,,..,,.,.,..,,,.,,..,,...,...,,.,,.,.,...,,,.,,.,,
-#A53ZIYWS2GTKTK25MOVMUQKJUWOWSXHWECHNAVUY3FH3IQUJN2J53KWEGSJWX3Q767WDK7OZY6PKU
-#\\\|QSZ5FBYH2BRBOGXUDH4RU2FDK563YEP36FBRBFFUK3B7DUXAJCG \ / AMOS7 \ YOURUM ::
-#\[7]OCDMEZTOFNLV7IT7WXB6Z5HIG6H7OPPDKFYIPNVMO7IEUZ5QNWAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,...,..,,,,.,.,,,,..,.,.,..,,,,.,..,,...,...,.,.,.,,,..,,..,,.,,,
+#B2XHIVNYPF7Z7KHPUQQVL7CJICXLNN5N2QOWZ6YK7XRU5MZSPQE6UOFXRRJ3ZLEJ7JEAFV6CGUJZC
+#\\\|ZZ2JPU6PLRWTBZBDUXRC3JWCTZTXQ3RWVKG6K5JV4WZECGYG7WG \ / AMOS7 \ YOURUM ::
+#\[7]Q7W22EZ6SXR33TEXO56MDXM3SHNZ4SU3YRJKYDXOITMHQ43KBCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

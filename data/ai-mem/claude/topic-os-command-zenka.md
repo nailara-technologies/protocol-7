@@ -31,8 +31,8 @@ a zenka that:
 
 v7 already has a related but more limited mechanism: `extbin` mode
 zenki entries — zenki-table entries that point at a script path instead
-of a zenka name + the Protocol-7 binary (`modules/v7.callback.object.zenka`,
-`modules/v7.handler.zenka_status`, `modules/v7.zenka.instance.cmd.change-status`
+of a zenka name + the Protocol-7 binary (`src/v7.callback.object.zenka`,
+`src/v7.handler.zenka_status`, `src/v7.zenka.instance.cmd.change-status`
 status enum `online|extbin|queued|depending|error|offline`). extbin
 zenki are spawned/monitored like real zenki but run arbitrary external
 binaries.
@@ -113,8 +113,8 @@ vterm buffer addressing for results, relation to extbin (explicitly
 non-overlapping). then split into task files the same way
 [[topic-ui-show-security-levels]] was split.
 
-#,,..,...,,,.,,,,,,,.,,,,,.,,,,.,,.,.,...,.,.,..,,...,...,...,,,,,,.,,...,,,,,
-#7DIBXG5XMUXKOJTLHOHAO6VOV7CHW7A327CAU3NTICDH6IYDOURZPS2ISKOXASHMS3EUMPCMRK3BK
-#\\\|CMNTZB2ZNVZI5JLIKEA3S6XE4DLAEJ6SSFP26QR4NBXJUA6JR5V \ / AMOS7 \ YOURUM ::
-#\[7]7PWDQRRGEA2FRKUMPNWLCYYLEZ2KCTCGXT4DMFVLYRYTULPROIAI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,,.,,...,,.,,...,,..,,,.,.,.,..,,...,...,...,.,.,,.,,,.,,,..,
+#3S2MGU2JGBJWBDL425CTMQ3VL5RJ6GS3Z7YEZ2LT6NG6TTL7QWARBYJMFUTUUGIV3RRDVVK5Y7BGK
+#\\\|62DLJVHXPAU3VEI4MYCXYBS4HAIYLCQ4TJCQFDQG2XHY462ROPB \ / AMOS7 \ YOURUM ::
+#\[7]TOZLATL3M5OJLAHDSVGZPDFLH4H2D7HG4QCDLYCDSC4Z7DVF3CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

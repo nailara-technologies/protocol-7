@@ -3,9 +3,9 @@
 ## dispatch
 add a `nshell.cfg.cursor_after_reply` config key that controls whether the
 cursor indicator is redrawn after replies. read first:
-`modules/nshell.handler.command_reply`,
-`modules/nshell.render.empty_prompt`,
-`modules/nshell.read_from_buffer`,
+`src/nshell.handler.command_reply`,
+`src/nshell.render.empty_prompt`,
+`src/nshell.read_from_buffer`,
 `cfg/zenki/nshell/start`.
 do NOT touch signatures or unrelated logic.
 
@@ -33,7 +33,7 @@ the `nshell.cfg.overflow_marker_left` pattern):
 
 ## implementation
 
-### `modules/nshell.handler.command_reply`
+### `src/nshell.handler.command_reply`
 
 at top of the print-and-cursor block (around line 53), read the config once:
 
@@ -72,7 +72,7 @@ note: when `cursor_mode eq 'all'` and payload has no trailing `\n`, print
 the `\n` before the cursor and clear `needs_newline_prefix` so the next
 prompt does not double-prefix.
 
-### `modules/nshell.render.empty_prompt` and `modules/nshell.read_from_buffer`
+### `src/nshell.render.empty_prompt` and `src/nshell.read_from_buffer`
 
 no change needed to these — the `needs_newline_prefix` path already handles
 the `line` (default) and `none` modes correctly. only `all` mode bypasses it.
@@ -86,8 +86,8 @@ the `line` (default) and `none` modes correctly. only `all` mode bypasses it.
 - no regressions to `needs_newline_prefix` / next-prompt-newline behavior
 - no manual AMOS7 signature stubs in edited files
 
-#,,,.,,,,,,.,,,,.,,.,,,,.,.,,,.,.,,,.,,,,,..,,..,,...,...,...,,..,..,,,,,,,,.,
-#YEIBA72RYJJDDUBIFZI2WEKNK3DXYD4VOGETSAF26J36ELDN5U42BLN3PLQD3TWPNBUCOVMBGC5WC
-#\\\|FZ5XRLVRFEDNEDZ7KD3MK6DT3YPGEUATWUDJWDZB5UECUHV7WP2 \ / AMOS7 \ YOURUM ::
-#\[7]UGVAFERSNJYDOILB5PWPVFMZYYNJLBUYBR4NYYJBWSH2IYEJVYDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,...,,,.,...,..,,,..,,..,.,,,..,,..,,...,...,.,,,..,,,..,...,..,,
+#F43IXEA4COPHH7JHU3XNOXTLSVGFPFYOLUU2FTTX2LGHMTS2LYFHUCVQUFGHIPJPVMFI7WP2WDSA4
+#\\\|TATMWK4AH5YSBMJMXQG2PPWAKSDMFH7RMJF5NIMSJ77ZVQ74BJY \ / AMOS7 \ YOURUM ::
+#\[7]RT5KEDXYXGWRZIHOW3WWSQKITO4ZZJUDZARPDLNEKRK6LGBRPQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,111 @@
+## [:< ##
+
+# name = vision-batch.parent.init_code
+# descr = Image batch orchestrator initialization with infrastructure
+
+## Initialize jobqueue infrastructure (required for batch job processing)
+<[jobqueue.pre_init]>;
+<[jobqueue.event.register_job_queues]>;
+
+## Initialize zenka directory paths for persistent storage
+<[base.path-set-up.check-zenka-paths]>->(TRUE);
+
+## Initialize data structures for batch processing with zenka namespace to
+## avoid collisions
+
+## Batch queue: tracks images and their analysis status
+<vision-batch.batch_queue> = [];
+
+## Batch state: overall batch progress and statistics
+<vision-batch.batch_state> = {
+    batch_id   => '',
+    status     => 'idle',
+    timestamps =>
+        { created => 0, started => 0, last_update => 0, completed => 0 },
+    statistics => {
+        total_images         => 0,
+        analyzed             => 0,
+        pending              => 0,
+        failed               => 0,
+        quality_distribution => {}
+    },
+    current_operation => {
+        image_path       => '',
+        stage            => '',
+        progress_percent => 0,
+        child_pids       => []
+    }
+};
+
+## Child process tracking: maps PID to job information
+<vision-batch.child_pids> = {};
+
+## Operation log: chronological record of batch operations (hash indexed by
+## timestamp)
+<vision-batch.operation_log> = {};
+
+## Error log: failed analyses and rule application errors (hash indexed by
+## timestamp)
+<vision-batch.error_log> = {};
+
+## Action log: file operations performed (copy, move, scale, tag)
+<vision-batch.action_log> = {};
+
+## Load Perl modules at startup time using base.perlmod.autoload Modules are
+## automatically registered in <base.perlmod.loaded> on success Socket,
+## IO::Handle, IO::AIO are already loaded by Protocol-7
+map { <[base.perlmod.autoload]>->($ARG) } qw| Data::UUID JSON::XS YAML::XS |;
+
+## Define list structures for observability
+
+## List: operation_log - shows major batch milestones
+<list.operation_log> = {
+    'var'      => 'data',
+    'key'      => 'vision-batch.operation_log',
+    'descr'    => '[operations] major milestones',
+    'mask'     => 'timestamp:time action:op batch_id:batch status:state',
+    'sort_key' => 'timestamp',
+    'align'    => {
+        'timestamp' => 'left+2',
+        'action'    => 'center',
+        'batch_id'  => 'center',
+        'status'    => 'left+1'
+    }
+};
+
+<[base.list.init]>->(
+    {   'name'         => 'operation_log',
+        'key_ref'      => \$data{'vision-batch'}{'operation_log'},
+        'max_elements' => 4097
+    }
+);
+
+## List: error_log - shows failed operations
+<list.error_log> = {
+    'var'      => 'data',
+    'key'      => 'vision-batch.error_log',
+    'descr'    => '[errors] failed operations',
+    'mask'     => 'timestamp:time image_path:file error_type:type reason:msg',
+    'sort_key' => 'timestamp',
+    'align'    => {
+        'timestamp'  => 'left+2',
+        'image_path' => 'left+1',
+        'error_type' => 'center',
+        'reason'     => 'left'
+    }
+};
+
+<[base.list.init]>->(
+    {   'name'         => 'error_log',
+        'key_ref'      => \$data{'vision-batch'}{'error_log'},
+        'max_elements' => 4097
+    }
+);
+
+return TRUE;
+
+#,,,.,.,.,,,,,,.,,,,,,...,..,,,..,.,,,.,,,,.,,..,,...,...,...,,,,,..,,.,.,,..,
+#T5XTO7AXVDAOYNZP7JLCIMOQEATR4HKJQTD3ING3CU4J3AM4XCHPNYOHNFJOYYAYKJLLCUMDSKYBE
+#\\\|JZD3ROBHR6NHYATAXT2KZW7OXLISSTUEF5ZRDZYRWF5ESBXYTAB \ / AMOS7 \ YOURUM ::
+#\[7]BDBAHWPQPLBJ7AVIS6WY4N3UCWA7AJDNZDUFQ2MLXT6PZFQYDQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

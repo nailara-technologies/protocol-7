@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = tree.route.page.bit_direction
+# descr = return left/right for group index in decoded word
+
+my $decoded = shift // {};
+my $index   = shift // 0;
+
+return undef
+    if ref $decoded ne qw| HASH |
+    or not exists $decoded->{'leading'};
+
+my $leading = $decoded->{'leading'};
+return undef if ref $leading ne qw| ARRAY |;
+return undef if $index < 0 or $index > 7;
+
+## [ group 7 ] = leading '0' = carry = LEFT  [ groups 0-6 ] = leading '1' = ##
+## awaiting = RIGHT                                                         ##
+
+return $leading->[$index] eq qw| 0 | ? qw| left | : qw| right |;
+
+#,,.,,,,.,.,.,,.,,.,,,,.,,.,,,.,,,.,.,.,.,.,.,..,,...,...,...,..,,,.,,.,.,,,.,
+#HAJTTSHMCTVMKY3TDUJNQRTILNYYUM7VMC4AVYG72MMFBZB6I6GRLWR7LCCQWCRBEC4QIMZNYOVNG
+#\\\|MN62QE7VZGQBG4IY2ESKDW44JBDRTTV3GPUB4IOP2WHHOXDFG6S \ / AMOS7 \ YOURUM ::
+#\[7]HCIITUEQ43L72MBYJXKK5YUYTZ6RGXW4ZTJXD2EP52JJ4RTHLYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

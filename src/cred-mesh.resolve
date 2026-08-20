@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = cred-mesh.resolve
+# descr = resolve a credential slot to an auth result or opaque handle.
+#         args: { slot => '...', context => $request_context }
+#         returns auth result hash or undef
+
+my $params = shift // {};
+
+my ( $slot, $context, $as_size_reply );
+
+if ( ref $params eq qw| HASH | ) {
+    if ( length $params->{'slot'} ) {
+        $slot          = $params->{'slot'};
+        $context       = $params->{'context'} // {};
+        $as_size_reply = FALSE;
+    } elsif ( length $params->{'args'} ) {
+        ## routed / console form: args string is the slot name ##
+        $slot          = $params->{'args'};
+        $context       = {};
+        $as_size_reply = TRUE;
+    }
+} elsif ( defined $params and length $params ) {
+    ## direct string form (slot name only) ##
+    $slot          = "$params";
+    $context       = {};
+    $as_size_reply = TRUE;
+}
+
+return undef unless length $slot;
+
+## look up slot in registry ##
+my $meta = <cred-mesh.registry>->{$slot};
+return undef unless defined $meta;
+
+## revoked slots resolve to undef ##
+return undef if $meta->{'revoked'};
+
+my $owner       = $meta->{'owner'}       // qw| cred-mesh |;
+my $type        = $meta->{'type'}        // qw| api-key |;
+my $sensitivity = $meta->{'sensitivity'} // qw| low |;
+my $storage     = $meta->{'storage'}     // qw| local |;
+
+## if owner is not local, route to owning zenka ##
+if ( $owner ne qw| cred-mesh | ) {
+    ## route to owner via protocol-7 ##
+    my $route_result;
+    <[protocol-7.route-send]>->(
+        {   'command'   => $owner . '.credential.resolve',
+            'call_args' => { 'args' => $slot },
+            'reply'     => {
+                'handler' => 'cred-mesh.handler.route_reply',
+                'params'  => { 'slot' => $slot }
+            },
+        }
+    );
+    ## async: return pending marker ##
+    return { 'mode' => qw| pending |, 'data' => 'routed to owner' };
+}
+
+## local resolution: load credential value from tier-1 storage ##
+my $cred_value = <[cred-mesh.store.local]>->( qw| read |, $slot );
+return undef if not defined $cred_value;
+
+## perform auth operation for all sensitivities ##
+my $auth_result
+    = <[cred-mesh.util.perform_auth]>->( $type, $cred_value, $context );
+return undef if not defined $auth_result;
+
+my $result = {
+    'mode'  => qw| true |,
+    'data'  => $auth_result,
+    'type'  => $type,
+    'owner' => $owner,
+};
+
+## medium/high sensitivity: mark as sealed ##
+$result->{'sealed'} = TRUE if $sensitivity ne qw| low |;
+
+## routed / console form: serialize as SIZE-reply payload so the caller  ##
+## (e.g. proxy auth lookup) can receive structured data over protocol-7. ##
+if ($as_size_reply) {
+    return {
+        'mode' => qw| size |,
+        'data' => YAML::XS::Dump($result),
+    };
+}
+
+return $result;
+
+#,,,,,.,,,,,.,.,.,.,.,,,,,,.,,,..,,.,,...,,,,,..,,...,...,,.,,..,,..,,,.,,..,,
+#XUMEGZ35VK6NT2CINM4K2GUZODMN2NJ5O5QQT5D57J4Z277SNCHPBPUSNAHFNVOL3CEFLVQMIR4VO
+#\\\|POG2ZG7WY6SFJBWNQCLWEN4WWST46YSXXBO6REIILAU4DH43CGA \ / AMOS7 \ YOURUM ::
+#\[7]UCM4PMEG3QXDTMJI5M7ZRCLPX3EY4GSTNDNPT4USTRHNZZSNNQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

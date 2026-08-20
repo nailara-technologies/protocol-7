@@ -11,10 +11,10 @@ summary: |
   to code lines without separator endlines after perltidy formatting.
 
 affected_modules:
-  - modules/source.create_harmonic_footer
-  - modules/source.cmd.get-code-signed
-  - modules/source.policy.should_normalize_endlines (new)
-  - modules/source.normalize_endlines (new)
+  - src/source.create_harmonic_footer
+  - src/source.cmd.get-code-signed
+  - src/source.policy.should_normalize_endlines (new)
+  - src/source.normalize_endlines (new)
 
 problem_description:
   root_cause: |
@@ -40,7 +40,7 @@ problem_description:
        state, which perpetuated the problem.
 
   trigger_scenario: |
-    1. Run perltidy on modules/ files (which may reformat spacing)
+    1. Run perltidy on src/ files (which may reformat spacing)
     2. Re-sign files with update-signatures
     3. For files where perltidy removed blank lines, state 6 was triggered
     4. Bug in state 6 handling caused signatures to append without separator
@@ -57,7 +57,7 @@ solution_implemented:
 
   components:
     - component: "Bug Fix"
-      module: "modules/source.create_harmonic_footer"
+      module: "src/source.create_harmonic_footer"
       location: "lines 186-189"
       fix: |
         Changed from single-step endline addition to two-step:
@@ -71,14 +71,14 @@ solution_implemented:
         ```
 
     - component: "Policy Module"
-      module: "modules/source.policy.should_normalize_endlines"
+      module: "src/source.policy.should_normalize_endlines"
       purpose: "Determine which files use normalize vs preserve mode"
       logic: |
         - Normalize mode (code files): Always use canonical format
         - Preserve mode (data files): Record original endline state
 
         Path-based rules:
-        - modules/ → normalize
+        - src/ → normalize
         - bin/ → normalize
         - data/lib-path/pm/ → normalize
 
@@ -90,7 +90,7 @@ solution_implemented:
         Default: preserve mode
 
     - component: "Normalization Subroutine"
-      module: "modules/source.normalize_endlines"
+      module: "src/source.normalize_endlines"
       purpose: "Clean normalization logic separate from state tracking"
       implementation: |
         Simple regex normalization:
@@ -100,7 +100,7 @@ solution_implemented:
         Always normalizes to exactly 1 trailing endline.
 
     - component: "Integration"
-      module: "modules/source.cmd.get-code-signed"
+      module: "src/source.cmd.get-code-signed"
       location: "lines 126-149"
       logic: |
         ```perl
@@ -128,8 +128,8 @@ benefits:
 
 testing:
   test_files:
-    - "modules/httpd.base.file.nonblocking"
-    - "modules/httpd.base.size.normalize"
+    - "src/httpd.base.file.nonblocking"
+    - "src/httpd.base.size.normalize"
 
   procedure: |
     1. Hard reset to HEAD (before perltidy)
@@ -165,13 +165,13 @@ related_documentation:
 commit_info:
   branch: "dev/httpd-async-implementation"
   files_modified:
-    - modules/source.create_harmonic_footer
-    - modules/source.cmd.get-code-signed
-    - modules/source.policy.should_normalize_endlines (created)
-    - modules/source.normalize_endlines (created)
+    - src/source.create_harmonic_footer
+    - src/source.cmd.get-code-signed
+    - src/source.policy.should_normalize_endlines (created)
+    - src/source.normalize_endlines (created)
 
-#,,,.,.,.,.,.,,,,,.,.,,.,,.,.,,.,,,.,,,..,.,,,..,,...,...,.,,,,,.,,,.,...,,,,,
-#CK2XWHQTHPQ4HG6IVCAAT3H757H5XNFIFZAT6PJVPV3F4MUSIC7W44FVID265ELVTRPM3I2ARERKM
-#\\\|TGMUKKLF3DD3I5O2DS2VJPSNRGYPADD4F2EGIP4TVSXKTJ2MDKP \ / AMOS7 \ YOURUM ::
-#\[7]YUIPSPR2ULQFYV3WTG7WD5AGE3PGLT4OLDQIK5YR3ZWAHSCNZWDI 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,,..,,..,...,,..,.,,,,.,,,,,,..,,...,...,.,,,.,.,.,,,,,,,,..,
+#2A5WAFZ6Z7AMJGP43J7PLAEWSMKHETHXM55LV2UY2UM45LT54YK35DCA6IGBSFA7Q3DNV3A4CN6ZQ
+#\\\|X2KYRRKCS5XKCCVXGI2G4LYPRWOSNJ7WKSOJWN7Z2IYFHLWOMDG \ / AMOS7 \ YOURUM ::
+#\[7]3AYRPR2FQAXKRZP6APO6LA6HOKQUYXEU2JHC5353ONVMA3YA26DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

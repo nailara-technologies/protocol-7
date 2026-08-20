@@ -12,31 +12,31 @@ task-tracking mechanism, or a new persistence format. Match the house style of t
 you read.
 
 ## Read first (do not reinvent these)
-- `modules/coding.handler.http_io` — reads socket bytes, splits lines, feeds each to
+- `src/coding.handler.http_io` — reads socket bytes, splits lines, feeds each to
   parse_line; owns `$state` (`sock`, `io_watcher`, `callbacks`, `completed`) and calls
   `<[coding.async.http_cleanup]>->($state)` to tear the connection down. **This is where
   abort teardown must hook.**
-- `modules/coding.handler.http_io_parse_line` — signature `($line, $state, $callbacks)`;
+- `src/coding.handler.http_io_parse_line` — signature `($line, $state, $callbacks)`;
   processes one streamed line and accumulates model output. **This is where per-line
   pattern matching must hook.**
-- `modules/coding.async.http_client` — builds `$state` and threads `callbacks` in. **You
+- `src/coding.async.http_client` — builds `$state` and threads `callbacks` in. **You
   must confirm here where the running task_id is available** so it can be stored on
   `$state` (e.g. `$state->{'task_id'}`) — thread it in rather than guessing.
-- `modules/coding.self_test.check_constraint` and `modules/coding.self_test.evaluate` —
+- `src/coding.self_test.check_constraint` and `src/coding.self_test.evaluate` —
   the landed pattern for a task carrying auxiliary matching config alongside its prompt.
   Mirror this idiom for how a task references its abort-pattern set.
-- `modules/jobsite.checksum.index` — the canonical AMOS-checksum content-addressing store:
+- `src/jobsite.checksum.index` — the canonical AMOS-checksum content-addressing store:
   `utf8::encode(my $s = $str); my $c = <[chk-sum.amos]>->($s);` then persist with
   `<[file.zenka_dir.write]>->("checksum-store/.../$c", \$empty, '>', 0640)` where
   **file existence == record** (no load/persist cycle). Replicate this idiom in a new
   namespace; do NOT invent YAML/JSON stores.
-- `modules/coding.cmd.stop-task` — the exact `.cmd.` shape to copy: reads
+- `src/coding.cmd.stop-task` — the exact `.cmd.` shape to copy: reads
   `$call->{'args'}`, defaults to `<coding.task.active>->[0]` when no id given, looks up
   `<coding.task.queue>->{$task_id}`, checks `execution.status`, returns
   `{ mode => qw|false|, data => '...' }` on the sad path.
 
 ## Conventions (these are gotchas — get them right)
-- Modules are ONE file per dotted name in `modules/`; the filename IS the callable. No
+- Modules are ONE file per dotted name in `src/`; the filename IS the callable. No
   `sub {}`. No `my $call` except in genuine `.cmd.` entry points (which DO receive
   `$call = { args => ..., session_id => ... }`).
 - Invocation: `<[module.name]>` (implicit call), `<[module.name]>->($arg)` with args,
@@ -127,8 +127,8 @@ registered in).
       `<[base.logs]>` logging; TRUE/FALSE/UNKNOWN honored; NO hand-written signature footer.
 - [ ] new modules added to the coding zenka's module-load list and `.cmd.` whitelist.
 
-#,,,,,,..,,..,.,.,,,,,,.,,.,.,.,,,..,,,,,,.,,,..,,...,...,...,..,,..,,.,.,.,.,
-#LEIJSYJFTV2C4QZ75DA6YMYC2D5VZZS4WM5D33EF4O62POVBHNAOWZNOO4XP45YWCYI2G7JLTYGXE
-#\\\|5WWWWMWI2LZ4ATPG3A6BCQ2BJEVXQSHE7VBGWVYQH4HVHCOE2A2 \ / AMOS7 \ YOURUM ::
-#\[7]3LZ7NKD7KKJKB4I4E4D7K43GL6NIWFTFKS2DQ6QCUB3HVA2FFOBI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,.,.,,.,,,,.,.,,,,..,...,.,,,..,,...,...,,.,,,.,,.,,,.,,,,.,,
+#HZ33PCKPPINPN77N3V536S6SJOAQYSJU7Q3SIZOFX3XLJ4EJXVYJ4LLPHTYASWE5BSLMWCTIV7DWE
+#\\\|EKSS6NF6DGVK7DVBAMDDSHKZ66CMY3S6MSDEHSQSKN52FIQP7W4 \ / AMOS7 \ YOURUM ::
+#\[7]FOCKAZF2OIS2HB3ADVBRLBC6BMTHXJYD2S4HCGEZRP3HJ7RNSKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -258,31 +258,31 @@ sections:
       These patterns from the P7 codebase are verified safe:
 
       1. **event.once with interval** (min 0.01s recommended)
-         - modules/coding.cmd.wait-done line 66
-         - modules/coding.handler.process-queued-task line 207
-         - modules/nshell.no-tty-debug.cmd.char-add lines 256, 291
+         - src/coding.cmd.wait-done line 66
+         - src/coding.handler.process-queued-task line 207
+         - src/nshell.no-tty-debug.cmd.char-add lines 256, 291
 
       2. **event.add_timer with repeat=1**
-         - modules/coding.async.http_client lines 110-120
-         - modules/coding.handler.http_poll lines 87-99
-         - modules/coding.callback.backend_busy_retry
+         - src/coding.async.http_client lines 110-120
+         - src/coding.handler.http_poll lines 87-99
+         - src/coding.callback.backend_busy_retry
 
       3. **event.add_io for socket I/O**
-         - modules/coding.async.http_client lines 82-91
-         - modules/coding.handler.http_io
-         - modules/radio.connect line 114
+         - src/coding.async.http_client lines 82-91
+         - src/coding.handler.http_io
+         - src/radio.connect line 114
 
       4. **sysread/syswrite loops with non-blocking mode**
-         - modules/coding.async.http_client lines 125-137
-         - modules/coding.handler.drain_pipe (safe: pipe watcher context)
+         - src/coding.async.http_client lines 125-137
+         - src/coding.handler.drain_pipe (safe: pipe watcher context)
 
       5. **Regex buffer loops with advance guarantee**
-         - modules/coding.handler.http_io (saves headers, parses SSE)
-         - modules/coding.handler.http_io_parse_line
+         - src/coding.handler.http_io (saves headers, parses SSE)
+         - src/coding.handler.http_io_parse_line
 
       6. **Watcher callback loops with cancel**
-         - modules/base.list.subroutines:clear_from_disk
-         - modules/base.referenced_subroutines:clear_from_disk
+         - src/base.list.subroutines:clear_from_disk
+         - src/base.referenced_subroutines:clear_from_disk
          - Pattern: watcher->cancel before continuing
 
   - static: |
@@ -295,7 +295,7 @@ sections:
          - Verify: is there ANY yield mechanism?
 
       2. **LWP blocking calls in while loops**
-         - modules/coding.handler.process-queued-task line 204 suspected
+         - src/coding.handler.process-queued-task line 204 suspected
          - Verify: is this in forked child? async replacement available?
 
       3. **Polling loops with very short intervals (< 0.001s)**
@@ -338,8 +338,8 @@ sections:
       ## event-loop-safe: <reason> [ annotation text ] ##
       ```
 
-#,,..,.,.,,,.,.,,,,,.,.,,,.,.,,.,,,,.,.,,,,,,,...,...,...,,,,,...,..,,.,.,,,,,
-#Z77F2YH5X652LU3GXHIOISWWJSMU3Y7HWZVLVDWTNLK4SHMOUAYMF6YXDYVF4X4WLN25LP3GVN4A4
-#\\\|PTHK4EBCCFEYGP7253OBQZDWD4RNHLTDCONLJZRSIBJVO5AQRNP \ / AMOS7 \ YOURUM ::
-#\[7]HJ37W4QIKIONEIKEOCAHSGOE4TI3XY36BUY7SBJA76GMECZA4YDI 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,,..,...,,,,,.,,,..,,,.,,,.,,...,...,...,,,,,.,.,.,.,,..,,.,,
+#WIPJP7EI4YRTNRMOPIB7XBPNVCRS7VEA2YX3SAYWLANPZVJ4IBGVQ6FUJ2QH5GQ4AT6KXPIF5DGUU
+#\\\|7VXX37RQWYJPQUTKB55NB5MTG5EILMRQXS6ROPOYJCYQ4KTPYJI \ / AMOS7 \ YOURUM ::
+#\[7]AA7P4HUTRR5JJ55GT6PADTND7EQLKTYS3PEF65GAFEVGKBCX2MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

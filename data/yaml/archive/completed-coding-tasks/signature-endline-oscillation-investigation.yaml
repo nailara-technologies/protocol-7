@@ -32,7 +32,7 @@ root_cause_analysis:
       - "State encoding: 5 (default) + delta"
       - "When delta = -5, creates state = 0"
     issue: "State 0 is explicitly rejected by decoder with '[temporarely disallowed]' comment"
-    location: "modules/source.harmonize_payload_line_feed"
+    location: "src/source.harmonize_payload_line_feed"
 
   decoder_rejection:
     description: "amos7.decode_octal_bit_header explicitly rejects state=0 (lines 60-68)"
@@ -49,7 +49,7 @@ root_cause_analysis:
 
   encoder_state_assignment:
     description: "amos7.encode_octal_header converts numeric state to binary representation"
-    location: "modules/amos7.encode_octal_header"
+    location: "src/amos7.encode_octal_header"
     question: "Does encoder correctly handle state=0? Should it be treated specially?"
 
 affected_modules:
@@ -120,7 +120,7 @@ investigation_path:
     code_change: |
       Add before return:
         warn "[HARMONIZE_DEBUG] state_delta=$delta, original=$size_before, harmonized=$size_after, final_state=$state\n";
-    target_files: ["modules/source.create_harmonic_footer"]
+    target_files: ["src/source.create_harmonic_footer"]
     test_with: "SELF-IMPROVING-AGENT-ECOSYSTEM.md (current problem file)"
     expected_output: "Log shows state=0 is calculated when file has 2+ newlines"
 
@@ -130,7 +130,7 @@ investigation_path:
       - "What is the 'canonical form' it normalizes to?"
       - "Why does 2 trailing newlines cause delta=-5?"
       - "What are valid delta ranges?"
-    target_files: ["modules/source.harmonize_payload_line_feed"]
+    target_files: ["src/source.harmonize_payload_line_feed"]
 
   step_4_understand_state_meaning:
     action: "Research what each state (0-7) represents"
@@ -138,7 +138,7 @@ investigation_path:
       - "Is state=0 'no modification'?"
       - "Are states 1-7 different types of endline changes?"
       - "Why would we disallow 'no modification' state?"
-    target_files: ["modules/amos7.encode_octal_header", "modules/amos7.decode_octal_bit_header"]
+    target_files: ["src/amos7.encode_octal_header", "src/amos7.decode_octal_bit_header"]
 
   step_5_examine_decoder_rejection:
     action: "Analyze why state=0 is rejected"
@@ -230,7 +230,7 @@ context_for_resumption:
 
   git_status: |
     Branch: base
-    Modified files: cfg/zenki/models/start, modules/models.*, etc.
+    Modified files: cfg/zenki/models/start, src/models.*, etc.
     New files: bin/test-scripts/*, data/yaml/*.md
     Not committed: SELF-IMPROVING-AGENT-ECOSYSTEM.md (signature issue)
 
@@ -292,8 +292,8 @@ reference_documentation:
     - "Failures in conversation visible to admin groups for improvement"
     - "Test interface available to safely diagnose signature issues"
 
-#,,..,.,.,...,,.,,,,.,.,,,..,,,..,...,..,,,.,,..,,...,...,,.,,.,,,,.,,,,,,,,.,
-#ZPJTT3OUZ2UFUAWOMAO7HPI3OZNA3XGSOBK4DEST3GRG475ILOFHETTYAOJ6AYZS4P4FE6CESVPG4
-#\\\|HSCQYNWBEEMCHKATYKS5B6XOPWHATPC764ZJ2HRFCTPKFYBZZIM \ / AMOS7 \ YOURUM ::
-#\[7]RCEQBCMTWGBSLKAM77MOGQYQTSFZUVQT3RH2QLP5ZEMS6QCZ5IDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,...,...,,.,,.,.,,,,,.,.,.,,,..,,...,..,,,,,,.,.,.,.,,,,,,.,,
+#JSJA4AVAHLYLRP7I6GUZW7Y2HUA7ZXXW5QKZKXEZ5WPIA7NIBFOU5Z5X6T7FIQPF5WSJPVPLVDPEE
+#\\\|UVYAMUWNLHC5ZTX3LLBTB67F27WAMRW6XLSA4WQMEIVQZE5FM46 \ / AMOS7 \ YOURUM ::
+#\[7]6OCZ3DJRSGKOOLVXFS7AVKY5VFFUGWI67E2DXD65YQ6QIIKH5EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

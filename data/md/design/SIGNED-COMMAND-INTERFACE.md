@@ -14,7 +14,7 @@ signatures) that the receiving zenka verifies before executing.
 
 for admins the experience is transparent: p7c and p7-r detect that a command
 requires signing, invoke a Perl crypto subprocess, and attach the footer.
-the admin's key is already present in `modules/USR.[username].*`.
+the admin's key is already present in `src/USR.[username].*`.
 
 ---
 
@@ -256,9 +256,9 @@ development environments may skip pinning for flexibility.
 
 ## connections
 
-- `modules/crypt.C25519.*` — existing key infrastructure
-- `modules/USR.[username].*` — user key files
-- `modules/base.chk-sum.bmw384.*` — BMW384 hash
+- `src/crypt.C25519.*` — existing key infrastructure
+- `src/USR.[username].*` — user key files
+- `src/base.chk-sum.bmw384.*` — BMW384 hash
 - `bin/p7.c` — p7c binary, needs signing detection + subprocess call
 - [[ZENKA-LIFECYCLE-ONDEMAND-HEARTBEAT]] — teardown and reboot are first
   candidates for require-signed
@@ -278,8 +278,8 @@ development environments may skip pinning for flexibility.
 6. key authorization list per command
 7. nonce dedup store (simple ntime-windowed set)
 
-#,,..,.,.,,.,,,,.,.,.,,,,,,,,,,..,.,.,,.,,,.,,..,,...,...,...,.,.,,.,,,,.,.,,,
-#G52SFTCGHIW2DXMBSDDKPNFVS4KIRHFOGLP574E7VNMJTS74H5HIHG6LJTANLBA3THBHGTKCW63US
-#\\\|MN4C7BNN7EAWKVLODNNBYZ7MHPXGHEJ4OY2CPDUS7JLNHJA5545 \ / AMOS7 \ YOURUM ::
-#\[7]L5HVLPKUCT4XE6JGDK2MO75W5GRUPZVUCH2V4PMJ7CKZ4KEIYYDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,.,,..,,.,,,,,,,,,,,,,.,.,,,,,,,..,,...,...,.,.,...,,.,,,,.,.,,,
+#HAWXTINDO6QDCPDCWZTRZVAP4T2A2QD26CWECQXZ4MBC5C2ZWOS3N5NGTY7H55DQV6PRPBTNVWJPK
+#\\\|M3346HSGC3T4KF4CTSNCVPP6MP67KZFAIGQYEIBKXVI4E2MS3KI \ / AMOS7 \ YOURUM ::
+#\[7]7DV6IUEWIYR5T35I35DDDCU3TQ3HKXPYYANDWR577T3XD23ARMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

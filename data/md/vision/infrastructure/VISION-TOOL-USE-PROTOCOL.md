@@ -28,14 +28,14 @@ Model output is scanned for tool calls in a simple, unambiguous format:
 
 ```
 <tool>read_file</tool>
-<args>modules/coding.init_code</args>
+<args>src/coding.init_code</args>
 ```
 
 Or multi-argument:
 
 ```
 <tool>search_code</tool>
-<args>pattern=spawn_with_deps glob=modules/coding.*</args>
+<args>pattern=spawn_with_deps glob=src/coding.*</args>
 ```
 
 The format is intentionally minimal — easy for any model to produce,
@@ -154,7 +154,7 @@ not just a codebase accessor.
 Tool results are injected into the inference context as a structured block:
 
 ```
-[tool_result: read_file modules/coding.init_code]
+[tool_result: read_file src/coding.init_code]
 ─────────────────────────────────────────────────
      1  ## [:< ##
      2  # name  = coding.init_code
@@ -174,9 +174,9 @@ been acted upon and are no longer needed can be compacted to a single line).
 The model can make sequential tool calls, each building on previous results:
 
 ```
-turn 1: model reads modules/coding.init_code
-turn 2: model reads modules/coding.handler.spawn_with_deps (found reference in turn 1)
-turn 3: model edits modules/coding.handler.spawn_with_deps
+turn 1: model reads src/coding.init_code
+turn 2: model reads src/coding.handler.spawn_with_deps (found reference in turn 1)
+turn 3: model edits src/coding.handler.spawn_with_deps
 turn 4: model runs tool.shell.git to verify the diff
 turn 5: model reports: "change implemented, diff looks correct"
 ```
@@ -287,8 +287,8 @@ participates in the network as a full citizen.
 - `data/md/vision/habitat/VISION-CONTEXT-COMPACTION.md` — tool results in compaction
 - `data/md/vision/habitat/VISION-SESSION-IDENTITY.md` — audit trail and route record
 
-#,,,,,.,,,.,,,.,,,.,.,,,,,.,.,.,,,.,,,..,,.,.,..,,...,...,..,,,,.,,..,.,.,,,,,
-#RPX3Y7SUTSRJ3IRCFYMHL352PAE6M5ZUENZ4I4KSBAAN2NGFRKQZPYGVF3R2ZOLBZGLAVCOSWTSBU
-#\\\|WUZL2R63UKXGR2DHGEPDKIOUWPDBJWAAS7LZY6M356AZZHAX6TF \ / AMOS7 \ YOURUM ::
-#\[7]GKSHJV2ZXL3KZIBCOURMOHBOELZGJCPKSZNOIB6RD7Q3UHV2OMCY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,.,,,...,.,,,,.,,...,...,.,.,..,,...,...,...,.,.,,.,,...,,,.,
+#CV7DOAF4RPEORPL2RNWXMZIVMMOTAN6MUQM5UWCZBG7IIRSF5FTZIZX56D5H77774FRGJTEVTCBBC
+#\\\|DBEI6R2AB6KDR2TK7GICKDGCDO7HG4BJJ26J2I4MO6LUVRJUG7L \ / AMOS7 \ YOURUM ::
+#\[7]4A557TR3S56IEBYUHI53YT3OGV3GW624Y6KH3SBUDG3I3XRN26AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

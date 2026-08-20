@@ -1,0 +1,254 @@
+## [:< ##
+
+# name  = httpsd.create_ssl_socket
+# param = $addr, $port
+# descr = create SSL|TLS socket for HTTPS server
+# return = SSL socket handle or -1 on error
+
+my $addr = shift;
+my $port = shift;
+
+<[base.logs]>->( 2, "httpsd : creating SSL socket on %s:%d", $addr, $port );
+
+## Get certificate paths from configuration
+my $cert_file = <httpsd.cfg.certificate_path>;
+my $key_file  = <httpsd.cfg.key_path>;
+
+<[base.logs]>->( 2, '  certificate : %s', $cert_file );
+<[base.logs]>->( 2, '  key : %s',         $key_file );
+
+## check if certificate files exist
+unless ( -f $cert_file && -f $key_file ) {
+    ## certificate not available yet - return undef for graceful deferral
+    my $missing = !-f $cert_file ? 'certificate' : 'key';
+    <[base.logs]>->(
+        1, 'httpsd: %s file not found, deferring socket creation', $missing
+    );
+    <[base.logs]>->( 2, 'will retry when certificate becomes available' );
+    return undef;
+}
+
+## Get TLS configuration
+my $tls_version = <httpsd.cfg.tls_version> // 'TLSv1_2';
+my @cipher_list = qw|
+    DEFAULT !aNULL !eNULL !MD5 !3DES !DES !RC4 !IDEA !SEED !aDSS !SRP !PSK
+    |;
+my $default_ciphers = join( ':', @cipher_list );
+my $cipher_suite    = <httpsd.cfg.cipher_suite> // $default_ciphers;
+
+<[base.logs]>->( 2, '  TLS version : %s',  $tls_version );
+<[base.logs]>->( 3, '  cipher suite : %s', $cipher_suite );
+
+## ensure TLS_version is a scalar string (not a list)
+if ( ref($tls_version) eq 'ARRAY' ) {
+    $tls_version = join( ':', @$tls_version );
+    <[base.logs]>->(
+        2, '  note: converted TLS_version array to string: %s', $tls_version
+    );
+}
+
+## convert colon-separated TLS versions to IO::Socket::SSL compatible
+## IO::Socket::SSL does NOT accept "TLSv1_3:TLSv1_2" format
+if ( $tls_version =~ m/:/ ) {
+    my @versions = split( /:/, $tls_version );
+    <[base.logs]>->(
+        2,
+        '  note: TLS has multiple protocols, using highest: %s',
+        join( ' ', @versions )
+    );
+
+    ## use first (typically highest) version for IO::Socket::SSL
+    $tls_version = $versions[0];
+    <[base.logs]>->(
+        2, '  note : converted to single version : %s', $tls_version
+    );
+}
+
+## verify certificate key type compatibility with cipher suite
+my $cert_info = 'unknown';
+my $key_type  = 'unknown';
+my $x509      = eval { Crypt::OpenSSL::X509->new_from_file($cert_file); };
+if ( defined $x509 ) {
+    $key_type  = $x509->key_alg_name() // 'unknown';
+    $cert_info = sprintf '%s %d-bit', $key_type, $x509->bit_length() // 0;
+}
+
+<[base.logs]>->( 3, '  certificate key type: %s', $key_type );
+<[base.logs]>->( 3, '  certificate info: %s',     $cert_info );
+
+## Create SSL socket with enhanced error diagnostics
+my $ssl_socket;
+
+#
+$SIG{'PIPE'} = qw| IGNORE |;    ### do not crash when client already gone ###
+
+## SNI note: SSL_cert_callback is not used here because its behavior varies by
+## IO::Socket::SSL version - on some versions it overrides SSL_cert_file and
+## returning () does not restore the default cert, causing 'bad certificate'
+## alerts when no per-domain match is found.  SNI per-domain cert selection is
+## handled after socket upgrade instead.
+
+<[base.log]>->( 3, '  creating IO::Socket::SSL with parameters:' );
+<[base.logs]>->(
+    3,            '    SSL_version: %s [ref:%s]',
+    $tls_version, ref($tls_version),
+);
+<[base.logs]>->( 3, '    LocalAddr : %s, LocalPort : %d', $addr, $port );
+
+$ssl_socket = eval {
+    IO::Socket::SSL->new(
+        LocalAddr  => $addr,
+        LocalPort  => $port,
+        Listen     => <max.connections> // 1024,
+        ReuseAddr  => 1,
+        ReusePort  => 1,                     ## <-- concurrent restart support
+        Timeout    => <httpsd.timeout> // 23,
+        SSL_server => 1,
+        SSL_cert_file          => $cert_file,
+        SSL_key_file           => $key_file,
+        SSL_version            => $tls_version,
+        SSL_cipher_list        => $cipher_suite,
+        SSL_honor_cipher_order => 1,
+        SSL_alpn_protocols     => [qw| http/1.1 |],
+    );
+};
+
+## IPv6 wildcard unavailable - fall back to IPv4 wildcard ##
+if ( !$ssl_socket and $addr =~ m|^[0:]+$| ) {
+    <[base.logs]>->( 1, 'IPv6 wildcard unavailable - retrying with 0.0.0.0' );
+    $addr       = '0.0.0.0';
+    $EVAL_ERROR = '';
+    eval {
+        $ssl_socket = IO::Socket::SSL->new(
+            LocalAddr              => $addr,
+            LocalPort              => $port,
+            Listen                 => <max.connections> // 1024,
+            ReuseAddr              => 1,
+            ReusePort              => 1,    ## <-- concurrent restart support
+            Timeout                => <httpsd.timeout> // 23,
+            SSL_server             => 1,
+            SSL_cert_file          => $cert_file,
+            SSL_key_file           => $key_file,
+            SSL_version            => $tls_version,
+            SSL_cipher_list        => $cipher_suite,
+            SSL_honor_cipher_order => 1,
+            SSL_alpn_protocols     => [qw| http/1.1 |],
+        );
+    };
+}
+
+if ($EVAL_ERROR) {
+    <[base.log]>->( 0, "httpsd : SSL socket creation EVAL ERROR :" );
+    <[base.logs]>->( 0, "  error : %s", <[base.str.eval_error]> );
+    <[base.logs]>->(
+        0,            "  SSL_version parameter: '%s' [ type:%s ]",
+        $tls_version, ref($tls_version)
+    );
+    <[base.logs]>->( 0, '  cert file : %s', $cert_file );
+    <[base.logs]>->( 0, '  key file : %s',  $key_file );
+
+    ## Log system error if available
+    if ($OS_ERROR) {
+        <[base.logs]>->( 0, "  system error : %s", <[base.str.os_err]> );
+    }
+
+    ## Provide specific guidance based on error type
+    if ( $EVAL_ERROR =~ m{cannot set multiple SSL protocols} ) {
+        <[base.log]>->(
+            0, "  hint: Check httpsd.cfg.tls_version - parse versions"
+        );
+        <[base.log]>->(
+            0, "  info: IO::Socket::SSL requires single version string"
+        );
+        <[base.log]>->( 0, "  (e.g., 'TLSv1_3' not 'TLSv1_3:TLSv1_2')" );
+    }
+    return -1;
+}
+
+unless ( defined $ssl_socket ) {
+    my $ssl_err      = IO::Socket::SSL::errstr();
+    my $ssl_err_full = $ssl_err;
+    $ssl_err =~ s|\n.+||mg;
+
+    <[base.log]>->( 0, 'httpsd : SSL socket creation returned UNDEF:' );
+    <[base.logs]>->( 0, '  IO::Socket::SSL::errstr(): %s', $ssl_err );
+    <[base.logs]>->( 0, '  full error : %s',               $ssl_err_full );
+    <[base.logs]>->( 0, "  SSL_version was : '%s'",        $tls_version );
+    <[base.log]>->( 0, '  cert type (Ed25519/RSA): check with:' );
+    <[base.logs]>->(
+        0, "    openssl x509 -in %s -text -noout | grep -i 'public key'",
+        $cert_file
+    );
+    <[base.log]>->( 0, '  key type : check with:' );
+    <[base.logs]>->(
+        0, '    openssl pkey -in %s -text -noout | head -1', $key_file
+    );
+    <[base.log]>->(
+        0, '  hint: Ed25519 certificates require compatible SSL_version'
+    );
+    <[base.log]>->( 0, '  and cipher suite (see commit 510bbaf)' );
+    return -1;
+}
+
+## start listening
+<[base.log]>->( 2, 'httpsd : SSL socket created successfully' );
+<[base.logs]>->( 2, '  socket ref : %s', ref($ssl_socket) );
+<[base.logs]>->( 2, '  socket fd : %s',  fileno($ssl_socket) // 'undef' );
+
+unless ( $ssl_socket->listen() ) {
+    <[base.logs]>->( 0, 'httpsd : listen failed : %s', <[base.str.os_err]> );
+    return -1;
+}
+
+<[base.logs]>->( 1, 'httpsd : SSL server launched [%s:%d]', $addr, $port );
+<[base.logs]>->( 2, '  listening with %s', $tls_version );
+
+## register SNI callback via Net::SSLeay after socket creation  [
+## IO::Socket::SSL SSL_cert_callback has version-dependent behaviour;
+## Net::SSLeay CTX_set_tlsext_servername_callback is stable across versions ]
+if ( Net::SSLeay->can('CTX_set_tlsext_servername_callback') ) {
+    ## older IO::Socket::SSL versions store ctx as 'ctx', newer as 'ssl_ctx'
+    my $ssl_ctx_obj = ${*$ssl_socket}{'_SSL_ctx'};
+    ## field name varies by IO::Socket::SSL version:  'context' (newer),
+    ## 'ssl_ctx' (mid), 'ctx' (older)
+    my $ssl_ctx
+        = defined $ssl_ctx_obj
+        ? ( $ssl_ctx_obj->{'context'} // $ssl_ctx_obj->{'ssl_ctx'}
+            // $ssl_ctx_obj->{'ctx'} )
+        : undef;
+    if ( defined $ssl_ctx ) {
+        my $sni_sub = sub {
+            my $ssl      = shift;
+            my $hostname = Net::SSLeay::get_servername($ssl) // '';
+            return 1 unless length $hostname;    ## no SNI: use default cert
+            my ( $k, $c )
+                = $code{'httpsd.callback.ssl_cert_select'}
+                ->( undef, $hostname );
+            if ( defined $c and -f $c and defined $k and -f $k ) {
+                Net::SSLeay::use_certificate_chain_file( $ssl, $c );
+                Net::SSLeay::use_PrivateKey_file( $ssl, $k,
+                    Net::SSLeay::FILETYPE_PEM() );
+            }
+            return 1;                            ## SSL_TLSEXT_ERR_OK
+        };
+        Net::SSLeay::CTX_set_tlsext_servername_callback( $ssl_ctx, $sni_sub );
+        <[base.log]>
+            ->( 1, 'httpsd: SNI callback registered [ Net::SSLeay ]' );
+    } else {
+        <[base.log]>->( 1, 'httpsd: SSL_CTX not accessible, SNI disabled' );
+    }
+} else {
+    <[base.log]>->(
+        1, 'httpsd: Net::SSLeay SNI unavailable, serving default cert'
+    );
+}
+
+return $ssl_socket;
+
+0;
+
+#,,.,,.,.,,,.,..,,,..,...,..,,,,,,.,.,,,,,,.,,..,,...,...,,,.,...,,,,,,..,..,,
+#2WSVWJPHNJLNANOUR6ZNP7S23GZHCQUXRP6EQXIF5JEFCAVER2SZ5HIXGSADZMP5GXI5L4LI42674
+#\\\|U3YMCAEIHIUSBWNXK74WCGX3VWXHM5NXFD2H76AXGCVHWNVKUYC \ / AMOS7 \ YOURUM ::
+#\[7]X5U3FVK6IAHEDN3SBNGJR77QA5II2JYV6HEBZ6OMWQEQAGX7EOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

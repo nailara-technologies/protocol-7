@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.web.space.init_code
+# descr = initialize space visualization plugin state
+
+## spatial data cache : populated by async fetch, read by template commands ##
+<web.space.cache> = {
+    qw| state     | => {},
+    qw| timestamp | => 0,
+    qw| ttl       | => 7,
+    qw| source    | => qw| unknown |,
+};
+
+## configuration : which zenka to query for spatial data ##
+<web.space.cfg.data_source> //= qw| graphics-matrix |;
+
+<[base.log]>->( 1, 'plugin.web.space : initialized' );
+
+## register template command aliases (web.space.* → plugin.web.space.*) ##
+for my $suffix (qw| state fetch index grid |) {
+    my $full  = "plugin.web.space.$suffix";
+    my $alias = "web.space.$suffix";
+    $code{$alias} = $code{$full} if exists $code{$full};
+}
+
+## orbital data endpoint, template resolver, and attention state machine    ##
+## each have their own .init_code, already run automatically by the zenka's ##
+## unscoped [init_modules] sweep -- explicit calls here duplicated that,    ##
+## running each one twice on every startup                                  ##
+
+0;
+
+#,,.,,,.,,...,,,,,..,,,,,,..,,,,,,,..,.,.,,,.,..,,...,...,..,,,,,,.,,,...,..,,
+#H3BLJ27KHKTEOMMFWASOP7AFYGHZAT6FFROH2NHEK77VJQY2MUL6AS3QUVI4UQENWDM67NTBL4JAU
+#\\\|GDHPVR3SYGO73IASNIZ6MXAVLILF4MK2DYHCGKJQP4P6M7KXBN3 \ / AMOS7 \ YOURUM ::
+#\[7]RF2JV635MHKTABWCBXUOZZPHSHJKY7URAZ4HMW2UXSHLK2I53SAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

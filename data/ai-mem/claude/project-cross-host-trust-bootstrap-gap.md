@@ -28,7 +28,7 @@ no p7 link back. A fix that only works same-cube would need redoing.
 
 ## cred-mesh, surveyed fresh
 
-`cred-mesh` (cfg/zenki/cred-mesh/, modules/cred-mesh.*) is a
+`cred-mesh` (cfg/zenki/cred-mesh/, src/cred-mesh.*) is a
 **local secret storage/rotation broker**, not an identity or trust
 mechanism: `register` declares a slot's metadata (owner, type, rotation),
 `resolve` decrypts and formats the stored secret for use
@@ -79,14 +79,14 @@ describes credential *format*, not the handshake/discovery transport.
 Don't add a third parallel credential namespace without checking this.
 
 **New fact vs. the 2026-07-17 survey**: that survey said "no writer of
-the `remote-host.*` pattern was found in `modules/`" for TOFU-pinned
+the `remote-host.*` pattern was found in `src/`" for TOFU-pinned
 files. The user's own `v7.keys list` output today shows real
 `remote-host.local_42.public` / `remote-host.localhost_42.public` /
 `remote-host.127.0.0.1_42.public` files under the `taeki` user, and a
 `global-root` + `protocol-7.base` key pair under a locked-down
 (`no-r.perms`) system `protocol-7` user — global-root is the intended
 common trust anchor these chain toward. The `remote-host.*` writer likely
-exists outside `modules/` (console/keys-zenka path?) or was written
+exists outside `src/` (console/keys-zenka path?) or was written
 manually — **unresolved, worth a targeted grep before relying on either
 naming convention**.
 
@@ -151,8 +151,8 @@ working-style takeaway.
 [[project-zenka-cryptographic-identity-survey]]
 [[topic-write-access-security-infrastructure]]
 
-#,,.,,.,,,..,,,,.,.,.,,,,,..,,.,.,,.,,...,.,,,..,,...,...,..,,.,,,...,,,.,.,,,
-#FMTGEAPQ7QPZJ2XINFMZL2NUXXH4U2PDYLNN5N2GQNM72Z7SL3EPZEYEJDZV2DC3K2567Q2HMUSOA
-#\\\|MYHZ4MF54726YBQ3GDZCHY6Z3REHOHEJOGYWV36U2TSB3ZO6OGN \ / AMOS7 \ YOURUM ::
-#\[7]HSDVHAKK2NQKVUN5E7DOFN336JVRYZCRXNXLVCJOIPTIXZYXQWBA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,...,,..,,.,,,,,,..,,,..,,..,..,,...,...,.,.,.,,,.,.,,,,,.,.,
+#PRHVHENBLYWBVR6MSBCKXTSZ3A5XBTF3562RJ7BMOIQXWY6BKMQDCBMRJQX6FB7UHUKDKR6ZBL6OG
+#\\\|WXIBLZ4QDLJV7NJJHO6HKYGBGACDZZJDOXYMXB4AGRC7VAT7JHI \ / AMOS7 \ YOURUM ::
+#\[7]7SGCIVFKBVPE44L7SGPK3GM6VN5SJKRUPXGBJIEWDTLLXNLIXUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

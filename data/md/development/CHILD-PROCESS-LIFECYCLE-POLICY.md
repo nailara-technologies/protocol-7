@@ -106,7 +106,7 @@ v7 maintains a per-zenka child inventory in instance data:
 
 populated via `v7.register_child <pid> [category]` — existing command extended
 with optional category param. `gone_child <pid>` is the deregister counterpart.
-both already exist in `modules/v7.zenka.cmd.*`; category param is the only addition.
+both already exist in `src/v7.zenka.cmd.*`; category param is the only addition.
 
 ### on zenka restart
 
@@ -161,8 +161,8 @@ see `X11-RELIABILITY-AND-WINDOW-REGISTRY.md` for the reference implementation.
 - `v7.teardown` access control: restrict to `system` zenka only
   (currently `access.cmd.usr.cube = *` — any zenka can trigger full shutdown)
 
-#,,..,..,,,,.,..,,,.,,,..,,..,,,.,,.,,...,,,.,..,,...,...,...,.,.,..,,.,.,..,,
-#7YXL5NASE2JOKN74CMP6DTB2XHDOU2667HWH7NGWUV3JNKQEXK4OHUM2WJDW2EPGXWXT367KGIIXY
-#\\\|ZBXWH4RZKPYIYDEPOB6C6JWNIMHFGOHL22SQKLYVSZDQ5E43A4G \ / AMOS7 \ YOURUM ::
-#\[7]XBYZCEUH4WAHFG42WU6O4Y7E66VBKO373NKXGFLYVSPOAZCABCDY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,.,.,,,.,.,.,,,...,...,.,.,..,,..,,...,...,..,,,.,,,..,,,.,,,,,
+#MELKRW46QZUFBI6IQDA5AP7L5UKRKIJOXBZ5DJE4MVQBOBEF6NFSJATUIHTTZUFD7CQ5PV5WWHHHW
+#\\\|2MJDYSO7LTYU6VOEI5V7WAJI7DOZXKUTWFHP2FBZRNPAQ4HV6IC \ / AMOS7 \ YOURUM ::
+#\[7]RVHOND65P5XXRHPXVLWJ6YKO2V7LJSSTUM2QIKVN5LXNI7UZSAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

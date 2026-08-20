@@ -34,7 +34,7 @@ modules is invisible to both `perl -c` AND this tool — see below).
 ## the actual tool
 
 ```
-perl bin/test-scripts/p7-module-syntax-check modules/some.module.name [more...]
+perl bin/test-scripts/p7-module-syntax-check src/some.module.name [more...]
 ```
 
 It reads the file, strips the AMOS7 signature footer, runs it through
@@ -58,8 +58,8 @@ already existed on `HEAD`, it's this class of noise, not a regression.
 call-injection-not-caught-by-perl-c]] class of bug either — boot-testing
 the owning zenka is still the only real verification for that one.
 
-#,,,.,,,,,..,,,..,...,.,.,,,.,,.,,.,.,..,,.,,,.,.,...,...,,.,,.,.,,.,,..,,,,,,
-#A7PWPZQEAIUTHGHTAJHHB7SJQSBTHI4PJFPKDCVYZVV4SAYKB3ZUNDPVY2QLYEI5L6G4GN3RLOOU6
-#\\\|VWF7OJKGM27F5ZR2R7I3YWMYURYSRJROEBIDJHXNRJRUMGWPMFY \ / AMOS7 \ YOURUM ::
-#\[7]RMIGCRJDGOVW7DV5YLBI74RXDLSN33SJP5FIPVG7RAMCEC43NADI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,..,,,.,,,,.,.,,,,,,,,..,...,.,.,...,..,,,..,...,.,,,,.,,...,
+#WW74HB2XOXU5YB6AVXQK6QFMYKWWTCMX6JOC73MB4ZAGPQ64HGQ2IKAJZBI2UFQ466I2GOPGXPM2Y
+#\\\|3CY4SJE4AE62N3QWDCUVYK5V67K6MCORR766E5GIWJLA6ZACKWW \ / AMOS7 \ YOURUM ::
+#\[7]FBHY5V76Q5BZ6QIM2LX7AZV7ON56ATY25PV6G5AKHYENG4ECGMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

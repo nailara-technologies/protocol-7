@@ -2,13 +2,13 @@
 
 ## objective
 create two modules:
-- `modules/valued.tree.persist` — save live valued tree to YAML on disk
-- `modules/valued.tree.restore` — load persisted tree back into memory
+- `src/valued.tree.persist` — save live valued tree to YAML on disk
+- `src/valued.tree.restore` — load persisted tree back into memory
 
 ## read first
-- `modules/valued.init_code` — shows <valued.index> structure
-- `modules/task.persist.save` — reference for YAML persistence pattern
-- `modules/task.persist.load` — reference for YAML restore pattern
+- `src/valued.init_code` — shows <valued.index> structure
+- `src/task.persist.save` — reference for YAML persistence pattern
+- `src/task.persist.load` — reference for YAML restore pattern
 
 ## valued.tree.persist
 
@@ -36,8 +36,8 @@ no params. loads persisted tree into live index:
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,..,.,.,,.,,.,,,,,.,,,.,,.,,..,,.,,,.,,,..,,..,,...,...,...,,,,,,,.,,,.,,,.,
-#47FXXSJSINN5NXUYAU7CQD463P6HZAEZ3SPQVNMLCATFIHE4S4G4666T2R4QXGFFXRVTWAZXCUV6U
-#\\\|3UN4SG6EWNO74OWXASMQLBZMGNH77ZJ2SKF4I4ZYTULTZ2TCDVW \ / AMOS7 \ YOURUM ::
-#\[7]CALZI5XO3DNN6K7ZIUHZJRKNS4A25FZ2VYLXRZAI6K4SUNSXJSAA 7  DATA SIGNATURE ::
+#,,..,,..,..,,,.,,,,.,,,,,.,,,.,.,,.,,...,,,,,..,,...,...,.,,,,,.,..,,,..,,..,
+#JGMWN474QRJTONOICV4KER5LAF6E4CO2Z63IVE7K5YP3MJTNQJHSN7FEWZTYO6GY772M5QH2M7IYS
+#\\\|TT2KIFVLO64F5JZZG666OE35HZCMCRQA57WDKWS4I65RCYPQX23 \ / AMOS7 \ YOURUM ::
+#\[7]EDJQDOHTLYKY2FVLGNAA2B63P6NSC2EFBS63TTCN6YT7RTM6NCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

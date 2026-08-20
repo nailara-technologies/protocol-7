@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = storchencam.handler.reposition_reply
+# descr = window-place coords reply: apply geometry to window
+
+my $reply = shift // {};
+my $mode  = lc( $reply->{'cmd'} // '' );
+my $rdata = $reply->{'call_args'}->{'args'} // '';
+
+if ( $mode ne qw| true | ) {
+    <[base.logs]>->( 1, '[reposition] coords unavailable — no change' );
+    return;
+}
+
+my %geo;
+for my $token ( split m|\s+|, $rdata ) {
+    $geo{$1} = $2 + 0 if $token =~ m{^(x|y|width|height)=(-?\d+)$};
+}
+
+unless (defined $geo{'x'}
+    and defined $geo{'y'}
+    and defined $geo{'width'}
+    and defined $geo{'height'} ) {
+    <[base.logs]>->( 0, '[reposition] unparseable coords [%s]', $rdata );
+    return;
+}
+
+my $geometry = sprintf '%dx%d+%d+%d',
+    $geo{'width'}, $geo{'height'}, $geo{'x'}, $geo{'y'};
+
+## cache the new profile ##
+my $caller = <system.zenka.name> // qw| storchencam |;
+<[window.profile.save]>->(
+    $caller, $geo{'x'}, $geo{'y'}, $geo{'width'}, $geo{'height'}
+);
+
+## apply to running storchencam window via X-11 ##
+my $window_id = <x11.id>;
+if ( defined $window_id ) {
+    <[base.zenki.resolve_primary_sid]>->(
+        'X-11',
+        sub {
+            my $sid = shift;
+            return if not defined $sid;
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.set_geometry",
+                    'call_args' =>
+                        { 'args' => sprintf '%d %s', $window_id, $geometry }
+                }
+            );
+        }
+    );
+    <[base.logs]>->( 1, '[reposition] applied geometry [%s]', $geometry );
+} else {
+    ## expected when no storchencam window is currently open profile is ##
+    ## saved above, will apply on next sdl_loop                         ##
+    <[base.logs]>->(
+        1, '[reposition] no window open — geometry saved for next open'
+    );
+}
+
+#,,,,,,,,,,..,,,,,,,,,,,,,.,,,,.,,,,,,..,,.,.,..,,...,...,...,.,.,,,.,,,,,,..,
+#HL2YPQHGSC6PZ3QYYUT7VGAN2MWEVPI3KZRGP5YJFC4WNFSVFI7FQFDYNNFIDL76U4PJVQ47O3VXI
+#\\\|HGTOEXFPZXO5AXBQRRBDROQEAVSTELZZKSKWHCXCTIKFWHC6WER \ / AMOS7 \ YOURUM ::
+#\[7]WMWRAG43NJQID7PVOI3W4SNOZJ2GWE4GHZBA4XYUSLFJ2SBBXYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

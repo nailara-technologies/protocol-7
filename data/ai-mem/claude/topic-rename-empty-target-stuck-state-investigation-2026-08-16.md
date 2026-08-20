@@ -27,7 +27,7 @@ closes, the stale status has no expiry at all. FOUR
 submit_* callbacks write it -- `submit_name`, `submit_passphrase`,
 `submit_rename_from`, `submit_rename_to` -- covering both create AND rename,
 not just rename. **Nothing, anywhere in the codebase, ever cleared it.**
-`grep -rn "key_actions.last_result" modules/` showed 4 writers, 1 reader,
+`grep -rn "key_actions.last_result" src/` showed 4 writers, 1 reader,
 0 clears. Being a `%data` keyword, its lifetime is the whole zenka process
 -- hence "until zenka exit" being literal, not a figure of speech.
 
@@ -45,7 +45,7 @@ this zenka should synchronize on output, never on sleep timing** -- the
 earlier "rf3 vs rf4 inconsistent results" note from this same investigation
 was this exact harness flaw, not a real nondeterministic app bug.
 
-**The fix** (in `modules/user-edit.handler.stdin_key`, inside the
+**The fix** (in `src/user-edit.handler.stdin_key`, inside the
 plugin-mode ENTRY-TRIGGER block -- the one that sets `$editor_state->{mode}
 = 'plugin:<field>'` on a qualifying Right-arrow): clears
 `$data{'user-edit'}{$focus_def->{'name'}}{'last_result'} = undef;`
@@ -85,8 +85,8 @@ field-is-empty-but-genuinely-two-stage entry (unlike key_actions), the
 single-stage-entry-bypasses-handler.key gotcha documented above applies to
 it too.
 
-#,,..,.,,,,..,.,,,..,,.,.,...,..,,.,,,,.,,,.,,..,,...,...,,.,,...,,.,,.,,,..,,
-#DLUVWD5P3HPDJGAI64NAPAXBEHRPYVMIKAN3MSUP5BD2GGLZ7P37GEFS6TK4A4HV5TZPOISZMUMNQ
-#\\\|7ACH4PPMWCFVBTOB7XRAQX776RE3D2AYIWKLYH34I56IOU3KJOI \ / AMOS7 \ YOURUM ::
-#\[7]HSJAQHISWJAYAM22Y476A4XANENNIQODDMW5V7JSKPCVIRSL74AA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,...,,,,,.,,,,..,.,,,,,,,,.,,,,,,..,,...,..,,,.,,..,,...,.,,,..,,
+#KCDYFMTIPHX2CHKQOF577MZT3G5C5NIAD3YNIJIZ5QEWL3LEULUFZXZWIIPFZ4SRUGTXA2Y6GK7DU
+#\\\|A2INDRA4AJB4ZYETHNHT76FDQB4WB73O7EEQIPOFFKEUPM7G6EK \ / AMOS7 \ YOURUM ::
+#\[7]36XEWTZG3KORJS4K52G4KRJFS2G5RYTQACEK3CELSACUJMOY4EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

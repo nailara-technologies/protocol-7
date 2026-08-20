@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = proxy.client.close
+# descr = close proxy client connection and clean up state
+
+my $client_id = shift;
+
+my $client = delete $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+## cancel client read watcher before closing socket ##
+if ( defined $client->{'watcher'} ) {
+    $client->{'watcher'}->cancel if $client->{'watcher'}->is_active;
+}
+
+## cancel outbound io and timeout watchers ##
+for my $wk (qw| io_watcher timeout_watcher |) {
+    my $w = $client->{'outbound'}{$wk} // undef;
+    $w->cancel if defined $w and $w->is_active;
+}
+
+## close target socket if tunneling ##
+if ( defined $client->{'target_sock'} ) {
+    $client->{'target_sock'}->close;
+}
+
+## close outbound socket if present ##
+if (    defined $client->{'outbound'}
+    and defined $client->{'outbound'}{'sock'} ) {
+    $client->{'outbound'}{'sock'}->close;
+}
+
+## close client socket ##
+if ( defined $client->{'sock'} ) {
+    $client->{'sock'}->close;
+}
+
+<[base.logs]>->( 3, 'proxy client %s closed', $client_id );
+
+return;
+
+#,,..,,.,,.,.,.,,,,.,,...,,..,,.,,,.,,..,,,,,,..,,...,...,.,,,,.,,..,,...,...,
+#KCD7UXSSOTVPBPHYW3PUUX65ZG5666LXAT2GYDIHB7HOLBFKASH74EIHUZQHWNWMJTWREYQISP7YE
+#\\\|E53I5URGWSEUHQUWMMUOJKLCRREWVBWBKH5LBJOTHZTUN2PR7SW \ / AMOS7 \ YOURUM ::
+#\[7]BBDWAROZOVX7DYB575QN4B4BZJBZUPIS3M7EG3UMMLSCPOVY3KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

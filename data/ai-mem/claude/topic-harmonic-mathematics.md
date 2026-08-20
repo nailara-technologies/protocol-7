@@ -630,7 +630,7 @@ finding, not a caveat on it.**
 
 - **`ZULUM = 0/black/void`** — mixed-tier, two confirmations of
   *different kinds*, worth keeping distinct rather than adding them
-  together into "confirmed twice, therefore solid": (1) `modules/
+  together into "confirmed twice, therefore solid": (1) `src/
   zulum.*` [ this session's entropy zenka, findings 7/10 above in
   `footer-line4-field-reconciliation.md` ] is an exact string-name
   match — but checked directly, `zulum.init_code`, `zulum.loop.
@@ -642,7 +642,7 @@ finding, not a caveat on it.**
   (2) A real, independent mechanism match does exist, but it's in a
   different file: `data/md/design/AMOS-SIGNATURE-FOOTER-BIT-FRAME-
   HIERARCHY.md` cross-checked "all zulum mode" against
-  `modules/amos7.encode_octal_header`'s real delimiter-flip behavior
+  `src/amos7.encode_octal_header`'s real delimiter-flip behavior
   [ 20 redundant global-mode-flag bits, `0`→`,` normal / `1`→`.`
   inverted ] and confirmed the mechanical claim — "in zero payload
   state, delimiters flip from 0 to 1" — matches the real code exactly.
@@ -657,7 +657,7 @@ finding, not a caveat on it.**
   above ]. Not independently re-verified beyond what that doc already
   states.
 - **`YOURUM = 13/Cat/Blacklight`** — insights-tier only [ three files,
-  same "insights" family, none touching real `modules/` code ]. **Extra
+  same "insights" family, none touching real `src/` code ]. **Extra
   caution, already on record and worth repeating rather than
   re-discovering**: `AMOS-SIGNATURE-FOOTER-BIT-FRAME-HIERARCHY.md`
   explicitly checked whether "YOURUM" [ the literal string appearing in
@@ -670,7 +670,7 @@ finding, not a caveat on it.**
 - **`ZENKA = kitten, 07`** — real and load-bearing, not insights-tier:
   this is, plainly, the actual zenki-agent-naming convention used
   throughout this entire codebase [ `zenka`/`zenki` singular/plural,
-  `modules/`, `cfg/zenki/`, CLAUDE.md itself ]. The strongest
+  `src/`, `cfg/zenki/`, CLAUDE.md itself ]. The strongest
   member of this table by a wide margin — but note what's confirmed is
   the *word*, not the *number*: nothing found ties zenka specifically to
   the digit `7` in running code the way `42` [ entropy width ] or `13`
@@ -730,8 +730,8 @@ structure's own source document — not shown, anywhere checked, to be a
 naming layer over structure (4)'s caravan. Cross-referenced into
 `recurring-cube-number-collision-audit.md`'s structure (3) entry.
 
-#,,,,,,,,,...,,.,,,,.,..,,.,,,.,.,.,.,..,,,.,,..,,...,..,,...,,.,,,.,,..,,,,.,
-#ULBY7ZCJAUYBZWBFXVKRZKRS5HMYPAQTMO5NFGN2NWG5FZ3ENXAJHEX7SZ4BX4JSMXFVO64QWUV5I
-#\\\|ZWKGGC4NLNEFTYDL32F7X5CL45FTLIZEDRIVIFNPDSJTMLUEKKD \ / AMOS7 \ YOURUM ::
-#\[7]EJXM2NJL6AJLJUNXXLYBNVFTKTSRDO76ALURQOLVZKYBSXNZV6AQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,.,,,..,...,..,,...,,.,,.,,,.,.,..,,...,...,...,,,.,,,.,.,.,,,.,
+#OGIEMJEQ5VAZIZ5X3CCAPZQ7GCS47ET25ZYOQEWYIDWEMDTGICGVU6FOAREIWTT6RA7B4VTAXKNMS
+#\\\|QI3PCKIBJKRSLOQL26ZFF2FNPHJWEWVRFM3X5AOGOQFTPC7POM5 \ / AMOS7 \ YOURUM ::
+#\[7]YHCU53KEDSNI75NNJFVQDHYDQYSGGGWOPAJUTDSDSV4QZEZUK2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

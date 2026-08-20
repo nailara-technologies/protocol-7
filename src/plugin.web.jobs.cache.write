@@ -1,0 +1,164 @@
+## [:< ##
+
+# name  = plugin.web.jobs.cache.write
+# descr = write a single job record to status-directory storage, update index
+
+my $job_id = shift // '';
+my $job    = shift // {};
+
+return FALSE if not length $job_id;
+return FALSE if ref $job ne 'HASH';
+
+my $enc_id = <[base.vax-int.encode]>->($job_id);
+
+my $cache_dir = <[plugin.web.jobs.cache.path]>;
+
+my $status = $job->{'status'} // 'new';
+
+## determine target path ##
+my ( $target_dir, $job_file );
+if ( $status eq 'blocked' ) {
+    my $epoch = $job->{'blocked_epoch'} // <[base.ntime.epoch_timestamp]>;
+    $target_dir = "$cache_dir/blocked/$epoch";
+    $job_file   = "$target_dir/$enc_id.yaml";
+} elsif ( $status eq 'deleted' ) {
+    my $epoch = $job->{'deleted_epoch'} // <[base.ntime.epoch_timestamp]>;
+    $target_dir = "$cache_dir/deleted/$epoch";
+    $job_file   = "$target_dir/$enc_id.yaml";
+} else {
+    $target_dir = "$cache_dir/$status";
+    $job_file   = "$target_dir/$enc_id.yaml";
+}
+
+## ensure parent directory exists ##
+if ( not -d $target_dir ) {
+    my $user = <system.zenka-user.current> // <system.amos-zenka-user>
+        // qw| protocol-7 |;
+    my $group = <system.zenka-group.current> // $user;
+    <[file.make_path]>->( $target_dir, 0750, $user, $group );
+}
+
+## find old path via index ##
+my $old_status   = <plugin.web.jobs.index>->{$job_id} // '';
+my $old_abs_path = '';
+if ( length $old_status ) {
+    if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
+        $old_abs_path = "$cache_dir/$1/$2/$enc_id.yaml";
+    } else {
+        $old_abs_path = "$cache_dir/$old_status/$enc_id.yaml";
+    }
+}
+
+## prepare content ##
+my $write_job;
+if ( $status eq 'blocked' ) {
+    $write_job = {
+        'id'            => $enc_id,
+        'url'           => $job->{'url'} // '',
+        'status'        => 'blocked',
+        'blocked_epoch' => $job->{'blocked_epoch'}
+            // <[base.ntime.epoch_timestamp]>,
+        'checksum_hit' => $job->{'checksum_hit'} // '',
+    };
+} else {
+    $write_job                    = $job;
+    $write_job->{'id'}            = $enc_id;
+    $write_job->{'last_modified'} = <[base.ntime.b32]>
+        if not exists $write_job->{'last_modified'};
+
+    ## sanitize last_modified: if present but does not decode, replace it ##
+    if ( exists $write_job->{'last_modified'} ) {
+        my $lm = $write_job->{'last_modified'} // '';
+        if ( length $lm ) {
+            my $decoded;
+            {    ## suppress decoder warning while probing ##
+                local $SIG{__WARN__} = sub { };
+                $decoded = <[base.ntime_BASE32_to_numerical]>->($lm);
+            }
+            if ( not defined $decoded ) {
+                <[base.logs]>->(
+                    1,
+                    'web.jobs.cache.write: invalid '
+                        . 'last_modified <%s> for %s, replacing',
+                    $lm,
+                    $enc_id
+                );
+                $write_job->{'last_modified'} = <[base.ntime.b32]>;
+            }
+        }
+    }
+}
+
+## atomic transition: rename if path changed ##
+my $written = FALSE;
+if (    length $old_abs_path
+    and $old_abs_path ne $job_file
+    and -f $old_abs_path ) {
+    if ( not rename( $old_abs_path, $job_file ) ) {
+        <[base.logs]>->(
+            0, 'web.jobs.cache.write: rename %s -> %s failed: %s',
+            $old_abs_path, $job_file, $!
+        );
+        return FALSE;
+    }
+    ## overwrite with correct content ##
+    my $tmp_file = "$job_file.tmp";
+    eval { YAML::XS::DumpFile( $tmp_file, $write_job ) };
+    if ($@) {
+        <[base.logs]>->(
+            0,       'web.jobs.cache.write: tmp dump error %s: %s',
+            $job_id, $@
+        );
+        return FALSE;
+    }
+    rename $tmp_file, $job_file or do {
+        <[base.logs]>->(
+            0,       'web.jobs.cache.write: rename failed %s: %s',
+            $job_id, $!
+        );
+        return FALSE;
+    };
+    $written = TRUE;
+} else {
+    ## write fresh or in-place ##
+    my $tmp_file = "$job_file.tmp";
+    eval { YAML::XS::DumpFile( $tmp_file, $write_job ) };
+    if ($@) {
+        <[base.logs]>->(
+            0,       'web.jobs.cache.write: dump error %s: %s',
+            $job_id, $@
+        );
+        return FALSE;
+    }
+    rename $tmp_file, $job_file or do {
+        <[base.logs]>->(
+            0,       'web.jobs.cache.write: rename failed %s: %s',
+            $job_id, $!
+        );
+        return FALSE;
+    };
+    $written = TRUE;
+}
+
+## update in-memory index and cache ##
+<plugin.web.jobs.index> //= {};
+<plugin.web.jobs.index>->{$job_id} = do {
+    if ( $status =~ m{^(blocked|deleted)$} ) {
+        my $epoch = $job->{"${status}_epoch"}
+            // <[base.ntime.epoch_timestamp]>;
+        "$status:$epoch";
+    } else {
+        $status;
+    }
+};
+
+<plugin.web.jobs.cache> //= {};
+<plugin.web.jobs.cache>->{$job_id} = $write_job;
+
+return $written;
+
+#,,,,,,.,,,.,,.,,,,,.,.,,,,.,,,.,,,,.,,,,,..,,..,,...,..,,...,..,,...,,,,,.,,,
+#RUE5NT6UJPIGWJQYSPORSYRZ27MVBSVK3YHLBWDUMG2NCGFWRYI55ZFYHRVKBBTMU5OR2Z7I3SI3M
+#\\\|Z3UXOBVZDVBCKA42PWJ6P2REZYQ6R3UBWGPRDOOGQ7UQYUXB5HJ \ / AMOS7 \ YOURUM ::
+#\[7]STQ5DHYUAQBEPMDAXWVEUX44XQYRORCXLNELTMQMHR2HNNW5HEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

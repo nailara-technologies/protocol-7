@@ -12,7 +12,7 @@ exported (back to July), not just the accidental batch, because the old
 `clearExportHistory()` cleared unconditionally. Fixed same session (see
 `data/web-root/vhosts/jobs.vhost/index.html`, `clearExportHistory()` /
 `exportCSV()` / `syncLastExportTime()`) by adding a per-job `exported_at` epoch (batch-shared
-timestamp, also added to the backend whitelist in `modules/plugin.web.jobs.sync:57`) and
+timestamp, also added to the backend whitelist in `src/plugin.web.jobs.sync:57`) and
 scoping "vergessen" to only clear jobs whose `exported_at` matches the *current* known
 last-export epoch — i.e. undo-the-most-recent-action semantics, not intent detection
 (nothing can detect intent; recency is the only signal available and is sufficient for the
@@ -43,8 +43,8 @@ can browse and act on individually" — the export history log would likely reus
 shape (a small per-batch record store + shared-prefs-style cross-browser watermark) rather
 than inventing a new pattern from scratch.
 
-#,,..,.,,,,.,,.,.,,.,,..,,,.,,,..,.,.,.,,,.,.,..,,...,...,.,.,,.,,,,.,,,.,,,,,
-#VMPSN7V3P2JU6QB3XDPTMCKULPKUOKHMIDRHIWIMS54PPSSTFBGDBY4LZP7VXG6RSJX7FM2YS6CRC
-#\\\|3KHSHXCNC7LR3MPSHDAY6HQTHXJUK7GFXQW4HCRCUZAPPCROKWB \ / AMOS7 \ YOURUM ::
-#\[7]5PI46RPEHPROXHG5URUB24I4X2ZE4BXWVLRNUMEUADU4FZSWKYDI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,..,,..,,,,.,..,,,.,,.,,,...,..,,...,..,,...,,.,,,,,,..,,.,.,
+#7XZ4Z53JMIWAARN7375XEXXFTIEHOYGDWM4E3HNEJ25U2ZKAGKOJFZS5T6GCZSK4YSEW45FHYARYW
+#\\\|OY5ALRIWIYTCAICR7ZKIIDGAYENTAEDSX2BPFM5J5FFUPOPL574 \ / AMOS7 \ YOURUM ::
+#\[7]HJAF6M77DVXDQQFJPQD2G2UATYFSG5P3BPIOWAVFFIYPXMFXFKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

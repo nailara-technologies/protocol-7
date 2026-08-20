@@ -32,14 +32,14 @@ it listens on http://127.0.0.1:9090 and takes 30-90 seconds to become ready.
 
 ## key reference files — read these first
 
-    modules/coding.spawn_inference_server      — IPC::Open3 spawn pattern,
+    src/coding.spawn_inference_server      — IPC::Open3 spawn pattern,
                                                  non-blocking pipes, pid file,
                                                  orphan detection, watcher setup
-    modules/coding.handler.monitor_inference_startup  — I/O watcher handler,
+    src/coding.handler.monitor_inference_startup  — I/O watcher handler,
                                                         non-blocking read,
                                                         readiness detection,
                                                         crash detection + EOF
-    modules/coding.async_spawn_inference_servers      — timer-based deferred spawn
+    src/coding.async_spawn_inference_servers      — timer-based deferred spawn
     cfg/zenki/calc/start             — minimal on-demand zenka
     cfg/zenki/coding/start           — full zenka with spawn infra
     cfg/external-inference-models    — invokeai config keys
@@ -121,7 +121,7 @@ invoke.ai process is not running.
 look at cfg/zenki/models/subroutine.white-list for exact format.
 
 
-### modules/invoke-web.init_code
+### src/invoke-web.init_code
 
     # name  = invoke-web.init_code
     # descr = invoke-web zenka initialization
@@ -150,7 +150,7 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     - log initialization complete
 
 
-### modules/invoke-web.cmd.start
+### src/invoke-web.cmd.start
 
     # name  = invoke-web.cmd.start
     # descr = cmd: start the invoke.ai web server process
@@ -186,7 +186,7 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     9. return { mode => 'size', data => "invoke.ai starting [pid:$pid]\n" }
 
 
-### modules/invoke-web.cmd.stop
+### src/invoke-web.cmd.stop
 
     # name  = invoke-web.cmd.stop
     # descr = cmd: stop the invoke.ai web server process
@@ -219,7 +219,7 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     return { mode => 'size', data => "invoke.ai stopping [pid:$pid sent SIGTERM]\n" };
 
 
-### modules/invoke-web.cmd.restart
+### src/invoke-web.cmd.restart
 
     # name  = invoke-web.cmd.restart
     # descr = cmd: restart the invoke.ai web server
@@ -233,7 +233,7 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     return <[invoke-web.cmd.start]>->($call);
 
 
-### modules/invoke-web.cmd.status
+### src/invoke-web.cmd.status
 
     # name  = invoke-web.cmd.status
     # descr = cmd: show invoke-web zenka and process status
@@ -261,7 +261,7 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     return { mode => 'size', data => $out };
 
 
-### modules/invoke-web.cmd.health
+### src/invoke-web.cmd.health
 
     # name  = invoke-web.cmd.health
     # descr = cmd: check invoke.ai HTTP health endpoint
@@ -272,7 +272,7 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     if fail: return { mode => 'size', data => "unreachable: $error\n" }
 
 
-### modules/invoke-web.handler.monitor_startup
+### src/invoke-web.handler.monitor_startup
 
     # name  = invoke-web.handler.monitor_startup
     # descr = monitor invoke.ai startup output and detect readiness or crash
@@ -329,7 +329,7 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
         }
 
 
-### modules/invoke-web.handler.check_health
+### src/invoke-web.handler.check_health
 
     # name  = invoke-web.handler.check_health
     # descr = periodic timer handler: verify invoke.ai process is still alive
@@ -355,8 +355,8 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     do not attempt to run — invoke.ai process management requires the
     full zenka environment. report any uncertainties as inline comments.
 
-#,,,,,...,,..,,..,.,.,..,,...,,.,,.,,,,,,,.,.,..,,...,...,...,.,.,.,,,.,,,.,,,
-#6HEQUQRPNL3K436NNII24UU3EPJKM6KKGOAZFBASEMETOY6ZIYUDT757ELJEBAVKRW5MJX26OBWNO
-#\\\|QHACMZ7IQZSDNGD7Y55RBZ4RK3ONZAFZ3HCHHXIZ6LLH5JCYFAS \ / AMOS7 \ YOURUM ::
-#\[7]6ITXGF26KTEC4JIYVAYSRG7XTAQAI56N47TJMOEWGFZ4XCQ7K4AQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,.,,,,,,,.,...,,.,,,..,..,,,,.,..,,...,...,,,,,.,,,...,.,,,.,.,
+#AELUFI36ACQFDRETB5YCLRHK2KF3IK5YJN657IT7FMFVFWA62BHGRTMLEYWZPNLAAGRWOQJEVWBPM
+#\\\|LHP6JGOKI4XARM6RZUPGQXCLRR6PFLNPMJNOCJIZRW45BV3OB3Q \ / AMOS7 \ YOURUM ::
+#\[7]VMDS4YBZJE7COSZN7FO6ACJT4KDVY7JOHGA3PFXA7W6ZYCC3QKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

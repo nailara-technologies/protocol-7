@@ -171,7 +171,7 @@ Generate both header and a sample data row, then use the max length for separato
 ## Current Workarounds
 
 46 `center-N` alignment offsets across the codebase compensate for the bug. Full list
-(grep: `center-[123]` in `modules/`, excluding CSS):
+(grep: `center-[123]` in `src/`, excluding CSS):
 
 | Module | Fields |
 |--------|--------|
@@ -201,8 +201,8 @@ in doubt, keep the offset and note it as reviewed.
 
 ## Files Involved
 
-- `modules/base.parser.list` - Main list rendering logic
-- `modules/models.init_code` - Has `center-1` workaround
+- `src/base.parser.list` - Main list rendering logic
+- `src/models.init_code` - Has `center-1` workaround
 - Other init_code files may have similar workarounds
 
 ## Related Code Sections
@@ -228,8 +228,8 @@ $table_string .= '  '  # 2 leading spaces
     . ' ';  # 1 trailing space
 ```
 
-#,,..,..,,,,,,...,.,.,,..,,.,,.,,,,,,,,,.,,,.,..,,...,...,..,,...,...,.,.,.,,,
-#B5JDGYX2XAYSKNZ7HB7Y66AZDTKLOTSKASIH5PAEAPC5USWFRT4KWTNRWHSVMIAKQK4334SWQHWCE
-#\\\|53ISHY5P2X6EUSGJQMMOXGAU7VAPL3GHWP4TNE5EGJ3MYNHB5TD \ / AMOS7 \ YOURUM ::
-#\[7]LXYKGMCHK6HHQV727FZZG7F7PLAOQCHXOOIFOBKYFNIUVNF53AAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,,.,,.,,,,..,..,,.,,,,..,.,,,..,,...,...,,,.,,.,,,,.,.,,,.,.,
+#2F7TKAUXKT2E4OB2M3XBX5Z6KMPWHQLQQEVXHC4E2GIKZU4N7553ZNA7ZOYL7R6NWNPTNJBJ7U2BI
+#\\\|VY2EZVUHJJHA3SMWCANUGQSLHILUQTGNPFK567HRCZQKVXVFCYO \ / AMOS7 \ YOURUM ::
+#\[7]WT7NSH4I62CMDCANKKUK2JXI7XM2NOT4SZG4366LVZVTQTN4M4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

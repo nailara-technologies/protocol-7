@@ -1,0 +1,72 @@
+## [:< ##
+
+# name = system.process.init_code
+# todo = configurable blacklist!!!
+
+<[base.perlmod.autoload]>->('IPC::Open2');
+<[base.perlmod.autoload]>->('Proc::ProcessTable');
+<[base.perlmod.autoload]>->('Sys::Statistics::Linux');
+
+<system.statistics> = Sys::Statistics::Linux->new(  # LLL: use initfile option
+    qw| loadavg   | => 0,
+    qw| sysinfo   | => 0,
+    qw| cpustats  | => 1,
+    qw| memstats  | => 1,
+    qw| netstats  | => 0,
+    qw| procstats | => 0,
+    qw| pgswstats | => 0,
+    qw| sockstats | => 0,
+    qw| diskstats | => 0,
+    qw| diskusage | => 0,
+    qw| filestats | => 0,
+    qw| processes | => 0,
+);
+
+<system.statistics>->init;
+
+## LLL: WHY WAS THIS REQUIRED? ###
+# <[event.add_signal]>
+# ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+
+<process.table.top>   //= {};
+<process.count>       //= 0;
+<process.top_min.mem> //= 1;
+<process.top_min.cpu> //= 1;
+<system.process.pt>   //= new Proc::ProcessTable( qw| enable_ttys | => 0 );
+<system.process.blacklist_match> = {};
+<system.blacklist.autokill> //= [
+    map {qr|$ARG|}
+        qw|
+        \.v7(\[[^\]]+\])?$
+        \.cube(\[[^\]]+\])?$
+        \.system$
+        term\-child$
+        ^(auto)?ssh
+        ^\/sbin\/init(\s.+)$
+        ^\/lib\/systemd(\s.+)$
+        |
+];
+
+<list.top> = {
+    'var'  => qw| data |,
+    'key'  => qw| process.table.top |,
+    'mask' => '<key>:pid state start:running '
+        . 'pctcpu:%_CPU pctmem:%_MEM fname:process',
+    'align' => {
+        'pid'    => 'center-1',
+        'state'  => 'center-2',
+        'start'  => 'right-2',
+        'pctmem' => 'right-5',
+        'pctcpu' => 'right-5',
+    },
+    'filters' => { 'start' => qw| base.parser.duration | },
+    'descr'   => 'top process table'
+};
+
+0;
+
+#,,,,,,.,,.,.,,.,,.,.,...,...,.,,,...,...,..,,..,,...,...,..,,,.,,...,,,,,.,,,
+#IZHYD4JEZ2BD753V6S3WAHFVURHQWWKSB2YDV53RCHGFECQELKTJXUPXC7C4RQKC6USZSENNWQSZ4
+#\\\|L5KPWOT7UXM25WEQNKGDQGVPP7IYALDB6T7TLFTVVLCIDTVJI3A \ / AMOS7 \ YOURUM ::
+#\[7]CQHR6WGO3JSBY7JQBKVGMHERDTZLCC5RQS6JR3FPZH6VPBH3JKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 Date: 2026-08-16
 
 ### what changed
-- `modules/user-edit.form.render` now implements a terminal-aware vertical viewport.
+- `src/user-edit.form.render` now implements a terminal-aware vertical viewport.
   - Caches terminal size via `user-edit.setup_stdin_watcher` and reacts to `SIGWINCH` via new module `user-edit.handler.term_resize`.
   - Slices the rendered frame to `budget = term_rows - hint_lines`.
   - Walks the frame descriptor slots to locate the active field and keeps it inside the visible slice by adjusting `scroll_top`.
@@ -22,13 +22,13 @@ The initial report said "no change" after the viewport code was added. A tempora
 - When frame height > terminal height, the viewport should slice to exactly the terminal height and scroll with the active field.
 
 ### related files
-- `modules/user-edit.form.render`
-- `modules/user-edit.setup_stdin_watcher`
-- `modules/user-edit.handler.term_resize`
+- `src/user-edit.form.render`
+- `src/user-edit.setup_stdin_watcher`
+- `src/user-edit.handler.term_resize`
 - `cfg/zenki/user-edit/subroutines.load-early`
 
-#,,,.,..,,,.,,,,,,,,,,,,.,,,.,,,,,...,.,.,,.,,..,,...,...,.,,,.,.,,.,,,.,,,,.,
-#YM4VM5LMAS3D52S6XVWRP7IRW2MQSX6B3Y6HNJ6HFMBHWQRFXI5ARQXKA3DMJVIAKCKJRD75KQXOQ
-#\\\|NAYMEW4XV37O4XUTD7WDV5NQC7JRCKVZNRW3WWAY2HNXSAUOQRP \ / AMOS7 \ YOURUM ::
-#\[7]C245UBYMWHWFBWZXCE5CIMYN3QZZYA5RSCQRD3V6M2TR7NANE2CI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,,..,...,,..,,..,,,.,,,.,,,.,..,,...,...,.,,,..,,...,,..,...,
+#I52PK5HWT6DDWLY7YSIFA6T7MQ2R4H6LHHOKHDTRSJXZQDX33EMPXKEDB33AXVYNJALM6RTGUWZUI
+#\\\|IZIFTUUPDOWFZ6IGSZ5CHBDEQ2ZNS4APPJJJD4O6L5JUEXSTBPU \ / AMOS7 \ YOURUM ::
+#\[7]MBGDMSKO5L6IKYRT54GQUUU2FDOGVT3GYHMGO42GXDJIBZGLQCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

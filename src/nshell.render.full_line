@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = nshell.render.full_line
+# descr = Unified full-line redraw with cursor
+#         [ delegates to viewport renderer ]
+#         always resets view_offset to 0 so history entries
+#         display from the start
+
+my ( $editor, $display_buffer, $colors ) = @_;
+
+## reset horizontal scroll position when loading new content  (history,
+## search, ctrl+o)
+my $state_ref = $data{'nshell'}{'state'} //= {};
+$state_ref->{'view_offset'} = 0;
+
+## viewport render handles both normal and overflow cases
+<[nshell.render.viewport]>->( $editor, $colors );
+
+return;
+
+#,,,,,,,.,,..,,,.,.,,,.,,,.,.,,.,,,,,,,..,,.,,.,.,...,...,,,,,,..,,..,.,.,..,,
+#TEBMKI2VB3IAQX3JETJ25YSMEMA7ZACGZI646QO7Z7KPJHPRZIQJLCKUX4TQHW54XPU56DFOUPRIO
+#\\\|BOLLKYFZJ5BDUJVIKZI6IMLVGGUJ3CUTEVPBD5HFKZNKKAKCLXW \ / AMOS7 \ YOURUM ::
+#\[7]6MQSRYSCYMK4VVNG53KQLZL7IYQHMJ63RHLJTZMFOIOTAP5LNKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

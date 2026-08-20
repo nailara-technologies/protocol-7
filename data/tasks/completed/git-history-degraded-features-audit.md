@@ -62,17 +62,17 @@ scan current module files for deferred work markers:
 
 ```bash
 ## LLL is this project's primary TODO marker
-grep -rn '# LLL\|## LLL\|# \[ LLL \]\|#.*LLL' modules/ | \
+grep -rn '# LLL\|## LLL\|# \[ LLL \]\|#.*LLL' src/ | \
   grep -v '^Binary' | sort
 
 ## commented-out code blocks with explanatory context
-grep -rn '# TODO\|# FIXME\|# todo\|# fixme' modules/
+grep -rn '# TODO\|# FIXME\|# todo\|# fixme' src/
 
 ## "coming later" patterns in comments
-grep -rn 'coming later\|for later\|not yet\|not implemented\|stub' modules/
+grep -rn 'coming later\|for later\|not yet\|not implemented\|stub' src/
 
 ## WebKit-style "seems to not work" comments
-grep -rn 'seems to not work\|not working\|broken\|disabled\|workaround' modules/ | \
+grep -rn 'seems to not work\|not working\|broken\|disabled\|workaround' src/ | \
   grep -v '^Binary' | head -60
 ```
 
@@ -157,7 +157,7 @@ use the same format as the existing web-browser fix task files.
   check all `<!>` commits for follow-up that never happened
 - the project has dual commits (each change committed twice in some eras) —
   de-duplicate by message when counting
-- focus on modules/ and cfg/zenki/ — bin/ and data/ are lower priority
+- focus on src/ and cfg/zenki/ — bin/ and data/ are lower priority
 - some LLL markers are intentional permanent notes (architecture decisions) —
   distinguish "this needs fixing" from "this is a known limitation"
 - the web-browser case is the template: proxy broken silently, request interception
@@ -166,14 +166,14 @@ use the same format as the existing web-browser fix task files.
 ## success criteria
 
 - [ ] all git pattern searches completed and results recorded
-- [ ] all LLL/TODO markers in modules/ catalogued
+- [ ] all LLL/TODO markers in src/ catalogued
 - [ ] at least the top 5 high-priority candidates deep-checked with full diff review
 - [ ] `DEGRADED-FEATURES-AUDIT.md` written with triage table
 - [ ] stub task files created for all high-priority candidates
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,,.,,..,...,..,,..,,...,,,,,,.,,.,.,...,..,,...,...,.,.,,..,..,,..,,.,,,
-#IRFED35S54ZJM6W6XMUCHRVUKH4XBH6HNYRXF3FOG3UCGJBOUYOI5AUYNFZZLTIDG5Q2YFLYTI4KQ
-#\\\|TVPY5XDLQAUMCUK5ZXQBWVXVHHDHW4423RRKN3D6EQUH26UPPIR \ / AMOS7 \ YOURUM ::
-#\[7]7YHGAGASZXWXOXFTM5NE2TDI3PWV4KQLJ27DO3JJ4A34FLJG7CCA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,...,,..,,,.,,.,,,,.,,..,...,...,..,,...,...,...,.,,,,.,,,..,,.,,
+#BUWATLP56LG5LEB4QUZ7SW43PTJ25CAM2LI4F7KEDZVJBACF5FCDZ42MEYDDY7MTKCKTJGX6AFBQW
+#\\\|7QQIRSRE5RS2REL3FSHUQTGIVNBKFNOYR7VF6FZJH7ZVD2WCDGJ \ / AMOS7 \ YOURUM ::
+#\[7]ZZDEGA3N3UPNX4BLFEBVGGFOPTZ4674YNKH23ZB3BWIZBNC656DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

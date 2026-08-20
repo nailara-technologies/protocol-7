@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = context.priority.rank
+# descr = rank context sections by task-weighted priority
+
+my $params = shift // {};
+
+my $sections  = $params->{'sections'}  // [];
+my $task_type = $params->{'task_type'} // '';
+
+## task-type weight adjustments ##
+my %type_weights = (
+    'bug-fix' => {
+        'context.error.recent'       => 1.5,
+        'context.file'               => 1.3,
+        'context.git.recent_changes' => 1.2,
+        'context.style.guide'        => 0.5,
+    },
+    'code-review' => {
+        'context.style.guide'        => 1.5,
+        'context.file'               => 1.3,
+        'context.git.recent_changes' => 1.2,
+        'context.error.recent'       => 0.7,
+    },
+    'feature-impl' => {
+        'context.memory.load'         => 1.4,
+        'context.modules.list'        => 1.2,
+        'context.file'                => 1.3,
+        'context.module.dependencies' => 1.1,
+    },
+    'delegation' => {
+        'context.style.guide' => 1.5,
+        'context.file'        => 1.4,
+        'context.task.active' => 0.8,
+    },
+);
+
+my $weights = $type_weights{$task_type} // {};
+
+## rank sections ##
+my @ranked = map {
+    my $provider = $ARG->{'provider'} // '';
+    my $base_pri = $ARG->{'priority'} // 99;
+
+    ## live valued tree lookup : node id: ##
+    ## context.priority.<type>.<provider> ##
+    my $tree_node_id
+        = length $task_type
+        ? join( qw| . |, 'context.priority', $task_type, $provider )
+        : undef;
+
+    my $tree_weight
+        = defined $tree_node_id
+        ? <[valued.resolve]>->($tree_node_id)
+        : undef;
+
+    ## valued tree takes precedence : fallback to static table : fallback ##
+    ## to 1.0                                                             ##
+    my $weight = $tree_weight // $weights->{$provider} // 1.0;
+
+    ## lower score = higher priority ##
+    my $score = $base_pri / $weight;
+
+    { %$ARG, '_score' => $score }
+} @$sections;
+
+## sort by computed score ##
+@ranked = sort { $a->{'_score'} <=> $b->{'_score'} } @ranked;
+
+## clean up internal score key ##
+delete $ARG->{'_score'} foreach @ranked;
+
+return \@ranked;
+
+#,,..,..,,.,,,.,.,,,.,.,.,..,,.,,,..,,.,,,..,,..,,...,..,,,.,,,,.,,,.,.,,,...,
+#XNZITJ37I7JDRBTWXZ4X5VKQBBXRV4YUKKGNGIEQ2CVFAG3DWBF42THEYRGE3WGCGARN4O6CY4ZKE
+#\\\|4UYLLCFBMGLCZXYLVHWZCMHMRQJA7DG45BKDKACY2CEK4UISB6Y \ / AMOS7 \ YOURUM ::
+#\[7]GF7FH7SKZ6IB2CFUO242UH5DEKWVHVXW5URUA5647ASN63WXPOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

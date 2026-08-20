@@ -118,11 +118,11 @@ Priority = 0.30*momentum + 0.25*explicit_priority + 0.20*dependencies
 - `data/yaml/context-templates/system-default.yaml` - Base composable template
 - `data/yaml/context-templates/system-review.yaml` - Review checklist (P7 patterns)
 - `data/yaml/context-templates/system-tools.yaml` - Tool usage docs
-- `modules/context.template.resolve` - Template resolution engine
-- `modules/coding.cmd.ask` - Main interface for template queries
+- `src/context.template.resolve` - Template resolution engine
+- `src/coding.cmd.ask` - Main interface for template queries
 
-#,,,.,,..,.,,,,..,,,,,.,,,,,,,,..,.,.,,,,,.,.,..,,...,..,,,.,,,,,,.,.,.,,,,..,
-#RS7JVWEKS5Z3ZGFB4HRGYVI7LRFQHKBKHU3XKP6Q3BU7Y7QLPXBA4T6VWJQKQG6Z2L4SW6TJVZFFQ
-#\\\|KHL2TBKW5WUUAPKPV7MIHIMIQC3QNXQZ54YHFUNYGE66PKTQSBX \ / AMOS7 \ YOURUM ::
-#\[7]IQHINVV2AOG2EUS3U7LQPJHGUKN42LYZARBVJJSXE33NARHGJKDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,.,.,...,,..,..,,,,.,,..,.,.,..,,...,...,,,,,,..,,.,,.,,,,,,,
+#OXXUO7AP2SM3LL43QYFIVSWNOOSED5OIPXGORFV7V4WFW4PY5JWNSOGJ2XB77ESLAMQMN5YKFEYSS
+#\\\|D4LANEPMJ2SRFUONIC6YA4XDKO436G542YZKDFCWKOHRERNIG3D \ / AMOS7 \ YOURUM ::
+#\[7]3LV5YPTBCTXYTYBNQXQ3EPPI2HKEMFCLTRCWXOKR5RWPDYPSKQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

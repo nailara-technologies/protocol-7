@@ -18,7 +18,7 @@ kimi.wire.pending = {} — task just sits there.
 
 ## fix location
 
-file: modules/kimi.cmd.ask-reply
+file: src/kimi.cmd.ask-reply
 
 the relevant code path is the "ready — submit directly" block near the end of the
 module (after the 'if busy, defer' block). this block already handles the case where
@@ -28,9 +28,9 @@ falls through to kimi.wire.prompt correctly.
 
 ## read first
 
-- modules/kimi.cmd.ask-reply  — full module, understand the flow
-- modules/kimi.cmd.task-file  — how it calls ask-reply
-- modules/kimi.handler.dispatch_next_task  — what dispatches queued tasks
+- src/kimi.cmd.ask-reply  — full module, understand the flow
+- src/kimi.cmd.task-file  — how it calls ask-reply
+- src/kimi.handler.dispatch_next_task  — what dispatches queued tasks
 
 ## actual root cause investigation
 
@@ -63,8 +63,8 @@ once root cause is identified, implement the minimal fix. likely options:
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas
 
-#,,.,,...,...,...,,,.,,,.,,.,,..,,,.,,,,.,,,,,..,,...,.,.,,,.,.,.,,,.,..,,..,,
-#BUJKN6EAHTSCCPHXCMRTWLQHRMXMIFD26QMX6BMXO4HXZEKTCZSP2FGB64TMAU542IVVP5JS5XFN6
-#\\\|H4JOODED7TBBI6I7RGJTGSPKJQEJUC5NJ2PGLY5Q5GVIXAEOFFT \ / AMOS7 \ YOURUM ::
-#\[7]ZO6XBHDESV2LGUVBLPGRCUEHR7R7QJMMELZO5SIXSNYJFRHFU2BQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,,,,,..,,,.,,,,,,.,.,.,,,.,.,..,,...,...,.,,,.,.,,..,,..,,..,
+#PXRX7HLAPLRJRQO4UQ6JYTMSZKERAJRCQ6KSQ4NQ2MQASZ2IS4VQXSERTYLIRPNSC5W2VSXYMDV44
+#\\\|RZNTNNKOQNIX7BY5QTOHQAVGKJWLGSLIBTRK3TPQOZ5XUYKBFML \ / AMOS7 \ YOURUM ::
+#\[7]D76W2JRNVXC7HKVOKLP4S7YQSBD6EXECF7KYHYDJ3LRGG67PMKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

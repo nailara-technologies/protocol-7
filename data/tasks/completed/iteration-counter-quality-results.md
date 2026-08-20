@@ -27,7 +27,7 @@ the counter itself, so the loop is a deterministic-but-chaotic search —
 each candidate is effectively a fresh dice roll. Nothing in the loop
 inspects code semantics.
 
-## part 1 — extraction (all 5055 modules/ files)
+## part 1 — extraction (all 5055 src/ files)
 
 - Standalone Python decoder (`bin/test-scripts/sig-iter-cnt-style-chk/quality/extract_iterations.py`),
   cross-verified against the real `amos7.decode_octal_bit_header` logic
@@ -109,7 +109,7 @@ Two base files, re-signed on scratch copies with the temp key
 per series so all variants share one key). Variants: realistic typo-class
 bugs plus a comment-only control per series.
 
-**Series v** (base `modules/ncode.init_code`, 10 distortions):
+**Series v** (base `src/ncode.init_code`, 10 distortions):
 
 | variant                              | iterations |   delta |
 |---------------------------------------|-----------:|--------:|
@@ -125,7 +125,7 @@ bugs plus a comment-only control per series.
 | v09 duplicated line                   |       5456 |  -17217 |
 | v10 comment-only (control)            |      31344 |   +8671 |
 
-**Series w** (base `modules/coding.cmd.complete-analysis`, 4 distortions):
+**Series w** (base `src/coding.cmd.complete-analysis`, 4 distortions):
 
 | variant                    | iterations |   delta |
 |-----------------------------|-----------:|--------:|
@@ -257,71 +257,71 @@ quality ranking; that's the whole point of this study.
 
 | iterations | file |
 |-----------:|------|
-|          0 | `modules/base.stdio.transport.connect` |
-|          5 | `modules/base.prng.init_code` |
-|         13 | `modules/crypt.C25519.gen_keys` |
-|         13 | `modules/filter.cmd.mount_chain` |
-|         16 | `modules/power.save_config` |
-|         17 | `modules/plan-9.protocol.codec.encode-stat` |
-|         19 | `modules/plan-9.server` |
-|         20 | `modules/reasoning.tree.lookup` |
-|         21 | `modules/work.parent.init_code` |
-|         26 | `modules/models.chat.format_buffer` |
-|         26 | `modules/models.registry.list_by_context` |
-|         32 | `modules/web.cmd.process-template` |
-|         35 | `modules/devmod.cmd.echo` |
-|         43 | `modules/space.travel.tunnel` |
-|         59 | `modules/storchencam.init_code` |
-|         62 | `modules/base.stdio.frame.encode.pack_nibble` |
-|         62 | `modules/p7-log.anon.cmd.resolve-line` |
-|         63 | `modules/base.format.inline-nested.pre_init` |
-|         73 | `modules/httpd.pre_init` |
-|         74 | `modules/context.pattern.calculate_confidence` |
-|         75 | `modules/protocol.protocol-7.protocol-version-path-set-up` |
-|         77 | `modules/v7.setup_stdout_redir` |
-|         79 | `modules/v7.bin_p7r_comp_chksum` |
-|         80 | `modules/base.get_max_verbosity` |
-|         93 | `modules/memory.status.provider.rebuild_age` |
-|         95 | `modules/models.registry.populate_from_yaml` |
-|         99 | `modules/base.chk-sum.jha` |
-|        101 | `modules/X-11.cmd.keep_above` |
-|        108 | `modules/channels.memory-sync.fetch` |
-|        111 | `modules/letsencr.parent.install_certificate_to_httpsd` |
+|          0 | `src/base.stdio.transport.connect` |
+|          5 | `src/base.prng.init_code` |
+|         13 | `src/crypt.C25519.gen_keys` |
+|         13 | `src/filter.cmd.mount_chain` |
+|         16 | `src/power.save_config` |
+|         17 | `src/plan-9.protocol.codec.encode-stat` |
+|         19 | `src/plan-9.server` |
+|         20 | `src/reasoning.tree.lookup` |
+|         21 | `src/work.parent.init_code` |
+|         26 | `src/models.chat.format_buffer` |
+|         26 | `src/models.registry.list_by_context` |
+|         32 | `src/web.cmd.process-template` |
+|         35 | `src/devmod.cmd.echo` |
+|         43 | `src/space.travel.tunnel` |
+|         59 | `src/storchencam.init_code` |
+|         62 | `src/base.stdio.frame.encode.pack_nibble` |
+|         62 | `src/p7-log.anon.cmd.resolve-line` |
+|         63 | `src/base.format.inline-nested.pre_init` |
+|         73 | `src/httpd.pre_init` |
+|         74 | `src/context.pattern.calculate_confidence` |
+|         75 | `src/protocol.protocol-7.protocol-version-path-set-up` |
+|         77 | `src/v7.setup_stdout_redir` |
+|         79 | `src/v7.bin_p7r_comp_chksum` |
+|         80 | `src/base.get_max_verbosity` |
+|         93 | `src/memory.status.provider.rebuild_age` |
+|         95 | `src/models.registry.populate_from_yaml` |
+|         99 | `src/base.chk-sum.jha` |
+|        101 | `src/X-11.cmd.keep_above` |
+|        108 | `src/channels.memory-sync.fetch` |
+|        111 | `src/letsencr.parent.install_certificate_to_httpsd` |
 
 **highest 30 (most iterations)**
 
 | iterations | file |
 |-----------:|------|
-|     178667 | `modules/web.scan_content_directories` |
-|     162407 | `modules/base.file.basename` |
-|     157651 | `modules/httpd.handler.acme_challenge` |
-|     156484 | `modules/models.storage.adapter.invoke.repair` |
-|     149478 | `modules/keys.console.duplicate` |
-|     136507 | `modules/base.stream.push` |
-|     131804 | `modules/clients.https.handler.timeout` |
-|     131203 | `modules/v7.zenka.cmd.subname-sids` |
-|     128669 | `modules/coding.task.bury` |
-|     127899 | `modules/base.access.special-user-map` |
-|     127115 | `modules/protocol-7-menu.pointer-stream-init` |
-|     124417 | `modules/graphics-matrix.cmd.cursor` |
-|     123240 | `modules/coding.handler.model_path_reply` |
-|     119213 | `modules/letsencr.parent.save_certificate` |
-|     117828 | `modules/task.cmd.continue` |
-|     114406 | `modules/workspace-transfer.cmd.todo-commit` |
-|     114397 | `modules/models.cmd.test_discover` |
-|     113066 | `modules/system.process.handler.pid-instance_response` |
-|     112732 | `modules/coding.cmd.budget` |
-|     111741 | `modules/terminal.curses_ui.keybindings` |
-|     109990 | `modules/pdf.html.base.valid_pdf` |
-|     108427 | `modules/letsencr.parent.handler_httpd_reload_reply` |
-|     108354 | `modules/jobqueue.event.register_job_queues` |
-|     108154 | `modules/reasoning.branch.inject` |
-|     105687 | `modules/select.region.commit` |
-|     105072 | `modules/ssh.cmd.profile_enable` |
-|     102349 | `modules/X-11.cmd.dpms-status` |
-|     101521 | `modules/graphics.matrix.visual.cluster-center` |
-|     101020 | `modules/content.handler.weather_urls_reply` |
-|     100583 | `modules/p7-log.startup.repair_nul_gaps` |
+|     178667 | `src/web.scan_content_directories` |
+|     162407 | `src/base.file.basename` |
+|     157651 | `src/httpd.handler.acme_challenge` |
+|     156484 | `src/models.storage.adapter.invoke.repair` |
+|     149478 | `src/keys.console.duplicate` |
+|     136507 | `src/base.stream.push` |
+|     131804 | `src/clients.https.handler.timeout` |
+|     131203 | `src/v7.zenka.cmd.subname-sids` |
+|     128669 | `src/coding.task.bury` |
+|     127899 | `src/base.access.special-user-map` |
+|     127115 | `src/protocol-7-menu.pointer-stream-init` |
+|     124417 | `src/graphics-matrix.cmd.cursor` |
+|     123240 | `src/coding.handler.model_path_reply` |
+|     119213 | `src/letsencr.parent.save_certificate` |
+|     117828 | `src/task.cmd.continue` |
+|     114406 | `src/workspace-transfer.cmd.todo-commit` |
+|     114397 | `src/models.cmd.test_discover` |
+|     113066 | `src/system.process.handler.pid-instance_response` |
+|     112732 | `src/coding.cmd.budget` |
+|     111741 | `src/terminal.curses_ui.keybindings` |
+|     109990 | `src/pdf.html.base.valid_pdf` |
+|     108427 | `src/letsencr.parent.handler_httpd_reload_reply` |
+|     108354 | `src/jobqueue.event.register_job_queues` |
+|     108154 | `src/reasoning.branch.inject` |
+|     105687 | `src/select.region.commit` |
+|     105072 | `src/ssh.cmd.profile_enable` |
+|     102349 | `src/X-11.cmd.dpms-status` |
+|     101521 | `src/graphics.matrix.visual.cluster-center` |
+|     101020 | `src/content.handler.weather_urls_reply` |
+|     100583 | `src/p7-log.startup.repair_nul_gaps` |
 
 Eyeballing both ends: no thematic clustering by subsystem, complexity, or
 apparent quality on either side — `base.stdio.transport.connect` (0
@@ -374,8 +374,8 @@ quality ranking.
     # part 4 (one invocation per series -- key regenerates per run)
     bin/Protocol-7 sourcecode test-sign-and-verify "<space-separated paths>"
 
-#,,,,,,,.,..,,,..,.,,,,,,,...,.,,,..,,,.,,,,.,..,,...,...,,.,,,..,,,,,.,,,..,,
-#EYBAQ3L7IL66VVJUCEQAF3HSHOASZLIUYPRM6UJ44Z7AV3PJT7LLEVAZL2FYQDQG7DVWZOAS3XM3G
-#\\\|JL3WMW7CNFFHNOX7WM77UVA4MDRUV47PM54PSG4MQTNG5CYXPMV \ / AMOS7 \ YOURUM ::
-#\[7]7WAW442P6RL5ZK6ZSDZUXCCDGMFOMHQTLTUYZ4XP2CDNHLMVGGBA 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,...,..,,,.,,.,.,..,,,.,,.,,,..,,...,..,,..,,,,,,...,.,.,.,.,
+#HV7FVJL76NYOGDUH73RASGBOYAKRBIIQTR3VCYRB7H46C7ZGEJHIIDLLIGKYQIYT6QRJ4TUK2XTNS
+#\\\|DFJGZGWS2WHY5VHCL4MDLALQWTB7XOWSWV4C2RDH2RZO32GXSPW \ / AMOS7 \ YOURUM ::
+#\[7]HSCELUON6OU6DHADPZIFPU4PFAQB5G2ZDPKKPF5RWUXPO2K23ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

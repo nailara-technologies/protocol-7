@@ -31,7 +31,7 @@ via `AMOS7::Assert::Truth::is_true` — already an existing `bin/todo`
 dependency for `gen_id`'s own harmony gate). Decode direction
 (`ntime_b32_decode`, needed for `format_relative_time`) has no existing
 standalone precedent — ported directly from `bin/Protocol-7`'s
-`p7_ntime_BASE32_to_numerical` + `modules/base.n2u_time`'s
+`p7_ntime_BASE32_to_numerical` + `src/base.n2u_time`'s
 `ntime/4200 + NTIME_START` formula.
 
 `format_relative_time` tries `iso_to_epoch` first, falls back to
@@ -61,7 +61,7 @@ copy first). Diff was exactly 35 changed lines, nothing else touched.
 
 `bin/todo`'s `$list_name` default changed from `'default'` to
 `'base'` (matching this branch's own name, i.e. the same convention
-`cfg/zenki/*` and `modules/base.*` already follow) — the
+`cfg/zenki/*` and `src/base.*` already follow) — the
 backing file was `git mv`'d from `data/yaml/todo/default.yaml` to
 `data/yaml/todo/base.yaml` in the same commit as the timestamp
 migration, so code and data stayed in sync. `-list <name>` help text
@@ -76,8 +76,8 @@ are all precedent for the same pattern (`bin/Protocol-7`'s core subs
 can't be called via `<[...]>` outside a running zenka; port the exact
 formula/algorithm instead, don't approximate it).
 
-#,,.,,,..,..,,...,,,.,...,,.,,...,,,.,.,,,...,.,.,...,...,,,,,...,,,.,,..,,..,
-#RZ3W6A3NIH72UOBRSKDYECTZ6QARFDFHTAS4KBEWNVKMMMEND7QWTHXG45FBAFIXNTU7XJN5TVGMW
-#\\\|SUPITBOT7LUYEAJ7JZDU5P2N6NWQFEKI4QXO2F4T474DSTGCZEC \ / AMOS7 \ YOURUM ::
-#\[7]ZGFW7PGFWYP5ICY2SJK6WN6QGDXLOY4C5HQ5APDNRF3C25EYBEDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,.,,.,,,..,.,.,.,.,.,,,.,,,,..,.,.,...,.,.,.,.,.,.,,..,.,,,...,
+#3PODDAM3EG45LJ6P4RX46XQ43FK7QM2BSDMBSY337PCRUSL4KFST6SGSBVK6DHWGSUQOV4VGEKELI
+#\\\|GP5W4TJ26CT5ANPQYOSMA24736WPA7HRSHLESZO6RAGEFVCODBB \ / AMOS7 \ YOURUM ::
+#\[7]VKXGSQ4OTT57NOAML5DPWKN67CJZWNVKZWH4W3JS54JNUOLDFWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

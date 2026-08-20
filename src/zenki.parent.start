@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = zenki.parent.start
+# descr = smart zenka launcher with automatic dependency resolution
+
+my $params = shift || {};
+
+my $zenka_name = $params->{zenka} || $params->{name};
+
+unless ($zenka_name) {
+    return {
+        success => FALSE,
+        error   => 'zenka name required'
+    };
+}
+
+<[base.log]>->( 2, "zenki.start: launching '$zenka_name'..." );
+
+## Increment statistics
+$data{'zenki'}{'stats'}{'start_requests'}++;
+
+## Use v7's dependency resolution system  This automatically handles:
+## - Ensuring v7 is running (if needed)
+## - Resolving all dependencies (cube, etc.)
+## - Starting zenka via proper jobqueue mechanism
+my $result = <[zenki.parent.start_via_v7]>->( { zenka_name => $zenka_name } );
+
+if ( $result->{success} ) {
+    $data{'zenki'}{'stats'}{'successful_starts'}++;
+    return $result;
+} else {
+    $data{'zenki'}{'stats'}{'failed_starts'}++;
+    return $result;
+}
+
+0;
+
+#,,,.,.,.,..,,,..,.,,,..,,.,.,,..,...,,,,,..,,..,,...,...,..,,...,.,,,,,,,,..,
+#KHXTHLXHSWEIDESLN7QOHGBXEPUG7YCRTJYOTNEFMYSB2UMWQF6B45V4NM47QYJRLT34BUXE7N2MQ
+#\\\|3EFPEUY6BXPR6OC4JDGB6WSE3B6Z3EHTGWCFDH5RX5SPFIA7CQ3 \ / AMOS7 \ YOURUM ::
+#\[7]QSL44UVKWQULVDBX54OLDNG72FIXOCSHILSFCGEVTC4VN3DE46DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

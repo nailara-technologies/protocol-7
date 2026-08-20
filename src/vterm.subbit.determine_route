@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = vterm.subbit.determine_route
+# descr = determine 0-state routing from alternation history (the 11th member)
+
+my $history_ref = shift // return undef;
+return undef if not @$history_ref;
+
+## count sign changes / phase alternations
+my $alternations = scalar @$history_ref;
+my $phase        = ( $alternations % 2 == 0 ) ? qw| even | : qw| odd |;
+
+## even phase routes toward positive declaration  odd phase routes toward
+## negative declaration
+return {
+    phase       => $phase,
+    route       => $phase eq qw| even | ? qw| positive | : qw| negative |,
+    secret_vote => $phase eq qw| even | ? +1 : -1,   ## the 11th member's vote
+    alternation_count => $alternations,
+};
+
+#,,,,,,.,,,..,.,.,...,..,,,,,,.,.,,..,..,,,..,..,,...,...,,,,,.,.,,,,,...,,..,
+#6GQXNKLYVJIZ6CKKSM5M34BOF37VS4CNESSWT6HA4WL5QEI6B7UC23M2NA6PEIF3FKASRPJPFVHCO
+#\\\|NCIGJUNAQKNGVLUPJHAVTSBJZOTR4NWOO3FVWPXBPXARABINYE3 \ / AMOS7 \ YOURUM ::
+#\[7]MYLRTPPAQ46Q57FJTDXB5ISMH4KKRIMVDRXFYXKYL7D7NR43A2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = httpsd.callback.ssl_cert_select
+# descr = SNI certificate selection callback for IO::Socket::SSL
+#         called during TLS handshake with client-supplied hostname
+#         return ( key_path, cert_path ) or () to use SSL_cert_file default
+
+my $ssl_obj = shift;
+my $domain  = shift // '';
+
+my $certs_dir = <letsencr.certs.dir> // '/etc/protocol-7/certs';
+
+<[base.logs]>->( 1, 'SNI: cert select callback : domain = [%s]', $domain );
+
+## try exact domain match first
+my $cert_path = sprintf '%s/%s.pem', $certs_dir, $domain;
+my $key_path  = sprintf '%s/%s.key', $certs_dir, $domain;
+
+if ( -f $cert_path and -f $key_path ) {
+    <[base.logs]>->( 1, 'SNI: %s -> %s.pem', $domain, $domain );
+    return ( $key_path, $cert_path );
+}
+
+## try parent domain [ strip leftmost label ]  e.g. sub.v7.ax falls back to
+## v7.ax cert
+if ( $domain =~ m|^[^.]+\.(.+[.].+)$| ) {
+    my $parent      = $LAST_PAREN_MATCH;
+    my $parent_cert = sprintf '%s/%s.pem', $certs_dir, $parent;
+    my $parent_key  = sprintf '%s/%s.key', $certs_dir, $parent;
+    if ( -f $parent_cert and -f $parent_key ) {
+        <[base.logs]>->(
+            1,       'SNI: %s -> %s.pem [ parent domain ]',
+            $domain, $parent
+        );
+        return ( $parent_key, $parent_cert );
+    }
+}
+
+## no match - fall through to default [ SSL_cert_file / SSL_key_file ]
+<[base.logs]>->( 1, 'SNI: %s -> default cert', $domain );
+return ();
+
+#,,.,,,.,,,..,..,,..,,.,,,...,,,,,,,.,..,,,,.,..,,...,...,...,.,,,...,...,,,,,
+#BZ7JG5IT6L7D7RSNIH7FIUS735ZX6LEUF567R2GKKRMNT3RSZLFYP5NMBKJ4M6VVEQ2CPNHZBNYW4
+#\\\|OVVNONPNTRHBGDVRVMZYCCZ6H52VIB27KATCXHY7NHWQRXW7SZ4 \ / AMOS7 \ YOURUM ::
+#\[7]DNS7QV46UCOIJCSB7SVR2ALENOK6XU2BS52EPA6PKEVVD2CSYUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

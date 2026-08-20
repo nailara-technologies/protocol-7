@@ -9,17 +9,17 @@ Repo: /data/projects/protocol-7 (Protocol-7, Perl). This is a research/derivatio
 `data/tasks/sub-bit-element-definition.md` specifies a minimal self-synchronizing 3+1 bit stream framing protocol (3-bit payload + 1-bit separator = 4-bit frame). Read that file in full, plus `data/ai-mem/claude/topic-stream-framing-protocol.md` which grounds it further.
 
 Implemented and working (read them):
-- `modules/base.stream.frame` — encoder
-- `modules/base.stream.frame.decode` — decoder
-- `modules/base.stream.frame.detect` — tier-1 frame lock: sliding-window search over offsets 0-3, looking for the column that's strictly uniform every 4th bit position (the separator column). Correct for what it claims, but a `000`-payload "collapse frame" inverts its separator (. -> ,) to avoid an all-zero field, and if that inverted separator lands inside a small sample window, strict uniformity breaks and lock fails (verified empirically, not theoretical — reproduce it: encode payloads 1,2,0,7 in sequence, concatenate the 4-bit frames into a 16-bit stream, and test offsets 0-3 for column uniformity — offset 3 is the true separator column but is NOT uniform because of the payload=0 frame's inversion).
+- `src/base.stream.frame` — encoder
+- `src/base.stream.frame.decode` — decoder
+- `src/base.stream.frame.detect` — tier-1 frame lock: sliding-window search over offsets 0-3, looking for the column that's strictly uniform every 4th bit position (the separator column). Correct for what it claims, but a `000`-payload "collapse frame" inverts its separator (. -> ,) to avoid an all-zero field, and if that inverted separator lands inside a small sample window, strict uniformity breaks and lock fails (verified empirically, not theoretical — reproduce it: encode payloads 1,2,0,7 in sequence, concatenate the 4-bit frames into a 16-bit stream, and test offsets 0-3 for column uniformity — offset 3 is the true separator column but is NOT uniform because of the payload=0 frame's inversion).
 
-Not working, needs a real derivation: `modules/base.stream.frame.detect.harmonic` — an attempted tier-2 fallback meant to tolerate that case using this codebase's harmonic-truth mechanism (division by 13, `AMOS7::Assert::Truth::is_true`/`true_int`, see `data/lib-path/pm/AMOS7/Assert/Truth.pm`). Read the module's own header comment — it documents its own failure precisely: a static `true_int()` check on a candidate column's ELF checksum is NOT selective, because `calc_true()` defaults to TRUE for most inputs (FALSE is the rare/specific case, only near the `230769` rotation family) — so most candidate offsets, including wrong ones, assert true. That naive approach is confirmed wrong by direct testing against the real `AMOS7::CHKSUM::ELF`/`AMOS7::Assert::Truth` code, not guessed.
+Not working, needs a real derivation: `src/base.stream.frame.detect.harmonic` — an attempted tier-2 fallback meant to tolerate that case using this codebase's harmonic-truth mechanism (division by 13, `AMOS7::Assert::Truth::is_true`/`true_int`, see `data/lib-path/pm/AMOS7/Assert/Truth.pm`). Read the module's own header comment — it documents its own failure precisely: a static `true_int()` check on a candidate column's ELF checksum is NOT selective, because `calc_true()` defaults to TRUE for most inputs (FALSE is the rare/specific case, only near the `230769` rotation family) — so most candidate offsets, including wrong ones, assert true. That naive approach is confirmed wrong by direct testing against the real `AMOS7::CHKSUM::ELF`/`AMOS7::Assert::Truth` code, not guessed.
 
 ## three leads on record, all grounded in real existing code/docs (read `data/tasks/sub-bit-element-definition.md`'s status section for exact citations and quotes)
 
 1. Truth under bit-shift-left is not static — it flips with period 12 (`data/md/documentation/harmonic-cycle-correlations.md`, "bit-shift left flips is_true state, period 12"). The tier-1 offset search (4 candidate positions) may correspond to a documented 4-step -90° CCW rotation cycle (`data/ai-mem/claude/archive/topic-orbital-data-space-archive.md`, search for "the rotating cube eye" around line 1831 — "thirteen cycles = one harmonic period").
 2. The AMOS checksum itself is 7 base32 chars x 5 bits = 35 bits = a "5x7 matrix" (`data/ai-mem/claude/topic-base32-namespace.md`, `data/md/design-specs/fractal-data-architecture-holographic-tty.md`) — possibly the actual parent-grid structure this frame-lock problem needs, not something to invent fresh.
-3. Truth validation may be a *construction* mechanism, not a filter: `data/md/data-zenka/DATA_ZENKA_HOLOGRAPHIC_TOPOLOGY.md` documents a related 64-bit "D13 state" (see also `bin/dev/division-13-table`, and `data/md/design/PAGER-DIVISION-13-INTEGRATION.md`) where failed `is_true()` checks trigger "RECALC (regenerate with phase shift)" rather than rejection — the same iterate-until-true shape as `modules/source.create_harmonic_footer` (read it — it's a real, working, in-production example of stacking multiple independent `is_true()` checks that must ALL pass, iterating a nonce-like counter until they do) and `modules/base.chk-sum.elf.get-true` (simpler version of the same iterate-until-true pattern).
+3. Truth validation may be a *construction* mechanism, not a filter: `data/md/data-zenka/DATA_ZENKA_HOLOGRAPHIC_TOPOLOGY.md` documents a related 64-bit "D13 state" (see also `bin/dev/division-13-table`, and `data/md/design/PAGER-DIVISION-13-INTEGRATION.md`) where failed `is_true()` checks trigger "RECALC (regenerate with phase shift)" rather than rejection — the same iterate-until-true shape as `src/source.create_harmonic_footer` (read it — it's a real, working, in-production example of stacking multiple independent `is_true()` checks that must ALL pass, iterating a nonce-like counter until they do) and `src/base.chk-sum.elf.get-true` (simpler version of the same iterate-until-true pattern).
 
 Also worth checking before/while deriving: `data/md/design/TASK-CUBE-CONSENSUS-ARCHITECTURE.md` and the broader "5 of 7 consensus" material (30+ files reference "5 of 7" across data/ — `ack -il '5.of.7|5-of-7|five.of.seven' data/` to find them) — flagged but genuinely unread this session, may already contain the exact mechanism needed.
 
@@ -130,7 +130,7 @@ I'll start by reading the primary sources in parallel.
 
 🔧 TOOL_USE `Read`:
 ```json
-{"file_path": "/data/projects/protocol-7/modules/base.stream.frame"}
+{"file_path": "/data/projects/protocol-7/src/base.stream.frame"}
 ```
 
 
@@ -166,7 +166,7 @@ I'll start by reading the primary sources in parallel.
 
 🔧 TOOL_USE `Read`:
 ```json
-{"file_path": "/data/projects/protocol-7/modules/base.stream.frame.decode"}
+{"file_path": "/data/projects/protocol-7/src/base.stream.frame.decode"}
 ```
 
 
@@ -207,7 +207,7 @@ I'll start by reading the primary sources in parallel.
 
 🔧 TOOL_USE `Read`:
 ```json
-{"file_path": "/data/projects/protocol-7/modules/base.stream.frame.detect"}
+{"file_path": "/data/projects/protocol-7/src/base.stream.frame.detect"}
 ```
 
 
@@ -259,7 +259,7 @@ I'll start by reading the primary sources in parallel.
 
 🔧 TOOL_USE `Read`:
 ```json
-{"file_path": "/data/projects/protocol-7/modules/base.stream.frame.detect.harmonic"}
+{"file_path": "/data/projects/protocol-7/src/base.stream.frame.detect.harmonic"}
 ```
 
 
@@ -729,7 +729,7 @@ Now let me build an empirical harness. First let me find the elf inline checksum
 
 🔧 TOOL_USE `Bash`:
 ```json
-{"command": "ls modules/ | grep -i 'chk-sum.elf' ; echo '---'; grep -rl 'name  = chk-sum.elf.inline\\|name = chk-sum.elf.inline' modules/ 2>/dev/null", "description": "Find elf inline checksum module"}
+{"command": "ls src/ | grep -i 'chk-sum.elf' ; echo '---'; grep -rl 'name  = chk-sum.elf.inline\\|name = chk-sum.elf.inline' src/ 2>/dev/null", "description": "Find elf inline checksum module"}
 ```
 
 
@@ -751,7 +751,7 @@ base.chk-sum.elf.vax-BASE32.true
 
 🔧 TOOL_USE `Read`:
 ```json
-{"file_path": "/data/projects/protocol-7/modules/base.chk-sum.elf.get-true"}
+{"file_path": "/data/projects/protocol-7/src/base.chk-sum.elf.get-true"}
 ```
 
 
@@ -823,7 +823,7 @@ base.chk-sum.elf.vax-BASE32.true
 
 🔧 TOOL_USE `Read`:
 ```json
-{"file_path": "/data/projects/protocol-7/modules/base.chk-sum.elf.inline"}
+{"file_path": "/data/projects/protocol-7/src/base.chk-sum.elf.inline"}
 ```
 
 
@@ -2647,8 +2647,8 @@ No substantive disagreement — and importantly, no place where K3 is wrong that
 
 If you want a literal line-by-line diff of K3's final Perl against my proposed module body, that's where pulling the full buffer via `coding.list-buffers` would earn its tokens; the summaries already confirm the logic matches, so I held off unless you want the verbatim code check. Nothing edited in the repo throughout.
 
-#,,..,.,,,..,,,.,,..,,,.,,,,.,,.,,.,.,..,,..,,..,,...,...,..,,.,,,,.,,..,,,.,,
-#X4SSNJTM3LZGVWISLPCBJLZKAY7RBALWIC4UARRVGIOFOC4NFTNWPSG3PV5MFO2XWJDYFAUVGVCAW
-#\\\|527CG2EVMGPTF4MH2E33CSKTFMIXRSBBQTCNYJOT35OA2XCCLZI \ / AMOS7 \ YOURUM ::
-#\[7]UG62MHJ2TBBCTMMX4ID7542OORXII4SHNGO6YCM2SLRJETWMGCBA 7  DATA SIGNATURE ::
+#,,,.,...,...,.,,,,,.,,.,,.,.,.,.,.,.,,..,,.,,..,,...,...,...,,.,,,,,,..,,,.,,
+#6ATQF5V3FXMLM4NS3WYNVOSES4VIRYT47Z22GTB4X5LT6WZO72RL4SMVTO5YICUS7KBS7ELUKWIR6
+#\\\|DTULQRVELJVMDR2KBP34Y5HOWFEDYZXHXTGAF5LPQRYY7SHDUNB \ / AMOS7 \ YOURUM ::
+#\[7]337WNJIH3GRPX3ZCONZFOOGRKMHUUBWXWCOJKQG5VLAQSP6RDYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

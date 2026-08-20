@@ -24,16 +24,16 @@ the `memory` zenka builds a focus-weighted tree over `data/ai-mem/*.md` and rend
 - args come via `$call->{'args'}` (split into @args), NOT `shift` or `$ARG` — confirmed from bin/Protocol-7 line 1893
 
 **IDF search attribute — LIVE 2026-06-05** (commits 9c54cee28):
-- `modules/memory.tree.wordcount` — builds term-document-frequency table from all leaves (iterative stack walk, stopword filter)
-- `modules/memory.tree.score.idf_weight` — top-3 IDF values summed, clamped to >= 1.0
-- `modules/memory.tree.score.rebuild_idf` — rebuilds and caches at `<memory.score.idf_cache>`
+- `src/memory.tree.wordcount` — builds term-document-frequency table from all leaves (iterative stack walk, stopword filter)
+- `src/memory.tree.score.idf_weight` — top-3 IDF values summed, clamped to >= 1.0
+- `src/memory.tree.score.rebuild_idf` — rebuilds and caches at `<memory.score.idf_cache>`
 - `memory.tree.score` pass-2b: `w_combined = w_base × w_focus × w_idf`; neutral 1.0 when cache empty
 - `memory.cmd.search` and `memory.startup` both call `rebuild_idf` before scoring
 
 **digest pipeline — LIVE 2026-06-05** (commits ba5cc0f9f, 9cb37ab58, 919ce2976):
 - `p7c memory.digest <terms>` — same IDF rescore as `memory.search`, collects top-13 leaves, submits to `coding.summarize-context` via `protocol-7.command.send.local` with `cube.` prefix, returns deferred SIZE reply (prose summary from coding zenka)
-- `modules/memory.cmd.digest` — command; stores `$call->{'reply_id'}` in `<memory.digest.pending>`, routes `cube.coding.summarize-context` with `:B32:`-encoded content in args
-- `modules/memory.digest.done` — reply handler; fires `base.callback.cmd_reply` to complete deferred reply
+- `src/memory.cmd.digest` — command; stores `$call->{'reply_id'}` in `<memory.digest.pending>`, routes `cube.coding.summarize-context` with `:B32:`-encoded content in args
+- `src/memory.digest.done` — reply handler; fires `base.callback.cmd_reply` to complete deferred reply
 - **routing lesson**: `protocol-7.command.send.local` routes by direct session username; coding is not a direct session of memory — must prefix `cube.coding.*` so cube routes it; content must be `:B32:`-encoded into args (the `data` key in `call_args` is ignored by the module)
 - **access control**: `cube/access.zenki` `access.cmd.usr.memory` must include `coding.summarize-context`; `memory/start` `access.cmd.usr.cube` must include `digest`
 - **subroutine namespace**: `base.` prefix is stripped at init phase — inside memory zenka use `protocol-7.command.send.local` not `base.protocol-7.command.send.local`; check with `memory.list-subs <pattern>`
@@ -59,8 +59,8 @@ the `memory` zenka builds a focus-weighted tree over `data/ai-mem/*.md` and rend
 
 related: [[topic-ascii-frame-system]], [[namespace-tree-intelligence]], [[feedback-perltidy-sil0]].
 
-#,,,.,,..,...,,.,,...,.,,,,..,,.,,.,.,,,.,.,,,..,,...,...,...,.,.,,..,.,.,,,,,
-#3ZWILNGPXHR3S7MQG44YCS32YUPYQNIQMGSFZWRWXDFILXP2VX4LUNCQVTKQ52QII3OSPBGC5WSDE
-#\\\|V6G6OVUKUZVCHO2NE27DFALR3WS6LR3CBPLZCWS3LFBTN2LF2ET \ / AMOS7 \ YOURUM ::
-#\[7]CIFNAPVQ24B75M3O5AUYO2DGNBWRPFYZA7FSIDE4B2ZJJVLLRQBY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,.,,,.,,,..,,...,,,.,,.,,.,.,..,,...,...,.,.,,,,,,,.,,,,,.,,,
+#B5OLBOUK5SKSFYWK7HA5Z2CGBUXOSOVEUJKO3GU4ZNTS7OZCXHYAAK6GM3NGMGLSH5HOVV5OR5QT6
+#\\\|QLAGHD536ZNFM5JBQJYWO7LTYQRILJ776V5VSF6KJ4TDZO5FYLV \ / AMOS7 \ YOURUM ::
+#\[7]4OEDPV4ONREREQE4YR6TIEYDIHXJMFDMTG7FEN5YR23GLRDQ2CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

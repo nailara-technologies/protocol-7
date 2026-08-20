@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = tree.route.page.word_graphical
+# descr = decode graphical word (type '1')
+
+my $payload = shift // '';
+
+return undef if length($payload) < 6;
+
+## [ 5x7 matrix ] ##
+## col = 0-4 (3 bits), row = 0-7 octal (3 bits)  pos = col * 8 + row (0-39) ##
+
+my $col = oct( qw| 0b | . substr( $payload, 0, 3 ) );
+my $row = oct( qw| 0b | . substr( $payload, 3, 3 ) );
+
+$col = 4 if $col > 4;
+$row = 7 if $row > 7;
+
+my $pos = $col * 8 + $row;
+
+return { col => $col, row => $row, pos => $pos };
+
+#,,,.,..,,.,.,,,.,,..,,.,,...,,,,,...,,.,,,,,,..,,...,...,...,,..,..,,,..,.,,,
+#BV2BWEDBSETWG5RX3JVNLAKYY3P2L3ZFPLZ6AHD4DQDTWZ3Z4ZX2HWCE7XXBAZDLADGWRRWMRHEGY
+#\\\|3MGG4YRM2TMJVYIC72SOUSH2BVXX2X6XPEWXN565XKT7YKJFLSS \ / AMOS7 \ YOURUM ::
+#\[7]B2G7LVTOLD7KB4UH55V2BDX2CRA24TMNQGWRDKI2MV657OOBWOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

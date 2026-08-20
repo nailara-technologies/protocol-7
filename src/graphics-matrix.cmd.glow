@@ -1,0 +1,139 @@
+## [:< ##
+
+# name  = graphics-matrix.cmd.glow
+# descr = query or configure cursor glow intensity
+
+my $args = $call->{'args'} // '';
+
+## parse command ##
+my @tokens = split( / +/, $args );
+my $cmd    = $tokens[0] // '';
+
+my $glow = $data{'graphics-matrix'}{'glow'};
+
+if ( $cmd eq '' ) {
+
+    ## no args - show current glow state  nothing to do, will format output ##
+    ## below                                                                ##
+
+} elsif ( $cmd eq 'compute' ) {
+
+    ## compute with args or simulated data ##
+    if ( @tokens > 1 ) {
+        ## parse space-separated counts: hop0 hop1 hop2 ... ##
+        my $counts = {};
+        my $hop    = 0;
+        for my $i ( 1 .. $#tokens ) {
+            my $val = $tokens[$i];
+            next if $val !~ m/^\d+$/;
+            $counts->{$hop} = int($val);
+            $hop++;
+        }
+        <[graphics-matrix.glow.compute]>->( { qw| counts | => $counts } );
+    } else {
+        ## no counts - triggers simulated data ##
+        <[graphics-matrix.glow.compute]>;
+    }
+
+} elsif ( $cmd eq 'falloff' ) {
+
+    ## change falloff mode ##
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: glow falloff <inverse|inverse_square|linear>'
+        }
+        if @tokens < 2;
+
+    my $mode = $tokens[1];
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'falloff must be inverse, inverse_square, or linear'
+        }
+        if $mode ne 'inverse'
+        and $mode ne 'inverse_square'
+        and $mode ne 'linear';
+
+    $glow->{'falloff'} = $mode;
+
+    ## recompute with current shells counts if active ##
+    if ( $glow->{'active'} and %{ $glow->{'shells'} } ) {
+        my $counts = {};
+        for my $hop ( keys %{ $glow->{'shells'} } ) {
+            $counts->{$hop} = $glow->{'shells'}{$hop}{'count'} // 0;
+        }
+        <[graphics-matrix.glow.compute]>->( { qw| counts | => $counts } );
+    }
+
+} elsif ( $cmd eq 'base' ) {
+
+    ## change base intensity ##
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'usage: glow base [0.0-1.0]'
+        }
+        if @tokens < 2;
+
+    my $val = $tokens[1];
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'base must be number between 0.0 and 1.0'
+        }
+        if $val !~ m/^\d+(?:\.\d+)?$/;
+
+    $val = $val + 0;    ## convert to numeric ##
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'base must be between 0.0 and 1.0'
+        }
+        if $val < 0 or $val > 1;
+
+    $glow->{'base_intensity'} = $val;
+
+    ## recompute with current shells counts if active ##
+    if ( $glow->{'active'} and %{ $glow->{'shells'} } ) {
+        my $counts = {};
+        for my $hop ( keys %{ $glow->{'shells'} } ) {
+            $counts->{$hop} = $glow->{'shells'}{$hop}{'count'} // 0;
+        }
+        <[graphics-matrix.glow.compute]>->( { qw| counts | => $counts } );
+    }
+
+} else {
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => "unknown glow command: $cmd"
+    };
+}
+
+## format output ##
+my $out = sprintf "glow [falloff=%s base=%.2f]\n",
+    $glow->{'falloff'}, $glow->{'base_intensity'};
+
+## show shells if any computed ##
+if ( %{ $glow->{'shells'} } ) {
+    for my $hop ( sort { $a <=> $b } keys %{ $glow->{'shells'} } ) {
+        my $shell     = $glow->{'shells'}{$hop};
+        my $count     = $shell->{'count'}     // 0;
+        my $intensity = $shell->{'intensity'} // 0.0;
+
+        ## bar scaled to 20 chars max ##
+        my $bar = '█' x int( $intensity * 20 + 0.5 );
+
+        $out .= sprintf "  hop %d : count=%-4d intensity=%.2f  %s\n",
+            $hop, $count, $intensity, $bar;
+    }
+} else {
+    $out .= "  [no shells computed - run 'glow compute']\n";
+}
+
+return { qw| mode | => qw| size |, qw| data | => $out };
+
+#,,,.,...,,..,,..,..,,.,.,..,,.,.,,,,,...,,,.,.,.,...,...,.,.,..,,..,,,..,...,
+#RAJKTU2MMLQGBHDRCYR465PKWSMUNWC6NDKIGV7DUGBV7NGX3UFJAKCJ4MQEARVNZDKKGM7PB4T3M
+#\\\|ZKYFE2AKUH4757LTO37CZJSW4HUWEZO54DEOAZHUMQ4KCSQRJJT \ / AMOS7 \ YOURUM ::
+#\[7]AHCEB3VSW2J47PHTN6VTPUXWI4C4AGDISRKCQBEOP56O2QKKUMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

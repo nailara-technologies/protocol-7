@@ -1,14 +1,14 @@
 ## task: memory-cmd-focus
 
 ## dispatch
-create `modules/memory.cmd.focus` — a command dispatcher that exposes
+create `src/memory.cmd.focus` — a command dispatcher that exposes
 the existing `memory.focus.*` modules as callable zenka commands. read first:
-`modules/memory.focus.set`,
-`modules/memory.focus.boost`,
-`modules/memory.focus.apply`,
-`modules/memory.focus.decay`,
-`modules/memory.cmd.show`,
-`modules/memory.startup`,
+`src/memory.focus.set`,
+`src/memory.focus.boost`,
+`src/memory.focus.apply`,
+`src/memory.focus.decay`,
+`src/memory.cmd.show`,
+`src/memory.startup`,
 `cfg/zenki/memory/start`.
 do NOT touch signatures or unrelated logic.
 
@@ -21,7 +21,7 @@ once the module exists.
 
 ## implementation
 
-### `modules/memory.cmd.focus` (NEW)
+### `src/memory.cmd.focus` (NEW)
 
 first arg is the sub-command: `set | boost | get | clear | apply`.
 
@@ -82,8 +82,8 @@ for the dispatch pattern, or `memory.render.term` for SIZE reply format).
 - `p7c memory.focus apply` → TRUE (triggers index lookup if focus changed)
 - no manual AMOS7 signature stubs in new or edited files
 
-#,,,.,..,,,,.,.,,,,,.,...,..,,..,,,,,,,..,.,.,..,,...,..,,.,.,.,.,,,,,...,,,,,
-#D75O2DJQ2WRHFNTTQQRC3UJPBG4SM5PJQQ6HVKOLREDRI5X7CLH4A3J4YE2X5GIZICSKHZJPVYHGQ
-#\\\|O2QKGZFLVXY74JPS4B2OO67I6BVKHDXHUSEQ2NBNW36D2RFKY23 \ / AMOS7 \ YOURUM ::
-#\[7]HIKWKMMAX7IS2NS6WFAI3D6RYCWMQQVVH4Q5F5VAFWPJNU4NVSBI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,,.,.,.,,..,.,,,,.,,...,.,,,..,,...,...,...,,.,,,,,,,,,,.,,,
+#CCIIIPRQBZYWZXG3RVBPTWZ2ITUGMRNUVFIN64W5KDMQBVSJ3KIOPCPHG642ABQOJZ6IFDGIY5G4I
+#\\\|SFGR6QTVZIEV2VMMFWMSBWIB6SX4QWYQYWFRBOVV2SFHALPJ573 \ / AMOS7 \ YOURUM ::
+#\[7]WG335J2R2QRUHYCTXWBPFBE4H3ITQMR6BWVIWHVAKDW5PTHK5GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

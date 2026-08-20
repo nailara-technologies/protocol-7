@@ -1,0 +1,86 @@
+## [:< ##
+
+# name = image-quality.init_code
+# descr = Image quality analyzer initialization with infrastructure
+
+## Load vision model configuration from centralized models.yaml
+<[base.logs]>->( 1, "Loading vision models from models.yaml" );
+
+<[base.perlmod.autoload]>->(qw| YAML::Tiny |);
+
+my $config_file = <system.conf_path> . '/zenki/models/models.yaml';
+
+my @vision_models = ();
+
+if ( -f $config_file ) {
+    my $yaml_content = <[file.slurp]>->($config_file);
+
+    if ($yaml_content) {
+        my $yaml = YAML::Tiny::Load($$yaml_content);
+
+        if ( $yaml && exists $yaml->{models} ) {
+            foreach my $model_id ( sort keys %{ $yaml->{models} } ) {
+                my $model_def = $yaml->{models}->{$model_id};
+                next unless $model_def->{is_vision};
+
+                push @vision_models,
+                    {
+                    id           => $model_id,
+                    name         => $model_def->{name},
+                    path         => $model_def->{path},
+                    mmproj       => $model_def->{mmproj},
+                    quantization => $model_def->{quantization},
+                    context_size => $model_def->{metadata}->{context_size}
+                        // 4096,
+                    batch_size => $model_def->{metadata}->{batch_size} // 64,
+                    threads    => $model_def->{metadata}->{threads}    // 2,
+                    tokens_per_sec => $model_def->{metadata}->{tokens_per_sec}
+                        // 3
+                    };
+            }
+        } else {
+            <[base.log]>->( 0, "Error : No models found in models.yaml" );
+        }
+    }
+} else {
+    <[base.log]>->( 0, "Error : models.yaml not found at $config_file" );
+}
+
+# Cache vision models in zenka data
+<image-quality.vision_models> = \@vision_models;
+
+<[base.logs]>->(
+    1, "Vision models initialized: %d models loaded",
+    scalar(@vision_models)
+);
+
+## Initialize data structures for image quality analyzer  Note: Data
+## structures are created on-demand by modules
+
+## Define list structures for observability
+
+## List: operation_log - shows recent analysis activity
+<list.operation_log> = {
+    'var'     => 'data',
+    'key'     => 'operation_log',
+    'mask'    => 'timestamp:time image_path:file grade:letter duration:ms',
+    'align'   => { 'duration' => 'right-4' },
+    'filters' => {},
+    'descr'   => '[operations] images analyzed'
+};
+
+## List: error_log - shows analysis failures
+<list.error_log> = {
+    'var'   => 'data',
+    'key'   => 'error_log',
+    'mask'  => 'timestamp:time image_path:file error_type:type reason:msg',
+    'descr' => '[errors] analysis failures'
+};
+
+return TRUE;
+
+#,,..,.,.,,,.,,.,,...,,.,,..,,.,,,.,,,,.,,,..,..,,...,...,..,,,,,,.,.,,.,,,,,,
+#LM2OJTCF7FZMFFEMTPBEEYEABASPC7U5525KLFQPYDCJKAO7QNISICCN6E424Q5BRAWUSH2XYJPHI
+#\\\|BCPMDJSOTNFDER4KNQIJKLHM6TDTXWCJSMWSWPSQROF2AHV5T2J \ / AMOS7 \ YOURUM ::
+#\[7]H34OV4KP7D4M7AJXA7XQ6DBVXEEXSNAWSOMEVARIU4U6HZBMPWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

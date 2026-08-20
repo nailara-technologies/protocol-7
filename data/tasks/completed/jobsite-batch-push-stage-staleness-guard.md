@@ -10,7 +10,7 @@ the card visibly bounce back to `apply` for a while before settling on
 
 ### root cause
 
-`modules/plugin.web.jobs.sync`'s batch (jobsite → web) push path had no
+`src/plugin.web.jobs.sync`'s batch (jobsite → web) push path had no
 staleness check, unlike the single (browser → web) push path which already
 guards against stale writes via `base_last_modified`. `stage` is copied
 straight from jobsite's payload in the `@pipeline_fields` loop with no
@@ -41,7 +41,7 @@ much less likely to land in the narrow window.
 
 ### fix
 
-`modules/plugin.web.jobs.sync` — before the `@pipeline_fields` copy loop,
+`src/plugin.web.jobs.sync` — before the `@pipeline_fields` copy loop,
 compare the batch entry's `last_modified` (jobsite's own write-time) against
 the cache's current `last_modified` via `base.ntime_BASE32_to_numerical`. If
 the cache is already newer, skip `stage`/`status` for that field only —
@@ -52,7 +52,7 @@ up, same as before, just without the visible wrong-value window in between.
 
 ### files touched
 
-- `modules/plugin.web.jobs.sync`
+- `src/plugin.web.jobs.sync`
 
 ### verification
 
@@ -61,8 +61,8 @@ up, same as before, just without the visible wrong-value window in between.
   agree on `stage: review, status: review`, distinct fresh `last_modified`
   values (each side stamps its own), no drift.
 
-#,,,,,..,,,.,,,.,,,.,,,.,,,,.,.,.,,,.,..,,...,..,,...,.,.,..,,.,,,,,.,.,,,..,,
-#KMA6YJUCV7BC5TI4APXZ4BDOFNB73DRQNZCBG7RGQLU37WWNQH2HROUARPH5B7V7B6XGS6LUTM3CO
-#\\\|OXHAB2PMDKLOSE5PEVRAXIDVQRGDERJUMICNXTHIVUWGMQD3KQF \ / AMOS7 \ YOURUM ::
-#\[7]GNF4BLFI44EK4LDDPGYGNZ4FDRCWDFN3JNOHAU6JHNCWJ4PKNMBY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,,.,,,.,,..,,,,,,,,.,.,,,.,.,..,,...,..,,,..,,..,,,,,.,,,.,,,
+#3KEFM5SOW6GNRH7TBRKDRPOJK4BSK5O4EYALW74JLCC2PWL3UIYMOUZ2YJXZFLY7EX5NAIN6GFUQI
+#\\\|374ILIIOEJHAWZXGQFJ5LZTULGJO75WJLTEHKUNUJQZBILCJ3ZI \ / AMOS7 \ YOURUM ::
+#\[7]SGM4FJ3RVQN6TGCNWZIYSJOZDDI2R3632IQPNCOA3VZCQW4YTWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ Every signed file in this codebase carries a `amos-iterations-remaining`
 value in its signature footer's first line — the number of harmonization
 iterations `bin/amos-chksum`'s convergence loop needed to reach a TRUE
 state while signing. It's free to read (no computation needed, already
-baked into every file) via `modules/amos7.decode_octal_bit_header`.
+baked into every file) via `src/amos7.decode_octal_bit_header`.
 
 **Motivating observation, NOT yet evidence**: `amos-chksum -v LOVES` took
 5 iterations, `amos-chksum -v FRICTION` took 163. Tempting to read that as
@@ -34,10 +34,10 @@ cleaner check. Both need to actually be run before concluding anything.
 
 ## part 1 — extract the iteration counters (cheap, do this first)
 
-1. Glob every file under `modules/` (currently ~5055 files).
+1. Glob every file under `src/` (currently ~5055 files).
 2. For each, read the signature footer's first line (the
    `#,,,...`/`#..........,...` style line — see
-   `modules/kimi.wire.question_respond`'s footer for a real example, or
+   `src/kimi.wire.question_respond`'s footer for a real example, or
    any signed file) and decode it via
    `<[amos7.decode_octal_bit_header]>->($line)`.
 3. Extract `amos-iterations-remaining` from the returned hash. Handle the
@@ -117,8 +117,8 @@ cleaner check. Both need to actually be run before concluding anything.
 Add to `data/ai-mem/kimi/coding-style.md` and/or `data/ai-mem/kimi/
 MEMORY.md` in your own established format.
 
-#,,..,,,.,,.,,...,,,,,...,...,.,,,,,,,,,.,,..,.,.,...,...,...,,,.,,,,,,,,,.,,,
-#HKFIOP4BOQE32NM2J2GUCMK7R7JXNRDEVOGINZ5AO5MGB4WZHEN7R3ZFP4UIAQACRMZPVWOA5FE7M
-#\\\|Q55GZ2OHSDZVY3BFGNLEHDWH6UKHCMZYMEU7YKZ57MZBJ7K23ET \ / AMOS7 \ YOURUM ::
-#\[7]4FZPWNS7L22SBBIRFRBLMJTSLFUEZFXGTIP4L3TFA6IMKQY4DYBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,.,,,,.,,..,,..,,,..,...,..,,.,.,...,...,.,,,...,,.,,,..,,..,
+#7CZJOSDXHO7O7W4TZKVP56ABTEK6XPH2CZOUQDRNHQSTNHPEYF4JUNNKSNMXBI6TFXNNKE4L2RGS2
+#\\\|UZXW2QMSNSNXQV2QEI5VKNRG5SH3N4F4KK32OBDQWJFC2WMVBA5 \ / AMOS7 \ YOURUM ::
+#\[7]7K3WSZIUJS2XU3UDCMNM4JFVWGVBSLXDIISUHOCZ5Z22P4LP62CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

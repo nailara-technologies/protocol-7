@@ -29,14 +29,14 @@ description: |
   listing without loading all job files.
 
 affected_modules:
-  - modules/jobsite.state.load       # load from per-file layout
-  - modules/jobsite.state.persist    # write per-file + update index
-  - modules/jobsite.handler.assess-done   # write job file after assessment
-  - modules/jobsite.handler.repair-done   # write job file after repair
-  - modules/jobsite.handler.fetch-done    # write job file on initial fetch
-  - modules/jobsite.checksum.index        # may need update for new paths
-  - modules/jobsite.cmd.list-jobs         # read from index or iterate files
-  - modules/jobsite.cmd.status            # read counts from index
+  - src/jobsite.state.load       # load from per-file layout
+  - src/jobsite.state.persist    # write per-file + update index
+  - src/jobsite.handler.assess-done   # write job file after assessment
+  - src/jobsite.handler.repair-done   # write job file after repair
+  - src/jobsite.handler.fetch-done    # write job file on initial fetch
+  - src/jobsite.checksum.index        # may need update for new paths
+  - src/jobsite.cmd.list-jobs         # read from index or iterate files
+  - src/jobsite.cmd.status            # read counts from index
 
 migration:
   - if /var/protocol-7/site-yaml/store.yaml exists, read it and write each
@@ -57,8 +57,8 @@ do_not_change:
   - the in-memory %data{jobsite}{tasks} structure — keep as hashref
   - assessment pipeline logic — only storage layer changes
 
-#,,,,,,,,,,..,,..,,..,.,.,,,.,..,,,..,,.,,.,.,..,,...,...,.,.,,.,,,,.,.,.,,..,
-#EXSPIDDR5VUTMMJQA5ADVXL24EC3AW7366FZBG43QTX7KCTKK2DNR7YEZI4KNZIIFGN3WRRDKVGNC
-#\\\|S4SSRECF5BN5LOLANM3FWK7ODSHT67CZDVW4GQES7GN2N7CY2KH \ / AMOS7 \ YOURUM ::
-#\[7]ZGG5N6XSS45RAZ42DTERRVDI2NKLWGO2CKLT63KKBYGTN6VT7IDI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,,.,,...,.,,,,.,,,,,,..,,,.,,..,,...,.,.,.,,,,.,,...,,.,,,,,,
+#GDFWMRBYUSQWLD2UPRUQY2T4T46NOWR3NJL5IKOW2P267OKWQW4WBADF7ARZ7HUXXDN2EFDE6M4UG
+#\\\|IPQZOATV3BKB4VK4A5HKG5SMPMFTXPA5HVLPMDIUOGT5APYKAR7 \ / AMOS7 \ YOURUM ::
+#\[7]OINQL4YRUV6AGSGJTEGR36Y5EUDEPIZY4TDUGS5LHGB26TBWYMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

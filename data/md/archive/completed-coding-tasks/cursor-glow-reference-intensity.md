@@ -31,10 +31,10 @@ this task depends on: graphics-matrix-namespace-bridge.md
 
 ## key reference files — read these first
 
-    modules/graphics-3d.render.cursor             — cursor voxel rendering, translucency curves
-    modules/graphics-3d.calc.cursor-translucency  — translucency calculation pattern
-    modules/graphics.matrix.visual.sphere          — sphere classification (0-6), 13³-based sizes
-    modules/graphics.matrix.visual.cubic-layers    — hierarchical sphere layer builder
+    src/graphics-3d.render.cursor             — cursor voxel rendering, translucency curves
+    src/graphics-3d.calc.cursor-translucency  — translucency calculation pattern
+    src/graphics.matrix.visual.sphere          — sphere classification (0-6), 13³-based sizes
+    src/graphics.matrix.visual.cubic-layers    — hierarchical sphere layer builder
     data/md/design/VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md — glow economics section (~line 3700+)
     data/md/design/GRID-HARDNODE-CURSOR-MODEL.md   — vision propagation in waves (hop distance)
 
@@ -66,7 +66,7 @@ glow state lives at:
 
 ## files to create
 
-### modules/graphics-matrix.glow.init
+### src/graphics-matrix.glow.init
 
     # name  = graphics-matrix.glow.init
     # descr = initialize glow intensity state
@@ -79,7 +79,7 @@ glow state lives at:
     log: "glow initialized [falloff=%s base=%.2f]"
 
 
-### modules/graphics-matrix.glow.compute
+### src/graphics-matrix.glow.compute
 
     # name  = graphics-matrix.glow.compute
     # descr = compute glow intensity per distance shell from reference counts
@@ -107,7 +107,7 @@ glow state lives at:
         these numbers are not random — they echo the topology constants
 
 
-### modules/graphics-matrix.glow.query
+### src/graphics-matrix.glow.query
 
     # name  = graphics-matrix.glow.query
     # descr = return glow intensity at a specific hop distance
@@ -119,7 +119,7 @@ glow state lives at:
         $data{'graphics-matrix'}{'glow'}{'shells'}{$hop}{'intensity'} // 0.0
 
 
-### modules/graphics-matrix.cmd.glow
+### src/graphics-matrix.cmd.glow
 
     # name  = graphics-matrix.cmd.glow
     # descr = query or configure cursor glow intensity
@@ -153,7 +153,7 @@ glow state lives at:
 
 add `glow` to the access.cmd.usr.cube line.
 
-### modules/graphics-matrix.init_code
+### src/graphics-matrix.init_code
 
 add glow initialization after cursor init, before `0;`:
 
@@ -170,8 +170,8 @@ add glow initialization after cursor init, before `0;`:
     verify lowercase comments
     verify bar rendering uses utf-8 block character
 
-#,,,,,,.,,,.,,,.,,,,,,,..,,,,,,.,,,.,,,..,,.,,..,,...,...,...,,.,,,,.,..,,,,.,
-#2AUM4WDGSFCTJJTLDP75ASUQD2IWYIRIRKCIXNODPCUOTKM4FQRBFP527RQYJTKL4SB6GB3FEYREQ
-#\\\|4GSSEN4S2FI7N5AHUVZOWFHWYSQ2CQYXZA44VO2TRTIV7JAM3DI \ / AMOS7 \ YOURUM ::
-#\[7]NORF2O37KT3FGWBAURWNB3HJBKSSCF6V6G6TD4KDGZOSZ2CIMMDI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,.,,.,.,,,.,,.,,.,.,,..,..,,.,.,..,,...,..,,.,.,...,.,.,.,.,,,,,
+#MNO5TPAV55IAZJMNPS2OCT3DOZE7LZP2RL46F47ZKGB37KE4N23Y3XVBM6VRPBRNGX5MW5KJYZHZS
+#\\\|7GL767UVRLKTLWHBEFZV467IYB2LTDQHZD22TKCK3CCDVNYT4NV \ / AMOS7 \ YOURUM ::
+#\[7]CEXGEHRY2RJWJ53KOHB24ZQOTVKFL6A24PTIPV2OPBHVWBZQSMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

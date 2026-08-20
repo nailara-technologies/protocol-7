@@ -11,23 +11,23 @@ task:
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
 
   existing_modules_read_first:
-    - modules/radio.init_code
-    - modules/radio.handler.stream-chunk
-    - modules/radio.cmd.keep
-    - modules/radio.cmd.skip
-    - modules/radio.filter.jingle
+    - src/radio.init_code
+    - src/radio.handler.stream-chunk
+    - src/radio.cmd.keep
+    - src/radio.cmd.skip
+    - src/radio.filter.jingle
 
   files_to_create:
-    - modules/radio.ripper
-    - modules/radio.gap_fill.start
-    - modules/radio.gap_fill.tick
-    - modules/radio.cmd.library
+    - src/radio.ripper
+    - src/radio.gap_fill.start
+    - src/radio.gap_fill.tick
+    - src/radio.cmd.library
 
   files_to_modify:
-    - modules/radio.init_code        ##  add ripper + gap_fill state  ##
-    - modules/radio.handler.stream-chunk  ##  write chunks to file when flagged  ##
-    - modules/radio.cmd.keep         ##  trigger gap_fill if currently jingle  ##
-    - modules/radio.cmd.status       ##  add library size + gap_fill state  ##
+    - src/radio.init_code        ##  add ripper + gap_fill state  ##
+    - src/radio.handler.stream-chunk  ##  write chunks to file when flagged  ##
+    - src/radio.cmd.keep         ##  trigger gap_fill if currently jingle  ##
+    - src/radio.cmd.status       ##  add library size + gap_fill state  ##
     - cfg/zenki/radio/zenka-startup.v7  ##  add library path config  ##
 
   keep_library_state: |
@@ -59,7 +59,7 @@ task:
       my $path = <radio.keep_library.path> . "/${safe}_${ts}.mp3";
 
   radio_ripper: |
-    file: modules/radio.ripper
+    file: src/radio.ripper
     descr = open output file for current track [ called when keep is flagged ]
     param = $title string
 
@@ -95,7 +95,7 @@ task:
       <[radio.gap_fill.start]> if not <radio.gap_fill.active>;
 
   radio_gap_fill_start: |
-    file: modules/radio.gap_fill.start
+    file: src/radio.gap_fill.start
     descr = pick a random keep-library file and start idle-watcher relay
 
     - list files in <radio.keep_library.path> matching *.mp3
@@ -115,7 +115,7 @@ task:
       <[base.perlmod.autoload]>->( 'List::Util', qw| shuffle | );
 
   radio_gap_fill_tick: |
-    file: modules/radio.gap_fill.tick
+    file: src/radio.gap_fill.tick
     descr = idle watcher: push gap-fill audio chunk to listeners
 
     my $event = shift->w;
@@ -168,7 +168,7 @@ task:
     }
 
   radio_cmd_library: |
-    file: modules/radio.cmd.library
+    file: src/radio.cmd.library
     descr = list keep-library files
 
     my $dir = <radio.keep_library.path> // '';
@@ -219,8 +219,8 @@ task:
     - radio.cmd.library lists files with sizes
     - no background saturation source in this phase
 
-#,,,,,,.,,,,.,,.,,,,,,,..,..,,...,.,.,.,,,,,,,..,,...,...,.,,,,,.,..,,.,,,...,
-#ZNY3CEOLIIZHNTLQPQKBW5FFDFO53HIZTFS6SZKGV4AKB7KD7L3M7UZY7QVW6YW2CIRHVO57GJQ5S
-#\\\|ZMDS2NIENDPWDMAS5KU37R3Z7F2HLVGOOOLMOEQVTZ34WOWE2PY \ / AMOS7 \ YOURUM ::
-#\[7]XFETBNPMW3UFZDF5QEPLZTSDOSCU6BDN6WK2WDLIUW2VASSXGIAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,,,.,,,,,.,.,,..,,.,,.,,,,.,,..,,...,...,.,.,.,,,.,,,.,,,,..,
+#IDHJPEW7VAECP6FLGQZW72IW6B5XVARSOVVASVKJS4OA5ZC7FNFFIFRLS6NUEGF74Z6GC4PAHRVB6
+#\\\|NC5XB6MMO7HNTXOMGPYHNIGJH7P6YNITNQ76X6WTZUHAKJ5TUHZ \ / AMOS7 \ YOURUM ::
+#\[7]ODTBEUNIUENGY2YZAIHFONJQRG7XOL3QKEQFGJN6U72FQD7PPGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

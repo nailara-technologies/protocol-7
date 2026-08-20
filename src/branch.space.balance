@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = branch.space.balance
+# descr = verify position sums and ref-count deltas balance to zero
+# param = { scope }
+#
+# checks: sum of signed positions = 0 (within tolerance)
+#         sum of reference count deltas (in - out) = 0 (within tolerance)
+
+my $params = shift              // {};
+my $scope  = $params->{'scope'} // 'global';
+
+## resolve node set for scope ##
+my @node_set;
+my $root = $data{'branch.root'} // '';
+
+if ( $scope eq 'local' ) {
+    if ( length $root ) {
+        @node_set = keys %{ $data{'branch.children'}{$root} // {} };
+    } else {
+        @node_set = grep {
+            my $n = $data{'branch.nodes'}{$ARG} // {};
+            not defined $n->{'parent'} or not length $n->{'parent'};
+        } keys %{ $data{'branch.nodes'} // {} };
+    }
+} elsif ( $scope eq 'regional' ) {
+    if ( length $root ) {
+        @node_set = <[branch.space.util.collect_subtree]>->($root);
+    } else {
+        @node_set = keys %{ $data{'branch.nodes'} // {} };
+    }
+} else {
+    ## global ##
+    @node_set = keys %{ $data{'branch.nodes'} // {} };
+}
+
+return { 'mode' => 'false', 'data' => 'no nodes in scope' }
+    if not @node_set;
+
+my $position_sum  = 0;
+my $ref_delta_sum = 0;
+my @imbalanced;
+my $tolerance = 1e-6;
+
+## ensure all nodes in scope have computed positions ##
+for my $id (@node_set) {
+    next if exists $data{'branch.space.positions'}{$scope}{$id};
+    <[branch.space.rank]>->( { 'node_id' => $id, 'scope' => $scope } );
+
+}
+
+for my $id (@node_set) {
+    my $pos = $data{'branch.space.positions'}{$scope}{$id}{'position'} // 0;
+    $position_sum += $pos;
+
+    my $node = $data{'branch.nodes'}{$id} // {};
+    my $in   = scalar keys %{ $data{'branch.children'}{$id} // {} };
+    my $out
+        = ( defined $node->{'parent'} and length $node->{'parent'} ) ? 1 : 0;
+    my $delta = $in - $out;
+    $ref_delta_sum += $delta;
+
+    push @imbalanced, $id
+        if abs($delta) > $tolerance;
+}
+
+## expected position sum for interleaved ranking  even count = 0, odd count ##
+## = ceil(N / 2) for 1-based positive-odd                                   ##
+my $total_nodes = scalar @node_set;
+my $expected_pos_sum
+    = ( $total_nodes % 2 == 0 ) ? 0 : int( $total_nodes / 2 ) + 1;
+my $pos_diff = abs( $position_sum - $expected_pos_sum );
+
+my $balanced = ( $pos_diff <= $tolerance + 1e-9
+        and abs($ref_delta_sum) <= $tolerance + 1e-9 ) ? TRUE : FALSE;
+
+if ($balanced) {
+    return {
+        'mode' => 'true',
+        'data' => {
+            'sum'      => 0,
+            'balanced' => TRUE,
+        }
+    };
+}
+
+return {
+    'mode' => 'false',
+    'data' => {
+        'sum'              => $position_sum,
+        'expected_sum'     => $expected_pos_sum,
+        'ref_delta_sum'    => $ref_delta_sum,
+        'imbalanced_nodes' => \@imbalanced,
+    }
+};
+
+#,,,.,,.,,.,.,..,,,,,,.,,,...,.,,,.,,,,,,,...,.,.,...,...,.,,,,.,,..,,,..,..,,
+#X6E27EJU7GNQMZNLVVDY4Q6EQB2YUZ66VE5R5D6C5OMYL7KWA4OU5XC2MVNNOGHIQ3CTR2KJDC3CS
+#\\\|ZCUX6J2YJRQWBEU5YZGN5NOLEFAMGJDUV3Z4AT5CMS5WZWK7UWM \ / AMOS7 \ YOURUM ::
+#\[7]ZQXT7M7AB5GHC7OEZPFYX26TFGZ6QUK2BSUQJR6522AWONPIJYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -68,8 +68,8 @@ Reference for design decisions and implementation notes.
 ### Web Zenka (100% Complete)
 - ✅ Configuration ready at `cfg/zenki/web/start`
 - ✅ Recursive template parsing with depth limit (8 levels)
-- ✅ Module: `modules/web.process_template_recursive`
-- ✅ Async IPC handler: `modules/web.process-template-ipc`
+- ✅ Module: `src/web.process_template_recursive`
+- ✅ Async IPC handler: `src/web.process-template-ipc`
 - ✅ Command execution with 15s timeout
 - ✅ Caching: 1800s TTL, 5MB max
 - ✅ Performance metrics collection
@@ -114,10 +114,10 @@ cd /home/user/protocol-7
 #    /api/*  → matches /api/certificate-status
 #    /files/* → matches /files/document.pdf
 
-# 4. Create module: modules/base.parser.pattern_split
+# 4. Create module: src/base.parser.pattern_split
 
 # 5. Commit with tests
-git add modules/base.parser.pattern_split
+git add src/base.parser.pattern_split
 git commit -m "recovery: Extract and integrate base.parser.pattern_split"
 ```
 
@@ -213,7 +213,7 @@ TOTAL: 34 tokens (~12-16 hours)
 
 ### HTTP Route Dispatcher Pattern
 ```perl
-# In modules/httpd.http_get or similar
+# In src/httpd.http_get or similar
 
 sub dispatch_http_request {
   my ($method, $path, $vhost) = @_;
@@ -451,9 +451,9 @@ This ensures zero knowledge loss for future sessions.
 - `/home/user/protocol-7/cfg/zenki/web/start`
 
 **Modules (Already Complete):**
-- `modules/web.process_template_recursive`
-- `modules/web.process-template-ipc`
-- `modules/letsencrypt.parent.*` (ACME handlers)
+- `src/web.process_template_recursive`
+- `src/web.process-template-ipc`
+- `src/letsencrypt.parent.*` (ACME handlers)
 
 **Session Checkpoints:**
 - `/home/user/ACTIVE_SESSION_CHECKPOINT.md`
@@ -487,8 +487,8 @@ This ensures zero knowledge loss for future sessions.
 
 **You got this! 🚀**
 
-#,,,,,,..,,,.,...,,.,,,,.,,..,.,.,,.,,...,,,,,..,,...,...,,,.,..,,,,.,...,..,,
-#ZZ4G5XZU2H4P6OW6MQBVZQLV37WTFZGPPC4SCBNUBSQWNCWYFCO3HCCZOUUHESBQCHGPTXT746F54
-#\\\|MOUDVM62U5NCZSGAFEIRJ7GBKQWHL2K2UQORJDZQKFK6QYNIXJK \ / AMOS7 \ YOURUM ::
-#\[7]2G3QLKQSD3NLUOOG4SKWHLZUNDCKGTKS756RYVL7P5HHOKNVF6CY 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,,,,,..,,..,,.,,,,,.,,..,.,.,..,,...,..,,...,.,,,,.,,,,.,,..,
+#J4ECXIHZQILG236ZPZGFGYPNRH6RHVS4V7K3DGTX5B5B2U6WT57OYHLUQZS7QRCLG66QAETPTDNO2
+#\\\|EXZI6YELEY447LMGHYU27YBUEENQUGOTX4HH7CYERVE6C5DIPLU \ / AMOS7 \ YOURUM ::
+#\[7]TSYRGCJOEMT4QJHD3OOQXK2BITDCQ4VMEP7UM4OVHHBSP5QVGQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

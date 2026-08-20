@@ -1,0 +1,151 @@
+## [:< ##
+
+# name  = ncode.regex.apply
+# descr = run applicable regex patterns on input text
+
+my $params = shift // {};
+
+my $input     = $params->{'input'}     // '';
+my $file_type = $params->{'file_type'} // qw| module |;
+my $namespace = $params->{'namespace'} // '';
+my $mode      = $params->{'mode'}      // qw| apply |;
+my $threshold = $params->{'threshold'} // <ncode.cfg.auto_apply_threshold>
+    // 0.90;
+
+return { 'mode' => qw| false |, 'data' => 'no input' }
+    unless length $input;
+
+<ncode.patterns> //= {};
+
+my $patterns = <ncode.patterns>;
+
+return { 'mode' => qw| false |, 'data' => 'no patterns loaded' }
+    unless keys %$patterns;
+
+my $output = $input;
+my @applied;
+my @flagged;
+my @skipped;
+
+foreach my $name ( sort keys %$patterns ) {
+    my $def  = $patterns->{$name};
+    my $app  = $def->{'applicability'} // {};
+    my $conf = $app->{'confidence'}    // 0.5;
+
+    ## check applicability conditions ##
+    if ( defined $app->{'file_type'} and $app->{'file_type'} ne '*' ) {
+        next unless $file_type eq $app->{'file_type'};
+    }
+
+    ## scope gate : pattern applies only when the caller-supplied namespace ##
+    ## matches the currently-active entry of its scope stack [ legacy       ##
+    ## single-string namespace handled inside scope_match ]                 ##
+    next unless <[ncode.util.scope_match]>->( $namespace, $app );
+
+    ## check for required predecessor patterns ##
+    if ( defined $app->{'requires'}
+        and ref $app->{'requires'} eq qw| ARRAY | ) {
+        my $prereqs_met = 1;
+        foreach my $req ( $app->{'requires'}->@* ) {
+            unless ( grep { $ARG->{'name'} eq $req } @applied ) {
+                $prereqs_met = 0;
+                last;
+            }
+        }
+        next unless $prereqs_met;
+    }
+
+    my $compiled = $def->{'compiled'};
+    my $replace  = $def->{'replace'};
+
+    ## count matches ##
+    my @matches;
+    my $line_num = 0;
+    foreach my $line ( split m|\n|, $output ) {
+        $line_num++;
+        if ( $line =~ $compiled ) {
+            push @matches, { 'line' => $line_num, 'text' => $line };
+        }
+    }
+
+    next unless @matches;
+
+    ## status gate [ phase 1 parity with ncode.cmd.apply ] : an           ##
+    ## llm-required pattern is never auto-applied here, regardless of its ##
+    ## own confidence -- flagged for review instead, same shape as the    ##
+    ## below-threshold branch below                                       ##
+    if ( ( $def->{'status'} // qw| llm-required | ) eq qw| llm-required | ) {
+        push @flagged,
+            {
+            'name'    => $name,
+            'matches' => scalar @matches,
+            'action'  => qw| requires_review |,
+            'conf'    => $conf,
+            'lines'   => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'skipped'}++;
+        next;
+    }
+
+    ## below threshold or flag-only: report but don't modify ##
+    if ( $conf < $threshold or not defined $replace or $mode eq qw| scan | ) {
+        my $action = $app->{'action'} // qw| flag_for_review |;
+        push @flagged,
+            {
+            'name'    => $name,
+            'matches' => scalar @matches,
+            'action'  => $action,
+            'conf'    => $conf,
+            'lines'   => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'skipped'}++;
+        next;
+    }
+
+    ## apply replacement ##
+    my $count  = 0;
+    my $before = $output;
+
+    ## line-by-line replacement for tracking ##
+    my @lines = split m|\n|, $output;
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ $compiled ) {
+            my $old = $lines[$i];
+            $lines[$i] =~ s|$compiled|$replace|;
+            $count++ if $lines[$i] ne $old;
+        }
+    }
+    $output = join "\n", @lines;
+
+    if ($count) {
+        push @applied,
+            {
+            'name'  => $name,
+            'count' => $count,
+            'conf'  => $conf,
+            'lines' => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'applied'} += $count;
+    }
+}
+
+my $changed = $output ne $input;
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'output'        => $output,
+        'changed'       => $changed ? TRUE : FALSE,
+        'applied'       => \@applied,
+        'flagged'       => \@flagged,
+        'total_applied' => scalar @applied,
+        'total_flagged' => scalar @flagged,
+        'total_fixes'   => ( scalar map { $ARG->{'count'} } @applied )
+    }
+};
+
+#,,..,,.,,,..,..,,,.,,..,,,.,,.,,,,..,.,,,...,..,,...,...,..,,,.,,,.,,...,,,,,
+#T66ABJODXIDQRXF7Z3E6AV6UYWQLGB7ME4XQNDCZSJMZ6XN6C4GZV4MBJRDVVMREWRFNKI6JSGLF6
+#\\\|4RL4DGVZ5RHHSHXKT2GEOMT5SO4HDHM3LQBOU7LVNI45R4LRK33 \ / AMOS7 \ YOURUM ::
+#\[7]CVEOP5XSNPT4HF4XZO7XX4TBLHNIDCTN52XMGWDF5RNEKRLLQEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

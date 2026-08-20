@@ -3,7 +3,7 @@
 **Priority:** High
 **Type:** Reliability / Fault Tolerance
 **Component:** coding zenka
-**Related:** modules/coding.inference_servers, modules/coding.handler.spawn_reply
+**Related:** src/coding.inference_servers, src/coding.handler.spawn_reply
 
 ## Problem
 
@@ -105,18 +105,18 @@ my ($stdout_r, $stderr_r) = ...;
 
 ## Implementation Status
 
-- [x] `modules/coding.init_code` - Register SIGCHLD handler
-- [x] `modules/coding.handler.inference_server_sigchld` - Detect crashes
-- [x] `modules/coding.handler.inference_crash_restart` - Restart with backoff
-- [x] `modules/coding.handler.verify_inference_startup` - Verify recovery
-- [ ] `modules/coding.inference_servers` - Track restart state (optional enhancement)
+- [x] `src/coding.init_code` - Register SIGCHLD handler
+- [x] `src/coding.handler.inference_server_sigchld` - Detect crashes
+- [x] `src/coding.handler.inference_crash_restart` - Restart with backoff
+- [x] `src/coding.handler.verify_inference_startup` - Verify recovery
+- [ ] `src/coding.inference_servers` - Track restart state (optional enhancement)
 
 ## Files Created/Modified
 
-- `modules/coding.init_code` - Added SIGCHLD registration
-- `modules/coding.handler.inference_server_sigchld` - NEW: Crash detection
-- `modules/coding.handler.inference_crash_restart` - NEW: Restart with backoff
-- `modules/coding.handler.verify_inference_startup` - NEW: Startup verification
+- `src/coding.init_code` - Added SIGCHLD registration
+- `src/coding.handler.inference_server_sigchld` - NEW: Crash detection
+- `src/coding.handler.inference_crash_restart` - NEW: Restart with backoff
+- `src/coding.handler.verify_inference_startup` - NEW: Startup verification
 
 ## Testing
 
@@ -140,8 +140,8 @@ my ($stdout_r, $stderr_r) = ...;
 - `base.event.add_signal` for SIGCHLD handling
 - `coding.inference_servers` data structure
 
-#,,,,,,..,.,,,.,.,.,.,,..,,..,.,,,...,,..,.,.,..,,...,...,..,,.,.,,.,,,..,,.,,
-#DWLD7HHD32FBMQ2AGANUJLEMUTGZ2NJ2BMAPK73L7Q5CA6J66U4Z44J7H2YY6EF3PGLYONC3AEZLA
-#\\\|W2TJKI4U3EEIAHYF36LNJBW7R4LGNQRODP2F2L6PFTUDH46XVZO \ / AMOS7 \ YOURUM ::
-#\[7]FDZVJDMSXHLVNVBIIH4R3HEX2PPYD2U5TDTFVGTDO7XYD2WZJ6AA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,...,.,.,...,...,..,,,,,,,.,,..,,...,...,.,,,.,,,...,,..,,..,
+#CF3RJRRPB7KVAJQUW4SUN3IZWP6LB25KBHLZ2XE6J4C36P6NUMWIUM7SYJQ7E2DQZUVIW754C465C
+#\\\|UZTNAG52HIVUZQMNYLPKCEZ57WQSOFWXNSC36UF34B2UCMHTLCC \ / AMOS7 \ YOURUM ::
+#\[7]RP3MN6YMCK35E4JBJ7I3VEXFPMQSRXQVATIMWF427QSEQIFT4IBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
