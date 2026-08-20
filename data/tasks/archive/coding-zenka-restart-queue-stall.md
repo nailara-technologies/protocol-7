@@ -3,11 +3,11 @@
 ## dispatch
 analyze and fix the coding zenka task queue stall after two consecutive
 data-start timeouts trigger backend auto-restarts. read first:
-`modules/coding.handler.http_data_start_timeout`,
-`modules/coding.callback.http_error`,
-`modules/coding.handler.monitor_inference_startup`,
-`modules/coding.async_spawn_inference_servers`,
-`modules/coding.handler.spawn_servers_deferred`.
+`src/coding.handler.http_data_start_timeout`,
+`src/coding.callback.http_error`,
+`src/coding.handler.monitor_inference_startup`,
+`src/coding.async_spawn_inference_servers`,
+`src/coding.handler.spawn_servers_deferred`.
 do NOT touch signatures or unrelated logic.
 
 ## problem
@@ -74,8 +74,8 @@ NO manual signature stubs. minimal change — do NOT refactor surrounding logic.
 - no regressions to the single-timeout recovery path.
 - no manual AMOS7 signature stubs in edited files.
 
-#,,,.,.,.,,,,,...,..,,,.,,..,,.,.,,,.,..,,.,.,..,,...,..,,..,,.,.,.,,,.,,,,,.,
-#CD5MWTAX7LULQ4OKPWDSVSDFLPV65H6Z56VAWCODX67BI6CY7624VDYN45CLVBFF7QJF5Q2I3JBCK
-#\\\|SXU637EYXEZ5IMI2R6YW7RLTE6WOMW4WPNU2LKZVXTKVPCH2TLN \ / AMOS7 \ YOURUM ::
-#\[7]S7JLJPCWJ2H5UJL24ZV3NNMN2BW2PPLE7EMYTT75MFRDIXXCCEAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,..,.,,,,,,,,,.,.,.,...,,,.,,.,,..,,...,...,...,,,,,..,,.,.,..,,
+#PDL6QL2HPL5COQFXNX3V7CWDNLT4BVLO5GH2BFB2M47P2NSY77JV3PBELBG2RX2YEGR3XUWXROY4O
+#\\\|KWTZXA5MHGOEBOH7MWECY4TIXAVUYG2523CRKY47ZUI3NWKLHPB \ / AMOS7 \ YOURUM ::
+#\[7]23HF5D6QHM5PBTW2RITSIFNXVDNT7UDWNFKWUYKRRQYOCEMMXGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

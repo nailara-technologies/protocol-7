@@ -62,33 +62,33 @@ A complete automated certificate management system built as a Protocol-7 zenka, 
 - `cfg/zenki/letsencrypt/` - Complete dependency and access configuration
 
 ### Modules - Base Infrastructure
-- `modules/letsencrypt.base.pre_init` - Pre-initialization (library loading)
-- `modules/letsencrypt.base.init_code` - Base initialization (config defaults)
-- `modules/letsencrypt.base.fork_letsencrypt_child` - Fork and IPC setup
-- `modules/letsencrypt.base.check_dirs` - Directory validation
+- `src/letsencrypt.base.pre_init` - Pre-initialization (library loading)
+- `src/letsencrypt.base.init_code` - Base initialization (config defaults)
+- `src/letsencrypt.base.fork_letsencrypt_child` - Fork and IPC setup
+- `src/letsencrypt.base.check_dirs` - Directory validation
 
 ### Modules - Parent Process
-- `modules/letsencrypt.parent.init_code` - Parent state initialization
-- `modules/letsencrypt.parent.handler_renewal_check` - Periodic renewal checks
-- `modules/letsencrypt.parent.handler_renewal_retry` - Retry logic with backoff
-- `modules/letsencrypt.parent.handler_renewal_reply` - Command result processing
-- `modules/letsencrypt.parent.handler_cert_ready` - Certificate storage
-- `modules/letsencrypt.parent.handler_child_ready` - Child lifecycle
-- `modules/letsencrypt.parent.handler_renewal_failed` - Error handling
+- `src/letsencrypt.parent.init_code` - Parent state initialization
+- `src/letsencrypt.parent.handler_renewal_check` - Periodic renewal checks
+- `src/letsencrypt.parent.handler_renewal_retry` - Retry logic with backoff
+- `src/letsencrypt.parent.handler_renewal_reply` - Command result processing
+- `src/letsencrypt.parent.handler_cert_ready` - Certificate storage
+- `src/letsencrypt.parent.handler_child_ready` - Child lifecycle
+- `src/letsencrypt.parent.handler_renewal_failed` - Error handling
 
 ### Modules - Child Process
-- `modules/letsencrypt.child.init_code` - Child state initialization
-- `modules/letsencrypt.child.cmd.renew-certificate` - Renewal command handler
-- `modules/letsencrypt.child.cmd.new-certificate` - Enrollment command handler
-- `modules/letsencrypt.child.acme_*` - ACME protocol implementation stubs
-- `modules/letsencrypt.child.fetch_acme_directory` - ACME directory fetching
-- `modules/letsencrypt.child.generate_account_key` - Key generation
-- `modules/letsencrypt.child.get_fresh_nonce` - Nonce management
+- `src/letsencrypt.child.init_code` - Child state initialization
+- `src/letsencrypt.child.cmd.renew-certificate` - Renewal command handler
+- `src/letsencrypt.child.cmd.new-certificate` - Enrollment command handler
+- `src/letsencrypt.child.acme_*` - ACME protocol implementation stubs
+- `src/letsencrypt.child.fetch_acme_directory` - ACME directory fetching
+- `src/letsencrypt.child.generate_account_key` - Key generation
+- `src/letsencrypt.child.get_fresh_nonce` - Nonce management
 - And 15+ additional ACME operation modules
 
 ### Supporting Infrastructure
-- `modules/letsencrypt.init_code` - Top-level initialization
-- `modules/template.init_code` - Template module for extending functionality
+- `src/letsencrypt.init_code` - Top-level initialization
+- `src/template.init_code` - Template module for extending functionality
 - Cryptographic modules for Ed25519, RSA, X509, SHA256, Base64url encoding
 
 ## Critical Fixes Applied
@@ -188,8 +188,8 @@ letsencrypt.ratelimit.max-per-hour = 5
 
 The letsencrypt zenka represents a significant addition to Protocol-7's service ecosystem, providing secure, automated certificate management integrated with the existing zenka architecture.
 
-#,,..,,.,,,..,.,.,.,,,.,,,,.,,...,,.,,.,,,,,.,..,,...,..,,.,,,..,,...,..,,,.,,
-#WFF25XF64SBJHGF5TIO44VFEPGPW7NGRBZLSZJMSWWU7QZTL3GZ7JVNUT44WCIGO4AZEC36R56YNA
-#\\\|C3WKE56IA6BL43BZESKM6QL66IKGYRGZQOJRHKDORMWAMCYZKFE \ / AMOS7 \ YOURUM ::
-#\[7]TK6TA2YK6XAU6LFXC5SOXM5J3ZYL7MOTGIUYS36SUQRX62SVY2AA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,,,...,...,,,.,,.,,.,.,.,,,,,.,..,,...,...,.,.,,,,,,.,,,..,,.,,
+#J6T7ICFLQP2VOIGW7DRKKTESXBV6LKG22AY3EHK6MYVU2YSBTZVFXET5FFNULKCHNFZU7X35JESUY
+#\\\|5AXYHH6I4ZHTNNY7M5QQ2G3F3NOF4IS3N73EEJS3MCYO6WFAI5A \ / AMOS7 \ YOURUM ::
+#\[7]OQYNG4CMAU3B2ENH6FZ3FTDMWOM2BSCOHN72MTBNDLHGDZQ6ISAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

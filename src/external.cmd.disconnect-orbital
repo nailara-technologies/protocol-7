@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = external.cmd.disconnect-orbital
+# descr = remove an orbital connection entry
+
+my $name = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => qq| usage: disconnect-orbital <name> |
+    }
+    if not length $name;
+
+my $conn_ref = $data{'external'}{'connections'} // {};
+
+return {
+    'mode' => qw| false |,
+    'data' => qq| no such connection: $name |
+    }
+    if not exists $conn_ref->{$name};
+
+## cancel any pending retry or reset timers ##
+if ( exists $conn_ref->{$name}->{'timer'}->{'retry'} ) {
+    $conn_ref->{$name}->{'timer'}->{'retry'}->cancel
+        if $conn_ref->{$name}->{'timer'}->{'retry'}->is_active;
+    delete $conn_ref->{$name}->{'timer'}->{'retry'};
+}
+if ( exists $conn_ref->{$name}->{'timer'}->{'reset_retry_delay'} ) {
+    $conn_ref->{$name}->{'timer'}->{'reset_retry_delay'}->cancel
+        if $conn_ref->{$name}->{'timer'}->{'reset_retry_delay'}->is_active;
+    delete $conn_ref->{$name}->{'timer'}->{'reset_retry_delay'};
+}
+delete $conn_ref->{$name}->{'timer'}
+    if exists $conn_ref->{$name}->{'timer'}
+    and not keys $conn_ref->{$name}->{'timer'}->%*;
+
+## notify orbital STRM subscribers before the entry disappears ;       ##
+## push_update can't be reused here since it looks up an entry that no ##
+## longer exists                                                       ##
+if (    <[base.cfg_bool]>->(<external.cfg.orbital_push_enabled>)
+    and defined <external.orbital.listeners>
+    and @{<external.orbital.listeners>} ) {
+    my $payload = sprintf "%s %s\n", $name, qw| DISCONNECTED |;
+    my @keep;
+    for my $h ( @{<external.orbital.listeners>} ) {
+        push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+    }
+    <external.orbital.listeners> = \@keep;
+}
+
+delete $conn_ref->{$name};
+
+<[base.logs]>->( 2, qq| disconnected orbital node %s |, $name );
+
+return {
+    'mode' => qw| true |,
+    'data' => qq| disconnected $name |
+};
+
+#,,,.,..,,,.,,..,,,.,,,.,,,.,,.,.,,,.,...,.,.,..,,...,...,...,,..,,,.,,..,.,.,
+#YMM6TJP3BKILBGOQZSNPTDA6LOJR6T2E2RYJBGLHUEJBZMYGMVRURBN52RBNHGRVXIORP4FIEU7VU
+#\\\|XXN4NZKXRKY62IB43Z25DBP3PSTBN2AS4RKZWEZGM4KNEOVGAAZ \ / AMOS7 \ YOURUM ::
+#\[7]4VYSLD2PZDZQPQDUF7NAZNJBBF2K6I3JYLLYPX6JA6A35DYWRSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

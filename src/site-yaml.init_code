@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = site-yaml.init_code
+# descr = initialize site-yaml zenka, load http client
+
+map { <[base.perlmod.autoload]>->($ARG) }
+    qw| LWP::UserAgent HTTP::Request JSON YAML::XS HTML::Entities |;
+
+## http user agent : reused across requests
+$data{'site-yaml'}{'ua'} = LWP::UserAgent->new(
+    'agent' => 'Mozilla/5.0 (X11; Linux x86_64; '
+        . 'rv:124.0) Gecko/20100101 Firefox/124.0',
+    'timeout' => 30,
+);
+$data{'site-yaml'}{'ua'}
+    ->default_header( 'Accept-Language' => 'de-DE,de;q=0.9,en;q=0.8' );
+$data{'site-yaml'}{'ua'}
+    ->default_header( 'Accept' => 'text/html,application/xhtml+xml' );
+
+## enable proxy from environment variables (HTTP_PROXY / HTTPS_PROXY) ##
+$data{'site-yaml'}{'ua'}->env_proxy;
+
+## bypass proxy for known direct-access domains [ configurable, default ##
+## false ]                                                              ##
+if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
+    $data{'site-yaml'}{'ua'}->no_proxy(qw| stepstone.de www.stepstone.de |);
+}
+
+## init fetch queue state ##
+<[site-yaml.fetch.state]>->('load');
+
+## drop stale queue entries from before the generic fetch refactor (they ##
+## lack a reply_handler and would be silently discarded anyway)          ##
+my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+if ( @{$queue} ) {
+    my $stale = scalar grep { not length( $ARG->{'reply_handler'} // '' ) }
+        @{$queue};
+    if ( $stale == @{$queue} ) {
+        <[base.logs]>->(
+            1,
+            'site-yaml: dropping %d stale fetch-queue entries',
+            scalar @{$queue}
+        );
+        $data{'site-yaml'}{'fetch_queue'} = [];
+        <[site-yaml.fetch.state]>->('save');
+    }
+}
+
+<[base.logs]>->( 1, 'site-yaml ready' );
+
+#,,.,,.,,,,,.,.,,,.,.,...,.,,,.,.,,..,..,,,,.,..,,...,...,.,,,,..,..,,.,.,,..,
+#JETGUL5ENY3BNUGBDJ43GXIDVFRHDIEBRKCXV2SVI6STAJFSVKRTQ435J5UM6IOP33ZQ2IRF4PXVI
+#\\\|YYXV6REGO5I6PTHJFCGJOUCRIWWQKVI7U3TJMVNOYJYB26N7KSD \ / AMOS7 \ YOURUM ::
+#\[7]723TQZDXOHSYFESQQFJ7PO6G5LODQ46BSSAB54XNVV5W7G5H3WDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

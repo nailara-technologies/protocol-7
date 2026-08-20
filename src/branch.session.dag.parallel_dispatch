@@ -1,0 +1,40 @@
+## [:< ##
+
+# name = branch.session.dag.parallel_dispatch
+# descr = dispatch open node above score threshold to kimi session
+
+my $hop = shift // return undef;
+
+my $target = $hop->{'target'} // '';
+my $intent = $hop->{'intent'} // '';
+my $score  = $hop->{'score'}  // 0;
+
+return warn 'hop target required <{C1}>'
+    if not length $target;
+
+if ( not <[branch.session.policy.threshold]>->($score) ) {
+    <[base.logs]>->( 2, 'hop below threshold, skipping dispatch' );
+    return 0;
+}
+
+<[base.logs]>->(
+    2, 'dispatching target=%s intent=%s score=%.3f',
+    $target, $intent, $score
+);
+
+## [LLL] no cross-zenka dispatch path to kimi exists yet from branch - this is
+## a stub until that wiring is designed [ see bug-mcp-kimi-
+## dispatch-undefined-sub memory note ]
+<[base.logs]>->(
+    2,
+    'parallel_dispatch stub: would dispatch target=%s intent=%s score=%.3f',
+    $target, $intent, $score
+);
+
+return 0;
+
+#,,,,,,,.,..,,..,,,..,.,,,,,,,,,,,,,,,..,,...,..,,...,...,.,.,,.,,,,,,..,,.,.,
+#YMW6AQH6LJ4BI43BIBJV4WMBOCDENUQV5CR3B7E6236QYPR7H4HYQRYFMGQCK3DP3U6Y4IEBE5C72
+#\\\|4FXYRQXXWJ4WPHCW5KNEE57FWAEWX6XWHCCXB6X56G32ST7OQGK \ / AMOS7 \ YOURUM ::
+#\[7]OKKDOXP3PBI2DXWSNR32REIZXMOATD2DY6PHCH6SYU5NHXWJFWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

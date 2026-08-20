@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = cred-mesh.cmd.subscribe_rotation
+# descr = subscribe to credential rotation events
+# param = <slot> [handler] [ src_zenka via cube alias ]
+
+## SOURCE_ZENKA alias prepends the caller's identity as the first token ##
+my $args_str = $call->{'args'} // '';
+$args_str =~ s/^\s+|\s+$//g;
+
+my ( $source_zenka, $slot, $handler ) = split qr|\s+|, $args_str, 3;
+$source_zenka //= '';
+$slot         //= '';
+$handler      //= '';
+
+<[base.logs]>->(
+    1,
+    'cred-mesh.cmd.subscribe_rotation: received source=%s slot=%s handler=%s',
+    $source_zenka,
+    $slot,
+    $handler
+);
+
+return { 'mode' => qw| false |, 'data' => 'missing zenka identity' }
+    unless length $source_zenka;
+return { 'mode' => qw| false |, 'data' => 'missing slot' }
+    unless length $slot;
+
+## the caller-supplied handler string is accepted for backward             ##
+## compatibility but never trusted : the notify target is derived from the ##
+## authenticated source zenka identity + the fixed 'cred-rotated' suffix   ##
+## instead                                                                 ##
+if ( length $handler and $handler ne $source_zenka . qw| .cred-rotated | ) {
+    <[base.logs]>->(
+        0,
+        'cred-mesh.cmd.subscribe_rotation: ignoring mismatching '
+            . 'caller-supplied handler %s [ source %s fires as '
+            . '%s.cred-rotated ]',
+        $handler,
+        $source_zenka,
+        $source_zenka
+    );
+}
+
+my $result = <[cred-mesh.subscribe_rotation]>->(
+    {   'slot'         => $slot,
+        'source_zenka' => $source_zenka,
+    }
+);
+
+<[base.logs]>->(
+    ( defined $result and ref $result eq qw| HASH | ) ? 1 : 0,
+    'cred-mesh.cmd.subscribe_rotation: result for source %s : %s',
+    $source_zenka,
+    ( defined $result and ref $result eq qw| HASH | )
+    ? ( $result->{'data'} // 'ok' )
+    : 'subscribe failed'
+);
+
+return $result
+    if defined $result and ref $result eq qw| HASH |;
+
+return { 'mode' => qw| false |, 'data' => 'subscribe failed' };
+
+## [ end ] ###################################################################
+
+#,,,,,..,,.,.,...,..,,.,,,..,,,.,,.,,,.,.,,..,..,,...,...,,.,,.,.,,,.,,.,,.,,,
+#MMYZKZLHXA2VNZJTO3MB64UNOQOKG3XPOG4VWED3MUQJDLKTYD4U4AJYJHUKYKREPHK65CMMXBVY4
+#\\\|BOURN7HXY2D6JOSRPYQZJZ4IJWV77PD6HLXXE3IP25WT6IJL3PQ \ / AMOS7 \ YOURUM ::
+#\[7]CVTDCMRA67PAM6EJSCQCY2U4ZQ752GQ6645H4P2FUIEJM6UXTUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

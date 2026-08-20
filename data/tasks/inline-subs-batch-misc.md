@@ -17,27 +17,27 @@ names ].
 
 ## scope : 7 inline subs across 5 modules
 
-### 1. `modules/download.init_code` line 41 : `sub _resolve`
-extract to `modules/download.util.resolve`
+### 1. `src/download.init_code` line 41 : `sub _resolve`
+extract to `src/download.util.resolve`
 
-### 2. `modules/letsencr.child.continue_challenge_processing` line 11 :
+### 2. `src/letsencr.child.continue_challenge_processing` line 11 :
 `sub _cleanup_challenge`
-extract to `modules/letsencr.child.util.cleanup_challenge`
+extract to `src/letsencr.child.util.cleanup_challenge`
 
-### 3. `modules/source.signature_valid` line 634 :
+### 3. `src/source.signature_valid` line 634 :
 `sub _verify_signature_with_data`
-extract to `modules/source.signature.util.verify_signature_with_data`
+extract to `src/source.signature.util.verify_signature_with_data`
 [ this is a large module (770 lines) — read carefully, the sub is near
 the end. verify there is exactly one call site. ]
 
-### 4. `modules/space.search` line 151 : `sub _fallback_resonance`
-extract to `modules/space.search.util.fallback_resonance`
+### 4. `src/space.search` line 151 : `sub _fallback_resonance`
+extract to `src/space.search.util.fallback_resonance`
 
-### 5. `modules/work.parent.scan_history` lines 463/477/484 : three
+### 5. `src/work.parent.scan_history` lines 463/477/484 : three
 helper subs, with a dependency between two of them:
-- `sub _version_cmp` [ line 463 ] -> `modules/work.parent.util.version_cmp`
-- `sub _version_diff` [ line 484 ] -> `modules/work.parent.util.version_diff`
-- `sub _version_gap` [ line 477 ] -> `modules/work.parent.util.version_gap`
+- `sub _version_cmp` [ line 463 ] -> `src/work.parent.util.version_cmp`
+- `sub _version_diff` [ line 484 ] -> `src/work.parent.util.version_diff`
+- `sub _version_gap` [ line 477 ] -> `src/work.parent.util.version_gap`
   — this one calls `_version_diff(...)` internally; rewrite that
   internal call as `<[work.parent.util.version_diff]>->(...)`.
   extract `_version_diff` BEFORE `_version_gap` so the rewrite target
@@ -51,7 +51,7 @@ declaration [ and any `## ... ##` divider/comment around it ].
 ## registration
 
 after all 7 new modules are created and source files updated:
-- add all 7 new module names to `modules/base.list.subroutines`
+- add all 7 new module names to `src/base.list.subroutines`
   [ no strict alphabetical ordering required — follow existing local
   pattern, group near related `download.*` / `letsencr.*` /
   `source.*` / `space.*` / `work.*` entries ]
@@ -78,7 +78,7 @@ after all 7 new modules are created and source files updated:
 ## non-goals
 
 - no behavior change — pure refactor, same logic moved to sibling files
-- do not touch `modules/weather.*` or `modules/base.language.*` —
+- do not touch `src/weather.*` or `src/base.language.*` —
   those are the sibling batch
 
 ## signatures note
@@ -89,8 +89,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,.,,..,.,.,,..,,.,,.,.,,,,,,,.,,..,,..,.,,,..,,...,...,...,,.,,.,,,...,..,,
-#JMSMT7OO7IRSIGA7VBIDGNBVEMBKSCZWVGQ7UQC2YHHTGVZPAAK2ZDQCWQDHTAWMGFCQ6IGAGHSRU
-#\\\|X6ET64VKVESZ7ZQDLKXR5ESAK44JE34RYSWZOO2CVAGVFMOYJKY \ / AMOS7 \ YOURUM ::
-#\[7]3D4IMWMVUA2C6SCBECWB6DL6VW5CMYD27X2DSYHA7ZGNAWEFZGAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,.,.,.,,,,,,,,,...,..,,,,,,,,,,..,,...,..,,..,,..,,,..,.,,,,..,
+#5SOEB4IU5ZYXXDIPCNT7W7MSGCEMQCHTBPAVC5JHEJHS3LAOKOHKUI3L6SIB4FPJXYNOUKVIOU7TC
+#\\\|OEHXCGND5XKX42UHI2UTAWUP3CNV4QXWM5Q26FVBOED3HZQX3DC \ / AMOS7 \ YOURUM ::
+#\[7]7GQGXC5KBK7GGN23PBBTMWJILPV7Z2B766BXJZ7HBVEBCMFXO4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ path.
 
 ## Precedent to mirror
 
-**Read `modules/users.cmd.create-default` first** — this new module is a
+**Read `src/users.cmd.create-default` first** — this new module is a
 near-exact structural mirror of it, with the existence check INVERTED:
 create-default refuses if a record already exists; `remove` must refuse if
 the record does NOT exist. Same header-comment style, same arg-parsing
@@ -22,22 +22,22 @@ username), same two-step path resolution
 `{ mode => 'true'/'false', data => ... }` return shape.
 
 Also read:
-- `modules/users.record.path` — explains the on-disk layout: a record is a
+- `src/users.record.path` — explains the on-disk layout: a record is a
   **directory**, `[USERS_HOST]/<username>/details.yaml`, not a flat file.
   It can also grow a `log/` subdirectory (documented, not yet built). This
   matters for deletion: you must delete the whole
   `[USERS_HOST]/<username>/` directory, not just `details.yaml`.
-- `modules/users.record.ensure_dir` — shows the equivalent
+- `src/users.record.ensure_dir` — shows the equivalent
   resolve-and-touch pattern on the creation side, for how to resolve the
   directory path (as opposed to the document path) via
   `<[base.path.resolve_keywords]>->(sprintf(qw| [USERS_HOST]/%s |,
   $username))`.
-- `modules/base.file.remove_tree` — the existing recursive-delete
+- `src/base.file.remove_tree` — the existing recursive-delete
   primitive to call for the actual deletion. Do not write a new one.
 
 ## What to build
 
-New module `modules/users.cmd.remove`:
+New module `src/users.cmd.remove`:
 
 1. Parse `$call->{'args'}`, trim leading/trailing whitespace, take only the
    first whitespace-delimited token as the username (same as
@@ -65,7 +65,7 @@ New module `modules/users.cmd.remove`:
    removed", $username) }`.
 
 Same AMOS7 module header/footer signature convention as every other file in
-`modules/` (the pre-commit hook enforces this — don't hand-write a fake
+`src/` (the pre-commit hook enforces this — don't hand-write a fake
 signature block, leave it for the normal signing step if you can't produce
 a real one).
 
@@ -114,8 +114,8 @@ that aren't backed by shown output.
 - Do not touch anything under `credentials`/`cred-mesh`/`sessions` — this
   task is scoped to the `users` zenka's own record storage only.
 
-#,,.,,,,.,.,,,..,,...,.,.,...,,,,,,.,,.,.,..,,..,,...,..,,,,,,,..,,..,...,..,,
-#BF3FK3TJ4OGAFIWQ3Y6ZK7HIAOFFCPAAN7P57OBBA5MUQTRCONL32UQKCV574IX7SJK6NT2TETBK6
-#\\\|W5IXLYLP363TFIK4IR6EIG6FQEDZAGYBAID7FMOHMHJMGJF7JGH \ / AMOS7 \ YOURUM ::
-#\[7]YZD4UJQPJ4Z2P4YX3MLARMVVWVHXWHODBSYV7CNXLHNW7H5DY2DY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,,..,...,,,.,,..,...,,,,,...,..,,...,...,..,,...,,.,,.,,,,..,
+#6GGFENTVITUCW3BRBZGPOPK6CVJAJRJZI663RRPAMISBYSLQJHDGUTLE7EPOMAPB5RE2HFTWJ4B4Y
+#\\\|AR7FGFQZ5Y56E3FARTMXJH55ONNMJ4IFGRZCDMLN4I4B3SWKBMV \ / AMOS7 \ YOURUM ::
+#\[7]YJU4G4QHDZXE4YI6EZE36QC46RMGP7T3M2N5HYQBM43DZGZRVABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

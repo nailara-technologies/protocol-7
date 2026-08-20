@@ -151,9 +151,9 @@ if ( $message =~ /:code:/ ) {
 ```
 
 ## See Also
-- `modules/models.chat.invoke_model` - Routing implementation
-- `modules/models.backend.api.invoke` - API backend
-- `modules/models.backend.local.invoke` - Local backend
+- `src/models.chat.invoke_model` - Routing implementation
+- `src/models.backend.api.invoke` - API backend
+- `src/models.backend.local.invoke` - Local backend
 - `MULTI-MODEL-CHAT.md` - Chat system overview
 
 ## Testing
@@ -171,8 +171,8 @@ p7c models.chat
 # Shows conversation with all models
 ```
 
-#,,,,,...,,..,.,,,.,.,,..,.,,,..,,..,,,,.,,..,..,,...,..,,.,.,,..,.,,,.,.,..,,
-#SDZ2HZ5EWCJNCCHEAJXX34OV2CDVK7URTTJZ3DMCPOVQM4BQYCHDNH5SRWMZUHKIFHCV4B6XOPLQK
-#\\\|IIU73X5HOPKSFL2MSNZCDD2LSEHN2XFFB7GZD6EY57SKXD3VT5M \ / AMOS7 \ YOURUM ::
-#\[7]KGEFDFFQTMK5MSNTOIODH35VSNU3SLPDXLJ7RXFD5K3PJNQL6WDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,,.,,,,,,...,...,,..,..,,,,.,..,,...,...,.,,,.,,,,,,,,.,,...,
+#AVMPKNEGPBLXH5AQXDME6PHTMZLYUORSXZKSJDTK27AGOUW53CO4WVMVSDOV6C4FDUN5T6UMD3FCC
+#\\\|V4OKGLCTNJYQWKHKWD4M46Y2TOMXSVZ7LEPXNKTZZS3SD754NBP \ / AMOS7 \ YOURUM ::
+#\[7]5AUPI5LHIJFEIKBCFO4LNZFD7VAN4CRDRXONMAB24BAMSYTEYGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

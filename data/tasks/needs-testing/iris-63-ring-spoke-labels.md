@@ -75,11 +75,11 @@ if ( $mode eq 'namespace63' ) {
 ### 2. update all wheel modules to use ring-label
 
 replace in:
-  modules/route.bmw384.visual.wheel
-  modules/route.bmw384.visual.wheel.gauss
-  modules/route.bmw384.visual.wheel.arc-width
-  modules/route.bmw384.visual.wheel.overlay
-  modules/route.bmw384.visual.wheel.density
+  src/route.bmw384.visual.wheel
+  src/route.bmw384.visual.wheel.gauss
+  src/route.bmw384.visual.wheel.arc-width
+  src/route.bmw384.visual.wheel.overlay
+  src/route.bmw384.visual.wheel.density
 
 current pattern (replace in each):
 ```
@@ -131,8 +131,8 @@ $ARG not $_ in loops
 <[route.bmw384.visual.ring-label]>->($ring, $spoke) call pattern
 lowercase comments, [ word ] bracket annotations
 
-#,,,.,.,.,,,.,,..,,,,,,..,.,,,,,,,.,.,,.,,,..,..,,...,...,,..,,..,,.,,,,,,,..,
-#WQXFY3WSCENKTBFBFWJAOYK2CYENTI7DVLRSROJ7IELQORDENUXPKBPVVOG7TWVEZONJGJHB4IK76
-#\\\|YQYYNCQJ4R4NOHXAVYR32JAUT6ZUYGRRPKNNGFCDJDSKW2IH2HE \ / AMOS7 \ YOURUM ::
-#\[7]KKH5UE7CJKOQL4ASHM3KPDD42BM6T7ZYVQ7NDSFKYC6HXZX7IEBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,.,,,.,,,.,,,...,,,.,.,.,.,.,..,,...,...,...,,.,,,..,.,.,,..,
+#IV7HFHOHM5IHJNB3L3LO2MJ5PXASOK5TV4ZHU3E34H2KFUJRCP5GZWPSYUSUZ7I2XMJEXCO36OPGG
+#\\\|6PNJSRJDASD2YXMPQSVRQC4NXPZCR6EETRFSDFKQ7ZMKJF3YA2D \ / AMOS7 \ YOURUM ::
+#\[7]SBGGR6RMENES6ENP4NJQFVX4B4VYV4KNA33NQJ2YYENKQ4SMC6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

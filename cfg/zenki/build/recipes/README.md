@@ -1,7 +1,7 @@
 # build zenka recipe registry — schema
 
 one yaml file per recipe : `cfg/zenki/build/recipes/<name>.yaml`.
-consumed by the `recipe-run` command [ `modules/build.cmd.recipe-run` ],
+consumed by the `recipe-run` command [ `src/build.cmd.recipe-run` ],
 which dispatches on the top-level `kind` field.
 
 recipes are **fallback-only** : they exist for software with NO packaged
@@ -62,7 +62,7 @@ install:
   requires_root: 1
 ```
 
-patch handling in `recipe-run` [ `modules/build.cmd.recipe-run` ] :
+patch handling in `recipe-run` [ `src/build.cmd.recipe-run` ] :
 `git apply --check` per declared
 patch — clean → applied ; already applied [ reverse-check ] → skipped ;
 conflict → **halt and report**, never force-applied. [ phase 2 adds
@@ -146,8 +146,8 @@ every run writes :
   installed artifacts [ via `base.chk-sum.bmw.filesum` ], install paths,
   recipe name/kind, timestamp
 
-#,,..,,,.,,.,,,,,,...,...,.,.,.,.,.,,,,,,,,.,,..,,...,...,.,.,,,.,,,,,,..,...,
-#VXUZGT77DI3ZLEPO23PIEB4KCF2EVSC3B5IMTC2GOA3WMD2HQDR4BFDTODXFZXI7PM2PI3IBJ3R7G
-#\\\|IRHVC2JZX3KJBW3RO7ZN5ZA7NEUE4P7GUXI7TAR32265XG46I7X \ / AMOS7 \ YOURUM ::
-#\[7]PVA5L2CFCHMCCIX2M3WYPUVQGBXZGZX3KCI6CZUUO5IK7EDK4MCY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,.,.,.,..,,..,,..,,,,.,,,.,..,,..,,...,...,.,.,,,,,.,,,.,,,,,,,
+#X6KHUSN2WVKKUXU7YQLAESCKDEDSY6OKMGPSIQXE6F7SCONKVBIFXAT47NIB4O4HXHNTLS6XFA6ZG
+#\\\|6V2GVUC6VNWVXX35VY2YOCIUXFVLH5CBPT3MZ3I3TFXEGVT4HJR \ / AMOS7 \ YOURUM ::
+#\[7]R54EPR5AYN6HBYNC55CAK45ZSJWNPNBPGQK4NYI6VQWBIUVWXEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

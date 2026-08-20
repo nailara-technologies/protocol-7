@@ -1,0 +1,179 @@
+## [:< ##
+
+# name  = jobsite.sync.push
+# param = < event_object | ondef >, [ force (boolean) ]
+# descr = start chunked async http push : sends changed jobs in small batches
+
+my $force = ( @ARG > 1 ) ? <[base.cfg_bool]>->( $ARG[1] ) : FALSE;
+
+return if <jobsite.sync.push_in_progress>;
+
+my @urls = split /\s+/,
+    ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
+if ( not @urls ) {
+    <[base.logs]>->( 0, '[jss.sync.push] no sync_url configured' );
+    return;
+}
+
+my $jobs = <[jobsite.job.load_all]>;
+
+## ensure status is set from index before push ##
+for my $id ( keys %{$jobs} ) {
+    my $idx_status = <jobsite.job.index>->{$id} // '';
+    ## strip epoch suffix from blocked/deleted/trash so downstream status ##
+    ## comparisons work; trash jobs are skipped from the push below       ##
+    $idx_status =~ s{^((?:blocked|deleted|trash)):.*}{$1};
+    $jobs->{$id}{'status'} = $idx_status if length $idx_status;
+}
+
+## record local ntime at cycle start : used as new watermark after success ##
+my $cycle_ntime_b32 = <[base.ntime.b32]>;
+<jobsite.sync.push_cycle_ntime> = $cycle_ntime_b32;
+
+my @push_queue;
+my @pushed_urls;
+
+for my $url (@urls) {
+    next unless length $url;
+
+    my $last_ntime = <jobsite.sync.last_ntime>->{$url} // '';
+    ## fallback to scalar for backward compat ##
+    $last_ntime = <jobsite.sync.last_server_ntime> // ''
+        if not length $last_ntime;
+
+    ## ntime is encode_b32r [reverse byte order] : NOT lexicographically    ##
+    ## sortable must compare numerically via base.ntime_BASE32_to_numerical ##
+    my $last_ntime_num
+        = length($last_ntime)
+        ? ( <[base.ntime_BASE32_to_numerical]>->($last_ntime) // 0 )
+        : 0;
+
+    ## real [ non-force ] watermark : terminal-state removal signals ignore ##
+    ## $force so a manual force-sync doesn't resend every trash/deleted job ##
+    ## ever seen — only genuinely new transitions since the last real sync  ##
+    my $real_last_ntime_num = $last_ntime_num;
+
+    $last_ntime_num = 0 if $force;    ## manual sync : bypass watermark ##
+
+    ## filter to jobs changed since last sync watermark  note :          ##
+    ## trash/deleted/blocked job content is never loaded into %jobs by   ##
+    ## job.load_all, so those transitions are picked up separately below ##
+    ## from jobsite.removed_log, not from this loop                      ##
+    my @changed;
+    for my $id ( keys %{ $jobs // {} } ) {
+        my $job = $jobs->{$id};
+        my $mod = $job->{'last_modified'} // '';
+        my $mod_num
+            = length($mod)
+            ? ( <[base.ntime_BASE32_to_numerical]>->($mod) // 0 )
+            : 0;
+        if ( not $last_ntime_num or $mod_num > $last_ntime_num ) {
+            ## explicit false default : the web cache only clears a stale   ##
+            ## repair_failed/repair_attempted flag on `exists`, so a job    ##
+            ## whose on-disk record has no such key [ e.g. it never failed, ##
+            ## or a later clean pass deleted the key ] must still push a    ##
+            ## real false value here, or a flag set by an earlier failed    ##
+            ## cycle stays stuck on the web side forever                    ##
+            push @changed,
+                {
+                %{$job},
+                'id'               => <[base.vax-int.encode]>->($id),
+                'repair_attempted' => $job->{'repair_attempted'} // FALSE,
+                'repair_failed'    => $job->{'repair_failed'}    // FALSE,
+                };
+        }
+    }
+
+    ## forward minimal removal signals : a genuine transition into a       ##
+    ## terminal state, tombstoned by job.write, since the real watermark   ##
+    ## defense in depth against a stale tombstone that job.write's own     ##
+    ## prune [ on rescue ] somehow missed : cross-check the job's CURRENT  ##
+    ## status before forwarding, since a rescued job is active again and a ##
+    ## stale 'trash' signal would otherwise clobber its real data          ##
+    for my $entry ( @{ <jobsite.removed_log> // [] } ) {
+        next if ref $entry ne 'HASH';
+        my $rn_str = $entry->{'ntime'} // '';
+        my $rn_num
+            = length($rn_str)
+            ? ( <[base.ntime_BASE32_to_numerical]>->($rn_str) // 0 )
+            : 0;
+        next if $real_last_ntime_num and $rn_num <= $real_last_ntime_num;
+
+        my $enc_id = $entry->{'id'} // '';
+        my $dec_id = <[base.vax-int.decode]>->($enc_id);
+        my $cur_idx
+            = length($dec_id) ? ( <jobsite.job.index>->{$dec_id} // '' ) : '';
+        ( my $cur_base_status = $cur_idx ) =~ s{:.+$}{};
+        if ( length $cur_base_status
+            and $cur_base_status !~ m{^(?:blocked|deleted|trash)$} ) {
+            <[jobsite.removed_log.prune]>->($enc_id);
+            next;
+        }
+
+        push @changed, { 'id' => $enc_id, 'status' => 'trash' };
+    }
+
+    next if not @changed;
+
+    ## split into chunks to stay well within session buffer limits ##
+    my $chunk_size = <jobsite.cfg.sync_chunk_size> // 30;
+    while (@changed) {
+        push @push_queue,
+            {
+            'url'   => $url,
+            'since' => $last_ntime,
+            'chunk' => [ splice @changed, 0, $chunk_size ],
+            };
+    }
+    push @pushed_urls, $url;
+}
+
+if ( not @push_queue ) {
+    ## no local changes: still ping to collect reverse entries from web ##
+    ## side                                                             ##
+    <[base.logs]>->(
+        2,
+        'jobsite: sync ping [ no local changes since %s ]',
+        <jobsite.sync.last_server_ntime>
+    );
+    for my $url (@urls) {
+        push @push_queue,
+            {
+            'url'   => $url,
+            'since' => (
+                <jobsite.sync.last_ntime>->{$url}
+                    // <jobsite.sync.last_server_ntime> // ''
+            ),
+            'chunk' => []
+            };
+        push @pushed_urls, $url;
+    }
+}
+
+my $total_jobs = 0;
+$total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
+
+<[base.logs]>->(
+    1,
+    '[ sync push ] %d jobs in %d chunks to %d url%s',
+    $total_jobs,
+    scalar @push_queue,
+    scalar @pushed_urls,
+    <[base.cnt_s]>->( scalar @pushed_urls )
+);
+
+<jobsite.sync.push_in_progress>     = TRUE;
+<jobsite.sync.push_queue>           = \@push_queue;
+<jobsite.sync.push_urls>            = \@pushed_urls;
+<jobsite.sync.push_had_failure>     = {};
+<jobsite.sync.push_total_attempted> = 0;
+<jobsite.sync.push_total_confirmed> = 0;
+<jobsite.sync.push_reverse>         = [];
+
+<[jobsite.sync.push_chunk]>;
+
+#,,..,..,,,..,...,,.,,,.,,...,.,.,.,,,,..,.,.,..,,...,...,,,.,,,.,,..,.,.,...,
+#J23BDKK2DYYEKAEBQ26DDQPIWDNK3MMNULZ4YYATCC6JDSNA6ANKBWCZWXE4HHO37YXN7QCX32KRO
+#\\\|BFL7AOETXWG5HIXFXJ4YSPAJ2XIZOZKOTPRM6W3LWZEAOAIUXSN \ / AMOS7 \ YOURUM ::
+#\[7]YR6J3GSGMUF44KAGWFGLPTLWC556O2R5QWXLBOITBLQW5NYNFWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

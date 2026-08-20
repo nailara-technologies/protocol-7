@@ -11,7 +11,7 @@ it is still slow even with the SVG cache because the first render blocks.
 
 ### fix: precompute trig tables in heatmap
 
-in modules/route.bmw384.visual.wheel.heatmap:
+in src/route.bmw384.visual.wheel.heatmap:
 precompute sin/cos for all 27 arc boundaries ONCE before the cell loop,
 store in arrays, reuse inside the nested loop:
 
@@ -68,18 +68,18 @@ if ( length $ns_filter ) {
 ```
 
 apply to ALL modes:
-  modules/route.bmw384.visual.wheel
-  modules/route.bmw384.visual.wheel.gauss
-  modules/route.bmw384.visual.wheel.heatmap
-  modules/route.bmw384.visual.wheel.arc-width
-  modules/route.bmw384.visual.wheel.metric
-  modules/route.bmw384.visual.wheel.density
+  src/route.bmw384.visual.wheel
+  src/route.bmw384.visual.wheel.gauss
+  src/route.bmw384.visual.wheel.heatmap
+  src/route.bmw384.visual.wheel.arc-width
+  src/route.bmw384.visual.wheel.metric
+  src/route.bmw384.visual.wheel.density
 
 (overlay already has its own multi-namespace system — skip it)
 
 ### fix: add namespace filter to cmd.visual-wheel
 
-in modules/route.bmw384.cmd.visual-wheel:
+in src/route.bmw384.cmd.visual-wheel:
 parse 'ns' or 'namespace' as a universal param:
   p7c index.visual-wheel file 26 ring ns=base
 
@@ -113,7 +113,7 @@ but the filter has no effect — all modules render.
 
 ### fix: verify gauss_arcs is being applied
 
-in modules/route.bmw384.visual.wheel.gauss:
+in src/route.bmw384.visual.wheel.gauss:
 check that <route.bmw384.cfg.gauss_arcs> is being read correctly
 and that the arc_weight array is computed from it.
 
@@ -158,8 +158,8 @@ existing modules: re-signed on commit. leave new code clean.
 $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 
-#,,..,..,,...,,.,,,..,,.,,,,,,.,,,...,,.,,...,..,,...,...,.,.,..,,...,.,.,,,.,
-#AXCATO47QQW2S6HU63VEJQ4BWJF67IKNTX25HJPGTFRSKUZGSYEBLOZWEST2C5GKNQUSTRHOGP2FA
-#\\\|L24BSQ5OL3NZJT5C45YFPTKP2Y4BFLXGHSCJSCDZKMKPMVFDJWK \ / AMOS7 \ YOURUM ::
-#\[7]JVSUNCG2TU5EF7PO3H6FLIXJYNWOWJGW3QLJOC5VIP6Z3IXSJYBY 7  DATA SIGNATURE ::
+#,,..,...,,.,,..,,,,,,.,,,...,.,,,,,,,.,.,.,.,..,,...,..,,.,.,,,,,.,.,.,.,,..,
+#TZPN4JZS54UZS7B2YIFFJ2KPF5J4WW7IWYA76GRV6COSPSYX4QX3V2EQDPCCYIJEXTRQBHCAXKVPW
+#\\\|F6XLH4UB34VH7DMKTRRO4HFKRVMWAELI6L2ZIPB4UL3UMTHLPL6 \ / AMOS7 \ YOURUM ::
+#\[7]GZ5QPS2NY4RSA5V7A6KJKTE6DHASE4NYVXH7UOAEU3R2UNVPGCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

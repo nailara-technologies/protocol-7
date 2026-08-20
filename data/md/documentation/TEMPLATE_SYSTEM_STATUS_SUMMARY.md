@@ -291,7 +291,7 @@ Based on reading the architecture:
 4. Minimal wrapper around existing functionality
 
 ### Phase 3: Documentation (Recommended)
-1. Create: `docs/modules/TEMPLATE-SYSTEM-MODULE-REFERENCE.md`
+1. Create: `docs/src/TEMPLATE-SYSTEM-MODULE-REFERENCE.md`
 2. Create: `data/yaml/coding-tasks/web-template-caching-implementation.yaml`
 3. Document: module APIs, usage examples, cache strategy
 
@@ -300,18 +300,18 @@ Based on reading the architecture:
 ## Files to Refactor
 
 Your current Perl modules:
-- `/home/claude/protocol-7/modules/HTTPSD/LoadCipherProfile.pm`
-- `/home/claude/protocol-7/modules/HTTPSD/ScanContentDirectories.pm`
-- `/home/claude/protocol-7/modules/HTTPSD/RouteTemplateRequest.pm`
-- `/home/claude/protocol-7/modules/HTTPSD/TemplateCache.pm`
+- `/home/claude/protocol-7/src/HTTPSD/LoadCipherProfile.pm`
+- `/home/claude/protocol-7/src/HTTPSD/ScanContentDirectories.pm`
+- `/home/claude/protocol-7/src/HTTPSD/RouteTemplateRequest.pm`
+- `/home/claude/protocol-7/src/HTTPSD/TemplateCache.pm`
 
 Should become Protocol-7 modules (single subroutine each):
-- `modules/httpsd.load_cipher_profile`
-- `modules/web.scan_content_directories`
-- `modules/httpsd.route_template_request`
-- `modules/web.template_cache.get`
-- `modules/web.template_cache.set`
-- `modules/web.template_cache.invalidate` (optional)
+- `src/httpsd.load_cipher_profile`
+- `src/web.scan_content_directories`
+- `src/httpsd.route_template_request`
+- `src/web.template_cache.get`
+- `src/web.template_cache.set`
+- `src/web.template_cache.invalidate` (optional)
 
 ---
 
@@ -341,7 +341,7 @@ A: Split:
 - `web.template_cache.get`, `web.template_cache.set`
 
 **Q4: Documentation first?**  
-A: YES - Create `docs/modules/TEMPLATE-SYSTEM-MODULE-REFERENCE.md` before refactoring
+A: YES - Create `docs/src/TEMPLATE-SYSTEM-MODULE-REFERENCE.md` before refactoring
 
 ---
 
@@ -369,8 +369,8 @@ Task Files:
 **Token Budget**: ~50,000 remaining (plenty for documentation + refactoring)  
 **Recommendation**: Create module reference doc first, then refactor code
 
-#,,..,,,,,.,,,,..,,..,.,.,..,,.,,,.,.,,.,,,..,..,,...,..,,...,.,,,,..,,..,,..,
-#RHEC65TTQOKOUMVRSZECY5KC6PHG7XD6VQWQVJB7DFWZL3B4XL5GOUZ6UYICFMQQEJR6TV4WFGUGG
-#\\\|5P26R3NJLWNKEPQOZZNHUTFLGLIBI4XNQXVQGEDAVBVAIHP3WUX \ / AMOS7 \ YOURUM ::
-#\[7]CN6QTTJCV7V3VNRBGXYIW3FOFKDDDDMLGTBBSF7M5RQ5BSANIABA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,,,.,.,,..,.,,,,,,,..,,,..,.,.,..,,...,...,.,.,.,.,,,.,,..,,,,,
+#HYPNYICVVGUNEDXAXDJCLKG7GMZFFLZBLLFKVRMHDRVEIZT2MQDDVTS2XI2T46TT52WF2F2C6NQIC
+#\\\|IJLESWDWAOKDS6UBJDOFWJRCHNVI7SEB75E7CEEX6BJBGF6LSMX \ / AMOS7 \ YOURUM ::
+#\[7]PWQH3KEGX77TFUFMKX24UXELX4CHKOTE4URP2FQ7CQ5QF3GKWIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

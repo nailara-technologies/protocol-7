@@ -94,7 +94,7 @@ All tests passed with running cube zenka:
 
 | File | Change | Lines |
 |------|--------|-------|
-| `modules/base.parser.config` | Remove escaped brackets in regex | 116, 129 |
+| `src/base.parser.config` | Remove escaped brackets in regex | 116, 129 |
 | `cfg/zenki/cube/auth.users` | Update to template syntax | 8-9, 26 |
 | `cfg/zenki/cube/access.users` | Already using templates | 5-6 |
 
@@ -201,8 +201,8 @@ This enables granular control and session isolation.
 
 **Status**: Ready for next session with full authentication system operational ✅
 
-#,,,.,..,,,,,,.,.,,..,..,,...,,,.,..,,,,.,.,,,..,,...,.,.,...,..,,...,.,.,...,
-#YMZNHM5HV4HW2D7356GONEV3XUJLSW5UG2MO3TMNQQHLRIUNM22OQA5OPLKI7I3LYMXDE44S7AN76
-#\\\|LWMN3JDLHBZEHVE54AP3QYFTI4NEQ2HL3MAS3S7BGKHMUPZLV4K \ / AMOS7 \ YOURUM ::
-#\[7]UWRFFJZTBGG6Q3HFHB2QHDR5Z2PYZ24NQX2WCJK5WU2JFBTCWQCY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,...,..,,,..,...,..,,,,,,,.,,..,,...,...,...,.,,,.,.,.,,,..,,
+#YNS2WG3VPMW2RHVLYJZR7GICMBJMGYJTNNJI72JDDUQKN4ELAIXV2BAF5IIJBWBNEZVUH3YLZF2CS
+#\\\|2KCDB73L2LV3ZN7XQCQTEYX7KUP7UG6SSI4PMM4FUELH72DJDUQ \ / AMOS7 \ YOURUM ::
+#\[7]7HRLPKDH3EHLG5F7UEGTD3K5VRKFTLIZJAV5NB2M4F66TIIQI4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

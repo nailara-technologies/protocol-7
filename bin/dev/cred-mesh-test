@@ -15,7 +15,7 @@ use FindBin qw| $RealBin |;
 # [ locate project root ]
 my $ROOT = abs_path(
     File::Spec->catdir( $RealBin, File::Spec->updir, File::Spec->updir ) );
-if ( not -d File::Spec->catdir( $ROOT, 'modules' ) ) {
+if ( not -d File::Spec->catdir( $ROOT, qw| src | ) ) {
     die "[ fatal ] cannot find protocol-7 root (got $ROOT)\n";
 }
 
@@ -83,8 +83,8 @@ if ( $spawn_exit != 0 ) {
 my $seed = File::Spec->catfile( $SCENARIOS_DIR, 'helper-seed-fabric.pl' );
 my $seed_exit = system( $seed, '' );
 if ( $seed_exit != 0 ) {
-    warn
-        "[ warn ] seed-fabric reported errors (encryption path may be broken)\n";
+    warn "[ warn ] seed-fabric reported errors "
+        . "(encryption path may be broken)\n";
 }
 
 if ($keep_running) {
@@ -163,8 +163,8 @@ exit 1;
 
 # [ end ]
 
-#,,,.,,.,,,,.,..,,.,.,.,,,,..,..,,,,,,.,,,,,,,..,,...,...,,,,,,..,,,,,...,.,.,
-#A4LML3I7X5RGN2SRZDAUZ6DAKPCBINUQN4OTQ37TNCMPE5FNXYA4IBY5MAJ4CQEH5D5W3PIBHM3RU
-#\\\|HNCIEFDGXRCV243PJW7AUGZMQOBUJGBMKMZBM5CUWQ23XTXNQ3X \ / AMOS7 \ YOURUM ::
-#\[7]47RXXOLEVQ6EZMWN3DGSQNIYUDXIYYHWFU6PVAHCCUXJKC7OG6DY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,..,,,..,.,,,.,,,.,.,,,,,,,,,..,,..,,...,...,.,,,..,,..,,,,.,..,,
+#3PWKSRCDYUKANUMWMP725TXDOVDVDXFZXBATXSVXMGHJRXKDOSW2ROSXT5JUHBW62MER5J2TZ2HLS
+#\\\|D35QV4ZH6ZOMTXXGIUYBPBOHPOLCC6OH77COT6RNRUEKFXIKTXG \ / AMOS7 \ YOURUM ::
+#\[7]LIKAJXVTFZ4KGD2XPO2EUH4F7R3X5QAUFP4PXIWGO5BPUHDIXOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

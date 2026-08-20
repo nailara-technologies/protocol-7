@@ -11,7 +11,7 @@ quick task — add a staged-file check to the existing pre-commit hook.
 
 ### context
 
-all command modules in modules/ follow this header format:
+all command modules in src/ follow this header format:
 ```
 # name  = module.cmd.name
 # param = <args>
@@ -27,7 +27,7 @@ this prevents regression.
 
 ### implement the check
 
-- [x] get staged files matching `modules/*cmd*` via
+- [x] get staged files matching `src/*cmd*` via
       `git diff --cached --name-only`
 - [x] for each staged file grep lines matching `/# (descr|param) = /`
 - [x] extract value after `= ` and measure length
@@ -56,7 +56,7 @@ this prevents regression.
 ## task 2: static dependency graph tool ##
 
 heavier task — standalone script that maps all module-to-module call
-sites across the entire modules/ directory.
+sites across the entire src/ directory.
 
 ### context
 
@@ -113,8 +113,8 @@ the roadmap).
 
 ### completed — ready for commit
 
-#,,,.,...,,.,,..,,,.,,...,.,,,.,,,,.,,,,.,,,,,..,,...,...,,.,,..,,..,,.,.,.,,,
-#DP4GMNV4TJRKAJXIAN7CITBXVO7ZRANUHGWRZTYOQWS7GEXOS37RYQZPS2ZLBZFEOZ6KFXTVXVVE2
-#\\\|Z5BVQA2OZN5BERD54GWOH6YRIKNU4BQDEH7PLQVMUWYCH7CBDO6 \ / AMOS7 \ YOURUM ::
-#\[7]OKWDDWYSTXBJ3TRGZI6AW44B2UEB5DTSQ2V4VH7A6HHYLLI3MIDI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,.,,,..,...,..,,,.,,.,.,,,,,...,..,,...,..,,..,,.,.,,.,,.,,,,,,,
+#KI6QPMVLZPC5AT453NKEI34FTOM3JYWMKHETWSH6V7ZVHPW22BVQX6PJA45ZE4UMYLWBJGG6IDOTQ
+#\\\|7M4LOMXG7KZVPCNK76SWFAXAUFGEYDSL27RX3SWGRJV2GWJE7CJ \ / AMOS7 \ YOURUM ::
+#\[7]WCLC2DHX3K5OPWCWEV4DA24OBF3WC25YAEMWWFKGRGBVCHGFXCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

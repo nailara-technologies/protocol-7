@@ -52,7 +52,7 @@ composes, in order:
 2. `AMOS7::SHM::Page::write_page` for each page, writing `$$content_ref` in
    `$page_size`-sized slices.
 3. build a permission grant and sign it — **there is no standalone
-   `add_permission`-style helper to call**, `modules/data.mount.shm.permission.add`
+   `add_permission`-style helper to call**, `src/data.mount.shm.permission.add`
    is a zenka-only wrapper that inlines this sequence itself. mirror its logic
    directly in `Transport.pm` using already-exported `AMOS7::SHM` subs : build
    `{ to => $reader_pubkey, branch => $sub_path // '', rights => [...],
@@ -183,8 +183,8 @@ specifically ] vs single-process, and confirm explicitly that the checksum-
 algorithm-is-caller's-choice decision is documented in the module itself, not
 just in this task doc.
 
-#,,..,,..,,..,.,.,.,.,..,,,,,,.,.,..,,.,,,,.,,..,,...,...,,,.,...,,..,,.,,.,.,
-#UXTXTHQ4YNVOIECV74FBL4KC7SEBSKH3733ABWBMZGVJRHOJAGLK2455GGARMZTW4MSTULPF5KJ3Y
-#\\\|ABRCTUW2G6YCGQHNJJCVJQO2AEWKQEV6OCPBVU673J7RY7VI3C6 \ / AMOS7 \ YOURUM ::
-#\[7]36YLA26SQODGLASYB22SFBBNMCVMN6LVDN3NAGJBPP4GD74H3CBI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,.,,,,,,,...,,,.,,,.,.,.,,,,,..,,...,...,.,.,,,.,,,,,..,,...,
+#WMR3JHWJPVLQBIPN3CYSKSLBWKYQGYDIYMN63SCZE4PIC6XVEQY3DWZMRX4MMX7SEB63SJ3X7KTSC
+#\\\|MESVYOWTLWFTF3ZOHXLNMZJR3XGVEZC2YZZJFDBZGO45IS2HWTD \ / AMOS7 \ YOURUM ::
+#\[7]LNBDWFQAROEBYODB3RYGDIAKBBNAQSUHQUMSNAYGOMEJTE4ODOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

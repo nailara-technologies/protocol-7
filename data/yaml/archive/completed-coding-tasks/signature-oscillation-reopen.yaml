@@ -63,12 +63,12 @@ reproducible_state: |
   Then trigger a fresh signing pass to reproduce.
 
 modules_to_investigate:
-  - modules/source.extract_sig_body
+  - src/source.extract_sig_body
       look for: footer detection regex that fails when trailing newline
       follows the #::::: separator line
-  - modules/source.harmonize_payload_line_feed
+  - src/source.harmonize_payload_line_feed
       look for: where the trailing newline after #::::: is added
-  - modules/source.cmd.get-code-signed
+  - src/source.cmd.get-code-signed
       look for: condition that decides file is unsigned when footer exists
 
 test_environment_plan: |
@@ -107,8 +107,8 @@ two_variants: |
 
   VARIANT A — silent (no error message):
     Reproducer: touch an empty file and sign it.
-      touch modules/another.test
-      bin/Protocol-7 sourcecode update-signatures modules/another.test
+      touch src/another.test
+      bin/Protocol-7 sourcecode update-signatures src/another.test
     Observation: update-signatures wants to sign it a second time before
     it is considered stable. No error emitted — just requires two passes.
     Confirmed 2026-03-16 with empty file.
@@ -125,7 +125,7 @@ two_variants: |
   Variant A is the cleanest test environment — isolates footer mechanics
   with no body content. Use it for initial debugging.
 
-  Clean up after testing: rm modules/another.test
+  Clean up after testing: rm src/another.test
 
 workaround: |
   Sign affected files multiple times until the footer stabilizes.
@@ -134,8 +134,8 @@ workaround: |
 
 ---
 
-#,,.,,.,,,,,,,,..,..,,,,,,,.,,,,,,.,,,..,,,,,,..,,...,...,..,,,.,,.,.,.,,,,,.,
-#OBW7TCOIUWPSNDKKN73VYELVKZECXFY23X7IVUZZRXSMI2CZRKDYO5FWDBJFDZ67NX5PKPH2AXMJK
-#\\\|LN6O43J5DV3D27MQ2QCB2SCDHKBIUTGTBSAHASQFEO3OZV7O5SX \ / AMOS7 \ YOURUM ::
-#\[7]RLS55FMG6QK2WGYMJHY6RTSTCQIOSN4KUR2DSGFFIY3H5BISC4CY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,..,...,...,.,,,...,,.,,.,,,..,,...,.,.,.,,,,,,,,,.,,,,,...,
+#B7MZOPOTF73M2TX467C4JJRZQPSRRSHXERE4Z7DXPRCY3NA44LUZEMKEXZB3GM6BRR46KAWLNGLUG
+#\\\|EAEPVHS2YCJH2QQMPT7IHXPVBUEHMDV3JRGM7ZIYLJUZABVLBQA \ / AMOS7 \ YOURUM ::
+#\[7]6CA6OZBZ2BSTDSPALOVUXV5M4FP6VBWHVRCRCO3HYERP24GTCUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

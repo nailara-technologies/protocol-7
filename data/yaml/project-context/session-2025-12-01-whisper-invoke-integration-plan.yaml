@@ -145,12 +145,12 @@ phase_1_design:
   file_structure:
     description: "Minimal additions to Protocol-7"
     files_to_create:
-      - "modules/audio.service.transcribe"
+      - "src/audio.service.transcribe"
         purpose: "Calls Python Whisper wrapper via subprocess"
         interface: "$call = { audio_path, model, language }"
         returns: "{ success, transcript, detected_language, duration, model_used }"
 
-      - "modules/audio.cmd.transcribe"
+      - "src/audio.cmd.transcribe"
         purpose: "Console command wrapper"
         interface: "shift -> file path from command line"
         returns: "Pretty-printed results to console"
@@ -168,7 +168,7 @@ phase_1_design:
   module_implementation_patterns:
 
     audio_service_transcribe: |
-      ## modules/audio.service.transcribe
+      ## src/audio.service.transcribe
       ## Calls Python Whisper wrapper, returns JSON result
 
       my $call = shift || {};
@@ -326,7 +326,7 @@ phase_2_design:
         app.run(host='localhost', port=7777)
 
   protocol_7_caller_module: |
-    ## modules/audio.service.http.transcribe
+    ## src/audio.service.http.transcribe
     ## Make HTTP call to Python service
 
     my $call = shift || {};
@@ -376,7 +376,7 @@ invoke_ai_integration:
   phase_2_action: "Create image.service.generate module"
 
   example_module_invoke: |
-    ## modules/image.service.generate
+    ## src/image.service.generate
     ## Calls Invoke AI HTTP service
 
     my $call = shift || {};
@@ -475,8 +475,8 @@ resources:
   protocol_7_references:
     coding_style: "data/yaml/protocol-7-coding-style.md"
     module_patterns: "data/yaml/project-context/workflow-zenka-patterns.yaml"
-    recent_modules: "modules/web.template_cache.* (Nov 29)"
-    http_patterns: "modules/base.net.* (existing network modules)"
+    recent_modules: "src/web.template_cache.* (Nov 29)"
+    http_patterns: "src/base.net.* (existing network modules)"
 
   knowledge_base:
     ai_insights: "data/asc/what-AI-thinks/perl-form/ai-integration/"
@@ -510,8 +510,8 @@ philosophy:
 
 ---
 
-#,,.,,.,,,.,.,,.,,,,.,.,,,,..,,..,..,,.,.,...,..,,...,..,,...,,,.,..,,.,,,,..,
-#5U2IUIDE6MIRLEQJBN7HZZXNYTSDZPSYDW2JCGTCMZBV7QNIL7O5L3XMNI56WLJ7ZA4YIFHZZKQJA
-#\\\|IBVDBVQII4Q52JNCOUAJERSYKL3WAIEDHYGPFGGBIKJOVD7GS4N \ / AMOS7 \ YOURUM ::
-#\[7]O74WASBBPKWHXW4JSS4ZLURMSWTPUOXXN2QIV7Z262EUFIYG2ACY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,...,.,.,,,.,.,,,,..,,..,.,.,..,,...,...,,,,,,,.,,,,,,..,,..,
+#72ILTOHNE7VD2LNAP7WARL2YAWF6MZQS35JXPZNAWTCER7Z2SV2SHBBSG7K735AT7W2Y2S7YSM73G
+#\\\|QQW5KJBAA7RDQ7U3T53ZYSQ3DHGEJLIZRAXGRXWNHJW67BEU262 \ / AMOS7 \ YOURUM ::
+#\[7]FBYNR6CJ3JRJJZWHXFGT7RICUWANE4V4E33DGN75OOXIK7H25IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

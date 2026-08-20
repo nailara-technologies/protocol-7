@@ -24,7 +24,7 @@ impact_resolved:
   - ✓ Cleaner workflow - no need to watch for oscillation trap
   - ✓ Files with missing separator endlines auto-repaired during signing
   - ✓ Update-sub-list and other bulk operations now stable
-  - ✓ No extra passes required when adding new modules/files
+  - ✓ No extra passes required when adding new src/files
 
 affected_files:
   - cfg/protocol-7.src-ver (observed during Session 2C)
@@ -38,7 +38,7 @@ root_causes_and_fixes:
       Root cause: Flag set during extraction but never reset after separator added during signing.
       This caused verification to always trigger re-sign on every cycle.
 
-      Location: modules/source.cmd.get-code-signed line 161-163
+      Location: src/source.cmd.get-code-signed line 161-163
       Fix applied: Clear flag immediately after separator endline is successfully added
       Result: Flag no longer causes re-signing oscillation
 
@@ -49,7 +49,7 @@ root_causes_and_fixes:
       Root cause: Restoration condition was handling separator logic backwards.
       This caused content endlines to be modified in opposite directions.
 
-      Location: modules/source.extract_sig_body lines 640-654
+      Location: src/source.extract_sig_body lines 640-654
       Fix applied: Correct condition: if separator_absent { skip } else { restore }
       Result: Restoration now correctly reverses harmonization based on state
 
@@ -60,7 +60,7 @@ root_causes_and_fixes:
       Root cause: Function used $mod_offset (state parameter) making it state-dependent.
       This prevented convergence and caused oscillation between different states.
 
-      Location: modules/source.harmonize_payload_line_feed lines 35-71
+      Location: src/source.harmonize_payload_line_feed lines 35-71
       Fix applied:
         - Remove $mod_offset dependency entirely
         - Normalize to canonical form: exactly 2 newlines (blank line separator)
@@ -81,7 +81,7 @@ root_causes_and_fixes:
       Root cause: Restoration tried to enforce canonical 1-newline format regardless of state.
       This didn't match what harmonize did, causing asymmetric transformations.
 
-      Location: modules/source.restore_payload_endline_state lines 27-50
+      Location: src/source.restore_payload_endline_state lines 27-50
       Fix applied:
         - State 6: Remove 1 newline (reverses harmonize addition)
         - State 7: Remove 2 newlines (reverses harmonize addition)
@@ -126,8 +126,8 @@ assigned_to: null
 target_version: "3KZNJAMXLQ-5968.0"
 status_update: "RESOLVED - All fixes implemented and verified. Oscillation completely eliminated."
 
-#,,,.,.,,,...,.,,,,..,.,.,,..,,,,,,,,,.,,,.,.,..,,...,...,..,,.,.,,,,,,.,,,,.,
-#UMTQ673MTBPM22NTDTTWYLRX76XCYIMXORDBCD5RWGIKF4ATMLOS6VRKOJOLFZGZZEW4B7OD3F74A
-#\\\|5OAS7XVE6SZPIG4OR46WILMQECSML2ZPZSDGMKLM5NYBTWEKQU2 \ / AMOS7 \ YOURUM ::
-#\[7]H5FNGIX24Q6MRT2NZHVJUJ5HZGBG6AOAIMS5ESU6MAWJXMTNPACY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,.,,,.,,,,..,..,,,..,...,,,,,..,,...,..,,,,,,,,,,...,.,.,..,,
+#XHLWTKNBL4BLUNK6S74WIAXBH3JWKFO6IFMT2JR4KDPQ2Q2H6WFRKLANVSUMX4Q4VCCUMLV6RYAEW
+#\\\|IGHYWSVBNBGOSYHIHC223JJSCW7LGPEBVC7IARWK6W3KBZBJIII \ / AMOS7 \ YOURUM ::
+#\[7]ORW3TR3KIPDEZG24N32LDMFZEC42LGUFB4B4BSSQQLJA4TVSGOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

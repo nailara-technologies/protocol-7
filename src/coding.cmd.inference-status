@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = coding.cmd.inference-status
+# descr = return current inference server status as YAML
+
+use YAML::XS qw| Dump |;
+
+my $reply_id = $call->{'reply_id'} // '';
+
+my $servers = <coding.inference_servers> // {};
+
+## authoritative mmproj path from model resolution  [ server hash may be ##
+## stale if module reloaded after spawn ]                                ##
+my $gpu_mmproj = <inference.model.mmproj_path> // '';
+my $cpu_mmproj = <inference.model.mmproj_path> // '';
+
+## fall back to server hash if authoritative path is empty ##
+$gpu_mmproj = $servers->{'gpu'}{'mmproj_path'}
+    if !length $gpu_mmproj
+    && length( $servers->{'gpu'}{'mmproj_path'} // '' );
+$cpu_mmproj = $servers->{'cpu'}{'mmproj_path'}
+    if !length $cpu_mmproj
+    && length( $servers->{'cpu'}{'mmproj_path'} // '' );
+
+my $gpu_status = $servers->{'gpu'}{'status'} // 'unknown';
+my $cpu_status = $servers->{'cpu'}{'status'} // 'unknown';
+
+my $status = {
+    'gpu' => {
+        'status'        => $gpu_status,
+        'port'          => $servers->{'gpu'}{'port'}  // 8000,
+        'pid'           => $servers->{'gpu'}{'pid'}   // 0,
+        'model_id'      => $servers->{'gpu'}{'model'} // '',
+        'mmproj_path'   => $gpu_mmproj,
+        'url'           => $servers->{'gpu'}{'url'}     // '',
+        'backend'       => $servers->{'gpu'}{'backend'} // 'gpu',
+        'still_loading' => ( $gpu_status eq qw| starting | ) ? 1 : 0,
+    },
+    'cpu' => {
+        'status'        => $cpu_status,
+        'port'          => $servers->{'cpu'}{'port'}  // 8001,
+        'pid'           => $servers->{'cpu'}{'pid'}   // 0,
+        'model_id'      => $servers->{'cpu'}{'model'} // '',
+        'mmproj_path'   => $cpu_mmproj,
+        'url'           => $servers->{'cpu'}{'url'}     // '',
+        'backend'       => $servers->{'cpu'}{'backend'} // 'cpu',
+        'still_loading' => ( $cpu_status eq qw| starting | ) ? 1 : 0,
+    }
+};
+
+my $yaml = Dump($status);
+
+if ( length $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => qw| size |, 'data' => $yaml }
+    );
+    <[base.logs]>->(
+        3,         '[inference-status] replied to %s [gpu=%s]',
+        $reply_id, $status->{'gpu'}{'status'}
+    );
+    return { 'mode' => qw| deferred | };
+}
+
+return { 'mode' => qw| size |, 'data' => $yaml };
+
+#,,.,,,,,,,..,,,,,,..,..,,,,.,..,,,,.,...,,,,,..,,...,...,...,.,.,...,,..,.,.,
+#I6PXJDIW5T5TLDSIASZ74QOQS2OMFQFCSZWGCJNNNOTAOWUOP2LNZ6FESBXA4ZPAF5ZEMZTOQPOXG
+#\\\|SHZE2WODBDEJJDADILV7K6NUMYOVLVDVMZEDMKE5QOJSS72CNJV \ / AMOS7 \ YOURUM ::
+#\[7]EXQW3MVABKPKAMZ35E66WWXC6NXTY6NM5KMVB2LCWGZXDA645WDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

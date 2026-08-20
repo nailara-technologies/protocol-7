@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = httpsd.pre_init
+# descr = pre-initialization for HTTPSD zenka before main httpd init
+
+<[base.perlmod.autoload]>->('IO::Socket::SSL');
+<[base.perlmod.autoload]>->('Crypt::OpenSSL::X509');
+
+<[base.log]>->( 2, 'httpsd pre-initialization: loading TLS libraries..,' );
+
+## certificate paths [ 'default' aligns with content dir naming convention ##
+## ] note  real paths auto-discovered in post_init via                     ##
+## discover_active_certificate                                             ##
+##
+<httpsd.cfg.certificate_path> //= '/etc/protocol-7/certs/default.pem';
+<httpsd.cfg.key_path>         //= '/etc/protocol-7/certs/default.key';
+<httpsd.cfg.tls_version>      //= 'TLSv1_2';
+
+<[base.log]>->( 2, 'httpsd pre-init complete' );
+
+0;
+
+#,,,,,.,,,.,,,,,,,..,,.,,,,,,,..,,,,.,...,.,,,..,,...,...,,..,,,.,,.,,,..,,..,
+#4ETBU3REYN5D5CPZDS5GRGWCGTW5CW4L33XEQTVTHIJKDVFDS5PGZVXJNZ7XOMANDGI7NKXV5TECG
+#\\\|GRYL3TPZOGS7M7L33B7PZC3GS4Y5RLYT5TW6RONQ574XFWQWEI7 \ / AMOS7 \ YOURUM ::
+#\[7]E3M4UBGT6P6UQLVWKBQ6ZYMNZMS7OLX3HWLHNWSECZS7QRNUSWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

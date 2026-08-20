@@ -144,7 +144,7 @@ the tooltip shows density count and percentage for each node.
 
 ## wire into wheel-mode dispatcher
 
-in modules/route.bmw384.visual.wheel-mode, add:
+in src/route.bmw384.visual.wheel-mode, add:
 
 ```perl
 elsif ( $mode eq 'alpha-density' ) {
@@ -189,8 +189,8 @@ $ARG not $_ in loops (use for my $ARG)
 lowercase comments, [ word ] bracket annotations
 copy SVG structure from route.bmw384.visual.wheel as base
 
-#,,,.,,..,,,.,...,.,,,,,.,..,,,,.,...,,,.,,..,..,,...,...,,..,,.,,.,.,.,,,..,,
-#KFEQATTNZOWQ563VIHMADIBEQ2BOSSUJKKKEFWIPZBNUU5UKCBSQJCUBBI6JW4BVXZKPWZBQ2RHHS
-#\\\|JB4QQVGQYNJJKFXJVDND3H3ZATHZDNQJOT6NWNDXUECIAM2D7VN \ / AMOS7 \ YOURUM ::
-#\[7]E4XDGHJT6P6P2K5IVEBLZZHCF2R3RPX3FUJWLPY6Y2XDYD23F4DA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,,..,,,.,.,,,.,,,,,.,...,...,..,,...,...,.,.,,,,,,..,,,,,,..,
+#HUCFQBL5OAIADHUCDRFKUMVUVCQ7KEX4DDURPLVXFPSHYGP5MICHMQC2OUFXN72ZPO35E5SKHO6FK
+#\\\|APBKYMGVZ2WGYKSOZHTCFD4U47PBSXS6GMO7KHI4GD2HD4D7OAU \ / AMOS7 \ YOURUM ::
+#\[7]VTN2GQWDZQM2MDFDMXWIKCYCJEUFM7TKH4JEG5BWUTGRQOOVFWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

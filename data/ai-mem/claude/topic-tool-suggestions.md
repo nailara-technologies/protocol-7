@@ -14,7 +14,7 @@ type: project
 ## Findings from task-M7QLKRQ (2026-03-29)
 - Model added `.p7` extension to filenames — template now explicitly forbids extensions
 - Created new modules but skipped source edits — template now emphasizes both halves
-- validate_module_format can't check files not yet loaded (uses module name, resolves to modules/$name)
+- validate_module_format can't check files not yet loaded (uses module name, resolves to src/$name)
 - Model noted read_module truncation at 4000 chars forced manual sub body extraction
 
 ## Ready to Implement
@@ -61,8 +61,8 @@ type: project
 - task-63KH5CQ (2026-03-29): second meta-reflection with tool access, suggested
   extract_single_sub, analyze_sub_complexity, replace_all, list_inline_subs
 
-#,,,.,...,.,.,.,.,...,.,,,...,..,,,.,,..,,,,,,..,,...,...,,..,,,,,,,,,...,,..,
-#O6TMO4NXVDUQSJFYVJRS6FFHQLHQC22DRMXU5KUIXIGJMADI4X3QKBBPYA5NIP22BDK6V5N5ILVOC
-#\\\|GNCO3HBXW6EL2A7PV2Y3PFKVHE57736AWXKTNYP5Q5JDECXCU5V \ / AMOS7 \ YOURUM ::
-#\[7]CACV76ZBD7RUJHMH5WPYXD26W6RTEWHITSYF4R6DVOZQG5OQTQAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,...,..,,...,,..,..,,.,,,,..,..,,..,,...,...,...,,,.,,,.,,..,,,.,
+#5HU2MK2YAZHCDPWBXVZE3JEFXZ42LUIHRN6MTDQQHNREZXYPNQ775Q5V7PMV2TXYSSTT5AF7V3MMC
+#\\\|662CIAMCTEZUFZPMVPFMBQN4ASD7XQQL7CQIFJHM3DP4CRFN4LY \ / AMOS7 \ YOURUM ::
+#\[7]3LNB2QFZFXO46HPWEDPH3L3OKPBDZZ6BK6M5G55ZYLUW46OXGEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

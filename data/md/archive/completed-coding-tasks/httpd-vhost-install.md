@@ -144,18 +144,18 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 
 ## deliverables
 
-1. modules/httpd.vhost.init_code
-2. modules/httpd.vhost.read_manifests
-3. modules/httpd.vhost.dns_matches_local
-4. modules/httpd.cmd.install-vhosts
-5. modules/httpd.vhost.request_tls_cert
-6. modules/httpd.vhost.handler.cert_reply
-7. modules/httpd.cmd.update-vhosts
-8. modules/httpd.cmd.vhost-status
+1. src/httpd.vhost.init_code
+2. src/httpd.vhost.read_manifests
+3. src/httpd.vhost.dns_matches_local
+4. src/httpd.cmd.install-vhosts
+5. src/httpd.vhost.request_tls_cert
+6. src/httpd.vhost.handler.cert_reply
+7. src/httpd.cmd.update-vhosts
+8. src/httpd.cmd.vhost-status
 9. note on where httpd.vhost.init_code should be called (start file or init_code)
 
-#,,.,,..,,,,,,.,,,.,,,,.,,,..,,,,,.,.,.,,,,.,,..,,...,..,,...,,.,,.,.,,..,.,,,
-#OT6GOROVR77I7WNTGIL4NNKKRVTGNWYGU62BWV7WINY2TX77VGSLBTIUVNFGZGVM7WTDHZJJQAO4E
-#\\\|CRL2PGW4V5VLUV24K2QZITUVL2F2MGQGEELGMCMRRBH7KEK67XT \ / AMOS7 \ YOURUM ::
-#\[7]GVNLEFNI4VSAZ377O7TYO27EBNCGIYIDXDSRIH4733SLMHPAFICY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,...,.,,,...,..,,.,,,.,,,,.,,..,,...,...,.,.,,..,,,,,.,,,..,,
+#Y7YMVSTMBNLAHGXG2XSRQ6MTJ3B4V7JGPDBB2HS7NXXVGD5XMLXY25SPZFCOIXU5R5TRDC7R6X5KQ
+#\\\|Y6RXNJZ35YC6BGVTIMJCYDJX75DP4MGHJ7E2AJFDZ57QHWH4YVV \ / AMOS7 \ YOURUM ::
+#\[7]RDW2DAEVK6AX6MYZGJZSXRWWX3FL7LBHRAIQSXMHUWMQYEHURCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

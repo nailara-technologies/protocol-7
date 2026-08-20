@@ -126,27 +126,27 @@ result: 5 trunk elements, frequency halved.
 
 ### tree.sort.trunk.*
 
-- `modules/tree.sort.trunk.project` — given a list of namespace entries
+- `src/tree.sort.trunk.project` — given a list of namespace entries
   with reference weights, project onto the 5×7 map. assign each entry a
   (column, row) coordinate based on its layer type (column 1-5) and its
   position within the generator family (row 1-7). entries without a clear
   row position are placed by reference-weight proximity to the gravity core.
 
-- `modules/tree.sort.trunk.cancel_symmetric` — identify symmetric pairs
+- `src/tree.sort.trunk.cancel_symmetric` — identify symmetric pairs
   along the 7-axis (entries at rows R and 8-R with matching layer column).
   cancel pairs: remove both, record their net contribution (difference in
   reference weight) as a residual. return list of unpaired entries + residuals.
 
-- `modules/tree.sort.trunk.remainder` — return the asymmetric survivors:
+- `src/tree.sort.trunk.remainder` — return the asymmetric survivors:
   unpaired entries + residuals from cancel_symmetric. these are the trunk
   elements — one per column, the highest-weight non-cancelled entry.
 
-- `modules/tree.sort.trunk.halve_frequency` — for each column, collapse
+- `src/tree.sort.trunk.halve_frequency` — for each column, collapse
   the 7 row values to a single representative by summing and halving.
   this reduces one oscillation period to its net scalar value. return
   5-element array (one per layer column).
 
-- `modules/tree.sort.trunk.field_self` — apply the full sort (project →
+- `src/tree.sort.trunk.field_self` — apply the full sort (project →
   cancel → remainder → halve) to the expansion front of sub-branches.
   the trunk from the current level becomes the column axis of the next
   level. recurse until no further cancellation occurs or depth limit
@@ -154,58 +154,58 @@ result: 5 trunk elements, frequency halved.
 
 ### tree.route.page.*
 
-- `modules/tree.route.page.word_type` — decode 7-bit word type prefix:
+- `src/tree.route.page.word_type` — decode 7-bit word type prefix:
   return 'routing' | 'base32' | 'document' | 'graphical'. extract the
   remaining payload bits after the prefix. reference: `decoded_bits` in
   `bin/dev/division-13-table`.
 
-- `modules/tree.route.page.word_route` — decode routing word (type '00'):
+- `src/tree.route.page.word_route` — decode routing word (type '00'):
   extract direction (UP/LEFT/RIGHT/DOWN from 2-bit field) and hop count
   (1 + 3-bit value). return hashref `{ dir => 'LEFT', hops => N }`.
 
-- `modules/tree.route.page.word_graphical` — decode graphical word (type '1'):
+- `src/tree.route.page.word_graphical` — decode graphical word (type '1'):
   extract column (0-4) and row (octal 0-7). return hashref
   `{ col => N, row => N, pos => N }` where pos = col*8 + row.
   positions 48-63 are control codes (color/alpha).
 
-- `modules/tree.route.page.encode_56` — encode 7 bytes as a 56-bit
+- `src/tree.route.page.encode_56` — encode 7 bytes as a 56-bit
   routing word: split into 8 groups of 7 bits, prepend '1' to groups
   0..6, prepend '0' to group 7. return 8 bytes.
   (reference: `bin_to_comp_int_2` in `bin/amos-data-pager-56`)
 
-- `modules/tree.route.page.decode_56` — decode 8-byte routing word:
+- `src/tree.route.page.decode_56` — decode 8-byte routing word:
   strip leading bits, return 8 groups of 7 bits + array of leading bits
   (direction flags).
 
-- `modules/tree.route.page.bit_direction` — given a decoded routing word
+- `src/tree.route.page.bit_direction` — given a decoded routing word
   and group index, return 'left' (carry, leading 0) or 'right' (awaiting,
   leading 1).
 
-- `modules/tree.route.page.read` — read N lines × W bytes from routing
+- `src/tree.route.page.read` — read N lines × W bytes from routing
   table at offset. return arrayref of routing words. wraps seek + sysread
   pattern from amos-data-pager.
 
-- `modules/tree.route.page.rollover` — given a segment at boundary:
+- `src/tree.route.page.rollover` — given a segment at boundary:
   check harmonic truth of the terminal group (group 7).
   if true: carry over (return carry=1, segment resets to right end of next).
   if false: fall back (return carry=0, segment resets to right end of same).
 
-- `modules/tree.route.page.extract` — apply harmonic truth test
+- `src/tree.route.page.extract` — apply harmonic truth test
   (`AMOS7::Assert::Truth` / `true_int`) to a routing word. if true:
   mark as extracted, return representative value (the 7-bit payload of
   group 7). record extracted slot position for suction.
 
-- `modules/tree.route.page.suction` — given a list of vacated slot
+- `src/tree.route.page.suction` — given a list of vacated slot
   positions in a routing page, pull bits upward from the page below:
   read the corresponding positions from the lower page, move them up,
   clear the lower slots. return count of bits moved.
 
-- `modules/tree.route.page.attach` — given a passing segment (array of
+- `src/tree.route.page.attach` — given a passing segment (array of
   routing words in motion) and a waiting bit (new bit to insert), find
   the first available slot in the passing segment (leading '1' group with
   zero payload). insert the bit. return updated segment.
 
-- `modules/tree.route.page.navigate` — cursor operations over a routing
+- `src/tree.route.page.navigate` — cursor operations over a routing
   table: line_up / line_down (±1 line = ±W bytes), page_up / page_down
   (±N lines = ±N×W bytes). clamp to [0, file_size - page_bytes].
   (reference: navigation subs in both amos-data-pager scripts)
@@ -246,8 +246,8 @@ use constant CARRY_GROUP   => 7;    ## index of terminal/carry group (leading 0)
 - navigate clamps correctly at both ends of file
 - suction moves exactly the bits vacated by extract, no more
 
-#,,,,,,.,,...,,.,,,,,,,,.,,,.,,..,,.,,.,,,,.,,..,,...,...,..,,.,.,.,.,,,,,.,.,
-#HA3YL5FJMWLXHRT7K7JUPERWVBMCHZZZQX6XYZ3UULFMLPFQFMLRPNQCK7BH7B5EMZNZ6LCK4ROTM
-#\\\|WSR2NJMGH4XRXZBYFRQEOAUZDGPJAUTUTTE746C2YN2MSM3P3BZ \ / AMOS7 \ YOURUM ::
-#\[7]I7Q3BHOV6T5I25ER6IZNTFAVYKQH6NOQC3TOF246SHMCM4WAMGCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,...,...,,,.,...,..,,.,.,..,,..,,...,...,..,,,.,,,..,..,,..,,
+#JDAYGKCBL2J7RMPHHPQ52BCVOFSZWUPNAT3X2QKEH2XKSN2XKA2LEJXTDVJXUOCNZXCGNGUZ7A4Q4
+#\\\|UHLZRUXL42FCH2JHFORZDSBHDSMGAMXXBPAKJKJNH5BVHWTZHZ5 \ / AMOS7 \ YOURUM ::
+#\[7]MSWZ2IFKL4PRT2VOKLDGTUMECKTDTXMR2KOCRTQXWSJZOXLTYEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = crypt.C25519.private_key_loaded
+# descr = true if the named [ or default ] signing key is currently loaded
+#         in memory and has a private half -- checks loaded state, not disk
+#         presence [ see crypt.C25519.key_exists for that ]
+
+my $requested_skey = shift;    ##  optional  ##
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($requested_skey);
+my $skey_name    = $key_vars_ref->{'key_name'};
+
+return FALSE if not exists $keys{'C25519'}->{$skey_name};
+return FALSE if not exists $keys{'C25519'}->{$skey_name}->{'private'};
+
+return TRUE;
+
+#,,.,,,,.,,.,,,,.,.,,,...,,,.,.,.,,,,,...,,.,,..,,...,...,.,,,,..,..,,,.,,,,,,
+#5HGCHCTYFIWADG4FUZXQ4N7MY5FU5WYSJS4PQD2WAX72SENIDL5WPIR7D2U2U2UCXHQFTFKT3LZBA
+#\\\|XK7DJD3F4EAALPDB37G44YVU7FL6LJYCC3TUKTNQCFIBMUA4M5L \ / AMOS7 \ YOURUM ::
+#\[7]V7SJHNUJ3FFU3WMUYNTR3GYL6NHY3F62GKRP2H6FFLZKQXCNCOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

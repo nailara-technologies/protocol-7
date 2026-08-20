@@ -120,8 +120,8 @@ Once Phase 6 succeeds:
 - p-7-r binary: `/usr/local/bin/p-7-r`
 - p7c binary: `/usr/local/bin/p7c`
 - Remote key storage: `~/.n/user-keys/remote.*.public`
-- TOFU modules: `modules/crypt.C25519.*`
-- Validation logic: `modules/nshell.tofu_validate_pubkey`
+- TOFU modules: `src/crypt.C25519.*`
+- Validation logic: `src/nshell.tofu_validate_pubkey`
 
 ## Debugging
 
@@ -142,8 +142,8 @@ p7c v7.cfg.bin_p7r_has_symlink
 p7c base.list.subroutines | grep -E "(tofu|remote|keypair)"
 ```
 
-#,,.,,.,.,.,.,..,,.,.,.,,,...,,,.,,.,,,..,.,,,..,,...,...,,,.,.,,,.,.,..,,...,
-#27OYOB5YTFEGUZSTSIROIQP7OBOTZ2XTBGHLOGTMFJFJN5GARDF2FP2UDATOR2HA4QACZFELCIHR4
-#\\\|KBDW5DTGINYXJCDCA5UIXF63QTPSMZIZT3ZTC4MT3BZA2M7FUGM \ / AMOS7 \ YOURUM ::
-#\[7]ON5Y7QGPFBNX3OJUQ5UUGDOCQGUCIPYGAPOFFMM2RZ6DWNA25WBI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,..,,.,.,.,.,.,.,...,,,.,...,..,,...,...,...,,.,,.,.,,,.,,..,
+#22VQQS3CKGSSX7BGQ3FISAD2LATN374GD2SXJ5WEWTHQTCRUTPIVNQR77Y32R7D7BP6QWLU7AJDEW
+#\\\|Y4OPBUWUUXZ3BU56TQM2YFKAI6HBM24OHGP37EFDT3PI6MZOZRS \ / AMOS7 \ YOURUM ::
+#\[7]VYW6F6DLMKEZC4JEADQVXN2ZH7COGTSEVX7GJWGJJTBQICEGRODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

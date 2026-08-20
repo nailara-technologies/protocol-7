@@ -384,7 +384,7 @@ itself run through `is_true()` — only the raw child value was, via
 didn't. Fixed by routing `child_chksum()` through `amos_template_chksum()`
 with a comma-joined multi-template (`[%s:parent],%s:parent` — reusing
 `AMOS7::TEMPLATE::split_truth_templates()`/`template_is_true()`, the exact
-mechanism `modules/crypt.C25519.key_bin_checksums` already uses for
+mechanism `src/crypt.C25519.key_bin_checksums` already uses for
 "harmonized checksums that are true combined and seperate"), so both the
 bracketed and bare-colon forms validate true — relevant because terminal
 double-click word-selection stops at brackets, so a copy-pasted value
@@ -503,7 +503,7 @@ User correction to the mirror/reversed-second-half riff above: the lambda
 principle wasn't developed for routing in the abstract — it was
 **specifically developed for C25519 public keys** ("one forward, one
 reverse"), then found to generalize. Checked the code rather than guess at
-the crypto-math meaning of "reverse": `modules/crypt.C25519.init_code`'s
+the crypto-math meaning of "reverse": `src/crypt.C25519.init_code`'s
 `sizetype` table shows an unencrypted private key is 64 bytes = secret(32)
 `.` public(32) straight concatenation — not a literal byte/string reversal
 — so "forward/reverse" refers to the **asymmetric derivation direction**
@@ -965,8 +965,8 @@ User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,.,,.,.,..,,,,.,,,.,,,.,,..,.,,,...,,,,,,,,,..,,...,...,...,,,.,...,.,,,,,,,
-#O55EXL5PKALYFTF6KI6B43NY5J3JOC7EPJHIPEUNIZ7N5EIIE5EEDCPG37H5NZTCCVPP5RACK6HGE
-#\\\|73XECTU24LPAI6KR6W42QINLUGGDGNMS6P5LZ4USPRSSSGRRIYX \ / AMOS7 \ YOURUM ::
-#\[7]GTXXJN6H65G3PJJQQEES2YJOPDKDMIHDIOOSVMA5VOA3V35MVAAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,..,,.,,,.,,.,.,,..,.,,,,,,,,.,,..,,...,...,.,.,...,.,.,.,,,,,.,
+#TJ42P37QMJVRNKDTSAXT2BSUW2T6FUUGGVLT32GAJ5HUZS5UPK3ST7IL4EJAKPHFJ3HDXTYZEKXGK
+#\\\|MJK4UTODGUF6NI7HG732JSMA2ROHCBSLMHTSWTXJ4WDFD4PBOEA \ / AMOS7 \ YOURUM ::
+#\[7]V3BRAWDDF2GPNSHXGK2JDYYHOGI5SAVMZTNBZEAOM23QTBIWCYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

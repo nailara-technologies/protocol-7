@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = context.file.extract
+# descr = partial file read: functions, header, or grep match
+
+my $params = shift // {};
+
+my $path    = $params->{'path'}    // '';
+my $budget  = $params->{'budget'}  // 1000;
+my $extract = $params->{'extract'} // qw| header |;
+my $pattern = $params->{'pattern'} // '';
+
+my $char_budget = int( $budget * <context.cfg.chars_per_token> );
+
+## resolve file path relative to project root ##
+$path =~ s|\.\./||g;
+$path =~ s|^/||;
+
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+unless ( -f $abs_path and -r $abs_path ) {
+    my $mod_path = "$root/src/$path";
+    if ( -f $mod_path and -r $mod_path ) {
+        $abs_path = $mod_path;
+    } else {
+        return "<!-- file not found: $path -->";
+    }
+}
+$path = $abs_path;
+
+open my $fh, '<', $path
+    or return "<!-- cannot read: $path -->";
+my @lines = <$fh>;
+close $fh;
+
+my @selected;
+
+if ( $extract eq qw| header | ) {
+    ## first 20 lines [ module header + early code ] ##
+    my $limit = 20;
+    $limit    = scalar @lines if scalar @lines < $limit;
+    @selected = @lines[ 0 .. $limit - 1 ];
+
+} elsif ( $extract eq qw| grep | and length $pattern ) {
+    ## lines matching pattern with context ##
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ m|\Q$pattern\E|i ) {
+            my $start = $i > 2           ? $i - 2 : 0;
+            my $end   = $i + 2 < $#lines ? $i + 2 : $#lines;
+            push @selected, @lines[ $start .. $end ];
+            push @selected, "---\n";
+        }
+    }
+
+} elsif ( $extract eq qw| params | ) {
+    ## extract parameter and config lines ##
+    foreach my $line (@lines) {
+        if (   $line =~ m{^\s*#\s*(name|descr|param|usage)}
+            or $line =~ m|^\s*my\s+\$\w+\s*=.*shift|
+            or $line =~ m|^\s*my\s+\$\w+\s*=.*param|
+            or $line =~ m|^\s*my\s+\$\w+\s*=.*args|
+            or $line =~ m|^\s*my\s+\$\w+\s*=.*call| ) {
+            push @selected, $line;
+        }
+    }
+
+} else {
+    ## unknown extract mode : return header ##
+    my $limit = 20;
+    $limit    = scalar @lines if scalar @lines < $limit;
+    @selected = @lines[ 0 .. $limit - 1 ];
+}
+
+## truncate to budget ##
+my $content = '';
+my $used    = 0;
+
+foreach my $line (@selected) {
+    my $len = length $line;
+    if ( $used + $len > $char_budget ) {
+        $content .= "... [ truncated ]\n";
+        last;
+    }
+    $content .= $line;
+    $used += $len;
+}
+
+return "## file extract [ $path : $extract ] ##\n\`\`\`\n$content\`\`\`\n";
+
+#,,,,,,..,,,,,,,,,.,.,.,,,,,,,,.,,..,,,,,,.,,,..,,...,...,...,...,.,.,..,,,.,,
+#HBPONSVU3ZTBXQHNL2VDPMGODJJECK6QAN5BFNUY2NWYUEOHGWPD74N2WVSKYINDGC2IF2OYN36M2
+#\\\|HXT4AWYKIGRP67AXOGEWL7IXRVG7ZSWSPAXKOL235ZJI6A5BPAM \ / AMOS7 \ YOURUM ::
+#\[7]UB676NF7LYDI6GPU5J2SEPID3I3P6VHOKQGO2PH7JOV5EA45NWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

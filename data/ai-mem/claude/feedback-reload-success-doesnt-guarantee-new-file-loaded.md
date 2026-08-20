@@ -72,7 +72,7 @@ because the real one (stale reload) was never suspected.
 
 **Third occurrence, 2026-08-04, `kimi` zenka**: after landing the
 `QuestionRequest` silent-hang fix (new module
-`modules/kimi.wire.question_respond` + a `modules/kimi.handler.ws_message`
+`src/kimi.wire.question_respond` + a `src/kimi.handler.ws_message`
 branch edit), `kimi.reload source` reported success but the edit did not
 take effect — the user had to direct `v7.restart kimi` explicitly, and K3
 discovered the staleness itself mid-verification. Same shape, third zenka
@@ -88,8 +88,8 @@ lands: **default every live-fix dispatch's verification instructions to
 `<zenka>.reload` — treat reload-then-verify as unreliable by default,
 not just as a fallback for when something looks wrong.
 
-#,,..,.,.,.,,,,,.,.,.,,,.,..,,..,,,..,,,,,.,,,...,...,...,,..,.,,,.,.,,..,...,
-#HL3PTIRQSFTUOLSMUXSRHSDFCFEF7W42N2BJSU4KLHU5IGADCQA4OQDZ4MZREB467O6EKNRHFQAIA
-#\\\|2YT7DFAOYT66MCHYZ335KJPHNZC7ZERZIUTHVRFQIQFD4HUF3MK \ / AMOS7 \ YOURUM ::
-#\[7]QBXAHKDLWVTP46XU4RCRIS346EY3MEK7BJSRYQRXSPMWYIJ2DWBY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,,,..,,.,,,.,.,...,,,.,..,,,,,,...,...,...,...,,..,,.,,..,,..,,
+#WYOFGSYKVJFCOJPFBUGPXTH6XZHAUOGMVLKWR44EPXYPJ2XFPU2F3AFGBD746J6YORC3QL74FW6NM
+#\\\|BLDIE7HSVQODUYV5EES5F4LW34FOH4G2DZACH3RTCOLEU2A5X7B \ / AMOS7 \ YOURUM ::
+#\[7]P73KQOJSVH4ACIC6XMTV5FBPEGWI2AZOFE3GAINNRSE7USM34EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

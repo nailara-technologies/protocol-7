@@ -167,7 +167,7 @@ candidates are marked explicitly and carry no code claim.
   [ `cfg/shared-params:33-34` ].
 - **`web.cmd.process_template_ipc`** [ VERIFIED this session — confirm it is
   carried in doc #2's motivating-callers section if not already ]. the module
-  [ `modules/web.cmd.process_template_ipc` ] takes a **single `args` string** of
+  [ `src/web.cmd.process_template_ipc` ] takes a **single `args` string** of
   the form `template_id:template_content_b32r:meta_vars_b32r:session_id`
   [ its own `# args =` header line + `:9`, `my $args_str = $hash_ref->{'args'}` ]
   and passes it straight to `<[web.process_template_ipc]>` [ `:12` ]. because the
@@ -219,7 +219,7 @@ candidates are marked explicitly and carry no code claim.
   do not over-design it** — the backpressure policy is a real distinguishing need
   but has no caller to validate against yet.
 - **graphics-matrix zenka** [ NEW — speculative/future, no code yet ]. surveyed
-  this session [ `ls modules/ | grep '^graphics-matrix'` ]: the namespace is an
+  this session [ `ls src/ | grep '^graphics-matrix'` ]: the namespace is an
   **in-process** cell / voxel / channel / cursor / glow rendering framework
   [ `graphics-matrix.cell.place`, `.voxel-add`, `.channel.select`,
   `.cursor.move`, etc. ]. **there is no inter-zenka data-moving / buffer-transfer
@@ -590,8 +590,8 @@ given everything now known:
   `AMOS7::SHM::*`, **never** `base.*`
 - guard any timer with a fallback interval [ undef interval = max-rate loop ]
 
-#,,,.,...,,.,,.,,,,,,,...,,..,,.,,..,,,,,,,..,..,,...,...,...,,,.,...,...,,.,,
-#IT6YCTY6GRFEPQKLCWFGXEC23XLB5OREFDQ5NWKYDDF2TFVIYTXWE4YWK5LO2NJKBCSPLTDOVTPLK
-#\\\|NWXRRDLG37BG52R524SGCD3P26W4SSSLJKUJ5SBFIEBP2GMHH7N \ / AMOS7 \ YOURUM ::
-#\[7]7BAWCSVQZW7GFPRL4FP3B2ABPWFF3PO5YQOG4DVHTFT22UIOPKDA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,..,,,,.,,,.,,,.,,,,,,.,,..,,..,,...,...,...,,..,,,,,.,,,,.,,
+#H447ZJPWJQG7LTKGR5QFTBJY6QM7GZEXXWCTRK64NLIBZQI6JR7KOX7I3BFR2OCF4OORRKG2EHTAE
+#\\\|YTPBGV4L3NA3W5BUWLBEG65MHZG4YOXMXJZVKBOQA3Q3EGMGDVB \ / AMOS7 \ YOURUM ::
+#\[7]GV5UUTFJG65UQYAVXH6XS33RK67R6G2BL64MFTIAGRL4BHA726AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,14 +39,14 @@ Protocol-7-side routing bugs once those two are ruled out. See also
 [[feedback-bash-tool-http-proxy-contaminates-localhost-curl]] — a separate false trail
 from the same session, caused by a misconfigured curl test rather than a real bug.
 
-Follow-up landed same session: `modules/mpv.handler.event.end-file` now logs any
+Follow-up landed same session: `src/mpv.handler.event.end-file` now logs any
 `end-file` `reason:error` at level 0 (was silently falling through to the generic
 level-2 "no handler" catch-all in `mpv.handler.event`) when the instance is audio-only
 (`<mpv.audio_only>`, e.g. radio's `mpv[audio-0]`) — playback IS the entire intent there,
 so any end-file error is total failure and should never be buried again.
 
-#,,..,,,,,.,,,..,,,.,,,.,,.,,,,,.,,.,,.,,,,,,,..,,...,...,.,,,.,.,.,,,.,,,,,,,
-#APNKYAA3RWMNJWUK25CQHLW2WEISLBZXBSCJKYG5VIHQT3EWRYWAGGNM4W76WJOYU4QAE3XKN7CBA
-#\\\|T676NGMGAYZGIXTQC6LMJC3SNJRVU2KJUDPKD7X2Y465KHWL75F \ / AMOS7 \ YOURUM ::
-#\[7]L4XAYPZOSVN2DHBT34LYFOPVEZI3MCIWMH5UGCG2L3DNL2FU2WCQ 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,...,.,,,.,.,,,,,.,.,.,,,,,.,..,,...,...,.,,,...,,,.,,..,,..,
+#7BEZVOAOC4EUBTMR4QX2HKCHUPBKJ6JTQJ7TKGVH23TIYC7DYAMU3QAYOCRAWBBQJ6AXQVEI42DLK
+#\\\|JVVPUO2ZFIXGZXHMLQ4GJRR5YF2EUIFOWPPE5HEOEBCOA6RBSG4 \ / AMOS7 \ YOURUM ::
+#\[7]TOO6WWWIVNYML5Q5CHLDJYSQ3ZUK5PKXNEGOD52NEYPDZDQYPGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -142,7 +142,7 @@ my $MAX_SIZE = <[data.topology.interference.map.MAX_SIZE]>->();
 ### Zero-Copy Module Cache
 
 Share compiled Perl modules via SHM:
-- One zenka mmap's modules/*, exposes read-only SHM segment
+- One zenka mmap's src/*, exposes read-only SHM segment
 - Other zenkas get zero-copy access
 - 90%+ disk I/O reduction during mass startup
 
@@ -167,7 +167,7 @@ See `read-me/md/ARCHITECTURE-OUTLOOK-SHM-ERA.md` for full strategic vision.
 
 - `read-me/md/SHM.md` - Complete usage guide
 - `read-me/md/ARCHITECTURE-OUTLOOK-SHM-ERA.md` - Strategic directions
-- `modules/data.cmd.shm-self-test` - Live testing command
+- `src/data.cmd.shm-self-test` - Live testing command
 
 ## Commits
 
@@ -182,8 +182,8 @@ SHM enables separation of concerns:
 
 This allows each layer to optimize for its strengths without compromise.
 
-#,,.,,,..,.,.,.,,,,.,,..,,,..,...,.,,,..,,.,.,..,,...,...,...,,.,,...,,,.,.,,,
-#ZYPQHZFVC4D2SQJHJOGWVKTLQ27JRZFTVQBK4BMF4UMUCNSMMSHV7E2TMVMDJM5TYDLPPFNV4KIN6
-#\\\|2DJCLMO3GYLCMJCDJXKOPND7AGKRBI6MUARFJIKTK67PXUQ3CU4 \ / AMOS7 \ YOURUM ::
-#\[7]BRHE6L6KD6PASEQR7F76V6ZN6C347HHZ25GBLFNUY4PHYGE7PEDI 7  DATA SIGNATURE ::
+#,,..,.,.,...,...,.,.,,..,..,,...,...,..,,.,,,..,,...,...,...,.,.,..,,.,,,...,
+#NL3NW47HZB5QAQZCOMY5BOC5IP2PH4BXOZZCWWBRZNXATZJUG24JQEWTZJUWSEGYCFZKYJIDUZEA4
+#\\\|RRCXBKYCLHPMD7CGFHHINW5KSACVA43ON4PIFZGTGBKAOBBN7PI \ / AMOS7 \ YOURUM ::
+#\[7]GZPTJU6L74HVRKYZ3K72CDAFPCBWOPNPLIMNZDGUQP66LQ6U3SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

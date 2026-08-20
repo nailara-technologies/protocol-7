@@ -331,31 +331,31 @@ testing_strategy:
 files_to_modify:
 
   parent_process_modules:
-    - modules/letsencrypt.parent.init_code (add load_registry call)
-    - modules/letsencrypt.parent.handler_renewal_check (add Phase 2 workflow)
-    - modules/letsencrypt.parent.handler_renewal_reply (add save_certificate call)
-    - modules/letsencrypt.parent.handler_renewal_failed (already exists, use as-is)
+    - src/letsencrypt.parent.init_code (add load_registry call)
+    - src/letsencrypt.parent.handler_renewal_check (add Phase 2 workflow)
+    - src/letsencrypt.parent.handler_renewal_reply (add save_certificate call)
+    - src/letsencrypt.parent.handler_renewal_failed (already exists, use as-is)
 
   new_modules_to_create:
-    - modules/letsencrypt.parent.query_httpd_vhosts
-    - modules/letsencrypt.parent.determine_certificate_domains
-    - modules/letsencrypt.parent.load_certificate_registry
-    - modules/letsencrypt.parent.save_certificate
-    - modules/letsencrypt.parent.request_certificate
-    - modules/letsencrypt.parent.process_certificate_reply
-    - modules/letsencrypt.parent.notify_httpd_certificate_update
-    - modules/letsencrypt.parent.check_certificate_expiration
-    - modules/letsencrypt.parent.queue_renewal_requests
-    - modules/letsencrypt.parent.update_registry_from_disk
+    - src/letsencrypt.parent.query_httpd_vhosts
+    - src/letsencrypt.parent.determine_certificate_domains
+    - src/letsencrypt.parent.load_certificate_registry
+    - src/letsencrypt.parent.save_certificate
+    - src/letsencrypt.parent.request_certificate
+    - src/letsencrypt.parent.process_certificate_reply
+    - src/letsencrypt.parent.notify_httpd_certificate_update
+    - src/letsencrypt.parent.check_certificate_expiration
+    - src/letsencrypt.parent.queue_renewal_requests
+    - src/letsencrypt.parent.update_registry_from_disk
 
   command_handlers_to_create:
-    - modules/letsencrypt.cmd.request-certificate
-    - modules/letsencrypt.cmd.renew-certificate
-    - modules/letsencrypt.cmd.certificate-status
-    - modules/letsencrypt.cmd.revoke-certificate
+    - src/letsencrypt.cmd.request-certificate
+    - src/letsencrypt.cmd.renew-certificate
+    - src/letsencrypt.cmd.certificate-status
+    - src/letsencrypt.cmd.revoke-certificate
 
   optional_httpd_integration:
-    - modules/httpd.cmd.reload-certificate (if not present)
+    - src/httpd.cmd.reload-certificate (if not present)
       Purpose: Reload certificate for specific domain
       Input: domain, cert_path
       Output: { status => 'reloaded|error' }
@@ -413,8 +413,8 @@ created_date: 2025-11-07
 ready_for_implementation: true
 recommended_for: claude_code_web_instance or local_continuation
 
-#,,.,,,.,,,..,,..,,.,,,..,.,,,.,.,,.,,,..,...,..,,...,..,,.,,,,,.,...,,,,,..,,
-#EGVYUNMBL4E7JCUZJ6VQYA2AML2HDIKZYT7DREQ7AS44KH3AGHDBV3PAJISEB76WS6I5IWHFH6EVW
-#\\\|EZWYFR23HV5HVLAZZN5RZB5ETJLM23N6ZIZWG3YVBFCFQGLUYQX \ / AMOS7 \ YOURUM ::
-#\[7]5T6GA6VBUZZZSGGZ4AZOJBC7C2HXMAS2JWTVC56P5K62VSZ7TEDI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,..,,,,.,..,,...,..,,,,,,.,.,..,,...,..,,,.,,.,,,,.,,,..,,,.,
+#3VPAGV6M3G35TD5RLPVEC4VKLI4M6WKXZ266OBBJZLUJEIP2D6I6FEGJV2PFY7L622STD3MEDGOPM
+#\\\|PHTTSAHOJLASAJFZRHRNJ7I2AKINX3JXDKO467737IBUAMNAPPT \ / AMOS7 \ YOURUM ::
+#\[7]3IQXSDH6P7BEFQHN76JY4K5JY7N56PBLFQUQGA3FPNW4YBCWUOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

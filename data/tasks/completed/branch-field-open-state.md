@@ -48,20 +48,20 @@ each branch field node lives in the branch data tree:
 
 ## modules to create
 
-- `modules/branch.field.is_open` — any axis with capacity > 0 → true
-- `modules/branch.field.boundary` — return boundary value for named axis
+- `src/branch.field.is_open` — any axis with capacity > 0 → true
+- `src/branch.field.boundary` — return boundary value for named axis
   (default axis if only one)
-- `modules/branch.field.capacity` — remaining capacity = boundary − position
-- `modules/branch.field.parent_id` — return parent group identifier
+- `src/branch.field.capacity` — remaining capacity = boundary − position
+- `src/branch.field.parent_id` — return parent group identifier
   (computed on close; undef if still open)
-- `modules/branch.field.close` — mark closed, extract period fingerprint
+- `src/branch.field.close` — mark closed, extract period fingerprint
   via `<[branch.calc.fraction.period]>`, store parent
-- `modules/branch.field.grow` — advance position by delta along named axis;
+- `src/branch.field.grow` — advance position by delta along named axis;
   return false if boundary would be exceeded; close automatically if
   delta reaches exactly the boundary
-- `modules/branch.field.axes_open` — list all axes with remaining capacity
-- `modules/branch.field.axes_boundary` — hashref of boundary per axis
-- `modules/branch.field.split` — close current branch, register two child
+- `src/branch.field.axes_open` — list all axes with remaining capacity
+- `src/branch.field.axes_boundary` — hashref of boundary per axis
+- `src/branch.field.split` — close current branch, register two child
   branches inheriting proportional capacity from parent
 
 ## style
@@ -79,8 +79,8 @@ each branch field node lives in the branch data tree:
 - split produces two children that sum to parent capacity
 - field branches (2+ axes) report all open axes correctly
 
-#,,,,,,,,,.,.,.,.,,.,,,,,,.,.,.,,,...,.,,,,,,,..,,...,...,.,.,,.,,,..,,..,,.,,
-#6G2JHDJNYZIGTY6PPTDB3SZVP4U4U33DH3SDNWY6XR7G2NMZM46T3URTFXJ422TUX5HT2QYIJ2OY2
-#\\\|4QZ4P4N7GBECYEUA2KMXU6FLDMSU7DFS56FK75N2YX5OA6K6GCI \ / AMOS7 \ YOURUM ::
-#\[7]HGAWYRITLNGGHLTGE6MW25PILAIX2WFPFQLUNZV37JTJVNHMTQBA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,,,,,,,,,.,,,,.,,.,.,.,,,..,,..,,...,...,...,,,.,.,.,,,,,,,.,
+#7R32WQSUCICVNDSCMPBZNEGXVQV7ZJIW6FFTUVQ5EMFY62BK5CEA2ZWYPEWGHHJBFXQK2UVIOVHEI
+#\\\|ZEZZKNWF76XWSCIQXPYIKZU5EYL766TFACVHAH4YKY5TSAFMRNH \ / AMOS7 \ YOURUM ::
+#\[7]CUP74LPNWZSS76ANLPF7PSG5GPOG5OKLMU4UYZPW74EMMRV3RYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

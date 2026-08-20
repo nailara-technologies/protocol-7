@@ -89,14 +89,14 @@ the signing system adds them separately.
 
 ## Deliverables
 
-1. `modules/jobsite.sync.push`
-2. `modules/jobsite.sync.apply_reverse`
-3. Updated `modules/jobsite.init_code` (add sync timer block)
+1. `src/jobsite.sync.push`
+2. `src/jobsite.sync.apply_reverse`
+3. Updated `src/jobsite.init_code` (add sync timer block)
 4. Updated `cfg/zenki/jobsite/start` (add cfg keys if missing)
 5. Updated `cfg/zenki/jobsite/subroutine.white-list` (add both new modules)
 
-#,,,,,.,.,.,,,.,.,.,.,,.,,,,,,..,,..,,,.,,.,.,..,,...,...,,.,,.,,,,,,,,,.,,.,,
-#2WHVA5KFT5YEVPH7CRDODV7XRT5WYU5X6EPCMF5654DRERJKDK67DNZTXRNXQBMUFUTTQ3EDLPVIM
-#\\\|K3VHRCQB7JL2244WAWQPPZTHP6UZQ32OHLORHZGNEEMMAFBX3E4 \ / AMOS7 \ YOURUM ::
-#\[7]GRDFH3UVYVCSGBL6UU46TXPYMKWUSNS24QLLZBUSB32YNJBQHQAQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,...,,,,,,,.,,.,,,.,,,.,,...,,,.,..,,...,...,,..,..,,...,...,.,,,
+#HKDFAIRKGMRP2UUOAVKRZLQQXW33X7WJA25L27KLWNT3ERZLT472DXH3R2MVMAIBA674YSYHPB6XO
+#\\\|5XCDZR2QJQSXQLFKI42ZA4KN7CXI2QUASXCOFGWIIFVUO6EYRTK \ / AMOS7 \ YOURUM ::
+#\[7]KKPAROLTBUPYSE73BT67IPB7H7SUPIDYHLKEBIEOYQIRATAXGKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,10 +51,10 @@ tasks:
       <[base.protocol-7.command.send.local]>. currently base.async.get_session_id
       and all fork-child modules use the long form.
     files_affected:
-      - modules/base.protocol-7.pre_init  ## new
-      - modules/base.async.get_session_id
-      - modules/base.protocol-7.command.send.local
-      - modules/base.protocol-7.route-send
+      - src/base.protocol-7.pre_init  ## new
+      - src/base.async.get_session_id
+      - src/base.protocol-7.command.send.local
+      - src/base.protocol-7.route-send
     notes: |
       overwrite policy used instead of default undefine, to preserve the inline
       sub protocol-7.source-key [ registered as base.protocol-7.source-key in
@@ -101,12 +101,12 @@ tasks:
     batch_2_completed:
       date: 2026-03-02
       files_changed:
-        - modules/ticker.callback.request_updates
-        - modules/universal.startup
-        - modules/impressive.handler.get_list_reply
-        - modules/system.handler.mod_reload_reply
-        - modules/mpv.callback.start_reenc_msg
-        - modules/tile-groups.handler.transition
+        - src/ticker.callback.request_updates
+        - src/universal.startup
+        - src/impressive.handler.get_list_reply
+        - src/system.handler.mod_reload_reply
+        - src/mpv.callback.start_reenc_msg
+        - src/tile-groups.handler.transition
       changes: |
         replaced protocol-7.command.send.local with protocol-7.route-send
         and removed 'cube.' prefix from commands (v7.* and X-11.* targets).
@@ -128,12 +128,12 @@ tasks:
       in root-level zenki [ no parent_route ] route-send passes the command
       through unchanged, so "v7.notify_online" routes correctly via cube.
     files_to_review:
-      - modules/ticker.callback.request_updates
-      - modules/universal.startup
-      - modules/impressive.handler.get_list_reply
-      - modules/system.handler.mod_reload_reply
-      - modules/mpv.callback.start_reenc_msg
-      - modules/tile-groups.handler.transition
+      - src/ticker.callback.request_updates
+      - src/universal.startup
+      - src/impressive.handler.get_list_reply
+      - src/system.handler.mod_reload_reply
+      - src/mpv.callback.start_reenc_msg
+      - src/tile-groups.handler.transition
       - cfg/zenki/image2html/start  ## DONE ##
       - cfg/zenki/pdf2html/start    ## DONE ##
       - cfg/zenki/vision-batch/start  ## DONE ##
@@ -149,7 +149,7 @@ tasks:
       pdf.html.base.fork_conv_child should get the same treatment for consistency,
       since both zenki use Graphics::Magick and LWPx::ParanoidAgent pre-fork.
     files_affected:
-      - modules/pdf.html.base.fork_conv_child
+      - src/pdf.html.base.fork_conv_child
 
   - id: vision-batch-sigchld-review
     title: review vision-batch sigchld handling for child side
@@ -167,7 +167,7 @@ tasks:
       or if the current approach [ no handler ] is correct for vision-batch's
       architecture [ child does not fork further ].
     files_affected:
-      - modules/vision-batch.parent.fork_child
+      - src/vision-batch.parent.fork_child
 
 # Long-term architectural task
 
@@ -226,11 +226,11 @@ tasks:
         sigchld_mode and escape-hatch callbacks
 
     existing_forking_zenki:
-      - modules/weather.base.fork_weather_child
-      - modules/letsencr.base.fork_letsencr_child
-      - modules/image2html.base.fork_conv_child
-      - modules/pdf.html.base.fork_conv_child
-      - modules/vision-batch.parent.fork_child
+      - src/weather.base.fork_weather_child
+      - src/letsencr.base.fork_letsencr_child
+      - src/image2html.base.fork_conv_child
+      - src/pdf.html.base.fork_conv_child
+      - src/vision-batch.parent.fork_child
 
     prerequisite_tasks:
       - protocol-7-swap-subs  ## base.protocol-7 shorthand useful inside base.fork_child
@@ -258,8 +258,8 @@ tasks:
 
 ---
 
-#,,..,..,,.,.,,,.,.,,,,..,,,.,,,.,,..,...,...,..,,...,...,..,,.,.,.,.,,,.,.,.,
-#Z55YNNRXU4VB2NHMVJ6RCYUX6RCQX6UH3RV2PIK7MYI6ONNPEP7URP2OYGFDGJPNAVVE32OQ5UI4W
-#\\\|563SHU6Q2CWUHPO6O3QZA6MOUNWOW3DV7EJA7GSET3KSWYZ7W65 \ / AMOS7 \ YOURUM ::
-#\[7]672WK756M63YNFWHYJ5C5T7PZF5YKGRMHJWDQ33MN3JCQFA7AEAI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,..,,,..,,,.,.,.,..,,..,,,,.,..,,...,...,..,,...,.,,,.,.,,..,
+#ZZ7V3VDEUKMFE7663T26J7Q5ADK64IGLSV4QRGTNVY4GVXLJPFF4LEEO6BWYCF6XUG2NGOGREUAUC
+#\\\|E23DSOHOUKF7XPP3LIKIYL2DDIHLGQM2JACM7JMWFUD3RGYHYJC \ / AMOS7 \ YOURUM ::
+#\[7]5KK6LF7FOBG34B246JI3DXNYGCDKM7SOK5URGYTSMUQJFTZN3CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

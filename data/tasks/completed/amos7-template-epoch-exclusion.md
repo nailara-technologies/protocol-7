@@ -56,7 +56,7 @@ rest of `AMOS7::*` per the CLAUDE.md "AMOS7 Module System" notes ].
 that means `configure_epoch_window_callback` cannot call
 `<[base.ntime.epoch_timestamp]>` directly — that is module-loader
 syntax usable only inside a running Protocol-7. mirror the encoding
-arithmetic from `modules/base.ntime.epoch_timestamp`:
+arithmetic from `src/base.ntime.epoch_timestamp`:
 
 ```perl
 ##  encode integer epoch [ 0..385279 ] -> "V7xxxxx"  ##
@@ -107,8 +107,8 @@ footer — leave it.
 - no cube command for it; the path helper task is the user-facing
   surface.
 
-#,,.,,..,,..,,...,,,,,,,.,,..,.,.,.,,,,,,,..,,..,,...,...,,,.,...,..,,.,,,,,,,
-#EDLSPZCXKFGXCN4ZOH5ZHS6OP6JEHFPEK2OZ2XFYI5VDPIWYFWIPWOZMDQK36BEBS6PLOIGEWBR6Y
-#\\\|NB6MEHUIUPTFW7552YV3W5AAB5VCYHUGSMQH47EYTAUGAMVBITD \ / AMOS7 \ YOURUM ::
-#\[7]HRV6XJQIYIWUHTY4BRXCD5CEM7SIYFQZH2NU6SGSPIRMCT5L54AY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,.,,..,,,,,,,.,,.,,,,,,,...,,,.,..,,...,...,...,,,,,.,,,..,,,..,
+#BGPPRLN2GF5OMR6ZGQEHSAO5SLIQFROZCGU3IIH3QFWUV4EAI6AT2QX6QCYSX6W4RPA7XBJKHED2M
+#\\\|GAXEZNP2GZIZWUOEU5JAYCIPSS3Z2PVN5TUIKZLR3S2IHOKBOVY \ / AMOS7 \ YOURUM ::
+#\[7]IKK3KGYN4YBMSG5PHZVGVTKFCPA3BHOWYHSKBFN2DCF4BRLZRCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,7 +25,7 @@ pattern ([[feedback-base-swap-subs-promote-pattern]]) with zero call-site
 churn. Renamed while there were still NO callers, which is when such a
 move is free.
 
-- **`modules/base.term.ask`** — thin P7 wrapper that autoloads AMOS7::TERM and
+- **`src/base.term.ask`** — thin P7 wrapper that autoloads AMOS7::TERM and
   delegates, so zenka code reaches for a `base.*` call rather than a raw
   perlmod one (the established convention — see the `base.get_homedir`
   vs `AMOS7::FILE::get_homepath` lesson in
@@ -108,8 +108,8 @@ perl -Idata/lib-path/pm -MAMOS7::TERM \
 `bin/dev/update-amos-versions` covers only AMOS7::CHKSUM/ELF/ELF::Inline,
 so TERM.pm's `$VERSION` tag needs no regeneration when edited.
 
-#,,,.,...,,.,,,,,,...,,..,...,,,.,.,,,.,,,,..,..,,...,...,...,,,.,...,,.,,...,
-#233UCXR7TECV6ZOKHN7YWYOQHQD4UPZSKK24HXKQQZUAJSC6TAXEJZH3VP44TAP2D5GEWYXZPPJHS
-#\\\|3IBZWROOFU7EWUWKHIR6EB7FAJ347SC67LJWWT5OG65I45JGPOA \ / AMOS7 \ YOURUM ::
-#\[7]RAJRFNPTH5DF44B6EWK6OQG4Y3NBZQK6JKMPQBALCRP47654ASBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,.,,,..,..,,.,,,.,.,,.,,,,.,.,,,..,,...,..,,,,.,,,.,,,,,...,,,.,
+#KAZBQVXZ3X6L35HTHTYBS4KV6DPCTIZLVEQVIWHP3EE5RYWEMQCVW2LFCYJRE2SKMD5O3TPRKAXGM
+#\\\|NE5J7UWULGZOA2QXDQMMNHBAYVNJVNNSWU4YMJDFCNWCMKEBBQE \ / AMOS7 \ YOURUM ::
+#\[7]LXTAUNRJ6ITEDSE43IUBQAXY2XIFG52WT4MOXX7W4NAUWLRXC2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

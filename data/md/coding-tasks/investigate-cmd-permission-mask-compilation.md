@@ -88,14 +88,14 @@ Using wildcard `*.receive-entropy` instead of `cube-13.receive-entropy` allows z
 
 ## References
 
-- `modules/base.parser.access_conf` - permission mask compilation
-- `modules/base.cmd.reload` - reload phases
+- `src/base.parser.access_conf` - permission mask compilation
+- `src/base.cmd.reload` - reload phases
 - `cfg/zenki/cube/access.zenki` - main cube access
 - `cfg/zenki/cube-13/access.zenki` - cube-13 specific access
 - `cfg/zenki/cube-13/access.users` - user authentication
 
-#,,.,,,,.,...,,.,,..,,.,,,..,,..,,.,.,,.,,..,,..,,...,..,,,.,,,..,.,.,,..,,,,,
-#FEZTMJUNCPVV5DOJA4T7JRKMKMMACNLZSLBXYQO54M2XOWNN3OPF3P4NJIHMGT5VUFATZMU65Q36K
-#\\\|6RTP4M4RJ2YRI62KNPJJQDLPTZ6WMRPHAX5DWAOJXWOL7TYWJKS \ / AMOS7 \ YOURUM ::
-#\[7]QZRZXMW74TZEX2YAYYMUEGAFOIY4UFMZML3KATNN26CTRP5VRKBA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,..,,.,.,...,..,,.,.,.,.,.,,,,,.,..,,...,..,,.,.,,,,,.,.,,.,,,.,,
+#UH25EK3YWGXWD3VX6ODITPOUZU4K3PAKYI3J353EFTH7UMIEF5ILAEZTZEFFZFJT3ZSY3F5X2SU3M
+#\\\|4FSBVNFNHOYD6P67KVL4ECRR3EK7365CRADBNB5JG5SSAFBRKWJ \ / AMOS7 \ YOURUM ::
+#\[7]WZSNXWXERDF4X66YSTPSGXWQYF5GQHRI5AMX5ECJG542U7PDLGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,13 +31,13 @@ JSON::XS data has no utf8 flag so for JSON responses this is a no-op.
 
 ## files modified
 
-- `modules/httpd.route.handler.web-relay` — `->timeout(undef)` added on
+- `src/httpd.route.handler.web-relay` — `->timeout(undef)` added on
   input_handler (keeps watcher for EOF detection, disables 23s timeout)
-- `modules/httpd.handler.web-relay.strm_open` — NEW FILE (kimi), fixed in
+- `src/httpd.handler.web-relay.strm_open` — NEW FILE (kimi), fixed in
   session 63 (see below)
-- `modules/plugin.web.jobs.sync` — changed `mode=>'size'` to `mode=>'strm'`
-- `modules/plugin.web.jobs.data` — changed `mode=>'size'` to `mode=>'strm'`
-- `modules/base.handler.command` — bytes::length fix (commit 1d16dac24)
+- `src/plugin.web.jobs.sync` — changed `mode=>'size'` to `mode=>'strm'`
+- `src/plugin.web.jobs.data` — changed `mode=>'size'` to `mode=>'strm'`
+- `src/base.handler.command` — bytes::length fix (commit 1d16dac24)
 
 ## strm_open bugs — all FIXED in session 63
 
@@ -99,8 +99,8 @@ close at receive-side lines 1075-1090). cube correctly ignores it, but it is noi
 fix: in `base.handler.command` STRM send path, skip the fall-through TRUE reply
 after `base.stream.close` (add explicit return or skip-flag for STRM mode).
 
-#,,.,,.,,,..,,,.,,.,,,,,.,..,,...,.,,,,,.,,,.,..,,...,...,.,,,,,.,.,,,..,,.,.,
-#LDQSPQ7Q3C2DYEEMZUMPFK6C42N35RDX364GDMT4IO5LWLMQBAX4H3DUQ7YDM4YNOJCWZGQKIA5RQ
-#\\\|ZGUXXV7CHVKBRRQFQQFRXLUU2X556XPDQGSDMIBKNYTC76VLPNU \ / AMOS7 \ YOURUM ::
-#\[7]AKOQM5HEZVCC3SBLDTOB6LSBIZHRTTIK7JD4CEM2KP3CYHKVTMCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,..,,...,.,.,..,,,..,..,,.,,,,.,,..,,...,..,,...,,,,,,..,...,,..,
+#XG7DMFGHGPNLJZX3ZHJRYSGF4ZH3ZXKYPGUM3CW2354I2K2IX4IQMANKOBLPFCQJ7E3L55JPNR572
+#\\\|5RWENEUX7PEV7NEA5X36ORQMEG2YTNLXI3DQZOW5JN3M5QNKNTZ \ / AMOS7 \ YOURUM ::
+#\[7]DURDFJLX3GJIE3PYYGLMBZ4QW5ND5D2TECL7WNRC6R56LGP2ACDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

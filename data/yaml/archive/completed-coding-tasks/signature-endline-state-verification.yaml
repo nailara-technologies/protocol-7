@@ -30,7 +30,7 @@ states:
     meaning: no modification — content already ended with \n\n or more
     signing_adds: nothing
     restore_op: no-op
-    test_file: modules/test.2
+    test_file: src/test.2
     test_file_content: content ending with \n\n (canonical form)
     verification: pending
 
@@ -40,8 +40,8 @@ states:
     signing_adds: one separator \n
     restore_op: "s/\\n$//"
     test_files:
-      - modules/test.1   # content ending with \n
-      - modules/test.empty  # 0-byte file — separator \n added, state=6
+      - src/test.1   # content ending with \n
+      - src/test.empty  # 0-byte file — separator \n added, state=6
     verification: pending
 
   state_7:
@@ -49,7 +49,7 @@ states:
     meaning: two \n were added — content had no trailing \n (harmonize adds \n\n)
     signing_adds: two newlines (separator + harmonize canonical)
     restore_op: "s/\\n\\n$//"
-    test_file: modules/test.0
+    test_file: src/test.0
     test_file_content: content with no trailing newline
     verification: pending
 
@@ -67,16 +67,16 @@ states:
       thorough confirmation; deferred — risk is low given add-only harmonize.
 
 test_files:
-  - path: modules/test.0
+  - path: src/test.0
     trailing_newlines: 0
     expected_state: 7
-  - path: modules/test.1
+  - path: src/test.1
     trailing_newlines: 1
     expected_state: 6
-  - path: modules/test.2
+  - path: src/test.2
     trailing_newlines: 2
     expected_state: 5
-  - path: modules/test.empty
+  - path: src/test.empty
     trailing_newlines: 0
     size_bytes: 0
     expected_state: 6
@@ -84,8 +84,8 @@ test_files:
 
 related:
   - data/yaml/coding-tasks/signature-oscillation-reopen.yaml
-  - modules/source.create_harmonic_footer
-  - modules/source.restore_payload_endline_state
+  - src/source.create_harmonic_footer
+  - src/source.restore_payload_endline_state
   - bin/dev/tests/timing/test-oscillation-simple
   - bin/dev/tests/timing/test-oscillation-sequence
 
@@ -103,8 +103,8 @@ history:
       States 5-7 test files created; verification runs pending.
 ---
 
-#,,..,.,,,.,,,..,,...,,,.,..,,,,.,.,,,,.,,..,,..,,...,...,,..,,,,,,,,,..,,,,,,
-#UGUQNLQD2EPSYG2PUVACQIWYNGIBM2YB7DOJK7FCN3SLGVCTPIUEHPZEKOVSMNZAOX4LYUSFTEZZI
-#\\\|RBUP3ADJYBAXQJY2VJRPLKHRWHEQTL37MJWYQZEWAQFTXCE56V5 \ / AMOS7 \ YOURUM ::
-#\[7]VJD2U6KVFUKYL2BOIH5ILHL332GYD34H725Z2STQZB6BY773SOBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,,,.,.,.,..,,.,,,,,.,.,,,..,,..,,...,...,...,.,.,,..,.,,,,.,,
+#BR6R4Y2DNPJ7DLDZSXOI2HYFAJER2L4HYC2UGEWCQ7YLP6A7PPSIEGZ5R4I6L2BFJC5YR4IFKNYQY
+#\\\|LIJSVCUTV3VLIH2XUZGK627N5BBQQPDBT32YVKWGPFSFKLA74SM \ / AMOS7 \ YOURUM ::
+#\[7]MFCMDVPGLL3UVI4SNCPAAACFEOQMKY2ZDP72TIWXGKJTU2TB44AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

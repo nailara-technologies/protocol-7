@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = coding.async_spawn_inference_servers
+# descr = spawn inference servers asynchronously
+# purpose = Start GPU and CPU inference servers without blocking zenka
+#           initialization
+
+## await_resources owns the spawn during :twin: handover — skip if set ##
+if (<coding.awaiting_resources>) {
+    <[base.logs]>->(
+        1, ': async_spawn : awaiting_resources flag set : spawn blocked :'
+    );
+    return FALSE;
+}
+
+<[base.logs]>->( 1, ": starting inference servers asynchronously" );
+
+## check system memory before spawning [ prevents oom conditions ]
+my $mem_pct = <coding.system_mem_pct> // 0;
+<[base.logs]>->( 2, ": system memory usage :. %.2f%% used", $mem_pct );
+
+## abort if memory critically constrained  [ system will kill largest consumer
+## at limit ]
+if ( $mem_pct >= 90 ) {
+    <[base.logs]>->(
+        0, ": system memory at %.2f%% - skipping inference server spawn",
+        $mem_pct
+    );
+    return FALSE;
+}
+
+# Get spawn parameters
+my $spawn_params = <coding.spawn_params> // {};
+
+if ( not keys $spawn_params->%* ) {
+    warn 'expected spawn parameters not found [cannot start server]';
+    return FALSE;
+}
+
+# Get model path (resolved earlier in startup after network connect)
+my $model_path = <inference.model.path> // undef;
+
+unless ( defined $model_path && length $model_path ) {
+    <[base.logs]>->(
+        0, ": model path not resolved - cannot spawn inference server"
+    );
+    return FALSE;
+}
+
+# Spawn GPU server if enabled
+if ( $spawn_params->{'gpu_enabled'} ) {
+    my $gpu_port   = <inference.backend.gpu.port>    // 8000;
+    my $gpu_model  = $spawn_params->{'gpu_model_id'} // qw|gemma3-glitter-4b|;
+    my $gpu_binary = $spawn_params->{'gpu_binary'}
+        // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
+    my $gpu_layers = $spawn_params->{'gpu_layers'} // 33;
+
+    <[base.logs]>->(
+        1,         ": spawning GPU server on port %d for %s",
+        $gpu_port, $gpu_model
+    );
+
+    ## spawn_inference_server owns the spawning_in_progress guard ##
+    my $gpu_result = <[coding.spawn_inference_server]>->(
+        {   'backend'     => 'gpu',
+            'binary'      => $gpu_binary,
+            'port'        => $gpu_port,
+            'model_path'  => $model_path,
+            'mmproj_path' => <inference.model.mmproj_path> // '',
+            'gpu_layers'  => $gpu_layers
+        }
+    );
+
+    if ( $gpu_result->{'success'} ) {
+        <[base.logs]>->(
+            1, ": GPU server spawned [pid=%d] - monitoring startup",
+            $gpu_result->{'pid'}
+        );
+        <inference.gpu_port>       = $gpu_port;
+        <inference.gpu_pid>        = $gpu_result->{'pid'};
+        <coding.spawn_retry_count> = 0;
+    } else {
+        my $retries = ( <coding.spawn_retry_count> //= 0 );
+        <coding.spawn_retry_count>++;
+        my $delay = 2**$retries;
+        $delay = 120 if $delay > 120;    ## cap at 2 minutes ##
+        <[base.logs]>->(
+            0,
+            'GPU server spawn failed (attempt %d) — retrying in %.0fs: %s',
+            $retries + 1,
+            $delay, $gpu_result->{'error'}
+        );
+        <[event.add_timer]>->(
+            {   'after'   => $delay,
+                'handler' => qw| coding.handler.spawn_servers_deferred |
+            }
+        );
+        return FALSE;                    ## spawning not successful ##
+    }
+}
+
+# Note: CPU server spawning can be added here if needed for fallback
+# For now, focus on GPU server
+
+<[base.logs]>->( 1, ": inference server spawning complete" );
+
+return TRUE;
+
+#,,.,,..,,,..,,,.,..,,.,,,.,.,,,,,,,.,,,,,,,,,..,,...,...,..,,,..,,..,...,...,
+#OKDJSPLSGII3PNEFPIRGWZXTBZMUDYL5A5GEKOUM2ZJ7ZVH6KUSXTOGB4FD53ISH2VIHUD6UBKV4W
+#\\\|FAEVNTTYQYZ4W4H7GCCZ53EVYQNQG56ZJJEWLIZIOZ2VPZPDXD5 \ / AMOS7 \ YOURUM ::
+#\[7]OIAVKMQWKAOA52QO7PBJO4UUZ5DVLNWEVY7ESPYLQTLHZ7J77QAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

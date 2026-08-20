@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = X-11.cmd.set_geometry
+# param = <win_id> <geom.>
+# descr = apply a given geometry to window
+
+my ( $id, $geometry ) = split( m| +|, $call->{'args'}, 2 );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'required x11 window id and <geometry>'
+    }
+    if not defined $id or not defined $geometry;
+return { 'mode' => qw| false |, 'data' => 'invalid <id> syntax' }
+    if $id !~ m|^\d+$|;
+return { 'mode' => qw| false |, 'data' => 'invalid <geometry> syntax' }
+    if $geometry !~ m|^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$|;
+
+my ( $w, $h, $x, $y ) = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
+
+## window may still be unmapped/unrealized under weston/wslg at this point ##
+## [ get_window_ids does the same before reading _NET_CLIENT_LIST ] - skip ##
+## this and ConfigureWindow can throw bad-window on a window that exists   ##
+## but isn't actualized yet                                                ##
+<[X-11.WM.update]>;
+
+eval {
+    <X-11.obj>->ConfigureWindow(
+        $id + 0,
+        'x'      => $x,
+        'y'      => $y,
+        'width'  => $w,
+        'height' => $h,
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        1,   '[set_geometry] id=%s : %s',
+        $id, <[base.str.eval_error]>
+    );
+    return { 'mode' => qw| false |, 'data' => 'ConfigureWindow error' };
+}
+
+## push the new geometry through to the wm/compositor - without this the ##
+## configurewindow request can silently not take visual effect [ known   ##
+## weston/wslg behaviour, confirmed live ]                               ##
+<[X-11.WM.update]>;
+
+<[base.logs]>->(
+    2,   '[set_geometry] id=%s geometry=%s applied',
+    $id, $geometry
+);
+return { 'mode' => qw| true |, 'data' => 'window updated' };
+
+#,,.,,...,...,,,.,,,,,,..,...,,.,,,,.,...,,,,,..,,...,...,...,..,,,,.,.,.,.,,,
+#VYCGF4FGTIMV35O3WUTYLXZR2WOKPMKDUGPJMWVGJJ6PDUF3ZLQC34VF4A4HISXP2EXB77SNK2CXI
+#\\\|T2O7WOKYEAEHY5VJICIDJ34XXXCZ2GTLYVJO546M5IF2OJLHNBK \ / AMOS7 \ YOURUM ::
+#\[7]5DXTLD4IVM6ROZCCX7573XTFCMJR6BPHGS3K7XD5RJHFAVSXCUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

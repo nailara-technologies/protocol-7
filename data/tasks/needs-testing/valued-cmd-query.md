@@ -1,6 +1,6 @@
 ## task: valued.cmd.query
 
-Create module `modules/valued.cmd.query` — network command wrapper around `valued.tree.top_n`.
+Create module `src/valued.cmd.query` — network command wrapper around `valued.tree.top_n`.
 
 ### context
 
@@ -12,9 +12,9 @@ string of top-N nodes sorted by priority.
 
 ### reference modules
 
-- `modules/valued.tree.top_n` — the sub being wrapped; see its params and output format
-- `modules/valued.cmd.list` — pattern for cmd wrapper returning `{ mode => 'size', data => $output }`
-- `modules/task.cmd.next` — param parsing with multiple optional fields
+- `src/valued.tree.top_n` — the sub being wrapped; see its params and output format
+- `src/valued.cmd.list` — pattern for cmd wrapper returning `{ mode => 'size', data => $output }`
+- `src/task.cmd.next` — param parsing with multiple optional fields
 
 ### spec
 
@@ -44,8 +44,8 @@ string of top-N nodes sorted by priority.
 Do NOT copy or invent AMOS7 signatures. Leave the file clean — real footer added by
 `bin/Protocol-7 sourcecode update-signatures`. Never add the fake `#,,.,,,...` stub.
 
-#,,.,,..,,,..,.,,,,.,,,,.,,,,,...,.,.,...,,,,,..,,...,..,,...,,,,,...,.,.,..,,
-#RQMGZZBGAGG7WBYXMKTAHK7XULBQBD7DGAQK5D5WNDR3YBTV6JLXWNWXOXNPYJT627JLNJUXKUTYA
-#\\\|AEGCMEVCEE3YR4KLUEY6KBAZHMX7TCDEI5KFBWKSGF2JXCZJJDK \ / AMOS7 \ YOURUM ::
-#\[7]KVA7WPSYZZNXGJLY3UPCPAWTDBLODMHQ2A5GXSXXIRPLYNNEZGBQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,,,.,,,,,,,,.,,,.,,,..,...,..,,..,,...,...,.,.,.,.,,..,,..,..,,
+#5TZAQ4EUUDQ4QAWPXTF4ZXCZT3CTPG56VRPH3ZD4NH5XC5LGXOONCANVL6YC7ZRCB4V3XYADZ5U5O
+#\\\|QAAHRMHBFXAAVQZDN7ZWLF5BREDTATUACLT4A2WFNM7GEY4O7SA \ / AMOS7 \ YOURUM ::
+#\[7]Q54S3EMEQVYXWQBDCIXZ7D2ZDROL3AFU4TVXUPIWRE4P3XT4KOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

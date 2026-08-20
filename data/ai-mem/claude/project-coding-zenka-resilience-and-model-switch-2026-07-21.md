@@ -17,7 +17,7 @@ methodology, see [[feedback-verify-by-live-execution]] if that gets written up s
   (`single-llm`) instead of mapping to the hardware key (`gpu`/`cpu`) like
   `send_request`/`task.execute` already did — timed-out tasks hard-failed instead of
   restarting the backend.
-- `modules/context.file` forced absolute paths into repo-relative resolution (stripped
+- `src/context.file` forced absolute paths into repo-relative resolution (stripped
   leading `/` unconditionally) — broke reading e.g. `/etc/protocol-7/jobsite/profile.txt`.
   fixed to match `list_files`'s existing absolute-path handling. **then** the live
   file-io-fix.yaml test (see below) introduced a real regression fixing this same file
@@ -122,8 +122,8 @@ function returns hardcoded fake data). neither schema has a `model_id` field, on
 the same backend slot over time. relevant if/when model-comparison-statistics work
 (discussed, not built) picks up.
 
-#,,,.,,,.,,..,.,,,,,,,,,.,,..,,.,,,.,,,..,...,..,,...,...,,.,,.,,,,,.,,.,,...,
-#7YQITGWKDDMCRX4EGSN2NR6EPGUTMRFZHJ3HG25PYK7GBSMY7JAGVEUMKFWTCFND7PWOIEP7IG7QU
-#\\\|VG32AD2ICZMNR3U4AWPKSTAKS2O2ZY6RHGQHCWX6ZVO6ENVYSZ3 \ / AMOS7 \ YOURUM ::
-#\[7]XYW2BKG6Q2ZRFZTCTJKVNIPZLZH3RC7ZNWV5SAX4OR5STNQKIABI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,,,.,..,,,,,,,,,,..,,,..,...,..,,...,..,,..,,.,.,,..,.,,,,..,
+#B3NAGSEWUWV3SFSB66GYSY733Y3SU6D2UIRNYWTE6JVADDZ3ICHI5H7AO5PMVK3FKMIRWYDNNCIDE
+#\\\|3HJRHKJ5L74PKDGXZRJJPJ6B5FHDJZR62KZPZVXGILMYPTT3CCJ \ / AMOS7 \ YOURUM ::
+#\[7]WHKPZ4DREJNJMMRUDU4X2X2PFUK5IIFAZFAZZXDSCIU5XSEUDOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

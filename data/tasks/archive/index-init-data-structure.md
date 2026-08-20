@@ -43,7 +43,7 @@ the signature block begins with a line matching `^#,,`.
 
 ## file to create
 
-`modules/index.init_code`
+`src/index.init_code`
 
 ```
 ## [:< ##
@@ -81,7 +81,7 @@ idle timeout (e.g. 4200s like calc).
 
 ## success criteria
 
-- [ ] `modules/index.init_code` created with correct module header
+- [ ] `src/index.init_code` created with correct module header
 - [ ] all data structures initialized correctly
 - [ ] `<index.meta>->{'root'}` set to `''` (-1 semantics documented in comment)
 - [ ] `<index.level>->{0}` initialized as empty hashref
@@ -91,8 +91,8 @@ idle timeout (e.g. 4200s like calc).
 - [ ] zenka start file created (cfg/zenki/index/start)
 - [ ] module passes ptd
 
-#,,,.,.,,,...,,,,,,,.,,..,.,.,,.,,,.,,,..,.,,,..,,...,...,,.,,...,.,,,,,.,...,
-#AUA5W3HWFGVRC6YHNUJMJJTEDAJCFYAAPK5XRGN564HZWLFFQQLVN45JA2UNNKRDSHZMD7RYE4NE6
-#\\\|THGGRAXVYDO4OWAKOU2CSW33SFMB45W37LJNXRZHBOF7RKBFEOV \ / AMOS7 \ YOURUM ::
-#\[7]UQIHJRKDZMTVJIKROJ75NVVR6YDLTQIHAXVTGY243DUIIHFXEUAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,,,,,,.,,.,.,,..,.,.,,,,,.,.,..,,...,...,..,,,,.,,.,,..,,..,,
+#BXDEJBR32LKTC7GAPAUFWYGEEBHLRZHWA6VGQITWBVOH22EKHCYXQLO7RRVEQFOM6VK42S3PU2TW4
+#\\\|JGY2GIQKNWBDZBM2LX7EBHTUG5TFW5ACDJ2AXWSPS5CFGSZR4R7 \ / AMOS7 \ YOURUM ::
+#\[7]6IFBLYPOCKIZ5SFZWR4FL4BJAWCYAJNL3ISBNKMPLO6VJKI2Y2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

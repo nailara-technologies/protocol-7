@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = crypt.C25519.get_usr_keys_dir
+
+my $requested_user = shift;
+
+my $home_dir = <crypt.C25519.key_usr_home>;
+my $key_dir  = <crypt.C25519.key_dir>;
+
+if ( defined $home_dir ) {
+    $key_dir //= sprintf( qw| %s/.n/user-keys |, $home_dir );
+}
+
+if ( not defined $requested_user ) {
+
+    my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
+
+    ## Use explicitly set usr_name, or fall back to current user Security:
+    ## each process uses its own home directory for keys
+    $requested_user = <crypt.C25519.usr_name> // $cur_usr;
+
+    $home_dir = <[base.get_homedir]>->($requested_user);
+    $key_dir  = sprintf( qw| %s/.n/user-keys |, $home_dir );
+
+}
+
+$home_dir //= <[base.get_homedir]>->($requested_user);
+$key_dir  //= sprintf( qw| %s/.n/user-keys |, $home_dir );
+
+return $key_dir;
+
+#,,..,,.,,.,.,...,.,,,,..,,.,,..,,...,..,,.,,,..,,...,...,..,,,,,,,,.,...,...,
+#ACZ54PXQXCW33OG67XLA5BA7BC2V6LQISOSQ2WXSIESXCHYQ2RW2B2DLP2JJ6ZBMJSFNI7R6HZTQ2
+#\\\|7FK4GC6ANKF27B3OGHNMURM2CM7MNDDGQMMWFZDFFSN5TU4JLOC \ / AMOS7 \ YOURUM ::
+#\[7]TYZLH5TXLYAUA5XUMM7CYPBY5BINZXRI6KE6KW4U3G5X33CSCEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

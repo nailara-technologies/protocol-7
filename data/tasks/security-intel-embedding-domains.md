@@ -51,7 +51,7 @@ update (2026-07-29): completed. 1655 files under data/protocols/cisa/
 (6.6MB), data/training/cisa.txt (297KB). path corrected from a bare
 top-level protocols/ to data/protocols/ for consistency with everything
 else fetched/generated this session (data/training/, data/embeddings/,
-data/patches/) — modules/ is the only legitimate top-level exception,
+data/patches/) — src/ is the only legitimate top-level exception,
 being the executable code tree, not fetched reference data. tracked in
 git: small, public data, and this IS the knowledge-base data the
 unified loader reads at runtime, not a regenerable build artifact.
@@ -154,8 +154,8 @@ reports stale domains to the forensics channel.
 - keep domains loadable independently — an agent should be able to run
   with only cve+cwe loaded (small memory footprint).
 
-#,,.,,,.,,,,,,.,.,,,,,,.,,,,.,..,,,..,.,.,,,,,..,,...,...,..,,...,...,.,,,,,,,
-#KE6732TQ6TKUDWUVIJLCOYNWMQKPFKFF22UHSSBBG3XTJWMHVLNA6OCDCALCBJJXW2AHK55LPICFC
-#\\\|DTARRBNS2T5HYDA2OXMUYSSNGW6NCAOWMFANNB5NP6EJ2XIUSI2 \ / AMOS7 \ YOURUM ::
-#\[7]JVSM4CH372JNLZUKUVP7JGFRW5SINEIZ6RZVB4WHAAFIOSTC42AA 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,,..,.,,,...,..,,..,,,,,,.,.,..,,...,...,,..,,,,,,..,,..,...,
+#R4AFEVAGVPV2LK27RTRJ275HJCGKBYVMSAIMS3LWKIDYFZYHUBCF3Y3EI7HEP4AOSHS5S3EMLYDQ2
+#\\\|4IMZCBY67O7TDJUECFBZOSBWXS45NWF5QYSHDT4EUBLAN644RZ7 \ / AMOS7 \ YOURUM ::
+#\[7]S7AZS2SDJ2DODVW63KU3JLLPI6P3JQNOMLCMTRGHAULGRVVKOYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ summary: |
 
 context: |
   Already implemented (do not re-implement):
-  - base.stream.{open,push,close,gate,emit} wrapper API in modules/base.stream.*
+  - base.stream.{open,push,close,gate,emit} wrapper API in src/base.stream.*
   - sticky cancel flag: $session->{'stream_cancelled'}{$cmd_id} = 1
     set by base.cmd.cancel-stream ; checked by base.stream.gate
   - base.handler.command already matches reply types at line 486:
@@ -45,7 +45,7 @@ context: |
       }
 
 implementation: |
-  Edit ONE file only: modules/base.handler.command
+  Edit ONE file only: src/base.handler.command
 
   STEP 1 — extend the reply-type regex at line 486 to include !TERM!
   The current line is:
@@ -148,7 +148,7 @@ implementation: |
   - preserve all existing whitespace style around edited sections
 
 validation: |
-  After implementing, run:  ./bin/ptd -c modules/base.handler.command
+  After implementing, run:  ./bin/ptd -c src/base.handler.command
   Must show 'syntax ok' with no errors.
 
   Manual test sequence (after restarting cube + mod-test):
@@ -158,8 +158,8 @@ validation: |
      [ future : p7c will have a strm-term command ]
   3. Confirm log shows '!TERM! cmd_id=N → src_sid=...' and stream stops
 
-#,,..,...,.,,,..,,...,.,,,,,.,.,,,,,,,,..,...,..,,...,...,...,.,.,.,.,...,,..,
-#MR5PPTCG44NFXGNH7LAFZUHYTOXWMHJMSAX52U7DZ434UQD2QXL6SP232KHD2DN6UBNE7VS7CFPEA
-#\\\|FODATCJ5BKLL2GIEZM2YMM3K5XXMUXNYTEHSYWJX3YUCMAIN5KC \ / AMOS7 \ YOURUM ::
-#\[7]M2OUDBUJWRAOZLQ2UQ5MCJQ6QODKAFXGWJOVLNGTPQWPX4PIJCAA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,,.,,..,,,..,.,,,,,.,...,...,..,,...,..,,..,,..,,.,,,,,,,..,,
+#32OZ3ZD22QVZIU6P636BSE5C2O6JWDTL2WMQROZOKE4NMY3FPRDIYYR5QIG4WF4ULILOVRHHGS6FY
+#\\\|4QDBNZJFCOPDVQZNJIJ3GIAPOZ4DMAQYTBWPD6EZ3KUHFGDK6CO \ / AMOS7 \ YOURUM ::
+#\[7]QUTLZKZSGR32QCIMZOETALKO6K6UPYVYGWS3HH5YBWMTNNS3COCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ metadata:
 
 flagged 2026-06-11, right after `devmod.cmd.deparse-code` /
 `devmod.cmd.exec-sub` modules appeared (existing on disk:
-`modules/devmod.cmd.deparse-code`, plus per-zenka source copies under
+`src/devmod.cmd.deparse-code`, plus per-zenka source copies under
 `cfg/zenki/{proxy,models}/source/devmod.cmd.deparse-code`,
 `cfg/zenki/models/source/devmod.cmd.exec-sub`).
 
@@ -86,7 +86,7 @@ go through `base.load_code` first — to force-compile/instantiate the
 coderef — before `B::Deparse` has anything to operate on.
 
 `base.load_code` itself does **not exist on disk yet** (checked
-2026-06-11) — only `modules/base.protocol.compile_once` references it
+2026-06-11) — only `src/base.protocol.compile_once` references it
 in a comment ("module compilation is handled by base.load_code") while
 itself just being a stub returning TRUE. so this whole tree has TWO
 not-yet-built foundations: `base.load_code` (compile-on-demand +
@@ -328,7 +328,7 @@ this retroactively explains a long-standing convention: **code line
 length limit is 78, not 80** — chosen to leave room for a trailing
 ` : ` [ 3 chars: space-colon-space ] frame-border segment without
 exceeding 80 columns. verified live: signature footer lines in
-existing modules [ e.g. `modules/base.stdio.frame.encode` tail ] are
+existing modules [ e.g. `src/base.stdio.frame.encode` tail ] are
 **exactly 78 chars** —
 
 ```
@@ -367,8 +367,8 @@ enough that it may warrant promotion to its own design doc
 following the [[topic-ui-show-security-levels]] precedent of
 doc-then-split-into-tasks.
 
-#,,..,..,,.,,,,..,..,,,..,,..,,,.,,.,,,..,,,,,..,,...,...,.,.,..,,,.,,,,,,,.,,
-#SQ7BJLEHG4DFHHD4VFVASJZ7YSQP6TR3JNYYR7FAURQE577OXDCNJUWLJHULGWXZABCZQMHHNCS4Q
-#\\\|AD2JMVZPXXJ74S3QAVPQ2DQF276NBIASTOGK5DA7JDZ7G56IVP5 \ / AMOS7 \ YOURUM ::
-#\[7]GOBD6XV4UM73YTHZYBVDY6WU4YEY74Z272C2V3TI7IVPMJCRNEBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,.,,,...,.,,,,.,,.,,,,,,,..,,..,,...,...,.,.,,.,,.,,,,,,,...,
+#Q76MRDSIOPBSPYS5XLN2UFAXSNAAJSOGWTDDQ43WBHL2L6NI4T52GHY4SNEYLCNVUH7KRIL7MXL74
+#\\\|MUVFC6DBQPKANZJMJBQ5RITE6ZWOPOPLXLNYBYMS5XYEB7FZSCX \ / AMOS7 \ YOURUM ::
+#\[7]ET5D6VLLNXZD3IIF2CWQFK5AMT2MAYUK4YYWPHHKOO6Q7SEQNSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

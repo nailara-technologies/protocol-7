@@ -8,25 +8,25 @@ task:
     no gap filler, no keep-library — those are separate tasks.
 
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
-  templates_reference: modules/protocol.protocol-7.message-templates
+  templates_reference: src/protocol.protocol-7.message-templates
 
   pattern_references:
-    - "pipe-open + IO watcher: modules/mpv.open_player (lines 120-155)"
-    - "unbounded STRM: modules/base.stream.open (total => undef)"
-    - "STRM push: modules/base.stream.push"
-    - "STRM close: modules/base.stream.close"
-    - "IO watcher: modules/base.event.add_io"
+    - "pipe-open + IO watcher: src/mpv.open_player (lines 120-155)"
+    - "unbounded STRM: src/base.stream.open (total => undef)"
+    - "STRM push: src/base.stream.push"
+    - "STRM close: src/base.stream.close"
+    - "IO watcher: src/base.event.add_io"
 
   files_to_create:
     - cfg/zenki/radio/start
     - cfg/zenki/radio/zenka-startup.v7
-    - modules/radio.init_code
-    - modules/radio.connect
-    - modules/radio.handler.stream-chunk
-    - modules/radio.cmd.start
-    - modules/radio.cmd.stop
-    - modules/radio.cmd.status
-    - modules/radio.cmd.listen
+    - src/radio.init_code
+    - src/radio.connect
+    - src/radio.handler.stream-chunk
+    - src/radio.cmd.start
+    - src/radio.cmd.stop
+    - src/radio.cmd.status
+    - src/radio.cmd.listen
 
   icy_protocol: |
     ICY (Icecast/Shoutcast) HTTP stream format:
@@ -124,7 +124,7 @@ task:
     radio.stream.auto_connect = yes
 
   radio_init_code: |
-    file: modules/radio.init_code
+    file: src/radio.init_code
 
     - load IPC::Open3, Fcntl, IO::Handle
     - initialize: <radio.listeners> = []
@@ -135,13 +135,13 @@ task:
         schedule <[radio.connect]> via event.add_timer after => 0.5
 
   radio_connect: |
-    file: modules/radio.connect
+    file: src/radio.connect
 
     open curl pipe as described in pipe_open_pattern section above.
     log: "[radio] connecting to <url>"
 
   radio_handler_stream_chunk: |
-    file: modules/radio.handler.stream-chunk
+    file: src/radio.handler.stream-chunk
 
     IO read handler — called when curl pipe has data.
 
@@ -178,7 +178,7 @@ task:
          <radio.listeners> = \@keep;
 
   radio_cmd_listen: |
-    file: modules/radio.cmd.listen
+    file: src/radio.cmd.listen
 
     called by a client to register as a stream listener.
     opens an unbounded STRM reply and stores the handle:
@@ -192,18 +192,18 @@ task:
       push <radio.listeners>->@*, $h if defined $h;
 
   radio_cmd_start: |
-    file: modules/radio.cmd.start
+    file: src/radio.cmd.start
     call <[radio.connect]> if not already connected (pid not defined).
     reply TRUE.
 
   radio_cmd_stop: |
-    file: modules/radio.cmd.stop
+    file: src/radio.cmd.stop
     close stream handles for all listeners (base.stream.close each).
     kill curl pid if running. clear <radio.listeners>.
     reply TRUE.
 
   radio_cmd_status: |
-    file: modules/radio.cmd.status
+    file: src/radio.cmd.status
     reply TRUE with:
       current track: <radio.stream.icy>->{'current_title'}
       listeners: scalar(<radio.listeners>->@*)
@@ -220,8 +220,8 @@ task:
     - radio.cmd.stop closes all streams and kills curl
     - no jingle filtering, no gap filler, no keep-library in this phase
 
-#,,,.,..,,,,.,..,,,,,,,..,,..,...,...,,.,,,,,,..,,...,...,.,.,,,.,.,.,...,,,,,
-#EBEWU4QBH2EPOBL7S2SOLRNZMXBG75QBWPW7VQQJ57Z7ZLUDAPWPJPMQ4RN2ESDAIGXK73ZNPUZMG
-#\\\|GRX7WZ4BQAGERZF5FBJP7XDOKS5TEMMGKGEGNH6XJXEWAFG6GSV \ / AMOS7 \ YOURUM ::
-#\[7]WPV5IBBJ2C7LQGWWFKOJRCQ3QNMXOOBCULREUFL2ZSQOVU3WLCAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,..,.,.,.,.,...,,,.,.,,,,,.,..,,..,,...,..,,..,,,..,,,,,,,,,..,,
+#5GIU5DJI2QUSTZAEOBRPL3DQ2JQMOB3SRK3HKTQBGVSVKITDCZGFRYDUZHBHU7XOYX2OSGYBTXPHK
+#\\\|377Z4UBZUTUFHK6ZVPHCOS44IYAF3EGZ5EFQSA4SCBAOC3REZLX \ / AMOS7 \ YOURUM ::
+#\[7]S375IGQGEPH7D3NES4YLC6ETTXJOJJHCXCSUK33R6USSVD7LLKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

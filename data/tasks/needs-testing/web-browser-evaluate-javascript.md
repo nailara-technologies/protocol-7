@@ -14,7 +14,7 @@ cat data/ai-mem/kimi/coding-style.md
 
 ## context
 
-`modules/web-browser.js_call` and `modules/web-browser.cmd.run_js` use a
+`src/web-browser.js_call` and `src/web-browser.cmd.run_js` use a
 fragile hack to capture JavaScript return values:
 
 ```perl
@@ -44,9 +44,9 @@ do not add or modify subroutine whitelists — these are managed separately.
 ## what to read first
 
 ```bash
-cat modules/web-browser.js_call       ## current throw hack implementation
-cat modules/web-browser.cmd.run_js    ## uses js_call — check callers
-cat modules/web-browser.handler.auto_scroll  ## primary caller of js_call
+cat src/web-browser.js_call       ## current throw hack implementation
+cat src/web-browser.cmd.run_js    ## uses js_call — check callers
+cat src/web-browser.handler.auto_scroll  ## primary caller of js_call
 ```
 
 ---
@@ -95,7 +95,7 @@ check that `web-browser.handler.auto_scroll` and any other callers of
 should be unchanged.
 
 ```bash
-grep -rn 'js_call\|run_javascript\|run_js' modules/web-browser.* | grep -v Binary
+grep -rn 'js_call\|run_javascript\|run_js' src/web-browser.* | grep -v Binary
 ```
 
 ## success criteria
@@ -108,8 +108,8 @@ grep -rn 'js_call\|run_javascript\|run_js' modules/web-browser.* | grep -v Binar
 - [ ] no `run_javascript` calls remain in web-browser modules
 - [ ] no signature stubs added, no whitelist changes
 
-#,,,,,,,,,,.,,.,,,...,,..,,,,,,,,,,,.,.,.,...,..,,...,...,.,,,..,,,.,,,.,,,..,
-#HZLY77WZXCJF4MG63POSBYVBZUBWAFVLUWROYGZ664CAI5JK6YRLGVBHCCG7EGXWKG3MIQY2SSO5U
-#\\\|TFMULKXJMLOSOGTJWD6DBZY23OE3FW67XROGQRWORRCVC5GGUOC \ / AMOS7 \ YOURUM ::
-#\[7]GLAQR2PFYFFAFV6O5FUGAPEUW6FE4UOZYL2FZ76DZSB3ACYSLIAI 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,,,.,,,,,,,,,,.,,,,,,...,.,,,..,,...,...,,.,,,..,,,.,,..,..,,
+#RU4QNBVWV7SRC4OSJVZ3M6NS7HJMTVT46BU3UK5GWUV76KVDYWN6MODA7ZLQD3SO3MNFHPVUR6KXI
+#\\\|A7E56MR4NIV6CBUASNP4BSBHPGS5EBNGGSRK37Y5UJW5KE2L7OO \ / AMOS7 \ YOURUM ::
+#\[7]4RZVYTNL4FEJO5JVYJF6CBAYTGBT6RPBEFWKXKJIPYKKH3IXXOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

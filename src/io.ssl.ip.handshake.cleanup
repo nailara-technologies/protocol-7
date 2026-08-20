@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = io.ssl.ip.handshake.cleanup
+# descr = cleanup ssl handshake state [ watchers, timers, socket ]
+
+my ( $hs_id, $keep_socket ) = @ARG;
+
+return unless exists $data{'ssl_handshake'}{$hs_id};
+
+my $hs = $data{'ssl_handshake'}{$hs_id};
+
+## cancel io watcher ##
+if ( defined $hs->{'io_watcher'} and $hs->{'io_watcher'}->can('cancel') ) {
+    $hs->{'io_watcher'}->cancel if $hs->{'io_watcher'}->is_active;
+}
+
+## cancel timeout timer ##
+if ( defined $hs->{'timer'} and $hs->{'timer'}->can('cancel') ) {
+    $hs->{'timer'}->cancel if $hs->{'timer'}->is_active;
+}
+
+## close socket unless told to keep it [ on successful handshake ] ##
+if ( not $keep_socket and defined $hs->{'socket'} ) {
+    if ( defined fileno( $hs->{'socket'} ) ) {
+        eval { shutdown( $hs->{'socket'}, 2 ) };
+        close( $hs->{'socket'} );
+    }
+}
+
+## remove handshake state ##
+delete $data{'ssl_handshake'}{$hs_id};
+
+#,,.,,,,,,.,.,,..,.,,,,..,,.,,..,,,,,,,,,,,,,,..,,...,..,,..,,.,,,,,.,,..,...,
+#5KWYJCCIR4JWEQAOKF3CP5JP2GDAVQXQHBT7EUGQFZE4TRPXWLNDFACKT7XN4VBN5F3VYEQYRVFNG
+#\\\|6ZZ2UW2KNUDGNA4PGJJ6M2LA3V6VNQMBBI73FKA5M2WV3JOSDY7 \ / AMOS7 \ YOURUM ::
+#\[7]A7HX6WRRRNZY5ZVTVZ5YZGCLBDYDQWIVFTVCFEDAIZV24DJLIIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

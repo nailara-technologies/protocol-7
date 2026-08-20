@@ -14,7 +14,7 @@ density, attractor patterns, and cross-language correlations spatially.
 
 - `index.gen_path` — AMOS path generation using modes 5,7 across offsets 0-6
   with truth filtering. the path generation logic is already there.
-- `modules/graphics-matrix.*` — existing cells, graph, glow, channels,
+- `src/graphics-matrix.*` — existing cells, graph, glow, channels,
   cursor, address modules from the Apr 16 session.
 - `visualization.html` — orbital visualization with recursive nav, layer
   weights, template resolver. the rendering target is already built.
@@ -158,16 +158,16 @@ do NOT add stub signature line to new files.
 
 ## reference
 
-- `modules/index.gen_path` — existing path generation to understand the
+- `src/index.gen_path` — existing path generation to understand the
   checksum matrix construction (modes 5,7, offsets 0-6, truth filter 7,9)
-- `modules/graphics-matrix.*` — existing graphics-matrix modules
+- `src/graphics-matrix.*` — existing graphics-matrix modules
 - `data/web-root/vhosts/space.v7.ax/visualization.html` — rendering target
 - `bin/amos-chksum -q -L offset,length` — offset checksum experiments
 - `data/md/documentation/entropy-at-deduplication-root.md` — character ray
   table and semantic constants reference
 
-#,,,.,,,.,,..,..,,,.,,.,.,...,...,..,,..,,...,..,,...,...,.,.,,..,,,,,,,.,.,,,
-#DYUYBDSRQWXUSCFFVLTMG6XOBD7GURZLWFWAQU4PKGZ37Q2IBNEXAZHGSZOGKP3CUBVVZA5S4XCBE
-#\\\|BO2FS4LRAKJMAHSGXBVEAHPTAUELJM2FFZMHJMPCY76NHGQWE2X \ / AMOS7 \ YOURUM ::
-#\[7]ZNS67EZMV5YAGPJJCNP5JHHRFP6OSJRYS4F3ZKDBAETTOCXBFQDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,.,,,,.,,..,,..,,,..,...,.,.,..,,...,...,..,,.,,,,,,,,.,,,.,,
+#WFQ6UCTI5MZSRZMXWHE4PLU5Y3777DMBD5LHY2J5G2NR3B6FNPIFMBCUE5LMDMXPNRDZ7NCY5PPSG
+#\\\|LEGSBPKHUBER7T6SGULYBUGZJZ74H3VBORSOHQC5WFLAVM4EJQF \ / AMOS7 \ YOURUM ::
+#\[7]Q2KD2XJJ2JH4KWA54H43W7A37Y4GSINSECUCTMKVYDDYS7QLMUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

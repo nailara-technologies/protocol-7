@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = protocol.sftp.connect_callback
+
+my $client_fd = shift;
+
+if ( not defined $client_fd or !-S $client_fd ) {
+    <[base.log]>->( 2, ': expected valid socket, declining init..,' );
+    return 0;    ## init declined ##
+}
+
+my $socket_id = <[chk-sum.amos]>->( \"$client_fd" );
+
+if (   not defined <sftp.allowed_unix_users>
+    or not length <sftp.allowed_unix_users> ) {
+    <[base.logs]>->(
+        0,
+        ": [%s] 'sftp.allowed_unix_users' not configured, declining init..,",
+        $socket_id
+    );
+    return 0;    ## init declined ##
+}
+
+my $users_str = <sftp.allowed_unix_users>;
+
+if ( not defined $data{'handle'}{$client_fd}{'link'}
+    or $data{'handle'}{$client_fd}{'link'} ne qw| unix | ) {
+    <[base.logs]>->(
+        0, ": [%s] connection type not 'unix', declining init..,", $socket_id
+    );
+    return 0;    ## init declined ##
+}
+
+my $unix = $data{'handle'}{$client_fd}{'unix'} // {};
+
+if (   not defined $unix->{'pid'}
+    or not defined $unix->{'uid'}
+    or not defined $unix->{'gid'} ) {
+    <[base.logs]>->(
+        0, ": socket %s missing unix credentials, declining init..,",
+        $socket_id
+    );
+    return 0;    ## init declined ##
+}
+
+my ( $pid, $uid, $gid ) = ( $unix->{'pid'}, $unix->{'uid'}, $unix->{'gid'} );
+
+my $user = getpwuid($uid);
+
+if ( not defined $user ) {
+    <[base.logs]>->(
+        0,
+        '[%s] cannot retrieve username from passwd file, init declined ..,',
+        $socket_id
+    );
+    return 0;    ## init declined ##
+}
+
+##                                                   ##
+##  check credentials here \ user \ group allowed ?  ##
+##                                                   ##
+
+foreach my $access_str ( split m| +|, $users_str ) {
+    if (   $access_str eq $user
+        or $access_str eq qw| :any: |
+        or $access_str =~ m|^uid:(\d+)$| and ${^CAPTURE}[0] == $uid
+        or $access_str =~ m|^gid:(\d+)$| and ${^CAPTURE}[0] == $gid
+        or $access_str =~ m|^group:(.+)$|
+        and ( $gid == getgrnam( ${^CAPTURE}[0] ) || 0 ) ) {
+
+        <[base.logs]>->(
+            2,          "[%s] : approved sftp-connection to '%s' ..,",
+            $socket_id, $user
+        );
+
+        return ( 5, $access_str );    ## access approved \ init accepted ##
+    }
+}
+
+<[base.logs]>->(
+    0,          "[%s] unix user '%s' matches no permission [:<",
+    $socket_id, $user
+);
+<[base.logs]>->(
+    '[%s] :. init declined, connection not accepted .,', $socket_id
+);
+
+return 0;    ## init declined ##
+
+#,,.,,.,.,,..,..,,,..,,,.,..,,..,,,.,,,,,,,,.,..,,...,..,,..,,,..,,.,,,,.,,,,,
+#TBOMOK5OYODKN2WKOQ3O6U4VQQW6FXTFR33ZYVPNQCB2S6FSXOO6KU4CJBVS2FOW2WGQQZ7AUZWVK
+#\\\|DZPIXC4IUR3G2EXEOPRQX4Y4N4YZUIUJE3YPLEBW576QG7XUIIO \ / AMOS7 \ YOURUM ::
+#\[7]B47SISVFABRRS2NCNRPEXUYQPYX5HGXZ66J2UFVKPLHJIORWJABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@
 - **wait-done**: Deferred reply pattern with timeout timer. Returns `{mode => 'deferred'}`, registers in `$data{'coding'}{'deferred_replies'}`. Fast path for already-completed tasks.
 - **deferred_reply**: Cancels timeout timer on task completion to prevent race.
 - **Deleted**: `coding.handler.http_poll` (dead code).
-- Files: `modules/coding.handler.drain_pipe`, `modules/coding.cmd.wait-done`, `modules/coding.handler.wait_done_timeout`, `modules/coding.handler.deferred_reply`
+- Files: `src/coding.handler.drain_pipe`, `src/coding.cmd.wait-done`, `src/coding.handler.wait_done_timeout`, `src/coding.handler.deferred_reply`
 
 ## Session 24 changes (2026-05-14)
 - zenka renamed `job-site-scan` → `jobsite` (89 files, all modules, config, /etc/, /var/)
@@ -81,10 +81,10 @@
 
 Re-established clean separation: `site-yaml` is generic, `jobsite` owns job semantics.
 
-- New `modules/jobsite.cmd.job-upsert`: receives JSON job records from `site-yaml`, checks `<jobsite.job.index>`, writes/updates per-job YAML, replies `new`/`updated`/`exists`.
-- `modules/site-yaml.cmd.import` is now generic: parses `url=<u> handler=<h> skip=<ids> full=<0|1>` from a single-line args string. Search results are queued as detail fetches; caller-supplied IDs are skipped.
-- `modules/site-yaml.handler.fetch_tick` JSON-encodes each fetched record and route-sends it to the configured `reply_handler`.
-- `modules/jobsite.stage.fetch` builds `skip_ids` from the authoritative `<jobsite.job.index>` (active/blocked/deleted/trash), sends one import per category, and polls the site-yaml fetch queue until drained.
+- New `src/jobsite.cmd.job-upsert`: receives JSON job records from `site-yaml`, checks `<jobsite.job.index>`, writes/updates per-job YAML, replies `new`/`updated`/`exists`.
+- `src/site-yaml.cmd.import` is now generic: parses `url=<u> handler=<h> skip=<ids> full=<0|1>` from a single-line args string. Search results are queued as detail fetches; caller-supplied IDs are skipped.
+- `src/site-yaml.handler.fetch_tick` JSON-encodes each fetched record and route-sends it to the configured `reply_handler`.
+- `src/jobsite.stage.fetch` builds `skip_ids` from the authoritative `<jobsite.job.index>` (active/blocked/deleted/trash), sends one import per category, and polls the site-yaml fetch queue until drained.
 - Deleted `site-yaml.jobs.{upsert,init_code,save}`, `site-yaml.cmd.{list-jobs,set-status}`; added `jobsite.cmd.set-status`.
 - Updated `base.list.subroutines`, `cfg/zenki/*/start`, source placeholders, and `cube/access.zenki` for the swapped command names.
 - Added `jobsite.job-upsert` to `access.cmd.usr.cube` in `cfg/zenki/jobsite/start` so route-sends from `site-yaml` are accepted.
@@ -109,7 +109,7 @@ To avoid fetching detail pages for reposted/deleted jobs, a generic pre-fetch bl
 
 - `jobsite.stage.fetch` writes `/var/protocol-7/jobsite/block-list.txt` with lines like `id:<L13>`, `url:<L13>`, `title:<L13>` for every known job.
 - `site-yaml.cmd.import` accepts a `block_file=<path>` argument, reads the entries into a hash, and skips any search-result candidate whose `id`, `url`, `title`, `company`, or `city` field matches a blocked checksum.
-- `modules/site-yaml.util.field-checksum` is a static helper that computes `<[chk-sum.bmw.L13-str]>` directly on raw strings (no extra base32 encoding).
+- `src/site-yaml.util.field-checksum` is a static helper that computes `<[chk-sum.bmw.L13-str]>` directly on raw strings (no extra base32 encoding).
 - `site-yaml.cmd.import` restricts `handler=` to an allow-list (`jobsite.job-upsert`) to prevent routing fetched records to arbitrary subroutines.
 
 `company`/`city` blocking requires `site-yaml.stepstone.search` to extract those fields from the search-result HTML; it currently only returns `id`, `url`, and `title_hint`.
@@ -172,8 +172,8 @@ Title blocking removed:
 - The blocklist now only uses `ID` (source/posting id) and `URL`.
 - `site-yaml.cmd.import` no longer checks `title` for pre-fetch blocking.
 
-#,,,.,...,,,.,..,,,..,,.,,,,,,,,.,,,.,,,,,,..,..,,...,...,...,..,,,,,,,..,...,
-#WA64V7ZFWO7SECTMWCISXADC34MNSV6L2XF6Z2VOVC7XFEQMLD25EJT22JJSOU3OQAGFB2HXVOSCS
-#\\\|Y6RKAEZQXRJHJQ6ODD2PMD7TEZ5PH7OI6PVT5IZJZN4WSEEGBA5 \ / AMOS7 \ YOURUM ::
-#\[7]543OSIAERURXKXLMU5IPE47YKAOACM5PILNMI6IO7XJLSBYLDWBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,...,..,,,,.,..,,..,,,..,.,,,..,,...,..,,..,,,.,,.,,,,,,,...,
+#OVBSPG7AH4HWH7FFNRZA7MDS27C7ND2NRQCUD2S2KHRCTTLCWKLM2Y7HBSC5GAHB3RDAKV5JDSJ2M
+#\\\|OULA5PR7R2F4YK6O3KKHEKZX5QBEBJAGHNT2BGITBIVWPJ4GMBN \ / AMOS7 \ YOURUM ::
+#\[7]24S3XO3CYWPHFMBXM7BIOAF7E6OECGMQGFOJNPG36LJFEKTF2SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -188,7 +188,7 @@ reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-sco
 
 phase-2 open question resolved: inserting a `|` cursor marker [ + `[..]`
 focus brackets ] into the active field's value before ascii.frame.render
-does NOT break alignment. hand-traced modules/ascii.frame.render: the
+does NOT break alignment. hand-traced src/ascii.frame.render: the
 same `length($value)` feeds BOTH the required_width computation and the
 render-time fill_width padding, so the extra chars cancel out and every
 row still pads to the same frame_width. do NOT strip the marker from
@@ -197,12 +197,12 @@ right border by the marker count. only caveat: total frame width can
 shift by up to +3 cols [ 2 brackets + 1 marker ] across focus changes
 when the active row is/becomes the widest row — cosmetic jitter, safe to
 accept for the interactive loop. implemented in
-modules/editor.ui.ascii_frame.render_form [ + render_field wrapper,
+src/editor.ui.ascii_frame.render_form [ + render_field wrapper,
 fixture data/yaml/ascii-frames/user-edit-test-form.yaml ], unsigned.
 
 ## user-edit vertical viewport + one-line flicker fix (2026-08-16)
 
-`modules/user-edit.form.render` now slices tall forms to the terminal height and keeps
+`src/user-edit.form.render` now slices tall forms to the terminal height and keeps
 the active field visible. terminal size is cached in `user-edit.setup_stdin_watcher` and
 refreshed on `SIGWINCH` via new `user-edit.handler.term_resize`. a bare trailing `\n`
 after the rendered frame was causing a one-line scroll when the frame exactly filled the
@@ -210,8 +210,8 @@ screen; the newline is now only emitted when the help block is visible. when the
 scrolls out of view, one empty content row is kept as top padding so fields do not sit
 flush against the terminal top. see [topic-user-edit-vertical-viewport.md](topic-user-edit-vertical-viewport.md)
 
-#,,..,...,...,.,,,.,,,...,,.,,,..,,..,.,,,,.,,..,,...,...,.,.,,..,..,,,,,,,.,,
-#RHOXXA2AUZPLHAQ3AXNLAAM2CN3FVJ2HSYVDRGZI7OGOZU33RT2A3O2VGK2H765FS4ZN4YG4A6HWG
-#\\\|LVKZ2IA22ZBDZRCW6KLQDCNJ2DA5TOYPO5EFJOTYLMQB4Q2RWCM \ / AMOS7 \ YOURUM ::
-#\[7]HSG37UWTADYFZACHDZARD2XF2PQUSV7SWT75ZYE37J5SE2RSIYBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,.,,,,..,.,.,,,.,.,,,,.,,.,,,..,,...,...,.,,,..,,.,.,...,..,,
+#5PFSNSTCWAC35GCINC6W3FOASHVYSHTYQDWUNZI4BC3SCLU3AFNRVIBLROFLKUIBA6MGY5M534CKY
+#\\\|ISZGKMR53W2FJBN6C76HJ6TUXR323SDH47ZODC53KMH6JFTMWGW \ / AMOS7 \ YOURUM ::
+#\[7]2RCEAVZX6KFPVDKZUIZGAHAF5AJO6MLHRLUMLH6JWHPKNHJEMSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

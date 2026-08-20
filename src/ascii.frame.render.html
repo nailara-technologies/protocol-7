@@ -1,0 +1,324 @@
+## [:< ##
+
+# name  = ascii.frame.render.html
+# descr = render frame descriptor to html with p7 color semantics
+
+my $params = shift // {};
+
+my $descriptor = $params->{'descriptor'} // {};
+my $values     = $params->{'values'}     // {};
+
+return undef if not keys %{$descriptor};
+
+my $border      = $descriptor->{'border'}      // {};
+my $corners     = $descriptor->{'corners'}     // {};
+my $min_width   = $descriptor->{'min_width'}   // 0;
+my $padding     = $descriptor->{'padding'}     // { left => 0, right => 0 };
+my $slots       = $descriptor->{'slots'}       // {};
+my $static_rows = $descriptor->{'static_rows'} // {};
+
+my $lpad = $padding->{'left'}  // 0;
+my $rpad = $padding->{'right'} // 0;
+
+## compute required width ##
+my $required_width = $min_width;
+
+## static rows drive content width when no slots present ##
+for my $row ( keys %{$static_rows} ) {
+    my $static        = $static_rows->{$row};
+    my $content_width = length($static);
+    $required_width = $content_width if $content_width > $required_width;
+}
+
+## field slots drive content width ##
+for my $name ( keys %{$slots} ) {
+    my $slot = $slots->{$name};
+    if ( $slot->{'type'} eq qw| field | ) {
+        my $value = $values->{$name} // '';
+        my $row_width
+            = length( $slot->{'prefix'} // '' )
+            + length($value)
+            + length( $slot->{'suffix'} // '' )
+            + $lpad + $rpad;
+        $required_width = $row_width if $row_width > $required_width;
+    } elsif ( $slot->{'type'} eq qw| composed |
+        and exists $slot->{'inner_width'} ) {
+        ## composed inner frame constrains outer width ##
+        my $inner_total = $slot->{'inner_width'};
+        my $content_width
+            = $inner_total
+            - length( $border->{'left'}  // '' )
+            - length( $border->{'right'} // '' );
+        $required_width = $content_width
+            if $content_width > $required_width;
+    }
+}
+
+## inline slots in borders also contribute ##
+for my $el ( @{ $border->{'top'} // [] } ) {
+    if ( $el->{'type'} eq qw| slot | ) {
+        my $val_len      = length( $values->{ $el->{'name'} } // '' );
+        my $border_width = $min_width + $val_len;
+        $required_width = $border_width if $border_width > $required_width;
+    }
+}
+for my $el ( @{ $border->{'bottom'} // [] } ) {
+    if ( $el->{'type'} eq qw| slot | ) {
+        my $val_len      = length( $values->{ $el->{'name'} } // '' );
+        my $border_width = $min_width + $val_len;
+        $required_width = $border_width if $border_width > $required_width;
+    }
+}
+
+## total frame width includes left and right borders ##
+my $frame_width
+    = $required_width
+    + length( $border->{'left'}  // '' )
+    + length( $border->{'right'} // '' );
+
+## build output ##
+my @output;
+
+## optional inline style ##
+if ( $params->{'inline_style'} ) {
+    push @output, '<style>';
+    push @output, '.p7-frame {';
+    push @output, '  --p7-border: #4427AC;';
+    push @output, '  --p7-bracket: #06C3C3;';
+    push @output, '  --p7-corner: #8C7A3A;';
+    push @output, '  --p7-anchor: #4B3B8C;';
+    push @output, '  --p7-label: #C5C5FF;';
+    push @output, '  --p7-content: #E0E0E0;';
+    push @output, '  font-family: monospace;';
+    push @output, '  white-space: pre;';
+    push @output, '  color: var(--p7-content);';
+    push @output, '}';
+    push @output, '.p7-border {';
+    push @output, '  display: block;';
+    push @output, '}';
+    push @output, '.p7-content-row {';
+    push @output, '  display: block;';
+    push @output, '}';
+    push @output, '.p7-fill { color: var(--p7-border); }';
+    push @output, '.p7-bracket { color: var(--p7-bracket); }';
+    push @output, '.p7-corner { color: var(--p7-corner); }';
+    push @output, '.p7-anchor { color: var(--p7-anchor); }';
+    push @output, '.p7-label { color: var(--p7-label); }';
+    push @output, '.p7-slot { color: var(--p7-content); }';
+    push @output, '.p7-slot-value { color: var(--p7-content); }';
+    push @output, '.p7-static { color: var(--p7-content); }';
+    push @output, '</style>';
+}
+
+push @output, '<div class="p7-frame">';
+
+## render top border ##
+my $top_html = <[ascii.frame.render.html.border]>->(
+    $border->{'top'}, $values, $frame_width
+);
+if ( length $top_html ) {
+    push @output,
+        '<div class="p7-border p7-border-top">' . $top_html . '</div>';
+}
+
+## collect rows with slot assignments ##
+my %row_slots;
+for my $name ( keys %{$slots} ) {
+    my $slot = $slots->{$name};
+    next if $slot->{'type'} eq qw| inline |;
+    my $row = $slot->{'row'} // 0;
+    push @{ $row_slots{$row} }, $name;
+}
+
+## determine max content row ##
+my $max_row = 0;
+for my $k ( keys %row_slots ) {
+    $max_row = $k if $k > $max_row;
+}
+for my $k ( keys %{$static_rows} ) {
+    $max_row = $k if $k > $max_row;
+}
+
+## render content rows ##
+for my $row ( 1 .. $max_row ) {
+    if ( exists $row_slots{$row} ) {
+        my @slot_names = @{ $row_slots{$row} };
+        for my $name (@slot_names) {
+            my $slot  = $slots->{$name};
+            my $value = $values->{$name} // '';
+
+            ## resolve scalar binding if present ##
+            if ( exists $slot->{'binding'}
+                and ref $slot->{'binding'} eq qw| SCALAR | ) {
+                $value = ${ $slot->{'binding'} };
+            }
+
+            ## render composed inner frame ##
+            if ( $slot->{'type'} eq qw| composed |
+                and exists $slot->{'inner_frame'} ) {
+                my $inner_html = <[ascii.frame.render.html]>->(
+                    {   descriptor   => $slot->{'inner_frame'},
+                        values       => $values,
+                        inline_style => 0,
+                    }
+                );
+                $inner_html //= '';
+                push @output, $inner_html if length $inner_html;
+                next;
+            }
+
+            if ( $slot->{'type'} eq qw| block | ) {
+                ## block expands to multiple lines ##
+                my @block_lines = split "\n", $value;
+                @block_lines = ('') if not @block_lines;
+                for my $bline (@block_lines) {
+                    my $content_part = ( $slot->{'prefix'} // '' ) . $bline;
+                    my $fill_width
+                        = $frame_width
+                        - length( $border->{'left'}  // '' )
+                        - length( $border->{'right'} // '' )
+                        - $lpad - $rpad
+                        - length($content_part);
+                    $fill_width = 0 if $fill_width < 0;
+                    my $left = <[ascii.frame.render.html.escape]>
+                        ->( $border->{'left'} // '' );
+                    my $right = <[ascii.frame.render.html.escape]>
+                        ->( $border->{'right'} // '' );
+                    my $prefix_html = <[ascii.frame.render.html.escape]>
+                        ->( $slot->{'prefix'} // '' );
+                    my $value_html
+                        = <[ascii.frame.render.html.escape]>->($bline);
+                    push @output,
+                          '<div class="p7-content-row"><span class="p7-fill">'
+                        . $left
+                        . '</span>'
+                        . ( ' ' x $lpad )
+                        . '<span class="p7-static">'
+                        . $prefix_html
+                        . '</span><span class="p7-slot-value" data-slot="'
+                        . <[ascii.frame.render.html.escape]>->($name) . '">'
+                        . $value_html
+                        . '</span>'
+                        . ( ' ' x $fill_width )
+                        . ( ' ' x $rpad )
+                        . '<span class="p7-fill">'
+                        . $right
+                        . '</span></div>';
+                }
+            } else {
+                ## field slot : pad to required width ##
+                my $prefix       = $slot->{'prefix'} // '';
+                my $suffix       = $slot->{'suffix'} // '';
+                my $content_part = $prefix . $value . $suffix;
+                my $fill_width
+                    = $frame_width
+                    - length( $border->{'left'}  // '' )
+                    - length( $border->{'right'} // '' )
+                    - $lpad - $rpad
+                    - length($content_part);
+                $fill_width = 0 if $fill_width < 0;
+                my $left = <[ascii.frame.render.html.escape]>
+                    ->( $border->{'left'} // '' );
+                my $right = <[ascii.frame.render.html.escape]>
+                    ->( $border->{'right'} // '' );
+                my $prefix_html
+                    = <[ascii.frame.render.html.escape]>->($prefix);
+                my $value_html = <[ascii.frame.render.html.escape]>->($value);
+                my $suffix_html
+                    = <[ascii.frame.render.html.escape]>->($suffix);
+                my $row_html
+                    = '<div class="p7-content-row"><span class="p7-fill">'
+                    . $left
+                    . '</span>'
+                    . ( ' ' x $lpad );
+
+                if ( length $prefix ) {
+                    $row_html
+                        .= '<span class="p7-static">'
+                        . $prefix_html
+                        . '</span>';
+                }
+                $row_html
+                    .= '<span class="p7-slot-value" data-slot="'
+                    . <[ascii.frame.render.html.escape]>->($name) . '">'
+                    . $value_html
+                    . '</span>';
+                if ( length $suffix ) {
+                    $row_html
+                        .= '<span class="p7-static">'
+                        . $suffix_html
+                        . '</span>';
+                }
+                $row_html
+                    .= ( ' ' x $fill_width )
+                    . ( ' ' x $rpad )
+                    . '<span class="p7-fill">'
+                    . $right
+                    . '</span></div>';
+                push @output, $row_html;
+            }
+        }
+    } elsif ( exists $static_rows->{$row} ) {
+        my $static   = $static_rows->{$row};
+        my $stripped = $static;
+        if (    $lpad > 0
+            and length($stripped) >= $lpad
+            and substr( $stripped, 0, $lpad ) eq ' ' x $lpad ) {
+            $stripped = substr( $stripped, $lpad );
+        }
+        if (    $rpad > 0
+            and length($stripped) >= $rpad
+            and substr( $stripped, length($stripped) - $rpad, $rpad ) eq ' '
+            x $rpad ) {
+            $stripped = substr( $stripped, 0, length($stripped) - $rpad );
+        }
+        my $fill_width
+            = $frame_width
+            - length( $border->{'left'}  // '' )
+            - length( $border->{'right'} // '' )
+            - $lpad - $rpad
+            - length($stripped);
+        $fill_width = 0 if $fill_width < 0;
+        my $left
+            = <[ascii.frame.render.html.escape]>->( $border->{'left'} // '' );
+        my $right = <[ascii.frame.render.html.escape]>
+            ->( $border->{'right'} // '' );
+        my $static_html = <[ascii.frame.render.html.escape]>->($stripped);
+        push @output,
+              '<div class="p7-content-row"><span class="p7-fill">'
+            . $left
+            . '</span>'
+            . ( ' ' x $lpad )
+            . '<span class="p7-static">'
+            . $static_html
+            . '</span>'
+            . ( ' ' x $fill_width )
+            . ( ' ' x $rpad )
+            . '<span class="p7-fill">'
+            . $right
+            . '</span></div>';
+    }
+}
+
+## render bottom border ##
+if ( @{ $border->{'bottom'} // [] } ) {
+    my $bottom_html = <[ascii.frame.render.html.border]>->(
+        $border->{'bottom'}, $values, $frame_width
+    );
+    if ( length $bottom_html ) {
+        push @output,
+              '<div class="p7-border p7-border-bottom">'
+            . $bottom_html
+            . '</div>';
+    }
+}
+
+push @output, '</div>';
+
+return join "\n", @output;
+
+#,,..,..,,,.,,...,,,.,.,,,..,,,,,,,,,,,,,,.,,,..,,...,..,,,..,.,.,,..,,,,,..,,
+#XTFJVY453HOS42TNCFFTYKTNEXFR2EZKUGRAXZWXTR6A4TTVM4SJRAPJOS2XPLADAGMO65NGETPRA
+#\\\|I4JJQRUDLCOHT3IR46HE6WTUARHDBM5TSXNQW5I52DQXR7KKK7A \ / AMOS7 \ YOURUM ::
+#\[7]RDXJLZN2EX2ULL4NJ7RON24RYUPT5NE5VVJHMJKB6ULHYPHFFECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

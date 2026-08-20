@@ -73,7 +73,7 @@ Updates version strings using:
 ### Standard Commit Workflow
 ```bash
 # 1. Make changes
-vim modules/something.pm
+vim src/something.pm
 
 # 2. Check status
 zenka git status
@@ -132,8 +132,8 @@ Blacklight neon aesthetic:
 - [bin/admin/vc_commit](../../../bin/admin/vc_commit) - Interactive commit tool
 - [bin/dev/update-version](../../../bin/dev/update-version) - Version management
 
-#,,,.,,,,,.,.,,,.,,,.,.,,,..,,.,.,.,.,,,,,...,..,,...,...,,,,,,,.,.,,,...,.,,,
-#HHT2TE66KKEDEBUT6H5GTKFCBRHIMC2WCOQLWLW4RESUVDL52HU3BPPPMILELQ7CRUZP5BHUVAK24
-#\\\|DMNQZY5F3SBFI6OFDTDA3LEFSC46I3UUCUFHUDOYMAMIBDNXPFZ \ / AMOS7 \ YOURUM ::
-#\[7]EJRF4KZZH3W5K7NXGUVR7PYXX34KL77YSW6NL7UZ625SVE4W4OBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,,,,,,.,,...,,.,,,.,,.,,,,.,,..,,...,...,..,,,..,,,,,.,,,...,
+#5K2V6VJIWIRDNSGVTBDFZ4XWKOXJQA6JGUYO3HXNY5CJHEFTGGXQLRGJTAVFMJ47EMD4RLKL7VAUI
+#\\\|CEILWFFRE7ZQT7HTVIFHOX6ZSLSX2XH2RWQ6KUITCRNECR62WUE \ / AMOS7 \ YOURUM ::
+#\[7]5SCAM6NJECTKST4EUIUGJQ722HWOWM2O5CLIHQO5FGLLZFCF2QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

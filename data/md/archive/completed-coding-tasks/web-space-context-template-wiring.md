@@ -24,7 +24,7 @@ three gaps:
 
 ### fix 1 — initial resolve call in init_code
 
-file: `modules/plugin.web.space.template-resolver.init_code`
+file: `src/plugin.web.space.template-resolver.init_code`
 
 after setting up `web.space.templates.context`, add a deferred one-shot timer
 (after 2 seconds) that calls resolve with the default context. this gives time
@@ -45,7 +45,7 @@ for the orbital cache to populate before first resolve:
 
 ### fix 2 — cmd.context calls resolve after update
 
-file: `modules/plugin.web.space.cmd.context`
+file: `src/plugin.web.space.cmd.context`
 
 after updating zoom + intent in `web.space.templates.context`, call resolve.
 add just before the log line and return:
@@ -61,7 +61,7 @@ add just before the log line and return:
 
 ### fix 3 — update_context accepts explicit intent
 
-file: `modules/plugin.web.space.template-resolver.update_context`
+file: `src/plugin.web.space.template-resolver.update_context`
 
 the module re-derives intent from history (good). but the `intent` field in
 `$params` is ignored. after the existing history-based derivation, add:
@@ -93,16 +93,16 @@ curl -s https://space.v7.ax/templates.json | python3 -m json.tool | grep -A 20 a
 
 | file | change |
 |------|--------|
-| `modules/plugin.web.space.template-resolver.init_code` | add 2s deferred one-shot timer calling resolve |
-| `modules/plugin.web.space.cmd.context` | call resolve after updating context |
-| `modules/plugin.web.space.template-resolver.update_context` | accept explicit intent param |
+| `src/plugin.web.space.template-resolver.init_code` | add 2s deferred one-shot timer calling resolve |
+| `src/plugin.web.space.cmd.context` | call resolve after updating context |
+| `src/plugin.web.space.template-resolver.update_context` | accept explicit intent param |
 
 ## signatures note
 
 do NOT add stub signature line to modified files.
 
-#,,,.,.,.,..,,,..,..,,.,.,,,.,.,,,.,,,...,,,,,..,,...,..,,..,,...,...,,,,,,.,,
-#HRIJD63B47F5WHXTYV2GVZFYYLJP2GTRQLCDMLIV4LSS4CQIKLXLOJ5XTUBIIWHB6HJLXSCGLYIQW
-#\\\|3WCQYR4ROPBYU6XYX4TGMKV4L7CVFAYFYR7GU77TAWMUHWQIJDQ \ / AMOS7 \ YOURUM ::
-#\[7]MKC44FM5UMPISSSRIGNMU6J4KBGAAHIRC2HZPBTL2CFKK3DYFOAY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,..,,...,.,.,.,.,.,,,,.,,,.,,..,,...,...,...,..,,,,,,.,,,,,.,
+#2Q42FLYAXAU63TBSBUGT5SHYWC6T7PDJJDSJR46WAI74HV5WQ43T73KT36DJFCBQSM6VIN4FKZJ5W
+#\\\|VW3O52C4R2P7JNQJBJJNWJW6766QGXXFA7VMIWIYR645JK7D6IO \ / AMOS7 \ YOURUM ::
+#\[7]6J7UZTKNPRRWNHLXS5TO3BLCT7EGRI4T2ZKOZLPYNPQCDVUEYIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

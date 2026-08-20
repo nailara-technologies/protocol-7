@@ -418,7 +418,7 @@ VISUAL-MIDDLEWARE-OMNI-VISION:
 ### New Zenki Needed
 
 ```
-modules/
+src/
 ├── visual/
 │   ├── visual.middleware
 │   │   └── Core visual middleware coordination
@@ -497,8 +497,8 @@ The network sees. The network knows. The network validates what it sees.
 
 *"The network has omnipresent visions, and multiple perspective layers. What you see as a user is one angle of what the network sees as a whole."*
 
-#,,,,,..,,,.,,..,,,,.,,,.,.,.,,.,,...,,.,,,,,,..,,...,.,,,...,.,,,,,,,,,,,..,,
-#X5XGVZVMLZ63IGPO4OMSSJZ3BOVORBBTE3JDTOGJ2BER6UH4BP4SBANBAR6DK7JEHYB2UUSX5XX5E
-#\\\|E2ROI4CFZ7BTRCTOJAJD6FBDAPBFDQCHHM7RU7JEC2QMX75AAVM \ / AMOS7 \ YOURUM ::
-#\[7]TWBYKPIKOAOFLYPAXS26DE5WMW3N7ZZEWCD5FHGAI42PEDBKQWDA 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,.,,,..,.,.,...,,..,...,...,..,,...,...,...,.,.,,.,,..,,...,
+#F7GFIZQX6UJNMSG377JRRC7YXQOYXGSOFDIK27R2DZ33IZRUEROHXBCSMYJIQ3EHL4ZNUIDDBTN5C
+#\\\|L6F6AEIN3BDY3TDLV7YEWN7HHNX2LSEGZJGPYHT2CXFQAWZSHY7 \ / AMOS7 \ YOURUM ::
+#\[7]YDTX2VPYGYC7A3LZKF2ETQACBLNYHJ2DOSNMPMK2X2SXJNKIYIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

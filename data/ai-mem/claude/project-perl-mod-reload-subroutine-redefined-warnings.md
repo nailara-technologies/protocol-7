@@ -22,7 +22,7 @@ regardless of what changed inside it):
 :. cube    : :.    .: [,../lib-path/pm/AMOS7.pm:185]
 ```
 
-**Root cause, exact call site**: `modules/base.cmd.reload:44` —
+**Root cause, exact call site**: `src/base.cmd.reload:44` —
 `eval { Module::Refresh->refresh };` — triggered by `reload perl-mods`
 (and `reload all`). `Module::Refresh` (CPAN) works by re-`do`-ing any
 `.pm` file whose mtime changed since last refresh; that's a straight
@@ -95,8 +95,8 @@ the dispatch's investigation found `%DB::sub` alone insufficient for
 this note exists only because the AMOS7 module batch from that work is
 what the user happened to be live-testing when this surfaced.
 
-#,,.,,..,,.,,,.,.,.,,,,,,,,..,...,...,.,.,,,.,.,.,...,...,.,.,.,.,..,,..,,.,,,
-#DNLVQWAWANMLZBFU5NDIQWG7HLTQTXXMZPDVB2OVIJV6NB23WFA4EZY24VXERZXAHTJKKRGKGLE6I
-#\\\|YGERJINPXVQMEC3YUZRV4WA4DRRY7C3ODOP2AKW2UHXAUOMHWTI \ / AMOS7 \ YOURUM ::
-#\[7]S4F6LCYW74PA3Q6ZTOZDAV4FQE3DG2UU7AR7XANOOG6UPEWNH6AQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,.,,.,,,,,.,,.,,.,,,,,,,.,.,,.,,.,.,...,...,,..,,.,,.,.,,..,...,
+#W3KMYJJM5TR4BGXKHC43MRPU3N4ZMRK4XYLSNT4EIQKVS2CBJK7VHGRWOJF3DCZZ5P6VD2IKJNRHW
+#\\\|PTAA7SNB6EW2O5PZIUVKMOD4QAES5PPINNUWSRP65AVFZWDPUVR \ / AMOS7 \ YOURUM ::
+#\[7]TLVFCJEISWITVBVSN6ADP4VZQACLDAF2WYUFQW6A5V65NZRZXMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

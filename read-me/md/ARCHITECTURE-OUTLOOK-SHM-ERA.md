@@ -29,7 +29,7 @@ Result: Disk I/O thundering herd + CPU compilation overhead × N zenki
 **Shared Module Cache in SHM**
 
 A privileged zenka (`module-cache`):
-- `mmap()` all `modules/*` files into a single SHM segment
+- `mmap()` all `src/*` files into a single SHM segment
 - Cryptographic identity: `:M:MODULE-CACHE:<target>:<path>`
 - Exposes read-only shared pages to authorized zenki
 
@@ -201,8 +201,8 @@ The SHM era is not just about faster IPC - it's about reimagining how a multi-ag
 
 ```
 
-#,,.,,.,,,,,.,,,,,,..,..,,.,,,,.,,..,,..,,,,,,...,...,.,.,.,.,.,.,,,.,,..,,.,,
-#4GWUSDWIOC54A74OUDS3DNZXOH72MZ2OWJ6I2XJMRVIQZXFO7ERRJYPWSA3JSTLJQAF5RL7HY5RRE
-#\\\|RLVN6X3U6TTNLE5IIO4QVDZENAB26PIVDXTG4Y4GULSZB5KZVMJ \ / AMOS7 \ YOURUM ::
-#\[7]57H6IF6K7HCU6LBV7TRUOLKL7KZMD5NFISZRPZL72S5CNF2ITUDY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,...,,.,,,.,,...,,,,,,,.,.,.,...,...,...,,.,,,,.,..,,..,,..,,
+#QU7MJR47WTI2YA7EOLIZ4CFZC72MHWLCBTBTTRZEGVYTEZ776A4WRZGW6SQMIG6ZCNMDZURV6M22C
+#\\\|FHWJQ4FYIF5I6XNSP4MO5UQBAAE3FPYNTRFM6QXWDOJ5V4QISJM \ / AMOS7 \ YOURUM ::
+#\[7]PZGGBORQ7QGIXSQ4ZYKSZJRNLULNEV62NK2EFHTNTCUQ7TRK2WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

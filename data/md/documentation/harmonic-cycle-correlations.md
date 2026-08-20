@@ -286,12 +286,12 @@ declaration but identity by convergence.
 - `data/md/documentation/cube-13-zulum-decoder-system.md` — system overview
 - `bin/dev/division-13-table` — live demonstration of bit-shift state flipping
 - `bin/dev/gen-div` — operator map, /0.6 and /0.7 reference oracle
-- `modules/index.gen_path` — harmonic path generation, convergence in practice
+- `src/index.gen_path` — harmonic path generation, convergence in practice
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,.,,,..,.,.,,..,,,,,.,,,,..,,,,,,.,,.,.,,.,,..,,...,...,.,.,,.,,..,,,..,,..,
-#WI67VWNIHDR76CTSXAK75PGIQNT7WAMW5F4X5XD7VAWUN6IYJSWKYBM6ORXRPMHM2YJSTENX4NNAW
-#\\\|6NAZTXNQ63HRHYZ4TNU43O6Q7UT5ZRTGGZ7OZR3D5X4GYBCZFFR \ / AMOS7 \ YOURUM ::
-#\[7]FJ2RDUI2J3WYO26JKNOY6T7WOPJZWYU2NKWZ4MTGADN77GZEYOCI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,...,,.,,..,,.,.,,..,,,,,,.,,..,,...,...,...,.,.,,.,,...,..,,
+#BHCO2A5A33ROIV5ZYXM7WB5VOP3OQZ5QKILQL6LSJE6GKKBM3JLB3FLDDQEQW7KOAGSHPZM56YNNI
+#\\\|NH5TCO4WZ57Q2XBGJZIFROOII2M4ZZBWTBJ5Y6C2VEEG5BT4ZL3 \ / AMOS7 \ YOURUM ::
+#\[7]L43J5DGDC7L4P2E5ZKN2HIYWJWYDEIUFEKTIMPMDXRKABSNUOEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

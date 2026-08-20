@@ -218,11 +218,11 @@ With it live:
 - Landed 3 commits: `20012341c` (access.zenki grant of `site-yaml.fetch`
   to `access.cmd.usr.cred-mesh` + harness files), `bb3b20a36` (fixed two
   `<[base.s_warn]>->('single string')` calls in
-  `modules/cred-mesh.key_holder.parent` → "sprintf parameter expected" —
+  `src/cred-mesh.key_holder.parent` → "sprintf parameter expected" —
   replaced with plain `warn 'msg <{C1}>';`, see
   [[feedback-s-warn-single-arg]]), `e32ffb386` (root-cause fix: added
   `->autoflush(1)` on both ends of the socketpair in
-  `modules/cred-mesh.util.key_holder.start_child` after `binmode` — child's
+  `src/cred-mesh.util.key_holder.start_child` after `binmode` — child's
   `print {$pipe}` responses were sitting unflushed, causing
   `cred-mesh.rotate`/`.encrypt` to always hit the 7s timeout = F3/F10,
   RESOLVED).
@@ -240,7 +240,7 @@ With it live:
 
 **2026-06-15 — scenario 1 header-injection LANDED via claude_dispatch
 (opus):**
-- Root cause of "injected x-api-key: got ''": `modules/cred-mesh.cmd.resolve`
+- Root cause of "injected x-api-key: got ''": `src/cred-mesh.cmd.resolve`
   called `cred-mesh.resolve` with a hashref arg
   (`{slot=>$slot, context=>{}}`), which selects `$as_size_reply = FALSE`
   and returns the raw `{mode=>'true', data=>$auth_result_hashref, ...}`.
@@ -330,8 +330,8 @@ scenario 2: 5/5; scenario 3: 2/2. Remaining OOS items: credential_fabric
 no v7 always-on/on-demand registration; on-demand auth 407/pending/approve
 end-to-end not verified.
 
-#,,..,.,,,,,.,,,,,,.,,.,.,.,,,.,,,..,,..,,,,.,..,,...,...,..,,.,,,...,.,.,,,,,
-#MWTW2HRO3CSIZXKYRQGWH26CK6BVJHNXU3VMRMG7XHCYTT7AIAGDBH6XWBLSHWN6LMFAJUJC7TG72
-#\\\|H6VJML4HTHFR5U2WFZYJMXQ2FLH33EZULQU52XHRODSNQR3YGPW \ / AMOS7 \ YOURUM ::
-#\[7]35DAAWPDUTDKKJ33QSJTWK6BA5VWQTA6F77HG2PAGCRN4SWA4WDI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,,..,..,,,,.,..,,,,.,.,,,.,.,..,,...,...,...,...,...,.,.,,.,,
+#QC5UP7ELT5RBCJ37PYFRFS4QL5NKE76JUFSS4ZGLAG3JS3Q35KWNR2B7EWOTQWOEHVGT44ZZVN7YG
+#\\\|DZJUIR6MVPPHVQMBQSKVIU43YR3UTH2K4GIVH2KJPSOSESSEN6E \ / AMOS7 \ YOURUM ::
+#\[7]4HPZUXSWSKPBV7FJJDT5PWGDX4QMVOIS6K4IRRQLZRZ5LEWZFGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

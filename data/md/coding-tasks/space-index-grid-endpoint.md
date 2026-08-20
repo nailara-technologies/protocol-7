@@ -9,7 +9,7 @@ intentionally small: expose a checksum-derived namespace grid as json
 from an existing working template pipeline, and render one view.
 
 this slice unblocks future work because:
-- it validates that `modules/index.gen_path` produces coherent
+- it validates that `src/index.gen_path` produces coherent
   coordinates when applied to real files
 - it gives the visualization layer real data to iterate on
 - it establishes the .tmpl + plugin pattern for future indexer
@@ -31,12 +31,12 @@ two endpoints via the same plugin:
 
 the data pipeline:
 
-- `modules/plugin.web.space.init_code` — sets up `<web.space.cache>`
+- `src/plugin.web.space.init_code` — sets up `<web.space.cache>`
   and `<web.space.cfg.data_source>`
-- `modules/plugin.web.space.fetch` — async queries to graphics-matrix zenka
-- `modules/plugin.web.space.handler.state_reply` — receives async replies,
+- `src/plugin.web.space.fetch` — async queries to graphics-matrix zenka
+- `src/plugin.web.space.handler.state_reply` — receives async replies,
   populates cache
-- `modules/plugin.web.space.state` — template command, returns html /
+- `src/plugin.web.space.state` — template command, returns html /
   json / json-raw based on section argument
 
 **this task reuses the same pattern for a new `grid` data source** — do
@@ -46,15 +46,15 @@ not invent a new pattern. mimic `plugin.web.space.state` closely.
 
 ### new modules
 
-all under `modules/plugin.web.space.grid.*`:
+all under `src/plugin.web.space.grid.*`:
 
-1. **`modules/plugin.web.space.grid.init_code`**
+1. **`src/plugin.web.space.grid.init_code`**
    - sets up `<web.space.grid.cache>` hash [ mirror `<web.space.cache>` shape ]
    - sets `<web.space.grid.cfg.target_dir>` default [ propose
      `data/md/design` as the starting test target — small, bounded, real ]
    - sets `<web.space.grid.cfg.ttl>` [ e.g. 60 seconds ]
 
-2. **`modules/plugin.web.space.grid.scan`**
+2. **`src/plugin.web.space.grid.scan`**
    - walks the configured target directory [ use `File::Find` or
      recursive opendir — check for existing idiom in codebase first ]
    - for each file, compute checksum seed [ start simple: absolute path
@@ -80,7 +80,7 @@ all under `modules/plugin.web.space.grid.*`:
      - `cells` — arrayref of above
      - `timestamp` — epoch when scan completed
 
-3. **`modules/plugin.web.space.grid`**
+3. **`src/plugin.web.space.grid`**
    - template command [ mirror `plugin.web.space.state` closely ]
    - accepts a section argument, defaults to `summary`
    - sections:
@@ -135,7 +135,7 @@ dom manipulation can be vanilla js, no frameworks.
 1. **no `sub { ... }` wrappers** — the filename IS the subroutine. the
    existing kimi-generated `plugin.storage.checksum.*` modules have
    this wrong — do not copy that pattern. mimic
-   `modules/plugin.web.space.state` instead, which is correctly styled.
+   `src/plugin.web.space.state` instead, which is correctly styled.
 
 2. **use `$ARG` not `$_`** in `map` and `grep` — the local llm regresses
    this after compaction, don't you start.
@@ -173,9 +173,9 @@ dom manipulation can be vanilla js, no frameworks.
 
 before marking complete:
 
-1. `ptd -c modules/plugin.web.space.grid.init_code`
-2. `ptd -c modules/plugin.web.space.grid.scan`
-3. `ptd -c modules/plugin.web.space.grid`
+1. `ptd -c src/plugin.web.space.grid.init_code`
+2. `ptd -c src/plugin.web.space.grid.scan`
+3. `ptd -c src/plugin.web.space.grid`
 4. grep for `\$_` in the three new modules — should return nothing
 5. grep for `^return sub` in the three new modules — should return nothing
 6. test the endpoint: `curl -s http://space.v7.ax/grid.json | head -100`
@@ -188,7 +188,7 @@ before marking complete:
   `base.chk-sum.bmw.filesum` or similar ]
 - do NOT implement search / query functionality [ that is 5.4 ]
 - do NOT implement deduplication detection [ that is 5.5 ]
-- do NOT touch `modules/index.*` [ the existing infrastructure stays
+- do NOT touch `src/index.*` [ the existing infrastructure stays
   as-is; this task only consumes `index.gen_path` via `<[...]>` ]
 - do NOT write a full filesystem crawler — scanning a single small
   target directory is enough to prove the pipeline
@@ -199,15 +199,15 @@ before marking complete:
 
 - session state doc: `data/md/design/SEARCHABLE-INDEX-SESSION-STATE.md`
   [ section 5.1 is the direct spec for this task ]
-- existing plugin reference: `modules/plugin.web.space.state`
+- existing plugin reference: `src/plugin.web.space.state`
   [ correct style, exact pattern to mimic ]
 - existing template reference: `/var/httpd/space.v7.ax/state.tmpl`
   [ pattern for json endpoint with content-type override ]
-- the primitive: `modules/index.gen_path` [ produces the coordinate
+- the primitive: `src/index.gen_path` [ produces the coordinate
   tuple from any string or scalar ref ]
 
-#,,,,,,,,,,..,.,,,...,.,.,.,,,,.,,,..,...,.,.,..,,...,.,,,,.,,,..,...,.,,,,,.,
-#NR5I7OBN4J4CGAAEPRDX6OZMXKTF4NC2QQNGYOVWPI2JXJ6H5OVAHW6EWEGLMUOWIHZ5GVEGLFTVW
-#\\\|4KOLC7Z74C674WBTVDYBKEY5YKV7K6MQGICCAZS7J7CERFUTKNI \ / AMOS7 \ YOURUM ::
-#\[7]NJ7AZSRW7SPA65R7M26OPCZ25GRH3UC4NXSSNC5KDPTQDFTDRSDA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,,,.,,,,,,,..,,.,,,,..,...,...,..,,...,...,.,.,,,.,,.,,,,,,,,,,
+#IHHWLJ6SQ5LI66NBJVGJQD67CGPV2OIQGVCDAD5CZC623CFSXOCGBTMA677XXVNZCBZUBFBSGHT5M
+#\\\|W6BSXXBOPY2T754JMTDR5GM6MXXBZ3DWYHRWLZ6QV2DID5VKNKM \ / AMOS7 \ YOURUM ::
+#\[7]VQAR7JXHU3BS5FIPYKRMNYTQ2YJZGBPOUY673AX25AIWKYDH5YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

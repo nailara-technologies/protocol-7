@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = amos-term.handler.nshell-buffer-changed
+# descr = Handler for buffer changes from other clients
+
+my ( $attach_id, $change_info ) = @ARG;
+
+## nshell can choose to update display or ignore  for now: log the change ##
+<[base.logs]>->(
+    2,
+    "[nshell] buffer changed by %s",
+    $change_info->{'client_type'} // 'unknown'
+);
+
+#,,,,,.,,,,,,,..,,,,,,.,,,,,.,..,,,,,,.,,,.,,,.,.,...,..,,,,,,.,.,.,.,...,.,,,
+#PNDT3CP5DTPXWLFV7AKK6NLCYWAIAAXKV3YIF3II2MN3J45KF5MD6APMB5SWOZHLNCA6OALTCWTNI
+#\\\|56XMAPTTNX7QOZNHSREBSNXCQ5MRLRHR7EMNU7V5Q2S7MZIFJB5 \ / AMOS7 \ YOURUM ::
+#\[7]2V5EY6JUNQUSRMA2ZQFEP4F2D2CWER6WJ5XZJ6KGEHSZ2QVMG6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

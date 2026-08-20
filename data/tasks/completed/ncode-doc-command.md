@@ -7,8 +7,8 @@
 ## context
 
 `bin/ncode` is the code intelligence tool with search, replace, and transform
-commands. `modules/ncode.cmd.*` expose these as P7 zenka commands, registered
-in `modules/ncode.cmd.tool_list` for coding zenka tool calls.
+commands. `src/ncode.cmd.*` expose these as P7 zenka commands, registered
+in `src/ncode.cmd.tool_list` for coding zenka tool calls.
 
 `bin/dev/dump-class` was recently fixed to support GObject Introspection classes
 (WebKit2GTK 4.1) with perltidy fallback for glob-heavy output. that logic should
@@ -28,8 +28,8 @@ do not add or modify subroutine whitelists — these are managed separately.
 
 ```bash
 cat bin/ncode                          ## understand command dispatch structure
-cat modules/ncode.cmd.search           ## pattern for P7 module implementation
-cat modules/ncode.cmd.tool_list        ## pattern for tool registration
+cat src/ncode.cmd.search           ## pattern for P7 module implementation
+cat src/ncode.cmd.tool_list        ## pattern for tool registration
 cat bin/dev/dump-class                 ## introspection logic to reuse
 ```
 
@@ -41,7 +41,7 @@ the argument shape determines the documentation source. apply in order:
 
 | argument shape | source | notes |
 |---|---|---|
-| contains `.` (no `::`) | **P7 module** | look up in `modules/` by name |
+| contains `.` (no `::`) | **P7 module** | look up in `src/` by name |
 | starts with GObject root | **introspection** | Gtk3 Glib Gdk Pango Cairo Gio |
 | contains `::` | **perldoc + introspection** | narrative + live method list |
 | single word | **perldoc -f → perldoc** | built-in function first, then module |
@@ -54,7 +54,7 @@ argument contains `.` but no `::` — treat as P7 module name.
 ```perl
 ## look up module file
 my $root     = <system.root_path>;
-my $mod_path = "$root/modules/$arg";
+my $mod_path = "$root/src/$arg";
 
 if ( -f $mod_path ) {
     ## read header lines (name, descr, todo)
@@ -178,9 +178,9 @@ using the decision logic above.
 
 also add `doc` to the `--help` / usage output alongside other commands.
 
-### 2. new module: `modules/ncode.cmd.doc`
+### 2. new module: `src/ncode.cmd.doc`
 
-follows `modules/ncode.cmd.search` exactly:
+follows `src/ncode.cmd.search` exactly:
 - `my $call_args = shift;`
 - parse `$call_args->{'args'}` for the argument
 - apply decision logic
@@ -197,7 +197,7 @@ chomp( my $perltidy_path = qx(which perltidy) );
 
 if ncode.init_code already loads these, do not re-import.
 
-### 3. add `doc` entry to `modules/ncode.cmd.tool_list`
+### 3. add `doc` entry to `src/ncode.cmd.tool_list`
 
 add alongside existing tools:
 ```perl
@@ -265,8 +265,8 @@ p7 ncode.cmd.doc 'Gtk3::WebKit2::NetworkProxySettings'
 - [ ] `doc` entry added to `ncode.cmd.tool_list` with correct params
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,.,,..,,..,,..,,,.,,,..,...,,,.,...,,..,,.,,..,,...,...,...,,.,,,,,,,.,,,..,
-#DJGT5U7IHJDOGUFNQR23GDQKJBVQVUSBYOFMKF4WVYFDNEEPPNA3MXNT5T4MSFIE74OYXR26TWFKU
-#\\\|6FFHGSTH3KOMN6EALSH6KTGHIDHZMPVLP4OFTU3Q6UET36PYDPF \ / AMOS7 \ YOURUM ::
-#\[7]XQZBRDXJ6DKVCC33UGTIQNQ2WWZVRAYUIZWNVO2MSKXP7TEYBEBA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,...,,,,,...,..,,.,.,..,,,,,,...,..,,...,..,,.,.,.,,,...,,,,,...,
+#TUN2XQOT5OJIDNWWXBPZ3SVRHVZOY77TGQMAMUPQWLBCIPSUSEGAD6F7SDK2IDZUEHKKDJ6UG5OYG
+#\\\|T27XCECPYJLFLXF2GDEPLL3XFG7EQBK23KNA5MTDRERXYGQ6R4C \ / AMOS7 \ YOURUM ::
+#\[7]I6KWATG4VM3IBCOQ2YLYP7LYWN4U3QRJZHQT56KSDWNCFXWFAKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

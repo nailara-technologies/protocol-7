@@ -490,7 +490,7 @@ per the process note below):
   step) runs AFTER connect, over the socket — the knock sits in front of
   it and doesn't need to carry that weight itself.
 - **Real, live precedent for extracting a count from coalesced
-  signals**: `modules/base.sig_NUM55` (log-prefix-width sync, see
+  signals**: `src/base.sig_NUM55` (log-prefix-width sync, see
   `data/tasks/v7-lpw-sync-debug.md`) already reads `$event->w->hints` —
   Perl's `Event::signal` combined-events count — as `$signal_count` and
   steps by that many. POSIX `SIGUSR1`/`SIGUSR2` don't queue at the OS
@@ -577,7 +577,7 @@ desktop's `taeki`/`root` accounts), not where any of them get invented.
 ## knock design from earlier in this file did NOT survive contact with a
 ## real implementation
 
-Uncommitted, working tree only (`modules/sessions.holder.*`,
+Uncommitted, working tree only (`src/sessions.holder.*`,
 `sessions.util.holder.*`, `sessions.cmd.*`, `base.buffer.erase_secure`,
 plus `cfg/zenki/sessions/start` gaining the command list). Built
 against a plan file, then debugged live for a long stretch — the section
@@ -700,7 +700,7 @@ handling through this mechanism.
 **A second real Event.pm-in-forked-child hazard found and avoided, same
 family as the first**: `crypt.C25519.gen_keys` — the obvious "just call
 the existing keypair generator" choice — is itself unsafe to call inside
-the child. Confirmed by direct read (`modules/crypt.C25519.gen_keys:9,74,
+the child. Confirmed by direct read (`src/crypt.C25519.gen_keys:9,74,
 78-79`): its harmonic-truth-checked key-search loop is hardcoded to run at
 least once, and that loop's first statement is `<[event.once]>->(0.007)`
 → `Event::loop()`. Resolution: the child calls the bare `Crypt::Ed25519::
@@ -714,7 +714,7 @@ Event.pm in.
 
 **`crypt.C25519.verify_key_signature` (the obvious "verify" choice)
 doesn't fit arbitrary-data verification** — confirmed by direct read
-(`modules/crypt.C25519.verify_key_signature:52`), it hard-requires the
+(`src/crypt.C25519.verify_key_signature:52`), it hard-requires the
 signed payload be exactly 32 bytes because it verifies a signed PUBLIC
 KEY specifically (the key-trust-chain use case), not arbitrary signed
 data. `crypt.C25519.verify_sign` verifies arbitrary data but requires the
@@ -970,7 +970,7 @@ routing (proven) — where the held secret goes from here.
 
 **Relevant groundwork for that gap, confirmed 2026-08-14 (later)**: the
 `credentials` zenka's own archive storage IS a direct clone of `keys`'
-— `modules/credentials.write_archive_file`/`.read_archive` both carry
+— `src/credentials.write_archive_file`/`.read_archive` both carry
 explicit header comments, "adapted from keys.write_key_archive_file/
 read_key_archive pattern" (not inferred, stated in the code). The
 mechanism, read in full both sides: `base.parser.splice_in_data`
@@ -1015,8 +1015,8 @@ flexible-recreatability]].
 [[topic-subname-not-a-trust-domain]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,.,.,.,,,.,,..,,,.,,,.,.,,,.,.,...,..,,.,.,.,.,...,...,.,,,,,.,.,,,...,,.,,
-#L4C2T6RQAGTFRHVH7QUWRJPEPWHZYHEYHNLSSJEFHZBDXVZO2LILDW5DH7JINX3PMWU3SWL2THUQK
-#\\\|33DYKNTY3KENRM5BNPRSYGENEEE2WXOPHUVZ545VNFPYWTLVES4 \ / AMOS7 \ YOURUM ::
-#\[7]MDBN7L4XIETBYK2U6SEQJJ3S53VEKUE26GPIZPKZK2ZYHXGEVCBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,,.,,,..,,.,,,..,.,,,..,,...,.,.,...,...,,,,,.,,,,..,,.,,..,,
+#UEXUMOP6GF2NNUKILZJ34FXF6YRCUKGEX55UA3SB5B6HABE6UDV4VQTD7PWIKCT5HHJ5IFXFJLFL4
+#\\\|JO2WMLPK5FD6HTYZ2VD6FTT45YZZFYKUNYEXUKZP55YINEGDACG \ / AMOS7 \ YOURUM ::
+#\[7]TUKFNHSBZY2BCSW3MAJRSDFOHMEZ46J3SVFVJHURG43HDYKS7ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

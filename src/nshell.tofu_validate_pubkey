@@ -1,0 +1,134 @@
+## [:< ##
+
+# name  = nshell.tofu_validate_pubkey
+# descr = TOFU (Trust-On-First-Use) validation for remote nshell connections
+# param = <socket_fh> <hostname> [port] <ask_user>
+# return = TRUE if validated, FALSE if mismatch
+# note  = port defaults to configuration value or 42
+
+my $fh       = shift;    ## socket file handle
+my $hostname = shift;    ## remote hostname
+my $port     = shift;    ## remote port (optional)
+my $ask_user = shift;    ## TTY user prompt flag
+
+$port //= <protocol-7.remote.default-port> // 42;
+
+return TRUE
+    if not defined $hostname
+    or not length $hostname;    ## skip TOFU for local connections
+
+##  Get remote server's Ed25519 public key  ##
+
+my $remote_pubkey_b32 = undef;
+
+##  Send get-pubkey-checksum command to get server's Ed25519 key  ##
+
+if ( defined $fh and $fh ) {
+
+    print " :: checking remote server authentication key ::\n" if $ask_user;
+
+    ## Query remote server for its Ed25519 public key  This uses a custom ##
+    ## protocol command                                                   ##
+
+    my $pubkey_cmd = "get-pubkey-checksum\n";
+
+    ##  Try to get pubkey from remote - this may not be implemented yet  ##
+    eval {
+        print {$fh} $pubkey_cmd;
+        $fh->flush if defined &$fh->flush;
+
+        my $response = <$fh>;
+
+        ## Parse response: expect base32-encoded Ed25519 pubkey (52 chars) ##
+        if ( defined $response and $response =~ m|^([A-Z0-9]{52})| ) {
+            $remote_pubkey_b32 = $1;
+        }
+    };
+
+    return TRUE if not defined $remote_pubkey_b32;  ## skip if unavailable  ##
+}
+
+##  Check if we have a pinned key for this hostname:port  ##
+
+my $validation_result = <[crypt.C25519.validate_remote_key_checksum]>->(
+    $hostname, $port, $remote_pubkey_b32
+);
+
+##  Handle three cases: TRUE (match), FALSE (mismatch), undef (no pin)  ##
+
+if ( defined $validation_result ) {
+
+    if ($validation_result) {
+        ##  Key matches pinned key  ##
+        print " :: remote key validated ::\n" if $ask_user;
+        return TRUE;
+    } else {
+        ##  KEY MISMATCH - POTENTIAL SECURITY ISSUE  ##
+        print "\n";
+        print " :: WARNING: REMOTE KEY MISMATCH ::\n";
+        print
+            " :: This could indicate MITM attack or server reconfiguration\n";
+        print " :: Hostname: $hostname:$port\n";
+        print " :: Connection refused for security\n";
+        print "\n";
+        return FALSE;
+    }
+
+} else {
+
+    ##  No pinned key yet - first use (TOFU)  ##
+
+    if ( not $ask_user ) {
+        ##  Non-TTY mode: auto-pin without asking  ##
+        <[base.logs]>->(
+            2,         "auto-pinning remote key for %s:%s (non-TTY mode)",
+            $hostname, $port
+        );
+
+        my $store_result = <[crypt.C25519.store_remote_key]>->(
+            $hostname, $port, $remote_pubkey_b32
+        );
+
+        return $store_result->{'mode'} eq qw| true | ? TRUE : FALSE;
+
+    } else {
+
+        ##  TTY mode: ask user to confirm pinning  ##
+
+        print "\n";
+        print " :: NEW REMOTE SERVER - TRUST ON FIRST USE (TOFU) ::\n";
+        print " :: Hostname: $hostname:$port\n";
+        print " :: Key: $remote_pubkey_b32\n";
+        print " :: This key will be pinned for future connections\n";
+        print "\n";
+
+        print " :: Accept and pin this key? [yes/no]: ";
+        $| = TRUE;
+        my $response = <STDIN>;
+
+        if ( defined $response and $response =~ m|^y|i ) {
+
+            my $store_result = <[crypt.C25519.store_remote_key]>->(
+                $hostname, $port, $remote_pubkey_b32
+            );
+
+            if ( $store_result->{'mode'} eq qw| true | ) {
+                print " :: Key pinned successfully\n";
+                return TRUE;
+            } else {
+                print " :: Error: could not pin key\n";
+                return FALSE;
+            }
+
+        } else {
+            print " :: Connection refused\n";
+            return FALSE;
+        }
+    }
+}
+
+#,,.,,,.,,,.,,,,.,,,.,,.,,,.,,,,.,...,,,,,,,.,..,,...,..,,.,.,...,.,.,,,.,,,,,
+#5B4MHOSLYIR6TBC4U2QEI5DFFSMDWHOEXBY3U3JX6VJ5TXG6L6C6DHDDRYX5JK4QYEMD46Y6C56Z2
+#\\\|QJAV2EBT7FSLLJK77SRNRXRJHQXAP32LGH6BRASW7V3QKQ3CHS3 \ / AMOS7 \ YOURUM ::
+#\[7]V5XUK6YH5DILVNS6CZEQ22G5HDDVHON3RPJY4SIIFNOFL7S5DWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

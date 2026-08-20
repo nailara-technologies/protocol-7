@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = window.place.apply_drag
+# descr = compute + apply drag/resize geometry from root pointer coordinates
+
+## shared by the motion-notify drag branch and the pointer poller, so the   ##
+## active drag never depends on motion-notify events alone - those are      ##
+## unreliable for this undecorated rgba keep-above window under             ##
+## wslg/xwayland [ the same reason the hover path is poll-driven ]. given a ##
+## root-relative pointer position it derives the delta from the drag-start  ##
+## anchor, applies the region's move/resize, clamps, then sets the damp     ##
+## target + instance geometry state.                                        ##
+
+my ( $id, $root_x, $root_y ) = @ARG;
+
+return undef if not defined $id;
+
+my $inst = $data{window}{place}{instances}{$id};
+return undef if not defined $inst;
+return undef if not $inst->{'drag'}{'active'};
+
+my $region  = $inst->{'drag'}{'region'};
+my $start_x = $inst->{'drag'}{'start_x'};
+my $start_y = $inst->{'drag'}{'start_y'};
+my $geom    = $inst->{'drag'}{'start_geom'};
+
+return undef
+    if not defined $region
+    or not defined $start_x
+    or not defined $start_y
+    or not defined $geom;
+
+my $dx = $root_x - $start_x;
+my $dy = $root_y - $start_y;
+
+my $x = $geom->{'x'};
+my $y = $geom->{'y'};
+my $w = $geom->{'width'};
+my $h = $geom->{'height'};
+
+if ( $region eq 'body' ) {
+    $x += $dx;
+    $y += $dy;
+} else {
+    if ( $region =~ m|e| ) {
+        $w += $dx;
+    }
+    if ( $region =~ m|w| ) {
+        $w -= $dx;
+        $x += $dx;
+    }
+    if ( $region =~ m|s| ) {
+        $h += $dy;
+    }
+    if ( $region =~ m|n| ) {
+        $h -= $dy;
+        $y += $dy;
+    }
+}
+
+## clamp ##
+$w = 32 if $w < 32;
+$h = 32 if $h < 32;
+
+my $new_geom = {
+    'x'      => $x,
+    'y'      => $y,
+    'width'  => $w,
+    'height' => $h
+};
+
+## write the target into instance geometry state at once so the readout /  ##
+## commit reflect the precise intended geometry, then let the damp tick    ##
+## ease the on-screen window toward it [ coalesces rapid motion to 50ms ]. ##
+<[window.place.damp.set_target]>->( $id, $new_geom );
+<[window.place.update_x11_state]>->( $id, $new_geom );
+
+return TRUE;
+
+#,,.,,...,,.,,,.,,..,,...,,..,.,.,.,,,,..,.,.,.,.,...,...,...,,,.,,.,,,..,,..,
+#AJBUAO7IMQHILETWVD5BEMNQMSFHBYP4E7GBQDXESFDDF5JLBZXHU7DBXHVAGJYI5XM2VR4MRDGGY
+#\\\|GWWCVBMSKGDDNWSZATOMFKP5MUGSDI3576HHHKURMTU2TMOP2ZI \ / AMOS7 \ YOURUM ::
+#\[7]HURDKF2ADN752WYKLJJFPFRW4MFUA5ZAFCAOOUULGGFTHWYXMUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

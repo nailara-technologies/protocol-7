@@ -248,17 +248,17 @@ User command: analyze_and_extract /image.png "analyze" "extract this"
 
 ## Files to Create
 ```
-modules/coding.vision-parser.init_code
-modules/coding.vision-parser.cmd.analyze_and_extract
-modules/coding.vision-parser.handler.state_transition
-modules/coding.vision-parser.handler.check_vision_completion
-modules/coding.vision-parser.handler.check_extraction_completion
-modules/coding.vision-parser.helper.dispatch_next_stage
+src/coding.vision-parser.init_code
+src/coding.vision-parser.cmd.analyze_and_extract
+src/coding.vision-parser.handler.state_transition
+src/coding.vision-parser.handler.check_vision_completion
+src/coding.vision-parser.handler.check_extraction_completion
+src/coding.vision-parser.helper.dispatch_next_stage
 ```
 
 ## Files to Potentially Modify
 ```
-modules/coding.cmd.submit - May need to support optional routing back to vision-parser
+src/coding.cmd.submit - May need to support optional routing back to vision-parser
 cfg/zenki/coding/start - Load new vision-parser modules
 ```
 
@@ -281,8 +281,8 @@ cfg/zenki/coding/start - Load new vision-parser modules
 - Caching of vision analysis results
 - Direct callback chaining to avoid polling
 
-#,,.,,,.,,,,,,,,,,,..,...,.,.,...,,..,.,,,...,..,,...,...,,,.,,..,,,,,.,.,,,.,
-#BP2HBQOCG4DYTOJKHDK3SVA3K2BAN544KBGG6P3YMTZALET4QCX7YZG526CN52J5TV3T6HJSVWBCG
-#\\\|DVND63PEHEXPXD3FU2YXO4MTKFY5LU5IFVANZYZKLJ2KG6BWFOG \ / AMOS7 \ YOURUM ::
-#\[7]5FVL6KWABJVUUY2IF7WPDHVUN6Y6I6UOS5DOQS4EC4LINRMAT6AY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,.,,,,,.,.,,,,,,,,..,...,..,,..,,...,...,.,,,,.,,...,,.,,,.,,
+#NEVZXUUS3H4U43MU3L6IV722E4RVY772ISW554WY6T7OFZYQQS4WIOKGFSMK7ZL2YXLQZFAVXRYP2
+#\\\|RLLG3FU6ZGOQ6NTGM3UUCNIJ3K4ACP6U2T46FKYYULXWDHYBU7O \ / AMOS7 \ YOURUM ::
+#\[7]JTPXSS57LHBDZDFLUKF2AQCLTZE4GO7H5IVNFKY7NJ4JJIZ4IABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

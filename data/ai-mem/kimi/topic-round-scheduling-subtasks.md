@@ -35,16 +35,16 @@ Parent task (streaming)
 
 | file | change |
 |------|--------|
-| `modules/coding.task.enqueue_round` | NEW - enqueue inference round as jobqueue job |
-| `modules/coding.task.execute_round` | NEW - job callback: execute one round |
-| `modules/coding.tools.handler.subtask_spawn` | NEW - spawn child task with parent tracking |
-| `modules/coding.async.state_machine` | MODIFIED - `tools_done` → enqueue round |
-| `modules/coding.async.send_request` | MODIFIED - injected message + pause support |
-| `modules/coding.async.complete` | MODIFIED - resume parent on child completion |
-| `modules/coding.callback.http_complete` | MODIFIED - partial content recovery |
-| `modules/coding.callback.http_error` | MODIFIED - duplicate retry prevention |
-| `modules/coding.callback.retry_request` | MODIFIED - clear retry_pending flag |
-| `modules/coding.async.request` | MODIFIED - stale connection cleanup |
+| `src/coding.task.enqueue_round` | NEW - enqueue inference round as jobqueue job |
+| `src/coding.task.execute_round` | NEW - job callback: execute one round |
+| `src/coding.tools.handler.subtask_spawn` | NEW - spawn child task with parent tracking |
+| `src/coding.async.state_machine` | MODIFIED - `tools_done` → enqueue round |
+| `src/coding.async.send_request` | MODIFIED - injected message + pause support |
+| `src/coding.async.complete` | MODIFIED - resume parent on child completion |
+| `src/coding.callback.http_complete` | MODIFIED - partial content recovery |
+| `src/coding.callback.http_error` | MODIFIED - duplicate retry prevention |
+| `src/coding.callback.retry_request` | MODIFIED - clear retry_pending flag |
+| `src/coding.async.request` | MODIFIED - stale connection cleanup |
 | `cfg/zenki/coding/start` | MODIFIED - `round_scheduling.enabled = yes` |
 
 ## Bugs Fixed
@@ -131,8 +131,8 @@ These bugs were resolved after kimi's handover:
 - Full parallel task execution would require per-task isolation of globals. The round-based approach avoids this by never running tasks concurrently.
 - Server-side incomplete responses (no `finish_reason`) still occur occasionally; client-side retry handles them.
 
-#,,,.,.,,,,.,,,..,.,,,,..,,,,,,..,,.,,,,.,...,..,,...,...,...,.,.,,,,,.,,,.,.,
-#YM2IC3JLIDOS5VVPKY3XMHEARY2E7XD4DVN3HOS74WEDZHOURMQKD6VRHVXNLGXOBOP7V5PV452IE
-#\\\|N4SM6P47AUP7AFJ6YHRJ5J4VO4SRLDSMCGQK2V4QCGAKDHYAWKM \ / AMOS7 \ YOURUM ::
-#\[7]6J3LACAK2K22O34OUM4KPT5B7IVRQWZM2W6AE4AT2XGTXDWUD6BY 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,,,,,,,,...,,,.,,.,,,,.,..,,..,,...,...,.,,,..,,...,,,.,...,
+#Q2OEVJP7LW35HXGBZIPYBH7KK527BVLEXHJMUEQYV723NLJURVZWOOJ5GIVMCQ7GARVBWST2ZLPPU
+#\\\|B5MVNTNUX2K7OMGPME77NPUHFEVRHMYG7QRCFSSOYROPIJBQRSW \ / AMOS7 \ YOURUM ::
+#\[7]EHPBQGIXA24WXTPOSFTLHW622T5ICDPJJU77EZY7AOMN632TKOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

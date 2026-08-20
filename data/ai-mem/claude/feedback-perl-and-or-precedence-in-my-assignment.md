@@ -14,7 +14,7 @@ evaluated and discarded. `&&`/`||` bind TIGHTER than `=`, so they're the
 correct operator whenever a multi-term boolean expression needs to land in
 a `my` (or any) assignment.
 
-**Why:** found in `modules/ticker.open_window`'s startup void-recovery
+**Why:** found in `src/ticker.open_window`'s startup void-recovery
 timer (2026-06-25, landed `531aa14db`) — the bug made `$landed` always true
 on the first geometry read (`defined $actual` is true almost immediately
 after map), so the timer believed it had landed and cancelled on attempt 1,
@@ -31,8 +31,8 @@ followed by a separate `and`/`or`-modified statement if the low-precedence
 short-circuit control-flow idiom (`open(...) or die`) was actually the
 intent.
 
-#,,..,.,,,,,,,...,,,.,,,.,.,.,.,.,.,,,,.,,.,,,..,,...,...,,.,,,,.,,..,.,,,.,.,
-#VXINASF5HJHZCJMK7COWCGUFLSGSWDTKL7U6B3ZYTUMXABJMTMCYXEQDOIFQO4KHSL6LG5SWC2GVY
-#\\\|IB22DHEHO4UA5NPRQXOKBORKMSTJ4IZCT2IF6KLMTP5IEWC7ESY \ / AMOS7 \ YOURUM ::
-#\[7]4MLHLEYX36WIURIPS2YFYM432AAESD2263NWW5TJOYYCIRF43ACA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,...,,,,,.,,,,,.,...,.,.,,.,,..,,...,..,,...,..,,...,.,.,,,,,
+#Q7GA2K7RAIF4FGDIJZK5OJNAZDKWQU2TAKS653UJIYRDAZPJ7W55CU3EAXH3RBGCAWBXSSHSO7QZA
+#\\\|QWYYZGUD7APJKBIJ3V4TKKAQJLTM36W6P4NHL3JZKSXB6ABEUU5 \ / AMOS7 \ YOURUM ::
+#\[7]OGGTKHSUOZN473QKV7CYKZSMAWLA3LCYPUPAFAF75WNXKWLB7IDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

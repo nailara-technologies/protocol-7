@@ -5,7 +5,7 @@
 the visualization has a growing set of navigation modes, camera targets, and
 layer weight states. currently these are scattered ad-hoc across the JS.
 this task introduces an `attention` state machine as a structured module in
-the web zenka (`modules/plugin.web.attention.*`) that centralizes this logic.
+the web zenka (`src/plugin.web.attention.*`) that centralizes this logic.
 
 the attention machine consumes: selection state, cursor position, zoom level,
 layer weights. it emits: a current parameter blend (camera follow target,
@@ -90,8 +90,8 @@ add a stub `attention.json.tmpl` that calls `plugin.web.attention.blend`.
 - JS fetches it without errors (check browser console)
 - state stack push/pop preserves parent parameters
 
-#,,..,.,,,.,,,,,.,,..,,,.,,,.,,..,...,.,,,...,..,,...,...,,.,,,.,,,,,,.,.,,.,,
-#DJJHAUEPKZTZBPEC6356XHUCS5K7IGVLV2H5HIUU2GTBTLYAOWOKSJQZBG6SQ3SUDCQSRGBKAN4UW
-#\\\|3TTCDRONZQEHI4QZK7ZTVX5VBHU72M4GZG4ZXWHRALIRKWCEKPP \ / AMOS7 \ YOURUM ::
-#\[7]BCOMZHOSQH3ASQCWFGLAMPOKMYVQBBWR6AR43FQOX4IEK5UGXMCY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,...,.,,,...,,,.,.,,,.,,,,,,,..,,...,...,,..,..,,.,,,.,.,,..,
+#DXYBELKT6T37PMWNBMN7NASXQOHCUKND7HZUVDYCWM2DYDC7N6B5OGTKTRUUWLYPGPYEUTWVKAX7Q
+#\\\|JL3JIIA7ZCX5INXR4MPAC7QOVN3FC66HKAUEL5Q36S6OOZXUMCA \ / AMOS7 \ YOURUM ::
+#\[7]N7XM2SKCHJNE66VJEUIOUOLRKUD4M6M5MQTXTI723CDJ5AAIFUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

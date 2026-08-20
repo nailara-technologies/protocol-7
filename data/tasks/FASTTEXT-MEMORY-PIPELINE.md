@@ -19,7 +19,7 @@ the goal is a working pipeline that:
 ### task 1.1 — codebase corpus
 ```
 ## dispatch + prompt
-collect all modules/* files, cfg/zenki/** configs,
+collect all src/* files, cfg/zenki/** configs,
 data/md/documentation/**, data/md/architecture/** into a flat text corpus.
 strip AMOS7 signature blocks (last 5 lines of each file).
 output: /etc/protocol-7/embeddings/codebase/corpus.txt
@@ -86,18 +86,18 @@ per-category drift thresholds (configurable in cfg/shared-params):
 ### task 3.1 — trigger detection module
 ```
 ## dispatch + prompt
-write modules/embeddings.check-retrain-triggers:
+write src/embeddings.check-retrain-triggers:
   watches for:
     - new file committed to data/yaml/reasoning-templates/ → trigger philosophical
     - new session summary in memory/ → trigger interaction-history
-    - significant module count change in modules/ → trigger codebase
+    - significant module count change in src/ → trigger codebase
     - access.zenki modification → trigger network-topology
   for each trigger: queue embeddings.retrain-category <category>
 ```
 
 ### task 3.2 — retrain command
 ```
-write modules/embeddings.cmd.retrain-category:
+write src/embeddings.cmd.retrain-category:
   args: category name
   runs corpus assembler for that category
   calls train-embedding script
@@ -119,7 +119,7 @@ add to cfg/zenki/cube/access.zenki:
 ### task 4.1 — category selection logic
 ```
 ## dispatch + prompt
-write modules/embeddings.select-categories:
+write src/embeddings.select-categories:
   input: task_type, context_window_size, session_purpose
   returns: list of categories to load for this session
   defaults:
@@ -132,7 +132,7 @@ write modules/embeddings.select-categories:
 
 ### task 4.2 — current-session corpus builder
 ```
-write modules/embeddings.build-session-corpus:
+write src/embeddings.build-session-corpus:
   called at session start
   assembles corpus from: current task context, open items from memory/,
   active topic files (next-steps, current branch topics)
@@ -142,7 +142,7 @@ write modules/embeddings.build-session-corpus:
 
 ### task 4.3 — loading interface
 ```
-write modules/embeddings.load-for-session:
+write src/embeddings.load-for-session:
   calls embeddings.select-categories
   for each selected category: loads current.bin
   for stability-sensitive tasks: also loads prior.bin
@@ -167,7 +167,7 @@ define tree structure under data/yaml/regex-cache/:
 
 ### task 5.2 — cache query module
 ```
-write modules/regex-cache.match:
+write src/regex-cache.match:
   input: text string, optional category filter
   walks the tree depth-first, most-specific category first
   returns: matched pattern entry or undef
@@ -176,7 +176,7 @@ write modules/regex-cache.match:
 
 ### task 5.3 — cache deposit module
 ```
-write modules/regex-cache.deposit:
+write src/regex-cache.deposit:
   input: category, pattern string, reasoning chain id
   validates pattern compiles
   checks for existing similar pattern (avoid duplication)
@@ -219,8 +219,8 @@ modify coding.complete-analysis:
   to support deduplication and parenting? likely yes — aligns with
   checksum-parenting-namespace-trees design
 
-#,,.,,,.,,,,.,.,,,...,.,.,.,,,.,,,.,.,...,,.,,..,,...,...,.,,,...,,.,,,..,,.,,
-#ZNM2LHLJUC3XEU4HMDURNXRVAS6BBI7R2EWB6QYD2LVRIVINA523OMYACZWHMEDZEQQUFKDZMKRNM
-#\\\|QPTI52NJRWLR75TVIFSEWLE626CAQDIFBOYPRODUD5C6F5RON27 \ / AMOS7 \ YOURUM ::
-#\[7]AJATRLP4LXMUCIGYKSVBKD5OCYWENGVFXK64QJTM2GTKZ3QB4OCI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,,.,,...,,..,,..,..,,...,..,,..,,...,.,.,,.,,,..,,..,..,,,,,,
+#M25J7FE4KC6NVD4HIUXRAMDHC5HTNRHSJ6N7MDRWNBED6NBXH7YPTGCOOWS66PL3TZOA4IMMRDBEA
+#\\\|SJ5CBB2KQOBU54U3SODKYJZWAWUODCDLYJBU22FP2TOISYSIDQN \ / AMOS7 \ YOURUM ::
+#\[7]H3DGUGDL3LMJKILYUGTMXEFKARKBVF3LH4U6XNMD36XNSQ7ARUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

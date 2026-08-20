@@ -7,7 +7,7 @@
     `cfg/zenki/*/subroutine.white-list` files (next to existing
     `calculate_L13_sum` entries)
   - infinite-loop guard: added 100_000-iteration cap in
-    `modules/base.chk-sum.bmw.harmonize_L13` (no time-based timeout when
+    `src/base.chk-sum.bmw.harmonize_L13` (no time-based timeout when
     `AMOS7::TEMPLATE::template_count() == 0`)
   - root cause of "undefined value as subroutine reference
     [chk-sum.bmw.calculate_L13_sum:12]": `base.chk-sum.bmw.pre_init` aliases
@@ -15,10 +15,10 @@
     must use the SHORT alias `<[chk-sum.bmw.harmonize_L13]>`, not the
     `base.`-prefixed form. taeki fixed via
     `ncode r src '\[base.chk-sum.bmw\.' '\[chk-sum.bmw\.'` across:
-    - modules/base.chk-sum.bmw.template_L13
-    - modules/plugin.web.auth.create_session
-    - modules/plugin.web.auth.destroy_session
-    - modules/plugin.web.auth.verify_session
+    - src/base.chk-sum.bmw.template_L13
+    - src/plugin.web.auth.create_session
+    - src/plugin.web.auth.destroy_session
+    - src/plugin.web.auth.verify_session
   - backend confirmed booting + `list sessions` working post-fix.
 
 ## still pending dispatch
@@ -63,8 +63,8 @@
 5. `cfg/zenki/coding/start` — taeki's manual context-size edit
    (37000 -> 30000), unrelated to tranches, can commit independently
 
-#,,.,,...,,.,,,,,,,..,,,,,...,,..,,,.,,..,,,.,..,,...,...,.,.,,,.,,..,...,...,
-#XTA34QIX2W76U4ERKYW6TT3M5TJRMXNNPEWJFDB5JV53ADYCKQ3BC3VRLC3CZXWBSLFGLCKIV2DNG
-#\\\|T2M3BQGK7JAPZSWBXSMN4TWBRW774I666PMJ6GRSW4J5K26BO5L \ / AMOS7 \ YOURUM ::
-#\[7]KWP7PFUCM3A5I4U4UWPUML5VJNCJUPNDE5E74ABJO5OMBFQTAUDA 7  DATA SIGNATURE ::
+#,,..,...,..,,.,,,,.,,,..,,..,...,,..,..,,,,,,..,,...,...,...,...,,..,...,..,,
+#SJRVHRCSU75YBFQ7C6WPV5CH5U3YTFBXKOFSGK6Y7XBVOFPQ34ND6XUNJ4ZWTDE7WPZSMFJ65S4LM
+#\\\|ZQETPP7MYBXNATF6R63Z65DVAX7LCYAAZMFP5M7IHMATK3SVIOR \ / AMOS7 \ YOURUM ::
+#\[7]6GOPLJF6BJFIY7R2RM53QEW5SVXYIE6NYGH27SDHD2G46NI2HOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

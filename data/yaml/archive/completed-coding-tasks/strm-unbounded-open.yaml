@@ -8,10 +8,10 @@ task:
     this mode. chunks and close are identical to bounded STRM.
 
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
-  templates_reference: modules/protocol.protocol-7.message-templates
+  templates_reference: src/protocol.protocol-7.message-templates
   files:
-    - modules/base.stream.open
-    - modules/base.handler.command
+    - src/base.stream.open
+    - src/base.handler.command
 
   protocol_change: |
     bounded   (existing):   (<cmd_id>)STRM open N\n   [ N = total bytes ]
@@ -22,7 +22,7 @@ task:
       (<cmd_id>)STRM close\n
 
   section_base_stream_open: |
-    file: modules/base.stream.open  (around line 23)
+    file: src/base.stream.open  (around line 23)
 
     current guard (lines 23-34):
       if ( not defined $total or $total !~ m|^\d+$| or $total == 0 ) {
@@ -63,7 +63,7 @@ task:
       # descr update: also note 'unbounded open emits STRM open\n (no size)'
 
   section_handler_command: |
-    file: modules/base.handler.command  (around line 836)
+    file: src/base.handler.command  (around line 836)
 
     current STRM block opens with:
       } elsif ( $cmd eq qw| STRM | ) {
@@ -100,7 +100,7 @@ task:
           ## existing bounded open — unchanged ##
           ...
 
-    template WQG7YII is already in modules/protocol.protocol-7.message-templates:
+    template WQG7YII is already in src/protocol.protocol-7.message-templates:
       qw| WQG7YII | => "%sSTRM open\n",   ##  STRM open [ unbounded ]  ##
 
     the chunk branch (m|^(\d+)$|) and close branch need a small guard:
@@ -132,8 +132,8 @@ task:
     - STRM-SIZE handling — completely separate path, unchanged
 
   acceptance: |
-    - ptd -c modules/base.stream.open passes
-    - ptd -c modules/base.handler.command passes
+    - ptd -c src/base.stream.open passes
+    - ptd -c src/base.handler.command passes
     - base.stream.open accepts total => undef, emits 'STRM open\n'
     - base.stream.open still rejects total => 0 or non-numeric values
     - relay handler: 'STRM open' (no size) → unbounded stream state + WQG7YII forward
@@ -141,8 +141,8 @@ task:
     - close log handles undef total_bytes without warning
     - no changes outside the two specified files
 
-#,,..,...,,,.,.,,,...,...,...,...,.,,,.,.,,.,,..,,...,...,...,..,,,,.,...,.,.,
-#PUN42GNK5H4PPNJAETD2AVFFL7HDG72D7CGMY4RLWLST4TO5SR6XX4J4CXVR7DHA4RLE76MQWDP7M
-#\\\|LJTZHSIW3SBNYPZCOGWQAW3NNSEMPIBSNTMX23JTOVYJIBIPXEI \ / AMOS7 \ YOURUM ::
-#\[7]ATELQAE7MIL3L3JPEIVNL64KKY4PTD7FUUN6EMUPKU7D4VNKYWAI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,,.,,.,.,.,.,...,.,,,,,.,,..,..,,...,...,.,.,...,,.,,,,,,,,,,
+#MBXMXJJH3DYEUQ54LYBGRM5TL7JXPCISO7WKA2U5Q5XJ4NM4SAQWUES5QL75GBOZTB5LRRP47RDW6
+#\\\|TABXBICTXBG6S3WPZZBGQ2E56SQE4IB7VFNZRLB4NYZBGBTAFPM \ / AMOS7 \ YOURUM ::
+#\[7]QEH5IQBZS7GTCC7OVXWVVFNFS3MU27JFMQ5LOOCESLODJRZZ3GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

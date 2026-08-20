@@ -1,0 +1,50 @@
+## [:< ##
+
+# name = web.assets.registry
+# descr = registry of template assets discovered and managed
+
+## Asset registry data structure ##
+<web.assets.registry> = {};
+
+## Asset statistics ##
+<web.assets.stats> = {
+    total_assets      => 0,
+    templates_scanned => 0,
+    last_scan_time    => 0,
+    assets_present    => 0,
+    assets_missing    => 0,
+    assets_copied     => 0,
+};
+
+## Visibility list for asset registry ##
+<list.web-assets> = {
+    'var'      => qw| data |,
+    'key'      => qw| web.assets.registry |,
+    'sort_key' => 'alpha-len:asset_path',
+    'descr'    => 'Template assets registry - discovered and managed',
+    'mask'     => 'path:asset_path tmpl:template '
+        . 'src:source_path status last:last_validated',
+    'align' => {
+        'path'   => 'left+2',
+        'tmpl'   => 'center',
+        'src'    => 'left+1',
+        'status' => 'center-1',
+        'last'   => 'center-1',
+    },
+    'filters' => { 'last' => qw| base.parser.timestamp |, }
+};
+
+<[base.list.init]>->(
+    {   'name'         => qw| web-assets |,
+        'key_ref'      => \$data{'web'}{'assets'}{'registry'},
+        'max_elements' => 1024
+    }
+);
+
+0;
+
+#,,,.,..,,.,,,.,,,...,..,,.,,,..,,,..,.,.,.,.,..,,...,...,...,,..,.,.,,..,,,.,
+#PVC4PDOG74HAMH3LVVPLUBWQ4GMZ477DHDCXZUKT4XLRTDAG4Y7VF6GGKBCCV6AHNCUGTOJJNP66Y
+#\\\|G6GBYT67FW5GFY2YERGR7XFSITFLX6GX4DZENPHT6PKTFWKOAY6 \ / AMOS7 \ YOURUM ::
+#\[7]PGZFIB6HAHXCIKKURDY3UEHC6DAPA2XLFXOTL2NGVYH7ROIKW4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

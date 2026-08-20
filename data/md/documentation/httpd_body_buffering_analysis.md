@@ -10,7 +10,7 @@ The httpd module accumulates POST request bodies **incrementally in linewise mod
 
 ### Primary Body Buffer: `$session->{'buffer'}->{'input'}`
 
-**Location:** `/data/projects/protocol-7/modules/base.session.init` (lines 87)
+**Location:** `/data/projects/protocol-7/src/base.session.init` (lines 87)
 
 ```perl
 qw| buffer | => { qw| input | => '', qw| output | => '' }
@@ -64,7 +64,7 @@ $session = {
 4. Once `\n\n` is found, headers are complete
 5. Returns 0 = request complete
 
-**Code Location:** `/data/projects/protocol-7/modules/net.read_linewise_estimated` (lines 42-89)
+**Code Location:** `/data/projects/protocol-7/src/net.read_linewise_estimated` (lines 42-89)
 
 ```perl
 my $linefeed_match_position;
@@ -98,7 +98,7 @@ return 1;                                     # More data needed
 3. `Content-Length` header is read but **NOT used to wait for body**
 4. Remaining data in buffer after headers = body data
 
-**Code Location:** `/data/projects/protocol-7/modules/httpd.request_handler` (lines 41-43)
+**Code Location:** `/data/projects/protocol-7/src/httpd.request_handler` (lines 41-43)
 
 ```perl
 return 0 if $session->{'buffer'}->{'input'} !~ s|^(.+\r?\n\r?\n)||s;
@@ -118,7 +118,7 @@ $session->{'http'}->{'request'}->{'data'} = $LAST_PAREN_MATCH // '';
 4. Stores in `$session->{'http'}->{'body'}`
 5. Clears the input buffer
 
-**Code Location:** `/data/projects/protocol-7/modules/httpd.http_post` (lines 18-42)
+**Code Location:** `/data/projects/protocol-7/src/httpd.http_post` (lines 18-42)
 
 ```perl
 my $content_length = $headers->{'content-length'} // 0;
@@ -139,7 +139,7 @@ $session->{'buffer'}->{'input'} = '';  # Clear buffer
 
 **Handler:** `httpd.handler.acme_request` (uses the extracted body)
 
-**Code Location:** `/data/projects/protocol-7/modules/httpd.handler.acme_request` (lines 14-30)
+**Code Location:** `/data/projects/protocol-7/src/httpd.handler.acme_request` (lines 14-30)
 
 ```perl
 my $req_body = '';
@@ -176,7 +176,7 @@ my $acme_req = <[httpd.json.decode]>->($req_body) // {};
 
 The `bytewise` read mode provides a proper completion mechanism:
 
-**Location:** `/data/projects/protocol-7/modules/base.handler.command` (lines 203-207)
+**Location:** `/data/projects/protocol-7/src/base.handler.command` (lines 203-207)
 
 ```perl
 elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(0*\d+)\n),o
@@ -188,7 +188,7 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(0*\d+)\n),o
 }
 ```
 
-**Bytewise Handler:** `/data/projects/protocol-7/modules/net.read_bytewise` (lines 49-67)
+**Bytewise Handler:** `/data/projects/protocol-7/src/net.read_bytewise` (lines 49-67)
 
 ```perl
 my $bytecount = <[base.s_read]>->(
@@ -216,7 +216,7 @@ if ( $session->{'bytes-to-read'} == 0 ) {
 2. **Logging:** Log the expected size for debugging
 3. **NOT Used For:** Determining when body reception is complete
 
-**Code Location:** `/data/projects/protocol-7/modules/httpd.http_post` (lines 15-28)
+**Code Location:** `/data/projects/protocol-7/src/httpd.http_post` (lines 15-28)
 
 ```perl
 <[base.logs]>->( 2, '[%d] POST request: %s (content-length: %s)',
@@ -298,7 +298,7 @@ $session->{'buffer'}->{'input'} = "POST /api/... HTTP/1.1\r\nContent-Length: 42\
 ## Other HTTP Handlers: Body Handling Patterns
 
 ### httpd.http_get
-**Location:** `/data/projects/protocol-7/modules/httpd.http_get`
+**Location:** `/data/projects/protocol-7/src/httpd.http_get`
 
 - **No body handling** - GET requests should have no body
 - Processes range headers (Range: bytes=0-1023)
@@ -306,21 +306,21 @@ $session->{'buffer'}->{'input'} = "POST /api/... HTTP/1.1\r\nContent-Length: 42\
 - Returns file content in response
 
 ### httpd.http_head
-**Location:** `/data/projects/protocol-7/modules/httpd.http_head`
+**Location:** `/data/projects/protocol-7/src/httpd.http_head`
 
 - **No body handling** - HEAD requests should have no body
 - Similar to GET but only returns headers
 - Returns metadata about resources without content
 
 ### httpd.http_options
-**Location:** `/data/projects/protocol-7/modules/httpd.http_options`
+**Location:** `/data/projects/protocol-7/src/httpd.http_options`
 
 - **No body handling** - OPTIONS requests can have bodies but this handler ignores them
 - Returns `Allow` header with supported methods
 - Calls `httpd.http_head` with 204 (No Content) code
 
 ### httpd.http_post (Only POST Handler)
-**Location:** `/data/projects/protocol-7/modules/httpd.http_post`
+**Location:** `/data/projects/protocol-7/src/httpd.http_post`
 
 - **Has body handling** - Only HTTP method that processes bodies
 - Routes ACME and certificate requests
@@ -335,7 +335,7 @@ $session->{'buffer'}->{'input'} = "POST /api/... HTTP/1.1\r\nContent-Length: 42\
 **Input Buffer:**
 - Max size: `<size.buffer.input>` (default size not found, likely 64KB-256KB)
 - When full: Session input is paused
-- Location: `/data/projects/protocol-7/modules/base.handler.read` (lines 73-89)
+- Location: `/data/projects/protocol-7/src/base.handler.read` (lines 73-89)
 
 ```perl
 my $size_left = $data{'size'}->{'buffer'}->{'input'}
@@ -479,18 +479,18 @@ Result: Request processed with incomplete JSON body
 
 | File | Purpose | Key Line(s) |
 |------|---------|-------------|
-| `/data/projects/protocol-7/modules/httpd.http_post` | Extracts body from buffer | 35-42 |
-| `/data/projects/protocol-7/modules/httpd.request_handler` | Parses headers, triggers POST handler | 41-43, 129-149 |
-| `/data/projects/protocol-7/modules/httpd.handler.acme_request` | Uses extracted body | 14-30 |
-| `/data/projects/protocol-7/modules/net.read_linewise_estimated` | Incremental buffer reading | 42-89 |
-| `/data/projects/protocol-7/modules/net.read_bytewise` | Fixed-size body reading (not used for POST) | 40-67 |
-| `/data/projects/protocol-7/modules/base.session.init` | Session buffer initialization | 87 |
-| `/data/projects/protocol-7/modules/base.handler.read` | I/O event handler for reading | 41-93 |
-| `/data/projects/protocol-7/modules/base.handler.input` | Input buffer watcher | 38-136 |
-| `/data/projects/protocol-7/modules/base.handler.command` | Demonstrates bytewise mode for Protocol-7 | 203-207 |
+| `/data/projects/protocol-7/src/httpd.http_post` | Extracts body from buffer | 35-42 |
+| `/data/projects/protocol-7/src/httpd.request_handler` | Parses headers, triggers POST handler | 41-43, 129-149 |
+| `/data/projects/protocol-7/src/httpd.handler.acme_request` | Uses extracted body | 14-30 |
+| `/data/projects/protocol-7/src/net.read_linewise_estimated` | Incremental buffer reading | 42-89 |
+| `/data/projects/protocol-7/src/net.read_bytewise` | Fixed-size body reading (not used for POST) | 40-67 |
+| `/data/projects/protocol-7/src/base.session.init` | Session buffer initialization | 87 |
+| `/data/projects/protocol-7/src/base.handler.read` | I/O event handler for reading | 41-93 |
+| `/data/projects/protocol-7/src/base.handler.input` | Input buffer watcher | 38-136 |
+| `/data/projects/protocol-7/src/base.handler.command` | Demonstrates bytewise mode for Protocol-7 | 203-207 |
 
-#,,..,,,,,,,.,,,,,,,,,...,,,.,...,,.,,,,.,,.,,..,,...,...,.,.,..,,,.,,,,,,.,.,
-#XVUQMZYGQNIIVULNDVR64QK53ALT5N5WRUSP2NXJVBB2HK4J2HPVJTIH7IHJELRFFAQ4MQAV4RRPY
-#\\\|EOYHWHUEINMASVO5ASEWFIVPW4Q2CDHKLN2FATJYCVXVDSRHXVZ \ / AMOS7 \ YOURUM ::
-#\[7]OXYDEPVTOQ5PNGFLVQDMRC3CSMRAVCJFUTXK3JUYQMKTDUGPDCDY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,.,,,..,..,,.,,,...,.,,,..,,.,.,..,,...,...,.,.,,,.,...,,.,,,..,
+#WCQPU7Q36H2RPJLQYWEXQSF43MJVWUJ2WTYTC5T6CX3TSI7EACZRN5M7ESS36SGW7X7O6QYVZ2NEU
+#\\\|WXOHD3XOPVBMD3LMVEBZQC5YAVDAXDK6F64DVJX3OM7BB64AKTP \ / AMOS7 \ YOURUM ::
+#\[7]D7NA5W76R7DOJAIOJLTADC4EKEUWCLE56PCUPS7KRDPHF4QJBQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

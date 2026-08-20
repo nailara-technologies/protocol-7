@@ -21,7 +21,7 @@ zenka_structure:
     exit_code: "[exit:0]"
 
   base_prefix_optional: |
-    In zenka startup files, 'base.' prefix is optional for all modules/base.* code:
+    In zenka startup files, 'base.' prefix is optional for all src/base.* code:
     - [exit:0] ≡ [base.exit:0]
     - [init_modules] ≡ [base.init_modules]
     - [call.console_command] ≡ [base.call.console_command]
@@ -48,12 +48,12 @@ zenka_structure:
 module_patterns:
   file_structure: |
     NEVER declare new namespaces and subs in other routines.
-    Use separate files in modules/<namespace>.* with proper filenames.
+    Use separate files in src/<namespace>.* with proper filenames.
 
     Example:
-    - modules/workflow.scan_yaml_tasks
-    - modules/workflow.extract_yaml_todos
-    - modules/workflow.console.overview
+    - src/workflow.scan_yaml_tasks
+    - src/workflow.extract_yaml_todos
+    - src/workflow.console.overview
 
   data_hash_usage: |
     Use %data{} hash for module-specific data:
@@ -226,7 +226,7 @@ llm_onboarding:
     workflow.console.search for comprehensive data search:
     - Searches data/yaml/ (workflow data)
     - Searches data/asc/what-AI-thinks/ (AI notes)
-    - Searches modules/workflow.* (code)
+    - Searches src/workflow.* (code)
     - Searches cfg/zenki/workflow/ (config)
     - Case-insensitive when pattern is lowercase
     - Pattern highlighting in results
@@ -345,7 +345,7 @@ development_patterns:
 pitfalls:
   namespace_declarations: |
     ❌ NEVER use 'package workflow;' in workflow modules
-    ✅ Use separate files with proper naming: modules/workflow.function_name
+    ✅ Use separate files with proper naming: src/workflow.function_name
 
   data_hash_conflicts: |
     ❌ Don't create your own %data hash
@@ -385,7 +385,7 @@ insights:
 
 dependency_system:
   overview: |
-    Protocol-7 has a sophisticated dependency tracking system in modules/base.dependency.*
+    Protocol-7 has a sophisticated dependency tracking system in src/base.dependency.*
     Used by v7 zenka for zenka dependencies, jobqueue for job dependencies, and workflow for perl modules.
 
   namespace_swapping: |
@@ -432,9 +432,9 @@ dependency_system:
     data.dependency.chain: "Dependency relationships (chains)"
 
   examples:
-    v7_usage: "modules/v7.set_up_zenka_dependencies - Tracks zenka dependencies"
-    jobqueue_usage: "modules/jobqueue.check_dependencies - Tracks job dependencies"
-    workflow_usage: "modules/workflow.setup_module_dependencies - Tracks perl modules"
+    v7_usage: "src/v7.set_up_zenka_dependencies - Tracks zenka dependencies"
+    jobqueue_usage: "src/jobqueue.check_dependencies - Tracks job dependencies"
+    workflow_usage: "src/workflow.setup_module_dependencies - Tracks perl modules"
 
 ## ═══════════════════════════════════════════════════════════════════════════
 ## CONTEXT-AWARE SUGGESTION ENGINE
@@ -490,8 +490,8 @@ suggestion_engine:
     Relevance engine filters down to top 8 most important
     Easy to extend with new suggestions without code changes
 
-#,,.,,,.,,,..,,..,,,,,,.,,,..,,,,,,,,,,..,.,.,..,,...,...,,,,,..,,..,,,..,.,.,
-#OV2ED3AW2HC3PUFHEGVI37APVXZSM5EOTMD2BG72IZYAEXON7RXHP3ZX3H6Y6R6SQMOETLW3KVWRY
-#\\\|2D3CGLDV25HUBH3W7GII7PAJBA3PM76YCNSJMRCE7OEFN6VHV7Q \ / AMOS7 \ YOURUM ::
-#\[7]YRTL2DK7WU7DE6K3QG252CGENUKKAALJUHFWKJ64M6YAW5T3PCAY 7  DATA SIGNATURE ::
+#,,,.,..,,...,...,,,.,,,,,,,,,.,.,.,.,...,.,.,..,,...,...,..,,,,.,.,,,..,,.,,,
+#AERCHH2LI35KB35BLFKAUMVFQYA5T3P3AD5OYZQ5QXGEYVL3LSWVLAOTLJDGKWAUDZCOOXP22PCTM
+#\\\|E24LUYZLV7PLIMEGGQROFF3TMV5S3T7MZINFX4KBH64254JQFLL \ / AMOS7 \ YOURUM ::
+#\[7]57JCY2FUFV37I5H6A5V2X4D4E43NDLBBHXC2BS2U7ZERXF472SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

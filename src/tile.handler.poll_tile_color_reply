@@ -1,0 +1,129 @@
+## [:< ##
+
+# name = tile.handler.poll_tile_color_reply
+
+my $answer = shift;
+my $c_mode = <tile.watch_tiles.comparison_mode> //= 'last';
+
+return warn 'unexpected [FALSE] reply from screenshot zenka'
+    if $answer->{'cmd'} ne qw| TRUE |;
+
+<tile.last_tile_color> //= {};
+
+my $tile_color       = $answer->{'call_args'}->{'args'};
+my $tile_name        = $answer->{'params'}->{'tile_name'};
+my $zenka_name       = <tile.tiles>->{$tile_name}->{'zenka'};
+my $last_color       = <tile.last_tile_color>->{$tile_name};
+my $timer            = <tile.timer.poll_tile_color>->{$tile_name};
+my $last_interval    = $answer->{'params'}->{'current_interval'};
+my $start_interval   = <tile.watch_tiles.poll_int_start>   //= 42;
+my $trigger_value    = <tile.watch_tiles.poll_int_trigger> //= 1.2;
+my $inactive_timeout = <tile.watch_tiles.inactive_timeout> //= 300;
+my $inactive_action  = <tile.watch_tiles.inactive_action>  //= 'warn';
+my $check_playlist   = <tile.watch_tiles.check_playlist>   //= 1;
+
+<tile.tile_last_changed>->{$tile_name}    //= time;
+<tile.tile_alert_triggered>->{$tile_name} //= 0;
+
+if (!<tile.tile_alert_triggered>->{$tile_name}
+    and (
+            $c_mode eq 'bgcol'
+        and defined <tile.x11_bg_color>
+        and $tile_color eq <tile.x11_bg_color>
+
+        or $c_mode eq 'last' and $tile_color eq $last_color
+    )
+) {
+
+    if ( <[base.time]>->(1) - <tile.tile_last_changed>->{$tile_name}
+        >= $inactive_timeout ) {    ## TIMEOUT TRIGGERED ##
+        <tile.tile_alert_triggered>->{$tile_name} = 1;
+        <[base.log]>->(
+            0, "<< inactivity alert for tile '$tile_name' [ $zenka_name ] >>"
+        );
+
+        <[tile.tile_activity.change_poll_timer]>->(
+            $tile_name,
+            sprintf(
+                "%.2f", $start_interval + rand( $start_interval * 0.1 )
+            )
+        );
+
+        my $zenka_name_str = sprintf( '%s[%s]', $zenka_name, $tile_name );
+
+        if ( $inactive_action eq qw| restart | and $check_playlist ) {
+
+            <[base.log]>->(
+                1, " : checking playlist for tile '$tile_name'.."
+            );
+
+            <[protocol-7.command.send.local]>->(
+                {   'command'   => 'cube.content.get_list',
+                    'call_args' => { 'args' => "[$tile_name]" },
+                    'reply'     => {
+                        'handler' => 'tile.handler.check_playlist_reply',
+                        'params'  => {
+                            'zenka_name' => $zenka_name_str,
+                            'tile_name'  => $tile_name
+                        }
+                    }
+                }
+            );
+
+        } elsif ( $inactive_action eq qw| restart | ) {
+
+            <[base.log]>->( 0, " :  restarting zenka '$zenka_name_str' ..." );
+
+            <[protocol-7.command.send.local]>->(
+                {   'command'   => qw| cube.v7.restart |,
+                    'call_args' => { 'args' => $zenka_name_str }
+                }
+            );
+        }
+
+    } elsif ( $last_interval > 1.2 ) {    # decreasing interval..,
+        my $new_interval
+            = $last_interval - ( $last_interval * ( 0.42 - rand(0.13) ) );
+        $new_interval = 1.42 if $new_interval < 1.42;
+        <[tile.tile_activity.change_poll_timer]>->(
+            $tile_name, sprintf( '%.2f', $new_interval )
+        ) if $new_interval ne $last_interval;
+        my $log_msg_str
+            = $c_mode eq 'bgcol'
+            ? "tile color '$tile_name' : $tile_color == <x11_bg_color>"
+            : "tile color '$tile_name' : $last_color (unchanged)";
+        <[base.log]>->( 2, $log_msg_str );
+    }
+
+} else {
+    if ( $c_mode eq 'bgcol' ) {
+        my $is_what_str = $tile_color ne $last_color ? 'active' : 'not empty';
+        my $log_msg_str
+            = "tile color '$tile_name' : $tile_color != "
+            . <tile.x11_bg_color>
+            . " ['$is_what_str']";
+    } else {
+        my $is_what_str
+            = $tile_color ne $last_color ? 'active' : 'inactivity';
+        <[base.log]>->(
+            2,
+            "tile color '$tile_name' : $last_color "
+                . "--> $tile_color ['$is_what_str']"
+        );
+    }
+    <[tile.tile_activity.change_poll_timer]>->(
+        $tile_name,
+        sprintf( '%.2f', $start_interval + rand( $start_interval * 0.1 ) )
+    ) if $last_interval < $start_interval;
+
+    <tile.tile_last_changed>->{$tile_name}    = <[base.time]>->(1);
+    <tile.tile_alert_triggered>->{$tile_name} = 0;
+}
+
+<tile.last_tile_color>->{$tile_name} = $tile_color;
+
+#,,..,,,.,..,,,,.,,,.,..,,,,.,...,.,.,,.,,,,.,..,,...,...,.,,,,.,,..,,.,,,,..,
+#MDCZFX4AKMEJWMOHCXDAXWYJRPO5IZCLZNHDTIF2MAPJSSGX6ANAMGXDU4FWFCRTDEVOPJBNGQOHW
+#\\\|4BYZLFEFGHBF6P3DG3G55TPX2TXMQSUVQLCE5F4JBPEJ27ZUZLA \ / AMOS7 \ YOURUM ::
+#\[7]3E7BCWB7E5XULMTJ3ZQ2LCM2J5ULWPC5MCQ7FOQXGJLDGCNGDWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

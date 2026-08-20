@@ -8,7 +8,7 @@ metadata:
 
 never write actual personal data (email addresses, specific personal file paths, etc.) into any file inside the git repository's working directory — **not even a gitignored file**. personal/sensitive data must live entirely outside the repo tree, referenced from repo-tracked code only via dynamic path-construction helpers or generic external path strings that carry no PII themselves.
 
-**Why:** during the jobcenter evidence-dossier work ([[project-jobsite-report-dossier]]), assistant hardcoded the user's two real email addresses as a regex default directly into `modules/jobsite.report.mail_evidence_collect` (a tracked file). user stopped it immediately: "wait, you cannot write my personal email address into the public repository code.." First fix attempt used a `[load_config_file:'zenki/jobsite/local-secrets']` + gitignored file — user corrected again: "that will likely not work, because the path is outside the repository directory.." meaning even a gitignored file still physically sits inside the repo's working directory, which breaks the established pattern. Only the third attempt was accepted.
+**Why:** during the jobcenter evidence-dossier work ([[project-jobsite-report-dossier]]), assistant hardcoded the user's two real email addresses as a regex default directly into `src/jobsite.report.mail_evidence_collect` (a tracked file). user stopped it immediately: "wait, you cannot write my personal email address into the public repository code.." First fix attempt used a `[load_config_file:'zenki/jobsite/local-secrets']` + gitignored file — user corrected again: "that will likely not work, because the path is outside the repository directory.." meaning even a gitignored file still physically sits inside the repo's working directory, which breaks the established pattern. Only the third attempt was accepted.
 
 **How to apply:** the correct, user-confirmed pattern:
 1. Personal data files live under external dirs already established by convention: `/data/<project>-data/` for bulk personal data (mail exports, letters, CVs — see `jobsite.cfg.*_dir` entries in `cfg/zenki/jobsite/start`), `/etc/protocol-7/<zenka>/<file>` for zenka-specific small config/secrets (precedent: `jobsite.cfg.profile_file`).
@@ -18,8 +18,8 @@ never write actual personal data (email addresses, specific personal file paths,
 
 If personal data is accidentally staged/committed, treat it as a real incident — check history for prior commits before assuming a working-tree fix is sufficient.
 
-#,,,.,,,,,,.,,,,,,,,,,,.,,...,,,.,,..,..,,..,,..,,...,...,,,.,,.,,...,..,,,,.,
-#7KZ7YD46CAIQUFOW45W3CPKTN43NZ3AW5M2IABDL5I6XYAHA2SPAZQ62OIFKDXYX7OWZUJ6IPKOL2
-#\\\|KV7IHYQJW3BGPZN6EGW5A6DJTN2CPCMAFE5VQIOGJ5762MWD3A3 \ / AMOS7 \ YOURUM ::
-#\[7]AUA2KO2TMSS2QACCBS5GZEXMZU5A7NARFTNR6LHF67PDKWCEK2DY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,.,..,,...,..,,.,,,...,..,,.,.,..,,...,...,...,,,,,..,,...,.,.,
+#GBIMWKSSGNPLEJSWSI43UKX6HRSZCYWIHBEYFG2NEGB2D6TP7ICKFUEZB5AQE7F7T5UVIBDI2O5QS
+#\\\|R75D4W2M2P7BYBCUURSRC6WAKBRSJILAAYKVPOGWXYILMHT4OJ3 \ / AMOS7 \ YOURUM ::
+#\[7]U72KOCCEXL3EYEM25KBLINGCFSWFSVE5HIBPKZCEIIHFZCV6KQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

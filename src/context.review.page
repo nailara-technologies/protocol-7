@@ -1,0 +1,112 @@
+## [:< ##
+
+# name  = context.review.page
+# descr = assemble single review page context from plan
+
+my $params = shift // {};
+
+my $plan     = $params->{'plan'}     // {};
+my $page_num = $params->{'page_num'} // 0;
+my $summary  = $params->{'summary'}  // '';
+my $targets  = $params->{'targets'}  // $plan->{'targets'} // [];
+
+my $pages = $plan->{'pages'} // [];
+
+return { 'mode' => qw| false |, 'data' => 'invalid page number' }
+    if $page_num < 0
+    or $page_num >= scalar @$pages;
+
+my $page        = $pages->[$page_num];
+my @files       = $page->{'files'}->@*;
+my $review_type = $plan->{'review_type'} // qw| style |;
+
+## build page context ##
+my $context = '';
+
+## iteration summary from prior pages ##
+if ( length $summary and $page_num > 0 ) {
+    $context
+        .= "## prior review summary [ pages 0-"
+        . ( $page_num - 1 )
+        . " ] ##\n\n";
+    $context .= "$summary\n\n";
+    $context .= "---\n\n";
+}
+
+## review targets if specified ##
+if (@$targets) {
+    $context .= "## review targets ##\n\n";
+    foreach my $target (@$targets) {
+        $context .= "- $target\n";
+    }
+    $context .= "\n---\n\n";
+}
+
+## page header ##
+$context .= sprintf "## page %d of %d [ %d files ] ##\n\n",
+    $page_num, $plan->{'total_pages'} // 0, scalar @files;
+
+## load file contents ##
+my $file_fn = $code{'context.file.extract'} // $code{'context.file'};
+
+foreach my $module (@files) {
+    my $path = "src/$module";
+
+    if ( defined $file_fn ) {
+        my $content = $file_fn->(
+            {   'path'    => $path,
+                'budget'  => int( $page->{'budget'} / scalar @files ),
+                'extract' => qw| header |
+            }
+        );
+        $context .= "$content\n" if defined $content and not ref $content;
+    } else {
+        ## direct read fallback ##
+        if ( -f $path and -r $path ) {
+            open my $fh, '<', $path or next;
+            my $content = do { local $/; <$fh> };
+            close $fh;
+
+            ## strip signature ##
+            $content
+                =~ s|^#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||ms;
+
+            $context .= "## file [ $module ] ##\n\`\`\`\n$content\`\`\`\n\n";
+        }
+    }
+}
+
+## build review prompt ##
+my $prompt = '';
+
+$prompt .= "## review task [ $review_type ] ##\n\n";
+$prompt .= "review the following code modules for $review_type issues.\n";
+$prompt .= "for each file, list findings with module name, line reference, ";
+$prompt .= "severity [ high | medium | low ], and suggested fix.\n\n";
+
+if (@$targets) {
+    $prompt .= "specific targets:\n";
+    foreach my $t (@$targets) {
+        $prompt .= "- $t\n";
+    }
+    $prompt .= "\n";
+}
+
+$prompt .= $context;
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'prompt'    => $prompt,
+        'page_num'  => $page_num,
+        'files'     => \@files,
+        'char_size' => length $prompt,
+        'token_est' => int( length($prompt) / <context.cfg.chars_per_token> )
+    }
+};
+
+#,,.,,.,,,,,.,..,,,,.,...,,..,,,,,..,,..,,,,,,..,,...,..,,..,,...,.,,,...,.,,,
+#L6NR265FY53DIEJMAJ7RDN4EXVTPA7BKG555PLOCKTGE4OY5CN5KDWGGUTGWAHKPXGDH7IJUZOS4M
+#\\\|T4MWI6FJHQY5PBWMZXYJ3X4MB5U25F7AO4BE37ETRHKYVNOLWP6 \ / AMOS7 \ YOURUM ::
+#\[7]Z3SXXECWBU2UZMOJRIYHXAKFFSHEZKAJRGX6YVY3PVF6HYHHSWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

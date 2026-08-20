@@ -30,7 +30,7 @@ in the "already built" replacement before deleting anything —
   fully-qualified runtime calls)
 - `var/sys-deps` ownership/perms in `v7.check_zenka_deps`
 - a `return`-inside-`eval{}` bug in `bin/os-pkg load_tracked`
-- `modules/sys-deps.cmd.install` was a stub, filled in for real
+- `src/sys-deps.cmd.install` was a stub, filled in for real
 
 Then executed: deleted `v7.init_code:128-167`'s dead block + `v7.verify_and_install_zenka_dependencies`
 + `base.ensure_zenka_dependencies` (zero callers, fully orphaned) + 26 `debian.*` files per the audit
@@ -57,8 +57,8 @@ apt-installed on the host from K3's live dep-install testing — no root to remo
 [[project-ondemand-zenki-registry-wipe]] · [[topic-auth-client-namespace-split]] ·
 [[project-kimi-k2.7-vs-k3-tier-economics]] · [[project-depgraph-conditional-calls-blindspot]]
 
-#,,.,,..,,...,,..,...,,,.,,.,,..,,,.,,.,.,..,,..,,...,..,,.,,,...,,,,,,..,,,,,
-#CN6OSQV2DQE4IDN57FFNX3Z3LAJGR22AMF6BARIK7U3WUE54K3F5EHREWTPQJBQSMS4DTFFKFUDY4
-#\\\|YMPSIHVSAFCOHHDONODQF4GUSBRJMRGEYNXZZERUWACCZMUY2UY \ / AMOS7 \ YOURUM ::
-#\[7]WVBB23LA6AMNZRBACDHL3476Y4A4DO3X6KNIUSRWYYTUXOEF5KBQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,,..,,..,...,..,,..,,,.,,.,,,..,,...,...,.,.,..,,.,,,,,.,,..,
+#WI2LGMFSEMUI4R7Z36RWMTUSO6QXHA7RXWZV2ZFZQ7ZIAUAMVGGYBMACGBUVJ6LVOVFVW2ZMNT4DY
+#\\\|DKEETFLWBCSKLMCAIC4IHPP5MYHCC2FEUY6QXIZ2MRH75OMG36G \ / AMOS7 \ YOURUM ::
+#\[7]N4PMWJELDSUTSVWGE7MD6STM7BUFFNLT6ALH73DSUH66XLHAG6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

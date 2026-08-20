@@ -45,7 +45,7 @@ known or no permission". two compounding issues:
 ## changes
 
 1. **create `.cmd.` console wrapper modules**, modeled directly on
-   `modules/credential_fabric.cmd.approve` (positional `$call->{'args'}`
+   `src/credential_fabric.cmd.approve` (positional `$call->{'args'}`
    parsing via `split qr|\s+|, $args_str, 2`, NOT hashref params — the
    internal subs it bridges to expect hashrefs):
    - `credential_fabric.cmd.resolve` — wraps `<[credential_fabric.
@@ -64,7 +64,7 @@ known or no permission". two compounding issues:
      => \%summary }` if it returns structured data — your call, but
      check how other `.cmd.` list-style commands in the codebase format
      their replies and be consistent
-   read `modules/credential_fabric.resolve` and `modules/
+   read `src/credential_fabric.resolve` and `src/
    credential_fabric.rotate` carefully for their exact param shapes,
    return-value `mode`/`data` conventions, and error strings — your
    wrappers must surface those faithfully, not swallow or reshape them
@@ -116,8 +116,8 @@ known or no permission". two compounding issues:
   findings doc are walkable from a `p7c` console session as an admin
   user (verified live, or explicitly marked unverified with reason)
 
-#,,,,,.,,,,..,.,,,,,,,,..,,,,,,,.,,,,,,,,,,,.,..,,...,...,..,,.,,,,..,,,.,...,
-#VETOTLRYU5ODNYSTXYAJOIND5D4GXQCD5M5TVBIN2UK5QXZUWPZEXI4CWFHZMSBPTFT5JSA6DS7H2
-#\\\|RVSBT3CI5Z7OOX4VAUILRGN4D5BI3FKMBE7RUG72IQ262PBSVXS \ / AMOS7 \ YOURUM ::
-#\[7]FHR6MGTFLSZFXJGMD3Y5Q5W54ZL3MT3SVCN6XPSGVQS7CABO5ADI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,,,,..,.,,,,,,,.,.,.,,,.,.,,,.,..,,...,...,...,...,.,.,,,,,,..,
+#WMZTTIA7RJ3JT2YXJNDLHKTQNQ6D2VC5ZH7YTENMXSK6D76OC5L4KP2QCYVURTVZFKI3CA2J33IGO
+#\\\|N3UOQT2JQTTVTVXUAO2X2TWMMBQD5VNXWLV4MKNDMKLFAYGN33W \ / AMOS7 \ YOURUM ::
+#\[7]UIWRELFNFYS2SMZHFQGUXVBPIR6EGIIVY4WU3IKYDHNWGZIBFIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

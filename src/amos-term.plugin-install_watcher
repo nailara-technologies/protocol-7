@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = amos-term.plugin-install_watcher
+# descr = Install inotify hot-reload watcher on amos-term plugin source files
+#
+# Plugin source files live flat under src/ as
+# amos-term.plugin-<type>.<name>. We watch the src/ directory and reload
+# any loaded plugin whose source file changes.
+
+return TRUE if defined <amos-term.plugin-watcher>;
+
+<[base.inotify.install_io_watcher]>;
+
+my $inotify = <base.obj.inotify>;
+return FALSE unless defined $inotify;
+
+my $root_path   = <system.root_path> // qw| . |;
+my $modules_dir = sprintf( '%s/%s', $root_path, qw| src | );
+
+return FALSE unless -d $modules_dir;
+
+$inotify->watch(
+    $modules_dir,
+    IN_CLOSE_WRITE() | IN_MODIFY(),
+    sub {
+        my $event = shift;
+        my $name  = $event->name // return;
+
+        ## === only watch amos-term plugin source files === ##
+        return if $name =~ m|^\.|;
+        return if $name =~ m|~$|;
+        return unless $name =~ m|^amos-term\.plugin-([^.]+)\.(.+)$|;
+
+        my $module = $name;
+
+        return unless exists <amos-term.plugin-loaded>->{$module};
+
+        <[base.logs]>->( 2, "[plugin-watcher] reloading %s", $module );
+
+        my ( $ok, $failed ) = <[base.load_code]>->($module);
+
+        if ( $failed or not $ok ) {
+            <[base.logs]>->(
+                0, "[plugin-watcher] reload failed for %s", $module
+            );
+        } else {
+            <amos-term.plugin-loaded>->{$module}->{'loaded'} = <[base.ntime]>;
+            <[base.logs]>->( 2, "[plugin-watcher] reloaded %s", $module );
+        }
+    }
+);
+
+<amos-term.plugin-watcher> = TRUE;
+
+<[base.logs]>->(
+    2, "[plugin-watcher] watching %s for plugin changes", $modules_dir
+);
+
+return TRUE;
+
+#,,..,.,,,,,,,,,.,,,.,,.,,...,.,,,,,.,,..,,..,..,,...,...,...,.,,,,.,,...,,..,
+#L76NG6OGNPNFRCDRXS623X4ELFHFZSLX3PBBDZNAFUROYESAPOJKYYN3ER3YDH4TP4O5LHI3Y7LOA
+#\\\|O23JSOR75WVJSGMCERJNSYTP7ISIXCR7VHTGA3HYY3WENPH5GSC \ / AMOS7 \ YOURUM ::
+#\[7]HG4CS5LOH2IHDZOVWXIJQ4JJSVLDFNO3ZXQ66KJNKKJBINFFTOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

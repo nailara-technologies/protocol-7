@@ -35,7 +35,7 @@
 
 ## session 48b — stale endline recovery + vc-changed-files fix (2026-05-23)
 
-- **`source.cmd.get-code-signed`**: stale endline recovery — on validation failure in `modules/`
+- **`source.cmd.get-code-signed`**: stale endline recovery — on validation failure in `src/`
   path with ≤1 trailing newlines, normalize metadata to state=5 and re-sign clean
   - block placed INSIDE the `else` (not-valid) branch, AFTER verification — signing/verification
     asymmetry was kimi's original mistake (normalized before verify → checksum mismatch)
@@ -472,7 +472,7 @@ open issues:
 - substr(0,5) vs 11-char string → always true bug found (header changed in 2021)
 - fix: index() check + $code_dir eq <source.code_path> (exact path, not regex)
 - error message now includes filename
-- modules/.context.md removed (dotfile invisible to glob *)
+- src/.context.md removed (dotfile invisible to glob *)
 - source.extract_sig_body: YOURUM fake stub detection (yourum-fake-signature flag)
 
 **smtpd zenka**: 14 modules, YAML conversion, LLM classify, xz+twofish archive
@@ -529,7 +529,7 @@ open issues:
 **source header validation** FINALLY ENABLED:
 - substr(0,5) vs 11-char comparison bug found (dead code since 2021 header change)
 - fix: index() + $code_dir eq <source.code_path> (exact path scope)
-- .context.md removed from modules/ (glob-invisible dotfile)
+- .context.md removed from src/ (glob-invisible dotfile)
 - YOURUM fake stub detection added to source.extract_sig_body
 
 **TAWS + Amiga vision captured**:
@@ -827,7 +827,7 @@ loads automatically. Foreign namespace plugins don't pre-load without registrati
 
 ## session 12 — valued tree + iteration loop + sushi coder (2026-05-08)
 
-### valued tree primitive (modules/valued.*)
+### valued tree primitive (src/valued.*)
 - valued.init_code, valued.node.create/add_ref/remove_ref/set_weight
 - valued.resolve (N+f effective priority), valued.tree.load/register_node
 - valued.tree.record_outcome, valued.tree.persist/restore (survives restarts)
@@ -841,7 +841,7 @@ loads automatically. Foreign namespace plugins don't pre-load without registrati
 - branches-meta-workflow.yaml (post-success/blocked/surprising, workflow-query,
   template-query, session-summary — parallel non-blocking activities)
 
-### iteration loop system (modules/iteration.*)
+### iteration loop system (src/iteration.*)
 - iteration.init_code, iteration.loop, iteration.score_result
 - iteration.template.delta (issue-to-patch classifier)
 - iteration.finish, iteration-loop.yaml template
@@ -1360,8 +1360,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
   request-dispatch not first-byte; was reading as a contradiction
   against the data-start-timeout log line).
 
-#,,,,,..,,,..,.,,,,..,,,.,,,.,,..,,.,,,,.,..,,..,,...,...,.,.,,,.,,..,...,,,,,
-#Y7CMOKVZM7GILSTW6GRXBIQVIIVC7FDN3B2P5EPEMXIHM2B6EH3WE6QBM5QCOEWKVGP65VLLQAFRU
-#\\\|D2FGLSKTGI6NY6UYYEDA3U4TRBMWSYNJQW3NW2EX5PMHH44RK7A \ / AMOS7 \ YOURUM ::
-#\[7]RKK3KBUU6GF2YXR6JZUFVZN6PIX5K5LCIIJK7MJ57VMWKTSXFUDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,,.,,,,,,.,,.,.,...,...,...,,.,,..,,...,...,.,,,..,,,,.,,,.,..,,
+#PDM3TVHW7DYOGJ5BNII52IQTNANHDGG7XLXSGSJT3YVKHPOJSPJ6FBUHNRQSD3HWLTLZPS3R6XJKK
+#\\\|ANIOSWU7IXP3W3PDX2XQJQB6MQOLFLQU55HVAXPLYB6ZTFMOQZW \ / AMOS7 \ YOURUM ::
+#\[7]VS6WORLX7F5TQY6U2SVYQE5NREN2JPHXADOVZF7ZDUVP75BVVKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,31 +12,31 @@
 - [x] Diagnostic tools
 
 ## Files Implemented
-- [x] `modules/httpd.file_transfer.init` - Initialize non-blocking file transfer
-- [x] `modules/httpd.file_transfer.read_chunk` - Read file chunks asynchonously
-- [x] `modules/httpd.file_transfer.timeout` - Handle transfer timeouts
-- [x] `modules/httpd.file_transfer.cleanup` - Clean up transfer resources
-- [x] `modules/httpd.benchmark.init` - Initialize benchmark framework
-- [x] `modules/httpd.benchmark.start_request` - Start benchmarking request
-- [x] `modules/httpd.benchmark.end_request` - End benchmarking
-- [x] `modules/httpd.benchmark.collect_metrics` - Collect performance metrics
-- [x] `modules/httpd.benchmark.sample_memory_usage` - Sample memory usage
-- [x] `modules/httpd.benchmark.report` - Generate performance report
-- [x] `modules/httpd.benchmark.get_event_loop_metrics` - Get event loop health data
-- [x] `modules/httpd.diagnostic.init` - Initialize diagnostic system
-- [x] `modules/httpd.diagnostic.track_operation` - Track start of operations
-- [x] `modules/httpd.diagnostic.end_operation` - Track end of operations
-- [x] `modules/httpd.diagnostic.report` - Generate diagnostic reports
-- [x] `modules/httpd.http_get` - Non-blocking HTTP GET handler
-- [x] `modules/httpd.http_head` - Non-blocking HTTP HEAD handler
-- [x] `modules/httpd.parse_range_header` - Parse HTTP Range headers
-- [x] `modules/httpd.send_error_page` - Send HTTP error pages
-- [x] `modules/httpd.directory_listing` - Generate directory listings
-- [x] `modules/httpd.get_mime_type` - Determine MIME types
-- [x] `modules/httpd.path_info` - Process path information
-- [x] `modules/httpd.new_header` - Create HTTP response headers
-- [x] `modules/httpd.update_download_count` - Track download statistics
-- [x] `modules/httpd.http_import` - Import dependencies
+- [x] `src/httpd.file_transfer.init` - Initialize non-blocking file transfer
+- [x] `src/httpd.file_transfer.read_chunk` - Read file chunks asynchonously
+- [x] `src/httpd.file_transfer.timeout` - Handle transfer timeouts
+- [x] `src/httpd.file_transfer.cleanup` - Clean up transfer resources
+- [x] `src/httpd.benchmark.init` - Initialize benchmark framework
+- [x] `src/httpd.benchmark.start_request` - Start benchmarking request
+- [x] `src/httpd.benchmark.end_request` - End benchmarking
+- [x] `src/httpd.benchmark.collect_metrics` - Collect performance metrics
+- [x] `src/httpd.benchmark.sample_memory_usage` - Sample memory usage
+- [x] `src/httpd.benchmark.report` - Generate performance report
+- [x] `src/httpd.benchmark.get_event_loop_metrics` - Get event loop health data
+- [x] `src/httpd.diagnostic.init` - Initialize diagnostic system
+- [x] `src/httpd.diagnostic.track_operation` - Track start of operations
+- [x] `src/httpd.diagnostic.end_operation` - Track end of operations
+- [x] `src/httpd.diagnostic.report` - Generate diagnostic reports
+- [x] `src/httpd.http_get` - Non-blocking HTTP GET handler
+- [x] `src/httpd.http_head` - Non-blocking HTTP HEAD handler
+- [x] `src/httpd.parse_range_header` - Parse HTTP Range headers
+- [x] `src/httpd.send_error_page` - Send HTTP error pages
+- [x] `src/httpd.directory_listing` - Generate directory listings
+- [x] `src/httpd.get_mime_type` - Determine MIME types
+- [x] `src/httpd.path_info` - Process path information
+- [x] `src/httpd.new_header` - Create HTTP response headers
+- [x] `src/httpd.update_download_count` - Track download statistics
+- [x] `src/httpd.http_import` - Import dependencies
 
 ## Testing Procedure
 1. Run basic HTTP requests (GET, HEAD)
@@ -51,7 +51,7 @@
 
 ### Critical: Watcher Spinning on Client Disconnect
 - [x] **Status**: FIXED (2025-11-05)
-- [x] **Module**: `modules/httpd.handler.download_transfer`
+- [x] **Module**: `src/httpd.handler.download_transfer`
 - [x] **Issue**: Clients disconnecting mid-transfer caused infinite watcher loop → CPU spinning → heartbeat timeout crashes
 - [x] **Root Cause**: Used `->stop()` instead of `->cancel()` in ABORT_DOWNLOAD path, leaving watchers registered
 - [x] **Trigger Scenarios**:
@@ -65,8 +65,8 @@
 
 ### Critical: Signature Endline Policy System
 - [x] **Status**: FIXED (2025-11-05)
-- [x] **Module**: `modules/source.create_harmonic_footer`, `modules/source.cmd.get-code-signed`
-- [x] **New Modules**: `modules/source.policy.should_normalize_endlines`, `modules/source.normalize_endlines`
+- [x] **Module**: `src/source.create_harmonic_footer`, `src/source.cmd.get-code-signed`
+- [x] **New Modules**: `src/source.policy.should_normalize_endlines`, `src/source.normalize_endlines`
 - [x] **Issue**: Signatures appended directly to code lines without separator endlines after perltidy formatting
 - [x] **Root Cause**: State 6 (add separator endline) logic failed when content had NO trailing newlines
 - [x] **Impact**: Broken endlines perpetuated through preserve/restore system
@@ -77,7 +77,7 @@
 
 ### Minor: List::MoreUtils Prototype Warnings
 - [x] **Status**: FIXED (2025-11-05)
-- [x] **Module**: `modules/base.perlmod.autoload`
+- [x] **Module**: `src/base.perlmod.autoload`
 - [x] **Issue**: Neon-colored prototype mismatch warnings for qsort/bsearch during httpd startup
 - [x] **Violation**: Protocol-7's zero-warnings policy for zenki
 - [x] **Root Cause**: List::MoreUtils loaded with ':all' exports in bin/Protocol-7:262, function prototypes already in place
@@ -101,7 +101,7 @@
 ## Code Review Documentation
 All code-review findings documented in:
 ```
-/data/projects/protocol-7/data/yaml/code-reviews/modules/
+/data/projects/protocol-7/data/yaml/code-reviews/src/
   ├── httpd.handler.download_transfer (98 lines)
   ├── base.perlmod.autoload (103 lines)
   ├── crypt.C25519.init_code (335 lines)
@@ -149,8 +149,8 @@ Next phase priorities:
 - **2025-11-05**: Added critical bug fixes, test infrastructure, code-reviews
 - **2025-11-07**: Integrated all code-review findings and organized documentation
 
-#,,.,,.,.,...,.,,,,,.,,..,..,,,,,,,..,,,.,,,,,..,,...,...,,,,,,.,,.,.,,.,,.,.,
-#FBUJKMUGHEJAXY4QGHHPNZ2BY2P3SJGWUKO4E3M432XNJPNEMMIUAFFD4OR5LMQYBUKRZTXRBOSQC
-#\\\|PRRMUOTTICWS5HF76OPU2WINSWSYES6HAXKWQAFYGBQGOEYPPOC \ / AMOS7 \ YOURUM ::
-#\[7]PRT65DVW3QOL2PEM2A64GEIS6CUOPB2GI5Z4GEVIIZ3ODO5ETWDA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,.,.,.,,,.,,,.,.,..,,,,,,..,,..,,...,...,...,..,,,,.,.,,,.,,,
+#KORG3BD3QP42I464Y44YKCBAWWJD6ZKWPSEYMICWO7BYH5WZEDZY5Z4VGLXMZ3ANCDAOHUYJYFJMK
+#\\\|F2DCGP34NK6MAHSIVUNCGY77DOI37KRT23U4JEG4JNGWROGLUUU \ / AMOS7 \ YOURUM ::
+#\[7]GUJO4TH2ABDWRIVCCCXARW6QHGIZDHD3ABDN3YQKM5GBLESX66AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

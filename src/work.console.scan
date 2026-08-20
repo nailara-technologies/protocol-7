@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = work.console.scan
+# param = [force]
+# descr = scan git history for issues
+
+my $param = shift;
+my $force = ( $param && $param eq 'force' ) ? 1 : 0;
+
+<[base.log]>->( 1, "Scanning git history..." );
+
+## Trigger scan
+my $result = <[work.parent.scan_history]>->( { force => $force } );
+
+if ( $result->{cached} ) {
+    my $age = $result->{age};
+    return
+        say "::\n: ℹ Using cached scan from ${age}s "
+        . "ago\n: Use 'scan force' to rescan\n::";
+}
+
+unless ( $result->{success} ) {
+    my $error = $result->{error} || 'unknown error';
+    return say "::\n: ✗ Scan failed: $error\n::";
+}
+
+## Show results
+my @output;
+push @output, "::";
+push @output, ": Git History Scan Results";
+push @output, ":";
+push @output,
+    sprintf( ": %-30s: %d", "Total commits", $result->{total_commits} );
+push @output,
+    sprintf( ": %-30s: %d", "Issues found", $result->{issues_found} );
+push @output,
+    sprintf( ": %-30s: %d", "Unsigned commits", $result->{unsigned} );
+push @output,
+    sprintf( ": %-30s: %d", "Version gaps", $result->{version_gaps} );
+push @output,
+    sprintf( ": %-30s: %d",
+    "Email addresses found",
+    scalar( keys %{ $result->{emails} } ) );
+push @output, ":";
+
+if ( $result->{issues_found} > 0 ) {
+    push @output, ": Actions available:";
+    push @output, ":   work fix-versions     # Fix missing version numbers";
+    push @output, ":   work harmonize-emails # Standardize email addresses";
+    push @output, ":   work resign           # Sign unsigned commits";
+}
+
+push @output, "::";
+
+return say join( "\n", @output );
+
+#,,,.,.,.,,,,,.,.,...,,.,,.,,,.,.,...,...,...,..,,...,...,.,,,,.,,,..,,,,,.,,,
+#OICUYMN23M6RNJMQ5XSKQLFE4FRW6ZWZNNCJOHRLHAGIZBRXH23BKPYWT6OB76VBX4VIBZP5DLPQ2
+#\\\|J6IU5D7P6F5SIKLLE6ROEFJENGC3DN5CKD5DEVQUHYEMES2RCHX \ / AMOS7 \ YOURUM ::
+#\[7]7YKMTE6V74MW37HXD5SRRQPGMIKOYX5HJU3C2ZHQYB2OTDRXTEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

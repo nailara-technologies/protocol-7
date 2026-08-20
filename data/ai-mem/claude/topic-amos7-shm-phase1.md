@@ -14,12 +14,12 @@ SHM vision, and [[topic-summary-tree-phase1]] for the motivating incident
 
 ## What landed
 
-Promoted `modules/data.mount.shm.*`'s mmap/header-pack-unpack/permission-
+Promoted `src/data.mount.shm.*`'s mmap/header-pack-unpack/permission-
 signature-verification core into standalone-loadable `AMOS7::SHM`
 (`data/lib-path/pm/AMOS7/SHM.pm`), via the same `$main::PROTOCOL_SEVEN`
 hybrid pattern `AMOS7::CHKSUM` already proves out. All 18 affected
 `data.mount.shm.*` modules are now thin wrappers calling into the package —
-same relationship `modules/base.chk-sum.amos` has to
+same relationship `src/base.chk-sum.amos` has to
 `AMOS7::CHKSUM::amos_chksum`. Zero behavior change on the zenka path was the
 explicit bar, verified via `p7c data.shm-self-test` before/after.
 
@@ -62,9 +62,9 @@ the new paging/feedback design is required before phase 3, not yet done.
 Calling `lock_memory` (uses `IO::AIO::aio_mlock`) and then `fork()`ing hung
 the child at 100% CPU indefinitely — `IO::AIO`'s background worker-thread
 state does not survive `fork()` cleanly. This is a **known, already-solved
-problem elsewhere in this codebase**: `modules/base.process-into-background`,
-`modules/vision-batch.parent.fork_child`, and
-`modules/weather.base.fork_weather_child` all call `IO::AIO::reinit()`
+problem elsewhere in this codebase**: `src/base.process-into-background`,
+`src/vision-batch.parent.fork_child`, and
+`src/weather.base.fork_weather_child` all call `IO::AIO::reinit()`
 immediately after `fork()` for exactly this reason — user pointed this out
 directly with the exact grep results.
 
@@ -152,7 +152,7 @@ is in `data/tasks/amos7-shm-paging-feedback.md`'s "RESOLVED" section.
 ### What actually landed, and two real incidents during implementation
 
 `AMOS7::SHM::Feedback` (`data/lib-path/pm/AMOS7/SHM/Feedback.pm`) + 7 thin
-zenka wrappers under `modules/data.mount.shm.feedback.*` + a 5th self-test
+zenka wrappers under `src/data.mount.shm.feedback.*` + a 5th self-test
 check. Package design matches spec precisely on review (pack format,
 clamping, clock-regression guard, non-blocking FIFO semantics).
 
@@ -209,8 +209,8 @@ to cover the phase-3 FIFO's lifecycle alongside the segment's.
   fork and add a timing gap, or you'll get a false positive from whatever
   fallback path silently activated.
 
-#,,,,,...,,,.,.,.,,.,,,.,,,,,,..,,,,,,.,.,.,.,..,,...,.,,,...,..,,...,,,,,,,,,
-#SL7HHBCB3IKCHN5U2BFNMKPJH7LIMU44LNEPGFWCD3BIEP3PEZBKNFE254GKXJLVU7ZSW5KL45FLM
-#\\\|Y4K7LV6KLXRJ2OKKLYP2GMXWYPCTZMMVMFOCPWOFBD4RVZRJPWL \ / AMOS7 \ YOURUM ::
-#\[7]5JAWDC6BV744JNRFWK64BJWXS7U52NZONAOWXXOLP735HUPFGQCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,,,.,...,,.,,.,,,.,,,.,,,,,,,..,,...,...,.,.,,..,,,.,.,.,,,.,
+#BQTXMP7QA4OHWBITVL4PEVO2ZF4HOHQ4PPV7QRLDCQO4JC42WBDSGZFZONMMZK56DVM37XJBABWPW
+#\\\|344W5HXJ67UPXPMXDRVVQP3OCBFXAVBTVH2O3ZUDYTOGMUBJIQH \ / AMOS7 \ YOURUM ::
+#\[7]COQCQPXXGBIOVCCYAC7NKEDIXVGVNWT5NLFRFOMCKKRFRTRDNSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

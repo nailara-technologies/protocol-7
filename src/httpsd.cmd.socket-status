@@ -1,0 +1,57 @@
+## [:< ##
+
+# name = httpsd.cmd.socket-status
+# descr = report SSL socket status and certificate availability
+# return = { mode => 'true'|'false', data => status_information }
+
+my $cert_file = <httpsd.cfg.certificate_path>;
+my $key_file  = <httpsd.cfg.key_path>;
+
+## check if socket has been created and is listening
+my $socket_created = defined <httpsd.sock> && fileno(<httpsd.sock>);
+
+if ($socket_created) {
+    ## socket is created and listening - fully operational
+    my $output = sprintf(
+        "Status: operational\nDescription: HTTPS socket is listening "
+            . "and operational\nCertificate: %s\nKey: %s\nTLS Version: %s",
+        $cert_file               // 'not configured',
+        $key_file                // 'not configured',
+        <httpsd.cfg.tls_version> // 'TLSv1_3'
+    );
+    return { mode => qw| size |, data => $output };
+} else {
+    ## socket not yet created - check why
+    my $cert_info = <[httpsd.check_certificate_available]>;
+
+    if ( $cert_info->{available} ) {
+        my $output = sprintf(
+            "Status: ready_for_socket\nDescription: Certificate available "
+                . "but socket not yet created\nCertificate: %s\nKey: "
+                . "%s\nNote: Socket creation deferred (non-root or startup "
+                . "timing)",
+            $cert_file // 'not configured',
+            $key_file  // 'not configured'
+        );
+        return { mode => qw| size |, data => $output };
+    } else {
+        my $retry_count = <httpsd.startup.retry_count> // 0;
+        my $output      = sprintf(
+            "Status: waiting_for_certificate\nDescription: Waiting for "
+                . "certificate provisioning from letsencr\nCertificate: %s "
+                . "(not found)\nKey: %s (not found)\nRetry Count: "
+                . "%d\nAction: Use 'p7c httpsd.socket-status' to check again",
+            $cert_file // 'not configured',
+            $key_file // 'not configured', $retry_count
+        );
+        return { mode => qw| size |, data => $output };
+    }
+}
+
+0;
+
+#,,,,,.,.,,,.,,.,,,,,,.,.,,..,..,,.,,,,,.,,,,,..,,...,..,,...,...,...,,.,,,.,,
+#CQEZNCTQPUOCHZNVHASTX4KG4YIYZP5YNNQYTDWIAJAXC54JXO74LTNWLCXFA6RNPKRGTX3BWKJFU
+#\\\|V5CL5NKVCF2SZNV6XEHSTXJG4C6PTXOYMXNYOO2253JI7E7HXGC \ / AMOS7 \ YOURUM ::
+#\[7]JDSNNL5AG6KTIVEYSH4G66O5M4Y6B37RYJ4NUF5ST35X7NXSFWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

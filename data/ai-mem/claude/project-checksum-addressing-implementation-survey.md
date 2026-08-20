@@ -91,7 +91,7 @@ caller invents its own type vocabulary inline, so registering a new TYPE
 - **TYPE registry**: does not exist. Every caller (`base.p7ref.self`,
   `space.register.node`, `plugin.storage.p7ref.*`,
   `base.p7refs.gen_template_chksum`) has its own disjoint type vocabulary.
-  `CGROUP` as a literal token appears nowhere in `modules/`.
+  `CGROUP` as a literal token appears nowhere in `src/`.
 - **Cubic/8-cube/void geometry**: 100% design-doc
   (`VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md`, `GRID-HARDNODE-CURSOR-MODEL.md`,
   `ROUTING-CRYSTAL-HARMONIC-INFERENCE.md`, etc.) — zero runtime code.
@@ -146,8 +146,8 @@ whether/when P7REF itself gets unified.
 [[project-zenka-cryptographic-identity-survey]]
 [[users-zenka-yaml]]
 
-#,,,,,..,,,.,,,,.,,.,,.,.,.,,,,.,,,,.,,..,.,.,..,,...,...,,..,,.,,..,,.,.,.,,,
-#V2DOQPH7NHSXCI2RXIJQT56ECHKM6IC5AZKBUOISWUO2EBMG5RQSY7SQ4IC6Y3USDQZCRQN63Y4Z4
-#\\\|YUI2QBCZFWKHJ3OTIAAGJOLA37O4N6GNTX5AAMRFHT55EBIG6LJ \ / AMOS7 \ YOURUM ::
-#\[7]NBW4G56JQMFQ62IFHENZUGQDJOSJDB46DAEOPYFQQSVZCHW3AACI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,.,,,...,..,,,.,,.,,,,..,..,,..,,...,...,.,.,,.,,..,,,.,,,..,
+#VIUG4YUGOMKNIKPX7BJZHYERU7LYPJ3HOX7J5JRGNBXNWXUUTA6ILGFJRZ2Y2LQHG7XJSUBG6PEY2
+#\\\|DG33FCWHL77U63Z2LK2O6GKA2E34QAHTC4QWJ7NCHLVUDGQLLTY \ / AMOS7 \ YOURUM ::
+#\[7]CJ7MW4DWZ54NQ6WGK6LR4IOD5QAVP5QFPNYQZRECH45DPYYIWODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

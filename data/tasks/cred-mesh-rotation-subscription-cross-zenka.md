@@ -63,7 +63,7 @@ logic. Subscribers now register `proxy.cred-rotated` /
 raw `.handler.` names. Regenerated whitelists via
 `bin/dev/gen-sub-whitelist <zenka>` rather than hand-editing (per the
 project's own house rule — do not hand-edit whitelists, and a
-directly-relevant example: `ls modules/*cmd*update*` shows this
+directly-relevant example: `ls src/*cmd*update*` shows this
 receive-a-push-via-`.cmd.` shape is already used by many zenki).
 
 Also found and cleaned up a previous, undocumented workaround attempt in
@@ -154,8 +154,8 @@ re-running a permission check using the *original* command string for
 logging purposes, mislabeling the reply-completion as cred-mesh
 initiating a fresh call to itself. This is speculative — needs a clean
 trace through `base.route.add` / `base.handler.command`'s reply-dispatch
-path (see `modules/base.handler.command.route_to_target`,
-`modules/base.protocol-7.command.send.local` lines ~56-65 where the route
+path (see `src/base.handler.command.route_to_target`,
+`src/base.protocol-7.command.send.local` lines ~56-65 where the route
 + reply handler get set up) with a fresh, focused session rather than
 more live poking at this hour.
 
@@ -175,7 +175,7 @@ explanation): `cube` still logs
 by the unrelated bug-5 base32-prefix fix below, confirming this permission
 issue is the actual remaining blocker for those two assertions.
 
-`grep -rn subscribe_rotation modules/` shows **no code anywhere** that has
+`grep -rn subscribe_rotation src/` shows **no code anywhere** that has
 `cred-mesh` call `cred-mesh.subscribe_rotation` (or
 `cred-mesh.cmd.subscribe_rotation`) on itself — the only callers are
 `proxy.handler.subscribe_rotation_deferred` and
@@ -186,12 +186,12 @@ end — **the bug is not at the call site, it's in a loaded module along the
 routing/permission-check path** (current working suspicion, unconfirmed).
 
 Traced one layer further into `base.protocol-7.command.send.local`
-(`modules/base.protocol-7.command.send.local:23`): the regex
+(`src/base.protocol-7.command.send.local:23`): the regex
 `s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|` strips the first dotted
 segment off `cred-mesh.subscribe_rotation` as the routing `target_name`
 (`cred-mesh`), leaving the remainder `subscribe_rotation` as the wire
 command — but the actual receiving-end command is registered as
-`cred-mesh.cmd.subscribe_rotation` (see `modules/cred-mesh.cmd.subscribe_rotation`),
+`cred-mesh.cmd.subscribe_rotation` (see `src/cred-mesh.cmd.subscribe_rotation`),
 not bare `subscribe_rotation`. Whether this mismatch is *the* bug or a
 red herring wasn't established — didn't get far enough to confirm what
 `base.handler.command` (where the `no perm.` log line at line 1042 actually
@@ -264,7 +264,7 @@ simpler than that):
    `modules.load = auth net protocol io.unix ui cred-mesh credential proxy \
    ascii.frame format.yaml httpd.status_codes devmod`.
 3. `cfg/zenki/cred-mesh/start:35` calls `[init_modules]` with
-   **no arguments**. `modules/base.init_modules` lines 22-23, when called
+   **no arguments**. `src/base.init_modules` lines 22-23, when called
    unscoped, does `<[base.sort]>->( \%code )` over **every** compiled sub
    in `%code` regardless of zenka-namespace origin, and executes (line 68:
    `$code{$sub_name}->(...)`) any `.pre_init`/`.init_code`/`.post_init` it
@@ -296,7 +296,7 @@ rotation-subscribe timer, the very last thing in the file — was left
 unguarded**, the one spot the original author missed.
 
 **FIXED**: added `if $is_proxy_zenka` to that one `event.add_timer` call
-in `modules/proxy.init_code`. `cfg/zenki/cred-mesh/start` itself
+in `src/proxy.init_code`. `cfg/zenki/cred-mesh/start` itself
 does not need changing — keeping `proxy` in cred-mesh's `modules.load` is
 fine now that the guard is complete; cred-mesh may still reference plain
 `proxy.*` helper subs directly, just never runs proxy's own init side
@@ -414,8 +414,8 @@ longer throws `undefined value as subroutine reference`.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,,,,..,,.,,,,..,..,,...,,,,,...,...,...,.,.,..,,...,...,.,,,,,.,,..,,..,.,,,
-#COHMFEAOUV6WUK42ZX4LMPVPIOUB73AHA2HPQWQOHFTQI24HLEN73XC74ANEXCCVIFYWH5LG27DYM
-#\\\|WOFT47ZE65ONCKOY4WF4EIEBWDQX7RO2R6SYWYREHXNWTP2TY76 \ / AMOS7 \ YOURUM ::
-#\[7]FQCJUYY7AUO73K3OTKPODAM3OKRHSVSBPK23QIDFJEU3NQQR2UAY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,,,.,.,.,,,.,..,,.,,,..,,,,.,..,,...,...,..,,.,.,,,,,.,.,..,,
+#LAAIOSBUTR5WOLPZGUZETFWWAWGAH5XBVIFLNHDFOXCHQTOZIBCM2BNBRNESJRCOBDNRGBGTOFX6U
+#\\\|V4RFFWCCU3D62JDUEY7JS3Z6BRKWQ2YTNDYSRRG5RA3YOGT3ZXU \ / AMOS7 \ YOURUM ::
+#\[7]J3GLDOGSZGV2Z5WG2KD4MYO2OMHLQLE53JNRAHRRSWQKTCYASUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

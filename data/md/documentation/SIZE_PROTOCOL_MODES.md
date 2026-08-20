@@ -250,14 +250,14 @@ if ( $next_hop->{'strm_size_support'} ) {
 
 ## References
 
-- Protocol-7 base handler: `modules/base.handler.command` (STRM-SIZE handling)
-- Timeout handlers: `modules/base.handler.strm_size_idle_timeout`, `modules/base.handler.strm_size_absolute_timeout`
-- Timer callback: `modules/base.callback.reset_strm_size_timer`
-- Message templates: `modules/protocol.protocol-7.message-templates`
+- Protocol-7 base handler: `src/base.handler.command` (STRM-SIZE handling)
+- Timeout handlers: `src/base.handler.strm_size_idle_timeout`, `src/base.handler.strm_size_absolute_timeout`
+- Timer callback: `src/base.callback.reset_strm_size_timer`
+- Message templates: `src/protocol.protocol-7.message-templates`
 - p7 Client source: `bin/c_src/p7.c`
 
-#,,,.,.,,,,.,,,..,.,,,,,.,,,.,,..,..,,.,.,...,..,,...,..,,.,,,,..,,..,...,,..,
-#TLNELSCO3ZY4TCN2NCCYFQLO2NJK5ZWXJAU3GAYECQIUN6TC34QR47PLUGG7C5SPOBIN5MZLAWU2U
-#\\\|PJ2DFCLLSQDL3HL53RVT2L46UDH4HTAYMU7CM3IYLQVXGYQONTW \ / AMOS7 \ YOURUM ::
-#\[7]FRN66J7VCN7GYLKT3ZZGB4LXACQVVIUDWP26LHWYLMVRCSCE6QDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,,,.,,,,.,,.,.,...,..,,.,,,,..,..,,...,...,.,,,.,,,.,,,,..,.,.,
+#UBNSUIJNOXMCUWZINHXMMRPSVUAC5NCVYNR5MKSTYDJIZLJXUWVP2Y4OVM3F6ODU3ENQTNTZ5LUXO
+#\\\|HODV3CNUUVIW34NF6ER3WLDNQV4LKKI6YTYEJI7N5GIRMCKDQ2I \ / AMOS7 \ YOURUM ::
+#\[7]AKJUDQZ5KBMXAGLGDO4FSMQW5M2EGVVOQNC6ALC4RBYC7H246OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

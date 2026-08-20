@@ -29,15 +29,15 @@ commits:
 author: "Taeki Ten of {[.NAiLArA:T3K`]} <taeki.ten@protocol-7.network>"
 
 affected_modules:
-  - modules/source.cmd.get-code-signed (lines 161-195 - core normalization logic)
-  - modules/source.create_harmonic_footer (encodes delta in signature)
-  - modules/source.extract_sig_body (detects current endline state)
-  - modules/sourcecode.console.verify-p7-signatures (verifies canonical format)
+  - src/source.cmd.get-code-signed (lines 161-195 - core normalization logic)
+  - src/source.create_harmonic_footer (encodes delta in signature)
+  - src/source.extract_sig_body (detects current endline state)
+  - src/sourcecode.console.verify-p7-signatures (verifies canonical format)
 
 key_components:
   normalization_core:
     title: "Endline Normalization and Delta Encoding"
-    module: "modules/source.cmd.get-code-signed (lines 161-195)"
+    module: "src/source.cmd.get-code-signed (lines 161-195)"
     description: |
       The core of the new system: detect original endline state, calculate transformation
       delta, normalize to exactly 1 separator endline, and encode the delta for reversibility.
@@ -76,7 +76,7 @@ key_components:
 
   delta_encoding:
     title: "Delta Encoding for Reversibility"
-    module: "modules/amos7.encode_octal_header (position 11)"
+    module: "src/amos7.encode_octal_header (position 11)"
     description: |
       The transformation delta is encoded as a single octal digit in the AMOS7 header
       to enable reconstruction of the original file-as-found state:
@@ -112,7 +112,7 @@ key_components:
       - Self-healing: if corrupted, re-signing restores canonical format
 
   verification:
-    module: "modules/sourcecode.console.verify-p7-signatures"
+    module: "src/sourcecode.console.verify-p7-signatures"
     description: |
       Verification confirms:
       1. File is in canonical format (exactly 1 separator newline)
@@ -325,8 +325,8 @@ conclusion: |
   - Signatures remain valid across multiple signing cycles
   - No manual intervention needed
 
-#,,,,,.,,,,..,,,.,,,.,...,,.,,.,.,,.,,,..,.,.,...,...,...,...,,,,,,,.,,..,..,,
-#AR3MGOZA5NFSTPE3OAFRMHNPJOTZSQS6WFAB3UDUCW2NCZE5Z5ODBA5ZJV7AHE7OCGKNITN4PTUOK
-#\\\|D57TNF7DVJFKN7QP5B52B6WIY2M2APFZ3BH7SL7V5S4YFC7YMZ4 \ / AMOS7 \ YOURUM ::
-#\[7]E4YD6STD4M75HO6RQEEWNSFLFJ2GUH5BQNI7HCKSDSUHZASZDSAY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,..,,..,,.,,,,.,,.,,,,,,,..,,...,...,...,...,,,,,...,.,.,,..,
+#LFWN4JQHPSX4QHPXLE2THUCZCJBOYI4RDAZ6I6PSIBAUAMIZPPH4BSNRIB6IUBX6R2UP4W6X5TYXA
+#\\\|EUN3TLGYO4L2EAI4XCED5L7AR324FGKAFGVUSBCHVZAT2KPGGPX \ / AMOS7 \ YOURUM ::
+#\[7]X4PXA3QAUELO4YM7KAOF3RLNBJKLU2ZBFW36HBWZLQN3XZYX3QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ on-demand+heartbeat setup for `tile`.
   becomes the *editor* for tile configuration in both cases.
 
 **Blocking prerequisite — window-place multi-window support:**
-Currently `modules/window.place.*` is a singleton: per-request state
+Currently `src/window.place.*` is a singleton: per-request state
 lives in flat `%data` slots (`<window.place.obj.window>`,
 `<window.place.caller>`, `<window.place.reply_handler>`,
 `<window.place.reply_id>`, `<window.place.drag.active/region/
@@ -247,8 +247,8 @@ when guessing at new fixes had repeatedly failed. Don't accept "platform
 limitation" without testing the actual mechanism (eg. the xrandr
 before/after snapshot above) when the user says something regressed.
 
-#,,,.,.,.,,..,,,.,,,.,,..,,.,,.,.,,,.,...,..,,..,,...,...,.,,,,..,,,,,.,.,,.,,
-#OAD3CM5TMB4QISQ6INQFU2H2J7AUD7U26NPFBOEOHTG4IL74L4KGFHAJSBPMMPGK6P6RU3NO3OCWU
-#\\\|2NIWUAWWAE5F4CIKQHZYFI3OWV5LG3G5OS5LMHXLESW24YTT3H6 \ / AMOS7 \ YOURUM ::
-#\[7]UEZAEM7UODOHRAAPNO3HUKNPMXLNDPSXCAA7EWCSJTTI4WHEOICY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,,.,,,.,.,.,.,.,,..,,,,,..,,..,,...,...,.,,,..,,,.,,.,.,..,,
+#RUY7DVQ3I5Q225FTA5O3THG5FP6Q3GS2LXQDY2WJ5IQOE4IM24H7C65PNEWSM4GQPWI7MECCGBC6C
+#\\\|X6F3TSG6YUQDQMCW35MIRCBAXY5LJ4GJSVQI7HF4IFENTYVQTDD \ / AMOS7 \ YOURUM ::
+#\[7]7N2HSQDDMTUEDDQQ6BZOXTL2LNMYIGM4KEUCL3TVHRI6UZLM6GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

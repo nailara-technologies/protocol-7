@@ -6,8 +6,8 @@ write the three new ascii frame YAML files for the memory tree, plus the
 read first: `data/md/design/MEMORY-TREE-SYSTEM.md` sections B and E;
 `data/yaml/ascii-frames/user-profile.yaml`,
 `data/yaml/ascii-frames/memory-composite.yaml` (frame YAML structure);
-`modules/ascii.frame.load`, `modules/ascii.frame.render`,
-`modules/ascii.frame.slot.bind`, `modules/ascii.frame.compose` (the render API).
+`src/ascii.frame.load`, `src/ascii.frame.render`,
+`src/ascii.frame.slot.bind`, `src/ascii.frame.compose` (the render API).
 this is the rendering-leaf layer — it has no dependency on scoring or sources,
 so it can be built and demoed standalone with a hand-built node hashref.
 
@@ -37,7 +37,7 @@ it; a manual stub blocks signing. leave the files unsigned.
    bars like `memory-composite` expanded mode). a single BRANCHES block slot
    enclosed in the double border.
 
-then write `modules/memory.tree.node.render`:
+then write `src/memory.tree.node.render`:
 - module header: `## [:< ##` then `# name = memory.tree.node.render` and a
   `# descr =` line (lowercase, under 55 chars).
 - takes a params hashref: `{ node => \%node, variant => 'compact'|'card'|'root' }`.
@@ -69,8 +69,8 @@ hand-builds a node hashref and prints all three variants, to prove rendering.
   `::` bars.
 - comments are lowercase narrative; annotations use `[ ... ]` not `( ... )`.
 
-#,,,.,.,.,.,.,..,,,,.,,.,,..,,..,,,,,,,,,,.,.,..,,...,...,...,,,,,,,,,,,.,,.,,
-#UMOFPV6BJUHIFUAJIM3JFBZPWAW3ZLZGX4KDDHG3KL5PXO66HHEAFM6ZVAFN3UEYZEWLHX3JAUXP6
-#\\\|EL4663TLEIFLCNHYIH3WOIJIE4YPQCBKG3HHU6ZQ33RLBEDG7G6 \ / AMOS7 \ YOURUM ::
-#\[7]YARETCYBQM5TCR47MAR4BHSAQUROUQPOKIS32THK4P6K4RGKLMCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,..,..,,.,.,...,...,..,,,.,,.,.,..,,...,...,..,,,,.,,,.,.,,,,,,,
+#M3363MN6XSUWFXI4SYJA6LLDPYUPPSC7HFIKRGQDSNIRIV7ZLIKOEMKAU53L32L2X3GJB5OUDSY62
+#\\\|CIWXK2ANJZCP3LLXNVKDV2FNMMRBRXTTWUOKVWV67YQ2VKJKPDI \ / AMOS7 \ YOURUM ::
+#\[7]7PW3ERSVT2P2WWCC5CJFTDCWO3TTIDI75ZWURIZ4MXL63QXNFUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,730 @@
+## [:< ##
+
+# name  = coding.tools.dispatch
+# descr = execute tool call and return result string
+
+my $tool_call = shift // {};
+
+my $name = $tool_call->{'function'}->{'name'} // $tool_call->{'name'} // '';
+my $args = $tool_call->{'function'}->{'arguments'}
+    // $tool_call->{'arguments'} // {};
+my $call_id = $tool_call->{'id'} // '';
+
+## parse arguments if still JSON string ##
+if ( not ref $args and length $args ) {
+    my $parsed = eval { JSON::PP::decode_json($args) };
+    ## fallback: try from_json for character strings ##
+    $parsed = eval { JSON::from_json($args) }
+        if not defined $parsed
+        or ref $parsed ne qw| HASH |;
+    if ( defined $parsed and ref $parsed eq qw| HASH | ) {
+        $args = $parsed;
+    } else {
+        <[base.logs]>->(
+            0,     ':. tools.dispatch : JSON parsing error for %s : %s',
+            $name, <[base.str.eval_error]> // qw| unknown |
+        );
+        <[base.logs]>->(
+            2,             ':. raw args [ %d chars ]: %.200s',
+            length($args), $args
+        );
+        my $parse_err = <[base.str.eval_error]> // 'unknown parser error';
+        $parse_err =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;    ## strip location ##
+        my $raw_snip = substr( $args, 0, 300 );
+        return {
+            'id'      => $call_id,
+            'role'    => 'tool',
+            'content' => sprintf(
+                "error: JSON parse failed for '%s' arguments.\nparse error: "
+                    . "%s\nraw input (%d chars): %s\n\nfix: ensure arguments "
+                    . "is a single valid JSON object with properly escaped "
+                    . "strings. common mistakes: unescaped quotes inside "
+                    . "strings, trailing commas, unquoted keys, single "
+                    . "quotes instead of double quotes.",
+                $name, $parse_err, length($args), $raw_snip
+            ),
+        };
+    }
+}
+
+## ensure args is a hashref after parsing ##
+$args = {} unless ref $args eq qw| HASH |;
+
+<[base.logs]>->(
+    2,     ':. tools.dispatch: %s [ %d args ]',
+    $name, scalar keys $args->%*
+);
+
+## dispatch table: tool name => [ module, param builder ] ##
+my %dispatch = (
+
+    ## read_file, read_module, list_modules, module_deps,  recent_changes,  ##
+    ## recent_errors, extract_file, ptd_check, ptd_format, write_new_file → ##
+    ## coding.tools.handler.* modules                                       ##
+
+    'list_files' => sub {
+        return unless exists $code{'pager.source.file-list'};
+        ## resolve relative root against project root ##
+        my $req_root = $args->{'root'} // '';
+        my $abs_root
+            = length($req_root)
+            ? (
+              $req_root =~ m|^/|
+            ? $req_root
+            : <system.root_path> . '/' . $req_root
+            )
+            : <system.root_path>;
+        my $sort   = $args->{'sort'}  // '';
+        my $order  = $args->{'order'} // qw| desc |;
+        my $source = $code{'pager.source.file-list'}->(
+            {   'root'      => $abs_root,
+                'pattern'   => $args->{'pattern'}   // '',
+                'recursive' => $args->{'recursive'} // 1,
+            }
+        );
+        return unless ref $source eq qw| HASH |;
+
+        ## consume first batch and format as text listing ##
+        my $batch = $source->{'next_batch'}->();
+        return '<!-- no files found -->' unless $batch and $batch->@*;
+
+        ## sort if requested [ name | size | mtime ] ##
+        my $desc = ( $order // '' ) eq qw| desc | ? 1 : 0;
+        if ( $sort eq qw| size | ) {
+            $batch
+                = $desc
+                ? [ sort { $b->{'size'} <=> $a->{'size'} } $batch->@* ]
+                : [ sort { $a->{'size'} <=> $b->{'size'} } $batch->@* ];
+        } elsif ( $sort eq qw| mtime | ) {
+            $batch
+                = $desc
+                ? [ sort { $b->{'mtime'} <=> $a->{'mtime'} } $batch->@* ]
+                : [ sort { $a->{'mtime'} <=> $b->{'mtime'} } $batch->@* ];
+        } elsif ( $sort eq qw| name | ) {
+            $batch
+                = $desc
+                ? [ sort { $b->{'name'} cmp $a->{'name'} } $batch->@* ]
+                : [ sort { $a->{'name'} cmp $b->{'name'} } $batch->@* ];
+        }
+
+        my $output = "## files in ${\( $source->{'root'} )}";
+        $output .= " [ pattern: '$args->{'pattern'}' ]"
+            if length $args->{'pattern'};
+        $output .= " ##\n";
+        for my $item ( $batch->@* ) {
+            $output .= sprintf "%-5s %8d  %s\n",
+                $item->{'type'} // '?',
+                $item->{'size'} // 0,
+                $item->{'path'} // $item->{'name'};
+        }
+
+        my $count = scalar $batch->@*;
+        if ( $count >= 100 ) {
+            $output .= "... [ showing first $count entries ]\n";
+        }
+
+        return $output;
+    },
+
+    'search_code' => sub {
+        my $pattern     = $args->{'pattern'}     // return 'pattern required';
+        my $scope       = $args->{'scope'}       // qw| src |;
+        my $max_results = $args->{'max_results'} // 30;
+        my $offset      = $args->{'offset'}      // 0;
+
+        my $root = <system.root_path>;
+        my @dirs;
+        if ( $scope eq qw| config | ) {
+            @dirs = ("$root/configuration");
+        } elsif ( $scope eq qw| lib | ) {
+            @dirs = ("$root/data/lib-path/pm");
+        } elsif ( $scope eq qw| all | ) {
+            @dirs = (
+                "$root/src", "$root/configuration", "$root/data/lib-path/pm"
+            );
+        } else {
+            @dirs = ("$root/src");
+        }
+
+        my $output  = '';
+        my $count   = 0;
+        my $skipped = 0;
+        my $dir_str = join ' ', @dirs;
+
+        ## safe pattern : escape shell, run grep ##
+        my @cmd = (
+            'grep',   '-rn', '--include=*', '-m', 200 + $offset,
+            $pattern, @dirs
+        );
+
+        ## capture stderr to tmpfile to avoid pipe deadlock ##
+        my $err_file = catfile(
+            <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+            'state',                         ".search_err.$$"
+        );
+        if (open my $fh, '-|', "@{[ join ' ',
+            map { quotemeta $ARG } @cmd ]} 2>$err_file"
+        ) {
+            while ( my $line = <$fh> ) {
+                ## skip offset lines for pagination ##
+                if ( $skipped < $offset ) {
+                    $skipped++;
+                    next;
+                }
+                last if $count >= $max_results;
+                ## strip root prefix for readability ##
+                $line =~ s|^\Q$root/\E||;
+                $output .= $line;
+                $count++;
+            }
+            close $fh;
+        }
+        ## collect stderr warnings [ permission errors etc ] ##
+        my $warnings = '';
+        if ( -s $err_file ) {
+            if ( open my $efh, '<', $err_file ) {
+                local $/;
+                $warnings = <$efh>;
+                close $efh;
+                $warnings =~ s|\Q$root/\E||g;
+            }
+            <[base.logs]>->(
+                2,
+                ':. search_code: stderr [ %d bytes ]',
+                length $warnings
+            );
+            $output .= sprintf "\n## warnings ##\n%s", $warnings;
+        }
+        unlink $err_file;
+
+        return $count
+            ? sprintf( "## %d matches for m{%s} ##\n%s",
+            $count, $pattern, $output )
+            : "no matches for m{$pattern}";
+    },
+
+    'dep_graph' => sub {
+        return unless exists $code{'context.module.dep_graph'};
+        my $namespace = $args->{'namespace'} // '';
+        my $module    = $args->{'module'}    // '';
+
+        my %params;
+        if ( length $module ) {
+            my $root = <system.root_path>;
+            $params{'files'} = ["$root/src/$module"];
+        } elsif ( length $namespace ) {
+            my $root = <system.root_path>;
+            $params{'pattern'}   = "$root/src/$namespace.*";
+            $params{'namespace'} = $namespace;
+        } else {
+            return 'error: namespace or module required';
+        }
+
+        my $result = $code{'context.module.dep_graph'}->( \%params );
+        return 'no graph data'
+            unless ref $result eq qw| HASH |
+            and $result->{'mode'} eq qw| true |;
+
+        my $d = $result->{'data'};
+
+        ## format as readable text ##
+        my $out = sprintf "## dep graph: %d files, %d edges ##\n",
+            $d->{'file_count'}, $d->{'edge_count'};
+
+        ## clusters ##
+        if ( $d->{'clusters'} and $d->{'clusters'}->@* ) {
+            $out .= "\n## clusters [ strongly connected ] ##\n";
+            for my $c ( $d->{'clusters'}->@* ) {
+                $out .= sprintf "  [ %s ]\n", join ', ', $c->@*;
+            }
+        }
+
+        ## internal edges ##
+        if ( $d->{'internal_edges'} and $d->{'internal_edges'}->@* ) {
+            $out .= "\n## internal calls ##\n";
+            for my $e ( $d->{'internal_edges'}->@* ) {
+                $out .= sprintf "  %s -> %s [ %s ]\n",
+                    $e->{'from'}, $e->{'to'}, $e->{'type'};
+            }
+        }
+
+        ## external deps [ capped ] ##
+        if ( $d->{'external_edges'} and $d->{'external_edges'}->@* ) {
+            $out .= "\n## external dependencies ##\n";
+            my $ext_count = 0;
+            for my $e ( $d->{'external_edges'}->@* ) {
+                last if $ext_count++ >= 30;
+                $out .= sprintf "  %s -> %s [ %s ]\n",
+                    $e->{'from'}, $e->{'to'}, $e->{'type'};
+            }
+            my $total = scalar $d->{'external_edges'}->@*;
+            $out .= "  ... [ $total total ]\n" if $total > 30;
+        }
+
+        return $out;
+    },
+
+    'ncode_search' => sub {
+        my $query       = $args->{'query'}       // return 'query required';
+        my $max_results = $args->{'max_results'} // 50;
+        my $offset      = $args->{'offset'}      // 0;
+
+        ## validate query : alphanumeric, dots, underscores, hyphens reject ##
+        ## shell metacharacters                                             ##
+        if ( $query =~ m{[;&|`\$\\"'\n\r]} ) {
+            return 'error: query contains invalid characters';
+        }
+        return 'error: query too short' if length($query) < 2;
+        return 'error: query too long'  if length($query) > 200;
+
+        my $root = <system.root_path>;
+        my @cmd = ( "$root/bin/ncode", '-no-color', 'search', 'all', $query );
+
+        my $output  = '';
+        my $count   = 0;
+        my $skipped = 0;
+
+        ## capture stderr to tmpfile to avoid pipe deadlock ##
+        my $err_file = catfile(
+            <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+            'state',                         ".ncode_err.$$"
+        );
+        if (open my $fh, '-|', "@{[ join ' ',
+            map { quotemeta $ARG } @cmd ]} 2>$err_file"
+        ) {
+            while ( my $line = <$fh> ) {
+                ## skip offset lines for pagination ##
+                if ( $skipped < $offset ) {
+                    $skipped++;
+                    next;
+                }
+                last if $count >= $max_results;
+                $output .= $line;
+                $count++;
+            }
+            close $fh;
+        }
+        ## collect stderr warnings [ permission errors etc ] ##
+        my $warnings = '';
+        if ( -s $err_file ) {
+            if ( open my $efh, '<', $err_file ) {
+                local $/;
+                $warnings = <$efh>;
+                close $efh;
+            }
+            <[base.logs]>->(
+                2,
+                ':. ncode_search: stderr [ %d bytes ]',
+                length $warnings
+            );
+            $output .= sprintf "\n## warnings ##\n%s", $warnings;
+        }
+        unlink $err_file;
+
+        return $count
+            ? sprintf( "## ncode search: %d lines for '%s' ##\n%s",
+            $count, $query, $output )
+            : "no matches for '$query'";
+    },
+
+    'ncode_search_context' => sub {
+        return 'ncode.cmd.search module not loaded'
+            unless exists $code{'ncode.cmd.search'};
+        my $target  = $args->{'target'}  // return 'target required';
+        my $pattern = $args->{'pattern'} // return 'pattern required';
+        my $context = $args->{'context'} // 0;
+        my $arg_str
+            = length($context)
+            && $context > 0
+            ? "$target -C $context $pattern"
+            : "$target $pattern";
+        my $result = $code{'ncode.cmd.search'}->( { 'args' => $arg_str } );
+        return
+            ref($result) eq 'HASH'
+            ? ( $result->{'data'} // $result->{'content'} // 'no output' )
+            : ( $result // 'no output' );
+    },
+
+    'replace_line' => sub {
+        return <[coding.tools.handler.replace_line]>->($args);
+    },
+
+    'delete_lines' => sub {
+        return <[coding.tools.handler.delete_lines]>->($args);
+    },
+
+    'insert_line' => sub {
+        return <[coding.tools.handler.insert_line]>->($args);
+    },
+
+    'edit_file' => sub {
+        ## extract parameters with chunked editing support ##
+        my $path  = $args->{'path'}  // return 'path required';
+        my $edits = $args->{'edits'} // return 'edits required';
+        my $apply = $args->{'apply'} // 1;
+        ## default 25 edits [batch] ##
+        my $batch_size = $args->{'batch_size'} // 25;
+        my $continue = $args->{'continue'} // 0; ## offset for continuation ##
+        my $encoding = $args->{'encoding'} // 'UTF-8';    ## default UTF-8 ##
+        ## auto-split large edits ##
+        my $auto_split = $args->{'auto_split'} // 0;
+
+        ## auto-split detection ##
+        my $total_edits = 0;
+        if ( ref $edits eq qw| ARRAY | ) {
+            $total_edits = scalar @$edits;
+        } elsif ( $edits and ref $edits ne qw| HASH | ) {
+            ## estimate from JSON string length [rough 1 edit = 100 chars] ##
+            $total_edits = length($edits) / 100;
+        }
+
+        my $split_threshold = 50;
+        if ( $total_edits > $split_threshold and $auto_split ) {
+            ## auto-split: process in smaller batches ##
+            <[base.logs]>->(
+                0,
+                ':. edit_file : auto-splitting %d edits into %d batches',
+                $total_edits,
+                int( POSIX::ceil( $total_edits / $batch_size ) ),
+            );
+            ## return error with instructions  to split manually or use ##
+            ## continue                                                 ##
+            my $batches = int( POSIX::ceil( $total_edits / $batch_size ) );
+            return {
+                'id'      => $call_id,
+                'role'    => 'tool',
+                'content' => sprintf(
+                    "auto_split: detected %d edits (exceeds %d "
+                        . "threshold)\nSplit into %d batches "
+                        . "recommended.\n\nOption 1: Split manually\n  Call "
+                        . "edit_file multiple times:\n  - Batch 1: "
+                        . "edits[0..%d]\n  - Batch 2: continue=%d, "
+                        . "edits[%d..%d]\n  - ...\n\nOption 2: Use "
+                        . "auto_split=1 (already applied)\n  Your edits will "
+                        . "be processed in batches.\n\nNote: Each batch "
+                        . "processes %d edits, reducing token usage",
+                    $total_edits,
+                    $split_threshold,
+                    $batches,
+                    int( ( $batch_size * 2 ) / $total_edits * 10 ),
+                    int( ( $batch_size * 2 ) / $total_edits * 10 ),
+                    int( ( $batch_size * 2 ) / $total_edits * 10 ),
+                    int( ( $batch_size * 2 ) / $total_edits * 10 ),
+                    $batch_size
+                ),
+            };
+        }
+
+        my $root     = <system.root_path>;
+        my $abs_path = "$root/$path";
+
+        ## validate path stays within project [ resolve symlinks ] ##
+        my $real_path = Cwd::abs_path($abs_path) // '';
+        my $real_root = Cwd::abs_path($root)     // '';
+        return 'error: path escapes project root'
+            if !length $real_path
+            or index( $real_path, "$real_root/" ) != 0;
+        return 'error: file not found' unless -f $real_path;
+        $abs_path = $real_path;
+
+        ## parse edits JSON with truncation detection ##
+        my $edit_list;
+        if ( not ref $edits ) {
+            ## detect truncation : JSON starts but doesn't complete ##
+            if ( $edits =~ m{^\s*\[}x and $edits !~ m{\]\s*$} ) {
+                <[base.logs]>->(
+                    0,
+                    ':. edit_file: JSON appears truncated '
+                        . ": starts with '[' but incomplete",
+                );
+                return {
+                    'id'      => $call_id,
+                    'role'    => 'tool',
+                    'content' =>
+                        "error: JSON appears truncated or malformed.\nThe "
+                        . "edits array starts but is "
+                        . "incomplete.\n\nPlease split into smaller "
+                        . "batches [max 50 edits each].\nExample call:\n "
+                        . " edit_file(path='file.txt', "
+                        . "edits=[{line:1,old:'a',new:'b'}, ...], "
+                        . "batch_size=25)\n\nIf your edits exceed 100 "
+                        . "lines, use multiple calls:\n1. First call: "
+                        . "edits[0..24]\n2. Continue call: continue=25, "
+                        . "edits[25..49]\n3. Continue call: continue=50, "
+                        . "edits[50..end]",
+                };
+            }
+
+            $edit_list = eval { JSON::PP::decode_json($edits) };
+            if ($@) {
+                ## check for truncation in error message ##
+                my $json_err = $@;
+                if ($json_err =~ m{
+                        unexpected \s+ end \s+ of \s+ input
+                        | unexpected \s+ EOF
+                        | unexpected \s+ end \s+ of \s+ array
+                        | unexpected \s+ end \s+ of \s+ object
+                    }x
+                ) {
+                    <[base.logs]>->(
+                        0, ':. edit_file: JSON truncated - %s', $json_err,
+                    );
+                    return {
+                        'id'      => $call_id,
+                        'role'    => 'tool',
+                        'content' => "error: JSON truncated during parsing "
+                            . ": $json_err\n\nPlease split your "
+                            . "edits into smaller batches:\n- "
+                            . "Max recommended: 50 edits per "
+                            . "call\n- Each edit ~40-100 "
+                            . "tokens\n- Total per call: "
+                            . "~2000-5000 tokens [adjust based "
+                            . "on your model]\n\nSplit "
+                            . "strategy:\n1. Calculate your "
+                            . "total edits\n2. Use "
+                            . "batch_size=25 for each call\n3. "
+                            . "Use continue=N for subsequent "
+                            . "batches",
+                    };
+                }
+                return "error: invalid edits JSON: $@";
+            }
+        } else {
+            $edit_list = $edits;
+        }
+        return 'error: edits must be an array'
+            unless ref $edit_list eq qw| ARRAY |;
+
+        ## chunked editing: calculate batch range ##
+        my $edit_count = scalar @$edit_list;
+        my $start_idx  = ( $continue > 0 ) ? $continue : 0;
+        $start_idx = $edit_count if $start_idx > $edit_count;
+        my $end_idx
+            = ( $start_idx + $batch_size < $edit_count )
+            ? $start_idx + $batch_size
+            : $edit_count;
+
+        ## slice the batch ##
+        my @batch_edits = @$edit_list[ $start_idx .. $end_idx - 1 ];
+        my $has_more    = $end_idx < $edit_count;
+
+        ## read current file [ prefer staged version for accumulation ] ##
+        my $stage_name = $path;
+        $stage_name =~ s|/|__|g;
+        my $stage_rel   = "staged/$stage_name";
+        my $content_ref = <[file.zenka_dir.load]>->($stage_rel);
+        $content_ref = <[file.slurp]>->($abs_path)
+            unless defined $content_ref;
+        return 'error: cannot read file' unless defined $content_ref;
+        my @lines = split /\n/, $content_ref->$*, -1;
+
+        ## validate and apply edits [reverse order to preserve line nums] ##
+        my @preview;
+        my $errors = 0;
+        for my $edit (
+            sort { ( $b->{'line'} // 0 ) <=> ( $a->{'line'} // 0 ) }
+            @batch_edits ) {
+            my $ln  = $edit->{'line'} // next;
+            my $old = $edit->{'old'}  // '';
+            my $new = $edit->{'new'}  // '';
+
+            if ( $ln < 1 or $ln > scalar @lines ) {
+                push @preview,
+                    sprintf "line %d: OUT OF RANGE [ 1..%d ]",
+                    $ln, scalar @lines;
+                $errors++;
+                next;
+            }
+
+            my $actual = $lines[ $ln - 1 ];
+            ## trim for comparison ##
+            my $actual_trim = $actual;
+            my $old_trim    = $old;
+            $actual_trim =~ s|^\s+||;
+            $actual_trim =~ s|\s+$||;
+            $old_trim    =~ s|^\s+||;
+            $old_trim    =~ s|\s+$||;
+
+            if ( length $old_trim and $actual_trim ne $old_trim ) {
+                push @preview,
+                    sprintf
+                    "line %d: MISMATCH\n  expected: %s\n  actual:   %s",
+                    $ln, $old, $actual;
+                $errors++;
+                next;
+            }
+
+            push @preview, sprintf "line %d: %s\n     --> %s", $ln, $actual,
+                $new;
+            $lines[ $ln - 1 ] = $new if $apply;
+        }
+
+        ## write back if applying and no errors ##
+        if ( $apply and not $errors ) {
+            my $new_content = join "\n", @lines;
+
+            ## use privileged chmod child if file not writable ##
+            my $chmod_fh = <coding.chmod_child.w_fh>;
+            my $mode_restore;
+            if ( -f $abs_path and !-w $abs_path and defined $chmod_fh ) {
+                my $cur_mode = ( stat $abs_path )[2] // 0644;
+                $cur_mode &= 07777;
+                print {$chmod_fh} "gw $abs_path\n";
+                select undef, undef, undef, 0.01;    ## yield for child ##
+                $mode_restore = $cur_mode if -w $abs_path;
+            }
+
+            if ( -w $abs_path ) {
+                <[file.put]>->( $abs_path, \$new_content );
+                ## restore original permissions via chmod child ##
+                if ( defined $mode_restore and defined $chmod_fh ) {
+                    print {$chmod_fh}
+                        sprintf "restore %04o %s\n",
+                        $mode_restore, $abs_path;
+                }
+                return sprintf "applied %d/%d edits to %s%s\n%s",
+                    scalar(@batch_edits), $edit_count, $path,
+                    ( $has_more ? " [continue=$end_idx for more]" : "" ),
+                    join "\n", @preview;
+            }
+            ## stage to zenka dir when no write access ##
+            <[file.zenka_dir.write]>->(
+                $stage_rel, \$new_content, '>', 0664, qw| :encoding(UTF-8) |
+            );
+            <[base.logs]>->(
+                1, ':. edit_file: staged %s [ no write access ]', $path
+            );
+            return
+                sprintf "staged %d/%d edits for %s [ no "
+                . "write access ]%s\nstaged at: %s\n%s",
+                scalar(@batch_edits), $edit_count, $path,
+                ( $has_more ? " [continue=$end_idx for more]" : "" ),
+                $stage_rel,
+                join "\n", @preview;
+        }
+
+        my $mode = $apply ? 'BLOCKED' : 'PREVIEW';
+        return sprintf "## %s [ %d/%d edits, %d errors ]%s ##\n%s",
+            $mode, scalar(@batch_edits), $edit_count, $errors,
+            ( $has_more ? " [continue=$end_idx for more]" : "" ),
+            join "\n", @preview;
+    },
+
+    ## record_question / record_suggestion → shared observation handler ##
+    'record_question' => sub {
+        return unless exists $code{'coding.tools.handler.record_observation'};
+        $args->{'type'} = 'question';
+        return $code{'coding.tools.handler.record_observation'}->($args);
+    },
+
+    'record_suggestion' => sub {
+        return unless exists $code{'coding.tools.handler.record_observation'};
+        $args->{'type'} = 'suggestion';
+        return $code{'coding.tools.handler.record_observation'}->($args);
+    },
+
+    'git_restore_file' => sub {
+        return unless exists $code{'coding.tools.handler.git_restore_file'};
+        return $code{'coding.tools.handler.git_restore_file'}->($args);
+    },
+
+    'strip_trailing_spaces' => sub {
+        return
+            unless exists $code{'coding.tools.handler.strip_trailing_spaces'};
+        return $code{'coding.tools.handler.strip_trailing_spaces'}->($args);
+    },
+
+);
+
+## look up and execute : dispatch table first, then handler modules ##
+my $handler_mod = "coding.tools.handler.$name";
+if ( not exists $dispatch{$name} and not exists $code{$handler_mod} ) {
+    <[base.logs]>->( 0, ':. tools.dispatch: unknown tool [ %s ]', $name );
+    return {
+        'id'      => $call_id,
+        'role'    => 'tool',
+        'content' => "error: unknown tool '$name'",
+    };
+}
+
+my $raw_result;
+if ( exists $dispatch{$name} ) {
+    if ( not defined $dispatch{$name} ) {
+        return {
+            'id'      => $call_id,
+            'role'    => 'tool',
+            'content' => "error: dispatch entry for '$name' is undefined",
+        };
+    }
+    $raw_result = $dispatch{$name}->();
+} elsif ( exists $code{$handler_mod} ) {
+    if ( not defined $code{$handler_mod} ) {
+        return {
+            'id'      => $call_id,
+            'role'    => 'tool',
+            'content' =>
+                "error: handler '$handler_mod' exists but is undefined",
+        };
+    }
+    ## wrap handler call with eval to catch errors ##
+    $raw_result = eval { $code{$handler_mod}->($args) };
+    if ($@) {
+        my $err = $@;
+        <[base.logs]>->(
+            0,            ':. tools.dispatch : %s failed: %s',
+            $handler_mod, $err
+        );
+        return {
+            'id'      => $call_id,
+            'role'    => 'tool',
+            'content' => sprintf(
+                "error: handler '%s' crashed: %s",
+                $handler_mod, $err
+            ),
+        };
+    }
+} else {
+    return {
+        'id'      => $call_id,
+        'role'    => 'tool',
+        'content' => "error: handler for '$name' not loaded",
+    };
+}
+
+## normalize result to string ##
+my $content;
+if ( not defined $raw_result ) {
+    $content = 'error: tool handler returned undef';
+} elsif ( ref $raw_result eq qw| HASH | ) {
+    if ( exists $raw_result->{'data'} ) {
+        $content
+            = ref $raw_result->{'data'}
+            ? JSON::PP->new->utf8->pretty->canonical->encode(
+            $raw_result->{'data'} )
+            : $raw_result->{'data'};
+    } else {
+        $content
+            = JSON::PP->new->utf8->pretty->canonical->encode($raw_result);
+    }
+} elsif ( ref $raw_result ) {
+    $content = JSON::PP->new->utf8->pretty->canonical->encode($raw_result);
+} else {
+    $content = $raw_result;
+}
+
+<[base.logs]>->(
+    2,     ':. tools.dispatch : %s → %d chars',
+    $name, length($content)
+);
+
+return {
+    'id'      => $call_id,
+    'role'    => 'tool',
+    'content' => $content,
+};
+
+#,,.,,...,,,.,,.,,,,.,,,.,,..,.,.,..,,...,.,,,..,,...,...,...,,,.,...,,,.,.,,,
+#PDN6ZX342JBQ2WHD4BDU2CK7EVP2JMARZBZMM2NK5HCRNAT2C36AW7GMBHA6P36FHUBAI3ZXBURGA
+#\\\|24R6WVGEUCYC4KEUWEVYLGHPSLYTYQIESP4TVIL7Q7BHSUXRA75 \ / AMOS7 \ YOURUM ::
+#\[7]7ZGC6NM3ZJUFVM2V27SAOCJRXTHBEKTYWKEABLNK4QEWRNXMMSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

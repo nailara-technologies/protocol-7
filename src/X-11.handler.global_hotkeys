@@ -1,0 +1,165 @@
+## [:< ##
+
+# name  = X-11.handler.global_hotkeys
+
+my $watcher = shift->w;
+
+<X-11.hotkeys>            //= {};
+<X-11.hotkeys.configured> //= {};
+<X-11.hotkeys.triggered>  //= {};
+<X-11.hotkeys.last_key>   //= {};
+<X-11.loglevel.keys>      //= 2;
+
+my $qkmap = eval { <X-11.obj>->QueryKeymap };
+
+if ( not defined $qkmap ) {    # LLL: implement reconnect \ restart procedure
+    <[base.log]>->(
+        0, "<< X-11 protocol mismatch during 'QueryKeymap' command >>"
+    );
+    return;
+}
+
+## RandR's RRNotify sub-events [ CrtcChangeNotify / OutputChangeNotify -    ##
+## fired by a host-side display reconfiguration, eg the powershell display- ##
+## switch toggle ] aren't decoded by the bundled, stripped-down             ##
+## X11::Protocol::Ext::RANDR copy, so X11::Protocol's dequeue_event/        ##
+## unpack_event carps 'Unknown event (code N)!' for each one. our own       ##
+## screen-change handling relies on the separately and correctly-registered ##
+## RRScreenChangeNotify event instead [ see X-11.handler.screen_change ],   ##
+## so this is a harmless, expected gap - downgrade it to a quiet log line   ##
+## instead of a console warning, while letting any OTHER warning through.   ##
+my $dq_e = do {
+    local $SIG{'__WARN__'} = sub {
+        my ($msg) = @ARG;
+        if ( $msg =~ m|^Unknown event \(code (\d+)\)!| ) {
+            <[base.logs]>->(
+                2, ': : unhandled RandR sub-event [ code %d ] - ignored', $1
+            );
+        } else {
+            warn $msg;
+        }
+    };
+    [ <X-11.obj>->dequeue_event ];
+};
+
+if ( @{$dq_e} ) {
+    $watcher->now;    # <-- again, there might be more events queued.,
+} else {
+    return;           # <-- no, there weren't
+}
+
+my $no_key_pressed = $qkmap =~ /^\0+$/ ? 1 : 0;
+
+my %event = @$dq_e;
+
+# print STDERR Dumper( \%event );
+
+if ( ( $event{'name'} // '' ) eq qw| RRScreenChangeNotify | ) {
+    <[X-11.handler.screen_change]>->( \%event );
+    return;
+}
+
+my $event_type = $event{'name'} =~ /^Key(Press|Release)$/ ? lc($1) : undef;
+
+return if not defined $event_type;
+
+my $keycode     = $event{'detail'};
+my $mod_state   = $event{'state'};
+my $triggered   = <X-11.hotkeys.triggered>;
+my $is_modifier = exists <X-11.keycodes.modifiers>->{$keycode} ? 1 : 0;
+
+return if $is_modifier;    # <-- modifier keys skipped ( for now )
+
+$triggered->{$event_type}{'keycode'}{$keycode}{'mod_state'}{$mod_state} = 1;
+$triggered->{$event_type}{'mod_state'}{$mod_state}{'keycode'}{$keycode} = 1;
+<X-11.hotkeys.last_key> = {
+    'keycode'    => $keycode,
+    'mod_state'  => $mod_state,
+    'event_type' => $event_type
+};
+
+my $mod_str
+    = $is_modifier
+    ? '  [' . <X-11.keycodes.modifiers>->{$keycode} . ']'
+    : '';
+
+<[base.log]>->(
+    <X-11.loglevel.keys>,
+    sprintf(
+        "<KEY> %-8s [ keycode  : %3s  ]  modifier : %d%s",
+        $event_type, $keycode, $mod_state, $mod_str
+    )
+);
+
+# LLL: process key ..,
+
+<X-11.hotkeys.active> //= {};
+if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
+    my ( $command_str, $params_str )
+        = split( / +/, delete <X-11.hotkeys.recording>, 2 );
+    my $hotkey_id = <[base.gen_id]>->(<X-11.hotkeys.active>);
+
+    # LLL: filter duplicates
+
+    <X-11.hotkeys.active>->{$hotkey_id} = {
+        'keycode'   => $keycode,
+        'mod_state' => $mod_state,
+        'action'    => $command_str,
+        'params'    => $params_str // '',
+    };
+
+    <[base.log]>->( 1, "recorded '$command_str' hot key [key:$keycode] ..." );
+
+    foreach my $reply_id ( @{<X-11.hotkeys.rec_reply_ids>} ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| true |,
+                'data' => "recorded as hotkey $hotkey_id"
+            }
+        );
+
+        <[protocol-7.command.send.local]>->(
+            {   'command'   => "cube.notify.info",
+                'call_args' => { 'args' => "hotkey configured" }
+            }
+        );
+
+        delete <X-11.hotkeys.rec_reply_ids>;
+        delete <X-11.hotkeys.recording>;
+    }
+} elsif ( $event_type eq 'press' ) {
+
+    foreach my $h_id ( keys %{<X-11.hotkeys.active>} ) {
+        if (    <X-11.hotkeys.active>->{$h_id}->{'keycode'} == $keycode
+            and <X-11.hotkeys.active>->{$h_id}->{'mod_state'} == $mod_state )
+        {
+            my $cmd_str = <X-11.hotkeys.active>->{$h_id}->{'action'};
+            <[base.log]>->( 1, "[HOTKEY] sending command '$cmd_str' .." );
+            my @params
+                = length( <X-11.hotkeys.active>->{$h_id}->{'params'} )
+                ? ( 'call_args' =>
+                    { 'args' => <X-11.hotkeys.active>->{$h_id}->{'params'} } )
+                : ();
+            <[protocol-7.command.send.local]>->(
+                {   'command' => "cube.$cmd_str",
+                    @params
+                }
+            );
+        }
+    }
+
+}
+
+if ($no_key_pressed) {
+
+    # LLL: process key ..,
+
+    delete <X-11.hotkeys.last_key>;
+    delete <X-11.hotkeys.triggered>;
+}
+
+#,,.,,,,.,.,.,,,,,.,.,,,.,,,.,...,,,.,.,.,.,,,..,,...,...,,,,,,.,,.,,,,,.,...,
+#PQWQMNFL2O2KVB44UYLCYG25WMBBCMZBIHGDY3WHDJ2REO376HSIWQRP2UZ5HJDOX2RL4FFQHDWQO
+#\\\|BWYCPTNL5DOUMABDAK5N4MMSWNI5YRQOXRCBVTFYEG4XY5ORWEC \ / AMOS7 \ YOURUM ::
+#\[7]PCGSQDDZUQO5YL237Q4QKAZKOGYBXGOJQMETAMVWV4QHIHF6QIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -38,7 +38,7 @@ to git directly         base integration re-signs with developer key
 ## 1. ncode zenka — highest priority
 
 `bin/ncode` is a powerful tool. it currently lives as a standalone binary.
-as `modules/ncode.*`, its functionality becomes:
+as `src/ncode.*`, its functionality becomes:
 - composable with other zenki
 - callable via p7c from scripts and LLM tools
 - a foundation for LLM-assisted log optimization and code review
@@ -192,8 +192,8 @@ relates to: `data/yaml/reasoning-templates/categorical-compartmentalization.yaml
 6. knowledge base 3D grid     — longer horizon, builds on memory tree system
 ```
 
-#,,.,,,.,,...,,,.,.,.,.,.,.,.,,..,,.,,,.,,,.,,..,,...,...,...,..,,..,,...,,..,
-#2MRLU3JOUQQASR57XVQNQY6I355ZRHCCK3YEOWZIUI4752QFZOYP425ZRNCVQK64XEGYHL46KFW4S
-#\\\|FWZHRF76NBOOVODKV3XEIHVTY6QWCCSDGFPTEH7SHV5QISZP4AL \ / AMOS7 \ YOURUM ::
-#\[7]HNXNUPZMGKYCZLCUTULFD4WHE6GFSF6FIMXOSQD6S2OVC2HSJ2AQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,..,,.,.,.,.,,,.,.,,,,.,,...,..,,...,...,...,...,.,,,,,,,,,.,
+#L6TQNHUG2DTIUD52BBNRQ5A7JY5IGQ2UANH3DNXLGNMKZDWGVS2H4WI64HKVEANOPDB5KINTYOKUQ
+#\\\|YJQJZVLLKI53RIWSNVNQK36RAOHSMBTXE75VQRNTXDIQNSZXOXX \ / AMOS7 \ YOURUM ::
+#\[7]IVW7VN2OURPTTQ4T2YKQ3CNEY3Z7KJDCY7TKQ5LEDQS6JQ73J2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

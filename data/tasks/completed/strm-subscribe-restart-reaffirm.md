@@ -2,7 +2,7 @@
 
 ## background
 
-`modules/base.strm.subscribe` (generic offline-safe STRM subscription wrapper,
+`src/base.strm.subscribe` (generic offline-safe STRM subscription wrapper,
 `data/tasks/completed/strm-generic-subscribe-wrapper.md`) has always had one gap, documented in
 its own header comment:
 
@@ -10,7 +10,7 @@ its own header comment:
 > `<base.strm.subscribe.registry>` entry keeps the full subscription description around after
 > success, so a future re-affirm hook ... can re-issue the attempt as-is.
 
-That hook now exists: `modules/v7.zenka.cmd.notify_restart` + `modules/base.zenka.on_restart` /
+That hook now exists: `src/v7.zenka.cmd.notify_restart` + `src/base.zenka.on_restart` /
 `.reply-handler` (`data/tasks/completed/dependency-restart-reconnect-primitive.md`,
 `data/ai-mem/claude/project-dependency-restart-reconnect-primitive.md` — read both for full
 context and the live-verification methodology already established). It's a persistent
@@ -33,7 +33,7 @@ re-verifying or redesigning the primitive itself.
 ## the actual task
 
 When a subscription in `base.strm.subscribe` successfully reaches `subscribed = TRUE`
-(`modules/base.strm.subscribe.reply-handler`, the `$reply->{'cmd'} eq 'TRUE'` branch), also
+(`src/base.strm.subscribe.reply-handler`, the `$reply->{'cmd'} eq 'TRUE'` branch), also
 register a `base.zenka.on_restart` hook for that subscription's publisher, whose handler resets
 `$state->{'subscribed'} = FALSE` and re-issues the subscribe attempt
 (`<[base.strm.subscribe.attempt]>->($key)`), as if the publisher had just been detected online
@@ -59,8 +59,8 @@ things open, use the same "get it right rather than rush" approach):
 
 ## don't
 
-- Don't touch `modules/v7.zenka.cmd.notify_restart`, `modules/v7.handler.zenka_status`, or
-  `modules/base.zenka.on_restart`/`.reply-handler` — those are the already-correct, already-
+- Don't touch `src/v7.zenka.cmd.notify_restart`, `src/v7.handler.zenka_status`, or
+  `src/base.zenka.on_restart`/`.reply-handler` — those are the already-correct, already-
   live-verified primitive. This task only *calls* it from `base.strm.subscribe`, nothing there
   should need to change.
 - Don't touch `protocol-7-menu.pointer-stream-init` or the SHM/pointer-stream pilot — different,
@@ -101,8 +101,8 @@ touch must not be modified.
   the primitive to close it was built and live-verified in the same session as this task file,
   for a different (SHM) pilot case
 
-#,,.,,,,.,.,,,,.,,..,,,.,,,..,..,,,.,,..,,,.,,..,,...,...,.,,,,..,,,,,,,.,.,,,
-#VRM6BJRWJOWQA33E6O5PGVZJXWLPPTYSQHWZ46L5CAHZM2SSJAAHPIVQGF73UNF2HQLZ3ZCNIQ62M
-#\\\|GMJMVORL64S72YMFHE4EQPYREJLFB47Y75RD4G5K5UPISHLASWW \ / AMOS7 \ YOURUM ::
-#\[7]TLFLLGYIKKTRHOZNMYW7FJ2KRVMV53RGKO5QD4KAL7TUYMQKEQAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,.,,,,.,,,,,,,.,,,.,,,,,,,,,.,,,..,,...,...,.,,,,,,,,..,,,,,.,.,
+#62GNNDGNJE4AUQLZ2LABVUTM4F2K4CVLQU4GUGTQUQJOOC7UO7PWPVECMA6XL6NPXT5FZV75D2HCE
+#\\\|QGGO5PDZ5WY7GIRZYBFIS4AKIAJUAJNT2ZCVD2JRLVOJ4L2FXGV \ / AMOS7 \ YOURUM ::
+#\[7]7POKLBZCLRF2HOV4TUNPCKKN62VUUPKRDGRFTIFSLKD4EHJAIGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

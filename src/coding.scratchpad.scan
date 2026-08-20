@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = coding.scratchpad.scan
+# descr = enumerate claude session scratchpads : /tmp state merged with repo
+# return = arrayref of hashrefs [ uuid bmw tmp_dir tmp_files unreadable repo_files imported ]
+
+my $repo_base = <system.root_path> . qw| /data/scratchpad |;
+
+## imported state keyed by bmw id [ from IMPORT-INFO provenance ] ##
+my %repo;
+for my $dir ( grep {-d} glob("$repo_base/*") ) {
+    my $bmw = $dir;
+    $bmw =~ s{.*/}{};
+    my $info = "$dir/IMPORT-INFO";
+    if ( -f $info and open( my $fh, '<', $info ) ) {
+        while ( my $line = <$fh> ) {
+            $repo{$bmw}->{'uuid'} = $1
+                if $line =~ m{^session_uuid\s*:\s*(\S+)};
+            $repo{$bmw}->{'repo_files'} = $1
+                if $line =~ m{^files\s*:\s*(\d+)};
+            $repo{$bmw}->{'imported'} = $1
+                if $line =~ m{^imported_at\s*:\s*(.+)$};
+        }
+        close($fh);
+    }
+    $repo{$bmw}->{'repo_files'} //= scalar grep {-f} glob("$dir/*");
+}
+
+## /tmp state : /tmp/claude-<uid>/<project>/<uuid>/scratchpad ##
+my $out = [];
+for my $scr ( sort glob('/tmp/claude-*/*/*/scratchpad') ) {
+    next unless -d $scr;
+    my $sdir = $scr;
+    $sdir =~ s{/scratchpad$}{};
+    my $uuid = $sdir;
+    $uuid =~ s{.*/}{};
+
+    ## bmw-L13 of the session tmp path with trailing slash  [ same key ##
+    ## convention as bin/bmw-L13 + mcp-server-p7 ]                     ##
+    my $bmw = <[chk-sum.bmw.L13-str]>->("$sdir/") // '';
+    next unless length $bmw;
+
+    my $entry = {
+        'uuid'      => $uuid,
+        'bmw'       => $bmw,
+        'tmp_dir'   => $scr,
+        'tmp_files' => 0,
+    };
+    ## may be unreadable until mcp-server-p7's chmod bridge ran for it ##
+    if ( not -r $scr ) {
+        $entry->{'unreadable'} = 1;
+    } else {
+        my $f_aref = <[file.match_files]>->( $scr, qw| ** | ) // [];
+        $entry->{'tmp_files'} = scalar @$f_aref;
+        my $newest = 0;
+        for my $file (@$f_aref) {
+            my $mtime = File::stat::stat($file)->mtime // 0;
+            $newest = $mtime if $mtime > $newest;
+        }
+        $entry->{'tmp_mtime'} = $newest;
+    }
+    if ( exists $repo{$bmw} ) {
+        $entry->{'repo_files'} = $repo{$bmw}->{'repo_files'};
+        $entry->{'imported'}   = $repo{$bmw}->{'imported'} // '';
+    }
+    push( @$out, $entry );
+}
+
+## repo-only entries [ /tmp side already gone ] ##
+for my $bmw ( keys %repo ) {
+    next if grep { $_->{'bmw'} eq $bmw } @$out;
+    push(
+        @$out,
+        {   'uuid'       => $repo{$bmw}->{'uuid'} // '?',
+            'bmw'        => $bmw,
+            'tmp_dir'    => '',
+            'tmp_files'  => 0,
+            'repo_files' => $repo{$bmw}->{'repo_files'},
+            'imported'   => $repo{$bmw}->{'imported'} // '',
+        }
+    );
+}
+
+return $out;
+
+#,,.,,,,,,,,,,...,,,.,.,.,,..,,,,,,,.,,,.,,..,..,,...,...,..,,,..,,,,,,.,,,,,,
+#QHIFJZA245YG7RGJMA34XBP63RSHU2BGNC4FYGIFYBMG6Z6LASXWMPLVASZTPQTBYVE3U5X72AJRG
+#\\\|L5QNQU2MIFTQC3BSO5ZYMAVOBK6KEUHIAAKG2OFUMOZZYSA7VEV \ / AMOS7 \ YOURUM ::
+#\[7]M4MTUNT23HY2QZWSMVK2C3JYKWGDXIWY7IKTCUQGDGLN27S7AKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

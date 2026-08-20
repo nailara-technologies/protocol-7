@@ -22,16 +22,16 @@
 ### Files involved
 
 - `bin/mcp-server-p7`
-- `modules/coding.cmd.safe-context-size`
-- `modules/coding.spawn_inference_server`
-- `modules/coding.self_test.run`
-- `modules/coding.self_test.evaluate`
-- `modules/coding.self_test.check_constraint`
-- `modules/coding.self_test.apply_tier2`
-- `modules/coding.self_test.tier2_judge`
-- `modules/coding.self_test.cmd.self-test-run`
-- `modules/coding.self_test.handler.poll_switch`
-- `modules/coding.tools.http_inference_client`
+- `src/coding.cmd.safe-context-size`
+- `src/coding.spawn_inference_server`
+- `src/coding.self_test.run`
+- `src/coding.self_test.evaluate`
+- `src/coding.self_test.check_constraint`
+- `src/coding.self_test.apply_tier2`
+- `src/coding.self_test.tier2_judge`
+- `src/coding.self_test.cmd.self-test-run`
+- `src/coding.self_test.handler.poll_switch`
+- `src/coding.tools.http_inference_client`
 
 ### Commands for future reference
 
@@ -41,8 +41,8 @@ p7c coding.self-test-run <MODEL_ID>     # switch-test-restore against another mo
 p7c coding.self-test-status             # view archived results
 ```
 
-#,,,,,,,,,.,,,.,.,,,,,.,,,...,,..,..,,,.,,.,,,..,,...,..,,.,,,,,,,,,.,,,,,,,.,
-#QULFMRLKOA76PCQRFHRBE4X3ILVVBDJHG4T7KVS7YK2X63NGX67NDPOKZUD6CQZMDRLBYKPYHUTNC
-#\\\|3UGETHNA3TLAYQI6BBJP2MTOFCQ6LBLLCTG6FCB6MKQDDW4FDQN \ / AMOS7 \ YOURUM ::
-#\[7]WO2W6WFR6IDELCEKTUGL7HTF4YARO2HF66JEXJIIOQN2ZTIJR6BQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,.,,.,,,...,,.,,.,.,...,.,.,,,,,..,,...,...,,.,,,..,.,,,,.,,,,,,
+#ENFHWC4RXDO56R4QP4RBDQEI2XQLYXU35SXQSICF6NMOVIUVIWD3GKCMEHVC55CYT2PESNJM2AWHK
+#\\\|KCFHBTGKMRQ2RICULSSE6DKJCNR37X6KFBJVXORO27F37LFZOHF \ / AMOS7 \ YOURUM ::
+#\[7]AOKROKFV6TKPTYMJLXZ2WZXLEDABTXYKZIMDOWMPZTKOPQ4WS6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

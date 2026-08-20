@@ -1,17 +1,17 @@
 ## task: memory-cmd-search
 
 ## dispatch
-create `modules/memory.cmd.search` and add `search` to the memory zenka
+create `src/memory.cmd.search` and add `search` to the memory zenka
 access list. read first:
-`modules/memory.cmd.focus` (task memory-cmd-focus, may be in progress),
-`modules/memory.tree.render`,
-`modules/memory.render.term`,
-`modules/memory.focus.set`,
-`modules/memory.focus.apply`,
-`modules/memory.tree.flow`,
-`modules/memory.tree.score`,
-`modules/memory.tree.zoom`,
-`modules/memory.source.index`,
+`src/memory.cmd.focus` (task memory-cmd-focus, may be in progress),
+`src/memory.tree.render`,
+`src/memory.render.term`,
+`src/memory.focus.set`,
+`src/memory.focus.apply`,
+`src/memory.tree.flow`,
+`src/memory.tree.score`,
+`src/memory.tree.zoom`,
+`src/memory.source.index`,
 `cfg/zenki/memory/start`.
 do NOT touch signatures or unrelated logic.
 
@@ -31,7 +31,7 @@ the search command follows this pipeline directly:
 
 ## implementation
 
-### `modules/memory.cmd.search` (NEW)
+### `src/memory.cmd.search` (NEW)
 
 ```
 ## [:< ##
@@ -92,8 +92,8 @@ access.cmd.usr.cube   = verify-instance commands heart reload \
 - async index lookups fire for each term (visible in logs at level 1)
 - no manual AMOS7 signature stubs in new or edited files
 
-#,,.,,.,,,...,...,,,.,.,,,,,.,,.,,.,,,,.,,..,,..,,...,..,,.,,,,.,,.,,,.,.,,.,,
-#AAQZIIQMKMZTYCTSLVWPYIVC432IJTPECZ6QA3EGXIBXNMJZDB3YGMFPONXMZTS5X33JLRW3TEGNI
-#\\\|HD5K2FTLA6UTAWTOJJZNIPVWYL7DMYE7HP4GHWLW6KBLP64MQNL \ / AMOS7 \ YOURUM ::
-#\[7]JD5WA7VXWVEPX76FMYPQ6L7K3JE4NPOGSBOFBEKVUWVC463RP6BY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,...,,..,..,,.,.,.,.,.,,,,.,,,,.,..,,...,..,,,.,,..,,.,.,..,,.,.,
+#4GFKOWSCKF5Z42KBKJY7W4NISQGAUSZR7PM4SDUQKXONIXTQGFRDVUHNTRXKQDLHXMJIDPKGLWJUA
+#\\\|QXZ4B63XGS2VMPOONEWOQBHQPHF4USSV6OORRRRDABPNVFE2DEY \ / AMOS7 \ YOURUM ::
+#\[7]O454T6XSOSU6JYYW7IQBPS5T2CZKCEKKWSB2GN5N74CY23X33QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

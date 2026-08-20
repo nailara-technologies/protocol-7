@@ -13,9 +13,9 @@ encrypted source key, only the repo owner can sign via
 
 ## current data structures (read these modules first)
 
-- `modules/index.rank` — builds all structures
-- `modules/index.address` — seq→rank lookup via `<index.addr>->{"$depth:$seq"}`
-- `modules/index.decode` — rank→seq via `substr(<index.packed_rank>->{$depth}, ...)`
+- `src/index.rank` — builds all structures
+- `src/index.address` — seq→rank lookup via `<index.addr>->{"$depth:$seq"}`
+- `src/index.decode` — rank→seq via `substr(<index.packed_rank>->{$depth}, ...)`
 
 key structures:
 - `<index.addr>->{"$depth:$seq"}` — address (rank) of sequence at ring depth
@@ -187,8 +187,8 @@ add `lookup search` to `access.cmd.usr.cube` in
 - if `<index.level>` is empty (future: after explicit finalize), freq lookup
   falls back to `<index.freq>` for ring 0 chars
 
-#,,..,,,.,..,,.,.,...,...,,,,,.,.,..,,,.,,,.,,..,,...,..,,.,,,.,,,.,,,,,,,,..,
-#OFXUKDVEORZ2LAYWRW7FS767EGTPV3EW5LJ4RKSELMDK3CJ3A3MQZBSDELNPTUTZBXM2XALF7GUUQ
-#\\\|3I67QT2TKFZC4IOTEWL24YLGXP55O6YUOJSYC5OUUJKEFAZ2OIE \ / AMOS7 \ YOURUM ::
-#\[7]N4GDM2OTO4JA6WZ5QKJVMJIP6J47DQLM7EFJ2YZONMVETYFUOABI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,,,,..,,,,,,,,,,..,,,,,..,,..,,..,,...,...,...,,,,,,,.,.,.,.,.,
+#D4X7GJBIG4HWNPH26Q2GKI32HUNX5F77FR3MNR6K65VNEQTS67ZH263YIDVFOYBFGWPXHC7LA7MLQ
+#\\\|HA2TMG3XX3SMEDHQQ5LCWOA2ZVOCOPVBZ5GXVFOXZQDBMXPIAXK \ / AMOS7 \ YOURUM ::
+#\[7]PPEF4OGHWLRBGANYIWC7QX7UFN3YAL3626FBG6JZCVZBWKODV4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

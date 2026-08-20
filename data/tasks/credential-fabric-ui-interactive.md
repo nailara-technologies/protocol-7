@@ -18,11 +18,11 @@ landed. read first:
 `data/tasks/cred-mesh-ui-frames.md`;
 the render modules created by the frames task
 (`cred-mesh.ui.render.*`);
-`modules/keys.console.list` for the ansi colorisation pattern that
+`src/keys.console.list` for the ansi colorisation pattern that
 highlight rendering will mirror;
-`modules/cred-mesh.rotate`, `modules/cred-mesh.register`,
-`modules/cred-mesh.key_holder.parent`,
-`modules/cred-mesh.key_holder.child` for the operations the ui
+`src/cred-mesh.rotate`, `src/cred-mesh.register`,
+`src/cred-mesh.key_holder.parent`,
+`src/cred-mesh.key_holder.child` for the operations the ui
 will trigger and the unlock pipe contract.
 this task does NOT add a new windowing system, vterm integration, or
 multi-pane layout. it operates inside one tty session at a time.
@@ -65,7 +65,7 @@ without selectable rows like `overview`).
 
 ### selection modules
 
-under `modules/cred-mesh.ui.interactive.*`:
+under `src/cred-mesh.ui.interactive.*`:
 
 - `cred-mesh.ui.interactive.up` — decrement `row_index`,
   clamp to 0
@@ -92,7 +92,7 @@ apply `focus_index`. detail and key-holder-status views ignore it.
 ## part 2 — slot actions
 
 ### action dispatch
-`modules/cred-mesh.ui.interactive.action` — args: `action_name`,
+`src/cred-mesh.ui.interactive.action` — args: `action_name`,
 `session_id`. reads focus state, finds the focused slot/req_id from
 `row_keys`, dispatches.
 
@@ -148,8 +148,8 @@ q / ESC             → exit ui mode, return to normal nshell
 ```
 
 [ this is the only nshell-touching change in the task — confirm the
-  key dispatch table location in `modules/nshell.editor.process` or
-  `modules/nshell.handler.command_reply` during implementation. keep
+  key dispatch table location in `src/nshell.editor.process` or
+  `src/nshell.handler.command_reply` during implementation. keep
   the bindings active only when the current command was a
   `cred-mesh.ui.show` view. ]
 
@@ -199,7 +199,7 @@ for the same plumbing on the auth-relay path. land that first or in
 parallel; the same access.zenki entry covers both call sites.
 
 ### the migration this assumes
-currently `cred-mesh.key_holder.child` (modules/credential_
+currently `cred-mesh.key_holder.child` (src/credential_
 fabric.key_holder.child) auto-generates `var/cred-mesh/
 fabric.secret` unencrypted on first run. the design assumes this
 secret will be twofish-encrypted with a user phrase. **migrating
@@ -245,10 +245,10 @@ renders the mask.
 
 ### new modules
 
-- `modules/cred-mesh.cmd.unlock` — receives the phrase from
+- `src/cred-mesh.cmd.unlock` — receives the phrase from
   the ui, forwards to `key_holder.parent`. clears the phrase from
   memory after send (set to undef, no logging).
-- `modules/cred-mesh.ui.interactive.unlock_dialog` — renders
+- `src/cred-mesh.ui.interactive.unlock_dialog` — renders
   the unlock-prompt frame, sets `<session.$sid.cred-mesh.ui.
   input_mode> = 'no_echo'`, registers a one-shot input handler that
   sends the phrase to `cmd.unlock` then closes.
@@ -319,8 +319,8 @@ do not add the `#,,..` stub to any new file. lowercase comments,
 
 #,,..,...,,,..,...,,,..,..,,..,..,,.,,..,,,..,,..,...,...,..,,,,.,,,..,..,...,
 
-#,,.,,.,.,.,.,..,,...,,..,...,.,,,.,.,.,.,..,,..,,...,...,,,.,,,,,...,,,.,..,,
-#SB2AZGWKWK4J2OJO24PJP5DICCWAM6ZGJYMHHPQIA7MMRDWSUBBHR4UUYAHXBL43CWZJJFI7O6KHY
-#\\\|BDWMNDBEWGB45ZBSS2KME3TGVZ355HSHILOUWHSJDJHZFRP333W \ / AMOS7 \ YOURUM ::
-#\[7]PFUSWSSUPD27GCIB6LWSS5PYU74SFX3OC2WD77ZMJWZRMA5KKKDY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,...,,..,,,.,,,,,.,.,.,.,...,..,,...,...,..,,,..,...,,,,,...,
+#34CS7T4K6T3K4OAK5PYYT6YMSSVNO5QQMBBWMCQ6NCUNK4LAL6FORIQVAOAOOE7TOIE4YUWDVJDEC
+#\\\|Y4UGJP4QOP2PAGP27XDT4QR4BVSFTUDHZJYFWSPTTRDOQ7KTTRD \ / AMOS7 \ YOURUM ::
+#\[7]OFQ5G3M46I7PWH2MYZRR555KK2YRMS7SDPPFAURTI2JQZGMVICCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,12 +15,12 @@ animations become flying elements orbiting each other in the iris.
 
 ## read first
 
-- modules/base.curve.eval         (scalar curve evaluator)
-- modules/base.curve.register     (curve registration/animation)
-- modules/base.curve.tick         (animation timer)
+- src/base.curve.eval         (scalar curve evaluator)
+- src/base.curve.register     (curve registration/animation)
+- src/base.curve.tick         (animation timer)
 - data/md/development/ROUTE-CALCULATION-METHODS.md
-- modules/route.bmw384.route.vortex
-- modules/route.bmw384.route.find
+- src/route.bmw384.route.vortex
+- src/route.bmw384.route.find
 
 ## what to implement
 
@@ -227,8 +227,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 τ = 2π (already available as τ constant)
 
-#,,,.,,..,,,.,,,.,...,,,,,,,.,,.,,,..,,,.,..,,..,,...,..,,,.,,.,.,.,.,,..,,.,,
-#AU22XGRRXV5XYIYSLVF64LCK4CT5OTFHNKLS7N3QZJOFKW6IKV3FDF7ZOXJRB6DVOIOXALU5WTTJE
-#\\\|4AVR5H7WWH3SDNB5HYII6ZGOTFLG5WIZGPR6BJBUZ37A22ALKEF \ / AMOS7 \ YOURUM ::
-#\[7]FKO6Q2ZWVR5FNNXMIBLILXCMMF2T2X2XSXM6ZMFSHHJ6FGQYKMCA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,.,,.,.,,,,,,,,,.,.,,..,,,,,,,.,..,,...,...,,,.,.,.,...,,,.,...,
+#N7IXMIRN4ICSCSJIYCDEZE26H5YLU6YQICGIDTO7IL37GGLYL56PEWQ7T7F25SIEOITNA4W2LXKJM
+#\\\|GB4BVVV4LMGDPZ62K4IN7AHW6OYPOJ4TYPD2JNYKCWLLFU5WGUS \ / AMOS7 \ YOURUM ::
+#\[7]3I2GC66W22C5TYP5W3GULISWN7BYORR52HMOLOHC6DAQT3UCX6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

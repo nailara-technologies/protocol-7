@@ -7,7 +7,7 @@
 
 ## problem
 
-reviewing a topic across all matching `modules/*` files often exceeds any
+reviewing a topic across all matching `src/*` files often exceeds any
 single context window. a security audit, style review, or refactor analysis
 touching 50+ modules cannot be done in one pass. manually splitting is
 error-prone — it misses cross-file dependencies and loses context between
@@ -33,7 +33,7 @@ a paginated review pipeline that:
 
 ```
   pattern match         dep-graph sort        budget packing
-  modules/topic.*  -->  ordered file list -->  page 1 [ files A B C ]
+  src/topic.*  -->  ordered file list -->  page 1 [ files A B C ]
                                                page 2 [ files D E F ]
                                                page 3 [ files G H ]
 
@@ -96,7 +96,7 @@ a paginated review pipeline that:
 
 ### file ordering
 
-1. resolve pattern to file list [ glob or regex over modules/ ]
+1. resolve pattern to file list [ glob or regex over src/ ]
 2. extract dependency edges per file [ via context.module.dependencies ]
 3. build directed graph [ module A calls module B → edge A→B ]
 4. topological sort with strongly-connected component grouping
@@ -267,8 +267,8 @@ optimizations are **additional steps per cycle**, not replacement steps:
 - how to express attribute compliance thresholds in review plan config?
 - should step group membership be static per plan or adaptive per page?
 
-#,,,,,.,,,.,,,,,.,,.,,,.,,,,.,..,,,.,,..,,..,,..,,...,...,,,.,,,,,.,,,...,..,,
-#QQAUKF2YIFVOVO4V3BT7D5K5MXPBUEIMZXRB77TLJKKA4KGMNTGIJ2VERSZ4KUNCNZY7CUT6WYC7E
-#\\\|LLM4PBKPAR2TBGZA5F4G2SV5W6RW55AVM2XA5NR5GADEZ57VEFL \ / AMOS7 \ YOURUM ::
-#\[7]SDOAGDZMJCKYHNWDKYWFVTV4KVWZVTC2C4VJOIGPA7GBRZFHE4BI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,,..,..,,.,.,..,,.,.,,.,,,.,,..,,...,...,.,,,.,,,,,.,,,,,.,,,
+#B4OMK2SQHQDHOGFV6M7LDZCGIUZXVWPN3M72TW3ST5P44SMJCTDOVO6ZIAT6A3OUTEXWC7NDODQQA
+#\\\|2AFJV55ZHGDRTZ7YKVACANBOUHACULTMRNHHXA4CKYTVC4KWRKQ \ / AMOS7 \ YOURUM ::
+#\[7]S3VIN632XBUXYDYEDLIXAHRMHJGETQW6HGUQFTKR5JIVUHB2AGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ metadata:
 
 ## Follow-up fixes to jobsite assessment pipeline (2026-05-29)
 
-### 1. Umlaut double-encoding — `modules/models.handler.task-result`
+### 1. Umlaut double-encoding — `src/models.handler.task-result`
 
 `Encode::encode('UTF-8', $response)` was called unconditionally. When `$response` arrives as raw UTF-8 bytes without the Perl utf8 flag (which is the normal case — network transport strips the flag), this double-encodes every non-ASCII byte. `ü` (bytes C3 BC) becomes C3 83 C2 BC → decodes as mojibake `ü`.
 
@@ -24,7 +24,7 @@ my $utf8_bytes = utf8::is_utf8($response)
 
 **178 jobs** assessed before this fix have broken ß/Ä/Ö/Ü in reason/summary text (scores are correct). Re-assess or leave — user decision pending.
 
-### 2. model_output buffer missing for no_tools tasks — `modules/coding.async.state_machine`
+### 2. model_output buffer missing for no_tools tasks — `src/coding.async.state_machine`
 
 When a model response contains XML/JSON that looks like a tool call, `chunk_handler` fires `finish_tool_calls` → `STATE_TOOL_EXEC`. The `no_tools` guard correctly skips tool execution and calls `complete_task` — but **returned early before the model_output buffer write** at lines 210-218. Only `STATE_COMPLETE` (clean YAML responses) wrote to the buffer. Prose-preamble responses ("Let me analyze...") were invisible in `coding.show-buffer`.
 
@@ -32,8 +32,8 @@ Fix: added buffer write (with same markup stripping as STATE_COMPLETE) before `c
 
 **How to apply:** When touching models.handler.task-result or coding.async.state_machine, remember the flag-conditional encode pattern and that no_tools tasks take the STATE_TOOL_EXEC early-return path.
 
-#,,..,,..,.,,,...,...,..,,...,.,.,,,.,,..,.,.,...,...,...,..,,...,..,,,,.,.,.,
-#LUCZRKQIALFR3PPWHICRFGJQF7LYX4REDWEWGCNKINJBZVVF6NQ6OKFM3H4LBATBCVLC4HLLINLEK
-#\\\|P4DGBXYSNPIRU2TJYWQU4XFEWB5W4JRZE6IZD7QL243O76SK3M6 \ / AMOS7 \ YOURUM ::
-#\[7]KEBDX6CPCKGNSOQMTLKM7XDZOWFIRTKCAZFLGQSLZTN2AJXT2IAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,.,,,,,,,.,.,,,...,..,,,..,..,,...,...,...,...,,..,..,,.,,,,..,
+#6S5S7MAFFKN2TWI2KDQN3IRB5FZZWHLTOUU5F3B657MBXRXU53FXN6W6FQDZYUKNRKURO3XUZCLYW
+#\\\|HT5UBUTDGYHYDPOWT57E2ADHG3LIEBM5ID72KTRA3UHTODU4PRE \ / AMOS7 \ YOURUM ::
+#\[7]WFDDDK7GSY37OZYB3KC6AYB4JCTE47QGQFAXS4PASPAAN4ZZQSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

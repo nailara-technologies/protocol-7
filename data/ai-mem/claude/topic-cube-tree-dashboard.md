@@ -64,7 +64,7 @@ crop features for information [branch] frames of interest."
   view.md` — "alternate tree-grouped view of v7 console" per
   `data/md/design/STDIO-RELAY-FOLD-APPLICATION.md` worked usage example
   B; depends on `data/tasks/v7-stdout-foldable-relay.md`; uses existing
-  `modules/v7.handler.process_output_line`'s `instance_id -> zenka_name`
+  `src/v7.handler.process_output_line`'s `instance_id -> zenka_name`
   mapping (`v7.zenka.instance` / `v7.zenka.setup`); addressed as
   `v7.console.view.by-zenka`, bound via `base.slot.bind_content`. that
   task is scoped to a single v7's local zenki — this idea generalizes it
@@ -93,8 +93,8 @@ watcher -> cube cache), and the ascii-frame tree+zoom+crop rendering
 spec. then split into task files following the
 [[topic-ui-show-security-levels]] precedent.
 
-#,,.,,,,,,.,.,,..,,..,...,..,,.,,,,,,,,,,,...,..,,...,...,,,.,,,.,...,,,.,,,,,
-#65MHP7ZVOSRILYNB3OZOAUQR24UYN3PMBXQYHEW7TLUBCOW2SCBUKT7NZIUHVT63JX7OMV3AT3T6W
-#\\\|5E3OA5BUY6FCNSIZNY4MNGH3YN7O4FV4VX3UAT4ITHV32BZT6IY \ / AMOS7 \ YOURUM ::
-#\[7]DOI62MSOFCCRUQFPAAR56MBJV5DTEKN7S2D3LM345FDO33FZPIDI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,,..,,.,,...,,.,,..,,...,,,.,..,,...,...,...,,,,,.,.,,..,,.,,
+#BZYBQ4AO7WEECNPJQKOHB3RVIFKRUKUFD5HZGKBKMWBH4AKBQTUFDGZEKXNG6TO4VGLX5NMD7S6I6
+#\\\|M4J4UNCYMJES2JFRULBHTGBWQN2IUQNKE6R2YFXP2GQJACCKQEP \ / AMOS7 \ YOURUM ::
+#\[7]B5B6ZBREU4TBUH5GEB7NLQZLLIXGYX6LY7ND6OBP6CW6SC2PVWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

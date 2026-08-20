@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = coding.tools.handler.ask_user_stream
+# descr = non-blocking conversational ask via the amos-term interaction buffer
+
+my $args = shift // {};
+
+my $question = $args->{'question'} // return 'question required';
+
+my $target = qw| amos-term.interaction.ask |;
+
+return 'interaction channel is not loaded'
+    unless <[base.code.exists]>->($target);
+
+my $context = { 'task_id' => <system.task_id> // qw| unknown | };
+
+my $attach_id = <[base.code.call_optional]>->(
+    $target, $question, qw| coding.handler.user_stream_reply |, $context
+);
+
+return
+    defined $attach_id
+    ? sprintf "question pending on interaction buffer [%s]", $attach_id
+    : "interaction ask failed";
+
+#,,..,,,,,,,,,,,.,.,.,..,,.,.,,..,,..,,,.,,,,,..,,...,...,.,.,.,.,..,,...,,,,,
+#DOGOH6CKP6WQI2TMVIYZDATFM6C5T4WQ3SQVIMNH6WSKSM5B3A32UURJEM3SOJZDBMP6IO3CGKDPM
+#\\\|ACZ4ITS6XYGHYJREYXDVWXGKFEYLK6O6QUPPICFTCFKD6FNTEVF \ / AMOS7 \ YOURUM ::
+#\[7]VLUN2LD2MSD3LA2MO2N4UYY3GXXHVK5VLQJQ762P64IWIJRINKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -135,45 +135,45 @@ depends on B1-B5 proven locally first
 **existing infrastructure** (tested, load-bearing):
 ```
 cfg/zenki/graphics-matrix/start     — full start file, wired to cube
-modules/graphics-matrix.init_code             — cache dir, permissions, Graphics::Magick
-modules/graphics-matrix.cmd.assert-similarity — similarity assertion command
-modules/graphics-matrix.cmd.filter-c2a        — color-to-alpha filter
-modules/graphics-matrix.cmd.filter-rep-col    — replace color filter
-modules/graphics-matrix.filter.*              — alpha, c-to-a, rep-col backends
-modules/graphics-matrix.guess_bg_color        — background color detection
+src/graphics-matrix.init_code             — cache dir, permissions, Graphics::Magick
+src/graphics-matrix.cmd.assert-similarity — similarity assertion command
+src/graphics-matrix.cmd.filter-c2a        — color-to-alpha filter
+src/graphics-matrix.cmd.filter-rep-col    — replace color filter
+src/graphics-matrix.filter.*              — alpha, c-to-a, rep-col backends
+src/graphics-matrix.guess_bg_color        — background color detection
 ```
 
 **existing visual pipeline** (untested, freely adjustable):
 ```
-modules/graphics.matrix.visual.cubic-sort     — 5-phase: classify → group → cluster → batch → layers
-modules/graphics.matrix.visual.sphere         — sphere classification 0-6, cubic coord calc
-modules/graphics.matrix.visual.cubic-layers   — hierarchical sphere layer builder
-modules/graphics.matrix.visual.build-cubic-grid — cubic grid construction
-modules/graphics.matrix.visual.classify-all   — image classification pipeline
-modules/graphics.matrix.visual.find-clusters  — similarity cluster detection
-modules/graphics.matrix.visual.group-spheres  — sphere grouping
-modules/graphics.matrix.visual.group-by-color — color-based grouping
-modules/graphics.matrix.visual.group-by-proximity — spatial proximity grouping
-modules/graphics.matrix.visual.cluster-center — cluster centroid calculation
-modules/graphics.matrix.visual.color          — color utilities
-modules/graphics.matrix.visual.extract-color  — color extraction
-modules/graphics.matrix.visual.extract-palette — palette extraction
-modules/graphics.matrix.visual.detect-resolution — resolution detection
-modules/graphics.matrix.visual.similarity     — similarity scoring
-modules/graphics.matrix.visual.phash          — perceptual hash
-modules/graphics.matrix.visual.hamming        — hamming distance
-modules/graphics.matrix.visual.vision-batches — lm-vision batch preparation
-modules/graphics.matrix.visual.sphere-stats   — sphere statistics
-modules/graphics.matrix.visual.generate-batch-id — batch ID generation
+src/graphics.matrix.visual.cubic-sort     — 5-phase: classify → group → cluster → batch → layers
+src/graphics.matrix.visual.sphere         — sphere classification 0-6, cubic coord calc
+src/graphics.matrix.visual.cubic-layers   — hierarchical sphere layer builder
+src/graphics.matrix.visual.build-cubic-grid — cubic grid construction
+src/graphics.matrix.visual.classify-all   — image classification pipeline
+src/graphics.matrix.visual.find-clusters  — similarity cluster detection
+src/graphics.matrix.visual.group-spheres  — sphere grouping
+src/graphics.matrix.visual.group-by-color — color-based grouping
+src/graphics.matrix.visual.group-by-proximity — spatial proximity grouping
+src/graphics.matrix.visual.cluster-center — cluster centroid calculation
+src/graphics.matrix.visual.color          — color utilities
+src/graphics.matrix.visual.extract-color  — color extraction
+src/graphics.matrix.visual.extract-palette — palette extraction
+src/graphics.matrix.visual.detect-resolution — resolution detection
+src/graphics.matrix.visual.similarity     — similarity scoring
+src/graphics.matrix.visual.phash          — perceptual hash
+src/graphics.matrix.visual.hamming        — hamming distance
+src/graphics.matrix.visual.vision-batches — lm-vision batch preparation
+src/graphics.matrix.visual.sphere-stats   — sphere statistics
+src/graphics.matrix.visual.generate-batch-id — batch ID generation
 ```
 
 **existing 3D cursor** (untested, freely adjustable):
 ```
-modules/graphics-3d.init_code                 — 8×7×13 voxel space (729=9³), GTK3/Cairo 60fps
-modules/graphics-3d.render.cursor             — cursor render with translucency curves
-modules/graphics-3d.calc.cursor-translucency  — 6 curve profiles (sigmoid, sine, gaussian, ...)
-modules/graphics-3d.handler.cursor_navigate   — 3D navigation with wrap-around
-modules/graphics-3d.cfg.cursor                — cursor configuration
+src/graphics-3d.init_code                 — 8×7×13 voxel space (729=9³), GTK3/Cairo 60fps
+src/graphics-3d.render.cursor             — cursor render with translucency curves
+src/graphics-3d.calc.cursor-translucency  — 6 curve profiles (sigmoid, sine, gaussian, ...)
+src/graphics-3d.handler.cursor_navigate   — 3D navigation with wrap-around
+src/graphics-3d.cfg.cursor                — cursor configuration
 ```
 
 **goal**: central index-and-transform hub for all visual and topological data in P7.
@@ -493,7 +493,7 @@ infrastructure being stable.
 ```
 cfg/zenki/povray/start   — full start file (auth, net, unix, zenka loop)
                                      wildcard filter command access
-modules/povray.init_code           — stub (0;), ready for implementation
+src/povray.init_code           — stub (0;), ready for implementation
 ```
 
 **goal**: raytracing as a P7 network service. povray scenes templated from live
@@ -579,16 +579,16 @@ enables the rendering pipeline for G, P, and B without additional work.
 
 ```
 cfg/zenki/web-browser/start        — WebKit2/GTK3 kiosk browser
-modules/web-browser.init_code                — WebKit2 4.0, transparency, GPU awareness
-modules/web-browser.cmd.load_uri             — load URL from P7 command
-modules/web-browser.cmd.run_js               — execute JavaScript from P7 command
-modules/web-browser.cmd.switch               — switch between views
-modules/web-browser.handler.fade_in_view     — translucent view transitions
-modules/web-browser.handler.swap_views       — multi-layer view swapping
-modules/web-browser.handler.auto_scroll      — automatic scrolling with speed control
-modules/web-browser.cmd.start_slideshow      — kiosk-mode slideshow
-modules/web-browser.calc_zoom_level          — zoom control
-modules/web-browser.handler.gpu_load_reply   — GPU load awareness
+src/web-browser.init_code                — WebKit2 4.0, transparency, GPU awareness
+src/web-browser.cmd.load_uri             — load URL from P7 command
+src/web-browser.cmd.run_js               — execute JavaScript from P7 command
+src/web-browser.cmd.switch               — switch between views
+src/web-browser.handler.fade_in_view     — translucent view transitions
+src/web-browser.handler.swap_views       — multi-layer view swapping
+src/web-browser.handler.auto_scroll      — automatic scrolling with speed control
+src/web-browser.cmd.start_slideshow      — kiosk-mode slideshow
+src/web-browser.calc_zoom_level          — zoom control
+src/web-browser.handler.gpu_load_reply   — GPU load awareness
 + 67 more modules (callbacks, handlers, commands, setup)
 ```
 
@@ -605,35 +605,35 @@ modules/web-browser.handler.gpu_load_reply   — GPU load awareness
 ```
 cfg/zenki/X-11/start               — full X11 server management
 cfg/zenki/X-11-pointer/start       — cursor control sub-zenka
-modules/X-11.init_code                       — X11 connection, display init
-modules/X-11.cmd.set_opacity                 — per-window opacity control
-modules/X-11.cmd.set_geometry                — window positioning
-modules/X-11.cmd.get_screen_size             — display geometry
-modules/X-11.cmd.raise_window                — window stacking
-modules/X-11.cmd.hide_window / unhide_window — visibility control
-modules/X-11.cmd.gpu_load                    — GPU load monitoring
-modules/X-11.cmd.rotate-screen               — display rotation
-modules/X-11.set_background_image            — background with checksum cache
-modules/X-11.handler.global_hotkeys          — hotkey system
-modules/X-11.cmd.wait_visible                — window visibility detection
+src/X-11.init_code                       — X11 connection, display init
+src/X-11.cmd.set_opacity                 — per-window opacity control
+src/X-11.cmd.set_geometry                — window positioning
+src/X-11.cmd.get_screen_size             — display geometry
+src/X-11.cmd.raise_window                — window stacking
+src/X-11.cmd.hide_window / unhide_window — visibility control
+src/X-11.cmd.gpu_load                    — GPU load monitoring
+src/X-11.cmd.rotate-screen               — display rotation
+src/X-11.set_background_image            — background with checksum cache
+src/X-11.handler.global_hotkeys          — hotkey system
+src/X-11.cmd.wait_visible                — window visibility detection
 + 80 more modules (DPMS, backgrounds, WM, pointer, display state)
 ```
 
 ### tile zenka (42 modules, formerly 'layout')
 
 ```
-modules/tile.init_code                — tile group config loader, checksum validation
-modules/tile.cmd.switch-group    — switch between tile configurations
-modules/tile.cmd.add_overlay          — add translucent overlay layer
-modules/tile.cmd.remove_overlay       — remove overlay layer
-modules/tile.cmd.sort_layers          — reorder layer stacking
-modules/tile.cmd.assign_window        — assign window to tile position
-modules/tile.cmd.get-layer            — query layer state
-modules/tile.cmd.get_geometry         — tile geometry calculation
-modules/tile.process-tile-group       — tile group activation engine
-modules/tile.merge_multiple           — multi-config merge
-modules/tile.callback.poll_tile_color — tile activity monitoring
-modules/tile.gpu_alerts.*             — GPU load alert system
+src/tile.init_code                — tile group config loader, checksum validation
+src/tile.cmd.switch-group    — switch between tile configurations
+src/tile.cmd.add_overlay          — add translucent overlay layer
+src/tile.cmd.remove_overlay       — remove overlay layer
+src/tile.cmd.sort_layers          — reorder layer stacking
+src/tile.cmd.assign_window        — assign window to tile position
+src/tile.cmd.get-layer            — query layer state
+src/tile.cmd.get_geometry         — tile geometry calculation
+src/tile.process-tile-group       — tile group activation engine
+src/tile.merge_multiple           — multi-config merge
+src/tile.callback.poll_tile_color — tile activity monitoring
+src/tile.gpu_alerts.*             — GPU load alert system
 + 30 more modules (handlers, setup, coordinates, transitions)
 ```
 
@@ -649,8 +649,8 @@ modules/tile.gpu_alerts.*             — GPU load alert system
 ### compton + openbox (10 modules)
 
 ```
-modules/compton.init_code / compton.startup  — X11 compositor (picom)
-modules/openbox.init_code / openbox.start_wm — window manager with P7 control
+src/compton.init_code / compton.startup  — X11 compositor (picom)
+src/openbox.init_code / openbox.start_wm — window manager with P7 control
 ```
 
 together with tile, these provide **full composited desktop control**:
@@ -692,11 +692,11 @@ is equally complete:
 
 **data zenka** (108 modules):
 ```
-modules/data.channel.shm.*    — SHM channels (create, read, write, poll)
-modules/data.cmd.mount-cube   — cube-routed namespace mount
-modules/data.cmd.mount-visual — visual data mount
-modules/data.get / data.set   — namespace tree read/write
-modules/data.get.classify_path — path classification
+src/data.channel.shm.*    — SHM channels (create, read, write, poll)
+src/data.cmd.mount-cube   — cube-routed namespace mount
+src/data.cmd.mount-visual — visual data mount
+src/data.get / data.set   — namespace tree read/write
+src/data.get.classify_path — path classification
 + fs mounts, hash paths, permissions, array/hash access
 ```
 
@@ -709,17 +709,17 @@ httpsd live on pri.v7.ax with non-blocking SSL accept
 
 **web zenka** (25 modules):
 ```
-modules/web.cmd.render-template — template rendering
-modules/web.cmd.process-template-ipc — IPC template processing
-modules/web.assets.*  — asset registry with status tracking
+src/web.cmd.render-template — template rendering
+src/web.cmd.process-template-ipc — IPC template processing
+src/web.assets.*  — asset registry with status tracking
 ```
 
 **websocket** (4 modules, fresh):
 ```
-modules/websocket.init_code   — client subsystem init
-modules/websocket.connect     — ws:// connect with HTTP upgrade handshake
-modules/websocket.handler.read — non-blocking read handler
-modules/websocket.send        — frame send
+src/websocket.init_code   — client subsystem init
+src/websocket.connect     — ws:// connect with HTTP upgrade handshake
+src/websocket.handler.read — non-blocking read handler
+src/websocket.send        — frame send
 ```
 
 **the complete loop**:
@@ -841,8 +841,8 @@ D3 (lmstudio inference)  ·  independent, low priority
 E1-E3 (bugs)  ·  independent, opportunistic
 ```
 
-#,,.,,,,.,,.,,,,,,,,,,.,,,.,.,.,,,,..,...,...,..,,...,..,,...,.,,,...,...,..,,
-#6B2G6BXTCGHGOX3KYR4NYQXQML6ZSDWUMEKDWVJDYSJWM3DLOCOEFM77NIUCURVZ6E4YYTGCIBQFM
-#\\\|TBMTTE5TCHM53SRZJDXWABFUQVFSS3EW7SBIITYUZHJDUU46EI5 \ / AMOS7 \ YOURUM ::
-#\[7]JJLNO3IQAIGCH6CX7EWWF4WZNXA6ZZ3CGDGQ4IASHZD7PKYF2WAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,,,,,,.,,.,,,,.,,,..,.,.,..,,..,,...,...,...,.,.,,,.,..,,.,,,
+#5TTUCSBJ23Q6EIE4HZTKHJQDMGJRGCPKYUHXCC2NR2ZMI5XOYG6XZM52KOAIDRA4Q62JVPMY67KVG
+#\\\|ZAP7EMZE3HSRFFAM4ERTYOCYWGQSC6BIL3SPWXXKTBVQU2JELG5 \ / AMOS7 \ YOURUM ::
+#\[7]YHHNVV4INLFPSO65XECB6432UEM52O3DBTK62XU3ZHCUWCOGYKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

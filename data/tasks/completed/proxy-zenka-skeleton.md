@@ -159,21 +159,21 @@ as candidates for native zenka adapters.
 
 ## modules to create
 
-- `modules/proxy.init_code` — initialize, register as httpd child or
+- `src/proxy.init_code` — initialize, register as httpd child or
   standalone, load selector config, start request loop
-- `modules/proxy.handler.request` — main intercept handler: build context
+- `src/proxy.handler.request` — main intercept handler: build context
   hash, run selector, dispatch to template resolver, return response
-- `modules/proxy.selector.load` — load + merge global and domain selector
+- `src/proxy.selector.load` — load + merge global and domain selector
   rules from yaml config
-- `modules/proxy.selector.match` — walk rules in priority order, return
+- `src/proxy.selector.match` — walk rules in priority order, return
   matched template name
-- `modules/proxy.template.resolve` — dispatch to site-yaml or passthrough,
+- `src/proxy.template.resolve` — dispatch to site-yaml or passthrough,
   assemble typed result
-- `modules/proxy.log.visit` — append to visit-log.yaml, update
+- `src/proxy.log.visit` — append to visit-log.yaml, update
   adapter-candidates.yaml
-- `modules/proxy.template.generic` — generic p7-style HTML renderer for
+- `src/proxy.template.generic` — generic p7-style HTML renderer for
   extracted content
-- `modules/proxy.template.passthrough` — forward unchanged
+- `src/proxy.template.passthrough` — forward unchanged
 
 ## configuration
 
@@ -243,31 +243,31 @@ handles all footer blocks — leave them untouched.
 Inside any handler receiving `$id`, the session hash `$data{'session'}{$id}{'http'}{'request'}` contains `method`, `uri`, `headers`, `host`, `client` (addr/port), etc. This is the source for building the proxy's request context hash.
 
 **Async HTTP client for outbound fetching:**
-- `modules/clients.http.request` — blocking connect → non-blocking → `event.add_io` with `clients.http.handler.io`
-- `modules/clients.https.request` — same plus `IO::Socket::SSL` handshake handler `clients.https.handler.handshake`
+- `src/clients.http.request` — blocking connect → non-blocking → `event.add_io` with `clients.http.handler.io`
+- `src/clients.https.request` — same plus `IO::Socket::SSL` handshake handler `clients.https.handler.handshake`
 - Socket I/O: `<[base.s_read]>->($sock, \$chunk, 65536)` and direct `syswrite`
 - These are the baseline for passthrough and generic extraction fetch.
 
 **site-yaml extraction API:**
-- `modules/site-yaml.extract` — entry point: `<[site-yaml.extract]>->($url)` returns hashref on success, error string on failure.
-- `modules/site-yaml.http.get` — uses `LWP::UserAgent` (`$data{'site-yaml'}{'ua'}`), calls `$ua->env_proxy`.
-- `modules/site-yaml.cmd.fetch` — wraps extract in protocol-7 reply: `{ mode => 'size', data => $yaml }` or `{ mode => 'false', data => $error }`.
+- `src/site-yaml.extract` — entry point: `<[site-yaml.extract]>->($url)` returns hashref on success, error string on failure.
+- `src/site-yaml.http.get` — uses `LWP::UserAgent` (`$data{'site-yaml'}{'ua'}`), calls `$ua->env_proxy`.
+- `src/site-yaml.cmd.fetch` — wraps extract in protocol-7 reply: `{ mode => 'size', data => $yaml }` or `{ mode => 'false', data => $error }`.
 - **Critical limitation:** only `stepstone.de` extractors exist (`site-yaml.stepstone.job`, `site-yaml.stepstone.search`). There is **no generic `fetch_and_parse`** that accepts an arbitrary domain.
 
 **Plugin pattern (for reference):**
-- `modules/plugin.httpd.radio.init_code` — initializes state vars, sets stream path.
-- `modules/plugin.httpd.radio.cmd.radio_online` — activates endpoint, invalidates route cache.
-- `modules/plugin.httpd.radio.handler.stream_request` — HTTP handler that sends headers then issues `protocol-7.route-send` → `radio.listen`.
-- `modules/plugin.httpd.radio.handler.strm_open` — reply handler that registers `base.strm.local.register` consumer.
+- `src/plugin.httpd.radio.init_code` — initializes state vars, sets stream path.
+- `src/plugin.httpd.radio.cmd.radio_online` — activates endpoint, invalidates route cache.
+- `src/plugin.httpd.radio.handler.stream_request` — HTTP handler that sends headers then issues `protocol-7.route-send` → `radio.listen`.
+- `src/plugin.httpd.radio.handler.strm_open` — reply handler that registers `base.strm.local.register` consumer.
 - Note: there is **no generic plugin hook API** in httpd. The radio plugin integrates via hard-coded checks in `httpd.route_dispatcher`.
 
 **web-browser proxy setup (for reference, not reuse):**
-- `modules/web-browser.proxy_setup` and `modules/web-browser.disable_proxy` configure `Gtk3::WebKit2::NetworkProxySettings`. These are **GTK3/WebKit proxy config helpers**, not an intercepting HTTP proxy. They are unrelated to the planned proxy zenka except in name.
+- `src/web-browser.proxy_setup` and `src/web-browser.disable_proxy` configure `Gtk3::WebKit2::NetworkProxySettings`. These are **GTK3/WebKit proxy config helpers**, not an intercepting HTTP proxy. They are unrelated to the planned proxy zenka except in name.
 
 ### integration points confirmed
 
 **Where the proxy hooks into httpd:**
-1. Add `proxy` to `modules.load` in `cfg/zenki/httpd/start` (or run as standalone zenka). Given the task spec says "register as httpd child or standalone", note that httpd config **does not declare child zenki** — it loads modules/plugins into the current zenka via `[load_modules:...]`. A standalone proxy zenka would need to be spawned by v7 and communicate over route-send.
+1. Add `proxy` to `modules.load` in `cfg/zenki/httpd/start` (or run as standalone zenka). Given the task spec says "register as httpd child or standalone", note that httpd config **does not declare child zenki** — it loads src/plugins into the current zenka via `[load_modules:...]`. A standalone proxy zenka would need to be spawned by v7 and communicate over route-send.
 2. Register method handler in `cfg/zenki/httpd/start`: `http.handler.connect = proxy.handler.request`.
 3. For full interception of GET/POST, the proxy needs to either:
    - Override `http.handler.get` / `http.handler.post` when proxy mode is on, OR
@@ -285,9 +285,9 @@ Inside any handler receiving `$id`, the session hash `$data{'session'}{$id}{'htt
 
 ### naming conflicts or overlaps
 
-- `modules/web-browser.proxy_setup` / `web-browser.disable_proxy` — name collision on "proxy" but completely different function (WebKit proxy settings vs. intercepting proxy). Not a real conflict since namespaces differ (`web-browser.*` vs `proxy.*`).
-- **No existing `modules/proxy.*` files** — the namespace is clean.
-- `modules/httpd.handler.web-relay.response` — handles web-relay replies. The proxy's reply handlers should use distinct names (`proxy.handler.*`) to avoid confusion.
+- `src/web-browser.proxy_setup` / `web-browser.disable_proxy` — name collision on "proxy" but completely different function (WebKit proxy settings vs. intercepting proxy). Not a real conflict since namespaces differ (`web-browser.*` vs `proxy.*`).
+- **No existing `src/proxy.*` files** — the namespace is clean.
+- `src/httpd.handler.web-relay.response` — handles web-relay replies. The proxy's reply handlers should use distinct names (`proxy.handler.*`) to avoid confusion.
 
 ### gaps in the task spec
 
@@ -310,8 +310,8 @@ Inside any handler receiving `$id`, the session hash `$data{'session'}{$id}{'htt
 
 The original list is sound but needs two additions for the standalone-zenka model:
 
-- `modules/proxy.listen` — create listening socket (IO::Socket::IP), accept connections, spawn per-connection handler
-- `modules/proxy.handler.connection` — per-connection request parser (lightweight HTTP::Request or hand-rolled), builds context hash, calls `proxy.handler.request`
+- `src/proxy.listen` — create listening socket (IO::Socket::IP), accept connections, spawn per-connection handler
+- `src/proxy.handler.connection` — per-connection request parser (lightweight HTTP::Request or hand-rolled), builds context hash, calls `proxy.handler.request`
 
 These replace the implicit "httpd child" integration. If the proxy runs inside httpd instead, these are unnecessary and `proxy.handler.request` receives `$id` directly.
 
@@ -321,8 +321,8 @@ The `proxy.handler.request` module should be split into two variants if both mod
 
 **Recommendation:** commit to standalone model and add `proxy.listen` + `proxy.handler.connection`.
 
-#,,,.,,..,,,.,.,.,,..,.,.,,.,,,.,,.,.,,,,,..,,..,,...,...,..,,,,,,,,,,.,.,..,,
-#CCZQFIDKY3UB62NXB73DWWE6RNJOFDP4SKROIO4J35C6A3V6S42VBPBQKNBNLYMQXYY2GDGWBRGAC
-#\\\|YP5AHJP72VZYMYMMTO6QNMCAG7LPS5W5MM546LSRKC7U4PCREEM \ / AMOS7 \ YOURUM ::
-#\[7]3LPK67SHTG56C6TOVPJME5QTTEWI3WZJOYGI3SVCXNQLRGRPZ4BI 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,..,.,,,...,,.,,,,.,...,..,,..,,...,...,,.,,,,.,,,,,..,,,,,,
+#IZDIMJQUXSXIYGUFNFVVTZOAEPEXOY7ECDY2CLA2ST4AMR2PUQXL76OWRKHFBYISTN7PAIAEETMD6
+#\\\|WQUSNY36OLRJIXIVEFYP2C2NZ4UB7WJTGMXUURVLYC3MBQPPFZ2 \ / AMOS7 \ YOURUM ::
+#\[7]MFKFI6SIGGWSPLRHDFEXXCGVIQM226AQ4AHQFIVARRQLZQ2AHQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

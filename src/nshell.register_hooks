@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = nshell.register_hooks
+# descr = Register hooks on nshell session to intercept unknown messages
+
+## Get the current session ID from cube user's sessions  From nshell's
+## perspective, it communicates with cube user
+my ($session_id) = keys <user.cube.session>->%*;
+
+unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
+    <[base.log]>->(
+        0,
+        'nshell.register_hooks: no cube session found, cannot register hooks'
+    );
+    return FALSE;
+}
+
+## Register hooks to intercept unknown messages from cube/other zenki These
+## are called by base.handler.command when it encounters unknown messages
+
+## Hook for replies with unknown route IDs
+<[base.handler.hooks.register]>->(
+    $session_id, 'unknown-reply-route', 'nshell.hook.unknown_reply_route'
+);
+
+## Hook for replies with unknown/invalid types
+<[base.handler.hooks.register]>->(
+    $session_id, 'unknown-reply-type', 'nshell.hook.unknown_reply_type'
+);
+
+## initialise nshell stream tracking state for STRM protocol support
+$data{'nshell'}{'streams'} //= {};
+
+## suppress unknown-reply-route log messages for nshell's cube session nshell
+## sends commands without reply routes (transparent relay), so receiving
+## TRUE-reply to unknown route id is normal operation : not an error to log [
+## without this, the log entry is forwarded to p7-log through the cube session
+## and gets misrouted to system.p7-log.append when the base path is 'system' ]
+$data{'session'}{$session_id}{'silent_reply_ignore'} = TRUE;
+
+## unknown-command and unknown-command-global hooks disabled  these would
+## print to console, blocking network replies from being routed back nshell
+## handles commands through normal reply handlers, not through unknown-command
+## hooks
+
+<[base.log]>->(
+    2,
+    'nshell: registered 2 message interception '
+        . 'hooks (reply-route [ incl. STRM ], reply-type)'
+);
+
+return TRUE;
+
+#,,,,,...,.,,,,,.,..,,.,.,..,,,..,,,,,..,,,..,.,.,...,...,.,.,,..,...,.,,,,,,,
+#5AJ2SNH4CHQML3NCAJZ7QU6JOO4764SXO2CTQ6YTM6RFUMGSW3OKJBORETAVVXZI73K6U3LFREIGO
+#\\\|WVYBQYW7SUWC4AUSCPXIWCYEPCXTQCBOLKABDGD6PIH4Z53DQ5U \ / AMOS7 \ YOURUM ::
+#\[7]4PUVS6O2SXO7BDMPKVGECVUZQ4BULOD37YJGNOCCFOG6R4HQ76DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

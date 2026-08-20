@@ -113,7 +113,7 @@ my ( $verbosity_low, $max_verbosity ) = <[base.minmax]>->(
 );
 ```
 
-See `modules/base.get_max_verbosity` for implementation.
+See `src/base.get_max_verbosity` for implementation.
 
 ---
 
@@ -241,13 +241,13 @@ See `modules/base.get_max_verbosity` for implementation.
 
 - `data/ai-mem/claude/coding-style.md` - Claude-specific logging notes
 - `data/ai-mem/kimi/coding-style.md` - Kimi-specific logging notes
-- `modules/base.log.format_entry` - Color/format implementation
-- `modules/base.get_max_verbosity` - Effective verbosity calculation
+- `src/base.log.format_entry` - Color/format implementation
+- `src/base.get_max_verbosity` - Effective verbosity calculation
 
 ---
 
-#,,.,,..,,,.,,,.,,,,,,,,.,,..,,.,,,,,,.,.,.,,,.,.,...,..,,..,,..,,..,,..,,,.,,
-#SIATP2FCBAL2U4326BRJ646DFCZIETWSHUYBDJAUKY3XIPAGG6Q7GZJVY7KFS6EGPYAXVG5MAU5IM
-#\\\|AOY2TEMLO2FM5NZ3E3M5T4PRWN4WOTCAXHPKS3ZPVDSEHDP3DC2 \ / AMOS7 \ YOURUM ::
-#\[7]B4K2ELH4SCSEIKHZSYACNAYCXRL55NQNMKLTNBOREK7QGTMDKEBI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,,.,,,..,,,,,,.,,..,,,,,,..,,.,.,...,...,.,,,..,,,.,,,,,,...,
+#352NIKA4NPOQNHG2ASRVJUVPRKUNOHTPXOQ7IOUJXF4WCVN6NQFQAVDV33X3VSXCWZXWKMSICXQ6Q
+#\\\|FIFLTLSB5FJZHUR7SQPBLX32O3GG2FNET7B26J4AUREHJI7RHJX \ / AMOS7 \ YOURUM ::
+#\[7]JWKZPQGZHBP2PFXJPWSTYJI4JSZZMK6N774QBQ4PMEUDATXRGEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

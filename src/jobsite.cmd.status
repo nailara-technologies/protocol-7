@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = jobsite.cmd.status
+# descr = show current cycle state and job counts
+
+## count from filesystem index [ authoritative,  same source as ##
+## jobsite.progress ]                                           ##
+my %counts;
+my $idx = <jobsite.job.index> // {};
+for my $id ( keys %{$idx} ) {
+    my $st = $idx->{$id} // '';
+    $st =~ s{^(blocked|deleted|trash):.*}{$1};
+    $counts{$st}++ if length $st;
+}
+my $total = scalar keys %{$idx};
+
+my $last = <jobsite.last_scan> // 0;
+my $age
+    = $last
+    ? <[base.parser.duration]>->($last)
+    : qw| none |;
+
+my @lines = "\n .: jobsite scan :.\n :";
+push @lines, sprintf ' :  cycle        : %s', <jobsite.cycle> // qw| idle |;
+push @lines, sprintf ' :  last scan    : %s', $age;
+push @lines, sprintf ' :  total        : %d', $total;
+push @lines, sprintf ' :  threshold    : %s', <jobsite.cfg.threshold> // 7;
+push @lines, ' :';
+for my $st ( <[base.sort]>->( keys %counts ) ) {
+    push @lines, sprintf ' :  %-12s : %d', $st, $counts{$st};
+}
+push @lines, ' :.';
+
+return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
+
+#,,,,,.,.,,..,,..,,,,,,,.,,..,.,.,,.,,,..,,..,..,,...,...,...,..,,.,.,...,,,,,
+#57CPHKWNDMHMJCD2FPSWE42JGNKSVING52S5DU5LVOFQCSYXVV7KMFBKFG54HOOWMURRTI5TFWWVQ
+#\\\|GIVPBO3XR7LS3F2TUATYGY2IVX4AESWKONBPPA6V3ZVZF6GVMZH \ / AMOS7 \ YOURUM ::
+#\[7]47VED36GVPUL2LHTVWOBN5WKTVHWJR35R3QRSA7E5ZX2XTP7EOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

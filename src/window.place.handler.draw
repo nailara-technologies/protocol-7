@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = window.place.handler.draw
+# descr = draw translucent placement frame with readout
+
+my ( $id, $widget, $context ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{window}{place}{instances}{$id};
+return TRUE if not defined $inst;
+
+## bracket / HUD geometry follows the live cairo surface, which during a   ##
+## damped resize trails the target [ keeps brackets pinned to real edges ] ##
+my $w = $widget->get_allocated_width  // $inst->{'geom'}{'width'}  // 320;
+my $h = $widget->get_allocated_height // $inst->{'geom'}{'height'} // 240;
+
+## clear ##
+$context->set_operator('source');
+
+## translucent deep blue fill [ reduced alpha when pinned over a target ##
+## window ]                                                             ##
+my $fill_alpha = $inst->{'fill_alpha'} // 0.72;
+$context->set_source_rgba( 0.0, 0.0, 0.24, $fill_alpha );
+$context->paint;
+
+$context->set_operator('over');
+
+## corner brackets [ protocol-7 'truth' foreground #0647C3 ] [ arm = 16, ##
+## matches $corner hit-region in button_press ]                          ##
+my $arm = 16;
+$context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.9 );
+$context->set_line_width(2);
+
+## top-left ##
+$context->move_to( 0, 0 );
+$context->line_to( $arm, 0 );
+$context->move_to( 0, 0 );
+$context->line_to( 0, $arm );
+
+## top-right ##
+$context->move_to( $w, 0 );
+$context->line_to( $w - $arm, 0 );
+$context->move_to( $w, 0 );
+$context->line_to( $w, $arm );
+
+## bottom-left ##
+$context->move_to( 0, $h );
+$context->line_to( $arm, $h );
+$context->move_to( 0, $h );
+$context->line_to( 0, $h - $arm );
+
+## bottom-right ##
+$context->move_to( $w, $h );
+$context->line_to( $w - $arm, $h );
+$context->move_to( $w, $h );
+$context->line_to( $w, $h - $arm );
+
+$context->stroke;
+
+## text overlay : caller title top-left, geometry readout bottom-right   ##
+## prefer the window's live position -- $inst->{geom} only refreshes at  ##
+## button_release [ compositor-driven move/resize grabs don't go through ##
+## update_x11_state ], so it goes stale during an active drag, same as   ##
+## width/height below.                                                   ##
+my ( $live_x, $live_y ) = $widget->get_position;
+my $x = $live_x // $inst->{'geom'}{'x'} // 0;
+my $y = $live_y // $inst->{'geom'}{'y'} // 0;
+
+my $margin      = <window.place.font-size.margin> //= 10;
+my $title_size  = <window.place.font-size.title>  //= 40;
+my $coords_size = <window.place.font-size.coords> //= 24;
+
+## use the white-rabbit face when it loaded, else the cairo toy font ##
+my $font_face = <window.place.font.face>;
+$context->set_font_face($font_face) if defined $font_face;
+
+## title : the caller name, larger, bottom-left [ against ambiguity ] ##
+my $caller = $inst->{'caller'};
+if ( defined $caller and length $caller ) {
+    $context->set_font_size($title_size);
+    $context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.95 );
+    $context->move_to( $margin, $h - $margin );
+    $context->show_text( sprintf '[%s]', $caller );
+}
+
+## readout shows the live size [ $w/$h above, from the actual widget       ##
+## allocation, already correct -- the previous version preferred the stale ##
+## $inst->{geom} value instead, which only refreshes at release ]          ##
+my $rw = $w;
+my $rh = $h;
+
+my $readout = sprintf '[ W:%d H:%d X:%d Y:%d ]', $rw, $rh, $x, $y;
+
+## center the readout in the window, both axes ##
+$context->set_font_size($coords_size);
+$context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.95 );
+my $extents = $context->text_extents($readout);
+my $tw      = $extents->{'width'};
+my $th      = $extents->{'height'};
+$context->move_to(
+    ( $w - $tw ) / 2 - $extents->{'x_bearing'},
+    ( $h - $th ) / 2 - $extents->{'y_bearing'}
+);
+$context->show_text($readout);
+
+return TRUE;
+
+#,,,.,,,.,.,.,.,.,,.,,,,,,,,,,..,,..,,.,,,,.,,.,.,...,...,..,,.,.,...,,,,,.,,,
+#P2WXSJMQ2625OPKYNYJ7JFDYJD3G4T6JW2ILMZ4IQDR6PLHIVU45W3EHCZOXUYRWVOKANGBFKA6TY
+#\\\|MHKEZQSZ4AFRC4BXWEHG4KVR6AQ3D3ONBNQMBTMDULMH7H4F7MD \ / AMOS7 \ YOURUM ::
+#\[7]4O2SUFLGMPZI66U237I3TDUP7EZ35SA4TLLS5TVC5JESNYFEKKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

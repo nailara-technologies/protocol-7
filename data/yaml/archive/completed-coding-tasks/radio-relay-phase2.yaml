@@ -10,23 +10,23 @@ task:
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
 
   existing_modules:
-    - modules/radio.init_code
-    - modules/radio.connect
-    - modules/radio.handler.stream-chunk
-    - modules/radio.cmd.start
-    - modules/radio.cmd.stop
-    - modules/radio.cmd.status
-    - modules/radio.cmd.listen
+    - src/radio.init_code
+    - src/radio.connect
+    - src/radio.handler.stream-chunk
+    - src/radio.cmd.start
+    - src/radio.cmd.stop
+    - src/radio.cmd.status
+    - src/radio.cmd.listen
 
   files_to_create:
-    - modules/radio.filter.jingle
-    - modules/radio.cmd.skip
-    - modules/radio.cmd.keep
+    - src/radio.filter.jingle
+    - src/radio.cmd.skip
+    - src/radio.cmd.keep
 
   files_to_modify:
-    - modules/radio.init_code      ##  add jingle state init  ##
-    - modules/radio.handler.stream-chunk  ##  add track timing + jingle mute  ##
-    - modules/radio.cmd.status     ##  add jingle state to output  ##
+    - src/radio.init_code      ##  add jingle state init  ##
+    - src/radio.handler.stream-chunk  ##  add track timing + jingle mute  ##
+    - src/radio.cmd.status     ##  add jingle state to output  ##
     - cfg/zenki/radio/start  ##  add new modules to load list  ##
 
   track_state: |
@@ -74,7 +74,7 @@ task:
       ##  else: drop audio chunk silently [ jingle muted ]  ##
 
   radio_filter_jingle: |
-    file: modules/radio.filter.jingle
+    file: src/radio.filter.jingle
     param = $title string
     return = 1 if jingle, 0 if not
 
@@ -86,7 +86,7 @@ task:
     return 0;
 
   radio_cmd_skip: |
-    file: modules/radio.cmd.skip
+    file: src/radio.cmd.skip
 
     immediately flag current track as jingle:
       <radio.stream.icy>->{'is_jingle'} = 1;
@@ -94,7 +94,7 @@ task:
       reply TRUE with 'skipping: <title>'
 
   radio_cmd_keep: |
-    file: modules/radio.cmd.keep
+    file: src/radio.cmd.keep
 
     flag current track as to-keep:
       <radio.stream.icy>->{'keep_flagged'} = 1;
@@ -148,8 +148,8 @@ task:
     - radio.cmd.status includes jingle state
     - no background source, no keep-library playback, no disk writes in this phase
 
-#,,..,...,.,,,..,,,.,,,,,,.,,,,.,,.,.,,.,,,.,,..,,...,...,.,.,.,,,,.,,..,,,.,,
-#SLKMLCBKQFXYU5UH2A3V26KAA76CEUPFJNBDCQNKZQPJUG7LMQO3KD43SR2QSNJ7H77S3X54CM7HO
-#\\\|JAQWXEY2OUBWR6WGYZWD5OEHN5X36C6HJTWFRRFM7JQ33EQOHQT \ / AMOS7 \ YOURUM ::
-#\[7]YGKKFFN4XK5KXRX4CXGQI55T3K7OIRR4VYTKZSKPUNCHHL4UZ2AY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,,,.,..,,,,.,,..,,.,,,..,.,,,..,,...,...,.,.,,,,,...,.,.,.,,,
+#VYKWLCMDEW3PCRR2C4CURSX2QKIK6C5ME4YLYOO3CH5RLYYY4KDSQ6GY624WG2BGMFGLWSDM4CY7W
+#\\\|ISYLCTD62JUJQNNAMPT3UFLLNPOY7JTH7Y4ZTEWVEMIGEUXSVTH \ / AMOS7 \ YOURUM ::
+#\[7]53YQNP6ULYS3SEZM7FJNIJRFFH6AK5CZ3Q3SQWTLN3YJDZR7KCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

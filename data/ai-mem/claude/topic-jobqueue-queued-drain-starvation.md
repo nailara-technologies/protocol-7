@@ -36,7 +36,7 @@ same starvation.
 
 ## fix (landed)
 
-`modules/jobqueue.handler.queue_counter`: the `queued`-queue branch now
+`src/jobqueue.handler.queue_counter`: the `queued`-queue branch now
 drains up to `$$counter_ref` jobs per firing instead of one, via a bounded
 `while` loop (snapshot the counter into `$drain_budget` first — do NOT use
 `while ( my (...) = <[jobqueue.get_next_job]>->(...) )` as the loop
@@ -66,8 +66,8 @@ hazard applies to any future queue/counter pair built on this same
 
 [[topic-jobqueue-check-dependencies-splice-bug]] [[topic-mpv-jobqueue-startup]]
 
-#,,,.,,,.,,,.,..,,...,..,,,.,,...,.,,,.,,,...,..,,...,...,,.,,..,,,..,..,,,..,
-#RS7G3EU6JAWEAP4JVQXYJJJACQYSDFCMURIFECNT7UE7FSTGTHPBQ6XP53MDQA2Q4Q6UMGYIU5NEW
-#\\\|YOHI3P3TKDSPY23DS3K7UBPSFJ2GMJL4XA26PLRUNSEMML3WHK3 \ / AMOS7 \ YOURUM ::
-#\[7]DDM3VU7FWHCNHOJF6VWGJJW5QRARBCE6PIDLIPEHOSYMJ4N6BMDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,.,,.,.,..,,,,,,.,.,.,,,.,,,..,,..,,...,...,.,,,...,..,,,,.,,.,,
+#JUG2LWUYTRK6YIVQCVPTQ77FHIRRDRNXGJ6IALGCML6QPPS72YIRYPYFZGWBOIZ4YYF6ZJZCYZ4ZS
+#\\\|ZSBMPQAJQT4Q4CYOJ7SGZNIJERZMW6UDMLYL7JX74BA7H4KQFAW \ / AMOS7 \ YOURUM ::
+#\[7]PRTVQXF7TVDTV4HWVGWKJIQO7PJE3OFQAGFOMCBBPZDJBMU63ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ use English;
 my $pager_cmd              = $ENV{'PAGER'} // 'less -XE';
 my $CPAN_server            = 'www.cpan.org';
 my $CPAN_http_port         = 80;
-my $CPAN_file_list         = '/modules/02packages.details.txt.gz';
+my $CPAN_file_list         = '/src/02packages.details.txt.gz';
 my $CPAN_module_dir        = '/authors/id/';
 my $CPAN_http_timeout      = 10;
 my $CPAN_tmp_dir           = $ENV{'HOME'} // '/var/tmp';
@@ -43,11 +43,10 @@ sub update {
             or die " :: [error] cannot create tmp dir '$CPAN_tmp_dir'\n";
     }
 
-    if ( !-d $CPAN_tmp_dir . '/modules' ) {
-        print " :: creating dir '$CPAN_tmp_dir/modules'\n";
-        mkdir( $CPAN_tmp_dir . '/modules' )
-            or die
-            " :: [error] cannot create tmp dir '$CPAN_tmp_dir/modules'\n";
+    if ( !-d $CPAN_tmp_dir . '/src' ) {
+        print " :: creating dir '$CPAN_tmp_dir/src'\n";
+        mkdir( $CPAN_tmp_dir . '/src' )
+            or die " :: [error] cannot create tmp dir '$CPAN_tmp_dir/src'\n";
     }
     my $buffer = '';
     my ( $file_handle, $file_size ) = open_cpan_file($CPAN_file_list);
@@ -171,7 +170,7 @@ sub install {
                 my ( $txt_handle, $buffer );
                 my ( $MOD_handle, $MOD_size ) = open_cpan_file($mod_uri);
                 if ($MOD_size) {
-                    my $tgz_file    = "$CPAN_tmp_dir/modules/$mod_file_name";
+                    my $tgz_file    = "$CPAN_tmp_dir/src/$mod_file_name";
                     my $ext_mod_dir = $tgz_file;
                     $ext_mod_dir =~ s/\.tar\.gz$//;
 
@@ -180,7 +179,7 @@ sub install {
                         . "...\n";
                     open( my $file_handle, ">$tgz_file" )
                         or die " :: [error] cannot open file "
-                        . "'$CPAN_tmp_dir/modules/$mod_file_name' "
+                        . "'$CPAN_tmp_dir/src/$mod_file_name' "
                         . "[ \l$OS_ERROR ]\n";
 
                     my $bytes_read = 0;
@@ -197,7 +196,7 @@ sub install {
                     close($MOD_handle);
 
                     print " : extracting files ..\n";
-                    chdir( $CPAN_tmp_dir . '/modules/' );
+                    chdir( $CPAN_tmp_dir . '/src/' );
 
                     my $list_file = $CPAN_tmp_dir . '/current_extracted.list';
                     if (!system(
@@ -494,8 +493,8 @@ sub show_commands {
         . "install <module> [ no 'make test' ]\n :\n";
 }
 
-#,,,.,,.,,,.,,,.,,...,...,...,.,.,...,.,.,,,,,..,,...,...,..,,,,.,...,,,,,..,,
-#BUIMRZYOZ6DEFGDHDWWACR5LWG5NXA32QK5XT57GKXRVAAUPR5IDU3I3E7NKOEX7BYIWBUGH6NKSY
-#\\\|BUZSIREZWNLMJUYGGKMMFHVHGK3WLVMWD4Y35UUXGITK3L7ENB3 \ / AMOS7 \ YOURUM ::
-#\[7]PMJAEHA4W7L2FWC6HRMBWI2MD5K5V4B5V7DUNY45ZXMJHQVUNCCY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,,,,,,.,,.,,,.,.,,.,,,,,,.,.,..,,...,...,,..,,..,.,,,..,,,..,
+#BBOC73AZEA4CSB5KYDP5VP4EKEDQN3G2FTC6MJUVZBW6PUSXUV42XQKSMYQKENCHWYQ3LB6CXUYNY
+#\\\|HIR56HDXR2DLIO4A5SQIZEINKN24DPH4RJW3YNSCFKVGNHMN5DO \ / AMOS7 \ YOURUM ::
+#\[7]WFXKWO562ZPTBDOXPHTCP6O4CQ56HNFYOQZBTXA5C2MAXXG444AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

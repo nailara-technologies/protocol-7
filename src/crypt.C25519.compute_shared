@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = crypt.C25519.compute_shared
+# descr = compute C25519 Diffie-Hellman shared secret
+# args  = our_secret (32-byte binary), their_public (32-byte binary)
+# returns = 32-byte shared secret (binary), or undef on error
+
+my ( $our_secret_ref, $their_public_ref ) = @ARG;
+
+if ( ref $our_secret_ref ne 'SCALAR' or not defined $our_secret_ref->$* ) {
+    <[base.s_warn]>->('compute_shared: our_secret must be scalar ref');
+    return undef;
+}
+
+if ( ref $their_public_ref ne 'SCALAR' or not defined $their_public_ref->$* )
+{
+    <[base.s_warn]>->('compute_shared: their_public must be scalar ref');
+    return undef;
+}
+
+if ( length( $our_secret_ref->$* ) != 32 ) {
+    <[base.s_warn]>->('compute_shared: secret must be 32 bytes');
+    return undef;
+}
+
+if ( length( $their_public_ref->$* ) != 32 ) {
+    <[base.s_warn]>->('compute_shared: public key must be 32 bytes');
+    return undef;
+}
+
+## Compute DH shared secret using Curve25519
+my $shared_secret = Crypt::Curve25519::shared_secret( $our_secret_ref->$*,
+    $their_public_ref->$* );
+
+if ( not defined $shared_secret or length($shared_secret) != 32 ) {
+    <[base.s_warn]>->('compute_shared: DH computation failed');
+    return undef;
+}
+
+return $shared_secret;
+
+#,,..,.,.,,,.,..,,,..,..,,,,.,,.,,,.,,,,.,,,,,..,,...,..,,..,,...,,,,,,.,,,,.,
+#7H6BA7SHVU3CCTPSYQ52MJ5GV3XIZS2KPBTLYLKSHB2WZYLSFPOMGJ7YTC2XAQREFMYTIYTWZXXKA
+#\\\|KSBJHLWSAMKSVBLGH6JJXULYFSHGOCVLTJDOPGBYIQ3PMQ5BIZX \ / AMOS7 \ YOURUM ::
+#\[7]CPOP6HZII5YWB4TQIWADU3YUAXASJC3LBMSJENXSXTRMAZXDFYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

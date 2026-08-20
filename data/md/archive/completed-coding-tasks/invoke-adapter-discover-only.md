@@ -1,12 +1,12 @@
-write one p7 module file: modules/models.storage.adapter.invoke.discover
+write one p7 module file: src/models.storage.adapter.invoke.discover
 
 read the source function first:
     bin/scripts/invoke-ai/invoke-model-recover  lines 76-145 (query_database sub)
 
 also read one existing storage module for config access pattern:
-    modules/models.storage.discover
+    src/models.storage.discover
 
-then write modules/models.storage.adapter.invoke.discover with this header:
+then write src/models.storage.adapter.invoke.discover with this header:
     ## [:< ##
     # name  = models.storage.adapter.invoke.discover
     # descr = query invokeai.db and return list of model records as arrayrefs
@@ -22,11 +22,11 @@ the module body (file IS the subroutine, no sub declaration):
 p7 style: lowercase comments, [ brackets ] not (), $ARG not $_, <[module]>->() syntax.
 do NOT add the #,,... stub line at the end. leave the file clean for signing.
 
-after writing, verify with: ptd -c modules/models.storage.adapter.invoke.discover
+after writing, verify with: ptd -c src/models.storage.adapter.invoke.discover
 report the ptd -c output.
 
-#,,,.,...,,..,,,.,..,,.,.,..,,,..,,,,,,,.,,.,,..,,...,...,.,,,,..,,,.,.,,,,.,,
-#JUTLBH2V5LHME4CQLBWMK2BSDJMMPODPRHKML77QPWEX4RKRLFRXGSY4YPKBRYQEXOT46TTPPYUYE
-#\\\|G246QBK2JF3HAUPKXD5U3QPNP4AXKKVN7DAFNUPQYQS72HPT4F5 \ / AMOS7 \ YOURUM ::
-#\[7]54HUM3FLFU3EP6Q3EGCJDQAOW3I3TOQ5KO7DCAKIYB6HDCJPMOCY 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,,,..,,,,.,,.,,,,,,,..,.,,,...,..,,...,...,,.,,,,,,..,,,..,,,,,
+#WONAKKAKGKACF7Y2NX27OT6EMEEJREX6FDDG2KRANT46BY6XYNOXRQWFWQ7EPXCPIMFMLLIWGIHUS
+#\\\|L2EX4BVMLX6QE7EMSWYSWO7HA6KMPEG4Q4AFIHFGPQXVHTSVOI2 \ / AMOS7 \ YOURUM ::
+#\[7]6DW32HTRVD53LWMW4C2YZHZJIKV3CYRGJBYYPKSESEYR7FZNAUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

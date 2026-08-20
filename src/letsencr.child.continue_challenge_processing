@@ -1,0 +1,358 @@
+## [:< ##
+
+# name  = letsencr.child.continue_challenge_processing
+# descr = resume ACME workflow: process challenges, contact httpd for setup/cleanup [ async ]
+# note  = called directly from cmd.request-certificate after acme_new returns deferred
+
+## retrieve stored state from deferred acme_new  child will contact httpd
+## directly via message routing for challenge setup/cleanup
+
+## retrieve stored state from deferred acme_new
+my $state = <letsencr.child.acme_state> // {};
+unless ( $state && ref($state) eq qw| HASH | ) {
+    <[base.log]>->( 0, 'no stored ACME state for continuation' );
+    return {
+        status => qw| error |,
+        error  => 'ACME state not found, cannot continue challenge processing'
+    };
+}
+
+my $domains        = $state->{domains};
+my $primary_domain = $state->{primary_domain};
+my $order          = $state->{order};
+my $reply_id       = $state->{reply_id};
+
+<[base.logs]>->(
+    2, 'continuing challenge processing for %d domains',
+    scalar(@$domains)
+);
+
+## STEP 6: Process authorizations and respond to challenges
+my @auth_urls;
+my $auth_index = 0;
+
+foreach my $auth_url ( @{ $order->{authorizations} } ) {
+    $auth_index++;
+    my $domain = $domains->[ $auth_index - 1 ];
+
+    my $total_auths = scalar @{ $order->{authorizations} };
+    <[base.logs]>->(
+        2, 'authorization %d/%d: %s',
+        $auth_index, $total_auths, $domain
+    );
+
+    ## get authorization and determine challenge type
+    my $auth = <[letsencr.child.acme_get_authorization]>->($auth_url);
+    unless ($auth) {
+        my $error_msg = "Failed to get authorization for $domain";
+        <[base.log]>->( 0, $error_msg );
+        goto CHALLENGE_FAILED;
+    }
+
+    ## select challenge type: DNS for wildcard, HTTP for regular
+    my $is_wildcard    = ( $domain =~ /^\*\./ ) || $auth->{wildcard};
+    my $challenge_type = $is_wildcard ? qw| dns-01 |   : qw| http-01 |;
+    my $challenge_data = $is_wildcard ? $auth->{dns01} : $auth->{http01};
+
+    ## fallback to DNS-01 if HTTP-01 unavailable
+    if ( !$challenge_data && $auth->{dns01} ) {
+        <[base.logs]>
+            ->( 2, '%s: HTTP-01 unavailable, using DNS-01', $domain );
+        $challenge_type = qw| dns-01 |;
+        $challenge_data = $auth->{dns01};
+    }
+
+    unless ($challenge_data) {
+        <[base.logs]>->( 0, '%s: no suitable challenge available', $domain );
+        goto CHALLENGE_FAILED;
+    }
+
+    <[base.logs]>->( 2, 'challenge type: %s', $challenge_type );
+
+    ## create and respond to challenge
+    my $challenge_response;
+    if ( $challenge_type eq qw| dns-01 | ) {
+        ## DNS-01 challenge (no parent coordination needed)
+        $challenge_response = <[letsencr.child.create_dns01_challenge]>->(
+            $challenge_data, $domain
+        );
+
+        unless ($challenge_response) {
+            <[base.logs]>
+                ->( 0, '%s: DNS challenge creation failed', $domain );
+            goto CHALLENGE_FAILED;
+        }
+
+        <[base.logs]>->(
+            2,
+            'DNS TXT record: %s = %s',
+            $challenge_response->{'dns_record_name'},
+            $challenge_response->{'dns_value'}
+        );
+
+        ## wait for DNS propagation [ synchronous in DNS-01 flow ]
+        my $dns_check = <[letsencr.child.check_dns_propagation]>->(
+            $challenge_response->{dns_record_name},
+            $challenge_response->{dns_value}
+        );
+
+        unless ( $dns_check && $dns_check->{propagated} ) {
+            <[base.logs]>->( 0, '%s: DNS propagation failed', $domain );
+            goto CHALLENGE_FAILED;
+        }
+
+        <[base.logs]>->(
+            2,
+            'DNS propagated in %d attempts',
+            $dns_check->{'attempts'}
+        );
+
+    } else {
+        ## HTTP-01 challenge (parent already set up in httpd)
+        $challenge_response = <[letsencr.child.create_http01_challenge]>->(
+            $challenge_data, $domain
+        );
+
+        unless ($challenge_response) {
+            <[base.logs]>->(
+                0, '%s: HTTP challenge creation failed', $domain
+            );
+            ## Clean up the challenge files set up by httpd
+            <[letsencr.child.util.cleanup_challenge]>->(
+                $domain, $challenge_data->{token}
+            ) if $challenge_data->{token};
+            goto CHALLENGE_FAILED;
+        }
+
+        <[base.logs]>->(
+            2,
+            'challenge ready at: %s',
+            $challenge_response->{well_known_url}
+        );
+    }
+
+    ## respond to challenge [ tell ACME server validation can proceed ]
+    my $respond_result = <[letsencr.child.respond_to_challenge]>->(
+        $challenge_response->{challenge_url},
+        $challenge_response->{token}
+    );
+
+    unless ($respond_result) {
+        <[base.logs]>->( 0, '%s: failed to respond to challenge', $domain );
+        ## Clean up the challenge that was already set up
+        <[letsencr.child.util.cleanup_challenge]>->(
+            $domain, $challenge_response->{token}
+        );
+        goto CHALLENGE_FAILED;
+    }
+
+    push @auth_urls,
+        {
+        url    => $auth_url,
+        domain => $domain,
+        token  => $challenge_response->{token}
+        };
+}
+
+## STEP 7: Poll authorizations until validation completes
+<[base.log]>->( 2, 'step 6: polling authorization status' );
+foreach my $auth_info (@auth_urls) {
+    my $validation = <[letsencr.child.poll_challenge_status]>->(
+        $auth_info->{url}, $auth_info->{domain}
+    );
+
+    unless ( $validation && $validation->{valid} ) {
+        my $error = $validation->{error} // 'Challenge validation failed';
+        <[base.logs]>->(
+            0,                    '%s: validation failed - %s',
+            $auth_info->{domain}, $error
+        );
+        goto CHALLENGE_FAILED;
+    }
+
+    <[base.logs]>->(
+        2,
+        '%s: validated in %d attempts',
+        $auth_info->{'domain'},
+        $validation->{'attempts'}
+    );
+}
+
+## all authorizations validated, clean up httpd challenges
+<[base.log]>->(
+    2, 'all authorizations validated, cleaning up httpd challenges'
+);
+
+foreach my $auth_info (@auth_urls) {
+    my $domain = $auth_info->{domain};
+    my $token  = $auth_info->{token};
+    <[base.logs]>->( 2, 'cleaning up httpd challenge for %s', $domain );
+
+    ## notify httpd to clean up [ fire-and-forget ]
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| httpd.cleanup-acme-challenge |,
+            'call_args' => { 'args' => join( ' ', $domain, $token ) }
+        }
+    );
+}
+
+<[base.log]>->( 2, 'proceeding to certificate finalization' );
+goto REPLY_PARENT;
+
+CHALLENGE_FAILED:
+## error path: clean up challenges and reply to parent with failure status
+<[base.log]>->( 0, 'challenge processing failed, cleaning up challenges' );
+
+## Clean up any challenges that were set up
+foreach my $auth_info (@auth_urls) {
+    my $domain = $auth_info->{domain};
+    my $token  = $auth_info->{token};
+    <[base.logs]>->( 2, 'cleaning up failed challenge for %s', $domain );
+
+    ## notify httpd to clean up [ fire-and-forget ]
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| httpd.cleanup-acme-challenge |,
+            'call_args' => { 'args' => join( ' ', $domain, $token ) }
+        }
+    );
+}
+
+if ( defined $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'Challenge validation failed during async processing'
+        }
+    );
+} else {
+    <[base.log]>->(
+        0, 'CRITICAL: reply_id undefined in error path - route remains open!'
+    );
+}
+return { status => qw| error |, error => 'Challenge validation failed' };
+
+REPLY_PARENT:
+## continue with order finalization
+<[base.log]>->( 2, 'step 7: generating certificate signing request' );
+my $csr = <[letsencr.child.generate_csr]>->($domains);
+unless ($csr) {
+    if ( defined $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            { 'mode' => qw| false |, 'data' => 'CSR generation failed' }
+        );
+    } else {
+        <[base.log]>->(
+            0,
+            'CRITICAL: reply_id undefined in CSR error - route remains open!'
+        );
+    }
+    return { status => qw| error |, error => 'CSR generation failed' };
+}
+
+## STEP 8: Finalize order and download certificate
+<[base.log]>->( 2, 'step 8: finalizing order and downloading certificate' );
+my $cert_result = <[letsencr.child.acme_finalize_order]>;
+unless ($cert_result) {
+    if ( defined $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            { 'mode' => qw| false |, 'data' => 'Order finalization failed' }
+        );
+    } else {
+        <[base.log]>->(
+            0,
+            'CRITICAL: reply_id undefined in '
+                . 'finalize error - route remains open!'
+        );
+    }
+    return { status => qw| error |, error => 'Order finalization failed' };
+}
+
+<[base.log]>->( 2, 'certificate obtained successfully' );
+<[base.logs]>->( 2, 'polled %d times', $cert_result->{'poll_attempts'} );
+
+## step 9: prepare final result  [ certificate response is a PEM chain: split
+## into cert + chain ]
+my $valid_until = time() + ( 90 * 86400 );
+
+## parse certificate chain [ PEM format includes multiple certs ]
+my $full_chain = $cert_result->{certificate};
+
+<[base.logs]>->(
+    3, 'certificate chain length: %d bytes',
+    length($full_chain)
+);
+
+my @certs = $full_chain
+    =~ m{(-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----)}gs;
+
+<[base.logs]>->( 3, 'parsed %d certificates from chain', scalar(@certs) );
+
+my $certificate = shift @certs // '';
+my $chain       = join( "\n", @certs );
+
+<[base.logs]>->(
+    3,                    'end-entity cert: %d bytes, chain: %d bytes',
+    length($certificate), length($chain)
+);
+
+## validate chain: verify intermediate matches leaf issuer, fix via AIA if not
+my $chain_check = <[letsencr.child.validate_chain]>->( $certificate, $chain );
+
+if ( $chain_check->{'valid'} ) {
+    $chain = $chain_check->{'chain_pem'};
+    <[base.logs]>->( 2, 'chain validated for %s', $primary_domain );
+} else {
+    <[base.logs]>->(
+        0,               'chain validation failed for %s: %s',
+        $primary_domain, $chain_check->{'error'} // 'unknown'
+    );
+    ## proceed with original chain : better than no chain at all
+}
+
+my $final_result = {
+    status      => qw| success |,
+    domains     => $domains,
+    certificate => $certificate,
+    key         => $cert_result->{key},
+    chain       => $chain,
+    expires_at  => $valid_until,
+    cert_url    => $cert_result->{cert_url},
+};
+
+## reply to parent with success status and certificate data
+if ( defined $reply_id ) {
+    ## encode certificate bundle as base32r for transmission
+    my $bundle_json = JSON::XS::encode_json($final_result);
+    <[base.logs]>->(
+        3, 'encoded bundle JSON: %d bytes',
+        length($bundle_json)
+    );
+
+    my $bundle_b32r = Crypt::Misc::encode_b32r($bundle_json);
+    <[base.logs]>->(
+        3, 'encoded base32r bundle: %d bytes',
+        length($bundle_b32r)
+    );
+
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => qw| size |, 'data' => $bundle_b32r }
+    );
+} else {
+    <[base.log]>->(
+        0, 'CRITICAL: reply_id undefined - route remains open forever!'
+    );
+}
+
+## cleanup stored state
+delete <letsencr.child.acme_state>;
+
+<[base.log]>->( 2, 'challenge processing complete, certificate ready' );
+return $final_result;
+
+#,,..,,.,,...,...,..,,,..,...,.,.,.,,,,,,,,..,..,,...,..,,,.,,.,,,,,,,,.,,,.,,
+#KPEV5JPPQXAWP63MV62EJF5FECNDDPARBXIQ5REVQTCIIDG6CLSWEFV3P5VAOXOP3UDTUQA3YTEH2
+#\\\|7FB52YVZDZXSOLOT6AZR6TRHJHDLOUIFX6NSIAQXEWGII3Q4CID \ / AMOS7 \ YOURUM ::
+#\[7]PASWA6FAE24SRQPURGJKKY3FVW2GNUEPRWRM4NAM5RQXP35IKCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

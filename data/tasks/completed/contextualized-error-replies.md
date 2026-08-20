@@ -95,7 +95,7 @@ if ( exists $data{diag}{cmd_anomalies}{$cmd} ) {
 
 ## message template additions
 
-add to `modules/protocol.protocol-7.message-templates`:
+add to `src/protocol.protocol-7.message-templates`:
 
 ```
 qw| CMD_HAS_DOT   | => "FALSE: '.cmd.' is stripped from command names. Try: '%s'\nSyntax: <zenka>[.<route>].<command>",
@@ -126,7 +126,7 @@ and `base.handler.command.route_to_target`:
    `$data{diag}{cmd_anomalies}`
 
 3. add message template entries CMD_HAS_DOT, NON_CMD_SUB, MALFORMED_CMD
-   to `modules/protocol.protocol-7.message-templates`
+   to `src/protocol.protocol-7.message-templates`
 
 4. wire the anomaly check into the no-perm reply path: check registry
    before falling through to generic reply
@@ -136,8 +136,8 @@ not generic "no perm"
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,.,,,.,,...,,,.,.,.,.,.,,..,...,,..,,.,,...,..,,...,...,..,,,..,.,,,.,,,,..,
-#ZMQOV5FYVPRUOZ2CRUSVSBVEKZGVWGDRRUD53VEYYGYVH7TFXD2I3GXJF6HVHKEJX3EZGY36MSSDI
-#\\\|3PFSO7QYBEG6SGLLKPL7DVV3WOSD4U2YBYKLRY3XO2OE5RTQ6Q2 \ / AMOS7 \ YOURUM ::
-#\[7]35YY4BA7P5DHRGTX7KA6OXJZLY2FDUVNIDXAUPDUFBRM7ES5OQBA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,..,,,,,,,.,,.,,.,,,,.,,,,,,,.,,..,,...,...,.,,,...,..,,.,.,,..,
+#5T7BIT733H2PTN7E7OJV52P4SCVMU4FZU2V6DW2TMU3TS75VKPO5GVVCAQSCDNZFSVMTN42M5JOTW
+#\\\|WIWXDRZTOXZJD33ADBZL5LF4QZ4BN2KYWZDVISH24YSOA6XHUXJ \ / AMOS7 \ YOURUM ::
+#\[7]JQ6RZQUQB5SHGNTABQXTSXLKLIUQL6L4VPOXZTB6QYLIWLIFEECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

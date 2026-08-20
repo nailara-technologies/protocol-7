@@ -169,7 +169,7 @@ All planning documentation created, stub modules and configurations in place, an
 
 ### 4. ✅ Initial Module Stub Creation
 
-**modules/httpsd.init_code**
+**src/httpsd.init_code**
 - Protocol-7 compliant init module
 - IO::Socket::SSL and Crypt::OpenSSL::X509 autoloading
 - Configuration variable initialization
@@ -177,7 +177,7 @@ All planning documentation created, stub modules and configurations in place, an
 - Logging output
 - Performance metrics tracking
 
-**modules/template.init_code**
+**src/template.init_code**
 - Protocol-7 compliant init module
 - Template and HTML::Escape autoloading
 - Cache infrastructure initialization
@@ -186,7 +186,7 @@ All planning documentation created, stub modules and configurations in place, an
 - Performance metrics tracking
 - Logging output
 
-**modules/letsencrypt.init_code**
+**src/letsencrypt.init_code**
 - Protocol-7 compliant init module
 - JSON::PP, LWP::UserAgent, and Crypt::OpenSSL::RSA autoloading
 - ACME server configuration (staging/production)
@@ -399,9 +399,9 @@ All planning documentation created, stub modules and configurations in place, an
 3. `/data/projects/protocol-7/docs/architecture/VHOST_TEMPLATE_HIERARCHY.md` (700+ lines)
 
 ### New Module Stubs
-4. `/data/projects/protocol-7/modules/httpsd.init_code` (52 lines)
-5. `/data/projects/protocol-7/modules/template.init_code` (68 lines)
-6. `/data/projects/protocol-7/modules/letsencrypt.init_code` (83 lines)
+4. `/data/projects/protocol-7/src/httpsd.init_code` (52 lines)
+5. `/data/projects/protocol-7/src/template.init_code` (68 lines)
+6. `/data/projects/protocol-7/src/letsencrypt.init_code` (83 lines)
 
 ### New Configuration Files
 7. `/data/projects/protocol-7/cfg/zenki/httpsd/start` (44 lines)
@@ -528,8 +528,8 @@ Ready to begin Phase 1: HTTPSD Zenka Implementation.
 **Session**: Protocol-7 Architecture Planning & Initialization
 **Next Session**: Phase 1 Implementation (HTTPSD Zenka)
 
-#,,..,..,,,..,.,,,..,,,,,,,..,.,,,,,,,,,.,..,,..,,...,..,,.,,,...,..,,,,.,..,,
-#YIFI4D4CAYEJLRZAVWFN73GVTGTC4DOBEQC6UBSOXJT7R3LBNYE4QWXMKQUKQYKZ7S6L45UCOLWDG
-#\\\|ZJ4RVTX2LBI2ZD5AWU2JBGJCNCRHIIBKISYVWNLGBROHK2ZHQTM \ / AMOS7 \ YOURUM ::
-#\[7]PW7JSZHZAQGYHVL25IMH4SSICUCTGX5Z5SOMRUE527RTFR6SGUBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,,,,..,,..,...,,.,,,,,,,,.,.,.,..,,...,..,,..,,,,,,...,,..,,,,,
+#W6FQUGRMFZBLT2HY7C6QVSF7UWTH2CFPHRTDBMY4KBS6Z7VSPYHNVUHL3F7NAFXTAW77XEC5UMBSK
+#\\\|WY3VPW3VCRX3EVHOYAMIGPOISH6XKAPRMA5OPOYRNDYVACW32QE \ / AMOS7 \ YOURUM ::
+#\[7]TLCJK5G6QRAT44S2W4WUT7M6FDYI2NZQKVLENLBQXOATWX7FQSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

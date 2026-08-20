@@ -285,11 +285,11 @@ The reply handler unconditionally calls `idle-callback-set` even when the target
 ### Files Modified by Investigation
 
 - `INVESTIGATION-PROTOCOL-BLOCKING.md` - This document (analysis and recommendations)
-- `modules/base.log.send-buffer.reply-handler.notify-online` - Fixed idle callback loop (COMMITTED)
-- `modules/nshell.shell_loop` - Fixed protocol mismatch, now uses direct buffer relay (PENDING)
+- `src/base.log.send-buffer.reply-handler.notify-online` - Fixed idle callback loop (COMMITTED)
+- `src/nshell.shell_loop` - Fixed protocol mismatch, now uses direct buffer relay (PENDING)
 
-#,,,.,,..,,,,,,,.,.,.,...,,,,,...,,,,,..,,.,.,..,,...,...,..,,,,,,,,.,,,,,.,.,
-#P7MABUCGVHQ77IJVNLWX6N42JF2MGU2UQ5ZQBJLISJRV2LQSULHPMO3OVT4RXTDAEOVT4D2C7FN5I
-#\\\|LZKCY3EEQQINCJQNLPN6NBLVSMQM3AM3ZWPBFHJ52VPMCXGXT5L \ / AMOS7 \ YOURUM ::
-#\[7]JYZLBPSGVKWEEUSA5SUBP6HTED3375QQ2762V5JCCTS3DSPFOODI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,.,,,,.,.,.,,.,,..,,,,,,,,.,.,,,..,,...,...,..,,,,.,,..,,..,,,,,
+#6EJZQNJATT6GW2U5TFBLCE3DDZO5AWZKOVUJG6HILJGRFMMDQOJZZCIWWSDNC2H5XRKD6ZHDCAGUS
+#\\\|DBKOQO6U6UROVM4T6SYFTCHXTOGGQBDMNN34JZGUQRQJDI7UQC5 \ / AMOS7 \ YOURUM ::
+#\[7]Y5CE7EQ2VNM5X32W7EI27AVGECQLXQPCR5T2TGTU4YH3H6ZIW6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

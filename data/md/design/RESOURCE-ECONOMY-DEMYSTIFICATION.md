@@ -122,10 +122,10 @@ unlike the objections above, this one surfaced by reading the actual
 implementation, not the design docs, and it's a real gap rather than a
 misunderstanding.
 
-`modules/lm-vision.handler.http_analyze:30-53` computes a `loves_it` score
+`src/lm-vision.handler.http_analyze:30-53` computes a `loves_it` score
 from three modes, intended to approximate the harmonic-truth framing
 (mode 4 / 7 / 13) used elsewhere in the codebase (see
-`modules/amos-term.plugin-decoder.elf_match`):
+`src/amos-term.plugin-decoder.elf_match`):
 
 ```
 mode4  = length($elf_result) > 0          # true for ~any successful checksum call
@@ -163,10 +163,10 @@ purely from properties of the file being analyzed.
 - loves-it tree: [[namespace-tree-intelligence]]
 - roadmap pool-sizing item: `data/md/development/IMPLEMENTATION-ROADMAP.md:450-452`
 - method used throughout: `data/yaml/reasoning-templates/demystification-through-correspondence.yaml`
-- concrete gap found in code: `modules/lm-vision.handler.http_analyze:19-58`
+- concrete gap found in code: `src/lm-vision.handler.http_analyze:19-58`
 
-#,,.,,,.,,.,,,,,,,.,,,,.,,.,.,.,,,...,.,.,,..,..,,...,...,.,,,,.,,..,,..,,.,.,
-#7NRKLDFTVBWHVZ3SZGOPZZCY3YVNZ7MMWGAPZFPZPENMSKAYQ3G764JG75VFN72M3YN2AIUIEBFQI
-#\\\|KTMV7SKV4OZFU632KDCYBGHCWJRMBWAOE5UMKKFVENSIBDBYVNK \ / AMOS7 \ YOURUM ::
-#\[7]PNCDE5HPRCBNLMGPQK4JQ2C25ON45ZVSOHEEDO6YCF6JKGT5SMBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,,,.,..,,.,,,..,,,,,,.,.,.,.,..,,...,..,,...,...,,,.,.,.,.,.,
+#4WLSYIMFG34ZYNHB6FNYLPJCDV4BY64SL37ILVKPOGQCWIDU4T46IODLXJ65ZH3ED6CF7BQPGAX3C
+#\\\|3JN22DGLJFDMDVAW4IQVC2XEURDHK4GVFVY6ZKBUZG6OCQV6RGW \ / AMOS7 \ YOURUM ::
+#\[7]7OD6SYHMBH73V2ASZ3GIRQF5L5MN6SRK4X4S56FINTR62UBDSWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

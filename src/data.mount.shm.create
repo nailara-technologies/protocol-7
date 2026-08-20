@@ -1,0 +1,47 @@
+## [:< ##
+
+# name = data.mount.shm.create
+# descr = Create SHM segment with cryptographic identity header
+#         Uses file-based SHM in /dev/shm (tmpfs) - portable across systems
+
+# thin zenka wrapper -> AMOS7::SHM::shm_create
+# [ same relationship base.chk-sum.amos has to AMOS7::CHKSUM::amos_chksum ]
+# mechanics live in the standalone-loadable core ; the zenka path adds the
+# two context-specific concerns the core deliberately stays out of :
+#   - the 'created' time source [ <[base.time]>->(2) ]
+#   - mlock + the in-memory segment registry [ lifecycle, zenka-owned ]
+
+my $pub_key_b32 = shift;
+my $size        = shift;
+my $options     = shift // {};
+
+# inject the zenka time source ; core defaults to time() standalone
+$options->{'time_source'} //= sub { <[base.time]>->(2) };
+
+my $mount = AMOS7::SHM::shm_create( $pub_key_b32, $size, $options );
+
+return undef unless defined $mount;
+
+# mlock if requested [ zenka-side lifecycle, not core mechanics ]
+if ( $mount->{'header'}{'flags'}{'mlocked'} ) {
+    <[data.mount.shm.lock.memory]>->(
+        $mount->{'mmap_ptr'}, 0, $mount->{'total_size'}
+    );
+}
+
+## phase 4 : track creator-owned segments for cleanup-on-shutdown.       ##
+## shm_open must NEVER write into this registry — only the creator may ; ##
+## see "the critical correctness rule" in the phase-4 task doc.          ##
+$data{'mount'}{'shm'}{'segments'}{ $mount->{'path'} } = {
+    'mmap_ptr' => $mount->{'mmap_ptr'},
+    'mlocked'  => $mount->{'header'}{'flags'}{'mlocked'},
+    'pub_key'  => $mount->{'pub_key'},
+};
+
+return $mount;
+
+#,,,,,,,.,.,,,,,,,,,.,,,,,.,,,...,,..,.,,,..,,..,,...,...,,..,...,.,,,,,.,...,
+#XBXJHCC6JLJ5YWLR375PPEAAGILK5VZW7IE7FI66KXSYTTZPZ3GAA6B6MHPN7RJD6LREYWDU4FSTA
+#\\\|EFSWYQ27EMEYCL2UOKJ65YI3P34OGWKBTKUZDMHWEQNKOFAYRBB \ / AMOS7 \ YOURUM ::
+#\[7]GMGIP2NM73HN34ZKGS7B55ZJUW2ZKZMZ2NHPJEMW6QN4KDAB7UBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

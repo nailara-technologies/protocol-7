@@ -23,7 +23,7 @@ completed_work:
       - "Fallback 1: ECDHE-ECDSA-AES256-GCM-SHA384"
       - "Fallback 2: ECDHE-ECDSA-AES128-GCM-SHA256"
     files_modified:
-      - "modules/httpsd.init_code (lines 12-14)"
+      - "src/httpsd.init_code (lines 12-14)"
       - "cfg/zenki/httpsd/start (lines 17-18)"
     verification: "✅ Configuration syntax valid, OpenSSL accepts cipher string"
 
@@ -35,8 +35,8 @@ completed_work:
       - "Key Size: 1704 bytes (RSA) → 32 bytes (Ed25519) [53x smaller]"
       - "Signature Size: 256 bytes (RSA) → 64 bytes (Ed25519) [75% reduction]"
     files_modified:
-      - "modules/letsencrypt.child.generate_csr (line 21)"
-      - "modules/letsencrypt.init_code (line 9)"
+      - "src/letsencrypt.child.generate_csr (line 21)"
+      - "src/letsencrypt.init_code (line 9)"
     verification: "✅ Ed25519 key generation tested, ACME compatibility verified"
 
   rsa_dependency_removal:
@@ -46,12 +46,12 @@ completed_work:
       - "Crypt::OpenSSL::RSA (was only used for legacy RSA key generation)"
       - "Crypt::OpenSSL::X509 (replaced with OpenSSL CLI)"
     files_modified:
-      - "modules/letsencrypt.base.pre_init (removed 2 autoload statements)"
-      - "modules/letsencrypt.init_code (removed RSA import)"
-      - "modules/letsencrypt.child.extract_rsa_modulus (converted to deprecation stub)"
+      - "src/letsencrypt.base.pre_init (removed 2 autoload statements)"
+      - "src/letsencrypt.init_code (removed RSA import)"
+      - "src/letsencrypt.child.extract_rsa_modulus (converted to deprecation stub)"
     verification: |
       ✅ Grep search for RSA references: ZERO FOUND
-      $ grep -r "Crypt::OpenSSL::RSA\|::RSA\|genrsa" modules/letsencrypt*
+      $ grep -r "Crypt::OpenSSL::RSA\|::RSA\|genrsa" src/letsencrypt*
       # Result: No matches
 
   show_cipher_suites_command:
@@ -65,7 +65,7 @@ completed_work:
       - "Documents security properties and implementation choices"
       - "Follows base.cmd.show-access pattern (Protocol-7 style)"
     files:
-      - "modules/letsencrypt.cmd.show-cipher-suites (98 lines)"
+      - "src/letsencrypt.cmd.show-cipher-suites (98 lines)"
     code_quality:
       - "Uses Protocol-7 utilities (base.wrap_text, max())"
       - "Dynamic column width calculation"
@@ -222,10 +222,10 @@ documentation_created:
       - Deployment recommendations
 
 reference_files:
-  - "modules/httpsd.init_code" → HTTPSD cipher configuration
+  - "src/httpsd.init_code" → HTTPSD cipher configuration
   - "cfg/zenki/httpsd/start" → Runtime HTTPS settings
-  - "modules/letsencrypt.child.generate_csr" → Certificate key generation
-  - "modules/letsencrypt.cmd.show-cipher-suites" → User-accessible documentation
+  - "src/letsencrypt.child.generate_csr" → Certificate key generation
+  - "src/letsencrypt.cmd.show-cipher-suites" → User-accessible documentation
 
 ---
 
@@ -269,8 +269,8 @@ end_of_task: true
 completion_date: "2025-11-16"
 session_id: "cryptography-modernization-phase-1"
 
-#,,.,,,..,..,,,,.,,,.,.,.,,..,,.,,.,,,.,.,.,,,..,,...,...,,.,,,.,,.,,,,..,,..,
-#6W6Y5MC4Z4MJTC2ANKACYV5SEHD7YTQB2VI5TZI5XTM56CXPAXDDJYVRS5JJYZJCMGHQ7LBHFDLWM
-#\\\|T2DT5LECTRO4Z7X56R4XBRFTLVQTFFWNZNIXWRVI4S3CI7Z2JX6 \ / AMOS7 \ YOURUM ::
-#\[7]5BUWA7G6DDA25EEFPE7SBKLEGLPXDYKKQI2IW4ZSPF3RYI7VGECA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,,,.,.,.,...,.,,,,,.,,..,,.,,..,,...,...,..,,,,.,,,.,,,.,,,,,
+#C7DCGS2JVYYTCWAUNSYVDDQPIQIOCSCSYKTZKL2C3KOYGEW4GPHRJZFIENPJ2Q7IXTE35EY6BRYJM
+#\\\|AWDILYLGOI26FGTCEN5ZU4FRYRKS5AVPDY5LOSR53GTNOXBM3BO \ / AMOS7 \ YOURUM ::
+#\[7]HZ77GJYC33ALQ73LSZFM3POXW6V6GCGEU23YQF34LKYC3F4Y3IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

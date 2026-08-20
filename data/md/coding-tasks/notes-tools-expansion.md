@@ -3,7 +3,7 @@
 **Priority:** Medium
 **Type:** Feature — Tool Expansion
 **Component:** coding zenka notes system
-**Related:** modules/note.*, modules/coding.tools.handler.note_*, modules/coding.tools.definitions
+**Related:** src/note.*, src/coding.tools.handler.note_*, src/coding.tools.definitions
 
 ## Overview
 
@@ -16,9 +16,9 @@ and batch efficiency.
 
 Each new tool requires 3 files + 2 config entries:
 
-1. **Backend module**: `modules/note.<name>` — core logic, uses `file.*` operations
-2. **Tool handler**: `modules/coding.tools.handler.note_<name>` — thin wrapper, returns `{ content => ... }`
-3. **Tool definition**: add to `modules/coding.tools.definitions` — OpenAI function schema
+1. **Backend module**: `src/note.<name>` — core logic, uses `file.*` operations
+2. **Tool handler**: `src/coding.tools.handler.note_<name>` — thin wrapper, returns `{ content => ... }`
+3. **Tool definition**: add to `src/coding.tools.definitions` — OpenAI function schema
 4. **Whitelist**: add both module names to `cfg/zenki/coding/subroutine.white-list`
 
 ### Reference implementation — follow `note.write` / `coding.tools.handler.note_write`:
@@ -147,8 +147,8 @@ parameters:
 - tool handlers return `{ 'content' => $string }` — always a hashref with content key
 - backend modules return `{ 'mode' => 'true'|'false', 'data' => ... }`
 - add both module names to `cfg/zenki/coding/subroutine.white-list`
-- add tool definition to `modules/coding.tools.definitions` following existing note_* pattern
-- verify syntax with `ptd -c modules/<name>` after writing each file
+- add tool definition to `src/coding.tools.definitions` following existing note_* pattern
+- verify syntax with `ptd -c src/<name>` after writing each file
 
 ### One tool at a time:
 Implement one complete tool (backend + handler + definition + whitelist), verify with
@@ -156,8 +156,8 @@ Implement one complete tool (backend + handler + definition + whitelist), verify
 
 ### Round budget: 5 rounds per tool (35 total for all 7)
 
-#,,,.,.,,,,..,.,,,.,.,,,.,..,,,,,,...,,,,,...,..,,...,..,,,..,...,,.,,.,,,,.,,
-#7MJ26JQQUKAAJQR5WNH4O7TGZKBDE2IYZBNJAUXIEWZ6XSR2HVQ6STQEWQXNQC2E64SRXVHOFZGQO
-#\\\|XJIUHKAT3OBH2JOAPBC2AGFT6V5K3UDVGBZ6SS2FFQUPKSNMSWZ \ / AMOS7 \ YOURUM ::
-#\[7]UVFT4U36RLUT6NUIMKRQG47WX3VTW62PZVAXDCYRLCWWPLVPYUDY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,,,.,,..,,,,,..,,,.,,.,.,,..,..,,...,...,,.,,...,.,,,..,,,..,
+#5XXL664U6S23X7Z4FX63QBIBQ7JT5BRYGWMYUGHEZXTXCP54N4PZL6YQ3U6GID5IE4KIL3RN6NANC
+#\\\|EUA35WANC3MED6F56JHHULBD4WIHK2BOMWTBUEJUPKTOKCICOVT \ / AMOS7 \ YOURUM ::
+#\[7]ECCAQPSABXFGJAR3ZBFDHMJUGOJEJ2INJROBGH44H2HD2ERV3YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

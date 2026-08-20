@@ -210,10 +210,10 @@ sub invoke_with_failover {
 ### New Files to Create
 
 1. **`cfg/zenki/coding/llama-servers`** - Server registry
-2. **`modules/coding.server.registry`** - Config management
-3. **`modules/coding.server.health_check`** - Health monitoring
-4. **`modules/coding.server.router`** - Server selection
-5. **`modules/coding.service.llama_invoke`** - Request execution with failover
+2. **`src/coding.server.registry`** - Config management
+3. **`src/coding.server.health_check`** - Health monitoring
+4. **`src/coding.server.router`** - Server selection
+5. **`src/coding.service.llama_invoke`** - Request execution with failover
 
 ## Example Usage from Other Zenka
 
@@ -324,8 +324,8 @@ coding.llama_invoke:
 - `bin/dev/tests/ml/test-llama-server-gpu.sh` - Test script
 - `CLAUDE.md` - Project overview with zenka architecture
 
-#,,.,,..,,,,,,.,.,,,.,.,.,.,.,,,.,,..,,,,,,.,,..,,...,..,,.,.,.,,,,.,,.,.,,..,
-#GXYM5KFGYECVB4EGIXXKPJN4YN6LU2KDELVKY6ZSY5J4KBVHIWZNKLPV6E5265I2WVS5GHJSLKRTQ
-#\\\|GZWSIXTOYEJ5GAX4H5Y2U4YMKSGCYNGZ23TZQP5DWX7PL7FTVZG \ / AMOS7 \ YOURUM ::
-#\[7]UCPBGMEXGUGTTDUGVRHWZFYPUNVHRAL6CFWX2HU6WSWZCEBXPMBI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,.,..,,,.,,,.,,,..,..,,...,.,,,..,,...,...,,.,,,..,.,.,...,,,.,
+#F7XOXIQJ3SOVAYAH6DQGPXZRTTTAQVVDPOAX4YNUGUG675I77FNESOBBQEMC4CU5YXZ6A7OPH5VMS
+#\\\|54FS3KIH5MPY76TEOOXASTPWQLB2HZPPANME7L3KS5D6QFLDPVW \ / AMOS7 \ YOURUM ::
+#\[7]R427LL5QPHCNIIWHGOJ4Y5CMKZA2UNKW67BXCXCNIMODVDWDTGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = ncode.chmod_child.readline
+# descr = blocking read of one reply line from chmod child stdout
+
+my $r_fh = <ncode.chmod_child.r_fh>;
+return 'no-channel' unless defined $r_fh;
+
+## blocking readline : child always prints exactly one line per command ##
+## child has autoflush ($|=1) so this never hangs on buffer             ##
+my $reply = '';
+eval {
+    local $SIG{'ALRM'} = sub { die "timeout\n" };
+    alarm(2);
+    $reply = readline($r_fh) // '';
+    alarm(0);
+};
+alarm(0);
+
+chomp $reply;
+return $reply;    ## 'ok', 'skip', or 'err' ##
+
+#,,,,,,,.,,..,,..,,,.,...,,,.,,,.,,,.,...,,..,..,,...,...,...,,.,,..,,.,.,,,,,
+#CGICTVUD5MEOM256GCWIVWVTTSRRIYSYGEQSA73OSU5F3DNJEKSBLRVZT4BJBL7BEPHYYCMRZUYXY
+#\\\|N3I2BKHHJS7DTF4TRN3B6Y4EEZNYMNCXRTXXIC636YHGYE3PUG7 \ / AMOS7 \ YOURUM ::
+#\[7]RV3OPB7AKCR3LXTW7NN4LZP4QDFOMBSJ6OVNOZ74CXHRZ4JZXMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -925,13 +925,13 @@ data/md/design/SEMANTIC-BACKCHANNEL-AND-DEDUPLICATED-COMMUNICATION.md
 data/md/design/INTENT-CLASSIFICATION-AND-SELF-IMPROVEMENT.md
 data/md/design/BRANCH-OPEN-CAPACITY-SESSION-DAG.md
 data/yaml/reasoning-templates/semantic-dedup-tree.yaml
-modules/branch.cluster.address
-modules/branch.cluster.ring_position
-modules/branch.session.round.checksum
+src/branch.cluster.address
+src/branch.cluster.ring_position
+src/branch.session.round.checksum
 ```
 
-#,,,,,..,,,.,,.,.,.,.,,..,,,.,,,.,...,...,...,..,,...,...,,.,,,..,,.,,...,.,.,
-#DBXHDV5QCL3XAG46RFJZ7DWDUPET2NQBZLYCIPYQGXDT2HXE5WA7H7FKXKP5T6BNC7CLNGNDVSQBE
-#\\\|DN7CXR4JZVYNO72SG6WCPKKBGJX3KR3EMCH5S6PWJASP7DQLWGH \ / AMOS7 \ YOURUM ::
-#\[7]Z4XAPQQL6ON5S534XJKIO5BW6J4DDIDMREMTVRQESO4MP6DD5GCQ 7  DATA SIGNATURE ::
+#,,..,,..,...,..,,,,.,,,.,,..,...,,.,,,,,,.,.,..,,...,...,.,.,,..,,.,,.,.,.,.,
+#3CTMUTNQB2HMRPYMBMT7PAJJ5SDP7RWULM6BRJZNP33SMABQ23BSU5EWA4BMJJUDHFIUYHOMLM6QK
+#\\\|R4TCY2KJJWVH3EQ6ZOPTLJVEMJ3V44M5WTCWW7NXKG4TDEEXVL5 \ / AMOS7 \ YOURUM ::
+#\[7]JHHZKDEREOYDR2HC232E7C6Y7C5JNJO6WGATS42MZJWLI2FJ5MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

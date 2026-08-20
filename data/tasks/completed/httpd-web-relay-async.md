@@ -32,7 +32,7 @@ needs to be determined by examining the working async handlers listed below.
 
 ## file to fix
 
-`modules/httpd.route.handler.web-relay`
+`src/httpd.route.handler.web-relay`
 
 ```perl
 ## [:< ##
@@ -68,7 +68,7 @@ return 0;    # [ deferred : reply handler writes response ]
 
 ## reply handler (already correct, do not change)
 
-`modules/httpd.handler.web-relay.response`
+`src/httpd.handler.web-relay.response`
 
 ```perl
 my $reply    = shift // {};
@@ -92,7 +92,7 @@ $session->{'flush_shutdown'} = TRUE;
 
 ### 1. radio relay (works — same route-send pattern but STRM not SIZE)
 
-`modules/plugin.httpd.radio.handler.stream_request`
+`src/plugin.httpd.radio.handler.stream_request`
 
 this handler:
 1. writes 200 headers to output buffer immediately
@@ -104,7 +104,7 @@ or is there another mechanism? does the order matter?
 
 ### 2. download transfer handler
 
-`modules/httpd.handler.download_transfer`
+`src/httpd.handler.download_transfer`
 
 async file transfer from httpd — examine how it keeps the session alive
 during a long transfer without the input_handler timeout firing. what does
@@ -112,7 +112,7 @@ it do differently from web-relay?
 
 ### 3. web zenka template dispatch
 
-`modules/httpd.route.handler.context` (or similar — list_modules web-relay
+`src/httpd.route.handler.context` (or similar — list_modules web-relay
 or httpd.route.* to find the template dispatch handler)
 
 the template reply path also dispatches to the web zenka and waits for a
@@ -120,14 +120,14 @@ reply. if it works, how? what mechanism prevents timeout?
 
 ### 4. base.session.init — input_handler setup
 
-`modules/base.session.init` lines 206-262
+`src/base.session.init` lines 206-262
 
 re-read the exact timeout_cb and how the watcher is set up. is there a way
 to extend or reset the timeout? is there a `no_timeout` variant?
 
 ## what to produce
 
-a concrete, minimal fix for `modules/httpd.route.handler.web-relay` that:
+a concrete, minimal fix for `src/httpd.route.handler.web-relay` that:
 
 1. prevents the 23-second `input_handler` timeout from killing the session
    while waiting for the SIZE reply from web zenka
@@ -162,8 +162,8 @@ this is a research + fix task. read the working async handlers first to
 understand the pattern, then produce the fix. do not guess — derive the
 mechanism from the working code.
 
-#,,..,,.,,.,.,...,.,,,,,,,,..,...,,,,,,,,,.,,,..,,...,...,,.,,.,,,,,.,.,,,,..,
-#K2AYH5NCBIIBIHOTKWAW4KHG3NT26OH5TQHQ3RMASD5S576VTBROQFICRXXZGJZ4VZ7UPVIBD7QM6
-#\\\|2KYAHVCYQUP6EO7ONFQHJVBLZFLV5ASEAQPE52GSWCY4333K7SV \ / AMOS7 \ YOURUM ::
-#\[7]W5JM4FICMMTAJ674DLY4FWP6THYKBNJITSLJID5BHXAZA4XIHIBI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,,,,,,,,,,.,,,,.,...,,,.,,.,,..,,...,...,,..,,,,,,.,,,,,,..,,
+#WSDIHWGMAAS4YMJC2TORIPUN2AMVQ24NHNOF3RJ3VC4MWDZFFWSOQHBABG5YQMRCP2L6O3C4CDUHK
+#\\\|WDE6OZDW3ZHMF7KKR3SWP2WVDSUCALMM3BVY2M5MAA7XXYSF5J7 \ / AMOS7 \ YOURUM ::
+#\[7]T6C7JF36RFK3NGOTZZDLHCOTP5VCKIXU5HKJQTNEYGTTUJQEEKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

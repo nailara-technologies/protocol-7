@@ -63,7 +63,7 @@ but nothing assembles them into the inference prompt yet.
 ### phase 1: system prompt + module loading [ minimal viable review ]
 
 - [ ] **1.1 coding.system_prompt module**
-  create `modules/coding.system_prompt` that returns a P7-aware system prompt.
+  create `src/coding.system_prompt` that returns a P7-aware system prompt.
   content: module format, naming conventions, key patterns (TRUE=5, base.logs
   not base.log, `<[module]>->()` syntax, qw| style), common review checks.
   keep it concise — fits in 1-2K tokens for small context models.
@@ -96,7 +96,7 @@ but nothing assembles them into the inference prompt yet.
   create module that reads a P7 module file and returns its content
   with module name, description, and line count metadata.
   uses `<[file.slurp]>->($path)->$*` pattern.
-  resolves module name to path: `<system.root_path>/modules/$name`
+  resolves module name to path: `<system.root_path>/src/$name`
 
 - [ ] **2.2 prompt enrichment in process-queued-task**
   detect "review MODULE" or "explain MODULE" patterns in prompt.
@@ -110,7 +110,7 @@ but nothing assembles them into the inference prompt yet.
   budget-aware: truncate if content exceeds configured limit.
 
 - [ ] **2.3 test: module review with file content**
-  `coding.ask-reply review modules/pager.filter.division-13-harmonic`
+  `coding.ask-reply review src/pager.filter.division-13-harmonic`
   verify: response references actual code from the module, not hallucinated.
 
 ### phase 3: context template assembly [ structured review ]
@@ -179,7 +179,7 @@ but nothing assembles them into the inference prompt yet.
 > coding.ask-reply what is protocol-7
 
 ## module review [ after phase 2 ] ##
-> coding.ask-reply review modules/pager.init-code
+> coding.ask-reply review src/pager.init-code
 
 ## cache verification ##
 > coding.ask-reply what is protocol-7    ## should be instant
@@ -201,8 +201,8 @@ ls var/inference-cache/
 curl -s http://localhost:8000/health | head -1
 
 ## check module syntax ##
-bin/dev/ptd -c modules/coding.system_prompt
-bin/dev/ptd -c modules/coding.context.read_module
+bin/dev/ptd -c src/coding.system_prompt
+bin/dev/ptd -c src/coding.context.read_module
 
 ## check cache directory structure ##
 find var/inference-cache/ -type f | head -20
@@ -270,11 +270,11 @@ noticeably better local model experience.
 - `data/md/coding-tasks/plugin-storage-inference-cache.md` — cache design
 - `data/md/coding-tasks/next-steps-plan.md` — overall priorities
 - `cfg/zenki/coding/start` — coding zenka config
-- `modules/coding.handler.process-queued-task` — integration point
+- `src/coding.handler.process-queued-task` — integration point
 - `data/yaml/context-templates/` — existing templates
 
-#,,,,,,.,,...,,..,,,,,...,.,.,,,,,..,,.,.,,.,,..,,...,..,,,..,,.,,,,,,,.,,.,.,
-#RONXXFXANQ4BNMMVWXXB5NWLQRELIYDO5THWWPZJRANW6LPKOTCIO7ORQSEJJC6LYTK6A3P3MQR5C
-#\\\|FE5PLTJBNN7LAJC4GO4INRZWJCQGWVE3HXJADRFGWQZSH5LJRN2 \ / AMOS7 \ YOURUM ::
-#\[7]J42STZ6Z424B2W3SLKPVMQJZIADDIBVCFDCPMKTFV25UFRGSIABQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,.,.,,,,,,,..,,,..,,,,,,.,,,,.,..,,...,..,,.,.,,.,,,.,,,..,,,,,
+#7Z3A72I366DZJRIXWHTSRQDRPAALTBPCDSR2ABFPHLJKGRIMAVAYDBPY7JG3ZO3NN3W3QFDYSCYIU
+#\\\|JBVOEEDSUVCRR2TLZLC64EYLG4GJOS7VAEDN3OUFJJXRKI7WFTD \ / AMOS7 \ YOURUM ::
+#\[7]MT443FUGVORHAQMLWMGOX46AJXOXZOCSMN2TKB7F6UWJ7LCEGMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

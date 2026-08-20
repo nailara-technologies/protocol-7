@@ -58,7 +58,7 @@ this task is **only** the `shm_open` change above. do **not**:
 - touch `shm_create`, `Page.pm`, or `Feedback.pm`
 - build `AMOS7::SHM::Transport` / `::Channel` / `::Mount` — those are separate,
   larger tasks that depend on this primitive but are not this task
-- wire anything into `modules/data.cmd.shm-self-test` — that 5-check self-test
+- wire anything into `src/data.cmd.shm-self-test` — that 5-check self-test
   exercises the **zenka** thin-wrapper layer (`data.mount.shm.*`), which this
   task does not touch at all. this task is purely inside the standalone
   `AMOS7::SHM.pm` package.
@@ -108,7 +108,7 @@ run it, paste the output. fix anything that fails before reporting done.
   `$main::PROTOCOL_SEVEN` check pattern, same as `AMOS7::CHKSUM`) — it is
   **plain Perl**, not a zenka module file. do **not** use `<[...]>` bracket
   syntax or `<dotted.data>` syntax anywhere in `SHM.pm` — that syntax is only
-  valid inside `modules/*` zenka files, which this task does not touch.
+  valid inside `src/*` zenka files, which this task does not touch.
 - this is editing an **existing, already-signed** file. it has a trailing
   signature block (`#,,.,,,...` line + checksum lines) at the very end. **do
   not touch, regenerate, or attempt to fix that block** — leave it exactly as
@@ -123,8 +123,8 @@ run it, paste the output. fix anything that fails before reporting done.
   changed in `SHM.pm`, the path of the test script you wrote, and the full
   output of running it.
 
-#,,,,,..,,.,.,,..,...,,.,,,..,.,.,,,,,.,.,.,,,..,,...,...,.,,,,,.,..,,,.,,..,,
-#NP3CDZHEJ5DWUVQ5CRKCC54ZVM273FR5VXMGP4NVVFFREFWTT7YZQXX4GVXT6HGRBP2UGIGQI3FCS
-#\\\|MHIA4J2I67DI35R7JTZU5D5UOFFHUM3DTM6SQ7CD7IAAMOPHF7X \ / AMOS7 \ YOURUM ::
-#\[7]5B5NOBR7RY4GER6KPFG5S44WITMEEKDQEGMGERWNBWIK6ICFRQDY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,,,,,..,,.,.,,,.,.,.,,,,,,.,,..,,...,..,,,,,,,,.,,,.,...,,,,,
+#VAN6OTUMS2FZ3KZ2DMKSYGYGH34LOKZ54LYJF2COWXVAEE6WD54P7ADJIIN4QXPSXURYYBG4WNP7E
+#\\\|EHSCKRTWW5GMLTGQ4ARXJBNBMLAYDMO3W6MBIOWHYTTQOG5FCSF \ / AMOS7 \ YOURUM ::
+#\[7]Z3IJKEKG2YZOVIRODH7A77U3UTRR5S7PDG6H25ENC4FEQNTAUIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

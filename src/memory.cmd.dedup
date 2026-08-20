@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = memory.cmd.dedup
+# descr = manually trigger memory tree dedup wave
+
+return { 'mode' => 'size', 'data' => "memory tree not ready\n" }
+    if not <memory.ready>;
+
+my $result = eval {<[memory.tree.dedup.wave]>};
+my $err    = <[base.str.eval_error]>;
+
+if ( $err or not defined $result ) {
+    <[base.logs]>->( 0, 'memory.cmd.dedup failed: %s', $err );
+    return { 'mode' => 'size', 'data' => "dedup wave failed: $err\n" };
+}
+
+my $output
+    = sprintf
+    "dedup wave complete: removed %d exact dupes, found %d near clusters\n",
+    $result->{'exact_removed'} // 0,
+    $result->{'near_clusters'} // 0;
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,,.,.,.,.,.,,,,,.,.,.,.,.,,,,,,,,.,,,..,.,.,..,,...,...,,.,,...,..,,,..,.,.,
+#GTRAQZC3TICPZOULVA57JIE57AC7KLYS6D4F72ALRW7CJH4PZXERX62LGZSSBYFDVETKAJEGWWVXK
+#\\\|RKDVGOTL2OHRE2FINJIAIR3D3U266DO4RO4IG5DGKABCSNF5BZI \ / AMOS7 \ YOURUM ::
+#\[7]YDSV5DG7THKWLQYYPORWWKN2FUETQCULN5UHKW6RXJNFZU7E76BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

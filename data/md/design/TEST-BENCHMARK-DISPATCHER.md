@@ -44,7 +44,7 @@ workload_type: tool_call        # [ tool_call | code_edit | reasoning |
                                 #   vision_desc | context_retain | format_comply ]
 tasks:
   - id: tc_read_file_01
-    prompt: "read the first 5 lines of modules/coding.init_code"
+    prompt: "read the first 5 lines of src/coding.init_code"
     expect:
       tool_called: read_file
       args_contain:
@@ -174,8 +174,8 @@ for module test mode the dispatcher routes through the test zenka
 [ ] models.benchmark.runner: test_target routing (model vs zenka)
 ```
 
-#,,..,,..,,.,,...,.,,,..,,.,,,..,,.,,,,..,.,.,..,,...,...,..,,,.,,.,.,,.,,.,,,
-#FQA2QJNZBUZ4ZPSWNQKKEXBMC2QAW4L3KC7VB7MHLOQN556UDYD5XRJ7UVVRJ35S2MDWGJAGPERJM
-#\\\|FCNY6XFCLP43RVOSLBKRBR73C7JZRARY6NC6H5CUKJJZAFBJ7F4 \ / AMOS7 \ YOURUM ::
-#\[7]EWP5DGX5BPX5AUCFNE6JELH5BI3K4FX54QJR62SGI5JPJGMIXGBY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,,.,,,..,..,,,,,,.,.,.,.,,,.,..,,...,...,.,.,.,,,,.,,..,,,,,,
+#5YEVVMVKHAB33JXK6PM6CFC6GJ5KRDUQQSDDKHGVDHBYYMMJOWDNPVR3V3ROU7YMO7UAYX6XDB3OY
+#\\\|MLBCKRZ4QR2MU6PXKX2B7JABWQNMYHJUV7ELVFIJ4QZOKHRQ6UX \ / AMOS7 \ YOURUM ::
+#\[7]QIBT7W45KORRPHB3VPEF334Y3V4G2OSV5DTF57265S4UADJASMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

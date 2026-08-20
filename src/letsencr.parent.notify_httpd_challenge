@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = letsencr.parent.notify_httpd_challenge
+# descr = notify HTTPd to serve HTTP-01 ACME challenge response
+
+my $challenge_info = shift;
+
+my $domain   = $challenge_info->{'domain'};
+my $token    = $challenge_info->{'token'};
+my $key_auth = $challenge_info->{'key_auth'};
+my $type     = $challenge_info->{'type'} // qw| http-01 |;
+
+unless ( $domain && $token && $key_auth ) {
+    <[base.log]>->( 0, 'missing required challenge parameters' );
+    return {
+        status => qw| failed |,
+        error  => 'missing domain, token, or key_auth'
+    };
+}
+
+<[base.logs]>->(
+    2,     "notifying HTTPd to serve %s challenge for %s",
+    $type, $domain
+);
+
+## send challenge setup command to HTTPd via cube router  [ parameters as
+## space-separated args: domain token key_auth type ]
+my $challenge_cmd = qw| httpd.setup-acme-challenge |;
+my $args_string   = join ' ', $domain, $token, $key_auth, $type;
+
+my $result = <[protocol-7.route-send]>->(
+    {   'command'   => $challenge_cmd,
+        'call_args' => { 'args' => $args_string }
+    }
+);
+
+if ($result) {
+    <[base.logs]>->( 2, "HTTPd challenge setup queued for %s", $domain );
+    return {
+        status  => qw| success |,
+        message => sprintf( 'challenge response setup sent to HTTPd for %s',
+            $domain )
+    };
+} else {
+    <[base.logs]>->(
+        1, 'failed to queue challenge setup to HTTPd for %s', $domain
+    );
+    return {
+        status => qw| failed |,
+        error  => 'failed to queue command to HTTPd'
+    };
+}
+
+#,,..,,,,,..,,,.,,,,,,...,...,.,.,...,,,,,.,.,..,,...,...,,.,,,..,,.,,...,,.,,
+#6OIFSRASCZQNKCUQVFAC465VEZSHGBYIKSKKR73RUUYMIZDZZL3UIMKLN7S5NYNZ4HXJSWI7A7KR2
+#\\\|RN3FONATW5EQN5RIUQK7T76B3AX3X2FBIT7RJ226HFFJ2U4SFRF \ / AMOS7 \ YOURUM ::
+#\[7]CI7WZDOGLESHXCBBM4TKHBFZIQJ6WNPZJGGFRKUL3NE4RJD6D2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

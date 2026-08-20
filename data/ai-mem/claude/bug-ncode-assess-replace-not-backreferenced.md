@@ -12,7 +12,7 @@ Found 2026-07-31 while trying to run the ncode tier-A chain end-to-end
 starting from `assess` (not `expand`) against a real, unfixed style
 violation in the repo (CLAUDE.md's `[ word ]`-not-`( word )` comment
 convention — real occurrences still exist, e.g.
-`modules/amos-term.render.draw_buffer:41`, `modules/transport.init_code:27`).
+`src/amos-term.render.draw_buffer:41`, `src/transport.init_code:27`).
 
 **Confirmed on two independent inputs**, both hitting the "generic
 token" branch:
@@ -27,7 +27,7 @@ p7c ncode.assess '{"old":"## default probe interval (seconds) ##","new":"## defa
 -> replace: ## default probe interval [ seconds ] ##     <- literal, not $1
 ```
 
-**Root cause, `modules/context.pattern.extract_from_change`**: every
+**Root cause, `src/context.pattern.extract_from_change`**: every
 branch (numeric, identifier, quoted-string, value-assignment, and the
 generic-token fallback at lines 92-103) does the same thing — build
 `$pattern` with a real capture group, then build `$replace` by splicing
@@ -77,8 +77,8 @@ kimi K3 dispatch `kbx4su758` on 2026-07-24, against a scratch file; what
 was untested until now was `assess` as the entry point against a real
 repo occurrence).
 
-#,,.,,,,,,.,,,,,.,...,,.,,.,.,,,,,.,.,,..,..,,.,.,...,...,,,.,,..,,..,,,,,,,.,
-#DUIGA7ZJSWJAJ5SWDR352E2S4OWKRBXUU3FTGGHAL3A6ECQLWJLW2AEQWAA5YDN24DVRIQYK3Q3AQ
-#\\\|VB3PEDAPZHRXZJWGAUG46ORDTIZ77JVBF7FGI6RX42KOUCEPARI \ / AMOS7 \ YOURUM ::
-#\[7]DI4WSUENSE4QL4BBK7RTVXH5UD37QJD3EGRDDZLZB2F6VRZR2EAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,..,,,,,,,,,,.,.,.,.,,,,,...,.,.,...,...,.,.,,,.,,..,,.,,,,.,
+#Y7LPMEW7XMF7YKQB553THYJBPLGT76FWLJPUNZYZPEJ4FC2HSIYBBLSUNMLFH5OJZWD656YJ77YB6
+#\\\|3N4FHXBZTYRWVEHKHPLD2FQ6QMFKQTMEPY23TPNOYZ5JRUK2KYH \ / AMOS7 \ YOURUM ::
+#\[7]ZNDG24PZTNIHN5C6ERR5G7XQ7Z5WUNFXQAL2KY3RK3S5YSQHDECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

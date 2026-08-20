@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = screen.setup.handler.windows_reply
+# descr = async reply from X-11.get-windows : request geometry for each window
+
+my $reply = shift                    // {};
+my $id    = $reply->{'params'}{'id'} // '';
+
+return if not length $id;
+return if not exists $data{'screen-setup'}{'instances'}{$id};
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+
+my $mode = lc( $reply->{'cmd'} // '' );
+if ( $mode ne qw| true | and $mode ne qw| size | ) {
+    <[base.logs]>->(
+        1, '[screen-setup.windows_reply] id=%s window list unavailable', $id
+    );
+    return;
+}
+
+## SIZE replies carry the payload in 'data', not 'call_args.args' ##
+my $list = $reply->{'data'} // '';
+return if not length $list;
+
+my @entries;
+for my $line ( split /\n/, $list ) {
+    next if not length $line;
+    my ( $winid, $title ) = $line =~ m{^(\d+)\s+(.*)$};
+    next if not defined $winid;
+    $title //= '';
+    $title =~ s|^\s+||;
+    $title =~ s|\s+$||;
+    push @entries,
+        {
+        'winid' => $winid,
+        'title' => $title
+        };
+}
+
+## merge : only add windows not already tracked, so periodic re-queries ##
+## don't clobber intended_geo on windows with in-flight move intents    ##
+my %existing_ids = map  { $_->{'winid'} => 1 } @{ $inst->{'windows'} // [] };
+my @new_entries  = grep { not $existing_ids{ $_->{'winid'} } } @entries;
+
+if ( not @new_entries ) {
+    return;
+}
+
+<[base.logs]>->(
+    1,   '[screen-setup.windows_reply] id=%s %d new window(s) discovered',
+    $id, scalar @new_entries
+);
+
+$inst->{'windows_temp'} //= {};
+$inst->{'window_pending'}
+    = ( $inst->{'window_pending'} // 0 ) + scalar @new_entries;
+
+for my $e (@new_entries) {
+    my $winid = $e->{'winid'};
+    $inst->{'windows_temp'}{$winid} = { 'title' => $e->{'title'} };
+
+    <[base.zenki.resolve_primary_sid]>->(
+        'X-11',
+        sub {
+            my $sid = shift;
+            return if not defined $sid;
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.get_geometry",
+                    'call_args' => { 'args' => $winid },
+                    'reply'     => {
+                        'handler' =>
+                            qw| screen.setup.handler.geometry_reply |,
+                        'params' => { 'id' => $id, 'winid' => $winid }
+                    }
+                }
+            );
+        }
+    );
+}
+
+## safety net : draw whatever arrived if geometry replies stall ##
+<[event.add_timer]>->(
+    {   'after' => 2,
+        'cb'    => sub {
+            return if not exists $data{'screen-setup'}{'instances'}{$id};
+            my $live_inst = $data{'screen-setup'}{'instances'}{$id};
+            return if ( $live_inst->{'window_pending'} // 0 ) <= 0;
+            <[base.logs]>->(
+                1,
+                '[screen-setup.windows_reply] id=%s '
+                    . 'geometry timeout, drawing partial',
+                $id
+            );
+            $live_inst->{'window_pending'} = 0;
+            delete $live_inst->{'windows_temp'};
+            my $window = $live_inst->{'window'};
+            $window->queue_draw if defined $window;
+        }
+    }
+);
+
+#
+
+#,,..,...,...,,..,.,,,,,.,.,,,,..,.,.,,,,,.,,,.,.,...,...,...,...,,,,,..,,.,.,
+#MJMTJMXCMFZHIKW5NU7OGD6SJPEBJWDVBYP2GCBS5JZIB2TNAE3OT3KLUEKHYD6BB7FSVXY6O7QBG
+#\\\|GLPI7FJWUIW6T63JQ637AIMPQ5AM3EPCQRACSUK3KUEB7LDVWCU \ / AMOS7 \ YOURUM ::
+#\[7]E6L7TYZSIGPXRA3MAM44NZXBLPXIMUSNBSAYY7JOX5G5C7II3SCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

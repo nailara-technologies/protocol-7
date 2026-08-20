@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = work.scan_workspace_repos
+# descr = scan workspace-transfer repositories
+
+my @repos;
+
+my $var_run_dir = <work.cfg.workspace_root>;
+return \@repos unless -d $var_run_dir;
+
+opendir my $dh, $var_run_dir or return \@repos;
+while ( my $entry = readdir($dh) ) {
+    next if $entry =~ /^\./;
+    my $path = "$var_run_dir/$entry";
+    next unless -d $path && -d "$path/.git";
+
+    push @repos,
+        {
+        name   => $entry,
+        path   => $path,
+        source => 'workspace-transfer'
+        };
+}
+closedir $dh;
+
+return \@repos;
+
+#,,.,,,..,...,,..,.,,,.,.,,,,,,,.,,,.,,..,,..,..,,...,...,...,.,,,,,.,,..,.,.,
+#A5GJUYBY3P2PXZMZNNGVPVNNOPF3VA77URQBJV2Y3S775Z7Y42GPVXY55TL42L7LJVHMJ6C6UYLYM
+#\\\|GBNAM4J23BRCLDMRHVQP2TYBOFTUHWVSXN5OIRKWUHYHXNI74QG \ / AMOS7 \ YOURUM ::
+#\[7]LWBIHTFNL3GSIYOJOU6QW44SMVOKTAJZDOEWIOJW3BZZAWXBI2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

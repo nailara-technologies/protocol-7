@@ -1,0 +1,505 @@
+## [:< ##
+
+# name = work.parent.harmonize_emails
+# descr = standardize author names and email addresses
+#         across git history (surgical rewrite)
+
+my $params = shift || {};
+
+my $dry_run    = $params->{dry_run}    // 1;   ## Safe by default
+my $email_map  = $params->{email_map}  // {};  ## User-provided email mapping
+my $author_map = $params->{author_map} // {};  ## User-provided author mapping
+my $key_phrase = $params->{key_phrase} // '';
+my $abort_after_valid = $params->{abort_after_valid}
+    // 13;                                     ## Default optimization
+my $harmonize_outliers = $params->{harmonize_outliers}
+    // 0;    ## Harmonize outliers to main dev
+
+<[base.log]>->(
+    2,
+    "work.harmonize: analyzing author names and email addresses in history..."
+);
+
+## Collect all unique emails and authors from git history
+my $log_result = <[git.parent.get_log]>;
+my %emails_seen;
+my %authors_seen;
+my %author_email_pairs;    ## Track author+email combinations
+my %email_commits;
+my %author_commits;
+my %pair_commits;
+
+foreach my $commit ( @{ $log_result->{commits} } ) {
+    ## Allow event processing for Ctrl+C abort
+    <[event.once]>->(0.0007);
+
+    my $email  = $commit->{email};
+    my $author = $commit->{author};
+    my $pair   = "$author <$email>";
+
+    $emails_seen{$email}++;
+    $authors_seen{$author}++;
+    $author_email_pairs{$pair}++;
+
+    push @{ $email_commits{$email} },   $commit->{hash};
+    push @{ $author_commits{$author} }, $commit->{hash};
+    push @{ $pair_commits{$pair} },     $commit->{hash};
+}
+
+## Find main developer (most common author+email pair)
+my @sorted_pairs
+    = sort { $author_email_pairs{$b} <=> $author_email_pairs{$a} }
+    keys %author_email_pairs;
+my $main_developer   = $sorted_pairs[0];
+my $main_dev_commits = $author_email_pairs{$main_developer};
+
+## Parse main developer into author and email
+my ( $main_author, $main_email ) = $main_developer =~ /^(.+?)\s+<(.+)>$/;
+
+<[base.log]>->(
+    2,
+    "  Found "
+        . scalar( keys %author_email_pairs )
+        . " unique author+email combinations"
+);
+<[base.log]>->(
+    1, "  Main developer: $main_developer ($main_dev_commits commits)"
+);
+
+## Find outliers (other author+email combinations)
+my @outliers;
+foreach my $pair (@sorted_pairs) {
+    next if $pair eq $main_developer;
+    push @outliers,
+        {
+        pair    => $pair,
+        commits => $author_email_pairs{$pair}
+        };
+}
+
+if (@outliers) {
+    <[base.log]>->(
+        1,
+        sprintf( "  Found %d outlier author+email combinations:",
+            scalar @outliers )
+    );
+    foreach my $outlier (@outliers) {
+        <[base.log]>->(
+            1,
+            sprintf(
+                "    %s (%d commits)",
+                $outlier->{pair}, $outlier->{commits}
+            )
+        );
+    }
+}
+
+## Build canonical email mapping
+my %canonical_email_map = %{ <work.email.canonical> // {} };
+
+## Build canonical author mapping
+my %canonical_author_map = %{ <work.author.canonical> // {} };
+
+## Add user-provided overrides
+foreach my $variant ( keys %$email_map ) {
+    $canonical_email_map{$variant} = $email_map->{$variant};
+}
+
+foreach my $variant ( keys %$author_map ) {
+    $canonical_author_map{$variant} = $author_map->{$variant};
+}
+
+## If harmonize_outliers is set, add all outlier mappings to canonical maps
+if ( $harmonize_outliers && @outliers ) {
+    <[base.log]>->( 1, "  Harmonizing outliers to main developer..." );
+
+    foreach my $outlier (@outliers) {
+        ## Allow event processing for Ctrl+C abort
+        <[event.once]>->(0.0007);
+
+        my $outlier_pair = $outlier->{pair};
+        my ( $outlier_author, $outlier_email )
+            = $outlier_pair =~ /^(.+?)\s+<(.+)>$/;
+
+        ## Apply key_phrase filter if provided
+        if ( length $key_phrase ) {
+            ## Check if any commits from this outlier match the pattern
+            my @matching_commits = grep {
+                my $commit = $_;
+                $commit->{author} eq $outlier_author
+                    && $commit->{email} eq $outlier_email
+                    && ( $commit->{subject} =~ m/\Q$key_phrase\E/i
+                    || $commit->{author} =~ m/\Q$key_phrase\E/i
+                    || $commit->{email}  =~ m/\Q$key_phrase\E/i )
+            } @{ $log_result->{commits} };
+
+            ## Only harmonize if pattern matches
+            next unless @matching_commits;
+        }
+
+        ## Map outlier to main developer
+        $canonical_email_map{$outlier_email}   = $main_email;
+        $canonical_author_map{$outlier_author} = $main_author;
+    }
+}
+
+## Auto-detect canonical email forms (most common variant wins)
+foreach my $email ( keys %emails_seen ) {
+    ## Allow event processing for Ctrl+C abort
+    <[event.once]>->(0.0007);
+
+    next if exists $canonical_email_map{$email};    ## Already mapped
+
+    ## Extract base email (before @)
+    if ( $email =~ /^([^@]+)@(.+)$/ ) {
+        my ( $user, $domain ) = ( $1, $2 );
+
+        ## If we have other variants of this user@domain, map to most common
+        my @variants = grep {/^\Q$user\E@/i} keys %emails_seen;
+
+        if ( @variants > 1 ) {
+            ## Find most common variant
+            my $most_common
+                = ( sort { $emails_seen{$b} <=> $emails_seen{$a} } @variants )
+                [0];
+
+            ## Map all variants to most common
+            foreach my $variant (@variants) {
+                $canonical_email_map{$variant} = $most_common
+                    unless $variant eq $most_common;
+            }
+        }
+    }
+}
+
+## Auto-detect canonical author forms (most common variant wins)
+foreach my $author ( keys %authors_seen ) {
+    ## Allow event processing for Ctrl+C abort
+    <[event.once]>->(0.0007);
+
+    next if exists $canonical_author_map{$author};    ## Already mapped
+
+    ## Check for similar author names  (case-insensitive, whitespace
+    ## normalized)
+    my $normalized = lc($author);
+    $normalized =~ s|\s+| |g;
+    $normalized =~ s{^\s+|\s+$}{}g;
+
+    my @variants = grep {
+        my $other = lc($_);
+        $other =~ s|\s+| |g;
+        $other =~ s{^\s+|\s+$}{}g;
+        $other eq $normalized
+    } keys %authors_seen;
+
+    if ( @variants > 1 ) {
+        ## Find most common variant
+        my $most_common
+            = ( sort { $authors_seen{$b} <=> $authors_seen{$a} } @variants )
+            [0];
+
+        ## Map all variants to most common
+        foreach my $variant (@variants) {
+            $canonical_author_map{$variant} = $most_common
+                unless $variant eq $most_common;
+        }
+    }
+}
+
+## Count how many commits would be affected
+my $commits_to_change = 0;
+my %changes_by_email;
+my %changes_by_author;
+
+foreach my $variant ( keys %canonical_email_map ) {
+    my $canonical = $canonical_email_map{$variant};
+
+    if ( $variant ne $canonical && $email_commits{$variant} ) {
+        my $count = scalar( @{ $email_commits{$variant} } );
+        $commits_to_change += $count;
+        $changes_by_email{$variant} = {
+            canonical => $canonical,
+            commits   => $count
+        };
+    }
+}
+
+foreach my $variant ( keys %canonical_author_map ) {
+    my $canonical = $canonical_author_map{$variant};
+
+    if ( $variant ne $canonical && $author_commits{$variant} ) {
+        my $count = scalar( @{ $author_commits{$variant} } );
+        $commits_to_change += $count;
+        $changes_by_author{$variant} = {
+            canonical => $canonical,
+            commits   => $count
+        };
+    }
+}
+
+<[base.log]>->(
+    2, "  Commits needing email changes: " . scalar( keys %changes_by_email )
+);
+<[base.log]>->(
+    2,
+    "  Commits needing author changes: " . scalar( keys %changes_by_author )
+);
+
+if ($dry_run) {
+    say "";
+    <[base.log]>->( 1, "  PREVIEW - No changes will be made (dry run)" );
+    say "";
+
+    if ( %changes_by_email || %changes_by_author ) {
+        <[base.log]>->( 1, "  Proposed changes:" );
+
+        if (%changes_by_email) {
+            <[base.log]>->( 1, "    Email mappings:" );
+            foreach my $variant ( sort keys %changes_by_email ) {
+                my $info = $changes_by_email{$variant};
+                <[base.log]>->(
+                    1,
+                    sprintf(
+                        "      %s → %s (%d commits)",
+                        $variant, $info->{canonical}, $info->{commits}
+                    )
+                );
+            }
+        }
+
+        if (%changes_by_author) {
+            <[base.log]>->( 1, "    Author mappings:" );
+            foreach my $variant ( sort keys %changes_by_author ) {
+                my $info = $changes_by_author{$variant};
+                <[base.log]>->(
+                    1,
+                    sprintf(
+                        "      %s → %s (%d commits)",
+                        $variant, $info->{canonical}, $info->{commits}
+                    )
+                );
+            }
+        }
+
+        say "";
+        if ($harmonize_outliers) {
+            <[base.log]>->(
+                1,
+                "  To execute: workflow harmonize-emails "
+                    . "harmonize-outliers execute"
+            );
+            if ( length $key_phrase ) {
+                <[base.log]>->(
+                    1,
+                    sprintf(
+                        "  With filter: workflow harmonize-emails "
+                            . "harmonize-outliers execute \"%s\"",
+                        $key_phrase
+                    )
+                );
+            }
+        } else {
+            <[base.log]>->(
+                1, "  To execute: workflow harmonize-emails execute"
+            );
+            if ( length $key_phrase ) {
+                <[base.log]>->(
+                    1,
+                    sprintf(
+                        "  With filter: workflow "
+                            . "harmonize-emails execute \"%s\"",
+                        $key_phrase
+                    )
+                );
+            }
+        }
+    } elsif ( @outliers && !$harmonize_outliers ) {
+        ## Suggest harmonizing outliers
+        <[base.log]>->(
+            1,
+            "  ✓ All author names and email addresses are already canonical"
+        );
+        say "";
+        <[base.log]>->( 1, "  However, outlier commits were detected:" );
+        foreach my $outlier (@outliers) {
+            <[base.log]>->(
+                1,
+                sprintf(
+                    "    %s (%d commits)",
+                    $outlier->{pair}, $outlier->{commits}
+                )
+            );
+        }
+        say "";
+        <[base.log]>->( 1, "  To harmonize outliers to main developer:" );
+        <[base.log]>->(
+            1, "    workflow harmonize-emails harmonize-outliers"
+        );
+        if ( @outliers == 1 ) {
+            my ($outlier_author) = $outliers[0]->{pair} =~ /^(.+?)\s+</;
+            <[base.log]>->(
+                1,
+                sprintf(
+                    "  Or with pattern filter (e.g. author name): workflow "
+                        . "harmonize-emails harmonize-outliers \"%s\"",
+                    $outlier_author
+                )
+            );
+        }
+    } else {
+        <[base.log]>->(
+            1,
+            "  ✓ All author names and email addresses are already canonical"
+        );
+    }
+
+    say "";
+
+    return {
+        success        => TRUE,
+        dry_run        => 1,
+        would_change   => $commits_to_change,
+        email_mapping  => \%changes_by_email,
+        author_mapping => \%changes_by_author,
+        main_developer => $main_developer,
+        outliers       => \@outliers
+    };
+}
+
+## Execute actual rewriting via git filter-branch
+<[base.log]>->(
+    1, "  Executing git filter-branch to harmonize emails and authors..."
+);
+<[base.log]>->( 1, "    This may take several minutes for large histories" );
+
+## Get repository path
+my $repo_path = <git.cfg.repository_path>;
+unless ( -d $repo_path ) {
+    <[base.log]>->( 0, "  ✗ Repository path not found : $repo_path" );
+    return {
+        success => FALSE,
+        error   => "Repository path not found: $repo_path"
+    };
+}
+
+## Create temporary env-filter script
+my $filter_script = "$repo_path/.git/workflow-env-filter.sh";
+my $data_file     = "$repo_path/.git/workflow-email-map.json";
+
+## Write mapping data as JSON for the filter script
+require JSON;
+my $json_data = JSON::encode_json(
+    {   email_map  => \%canonical_email_map,
+        author_map => \%canonical_author_map
+    }
+);
+
+open my $data_fh, '>', $data_file or do {
+    <[base.log]>->( 0, "  ✗ Failed to create data file : $!" );
+    return { success => FALSE, error => "Failed to create data file: $!" };
+};
+print $data_fh $json_data;
+close $data_fh;
+
+## Create the env-filter shell script
+open my $script_fh, '>', $filter_script or do {
+    unlink $data_file;
+    <[base.log]>->( 0, "  ✗ Failed to create filter script : $!" );
+    return {
+        success => FALSE,
+        error   => "Failed to create filter script: $!"
+    };
+};
+
+print $script_fh <<'FILTER_SCRIPT';
+#!/bin/bash
+DATA_FILE="$WORKFLOW_DATA_FILE"
+AUTHOR_EMAIL="$GIT_AUTHOR_EMAIL"
+AUTHOR_NAME="$GIT_AUTHOR_NAME"
+COMMITTER_EMAIL="$GIT_COMMITTER_EMAIL"
+COMMITTER_NAME="$GIT_COMMITTER_NAME"
+
+# Parse JSON and apply mappings using Perl
+eval "$(perl -MJSON -e '
+    local $/;
+    open my $fh, "<", $ENV{WORKFLOW_DATA_FILE} or die "Cannot read data file";
+    my $json = <$fh>;
+    close $fh;
+    my $data = decode_json($json);
+
+    my $author_email = $ENV{GIT_AUTHOR_EMAIL};
+    my $author_name = $ENV{GIT_AUTHOR_NAME};
+    my $committer_email = $ENV{GIT_COMMITTER_EMAIL};
+    my $committer_name = $ENV{GIT_COMMITTER_NAME};
+
+    # Apply email mappings
+    if (exists $data->{email_map}{$author_email}) {
+        $author_email = $data->{email_map}{$author_email};
+        print "export GIT_AUTHOR_EMAIL=\"$author_email\"\n";
+    }
+    if (exists $data->{email_map}{$committer_email}) {
+        $committer_email = $data->{email_map}{$committer_email};
+        print "export GIT_COMMITTER_EMAIL=\"$committer_email\"\n";
+    }
+
+    # Apply author name mappings
+    if (exists $data->{author_map}{$author_name}) {
+        $author_name = $data->{author_map}{$author_name};
+        print "export GIT_AUTHOR_NAME=\"$author_name\"\n";
+    }
+    if (exists $data->{author_map}{$committer_name}) {
+        $committer_name = $data->{author_map}{$committer_name};
+        print "export GIT_COMMITTER_NAME=\"$committer_name\"\n";
+    }
+')"
+FILTER_SCRIPT
+
+close $script_fh;
+chmod 0755, $filter_script;
+
+## Set environment for filter script
+$ENV{WORKFLOW_DATA_FILE} = $data_file;
+
+## Run git filter-branch
+my $git_cmd
+    = sprintf( 'cd %s && git filter-branch -f --env-filter %s -- --all 2>&1',
+    $repo_path, $filter_script );
+
+<[base.log]>->( 2, "  Running : git filter-branch --env-filter" );
+my $output    = `$git_cmd`;
+my $exit_code = $? >> 8;
+
+## Clean up temporary files
+unlink $filter_script;
+unlink $data_file;
+
+if ( $exit_code != 0 ) {
+    <[base.log]>->( 0, "  ✗ Git filter-branch failed:" );
+    <[base.log]>->( 0, "  $output" );
+    return {
+        success => FALSE,
+        error   => "Git filter-branch failed (exit: $exit_code)",
+        output  => $output
+    };
+}
+
+<[base.log]>->( 1, "  ✓ Git history rewritten successfully" );
+<[base.log]>->( 1, "  ✓ Harmonized emails and authors across history" );
+<[base.log]>->(
+    1, "  ⚠ Remember to force-push if you've already pushed this branch"
+);
+
+return {
+    success        => TRUE,
+    changed        => $commits_to_change,
+    email_mapping  => \%changes_by_email,
+    author_mapping => \%changes_by_author
+};
+
+0;
+
+#,,.,,,..,...,,,.,,..,,..,.,,,,.,,,,.,,,.,,.,,..,,...,...,,,.,.,,,...,...,,,,,
+#VOCEUAJREX4EAUM74NRQLCOH3CN2AFIK3DXOACZ5HNN63ZFNP5SYOQ7MVRQ3CMKMDPSAB5P4S5HMQ
+#\\\|QVIAKX3ADKO6SCIO4U3DYMJZAV2B4DTBDRZGRO57IWDC4QW5JTH \ / AMOS7 \ YOURUM ::
+#\[7]UOUTENOPBWZZL6MP6AY37E3WLG6JADOSKHUOHYIZD7PXPDFUT2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

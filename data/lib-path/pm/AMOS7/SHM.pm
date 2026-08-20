@@ -49,8 +49,8 @@ our $log_handler;
 
 ## phase 4, standalone only : track creator-owned segment paths for an END- ##
 ## time cleanup. zenka mode handles this via its own SIGINT/TERM handler [  ##
-## modules/data.mount.shm.init_code ] instead — this list stays empty       ##
-## whenever $main::PROTOCOL_SEVEN is defined.                               ##
+## src/data.mount.shm.init_code ] instead — this list stays empty whenever  ##
+## $main::PROTOCOL_SEVEN is defined.                                        ##
 my @_standalone_owned_paths;
 
 sub _log {
@@ -319,13 +319,13 @@ sub mmap_file_read {
 ## state does not survive fork() cleanly [ confirmed live : a child spins   ##
 ## at 100% CPU on its first post-fork IO::AIO call without this ]. rather   ##
 ## than make every caller remember to call IO::AIO::reinit() after fork() [ ##
-## the existing project convention — modules/base.process-into-background,  ##
-## modules/vision-batch.parent.fork_child,                                  ##
-## modules/weather.base.fork_weather_child all do this manually ], track    ##
-## the pid we last touched IO::AIO from ; if $$ has changed since, a fork   ##
-## happened in between and we reinit automatically before proceeding.  $$   ##
-## is a cached interpreter value, not a syscall — this check is one integer ##
-## comparison, negligible next to the mlock call itself                     ##
+## the existing project convention — src/base.process-into-background,      ##
+## src/vision-batch.parent.fork_child,  src/weather.base.fork_weather_child ##
+## all do this manually ], track the pid we last touched IO::AIO from ; if  ##
+## $$ has changed since, a fork happened in between and we reinit           ##
+## automatically before proceeding.  $$ is a cached interpreter value, not  ##
+## a syscall — this check is one integer comparison, negligible next to the ##
+## mlock call itself                                                        ##
 my $_io_aio_pid;
 
 sub _io_aio_fork_guard {
@@ -620,10 +620,10 @@ sub shm_create {
 
     close($fh);
 
-    ## standalone mode has no zenka thin-wrapper layer to add mlock         ##
-    ## externally [ that's how the zenka path gets it — see                 ##
-    ## modules/data.mount.shm.create ] ; do it here instead so the mlock=>1 ##
-    ## default behaves the same whether a zenka is running or not           ##
+    ## standalone mode has no zenka thin-wrapper layer to add mlock     ##
+    ## externally [ that's how the zenka path gets it — see             ##
+    ## src/data.mount.shm.create ] ; do it here instead so the mlock=>1 ##
+    ## default behaves the same whether a zenka is running or not       ##
     if ( not defined $main::PROTOCOL_SEVEN ) {
         push @_standalone_owned_paths, $shm_path;
         if ( $header->{'flags'}{'mlocked'} ) {
@@ -792,7 +792,7 @@ sub _standalone_unlink_segment {
 ## SIGINT/SIGTERM run END blocks and therefore clean up creator-owned
 ## segments. without a handler Perl's default signal action terminates the
 ## process without invoking END. zenka mode handles cleanup in
-## modules/data.mount.shm.init_code instead.
+## src/data.mount.shm.init_code instead.
 if ( not defined $main::PROTOCOL_SEVEN ) {
     my $graceful_exit = sub { exit(0) };
     $SIG{'INT'}  = $graceful_exit;
@@ -802,7 +802,7 @@ if ( not defined $main::PROTOCOL_SEVEN ) {
 END {
     ## explicit skip in zenka mode — defense in depth alongside the fact    ##
     ## that @_standalone_owned_paths is only ever populated when standalone ##
-    ## ; zenka cleanup runs via modules/data.mount.shm.cleanup instead      ##
+    ## ; zenka cleanup runs via src/data.mount.shm.cleanup instead          ##
     unless ( defined $main::PROTOCOL_SEVEN ) {
         _standalone_unlink_segment($_) for @_standalone_owned_paths;
     }
@@ -810,8 +810,8 @@ END {
 
 return TRUE  #################################################################
 
-#,,,,,.,.,.,.,.,.,..,,,..,.,,,..,,,,,,.,.,...,..,,...,...,..,,.,.,,,,,,,.,...,
-#ZF76EFZLLRZTT7SGDUZYY3MVZOLDZUDKQRVGKWNW4HHD23QN6SWURMITSIOKQQGDHW6F2EGZ5WC44
-#\\\|RW575DKXZD7MDO5TENIGNYLCRREB5F3B25NQB7QDXVCUG4EUPDM \ / AMOS7 \ YOURUM ::
-#\[7]6B75XR3FADD2KXPGIXZW2MOHQ5DMD6PKBRA3PQHX4LSABHWGE6AA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,...,.,,,,..,,,,,,..,,.,,..,,..,,...,...,.,,,..,,.,,,.,.,...,
+#LGJRXXJAJTEVPWC367TVECTJVRSV772BFJX5UGUEG2DP2X56GTSVPUHNGHIPUQXBRU6VGGWQG55E6
+#\\\|TI6VHNDRQHDPZIQIZJPDQLQJ2OYQLBE6PCWGF7X3PJTWGTJFBS5 \ / AMOS7 \ YOURUM ::
+#\[7]KQMLOEZEUVJG2ZSXAN5LJX32TUCI6SGGJWXVMR4N22KNJZQGJQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

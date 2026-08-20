@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = jobsite.cmd.set-prefs
+# param = <json body:{key:numeric_value,...}>
+# descr = merge client prefs blob, newest [max] val. per key wins
+
+my $body = $call->{'args'} // '';
+
+my $incoming = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $incoming ne qw| HASH | ) {
+    return {
+        'mode'         => qw| strm |,
+        'data'         => '{"ok":false,"error":"invalid json"}',
+        'content_type' => qw| application/json |,
+    };
+}
+
+my $prefs = <[jobsite.client_prefs.read]>;
+
+## last-write-wins per key, but "last" means numerically newest, not     ##
+## chronologically last-received -- a browser that was offline while     ##
+## another one cleared something newer must not regress the shared value ##
+## back down when it eventually reconnects and pushes its own [ older ]  ##
+## local copy                                                            ##
+for my $key ( keys %{$incoming} ) {
+    my $inc = $incoming->{$key};
+    next unless $inc =~ m{^\d+(?:\.\d+)?$};
+    $prefs->{$key} = $inc + 0 if $inc > ( $prefs->{$key} // 0 );
+}
+
+<[jobsite.client_prefs.write]>->($prefs);
+
+## force numeric json output : values loaded back from yaml are plain  ##
+## strings until touched by arithmetic, which JSON::XS would otherwise ##
+## serialize as JSON strings instead of numbers                        ##
+my %numeric_prefs = map { $ARG => $prefs->{$ARG} + 0 } keys %{$prefs};
+my $json          = eval { JSON::XS::encode_json( \%numeric_prefs ) } // '{}';
+
+return {
+    'mode'         => qw| strm |,
+    'data'         => $json,
+    'content_type' => qw| application/json |,
+};
+
+#,,..,.,,,.,.,,..,..,,.,.,,..,.,,,...,,,.,.,,,..,,...,...,...,,,,,..,,,,.,,..,
+#JYFGXX3R57BBPNDD6I6PI2F3MMTWZKEZ7JAI6OYEUNV7TWYQYIUI5GHGSZJSA3CRYA7CRKZ5YUI6W
+#\\\|Z6BGTIJSAKH2APQYUNT3ZAFVLXM5R3EGQBOECBIIQSWA76QAELF \ / AMOS7 \ YOURUM ::
+#\[7]YLQ5TPU7HEPZXPMFVCUHKM7CY36ZIBF2CFENHXGBSQI66R5CREDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

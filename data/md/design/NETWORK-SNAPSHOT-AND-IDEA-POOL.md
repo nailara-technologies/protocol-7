@@ -5,7 +5,7 @@
 design — extracted from duck.ai design conversation 2026-07-29
 (INCOMING/duck.ai_2026-07-29_01-27-33.txt, prompts 65–66).
 
-builds on the IMPLEMENTED memory tree (modules/memory.*, 52 modules —
+builds on the IMPLEMENTED memory tree (src/memory.*, 52 modules —
 note: MEMORY-TREE-SYSTEM.md's "nothing built yet" header is stale) and
 context.tree.summary.checkpoint. what is new here: the always-current
 network-structure snapshot, drift-resilient resume, and the idea pool.
@@ -69,7 +69,7 @@ knowledge_domains     loaded embedding domains, cache warmth, latency
 code_hotspots         modules with recent commit momentum
 recent_conversations  context-rich histories that fit in context
 suggestion_graph      cross-domain links: analyzing X → consider
-                      plugins/CWEs/techniques/modules related to X
+                      plugins/CWEs/techniques/src related to X
 ```
 
 surfaced INTO model context at task start (compact rendering), the idea
@@ -105,8 +105,8 @@ applied to capability.
   domains exist)
 - whether snapshots become git-committed artifacts or runtime state
 
-#,,,,,.,,,.,,,,,,,,,.,.,.,...,,,,,.,.,,.,,..,,..,,...,...,.,,,...,.,.,.,,,..,,
-#AQ5GOAUPO6TLP5TDQCT6KAPNPMDJ4NCCPYJR4IJ5NUBENW2PJXMN5ZD5FACYYQ2DFXJCFEZ73EPIG
-#\\\|XUE6AIAYJ4LETR42UDG66IJGG47NUSCKZS2F2PJ7QKYBT7QUBYB \ / AMOS7 \ YOURUM ::
-#\[7]BBE7Z3W7A7IRVG25H6XMYNNSZRRG7MMDADBE3ZIUU4LNP7O26IAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,..,.,,,..,,,,.,..,,.,,,.,,,,,,,..,,...,...,...,,,,,..,,.,,,,,,,
+#5FLJXR3TA3GFI3BILZ3YISGGTEGZCQAP57GNQAOFXI2BPURIPXREUIX2T52LHK6UMEHAUEM5AKZB6
+#\\\|U52WTQDOK3G6FTQR6AUKQTXX43IHBGD4Q5VO5DPM3BP5VVUUQC5 \ / AMOS7 \ YOURUM ::
+#\[7]BC6B6XX2ZQM7YUAMZL3SIEUBM6LVHXGF5LE5OQP6JTL7XAUWHGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

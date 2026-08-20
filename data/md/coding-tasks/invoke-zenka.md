@@ -31,10 +31,10 @@ replies back to the caller.
 
 ## key reference files — read these first
 
-    modules/invoke-web.init_code          — pattern for init with LWP health check
-    modules/invoke-web.cmd.start          — IPC::Open3 spawn pattern (style ref)
-    modules/invoke-web.cmd.status         — status cmd pattern
-    modules/invoke-web.handler.check_health — timer handler pattern
+    src/invoke-web.init_code          — pattern for init with LWP health check
+    src/invoke-web.cmd.start          — IPC::Open3 spawn pattern (style ref)
+    src/invoke-web.cmd.status         — status cmd pattern
+    src/invoke-web.handler.check_health — timer handler pattern
     cfg/zenki/invoke-web/start  — on-demand zenka config pattern
     cfg/external-inference-models — invokeai config keys
 
@@ -196,7 +196,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     invoke.api.build_graph
 
 
-### modules/invoke.init_code
+### src/invoke.init_code
 
     # name  = invoke.init_code
     # descr = invoke zenka initialization
@@ -228,7 +228,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     - log initialization complete
 
 
-### modules/invoke.api.build_graph
+### src/invoke.api.build_graph
 
     # name  = invoke.api.build_graph
     # descr = construct invoke.ai enqueue_batch request body for txt2img
@@ -261,7 +261,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     }
 
 
-### modules/invoke.cmd.generate
+### src/invoke.cmd.generate
 
     # name  = invoke.cmd.generate
     # descr = cmd: submit an image generation request to invoke.ai
@@ -347,7 +347,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
                  $item_id };
 
 
-### modules/invoke.cmd.queue-status
+### src/invoke.cmd.queue-status
 
     # name  = invoke.cmd.queue-status
     # descr = cmd: show invoke.ai queue status and tracked jobs
@@ -383,7 +383,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     return { mode => 'size', data => $out };
 
 
-### modules/invoke.cmd.cancel
+### src/invoke.cmd.cancel
 
     # name  = invoke.cmd.cancel
     # descr = cmd: cancel a job by item_id, or all pending jobs
@@ -437,7 +437,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
                                              $resp->status_line };
 
 
-### modules/invoke.cmd.list-images
+### src/invoke.cmd.list-images
 
     # name  = invoke.cmd.list-images
     # descr = cmd: list recently generated images from invoke.ai
@@ -475,7 +475,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     return { mode => 'size', data => $out };
 
 
-### modules/invoke.cmd.status
+### src/invoke.cmd.status
 
     # name  = invoke.cmd.status
     # descr = cmd: show invoke zenka status and invoke.ai reachability
@@ -502,7 +502,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     return { mode => 'size', data => $out };
 
 
-### modules/invoke.cmd.health
+### src/invoke.cmd.health
 
     # name  = invoke.cmd.health
     # descr = cmd: quick invoke.ai HTTP health check
@@ -511,7 +511,7 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
         "healthy: v4.x.x\n"  or  "unreachable: <error>\n"
 
 
-### modules/invoke.handler.poll_jobs
+### src/invoke.handler.poll_jobs
 
     # name  = invoke.handler.poll_jobs
     # descr = periodic timer: poll invoke.ai for job completion
@@ -587,8 +587,8 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     do not attempt to run — requires live invoke.ai instance.
     note any uncertain API field names as inline comments.
 
-#,,.,,.,.,.,.,..,,,,,,,..,,..,.,.,.,.,.,.,.,,,..,,...,...,,.,,.,,,...,.,.,,,.,
-#7DRNYUEZGTKCWHKWTN3R4V3CDLNX7ENFYXJUH42YZGFMFMMFJTWLZXIV5OPY6S6IC3CK5LPKQTJTC
-#\\\|SHFIEFHEDUH7IEKHQX2KTHS5DW24YJ5PBF3OVTUBWMDXV5IG5B6 \ / AMOS7 \ YOURUM ::
-#\[7]LEJT6DIMIKTZKX5D47FZZYJDUUKXZMNKX5XVQ6XOB4JWFN5JHWCA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,.,,,,.,.,,,.,.,,.,,...,,,,,.,.,..,,...,.,,,...,..,,...,..,,...,
+#T6BHV4S5Y2DFJ4B22C3OVFJ5VBORCQQD45GMZILTVMJF3XIIWVA3SGZQTLKIZP6NUAHXATZX4ROWO
+#\\\|3NZSZYOQCFWPDAKVCX7XAJG7D6IJ25HL6RQRZL3H4BCN42NSWBL \ / AMOS7 \ YOURUM ::
+#\[7]DX5XRFZSFJ7HEJIJANACXUZ3AQFMOABDPD56PT3BLAJR7D4OQGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

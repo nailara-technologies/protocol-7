@@ -1,0 +1,131 @@
+## [:< ##
+
+# name  = context.provider.frame
+# descr = ascii frame section provider for context.template.resolve
+
+my $params = shift // {};
+
+## frame resolution ##
+my $entry;
+my $frame_name;
+
+if ( defined $params->{'frame'} ) {
+    $frame_name = $params->{'frame'};
+    $entry      = <[ascii.frame.load]>->($frame_name);
+} elsif ( defined $params->{'mockup'} ) {
+    $frame_name = 'inline';
+    my $mockup    = $params->{'mockup'};
+    my $cache_key = sprintf 'mockup:%d:%s',
+        length($mockup),
+        <[base.chk-sum.elf]>->($mockup);
+    if ( exists <context.frame.cache>->{$cache_key} ) {
+        $entry = <context.frame.cache>->{$cache_key};
+    } else {
+        my $result = <[ascii.frame.from_mockup]>
+            ->( { mockup => $mockup, strict => 0 } );
+        if ( $result->{'ok'} ) {
+            $entry = {
+                name         => 'inline',
+                descriptor   => $result->{'descriptor'},
+                border_style => 'single',
+            };
+            <context.frame.cache>->{$cache_key} = $entry;
+        } else {
+            return "<!-- frame 'inline' not available: parse failed -->";
+        }
+    }
+} else {
+    return "<!-- frame ??? not available: no frame or mockup param -->";
+}
+
+if ( not defined $entry ) {
+    return "<!-- frame '$frame_name' not available: load failed -->";
+}
+
+## mode selection ##
+my $mode = $params->{'mode'} // 'expanded';
+my $descriptor;
+my $name = $entry->{'name'} // $frame_name;
+
+if ( exists $entry->{'descriptor'} ) {
+    ## single-mode frame : ignore $mode ##
+    $descriptor = $entry->{'descriptor'};
+} elsif ( exists $entry->{'descriptors'} ) {
+    ## dual-mode frame : pick by name ##
+    $descriptor = $entry->{'descriptors'}{$mode}
+        // $entry->{'descriptors'}{'expanded'}
+        // ( values %{ $entry->{'descriptors'} } )[0];
+}
+
+if ( not defined $descriptor ) {
+    return "<!-- frame '$name' not available: "
+        . "no descriptor for mode '$mode' -->";
+}
+
+## slot values ##
+my $values = $params->{'vars'} // {};
+
+## rendering ##
+my $rendered = <[ascii.frame.render]>->(
+    {   descriptor => $descriptor,
+        values     => $values,
+    }
+);
+
+if ( not defined $rendered or not length $rendered ) {
+    return "<!-- frame '$name' not available: render failed -->";
+}
+
+## border style double ##
+if ( ( $entry->{'border_style'} // 'single' ) eq 'double' ) {
+    my @rl = split "\n", $rendered, -1;
+    ## first and last lines are borders : leave them alone  NOTE : if ##
+    ## descriptor has no bottom border, only first line is border     ##
+    my $top_idx = 0;
+    my $bot_idx = $#rl;
+    ## detect whether last line is a structural border [ density >= 0.5 ] ##
+    my $last_line = $rl[$bot_idx] // '';
+    my $sc        = 0;
+    $sc++ while $last_line =~ m{[:.,#=\[\]]}g;
+    my $density        = length($last_line) ? $sc / length($last_line) : 0;
+    my $last_is_border = $density >= 0.5;
+    my $end_content    = $last_is_border ? $bot_idx - 1 : $bot_idx;
+
+    for my $i ( $top_idx + 1 .. $end_content ) {
+        $rl[$i] =~ s{^:}{::};
+        $rl[$i] =~ s{:$}{::};
+    }
+    $rendered = join "\n", @rl;
+}
+
+## budget truncation with sentinel ##
+my $budget = $params->{'budget'};
+if ( defined $budget and $budget > 0 ) {
+    ## chars-per-token approximation ; render is already chars ##
+    my $char_budget = $budget * <context.cfg.chars_per_token>;
+    if ( length($rendered) > $char_budget ) {
+        ## truncate to last complete line within budget ##
+        my $trunc = substr( $rendered, 0, $char_budget );
+        $trunc =~ s|[^\n]*$||s;
+        $trunc =~ s|\n$||;
+        ## append a reconstructed bottom border so the frame stays closed ##
+        my $sentinel = <[context.provider.frame.bottom_sentinel]>->(
+            $descriptor, $values, $entry->{'border_style'} // 'single'
+        );
+        $rendered = $trunc . "\n" . $sentinel;
+    }
+}
+
+## color pass ##
+if ( $params->{'color'} ) {
+    my $colored = <[ascii.frame.render.color]>->($rendered);
+    $rendered = $colored if defined $colored;
+}
+
+return $rendered;
+
+#,,..,...,,..,...,,,.,.,.,.,,,,..,,.,,,.,,..,,.,.,...,...,..,,,,,,..,,.,,,,..,
+#WPOKIDXG3ZYEGBEEAKOMHGN4XH57PMG2BYYEG6D4Q2YV24JU2URVBMO3SCXJCHZ6VNGDNNNBK4FCK
+#\\\|SOBQC6CPBR2DBYXJOISJCN2XCTMWL2K5VIW7UNVTEUFZUBG5NAB \ / AMOS7 \ YOURUM ::
+#\[7]ZFGAG2YMLIKSILN6EQE2PUX6BKI2ZGPV3LBKW4EYV7R4VZCCXMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

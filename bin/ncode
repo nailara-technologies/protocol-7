@@ -111,7 +111,7 @@ my %targets = (
     'bin'   => $PATH->{'root'} . '/bin/',          # protcol-7 executable code
     'dev'   => $PATH->{'root'} . '/bin/dev/',      # developement tools source
     'admin' => $PATH->{'root'} . '/bin/admin/',    # node administration tools
-    'src'   => $PATH->{'root'} . '/modules/',      # the nailara module source
+    'src'   => $PATH->{'root'} . '/src/',          # the nailara module source
     'cfg'   => $PATH->{'root'} . '/cfg/',          # configuration root path
     'md'    => $PATH->{'root'} . '/read-me/md/',   # release [markdown] page
     'zenki' => $PATH->{'root'} . '/cfg/zenki/..,', # p7-zenka progs
@@ -223,7 +223,7 @@ sub cmd_doc {
 
     ## 1. P7 module: contains '.' but no '::'
     if ( $arg =~ m|\\.| and $arg !~ m|::| ) {
-        my $mod_path = "$root_path/modules/$arg";
+        my $mod_path = "$root_path/src/$arg";
         if ( -f $mod_path ) {
             open my $fh, '<', $mod_path or do {
                 say "  :: cannot read module '$arg' ::\n";
@@ -291,7 +291,7 @@ sub cmd_doc {
 
     ## 5. fallback: try all
     if ( !length $out ) {
-        my $mod_path = "$root_path/modules/$arg";
+        my $mod_path = "$root_path/src/$arg";
         if ( -f $mod_path ) {
             open my $fh, '<', $mod_path or do {
                 say "  :: cannot read module '$arg' ::\n";
@@ -865,7 +865,7 @@ sub cmd_restore_backup {
 
     system($extract_cmd);
 
-    if ( !-d "$temp_dir/configuration" and !-d "$temp_dir/modules" ) {
+    if ( !-d "$temp_dir/configuration" and !-d "$temp_dir/src" ) {
         printf " :: invalid backup archive - missing "
             . "configuration or modules dir ::\n";
         system("rm -rf $temp_dir");
@@ -890,8 +890,8 @@ sub cmd_restore_backup {
     # Restore files
     system("cp -r $temp_dir/cfg/* $PATH->{'root'}/cfg/")
         if -d "$temp_dir/configuration";
-    system("cp -r $temp_dir/modules/* $PATH->{'root'}/modules/")
-        if -d "$temp_dir/modules";
+    system("cp -r $temp_dir/src/* $PATH->{'root'}/src/")
+        if -d "$temp_dir/src";
 
     if ($AI_FRIENDLY) {
         printf "[SUCCESS] Backup restored successfully\n";
@@ -3156,8 +3156,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,.,.,...,.,,,,..,,.,,,,.,,,.,.,,,,,,,,..,..,,...,..,,...,.,,,.,.,..,,...,
-#JYZFIE2NIS6IWKSL7AHLB7C52RGESKYDLMDW6GCMB2G5SP5ZYNBZDEX6J4JFPASZWBHQY7E4LGZFO
-#\\\|ZFUERFME3SY2AFE5QWEULLZLI4RFTTQYF6BRWTVWOGUWTVJQ2OS \ / AMOS7 \ YOURUM ::
-#\[7]ANXA3DPTLK5SFHX7I2K25G54GKTIEPJJDWTOH4IIMJZAKIXO44DI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,..,,..,,,.,,...,.,.,,.,,.,.,..,,...,...,...,...,,.,,,,.,.,,,
+#AEEKLVHCVQVFVTXTGJQTVDBCJMEUZK2BOXITEBKEB5NOVPMW35H3VNANTFZ3GKZ2EF47XKE2CVW7G
+#\\\|6AFBMLS2UF3JICMF436YTFP2NZKS652SHNVE3SF7XG6LFTC2QNB \ / AMOS7 \ YOURUM ::
+#\[7]LHQZVR5JHOXNYL23TW4TWE25YGCBQFZ2FXEN5T63NFIVX3KIOOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

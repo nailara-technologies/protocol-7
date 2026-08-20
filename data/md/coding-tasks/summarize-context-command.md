@@ -124,7 +124,7 @@ if ( $store and length($node_id) ) {
 
 Network command so any zenka can request summarization from the coding zenka.
 
-**File:** `modules/coding.cmd.summarize-context`
+**File:** `src/coding.cmd.summarize-context`
 
 ```perl
 ## parse args: content [focus=...] [model=AMOS:ID] [backend=cpu|gpu] ##
@@ -150,7 +150,7 @@ if ( $args_str =~ s|backend=(cpu|gpu)|| ) { $backend = $1 }
 Task zenka command that summarizes a task's accumulated notes/context and
 stores the result in the valued tree.
 
-**File:** `modules/task.cmd.summarize`
+**File:** `src/task.cmd.summarize`
 
 ```perl
 ## usage: p7c task.summarize <task_id> [focus=<topic>] [model=<AMOS:ID>] ##
@@ -187,7 +187,7 @@ my $task = <task.queue>->{$task_id}
 return { mode => 'deferred' };
 ```
 
-**Reply handler:** `modules/task.handler.summarize-reply`
+**Reply handler:** `src/task.handler.summarize-reply`
 - Receives summary from coding zenka
 - Stores in `<task.queue>->{$task_id}{'summary'}` 
 - Calls `valued.tree.record_outcome` with summary as outcome text
@@ -224,8 +224,8 @@ coding.cfg.summarize_backend = cpu       ## cpu = background, gpu = foreground
   at startup. GPU runs fast task model. summarize_context routes to CPU by default.
   no switching needed — two backends, two models, running simultaneously.
 
-#,,,.,...,,..,...,,..,,,.,.,,,..,,...,...,..,,..,,...,..,,,,,,..,,.,,,,..,.,,,
-#UWIUSFUUNH4MPP3HISNF34JTIHWF2JYC2N47T3YJZ4X55KBNWDM6B6BLWNOYRXZ5CRS7HZHH2R3MK
-#\\\|P27CKOYBHPAFOVM6JGLAQLLDGLGVOU27SGKIMUO5ZSJKZQGLPDS \ / AMOS7 \ YOURUM ::
-#\[7]MHJGML5UTBIJZ3IPY3VIIPQ7YQO6PLPYGZNLPKZGKL4VRUA5WMAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,.,.,.,.,.,,,,,.,.,.,,,,..,,..,..,,...,...,.,.,.,,,...,.,.,,.,,
+#QRZYDXGOKLJ7EQ32D3UZS6HHFV6IC5I6NP7FURYJTR5CYT346B7QMCLHBMFMQQMZV22GWRAV7TKJY
+#\\\|4F3ZQW2RSMFK4F23A4UPP6BCLA7NR6NYBALXZK5K7IZS2PU77C5 \ / AMOS7 \ YOURUM ::
+#\[7]RIXFYAKXKTBCVVY7FWOF47YO4GCFBMNU4V3N6GIX3HGA4L6BNYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

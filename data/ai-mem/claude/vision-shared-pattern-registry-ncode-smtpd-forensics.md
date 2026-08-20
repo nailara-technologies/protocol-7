@@ -14,7 +14,7 @@ mechanics. The same shape — apply known patterns fast/free, escalate only
 what's uncovered, feed successful escalations back as new patterns — fits
 at least two other domains already present or proposed in this codebase:
 
-1. **`smtpd` mail routing/classification** — `modules/smtpd.classify`
+1. **`smtpd` mail routing/classification** — `src/smtpd.classify`
    already has exactly this shape today, just not externalized: an inline
    hardcoded keyword-regex fallback (`interview`, `ablehnung`/`rejection`,
    `angebot`/`offer`, etc. — see the `$combined =~ m{...}` chain) used only
@@ -77,8 +77,8 @@ actually gets built: a fourth domain wanting the identical escalation
 shape strengthens the case for one generalized engine over reimplementing
 the ladder per-domain.
 
-#,,,,,.,.,,,,,,..,..,,...,,,,,,,,,.,.,.,,,.,.,..,,...,...,,.,,,,.,,.,,..,,,.,,
-#KBJSLLW3VNWTVMQCKOANPVL77F54MAB3KUVIVYYN226LWGVC742EPN2VXHFINQTZIBDCFZPEINEUM
-#\\\|VZYHIRL566E4ZTIDH75FQQ7PNY5TK4IHT5USNI2URY67OUT6UMJ \ / AMOS7 \ YOURUM ::
-#\[7]N77J5TBLAKRS3CNXJHDONXM2ZEW6JMK55ZMYAW2COWJGRZP5ISCQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,,.,.,,,,,,,,,,,.,.,,.,,.,,,,..,..,,...,...,..,,.,.,.,.,,,,,...,
+#HNH5EUDL2UWTCZ4OYOTFRI67BV3PYWTZGAUJSGMJG2PIS7HT4HNDSUJQ2VUC4F6W555SGKKTFFLFQ
+#\\\|E3LXRMDQJKTOS7M67IH5ZQG4KW7LOFVBUNZMPBZ7J7PUGTERKG4 \ / AMOS7 \ YOURUM ::
+#\[7]WKEB7YO3JVSX6MUVQHTSHALRDWIJGTJIZ7SSLMW3RDCGBB7KMCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

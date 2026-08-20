@@ -68,7 +68,7 @@ subroutine whitelists. lowercase comments, `[ word ]` annotations,
 
 [ optional — flag for a follow-up, do not pull into this task unless
 trivial ] when v7's stdout ring rotates to disk [ not yet implemented;
-see `modules/v7.callback.stdout_log_rotate` ], the rotated file's
+see `src/v7.callback.stdout_log_rotate` ], the rotated file's
 on-disk path should use `base.path.epoch-chksum` against the rotated
 content blob. that's where the design doc's "log file storage using
 epoch-bucket directories" example lands. ship the helper here; wire
@@ -105,8 +105,8 @@ authority.
 harmony base.path.epoch-chksum
 ```
 
-#,,,.,,..,,..,.,,,.,.,,,,,,.,,.,,,..,,,..,.,,,..,,...,...,...,.,,,,,,,,.,,,.,,
-#GILG7GBQPF2ZNNCR64ZXYVSBYES2NU2JMZQUPWODHBM6UT3OA3LWXJEMBRUTVP3F5NGPCO2Y6CGEC
-#\\\|EIJS45V35WTTTSTIMLWEUAT7EB657HAXUITY5ELST5NSVLQCQQR \ / AMOS7 \ YOURUM ::
-#\[7]ZUXA5NREV37UNE74EPQZZUD2L6LTOHNI3UPXDV6GCCE77LJCRMDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,..,,,,,,.,,..,,,,,,...,.,,,.,,,..,,...,...,,,,,,,,,,,.,,.,,,,.,
+#5YZATM2KXR3T5PV2EKYPOXBULSF7LBSY6ZYG653OW5IHUREANQYH6GH4MR5PYTUJAFNOGY4PJYIH4
+#\\\|DE4H23Q2H3REB4CURMOPFCVRZHTGBRW6V4HPOEZS6XJSZLSISEL \ / AMOS7 \ YOURUM ::
+#\[7]57CQVULAXKD44ZFKX2PNAFK33KDZPSKZA2G4UBZXQJSQ3LPZ6OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

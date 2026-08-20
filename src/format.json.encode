@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = format.json.encode
+# descr = encode perl data structure to JSON string
+# param = $data - perl data structure to encode
+# return = JSON octet string
+
+my $data = shift;
+
+state $json;
+if ( !defined $json ) {
+    $json = JSON::XS->new();
+    $json->convert_blessed(1);
+    $json->allow_nonref(1);
+    $json->canonical(1);
+    $json->relaxed(1);
+    $json->pretty(1);
+    $json->utf8(0);
+    ## output octets [bytes], not utf-8 flagged strings  size mode uses
+    ## bytes::length for byte count
+}
+return $json->encode($data);
+
+0;
+
+#,,.,,.,.,...,...,...,,,.,,.,,...,...,,..,,.,,..,,...,...,.,.,.,.,,,.,,..,,,,,
+#BW7PMPDHR6UW46GVBGV35AG6FFO2IUDLP4AZ4IK3JSGGAN66FAQ2DMGRSRN3326X4R2TWOP2LUYMI
+#\\\|A3JLCDW74FHSVKG6RHWGUIVB2GAM4EE5N7EZ6GUSGKGIU7WSHOF \ / AMOS7 \ YOURUM ::
+#\[7]UOMORL4IOV3P3RWD3Z463LDDOIYFURLGRM6URSXYT5DBLPXVDUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

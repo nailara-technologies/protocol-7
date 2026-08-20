@@ -208,11 +208,11 @@ if (encryption_enabled) {
 ## File Locations and Dependencies
 
 ### Crypto Infrastructure (Available)
-- ✅ `modules/crypt.C25519.gen_keys` - Ephemeral keypair generation
-- ✅ `modules/crypt.C25519.compute_shared` - DH computation
-- ✅ `modules/protocol.protocol-7.link-upgrade.init` - Server init
-- ✅ `modules/protocol.protocol-7.link-upgrade.handshake` - Server handshake
-- ✅ `modules/base.handler.link-upgrade` - Server DH handler
+- ✅ `src/crypt.C25519.gen_keys` - Ephemeral keypair generation
+- ✅ `src/crypt.C25519.compute_shared` - DH computation
+- ✅ `src/protocol.protocol-7.link-upgrade.init` - Server init
+- ✅ `src/protocol.protocol-7.link-upgrade.handshake` - Server handshake
+- ✅ `src/base.handler.link-upgrade` - Server DH handler
 - ✅ Crypt::Curve25519 Perl module
 - ✅ Crypt::AuthEnc::ChaCha20Poly1305 Perl module
 - ✅ AMOS7::Crypt Perl module
@@ -220,7 +220,7 @@ if (encryption_enabled) {
 ### Test Infrastructure
 - ✅ `bin/test-link-upgrade-client.pl` - Reference implementation
 - ✅ `cfg/zenki/test-link-upgrade/start` - Test zenka config
-- ✅ `modules/protocol.protocol-7.link-upgrade.*` - Server handlers
+- ✅ `src/protocol.protocol-7.link-upgrade.*` - Server handlers
 
 ---
 
@@ -336,8 +336,8 @@ All infrastructure is in place:
 
 **Next Action**: Start with nshell analysis and implementation
 
-#,,,,,,.,,.,.,.,,,.,,,,..,,.,,...,...,,..,...,..,,...,...,..,,...,...,,.,,,,,,
-#FND3NMP47MMGXTY5ZDYKOFIWM47PZV52J33RZE4PF2FYLJCLSEMNGI5QERGQ65VRZYS4SZPPIBHKG
-#\\\|W33UKIHKVGHPU6EZDM6E4BCPA5TVDOXF4YADR4T5OZODWQXIWAE \ / AMOS7 \ YOURUM ::
-#\[7]JIYAUX7QHWUCULU3WTI2OWMWB5JGD4TXSTHGMGD5WXBTNOYS5ADQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,...,,..,,.,,,,.,,,.,.,,,,,.,..,,...,...,.,.,..,,...,,.,,,.,,
+#535JF2WFLFIFYN3G7P42DTHYOQUHWPSYVDNBHWDVN3SLKQQOVZO2NCMV2LFZF7XOO5FV4FY4CQ4WY
+#\\\|ATEUJSGC3LOB3CMNUXS45TBQKTEN5EIZMP6E44XDA3U7LS663PZ \ / AMOS7 \ YOURUM ::
+#\[7]GCZ47ZJTOJMPHZVPOMISW3UURELKZYV77CGCQMHLEPVQTXKYJ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

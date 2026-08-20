@@ -1,0 +1,320 @@
+## [:< ##
+
+# name  = lm-vision.handler.check-completion-chain
+# descr = manage auto-resume loop until response is complete
+
+my $ev      = shift;
+my $meta_id = $ev->w->data;
+
+my $meta_job = <lm-vision.complete_analysis_jobs>->{$meta_id};
+
+unless ( defined $meta_job ) {
+
+    ## Meta job not found, cancel monitoring
+    return;
+}
+
+## Get the current analysis job
+my $current_job = <lm-vision.jobs>->{ $meta_job->{'current_job'} };
+
+unless ( defined $current_job ) {
+
+    ## Job not found, send error and stop
+    <[base.logs]>->(
+        0,
+        "[check-completion-chain] job not found: %s",
+        $meta_job->{'current_job'}
+    );
+
+    <[base.callback.cmd_reply]>->(
+        $meta_job->{'reply_id'},
+        { 'mode' => 'false', 'data' => 'job lost or failed' }
+    );
+
+    $meta_job->{'status'} = 'failed';
+    return;
+}
+
+## Check if current job has completed
+unless ( $current_job->{'status'} eq 'completed' ) {
+
+    ## Job not yet complete, reschedule check for next cycle
+    <[event.add_timer]>->(
+        {   'after'   => 0.7,
+            'handler' => qw| lm-vision.handler.check-completion-chain |,
+            'data'    => $meta_id
+        }
+    );
+    return;
+}
+
+## Job completed - accumulate payload
+my $current_payload = $current_job->{'payload'} // '';
+$meta_job->{'accumulated'} .= $current_payload;
+
+<[base.logs]>->(
+    1,
+    "[check-completion-chain] job completed: "
+        . "%s (complete=%s, accumulated=%d bytes)",
+    $meta_job->{'current_job'},
+    $current_job->{'appears_complete'} ? 'yes' : 'no',
+    length( $meta_job->{'accumulated'} )
+);
+
+## Check if response appears complete
+if ( $current_job->{'appears_complete'} ) {
+    <[base.logs]>->(
+        1, "[check-completion-chain] analysis complete, returning result"
+    );
+
+    ## Determine reply mode based on internal newlines [ excluding trailing ]
+    my $final_data    = $meta_job->{'accumulated'};
+    my $stripped_data = $final_data;
+    $stripped_data =~ s/\n$//;    ## remove trailing newline for counting
+    my $internal_newlines = ( $stripped_data =~ tr/\n// );
+
+    ## Single-line [ 0 newlines ]: strip trailing newline, use 'true' mode
+    ## Multi-line [ 1+ newlines ]: ensure trailing newline, use 'size' mode
+    my $reply_mode;
+    if ( $internal_newlines == 0 ) {
+        $final_data =~ s/\n$//;    ## strip trailing newline
+        $reply_mode = 'true';
+    } else {
+        $final_data .= "\n"
+            if $final_data !~ /\n$/;    ## ensure trailing newline
+        $reply_mode = 'size';
+    }
+
+    ## Response is complete - send final result
+    <[base.callback.cmd_reply]>->(
+        $meta_job->{'reply_id'},
+        { 'mode' => $reply_mode, 'data' => $final_data }
+    );
+
+    $meta_job->{'status'} = 'complete';
+    return;
+}
+
+## Response is incomplete - check if we've exceeded max resumes
+if ( $meta_job->{'resume_count'} >= $meta_job->{'max_resumes'} ) {
+    <[base.logs]>->(
+        1,
+        "[check-completion-chain] max resumes "
+            . "exceeded (%d), returning partial result",
+        $meta_job->{'max_resumes'}
+    );
+
+    ## Send accumulated result even if incomplete [ still successful, capped ]
+    ## Determine reply mode based on internal newlines [ excluding trailing ]
+    my $capped_data     = $meta_job->{'accumulated'};
+    my $stripped_capped = $capped_data;
+    $stripped_capped =~ s/\n$//;    ## remove trailing newline for counting
+    my $capped_internal_newlines = ( $stripped_capped =~ tr/\n// );
+
+    ## Single-line [ 0 newlines ]: strip trailing newline, use 'true' mode
+    ## Multi-line [ 1+ newlines ]: ensure trailing newline, use 'size' mode
+    my $capped_reply_mode;
+    if ( $capped_internal_newlines == 0 ) {
+        $capped_data =~ s/\n$//;    ## strip trailing newline
+        $capped_reply_mode = 'true';
+    } else {
+        $capped_data .= "\n"
+            if $capped_data !~ /\n$/;    ## ensure trailing newline
+        $capped_reply_mode = 'size';
+    }
+
+    <[base.callback.cmd_reply]>->(
+        $meta_job->{'reply_id'},
+        {   'mode' => $capped_reply_mode,
+            'data' => $capped_data
+        }
+    );
+
+    $meta_job->{'status'} = 'complete';
+    return;
+}
+
+## Response is incomplete - resume for more content
+$meta_job->{'resume_count'}++;
+
+<[base.logs]>->(
+    1,
+    "[check-completion-chain] response incomplete, resuming (attempt %d/%d)",
+    $meta_job->{'resume_count'},
+    $meta_job->{'max_resumes'}
+);
+
+## Create additional prompt for resume
+my $resume_prompt = $meta_job->{'prompt'};
+if ( $meta_job->{'resume_count'} > 1 ) {
+    $resume_prompt
+        .= " [Please continue and provide more comprehensive detail]";
+}
+
+my ( $backend, $backend_reason ) = <[lm-vision.select_backend]>;
+if ( $backend eq qw| unavailable | ) {
+    <[base.logs]>->(
+        0, '[check-completion-chain] backend unavailable: %s',
+        $backend_reason
+    );
+    <[base.callback.cmd_reply]>->(
+        $meta_job->{'reply_id'},
+        {   'mode' => qw| false |,
+            'data' => 'vision backend unavailable: ' . $backend_reason
+        }
+    );
+    return;
+}
+if ( $backend eq qw| http | ) {
+    <[base.logs]>->(
+        0, '[check-completion-chain] http backend not supported in chain'
+    );
+    <[base.callback.cmd_reply]>->(
+        $meta_job->{'reply_id'},
+        {   'mode' => qw| false |,
+            'data' => 'completion chain requires cli backend'
+        }
+    );
+    return;
+}
+
+# Build continuation command
+my $binary      = <lm-vision.binary>;
+my $model_path  = <lm-vision.vision_model_path>;
+my $mmproj_path = <lm-vision.vision_mmproj_path>;
+my $log_file    = <system.root_path> . '/llama';
+
+my @cmd = (
+    $binary,
+    '-m',       $model_path,
+    '--mmproj', $mmproj_path,
+    '-ngl',     99,
+    '-c',       4096,           # Context: previous response + continuation
+    '-t',       4,
+    '--image',  $meta_job->{'image_path'},
+    '--image-min-tokens', 1024,    # Minimum image tokens for Qwen3-VL
+    '-n', -2,    # Generate until context size full (better streaming than -1)
+    '--no-warmup',    # Skip warmup to reduce initialization output
+    '--log-file', $log_file,    # Log via symlink to /dev/null
+    '--prompt',
+    $meta_job->{'accumulated'} . "\n\n[Continue...]\n" . $resume_prompt,
+
+    # Reverse prompts: stop generation at natural boundaries
+    '--reverse-prompt', 'User:',    # Stop at conversation turn
+    '--reverse-prompt', '###',      # Stop at section separator
+
+    # Qwen3 recommended VL task parameters
+    '--temp',             0.7,    # Moderate temperature for focused VL output
+    '--top-k',            20,     # Top-k sampling (recommended for VL)
+    '--top-p',            0.8,    # Nucleus sampling for VL tasks
+    '--repeat-penalty',   1.0,    # Repetition penalty (default)
+    '--presence-penalty', 1.5,    # Presence penalty to reduce repetition
+);
+
+# Set up environment for vision model
+local $ENV{'LD_LIBRARY_PATH'}
+    = <lm-vision.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
+
+# Spawn continuation process
+my ( $wtr, $rdr, $err );
+$err = Symbol::gensym();
+
+open( my $null_in, '<', '/dev/null' ) or do {
+    <[base.logs]>->( 0, "ERROR : Failed to open /dev/null for stdin" );
+    return;
+};
+
+my $pid = eval { open3( $null_in, $rdr, $err, @cmd ) };
+
+if ( !$pid || $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0,
+        "ERROR: Failed to spawn continuation: %s",
+        $EVAL_ERROR // 'unknown error'
+    );
+
+    # Return error response on spawn failure
+    <[base.callback.cmd_reply]>->(
+        $meta_job->{'reply_id'},
+        {   'mode' => 'false',
+            'data' => 'error during continuation'
+        }
+    );
+
+    $meta_job->{'status'} = 'error';
+    return;
+}
+
+# Enable autoflush and set non-blocking mode
+$rdr->autoflush(1);
+$err->autoflush(1);
+
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+foreach my $fh ( $rdr, $err ) {
+    my $flags = fcntl( $fh, F_GETFL, 0 ) or die "can't get flags: $!";
+    fcntl( $fh, F_SETFL, $flags | O_NONBLOCK )
+        or die "can't set non-blocking: $!";
+}
+
+# Generate job ID for continuation
+my $continuation_job_id = <[base.gen_id]>->(<lm-vision.jobs>);
+
+# Create job entry for continuation
+my $continuation_job = {
+    'job_id'              => $continuation_job_id,
+    'image_path'          => $meta_job->{'image_path'},
+    'prompt'              => $resume_prompt,
+    'status'              => qw| running |,
+    'pid'                 => $pid,
+    'rdr'                 => $rdr,
+    'err'                 => $err,
+    'output'              => '',
+    'stderr'              => '',
+    'start_time'          => <[base.time]>->(3),
+    'is_completion_chain' => 1,           # Mark as part of completion chain
+    'meta_id'             => $meta_id,    # Reference to meta-job
+};
+
+# Store job in queue
+<lm-vision.jobs>->{$continuation_job_id} = $continuation_job;
+$meta_job->{'current_job'} = $continuation_job_id;
+
+<[base.logs]>->(
+    1, "[check-completion-chain] spawned continuation: job=%s pid=%d",
+    $continuation_job_id, $pid
+);
+
+# Register I/O handlers with priorities
+# prio => 2 (higher): process data before EOF
+$continuation_job->{'rdr_io'} = <[event.add_io]>->(
+    {   'fd'      => $rdr,
+        'handler' => qw| lm-vision.handler.read_output |,
+        'data'    => $continuation_job_id,
+        'poll'    => qw| r |,
+        'prio'    => 2
+    }
+);
+
+# prio => 1 (lower): process EOF after all data read
+$continuation_job->{'err_io'} = <[event.add_io]>->(
+    {   'fd'      => $err,
+        'handler' => qw| lm-vision.handler.check_completion |,
+        'data'    => $continuation_job_id,
+        'poll'    => qw| re |,
+        'prio'    => 1
+    }
+);
+
+# Schedule next check for the continuation
+<[event.add_timer]>->(
+    {   'after'   => 0.7,
+        'handler' => qw| lm-vision.handler.check-completion-chain |,
+        'data'    => $meta_id
+    }
+);
+
+#,,,.,,.,,...,.,.,,.,,...,.,.,..,,..,,.,,,,.,,..,,...,...,,,,,...,..,,,,,,,,,,
+#5AG5SXKI3RYFVSAF4KCTS5HNPCXLJCYQB32P3LMILSSTD7K7UPK52KAVMZWIGSGI77QAJNS4MPCUC
+#\\\|INMD3HQKKJF4WHKQ57QCU732JAFA6KJYOTZFAXBYPZB5JNVK67W \ / AMOS7 \ YOURUM ::
+#\[7]566I5I5RV36JJSFSQURA2AORRSOU3DFGAOW4YZ2YXAZGJBTABCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

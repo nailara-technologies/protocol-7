@@ -26,15 +26,15 @@
   for context on `user-edit.excursion.key_create` and
   `user-edit.check_pending_excursions`, both of which this task's own
   `## What this REPLACES` section below covers.
-- `modules/user-edit.excursion.key_create`, `modules/user-edit.
-  check_pending_excursions`, `modules/plugin.user-edit.key-actions.*` --
+- `src/user-edit.excursion.key_create`, `src/user-edit.
+  check_pending_excursions`, `src/plugin.user-edit.key-actions.*` --
   read the CURRENT working implementation before changing it. It is real,
   live-tested, committed code (`551414c5e`) -- understand it fully before
   ripping any of it out.
-- `modules/editor.control.create`, `modules/editor.control.process_key`,
-  `modules/editor.buffer.memory.create`/`.insert`/`.delete`/`.load`,
-  `modules/editor.control.get_display_value`, `modules/user-edit.handler.
-  stdin_key` (the plugin-mode routing block specifically), `modules/editor.
+- `src/editor.control.create`, `src/editor.control.process_key`,
+  `src/editor.buffer.memory.create`/`.insert`/`.delete`/`.load`,
+  `src/editor.control.get_display_value`, `src/user-edit.handler.
+  stdin_key` (the plugin-mode routing block specifically), `src/editor.
   ui.ascii_frame.render_form` -- the primitives this task composes. All
   already exist and are not being redesigned, only reused in a new
   combination.
@@ -122,7 +122,7 @@ INSIDE that module, where user-edit cannot validate it first. Building a
 real in-frame masked prompt removes this call to `keys.console.create`
 entirely, which removes the risk with it, not just works around it:
 
-Read `modules/keys.console.create` in full -- its OWN body, past the
+Read `src/keys.console.create` in full -- its OWN body, past the
 guards `user-edit.excursion.key_create` already pre-empts, is short:
 `<[crypt.C25519.gen_keys]>->($name)` then `<[crypt.C25519.write_keys]>->(
 $name, $key_password )`. Call THOSE two directly from `user-edit`'s own
@@ -138,7 +138,7 @@ first.
 
 ## Design anchor 4 -- `gen_keys`'s own reentrancy hazard, confirmed live, must carry over
 
-**Read `modules/crypt.C25519.gen_keys` and `modules/base.event.once` before
+**Read `src/crypt.C25519.gen_keys` and `src/base.event.once` before
 writing any submit-handling code for the new prompt.** `gen_keys` retries in
 a `while (not $TRUE) { <[event.once]>->(0.007); ... }` harmonic-truth loop,
 and `base.event.once` is literally `return Event::loop($timeout);` -- a
@@ -264,8 +264,8 @@ concrete reason why.
   both are exactly the kind of non-obvious, load-bearing findings future
   work in this area (the deferred `masked`-field task) will need.
 
-#,,.,,,,.,..,,.,,,.,.,,,.,.,,,,,.,...,,,.,,,.,..,,...,..,,,..,,..,,.,,,,.,,.,,
-#LMCCUC4FYBPJXBY46XYOCZ74CR3SSJO7MXTVLTS6YQRQPJ64SI5GK4BWN5HCMSXDPDRXWG7TQRXMQ
-#\\\|SHEELDW2UE5373OSCD6KI6LJKOKYQIYKSKN2KSAGZFLJTNPCX7A \ / AMOS7 \ YOURUM ::
-#\[7]GPJHHJVPOKMUDGD4ENYYV4SXA2BLZGVXSQG32GWE2XX35BVEWOAA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,,,.,,,.,..,,.,.,.,.,,,.,,..,..,,...,...,,.,,,..,,..,...,.,,,
+#4FALRG5NVL5N3462YISRCHK32SO236GSRDEWVM5IIVWOU6TOEVMHLVBQ4I62UV6OASSYYNNR7NSXK
+#\\\|LMABLRZ4XD4QKGTNV6B5GNM5RXTUNGQVZGUDUK5AQGZANFRJGD4 \ / AMOS7 \ YOURUM ::
+#\[7]E6BDU5M2FXTNKKAH2OZSZZRHSBCVPD3DRXOII4DY67CXYVOURIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

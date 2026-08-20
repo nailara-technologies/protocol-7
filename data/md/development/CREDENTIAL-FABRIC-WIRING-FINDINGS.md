@@ -45,7 +45,7 @@ the boot-time issues are fixed.
 - connected to the already-running v7 instance via `/var/run/.7/UNIX/NIW7OAQ`
 - used `USER=taeki p7c ...` for cube queries
 - observed live v7 log output (proxy crash-loop) provided by the operator
-- read all landed modules and configuration files in `modules/` and
+- read all landed modules and configuration files in `src/` and
   `cfg/zenki/`
 - copied `cfg/zenki/credential_fabric/seed.yaml.example` to
   `var/credential_fabric/seed.yaml` (explicitly permitted by the task)
@@ -682,7 +682,7 @@ per-scenario assertion counts from the run:
 #### F1. proxy auth lookup denied for `credential_fabric.resolve` despite `access.cmd.usr.proxy` granting `cred-mesh.resolve`
 
 - **location / error:**
-  - `modules/proxy.auth.lookup:33` sends `command => 'cred-mesh.resolve'` via `protocol-7.route-send`.
+  - `src/proxy.auth.lookup:33` sends `command => 'cred-mesh.resolve'` via `protocol-7.route-send`.
   - `cfg/zenki/cube/access.zenki:361-364` grants `cred-mesh.resolve` to `proxy`.
   - v7 log shows:
     ```
@@ -707,20 +707,20 @@ per-scenario assertion counts from the run:
 #### F3. key_holder child forks but does not respond, breaking encrypt/rotate/approve storage
 
 - **location / error:**
-  - `modules/cred-mesh.key_holder.parent:75-78` logs a timeout after 7 seconds.
+  - `src/cred-mesh.key_holder.parent:75-78` logs a timeout after 7 seconds.
   - v7 log warning:
     ```
     : warn : sprintf parameter expected
     :.    .: [cred-mesh.key_holder.parent:76]
     ```
-  - `modules/cred-mesh.util.key_holder.start_child:6-9` uses bare `AF_UNIX()`, `SOCK_STREAM()`, `PF_UNSPEC()`; the log also contains an intermittent `undefined subroutine &main::AF_UNIX` error at line 10.
+  - `src/cred-mesh.util.key_holder.start_child:6-9` uses bare `AF_UNIX()`, `SOCK_STREAM()`, `PF_UNSPEC()`; the log also contains an intermittent `undefined subroutine &main::AF_UNIX` error at line 10.
 - **impact:** `cred-mesh.rotate` returns `failed to store rotated credential`; `cred-mesh.cmd.approve` returns `storage failed`; encrypted slots cannot be persisted.
 - **repro:** `p7c cred-mesh.eval-code '$code{"cred-mesh.key_holder.parent"}->("ENCRYPT","x","y")'` times out; `cred-mesh.key_holder.parent` returns undef and the warning above appears in the log.
 
 #### F4. proxy direct-tcp fallback fails for fake test domains with `Invalid argument`
 
 - **location / error:**
-  - `modules/proxy.outbound.connect_or_use:46-51`
+  - `src/proxy.outbound.connect_or_use:46-51`
   - v7 log:
     ```
     proxy.outbound.connect_or_use: direct tcp to auth-relay-test.local:80 failed: Invalid argument
@@ -836,7 +836,7 @@ per-scenario assertion counts from the restarted run:
 #### F6. `cred-mesh.key_holder.parent:76` s_warn fix is incomplete
 
 - **location / error:**
-  - `modules/cred-mesh.key_holder.parent:76-78`
+  - `src/cred-mesh.key_holder.parent:76-78`
   - v7 log:
     ```
     : warn : redundant base.s_warn argument
@@ -857,9 +857,9 @@ per-scenario assertion counts from the restarted run:
 #### F7. key_holder child forks but never responds on the socketpair
 
 - **location / error:**
-  - `modules/cred-mesh.key_holder.parent:52-80`
-  - `modules/cred-mesh.key_holder.child:61-102`
-  - `modules/cred-mesh.util.key_holder.start_child:6-35`
+  - `src/cred-mesh.key_holder.parent:52-80`
+  - `src/cred-mesh.key_holder.child:61-102`
+  - `src/cred-mesh.util.key_holder.start_child:6-35`
 - **impact:** all encrypted storage operations (`rotate`, `approve`, and any
   local-storage write) fail. this is the actual blocker behind scenario 1's
   missing header, scenario 4's rotation failure, and scenario 5's
@@ -932,7 +932,7 @@ per-scenario assertion counts from the restarted run:
 
 verifier: kimi (harness-only / docs-only, no zenka module edits)
 context: user applied the `warn`-instead-of-`base.s_warn` fix in
-`modules/cred-mesh.key_holder.parent` and restarted cred-mesh cleanly.
+`src/cred-mesh.key_holder.parent` and restarted cred-mesh cleanly.
 Both zenka were already running; no manual restart was done before this
 pass because the operator reported commit `bb3b20a36` was live.
 
@@ -992,8 +992,8 @@ per-scenario assertion counts from the run:
 #### F10. key_holder child pipe is buffered — child writes the response but the parent never sees it
 
 - **location / error:**
-  - `modules/cred-mesh.key_holder.child:58-102`
-  - `modules/cred-mesh.util.key_holder.start_child:15-16`
+  - `src/cred-mesh.key_holder.child:58-102`
+  - `src/cred-mesh.util.key_holder.start_child:15-16`
   - v7 log:
     ```
     : warn : key_holder.parent : timeout waiting for child response
@@ -1016,9 +1016,9 @@ per-scenario assertion counts from the run:
   - without autoflush: `parent: TIMEOUT (child response stuck in stdio buffer)`
   - with autoflush: `parent: read n=33 buf=[OK response-to-ENCRYPT slot data]`
 - **fix:** Add `$pipe->autoflush(1)` immediately after `binmode($pipe)` in
-  `modules/cred-mesh.key_holder.child`, or add
+  `src/cred-mesh.key_holder.child`, or add
   `$child_pipe->autoflush(1)` in
-  `modules/cred-mesh.util.key_holder.start_child` before passing the
+  `src/cred-mesh.util.key_holder.start_child` before passing the
   handle to the child. Either ensures each `print {$pipe}` response is
   flushed to the socketpair.
 - **impact:** This is the single root cause behind F3. Once fixed,
@@ -1032,7 +1032,7 @@ per-scenario assertion counts from the run:
 
 #### F11. `IO::AIO::reinit()` and the two `aio_mlock` calls are NOT blocking the child
 
-- **location:** `modules/cred-mesh.key_holder.child:16,55-56`
+- **location:** `src/cred-mesh.key_holder.child:16,55-56`
 - **method:** Timed minimal fork reproduction that mirrors the child code.
 - **result:** `IO::AIO::reinit()` returns immediately; both `aio_mlock`
   calls return immediately; the child reaches `while (<$pipe>)` and
@@ -1042,25 +1042,25 @@ per-scenario assertion counts from the run:
 
 #### F12. `cred-mesh.util.key_holder.start_child` relies on a `use Socket` import from another module
 
-- **location:** `modules/cred-mesh.util.key_holder.start_child:6-9`
+- **location:** `src/cred-mesh.util.key_holder.start_child:6-9`
 - **issue:** The module calls bare `AF_UNIX()`, `SOCK_STREAM()`,
   `PF_UNSPEC()` but does not itself `use Socket;`. It relies on
   `use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |` in
-  `modules/cred-mesh.init_code` (or on `Socket` being loaded earlier by
+  `src/cred-mesh.init_code` (or on `Socket` being loaded earlier by
   another module). This is inconsistent with every other module in the
   tree that uses `socketpair`:
-  - `modules/image2html.base.fork_conv_child:5,13` — `use Socket;` + bare constants
-  - `modules/vision-batch.parent.fork_child:6,14` — `use Socket;` + bare constants
-  - `modules/weather.base.fork_weather_child:5,15` — `use Socket;` + bare constants
-  - `modules/letsencr.base.fork_letsencr_child` — `use Socket;` + bare constants
-  - `modules/data.mount.fuse.spawn:136-137` — fully-qualified `Socket::AF_UNIX` etc.
+  - `src/image2html.base.fork_conv_child:5,13` — `use Socket;` + bare constants
+  - `src/vision-batch.parent.fork_child:6,14` — `use Socket;` + bare constants
+  - `src/weather.base.fork_weather_child:5,15` — `use Socket;` + bare constants
+  - `src/letsencr.base.fork_letsencr_child` — `use Socket;` + bare constants
+  - `src/data.mount.fuse.spawn:136-137` — fully-qualified `Socket::AF_UNIX` etc.
 - **impact:** Latent load-order bug. The earlier intermittent error
   `undefined subroutine &main::AF_UNIX called [cred-mesh.util.key_holder.start_child:10]`
   proves it can fail. The current run did not reproduce it because the
   constants happen to be in scope, but `start_child` should be
   self-contained.
 - **fix:** Add `use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;` to the
-  top of `modules/cred-mesh.util.key_holder.start_child`, or convert the
+  top of `src/cred-mesh.util.key_holder.start_child`, or convert the
   constants to fully-qualified `Socket::AF_UNIX`, `Socket::SOCK_STREAM`,
   `Socket::PF_UNSPEC`.
 
@@ -1127,7 +1127,7 @@ per-scenario assertion counts from the run:
 
 verifier: kimi (harness-only / docs-only, no zenka module edits)
 context: user committed `e32ffb386` adding `$parent_pipe->autoflush(1)` and
-`$child_pipe->autoflush(1)` in `modules/cred-mesh.util.key_holder.start_child`
+`$child_pipe->autoflush(1)` in `src/cred-mesh.util.key_holder.start_child`
 to fix F10. cred-mesh was restarted cleanly before this pass. proxy and
 transport were already running from earlier; proxy was restarted mid-pass to
 clear stale compiled state.
@@ -1271,8 +1271,8 @@ per-scenario assertion counts from the restarted run:
 | 5 | make scenario 5 harness resilient to 502 HTML / configure site-yaml or hosts for `auth-relay-test.local` | **p1** | scenario 5 |
 | 6 | tighten harness seed assertions so `"failed to store rotated credential"` is reported as a failure | **p1** | test signal quality |
 
-#,,.,,.,.,,.,,..,,.,,,,..,,,.,,,.,,,.,.,.,,,,,.,.,...,..,,,.,,.,,,.,.,..,,,,,,
-#JNKQTNY3USYKMTEAYGWAW2RLLP6SAZGCVJGOGW6EF2EYTP62E6DX35P64FZLOOVH6ORLYR4B4HQZU
-#\\\|N2A7M7R7OCWOLA3HRZMLYQPOAJLJL56WSYJ4RLV67IQKW3XYFJ2 \ / AMOS7 \ YOURUM ::
-#\[7]CGNYGFT736YX3Y5IDEHHQYVVJ2IX3QLZOGNVIZRVYGZGQOMBDOBA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,.,,.,,,,..,,..,.,.,.,,,...,,,.,.,.,...,..,,..,,,.,,,,.,.,,,,,.,
+#T5CTYZ3JVU6POKSHX4DQDSJRWNHE7CZE6YKKMLYJADRXOXHIZL2VSTIYUH4F3PUEGFNZF5YQXMKWU
+#\\\|RGEWNVUKSYKRX3MUN666SU265WQH2RTDYCMPXSV2GTYM27MGKLZ \ / AMOS7 \ YOURUM ::
+#\[7]QXY6T7FWSOXJF3GYI2FGRJ7SB3P3KYTK6AIUV3NZ7V2XOCNTTICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

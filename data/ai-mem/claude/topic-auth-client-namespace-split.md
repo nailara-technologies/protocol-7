@@ -10,7 +10,7 @@ metadata:
 Landed in `b674ecd80` (registry/is_vision fixes) and `ae6b1f79b` (undef-sub
 detection overhaul + auth.client split), both on `base`.
 
-## new primitives (modules/base.code.*, base.mod.exists)
+## new primitives (src/base.code.*, base.mod.exists)
 - `base.code.exists(name)` — %code presence check via dynamic key, exempt
   from the reference scanner (scanner only matches literal-quoted
   `$code{'name'}`, not `$code{$var}`). Replaces raw
@@ -100,8 +100,8 @@ one file.
   used throughout, and [[feedback-ncode-tools]] for a tooling caveat hit
   during the `auth.client` config sweep.
 
-#,,,,,,,.,,,,,..,,..,,,.,,,.,,...,...,.,.,...,..,,...,...,...,..,,,.,,,..,..,,
-#HYRQY3HYRLOKSQW5N237MIIDSP3W6R5UHVP64RF4JAOUMBONXMY2K4NTNM37RYTQWH3ZOL2RQ7SMC
-#\\\|L2CYTZVJE3QFVJMXBYNO3VZ7HPQPIG5ECF2PYFH7YUPUNBSC4H5 \ / AMOS7 \ YOURUM ::
-#\[7]UNXHMHLRNJLQUND2CJL3MSVPVXQ66I6HKRXALOBBPVU55LEJPKDI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,,..,,,,,..,,,,.,..,,,,,,.,.,..,,...,...,,,.,,,.,..,,.,,,...,
+#55OR4YDILFTHCTEK5KHPJNRR33VZ2V5NOOWVD4A664H7ZVJLD5MZFRP2JZO62P4RYLPYE3MHDNP7Q
+#\\\|73Q3U3WWFHPN7VVXG2Q7W6XOPEUNSEUID6ZRHGB2QOY4F5AX7NL \ / AMOS7 \ YOURUM ::
+#\[7]TK47GVATBX7OJL4OFJHIXUXWUEQBIOUHP6GOBSLOAX57EB53OQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

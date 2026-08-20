@@ -28,20 +28,20 @@ leave files clean — signatures are added by the signing system automatically.
 ### what exists
 
 - task zenka scaffold: `cfg/zenki/task/` — start, zenka-startup.v7
-- task zenka init: `modules/task.init_code` — loads yaml files from
+- task zenka init: `src/task.init_code` — loads yaml files from
   `data/yaml/coding-tasks/` via `format.yaml.load_file`
-- valued tree: `modules/valued.*` — node create/add_ref/remove_ref/resolve,
+- valued tree: `src/valued.*` — node create/add_ref/remove_ref/resolve,
   tree load/register_node/record_outcome
 - task tree seed: `data/yaml/task-tree/` — root, branches, branches-intelligence,
   branches-meta-workflow
-- existing task commands (partial): `modules/task.cmd.*` if present
+- existing task commands (partial): `src/task.cmd.*` if present
 
 ### what is needed
 
-1. `modules/task.transition` — state machine transitions
-2. `modules/task.cmd.start` — transition open → in_progress
-3. `modules/task.cmd.complete` — transition → completed + record_outcome
-4. `modules/task.cmd.block` — transition → blocked + record_outcome
+1. `src/task.transition` — state machine transitions
+2. `src/task.cmd.start` — transition open → in_progress
+3. `src/task.cmd.complete` — transition → completed + record_outcome
+4. `src/task.cmd.block` — transition → blocked + record_outcome
 
 ## state machine
 
@@ -75,7 +75,7 @@ my $note    = $params->{'note'}   // '';
 - updates task hashref in memory
 - appends history entry: `{ time => ntime(), to => $to, actor => $actor, note => $note }`
 - persists updated task back to yaml file via `format.yaml.write_file` (or
-  equivalent — check what exists in `modules/format.yaml.*`)
+  equivalent — check what exists in `src/format.yaml.*`)
 - calls `valued.tree.record_outcome` with outcome mapped from state:
   completed → 'completed', blocked → 'blocked', all others → no call
 
@@ -85,7 +85,7 @@ my $note    = $params->{'note'}   // '';
 - `$ARG` not `$_`, `@ARG` not `@_` where used implicitly
 - `<valued.index>->{}` not `$data{'valued.index'}{}` for dotted data keys
 - use `<[base.logs]>->( N, fmt, args )` for logging, not warn/print
-- check `modules/task.init_code` for existing data structure layout before
+- check `src/task.init_code` for existing data structure layout before
   writing — match whatever keys it already uses for task storage
 
 ## acceptance
@@ -97,8 +97,8 @@ my $note    = $params->{'note'}   // '';
 - history section present in yaml after each transition
 - no regression in task.init_code yaml loading
 
-#,,,.,,.,,,..,,,,,,,.,,..,,,.,,.,,.,.,.,,,...,..,,...,...,..,,,,.,..,,,,.,..,,
-#GIPFVBILYCI5JTKPE7UKAPX2NBQXK3JSDSAAFNA72SWRH5R3QISRLLP45RZNSRYGW4YP5SIYMSTYY
-#\\\|VQTRLZYXZ6SEKWFWXTQTII43NTQ5T3O5ZCKUEDIYIEZ6BSOSX4H \ / AMOS7 \ YOURUM ::
-#\[7]WPPYOU2WH4JIIJKJ6V4PEFMVOGSJWIW2WTR2LTMMU74RLJ2UNEDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,..,,,.,,..,...,.,.,,.,,,,.,...,..,,...,...,..,,...,.,,,,,.,,,.,
+#HCGDGWFG3SISILAKE2TPNNWQA2SZBDEOBDLL6UIMEC3NYPKWN7GPRLJZJU4CKGAFUHG5I7XLSOSDG
+#\\\|3M2GL4ZNUQTM45ZAYK2YA3R23N377B7FNK5R3Y24DIUPR4TGXUX \ / AMOS7 \ YOURUM ::
+#\[7]ZN4Q3YK4RVFZCNN7RK7ZML3SY5SFOHI7YQZD2ZHXPVG2VCLMOUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

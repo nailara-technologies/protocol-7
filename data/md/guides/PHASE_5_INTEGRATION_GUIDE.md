@@ -33,7 +33,7 @@ Response
 
 ### Option A: Replace HTTP Handler (Recommended)
 
-**File**: `modules/httpsd.init_code`
+**File**: `src/httpsd.init_code`
 
 **Current code** (around line 50-80):
 ```perl
@@ -126,8 +126,8 @@ if (<feature.intelligent_routing_enabled>) {
 ## Integration Checklist
 
 - [ ] **1. Deploy Module Files**
-  - [ ] All 5 modules present in `modules/` directory
-  - [ ] Syntax validated: `perl -c modules/[name]`
+  - [ ] All 5 modules present in `src/` directory
+  - [ ] Syntax validated: `perl -c src/[name]`
   - [ ] Permissions: 0644 (readable by all, writable by owner)
 
 - [ ] **2. Update httpsd.init_code**
@@ -275,8 +275,8 @@ A: Routing adds ~0.1-0.5ms per request. Negligible for most sites.
 All modules are syntax-validated, tested, and compatible with Protocol-7.
 Ready to deploy on signal.
 
-#,,..,...,,.,,,..,,,.,,.,,,..,,,.,.,,,,.,,,,.,..,,...,...,.,,,,,,,.,,,,.,,.,.,
-#3JZ3T3K5H5ATZOQCIBQCJWVRQPY32HHK5ERA7NQAIBEOT7CNAEDKR7TZMCEJUOYRD2DEJPSPNGVU4
-#\\\|FHGJNP375DXGW4URKFYD3HFZJ2B3Y62A3MSNF6M6JVGNXEJWEEQ \ / AMOS7 \ YOURUM ::
-#\[7]2T7YIRJKQBOS6LBZ2U7HZGBKM5NCIBQFL6DEV3DEJZPV2NHUMUDI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,...,...,.,,,,,.,,.,,.,.,.,,,,..,..,,...,..,,,.,,,.,,..,,,..,.,.,
+#JNF646DEJNKHFZOGD7TA2FDSZR3WJMJXBNUSORKRPKBO3Q6SSHZ6ELHWAUNXXXLJZVKOWJSKEUI24
+#\\\|NHNI3AFL7YQXW5FTLWKFDMMDOOWLLTJDFHFY4EG2RQJJWIM4JSQ \ / AMOS7 \ YOURUM ::
+#\[7]UKQ4UTE5SRTUEIHOF62WAVLII57QLWMVPZUILAWCGHV5BUZYV6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

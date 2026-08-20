@@ -9,7 +9,7 @@ after save + exit + reload.
 
 ## The gap, and its precedent
 
-This is the SAME gap class `modules/user-edit.form.add_field` has already
+This is the SAME gap class `src/user-edit.form.add_field` has already
 hit and fixed four times — read that file's own header comments first,
 they document the pattern explicitly: `sort_on_focus` (contact/phone),
 `multiline` (address/note), `collapse_summary`, and plugin-pinned fields
@@ -26,7 +26,7 @@ chosen field onto the end of that same array. It never re-derives order —
 so the new field lands wherever `push` puts it (effectively last among
 real fields), not where `base.reverse-sort` would place it.
 
-**The correct order**, established by `modules/user-edit.form.
+**The correct order**, established by `src/user-edit.form.
 schema_from_record` (read it first): field names run through
 `<[base.reverse-sort]>->($fields)` — length descending, alphabetical
 descending tiebreak (the codebase's own `base.sort`/`base.reverse-sort`
@@ -120,8 +120,8 @@ Report actual captured output for each check, not just "passed."
   the right amount of abstraction for the single synthetic field that
   exists today.
 
-#,,,.,..,,...,...,.,,,,,.,..,,.,.,..,,,,,,,,.,..,,...,...,,.,,.,.,..,,,,,,.,,,
-#JZ67P5NGHWRPP4XK6LHDE3DYDPAOGAFERDDFFN7ESIRNQ75G2TUCZH7KXGMLBOJV4TR5OS5IJYGS4
-#\\\|QN6U4DHI7VUNJWLFEJSSVUNRU5BXLJQ5QPHJEV6YUI6OZTJZVV3 \ / AMOS7 \ YOURUM ::
-#\[7]CTAN4FIY53PDCHFRBJTDIOPTX6E4KQCNPIYDQXYMYXBHNENEF4CA 7  DATA SIGNATURE ::
+#,,..,...,,,,,...,,..,,.,,.,,,,.,,,,,,.,.,...,..,,...,...,...,...,.,.,,.,,,,,,
+#EEBXQJ4K6DCHCJM7EYQE3ZTC6OEP64RSQTGQ6CSL2KSPAC5TIXLTWS4K6PDXY7J34UP6PRYNEJAEM
+#\\\|4FQ3LO57MEDWEA4ZU5K6R5PU756AKG6JWCYSIGZ5PQGRZAZMMFE \ / AMOS7 \ YOURUM ::
+#\[7]UZE5TP2KJIBATQQQEPRNCNOYTLKDEQSI3GOXWEPTRTCDUG7OPQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

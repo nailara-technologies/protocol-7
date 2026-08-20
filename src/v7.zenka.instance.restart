@@ -1,0 +1,106 @@
+## [:< ##
+
+# name = v7.zenka.instance.restart
+
+my $instance_id = shift;
+my $globals     = <v7.start_setup.globals> || {};
+my $instance    = <v7.zenka.instance>->{$instance_id};
+my $zenka_name  = $instance->{'zenka_name'};
+my $job_id      = $instance->{'job_id'};
+my $parent_pid  = $instance->{'process'}->{'id'};
+my @children
+    = defined $parent_pid
+    ? <[v7.sub-process.get_children]>->($parent_pid)->@*
+    : ();
+
+if ( not defined $zenka_name ) {
+    <[base.s_warn]>->(
+        '< instance %d restart > zenka name not defined', $instance_id
+    );
+    return undef;
+}
+
+<[base.logs]>->(
+    "restarting instance %u ['%s'].,",
+    $instance_id, $zenka_name
+);
+<[base.log]>->( 2, ': <<< parent_pid not defined >>> [ race condition ]' )
+    if not defined $parent_pid;
+
+<[v7.stop_heartbeat_timer]>->($instance_id);
+
+delete <callback.session.closing_last> if $instance->{'is-cube'};
+delete $instance->{'restart_delay'};    # reset
+
+## if restart is already pending [ timer active, all processes dead ], skip ##
+## redundant call                                                           ##
+if (    defined $instance->{'timer'}->{'restart'}
+    and $instance->{'timer'}->{'restart'}->is_active
+    and not <[v7.instance_pid_count]>->($instance_id) ) {
+    <[base.log]>->( 2, ': restart already pending, skipping redundant call' );
+    return TRUE;
+}
+
+##[ shortened restart delay.., ]##
+##
+if ( defined $instance->{'timer'}->{'restart'}
+    and $instance->{'timer'}->{'restart'}->is_active ) {
+    <[base.log]>->( 2, ': stopping already active restart timer..,' );
+    $instance->{'timer'}->{'restart'}->cancel;
+    delete $instance->{'timer'}->{'restart'};
+}
+
+my $restart_timeout
+    = defined <sigterm.timeout>
+    ? ( <sigterm.timeout> + 2 )
+    : ( $globals->{'restart'}->{'timeout'} // 33 );
+$instance->{'timer'}->{'restart_timeout'} //= {};
+
+my $restart_id
+    = <[base.gen_id]>->( $instance->{'timer'}->{'restart_timeout'} );
+
+$instance->{'restart_id'}   = $restart_id;
+$instance->{'restart_pids'} = {};
+map { $instance->{'restart_pids'}->{$ARG} = 1 } ( $parent_pid, @children )
+    if defined $parent_pid;
+
+<v7.sig_chld.ignore_child_pid>->{$parent_pid} = TRUE    ## set to ignore ##
+    if defined $parent_pid;
+
+my $dependencies_ok
+    = exists <jobqueue.joblist.by_id>->{$job_id}->{'object_id'}
+    ? <[dependency.ok]>
+    ->( <jobqueue.joblist.by_id>->{$job_id}->{'object_id'} )
+    : TRUE;
+
+$restart_timeout = 24;    ##  <-- make configurable  ## [ LLL ]
+
+$instance->{'timer'}->{'restart_timeout'}->{$restart_id}
+    = <[event.add_timer]>->(
+    {   'after'   => $restart_timeout,
+        'handler' => qw| v7.handler.restart-timeout |,
+        'data'    => {
+            'restart_id'  => $restart_id,
+            'instance_id' => $instance_id
+        }
+    }
+    ) if $dependencies_ok;
+
+<[zenka.change_status]>->( $instance_id, qw| restart | );
+<[v7.terminate_process]>->($parent_pid) if defined $parent_pid;
+
+## if process already dead after terminate,  SIGCHLD will never arrive -> ##
+## init timer now                                                         ##
+if ( defined $parent_pid
+    and not <[v7.instance_pid_count]>->($instance_id) ) {
+    <[base.log]>->(
+        2, ': parent already gone, calling init_restart_timer directly'
+    );
+    <[v7.init_restart_timer]>->($instance_id);
+}
+
+#,,,,,,,,,...,,,,,.,.,,,,,.,,,.,.,,..,,.,,,.,,..,,...,..,,...,,..,,,.,.,,,,..,
+#ZFYZ4FSH66O6WOQ7QFXCYEKZ4MLOZG2MTRHWVBTYHZ2HFNXMIIERU6KCSF3ZNYOJB3PEOK7SYHAJI
+#\\\|WQ63LMFWZTFG5Q4IJP2HXI675B5PUM54L53IH5326XSMFKFVCEX \ / AMOS7 \ YOURUM ::
+#\[7]JW2KM7RKOSSCLA2EKQAHNR6A7CBLWONSY6BIU6L4EL2DGSYD7UBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

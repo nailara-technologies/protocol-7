@@ -82,7 +82,7 @@ tasks:
       - Symlink auth works for both restricted and unrestricted
       - Admin can migrate between modes by managing files
     files_affected:
-      - modules/plugin.auth.auth-keypair.validate-incoming-tofu
+      - src/plugin.auth.auth-keypair.validate-incoming-tofu
     estimated_complexity: "low"
 
   - task_id: "7a.2"
@@ -97,8 +97,8 @@ tasks:
       - Logs cleanup actions
       - Handles cleanup errors gracefully
     files_affected:
-      - modules/plugin.auth.auth-keypair.cleanup-incoming-keys
-      - modules/crypt.C25519.init_code (add cleanup trigger)
+      - src/plugin.auth.auth-keypair.cleanup-incoming-keys
+      - src/crypt.C25519.init_code (add cleanup trigger)
     estimated_complexity: "medium"
 ```
 
@@ -163,7 +163,7 @@ tasks:
       - Heartbeat mechanism specified
     files_affected:
       - cfg/zenki/nodes/start
-      - modules/nodes.cmd.* (new modules)
+      - src/nodes.cmd.* (new modules)
     estimated_complexity: "medium"
 
   - task_id: "7b.2"
@@ -179,9 +179,9 @@ tasks:
       - Recovery automatic with exponential backoff
       - Route collapse propagates to clients
     files_affected:
-      - modules/nodes.link_manager
-      - modules/nodes.heartbeat
-      - modules/nodes.init_code
+      - src/nodes.link_manager
+      - src/nodes.heartbeat
+      - src/nodes.init_code
     estimated_complexity: "high"
 
   - task_id: "7b.3"
@@ -306,7 +306,7 @@ tasks:
       - Integration points with discover identified
     files_affected:
       - cfg/zenki/channels/start
-      - modules/channels.init_code
+      - src/channels.init_code
     estimated_complexity: "medium"
 
   - task_id: "7c.2"
@@ -320,7 +320,7 @@ tasks:
       - Respects absolute syntax (/)
       - Returns base32-encoded timestamp
     files_affected:
-      - modules/channels.cmd.last-data-timestamp
+      - src/channels.cmd.last-data-timestamp
     estimated_complexity: "low"
 
   - task_id: "7c.3"
@@ -336,8 +336,8 @@ tasks:
       - Works with hierarchical path syntax
       - Route collapse propagates cleanly
     files_affected:
-      - modules/channels.cmd.next-data-timestamp
-      - modules/channels.push_handler
+      - src/channels.cmd.next-data-timestamp
+      - src/channels.push_handler
     estimated_complexity: "high"
 
   - task_id: "7c.4"
@@ -352,8 +352,8 @@ tasks:
       - Checksum matches clients' expectations
       - Works with hierarchical paths
     files_affected:
-      - modules/channels.cmd.channels-since
-      - modules/channels.delta_calculation
+      - src/channels.cmd.channels-since
+      - src/channels.delta_calculation
     estimated_complexity: "medium"
 
   - task_id: "7c.5"
@@ -368,8 +368,8 @@ tasks:
       - Minimal latency propagation
       - Conflicts handled by ownership hierarchy
     files_affected:
-      - modules/channels.memory_sync
-      - modules/channels.variable_watches
+      - src/channels.memory_sync
+      - src/channels.variable_watches
     estimated_complexity: "high"
 
   - task_id: "7c.6"
@@ -384,7 +384,7 @@ tasks:
       - Automatic propagation via memory-sync
       - Documentation with examples
     files_affected:
-      - modules/channels.mapping
+      - src/channels.mapping
       - cfg/zenki/channels/mapping_templates
     estimated_complexity: "high"
 
@@ -403,10 +403,10 @@ tasks:
       - Table includes: name, status, last update, subscriber count
       - Status persistence (not disappearing during timeout)
     files_affected:
-      - modules/channels.heartbeat
-      - modules/channels.status_tracking
-      - modules/base.cmd.list (extended)
-      - modules/channels.init_code
+      - src/channels.heartbeat
+      - src/channels.status_tracking
+      - src/base.cmd.list (extended)
+      - src/channels.init_code
     estimated_complexity: "medium"
 ```
 

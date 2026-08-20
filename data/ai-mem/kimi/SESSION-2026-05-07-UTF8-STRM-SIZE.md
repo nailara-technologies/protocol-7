@@ -20,15 +20,15 @@ operations, since `bytes::substr` on UTF-8-flagged strings has undefined behavio
 
 | Module | Change |
 |--------|--------|
-| `modules/base.handler.command` | Sender-side: `utf8::encode($chunk_data)` before `substr` chunking (STRM/STRM-SIZE paths). Receiver-side: downgrade + `bytes::substr` for SIZE/STRM/STRM-SIZE body extraction. Unknown-route drop handler: downgrade + `bytes::substr`. |
-| `modules/base.handler.input` | `length` → `bytes::length` for buffer tracking |
-| `modules/base.handler.read` | `length` → `bytes::length` for `size_left` |
-| `modules/base.handler.write` | `length` → `bytes::length` for consistency |
-| `modules/net.read_bytewise` | `length` → `bytes::length` |
-| `modules/net.read_binary` | `length` → `bytes::length` |
-| `modules/net.read_linewise_estimated` | `length` → `bytes::length` |
-| `modules/base.stream.push/close/emit` | `utf8::downgrade` output buffer before frame append |
-| `modules/base.buffer.add_line` | `length` → `bytes::length` for size tracking |
+| `src/base.handler.command` | Sender-side: `utf8::encode($chunk_data)` before `substr` chunking (STRM/STRM-SIZE paths). Receiver-side: downgrade + `bytes::substr` for SIZE/STRM/STRM-SIZE body extraction. Unknown-route drop handler: downgrade + `bytes::substr`. |
+| `src/base.handler.input` | `length` → `bytes::length` for buffer tracking |
+| `src/base.handler.read` | `length` → `bytes::length` for `size_left` |
+| `src/base.handler.write` | `length` → `bytes::length` for consistency |
+| `src/net.read_bytewise` | `length` → `bytes::length` |
+| `src/net.read_binary` | `length` → `bytes::length` |
+| `src/net.read_linewise_estimated` | `length` → `bytes::length` |
+| `src/base.stream.push/close/emit` | `utf8::downgrade` output buffer before frame append |
+| `src/base.buffer.add_line` | `length` → `bytes::length` for size tracking |
 
 ### CHRSIZE Exception
 CHRSIZE mode is intentionally character-aware and continues to use `substr`
@@ -37,8 +37,8 @@ used only when converting to byte counts for buffer operations.
 
 ## Test Infrastructure Created
 
-- `modules/devmod.cmd.utf8-test-buffer` — creates a buffer with UTF-8 test lines
-- `modules/devmod.cmd.utf8-stream-test` — returns a large SIZE reply with UTF-8 content
+- `src/devmod.cmd.utf8-test-buffer` — creates a buffer with UTF-8 test lines
+- `src/devmod.cmd.utf8-stream-test` — returns a large SIZE reply with UTF-8 content
 - Both added to `access.cmd.usr.cube` in `cfg/zenki/coding/start`
 
 ## Verification
@@ -80,14 +80,14 @@ cancel, immediately cancel timers, clear `blocked_by_stream`, and delete stream 
 
 ## Files Changed (This Session)
 
-- `modules/base.handler.write` — EAGAIN + IO write watcher fix
-- `modules/base.session.cancel_route` — STRM-SIZE stream cleanup on disconnect
-- `modules/devmod.cmd.utf8-test-buffer` — shortened descr
-- `modules/devmod.cmd.utf8-stream-test` — shortened descr
+- `src/base.handler.write` — EAGAIN + IO write watcher fix
+- `src/base.session.cancel_route` — STRM-SIZE stream cleanup on disconnect
+- `src/devmod.cmd.utf8-test-buffer` — shortened descr
+- `src/devmod.cmd.utf8-stream-test` — shortened descr
 - All kimi UTF-8 fixes remain correct and committed
 
-#,,..,,,,,,,,,.,.,...,..,,.,.,,..,.,.,..,,.,,,..,,...,...,.,,,..,,.,.,,,.,,.,,
-#AIHTGV7JJM5O3CETUA7IAYGATJ5ZZPG3T6KFU36J4J5O3JNYI6XPOLH2AB3TZLIOZQGWVYPBEMFMK
-#\\\|TDUMZWZJQGHM2EBY5WMVUDUMK7ECYGAQBZSVFXVFEO6TGCNJJDO \ / AMOS7 \ YOURUM ::
-#\[7]YNK7E2ABHPMJZULC4EEDHPPHSG2TN3BO54IRGAYUBVWXC23F7MDA 7  DATA SIGNATURE ::
+#,,..,...,...,,..,.,,,,,.,.,.,,,,,,,,,,,.,..,,..,,...,...,,.,,,..,.,,,,.,,,..,
+#6DRP5ZQ435LPRDJKKO7KISRT4GWYUBPZ4TCRYLB7DIR3SJW6FNNIMY5VUXOR7A6F6DMRFHVKN545A
+#\\\|YWVDOPFDZBX7UCTQAOGMKBADK36VKTYHL7Z6XCVWOEB5Z2PQQBD \ / AMOS7 \ YOURUM ::
+#\[7]YPRQYXGETNSTMLZJU2IN5562HO5QGRRZIGAHPW5RQCPSS4YMOOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

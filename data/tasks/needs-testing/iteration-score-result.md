@@ -11,7 +11,7 @@ write the module to disk using write_new_file tool — do not return
 code in the response.
 
 ## objective
-create `modules/iteration.score_result` — evaluate a task result
+create `src/iteration.score_result` — evaluate a task result
 against its acceptance criteria. returns a structured score record
 used by the iteration loop to decide retry / advance / escalate.
 
@@ -58,8 +58,8 @@ used by the iteration loop to decide retry / advance / escalate.
 - lowercase comments, `[ word ]` bracket annotations
 - no use statements, no pragmas — P7 modules load clean
 
-#,,.,,...,...,,,,,,..,,.,,.,.,,,.,,,,,.,.,,,.,..,,...,...,,,,,,,.,,.,,.,,,,.,,
-#VPHNQVAZ7D4T277ZKFG7U7GAG6USUYXUSDBGZLCN3AKZ6SCDSYL7CCAK6QNWIP5ZUNYH5APH6FZDC
-#\\\|43ZJCNJVP4BOCNZ3NQX65DSKDF2RKCXC7DP37XF6BUONCMFXK6Z \ / AMOS7 \ YOURUM ::
-#\[7]CFX5QL6KR7NOJR2EBCLM7IVEJDGIK45MZEZX6PVAA2EPPORSYUDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,.,,.,,,,,,.,.,.,.,..,,..,,,,,,..,,...,...,...,...,...,...,..,,
+#HJRRK3LYUHDSBY4Y3XMKNBBSSNJNWC3C43PDPTI7GTJWCEARGUB2THI5NQLPW233AEPDVTAR5VEDM
+#\\\|VKPFJEF5U7IU2BS5HE3L2MU7RKA4USK2ODKAMEXPEV34ACSFRYY \ / AMOS7 \ YOURUM ::
+#\[7]XWNFGW6XGPHQBWBBZLHEZQ6X35BF4AMDMQYK5J5K2NHZ3Y75O4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

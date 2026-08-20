@@ -147,14 +147,14 @@ phase 5:  epoch-scoped index checksumming
 
 implement phase 1 and 2 of the epoch validity window system.
 
-1. create `modules/epoch.validity.*`:
+1. create `src/epoch.validity.*`:
    - `epoch.validity.current` — return current epoch string from v7 epoch
    - `epoch.validity.window` — return { previous, current, next } epoch set
    - `epoch.validity.check` — given an epoch string, return TRUE if in window
    - `epoch.validity.format-key` — format `<epoch>:<key>` or `<epoch>:<key>:<name>`
    - `epoch.validity.parse-key` — parse that format → { epoch, key, name }
 
-2. create `modules/epoch.dir.*`:
+2. create `src/epoch.dir.*`:
    - `epoch.dir.current` — return current epoch directory path
    - `epoch.dir.rotate` — advance previous→archive, current→previous, next→current
    - `epoch.dir.ensure` — create epoch directory structure if not present
@@ -171,8 +171,8 @@ implemented — build on rather than duplicate.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,..,,...,..,,,.,,,,.,...,...,,.,,,.,,...,..,,...,...,.,,,.,,,.,.,,,.,,.,,
-#Z77WUFHXDQVFE5U2DSJDRFJK22NRB43PMRDOHME4W66YW2Z6GIIEU7VW7PZAV7ETG55PA2MWMPLCY
-#\\\|N7F5VWZCTZW2DWKP6YDLY5SEYD4QDYJGZYF4TK65BL2IWAUEQ65 \ / AMOS7 \ YOURUM ::
-#\[7]E6N4BJNQQI2X2QMYNEE7BDLJMEW752ITCNPJWLOMAXOJUX4PVSBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,.,,,.,,,,,,,,,.,..,,.,.,...,..,,...,...,.,.,.,,,,,.,.,.,...,
+#YWKRBQQE7C6CCOVXGQKDWLXSY3WAOYADC5NPE77B6XDQGION44YQB4DNAGMQPVWYO3UCDSINBR5K6
+#\\\|QRBOQJVLBM6MYXCJCSRIUX4N7BCAMCNKFUAL2GT365UZSQYXA3W \ / AMOS7 \ YOURUM ::
+#\[7]USPCGE6BQPF375STWZBSXIDUYGYP7LFMUY5G4RVF452IZJL3FKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

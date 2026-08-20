@@ -42,7 +42,7 @@
 Create the loop bridge once at zenka startup:
 
 ```perl
-## modules/models.init_code ##
+## src/models.init_code ##
 # name = models.init_code
 # descr = one-time setup for models zenka
 
@@ -71,7 +71,7 @@ Create the loop bridge once at zenka startup:
 Non-blocking request with Future-based callbacks:
 
 ```perl
-## modules/models.backend.local.invoke ##
+## src/models.backend.local.invoke ##
 # name = models.backend.local.invoke
 # descr = local backend with async HTTP
 
@@ -126,7 +126,7 @@ return {
 ### Phase 3: Response Handlers
 
 ```perl
-## modules/models.handle.response ##
+## src/models.handle.response ##
 # name = models.handle.response
 # descr = process completed LLM response
 
@@ -244,8 +244,8 @@ Once installed, we can proceed with Phase 1 implementation.
 
 ---
 
-#,,.,,,,.,,.,,,,,,,,.,,,,,,..,,..,...,,,,,,.,,.,.,...,...,...,...,,,,,,..,,.,,
-#L65TVI2B4H26U6DWTOSK2UEQGUBHX7GHLXEDCW4E2LTTHJUGD6ZYAQKMFAPHE5OISCUI5X5MZEU3O
-#\\\|DAHGXTORNJ2MIJCZ2LXJRPIVK7YL233HWKNF73MA4IMSBI6GARF \ / AMOS7 \ YOURUM ::
-#\[7]BTC6MOX57FL7FGKOFBS3DT5DF3QPCHWU44ABIYGKNAQUCVWHM4CY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,.,.,,,.,...,,,.,,.,,..,,,..,.,.,...,...,...,,,,,.,.,,,,,.,,,
+#TD4NSLOOAZ2CXHXDPH2Y5HFUQJRACSVEOPHN7GY2QTG4WNMAIX4QR2NRPUXARP5XCMHI7RT53AMZO
+#\\\|DVRVIEYGO63JLNM7HBYOC4BTXSXOP7BAKD2H2WZWHPFVZLN62PD \ / AMOS7 \ YOURUM ::
+#\[7]4BG6WRRABL5JXD4YFTPYTIMHIJZVWYMW76RVVGWZN6XYFW6C5SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

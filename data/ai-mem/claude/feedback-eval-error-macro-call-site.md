@@ -30,7 +30,7 @@ did not.
 a macro/sub call site placed after the `eval` block. Either (a) capture
 it into a lexical immediately after `eval` and pass the lexical, or
 (b) prefer the project's existing `<[base.str.eval_error]>` helper
-(`modules/base.str.eval_error`, wraps `base.format_error`) called
+(`src/base.str.eval_error`, wraps `base.format_error`) called
 immediately — it reads `$EVAL_ERROR` inside its own sub body before any
 other macro expansion gets a chance to clear it. Confirmed the fix live:
 after switching to `<[base.str.eval_error]>`, later real errors on the
@@ -39,8 +39,8 @@ message. See [[feedback-swap-subs-not-fragile]] for the same session's
 other subtle-but-real bugs (swapped-name mismatches) caught only by
 pushing new code through a live round-trip, not by syntax-check alone.
 
-#,,..,,..,,.,,,,,,,,,,,,.,..,,...,.,.,...,,,,,..,,...,...,.,,,,,.,,,.,,,,,...,
-#BAQ6IFWWW4CDWCFYRI2W52GRK5LBHOFPJKJFYWHA6O7BDY7C7ZKKIDPTJ4MTQIKMHWJGXC4HUVJLY
-#\\\|6YAPT6DBPPZUBUY5WNVZ7JD7Z4EQFBLSQ3WC46Z352GMBMIVH5T \ / AMOS7 \ YOURUM ::
-#\[7]7MZIHXQKDO6BSMBTC22JHKFSVV5AHTCFNFDB3HLMQB5GIAXDSIBI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,,.,.,.,.,,,...,,,.,..,,..,,..,,...,...,.,.,,..,,,.,,,,,.,.,
+#XTWSLFHZZD5E54KOGKGU2E4OEHE6UN5N2EQJTETFQDOAESMIRISQRKVJIPGUNQJI3JKP5W65MQRB6
+#\\\|U2R6HZCRBOKU5HIZU2VN4YH5NHIDXKPWGVYNCVHQIFM5EH2JQ2R \ / AMOS7 \ YOURUM ::
+#\[7]QVJPWXCO5XCEDXG2C5EPU7GFLR27F2LKQPHF3QH74BLAY535XGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

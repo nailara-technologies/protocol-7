@@ -15,7 +15,7 @@ unused helpers.
 - nothing currently calls `<[base.stdio_multiplex.connect]>` for any
   zenka, so the connect/emit chain is dead code.
 - `calc` is a small on-demand zenka with one command
-  [ `calc.cmd.val`, in `modules/calc.cmd.val` ] that computes a
+  [ `calc.cmd.val`, in `src/calc.cmd.val` ] that computes a
   result string and a numeric value — a natural minimal case for
   `emit_eout` [ result text ] and `emit_num` [ result value ].
 
@@ -38,7 +38,7 @@ unused helpers.
 
 ## wire `calc.cmd.val`
 
-in `modules/calc.cmd.val`, after `$value_str` is computed
+in `src/calc.cmd.val`, after `$value_str` is computed
 [ around line 30, right after the "calculation not successful" guard ]:
 
 - call `<[base.stdio_multiplex.emit_num]>->('value', $value_str)`.
@@ -77,8 +77,8 @@ no `#,,..` stubs. do NOT run update-signatures. do NOT modify
 subroutine whitelists. lowercase comments, `[ word ]` annotations,
 `$ARG` not `$_`, one-sub-per-file [ no inline `sub {}` helpers ].
 
-#,,,,,,..,..,,,,,,.,,,.,,,,,.,.,,,..,,.,,,..,,.,.,...,..,,..,,,..,.,,,...,.,,,
-#C3S2JPHHD7B7QCSIF56JATQA7PVGZYLT64XC7L4T3HXKKFYXT52ZW2P65NYSTE4LLDRL6JYFFBCYE
-#\\\|EXJYJCEH23RF4JSVKOWSYA27GVMPMTBX57DSEXXB55F2MZ4ZQ6B \ / AMOS7 \ YOURUM ::
-#\[7]DQMEIPE5KY52MES33CUNAGZ6O6GUIHFOAWQVJZJHET3IF3GSDMDA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,,.,,...,,..,.,,,.,,,..,,.,.,.,.,...,...,..,,.,,,,,,,...,...,
+#45QKAGI4ECGRM2ZAEHBHOHYKZN7JW5FY2UUJCGLNNTQBSI6MTOVSKO4DIHEDOO3XJHTPUKF374DQE
+#\\\|KLVERCR5BY22VRFNJIJJA7FJQT33HB55MLPIRJIJKIJZDBVQQTL \ / AMOS7 \ YOURUM ::
+#\[7]SQL2JOWWCYT7VXFIC6XCUYCPLOI5ENYK2KKIFEC2NY46YSUAXMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

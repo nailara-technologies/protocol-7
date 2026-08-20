@@ -22,7 +22,7 @@ would be), but the underlying warning is now fixed at the source.
 ## actual root cause
 
 not an empty-string-vs-undef distinction in arg parsing as first
-suspected — `modules/devmod.cmd.set` ran its `s|^'(.*)'$|...|`
+suspected — `src/devmod.cmd.set` ran its `s|^'(.*)'$|...|`
 quoted-value substitution on `$value_content` (line 13) *before*
 checking whether a value was supplied at all (that check was further
 down, at the old line 25). when the command has no value token at all
@@ -53,8 +53,8 @@ live-verified via `p7c audio.set` against the audio zenka: missing-
 value, update, no-change, and reset-to-`'none'` paths all clean, no
 warnings.
 
-#,,.,,.,.,..,,,.,,,,,,,,,,,,.,..,,.,.,,,.,,,.,..,,...,...,,..,...,,.,,,,,,,..,
-#WDBFAVUOJICMIAUSVAPBNCNEXPWGP3AQKUJIIZHEYCP5JB4F5UAN2VQWQ7C5XBA4PEY26YLW46PQC
-#\\\|2634XJOEQNREUJ2HX3WUZLDD43FJHNZGPOE7D6FWQ4P7SIL3VYM \ / AMOS7 \ YOURUM ::
-#\[7]HQ52T7CARGOPXZZACA656E4QMU5KWDR4ZRXDCOMG6ZTPPNUE52AQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,.,.,,,,,...,,,.,,,.,.,.,...,..,,...,..,,...,,,,,,,,,.,.,,,,,
+#CFTBGM2CT2P7Q2LE7OAS7VXDL4BFBI7NN3IR7ZULXTWYRB6JKDWTK3R57T3Q6DV5R55LFQUB65YF2
+#\\\|D3OXPQ44IMVWUI27ESWYKZD6NXICZFO3RMM7MILLBHYEMRXQPTG \ / AMOS7 \ YOURUM ::
+#\[7]UDN3P33FWQUQRQ7XVEOF2XAOQTQP7JMBQAU7ADFDTAHRAADUISBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

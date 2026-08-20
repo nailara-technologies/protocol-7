@@ -100,7 +100,7 @@ full three-way split, so nothing falls into a categorical blind spot
 between the task files:
 
     os-pkg zenka (cfg/zenki/os-pkg/, currently a stub —
-      modules/os-pkg.init_code is just `0;`) — OS-distro packages,
+      src/os-pkg.init_code is just `0;`) — OS-distro packages,
       apt/dpkg only, per its own `start` file description
     [[ext-pkg-zenka]] (new task, greenfield) — external package-manager
       ecosystems: pip, npm, uv tool. kimi and claude are its first two
@@ -222,7 +222,7 @@ flag. loads the recipe yaml and dispatches on `kind`:
 
 all four kinds: compute and store a checksum record after install
 (reuse an existing AMOS7/base checksum module — see
-modules/base.chk-sum.*) and write a build log entry per run.
+src/base.chk-sum.*) and write a build log entry per run.
 ```
 
 ## phase 2 — patch drift detection (optional, do if phase 1 lands clean)
@@ -258,8 +258,8 @@ attention after an upstream pull, instead of discovering it mid-build.
   explicitly out of scope — see [[NETWORK-BUILD-SYSTEM]] for the full
   vision; this task is layer 1 only.
 
-#,,,,,.,.,.,,,,.,,,.,,,.,,,,.,,.,,,..,...,.,,,..,,...,...,,.,,,.,,.,.,,,,,,..,
-#ZIHBIGD4FCNUMFMVMVXADYJTANWWMX3ITN6A3CENOFCMLX77MJSGDOC2WWRRJGIA7GP3L6B77MF4Y
-#\\\|UJUBZL5AFST2XO55C7Q6HS2OGO6XTJLDMEZWNPZJPJZ4GPZP3WL \ / AMOS7 \ YOURUM ::
-#\[7]QXKQL5I6JYDQ5CVOT25DUDYYIKDXQIMVKZZ7UTZ5RQIXMM2NWOCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,,,.,,,.,.,.,..,,...,,,.,,..,..,,...,...,...,.,.,..,,...,,,.,
+#HXMM5X4P2IS7QYTVTEPYIN3NPADXCWBHPNH2MOD6P3NIMMJUOMKN3T5OSFQCF4PIAP35JTULZEHM2
+#\\\|6MZTR3LCDQ6REKPLCJAAZNWJHE54H6NJ6G3ZIN32YJZOS7YWWMD \ / AMOS7 \ YOURUM ::
+#\[7]UH6PCT3YJQOQPVVGNCX7B5IYSBNAOKOFGNSY3IYGGLXQXZW4KWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

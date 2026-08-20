@@ -26,7 +26,7 @@ Data Hash → BMW Checksum → 13³ Coordinate (x,y,z) → Field Tensor
 Protocol-7's devmod system automatically compiles module files into `%code` hash:
 
 ```perl
-# File: modules/data.topology.interference.map.hash_to_cube_3d
+# File: src/data.topology.interference.map.hash_to_cube_3d
 # Automatically accessible as:
 my $coord = <[data.topology.interference.map.hash_to_cube_3d]>->($hash);
 ```
@@ -144,7 +144,7 @@ use constant CUBE_SIZE => 13;
 
 ```bash
 # Example: Create new spatial calculation
-touch modules/data.topology.interference.map.calculate_new_metric
+touch src/data.topology.interference.map.calculate_new_metric
 ```
 
 ### Step 3: Implement (No Sub Wrapper)
@@ -175,7 +175,7 @@ return $metric;
 
 ```bash
 # ALWAYS test before committing
-perl -c modules/data.topology.interference.map.calculate_new_metric
+perl -c src/data.topology.interference.map.calculate_new_metric
 ```
 
 ### Step 5: Integrate (Optional)
@@ -197,10 +197,10 @@ If this calculation should be part of the main field tensor, add to `data.topolo
 
 ```bash
 # Single file
-perl -c modules/data.topology.interference.map.hash_to_cube_3d
+perl -c src/data.topology.interference.map.hash_to_cube_3d
 
 # All new modules
-for f in modules/data.new_feature.*; do perl -c "$f"; done
+for f in src/data.new_feature.*; do perl -c "$f"; done
 ```
 
 ### Integration Test
@@ -382,7 +382,7 @@ $data{'workhole'}{'register'}->(
 For experimental features:
 
 ```perl
-# Create: modules/plugin.physics.quantum.my_experiment
+# Create: src/plugin.physics.quantum.my_experiment
 # Access: <[plugin.physics.quantum.my_experiment]>->(...)
 
 # Falls back to data.* if plugin not loaded
@@ -491,8 +491,8 @@ return undef unless exists $data{'topology'}{'interference'}{'map'};
 
 🖖🔮✨
 
-#,,,.,,.,,,..,,.,,..,,.,.,..,,,..,.,.,.,,,...,..,,...,...,..,,.,.,,,,,,.,,.,.,
-#QQBDHHWV53AJ6PVZBXUYDYOIRXB5YNR6JDA4FOEDQEWL5FGPJNDCV6KFWTIBW2WCZH6O3YQJUOVPG
-#\\\|5DPSEWE7ML2XEGEB3B5BKAZLKALSA7KTRQLCRQMLGPUQXIA2RKH \ / AMOS7 \ YOURUM ::
-#\[7]5NY6BYYFEG7PFMHWV2LES3VK64VDEZ2WSDYLYRDIYZYRBZAS4KBA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,,,,,,,,..,,,,,,,.,,.,,...,.,,,..,,...,..,,...,..,,.,,,.,,,,.,,
+#AIJFAXL7NLEVNEBAXAFIPKMDKZRMULBS5I2KEZLXXYYZ7IDRDJA5BSC2U7OOZ7FN7SICVICOHY3BU
+#\\\|WGUORZTWVYTSWDCP4LVQ5GZUV3ZOAQ5LAKW4QEGV447FW5DFIUJ \ / AMOS7 \ YOURUM ::
+#\[7]FICW5OHEEFW3WSVNBHHAH3R3YHETK7BTS2Q5A3HDUQLEHTSJXQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

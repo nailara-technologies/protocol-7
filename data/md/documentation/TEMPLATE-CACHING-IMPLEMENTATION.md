@@ -53,7 +53,7 @@ template associations.
 - Check for template files at 3 hierarchy levels
 - Cache results for fast lookup
 
-**Location:** `modules/web.scan_content_directories`
+**Location:** `src/web.scan_content_directories`
 
 **Parameters:**
 ```perl
@@ -104,7 +104,7 @@ Retrieves cached template content by key, checking TTL expiration.
 - Automatic expiration of stale entries
 - Metrics tracking (cache hits/misses)
 
-**Location:** `modules/web.template_cache.get`
+**Location:** `src/web.template_cache.get`
 
 **Parameters:**
 ```perl
@@ -163,7 +163,7 @@ Stores rendered template content with TTL and size limits.
 - Enforce maximum content size
 - Validate TTL values
 
-**Location:** `modules/web.template_cache.set`
+**Location:** `src/web.template_cache.set`
 
 **Parameters:**
 ```perl
@@ -219,7 +219,7 @@ Routes HTTP requests to appropriate handlers with caching.
 - Path normalization
 - Route decision caching
 
-**Location:** `modules/httpsd.route_template_request`
+**Location:** `src/httpsd.route_template_request`
 
 **Parameters:**
 ```perl
@@ -534,19 +534,19 @@ p7c httpsd.show-buffer zenka | tail -20
 
 ## See Also
 
-- `docs/modules/TEMPLATE-SYSTEM-MODULE-REFERENCE.md` - Complete API reference
+- `docs/src/TEMPLATE-SYSTEM-MODULE-REFERENCE.md` - Complete API reference
 - `docs/TEMPLATE_SYSTEM_STATUS_SUMMARY.md` - Current status
 - `docs/architecture/VHOST_TEMPLATE_HIERARCHY.md` - Template hierarchy design
-- `modules/httpd.vhost_template_resolver` - Template resolution
-- `modules/web.process_template_recursive` - Template rendering
+- `src/httpd.vhost_template_resolver` - Template resolution
+- `src/web.process_template_recursive` - Template rendering
 
 ---
 
 *Last updated: 2026-03-03*
 *Implementation: Phase 2-4 Complete*
 
-#,,.,,...,.,.,,..,,,.,,.,,.,.,...,,.,,.,,,,.,,..,,...,...,,,.,,..,,..,,..,.,,,
-#UKJJLVFNFSWEJYNANLG7J2BAV6OETC4SOKI5LR2X5WHCTYVI7HIRRNND4Y7ZDGC5VLB6O2HS5IVYS
-#\\\|7OYODEOT7GPVN2E46PG27RRAWUM5DCO3TJCU4XDWGISLAQJM3BQ \ / AMOS7 \ YOURUM ::
-#\[7]QDE2U7MWCRGGR6XEUEATFM2LX234LR4S3NM6NWKGHU7PWW7UJECQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,.,.,,,.,...,,..,,,,,.,.,,,.,..,,...,...,,.,,...,,,,,..,,..,,
+#TPJLNG2MFWLVGN4DXBKI6PS6GGIKARQBCRWVVQMBYZLBAGY7R3MKPGZUCB25CLY3E3JMK33Q3SBGY
+#\\\|4XSUK7PSQIQ5ACC6V6MMIZ4X5K5FF7BO37UHLPON2A3VWH3P35D \ / AMOS7 \ YOURUM ::
+#\[7]VOQQLZSZNSJOPKXBRNZGJ4CYXDYQH34HDGS2VAZWTG45DZ56SKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

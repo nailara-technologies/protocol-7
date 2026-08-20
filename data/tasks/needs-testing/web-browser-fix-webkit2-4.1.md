@@ -21,7 +21,7 @@ do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures` wh
 
 ## fix 1: introspection version in init_code
 
-file: `modules/web-browser.init_code`
+file: `src/web-browser.init_code`
 
 change:
 ```perl
@@ -40,7 +40,7 @@ are required — the 4.0 and 4.1 GObject API surface is identical.
 
 ## fix 2: remove deprecated settings from set_properties
 
-file: `modules/web-browser.set_properties`
+file: `src/web-browser.set_properties`
 
 remove these lines entirely (deprecated/removed in WebKit2GTK 4.1, no effect):
 ```perl
@@ -70,7 +70,7 @@ keep these (still valid in 4.1):
 
 ## fix 3: remove cfg.plugins_enabled default if orphaned
 
-file: `modules/web-browser.init_code`
+file: `src/web-browser.init_code`
 
 check if `<web-browser.cfg.plugins_enabled> //= 0;` is still set in init_code.
 if so, remove it — the setting is no longer referenced anywhere after fix 2.
@@ -102,8 +102,8 @@ perl -e "
 - [ ] `cfg.plugins_enabled` default and any config reference removed
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,,.,,.,,,,,.,.,,,...,..,,.,,,,.,,..,,,.,,..,,...,...,,.,,,,,,..,,...,,..,
-#PMKDJESRD2D4727RODPUOXURGMKRB665COBDRTLKOPLIONTLPMLX4VO2LT3TLAJEVNMLOHYSZOVYY
-#\\\|TB5S7WFRNRUNR4EQ4HIFVNIJOSQUGFXO46WRR4IX63QIDDV22RW \ / AMOS7 \ YOURUM ::
-#\[7]SJVQLEDUFNKZ6ROJTUYIPCEH7IST2CJRMIIVFTFFPLGLTMJWUUCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,.,,.,.,...,,.,,.,,,...,,,.,,.,,..,,...,..,,.,.,.,.,,,,,,,.,,.,,
+#5AQQQMZQ5E6DEEUHW5QHPBD32E3IIBXQKYV2XSPIKSYN5JDEVPSVO4BCTG3ZPGAMIRRFY6LK2QKYK
+#\\\|4WBGMDAK42OKB3ZDZZVWWXZUZBL7HB2FC4ZU4IWF5QQ33XUWYJU \ / AMOS7 \ YOURUM ::
+#\[7]U6YIVWO2EJGMSKJIDOSE775PCBHZMXPFZT3RI44ILW5IEU3LBYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

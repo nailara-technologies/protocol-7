@@ -6,7 +6,7 @@ notification side-channel so models see incoming messages without polling;
 (2) bin/chat display is upgraded to use ascii frame idiom for the timeline
 and history views. read first: `bin/chat` (full); `bin/mcp-server-p7`
 (tool dispatch section ~lines 762-920, chat tool loader ~630-640, main loop);
-`modules/mcp.tools.chat` (existing chat tool definitions);
+`src/mcp.tools.chat` (existing chat tool definitions);
 `data/yaml/ascii-frames/session-catchup.yaml` and `task-queue.yaml`
 (separator-stretch frame examples); `data/yaml/ascii-frames/memory-composite.yaml`
 (progress mode single-line example). keep bin/chat self-contained — it cannot
@@ -50,7 +50,7 @@ polls. the mcp server already communicates via STDOUT (JSON-RPC) and STDERR
 - description must make clear it is the go-to zero-config entry: "read or send
   chat messages. no args = show active channels. message= to send. channel= to
   scope. combines p7_chat_channels + p7_chat_read + p7_chat_send."
-- add it to `modules/mcp.tools.chat` alongside the existing five tools.
+- add it to `src/mcp.tools.chat` alongside the existing five tools.
 
 ## part 2 — bin/chat ascii frame display
 
@@ -107,8 +107,8 @@ this is ~10 lines of string math, no external deps.
 - plain-text output (non-tty) is unchanged.
 - no AMOS7 signature stubs in new or edited files.
 
-#,,..,...,...,...,...,..,,,,.,,.,,...,,,.,,,,,..,,...,...,...,...,..,,.,.,.,,,
-#WQEHBP3ZLOJFB4GIAHMWDTC6ISMZLI2VN4SGJKN25EDBT4QOQ7R6PILZXOHYCRGTLUNAPBLCVTRXA
-#\\\|G36I3G6KJUR7B32CSY7PDC4J4TKB3422AO5O6K2KXPKPWDHKIX6 \ / AMOS7 \ YOURUM ::
-#\[7]DIU226GS54CBLDSJGVFZI2XSF2RMPS6JP257LW3CA2FEGO4WA2CA 7  DATA SIGNATURE ::
+#,,..,,.,,...,,..,.,.,...,..,,.,,,.,,,,,,,.,,,..,,...,...,,,,,,..,,..,,.,,.,,,
+#KGUFFVU2YIPNQK4WK5NH4ZKWXHBBEVGQMWRHMCRF47EPB76YRZF3FIBEQSQT2O3SF5RQC2EZDNTHM
+#\\\|3PXKQ42LDNFVBNJVJM3LD6AHK42B57OXVR2NSKDQXKJ4FHUE5RV \ / AMOS7 \ YOURUM ::
+#\[7]QZRYVG67VSXOV7ERKKVTF3U4IYLNCYPIHUDWZGZEKP5MLGSICKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

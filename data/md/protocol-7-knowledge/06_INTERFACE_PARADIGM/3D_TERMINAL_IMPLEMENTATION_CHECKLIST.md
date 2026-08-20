@@ -10,10 +10,10 @@
 
 ### Existing Code Analysis
 - [x] **Study ticker zenka GTK3 setup**
-  - [x] `modules/ticker.init_code` - GTK3 initialization
-  - [x] `modules/ticker.callback.draw` - Rendering loop
-  - [x] `modules/ticker.calc_colors` - Blue translucency
-  - [x] `modules/ticker.handler.fade_in` - Gaussian fade curves
+  - [x] `src/ticker.init_code` - GTK3 initialization
+  - [x] `src/ticker.callback.draw` - Rendering loop
+  - [x] `src/ticker.calc_colors` - Blue translucency
+  - [x] `src/ticker.handler.fade_in` - Gaussian fade curves
   - [x] Configuration: `cfg/zenki/ticker/start`
 
 - [x] **Study web-browser zenka GTK3 patterns**
@@ -31,9 +31,9 @@
   - [x] `decoder.base.decode_d13_bits` - Decoding
 
 - [x] **Study nshell zenka patterns**
-  - [x] `modules/nshell.render.cursor` - Cursor rendering
-  - [x] `modules/nshell.history.arrow_up` - Navigation
-  - [x] `modules/nshell.init_code` - Buffer structure
+  - [x] `src/nshell.render.cursor` - Cursor rendering
+  - [x] `src/nshell.history.arrow_up` - Navigation
+  - [x] `src/nshell.init_code` - Buffer structure
 
 **Deliverable**: Code reuse map document (completed)
 
@@ -397,30 +397,30 @@ sub sync_buffer {
 
 ### GTK3 Patterns (from ticker)
 ```
-modules/ticker.init_code              # GTK3 init
-modules/ticker.callback.draw          # Render loop
-modules/ticker.calc_colors            # Blue colors
+src/ticker.init_code              # GTK3 init
+src/ticker.callback.draw          # Render loop
+src/ticker.calc_colors            # Blue colors
 cfg/zenki/ticker/start      # Transparency config
 ```
 
 ### GTK3 Patterns (from web-browser)
 ```
-modules/web-browser.init_code         # WebKit2GTK
-modules/web-browser.window.manage     # Window handling
+src/web-browser.init_code         # WebKit2GTK
+src/web-browser.window.manage     # Window handling
 ```
 
 ### SHM Infrastructure (from data)
 ```
-modules/data.channel.shm.create       # SHM creation
-modules/data.mount.shm.open           # SHM access
-modules/data.mount.fuse.*             # FUSE
+src/data.channel.shm.create       # SHM creation
+src/data.mount.shm.open           # SHM access
+src/data.mount.fuse.*             # FUSE
 ```
 
 ### Decoder Patterns
 ```
-modules/decoder.zenka.init_code       # Decoder init
-modules/decoder.zenka.receive_entropy # Stream input
-modules/decoder.base.decode_d13_bits  # Decoding
+src/decoder.zenka.init_code       # Decoder init
+src/decoder.zenka.receive_entropy # Stream input
+src/decoder.base.decode_d13_bits  # Decoding
 ```
 
 ---
@@ -483,8 +483,8 @@ p7c v7.start amos-term-3d
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,.,,...,,,,,,,,,,..,,,,,..,,,,,,,,.,,..,.,.,..,,...,...,,.,,.,,,,,,,,.,,,,,,
-#NHTAQBTR4NPQO7XEOGDZWGIQJYNLUJH3PUGSJZFFNSRNSLJNPN6ZIZDZNHSCAFR54R3DVGCJJQUVC
-#\\\|YH2R2T56UETGNDTLCFUW5HWRD2GK6ITBNLY5FYJIZ34N3YNTVKG \ / AMOS7 \ YOURUM ::
-#\[7]NGMWFZPC3PATUYNHVWIBUF5KWSPQJ7XGPWAZG2IU7CTGHZVEEWBI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,,,.,..,,.,,,,,,,,,.,,.,,,..,..,,...,..,,..,,..,,...,,.,,,,,,
+#HQDIAEKOJG56ENK25BMPLRLEG4SJ4L7KBOPV2QRIGLGGUXGXDU55ZINICA6J6DJS6HO2ZOGTNBXNM
+#\\\|DUCBY6D3RXOXYZMDWI2YAEWCZC7JMAWM4MSO7NT5SPC5ZZQGYMV \ / AMOS7 \ YOURUM ::
+#\[7]T3XWSXD2GOQUXQDKWRPBTUR6YTAMIG2DF2OERR62PO6OSVVPFCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

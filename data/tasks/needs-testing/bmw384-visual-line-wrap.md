@@ -5,13 +5,13 @@
 
 ## files to fix
 
-  modules/route.bmw384.cmd.visual-wheel          [ 92 violations, max 119 ]
-  modules/route.bmw384.visual.wheel-html         [ 25 violations, max 133 ]
-  modules/route.bmw384.visual.wheel.gauss        [ 77 violations, max 92 ]
-  modules/route.bmw384.visual.wheel.metric       [ 4 violations, max 81 ]
-  modules/route.bmw384.visual.wheel.overlay      [ 4 violations, max 86 ]
-  modules/route.bmw384.visual.wheel.heatmap      [ 80 violations, max 96 ]
-  modules/route.bmw384.visual.wheel.density      [ 4 violations, max 86 ]
+  src/route.bmw384.cmd.visual-wheel          [ 92 violations, max 119 ]
+  src/route.bmw384.visual.wheel-html         [ 25 violations, max 133 ]
+  src/route.bmw384.visual.wheel.gauss        [ 77 violations, max 92 ]
+  src/route.bmw384.visual.wheel.metric       [ 4 violations, max 81 ]
+  src/route.bmw384.visual.wheel.overlay      [ 4 violations, max 86 ]
+  src/route.bmw384.visual.wheel.heatmap      [ 80 violations, max 96 ]
+  src/route.bmw384.visual.wheel.density      [ 4 violations, max 86 ]
 
 ## how to break lines
 
@@ -51,7 +51,7 @@ for long variable assignments, break at operators:
 ## verify each file
 
 after editing each file, run:
-  grep -n '.\{81\}' modules/route.bmw384.visual.wheel.gauss
+  grep -n '.\{81\}' src/route.bmw384.visual.wheel.gauss
 
 zero output = done for that file. fix remaining violations if any.
 
@@ -64,8 +64,8 @@ leave the 4-line footer exactly as-is — do not regenerate or stub it.
 
 low — mechanical reformatting only.
 
-#,,..,.,.,,.,,..,,,,,,,,.,,,.,,,.,...,,,,,...,..,,...,...,...,.,,,,,.,,.,,..,,
-#PH4CYRGESTXAJZQMG4B4TS3JTOFCUTXSNKQLC6HSD7GWODK66KKXGVU6ZI23HFKXBHV5ZTWVH2SJM
-#\\\|3NL5IVIDD5SGZBJZBSD5UUJBM7PW6HYGOIHH4YIVKT2GCXJ5GDO \ / AMOS7 \ YOURUM ::
-#\[7]7I7UNSU3GNBCXRDUPWAHTJXGVCWMCJRR55WS44GSEJGE7BCWJ4AA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,..,,.,.,,..,..,,.,,,.,.,..,,..,,..,,...,...,.,.,,..,,,,,.,,,.,,,
+#3PJBTSEQXW3HLKCZJUOYD2MTIPZRFBKUEF3R3A264D7SOK7SALZKT4JZEJXONP5R4U6OIGNC7MML6
+#\\\|UCLFL3MXBUO3AZQQL5UYYJL3FD34QNHCWIBKYXIHMK3DNUZ66JX \ / AMOS7 \ YOURUM ::
+#\[7]FUIYMBPHHQNTM54UM3OEUCR7QGKP45MQUCN6S76SVKP2ACUBFWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

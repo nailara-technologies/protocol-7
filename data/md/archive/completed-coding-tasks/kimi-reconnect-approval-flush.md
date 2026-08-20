@@ -27,7 +27,7 @@ real signatures are added by `bin/Protocol-7 sourcecode update-signatures` after
 
 ## what to build
 
-### modify `modules/kimi.connect`
+### modify `src/kimi.connect`
 
 after the existing block that restores busy status on reconnect (after the
 `kimi.wire.pending` loop, around line 111-123), add a new block:
@@ -55,7 +55,7 @@ the log line that says 'reconnected with preserved prompt'.
 
 ### verify placement
 
-read `modules/kimi.connect` fully before editing to find the exact insertion point.
+read `src/kimi.connect` fully before editing to find the exact insertion point.
 the block must run:
 - after `<kimi.session.acquired> = 1` (or equivalent readiness flag)
 - after websocket is confirmed live (session verified at backend)
@@ -71,8 +71,8 @@ manual test path (if zenki are running):
   `p7c kimi.approvals` — should show empty after reconnect
   `p7c kimi.status`    — should show busy/processing, not stuck waiting
 
-#,,,.,,,,,,,.,,,.,...,.,.,.,.,,,,,,,.,.,.,,..,..,,...,...,...,,,.,..,,.,.,,.,,
-#ULW2Q7NJUJLHMJ7VDAYQB3RQKDQL33QXXFQBALKY7PPZHO3E2KTATZ2TZ5T4VRUGMXIEVCP3LXRZW
-#\\\|DB4VG6NYBSOBO6WT2CTFYMZPBFQ26SC2Y3LV57MLS2ITJDL3TMU \ / AMOS7 \ YOURUM ::
-#\[7]I4L7RDSNZWGBO7WDMMLHYAEZANDBFYJLDBIFN4YMPYI7WAMR7WBI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,,.,,.,.,..,,,..,,.,,...,..,,..,,...,...,...,.,,,...,,,,,...,
+#4PAYSKD5JMFJ7RXVXQPLEZ4OTI5STHVGE2C66G4B3KVU3RVBG47DHU37VUMQ4QTH3SRXZ7LGEYTIY
+#\\\|KQCB6IHSIBRCGUXNI5STZJJ72L4M2V6DWVOBT2AMPMD5K4M5X7H \ / AMOS7 \ YOURUM ::
+#\[7]DGDQATZMDVBT5ZNUZO3UTNF45WMANMJF7QY32CY4GJAPFHTO4ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

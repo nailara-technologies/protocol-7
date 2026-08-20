@@ -1,0 +1,47 @@
+## [:< ##
+# name  = coding.tools.handler.ptd_check
+# descr = check P7 module syntax with ptd -c
+
+my $args   = shift             // {};
+my $module = $args->{'module'} // return 'module name required';
+
+## validate module name ##
+return 'error: invalid module name'
+    if $module =~ m{[;&|`\$\\"'\n\r/]};
+
+my $root = <system.root_path>;
+my $path = "$root/src/$module";
+return "error: module not found [ $module ]" unless -f $path;
+
+my $err_file = catfile(
+    <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+    'state',                         ".ptd_check.$$"
+);
+my $output = '';
+if ( open my $fh, '-|', "$root/bin/dev/ptd -c $path 2>$err_file" ) {
+    local $/;
+    $output = <$fh>;
+    close $fh;
+}
+## strip ansi color codes ##
+$output =~ s|\e\[[0-9;]*m||g;
+
+my $warnings = '';
+if ( -s $err_file ) {
+    if ( open my $efh, '<', $err_file ) {
+        local $/;
+        $warnings = <$efh>;
+        close $efh;
+    }
+}
+unlink $err_file;
+
+my $result = $output;
+$result .= "\n## warnings ##\n$warnings" if length $warnings;
+return $result;
+
+#,,,.,.,,,,..,.,,,..,,.,.,,,.,,,.,...,.,.,,,.,..,,...,...,..,,,,,,...,..,,,.,,
+#5A3ZF5ZY4PUZTYSHBNDVOTZSJ77NLRBDUNXZKPXYX6JR22NUXXBZXL6GKSEIKHVZXQMQRTHOEF55Y
+#\\\|K7FXESQF7GUQWYJEDPXGD4YUHCZ4TF3HLZIFBLT7S5XMA7LUIZR \ / AMOS7 \ YOURUM ::
+#\[7]B5OKSAGA5VY7QGBDBMN4VPQFORWIFRUMJTZNHH5VEB63XTPAEQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

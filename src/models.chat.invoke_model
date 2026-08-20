@@ -1,0 +1,154 @@
+## [:< ##
+
+# name = models.chat.invoke_model
+# descr = invoke model backend for chat message [with response handler]
+# param = $model_name, $message, $options_hash
+#   $options_hash = { reply_id, handler, sender, model }
+# return = nothing (response handled by callback)
+
+my $model_name = shift;
+my $message    = shift // '';
+my $opts       = shift // {};    # { reply_id, handler, sender, model }
+
+my $reply_id = $opts->{'reply_id'} // '';
+my $handler  = $opts->{'handler'}  // '';
+my $sender   = $opts->{'sender'}   // '';
+my $model    = $opts->{'model'}    // $model_name;
+
+## Expand inline file references  [::file::], [::code::], [::tail::], ##
+## [::head::], [::grep::]                                             ##
+my $expanded = <[models.chat.expand_refs]>->( { 'message' => $message } );
+if ( $expanded->{'mode'} eq qw| true | && $expanded->{'expansions'} ) {
+    $message = $expanded->{'data'};
+    <[base.logs]>->(
+        2,
+        "[invoke_model] expanded %d file refs",
+        $expanded->{'expansions'}
+    );
+}
+
+return unless length($message);
+
+## model name to backend mapping
+my $backend_map = {
+    'kimi'       => qw| kimi_web |,
+    'kimi-code'  => qw| kimi_web |,
+    'claude'     => qw| api |,
+    'llama'      => qw| local |,       ## coding-managed (spawn + queue)
+    'local'      => qw| local |,       ## coding-managed (spawn + queue)
+    'external'   => qw| external |,    ## direct HTTP (unmanaged server)
+    'lmstudio'   => qw| external |,    ## LM Studio (unmanaged)
+    'test-model' => qw| test |,
+};
+
+my $backend_type = $backend_map->{$model_name} // qw| local |;
+
+## handle test backend
+if ( $backend_type eq 'test' ) {
+    my $response = sprintf ':note: test echo::n::n:%s', $message;
+    ## Store and reply directly
+    <[models.chat.append]>->( undef, $model, $response );
+    my $entries = <[models.chat.get_recent]>->(3);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+    if ( length($reply_id) ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'size', 'data' => $output }
+        );
+    }
+    return;
+}
+
+## Build conversation context from chat history  Get recent messages (last 10
+## exchanges = 20 messages max)
+my $recent_entries = <[models.chat.get_recent]>->(20);
+my @messages;
+
+## Convert chat history to messages format
+foreach my $entry (@$recent_entries) {
+    ## Skip the current message (it was just added by caller)  Identify by
+    ## timestamp comparison
+    my $sender = $entry->{'sender'};
+    my $msg    = $entry->{'message'} // '';
+
+    ## Decode escapes
+    $msg = <[models.escape.interpret]>->($msg);
+
+    ## Map sender to role
+    ## User messages: from unix-taeki or other non-model senders
+    ## Assistant messages: from model names
+    my $role;
+    if ( $sender =~ m/^unix-/ || $sender eq 'cube.models' ) {
+        $role = 'user';
+    } elsif ( $sender eq $model_name ) {
+        $role = 'assistant';
+    } else {
+        ## Other senders - treat as user
+        $role = 'user';
+    }
+
+    push @messages, { 'role' => $role, 'content' => $msg };
+}
+
+## If no history, just use current message
+if ( !@messages ) {
+    @messages = { 'role' => 'user', 'content' => $message };
+}
+
+my $messages = \@messages;
+
+## local backend via coding zenka (managed: spawn + queue)
+if ( $backend_type eq qw| local | ) {
+    <[models.backend.coding.invoke]>->(
+        {   'participant_id' => $model_name,
+            'messages'       => $messages,
+            'reply_id'       => $reply_id,
+            'sender'         => $sender,
+            'model'          => $model,
+        }
+    );
+}
+
+## external backend: direct HTTP to unmanaged server (LM Studio, etc.)
+elsif ( $backend_type eq qw| external | ) {
+    <[models.backend.local.invoke]>->(
+        {   'participant_id'   => $model_name,
+            'messages'         => $messages,
+            'reply_id'         => $reply_id,
+            'model_id'         => $model,
+            'llama_server_url' => <models.external.server_url>
+                // 'http://127.0.0.1:8080',
+        }
+    );
+}
+
+## kimi-web backend via persistent websocket
+elsif ( $backend_type eq qw| kimi_web | ) {
+    ## kimi-web backend via persistent websocket to kimi-web
+    <[models.backend.kimi_web]>->(
+        {   'participant_id' => $model_name,
+            'messages'       => $messages,
+            'reply_id'       => $reply_id,
+            'sender'         => $sender,
+            'model'          => $model,
+        }
+    );
+} else {
+    ## api backend not yet async
+    my $error = ':. error: API backend not yet async :.';
+    <[models.chat.append]>->( undef, $model, $error );
+    my $entries = <[models.chat.get_recent]>->(3);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+    if ( length($reply_id) ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'size', 'data' => $output }
+        );
+    }
+}
+
+return;
+
+#,,..,,..,.,,,.,.,...,...,.,.,.,,,,,,,.,,,.,.,.,.,...,...,,.,,.,.,,,,,...,..,,
+#DTIWW2QJAC5MYBHVGO3KMXBZURDHBIQFHOFDH23QO6FGWCWLARZYSIASH2TKPPQ5ZBTNHET5F3QEI
+#\\\|JF735JLISEKKREPXQBB3IUZRL5TYLMSCXUGW5ANPFSLQNSRU6CL \ / AMOS7 \ YOURUM ::
+#\[7]DLT25ETOYDHEP7LRAJOYCGMIF36I62EHGY263YGHV4TI4SS442BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

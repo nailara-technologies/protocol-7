@@ -47,8 +47,8 @@ path.
 Completed the open items from data/yaml/coding-tasks/amos-term-interaction-plugin.yaml:
 
 1. **5th plugin-type registration**: `<amos-term.plugin-types>` now includes
-   `interaction` with hook `agent.query` and dir `modules/amos-term.plugin-interaction`.
-   Scaffold file created: `modules/amos-term.plugin-interaction.init_code`.
+   `interaction` with hook `agent.query` and dir `src/amos-term.plugin-interaction`.
+   Scaffold file created: `src/amos-term.plugin-interaction.init_code`.
 
 2. **Timeout degrade timer**: `amos-term.cfg.interaction_timeout` defaults to
    300s. `amos-term.interaction.ask` installs a single-shot `event.add_timer`
@@ -59,10 +59,10 @@ Completed the open items from data/yaml/coding-tasks/amos-term-interaction-plugi
    `amos-term.handler.interaction-changed`.
 
 3. **Inotify hot-reload watcher**: `amos-term.plugin-install_watcher` installs
-   `base.inotify.install_io_watcher` once, then watches `modules/` for
+   `base.inotify.install_io_watcher` once, then watches `src/` for
    `amos-term.plugin-*` close-write/modify events. A changed file that is also
    in `<amos-term.plugin-loaded>` is reloaded via `base.load_code` and its
-   loaded timestamp is refreshed. Plugin files live flat under `modules/`, so
+   loaded timestamp is refreshed. Plugin files live flat under `src/`, so
    the watcher filters by filename prefix rather than watching non-existent
    per-type directories.
 
@@ -77,8 +77,8 @@ Completed the open items from data/yaml/coding-tasks/amos-term-interaction-plugi
 
 ## non-obvious gotchas
 
-- **inotify**: there are no real `modules/amos-term.plugin-<type>/`
-  directories; files are flat. Watch `modules/` and filter by
+- **inotify**: there are no real `src/amos-term.plugin-<type>/`
+  directories; files are flat. Watch `src/` and filter by
   `^amos-term\.plugin-` filename prefix.
 - **reload mechanism**: use `base.load_code` directly on the changed module;
   the loader's staging/swap path handles already-compiled modules correctly
@@ -92,8 +92,8 @@ Completed the open items from data/yaml/coding-tasks/amos-term-interaction-plugi
   future cross-zenka route-send to coding could move this to the coding data
   dir if desired.
 
-#,,,.,..,,.,.,.,.,,.,,...,,.,,,.,,.,.,..,,,.,,..,,...,...,,.,,,..,,,,,,.,,,.,,
-#U3CYW5ANNTNFO3WIORM3YUAKNPQW6UVROFIHSJRNQW4BHOBAGN75DZHTI5CLLIM6HONMBIIQH54V4
-#\\\|VTVADGZ5IVZUELORHNMOPMZ3ZV4ZXUYMRSGCMYPAQDCBGTOYX7U \ / AMOS7 \ YOURUM ::
-#\[7]YQ7REMGOSR7DIC5XUX4LLCBUDUOUEBOLALON2SMUHNGH4RCMXWBY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,,.,,,,,,,,,,,..,.,.,.,,,.,.,..,,...,...,..,,,.,,,,.,,.,,...,
+#Y3ZEJ7YY2U2IQBCKEQW2P4CAEPLJJLSMREHSWFEM76QQDOJERPXU4TFFTXWTFXNVCNS6G5255733S
+#\\\|QJKP7MSFQ4V2XAWGEDVRHHQEO36DXEDXAPJFKHUFU4B6LABUWDA \ / AMOS7 \ YOURUM ::
+#\[7]VU6G5FI2E3XBHPKPBVEMOU7I6FUW7EYW5DEVKHKDBTRYBZMIKQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,167 @@
+## [:< ##
+
+# name  = coding.async.request
+# descr = Initiate async inference request with streaming
+# purpose = Phase 2: Start non-blocking inference, return immediately
+
+my ( $task_id, $request_body, $job_id ) = @ARG;
+
+return { success => FALSE, error => 'task_id required' }
+    unless defined $task_id;
+return { success => FALSE, error => 'request_body required' }
+    unless defined $request_body;
+
+my $http_timeout_request_total = <coding.http-timeouts.request-completed>;
+
+## get task info ##
+my $task = <coding.task.queue>->{$task_id};
+return { success => FALSE, error => "task not found: $task_id" }
+    unless defined $task;
+
+## determine backend ##
+my $backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
+my $port
+    = $backend eq qw| cpu |
+    ? ( <inference.backend.cpu.port> // 8001 )
+    : ( <inference.backend.gpu.port> // 8000 );
+
+my $url = "http://127.0.0.1:${port}/v1/chat/completions";
+
+## ensure state exists before lock check  [ backend_busy_retry calls ##
+## send_request which needs messages ]                               ##
+my $existing = <coding.async.task_state>->{$task_id};
+if ( !defined $existing || !defined $existing->{'state'} ) {
+    <[coding.async.state_machine]>->(
+        qw| init |,
+        $task_id,
+        {   messages => $request_body->{'messages'} // [],
+            tools    => $request_body->{'tools'}    // [],
+            backend  => $backend,
+            port     => $port,
+        }
+    );
+
+    ## merge manager-level fields onto the freshly initialized state :      ##
+    ## state_machine 'init' overwrites the whole task_state hash, so job_id ##
+    ## must be merged in AFTER init — otherwise http_error can never find   ##
+    ## it on timeout and the orphaned job stays 'running' forever while the ##
+    ## task sits requeued as 'pending'                                      ##
+    <[coding.async.state_manager]>->(
+        qw| set |,
+        $task_id,
+        {   job_id        => $job_id,
+            mode          => qw| streaming |,
+            chunk_context => {},
+        }
+    );
+    $existing = <coding.async.task_state>->{$task_id};
+}
+
+## per-backend serialization: only one inference request at a time per ##
+## server                                                              ##
+my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
+if ( not $lock_result->{'acquired'} ) {
+    return { success => TRUE, mode => qw| deferred |, backend_busy => TRUE };
+}
+
+## stamp phase-1 (http-wait) start here, not just on round increment : this ##
+## fires on every actual dispatch attempt, first try and every timeout      ##
+## retry alike. phase-1 ends when the response is fully received;           ##
+## coding.async.state_machine then starts phase-2 tracking.                 ##
+if ( defined $existing ) {
+    $existing->{'round_started'} = <[base.time]>->(3);
+
+    ## adaptive ceiling : starts soft [ fast recovery on genuine stalls ], ##
+    ## escalated to the full hard ceiling by http_timeout when a soft trip ##
+    ## restarts this same round, reset back to soft on clean completion by ##
+    ## http_complete — see coding.handler.http_timeout stretched by        ##
+    ## GPU-temp factor [ coding.handler.gpu_temp_update ] : a              ##
+    ## thermally-throttled GPU is legitimately slower, not stalled         ##
+    $existing->{'timeout_ceiling'}
+        //= ( <coding.cfg.round_soft_ceiling> // 384 )
+        * ( <coding.stretch.timeout_factor> // 1.0 );
+}
+
+## check if state already exists [ follow-up round ] ##
+if ( defined $existing && defined $existing->{'state'} ) {
+    ## follow-up request: reset chunk fields only, preserve state machine ##
+    $existing->{'chunk_context'} = {};
+    $existing->{'response_text'} = '';
+    $existing->{'finish_reason'} = undef;
+    $existing->{'content'}       = '';
+    $existing->{'tool_calls'}    = [];
+
+    ## do NOT cancel the previous connection here : tool execution runs
+    ## synchronously inside on_chunk while the server is still streaming the
+    ## previous response.  cancelling the socket mid-stream corrupts the
+    ## llama-server inference slot, causing the next request to hang
+    ## indefinitely.  the previous connection self-cleans via: EOF → http_io →
+    ## http_cleanup.  stale-seq check in http_complete prevents any
+    ## double-processing.
+}
+
+## increment request sequence [ used to detect stale callbacks ] ##
+my $state_ref = <coding.async.task_state>->{$task_id} // {};
+my $req_seq   = ( $state_ref->{'request_seq'} // 0 ) + 1;
+$state_ref->{'request_seq'} = $req_seq;
+
+## setup callbacks : extracted to coding.callback.* modules ##
+my $callbacks = {
+    task_id   => $task_id,
+    on_header => sub { <[coding.callback.http_header]>->( $task_id, @ARG ) },
+    on_chunk  =>
+        sub { <[coding.callback.http_chunk]>->( $task_id, $req_seq, @ARG ) },
+    on_complete => sub {
+        <[coding.callback.http_complete]>->( $task_id, @ARG, $req_seq );
+    },
+    on_error => sub { <[coding.callback.http_error]>->( $task_id, @ARG ) },
+    on_abort => sub {
+        my ($http_state) = @ARG;
+        <[coding.callback.http_abort]>->( $task_id, $http_state, $req_seq );
+    },
+    check_stop => sub { <[coding.callback.http_check_stop]>->($task_id) },
+    timeout    => $existing->{'timeout_ceiling'}    ## adaptive : soft ##
+        // $http_timeout_request_total,             ## fallback : hard ##
+    backend => $backend,    ## used for cold-start data-start grace ##
+};
+
+<[base.logs]>->( 1, "[ %s ] connecting to local backend ..", $task_id );
+<[base.logs]>->( 2, ":. %s .:",                              $url );
+
+## start HTTP request [ returns immediately ] ##
+my $http_result
+    = <[coding.async.http_client]>->( $url, $request_body, $callbacks );
+
+## store http_state for duplicate detection and cleanup ##
+if ( $http_result->{'success'} && defined $http_result->{'state'} ) {
+    $state_ref->{'http_state'} = $http_result->{'state'};
+}
+
+if ( !$http_result->{'success'} ) {
+    ## immediate error : release backend lock before failing ##
+    <[coding.async.backend_release]>->( $task_id, $backend );
+    <[base.logs]>->(
+        0,        "async.request : immediate error for %s : %s",
+        $task_id, $http_result->{'error'}
+    );
+    <[coding.async.complete]>->(
+        $task_id, { success => FALSE, error => $http_result->{'error'} }
+    );
+    return { success => FALSE, error => $http_result->{'error'} };
+}
+
+<[base.logs]>->(
+    2, "async.request : http_client returned success [ %s ]", $task_id
+);
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    mode    => qw| streaming |,
+};
+
+#,,,,,,,,,,.,,.,.,,.,,,,.,,.,,..,,,..,.,,,.,,,..,,...,...,,.,,.,,,..,,,,,,,.,,
+#73UOAW5QY5POECEFTFAQEFLVO4XG4OLV7OEPJBE4J22ZKYPBR247QIHZ65QGODAAB3MC6Z4YPTTLE
+#\\\|AAV2IN7TE43PFD2JYFUBEYY2HWGLPBEMDC6UQ22YANBCIDGYMPD \ / AMOS7 \ YOURUM ::
+#\[7]7WBGH2OBQRKCVLP2LH4V4WBUP4CQSHICWGYHR7LCNV7IY54JPIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

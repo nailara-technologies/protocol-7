@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = storage.cmd.visual
+# descr = Visual mapping commands for storage harmonization
+
+my $args = $call->{'args'} // '';
+
+# Parse: <subcommand> <args...>
+my ( $cmd, @rest ) = split /\s+/, $args, 2;
+$cmd //= '';
+
+if ( not length $cmd ) {
+    return {
+        'mode' => 'false',
+        'data' =>
+            "Usage: visual <extract|proximity|workflow|render> <args...>\n  "
+            . "visual extract <p7ref> :layer: intrinsic\n  visual "
+            . "proximity <ref1> <ref2> :method: harmonized\n  visual "
+            . "workflow <name> :refs: \@file.txt\n"
+    };
+}
+
+if ( $cmd eq 'extract' ) {
+    return <[storage.visual.util.extract]>->(@rest);
+} elsif ( $cmd eq 'proximity' ) {
+    return <[storage.visual.util.proximity]>->(@rest);
+} elsif ( $cmd eq 'workflows' ) {
+    return <[storage.visual.util.list_workflows]>;
+} else {
+    return { 'mode' => 'false', 'data' => "Unknown command: $cmd" };
+}
+
+#,,.,,,..,,,.,,,.,.,.,,..,,.,,..,,.,,,..,,,.,,..,,...,...,,..,...,,,,,,..,,.,,
+#FS4IDF3HSXSDMI35T5PZ2CKT2QX6XVFGGYGHCYASBGXHZ2365FEDM2XMYH3ELIB76VEOIVDOCPJ66
+#\\\|ZHGZJ5BO23KR4UUD4G5RV5CNDCIBA26OJ6PLSGRCOS2E56V3NNT \ / AMOS7 \ YOURUM ::
+#\[7]XEQQOFRMAMQ6DILRMBCKKM5MRSZSISWDUZWF2JH5RIVNWXMXZQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

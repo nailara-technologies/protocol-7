@@ -15,7 +15,7 @@ coordinates. Some future caller (e.g. `screenshot`) calls `select-region.*`
 to get a rect, then captures it itself.
 
 **`window-place` must keep working completely unchanged.** Do not edit, move,
-or delete anything under `modules/window.place.*` or
+or delete anything under `src/window.place.*` or
 `cfg/zenki/window-place/`. This is a clone, not a rename — the two
 zenki coexist; `window-place` may be retired later once `select-region` is
 proven, but that is a separate future task.
@@ -44,7 +44,7 @@ the `.cmd.` suffix is stripped for network routing same as everywhere else —
 
 ## source files to read first
 
-read every file under `modules/window.place.*` and
+read every file under `src/window.place.*` and
 `cfg/zenki/window-place/*` before writing anything — the clone
 needs the full interaction model (drag, resize-edge classification, damping,
 hover cursor, poll-based pointer fallback, key handling) intact. key files:
@@ -215,8 +215,8 @@ manual test sequence (report exact `p7c` output for each):
 
 ## acceptance
 
-- `window-place` zenka and all its modules/config are byte-for-byte
-  untouched (`git diff` shows zero changes under `modules/window.place.*`
+- `window-place` zenka and all its src/config are byte-for-byte
+  untouched (`git diff` shows zero changes under `src/window.place.*`
   and `cfg/zenki/window-place/`)
 - all 7 verification steps above pass
 - `bin/ptd -c` passes on every new module
@@ -234,8 +234,8 @@ manual test sequence (report exact `p7c` output for each):
 ## the full manual test sequence and report the actual output of each
 ## p7c command. do not modify any window.place.* or window-place/* file.
 
-#,,.,,,,.,,.,,,,,,,..,,,.,,,,,,,.,.,,,,,.,,.,,..,,...,...,.,.,...,,,.,,.,,,,.,
-#J2DCSCCS5NEYUC7BQSBMJDQ6VNUT4U3YQXXGN5SHBUNXOVJSBYTCUC3DBCRZSYTTU5XF2BASKJGC4
-#\\\|5DWLIGPR2MAOXKSF777CMNGKR4CQSLJZPUQ34DAH2ERPJR5OH45 \ / AMOS7 \ YOURUM ::
-#\[7]5RXLZWLSVO56K7TNATBJQJYDQTTXSOHJ3KSRA54RV222VBC46SCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,...,...,,,,,...,.,.,.,.,.,,,,,.,..,,...,...,...,,..,...,...,...,
+#HEVGJAAWDHSMZ2AF433V4YKBA5DK3AV4JN2ZBVRQRMKWBRWS7DNO2L672OQCACLAB4A35FMMEVHLQ
+#\\\|EDU63ZT7PV5EXQ4BNK4WZI45RV36SBR3K3BO7Q5TSPCVSCN5M3F \ / AMOS7 \ YOURUM ::
+#\[7]VTKJBDK22AY5RCIU74KYRQZOCUUGLGOMLLZEQUXF3MWSDKJBVQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

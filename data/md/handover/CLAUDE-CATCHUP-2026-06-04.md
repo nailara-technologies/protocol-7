@@ -96,10 +96,10 @@ reported test (a) as a "discrepancy" when it was actually correct behavior).
 ## pending sign + commit batch
 
 ```
-modules/ascii.frame.parse                          (parser fix)
-modules/ascii.frame.slot.select   modules/ascii.frame.bar
-modules/memory.status.provider.{branch_count,weight_captured,focus_saturation,rebuild_age}
-modules/memory.tree.node.render   modules/memory.startup
+src/ascii.frame.parse                          (parser fix)
+src/ascii.frame.slot.select   src/ascii.frame.bar
+src/memory.status.provider.{branch_count,weight_captured,focus_saturation,rebuild_age}
+src/memory.tree.node.render   src/memory.startup
 cfg/zenki/memory/start                   (status_providers + list-subs/exec-sub access)
 data/yaml/ascii-frames/memory-tree-root.yaml
 data/yaml/ascii-frames/memory-tree-root.example.asc
@@ -114,8 +114,8 @@ plus auto-generated: whitelist / src-ver / dep-graph / source-markers.
 - inspiration: `read-me/documentation/dev/research-notes/user-interfaces.00007.asc`
 - prior session: git `db76d35fb`, `data/ai-mem/claude/topic-memory-tree-zenka.md`
 
-#,,..,.,,,,,,,..,,..,,,,,,,.,,...,.,,,..,,...,..,,...,...,.,,,,.,,...,..,,.,.,
-#NBWIR54CCNLBFE2KTFYKM3GMWL4RMUVMSN6PP6JHKYGS2NVIUANDUDXIUTEKTFCECZZL2VJC7KQHM
-#\\\|SPZOO2ZQYKUMYDRXNW5YXKWAZUZF36GBLVZPJVG7QESBQOGFAKP \ / AMOS7 \ YOURUM ::
-#\[7]73JYRJ5TVDC3JALZNHECG7V6SJ7VXAIUWHKXWROLN2QEYZOP6MDY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,...,...,.,.,...,,,,,.,,,.,,,...,..,,...,..,,.,,,,,.,.,,,...,.,,,
+#T6LEYIUMJ55MTDUSTQJM46JHRRA3JGSCWPHM5SIJHNJICPX3A4L6PQHBLFKXDUS43OPBOIDXRPUPG
+#\\\|47BZTRPNYRZGHR43IPN6ZHVRTBOKGQHZ6H6H2AVZA4OAT3UTNMU \ / AMOS7 \ YOURUM ::
+#\[7]HFRP47BU4AXI44MTZK3AAFDSTT3S4O43DVNZNIJPLV472EE6TICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

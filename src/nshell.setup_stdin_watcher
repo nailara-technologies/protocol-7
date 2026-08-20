@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = nshell.setup_stdin_watcher
+# descr = Register STDIN as an I/O watcher to read keyboard input
+
+## Get the cube session
+my ($session_id) = keys <user.cube.session>->%*;
+
+unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
+    <[base.log]>->( 0, 'nshell.setup_stdin_watcher: no cube session found' );
+    return FALSE;
+}
+
+my $session = $data{'session'}{$session_id};
+
+## Register STDIN (file descriptor 0) as an I/O watcher  This will trigger
+## nshell.shell_loop whenever user types
+$session->{'watcher'}->{'stdin_handler'} = <[event.add_io]>->(
+    {   'fd'      => 0,                         ## STDIN file descriptor
+        'poll'    => qw| r |,                   ## read mode
+        'handler' => qw| nshell.shell_loop |,
+        'prio'    => 2,
+        'repeat'  => TRUE,                      ## repeat indefinitely
+        'data'    => $session_id,
+        'desc'    => sprintf( '[%d] nshell STDIN handler', $session_id )
+    }
+);
+
+<[base.logs]>->( 2, 'nshell: registered STDIN watcher on fd 0' );
+
+## register SIGWINCH handler to track terminal resize events
+<[event.add_signal]>->(
+    {   'signal'  => qw| WINCH |,
+        'handler' => qw| nshell.handler.term_resize |,
+    }
+);
+
+## prime the cache with current terminal dimensions
+my @init_size = AMOS7::TERM::terminal_size();
+$data{'nshell'}{'cfg'}{'term_cols'} = $init_size[0] // 80;
+$data{'nshell'}{'cfg'}{'term_rows'} = $init_size[1] // 24;
+
+## change message and log level for terminating on session close ##
+#
+<callback.session.closing_last.params>
+    = [ 'terminating, remote session closed..', 1 ];
+
+return TRUE;
+
+#,,,.,.,,,.,,,.,,,.,.,...,,,,,...,..,,,,,,,,,,..,,...,...,.,.,...,,..,...,.,,,
+#QNXTG6V5G6YK2OZO3TCCMOVY6WKE6IAXKHE65JEKQYRSRIAORRQOPYK7JFWKNUKXATYZYCDYMARL6
+#\\\|Q256JJAYUQVS7F2H7BBHQO5EW37PBQJFE2HC6XSL6PYFO6SCZ2G \ / AMOS7 \ YOURUM ::
+#\[7]7TCOYPCWAVPVDLXFAC6IGVICSSRBXOXH5OOIKVTYSS2J2T2IPGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

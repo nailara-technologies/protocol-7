@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = pager.sort.multi-key
+# descr = Multi-key weighted sorting
+
+my ($args) = @ARG;
+my $items  = $args->{'items'};
+my $spec   = $args->{'spec'} // {};
+
+return $items unless @$items > 1;
+
+my $keys = $spec->{'keys'}
+    // [ { 'field' => 'name', 'dir' => 'asc', 'weight' => 1.0 } ];
+
+# If no weights specified, use equal weights
+my $total_weight = 0;
+for my $key (@$keys) {
+    $key->{'weight'} //= 1.0;
+    $total_weight += $key->{'weight'};
+}
+
+# Normalize weights
+if ( $total_weight > 0 ) {
+    for my $key (@$keys) {
+        $key->{'weight'} /= $total_weight;
+    }
+}
+
+# Sort using Schwartzian transform for efficiency
+my @sorted = map { $ARG->[0] }
+    sort {
+    my $cmp = 0;
+    for my $key (@$keys) {
+        my $field  = $key->{'field'};
+        my $dir    = $key->{'dir'} eq 'desc' ? -1 : 1;
+        my $weight = $key->{'weight'};
+
+        my $va = $a->[1]{$field};
+        my $vb = $b->[1]{$field};
+
+        # Handle undef values
+        $va = '' unless defined $va;
+        $vb = '' unless defined $vb;
+
+        # ntime b32 : must convert to numerical before comparing
+        my $type = $key->{'type'} // '';
+        if ( $type eq 'ntime_b32' ) {
+            $va  = <[base.ntime_BASE32_to_numerical]>->($va) // 0;
+            $vb  = <[base.ntime_BASE32_to_numerical]>->($vb) // 0;
+            $cmp = ( $va <=> $vb ) * $dir;
+        } elsif ( $type eq 'priority_map' ) {
+            ## map category names to priority integers (lower = higher
+            ## priority)
+            my $pmap = $key->{'map'} // {};
+            $va  = $pmap->{$va} // 999;
+            $vb  = $pmap->{$vb} // 999;
+            $cmp = ( $va <=> $vb ) * $dir;
+        } elsif ( $va =~ /^-?\d+(\.\d+)?$/ && $vb =~ /^-?\d+(\.\d+)?$/ ) {
+            $cmp = ( $va <=> $vb ) * $dir;
+        } else {
+            $cmp = ( $va cmp $vb ) * $dir;
+        }
+
+        # Apply weight (scaled comparison)
+        $cmp = $cmp * $weight;
+
+        last if $cmp != 0;
+    }
+    $cmp;
+    }
+    map { [ $ARG, $ARG ] } @$items;
+
+return \@sorted;
+
+# SPDX-License-Identifier: ISC
+
+#,,.,,.,,,,..,...,..,,,.,,,..,...,.,,,,,.,,..,..,,...,...,.,.,..,,,.,,,.,,.,,,
+#LFAFA27JSJ2EVYFQPT2KTIX3PKDMI54JLPC2LNZPDFIRRG2TKYZVARP7HLUJXB6NXTJEGLVLCS3LC
+#\\\|2AZ6IZQ5SVXWGI5UQIOXRP7HEA7PBHEX6MQLFBKPWEFM2BTJSRZ \ / AMOS7 \ YOURUM ::
+#\[7]S6DVZOXWYKOUICNSBMNUK3XE3GBZLJ6SRIWXNYVNL7TJRK7HNOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

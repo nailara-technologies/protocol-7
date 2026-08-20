@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = task: ncode zenka modules — bin/ncode as network commands
-# descr = expose bin/ncode functionality as modules/ncode.* zenka commands.
+# descr = expose bin/ncode functionality as src/ncode.* zenka commands.
 #         high-priority workflow accelerator: makes ncode composable with
 #         other zenki, callable from LLM tools, and the foundation for
 #         LLM-assisted log optimization and signing workflows.
@@ -30,7 +30,7 @@ approval system, see `topic-write-access-security-infrastructure`.
 ## context
 
 `bin/ncode` is a powerful standalone tool used throughout development.
-as `modules/ncode.*`, it becomes network-accessible and composable.
+as `src/ncode.*`, it becomes network-accessible and composable.
 
 existing research: `data/md/coding-tasks/ncode-zenka-self-refining-regex.md`
                    `data/tasks/ncode-workflow-patterns.md`
@@ -50,7 +50,7 @@ ncode sign <file>               # sign a module file
 ncode doc <module>              # look up module documentation
 ```
 
-## target: modules/ncode.* as on-demand zenka
+## target: src/ncode.* as on-demand zenka
 
 start config: on-demand, 420s idle timeout (same as image2html pattern)
 
@@ -146,7 +146,7 @@ ncode.format-code
 ```
 
 also expose to coding zenka for LLM tool access:
-add to `modules/coding.tools.*` as tool definitions.
+add to `src/coding.tools.*` as tool definitions.
 
 ## coding zenka tool integration
 
@@ -171,7 +171,7 @@ p7c ncode.search 'base.logt'
 # → matched lines with context
 
 # sign a file
-p7c ncode.sign modules/base.init_code
+p7c ncode.sign src/base.init_code
 # → TRUE (or FALSE + error if key unavailable)
 
 # diff staged
@@ -207,8 +207,8 @@ check `bin/ncode` source for exact argument syntax before implementing
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,.,.,.,.,,,,,,,,,,..,,,,,,..,,,.,,.,,...,..,,...,..,,...,,..,.,.,..,,,,,,
-#T4A74NMXDK36HYMO37TWAVABF7LMIIWZHG3RK5N4QIDVMBNST4B622WUHMYMQR6XP4DDXZLF4MJQU
-#\\\|NZ3PA7PZJFBZTZOJNGRKD7HCZ4P2NX5P5IT7Q5WBE56FULT6OJS \ / AMOS7 \ YOURUM ::
-#\[7]K3AOMWWXRTSSCBY27CXEY3LZ2QANSOB43N33RIVB6YRZX2YK6CBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,...,,,,,...,,..,...,..,,,.,,..,,...,...,..,,,.,,..,,.,.,...,
+#SZM7LGY4H5DOQ6AIPE3MKBTOSVYEPMIIYRS5ON2RAL3P4XYI32RBR6ZNRFI4YHJIKPXGXVOFWYFVY
+#\\\|U6LMLJOYLO4XFW3LXNBZIKOMQ63RCLUARILIDUQNDVOGQBTXSP6 \ / AMOS7 \ YOURUM ::
+#\[7]46BHSCCSEBZDOMVEZ7CRU2JY3F4QHQJRGBAIJJGXOM5BHKMNEGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

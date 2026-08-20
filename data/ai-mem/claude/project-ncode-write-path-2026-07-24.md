@@ -86,7 +86,7 @@ full live shakeout of `ncode`'s never-before-tested write path. See
    (`$_` → `$ARG` via the `p7-arg-regression` pattern), mode correctly
    restored to `644` after.
 5. Hit a **second**, distinct permission wall: the syntax-check scratch file
-   needs to be *created* next to the target (e.g. inside `modules/`, `755`,
+   needs to be *created* next to the target (e.g. inside `src/`, `755`,
    no group-write) — creating a new file needs directory-write, not
    file-write, so the just-fixed grant didn't cover it. First fix attempt
    (chmod-child `create` + `gwd`/`restore` around `unlink`) worked but was
@@ -166,8 +166,8 @@ bug the fix exposed and also fixed, in [[topic-next-steps]]'s done log.
   or reviewer-gated, or gets folded into that bigger design is an open
   decision, not yet made.
 
-#,,.,,.,,,,,,,.,.,,,.,,,.,.,.,,,.,,..,,,.,..,,..,,...,...,.,.,,,,,.,.,.,.,...,
-#HNEHD2Z6D7ZRJRKZDQ6FTDATPE3YV6JPKZKDFYMXCGNEETDEERRWZ53LFO3G4RH7EESD5QDZ4DF2Q
-#\\\|UZBIYH3M6TE4D3BFOWWKGLOYM3QL73WXSTIFM24YLHEK6BINLGB \ / AMOS7 \ YOURUM ::
-#\[7]EP6BP2GMULL7T333KUHB3XR2PJDBRWPWH52SWPESAYDP7UEM3ADI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,.,..,,.,.,..,,...,,,.,.,.,.,,,..,,...,...,.,,,,.,,.,,,,,.,,,,,
+#PX734EXSAZL2DAGF255UM7SRK4HKASQ2GXBTJYUXR7RTJ6KEQTOJHSUJ3IMJR6LGC4DOOKCWREBCE
+#\\\|JO4OVHP6BJXFU3EOCW2XJUXLBPWQOSGMTRJXJPRABJVNGYDGKKY \ / AMOS7 \ YOURUM ::
+#\[7]NCKYZZJHXOUULYWZUN3X4DD6DCQRAUOZ56YP2U2OJBNTGLNJTUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

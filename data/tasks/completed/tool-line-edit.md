@@ -11,9 +11,9 @@ the model's expected string doesn't exactly match the file — causing
 multi-round correction loops. line-addressed tools bypass that entirely.
 
 ## read first
-- `modules/coding.tools.definitions` lines 465-503 — `replace_in_file`
+- `src/coding.tools.definitions` lines 465-503 — `replace_in_file`
   definition: exact format to follow for the three new tool definitions
-- `modules/coding.tools.dispatch` lines 340-360 — `edit_file` dispatch
+- `src/coding.tools.dispatch` lines 340-360 — `edit_file` dispatch
   handler: exact pattern to follow for the three new dispatch handlers
 
 ## where to add
@@ -101,8 +101,8 @@ error string on failure.
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,,.,,.,,,.,,,,.,,,,,,.,,,,,,,,,,,.,,.,,,,..,..,,...,...,.,.,,,.,...,,.,,,.,,
-#AYO77UBG53GOQQ573QD5TPBQPEAWNXFV7NIS25ODB6A6OORFIAJX2Q55LLD2LQ5E7BGSJ625IPZYO
-#\\\|SCNYNQC63WKKRXDCTRZAAXSJBUXPHPKSXMOH3JCXANEYWKYNBNY \ / AMOS7 \ YOURUM ::
-#\[7]BZVKHKEUEEB6O3U4M2FUXKQ67LV4LTSMJALQ4UJP2OGBD67XZWDI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,,..,...,,.,,...,,,,,,.,,..,,..,,...,...,...,.,,,.,.,.,,,.,,,
+#MLQRI422CRBVAQGHG4RJ72IDV7P6NZZJPAWS272F6YDSJGLT4SEJDIAWJEWFOJW35MKFVPYUWGTPG
+#\\\|J2YFTE37H2TUEHTFR6ZEYD4WAG3ZS5W5JNGGAB3DMIOXPYILO5N \ / AMOS7 \ YOURUM ::
+#\[7]CPFP63XLOGE4UO3F32YAP5UDCGRD2CLAXNHI7JLTKJGLSHWPDEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

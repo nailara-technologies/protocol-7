@@ -90,7 +90,7 @@ level-3-configuration:
 Protocol-7 already uses **AMOS7 signatures** for code verification:
 
 ```perl
-## File: modules/base.dependency.pre_init
+## File: src/base.dependency.pre_init
 
 my $code = <<'PERL';
 # ... code content ...
@@ -422,8 +422,8 @@ Each becomes:
 
 A gateway format that's human-readable, machine-executable, securely signed, and free from bloat. Perfect alignment with Protocol-7's design philosophy.
 
-#,,.,,,,.,..,,.,,,,..,.,.,,.,,...,.,,,.,.,,..,..,,...,...,,..,,..,,..,,.,,.,,,
-#T6YY43FXGTLVDNYBEVP6DO745VQELXWYCO4ZMPKPMEFDORE3MRVIUH4RBPCSKS7ALQRQVVCNLYWW2
-#\\\|6CAHRMONLCJUKV55DMH5LIYZ7N4AONPLKV22CM2AEDO66R5KB6Z \ / AMOS7 \ YOURUM ::
-#\[7]UP2ERZFOGTGXPJK3ID7CDHM32R4BIS3QDPQE44PJDNGIUTUCCICI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,..,,,,,,..,.,,,,..,,,.,.,.,...,..,,...,...,..,,,..,..,,.,,,,..,
+#XUKS777DFHOQ6HR4RZXAVJCTXU2SHOOOPWATUZSMWOYLHZP6JA6CFU2LVMGDNDEM4TSLWAIESAQQ2
+#\\\|MOLVCL5P2ARU6WYVG6SGV2NHGX47YXJ4KZ7JT3ELTQQSHVLZKMJ \ / AMOS7 \ YOURUM ::
+#\[7]SHBKWL72B4A7SOVIBIGUVAEWBFEEMQLVZIURBLI2KBJSVO3PCMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

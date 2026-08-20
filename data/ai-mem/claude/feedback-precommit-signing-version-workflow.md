@@ -39,7 +39,7 @@ not once per session, not once per batch:
    `users.cmd.field-options`).
 
 **Gotcha (2026-07-29, build-zenka/ext-pkg-zenka session): `update-signatures`
-only signs files reachable through `modules/sourcecode.source_path_set_up`'s
+only signs files reachable through `src/sourcecode.source_path_set_up`'s
 `@copy_sources` glob list.** `cfg/zenki/*/*` reaches exactly two
 path levels below `zenki/` (e.g. `<zenka>/README.md`) — it does NOT match
 three-level paths like `cfg/zenki/build/recipes/<name>.yaml` or
@@ -75,8 +75,8 @@ Retry the commit only after both gates pass. Don't try to pre-solve this
 by bumping/signing once for the whole batch up front — it won't survive
 past the first commit.
 
-#,,.,,..,,,.,,...,..,,.,,,,,.,,,,,..,,..,,,.,,..,,...,...,..,,.,,,,,.,,,.,..,,
-#XJ5GWU63MELGMDFMHSZJGKMPQVK2BLEDIXQHHKAFGSOTJGA2FM3NNMKYLI6AEWY63ORQBVJV7K6FM
-#\\\|QNGG73ZXJMTINVIIZSLMKOLCHXVCAHSX677F4CFIYK5AU35U4BL \ / AMOS7 \ YOURUM ::
-#\[7]4QPO65ZKTJNA4O255TDE27ETPY3JJ7HD6ECRF2VZVFNPMUQ4XQAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,.,,,..,,.,,,.,.,..,,,..,.,.,..,,...,...,.,,,,,,,.,,,,..,,,.,
+#J3OKDOWLPJBKDMPCQJPBFZZXEKNZGKAGTN5WSGINV2PADGLJ4M2QF67KEUOHOJE3JGXILXEBFXI3Q
+#\\\|EDVJDAA43DADAFDX6ZUNZ7YNEB6VODXJVCOWXMRSM7CVVQFQHWX \ / AMOS7 \ YOURUM ::
+#\[7]X3V4X7KVKYHYZRGZZLFYGMZFGLIRTLSJOZX7C4ZLXB6NT24BMADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,7 +32,7 @@ single override key won't scale past the second use case.
 **Proposed mechanism** (user's sketch, not implemented): extend zenka
 subname parsing to accept `xvfb:<W>x<H>`, e.g. start the zenka as
 `X-11[xvfb:1920x1080]`. Checked the actual code —
-`modules/X-11.init_code:14-31` matches `<system.zenka.subname>` against
+`src/X-11.init_code:14-31` matches `<system.zenka.subname>` against
 `$modes_re = qr{^(host|xnest|nxagent|xorg|xephyr|xvfb)$}` as an **exact**
 match; anything with a `:WxH` suffix fails the regex today and falls
 through to "zenki mode not valid, keeping '<old>'" (logged, non-fatal).
@@ -75,8 +75,8 @@ suffix parsed together, not two competing single-suffix designs.
 
 [[topic-x11-protocol-hardening]] · [[topic-x11-bare-name-routing-ambiguity]]
 
-#,,.,,,,.,,..,,,.,,,.,,..,...,.,.,,,.,,,.,...,..,,...,...,..,,...,,.,,,,,,.,,,
-#CLCYB4X5O5UAHFKAHN2AHVMEIODORJJY5UJGW3ITY54QL6Q3G5VLWMNYJCBZA3MNDTZFYGJMVVCJQ
-#\\\|Z7WQPLLGBGY6F2ZPPHO2E3JDXOJELTSVCDUJMKJGHHXS7X7IGSA \ / AMOS7 \ YOURUM ::
-#\[7]Z5VPRQS3ZXS265LGUWLQIT4UERLFUH4LYHJZDV3W3FR7JQNJHSBY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,..,,,..,..,,,.,,,,.,.,.,,.,,..,,...,..,,..,,,,,,...,...,,..,
+#P5RLQ4IUY5FVYQLUT6EINO57755HJ3QF2VR6QQJRNTLNIDQWM7DQS5UM4YPLNK3X52QPHD6L43UPW
+#\\\|R2ZGJWGMWZDA57WZZBNQZQYF77NFSB5LXIYSLVTYVVTRE2KZ4GR \ / AMOS7 \ YOURUM ::
+#\[7]PLDVE7GMKNYSGCHTYOLDMVFMUF75VXJLM6H2RKNQAPWUKWHJSYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

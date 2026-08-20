@@ -2,7 +2,7 @@
 
 ### context
 
-`modules/jobsite.util.fix_encoding` has two inline sub definitions that cause
+`src/jobsite.util.fix_encoding` has two inline sub definitions that cause
 "Subroutine redefined" warnings on `jobsite.reload` because the module is
 loaded twice per reload cycle (source pass + plugins pass). extract them to
 their own modules, following the same pattern used for
@@ -33,7 +33,7 @@ sub _build_mojibake_table {
 
 called at line 87 as: `_build_mojibake_table($enc)`
 
-extract to: `modules/jobsite.util.fix_encoding.mojibake-table`
+extract to: `src/jobsite.util.fix_encoding.mojibake-table`
 
 new module header:
 ```
@@ -69,7 +69,7 @@ sub _score_candidate {
 
 called at line 163 as: `_score_candidate( $candidate, $prev, $next, $bigrams )`
 
-extract to: `modules/jobsite.util.fix_encoding.score-candidate`
+extract to: `src/jobsite.util.fix_encoding.score-candidate`
 
 new module header:
 ```
@@ -88,7 +88,7 @@ my $score = <[jobsite.util.fix_encoding.score-candidate]>->(
 
 ---
 
-### changes to modules/jobsite.util.fix_encoding
+### changes to src/jobsite.util.fix_encoding
 
 1. remove the inline sub blocks entirely (lines 47–62 and lines 67–77),
    including the `##[ BUILD MOJIBAKE TABLE ]` and `##[ SCORE FFFD CANDIDATE ]`
@@ -131,8 +131,8 @@ by the signing system. do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,,,,..,,,.,,,.,,,,,,,,,,,..,.,.,...,,..,,,.,..,,...,...,,,.,,,,,.,.,,.,,,,.,
-#VUCSBNOCMKNNXOQHKLE2455VDQ575TAE7S77SU3K5YN75PORSSPABSNNEF2JL4NNCA57IVSTKPRAK
-#\\\|FDB2DR4ZNVL7UIHTUMA7HQMZZ6EU4VIPB32737XBCCPZNEBPWJE \ / AMOS7 \ YOURUM ::
-#\[7]7PX2XETRKNQ6GMAQM6IGQOY455SS5RX5LD743S62RGTR3CC5KMCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,,..,,,,,...,,..,,..,,,.,..,,..,,...,...,.,.,..,,..,,,..,.,,,
+#2KJVOE5UWWLZEBL36IZRZKJ2WT47R7YZISN3R3NG4ST5DSWYGZH2AJVA2RJILSKQ7I3DUDALZLH6S
+#\\\|KO5RFLQCPLZJATG6LB5Z7RDQH5A3BXATCJ3W23EX6LOIEZVAYBL \ / AMOS7 \ YOURUM ::
+#\[7]EXLRSG7FNU637GCRFIFJT4HWR7VPTL3BMZ4JAPDMK3QJS7TVRSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

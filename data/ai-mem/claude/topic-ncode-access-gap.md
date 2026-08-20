@@ -57,12 +57,12 @@ was right at the time.
 
 ## general mechanism (still accurate from the original trace)
 
-- `<[base.has_access]>->($user, $cmd)` (`modules/base.has_access`) looks
+- `<[base.has_access]>->($user, $cmd)` (`src/base.has_access`) looks
   up `<access.cmd.regex.usr>->{$user}` or the wildcard-**key** `->{'*'}`
   and regex-matches `$cmd` against whichever mask is found.
 - `<access.cmd.regex.usr>` is compiled per-zenka from **that zenka's
   own start file's** `access.cmd.usr.<key> = <commands>` entries
-  (`modules/base.parser.access_conf`) — entirely local to the
+  (`src/base.parser.access_conf`) — entirely local to the
   destination zenka, unrelated to `cube/access.zenki` (that file is a
   *different* mechanism: cube's own record of which zenki may route
   which commands *through* cube).
@@ -85,8 +85,8 @@ never to the human's own uname. Then check whether cube's own
 
 [[topic-write-access-security-infrastructure]]
 
-#,,,.,,,,,,,,,,,,,,,.,.,,,.,,,.,,,,,.,,..,,,.,..,,...,...,.,.,,,,,,,.,.,.,,,.,
-#KNBBKATORRXKSKWR4YLRI36AOF2BU22EIOMB3S3NABSIP4DH6RZQVRMIHB5KGT3EICXRTWGM7PF5Q
-#\\\|Z262GV2BAB2QRADL2YRT3IGI55QP6DFBYR2IWYPSSA4ERV5IJHG \ / AMOS7 \ YOURUM ::
-#\[7]ZAQL232ZJFKDLTALSKSWSAVCNMLZLO5B5YBY7FEQ3POQBIN3G2CQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,.,.,..,,.,,,,.,,,.,,,,,,.,,,..,,...,...,...,.,,,..,,,,,,..,,
+#HMWXRUQ2DCGT2ZQNYDYE5NSYKYYGYY7MTY645MBAOQU7K372G7WZSK2I7JT46KPPCEHFA3OYELMVO
+#\\\|TLQ3B6MDEPV2U6INAGXFLKVZ4EWRFYD4CJTRLJR2VQYQSQYNNXH \ / AMOS7 \ YOURUM ::
+#\[7]DOHDW6R4OZGVMRMQVEGT35MLB3APPGXMQMBSSRHDYFURR2MDYWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

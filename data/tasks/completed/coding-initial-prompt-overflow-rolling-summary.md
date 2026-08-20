@@ -2,7 +2,7 @@
 
 ## relation
 
-`modules/coding.task.execute` (around line 103-115) currently fails a task
+`src/coding.task.execute` (around line 103-115) currently fails a task
 immediately and unconditionally if the *initial* prompt (before any
 inference round has happened) already exceeds `n_ctx - 500` tokens:
 
@@ -26,7 +26,7 @@ this is the right guard for genuinely-too-big prompts, but it is the
 *only* path for tasks like `coding_summarize` / `session_catchup` whose
 job IS to summarize a large blob of text — those tasks should instead be
 processed via rolling-window map-reduce summarization, the same way
-`modules/coding.async.compact_context` already does for *mid-conversation*
+`src/coding.async.compact_context` already does for *mid-conversation*
 context compaction (it enqueues a no-tools, single-round "compaction"
 sub-task and resumes the parent with the summary spliced in — see that
 module for the pattern: child task via `<[coding.task.enqueue]>`,
@@ -48,7 +48,7 @@ add a round-0 rolling-window summarization fallback, triggered ONLY when:
   and either `$task->{'type'}` or a new `$task->{'metadata'}->{'allow_chunking'}`
   flag marks it eligible. `coding_summarize` / `session_catchup` callers
   (in `bin/mcp-server-p7` or wherever they enqueue tasks — locate via
-  `grep -rn coding_summarize modules/ bin/`) should set this flag.
+  `grep -rn coding_summarize src/ bin/`) should set this flag.
 
 ### `coding.task.chunk_and_summarize`
 
@@ -83,7 +83,7 @@ contract:
   `compact_context` uses (`state => 'subtask'`, `pending_subtask`,
   resume in whatever handler watches `coding.task.parent` /
   `compaction_pending` — find it via
-  `grep -rn compaction_pending modules/`)
+  `grep -rn compaction_pending src/`)
 - when the last chunk's child task completes, the parent task's result
   IS that final running summary — set
   `$task->{'execution'}->{'status'} = 'completed'` and the result field
@@ -156,8 +156,8 @@ harmony coding.task.chunked_summary_eligible
 harmony coding.task.execute
 ```
 
-#,,..,,,.,,,,,,.,,,,.,.,.,...,.,,,,.,,,..,,,.,..,,...,...,...,,,,,..,,,,.,,,.,
-#KDFMBWZNLS4LCIX3K3VGYU5E2GJJBDBQ3R4JQXIZP26JZWTYESIHKD2FH5HC3AEBLE5BFTRPWS3XE
-#\\\|DY3G7WORY6WFCBBOFEOFLKXIPZOU5N2RU7REK5VESZLGRUYVIP2 \ / AMOS7 \ YOURUM ::
-#\[7]FMBQCUYY6JY2INZLGJXKRYNX4QXH7XUVYONF5SLWKPP6YYZCXCAY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,...,.,,,,..,...,.,.,..,,,.,,..,,..,,...,...,...,,,,,,.,,.,,,.,,,
+#U5KN6ZGZJZ2R5C7UWZ5OT4TFYMWSXMQ43G5QHTMZGRK3JRF4UYSWI4TYLE7OGXT6X6SWZETLLXISY
+#\\\|YGRJYM2WKCP3W5LXFFHFFLN7L5YZUCQ6SQHDGSZQKF4VAIJH7BD \ / AMOS7 \ YOURUM ::
+#\[7]6DDWZPH7APYAMYLRQXS454QVO3YTPHMVQ4C6DBF3YS4GDU5YHQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

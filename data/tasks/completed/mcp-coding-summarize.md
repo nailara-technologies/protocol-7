@@ -107,7 +107,7 @@ return $body->{'choices'}[0]{'message'}{'content'} // 'summarization failed';
 ```
 
 check which approach matches the existing coding zenka API first by reading
-`modules/coding.handler.process-queued-task` or the coding.cmd.submit module.
+`src/coding.handler.process-queued-task` or the coding.cmd.submit module.
 
 ---
 
@@ -204,8 +204,8 @@ and use those as the checklist items.
 
 ## dispatch
 
-#,,..,,..,.,.,,..,..,,,,,,.,,,,..,,.,,,,.,...,..,,...,...,..,,,,.,,.,,,,,,.,.,
-#VR3MOW3LMDWUO5YKG3PQ54VIYMCM6ERYHJWK6DFL62TBDBAC6FXEWG7PXTK24V7G6JI2PQ4XPLHDW
-#\\\|DD3KK6PNDH7EKA37HY3VXFWN4ODGBKODOCK23ZLNXRESS3HKSV6 \ / AMOS7 \ YOURUM ::
-#\[7]OHBMWZVZB3JJRCFFIANEO7UTKMVSPAYQWTWL5UCQZL2TNYZ2D6DI 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,,,.,.,.,.,,,,.,,.,.,,,.,,,.,..,,...,..,,,,.,..,,..,,..,,,,.,
+#35QZWWFDGY4PURMX3E4OFZGENNUQK3UDT74DGETKV5J6TTFWKIQNMYYSHKU5T4XZ2JWNNMX555GS2
+#\\\|OEBNJUQ6PJRS55UYPGUPTTFJJWLN7AIHDUNDXSQJ6EX6WWAHULL \ / AMOS7 \ YOURUM ::
+#\[7]FYEZKA474UWSKC6K5Z35OQB2W2TG4G7ECNRIHUAUWMHV2GATNUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

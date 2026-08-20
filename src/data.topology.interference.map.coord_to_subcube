@@ -1,0 +1,31 @@
+## [:< ##
+
+# name = data.topology.interference.map.coord_to_subcube
+# descr = Topology calculation subroutine
+
+my $coord = shift;
+my ( $x, $y, $z ) = @$coord;
+
+my $subcubes_per_group
+    = <[data.topology.interference.map.SUBCUBES_PER_GROUP]>;
+
+# Determine which of 8 outer cubes (0-7)
+my $outer_cube = ( ( $x > 6 ) ? 4 : 0 ) | ( ( $y > 6 ) ? 2 : 0 )
+    | ( ( $z > 6 ) ? 1 : 0 );
+
+# Map to 4×4×4 sub-grid within outer cube (minus missing corner)
+my $sx = $x % 7;    # 0-6
+my $sy = $y % 7;
+my $sz = $z % 7;
+
+# Calculate index accounting for missing corner at (0,0,0) in sub-grid
+my $missing_corner = ( $sx == 0 && $sy == 0 && $sz == 0 ) ? 1 : 0;
+my $sub_index      = $sx + $sy * 4 + $sz * 16 - $missing_corner;
+
+return $outer_cube * $subcubes_per_group + $sub_index;
+
+#,,.,,.,.,.,,,,.,,.,,,,,.,,..,.,,,,..,..,,..,,.,.,...,...,,,.,.,.,,..,,,.,.,,,
+#ICRFWAU742DTTVYDRUWPHVE2P5TAN5C7EAQH6AA63BTPVHYC4TCH2B42ARWXNWBXZRHDRCNG4OJPU
+#\\\|D7PRGRJZDKYKELWKAXLUFK2SQ5NXJOQEMFYFOLRTCQJ56BL3SZF \ / AMOS7 \ YOURUM ::
+#\[7]UMI4XIRJ4GBFJ3HMORHLDXEHORX2CTIGMP3CJUOOB2OUQPIC4GDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

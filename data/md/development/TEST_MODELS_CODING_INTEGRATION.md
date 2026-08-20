@@ -87,13 +87,13 @@ To revert to old direct-HTTP system:
 
 ## Files Modified/Created
 
-- `modules/models.backend.coding.invoke` (NEW)
-- `modules/models.handler.coding_inference_reply` (NEW)
-- `modules/models.backend.local.invoke_sync` (REFACTORED)
-- `modules/models.chat.messages_to_prompt` (NEW)
+- `src/models.backend.coding.invoke` (NEW)
+- `src/models.handler.coding_inference_reply` (NEW)
+- `src/models.backend.local.invoke_sync` (REFACTORED)
+- `src/models.chat.messages_to_prompt` (NEW)
 
-#,,..,.,.,...,.,,,,..,,.,,,,.,.,.,.,,,,,,,.,.,..,,...,...,,,,,,,,,...,,.,,.,.,
-#73OAEAMX2RIYDXYFZOHVILAWNJJAVFUX4XTD57QKE3WEI42UQZCPYUF4PV4AHPT5M7KHKI6OOZ636
-#\\\|VC7YWZIAGMVEZIGYE3M2H6IF6VLL2EAWHR2D2HYMDNATHWLNZY4 \ / AMOS7 \ YOURUM ::
-#\[7]FPDQNQQ6KFTIZLL6I534ZT7NPF3HVE4DY4RSCH3EL3QJYM5HUEBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,.,.,...,.,,,,.,,,..,,,.,..,,..,,...,...,,..,,,.,...,.,,,.,,,
+#GM7TGIDOZDFZHVL2ZKOKD5VY4NK3KVYHTKWKY4NUYQBHHVZDJB5C2KJVJO5M6FWRM4IKAP7KRYPXS
+#\\\|2DCLJYLNZJ5Q3DA6WTDHBJ7TFKWW5Q3GO45OCXPNWD753XHONDO \ / AMOS7 \ YOURUM ::
+#\[7]BMWWPG4CLBQQ6Z6ZWCD2YIE7SETW4EYY2DTKGRNNAXYJHG2OOEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

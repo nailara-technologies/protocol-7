@@ -14,8 +14,8 @@ no `.cmd.` in extracted util namespaces ].
 
 ## scope : 3 inline subs across 3 modules
 
-### 1. `modules/download.init_code` line 20 : `sub read_hosts {...}`
-extract to `modules/download.util.read_hosts`
+### 1. `src/download.init_code` line 20 : `sub read_hosts {...}`
+extract to `src/download.util.read_hosts`
 
 this is a **package method** on `Download::UserAgent`, called as
 `<download.obj.ua>->read_hosts()` at line 58 of the same file [ do
@@ -65,8 +65,8 @@ redefine |; ... }` block with both `*_resolve = ...` and `*read_hosts
 = ...` assignments, or kept as two separate blocks - either is fine,
 prefer merging them into the existing block for tidiness. ]
 
-### 2. `modules/graphics-matrix.cmd.cell` line 148 : `sub cell_output {...}`
-extract to `modules/graphics-matrix.cell.util.cell_output`
+### 2. `src/graphics-matrix.cmd.cell` line 148 : `sub cell_output {...}`
+extract to `src/graphics-matrix.cell.util.cell_output`
 
 standalone formatter, `my $cell = shift;`, no package globals, no
 closures - straightforward extraction. called at 3 call sites in the
@@ -75,8 +75,8 @@ with `<[graphics-matrix.cell.util.cell_output]>->($cell)`. remove the
 `sub cell_output {...}` declaration and the `## cell output
 formatter ##` comment above it.
 
-### 3. `modules/web-browser.handler.fade_in_view` line 47 : `sub incr {...}`
-extract to `modules/web-browser.view.util.fade_increment`
+### 3. `src/web-browser.handler.fade_in_view` line 47 : `sub incr {...}`
+extract to `src/web-browser.view.util.fade_increment`
 
 standalone math helper, `my $dt = shift;`, uses
 `<web-browser.fg_opacity>` [ P7 data accessor, fine to use directly in
@@ -88,7 +88,7 @@ the new module ] and `<[base.calc_gauss]>->(...)`. called once at line
 ## registration
 
 after all 3 new modules are created and source files updated:
-- add all 3 new module names to `modules/base.list.subroutines`
+- add all 3 new module names to `src/base.list.subroutines`
   [ group near related `download.*` / `graphics-matrix.*` /
   `web-browser.*` entries ]
 - regenerate `data/md/documentation/module-dependency-graph.asc` via
@@ -104,7 +104,7 @@ after all 3 new modules are created and source files updated:
 - all 6 modules [ 3 edited sources + 3 new ] pass `perl -c`
   [ note: `download.init_code` may pre-exist as a `perl -c` failure due
   to `<[...]>`/`<...>` P7 macro syntax - check via `git show
-  HEAD:modules/download.init_code | perl -c` first; if it already
+  HEAD:src/download.init_code | perl -c` first; if it already
   failed before your edits, it failing after your edits too is fine as
   long as the failure reason is unchanged ]
 - `p7c download.reload`, `p7c graphics-matrix.reload` complete with
@@ -119,10 +119,10 @@ after all 3 new modules are created and source files updated:
 ## non-goals
 
 - no behavior change - pure refactor, same logic moved to sibling files
-- do not touch `modules/reenc-msg.*`, `modules/remote-cam.*`,
-  `modules/storchencam.*`, `modules/workspace-transfer.*` - those are
+- do not touch `src/reenc-msg.*`, `src/remote-cam.*`,
+  `src/storchencam.*`, `src/workspace-transfer.*` - those are
   a separate future batch
-- do not touch `modules/base.protocol-7.command.send.local` or any
+- do not touch `src/base.protocol-7.command.send.local` or any
   route-send related work - unrelated in-progress work by someone else
 - do not try to start any zenka that is not already running
 
@@ -135,8 +135,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 </content>
 
-#,,..,..,,,,,,.,,,...,...,...,,,.,.,,,,,.,...,..,,...,..,,.,,,,,.,,,.,...,..,,
-#464OKBYDZ6PEGKK7AGMFX4WR4FECQTI6CHY4FYVBGT2R5765DXGTAKT4LY45CCTPYKNQ5XR2INQ2E
-#\\\|PZJNARE325XWO7NTME4RWIRSW4VKAIGPBHD4ETOERM5R3KSQLFL \ / AMOS7 \ YOURUM ::
-#\[7]UBNXLZJEIOBBEFJ6BVK3W5ASR6C2Q2XSDADBT3JDFTCXZD6NFIBY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,..,,,,,,,.,,,,,,,,,,,,,,.,,,..,,...,..,,,,,,.,.,.,.,,.,,,,,,
+#DHZIUNIVHIC6OBVUT3TQDOUBEHALYQX6K24U7QNHA5VE6GMBVQRR67MR2AVVIP6OGNGVIJPXSRYWO
+#\\\|6VEEYK33NPTTO6BKVYPSSP467ZJLADLD6VCR62NBCCW2EWJ5MBT \ / AMOS7 \ YOURUM ::
+#\[7]75A5CPB547EPXBNKC4U3JNV2OEGBC4USYH7GND7M4REZJI7NW6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

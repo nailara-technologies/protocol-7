@@ -60,7 +60,7 @@ worth documenting well as a set once built.
 mounting a holographic "data cube" (the project's own 63K/63M cube/grid
 topology — see [[topic-node-group-geometry]] — not yet built, but
 anticipated as a future transportable artifact). a mounted cube brings
-its own command interface; access into its modules/commands unlocks
+its own command interface; access into its src/commands unlocks
 progressively via authorized decryption/mapping into the cube's layers
 (not all-or-nothing — same layered-access spirit as the project's
 existing key-tree/checksum model). the cube could contain full inner
@@ -90,7 +90,7 @@ resolution principle confirmed by the user: local always wins over
 routing, by default, even to the point of masking — local is fully
 known and present in proximity, routing is inherently less certain.
 applies recursively to module *loading* too (flat fully-qualified
-filenames in `modules/` stay preempting/prioritized over any future
+filenames in `src/` stay preempting/prioritized over any future
 nested submodule-directory form, same precedence rule one layer down).
 full sketch: `data/md/design/HYBRID-CONNECTION-TYPE-ROUTING.md`.
 
@@ -118,8 +118,8 @@ watch for the next one or two before raising it again.
 [[feedback-access-grant-scope]] · [[topic-dot-path-case-notation]] ·
 [[coding-zenka-improvement-pipeline]]
 
-#,,,.,...,.,.,...,,,,,,..,...,,.,,,.,,.,,,,,.,..,,...,...,...,,.,,.,,,,..,,.,,
-#4P2D542P2P5E7BDPMYKE2XD5YOJPG676DDVEEU5UEQ2LMTPJ7G3VVY3AZYY3PWJ6MD3HBRAQIQESE
-#\\\|7RXXWYVQEEEKZ5TFLXRTPLELP77NLITI2U2LWLTGJ6DMKPCUDBW \ / AMOS7 \ YOURUM ::
-#\[7]7BGDV3ZNH3JVF237K6QJO6F4NKMBWQNHA3IKRNDCQ4URM4BZREDI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,,,.,,,,,.,...,,,.,.,.,...,..,,..,,...,...,..,,,.,,,..,.,.,,..,
+#OSNMD5RSJILRS5FX4EJMZC4FPH7R6PRDQR43YPQBEXD7DETFGU5NJXFLZH5HGMQU23MVBYPZIPIQO
+#\\\|KLY3Y6JFECUNSOHNJKGP3F3TW3S2JHTOKGBK43MM3ZKQO6R4EZ7 \ / AMOS7 \ YOURUM ::
+#\[7]JRONO4ZUNTBYASXPRXXQXEPGHKVYRUUZBQ7BBIYQHBSIVUB6WYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

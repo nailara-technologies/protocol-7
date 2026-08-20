@@ -354,7 +354,7 @@
 ## Kimi-Web Zenka Design
 
 ```perl
-# modules/kimi-web.init_code
+# src/kimi-web.init_code
 # Spawns kimi-cli --web processes, manages their lifecycle
 
 # Key features:
@@ -527,8 +527,8 @@ phase 4 — node-transcending sessions
   roaming panels follow the user
 ```
 
-#,,,.,,,,,,.,,,..,.,,,,,,,,..,..,,,,,,.,,,..,,.,.,...,...,.,.,..,,,.,,,.,,,..,
-#72NOYHWOXWOXLC463RMYOHJKJWKIIHM6WNR575OPKF2SHAHUWJR2F6JLEZRE2HFAXP2Y3GMMREDQG
-#\\\|MKQI3KRTCYY6PCNKPH3JHLFTAMH7TAMP4NV77TIHZPF3G52W4HW \ / AMOS7 \ YOURUM ::
-#\[7]FIBSA6LUQTZRXYYPIIUFLNDUGAMPDPK3B5CDFV3YZWOWWHN3YODQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,..,,.,,,,,.,,..,,,.,.,.,...,.,.,...,..,,,,,,.,.,,,,,,.,,..,,
+#HSNYDLVAFKDTS4YHVLATJKQCV53NGOXBRJEIZ37HP7FLB3DIOGT55FL4ZDBS2XGRTGUJL3QNWDQEG
+#\\\|D2YMA634QK7J22QQLHJXR6V3HZEVMVJHEJR3BRQRJ4GN2BOUDLM \ / AMOS7 \ YOURUM ::
+#\[7]6TWUBLHUJLSAIFQIAXF3EMPMUY4LPKVL54XWBQIVNUDDTUVDTICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

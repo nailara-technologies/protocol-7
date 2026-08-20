@@ -1,0 +1,51 @@
+## [:< ##
+
+# name = nshell.term_init
+# descr = Initialize terminal for nshell
+#         using Linux::Termios2 [ Linux-native, no XS build issues ]
+
+## modules laoded in bin/Protocol-7 [ Fcntl ]
+###                       base.init [ POSIX ]
+####          and  nshell.init_code [ Linux::Termios2 ]
+##  [ use SOMECONSTANT() version instead of barewords ]
+
+## Get current terminal file descriptor
+my $tty_fd = fileno(STDIN);
+return FALSE if not defined $tty_fd or $tty_fd < 0;
+
+## Set STDIN to non-blocking mode so sysread doesn't freeze the event loop
+my $flags = fcntl( \*STDIN, F_GETFL, 0 );
+fcntl( \*STDIN, F_SETFL, $flags | O_NONBLOCK ) or return 0;
+
+## Create Termios object and get current settings  [ Linux::Termios2
+## API-compatible with POSIX::Termios ]
+my $orig_termios = Linux::Termios2->new();
+$orig_termios->getattr($tty_fd) or return 0;
+
+## Save to main data for restoration in nshell.term_restore
+$main::data{'nshell'}{'orig_termios'} = $orig_termios;
+$main::data{'nshell'}{'tty_fd'}       = $tty_fd;
+
+## Create working copy for modifications
+my $modified_termios = Linux::Termios2->new();
+$modified_termios->getattr($tty_fd);
+
+## Disable canonical mode and echo: enter raw input mode  ISIG = interrupt
+## signals,  ECHO = echo input, ICANON = canonical input
+my $orig_flags = $orig_termios->getlflag();
+my $new_flags  = $orig_flags & ~( ISIG() | ECHO() | ICANON() );
+$modified_termios->setlflag($new_flags);
+
+## Apply modified settings immediately
+
+## [ Linux::Termios2 doesn't expose setcc, control character  defaults are
+## sufficient for sysread ]
+$modified_termios->setattr( $tty_fd, TCSAFLUSH() );
+
+return TRUE;
+
+#,,.,,...,,,,,.,.,,,,,,..,,,.,.,.,.,.,.,,,.,.,..,,...,...,..,,..,,,.,,...,,,,,
+#Q6E2PVDMPKT6I5FBKPTAGVOXPCTP5VFDC54XXKF7YNDOVTNF5W7PAVJCLZ2OA3SSBXRFQG4KCIIIU
+#\\\|72QRG5FSQ4N6WXSCTZHXTRY2RMPYWBLMGSR6TEGIHB5SVTSEHLX \ / AMOS7 \ YOURUM ::
+#\[7]45HLBOQVOWZZOEH3U6JO56D2IKI4WPABCAXYOQB5DJO2YJXFGABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

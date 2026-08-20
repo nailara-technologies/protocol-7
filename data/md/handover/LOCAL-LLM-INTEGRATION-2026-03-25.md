@@ -63,12 +63,12 @@ These can work with minimal integration:
 
 **Implementation**:
 ```perl
-# modules/local-llm.explain-module
+# src/local-llm.explain-module
 return sub {
     my ($module_name) = @_;
 
     # Read module content
-    my $content = <[file.slurp]>->("modules/$module_name")->$*;
+    my $content = <[file.slurp]>->("src/$module_name")->$*;
 
     # Build prompt with P7 context
     my $prompt = _build_explain_prompt($module_name, $content);
@@ -117,7 +117,7 @@ PROMPT
 
 **Implementation**:
 ```perl
-# modules/local-llm.review-patterns
+# src/local-llm.review-patterns
 my @PATTERNS = (
     { 'name' => 'qw style', 'regex' => qr/qw\(/, 'fix' => 'use qw|...|' },
     { 'name' => 'dollar underscore', 'regex' => qr/\$_\b/, 'fix' => 'use \$ARG' },
@@ -167,7 +167,7 @@ INPUT: <input_data>
 EXPECTED: <expected_output>
 ```
 
-**Parse response** and create `modules/test.{module_name}`.
+**Parse response** and create `src/test.{module_name}`.
 
 ### 4. Documentation Sync Checker (Layer 2)
 
@@ -227,7 +227,7 @@ EXPECTED: <expected_output>
 ```
 If you want to read a file, output:
 TOOL_CALL: read_file
-PARAMS: {"path": "modules/pager.init-code"}
+PARAMS: {"path": "src/pager.init-code"}
 
 You will receive the result and can continue.
 ```
@@ -252,7 +252,7 @@ You will receive the result and can continue.
 ```json
 {
   "edit_type": "replace_lines",
-  "file": "modules/foo",
+  "file": "src/foo",
   "start_line": 42,
   "end_line": 45,
   "new_content": "..."
@@ -289,7 +289,7 @@ You will receive the result and can continue.
 **Join the context zenka delegation flow**:
 
 ```perl
-# modules/local-llm.delegate-handler
+# src/local-llm.delegate-handler
 
 # Register as available executor
 $data{'local-llm'}{'capabilities'} = {
@@ -407,7 +407,7 @@ explain-module pager.filter.division-13-harmonic
 ### Demo 2: "Quick Review"
 ```bash
 # User asks
-quick-review modules/pager.init-code
+quick-review src/pager.init-code
 
 # System does
 1. Regex pre-filter for common issues
@@ -418,7 +418,7 @@ quick-review modules/pager.init-code
 ### Demo 3: "Find Similar"
 ```bash
 # User asks
-find-similar modules/pager.buffer.virtual
+find-similar src/pager.buffer.virtual
 
 # System does
 1. Extract keywords/signatures
@@ -463,8 +463,8 @@ The goal isn't to replace kimi/claude — it's to have `coding` handle the 80% o
 
 *Local models are getting good enough. Let's make them useful. — Kimi*
 
-#,,,,,..,,,..,..,,...,,.,,,.,,,,.,...,.,,,..,,..,,...,...,...,,,,,,,.,,,,,,..,
-#V4WXT5B4T6AHY4KZY4ERED367SCOQCFUIMCZWDKBAOPMEE43NCHJYAARHAT2E7Q7WL2AE5T4E42JQ
-#\\\|ZGQU3EZKC4TTHWIB3UDPARU5IQJDQIEYQS2DH4BBFBESJZ3TMEY \ / AMOS7 \ YOURUM ::
-#\[7]DAJQDBGI5T4XMQDHKIVHIHRIVSEUFS7WVTNZO3DMFR2AESIVL2CA 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,.,,,,,,,,,,..,..,,.,.,,.,,,..,..,,...,...,,,,,,.,,..,,.,,,.,.,
+#7IL72GJ5XKDWZTHDXKILQGLUOCCF2L4P6NGW36MGMNZPFIP3X5PTRPZCD52AEH227ZLL3WE5BXGLA
+#\\\|2G54XEQPOJTHVUHEQGQAKVZ4PMWL72C5BMRCOZHR6E5KBN6M5EI \ / AMOS7 \ YOURUM ::
+#\[7]7RMGWWWVN46Q2HW7TNHSQPP537ZJN5C72EF3HMBSPAMEYODKEYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

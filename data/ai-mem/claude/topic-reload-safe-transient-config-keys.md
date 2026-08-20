@@ -1,6 +1,6 @@
 ---
 name: topic-reload-safe-transient-config-keys
-description: modules.load/modules.preload cleanup design paused before implementation -- base.register_prune + config.reload.prune + base.pre_init/base.reload_config hooks, full design in data/md/design/RELOAD-SAFE-TRANSIENT-CONFIG-KEYS.md
+description: modules.load/src.preload cleanup design paused before implementation -- base.register_prune + config.reload.prune + base.pre_init/base.reload_config hooks, full design in data/md/design/RELOAD-SAFE-TRANSIENT-CONFIG-KEYS.md
 metadata:
   node_type: memory
   type: project
@@ -35,7 +35,7 @@ meaning.
 
 ## current state
 
-- `modules/base.del_key`, `modules/base.prune_key` — landed, `0425b210f`.
+- `src/base.del_key`, `src/base.prune_key` — landed, `0425b210f`.
 - `cfg/zenki/mod-test/start` — carries
   `[base.prune_key:'modules.load']` as a **known-incomplete**
   placeholder/reminder (boot-only, resets on reload); left in
@@ -55,11 +55,11 @@ meaning.
 
 ## related
 
-`modules/base.reload_config`, `modules/base.execute_zenka_code`,
-`modules/base.pre_init`, `modules/devmod.cmd.unload-devmod`
+`src/base.reload_config`, `src/base.execute_zenka_code`,
+`src/base.pre_init`, `src/devmod.cmd.unload-devmod`
 
-#,,..,..,,.,.,...,,,,,..,,,,,,.,,,...,,.,,,.,,..,,...,...,..,,..,,,..,,,.,.,.,
-#DGFWXOBR6QMZ2Y4XKMDBRVDBPXNI2VMUAZCTK6O5SA4BNFEPQGPP3C3INWZSAVI4TZYY3EHVZKKKG
-#\\\|KXFJS6CEEDSVYFFEHGS5A4Y6QDSU7KEU5FMLHFE6YEXPQHJIMFG \ / AMOS7 \ YOURUM ::
-#\[7]R5WNCSEYTUO6RPVTA4N3JD3BIMWBZUUNRRY3SSM6N5736CHMOWAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,.,,,,..,,,,,,,.,.,.,.,,,,.,,..,,...,...,,,.,...,,..,,.,,..,,
+#WLZUR2GB66OLPP2SVADXMVIZJGNW4OQM76FMIVOTDPKOMUMFO3XARRMPAU2NEHNOT6EHTFMFHYKQ2
+#\\\|Q6VQKMCOIY3NHMXMCLNLTGVEX7MEAG4CJPQXG4NUTUMPVPST6VI \ / AMOS7 \ YOURUM ::
+#\[7]BLGEHI7GVIQGAMYXVNU7PSNBJD5DSQ6VUFLUZJBCQD2PIQGIUSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

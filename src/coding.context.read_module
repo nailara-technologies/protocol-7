@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = coding.context.read_module
+# descr = read P7 module file and return content with metadata
+
+my $params = shift // {};
+
+my $module_name = $params->{'module'}    // '';
+my $max_chars   = $params->{'max_chars'} // 8000;
+
+## strip src/ prefix if present ##
+$module_name =~ s|^src/||;
+
+if ( not length $module_name ) {
+    return { 'mode' => qw| false |, 'data' => 'module name required' };
+}
+
+## resolve module path ##
+my $root = <system.root_path>;
+my $path = "$root/src/$module_name";
+
+if ( not -f $path ) {
+    ## try with dots replaced by path separators [ not standard ] ##
+    return {
+        'mode' => qw| false |,
+        'data' => "module not found: $module_name"
+    };
+}
+
+## read module content ##
+my $content_ref = <[file.slurp]>->($path);
+if ( not defined $content_ref ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "cannot read module: $module_name"
+    };
+}
+
+my $content = $content_ref->$*;
+
+## extract metadata from header ##
+my $descr = '';
+if ( $content =~ m{^#\s*descr\s*=\s*(.+)$}m ) {
+    $descr = $1;
+    $descr =~ s|\s+$||;
+}
+
+## strip AMOS signature block [ last 5 lines ] ##
+$content =~ s|\n#,,.*\n#\w.*\n#\\.*AMOS7.*\n#\\\[7\].*\n#:{5,}\s*$||s;
+
+my $line_count = () = $content =~ m|\n|g;
+$line_count++;
+
+## budget-aware truncation ##
+my $truncated = FALSE;
+if ( length($content) > $max_chars ) {
+    $content   = substr( $content, 0, $max_chars );
+    $truncated = TRUE;
+    ## trim to last complete line ##
+    $content =~ s|[^\n]*$||s;
+    $content .= "\n.:[ truncated at $max_chars chars ]:.\n";
+}
+
+<[base.logs]>->(
+    2, "[read_module] loaded %s [ %d lines, %d chars%s ]",
+    $module_name, $line_count, length($content),
+    $truncated ? ' truncated' : ''
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'module'    => $module_name,
+        'descr'     => $descr,
+        'content'   => $content,
+        'lines'     => $line_count,
+        'chars'     => length($content),
+        'truncated' => $truncated,
+        'path'      => $path,
+    }
+};
+
+#,,,,,.,,,,,,,,,.,,,.,,..,.,,,,.,,,..,...,.,.,..,,...,.,,,...,,,.,..,,,,.,,.,,
+#MEN3KPH6CQIHASLMA4MYDTKEWSCFMKFSY6HB6ADROJPDEHURENMCBJTHSHGZQHQ6O4DFVKDV5WGKC
+#\\\|WQVCGEKPKKOA2P5L6HHJZLJKCEXJGRBGBQ7IHEGWNMB6Y7QLORW \ / AMOS7 \ YOURUM ::
+#\[7]YUJR5WTDEGIYCHPDXCZT57BTYLL3EPN2MIHWCOB7X2FWQPXABGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

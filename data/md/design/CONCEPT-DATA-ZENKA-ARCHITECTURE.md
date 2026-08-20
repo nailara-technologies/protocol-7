@@ -14,9 +14,9 @@ A seamless data fabric bridging:
 
 Stub exists:
 - `cfg/zenki/data/start` - basic zenka config
-- `modules/data.init_code` - File::ExtAttr autoload
-- `modules/data.cmd.mount-cube` - stub (not implemented)
-- `modules/data.cmd.attach-fs-mount` - stub (not implemented)
+- `src/data.init_code` - File::ExtAttr autoload
+- `src/data.cmd.mount-cube` - stub (not implemented)
+- `src/data.cmd.attach-fs-mount` - stub (not implemented)
 
 ## Architecture
 
@@ -916,8 +916,8 @@ No source/destination correlation
 
 This is **Layer 3D** - not just routing, but spatial positioning of data in truth-space, where storage and transmission become the same operation.
 
-#,,.,,,.,,,,.,,,.,,,.,.,.,.,,,,..,...,,,.,.,,,.,.,...,...,,..,.,,,,..,.,.,,..,
-#2M4K364CGBM7VLOBN5IXOOLTUIWOWCFBVKTVYWPWBHGKNLI77ECBJPJYQA63QGD2WGG63VRGNU6U6
-#\\\|SGLQVFLUXZHP3LRHBWQSWNKBUQWVXKQDMIO7CAL3O4KVJGXMFN3 \ / AMOS7 \ YOURUM ::
-#\[7]PGIIE65XINK563YTU3GXUWA27OYLYPEXGHMF7UY4NLZWL6EB7GDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,,..,,..,,,,,.,.,..,,.,.,,..,.,.,...,...,...,,,,,,,,,,.,,...,
+#FK2KMKELQOP5FCLCEH4IKIFJFV5FYSRPG5VFPUT24JDQJ6WBNPHS6PF2QF6IP4N2ZZD2TO6L5XT4Y
+#\\\|FPTWDEFFKO3QBA3ZJRF46ISKJ42BSMXYWTHFLVIPX5QJINHV6KX \ / AMOS7 \ YOURUM ::
+#\[7]FGSPCCFE7TCFNSF4EHBSQHLRWU4JGZYX4TOLRSWGUVTC42WJSIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

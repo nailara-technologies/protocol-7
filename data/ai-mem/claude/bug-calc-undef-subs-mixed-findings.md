@@ -21,7 +21,7 @@ subroutines":
 **2 of 3 are `calc`-specific false positives, not real bugs**: `calc`'s
 own `modules.load` is `auth.client net protocol io.unix ui calc` — no
 `devmod`, no `crypt.C25519`. Both modules genuinely exist on disk
-(`modules/devmod.dump`, `modules/crypt.C25519.gen_keys`) and are used
+(`src/devmod.dump`, `src/crypt.C25519.gen_keys`) and are used
 correctly by real callers elsewhere (`devmod.cmd.unload-devmod` for the
 former; `crypt.C25519.post_init`/`generate_session_keypair`/
 `load_keypair` for the latter — the flagged caller,
@@ -34,7 +34,7 @@ as "undefined" even though it's real, live code elsewhere.
 **1 of 3 doesn't fit that explanation, worth a closer look later**:
 `locales.load_file` is called bare (`<[locales.load_file]>->($path)`,
 `base.locales.init_code` lines 47/52) but the only file that actually
-defines it is `modules/base.locales.load_file` (with the `base.`
+defines it is `src/base.locales.load_file` (with the `base.`
 prefix) — no plain `locales.load_file` file exists anywhere, and no
 alias/promotion mechanism was found for it (unlike the `<locales.string>`/
 `<locales.text_dir>`/`<locales.fallback_language>` *data*-tree keys in
@@ -58,8 +58,8 @@ dynamic-sprintf-dispatch needing manual confirmation before acting on a
 flagged name) — add "not-loaded-in-scanning-zenka" as another confirmed
 false-positive shape alongside those.
 
-#,,.,,.,,,..,,...,,,,,...,,..,.,.,.,.,..,,,..,.,.,...,...,,,,,,..,.,,,...,,,,,
-#QMFRFNMGCHM4KGPGDL7S5BY2L5K37KA4X74YHZJJ5PLDDWQLXSFIRK4Z4PTTFJXUKXXMWOQX6HP7G
-#\\\|3VAOVPM5SY7E3J74CQNJGZFOLGQPT363ZUO5UQCC3KQCCE7T2WF \ / AMOS7 \ YOURUM ::
-#\[7]AUJTPH2M3RY32UHS3VPOSHUS72WLJFI7QVC7LPMA5W2TY4Z7HIBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,.,..,,.,.,,.,,.,.,.,.,,.,,..,,.,.,...,...,...,,,,,.,,,.,.,.,,,
+#VXB5VJZT5EGW7FD27BDAXXKXCTQO7UKY7TOKPMCRXKHK2RGDSHB7ZRDSN6GIIIG7UORGKYSCJG3ZU
+#\\\|PUQSR2M2IYCOTU6ZU7ZXSMXS7TPZ2333AIMHWHVZUYXAKOCRJMJ \ / AMOS7 \ YOURUM ::
+#\[7]APYXWO5F2NMEDLYE7XEFBQLELORHWCH777YVBZLEQCODD5W6TMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

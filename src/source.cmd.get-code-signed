@@ -1,0 +1,284 @@
+## [:< ##
+
+# name  = source.cmd.get-code-signed
+# descr = return specified source code subroutine
+
+my $code_name      = $call->{'args'};    ## [ LLL ] implement multiple ?
+my $skip_unchanged = $call->{'skip-valid'} // FALSE;
+my $sign_verbosity = $call->{'verbosity'}  // 0;       ## [ 0 | 1 | 2 ] ##
+
+##  expect [:< headers in ./src/..,  ##
+my $expect_valid_code_header = $call->{'expect-header'} // TRUE;
+my $report_true_on_failure   = FALSE;                              ##
+
+my $code_dir = <source.code_path>;
+$code_dir = <source.path.work_tree> if $code_name =~ m|/|;
+my $src_path = catfile( $code_dir, $code_name );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "requested code ['%s'] name is not valid", $code_name )
+    }
+    if not <[source.valid_src_name]>->($code_name);
+
+return { 'mode' => qw| false |, 'data' => 'code file not found' }
+    if not -f $src_path;
+
+$src_path = abs_path($src_path);
+
+<[file.slurp]>->( $src_path, \my $src_str, qw| :raw | );
+
+return { 'mode' => qw| false |, 'data' => 'no success reading source file' }
+    if not defined $src_path or not defined $src_str;
+
+## checking source header ##
+#
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "no '[:<' header in '%s'", $code_name )
+    }
+    if $expect_valid_code_header
+    and $code_dir eq <source.code_path>
+    and index( $src_str, "## [:< ##" ) != 0;
+
+## Extract signature in strict mode for update-signatures  Repair mode is for
+## verify-signatures where we need flexible extraction For update-signatures,
+## use strict mode - files should have valid structure This prevents issues
+## with endline restoration during signing preparation
+my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+
+## stable, independent body-only checksum -- deliberately NOT the           ##
+## proof-of-work-derived 'data-chksum' the harmonic footer computes [ that  ##
+## one mixes in a freshly-searched octal header on every call, so identical ##
+## body content can still produce a different value run to run -- see       ##
+## source.create_harmonic_footer's amos-iterations-remaining loop ]. this   ##
+## one is a plain BMW digest of the body substring alone, so a caller can   ##
+## re-derive the same value later and detect real changes [ used by         ##
+## sourcecode.console.update-signatures to catch a TOCTOU race between      ##
+## reading here and writing the signed result back to disk ]. body-length   ##
+## travels alongside it so the caller can re-strip a fresh disk read and    ##
+## fail fast on a length mismatch before even bothering with the checksum [ ##
+## catches truncation / trailing garbage past the old footer as well, not   ##
+## just body content changes ]                                              ##
+my $body_only_chksum = <[chk-sum.bmw.strsum]>->( \$src_str );
+my $body_only_length = length $src_str;
+
+my $footer_found        = $footer_data->{'was-present'};
+my $found_footer_valid  = $footer_data->{'structure-was-valid'};
+my $found_footer_length = $footer_data->{'footer-length-found'};
+
+my $present_checksum;
+my $present_signature;
+
+( my $name_rel = $code_name ) =~ s|^.+/(*pla:[^/]+/[^/]+$)||;
+<[base.logs]>->( 2, ':::[ %s ]:.', $name_rel );
+<[base.log]>->( 2, ': :' );
+if ( $footer_found and $found_footer_valid ) {
+    $present_checksum  = $footer_data->{'bmw-chksum'};
+    $present_signature = $footer_data->{'signature'};
+    <[base.logs]>->(
+        2, ':+: found valid footer structure [ %d bytes ]',
+        $found_footer_length
+    );
+} else {
+    if ( not $footer_found ) {
+        <[base.log]>->( 1, ': : no signature footer present ..,' );
+    } else {
+        my $footer_error = $footer_data->{'encountered-error'};
+        <[base.logs]>->(
+            1, ':E: %s',
+            $footer_error // 'unspecified error in footer structure'
+        );
+    }
+}
+
+## checksum and signature verification  Use 'update' mode for       ##
+## update-signatures - allows recovery without repair mode messages ##
+##
+( my $is_valid, my $report_ref ) = <[source.signature_valid]>->(
+    \$src_str, $footer_data, {}, undef, 'update'
+);
+
+if ( $is_valid and not $footer_data->{'needs_separator_endline'} ) {
+    <[base.log]>->( 2, ':.: checksums and signature still valid. =)' );
+
+    ## [ SKIP UNCHANGED MODE ] ##
+    return { 'mode' => qw| true |, 'data' => 'still valid. =)' }
+        if $skip_unchanged;
+    ##
+} else {
+    <[base.log]>->( 2, ':' );
+    <[base.log]>->( 2, ': [ not valid ] :' );
+    <[base.log]>->( 2, ': :' );
+    foreach my $type ( <[base.sort]>->($report_ref) ) {
+        next
+            if not $report_true_on_failure
+            and not length ref $report_ref->{$type}
+            and $report_ref->{$type};
+
+        if ( not length ref $report_ref->{$type} ) {
+            <[base.logs]>->(
+                2,     ': :. %30s : %s',
+                $type, $report_ref->{$type} ? 'true  =)' : 'false :|'
+            );
+        } else {
+            foreach my $mode ( <[base.sort]>->( $report_ref->{$type} ) ) {
+                next
+                    if not $report_true_on_failure
+                    and $report_ref->{$type}->{$mode};
+
+                # Format numeric modes as ELF-N for clarity
+                my $mode_display = $mode =~ /^\d+$/ ? "ELF-$mode" : $mode;
+                <[base.logs]>->(
+                    2,     ': :. %22s [%s] : %s',
+                    $type, $mode_display,
+                    $report_ref->{$type}->{$mode} ? 'true  =)' : 'false :|'
+                );
+            }
+        }
+    }
+    <[base.log]>->( 2, ':' );
+
+    ## recovery: stale endline delta : normalize for canonical paths ##
+    my $normalize_paths = <source.normalize_endline_paths> // [];
+    if ( ref $normalize_paths eq qw| ARRAY | and @$normalize_paths ) {
+        foreach my $prefix (@$normalize_paths) {
+            if ( index( $code_name, "$prefix/" ) == 0 ) {
+                my ($trailing) = $src_str =~ /(\n+)$/;
+                my $trailing_count
+                    = defined $trailing ? length($trailing) : 0;
+                if ( $trailing_count <= 1 ) {
+                    $src_str =~ s|\n*$|\n|s;
+                    $footer_data->{'endline-state-encoded'}   = 5;
+                    $footer_data->{'needs_separator_endline'} = FALSE;
+                    $footer_data->{'last_line_incomplete'}    = FALSE;
+                    <[base.logs]>->(
+                        2,
+                        ': : stale endline state : '
+                            . 'normalized for canonical path'
+                    );
+                }
+                last;
+            }
+        }
+    }
+}
+
+# Don't interfere with create_harmonic_footer - let it determine and use the correct state.
+# The needs_separator_endline and last_line_incomplete flags tell it what to do.
+# It will call harmonize_payload_line_feed which modifies $src_str via the data-reference.
+
+## every path reaching this point needs to [ re- ]sign -- the only way to skip
+## signing entirely is the already-valid + skip-valid early return above,
+## which happens before this point. register a missing key as its own named
+## error case rather than letting the sign machinery discover it deep inside
+## the iteration loop and cascade into unrelated-looking warnings
+my $sign_key_name = <[crypt.C25519.key_vars]>->{'key_name'};
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "cannot sign [ key '%s' not loaded ]", $sign_key_name )
+    }
+    if not <[crypt.C25519.private_key_loaded]>;
+
+# Now calculate signature - harmonize will add separator if needed
+my $recalc_data
+    = <[source.create_harmonic_footer]>->( $footer_data, $sign_verbosity );
+##
+
+## belt-and-suspenders : the precondition above should already have caught ##
+## a missing key, so this is for any other undef-signature cause the sign  ##
+## machinery hits deeper in the iteration loop. falling through here would ##
+## concatenate undef into $src_str below and hand a corrupt payload to the ##
+## caller, which crashes much deeper [ and much less clearly ]             ##
+return {
+    'mode' => qw| false |,
+    'data' => 'signing failed [ see log for cause ]'
+    }
+    if not defined $recalc_data;
+
+if (   not defined $present_checksum
+    or not defined $present_signature
+    or $present_signature ne $recalc_data->{'signature'}
+    or $footer_data->{'needs_separator_endline'} )
+{    # Always update if endlines need fixing
+    if ( not defined $present_signature ) {
+
+        <[base.log]>->( 2, ': : was not signed yet ..,' );
+        <[base.log]>->( 2, ':' );
+    } else {
+
+        <[base.log]>->( 2, ':*: body data checksum has changed ..,' );
+        <[base.log]>->( 2, ': :' );
+        <[base.log]>->( 2, ':-: [ BMW data checksum ] < ..found >' );
+        <[base.log]>->( 2, ':' );
+        <[base.logs]>->(
+            2, ':: %s',
+            <[base.parser.ellipse_center]>->( $present_checksum, 43 )
+        );
+
+    }
+
+    # Signature was calculated on normalized content above
+    # Just append the signature footer
+    $src_str .= $recalc_data->{'signature-footer-str'};
+
+   # Fix #1: Clear the separator endline flag after successfully adding it
+   # This prevents oscillation where the flag causes re-signing on every cycle
+    $footer_data->{'needs_separator_endline'} = FALSE;
+
+    <[base.log]>->( 2, ':' );
+    <[base.log]>->( 2, ':=: [ BMW data checksum ] < current. >' );
+    <[base.log]>->( 2, ':' );
+    <[base.logs]>->(
+        2,
+        ':: %s',
+        <[base.parser.ellipse_center]>->( $recalc_data->{'data-chksum'}, 43 )
+    );
+    <[base.log]>->( 2, ':' );
+
+    if ( defined $present_signature ) {
+        <[base.log]>->( 2, ':+: [ previous signature ]' );
+        <[base.log]>->( 2, ':' );
+        <[base.logs]>->(
+            2, ':: %s',
+            <[base.parser.ellipse_center]>->( $present_signature, 43 )
+        );
+    }
+    <[base.log]>->( 2, ':' );
+    <[base.log]>->( 2, ':+: [ current checksum signature ]' );
+    <[base.log]>->( 2, ':' );
+    <[base.logs]>->(
+        2, ':: %s',
+        <[base.parser.ellipse_center]>->( $recalc_data->{'signature'}, 43 )
+    );
+    <[base.log]>->( 2, ':' );
+
+} else {
+    <[base.log]>->( 2, ':.: blue midnight wish C25519 signature valid. =)' );
+
+    ## [ SKIP UNCHANGED MODE ] ##
+    return { 'mode' => qw| true |, 'data' => 'still valid. =)' }
+        if $skip_unchanged;
+    ##
+}
+
+## current \ updated source  'body-chksum'/'body-length' : stable body-only ##
+## BMW digest + length, both captured before the footer was re-appended     ##
+## above -- lets a caller detect if the file changed on disk between this   ##
+## read and a later write [ TOCTOU race, see                                ##
+## sourcecode.console.update-signatures ] by re-stripping a fresh read and  ##
+## comparing length first [ fails fast on truncation/trailing garbage,      ##
+## skipping the checksum entirely ], then the checksum, instead of blindly  ##
+## overwriting                                                              ##
+return {
+    'mode'        => qw| size |,
+    'data'        => $src_str,
+    'body-chksum' => $body_only_chksum,
+    'body-length' => $body_only_length
+    }
+
+#,,.,,,.,,.,,,,,,,,,,,,,,,..,,...,...,.,,,,,,,..,,...,...,...,...,,,.,.,.,,.,,
+#YW4NKOBIRHOIBV3BRUY2LSJ34HKNKBC3SRI5OJADPXFADS6AV6U74BHULSDOTC2I2TMPVWEAEXVTG
+#\\\|52QPSRM7M4F55ZOCJFREFKFHQEXRKFBYGOJMRS75MB7SQXTZS4M \ / AMOS7 \ YOURUM ::
+#\[7]4BTT4VQ6DD3BQJDZTRQ3HE6ORX64662SOPBUMIHYOIR55VRFEIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

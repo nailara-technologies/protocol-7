@@ -1,0 +1,46 @@
+## [:< ##
+# name  = amos-term.cmd.mount-9p-client
+# descr = Mount remote 9P filesystem (e.g., WSL host)
+
+my $args = $call->{'args'} // '';
+my ( $host, $port, $name ) = split /\s+/, $args, 3;
+
+$host //= '127.0.0.1';
+$port //= 5640;
+$name //= "$host:$port";
+
+## Connect to 9P server ##
+my $result = <[plan-9.client]>->(
+    {   'host' => $host,
+        'port' => $port,
+        'name' => $name,
+    }
+);
+
+if ( $result->{'mode'} eq 'false' ) {
+    return $result;
+}
+
+## Test connection by listing root ##
+my $list_result = <[plan-9.client.list-dir]>->( $name, '/' );
+my $entry_count = 0;
+if ( $list_result->{'mode'} eq 'true' ) {
+    my $entries = $list_result->{'data'};
+    $entry_count = scalar @$entries;
+}
+
+return {
+    'mode' => 'size',
+    'data' => sprintf(
+        "9P client connected to %s:%d (name: %s)\nRoot directory has %d "
+            . "entries\n\nCommands:\n  p7c plan-9.client.list-dir %s /path\n "
+            . " p7c plan-9.client.read-file %s /path/to/file\n",
+        $host, $port, $name, $entry_count, $name, $name
+    )
+};
+
+#,,,,,,,.,,,.,,,.,.,,,.,,,,,,,.,,,..,,.,.,,..,.,.,...,...,.,.,.,.,,..,,.,,,.,,
+#54IASXXJ7VW2XZXMUB4VSRWRS5OEMB4L7IXKNX4HIENWKIUH5WYTVH7LFBJCVZUC44ZGU2HVVTLNK
+#\\\|POSYE3N4ZTCQSFOKJNKMOHLVOMRMOPGQYV7V2CJZKAWDRGML3NY \ / AMOS7 \ YOURUM ::
+#\[7]6I5D7LYK7VKGXQQ3YX67VK2WT3V5U2YS24BGX34GX35SDHLXEICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = radio.audio.init
+# descr = start mpv[audio-0] background player via v7 on-demand
+
+##  clear any pending re-init timer  ##
+delete <radio.audio.reinit_watcher>;
+
+## NOT deferred via <system.init_reports>: that channel only ever flushes   ##
+## once, around the initial connect event -- fine for the startup-timer     ##
+## path here [ own connection is long up by t=2.0s ], but this module is    ##
+## also re-invoked live at runtime [ via                                    ##
+## radio.audio.handler.player_offline, long after startup ], where a queued ##
+## item would never be picked up again. direct route-send is correct here   ##
+## in both cases.                                                           ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'v7.notify_online',
+        'call_args' => { 'args' => 'mpv[audio-0]' },
+        'reply'     => {
+            'handler' => 'radio.audio.handler.player_online',
+            'params'  => { 'instance' => 'mpv[audio-0]' },
+        }
+    }
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'v7.notify_offline',
+        'call_args' => { 'args' => 'mpv[audio-0]' },
+        'reply'     => {
+            'handler' => 'radio.audio.handler.player_offline',
+            'params'  => { 'instance' => 'mpv[audio-0]' },
+        }
+    }
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'v7.start_once',
+        'call_args' => { 'args' => 'mpv[audio-0]' },
+    }
+);
+
+<[base.logs]>->( 2, '[radio.audio] waiting for mpv[audio-0] ...' );
+
+#,,,.,.,,,,,.,,,,,,..,,,,,..,,..,,,,,,.,.,...,.,.,...,...,.,,,,..,,,,,...,,.,,
+#2VK6X5F77FVLDRI3C3RHNORCGZLKVB3TPDWRWFKHKYFSWWYWOXKKFRXHIF7MT6ABNRSMD7POZLDK2
+#\\\|7A6GIYMU6MJOQ4ZY3LHWJFG3VEBM4ZWIZG7I3C5MHU2552FWCK5 \ / AMOS7 \ YOURUM ::
+#\[7]7HJ2N55564Y4UE32TKLBVXYACUTIYORQD55I5GYWJMDLNB7LH2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

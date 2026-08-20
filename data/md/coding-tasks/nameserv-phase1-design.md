@@ -83,7 +83,7 @@ modules.load = auth net protocol io.unix event nameserv
 
 ## init_code design
 
-file: `modules/nameserv.init_code`
+file: `src/nameserv.init_code`
 
 ```perl
 ## [:< ##
@@ -593,8 +593,8 @@ format: `YYYYMMDDNN` where `nn` is 2-digit daily revision [ or simple increment 
 
 ---
 
-#,,,,,.,.,.,,,,..,...,.,,,,.,,..,,,,.,.,.,,,.,.,.,...,...,,.,,.,,,,.,,,,,,...,
-#HBF7JSVV7I46PMUP2YZAPOQ3YWP75LUQ3WSOPOYEPASDSZ4M3D6KUKK4O2VTM3PH6QOIMQFUWXZB2
-#\\\|VMFH7FAGL4SN7WQQOXGX75GBCGT7QXOHAJPN4NIEEN27LEFD63N \ / AMOS7 \ YOURUM ::
-#\[7]RCHBCDY3DR5SMNJMGRHVYTCDJ6KRSD3XBNLX6CGJCDER3JAPLEAI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,.,.,,..,..,,..,,,,.,,,,,.,,,.,.,...,...,..,,...,,,.,,,.,.,,,
+#KEO3DDHPRSGA75RNU464RYF46DIM5YQXO6VR6XVMFWVPG3WYNLS2TS5HSQSRISQHAXYQIZT2EOIIY
+#\\\|P26RNRINAPF7PXGM7MV4EEY3KVGYXROEAZLNKXJHDJP3WRGJ7PO \ / AMOS7 \ YOURUM ::
+#\[7]OYJKR3ZFSAUH3O3AJEYGL3Q4VVERYTBCS7DVKD7FVAPNTAS5IUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

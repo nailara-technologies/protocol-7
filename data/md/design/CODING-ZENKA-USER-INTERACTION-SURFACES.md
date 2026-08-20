@@ -55,10 +55,10 @@ a plugin-type registry [ see track 2 ]. proposed addition, modeled directly on
 
 ```perl
 <protocol-7-menu.dialog-types> = {
-    qw| input-text     | => { qw| dir | => qw| modules/protocol-7-menu.dialog-input-text     | },
-    qw| input-password | => { qw| dir | => qw| modules/protocol-7-menu.dialog-input-password | },
-    qw| input-choice   | => { qw| dir | => qw| modules/protocol-7-menu.dialog-input-choice   | },  # new
-    qw| notification   | => { qw| dir | => qw| modules/protocol-7-menu.dialog-notification   | },  # new
+    qw| input-text     | => { qw| dir | => qw| src/protocol-7-menu.dialog-input-text     | },
+    qw| input-password | => { qw| dir | => qw| src/protocol-7-menu.dialog-input-password | },
+    qw| input-choice   | => { qw| dir | => qw| src/protocol-7-menu.dialog-input-choice   | },  # new
+    qw| notification   | => { qw| dir | => qw| src/protocol-7-menu.dialog-notification   | },  # new
 };
 ```
 
@@ -70,14 +70,14 @@ option list.
 
 amos-term is already a plugin-typed, hot-reloadable extension system [
 `amos-term.plugin-init_code` ]: types `decoder` / `routing` / `render` / `input`, each with
-a hook and a `modules/amos-term.plugin-<type>/` dir, registry watched by inotify for
+a hook and a `src/amos-term.plugin-<type>/` dir, registry watched by inotify for
 hot-reload. it already has the exact primitive needed for a live back-and-forth: 3D buffers
 with `buffer-attach_generic( buffer_id, kind, { cursor_x, cursor_y, cursor_z, write, read,
 data => { on_buffer_change => ... } } )` — which is precisely how `amos-term.nshell.bridge`
 wires an interactive shell session into a buffer today.
 
 proposed addition: a fifth plugin type, `interaction`, hook `agent.query`, dir
-`modules/amos-term.plugin-interaction/`. the coding zenka would:
+`src/amos-term.plugin-interaction/`. the coding zenka would:
 
 1. open [ or reuse ] a buffer
 2. `buffer-write` its question into it
@@ -204,8 +204,8 @@ design only. nothing in this document has been implemented. next concrete steps,
    timer, inotify watcher, plugin-type scaffolding, GTK window-open path —
    details in `data/yaml/coding-tasks/amos-term-interaction-plugin.yaml` ]
 
-#,,,.,..,,..,,,.,,.,.,...,,.,,,,,,,,.,..,,.,,,..,,...,...,,,.,...,.,,,.,.,,,.,
-#SCVX4NMFO3BTEPBXI5LDKELDE7LJQ5PBWENEOQO6UIMH32LCTTFDQXSTPQB5SPGWJKNI5N72RDHAO
-#\\\|ULR6AE3VJIML7PN6VAUUAAQL3BSI7RCLIMEGZMCV3JDAIDO6UIQ \ / AMOS7 \ YOURUM ::
-#\[7]HCRWYQBPOMITITUWACANEGX2OOGRJ6RNUMQ47L6NBNO4L7VB3IAY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,..,,,,,,..,,.,.,.,.,..,,...,..,,...,...,.,.,.,,,,,.,,,.,.,,,
+#H7PHMJ4ZCG4YXI2B2U6GKOFVGEPJTTP7Y2MAVFJ63CKWTYXGPVY5MYPE4BYRMJFVPBBSM4X7UNBGA
+#\\\|O7Z3JK4AZMXX7KM5G3TSGXR2AIHIOZXLB4VFBJTJ7OOSBBL3ACN \ / AMOS7 \ YOURUM ::
+#\[7]3UHHQ3F44YJ3CMLRRU72YNC4R53JMN3AP544WHTCWT6MHVUUH6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

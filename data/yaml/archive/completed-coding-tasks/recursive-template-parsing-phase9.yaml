@@ -28,7 +28,7 @@ components_created:
       - Performance metrics tracking
       - Visibility lists for active templates and pending commands
       - Cache configuration (1800s TTL, 5MB max template size)
-    location: modules/web.init_code
+    location: src/web.init_code
 
   - module: web.process_template_recursive
     description: Core recursive template processor using base.parser.pattern_split
@@ -40,7 +40,7 @@ components_created:
       - Command execution via web.execute_template_command
       - Result substitution back into template
       - Multi-pass recursion for generated commands
-    location: modules/web.process_template_recursive
+    location: src/web.process_template_recursive
     algorithm: |
       1. Check recursion depth limit
       2. Process meta variables <{var_name}>
@@ -62,7 +62,7 @@ components_created:
       - Error handling for missing modules
       - Result type validation and conversion
       - Support for structured data (hash with 'content' key)
-    location: modules/web.execute_template_command
+    location: src/web.execute_template_command
 
   - module: web.cmd.process-template
     description: Operator command for manual template processing
@@ -74,7 +74,7 @@ components_created:
       - Performance metrics (processing time, recursion depth)
       - Return processed content as SIZE response
     usage: "process-template <template-path> [meta-var=value ...]"
-    location: modules/web.cmd.process-template
+    location: src/web.cmd.process-template
 
   - module: web.process-template-ipc
     description: IPC command handler for httpd-to-web template processing
@@ -86,7 +86,7 @@ components_created:
       - Performance metrics collection
       - Return SIZE response with processed content
     ipc_format: "template_id:template_b32r:meta_b32r:session_id"
-    location: modules/web.process-template-ipc
+    location: src/web.process-template-ipc
 
 components_modified:
   - module: httpd.process_template
@@ -99,7 +99,7 @@ components_modified:
       - Send to web zenka via base.protocol-7.command.send.local
       - Register httpd.handler.web_template_reply for async response
       - Simplified from 153 lines to 90 lines
-    location: modules/httpd.process_template
+    location: src/httpd.process_template
     ipc_call: "cube.web.process-template-ipc"
 
   - module: httpd.handler.web_template_reply
@@ -111,7 +111,7 @@ components_modified:
       - Set content type and length
       - Trigger output flush
       - Error handling with 500 Internal Server Error
-    location: modules/httpd.handler.web_template_reply
+    location: src/httpd.handler.web_template_reply
 
 technical_architecture:
   flow: |
@@ -225,16 +225,16 @@ metrics_visibility:
     - "show web.metrics"
 
 files_created:
-  - modules/web.init_code
-  - modules/web.process_template_recursive
-  - modules/web.execute_template_command
-  - modules/web.cmd.process-template
-  - modules/web.process-template-ipc
-  - modules/httpd.handler.web_template_reply
+  - src/web.init_code
+  - src/web.process_template_recursive
+  - src/web.execute_template_command
+  - src/web.cmd.process-template
+  - src/web.process-template-ipc
+  - src/httpd.handler.web_template_reply
   - data/yaml/coding-tasks/recursive-template-parsing-phase9.yaml
 
 files_modified:
-  - modules/httpd.process_template
+  - src/httpd.process_template
 
 notes: |
   This implementation provides a robust, scalable template processing system
@@ -260,8 +260,8 @@ related_tasks:
   - letsencrypt-httpsd-integration-phase8: HTTPS server integration
   - recursive-template-parsing-phase9: Template processing (this task)
 
-#,,,,,.,.,,,.,,,.,.,,,,,,,.,.,...,...,...,...,..,,...,...,.,,,,..,,,.,,,.,..,,
-#2RAOS4HVOWS52BS5YYVL2UNFER7XESEG3JUSLHOPU3JYK63O52CAV6EYENFVDJ4L62KJS65WMAW7C
-#\\\|KM3HP7GVWU5FHCLYOAKRASXE5TROLM5FX2VWASA6TL2HK4OWFJK \ / AMOS7 \ YOURUM ::
-#\[7]XIQAYO4GMI5ZIDSGRWU7NXHFZ5WPPE36QM5JUXMSONNASQ7X54CQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,.,..,,.,,,.,.,...,.,.,.,,,.,,,..,,...,...,,,,,..,,.,.,,.,,,.,,
+#FF7E6KYJYQ74VMBTOGW5WTRZJUBZZZFSW6FTNJO5O6UCSNZE5ZBFJNRCHMVAGJKHGEFE63DVQ7WFC
+#\\\|BZ62TMC2B33CZCWH7GNF4NA3KSKF2EQG2QDYA7EHG3DL77V264P \ / AMOS7 \ YOURUM ::
+#\[7]JSDG6JVQXS6MBSMME7TYVF4PFBBT2RF4QMSGAWRNHQBSZAGM7QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

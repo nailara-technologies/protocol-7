@@ -1,0 +1,62 @@
+## [:< ##
+
+# name = nshell.shell_loop
+# descr = Terminal pass-through relay loop
+
+## nshell main loop: read user input and relay directly to cube's input buffer
+
+## Read one complete command from keyboard (accumulated by read_from_buffer)
+my $cmd = <[nshell.read_from_buffer]>;
+
+<[base.logs]>->( 2, "shell_loop: received cmd='%s'", $cmd // '<undef>' )
+    if defined $cmd and length $cmd;
+
+# my $cmd = <[nshell.editor.process]>->( ..requires..params.. ); # ? #
+
+return 0 unless defined $cmd and length $cmd;
+
+<[base.buffer.add_line]>->( qw| no-tty-debug |, "shell_loop: cmd=$cmd" )
+    if <nshell.mode.no_tty_debug>;
+
+my ($cube_sid) = keys <user.cube.session>->%*;
+
+## detect credential-fabric ui entry and attach session_id for focus state ##
+my $nshell_state = <nshell.state> // {};
+if ( $cmd =~ m{^\s*cred-mesh\.ui[.-]show(?:\s|$) } ) {
+    $nshell_state->{'cred-mesh_ui_active'}  = TRUE;
+    $nshell_state->{'cred-mesh_ui_pending'} = undef;
+    $nshell_state->{'cred-mesh_ui_session'} = $cube_sid
+        if defined $cube_sid;
+    $cmd =~ s/\s+$/ /;
+    $cmd .= ' session_id=' . $cube_sid if defined $cube_sid;
+}
+
+## Log command to terminal-history with endline padding  One blank line
+## before, then command block with : borders, blank line after Encode control
+## characters for safe history storage
+my $encoded_cmd = <[nshell.parser.term_encode]>->($cmd);
+map { <[base.buffer.add_line]>->( qw| terminal-history |, $ARG ) }
+    ( '', ':', sprintf( ':  %s', $encoded_cmd ), ':' );
+
+## pass command directly to cube's input buffer  this is transparent relay -
+## cube sees it as local input
+
+if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+    ## append command directly to cube's output buffer [ cube input stream ]
+    ## cube zenka session watcher will automatically process it
+    open( my $df, '>>', '/tmp/nshell-debug.log' ) or warn $!;
+    print $df sprintf( "shell_loop: cmd=[%s] buf_before=[%s]\n",
+        $cmd, $data{'session'}{$cube_sid}{'buffer'}{'output'} // '' );
+    close($df);
+    $data{'session'}{$cube_sid}{'buffer'}{'output'} .= $cmd . "\n";
+} else {
+    <[base.log]>->( 0, 'nshell.shell_loop: cube session not available' );
+}
+
+return 0;
+
+#,,,.,,,,,,,.,,,.,..,,,,,,,,,,.,,,,..,..,,...,.,.,...,..,,.,.,...,,..,,.,,...,
+#D6T75AI5OJAA2NJUSVWLQACGRKJCNE5SC6XVMEN2BFIQA35DXFTC6HETMP2NQJQZDSIE5MG6L3FME
+#\\\|IVMNGDGVRF7YDEANX6DESOE4IBUUORTS354SP4PBLBLFQ7APJHF \ / AMOS7 \ YOURUM ::
+#\[7]PARXLWDN5MIYSHXAEXIH3OZEAKKXZ3BZBOYJOKJFDFYZFN44EUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

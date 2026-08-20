@@ -33,15 +33,15 @@ fires too early."
 ceiling, or watchdog anywhere in `coding.*` (or any subsystem showing the
 same layered-timeout pattern), grep for existing timers touching the same
 flag/state (e.g. `grep -rn 'queue_paused\|self_test_max_total'
-modules/coding.*`) and read their surrounding comments before writing new
+src/coding.*`) and read their surrounding comments before writing new
 code — they will usually say outright whether one already covers the case,
 and derive any new ceiling from the same config knob rather than a fresh
 literal if one is genuinely still needed.
 
 #,,.,,,.,,..,.,,,,,,.,,,.,,..,,,,,.,,,,,,.,.,.,.,,,,,,,,,.,.,,,..,.,,,,.,,,,,.
 
-#,,,,,..,,..,,,,,,,..,,,.,..,,,,,,,,.,,,,,,..,..,,...,..,,...,...,,,.,,.,,..,,
-#OMDQ3K5A5QWDP4UELBSE7N7UYHQXIEHEZ5ZD6Y6FQD5V2TDPMQI3CPJ6NWUQ3MFNAM2SCTDBBDUSK
-#\\\|ENYPQBAVO7WINSOAECJZXDMBFUYTLVUDFPOWNIKQ7UOI3DFI7ZY \ / AMOS7 \ YOURUM ::
-#\[7]IR6GQGUWY6BLUM4XVLFSRYKXZPDBLBBP6JULFD227LDBPBIB2SAI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,...,.,.,...,.,,,.,,,..,,,..,..,,...,..,,...,,..,,,,,,,.,,..,
+#2T4JDJS6KNF235FHG4LQXZPAPZJEODYQEQ3Y2QORNGAABXIVCKSTVSBTW4SHBCMRLPTEAVKFL55I2
+#\\\|UGHRMO53LGXHPGQW7Y2M4JKQRQAIC37N7ZJTYPMR2PTBJ5WQIYQ \ / AMOS7 \ YOURUM ::
+#\[7]RRALGHF7KWCQ3A7BQC5P2VQRD7KYWX5UNQBKOZHLLEJC6P3NL4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

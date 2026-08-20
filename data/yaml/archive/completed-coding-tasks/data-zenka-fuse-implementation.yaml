@@ -11,75 +11,75 @@ status: completed
 implementation_date: 2026-03-03
 
 existing_stubs:
-  - modules/data.cmd.attach-fs-mount   # ✓ completed - now calls data.mount.fuse.spawn
-  - modules/data.cmd.mount-hash        # ✓ completed - now calls data.mount.fuse.spawn
-  - modules/data.cmd.import-fs         # ✓ already complete
-  - modules/data.cmd.mount-cube        # ✓ completed - now mounts cubic paths
+  - src/data.cmd.attach-fs-mount   # ✓ completed - now calls data.mount.fuse.spawn
+  - src/data.cmd.mount-hash        # ✓ completed - now calls data.mount.fuse.spawn
+  - src/data.cmd.import-fs         # ✓ already complete
+  - src/data.cmd.mount-cube        # ✓ completed - now mounts cubic paths
 
 modules_implemented:
   - name: data.mount.fuse.init_code
-    path: modules/data.mount.fuse.init_code
+    path: src/data.mount.fuse.init_code
     descr: load Fuse module, set up mount registry in <data.fuse.mounts>
     status: ✓ completed
 
   - name: data.mount.fuse.getattr
-    path: modules/data.mount.fuse.getattr
+    path: src/data.mount.fuse.getattr
     descr: fuse getattr callback — translate path, check ref type, return stat struct
     status: ✓ completed
 
   - name: data.mount.fuse.readdir
-    path: modules/data.mount.fuse.readdir
+    path: src/data.mount.fuse.readdir
     descr: fuse readdir callback — return list of keys/indices at hash path
     status: ✓ completed
 
   - name: data.mount.fuse.read
-    path: modules/data.mount.fuse.read
+    path: src/data.mount.fuse.read
     descr: fuse read callback — return scalar value (or serialized ref) as file content
     status: ✓ completed
 
   - name: data.mount.fuse.statfs
-    path: modules/data.mount.fuse.statfs
+    path: src/data.mount.fuse.statfs
     descr: fuse statfs callback — return filesystem statistics
     status: ✓ completed (added)
 
   - name: data.mount.fuse.open
-    path: modules/data.mount.fuse.open
+    path: src/data.mount.fuse.open
     descr: fuse open callback — validate path exists, check permissions
     status: ✓ completed
 
   - name: data.mount.fuse.release
-    path: modules/data.mount.fuse.release
+    path: src/data.mount.fuse.release
     descr: fuse release callback — cleanup open file state
     status: ✓ completed
 
   - name: data.mount.fuse.spawn
-    path: modules/data.mount.fuse.spawn
+    path: src/data.mount.fuse.spawn
     descr: fork a child process that calls Fuse::main() with callbacks
     status: ✓ completed
 
 modules_completed:
   - name: data.cmd.attach-fs-mount
-    path: modules/data.cmd.attach-fs-mount
+    path: src/data.cmd.attach-fs-mount
     status: ✓ completed
     changes: now validates FUSE availability, checks for existing mounts, calls data.mount.fuse.spawn
 
   - name: data.cmd.mount-hash
-    path: modules/data.cmd.mount-hash
+    path: src/data.cmd.mount-hash
     status: ✓ completed
     changes: creates default mount path if not provided, validates, calls data.mount.fuse.spawn
 
   - name: data.cmd.mount-cube
-    path: modules/data.cmd.mount-cube
+    path: src/data.cmd.mount-cube
     status: ✓ completed
     changes: parses cube coordinates or cubic.* paths, validates, calls data.mount.fuse.spawn
 
   - name: data.cmd.detach-cube
-    path: modules/data.cmd.detach-cube
+    path: src/data.cmd.detach-cube
     status: ✓ completed
     changes: unmounts via fusermount/umount, kills child process, cleans up registry
 
   - name: data.cmd.list-fs-mounts
-    path: modules/data.cmd.list-fs-mounts
+    path: src/data.cmd.list-fs-mounts
     status: ✓ completed (added)
     changes: lists all active FUSE mounts with PID, source hash path, age, and status
 
@@ -186,8 +186,8 @@ notes: |
   when running in child process, allowing proper path resolution relative
   to the mount root.
 
-#,,..,..,,,,,,..,,,,.,,.,,,.,,..,,.,,,,.,,,..,.,.,...,...,,,,,,.,,..,,..,,...,
-#W4VBBCCOWZ3RQ7OCTEMMMMD3PR4CKTABBACXMAVZWWOM7PBNZGBITCRRCY23WHZX6WRC35GEVJYX6
-#\\\|CSOXJJPT5RCIYIFLMW4RKDDSH5WW6FRTVXHN3R6YVVJFZGTKYWL \ / AMOS7 \ YOURUM ::
-#\[7]J5AVGSSAGNLJ5COIRXOAZCPRMNPUDWS26GK65IYDM4WT2PZL64CY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,,,.,,,,,.,,,,..,,,,,,..,,..,.,.,...,...,...,,,,,,.,,.,,,,.,,
+#4E6VXMKOLNQYDBIWTRSB5EBDAXN62YZYEOS5QSKXT6XKTH5LODFZPK3DVVNED2YHK4UNEWTROI3HO
+#\\\|EINIANIWOWE54C4JFJAGMOXOK3HPCQ5KSE7JKOTJ2TBC4E6BGUK \ / AMOS7 \ YOURUM ::
+#\[7]DBA4JQBBM43CSNTWKKHNM6WLQMTHBPXHIPL3WECQUAUR3T22S2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

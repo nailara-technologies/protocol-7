@@ -266,7 +266,7 @@ sub shm_change_handler {
 
 ### plugin.auth.auth-keypair*
 
-Located in: `modules/plugin.auth.auth-keypair*`
+Located in: `src/plugin.auth.auth-keypair*`
 
 May contain useful patterns for:
 - Ed25519 signing/verification
@@ -398,8 +398,8 @@ my $data = <[data.mount.shm.open]>->(
 
 🖖⚡🔮
 
-#,,..,...,.,,,,..,.,,,.,.,..,,,..,,..,..,,,,.,..,,...,...,...,...,,,,,,,.,,,.,
-#2S6HBKOTMKLUKDBXUWOYM4M6TXGNDVOF2VNTEUAKNW6PC2OBPLVFOB3QOHCJLPA72ESVPPGAFFO5C
-#\\\|ZIXYPIS6OZFJUAOIFFWVPBWVD4SZEZZEMYX32P4YQTB5T7E4XIO \ / AMOS7 \ YOURUM ::
-#\[7]VWNQIJADB5I2HQ3742PKM43W7RNT6BXB4B5IKR455YHRY4Z73QCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,..,,,,.,,,.,..,,.,.,..,,.,.,,,.,..,,...,...,,,,,,..,,.,,.,.,,,,,
+#3IMFBUQ6YJBXPNIQSLNAS5YX4VSAR55CV4ZDPZK5Z3ZKQ34Y6BM27DM67JSDFH6Q6EZ6AP2DFD4PY
+#\\\|YDC4WCL5QOLAV5T3DSL2EAYHIDES7YXBQSTBOX2QY2YM72DDAHJ \ / AMOS7 \ YOURUM ::
+#\[7]YIXTFJEAKEOYND3V54KUFOHX5MTFV7OXELAMMRKW645YBMQKOSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

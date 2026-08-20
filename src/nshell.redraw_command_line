@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = nshell.redraw_command_line
+# descr = Helper to clear and redraw command line from history
+
+my ( $buffer, $display ) = @_;
+
+## Clear current line and redraw  Get terminal width for proper clearing (safe
+## fallback for non-TTY contexts)
+my $term_width = eval { AMOS7::TERM::terminal_size() } // 80;
+my $clear_len  = length($buffer) + 20;                         ## Leave margin
+print "\r" . ( ' ' x $clear_len ) . "\r" . $display;
+
+return;
+
+#,,.,,..,,...,,.,,.,,,.,.,,,.,,,.,..,,..,,...,.,.,...,...,..,,..,,,,,,,..,,,,,
+#4FBZPNCB3I7A2YDYUGFJ3RFG4YI6HD37KNGI3Q4A4DHCKZJK3AGX7VLMC2GRSB3WVQU3I7DXPOY7M
+#\\\|3IJMQN5YKGWUEEHWDFXVX6BS63NGCULSNW5P3RXOCVUENVLQNSV \ / AMOS7 \ YOURUM ::
+#\[7]KI3C2LNCDIQTM2HRAAOHZ7ZXK2KS7MC5SDOB3JA44PAKBIBNFCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

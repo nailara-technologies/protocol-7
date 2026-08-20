@@ -69,14 +69,14 @@ useful for logging and debug output
 
 ## zenka wrapper modules to create
 
-### modules/base.chk-sum.bmw384.coordinate
+### src/base.chk-sum.bmw384.coordinate
 
 thin wrapper: takes a scalar $ARG, returns the coordinate hashref.
 
   <[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384');
   return AMOS7::CHKSUM::BMW384::bmw384_coordinate( $ARG );
 
-### modules/base.chk-sum.bmw384.coordinate-str
+### src/base.chk-sum.bmw384.coordinate-str
 
 thin wrapper returning the compact string form.
 
@@ -92,8 +92,8 @@ thin wrapper returning the compact string form.
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,..,.,,,,,.,,..,,.,,,,,,.,,,.,,,.,.,,,.,..,,..,,...,..,,...,...,.,.,..,,.,.,
-#EVQCWMSRASHSMZ4OXVGZHLJ634JFD6G6DLAIRDYNJU4S3S6ULTC5FSDJWLJ53QLMPCG3C2QWPD3S6
-#\\\|ZLF6TFCXMKH6NJJRWUUSZNVURH3KDF6AYLM6G47O42DTCI2VG2C \ / AMOS7 \ YOURUM ::
-#\[7]KVWBFJY62AIWSPWFKXDMCYU43KIR746PTTWYCKQVUWXIKIZEYGCI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,.,.,,,,,,,.,,.,,.,.,,,,,...,..,,...,...,.,,,.,,,,.,,,..,...,
+#QD462HCKG5YRILKSAJRK344TXGIY3GUHB4RJYSIZL47E52WRACPAFRNZC7SJIL2AGBNRXG5LWTWMQ
+#\\\|ZIT4R4RZEZPWITFIXLLIESGQBQ2RLLBX5UNYORU4WEXVVGHQLNK \ / AMOS7 \ YOURUM ::
+#\[7]GKLAKJ2GDZB4HDU5OQBEN5IFJEGCVLBY2EZDH6YZLA7AQBSE6EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,26 +13,26 @@ task:
   syntax_reference: data/yaml/docs/protocol-7-coding-style.md
 
   existing_modules_read_first:
-    - modules/httpd.route_dispatcher
-    - modules/httpd.download_init
-    - modules/httpd.http_get
-    - modules/httpd.new_header
-    - modules/radio.init_code
-    - modules/base.strm.local.register
-    - modules/base.strm.local.cancel
-    - modules/protocol-7.route-send
+    - src/httpd.route_dispatcher
+    - src/httpd.download_init
+    - src/httpd.http_get
+    - src/httpd.new_header
+    - src/radio.init_code
+    - src/base.strm.local.register
+    - src/base.strm.local.cancel
+    - src/protocol-7.route-send
 
   files_to_create:
-    - modules/plugin.httpd.radio.init_code
-    - modules/plugin.httpd.radio.cmd.radio_online
-    - modules/plugin.httpd.radio.handler.stream_request
-    - modules/plugin.httpd.radio.handler.strm_open
-    - modules/plugin.httpd.radio.handler.radio_offline
-    - modules/radio.post_init
+    - src/plugin.httpd.radio.init_code
+    - src/plugin.httpd.radio.cmd.radio_online
+    - src/plugin.httpd.radio.handler.stream_request
+    - src/plugin.httpd.radio.handler.strm_open
+    - src/plugin.httpd.radio.handler.radio_offline
+    - src/radio.post_init
 
   files_to_modify:
-    - modules/radio.init_code          ##  add post_init timer  ##
-    - modules/httpd.route_dispatcher   ##  add radio path check  ##
+    - src/radio.init_code          ##  add post_init timer  ##
+    - src/httpd.route_dispatcher   ##  add radio path check  ##
     - cfg/zenki/httpd/start  ##  add plugins.load  ##
     - cfg/zenki/radio/zenka-startup.v7  ##  add stream path config  ##
 
@@ -44,7 +44,7 @@ task:
     <plugin.httpd.radio.relay>       ##  hashref: { $http_sid => $cmd_id }  ##
 
   plugin_init_code: |
-    file: modules/plugin.httpd.radio.init_code
+    file: src/plugin.httpd.radio.init_code
     descr = initialize radio bridge plugin state
 
     <plugin.httpd.radio.active>      //= 0;
@@ -56,7 +56,7 @@ task:
     0;
 
   plugin_cmd_radio_online: |
-    file: modules/plugin.httpd.radio.cmd.radio_online
+    file: src/plugin.httpd.radio.cmd.radio_online
     descr = activate radio stream endpoint [ called by radio.post_init ]
     param = stream path [ optional, default /radio/stream ]
 
@@ -90,7 +90,7 @@ task:
     return { 'mode' => qw| true |, 'data' => "radio endpoint active: $path" };
 
   plugin_handler_stream_request: |
-    file: modules/plugin.httpd.radio.handler.stream_request
+    file: src/plugin.httpd.radio.handler.stream_request
     descr = HTTP handler: send 200 headers and open radio.listen STRM
 
     called by httpd.route_dispatcher when a client requests the radio
@@ -141,7 +141,7 @@ task:
     return 0;
 
   plugin_handler_strm_open: |
-    file: modules/plugin.httpd.radio.handler.strm_open
+    file: src/plugin.httpd.radio.handler.strm_open
     descr = reply handler for radio.listen STRM open: register local consumer
 
     fired by base.handler.command when STRM open arrives for the radio.listen
@@ -214,7 +214,7 @@ task:
         $http_sid, $cmd_id );
 
   plugin_handler_radio_offline: |
-    file: modules/plugin.httpd.radio.handler.radio_offline
+    file: src/plugin.httpd.radio.handler.radio_offline
     descr = v7.notify_offline reply: disable endpoint when radio stops
 
     my $reply = shift;
@@ -234,7 +234,7 @@ task:
     <plugin.httpd.radio.relay> = {};
 
   radio_post_init: |
-    file: modules/radio.post_init
+    file: src/radio.post_init
     descr = notify httpd that radio stream endpoint is available
 
     <[protocol-7.route-send]>->(
@@ -248,7 +248,7 @@ task:
     <[base.logs]>->( 2, '[radio] notified httpd: radio_online' );
 
   radio_init_code_modification: |
-    in modules/radio.init_code, alongside the existing radio.connect timer,
+    in src/radio.init_code, alongside the existing radio.connect timer,
     add a post_init timer:
 
       <[event.add_timer]>->(
@@ -260,7 +260,7 @@ task:
     the 1.0s delay ensures httpd is fully initialized before the notification.
 
   httpd_route_dispatcher_modification: |
-    in modules/httpd.route_dispatcher, add a radio stream check after the
+    in src/httpd.route_dispatcher, add a radio stream check after the
     ACME challenge route (Route 1) and BEFORE the template route (Route 2):
 
       ## Route 1b: radio stream endpoint ##
@@ -306,8 +306,8 @@ task:
     - slow client exceeding 4MB relay buf: consumer cancelled, session closed
     - no changes to existing httpd routing behaviour for non-radio paths
 
-#,,,.,,..,,,.,,,,,...,,..,,.,,...,...,..,,.,.,..,,...,...,...,..,,,..,,..,..,,
-#BETW37AWQRZJXRWS3IDA64KUPGQHDYJSLKWHDB3APH3CSIUGJPVGHZE6HPFMOMXT6TG3ESE7KO7YG
-#\\\|L34NAG5BZO2E5N47LIDW2HBTNWG5ESGD2NUYINZT7QWCYOENTG7 \ / AMOS7 \ YOURUM ::
-#\[7]H4W6HB4OFZU4FLEMWCBN3M72PCXTUPR4NV27PPO2GA3ZWGR47MCY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,,,.,,,.,.,,..,,,,,...,..,,..,,..,,...,...,,..,...,..,,...,...,
+#LWTIU53DN3GNWSDKNJ3DCW6OGIZRSPWCR7YIJGVFNISPWCA3VMSXP7BMQAENBOSB42WJ2UZGP7UOM
+#\\\|G6WFUHTQT33QBTKO5SQKW6XR7NP363BRAU5ZR5IOKETL6LFCRSQ \ / AMOS7 \ YOURUM ::
+#\[7]JZ6UFB4RBCHNH3BURWAH7TKOHTDFJ75JZ27GKUNHJYYA4RKBY2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

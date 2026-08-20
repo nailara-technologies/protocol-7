@@ -167,7 +167,7 @@ If successful, you should see:
 
 - Build script: `/data/projects/protocol-7/bin/build-scripts/llama-cpp/build-llama-server-cuda-flashattn.sh`
 - Coding zenka config: `/data/projects/protocol-7/cfg/zenki/coding/start`
-- Coding zenka source: `/data/projects/protocol-7/modules/coding.*`
+- Coding zenka source: `/data/projects/protocol-7/src/coding.*`
 - Auto-resume docs: `/data/projects/protocol-7/data/md/documentation/CODING-COMPLETE-ANALYSIS.md`
 
 ## Next Steps
@@ -185,8 +185,8 @@ After building and testing llama-server with flash attention:
 **Priority**: CRITICAL - Blocks coding zenka inference execution
 **Last Updated**: 2025-01-17
 
-#,,.,,.,.,,.,,...,.,,,,.,,,,,,,,,,..,,...,.,,,..,,...,...,...,.,.,.,,,...,,,,,
-#5SRUU37L24R2RHNGSUMUFOBMJ2O4FDPPPILDVMWKAQY6LGFYG3VFO4IBQK4ZMBYDSJI72TBC7UOBC
-#\\\|OMMLIKC5RKPAOPXNAZZDA3TIXNOLJIONE7RSASQ5DLK4KPPZIZU \ / AMOS7 \ YOURUM ::
-#\[7]VOOL42ZYKI3ALO5OGQ4YKTFLLT2O65ZAGZTBAB2A2JSK3GFOA6AI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,..,...,.,,,..,,,,.,,,.,...,..,,...,...,..,,,,.,,,,,.,.,..,,
+#27MZV2YY5MUDEBXVDUPFSOFD3CWK74INXLZUPHUVGOL7ULXOBUNRKI5FDQPA6I7YKMGDT4L6SRMS6
+#\\\|AW7EV7YJJ6PRUAJXGVHC2B4GOUIC3TSRIVZWLXDRC3NQVJ3FSEY \ / AMOS7 \ YOURUM ::
+#\[7]OOXFV2R5YKCPTA33SRFQIPPJUUXTDCLGF7W4APT475RHGQZHK6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -232,8 +232,8 @@ sub build_command_registry {
         }
     }
 
-    ## Scan modules/*.console.* files for console commands  These are
-    ## Protocol-7 console commands with simple name/param/descr format
+    ## Scan src/*.console.* files for console commands  These are Protocol-7
+    ## console commands with simple name/param/descr format
     if ( not defined $root_path ) {
         ## Try to infer root path from zenka_root  zenka_root is typically
         ## cfg/zenki
@@ -242,15 +242,15 @@ sub build_command_registry {
         }
     }
 
-    if ( defined $root_path and -d "$root_path/modules" ) {
-        opendir( my $MOD_DIR, "$root_path/modules" ) or return $registry;
+    if ( defined $root_path and -d "$root_path/src" ) {
+        opendir( my $MOD_DIR, "$root_path/src" ) or return $registry;
         my @module_files
-            = grep { /\.console\./ and -f "$root_path/modules/$_" }
+            = grep { /\.console\./ and -f "$root_path/src/$_" }
             readdir($MOD_DIR);
         closedir($MOD_DIR);
 
         foreach my $file (@module_files) {
-            my $filepath = "$root_path/modules/$file";
+            my $filepath = "$root_path/src/$file";
             my $metadata = parse_module_command($filepath);
 
             if ( exists $metadata->{'command'} ) {
@@ -440,8 +440,8 @@ sub registry_to_yaml {
 
 1;
 
-#,,.,,...,.,.,,..,,,,,,..,,,,,..,,...,.,,,,..,..,,...,...,...,,,.,..,,.,.,..,,
-#5HGISSKDRPA5RDAWG4H3JXYCDWFMCZHHJ2TJMLMA4UH2FXB2TD6WHNBLXRZCC7X2CKEOB6TU2NLVM
-#\\\|CILCVKMDDYUWTM3JLTUXIEQGGYQQ3ISC2YCJCXLRJHKXOYIV462 \ / AMOS7 \ YOURUM ::
-#\[7]TFZTUA5O7QO5JSLG5UHIM44OU3FXPXB6PUPXQEME5MSNSXOAUQAY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,..,,,..,.,,,,.,,.,.,.,,,,.,,..,,...,...,..,,.,,,,,.,...,,..,
+#MFWTE5LCT4GEEHB4KPKBAMEGHKW2JCNHEJGIGSUCXKNVIGO4ZWRY43IN6BEYHHXOSFHM37Q5X4SPG
+#\\\|FVIJNUVGXA46YYPKM6A63HRSAQ3ZK27TQXCDMUIV5JQAVHPFDVN \ / AMOS7 \ YOURUM ::
+#\[7]JQAQGUO3RSUJVWBTPTD53LC3OXH4CLQVL2Z65ASMN7MUXNPEX2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

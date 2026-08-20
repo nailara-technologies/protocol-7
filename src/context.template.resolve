@@ -1,0 +1,213 @@
+## [:< ##
+
+# name  = context.template.resolve
+# descr = recursive template resolver with include, when, and static support
+
+my $params = shift // {};
+
+my $template = $params->{'template'};       ## name or hashref ##
+my $vars     = $params->{'vars'}    // {};
+my $context  = $params->{'context'} // {};  ## task metadata for conditions ##
+my $depth    = $params->{'_depth'}  // 0;
+my $seen     = $params->{'_seen'}   // {};
+my $budget   = $params->{'budget'};
+
+## max recursion depth ##
+my $max_depth = 8;
+if ( $depth > $max_depth ) {
+    <[base.logs]>->(
+        0, ': template resolve: max depth %d exceeded', $max_depth
+    );
+    return {
+        'content' => '',
+        'hooks'   => [],
+        'error'   => 'max depth exceeded'
+    };
+}
+
+## load template by name if needed ##
+my $tpl_name;
+if ( not ref $template ) {
+    $tpl_name = $template;
+
+    ## cycle detection ##
+    if ( $seen->{$tpl_name} ) {
+        <[base.logs]>->(
+            0, ': template resolve: cycle detected [ %s ]', $tpl_name
+        );
+        return { 'content' => '', 'hooks' => [], 'error' => 'cycle' };
+    }
+    $seen->{$tpl_name} = 1;
+
+    $template = <[context.template.load]>->($tpl_name);
+    unless ( defined $template ) {
+        return {
+            'content' => '',
+            'hooks'   => [],
+            'error'   => "template not found: $tpl_name"
+        };
+    }
+}
+
+my $total_budget = $budget // $template->{'budget'}
+    // <context.cfg.default_budget>;
+
+## sort sections by priority ##
+my @sections
+    = sort { ( $a->{'priority'} // 99 ) <=> ( $b->{'priority'} // 99 ) }
+    $template->{'sections'}->@*;
+
+## collect rendered sections and hooks ##
+my @rendered;
+my @hooks;
+my $total_used = 0;
+
+foreach my $section (@sections) {
+    my $optional   = $section->{'optional'}   // 0;
+    my $budget_pct = $section->{'budget_pct'} // 20;
+
+    ## evaluate when condition ##
+    if ( defined $section->{'when'} ) {
+        next
+            unless <[context.util.template.evaluate_when]>->(
+            $section->{'when'}, $vars, $context
+            );
+    }
+
+    ## calculate section budget ##
+    my $section_budget = int( $total_budget * $budget_pct / 100 );
+
+    ## remaining budget cap ##
+    my $remaining = $total_budget - $total_used;
+    $section_budget = $remaining if $section_budget > $remaining;
+    next if $section_budget <= 0;
+
+    my $result;
+
+    ## static content : inline text ##
+    if ( defined $section->{'static'} ) {
+        $result = $section->{'static'};
+        ## substitute template variables ##
+        $result =~ s|\{\{(\w[\w.]*)\}\}|
+            defined $vars->{$1} ? $vars->{$1} : ''
+        |ge;
+
+        ## include : recursive template resolution ##
+    } elsif ( defined $section->{'include'} ) {
+        my $inc_name = $section->{'include'};
+        ## substitute variables in include name ##
+        $inc_name =~ s|\{\{(\w[\w.]*)\}\}|
+            defined $vars->{$1} ? $vars->{$1} : ''
+        |ge;
+
+        my $inc_result = <[context.template.resolve]>->(
+            {   'template' => $inc_name,
+                'vars'     => $vars,
+                'context'  => $context,
+                'budget'   => $section_budget,
+                '_depth'   => $depth + 1,
+                '_seen'    => { $seen->%* },
+            }
+        );
+
+        $result = $inc_result->{'content'};
+        push @hooks, $inc_result->{'hooks'}->@* if $inc_result->{'hooks'};
+
+        ## summarize : stub for phase 3 ##
+    } elsif ( defined $section->{'summarize'} ) {
+        ## phase 3: async inference to summarize content  for now, fall ##
+        ## through to provider if available                             ##
+        my $provider = $section->{'summarize'};
+        if ( exists $code{$provider} ) {
+            my %prov_params = %{ $section->{'params'} // {} };
+            $prov_params{'budget'} = $section_budget;
+            <[context.util.template.substitute_vars]>->(
+                \%prov_params, $vars
+            );
+            eval { $result = $code{$provider}->( \%prov_params ) };
+        }
+
+        ## provider -- call a module ##
+    } elsif ( defined $section->{'provider'} ) {
+        my $provider = $section->{'provider'};
+        if ( exists $code{$provider} ) {
+            my %prov_params = %{ $section->{'params'} // {} };
+            $prov_params{'budget'} = $section_budget;
+            <[context.util.template.substitute_vars]>->(
+                \%prov_params, $vars
+            );
+            eval { $result = $code{$provider}->( \%prov_params ) };
+            if ($EVAL_ERROR) {
+                <[base.logs]>->(
+                    0, ': template resolve: provider error [ %s ]: %s',
+                    $provider, $EVAL_ERROR
+                );
+                next if $optional;
+                $result = "<!-- error: $provider -->";
+            }
+        } else {
+            <[base.logs]>->(
+                2, ': template resolve: provider not loaded [ %s ]',
+                $provider
+            );
+            next if $optional;
+        }
+    } else {
+        next;
+    }
+
+    next unless defined $result and length $result;
+
+    ## budget-aware truncation ##
+    my $char_budget = $section_budget * <context.cfg.chars_per_token>;
+    if ( length($result) > $char_budget ) {
+        $result = substr( $result, 0, $char_budget );
+        $result =~ s|[^\n]*$||s;    ## trim to last complete line ##
+        $result .= "\n.:[ truncated ]:.\n";
+    }
+
+    ## add section label if specified ##
+    if ( $section->{'label'} ) {
+        $result = "## $section->{'label'} ##\n$result";
+    }
+
+    push @rendered, $result;
+    $total_used += length $result;
+
+    ## collect on_complete hooks ##
+    if ( $section->{'on_complete'} ) {
+        push @hooks,
+            {
+            'source'  => $tpl_name           // 'inline',
+            'section' => $section->{'label'} // $section->{'provider'}
+                // $section->{'include'} // '?',
+            $section->{'on_complete'}->%*,
+            };
+    }
+}
+
+my $output = join "\n\n", @rendered;
+
+<[base.logs]>->(
+    2,
+    ': template resolve: %s [ %d sections, %d chars, depth=%d ]',
+    $tpl_name // 'inline',
+    scalar @rendered,
+    length($output), $depth
+);
+
+return {
+    'content' => $output,
+    'hooks'   => \@hooks,
+    'budget'  => $total_budget,
+    'used'    => $total_used,
+    'depth'   => $depth,
+};
+
+# SPDX-License-Identifier: ISC
+
+#,,..,,,.,.,.,.,.,...,.,,,,,,,...,,,.,,.,,,.,,..,,...,...,.,,,,,.,,,,,,.,,,,,,
+#OQNOFEMAWD753VF7EVD7ZC7WWGSWCE5PPWOEKAHOONATRQXI6ZKOLQAQQLWFYNYAX3PB3ANDDJ3RK
+#\\\|FYSDJV2QK3H6OTFDC3SJS36C24RMH5ME5BXKZ4LMREPBZIN5SZH \ / AMOS7 \ YOURUM ::
+#\[7]VJPF6OA3U3R44ROYJ5X4USGIUS3T2ZXFCUNDCUNP67EDUAD5FMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

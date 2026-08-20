@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = memory.cmd.summarize
+# descr = manually trigger memory tree summarize wave
+
+return { 'mode' => 'size', 'data' => "memory tree not ready\n" }
+    if not <memory.ready>;
+
+my $queued = eval {<[memory.tree.summarize.wave]>};
+my $err    = <[base.str.eval_error]>;
+
+if ($err) {
+    <[base.logs]>->( 0, 'memory.cmd.summarize failed: %s', $err );
+    return { 'mode' => 'size', 'data' => "summarize wave failed: $err\n" };
+}
+
+my $output = sprintf "summarize wave queued %d nodes for summarization\n",
+    $queued // 0;
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,..,.,.,,.,,..,,,,,,,,,,...,.,,,,,.,,,,,,..,..,,...,...,,.,,,.,,,,.,.,,,,,.,
+#GYPNTX2EQAJ6MU3GPJ3GOAWCQ6EMJMAKMCO3YCU5XM33BVY6FEHRDWDKWFPOBQ52EIZROHGASIB5W
+#\\\|REQXZUBXWZDA6DLIMSWNYWNWXGEWUAXGXDT2BKGUOFXTDAP533S \ / AMOS7 \ YOURUM ::
+#\[7]2PDQFWWQ67Q77KVIMVNYLI26TBSUE3AAX3SVBFQ7TO2NKQTRT6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

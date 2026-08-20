@@ -9,7 +9,7 @@ The SSH zenka code is functional but shows its age (originally written 2015, del
 ## Critical Issues (Fix Before Production)
 
 ### 1. **Missing Error Handling in ssh.handler.nailara_io**
-**File:** `modules/ssh.handler.nailara_io` (lines 24-28)
+**File:** `src/ssh.handler.nailara_io` (lines 24-28)
 
 ```perl
 my $bytes = $channel->write($buffer);
@@ -32,7 +32,7 @@ if ( not defined $written or $written != length($buffer) ) {
 ```
 
 ### 2. **Resource Leak on Partial Cleanup in ssh.connection.stop**
-**File:** `modules/ssh.connection.stop` (lines 16-30)
+**File:** `src/ssh.connection.stop` (lines 16-30)
 
 **Problem:** The cleanup sequence doesn't verify resources exist before operating on them:
 - `$connection->{'io'}->{$type}->cancel` - doesn't check if watcher exists
@@ -46,7 +46,7 @@ $connection->{'io'}->{$type}->cancel
 ```
 
 ### 3. **Typo in Log Message - "hearbeat"**
-**File:** `modules/ssh.handler.heartbeat_response` (line 26)
+**File:** `src/ssh.handler.heartbeat_response` (line 26)
 
 ```perl
 <[base.log]>->( 0, "hearbeat reply timeout for link '$link_name'. [ $msg ]" );
@@ -69,7 +69,7 @@ Should be "heartbeat" (missing 't').
 ```
 
 ### 5. **Potential Race Condition in ssh.connection.start**
-**File:** `modules/ssh.connection.start` (line 197)
+**File:** `src/ssh.connection.start` (line 197)
 
 ```perl
 $connection->{'io'}->{'ssh'}->now;    # quickfix!
@@ -109,7 +109,7 @@ my $profile_name = $call->{'args'}; # CORRECT
 `$$call` dereferences a scalar reference, but `$call` is already a hashref.
 
 ### 8. **Incorrect POD/Description in ssh.handler.ssh_io**
-**File:** `modules/ssh.handler.ssh_io` (line 4)
+**File:** `src/ssh.handler.ssh_io` (line 4)
 
 ```perl
 # descr = reads and processes output from mpv control pipe
@@ -121,7 +121,7 @@ This is copy-paste from mpv zenka! Should be:
 ```
 
 ### 9. **Missing `return` on die in ssh.connection.start**
-**File:** `modules/ssh.connection.start`
+**File:** `src/ssh.connection.start`
 
 After `die`, the code continues with `goto error`. While not technically wrong, it's inconsistent with Protocol-7 error handling patterns.
 
@@ -130,7 +130,7 @@ After `die`, the code continues with `goto error`. While not technically wrong, 
 ## Performance & Optimization Issues
 
 ### 10. **Inefficient Buffer Handling in ssh.handler.ssh_io**
-**File:** `modules/ssh.handler.ssh_io` (lines 29-36)
+**File:** `src/ssh.handler.ssh_io` (lines 29-36)
 
 ```perl
 my $buffer;
@@ -163,7 +163,7 @@ if ( $bytes ) {
 ```
 
 ### 11. **No Connection Limit in ssh.enable_profile**
-**File:** `modules/ssh.enable_profile` (lines 13-15)
+**File:** `src/ssh.enable_profile` (lines 13-15)
 
 ```perl
 foreach my $link_name ( keys %{$profile_data} ) {
@@ -176,7 +176,7 @@ foreach my $link_name ( keys %{$profile_data} ) {
 **Recommendation:** Add rate limiting or concurrent connection limit.
 
 ### 12. **Inefficient Heartbeat Cleanup**
-**File:** `modules/ssh.connection.stop` (lines 39-44)
+**File:** `src/ssh.connection.stop` (lines 39-44)
 
 ```perl
 if ( exists <ssh.heartbeat_request>->{$con_id} ) {
@@ -210,7 +210,7 @@ These have comments like `# LLL: --> config..,` indicating they were meant to be
 ## Security Concerns
 
 ### 14. **SSH Key File Permissions Not Validated**
-**File:** `modules/ssh.connection.start` (lines 132-143)
+**File:** `src/ssh.connection.start` (lines 132-143)
 
 The code checks if key files are readable but doesn't validate permissions (e.g., private key should be 0600).
 
@@ -224,7 +224,7 @@ if ( $mode & 0077 ) {
 ```
 
 ### 15. **Password in Memory**
-**File:** `modules/ssh.handler.ssh_io` (line 44)
+**File:** `src/ssh.handler.ssh_io` (line 44)
 
 ```perl
 $channel->write("auth $remote_user $remote_pass\n");
@@ -239,13 +239,13 @@ The password is sent over the channel. While encrypted by SSH, it would be bette
 ## Minor Issues
 
 ### 16. **Inconsistent Variable Naming**
-**File:** `modules/ssh.connection.start`
+**File:** `src/ssh.connection.start`
 
 - `$ssh_keyfile` vs `$ssh_privkey` (same thing, different names)
 - `$nch` for channel (unclear abbreviation)
 
 ### 17. **Commented Debug Code**
-**File:** `modules/ssh.handler.heartbeat_response` (line 38)
+**File:** `src/ssh.handler.heartbeat_response` (line 38)
 
 ```perl
 #   print "[$link_name] link latency : ${latency}ms\n";
@@ -254,7 +254,7 @@ The password is sent over the channel. While encrypted by SSH, it would be bette
 Remove or convert to proper logging.
 
 ### 18. **Unused Variables**
-**File:** `modules/ssh.init_code` (line 20)
+**File:** `src/ssh.init_code` (line 20)
 
 ```perl
 # LLL: table alignment currently broken
@@ -263,7 +263,7 @@ Remove or convert to proper logging.
 This comment suggests known broken functionality. Either fix or document as limitation.
 
 ### 19. **Inconsistent Return Values**
-**File:** `modules/ssh.connection.start`
+**File:** `src/ssh.connection.start`
 
 - Returns `1` on success (line 209)
 - Returns `0` on error (via `goto error` at line 230)
@@ -336,8 +336,8 @@ All critical and high-priority issues have been addressed:
 
 The SSH zenka now starts cleanly and maintains its robust connection recovery behavior that was refined over years of laptop sleep/wake cycle testing. The fixes bring the 11-year-old codebase into better alignment with modern Protocol-7 conventions.
 
-#,,,,,,,.,...,,,,,..,,..,,,,.,..,,,,.,,.,,..,,.,.,...,...,,..,,,.,,,,,...,.,,,
-#7IDSLD72JVMJAYSA5G4WSA5JYDZLSQZDV5H5HCD5GX36OQIICEMORC63WEJRF5IZWBWXJIJW5434U
-#\\\|XO2EWJCFXY5E2LOYX3KDSYYTDZPXPLNESVTHCTJCRCPYWPLCZYA \ / AMOS7 \ YOURUM ::
-#\[7]AXOMDOU57BS7TVKYDXZK7KXPW3552E5TV2H7TSA3YGQF6KYB3GBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,.,.,...,,..,,.,,,..,,,,,...,.,.,...,...,.,.,.,,,.,.,...,.,.,
+#FOUPEV6NYICAMIE4ITLFCB2NGANJN2W2WNYJFFTJ4HT3DOBF6CYDJ6FVNSN4HZRL5K7NXXBIB6GV2
+#\\\|EO6LKJH2Q5XLPKT54RNEPFC5UGTFGVL4XLH4UX26QYY4O7HEIWW \ / AMOS7 \ YOURUM ::
+#\[7]YIXYDS252M3IKIGV43E7Z26DXVSH3DRDETVIZTEXHATK63BLTEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

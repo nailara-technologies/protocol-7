@@ -89,9 +89,9 @@ Successfully designed and implemented a complete **Trust-On-First-Use (TOFU) aut
 ### Configuration Changes
 - `cfg/zenki/v7/start`: Dual binary compilation setup
 - `cfg/shared-params`: `protocol-7.remote.default-port = 42`
-- `modules/v7.init_code`: Independent p7c/p7r initialization
-- `modules/keys.console.list`: [hostkey] display extension
-- `modules/base.list.subroutines`: Module reference updates
+- `src/v7.init_code`: Independent p7c/p7r initialization
+- `src/keys.console.list`: [hostkey] display extension
+- `src/base.list.subroutines`: Module reference updates
 
 ### Documentation
 - `TOFU_TESTING_PLAN.md`: Complete testing phases 6-9
@@ -131,7 +131,7 @@ Successfully designed and implemented a complete **Trust-On-First-Use (TOFU) aut
 
 ⚠️ **Placeholder Stripping Mechanism** (Blocked, documented for future)
 - Double signature footers appear on module re-signing
-- Test case: `modules/crypt.C25519.validate_remote_key_checksum`
+- Test case: `src/crypt.C25519.validate_remote_key_checksum`
 - Fix required: Pattern recognition for `#,,,` placeholder lines
 - Does not block TOFU testing/deployment
 
@@ -164,8 +164,8 @@ Comprehensive implementation of enterprise-grade remote auth system with securit
 **Status**: ✓ Implementation complete, testing phase ready to begin
 **Next Action**: Start Phase 6 local TOFU testing
 
-#,,..,,.,,,..,...,,.,,,..,,.,,,,,,,.,,,,.,,.,,..,,...,...,.,,,..,,,,.,,,,,,,,,
-#PNDVNPM5P6WUOJWRW3EENN3BVUP2MVQMFRPQ3NZZS65O7UJM3S2JGJF5PCWNPUZCIVGUXEFPF6HDG
-#\\\|OLNBAFIK4ZETHNKD3XQX3UVWVTX7ZT4TWMHI7XKA4RG5EVHQIQX \ / AMOS7 \ YOURUM ::
-#\[7]2JF6BCXPPHJLUE5BBKWDOZL3W3OFZWBCFLZSNZJVIBZQUT2RGSBQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,.,.,...,,,,,..,,,,,,,..,...,..,,...,...,...,,,,,.,.,,.,,.,.,
+#3DDP2HTTUDPTDEIGSVAVWTZJIUORMDB3VS65JIDRHOB5CWGW6JLQFP5U2TTXCPNNDSQ6UESXTYCNA
+#\\\|WMEGPAMD6ROH4I74NF2RHXRSYNNQIWF7VHB3AXNNFD2NPJDETM7 \ / AMOS7 \ YOURUM ::
+#\[7]AFNGJ3EMKKV5GC3H6OUI7NZAHCUTGHXCGISSLRM5IGCFU55OE4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

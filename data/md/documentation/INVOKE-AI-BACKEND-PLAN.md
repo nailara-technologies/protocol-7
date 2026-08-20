@@ -191,7 +191,7 @@ invoke:
 ### New Files
 
 ```
-modules/
+src/
 ├── models.backend.invoke.generate    # Main generation backend
 ├── models.handler.invoke_result      # Result handler
 ├── models.callback.invoke_analyze    # Feedback loop callback
@@ -327,8 +327,8 @@ Ready to start Phase 1 when you are! 🎨
 
 ---
 
-#,,,,,.,.,..,,...,,.,,.,.,...,,..,.,,,,,,,.,,,.,.,...,...,...,.,.,,.,,.,.,...,
-#6KJRK6CZGGQCIFKEHBOYYLXL4DNJBCRQQ5RHDM2YCOUWZOCXPQS4LR3VGDR5U4SEPTPUAW5RTKD2U
-#\\\|2LHMNSAOT5CR67XEPH7ZYWEGJINP2RE7ORNM54KJZU6DVUJNK2V \ / AMOS7 \ YOURUM ::
-#\[7]KPUATJXKXEWCYM5LUUO5BDKHUGFUSNU34VOCN7MJ67UG5NQVOODI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,,,,,,..,..,,...,.,,,...,.,.,.,.,...,...,...,..,,.,.,.,,,.,,,
+#GU765VDGNYF65BGF3FMRRDS2EYFZUYACSQYMAWW47Q7UQ52U65WWQ3SVYQV5HK4AVR4GDOXOARM4O
+#\\\|56LYEU6ZIVSTLXH3GN64A5O3YBNPVMNIQWJVPJNNDCUB6BP4NDQ \ / AMOS7 \ YOURUM ::
+#\[7]TZPWXI7XVBVLBWU6E5NY6FRFTMRVF3JSDGJSZJQZM6MGSGQYNODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

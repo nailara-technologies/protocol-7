@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = coding.tools.handler.file_rename
+# descr = rename or move a file within the project
+
+my $args = shift // {};
+
+my $source = $args->{'source'} // '';
+my $target = $args->{'target'} // '';
+
+return { 'content' => 'source and target paths required' }
+    unless length $source && length $target;
+
+my $root      = <system.root_path>;
+my $real_root = Cwd::abs_path($root) // '';
+
+## resolve source ##
+my $src_abs  = "$root/$source";
+my $src_real = Cwd::abs_path($src_abs) // '';
+
+return { 'content' => 'error: source path escapes project root' }
+    if !length $src_real
+    or index( $src_real, "$real_root/" ) != 0;
+
+return { 'content' => "error: source not found: $source" }
+    unless -e $src_real;
+
+## resolve target ##
+my $tgt_abs = "$root/$target";
+
+## auto-prefix src/ for dot-notation without directory ##
+if ( $target !~ m|/| and $target =~ m|\.\w+\.| ) {
+    $target  = "src/$target";
+    $tgt_abs = "$root/$target";
+}
+
+## validate target parent dir stays within project ##
+my $tgt_dir      = $tgt_abs =~ s|/[^/]+$||r;
+my $tgt_dir_real = Cwd::abs_path($tgt_dir) // '';
+
+return { 'content' => 'error: target path escapes project root' }
+    if !length $tgt_dir_real
+    or index( $tgt_dir_real, "$real_root/" ) != 0
+    or $target =~ m|\.\./|;
+
+return { 'content' => "error: target already exists: $target" }
+    if -e $tgt_abs;
+
+return { 'content' => "error: target directory not found" }
+    unless -d $tgt_dir;
+
+## rename needs write on both source and target directories ##
+my $src_dir = $src_real =~ s|/[^/]+$||r;
+
+## use chmod child for directory permissions ##
+my $chmod_fh = <coding.chmod_child.w_fh>;
+my @restore;
+
+if ( defined $chmod_fh ) {
+    for my $dir ( $src_dir, $tgt_dir ) {
+        next if -w $dir;
+        my $mode = ( stat $dir )[2] // 0755;
+        $mode &= 07777;
+        print {$chmod_fh} "gwd $dir\n";
+        <[coding.chmod_child.readline]>;    ## wait for gwd to complete ##
+        push @restore, [ $mode, $dir ];
+    }
+}
+
+my $ok  = rename( $src_real, $tgt_abs );
+my $err = <[base.str.os_err]>;
+
+## restore directory permissions ##
+for my $r (@restore) {
+    print {$chmod_fh} sprintf "restore %04o %s\n", $r->[0], $r->[1];
+    <[coding.chmod_child.readline]>;    ## consume restore reply ##
+}
+
+if ($ok) {
+    <[base.logs]>->( 1, ':. file_rename: %s -> %s', $source, $target );
+    return { 'content' => "renamed $source -> $target" };
+}
+
+<[base.logs]>->(
+    0, ':. file_rename: failed %s -> %s : %s',
+    $source, $target, $err
+);
+
+return { 'content' => "error: rename failed: $err" };
+
+#,,..,..,,,,.,.,.,,,.,,.,,,.,,..,,..,,,.,,,.,,.,.,...,...,...,,,,,.,,,,..,..,,
+#66NGT2TQZLN3QKS26UELJU5AKAVBMZPEWWTDUBYXBGBQYCETQC45W7O3X4ACF6WLIRXYNPBPYTWF4
+#\\\|QXKIFLRMIJPZUMUD4MTOZJHCPSMPMRF3UYJHG43BPNB2TWQLSLE \ / AMOS7 \ YOURUM ::
+#\[7]BFFFMOYZKYYDZ7WQWQ7FVL7X2XBOFSVE7F5YIMOADD452QJS7YBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

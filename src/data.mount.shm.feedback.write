@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = data.mount.shm.feedback.write
+# descr = Write the reader's progress into the feedback region
+
+# thin zenka wrapper -> AMOS7::SHM::Feedback::write_feedback
+# injects the real <[base.ntime]> [ no parameter, harmony-validated ] as the
+# time_source. the standalone core falls back to the bare arithmetic if no
+# time_source is supplied; that asymmetry is documented in AMOS7::SHM::Feedback.
+
+my ( $mount, $last_page_read ) = @ARG;
+my $options = $ARG[2] // {};
+
+## zenka path : real network time through p7_ntime's harmony-retry loop ##
+$options->{'time_source'} //= sub {<[base.ntime]>};
+
+return AMOS7::SHM::Feedback::write_feedback( $mount, $last_page_read,
+    $options );
+
+#,,..,...,,,.,...,,,.,..,,,..,.,.,,..,.,.,.,.,..,,...,..,,..,,...,,.,,.,,,.,,,
+#LKU2LWSDBTLKH7H5WDGTY46CD6BP6NGF4VAUU7VLDVS7PITMDJRZS7ZE66LV2V7PX7FWKGJS76ECY
+#\\\|K76UPJ7SAB2G7AM6UU5PXXNXRZ7TMZMCB236WL5E7FU4EXI3JPZ \ / AMOS7 \ YOURUM ::
+#\[7]5HBPNSSBZQPOBU4ZIAYKOAMGB3HLSFALYE2D3PNQ2OTGQI7BTKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

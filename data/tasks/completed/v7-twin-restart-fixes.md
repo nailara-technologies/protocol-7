@@ -111,9 +111,9 @@ If not present, add it between the failure log and the stop call.
 
 ### key files
 
-- `modules/v7.zenka.cmd.restart` — bugs 1 + 2
-- `modules/v7.handler.zenka_status` — bug 3 (verify/apply)
-- `modules/v7.zenka.start` — READ ONLY; do not modify
+- `src/v7.zenka.cmd.restart` — bugs 1 + 2
+- `src/v7.handler.zenka_status` — bug 3 (verify/apply)
+- `src/v7.zenka.start` — READ ONLY; do not modify
 
 ### signatures note
 
@@ -121,8 +121,8 @@ do not modify the 4-line checksum footer. module format: `## [:< ##` header,
 no `sub {}` wrappers. `<[module.name]>->()` invocation; `<data.key>` for tree.
 `$ARG` is loop variable; `@ARG` is args array.
 
-#,,.,,,.,,...,.,.,..,,.,.,,..,,,,,..,,,,.,..,,..,,...,...,.,,,,,.,..,,..,,..,,
-#5GH25X2X7UFIM6PHBA4XEC6ZEUMPRDGS6UBIWRRGFWANNIKDCVPHSPR4PJ4BCX4KKV6B4CBHPQCGM
-#\\\|MRXBYGDJBXAZNNPPAMZO5MY4OJOTASZGYEU2GJIH35N3B5QFJVD \ / AMOS7 \ YOURUM ::
-#\[7]ASKHC4HHLCNMR6HB6SOMMBBHQZBJSK27LY23TRDOUWEOBZILA4DA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,,,..,,...,...,.,.,,,.,.,.,,,.,..,,...,.,.,...,...,,..,..,,.,.,
+#5RGM6UMY4NZJR6KIZUC7NJO6EDJ5W53FFGUVSF6AKTEN4RBYMFSFCR6C65NWZASS6M2PEOWF6XJ7W
+#\\\|BOVFRBURJMSQE7D3ISYZPP7XUWAUZVR3XWLR7L3DL6NWMNFNGRB \ / AMOS7 \ YOURUM ::
+#\[7]TKZCG42EOMMZTYCKGXBN2LVPJQUMS2REONQSHOWDRD7OVIN4DWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

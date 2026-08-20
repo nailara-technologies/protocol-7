@@ -19,7 +19,7 @@ the signature block begins with a line matching `^#,,`.
 
 ## modules to create
 
-### `modules/index.address`
+### `src/index.address`
 
 ```
 ## [:< ##
@@ -39,7 +39,7 @@ my $addr = <index.addr>->{$ARG};
 return $addr;    ## undef if not found ##
 ```
 
-### `modules/index.decode`
+### `src/index.decode`
 
 ```
 ## [:< ##
@@ -58,7 +58,7 @@ my $token = <index.rank>->{$ARG};
 return $token;
 ```
 
-### `modules/index.stats`
+### `src/index.stats`
 
 ```
 ## [:< ##
@@ -119,8 +119,8 @@ format per standard list reply convention.
 - [ ] no stub signatures
 - [ ] all modules pass ptd
 
-#,,,,,..,,..,,,..,.,.,.,.,,.,,.,.,.,.,,..,,,,,..,,...,...,,.,,,,,,,..,.,.,,.,,
-#66LFCFYDHMNN7D7IDHIYSDRM7YJYCLCF2HSL3VWO7XYPRUWWKGACMH6AXJMZON3TDZ2ZWDBOIQTMK
-#\\\|FMUBMLQFPRHBIA2GIGCRFWASO6I5I3OMIS2O4NUU43JXYE62NAN \ / AMOS7 \ YOURUM ::
-#\[7]J4FPNZA3VI4EZQMOWCMNRWKI6J2QCQKVRDJ73SHACI566EHM5ODY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,.,,,.,,,,.,,,,,,.,,,,..,,,.,..,,...,...,...,,,,,.,,,.,.,,,.,
+#WNTPRYWKRYI6Q7UNQUSRAIFRDOQELRUBKFBLV73Y7NSHB7YWSGUIVYPCOBEZJTRYWLMOVK3KWE64I
+#\\\|K7HTQ6QJUQ6YURS5NX4TE5G6L3T4RDE7DKFISML3AT3S45IF4Y2 \ / AMOS7 \ YOURUM ::
+#\[7]3IV6KP2KZ5JL3LWMZ7V333BGWHHZ7GGONGWEVAWYW624YXP4JICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

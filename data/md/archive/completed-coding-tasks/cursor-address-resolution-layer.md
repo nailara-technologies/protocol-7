@@ -47,12 +47,12 @@ After wiring:
 
 - signatures_note: do not add stub signature lines to new files; leave clean for signing system
 - the graphics-matrix zenka cmd.cursor already handles `set <x> <y> <z>` — verify this
-  by checking modules/graphics-matrix.cmd.cursor before writing the POST handler
+  by checking src/graphics-matrix.cmd.cursor before writing the POST handler
 - keep the POST handler lightweight — no auth needed for local loopback vhost
 - debounce is important: arrow key held down fires many moveSelection calls per second
 
-#,,..,...,.,,,.,,,,..,,,.,,,.,,..,...,.,.,,,.,..,,...,...,,.,,...,,..,...,.,.,
-#D4HZV362CHXOA564VLVW5IOJLRQTI7UXVHP3BF7SVTEIRQXVUIQ4F7YHI5WIWIBX6CZGIAH4IRGYS
-#\\\|JPUIUTU6TTGM2B26P7SFDYRRH74D7LOE53TL5CKM7ZX3B5E7RHD \ / AMOS7 \ YOURUM ::
-#\[7]WTHF5JRL6IL737C2PFJ4QKE3QF77FUUUXN6DHVJMXLIP7ZK4XMAY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,...,,,.,.,.,,,.,,,.,,,.,..,,..,,...,...,.,,,,..,,,,,,..,..,,
+#HZMLAMIB5GIIKGKUEPDPTXGLKXQLR7THB5JW5NDDBWNSGLJ5IGAS7J7KIJRW3UMQGBW67HVUMD4B4
+#\\\|Q4NAMH7UIZ4XVQQJ5O2MYC67DRWCN6MBHCAGBZT2D7RZVY3QT6V \ / AMOS7 \ YOURUM ::
+#\[7]O7KEVUR24GAZH7B5SHLSIDXNQB5JDW7MUZAPSDOIMFJPIB245QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

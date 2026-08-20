@@ -27,8 +27,8 @@ A key feature for design sessions — reference file content directly in message
 
 ```
 [::file:: 'data/md/coding-tasks/indexcube-routing-stack.md' ]
-[::code:: 'modules/base.parser.decode_harmonized_refstr'    ]
-[::tail:: 'modules/source.init_code' 60                     ]
+[::code:: 'src/base.parser.decode_harmonized_refstr'    ]
+[::tail:: 'src/source.init_code' 60                     ]
 ```
 
 Expansion happens before the message is sent to models — they receive the
@@ -125,15 +125,15 @@ Before the design chat layer can be built reliably:
 
 ```
 bin/models-chat                         ## new: interactive design chat shell
-modules/models.chat.design_session      ## session state management
-modules/models.chat.expand_inline_refs  ## [::file::] expansion
-modules/models.chat.export_task         ## /task → coding task .md
+src/models.chat.design_session      ## session state management
+src/models.chat.expand_inline_refs  ## [::file::] expansion
+src/models.chat.export_task         ## /task → coding task .md
 ```
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,.,,,,,,.,,,..,,,,,,..,,...,..,,.,.,,.,,,.,,..,,...,...,..,,.,,,.,,,.,.,,..,
-#SJ5WEVUU4EEIXBJH76YRHZFW6IS5AAVJFVHDMYMRN2L43FZ2ILDGPMLLIM2N3JOKXC223EWLTQPM2
-#\\\|A5KYWEUL7TXVUFECGBOU4DC536TO3OY5P6ERPLWBDBPNARTWVAQ \ / AMOS7 \ YOURUM ::
-#\[7]SNQ3UUQCIWBR4ISTMJY7TFKXOCYGD2MFELXR65Y5ZQ5SLE5VWOAA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,...,.,.,,,.,...,,,.,,..,,..,..,,...,...,,..,...,,..,,,.,,,,,
+#4FO7QTUQZYDD4FW6F7U2UN4ZMU7NCRWMQRTDFV77DUSRGI7DYFNUI7DJ2FTBDJIPYLA5QJ35UB4QM
+#\\\|HNA53FFI2C5ZSC2B4V5PRSP3BXUFDPEOHK5QTXHSJFEHYA2JZ5N \ / AMOS7 \ YOURUM ::
+#\[7]DZR2RQWLEHGMZKWMFB5GAN5ZIFBFVHZ6EMXRVZPFLQXUBUKC2YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

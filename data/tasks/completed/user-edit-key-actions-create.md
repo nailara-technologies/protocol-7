@@ -40,10 +40,10 @@ mechanical.
 
 ## THE #1 RISK -- read this before calling anything in `keys.console.*`
 
-`modules/base.exit`'s last line is `CORE::exit($exit_code)`. It ends the
+`src/base.exit`'s last line is `CORE::exit($exit_code)`. It ends the
 WHOLE PROCESS, not just the current command or console call.
 
-`modules/keys.console.create` calls `<[base.exit]>->(...)` on **every**
+`src/keys.console.create` calls `<[base.exit]>->(...)` on **every**
 guard failure: empty name, invalid keyname
 (`crypt.C25519.validate_keyname`), key already exists
 (`crypt.C25519.key_exists`), missing `Crypt::Mode::CBC`, an empty or
@@ -79,7 +79,7 @@ common guards are covered" as "the risk is handled."
 Two existing pieces of precedent, neither of which alone covers what this
 task needs:
 
-1. **`modules/user-edit.offer_create`** and **`modules/user-edit.handler.
+1. **`src/user-edit.offer_create`** and **`src/user-edit.handler.
    value_get_reply`** -- read both in full. This is the only existing
    "leave the event loop, run something blocking on the terminal, come
    back" shape in this codebase. It works because `Event::unloop()`
@@ -90,14 +90,14 @@ task needs:
    supported (`Event.pm` resets `$TopResult` specifically to allow it;
    `base.zenka.loop`'s init-done guard is already satisfied on a second
    call).
-2. **`modules/user-edit.term_init`** and **`modules/user-edit.
+2. **`src/user-edit.term_init`** and **`src/user-edit.
    term_restore`** -- toggle the terminal between raw/non-blocking (form
    input) and normal (blocking reads) mode. `term_init` is already safe to
    call more than once (no-ops if already raw, via its `<user-edit.term.
    orig_termios>` guard). `term_restore` always restores fully and clears
    `O_NONBLOCK`.
 
-**The gap you have to close**: `modules/user-edit.console.start`'s own
+**The gap you have to close**: `src/user-edit.console.start`'s own
 `<[base.zenka.loop]>;` call today only expects ONE kind of unloop-and-
 resume (the bootstrap create-offer) and falls straight through to `return
 <[user-edit.offer_create]>->(...)` right after it. A mid-session key-create
@@ -324,8 +324,8 @@ excursion check (item 1) actually showed, and on which of the two resume
 sites you ended up exercising in testing -- both are exactly the kind of
 non-obvious, load-bearing findings future work in this area will need.
 
-#,,..,...,,.,,,..,.,,,.,.,.,.,,..,.,.,.,.,..,,..,,...,...,..,,,,,,,,.,...,...,
-#CYSHU2MSGSIFU2Q5QAYCJTWYRS62LYKLEVCP4NLC77EZDWV3MT4A5UTVLE5HV3RT6R7R3THQGZO6A
-#\\\|3GATJY4KGWWOTB4RSH2MLKJWNK6INNV27LFBN3SD7EOCM6HJAJJ \ / AMOS7 \ YOURUM ::
-#\[7]VX5IXU5PM3NWZREJV5NTN43UQM3N6AUOEF6ATDZFXQ4WMQ7BNCCY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,.,,,,,.,,,,.,,.,.,...,..,,,,.,..,,...,..,,...,,.,,,.,,.,.,..,,
+#2PD6QY6BQAKY4U2OGT5FGUP5VLP4QRGTSGVU2LAE6UJ4Y6TMHMRH6QD4KANNA7RSL32AMJPLXMLVQ
+#\\\|G6RNRIYZX25E3Y37FCBD6H6BNXLDVTQED64LWAT343X43NPPFRC \ / AMOS7 \ YOURUM ::
+#\[7]OOYWKGU2BKJJVHSNWBABIJDX2IK7KQR5D6UXGA6HGHPHDURVMKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

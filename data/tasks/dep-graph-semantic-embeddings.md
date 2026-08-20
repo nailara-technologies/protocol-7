@@ -11,13 +11,13 @@ greenfield: nothing currently combines the module dependency graph with
 embeddings. the .asc adjacency list is already in word-neighbor format
 (`source : callee ...`), module names are dot-separated semantic trees
 (`base.utf8.clean_str`), and each module name IS its filepath under
-modules/ — no registry, no lookup table. training an embedding model on
+src/ — no registry, no lookup table. training an embedding model on
 the dep-graph gives the coding zenka semantic navigation: query neighbors
 → convert to filepaths → parallel-load only relevant modules instead of
 blind recursive file discovery.
 
 existing adjacent capability: coding zenka already has module_deps /
-dep_graph tools (modules/coding.tools.definitions) — those give exact
+dep_graph tools (src/coding.tools.definitions) — those give exact
 adjacency; embeddings add ranked semantic NEIGHBORHOODS and cross-module
 pattern discovery.
 
@@ -53,7 +53,7 @@ cluster with the other resolve_* and classify_* modules. record results.
 ## dispatch + prompt
 new module coding.context.semantic-load: given a target module name,
 query the dep-graph embedding for N nearest neighbors, convert names
-directly to modules/<name> filepaths, parallel-load contents, return a
+directly to src/<name> filepaths, parallel-load contents, return a
 context bundle (primary, neighbors, bytes). expose as a coding zenka
 tool alongside module_deps — model decides when semantic neighborhood
 beats exact adjacency.
@@ -102,8 +102,8 @@ channel. embedding-space diff = visible code-structure momentum.
   direct callees are weak [ hub-node effect, documented ]
 - full results: data/md/documentation/DEPGRAPH-EMBEDDING-PHASE1-RESULTS.md
 
-#,,,,,.,.,,..,,.,,...,.,.,,,,,...,,.,,,.,,..,,..,,...,...,.,,,.,.,..,,,,,,,,.,
-#33SQ6376BA4GJHRSTG6GTMRUHLTDJSTNMSVW5P7K6PG3ICOQP3WALER6O6SEOU6HMA35Z6UN7O5CM
-#\\\|NLEQMA7QDAKOOWKP4Z3PLAHWPBD3ON65WPPULLTYG7HZ2LBJATM \ / AMOS7 \ YOURUM ::
-#\[7]GAEYDFFFZQKTN47HOOF7UDPP4632BGTEBCB2JIUMHEPC5IXVQUBQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,.,,,.,,.,,,,..,...,..,,,,,,,,,,..,,...,..,,.,.,,,.,...,,,.,,,.,
+#5LNXU32I5ATR3ZBM3XGJV6GDJS4ZAS6HVK65QB5URCU4ZWQV5HQDBDCC2RCWVYJK6XYP7A2HD5PBW
+#\\\|6PUU6KHOS3IIACOFHR3NEKOZTDUITXSMMNACCPYJL25H56OCV4H \ / AMOS7 \ YOURUM ::
+#\[7]7ZT4H77US3X2RNCU2H6ZPTZ5BXBKUDLJFQ4EE46F5XPQTFS3L4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -46,7 +46,7 @@ size.buffer.output           =  242707
 ```
 
 this is the **session input buffer** ceiling enforced in
-`modules/base.handler.command`. the critical finding — verified by reading the
+`src/base.handler.command`. the critical finding — verified by reading the
 multiline parser, not assumed — is that **multiline body data shares this same
 cap**, it is **not** a higher-capacity framed input path:
 
@@ -70,7 +70,7 @@ not an escape from the cap.
 
 ### `coding.cmd.submit` is the genuinely unescaped case — lead with it
 
-`modules/coding.cmd.submit` accepts the request three ways:
+`src/coding.cmd.submit` accepts the request three ways:
 
 - multiline `param` hash → `request` / `question` / `description`
   [ `coding.cmd.submit:14-20` ]
@@ -148,7 +148,7 @@ confirm before implementation** — see "open questions".
 
 ### the in-zenka compaction path is NOT at risk — recorded so it is not chased
 
-`modules/coding.async.compact_context` and the blocking
+`src/coding.async.compact_context` and the blocking
 `process-queued-task` compaction operate on `$state->{'messages'}`
 **in-memory inside the running task's state machine** — that content never
 re-crosses the cube wire, it is already resident. it is **out of scope**: only
@@ -192,7 +192,7 @@ mirrors the established layout [ `amos7-shm-paging-feedback.md` "the standalone
 
 a sibling of `Page.pm` / `Feedback.pm`, same branch-free-mechanics style,
 loadable standalone [ so `bin/mcp-server-p7` gets it ] and in-zenka. thin zenka
-wrappers `modules/data.mount.shm.transport.*` follow, same pattern as
+wrappers `src/data.mount.shm.transport.*` follow, same pattern as
 `data.mount.shm.page.*`. **stays under `data.mount.shm.*` / `AMOS7::SHM::*`,
 never `base.*`** [ the namespace lesson from the prior doc ].
 
@@ -295,7 +295,7 @@ state it as a constraint, not discover it at implementation:
   world-*readable*, not world-*writable*.
 - phases 1-3 only ever proved cross-process via **same-user fork** tests, so
   this never surfaced. **the coding flow is NOT the cross-user blocker** —
-  correction recorded after direct verification: `modules/coding.init_code:33-48`
+  correction recorded after direct verification: `src/coding.init_code:33-48`
   drops privileges to `<system.amos-zenka-user>` [ = `protocol-7`, per
   `cfg/system-user-map:6` ] but **also resolves and joins a secondary
   admin group for project-file access**, and in this deployment the coding zenka
@@ -365,10 +365,10 @@ belong together.
 
 ### new thin zenka wrappers [ under `data.mount.shm.transport.*` ]
 
-- `modules/data.mount.shm.transport.announce` → `AMOS7::SHM::Transport::shm_announce`,
+- `src/data.mount.shm.transport.announce` → `AMOS7::SHM::Transport::shm_announce`,
   injecting `time_source => sub { <[base.ntime]> }` and the zenka checksum sub,
   mirroring `data.mount.shm.page.create` exactly.
-- `modules/data.mount.shm.transport.receive` → `AMOS7::SHM::Transport::shm_receive`,
+- `src/data.mount.shm.transport.receive` → `AMOS7::SHM::Transport::shm_receive`,
   same injection.
 - a 6th check wired into `data.cmd.shm-self-test`: announce a multi-page scalar,
   receive it cross-process, assert byte-identical + checksum-verified + a
@@ -591,8 +591,8 @@ as a gate, not a hope.
    leaning prefix-string for symmetry with the existing convention, but worth a
    nod.
 
-#,,..,..,,,,,,,.,,..,,,.,,.,,,.,,,...,...,,,,,..,,...,...,...,,,,,,,,,..,,,..,
-#FFCDGGAASXLG5PA4NS6DAVLFJKX7WTESMJS6KJOI5XFXKASLEQD5NCTU756FHDFSSQTMM4QX44PGC
-#\\\|DYCJTYOPRHSLWNRQHCTDMA3LXKMZEXXHH4VXQKI5FNNVGRIZ53X \ / AMOS7 \ YOURUM ::
-#\[7]G4HSNVG27RLP6YCRZDRU24ZDRMI4JO4LYVZ2OYTIX5L5LX2SQSDI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,,.,..,,.,,,.,.,,,,,...,.,,,..,,...,..,,...,,..,..,,..,,,.,,
+#7TYT72ETFXV6Q26LPRZQAPDQ4NDWDQGUQ4NSMH7UVLYULGLXDMEX3GNHCWKQT6UQIJYMOP76WO2Z6
+#\\\|CVWN5I74FCYCMBEJ6WXAZST374PGTT4CW3EJOTDEBP4BK3TUCJ3 \ / AMOS7 \ YOURUM ::
+#\[7]RVWN3XSO2V7RCL7QXMRAGCC2TKEFU764U4NV7ZLJ4OE37IM6XWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

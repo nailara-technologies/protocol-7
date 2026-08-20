@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = crypt.C25519.keys.version_info
+# descr = key version tracking with algorithm type support
+#         Manages versions for both traditional keys and typed keys
+#         Enables seamless migration to new type-aware key system
+#
+# structure:
+#   {
+#     'v1_traditional' => {
+#       old-form     => TRUE,           # Old format (no type info)
+#       typed        => FALSE,          # Not typed
+#       encrypted    => {TRUE|FALSE|UNKNOWN},
+#       prefixed     => FALSE,
+#       description  => 'Original C25519 key format'
+#     },
+#     'v2_typed' => {
+#       old-form     => FALSE,          # New format
+#       typed        => TRUE,           # Has type information
+#       encrypted    => {TRUE|FALSE|UNKNOWN},
+#       prefixed     => TRUE,           # Type prefix in filename or data
+#       types        => ['Ed25519', 'Curve25519'],
+#       description  => 'Type-aware key format (supports algorithm selection)'
+#     }
+#   }
+
+my $version_info = {
+    'v1_traditional' => {
+        'old-form'    => TRUE,
+        'typed'       => FALSE,
+        'encrypted'   => UNKNOWN,
+        'prefixed'    => FALSE,
+        'algorithm'   => undef,     # Algorithm not tracked
+        'description' => 'Original C25519 key format (no algorithm type)',
+    },
+
+    'v2_typed' => {
+        'old-form'    => FALSE,
+        'typed'       => TRUE,
+        'encrypted'   => UNKNOWN,
+        'prefixed'    => TRUE,
+        'algorithms'  => [ 'Ed25519', 'Curve25519' ],
+        'description' => 'Type-aware key format '
+            . '(supports algorithm selection)',
+        'features' => {
+            'key_name_suffix' => ':Ed25519 or :Curve25519',
+            'type_tracking'   => 'Stored in keypair hash',
+            'safe_selection'  => 'Query algorithm before using',
+            'migration'       => 'Keys can be upgraded preserving content',
+        },
+    },
+
+    'v3_future' => {
+        'old-form'    => FALSE,
+        'typed'       => TRUE,
+        'encrypted'   => TRUE,    # Always encrypted
+        'prefixed'    => TRUE,
+        'algorithms'  => [ 'Ed25519', 'Curve25519', 'X25519' ],
+        'compression' => TRUE,
+        'description' => 'Future format with encryption and compression',
+        'features'    => {
+            'encryption_algorithm' => 'ChaCha20-Poly1305',
+            'compression'          => 'ZSTD or LZ4',
+            'key_derivation'       => 'Argon2id',
+        },
+    },
+};
+
+return $version_info;
+
+1;
+
+#,,,,,..,,.,.,.,.,..,,.,.,...,.,.,,,.,,,,,..,,..,,...,...,.,.,.,,,,.,,,,,,,,.,
+#K2ATFGADCEFGN3N6XYLRCZJKA7RV3Z2NDZ2RIY5G532WMIIDBKLUODGGL3BKKQ4F3PS7YABAOUSR4
+#\\\|C5DA6YQBRTCXE2N3JP75NM644CZVP7T4Z3H4S6KSQ77I4CTYEFQ \ / AMOS7 \ YOURUM ::
+#\[7]6J6G3VBNUXW652I7XVCTQIXE6OFRQ2LPDCSJUCEFQH5WC6HJXYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

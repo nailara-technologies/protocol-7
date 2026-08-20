@@ -29,7 +29,7 @@ merged into it), so every `base.<X>.pre_init` (`base.base32.pre_init`,
 `base.chk-sum.bmw.pre_init`, `base.event.pre_init`, ~16 total) is "one
 segment past `base`" and got silently skipped — **no stub at all**, not
 even a broken one. `base.init_modules` enumerates `%code` directly by
-`.pre_init$` pattern (modules/base.init_modules:19-30), so a missing stub
+`.pre_init$` pattern (src/base.init_modules:19-30), so a missing stub
 means the mover never runs, `swap_subs` never fires, and the short name
 never gets created.
 
@@ -88,7 +88,7 @@ fresh each time and *still* re-created all ~14 nested touch-files, which
 ruled out "stale process" and proved `base` genuinely never gets
 registered at plain startup for any zenka — only `base.cmd.reload`'s
 `source`/`all` path does it (`base.load_modules(@reload_modules)` at
-modules/base.cmd.reload:98, where `base.clear_p7_mods` reports `base` as
+src/base.cmd.reload:98, where `base.clear_p7_mods` reports `base` as
 "previously loaded"). Worse than "surprising": `sourcecode` (and any
 other standalone/unnetworked zenka — `keys`, etc.) can never reach
 `base.cmd.reload` at all, so for those it's not a transient gap, it's
@@ -107,10 +107,10 @@ every namespace before any `init_code` (confirmed by
 
 ## landed
 
-`bin/Protocol-7`, `modules/base.handler.deferred_compile`,
-`modules/base.register_src_deps` — commit `e90dd04ae`. Stray
+`bin/Protocol-7`, `src/base.handler.deferred_compile`,
+`src/base.register_src_deps` — commit `e90dd04ae`. Stray
 already-committed per-sub touch-files from before fix (3) cleaned up in
-`5f2f42b36`. Fix (4), `modules/base.init_code` — not yet committed as of
+`5f2f42b36`. Fix (4), `src/base.init_code` — not yet committed as of
 this writing.
 
 ## related
@@ -126,8 +126,8 @@ update note.
 needed beyond adding the file" assumed the lifecycle-hook gate already
 handled nested namespaces correctly; it didn't, until this fix.
 
-#,,.,,...,.,.,,,.,,..,...,,..,,,,,,,,,,,,,,..,..,,...,...,,..,...,.,.,.,.,,.,,
-#TNETAEJB3O4RNXUOL3UXDEDXC5HQETVSDGGLGZP322WHUASHU4SOJFY2XX2UWQNR5ZTKQ7JFW6CHA
-#\\\|YG5ZE7Z3OJYMLJK62Y3RLDYUCRU24IQ35FQNGHNJCITSBGOPRBJ \ / AMOS7 \ YOURUM ::
-#\[7]OZMA5EM5DXLWSQSAYHN4PMQFGDPATK4P6PWIE6TVVEDDD2OLVKBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,.,.,..,,,.,,,,,,,,.,,,,,...,..,,...,..,,,.,,..,,,..,,,.,..,,
+#AZFNKXPQVYJEB7TMXMMCQKPFPAAQKNPJXA6GQH4BQBFMJFPUAXA64NLCQ4DTV2VEXKBYBFWCP3LEK
+#\\\|RQQFWB67Z5RVBA52TTU36N5QPD7VPKJIDFZ6VJLXOFGIFU3XETI \ / AMOS7 \ YOURUM ::
+#\[7]Q3J4VFLFGZLDQGHWFS47LOFXZIU3EHD7QCMDGA2IXKSSM7OBRKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -33,29 +33,29 @@ validate all 18 module files listed below. for each:
 ## branch.calc.fraction.* modules (10 files)
 
 ```
-modules/branch.calc.fraction.period
-modules/branch.calc.fraction.period_length
-modules/branch.calc.fraction.terminates
-modules/branch.calc.fraction.remainder_seq
-modules/branch.calc.fraction.parent_lookup
-modules/branch.calc.fraction.reverse_scale
-modules/branch.calc.fraction.coupling_find
-modules/branch.calc.fraction.symmetry
-modules/branch.calc.fraction.ring_position
-modules/branch.calc.fraction.prefix_entropy
+src/branch.calc.fraction.period
+src/branch.calc.fraction.period_length
+src/branch.calc.fraction.terminates
+src/branch.calc.fraction.remainder_seq
+src/branch.calc.fraction.parent_lookup
+src/branch.calc.fraction.reverse_scale
+src/branch.calc.fraction.coupling_find
+src/branch.calc.fraction.symmetry
+src/branch.calc.fraction.ring_position
+src/branch.calc.fraction.prefix_entropy
 ```
 
 ## branch.cluster.* modules (8 files)
 
 ```
-modules/branch.cluster.address
-modules/branch.cluster.ring_position
-modules/branch.cluster.layers_list
-modules/branch.cluster.gate_node
-modules/branch.cluster.family
-modules/branch.cluster.mirror
-modules/branch.cluster.validate
-modules/branch.cluster.register
+src/branch.cluster.address
+src/branch.cluster.ring_position
+src/branch.cluster.layers_list
+src/branch.cluster.gate_node
+src/branch.cluster.family
+src/branch.cluster.mirror
+src/branch.cluster.validate
+src/branch.cluster.register
 ```
 
 ## acceptance
@@ -84,8 +84,8 @@ for 18 files.
 - no `die` — return undef + base.logs on error
 - no `sub { }` wrappers
 
-#,,.,,.,.,.,.,,,,,,.,,.,.,.,.,..,,.,.,,,,,.,,,..,,...,..,,...,.,.,.,,,,,.,,.,,
-#IDQQRIR5AQ46PSLEWOIAW5UNQO2GIRSEV7Q6SZMKWNNC6CXZJXPCROJCECUFR6ES7RLFHA3T23LLQ
-#\\\|YJAVUNCDNYRT2NSI3POZ2VRK7PWAB3742UYFCRFQKW2BJG2HSVO \ / AMOS7 \ YOURUM ::
-#\[7]2BMJCBLQOPBSEH4FX5KIB6PJ4MXMPEILWRVS2XSWB7TMBBY474DY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,,..,..,,..,,.,.,,,.,,.,,,,,,..,,...,...,.,.,,.,,...,,..,,,,,
+#A4OFETTSPKEOIJLZKFGHI2IHU35D5OCX6INR2MG6KTL3X32V5V2I2L3MBWIEFKCQ3ZMMVYCZ4IKEE
+#\\\|3FQDIX3I4S6NTRSJQAEDWJQOXIL63JMAGLOQZ6ABURF4MAPHWU2 \ / AMOS7 \ YOURUM ::
+#\[7]UCPJ2OI5YC7QA66W5N4WKTKSNRZIRPIO6STR2AHTIANXES6RCGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

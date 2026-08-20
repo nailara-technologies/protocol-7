@@ -14,8 +14,8 @@ sweep gets invoked from ; do not attempt it here.
 ## what is actually true today — verified in source, do not assume the docs'
 ## summary is already built
 
-read `modules/data.mount.shm.init_code`, `modules/data.mount.shm.create`,
-`modules/data.mount.shm.open`, and `data/lib-path/pm/AMOS7/SHM.pm`'s
+read `src/data.mount.shm.init_code`, `src/data.mount.shm.create`,
+`src/data.mount.shm.open`, and `data/lib-path/pm/AMOS7/SHM.pm`'s
 `shm_create`/`shm_open` before writing anything. the actual current state,
 confirmed this session:
 
@@ -29,8 +29,8 @@ confirmed this session:
    is ever unlinked on shutdown, zenka or standalone.** this is the actual gap,
    confirmed empirically, not just "design pending."
 2. **two already-existing zenka subs already correctly unlink both the
-   segment AND its phase-3 notify FIFO together**: `modules/data.mount.shm.unlink`
-   and `modules/data.mount.shm.remove` [ both have `## the phase-3 notify fifo
+   segment AND its phase-3 notify FIFO together**: `src/data.mount.shm.unlink`
+   and `src/data.mount.shm.remove` [ both have `## the phase-3 notify fifo
    shares the segment's lifecycle ##` + an `unlink($notify_path)` call ]. **do
    not duplicate this logic** — call the existing `<[data.mount.shm.unlink]>`
    from the zenka-side fix below. [ note, not in scope to fix here: these two
@@ -60,7 +60,7 @@ for cleanup at the point of **creation** [ `shm_create` ], never at `shm_open`.
 
 ### 1. zenka side — register on create, unlink on shutdown
 
-in `modules/data.mount.shm.create` [ the **zenka** thin wrapper, not the
+in `src/data.mount.shm.create` [ the **zenka** thin wrapper, not the
 standalone core ], after a successful `AMOS7::SHM::shm_create` call, register
 the created path:
 
@@ -80,7 +80,7 @@ $data{'mount'}{'shm'}{'segments'}{ $mount->{'path'} } = {
 info for the existing mlock-unlock loop to keep working unchanged, plus the
 path itself as the key for the new unlink step. ]
 
-then extend `modules/data.mount.shm.init_code`'s `$SIG{'INT'}` handler [ and
+then extend `src/data.mount.shm.init_code`'s `$SIG{'INT'}` handler [ and
 add the identical body for `$SIG{'TERM'}`, since process managers commonly send
 TERM, not INT, and the existing handler should cover both ] to, **after** the
 existing unlock loop, unlink each registered path:
@@ -122,7 +122,7 @@ running standalone** [ `not defined $main::PROTOCOL_SEVEN` — same gate
 ```perl
 ## phase 4, standalone only : track creator-owned segment paths for an END-  ##
 ## time cleanup. zenka mode handles this via its own SIGINT/TERM handler    ##
-## [ modules/data.mount.shm.init_code ] instead — this list stays empty     ##
+## [ src/data.mount.shm.init_code ] instead — this list stays empty     ##
 ## whenever $main::PROTOCOL_SEVEN is defined.                               ##
 my @_standalone_owned_paths;
 ```
@@ -167,7 +167,7 @@ extend your verification with a **second standalone script** [ separate from
 untouched — this is new, additive work, not a follow-up to that file ] :
 
 1. **zenka path**: this one is harder to script standalone — at minimum, read
-   `modules/data.mount.shm.test.basic` for the project's existing pattern of
+   `src/data.mount.shm.test.basic` for the project's existing pattern of
    exercising zenka-side SHM subs, and state honestly in your summary whether
    you were able to verify the zenka SIGINT/TERM path live [ requires a running
    `data` zenka, `v7.restart data`, then sending it a signal and checking the
@@ -206,8 +206,8 @@ reporting done.
 ## style / pitfalls
 
 - same hybrid-package rules as the read-only-open task: `AMOS7::SHM.pm` is
-  plain Perl, no `<[...]>` / `<dotted.data>` syntax there. `modules/data.mount.
-  shm.init_code` and `modules/data.mount.shm.create` ARE zenka module files —
+  plain Perl, no `<[...]>` / `<dotted.data>` syntax there. `src/data.mount.
+  shm.init_code` and `src/data.mount.shm.create` ARE zenka module files —
   they use `<[...]>` / `<dotted.data>` syntax normally, opposite rule from the
   `.pm` file, do not mix them up.
 - do not touch the trailing `#,,.,,,...` signature blocks on any existing file
@@ -221,8 +221,8 @@ reporting done.
   honest statement of what was and was not live-verified [ especially the
   zenka SIGINT/TERM half — see verification step 1 ].
 
-#,,,.,,..,,.,,,..,,,.,.,.,,..,.,.,,..,.,,,,,.,..,,...,...,.,.,.,.,...,,.,,,..,
-#HFFVZG3IL6CBBLWVMLLBQMK5QUNQAOHAMF75KGRDFTXICF76BYFBG7EHUNMZFL3ZPPEITXLOA7WT2
-#\\\|PKHGHXU4ABXNVWLOHEV2XCA2J2EHFAPAFO75FPCWAZLDUK6EUYT \ / AMOS7 \ YOURUM ::
-#\[7]2NP7D6IZCZP4V4YAYHEN2NPHJUPOUFFQUHOU2HV2EFUNLVRX44CY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,.,.,.,.,..,,...,,..,.,,,.,.,..,,...,...,..,,.,.,,..,..,,.,,,
+#J6NGIMR7N5VVDHDMRPL6I7UBXP6OAYVEC6GQI7FOQ7A77LJLMKVEOL3V6ON62I2R7D2AZ7YDXDDIS
+#\\\|QNYY26MUGN6HFDF6464EMXTS2EIWOUNNXTK35PDUZJY6VINVH5P \ / AMOS7 \ YOURUM ::
+#\[7]XYKXU2FFW5DODGHZHM6S4AFRSKFQGEABFZXK6WE7SPIZPMUEX2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

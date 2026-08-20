@@ -3,9 +3,9 @@
 ## status (2026-07-23) — DONE, landed `95a2031fc`
 
 landed as `coding: add vision-model :switch: for idle-gated model switching`.
-`modules/coding.cmd.vision-model` branches on `:switch:`, parses optional
+`src/coding.cmd.vision-model` branches on `:switch:`, parses optional
 checksum/timeout, short-circuits when already vision; new
-`modules/coding.handler.vision_switch_poll` implements the two-phase
+`src/coding.handler.vision_switch_poll` implements the two-phase
 (waiting_idle/switching) timer state machine; both whitelisted in
 `cfg/zenki/coding/subroutine.white-list`. confirmed live
 (2026-07-23): `coding.commands vision` lists `vision-model [:switch:
@@ -20,7 +20,7 @@ not re-verified in this pass.
 
 ## status (2026-07-19) — PLANNED, ready for implementation
 
-round 2 of the `coding.vision-model` feature. round 1 (`modules/coding.cmd.vision-model`,
+round 2 of the `coding.vision-model` feature. round 1 (`src/coding.cmd.vision-model`,
 commit `bc3824421`) added a no-arg report of whether the currently-loaded gpu model has
 vision (mmproj). round 2 adds a `:switch:` action parameter that asks the coding zenka to
 *make* a vision-capable model the loaded one, waiting for the current task queue to go idle
@@ -33,7 +33,7 @@ is enabled in coding's own `access.cmd.usr.cube`). also usable interactively via
 
 ## parameter grammar
 
-extend `modules/coding.cmd.vision-model` to parse `$call->{'args'}`:
+extend `src/coding.cmd.vision-model` to parse `$call->{'args'}`:
 
 ```
 coding.vision-model                          -> round-1 behaviour, unchanged (report only)
@@ -108,7 +108,7 @@ tombstones as active.
 
 ## state machine (new handler, modelled on `coding.self_test.handler.poll_switch`)
 
-new module `modules/coding.handler.vision_switch_poll` — a timer-driven machine, but simpler
+new module `src/coding.handler.vision_switch_poll` — a timer-driven machine, but simpler
 than poll_switch: **no restore phase, no tier-2 judgment** (owner explicit: no
 auto-revert-after-request, no priority preemption — future scope).
 
@@ -218,10 +218,10 @@ at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper mod
 
 ## files
 
-- `modules/coding.cmd.vision-model` — CHANGED: branch on `:switch:`, parse optional
+- `src/coding.cmd.vision-model` — CHANGED: branch on `:switch:`, parse optional
   checksum/timeout, resolve target, short-circuit already-vision, arm the poll timer, return
   `{ mode => deferred }`. round-1 report path preserved for the no-arg / non-`:switch:` case.
-- `modules/coding.handler.vision_switch_poll` — NEW: the two-phase timer state machine above.
+- `src/coding.handler.vision_switch_poll` — NEW: the two-phase timer state machine above.
 - `cfg/zenki/coding/subroutine.white-list` — add new module name(s).
 - (optional) `cfg/zenki/coding/start` — add `coding.cfg.vision_switch_idle_timeout`
   default if a dedicated key is preferred over reusing `concurrent.drain_timeout`.
@@ -250,8 +250,8 @@ at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper mod
    for clarity.
 3. confirm the **no-new-access-grant** framing (parameter of an already-granted command).
 
-#,,,.,..,,.,.,.,,,,..,.,.,...,..,,.,,,...,,..,..,,...,...,,..,.,.,,.,,,,.,.,.,
-#NRSRUW6ZZS7QRBN7XM3U6EFPX6DINSGBACHKA2XD37RQLLYWKNPL2GWLU4FVWMIEU4EXTCPFJUOMI
-#\\\|UMIJ2XIFFVJUANCXQU5FEBFK4IAALKF74PR6DHYJKKTNKTE7AQP \ / AMOS7 \ YOURUM ::
-#\[7]MZMAXXSEEW2N6JOF3EVQCGXOJFUN46CO6OUODVTJDTTCGOMM54AY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,.,...,,,,,,..,,..,..,,...,,..,..,,...,...,,,.,,,.,,..,,.,,...,
+#O7QYYKFFNRNSCOO6SU3IVOFN7E3UWV5MULYOQVQL5TKYRFV5YL4J7C75LNJJ7OFI7CGI7MFEUE3CK
+#\\\|GIZSJEKSWIRBEHLSSU2H7VGAP5HNHUL3FNT3KCNMIGPRK3LDIXX \ / AMOS7 \ YOURUM ::
+#\[7]UHQO7NLEV3H33VG5JQQCFDYNK34DDQIHXKWCI4GCYXMS3BEBPCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

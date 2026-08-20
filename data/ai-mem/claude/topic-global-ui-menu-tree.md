@@ -49,7 +49,7 @@ best way is to make it generic, addressable and made available").
 
 - **`settings`** — renamed to **`set-up`** (corrected 2026-06-08, per
   `v7.list available set-up` showing it live). Already substantially built —
-  not a blank slate: `cfg/zenki/set-up/` + `modules/set-up.*`
+  not a blank slate: `cfg/zenki/set-up/` + `src/set-up.*`
   ship `create-profile`/`install-profile`/`export-config`/
   `fetch-zenka-config`/`list-exportable`/`get-config` commands, plus
   `handler.export_reply`/`handler.zenka_reply`. v7-managed, network
@@ -61,7 +61,7 @@ best way is to make it generic, addressable and made available").
   Caveat (2026-06-08): its export/config surface is JSON-shaped
   (`set-up.json.cmd.get-config[-names]`, `set-up.json.import_file`,
   `set-up.json.init_code` — separate `set-up.json.*` namespace, no YAML
-  usage found in `modules/set-up.*`). User's read: it likely should be YAML
+  usage found in `src/set-up.*`). User's read: it likely should be YAML
   instead, at least as an interim, matching the `format.yaml` /
   credential_fabric convention — worth normalizing *before* or *while*
   wiring it into the menu-tree view layer, so the addressable surface speaks
@@ -75,7 +75,7 @@ best way is to make it generic, addressable and made available").
   (a native-format writer/serializer), not the format choice itself. Until
   that writer exists, YAML is the pragmatic stepping stone.
 
-  **Concrete native-format candidate**: `modules/base.load_section_conf` —
+  **Concrete native-format candidate**: `src/base.load_section_conf` —
   the deepest nesting the project currently has. Syntax:
   `.: section :.` / `- sub_section` / `: sub_sub_section :` / `key = value`,
   parsed into `$config_data->{section}{sub_section}{sub_sub_section}{key}`
@@ -129,7 +129,7 @@ best way is to make it generic, addressable and made available").
   than an aspiration.
 
   **Third complementary piece — `base.load_code`** (a *core sub*, compiled
-  directly into the `Protocol-7` binary, not a `modules/*` file — dump via
+  directly into the `Protocol-7` binary, not a `src/*` file — dump via
   `./bin/Protocol-7 -core-subs base.load_code`). This is the actual
   bootstrap loader beneath `load_modules`/`init_modules`: turns raw module
   source (from local disk OR remote `src.v7.ax` HTTP source — see
@@ -173,7 +173,7 @@ routines, with mapping/bridging layers resolving back to real backends**
 
 Why this isn't as big a lift as it sounds — the pieces already half-exist:
 - `load_code`'s local-vs-`src_from_http` branch IS a proto-mapping-layer
-  already (`modules/$ARG` resolves to local disk OR
+  already (`src/$ARG` resolves to local disk OR
   `$data{base}{httpc}{remote_source}` depending on `use_http_source`) —
   generalizing a hardcoded branch into a real backend-mapping layer is a
   much smaller step than building the concept from scratch. The "currently
@@ -666,8 +666,8 @@ becomes an *exception channel* for the rare cases where "correct" and
 "wanted" come apart. That is a dramatically smaller, sharper, and more
 buildable thing than "an authorization protocol for the network."
 
-#,,.,,,..,...,,..,..,,.,,,...,.,,,,,.,,.,,,..,..,,...,...,,,.,,,.,..,,,.,,,..,
-#AWQO3DN67PTLF4ZRQMNSRGIZP5RU33PB5LJDQPBCHQTSFYWJQ4ZUJY54Z573RL73LEPADWCIF5X4O
-#\\\|4HW2VZON3BKCIPG5WVI2QVKH3T35D2M3UA2E3POBA2NTQQJKKFH \ / AMOS7 \ YOURUM ::
-#\[7]FV5ULELEEWWSA3Q4JXXSTPXVDCPUGPXBD2DNESQMJUF3OELRBKAA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,..,,..,...,,,,,.,.,,,,,...,,..,..,,...,...,...,,,.,.,,,..,,.,.,
+#HXIMT54ILLXM23N3U3O7JNXR6GIZB3XDAAFLJ4XQKCMO4Y33EEDR476UE55N3KRGWFK5T5B2B5WBA
+#\\\|BF5DH42WQXUKTIPOWC3JQIM667XOV3VYKACBJKRBAK5UKUHFU3D \ / AMOS7 \ YOURUM ::
+#\[7]6TAWS63P4L7LOEB452IANVMZ6UULRAJYPKIPNTLPHISBS3HV7AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

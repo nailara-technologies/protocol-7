@@ -360,7 +360,7 @@ storage zenka already runs `amos-chksum` unix socket protocol:
 cfg/zenki/storage/start:
   storage.use_amos_chksum_socket = yes
 
-modules/storage.unix.handler.amos-chksum:
+src/storage.unix.handler.amos-chksum:
   ## handles line-wise checksum requests via unix socket
   ## modes: elf truth assertion modes for validation
 ```
@@ -371,7 +371,7 @@ context tree extends this with **stateful** checksums for streams.
 
 index zenka uses checksum-derived paths:
 ```
-modules/index.gen_path:
+src/index.gen_path:
   ## splits amos-chksum entropy into anti-entropic directory tree
   ## uses modes 5,7 for path generation
   ## truth filters with modes 7,9
@@ -382,12 +382,12 @@ context tree uses same algorithm for node placement.
 ### sourcecode checksum symlinks ( experimental )
 
 ```
-modules/sourcecode.console.regen-checksum-symlinks:
+src/sourcecode.console.regen-checksum-symlinks:
   ## stores files by checksum in versioned directories
   ## replaces source files with checksum-based symlinks
   ## deduplication: same content = same checksum = single storage
 
-modules/sourcecode.console.undo-checksum-symlinks:
+src/sourcecode.console.undo-checksum-symlinks:
   ## reverses symlink transformation
   ## restores original source files
 ```
@@ -442,8 +442,8 @@ same deduplication principle, applied to **context nodes**.
 
 #,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
 
-#,,,.,.,.,...,.,,,.,.,,..,.,,,.,.,,,.,.,,,,,,,..,,...,...,.,.,..,,,,.,,,,,,.,,
-#OB2RC7FF6TMRNZ4QUBXEFUCQVR7L63NQU563J6XWZ5B5FQ4DHIS2O6A63FPCRFNVP3EBSM2TYR3GY
-#\\\|HGWPNPPSXUNFJIH7SAJEPDKNC3SRD7OFK6LR32W3222AT6P5DHM \ / AMOS7 \ YOURUM ::
-#\[7]EW47M7MZS54ZFLA4RKNJKBRZFT37SXPBYPBD6IVJPKAIW76YBADQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,...,,,,,..,,,,,,,..,..,,.,.,..,,...,...,.,,,,.,,..,,...,.,,,
+#55PJAQFLU4QCSUMUJ27HKCZT74CDESPPF4YINVQBOOP7AIKY7UMLS2TGW7ZGAUU46GF5NTUEC2SOQ
+#\\\|VLMK3P75DJOWUOHWFM65OBKMKJAVI55OOA2ZRUHPYFX7K2MQXLB \ / AMOS7 \ YOURUM ::
+#\[7]K7R52TOTPTSX5SCIQOQEQYDVH5SBRWWTOKOYXHTLO5C2SL4UEEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

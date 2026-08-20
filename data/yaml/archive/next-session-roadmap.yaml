@@ -295,9 +295,9 @@ When a module loading step fails:
 
 ### Testing Pattern for Permission Issues
 ```bash
-chmod 600 modules/test.module
+chmod 600 src/test.module
 ./bin/Protocol-7 v7  # Should show "undefined routine" message
-chmod 644 modules/test.module
+chmod 644 src/test.module
 # Module should work normally after chmod
 ```
 
@@ -334,8 +334,8 @@ chmod 644 modules/test.module
 
 ### Key Files to Know
 - `bin/Protocol-7` line 1700-1830: Compilation and handler flow (main work area)
-- `modules/base.fh-encoding.*`: Reference implementations (simple, well-structured)
-- `modules/base.log`: Example of safe broken routine handling
+- `src/base.fh-encoding.*`: Reference implementations (simple, well-structured)
+- `src/base.log`: Example of safe broken routine handling
 - `/data/projects/protocol-7/data/yaml/archive/`: Session documentation pattern
 
 ### Common Debugging Commands
@@ -347,7 +347,7 @@ perl -c bin/Protocol-7
 ./bin/Protocol-7 v7 -vq  # verbose, quiet
 
 # Check file permissions
-ls -la modules/base.fh-encoding.*
+ls -la src/base.fh-encoding.*
 
 # View recent changes
 git diff HEAD~3..HEAD bin/Protocol-7
@@ -384,8 +384,8 @@ metadata:
   update_frequency: Update before each new session
   last_updated: 2025-11-26 after commit 9345ff2ce
 
-#,,.,,,..,,,.,..,,,,,,..,,,.,,,.,,.,,,.,,,...,..,,...,..,,...,.,.,,..,,,.,...,
-#GZ2PZQFIIBWJHWT22GOI23WFH4LYPEQAPYJ2JVP5TWX3PITT4WT4AQSUWLDWVD5XNQ42SW4C3Q2CI
-#\\\|24TXV6VLGUJB7FCEQMZJXO45OAJ6237AIVD6G6JPYWQLUYKQZML \ / AMOS7 \ YOURUM ::
-#\[7]XU54U2JK7SNPJEAVZ2IPBKG5FTMVKJWWD4BELSF3YYDSLYYYNQAI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,,,,.,,,.,,,,,.,.,.,,..,.,,,..,,...,...,,,.,,.,,.,.,,,.,..,,
+#KIB65D6JZ2VSAYUJ6M66FGWXZH2CDS3MZXMDNDX2ZUOU3E4TGQWXMUTH7PJHOMOKP25WABL32CN6I
+#\\\|FI73PKW7QVZW2R77I2O7W6OWDCYIEZTQ7J2LUK6MY7PWELOK7RA \ / AMOS7 \ YOURUM ::
+#\[7]FQNZ4RWXMXAPW5BDUF3JE2QA27WFC6TKKATUY6Y2SXHLJGVSA4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -96,7 +96,7 @@ no special handling needed — the two filters compose correctly.
 - `bin/dev/gen-sub-whitelist` — whitelist file writer
 - `cfg/zenki/*/subroutine.white-list` — generated output
 - `cfg/zenki/*/start` — `modules.load` defines loaded set
-- `modules/plugin.auth.auth-keypair.tofu-notification` — example leak path
+- `src/plugin.auth.auth-keypair.tofu-notification` — example leak path
   [ calls channels.cmd.update ]
 
 ## Notes
@@ -110,8 +110,8 @@ no special handling needed — the two filters compose correctly.
 - the existing access.cmd filter (Phase A) is already correct and
   composes with this fix — no changes needed there.
 
-#,,.,,.,.,.,.,,,.,,..,..,,,.,,..,,,,.,.,,,,,,,..,,...,...,.,.,..,,...,,.,,,.,,
-#VLBVXDFZ6IYE7EVGKZRT5XPPZ5OIZG7C5SJFLL775TM6LXZ5PVDSMFRIOCQEN5OBJLRFAEEVAGJDS
-#\\\|E63WRRPASALALZFLIO3D3EU6PR7VJ3DMVDNBAMX2QQLDD43NOVJ \ / AMOS7 \ YOURUM ::
-#\[7]3OZXN7MIL2HPE52RMDDCSCV3M6N6677ICATBWDPOJDOHT6BJX2DI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,...,.,,,,..,,.,,.,.,.,,,,,.,..,,...,...,...,,..,.,,,,.,,.,.,
+#B47DGUWRTQLXMKXF6753OECPFRP4FWC55AQUY3W2HXZCO6ARDUPCDCHMFCMVSG26JSGFML2AKTS4Q
+#\\\|AJ6DFRHJJ5EOGI2OOP3CNAIIZRNWZRXPSHV5STVUZUSYLGE6G2F \ / AMOS7 \ YOURUM ::
+#\[7]SK7HEWONSCEV2UUJGS6YMRANLTKORCLV43MHRXPTF7BTWIUML4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,10 +42,10 @@ direct file access, no httpd transport needed.
 ## what to read first
 
 ```bash
-cat modules/kimi-web.init_code
-cat modules/kimi-web.bridge.ensure_local_agent
-cat modules/kimi-web.cmd.list_agents
-cat modules/kimi-web.cmd.spawn_agent
+cat src/kimi-web.init_code
+cat src/kimi-web.bridge.ensure_local_agent
+cat src/kimi-web.cmd.list_agents
+cat src/kimi-web.cmd.spawn_agent
 cfg/zenki/kimi-web/zenka-startup.v7
 ## session directory structure:
 ls -la ~/.kimi/sessions/ | head -10
@@ -186,8 +186,8 @@ p7c kimi-web.cmd.inject-context-to-coding '<uuid>' \
 - [ ] `inject-context-to-coding` feeds context to local model
 - [ ] no signature stubs, no whitelist changes made
 
-#,,,.,.,,,,,,,...,,,,,..,,.,,,.,,,,,,,...,,,.,..,,...,..,,..,,...,,.,,,..,.,.,
-#YAL7ENNLUDYGHF3RK2JESIXXVJASYZI7EPISRN5RKWAH3EEW7EVG2WTEH4NGTGBR553SMTUIGOGBI
-#\\\|V4BBJ5WPVACPABD4E5Z3BURCYGFK3VSVXKBKSH7J66USRVDT6ZZ \ / AMOS7 \ YOURUM ::
-#\[7]TVLF6MFKSNHXLBDI4AAJ746X2FSOGVAS6JLORD7H3D5H6FTYKCDA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,.,..,,.,,,...,...,..,,,.,,,.,,..,,...,...,,..,.,.,,..,,..,,..,
+#FYN4DK2FSNRW3J2Y5NNCAXUIN363AHLYSJSOIOSGNF4BYOMECNZQ6YJPZ7ILMQKOFDKNDXO3OJGE2
+#\\\|BKFW5UVQTLG57MNU5CPIZQBF7S6CVOTMTBUPNXPBOQ7LPNBPJYT \ / AMOS7 \ YOURUM ::
+#\[7]LNTXH5YZGXWHW2XI3HLGW4RBKQ2OEY2JD6XO4JMTQVYVY5BN2CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

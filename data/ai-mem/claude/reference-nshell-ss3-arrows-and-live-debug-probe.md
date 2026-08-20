@@ -13,7 +13,7 @@ keys as SS3 (`\eOA`/`\eOB`/`\eOC`/`\eOD`) instead of the normal CSI form
 (`\e[A`/`\e[B`/`\e[C`/`\e[D`). Nothing in Protocol-7 toggles DECCKM itself —
 it gets set by whatever else ran in that terminal (another program, the
 emulator's own default, etc.) and Protocol-7 code has to be defensive
-regardless of who flipped it. `modules/nshell.read_from_buffer` already
+regardless of who flipped it. `src/nshell.read_from_buffer` already
 normalized Home/End for exactly this reason (`\e[H`/`\eOH`, `\e[F`/`\eOF`)
 but the four arrow keys never got the same treatment — so a session in
 DECCKM mode had completely dead Up/Down/Left/Right while PageUp/PageDown
@@ -57,8 +57,8 @@ predict — always worth ruling out process staleness (check the running
 pid's start time vs the last relevant file mtime) before concluding a fix
 on disk didn't work.
 
-#,,..,..,,,,,,,.,,..,,.,,,,..,,..,.,,,.,,,,..,..,,...,...,.,.,..,,,,.,..,,,,.,
-#3ZRQAGQGOYNNB2JXNUXL5VFF7C7GQNPWTWK2KBJBO45NUV33NTYUNE57YKMHX72MQPG5TUA3PDK56
-#\\\|VTSTJS2L4FCX6XIZMSM42QVWSQTCMKANIJDUZYQWXLNGCDKPTLK \ / AMOS7 \ YOURUM ::
-#\[7]V2AHWRKXUKN26DW3RNKZCZI4Z6PNIPGYSJR6K3FHN7IJBMQHMYAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,,..,,,.,,..,..,,,,,,,..,,,,,..,,...,..,,,.,,...,,..,,.,,.,.,
+#HXJFWD7PNNRI33X5DBSKU5MVFOUECUAXGZP5FXB44VI2OWAJH6TWW6BLBF2NFE3TJXUPQWLCVTUDQ
+#\\\|U35DEEH6XKUAW24DD7KTTYOYWAGFRAH63J34CIB4PCVRWTKUAGC \ / AMOS7 \ YOURUM ::
+#\[7]2K5DXZFD7MPTYP7BXT4XQCEGEEZTOXQKL6J2FVEHSDDY43BGUCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

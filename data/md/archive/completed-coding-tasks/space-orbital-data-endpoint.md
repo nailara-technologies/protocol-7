@@ -107,16 +107,16 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 
 ## deliverables
 
-1. modules/plugin.web.space.orbital.init_code
-2. modules/plugin.web.space.orbital.fetch
-3. modules/plugin.web.space.orbital.handler.reply
-4. modules/plugin.web.space.orbital.json
-5. modified modules/plugin.web.space.init_code (add orbital init call)
-6. modified modules/plugin.web.space.state (add orbital-json section)
+1. src/plugin.web.space.orbital.init_code
+2. src/plugin.web.space.orbital.fetch
+3. src/plugin.web.space.orbital.handler.reply
+4. src/plugin.web.space.orbital.json
+5. modified src/plugin.web.space.init_code (add orbital init call)
+6. modified src/plugin.web.space.state (add orbital-json section)
 7. data/web-root/space.v7.ax/orbital.json.tmpl
 
-#,,,.,...,,,,,,,,,.,,,,,.,,,.,,,,,,,.,.,,,,,,,..,,...,...,.,.,...,,,,,,,.,.,.,
-#I24FQNAU6GKTHMBC4E35CHP5ONZMOR32UO5Z3DWXFY7OLVMZKHIK2EIRYPWFJ53ENX5BNDL42AYZA
-#\\\|WAHUQZQCGL73JP47JH7UOADKIAQA34NBC4D4RUZSXWRK25DMU6J \ / AMOS7 \ YOURUM ::
-#\[7]L4M4BFSVNEEGZZLCS4KMWG2252BWD4Z26GYSMJD3FT7JV2K76CAI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,.,,.,,,,.,,,.,..,,.,.,,,.,..,,..,,...,...,,,,,,.,,,,.,.,,,,.,,
+#36UHWKDXL5O7L4VFQYVTBFQFF7WENJRRXX37JFRWOMFMAGJVVW6YY6DLQLCRY5SELOO5MR4XAJCKU
+#\\\|F6HL2THEZIJNNNQLO6RI6ZMXL65J2EB72XS43QDVTMJYTKX3ZKD \ / AMOS7 \ YOURUM ::
+#\[7]E3ISIX6646K2XKQWHKZNTWUNDNHPI44XW6YWMXON2K5EVBPFBEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

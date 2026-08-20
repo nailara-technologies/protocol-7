@@ -314,12 +314,12 @@ llama-mtmd-cli-cuda -m model.gguf --mmproj mmproj.gguf \
 - `/data/source/ik_llama.cpp/ggml/src/iqk/iqk_flash_attn.cpp` - Fixed IQK symbol declaration (line 332)
 
 **Protocol-7 (Vision Pipeline):**
-- `/data/projects/protocol-7/modules/image-quality.vision.subprocess` - Vision subprocess executor
-- `/data/projects/protocol-7/modules/image-batch.parent.execute_job` - Fixed protocol message format
+- `/data/projects/protocol-7/src/image-quality.vision.subprocess` - Vision subprocess executor
+- `/data/projects/protocol-7/src/image-batch.parent.execute_job` - Fixed protocol message format
 - `/data/projects/protocol-7/VISION-IMPLEMENTATION.md` - This documentation (updated Dec 27)
 
-#,,..,,,.,...,.,.,,..,,..,,..,.,,,.,,,,..,,..,..,,...,..,,..,,.,.,,,,,..,,.,,,
-#HVEDPQVJ7Z5Z5CTJQROJHWENS3RUHODP6P2FLTGXLKXJPWMBDKDRGJ3RL2KDOJMZP7KLICE3BLLDC
-#\\\|GNJN3AKYZGLV7FUHWWXJDC4IIWTAVTCB7MJDESS3ZGYVH7MKYEX \ / AMOS7 \ YOURUM ::
-#\[7]Y32UMBHNO4UCHRM5LCQCJBCRO625IOESNZDUJFA4TFEAZB4NAEBY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,...,.,.,,,.,,..,.,.,.,,,,,.,..,,...,..,,.,,,,,.,.,.,,,.,,.,,
+#5KJ4K6NDJCYMY3XICDEK2U63NP3QB2GKC4Y42QDHZHTD3QAPWOHDVYRBB6H7RSQ6Q7G5OYZ2G6VUW
+#\\\|DD3UGR6COUKOD4OPSBELR2LRSSKBG366W5CY7KVPHT7GDUK2OGV \ / AMOS7 \ YOURUM ::
+#\[7]23LDI63VRC7KPY4RW4DVABJMRKVZWA6NNG5JG2JSB4G55B77E2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

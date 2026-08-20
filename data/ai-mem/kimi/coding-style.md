@@ -25,11 +25,11 @@ protocol-7 syntax extends perl in ways that confuse `perl -c`:
 ### use `bin/dev/ptd` instead
 ```bash
 ## validate and reformat
-./bin/dev/ptd modules/namespace.module.name
+./bin/dev/ptd src/namespace.module.name
 
 ## check only (no reformat) — requires -c or -check flag
-./bin/dev/ptd -c modules/namespace.module.name
-./bin/dev/ptd -check modules/namespace.module.name
+./bin/dev/ptd -c src/namespace.module.name
+./bin/dev/ptd -check src/namespace.module.name
 ```
 
 ### verbatim escape for unusual constructs
@@ -72,7 +72,7 @@ note: variable form uses NO quotes — `$code{$var}` not `$code{'$var'}`
 some module families are renamed during zenka startup by `<[base.swap_subs]>`.
 after the swap, the long `base.<family>.*` keys are deleted from `%code`; only
 the short form resolves at runtime. known swapped families (grep
-`<[base.swap_subs]>` in `modules/*.pre_init` / `modules/*.init_code` for the
+`<[base.swap_subs]>` in `src/*.pre_init` / `src/*.init_code` for the
 current list):
 
 `base.event`→`event` · `base.file`→`file` · `base.base32`→`base32` ·
@@ -83,14 +83,14 @@ current list):
 `event.anyevent`→`event`
 
 ```perl
-## file on disk: modules/base.event.add_timer
+## file on disk: src/base.event.add_timer
 ## runtime call after init: use the short name
 <[event.add_timer]>->(...)
 
 ## <[base.event.add_timer]> is undefined after the family's pre_init runs
 ```
 
-rule: `ls modules/` is not evidence of the runtime `%code` key. if a family is
+rule: `ls src/` is not evidence of the runtime `%code` key. if a family is
 in the swapped list, use the short form. when unsure, check
 `p7c <zenka>.list-subs <pattern>` on a live zenka.
 
@@ -286,7 +286,7 @@ logged verbosities can be controlled separately for different targets:
 - `<system.zenka.verbosity.buffer>` — uim-memory buffer
 - `<system.zenka.verbosity.logfile>` — log files (via network to p7-log zenka)
 
-the effective verbosity is the max of all three (see modules/base.get_max_verbosity).
+the effective verbosity is the max of all three (see src/base.get_max_verbosity).
 
 ---
 
@@ -395,7 +395,7 @@ ptd **cannot** automatically break up long strings. you must manually split them
 
 ### check for violations
 ```bash
-./bin/vc-changed-files -exc-len | grep modules/
+./bin/vc-changed-files -exc-len | grep src/
 ```
 
 ---
@@ -689,7 +689,7 @@ use `sprintf` only for the fixed skeleton pieces that have no literal `%`.
   web-browser zenka — count `event.add_timer` ticks against the fixed
   poll interval for timeouts instead of wall-clock.
 - after adding modules: `./bin/dev/gen-sub-whitelist web-browser`
-  regenerates the whitelist [ scans modules/ via dep-graph, strips the
+  regenerates the whitelist [ scans src/ via dep-graph, strips the
   signature — user re-signs ]. `base.list.subroutines` updates
   separately via the sourcecode console.
 
@@ -697,7 +697,7 @@ use `sprintf` only for the fixed skeleton pieces that have no literal `%`.
 
 ## %code presence checks and cross-namespace calls [ july 2026, critical ]
 
-new primitives in `modules/base.code.*` and `modules/base.mod.exists` — use
+new primitives in `src/base.code.*` and `src/base.mod.exists` — use
 these instead of raw `exists $code{'...'}` checks or identity proxies like
 `<system.zenka.name> eq 'v7'`.
 
@@ -743,7 +743,7 @@ consequence: writing `exists $code{'literal.name'}` directly in a module
 ## hard requirement : condition TRUE, errors if absent
 my $pubkey_response = <[base.code.call_expected]>->(
     TRUE, qw| crypt.C25519.cmd.get-public-key |
-);    ## see modules/auth.auth_select
+);    ## see src/auth.auth_select
 
 ## optional integration : silent either way
 <[base.code.call_optional]>->(
@@ -771,7 +771,7 @@ and the referenced-sub scanner. this bit twice in one session:
 silently broke nshell's cube connect until caught by testing.
 
 ```bash
-grep -rn 'sprintf' modules/ | grep -i '<name-fragment>'
+grep -rn 'sprintf' src/ | grep -i '<name-fragment>'
 ```
 
 ---
@@ -1070,8 +1070,8 @@ any comment above or after the full statement instead.
 
 ---
 
-#,,..,,,,,,,,,...,.,,,.,.,..,,.,,,,,,,,..,...,.,.,...,...,...,..,,,,.,,,,,,.,,
-#46BDJRTILD5BFJHE264YYCO3LQX5AFEVMAVND54B5N2CRFJSARKIAC757A637F4HCTGJ36Q2S7KGO
-#\\\|PKQ2MLNXNTIWWDE6KCRE6NFFJ5R3D3Q3DYQPXZZKOB2RHZ5HPVR \ / AMOS7 \ YOURUM ::
-#\[7]N6O4SC2PLG24D2FWTK76VR3BBRMMHAKED4DPDFVGYSV7O4NYSMAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,.,,.,,,.,,...,.,,,,,.,...,,,.,.,.,...,...,..,,...,,.,,.,.,,.,,
+#W4ONLCH536PCRJCLBMHDNEVPVUDF7EQCOXJKDM7RSYYZBNUK5DW4QJMCHWDO42HC45J6TBG577J2M
+#\\\|SY246CBIVPGQWSF7M4SFRKGSF2CGH7DFHG6Y4SQXVB7KZISWOKG \ / AMOS7 \ YOURUM ::
+#\[7]QDCEYE3AVK5PVTLN57PM6NEWFYKVNDLANR4DUGTJ5A7A6OX2NWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

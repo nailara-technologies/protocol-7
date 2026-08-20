@@ -67,7 +67,7 @@ returns formatted table:
   gemma-3-4b-it-Q4_K_M.gguf    2.49 GB   8,234
   gemma-3-4b-it-Q8_0.gguf      4.67 GB   3,891
 
-uses clients.http.get (non-blocking) — see modules/clients.http.*
+uses clients.http.get (non-blocking) — see src/clients.http.*
 HF API does not require auth for public models
 ```
 
@@ -192,8 +192,8 @@ p7 fetch.file.huggingface.status
 - [ ] zenka starts on-demand cleanly
 - [ ] downloaded file appears in `p7c coding.list-models` output after completion
 
-#,,,,,,..,,..,..,,...,,,,,...,,.,,,,,,,,.,,,.,..,,...,.,.,,..,.,,,..,,,,,,,.,,
-#PRXQ36FQ4F6DIQZM76NDP3AAXXQ4NFMNYASDI2SDCWYQ4HHYHXBJ4IDWF5U2NROFISYGISBOBIPD4
-#\\\|4CKXGMI54BU3CXZAWCHMC433QCXAFND66QVLYIC7YM2N4OAX54Y \ / AMOS7 \ YOURUM ::
-#\[7]PM4NSS46EBFVV2CSFK7WCD2RBEGEETEOTGIZN3QAYCATVYYV2WAQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,..,,,.,,,.,,.,.,.,.,,,,,,,.,...,..,,...,..,,,..,.,,,.,,,.,,,,..,
+#WHUKHMWG2LXW3ZM2LA2OSB3CH3OVG733S3ET7UYALFXQBNYPKDDKLU2E2OMIEU3VPOLSH46UE4KHE
+#\\\|3NQI5JEZH3B3NFUMAQIQG6IC2IDW5RNGG4QHPWSDN43LF6EFM3R \ / AMOS7 \ YOURUM ::
+#\[7]SVUYUZHWNDQS2YYHWLWDXLNT6GRK4732NDCH7AA34RAEXYIPRQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

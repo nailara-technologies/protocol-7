@@ -3,7 +3,7 @@
 ## context
 
 `bin/dev/dep-graph` is a static dependency graph tool for the protocol-7 module
-system. it scans `modules/` for `<[module.name]>->()` call patterns, builds a
+system. it scans `src/` for `<[module.name]>->()` call patterns, builds a
 weighted adjacency graph, and writes it to disk for reference and tooling.
 
 the current full-graph text output has a significant problem : it is a
@@ -97,8 +97,8 @@ base.buffer.add_line -> base.s_warn [ 1 call  ]
 call each other — the format must handle cycles gracefully without infinite
 expansion ]
 
-#,,,.,,,,,..,,,.,,,.,,,..,...,.,.,...,.,,,,.,,..,,...,...,,,.,,..,...,.,,,,..,
-#3IQ5VUBXHKMI3IALCONDZ7DN35B244FKAW6XMGAZPLJ7MWUTMMEYPPIRW77LE2W7XQBMS5HULJWAU
-#\\\|K3EAZWZATJAVIFLU2BCHAAI2BETFVV767HK6V5GGNL2IRJ5QGSZ \ / AMOS7 \ YOURUM ::
-#\[7]744LRFZ7KD37P37C52EYELL3ZZAO2PGC3VUORC6SXJLDRAHFD4CA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,.,,.,,,..,,,.,,...,,.,,,,,,,.,,..,,...,..,,..,,..,,,..,,..,..,,
+#PCCELGOFS6QUXJK2RZT7UEV62G54AIM77LO2E5S5OZBFIDDICQPYCA4DOAO4UJ6KMZH3O3X6TQH5C
+#\\\|GI7TMR2TAXOVSWNJGP2X2RLMSZO6DV7FC4A5NL52YZBOQWFJQPP \ / AMOS7 \ YOURUM ::
+#\[7]7FK3E6IUQBF2XGA2IHJ4ONFLVOYYITQW7WBJ2UBZDPHBAJHUNSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

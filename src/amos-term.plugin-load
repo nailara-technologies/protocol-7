@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = amos-term.plugin-load
+# descr = Load amos-term plugin (hot-reloadable)
+
+my ( $window_id, $plugin_name ) = @ARG;
+
+## === parse plugin name === ##
+my ( $type, $name ) = $plugin_name =~ m{^(\w+)\.(\w+)$};
+if ( not defined $type or not defined $name ) {
+    <[base.logs]>->(
+        0, ":: invalid plugin name: %s (expected type.name)", $plugin_name
+    );
+    return undef;
+}
+
+my $type_def = <amos-term.plugin-types>->{$type};
+if ( not defined $type_def ) {
+    <[base.logs]>->( 0, ":: unknown plugin type: %s", $type );
+    return undef;
+}
+
+## === build module name === ##
+my $module = sprintf( 'amos-term.plugin-%s.%s', $type, $name );
+my $file   = sprintf( 'src/%s', $module );
+
+## === check if already loaded === ##
+if ( exists <amos-term.plugin-loaded>->{$module} ) {
+    <[base.logs]>->( 1, ":. plugin '%s' already loaded", $plugin_name );
+    return $module;
+}
+
+## === load module === ##
+my $result = eval { <[base.protocol.compile_once]>->($file) };
+if ($@) {
+    <[base.logs]>->(
+        0,            ":: failed to load plugin '%s': %s",
+        $plugin_name, $@
+    );
+    return undef;
+}
+
+## === register plugin === ##
+<amos-term.plugin-loaded>->{$module} = {
+    qw| name |    => $plugin_name,
+    qw| type |    => $type,
+    qw| module |  => $module,
+    qw| loaded |  => <[base.ntime]>,
+    qw| window |  => $window_id,
+    qw| hook |    => $type_def->{'hook'},
+    qw| enabled | => TRUE
+};
+
+## === attach to window if specified === ##
+if ( defined $window_id ) {
+    my $window = <amos-term.windows.by_id>->{$window_id};
+    if ( defined $window ) {
+        push $window->{'plugins'}->@*, $module;
+        <[base.logs]>->(
+            2,            ":. plugin '%s' attached to window %d",
+            $plugin_name, $window_id
+        );
+    }
+}
+
+<[base.logs]>->(
+    2,            ":: plugin '%s' loaded [module:%s]",
+    $plugin_name, $module
+);
+
+return $module;
+
+#,,.,,,,,,.,.,,..,,.,,...,,..,,.,,,.,,..,,,,.,.,.,...,...,,,,,.,,,,,,,.,.,,.,,
+#IMGK7AAD32DOO4VRZK2M2SHIVBSW64G5NOMUHDG7CM5HVWM7S7NQ5ZWAETHBXQZF6ZG6DJ3LYWCES
+#\\\|GEUIKLZYINUX5V5NCJHY6GY5LWABKDGQS6U64CCPAMJQRXRI2ZW \ / AMOS7 \ YOURUM ::
+#\[7]XOT3OD27DCE2AUCNUZ5PIOG2LSV4AZG3IODICB7FWGBQ5HQ3GQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

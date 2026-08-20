@@ -368,10 +368,10 @@ The adapter plugin generalizes this pattern:
   4-crossing consent, DTM 6×7×13 topology
 - `data/md/documentation/deferred-compilation-design.md` — deferred stub mechanism
 - `data/md/documentation/module-dependency-graph.asc` — current dep-graph
-- `data/yaml/coding-tasks/modules-subdir-pm-extraction.yaml` — .pm cleanup
+- `data/yaml/coding-tasks/src-subdir-pm-extraction.yaml` — .pm cleanup
 
-#,,,,,,.,,,,,,...,.,.,.,,,,,,,,,.,,,.,.,,,.,.,..,,...,...,..,,...,...,,,,,.,,,
-#T7Q6THNSKZX3BKYNIKWK5BDTNBEAUWDPSRIBHSB66NUTOFGTUCZTUQBFBAPK6RUJJACE5HNMOHY2S
-#\\\|OFZ6FFBNFS53APHLLVLLPJAZZCPZTG5HR5PRP4K6C3HN7NR2L3C \ / AMOS7 \ YOURUM ::
-#\[7]PFXWJLARFMJZBGH3FX3R5RLWCEM7I7VQHJJ7WM2Y24XJJ6CGV4DA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,,.,,...,.,.,...,,..,..,,,,.,..,,...,...,.,.,,..,.,.,..,,,.,,
+#4BZP2RP5LU5MOCK75MFG4C2PDIWQMCA7WGAL2IMQAIEIK5SCHJO4DCPFRIFFXZKJINM3VHHXGLM5A
+#\\\|K5VRCFYNQF55USTHGOJBQNOWNMI2W5S6VVCAWC3EALVVIAD3CWJ \ / AMOS7 \ YOURUM ::
+#\[7]4BDPFIXQGHJR3G26ADK6GKVYMANV47BL4XQTKGQQDCAJWR7WDYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

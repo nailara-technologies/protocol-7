@@ -1,0 +1,137 @@
+## [:< ##
+
+# name  = cred-mesh.ui.interactive.input
+# descr = complete a pending credential-fabric ui prompt action
+
+my $call_args = shift // {};
+
+my $session_id = $call_args->{'session_id'} // '';
+my $input      = '';
+
+if ( defined $call_args->{'args'} ) {
+    my $args_str = $call_args->{'args'};
+    $args_str =~ s/^\s+|\s+$//g;
+
+    ## extract session_id= suffix if present ##
+    if ( $args_str =~ s/\s+session_id=(\d{3,17})$// ) {
+        $session_id = $1;
+    }
+
+    $input = $args_str;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'missing session_id'
+    }
+    unless length $session_id;
+
+my $ui    = $data{'session'}{$session_id}{'cred-mesh'}{'ui'};
+my $focus = $ui->{'focus'};
+return {
+    'mode' => qw| false |,
+    'data' => 'no active ui focus'
+    }
+    if not defined $focus
+    or ref $focus ne qw| HASH |;
+
+## helper: set a one-line status message ##
+my $set_status = sub {
+    my $msg = shift // '';
+    $ui->{'status'} = $msg if length $msg;
+};
+
+my $pending = $focus->{'pending_action'};
+
+if ( not defined $pending ) {
+    $set_status->('no pending action');
+    $focus->{'pending_slot'}   = undef;
+    $focus->{'pending_req_id'} = undef;
+    return <[cred-mesh.ui.interactive.refresh]>->($call_args);
+}
+
+## grant completion ##
+if ( $pending eq qw| grant_zenka | ) {
+    my $slot = $focus->{'pending_slot'} // '';
+    if ( not length $slot or not length $input ) {
+        $set_status->('grant cancelled');
+        $focus->{'pending_action'} = undef;
+        $focus->{'pending_slot'}   = undef;
+        return <[cred-mesh.ui.interactive.refresh]>->($call_args);
+    }
+
+    my $meta = <cred-mesh.registry>->{$slot};
+    if ( not defined $meta ) {
+        $set_status->("unknown slot '$slot'");
+        $focus->{'pending_action'} = undef;
+        $focus->{'pending_slot'}   = undef;
+        return <[cred-mesh.ui.interactive.refresh]>->($call_args);
+    }
+
+    $meta->{'access_grants'} //= [];
+    push @{ $meta->{'access_grants'} }, $input;
+
+    ## persist registry ##
+    eval {
+        my $yaml_str = YAML::XS::Dump(<cred-mesh.registry>);
+        <[file.zenka_dir.write]>->( 'registry.yaml', \$yaml_str, '>', 0600 );
+    };
+    if ($@) {
+        $set_status->('failed to persist grant');
+    } else {
+        $set_status->(
+            sprintf(
+                "granted '%s' access to '%s' (advisory "
+                    . "— update cube access for enforcement)",
+                $input, $slot
+            )
+        );
+    }
+
+    $focus->{'pending_action'} = undef;
+    $focus->{'pending_slot'}   = undef;
+    return <[cred-mesh.ui.interactive.refresh]>->($call_args);
+}
+
+## approve completion ##
+if ( $pending eq qw| approve_payload | ) {
+    my $req_id = $focus->{'pending_req_id'} // '';
+    if ( not length $req_id or not length $input ) {
+        $set_status->('approval cancelled');
+        $focus->{'pending_action'} = undef;
+        $focus->{'pending_req_id'} = undef;
+        return <[cred-mesh.ui.interactive.refresh]>->($call_args);
+    }
+
+    my $result = eval {
+        <[cred-mesh.cmd.approve]>->( { 'args' => "$req_id $input" } );
+    };
+
+    if (    defined $result
+        and ref $result eq qw| HASH |
+        and $result->{'mode'} eq qw| true | ) {
+        $set_status->( sprintf( "approved relay '%s'", $req_id ) );
+    } else {
+        my $err = 'approval failed';
+        $err = $result->{'data'}
+            if defined $result and ref $result eq qw| HASH |;
+        $set_status->($err);
+    }
+
+    $focus->{'pending_action'} = undef;
+    $focus->{'pending_req_id'} = undef;
+    return <[cred-mesh.ui.interactive.refresh]>->($call_args);
+}
+
+## unknown pending action ##
+$set_status->( sprintf( "unknown pending action '%s'", $pending ) );
+$focus->{'pending_action'} = undef;
+$focus->{'pending_slot'}   = undef;
+$focus->{'pending_req_id'} = undef;
+return <[cred-mesh.ui.interactive.refresh]>->($call_args);
+
+#,,.,,.,,,,,,,,,,,,.,,.,.,..,,..,,,,,,...,,..,.,.,...,...,...,.,,,...,...,,..,
+#UFH7Z5PKAX5LSVKNYYTOX3P3CRKKUCN6V4TTGNS65YJ3AW7E3KQBL3TMOXILLOWONQFIBKUBSBRAC
+#\\\|7X2TN7QNR7ESCVSWTP5ZSIBK6SEXZ742GIQYMP2ZO3OD3KRFW4U \ / AMOS7 \ YOURUM ::
+#\[7]4NQAOHVDZO7F4O4ZTPMRH5PR4QV5RXW2LAROHCZ3BHW7MGFN5QDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

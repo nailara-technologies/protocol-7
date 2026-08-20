@@ -9,7 +9,7 @@ context: |
   "letzten export vergessen" wiped the exported_stage marker on every job jobsite had ever
   exported (the old clearExportHistory() cleared unconditionally, not just the accidental
   batch). fixed same session by adding exported_at [ epoch, added to the browser-writable
-  field whitelist in modules/plugin.web.jobs.sync:57 ] and scoping "vergessen" to the
+  field whitelist in src/plugin.web.jobs.sync:57 ] and scoping "vergessen" to the
   current batch only.
 
   that fix only protects against FUTURE over-broad clears. reconstructing the PRE-EXISTING,
@@ -73,7 +73,7 @@ scope:
 
   reuse_not_reinvent: |
     the three p7c commands built this session [ mark-exported, unmark-exported,
-    set-export-time, all in modules/jobsite.cmd.* ] are the correct underlying primitives —
+    set-export-time, all in src/jobsite.cmd.* ] are the correct underlying primitives —
     the importer should call these [ or their shared internal logic, factored out if
     duplicated ] per matched row rather than re-implementing the HTTP push to the web cache.
 
@@ -124,8 +124,8 @@ notes: |
   for jobs exported before this session's fixes, it will ], the fix takes minutes instead
   of the multi-hour investigation this session required.
 
-#,,,,,.,.,,,,,,,.,,,,,,.,,...,,.,,,,,,,,,,.,.,..,,...,..,,.,.,.,,,.,.,,,.,,,.,
-#HX42ZFF76BO675SWDHT65GTOIVXHYFRWT527QQS77OQYMZF2FK75MCFTLIGTQKGMVPQG5TBHYIRUU
-#\\\|QXDB72BB2Y5TGZGBLFDDMWOFPYAOGYGGLTJFJHZQ77PP4STYMLC \ / AMOS7 \ YOURUM ::
-#\[7]YJVWWB5E75NYXBSCRVHGEJPJMCK5R447QSX2RYXGLWVOUUTRHSCY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,.,.,..,,..,,,,,,,.,,..,,,,.,..,,...,...,...,.,.,...,.,.,...,
+#45UJ6GG6VVVIJ5NQUC4CO6FU6BBGD5C5RRIERLEROMLV5EGBVNA3BM64AR33WKUHBP5TZPW2F4ZSW
+#\\\|3B3LUY7MDCK4S3MHGXJ35ISN2EF74EOJMEBJZ26MTBFXZANOFWI \ / AMOS7 \ YOURUM ::
+#\[7]MJG6L2Y6WGRW37PS6EGDHIWZOHI7AYWOPVVRKZMSQLICW36UWGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

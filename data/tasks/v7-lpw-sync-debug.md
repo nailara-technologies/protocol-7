@@ -46,12 +46,12 @@ partial fix already applied this session:
 
 ### key files
 
-- `modules/v7.calc_prefix_lengths` — main logic; sends staggered kill 55 to PIDs
-- `modules/base.sig_NUM55` — signal handler; `$event->w->hints` for combined count
-- `modules/base.sig_NUM41` — decrease handler (same pattern)
-- `modules/base.init_zenka.install_signal_handlers` — registers NUM55/NUM41 handlers
-- `modules/v7.zenka-instances.get-ids` — PID lookup by zenka name
-- `modules/v7.zenka.change_status` — triggers calc_prefix_lengths
+- `src/v7.calc_prefix_lengths` — main logic; sends staggered kill 55 to PIDs
+- `src/base.sig_NUM55` — signal handler; `$event->w->hints` for combined count
+- `src/base.sig_NUM41` — decrease handler (same pattern)
+- `src/base.init_zenka.install_signal_handlers` — registers NUM55/NUM41 handlers
+- `src/v7.zenka-instances.get-ids` — PID lookup by zenka name
+- `src/v7.zenka.change_status` — triggers calc_prefix_lengths
 
 ### expected fix
 
@@ -65,8 +65,8 @@ the stepping should be gradual (1 step per timer tick, 0.13s apart) not instant.
 - `<[module.name]>->()` invocation syntax; `<data.key>` for data tree access
 - `$ARG` is the loop variable (not `$_`); `@ARG` is args array
 
-#,,,.,...,.,,,.,.,,,.,.,,,,..,.,,,,.,,,..,,,.,..,,...,...,,..,...,,.,,...,,,,,
-#GILVLH3N3CQYMX73YF3CEVBW6SWOLTCNTUHD5MXPLSLJ2FPVDKPLMEDKLLBE2XWSL7CI7R2MXHZMO
-#\\\|52CRPSPO52L2ZT4UT6RRHITOI5SSVEP6MCR3XUEOL7VCGA4GGWO \ / AMOS7 \ YOURUM ::
-#\[7]X65MJFNMQZSJ4H4EEKEL7VAWFNOVD4YCIVP2JE4HD2PT3INM46DY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,,,.,,..,.,,,.,,,..,,..,,...,..,,...,...,...,,,.,...,,.,,...,
+#CSERYZZVC2TZ5OZBWRIL4SCVB7LIJCH5JR6BB57JE7L57Y7RQY4BHOWYSI6U3WCIVZHJ6RJYUN6S6
+#\\\|J7H7AVWEU2N5MXB6IAT7M6XGXKVMHHPAGXEJPCJ2KGFFTC5XS6G \ / AMOS7 \ YOURUM ::
+#\[7]V6XWW63PZLGNW4HUYAFIX6LJ2OIG4OF7BPNRMGOJELLVXLTNXICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -106,8 +106,8 @@ central server, all of it revocable by directory deletion.
 
 ## Connection to Existing Infrastructure
 
-- C25519 implementation: `modules/crypt.C25519.*` — already present
-- User keys: `modules/USR.[username].*` pattern — zenka keys follow same pattern
+- C25519 implementation: `src/crypt.C25519.*` — already present
+- User keys: `src/USR.[username].*` pattern — zenka keys follow same pattern
 - AMOS7 checksums: task directory names could use AMOS7 of pubkey for
   shorter, human-readable routing addresses while full pubkey remains canonical
 - Data zenka FUSE mount: task trees become accessible as filesystem paths
@@ -246,8 +246,8 @@ signature:  <sig-of-above-fields>
 
 #,,..,,.,,,.,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,...,..,,...,..,.,,.,
 
-#,,.,,,,.,,,.,.,.,..,,,,.,.,.,..,,..,,.,,,,,.,..,,...,...,...,,.,,,,.,.,,,,.,,
-#5XRQKYSCO55DGZV2BDCYR3734H4OFAJWPOWGWUCFDK4STOWPYSM2KY526WJDN3H62YYOVAG4PA5VQ
-#\\\|TUGL5EX2GNX5IJT7VSRNBZQKQGKWLYAGLKGFAPTETGFDCBPYM4O \ / AMOS7 \ YOURUM ::
-#\[7]GTNI3HBM72ZDBGPFIQFRUQVBGWWSJ5SUHQLKLTLSUELJSWYOPOBY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,.,,,,.,,.,,,.,.,,..,,..,.,,,..,,...,..,,.,.,.,.,.,,,.,,,,,.,
+#LHSCZGRGNJFE7W7DXRBA35JRCEMSTNEZJQAVVJN5AIVHG6POTJWBLT22TNDJN5LAA4EBCTGCF5GDU
+#\\\|LZEKTXIPY7QVKONW6CKHCJ2QWIIP2CKSXOOZN2RZ6P4SBETBIRK \ / AMOS7 \ YOURUM ::
+#\[7]HRJ7EW5VHK7RYZKTXVOPYEXK5YJX6SWTA7D42AXR7QAUVN4OL2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

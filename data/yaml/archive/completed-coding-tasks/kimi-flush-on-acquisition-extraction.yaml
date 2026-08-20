@@ -1,7 +1,7 @@
 ---
 task: extract flush_on_acquisition inline sub from kimi.handler.approval_request
 type: inline-sub-extraction
-target_module: modules/kimi.handler.approval_request
+target_module: src/kimi.handler.approval_request
 signatures_note: >
   do not investigate or verify AMOS7 signatures — they are maintained by the
   signing system automatically and are not relevant to this task.
@@ -29,8 +29,8 @@ description: |
     }
 
 steps:
-  - read modules/kimi.handler.approval_request and confirm the sub location
-  - create modules/kimi.flush_on_acquisition with the extracted sub body
+  - read src/kimi.handler.approval_request and confirm the sub location
+  - create src/kimi.flush_on_acquisition with the extracted sub body
     (no sub {} wrapper — the module file IS the sub)
   - new module header:
       name  = kimi.flush_on_acquisition
@@ -45,8 +45,8 @@ steps:
 naming_rule: extracted helper subs use namespace.name (no underscore prefix)
   flush_on_acquisition → kimi.flush_on_acquisition
 
-#,,.,,.,.,,,.,,..,,,,,,.,,.,,,,..,,.,,,,.,,..,..,,...,...,..,,,,.,,.,,,,,,,,.,
-#G3DH6MC4V6FWN76M2LVR53WEFTYSGF7KEUHM6JOXLHEWU65OCRXYKCFBRL3UA5HOH3SCA6F52Z3XI
-#\\\|WORWDMNWBLFOCYUHL2QX34DGYG5H76BJKMNV2VPIZWZZ64CBXOE \ / AMOS7 \ YOURUM ::
-#\[7]NTMDWUFZDZ34FXFB4KYYGZO5JN5O5Q3Y5EBZQE4I63ZVJAR6Y4CY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,,.,,..,,..,,...,.,.,...,,.,,..,,...,...,,..,,..,,,.,..,,,,.,
+#U4UWOX7FJW3X3PKM75TUWBJZUMAHMSOOLI4C2YYEPD6K73HNMMVSDEJ37BMXOV6EU5MEOBGGZSDKE
+#\\\|34WGE7GYFJ3V4PONZ4WZ6JKYAWNJII527D6N2L2LO2ZPFACBOTU \ / AMOS7 \ YOURUM ::
+#\[7]BLBRMRRGCXJDDWXM4D7H3CSWZBXJDUPTSF6DJ4Y7G6VGWW74P4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

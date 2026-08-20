@@ -9,7 +9,7 @@
 
 `data/ai-mem/claude/bug-ncode-assess-replace-not-backreferenced.md` has
 the full write-up; read it first. Short version:
-`modules/context.pattern.extract_from_change` (called by
+`src/context.pattern.extract_from_change` (called by
 `ncode.regex.assess`, which `ncode.cmd.assess` wraps for `p7c`) builds a
 regex `pattern` with a real capture group, but every branch builds
 `replace` by splicing in the literal training-example value instead of a
@@ -28,17 +28,17 @@ p7c ncode.assess '{"old":"## default probe interval (seconds) ##","new":"## defa
 Concrete motivating case, don't lose sight of it: CLAUDE.md's own
 convention is `[ word ]` for comment annotations, never `( word )`. Real,
 unfixed occurrences exist today, e.g.
-`modules/amos-term.render.draw_buffer:41` and
-`modules/transport.init_code:27` (also `base.zenka.push.reply-handler.
+`src/amos-term.render.draw_buffer:41` and
+`src/transport.init_code:27` (also `base.zenka.push.reply-handler.
 offline:19`, `work.calculate_suggestion_relevance:83`, and others — grep
-`^\s*##.*([a-z_]\+)\s*##\s*$` in `modules/` excluding lines that already
+`^\s*##.*([a-z_]\+)\s*##\s*$` in `src/` excluding lines that already
 use `[`). This whole class is currently un-sweepable via `ncode.cmd.
 assess` because every extracted pattern only matches the one line it came
 from.
 
 ## the fix — scope it to the generic/token branch only
 
-`modules/context.pattern.extract_from_change` has 5 branches (lines
+`src/context.pattern.extract_from_change` has 5 branches (lines
 51-111): numeric, identifier, quoted-string, value-assignment, and the
 generic/multi-word "token" fallback (lines 92-103, the one that fired in
 both repro cases above). **Only fix the token branch.** The other four
@@ -136,8 +136,8 @@ backreference there would be wrong, not just unhelpful.
 - Read `data/ai-mem/kimi/MEMORY.md` and `data/ai-mem/kimi/coding-style.md`
   first per this project's convention.
 
-#,,,.,,.,,,.,,...,..,,,..,,.,,..,,...,.,.,,.,,.,.,...,...,,,.,,,.,,..,,,,,,,.,
-#WCJPISLKCNJC3UJDTPGKXV4RKNOJ44F2B445C4UGSAXBNDYMEBNHDFUBWPQEPKUL2SRTIR4DTNGOY
-#\\\|6AKFZZV2JV4N6J4JJ7KRWL6KCFPD4GNLFC7WWZFXGU4Y43XAHMD \ / AMOS7 \ YOURUM ::
-#\[7]OP6STNEJF6HZ7SUD3VMQ3Y3JO2QECRBUVZWSGDQTCNSELWZ5RIAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,,,.,,,,,.,..,,.,,,.,.,.,.,.,,,.,.,...,...,.,.,.,,,,.,,..,,,.,,
+#O4FIINSFQDTXRQA5X3464JWDKRSZBZMFMW6ARAL4Z574SZFCYCKIMYXQOSVASVBO7EORFKJHLJG3K
+#\\\|Q2BU3NWZINLFDX52J4PX5EKTOZN6WXPU23A7T6ZKJXCJZFNGQCR \ / AMOS7 \ YOURUM ::
+#\[7]ALFFWKV62TYQE5XQVONJ7EIEWLUWM6FEBP3GGEJOGTLAR5VH52AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

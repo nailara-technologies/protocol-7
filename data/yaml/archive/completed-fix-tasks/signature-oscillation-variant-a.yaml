@@ -43,16 +43,16 @@ fix_applied:
     - states < 5 confirmed correct by code inspection (add-only harmonize never generates them)
 
 test_files_created:
-  - modules/test.0   (0 trailing \n → expected state=7)
-  - modules/test.1   (1 trailing \n → expected state=6)
-  - modules/test.2   (2 trailing \n → expected state=5)
-  - modules/test.3   (3 trailing \n → expected state=5, harmonize no-op)
-  - modules/test.empty  (0 bytes → expected state=6)
+  - src/test.0   (0 trailing \n → expected state=7)
+  - src/test.1   (1 trailing \n → expected state=6)
+  - src/test.2   (2 trailing \n → expected state=5)
+  - src/test.3   (3 trailing \n → expected state=5, harmonize no-op)
+  - src/test.empty  (0 bytes → expected state=6)
 
 verification_task: data/yaml/coding-tasks/signature-endline-state-verification.yaml
 
 new_tooling:
-  - modules/sourcecode.console.report-endline-state
+  - src/sourcecode.console.report-endline-state
       reads 3-bit state from footer first line via amos7.decode_octal_bit_header
       usage: sourcecode report-endline-state <file-pattern>
   - bin/dev/tests/timing/test-oscillation-sequence
@@ -76,8 +76,8 @@ original_task:
     data/asc/test-fixtures/signature-oscillation-2026-03-15/
 ---
 
-#,,,.,.,.,.,,,,,,,,.,,,,.,,,.,..,,...,,,.,,..,..,,...,...,..,,..,,,..,..,,...,
-#SEGZUB2WO2IULS3Z6S3NKMEDNVA5Y3IEQ4E33XJ22RT3UXVSC4LMI32FJRVT6IZLGVVEAQQC7LCXW
-#\\\|YAL4C7M7MFA6QQESYEXH4SH43DB6F7O3SPC5CKLJNA7SKJGVDOB \ / AMOS7 \ YOURUM ::
-#\[7]JTX24QIQ2CH5AXQ6JHSMK6TGKKG363A7O2YDMN4WO4D3H4BHFUAY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,...,,,.,...,,.,,.,.,,,.,...,..,,...,...,,..,,,,,,.,,,.,,.,,,
+#UDPUHFGEC4VFJB3OHRHSDTI3CATO7EMBBRKIXQBJWO2CSTAEWVGZ376U2O3X76GKFAWBVU2OWQI5M
+#\\\|JRB4HGKMTMYIO7BF2EBKS3YRMXHCOXGAANC24RN4KOT4NC3AJDT \ / AMOS7 \ YOURUM ::
+#\[7]G3WYJJCEOJACTVD3S2MRUNIZOI5ZVVZMGZI62JNP6GBO2WM5KOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

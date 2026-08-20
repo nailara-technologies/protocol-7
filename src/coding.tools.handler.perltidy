@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = coding.tools.handler.perltidy
+# descr = run perltidy on a file with project settings
+# param = path, check_only
+
+my $args = shift // {};
+
+my $path       = $args->{'path'}       // return 'error: path required';
+my $check_only = $args->{'check_only'} // FALSE;
+
+my $root     = <system.root_path>;
+my $abs_path = "$root/$path";
+
+## auto-prefix src/ for dot-notation filenames without directory ##
+if ( $path !~ m|/| and $path =~ m|\.\w+\.| ) {
+    $path     = catfile( qw| src |, $path );
+    $abs_path = catfile( $root,     $path );
+}
+
+## validate path stays within project ##
+my $real_path = Cwd::abs_path($abs_path) // '';
+my $real_root = Cwd::abs_path($root)     // '';
+return 'error: path escapes project root'
+    if !length $real_path
+    or index( $real_path, "$real_root/" ) != 0;
+return 'error: file not found' unless -f $real_path;
+$abs_path = $real_path;
+
+## verify file is perl code [ protocol-7 header or shebang ], and slurp the ##
+## whole file while we're at it -- the in-memory perltidy API needs the     ##
+## actual content, not just a filename for it to open itself                ##
+open( my $fh, qw| <:encoding(UTF-8) |, $abs_path )
+    or return 'error: cannot read file';
+my $source = do { local $RS = undef; <$fh> };
+close($fh);
+my ($first) = $source =~ m|^(.*\n?)|;
+return 'error: file does not appear to be perl code'
+    unless $first =~ m|^## \[:<| or $first =~ m|^#!.*perl|;
+
+## fetch perltidy options from config [ init_code sets defaults ] ##
+my $ptd_opts = <coding.tools.perltidy.options>;
+if ( not ref $ptd_opts eq qw| ARRAY | or not @$ptd_opts ) {
+    $ptd_opts = [
+        qw|
+            -q -pbp
+            -wc=13 -cs
+            -utf8 -l=78
+            -bar -sot -ce
+            -nst
+            |
+    ];
+}
+
+## no -o / -b / -bext needed any more : the in-memory API captures output   ##
+## via 'destination' regardless of check_only, and we decide ourselves      ##
+## whether to write it back -- Perl::Tidy itself is loaded once in          ##
+## coding.init_code, not here : loading it per call would still be a no-op  ##
+## after the first, but logs "skipping already present .." noise every time ##
+my @tidy_argv = grep { $ARG !~ m{^-b} } @$ptd_opts;
+
+my ( $tidy_out, $tidy_err, $tidy_errfile );
+my $tidy_rc = Perl::Tidy::perltidy(
+    source      => \$source,
+    destination => \$tidy_out,
+    stderr      => \$tidy_err,
+    errorfile   => \$tidy_errfile,
+    argv        => \@tidy_argv,
+);
+
+## interpret result ##
+if ( $tidy_rc == 0 ) {
+    if ( not $check_only and $tidy_out ne $source ) {
+        open( my $wfh, qw| >:encoding(UTF-8) |, $abs_path )
+            or return sprintf "perltidy failed on %s: cannot write file",
+            $path;
+        print {$wfh} $tidy_out;
+        close($wfh);
+    }
+    return $check_only
+        ? sprintf "perltidy check passed for %s [no issues]", $path
+        : sprintf "perltidy formatted %s", $path;
+} elsif ( $tidy_rc >= 2 ) {
+    return
+        sprintf "perltidy found formatting issues in %s "
+        . "[run again without check_only to fix]",
+        $path;
+} else {
+    my $err = length($tidy_err) ? $tidy_err : 'unknown error';
+    return sprintf "perltidy failed on %s: %s", $path, $err;
+}
+
+#,,..,.,.,,..,,,.,..,,...,,..,,..,,.,,,,.,..,,..,,...,...,.,.,,..,,..,,.,,.,,,
+#WVNCPY4BBZKYPN3Z3OZQ2EJWMCZPSJ3UG5LNNA5IVDAPYVWFJIYWLRTJ7PB642R737RIVUELQWO72
+#\\\|2NJ4GHVVBLZVB43LNKDA2X45XYKNNIZBRALXYYQVYTY7YCD7JOP \ / AMOS7 \ YOURUM ::
+#\[7]MJGUO2UMBU5JDUUUKS4ZOPCYVZYV6O5LLWR7PQISLAHPO6ZU2SCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

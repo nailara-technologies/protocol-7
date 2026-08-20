@@ -132,7 +132,7 @@ principle applied to the task zenka's own summary-tree follow-on work.
   dispatch planning for this same task): heatwave conditions can shift a
   GPU's genuine idle baseline upward, so a fixed absolute
   `<task.cfg.gpu_cold_temp_c>` could misfire cold under sustained ambient
-  heat. `weather.temp` (`modules/weather.parent.cmd.temp`) exists but is
+  heat. `weather.temp` (`src/weather.parent.cmd.temp`) exists but is
   pull-only — the `weather.*` zenka has no STRM/subscribe mechanism
   (confirmed: only a periodic internal cache-refresh timer,
   `weather.parent.handler.update_current_timer`, and query commands).
@@ -160,7 +160,7 @@ numbers. introduce a separate task-local `<task.cfg.gpu_cold_temp_c>`
 
 ### confirmed mechanics from the codebase
 
-- **subscription pattern** (`modules/coding.init_code` ~lines 569–597):
+- **subscription pattern** (`src/coding.init_code` ~lines 569–597):
   deferred via `push <system.callbacks.initialized>->@*, sub {...}`, then
   `<[base.zenki.resolve_primary_sid]>->('X-11', sub { ... route-send
   "$sid.gpu_metric" with call_args { args => 'temp subscribe' }, reply
@@ -169,7 +169,7 @@ numbers. introduce a separate task-local `<task.cfg.gpu_cold_temp_c>`
   `$reply->{cmd} eq 'STRM'` + `args eq 'open'`, extracts `$cmd_id`, then
   `<[strm.local.register]>->($cmd_id, { watcher => sub {...} })` which
   splits the buffer on newlines.
-- **feed payload shape** (`modules/X-11.handler.read_gpu_metric` ~lines
+- **feed payload shape** (`src/X-11.handler.read_gpu_metric` ~lines
   84–98): the STRM feed emits **only** `"<load_1s> <avg_5s>\n"` per line
   (or just `"<load_1s>\n"` before a 5s avg exists). **15s/30s averages are
   NOT pushed over the STRM** — they exist in `X-11.gpu_top.metric` but are
@@ -195,7 +195,7 @@ numbers. introduce a separate task-local `<task.cfg.gpu_cold_temp_c>`
 
 1. **sweep timer + consumer skeleton.** in `task.post_init`, register a
    repeating timer (interval ~15–30s) whose handler is a new module
-   `modules/task.handler.cold-queue-sweep`: collects entries in
+   `src/task.handler.cold-queue-sweep`: collects entries in
    `<task.summary_tree.entries>` where `integrated` is FALSE, consults the
    gate (phase 1: notify-timing debounce only), and when cold, processes
    the accrued batch. **the content of "processing" — summary-of-summary
@@ -210,7 +210,7 @@ numbers. introduce a separate task-local `<task.cfg.gpu_cold_temp_c>`
    `<task.cfg.cold_debounce_secs>` for the relevant key." this is the real
    fallback path, not an afterthought — first-class in phase 1, with its
    own config value.
-3. **manual override command** `modules/task.cmd.trigger-cold-queue`:
+3. **manual override command** `src/task.cmd.trigger-cold-queue`:
    parses optional `[delay_seconds]`; sets a force flag
    (`<task.cold_queue.force_until>`) checked *before* any gate logic,
    bypassing both debounce and (phase 2) the GPU check; with a delay,
@@ -225,7 +225,7 @@ numbers. introduce a separate task-local `<task.cfg.gpu_cold_temp_c>`
 4. **subscribe to the feed** in `task.init_code`/`post_init`, mirroring
    `coding.init_code` 569–597 exactly (same `resolve_primary_sid` /
    route-send / reply-handler shape).
-5. **new consumer** `modules/task.handler.gpu_temp_update` — mirror
+5. **new consumer** `src/task.handler.gpu_temp_update` — mirror
    `coding.handler.gpu_temp_update` **minus the timeout-stretch feedback
    loop** (task zenka has no such loop to feed). keep: FALSE-reply guard,
    STRM/open guard, `cmd_id` extraction, `strm.local.register` watcher
@@ -244,12 +244,12 @@ precedence in the sweep handler: **force flag** (manual override) →
 
 ### new/changed files
 
-- **new**: `modules/task.handler.cold-queue-sweep`,
-  `modules/task.cmd.trigger-cold-queue`,
-  `modules/task.handler.gpu_temp_update`
-- **changed**: `modules/task.init_code` (config defaults + subscription
-  callback), `modules/task.post_init` (sweep timer),
-  `modules/task.cmd.summary-tree-notify` (record last-notify timestamps),
+- **new**: `src/task.handler.cold-queue-sweep`,
+  `src/task.cmd.trigger-cold-queue`,
+  `src/task.handler.gpu_temp_update`
+- **changed**: `src/task.init_code` (config defaults + subscription
+  callback), `src/task.post_init` (sweep timer),
+  `src/task.cmd.summary-tree-notify` (record last-notify timestamps),
   `cfg/zenki/task/start` (add `trigger-cold-queue` to
   `access.cmd.usr.cube`)
 
@@ -298,8 +298,8 @@ reasonably be picked up on its own without waiting for the other two.
 
 #,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
 
-#,,,.,..,,.,,,,,.,,,.,,,.,,..,.,.,,,,,...,,..,..,,...,...,.,,,,..,.,.,.,.,,..,
-#KM5LJQDXEMLMIFJKMEQGSWCYITXPCHSF3ZYRD4XYLVXEFGDLKUVN2XPD67ILI5D7Y4K3NNB4N7G6S
-#\\\|QPLOC2KBR4EV7PV2SBKHPKEME64Q6QYWPR3572TSRJAIEOSKXCR \ / AMOS7 \ YOURUM ::
-#\[7]CNYVIWITI7HOC4ACYXSAMVMZSVNZJW5RVZI5Y7FEXTMY4CWUGEBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,,.,,,..,,,,,,.,,,,.,..,,,.,,..,,...,..,,.,,,,,.,...,.,.,.,,,
+#J7LG3AST2FUANUGUJ4TTJ6JNNDJBFNYDYBAVFUJJTPYIIK2YUVGFPR4NMLAOLC37QI6D77TWZVDQ6
+#\\\|HKAOOYPNR67L2A4L6K65HCL4B4LZQQWZIZS2JBRKKLWVKLGEUSO \ / AMOS7 \ YOURUM ::
+#\[7]XUR55JNQIJJHZN6M7KAS5OTKKEQYXPLCFQL6LDRM5OEMDK3J74DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

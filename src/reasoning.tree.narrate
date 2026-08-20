@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = reasoning.tree.narrate
+# descr = produce narration string for node at current state
+
+my $args = @ARG ? shift : $ARG;
+$args //= {};
+
+my $tree  = $args->{'tree'}  // <reasoning.tree> // {};
+my $name  = $args->{'name'}  // $tree->{'root'};
+my $depth = $args->{'depth'} // 0;
+
+my $node = <[reasoning.tree.lookup]>->( { tree => $tree, name => $name } );
+return "[ $name ]  >:|   node not found\n" if not defined $node;
+
+my $convergence = $node->{'convergence'};
+my $state       = $node->{'state'};
+my $narration   = $node->{'narration'} // '';
+my $chksum      = $node->{'chksum'}    // '';
+
+## [ format chksum display ] ##
+my $chksum_disp = length $chksum ? "AMOS·$chksum" : 'AMOS·????';
+
+## [ compact state : below threshold ] ##
+if ( $state eq 'compact' ) {
+    return sprintf( "[ %s ]  >:|  %.15f   compact\n", $name, $convergence );
+}
+
+## [ narrating state : full convergence or root ] ##
+my $is_narrating = (
+    $convergence >= 1.0
+        or ( defined $name and $name eq $tree->{'root'} )
+);
+
+my $threshold_str
+    = $convergence >= $node->{'threshold'}
+    ? 'threshold : reached'
+    : 'threshold : not reached';
+
+my $out = sprintf(
+    "[ %s ]  [:<  %.15f\n   '%s'\n   depth : %d   chksum : %s   %s\n",
+    $name,            $convergence, $narration,
+    $node->{'depth'}, $chksum_disp, $threshold_str
+);
+
+## [ add overlap lines if present ] ##
+for my $overlap ( @{ $node->{'overlaps'} // [] } ) {
+    $out .= sprintf( "   overlap : %s\n", $overlap );
+}
+
+## [ narrating state marker ] ##
+if ( $is_narrating and $state eq 'narrating' ) {
+    $out .= "   → complementary action ready\n";
+}
+
+return $out;
+
+#,,,,,...,,.,,,,,,,,,,.,.,.,,,.,,,,,.,.,,,,,.,..,,...,...,,.,,..,,,..,...,..,,
+#H4RR5YRNX5XJ2BHHJ6TXU57LI2TNZBA4H4ZXDGCQVRHPQOM6UJKM4BF64FUBW4S4FICJC2BERGSEQ
+#\\\|RKHB7HCE5QO7RIYFBJ5NRRUMGQT6C2OJ54FB4UTGZ4E5S5TX4UK \ / AMOS7 \ YOURUM ::
+#\[7]I7WBIGQYB5OS4VLT6L2M4WVCBQYXVPRGZLJVW3DDC3YGEILE2SCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

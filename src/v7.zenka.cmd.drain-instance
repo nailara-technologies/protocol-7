@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = v7.zenka.cmd.drain-instance
+# descr = signal zenka instance to stop accepting connections
+# param = <instance_id>
+# note  = starts drain timeout timer; force-terminates if timeout exceeded
+
+my $instance_id = shift // $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'instance id required' }
+    if not defined $instance_id;
+
+my $instance = <v7.zenka.instance>->{$instance_id};
+return { 'mode' => qw| false |, 'data' => 'instance not found' }
+    if not defined $instance;
+
+my $zenka_name    = $instance->{'zenka_name'};
+my $drain_timeout = $instance->{'drain_timeout'} // 30;
+
+<[base.logs]>->(
+    "signaling drain to '%s' instance %d [timeout=%.1fs]",
+    $zenka_name, $instance_id, $drain_timeout
+);
+
+## mark instance as draining
+$instance->{'draining'} = TRUE;
+
+## send drain command first [ while still initialized, so cube delivers it ]
+if ( exists $instance->{'cube_sid'} and exists $instance->{'root_sid'} ) {
+    my $root_sid = $instance->{'root_sid'};
+    my $cube_sid = $instance->{'cube_sid'};
+
+    <[protocol-7.command.send.local]>
+        ->( { 'command' => "${root_sid}.${cube_sid}.drain" } );
+
+    ## then pause new command delivery via cube backchannel  [ drain cmd
+    ## already queued — subsequent commands held as pre-init ]
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => sprintf( qw| %d.unset-initialized |, $root_sid ),
+            'call_args' => { 'args' => $cube_sid }
+        }
+    );
+} else {
+    ## for non-cube zenki (extbin), we can only terminate
+    <[base.logs]>->(
+        1, 'instance %d has no cube_sid, will terminate on drain timeout',
+        $instance_id
+    );
+}
+
+## start drain timeout timer
+$instance->{'timer'}->{'drain_timeout'} = <[event.add_timer]>->(
+    {   'after'   => $drain_timeout,
+        'handler' => qw| v7.handler.drain_timeout |,
+        'data'    => {
+            'instance_id'   => $instance_id,
+            'drain_timeout' => $drain_timeout
+        }
+    }
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'drain signaled [timeout=%.1fs]', $drain_timeout )
+};
+
+#,,.,,,,.,,,,,,..,.,,,,,,,..,,,,.,,,.,.,,,,,,,.,.,...,..,,..,,..,,,,,,.,.,,.,,
+#IROLWFHG4ZTJQZYLUF2ZPZFMV63FV4EWJH3CO37R5JQIOPEOAJDP2VVBVW5ZFW6LYXNPMTFWCE6IA
+#\\\|AOQWXMBBD46JPJJ4ADINBQCBWCETJICVXTLD5ICOXXIEZWVPY5V \ / AMOS7 \ YOURUM ::
+#\[7]YMQNCMOOIND2HEVOZZKMUVYALUYKIKBQFFZSLTTZ2PIQUWV3NABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

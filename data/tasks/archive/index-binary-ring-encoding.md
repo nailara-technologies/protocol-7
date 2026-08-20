@@ -87,17 +87,17 @@ needed during the ranking pass.
 
 ## files to modify
 
-- `modules/index.rank` — build `<index.packed_rank>` instead of
+- `src/index.rank` — build `<index.packed_rank>` instead of
   `<index.rank>` hash; pack child arrays; delete `<index.level>` entries
   after processing each depth
-- `modules/index.decode` — use `substr(<index.packed_rank>->{$depth}, ...)`
+- `src/index.decode` — use `substr(<index.packed_rank>->{$depth}, ...)`
   instead of hash lookup
-- `modules/index.address` — unchanged (still uses `<index.addr>` hash)
-- `modules/index.stats` — unchanged (reads ring sizes from packed_rank length)
+- `src/index.address` — unchanged (still uses `<index.addr>` hash)
+- `src/index.stats` — unchanged (reads ring sizes from packed_rank length)
   note: ring N size = `length(<index.packed_rank>->{$depth}) / ($depth + 1)`
-- `modules/index.init_code` — add `<index.packed_rank> //= {}`; remove
+- `src/index.init_code` — add `<index.packed_rank> //= {}`; remove
   `<index.rank>` initialization if present
-- `modules/index.export` — update to read from packed_rank for serialization
+- `src/index.export` — update to read from packed_rank for serialization
 
 ## ring size from packed_rank
 
@@ -131,8 +131,8 @@ total expected: from ~2GB for 2.5M chars → well under 500MB
 - `index.rebalance` calls `index.rank` — verify it still triggers correctly
   after these changes
 
-#,,.,,,,.,,,,,,,,,,..,...,.,,,,.,,.,,,.,,,,,.,..,,...,...,...,,,.,,.,,,..,..,,
-#3VYRUZYAOKS33PZBEEZF7FXIOIOLZETEKAINZPNHSS4PNXV7DDL75RMSDFJPGFPDTVO3JMFERBYZA
-#\\\|V3OLKXJSZQ655PEIZAZEQQ7BZ7APS3RWY7XFUC5BMSLH4Z4B4YE \ / AMOS7 \ YOURUM ::
-#\[7]IJFVO2Z3GISW47TQSZBKFKH3VQH5QPOWOJHKITQASSFFH4FHFWDA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,.,,,..,,...,.,,,,,,,...,...,..,,...,..,,,..,,,.,,,.,.,.,...,
+#2H4Z7FRJUUCPPYTQLTQMNLZ5XPTJOFZDVISV7HPJJ3ONEPF65CS35M4PYWU4XJS7AKBHZZ26VPDOY
+#\\\|5NNHF4T3OLJ274ND62ZKCGGPRSRHAZXG6GWQF7LUYS2VK4K47G7 \ / AMOS7 \ YOURUM ::
+#\[7]ZTW3HPJJZAU3FJFQWM3EBHRV4UZ73DSJSYHBRNB3WTK77FD7J2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

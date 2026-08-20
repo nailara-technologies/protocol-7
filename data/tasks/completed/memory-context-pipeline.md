@@ -7,12 +7,12 @@ uses a flat alphabetical dump. bridge them through a cache file written
 by `memory.render.context` and read by `context.memory.load`.
 
 read first:
-`modules/memory.render.context`,
-`modules/context.memory.load`,
-`modules/memory.tree.render`,
-`modules/memory.startup`,
-`modules/memory.cmd.search`,
-`modules/memory.cmd.digest`,
+`src/memory.render.context`,
+`src/context.memory.load`,
+`src/memory.tree.render`,
+`src/memory.startup`,
+`src/memory.cmd.search`,
+`src/memory.cmd.digest`,
 `cfg/zenki/memory/start`.
 
 do NOT touch signatures or unrelated logic. do NOT add `#,,..,.,,,...` stubs.
@@ -36,7 +36,7 @@ visible to readers.
 
 ## implementation
 
-### change 1: `modules/memory.render.context` (MODIFY)
+### change 1: `src/memory.render.context` (MODIFY)
 
 after computing `$tree`, write it + the timestamp to the cache files,
 then return as before. failure to write must NOT cause the module to die —
@@ -88,7 +88,7 @@ notes:
   preserved either way
 - the `var/` dir is expected to exist (standard p7 layout); do not mkdir
 
-### change 2: `modules/context.memory.load` (MODIFY)
+### change 2: `src/context.memory.load` (MODIFY)
 
 prepend a cache-check stanza at the TOP of the module body (after the
 `my $params = shift // {};` line). if the cache file is present AND its
@@ -137,7 +137,7 @@ if ( -f $cache_txt and -f $cache_nt ) {
 
 leave everything after this block as-is.
 
-### change 3: `modules/memory.startup` (MODIFY)
+### change 3: `src/memory.startup` (MODIFY)
 
 after `<memory.ready> = TRUE;` and the existing `base.logs` call, prime
 the cache so the first coding task finds it ready. guard with eval so a
@@ -172,8 +172,8 @@ place immediately before `return TRUE;`.
 - no pre-commit hook failures
 - no manual AMOS7 signature stubs added to any file
 
-#,,..,.,,,,..,,,,,,,.,,,,,,..,..,,,..,,,,,,.,,..,,...,..,,.,,,...,.,.,,,,,.,,,
-#4KPMSCCFNT5H3YUU4Z6O6VIAWRVEP5TQQZSUE6UEDXBQU2JLZNUAG4IIY7W4UA3YPIZTV3UDBOGLA
-#\\\|JBHNYP2F4YS4DBYUA76ZA5THLI5T5BT6UITHVEUC6GKOAEHJRVC \ / AMOS7 \ YOURUM ::
-#\[7]IFUGZS6UHXGRVHTBE462FJNSSP6HCH4YRMJT7UWKZKDT4W4KBYCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,..,,...,.,,,.,,,.,.,...,,..,..,,..,,...,...,,,,,,.,,.,.,,,,,.,.,
+#MJQWWN7FX35ILIK4DRBQNZ4EVWOKEW5QOGZFYUGEQZ347NOVUQBBRNIX3SWYKZ73TOCMKE6RIVQYY
+#\\\|32364EJR4WABH3AEBU4UW5YZB2L5HDMSFH3RW4FPCGP2KOTZ57D \ / AMOS7 \ YOURUM ::
+#\[7]VQVQHI4V3RNJ6JW2KCIA4TTYNH3PCAMUB7HPCYIFX53TXBNQ46DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

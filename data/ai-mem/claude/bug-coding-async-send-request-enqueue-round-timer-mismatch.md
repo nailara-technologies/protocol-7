@@ -15,7 +15,7 @@ forever with no error, no completion. Two other, unrelated bugs
 defect) were found and fixed in the same session before this one was
 pinned down — don't assume a single stuck-task report has one cause.
 
-**Root cause**: `modules/coding.async.send_request`'s `queue_paused` branch
+**Root cause**: `src/coding.async.send_request`'s `queue_paused` branch
 (hit when a task retries while `<coding.task.queue_paused>` is set — true
 during any self-test-after-respawn or crash-restart cycle, not just this
 one) rescheduled itself via:
@@ -52,7 +52,7 @@ the working path), which is the fingerprint. Confirmed live via `devmod`
 watch the log 5s later) both before the fix (nothing happens) and after
 (reschedule loop correctly repeats, then resumes cleanly once unpaused).
 
-**Fix**: added `modules/coding.handler.enqueue_round_timer` as a thin
+**Fix**: added `src/coding.handler.enqueue_round_timer` as a thin
 timer-shape adapter (`shift->w->data` → direct call), and pointed
 `send_request`'s reschedule at it with the payload under `'data'` instead.
 
@@ -77,8 +77,8 @@ task=... round=... messages=...` line once unpaused.
 
 #,,,.,,..,,,,,,,.,.,.,..,,,,.,...,.,,,,.,,.,,,..,,...,...,..,,..,,,,,,,.,,..,,
 
-#,,,,,.,.,,,,,,..,,.,,,..,.,.,...,.,,,.,,,..,,..,,...,..,,,.,,,..,,.,,..,,,.,,
-#EZ3ARRPUVDFNJ4ENDEQGR3M6ZKGOEIJ4UR7KIM2ZT3ZK6PGRGAYORNS66OGNSOJIC6DTYOOKXSBYW
-#\\\|P5ZXZHXDPR64PQWS3OPYICOB3QDCOJN5LFTBWYLCH53XZAEJMEC \ / AMOS7 \ YOURUM ::
-#\[7]FDPJVNW5E5VHPXTUR6IRBDKHVYAM2GB7H7KP2VMQEDO4KR72NUAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,,.,,,,,,,,,,.,.,...,.,,,,,.,..,,...,...,..,,.,,,.,,,..,,,.,,
+#5MJ5LJ2LAGXWOKFUGZ3V73PMNVB7IJXA3JW63HIRBLUOMD3HRDTQVBK7MSUH3OBALJKS4RCRF7ZAK
+#\\\|C43LABPK3HBBXLNT7NI2S5RXTYADTFO6ADWN4GITJ72WLDWGBUT \ / AMOS7 \ YOURUM ::
+#\[7]YTUF3Y3DSAMB432MLKRMDAOG7S3DAFRX3XWJFNQZVU6MUQN4M6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

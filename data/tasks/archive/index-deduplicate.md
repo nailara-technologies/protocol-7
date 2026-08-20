@@ -27,7 +27,7 @@ the signature block begins with a line matching `^#,,`.
 
 ## modules to create
 
-### `modules/index.deduplicate`
+### `src/index.deduplicate`
 
 ```
 ## [:< ##
@@ -61,7 +61,7 @@ for my $win ( $min_win .. $max_win ) {
 <[index.promote]>->();
 ```
 
-### `modules/index.promote`
+### `src/index.promote`
 
 ```
 ## [:< ##
@@ -120,8 +120,8 @@ before rebalance. the order is:
 - [ ] no stub signatures
 - [ ] all modules pass ptd
 
-#,,.,,...,,,,,,..,.,.,,..,,,,,.,.,.,.,,,,,,.,,..,,...,...,.,.,...,,,,,,.,,.,,,
-#TLRYLXZQE6CGIPHB62GQLYPXCOZ3WUGYHXYXYV2NP427OWBBNQSRYWGCMM7KIPGMJFZL2X2HPFJFY
-#\\\|VAYU7B7OUIULSCG4IIW7J2DKDRGT7QHNDB5F4P6B3TXIPQO2F2V \ / AMOS7 \ YOURUM ::
-#\[7]5QH3GUFTLKSCJLAQHUIEJ4LN3OOG7RQZ7LMM7PFX6ONESHLAP6CY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,,,.,,,,,,,,,...,,.,,,,,,..,,..,,...,...,...,...,,..,,,,,,,,,
+#JU6RZBRAGY5VTX3TBFM7VV2KZM53EKVRJHSUSPBMLBIRUUBNMZ5QRQ3B7N74JUKOTSU4TMZSI4JUA
+#\\\|C33UWEUIGIAWJPCRY2S3PLFOUQPMTVDUKLJYZFXXNXH462XS5R2 \ / AMOS7 \ YOURUM ::
+#\[7]IKHNSNG5BXRPCFUK53AAEXVGNS6SFT3426U7R3Z4WG7MZCDOFEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

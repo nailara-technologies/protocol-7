@@ -1,0 +1,129 @@
+## [:< ##
+
+# name  = udev.handler.adm_stdout
+# descr = reads and processes stdout output from udevadm process
+
+my $event   = shift->w;
+my $read_fh = $event->fd;
+my $process = $event->data;
+my $pid     = $process->{'pid'};
+
+my $devmod_verbosity
+    = <[base.cfg_bool]>->(<udev.devmod-stdout.show-events>) ? 1 : 0;
+
+<udev.rules> = {}
+    if not defined <udev.rules>
+    or ref(<udev.rules>) ne qw| HASH |;
+my $patterns = <udev.rules.patterns>;
+my $actions  = <udev.rules.actions>;
+
+<udev.adm.output.buffer> //= '';
+
+my $bufsize = 4096;
+
+my $bytes = <[base.s_read]>->(
+    $read_fh, \$data{'udev'}{'adm'}{'output'}{'buffer'}, $bufsize
+);
+
+if ( $bytes <= 0 ) {
+    $event->cancel;
+    close($read_fh);
+    <[base.log]>->(
+        1, "udevadm process [PID:$pid] output filehandle closed."
+    );
+    kill( 9, $pid );    # making sure it's really gone
+    <[base.log]>->( 0, "udevadm process terminated." );
+    <[base.log]>->( 1, "shutting down " . <system.zenka.name> . "-zenka." );
+    exit(2);
+}
+
+while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
+    my $event_str = $1;
+    my $adm_event = {};
+    map { $adm_event->{$1} = $2 if $ARG =~ m|^([A-Z_]+)=(.+)$| }
+        split( "\n", $event_str );
+
+    if ( $devmod_verbosity and keys %{$adm_event} ) {
+        say "\n", '├';
+        map { printf " %24s = %s\n", $ARG, $adm_event->{$ARG} }
+            <[base.reverse-sort]>->($adm_event);
+        say '├';
+    }
+
+    foreach my $pattern_name ( keys %{$patterns} ) {
+        foreach my $match_name ( keys %{ $patterns->{$pattern_name} } ) {
+            my $p        = $patterns->{$pattern_name}->{$match_name};
+            my $match    = 0;
+            my $no_match = 0;
+
+            map {
+
+                if ( $devmod_verbosity and keys %{$adm_event} ) {
+                    if ( exists $adm_event->{$ARG} ) {
+                        say "  < $ARG > $adm_event->{$ARG} == $p->{$ARG} ";
+                    } else {
+                        say "  [ $ARG ] ";
+                    }
+                }
+
+                if ( exists $adm_event->{$ARG}
+                    and $adm_event->{$ARG} eq $p->{$ARG} ) {
+                    $match++;
+                } else {
+                    $no_match++;
+                }
+            } keys %{$p};
+            if ( $match and !$no_match ) {
+                <[base.log]>->( 1, "<EVENT> $pattern_name [ $match_name ]" );
+
+                #    print Dumper($adm_event);
+
+                if (exists
+                    <udev.rules.actions>->{$pattern_name}->{$match_name} ) {
+                    my $action
+                        = <udev.rules.actions>
+                        ->{$pattern_name}->{$match_name};
+                    my ( $cmd, $params )
+                        = split( ' ', $action->{'net.cmd'}, 2 );
+
+                    $params =~ s|<([^\s\>]+)>|
+                        my $key = $LAST_PAREN_MATCH;
+                        my $val = $adm_event->{$key} // "<$key>";
+                        $val;
+                    |gxe;
+
+                    if ( exists $action->{'net.cmd'} ) {
+                        <[base.log]>->( 2, "<\[net.cmd\]> $cmd $params" );
+                        <[protocol-7.command.send.local]>->(
+                            {   'command'   => 'cube.' . $cmd,
+                                'call_args' => { 'args' => $params },
+                                'reply'     => {
+                                    'handler' => qw| dev.null |,
+                                    'params'  => {}
+                                }
+                            }
+                        );
+                    } else {
+                        <[base.log]>->(
+                            0,
+                            "<< unkown action type defined for "
+                                . "pattern '$pattern_name' [ $match_name ] >>"
+                        );
+                    }
+                } else {
+                    <[base.log]>->(
+                        0,
+                        "<< no action defined for pattern "
+                            . "'$pattern_name' [ $match_name ] >>"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#,,..,.,,,.,,,.,.,.,,,.,,,..,,.,,,..,,.,.,,.,,..,,...,...,.,,,.,,,,,.,,,.,,,.,
+#RCBKEMVJRV7E62WKQT2OHRLFCNFPNKXRV54DGX7JAJSUZANQN6K6AOK7MPJU7ZUHW3JG26MO2EAW2
+#\\\|CAZV3R2WJ4LKGPCT4FIRFUKGGYHJUJPBUAH3RHUEZSMGZ2HKB5H \ / AMOS7 \ YOURUM ::
+#\[7]NBET4JCVEF77D2HTIYRH6W543SMQVTSGKM5HI5HNMBIYGZWEY2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

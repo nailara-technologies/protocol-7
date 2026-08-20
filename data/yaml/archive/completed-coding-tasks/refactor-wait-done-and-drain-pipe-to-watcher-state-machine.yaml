@@ -32,7 +32,7 @@ depends_on:
 
 reference_patterns:
   v7_zenka_output:
-    file: modules/v7.handler.zenka_output
+    file: src/v7.handler.zenka_output
     lines: 9-65
     pattern: |
       watcher callback reads ONCE per invocation.
@@ -42,7 +42,7 @@ reference_patterns:
       return to event loop.
 
   v7_process_output_line:
-    file: modules/v7.handler.process_output_line
+    file: src/v7.handler.process_output_line
     lines: 46-124
     pattern: |
       while loop operates on IN-MEMORY buffer, not fd.
@@ -59,7 +59,7 @@ phases:
       per invocation and reschedules itself via the event loop.
 
     current_code:
-      file: modules/coding.handler.drain_pipe
+      file: src/coding.handler.drain_pipe
       lines: 24-45
       problem: |
         while(1) {
@@ -111,7 +111,7 @@ phases:
       is sent when the task completes or fails.
 
     current_code:
-      file: modules/coding.cmd.wait-done
+      file: src/coding.cmd.wait-done
       pattern: while(<[event.once]>->(0.5)) { poll task status }
       problem: wakes every 500ms regardless of activity
 
@@ -159,24 +159,24 @@ phases:
 
     audit_targets:
       - pattern: while.*event\.once
-        search_in: modules/coding.*
+        search_in: src/coding.*
       - pattern: event\.once\s*\(\s*0?\.
-        search_in: modules/coding.*
+        search_in: src/coding.*
       - pattern: for\s*\(.*;.*;.*\)\s*\{\s*<\[event
-        search_in: modules/coding.*
+        search_in: src/coding.*
 
     known_candidates:
-      - file: modules/coding.handler.http_io
+      - file: src/coding.handler.http_io
         note: while buffer regex — not polling, but spins on malformed data
         fix: max_iter guard (separate task, see P4)
 
-      - file: modules/coding.handler.http_poll
+      - file: src/coding.handler.http_poll
         note: REMOVED 2026-05-12 — dead timer-polling workaround, never
               registered from outside its own self-reschedule
         fix: deleted
 
     acceptance: |
-      - zero polling loops in modules/coding.*
+      - zero polling loops in src/coding.*
       - all waits use watchers, timers, or deferred reply chains
       - document each conversion in this task file
 
@@ -262,8 +262,8 @@ next_session_primer: |
 
 #,,..,,.,,,,.,.,,,..,,..,,,..,.,.,...,,.,,.,,,..,,...,...,..,,.,.,..,,,.,,.,,,
 
-#,,.,,,,,,.,.,,,,,.,.,,.,,,..,,.,,.,.,..,,,,,,..,,...,...,,.,,,,.,.,.,.,.,,,,,
-#6QIR5MXI6GY35KVJKVDIWPTKRU33MEGDFLOGBYV72XZ63XTRFPMGP7Z7YTHPF6NLASNP4QHQJPZGI
-#\\\|25YOC6EAR2OCDVCA3SSRBXOZHWUMIRTTZBI3X2R62JWVXJRWD5M \ / AMOS7 \ YOURUM ::
-#\[7]MTNMUCKO3L6X4VFXEYT77TQGYQHEFTWR5OJYH2ABIUNJPT6CRUBY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,,,.,,,..,,.,,,,.,,,.,,,.,,,.,,..,,...,.,.,...,.,,,,,,,.,.,,,.,
+#CANU6EWMYJC3LJD6POY3EMV5BR5WORTD5WPWBUNZUNVH5EMIMEWWS3RUUFNHZ7CEENCC6C44ZEDXU
+#\\\|ZZDKCKT3TVMMKSB3QZJIAUG7UVBW45KSBYMYBXVVYMVQGVVHBBZ \ / AMOS7 \ YOURUM ::
+#\[7]TAHV6U5VKXFCZ6Y7JMRBBJQ625IJCT77DID3QDRD2YUJHHKKCWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

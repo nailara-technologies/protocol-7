@@ -44,9 +44,9 @@ dispatches go back to returning only the final round (kimi-generated),
 never the full session context, which sidesteps the `coding_summarize`
 local-9B cost/slowness question for kimi-routed dispatches specifically
 (it stops being invoked at all on that path). Root cause found and a K3
-fix dispatched this session: `modules/kimi.flush_on_acquisition` is
+fix dispatched this session: `src/kimi.flush_on_acquisition` is
 defined but never called from the reconnect branch of
-`modules/kimi.handler.ws_message`, plus two more bugs inside
+`src/kimi.handler.ws_message`, plus two more bugs inside
 `flush_on_acquisition` itself (arrayref/hashref type mismatch on reset;
 re-flushes a fabricated blank payload instead of the original stored
 approval data). Task file: `data/tasks/kimi-zenka-approval-reconnect-
@@ -93,8 +93,8 @@ consider it may just be legitimately working but slow on a small-context
 session — check elapsed time against the ~13min self-resolve window noted
 there before intervening.
 
-#,,..,..,,,,,,,.,,.,.,,,,,..,,.,.,,..,.,,,,,.,.,.,...,...,..,,.,,,..,,..,,..,,
-#3ZHPGMP4H4NAOFSB26TCV2MU4DDMRAH4RJHHHQ7WDFGAVAPSR3436TSZGCQKE4O2SSI5ANS3LILZO
-#\\\|F73KYDJSLC5VHPR42KZV4IMR7KYIHOQIOGVGOLLEG4KEJXIQWYF \ / AMOS7 \ YOURUM ::
-#\[7]UCHN2YYKIE4BIIZ752TFRBAU3VSXTTKTT36R3SWZAFINDIUB4EBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,...,,.,,,..,..,,.,,,,..,..,,.,.,...,...,..,,...,...,,,,,,.,,
+#EBKR34SS3JNMSAC7J25FBNJ3MGKI5XJ3QYJMVN4EIAHCYCK2PPZI67FR73EEIHAXTAZAAGWQS2MP4
+#\\\|L7QLMMNY7RVSWKUMVTCHHRNEKJL4FPLC2WVQVJ4W5IUVHIQ7GON \ / AMOS7 \ YOURUM ::
+#\[7]TPO3HXB7XW3H6JF6ITQJRPY3N7EZ6GL4NQHKLNOM66CQKPFXWOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

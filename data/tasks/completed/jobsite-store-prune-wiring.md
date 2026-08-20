@@ -2,7 +2,7 @@
 
 ### context
 
-`modules/jobsite.store.prune` exists (created session 67 by kimi) but is
+`src/jobsite.store.prune` exists (created session 67 by kimi) but is
 not called from anywhere. it implements two-phase cleanup:
 1. `blocked/<epoch>/` → `deleted/<epoch>/` when epoch distance > 0
 2. `deleted/<epoch>/` → gone when epoch distance > 1
@@ -64,8 +64,8 @@ do NOT manually write or edit signature lines. do not add stubs to new files.
 
 ## dispatch
 
-#,,,,,.,,,...,,.,,,,.,,,,,.,,,...,..,,,,,,,..,..,,...,...,...,...,,..,...,,,,,
-#T6GRB5JPC5G4D6IE5ATIGO4M6DAFQVFMTC3JNEOQALIZXEDIFVCY3CMBB5E6Q4ORV6IGB62PGZ3E2
-#\\\|UMFJUOYVYCIBMV3G7MCY3OXSUPUUGGULMQJRP3DVNHLNL5VJ4EF \ / AMOS7 \ YOURUM ::
-#\[7]NSYJD65PFNAUOO4JWVX6B6VYLQDXS4TWFJWEROLWVN5OGXKQASDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,.,,,..,,,.,,...,,..,.,,,,..,..,,...,...,.,,,...,,,.,.,,,,..,
+#RQEBMFLEAU5JPL5OPY5OUANZG6WHUM3JMWC6OS5GPAMFA55FJ5VJN2ZZ5G6AM2UXIY4AJRRFQGLDY
+#\\\|R4DCXDIP73W4A7KTZFCREPZXLVD6OWTVUXWZWI7RFCL7TJYI4CW \ / AMOS7 \ YOURUM ::
+#\[7]DB4T2KTWYVEDEJVCSJFK2E55C3GYKYX5PLBE72PD7I2L4BUSJSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

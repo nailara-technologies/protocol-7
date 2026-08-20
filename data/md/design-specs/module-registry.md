@@ -35,7 +35,7 @@ $data{'base'}{'module'}{'registry'}{'some.module.name'} = {
     ##  source location  ##
     'source' => {
         'type'   => 'disk',                 ##  disk | memory | manifest  ##
-        'path'   => 'modules/some.module.name',
+        'path'   => 'src/some.module.name',
         'cached' => undef,                  ##  scalar ref to source when in memory  ##
     },
 
@@ -112,8 +112,8 @@ any → failed           [ compile errors, signature mismatch ]
 - eviction policy for `source.cached` after compilation [ free memory ]?
 - how manifest format maps to this structure [ signed list → registry entries ]
 
-#,,,,,,.,,...,,,,,.,,,,..,..,,,,,,,..,.,.,.,.,..,,...,...,...,,,.,,,.,,,.,...,
-#LDT7FVERBUZ5JZR7AE4YAAZWANIUU7WX6GPDG7EHMXXR56Q4NLV5ZEN37474PNNZPYUOMERQY4UMW
-#\\\|NY3GY6BHKOZLCSNSRIC3V4US24HF7FWABWIECZDXTUSG6GCDAWE \ / AMOS7 \ YOURUM ::
-#\[7]RVHLGL3P4PZW3KJC3AZNADD2LVVSK3DMM3ZRDHCAOYVYWXRCV4DA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,,,.,,.,,,.,,,.,,,,.,..,,.,.,..,,...,...,...,,,,,,,.,,.,,,,,,
+#LM45GVQKIFZY2TU2SZNNG63ZXGJALGRK2CVPWGIC3MOWVMUIBQZ34Q2ZW2JPFYADLT7EUODZ5RSVU
+#\\\|HUUOFND3R7O5LKN2FZT47BQPXUNYIA7PBAL52N3YYCDQG7TEE7C \ / AMOS7 \ YOURUM ::
+#\[7]VJHECCQHIG6XT56R272XCIVMTXYSEF2BGTKIXXV7L7AM2ENVBIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

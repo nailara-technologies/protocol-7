@@ -320,7 +320,7 @@ the desktop is one coherent visual field, not separate widgets.
 
 ## povray as rendering layer
 
-the povray zenka (existing stub: `modules/povray.init_code`, `cfg/zenki/povray/start`)
+the povray zenka (existing stub: `src/povray.init_code`, `cfg/zenki/povray/start`)
 provides the 3D geometric rendering layer for elements requiring raytraced precision.
 
 see: `data/md/INITIATIVE-MAP.md` § initiative P — povray zenka
@@ -418,8 +418,8 @@ see: `data/md/INITIATIVE-MAP.md` § distributed rendering
 - should dissenting voter notes be shown as a brief overlay on fade-in?
   ("2 voters wanted more vortex turbulence — noted for next render")
 
-#,,,.,..,,.,.,,,.,.,,,,.,,...,,.,,,..,,..,,..,..,,...,...,,.,,...,,..,,.,,,..,
-#J2WT6TK3N54K4NQZYRVR6ESIPCK4Z44CUYICNLIQCIHT7J5FU32OE32FMKPSXYE5RWMYQYQACLWAE
-#\\\|ERVC6NDAHIRPEDV4YHSR6VR7ANG6WKUCGDFMAZKUARBP6D3OOP5 \ / AMOS7 \ YOURUM ::
-#\[7]TFFQAWWP3GJUCW5SH6BGX3WEGMM54KN2EQFB7YDELQM26O55OYDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,..,,,,,,.,,,,..,,..,,,.,,,,,..,,...,.,.,..,,,,,,..,,.,.,...,
+#3NOEGOBSNY4U2QHDBOC3MYKYZY5ZJABWHHY2GNSPRW7244VFG2LBCBT6OC7AUFXDGFSWGRFLGSYAY
+#\\\|JBAQC5IULYVUFJU23PA5LSGFW5M7RC44IOMBWT7FJUENM2J7EGZ \ / AMOS7 \ YOURUM ::
+#\[7]5LUVK3QYTXFNAW5CD7DO5XDCXPAGTKZ37BENDVXLB4QJNEYH6CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

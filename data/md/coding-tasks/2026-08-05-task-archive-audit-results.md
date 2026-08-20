@@ -3,7 +3,7 @@
 Audit of 171 task files (70 feature specs in `data/md/coding-tasks/`, 101
 iteration tasks in `data/tasks/` — 94 top-level + 5 `unicode/` + 1
 `needs-rewrite/` + 1 `research-findings/`). Read-only audit — no task files
-were modified. Evidence = module/command existence in `modules/`, `bin/`,
+were modified. Evidence = module/command existence in `src/`, `bin/`,
 `cfg/`, `data/web-root/vhosts/`, `data/lib-path/pm/`, plus
 `git log -S`/path history for ambiguous cases. Run via kimi k3 dispatch.
 
@@ -19,8 +19,8 @@ disagrees with this one.
 
 ### data/md/coding-tasks/ (47)
 
-- coding-inference-server-restart-policy.md : `modules/coding.handler.inference_server_sigchld` + `inference_crash_restart` + `verify_inference_startup` all exist
-- coding-state-machine-namespace.md : `<coding.state.backend>` lock/queue live in `modules/coding.async.backend_acquire`; `backend_busy_retry` polling gone; `coding.state.save` exists
+- coding-inference-server-restart-policy.md : `src/coding.handler.inference_server_sigchld` + `inference_crash_restart` + `verify_inference_startup` all exist
+- coding-state-machine-namespace.md : `<coding.state.backend>` lock/queue live in `src/coding.async.backend_acquire`; `backend_busy_retry` polling gone; `coding.state.save` exists
 - coding-zenka-abort-inference.md : `coding.abort.{register,lookup,list,remove,task_bind}` + `coding.cmd.abort-inference` all exist
 - context-batch-review-pipeline.md : `context.review.{plan,page,iterate,consolidate}` + `context.module.dep_*` all exist
 - context-channel-frequency-separation.md : `graphics-matrix.channel.{init,palette,select,translate,current}` + `cmd.channel` all exist
@@ -34,13 +34,13 @@ disagrees with this one.
 - dep-graph-whitelist-cmd-access-filtering.md : commits `05fc298e0` (white-list→load-early rename) + `1a3f2a33c` (loaded-namespace gating)
 - event-loop-safety-template.md : `context.yaml/context-templates/event-loop-safety.yaml` exists
 - fix-list-alignment-offset-truncation.md : commit `3169dd6b9` "base.parser.list — column width alignment for 10:ex1 key patterns"
-- httpd-template-content-type-and-head.md : `httpd.process_template` maps `.tmpl`→`text/html`; `modules/httpd.http_head` exists
-- investigate-cmd-permission-mask-compilation.md : fix commits `183d6fa4c` + `5190ed149` on `modules/base.parser.access_conf`
+- httpd-template-content-type-and-head.md : `httpd.process_template` maps `.tmpl`→`text/html`; `src/httpd.http_head` exists
+- investigate-cmd-permission-mask-compilation.md : fix commits `183d6fa4c` + `5190ed149` on `src/base.parser.access_conf`
 - invoke-ai-model-storage-management.md : `bin/scripts/invoke-ai/invoke-model-prefetch` + `invoke-model-recover` exist
 - invoke-web-zenka.md : `invoke-web.cmd.{start,stop,restart,status,health}` + `handler.{check_health,monitor_startup}` + `init_code` exist
 - invoke-zenka.md : `invoke.cmd.{generate,cancel,health,status,list-images,queue-status}` + `api.build_graph` + `handler.poll_jobs` exist
 - kimi-handover-orientation.md : orientation task, file records status: completed; referenced ncode/context modules exist
-- kimi-next-session-flag.md : `:next:` prefix handling live in `modules/kimi.cmd.ask-reply` (lines 21-92)
+- kimi-next-session-flag.md : `:next:` prefix handling live in `src/kimi.cmd.ask-reply` (lines 21-92)
 - kimi-task-dep-graph-zenka-flag.md : `-zenka=NAME` flag implemented in `bin/dev/dep-graph` (lines 52,70,85-87)
 - kimi-tasks-dep-graph-and-hook.md : `bin/dev/dep-graph` exists + `bin/dev/git-hooks/pre-commit` has the length check (line 98-99)
 - lattice-cell-storage-namespace-bridge.md : `graphics-matrix.cell.{init,list,place,query,remove,survey}` + `cmd.cell` all exist
@@ -60,7 +60,7 @@ disagrees with this one.
 - space-index-build-pipeline.md : `plugin.web.space.index.{init_code,scan,load,persist,cmd.rebuild}` exist
 - space-index-grid-endpoint.md : `plugin.web.space.grid.{init_code,scan}` + `handler.state_reply` + `state` exist
 - summarize-context-command.md : `coding.cmd.summarize-context` + `task.cmd.summarize` + `task.handler.summarize-reply` exist
-- sync-export-history-across-browsers.md : exported_stage synced via `modules/plugin.web.jobs.sync` (line 55)
+- sync-export-history-across-browsers.md : exported_stage synced via `src/plugin.web.jobs.sync` (line 55)
 - task-zenka-kimi-coordination.md : task zenka (`cfg/zenki/task/start`) + `models.handler.task-poll-step` + `kimi.cmd.ask-reply` exist
 - verify-finish-reason-propagation.md : file records Status: VERIFIED; `coding.handler.check-completion-chain` exists
 - web-plugin-inline-sub-extraction.md : `plugin.web.content.util.{calculate_checksum,format_size,generate_submenu}` + menu.tree extracted
@@ -72,7 +72,7 @@ disagrees with this one.
 - audio-icon-povray-glass-cylinder-wrap.md : `audio.cmd.spatial-purr-icon` + `audio.overlay.waveform_trace.v1` + povray.init_code exist
 - audio-render-v3-phase-bug-and-v4-temporal-idea.md : `audio.render_standing_wave.v4` exists (v4 prototype landed)
 - audio-waveform-visualization.md : `audio.cmd.spatial-purr` + `overlay.waveform_trace.v1` + `tile.cmd.add_overlay` exist
-- base-callback-data-tree-modes.md : DATA + TREE reply modes implemented in `modules/base.callback.cmd_reply` (lines 105-163)
+- base-callback-data-tree-modes.md : DATA + TREE reply modes implemented in `src/base.callback.cmd_reply` (lines 105-163)
 - base-parser-list-width.md : commit `3169dd6b9` fixes exactly this width bug
 - branch-layer4-storage-data.md : `branch.data.{bind,query,unbind}` + `branch.storage.{list,persist,restore,sync}` exist
 - branch-session-dag.md : all `branch.session.*` modules exist (dag.node_add/edges_from/open_list/parallel_dispatch, fork, jump, policy.*, round.checksum)
@@ -131,7 +131,7 @@ disagrees with this one.
 - context-management-system.md : `coding.async.compact_context` exists; `compaction.{model,strategy,threshold}` config layer missing
 - credential-fabric-ui-interactive.md : `cred-mesh.ui.interactive.{action,up,down,refresh,select_view}` exist; `unlock_dialog`, `cmd.unlock`, `ui.render` missing
 - dep-graph-semantic-embeddings.md : phase 1 landed (`bin/dev/depgraph-corpus`, commit `89ab6a836`); `coding.context.semantic-load` integration missing
-- direct-event-io-to-wrapper-migration.md : `base.session.init` migrated; direct `Event->io` remains at `modules/httpd.route.handler.web-relay:64`
+- direct-event-io-to-wrapper-migration.md : `base.session.init` migrated; direct `Event->io` remains at `src/httpd.route.handler.web-relay:64`
 - epoch-bmw-l13-truth-templates.md : `harmonize_L13` + `template_L13` exist; `truth_template_L13` never landed (machinery moved to `AMOS7::TEMPLATE`)
 - FASTTEXT-MEMORY-PIPELINE.md : `bin/dev/train-embedding` + corpus assemblers exist; `embeddings.*` zenka modules (load-for-session, select-categories, retrain triggers) missing
 - jobsite-sync-multiplex.md : `jobsite.sync.{push,apply_reverse}` + `plugin.web.jobs.sync.merge` exist; multi-endpoint `cfg.sync_urls` missing
@@ -152,7 +152,7 @@ disagrees with this one.
 
 - add-multiline-command-support-to-clients.md : zero multiline/+-mode handling in `bin/c_src/p7c.c` and `p-7-r.c` (grep: 0 matches)
 - archive-completed-task-files.md : this audit task itself — executing now, not complete until this report is acted on
-- checksum-route-binary-framing.md : design doc; no B32R framing code anywhere (grep B32R in modules/+bin/: 0 hits)
+- checksum-route-binary-framing.md : design doc; no B32R framing code anywhere (grep B32R in src/+bin/: 0 hits)
 - checksum-route-binary-framing-harmonic-foundations.md : pure math-grounding companion doc; no implementation target exists
 - context-tree-octal-encoding.md : no `context.tree.encode_*` modules (`amos7.encode_octal_header` exists but the context-tree application doesn't)
 - export-history-undo-stack.md : no undo stack anywhere in `plugin.web.jobs.*` (grep: no hits)
@@ -181,7 +181,7 @@ disagrees with this one.
 - generate-all-spec-pages.md : `iris.v7.ax` has no spec pages; `reasoning.summarize.node` missing
 - git-watch-zenka.md : no git-watch zenka config or modules
 - glitter-cosmology-priming.md : one-shot model-priming prompt doc; no verifiable outcome artifact
-- group-mode-reply-count-protocol.md : no reply-count/`reply_count` anywhere in `modules/`
+- group-mode-reply-count-protocol.md : no reply-count/`reply_count` anywhere in `src/`
 - index-cube-storage-cache.md : no `index.cube.cache.*` / `index.cmd.cache-stats`
 - index-cube-storage-migrate.md : no `index.migrate.v2-to-v3` / `detect_schema`
 - index-cube-storage-verify.md : no `index.cube.verify*`/`verify_chain` / `cmd.verify-cube`
@@ -191,8 +191,8 @@ disagrees with this one.
 - litter-row-encoding.md : no `base.module.litter*`; no git evidence
 - mcp-kimi-status-check-reattach.md : no status-check/reattach tool in `bin/mcp-server-p7` (only dispatch/continue)
 - mcp-regex-approval-system.md : no `cfg/mcp/approval-patterns.yaml`; no approval logic in mcp-server-p7
-- network-elf-avatar-pipeline.md : no elf avatar artifacts/modules
-- real-estate-agent-port.md : zero real-estate references in `modules/`, `bin/`, `cfg/`
+- network-elf-avatar-pipeline.md : no elf avatar artifacts/src
+- real-estate-agent-port.md : zero real-estate references in `src/`, `bin/`, `cfg/`
 - ring-routing-phase1.md : no `ring.*` modules, no `cfg/zenki/cube/rings.cfg`
 - space-engine-grid-orbit.md : no `space.grid.*` / `space.orbit.*` modules (space-engine-template landed, this one didn't)
 - task-archiving-with-context-templates.md : no `bin/dev/archive-task`
@@ -214,9 +214,9 @@ disagrees with this one.
    inline inside `lm-vision.handler.http_analyze` rather than as the
    planned `resource.gpu.loves_allocator` module (hence `partial`, not
    `done`).
-2. Truth-template machinery partially migrated out of `modules/` into the
+2. Truth-template machinery partially migrated out of `src/` into the
    new perl libs `data/lib-path/pm/AMOS7/{CHKSUM,TEMPLATE}.pm`, which is
-   why bmw/epoch template tasks look half-missing in `modules/` — but JHA
+   why bmw/epoch template tasks look half-missing in `src/` — but JHA
    was never consolidated into `AMOS7::CHKSUM` (0 refs), so
    **amos7-chksum-consolidation** stays `partial`.
 3. Both AMOS7::SHM integration tasks self-declare "design only — nothing
@@ -246,8 +246,8 @@ disagrees with this one.
 - Human confirmation needed before any file is actually moved/archived —
   this document is the audit trail, not an archival action itself.
 
-#,,,.,.,.,..,,.,.,,,.,,.,,,.,,.,,,.,,,,..,,..,..,,...,...,,..,.,.,,,.,,,.,..,,
-#R43ICHWPKBOO43ZDU2X22YA37BSZ622M4NDAPNZDJKOKOSNV5RGDJ7555M75OB6PP7QTX7HGZTVLQ
-#\\\|2XZZPLRWV6XBAUNPYOHKR3EXKNSFL74NGLJJPZG7S7RM2PC3IHC \ / AMOS7 \ YOURUM ::
-#\[7]5J4TTDEQKMPXEDO2B2G2H4WHPVMVMA7RKTE4R22AEGK4KK3PVMBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,..,,,,.,,.,,,.,,,,.,,.,,,,,,.,,,..,,...,..,,,,,,,.,,...,,,,,,,.,
+#7ZR7FZKYJLDY7IABSWBBYPLR6SGZA5OS4UHPXRQQMKTHYWSBTKWYTRVNSOTYB5AL335G5H5XTECYY
+#\\\|SSBAKXHIXJGMDHNYRIZPHECU6UFQO4QPKISF42CMV22OKPJT523 \ / AMOS7 \ YOURUM ::
+#\[7]IA5QO7JZ6YP3O6E32YVSPC55E7WM4AAGDCMIQ23O6OQE5PML5EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

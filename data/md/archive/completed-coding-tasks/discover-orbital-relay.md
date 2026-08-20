@@ -94,15 +94,15 @@ signature footer. modified files will be re-signed automatically.
 
 ## deliverables
 
-1. modules/discover.orbital.get_local_p7ref
-2. modules/discover.orbital.store_remote
-3. modules/discover.cmd.list-orbital
-4. modules/discover.orbital.share_grid_fragment
-5. modified modules/discover.format_discover_mcast_packet (append p7ref line)
-6. modified modules/discover.process_host_packet (extract p7ref + trigger relay)
+1. src/discover.orbital.get_local_p7ref
+2. src/discover.orbital.store_remote
+3. src/discover.cmd.list-orbital
+4. src/discover.orbital.share_grid_fragment
+5. modified src/discover.format_discover_mcast_packet (append p7ref line)
+6. modified src/discover.process_host_packet (extract p7ref + trigger relay)
 
-#,,..,.,.,.,,,..,,..,,..,,,.,,,,,,,.,,,..,,,,,..,,...,..,,..,,,,.,,,,,...,,.,,
-#JF6I7FMGKAA7TMJXLR2TYWDLQ2KDLVOZKC6LUJN5D364MMFV56T7X7EGL2FDXNHVGUBWBHZOYIP3O
-#\\\|3I2OQGKDVTSKHJOAD5TPFT7RCGVTGEB3LSZZQK5BPGXG5QDITWS \ / AMOS7 \ YOURUM ::
-#\[7]7X5FROXCBWTPKVGINRPGF7PQJOTAA6AZBU6P555A626WQX6FESAI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,,,.,,,.,.,.,,,.,,,,,.,,,,,.,,,..,,...,..,,..,,,..,,,,,.,.,,,.,
+#EPTA7AOBS74ACVKOOI3YCG3F5DTY64VB5T5SQ4D4KLZ525Y23VSCSJFTVXCWU7BGFOEPGKRJ4Y4J2
+#\\\|ATILPMGJ732ZJMW5BYEQYD7B64GVOVZEPADFYBG6EE2JIG4JOIE \ / AMOS7 \ YOURUM ::
+#\[7]5IF3DKHBE25UCVCMKQ6E3ELWUMIHH3G6WWSHUP7UYBQN4SYCDABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

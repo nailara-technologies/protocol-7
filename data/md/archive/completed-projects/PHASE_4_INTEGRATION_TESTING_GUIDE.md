@@ -325,10 +325,10 @@ curl -v http://test.local/.well-known/acme-challenge/test123
 
 ### Files to Review
 - `PHASE_4_INTEGRATION_TESTING_GUIDE.md` (this file)
-- `modules/httpd.route_dispatcher`
-- `modules/httpd.http_get`
-- `modules/web.skin_resolver`
-- `modules/web.menu_generator`
+- `src/httpd.route_dispatcher`
+- `src/httpd.http_get`
+- `src/web.skin_resolver`
+- `src/web.menu_generator`
 
 ### Quick Reference
 ```bash
@@ -339,7 +339,7 @@ git log --oneline --since="2025-11-14" | head -10
 git diff --name-only HEAD~5 HEAD
 
 # View specific module
-cat modules/httpd.route_dispatcher
+cat src/httpd.route_dispatcher
 
 # Run workflow overview
 ./bin/Protocol-7 workflow overview -v
@@ -366,8 +366,8 @@ cat modules/httpd.route_dispatcher
 - `documentation/CHECKPOINT_ENCRYPTION.md` - Context persistence
 - `data/yaml/coding-tasks/recursive-template-parsing-phase9.yaml` - Web zenka details
 
-#,,,.,.,,,.,,,.,.,.,,,.,.,,,,,,.,,.,.,,,.,,.,,..,,...,...,.,,,...,,..,,,,,.,.,
-#QXCSUHCU3SCGG4M2ADFJOTAIXBTVCHFN5BKDY4IOFTGQ3DGOLFIRW4ET56BWK4XGT5XRPGZKBUEFC
-#\\\|NFAKNSQCJNW4MX3ZYLOXSZOVHO7D2WFUJEL7ZW2NP4HJRSXDMOE \ / AMOS7 \ YOURUM ::
-#\[7]2VCUCIKGVC2B4VUB4PYWY4EWYEG3X67AMWGM3BYIDZV3H4FT5YBA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,..,.,,,..,,,,.,,,,,,..,,,.,,,.,..,,...,...,.,.,,..,,.,,..,,,,.,
+#RSC2EXCZG2XJ2EJRQBGRQRZ2QMC5MEFWDRRTDYGHCG32UWJD3NXG3ASD2SEYSKATT376JGFC2UIM2
+#\\\|Y43MBVSKUCQJS5IQQOG257ISEPVF7I43SNJW6EN7TYOQCTPLPFT \ / AMOS7 \ YOURUM ::
+#\[7]73OCJ5GFDOQTUYHEE4BNV2QIDTJLL6GCAUONYQKAEL6RSNXHAWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

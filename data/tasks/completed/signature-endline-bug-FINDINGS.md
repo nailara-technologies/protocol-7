@@ -91,8 +91,8 @@ verification ( all via `test-sign-and-verify` , temp key ) :
 - real-shape 0-trailing file with literal `#,,` / `#:::` blocks in body :
   stable state 7 , valid , no concatenation across 3 passes.
 - control ( 1-trailing , state 6 ) : unchanged , stable valid.
-- inside `modules/` ( 0-trailing ) : stable state 6 via recovery.
-- `bin/dev/tests/timing/test-stale-endline-recovery modules/note.tag` :
+- inside `src/` ( 0-trailing ) : stable state 6 via recovery.
+- `bin/dev/tests/timing/test-stale-endline-recovery src/note.tag` :
   all steps OK , `endline state stable : state=6 → state=6` — recovery path
   not regressed. ( step 2 exercises the over-newline reduction relevant to
   the state-0 path ; passed. )
@@ -110,7 +110,7 @@ the state-0 reduction logic ( over-newlined payload → `\n\n` ) is still
 exercised by `test-stale-endline-recovery` step 2 and passes.
 
 permanent regression test : `bin/dev/tests/timing/test-endline-state7-oscillation`
-( self-contained ; creates 0-trailing fixtures under `modules/` and
+( self-contained ; creates 0-trailing fixtures under `src/` and
 `data/test-scratch/` , signs each 3× , asserts valid + no concatenation , and
 guards against vacuous pass if a fixture is not collected ). verified : exits 0
 with the fix , exits 1 ( catches the outside-path concatenation on pass 2 ) when
@@ -126,7 +126,7 @@ state 7 was the break ). the markers-path generic-error log is left as a
 documented cosmetic item , not fixed.
 
 NOTE : editing this module invalidated its own signature — re-sign with
-`bin/Protocol-7 sourcecode update-signatures modules/source.harmonize_payload_line_feed`
+`bin/Protocol-7 sourcecode update-signatures src/source.harmonize_payload_line_feed`
 ( needs passphrase ) before committing.
 
 ## candidate fix ( original analysis , superseded by "fix applied" above )
@@ -154,10 +154,10 @@ diagnostic otherwise.
 ## scratch fixtures ( untracked , delete when done )
 
 `data/test-scratch/osc.md` ( oscillating ) , `ctrl6.md` ( stable control ) ,
-`realshape.md` , `test.markers` , `test.trigA` ; `modules/test.trigA`.
+`realshape.md` , `test.markers` , `test.trigA` ; `src/test.trigA`.
 
-#,,,,,...,..,,..,,.,.,..,,,,,,.,.,...,,,,,,,.,..,,...,...,...,,..,.,.,,..,,..,
-#KFJ4WVPAN4RVLOROLDWBUNA2JGX4SL73HXCVBG42QBSU7DGCNIPSCFCHNJOV34RVB4LC2VLK7FGK2
-#\\\|HQPXLE3S2SLRPSYH2LG25SHTYYCLCMXIO7O4XZWUMP5VNIUPSGC \ / AMOS7 \ YOURUM ::
-#\[7]SHRCM6R3DIGBYGVR5COBNNVTOBEBSDZSFAZ76UTG45JU35WNEYBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,,.,,,,.,.,,,,,.,,.,,,,,,,.,,..,,...,...,.,,,,,,,.,,,...,...,
+#X7QJSG6M7TLPD6IZICEWNC7TCPQ7K7IHQTASWLBNT2YFRRIWTFZ2FYA6SGGT63SUZNOVNNLOCUCD6
+#\\\|NBFEF7BQFOC3WTBCZKJBODEL272BDUMYNRKPGIMWYXXOCNY542Q \ / AMOS7 \ YOURUM ::
+#\[7]KVI2WJK5IEODVWERAFT6UHZGRDGFAKG7VX52RLU4YBIXZ6P23IAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

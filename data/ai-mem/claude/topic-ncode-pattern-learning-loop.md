@@ -231,12 +231,12 @@ escalated; (3) crossing the streak only ever returns a `graduation_ask`,
 status flips *only* on the separate explicit `ncode.cmd.graduate` call,
 which re-checks the live streak rather than trusting a stale ask. Landed:
 `status` field (`auto-apply`/`llm-required`) + `review` stats sibling to
-`stats` on every pattern record (`modules/ncode.regex.expand.util.process_candidate`),
-`<ncode.cfg.review_streak_needed>` (default 5, `modules/ncode.init_code`),
+`stats` on every pattern record (`src/ncode.regex.expand.util.process_candidate`),
+`<ncode.cfg.review_streak_needed>` (default 5, `src/ncode.init_code`),
 new p7c-facing modules `ncode.cmd.review`, `ncode.cmd.graduate`,
 `ncode.cmd.expand` (the latter finally exposes `regex.expand`'s
 persist-a-candidate step to p7c — the gap flagged above), and the actual
-enforcement point in `modules/ncode.cmd.apply`: an `llm-required` fix with
+enforcement point in `src/ncode.cmd.apply`: an `llm-required` fix with
 no `reviewed` flag is skipped, not applied, reported separately from
 `failed` as `review_required_count`. Verified directly (not just Kimi's
 self-report, per the dispatch-summarize-hang lesson): `git diff`/`ptd -c`
@@ -322,13 +322,13 @@ only matters as the tie-break for equal-length names.
 
 **Fix, user-confirmed as the right direction (not a workaround):**
 `context.cmd.review` is the established one, `ncode.cmd.review` is the new
-one — renamed `ncode.cmd.review` → `modules/ncode.cmd.pattern-review`
+one — renamed `ncode.cmd.review` → `src/ncode.cmd.pattern-review`
 (git mv + updated the `name` comment, `ncode.cmd.apply`'s two log/comment
 references, `cfg/zenki/ncode/start`'s `access.cmd.usr.cube`
 list, and `subroutines.load-early`). Live-verified post-reload:
 `p7c ncode.pattern-review` now correctly hits ncode's own `unknown
 pattern` logic (not `context`'s `no files matched`); `ls *cmd.review` in
-`modules/` shows only `context.cmd.review` remains. User's framing,
+`src/` shows only `context.cmd.review` remains. User's framing,
 matches an existing standing convention: zenki modules should avoid
 generic names that could collide with base *or other zenka* commands —
 prefer contextualized names (`pattern-review`, not bare `review`) from the
@@ -444,8 +444,8 @@ and [[project-2026-07-30-gap-audit]].
 [[project-ncode-write-path-2026-07-24]], [[topic-write-access-security-infrastructure]],
 [[feedback-claude-dispatch-strategy]], [[reference-opus-dispatches-kimi-workflow]]
 
-#,,..,.,,,..,,...,,..,,.,,...,,.,,,.,,,.,,.,.,..,,...,...,,.,,,,,,.,.,.,,,..,,
-#UVD2QK2DYHJTSFX3ZUGJCRXTOFMZ5UB6ZFRTC3AKMLT3BJLRSNILK5HJGSAGKVCW5LW4IPILHPSX4
-#\\\|PGFIG2JKJ7MLHDWN5F6NECMG256O36XOOLTOZOBMIYNBKOKOVKG \ / AMOS7 \ YOURUM ::
-#\[7]T3QX4IIPDPTXCJ6M3TXIJWCSBH63K5ENZAJ7ATVM4BRNDLLOBEBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,,,,,,,,,.,.,,,.,..,,,..,.,.,..,,...,...,,.,,.,.,,,.,...,.,.,
+#5I4MKKGPAH734W2JR4CE7KR7PVYXZB27VKTETPS5X57HE7BEK5HVAQQVEAB7LR4OD3AO23WU57U6A
+#\\\|FEPSYDJKRCQAJLXBPVKLVDSRTAFLR7SJLEOOAQNNNZZYPZLCJWE \ / AMOS7 \ YOURUM ::
+#\[7]BJNBF4XQH5F5U3TVFS7R4DTFS4GBTKN6SMOD2VLD6NVNKPLJ36DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

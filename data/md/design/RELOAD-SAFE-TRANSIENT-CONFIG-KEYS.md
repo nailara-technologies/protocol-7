@@ -15,10 +15,10 @@
   intentional, known-incomplete placeholder/reminder — it only helps the
   boot case, not reload, until this design lands. ]
 
-related: `modules/base.prune_key`, `modules/base.del_key`
-(commit `0425b210f`), `modules/base.reload_config`,
-`modules/base.execute_zenka_code`, `modules/base.pre_init`,
-`modules/devmod.cmd.unload-devmod`
+related: `src/base.prune_key`, `src/base.del_key`
+(commit `0425b210f`), `src/base.reload_config`,
+`src/base.execute_zenka_code`, `src/base.pre_init`,
+`src/devmod.cmd.unload-devmod`
 
 ## the problem
 
@@ -56,7 +56,7 @@ convention.
 
 First attempt: `[load_modules:<modules.load>]` followed immediately by
 `[base.prune_key:'modules.load']` (a new primitive built alongside this
-work — see `modules/base.prune_key`, deletes a key and prunes any
+work — see `src/base.prune_key`, deletes a key and prunes any
 ancestor hash left empty by the delete; landed standalone in `0425b210f`
 as a general utility regardless of this design's outcome).
 
@@ -232,7 +232,7 @@ expensive to discover missing later.
 
 ## current state / how to resume
 
-- `modules/base.del_key`, `modules/base.prune_key` — landed, `0425b210f`.
+- `src/base.del_key`, `src/base.prune_key` — landed, `0425b210f`.
   Useful standalone regardless of this design.
 - `cfg/zenki/mod-test/start` — carries
   `[base.prune_key:'modules.load']` as a **known-incomplete**
@@ -253,8 +253,8 @@ expensive to discover missing later.
   and live-verified (not just `ptd -c`, since start-file syntax isn't
   Perl), one commit per tier.
 
-#,,.,,,,,,,,,,.,,,,.,,,,.,.,.,,,.,,.,,..,,,,,,..,,...,...,,,,,.,.,,.,,,.,,...,
-#UVPTGRRQYCSFQGALIYIVULQH5GTZFF6LJGWDZFF53EISL7Q6A6UNNSQTLYZ75OXYWMQA23MUID5KW
-#\\\|FOPMYASMV5SCBFSP2QAMLHDVNX6PMDNTNMDCKRLWIXB6CQSEXYA \ / AMOS7 \ YOURUM ::
-#\[7]EXQQFQGQ4DPWDH2SIZNJRCZUYFRXZH5EX5RV35PX3QGNYFOYTYCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,...,.,.,,.,,,,.,.,,,,.,,..,,..,,...,...,,,.,...,,,.,..,,.,,,
+#RQ5ET436KBAAMMH472NBXUXESN7TXYSOTSNX4AKDWIKNBPVQADF54AYULHXVH5OZYA6H7ZO33WP6C
+#\\\|WRX7QIAIHCSH6VMGN27A5YTF673ZAKMX4HGG5QQPNM3SJ6LRFHK \ / AMOS7 \ YOURUM ::
+#\[7]RL3QSN56U6A4DIIA6QBF7VKSWK5ACJVGWRPZLSGENPRXWGY4SOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

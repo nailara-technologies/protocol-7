@@ -249,7 +249,7 @@ what does not:
   mechanism. no routing path in the corpus is driven by bit-shift
   registers; the live directional-routing implementation that does exist
   [ `bin/dev/division-13-table` `decoded_bits_route()` and its production
-  port `modules/decoder.base.decode_d13_bits`, per
+  port `src/decoder.base.decode_d13_bits`, per
   `footer-line4-field-reconciliation.md` finding 6 ] uses a 2-bit
   turn-selector + hop-count, not shift registers.
 
@@ -405,8 +405,8 @@ after this pass... narrowed to a single discriminator [ sweep-as-divisor
 vs modulus-as-divisor ]... no corpus file states the divisor convention
 directly." the doc already carries the full correction trail, the live
 `bin/harmony` data point [ 364 TRUE / 365 FALSE ], and the two commented
-`365/13` call sites [ `modules/base.ntime.epoch_dec:20`,
-`modules/base.ntime.epoch_to_ntime:8` ] as the strongest verifiable fact.
+`365/13` call sites [ `src/base.ntime.epoch_dec:20`,
+`src/base.ntime.epoch_to_ntime:8` ] as the strongest verifiable fact.
 
 recommendation: **(c) log as-is / not yet actionable.** not (a): the
 question already has its canonical home and a dedicated doc would only
@@ -624,7 +624,7 @@ assertion tool, not a recursive validator. the 2-4-vs-50+ figures are
 already feeding design reasoning [ the reversal-as-routing-collapse
 section ] while their source component is unconfirmed. recommendation:
 **(a)** a locate-or-disconfirm task [ grep for recursive is_true call
-loops across `modules/`, check zenka configs ]; cheap, and either grounds
+loops across `src/`, check zenka configs ]; cheap, and either grounds
 or deflates a claim currently doing load-bearing work.
 
 ### finding 15 — Q3 residual: ring-scalar custody + epoch-binding wire format : **(c) log as-is**
@@ -714,8 +714,8 @@ visibly rather than applied silently to the audit file.
 
 ## unsigned : new file, signing system adds the real footer on commit
 
-#,,..,.,,,...,.,.,,..,.,,,.,.,...,,,.,...,,.,,..,,...,...,,.,,,.,,.,.,...,,,.,
-#X2XAGARJKK7FAT7G75MRVZEWH2R5JJJN5WOVOKQOVCW5OGNKENZMO2U4K47EJB7SSX6OPLEAQY47C
-#\\\|357AMCY45MZEVVLHP7FYZKDOLQUJ6PUL7H4WFDBNWNZCBH4VK5J \ / AMOS7 \ YOURUM ::
-#\[7]BGI5D4SML4IWEIQQYQYHBEW35JS6OS5YF5XWQZ2IWFXQ4XCTC6AY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,,,.,.,.,,,.,,..,.,,,.,,,.,.,..,,...,...,.,.,,.,,,,.,,.,,.,,,
+#SS5S4ZLDSFYJSEATNHNVKO3GNEQPYTB3NL5REQUAMQ4RA44WYQM6FH64JOCMU2WJXHNT2XZWXTW4G
+#\\\|7TOLALLJNAHC6ZMGDKKMKU3D6XIAJD5BJELYQIDK5IYJILQJPUZ \ / AMOS7 \ YOURUM ::
+#\[7]VUGPZT3ZGBBAUZ36HYJ6E32J6HRIFSCHZDFN4QZXZ2BICRVIB4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

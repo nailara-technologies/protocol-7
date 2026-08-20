@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = fetch.file.huggingface.handler.download_progress
+# descr = poll download progress and detect completion
+
+my $timer_data = shift;
+my $dl_id      = $timer_data->{'data'}{'dl_id'} // '';
+
+my $dl = <fetch.file.downloads>->{$dl_id};
+return if !defined $dl;
+
+my $pid      = $dl->{'pid'};
+my $dest     = $dl->{'dest'};
+my $reply_id = $dl->{'reply_id'};
+
+## check if process has exited ##
+my $wait_result = waitpid( $pid, WNOHANG );
+
+## update file size ##
+my $current_size = -f $dest ? ( -s $dest ) : 0;
+my $prev_size    = $dl->{'downloaded'};
+$dl->{'downloaded'} = $current_size;
+
+my $now     = <[base.time]>->(3);
+my $elapsed = $now - ( $dl->{'start_time'} // $now );
+my $speed   = $elapsed > 0 ? ( $current_size / $elapsed ) : 0;
+$dl->{'speed'} = sprintf( '%.2f', $speed / ( 1024**2 ) );    ## MB/s ##
+
+if ( $current_size > 0 && $current_size > $prev_size && $speed > 0 ) {
+    ## rough ETA based on observed speed  total is unknown unless we can ##
+    ## get it from HF API                                                ##
+}
+
+## process exited ##
+if ( $wait_result == $pid ) {
+    my $exit_code = $? >> 8;
+
+    ## cancel timer ##
+    my $timer = delete $dl->{'timer'};
+    $timer->cancel if defined $timer;
+
+    if ( $exit_code == 0 && -f $dest ) {
+        my $size_gb = ( -s $dest ) / ( 1024**3 );
+        $dl->{'status'} = qw| complete |;
+        $dl->{'total'}  = $size_gb;
+
+        <[base.logs]>->(
+            1, "[hf.fetch] download complete: %s (%.2f GB, %d sec)",
+            $dest, $size_gb, int($elapsed)
+        );
+
+        ## send deferred reply ##
+        if ( length $reply_id ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| true |,
+                    'data' => sprintf(
+                        "ok path=%s size_gb=%.2f duration=%d",
+                        $dest, $size_gb, int($elapsed)
+                    )
+                }
+            );
+        }
+    } else {
+        $dl->{'status'} = qw| error |;
+        unlink($dest) if -f $dest;
+
+        <[base.logs]>->(
+            0,     "[hf.fetch] download failed: %s [exit=%d]",
+            $dest, $exit_code
+        );
+
+        if ( length $reply_id ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => "download failed [exit code=$exit_code]"
+                }
+            );
+        }
+    }
+
+    ## clean up file handles if still open ##
+    return;
+}
+
+## process still running ##
+if ( $wait_result == 0 ) {
+    <[base.logs]>->(
+        2,             "[hf.fetch] progress: %s -> %.1f MB (%.1f MB/s)",
+        $dl->{'file'}, $current_size / ( 1024**2 ),
+        $dl->{'speed'}
+    );
+}
+
+#,,.,,..,,,,.,,..,,,,,,,.,,,.,,.,,,.,,,,,,,,.,..,,...,..,,,.,,...,..,,.,,,,,,,
+#EWJHSRAV6YOJKDEGUVCNL3JYFXVV7QWQ2TFESRP52T4TSW45JF3TXPWVPIVMYK4IOT3IHAXAZ4B5K
+#\\\|4OD2462VTVE5MKGV2GFVJYQRAASMTNCKM3DPCQBDYJJWKHYO3CB \ / AMOS7 \ YOURUM ::
+#\[7]T6FYIFVFCEWXODENWWGYN25A53IINQYCXFV44AD2PIPX6JSVNAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

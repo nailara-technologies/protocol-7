@@ -15,7 +15,7 @@ see `data/md/design/TREE-PROTOCOL.md` for full TREE specification.
 
 ## file to modify
 
-`modules/base.callback.cmd_reply`
+`src/base.callback.cmd_reply`
 
 add TWO new branches after the existing CHRSIZE branch (around line 85).
 
@@ -147,8 +147,8 @@ guarded by `$reply->{'mode'} ne 'size'` check — ensure this still works).
 isolated module edit — no dependencies on other tasks.
 parallel-safe with all space-engine-*.md and branch-calc-*.md tasks.
 
-#,,,,,,,,,.,,,.,.,,,,,,,.,..,,.,,,,,.,,.,,...,..,,...,...,,..,,.,,,..,,..,,.,,
-#GXGOXDNBPKPTBDBRLGMWXOQ7YQT5SGK66ZW6DYD5LJJDLZBBK7I4VYGJM63YVFVV5KB64JGDUOSFA
-#\\\|JBCJH4N2QMPTLAVRIFZU67AMVJTFF577Z7UNGFQSQNJWEG22JVT \ / AMOS7 \ YOURUM ::
-#\[7]KXAH4BOP3OAZCQGMGDV3UD7BSRMDXENEKBEP4BTL6JORM7RIUIAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,,.,,,.,..,,,,.,..,,,,.,..,,..,,...,...,.,,,,.,,,,,,,,,,.,,,
+#WDFKQME6TBDINYGLDKFOZ2KOMLU2HX6Q3X2XWGM5MEIKQ72K2CHRDA7TDQGRPIZJYJCYC7V4AO7F2
+#\\\|IKZMUAUQPY2PRVKIBIRAMQ656F36ZEMNDJJBNJ7FFVELAFWGEC7 \ / AMOS7 \ YOURUM ::
+#\[7]6CJ3SZ44XSFA4I7IKCHTD7ZSDAO66ZAX4Q6MEZYWK6G5EOQLCOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

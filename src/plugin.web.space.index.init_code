@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = plugin.web.space.index.init_code
+# descr = initialize persistent index plugin state
+
+## index data cache : populated by scan, read by template commands ##
+<web.space.index.cache> = {
+    qw| target_dir | => qw| unknown |,
+    qw| file_count | => 0,
+    qw| cells      | => [],
+    qw| timestamp  | => 0,
+};
+
+## configuration ##
+<web.space.index.cfg.target_dir> //= qw| src |;
+##  reset on reload so path stays consistent  ##
+delete <web.space.index.cfg.persist_dir>;
+<web.space.index.cfg.persist_dir> = qw| space-index |;
+<web.space.index.cfg.checksum_bits> //= 512;
+
+## re-entry flag for rebuild command ##
+<web.space.index.running> //= 0;
+
+## pre-encoded string cache for fast http serving ##
+<web.space.index.json_cached> //= '{}';
+<web.space.index.yaml_cached> //= "--- {}\n";
+
+## command alias so p7c web.index-rebuild resolves  web zenka strips 'web.' ##
+## prefix -> 'index-rebuild' -> alias to 'rebuild'                          ##
+$data{'alias'}{'index-rebuild'} = qw| rebuild |;
+
+## attempt to restore prior index from disk ##
+eval {<[plugin.web.space.index.load]>};
+
+<[base.log]>->( 1, 'plugin.web.space.index : initialized' );
+
+0;
+
+#,,..,...,,..,.,.,,..,,..,,,.,,,,,.,.,.,.,...,..,,...,..,,...,...,,..,.,,,,..,
+#5NTNOPMVX3EQZYCZDAI6W4PPC3RFO32PEDZGV3G6ZSY5FQKDFAVRDJ2NMUNSPMZ6RTEZOLZUHCRVW
+#\\\|5L6ZJ7H2UGEA5VPZRDTGBJMIOZVFCX5RYQJLJHSGSWSSG5AF6DN \ / AMOS7 \ YOURUM ::
+#\[7]3WC67VJ6RQEFL5ANLPCUV3EIBU7JUNIVN7ZSNTWVCTOJUYUZK2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

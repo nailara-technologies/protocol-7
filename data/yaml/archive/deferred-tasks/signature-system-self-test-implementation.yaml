@@ -10,7 +10,7 @@ context:
     The Protocol-7 signature system uses AMOS7 encoding with BMW (Blue Midnight Wish)
     checksums and C25519 signatures to ensure code integrity. A policy-based dual-mode
     system was recently implemented:
-    - Normalize mode: code files (modules/, bin/) always get state 7 (2 trailing newlines)
+    - Normalize mode: code files (src/, bin/) always get state 7 (2 trailing newlines)
     - Preserve mode: data files record original endline state for reversibility
 
   current_problem: |
@@ -20,13 +20,13 @@ context:
     - 193 files had invalid signatures after the normalization changes
 
   fixes_applied: |
-    In modules/source.cmd.get-code-signed:
+    In src/source.cmd.get-code-signed:
     1. Changed extract_sig_body mode from 'strict' to 'repair' (line 47)
     2. Removed fast-path check (lines 154-162) that was skipping signature comparison
     3. Added normalization BEFORE signature calculation (lines 164-177)
     4. Ensured all files go through signature comparison (line 186-205)
 
-    In modules/sourcecode.console.verify-p7-signatures:
+    In src/sourcecode.console.verify-p7-signatures:
     1. Added normalization during verification to match signing (lines 139-147)
 
   bootstrap_issue: |
@@ -44,7 +44,7 @@ implementation_plan:
       name: "Create Self-Test Module"
       tasks:
         - name: "Generate test keypair"
-          file: "modules/sourcecode.test.generate_test_keys"
+          file: "src/sourcecode.test.generate_test_keys"
           description: |
             Create ephemeral C25519 keypair in memory for testing.
             No passphrase required. Keys discarded after test.
@@ -54,7 +54,7 @@ implementation_plan:
             - Store in temporary $test_keys hash
 
         - name: "Create test signing function"
-          file: "modules/sourcecode.test.sign_with_test_key"
+          file: "src/sourcecode.test.sign_with_test_key"
           description: |
             Sign test content using the generated test keys.
             Mirror the production signing logic but use test keys.
@@ -64,7 +64,7 @@ implementation_plan:
             - Return signed content and signature data
 
         - name: "Create test verification function"
-          file: "modules/sourcecode.test.verify_with_test_key"
+          file: "src/sourcecode.test.verify_with_test_key"
           description: |
             Verify test signatures using the generated public key.
             Mirror production verification logic.
@@ -77,7 +77,7 @@ implementation_plan:
       name: "Test Suite Implementation"
       tasks:
         - name: "Test state encoding variations"
-          file: "modules/sourcecode.test.state_encoding_tests"
+          file: "src/sourcecode.test.state_encoding_tests"
           test_cases:
             - name: "State 5 (unchanged)"
               input: "content\n"
@@ -97,7 +97,7 @@ implementation_plan:
           test_cases:
             - name: "Code files normalize"
               paths:
-                - "modules/test.example"
+                - "src/test.example"
                 - "bin/test-script"
               should_normalize: true
 
@@ -134,7 +134,7 @@ implementation_plan:
             baseline for future optimizations.
 
   module_structure:
-    base_module: "modules/sourcecode.test"
+    base_module: "src/sourcecode.test"
     submodules:
       - "sourcecode.test.generate_test_keys"
       - "sourcecode.test.sign_with_test_key"
@@ -152,7 +152,7 @@ implementation_plan:
 
 technical_details:
   key_modules_to_understand:
-    - file: "modules/source.cmd.get-code-signed"
+    - file: "src/source.cmd.get-code-signed"
       purpose: "Main signing logic"
       key_functions:
         - "Lines 47-76: Footer extraction"
@@ -160,7 +160,7 @@ technical_details:
         - "Lines 164-177: Normalization before signing"
         - "Lines 182-205: Signature calculation and comparison"
 
-    - file: "modules/source.extract_sig_body"
+    - file: "src/source.extract_sig_body"
       purpose: "Extract and validate signature footers"
       key_concepts:
         - "Strip mode vs info mode"
@@ -168,7 +168,7 @@ technical_details:
         - "Separator endline detection (line 102-106)"
         - "Endline state restoration (line 627)"
 
-    - file: "modules/source.create_harmonic_footer"
+    - file: "src/source.create_harmonic_footer"
       purpose: "Generate AMOS7 signature footer"
       key_concepts:
         - "BMW checksum calculation (line 342)"
@@ -176,21 +176,21 @@ technical_details:
         - "Endline state encoding (line 286-292)"
         - "Iterative harmonization for truth assertions"
 
-    - file: "modules/source.normalize_endlines"
+    - file: "src/source.normalize_endlines"
       purpose: "Normalize to exactly 1 trailing newline"
       implementation: "Single regex: s|\\n*$|\\n|s"
 
-    - file: "modules/source.restore_payload_endline_state"
+    - file: "src/source.restore_payload_endline_state"
       purpose: "Restore original endline state from encoded value"
       key_logic:
         - "State < 5: Add newlines"
         - "State 5: No change"
         - "State 6/7: Remove 2 newlines"
 
-    - file: "modules/source.policy.should_normalize_endlines"
+    - file: "src/source.policy.should_normalize_endlines"
       purpose: "Determine which files should be normalized vs preserved"
       logic:
-        - "Path-based: modules/, bin/, data/lib-path/pm/"
+        - "Path-based: src/, bin/, data/lib-path/pm/"
         - "Type-based: .pl, .pm, .sh, .py, .md, .html"
         - "Default: preserve for data files"
 
@@ -235,7 +235,7 @@ success_criteria:
 
 next_steps:
   immediate:
-    - "Sign modules/source.cmd.get-code-signed with production key (manual)"
+    - "Sign src/source.cmd.get-code-signed with production key (manual)"
     - "Run update-signatures to fix 193 files"
     - "Verify all signatures pass"
 
@@ -253,16 +253,16 @@ notes:
 
 related_files:
   modified:
-    - "modules/source.cmd.get-code-signed"
-    - "modules/sourcecode.console.verify-p7-signatures"
+    - "src/source.cmd.get-code-signed"
+    - "src/sourcecode.console.verify-p7-signatures"
 
   created_previously:
-    - "modules/source.normalize_endlines"
-    - "modules/source.policy.should_normalize_endlines"
+    - "src/source.normalize_endlines"
+    - "src/source.policy.should_normalize_endlines"
 
   need_to_create:
-    - "modules/sourcecode.test.*"
-    - "modules/sourcecode.console.test-signatures"
+    - "src/sourcecode.test.*"
+    - "src/sourcecode.console.test-signatures"
 
 references:
   - "CLAUDE.md - Project overview and architecture"
@@ -270,8 +270,8 @@ references:
   - "bin/amos-chksum - AMOS checksum utility"
   - "data/lib-path/pm/AMOS7/*.pm - AMOS7 library"
 
-#,,,,,,..,,.,,...,,.,,,.,,...,.,.,.,.,..,,,,.,..,,...,..,,.,.,,,.,,..,,..,.,,,
-#CXUCLJDPW5UUTPWPG5B7ZSU276QX3XJJZMFFDJUV27QWKRZATRAQ664MF3YQM7ADMZONOVR67E55Y
-#\\\|QGJEDHGWX3IKL2LYDWIIURLPQSJU4LQVGZKWXTZDKMVRJQWY6LL \ / AMOS7 \ YOURUM ::
-#\[7]N2V7FDG4AF4RII4VKKTY4Z4GZ46FNPAWL5AXVCSMQP3PSFIYCQCI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,,,,.,,,..,.,.,..,,,.,,,.,,.,.,..,,...,..,,..,,...,.,.,,..,.,,,
+#MKTTAGRMV67R2AQJYIYITCIVCBEY75BXHP4HCJZCO27JQ5W4ABGQ4TRT4VKGWXTC25ZTFJ62AQYUA
+#\\\|ZLONKIROYS7NOMK7OHU6CXY7XYXJCVJ7OMZSMJXWLJ6D5M3RVW2 \ / AMOS7 \ YOURUM ::
+#\[7]QEXYC3RJNJQZXVQJ7PAI3WV7OCNHUQUSHIHRNPX7CXE4E4AQ5WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

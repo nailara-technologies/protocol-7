@@ -65,14 +65,14 @@ task_metadata:
   category: "feature"
 
 motivation: >
-  The base plugin mechanism (base.load_plugins, modules/base.load_plugins)
+  The base plugin mechanism (base.load_plugins, src/base.load_plugins)
   takes an explicit list of plugin.* module names, compiles them, and
   registers them into <plugins.status> purely for RELOAD bookkeeping
   (base.reload_plugins re-walks that same list). Nothing in it lets a
   HOST zenka ask "which plugins do I have, and what do they each offer" —
   every existing consumer hardcodes the answer. httpd.route_dispatcher is
   the concrete precedent: it reads <plugin.httpd.radio.active> and calls
-  plugin.httpd.radio.handler.stream_request by LITERAL name (modules/
+  plugin.httpd.radio.handler.stream_request by LITERAL name (src/
   httpd.route_dispatcher:133-141) rather than through any lookup. That is
   fine for httpd, which only ever has one or two hardcoded plugins wired
   by hand — it does not scale to "however many detail-tab plugins happen
@@ -82,7 +82,7 @@ motivation: >
 
 plugin_module_convention:
   motivation: >
-    Match the existing plugin.httpd.radio.* shape (modules/plugin.httpd.
+    Match the existing plugin.httpd.radio.* shape (src/plugin.httpd.
     radio.init_code, .cmd.radio_online, .handler.radio_offline, .handler.
     stream_request, .handler.strm_open) rather than inventing new
     plumbing — same base.load_plugins loader, same <plugins.status>
@@ -159,7 +159,7 @@ registry_and_post_init:
     plugin ] is the right shape, collecting what each plugin.user-edit.
     <name>.init_code already set up — and this is not just cleaner, it
     is GUARANTEED correct by how base.init_modules actually works
-    (checked directly, modules/base.init_modules:9-22): the OUTER loop is
+    (checked directly, src/base.init_modules:9-22): the OUTER loop is
     over the three phases pre_init / init_code / post_init in that fixed
     order, and for EACH phase it walks every module in %code matching
     that phase's suffix before moving to the next phase. So EVERY
@@ -427,8 +427,8 @@ open_questions:
 created: 2026-08-12
 tags: [user-edit, plugin, tabs, editor, ascii-frame, design-only]
 
-#,,,,,,.,,,.,,,,,,,,.,,..,..,,,.,,..,,,,.,..,,..,,...,...,..,,.,,,,,.,...,,.,,
-#T5EEBPYU4FDOBGBVQRAMMSNHRHCZQMOO44YI3EPERPKJ2B37YTVUFVA65CND57KJ6F7HYCBTZQEZI
-#\\\|RDBFQIKPH4365HZK2JICWZ6BUGKT5JMVW7P2C74I2X3AZOV2A6V \ / AMOS7 \ YOURUM ::
-#\[7]Q3FIAODJAINXKYFOJ2J7QD3DULCKKULQIX4UY7OYYCHNMEGFMUDA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,,..,,,.,.,.,,,,,...,.,.,...,..,,...,...,...,,.,,.,.,...,.,,,
+#26OKLTRFXJVQWXQHU6PKA7SHTDVI4XBTG6GTK64JSHD7YK2R4K7TOM4OZELXC2KQVSH2RV4UJ2FH6
+#\\\|IG4D236FXTQOFO7CKVHDTJGWJGPKW4MUNQDAG2M5HP7U4YSUWDV \ / AMOS7 \ YOURUM ::
+#\[7]LHTAOTQZZNZ3S45PJHADHI43CJ6HNBBS6CEEPUFT2GQDZD7WCECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

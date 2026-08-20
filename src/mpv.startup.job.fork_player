@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = mpv.startup.job.fork_player
+# descr = fork mpv binary and register finalize job with socket dependency;
+#          safe to call directly (as event-loop callback) or as a job callback
+
+<[mpv.open_player]>;    ## forks binary + starts async socket poll ##
+
+## finalize job waits for socket dep — runs observe_properties + ##
+## get_playlist                                                  ##
+<[jobqueue.add_job]>->(
+    {   'name'         => 'mpv startup finalize',
+        'job_callback' => 'mpv.startup.job.finalize',
+        'object_id'    => <mpv.dep.socket>,
+    }
+);
+
+#,,,,,,..,.,,,,..,.,.,,,.,,..,...,,.,,.,,,,..,.,.,...,...,.,,,,,.,...,,..,..,,
+#UJUPY7IERAYHQZ65I4D7WVTECN45N42OMLHH4H3AXCPQBUSBVLQOVZZQM3KDZAU6YYJNP2PEZL2ZS
+#\\\|DGW26JFRS7AVDW6DINSDXPTO7A572R5MD5NG7B3OPC5IJJ2G3XP \ / AMOS7 \ YOURUM ::
+#\[7]DGVQIZYWNVRZNRADDAFOZMKT3XMMNQWRVFTZV3QXCJWEDMY3RCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

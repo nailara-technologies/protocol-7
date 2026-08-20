@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = route.bmw384.cmd.index-path
+# descr = command handler: p7c <zenka>.index-path [path]
+
+my $args = $call->{'args'} // '';
+$args =~ s{^ *| *$}{};
+
+my $path = length $args ? $args : <system.root_path> . '/src';
+
+my $result = <[route.bmw384.index.from-path]>->($path);
+
+if ( not defined $result ) {
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => 'index-path failed'
+    };
+}
+
+my $indexed = $result->{'indexed'} // 0;
+my $skipped = $result->{'skipped'} // 0;
+
+# [ build arc summary : top 5 arcs by count ]
+my @arc_counts;
+if ( defined <bmw384.index> and defined <bmw384.index>->{'by_arc'} ) {
+    my %labels;
+    for my $ARG ( 0 .. 25 ) {
+        my $label = chr( ord('A') + $ARG );
+        $labels{$label} = scalar @{ <bmw384.index>->{'by_arc'}{$ARG} // [] };
+    }
+    my @sorted = sort { $labels{$b} <=> $labels{$a} } keys %labels;
+    my $top    = 0;
+    for my $ARG (@sorted) {
+        last if $top >= 5;
+        push @arc_counts, sprintf '%s:%d', $ARG, $labels{$ARG};
+        $top++;
+    }
+}
+
+my $arcs_str = scalar @arc_counts ? join( ' ', @arc_counts ) : 'none';
+
+my $summary = sprintf
+    "indexed %d modules from [%s] \x{2014} arcs: %s",
+    $indexed, $path, $arcs_str;
+
+<[base.logs]>->( 1, 'bmw384 index-path: %s', $summary );
+
+return {
+    qw| mode | => qw| size |,
+    qw| data | => $summary,
+};
+
+#,,..,.,,,,.,,,,,,,.,,.,,,,,,,,,.,,..,.,.,..,,..,,...,...,.,,,.,,,,,.,,.,,,.,,
+#XS2VD4INJCGL274IXIHNPML2F63DMU5SGIUA3GJXR76V52ECLJZYXSUWP3FSS4SROHJJ3NXMHSM6O
+#\\\|MMZTAWOFHLEFT4D7I634H6TNDVTRR65DBFV6T7XA5R7XDKWIFW5 \ / AMOS7 \ YOURUM ::
+#\[7]RTXXDKWPYDHL2L3KAC6OYRZZIFY3OXSEVU7T4I6DHAPCHHMND4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

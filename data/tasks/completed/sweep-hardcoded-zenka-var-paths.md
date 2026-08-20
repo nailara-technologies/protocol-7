@@ -45,7 +45,7 @@ to chase ad-hoc per-file as they're noticed.
 `data/yaml/context-templates/no-hardcoded-paths.yaml` already exists
 as a context template covering this exact convention (`<system.code_path>`,
 `<system.cfg_path>`, `<system.root_path>` instead of hardcoded
-`modules/`/`cfg/`/project-root paths) — this task extends
+`src/`/`cfg/`/project-root paths) — this task extends
 that same convention specifically to zenka var-dir paths
 (`<system.path.zenka-dirs.var_P7>` + `<system.zenka.name>` via
 `catdir`, per `base.path-set-up.check-zenka-paths`'s own pattern),
@@ -54,7 +54,7 @@ which the existing template doesn't explicitly call out.
 ## next steps if picked up
 
 1. grep the codebase for hardcoded `/var/protocol-7/<name>/`-shaped
-   literals across `modules/*.init_code` and similar config-default
+   literals across `src/*.init_code` and similar config-default
    lines, to scope how widespread this actually is before starting.
 2. dispatch to the coding zenka using (or extending)
    `no-hardcoded-paths.yaml` as the guiding context template — this
@@ -63,8 +63,8 @@ which the existing template doesn't explicitly call out.
 3. include `base.*` modules in scope, not just zenka-specific ones —
    user explicitly flagged base as containing instances too.
 
-#,,,.,...,,,,,...,,.,,.,,,,,,,,..,,..,.,,,...,..,,...,...,.,,,,,,,,,,,,,,,,,,,
-#I4Q5EOXROY2RSYHMGIWO7BLYVE45D757BEELO2JIKVQYPKIAWIXV5DHBV267TNONOKZTCBU42J5HK
-#\\\|H3725E4D6IIIPVAC74P3KVLAIWCI4DKMOEKURE4NJ7LZP5EP3F7 \ / AMOS7 \ YOURUM ::
-#\[7]UJEDZQHDR2ZQJUSY4PVN4ZP6VXFZHDEQGHQRYDIAGH5WGRMYUOBY 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,,,.,...,,,.,..,,..,,..,,...,..,,...,...,,..,..,,.,,,,..,...,
+#OGKQEBP5YZVC2PXS7PEW65ULEI27WGUC6FOZ7XVBS4AXUAK6UEC6FIV6GJSMB5AYLFAAFDHBKW7LE
+#\\\|QNHR5OFGKNVFA4Y6YBBG2HPD5WUOCSJ7HEP2TS5OSYPXUVMI2XP \ / AMOS7 \ YOURUM ::
+#\[7]5ZU76TZBRQ6CK74JN27BF6MGPWBIV4GIZQ4ZIFUPIKGTT3KA52CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

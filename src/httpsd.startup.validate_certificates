@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = httpsd.startup.validate_certificates
+# descr = validate certificate files with graceful delegation to letsencr
+# return = TRUE [5] on success, FALSE [0] on graceful failure (will retry with backoff)
+
+<[base.logs]>->( 2, 'httpsd: validating certificate files before startup' );
+
+## initialize retry counter if not already set
+unless ( defined <httpsd.startup.retry_count> ) {
+    <httpsd.startup.retry_count> = 0;
+}
+
+## phase 1: check if certificate is already available
+my $cert_info = <[httpsd.check_certificate_available]>;
+
+if ( $cert_info->{available} ) {
+    <[base.logs]>->( 2, 'httpsd: certificate files validated successfully' );
+    <httpsd.startup.retry_count> = 0;    ## reset retry counter on success
+    return TRUE;
+}
+
+<[base.logs]>->(
+    2, 'httpsd: certificate not available, requesting from letsencr'
+);
+
+## phase 2: request certificate from letsencr
+my $request_result = <[httpsd.request_certificate_from_letsencr]>;
+
+unless ( defined $request_result ) {
+    <[base.logs]>->(
+        2, 'httpsd: unable to contact letsencr for certificate request'
+    );
+    goto GRACEFUL_FAILURE;
+}
+
+## phase 3: wait for certificate with timeout
+if ( $request_result->{status} ne 'failed' ) {
+    ## status is either 'pending' or other (letsencr is working on it)
+    <[base.logs]>->(
+        2, 'httpsd: waiting for certificate availability (up to 30 seconds)'
+    );
+
+    my $cert_available = <[httpsd.wait_for_certificate]>->(30);
+
+    if ($cert_available) {
+        <[base.logs]>->(
+            2, 'httpsd: certificate is now available, proceeding'
+        );
+        <httpsd.startup.retry_count> = 0;    ## reset retry counter on success
+        return TRUE;
+    }
+}
+
+## graceful failure: certificate not available after timeout
+GRACEFUL_FAILURE:
+
+<[base.logs]>->(
+    1, 'httpsd: certificate not available, will retry periodically'
+);
+
+## increment retry counter for logging
+<httpsd.startup.retry_count>++;
+
+<[base.logs]>->(
+    2, 'httpsd: retry attempt %d - will check for certificate periodically',
+    <httpsd.startup.retry_count>
+);
+
+## return FALSE to skip socket creation  socket creation will be deferred to a
+## periodic retry handler
+return FALSE;
+
+#,,,,,,..,,,,,,..,,.,,...,..,,.,,,,,.,,,,,,,.,..,,...,..,,.,.,...,,,.,...,.,.,
+#5SNNTK2HFI7ICFE5R4V4LRO26A3QZPPBVO3BNIKVWNN4BRTXGGIHVFASYDDWFIYG7RADC6L6PEGBK
+#\\\|526GDZDVLEEC2IVLD4JVQEB72CXUKKST3JR6DXHAP6IOFAG6GQG \ / AMOS7 \ YOURUM ::
+#\[7]6HFRYIWJBGRY4NZ4BUNXT2AIPWI3U56BRIZWVYYXUEXCPDRX7WCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

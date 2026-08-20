@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = task.cmd.fail
+# param = <task_id> [error_message]
+# descr = mark a claimed task as failed with optional error
+
+my ( $task_id, $error ) = ( '', '' );
+
+## parse params
+if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
+    $task_id = $call->{'param'}->{'id'}    // '';
+    $error   = $call->{'param'}->{'error'} // '';
+} else {
+    my $args = $call->{'args'} // '';
+    ## try to split on first whitespace
+    if ( $args =~ m{^(\S+)\s+(.*)$}s ) {
+        $task_id = $1;
+        $error   = $2;
+    } else {
+        $task_id = $args;
+    }
+}
+
+$task_id = uc( substr( $task_id, 0, 7 ) );
+
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+
+my $task = <task.queue>->{$task_id};
+
+return {
+    'mode' => 'false',
+    'data' => sprintf( 'task %s not found', $task_id )
+    }
+    unless defined $task;
+
+## pending, claimed, or in_progress tasks can be failed
+if (    $task->{'status'} ne 'claimed'
+    and $task->{'status'} ne 'pending'
+    and $task->{'status'} ne 'in_progress' ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'task %s is %s, cannot fail',
+            $task_id, $task->{'status'}
+        )
+    };
+}
+
+## update task
+my $ntime_b32 = <[base.ntime.b32]>;
+
+$task->{'status'}     = 'failed';
+$task->{'result'}     = $error || 'failed';
+$task->{'updated_at'} = $ntime_b32;
+
+## move to history, then persist ##
+<[task.persist.archive]>->($task_id);
+<[task.persist.save]>;
+
+## fire deferred reply for any pending wait-done ##
+my $wait_reply_id = delete <task.wait.pending>->{$task_id};
+if ( defined $wait_reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $wait_reply_id, { 'mode' => 'false', 'data' => "failed: $error" }
+    );
+}
+
+## record blocked/failed outcome in valued tree [ only if linked to a node ##
+## ]                                                                       ##
+if ( length( $task->{'node_id'} // '' ) ) {
+    <[valued.tree.record_outcome]>
+        ->( { 'node_id' => $task->{'node_id'}, 'outcome' => 'blocked' } );
+}
+
+<[base.logs]>->( 1, ':. task %s failed: %s', $task_id, $error || 'no error' );
+
+return { 'mode' => 'true', 'data' => "failed $task_id" };
+
+#,,,.,.,.,...,,.,,.,.,,,.,...,..,,,,.,...,.,.,..,,...,..,,,,.,.,,,...,.,,,,,.,
+#FGIYI4SQWCWLRCWHNSYHKKYUXM73OP7WITL4R4MV3BGPR7ZRSZBAOM4HBFGF5WE6VQ7BGXOWEPPZM
+#\\\|TQRHFUQINDGMBF7ONSCX5VVNUSK267Y5NSGJVLNUKBRGFHB5DR6 \ / AMOS7 \ YOURUM ::
+#\[7]75O7KULFA2FB4XAWIXZEFLVWPOKS7CZWLEAGLXRN4D2VHVXSFYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

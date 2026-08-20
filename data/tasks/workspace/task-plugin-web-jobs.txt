@@ -8,7 +8,7 @@ system handles signatures automatically via bin/Protocol-7 sourcecode update-sig
 
 implement the plugin.web.jobs.* module set that replaces the manual
 bin/dev/export-jobs-json + scp workflow with a proper web plugin, following
-the plugin.web.space.* pattern already in modules/.
+the plugin.web.space.* pattern already in src/.
 
 ## storage layout
 
@@ -67,7 +67,7 @@ update into the store record. never overwrite score/reason/summary/fetched.
 ## template command registration pattern
 
 follow plugin.web.space.init_code for how to register template commands.
-look at: modules/plugin.web.space.init_code (or similar init file)
+look at: src/plugin.web.space.init_code (or similar init file)
 and cfg/zenki/web/start for how plugins are loaded.
 
 ## httpd routing for POST /jobs-sync
@@ -88,12 +88,12 @@ is the priority since the browser currently fetches a static jobs.json.
 
 ## reference modules
 
-- modules/plugin.web.space.fetch — async fetch + route-send pattern
-- modules/plugin.web.space.handler.state_reply — reply handler pattern
+- src/plugin.web.space.fetch — async fetch + route-send pattern
+- src/plugin.web.space.handler.state_reply — reply handler pattern
 - cfg/zenki/web/start — plugin loading syntax
 
-#,,,.,,,,,.,.,,..,,,,,,,.,,,.,.,.,,.,,,..,.,.,..,,...,...,..,,,.,,,.,,.,,,.,.,
-#ZKKUWGD4PSDIM5SJWN62LHJLMDLPS2U4E72EHN6SNJ45GVQDEEJ2U7YQIJ663CF7X3N6J6EKJTQ4W
-#\\\|NAFBCD5LXTZ7QIUAWYD2AOAFYTE7KMOALGG6UC4WMQXHNFLW6U3 \ / AMOS7 \ YOURUM ::
-#\[7]WHKMBTTB5M6WVDKFOUXZS25WHIPFI23JEUXZADESP6RTJAZ2SKAY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,,..,,.,,,,.,...,...,,..,.,.,..,,...,..,,.,,,..,,.,.,,.,,..,,
+#HUO2SB3XYFWEMPYK3UFJB3URTZZH3R4CC6NCGJS7XC47DMCNLFEDAY3X56IGTPCH4QX57SLW2XQJC
+#\\\|IDMUS3BDT7MYQWUHKUM4I6PNAP3CPY7RLHHRGRIO2RHHJYVPROI \ / AMOS7 \ YOURUM ::
+#\[7]LK3OYMXCLBTEFZWI6VBGRWO7XOTXPRZPMJQ4PP5Z5KZTTIZL3IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = select.region.cursor_for_region
+# descr = map a drag/resize region to a gdk core-font cursor type nick
+
+## x11 core-font cursor type nicks [ server-builtin, theme-independent ]  ##
+## css-style names [ 'nw-resize' ] need new_from_name + a working xcursor ##
+## theme; under this minimal xwayland/wsl setup no xsettings daemon       ##
+## propagates one, so new_from_name falls back to the giant white core    ##
+## cursor. the type nicks below are built into the x server and always    ##
+## resolve via the single-arg Cursor->new, matching the codebase idiom.   ##
+
+my $region = shift // 'body';
+
+my %name = (
+    'body' => 'fleur',
+    'n'    => 'top_side',
+    's'    => 'bottom_side',
+    'e'    => 'right_side',
+    'w'    => 'left_side',
+    'nw'   => 'top_left_corner',
+    'ne'   => 'top_right_corner',
+    'sw'   => 'bottom_left_corner',
+    'se'   => 'bottom_right_corner',
+);
+
+return $name{$region} // 'left_ptr';
+
+#,,.,,..,,,,,,..,,,,,,,,,,,.,,.,.,,.,,.,.,,.,,..,,...,...,...,,..,,,,,..,,.,,,
+#SEQZAG4GNEN3YHCM4VQ6C4DYRB7AM5WU6O2UAP6KIVS3Q63RJIQ32AD4CXMAYB2HJX5ABJT4FIUSC
+#\\\|3FUJ6VZMI4DOZ6L6QAN4745CQBTGSHS5F64XS5QENL3WAGLMY7X \ / AMOS7 \ YOURUM ::
+#\[7]CL4AS7LLYKZOEU2IIN6SI73LUDKSQ5UDDAPVCH5LQYXFG3NZDYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

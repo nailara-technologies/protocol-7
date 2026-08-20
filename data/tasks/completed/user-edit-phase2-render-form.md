@@ -20,8 +20,8 @@
 Four prior phases already exist and are committed (skeleton, path registry,
 outbox, draft storage) — none of them are directly relevant to this task
 (this is pure rendering, no filesystem I/O), but do not touch any of their
-files: `modules/user-edit.init_code`, `modules/user-edit.outbox.*`,
-`modules/user-edit.draft.*`, `cfg/zenki/user-edit/start`.
+files: `src/user-edit.init_code`, `src/user-edit.outbox.*`,
+`src/user-edit.draft.*`, `cfg/zenki/user-edit/start`.
 
 ## Goal
 
@@ -40,10 +40,10 @@ form for any particular set of fields.
   the exact `{{SLOT}}` placeholder + `slots:` metadata format this task's
   test fixture should follow. It's a read-only display frame (no live
   editing), but the mockup FORMAT is exactly what you need — read it in full.
-- `modules/ascii.frame.load` — loads a named frame from
+- `src/ascii.frame.load` — loads a named frame from
   `data/yaml/ascii-frames/<name>.yaml`, parses the mockup, returns a cached
   descriptor. This is how you'll load your test fixture.
-- `modules/ascii.frame.render` — takes `{ descriptor => ..., values => {
+- `src/ascii.frame.render` — takes `{ descriptor => ..., values => {
   slot_name => 'text', ... } }`, returns the fully rendered ascii-art string.
   Read this file in FULL — it's long but everything you need to know about
   how slot values become rendered output is in it (field/block/composed slot
@@ -52,14 +52,14 @@ form for any particular set of fields.
   (scalar-ref binding) exists but is NOT what you should use here; simpler
   and more correct for this contract is to build a fresh `values` hash from
   `editor.control.get_value` on every render call.
-- `modules/editor.control.get_value`, `.get_cursor`, `.active_buffer` — the
+- `src/editor.control.get_value`, `.get_cursor`, `.active_buffer` — the
   accessors you'll call per field to build the `values` hash and to know
   which field is currently active (`$editor_state->{active_field}`, an
   index into `$editor_state->{schema}{fields}`).
 
 ## What to build
 
-1. `modules/editor.ui.ascii_frame.render_form` — the primary deliverable.
+1. `src/editor.ui.ascii_frame.render_form` — the primary deliverable.
    Signature: `render_form( $editor_state, $frame_name )` (or a params
    hashref if that fits this codebase's conventions better — check a few
    `editor.control.*` module signatures for the prevailing style and match
@@ -91,7 +91,7 @@ form for any particular set of fields.
      something subtly broken.
    - call `ascii.frame.render` with the built descriptor + values, return
      the resulting string
-2. `modules/editor.ui.ascii_frame.render_field` — single-field variant (for
+2. `src/editor.ui.ascii_frame.render_field` — single-field variant (for
    a single-field schema, or re-rendering just the active field without a
    full form redraw). Reasonable to implement as a thin wrapper around the
    same logic scoped to one field, or delegate to render_form and extract —
@@ -111,8 +111,8 @@ form for any particular set of fields.
 - the actual interactive read-key loop, `phase_3_form`'s submit flow, or
   any `users.*` integration
 - `editor.ui.gtk3`/`editor.ui.vterm` or any other backend — ascii_frame only
-- do not touch `modules/user-edit.init_code`, `modules/user-edit.outbox.*`,
-  `modules/user-edit.draft.*`, `cfg/zenki/user-edit/start`, or
+- do not touch `src/user-edit.init_code`, `src/user-edit.outbox.*`,
+  `src/user-edit.draft.*`, `cfg/zenki/user-edit/start`, or
   `data/yaml/ascii-frames/user-profile.yaml`
 
 ## Verification
@@ -146,8 +146,8 @@ When done, write a note to `data/ai-mem/kimi/coding-style.md` or
 this is genuinely useful for whoever builds the interactive loop next,
 whether it worked or not.
 
-#,,.,,,,.,,..,,,,,,,.,,..,.,,,.,,,,,,,..,,..,,..,,...,...,,,,,.,,,,,.,,.,,.,,,
-#R5JTCJSZ26TJNLQ3LMIVIZ7AMFLE3LD6RWWZMV6HLLUAYXY5KVG6IGVECOMTUP4HZNY37AVYIGA6I
-#\\\|LF2MIEMU3HAI63TPIHTSFCAURFQHDQRQQJWBSRX4UI7K2OFWIKM \ / AMOS7 \ YOURUM ::
-#\[7]5O2WLSTEYJZEFHFJ4CN4EPRS3JJA6DJ65F2NRRDZR2NPMG62G4BQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,...,.,.,,,,,...,..,,.,,,.,,,..,,..,,...,...,,..,,,.,.,,,..,,.,,,
+#TZALZCVJRE4IJMW2GG2B5263XXWFYFRLB5JUS3NXJ6KSV5UWD7AOYCBXBGDM43XP6DQ44UHCFC5M4
+#\\\|ETCLBTO2KLPIPHM6LZY5GL4ARQMZMSHBZSXTRPPEJKLHEBODYCF \ / AMOS7 \ YOURUM ::
+#\[7]O2J4WO57GC4TU3XEIQMZGKPYSJQAHB5B4VTOIU6XWPK6NXG3NOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

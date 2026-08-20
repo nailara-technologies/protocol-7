@@ -84,7 +84,7 @@ http_post($url, $body, headers => \%headers, sub {
 
 ### Init Code
 ```perl
-## modules/models.init_code
+## src/models.init_code
 $AnyEvent::MODEL = 'Event';  ## Ensure Event.pm backend
 <[base.perlmod.autoload]>->('AnyEvent::HTTP');
 $AnyEvent::HTTP::MAX_PER_HOST = 4;
@@ -93,7 +93,7 @@ $AnyEvent::HTTP::TIMEOUT = 300;
 
 ### Invocation
 ```perl
-## modules/models.backend.local.invoke
+## src/models.backend.local.invoke
 http_post(
     "$llama_url/v1/chat/completions",
     $json_body,
@@ -110,7 +110,7 @@ http_post(
 
 ### Response Handler
 ```perl
-## modules/models.handle.llm_response
+## src/models.handle.llm_response
 my ($body, $headers) = ($params->{'body'}, $params->{'headers'});
 
 if ($headers->{'Status'} =~ /^2/) {
@@ -195,8 +195,8 @@ EOF
 
 ---
 
-#,,,,,..,,...,.,,,,..,,..,.,,,..,,.,.,...,...,.,.,...,...,.,.,.,,,,,,,,,,,..,,
-#4JO6DFKMWLYEBR5V3SJBPKEDT3KUT5JC55V7FJZHWRCZT5UQF26EUJ5URVRZMW2QZTPEHNCINLMX6
-#\\\|2PXZHDHTJKCHNWYTG7SFHSUWWIDH3TRD27LCXNPFFDZDPNSEUDH \ / AMOS7 \ YOURUM ::
-#\[7]26HVYD22CO5UYUZCOAI5QZESWS4KO2PU4FYRELAKDP5YJMJPFCDI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,,,,,,,.,,,,..,,,,,...,,,.,..,,.,.,...,...,...,..,,...,,,.,,,.,
+#V5PGOXQTHW3VNELUWUV6BMCQD57OJJ4V52MNDABC3I66KEDUDXU5QO5D4WHL4GBWMEM7V2IDOC7ZQ
+#\\\|ORRLPSFBOO7T3PEY7TAXIQSXPXWR3LKM64HCU7F6HOD3Y5I5K7A \ / AMOS7 \ YOURUM ::
+#\[7]ENKFMG75WVONPG3BOALTUWTMGUABRZWYMNRVA6GYJGK7G2ZHPQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -46,7 +46,7 @@ models:
 Create a configuration module:
 
 ```perl
-## modules/models.config.paths ##
+## src/models.config.paths ##
 <models.paths.lmstudio> = $ENV{'MODELS_LMSTUDIO_DIR'}
     // '/mnt/ext-xfs-data/models-lmstudio';
 
@@ -66,8 +66,8 @@ Then use `<models.paths.lmstudio>` everywhere instead of hardcoding.
 
 ---
 
-#,,..,...,.,,,..,,.,,,,..,,.,,.,,,..,,...,,,.,.,.,...,...,..,,.,,,,.,,,,,,,.,,
-#5LB5DATWRWBTKICQX7AJ2LZ5ERLEO33P4H6OL4ZGAW7ERJQQ2X4FKE5HKG7HQ3TG7HZGCXVWE2BQA
-#\\\|AWL7IM2UXCNIH4GBZ2E6LP4ZGIQHZ5ZJ6FAIWBFYEG4VDK6LLWM \ / AMOS7 \ YOURUM ::
-#\[7]4FX6LAE4AGZVQCKL6HDQNKULLIEEN5TBPNT2YE5BSHZRULLRYECY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,..,,,.,,..,,,.,,..,,,.,.,,,.,.,.,.,...,...,,..,.,.,..,,.,.,.,.,
+#5ZRXI5IW4TDCZOCGUUYWVUM63NNDA37R3IFAUT7O6L7Z62UWVA2TFKFZ3X45F7HII5FTAZIPPNUI6
+#\\\|4BJGB57BMAC6DBBO6ZBVZMP6NZR4IUBIS7DXEMSEF2QULJEVHWD \ / AMOS7 \ YOURUM ::
+#\[7]M7J64P2VVVTRW2NW4F62TU76HU2O7A33H5HVTJ5FDYD6S6YCDGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
