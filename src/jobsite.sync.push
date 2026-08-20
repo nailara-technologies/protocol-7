@@ -8,7 +8,7 @@ my $force = ( @ARG > 1 ) ? <[base.cfg_bool]>->( $ARG[1] ) : FALSE;
 
 return if <jobsite.sync.push_in_progress>;
 
-my @urls = split /\s+/,
+my @urls = split m|\s+|,
     ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
 if ( not @urls ) {
     <[base.logs]>->( 0, '[jss.sync.push] no sync_url configured' );
@@ -151,10 +151,12 @@ if ( not @push_queue ) {
 }
 
 my $total_jobs = 0;
-$total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
+$total_jobs += scalar $ARG->{'chunk'}->@* for @push_queue;
+
+my $log_level = $total_jobs ? 1 : 2;
 
 <[base.logs]>->(
-    1,
+    $log_level,
     '[ sync push ] %d jobs in %d chunks to %d url%s',
     $total_jobs,
     scalar @push_queue,
@@ -172,8 +174,8 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,..,..,,,..,...,,.,,,.,,...,.,.,.,,,,..,.,.,..,,...,...,,,.,,,.,,..,.,.,...,
-#J23BDKK2DYYEKAEBQ26DDQPIWDNK3MMNULZ4YYATCC6JDSNA6ANKBWCZWXE4HHO37YXN7QCX32KRO
-#\\\|BFL7AOETXWG5HIXFXJ4YSPAJ2XIZOZKOTPRM6W3LWZEAOAIUXSN \ / AMOS7 \ YOURUM ::
-#\[7]YR6J3GSGMUF44KAGWFGLPTLWC556O2R5QWXLBOITBLQW5NYNFWCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,.,,,.,.,..,,...,,,,,.,.,.,.,..,,...,...,..,,,,,,,.,,.,.,..,,
+#P77DR7ACRA7PD5M7OKBMEK2VJLB636NRWFA4TWINGSS2BOOWUXEM5EBOPT676WXNWGXMTO2KH5SAQ
+#\\\|IT43MSQOKVDPEKGS3GS36EF7G2YLN6HXW2DEZRVBP3YM3LH7HMV \ / AMOS7 \ YOURUM ::
+#\[7]BUMBYAAGQRBERFJB2M2G6WU6LY2GG547ONDRRANDUE4UPNU4ZSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
