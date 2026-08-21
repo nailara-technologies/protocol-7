@@ -85,26 +85,80 @@ default — hold back anything actually live-called for extra scrutiny:
   time (contrast with the earlier unrelated `base.log` incident on a
   different task) — kimi even flagged pre-existing unrelated
   `data/ai-mem/` diffs in its own report rather than touching them.
-- **batch 3** (not yet dispatched): remaining `pager.view.*`,
-  `pager.editor.*`, `pager.export.*`, `pager.command.demo`,
-  `pager.decode.direction`.
-- **batch 4** (not yet dispatched): the 9 non-pager files —
-  `base.editor.*` (3), `storage.9p.mount`/`umount`, `context.tree.*` (2),
-  `context.template.resolve`, `base.decode.bmw-L13` — `base.decode.bmw-L13`
-  is checksum/crypto code, consider a k3 pass for that one specifically
-  rather than bundling into a k2.7 batch.
+- **batch 3** (dispatched 2026-08-22, k2.7) — DONE, verified: 7 files
+  (`pager.view.{amos-data-pager,amos-data-pager-56,true-int-color}`,
+  `pager.editor.get_line`, `pager.export.binary`, `pager.command.demo`,
+  `pager.decode.direction`). Real bugs found and fixed in 5 of 7: (a) all
+  3 `pager.view.*` files were treating a base32-encoded L13 checksum
+  string as HEX (`pack('H*', $hash)` / `hex(substr($hash,0,14))`) —
+  fixed to decode via `base.decode.bmw-L13` (the same function reviewed
+  in batch 4); (b) `pager.view.true-int-color`'s entropy branch had a
+  genuine bit-math bug, `pack('Q>', $num) >> 8` numerically shifts a
+  *packed binary string*, meaningless in Perl — fixed to `pack('Q>',
+  $num << 8)`, shifting the number before packing; traced by hand
+  against the paired decode-side unpack, the two are a consistent
+  shift-left-before-pack / shift-right-after-unpack pair; (c)
+  `pager.view.amos-data-pager` also had `'pid' => $!` (errno, not a
+  PID) in its async-launch return, removed rather than faked; (d)
+  `pager.export.binary` added bounds-checks around a visible-slice
+  array-slice that could silently produce undef entries past the end;
+  (e) `pager.command.demo` guards a missing `$render->{'lines'}` key
+  and defaults 3 stats fields with `// 0`. `pager.editor.get_line` and
+  `pager.decode.direction` reviewed clean, SPDX-only removal. All 7
+  syntax-checked clean, re-run independently; diffs reviewed by hand,
+  including retracing the bit-shift math myself before trusting it.
+- **batch 4** (dispatched 2026-08-22, k2.7) — DONE, verified: 9 files
+  (`base.editor.{init_buffer,set_line_callback,set_total_lines}`,
+  `storage.9p.{mount,umount}`, `context.tree.{index.position,
+  summary.compact.check}`, `context.template.resolve`,
+  `base.decode.bmw-L13`). 8 were clean SPDX-only removals; all are
+  honestly self-marked `[ stub ]` code except `context.template.resolve`
+  (a real ~200-line recursive template resolver, genuinely live-called
+  from `coding.prompt.assemble` — reviewed with extra care per the
+  dispatch instructions, live-verified via `p7c coding.reload` +
+  `coding.show-prompt`, zero bugs found, zero code changes beyond the
+  marker removal).
+
+  **follow-up finding, caught by the user, not by the dispatch**:
+  `base.decode.bmw-L13` (and its undocumented sibling `base.decode.bmw`,
+  which never carried the marker) turned out to be a phantom duplicate
+  of the real `base.base32.decode` (swapped to `base32.decode` at
+  runtime via `base.base32.pre_init`'s `swap_subs` call — used by 6 real
+  call sites elsewhere: jobsite.job.read, transport/proxy.cmd.
+  cred-rotated, task.cmd.complete, jobsite.store.prune,
+  base.vax-int.decode). Traced both phantom modules to commit
+  `13ce23a38` (2026-03-28, "Resolve all undefined routine warnings for
+  clean coding zenka startup") — a mechanical pass that manufactured new
+  stub modules matching whatever (wrong) names the pager.* suspect-
+  session code already called, instead of redirecting those calls to
+  the real `base32.decode`. Same commit is also where nearly every other
+  file in this whole SPDX cleanup task originated as a stub. Fixed:
+  redirected all 5 real callers (the 4 pager.view.*/export.binary files
+  fixed in batches 3-4, using the correct swapped call form
+  `<[base32.decode]>->(...)`, NOT `<[base.base32.decode]>->(...)` which
+  would not resolve post-swap) and deleted `src/base.decode.bmw` +
+  `src/base.decode.bmw-L13` outright. Verified: `bin/dev/ptd -c` clean
+  on all 4 touched files, `p7c coding.reload` succeeds, grep confirms
+  zero remaining references anywhere except the auto-generated
+  `base.list.subroutines` index (regenerates on its own next run).
+  Also: a `p7c coding.reload` run during this investigation triggered a
+  broken partial regeneration of `data/md/documentation/
+  module-dependency-graph.asc` (wrong-direction edit + stripped
+  signature footer) — reverted, not committed; root cause not
+  investigated further, flag if seen again.
 
 see [[reference-spdx-marker-flags-suspect-session]] for the corrected
 blast-radius assessment (the family is loaded live by `coding`, not dead
 code as first assumed).
 
-## status: batch 1 in flight
+## status: DONE — all 4 batches landed, verified `grep -rl
+## "SPDX-License-Identifier" src/` returns nothing
 
 corresponds to todo item `G5X` ("review routines with SPDX marker and
 remove on pass") — mark that done via `todo` once all 4 batches land.
 
-#,,.,,...,...,.,.,,,,,,,.,.,.,.,,,,,.,,,,,.,.,..,,...,...,,..,.,.,...,.,,,..,,
-#VBJ3ZVMOXODDICVWLLI6SY233DDUYEWF3XLQWMTUIA4ZABWYDSUKIDDIJXXC36NFCBZEBMC7R4SOM
-#\\\|ZUBZ5PQKB5MJXOEPKFISLWRM4JRM5XBS3WIV5GVZPEM3UV6FNSK \ / AMOS7 \ YOURUM ::
-#\[7]XOO6OSDMICW7LSZ4LN46YG5P7ZTGFEK44OFIJCGFCGCZZ5EXMMDQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,.,.,,.,,,,.,,.,,...,,.,,,,.,..,,...,...,.,.,,,.,...,,..,...,
+#JALQE6MEMPATQHBPPHDQ5UVOFBDA4HNI7HB53UWUOJU2R32R7OKWMLA3JLAZQWFVL7K6N2IW47NGI
+#\\\|M5ZQ7I4OOUKIIBAQH7H5LB6EOSVUXWMGXM3AHEG7H6CC2NDXBMC \ / AMOS7 \ YOURUM ::
+#\[7]DLIMJ3VYGXHVKDWRXZDB4QPSLYAHC5FYXXQVBEYFY6M7DLEAQCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
