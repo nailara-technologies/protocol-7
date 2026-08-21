@@ -14,9 +14,10 @@
 #          immediately \ unconditionally ; the full scan is what gets
 #          deferred, not skipped
 
-my $poll_interval  = 5;     ## seconds between settle checks ##
-my $settle_samples = 10;    ## last N 1.2s rate samples to average ##
-my $rate_threshold = 1;     ## avg lines/tick below this counts as settled ##
+my $poll_interval  = 5;   ## seconds between settle checks ##
+my $settle_samples = 10;  ## last N 1.2s rate samples to average ##
+my $rate_threshold = 1;   ## avg lines/tick below this counts as settled ##
+my $sweep_loglevel = 2;   ## log level for sweep start and end log messages ##
 
 my $samples      = <p7-log.stats.rate_samples> // [];
 my $sample_count = scalar @{$samples};
@@ -43,7 +44,7 @@ my $avg_rate = $recent_total / $settle_samples;
 if ( $avg_rate >= $rate_threshold ) {
     <[base.logs]>->(
         2,
-        'legacy_gap_sweep : write rate %.2f/tick '
+        ':legacy_gap_sweep: write rate %.2f/tick '
             . 'still above threshold, waiting..,',
         $avg_rate
     );
@@ -52,8 +53,8 @@ if ( $avg_rate >= $rate_threshold ) {
 }
 
 <[base.logs]>->(
-    1,
-    'legacy_gap_sweep : write rate settled [ %.2f/tick ], starting sweep .,',
+    $sweep_loglevel,
+    ':legacy_gap_sweep: write rate settled [ %.2f/tick ], starting sweep .,',
     $avg_rate
 );
 
@@ -65,8 +66,8 @@ if ( $avg_rate >= $rate_threshold ) {
 
 return TRUE;
 
-#,,..,.,,,.,,,,,,,.,,,,,,,.,.,.,.,,,.,.,,,...,..,,...,...,.,.,.,.,...,.,.,,.,,
-#SWSHF6MCHMVF635LSLRRSBWK7QZSAEMSH4HF47M6A6TZB66ZTTCLUHNAP6T3DCJNJPDOI2TQQTVZM
-#\\\|GGY3NND3JA6MM5R5NQMVXH3SR2ZLZFU24EGA2RZZ4M6O6TDTWJJ \ / AMOS7 \ YOURUM ::
-#\[7]MMJZPS3B772NQMBVBBJQH4GVKNJPN5SFKI6IG7AVOEWLBBZFKIBI 7  DATA SIGNATURE ::
+#,,.,,...,...,.,,,,,,,,,.,.,.,,..,.,,,...,,,,,..,,...,...,,..,,,.,,,,,,.,,.,.,
+#CQIO5NJLGA2GXSWQ572EWWEQP456CITZQLGSQ3BSCER7OCU6ACHDXZUHYWT7I5QMEXDEHFNRFCB7I
+#\\\|QG7WELB4LN7BB5A74TH2ZZ7WAOKFZ5ZMZ4QQGVDUYOB4DDRDC5B \ / AMOS7 \ YOURUM ::
+#\[7]S2RPOV53WQ7IUNXNENVRRSSBOM4CS6E2FXPRELBQROZGIDGGD2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
