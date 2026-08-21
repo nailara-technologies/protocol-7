@@ -12,16 +12,16 @@ my $category = $call->{'params'}{'category'} // '';
 
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
-        0,         'jss.fetch-done [%s]: import failed: %s',
+        0,         ': fetch-done [%s]: import failed: %s',
         $category, $data_str
     );
 } else {
-    <[base.logs]>->( 1, 'jss.fetch-done [%s]: %s', $category, $data_str );
+    <[base.logs]>->( 1, ': fetch-done [%s]: %s', $category, $data_str );
 }
 
 ## accumulate total items queued in site-yaml across all category replies ##
 if ( lc($mode) ne qw| false | ) {
-    my ($n_new) = $data_str =~ /(\d+) new/;
+    my ($n_new) = $data_str =~ m|(\d+) new|;
     <jobsite.fetch_total_queued> //= 0;
     <jobsite.fetch_total_queued> += ( $n_new // 0 );
 }
@@ -81,8 +81,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,,.,,..,..,,,,.,,.,,,,.,,.,,.,.,,..,,,.,..,,..,,...,...,.,.,.,,,,..,,,.,,,.,
-#QZIF6XTFNTFTXRKIJEVPGSKYU35IOSMTQBAG55HFN7RALIFSPPVGECOYVVAIX32ASGVNDVXWBKTSQ
-#\\\|VH5MM4EFCT7UO62VI64PBM6TKS2ES42XLARUXK7ZCSFXPZBMWC6 \ / AMOS7 \ YOURUM ::
-#\[7]BLK6ECBPVDJKT6FU6DEJLDQUZVVYO4TKR55IMM76H2OJSVWOPMAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,.,,,,..,...,.,,,,..,,,,,.,,,..,,...,...,,,.,...,.,.,...,..,,
+#MYL7Q4L3DMPOHEFEFII4HJNMV5WQSRXNX7WVL7UXQTETPVEU53SOKGOUBHPWF7XPCIFJJ4NL2WEXM
+#\\\|TCUZUCLYW4IT3KMQ53UK6HIMBVIQVNZCSADH5K272ZQG7TSVJ6J \ / AMOS7 \ YOURUM ::
+#\[7]4NM7TTHKNV3EZ2L73G5DD66UKFWADWBCNSAFMDAMNO2WQ7IQZYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

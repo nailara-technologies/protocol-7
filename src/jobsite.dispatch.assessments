@@ -9,7 +9,7 @@
 ## kick dispatch.next -- an in-flight chain already re-invokes            ##
 ## dispatch.next via assess-done, so a second kick here would             ##
 ## double-dispatch a task                                                 ##
-my $was_idle = ( <jobsite.cycle> // '' ) ne 'assessing';
+my $was_idle = ( <jobsite.cycle> // '' ) ne qw| assessing |;
 
 ## collect new untracked jobs from per-file store ##
 my $store = <[jobsite.job.load_all]>;
@@ -17,7 +17,7 @@ my $store = <[jobsite.job.load_all]>;
 my @to_assess;
 for my $job_id ( keys %{$store} ) {
     my $job = $store->{$job_id};
-    next if ( $job->{'status'} // '' ) ne 'new';
+    next if ( $job->{'status'} // '' ) ne qw| new |;
 
     ## skip only if an active task is already in flight for this job ##
     my $existing = ( <jobsite.tasks>->{$job_id} // {} )->{'stage'} // '';
@@ -57,7 +57,7 @@ for my $job_id ( keys %{$store} ) {
         my $blocked_job = {
             'id'            => $job_id,
             'url'           => $job->{'url'} // '',
-            'status'        => 'blocked',
+            'status'        => qw| blocked |,
             'blocked_epoch' => <[base.ntime.epoch_timestamp]>,
             'checksum_hit'  => ( $chk->{'hits'}[0] // '' ),
         };
@@ -87,21 +87,21 @@ for my $job_id ( keys %{$store} ) {
 
 if ( not @to_assess ) {
     if ($was_idle) {
-        <[base.logs]>->( 1, 'no new untracked jobs to assess, idle' );
-        <jobsite.cycle> = 'idle';
+        <[base.logs]>->( 1, '[idle] no new untracked jobs to assess.,' );
+        <jobsite.cycle> = qw| idle |;
         <[jobsite.state.persist]>;
     }
     return;
 }
 
-<jobsite.cycle> = 'assessing';
+<jobsite.cycle> = qw| assessing |;
 <jobsite.pending_count>
     = ( <jobsite.pending_count> // 0 ) + scalar @to_assess;
 <[jobsite.state.persist]>;
 
 <[base.logs]>->(
-    1,
-    'queuing %d assessment tasks (sequential)',
+    2,
+    'queuing %d assessment tasks [ sequential ]',
     scalar @to_assess
 );
 
@@ -146,8 +146,8 @@ push @{<jobsite.assess_queue>}, @queue;
 
 return;
 
-#,,..,..,,...,,..,,,,,,,,,,,.,...,,,,,,,.,,,.,..,,...,...,.,,,.,.,..,,,..,,,.,
-#Q7BGC3ML2UNMG73YQEXJ7VCBUIYBFUNLRBSOGF5LZVI553TTJOGTWXMU7KGMDVDIKWLVGKEE3YTWQ
-#\\\|2OJC5BEB53ESUMJTML6NQIIXBYWXVUYLXCHD32A2H5TAOZSZCC5 \ / AMOS7 \ YOURUM ::
-#\[7]YMD2QOEORODENRICEUPH7CBEHANFD4UPWLZ2V3VARVVRRTVON4BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,..,,,.,,.,,,..,,.,.,...,.,,,.,.,..,,...,...,..,,.,,,.,,,..,,,..,
+#YWOSEU3YBYCWDTLFOT3I6ALQMJIPRDZW67KA3BVP2DUMGE32RJS65QVQIY4WLL73DC7YOR3II55ZW
+#\\\|WEO4OEIDU53NLSLON7O4BOXVAZLTG2IFMBSVJBEEVB3OFT3ULWX \ / AMOS7 \ YOURUM ::
+#\[7]BNFO4OPI52MDJUFRYGXAFEG5GVZ7KHCSILZCQDMTJWOW6P52VOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
