@@ -2,12 +2,12 @@
 
 # name = v7.callback.get_x11_display
 
-## called with the SPECIFIC instance_id whose v7-post-init just fired [see  ##
-## zenki/X-11/zenka-startup.v7] -- this identifies exactly which X-11       ##
-## instance to ask, so no subname-group resolution is needed [or correct]:  ##
-## v7 itself has no subname, so resolve_primary_sid('X-11') would match the ##
-## subname-less/host instance regardless of which instance is actually      ##
-## starting up right now.                                                   ##
+## called with the SPECIFIC instance_id whose v7-post-init just fired [see ##
+## zenki/X-11/zenka.v7] -- this identifies exactly which X-11 instance to  ##
+## ask, so no subname-group resolution is needed [or correct]: v7 itself   ##
+## has no subname, so resolve_primary_sid('X-11') would match the          ##
+## subname-less/host instance regardless of which instance is actually     ##
+## starting up right now.                                                  ##
 my $instance_id = shift;
 my $inst        = <v7.zenka.instance>->{$instance_id};
 my $cube_sid    = $inst->{'cube_sid'};
@@ -30,8 +30,8 @@ if ( not defined $cube_sid ) {
     }
 );
 
-#,,,,,,..,,,,,,,.,..,,..,,,,,,..,,..,,..,,,.,,..,,...,...,...,..,,,.,,..,,..,,
-#BUSFQWUFH3ELUCJWXGMNJOGIRQI2HNHOU3WATGZH5DNJQUG6A3Y3U6EC67XTB4E2LWFHGWZTKULLM
-#\\\|ST3NTHKYJUSXQZ3B5SJZ4ZQKPNIFSHJXZVNDV3SZZKXEKEQI446 \ / AMOS7 \ YOURUM ::
-#\[7]E3D6FOJC4I74T2RA4VC3ATHICD4S7HRY4LDM4IDGHL3HSMMT3SDA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,,..,,,,,.,.,..,,,.,,,,.,,,.,..,,...,...,.,.,,,,,,.,,,.,,.,.,
+#NA7FMOGF3MHZOXBD2BMNCJSIZJFLJ2EWNQSXLQARF56IWATDAGLOA2TPEIIESWMV45OBM5D4M27VW
+#\\\|VEEAD25FG46PSSN75XVYOV67IDI3XNJXAVMPULEYX55GMKGXFIJ \ / AMOS7 \ YOURUM ::
+#\[7]3E33YYUZF335U26DRDRWVPB2BRQHHXXEOGCR6KWUEZEJ2MMZNECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
