@@ -117,18 +117,51 @@ task is genuinely gone from `coding.list-tasks`, resolve it to a failed
 state instead of hanging in limbo forever. this doesn't fix the root
 cause but bounds the damage.
 
-## status: reproduced five times, one clean discriminator identified, not
-##         yet root-caused in code
+## status: RESOLVED — root-caused and fixed 2026-07-22 (one day after
+##         filing), re-verified live 2026-08-21
 
-four concrete stuck records exist right now as live evidence, all
-`in_progress`/`(none)`, safe to use as starting points for tracing without
-needing to reproduce from scratch: `task.show YLWKQOY`, `task.show
-DT7LNNA`, `task.show TV5SXQY`, `task.show M2BRZHA`.
+root cause (as hypothesized above): `coding.async.chunk_handler` — when
+`finish_reason` was `tool_calls`/`function_call` but the streamed
+tool_calls array came back empty (server quirk: model claimed a tool call
+but delivered none), the outer branch fired but the inner `@tool_calls`
+guard was false, so no state_machine transition ever dispatched. sm_state
+stayed `streaming` forever, `models.handler.task-result` was never
+invoked, and `task.complete`/`task.fail` never fired. fixed in commit
+`bc10c8d4d` ("fix: coding task orphaning on zero-tool-call rounds") by
+moving the tool_calls-array check into the outer condition and letting
+empty-tool_calls finishes fall through to the normal stop path (xml/json
+fallback parse, then `finish_stop`). follow-up hardening: `1cf273981`
+(2026-07-22, tool-call-shaped-but-unparseable content: bounded
+format-reminder retry, then clean fail) and `87e208f9d` (2026-07-31,
+reasoning-only stream close without finish_reason: bounded answer-nudge
+retry, then clean fail).
+
+note: plain `git log -- src/coding.*` after the 2026-08-20
+modules/->src/ rename (5255a50a3) shows only the rename commit; the fix
+is only visible with `git log --follow`. the "not fixed by any commit"
+assessment was an artifact of that.
+
+live re-verification 2026-08-21: task-zenka task `SREOIFI` -> coding task
+`task-OSHHIIA`, plain-text zero-tool-call reply ("Paris.", finish_stop
+path, no tool_executor invocation) resolved cleanly to `status: done`
+via on_task_complete -> deferred_reply -> models.handler.task-result ->
+task.complete. the chain works end-to-end for the exact reproduction
+condition.
+
+the four original stuck records (YLWKQOY, DT7LNNA, TV5SXQY, M2BRZHA) no
+longer exist: the task zenka was restarted since and its persisted queue
+(/var/protocol-7/task/queue.yaml) is empty as of 2026-08-21. they were
+pre-fix artifacts, intentionally left as historical evidence per the fix
+commit message. coding-zenka-side logs from 2026-07-21 additionally show
+the coding tasks themselves (task-EQBEUGI, task-3BYQE7A) actually
+completed and fired deferred_reply — they vanished from `coding.list-
+tasks` because that command only lists active/pending tasks, and a
+completed task moves to the completed list.
 
 #,,.,,,.,,,.,.,.,.,,,.,.,..,,,.,,,,,,,,,,.,..,,...,...,,,,,..,,,,.,,.,,.,.,
 
-#,,,,,,,.,.,,,,..,.,,,,..,,,.,,.,,.,,,,,,,..,,..,,...,...,.,,,,,.,.,.,...,,.,,
-#7GRQFLNOBBPSWCUBHQBU5CBDJ2D7E2NCCJY7YM342ZAHAWIZF5R5RHGMMLEKRSELRUTATWW7MEIRO
-#\\\|ORC6RVMUYYEX7UDL3EX2IIR7BQX3MGMSDU3SALKG5CXF6VWMJNK \ / AMOS7 \ YOURUM ::
-#\[7]CDVRXP4RRU6POTHJ7FONV4WBR7K4POOMVBTQZ44M33E3XG7QVODY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,,,...,.,,,..,,.,.,...,,,.,,,.,..,,...,...,,,.,,,,,,,.,,..,,.,,
+#CTIWTZ2LNL45W4N2ZN67246U6MKU6XKCGJFS34I3U3PXNTDWQWQIPOQAIZ7NOA2OPP6QZMXVQ6QVI
+#\\\|GMXBLX2SN2GOLYAEWZQBZJEGD53BCYTXVDGNVT2NYW75QNZUSMO \ / AMOS7 \ YOURUM ::
+#\[7]ARBPAVCQU5UBC2UZGYDI5SZOYZJQEUONN6PLADJTJDB6ERM3TOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
