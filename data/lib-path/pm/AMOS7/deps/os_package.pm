@@ -13,9 +13,20 @@ our @EXPORT_OK = qw|
     probe_os_pkg
     probe_binary
     install_os_pkgs
+    dep_type_to_dir
+    dep_dir_to_type
     |;
 
 use File::Which qw| which |;
+
+## short on-disk deps/os/* dir name <-> canonical internal type string [ ##
+## keeps 'debian'/'binary' as the type string used everywhere else, only ##
+## the leaf directory name is shortened ]                                ##
+my %TYPE_TO_DIR = ( debian => 'deb', binary => 'bin' );
+my %DIR_TO_TYPE = reverse %TYPE_TO_DIR;
+
+sub dep_type_to_dir { my ($type) = @_; return $TYPE_TO_DIR{$type} // $type; }
+sub dep_dir_to_type { my ($dir)  = @_; return $DIR_TO_TYPE{$dir}  // $dir; }
 
 ## Load debian backend for dispatch [ fully-qualified calls only :      ##
 ## compile-time imports break when Module::Refresh wipes the shared CV  ##
@@ -61,16 +72,18 @@ sub scan_zenki_os_deps {
     while ( my $zenka = readdir $dh ) {
         next if $zenka =~ /^\./;
 
-        my $os_dep_base = "$zenki_base/$zenka/os-dep";
+        my $os_dep_base = "$zenki_base/$zenka/deps/os";
         next unless -d $os_dep_base;
 
         opendir my $odh, $os_dep_base or next;
-        while ( my $type = readdir $odh ) {
-            next if $type =~ /^\./;
-            next if $type eq '.placeholder';
+        while ( my $dir_name = readdir $odh ) {
+            next if $dir_name =~ /^\./;
+            next if $dir_name eq '.placeholder';
 
-            my $type_dir = "$os_dep_base/$type";
+            my $type_dir = "$os_dep_base/$dir_name";
             next unless -d $type_dir;
+
+            my $type = dep_dir_to_type($dir_name);
 
             if ( $type eq 'binary' ) {
                 opendir my $bdh, $type_dir or next;
@@ -138,8 +151,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,,,,,..,,.,,,.,,,,.,...,.,.,...,..,,..,,,.,,..,,...,...,...,,,.,.,,,.,,,,,,,
-#5TZBFCFIQDPQ3KC7DKYDFFVLWBFR4ETQP45BQYZOVMG7GMGU7NOZXS7W47AXLOLRB6UY6HVD6VQXE
-#\\\|5DD3J6TBCGIADBVFZCCBUVTA3XDM4PSFWUMC4MBIFMFZKSL3V6C \ / AMOS7 \ YOURUM ::
-#\[7]WWDCBEAVXK6ZMHOLJMPVRNK5URFVZQGQEFXBW3YO7DF6FKK7R2CY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,.,..,,.,,,,.,,.,.,.,.,..,,.,,,..,,...,...,.,.,.,.,.,,,,.,,...,
+#VH7LZ4KKTXLV5Z35RM3Z7ABLTJDMRUGJX4U5TU74MXZGXBGQ2B76TAJGOZFYNC3GRB42PSPRLM5P4
+#\\\|K3WMPEEGPSAOAKRPABNFPFASJZ67QVFETHLOTUSJMQECNJQH2U3 \ / AMOS7 \ YOURUM ::
+#\[7]2NKFVWL3PUDZ2B3MKQ32G5EH67T6MYC7Q4WZO3NZAWOAS2OIA2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

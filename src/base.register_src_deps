@@ -11,7 +11,8 @@ my $file_perm = 0664;    ## zenka group gets write access ##
 my $lc_hook   = qr{pre_init|init_code|post_init|end_code};
 
 my $src_deps = <[base.get_path.zenka_cfg]>;
-$src_deps =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/source|;
+$src_deps
+    =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/deps/src-used|;
 
 ## skip if dependencies already registered  [ when root : fall through to ##
 ## fix any ownership or permission issues ]                               ##
@@ -141,8 +142,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,..,,..,,..,.,.,...,,..,.,,,,,.,,,,,,.,,,,,,..,,...,...,..,,,,,,,,,,,,.,...,
-#6QKJGU5FLCYFDNAFHVBGGOY3J726H537MWTH5SMK7GL6GDQWFJPXV667QSBIF7PVXRVN2LRM35WVM
-#\\\|H5S2H4OQMV5QRQZNBXBTPVOXJS2OT4A2EHFILWH53RNU2NBDHQX \ / AMOS7 \ YOURUM ::
-#\[7]EX2NYRZYSJ5WLTWFLVLUBYVQ7YQ67S266F6XVJYMV5ENPX25TGDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,,..,,..,,..,.,,,...,..,,,,.,..,,...,...,.,,,.,,,,.,,,,.,...,
+#DAHT34EBVIV5NR7LOU6OT55FFHX3EE7PRVYCCUJQS6DBCOOGXAZRPJRKS5XJMNOVSQW6RY3MQ3Q2Y
+#\\\|BN6WLMAXB5PYOSJ7V7CHOQNLYQQAWUULUQPPKOKBOHVUTTZSIF6 \ / AMOS7 \ YOURUM ::
+#\[7]RZT7CKYFVSUCDFQSATA2PKZAZT22HCUKTRCJPHDAVVTM4OIBCGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
