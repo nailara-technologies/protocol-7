@@ -64,11 +64,27 @@ default — hold back anything actually live-called for extra scrutiny:
   page's entry in `$buf->{'pages'}{'dirty'}` behind (invalidate-all
   clears the whole dirty hash, single-page invalidate didn't), fixed
   with a matching `delete`. staged, not yet committed.
-- **batch 2** (not yet dispatched): remaining `pager.source.*`,
-  `pager.filter.*`, `pager.sort.*` — note `pager.source.file-list` is
-  genuinely live-called from `coding.tools.dispatch`, treat that one file
-  as correctness-critical (live coding-zenka reload + an actual
-  `coding.tools.dispatch` call exercising it, not static-only).
+- **batch 2** (dispatched 2026-08-21, k2.7) — DONE, verified: 9 files
+  (`pager.source.{checksum-list,9p,register,file-list}`,
+  `pager.filter.{harmonic-random,preference,chain}`,
+  `pager.sort.{chain,multi-key}`). 7 were clean SPDX-only removals
+  (diffed each by hand, nothing else touched). 2 had real fixes: (a)
+  `pager.source.file-list` — dead `@cmd`/`$depth` `find`-command
+  scaffolding removed, `files_only`/`dirs_only` args (previously silently
+  ignored) actually implemented in the live `next_batch` loop; contract
+  preserved, re-verified live myself via `p7c coding.call-tool list_files`
+  after `p7c coding.reload`. (b) `pager.source.9p` — 3 real API-mismatch
+  fixes against `plugin.storage.p7ref.parse` (arg shape `{p7ref=>...}`,
+  `{mode,data}` reply) and `storage.9p.scan` (`name`/`path` args not
+  `mount_point`, `{mode,data}` reply not `{entries}`), plus `qid.type &
+  QTDIR` for dir-type detection matching `storage.9p.scan`'s own internal
+  convention — checked all three referenced modules' real contracts
+  directly, fix matches exactly. still returns undef at runtime pending
+  `storage.9p.mount`'s stub (batch 4), by design. all 9 syntax-checked
+  clean (`bin/dev/ptd -c`, re-run independently). no scope creep this
+  time (contrast with the earlier unrelated `base.log` incident on a
+  different task) — kimi even flagged pre-existing unrelated
+  `data/ai-mem/` diffs in its own report rather than touching them.
 - **batch 3** (not yet dispatched): remaining `pager.view.*`,
   `pager.editor.*`, `pager.export.*`, `pager.command.demo`,
   `pager.decode.direction`.
@@ -87,8 +103,8 @@ code as first assumed).
 corresponds to todo item `G5X` ("review routines with SPDX marker and
 remove on pass") — mark that done via `todo` once all 4 batches land.
 
-#,,,,,.,,,,,,,.,,,,.,,,,.,,,.,,,.,,.,,,.,,,.,,..,,...,...,.,,,...,.,,,,,,,,..,
-#DAL3QVCTXUHFENOXNU6OS2PR6KGWR42FOREZ5BYICBRWRX5DHV6IROX2IAS44W2B4GCIOK37OPD5S
-#\\\|IZMB5XHBQPN6Z7HVAUP4IQ7NGJCKHYMYWVW3GEHQPGQW4FTFSDL \ / AMOS7 \ YOURUM ::
-#\[7]55A4CRGA3SY4A7NYKE6VZXQV3NHQNST4V26F56R2M32SRC2CLQDA 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,,,,,,.,.,.,.,,,,,.,,,,,.,.,..,,...,...,,..,.,.,...,.,,,..,,
+#VBJ3ZVMOXODDICVWLLI6SY233DDUYEWF3XLQWMTUIA4ZABWYDSUKIDDIJXXC36NFCBZEBMC7R4SOM
+#\\\|ZUBZ5PQKB5MJXOEPKFISLWRM4JRM5XBS3WIV5GVZPEM3UV6FNSK \ / AMOS7 \ YOURUM ::
+#\[7]XOO6OSDMICW7LSZ4LN46YG5P7ZTGFEK44OFIJCGFCGCZZ5EXMMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
