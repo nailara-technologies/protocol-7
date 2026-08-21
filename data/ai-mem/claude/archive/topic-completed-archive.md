@@ -23,7 +23,7 @@
   - auto-registration into `@tools` with duplicate name guard
   - dispatch handler in elsif chain → `tool_external_command`
   - `tool_external_command`: `qx()` + SIGALRM timeout, merged stdout+stderr, `send_tool_result`
-- **v7-teardown-whitelist**: `access.cmd.usr.system = v7.teardown` in `cfg/zenki/v7/start`;
+- **v7-teardown-whitelist**: `access.cmd.usr.system = v7.teardown` in `cfg/zenki/v7/zenka.v7`;
   SOURCE alias for `v7.teardown` already in `cube/command_aliases` (passes caller identity through cube);
   test pending with devmod switch-user (taeki has full wildcard → need non-taeki user to verify denial)
 - **reasoning template**: `data/yaml/reasoning-templates/holographic-grid-interface.yaml`
@@ -1256,7 +1256,7 @@ zenki-create/zenki-feature-port/footer-cleanup templates added.
 - **drain permission**: added `drain` to `access.cmd.usr.cube` in coding start — v7's drain command was blocked by coding's own access layer, so `<coding.draining>` was never set and sigchld guard never fired
 - **awaiting_resources guard**: check at top of `coding.spawn_inference_server` (before `spawning_in_progress`) — when `<coding.awaiting_resources>` is set, ALL spawn paths return early, not just init timer path; fixes the "two spawn paths" mutual kill loop
 - **instance-scoped pid file age display**: `file.timestamped_delta_s` shows `56y 151d` for recent files — ntime epoch mismatch in delta calculation; cosmetic only; needs investigation of `base.ntime.delta_seconds` epoch handling
-- **channels zenka on-demand**: `cfg/zenki/channels/start` — `start.on-demand = 1`, `restart.disabled = 1`, `heartbeat.disabled = 1`, `[base.zenki.set_ondemand_timeout:600]` (10 min idle timeout); not in v7 always-on list
+- **channels zenka on-demand**: `cfg/zenki/channels/zenka.v7` — `start.on-demand = 1`, `restart.disabled = 1`, `heartbeat.disabled = 1`, `[base.zenki.set_ondemand_timeout:600]` (10 min idle timeout); not in v7 always-on list
 - **bin/chat STDIN blocking fix**: moved `--channels` and `--models` early-exit before STDIN read block; root cause: `not -t STDIN` is true for any pipe, so script blocked waiting for EOF when called from MCP server `open('-|', ...)`
 - **coding transparent task requeue on timeout**: `coding.callback.http_error` — on timeout exhaust + GPU restart, task reset to `pending` instead of failed; `verify_inference_startup` calls `jobqueue.check_dependencies` when ready; `$max_retries` reduced from 3 to 1
 - **verified working**: `:twin:` restart of coding zenka: stuck task held drain, drain_timeout (300s) caught it, terminated cleanly; second restart instant; `p7_chat_channels` MCP tool now returns immediately (was hanging 38+ min); task requeue pending confirmation on next server timeout event
@@ -1360,8 +1360,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
   request-dispatch not first-byte; was reading as a contradiction
   against the data-start-timeout log line).
 
-#,,,.,,,.,,,,,,,.,,,,,,.,,.,.,...,...,...,,.,,..,,...,...,.,,,..,,,,.,,,.,..,,
-#PDM3TVHW7DYOGJ5BNII52IQTNANHDGG7XLXSGSJT3YVKHPOJSPJ6FBUHNRQSD3HWLTLZPS3R6XJKK
-#\\\|ANIOSWU7IXP3W3PDX2XQJQB6MQOLFLQU55HVAXPLYB6ZTFMOQZW \ / AMOS7 \ YOURUM ::
-#\[7]VS6WORLX7F5TQY6U2SVYQE5NREN2JPHXADOVZF7ZDUVP75BVVKAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,.,,...,,,,,...,..,,.,.,,.,,.,,,..,,...,...,.,,,..,,..,,...,,,,,
+#5JNZCVCXRR3NSJNDWD34OUHXGOQEHJAJX5LR4WOQVCHUZMLFNDHYC2T4YI5I3GD7QOH2J3VL6WTGU
+#\\\|L6ORHNLAABY3XISP5MEJ7AUFIMJWKK6AAKBEYWRLKAH5O6I3UAC \ / AMOS7 \ YOURUM ::
+#\[7]HCK6Z6S56F3LEIHBLTYRUU6UORRKUHR46SGPPBSAY6OBR6VVJABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

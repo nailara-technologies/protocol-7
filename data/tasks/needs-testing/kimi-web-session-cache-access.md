@@ -46,7 +46,7 @@ cat src/kimi-web.init_code
 cat src/kimi-web.bridge.ensure_local_agent
 cat src/kimi-web.cmd.list_agents
 cat src/kimi-web.cmd.spawn_agent
-cfg/zenki/kimi-web/zenka-startup.v7
+cfg/zenki/kimi-web/start.cfg
 ## session directory structure:
 ls -la ~/.kimi/sessions/ | head -10
 cat ~/.kimi/sessions/<any-uuid>/state.json
@@ -137,7 +137,7 @@ p7c kimi-web.cmd.inject-context-to-coding '<session-uuid>' 'what is different be
 ## configuration
 
 ```
-## cfg/zenki/kimi-web/zenka-startup.v7 (additions)
+## cfg/zenki/kimi-web/start.cfg (additions)
 kimi-web.cfg.sessions_dir  = ~/.kimi/sessions
 kimi-web.cfg.context_file  = context.jsonl
 kimi-web.cfg.state_file    = state.json
@@ -186,8 +186,8 @@ p7c kimi-web.cmd.inject-context-to-coding '<uuid>' \
 - [ ] `inject-context-to-coding` feeds context to local model
 - [ ] no signature stubs, no whitelist changes made
 
-#,,.,,..,,,,.,,,.,..,,.,,,...,...,..,,,.,,,.,,..,,...,...,,..,.,.,,..,,..,,..,
-#FYN4DK2FSNRW3J2Y5NNCAXUIN363AHLYSJSOIOSGNF4BYOMECNZQ6YJPZ7ILMQKOFDKNDXO3OJGE2
-#\\\|BKFW5UVQTLG57MNU5CPIZQBF7S6CVOTMTBUPNXPBOQ7LPNBPJYT \ / AMOS7 \ YOURUM ::
-#\[7]LNTXH5YZGXWHW2XI3HLGW4RBKQ2OEY2JD6XO4JMTQVYVY5BN2CBQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,...,,,.,...,,,.,,,,,...,,.,,.,.,..,,...,.,.,..,,,,.,,,.,..,,.,.,
+#Y6XMRC7AAZ7ZZPOKQZL5P62L62NFN6KVPJGQJUQ27TTIAPYF6GJAC7PM2OG5UMQ3POWPP6TH3ZPYQ
+#\\\|P2GZDXA3B6S6MGS6Q6PCYMRW4UQB2VSWWMR6ITPBSMTHOH7SVVT \ / AMOS7 \ YOURUM ::
+#\[7]IVFMBYVK2SKZZEHCR5EHVC6P26R22SWLXQX47BUYC3QZK5EALOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,8 +57,8 @@ A complete automated certificate management system built as a Protocol-7 zenka, 
 ## Key Components Created
 
 ### Configuration
-- `cfg/zenki/letsencrypt/start` - Zenka startup sequence
-- `cfg/zenki/letsencrypt/zenka-startup.v7` - v7 management configuration
+- `cfg/zenki/letsencrypt/zenka.v7` - Zenka startup sequence
+- `cfg/zenki/letsencrypt/start.cfg` - v7 management configuration
 - `cfg/zenki/letsencrypt/` - Complete dependency and access configuration
 
 ### Modules - Base Infrastructure
@@ -188,8 +188,8 @@ letsencrypt.ratelimit.max-per-hour = 5
 
 The letsencrypt zenka represents a significant addition to Protocol-7's service ecosystem, providing secure, automated certificate management integrated with the existing zenka architecture.
 
-#,,..,,,,,,,,,,,,,...,...,,,.,,.,,.,.,.,,,,,.,..,,...,...,.,.,,,,,,.,,,..,,.,,
-#J6T7ICFLQP2VOIGW7DRKKTESXBV6LKG22AY3EHK6MYVU2YSBTZVFXET5FFNULKCHNFZU7X35JESUY
-#\\\|5AXYHH6I4ZHTNNY7M5QQ2G3F3NOF4IS3N73EEJS3MCYO6WFAI5A \ / AMOS7 \ YOURUM ::
-#\[7]OQYNG4CMAU3B2ENH6FZ3FTDMWOM2BSCOHN72MTBNDLHGDZQ6ISAA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,.,,,,.,,,.,,,,,,,,,,.,,...,..,,...,...,...,.,.,...,,.,,,.,,
+#YZ2E6SNGI2L7QSHUO5XOJEAU5RVJQ7QXY5Q6K37G7XLQM5TW65C5JL6544JJIP7AZUX53DPMPTQYA
+#\\\|5KZJZKBYFF7O6MAI7HT36VSLVUIPYGOT64WKOGTXVV65B7BJIA4 \ / AMOS7 \ YOURUM ::
+#\[7]I6AAKIUU2TJRZIVZJNUCVLJXAZCAKJZ4LGYJXT2J2BY2FCPEKAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

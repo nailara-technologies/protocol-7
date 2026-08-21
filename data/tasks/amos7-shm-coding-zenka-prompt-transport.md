@@ -304,8 +304,8 @@ state it as a constraint, not discover it at implementation:
   `taeki` too. so a `taeki`-owned segment is readable by the coding zenka via
   shared user / group anyway — **coding is not the genuine cross-user case.**
   the genuine cross-user beneficiary is a **bare-`protocol-7`** zenka with **no**
-  secondary admin-group grant [ e.g. `task`, `cfg/zenki/task/start:28`,
-  and `p7-log`, `cfg/zenki/p7-log/start:24`, both call bare
+  secondary admin-group grant [ e.g. `task`, `cfg/zenki/task/zenka.v7:28`,
+  and `p7-log`, `cfg/zenki/p7-log/zenka.v7:24`, both call bare
   `[root.drop_privs:<system.amos-zenka-user>]` with no group resolution like
   coding's ] — a `taeki`-owned segment is **not** readable by such a process
   with no group overlap. the structural problem below is the same either way;
@@ -558,8 +558,8 @@ as a gate, not a hope.
      pair even the current `'+<'` read-write open would succeed and there is no
      cross-user blocker at all. the genuine cross-user case is a writer owned by
      `taeki` handing to a **bare-`protocol-7`** reader zenka [ `task`,
-     `cfg/zenki/task/start:28`; `p7-log`,
-     `cfg/zenki/p7-log/start:24` — bare `[root.drop_privs:<system.amos-zenka-user>]`,
+     `cfg/zenki/task/zenka.v7:28`; `p7-log`,
+     `cfg/zenki/p7-log/zenka.v7:24` — bare `[root.drop_privs:<system.amos-zenka-user>]`,
      no admin-group grant ]. the one-shot read-only-open path above is what makes
      **that** pair work [ `/dev/shm` world-readable ], and it still **must be
      verified with a genuinely cross-user test** [ a `taeki`-owned segment read
@@ -591,8 +591,8 @@ as a gate, not a hope.
    leaning prefix-string for symmetry with the existing convention, but worth a
    nod.
 
-#,,,,,...,..,,,,.,,,.,..,,.,,,.,.,,,,,...,.,,,..,,...,..,,...,,..,..,,..,,,.,,
-#7TYT72ETFXV6Q26LPRZQAPDQ4NDWDQGUQ4NSMH7UVLYULGLXDMEX3GNHCWKQT6UQIJYMOP76WO2Z6
-#\\\|CVWN5I74FCYCMBEJ6WXAZST374PGTT4CW3EJOTDEBP4BK3TUCJ3 \ / AMOS7 \ YOURUM ::
-#\[7]RVWN3XSO2V7RCL7QXMRAGCC2TKEFU764U4NV7ZLJ4OE37IM6XWCA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,,,,,,,,,.,,.,,,.,,,..,,,,,...,..,,...,...,,.,,,..,,.,,,..,,.,,
+#R7CRP6NPWZOUZYZOY4YJQ5EN3XPNE7FXJC2QL5OONEESEWJZGMLKYSFXIA2Z4D2B6CTRDBQQ3WHVE
+#\\\|WZ4T3XJIR22IJH5RAROPJK4EKZWYZG3MXYV6AZ5RQYWAGFLP2VL \ / AMOS7 \ YOURUM ::
+#\[7]A5P2D77XVAHYGZRRK5UHH3RTP2DGBG7PPR3TIF6LFODGKCSKOYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

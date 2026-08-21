@@ -66,8 +66,8 @@ task:
     - src/mpv.open_player
     - src/radio.handler.stream-chunk
     - src/radio.init_code
-    - cfg/zenki/radio/zenka-startup.v7
-    - cfg/zenki/radio/start
+    - cfg/zenki/radio/start.cfg
+    - cfg/zenki/radio/zenka.v7
     - cfg/zenki/cube/access.zenki
 
   ##  state variables  ##
@@ -223,7 +223,7 @@ task:
   ##  config changes  ##
 
   zenka_startup_changes: |
-    file: cfg/zenki/radio/zenka-startup.v7
+    file: cfg/zenki/radio/start.cfg
     add:
 
       radio.audio.stream_url   = http://127.0.0.1/radio/stream
@@ -244,7 +244,7 @@ task:
                                 mpv[audio-0].fade
 
   radio_start_changes: |
-    file: cfg/zenki/radio/start
+    file: cfg/zenki/radio/zenka.v7
 
     add 'audio.init audio.handler.player_online' to access.cmd.usr.cube
     (these are new radio.* modules that cube's list command needs to see):
@@ -265,11 +265,11 @@ task:
 
     2. v7.zenka.cmd.start resolves config for mpv[audio-0] using the base
        'mpv' zenka_name (subname is stripped before config lookup). so
-       cfg/zenki/mpv/zenka-startup.v7 IS the config used.
+       cfg/zenki/mpv/start.cfg IS the config used.
        however, mpv is not in the v7 always-on start-set, and
        'start.on-demand = 1' is currently commented out in that config.
        v7.start_once will only start a zenka if it is configured for v7
-       management. add 'start.on-demand = 1' to zenka-startup.v7 (uncomment
+       management. add 'start.on-demand = 1' to start.cfg (uncomment
        the existing line). also check 'max_concurrency' — it defaults to 1
        which means only one mpv instance at a time. since we need a subnamed
        audio-0 instance alongside a potential regular mpv, either raise
@@ -283,8 +283,8 @@ task:
     4. <radio.audio.current_vol> must be kept in sync if the user later
        changes volume interactively. for now it is set once at startup.
 
-#,,,,,,.,,,,,,..,,,.,,,..,,,.,,..,,,.,,..,,.,,..,,...,...,..,,,..,...,,.,,..,,
-#C4QJT5HTP72SPKYA7JKUP77VS7C4W36WOXPUZOZXGDAUWCZX4UDRTLRT5SDMCWDCX3VOCCBXEF5XG
-#\\\|LOF53MWCL7L7D4GGY6AX4HMJBXLRXXWOER6V3N7AXBZNL6QYBTG \ / AMOS7 \ YOURUM ::
-#\[7]2YTZPCZ4BM3LNMQT26QLORCL3WZPNSXEUQWEJROPWD5GBOZXTGAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,..,,,,.,,..,...,,..,.,.,,..,,,.,..,,...,.,.,..,,.,,,,,.,,,,,,,.,
+#AFOTIWOGI4UTOL5XXFIZ6RNFMWZWOAON3KPBI7IQFTQFZM2CKPY56Y6RUSH3LGXQL6SY5WTP36A7A
+#\\\|I7ZIWFQ3KMP4NNOUSZY2PV43ANYEOHDBODR5B3KQEGTFIB6DKF4 \ / AMOS7 \ YOURUM ::
+#\[7]MJUTVKIQ45G26NIITRUVFX6RCIMFD6JOWWWY5JTOY5HHOZ56SECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

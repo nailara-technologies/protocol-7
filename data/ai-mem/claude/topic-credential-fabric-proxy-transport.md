@@ -32,7 +32,7 @@ deferred to a dedicated session).
   admin grants. Console can now call `.approve`/`.resolve`/`.rotate`
   without "no perm" errors.
 - transport: scaffolded the entire missing config dir (`start`,
-  `zenka-startup.v7`, `subroutines.load-early`, `access.zenki`, dep
+  `start.cfg`, `subroutines.load-early`, `access.zenki`, dep
   manifests), fixed `AF_INET()`/`SOCK_DGRAM()` bareword compile error in
   `transport.handle.udt-tunnel:57` (needs `()` under `strict subs` — see
   precedent `SOCK_STREAM()` in `proxy.listen`/`clients.http.request`),
@@ -260,7 +260,7 @@ With it live:
   in an access mask to regex `[^\.]+` (no-dots-allowed), so it never
   matches dotted command names like `handler.cred_rotated`. Fixed by
   explicitly listing `handler.cred_rotated` in
-  `cfg/zenki/proxy/start`'s `access.cmd.usr.cube` mask, ahead of
+  `cfg/zenki/proxy/zenka.v7`'s `access.cmd.usr.cube` mask, ahead of
   the trailing `*`. Verified live: rotating `test.fixcheck` no longer logs
   "no perm".
 
@@ -300,7 +300,7 @@ be killing/corrupting an in-flight event handler mid-request).
 
 **RESOLVED 2026-06-16 (`26bae092c`):** F2/F8 — `transport.eval-code` "no perm"
 blocking harness scenarios 2/3. Fix was a 1-line `access.cmd.usr.cube` grant
-in `cfg/zenki/transport/start`.
+in `cfg/zenki/transport/zenka.v7`.
 
 **RESOLVED 2026-06-15 (claude_dispatch opus, `0427e08cf`):** proxy.init_code
 now guards `<[proxy.listen]>` with `zenka.name eq 'proxy'` so cred-mesh
@@ -319,7 +319,7 @@ scenarios 2 (5/5) and 3 (2/2) now pass. Key fixes in this commit:
   style `($ctx, $reply)` — all demote/quality/active-recording logic preserved
 - `proxy.handler.post_auth` + `proxy.transport.select`: updated to new async
   convention, guarded so transport stays not-co-loaded in proxy production
-- `cfg/zenki/transport/start`: `profile_dir` was a relative path
+- `cfg/zenki/transport/zenka.v7`: `profile_dir` was a relative path
   (`data/yaml/transport/profiles`) unreachable from cwd `/home/protocol-7` —
   fixed to `<system.root_path>/data/yaml/transport/profiles`
 - test harness scenarios 2/3: updated to `$data{transport}{registry}` syntax
@@ -330,8 +330,8 @@ scenario 2: 5/5; scenario 3: 2/2. Remaining OOS items: credential_fabric
 no v7 always-on/on-demand registration; on-demand auth 407/pending/approve
 end-to-end not verified.
 
-#,,..,,,.,.,,,...,,..,..,,,,.,..,,,,.,.,,,.,.,..,,...,...,...,...,...,.,.,,.,,
-#QC5UP7ELT5RBCJ37PYFRFS4QL5NKE76JUFSS4ZGLAG3JS3Q35KWNR2B7EWOTQWOEHVGT44ZZVN7YG
-#\\\|DZJUIR6MVPPHVQMBQSKVIU43YR3UTH2K4GIVH2KJPSOSESSEN6E \ / AMOS7 \ YOURUM ::
-#\[7]4HPZUXSWSKPBV7FJJDT5PWGDX4QMVOIS6K4IRRQLZRZ5LEWZFGCY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,..,,...,,,,,...,,.,,...,,,,,..,,...,..,,...,..,,,,,,.,.,...,
+#HJCZTE4GBI2Y4LQHABBTYGVTWCODVLZB2MJRBCXTXFCDK7I7RATFCMD2IE5TQWZFSWZPLQBPADGPM
+#\\\|35K527SCN7YHFFCYZXKVHZ3EHEPH2HFAGDVJOKW2IW7LVCL3D4Q \ / AMOS7 \ YOURUM ::
+#\[7]I4YLUKNYWK7HQ5FANMASHIYPQFB6TQKUYTTCS2YZ2UC5YAUY7OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

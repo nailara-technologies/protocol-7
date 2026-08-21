@@ -88,7 +88,7 @@ AMOS7::deps::deb-pkg::d-upgr → deb-pkg/d-upgr.pm — dist-upgrade
 
 ## task 1 — audit debian zenka
 
-read all `src/debian.*` files and `cfg/zenki/debian/start`.
+read all `src/debian.*` files and `cfg/zenki/debian/zenka.v7`.
 produce a short inventory:
 - what commands are live and functional
 - what is dead code or stub
@@ -325,7 +325,7 @@ sys-deps.cmd.promote <pkg> <zenka>  — write to os-dep/ config dir
 
 create:
 
-### cfg/zenki/sys-deps/start
+### cfg/zenki/sys-deps/zenka.v7
 
 on-demand zenka, no idle timeout. load modules: `auth net protocol io.unix sys-deps`
 `start.on-demand = 1`, `restart.disabled = 1`, `heartbeat.disabled = 1`
@@ -366,8 +366,8 @@ packages in tracking log not yet promoted to any `os-dep/` config dir.
 - do not modify `.deps/protocol7_full.yaml` — generated output, not source
 - `var/sys-deps/` directory must be created if missing (tracked.yaml lives here)
 
-#,,..,..,,,,.,,.,,...,.,,,,..,...,.,.,,..,,,,,..,,...,...,..,,..,,,,,,..,,,,.,
-#FUNRE4WCSVIUNA6P5HGCMX5ULO6E2RKDXDSNR4C4KPV35LFLYTMP5XRF5O2SQ6KYB3LVPJRX3ABYW
-#\\\|C5BS4TANG6IA4LGHJUSFDYAYH3RH3OL5QURWPCVD26UN7VPL3WM \ / AMOS7 \ YOURUM ::
-#\[7]KAIXG6JYMQZ4SLNG7KEJYNJSK6IWFYSUEP3RDUMA24XWDKBZ6IDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,,,.,...,.,.,.,.,,,,,,.,,,,.,..,,...,...,.,.,,.,,.,.,.,,,...,
+#75NRQKNOUPTQUUO6HIW4KCGPPOKEZSHP6QULD3BYBZIXNQ2MVFFA766SJXRP3S4QL6ZZSKSFKH2JQ
+#\\\|GP4NDGOVFJMGL7DM3IXS4IWJ6AE65N3BW2LMBVV2JZDRKIJ5GYL \ / AMOS7 \ YOURUM ::
+#\[7]UAUDYEBCLQZBQN4JZQUN5G7OI6H7PJRUG3GEW544OHUJCXC4RODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

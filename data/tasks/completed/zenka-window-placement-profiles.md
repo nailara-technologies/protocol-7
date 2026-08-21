@@ -181,7 +181,7 @@ return "window profile: $profile";
 
 ---
 
-## zenka-startup.v7 example
+## start.cfg example
 
 ```
 ## window placement profile
@@ -223,8 +223,8 @@ p7c ticker.cmd.set-window-profile bottom-strip
 - [ ] `fullscreen` profile still works for kiosk deployments
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,,..,,..,...,...,.,,,.,,,,..,,,,,,..,...,..,,...,...,.,,,,.,,,,,,,,,,.,.,
-#DY5SAF7L7KU23WTT5WTVJ3FC4Y25AJHCWEIERW3GEX5MHTIPBKFWMAU4Z4YH27WR2HB22JUHLZQI2
-#\\\|OYEUDHWGDNVJCQ4GVSCK5GQGL2FQQ7CFD6YAAKQHZN2LFOM42FL \ / AMOS7 \ YOURUM ::
-#\[7]IJY52H3EE2M53RTOQADCUC7RLTBAGTEXYSS4VSXQ7DGYVHSDACBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,..,,,..,,,.,,,,,.,,,.,.,,..,,.,,..,,...,...,..,,...,,,,,,,,,,..,
+#Z73KFJ5PCHY3ABRWQY7TTTUNQTYLMUQWRU255L4AMMMNQHK6PH4TZE4PR2VBFO5M5ULRZLTTF6O3O
+#\\\|43PPB5KTNUJSK4DZVAJACJVQPCTDES65WENMHZL6WMFP4CONZ5C \ / AMOS7 \ YOURUM ::
+#\[7]YWD75YUNSZ427INE7B4SWEXSBF7HV3XTQWXVDUDQUJHC54TAP4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

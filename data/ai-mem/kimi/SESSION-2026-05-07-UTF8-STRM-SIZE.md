@@ -39,7 +39,7 @@ used only when converting to byte counts for buffer operations.
 
 - `src/devmod.cmd.utf8-test-buffer` — creates a buffer with UTF-8 test lines
 - `src/devmod.cmd.utf8-stream-test` — returns a large SIZE reply with UTF-8 content
-- Both added to `access.cmd.usr.cube` in `cfg/zenki/coding/start`
+- Both added to `access.cmd.usr.cube` in `cfg/zenki/coding/zenka.v7`
 
 ## Verification
 
@@ -86,8 +86,8 @@ cancel, immediately cancel timers, clear `blocked_by_stream`, and delete stream 
 - `src/devmod.cmd.utf8-stream-test` — shortened descr
 - All kimi UTF-8 fixes remain correct and committed
 
-#,,..,...,...,,..,.,,,,,.,.,.,,,,,,,,,,,.,..,,..,,...,...,,.,,,..,.,,,,.,,,..,
-#6DRP5ZQ435LPRDJKKO7KISRT4GWYUBPZ4TCRYLB7DIR3SJW6FNNIMY5VUXOR7A6F6DMRFHVKN545A
-#\\\|YWVDOPFDZBX7UCTQAOGMKBADK36VKTYHL7Z6XCVWOEB5Z2PQQBD \ / AMOS7 \ YOURUM ::
-#\[7]YPRQYXGETNSTMLZJU2IN5562HO5QGRRZIGAHPW5RQCPSS4YMOOCA 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,.,.,.,..,,,..,...,...,,.,,,,.,..,,...,...,,..,,..,.,.,...,..,,
+#R6PFXZHREHY6MUINCW7RRTCQ5DYFRPETDCUZJH6VXD5KCMUKVDCX7UFMXGPRSVVBFEXSHHSTHFMHG
+#\\\|GN2D5FNHOFJSPUKTZB2WEUJ4POTWGVDHXKNZO7HH2T2QGX5LQQG \ / AMOS7 \ YOURUM ::
+#\[7]ARF64CQ2LFJIJXPDEZHQCFLU7K2RHG2WGZID2Y4GO24J5IHJBACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

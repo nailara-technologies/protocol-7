@@ -45,12 +45,12 @@ way any other cross-zenka command works. See part 2 below for exactly how.
 
 Before any of this routing logic even matters: `v7.start X-11[xvfb-0000]`
 today fails outright with `"reached configured maximum concurrency for
-zenka 'X-11'"`. `cfg/zenki/X-11/zenka-startup.v7` currently has
+zenka 'X-11'"`. `cfg/zenki/X-11/start.cfg` currently has
 `max_concurrency = 1`, which caps `X-11` (all instances combined,
 subname-less + every xvfb one) at exactly one running instance. Fix as
 part of this task:
 
-- raise `max_concurrency` in `cfg/zenki/X-11/zenka-startup.v7`
+- raise `max_concurrency` in `cfg/zenki/X-11/start.cfg`
   to something that allows the host instance plus multiple concurrent
   xvfb instances (check `src/v7.zenka.cmd.start` for how this value
   is enforced — read the "check max concurrency" block — and pick a
@@ -89,7 +89,7 @@ every other file in this task.
   run `bin/dev/dep-graph` after your changes and stage its output as-is.
 - do NOT write AMOS7 signature footers (the `#,,,...` block at the end of
   every file) — added by the human's signing pass. Leave new files without
-  one. For existing signed files you edit (like the X-11 zenka-startup.v7
+  one. For existing signed files you edit (like the X-11 start.cfg
   above), just edit the content and leave the existing footer alone
   (it'll be stale until the human re-signs, that's expected/normal).
 - do NOT run `git add`, `git commit`, or touch version files
@@ -356,8 +356,8 @@ and why, the exact table-parsing approach you used for the `list
 subnames` reply, and what you decided about the cache-invalidation
 question (TTL-only vs. some disconnect-notification hook, and why).
 
-#,,..,.,.,,,.,..,,.,,,,.,,,,.,..,,,.,,.,,,,.,,..,,...,...,.,.,...,...,.,,,...,
-#I7ZIRKXYUBAZ3VGXSW25RFCEFV67SD52WKW6CAAG7V2CYSSUSZ3RJ22O7XPXMIN2IMYTC34CZZ26K
-#\\\|2YIBTNOZ5FEU5OV2DAA6EOW3LZKJBT4C5JTD55A7L3GQVLEQE2G \ / AMOS7 \ YOURUM ::
-#\[7]CHJBENFKZMJL45XAKR4GJ5CZ7XBSZW2UHNXDIPLTTHH56NWDQUAY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,...,,,.,,,.,.,,,..,,,..,...,..,,...,...,,.,,.,.,...,.,.,,.,,
+#44YNNJA2B6FPSGTQHUIUYAPV7N26HS5B4U35HCPTPCU7XX2INUUA2STYUWK7EA6AVD4MXRBMDDBBU
+#\\\|ONBLT6ZF2JHP3PTIREAHVMBC5OGMX6CASZD7TM4X2PK5XFTOP33 \ / AMOS7 \ YOURUM ::
+#\[7]27XUHLWOFUCYISDJTC7CQL7DLNFGTIQMLC4V5UGKO2BYX6JABODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

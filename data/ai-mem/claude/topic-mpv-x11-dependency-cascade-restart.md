@@ -17,7 +17,7 @@ even removing `X-11` from mpv's own dependency line would not have prevented the
 openbox hop re-triggers it (`v7.handler.zenka_status` fires again when openbox's own status
 transitions through `restart`).
 
-**Root cause:** `cfg/zenki/mpv/zenka-startup.v7:6` declares
+**Root cause:** `cfg/zenki/mpv/start.cfg:6` declares
 `dependencies = cube X-11 openbox` at the zenka-*type* level. `v7.set_up_zenka_dependencies` and
 `v7.zenka.instance.get_ids` have no subname/instance granularity at all — restart cascades hit
 every instance of a dependent zenka type regardless of whether that specific instance (e.g. an
@@ -38,7 +38,7 @@ audio-only subname) actually needs the failed dependency.
 - IMPLEMENTED already (code side): `v7.zenka.start` seeding logic, `v7.handler.zenka_status`
   enforcement check, and a new `src/mpv.startup.resolve_x11_info` module (replaces the
   previously-unconditional `[base.X-11.get_mode]`/`[base.X-11.get_display]` in
-  `cfg/zenki/mpv/start`, skipped for `^audio(?:-\d+)?$` subnames — matches the existing
+  `cfg/zenki/mpv/zenka.v7`, skipped for `^audio(?:-\d+)?$` subnames — matches the existing
   `<mpv.audio_only>` convention already used in `mpv.open_player`/`mpv.startup.init`).
 
 **OPEN — config directive syntax, not yet finalized (user said "not sure" as of last check-in):**
@@ -64,8 +64,8 @@ viable syntax (mpv only needs one rule today, so this is not urgent to perfect),
 user to propose a shorter naming convention. The mechanism/code side does not need to change
 regardless of which directive syntax wins.
 
-#,,,,,...,.,.,,.,,.,.,...,,.,,,.,,,..,.,.,,..,..,,...,...,...,,,.,...,,..,,.,,
-#7XHHKR5FZIIV5TTMMPWZQK42RUOBKUFXV6NAOEO6O2WNR67SPPDWJZK5C7Y2HWFI7YHEUMTHF6I4A
-#\\\|TYNZPLM2VFFBTNO3XR5BNRFMHXWZ7SUHGHPLLE7E5WN7EWNUJ7G \ / AMOS7 \ YOURUM ::
-#\[7]QVM7V4WWUZPCHNT5S2XRCPW7LYXNY34HHLXHU36HJ6KXBUGWU4BA 7  DATA SIGNATURE ::
+#,,,.,...,...,,,.,,..,,.,,...,.,.,.,.,..,,...,..,,...,..,,,,.,.,.,,..,,,.,,,,,
+#2EKC4RRDBWLPDLRAZTWMEBYJFVJ5N6JVDJNYHIU2C2RM2NRAP7FKBN2MVICNLHP3XQN2AK46YC5WM
+#\\\|H764PBZMUK4GKSVRQLAO46MUTJCPCD5NAIIUOXRR537HPPYLRT6 \ / AMOS7 \ YOURUM ::
+#\[7]MQPSWR4GZW4TAZYVCETR6V5BYVIUTHBRZARSQBGWWV4QSBSAE6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -67,7 +67,7 @@ directly-relevant example: `ls src/*cmd*update*` shows this
 receive-a-push-via-`.cmd.` shape is already used by many zenki).
 
 Also found and cleaned up a previous, undocumented workaround attempt in
-`cfg/zenki/proxy/start`: an explicit
+`cfg/zenki/proxy/zenka.v7`: an explicit
 `access.cmd.usr.cube = ... handler.cred_rotated * # <-- !!!` grant with a
 comment already describing this exact multi-dot problem — someone hit
 this before and patched around it with a permission grant instead of
@@ -80,7 +80,7 @@ edit + reload/restart, not just a code fix):
 - `cfg/zenki/cube/access.zenki`: `access.cmd.usr.cred-mesh` now
   lists `proxy.cred-rotated`/`transport.cred-rotated` instead of the old
   `.handler.` names.
-- `cfg/zenki/transport/start`: `access.cmd.usr.cube` didn't have
+- `cfg/zenki/transport/zenka.v7`: `access.cmd.usr.cube` didn't have
   proxy's bare `*` wildcard — added `cred-rotated` explicitly.
 - **Important operational note**: editing `cfg/zenki/cube/
   access.zenki` requires an explicit `reload` sent to cube afterward
@@ -259,11 +259,11 @@ simpler than that):
    → the **entire** `proxy.*` namespace is compiled into cred-mesh's own
    `%code`, including `proxy.init_code` and
    `proxy.handler.subscribe_rotation_deferred`.
-2. `cfg/zenki/cred-mesh/start:29` — cred-mesh's own
+2. `cfg/zenki/cred-mesh/zenka.v7:29` — cred-mesh's own
    `modules.load` explicitly includes `proxy` as a full namespace token:
    `modules.load = auth net protocol io.unix ui cred-mesh credential proxy \
    ascii.frame format.yaml httpd.status_codes devmod`.
-3. `cfg/zenki/cred-mesh/start:35` calls `[init_modules]` with
+3. `cfg/zenki/cred-mesh/zenka.v7:35` calls `[init_modules]` with
    **no arguments**. `src/base.init_modules` lines 22-23, when called
    unscoped, does `<[base.sort]>->( \%code )` over **every** compiled sub
    in `%code` regardless of zenka-namespace origin, and executes (line 68:
@@ -275,8 +275,8 @@ simpler than that):
    is running there), so the resulting `route-send` genuinely originates
    from cred-mesh, targeting itself. Exact match for the observed log.
 
-Confirmed this is **one-directional**: `cfg/zenki/proxy/start`
-and `cfg/zenki/transport/start` do not list `cred-mesh` in their
+Confirmed this is **one-directional**: `cfg/zenki/proxy/zenka.v7`
+and `cfg/zenki/transport/zenka.v7` do not list `cred-mesh` in their
 own `modules.load`, so they don't run cred-mesh's `init_code` in reverse.
 Scope of the fix is cred-mesh's own `start` file only.
 
@@ -296,7 +296,7 @@ rotation-subscribe timer, the very last thing in the file — was left
 unguarded**, the one spot the original author missed.
 
 **FIXED**: added `if $is_proxy_zenka` to that one `event.add_timer` call
-in `src/proxy.init_code`. `cfg/zenki/cred-mesh/start` itself
+in `src/proxy.init_code`. `cfg/zenki/cred-mesh/zenka.v7` itself
 does not need changing — keeping `proxy` in cred-mesh's `modules.load` is
 fine now that the guard is complete; cred-mesh may still reference plain
 `proxy.*` helper subs directly, just never runs proxy's own init side
@@ -414,8 +414,8 @@ longer throws `undefined value as subroutine reference`.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,..,.,.,,.,,...,,,.,.,.,,,.,..,,.,,,..,,,,.,..,,...,...,..,,.,.,,,,,.,.,..,,
-#LAAIOSBUTR5WOLPZGUZETFWWAWGAH5XBVIFLNHDFOXCHQTOZIBCM2BNBRNESJRCOBDNRGBGTOFX6U
-#\\\|V4RFFWCCU3D62JDUEY7JS3Z6BRKWQ2YTNDYSRRG5RA3YOGT3ZXU \ / AMOS7 \ YOURUM ::
-#\[7]J3GLDOGSZGV2Z5WG2KD4MYO2OMHLQLE53JNRAHRRSWQKTCYASUAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,.,,,.,,..,..,,,.,,,,,,..,,,..,..,,...,...,,.,,,,.,..,,,,,,,.,,
+#PKHFEHAEYAJDDAB7KPVQPXAOKJZKOT75OJIZZQMSFEVGENUX72SIS7N7LI4DA52YFWZC2WOG7H6OC
+#\\\|7YQD2TH6QB67YCBY5A6JNATCBXGPZG3SLFGHXLBKQ3SV4JZZPQN \ / AMOS7 \ YOURUM ::
+#\[7]5G4IWYD274XILX77CHM6F3G36WORFZRENRETP24RWF4BVAMUFSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

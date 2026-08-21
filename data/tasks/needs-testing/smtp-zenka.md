@@ -121,7 +121,7 @@ cfg.archive_days = 90         ## keep mail for N days
 cfg.route.*      = ...        ## address → zenka routing table (from startup config)
 ```
 
-routing table example in zenka-startup.v7:
+routing table example in start.cfg:
 ```
 smtpd.route.jobs = jobsite
 smtpd.route.*    = mail.store   ## default: archive only
@@ -378,7 +378,7 @@ exec "p7c smtpd.cmd.inject '$encoded'";
 ## configuration
 
 ```
-## cfg/zenki/smtpd/zenka-startup.v7
+## cfg/zenki/smtpd/start.cfg
 
 start.on-demand       = 1
 restart.disabled      = 1
@@ -454,8 +454,8 @@ p7c p7-log.show-buffer jobsite
 - [ ] jobsite.cmd.mail_received receives and logs routed mail
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,.,,,,,...,..,,.,,,,.,,.,,,,..,..,,.,,,.,,,..,,...,..,,,.,,.,,,...,...,.,.,
-#6NZBAECJRZQZ376NJGE6HZHIFP2E25CQAJCPHOS6WFETNR6R6JORSFXWEHHCO3STCCY3OTXSDOFVA
-#\\\|AGCFXI3QG3FLUCEGET7CXQZFNBKX4ASJWYX3SQ4TDXTXZGM6Y4E \ / AMOS7 \ YOURUM ::
-#\[7]ZNYICNXOHAJS5CBD65PKKQKN63E5ZL5OWFW6KN3NKQPXYPKVGOBY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,,,,,..,,,..,..,,,..,...,,..,..,,...,...,...,,..,,,,,,,,,...,
+#ZOOWR6UDCQYFI7L2CYDQ2AXRUQZ6ORW67PZZRN3UYX7EVN7XL56K6ZHK3ZLRILZ3O2BTWDK6X5DCU
+#\\\|D4WVGW62O3OP3Q2E6U4REGFTKXINDGWUXYJ7Y7YMDIG6PGTWCBI \ / AMOS7 \ YOURUM ::
+#\[7]R755DU46P2DBNXME2VHWQAOCCC7LWACQV37EJA7E6A46E63TIMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

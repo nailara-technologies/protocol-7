@@ -186,7 +186,7 @@ sub viewer_start {
 ```
 
 ### Phase 2: Zenka Integration
-**Configuration**: `cfg/zenki/console/start`
+**Configuration**: `cfg/zenki/console/zenka.v7`
 
 ```
 access.cmd.usr.cube = connect visualize navigate dial
@@ -273,8 +273,8 @@ my $color = $FNC{'true_int'}->($num) ? $C{'T'} : $C{'0'};
 ---
 *Signature: 7VNKDBUU6DTBNJ2OK7EMV3WTD72AHBLQTAGMKOIKBZJI2NXDZOBQ*
 
-#,,,.,.,.,,..,,,,,,.,,,,.,.,.,,,,,.,,,,,,,.,.,..,,...,...,...,,,.,,..,..,,,..,
-#RHNE4ZM2IZYAZM6E27QWISIOWAFQGG7FGQIS5NS6ZAOAA24CCLXWGSX6MWP2G6XZDSYGKNKFBTM2I
-#\\\|UAIAJ44ICH27V6BSIZDRH43WXTRBIEOCAMW2BXSMT67YH3Z2XA7 \ / AMOS7 \ YOURUM ::
-#\[7]QOQN5OZN3BUCVY4BJVB4BZOOW4KHIYLJ6D33IDYNXFLI6S6NOYDA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,..,,.,,,...,,.,,,.,,.,.,,,,,..,,...,...,.,.,...,..,,,,.,,..,
+#UZS74E7J5QQX3BL2YXQXWDU2MTG2WIDCJ5M6DT44HCV5S4BTXNCMUY74AM3H6J4J444CD24YGKUHU
+#\\\|6LQR4KCPV3V6LGQX3UFTHOE5N5I4Y7XIENEWWXKHV7J3LEQND5O \ / AMOS7 \ YOURUM ::
+#\[7]VHJ5VGBJQTIK7CLTCRCIG4A3SBZJSCLOBNQSFA5GGMQWUESUJIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

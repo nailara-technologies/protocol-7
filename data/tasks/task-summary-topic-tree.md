@@ -375,7 +375,7 @@ landed ] so the strong model is selected deterministically for the write step.
   B32-wrapped by every sender — seeBug note below ]
 - `src/task.persist.summary_tree.{save,load}` — yaml persistence,
   mirroring `task.persist.{save,load}`; wired into `task.init_code`
-- `cfg/zenki/task/start`: whitelisted both new commands; added
+- `cfg/zenki/task/zenka.v7`: whitelisted both new commands; added
   `format.json` to `modules.load` [ needed for `format.json.decode` ]
 - `cfg/zenki/cube/access.zenki`: `access.cmd.usr.coding` can call
   both task commands; `access.cmd.usr.task` can call `coding.tree-query-reply`
@@ -394,7 +394,7 @@ by anything — see "why the relay differs by origin" ]:
 - `src/coding.handler.deferred_reply`: dual action — reply to caller
   first [ unchanged ], then fire-and-forget notify to the task zenka when
   `chk` is present
-- `cfg/zenki/coding/start`: whitelisted `tree-query-reply`
+- `cfg/zenki/coding/zenka.v7`: whitelisted `tree-query-reply`
 
 **mcp server** [ the actual `session_catchup` relay — see status note at top
 of this doc for why it ended up here instead of the coding zenka ]:
@@ -569,8 +569,8 @@ prompt: |
   dot-notation style exactly. No signature stubs — the signing system adds
   them.
 
-#,,,.,,,.,,,.,,..,...,...,,.,,...,.,.,,,,,.,.,..,,...,...,.,,,,,,,.,,,...,...,
-#DZ2CZCZTXWAMUEJUJXOTK5I4RKMQEDJPC5BBL3PBUIFHX47DZVVMZM3I44DLFKM373XRPS7EFVBYG
-#\\\|XPV2KY2RRVVR5FDWWH2XCE5POVJRDT5WTWE346WFBWVGB2SWG5A \ / AMOS7 \ YOURUM ::
-#\[7]NIE6V2MIYAYRWIXHW4SSJGW4S6T7BMSWZIDB73S7IS4CQIUNDSDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,.,,.,,,,.,,..,,,.,.,.,..,,,.,,..,,...,...,.,.,,,,,.,.,...,,,,,
+#DDIAM7T2ESWTVSVV6WNQJIPHGSWK5T4F4WPIGOHI62GVJUOXVYDSFS4N3YZUUFOBWUFDPIT6OA5MM
+#\\\|XYMJA3ZFL5EMSGNT6ICNRS6DBKBIZ3RMQCLB5GIJ53IXYDSH6GJ \ / AMOS7 \ YOURUM ::
+#\[7]EMVJNXZFAOFSTDOWDCNT3IHAQRERV4NLX646NJNXHSQWFRMN7YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

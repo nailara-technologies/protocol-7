@@ -9,7 +9,7 @@ metadata:
 
 Surfaced while live-testing the `sys-deps` zenka's on-demand idle-shutdown path (see
 [[project-sys-deps-wiring-completion]]) — the user reported it restarting immediately after a clean
-64s idle shutdown despite `restart.disabled = 1` in its `zenka-startup.v7` config.
+64s idle shutdown despite `restart.disabled = 1` in its `start.cfg` config.
 
 **Root cause, confirmed live via `v7.dump ondemand` on the `base` branch's running system**:
 `v7.ondemand_zenki = []` — completely empty — despite ~56 zenki configured `start.on-demand = 1`.
@@ -58,8 +58,8 @@ cycle (not independently re-verified in this session, same mechanism).
 [[project-sys-deps-wiring-completion]] · [[project-reload-modules-load-registry-fix]] (a sibling
 "reload doesn't fully refresh derived state" bug in the same area, found the same week)
 
-#,,.,,,,.,..,,,.,,,,.,.,.,,,,,..,,,.,,,.,,,,.,..,,...,...,,.,,,,.,,,,,...,,..,
-#ZYZ5KEGJTOLGMUOATKRL6YD7A3M6XJPGXSWBSRXQL5HOECZSHT4DAW7LX4E6LQXYCTZ6TQRQXGPJS
-#\\\|SNAXWPDGHYQUFMMCXE4MEHJTF3PKPCGME7Y4ZPYZKDYS5INTCKQ \ / AMOS7 \ YOURUM ::
-#\[7]WINLYAW2B7EAIIAE3T7N3X6IU5VF2A6HT22OLEMH7B4PTJ5WFCAQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,.,,.,,,,,.,,..,...,.,.,,.,,,,,,..,,...,..,,...,...,..,,,.,,.,.,
+#AP6MUWBPCIIESLM5VLNSTVOR5K6F2GJUNYBKF35JWY2EB535JJ5AMKHP2CM6E6ERSALYCALYV6K2O
+#\\\|3JKF2BAETXTH5J6TDV4OUJ764G44VJ7FKWDWOELQKZNDCJU5PP2 \ / AMOS7 \ YOURUM ::
+#\[7]Q7G4STTLGX6DR7BQSAIC7QAIWRKQI7YODH2PO2NJAJY4662FLEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

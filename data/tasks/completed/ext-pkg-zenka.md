@@ -63,7 +63,7 @@ contract (see goals below), not just the install step.
 ### task 1.1 — create ext-pkg zenka
 ```
 ## dispatch + prompt
-create cfg/zenki/ext-pkg/ following the zenka-startup.v7 +
+create cfg/zenki/ext-pkg/ following the start.cfg +
 start script pattern from cfg/zenki/os-pkg/ (closest existing
 sibling — same "given a package name, install it" shape, just a
 different package-manager family). access.zenki pattern from
@@ -130,8 +130,8 @@ looking up a source and installing something by hand.
   global-install permission questions) stay isolated per zenka instead
   of accumulating as special cases in one shared module.
 
-#,,..,.,,,.,.,.,.,.,,,,,,,,,.,.,,,.,.,..,,,,,,..,,...,..,,,,.,,,.,.,,,...,..,,
-#G4CELSDG4WLAORB52IQRGHAZIXCI5FNFV4GBPRPHOF2XOVWUCX3NLBPGKOOFEPBSQL54RTBKGQOT2
-#\\\|ISI35VCZ6Y53PEWSZ4AAM3ISYHIQU2OVW3FPTLGZMI5MFAQ5FJO \ / AMOS7 \ YOURUM ::
-#\[7]KR5LF2JRNW2C3F4E4NRRZK7KEEBX6KE5FZCJ7RP4SVGELURGBGAA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,.,,.,,...,,,,,.,.,...,,.,,...,..,,...,...,...,...,..,,,,,,,,,,
+#FGWY45IB2DE5XEFDJDILW47RX5XRADA5ZJ5WX72MZSCWDKDJ75P6CO4WISMWT7JME7RHXMHJIJQPY
+#\\\|F7YSK7CIJZ5A4Z2N6JA3BXCMTKD7VJLM7HVXYJM4ZKABIGK7AM4 \ / AMOS7 \ YOURUM ::
+#\[7]GA7IJM73637SVOQMVAR6ISX6B2X4KE7YTPTDLDCV5LAKUGDETWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,8 +27,8 @@ zenka that can be queried by coding, models, and lm-vision zenki.
 
 ## read these files first (understand patterns before writing)
 
-    cfg/zenki/calc/start         — minimal on-demand zenka pattern
-    cfg/zenki/models/start       — full-featured zenka with adapter commands
+    cfg/zenki/calc/zenka.v7         — minimal on-demand zenka pattern
+    cfg/zenki/models/zenka.v7       — full-featured zenka with adapter commands
     cfg/external-inference-models — lmstudio config keys
     src/models.storage.adapter.lmstudio.discover  — main data source
     src/models.storage.adapter.lmstudio.resolve   — path resolution
@@ -39,7 +39,7 @@ zenka that can be queried by coding, models, and lm-vision zenki.
 
 ## what to create
 
-### 1. cfg/zenki/lmstudio/start  (new file, replaces .placeholder)
+### 1. cfg/zenki/lmstudio/zenka.v7  (new file, replaces .placeholder)
 
 on-demand zenka — starts when first queried, shuts down after idle timeout.
 
@@ -198,14 +198,14 @@ look at cfg/zenki/models/subroutine.white-list for format reference.
 ## do NOT create
 
 - do NOT create access.* files (lmstudio zenka uses cube's default access rules)
-- do NOT create zenka-startup.v7 (not needed for on-demand zenka)
+- do NOT create start.cfg (not needed for on-demand zenka)
 - do NOT create auth.* files (handled by shared-params)
 
 
 ## verify
 
     ptd -c on all 6 module files
-    check cfg/zenki/lmstudio/start looks syntactically reasonable
+    check cfg/zenki/lmstudio/zenka.v7 looks syntactically reasonable
     check subroutine.white-list has correct format
 
     to test after signing:
@@ -221,8 +221,8 @@ look at cfg/zenki/models/subroutine.white-list for format reference.
     - models zenka unified discover spans invoke + lmstudio via shared adapter modules
     - foundation for lmstudio inference API integration (next step)
 
-#,,,.,...,,.,,,.,,,,,,.,.,,,,,...,..,,,,,,.,.,..,,...,..,,,..,,..,,,,,...,.,,,
-#EQCBIKFZR3MXZKPINGZ7ESUM6WTNAYJQ7ECV6BI4VCJVCNS4F2SYLOPXN3Q5QUHKVWZJCTVV7HETK
-#\\\|75J44SYDAVSUWN265VRE554H3JUGTHBP5EG2CT7DNJAFLKCLTHV \ / AMOS7 \ YOURUM ::
-#\[7]6TERT7I7C7LBHFRBADGSMMXGTCI44LWS6LQRQQAJ5WLG2X7TI4BA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,.,..,,,.,,,,,,,.,,,,.,.,,,..,,..,,...,...,,.,,,,,,,,.,,.,,,,.,
+#6RJK23WF4N7BTMNSPZI2UIXFOTEBKWHAJLWT4ZDR5HLWHFTSLLKA4W4HTBUCKQIHEVW5RGSB7UL5E
+#\\\|BOCAGRVLBGSUD4YHBP7NS23A3CXU5APWSZWFFYBRYONOWPFSOFL \ / AMOS7 \ YOURUM ::
+#\[7]EJL5AAXLJRDRZK3QQCQ2WZPHDZAGUEF5ACWAJWF2SXDTLSJJ26CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

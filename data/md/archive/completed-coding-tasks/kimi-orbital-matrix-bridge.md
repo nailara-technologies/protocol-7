@@ -85,7 +85,7 @@ create `graphics-matrix.cmd.orbital-sync` — a command handler that:
 - calls graphics-matrix.glow.compute to refresh glow
 - calls graphics-matrix.graph.survey to get current cluster state
 - returns a summary: { cells: N, glow_total: F, clusters: N, channel: {...} }
-- register it in the access.cmd.usr.cube line in cfg/zenki/graphics-matrix/start
+- register it in the access.cmd.usr.cube line in cfg/zenki/graphics-matrix/zenka.v7
 
 this gives `p7c graphics-matrix.orbital-sync` as a manual test command.
 
@@ -115,8 +115,8 @@ once implemented, test sequence:
 - use `$data{'zenka-name'}{'key'}` for zenka data tree access
 - use `protocol-7.route-send` for cross-zenka calls, `protocol-7.command.send.local` for same-zenka
 
-#,,,,,..,,.,.,...,,..,,..,.,.,,..,..,,,,,,,,.,..,,...,...,,..,,.,,,.,,,,,,,,,,
-#BWNYCOTYBQRTVL3WQQXBJEIPD4Y5PGBQHWRDF34CIIJKPZKPGDQ3SH56LQV6UMQISJJLHKILQWT3A
-#\\\|NHNPS6WP35VRSSUVNEZFTVAYV7WBE3OPQDQJE7J3RAQJEUY5ZKC \ / AMOS7 \ YOURUM ::
-#\[7]7B4EQMGVPUHMTNGPC2VWIBLIZXNSSMBXATZAKSKDADTVFBZP2YDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,,.,,...,...,.,.,,,,,.,.,.,.,..,,...,...,,.,,,,.,..,,..,,...,
+#CIOENM5YH7ZJLGJDET5THYRM5IV2RKCLMZZP4RA5PQIDW3VK744YNN5Y3G4UKJ2TLWSBATAZKLKAU
+#\\\|BHNO7IGGSAWAANHQUG6HVYUY5BXF35MJYOQMIQPT35KDTVOASOQ \ / AMOS7 \ YOURUM ::
+#\[7]O3ZYUEVBXAYLW4KNURZIO6Z66MMRXWHHE5NBY44QNGH67ISHVGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

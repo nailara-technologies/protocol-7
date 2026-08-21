@@ -73,7 +73,7 @@ export HF_CACHE_DIR=/var/cache/huggingface
 ### For Models Zenka
 
 ```perl
-## In cfg/zenki/models/start
+## In cfg/zenki/models/zenka.v7
 #include <shared-params>
 #include <external-inference-models>
 
@@ -83,7 +83,7 @@ export HF_CACHE_DIR=/var/cache/huggingface
 ### For Other Zenki
 
 ```perl
-## In cfg/zenki/coding/start (or lm-vision, etc.)
+## In cfg/zenki/coding/zenka.v7 (or lm-vision, etc.)
 #include <shared-params>
 #include <external-inference-models>
 
@@ -146,8 +146,8 @@ And modify the default value at the top of the file.
 
 ---
 
-#,,,,,..,,...,..,,.,,,.,.,.,,,,,.,.,,,,,.,...,.,.,...,.,.,.,.,.,,,..,,,..,.,,,
-#VTUEL5XEB7BJTTQTRLZZTG5JHEERBOAXJGKFNUMLEBSKLGX6UIJCOUMANXXYPDOMXAHXC2ICQNVUQ
-#\\\|WYNRWA627GSTJNO6HM2ID5EKED2FSEYCO3XQR5MK7TZIZIB42UH \ / AMOS7 \ YOURUM ::
-#\[7]NYMFN67IVHQDR6GHGHKGN7UUSB3KDRO5BE2OUJPF5CDMMZRPDOCY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,...,...,,,,,.,.,...,,,,,.,.,.,.,...,...,,,.,...,.,,,,,.,,.,,
+#SZWJALPIM5ZME3TYWMWKK6TX7TKALUP24JLCUML3ARPAZDZJECPYRMUSG6AGD6DAV364W4ZNTRR64
+#\\\|NVIZSWV4IM7W37NG5YVE7IBOTSXUVHFRGKALXKF6QGPY2SM323C \ / AMOS7 \ YOURUM ::
+#\[7]YGSFI4VSTGCVX5K54X322BJACHMVJYGFVRCEMNBR6NUVCEVG36BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -443,7 +443,7 @@ $view->get_snapshot(
 
 **Caveats:**
 - `get_snapshot()` is **asynchronous**. For a sequence of frames, each snapshot must wait for the previous to complete.
-- The WebView must be **realized and rendered** before snapshotting. In a headless environment without a display, `Gtk3::Gdk::Window` creation may fail unless a display is available. However, if the web-browser zenka is already running on a real X11 display (which it is, via `cfg/zenki/web-browser/start`), snapshots can be taken directly.
+- The WebView must be **realized and rendered** before snapshotting. In a headless environment without a display, `Gtk3::Gdk::Window` creation may fail unless a display is available. However, if the web-browser zenka is already running on a real X11 display (which it is, via `cfg/zenki/web-browser/zenka.v7`), snapshots can be taken directly.
 - For true headless capture, `Xvfb` is still needed to provide the display, but `scrot`/`chromium` are eliminated.
 
 #### priority: **HIGH**
@@ -818,8 +818,8 @@ The following tasks are ordered by priority and dependency. Each is designed to 
 *WebKit2GTK version analyzed: 2.50.5 (libwebkit2gtk-4.1-0)*
 *System: Debian unstable / libgtk3-webkit2-perl 0.06-6*
 
-#,,,,,..,,,,.,.,,,,,,,...,,,.,,,.,,,.,,,,,..,,..,,...,...,.,.,,,.,,..,,.,,.,.,
-#S4RZJ3PPWTHFLGPNDMA7VLMDPGLUQD36IIWK6MD37FBIVVEHFNYHLHF3BQXLJFU274KNPK2QLIWOQ
-#\\\|6EHHYMN74UPZ7YE3WX4CC2XET2OAUMFLSYR6F7DDXUJQKTCN7FA \ / AMOS7 \ YOURUM ::
-#\[7]F25AEGMEVT3LBSVPZ4ZOEWTFOA7OCKRAXJSZ65ZKZ2SRY673ZMDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,,,.,,,.,,,,.,,...,..,,.,,,,..,..,,...,...,,.,,,..,,.,,.,,,,,,,
+#LBVFOFGNG6EJS7OEW7PY5QMYZ5GI5X4KP7UUMLR4PS2A5ORXTS6AQFYUVLOCEVISQJPAM5XT7OECQ
+#\\\|7DO2UDMKY4IH2DPT27C4QM3ZNIN565IKLBASY7ANVKRJOUJBL5U \ / AMOS7 \ YOURUM ::
+#\[7]2T6TZNWXXMEVSL7RHENW7LLHULLVX5GN7LIB66TTVTOPCNKUNWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ translates them into concrete first steps.
 current state on disk:
 
 - `src/povray.init_code` — stub, `0;` and nothing else
-- `cfg/zenki/povray/{start,zenka-startup.v7,os-dep,pm-dep,
+- `cfg/zenki/povray/{start,start.cfg,os-dep,pm-dep,
   source,subroutines.load-early}` — scaffolding already wired up
   [ auth.client, net, protocol, io.unix, ui, povray loaded ; wildcard
   `filter` command access already granted from cube ]
@@ -77,7 +77,7 @@ architectural commitments this plan defers to rather than re-decides.
   `event.add_io` watchers, `event.add_timer` timeout, per-run state
   dict keyed by run id. this plan mirrors that pattern almost
   verbatim.
-- `cfg/zenki/audio/start` — precedent for setting
+- `cfg/zenki/audio/zenka.v7` — precedent for setting
   `<zenka>.cfg.output_dir` at zenka-start time from the start file.
 - `CLAUDE.md` § on-demand deployment [ `restart.disabled = 1`,
   `heartbeat.disabled = 1`, `[base.zenki.set_ondemand_timeout:secs]` ]
@@ -149,7 +149,7 @@ modelled on `src/audio.init_code`. concretely :
 <[base.perlmod.load]>->(qw| POSIX |);
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
-## config defaults [ overridable in cfg/zenki/povray/start ] ##
+## config defaults [ overridable in cfg/zenki/povray/zenka.v7 ] ##
 <povray.cfg.output_dir>     //= '/var/protocol-7/povray/';
 <povray.cfg.template_dir>   //= 'data/yaml/povray-templates/';
 <povray.cfg.scene_dir>      //= 'data/pov/';
@@ -176,7 +176,7 @@ if ( not -x <povray.path.povray_bin> ) {
 ```
 
 the on-demand call may already be set globally via zenka config
-[ `start.on-demand = 1` in `cfg/zenki/povray/zenka-startup.v7`,
+[ `start.on-demand = 1` in `cfg/zenki/povray/start.cfg`,
 plus `restart.disabled = 1` / `heartbeat.disabled = 1` ] rather than
 in init_code — decide once, put it in one place. audio does not set
 its own timeout ; if povray follows the same pattern the ondemand-
@@ -343,7 +343,7 @@ resolution is milestone 1.
 follow the audio-zenka precedent :
 
 - default output dir : `<povray.cfg.output_dir>` = `/var/protocol-7/povray/`
-- set in `cfg/zenki/povray/start` [ mirroring the
+- set in `cfg/zenki/povray/zenka.v7` [ mirroring the
   `audio.cfg.output_dir = /var/protocol-7/audio/` line ] so it can
   be overridden per deployment without editing init_code
 - ownership : `[root.drop_privs:<system.amos-zenka-user>]` happens
@@ -365,7 +365,7 @@ grows, defer to milestone 2.
 
 ## on-demand / timeout / lifecycle
 
-- `cfg/zenki/povray/zenka-startup.v7` should carry
+- `cfg/zenki/povray/start.cfg` should carry
   `start.on-demand = 1`, `restart.disabled = 1`, `heartbeat.
   disabled = 1` [ same as other on-demand zenki per CLAUDE.md ]
 - idle timeout : 142s tier per feedback-ondemand-timeout-tiering.md
@@ -392,7 +392,7 @@ the concrete first working end-to-end path :
    `povray.finalize_render`, and cube-exposed
    `povray.cmd.render` / `povray.cmd.template-resolve` /
    `povray.cmd.status`
-3. **update** `cfg/zenki/povray/start` : add
+3. **update** `cfg/zenki/povray/zenka.v7` : add
    `povray.cfg.output_dir = /var/protocol-7/povray/` and any other
    deploy-time overrides ; add the new commands to
    `access.cmd.usr.cube = ...` explicitly [ the current `filter *`
@@ -480,8 +480,8 @@ things this plan considered and rejected :
   to milestone 2+. one symlink at finalize is fine ; a real cache
   index is not.
 
-#,,..,.,.,,.,,.,.,.,.,,..,.,.,,,,,...,,,.,.,,,..,,...,...,..,,,,.,.,,,,..,.,.,
-#RUE4JOXTNM7DGU5SXOZGCR4TWQXQKYHVLVF4M43TWPVLDUSTIPUFVFB5TQVOY7RE6TFDKW4NBRI4Y
-#\\\|77DU23CGTEI5RLLLI5OVTVPLETB7QYEVWDMCHTDQPSIVJIJSDVJ \ / AMOS7 \ YOURUM ::
-#\[7]J5AZ5RAK3OBO5J6MYRZ23SR5PC25DPAZRNLH3U6HSZZ4EQRHRSCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,.,...,,,,,,,.,,,.,,..,..,,,.,,..,,...,...,...,...,...,,,,,,,.,
+#LITHZEMC2IX3UAAVEJHP3MIOABZVFYIJGITOQWPP4WFL4NQFVWPGJALSJUABNGWLR6CZUNNHJJ22O
+#\\\|LW3AB55KNDZR6AJI5W7WI2E44NB6LV2SWZRIWGMHNVOMIEVLBA4 \ / AMOS7 \ YOURUM ::
+#\[7]AYOVJNQH7PABEENVAFXR4TMYNQUJSCHUHIBNSM7B4H63A7ZJB2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

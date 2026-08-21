@@ -54,7 +54,7 @@ src/<zenka-name>.internal.<helper>             # utilities
 
 cfg/zenki/<zenka-name>/
 ├── start                                          # main config
-├── zenka-startup.v7                               # v7 integration
+├── start.cfg                               # v7 integration
 ├── pm-dep/                                        # perl deps
 └── source/                                        # source tracking
 
@@ -116,8 +116,8 @@ p7c coding.ask template=zenki-create zenka_name=my-zenka zenka_type=standard
 
 ---
 
-#,,.,,...,,,.,...,.,.,,,.,,,,,,,,,,,,,.,,,...,...,...,...,...,,..,,..,...,,.,,
-#YKTFBHYF3WR3EGTRTFME63QTVDF6CGOC56UQLQPX6TO5HVT4STQMZNW7GIYDT5GVL7IGTLOWHW7HU
-#\\\|NHF52QS5YL4RE6HZLGHVCK4ZYGHJEDSKPK7MC3SFASGJRNFQP7C \ / AMOS7 \ YOURUM ::
-#\[7]LYY7R3ZWJKSJA5NUOSTFWAR3WN2KQ37FOKTD36DSEWJJC7HRTYBI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,,,..,,,.,,.,.,,.,,.,,,,,,,.,,,...,...,...,,..,.,.,.,.,..,,,.,,
+#22LMJOF4MHEMXHX7BLDJBM4DDVEIYX3WF3EQFKAQDE3CXL2OM7KVZQY2UELNN5AY5NOFOHYCC345Q
+#\\\|YGBR5RMIVHA5JYSNQCBTGFJVUWZK2467R64U5VPIW5K45ML2LV4 \ / AMOS7 \ YOURUM ::
+#\[7]IRG4BL3CJ74GOIVFT4VCBK4JUAT54P6ODLQO6GCXUUQYFEWKCWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

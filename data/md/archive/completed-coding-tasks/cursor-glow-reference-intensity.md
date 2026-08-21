@@ -149,7 +149,7 @@ glow state lives at:
 
 ## modifications to existing files
 
-### cfg/zenki/graphics-matrix/start
+### cfg/zenki/graphics-matrix/zenka.v7
 
 add `glow` to the access.cmd.usr.cube line.
 
@@ -170,8 +170,8 @@ add glow initialization after cursor init, before `0;`:
     verify lowercase comments
     verify bar rendering uses utf-8 block character
 
-#,,,,,..,,,,,,,.,,.,.,,,.,,.,,.,.,,..,..,,.,.,..,,...,..,,.,.,...,.,.,.,.,,,,,
-#MNO5TPAV55IAZJMNPS2OCT3DOZE7LZP2RL46F47ZKGB37KE4N23Y3XVBM6VRPBRNGX5MW5KJYZHZS
-#\\\|7GL767UVRLKTLWHBEFZV467IYB2LTDQHZD22TKCK3CCDVNYT4NV \ / AMOS7 \ YOURUM ::
-#\[7]CEXGEHRY2RJWJ53KOHB24ZQOTVKFL6A24PTIPV2OPBHVWBZQSMBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,.,,.,,,,,,..,,...,.,,,..,,.,.,..,,...,..,,,..,,,.,...,,,.,,,.,
+#V5P73NDM42WVWTOOB7DFYHYGY2IL7AWBU62JOZPHP4BXEHDHROM6L4AXVSYWSUISXLQ5WWNSD5O42
+#\\\|PRHZHGVTC3DWTPIBW6JOTD6LAMHD7HQIXP5OTFMBCZWDCQTFBZX \ / AMOS7 \ YOURUM ::
+#\[7]SIDM4TYBTZMQWESIJ7O5YJXL27MDUC2ZDJ3UOYBCNY6HRRJQ3QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

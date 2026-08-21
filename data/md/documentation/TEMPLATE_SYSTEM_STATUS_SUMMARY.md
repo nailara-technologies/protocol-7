@@ -245,9 +245,9 @@ return $cached_data;
 ## Configuration Files to Check
 
 ```
-cfg/zenki/httpsd/start       # HTTPSD config
-cfg/zenki/web/start          # Web zenka startup
-cfg/zenki/letsencrypt/start  # Let's Encrypt config
+cfg/zenki/httpsd/zenka.v7       # HTTPSD config
+cfg/zenki/web/zenka.v7          # Web zenka startup
+cfg/zenki/letsencrypt/zenka.v7  # Let's Encrypt config
 ```
 
 These define which modules load and initialization parameters.
@@ -369,8 +369,8 @@ Task Files:
 **Token Budget**: ~50,000 remaining (plenty for documentation + refactoring)  
 **Recommendation**: Create module reference doc first, then refactor code
 
-#,,,.,..,,..,,,,,,.,.,,..,.,,,,,,,..,,,..,.,.,..,,...,...,.,.,.,.,,,.,,..,,,,,
-#HYPNYICVVGUNEDXAXDJCLKG7GMZFFLZBLLFKVRMHDRVEIZT2MQDDVTS2XI2T46TT52WF2F2C6NQIC
-#\\\|IJLESWDWAOKDS6UBJDOFWJRCHNVI7SEB75E7CEEX6BJBGF6LSMX \ / AMOS7 \ YOURUM ::
-#\[7]PWQH3KEGX77TFUFMKX24UXELX4CHKOTE4URP2FQ7CQ5QF3GKWIDY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,.,.,,,,,.,,,,,.,.,,..,.,.,,.,,..,,...,...,.,.,,,.,.,.,,,.,,,,,
+#5JDLHZHWNQV4N4RZ7AQOB64V5OKLTAKF5FYHEITMCOFZFSJGHO53PNXY6YXS4X5PR5DPC5WA5XNQ6
+#\\\|RBKHTHKGANSIXWB4JETMXGRP2EKOG7N3ICIISYI5RTHKX23T2SQ \ / AMOS7 \ YOURUM ::
+#\[7]HVQ64UU2JE75R4VDDXEST6S6NGEUNT3RCBYLCPQW4TU5I4DS5ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

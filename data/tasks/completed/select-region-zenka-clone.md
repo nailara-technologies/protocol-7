@@ -178,14 +178,14 @@ hardcoded `'window.place [...]'` string.
 
 ## config files to create
 
-clone `cfg/zenki/window-place/{os-dep,pm-dep,source,start,subroutine.white-list,zenka-startup.v7}`
+clone `cfg/zenki/window-place/{os-dep,pm-dep,source,start,subroutine.white-list,start.cfg}`
 into a new `cfg/zenki/select-region/` directory:
 - `start`: update `modules.load` to load the `select.region.*`/`window.gtk`/
   `window.profile` modules under their new filenames; keep the
   `access.cmd.usr.cube = commands heart reload verify-instance * *.*` line
   (same self-access pattern window-place uses)
 - `subroutine.white-list`: regenerate, don't hand-edit (see below)
-- `zenka-startup.v7`, `os-dep`, `pm-dep`, `source`: copy as-is, only changing
+- `start.cfg`, `os-dep`, `pm-dep`, `source`: copy as-is, only changing
   any literal `window-place`/`window.place` strings to `select-region`/`select.region`
 
 after all modules exist, run `bin/dev/gen-sub-whitelist select-region` to
@@ -234,8 +234,8 @@ manual test sequence (report exact `p7c` output for each):
 ## the full manual test sequence and report the actual output of each
 ## p7c command. do not modify any window.place.* or window-place/* file.
 
-#,,.,,,.,,,.,,...,...,,,,,...,.,.,.,.,.,,,,,.,..,,...,...,...,,..,...,...,...,
-#HEVGJAAWDHSMZ2AF433V4YKBA5DK3AV4JN2ZBVRQRMKWBRWS7DNO2L672OQCACLAB4A35FMMEVHLQ
-#\\\|EDU63ZT7PV5EXQ4BNK4WZI45RV36SBR3K3BO7Q5TSPCVSCN5M3F \ / AMOS7 \ YOURUM ::
-#\[7]VTKJBDK22AY5RCIU74KYRQZOCUUGLGOMLLZEQUXF3MWSDKJBVQAI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,..,,,..,...,,.,,.,,,...,..,,,..,..,,...,.,.,.,.,.,,,.,,,.,,,..,,
+#KAT2VRUKB4YNV5HQMU2LYRK4CWAIU5F73Y5MIDFI6JRZKEO4PLTYT2OHNS2UYG2MCJQEUKI6W5Z7E
+#\\\|IQ4LHVMCR6RZSKG74DAD5X4WM3XQI5XENZLXFZWEXBZGO336EA3 \ / AMOS7 \ YOURUM ::
+#\[7]E4QAYMNEZ6UDJ4FRODU7E26W7P5RGUZYNH4LUUISOMNR6JO346BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

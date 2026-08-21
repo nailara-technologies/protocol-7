@@ -17,8 +17,8 @@ the correct architecture:
 
 ## read first
 
-- cfg/zenki/httpd/start          (current httpd config)
-- cfg/zenki/web/start            (web zenka config)
+- cfg/zenki/httpd/zenka.v7          (current httpd config)
+- cfg/zenki/web/zenka.v7            (web zenka config)
 - src/plugin.httpd.radio.handler.stream_request  (route-send + reply pattern)
 - src/plugin.httpd.radio.handler.strm_open       (SIZE reply handler)
 - src/httpd.route.handler.iris-svg               (current iris handler)
@@ -26,7 +26,7 @@ the correct architecture:
 
 ## step 1: httpd cleanup
 
-in cfg/zenki/httpd/start:
+in cfg/zenki/httpd/zenka.v7:
   REMOVE: [base.white-list.register:'plugin.web.jobs']
   REMOVE: plugin.web.jobs from plugins.load
   REMOVE: plugin.web.iris from plugins.load (if present)
@@ -43,7 +43,7 @@ in cfg/zenki/httpd/routes:
 
 ## step 2: web zenka loads plugin.web.*
 
-cfg/zenki/web/start already has:
+cfg/zenki/web/zenka.v7 already has:
   plugins.load = plugin.web
   [load_plugins:<plugins.load>]
 
@@ -146,7 +146,7 @@ in the web zenka, add command handlers that the relay calls:
 these exist already in plugin.web.jobs.* — just need to be accessible
 as commands from outside the web zenka.
 
-add to cfg/zenki/web/start access.cmd:
+add to cfg/zenki/web/zenka.v7 access.cmd:
   access.cmd.usr.httpd = jobs.data jobs.sync ...
 
 ## step 6: iris web zenka integration
@@ -190,8 +190,8 @@ new modules: leave clean. existing: re-signed on commit.
 $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 
-#,,.,,...,..,,...,..,,..,,,,.,..,,.,.,.,,,.,.,..,,...,...,...,.,.,,,.,.,.,,.,,
-#ZD345YS2E37ELKLWRV2VZVOIIHKSLIPD23P45TWW2JA4V42KCHEL72EFCF656C4MO7OORDU3K3ZL2
-#\\\|OI7LYAW3EGKXBO7ADA4MWECDWCLY33XRTJYMOK7JXVQI26VTL4G \ / AMOS7 \ YOURUM ::
-#\[7]PITKCXQCTR45RVWAAJQ2ITRKCYBNFJXKJVYFXJGXYLL52AWKHKDY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,,,.,,,...,..,,,,,,.,,,,,,,.,.,..,,...,...,,..,..,,,.,,,,.,..,,
+#OOJPVNNKOJZUEQ4EOQLFTLHS6WO3KLTOGDEWRJ6IZCX5CFQKRRN4RFILCVZSJ5IL6SIC3HXCWSHDM
+#\\\|VXCAZCTJS2GPRVEWMPQP77JK5W33MIWPQISGEGHXOX7OEDPOKVF \ / AMOS7 \ YOURUM ::
+#\[7]7PKMYEMVQ6VP64ZJLPBQIKXH62C7BGWHEJWPYAZSZT3CWWYNIWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

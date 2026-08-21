@@ -27,7 +27,7 @@ the context.* namespace is a unified context management layer for budget-aware l
 - ncode.regex.save — persists patterns back to yaml
 
 ### context zenka configuration
-- cfg/zenki/context/start — loads auth, net, protocol, io.unix, format.yaml, channels, context, ncode
+- cfg/zenki/context/zenka.v7 — loads auth, net, protocol, io.unix, format.yaml, channels, context, ncode
 
 ## key design principles to preserve
 
@@ -91,8 +91,8 @@ the context.* namespace is a unified context management layer for budget-aware l
 2. test context zenka via `v7.start context` and nshell commands
 3. read existing context.* modules to understand the provider pattern deeply
 
-#,,,,,.,,,,,,,.,,,...,,,.,,,,,...,,,.,,,.,.,,,.,.,...,...,..,,,,.,,.,,,,,,..,,
-#HIH46H26QZ2E66ZGLDZ3MSBBXXDNXPWJMXQC37MYY442ABU4QRDELFZO4TS3ZEW2EOVRPXTGHOSOI
-#\\\|PGGJE4FNXNYZUZU3UXXC2QKKYQYAF3S6SYUOGG524U3CVNZRG7L \ / AMOS7 \ YOURUM ::
-#\[7]OV56ABBLFXEHBEH7GZONDZ7EUM2SENTUCI2YKFKZWQGRPJS2AQAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,,.,,,.,,...,..,,...,,,.,.,.,.,.,...,...,,.,,,.,,,,.,,,.,,,,,
+#NRBNFV3P3BO7DQVSGWGKVWFZGI3D5RFYVEDQHMOZVSUKLWVPTKLOAE7ZPGK2A5OVJNCI45RQEYVNG
+#\\\|WAZN2E6VP4VY7TYUUGNDS6KKEJAZDR3W4522SBFUIBXVNF43WOC \ / AMOS7 \ YOURUM ::
+#\[7]Z632OMW56ULOWIGE6CA3F7VW3G65QCIDIIW3L2QFZFRNHPOIX6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

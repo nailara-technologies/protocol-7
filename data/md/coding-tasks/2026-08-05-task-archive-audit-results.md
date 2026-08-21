@@ -61,7 +61,7 @@ disagrees with this one.
 - space-index-grid-endpoint.md : `plugin.web.space.grid.{init_code,scan}` + `handler.state_reply` + `state` exist
 - summarize-context-command.md : `coding.cmd.summarize-context` + `task.cmd.summarize` + `task.handler.summarize-reply` exist
 - sync-export-history-across-browsers.md : exported_stage synced via `src/plugin.web.jobs.sync` (line 55)
-- task-zenka-kimi-coordination.md : task zenka (`cfg/zenki/task/start`) + `models.handler.task-poll-step` + `kimi.cmd.ask-reply` exist
+- task-zenka-kimi-coordination.md : task zenka (`cfg/zenki/task/zenka.v7`) + `models.handler.task-poll-step` + `kimi.cmd.ask-reply` exist
 - verify-finish-reason-propagation.md : file records Status: VERIFIED; `coding.handler.check-completion-chain` exists
 - web-plugin-inline-sub-extraction.md : `plugin.web.content.util.{calculate_checksum,format_size,generate_submenu}` + menu.tree extracted
 - zulum-cube13-decoder-integration.md : `zulum.*` (6), `cube-13.cmd.*` (4), `decoder.*` (22) modules + all three zenki configs exist
@@ -246,8 +246,8 @@ disagrees with this one.
 - Human confirmation needed before any file is actually moved/archived —
   this document is the audit trail, not an archival action itself.
 
-#,,.,,,.,,.,,,..,,,,.,,.,,,.,,,,.,,.,,,,,,.,,,..,,...,..,,,,,,,.,,...,,,,,,,.,
-#7ZR7FZKYJLDY7IABSWBBYPLR6SGZA5OS4UHPXRQQMKTHYWSBTKWYTRVNSOTYB5AL335G5H5XTECYY
-#\\\|SSBAKXHIXJGMDHNYRIZPHECU6UFQO4QPKISF42CMV22OKPJT523 \ / AMOS7 \ YOURUM ::
-#\[7]IA5QO7JZ6YP3O6E32YVSPC55E7WM4AAGDCMIQ23O6OQE5PML5EBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,...,...,,,,,.,,,,..,...,,..,..,,...,...,..,,,,,,.,,,,,.,..,,
+#ELYFOMA7SM75WM3DPLAWVM6ICAVYLNYKSIPKJXOUWSTLTCEE6OESZQ26BUMD5IFB5JNRMALS3KIOE
+#\\\|DSURV3GCMK5KJQDOXD25HMGYP2OO7C65LBP3P73HHCBPZD3OMH4 \ / AMOS7 \ YOURUM ::
+#\[7]QHJDV5IQZEPWJKYJO544YGFYYJFBWUNN3CX4H6MCDIFQSN6AUWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

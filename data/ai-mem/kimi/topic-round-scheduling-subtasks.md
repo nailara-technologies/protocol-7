@@ -45,7 +45,7 @@ Parent task (streaming)
 | `src/coding.callback.http_error` | MODIFIED - duplicate retry prevention |
 | `src/coding.callback.retry_request` | MODIFIED - clear retry_pending flag |
 | `src/coding.async.request` | MODIFIED - stale connection cleanup |
-| `cfg/zenki/coding/start` | MODIFIED - `round_scheduling.enabled = yes` |
+| `cfg/zenki/coding/zenka.v7` | MODIFIED - `round_scheduling.enabled = yes` |
 
 ## Bugs Fixed
 
@@ -131,8 +131,8 @@ These bugs were resolved after kimi's handover:
 - Full parallel task execution would require per-task isolation of globals. The round-based approach avoids this by never running tasks concurrently.
 - Server-side incomplete responses (no `finish_reason`) still occur occasionally; client-side retry handles them.
 
-#,,..,...,,,.,.,,,,,,,,,,,...,,,.,,.,,,,.,..,,..,,...,...,.,,,..,,...,,,.,...,
-#Q2OEVJP7LW35HXGBZIPYBH7KK527BVLEXHJMUEQYV723NLJURVZWOOJ5GIVMCQ7GARVBWST2ZLPPU
-#\\\|B5MVNTNUX2K7OMGPME77NPUHFEVRHMYG7QRCFSSOYROPIJBQRSW \ / AMOS7 \ YOURUM ::
-#\[7]EHPBQGIXA24WXTPOSFTLHW622T5ICDPJJU77EZY7AOMN632TKOAY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,,,,,.,.,.,.,,,...,,,.,.,,,,,,,..,,...,.,,,.,.,,..,,,.,,..,.,,,
+#OKGKTPNW42VLWSVGE2NC4BLP3ETERU7LLZRFFQGQJAZDDMCWHVUMF5AIUMEYTXORRD3VOSYZ65HVW
+#\\\|UI4G7BJKZ5PDJICMO5LBPM6RXOIQNAYCFKCGYOB26YT7YLPDVBT \ / AMOS7 \ YOURUM ::
+#\[7]IDVDYLLN3C7WEWFBILEHPBUSYSAVVFATCXRTKFXNS7UI3VXK5GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

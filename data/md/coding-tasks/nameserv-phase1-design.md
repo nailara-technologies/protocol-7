@@ -15,7 +15,7 @@ record management via commands for letsencr dns-01 integration.
 
 ## start file layout
 
-file: `cfg/zenki/nameserv/start`
+file: `cfg/zenki/nameserv/zenka.v7`
 
 ```
  .:[ protocol-7 authoritative dns server zenka ]:.
@@ -593,8 +593,8 @@ format: `YYYYMMDDNN` where `nn` is 2-digit daily revision [ or simple increment 
 
 ---
 
-#,,,.,..,,,,,,.,,,.,.,,..,..,,..,,,,.,,,,,.,,,.,.,...,...,..,,...,,,.,,,.,.,,,
-#KEO3DDHPRSGA75RNU464RYF46DIM5YQXO6VR6XVMFWVPG3WYNLS2TS5HSQSRISQHAXYQIZT2EOIIY
-#\\\|P26RNRINAPF7PXGM7MV4EEY3KVGYXROEAZLNKXJHDJP3WRGJ7PO \ / AMOS7 \ YOURUM ::
-#\[7]OYJKR3ZFSAUH3O3AJEYGL3Q4VVERYTBCS7DVKD7FVAPNTAS5IUAA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,,,,,,.,.,.,...,...,..,,...,.,.,...,..,,...,,..,.,,,.,.,,.,,
+#NXA4H4IJDCUXN7RP4ED2GB5CE2C4IDBEFQOHL5LWY77VFBNQI5VWBOZCSZYN3PM3POV42EBLYSGVE
+#\\\|QZ6HEM5KRHA527JHM5Y5IKLZB357GC63X6LYI4A5VRJGBTS2BOO \ / AMOS7 \ YOURUM ::
+#\[7]RIWDBCZRMNVOEYMDOFYKMXMVWAEJJVKPW2KJPBPSKXBGL4NAMCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
