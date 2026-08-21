@@ -86,7 +86,7 @@ When dependencies are mentioned, trigger automated verification:
 # When task mentions "we need JSON::XS"
 → bin/p7-deps scan-usage JSON::XS [--aggressive]
   ├─ Grep codebase for actual use: grep -r 'JSON::XS|JSON::PP'
-  ├─ Check pm-dep declarations: ls configuration/zenki/*/pm-dep/ | grep JSON
+  ├─ Check pm-dep declarations: ls cfg/zenki/*/pm-dep/ | grep JSON
   ├─ Verify in profiles: grep -r 'JSON' .deps/profiles.yaml
   ├─ Find actual imports: ./bin/ncode s src perlmod.autoload | grep JSON
   └─ Report: matches X files, declared in Y zenka, used in Z modules
@@ -348,7 +348,7 @@ This enables new capabilities:
 When task says: "Implemented webhook validation using Crypt::OpenSSL::X509"
 → Parse mentions Crypt::OpenSSL::X509
 → Scan confirms it's imported in code
-→ Suggest: "Create configuration/zenki/<relevant-zenka>/pm-dep/Crypt__OpenSSL__X509"
+→ Suggest: "Create cfg/zenki/<relevant-zenka>/pm-dep/Crypt__OpenSSL__X509"
 ```
 
 **Safety Checks for Removal**
@@ -357,7 +357,7 @@ When task says: "Remove obsolete Image::Scale dependency"
 → Parse extracts Image::Scale
 → Scan confirms: not imported anywhere
 → Verify: safe to remove
-→ Suggest: "Delete configuration/zenki/zulum/pm-dep/Image__Scale"
+→ Suggest: "Delete cfg/zenki/zulum/pm-dep/Image__Scale"
 ```
 
 **Knowledge Capture**

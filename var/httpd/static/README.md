@@ -44,7 +44,7 @@ Run the setup script to populate static assets:
 
 The httpd/httpsd zenka must be configured to serve `/static/*` paths from this directory.
 
-In `configuration/zenki/httpd/start`:
+In `cfg/zenki/httpd/zenka.v7`:
 ```
 httpd.static_dir = /var/httpd/static
 ```

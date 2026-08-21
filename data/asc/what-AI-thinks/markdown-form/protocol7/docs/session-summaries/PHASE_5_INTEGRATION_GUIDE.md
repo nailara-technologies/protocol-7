@@ -33,7 +33,7 @@ Response
 
 ### Option A: Replace HTTP Handler (Recommended)
 
-**File**: `modules/httpsd.init_code`
+**File**: `src/httpsd.init_code`
 
 **Current code** (around line 50-80):
 ```perl
@@ -126,8 +126,8 @@ if (<feature.intelligent_routing_enabled>) {
 ## Integration Checklist
 
 - [ ] **1. Deploy Module Files**
-  - [ ] All 5 modules present in `modules/` directory
-  - [ ] Syntax validated: `perl -c modules/[name]`
+  - [ ] All 5 modules present in `src/` directory
+  - [ ] Syntax validated: `perl -c src/[name]`
   - [ ] Permissions: 0644 (readable by all, writable by owner)
 
 - [ ] **2. Update httpsd.init_code**

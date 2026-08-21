@@ -13,7 +13,7 @@ metadata from runtime artifacts by convention.
 +------------------------+------------------------------------------------+
 | Generic concept        | Protocol-7 equivalent                          |
 |------------------------|------------------------------------------------|
-| runtime boundary       | bin/, modules/, data/lib-path/pm/AMOS7/        |
+| runtime boundary       | bin/, src/, data/lib-path/pm/AMOS7/        |
 | AI metadata layer      | data/asc/what-AI-thinks/                       |
 | task accumulation      | data/yaml/coding-tasks/, data/yaml/indexes/    |
 | model memory           | data/ai-mem/claude/, data/ai-mem/kimi/         |

@@ -252,9 +252,9 @@ The right approach:
 - `validate_zenka_declarations()`: Lines 470-516
 
 **Zenka Configuration Locations**:
-- CPAN modules: `configuration/zenki/<zenka>/pm-dep/`
-- Debian packages: `configuration/zenki/<zenka>/os-dep/debian/`
-- Binary requirements: `configuration/zenki/<zenka>/os-dep/binary/`
+- CPAN modules: `cfg/zenki/<zenka>/pm-dep/`
+- Debian packages: `cfg/zenki/<zenka>/os-dep/debian/`
+- Binary requirements: `cfg/zenki/<zenka>/os-dep/binary/`
 
 **Commands**:
 ```bash
