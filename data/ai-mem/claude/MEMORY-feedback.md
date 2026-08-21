@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [pre-commit-hook-stale-path-refs-fixed](feedback-pre-commit-hook-stale-path-refs-fixed.md) — fixed 2026-08-21 (c465ba265): hook had hardcoded old `modules`/`configuration` path strings breaking its signature-exclusion list; exclude patterns are prefix-match unless ending in `$` (then unescaped regex); if the hook flags a plain doc as "unsigned", check `src/sourcecode.source_path_set_up`'s include list first — add an exclude line, don't sign it
 - [multiply-in-place-timeout-looks-like-ntime-bug](feedback-multiply-in-place-timeout-looks-like-ntime-bug.md) — v7's verbosity-scaled timeouts use `*=` not `//=` reset; a bug that makes `v7.init_code` run more than once (e.g. the `zenka.v7`/`start.cfg` rename's grep-target swap) accumulates them into absurd numbers that look like an ntime bug but aren't — fix the repeat-cause, not the timeout math
 - [rename-scope-policy](feedback-rename-scope-policy.md) — large namespace/file renames judged on improvement only, never avoided for size; repo history (agents→zenki, src↔configuration↔code↔modules↔src) shows renames cycle and that's fine; commercial deployments exist but forked off `base` years ago and don't track it, so nobody pulling `base` is disrupted by renaming it now
 - [v7-restart-stop-stale-zenka-registration](feedback-v7-restart-stop-stale-zenka-registration.md) — v7.restart/v7.stop can leave an OLD zenka process still connected to cube under the same name, routing test commands to dead code; `p7c term-all <sid>` (from `list subnames`) is the reliable forced cleanup
@@ -90,8 +91,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [modal-prompt-navigation-never-loses-content](feedback-modal-prompt-navigation-never-loses-content.md) — a cancel-on-navigation key (Left-as-Esc in a modal prompt) must gate on buffer CONTENT being empty, never cursor position — ordinary cursor movement must never be able to discard typed text; caught live in editor.control.prompt.handler.key, applies to any future modal input control
 - [check-existing-safety-nets-before-adding-new-one](feedback-check-existing-safety-nets-before-adding-new-one.md) — coding zenka's async/self-test machinery has multiple deliberately-layered, cross-referencing watchdogs with a documented history of drifting out of sync (4c3cf0e73); grep for an existing timer on the same flag before writing a new one, advisor caught me about to duplicate `verify_inference_startup`'s fallback with an independent literal ceiling
 
-#,,..,,,,,,.,,,.,,,..,.,,,,.,,.,.,,..,,..,.,.,..,,...,..,,,,,,,..,...,.,.,,,.,
-#3JHDJ4MFP6APHRNWFZIBD5AGNN6HXLEH5VIZ6MEGBU7KV2J273M4GIPRQLV7F4WHYY75IPCGRTNF6
-#\\\|LRIFVFS742X6SBF6COWJ5NTH2JSQFSPB6FUZ5KV4B7THCUG5SF2 \ / AMOS7 \ YOURUM ::
-#\[7]4XHXF3D2KTBRZYY4PWOKEC3NH4PSWOAU3Y7BSIKOUDJT6OBTJUBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,..,,.,.,.,.,,.,,.,.,..,,.,,,,,,,..,,...,...,..,,..,,..,,...,,.,,
+#67I2UEOYHIHYW74HIAAGBTCP32CBY4SAZBODSTGRNJHX4OIOP2WE7PF5QQR3LPVHMR2TZHUDYYR46
+#\\\|6IBJRITROW76B6QF6QMWBPBZQLSFR54X5IC7HBM47JRHXYQIKBW \ / AMOS7 \ YOURUM ::
+#\[7]ONYPQVMQ3F46Z7LB2HXIQFPBMLNFQXQU7DQG5ZQQ3FHRZBUW5SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
