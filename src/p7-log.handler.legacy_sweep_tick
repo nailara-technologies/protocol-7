@@ -16,8 +16,9 @@
 #          -- and a crash mid-scan would kill this p7-log process too,
 #          ending the scan along with it ]
 
-my $chunk_size = 4 * 1024 * 1024;    ## 4MB per tick ##
-my $tick_delay = 0.05;               ## seconds between ticks ##
+my $chunk_size     = 4 * 1024 * 1024;    ## 4MB per tick ##
+my $tick_delay     = 0.05;               ## seconds between ticks ##
+my $sweep_loglevel = 2;   ## log level for sweep start and end log messages ##
 
 my $state = <p7-log.legacy_sweep.state>;
 return TRUE if not defined $state;    ## nothing in progress ##
@@ -72,7 +73,7 @@ if ( not defined $state->{'current'} ) {
         ## every file processed -- done, report + persist marker ##
         if ( $state->{'repaired_files'} ) {
             <[base.logs]>->(
-                1,
+                $sweep_loglevel - 1,
                 "legacy_gap_sweep : %d gap%s repaired across %d file%s",
                 $state->{'repaired_runs'},
                 <[base.cnt_s]>->( $state->{'repaired_runs'} ),
@@ -81,7 +82,7 @@ if ( not defined $state->{'current'} ) {
             );
         } else {
             <[base.logs]>->(
-                1,
+                $sweep_loglevel,
                 "legacy_gap_sweep : scanned %d file%s, all clean .,",
                 $state->{'total_files'},
                 <[base.cnt_s]>->( $state->{'total_files'} )
@@ -262,8 +263,8 @@ if ( index( $buf, "\x00" ) == -1 ) {
 $reschedule->();
 return TRUE;
 
-#,,,,,..,,,..,..,,.,.,,,,,.,,,...,,..,,,,,,,,,..,,...,...,,,.,.,,,,.,,.,.,..,,
-#7IKRXDR2RSM24LP4QF5GRN3U665MP65U5RVNC3DZWRGEGZXUJ4EZU4GWCRMEXZQZ2OB32V62HTPOK
-#\\\|4PAOKJTXB54OF5ZRMPJVY5UP64BHHIO4XIOHMMLJO4LHLHXMZEO \ / AMOS7 \ YOURUM ::
-#\[7]SKATKZLZUO2VHBE4642N3VKWIVEQ4DO35AISZW7B4V2JD5AZAUBI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,.,,,,,.,..,,.,,,,,,,,,,,.,,,..,,...,...,,,,,...,..,,,,.,...,
+#ZPGKEILPNZT3XHODQ76U6YKMPHM2EC5BBJGIYHO2SLTH7ECPXCFFG4XQ3FGUR365W7O246XDD2IMY
+#\\\|SBMTSQNAYYBDVPEKCUFDZIWN3IR3HLFDY6MOUM3WZZYZM7Z5FQC \ / AMOS7 \ YOURUM ::
+#\[7]DUFGFQFG4B6QDPPZVF6SVTBUYSROI4HRLIZOITORIXC2O34RYIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
