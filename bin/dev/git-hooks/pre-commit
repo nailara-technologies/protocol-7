@@ -82,8 +82,8 @@ unless ($skip_descr_check) {
 
     my @violations;
     for my $file (@staged_files) {
-        ## only check modules/*cmd* files
-        next unless $file =~ m|^modules/.*cmd|;
+        ## only check src/*cmd* files
+        next unless $file =~ m|^src/.*cmd|;
 
         my $file_path = File::Spec->catfile( $root_path, $file );
         next unless -f $file_path;
@@ -237,7 +237,7 @@ unless ($skip_signature_check) {
     ## load exclusion paths from sourcecode.source_path_set_up ##
     my @sig_exclude_paths;
     my $sps_file = File::Spec->catfile( $root_path,
-        'modules', 'sourcecode.source_path_set_up' );
+        'src', 'sourcecode.source_path_set_up' );
     if ( open my $sps_fh, '<', $sps_file ) {
         while ( my $line = <$sps_fh> ) {
             if ( $line =~ m{^\s+!(.+?)\s*$} ) {
@@ -259,7 +259,7 @@ unless ($skip_signature_check) {
         } @sig_exclude_paths;
         next
             unless $file =~ /\.(pl|pm|yaml|sh)$/
-            or $file =~ m{^(modules|bin|configuration)/}
+            or $file =~ m{^(src|bin|cfg)/}
             or ( $file =~ /\.md$/ and $file =~ m{/} );
 
         my $file_path = File::Spec->catfile( $root_path, $file );
@@ -328,8 +328,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,..,,,,,,,,,.,.,,,.,,,.,,,,,.,.,,,,,,..,...,..,,...,..,,...,,..,.,,,..,,.,.,
-#QQP2OBMRFO73XB6WQRAYNYRGXAVXJXDRWKPRWFGFY4MQM7KRGD56ME2IMGP424NSCAAP47B7HWLN6
-#\\\|BALGN2TONTIR672T3NXTS5727UK2G3TIZHAFNPXXE5FKAF2ZRMI \ / AMOS7 \ YOURUM ::
-#\[7]GW2CJZWLJGKAI53UL35B4TJV6SRXHAVQE4KNERAHFK5M2S3MVUDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,,,,,..,,.,.,...,,,,,,..,...,..,,...,...,...,..,,.,.,.,,,.,,,
+#6SPOESZCG2EJ4743YVEE4BGBK6SRGJRS5C3GLE7F4245PHUG7BGINMMA66CM24QCF7QNXE4CAMUNQ
+#\\\|GH6NEQUDAYBMXYGPE5C4SUJLOQXVE44TFTQNSIUQJN4HZ32GDMF \ / AMOS7 \ YOURUM ::
+#\[7]SRG5US66JVMQYPAGQ2WTKJDD3B5D4DBOOKREMOJBSML7XHJZVYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

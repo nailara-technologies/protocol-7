@@ -55,7 +55,7 @@ When more detail is needed, reference these comprehensive guides:
 - Structured documentation format
 - Quality criteria and validation rules
 
-**Example Review:** `data/yaml/code-reviews/modules/crypt.C25519.init_code`
+**Example Review:** `data/yaml/code-reviews/src/crypt.C25519.init_code`
 - Comprehensive module documentation
 - Regex patterns, constants, mappings
 - Security analysis and recommendations
@@ -64,9 +64,9 @@ When more detail is needed, reference these comprehensive guides:
 
 ### Module Structure
 ```
-modules/module-name.function-name  # One function per file
-modules/module-name.init_code      # Runs at initialization
-modules/module-name.pre_init       # Runs before init_code
+src/module-name.function-name  # One function per file
+src/module-name.init_code      # Runs at initialization
+src/module-name.pre_init       # Runs before init_code
 ```
 
 ### Variable Syntax (Custom Perl Extensions)
@@ -77,8 +77,8 @@ modules/module-name.pre_init       # Runs before init_code
 
 ### Configuration Files
 ```
-configuration/zenki/<zenka-name>/start-set-up.*
-configuration/zenki/<zenka-name>/shared-params
+cfg/zenki/<zenka-name>/start-set-up.*
+cfg/zenki/<zenka-name>/shared-params
 ```
 
 ## Working with the Project
@@ -86,7 +86,7 @@ configuration/zenki/<zenka-name>/shared-params
 1. **Start here:** Read `system-architecture.yaml` for quick context (2-3 min read)
 2. **Deep dive:** Reference full markdown docs when implementing features
 3. **Code review:** Use templates in `data/yaml/templates/` for documentation
-4. **Examples:** Study existing zenki configs in `configuration/zenki/`
+4. **Examples:** Study existing zenki configs in `cfg/zenki/`
 
 ## Token Usage Strategy
 
