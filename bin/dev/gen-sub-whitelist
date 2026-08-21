@@ -43,7 +43,7 @@ if ( not @targets ) {
     opendir my $dh, $zenki_dir
         or die ":: cannot open $zenki_dir: $OS_ERROR\n";
     @targets = sort { length $a <=> length $b || $b cmp $a }
-        grep { -f File::Spec->catfile( $zenki_dir, $ARG, 'start' ) }
+        grep { -f File::Spec->catfile( $zenki_dir, $ARG, qw| zenka.v7 | ) }
         grep { $ARG !~ m|^\.| } readdir $dh;
     closedir $dh;
 }
@@ -68,7 +68,7 @@ for my $zenka (@targets) {
 
     ## namespace-only targets [ no zenka start file ] have no whitelist ##
     ## their subs are covered by the loading zenka's whitelist          ##
-    my $has_start = -f File::Spec->catfile( $zenka_dir, 'start' );
+    my $has_start = -f File::Spec->catfile( $zenka_dir, 'zenka.v7' );
 
     show_progress( $zenka, $num, $total );
 
@@ -209,8 +209,8 @@ sub print_result {
         $result_color, $result,     $reset;
 }
 
-#,,.,,,..,.,.,,..,...,...,,..,,,.,.,.,..,,,,.,..,,...,...,.,.,.,,,,,,,,..,,,.,
-#4A2TQTR6W2GZ4IGQ2XC7CZNUPXDTLWK7A7FRDTCOIUSG5NEUVO6KWCCE6BE4SURZQ2OVSQRMCIDSG
-#\\\|VKQGK3KWTGFAANY33GVQGPFI5R2ISWXPK2YA6QSNJLUUJNCKARY \ / AMOS7 \ YOURUM ::
-#\[7]HPZ6KK5BTOOJER4XOCHWGQYTY7VWSK3ZQA3JXOZPKAEFFGODH2AI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,,,,,.,,.,,,...,,,,,.,.,...,..,,...,...,..,,...,.,.,..,,,..,
+#PY5W45HSOFVXOI5S6HGKXI3KOEB2JYD33RV6WUYB4GFIFPBZOW4QSPKA3PYVC2QFJRXXJYR4IIX32
+#\\\|O5ZIPLS43RTDWBWMUN4XLZPQQCMRCO6TCHRPDLODHKW3ZPVVXOZ \ / AMOS7 \ YOURUM ::
+#\[7]GESPX2Y42TRCDYRB3IJ5TDHGBAIT2IGWY6YIM45LHGRZSZ5U6QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
