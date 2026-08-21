@@ -14,6 +14,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — begin_move_drag not move(); window.place grab-leak fixed fff81c212, initial-placement-before-show_all still open
 - [editing-p7-owned-data-files-reowns-them](feedback-editing-p7-owned-data-files-reowns-them.md) — hand-editing a protocol-7-owned data file (e.g. a users.* record) via Edit/Write silently reassigns it to my own unix user, and the owning zenka then reports the record as NOT FOUND, not a permission error — check `ls -la` ownership before ever hand-editing such a file
+- [rename-scope-policy](feedback-rename-scope-policy.md) — never cite scope/blast-radius as a reason to hesitate on a rename; judge renames on improvement only — `bin/ncode` makes even large ones mechanical, and commercial deployments elsewhere forked off `base` years ago so nobody tracking `base` is disrupted
 
 ## Category files — open the one that matches the topic in play
 
@@ -48,8 +49,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,...,,,.,.,,,.,.,.,,,..,,,,,,...,,,.,..,,..,,...,...,..,,,.,,...,,,,,..,,
-#XLTEYUKRCM6Z73BUMETMNRFQIID7J6X2BQ7WZM3UCD56ZQ763O6AG3MHINWVEMQWYCI5TAFBFYRMK
-#\\\|XQRM6OX63V5MB2ZZWLPWUWYXERNUE62WC6EWXAPXGSNUAWZDKYS \ / AMOS7 \ YOURUM ::
-#\[7]UP7TSYVA2QX2L3SRZ75U4NGATTR4G3HKE3W5I2SJWCFDPSQBG6DY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,.,...,,,,,.,.,.,.,,.,,,.,,,..,..,,...,...,..,,,,.,.,,,,,.,,,.,
+#4DZVLED3FCMU4Z2ABJKZO4JKV4ZLIHIYUP5BPH42SYUYL4ISJYGSA3GBVAY3RM6H7NDROY57WKM6I
+#\\\|IW7GBTAJFYAZTKOI7TM54RZCCGNX4BTAVLV7HG3JUTUCFL4FWCN \ / AMOS7 \ YOURUM ::
+#\[7]KBHCJ7YLEFTTOTR6BSNNXB7LV6DTNVO77IRBDR34HPETR3SD5QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,9 +63,9 @@ if ( $zenka_param =~ <regex.base.iid> ) {
 my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
 
 if ( not defined $zenka_config ) {
-    ## check if zenka directory exists but zenka-startup.v7 is missing
+    ## check if zenka directory exists but start.cfg is missing
     my $zenka_dir    = <system.conf_path> . "/zenki/$zenka_name";
-    my $startup_file = "$zenka_dir/zenka-startup.v7";
+    my $startup_file = "$zenka_dir/zenka.v7";
 
     if ( -d $zenka_dir and not -f $startup_file ) {
         my $root_path = <system.root_path>;
@@ -77,7 +77,7 @@ if ( not defined $zenka_config ) {
 
         . . not configured for v7 start-up . .
 
-        . . required file 'zenka-startup.v7' not present
+        . . required file 'start.cfg' not present
         .   :. $startup_file_rel
         . . . see 'p7c v7.list available' for zenki-examples
 
@@ -270,8 +270,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,..,,,,,,..,,,.,.,.,.,.,,,,,...,.,.,,,.,,,,,..,,...,...,,.,,,,.,.,,,.,.,,.,,
-#S5WSO2PUOBCYFCMXWP7ZRP2ZKYC2QJ552JVBPKT7G275F4UKG6UZ5F5YGO4VWQZS6JF3OS44ZHJWQ
-#\\\|G5J2KCAB4HYGBLML52ZHMH6BWJLBFE65RSIHSQEKTTGDBMFFK47 \ / AMOS7 \ YOURUM ::
-#\[7]5OAHQ36PT6D3BOKSIEYFM7PS4OMV7VVCOQRMZ7KDX7PXJ56AOAAI 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,.,,..,,,,,,...,.,.,,,,,,.,,..,,...,...,...,...,,,.,.,,,,,.,
+#SIK2RAYAEZW6M5XLYCR6GUOE2CAVOCGI2UGXOTJG7X45MISS3LFSJWVV5XU7FJXOFM3USTBTZKJPW
+#\\\|H6FDM6GW5G2SE2MONVVK5SATA3C7DXV2ADEBMJN4JH32VRRXDL3 \ / AMOS7 \ YOURUM ::
+#\[7]PI7B2QYPG5KLWL4TTKY5GMXQH6SPD3A6RTFATWBDMKIAU3HZZGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
