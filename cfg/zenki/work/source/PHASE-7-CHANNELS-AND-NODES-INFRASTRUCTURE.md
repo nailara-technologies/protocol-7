@@ -162,7 +162,7 @@ tasks:
       - Integration points with discover zenka documented
       - Heartbeat mechanism specified
     files_affected:
-      - cfg/zenki/nodes/start
+      - cfg/zenki/nodes/zenka.v7
       - src/nodes.cmd.* (new modules)
     estimated_complexity: "medium"
 
@@ -305,7 +305,7 @@ tasks:
       - Checksum calculation defined
       - Integration points with discover identified
     files_affected:
-      - cfg/zenki/channels/start
+      - cfg/zenki/channels/zenka.v7
       - src/channels.init_code
     estimated_complexity: "medium"
 

@@ -141,8 +141,8 @@ grep -r "IMPLEMENTATION STATUS: CONCEPTUAL" perl-form/
 
 ### With Main Protocol-7 Codebase
 - **bin/Protocol-7** - Main interpreter that could load these knowledge modules
-- **configuration/zenki/** - Zenki patterns reference symbolic-implementation/
-- **modules/** - Shared modules may import harmonic computation
+- **cfg/zenki/** - Zenki patterns reference symbolic-implementation/
+- **src/** - Shared modules may import harmonic computation
 
 ### With External Systems
 - **Unity Visualization:** Division-by-7 module includes C# export

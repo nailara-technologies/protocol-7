@@ -47,7 +47,7 @@ more components get themed.
 
 ## Example mapping: mpv OSC
 
-Applied in `configuration/zenki/mpv/start`:
+Applied in `cfg/zenki/mpv/zenka.v7`:
 
 ```text
 background_color        #12061B
@@ -64,8 +64,8 @@ time_pos_outline_color  #000000
 
 ## Example mapping: SciTE
 
-Applied in `configuration/backup/.SciTEUser.properties` and
-`configuration/backup/scite/perl.properties`:
+Applied in `cfg/backup/.SciTEUser.properties` and
+`cfg/backup/scite/perl.properties`:
 
 * UI chrome (caret, selection, fold margin, error/bookmark markers) →
   project blues / greens / golds.
@@ -80,7 +80,7 @@ Applied in `configuration/backup/.SciTEUser.properties` and
 
 ## Example mapping: highlight
 
-`configuration/backup/themes/highlight/amos-7.blue.theme` already used the
+`cfg/backup/themes/highlight/amos-7.blue.theme` already used the
 project identity; it was tightened to the exact palette:
 
 | Token | Colour |

@@ -76,7 +76,7 @@ my $dual = "0LGMS1THR3W0KNJ7F1C45E20C7MM1F2Z0IF6S1PD...";
 
 ### AMOS7 Octal Header Structure
 
-From `modules/amos7.encode_octal_header`:
+From `src/amos7.encode_octal_header`:
 
 ```perl
 # 19 octal digits encoded as:

@@ -75,7 +75,7 @@ Protocol-7 is a **multi-agent system** where each agent is called a **zenka** (s
 - **`httpd`** - HTTP server agent
 
 ### Module System
-- **Location**: All functional modules are in the `modules/` directory
+- **Location**: All functional modules are in the `src/` directory
 - **Loading**: Modules are loaded and compiled by `bin/Protocol-7` into the `%code` hash structure
 - **Naming**: Module files use dot notation (e.g., `base.init_code`, `httpd.file_transfer.init`)
 - **Structure**: Modules do NOT use `sub { }` declarations - the filename itself becomes the callable subroutine
@@ -95,13 +95,13 @@ Protocol-7 is a **multi-agent system** where each agent is called a **zenka** (s
 
 ### Key Components
 
-#### Base System (`modules/base.*`)
+#### Base System (`src/base.*`)
 - **`base.init_code`**: Core system initialization
 - **`base.event.*`**: Event loop and I/O handling
 - **`base.file.*`**: File operations and utilities
 - **`base.net.*`**: Network operations
 
-#### HTTP Server (`modules/httpd.*`)
+#### HTTP Server (`src/httpd.*`)
 Recent async implementation includes:
 - **`httpd.file_transfer.*`**: Non-blocking file transfer system
 - **`httpd.benchmark.*`**: Performance metrics collection
@@ -115,16 +115,16 @@ Recent async implementation includes:
 - **Base modules**: Common functionality in `base.*` loaded by most zenki
 
 #### Configuration System
-- **Zenka configs**: `configuration/zenki/[module-name]/`
-- **Global configs**: `configuration/` (shared-params, system settings)
+- **Zenka configs**: `cfg/zenki/[module-name]/`
+- **Global configs**: `cfg/` (shared-params, system settings)
 - **Module loading**: Defined in zenka start files
 
 ### Zenka Configuration & Execution
 Each zenka is a configured agent instance defined by:
-- **Start files**: `configuration/zenki/[name]/start` - defines module loading, config, and execution flow
-- **Startup configs**: `configuration/zenki/[name]/zenka-startup.v7` - runtime parameters
-- **Access control**: `configuration/zenki/[name]/access.*` files for users and other zenki
-- **Authentication**: `configuration/zenki/[name]/auth.*` files
+- **Start files**: `cfg/zenki/[name]/zenka.v7` - defines module loading, config, and execution flow
+- **Startup configs**: `cfg/zenki/[name]/start.cfg` - runtime parameters
+- **Access control**: `cfg/zenki/[name]/access.*` files for users and other zenki
+- **Authentication**: `cfg/zenki/[name]/auth.*` files
 
 #### Typical Zenka Execution Flow:
 1. Load shared configuration files
@@ -140,7 +140,7 @@ Each zenka is a configured agent instance defined by:
   - Monitors with heartbeat commands and restarts unresponsive zenki
   - Management commands: `v7.start`, `v7.stop`, `v7.restart`
 - **Deployment Options**:
-  - **Always-on**: Listed in `configuration/zenki/v7/start-set-up.base` (e.g., `cube`, `p7-log`, `httpd`, `system`)
+  - **Always-on**: Listed in `cfg/zenki/v7/start-set-up.base` (e.g., `cube`, `p7-log`, `httpd`, `system`)
   - **On-demand**: Started when first accessed, configured with `start.on-demand = 1`
   - **Unmanaged**: Zenki manually started, connects to cube but not monitored by v7
   - **Standalone**: Zenki runs independently without connecting (e.g., `keys`, `sourcecode` zenki)
@@ -150,7 +150,7 @@ Each zenka is a configured agent instance defined by:
   - Example: `calc` zenka (4200s timeout), `image2html` zenka (420s timeout)
   - Usually have `restart.disabled = 1` and `heartbeat.disabled = 1`
 - **Transport**: Unix domain sockets or TCP sockets (functionally equivalent after authentication)
-- **Access Control**: `configuration/zenki/cube/access.zenki` defines which zenki can access which commands/zenki
+- **Access Control**: `cfg/zenki/cube/access.zenki` defines which zenki can access which commands/zenki
 
 #### Message Routing Syntax:
 - **Direct cube commands**: `list users`, `list sessions` (no dots)
@@ -189,9 +189,9 @@ Each zenka is a configured agent instance defined by:
 - **Lib path setup**: Standalone scripts use `BEGIN` block to add `data/lib-path/pm` to `@INC`
 
 ### Cryptographic System
-- **Keys**: `modules/crypt.C25519.*` - Curve25519 implementation
-- **Checksums**: `modules/base.chk-sum.*` - Multiple checksum algorithms (AMOS, BMW, ELF, JHA)
-- **User keys**: Stored in `modules/USR.[username].*` files
+- **Keys**: `src/crypt.C25519.*` - Curve25519 implementation
+- **Checksums**: `src/base.chk-sum.*` - Multiple checksum algorithms (AMOS, BMW, ELF, JHA)
+- **User keys**: Stored in `src/USR.[username].*` files
 - **AMOS7 crypto**: Additional cryptographic functions in `AMOS7::CHKSUM::*` and `AMOS7::Twofish`
 
 ## Current Development Focus

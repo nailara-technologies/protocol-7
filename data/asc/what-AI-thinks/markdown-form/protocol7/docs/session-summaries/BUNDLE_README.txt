@@ -48,11 +48,11 @@ CONTENTS:
 =========
 
 Implementation:
-- /modules/web.scan_content_directories
-- /modules/web.template_cache.get
-- /modules/web.template_cache.set
-- /modules/httpsd.route_template_request
-- /modules/httpsd.route_and_dispatch
+- /src/web.scan_content_directories
+- /src/web.template_cache.get
+- /src/web.template_cache.set
+- /src/httpsd.route_template_request
+- /src/httpsd.route_and_dispatch
 
 Documentation:
 - /docs/WORKFLOW-CODIFICATION-PATTERNS.md (NEW - just added)

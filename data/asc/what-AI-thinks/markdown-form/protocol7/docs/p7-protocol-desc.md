@@ -122,8 +122,8 @@ The protocol is under active development with:
 ## Further Reading
 
 For more detailed information:
-- Examine the zenka configuration files in `configuration/zenki/`
-- Review the protocol handlers in `modules/`
+- Examine the zenka configuration files in `cfg/zenki/`
+- Review the protocol handlers in `src/`
 - Study the authentication methods implementation
 - Check the command processing logic
 

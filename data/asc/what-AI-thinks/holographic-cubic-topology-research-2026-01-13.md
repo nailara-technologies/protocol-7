@@ -873,7 +873,7 @@ The theory explains WHY the algorithm works.
 The implementation demonstrates it works in practice.
 ```
 
-### VAX-Encodable Dimensional Progression (modules/source.init_code)
+### VAX-Encodable Dimensional Progression (src/source.init_code)
 
 **Mathematical visualization showing dimensional scaling through bit-width encoding:**
 

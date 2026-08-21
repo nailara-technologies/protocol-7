@@ -308,7 +308,7 @@ This is why strong visual components matter. They're not decoration; they're ope
 
 2. **Document While Building**
    - Each insight should be captured real-time in knowledge repository
-   - Create new modules/specs as they're conceived
+   - Create new src/specs as they're conceived
    - Let documentation evolve with the code
 
 3. **Measure Impact of Each Change**
