@@ -15,7 +15,7 @@ The workspace-transfer zenka provides Protocol-7's integration with the workspac
 ```
 workspace-transfer/
 ├── start                    # Zenka entry point
-├── zenka-startup.v7         # V7 startup configuration
+├── start.cfg         # V7 startup configuration
 ├── os-dep/                  # OS dependencies
 │   ├── binary/git          # git binary marker
 │   ├── binary/perl         # perl binary marker
@@ -261,8 +261,8 @@ Blacklight neon aesthetic (matching git zenka):
 - [/home/user/workspace-transfer/bootstrap.pl](../../../../workspace-transfer/bootstrap.pl) - Bootstrap script
 - [/home/user/workspace-transfer/workspace-sign.pl](../../../../workspace-transfer/workspace-sign.pl) - Signature tool
 
-#,,.,,,..,..,,.,.,.,,,.,,,,,.,..,,,..,,.,,,,,,..,,...,...,.,.,.,,,...,,,,,,,,,
-#6WL47SW3E4KXCUPWC2OBQUYWZN7E7UR3NXJVP5YJ3DROZV7GRIADGKCD7YJLJNJH362UMNMLJLNJ6
-#\\\|6XVYS7BTAJCXHUVLCMYQBGVCT4AJJBM6BKOGA6N4DACAVKYP4O2 \ / AMOS7 \ YOURUM ::
-#\[7]BTSU66MYFUOBU2TZRH6O6KAMZLI5TJLOEFYE7LBIHFHFOFF6KCCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,...,.,,,,,,,,,,,...,,,.,,,,,..,,...,...,.,,,.,,,,,.,..,,..,,
+#UJ5IZLCKXEP44SO7LU2D44KFFKTGNS7X5HLPMCVPLV7GWT7D6G5DPM3J34FCOWFSEOHY2P73MFWN4
+#\\\|V4C7DDGK7YHJ3D6D7WUQCHOQGQZUW4YGG52DL5T5E3IF2YAZ5VJ \ / AMOS7 \ YOURUM ::
+#\[7]TO7A5FVRJFG3Q7SCPGXISFAJOBSGNAIDQRKVHZ4GAMG7OC2KBWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

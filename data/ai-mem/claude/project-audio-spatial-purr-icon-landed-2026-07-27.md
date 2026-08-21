@@ -56,7 +56,7 @@ limitation generally — `spatial-purr-icon` just chains both directly
 in code for its own fixed recipe.
 
 **access note**: had to add `spatial-purr-icon` to
-`cfg/zenki/audio/start`'s `access.cmd.usr.cube` line before
+`cfg/zenki/audio/zenka.v7`'s `access.cmd.usr.cube` line before
 `bin/dev/gen-sub-whitelist audio` would discover the new command as
 reachable — the generator filters by that access line when present,
 not just by static call-graph reachability from `init_code`. cost one
@@ -80,8 +80,8 @@ hardcoded recipe by design, not derived from config, so "what's
 current best" is a deliberate one-line code edit each time, not
 automatic.
 
-#,,,,,..,,,,,,,,,,,,.,.,,,.,.,,..,,,,,,,,,,..,..,,...,...,,..,,,,,..,,,,,,..,,
-#N6VZRG3CP4WHSRDPBX2SDHLGML7AKNFRRVJETTPVKPCU5KSCKAVRMQ7HL2YSXTLK3Z3TMMWJYM4EI
-#\\\|XHCUI62IRPM6RE2UQVNMZ343VQMFTHUACYAROZQHTOUVBBOR2ZR \ / AMOS7 \ YOURUM ::
-#\[7]XVHOFGCJPET7KI76RV7ZPGJZLCBXXZPPBCWFSL3ASCMNHVAT4SAI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,,..,..,,..,,,,,,,,.,,,.,.,,,..,,...,..,,.,.,...,,,,,,..,...,
+#Y5UQGSFVNECUY6LZPISW6Q7DEHMKR4GBXYOJGWCNNKVEXQVIKEF4KWCCD3UBMPSUPNAGZOEB4OLFA
+#\\\|TS4TPCJSSN33BB5XBI2INXME72NRUOS7YMFUM3EWG3PFAGJING3 \ / AMOS7 \ YOURUM ::
+#\[7]NOCOKZ2ML6LWHNXTPKQAV3AWEMOIV5BU7QFTX4DBWCIWTEHREKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

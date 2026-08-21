@@ -22,7 +22,7 @@ Implemented data/tasks/ncode-pattern-scope-stack-phase2.md in full, live-verifie
 - new `src/ncode.cmd.widen-scope` (graduate adapter shape): confirm required,
   re-checks live streak (`ncode.cfg.review_streak_needed`), idx+1, **streak reset
   to 0**, status untouched, base.logs level 1.
-- config: `widen-scope` added to `cfg/zenki/ncode/start`
+- config: `widen-scope` added to `cfg/zenki/ncode/zenka.v7`
   access.cmd.usr.cube; `gen-sub-whitelist ncode` + `gen-sub-whitelist coding`
   (coding loads ncode as a library — the two util subs are required there).
   Both whitelists unsigned, operator re-signs.
@@ -53,8 +53,8 @@ zenka start/reload re-harmonized signatures: `cfg/protocol-7.src-ver`,
 plus auto-registered untracked `cfg/zenki/ncode/pm-dep/*` — system
 automation, not manual edits. `data/ai-mem/claude/*` was dirty from elsewhere.
 
-#,,.,,,,.,...,,,,,,,.,,,,,...,,.,,,,.,,.,,,.,,..,,...,...,,,.,..,,..,,..,,,,.,
-#XBGYKI5XYWZUJ3M5MUQBI2AQWOFOHWUSJT23Y6YFOBT3LJECKGNWVSEG7KWYFQGYKEZCKCKC5SF7O
-#\\\|5JZWRLG4VLU6G634UYD3S56LN4E4ALUIF5H2JI3FSHWOYEXYJVP \ / AMOS7 \ YOURUM ::
-#\[7]UKWLEVA6Z6W6OXUJKL55LCTSPSC7F75XNMULNA6KURQHEHWUNKAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,,,,,.,,,,,..,,.,.,,..,..,,.,,,..,,...,.,,,..,,.,.,,,,,,,.,.,,,
+#TIYBAMUTHC2TXM4CAXQWDTLQU7EJENUEFGRGWVVZAMH24PWVFTM3SK7XNH6LKADE6FAXWMAVW3PP2
+#\\\|XBWGCGMNRITUJTYFAJSURTHYHKODVGDUA6GK7XSKDYRK54KR2UW \ / AMOS7 \ YOURUM ::
+#\[7]U6JVNJNGYLKSDGTPPJCTWMNF75YZU6V6NF6E6ANQXYIKPU2LWODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,8 +40,8 @@ it listens on http://127.0.0.1:9090 and takes 30-90 seconds to become ready.
                                                         readiness detection,
                                                         crash detection + EOF
     src/coding.async_spawn_inference_servers      — timer-based deferred spawn
-    cfg/zenki/calc/start             — minimal on-demand zenka
-    cfg/zenki/coding/start           — full zenka with spawn infra
+    cfg/zenki/calc/zenka.v7             — minimal on-demand zenka
+    cfg/zenki/coding/zenka.v7           — full zenka with spawn infra
     cfg/external-inference-models    — invokeai config keys
 
 
@@ -67,7 +67,7 @@ it listens on http://127.0.0.1:9090 and takes 30-90 seconds to become ready.
 
 ## files to create
 
-### cfg/zenki/invoke-web/start
+### cfg/zenki/invoke-web/zenka.v7
 
 on-demand zenka. starts when queried, shuts down after idle timeout if
 invoke.ai process is not running.
@@ -355,8 +355,8 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     do not attempt to run — invoke.ai process management requires the
     full zenka environment. report any uncertainties as inline comments.
 
-#,,,,,.,.,...,.,.,,,,,,,.,...,,.,,,..,..,,,,.,..,,...,...,,,,,.,,,...,.,,,.,.,
-#AELUFI36ACQFDRETB5YCLRHK2KF3IK5YJN657IT7FMFVFWA62BHGRTMLEYWZPNLAAGRWOQJEVWBPM
-#\\\|LHP6JGOKI4XARM6RZUPGQXCLRR6PFLNPMJNOCJIZRW45BV3OB3Q \ / AMOS7 \ YOURUM ::
-#\[7]VMDS4YBZJE7COSZN7FO6ACJT4KDVY7JOHGA3PFXA7W6ZYCC3QKDA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,,,.,,..,,..,,,.,,,,,...,..,,..,,...,..,,,.,,..,,.,,,..,,.,.,
+#U3WZ5TZQUBUEYMY5ASI5DWMZA47BESW3ILSEFB4N5MN3FHBKSIM5YYWCDFYXYVNCI6QYAI6OF364M
+#\\\|LIUHMZ7LJRTPUCCMEFLIXLNHFTREXLDJAUY5BKKDE7PKOCX2JRR \ / AMOS7 \ YOURUM ::
+#\[7]AZVUXI4AH4R2KIHMVFXC55QU5DXJ4T3G6AK2EFXD3NBOOIJRJCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

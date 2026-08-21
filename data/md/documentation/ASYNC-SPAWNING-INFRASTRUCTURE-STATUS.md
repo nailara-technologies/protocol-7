@@ -231,7 +231,7 @@ my %model_path_fallbacks = (
 - **Impact**: Models scanning and discovery
 - **Action**: Verify functionality and commit
 
-### 5. `cfg/zenki/mpv/start`
+### 5. `cfg/zenki/mpv/zenka.v7`
 - **Status**: Unrelated to async spawning
 - **Changes**: MPV zenka configuration updates
 - **Action**: Review and handle separately
@@ -310,7 +310,7 @@ p7c coding.show-buffer zenka | tail -50
    - Message: "Integrate models registry with Protocol-7 list system"
 
 3. **Configuration Updates** (separate)
-   - `cfg/zenki/mpv/start` - MPV config
+   - `cfg/zenki/mpv/zenka.v7` - MPV config
    - `src/nshell.read_from_buffer` - nshell updates
    - Message per change as appropriate
 
@@ -378,8 +378,8 @@ Create: `ASYNC-INFERENCE-SPAWNING.md`
 - `src/coding.handler.check-completion-chain` - Auto-resume
 
 ### Configuration
-- `cfg/zenki/coding/start` - Coding zenka startup
-- `cfg/zenki/coding/zenka-startup.v7` - V7 launch config
+- `cfg/zenki/coding/zenka.v7` - Coding zenka startup
+- `cfg/zenki/coding/start.cfg` - V7 launch config
 
 ### Documentation
 - `data/md/documentation/CODING-COMPLETE-ANALYSIS.md` - Complete-analysis feature
@@ -436,8 +436,8 @@ Currently awaiting:
 **Status**: Infrastructure COMPLETE, Cleanup IN PROGRESS
 **Next Review**: After formatting cleanup and models integration
 
-#,,..,,..,,.,,,,.,..,,,..,,..,,..,.,.,..,,,.,,..,,...,...,.,.,.,,,.,.,...,,.,,
-#5XNVLJE236RHLWMFF477OMERG4GGLXB67VE4CFBW6UGTSBO4NAWVMZCU3U3H3MQJA7LWY26G2H5VE
-#\\\|Z7DUFNGCPVUTWYMIKANWAOUT2STSG2KQB5C56C5SP7NNHGY6NH5 \ / AMOS7 \ YOURUM ::
-#\[7]22GVFCZGUNV6DTHH6NPP5HAMHCUKWWLAAOUBQG4CLKA44JM4D4AI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,.,.,,,,,.,,,,,,.,,,,.,...,,,.,..,,...,..,,...,..,,...,,,.,,.,,
+#XQ3PJOE7RLEE3TA3CIEPJRP54RA7QVPH7CEA7RWNHC4R5423M242WWLHNPRSH6CDQDBLHVLQQ2UV6
+#\\\|2UDUDY4Z22D5E4HNGLYRAR6SEPFJPTR6USCPJ6R6I7L2DSTOK46 \ / AMOS7 \ YOURUM ::
+#\[7]ELTNSCMBH66ZJXUGO6F2CUYFQD2OHMJSVQDJJPXMYUBQBZQAJSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

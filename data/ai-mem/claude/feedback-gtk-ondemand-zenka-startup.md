@@ -10,10 +10,10 @@ metadata:
 an on-demand gtk3-using zenka (`start_mode = stdin-zenka`, `command_line_modules = Gtk3 ##init##`)
 needs ALL of the following or it silently hangs until v7's start-timeout kills it:
 
-1. `zenka-startup.v7` — `start.on-demand = 1`, `restart.disabled = 1`,
-   `heartbeat.disabled = 1` (pattern from `cfg/zenki/mpv/zenka-startup.v7`),
+1. `start.cfg` — `start.on-demand = 1`, `restart.disabled = 1`,
+   `heartbeat.disabled = 1` (pattern from `cfg/zenki/mpv/start.cfg`),
    plus `command_line_modules = Gtk3 ##init##` (pattern from
-   `cfg/zenki/protocol-7-menu/zenka-startup.v7`).
+   `cfg/zenki/protocol-7-menu/start.cfg`).
 2. a `<zenka>.init_code` module that does:
    - `<[base.perlmod.autoload]>->('Gtk3')` + `'Glib::Object::Introspection'`
    - `<[base.gtk.attempt_load.glib_event]>` (optional `Glib::Event` for perf,
@@ -41,8 +41,8 @@ also: `Gtk3::Gdk::*` constants (SHIFT_MASK, KEY_Escape, etc.) are subs, not
 barewords — need `()` call form under `strict subs`
 (`Gtk3::Gdk::KEY_Escape()`, not `Gtk3::Gdk::KEY_Escape`).
 
-#,,,.,...,,,.,,,.,...,,,,,,.,,.,,,,,,,,,,,,.,,..,,...,...,...,,,,,...,.,,,.,.,
-#IOAXILNM4EEOH76HJ3SIGDLCFELZUR54CQMZK6ZO3USFEHJCEAY7GPBPV5CYKYQDT4WBT7YV7UJFO
-#\\\|IE4MBVA4TLY4XNGFUBENQ3R22UHXPTY6AY55HBYPNU5DXTCEI65 \ / AMOS7 \ YOURUM ::
-#\[7]IK2TVWEYKXW3T5FRAPEJB4MXYHBICT2JSU5OBXUUBRBWVTFP6WCY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,..,,..,,,.,,,,,,.,,,,,.,,.,,..,,...,...,...,..,,.,,,..,,,,,,
+#SPJS5OZ442DMM52MS24P65WVEPHISBKQRZTELV5F2UEN4DUMIBEYISC5S3EOYULQ57XQFEL75LJKA
+#\\\|XWAKJNJIQVJX7TTZJQ5RLCAQHMO7GGKYCHE3EZUKTE2BQPTJ6DK \ / AMOS7 \ YOURUM ::
+#\[7]RBR73HOD5LENKXUWDOQRJQLU2KQLHN2WOGXL3VK3RL6ZYK6OXYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

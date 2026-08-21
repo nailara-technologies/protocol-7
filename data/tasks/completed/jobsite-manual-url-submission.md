@@ -101,9 +101,9 @@ one shared backend primitive, two callers, per the "proposed shape":
 - new: `src/site-yaml.cmd.import-url`, `src/jobsite.cmd.import-url`,
   `src/jobsite.cmd.import-url-http`,
   `src/jobsite.handler.import-url-reply`
-- `cfg/zenki/jobsite/start` — `import-url` added to
+- `cfg/zenki/jobsite/zenka.v7` — `import-url` added to
   `access.cmd.usr.cube` (only change there; `jobsite.cfg.*` untouched)
-- `cfg/zenki/site-yaml/start` — `import-url` added to
+- `cfg/zenki/site-yaml/zenka.v7` — `import-url` added to
   `access.cmd.usr.cube` (symmetric with existing `import`)
 - `cfg/zenki/cube/access.zenki` — `site-yaml.import-url` added to
   `access.cmd.usr.jobsite`, `jobsite.import-url-http` added to
@@ -229,7 +229,7 @@ and expose it both ways from day one:
    `site-yaml.handler.fetch_tick`'s existing fetch/backoff/retry/upsert
    handling completely unchanged.
    add `import-url` (or whatever it ends up named) to
-   `cfg/zenki/jobsite/start`'s `access.cmd.usr.cube` list so
+   `cfg/zenki/jobsite/zenka.v7`'s `access.cmd.usr.cube` list so
    it's `p7c`-invokable directly, independent of the UI ever landing —
    useful on its own for one-off manual imports from a terminal.
 2. **UI caller**: the `[ + manuell ]` panel's new URL-submission area (see
@@ -271,7 +271,7 @@ and expose it both ways from day one:
 
 ## search key list review/optimize (secondary, smaller task)
 
-separately requested: review `cfg/zenki/jobsite/start`'s
+separately requested: review `cfg/zenki/jobsite/zenka.v7`'s
 `jobsite.cfg.categories` / `jobsite.cfg.url.*` list (currently
 `linux-sysadmin linux-developer devops platform-engineer security-engineer
 ki-infrastruktur backend-architect`, each mapped to one stepstone category
@@ -353,8 +353,8 @@ handles the local-vs-remote judgment once a posting is found.
   vs. leaning more on manual submission for one-off finds — not obviously
   one or the other, likely both.
 
-#,,.,,,.,,,,.,,.,,,.,,,.,,.,.,,..,,,,,,,.,.,.,.,.,...,...,...,.,,,,.,,,..,...,
-#HYKCX2IUMMTDIB6IHKVRX7KZWAYRE3UMOGT336GC6ZFE2W6LUJ24VYT2OVKOYP4ZTIVALGM4FB6BS
-#\\\|SRFIIWELA7W7O26YBJYT3X2LSIUJABM25DSSIYCS7ELAQ42PAZS \ / AMOS7 \ YOURUM ::
-#\[7]LX27GFAS54W7T3NTA5CUDGPCN2EPMHARTE25XCPZAMI2QCS3EYCA 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,.,,,,,,,..,,,.,,..,,..,,,..,.,.,...,...,,,.,.,,,,,,,..,,.,.,
+#ABASZT6J3V2EYYU2IW66I236WNXEJGKGU4DXHYOODF7NCPUN6JLHZFTDAPD7HIFPGJ7VBVTK6CFBE
+#\\\|H2YC7JC2UMTXA4H2ZMJMOYI6OYJ26ATARS6DOYIQTI4HDKCAVQL \ / AMOS7 \ YOURUM ::
+#\[7]SWITPOFDO2Z2KE3FXWXQ63IX7YZPERSG5SQC4LTS75ZRLK3LEKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -78,7 +78,7 @@ src/jobsite.cmd.reload-probe:
     return { 'mode' => 'true', 'data' => 'probe-v1' };
 ```
 added `reload-probe` to `access.cmd.usr.cube` in
-`cfg/zenki/jobsite/start`, `p7c jobsite.reload` → `p7c
+`cfg/zenki/jobsite/zenka.v7`, `p7c jobsite.reload` → `p7c
 jobsite.reload-probe` → `probe-v1` (correct, first load).
 
 edited the file to return `'probe-v2'`, confirmed on disk, `p7c
@@ -301,8 +301,8 @@ by the signing system. do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,..,,..,...,,,.,,.,,.,.,,,,,,..,,,.,,.,,,,.,..,,...,...,.,,,,.,,.,.,,.,,..,,
-#GD2S2GFURE4AJEB5QE7VELSMMK3MW3Y6YINUWQM2UQQNYATVPCIN77VZGY7Q5G3HRSYCTXVWYM4R6
-#\\\|WZR4CI37W7CGIMV5LDZXQ3PWFKQUUXHJYIWUBGWHMMWZS3VCZMJ \ / AMOS7 \ YOURUM ::
-#\[7]77JMKQU26MQ7MRUQ4O3SKJFCKMOE5UDYMX7OHACHX7J7ZJ7CSUAI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,.,,,.,.,.,,,..,,..,,,,.,.,.,..,,...,...,.,.,,..,..,,..,,.,.,
+#DSPBDXAV76MCAKRV3OE3JBFAMIABDCSJRO7QZ5YVRVNF44GOCRBJ7GZQBG6FSRSYRKGWVOP2B62PA
+#\\\|EGRFXVIQB6FWRTZMIIHDBHC6QYYZW2FYFG6FVTMUHWAWYNSEFED \ / AMOS7 \ YOURUM ::
+#\[7]7ICTMPKPIKRETMTRGAEVD7QERWG6U2SD3NMYBAYUX7CT4MIUV6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

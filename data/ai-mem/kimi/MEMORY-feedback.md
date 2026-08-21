@@ -28,7 +28,7 @@ inside; use `v7.restart` [ stops AND starts ] or don't touch it.
 
 ## incident : `v7.reload init` TORE DOWN the entire network [ again ]
 
-issued to re-scan zenka-startup.v7 files ; re-running v7.init_code hit
+issued to re-scan start.cfg files ; re-running v7.init_code hit
 the fatal init path [ ai-mem kimi topic-routing-mode-implementation.md
 warned exactly this ] → v7 SIGTERMed everything. root restarted v7 on
 pts/3 ~2min later ; fresh boot picked up the new zenka config fine.
@@ -36,8 +36,8 @@ lesson confirmed : NEVER `v7.reload init|all` on a live network to
 register a new zenka — wait for a network restart instead. single-zenka
 `audio.reload source` worked fine for module iteration.
 
-#,,..,,,,,...,,.,,.,,,..,,,,,,...,,,.,.,,,,,.,..,,...,..,,,,,,.,.,...,.,,,.,.,
-#3U6VOQAMMG2AW7XXGMAYRW4KYK5IOCEISFGNDYM3JD2EYCHX3EIUEFMO2R23FRIBLDS56XX7E56TS
-#\\\|UUK3FQFGDSK6A2VAWDDL33YETYCS7YMMN62HB4CKHUSR3AD6GNT \ / AMOS7 \ YOURUM ::
-#\[7]GX4XBEQUXOA3F4PDEP226OLQ4MKNVJILRNKD3H63D6IMADRHZODY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,.,.,.,.,.,,,..,,,.,,,,,,.,,,..,,...,..,,,,,,.,.,,..,.,,,.,.,
+#J7BGGNCXM4DGXFOJXKRWV75LI53DONG2ORPSWJZ2DBCN3UOW5R6NITK53RGE2NQ7SQZGRZKQ3RJQK
+#\\\|SWU3P4E3BGQPHSCCGGJBLIDUXPCYA3YIL3OSKAEO4I6OYZXOY5O \ / AMOS7 \ YOURUM ::
+#\[7]6QI64EC36ZBGOWWI5ECURTMWRU2AESA6X6VDPOYZRP4QWHDMT2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

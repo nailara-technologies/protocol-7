@@ -234,7 +234,7 @@ expensive to discover missing later.
 
 - `src/base.del_key`, `src/base.prune_key` — landed, `0425b210f`.
   Useful standalone regardless of this design.
-- `cfg/zenki/mod-test/start` — carries
+- `cfg/zenki/mod-test/zenka.v7` — carries
   `[base.prune_key:'modules.load']` as a **known-incomplete**
   placeholder: fixes the boot case only, resets on reload exactly as
   described above. Intentionally left in as an active reminder rather
@@ -253,8 +253,8 @@ expensive to discover missing later.
   and live-verified (not just `ptd -c`, since start-file syntax isn't
   Perl), one commit per tier.
 
-#,,,,,.,.,,,.,,,,,...,.,.,,.,,,,.,.,,,,.,,..,,..,,...,...,,,.,...,,,.,..,,.,,,
-#RQ5ET436KBAAMMH472NBXUXESN7TXYSOTSNX4AKDWIKNBPVQADF54AYULHXVH5OZYA6H7ZO33WP6C
-#\\\|WRX7QIAIHCSH6VMGN27A5YTF673ZAKMX4HGG5QQPNM3SJ6LRFHK \ / AMOS7 \ YOURUM ::
-#\[7]RL3QSN56U6A4DIIA6QBF7VKSWK5ACJVGWRPZLSGENPRXWGY4SOCI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,.,,...,.,,,.,.,..,,,,,,...,,..,..,,...,...,,..,.,,,.,,,.,.,.,.,
+#ZZQGGPTCCMFTB2OQDUTZIV36U2DAEKP77MTCG6BVUM3GBEVB4GOHITECV64GQLU6U45ZVG5V2CRT2
+#\\\|76WD6OPWYHDZXUSGOG7FQDVOFD3BTLHVCY76GBAMM5XHUHWXK2T \ / AMOS7 \ YOURUM ::
+#\[7]TFFKKBQAHRGHKJ6LUK6CKOVFQYDOQOSKYSZKX5BFWPAMSKN4CIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

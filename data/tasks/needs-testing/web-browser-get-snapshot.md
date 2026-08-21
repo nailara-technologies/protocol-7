@@ -29,7 +29,7 @@ do not add or modify subroutine whitelists — these are managed separately.
 cat src/web-browser.init_view
 cat src/web-browser.open_window
 cat src/web-browser.cmd.get_uri
-cat cfg/zenki/web-browser/zenka-startup.v7
+cat cfg/zenki/web-browser/start.cfg
 ```
 
 understand how `<web-browser.gtk_obj.view>` (the active foreground WebView) is
@@ -163,8 +163,8 @@ ls -la /var/protocol-7/visual-feedback/capture/snapshot_*.png
 - [ ] async callback pattern matches existing zenka reply conventions
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,,.,..,,,.,,...,,.,,.,.,...,,.,,,,.,.,,,..,,...,...,,..,,,,,,,.,.,,,.,.,
-#2AACY42E7TISJMWK6IPH7V53BEJBP37S3JPRUKYR5FPTX5A4LDWJPOPFDRUNUIMVPCNMITFUGKVKK
-#\\\|Y5BFLRW3EGCUYITO4SQWGTRTM47Z7R32PTOMAIDWEQDNCRBVAT6 \ / AMOS7 \ YOURUM ::
-#\[7]AONOEWR32AKF2AODOTWXBNCH2K6MJ55K7EP5O7EV5BWCRIITT6CQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,,,,,,.,,...,,,.,,..,,.,,,,.,..,,...,...,.,,,,..,,,,,.,,,..,,
+#6BMTYXSEEHNPQ47Y44XN2EY3IXM4VMIAXR3LIRGXADT4XKYLRGDBDKZ55RNN72AQNU4IT5ABIMAYY
+#\\\|H7TVUO6L3EME5JT56JRPNV3LJ472TFDALEOXJCPIUGUULO2CSYL \ / AMOS7 \ YOURUM ::
+#\[7]DMKP7FTEQBALGAFM56M5IOPXV633R3AJ7CZX3UJCOHEDST4SIGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

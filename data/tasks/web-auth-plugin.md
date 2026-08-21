@@ -21,10 +21,10 @@ modules in `plugin.web.auth.*` must work when loaded in either:
 
 the start file opt-in pattern:
 ```
-## in cfg/zenki/web/start:
+## in cfg/zenki/web/zenka.v7:
 modules.load = ... plugin.web.auth
 
-## in cfg/zenki/httpd/start (future, opt-in):
+## in cfg/zenki/httpd/zenka.v7 (future, opt-in):
 modules.load = ... plugin.web.auth
 ```
 
@@ -167,8 +167,8 @@ closed.
 
 ## dispatch
 
-#,,..,,..,,,.,..,,,,,,,,.,..,,,,.,,.,,.,,,,..,..,,...,...,...,..,,.,.,.,.,...,
-#F6VBICEKOR3NU5BE3DKUTQLSC65MN2DZDBG6SOZCQJZ2Q5CKI5AAFEGKEESWS26PBC6OW5UYHJNPW
-#\\\|UPEDNRFV5DPATT36Q4SVPIYV5J3I3EKSPTFENNRQXODWLC424VH \ / AMOS7 \ YOURUM ::
-#\[7]RTKI5IACK4IXSMYJQIDHWHFCYGPBFS7O5CLSTUXFDXF3N4M7BMDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,,.,,.,.,,,.,.,,,,,,,.,,,,,.,..,,...,...,..,,.,,,,..,.,.,.,.,
+#UWBHKEGMT2HCQLOPHFFMORY22FPEJ7KCEMEU4E4PDAZG2ZQRFI3QBP6NRYKRJI2RHDFKYHN7GNBOQ
+#\\\|N3REBT3YKIJZW2T22YNHKHNVIKZ2TUSRCCL6V5HUTGLJ6CD6F4U \ / AMOS7 \ YOURUM ::
+#\[7]CIRD3SJUFO3PNGAFHN44CQ23FX7A6QFEU3KIG4ADQY325BJMMECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

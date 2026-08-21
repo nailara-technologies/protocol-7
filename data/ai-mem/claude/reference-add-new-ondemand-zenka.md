@@ -12,16 +12,16 @@ had `start` + `subroutines.load-early` but nothing else) — three more
 pieces are required, each failing with a distinct, informative error if
 missing:
 
-1. **`cfg/zenki/<name>/zenka-startup.v7`** — the actual file
+1. **`cfg/zenki/<name>/start.cfg`** — the actual file
    `v7` reads to register the zenka for start-up at all. Missing →
    `. . not configured for v7 start-up . . required file
-   'zenka-startup.v7' not present`. Copy from a sibling on-demand zenka
+   'start.cfg' not present`. Copy from a sibling on-demand zenka
    (e.g. `povray`'s, which omits `stdio.multiplex` — used `calc`'s first,
    then `povray`'s on user correction as the closer template) and adjust
    `[base.zenki.set_ondemand_timeout:N]` to match the `idle_timeout` in
    the zenka's own `start` file.
 2. **`v7.reload`** after adding the file above — `v7` caches its known-zenki
-   list at its own init/load time; a newly-added `zenka-startup.v7` isn't
+   list at its own init/load time; a newly-added `start.cfg` isn't
    picked up until reloaded. Without this: `v7.start <name>` →
    `zenka <name> not found in start set-up ..,` even though the file now
    exists on disk.
@@ -47,14 +47,14 @@ missing:
 **How to apply**: when standing up any new on-demand zenka that already
 has a `start` file but has never actually been started, expect to need
 all five pieces above, not just the ones needed for parsing --
-`zenka-startup.v7` + `v7.reload` gets it to the point of actually
+`start.cfg` + `v7.reload` gets it to the point of actually
 spawning and connecting, `auth.zenki` + `access.zenki` + cube's own
 `reload config` gets past the connection handshake. Each missing piece
 produces a different, specific error message — use the error stage to
 tell which piece is still missing rather than guessing.
 
-#,,,,,..,,.,,,.,,,,,.,,..,.,.,,,.,...,...,,,,,..,,...,...,,..,...,,,.,,..,..,,
-#MGHJSSIXHR3YE3YD6GGW2ORWNSI3DBXRGHF4KA7ZRXX65ZTQIWTICGH2BA2QZ4NFELHAYIZLL6FV4
-#\\\|34YH75PFDSGPPAI6T376C2EKG3WY44722IZB4BFK42IWY3INGHD \ / AMOS7 \ YOURUM ::
-#\[7]V6XPMBBOWBPLJWPUSLOKC6OHIYX4AAOBBJPKC6BHOHSOFWNVIGAA 7  DATA SIGNATURE ::
+#,,..,...,,.,,...,,,.,...,..,,,,,,..,,,..,...,..,,...,...,.,,,...,,,,,,.,,,.,,
+#BF257ZUFSFMUTLL63UMH4QTWDP5KRMS6FBVLFX3UOZ6MKJOSCMV6GK3Q33PPHPDSJYYOSQIWO3WVO
+#\\\|AODDFJMSIIHEYLSBH7LAJAIG6X6OBS3Z3IGMBT6ZNJREX2VF6QS \ / AMOS7 \ YOURUM ::
+#\[7]TTJ54LS7XHSWV6UGI7VOF35L2FPJ3BUQQHUEZJ22ZU2VSZPQYQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

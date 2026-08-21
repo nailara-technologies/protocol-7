@@ -197,12 +197,12 @@ sub invoke_with_failover {
 
 ### Existing Coding Zenka Files to Modify
 
-1. **`cfg/zenki/coding/start`**
+1. **`cfg/zenki/coding/zenka.v7`**
    - Load llama-servers configuration
    - Initialize server registry module
    - Start health monitor child process
 
-2. **`cfg/zenki/coding/zenka-startup.v7`**
+2. **`cfg/zenki/coding/start.cfg`**
    - Add server registry settings
    - Add health check parameters
    - Add failover configuration
@@ -324,8 +324,8 @@ coding.llama_invoke:
 - `bin/dev/tests/ml/test-llama-server-gpu.sh` - Test script
 - `CLAUDE.md` - Project overview with zenka architecture
 
-#,,,,,,,,,..,,.,.,..,,,.,,,.,,,..,..,,...,.,,,..,,...,...,,.,,,..,.,.,...,,,.,
-#F7XOXIQJ3SOVAYAH6DQGPXZRTTTAQVVDPOAX4YNUGUG675I77FNESOBBQEMC4CU5YXZ6A7OPH5VMS
-#\\\|54FS3KIH5MPY76TEOOXASTPWQLB2HZPPANME7L3KS5D6QFLDPVW \ / AMOS7 \ YOURUM ::
-#\[7]R427LL5QPHCNIIWHGOJ4Y5CMKZA2UNKW67BXCXCNIMODVDWDTGCA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,.,.,,.,,,.,,,.,,...,,,,,,.,,..,,...,...,...,.,.,,,,,...,,,,,
+#27ACH5X3ZGVGJNLBOWBAZ6E2IKCROA3MVHXRVPFJOA3WP5A2ZW56YH6N6TBJZWDVRZP75SI6G6YNE
+#\\\|G5YN3CYZK62W3R2K5DMUD3I3B37H3KL2XCBKQG7FWUULFXOLJPC \ / AMOS7 \ YOURUM ::
+#\[7]WYM33PJVHM3625XLFNNVLRTB466DHDV5R5DGM4QQ2IHLYLUHN6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

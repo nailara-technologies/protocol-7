@@ -28,7 +28,7 @@ This document proposes a cleanup that keeps existing commands working (via alias
 | `clear_playlist`, `show_playlist`, `reload_playlist`, `playlist_update`, `change_subname`, `drop_buffers`, `pipe_cmd_raw`, `start_autoskip`, `stop_autoskip`, `autoskip_interval` | snake_case | **primary cleanup target** |
 | `setting` | plain | generic get/set wrapper |
 
-All commands are exposed through `configuration/zenki/mpv/subroutine.white-list` and `access.cmd.usr.cube`.
+All commands are exposed through `cfg/zenki/mpv/subroutine.white-list` and `access.cmd.usr.cube`.
 
 ---
 
@@ -135,7 +135,7 @@ Priority reflects usefulness without duplicating the generic `setting` command.
 
 ## 6. Settings Map Expansion
 
-`modules/mpv.init_settings_map` defines validated aliases for `mpv.cmd.setting`.  Current aliases cover video geometry, audio delay, and basic colour controls.  Proposed additions:
+`src/mpv.init_settings_map` defines validated aliases for `mpv.cmd.setting`.  Current aliases cover video geometry, audio delay, and basic colour controls.  Proposed additions:
 
 | Alias | mpv property | Type / range |
 |---|---|---|
@@ -297,8 +297,8 @@ The `universal` zenka is the orchestrator; small surface, large state.
 
 Because the protocol-7 config parser strips `#` to end-of-line on every `key=value` line, the mpv colour values can no longer be stored with a literal `#`.  The current working approach is:
 
-- `configuration/zenki/mpv/hash` — a one-byte file containing `#`.
-- `mpv.hash = [base.file.read:<system.root_path>/configuration/zenki/mpv/hash]` — loads the `#` after parsing.
+- `cfg/zenki/mpv/hash` — a one-byte file containing `#`.
+- `mpv.hash = [base.file.read:<system.root_path>/cfg/zenki/mpv/hash]` — loads the `#` after parsing.
 - `mpv.script_opts` — composes the full `--script-opts=...` string using `<mpv.hash><mpv.osc_bg_color>` to build valid `#RRGGBB` hex values.
 - `mpv.params` passes `--script-opts=<mpv.script_opts>`.
 
@@ -322,8 +322,8 @@ Any future OSC option that needs a `#` prefix should follow the same pattern.
 
 *End of plan.  Next step is user review of priorities before implementing Phase 1.*
 
-#,,.,,...,,,.,.,,,.,,,,..,.,,,.,,,,,.,,,,,...,..,,...,...,...,...,...,,,.,...,
-#YZC35PWGWFYZBHBKIIAYE3UXRCZ7HDDC5CAAVVKGRF3SGG6AK555BBTNHNIO5IX7FUW4ULVY4S7R6
-#\\\|ORFQ4HLEBYRNXYMFY2QEEGWWWVAOQYE4P3UMLQFEHNWVZAIYGQO \ / AMOS7 \ YOURUM ::
-#\[7]KGFHAYKHIRDLST5N7MQKPNZDJRIWFGR6SELL3EXRCOUMEVD6WSAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,..,,,,,,,.,,..,.,,,.,.,...,,,.,..,,...,...,...,,..,,,.,.,,,..,,
+#D5WGLF4DGLPK36PF6RVKC3P62DC7BLSUNU2FT3VHR3JLQF5UOHW4MNCRHQW7VWE75KCQVZ4AHXAZQ
+#\\\|MFJF5BWSW423HMJO2WC6IVXWZNEXLRU6D5LUZA2Z5ITDIRPG7PX \ / AMOS7 \ YOURUM ::
+#\[7]L4TKOT5DTFZVRDDK4V4JS7OT4NYG6B7Z5UGKBA65YLKDMC3JEUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

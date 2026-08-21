@@ -34,7 +34,7 @@ feeds the [[forensic-report-pipeline]].
 ### task 1.1 — forensics zenka scaffold
 ```
 ## dispatch + prompt
-create cfg/zenki/forensics/ (zenka-startup.v7, access.zenki,
+create cfg/zenki/forensics/ (start.cfg, access.zenki,
 start) so the existing 04:07 event slot fires against a real zenka.
 verify: slot fires, zenka present-check passes, no-op but logged.
 research first: data/tasks/research-knowledge-base-extraction.md topic 10
@@ -93,8 +93,8 @@ the forensics channel. schedule: weekly event slot.
 - all analysis local: local models + pattern store, no external calls
   with operational data (see [[HYBRID-LLM-GOVERNANCE]]).
 
-#,,,,,...,,,.,.,.,,.,,,,.,,.,,,.,,,..,..,,,..,..,,...,...,...,.,.,,,,,.,,,,,,,
-#LTZBVWHRLZADXOSANH637U7RP3PJ5PX4O5KTTVYPL74TG753ECLX6SEC5IBHQXOKKMIG4XULIF4DY
-#\\\|5E7LIHMIPMRNXV33YEDBGTH2O4FG2IKSDEFOIKGRPY4XEQFYSZO \ / AMOS7 \ YOURUM ::
-#\[7]CG4VYL7C6KWFKC3ICC2VHIHYD67BKH2LDKYKI7XKJYOYAJ45BCBI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,.,,,,.,...,...,.,,,,.,,,.,,..,,...,...,..,,,,,,.,,,.,,,,.,,
+#CUDBTRO7455KKM4ZT6X2BQW3EBLRPAZKNBRX4JVSWDKJITFJ52SS42EDESTXBOZ7CYAFJ3B6UYXMK
+#\\\|OSJYWZYM3BEMURDVZS6UIGKEPNUNM3LMJI5WBLPO6WYZGUO62BM \ / AMOS7 \ YOURUM ::
+#\[7]D5PQZE3HEWWPCIA3NXNCI4JD7PJJLPWK6IERSOA6YHC7SZKV2OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

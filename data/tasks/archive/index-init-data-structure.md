@@ -88,11 +88,11 @@ idle timeout (e.g. 4200s like calc).
 - [ ] uses FALSE/TRUE constants not 0/1
 - [ ] uses `$ARG` not `$_`
 - [ ] no stub signatures added
-- [ ] zenka start file created (cfg/zenki/index/start)
+- [ ] zenka start file created (cfg/zenki/index/zenka.v7)
 - [ ] module passes ptd
 
-#,,.,,,,,,,,.,,..,,,,,,.,,.,.,,..,.,.,,,,,.,.,..,,...,...,..,,,,.,,.,,..,,..,,
-#BXDEJBR32LKTC7GAPAUFWYGEEBHLRZHWA6VGQITWBVOH22EKHCYXQLO7RRVEQFOM6VK42S3PU2TW4
-#\\\|JGY2GIQKNWBDZBM2LX7EBHTUG5TFW5ACDJ2AXWSPS5CFGSZR4R7 \ / AMOS7 \ YOURUM ::
-#\[7]6IFBLYPOCKIZ5SFZWR4FL4BJAWCYAJNL3ISBNKMPLO6VJKI2Y2CI 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,,,.,.,.,,..,,..,,,,,..,,,.,,..,,...,..,,.,,,..,,,,.,.,,,.,.,
+#43A5RM6MJST2DKOCYKS4I6HLWA74G7BUVIQ4RYOSFHHOS4U4QCN25YMLJNQDT2E2UGZ4HM7XV4T56
+#\\\|4MUUNYUBI5D25IWGBYGLW4D3HZM4DR7RDFVJOVAKOMQEMZAVJNK \ / AMOS7 \ YOURUM ::
+#\[7]KWWHMW6WYJ6YSFHUTWJOO5BLYONX57CKPAWF6CKRX3OHH7JS4KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

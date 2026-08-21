@@ -63,7 +63,7 @@ cat src/kimi-web.internal.http_post_sync
 cat src/kimi-web.handler.batch_result
 cat src/kimi-web.handler.agent_health_check
 cat src/kimi-web.init_code
-cat cfg/zenki/kimi-web/zenka-startup.v7
+cat cfg/zenki/kimi-web/start.cfg
 
 ## STRM pattern reference
 cat src/base.stream.open
@@ -319,8 +319,8 @@ p7c kimi-web.cmd.enqueue '{ "prompt": "task 2" }'
 - [ ] `kimi-web.process_queue` starts next task after STRM closes
 - [ ] no signature stubs added, no whitelist changes
 
-#,,,,,,,,,..,,,,,,,,,,,,,,,..,..,,,,.,.,.,.,.,..,,...,..,,.,.,...,,..,.,,,.,,,
-#HIXVQYHESTCFC7R2QIYDT7NBHKOMLHMAH3EFUHBLIE45XMAIAZFV55PNWWEPBXC3ZMEBJE3QUTGJA
-#\\\|VQ5F3HJJJXWF3NLRZRNGF7AVFL5KXBADXC2M74HRPUVHTBLT2J5 \ / AMOS7 \ YOURUM ::
-#\[7]LHCBLZTJQ6HCFK3QJMEOV7RME7C7TE7TW7EPQWB5KPZUS7FXA6CQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,,..,..,,..,,,..,,..,,,,,,,.,..,,...,...,...,..,,,.,,...,.,.,
+#HNELS5RCHCL4PYMDKVZQWPXR4BQYGYTAPSI7IEV5YBOCK4YIC7TADLGARRBRTKKJSGC7LCXBE2F7W
+#\\\|XU2V7ZBU2LVSHO4IWVTAOM47EVJJVVPQ5FPPDACHW3OGSLFWLGF \ / AMOS7 \ YOURUM ::
+#\[7]ZH6BH5GTOCBO2RMKA46BIIWJMQQV2ZGLKFN5QNYB2XBYIW5RVQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

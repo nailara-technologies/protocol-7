@@ -30,7 +30,7 @@ it in one step.
 
 **Live-probe technique for a running nshell session** (no restart, no
 disturbing the user's actual input): nshell registers debug cube commands
-per `cfg/zenki/nshell/start` (`char-add`, `debug-status`). Address
+per `cfg/zenki/nshell/zenka.v7` (`char-add`, `debug-status`). Address
 a specific session by its session id from `list subnames <user>` — e.g.
 `<session-id>.debug-status` — routed via `mcp__protocol-7__p7_command`.
 
@@ -57,8 +57,8 @@ predict — always worth ruling out process staleness (check the running
 pid's start time vs the last relevant file mtime) before concluding a fix
 on disk didn't work.
 
-#,,,.,,.,,,,,,.,,,,..,,,.,,..,..,,,,,,,..,,,,,..,,...,..,,,.,,...,,..,,.,,.,.,
-#HXJFWD7PNNRI33X5DBSKU5MVFOUECUAXGZP5FXB44VI2OWAJH6TWW6BLBF2NFE3TJXUPQWLCVTUDQ
-#\\\|U35DEEH6XKUAW24DD7KTTYOYWAGFRAH63J34CIB4PCVRWTKUAGC \ / AMOS7 \ YOURUM ::
-#\[7]2K5DXZFD7MPTYP7BXT4XQCEGEEZTOXQKL6J2FVEHSDDY43BGUCAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,.,,,.,.,.,,.,,,,,,.,.,..,,,,.,..,,...,.,.,.,.,,.,,,,,,,,,,,,,,
+#SB4YGU7GDEDUVU2JEVQRMYVJ7J6FSPJJ2COSPJOML3RHZJIUUYZPBIBYWF6SAVYKMWZB2STLZCU62
+#\\\|KGKVHKUK6J5XSIKRSQFOP6HHCIBHOVTJJYHFSUXNBHOCDBMWROW \ / AMOS7 \ YOURUM ::
+#\[7]MPXKST4HT2UHRP6PBID2L62DOPKIYG63U2FQLDUGKMZM2D3INACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

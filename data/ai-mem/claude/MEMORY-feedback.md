@@ -71,7 +71,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [perlmod-load-noise-is-intentional](feedback-perlmod-load-noise-is-intentional.md) — base.perlmod.load's "skipping already present" log noise is a deliberate nag to find/fix redundant per-call loads, not a bug to silence; load vs autoload differ only in export behavior, not timing -- placement (init_code vs per-call handler) is the real eager/lazy axis
 - [init-reports-one-shot-flush](feedback-init-reports-one-shot-flush.md) — system.init_reports flushes once at connect only; deferred-reply/live-runtime sends need system.callbacks.initialized or direct route-send instead
 - [undef-sub-scanner-verification](feedback-undef-sub-scanner-verification.md) — check eval-wrapping/guards + grep for sprintf-constructed dynamic dispatch before renaming anything; scanner has zero reachability analysis
-- [v7-zenka-startup-config-placement](feedback-v7-zenka-startup-config-placement.md) — zenka-startup.v7 keys must be top-level not inside a ':' section, or v7 never sees them; v7.reload config doesn't re-parse the file, need v7.reload all/init
+- [v7-zenka-startup-config-placement](feedback-v7-zenka-startup-config-placement.md) — start.cfg keys must be top-level not inside a ':' section, or v7 never sees them; v7.reload config doesn't re-parse the file, need v7.reload all/init
 - [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.X→X swap safe/mechanical, but check `ncode s src:base.X swap_subs` before calling any base.* primitive from new code, or you'll call the pre-swap dead name
 - [eval-error-macro-call-site](feedback-eval-error-macro-call-site.md) — reading $EVAL_ERROR inline as an arg at a `<[...]>` call site can come back empty; capture into a lexical (or use `<[base.str.eval_error]>`) immediately after eval
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed (confirmed for kimi_dispatch AND claude_dispatch); underlying process/session often finishes fine, recover via session_catchup(client, session_id) not re-dispatch, or claude -r <id> directly
@@ -90,8 +90,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [modal-prompt-navigation-never-loses-content](feedback-modal-prompt-navigation-never-loses-content.md) — a cancel-on-navigation key (Left-as-Esc in a modal prompt) must gate on buffer CONTENT being empty, never cursor position — ordinary cursor movement must never be able to discard typed text; caught live in editor.control.prompt.handler.key, applies to any future modal input control
 - [check-existing-safety-nets-before-adding-new-one](feedback-check-existing-safety-nets-before-adding-new-one.md) — coding zenka's async/self-test machinery has multiple deliberately-layered, cross-referencing watchdogs with a documented history of drifting out of sync (4c3cf0e73); grep for an existing timer on the same flag before writing a new one, advisor caught me about to duplicate `verify_inference_startup`'s fallback with an independent literal ceiling
 
-#,,,,,..,,,,,,...,,,.,,,,,,,,,,,.,..,,...,.,,,..,,...,..,,.,,,.,.,.,.,.,.,,,,,
-#QD6ZFDQSZMIQYMEG4DYQYLYTODQKNTR2BJYWWIVIMNJA6JPVKVLSEZRYSFN5EH6NARZ6H5RJMZIQO
-#\\\|7NCST7WYIBFSPVOIUAWFXY62YJMGHCE7CCOVIUMNMQIY7AO35XM \ / AMOS7 \ YOURUM ::
-#\[7]WSCTZXJG6HDGRPYHABAOXTAESQ3UOURWZWBVNTCGQSYRJMBAUGDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,.,,,..,.,,,,.,,.,.,,..,,..,.,.,..,,...,..,,,,,,,..,...,.,.,,,.,
+#3JHDJ4MFP6APHRNWFZIBD5AGNN6HXLEH5VIZ6MEGBU7KV2J273M4GIPRQLV7F4WHYY75IPCGRTNF6
+#\\\|LRIFVFS742X6SBF6COWJ5NTH2JSQFSPB6FUZ5KV4B7THCUG5SF2 \ / AMOS7 \ YOURUM ::
+#\[7]4XHXF3D2KTBRZYY4PWOKEC3NH4PSWOAU3Y7BSIKOUDJT6OBTJUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

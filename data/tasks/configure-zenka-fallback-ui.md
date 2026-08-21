@@ -181,7 +181,7 @@ proof-by-thinness claim from the design doc.
 
 ### configure start file changes
 
-`cfg/zenki/configure/start`: switch from one-shot
+`cfg/zenki/configure/zenka.v7`: switch from one-shot
 console-command exec to the standard module load + zenka loop
 pattern. minimal:
 
@@ -193,7 +193,7 @@ modules.load = base.init crypt.C25519 amos7 configure
 [zenka.loop]
 ```
 
-add `cfg/zenki/configure/zenka-startup.v7` and
+add `cfg/zenki/configure/start.cfg` and
 `cfg/zenki/configure/access.zenki` matching the existing
 zenka patterns [ e.g. cred-mesh's ]; refer to live zenki for
 exact required keys.
@@ -242,8 +242,8 @@ harmony configure.ui.render.decisions
 harmony configure.cmd.ui-show
 ```
 
-#,,..,,,,,.,.,,..,,..,,.,,,.,,..,,.,,,,..,...,..,,...,...,.,,,,..,,..,,.,,,,.,
-#HRX3UGUP6YQTJLPUXIEBQI4VTT3JS5YSM2YZEXD5KTBXVP24NMDX5DTSVDWZIJZ2TII2A263RZR6W
-#\\\|SDW423TC5FFEUCX6I4VGKZ5FAIYFL3BUX5KHECACNWTQZZULGXG \ / AMOS7 \ YOURUM ::
-#\[7]RWIUAR2Y3RHBAKTLOHYPTBKU3DX7P6QHF3RPGCWX6BC2342JMIAI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,.,...,,,,,...,,,.,...,,,,,..,,..,,...,...,.,.,..,,,,.,,,,,...,
+#4T7GE67PBO37EVP5GXUMOTPHB63UF4Q457LWIJ4PKEQKMKZLGYAISVK7SZUI3UZQ7PF4N4BYCB5SY
+#\\\|L5LB3H5V7RKY4WB3O4QLPYSURU54BJPVGYDLJPRTGZGD4ZNPNVK \ / AMOS7 \ YOURUM ::
+#\[7]CHDPUVUXSXL2LXL3B6MR4O6FGWWIHXWKD42QVK6QR7XDJ75UUCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

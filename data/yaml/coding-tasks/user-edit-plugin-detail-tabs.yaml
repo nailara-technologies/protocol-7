@@ -6,7 +6,7 @@
 #         post_init collects every loaded plugin.user-edit.<name>'s
 #         tab_info into a by_key/by_name registry, wired via plugins.
 #         load/[load_plugins:...] (NOT [load_modules:...] — confirmed
-#         against cfg/zenki/web/start's plugin.web.auth
+#         against cfg/zenki/web/zenka.v7's plugin.web.auth
 #         precedent after an initial modules.load attempt silently never
 #         fired at all). Phase_2 : editor.control.get_display_value
 #         gained a GENERIC display_override coderef hook (zenka-
@@ -87,7 +87,7 @@ plugin_module_convention:
     stream_request, .handler.strm_open) rather than inventing new
     plumbing — same base.load_plugins loader, same <plugins.status>
     reload bookkeeping, same explicit `plugins.load = ...` start-file
-    directive httpd already uses (cfg/zenki/httpd/start:9-10).
+    directive httpd already uses (cfg/zenki/httpd/zenka.v7:9-10).
   proposed_routine_set: |
     plugin.user-edit.<name>.init_code
       — state init, exactly like plugin.httpd.radio.init_code. Runs when
@@ -118,7 +118,7 @@ plugin_module_convention:
         editor.control.process_key's { action, ... } shape rather than
         inventing a third one — TBD alongside rendering_contract.
   start_file_wiring: >
-    LANDED, commit 7592bdbc0. cfg/zenki/user-edit/start's own
+    LANDED, commit 7592bdbc0. cfg/zenki/user-edit/zenka.v7's own
     `plugins.load = plugin.user-edit.registry ...` line + a [load_
     plugins:<plugins.load>] call, positioned BEFORE the zenka's [load_
     modules:...]/[init_modules] pair, same shape httpd/start uses for
@@ -427,8 +427,8 @@ open_questions:
 created: 2026-08-12
 tags: [user-edit, plugin, tabs, editor, ascii-frame, design-only]
 
-#,,.,,..,,,.,,.,.,,..,,,.,.,.,,,,,...,.,.,...,..,,...,...,...,,.,,.,.,...,.,,,
-#26OKLTRFXJVQWXQHU6PKA7SHTDVI4XBTG6GTK64JSHD7YK2R4K7TOM4OZELXC2KQVSH2RV4UJ2FH6
-#\\\|IG4D236FXTQOFO7CKVHDTJGWJGPKW4MUNQDAG2M5HP7U4YSUWDV \ / AMOS7 \ YOURUM ::
-#\[7]LHTAOTQZZNZ3S45PJHADHI43CJ6HNBBS6CEEPUFT2GQDZD7WCECQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,,,.,,,..,,.,,,,..,,,.,.,,,...,..,,...,.,.,,.,,,.,,.,,,,..,..,,
+#4MGZ6TKGLV6SC24Z7HHZWF7LAFI3ITEWV4MJ4QCXNDXTMF2P5KYIPN4ZB3YOMYRKCIYNVGGD7DHWS
+#\\\|2TT4Z4XER5JF6HQY6L4QS2BP3KA6GOZTMWHR462EA6H7P7SY5MG \ / AMOS7 \ YOURUM ::
+#\[7]G2NVCPURKJCZTT3ZJY2IK5U2O2SJMBAUUCWPUA4RVP6I3WIDE6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -64,7 +64,7 @@ Provide TLS/SSL encrypted HTTP/1.1 connections while delegating application logi
 
 #### Configuration
 ```
-Location: configuration/zenki/httpsd/start
+Location: cfg/zenki/httpsd/zenka.v7
 
 httpsd.cfg.tls_version       = "TLSv1.2"      # Minimum version
 httpsd.cfg.cipher_suite      = "modern"       # Mozilla modern ciphers
@@ -173,7 +173,7 @@ Provide dynamic content rendering with support for multiple templating engines w
 
 #### Configuration
 ```
-Location: configuration/zenki/template/start
+Location: cfg/zenki/template/zenka.v7
 
 template.cfg.engine          = "mustache"     # or "handlebars", "ejs"
 template.cfg.cache_enabled   = 1
@@ -293,7 +293,7 @@ Automate ACME certificate provisioning, renewal, and storage with minimal manual
 
 #### Configuration
 ```
-Location: configuration/zenki/letsencrypt/start
+Location: cfg/zenki/letsencrypt/zenka.v7
 
 letsencrypt.cfg.enabled              = 1
 letsencrypt.cfg.environment          = "production"  # or "staging"
@@ -525,7 +525,7 @@ Client 3 (HTTP) ───┤            │          │
 
 ### Directory Layout
 ```
-modules/
+src/
   ├── httpsd.init_code
   ├── httpsd.tls_handshake
   ├── httpsd.tls_send_data
@@ -554,22 +554,22 @@ modules/
   ├── letsencrypt.notification_handler
   └── letsencrypt.acme_client
 
-configuration/zenki/
+cfg/zenki/
   ├── httpsd/
   │   ├── start
-  │   ├── zenka-startup.v7
+  │   ├── start.cfg
   │   ├── access.zenki
   │   ├── source/
   │   └── pm-dep/
   ├── template/
   │   ├── start
-  │   ├── zenka-startup.v7
+  │   ├── start.cfg
   │   ├── access.zenki
   │   ├── source/
   │   └── pm-dep/
   └── letsencrypt/
       ├── start
-      ├── zenka-startup.v7
+      ├── start.cfg
       ├── access.zenki
       ├── source/
       └── pm-dep/
@@ -751,8 +751,8 @@ docs/
 
 ```
 
-#,,,,,,,.,,..,,,.,.,.,.,.,,,,,.,,,,,,,,..,,.,,...,...,...,..,,.,.,.,,,...,,..,
-#64YCAXTXTJPGNTOGGHTQJ7KNN2GR6GNMGEN2PNF3Q2YP47MFX7XO4UBOH67VPY3OQYESZKBQR6G7W
-#\\\|B4WNDAYKMVBHZOQC7F43Q4B2ATHQTIZCUJPTMC4N6N6RGW55NPP \ / AMOS7 \ YOURUM ::
-#\[7]D4NBX3FVTBQ3ALB2KV7QOHO4NWXLIJ3ILFIWATACPDNQFB4BT4CI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,.,.,.,.,,..,,,,,..,,,,.,,..,...,...,..,,..,,,,,,,,.,,,.,..,,
+#KWQEC5JY3KHCWGQE6SUN3OSM4FB3Y3FVJR4GIDSGBBZT2GKSIGVMBFZUF5Q2TAZ3JVXV2PP7PDILY
+#\\\|EA6YQL3SPIEOWCOYUKEF2HKNYL5MHX6YOVVHXFNMGTCGNE6VT7V \ / AMOS7 \ YOURUM ::
+#\[7]QZRDD2P6NGRTA5OB6EZJHHDLZCWIWZBY54JPZOLHSDDBZPD43UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
