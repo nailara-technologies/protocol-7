@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [appliance-sync-point-tags](reference-appliance-sync-point-tags.md) — `git tag -l 'D-*'` marks commercial-appliance release sync points; last is `D-RNTBZAQ` (3115d344d, 2021-04-22) — nothing after this was ever shared with the forked-off appliance codebases
 - [forked-child-lazy-load-and-event-safety](reference-forked-child-lazy-load-and-event-safety.md) — a P7 module name passed as a runtime string (e.g. to event.add_signal) never triggers the on-demand loader, only a literal `<[module.name]>` occurrence does — prime it first; a forked child must NOT use Event.pm (inherits the parent's live watcher/polling state, Event::loop() can return spuriously) — use plain %SIG + POSIX::pause(), matching cred-mesh.key_holder.child
 - [wslg-pulseaudio-bridge-check-before-mpv-debug](reference-wslg-pulseaudio-bridge-check-before-mpv-debug.md) — mpv silently idle after "submitted for playback"? check mpv's own end-file event log + `pactl info` against WSLg's PulseServer bridge BEFORE chasing Protocol-7 routing/STRM code; stale bridge socket (exists but connection refused) needs `wsl --shutdown` from Windows host, not a code fix
 - [editor-add-field-cycler](reference-editor-add-field-cycler.md) — inline `+a+|b` cycler + `users.record.optional_fields`. TWO TRAPS: a synthesised ACTION row must never reach storage, and a schema def appended after `editor.control.create` has NO buffer. `v7.restart users` before testing `users.*` changes. Plus: why the frame's width is set by `ascii.frame.render`'s own row-overflow detection (`build_frame`'s `min_width` only predicts it, doesn't cause it) and the padded-internal-token-name technique that follows from that; the `\x06`-sentinel technique for hand-colouring one row inside an auto-coloured frame; the Esc-on-expanded-list mode bug (fixed) and why `char-add` can never test the bare-Esc debounce at all
@@ -61,8 +62,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 - [nshell SS3 arrows + live debug probe](reference-nshell-ss3-arrows-and-live-debug-probe.md) — DECCKM terminals send arrows as SS3 not CSI, `cat -v` settles it in one step (0747face5 fix); `debug-status` safely reads any live session's state, `char-add` injection only works if zenka started with `-no-tty-debug`
 
-#,,.,,,.,,...,.,.,,.,,...,,,,,..,,.,,,,,,,.,,,..,,...,...,.,,,...,.,,,,.,,,.,,
-#FSZ2XYHZK3MO5SGCMRDDURZJPABPVFSL62AOMBPUB542EDB5A5QQ5EURQBEDSQLUETQ5VD3MCJE2O
-#\\\|VBIMLNOI5EFLH6ZSU6RHIFRVWIA5ALSNO7CKNI3RYVCODKLQVXX \ / AMOS7 \ YOURUM ::
-#\[7]INC6HFXMQETCZMPSCO2RTNKHOTID3DBCR3K5JDKOAOZLTOWC3WDA 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,...,.,,,,,.,.,.,,,.,,,,,..,,..,,...,...,,,,,,..,.,.,..,,..,,
+#T6MK2QOV7YFXN5AIOBZI6XZYW6FN3AWVPB45LPQV7WADZE7MHNDLJXN5SM2RAOSHVTQL3GYG7NULQ
+#\\\|K6G3I2O4KLCHMDQE7VOER5GAX33QVLPUSNC6HZK4GEXWSB3AF76 \ / AMOS7 \ YOURUM ::
+#\[7]LGMAHDIN37TPPJNP2NGGKA5LKGD4N6NHH5NY5EXCZ4K2YFCJX2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,10 +35,10 @@ if ( $mode eq qw| host | ) {
     <X-11.display>->{$mode} //= qw| :1 |;
 
     ## configured value is the BASE of the range [ user-controlled in       ##
-    ## zenki/X-11/start ]; this instance's actual display is base + subname ##
-    ## index [ 'xvfb-0000' -> base+0, 'xvfb-0001' -> base+1, etc; plain     ##
-    ## 'xvfb' [ no index ] behaves exactly as before ]. overwritten in      ##
-    ## place -- this is this zenka's own private %data [ one process per    ##
+    ## zenki/X-11/zenka.v7 ]; this instance's actual display is base +      ##
+    ## subname index [ 'xvfb-0000' -> base+0, 'xvfb-0001' -> base+1, etc;   ##
+    ## plain 'xvfb' [ no index ] behaves exactly as before ]. overwritten   ##
+    ## in place -- this is this zenka's own private %data [ one process per ##
     ## instance ], not shared state, and every other X-11.* module [        ##
     ## connect_X11, reconnect, pool.dial_standby, cmd.get_display ] reads   ##
     ## <X-11.display>->{$mode} directly as the live display to use.         ##
@@ -157,8 +157,8 @@ if ( $mode ne qw| host | ) {
 
 return 0;    ## success
 
-#,,..,.,.,...,...,.,,,,,.,.,,,..,,.,,,...,,,,,..,,...,...,...,...,..,,,..,..,,
-#L6NA76PNMWW3GGUSJKTEWMBSVIP3WLBVXGVYSFHY33FDA25CU7OSJ45BNJBX6UHFI3DCB6IXBMMX4
-#\\\|LMTKUAGW4DBG7MS5QH35Q7SGVNRGBQKUNIJSTZNCZFV4YT2HERY \ / AMOS7 \ YOURUM ::
-#\[7]INNM5B5LWLBKHCNCGDHG27TA5MW34WW6ALB7UYZ7QUVF6TDSIMAI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,...,..,,,,.,,,.,,,.,,,.,,,,,..,,..,,...,..,,...,.,.,.,,,..,,,.,,
+#CFNVGRZZUS3XRBRAS46EFYQ4HDVEZMN5M74WUJMUHUJN6FS3D6YPWY25LR35CSLAYFLW3HCRPUH3K
+#\\\|3SL457AA2MHPWJPPFNX7VG54B6BXPXGFBBSAEX6CWO2XFYX4IHB \ / AMOS7 \ YOURUM ::
+#\[7]GLRJ32FDYIXMBJM4QVZQWHIEAT5C7LLFDOIRJ6EJNFR34Q22LQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
