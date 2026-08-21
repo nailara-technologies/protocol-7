@@ -44,8 +44,21 @@ whether it's actually inside `src/sourcecode.source_path_set_up`'s
 `@copy_sources` first. If not, the fix is a new `!`-exclude line in
 that file, not signing the file.
 
-#,,.,,.,.,.,.,.,.,..,,.,,,,,,,.,.,..,,.,.,,..,..,,...,...,,.,,.,,,,,,,,,.,,.,,
-#SOIFNGE2M2TOWI76RXQ4TH3BA6FMXGF34CBW3LPGMF7S7FVMUEWV2S756OTS46ESA4HQDLZKR3RKI
-#\\\|YGC7PMF2GP5UIQAJTMKOWFQV7XO7FAOGVXLFDPISTURX46DNK5U \ / AMOS7 \ YOURUM ::
-#\[7]YLMMIRVU424M63HRLDM4E7OXI4YRS7ZBQY2NY7WJACQM4PE5ISBA 7  DATA SIGNATURE ::
+**exact content-heuristic trigger, confirmed 2026-08-21**: a staged
+file only gets checked for a signature at all if it matches the
+extension/path gate (`.pl|.pm|.yaml|.sh`, `^(src|bin|cfg)/`, or a
+nested `.md`) *and* its content matches `/^#!|^\s*(use|my\s+\$|
+sub\s+\w)|^#\s*name\s*=/m` or `/^---/m`. Plain prose task/doc files
+(no embedded perl code, no `# name = ` line, no markdown `---` rule)
+sail through with zero signature check regardless of location —
+confirmed live when several new `data/tasks/*.md` and
+`data/md/architecture/*.md` files committed clean with no signing step
+needed, simply because they didn't contain any triggering pattern.
+Don't assume "it's under `data/tasks/`" means it will be checked —
+check the content shape first.
+
+#,,,,,,..,.,,,,.,,.,.,..,,.,.,.,,,...,.,.,..,,..,,...,...,,..,..,,,,.,,,,,..,,
+#BGDOUMHF44Q7Y4FFNKLNO3K7XXKNMQWQY3L54X5XOQC57SVTVHBTWUSHZ4BPW3OIEQXFNFFRT4SD4
+#\\\|T7C3GD337FITPP7BNCQ34ICTLVFTY6UUSSHPTAEW2KQ3CRB6EGD \ / AMOS7 \ YOURUM ::
+#\[7]22I4IDKGURYKJZU6K3U4GI4NLM7RADJX4XAGS6SRQHVGB3ZS22AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
