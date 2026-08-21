@@ -65,7 +65,7 @@ sub scan_zenki_pm_deps {
     while ( my $zenka = readdir $dh ) {
         next if $zenka =~ /^\./;
 
-        my $pm_dep_dir = "$zenki_base/$zenka/pm-dep";
+        my $pm_dep_dir = "$zenki_base/$zenka/deps/p-mod";
         next unless -d $pm_dep_dir;
 
         opendir my $pdh, $pm_dep_dir or next;
@@ -129,8 +129,8 @@ sub resolve_install {
 
 1;
 
-#,,..,,..,,,,,..,,..,,,..,..,,.,,,,,.,,.,,.,.,..,,...,...,,,.,.,,,...,.,.,...,
-#M42WY4C4HCUB7UTXZMC4DQWTHMIA75QPY4CZAJICCFEIDVC3JQW3AJ5BH7SZM3YS5E5AQSQ5A67YO
-#\\\|XHIXMWBAK3Y6XPDYGPPHPD2IARSFO7J3KPM6MKDAQ7Z2BK632YH \ / AMOS7 \ YOURUM ::
-#\[7]P3HULYTC6Y73YNKSTZFY5HLIEPYC5VEER53ZSMJ6UP6FG4PTKMAY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,,,.,...,,..,,,,,...,,,,,,..,..,,...,...,,..,.,,,.,,,.,,,..,,
+#TEJJ2NCI37JOT246UEYEPM3GHUC6XZWKRONJAMZIYFXFYNGXSLG2PDSGZ2NUODTBRVRB55TFYTZIY
+#\\\|DMP53R7Y75YO6NNDRNAX3CBY5K32CFWUZVYCFJHENCC5V2UYM4Q \ / AMOS7 \ YOURUM ::
+#\[7]CF46GHOKKZXBQDWUJR6A54Y2GNF5NKKWLMKW7LHVTGLFXMYSPABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

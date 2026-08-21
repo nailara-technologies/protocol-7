@@ -12,8 +12,7 @@ my $file_perm = 0664;    ## zenka group gets write access ##
 
 my @not_registered;
 
-if ( $bin_deps
-        =~ s|zenki/$zenka/zenka.v7$|$cfg_path/zenki/$zenka/os-dep/binary|
+if ( $bin_deps =~ s|zenki/$zenka/zenka.v7$|$cfg_path/zenki/$zenka/deps/os/bin|
     and -d $bin_deps
     and -r $bin_deps ) {
 
@@ -101,13 +100,13 @@ if ( @not_registered and not $warned ) {
         0,
         'cannot check \ register binary dep. '
             . join( ', ', map { sprintf qw| '%s' |, $ARG } @not_registered )
-            . ' [ os-dep dir read-only ]'
+            . ' [ deps/os/bin dir read-only ]'
     );
     <base.register_bin_deps.warned>++;
 }
 
-#,,,.,,,,,.,,,,,,,,..,,.,,,,.,.,.,..,,.,.,,,,,..,,...,...,.,,,,,.,.,.,,.,,..,,
-#FDJUUOIQ4Q6S3XQSVTCTDSGUAAVG47WZOXPTBDM2WTEUWEI32IIWEITVARK7K6GIIFJLHV5SIR4J4
-#\\\|7H4KMO2LRG7HULFUU2UDDSEUUCLW7LPLLPNBM5RZIFAJUZ5MTCY \ / AMOS7 \ YOURUM ::
-#\[7]VBL7UTMSAJWXHKXZNHOFRMEG7IYIB7YLRIO3NKCINSZUMYQ3UICQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,,..,.,.,...,..,,,.,,,,.,..,,..,,...,..,,,..,.,.,,.,,..,,.,,,
+#IGI4WSIKNEFPPWWH2Z43IOBO4JWCU6SEWSKLDHSEVABD4AAJ4MMIBOH3BS3RA55HRY4ILABUJBSBK
+#\\\|XXLE44GN5LE4LYSJ6QNHLZ7DSH7MF4AYCHZNHGKPQZITAXNXNSF \ / AMOS7 \ YOURUM ::
+#\[7]B7Z45U7VB5VDPG4CDCLM3HTP7S4SUJQAN5BIK3GIHQ4IBETWYYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

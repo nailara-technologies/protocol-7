@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = sys-deps.cmd.promote
-# descr = promote tracked package to zenka os-dep config
+# descr = promote tracked package to zenka deps/os config
 # param = <pkg> <zenka>
 
 my $param = shift;
@@ -16,7 +16,9 @@ unless ( defined $pkg && defined $zenka ) {
     };
 }
 
-my $zenka_os_dep_dir = <system.conf_path> . "/zenki/$zenka/os-dep/debian";
+my $dep_dir_name = AMOS7::deps::os_package::dep_type_to_dir('debian');
+my $zenka_os_dep_dir
+    = <system.conf_path> . "/zenki/$zenka/deps/os/$dep_dir_name";
 
 eval {
     require File::Path;
@@ -63,8 +65,8 @@ return {
     'data' => "declared $pkg for zenka '$zenka'"
 };
 
-#,,,,,.,,,..,,,,,,.,.,,.,,,.,,,,.,,..,..,,,..,..,,...,...,..,,.,.,,..,.,,,..,,
-#65DP44JADGPXJBBRNG4ME6BLXG5ZDBCITIL3NF6ZWKBED42FGW27MXCZWF5GPHT6QW4DGKPLRULEQ
-#\\\|4EFDMUM2PE53DBWBIFIDOXLWUZJCYSIETPKRYQRR2DY7HX2KEPJ \ / AMOS7 \ YOURUM ::
-#\[7]DNRNLLAGSH4GEC2L5MQ7XHI3HOQKMGSE3X2YKPBTCK5WH2RJDIBI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,.,...,...,,.,,,.,,,,,,,..,,..,..,,...,...,..,,,,,,.,,,,,.,,,,,
+#GNKDGBNMLAWBJD2QKY5R7X5DKHKLMKQZKKTV4T7KQ7WLRIVMTQZRU67T5WASOT2YHJJXLWBRE4ZRU
+#\\\|QJYH27K44E2JYITY6DC2LYFZQJ5DQ6WNA7RBGR5LPAJ6LPL3VZ6 \ / AMOS7 \ YOURUM ::
+#\[7]SDQKTEV3WPXW2BLK6NK5HBXKARJHRARVSUT3HFRJQQ45D6PZYCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
