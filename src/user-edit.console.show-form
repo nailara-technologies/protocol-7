@@ -10,10 +10,10 @@
 ## and no watchers involved.  user-edit.console.start reuses every one of
 ## these steps and only adds the input side on top.
 ##
-## this is a HYBRID console command [ user-edit/start's own note ] : the reply
-## is asynchronous, so the command marks init done and enters the zenka event
-## loop itself rather than the start file doing it — a [zenka.loop] in the
-## start file would hang plain 'v7.user-edit commands'.
+## this is a HYBRID console command [ user-edit/zenka.v7's own note ] : the
+## reply is asynchronous, so the command marks init done and enters the zenka
+## event loop itself rather than the start file doing it — a [zenka.loop] in
+## the start file would hang plain 'v7.user-edit commands'.
 
 ## tags are partitioned out BEFORE the username fallback -- otherwise
 ## 'show-form :create-admin:' would take the tag itself as the username
@@ -59,8 +59,8 @@ if ( not defined $cube_sid or not exists $data{'session'}{$cube_sid} ) {
 ## resumes here only if the reply handler unlooped to offer a record ##
 return <[user-edit.offer_create]>->( $username, $tags );
 
-#,,.,,.,.,,,,,..,,..,,..,,,,,,,.,,.,.,.,.,...,..,,...,...,...,,,.,.,,,...,,.,,
-#ULWWGHL3ZHOUHPCP64XAQMWAAGIPNV3W5DLAAO4DVVL4TDUQM2AI5LI3A6STVZZQQL23WHZUVCKMY
-#\\\|3DIAIQ2WAEHHG5QMCFESDU4KLOCPUGCE42PXSLCOUA5PLGMBM5O \ / AMOS7 \ YOURUM ::
-#\[7]2ZTVC5HZXEQCI4MFFBTWC4UTDNQTI4Z4VMOXOZHZF6U73LSUC4BI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,..,.,.,,,.,...,.,.,,.,,,.,,,,.,..,,...,...,.,.,..,,,..,,..,,,.,
+#EYMNEUKTSWTW52MCG22FMQ4WPLZAAI6I6VYIOQRX55PH6QGJO7TG5WVMB5JPFSZUUNT7YFVGHP3PA
+#\\\|WG6LR3N3UY2V3ENEN6TNV2UGIU6KGFFIU5VIBZ5X7DVL2KFJY75 \ / AMOS7 \ YOURUM ::
+#\[7]LEN24K7OKGZCJNKMXWB3CXVZ5GRB35577O4FDM3PNXWL4UHWSSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,7 +12,8 @@ if ( not defined $zenka or not length $zenka ) {
     return undef;
 }
 
-my $zenka_cfg_path = sprintf qw| %s/%s/start |, <source.path.zenki>, $zenka;
+my $zenka_cfg_path = sprintf qw| %s/%s/zenka.v7 |, <source.path.zenki>,
+    $zenka;
 if ( not -f $zenka_cfg_path ) {
     <[base.logs]>->( 0, "zenka '%s' not found", $zenka );
     <[base.exit]>->(4);
@@ -63,8 +64,8 @@ delete $data{'cfg_cmd'} if not keys $data{'cfg_cmd'}->%*;
 
 return @modules;
 
-#,,..,,,,,..,,..,,.,,,..,,.,,,,..,.,.,..,,,.,,..,,...,..,,,,.,...,..,,,,,,,,,,
-#3KKIGPFBUHKWD6ZOUVZMATB7RXPDS6NFWTEUQ4DGIFCTHPK5WMN3YKUAIU33VNOBPVOBQ33ZASKCE
-#\\\|U3C32DJJCOWNNTPZZ7KRUH5NRZCXOQKEPIRMSLHQYQ42I3MX3Z3 \ / AMOS7 \ YOURUM ::
-#\[7]E7MZZDR6DZCAGUZTOXJWNRBL4YONYS6O2LNYEZS23ED7KNQIHACQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,,..,,..,,.,,..,,,,,,,,,,.,,,..,,...,.,.,...,.,.,...,,..,.,,,
+#CTB4UAK5G3V36FQNJDG67B53FBZB5ZLGFOXV6YFYHJKM4NUWTMEHJQFPPNK5OC5ILOZYJBBJ3SQ7M
+#\\\|ATP6UUDLPHOQ4LGAGPTCTP5P7ZPAYZLS3QTRCFGQ5FDS7WKGDOJ \ / AMOS7 \ YOURUM ::
+#\[7]NWRB45NCKD7IMVR5QZROYX3KYMXVSJYZWYEZIV7ZRRUPGOKJ3WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

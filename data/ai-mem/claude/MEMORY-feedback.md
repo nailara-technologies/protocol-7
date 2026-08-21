@@ -6,6 +6,8 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [multiply-in-place-timeout-looks-like-ntime-bug](feedback-multiply-in-place-timeout-looks-like-ntime-bug.md) — v7's verbosity-scaled timeouts use `*=` not `//=` reset; a bug that makes `v7.init_code` run more than once (e.g. the `zenka.v7`/`start.cfg` rename's grep-target swap) accumulates them into absurd numbers that look like an ntime bug but aren't — fix the repeat-cause, not the timeout math
+- [rename-scope-policy](feedback-rename-scope-policy.md) — large namespace/file renames judged on improvement only, never avoided for size; repo history (agents→zenki, src↔configuration↔code↔modules↔src) shows renames cycle and that's fine; commercial deployments exist but forked off `base` years ago and don't track it, so nobody pulling `base` is disrupted by renaming it now
 - [v7-restart-stop-stale-zenka-registration](feedback-v7-restart-stop-stale-zenka-registration.md) — v7.restart/v7.stop can leave an OLD zenka process still connected to cube under the same name, routing test commands to dead code; `p7c term-all <sid>` (from `list subnames`) is the reliable forced cleanup
 - [list-hidden-row-collision](feedback-list-hidden-row-collision.md) — base.hide_list hides LIST NAMES ('sessions'/'users'), but base.parser.list/list_filtered checked that hash per-ROW — any list with a row literally named 'sessions'/'users' (zenka name, username) silently lost that row; fixed 575530e3c
 - [bash-tool-http-proxy-contaminates-localhost-curl](feedback-bash-tool-http-proxy-contaminates-localhost-curl.md) — Bash tool's shell has an active http_proxy; bare curl to 127.0.0.1 silently proxies and 404s unless no_proxy=127.0.0.1 is set explicitly, don't rely on copying the user's exact command
@@ -88,8 +90,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [modal-prompt-navigation-never-loses-content](feedback-modal-prompt-navigation-never-loses-content.md) — a cancel-on-navigation key (Left-as-Esc in a modal prompt) must gate on buffer CONTENT being empty, never cursor position — ordinary cursor movement must never be able to discard typed text; caught live in editor.control.prompt.handler.key, applies to any future modal input control
 - [check-existing-safety-nets-before-adding-new-one](feedback-check-existing-safety-nets-before-adding-new-one.md) — coding zenka's async/self-test machinery has multiple deliberately-layered, cross-referencing watchdogs with a documented history of drifting out of sync (4c3cf0e73); grep for an existing timer on the same flag before writing a new one, advisor caught me about to duplicate `verify_inference_startup`'s fallback with an independent literal ceiling
 
-#,,..,,..,,.,,.,.,,..,..,,.,.,.,.,,.,,.,.,,,.,..,,...,...,.,.,,,.,...,,..,,,.,
-#4EDJBV2U4O2UF4SXROWXS23X67VVNMM2J7FALOU75FHCVTULOEE6I5DC54VB6YFHNY7AKW4MNNUVY
-#\\\|IKOR3AZ63EFF4GHEYTLVXSJKO2GS7HQZ5DQ47D2UVCYF3GCUPJY \ / AMOS7 \ YOURUM ::
-#\[7]2CWYLOLY57EQJSYNKDPEQOAN2JOEEDQYJGWBCAFHCOG5VRTG2AAY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,,.,,,,,,,,,,,.,..,,...,.,,,..,,...,..,,.,,,.,.,.,.,.,.,,,,,
+#QD6ZFDQSZMIQYMEG4DYQYLYTODQKNTR2BJYWWIVIMNJA6JPVKVLSEZRYSFN5EH6NARZ6H5RJMZIQO
+#\\\|7NCST7WYIBFSPVOIUAWFXY62YJMGHCE7CCOVIUMNMQIY7AO35XM \ / AMOS7 \ YOURUM ::
+#\[7]WSCTZXJG6HDGRPYHABAOXTAESQ3UOURWZWBVNTCGQSYRJMBAUGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
