@@ -11,8 +11,12 @@ my $filters    = $args->{'filters'}    // {};
 
 # Parse P7REF
 my $p7ref;
-if ( $location =~ m|^p7://| ) {
-    $p7ref = <[plugin.storage.p7ref.parse]>->($location);
+if ( $location && $location =~ m|^p7://| ) {
+    my $parse_result
+        = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $location } );
+    $p7ref = $parse_result->{'data'}
+        if ref($parse_result) eq 'HASH'
+        && $parse_result->{'mode'} eq 'true';
 }
 
 my $mount_point;
@@ -48,27 +52,43 @@ return {
         # Fill buffer from scan if needed
         if ( !@$buffer && !$done ) {
             my $scan_result = <[storage.9p.scan]>->(
-                {   'mount_point'   => $mount_point,
+                {   'name'          => $p7ref->{'authority'} // '',
+                    'path'          => $p7ref->{'address'}   // '/',
                     'max_results'   => $batch_size * 2,
                     'inclusion_add' => $filters->{'include'} // [],
                     'exclusion_add' => $filters->{'exclude'} // [],
                 }
             );
 
-            $buffer = $scan_result->{'entries'} // [];
-            $done   = 1 if @$buffer < $batch_size;
+            if ( ref($scan_result) eq 'HASH'
+                && $scan_result->{'mode'} eq 'true' ) {
+                $buffer = $scan_result->{'data'} // [];
+                $done   = 1 if @$buffer < $batch_size * 2;
+            } else {
+                $buffer = [];
+                $done   = 1;
+            }
         }
 
         # Return batch from buffer
         while ( @$buffer && @$batch < $batch_size ) {
             my $entry = shift @$buffer;
+            my $type
+                = (
+                $entry->{'qid'}
+                    && ( $entry->{'qid'}{'type'}
+                    & <plan-9.protocol.constants.QTDIR> )
+                )
+                ? 'dir'
+                : 'file';
+
             push @$batch,
                 {
                 'path'  => $entry->{'path'},
                 'name'  => $entry->{'name'},
-                'size'  => $entry->{'size'},
+                'size'  => $entry->{'length'} // $entry->{'size'} // 0,
                 'mtime' => $entry->{'mtime'},
-                'type'  => $entry->{'type'},
+                'type'  => $type,
                 'mode'  => $entry->{'mode'},
                 };
             $cursor++;
@@ -91,10 +111,8 @@ return {
     },
 };
 
-# SPDX-License-Identifier: ISC
-
-#,,.,,,.,,...,.,.,...,,,,,..,,.,.,,.,,,..,..,,..,,...,...,.,,,,.,,.,.,,..,...,
-#2UBNA6T3B6E5W7DBRFA3DYJSKL4PB6QFP7V6SZCFQ24PYLOJNWIHOK6Y5YKH5TJLFZI2D6LGSSY5Y
-#\\\|5MS3CUU5XYLJBANV7TCDXCIMBYFNFEGATVSYC3HC4MZ635ZTOYQ \ / AMOS7 \ YOURUM ::
-#\[7]73UDNCHMMEMIHFCEJNNN6USJFK7ID4YUQOLBLS6DF3HP2U3FWGDI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,.,.,.,,,.,.,,,...,,.,,,.,,,.,,..,,...,...,..,,...,.,,,,..,.,,,
+#4FU66AEGVMDHZXUJR3B2AHVQ42BJOF7WP434LH5CKO3FVGQOPNKBHZ3XOMISXKIPEFB6YTS7S7NQU
+#\\\|C2EBSWNTBWS2GNPSH37YQOWN6XH45UCO62YBF5XSPLTUML5KDWG \ / AMOS7 \ YOURUM ::
+#\[7]NZ4TMTXAVVO77265IP7D5ID5GAGTI6SQK2UKWG32SSNQLCCQMWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
