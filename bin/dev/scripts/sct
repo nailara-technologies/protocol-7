@@ -5,9 +5,10 @@ use English;
 use warnings;
 use Sys::Hostname;
 use Cwd qw| abs_path |;
-use FindBin qw| $RealBin |;
+use File::Spec;
+use FindBin     qw| $RealBin |;
 use Time::HiRes qw| sleep |;
-use File::Path qw| make_path |;
+use File::Path  qw| make_path |;
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
@@ -25,13 +26,12 @@ my @edit_files;
 @ARGV = split( m|\s+|, qx| /usr/bin/xsel -o | ) if !@ARGV;
 
 my @check_paths = map { abs_path( join( '/', $protocol_7_path, $ARG ) ) } qw[
-    modules
-    configuration/zenki
-    configuration
+    src
+    cfg/zenki
+    cfg
     bin
-    configuration/network
+    cfg/network
     bin/dev
-    bin/src
     bin/admin
     ], '', qw[
     bin/dev/scripts
@@ -54,10 +54,10 @@ foreach my $filename (@ARGV) {
         push( @edit_files, $filename );
     } else {
         foreach my $path (@check_paths) {
-            $filename = sprintf qw| %s/start |, $filename
+            $filename = sprintf qw| %s/zenka.v7 |, $filename
                 if $path =~ m|/zenki$|
-                and -d sprintf qw| %s/%s |,       $path, $filename
-                and -f sprintf qw| %s/%s/start |, $path, $filename;
+                and -d sprintf qw| %s/%s |,          $path, $filename
+                and -f sprintf qw| %s/%s/zenka.v7 |, $path, $filename;
             if ( -f join qw| / |, $path, $filename ) {
                 push( @edit_files, sprintf( qw| %s/%s |, $path, $filename ) );
                 last;
@@ -72,12 +72,23 @@ warn "\n << selected file name or path not found >>\n\n"
 open( my $fh, '-|', join( ' ', 'scite', @edit_files ) ) or die "\l$OS_ERROR";
 close($fh);
 
+## window positioning / fade-in is X11-window-manager eye candy on top of ##
+## the actual editor launch above -- skip it cleanly [ no hang, no die ]  ##
+## when the tools it needs aren't on this host [ e.g. WSL w/o an openbox  ##
+## set-up yet ], rather than spinning forever waiting for a window that   ##
+## wmctrl can never report because it doesn't exist                       ##
+if ( not cmd_exists(qw| wmctrl |) or not cmd_exists(qw| transset |) ) {
+    warn "\n << wmctrl/transset not found -- "
+        . "skipping window positioning >>\n\n";
+    exit 0;
+}
+
 my $xrandr_output = qx| xrandr |;
 ( my $sw, my $sh ) = ( $1, $2 )
     if $xrandr_output =~ m| current (\d+) x (\d+),|;
 
-die "\n << error while acquiring screen"
-    . " dimensions [ xrandr installed ? ] >>\n\n [ $xrandr_output ]"
+die "\n << error while acquiring screen dimensions "
+    . "[ xrandr installed ? ] >>\n\n [ $xrandr_output ]"
     if not defined $sw
     or not defined $sh
     or $sw < 1
@@ -88,10 +99,20 @@ my $wh = $sh + 77 - 20;
 my $win_geometry = sprintf qw| '%s' |, join( ',', @window_geometry, $wh );
 my $window_name  = "' - SciTE'";
 
-my $found = 0;
-while ( not $found ) {
+## bounded wait [ ~14s ] -- defense in depth : cmd_exists above already  ##
+## rules out the missing-wmctrl case, this guards the other way a window ##
+## may never appear [ e.g. scite itself failed to start ]                ##
+my $found     = 0;
+my $wait_left = 200;
+while ( not $found and $wait_left-- > 0 ) {
     ++$found   if qx| wmctrl -l | =~ m| SciTE( \[\d+ of \d+\])?$|ms;
     sleep 0.07 if not $found;
+}
+
+if ( not $found ) {
+    warn "\n << SciTE window not found via wmctrl after "
+        . "waiting -- skipping window positioning >>\n\n";
+    exit 0;
 }
 
 sleep 0.07;
@@ -111,14 +132,21 @@ for ( my $t = 0.97; $t > 0.77; $t -= 0.01 ) {
 sub c_dir  { File::Spec->catdir(@ARG) }
 sub r2_abs { File::Spec->rel2abs(@ARG) }
 
+sub cmd_exists {
+    my ($cmd) = @ARG;
+    my $path = qx| command -v $cmd 2>/dev/null |;
+    chomp $path;
+    return length $path ? 1 : 0;
+}
+
 sub p7_root_dir {
     my $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 3 ) ) );
     die "  :\n  :: not a directory : '$root_path'\n\n" if not -d $root_path;
     return $root_path;
 }
 
-#,,..,,,.,..,,..,,,,.,.,.,.,.,..,,.,,,...,...,..,,...,...,..,,,,,,...,,..,..,,
-#PP5UQXYWUR44KBMLLRO7G34YS5ZNGMHSCLXABKBDSKOGHVAZ7OQLBO5DVGTZMZQWYFD2UCQF5L7PK
-#\\\|ELNS3CQGWLLCJGN62MK4NDMCKVN3ZBBXHPHFXHE2M5QWZ7EFIGM \ / AMOS7 \ YOURUM ::
-#\[7]7RGNMU6BKUK23RYAHHA6PYJQT33T7DFHB5PES67ACU3WZOHMJQAI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,...,,.,,..,,.,.,.,,,.,,,...,..,,...,...,.,.,,.,,..,,.,.,..,,
+#54GZXX2XGD55Q2DHPBZ2FFKHDVWLDDPVQ4TEUA46LDNBZDTO2JIVSLSQMI7VERQ3U7R4XLUSXCKBM
+#\\\|7W7ARMXKJAL2N3PM7CEIJJLM3HQABRNJB5EVH6DCREH7MD7TYXO \ / AMOS7 \ YOURUM ::
+#\[7]NIW2JMEJFDHEWDVDUBM7V74WKUFF4JDGZYNQD3LAAGWVQWTWCMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
