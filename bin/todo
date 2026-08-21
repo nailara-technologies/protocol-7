@@ -365,19 +365,19 @@ sub format_items {
         if ( $item->{status} eq 'done' ) {
             $marker = '✓';
             if ( $TTY and $show_done ) {
-                $c_start = $C{dim} . $C{3};    ## dim phosphor green ##
+                $c_start = $C{B} . $C{0};    ## bold blacklight ##
                 $c_end   = $C{R};
             }
         } elsif ( $item->{priority} eq 'high' ) {
             $marker = '△';
             if ($TTY) {
-                $c_start = $C{3};              ## phosphor green ##
+                $c_start = $C{3};            ## phosphor green ##
                 $c_end   = $C{R};
             }
         } elsif ( $item->{priority} eq 'low' ) {
             $marker = '▽';
             if ($TTY) {
-                $c_start = $C{0};              ## blacklight ##
+                $c_start = $C{0};            ## blacklight ##
                 $c_end   = $C{R};
             }
         } else {
@@ -676,6 +676,7 @@ sub cmd_list {
             my $t = $_;
             grep { $_ eq $tag } $t->{tags}->@*
         } @items;
+        $show_done = 1;    ## tag filter doesn't exclude done items either ##
     }
 
     ## id is now a random code, not a creation-ordered sequence, so it's    ##
@@ -1483,8 +1484,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,.,...,,.,,,,.,,..,.,,,,.,,,.,,..,,...,.,.,..,,...,...,..,,..,,,.,,,,.,,.,,
-#6A76JO5GP7I75MV4UXYY3DIL2KBIW7CAIR6CU47TQPFPDJUAPSONWO7NGIGBCPEON7CLKH24DDW6O
-#\\\|2VBHVM6JINCYJYCMJR5SIP4FBMEBEQRRI7AV5KHCPE2CADFXVRG \ / AMOS7 \ YOURUM ::
-#\[7]DBZXNTBNLYECTEZLDFGD3UVSGM7YNMTJ7D6KRR64KODRYPFN3YDY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,,,,,,,,.,,.,.,...,.,.,..,,.,,,..,,...,..,,,.,,..,,,.,,,.,,..,,
+#YQWXGHL7TFXUIFBF4EDO2AEGPN2NNG7V5D6GD4VEXLQBXDDG54OE2WND2NZL74XBYS3EKCGMHI52W
+#\\\|MPBGMUFS5ORYC7B45U45F5XASOCVZMKS5HHP7BYFYTAPMMI7OB7 \ / AMOS7 \ YOURUM ::
+#\[7]W4XEWISTCURHQQVSSHGMQD2LXBCGTCU6XCWIVHVZXYQMJUPICSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
