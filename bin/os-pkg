@@ -13,8 +13,9 @@ BEGIN {
     use lib "$RealBin/../data/lib-path/pm";
 }
 
-use AMOS7::deps::os_package qw( detect_os scan_zenki_os_deps );
-use AMOS7::deps::debp       qw( install_apt );
+use AMOS7::deps::os_package
+    qw( detect_os scan_zenki_os_deps dep_type_to_dir );
+use AMOS7::deps::debp qw( install_apt );
 
 $OUTPUT_AUTOFLUSH = 1;
 
@@ -148,8 +149,8 @@ sub cmd_declare {
         exit 1;
     }
 
-    my $zenka_os_dep_dir
-        = File::Spec->catdir( $ZENKI_DIR, $zenka, 'os-dep', 'debian' );
+    my $zenka_os_dep_dir = File::Spec->catdir( $ZENKI_DIR, $zenka, 'deps',
+        'os', dep_type_to_dir('debian') );
 
     make_path($zenka_os_dep_dir) unless -d $zenka_os_dep_dir;
 
@@ -184,8 +185,8 @@ sub cmd_help {
 :
   install <pkg> [<pkg> ...]   install packages and track them
   list                        show tracked installs
-  undeclared                  tracked packages not in any os-dep/ config
-  declare <pkg> <zenka>       promote to zenka os-dep config
+  undeclared                  tracked packages not in any deps/os/ config
+  declare <pkg> <zenka>       promote to zenka deps/os config
   help                        show this help
 :
 EOF
@@ -237,8 +238,8 @@ sub iso_timestamp {
     );
 }
 
-#,,,,,.,.,,..,,.,,,,.,,,.,,.,,,,,,.,,,,.,,.,,,..,,...,...,...,,,,,.,,,,,.,,..,
-#7IVNGLS6E4P5IIVTOO5E57FB7MJQQFLSIGPQGWC6BB3L244M4JVW7LRY3RZKTXJJWKUNYZFIBTZK4
-#\\\|ZTRTATEZUZP4OY6USIN5BWBYPSZWCZ7XHLULTURVWPIZW7F3HZN \ / AMOS7 \ YOURUM ::
-#\[7]I5YZNKFCNIAYVMX6ZWONBMAJC2UIEJRGNVWBONRE2POPQMTAOYCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,.,.,,,,,..,,.,.,...,,,.,,.,,..,,...,...,,,.,.,.,,.,,...,,,,,
+#2HTHAIAAWEBXVVPIHCH473QA5SWEOKGDFSJ3DIO55Z7DS2W3M5EAPYFN5L5RSE5Y6KE254L2SVZJG
+#\\\|WEZVJILDCZSNY5WC3KGS7ATDBBWCMN3FIQTWEF2RDCZ6MOMXIAY \ / AMOS7 \ YOURUM ::
+#\[7]EOGEXXUZE5G2RK5H4FBI233TF5LCLEEVEGINHNLC5UFIGI7Y2ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

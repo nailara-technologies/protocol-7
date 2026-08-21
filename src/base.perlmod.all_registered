@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.perlmod.all_registered
-# descr = return all in pm-dep directories registered perl module names
+# descr = return all in deps/p-mod directories registered perl module names
 
 my $zenka_name = shift;
 
@@ -19,7 +19,7 @@ if ( not -d $conf_path ) {
         <[base.s_warn]>->( 'no such zenka [ %s ]', $zenka_name );
         return undef;
     }
-    $zenka_cfg_path = sprintf qw| %s/pm-dep |, $zenka_cfg_path;
+    $zenka_cfg_path = sprintf qw| %s/deps/p-mod |, $zenka_cfg_path;
     if ( not -d $zenka_cfg_path ) {
         <[base.s_warn]>->(
             'no modules registered yet for zenka %s', $zenka_name
@@ -35,7 +35,7 @@ if ( not -d $conf_path ) {
 } else {
     $zenka_cfg_path = sprintf qw| %s/zenki |, $conf_path;    ##  all zenki  ##
     $perlmods_found_aref
-        = <[file.match_files]>->( $zenka_cfg_path, qw|  recursive pm-dep  | );
+        = <[file.match_files]>->( $zenka_cfg_path, qw|  recursive p-mod  | );
 }
 
 foreach my $path_abs ( $perlmods_found_aref->@* ) {
@@ -52,8 +52,8 @@ if (wantarray) {    ##  perlmod list  ##
     return [ <[base.sort]>->($perlmods_found_aref) ];    ##  ARRAY ref  ##
 }
 
-#,,,.,,.,,,..,,..,,..,...,.,.,.,.,...,,,.,...,..,,...,...,..,,,..,..,,,,.,.,.,
-#FGOKJHY4DCXHMBAL52KPGCMIIB2LF7BCXIQI7ZNRMAVSUWTWUP2SEVH4RZRQFZZ6H2UGEJZOMQVQG
-#\\\|GLJQUEZQR3MGIIWLSV3IKCBIRMXAXO3CLFC5WGEWCQCOGMYBOED \ / AMOS7 \ YOURUM ::
-#\[7]BRJIQYKCQIPLTZZPERPKA6QJVUSSLZLVPQUSW4EKWPOWJ7WPGIDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,,,,,..,,.,.,.,.,..,,.,.,,.,,..,,...,...,...,.,.,,..,.,,,,,,,
+#A5F5RXOMTGOK2BJ4XFWOELFFCL5R6SR3K45PW2YMFMWA5QLWK2N5MN3SVBVOPDZ2CQSHUUMWASUTU
+#\\\|WK3S6OTPMBBPJYZS7MBP2XCX4YIM7K4Q4VLVEBQ4AGRLRUSZLRY \ / AMOS7 \ YOURUM ::
+#\[7]7Z4RJDOCG5BAYIHY7I24YRGZDIAWQ2UKSYXGXS4TNYUSIMGLFGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
