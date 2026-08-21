@@ -33,7 +33,7 @@ You are operating in an **Ubuntu 24.04 LTS** environment with access to the Prot
 - **Description**: Protocol-7 harmonic computing framework and signature system
 - **Key Directories**:
   - `bin/` - Executable scripts and utilities
-  - `modules/` - Core Protocol-7 modules (source.*, base.*, etc.)
+  - `src/` - Core Protocol-7 modules (source.*, base.*, etc.)
   - `data/` - Checksums, signatures, configuration data
   - `bin/dev/` - Development tools and examples (e.g., `elf-continue`)
 
@@ -249,7 +249,7 @@ If state methods are missing, you may:
    
    # Study ELF resumability implementation
    cat bin/dev/elf-continue
-   grep -rn "elf.*seed\|elf.*continue" modules/
+   grep -rn "elf.*seed\|elf.*continue" src/
    ```
 
 2. **Examine BMW.xs structure**
@@ -331,7 +331,7 @@ cd /home/claude/workspace-transfer
 git pull origin base
 
 # Explore structure
-ls -la bin/ modules/ data/
+ls -la bin/ src/ data/
 ```
 
 **SSH Key**: Pre-configured at `~/.ssh/workspace-transfer-read-write`
@@ -360,7 +360,7 @@ git clone https://github.com/nailara-technologies/protocol-7.git protocol-7-refe
 ```bash
 # Search for patterns in Protocol-7
 cd /home/claude/workspace-transfer
-grep -rn "pattern" modules/ bin/
+grep -rn "pattern" src/ bin/
 
 # Check module dependencies
 perl -MDigest::BMW -e 'print $INC{"Digest/BMW.pm"}, "\n"'

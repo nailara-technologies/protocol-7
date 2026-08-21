@@ -72,8 +72,8 @@ my %package = (
         debian => [qw(libssl-dev)],
     },
     filesystem => {
-        'configuration/zenki/httpsd/' => { mode => 0755, owner => 'p7' },
-        'configuration/zenki/letsencr/' => { mode => 0755, owner => 'p7' },
+        'cfg/zenki/httpsd/' => { mode => 0755, owner => 'p7' },
+        'cfg/zenki/letsencr/' => { mode => 0755, owner => 'p7' },
     },
 );
 
@@ -108,7 +108,7 @@ ARCHIVE FORMAT:
 │  ├─ zenka-name/pm-dep/Module__Name
 │  └─ zenka-name/os-dep/debian/package-name
 ├─ Filesystem section
-│  ├─ Path: configuration/zenki/httpsd/
+│  ├─ Path: cfg/zenki/httpsd/
 │  ├─ Mode: 0755
 │  ├─ Owner: p7
 │  └─ Group: p7

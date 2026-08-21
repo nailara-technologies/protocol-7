@@ -64,7 +64,7 @@ zenki_system:
     workspace-transfer: workspace-transfer repo integration
 
   deployment_modes:
-    always_on: Listed in configuration/zenki/v7/start-set-up.base
+    always_on: Listed in cfg/zenki/v7/start-set-up.base
     on_demand: Started when first accessed (auto-timeout possible)
     unmanaged: Manually started, connects but not monitored
     standalone: Runs independently without cube connection
@@ -79,7 +79,7 @@ zenki_system:
 
 # Module system (unique architecture)
 modules:
-  location: modules/  # All 5270+ functional modules
+  location: src/  # All 5270+ functional modules
   naming: Dot notation (e.g., base.init_code, httpd.file_transfer.init)
 
   structure: |
@@ -150,9 +150,9 @@ colors:
 
 # Cryptographic system
 crypto:
-  keys: modules/crypt.C25519.* (Curve25519)
+  keys: src/crypt.C25519.* (Curve25519)
   checksums: Multiple algorithms (AMOS, BMW, ELF, JHA)
-  user_keys: modules/USR.[username].*
+  user_keys: src/USR.[username].*
   signatures: AMOS7 signatures for file integrity
   link_encryption: Encrypted communication channels for enhanced security
 
@@ -236,8 +236,8 @@ workspace_transfer:
 structure:
   bin/: Executables (Protocol-7, nshell, utilities)
   bin/c_src/: C source for p7c and p-7-r (auto-compiled by v7)
-  modules/: All 5270+ functional modules
-  configuration/: System and zenka configs
+  src/: All 5270+ functional modules
+  cfg/: System and zenka configs
 
   data/:
     yaml/: YAML configuration and metadata indexes

@@ -49,7 +49,7 @@ The data directory contains resources, assets, libraries, and supporting files u
     - **wm/openbox/**: AMOS base theme
 
 ### Dependency Management
-- **backup/configuration/zenki/ticker-sdl/pm-dep/**: Perl module dependency tracking
+- **backup/cfg/zenki/ticker-sdl/pm-dep/**: Perl module dependency tracking
   - Zero-byte files with names matching required Perl modules
   - Currently uses "::" namespace separator in filenames (e.g., "AMOS7::Assert::Truth")
   - Planned to change to "__" separator for Windows filesystem compatibility
@@ -57,8 +57,8 @@ The data directory contains resources, assets, libraries, and supporting files u
 ### Special Purpose
 - **asc/**: ASCII art resources including terminal banner
 - **backup/**: Backup of configuration and module code
-  - **configuration/zenki/**: Zenka configuration backups
-  - **modules/**: Backup of module code
+  - **cfg/zenki/**: Zenka configuration backups
+  - **src/**: Backup of module code
 - **pov/**: POV-Ray scene definitions
 - **scripts/**: Utility scripts organized by function
   - **get-url/**: URL retrieval scripts for specific services
