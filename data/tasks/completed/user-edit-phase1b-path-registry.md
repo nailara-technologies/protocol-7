@@ -61,7 +61,7 @@ Register all three in a single `register_keywords({ ... })` call, matching
 - `format.yaml.*` usage, outbox, draft-save — later phases, not this task
 - anything from `phase_2_rendering`, `phase_3_form`, or the `users.*` command
   surface — not this task
-- do not touch `cfg/zenki/user-edit/start` or any other already-committed
+- do not touch `cfg/zenki/user-edit/zenka.v7` or any other already-committed
   file except `src/user-edit.init_code`
 
 ## Verification
@@ -91,8 +91,8 @@ Register all three in a single `register_keywords({ ... })` call, matching
 When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` if you hit anything non-obvious.
 
-#,,..,.,.,..,,,..,..,,,,.,...,...,...,.,.,,..,..,,...,...,,,,,.,,,,..,,,,,..,,
-#AB3IM3VQTOP4TQZU62CKELFRDQQMOSYZJ6OBUW3AXUVGV6DEYWAOO67HBHJPFZZ5CW3U6AIATQWFQ
-#\\\|LO3SGQV73IJXL5KA2NLNT6DA74CTMC4XXONFHAJABJOTXCCTJYP \ / AMOS7 \ YOURUM ::
-#\[7]MDXMQ6C5GVLIHMCCAMIAVV5OEGPAIRFQ633QU3X3R7J3RWCQMEBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,.,...,,,.,.,,,.,.,,,,,,,.,.,,,..,,...,...,...,,..,,,.,,.,,.,,,
+#EIQH2TE3HBRANDTRM43KZNI5COZMG6LKKWBGIYUWA2NXGGOCEMLCX6I6JAWUW66KKMKFEE2M2SZ5E
+#\\\|BI47YETA4R4BC47SW72SYFZDH5NU4VLNFQFXIAH54IAMNLULV6R \ / AMOS7 \ YOURUM ::
+#\[7]W7IXQNPGP2ZNZNV6IUQGW4I265JVFEHPRW3TU56VJ4U3EUGHRGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

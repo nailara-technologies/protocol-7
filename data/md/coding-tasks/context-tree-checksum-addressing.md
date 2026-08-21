@@ -353,11 +353,11 @@ my $content = <[context.tree.node.fetch]>->({
 
 ## integration with existing protocol-7 infrastructure
 
-### storage zenka ( cfg/zenki/storage/start )
+### storage zenka ( cfg/zenki/storage/zenka.v7 )
 
 storage zenka already runs `amos-chksum` unix socket protocol:
 ```
-cfg/zenki/storage/start:
+cfg/zenki/storage/zenka.v7:
   storage.use_amos_chksum_socket = yes
 
 src/storage.unix.handler.amos-chksum:
@@ -367,7 +367,7 @@ src/storage.unix.handler.amos-chksum:
 
 context tree extends this with **stateful** checksums for streams.
 
-### index zenka ( cfg/zenki/index/start )
+### index zenka ( cfg/zenki/index/zenka.v7 )
 
 index zenka uses checksum-derived paths:
 ```
@@ -442,8 +442,8 @@ same deduplication principle, applied to **context nodes**.
 
 #,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
 
-#,,,.,,..,.,,,...,...,,,,,..,,,,,,,..,..,,.,.,..,,...,...,.,,,,.,,..,,...,.,,,
-#55PJAQFLU4QCSUMUJ27HKCZT74CDESPPF4YINVQBOOP7AIKY7UMLS2TGW7ZGAUU46GF5NTUEC2SOQ
-#\\\|VLMK3P75DJOWUOHWFM65OBKMKJAVI55OOA2ZRUHPYFX7K2MQXLB \ / AMOS7 \ YOURUM ::
-#\[7]K7R52TOTPTSX5SCIQOQEQYDVH5SBRWWTOKOYXHTLO5C2SL4UEEAY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,.,,,,,.,...,,,.,,.,,.,.,,.,,..,,...,...,.,,,.,,,.,,,,.,,...,
+#K3ILRRCDMAZZZCLM2Y364QJULXF4NMRO5TRCFOM3JBQOIBIG4UNXK63O4OB3TIDD2RR7EB5JUFHXW
+#\\\|ZQPLKT2O6JVHG6FNOBS6WMZ27NCETLYGD3OYBWBTQU527X2U4ZX \ / AMOS7 \ YOURUM ::
+#\[7]XJOAFSGO2FL5YQCWSADS4GADZ3CD74X2UAE72D4MTVDCKBIFE2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

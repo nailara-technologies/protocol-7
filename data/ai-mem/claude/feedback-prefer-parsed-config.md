@@ -9,9 +9,9 @@ metadata:
 
 When implementing logic that depends on zenka start-up config data, prefer reading
 the already-parsed `<v7.start_setup.zenki.config>->{$name}` tree over re-walking
-`cfg/zenki/*/zenka-startup.v7` files from disk.
+`cfg/zenki/*/start.cfg` files from disk.
 
-**Why:** At any post-init or reload time, v7 has already parsed every zenka-startup.v7
+**Why:** At any post-init or reload time, v7 has already parsed every start.cfg
 into its `%data` tree (see `v7.load_zenka_startup_cfgs` + `v7.init_start_setup`).
 Re-scanning the filesystem is redundant work that can drift if parse semantics change
 (comment handling, quoting, etc.) — and it shows up in logs as "loading 95 zenki" then
@@ -24,8 +24,8 @@ parsed tree genuinely doesn't carry the answer.
 
 Related: [[topic-patterns]] (zenka idioms).
 
-#,,,,,,..,.,.,.,,,,,,,.,.,,,.,..,,..,,,..,.,.,..,,...,..,,.,.,.,,,,.,,.,.,..,,
-#P73RAZTU3MX3IWBYYXJFUNKJX73C6E3UUYDTTZTJSFQN4H4EESKLCXDDIIQ5EZSFLPCKKFT2UR4KM
-#\\\|F7JVETBFWTC2BCXI4LYQQ7KQFY6IIO2QRVYU47VZD4PA6SRM46Y \ / AMOS7 \ YOURUM ::
-#\[7]VY5IG4HVWNLUIULUWFZXERBZ2MCQ3MHJCTX542JEJ6HVH3BMBKDA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,...,,,,,,,,,..,,.,.,.,,,,,.,..,,...,...,...,..,,.,.,.,.,.,,,
+#MKDTH57INZ6JYARO6J7DXLQDTQ4OMTX32J2Z5ZT43S2PZRBWH3OSQVDFBS46NQOA5E5MGJ7PW4YUI
+#\\\|PROI6DLRX4F6QIZ4WEHTNREGMCIJ5XEJQJATC6FRROZ2PLRD2KB \ / AMOS7 \ YOURUM ::
+#\[7]2YUQY2KO4C6OSJJQXXCSGB3WTRNWPGBKWT2JTZ7KMJCIZMKCPQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

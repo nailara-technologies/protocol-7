@@ -29,7 +29,7 @@ note_write suggestion [ use note_write tool, do not create files ].
 
 ### 3. jinja template file config wiring [ record finding only ]
 
-`cfg/zenki/coding/start` line 45 sets:
+`cfg/zenki/coding/zenka.v7` line 45 sets:
 `coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja`
 
 this is an absolute path. check whether `coding.spawn_inference_server`
@@ -64,8 +64,8 @@ conventions. `$ARG` not `$_`.
 do not investigate or modify AMOS7 signatures. leave signature lines
 at end of module files untouched.
 
-#,,.,,...,,,,,,,.,.,,,...,.,,,.,.,,,,,,.,,.,.,..,,...,...,...,,,.,,,.,,,,,..,,
-#XS3FGIKWQ4WNUZ4OVVWU2DM3A7HIKODUWS2ENIU4UI2K6A5CGPA4AHPKGG2YA4U3EQF2CBXJ6YJBW
-#\\\|F36MHRBAKUNHALPOYPKWUZ42COHZ5NM6MQJXWNZFTY4UISNEKGO \ / AMOS7 \ YOURUM ::
-#\[7]IP4UQLXIIWN2VUCGRIW6HL6RZNV3MGGOCCI7WDD5KUKL4HU7IWCY 7  DATA SIGNATURE ::
+#,,.,,...,..,,,.,,,..,,..,...,..,,,..,,..,...,..,,...,...,,..,,,.,...,.,.,,,,,
+#D7LH5RYENDMFKTMWUENVX7CFPU5DPDWHLMUAJAB775HJA35DLMWG3HTPIATJ5XBNUDZ6OMOXPMSZ6
+#\\\|B6ZAPFNBZBUC7RIT5MTCK2MZFBUTJMGWDY77CCO3AG7FI27QOGU \ / AMOS7 \ YOURUM ::
+#\[7]F4XD74CUSSGWFNP7M5C4FU4NCZ6T2X3JORJH5LNMYWW2WWNYFUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

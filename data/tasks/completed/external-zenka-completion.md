@@ -36,16 +36,16 @@ still applies once a second node exists, separately.
 
 2. **`external` is not started by anything.**
    `cfg/zenki/v7/start-set-up.base`'s `zenki.enabled` line does
-   not include `external`, and `cfg/zenki/external/zenka-startup.v7`
+   not include `external`, and `cfg/zenki/external/start.cfg`
    has no `start.on-demand = 1` line either (compare to `tile` or `web`'s
-   `zenka-startup.v7`, which use on-demand). Decide and apply the on-demand
-   pattern (mirroring `web`'s `zenka-startup.v7`: `start.on-demand = 1`, no
+   `start.cfg`, which use on-demand). Decide and apply the on-demand
+   pattern (mirroring `web`'s `start.cfg`: `start.on-demand = 1`, no
    `set_ondemand_timeout` call so it never idles out) — do NOT add it to
    `zenki.enabled` (always-on) unless you find a reason the others use
    on-demand that doesn't apply here.
 
 3. **Missing `discover` dependency declaration.**
-   `cfg/zenki/external/zenka-startup.v7` declares
+   `cfg/zenki/external/start.cfg` declares
    `dependencies = cube nodes` but `external.init_code`'s `auto_connect`
    block reads `$data{'discover'}{'orbital'}{'known'}` directly. If
    `discover` isn't up yet when `external.init_code` runs, that read
@@ -93,7 +93,7 @@ still applies once a second node exists, separately.
    orbital data poller elsewhere in this codebase for the same reason).
 
 7. **Devmod wildcard in `external/start`.**
-   `cfg/zenki/external/start` has:
+   `cfg/zenki/external/zenka.v7` has:
    `access.cmd.usr.cube = ... * ## <-- devmod`
    — the trailing bare `*` grants cube blanket access to every command on
    `external`, including any future eval-code/exec-sub if those are ever
@@ -151,8 +151,8 @@ For each of the 7 gaps: state what file(s) you changed and why, or — if you
 decided NOT to fix a gap as written (e.g. gap 4's access decision) — say so
 explicitly and explain what you flagged back instead of guessing.
 
-#,,..,,.,,...,..,,,,.,,,,,...,,.,,,,.,,,.,,..,..,,...,...,,,.,,.,,,,,,,,,,..,,
-#FO4SIPCTUJ4SY6VICG5RTOFSQSDGNEOY52ZX3LAZJW7US2XIJDF4GZ7YZFYT7CXSAFD6K6WFNNY2U
-#\\\|UZLAWZZNFDC7FE6XBXJYXOOIZO7FDKMUE55ME7J2UZUV3GVSZDM \ / AMOS7 \ YOURUM ::
-#\[7]46CN6TN542UXKP4F6WZNBUTPQXVURA567Q46WPLXEDYDRXCLUKAY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,.,,,..,...,..,,,.,,.,.,,..,,,.,..,,...,..,,,..,.,.,.,,,.,.,,,.,
+#LHWPLBVYOETWHBKWZ3FJPFVR2H4WWL64EG3XZBIFBBH7GIGXMWZZLXGKYKH5NRX532RMNQSY3WYAM
+#\\\|TZAJ3ERWME75DUBHX4HCL6LJGZY7QWJDHAXOO5VIRKYWRE3I2BZ \ / AMOS7 \ YOURUM ::
+#\[7]IMRQTI5CMSZMA6VFD5KM32R2AJGUBWVO5JNXXOBO2OMJ6HVFICDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

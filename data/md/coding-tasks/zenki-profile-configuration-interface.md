@@ -10,7 +10,7 @@ stable fallback — the new system adds around it rather than replacing it.
 
 ## Current State
 
-- `cfg/zenki/v7/start` selects the startup profile via:
+- `cfg/zenki/v7/zenka.v7` selects the startup profile via:
   `load.start_setup = base` → loads `cfg/zenki/v7/start-set-up.base`
 - The comment already anticipates alternatives: `## [ additional : local-models + remote-server ]`
 - `[v7.call_cmd:<system.args>]` is present in `v7/start` but intentionally
@@ -230,8 +230,8 @@ cleanly regardless of how many commands are present.
 - `-no-config` / `auto_start: true` flag for automation / headless deployments
   should be addressed in phase 5 alongside the args interface
 
-#,,,,,.,.,,.,,,,,,.,,,,,,,,,.,.,.,,..,..,,,.,,..,,...,..,,.,,,.,.,...,...,...,
-#OWK5JS2XAIQ3DKFOBNYQY4OLW53KI5FJV6CJINUARVNP6NJFZQYOCMN4OUYGRAB5YBI344LCKMTFE
-#\\\|POYRF4VILBQJB3QNLFWAOLU754ZLGXC55LVI7CAI4MXME5AEJHZ \ / AMOS7 \ YOURUM ::
-#\[7]ZSY32LX2VY5JGQNF5CH36RVJ5LYK3D5USDEG22XLONJA3YLBKQDQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,...,,.,,.,,,,,,,...,,..,.,,,,..,..,,...,...,...,.,.,...,,.,,.,.,
+#JD75W4Z3CKYEBUF3Z45RYZQMFEXSLRRVF4JNIIUQYMR6ZTO3HBLCIC7CDO52I6DSSJFCINDAJDZGK
+#\\\|T54LYXT4VKQ6D62XXLQHC4A7LQFCO5OMB47FLSHPYSJQJWCX2RC \ / AMOS7 \ YOURUM ::
+#\[7]Q2QN3UTDMHSAP742NDEMAYPAYOBZZDDRYS6YPS7KMJDIX4O36KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

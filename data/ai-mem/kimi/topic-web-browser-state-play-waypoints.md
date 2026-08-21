@@ -41,7 +41,7 @@ gotchas hit this pass:
   `m{^(?:a|b)$}`. broken subs reject the whole `reload source`.
 - `p7c web-browser.reload source` works [ in access.cmd.usr.cube ].
   `list-subs` does NOT: devmod is commented out of modules.load in
-  zenki/web-browser/start [ enable there if needed ].
+  zenki/web-browser/zenka.v7 [ enable there if needed ].
 - `p7c web-browser.commands` lists registered commands; `run_js`,
   `get_uri`, `get_snapshot` available for live testing.
 - new page-side hooks need a page reload: run_js 'location.reload()'
@@ -82,8 +82,8 @@ whitelist regenerated [ 652 subs ]; signatures pending - user re-signs.
   live-tested [ no v7-resident caller in this pass ].
 - whitelist regenerated [ 655 subs ]; signatures pending - user re-signs.
 
-#,,,,,...,,.,,,..,...,,..,,..,,,,,...,..,,.,,,..,,...,...,.,.,.,,,,,.,.,.,,,,,
-#FM3KEHAMRG67LXQONU4AW357V436QOMNIO254H2REYYYZU2VDSD42FHFNNBVRIKCBDR6SOHCG6UME
-#\\\|6SH6UJM2R5PKFE6VNJT2PBYFREQPBAWYS7GBQ44GDJEEZMHIZ5P \ / AMOS7 \ YOURUM ::
-#\[7]3GKQVIK3GOLSOP4AWGP4AC7UFGGET7QJWXZKJZH2VNZGVKZ5IYCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,,,,,,..,,..,.,.,,,.,.,,,,,,,..,,...,...,.,,,,,,,.,.,.,.,,..,
+#J3CW2HKRIBFMH2EZFGB2OYW3A5LKQ5OB6XEQP22OUD7NDFRSYNDWRURDLLNKR7SXQV6I232ALWUKC
+#\\\|M5ZUIYJNTC35YQC6L5PIYRKQ2UBIYVXT5HHOU77QJPXCI5EPZOY \ / AMOS7 \ YOURUM ::
+#\[7]V5XLKXLPBQBCC5UYBWQAIYHIF75Q7F2AKBXX5UOVJY7MTUZSTUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

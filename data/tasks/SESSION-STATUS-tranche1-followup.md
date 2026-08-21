@@ -60,11 +60,11 @@
    fold-primitive overlap decision above
 4. amos7-template-epoch-exclusion: `AMOS7/TEMPLATE.pm` — pending
    acceptance-criteria check
-5. `cfg/zenki/coding/start` — taeki's manual context-size edit
+5. `cfg/zenki/coding/zenka.v7` — taeki's manual context-size edit
    (37000 -> 30000), unrelated to tranches, can commit independently
 
-#,,..,...,..,,.,,,,.,,,..,,..,...,,..,..,,,,,,..,,...,...,...,...,,..,...,..,,
-#SJRVHRCSU75YBFQ7C6WPV5CH5U3YTFBXKOFSGK6Y7XBVOFPQ34ND6XUNJ4ZWTDE7WPZSMFJ65S4LM
-#\\\|ZQETPP7MYBXNATF6R63Z65DVAX7LCYAAZMFP5M7IHMATK3SVIOR \ / AMOS7 \ YOURUM ::
-#\[7]6GOPLJF6BJFIY7R2RM53QEW5SVXYIE6NYGH27SDHD2G46NI2HOAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,,,.,,,,,,,,,,,..,,,,,,...,,,.,..,,...,...,,.,,,..,...,,,.,.,,,
+#XLDAAANR4KUG7WMK7HPTMD3SFSYS5WKIAKKMQ35HQLTMESTJHRUXUUIAG2NZT7KX5SGSPJEFGS3WU
+#\\\|YA4QP6ALAVKJEZFLI3QNTD2LW6YENYSBZTGGEYJPKSUY7MIN5VU \ / AMOS7 \ YOURUM ::
+#\[7]3W5VKOMRHC5MVQRZKORVOJ2FT4KZYHHNUY4HSB2O3AI33NCFG4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

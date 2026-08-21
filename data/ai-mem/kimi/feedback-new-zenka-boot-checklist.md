@@ -20,7 +20,7 @@ the forensics zenka (phase 1, task data/tasks/forensics-agent.md):
 2. **v7 start set-up is cached** — a new zenka dir is invisible to
    `v7.start_once` ("zenka X not found in start set-up") until
    `p7c v7.reload` (reload config + p-mods rescans
-   zenki/*/zenka-startup.v7). `p7c ondemand-zenka add <name>` registers
+   zenki/*/start.cfg). `p7c ondemand-zenka add <name>` registers
    at cube level but does NOT fix the v7 start set-up.
 
 Third landmine, verified by live probe: **subs outside the eager
@@ -50,8 +50,8 @@ and running gen-sub-whitelist, do: auth.zenki grant → `p7c reload` →
 0110 = drop_privs when run unprivileged manually). Create needed dirs
 in init_code, never lazily in post-init handlers.
 
-#,,,,,,..,..,,...,..,,..,,.,.,..,,...,,,.,...,..,,...,...,,,,,,..,,.,,,.,,,,.,
-#RUKWY4JNW5AFRT654Z7R5GC7TWJP3IYWTBDWVFOUR7ECUVATE6E4SK2UAINPJXLYT7224OR6RSSDW
-#\\\|B4LBIRQ7L3EDZQVSZWPOVT6XS277ASEAMPO7PK3SVBOGJSNUGTF \ / AMOS7 \ YOURUM ::
-#\[7]MVFBENQLJUURSU7PGSTLWPTLYSSWNFLURFVI5BVAGZICEK3ATSBI 7  DATA SIGNATURE ::
+#,,..,,,,,...,...,..,,...,...,.,.,.,,,.,,,...,..,,...,...,...,..,,...,,..,..,,
+#G77ZC3PDZHTF2PXFAXAZSJRVDH2D7HPIZH22HSNB7SNXEO45XWIJBUIEKKHLHE5VST5ESTDQG6LYC
+#\\\|56235PGAIUJHYWHVY4XRIY5AJTBXXG7Y42AC7BD7P4PDENXKEAB \ / AMOS7 \ YOURUM ::
+#\[7]MQXGPXUHUCLFD3OGCLBKWOI6PQIMB6ZZTVA3NIHUZBJKELB7X6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

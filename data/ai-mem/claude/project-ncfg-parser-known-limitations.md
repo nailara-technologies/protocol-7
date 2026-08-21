@@ -12,7 +12,7 @@ Protocol-7's ncfg-style config parsing has a long-standing, known gap: at least 
 parser code paths independently do a blind `s|\.|'}{'|g` (or equivalent) on a directive's key
 name to build nested hash levels, with no escape or quote support for a literal `.` in a key:
 
-- `base.parser.config` (used by `v7.init_start_setup` to load `zenka-startup.v7` files)
+- `base.parser.config` (used by `v7.init_start_setup` to load `start.cfg` files)
 - `base.extract_values` (used by `base.reload_values` / a zenka's own `start`-file / `.reload config`)
 - whatever backs the `mpv.dump`/`mpv.set`/`mpv.get` devmod tree commands
 
@@ -48,8 +48,8 @@ piece of work — not scope creep to suggest, just don't bundle it into unrelate
 being asked (see [[topic-mpv-x11-dependency-cascade-restart]] for a case where this exact
 constraint shaped a design decision instead of triggering a parser rewrite).
 
-#,,,,,,..,,..,.,,,...,.,.,,.,,,,,,...,,..,,..,..,,...,...,.,.,..,,,,.,...,,.,,
-#4SVZARFMFK2EOA722K3GOROTBRHM2XOOTTREV4DZUAP2XV3ZKEHKQLURSAF5H34REWIWI47HJJOMW
-#\\\|MKVDR4EPACIUCQRQY52CW6OLM67ALTEC5JCX5BXQWGOGJAJS2AZ \ / AMOS7 \ YOURUM ::
-#\[7]INA75MMWZ7XQDKDH7BI4U6AAESCZAGGVSKI26ZGEUTUHTCYE32AY 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,...,.,.,...,,,,,,..,.,.,,,.,..,,...,.,.,..,,,.,,...,,.,,,..,
+#ECYKE2W763H72LFMUFU6S3JA33MPQYJSSI7F2DNA4R677UZHOVUM3MN4GNIL3BBC7NX5BTY5DA626
+#\\\|XVKPEVZZXLOH64B3FSRVRZNSKZJ4JHEBVJQ7ZGQJQRRHSSKKTBT \ / AMOS7 \ YOURUM ::
+#\[7]5ZATWTOQQR5PCKQNKFE2X4EEGS5GGWO77YEHLN3PMB3BPGIWTCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

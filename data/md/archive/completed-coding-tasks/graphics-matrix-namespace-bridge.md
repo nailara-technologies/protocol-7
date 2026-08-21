@@ -41,7 +41,7 @@ as routable namespace state — so other zenki can query and set the cursor.
     src/graphics-3d.render.cursor            — cursor rendering with translucency
     src/graphics-3d.cfg.cursor               — cursor config setup pattern
     src/graphics-matrix.init_code            — existing graphics-matrix init (extend this)
-    cfg/zenki/graphics-matrix/start    — existing start file (add new cmds to access list)
+    cfg/zenki/graphics-matrix/zenka.v7    — existing start file (add new cmds to access list)
     data/md/design/GRID-HARDNODE-CURSOR-MODEL.md — full cursor design spec
 
 
@@ -176,7 +176,7 @@ the checksum is computed on demand, not cached.
 
 ## modifications to existing files
 
-### cfg/zenki/graphics-matrix/start
+### cfg/zenki/graphics-matrix/zenka.v7
 
 add `cursor cursor-state` to the access.cmd.usr.cube line.
 do NOT rewrite the file — just add the two command names.
@@ -206,8 +206,8 @@ reference: `cfg/zenki/invoke-web/subroutine.white-list`
     verify $ARG not $_ throughout
     verify lowercase comments
 
-#,,..,,.,,,..,.,,,,..,.,,,,,.,,,,,..,,.,,,.,.,..,,...,..,,..,,,,,,.,,,.,.,.,.,
-#U4HRENJM52HTREF2LUMVNO2QNPHTH67GU7OAMJO5UUNCFKIRSRA4G37OXEOUUI4EEZQMVNLPVOUYW
-#\\\|RODKDWLZC7FQJWPOEQO2XALHQG4LAWNCPFTFFHBZSFWV5JUQJFM \ / AMOS7 \ YOURUM ::
-#\[7]Y556RWF6Y2LOPG47IAXRMBS6BWMJ4AW5VSHIRCUNNTMX5IPGN2CY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,..,.,.,.,,,.,,,,.,,,,,,,,,,,..,..,,...,...,..,,...,,,,,,..,.,,,
+#MNN6YHOUAWPZCIVKZRKHJ7BBZIKSDKNGLF3ZLGPBPYG3EYQCWQ7UG5BLGGSUJJ4V3PNLLIIXNK3YA
+#\\\|QXK3SKYQYUMR7FH3XFQ3CU2AJWZ33JGDDCRJWIKBRT33SCNIFGI \ / AMOS7 \ YOURUM ::
+#\[7]AAZPXPWMEKRWXDJBF4T2DDE3IHIUTTSGMM4NVYTD3GN6TLD44IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

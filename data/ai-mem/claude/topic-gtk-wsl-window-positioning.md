@@ -39,7 +39,7 @@ disproven by direct test (see below).
   `base.file.zenka_dir.write` to try (and fail) to chown to the wrong
   expected owner, deleting the just-written file on failure.
 - `v7.zenka.start`'s own `GDK_BACKEND` line (inside the `exec-external`
-  branch) was found to be **dead code** — no `zenka-startup.v7` in the repo
+  branch) was found to be **dead code** — no `start.cfg` in the repo
   uses `start_mode = exec-external` (all use `stdin-zenka`), and even if one
   did, `<x11.display>` is never populated in v7's own process (v7 never
   calls `[base.X-11.get_display]` itself), so the `if defined $display`
@@ -158,8 +158,8 @@ about focus/stacking, not position, and contains no `move()`.
 [[feedback-source-identity-spoofing]] · [[topic-mpv-jobqueue-startup]] ·
 [[topic-zenka-naming-cleanup]] (select-region clone landed this session)
 
-#,,.,,.,,,.,,,,,.,..,,,,.,,.,,...,,.,,,,.,,,,,..,,...,...,...,,.,,,,.,.,.,...,
-#Z72TJYAYUFVUSM7NQ7ETSGAVHA2OK6GPOENXK45ZHHFKHPG2LMXJZ2RHPWZNAB34WUT3PXTYCR6TQ
-#\\\|EDNDS37TJSZ6PFAZOGJVJT2TSHYA2XIF2YNYYTUSRBLMJTIJYNZ \ / AMOS7 \ YOURUM ::
-#\[7]WP3DDGER546JZ6AGZ2V5OC5Z2GRB46DU772FTJZXW3QZL2MMVIBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,.,.,,.,,..,,..,,,..,...,,,,,..,,...,...,.,.,...,.,,,,.,,,,.,
+#HMSC2ANGO2HBR64UXT5KHFUHUTEEJVOOPUISYV6KFVOXV6CO45QIRSGBWYYJIFNDA4HSBNATVUSOC
+#\\\|UZLOREGUOVB4Z4AMLONSPIRFACCB3QY3DJNUBWKP3F5EYNJEFDP \ / AMOS7 \ YOURUM ::
+#\[7]NJM7OZH7DI45GD2EFHAGRK5GFSNVJDPHO43ULKRXEW2HOZS4KGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

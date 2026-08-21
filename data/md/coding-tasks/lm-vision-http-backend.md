@@ -147,7 +147,7 @@ X-Priority-Weight: 1.13
 src/lm-vision.cmd.analyze_image           ## Backend selection
 NEW: src/lm-vision.handler.http_analyze_loves  ## HTTP + loves_it
 src/resource.gpu.loves_allocator          ## Scoring function
-cfg/zenki/lm-vision/start           ## Add module load
+cfg/zenki/lm-vision/zenka.v7           ## Add module load
 ```
 
 ---
@@ -176,8 +176,8 @@ The `llama-mtmd-cli-cuda-fa` binary (CLI fallback) was not rebuilt in Mar 2026. 
 **Integrated Task**: HTTP backend (complete) + CLI fallback (downgrade) + LOVES_IT allocation (new)  
 **Session Target**: Implement Phase 1 & 2  
 
-#,,,,,.,,,,,,,,,.,.,,,,,.,,,.,,..,.,.,...,,.,,.,.,...,..,,.,,,,..,.,.,.,,,.,,,
-#W76XXUOS3CGT3QDT6O2OT435PBYMSKDVCZL2DIDBF3QZSMQQGGAINNEA7W522LJ4W5EGLQ2QHB3UO
-#\\\|4THGG5JIAQBSYWPJPGB2P6NOX6XSCB24AY5SDU5UKKHSUTZASL6 \ / AMOS7 \ YOURUM ::
-#\[7]WE7HU3GBB6NMR42MUL6U6W6SVRWGA3LHNSMBCTIETECCEN3VAYBA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,.,,,.,..,,,,.,,,,,...,,,,,,,,,.,.,...,...,...,.,.,..,,.,.,...,
+#6U3QZSV5EXBAM3RWKEZRODZJBPNZ4AC5SWCFQGY4OGECKC3TB3N4YIDSXORQ3TSTK572ZDHB63CPS
+#\\\|LNU7IMH7W7ABCUE3UY6V3RKVZYCSD55QIN3GEBIXEGRCXHULVRU \ / AMOS7 \ YOURUM ::
+#\[7]UWED65COGHFSANRZTXTZ6IEIIKVKLBTLSOEN6YYHRZ4BEOIYDGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

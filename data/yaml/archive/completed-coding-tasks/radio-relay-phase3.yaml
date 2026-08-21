@@ -28,7 +28,7 @@ task:
     - src/radio.handler.stream-chunk  ##  write chunks to file when flagged  ##
     - src/radio.cmd.keep         ##  trigger gap_fill if currently jingle  ##
     - src/radio.cmd.status       ##  add library size + gap_fill state  ##
-    - cfg/zenki/radio/zenka-startup.v7  ##  add library path config  ##
+    - cfg/zenki/radio/start.cfg  ##  add library path config  ##
 
   keep_library_state: |
     add to <radio.stream.icy> in radio.init_code:
@@ -43,7 +43,7 @@ task:
 
   keep_library_path: |
     <radio.keep_library.path> //= '/var/protocol-7/radio/keep-library';
-    configured in zenka-startup.v7:
+    configured in start.cfg:
       radio.keep_library.path = /var/protocol-7/radio/keep-library
 
     directory is created on first use [ mkdir -p equivalent ]:
@@ -204,7 +204,7 @@ task:
       <[base.perlmod.autoload]>->( 'List::Util',  qw| shuffle   | );
 
   access_list: |
-    add 'library' to access.cmd.usr.cube in cfg/zenki/radio/start
+    add 'library' to access.cmd.usr.cube in cfg/zenki/radio/zenka.v7
 
   acceptance: |
     - ptd -c all modified and new radio.* modules passes
@@ -219,8 +219,8 @@ task:
     - radio.cmd.library lists files with sizes
     - no background saturation source in this phase
 
-#,,..,.,,,,.,,,..,,,.,,,,,.,.,,..,,.,,.,,,,.,,..,,...,...,.,.,.,,,.,,,.,,,,..,
-#IDHJPEW7VAECP6FLGQZW72IW6B5XVARSOVVASVKJS4OA5ZC7FNFFIFRLS6NUEGF74Z6GC4PAHRVB6
-#\\\|NC5XB6MMO7HNTXOMGPYHNIGJH7P6YNITNQ76X6WTZUHAKJ5TUHZ \ / AMOS7 \ YOURUM ::
-#\[7]ODTBEUNIUENGY2YZAIHFONJQRG7XOL3QKEQFGJN6U72FQD7PPGBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,,,..,,,..,,..,,,,,..,,.,.,,,.,..,,...,...,,..,.,.,,,,,,..,,.,,
+#6MGPZOSKFG3NBU2K5YHDHVD77ZGZGMFF27L4TU5VLHWVHR2NCM2UL54UVXPOUE5HV6Q5FP3XVYZKC
+#\\\|NME6QX23ISCOWYF3ZTX3JY2TJSM66JB7YDFOSVQAIYHA27MV7MI \ / AMOS7 \ YOURUM ::
+#\[7]ENYAWMDC4NNGN74IZ5ZY2WKSW7IPOEWWV7MZ3GZVIQM6LRKYSIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

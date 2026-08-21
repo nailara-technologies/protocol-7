@@ -23,7 +23,7 @@ originSessionId: 52ad77e6-5a2e-46a3-8178-ddcc1f410e55
 - `model_output` kept as rolling cross-task live monitor
 
 ### buffer lifecycle
-- 77m idle timeout (`zenka-startup.v7`: 4620s)
+- 77m idle timeout (`start.cfg`: 4620s)
 - `on_task_complete`: arms 47m save timer + 63m drop timer; `task.enqueue`: cancels both
 - `coding.task.save_buffers`: xz-compresses all 3 buffers, writes to
   `/var/protocol-7/coding/completed-task-backups/<timestamp>-<id>/` + `meta.yaml`
@@ -44,7 +44,7 @@ originSessionId: 52ad77e6-5a2e-46a3-8178-ddcc1f410e55
 - `exec @cmd` list form avoids shell quoting issues with long B32 strings
 
 ### planned: model config and per-task model selection
-- Add to `cfg/zenki/coding/start`:
+- Add to `cfg/zenki/coding/zenka.v7`:
   - `coding.cfg.base_work_model = <amos-id>` — default task model
   - `coding.cfg.base_compaction_model = <amos-id>` — faster model for compaction
 - Per-task model via `:model:<amos-id>:` keyword at start of prompt/task file
@@ -87,8 +87,8 @@ code path. Recovery is manual:
 
 [[coding-zenka-improvement-pipeline]]
 
-#,,,,,,,,,...,..,,.,,,,..,.,.,..,,.,,,,,.,..,,..,,...,...,..,,,..,,..,.,.,,.,,
-#4TVYQTYLVG67SSWCYYW6RQUBLG6NJJJPBMTHOK7RGW7JLQZUOHGC25JIYJVB4MQKKAL3IIL5HHHDA
-#\\\|5FOJ3KKZKBMGGKRUQZWHLC4MAXRWAI3NHDNF6RA6YMA2CJA36E7 \ / AMOS7 \ YOURUM ::
-#\[7]HTMVJ24L24KMGWEMHBVXXETXMOU5BJVQZBB26JGSL6553VRGOKBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,..,...,,,,,,.,,.,,,..,,...,,..,..,,...,...,,..,..,,.,,,...,,..,
+#654EPRSWVZF3B3QC6TRONWEYODGCTRT2YNNMFVQ4EEFQLKMQAVRFDKRX7E4DT5PODM5DBNI23WJEI
+#\\\|WRY4NT75JZIKV2J72D5SO6QQGTLTAEWN6ZW2ER6ZCTOAA6U54FB \ / AMOS7 \ YOURUM ::
+#\[7]AWQRUXE2E6VXEG7YDF6CY7V3K6SR4KZRQX5ZL3SV7P4EG3EBSODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -667,7 +667,7 @@ these are **module files** — every one ends with a 4-line `#,,,` AMOS7 data
 signature block. do not hand-write, edit, or copy those blocks. leave signing
 to `bin/Protocol-7 sourcecode update-signatures`. new modules
 (`coding.self_test.async_probe`, `coding.self_test.handler.poll_probe`) must
-also be registered in `cfg/zenki/coding/start` and
+also be registered in `cfg/zenki/coding/zenka.v7` and
 `cfg/zenki/coding/subroutines.load-early`.
 
 ---
@@ -692,8 +692,8 @@ prompt: |
   use $ARG not @_ where the file already does; lowercase comments; bracket
   annotations [ like this ]; do not touch the trailing signature blocks.
 
-#,,.,,,,,,.,.,,,,,...,...,.,.,...,..,,.,.,..,,..,,...,...,.,,,,,.,,,,,.,.,,..,
-#WIFXQVUXN7TQDGQJHWKJI5VVJST44L4FZDCSYKYX7KOI7GWU4UECZGF6D65AT7BZSRXXJEWKDQOTA
-#\\\|Z3WKAZ3IU5LM7BMMZI5VO3EBZ57HSJNLVD4KTVF7I2WAFHOGX36 \ / AMOS7 \ YOURUM ::
-#\[7]Y7FHWVUCMFVCTDKOLH7LAGGDTYLAU3OEL5VHW57BHRHNAP2JBSBY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,..,,,,,...,.,,,,..,,,,,...,.,,,..,,...,...,...,,.,,..,,.,,,.,,,
+#DOWQCGFJ36YKWGF5WVHM23WYZLJG6B4KVAN4ISMLP6UPNEXX4IZLG7FLFXASSYIMRCGQVDRWMIZR2
+#\\\|GTODRRUU2GKB2WT7G6KLOHZFDFWFRBRL7HJCDARPYTWAJV6YL6J \ / AMOS7 \ YOURUM ::
+#\[7]DC7CF6SSWJU5YUQUR25SEQLJH6MR2SBDAMA7M5YSWR44QKYM3CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

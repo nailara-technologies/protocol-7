@@ -111,7 +111,7 @@ the gateway zenka sits on every cross-network command path. it can:
 inner network starts its own cube:
 
 ```
-## cfg/zenki/inner-cube/start
+## cfg/zenki/inner-cube/zenka.v7
 modules.load = cube ...
 cube.name = inner-cube
 ```
@@ -119,7 +119,7 @@ cube.name = inner-cube
 gateway zenka connects to both:
 
 ```
-## cfg/zenki/gateway/start
+## cfg/zenki/gateway/zenka.v7
 gateway.outer_cube = /var/protocol-7/run/cube.socket
 gateway.inner_cube = /var/protocol-7/run/inner-cube.socket
 gateway.outer_identity = ext-cube
@@ -238,8 +238,8 @@ the main cube is the outside world.
   (yes, if the gateway honors the flag — it should, as part of its
   transparent bridging contract)
 
-#,,,,,.,,,...,.,,,,,.,.,,,...,,,,,.,.,.,,,..,,..,,...,.,.,..,,..,,...,...,..,,
-#5ZSIT473OMMS4GFCJTNI6S26SFJSCEF2GDR4L3N7QZBLGVI2ND2TDTFTVKWDZS3L53K3BQAIJG2AE
-#\\\|654NL54YG43EYXGGQWAIJ2KZFBRMWPSK7W5VDDLX53533XS6GN3 \ / AMOS7 \ YOURUM ::
-#\[7]YZIPMFJOOAN2CASLTTCKJKUNS5PCBCPMYYRY3I5WDORZZYFMKIBA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,.,.,,..,..,,,..,,,,,.,.,..,,..,,...,...,.,.,...,,,,,...,,,.,
+#U2NASEBSEVILNX7GLOTZYH5SMMXHIK4BKTBWDL6AEB2SUAP2SRLYC2GKKNZBWXNXO7F65BJSAWIPK
+#\\\|7NVI5TE2YT4QVJUR4HPHLWUKVLXOZMPID4D44XEL5STSNAIBDJX \ / AMOS7 \ YOURUM ::
+#\[7]FEOMI7RU4V5K242W5QCPSU7JTDT3XIBBYOAZD5UCC7DLA7LU4EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

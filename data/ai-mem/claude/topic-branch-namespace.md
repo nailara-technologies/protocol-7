@@ -46,7 +46,7 @@ wave cache: `$data{'branch.route.cache'}{$hop}{$target} = { next_hop, ntime }`
 group-filter in branch.resource.find is LIVE (uses branch.group.members)
 
 ## zenka config — DONE
-`cfg/zenki/branch/start` + `zenka-startup.v7` (on-demand, no idle timeout)
+`cfg/zenki/branch/zenka.v7` + `start.cfg` (on-demand, no idle timeout)
 `cube/auth.zenki`: `auth.setup.usr.branch = :zenka:`
 `cube/access.zenki`: wildcard routing for all `branch.*` namespaces
 
@@ -110,8 +110,8 @@ the position while there; node persists after.
 - `base.dump_data` — added reverse_sort flag (default 0)
 - `devmod.cmd.dump` — sets reverse_sort=TRUE so structural keys visible at scroll end
 
-#,,..,,,,,..,,...,,..,..,,,,.,.,.,.,,,,,,,..,,..,,...,...,..,,,,.,,,,,.,,,...,
-#YZ3U2LY22ID3M5ZN4GER2TOZDDZ4DIG7AFWCJWUKC7BGC627WNOKEOFNYGA4776KAH4YSEMUI4B2Y
-#\\\|XCB6TNFV2LHLTSIZLCS4UYTJ2C3OQUYYB6SU6AFML2GFOIDJM25 \ / AMOS7 \ YOURUM ::
-#\[7]REMSDEMLUQ5PEQ46K63C2OEJPRTOYBVB7N2GMWBWWE6F6RQ3NECA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,.,,,.,.,...,,.,,,..,,,.,,,,,..,,...,..,,.,.,...,.,,,.,.,.,,,
+#K2UHLD5U3UI2DSWMHQ6WIXCKU3VQ2667M2O6GQBCGK3ILREQJNDEWGZACPMFGBALEUMPTBVAJ5XVM
+#\\\|PZCQ3OX3YIBVHQ6GJJGNUTBYQS5BFOUQTYYPDRT4NJ5VADVVUHB \ / AMOS7 \ YOURUM ::
+#\[7]ESQITDEMWQCG55QRCNQ2H7ISKPI5C4VD5SPAA24F67NY5LR2TOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

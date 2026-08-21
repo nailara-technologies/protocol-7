@@ -145,7 +145,7 @@ do NOT add the #,,... stub line. leave files clean for signing.
 
 ## wiring into models zenka
 
-edit cfg/zenki/models/start:
+edit cfg/zenki/models/zenka.v7:
 
 1. modules.load — add after 'storage.adapter.invoke':
        storage.adapter.lmstudio
@@ -173,8 +173,8 @@ edit cfg/zenki/models/start:
     do NOT add #,,... stub lines
     report when done
 
-#,,,.,..,,,,.,,..,,,.,,..,.,.,..,,.,,,,,,,,,,,..,,...,...,,..,,.,,.,,,,,.,...,
-#IOPSA3KHIPJ55P4FJTY4S4CEVVCTWFSPWVMLEVFYSE23IXMOD744TU7PME2AXAJIXICUNWM4D6WIG
-#\\\|DEAFTWJ5SQIDIVXP6EBETACRC4CLME2AGC236Z5VU7KEEP5QWCS \ / AMOS7 \ YOURUM ::
-#\[7]UX7YWULH3EHXFDVARGNDZJANDK26VRH4U3JXCT73PP2ZCN3NQCAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,.,,,..,,,.,,,,.,.,.,..,,,..,..,,...,..,,...,,,.,,,,,,,,,.,.,
+#KUI2RZJGQZTPTBIVCSSJY4MCBXWEUIXB7F5UIRZN6RZ4PKJE3LCXG6YGFCLNJS2OUPJAULND5YPUS
+#\\\|X47NOOPOK6XCDU5PQTBXMNHGXMRAROW4WY6G3KOPRNL4GSLUGSU \ / AMOS7 \ YOURUM ::
+#\[7]HUUDDTEZMQUMDET4HGPWI753CVQ2MUA3OOWIULE5A5HUW2THOMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

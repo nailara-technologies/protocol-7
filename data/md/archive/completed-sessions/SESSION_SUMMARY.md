@@ -87,7 +87,7 @@ Successfully designed and implemented a complete **Trust-On-First-Use (TOFU) aut
 - `v7.bin_p7c_comp_chksum` / `v7.bin_p7r_comp_chksum`
 
 ### Configuration Changes
-- `cfg/zenki/v7/start`: Dual binary compilation setup
+- `cfg/zenki/v7/zenka.v7`: Dual binary compilation setup
 - `cfg/shared-params`: `protocol-7.remote.default-port = 42`
 - `src/v7.init_code`: Independent p7c/p7r initialization
 - `src/keys.console.list`: [hostkey] display extension
@@ -164,8 +164,8 @@ Comprehensive implementation of enterprise-grade remote auth system with securit
 **Status**: ✓ Implementation complete, testing phase ready to begin
 **Next Action**: Start Phase 6 local TOFU testing
 
-#,,..,.,.,..,,.,,,.,.,...,,,,,..,,,,,,,..,...,..,,...,...,...,,,,,.,.,,.,,.,.,
-#3DDP2HTTUDPTDEIGSVAVWTZJIUORMDB3VS65JIDRHOB5CWGW6JLQFP5U2TTXCPNNDSQ6UESXTYCNA
-#\\\|WMEGPAMD6ROH4I74NF2RHXRSYNNQIWF7VHB3AXNNFD2NPJDETM7 \ / AMOS7 \ YOURUM ::
-#\[7]AFNGJ3EMKKV5GC3H6OUI7NZAHCUTGHXCGISSLRM5IGCFU55OE4CY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,.,.,.,,,,,,,.,.,.,,,.,.,.,,,..,,...,...,...,,,,,,.,,.,,,,,,,
+#NJZJRD2NK4PYGCXTPDBBOQ6VGXEC63G6IGEUH62HC4EKQ4ATQHVUWDDHQQNNQXVGYLB3T3PSEWTKY
+#\\\|Q5KSJ75TBTZ7IZ7Y2WNWMFVTVVXNFNDEN64Z72SWH34A6SHHQ3N \ / AMOS7 \ YOURUM ::
+#\[7]KBWZA7GR4JUWCN4ELO5Q7JEJQ3XXZXN5NZAKVB7YTKO354RWVAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

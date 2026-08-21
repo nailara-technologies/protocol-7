@@ -212,7 +212,7 @@ encrypted blobs: `var/credential/store/` (one file per slot, encrypted)
 
 ## configuration
 
-`cfg/zenki/credential/start` — standard zenka start file,
+`cfg/zenki/credential/zenka.v7` — standard zenka start file,
 runs as dedicated user with restricted filesystem access
 `cfg/zenki/credential/access.zenki` — which zenki can call
 `credential.resolve` and `credential.register`
@@ -429,8 +429,8 @@ handles all footer blocks — leave them untouched.
 - `cred-mesh.store.local` should wrap `credentials.read_archive` / `credentials.write_archive_file` for the actual file I/O, passing the C25519-derived key instead of the old password-derived key.
 - `credentials.cmd.request_session` and `credentials.spawn_web_session` remain in use for SMTP/IMAP/web sessions until the fabric subsumes them.
 
-#,,,.,,,,,,,.,,,,,,..,,..,.,.,..,,,..,...,,,,,..,,...,...,.,,,,.,,,,.,,.,,...,
-#D44T4KXLKTJGESRD72HLJCJYWG745TNTTNIUWFGQ4HVQAO6NB2DHNRB4BCWJD77JRFHI7WVN6GTUQ
-#\\\|54L2TJ3MD3SOXGDKSM3MQMHJXAPVZKGPXLMCGKOLGHUF56KB2IX \ / AMOS7 \ YOURUM ::
-#\[7]ZECMJMTQKPI5K6FVBSMGYPEZVNGWS6QOCWKCFCUGABCEIUY7HUAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,,.,,.,.,,.,,.,,,.,.,,,.,,..,..,,...,...,,..,.,.,.,,,...,,,.,
+#24XXITLGXE42WOGS6DWXWW2UJDNIMAMIV6F6V2ZEO3ASNL6DFZJTTVA3L6FQ3BQ6UPREKXBBEKCVY
+#\\\|KCELENPYSCXEWLXIET2VSOQ6ORCK3OO6P3YYRI5AX5C6EFK7EHH \ / AMOS7 \ YOURUM ::
+#\[7]T5PB2B2ZRDJJBFTHJEXGFXEP5EI7XFBOYE3CYMY4EZY5OA5W7GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

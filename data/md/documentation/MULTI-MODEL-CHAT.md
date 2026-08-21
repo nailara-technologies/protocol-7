@@ -105,7 +105,7 @@ setup.aliases.source_zenka = ... models.chat
 ```
 
 ### Access Permissions
-`cfg/zenki/models/start`:
+`cfg/zenki/models/zenka.v7`:
 ```
 access.cmd.usr.cube = ... chat request ...
 ```
@@ -157,8 +157,8 @@ p7c models.chat  # Shows last 20 exchanges
 - `310ea2236` - Use bracket notation for content markers
 - `6b1382aa4` - Add content-addressed announcement system
 
-#,,.,,.,,,,.,,,.,,.,,,,.,,,,,,.,,,,.,,...,,,,,..,,...,...,...,,.,,..,,,..,..,,
-#7ETGADQA3W6JBCT7EXHAQZUTTCI5YXD3PF55BTHPLPMDX2V373HIMEQZQF436BFAEUNWUD3SMJCJS
-#\\\|R2LE4ZNGRH3TTPBRQCCXHRYTOTEP2D55DQWQ4GYY65WGFJKKZ74 \ / AMOS7 \ YOURUM ::
-#\[7]VORFKSK6H2W6FFI3NK25JBFVZZ73WJX4UQNEX577UPZFZUGAKOCY 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,,..,,,.,,,.,.,,,.,,,.,,,.,.,..,,...,...,,..,,,.,,.,,,,,,,..,
+#O2WQ6A4SU7RUBXXOMU4ZB43Z3AY7NUFUFH6SGXTQGPZSJJ7JLSKCNNZ6IG7UORFAXH2ADSKAMOUTC
+#\\\|5NCQA3DSRK3UN74PQC2R5CWDZ4Z4ZMQC5AYTTLEAQCJELWHO5GB \ / AMOS7 \ YOURUM ::
+#\[7]QIGDVSVTLMCXDYPMGADDLKXKZ56FCBPQBGSMSRIN3SLI3KX2A4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

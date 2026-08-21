@@ -64,7 +64,7 @@ verified live: three concurrent instances (host `:0`, `xvfb-0000` `:7`,
 - `X-11.init_code`/`post_init`: mode-subname parsing now captures the
   instance index (`xvfb-0000` → mode `xvfb` + index `0`, previously
   discarded via non-capturing group) into `<X-11.mode_index>`. Display is
-  now base (still user-configured per-mode in `zenki/X-11/start`, e.g.
+  now base (still user-configured per-mode in `zenki/X-11/zenka.v7`, e.g.
   `X-11.display.xvfb = :7`) + index, **overwritten in place** in
   `<X-11.display>->{$mode}` — first attempt wrongly tried to "protect" this
   as a shared base and computed a separate `<X-11.primary_display>`, which
@@ -83,7 +83,7 @@ it spawns — even with routing fixed, whichever X-11 instance's reply
 landed last would silently override the DISPLAY env var for every
 subsequently-spawned zenka, host or virtual alike.
 
-- `v7.callback.get_x11_display` now runs **per-instance**: `zenka-startup.v7`'s
+- `v7.callback.get_x11_display` now runs **per-instance**: `start.cfg`'s
   `v7-post-init` passes `<instance_id>` explicitly
   (`[v7.callback.get_x11_display:<instance_id>]`), and the callback reads
   that specific instance's `cube_sid` directly from `<v7.zenka.instance>` —
@@ -119,8 +119,8 @@ range, both use subname suffixes but different separators, `:WxH` vs
 [[topic-x11-protocol-hardening]] · [[topic-window-canvas-addressing]]
 (unrelated identity question, already solved differently)
 
-#,,,,,,..,,,,,,,,,.,,,.,,,.,,,.,,,.,.,,.,,,.,,..,,...,..,,,,,,,,.,,,.,,,.,..,,
-#YVWNX4BHPZUC7G7UF44JT3V2OD6ZQNSWY4YUEHFYFYL5CIFLMAAND74TORMNB5XIVMWMULAM3R2SS
-#\\\|522G4JM2PSECHS2AF5JS72SB4MNUUHVNESOMM5SYG6EUJLKHLSB \ / AMOS7 \ YOURUM ::
-#\[7]TVFBRVIS6LOR62WXSTHXMMX4ESXJNLFZDADMUHLUGYE5NFBECACA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,,..,,..,,..,...,..,,,.,,,.,,..,,...,...,...,,.,,...,,,,,...,
+#3YIDGOMIZ2KSDJ423MXESKLZH5DAYHJDPBNXO72SNKZOMY72EZ4QRBIYMW5YMRZVBLZXIGMASQYUY
+#\\\|4P3Z425MMD3IXIN3BN4I4LJQRFI765LFKMZKKL5JJ26H62OSAZC \ / AMOS7 \ YOURUM ::
+#\[7]6PCQLZJQQXQ4K74NDN6C6FIG2C3ARCDZS2F2U3HKN6IOKFZX4UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

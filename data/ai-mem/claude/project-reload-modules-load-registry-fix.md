@@ -8,7 +8,7 @@ metadata:
 ---
 
 Two related but distinct bugs found while testing [[project-depgraph-conditional-calls-blindspot]]
-on a live `cube` zenka after adding `ascii`/`format.yaml` to `cfg/zenki/cube/start`'s
+on a live `cube` zenka after adding `ascii`/`format.yaml` to `cfg/zenki/cube/zenka.v7`'s
 `modules.load`.
 
 **Bug 1 — reload ignored new modules.load entries.** `base.cmd.reload`'s "source" phase
@@ -82,7 +82,7 @@ on the second `reload` after the `base.cmd.reload` patch landed.
 
 **Concrete trigger case**: `cube` zenka's `modules.load` was missing `ascii`/`format.yaml` —
 `ascii.frame.load` needs `format.yaml.load_file` to parse frame yaml. Both added to
-`cfg/zenki/cube/start`; `show-buffer undef-subs` went from 2 flagged subs to empty
+`cfg/zenki/cube/zenka.v7`; `show-buffer undef-subs` went from 2 flagged subs to empty
 after the reload-sync fix + adding the missing namespaces.
 
 **How to apply:** if a zenka's `modules.load` edit doesn't seem to take effect after `reload`,
@@ -91,8 +91,8 @@ the zenka actually uses `modules.preload` or a literal `load_modules` call inste
 `modules.load` (the union fix doesn't cover those), (c) `dump base.p7_mod.loaded` for stray
 leaf-level pollution if something was recently self-healed via `whitelist_miss`.
 
-#,,,,,..,,,,,,,..,,,.,,.,,,.,,.,.,.,,,...,.,.,..,,...,...,.,,,,..,..,,,..,,,.,
-#J7OFO6OLX3NIBYOOTZOBEGY566WRI2LP2S3HH5ZFXQAEPB44XADB6DUJW2HU5IIWBQ6YQ6XFOXQLW
-#\\\|FJ63MWLIGSY2CZ4UQ4CRCXF6UQJPPORT7B3FKHYSHDXUMBBVW3H \ / AMOS7 \ YOURUM ::
-#\[7]CBOEYT44BEPCWLVULHHDN3JNXUODRC65R5CRPZXTPNYDTQRIKEDQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,..,...,,.,,.,,,.,,,,,.,,..,...,..,,...,...,..,,.,,,,.,,.,,,..,,
+#WSIZCMIKJCQGD37OMQKFECEWAJTNKSEVUSBLQEZDFC4ADUGJIFD54A5OWFJ4663KGGO33VEUXHQJ6
+#\\\|KX2YQFC5JJASXZOGCTPOWZ73XMZAPXXIY2WMH2RV7G4IZZHTDFI \ / AMOS7 \ YOURUM ::
+#\[7]A3EBDSPRKNMWVK4HYKBG643DXOR4R4TFEO2CRIY6V2BCSDGKLGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

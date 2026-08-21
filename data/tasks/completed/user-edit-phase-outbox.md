@@ -96,7 +96,7 @@ in this codebase, don't invent ad hoc validation).
 - draft_auto_save, retry_mechanism, anything from `phase_2_rendering` or
   `phase_3_form`
 - any `users.*` command surface or network calls of any kind
-- do not touch `cfg/zenki/user-edit/start` or
+- do not touch `cfg/zenki/user-edit/zenka.v7` or
   `src/user-edit.init_code`'s existing keyword registration
 
 ## Verification
@@ -128,8 +128,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` if you hit anything non-obvious (e.g. whichever
 unlink approach you picked and why, if it wasn't obvious).
 
-#,,,.,.,.,,.,,.,.,.,,,...,,..,,,,,.,,,...,.,,,..,,...,...,...,,,,,,..,,..,,..,
-#CQLZDKAMUPZRGUQFZZQ2IF6X4VZQY66ENCZDEGX4KS7VPO2JH4AVCUS5FUDSPJVQNNXNJNXJBIZP4
-#\\\|RR6CQBVRDMYNPA4BYYLPHHRLUWECP4JNK7QAWUM73XBTEYXXWXQ \ / AMOS7 \ YOURUM ::
-#\[7]VIBCTIM4DORGCECJ77HANORI6VTPEAVNUPTWKGTGJYDONHRQWIBA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,.,,,.,,,...,.,.,,..,.,,,.,,,..,,...,...,...,...,...,..,,.,,,
+#RTEMZZEJIEZKKO54WEBJNWYRHGRJPJ4J6KBDFVEL6YIN3TQPRX3JHZXP2HCB5YTB5FQJDXL337FV2
+#\\\|7B4BPRX5GSPTS3JD27VGJCQVLBK55HTSSIS4TS6PAYG5F4UJXKZ \ / AMOS7 \ YOURUM ::
+#\[7]XFHJ2CQBCXG77JI7A5MH7PUOZ7NW6RB64XU4P6FGZQWLPR46DGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

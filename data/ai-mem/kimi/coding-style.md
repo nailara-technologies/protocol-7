@@ -864,7 +864,7 @@ gotchas hit while wiring kimi.cmd.list-models / set-model :
   instructions in the prompt get ignored for file input. unusable as a
   generic scoring/judging endpoint; call the server directly instead.
 - `consensus_query` routes by `<inference.backend.cpu.enabled>` [ set in
-  cfg/zenki/coding/start ] — points at the cpu backend :8001
+  cfg/zenki/coding/zenka.v7 ] — points at the cpu backend :8001
   which is usually down; `tree_write` can't flip it [ restricted to
   coding/context/observations/task namespaces ].
 - `bin/Protocol-7 sourcecode test-sign-and-verify <paths>` signs scratch
@@ -1070,8 +1070,8 @@ any comment above or after the full statement instead.
 
 ---
 
-#,,.,,,,,,.,,,.,.,,.,,,.,,...,.,,,,,.,...,,,.,.,.,...,...,..,,...,,.,,.,.,,.,,
-#W4ONLCH536PCRJCLBMHDNEVPVUDF7EQCOXJKDM7RSYYZBNUK5DW4QJMCHWDO42HC45J6TBG577J2M
-#\\\|SY246CBIVPGQWSF7M4SFRKGSF2CGH7DFHG6Y4SQXVB7KZISWOKG \ / AMOS7 \ YOURUM ::
-#\[7]QDCEYE3AVK5PVTLN57PM6NEWFYKVNDLANR4DUGTJ5A7A6OX2NWCY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,...,,,.,.,,,.,.,,..,,.,,.,.,.,.,...,...,,.,,,,.,,.,,.,.,,..,
+#HK6NX4GIMDASKY65G6EEMRMFIVY6LLVQ7OWAOUGV3K7WNGLNZQVBG3TXTDNLAOOD276V3UYOS5JWW
+#\\\|AURS5RLCXHLWLQSKUL36ZIEUOIETMEKZG2YR3ZXDN7MMDQKBKYG \ / AMOS7 \ YOURUM ::
+#\[7]L47TK5DIF4SRWMAPNWJHLFE7GB6XGY6SKQUXHPT65BHQ4XOJ7GBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -53,14 +53,14 @@ set — prevents model_path_reply + deferred timer from spawning during handover
 both task queue empty AND no active `coding.state.backend` lock (in-flight inference).
 `inference_crash_restart` + `inference_server_sigchld` both skip when draining.
 
-**drain_timeout**: 300s in `cfg/zenki/coding/start` — allows long
+**drain_timeout**: 300s in `cfg/zenki/coding/zenka.v7` — allows long
 inference rounds to complete before force-kill.
 
 **instance-scoped pid files**: `state/inference.gpu.$$.pid` — prevents spawn_inference_server
 orphan scan from killing sibling instance's live GPU server.
 
-#,,..,.,.,,.,,.,,,,..,.,.,,,,,,..,,,,,..,,,..,..,,...,...,.,,,.,,,,,,,,..,,,.,
-#AW4VMOFJX4WUC6G4WQNFLM2QEGG4QXMZFXEOQC3JS7URX2GIKM3IIAMPGFRTPGWKKW43Y5S35IGHO
-#\\\|GNUMEK6IZ6GFUY35V2J6SXLE73F44TM4FLIX6YAYGMKE7BF2PUN \ / AMOS7 \ YOURUM ::
-#\[7]GFU7VXYXJTSHIFYDO7IB55EXAAFXJYJOG2UBLWJADPXED76HGICI 7  DATA SIGNATURE ::
+#,,..,,..,..,,...,.,.,.,,,...,...,,.,,.,,,,.,,..,,...,...,,.,,,.,,.,,,,..,.,,,
+#PV3SNPJVSCD4AQNGQG5KZFXIXSSVJCMCM3LARCXCJAWW3MSMMD7RFZQNWNYPFV7W3NGFCB7G4EKRS
+#\\\|RCIIDUQJX5E3MECCINH24JLBUB6XYQ3YXDTISPNMOU457KKIJRU \ / AMOS7 \ YOURUM ::
+#\[7]PD42J6URDB7OSDRHMP6J63DDM3TLQOE2YENIV56SC33VFP3W6KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,7 +24,7 @@ same relationship `src/base.chk-sum.amos` has to
 explicit bar, verified via `p7c data.shm-self-test` before/after.
 
 **Critical context, don't forget**: `data.mount.shm.*` is the actual **data
-zenka's own live working code** (`cfg/zenki/data/start` loads the
+zenka's own live working code** (`cfg/zenki/data/zenka.v7` loads the
 bare `data` token) — not a neutral shared library. `data.channel.shm.*`
 builds a ring-buffer channel abstraction on top of it; reconciling that with
 the new paging/feedback design is required before phase 3, not yet done.
@@ -209,8 +209,8 @@ to cover the phase-3 FIFO's lifecycle alongside the segment's.
   fork and add a timing gap, or you'll get a false positive from whatever
   fallback path silently activated.
 
-#,,,.,,,.,.,.,,..,,,.,...,,.,,.,,,.,,,.,,,,,,,..,,...,...,.,.,,..,,,.,.,.,,,.,
-#BQTXMP7QA4OHWBITVL4PEVO2ZF4HOHQ4PPV7QRLDCQO4JC42WBDSGZFZONMMZK56DVM37XJBABWPW
-#\\\|344W5HXJ67UPXPMXDRVVQP3OCBFXAVBTVH2O3ZUDYTOGMUBJIQH \ / AMOS7 \ YOURUM ::
-#\[7]COQCQPXXGBIOVCCYAC7NKEDIXVGVNWT5NLFRFOMCKKRFRTRDNSBA 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,,,,..,,..,,..,,,,,,,,,...,,.,,..,,...,...,...,.,,,.,,,,,.,.,.,
+#BZYQBXQGBTWFM3MVQ3WGGZTADS6HHUFOLA5JL2ZWDWDE657TV4A67GJWMRVZ3BRFGY47K7DKV2R7Y
+#\\\|GB2WDQ6SJ3Y23FOE4NSCGZTLKHNVJTGAKK2L6KHCAWDXD5LG75P \ / AMOS7 \ YOURUM ::
+#\[7]FEECYVKADSGZ6N5PJP2GWOJ5HY2JJ3JOP4IZOOAZSIVZFDUDG6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

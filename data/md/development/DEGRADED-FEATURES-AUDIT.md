@@ -61,9 +61,9 @@ priority.
 
 ### candidate: mpv-xephyr-vo-override
 - **commit**: `0c22a313c` (2019-12-03) "overriding 'xephyr.vo' in 'mpv' agent config [ as SDL is suddently broken ]"
-- **files**: `cfg/zenki/mpv/start`, `src/mpv.init_code`
+- **files**: `cfg/zenki/mpv/zenka.v7`, `src/mpv.init_code`
 - **what was lost**: the mpv zenka forces `mpv.xmode.xephyr.vo = sdl` (and `mpv.xmode.nxagent.vo = sdl`) because SDL was "suddenly broken" in 2019. the default `mpv.vo_backend` is `gpu` (with `sdl` commented out), but xephyr mode overrides it back to `sdl`.
-- **current state**: `cfg/zenki/mpv/start:57` still contains `mpv.xmode.xephyr.vo = sdl # [sdl|xv] <-- override if SDL is broken [dev.feature]`. `src/mpv.init_code:51` defaults `<mpv.xmode.xephyr.vo> //= qw| sdl |;`. SDL on Debian unstable in 2026 is likely stable again. forcing sdl instead of gpu loses hardware decoding and performance in nested X sessions.
+- **current state**: `cfg/zenki/mpv/zenka.v7:57` still contains `mpv.xmode.xephyr.vo = sdl # [sdl|xv] <-- override if SDL is broken [dev.feature]`. `src/mpv.init_code:51` defaults `<mpv.xmode.xephyr.vo> //= qw| sdl |;`. SDL on Debian unstable in 2026 is likely stable again. forcing sdl instead of gpu loses hardware decoding and performance in nested X sessions.
 - **fix**: test mpv with `gpu` (or `xv`) under xephyr. if stable, remove the override and let `mpv.vo_backend` propagate.
 - **complexity**: trivial
 - **value**: performance / functionality
@@ -170,8 +170,8 @@ features that were disabled and forgotten.
 *commits scanned: ~5,000+ (full git history)*
 *modules scanned: 3,900+ files in `src/`*
 
-#,,..,,..,.,,,..,,.,,,.,,,,,.,,,,,.,,,..,,...,.,.,...,...,...,...,.,.,.,,,,..,
-#WMN64JLU4MXKAV62QKD7NB5IREO5TNBJYOU2L7RF4D5NTPD3432Q2FKLHV2XLN4NFIIDTH6BVAOMM
-#\\\|K22SGZNADPUCIRF2IGMM7IN2QWCKPDOEF2JI2LYGFDOX2BLFWW5 \ / AMOS7 \ YOURUM ::
-#\[7]6DVZ2JNHB7VWWO42LB3SVTLO4SYKUJ7Z6WK5MEGPLXDLHF63WQCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,,,...,,.,,,.,,,,.,.,,,,,,,,,.,.,.,...,.,.,.,.,..,,,,.,,,,,,,.,
+#F42UFNOMMGXITSLGU4CODFY77EBUKBCN42XNM44SB23PWIBXQJD4OUDFCBA2CTGJTRNK4552OMXUI
+#\\\|D2SED7UXVWBA7AHIK2GXM4EXYLCARBWT53XF7R6EVWCRMKAUFMX \ / AMOS7 \ YOURUM ::
+#\[7]CBCB5WMAZYUDXBLYVREI37IV254CKWL6LQJBFHPCL3OWMSA5W4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

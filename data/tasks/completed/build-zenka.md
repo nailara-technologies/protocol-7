@@ -133,7 +133,7 @@ between the task files:
 ### task 1.1 — create build zenka
 ```
 ## dispatch + prompt
-create cfg/zenki/build/ following the zenka-startup.v7 +
+create cfg/zenki/build/ following the start.cfg +
 start script pattern from cfg/zenki/letsencr/ (access.zenki
 pattern from cfg/zenki/cube/ or cfg/zenki/transport/
 — letsencr has none, see data/tasks/openvas-agent.md task 1.1 for the
@@ -258,8 +258,8 @@ attention after an upstream pull, instead of discovering it mid-build.
   explicitly out of scope — see [[NETWORK-BUILD-SYSTEM]] for the full
   vision; this task is layer 1 only.
 
-#,,.,,,..,,,.,.,,,,,.,,,.,.,.,..,,...,,,.,,..,..,,...,...,...,.,.,..,,...,,,.,
-#HXMM5X4P2IS7QYTVTEPYIN3NPADXCWBHPNH2MOD6P3NIMMJUOMKN3T5OSFQCF4PIAP35JTULZEHM2
-#\\\|6MZTR3LCDQ6REKPLCJAAZNWJHE54H6NJ6G3ZIN32YJZOS7YWWMD \ / AMOS7 \ YOURUM ::
-#\[7]UH6PCT3YJQOQPVVGNCX7B5IYSBNAOKOFGNSY3IYGGLXQXZW4KWDA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,,,,,,,.,,,.,.,.,..,,...,,.,,..,,...,...,.,.,,,.,,,,,,..,..,,
+#G5ROR2Y7H32TD4JYZ7BIE5YMVXXRMEJOIXCT6OBZP3K7WM4MFRSFD5KULD3NSWAIRULDSSPO5AEV6
+#\\\|LWDDJP4PJ3OAY44JNTZECA422XFOGR4T3SRHWES3QK45XYXYLQM \ / AMOS7 \ YOURUM ::
+#\[7]635CFAP23FR7PNIVWEYVRNKE5K2G64XHMLDQDRZ75OOA2RLA3IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

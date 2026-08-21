@@ -126,8 +126,8 @@ Protocol-7 zenki status         # Show all running zenki
 
 **Integration:**
 - `src/v7.post_init_code` - Triggers check after module initialization
-- `cfg/zenki/v7/start` - Added 'session' to modules.load
-- `cfg/zenki/session/start` - Standalone session zenka (FIXED in 7e9ef7a85)
+- `cfg/zenki/v7/zenka.v7` - Added 'session' to modules.load
+- `cfg/zenki/session/zenka.v7` - Standalone session zenka (FIXED in 7e9ef7a85)
 
 **Decision Logic:**
 
@@ -545,10 +545,10 @@ Protocol-7 debian list-zenki
 - `src/v7.parent.attach_zenka_logs`
 - `src/v7.parent.stream_zenka_log`
 - `src/v7.post_init_code`
-- `cfg/zenki/session/start`
+- `cfg/zenki/session/zenka.v7`
 
 **Modified Files:**
-- `cfg/zenki/v7/start` - Added session module
+- `cfg/zenki/v7/zenka.v7` - Added session module
 - `src/debian.parent.*` (5 files) - Configuration refactoring
 - `data/yaml/protocol-7-coding-style.md` - 2 major sections added
 
@@ -681,8 +681,8 @@ Protocol-7 session setup-keys                 # Create key directory
 
 ### UPDATE: 'workflow' zenka renamed to 'work', in PATH as 'p7.work' [symlink]
 
-#,,.,,,,,,,..,.,,,,..,,..,.,,,,,.,,..,..,,,..,..,,...,...,...,,..,..,,,.,,.,,,
-#DIQKELWOGMDBA6MEUZKY7A5527DHHOW5CLZ2FHSTTBYEPXV5SUCE7Z422RFBTHEZJTCVN3JUT4N5W
-#\\\|NFBM6THMKZ7DN6JEZZFL6IHH4C7FZ3VQMCNXIXTDD6VCUB7Z4O6 \ / AMOS7 \ YOURUM ::
-#\[7]LUA27QMNMDHCAMELYKKO56GBSBT2C2KX2DKJFHZBWBA6MNDHR2BQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,,..,,,,,.,,,,.,,,..,.,,,,,,,..,,...,...,...,,,.,,..,.,,,..,,
+#2ZUICQSMN5UYSWBZOISIEJF4DGJS7UZYIKRASCPN6XO5FTTV7YEFINTGZDOGYVPITJDPWBVLBDNK4
+#\\\|2WAEQ7ZM7C3A7SRFAYWNEYEMZGY6O6JPE3RZS7D7Z7FPUMV36IS \ / AMOS7 \ YOURUM ::
+#\[7]LWIRAFSGF525QZE3JXCO3UYX2Q4FO2CV2VT6Y4TKFTPMOGUFTYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

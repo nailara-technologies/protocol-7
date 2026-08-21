@@ -14,7 +14,7 @@ application document. Needed a taller/different-aspect Xvfb screen than
 the existing `X-11.dev.dimensions = 912x513` (16:9), which is deliberately
 kept small to simulate an appliance on a work desktop via Xephyr. Landed
 a first split as `X-11.dev.dimensions_xvfb = 1216x1368` (8:9) in
-`cfg/zenki/X-11/start` — flat sibling key, not nested under
+`cfg/zenki/X-11/zenka.v7` — flat sibling key, not nested under
 `X-11.dev.dimensions`, because that key is already a scalar and dot-path
 config parsing throws `'eval error : string (...) as HASH ref while
 strict refs'` if you try to nest under an existing scalar leaf
@@ -55,7 +55,7 @@ one-sample-so-far need. Revisit once a second Xvfb use case with a
 genuinely different resolution need actually shows up; if/when built,
 also consider whether Xephyr profiles are wanted too (weather zenka
 already has two commented-out fixed profiles at
-`cfg/zenki/X-11/start:46-47` as a precedent for per-purpose
+`cfg/zenki/X-11/zenka.v7:46-47` as a precedent for per-purpose
 named sizes, though those are hardcoded overrides in the same file rather
 than a subname-driven mechanism).
 
@@ -75,8 +75,8 @@ suffix parsed together, not two competing single-suffix designs.
 
 [[topic-x11-protocol-hardening]] · [[topic-x11-bare-name-routing-ambiguity]]
 
-#,,.,,...,,,,,...,..,,,..,..,,,.,,,,.,.,.,,.,,..,,...,..,,..,,,,,,...,...,,..,
-#P5RLQ4IUY5FVYQLUT6EINO57755HJ3QF2VR6QQJRNTLNIDQWM7DQS5UM4YPLNK3X52QPHD6L43UPW
-#\\\|R2ZGJWGMWZDA57WZZBNQZQYF77NFSB5LXIYSLVTYVVTRE2KZ4GR \ / AMOS7 \ YOURUM ::
-#\[7]PLDVE7GMKNYSGCHTYOLDMVFMUF75VXJLM6H2RKNQAPWUKWHJSYCQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,,..,...,,..,,..,,.,,.,.,.,.,..,,...,...,..,,,.,,,,.,..,,...,
+#VBR3GRG6BHU6XCLXOBVTIBUKNIFEOMUEKPPSWX62BBZBUCEEQGQAIZAUPFXMG7M3ATL534DWJYT4K
+#\\\|ABAAFVUG4JYWM3B4VBXZMKL2L3WBW6VTGKNYELQ76XGNXINF566 \ / AMOS7 \ YOURUM ::
+#\[7]KLZMSL6T3VBSKX6YQFOAAI4AN3SAQKMSGICWXSSW3ORJUEMKVMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

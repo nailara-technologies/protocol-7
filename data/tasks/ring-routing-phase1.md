@@ -87,7 +87,7 @@ actual key distribution (phase 3) replaces the static hex.
 
 ### 4. cube start integration
 
-add to `cfg/zenki/cube/start`:
+add to `cfg/zenki/cube/zenka.v7`:
 ```
 modules.load = ... ring.key.load ring.member.has_key ring.boundary.recognize ...
 [ring.key.load]      ## load ring config at cube init
@@ -131,7 +131,7 @@ create:
 - `src/ring.cmd.stats`
 - `cfg/zenki/cube/rings.cfg` (one static test ring)
 
-update `cfg/zenki/cube/start` to load ring modules and
+update `cfg/zenki/cube/zenka.v7` to load ring modules and
 call `[ring.key.load]` during init.
 update cube `subroutine.white-list` for ring.list and ring.stats.
 
@@ -140,8 +140,8 @@ test ring loaded with 0 members and no active routes.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,.,.,.,.,,,.,.,,,..,,,.,,,,,,.,,,.,.,.,,,..,,...,...,...,,,.,...,.,.,,,.,
-#PNU2KIY6H6VNFBR3Q4LHZ7ZFQMNNDHSSLKNPZGOCRQCAEH3IU7RC7LC4NTYVHLOKJBXV62PHUYVEE
-#\\\|RJE74GCKIJTOV57IRZI5S46GM25QXC5B7II232HOUEKY6CCLLHF \ / AMOS7 \ YOURUM ::
-#\[7]EK5EJFG2KJ2OGU5BDQEMXQGKXREYLS2SHZ3BPA64SX3J3DSBCGCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,,,.,.,,,...,,.,,,,,,.,.,,.,,..,,...,...,.,.,,.,,..,,,.,,.,,,
+#BAVWQY6Q73FP2YFPHSEWOOBCHC4OTBBFAA3R5NOYVOYBD5KYOJBAKTVJZHWDDRHFNTHIBR7RIMKOC
+#\\\|RYOYD57C4KRQDXTQWPKGBS3JVUGGYSVNR74D3C6CV6RSZURX2WS \ / AMOS7 \ YOURUM ::
+#\[7]RBO6DE6D4GGG2ZOJXQPMDLSQTMY2OOSZA7SREKAUSLBKRH5LTQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

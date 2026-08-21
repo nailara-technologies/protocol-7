@@ -131,7 +131,7 @@ or via a git alias in `.gitconfig`:
 ### local config
 
 ```yaml
-## cfg/zenki/git-watch/zenka-startup.v7
+## cfg/zenki/git-watch/start.cfg
 cfg.mode = local
 cfg.repo_path = /data/projects/protocol-7
 cfg.backup_dir = /data/projects/protocol-7/.git-backups
@@ -298,7 +298,7 @@ git-watch.fetch
 ## zenka configuration
 
 ```
-## cfg/zenki/git-watch/start
+## cfg/zenki/git-watch/zenka.v7
 [load_modules:git-watch.init_code git-watch.handler.poll-refs
               git-watch.detect.force-push git-watch.snapshot.create
               git-watch.snapshot.list git-watch.snapshot.restore
@@ -308,7 +308,7 @@ git-watch.fetch
 ```
 
 ```
-## cfg/zenki/git-watch/zenka-startup.v7
+## cfg/zenki/git-watch/start.cfg
 start.on-demand = 1
 restart.disabled = 1
 heartbeat.disabled = 1
@@ -360,8 +360,8 @@ do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures` wh
 - [ ] `git-watch.snapshot.restore` produces repo with all rescued commits reachable
 - [ ] zenka starts on-demand cleanly, poll timers staggered to avoid simultaneous ls-remote
 
-#,,..,..,,,,.,...,..,,..,,.,.,.,.,..,,.,.,..,,..,,...,...,.,.,.,,,,.,,...,.,.,
-#XSSZVSPIDL34NKUHDFLY76DQ3OP3DIA2Y6N6SPFH3TGKGSFAJ5JWKZBBW42D4RS42HVOLCV4IZ47W
-#\\\|HHRSCCZCERGPU3NC4WIGKPMQJJS724E2X4OVB2C7PDTFVSQXN6M \ / AMOS7 \ YOURUM ::
-#\[7]C5BVDLWRMGMNDP4HVFVCWA5YCCJVCDRMWQ4KEHCMUCIGP5KVR6BI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,..,,,,,,,,.,..,,,..,,,,,,..,..,,...,...,..,,,,,,,,.,..,,...,
+#XZQRAHSKWJ5MF7DN3VGGBM5M66JOBBVLJTEA4Z6PLELGUNXOEYRXUE6BHRED3E3GSQN34XTO5SIV4
+#\\\|63BUN4N7NATRATRBJ2TRGYGV6WEPWNZTO5L63V475PZBSHT3EJK \ / AMOS7 \ YOURUM ::
+#\[7]6EKBVCDLQNCBFZR6TWE4SGQBF5GWAXEKPDGGH7U4AYKUQPGZNSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -87,7 +87,7 @@ Re-established clean separation: `site-yaml` is generic, `jobsite` owns job sema
 - `src/jobsite.stage.fetch` builds `skip_ids` from the authoritative `<jobsite.job.index>` (active/blocked/deleted/trash), sends one import per category, and polls the site-yaml fetch queue until drained.
 - Deleted `site-yaml.jobs.{upsert,init_code,save}`, `site-yaml.cmd.{list-jobs,set-status}`; added `jobsite.cmd.set-status`.
 - Updated `base.list.subroutines`, `cfg/zenki/*/start`, source placeholders, and `cube/access.zenki` for the swapped command names.
-- Added `jobsite.job-upsert` to `access.cmd.usr.cube` in `cfg/zenki/jobsite/start` so route-sends from `site-yaml` are accepted.
+- Added `jobsite.job-upsert` to `access.cmd.usr.cube` in `cfg/zenki/jobsite/zenka.v7` so route-sends from `site-yaml` are accepted.
 
 ### Drain-detection race fix (commit `c27c6cf23`)
 The previous `fetch_queue_nonempty` guard only worked if the first queue-depth reply was non-zero. If the poll fired before imports populated the queue, the guard stayed false and the scan never left `scanning` even after the queue drained.
@@ -172,8 +172,8 @@ Title blocking removed:
 - The blocklist now only uses `ID` (source/posting id) and `URL`.
 - `site-yaml.cmd.import` no longer checks `title` for pre-fetch blocking.
 
-#,,.,,,,,,..,,..,,...,..,,,,.,..,,..,,,..,.,,,..,,...,..,,..,,,.,,.,,,,,,,...,
-#OVBSPG7AH4HWH7FFNRZA7MDS27C7ND2NRQCUD2S2KHRCTTLCWKLM2Y7HBSC5GAHB3RDAKV5JDSJ2M
-#\\\|OULA5PR7R2F4YK6O3KKHEKZX5QBEBJAGHNT2BGITBIVWPJ4GMBN \ / AMOS7 \ YOURUM ::
-#\[7]24S3XO3CYWPHFMBXM7BIOAF7E6OECGMQGFOJNPG36LJFEKTF2SAI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,,,,,,,.,,.,,...,...,..,,.,,,..,,...,...,..,,...,.,,,.,,,,,.,
+#ID4KVOQFODHNACQMFKJTK4E2TELEDIOWLZMRBZJG3N3C2SR6XQLNKQP737M5IXU7E5BL4AKWCLOJE
+#\\\|KSA2RWQU774RH24R6L6WPLQCV4IRIKUW6I5CQIZWEULDU27AMHO \ / AMOS7 \ YOURUM ::
+#\[7]LMJZW2OWODCAI7UCCDHWE662EW7MCDVY7A72VTHOAPJTGWL5L2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

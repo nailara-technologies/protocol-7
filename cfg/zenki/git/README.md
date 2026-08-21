@@ -14,7 +14,7 @@ The Git zenka provides Protocol-7's harmonically-validated version control workf
 ```
 git/
 ├── start                    # Zenka entry point
-├── zenka-startup.v7         # V7 startup configuration
+├── start.cfg         # V7 startup configuration
 ├── os-dep/                  # OS dependencies
 │   ├── binary/git          # git binary marker
 │   └── debian/git          # git package marker
@@ -132,8 +132,8 @@ Blacklight neon aesthetic:
 - [bin/admin/vc_commit](../../../bin/admin/vc_commit) - Interactive commit tool
 - [bin/dev/update-version](../../../bin/dev/update-version) - Version management
 
-#,,,.,,,,,,..,...,,,,,,.,,...,,.,,,.,,.,,,,.,,..,,...,...,..,,,..,,,,,.,,,...,
-#5K2V6VJIWIRDNSGVTBDFZ4XWKOXJQA6JGUYO3HXNY5CJHEFTGGXQLRGJTAVFMJ47EMD4RLKL7VAUI
-#\\\|CEILWFFRE7ZQT7HTVIFHOX6ZSLSX2XH2RWQ6KUITCRNECR62WUE \ / AMOS7 \ YOURUM ::
-#\[7]5SCAM6NJECTKST4EUIUGJQ722HWOWM2O5CLIHQO5FGLLZFCF2QCI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,...,,.,,.,,,..,,,,,,,,.,,,,,,,,,..,,...,...,.,.,,,.,...,...,,,,,
+#QBGVMPP2DYMC2HST3PO22UPO4BF7JBIMM7VYLEN2YII5G6MUMQYTDXJIZSJT274YUB3FATMJBSEUI
+#\\\|VQIAXHT6THFTLHFZSSCPNMKZBFZY4AJHHCZ2IKHK3YLGTSJFC3R \ / AMOS7 \ YOURUM ::
+#\[7]6J7TGH62RIBUSD7CRKMC6SZR2FROXNY4UCNK2VERBZYZIBQJMOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

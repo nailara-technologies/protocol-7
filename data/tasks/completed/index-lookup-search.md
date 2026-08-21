@@ -173,7 +173,7 @@ return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 ## access list update
 
 add `lookup search` to `access.cmd.usr.cube` in
-`cfg/zenki/index/start`
+`cfg/zenki/index/zenka.v7`
 
 ---
 
@@ -187,8 +187,8 @@ add `lookup search` to `access.cmd.usr.cube` in
 - if `<index.level>` is empty (future: after explicit finalize), freq lookup
   falls back to `<index.freq>` for ring 0 chars
 
-#,,,,,,,.,.,.,.,,,,..,,,,,,,,,,..,,,,,..,,..,,..,,...,...,...,,,,,,,.,.,.,.,.,
-#D4X7GJBIG4HWNPH26Q2GKI32HUNX5F77FR3MNR6K65VNEQTS67ZH263YIDVFOYBFGWPXHC7LA7MLQ
-#\\\|HA2TMG3XX3SMEDHQQ5LCWOA2ZVOCOPVBZ5GXVFOXZQDBMXPIAXK \ / AMOS7 \ YOURUM ::
-#\[7]PPEF4OGHWLRBGANYIWC7QX7UFN3YAL3626FBG6JZCVZBWKODV4BY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,...,,..,,,.,.,,,.,.,,,.,,,,,,.,,..,,...,...,.,.,...,,,.,,..,,,,,
+#FOQW3MTMENYJWDZVNFC34JZ4IRFPGEJQGMW7W4CKYWI3XJL2APBBFXH3C3LZXVID4ZSKGGKNMVO7E
+#\\\|H5RFTZWJIVG6TOPTHTWLXNMUCWYGIGI5BNZJAXLCDHTXBYS66PR \ / AMOS7 \ YOURUM ::
+#\[7]RDXF52OBNUM24QMHMRSE3STRTUIF7PHKKES2CNYX2R6XZSCJYCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

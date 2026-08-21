@@ -194,7 +194,7 @@ the buffer lives in a dedicated `auth` zenka — isolated, minimal, auditable:
 ```
 cfg/zenki/auth/
   start
-  zenka-startup.v7
+  start.cfg
   access.usr.cube          ## who can read/approve buffer entries
 ```
 
@@ -238,7 +238,7 @@ credential released, decision remembered per policy.
 **auto-approval policies**:
 the auth zenka can have policy rules for automatic approval:
 ```
-## auth/zenka-startup.v7
+## auth/start.cfg
 auth.policy.auto_approve  = tofu_pin.source:localhost
 auth.policy.auto_deny     = tofu_pin.key_age:0  ## brand new key, no history
 auth.policy.queue         = *                    ## everything else: manual
@@ -283,8 +283,8 @@ one approve, remembered forever.
 - `data/tasks/credentials-zenka.md` — auth buffer as credential release gate
 - `data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md` — signature-as-identity
 
-#,,..,,.,,..,,.,,,,,,,.,,,,..,,,.,.,,,...,..,,..,,...,...,.,.,.,.,.,,,,,,,,,.,
-#SO4CS2L2ZTG6XGDVHEVZ54ONBXGJ6JB2V2OSSOCOQ3MX5VAWAANOANGLSIR7DJUJCX5C6UM3DEJNC
-#\\\|WGNUQJDV52QC2TG54C75LFECZASIKQWKZQA43WF4EPMML6P75S2 \ / AMOS7 \ YOURUM ::
-#\[7]O6QZZ5DJHVC7HBAA6FPOYKZQ6S7QRKYHGBPN2DF77B7HQ657WYAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,.,,.,,.,,,...,...,..,,.,,,...,..,,...,...,...,,..,...,,.,,,,,,
+#WTERYJBXQBZE32W7UZL467AHUZHBK5KLRNLDILEO474XR64VGTZZWAZ2ULZCDYCCSYOMQJXMQFILS
+#\\\|YA3UF6AA4L5VZA23R2H3J74RBHDOYQAKQ25MIUP6TYKTSIFMBZO \ / AMOS7 \ YOURUM ::
+#\[7]3FDJAD5MSFEF67J3LUDUOJPZWYTAYLIXDKTEPQ7HODLZ362MO4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

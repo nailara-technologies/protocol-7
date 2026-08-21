@@ -122,7 +122,7 @@ returns: list of fixes applied
 ## zenka configuration
 
 ```
-## cfg/zenki/design-workflow/start
+## cfg/zenki/design-workflow/zenka.v7
 [load_modules:design-workflow.run design-workflow.generate-spec-page
               design-workflow.fix-standard]
 [init_modules]
@@ -130,7 +130,7 @@ returns: list of fixes applied
 ```
 
 ```
-## cfg/zenki/design-workflow/zenka-startup.v7
+## cfg/zenki/design-workflow/start.cfg
 start.on-demand = 1
 restart.disabled = 1
 heartbeat.disabled = 1
@@ -177,8 +177,8 @@ p7 design-workflow.fix-standard '{"directory": "iris.v7.ax/dome/V0/"}'
 - [ ] evaluate step produces convergence score from qwen
 - [ ] notify.cmd.loves fires on completion
 
-#,,,.,,..,..,,,,,,,,.,,,,,.,.,...,..,,,,.,,.,,..,,...,...,.,.,,,,,,,.,,,,,.,.,
-#TJXJMA4H3GM2CTXRR6C2NMQRB7757PBMP3FPUANL6BDNKZ54LOBB6UMUSBD4INC5V7LSZ6BCJUX3O
-#\\\|OVPEOWCQ7YHHL5XR24XNQWEZAF3N5ICTZIKJBE6A7AEVVMEJCEB \ / AMOS7 \ YOURUM ::
-#\[7]7FOUFNZAVYULHC5VLN6RBGAX3BC2C2UPBX5F4NRBNAHD5RSVEQCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,...,,,,,,,.,.,.,.,.,,.,,,..,..,,...,..,,.,.,,,,,..,,..,,.,.,
+#RRA5GFDAIYZZNOI4ILPP4R3YVABZU6JUFXTBNNM2TFJIUGSDWH5XUO6RC55RLSJ5FTQQ3YLTUVTDA
+#\\\|MMEUC2UFG2FWPQIBNPTSL24MKMBM4CKBQFC4W5GGBPDQYK2I2E4 \ / AMOS7 \ YOURUM ::
+#\[7]TG6PRW7LSLN5TYTB4IXPAYCKGX5GSGYVVUVM3HPDZCZYM7X3PQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

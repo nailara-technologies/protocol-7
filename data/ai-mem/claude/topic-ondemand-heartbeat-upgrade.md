@@ -36,11 +36,11 @@ v7 heartbeats it, it never goes idle).
    idle/manual shutdown still works cleanly).
 
 **How to apply:** when implementing #1/#2, revisit tile's
-`zenka-startup.v7` and consider adding a real idle timeout once heartbeat
+`start.cfg` and consider adding a real idle timeout once heartbeat
 no longer blocks it.
 
-#,,.,,,,.,.,.,...,...,..,,,,.,..,,,..,.,.,,,.,..,,...,...,.,,,,,.,..,,,..,,..,
-#OYAD6JMVB7WCV7IRR65BFZG7XRB4MR33YFXZMJ7WKHI7WC6U4T4B4VCUNJ4M5PFCKNF2WFDQK2F4S
-#\\\|ZB6X5NF5VUSE3GNZFUWSHPVYFFLBHQEGXPQ3XOCRNYKXDJ2QUTY \ / AMOS7 \ YOURUM ::
-#\[7]3B7OY3ORBHRKYPNKZAGPUJK6NINXTEXEFNITUTDJMWANBH7VFADQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,..,,.,,,...,...,.,.,.,.,,..,,.,,..,,...,...,,,,,,,,,.,.,.,.,...,
+#SCAW2WBAXDVZWYV57OXVMJ6MFNSHV5AKL6JHGDVK76TAOF3OPWBGQSWGSCM4PLFD7EQD5LPL3APY2
+#\\\|BE4BFWMOZ7UPSPJRK6XBN56TOWWJZS4TCWD64WHU46SKRZOJG7M \ / AMOS7 \ YOURUM ::
+#\[7]EYMCO7ECBHDZVRPVC6W2Z3MF3JJOTBH735646SVBK5QPFNRQK6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

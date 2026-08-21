@@ -145,7 +145,7 @@ if ( -r <index.path.index-files> . '/index-state.storable' ) {
 ## access list
 
 add `persist restore` to `access.cmd.usr.cube` in
-`cfg/zenki/index/start`
+`cfg/zenki/index/zenka.v7`
 
 ---
 
@@ -164,8 +164,8 @@ add `index.persist index.restore` to
 - the storable file will be ~10-50MB for a full data/md corpus
 - index.init_code already loads the path config before this runs
 
-#,,.,,,..,,,,,...,,.,,.,,,,,,,.,,,.,,,..,,,,,,..,,...,..,,,..,,,,,.,.,.,.,,,.,
-#6AC7UXNII2TIXR35WQ2QVYKP4POTFJ2UNIMOZTNXXIINT42GJ3FXMSIHEPUSENDVE6GLFARTMTZLM
-#\\\|YBTVLMWEIA5LPDTGMWUMWISTYORI2SGJ3U4VZL6N3M3K3U56ICU \ / AMOS7 \ YOURUM ::
-#\[7]B5RMM3MH5D7JJCXSFE3TJYL554GQF7LKIDOOBFJA2JWODRLHNEAQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,.,,,.,.,,,.,,.,,,,.,..,,,.,,..,,...,...,,,.,,,.,,,,,..,,..,,
+#GXAN2OROHJBFPBRQ34QUZZB5PX4HP2KEGC2LRXNTO7NJMWR3IJG63NB5YCTYLIJGNJVYSECVDREM6
+#\\\|54NFQ6XCR7Q4T66WTLCJGJE3P4DDXU4A7IA4PV7GSPGVK6J2M4M \ / AMOS7 \ YOURUM ::
+#\[7]3XV23D6URRGS35WO3RYVP4FN2SDRVYXFW2DBMDYFBUREKTM26OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

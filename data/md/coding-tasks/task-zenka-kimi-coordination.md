@@ -101,7 +101,7 @@ on each mutation (create/claim/complete/fail/reset), serialize
 
 on init, load the file if it exists to restore queue across restarts.
 
-### config [ cfg/zenki/task/start ]
+### config [ cfg/zenki/task/zenka.v7 ]
 
 ```
 system.zenka.name = task
@@ -179,7 +179,7 @@ if `<kimi.task.active_id>` is set when connection drops, call
 - `src/kimi.init_code` — add polling timer here
 - `src/kimi.cmd.ask-reply` — existing prompt submission
 - `src/kimi.handler.ws_message` — response arrives here via TurnEnd
-- `cfg/zenki/kimi/start` — kimi zenka config
+- `cfg/zenki/kimi/zenka.v7` — kimi zenka config
 - `src/base.ntime.b32` — timestamps
 - `bin/Protocol-7` — module loading / code hash structure
 - CLAUDE.md — swap-boundary dispatch pattern for amos checksum
@@ -187,7 +187,7 @@ if `<kimi.task.active_id>` is set when connection drops, call
 ## notes
 
 - the `task` zenka follows the standard zenka pattern exactly —
-  see `cfg/zenki/calc/start` as a minimal reference
+  see `cfg/zenki/calc/zenka.v7` as a minimal reference
 - `kimi.cmd.ask-reply` already supports a reply callback via `reply_id` —
   use that mechanism for the result write-back
 - keep the prompt format simple — kimi should receive the task as plain
@@ -197,8 +197,8 @@ if `<kimi.task.active_id>` is set when connection drops, call
 
 #,,,,
 
-#,,,.,,.,,..,,,,.,,,.,,.,,,.,,.,.,...,,..,,,.,..,,...,...,,,.,,.,,,,,,..,,..,,
-#YZB4NDP4M37ZWCRMFBALKJYP562RMEWFHMHI2LVPIWEN7UUSCFXIWSGALGXRBPRZS7WH4FAOO5DGW
-#\\\|LGRT4G3NO4RSC2C3E7KD7YYQGQTFAI5UYDE2K37FU72AE3SR32Y \ / AMOS7 \ YOURUM ::
-#\[7]YA6XQUQYUDBHZBZTWWDX77RES3Z4TSWERQRNEX6AGC6OL4DIJMDY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,.,.,,,,.,,.,.,..,,.,.,...,.,,,..,,...,...,,,,,...,..,,.,.,,..,
+#X5UQENQI7MVZ5FPOMXW5CF2JNR3WXNGGW3RO3F4BMVKEASU7ABJE4D3QVDITW6AV34CZNVMI3Y3JA
+#\\\|54GCY2VSMBDNQ4UT6SQF23MVMRXVPGD3Q6VYV5IEZ7KAWURSTAH \ / AMOS7 \ YOURUM ::
+#\[7]LZTQOWFBNXBDCF4ZIDW4RBPV2BHPPRVYMZP2FQGMCKN37UXVREAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

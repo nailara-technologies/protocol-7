@@ -75,7 +75,7 @@ bugs found and fixed along the way; one real architecture question left open at 
   `base.parser.ellipse_center` (800 chars) before ever hitting a log line or the archived record
   (llama-server's own cache/checkpoint chatter can run to several KB per request).
 - **New command `coding.self-test-detail [model_id]`**
-  (`coding.self_test.cmd.self-test-detail`, registered in `cfg/zenki/coding/start` +
+  (`coding.self_test.cmd.self-test-detail`, registered in `cfg/zenki/coding/zenka.v7` +
   `subroutines.load-early`): shows full per-prompt detail — question, answer vs expected, tier,
   every tier1 attempt's exact hint text + response, and (new) server-tail output on failure.
   Needed because `coding.self_test.archive` previously overwrote its flat top-level fields on
@@ -162,11 +162,11 @@ bugs found and fixed along the way; one real architecture question left open at 
 `coding.self_test.archive`, `coding.self_test.cmd.self-test-detail` (new),
 `coding.self_test.helper.capture_server_tail` (new), `coding.tools.http_inference_client`,
 `coding.handler.drain_pipe`, `coding.handler.monitor_inference_startup` (passes `backend` through
-to `self_test.run`), `cfg/zenki/coding/start`,
+to `self_test.run`), `cfg/zenki/coding/zenka.v7`,
 `cfg/zenki/coding/subroutines.load-early`.
 
-#,,.,,..,,,.,,.,.,,..,,,,,.,,,,..,.,.,...,,..,..,,...,..,,.,,,,..,.,.,,..,,..,
-#ZPESUKW22U6OP6AZGI5U6KKCGLWIPFMJ7A335MNLWUYLSELWMJR4EZ4SAMNWMM25AULFA4SHKXKEQ
-#\\\|MVMS5K6U6724N6RSW6OKEOVFGQJAB53MQ3CR7H5RNJ7BKBUH3GJ \ / AMOS7 \ YOURUM ::
-#\[7]WVREVK34WIAHAAGKKXEKAL7PHQLIZHS266YPYZUUZXQXECE5NEDA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,..,,,.,,,,.,,,.,,,,,...,...,.,,,..,,...,...,...,,,.,.,,,,.,,...,
+#2WHXOWMZNUUFE3EWTSM33HXDRIDXBVE6LOK6BRZWRBSINMYCQVWIQHG5JZXF4N7WZEX7WW46UM2J4
+#\\\|ZGNQ3WWS5YYS6L5HSJIIBZHBH57NPME3EN2HCGTON7ZC3KBZLX2 \ / AMOS7 \ YOURUM ::
+#\[7]26MQJI4EWQUZMKDAX7XUZSSOQCZDAZSSZANOWFJNSXR45ORZIOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

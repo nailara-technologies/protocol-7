@@ -25,7 +25,7 @@ stays thin proxy" precedent), not something to complete here.
 Separately: `web` zenka simply wasn't running (not in the `base` profile's
 `zenki.enabled`, not manually started) — that's what caused the 502s
 after the parser fix landed. Made it on-demand
-(`start.on-demand = 1` in `zenka-startup.v7`, no `set_ondemand_timeout`
+(`start.on-demand = 1` in `start.cfg`, no `set_ondemand_timeout`
 call = never idles out, mirroring `tile`'s setup) rather than adding it to
 a profile's always-on list.
 
@@ -33,8 +33,8 @@ Leads into [[topic-jobsite-stray-recovery]] same session: starting `web`
 on-demand exposed that `jobsite`'s periodic `/jobs-sync` push had been
 silently failing, which is what surfaced the site-yaml/jobsite desync.
 
-#,,.,,,.,,.,.,.,,,.,,,,..,,.,,,..,.,.,.,.,,,,,..,,...,...,..,,.,.,,.,,,,,,,.,,
-#NHN4X6ROYODKXBQRADPMBDGCU266E6XNNYRQR4RRIE54WVOPYAMOJ4PA2NKBICBGJRO4A7DRT6CT4
-#\\\|EBRLAZJTAYJFS5BZMA6PYTD7XXMKPW4FK6RXRM2HBZEFKRROE73 \ / AMOS7 \ YOURUM ::
-#\[7]BBELPG352CCIEZSUMOCQVA2VOYE4TNUG6YNWV3QLO7JB4MV2OSDA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,.,,,.,.,,,.,.,,.,,,,.,...,..,,..,,...,.,.,.,,,,,.,...,.,,,,.,,
+#LUB52VQKNWPM33HPILCXTXWXI2DSSDFKLMWUALIQB2ACJUIK52YJOV2XT37RFSWBATJPL6YSUCQMM
+#\\\|XAQ4FI3L6ETJDOM2NWPD54T4Y4SGNVYDO6RQSWUDMXXO3PICTFK \ / AMOS7 \ YOURUM ::
+#\[7]QYUTJQXTO76T6GQX5AYFSXMDALORY3QZEXDJ7W4PM6RFORNYVYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

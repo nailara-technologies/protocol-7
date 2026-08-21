@@ -688,8 +688,8 @@ When buffer updates:
 
 ## See Also
 
-- `configuration/zenki/amos-term/start` - Zenka configuration
-- `modules/amos-term.*` - Current implementation
+- `cfg/zenki/amos-term/zenka.v7` - Zenka configuration
+- `src/amos-term.*` - Current implementation
 - `read-me/documentation/dev/amos-term-holographic-upgrade.md` - Upgrade plan
 - `read-me/documentation/dev/holographic-transmission-protocol.md` - Protocol spec
 - `read-me/documentation/dev/multi-resonant-unified-architecture.md` - System context
@@ -706,8 +706,8 @@ When buffer updates:
 
 *Terminal as a Byzantine consensus service: where translucency becomes proof, perfect overlap becomes validation, and synchronization becomes cryptographic joining.*
 
-#,,.,,,..,..,,,..,,.,,..,,,,,,,,.,,,,,...,..,,..,,...,...,,,.,,..,.,.,..,,..,,
-#HHUQ43RQ4RJKHBVRS4JLFZ7OPCCY5ES3PSFDBSJMPWCD474K3SKDRBQWU7ZSXNR5A6C2LKQ2TCC5E
-#\\\|BUFKLIOGIOVW3YRVCFT37GAUIRQL5LRVADSLMLCJVJ35EUVVDMH \ / AMOS7 \ YOURUM ::
-#\[7]SSQOFY76ZDS746LC5A2N6PWMZRAJRN43A4F5CYM2R7HXXWEGMOCA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,,..,...,..,,..,,,..,.,.,.,,,..,,...,.,,,...,.,,,.,.,.,.,..,,
+#ID6WMLDFJ5NOGBIYIU5WPOBV3WH3B2CMXOPZWHGHOFRLCOEDXTI5NCWQP7TE5QL5VT5TAVDI4MMZ4
+#\\\|GZSWCGLL4NZ6E4BHNIJO6VV6OWX24ID4DCBF5CX7WET5O5XVBP2 \ / AMOS7 \ YOURUM ::
+#\[7]SUMK7JVKT4LUTXXNDCODTMBZIDVSK3AIDCVPTE7HTYVNA3NNTUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

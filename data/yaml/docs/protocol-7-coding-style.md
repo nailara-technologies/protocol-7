@@ -268,7 +268,7 @@ Users can override configuration in several ways:
 #### 1. In Zenka Configuration Files
 
 ```perl
-## cfg/zenki/myservice/start
+## cfg/zenki/myservice/zenka.v7
 debian.cfg.prefer_debian = 0    ## Prefer cpanm over debian packages
 debian.cfg.auto_install = 1     ## Enable auto-install even as non-root
 ```
@@ -479,7 +479,7 @@ All zenki configuration follows the elegant `%data` pattern:
 **Override Example:**
 
 ```perl
-## In cfg/zenki/myservice/start
+## In cfg/zenki/myservice/zenka.v7
 zenki.cfg.v7_startup_timeout = 20   ## Longer timeout for slow systems
 zenki.cfg.auto_start_v7 = 0         ## Never auto-start v7
 ```
@@ -825,7 +825,7 @@ Protocol-7 uses numeric log levels:
 Set verbosity levels in zenka configuration files for different output targets:
 
 ```perl
-## In cfg/zenki/httpd/start:
+## In cfg/zenki/httpd/zenka.v7:
 system.zenka.verbosity.buffer   = 3  ## In-memory buffer
 system.zenka.verbosity.logfile  = 3  ## Persistent file logging
 system.zenka.verbosity.console  = 3  ## Console output
@@ -1117,7 +1117,7 @@ Create a `post_init` module that runs after module initialization but before pri
 Then reference it in configuration:
 
 ```perl
-## In cfg/zenki/service/start:
+## In cfg/zenki/service/zenka.v7:
 [root.drop_privs:<service.system.user>]
 ```
 
@@ -1196,7 +1196,7 @@ return say join("\n", @output);
 Add console commands to zenka configuration's access list:
 
 ```perl
-## cfg/zenki/service/start
+## cfg/zenki/service/zenka.v7
 
 access.cmd.usr.cube = commands heart reload \
                       install-deps check-deps list-status *
@@ -1474,8 +1474,8 @@ Module A → Module B → Module A
 - **Configuration**: See `cfg/zenki/*/start` for zenka-specific configurations
 - **Dependency Management**: See `src/debian.*` for example of complete zenka implementation
 
-#,,,,,,,,,,,.,.,,,,,.,..,,.,.,.,,,,.,,,,,,,.,,..,,...,..,,...,...,,,,,,.,,...,
-#XPYAAWCEZ46AW7Q3LZKAKYL6CLAV2BLYCH67Q22O3TAVBCJNRKBDUUWHYQI7V53EX7BPBY57HVSO6
-#\\\|ALV3JXZY22ZNMH3364HMGQUNICPXCZH7ZOLNUPZWIMSVVOUW4YX \ / AMOS7 \ YOURUM ::
-#\[7]6TRNKCCXHUDOR5CY37L573AROXAZDZUL5X24AAVOROH4PUU74MCI 7  DATA SIGNATURE ::
+#,,..,.,.,...,..,,...,.,.,,..,,,,,,,,,,,.,.,.,..,,...,...,.,,,,,.,.,,,,,.,.,,,
+#XSX2GRBCTOJPHVFTG67K2XTRKOMEAXA2WRXQSCBY3KTU3MBOVW5FFDTXARJU4W6Z6RT4JORNV5QVY
+#\\\|UF7USF7ENO4T4RGQHA22DQRHDGIGMRT7NXSLOFFEKBZKB7XFID6 \ / AMOS7 \ YOURUM ::
+#\[7]AFOV2637RBE7XEDDMDZXGUNCL4WXK7UK5I5F6WW34G2LXCMB3QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

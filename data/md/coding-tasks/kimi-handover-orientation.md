@@ -34,7 +34,7 @@ orientation task — no code changes, just building understanding.
    - `data/yaml/ncode-patterns/p7-style.yaml` — 12 seed patterns
 
 4. read the context zenka start file to understand module loading:
-   - `cfg/zenki/context/start`
+   - `cfg/zenki/context/zenka.v7`
 
 5. identify the next implementation targets from the handover:
    - `ncode.regex.assess` — check if a diff can become regex
@@ -64,8 +64,8 @@ include pipe-delimiter detection, comment style, qw-quoting, module
 call syntax, and other P7 conventions that ncode should eventually
 enforce automatically during code generation.
 
-#,,,.,,,.,,,.,,,,,..,,,..,...,,,,,.,,,,,.,...,..,,...,...,,.,,,.,,,..,,,.,..,,
-#7K5HOV3T2RVD7SRJT7MD35HGWBD5MZWYSDLCK6XF3HZD5LT3C2F2W32OFZEGAGRQIEVJG76QJWSZA
-#\\\|MAYBQZYK3DYNOPQR7JDDXK6QSGJJZYEFWWS4KRRIMTNU75IO7FD \ / AMOS7 \ YOURUM ::
-#\[7]IH7ILZEA73PFNPVKN6Q5GGWVX2MCT5WL2YLBQWT5UV3WZGAPYIDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,.,,.,,..,,,,,,...,..,,.,.,.,,,..,,...,...,,..,,,,,,..,.,.,.,,,
+#N6JQVSD4C56ON4DO3FVLN423UKREO5QC4Y2MDIOPZO3DTCCJXMSABTXUT3FWVP2YVQAYOA6CJRAZA
+#\\\|N7NKJN2XN3OGGFP4TYYJAXEWJS35FWHPNHUC4I5RZACESA6UY6Z \ / AMOS7 \ YOURUM ::
+#\[7]EZROF4QXK2KA5W7URIXDTGTRNR2ITID3QBDS7QRBXVB565GVXMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

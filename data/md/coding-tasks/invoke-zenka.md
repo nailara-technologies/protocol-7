@@ -35,7 +35,7 @@ replies back to the caller.
     src/invoke-web.cmd.start          — IPC::Open3 spawn pattern (style ref)
     src/invoke-web.cmd.status         — status cmd pattern
     src/invoke-web.handler.check_health — timer handler pattern
-    cfg/zenki/invoke-web/start  — on-demand zenka config pattern
+    cfg/zenki/invoke-web/zenka.v7  — on-demand zenka config pattern
     cfg/external-inference-models — invokeai config keys
 
 
@@ -143,7 +143,7 @@ provide two variants: one for sd-1/sd-1.5, one for sdxl.
 
 ## files to create
 
-### cfg/zenki/invoke/start
+### cfg/zenki/invoke/zenka.v7
 
 on-demand zenka. starts when queried, shuts down after 5-minute idle timeout.
 
@@ -582,13 +582,13 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     ptd -c on all 9 module files
     check zero footer lines in all files
     check subroutine.white-list format matches cfg/zenki/invoke-web/subroutine.white-list
-    check cfg/zenki/invoke/start loads modules.load = auth net protocol io.unix invoke
+    check cfg/zenki/invoke/zenka.v7 loads modules.load = auth net protocol io.unix invoke
 
     do not attempt to run — requires live invoke.ai instance.
     note any uncertain API field names as inline comments.
 
-#,,,.,,,,,...,,.,,,,.,.,,,.,.,,.,,...,,,,,.,.,..,,...,.,,,...,..,,...,..,,...,
-#T6BHV4S5Y2DFJ4B22C3OVFJ5VBORCQQD45GMZILTVMJF3XIIWVA3SGZQTLKIZP6NUAHXATZX4ROWO
-#\\\|3NZSZYOQCFWPDAKVCX7XAJG7D6IJ25HL6RQRZL3H4BCN42NSWBL \ / AMOS7 \ YOURUM ::
-#\[7]DX5XRFZSFJ7HEJIJANACXUZ3AQFMOABDPD56PT3BLAJR7D4OQGDI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,..,.,,,...,,.,,...,...,,,,,..,,...,.,.,...,,,.,,..,...,.,,,
+#ZQ3FVIBPFDEAHT7UOZQO6DGXOJFF5NZDJ2V2ZT4X4CSX676WC7H72R2KJ3MWWSDDIS7TB57LWFUSK
+#\\\|TLB4F532XYUXZ6K46RLSOJ6Y766D4AIVQGLTTPJM4XTXJVRYD3J \ / AMOS7 \ YOURUM ::
+#\[7]EMY3OFHKHE2GZAB7BWG3X2YPCFRKVH6ZZEWELWDOU3LPB7C2OMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

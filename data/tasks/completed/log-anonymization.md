@@ -28,7 +28,7 @@ standalone `log` zenka — `p7c log.anon.resolve` fails "client not
 present"; the working form is `p7c p7-log.resolve` / `p7c p7-log.anon.
 resolve`, both live-verified against the real encrypted table). wired
 into `p7-log.add_line` as opt-in via `p7-log.anon.enabled` (currently `1`
-in `cfg/zenki/p7-log/start`). BMW-L13 via existing
+in `cfg/zenki/p7-log/zenka.v7`). BMW-L13 via existing
 `chk-sum.bmw.L13-str`; Twofish key lazily derived from the user's C25519
 system key. verify step from the original dispatch prompt passed: logged
 line shows `[L:XXXXXXXX]` in place of a `/home/<user>/...` path,
@@ -291,8 +291,8 @@ verify: enable anon, run a command with a file path argument, confirm log
 shows `[L:XXXXXXXX]` in place of path, `p7c log.anon.resolve XXXXXXXX`
 returns the original path.
 
-#,,,,,,,.,,,.,,.,,,,,,,,,,.,,,.,.,.,,,.,.,,.,,..,,...,...,.,.,.,,,...,.,,,,,,,
-#D726T7LYG7VLHBAJWEZUWNZWVWCFXVCWDM2CYZSOUW55BLK6GV5JIV2Z5SXMF656VKZ4G2R6V3ET4
-#\\\|UKKOI3TXYYVB3NJYYPMTRNIKH62MI4I7ZB7FOYWF6WSCQRMGLPP \ / AMOS7 \ YOURUM ::
-#\[7]XW2LYMT4657BT6JTKCYRXP4ZRR3G7JCDX4RTEK2DWL4B2VN2P4DQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,,..,,..,,,,,,,.,.,,,,.,,,,.,..,,...,...,.,,,,,,,.,,,,.,,.,.,
+#C6PQJ7ZWR3B6BSPMHJYFZLSKJTV4ZYUCC636GAMJLZRTWPDVFPUHM344MMC54SCVJILVJAKX32U3W
+#\\\|V5NPC4PF6OLGP4UWJ6JR3Z6HVGWPFJBDC2DVUHD46ACMNY57EUG \ / AMOS7 \ YOURUM ::
+#\[7]YPATCJJL77DCSMVS6ULQF4MNYP5ERWRZ3632SSABMLC3SMUEZEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

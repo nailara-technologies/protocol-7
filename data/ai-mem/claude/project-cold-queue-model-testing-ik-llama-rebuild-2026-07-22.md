@@ -76,7 +76,7 @@ touched the live binary until validated), fixed the build script's own gap (it o
 too, the actual binary the coding zenka spawns). validated both regression (Qwopus3.5
 still loads clean) and target-fix (Gemma4 loads clean, no crash) as standalone servers on
 a spare port before cutover. cut over by repointing `inference.backend.lib_path` /
-`inference.backend.gpu.binary` in `cfg/zenki/coding/start` — left the old
+`inference.backend.gpu.binary` in `cfg/zenki/coding/zenka.v7` — left the old
 binary/libs at `/data/source/ik_llama.cpp/` completely untouched for instant rollback.
 confirmed live through the actual zenka afterward, not just standalone.
 
@@ -166,8 +166,8 @@ scanner gap worth investigating before assuming the file itself is bad).
 - Debian/host system upgrade was requested and deliberately deferred — do it as its own
   isolated task, never stacked on top of a binary/deployment change in progress.
 
-#,,,.,,..,.,.,...,,,,,,,.,...,.,.,...,,.,,.,.,..,,...,...,..,,...,,,,,.,.,,..,
-#YZIKMUMDIOY6MOHX3FBNO3QMXXY27WJULL7XGHJ5YY3CVU6REIL2UJ5ZTVVWY77RBFT2LFOGXRF5U
-#\\\|R7LIOAVCMTFFGQ4KNWMEVHO5UW75SVFNMTJGRRRIFETGYNR4VCO \ / AMOS7 \ YOURUM ::
-#\[7]TV6MEYAGQITZ53CSE2GPLLF7KW5CWSSFJEUBUYWN7FTOIPC35UAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,,,.,,,...,.,.,,..,...,,..,.,.,..,,...,...,...,..,,.,.,..,,.,.,
+#ME25OFI2AGEH52YTBLTGMEWL3GWZLGGFIBOFLS2RNVFFBR2PIZLH75NFW7JSXGAHQ332QBIDVLDIY
+#\\\|M2GLESF5ZS7ZKATIIPWL5N2UPV2ZXG4IW2R2IGNPRFWODFOSRBM \ / AMOS7 \ YOURUM ::
+#\[7]ACD7T4LPXHPLFVD64LJIVPDRHR4QQ4YQMLQXEFQOFK6PTRD4BQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

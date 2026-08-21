@@ -19,7 +19,7 @@ cat data/ai-mem/kimi/coding-style.md
 
 ## context
 
-`cfg/zenki/v7/start` has:
+`cfg/zenki/v7/zenka.v7` has:
 ```
 access.cmd.usr.cube = *
 ```
@@ -41,7 +41,7 @@ do not add or modify subroutine whitelists — these are managed separately.
 
 ## fix: add teardown-specific access restriction
 
-file: `cfg/zenki/v7/start`
+file: `cfg/zenki/v7/zenka.v7`
 
 read the current file first. find the `access.cmd.usr.cube = *` line.
 
@@ -53,7 +53,7 @@ access.cmd.teardown.usr.cube = system
 ```
 
 check the P7 access control syntax by reading how other zenki restrict
-specific commands — look at `cfg/zenki/X-11/start` access lines
+specific commands — look at `cfg/zenki/X-11/zenka.v7` access lines
 or `cfg/zenki/cube/access.zenki` for the correct format.
 
 if the correct syntax is `access.cmd.<command>.usr.cube = <zenka>` then use
@@ -64,10 +64,10 @@ that. if it is a different format, adapt accordingly — the goal is: only the
 
 ```bash
 ## check the access line is present
-grep -n 'teardown\|access.cmd' cfg/zenki/v7/start
+grep -n 'teardown\|access.cmd' cfg/zenki/v7/zenka.v7
 
 ## verify format matches other zenka access restrictions
-grep -n 'access.cmd' cfg/zenki/X-11/start | head -5
+grep -n 'access.cmd' cfg/zenki/X-11/zenka.v7 | head -5
 ```
 
 ## success criteria
@@ -85,14 +85,14 @@ reasoning: low
 prompt: |
   Implement the task at data/tasks/v7-teardown-whitelist.md
 
-  Read cfg/zenki/v7/start and the access control modules first.
+  Read cfg/zenki/v7/zenka.v7 and the access control modules first.
   Note: the correct P7 syntax is user-centric (access.cmd.usr.<zenka> = <commands>),
   not command-centric. Add a line granting teardown only to system zenka while
   leaving the wildcard * for all other commands unchanged. No signature stubs,
   no whitelist changes.
 
-#,,,.,...,,..,,..,,.,,..,,.,.,..,,,..,,..,,.,,..,,...,..,,...,,,,,...,.,.,,,,,
-#N4ACGJB6ZCVCZ3HTJUJGOMFALQXVHQ4HXWKJLRBZ4M6QR4VW2EMFHPM7WFSN2JVFK7NZ77ANJVPWK
-#\\\|P64AYZSASXPO3IWCMFFEG72IE5LO53NSHCVXHVJVTN3B2CWVYC2 \ / AMOS7 \ YOURUM ::
-#\[7]PH3QGPLF74PAWCXYYYEQ27FFIL6RJ2AKPP4W5JTL64EOAIGBIGDY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,.,..,,,.,,,,,,...,,,.,,,.,,,,,..,,...,..,,,.,,.,,,.,.,..,,..,,
+#Q734H55PUKKWRAOHYXF2LO2TQHLB7ZI4M6UU3C5EDQ7442DW7UVZVYMFBIJRHHMNGY2UIMRZK7ZTO
+#\\\|FES5NDIIYQTPMS2CRFTDKOKK72AFCCTXQ6SAKWD2ESIKOTVZSBG \ / AMOS7 \ YOURUM ::
+#\[7]I5N4ZTOWXAVVJ3HCJ55S7ZN4SYDZNXH4M2KAFVF425X6XYLCQMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

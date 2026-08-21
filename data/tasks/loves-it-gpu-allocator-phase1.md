@@ -163,7 +163,7 @@ groups are meaningfully distinguishable in the first place.
 confirmed in the handler itself (`base.chk-sum.bmw.filesum` invoked as
 `<[chk-sum.bmw.filesum]>`, `base.event.add_timer` as `<[event.add_timer]>`).
 this gives the exact callable name both documents already use, with **zero
-change to `modules.load` in `cfg/zenki/lm-vision/start`** (which
+change to `modules.load` in `cfg/zenki/lm-vision/zenka.v7`** (which
 loads by namespace prefix: `auth.client net protocol io.unix io.ip ui
 crypt.C25519 format.json lm-vision devmod`). the alternative,
 `src/resource.gpu.loves_allocator`, would need `resource` added there and
@@ -321,7 +321,7 @@ test content:
 | `src/lm-vision.cmd.analyze_image` | **changed** — pass `amos_tokens` (and `requester`) through at :194 |
 | `bin/dev/tests/loves-allocator.t` | **new** — distribution / determinism / tier / zero-token tests |
 | `cfg/zenki/lm-vision/subroutines.load-early` | **changed, verify** — contains an explicit module list including `lm-vision.handler.http_analyze`; check whether the new base module needs an entry here |
-| `cfg/zenki/lm-vision/start` | **no change expected** with the `base.` naming; needs `resource` added to `modules.load` only if the un-prefixed name is chosen |
+| `cfg/zenki/lm-vision/zenka.v7` | **no change expected** with the `base.` naming; needs `resource` added to `modules.load` only if the un-prefixed name is chosen |
 
 not changed by this task, noted as separately-scoped follow-up:
 `src/amos-term.plugin-decoder.elf_match` (same class of defect, different
@@ -413,8 +413,8 @@ reference. open questions 1 and 4 are the blocking ones: 1 changes the
 allocator's signature, 4 decides whether phase 1 ends at a well-formed
 signal or must ship a consumer. everything else can proceed on defaults.
 
-#,,,.,...,.,,,.,.,,,.,.,,,.,,,,,.,.,.,,..,...,..,,...,...,..,,,,.,,..,,..,,,,,
-#4GQQBCSFBTQACEOPDJ3Z4PIVWPXZQDV2EUJTR7LLNZB6LGHER6V5EROVMNL5IBFK6OS6FXYYL2C3W
-#\\\|WCPQUUD4MO4EYDRIBCS4QE33GC6NHSVIYQQCGJ5RNEQSZ6VNC7S \ / AMOS7 \ YOURUM ::
-#\[7]3GGNXROYZNHFB47DMOONTZIKZDN76BKOYPLB6U5GVEDAKDQGMIAI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,,,.,.,.,.,,,.,.,.,,..,,,,,,.,,..,,...,...,...,,,,,,.,,,,.,.,.,
+#NELSWD3LJ5T3LNLYSU4RQPNVHGT2ZEGDRES4BZK5AR2BN7V6D5G4I456CDUFPVXH4XHUKK43GREE2
+#\\\|6E7N5UAA2C4JDZS7QCONK7F2WVVHOQW55XPF2HMSDHGDVCUSAZ5 \ / AMOS7 \ YOURUM ::
+#\[7]UHAD5MHJ2ID5DHMMNDTFHSZUPJAMTWFXOY26CDEMQXEN7MOMQIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

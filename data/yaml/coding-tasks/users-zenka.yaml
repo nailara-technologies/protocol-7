@@ -423,7 +423,7 @@ discovery_integration:
     it either, since the stuck process couldn't process its own
     restart/stop command while blocked — required v7.stop (TERM then
     KILL) to recover, and surfaced a second real gap: users'
-    zenka-startup.v7 had no max_concurrency limit, so a racing
+    start.cfg had no max_concurrency limit, so a racing
     v7.start during the hang produced two live instances at once (fixed:
     max_concurrency = 1, matching image2html/window-place's own
     precedent). Fixed at the ROOT by modeling the post-handshake flow on
@@ -617,7 +617,7 @@ external_source_hooks:
     wrong for this half): key generation is NOT a cross-zenka operation.
     users zenka should simply load crypt.C25519 directly into its own
     modules.load, exactly as the keys zenka's start file already does
-    (cfg/zenki/keys/start:8, `modules.load = crypt.C25519
+    (cfg/zenki/keys/zenka.v7:8, `modules.load = crypt.C25519
     terminal keys`) — plain in-process module loading, nothing
     routable. crypt.C25519 already has a complete "ensure key
     loaded-or-generated" interface, just needs enabling: shared-params
@@ -669,7 +669,7 @@ external_source_hooks:
     RAISED then EXPLICITLY DEFERRED (2026-08-11, per user): a v7-spawn-
     time trust-chain mechanism for zenka identity keys (extending the
     real, existing exclusive stdin channel v7 already uses for cube.key
-    / base.auth.set_v7_key — see cfg/zenki/*/zenka-startup.v7,
+    / base.auth.set_v7_key — see cfg/zenki/*/start.cfg,
     src/base.auth.set_v7_key, base.cmd.verify-instance) does NOT
     belong in this doc — it's system-wide (every v7-spawned zenka), not
     users-zenka-specific. Per user: postpone until different topology-
@@ -863,11 +863,11 @@ open_questions:
     (16GB RAM, 1TB SSD) sitting behind them is the concrete case this
     will apply to. Per CLAUDE.md's existing deployment-option list
     (Always-on: cfg/zenki/v7/start-set-up.base; On-demand:
-    start.on-demand = 1 in that node's own zenka-startup.v7), this is a
+    start.on-demand = 1 in that node's own start.cfg), this is a
     PER-NODE CONFIG CHOICE already supported by the existing v7
     lifecycle mechanism, not something requiring new code in users
     zenka itself. CORRECTED (2026-08-11, caught mid-session): this
-    already exists — cfg/zenki/users/zenka-startup.v7 landed
+    already exists — cfg/zenki/users/start.cfg landed
     in df2e83d85 (phase-1 CRUD skeleton commit), start.on-demand=1,
     4200s idle timeout, matching the calc/image2html precedent. An
     earlier draft of this note incorrectly claimed no such file existed
@@ -882,8 +882,8 @@ tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
        smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh,
        bmw-l13, addressing-trinity, signed-commands, crypt-c25519]
 
-#,,..,,,,,.,.,,..,...,...,.,.,.,.,...,,,.,...,..,,...,..,,,.,,,,,,.,,,,,.,.,,,
-#26PILH2RGNOXROVKLJ4C2EFYGSD3O5P4K4LWHJLVVEAKZ2PGZM4SA75PVUXQ72CKTSFZT5PKYV4KM
-#\\\|F4N6RSUCDTNGRNCKBULWRCILEDBAAAMJGIETXEOIRZTMIUBAGKD \ / AMOS7 \ YOURUM ::
-#\[7]L7I4PJLJ36WEJB4PE6V4WEDHW6EDL7KOZFVGU65YPQMO4Q5SNUAA 7  DATA SIGNATURE ::
+#,,,.,...,,..,..,,..,,.,.,..,,...,,.,,...,.,,,..,,...,...,,.,,.,.,..,,.,.,,,,,
+#PBEABRI6QGFW5UZTEMBJ74QOTGR4HKP7IHAGFP7LF6F5KLL4EFXLM43IXGVQO7MHERTHYYNOLWLGS
+#\\\|HGD3IJRIDBGOXUTOSA57ZNOPCCO7KZAMSI7TLASGJ3E5B5PEBM2 \ / AMOS7 \ YOURUM ::
+#\[7]UQRZ4JDTZOGP27TMXHBYERUPMJVZIWFYUBUXKWIDLTDILBRJUEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

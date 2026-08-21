@@ -7,7 +7,7 @@
 
 commit `0c22a313c` (2019-12-03) forced `mpv.xmode.xephyr.vo = xv` because
 "SDL is suddenly broken". later the config was changed to `sdl` (current state).
-the override lives in `cfg/zenki/mpv/start` and `src/mpv.init_code`.
+the override lives in `cfg/zenki/mpv/zenka.v7` and `src/mpv.init_code`.
 
 in 2026, SDL on Debian unstable is likely stable. forcing `sdl` (or `xv`)
 instead of `gpu` loses hardware decoding and performance in nested X sessions.
@@ -23,7 +23,7 @@ when done.
 
 ## fix 1: test gpu under xephyr
 
-file: `cfg/zenki/mpv/start`
+file: `cfg/zenki/mpv/zenka.v7`
 
 comment out or temporarily change:
 ```
@@ -55,7 +55,7 @@ once a stable vo is confirmed, remove the override entirely and let
 `mpv.vo_backend` propagate naturally, or update the comment to reflect the
 current state.
 
-if `gpu` works, delete the line from `cfg/zenki/mpv/start` and update
+if `gpu` works, delete the line from `cfg/zenki/mpv/zenka.v7` and update
 `src/mpv.init_code` to default to `gpu` for xephyr:
 ```perl
 <mpv.xmode.xephyr.vo> //= qw| gpu |;
@@ -65,12 +65,12 @@ if `gpu` works, delete the line from `cfg/zenki/mpv/start` and update
 
 - [ ] mpv plays video under xephyr without the SDL override
 - [ ] stable video output confirmed (gpu preferred, xv acceptable)
-- [ ] override removed from `cfg/zenki/mpv/start`
+- [ ] override removed from `cfg/zenki/mpv/zenka.v7`
 - [ ] default updated in `src/mpv.init_code`
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,.,,,..,,.,,,.,,,,.,,,.,..,,,,.,,,.,...,.,,,..,,...,...,...,,,.,,,.,,..,,,.,
-#PB4YJC2XDV4U5SN7AUDUSQZRMAPBWWJG5TQOBVD7AQZRSY6LIBUTGKSWVY5WR3NTBJVTAR2RMNZWU
-#\\\|6SJD3SANZHRW7ZPKTNFRRC757PQAIHFYBMCUBYSBPYNYAOAWEAO \ / AMOS7 \ YOURUM ::
-#\[7]NLWZKQ2A6GPE6WTYB55FYH73INXA2RGHVYVYPSMQFYEEJXQ4VMDQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,..,,.,.,,,.,...,.,.,,..,,.,,..,,...,...,.,.,..,,...,,,,,...,
+#IGGAVVYOMPRBZ6OXX5VGDQAFB6N4LAHEQBQD653VG67WKCZVJCRDVS4NH4MIB4ESQXFTTLE7SR2UA
+#\\\|TLPCLDXGA6FOLSNRXELUHJJXPUN4NAC4YHAC6QI5MQ4SB3NQABN \ / AMOS7 \ YOURUM ::
+#\[7]BQAIGYY6KHCBWJRHMYVTUN4VPUC2YHSTIKOITSUBCBSF2YSQRIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

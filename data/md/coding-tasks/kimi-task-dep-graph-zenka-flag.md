@@ -13,7 +13,7 @@ mark checklist items as completed alongside the corresponding commits.
 `bin/dev/dep-graph` already maps all module-to-module call sites statically.
 the dep-graph data structure is `$graph->{caller}{callee} = call_count`.
 
-each zenka has a start file at `cfg/zenki/NAME/start` that defines:
+each zenka has a start file at `cfg/zenki/NAME/zenka.v7` that defines:
 - which modules are loaded: `modules.load = mod1 mod2 ...` (may span lines
   with `\` continuation)
 - the entry-point invocation sequence: bracketed `[cmd:param]` calls that
@@ -48,7 +48,7 @@ in the dep-graph, skip silently if not.
 
 - [x] add `-zenka=NAME` option to `%opt` and `GetOptions`
 - [x] when `-zenka` is set, locate start file at
-      `cfg/zenki/NAME/start` — die with clear message if not found
+      `cfg/zenki/NAME/zenka.v7` — die with clear message if not found
 
 ### start file parsing (static only — no execution)
 
@@ -152,7 +152,7 @@ and `-stdin`.
 start files can include config files alongside module loading:
 ```
 load_config = cfg/shared-params
-load_config = cfg/zenki/cube/zenka-startup.v7
+load_config = cfg/zenki/cube/start.cfg
 modules.load = auth net protocol cube ...
 ```
 
@@ -258,8 +258,8 @@ these calls are detectable by the dep-graph scanner (already scans
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,,,,,,.,,,,,,..,.,,,.,.,...,.,.,...,,..,,.,,..,,...,...,.,.,...,..,,...,..,,
-#XHUKV4KUAPF6HVN5ZOG22I2QJECNN57J35YEEMG67646QIRPO5Z3G4M2NNBRT5MEOSQ4MSABJMNHG
-#\\\|JZPVWHH4BNTBBH7QNTJIAHX545QIIXH57SBI32PRXNZMKD2LUCH \ / AMOS7 \ YOURUM ::
-#\[7]YHGXW3U3XO4WIXF5N5OBE3F5DGBPXTM4UKFQ6AI26E2CMIGUKABA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,...,,.,,.,,,..,,,,.,,,,,,,.,,..,..,,...,...,...,.,.,...,,,.,...,
+#I2ZAMJD3YF5W3AGZLY27XOAVXMVOYIWQFZXYQNPH662Q7J5HGB4XTEEI5CFNF35F5QRVHQ56Y5IA4
+#\\\|276ZRXWPMNZUURCIJOE2CMPNS6BRUPUYZEMRR7RYNETOWHLHWUN \ / AMOS7 \ YOURUM ::
+#\[7]2PGLPPK3WFYTYGMSLBOPYFGO6ENDEFE35EZ4N45NJIMP4K42WEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

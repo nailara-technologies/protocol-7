@@ -87,7 +87,7 @@ legible. This live layout: XWAYLAND0 1920x1080+0+1860, XWAYLAND1
 modules: screen.setup.{init_code,startup,ensure-display,enumerate-monitors,
 layout-model,monitor-at-point,cmd.display-layouts,open_window,close,
 handler.key_press,handler.draw}; configs: cfg/zenki/screen-setup/
-{start,zenka-startup.v7,subroutines.load-early}; edit:
+{start,start.cfg,subroutines.load-early}; edit:
 cfg/zenki/cube/auth.zenki (added `auth.setup.usr.screen-setup =
 :zenka:`). Access needs nothing else — `access.cmd.usr.*` wildcard already
 grants X-11 read cmds + the `get_display` it uses.
@@ -99,7 +99,7 @@ grants X-11 read cmds + the `get_display` it uses.
    was already signed — the edit invalidated its signature; it MUST be
    re-signed too or `reload config` may reject it.** (white-list regen cmd:
    `./bin/dev/gen-sub-whitelist screen-setup`, already run, 521 subs.)
-2. **v7 reload/restart FIRST** so it rediscovers the new zenka-startup.v7 and
+2. **v7 reload/restart FIRST** so it rediscovers the new start.cfg and
    registers the on-demand zenka at cube (else routing silently goes
    nowhere).
 3. `p7c reload config` on cube (picks up auth.zenki).
@@ -221,8 +221,8 @@ Deferred: (1) STRM-based live window list (X-11 pushes on open/close);
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,,.,,,.,...,.,,,,..,.,,,,.,,,.,,..,,..,,...,..,,...,..,,..,,.,.,.,,,,.,,,,.,
-#4IK4P5FRPMQDG4T664J7BAX7TUH64CBNROKNUBIUU46AHFLOTN3XQONE736OYOFC2GWFBR6LTZXB2
-#\\\|JJARA47ASN76VH2MF62DRHQQYKZVRPUCDN6FVN6GRF745VSJ3CE \ / AMOS7 \ YOURUM ::
-#\[7]COIIJPKGILFU2OLRI57BQD6NS5H34YXVWFHNTFJ3JCCOQADHLWCY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,...,,,,,,..,.,,,..,,..,,.,.,..,,...,..,,...,.,,,,.,,,,,,,.,,
+#HUHLGGWAMPXPGZIQXMMQBFRXPJ6MOJRNC3HVJFGTUCJOEOKH2FEGYSTLBRUK7HYGS2ERIXM4CVDUE
+#\\\|VQNKEU5KGXWZG4U6EZ7MZ7Q2HNOK4JF3D3CQS5OTGQDTEWTYJR3 \ / AMOS7 \ YOURUM ::
+#\[7]WYU5NDM7Q2DQQWM37HWNS5JAZRLTZQZX3MEWPGVDBVAYKCAPOIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

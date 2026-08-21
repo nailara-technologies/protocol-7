@@ -110,7 +110,7 @@ return {
 
 ## access list
 
-add to `cfg/zenki/index/start` access.cmd entry:
+add to `cfg/zenki/index/zenka.v7` access.cmd entry:
 
 ```
 replace remove
@@ -142,8 +142,8 @@ index.activate index.deactivate index.source.register
   deactivate all ancestors, not just HEAD; under snapshot policy it is always
   exactly one deactivate call
 
-#,,..,.,,,.,.,...,..,,,.,,.,,,,..,..,,,,.,,.,,.,.,...,...,,..,,..,,,,,.,,,...,
-#2S4DTFFANIXBNYAZJGUQRRNHIJ5E6OKRGRIAZAUTMBSQ3WUD4R4Y6ZDTWPHM4DAX3NMQAX2E5FCWO
-#\\\|IT2GHKJSL4XMOI3BPPQEEIECKADXBGQUKL4SLHGNWL24H2RHDCD \ / AMOS7 \ YOURUM ::
-#\[7]IHE4GJA5TCKOIKE4CVJKCHM3YJG2QZ6UMW3B7MG65EPNBILNXEBI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,,,,.,,,.,,,.,,.,,,.,.,,.,,.,.,.,.,...,...,..,,...,,..,...,...,
+#36V35JWUYTRGU547QTPEZQ33BYW62UQNDIAJ5INSXKE5AJMTUGBTNQYSJ2FG64J3PA546PO4Y4VM6
+#\\\|GGSHYENKPHWXI2ROON5HJDUSM2GJBHH4SFCWISSIA4V7I3R7TCQ \ / AMOS7 \ YOURUM ::
+#\[7]REMJYGOX7SECYKPTFT6BUMMGJWYKIH7P474YSXZLQBECGA3HJ2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

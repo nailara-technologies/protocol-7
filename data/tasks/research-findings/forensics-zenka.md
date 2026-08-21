@@ -113,7 +113,7 @@ the mechanical boot requirements:
 - slot: nightly `04:07`, `type = zenka-present` — the boot check is a
   presence check; until implemented it no-ops (concept doc :91-95).
 - scaffold target (forensics-agent.md task 1.1): create
-  `cfg/zenki/forensics/` with `zenka-startup.v7`,
+  `cfg/zenki/forensics/` with `start.cfg`,
   `access.zenki`, `start` — modeled on existing zenki (the openvas
   zenka dir `cfg/zenki/openvas/access.zenki` already exists
   as a sibling pattern).
@@ -276,7 +276,7 @@ operational offline.
   33-34` (+ `event-setup.letsencr`) — scaffold must bind name
   `forensics` exactly.
 - sibling scaffold pattern: `cfg/zenki/openvas/` (has
-  `access.zenki`); check other zenki dirs for `zenka-startup.v7` /
+  `access.zenki`); check other zenki dirs for `start.cfg` /
   `start` conventions.
 - zenka lifecycle / presence machinery already complete: roadmap 7.1
   (basic zenka lifecycle, on-demand with idle timeout, v7 management)
@@ -312,7 +312,7 @@ support this content:
 
 - **boot requirements (fill for task 1.1)**: name `forensics` (hard
   requirement, slot-bound); `cfg/zenki/forensics/` with
-  `zenka-startup.v7`, `access.zenki`, `start`; zenka-present check
+  `start.cfg`, `access.zenki`, `start`; zenka-present check
   passes at 04:07; subscribe forensics channel on channels zenka;
   create zenka data dir for sweep records; log the no-op run.
 - **explicitly deferred design work (new task stubs or roadmap links)**:
@@ -332,8 +332,8 @@ support this content:
   roadmap :649-690, ZENKA-LIFECYCLE payload schema, HYBRID-LLM-GOVERNANCE
   offline invariant.
 
-#,,,,,,,.,,..,.,.,.,,,...,,,.,.,,,,,,,,,,,..,,..,,...,.,.,...,,..,,.,,.,.,,,,,
-#3XPXCPAJ2VVUESUVI5TAMICDN3WKZA5HXRRQKSUC5LHSKS66XE4WO3YPHY6XPO3IGV7ERUON47SQU
-#\\\|CNQP6LAZXUBLAEUXE4OSZWXVOXHOM7NAXIXQAWOCXA32V5OI3WD \ / AMOS7 \ YOURUM ::
-#\[7]ZD4ABRRAGPRUIUZKKKZDEVBFIE6A2RDJEGRTOJ24IJGBKLX364AA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,..,,,,.,...,..,,,.,,...,,..,..,,...,...,..,,,..,.,,,...,,..,
+#3P2JERAPIXDFXLJ7UH2S2QL2BEUX3277G4EAO2VMDFCXNNLHYAEM7BBRU46Y4T34QQFCGUO5FOCNE
+#\\\|B7L5PV5YOLWULWF2KFGJ4H63MNF6MBGVQVP3K6M7Q63RWHUELAF \ / AMOS7 \ YOURUM ::
+#\[7]ORWEWKQSITCYBJE2ZYTWC6IG4SHLBQOCROVBQCL7NE2WOICK7MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -207,7 +207,7 @@ if (strcmp(cmd_str, "link-upgrade") == 0) {
 | bin/c_src/p7.c | 277 | Major | Add encryption support |
 | bin/nshell | TBD | Major | Add auto-negotiation |
 | bin/test-link-upgrade-client.pl | 4534 | Enhancement | Add full test suite |
-| cfg/zenki/test-link-upgrade/start | 2428 | Reference | Already set up |
+| cfg/zenki/test-link-upgrade/zenka.v7 | 2428 | Reference | Already set up |
 
 ---
 
@@ -284,8 +284,8 @@ if (strcmp(cmd_str, "link-upgrade") == 0) {
 **Estimated Total Time**: 8-12 hours concentrated work
 **v7 Auto-Update**: Will automatically reload p7 binary on recompile
 
-#,,..,,,,,,,.,.,.,.,,,.,,,...,...,,..,,.,,.,.,.,.,...,...,.,.,...,,,,,..,,,..,
-#Q7GD4TAZNSNTEPXLJRC44YMUG2T3FTYTBHAX4QWXAIIQ2ZZYSDGCKMSCMEENO7WB75EGT2XEAOM5G
-#\\\|7BKJK6X7XDKF6YUJBSC3G5EKP54237OEPE46RSAEQF2II3HKQIR \ / AMOS7 \ YOURUM ::
-#\[7]UCU6FRV3O4NAEQCMDDVK4ZOHPDF6QCBICYC43HEQ7DWE4ZWIAOCA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,,,,,,,,.,,,,,,,.,,,,.,,,.,,..,.,.,...,...,..,,,,,,...,...,...,
+#KIN52POBRDBJ4K7JW7PJQPOM2QMWML47WVZFV5GZ5IJ6QP5EPS3JXZB7QMWU3GYLQYITCFUW5BV5S
+#\\\|GXIU2UZMXNBZJGZF7MMLPGJU7I5N6UTOSUVH345P3ESGWOMDTW2 \ / AMOS7 \ YOURUM ::
+#\[7]5HMQDJTQFQODNSXGVRUC42QFWLZ7IEBIRX4JAFF42UG3CJZXTOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

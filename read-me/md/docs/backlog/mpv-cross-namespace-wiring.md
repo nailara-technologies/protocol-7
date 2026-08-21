@@ -14,7 +14,7 @@
 | **GPU load handling exists in tile and X-11** | tile, X-11 | `tile.cmd.gpu_load_alert` triggers auto-speed; `X-11.cmd.gpu_load` collects stats | Medium — alerts and stats should share state instead of being separate surfaces |
 | **Playlist fetching uses two names for the same content zenka reply** | mpv, universal | `mpv.get_playlist` asks `cube.content.get_list`; `universal.cmd.get_list` is a reroute to the same | Low/Medium — naming alignment helps caller understanding |
 | **Idle-state query is already wired** | mpv, universal | `universal.callback.mpv_idle_check` calls `mpv.is_idle` | ✅ Already good — keep |
-| **Theme / palette data is not shared** | mpv, window | mpv OSC colours live in `configuration/zenki/mpv/start`; window colour themes live in YAML under `window.profile.color` | Medium — protocol-7 palette document exists but is not imported by either | 
+| **Theme / palette data is not shared** | mpv, window | mpv OSC colours live in `cfg/zenki/mpv/zenka.v7`; window colour themes live in YAML under `window.profile.color` | Medium — protocol-7 palette document exists but is not imported by either | 
 | **Pause / resume coordination** | mpv, universal | `universal.cmd.report_paused` / `mpv.handler.event.pause/unpause` | ✅ Already wired — keep, but add `report-resumed` for symmetry |
 
 ---
@@ -144,8 +144,8 @@ Both should be executed in the same migration window so that new commands (e.g. 
 
 *End of wiring report.  Next step: human review of promotion candidates and priority order.*
 
-#,,,,,,.,,,..,,.,,.,.,,..,,.,,...,...,,,,,.,.,..,,...,...,.,,,,,.,...,,..,,..,
-#GTE4VM3P4MCKTQTNJRLDR53CNXRT3SATERJ52HGHI4HEMI3AJUKXSA4WCLNQYG47WMEUNQGIK7HX6
-#\\\|YAGDDT3OT5WBYPGRPTLD3QSI552IKUBY2GPFKVFZQSPTD3KV2TT \ / AMOS7 \ YOURUM ::
-#\[7]VIHUH5R426QM5UKPPQ2CLIH3GV7RODP433VB5JDMGIFZROSXTQDY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,..,,,,,,,.,,...,,.,,...,.,,,..,,..,,...,...,.,.,.,,,..,,,,,,,..,
+#MSPYFUGEXE66YHXOX2QDSSN76GYRCAQB5ED2FSFVL3NBN325WHRS3K3YU3GUO4SADI7ILLLQTWIG2
+#\\\|IX6AIIUZV6N352IYBBJPCDDAV55RJOVLT6M3GYYOXOBP3RIUZ5O \ / AMOS7 \ YOURUM ::
+#\[7]KQ27LBPW3X5KOAE6IRNTUFVP3BS3C5Z24ZSM77LC64KZ2JOI62AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

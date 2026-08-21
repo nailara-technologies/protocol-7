@@ -191,12 +191,12 @@ connect_or_use` reads in step 1.
 
 ## configuration changes
 
-add to `cfg/zenki/credential_fabric/start` (create if absent):
+add to `cfg/zenki/credential_fabric/zenka.v7` (create if absent):
 - load `credential_fabric` modules
 - run `credential_fabric.init_code` (which now seeds the registry)
 - on-demand zenka, no idle timeout (already required by design)
 
-add to `cfg/zenki/proxy/start`:
+add to `cfg/zenki/proxy/zenka.v7`:
 - load `proxy.outbound.connect_or_use` alongside other proxy modules
 
 verify `cfg/zenki/cube/access.zenki` allows:
@@ -248,8 +248,8 @@ the `#,,..` stub line** to new files — the signing system writes it.
 
 #,,..,...,,,.,.,,,,,,..,,...,..,,,,,,,,.,,,,,..,,...,..,,,,,,...,,...,,..,...,
 
-#,,,,,,.,,.,,,...,,,.,.,,,,,.,...,..,,,,,,..,,..,,...,...,.,,,,.,,..,,.,.,,.,,
-#NO6U45LKQB3Y37PHIPENI55GPMLOSBLW7PTQ5RQYX46TWDCNOK7MOQUAQXUL2FBCWHZ3APQTYJMRE
-#\\\|GNE5J46OEOCXVBXSRFDCS2QK7PQV4NZJYJFMX4SZ6YP4TZFGDNA \ / AMOS7 \ YOURUM ::
-#\[7]WNTHXBNXMIYGUNAZKDQVXAUFKOPZ7Y6FAHUCATLTFBPSXFKLF6BQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,...,.,.,,,,,,,,,...,,..,,.,,,.,,..,,...,...,,,.,...,,,.,..,,...,
+#BOSGQYVNA6PHXZROEIYFBNLNG6FA575AQK32OTWDSANKISEEGVPTERC2VBOATJUREPLLSGMTMIWTE
+#\\\|GAFY2NVKHQMEO5UR63GR2HTCU5BHGCOOICGBMSXKXKIWVSLCSJV \ / AMOS7 \ YOURUM ::
+#\[7]TL6NCGMQYNHGQMNANB6IIAC6645NO6RTR7AQ4HAHENBPYU54D2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
