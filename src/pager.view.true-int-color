@@ -20,17 +20,18 @@ for my $item (@$items) {
     if ( $item->{'checksum'} ) {
 
         # Convert checksum to numeric
-        my $bin = <[base.decode.bmw-L13]>->( $item->{'checksum'} );
-        $num = unpack( 'Q>', $bin . "\0\0" ) >> 8 if $bin;    # 56-bit
+        my $bin = <[base32.decode]>->( $item->{'checksum'} );
+        $num = $bin ? unpack( 'Q>', $bin . "\0\0" ) >> 8 : 0;    # 56-bit
     } elsif ( $item->{'path'} ) {
-        my $hash = <[chk-sum.bmw.L13-str]>->( $item->{'path'} );
-        $num = hex( substr( $hash, 0, 14 ) );
+        my $bin = <[base32.decode]>
+            ->( <[chk-sum.bmw.L13-str]>->( $item->{'path'} ) );
+        $num = $bin ? unpack( 'Q>', $bin . "\0\0" ) >> 8 : 0;
     } else {
 
         # Use item hash
         my $data = join( '', map { $item->{$ARG} // '' } sort keys %$item );
-        my $hash = <[chk-sum.bmw.L13-str]>->($data);
-        $num = hex( substr( $hash, 0, 14 ) );
+        my $bin  = <[base32.decode]>->( <[chk-sum.bmw.L13-str]>->($data) );
+        $num = $bin ? unpack( 'Q>', $bin . "\0\0" ) >> 8 : 0;
     }
 
     # Determine color based on mode
@@ -54,7 +55,7 @@ for my $item (@$items) {
     } elsif ( $color_mode eq 'entropy' ) {
 
         # Color by entropy/bit patterns
-        my $bits    = unpack( 'B56', pack( 'Q>', $num ) >> 8 );
+        my $bits    = unpack( 'B56', pack( 'Q>', $num << 8 ) );
         my $ones    = $bits =~ tr/1//;
         my $entropy = abs( $ones - 28 ) / 28;    # 0 = balanced, 1 = extreme
         $color_code
@@ -81,10 +82,8 @@ for my $item (@$items) {
 
 return \@colored;
 
-# SPDX-License-Identifier: ISC
-
-#,,,.,,..,,,.,...,.,.,,,.,,..,,.,,,..,,,.,,..,..,,...,...,...,,,.,..,,..,,,,,,
-#6SRWMLHQTNBALNWCMKVQ4L5LB65HH3JSLSXID2KRXMHLH5INHXHQ2KFIE3B77CHJLWBYE2TXQUE4M
-#\\\|I5XFZSJYFWUUPRTAJPGHHW7LEPLXNJEOH2QSYT6FSAPFG2NMMZ6 \ / AMOS7 \ YOURUM ::
-#\[7]BT6BOVMZA2ZSDTG3OMFQDTQ57IIHZQMS6GKBT32SSPN4NG6H3SAA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,.,.,.,,,,,,,,,,,,,...,,..,,.,,..,,...,..,,.,.,,.,,..,,,.,,,,,,
+#HIUD5G3PNYOLQYOFM5VRWOSI3REW56SXBGR2FC6OZAEBR3NEDV4T7R3QYVLJL6B2SHHCC6VFMMVQC
+#\\\|SLQR34MSSKQDZOC3MPKVC2B52I4KPWFMTB6G5K6IFCWHUCODBI2 \ / AMOS7 \ YOURUM ::
+#\[7]NHT3XJXMVTLIRW4RGREBTAU5Y5E4QOVC3M4DMI37MQNPJE4MM2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

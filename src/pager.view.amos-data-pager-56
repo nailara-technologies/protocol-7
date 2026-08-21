@@ -41,11 +41,11 @@ for my $i ( 0 .. $lines - 1 ) {
         if ( $algo =~ /bmw-L13/i ) {
 
             # Direct L13 checksum - perfect 56-bit
-            $bin = <[base.decode.bmw-L13]>->( $item->{'checksum'} );
+            $bin = <[base32.decode]>->( $item->{'checksum'} );
         } else {
 
             # Decode and truncate/pad to 7 bytes
-            $bin = <[base.decode.bmw]>->( $item->{'checksum'} );
+            $bin = <[base32.decode]>->( $item->{'checksum'} );
         }
 
         # Ensure exactly 7 bytes
@@ -53,8 +53,9 @@ for my $i ( 0 .. $lines - 1 ) {
     } elsif ( $item && $item->{'path'} ) {
 
         # Encode path as 56-bit L13 fingerprint
-        my $hash = <[chk-sum.bmw.L13-str]>->( $item->{'path'} );
-        $bin = pack( 'H*', substr( $hash, 0, 14 ) );  # 14 hex chars = 7 bytes
+        $bin = <[base32.decode]>
+            ->( <[chk-sum.bmw.L13-str]>->( $item->{'path'} ) );
+        $bin = substr( $bin . "\0" x 7, 0, 7 );
     } else {
 
         # Empty row - use zeroes (will show as false in true_int coloring)
@@ -78,10 +79,8 @@ if ( $args->{'async'} ) {
     return 1;
 }
 
-# SPDX-License-Identifier: ISC
-
-#,,,,,,.,,.,.,..,,,,,,,.,,...,,,.,,,,,,,,,.,,,..,,...,...,.,.,...,..,,,,.,.,.,
-#CZ6V3KDSNVOSQOTSHJCS362NM7MKRZ3YPOVQGMPIF5H3GIEDAG67JUYPREDZE66OS3PNYJ6D7SX62
-#\\\|MJFDC2D6EIXJPTHS32HUW2ZEV37ZV6SB3O636NDLBNJQ7CVUJOE \ / AMOS7 \ YOURUM ::
-#\[7]EMRNJKTIXDVXUJHPAX4OCQCT6PI5QAEVMSFWL2UVCLYCA5A5WUAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,,,,,.,,,,,,,.,,,,..,.,,,.,,,..,,...,...,.,.,...,.,,,...,,,.,
+#7U73QNSGTILKURWPZJVUXHWSGZN5ZIGLM7STCZBLKGBMKTXDXLPM5O2JAVEQWWOTQZXUTLHLX6OAC
+#\\\|NH3ZHVCM4EDDCRKWSYJ2VYH7T5XCURZG36L5D5MWR474YSK3TJG \ / AMOS7 \ YOURUM ::
+#\[7]AVVU5KARQJOIJGK552A6O77DQRX64OJ7QS2L4FV5HJDO4WOAKICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
