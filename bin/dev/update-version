@@ -93,7 +93,7 @@ if ( $old_version =~ m|^(.+)\.(\d+)$| ) {
     $new_minor = $old_minor + $minor if $amend;
 }
 
-$new_minor = 0 if $reset;
+$new_minor = 0 if $reset and !$amend;
 $new_minor = 1 if $amend and !$new_minor;
 
 my $version_string = gen_ver_string( $commit_count + 1 - $reset, $new_minor );
@@ -303,8 +303,8 @@ RETRY_BASE_NTIME_B32:              ## only choose harmonic values ##
     return $encoded_ntime;
 }
 
-#,,..,.,,,...,.,,,,.,,...,,..,...,..,,,..,,..,..,,...,...,.,,,,,,,,..,,.,,.,,,
-#NHGMSOWPCZOT6OSQI6PMBKBAZFNVEHH3QL6ZP5VDNVE7V3NLIQOHOT5PZ6YE6Y6ZOKO3KKVDZBPSG
-#\\\|KQK3KLYBDDITIELBQDXC454U2274X2TRBIMAALHGVDPFSXHP55W \ / AMOS7 \ YOURUM ::
-#\[7]NJ6ISJVPGJWWIFTZWXHE5EKTH6VCJJ4VASZMUSCHALG5IMSHZSAI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,.,,,...,,,,,,.,,,..,...,.,.,..,,...,..,,,,,,.,,,.,.,.,,,,.,,
+#4HE6W7C67BYL2FAL3HPN2XRH4TGIB7GFBNZKQZ3THMS7PSKZGEYBUD466GFHMFKYJJEUIOUZ5DDNW
+#\\\|AQALE57TOMFFFGMVULBCQWGBYJ4HE6DBMR5HN33XPOWSYW2BF5G \ / AMOS7 \ YOURUM ::
+#\[7]UAJM4CHBTZVZWWAIAA25PVXFFPBWQR3DIBY73ODSIOQUW77YWUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
