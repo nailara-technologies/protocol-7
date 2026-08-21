@@ -133,7 +133,7 @@ if ($any_list) {
         @lines = <STDIN>;
     } else {
         my $start_file = c_dir( $root_path, qw| cfg zenki |,
-            $opt{zenka}, qw| start | );
+            $opt{zenka}, qw| zenka.v7 | );
         die ":: zenka start file not found: $start_file\n" if !-f $start_file;
         open my $fh, qw| < |, $start_file
             or die ":: cannot read $start_file: $OS_ERROR\n";
@@ -706,7 +706,7 @@ sub analyze_zenka_reachability {
     } else {
         ##  file mode: locate and parse start file  ##
         my $start_file = c_dir( $root_path, qw| cfg zenki |,
-            $zenka_name, qw| start | );
+            $zenka_name, qw| zenka.v7 | );
         die ":: zenka start file not found: $start_file\n" if !-f $start_file;
         ( $loaded_set, $entry_commands, undef, undef, $whitelist_register )
             = parse_zenka_start_file($start_file)
@@ -792,10 +792,8 @@ sub analyze_zenka_reachability {
     #  include subroutines called from zenka-startup.v7 zenka-init section  #
     #  these lines are injected over stdin by v7 at startup and eval'd      #
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
-        my $startup_file = c_dir(
-            $root_path,  qw| cfg zenki |,
-            $zenka_name, qw| zenka-startup.v7 |
-        );
+        my $startup_file = c_dir( $root_path, qw| cfg zenki |,
+            $zenka_name, qw| start.cfg | );
         if ( -f $startup_file ) {
             my $in_zenka_init = 0;
             open my $sfh, '<', $startup_file
@@ -1279,8 +1277,8 @@ sub parse_access_cmd_config {
     ## returns hashref: { target => qr/compiled_regex/ }                 ##
     my $zenka_name = shift;
 
-    my $start_file = c_dir( $root_path, qw| cfg zenki |,
-        $zenka_name, qw| start | );
+    my $start_file
+        = c_dir( $root_path, qw| cfg zenki |, $zenka_name, qw| zenka.v7 | );
     return {} if !-f $start_file;
 
     my %raw_patterns;    ##  { target => [ raw pattern strings ] }  ##
@@ -1773,8 +1771,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,.,,.,.,..,,.,,,,,,,,..,.,,,...,,.,,,..,,,.,.,.,...,...,..,,,,.,..,,,,,,.,,,
-#CPTBYR2RRJKORF2TMUSTAJNLM2YYWPSKVL5PGTLRZVJAXIBXOPILZUROZ2E6ED2MDQKHNTH5YKSCE
-#\\\|DL4RBOG5X5PRQAPVGHE3GHCV7D6RAS3GSGIVT6TLHL64H7BF35J \ / AMOS7 \ YOURUM ::
-#\[7]PLSMSBTR77SHIPLDOD4VZYCGCQLPI2J4KQ55UWF6Q723P6GMHMBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,...,.,,,.,.,..,,,..,,,.,,.,,.,.,...,...,.,.,.,,,,.,,,,,,,..,
+#W7HL3YOIIKJKYOCMPFASZUOAKKDHUXL7IV6D27SCEW2BOGGZRXBU2CAQHWHJ72Y64TJ55UIVBGOGS
+#\\\|3ETVSMMX73FORO4UO5J2O4IUPJUD3M7TXKRIPYBVPFBX5S3K4PV \ / AMOS7 \ YOURUM ::
+#\[7]QFS2XO7A3WWMWRW7BB4YA5RZSRDKYOY7SPG6E3YGPAMCWY3PJCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
