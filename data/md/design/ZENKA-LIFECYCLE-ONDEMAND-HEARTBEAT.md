@@ -36,7 +36,7 @@ on-demand startup is currently binary: enabled or not.
 next step: configure which zenki/users are permitted to trigger a wake:
 
 ```
-## cfg/zenki/media/zenka-startup.v7
+## cfg/zenki/media/start.cfg
 start.on-demand              = 1
 start.on-demand.permitted    = httpd system taeki
 start.on-demand.deny         = *         ## default deny all others
@@ -72,7 +72,7 @@ until the next command attempt — which may never come.
 solution: hybrid mode coordinates heartbeat and on-demand timeout:
 
 ```
-## cfg/zenki/media/zenka-startup.v7
+## cfg/zenki/media/start.cfg
 start.on-demand              = 1
 start.on-demand.timeout      = 4200       ## 70 minutes idle timeout
 heartbeat.disabled           = 0          ## heartbeating enabled
@@ -118,7 +118,7 @@ this loses all diagnostic information and may restart a zenka that could
 recover on its own. configurable recovery modes:
 
 ```
-## cfg/zenki/media/zenka-startup.v7
+## cfg/zenki/media/start.cfg
 timeout.mode                 = forensic-first   ## see modes below
 timeout.forensic.duration    = 30               ## seconds of data capture
 timeout.recovery.attempts    = 2                ## soft recovery attempts first
@@ -210,8 +210,8 @@ remediation via the task zenka.
   lifecycle categories (disposable/decoupled/monitored)
 - `data/tasks/v7-teardown-whitelist.md` — v7 access control, related work
 
-#,,.,,,,,,.,,,,,.,,,.,.,.,,,.,.,,,.,.,.,,,.,,,..,,...,.,.,..,,,.,,,,.,.,,,,,,,
-#WWAAFJCTOVUJR23A4237SYCPGEPF24KPDXWMYJAIIJ2X6BBHSHXKEPDNOYZWV7WO625MJUYBTGRZ2
-#\\\|GSLGXNMRNUBCMS6ZIO6FZEKOAXZ7QMWMVMZSQJQCYPU7G4VARKB \ / AMOS7 \ YOURUM ::
-#\[7]FYCR775SBL35Y7WCSTHIJYGZ5OJOJNGBSL4G2UBSNEBGC7R72ABQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,,,,,...,.,,,..,,.,,,.,.,,,,,..,,...,...,.,,,...,,,,,.,,,...,
+#6DGMKN6PQFIR4I4WML23U3T2U44MJKWWTWJ3QFIUTIGM426KGMACWXOJ2235GB23EKHQVAGIXOEKS
+#\\\|7GYEBECQJMIRPXTOEWQBJREVO4LMKAXMC3H4HVCF6DZRVPLMVPX \ / AMOS7 \ YOURUM ::
+#\[7]XS2DVUWLIBQ6ISLEIT3O34CY5XXBUVBVYKA2BBCMFF4G77YRDYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

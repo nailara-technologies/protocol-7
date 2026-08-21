@@ -46,7 +46,7 @@ its handler — handlers never see raw signature data.
 ## command-level security tiers
 
 ```
-## in zenka start config (e.g., cfg/zenki/v7/start):
+## in zenka start config (e.g., cfg/zenki/v7/zenka.v7):
 security.cmd.require-signed  = teardown host-reboot forced-mod-reload \
                                root.drop_privs key-operations
 security.cmd.signed-optional = restart stop start    ## signed preferred, not required
@@ -278,8 +278,8 @@ development environments may skip pinning for flexibility.
 6. key authorization list per command
 7. nonce dedup store (simple ntime-windowed set)
 
-#,,.,,.,,,,,.,,.,,..,,.,,,,,,,,,,,,,.,.,,,,,,,..,,...,...,.,.,...,,.,,,,.,.,,,
-#HAWXTINDO6QDCPDCWZTRZVAP4T2A2QD26CWECQXZ4MBC5C2ZWOS3N5NGTY7H55DQV6PRPBTNVWJPK
-#\\\|M3346HSGC3T4KF4CTSNCVPP6MP67KZFAIGQYEIBKXVI4E2MS3KI \ / AMOS7 \ YOURUM ::
-#\[7]7DV6IUEWIYR5T35I35DDDCU3TQ3HKXPYYANDWR577T3XD23ARMCY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,.,,,,..,.,,,...,.,.,,,.,.,.,..,,...,...,,,,,...,,..,,..,,..,
+#4PLLRGORQGSDCPNSKSDDAXWYJNCQKATYQWCXN4GE3N56T7ZNHSK6R53KHPZGS2VEL6WYPN4CLGPZE
+#\\\|MRCJ64AKFZ4QTZM2PAKCL7PMB5WAWNFB5QHA5NSCBZYS43ZKFRG \ / AMOS7 \ YOURUM ::
+#\[7]Q4HAI4EHWEB6VCHL4UJP4K63NL4TWNEEX3XXANII5BD3K7DZ3GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

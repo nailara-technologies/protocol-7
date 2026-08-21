@@ -21,7 +21,7 @@ this includes:
    - `src/graphics-matrix.init_code` — add `<[graphics-matrix.address.init]>;`
    - `src/graphics-matrix.cursor.set` — register position after set
    - `src/graphics-matrix.cursor.move` — register position after move
-   - `cfg/zenki/graphics-matrix/start` — add `address` to `access.cmd.usr.cube`
+   - `cfg/zenki/graphics-matrix/zenka.v7` — add `address` to `access.cmd.usr.cube`
 3. run `ptd -c` syntax checks on all new and modified module files
 
 ## what was already done
@@ -31,7 +31,7 @@ this includes:
   - `src/graphics-matrix.init_code` already contains `<[graphics-matrix.address.init]>;`
   - `src/graphics-matrix.cursor.set` already contains the `address.register` call after setting position
   - `src/graphics-matrix.cursor.move` already contains the `address.register` call after moving
-  - `cfg/zenki/graphics-matrix/start` already has `address` appended to `access.cmd.usr.cube`
+  - `cfg/zenki/graphics-matrix/zenka.v7` already has `address` appended to `access.cmd.usr.cube`
 - ran `ptd -c` on all 5 new modules → all syntax ok
 - ran `ptd -c` on the 3 modified perl modules (`init_code`, `cursor.set`, `cursor.move`) → all syntax ok
 
@@ -73,7 +73,7 @@ once both sides have appended, a human (or a single resumed agent) can decide ho
   - `src/graphics-matrix.init_code` — added `<[graphics-matrix.address.init]>;`
   - `src/graphics-matrix.cursor.set` — added `address.register` call after setting position
   - `src/graphics-matrix.cursor.move` — added `address.register` call after moving
-  - `cfg/zenki/graphics-matrix/start` — added `address` to `access.cmd.usr.cube`
+  - `cfg/zenki/graphics-matrix/zenka.v7` — added `address` to `access.cmd.usr.cube`
 
 **verification performed:**
 - ran `ptd -c` on all 5 new modules and 3 modified perl modules — all report `syntax ok`
@@ -91,8 +91,8 @@ once both sides have appended, a human (or a single resumed agent) can decide ho
 - run a live test of `address goto <addr>`, `address resolve`, and `address label` to verify runtime behavior
 - confirm the channel task (`context-channel-frequency-separation.md`) was fully completed by this agent in the prior turn, since the address task depends on it
 
-#,,..,,..,..,,,..,,.,,.,.,.,,,.,,,...,,,.,..,,..,,...,.,.,...,..,,,.,,.,.,...,
-#PDC4P4Z72ZNKIQWIPAU4MY7MO6JAGP3ILGVBITVQU5Y3KHKWCV2VDWPD3NVVOH2G6AUXBEPZNAU4O
-#\\\|4SRRNYQRTBLUJ4TK7KIBYFCL7Q3OXMZLNDEBMTJFPJEBZOVDJTF \ / AMOS7 \ YOURUM ::
-#\[7]JG4NMX5IOPIA4UWJGFH5IAPY2XSR4BUTS5OEIIWKNNLC4PNITMDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,,,.,,,.,.,,,.,.,.,.,,,,,.,,.,,..,,...,..,,,,,,.,.,,,,,.,.,...,
+#WQDSPDB2NKNMWIAOYD6RCYD2DQS55BDSHNZPVSVAJENVYRT4XH2DCBV2N6ENCXF2CBYFS3BKBCIBC
+#\\\|SUZJLBG2DLF7KV4NU7XWQS7QLVMWLPJW33MQACUP62BZ6MRA5SZ \ / AMOS7 \ YOURUM ::
+#\[7]XSLE4GKB2ZDQNJCEJFPAWJIHGZ5TI3A4DL6XNABQGY24JH7OJKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

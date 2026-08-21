@@ -77,7 +77,7 @@ my $path = $ENV{'MODELS_LMSTUDIO_DIR'} // <external.models.lmstudio.path>;
 To use these paths in other zenki (lm-vision, coding, etc.):
 
 ```perl
-## In cfg/zenki/YOUR_ZENKA/start
+## In cfg/zenki/YOUR_ZENKA/zenka.v7
 #include <shared-params>
 #include <external-inference-models>
 
@@ -133,8 +133,8 @@ And modify the value at the top of the file. All zenki will pick up the change o
 
 ---
 
-#,,,.,..,,.,.,.,.,,..,..,,.,.,.,,,,,.,.,,,..,,.,.,...,...,,.,,,,,,,,.,.,.,,.,,
-#SNA7VJY3JGYW7RASEYKDFEOFDZY46WM2VWHIQMNCM5RA2WNVACKXILL7SMJW2PAEGIBQ46E2XJQQ6
-#\\\|2RBXTQPOOKDIUQHIYB5PVNBZ7CSGIKPTJY465EIKESNODJOQSDQ \ / AMOS7 \ YOURUM ::
-#\[7]EDYNMKXKJYESIKLIRN7RA4NWMEOPLIS3BDMLZKP6COG6D2GBR4CA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,.,.,.,,,.,,,,.,,,,.,...,.,.,.,.,...,...,..,,,,.,,..,,.,,,.,,
+#O37QI6ZV6YKRW36QK4MPWKRYI4E7ZDJ5FJH6YM73WAPTZGGS3M437VAKJQG3L5NVEX6CITALOKHEM
+#\\\|RWJOQAITWKVGSY7SZUQPSMKPSLGIUXQBCNCXMS4O5EWCLYQLUK7 \ / AMOS7 \ YOURUM ::
+#\[7]OTQ7E2MHR6YAGXVKA5DQZGY74TKI3QNGGVQ6XQRV5RIJF7M2ZOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

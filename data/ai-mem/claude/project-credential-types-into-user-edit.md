@@ -103,7 +103,7 @@ through before it happens:
   what is seeded at install time vs. what is set through user-edit
   afterwards.
 - this is the node that would carry the always-on `users` override
-  (unset `start.on-demand` in its own `zenka-startup.v7`, or list it in
+  (unset `start.on-demand` in its own `start.cfg`, or list it in
   that node's `start-set-up.base`) — already supported by the existing
   v7 lifecycle mechanism, no new code.
 - it is also the natural first real test of `users.remote-get`/
@@ -162,8 +162,8 @@ inside a running form. `base.term.ask` is BLOCKING and pre-loop only — see
 [[reference-console-question-ask-primitive]]. And `enum` remains
 interface-only.
 
-#,,.,,,,,,..,,,,,,.,,,...,..,,..,,..,,,..,...,..,,...,...,..,,,,.,..,,.,,,..,,
-#XA7OAPBWWPAUOGVSH5JSLKYBAOMKNZKQ2AZLUVONGJLETOUCNK5LKFGJERXGXN3T4C7BXKDHE47BO
-#\\\|UBG4JIJ4VDMWDKLXO4BBWGCR7RT2CEDH2NW2LX5KK4ME424DRBL \ / AMOS7 \ YOURUM ::
-#\[7]FPR6JOIY6RBEWGQW6467AEFRD4BHN4ANJPNHPB7ECCNYDVRIQWBA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,,.,,,..,..,,...,..,,,,.,.,.,..,,...,.,,,.,.,,,.,...,..,,...,
+#S647Z2FB4HNMQ72EKZXPQYIORNCSMF2227GXPQMI4TJBDLFPVUT2GKTS7NLIDBAUJO4WYAENSTEUY
+#\\\|MQBDSDDSV2NRHVBY2R6D3UULPECLC5F6OJYUG23ISMSI7NSAOET \ / AMOS7 \ YOURUM ::
+#\[7]YIO7RWGNCRBI2DPOHHOSVB4KCLYKCYUA4LG5BHYE2OU2VEADZECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -165,7 +165,7 @@ Zooming contextualizes rather than switches:
 - The transition IS information
 
 ### Virtual vs Physical Namespaces
-- Physical: `modules/data.*` (files on disk)
+- Physical: `src/data.*` (files on disk)
 - Virtual: `data.topology.*.*.*` (computed from 13³)
 - Plugin: `plugin.*` (hot-reloadable experiments)
 - Unified access via `<[data.get]>->($path)`
@@ -241,8 +241,8 @@ The universe (nailara) is a kitten (zenka) looking at itself from within a kitte
 
 🖖🔮✨
 
-#,,..,.,.,.,,,.,.,,.,,..,,,.,,...,.,.,,.,,,.,,..,,...,...,.,,,..,,.,,,...,,.,,
-#35TK6WLY7EC7ZGH34ONL63K53HJJA2DG5LYNOVETPXXEMO5SQW6UGGHXEHDMXZLF2A3PVBNZX2BLA
-#\\\|EKR66V2H5SG7XFMMKWEAV2MCTBCHEL2YQ326VMFSPT5TFA4EW4W \ / AMOS7 \ YOURUM ::
-#\[7]FAHF5NUDS5ZJ7FEZK25DQYESONXKNNF75D2KIE3VHKEFI4QP46BI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,,.,,..,,,,,,.,.,..,,,.,,,,,,..,,...,...,,,.,...,..,,.,,,,..,
+#BRF5K5K6WGCYZ5GZHZ63B4UYUH2RX4GAKE7YEXWYIR6JY4D2N466H6OGXB5FNVNPEJ4RTEZPVVTZ4
+#\\\|BFEORV7R26SEHTMXIICSZZLMWDSO462RHVWJ6EVZ42JM5Y26IWP \ / AMOS7 \ YOURUM ::
+#\[7]SO5W7NR6AGXKZ2SQHLBJRXV3SSZGOJB73D7LMY4PI5TJ2ZU2OADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

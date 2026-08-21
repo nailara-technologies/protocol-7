@@ -98,7 +98,7 @@ automatically. any stub or fake signature line will break the signing process.
 
 nodes.orbital.init_code should be added to the nodes zenka start file after
 the existing nodes.init_code completes. do not modify nodes.init_code itself —
-just note where the new init hook goes (cfg/zenki/nodes/start).
+just note where the new init hook goes (cfg/zenki/nodes/zenka.v7).
 
 ## deliverables
 
@@ -108,8 +108,8 @@ just note where the new init hook goes (cfg/zenki/nodes/start).
 4. src/nodes.orbital.addr_b32
 5. brief note on the start file integration point
 
-#,,..,.,.,,.,,,,.,..,,,.,,,..,,,.,.,,,..,,.,,,..,,...,...,,..,,,,,,,.,...,,..,
-#CRMK7UHDCKU5R4ESYIT7VTWARPTBXALOEZZA5ZTJ7IEGOOI6CN4VLAYMRIXOOMMXXLFTII7WHNATO
-#\\\|4MJERJR5I3U2ZCP362LYUFATRUYOH77EPOKNPEMVT3L42IODIBS \ / AMOS7 \ YOURUM ::
-#\[7]FS36ZA5EF7LYG64FK43ERTNYRUKKMVWGJKVSQWTVDV37BNJ3PMCI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,,,.,,,,,,.,,,,.,,,,,,.,,.,,,..,,...,...,,..,.,.,,..,,,.,..,,
+#3W3TCMLKDOIRC55AM7GI5OVHADSIHXDKWAXDXK2SVQRRDWY76W72A4VT6N3ZJMVFHPZ2EPIDCPQ7A
+#\\\|254ELDB5OTSBSTTLKFP66FLI2K6IKBDFU3UCSGJD5WWHREOVKE6 \ / AMOS7 \ YOURUM ::
+#\[7]UITLM2SNEBLSUZA76BFYZ63NXEQFJHCGVIAUXN6B3UQ7X6EW4MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 - Host: WSLg / XWayland on Windows 11
 - Project: Protocol-7 (`/data/projects/protocol-7`)
 - Language: Perl 5 + Gtk3
-- Ticker zenka: `modules/ticker.*`
+- Ticker zenka: `src/ticker.*`
 
 ## Current behavior
 1. Ticker window is visible again after reverting the `override_redirect` experiment.
@@ -17,16 +17,16 @@
    - because the cursor is still over the ticker, it fades out again, retries, and eventually stays invisible (opacity 0, cursor still over).
 
 ## Files involved
-- `modules/ticker.open_window` — creates the GTK window. Currently for swap mode it creates a **managed `toplevel`** (undecorated, skip taskbar/pager, keep_above, no `dock` type hint).
-- `modules/ticker.handler.get-layer_reply` — sets `force_above` for swap.
-- `modules/ticker.cmd.swap_profile` — toggles profile, applies geometry, X11 move, verifies.
-- `modules/ticker.cmd.set-window-profile` — calculates geometry (supports per-monitor selection).
-- `modules/ticker.handler.check_pointer` — poll-based hover detection using intended geometry and GTK event state.
-- `modules/ticker.handler.fade_out` — at opacity 0 calls `swap_profile`.
-- `modules/ticker.handler.fade_in` — brings ticker back.
-- `modules/window.gtk.profile.apply` — `$window->move` + `resize`/`set_default_size`.
-- `modules/base.X-11.move_window` — sends move command to cube.
-- `modules/X-11.cmd.move_window` — direct `ConfigureWindow` in cube.
+- `src/ticker.open_window` — creates the GTK window. Currently for swap mode it creates a **managed `toplevel`** (undecorated, skip taskbar/pager, keep_above, no `dock` type hint).
+- `src/ticker.handler.get-layer_reply` — sets `force_above` for swap.
+- `src/ticker.cmd.swap_profile` — toggles profile, applies geometry, X11 move, verifies.
+- `src/ticker.cmd.set-window-profile` — calculates geometry (supports per-monitor selection).
+- `src/ticker.handler.check_pointer` — poll-based hover detection using intended geometry and GTK event state.
+- `src/ticker.handler.fade_out` — at opacity 0 calls `swap_profile`.
+- `src/ticker.handler.fade_in` — brings ticker back.
+- `src/window.gtk.profile.apply` — `$window->move` + `resize`/`set_default_size`.
+- `src/base.X-11.move_window` — sends move command to cube.
+- `src/X-11.cmd.move_window` — direct `ConfigureWindow` in cube.
 
 ## What has already been tried
 1. `popup` override-redirect window → invisible under WSLg (no parent).
@@ -51,7 +51,7 @@ Make swap mode reliably move the ticker to the opposite monitor edge without get
 - After editing, the user will run `bin/Protocol-7 sourcecode update-signatures`.
 
 ## Current user-visible config
-- `configuration/zenki/ticker/start` contains `ticker.window.monitor = index:2`.
+- `cfg/zenki/ticker/zenka.v7` contains `ticker.window.monitor = index:2`.
 - `ticker.mouse.swap_edge` is enabled.
 - Default `ticker.swap.delay = 3`.
 
@@ -84,7 +84,7 @@ Root cause found and fixed. Sequence at startup:
    monitor" symptom for `index:0`/`index:2`.
 
 ### Fix applied
-`modules/ticker.start_animation`: when the window was hidden and is now
+`src/ticker.start_animation`: when the window was hidden and is now
 being shown (`$was_hidden` true) and `<x11.coordinates.left>` is defined,
 schedule a one-shot 0.3s timer that re-applies
 `ticker.cmd.set-window-profile` + double `base.X-11.move_window` (same
@@ -164,10 +164,10 @@ further, or increase the per-apply sleep again / add a 4th apply.
 
 ## Tuning adjustments [Claude, 2026-06-14]
 - `ticker.swap.delay` default raised from 3s to **4.2s**
-  (`modules/ticker.set_default_values`) - slightly longer hover-before-swap
+  (`src/ticker.set_default_values`) - slightly longer hover-before-swap
   threshold.
 - `ticker.speed` lowered from 9.47 to **8.47**
-  (`configuration/zenki/ticker/start`) - slightly slower scroll.
+  (`cfg/zenki/ticker/zenka.v7`) - slightly slower scroll.
 
 ## Second-opinion analysis [Claude, 2026-06-14]
 
@@ -225,7 +225,7 @@ review Kimi's attempt once it's written. Ping me via `bin/chat`.
 
 ## Latest attempt result [Kimi, 2026-06-14]
 
-Implemented the hide/show + deferred verification in `modules/ticker.cmd.swap_profile`.
+Implemented the hide/show + deferred verification in `src/ticker.cmd.swap_profile`.
 
 Observed behavior from the user:
 - The starting position is wrong: there is a **negative vertical offset**, the ticker is not truly at the bottom edge.
@@ -256,14 +256,14 @@ back to plain hover-fade -> looks like "it disappears, never reaches top").
 Changes made (no hide/show, no rebuild - smallest possible diff on top of
 the reverted baseline, current state staged so this is a clean diff):
 
-- `modules/ticker.cmd.swap_profile`: after the first
+- `src/ticker.cmd.swap_profile`: after the first
   `set-window-profile` + `X-11.move_window`, sleep 0.05s and repeat both
   (geometry apply + ConfigureWindow) once more before verifying.
 - `ticker.swap.disabled` is now only set after **3 consecutive** failed
   verifies (`ticker.swap.fail_count`), reset to 0 on a successful swap.
   `ticker.swap.move_failed` is still recorded/logged but no longer
   permanently blocks retries.
-- `modules/ticker.handler.check_pointer`: removed the
+- `src/ticker.handler.check_pointer`: removed the
   `not <ticker.swap.move_failed>` gate on the swap branch, so a failed
   attempt doesn't prevent the next hover from retrying the swap
   (only `ticker.swap.disabled` gates it now).
@@ -290,7 +290,7 @@ against absolute target coordinates — guaranteed to always "fail",
 independent of whether the actual move worked or not.
 
 ### Fix applied
-`modules/X-11.cmd.get_geometry`: in the raw-`GetGeometry` fallback branch,
+`src/X-11.cmd.get_geometry`: in the raw-`GetGeometry` fallback branch,
 additionally call `$X->TranslateCoordinates($window_id, $X->root, 0, 0)`
 and use its `(dst_x, dst_y)` as the window's `x,y` instead of the
 parent-relative values from `GetGeometry`. This gives root/screen-relative
@@ -316,8 +316,8 @@ visibly moved to the top edge).
 ## How to synchronize
 This file lives at `session-state.md/CLAUDE_DEBUG_TICKER_SWAP.md`. Edit it in place if you update the plan. The Kimi session can read it back via `bin/chat` or file tools.
 
-#,,,,,,,,,.,.,,.,,...,,.,,..,,.,.,.,,,,.,,.,,,..,,...,..,,,.,,..,,,,.,,,.,,,.,
-#KNT2TXSROYNCK5BZFIVA5QHVK3LB74KLBFXTFTZILRDOWYCEDKBP4LGLMUKKSN3ZSJH77UZU2EM4O
-#\\\|VE74YSEJD2CMCCB7CNGESQPOIZLFOMHOXXNYOLGQON5FC2U7MSF \ / AMOS7 \ YOURUM ::
-#\[7]OYQHOJ3Y72MLJ2G4DSUZPVHMW4Z3NH735VTUT5V2DMWHMU6CLECI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,,,,,,.,,.,.,.,.,..,,.,.,.,.,..,,...,.,.,,,,,,,,,,,.,,..,,..,
+#AXI34PEIKUDJ3HIIVO7ZQDDQQAZ4NVLWUXFJ5U24PNJCQAOBG7HAUTZRRAKLGBXTAVHX6DS5LSDFC
+#\\\|ZJ2L6NBRRA2AHJRLMOJ3BJHT5M6Z5GJE2RRYWPCX63NE3MHKVBB \ / AMOS7 \ YOURUM ::
+#\[7]KPNKD33OCBKAWX4GOPPC4E5Y225OYAV62OYOEMF3BRW3QLEXSSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

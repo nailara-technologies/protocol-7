@@ -6,7 +6,7 @@ cursor indicator is redrawn after replies. read first:
 `src/nshell.handler.command_reply`,
 `src/nshell.render.empty_prompt`,
 `src/nshell.read_from_buffer`,
-`cfg/zenki/nshell/start`.
+`cfg/zenki/nshell/zenka.v7`.
 do NOT touch signatures or unrelated logic.
 
 ## problem
@@ -20,7 +20,7 @@ ensure the chosen mode is applied consistently regardless of reply type.
 
 ## config key
 
-add to `cfg/zenki/nshell/start` (as a commented example, following
+add to `cfg/zenki/nshell/zenka.v7` (as a commented example, following
 the `nshell.cfg.overflow_marker_left` pattern):
 
 ```
@@ -86,8 +86,8 @@ the `line` (default) and `none` modes correctly. only `all` mode bypasses it.
 - no regressions to `needs_newline_prefix` / next-prompt-newline behavior
 - no manual AMOS7 signature stubs in edited files
 
-#,,,,,.,.,.,,,...,,,.,...,..,,,..,,..,.,,,..,,..,,...,...,.,,,..,,,..,...,..,,
-#F43IXEA4COPHH7JHU3XNOXTLSVGFPFYOLUU2FTTX2LGHMTS2LYFHUCVQUFGHIPJPVMFI7WP2WDSA4
-#\\\|TATMWK4AH5YSBMJMXQG2PPWAKSDMFH7RMJF5NIMSJ77ZVQ74BJY \ / AMOS7 \ YOURUM ::
-#\[7]RT5KEDXYXGWRZIHOW3WWSQKITO4ZZJUDZARPDLNEKRK6LGBRPQDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,..,,,.,,,..,..,,...,,,.,,,,,..,,...,..,,,.,,,.,,...,.,,,..,,
+#WXPEZVJSDNXYXRO5I3FQKR6VD5MZDSAHBTWGQ4R4JZPIVPXWE2SSUE5AUWNBTFC3MJUKQECIQ2GOO
+#\\\|HOQN7OJWQDNA6EVCL6KO4EIZU56OUOLWU4KSGOO4ZF5WX7MFCWF \ / AMOS7 \ YOURUM ::
+#\[7]UOR2ULND6GVL5B3U5OJCH57K5UQ2AZNIZH45XFWVNISJGMJ72WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,7 +57,7 @@ embeds context in `$prompt`) → `coding.ask-reply` → `coding.intake.work` sto
 
 ## reasoning namespace
 
-- added `reasoning` to `modules.load` in `cfg/zenki/coding/start`
+- added `reasoning` to `modules.load` in `cfg/zenki/coding/zenka.v7`
 - `reasoning.threshold.fire` → renamed to `reasoning.threshold.crossed`
   (harmonically TRUE, self-describing); call sites in `reasoning.tree.insert` updated
 - `reasoning.threshold.crossed` is a stub — extend when threshold events need
@@ -92,8 +92,8 @@ embeds context in `$prompt`) → `coding.ask-reply` → `coding.intake.work` sto
 build.zenka → build graph → network distribution → 5/7 consensus → LLM audit
 intake → minimal OS end state. layer 1 buildable now.
 
-#,,,.,,,,,.,,,..,,...,,..,.,.,,..,,..,...,...,..,,...,..,,..,,,,,,..,,,.,,..,,
-#I3KQQG63WMPH44T3B6DX46AFJQFBS4YX3MZ2T4TCZQDFQDTNCXUGB72XHNMLPNIBHROYUOTD52C6S
-#\\\|4W6JDZ2JU7CMHEWTFVBEPAFJSGF6FMFFM3ETMZ5S5VIF6RXRRMD \ / AMOS7 \ YOURUM ::
-#\[7]RL5Q6X265T2KTIETOTWL3WKS3WQPNJWH767EIJ2PFWPMG3IQ6UAY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,.,,,.,.,,,.,..,,.,,,,,.,,..,..,,...,...,,,,,,..,,..,...,,,.,
+#4X7YRMDGD6GF7SKZWHMQT7OAWSNOHDF66XDOKDWKQNMSFWDZHLW3H5FKH5IFJKT45RXBVCBGND4HO
+#\\\|LAS76QHBDV4ZUIDCDMYWTEISMAZ427PH37R6CI6BIBQUFNUVMAE \ / AMOS7 \ YOURUM ::
+#\[7]VMWOJGA3BCKUEU2FEFRMGBMFGYSZBPZV6PRS7ADTECRNWG5BDSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

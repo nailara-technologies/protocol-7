@@ -74,8 +74,8 @@ parsing stderr is the ground truth source for what is actually missing.
 
 ```
 src/coding.init_code → use coding zenka pattern as template
-cfg/zenki/invokeai-web/start
-cfg/zenki/invokeai-web/zenka-startup.v7
+cfg/zenki/invokeai-web/zenka.v7
+cfg/zenki/invokeai-web/start.cfg
 src/invokeai.handler.monitor_startup
 src/invokeai.handler.parse_missing_model
 src/invokeai.cmd.status
@@ -193,8 +193,8 @@ cfg/zenki/invokeai/                     ## stub dir, empty
 - phase 3 9p server extension does not break existing amos-term buffer serving —
   `root` walk still checks `buffers` first, new `paths` registry is separate
 
-#,,.,,,,,,,,,,,,.,,..,.,.,.,,,,.,,.,,,.,.,...,..,,...,...,.,.,..,,.,,,.,.,,.,,
-#IX6WRIXNLNPFL2ICUWW42BVZAQGTCGUXUZY7ZTJ2DFVGGMOOO6H6LISUAMCQZAWHSZISS7BIIUQJY
-#\\\|PNW2YWVYIRQX7E6MOSRUB4WT4H5F5UF6Z4EZVMILMSKQOY6PDCS \ / AMOS7 \ YOURUM ::
-#\[7]TTZEM46JE4SXWDU4X43WZIFI2YJGTHOLMMXXBFQ66XVA2AXIPWBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,.,,,,,.,,,.,...,...,.,.,..,,..,,...,...,,,,,.,.,...,.,.,,,,,
+#GZHTXS72N2SZMBZEZKQQ47ZOYZP3MKQFZIK7CLZ2CQVOBF5KVXASMUUJTJ7RP3QE65NTPX3Z7X4QI
+#\\\|V5WRQQTEKGRWXLFRD4B3XK7LTSS4NVRO7TKACPR6GV257SZ33WL \ / AMOS7 \ YOURUM ::
+#\[7]UV5QN5YF6DKTKJSTWTSEDMBJ5NXNWJHVAHR6YL25VB2GBM6LX2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

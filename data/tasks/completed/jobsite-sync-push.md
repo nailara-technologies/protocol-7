@@ -66,7 +66,7 @@ if ( $sync_interval > 0 ) {
 }
 ```
 
-### Config keys (in `cfg/zenki/jobsite/start`)
+### Config keys (in `cfg/zenki/jobsite/zenka.v7`)
 
 Add these if not present:
 ```
@@ -92,11 +92,11 @@ the signing system adds them separately.
 1. `src/jobsite.sync.push`
 2. `src/jobsite.sync.apply_reverse`
 3. Updated `src/jobsite.init_code` (add sync timer block)
-4. Updated `cfg/zenki/jobsite/start` (add cfg keys if missing)
+4. Updated `cfg/zenki/jobsite/zenka.v7` (add cfg keys if missing)
 5. Updated `cfg/zenki/jobsite/subroutine.white-list` (add both new modules)
 
-#,,..,.,.,,,.,...,,,,,,,.,,.,,,.,,,.,,...,,,.,..,,...,...,,..,..,,...,...,.,,,
-#HKDFAIRKGMRP2UUOAVKRZLQQXW33X7WJA25L27KLWNT3ERZLT472DXH3R2MVMAIBA674YSYHPB6XO
-#\\\|5XCDZR2QJQSXQLFKI42ZA4KN7CXI2QUASXCOFGWIIFVUO6EYRTK \ / AMOS7 \ YOURUM ::
-#\[7]KKPAROLTBUPYSE73BT67IPB7H7SUPIDYHLKEBIEOYQIRATAXGKCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,,,..,,,.,,,,.,.,,,,.,,.,,,...,..,,...,...,..,,..,,,,,,,.,,,,.,
+#BXYPLNOPP2EIKMZJ53SVG2J5SKWCHBV3GFBGTJ2QNSJVM226YQCZCXYKR2GMYARWHZWEQYKJMWG7K
+#\\\|PMKFSZ7EME64ZF37E6TZ6XO5M2VTJV2RV2VTIG55FTQ2SZONN3M \ / AMOS7 \ YOURUM ::
+#\[7]I7KTWYKT5EU7VMS7XPCXUP4G66V6CTSE75NQKSPU4INJFOSBNEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

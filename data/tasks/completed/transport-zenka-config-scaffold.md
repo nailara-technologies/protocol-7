@@ -15,7 +15,7 @@ scaffolding — read-write, not read-only.
 ## problem
 `cfg/zenki/transport/` does not exist at all:
 - no `start` file (defines `modules.load`, config, execution flow)
-- no `zenka-startup.v7` (runtime parameters)
+- no `start.cfg` (runtime parameters)
 - no `subroutine.white-list`
 - no `access.zenki`
 - no `auth.zenki` entry for `transport` in `cube/access.zenki` /
@@ -35,7 +35,7 @@ infrastructure zenka created in the same wiring effort, also
 currently boot-blocked but config-complete) or another comparable
 on-demand zenka, and adapt zenka-specific values:
 
-1. **`cfg/zenki/transport/start`** — list
+1. **`cfg/zenki/transport/zenka.v7`** — list
    `modules.load = ...` covering at minimum the modules named above
    (`transport.select`, `transport.profile.load`,
    `transport.handle.*`), plus whatever shared/base modules a
@@ -45,7 +45,7 @@ on-demand zenka, and adapt zenka-specific values:
    load` reference (grep the modules for `<transport.cfg.` to find
    what's expected).
 
-2. **`cfg/zenki/transport/zenka-startup.v7`** — runtime
+2. **`cfg/zenki/transport/start.cfg`** — runtime
    params. since this is on-demand infrastructure (started when first
    accessed, not always-on), follow the pattern in CLAUDE.md's
    "On-demand Management" section: likely `restart.disabled = 1`,
@@ -93,7 +93,7 @@ on-demand zenka, and adapt zenka-specific values:
 
 ## acceptance
 - `cfg/zenki/transport/` exists with `start`,
-  `zenka-startup.v7`, `subroutine.white-list`, `access.zenki`, modeled
+  `start.cfg`, `subroutine.white-list`, `access.zenki`, modeled
   on an existing comparable zenka
 - `cube/auth.zenki` grants `transport` zenka auth
 - `v7.list available` lists `transport` (verified or explicitly marked
@@ -108,8 +108,8 @@ on-demand zenka, and adapt zenka-specific values:
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,..,.,.,,,.,,,.,.,,,,,,,...,,,.,.,,,...,...,..,,...,...,.,,,..,,,.,,.,,,,,.,
-#QNX4UF5HJPP6JEBIKKLA4ATD4WWZTR5WUZJULDDHAGCBZXTYI2P4JZC2OQMK3MUWISVV62534JPIS
-#\\\|NTMBF4WFOEITL5QPVEOGKZZVL5TWNCNCIGIQ5FELNOQE5JMDI5K \ / AMOS7 \ YOURUM ::
-#\[7]7GC4SXSNLOB7FENCTVYK7OSNRC6BJ3H3SYOWJUZHFEPENC2MYQBA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,.,.,,,,.,,,,,,,,,,..,,.,.,..,,..,,...,...,.,,,,,.,.,,,,,.,,,,,
+#3PEBBYBTRYTPQKPRVMK5JWZ5D7ULQJFUZK4BY6S3H6TDKVJYNL3HOMTFGKAU3VTJL64WSZQGYOMHO
+#\\\|JHXRGOC7RAUB6SYDHT5D52BE7PWMVOPPNOMEAYX3T7UDOJFM45O \ / AMOS7 \ YOURUM ::
+#\[7]R5CCZSRUTM2J5C5VNAOTOXOVHOELV7UO7LR6ABFDGGZYSMKQY4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

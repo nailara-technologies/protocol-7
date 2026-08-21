@@ -18,7 +18,7 @@ users.* calls. Just a zenka that boots and loads its modules without error.
 ## Precedent to clone (structure, not content)
 
 `cfg/zenki/keys/` is the shape to copy:
-- `cfg/zenki/keys/start` — thin start file, loads modules, drops into
+- `cfg/zenki/keys/zenka.v7` — thin start file, loads modules, drops into
   `[base.call.console_command]`
 - `cfg/zenki/keys/source/` — one empty placeholder file per top-level
   module namespace loaded (`base`, `crypt.C25519`, `keys`, `terminal` — `base` is
@@ -32,7 +32,7 @@ users.* calls. Just a zenka that boots and loads its modules without error.
 
 ## What to build
 
-1. `cfg/zenki/user-edit/start` — modeled on `keys/start`, but:
+1. `cfg/zenki/user-edit/zenka.v7` — modeled on `keys/start`, but:
    - `modules.load = terminal editor ascii.frame user-edit`
    - do NOT load `crypt.C25519` — user-edit has no key-management role (see
      design doc's phase_1_skeleton for why)
@@ -90,8 +90,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` (whichever fits) if you hit anything non-obvious
 along the way — same as any other task.
 
-#,,,.,...,.,,,...,.,.,,,,,...,..,,,..,.,.,,,,,..,,...,...,...,,.,,,,,,..,,..,,
-#RW3JQNN5MJ6MFGFL45YTD6D7MDVAAFLP27P4PVFEINW33O3I2QQJPRVTA3XOOWVHKOL5YJPFEXCN2
-#\\\|NPE52RKNWTPQFQOX7MLZLEIADUOK465QGDZXDK2UWYUMPUHMCNE \ / AMOS7 \ YOURUM ::
-#\[7]RTLMQP6RPXT2KR5WM2AY56ZGVGE5UZBZDE4L4BMFNQSS4XSLHQDA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,,.,,.,,,.,.,...,,..,,,.,.,,,..,,...,..,,..,,.,.,.,,,,..,,.,,
+#LCPJAJJWX3DMWC6PMP7ONGHAJLTQNPAIUIPWD7BZ4DGJJDYGFKEDCKNI3M2SYHQK63VIQL6EXFSEE
+#\\\|O6ZFWDLFRSQCWAJMOMWFOKN7CNLDH7GPD4UTL4VRSQEPV6DX4XH \ / AMOS7 \ YOURUM ::
+#\[7]6TTD4BOSEV36UGGFBLQTNWORQRBQLEWBNG6DG32JSTJW2SFMWABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

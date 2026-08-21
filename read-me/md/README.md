@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3WZLHTXYGQ-9142.0 :::
+::: SOURCE-CODE VERSION :: 3WZLNQ76HQ-9143.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -263,8 +263,8 @@ Three primary methods for interacting with the Protocol-7 network:
 
 The Protocol-7 system consists of interconnected zenki (agents) that communicate through a standardized message protocol:
 
-1. The [v7](cfg/zenki/v7/start) zenka manages the lifecycle of other zenki
-2. The [cube](cfg/zenki/cube/start) zenka routes messages between other zenki
+1. The [v7](cfg/zenki/v7/zenka.v7) zenka manages the lifecycle of other zenki
+2. The [cube](cfg/zenki/cube/zenka.v7) zenka routes messages between other zenki
 3. Specialized zenki perform tasks ranging from system management to user interface presentation
 4. Custom zenki can be created by adding configuration files and module code
 
@@ -364,8 +364,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,,,,..,,,.,,.,,..,,,,.,,.,,.,,,,..,,.,,..,,..,,...,...,.,.,,,,,..,,.,,,.,,,
-#YSGFNL6OOY6T25LT2XT2TZOGHYHQ5WJDWYSVS3TDJSWEJDPIL3CYYKVROVWDXVXIBLR3IWR7S2SIG
-#\\\|46XZA3YOEVYBIB4J4CMFIVR2YP22KG77YP33CWNUTEVS6AC65IA \ / AMOS7 \ YOURUM ::
-#\[7]6WYBMYFA73IK4743L2NLEW3LTS6D2YIYH4ZVUSBHMPFFGNLS54CY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,..,,,..,...,,.,,,.,,..,,...,..,,...,...,.,,,.,,,,,.,.,,,...,
+#6OSBVHYV3H3Q5LHUKYZ4E53KOWSFTBFKUTOZMNUHRTTD5DNT4IN7KW2C2NNKUIQWLCFPEOBJ4MOUQ
+#\\\|BCJYZFI5WMDPHAB7KIUTRJCE5CCMIKY7HL37IBTEBZOP5SXLBEA \ / AMOS7 \ YOURUM ::
+#\[7]Q2F4SKGOHHBY2Q5Q5E3QC6PJ6VF33AUV3ETG5YQFZAJOH4LSVIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

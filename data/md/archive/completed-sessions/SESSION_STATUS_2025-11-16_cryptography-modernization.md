@@ -31,7 +31,7 @@ This session focused on **eliminating RSA dependencies** and **modernizing Proto
 
 #### Changes:
 - **File**: `src/httpsd.init_code` (lines 12-14)
-- **File**: `cfg/zenki/httpsd/start` (lines 17-18)
+- **File**: `cfg/zenki/httpsd/zenka.v7` (lines 17-18)
 
 #### Before:
 ```
@@ -237,7 +237,7 @@ harmony show-cipher-suites
 
 ### Production Configuration
 
-**File**: `cfg/zenki/httpsd/start`
+**File**: `cfg/zenki/httpsd/zenka.v7`
 ```perl
 httpsd.cfg.tls_version              = TLSv1_3:TLSv1_2
 httpsd.cfg.cipher_suite             = ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256
@@ -315,7 +315,7 @@ httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
 | File | Changes | Lines | Purpose |
 |------|---------|-------|---------|
 | `src/httpsd.init_code` | 2 | TLS version & cipher suite config |
-| `cfg/zenki/httpsd/start` | 2 | Runtime HTTPS configuration |
+| `cfg/zenki/httpsd/zenka.v7` | 2 | Runtime HTTPS configuration |
 | `src/letsencrypt.child.generate_csr` | 7 | Ed25519 key generation |
 | `src/letsencrypt.init_code` | 1 | Update comment (remove RSA) |
 | `src/letsencrypt.base.pre_init` | 2 | Remove Crypt::OpenSSL imports |
@@ -439,7 +439,7 @@ This session is **complete and production-ready**. All code has been committed a
 
 ### Key Files for Reference
 - `/home/user/protocol-7/src/httpsd.init_code` - HTTPSD cipher config
-- `/home/user/protocol-7/cfg/zenki/httpsd/start` - Runtime config
+- `/home/user/protocol-7/cfg/zenki/httpsd/zenka.v7` - Runtime config
 - `/home/user/protocol-7/src/letsencrypt.child.generate_csr` - Ed25519 generation
 - `/home/user/protocol-7/src/letsencrypt.cmd.show-cipher-suites` - User command
 
@@ -460,8 +460,8 @@ This session is **complete and production-ready**. All code has been committed a
 **Previous**: /home/user/protocol-7/docs/SESSION_STATUS_2025-11-15_web-zenka-progress.md
 **Related**: Also updated workspace-transfer/bin/deps with Nailara colors & path discovery
 
-#,,..,,,,,.,,,..,,,,.,.,,,.,,,...,...,...,.,,,..,,...,...,,,.,...,.,,,.,,,,..,
-#RVTMRABH3IC3DAYCHSEGHWGCRVYJGEZDRVPBMEBHAV7QLKZEA5RW6FXSN74OI5QTI7AJX2OW5HRKM
-#\\\|FJ7Q24FHO7L62KAZGZS6Z3YVLHPQPBVRD3YXNOUSN5YLRCVOU74 \ / AMOS7 \ YOURUM ::
-#\[7]EN4FKILNOAPPGDRUGXHVLZQI2X676ECV76UORNFYJOYPKQ6VFUAI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,..,,.,,,,,.,,.,,,..,,.,,...,..,,...,...,...,,..,,,.,.,.,,.,,
+#XFSTUPW743J4YA35MT2CRHBFZRKRO7WSSFNBIJZBFB5E7CCVAME3M6HO7WMTFIEV72FSLCUWQM3JQ
+#\\\|PPEL6UHQUAFPG2LQQ4HIUSXZWT6FGUJHAEJJXEB4DSKMEJD4C3V \ / AMOS7 \ YOURUM ::
+#\[7]AEHGCCAORLJTPFAOLOLBK5F2YHKAQB7QOOKXQ2NM4N2QIK7SASCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

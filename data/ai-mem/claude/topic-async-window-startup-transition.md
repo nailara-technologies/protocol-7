@@ -346,7 +346,7 @@ still unstaged; the _NET_WM_MOVERESIZE attempt is reverted.
   base.gtk.{strip_on_monitor,centered_on_monitor,ensure_display},
   base.X-11.{get_coordinates_async,handler.coordinates_reply},
   ticker.startup.geo_ready (new); edits src/ticker.startup (main_loop
-  removed), cfg/zenki/ticker/start, ticker subroutines.load-early.
+  removed), cfg/zenki/ticker/zenka.v7, ticker subroutines.load-early.
   ALSO from earlier this session, signed-but-CHECK-IF-COMMITTED: base.gtk.
   {list_monitors,snap_to_monitor}, protocol-7-menu.graphical-startup-init,
   screen.setup.{open_window,enumerate-monitors,handler.*}, cube/auth.zenki —
@@ -433,7 +433,7 @@ the `base.X-11.*` namespace:**
 **ticker reference files (built):** modules base.gtk.{strip_on_monitor,
 centered_on_monitor}, base.X-11.{get_coordinates_async,
 handler.coordinates_reply}, ticker.startup.geo_ready (new); edits
-cfg/zenki/ticker/start, src/ticker.startup (main_loop removed).
+cfg/zenki/ticker/zenka.v7, src/ticker.startup (main_loop removed).
 ticker white-list regen'd (588). ALL NEED SIGNING.
 
 **SESSION-ID SEMANTICS (critical — taeki corrected me twice here):**
@@ -603,14 +603,14 @@ against the real 3-monitor overlap layout (needs beamer on to reproduce) —
 open issue #2 (the separate "shadow only, no content"/"no draw callback"
 compositor-paint glitch that followed void-landing recoveries) is UNCHANGED,
 still unconfirmed whether placement patience reduces or fixes it.
-Left cfg/zenki/graphics-matrix/zenka-startup.v7 (on-demand
+Left cfg/zenki/graphics-matrix/start.cfg (on-demand
 commented out) and cfg/zenki/v7/start-set-up.base
 (`zenki.disabled = graphics-matrix`) AS-IS per taeki — confirmed unrelated to
 ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
 a leftover debug toggle from a prior session, taeki wants it disabled for now.
 
-#,,,,,..,,.,,,,.,,,.,,,,,,..,,,.,,..,,,..,,.,,..,,...,...,,..,...,,..,,,.,,,,,
-#VVP4WHEZB3L7TACWCAFRYXIHFF27TI7TBSHBV4RJ3DHHEHWTNQLGCSSY7IWPO54X63NIN2PQT2MBK
-#\\\|3LIW6TQDVABWEPMF35LAK4XYV2HQZLKUT4ISOBHT4C5BUA3JLOY \ / AMOS7 \ YOURUM ::
-#\[7]PHO7THOWL52YJHM33KDM7ZN4LOIAZDBG6ZC4OHKUTR6MGHNK2GDQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,,,.,..,,,..,,,,,,,.,.,.,,,,,..,,...,...,...,,,.,,,.,...,.,.,
+#TN4QW4GIZHXZ643TMLD2YVY36VPDKL66JLXVDEPWFMW7ULRQREHAWTQPXLXU7IXNOC2RXDPK6GBJA
+#\\\|DYS4ASYMAPB6OSGSLFFJZO6KOY5F5YWL3YPPDXYDFPA5GCLABFT \ / AMOS7 \ YOURUM ::
+#\[7]E7PHBHNJ7VBP7BCFNI6BI4CWFGKLAPDFCJLVQYNXNMQAQBXVHOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

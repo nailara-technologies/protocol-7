@@ -3,14 +3,14 @@
 ## Environment
 - Project: Protocol-7 (`/data/projects/protocol-7`), branch `base`
 - Language: Perl 5 + Gtk3
-- Ticker zenka: `modules/ticker.*`
+- Ticker zenka: `src/ticker.*`
 - Builds on: commit `23c0b3ede` (notify mode, dismiss-on-hover) and
   `read-me/md/session-state/TASK_TICKER_NOTIFY_MODE.md` (phase 1, done)
 
 ## Background
 Phase 1 added `ticker.cmd.read-file-notify`: a one-shot message that hides
 itself once the user hovers over it (fade-out completes -> `$window->hide`,
-`<ticker.notify.dismissed> = TRUE`, see `modules/ticker.handler.fade_out`
+`<ticker.notify.dismissed> = TRUE`, see `src/ticker.handler.fade_out`
 lines ~39-55).
 
 This phase adds two independent features on top of that.
@@ -29,7 +29,7 @@ before the path is used. Accept `:wait:` as an alias for the same thing
 - With the flag, and only if the file loaded successfully (no error):
   - return `{ 'mode' => qw| deferred | }` instead of the immediate reply
     (this is the existing mechanism in `base.handler.command` /
-    `modules/base.callback.cmd_reply` - `$call->{'reply_id'}` is already
+    `src/base.callback.cmd_reply` - `$call->{'reply_id'}` is already
     set up by the dispatcher for this purpose),
   - store `$call->{'reply_id'}` so it can be resolved later (e.g.
     `<ticker.notify.pending_reply_ids>` - a list/array, since a second
@@ -39,7 +39,7 @@ before the path is used. Accept `:wait:` as an alias for the same thing
     as today (`{mode=>false,...}`) - do NOT defer an error.
 
 ### Resolving the deferred reply
-In `modules/ticker.handler.fade_out`, at the existing dismiss point (where
+In `src/ticker.handler.fade_out`, at the existing dismiss point (where
 `<ticker.notify.dismissed> = TRUE` is set, ~line 46):
 - for each pending reply id in `<ticker.notify.pending_reply_ids>`, call
   `<[base.callback.cmd_reply]>->( $reply_id, { 'mode' => qw| true |, 'data'
@@ -100,14 +100,14 @@ be a single line, no embedded newlines).
   judgment call, ok to revisit).
 
 ## Files likely involved
-- `modules/ticker.cmd.read-file-notify` - parse `:wait-dismissed:`/`:wait:`
+- `src/ticker.cmd.read-file-notify` - parse `:wait-dismissed:`/`:wait:`
   prefix, defer reply, apply top-position profile
-- `modules/ticker.handler.fade_out` - resolve pending deferred replies on
+- `src/ticker.handler.fade_out` - resolve pending deferred replies on
   dismiss
-- `modules/ticker.set_default_values` - default
+- `src/ticker.set_default_values` - default
   `<ticker.notify.pending_reply_ids> = []`,
   `<ticker.notify.use_top_position> //= TRUE`
-- `modules/ticker.cmd.read-file-cont` / `read_file` - restore profile when
+- `src/ticker.cmd.read-file-cont` / `read_file` - restore profile when
   switching back to continuous (if it was overridden by notify's top
   position)
 
@@ -149,8 +149,8 @@ content-checksum tagging of click events, left/right-click semantics per
 mode). Flag to the user if you think phase 2 work here would make phase 3
 easier or harder to retrofit, but do not implement phase 3 now.
 
-#,,,.,..,,,,,,,..,...,..,,,..,...,..,,.,.,,.,,..,,...,..,,...,,,,,,,,,,..,,.,,
-#JMNDVRBVY6ZMTJRQIW44QTSYEYIHUEB2PAQJ5EEVL5XWVZT46QH3CY7O3EB6PQD4OHMHUBZFDHZUE
-#\\\|24CLXO7KQHNFSQY2PEXWHIX3X37RLD6TMR35FYE2JZYX4V2NJMN \ / AMOS7 \ YOURUM ::
-#\[7]RLBUPKVW75KMVSMMZ3LUNPSEGJVDHJ533WEKJ6C5YCTVVUT45UDI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,.,.,..,,,..,,,,,,..,...,,,.,..,,...,...,.,,,.,,,,..,,,.,,,.,
+#D5OFOSSPC54OHXLUIJ6D37VJ6KLKNM2RU27CLJO45NVU5YXQU4EIKBZKWFQLI3CBOCX7EFHKTYKSM
+#\\\|XXZAC7YKK5TBPIYRH2WYLC6EEYCXSNR6E4WUXZRKB7QS64VYBUH \ / AMOS7 \ YOURUM ::
+#\[7]LQEHMWYUSX3RQJXFH3AYVTHAB7NHYGRDT6V3GF247N5BP7X2AADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

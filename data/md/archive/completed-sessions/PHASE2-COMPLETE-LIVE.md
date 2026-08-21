@@ -111,8 +111,8 @@ Aya-23-8B-Q4_K_M.gguf                  ✅ Found & Ready
 - coding.cmd.budget
 
 **Configuration**:
-- /data/projects/protocol-7/cfg/zenki/coding/start
-- /data/projects/protocol-7/cfg/zenki/coding/zenka-startup.v7
+- /data/projects/protocol-7/cfg/zenki/coding/zenka.v7
+- /data/projects/protocol-7/cfg/zenki/coding/start.cfg
 
 ---
 
@@ -299,7 +299,7 @@ which llama-cli                         # Should show /usr/bin/llama-cli
 ls /mnt/m/lmstudio-community/*/Q4_K_M.gguf 2>/dev/null | wc -l  # Should be 3+
 
 # 3. Check zenka configuration
-ls /data/projects/protocol-7/cfg/zenki/coding/start
+ls /data/projects/protocol-7/cfg/zenki/coding/zenka.v7
 
 # 4. Verify modules exist
 ls /data/projects/protocol-7/src/coding.* | wc -l  # Should be 11+
@@ -350,8 +350,8 @@ Next: Submit tasks and watch the orchestration engine work!
 
 Session End - Commit and Deploy ✅
 
-#,,.,,,.,,.,.,..,,,..,.,,,..,,.,,,,..,.,.,,,,,..,,...,...,,,.,.,.,.,.,.,,,,.,,
-#75PSGLID44MG7AGAPALVOT5DAYVO6YK6FYGO7UWR33NSA2CX3WZMB7MVI4TB5PJD2LBUGRDZ4HBDS
-#\\\|HK4OOHN3ULIN3H2FCIEVEWMUYEHTQW3SZLRNOEM6YLETRP2KMRM \ / AMOS7 \ YOURUM ::
-#\[7]EFXSFKS77WPVSP5FED467UNF36G74R2FMEMGE5RKGXQ6KCVTOCCI 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,,,,..,,,,,,,,,,.,,..,,..,,,.,,..,,...,...,..,,...,.,,,,,,,.,.,
+#FLYLW2CIZJDXNYS7F5N4BSI3XWJBSJFBXLHG2KKUPJY62CVQWCTPHKGQDPWGLT6YPQMHQGGFGC57G
+#\\\|M7NKZHEAV5J6LSECHZBKBQIWAPSKHK7QDJ6F5LVSDDFFTKXWMTL \ / AMOS7 \ YOURUM ::
+#\[7]SA767VB3DOYGWRNNOLW6QN7TDQTM724LOOLAQY5PLL6X4HHERIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -223,7 +223,7 @@ at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper mod
   `{ mode => deferred }`. round-1 report path preserved for the no-arg / non-`:switch:` case.
 - `src/coding.handler.vision_switch_poll` — NEW: the two-phase timer state machine above.
 - `cfg/zenki/coding/subroutine.white-list` — add new module name(s).
-- (optional) `cfg/zenki/coding/start` — add `coding.cfg.vision_switch_idle_timeout`
+- (optional) `cfg/zenki/coding/zenka.v7` — add `coding.cfg.vision_switch_idle_timeout`
   default if a dedicated key is preferred over reusing `concurrent.drain_timeout`.
 
 **signatures:** new/changed module files MUST be left UNSIGNED. the owner signs interactively
@@ -250,8 +250,8 @@ at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper mod
    for clarity.
 3. confirm the **no-new-access-grant** framing (parameter of an already-granted command).
 
-#,,,.,,,.,,,.,.,.,...,,,,,,..,,..,..,,...,,..,..,,...,...,,,.,,,.,,..,,.,,...,
-#O7QYYKFFNRNSCOO6SU3IVOFN7E3UWV5MULYOQVQL5TKYRFV5YL4J7C75LNJJ7OFI7CGI7MFEUE3CK
-#\\\|GIZSJEKSWIRBEHLSSU2H7VGAP5HNHUL3FNT3KCNMIGPRK3LDIXX \ / AMOS7 \ YOURUM ::
-#\[7]UHQO7NLEV3H33VG5JQQCFDYNK34DDQIHXKWCI4GCYXMS3BEBPCAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,.,,,,.,,...,,..,,.,,.,.,...,..,,...,...,..,,...,,,.,,,,,,,.,
+#FIBFT2TPE7YCF7ZEQWGDB5SUV75ISWRSEKV5ORLUOH22ROF6JBMQMU2KLNDFCZAZC5FVHMFUMQJUA
+#\\\|PSE3Y4WMJTKJHTFHT76OBK5O6VICXZGQEAEOCGRDI7M6MV377OX \ / AMOS7 \ YOURUM ::
+#\[7]4FGNZQUXESFETNN2UTMASCILEANSHA5JKC4MH6AHG66KKGUBCCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

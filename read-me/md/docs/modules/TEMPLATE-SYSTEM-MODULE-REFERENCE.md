@@ -23,7 +23,7 @@
 #### `web.init_code`
 **Purpose**: Initialize web zenka and configure template system  
 **Type**: `.init_code` - runs once at zenka startup  
-**File**: `modules/web.init_code`
+**File**: `src/web.init_code`
 
 **Initializes**:
 ```perl
@@ -48,7 +48,7 @@
 #### `web.process_template_recursive`
 **Purpose**: Main template processing engine with recursive parsing  
 **Type**: Regular module (subroutine)  
-**File**: `modules/web.process_template_recursive`  
+**File**: `src/web.process_template_recursive`  
 **Called by**: `web.process_template_ipc`
 
 **Signature**:
@@ -104,7 +104,7 @@ my $result = <[web.process_template_recursive]>->({
 #### `web.process_template_ipc`
 **Purpose**: IPC handler to receive templates from httpd zenka  
 **Type**: Regular module (command handler)  
-**File**: `modules/web.process_template_ipc`  
+**File**: `src/web.process_template_ipc`  
 **Called by**: httpd.process_template (via cube IPC)  
 **Calls**: web.process_template_recursive
 
@@ -145,7 +145,7 @@ my $reply = <[web.process_template_ipc]>->(
 #### `httpd.process_template`
 **Purpose**: HTTP layer handler called when `.tmpl` file requested  
 **Type**: Regular module  
-**File**: `modules/httpd.process_template`  
+**File**: `src/httpd.process_template`  
 **Called by**: httpd.http_get (or httpd.request_handler)  
 **Calls**: web.process_template_ipc (async via cube)
 
@@ -176,7 +176,7 @@ my $keep_alive = <[httpd.process_template]>->(
 #### `httpd.handler.web_template_reply`
 **Purpose**: Callback handler to receive rendered template from web zenka  
 **Type**: Handler (`.handler.` prefix)  
-**File**: `modules/httpd.handler.web_template_reply`  
+**File**: `src/httpd.handler.web_template_reply`  
 **Called by**: cube (async callback from web zenka)
 
 **Receives**:
@@ -207,7 +207,7 @@ my $keep_alive = <[httpd.process_template]>->(
 #### `httpd.vhost_template_resolver`
 **Purpose**: Find template across 3-level hierarchy  
 **Type**: Regular module  
-**File**: `modules/httpd.vhost_template_resolver`  
+**File**: `src/httpd.vhost_template_resolver`  
 **Called by**: Route dispatcher or your `httpsd.route_template_request`
 
 **Signature**:
@@ -248,7 +248,7 @@ my $path = <[httpd.vhost_template_resolver]>->(
 #### `web.skin_resolver`
 **Purpose**: Resolve CSS/skin file with cascade fallback  
 **Type**: Regular module  
-**File**: `modules/web.skin_resolver`  
+**File**: `src/web.skin_resolver`  
 **Called by**: Template during rendering to include stylesheets
 
 **Signature**:
@@ -294,7 +294,7 @@ my $css = <[web.skin_resolver]>->(
 #### `web.menu_generator`
 **Purpose**: Generate navigation menu from filesystem structure  
 **Type**: Regular module  
-**File**: `modules/web.menu_generator`  
+**File**: `src/web.menu_generator`  
 **Called by**: Template during rendering to create navigation
 
 **Signature**:
@@ -357,7 +357,7 @@ my $menu_items = <[web.menu_generator]>->(
 #### `httpd.route_dispatcher`
 **Purpose**: Intelligent HTTP request routing  
 **Type**: Regular module  
-**File**: `modules/httpd.route_dispatcher`  
+**File**: `src/httpd.route_dispatcher`  
 **Called by**: httpd.request_handler (or your integration)
 
 **Signature**:
@@ -415,7 +415,7 @@ GET /static/style.css
 #### `web.assets.load_registry`
 **Purpose**: Load asset registry (images, stylesheets, etc.)  
 **Type**: Regular module  
-**File**: `modules/web.assets.load_registry`
+**File**: `src/web.assets.load_registry`
 
 **Signature**:
 ```perl
@@ -434,7 +434,7 @@ my $success = <[web.assets.load_registry]>->();
 #### `web.execute_template_command`
 **Purpose**: Execute a single `<[command:args]>` in template  
 **Type**: Regular module  
-**File**: `modules/web.execute_template_command`
+**File**: `src/web.execute_template_command`
 
 **Signature**:
 ```perl
@@ -454,7 +454,7 @@ my $result = <[web.execute_template_command]>->({
 
 ### Module 1: Content Directory Scanner
 
-**File**: `modules/web.scan_content_directories` (or `modules/httpsd.scan_content_directories`)  
+**File**: `src/web.scan_content_directories` (or `src/httpsd.scan_content_directories`)  
 **Purpose**: Index available templates at startup or on demand  
 **Type**: Regular module (can also have `.cmd.scan_content` for manual trigger)
 
@@ -511,7 +511,7 @@ my $index = <[web.scan_content_directories]>->(
 
 ### Module 2: Request Route Dispatcher
 
-**File**: `modules/httpsd.route_template_request` (or could extend existing `httpd.route_dispatcher`)  
+**File**: `src/httpsd.route_template_request` (or could extend existing `httpd.route_dispatcher`)  
 **Purpose**: Route HTTP requests to appropriate handlers (ACME → API → Template → Static)  
 **Type**: Regular module
 
@@ -596,9 +596,9 @@ if ($route->{type} eq 'template') {
 ### Module 3: Template Cache (Two Functions)
 
 **Files**: 
-- `modules/web.template_cache.get`
-- `modules/web.template_cache.set`
-- Optional: `modules/web.template_cache.invalidate`
+- `src/web.template_cache.get`
+- `src/web.template_cache.set`
+- Optional: `src/web.template_cache.invalidate`
 
 **Purpose**: TTL-aware caching of rendered templates  
 **Type**: Regular modules
@@ -710,7 +710,7 @@ return $count;
 
 ### Module 4: Command Handler (Optional)
 
-**File**: `modules/httpsd.cmd.refresh_content_index` (or `web.cmd.scan-templates`)  
+**File**: `src/httpsd.cmd.refresh_content_index` (or `web.cmd.scan-templates`)  
 **Purpose**: Manually trigger content index refresh  
 **Type**: `.cmd.*` - automatically gets `$call` and `$reply` wrappers
 
@@ -1079,8 +1079,8 @@ my $ttl = $ttl // <web.cfg.cache_ttl>;
 **Ready to Implement**: YES  
 **Namespace Optimization**: Can be done post-implementation with `ncode replace all`
 
-#,,..,.,,,,..,,..,..,,...,..,,,..,.,,,,.,,,,,,..,,...,...,,,.,...,.,.,.,.,.,.,
-#4QDTV2EIXCIFWV627MMWFI7JY5HHXI4SM34ZKWRYJAMMW4XXLGJMJIYX2FMKDMWU3QXNVEY5FZSZU
-#\\\|HPMWWQ3J37SL6TOLP3Q333EPJV5AGJRHEMTGBGSOX7O3TUDJAYY \ / AMOS7 \ YOURUM ::
-#\[7]VABOP24RC2JV7FDHE2S2BP5NZXINAMOTZKKJ43FD537GLATLIQCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,..,,,,,,,,,..,,.,.,,.,,..,,..,,...,...,,..,,..,.,.,...,...,
+#3UFCKSDW25QJDOJ4PJLF6M7DWFDWGFK5YUQJCON3NY7E5E4YEUAJ3CQSCRIROQ4G22RRH632G4Q4Q
+#\\\|YLFLP5HKO7TAL2RVOMFHU7PGNSXLZ3MKDX4AZC7KLX65BSEM2IS \ / AMOS7 \ YOURUM ::
+#\[7]N35JR24D45PABR2XOB7RIHA4MAINYGZBQPERP2TJU7HB5XYCDSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

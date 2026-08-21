@@ -278,7 +278,7 @@ add graph initialization after cell init, before `0;`:
     ## initialize similarity graph ##
     <[graphics-matrix.graph.init]>;
 
-### cfg/zenki/graphics-matrix/start
+### cfg/zenki/graphics-matrix/zenka.v7
 
 add `graph` to the access.cmd.usr.cube line.
 
@@ -295,8 +295,8 @@ add `graph` to the access.cmd.usr.cube line.
     verify graph.cluster produces correct connected components
     verify cmd.graph connect parses addresses correctly
 
-#,,..,,..,,.,,.,,,.,,,,.,,.,,,.,,,.,,,,..,,..,..,,...,...,...,.,,,,,,,,.,,..,,
-#4Q2AETQTKUA2YYKBDFIHROAE4JLPBPLS5N6JM4YNBXW4RETX7EH5HTAUAHOZBKSVTFURIGGMT5PYO
-#\\\|BKXFEEQRFZSWSR53LLEA6BWNP3MA2IPLHA2VHUXIGLDXHZVPZ32 \ / AMOS7 \ YOURUM ::
-#\[7]IQIMFJGM7CA7Q4JBUQ3XBRYKTCZR5LBYJ5HTLD2IHLB6BIGVWQBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,,.,,.,.,..,,,..,,,.,,,.,.,,,..,,...,...,..,,.,.,,,,,.,.,...,
+#5PRVNFWIQSAJCUF26HMALNGIFAP3KLU6DHEGOWDEITYGEELXNSHRXJQHGECJXOMQM4ON3N4TKO4UK
+#\\\|G5CQ46PYPRL2YMGOSP73FZMKIEW65RAK2QQEIITW5PIKJME6CYB \ / AMOS7 \ YOURUM ::
+#\[7]EVG22RX3M7TEKMPCBCD5AYGLURZBSFU3N46IDX3KEUIPMHFBSQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

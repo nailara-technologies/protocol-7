@@ -18,10 +18,10 @@ grants + route-send handler references, and callers traced one level up.
 | src/base.file.tie_array | Tie::File | rare (1 real caller) | no | KEEP | only invocation is index.cmd.add-wordlist:46, an operator-triggered cube command; fires a handful of times per index-zenka lifetime | yes |
 | src/base.handler.read.encryption-wrapper | Crypt::AuthEnc::ChaCha20Poly1305 | hot (per encrypted message) | no | MOVE | installed as state-3 session input handler by protocol.protocol-7.init_code:91 / encryption.init:106 — the per-message read path of every encrypted session | no |
 | src/base.handler.write.encryption-wrapper | Crypt::AuthEnc::ChaCha20Poly1305 | hot (per encrypted session + writes) | no | MOVE | factory for the per-session output encryption handler installed by protocol.protocol-7.encryption.init:115-127 on every encrypted link | no |
-| src/base.stdio.transport.connect | IO::Socket::UNIX | startup/one-shot | no | KEEP | sole caller base.stdio_multiplex.connect:37, invoked once per zenka startup only in calc's zenka-startup.v7 init block | yes |
+| src/base.stdio.transport.connect | IO::Socket::UNIX | startup/one-shot | no | KEEP | sole caller base.stdio_multiplex.connect:37, invoked once per zenka startup only in calc's start.cfg init block | yes |
 | src/base.stdio.transport.listen | IO::Socket::UNIX | startup/one-shot | no | KEEP | sole caller v7.handler.stdio_multiplex_listen:48, itself called exactly once from v7.post_init:21 | yes |
 | src/base.tmp_dir | File::Path | startup/one-shot (conditional) | no | KEEP | only caller is the temp-home branch of base.root.drop_privs:187, reached at most once per zenka lifetime | yes |
-| src/channels.cmd.ai-review-approve | JSON::PP | rare (manual dev workflow) | no | KEEP | no static caller; reachable only via the dev-only cube wildcard grant in cfg/zenki/channels/start, part of a manual 4-step review workflow in an on-demand zenka | yes |
+| src/channels.cmd.ai-review-approve | JSON::PP | rare (manual dev workflow) | no | KEEP | no static caller; reachable only via the dev-only cube wildcard grant in cfg/zenki/channels/zenka.v7, part of a manual 4-step review workflow in an on-demand zenka | yes |
 | src/channels.cmd.ai-review-feedback | JSON::PP | rare (manual dev workflow) | no | KEEP | dynamic cube routing only; invoked once per review round in the same occasional ai-review workflow | yes |
 | src/channels.cmd.ai-review-status | JSON::PP | rare (manual dev workflow) | no | KEEP | zero static callers; user-polled status command in the on-demand channels zenka | yes |
 | src/channels.cmd.ai-review-submit | JSON::PP | rare (manual dev workflow) | no | KEEP | no static invocation anywhere; manually-triggered first step of a rarely-used review pipeline | yes |
@@ -108,8 +108,8 @@ grants + route-send handler references, and callers traced one level up.
    vision-batch.child.init_code already preloads JSON::XS — moving loads to
    image-quality.init_code would not cover the real execution path.
 
-#,,.,,.,.,,.,,...,.,.,,..,,,.,,,.,...,,,,,,..,..,,...,...,...,,,.,.,,,,,.,...,
-#Q5UBLS7YNHOGHFW77GBZHVXUPNSUXDA4M34S73NZ6UUDC2GDFKTNLZMFVCXSEIA4QYPSKTKHT4LPW
-#\\\|2LQHVXHVJBQH27364GQ73NRKVTPLK6OEUIKDQATLE4YWA4GGZLM \ / AMOS7 \ YOURUM ::
-#\[7]26BEVJUDVYIJ7ZTDJFLQMATHSQQPIJB2T2UFC4CZG7QBQRGDHECA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,.,,,.,.,.,.,,,,,,,.,,..,,..,..,,...,...,,,.,,..,,,,,...,.,.,
+#5KAQ4ZT52337JWNYF4LDYV43NYP75L4KJYOYDIR4U4RJINCL63KWNWQXZHTNRKTFIU6G6Q3MQ3Y3W
+#\\\|27SNLOOF7OHYLQRNVTD5TS2O5TCNAFRXLFLMAWZBSZNKDELWX2U \ / AMOS7 \ YOURUM ::
+#\[7]3WZVKVS4KYY7U4GLLSOTMRNIWOTZBSIX54UEY6BEU4BUID53MCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

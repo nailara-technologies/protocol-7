@@ -26,7 +26,7 @@ multiple live sessions because its `max_concurrency` gate was inert (see
 fanned a request/reply STRM command out to all of them, and two replies
 collided into the one waiting consumer, corrupting the response.
 
-**Proposal**: new top-level `zenka-startup.v7` key `routing_mode`, same
+**Proposal**: new top-level `start.cfg` key `routing_mode`, same
 reliability tier as `max_concurrency`/`max_subname_concurrency` (declared
 once, enforced consistently):
 - `group` (default, current behavior) — fan out to all.
@@ -90,8 +90,8 @@ session; whether routing_mode/admin-override should be settable *within* a
 subname group too; `group-next` etc. naming vs. `next.group` dot-namespaced
 alternative (bikeshed only).
 
-#,,,.,,,.,,,.,.,.,...,,.,,,,,,,,.,...,...,,..,..,,...,...,..,,,.,,,,.,.,.,,..,
-#KNVHI5LGWOA75ODD3WS3MHN62V4GFE63AKLCSPZEZJIYA4A4MT6ON3KKKCB6LMCY6MPJ36P4QEQFC
-#\\\|2LLZMEGJKYT6USY6LFW6SCKAAWVTCFBR7OMB26VMMUVZDSZCLR4 \ / AMOS7 \ YOURUM ::
-#\[7]DCVLENG642UNCCHAEHAIV7DL7DS4M2T7WJEJC3ETLY3JQAAIC2BQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,,..,,,,,,..,.,,,,..,,.,,...,..,,...,...,.,.,,,.,,,.,.,,,,,,,
+#GROUASWN4P7VMXABTPHQZTKQVHKZM3GN6PRW3OOJ323G3AA2ZTK6RLHDKMBPPRQZKRNJPCXAKKAKG
+#\\\|CFSUKQ3ORTNKPG7MAN2CJY2VYPBLP3Z7N4YZBDC7FZF2YVJFSW6 \ / AMOS7 \ YOURUM ::
+#\[7]ZXQCGSDNI5QHNMIEVOYZIERMPF5VMJMY6NRLLG5STAM2GSDEUWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -33,8 +33,8 @@ task:
   files_to_modify:
     - src/radio.init_code          ##  add post_init timer  ##
     - src/httpd.route_dispatcher   ##  add radio path check  ##
-    - cfg/zenki/httpd/start  ##  add plugins.load  ##
-    - cfg/zenki/radio/zenka-startup.v7  ##  add stream path config  ##
+    - cfg/zenki/httpd/zenka.v7  ##  add plugins.load  ##
+    - cfg/zenki/radio/start.cfg  ##  add stream path config  ##
 
   plugin_state: |
     namespace: <plugin.httpd.radio.*>
@@ -279,13 +279,13 @@ task:
     or deactivated [ already handled in cmd.radio_online and handler.radio_offline ].
 
   httpd_start_modification: |
-    in cfg/zenki/httpd/start, add before [load_modules:<modules.load>]:
+    in cfg/zenki/httpd/zenka.v7, add before [load_modules:<modules.load>]:
 
       plugins.load = plugin.httpd.radio
       [load_plugins:<plugins.load>]
 
   zenka_startup_modification: |
-    in cfg/zenki/radio/zenka-startup.v7, add:
+    in cfg/zenki/radio/start.cfg, add:
 
       radio.stream.path = /radio/stream
 
@@ -306,8 +306,8 @@ task:
     - slow client exceeding 4MB relay buf: consumer cancelled, session closed
     - no changes to existing httpd routing behaviour for non-radio paths
 
-#,,..,...,.,,,,,,,.,,,.,.,,..,,,,,...,..,,..,,..,,...,...,,..,...,..,,...,...,
-#LWTIU53DN3GNWSDKNJ3DCW6OGIZRSPWCR7YIJGVFNISPWCA3VMSXP7BMQAENBOSB42WJ2UZGP7UOM
-#\\\|G6WFUHTQT33QBTKO5SQKW6XR7NP363BRAU5ZR5IOKETL6LFCRSQ \ / AMOS7 \ YOURUM ::
-#\[7]JZ6UFB4RBCHNH3BURWAH7TKOHTDFJ75JZ27GKUNHJYYA4RKBY2CA 7  DATA SIGNATURE ::
+#,,.,,...,...,..,,,..,..,,.,.,,..,.,,,.,,,,,,,..,,...,...,...,,..,,..,.,,,,.,,
+#EZ3J3GBBXP7HZNUQ6VQO6V4MNJFUSYDZRHST4XHIQXW4WE56NHYY27IF6DTRBILPITF2T7LNCF4ZS
+#\\\|HEEKQEZVYTE5BZYRPOZG3IJXFDAM64J2CF4JPD4XRK6PVGR5FZR \ / AMOS7 \ YOURUM ::
+#\[7]IOR732P4VFKIBJW5UTYOQDHCBBXZQAGQVPBDELGUCPTX5F5XRMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

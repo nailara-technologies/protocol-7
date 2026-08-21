@@ -1,8 +1,11 @@
 ---
 name: release-versioning-workflow
-description: exact sequence for marking a protocol-7 release (rel-ver file, src-ver bump, commit, tag, push) — order-sensitive, easy to get wrong
-metadata:
+description: "exact sequence for marking a protocol-7 release (rel-ver file, src-ver bump, commit, tag, push) — order-sensitive, easy to get wrong"
+metadata: 
+  node_type: memory
   type: feedback
+  originSessionId: e81d6781-e404-4cb2-9bd8-c1b6d0c366ef
+  modified: 2026-08-21T00:40:57.960Z
 ---
 
 `vc` is a plain shell alias for `git` (not a separate encrypted-commit
@@ -64,8 +67,21 @@ correctly moves forward to a fresh commit-id with revision reset to
 past `-8893` since that id was already used/superseded in this test
 sequence).
 
-#,,..,,,,,,,.,..,,,,.,,,,,,..,.,.,.,.,,,,,,.,,..,,...,...,.,.,.,,,.,.,,,,,..,,
-#TADFUWU5LQJPT6GJHPCVEWQMUS533M5EB75EHOJBF65QJHZQHGCCW2IPRQTFAAUQIHD3ITMJOHEL4
-#\\\|SZF4APZSK4YVKYJRWEXKB7BK54UNNULNNZEBQUCD55S2W6VHKNG \ / AMOS7 \ YOURUM ::
-#\[7]SUFXNEVXDFBCSX2EIKCWVY3HUZV5SSBLMGDNKACFFAMMM7PR6UBQ 7  DATA SIGNATURE ::
+**every plain commit, not just release-marking** (confirmed live
+2026-08-21, landing [[zenka-naming-cleanup]]'s `zenka.v7`/`start.cfg`
+rename as commit `7ae191258`): the pre-commit hook itself auto-bumps
+and stages `cfg/protocol-7.src-ver` + `read-me/md/README.md` +
+`read-me/project-identity/source-code-versions.md` (commit-count/
+network-timestamp version identifier) as part of *every* commit, no
+separate `update-version` call needed for a normal commit. It also
+re-signs/verifies all staged files' AMOS7 signatures and silently
+strips any `Co-Authored-By:` / `Claude-Session:` trailer lines from
+the commit message before it lands — expect the hook's own stdout
+("removed author metadata from commit message") rather than an error
+when that happens, it's normal project policy, not a failure.
+
+#,,,,,,..,.,,,.,.,,,.,,..,..,,..,,...,.,.,,,,,..,,...,...,.,,,,.,,.,.,..,,..,,
+#ZBFMJTG245ZMYG3UX7UKEDYTEKGUUFRZVKMTSXT5LQNUAECFMTKST272D2Y3TC2LGYD5UIONRTIOK
+#\\\|QSZMECXTH7UTL5FWBVOAGTG3LQ32CKLXLTNWFAQT46KBGZH2AUH \ / AMOS7 \ YOURUM ::
+#\[7]Q73WIJLKYL45FKHAXA24SR463XPEG2PSNUKSDL5C2LHCD2ZAMKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

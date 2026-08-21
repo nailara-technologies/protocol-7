@@ -28,7 +28,7 @@ output_path per the x11-capture-commands-rewrite precedent),
 `audio.render_standing_wave` (core FFT+Imager renderer, **zero p7
 dependencies** — reusable as a bare Perl library), `audio.init_code`
 (PDL/PDL::FFT/Imager setup). Full zenki scaffolding (start file,
-zenka-startup.v7, pm-dep/os-dep markers, subroutines.load-early) plus
+start.cfg, pm-dep/os-dep markers, subroutines.load-early) plus
 2-line edits each to `cfg/zenki/cube/access.zenki` and
 `auth.zenki`.
 
@@ -83,8 +83,8 @@ using `audio.reload source` for its own module iteration instead.
 - task file `data/tasks/audio-waveform-visualization.md` not yet moved to
   `completed/` — pending final review/sign-off.
 
-#,,,.,,,.,,,.,,,.,.,.,,..,,,,,.,,,,..,,.,,..,,..,,...,...,.,,,,..,...,,,.,.,,,
-#LAKU5TSA2WHZJTBWTRFXVRPJKU5ODP36ZMUTVHJKC33ZOTKRSWXGAVYIHVMCR2CNQPP2RR22XOSPU
-#\\\|HBRYRFZ24D2CI6D77SDXPHCLDTE2KRIEXAJXW3VJPUIR3FLUFZO \ / AMOS7 \ YOURUM ::
-#\[7]2HXBNSSNHINQXR35SATA4ULK67KG2AHZOH2HEB6VLWCVKPUILICY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,,,.,..,,.,.,,,.,.,.,..,,.,.,..,,...,...,...,...,...,.,.,,,.,
+#3LTB4W57GBX42KVNGZZ65YPWTXFXKWKKHSK2TZHQZN5FWCTJV4WW7DWXMI7GDEZ24CEE2I5CTUJUU
+#\\\|VYXMMYKZG53JBOWL2YXJXXI5XJM57G5CJZFL6KZRBLV32OXRCCD \ / AMOS7 \ YOURUM ::
+#\[7]TLROM2YRYA4MAR77DSIDHPDCUA3O3UF2XYYDM2YPGUIEVRCJ3WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

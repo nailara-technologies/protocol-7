@@ -478,7 +478,7 @@ $ p7c bash.eval 'echo hello'
 ### Example 2: Snake Game Zenka
 
 ```perl
-# modules/snake-game.init-code
+# src/snake-game.init-code
 
 <[amos-term.spawn-frontend type=holographic buffer=snake-001]>;
 
@@ -513,7 +513,7 @@ while (1) {
 ### Example 3: Animated Shell Prompt
 
 ```perl
-# modules/shell-with-animated-prompt.init-code
+# src/shell-with-animated-prompt.init-code
 
 # Start bash zenka
 <[bash-zenka.spawn-bash]>;
@@ -546,8 +546,8 @@ while (1) {
 
 ```
 
-#,,.,,,..,.,.,,.,,..,,..,,,,.,,..,,,.,..,,...,...,...,...,,.,,,,,,...,,..,..,,
-#43VR6TWD4ACSBHPNH6WJOAWGGHIKGSL7TC4AEIC72HBNAAJZ3XFL55Y5PFNOAOR7TITN4NGHY6L6C
-#\\\|TBNYJ2CQAOQLNCR74LVCUOFUWYVCV4MPIXCA4NZNREES6GFB7W4 \ / AMOS7 \ YOURUM ::
-#\[7]IEVJRMXKFBDUBEXVLJ6JOACTDQJPM2P5YO2WGBJJXPLFKZXFXEDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,..,,.,.,...,,..,,..,...,.,,,...,...,...,,,.,,..,,.,,...,...,
+#F4KLMBRCYQIIV5RSQHXBAA2DP6QGS2BNLV73GWLZQRAKEGCUIALVVZWBIIQEY52V6Y42USNSMFILC
+#\\\|OAAXOFNK3NCX4X2CCPMYOFHQ2PEPEEPIISC3RZQMLKVXZCS2QM7 \ / AMOS7 \ YOURUM ::
+#\[7]Z5OGXFUD5IMFACNKDOLGLDLQ6MKCXQOKPVKQBNZKSIDYEEEWLQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

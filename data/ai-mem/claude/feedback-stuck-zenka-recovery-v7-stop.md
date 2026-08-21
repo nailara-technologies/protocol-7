@@ -26,9 +26,9 @@ the next call.
 **Compounding gotcha:** while the original instance was stuck, a `v7.start`
 attempt aimed at "fixing" it instead spawned a SECOND live instance
 (`v7.stop` later reported "there were 2 of them running"). The zenka had no
-`max_concurrency` set in its `zenka-startup.v7` — added `max_concurrency = 1`
-afterward (precedent: `cfg/zenki/image2html/zenka-startup.v7`,
-`cfg/zenki/window-place/zenka-startup.v7` already had it).
+`max_concurrency` set in its `start.cfg` — added `max_concurrency = 1`
+afterward (precedent: `cfg/zenki/image2html/start.cfg`,
+`cfg/zenki/window-place/start.cfg` already had it).
 
 **How to apply:**
 - If a zenka stops responding to ANY command (not just one specific call
@@ -39,7 +39,7 @@ afterward (precedent: `cfg/zenki/image2html/zenka-startup.v7`,
 - Recover with `p7c v7.stop <zenka>` (TERM then KILL), not `v7.restart` —
   the latter is a no-op against a genuinely stuck process.
 - Before landing any on-demand zenka susceptible to this pattern, set
-  `max_concurrency = 1` in its `zenka-startup.v7` so a recovery-attempt
+  `max_concurrency = 1` in its `start.cfg` so a recovery-attempt
   race can't produce duplicate live instances.
 - The real fix is architectural, not procedural: hand any post-handshake
   ongoing I/O to the normal event-driven session/command-dispatch
@@ -49,8 +49,8 @@ afterward (precedent: `cfg/zenki/image2html/zenka-startup.v7`,
 
 [[bug-auth-keypair-client-composition-gotchas]]
 
-#,,..,,,.,.,,,,,,,,,.,..,,..,,,.,,,..,,..,.,.,..,,...,...,.,,,..,,...,...,.,,,
-#X43RJPYQ5NMKQOO5234KYCAWHCS4Z74CBK2LXDU36UNHJLWODPJXLAGSC5BITDNKBOQCTT4XDQPNW
-#\\\|2SRHCCCVV6JJWA7NCJ2327RQSO7A2FSN4UKUY7TYTWMVRZZTUSO \ / AMOS7 \ YOURUM ::
-#\[7]YD35TL4OL2AOKKZZTMHOIOYUHQXN3T5YFO5QH2O6O6YHP6VWPCCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,...,.,.,.,,,...,.,.,...,,,.,..,,...,...,.,,,,,,,.,.,,,,,,,,,
+#HJEEEC36V6V6ZK42SWATNQUYQXG5QRPK6E2KVYQKTDBVHDZ6ND4MFMRGMFXURYFK2BIVUCYPFXUE4
+#\\\|CQMH5IR4O4GWYCW32H6DUQUH7UJDL4QLQ67FHFCFQARHISZZK55 \ / AMOS7 \ YOURUM ::
+#\[7]6242AU2RDTQWK2MWC3QXZYQV6ABWVBH6AIUADWUTENWKX6CRS4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,7 +39,7 @@ ordering rationale:
 ### task 1.1 — create nessus zenka
 ```
 ## dispatch + prompt
-create cfg/zenki/nessus/ (zenka-startup.v7, access.zenki,
+create cfg/zenki/nessus/ (start.cfg, access.zenki,
 start) mirroring the openvas zenka scaffold (see openvas-agent task
 1.1 for the access.zenki source pattern — letsencr has none).
 bootable, stoppable, registered. no modules yet.
@@ -81,8 +81,8 @@ see note below.
 - same rule as openvas: no scanning without a live consumer; manual
   invocation until the forensics agent exists.
 
-#,,,.,...,,.,,.,,,.,.,,.,,...,,,,,,,.,,,.,...,..,,...,...,,.,,,.,,..,,,.,,.,.,
-#KHINQNSVUI5RNPKGJRPZFK7O5GTWZFDVGPTBDYSFYT47UPKKNAF5S4CWKSYDUUXPRPV5ZR5POBORS
-#\\\|IVV67VO3AVM7QQLLNUVVBGAPRPGIUXQQ5TQTUVGILYQTDA4JFQU \ / AMOS7 \ YOURUM ::
-#\[7]FAPH53E762COWXEAMDYTCB35H4JPCPOPNUB2XR7VPOXTB34AV2BA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,.,.,...,..,,.,.,,.,,.,.,,,,,..,,...,...,..,,,,.,,,,,,,.,,,,,
+#DPHIY776T32WQVS7CWG2RFDQDWC2P3MAXP62FJK77KYUBNJ52IQO5ROQDKY2VVRZE54TIB6KJFCBO
+#\\\|OGQQVNIWPE5PIFWFLCQR5KG4O7TAY3GZQ3XMEBU3G3RCGGVKFAF \ / AMOS7 \ YOURUM ::
+#\[7]JZWBTC7IHQVYQYY2HYHMI5W3DAOLJFT6QQIPIPBNDXTJMYFFL4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

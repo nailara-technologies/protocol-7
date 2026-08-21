@@ -131,7 +131,7 @@ A fully autonomous system that:
 
 ### 6. Zenka Infrastructure - Hybrid Console + Network
 
-**File**: `/data/projects/protocol-7/cfg/zenki/coding/start`
+**File**: `/data/projects/protocol-7/cfg/zenki/coding/zenka.v7`
 - Zenka startup configuration following Protocol-7 patterns
 - **Hybrid Mode**: Enables both Unix socket (console) and IP socket (network)
 - Loads auth, plugins, modules
@@ -143,7 +143,7 @@ A fully autonomous system that:
   - `coding.network.port = auto` - Auto-assigned from Protocol-7 network config
   - `coding.network.address = 127.0.0.1` - Local network access
 
-**File**: `/data/projects/protocol-7/cfg/zenki/coding/zenka-startup.v7`
+**File**: `/data/projects/protocol-7/cfg/zenki/coding/start.cfg`
 - V7 startup configuration for launching coding zenka
 - Heartbeat timeout: 7 seconds
 - Max concurrency: 1
@@ -496,7 +496,7 @@ foreach my $task (@batch_tasks) {
 
 ### Configuration (in /data/projects/protocol-7/cfg/zenki/coding/)
 - `start` - Zenka startup configuration
-- `zenka-startup.v7` - V7 launch configuration
+- `start.cfg` - V7 launch configuration
 - `auth.users` - Authentication configuration
 - `auth.zenki` - Zenka authentication
 - `access.users` - User access permissions
@@ -561,8 +561,8 @@ All commands should execute without errors and return proper status information.
 
 **Phase 1 Complete** - Foundation ready for LLM integration and sensory services.
 
-#,,,,,,..,,,.,...,,..,,,.,,.,,,,,,...,.,.,.,,,..,,...,...,.,,,...,..,,.,.,.,.,
-#Y7AHCIBQWFLLAMX5AE7WAPG3FNNRXNDKK32A73KT6MSIDNCGZZKNQNB62DMQDWI2VHBHUA5OQV2ZK
-#\\\|2W2DBWXVQJQEGRO52WASCQ2JRKDLMVZQURL4HPM5GH57OH22T7G \ / AMOS7 \ YOURUM ::
-#\[7]CZUI2JUILELWLLIOVL2KDR4JF5Z2B7D3CB4Y3NY3E7YGMNUQJCAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,,.,,,,.,,.,,.,,,,..,,,.,,,,,..,,...,..,,..,,,,,,,,,,,,,,,.,,
+#FZMZJANG5ML3IVXSIYT2UQOEQFYBI7GPNYA3NJEBEI42MW7SC4CF6VBCECWDEZBCDLGT4VINPN7IO
+#\\\|SA4GZT2JVFMWWZUELYK56M5A3IXZOJRITAWPERTGG27FN6TT5K6 \ / AMOS7 \ YOURUM ::
+#\[7]MDQFDERD6X5PJYD6WSXCBH22NDYATPKPIVRBYEB45I3GCIWGF2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

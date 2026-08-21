@@ -134,7 +134,7 @@ depends on B1-B5 proven locally first
 
 **existing infrastructure** (tested, load-bearing):
 ```
-cfg/zenki/graphics-matrix/start     — full start file, wired to cube
+cfg/zenki/graphics-matrix/zenka.v7     — full start file, wired to cube
 src/graphics-matrix.init_code             — cache dir, permissions, Graphics::Magick
 src/graphics-matrix.cmd.assert-similarity — similarity assertion command
 src/graphics-matrix.cmd.filter-c2a        — color-to-alpha filter
@@ -491,7 +491,7 @@ infrastructure being stable.
 
 **existing infrastructure**:
 ```
-cfg/zenki/povray/start   — full start file (auth, net, unix, zenka loop)
+cfg/zenki/povray/zenka.v7   — full start file (auth, net, unix, zenka loop)
                                      wildcard filter command access
 src/povray.init_code           — stub (0;), ready for implementation
 ```
@@ -578,7 +578,7 @@ enables the rendering pipeline for G, P, and B without additional work.
 ### web-browser zenka (78 modules)
 
 ```
-cfg/zenki/web-browser/start        — WebKit2/GTK3 kiosk browser
+cfg/zenki/web-browser/zenka.v7        — WebKit2/GTK3 kiosk browser
 src/web-browser.init_code                — WebKit2 4.0, transparency, GPU awareness
 src/web-browser.cmd.load_uri             — load URL from P7 command
 src/web-browser.cmd.run_js               — execute JavaScript from P7 command
@@ -603,8 +603,8 @@ src/web-browser.handler.gpu_load_reply   — GPU load awareness
 ### X-11 zenka (95+ modules)
 
 ```
-cfg/zenki/X-11/start               — full X11 server management
-cfg/zenki/X-11-pointer/start       — cursor control sub-zenka
+cfg/zenki/X-11/zenka.v7               — full X11 server management
+cfg/zenki/X-11-pointer/zenka.v7       — cursor control sub-zenka
 src/X-11.init_code                       — X11 connection, display init
 src/X-11.cmd.set_opacity                 — per-window opacity control
 src/X-11.cmd.set_geometry                — window positioning
@@ -841,8 +841,8 @@ D3 (lmstudio inference)  ·  independent, low priority
 E1-E3 (bugs)  ·  independent, opportunistic
 ```
 
-#,,,,,.,,,...,,,.,,,,,,.,,.,,,,.,,,..,.,.,..,,..,,...,...,...,.,.,,,.,..,,.,,,
-#5TTUCSBJ23Q6EIE4HZTKHJQDMGJRGCPKYUHXCC2NR2ZMI5XOYG6XZM52KOAIDRA4Q62JVPMY67KVG
-#\\\|ZAP7EMZE3HSRFFAM4ERTYOCYWGQSC6BIL3SPWXXKTBVQU2JELG5 \ / AMOS7 \ YOURUM ::
-#\[7]YHHNVV4INLFPSO65XECB6432UEM52O3DBTK62XU3ZHCUWCOGYKBY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,,,,,.,,,,,.,.,.,,,.,,,,,,,,,..,,...,...,..,,,..,,,,,,,.,,,,,
+#ZVFWUKFOBAOGS7TUDKAESZXAWOVI543PPSRN3P3GGK5R2TKMVSCMZSSIKROMA4U6MXYFRIJBK22OE
+#\\\|URJ3GHLTVZ4AERAGOMLYEVI5U33MA6MODUIM6KUA5UEELPFCKOU \ / AMOS7 \ YOURUM ::
+#\[7]FQ5XESVAK67SYBUWYQVJGBXZPGEAFFOBTBC2QNTGTEKOAOCRUGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

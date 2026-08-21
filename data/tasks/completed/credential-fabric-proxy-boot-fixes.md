@@ -36,7 +36,7 @@ fixes land here).
    already a `<system.root_path>`-based fallback path nearby that
    would be cwd-safe. either make `<proxy.cfg.selector_config>`
    resolve to an absolute path (e.g. set it via `<system.root_path>`
-   in `cfg/zenki/proxy/start`), or guard the dereference so
+   in `cfg/zenki/proxy/zenka.v7`), or guard the dereference so
    it falls back instead of dying on undef.
 
 3. **`httpd.status_codes` reported "subroutine ... not defined" during
@@ -45,7 +45,7 @@ fixes land here).
    :. cr.,.ic : 'protocol-7 subroutine httpd.status_codes not defined
    :. cr.,.ic : module 'proxy'-init not successful [ init_code != [0|5] ]
    ```
-   `httpd.status_codes` IS listed in `cfg/zenki/proxy/start`
+   `httpd.status_codes` IS listed in `cfg/zenki/proxy/zenka.v7`
    under `modules.load` — but as the *last* entry, after `proxy`
    itself. `proxy.init_code` (line ~14) calls `<[httpd.status_codes]>`
    to populate `<protocol.http.status_codes>` — and that call appears
@@ -57,11 +57,11 @@ fixes land here).
    cause — don't just leave it reordered-but-unverified.
 
 4. **no `max_concurrency` gate in `cfg/zenki/proxy/
-   zenka-startup.v7`:** during verification, `proxy` briefly ran as 3
+   start.cfg`:** during verification, `proxy` briefly ran as 3
    simultaneous instances. since proxy binds a fixed listening address
    (`127.0.0.1:8118`), concurrent instances race on bind rather than
    share load — actively harmful. compare
-   `cfg/zenki/acquire/zenka-startup.v7`, which sets
+   `cfg/zenki/acquire/start.cfg`, which sets
    `max_concurrency = 1` (a real working gate, checked in
    `v7.zenka.cmd.start` / `v7.zenka.cmd.restart` against
    `v7.start_count`). add the same key to proxy's startup config.
@@ -91,8 +91,8 @@ fixes land here).
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,.,,.,,,,..,..,,,..,..,,..,,...,,,.,..,,.,.,..,,...,...,,.,,..,,.,,,...,.,.,
-#ZHYW4K4QEUIYS5U5UAPISVO4QVGURSPE67XP7VV6QUBAVQYLQRYXLAENPGRNO7KA7PXSSZGV2W6UO
-#\\\|BRUWYQIC3N5VGLNK7HMGQ53J6KYNY3T3YBNT5EAUSMHO5MGXRBO \ / AMOS7 \ YOURUM ::
-#\[7]VBSW3NGONTD2KIGQ7FUSQODVBRPBC5OYAGTMD2YE7F2FQNJA2MBI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,...,,,.,...,.,.,.,.,,.,,,.,,..,,...,...,,.,,.,,,,.,,,,.,..,,
+#I4KYLQOZOS7VPURGF2VDFJM7JHTHBEDR3F6IYDXBRP2V3CBWNWP4AEC5MDMHVY6WOUHIYDJG62CGM
+#\\\|Y3VDC65YZH44RNKP44OXVUBW6IGO3KPMKI32IYHWGUK6M6T5HSD \ / AMOS7 \ YOURUM ::
+#\[7]IBIUZOTWXQJEDGMJ3A6E3AJ55B6MTTTNWDUQEZ3JIWEZ4VRDE6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

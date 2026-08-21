@@ -222,7 +222,7 @@ files go in `src/reasoning.tree.node` (no extension — filename IS the sub name
 
 ## zenka configuration
 
-add `reasoning` zenka start file at `cfg/zenki/reasoning/start`:
+add `reasoning` zenka start file at `cfg/zenki/reasoning/zenka.v7`:
 
 ```
 [load_modules:reasoning.tree.node reasoning.tree.insert reasoning.tree.lookup
@@ -296,8 +296,8 @@ once reasoning.tree.* is working:
 3. reasoning.chain.* — persistence layer (see REASONING-CHAIN-REPOSITORY.md)
 4. task zenka loads reasoning.* — "what to do next" becomes narration inference
 
-#,,..,,,,,,..,,.,,...,...,.,,,,,.,.,.,..,,,,,,..,,...,..,,.,.,,,.,..,,,,.,,,,,
-#W6UQBLCC7KTGCCCR6LOAZ4IQQC3HR2BOEKECXKO3THVAOHBTRMIEHA2G6XXWR2IHPN7EMF4U3EKBA
-#\\\|HMITN4R3S7TBPRASXSIP7BNAROPBF4GE5X7F7DMKBEV5P2OQOL5 \ / AMOS7 \ YOURUM ::
-#\[7]4NSHJVRBZKLMYMRU4ULIQ3NZMY2RNIYPIHOLLXIVN6HHO5HEJQCQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,.,,,,.,,,,.,.,.,.,,,,.,,,,,,..,,...,...,.,,,..,,.,,,,..,,.,,
+#WEK72HNEZHC2EWRLKMV7SSXD7FAH4Z6Y23RRWC4B7WISSTXMUUAVRTTHSEVKFLCYFRNII7HNVIW62
+#\\\|AB6V7ZHYAMLNLL6UYQRJ5KFPI4WZMXLI4FTDD2FDZSB6YWK43IM \ / AMOS7 \ YOURUM ::
+#\[7]GMF7CTMTXVRWNLQJEWIHUJPDQXBBXJSEGAE6KDCPF3ERSWTKTACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

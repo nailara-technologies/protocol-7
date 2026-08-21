@@ -29,7 +29,7 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `v7.start` (`:env:KEY=VALUE:` tag, same shape as the codebase's existing
   `:model:...:`/`:sign-silent:` tag convention), gated by a new
   `env_override_allowed` directive each target zenka declares in its own
-  trusted `zenka-startup.v7` (not caller-controlled — a caller can only
+  trusted `start.cfg` (not caller-controlled — a caller can only
   supply a *value* for a key the target zenka itself opted into, closing
   off arbitrary env injection like `LD_PRELOAD`). `cred-mesh`/`proxy`/
   `transport` now declare `env_override_allowed = PROTOCOL_7_VAR`;
@@ -254,8 +254,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,..,,..,,,,,.,,,.,,,.,.,,,,,,..,,,,,.,,,..,,..,,...,...,..,,...,,.,,,,,,,,.,
-#QVTK3A3ZRQKIW37EHA5ICEFDMG7QRP7PEUMNWQTMKW5OBL6LUCTSMAHXDEVHGVIXEWD74XYZD6GLY
-#\\\|JD6NF6WYTSDLSJVPS6R5U4SMR5BQ2LZOI6WUTQAZKGCK7WA5UWD \ / AMOS7 \ YOURUM ::
-#\[7]KGQKEZNOL3YLCRTTDB2TTYY7EWJR25VPJYKQTJ47EGRFIG6HRGAQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,.,,..,.,.,.,.,,..,.,.,.,.,,,.,..,,...,...,,,,,.,.,..,,,,,,.,,,
+#L5Y7LOI5E4JVEBLEHVNJJFUYTOYCKISHWS6GQ5UJ6RVSFFZIZFFTTZXSYKIKIUSKZPPB3BD3E4HM6
+#\\\|3V6M5NM7EMHKWBMEZQS5ZJB5GECZDERNRGSHWTBDSO4T3NK5UX7 \ / AMOS7 \ YOURUM ::
+#\[7]PKZPQLP7ZEBJMCJ5TADRPCNI6ZVUCXCDLYMG42R3G5WORKTGDYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

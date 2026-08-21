@@ -240,7 +240,7 @@ and waiting to be pointed at.
   deletes the whole `<mpv.current>` cache on idle/stop — `mpv.snapshot.
   write` now skips the write instead of overwriting a good snapshot with
   an empty one; (2) `mpv.pulse.disable_idle_suspend` ran from
-  `cfg/zenki/mpv/start` before `[init_modules]`, too early for
+  `cfg/zenki/mpv/zenka.v7` before `[init_modules]`, too early for
   `base.exec.with_timeout`'s transitive POSIX (`WNOHANG`)/`IPC::Open3`
   deps — call site moved into `mpv.init_code`. Curve-phase persistence
   (layer 5 of [[topic-mpv-persistence]]) deliberately NOT done — depends
@@ -259,7 +259,7 @@ and waiting to be pointed at.
 
 - **tile kiosk-mode stop_display_zenki disabled** ✓ — commented out
   `tile.startup.stop_zenki`, `tile.startup.restart_zenki`, and
-  `[tile.stop_display_zenki]` in `cfg/zenki/tile/start`; mpv
+  `[tile.stop_display_zenki]` in `cfg/zenki/tile/zenka.v7`; mpv
   and display zenki survive tile restart cleanly
 - **X-11.get_pointer_scr_rect rename** ✓ — was `get_pointer_monitor_rect`
   (24 chars, too long for 23-char protocol limit); renamed + cube/access.zenki
@@ -495,7 +495,7 @@ what it should actually invoke.
 - ~~profile.txt: CV/skills for LLM scoring~~ **DONE** — lives at
   `/etc/protocol-7/jobsite/profile.txt` (not `/var/...` as the old note
   said), wired via `jobsite.cfg.profile_file` in
-  `cfg/zenki/jobsite/start` and read by
+  `cfg/zenki/jobsite/zenka.v7` and read by
   `jobsite.util.build_prompt`/`jobsite.dispatch.assessments`/
   `jobsite.sync.apply_reverse`
 - ~~multi-page search: stepstone 25/page; cfg.max_pages per category~~
@@ -726,8 +726,8 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,,.,..,,,..,,,,,..,,.,,,.,.,.,.,,,,,,..,...,..,,...,...,,.,,.,,,.,,,..,,,.,,
-#H4YX73CBJL3YWEQ3P3NC6VTUWICJXN4D6X3NITC447CIUKI3BTDRRBM6GICFDHFHSRSY5OEPHMCHM
-#\\\|NUWDDE352DTLSCXRCRHE5M3TW6FOTORE7P4KG3EYAGEXRRMR46K \ / AMOS7 \ YOURUM ::
-#\[7]6ZV2SRB2NU5EX6MTYMYKSZGWZDNHX47XBQ6AASSD7AHQJLKHEYCY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,..,,.,,,..,.,,,,,,,,,.,.,.,,,.,..,,...,...,.,.,...,,..,..,,.,,,
+#AUUODVQGLLGQV6CEMLFQ2342OT5UU6SMLNTS6RYA5MQ5TJOUO6H4J3SRWWHJLUIHLDLN2P2UKTQVY
+#\\\|YIKSZWNPRIFP6PYNYOX3JRUYJOPNPWXRSXGBFMAKYIXH4VE3DEG \ / AMOS7 \ YOURUM ::
+#\[7]T2FGDYAU7HELTAACPXRQJJTNEH4WT2ZBUUDEPVFT7JS3GI3OSWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

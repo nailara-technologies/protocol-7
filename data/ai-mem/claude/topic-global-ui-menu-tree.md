@@ -370,7 +370,7 @@ speculative — confirmed live (2026-06-08) that all three legs already exist
 as mature module families, not aspirational stubs:
 - **`crypt.C25519.*`** — already used for zenka identity/signing (e.g.
   `source.C25519.signature_key_name = proto-7.sourcecode`, seen earlier in
-  `cfg/zenki/source/start`); and tellingly,
+  `cfg/zenki/source/zenka.v7`); and tellingly,
   `crypt.C25519.cached_chksum` / `crypt.C25519.chksum_cache.{add,retr}`
   already **bridge keys and checksums directly** — i.e. the "C25519 keys
   ⇄ checksum abstraction" link the user is describing isn't a proposed
@@ -666,8 +666,8 @@ becomes an *exception channel* for the rare cases where "correct" and
 "wanted" come apart. That is a dramatically smaller, sharper, and more
 buildable thing than "an authorization protocol for the network."
 
-#,,..,,,,,...,,..,,..,...,,,,,.,.,,,,,...,,..,..,,...,...,...,,,.,.,,,..,,.,.,
-#HXIMT54ILLXM23N3U3O7JNXR6GIZB3XDAAFLJ4XQKCMO4Y33EEDR476UE55N3KRGWFK5T5B2B5WBA
-#\\\|BF5DH42WQXUKTIPOWC3JQIM667XOV3VYKACBJKRBAK5UKUHFU3D \ / AMOS7 \ YOURUM ::
-#\[7]6TAWS63P4L7LOEB452IANVMZ6UULRAJYPKIPNTLPHISBS3HV7AAY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,.,,,,..,,..,,.,,.,,,.,,,.,,,..,,..,,...,..,,.,,,.,,,.,.,,..,.,.,
+#ESDACHPOFICPD6UU2BUPKKQOIH4CJ2VJUJ36VDQI6NSCJQFCH7KA42HPAUJ7UXAYSMD6QLYWHTYI2
+#\\\|KMNXS55QGMJAPRPID2ZKV2WXK5IP7DXPSGF34G4H2JRBBUG3OX5 \ / AMOS7 \ YOURUM ::
+#\[7]2BZ2YFYMFYHR2UNJS5BJPQFW64X23KVIIKPITBQ27XOW5Z34H4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

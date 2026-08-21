@@ -27,12 +27,12 @@ still missing before writing new files.
    adding `auth.setup.usr.proxy = :zenka:` — use that as your
    template/precedent).
 
-2. **missing `zenka-startup.v7`.** `cfg/zenki/
-   credential_fabric/zenka-startup.v7` does not exist (per the
+2. **missing `start.cfg`.** `cfg/zenki/
+   credential_fabric/start.cfg` does not exist (per the
    findings doc's first pass — but the addendum's second pass found
    the zenka boots, so check current state first: it may have been
    added by the operator mid-verification). if it's still missing,
-   create it by copying the structure from `proxy/zenka-startup.v7` or
+   create it by copying the structure from `proxy/start.cfg` or
    another comparable on-demand zenka and adapting zenka-specific
    values (name, timeouts, restart/heartbeat flags as appropriate for
    an on-demand infrastructure zenka — see the `CLAUDE.md`
@@ -101,8 +101,8 @@ still missing before writing new files.
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,.,,,,,,,,.,.,,,.,,,,,.,.,,,,,.,,.,,,..,.,.,..,,...,.,.,...,.,,,..,,...,...,
-#BUJW5U5NNWUDKPP4N4CJQL2FHUKMXFYBGJOTGSITAFHXIRMB2LBVWHHYLKSWDHMPBZUD5VHHTFNDC
-#\\\|HYCXOTQ23OE7A6KRRBAA2VFNEHLM7JJOLXH5DHQYRKCQBFVXAPU \ / AMOS7 \ YOURUM ::
-#\[7]HCZVSZCLQUCT6SXF2TLPB2CLSRYSWTCNOHQ6CSV5K2OKYMLTBABA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,..,,,,.,,..,.,,,,.,,,,,,,..,..,,...,..,,,..,.,,,,,.,,.,,,,.,
+#OOKMLQWFCV75LGJZ5OEXJKDYEBIK7DMKWONH6OB3I7YP3ZFI75YDXRGYN6AF27HLUS3Z2XG2MDXWI
+#\\\|L4K633UFSMHET25AQ7RXVRJS26ESET752IFC6BLXZCPILOBXKXW \ / AMOS7 \ YOURUM ::
+#\[7]3NZ35BOVZBKOUUFMCH5PJCDS6F6EIDKPUC4VK565ZW7H542ADSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

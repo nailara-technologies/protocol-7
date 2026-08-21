@@ -789,7 +789,7 @@ tasks/user-edit-multiline-note.yaml`. Committed as `7592bdbc0`/`7d66dfa6d`
    the one `process_key` bypass first assumed.
    **CRITICAL LIVE BUG, immediately after shipping**: the kept-around
    throwaway test plugin (`plugin.user-edit.example`, deliberately left
-   wired into the real `cfg/zenki/user-edit/start` per an
+   wired into the real `cfg/zenki/user-edit/zenka.v7` per an
    earlier "keep it for testing" decision) had `pinned_keys => ['location']`
    — a REAL, universally-present field, not a placeholder name. This
    silently made `location` readonly/plugin-mode/test-edited on every
@@ -1060,7 +1060,7 @@ body:...` prefix could not be turned off even for a single entry — no
 longer a free-form field at all — and the storage format was an embedded
 YAML document inside the `address` scalar, which any OTHER display path
 would show as raw YAML text, not a plain address. Reverted cleanly rather
-than patched: plugin removed from `cfg/zenki/user-edit/start`,
+than patched: plugin removed from `cfg/zenki/user-edit/zenka.v7`,
 all 8 `plugin.user-edit.address-cluster.*` files deleted,
 `subroutines.load-early` regenerated (`bin/dev/gen-sub-whitelist
 user-edit`), live data hand-converted back to a plain multi-line scalar.
@@ -1300,7 +1300,7 @@ swapped-family trap this file's own 2026-08-10 entry noted kimi getting
 `subroutines.load-early` whitelist entry correctly stays `base.file.
 remove_tree` (whitelist keys are filenames, not runtime swap targets).
 
-Kimi's dispatch also added `remove` to `cfg/zenki/users/start`'s
+Kimi's dispatch also added `remove` to `cfg/zenki/users/zenka.v7`'s
 own `access.cmd.usr.cube` list — outside the task file's literal
 "no `access.zenki`/`access.users` change" scope note, but a genuinely
 different, necessary mechanism (the zenka's OWN per-command whitelist for
@@ -1511,8 +1511,8 @@ plugin (stashing the checksum for render_form to pick up later) is
 visible to both — same hand-data-forward pattern `user_keys_names`
 already established for the same reason.
 
-#,,..,,,,,...,,,,,,,,,,,,,.,.,,,,,...,,,,,.,,,..,,...,...,.,,,,,,,,.,,...,,,.,
-#NJXFK7UPZNSUEQZNO2J4JOOME35U67CZYITRRIBBIMCIKNGDRZF3SYN4ZO77G2ZYILC7UIXNN4TKI
-#\\\|JE3OWHEYJNSCNIRCEGQW6VVCZMVMDZGMRHFVTG55BCE6GJ7KD4I \ / AMOS7 \ YOURUM ::
-#\[7]GIN6WA5X2NCDRR7UHB7MEUOWORR4OVZYMAXWOXOTMUQ5OQE7VABQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,,,.,.,..,,,,,,.,.,.,,,.,,,,,.,..,,...,...,.,.,...,.,.,.,.,.,.,
+#HLWWNIXRRIZZX3LQTC4SCUVI3GQTGV44MAKNBCU2FBMQYVPCJQYEFICRB4TMLBXDOMFLXLVYXRBNM
+#\\\|3P4IQJWBZM46DDFNOB5TSVQCG5QWOA3CODOD552ROVJJZXQKSEM \ / AMOS7 \ YOURUM ::
+#\[7]UB3QNYJLWH2U5C2NKM46XC7X6K2GVHZ3JBEZJHISEAAY323EFYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

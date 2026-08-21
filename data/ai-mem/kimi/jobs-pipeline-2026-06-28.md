@@ -52,7 +52,7 @@ Updated to current cube command syntax; `list-connections` also added to externa
 - `src/jobsite.sync.apply_reverse`
 - `data/web-root/vhosts/jobs.vhost/index.html`
 - `bin/vax-int`
-- `cfg/zenki/external/start`
+- `cfg/zenki/external/zenka.v7`
 
 ## Reassess task-record preservation
 `src/jobsite.sync.apply_reverse` now copies the preserved `stage`/`status` from the on-disk job record into the in-memory task record before re-queuing an assessment. This closes a gap where `jobsite.handler.assess-done` treated reassessed jobs as unprotected and moved them to `assessed` even when they were already in `applied`/`interviewed`/`responded`/`rejected`/`skipped`/`archived`.
@@ -318,8 +318,8 @@ Commit `a8994ac5d` landed:
 
 Next: restart `web` zenka and hard-refresh browser.
 
-#,,,,,,,,,.,,,..,,,.,,,,.,..,,..,,..,,,..,.,,,..,,...,...,.,,,...,.,,,,,,,,.,,
-#M3VAKEU7ROBXGVALSXK3FUVI4QIULXORYSEBSJ575XF5KRMXCRK2THFLI622SBH6V3ULRYPEWFBPA
-#\\\|6HCH5H75MIVU2XAE2KRDCTZ5KC3KO4A257F6R3KMDKQZ2AZ4C4G \ / AMOS7 \ YOURUM ::
-#\[7]GM3HWWDIJGY5AX7K66Y5SF77S7P5U2QUMMEAAVIRE7DNOEIKEMBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,,,,,.,,,.,.,..,,,,,,,.,,,,.,..,,...,...,..,,,,,,,,.,..,,,,,,
+#FUFAJVZBFD4LR4H5J24FR7ESQHI52KIYVZ52JRAKZW2ZZFBQ2CTSDWYNICJF562GIUBTGAD4QJQMQ
+#\\\|75S4GIL65FPKPKLAAGULRM4BUEAAW3M4IMTJFGTUUVIBK5DNWY4 \ / AMOS7 \ YOURUM ::
+#\[7]A4AT2KF2DB2X4JON4WI2NORJKI2ILQIISEZZVA4JWIO327NRQQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

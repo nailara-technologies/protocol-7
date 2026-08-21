@@ -4,11 +4,11 @@
 
 surfaced while chasing a jobsite/web sync corruption: `v7`'s `max_concurrency`
 gate for the `web` zenka was silently inert (config value sat inside the
-`: v7-init :` block of `zenka-startup.v7`, so it only ever became a variable
+`: v7-init :` block of `start.cfg`, so it only ever became a variable
 in each spawned instance's own init namespace, never reaching
 `<v7.start_setup.zenki.config>`, the hash the gate actually reads — top-level
 placement, matching `cube`'s file, is what makes it real. `v7.reload config`
-also does *not* re-parse `zenka-startup.v7`; only `v7.reload all` / `init`
+also does *not* re-parse `start.cfg`; only `v7.reload all` / `init`
 re-runs `v7.init_start_setup` and picks up an edit). that let `web` — meant
 as a singleton — accumulate several live sessions under one name.
 
@@ -54,7 +54,7 @@ many instances happen to be live.
 
 ### proposal
 
-new top-level `zenka-startup.v7` key, e.g.:
+new top-level `start.cfg` key, e.g.:
 
 ```
 routing_mode = group             ## current behavior : fan out to all [ no longer the default -- see below ] ##
@@ -85,7 +85,7 @@ a shared resolver reading `routing_mode` from
 for backward compat with every zenka that doesn't opt in) would collapse
 `@send_sids` down to one entry for `oldest-first` / `newest-first` /
 `idle-longest`, leaving `group` untouched. **must land at the top level of
-zenka-startup.v7, not inside any `:`-headed section** — the config-placement
+start.cfg, not inside any `:`-headed section** — the config-placement
 gotcha above is exactly the trap to avoid re-introducing here.
 
 **Live-verified 2026-07-22, `idle-longest` case**: same two `mod-test`
@@ -324,8 +324,8 @@ cause produced it (this bug, or anything else, ever). would have turned
 this entire incident into one loud log line instead of a silent
 byte-corruption mystery.
 
-#,,,.,,,,,.,.,,,,,.,,,,,,,.,.,...,,.,,.,.,...,..,,...,...,...,,,,,,..,,,,,...,
-#LDYPWSRRAAWEQWWKFQAYFDQG7L2SCLLG4C3DX3UCYUHLKATAASA3QBM5O3UEJU6FYZ5HMEBEJUOKY
-#\\\|PRBL4X22ROLAMOWRVPAPAPCIS5O7B6XC77JJAUR4KCOAIAPFETB \ / AMOS7 \ YOURUM ::
-#\[7]KG2FV5A72HDRXAZAOPGRFUIJC27VLFIILYNUR3BQZTJJ6K6EPGAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,..,,..,,,,.,.,.,,..,..,,.,,,..,,...,...,,..,...,,,,,..,,..,,
+#TMUVZZQKU7JRKKU7EZBCWIG2J77YW2QFYMIQWDADD2OE3MKUT2FMG5OBFJMZKHTW2I55MYTFIEYNI
+#\\\|IY23FTAXM7VQVSDC2B3XRP2VNOP5FGGRXRRXMQFPMYRD7HDXSNE \ / AMOS7 \ YOURUM ::
+#\[7]JH3AU3ZHNY43VRR3IRJRG2IY3BL2A53VVE2527OMHOJASPZLTUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

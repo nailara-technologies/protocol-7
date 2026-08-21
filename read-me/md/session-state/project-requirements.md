@@ -11,7 +11,7 @@
    - Do NOT add redundant `sub { }` declarations in module files
    - Rely on the Protocol-7 namespace handling via filenames instead
    - Each module file should contain the implementation directly without subroutine wrappers
-   - Files under `modules/` directory are automatically treated as callable subroutines by name
+   - Files under `src/` directory are automatically treated as callable subroutines by name
 
 2. **Module File Header Format**
    ```perl
@@ -23,8 +23,8 @@
 
    # Implementation code starts here...
 
-#,,.,,,.,,.,,,.,,,,,,,,..,...,,,,,.,.,.,,,,..,..,,...,...,...,..,,...,,.,,,..,
-#4TFMNFA3HSUUUEGESEIGTSNGORKEKMD3WM5OU3TP2LZC2SX5CYZHEOW63LCYBKLGPO4ETNBU6ET3W
-#\\\|XEVLGFRMNRCSQESJMQS44QQLS2ALXGB5JXNZFR5DLVR3OJBBDK5 \ / AMOS7 \ YOURUM ::
-#\[7]PW3VUQRMX2PIHJISBH3OKSA2G7OU5MSRGY7RXJALAMCV2MIQ7YDY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,...,,.,,...,,,,,,.,,,.,,,,,,..,,...,...,.,.,.,,,...,,.,,,,,,
+#TUZK7EX4IAKPTQRN6UM5B5YEEJRYV6N4XBK2HNA4KSF6YXWMLGFN7J55X3XFZLBEL4A3B4QG2NNM4
+#\\\|2T3AGPUOFMO7UZPYFWYVHSYJ3HXUDE3JBUSEW6KN2QQUJGCKUFO \ / AMOS7 \ YOURUM ::
+#\[7]VYCLWT22DNNDSMGRIKG2FKJHXQLFW2QT6TZBKNF23LPQUKXHWWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

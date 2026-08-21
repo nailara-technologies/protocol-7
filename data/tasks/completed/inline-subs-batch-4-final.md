@@ -186,7 +186,7 @@ reloading the `workspace-transfer` zenka [ if running - check `p7c
 list` or similar ], call one of the 11 external commands that uses
 `workspace_transfer::chdir_workspace()`, e.g. `p7c
 workspace-transfer.status-check` [ check
-`cfg/zenki/workspace-transfer/start` for the right command
+`cfg/zenki/workspace-transfer/zenka.v7` for the right command
 name / whether it's a separate zenka at all ]. if it returns the
 workspace dir / doesn't error, the extraction is correct. if it errors
 with "Undefined subroutine &workspace_transfer::chdir_workspace" or
@@ -246,8 +246,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,.,,.,,,,,,.,,,.,.,,,,,,,,,..,,.,,,,,.,,..,..,,...,...,.,.,,.,,,..,,,,,,.,,
-#DAIM2J436LYBHPZZUSCC6QEKPHHLJZFB54QP4AFWH2NSNJG33BAZ6YEVEU3VOBLLABC6Q36IVJHSS
-#\\\|ZH35VSARZF4J2B7XEURXIWCU6U46MDRAUOBL7PJFGSL4X66R6Z5 \ / AMOS7 \ YOURUM ::
-#\[7]N4FRVJDMBHQHRHGNJD6FATASSGUIQN7SJAX3TIIUW5JJXQUETWBA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,,,.,,..,,..,,.,,,.,,,..,,,,,..,,...,...,..,,,.,,,..,,.,,,.,,
+#ULQWLGVRRQHKSZ6LKVTWMWIAHA35EWJEQ2P52CRMY6MOTYRDSWA2CFSWG2ITWBVC6SDTEOQ6I2CP2
+#\\\|2CY37LFDPIO37IPJYIGOOMNLX6HKJAYGUCKH5XBEBLWZ345KQBI \ / AMOS7 \ YOURUM ::
+#\[7]334BC3XYXEJXY5TAGJFR2ULTWTHZ347VAXH5OXJUDQ5WBY75NUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

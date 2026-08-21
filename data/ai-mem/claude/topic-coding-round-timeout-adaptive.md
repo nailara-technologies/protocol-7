@@ -56,7 +56,7 @@ into one flat deadline was the original bug.
 `coding.async.round_soft_restart`, new `coding.handler.http_stall_timeout`,
 new `coding.cmd.restart-round`, `coding.async.http_cleanup` (cancel
 stall_watcher too), `coding.callback.http_complete` (reset on clean
-completion), `cfg/zenki/coding/start` (two new config keys).
+completion), `cfg/zenki/coding/zenka.v7` (two new config keys).
 
 ## round-progress/round-time display fixes — LANDED 2026-07-17 (c8166f22f)
 
@@ -160,8 +160,8 @@ liveness (exists-because-it's-a-task, not exists-because-it's-alive) is
 a different question than liveness itself, and the two conditions can
 silently diverge for any caller that doesn't populate `$x` the same way.
 
-#,,..,,.,,,..,,,.,,,.,,,,,..,,,,.,,,,,.,.,,.,,..,,...,...,..,,,..,.,.,,,.,.,.,
-#IHYAWX42RQLC3ZGO5LVKCAMCYO2IJVCDD3AIEENQEHC7X73U33APJLIJOYUZ3JUGGFQL27U4DKEGM
-#\\\|BE2PIYREN76C3AARA2D5PKCCJXQTESNBN3YYAZFOE55IY2X6CCA \ / AMOS7 \ YOURUM ::
-#\[7]5OFFRMTPQBDC255RXEDDXE42NMQ4GGMBLYZZEFDVAEB5KWGPPKAQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,,,...,,.,,,.,,.,,,,.,,.,,,,,.,..,,...,...,.,.,,.,,.,,,...,,.,,
+#PVWHV5C5CAHETC2FAUR5TNQZIBNIQDWEG7ASWVQ3UDGCQC4PGZ7L6YDJFHDIPZX46B6LGRSTG767U
+#\\\|CJPGV4SBROUHMDBZNZH24GVN2LCVDACOKEJW6JS66L6HXTXN3PO \ / AMOS7 \ YOURUM ::
+#\[7]A54G4WAKPYG4QPMOZUYWMWGXMB572W7HR44HMKF24M3PYXQSLEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

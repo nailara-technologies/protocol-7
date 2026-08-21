@@ -93,7 +93,7 @@ Repaired off-by-one history navigation bug in `nshell.history.arrow_up`.
 - Storage plugins now loaded via `load_plugins` in coding zenka start
 
 ### Verbosity Reset
-Coding zenka verbosity reset from 3 (debug) back to 2 in `cfg/zenki/coding/start`.
+Coding zenka verbosity reset from 3 (debug) back to 2 in `cfg/zenki/coding/zenka.v7`.
 
 ### Files Modified
 - Inline subs: pager.*, plugin.storage.*, context.* (45+ files)
@@ -105,8 +105,8 @@ Coding zenka verbosity reset from 3 (debug) back to 2 in `cfg/zenki/coding/start
 
 ---
 
-#,,,,,,..,,..,.,,,..,,,..,.,,,..,,.,.,..,,...,...,...,...,,,.,,.,,.,.,.,.,,,,,
-#CK6XDULLFVWHYSQK2O3RFKVWBESUDLDV6PY6OQEB4DP73UHJ5M4B5CERLQLSWPIFN4F6CJ4NHYBHK
-#\\\|LAQUAP6CWHZM75DVTL4DFPEGEMERWHJZWACVX22RHVIT52MPZF2 \ / AMOS7 \ YOURUM ::
-#\[7]XQ3OQWL55XDXNHY7J7S3JBV4B2M2LRJ74FOZVU3MCQMTAK65RADI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,.,,.,,,.,,...,,,,,,..,...,,,,,...,...,..,,,.,,..,,,,.,..,,..,,
+#DW23OYIOSPYNNN4U6DYKP4NXLZMREYJBWSIZ5VPYVBNSR32MZFULE62F25SWIQFF2BI7E4UOMYUFG
+#\\\|HJDTBPJP7AAYRI2GOMCT5GIMZLOQP5JJKAMGIXXYK46UJIV4YAV \ / AMOS7 \ YOURUM ::
+#\[7]IFZWUW65NFRTHI27JAOS4WRY2MTX5CEDM72XOQVVL7ELXAB2CYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

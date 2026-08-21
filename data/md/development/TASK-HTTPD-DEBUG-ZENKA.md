@@ -32,7 +32,7 @@ Implement a **request state hook system** where httpd sends all request data to 
 
 ### Phase 1: httpd-debug Zenka Core
 
-**New Module**: `cfg/zenki/httpd-debug/start`
+**New Module**: `cfg/zenki/httpd-debug/zenka.v7`
 
 ```perl
 # Configuration structure:
@@ -156,8 +156,8 @@ httpd-debug.query_state($amos_checksum)
 - No impact to production code (separate zenka)
 - Can be deployed alongside existing httpd without risk
 
-#,,.,,..,,,,,,,..,,..,,..,,,.,.,.,,,.,,..,...,..,,...,...,..,,..,,.,,,.,.,.,.,
-#PKSQCV22MZAYH2YWBPE7GAFRFP2I33TZEK3GBROCS4M4XGOZIV7GVASNPGCWACKXY3YX3L3HRKTR4
-#\\\|K7LGLMMPPCZNJ4O556A7LPMVPCPNGXQTIKEZ3G6XFT6TAED6ZNW \ / AMOS7 \ YOURUM ::
-#\[7]OSK4EJKEMFFUMNBTCUM7FL5KPKOBPEFGWKAOYP46EFFCI2GWSEBA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,.,,,...,..,,,,,,...,.,,,,,.,..,,...,..,,...,.,.,,,,,,.,,.,.,
+#TC2J7ZODWQCU6S5ERWQCCQ7REG4YMMAIJUSPV2EGIEHCKZUWYGWS5NLMPLKAC7NIMXFVANUNJN754
+#\\\|QRZXKCGVG4GTLUICQ7TZD4QSJ7KIRQPGCWVNAQCZQRJPR3WXXSB \ / AMOS7 \ YOURUM ::
+#\[7]OH223O2D2WSHVDIELIW5G5DPDB77KJOJO6YVMSCYRXHRPVYRSYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

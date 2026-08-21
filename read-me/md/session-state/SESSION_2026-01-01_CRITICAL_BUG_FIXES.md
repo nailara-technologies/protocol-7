@@ -20,7 +20,7 @@
 - `file.put_bin` uses `binmode($fh, ':raw')` and properly handles scalar references
 
 **Files Modified:**
-- `modules/sourcecode.console.verify-p7-signatures` (line 168)
+- `src/sourcecode.console.verify-p7-signatures` (line 168)
 
 ### 2. Signature Footer Stripping Regression
 **Symptom:** Overly aggressive regex was corrupting files by stripping legitimate code blocks
@@ -37,7 +37,7 @@
 ```
 
 **Files Modified:**
-- `modules/source.extract_sig_body` (lines 43-67)
+- `src/source.extract_sig_body` (lines 43-67)
 
 ### 3. Queue Persistence & Refactoring
 **Status:** Fix from previous session, cleaned up and included in this commit
@@ -84,9 +84,9 @@ The critical difference between broken and working versions:
 
 All modules verify with:
 ```bash
-perl -c modules/sourcecode.console.verify-p7-signatures  # syntax OK
-perl -c modules/source.extract_sig_body                 # syntax OK
-perl -c modules/coding.task.queue_*                     # all OK
+perl -c src/sourcecode.console.verify-p7-signatures  # syntax OK
+perl -c src/source.extract_sig_body                 # syntax OK
+perl -c src/coding.task.queue_*                     # all OK
 ```
 
 ---
@@ -108,17 +108,17 @@ All symlinks properly tracked in git as mode 120000.
 ## Files Modified in This Session
 
 **Core Fixes:**
-- `modules/sourcecode.console.verify-p7-signatures` - Use file.put_bin instead of file.put
-- `modules/source.extract_sig_body` - Restore safe PLACEHOLDER-specific regex
-- `modules/coding.task.queue_clear` - New module
-- `modules/coding.task.queue_complete` - New module
-- `modules/coding.task.queue_enqueue` - New module
-- `modules/coding.task.queue_fail` - New module
-- `modules/coding.task.queue_next` - New module
-- `modules/coding.task.queue_status` - New module
+- `src/sourcecode.console.verify-p7-signatures` - Use file.put_bin instead of file.put
+- `src/source.extract_sig_body` - Restore safe PLACEHOLDER-specific regex
+- `src/coding.task.queue_clear` - New module
+- `src/coding.task.queue_complete` - New module
+- `src/coding.task.queue_enqueue` - New module
+- `src/coding.task.queue_fail` - New module
+- `src/coding.task.queue_next` - New module
+- `src/coding.task.queue_status` - New module
 
 **Documentation/Configuration:**
-- `configuration/protocol-7.src-ver` - Updated version
+- `cfg/protocol-7.src-ver` - Updated version
 - `read-me/md/README.md` - Updated
 - `read-me/project-identity/source-code-versions.md` - Updated
 
@@ -140,8 +140,8 @@ The system is now in a stable state with all critical bugs fixed and pushed. Any
 - Verify and repair source code signatures without data loss
 - Continue with feature development on a solid foundation
 
-#,,..,...,...,.,.,,.,,...,,..,...,.,.,.,,,,.,,..,,...,...,..,,.,,,.,.,,.,,,,.,
-#3MVFQSER76MD63OU3INMTXNI72M2X7QRXGIZWP5NXMU3PHWKVOFZYECTKDOOUJX7TXKG2WH73CSEO
-#\\\|KROQVWDPINIZPPOCEMT65MFEPAGLFVNLJCCRY4P2DREZS4DDZNC \ / AMOS7 \ YOURUM ::
-#\[7]PPAPAN3N33TBHMUX3RKEOXGPN33YWNGULCPLPPGHBWVHGHPDKQDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,..,,,,,,,..,..,,,,.,,.,,.,.,..,,...,...,..,,,.,,.,.,,,,,,,.,
+#C5FWXP3XDBHRV2LUW3Z7PPKIN4TKSDCUYES4P5PXRMSDV3LITBZLP4E5FMU5X273WLNS7KCEO6RMS
+#\\\|7NZV5PDNH2CJXK4TKHYVMUKGD74GUIUQYD6QSYXKAOQXJ2BZXJL \ / AMOS7 \ YOURUM ::
+#\[7]SJZRWMXU3FBMIZNCF2DF27O7CABA25LFFOQLQXV6LJLHBLVWAYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

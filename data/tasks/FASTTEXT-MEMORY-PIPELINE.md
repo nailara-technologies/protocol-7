@@ -46,7 +46,7 @@ output: /etc/protocol-7/embeddings/philosophical/corpus.txt
 ```
 ## dispatch + prompt
 collect all cfg/zenki/*/access.zenki,
-cfg/zenki/*/start, cfg/zenki/*/zenka-startup.v7.
+cfg/zenki/*/start, cfg/zenki/*/start.cfg.
 focus on access control patterns, module load lists, routing structure.
 output: /etc/protocol-7/embeddings/network-topology/corpus.txt
 ```
@@ -219,8 +219,8 @@ modify coding.complete-analysis:
   to support deduplication and parenting? likely yes — aligns with
   checksum-parenting-namespace-trees design
 
-#,,.,,,..,,,,,,,,,,.,,...,,..,,..,..,,...,..,,..,,...,.,.,,.,,,..,,..,..,,,,,,
-#M25J7FE4KC6NVD4HIUXRAMDHC5HTNRHSJ6N7MDRWNBED6NBXH7YPTGCOOWS66PL3TZOA4IMMRDBEA
-#\\\|SJ5CBB2KQOBU54U3SODKYJZWAWUODCDLYJBU22FP2TOISYSIDQN \ / AMOS7 \ YOURUM ::
-#\[7]H3DGUGDL3LMJKILYUGTMXEFKARKBVF3LH4U6XNMD36XNSQ7ARUCI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,,,,,.,,.,,,,,.,,,.,..,,,..,..,,...,..,,.,.,.,,,,,,,.,,,.,,,
+#KRPKBNXBODST6ZF6QRFH36LAMURWFMIQYA4QMR4SM5OTRMXU7AADTW4NYWVNK3YJMHN3ADIDI4MR2
+#\\\|3LHWLH2K2K6YDPYHSEYBLESOVIHA3URZAHDURMXDZHDNTFEDWE7 \ / AMOS7 \ YOURUM ::
+#\[7]OOTEZ667DRJTZUKYVJPAMSJC5G57AXFCFNRB2KLPA63OKVCABQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

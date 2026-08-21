@@ -476,7 +476,7 @@ TIME: 00:19 (parent installs cert)
 ```
 # Configuration
 weather/start → letsencrypt/start
-weather/zenka-startup.v7 → letsencrypt/zenka-startup.v7
+weather/start.cfg → letsencrypt/start.cfg
 weather/{os-dep,pm-dep,source}/ → letsencrypt/{os-dep,pm-dep,source}/
 
 # Base modules
@@ -583,8 +583,8 @@ We should also create event handlers in an events zenka that can:
 
 **Next Steps**: Clone weather zenka to create letsencrypt zenka skeleton, then implement ACME modules
 
-#,,..,.,.,,.,,.,.,,,,,,..,,,.,,,.,,,,,,.,,,,,,..,,...,...,,,,,.,,,,,.,,.,,...,
-#FCMEQOUTJHLVP6QULVRKVIOMRQUHYUBXJJO4NAMOTXFO6RYE7D2HJTNH2XMQXEBQCACUHIQ43P5XW
-#\\\|QSFGTPUEPDHDUKYSDQRFXU263EM5NJHMRA7E2PKVLDYL4U3BROM \ / AMOS7 \ YOURUM ::
-#\[7]DRAMWVLKGGTGVTOCPFQIIQGNLILLLXN52ZEIBKGCH4OH2FPBHQDY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,,.,,.,.,...,.,,,.,.,,,.,,..,..,,...,..,,...,..,,,,,,...,...,
+#XZFG7XV266SA3YUQ5UU2X5YOGTO4BOLZKM5HWMPGNWXQCJTDCPI5NWKNUC7CA46ODKICPZYGSRJAW
+#\\\|VS7GNNCVYGCNINZMFKNLFWJTQTG6366VZVMRGV23B5NNXCDRJTH \ / AMOS7 \ YOURUM ::
+#\[7]CDD22QYJYKC5P7DUVDHFHVOZKCKOZI35GN2A5A4OPGUM7E2IFWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -130,7 +130,7 @@ v7 clears "orphaned pending reconnect" flag when zenka comes back online.
 
 ## configuration
 
-per-zenka in `zenka-startup.v7`:
+per-zenka in `start.cfg`:
 
 ```
 ## child process lifecycle
@@ -161,8 +161,8 @@ see `X11-RELIABILITY-AND-WINDOW-REGISTRY.md` for the reference implementation.
 - `v7.teardown` access control: restrict to `system` zenka only
   (currently `access.cmd.usr.cube = *` — any zenka can trigger full shutdown)
 
-#,,.,,,..,,,,,,,.,.,,,.,.,.,,,...,...,.,.,..,,..,,...,...,..,,,.,,,..,,,.,,,,,
-#MELKRW46QZUFBI6IQDA5AP7L5UKRKIJOXBZ5DJE4MVQBOBEF6NFSJATUIHTTZUFD7CQ5PV5WWHHHW
-#\\\|2MJDYSO7LTYU6VOEI5V7WAJI7DOZXKUTWFHP2FBZRNPAQ4HV6IC \ / AMOS7 \ YOURUM ::
-#\[7]RVHOND65P5XXRHPXVLWJ6YKO2V7LJSSTUM2QIKVN5LXNI7UZSAAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,.,,,,,,,..,.,,,,.,,,,,,,,,,,..,..,,...,..,,.,,,,..,...,..,,,,,,
+#AZXHCPBNF3WFHVUAYRQ7K2JXY6FVSCELYZBAGS6ZAJWSV5G7O2RTNR54BWWQVMLRCDO2UXDCYRJWG
+#\\\|RJAHOX3UIJ5VOIHLIOSQXXBPGHGKS63WBYND5XWPVEQWM5EK66B \ / AMOS7 \ YOURUM ::
+#\[7]2BTVPMO6VIA4LY47TPLFIX5IFSAMWSQKOJKLXVRRCJJEILNJWWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

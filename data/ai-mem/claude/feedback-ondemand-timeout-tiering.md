@@ -8,7 +8,7 @@ metadata:
 ---
 
 When tuning `[base.zenki.set_ondemand_timeout:N]` for an on-demand zenka,
-survey existing values first (`grep -rn set_ondemand_timeout cfg/zenki/*/zenka-startup.v7`)
+survey existing values first (`grep -rn set_ondemand_timeout cfg/zenki/*/start.cfg`)
 rather than picking a number in isolation — there are clear tiers:
 - 13–77s: cheap/quick-fire tools called in isolated one-off bursts
   (download/power/fetch-files=33, ffmpeg/fs=42, mediainfo/sys-deps=64,
@@ -30,8 +30,8 @@ to interactive/recurring, re-check its tier against this list rather than
 leaving the original guess in place. See [[topic-zenka-naming-cleanup]] for
 the related screenshot/X-11 capture rewrite this came out of.
 
-#,,,,,,,.,.,,,,..,,..,...,.,,,,..,.,.,...,.,,,..,,...,...,,.,,.,.,.,.,,..,,,,,
-#XRMPDI7D6KLPSSAFYSPRTPOBKEJD344M4L7LC6RKSEKC24O54DT575BF5VGX67A4IYFNIWJ7GKGT2
-#\\\|ZG4ZU43I42R377MXW4KUZZB6ECGYOU5OCCHQNVICCTGJ5DJBFNG \ / AMOS7 \ YOURUM ::
-#\[7]K7UXJ65CVKFKWR4WUDAD2SDGF3I4WH2NDIO4CAEB5XTCQGHQE4BQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,.,.,,,.,..,,..,,.,,,,.,,,..,..,,...,...,.,,,.,.,,,.,.,.,,,,,
+#HCPFURS43EP6OPUA4AWRB3BDDXQXVKXQZWJZJMPXNOP26IVREODNFDCTOCGHIALBMLBUNWSZ2XSSM
+#\\\|Q52G4SBFSWPZUH5CQ7LHQKRL4GBBKLSG6O4CMYCXEQLGKC7WVD5 \ / AMOS7 \ YOURUM ::
+#\[7]CZOKNR2CBDWBNFWU5OUB663JRIPMSZ3E4H7XJV5MQHFO5JOYPIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

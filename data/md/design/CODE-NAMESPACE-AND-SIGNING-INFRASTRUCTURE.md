@@ -34,7 +34,7 @@ characteristics and format policy:
   endline tolerance (authors use whitespace deliberately for visual separation)
 - **signature**: required, slightly relaxed normalization rules
 - **current paths**: `cfg/`
-- **dot namespace**: `conf.zenki.radio.start` ↔ `cfg/zenki/radio/start`
+- **dot namespace**: `conf.zenki.radio.start` ↔ `cfg/zenki/radio/zenka.v7`
 
 ### application data
 
@@ -54,7 +54,7 @@ projection of it. the loader resolves transparently:
 
 ```
 conf.zenki.radio.start
-  → cfg/zenki/radio/start   (path fallback)
+  → cfg/zenki/radio/zenka.v7   (path fallback)
   → in-memory cache                   (if warm)
   → network-addressed sub             (if remote)
 ```
@@ -172,7 +172,7 @@ given a name and type (on-demand / always-on / standalone / child):
 - creates `cfg/zenki/<name>/` skeleton
 - fills `start` from type template
 - populates `auth.zenki`, `access.zenki` from policy template
-- adds `zenka-startup.v7` with correct lifecycle hooks
+- adds `start.cfg` with correct lifecycle hooks
 - cross-references `cfg/zenki/cube/access.zenki`, flags additions needed
 - one call from zero to a correctly wired, policy-complete zenka skeleton
 
@@ -243,8 +243,8 @@ ncode.* (now)      →  policy-aware modification with signing integration
 no premature abstraction. each tool has clear lineage. the working system
 is the foundation, wrappers have immediate multiplier effect.
 
-#,,,,,,,,,.,,,,.,,,.,,...,,.,,,.,,..,,.,,,,,,,..,,...,...,..,,...,,.,,.,,,,,,,
-#IRSG6JKPDVEBMKODE6YBPR4VU3LNP3JUDDWQR5ZCY6RU5FQXB4OPKU4TSH3G7BPAWYDXMT7T42BZ2
-#\\\|VWXKHVG4Z4ZCW2UGG6O2RXGMHH4NXRFE5MDHDMG4GDWL6AUMSHT \ / AMOS7 \ YOURUM ::
-#\[7]HE7EWKE55QOHATM5AOBC3C4GONUH3T5QRUQEO2PQH4LEHOFZVEDA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,..,,,,.,.,.,,,,,,.,,..,,...,..,,...,...,...,..,,,,,,,,,,.,,,
+#JU44AIAJXCAK5V32CNSZ2SPA4SO7MSL3HXOCNH52T4NFXE4YIV5BCVNAXYWJ23TSQEOS42GGKCVG2
+#\\\|UTRD5E53CVU6436GFTEIOTXYDOAJMT5N7BJFIXMJXYDOMK7JYQS \ / AMOS7 \ YOURUM ::
+#\[7]VHNDSCIZYJRG7EWIGHFMMADCXP3RA2LGQOTTNQITZ436L3QPGIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

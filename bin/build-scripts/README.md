@@ -87,7 +87,7 @@ Both compiled binaries are stored in `/data/source/ik_llama.cpp/`:
 
 ### Protocol-7 Configuration
 
-The coding zenka (`configuration/zenki/coding/start`) is configured to use both backends:
+The coding zenka (`cfg/zenki/coding/zenka.v7`) is configured to use both backends:
 
 **GPU Backend (Preferred):**
 - Binary: `llama-server-cuda`
@@ -159,12 +159,12 @@ Build scripts are version-locked to specific compiler and CUDA versions for repr
 ## See Also
 
 - `bin/` - Main Protocol-7 executables
-- `configuration/zenki/coding/start` - Coding zenka configuration
+- `cfg/zenki/coding/zenka.v7` - Coding zenka configuration
 - `data/yaml/build-instructions/` - Detailed build documentation
 - `/data/source/ik_llama.cpp/` - Source and compiled binaries
 
-#,,,,,.,.,.,.,,..,,,,,,,.,.,.,,..,...,...,.,,,..,,...,...,.,.,.,,,...,..,,.,.,
-#EQGLWWBPOH66NGG72FH4BAPCLYHLTWGL4WNJZVE424D7WNOGHJRUL4GCWBO3MU67LWK4EG2VIKEM2
-#\\\|SL5S4JKGS7UEGJHAOGFTRUURTGPLL7IJMPDMKG5346BLDVHAVWC \ / AMOS7 \ YOURUM ::
-#\[7]SLHI7ROGHEOG3SOLDPWIDCZEWRMQPDK4WEOZ5ROECMLLOTL6HCBQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,,.,,,..,,..,,,,,.,,,..,,...,..,,...,...,,..,,..,,,.,..,,,,.,
+#DT2AETNFOQW3XDR65T3A7GZYOFU7D4RIFKIQBGADNF5GMET22UWFGJ2VRIWLRUQTHPXAXWGEJKRLU
+#\\\|3VFWL6YAKJMBS7B4MO6KEJMJGYLUGSCTCEWBKWFAKE2MKC3XDCQ \ / AMOS7 \ YOURUM ::
+#\[7]BHMNK5ZKQ4AH4NKRC2RLITLLE6GEZNTCIGEGDFVWN6X7LIILI6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

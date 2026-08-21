@@ -58,7 +58,7 @@ Reference for design decisions and implementation notes.
 ## ✅ What's Already Complete (Don't Redo!)
 
 ### HTTPSD Zenka (100% Complete)
-- ✅ Configuration ready at `cfg/zenki/httpsd/start`
+- ✅ Configuration ready at `cfg/zenki/httpsd/zenka.v7`
 - ✅ TLS 1.2+ with secure ciphers
 - ✅ HSTS enabled (31536000 seconds)
 - ✅ Let's Encrypt integration complete (8 phases done)
@@ -66,7 +66,7 @@ Reference for design decisions and implementation notes.
 - ✅ Certificate symlinks working (`/etc/protocol-7/certs/current.pem`)
 
 ### Web Zenka (100% Complete)
-- ✅ Configuration ready at `cfg/zenki/web/start`
+- ✅ Configuration ready at `cfg/zenki/web/zenka.v7`
 - ✅ Recursive template parsing with depth limit (8 levels)
 - ✅ Module: `src/web.process_template_recursive`
 - ✅ Async IPC handler: `src/web.process-template-ipc`
@@ -447,8 +447,8 @@ This ensures zero knowledge loss for future sessions.
 - Other ACME phases: `letsencrypt-*.yaml` (reference only, don't touch)
 
 **Configuration:**
-- `/home/user/protocol-7/cfg/zenki/httpsd/start`
-- `/home/user/protocol-7/cfg/zenki/web/start`
+- `/home/user/protocol-7/cfg/zenki/httpsd/zenka.v7`
+- `/home/user/protocol-7/cfg/zenki/web/zenka.v7`
 
 **Modules (Already Complete):**
 - `src/web.process_template_recursive`
@@ -487,8 +487,8 @@ This ensures zero knowledge loss for future sessions.
 
 **You got this! 🚀**
 
-#,,.,,...,..,,.,,,,,,,..,,..,,.,,,,,.,,..,.,.,..,,...,..,,...,.,,,,.,,,,.,,..,
-#J4ECXIHZQILG236ZPZGFGYPNRH6RHVS4V7K3DGTX5B5B2U6WT57OYHLUQZS7QRCLG66QAETPTDNO2
-#\\\|EXZI6YELEY447LMGHYU27YBUEENQUGOTX4HH7CYERVE6C5DIPLU \ / AMOS7 \ YOURUM ::
-#\[7]TSYRGCJOEMT4QJHD3OOQXK2BITDCQ4VMEP7UM4OVHHBSP5QVGQAI 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,,,.,,,,,.,..,,.,,,.,,,.,,,,..,..,,...,...,.,,,,.,,..,,.,.,,.,,
+#VBYIKJE4KBGGF6UPA4HO6MZVMNRSSI5EFQ24OOCDIMVJCAR3DV54UDJ27RSBH2BGE2VCQOGMKARTA
+#\\\|EYOCDUBVIYTRJ3G73IAS2SESNAQ27X4P2FKCYCCXXE26QLETWN4 \ / AMOS7 \ YOURUM ::
+#\[7]NJVVL5N6WISDBYH72YKMUO5GASOWQWSVK72V47XOT6EQX2YUSWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

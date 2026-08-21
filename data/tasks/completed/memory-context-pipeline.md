@@ -13,7 +13,7 @@ read first:
 `src/memory.startup`,
 `src/memory.cmd.search`,
 `src/memory.cmd.digest`,
-`cfg/zenki/memory/start`.
+`cfg/zenki/memory/zenka.v7`.
 
 do NOT touch signatures or unrelated logic. do NOT add `#,,..,.,,,...` stubs.
 
@@ -172,8 +172,8 @@ place immediately before `return TRUE;`.
 - no pre-commit hook failures
 - no manual AMOS7 signature stubs added to any file
 
-#,,,.,,,.,.,.,..,,...,.,,,.,,,.,.,...,,..,..,,..,,...,...,,,,,,.,,.,.,,,,,.,.,
-#MJQWWN7FX35ILIK4DRBQNZ4EVWOKEW5QOGZFYUGEQZ347NOVUQBBRNIX3SWYKZ73TOCMKE6RIVQYY
-#\\\|32364EJR4WABH3AEBU4UW5YZB2L5HDMSFH3RW4FPCGP2KOTZ57D \ / AMOS7 \ YOURUM ::
-#\[7]VQVQHI4V3RNJ6JW2KCIA4TTYNH3PCAMUB7HPCYIFX53TXBNQ46DI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,.,.,,.,,,,,,,.,,...,,.,,,,.,..,,...,..,,.,,,..,,.,,,..,,.,,,
+#AV3MWKJATFOZS5QHHSXMRCKQ2N5VCZBLKQ2FY35UTYMTSWTZFTMELTH7MIO7T5BO4XUBHF4CICIJQ
+#\\\|MYYNAYJDEFJA3MEUBF5SGGYHRPMSSUUGAKJ7T63WLIBEPB4QSHW \ / AMOS7 \ YOURUM ::
+#\[7]EEEEUU2G22HWH2BZHMJ5IZ5E3MXJAN76LJ62XRJOEAP3SEMYBOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

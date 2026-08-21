@@ -187,7 +187,7 @@ p7c ncode.doc base.logt
 
 implement the ncode zenka on-demand zenka.
 
-1. create `cfg/zenki/ncode/start` — on-demand zenka config,
+1. create `cfg/zenki/ncode/zenka.v7` — on-demand zenka config,
    420s idle timeout, load all ncode.* modules
 
 2. create all modules listed above: `ncode.init_code`, `ncode.cmd.search`,
@@ -207,8 +207,8 @@ check `bin/ncode` source for exact argument syntax before implementing
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,,,,,,,.,..,,...,,,,,...,,..,...,..,,,.,,..,,...,...,..,,,.,,..,,.,.,...,
-#SZM7LGY4H5DOQ6AIPE3MKBTOSVYEPMIIYRS5ON2RAL3P4XYI32RBR6ZNRFI4YHJIKPXGXVOFWYFVY
-#\\\|U6LMLJOYLO4XFW3LXNBZIKOMQ63RCLUARILIDUQNDVOGQBTXSP6 \ / AMOS7 \ YOURUM ::
-#\[7]46BHSCCSEBZDOMVEZ7CRU2JY3F4QHQJRGBAIJJGXOM5BHKMNEGAQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,..,,..,,..,,,.,,..,,...,...,..,,...,...,,,,,.,,,,..,,.,,...,
+#BKI2PYFCSHNJVYNS6IVBV5JREBBDK3SOFZYGE7WWZ53OHOBOJXDHEXBPQVKPVXZ4NXAMLZHK4JCM6
+#\\\|SGJ5ITC7742HB7I3KFV3IC7NESGCNEYX6CGHDRY5L4KQOG6OU33 \ / AMOS7 \ YOURUM ::
+#\[7]NF2DIINFH72T44GT6PRDI3UNZY22KRBAJIR46CBXLW7SSYEM76BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

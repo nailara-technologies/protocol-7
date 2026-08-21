@@ -267,7 +267,7 @@ after setting position (before the log line), register new position:
 
 same registration after computing new position.
 
-### cfg/zenki/graphics-matrix/start
+### cfg/zenki/graphics-matrix/zenka.v7
 
 add `address` to the access.cmd.usr.cube line.
 
@@ -300,8 +300,8 @@ natural for a given layer will emerge from usage.
     verify goto command moves cursor and registers new position
     verify cursor.set and cursor.move register in address registry
 
-#,,.,,.,.,.,,,,,,,.,.,...,.,,,..,,,,,,..,,.,.,..,,...,...,..,,.,.,..,,,,,,,,.,
-#NNVFREAUYBKEPRPP3L5HEEOQVPZ5LLJ5WREVEQFFFOOZEGB43JPODARCKGB4NKNJZPJQ3QACQ5BBA
-#\\\|QRDD2775YH3HYDLWSRZUJ6HRTJZKFBUMUEYIVJ3A4WR7O2QUVRC \ / AMOS7 \ YOURUM ::
-#\[7]MOO3NJCRXKZUFFTH4N45CRFKIFPEAXO6RZPPIRE3KVEYRHUXK4AY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,,,,,..,,.,,,,.,,,.,,.,.,,.,,..,,...,...,...,,.,,,,,,,,.,.,.,
+#2ABVF63KSLQJ3B7YFKTQ7SM3KMYHYDBBA36LQR3DLFHBM35E6LDW5DYDE7XAMZPADZ2NU3YTMOEQY
+#\\\|YNU2IKJ4ZB5TZKSXOPSNIW26ZGYAPZYQRV577NTVJMB5QCMAWLI \ / AMOS7 \ YOURUM ::
+#\[7]K4W2SGL46GJV7NAZ6Z4FANMR6EOJMMWDB7MREJXC2UNKBKXNMSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

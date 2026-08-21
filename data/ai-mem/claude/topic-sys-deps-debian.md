@@ -86,11 +86,11 @@ needs: cpanm install (not in apt repos) + pmindex apt source + `apt-pm update`.
 ### task zenka fix (same session)
 
 `reasoning.branch.*` not loaded → `task.post_init` timer callback failed at startup.
-fix: added `reasoning.branch` to `modules.load` in `cfg/zenki/task/start`.
+fix: added `reasoning.branch` to `modules.load` in `cfg/zenki/task/zenka.v7`.
 also added `cfg/zenki/task/source/reasoning.branch` empty source marker.
 
-#,,..,,.,,,,,,.,,,,,,,,,,,,..,,.,,,..,,,,,,.,,..,,...,...,..,,,,,,.,,,..,,.,.,
-#LP2V4BAIBATAYE4SUXGONX7L54AFA6MCD6R6R6PIRT5YAGWMNLMGI6J2T5LOZPDN3YXJBN5OYSDMY
-#\\\|R4MWJUC46ZY45UBRNDRXIZGQ7YWAD76G2NA62V73M3SNSR4BK4P \ / AMOS7 \ YOURUM ::
-#\[7]JLLDV5PVYYAC4URCKKGQQQYK44VSA5OLTUYYIEPYEJRVQKQNVODA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,.,,,..,,.,,...,,.,,,..,,.,,,,.,..,,...,...,,.,,,..,,,,,,,,,,.,,
+#3NMA6SUBJH6SCYNSYQVQLBCO2JCTETZISBRUNPDUXUUEPM2RB3ROJ4T2MPBKVODCBDDOGLADTIR2Y
+#\\\|5IEOWFUO7N43LLCDDCN2362EHBW3736BAS6F7HDLAY2BJLE4YNK \ / AMOS7 \ YOURUM ::
+#\[7]GGS3OL3DP7RHQC5S4OLCGUCNL4HDDISCSKKDD27YCN475LYMXCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

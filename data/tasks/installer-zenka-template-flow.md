@@ -247,7 +247,7 @@ template parsing is the entire shape contract — no extra DSL.
 - `harmony` clean on all installer modules.
 - installer can be started on-demand only — no need for v7 to
   manage it as always-on [ flag `start.on-demand = 1` in
-  zenka-startup.v7 ].
+  start.cfg ].
 - if configure/installer boundary is folded back during impl, the
   installer's `installer.*` namespace becomes `configure.flow.*`
   cleanly with no semantic loss — *verify by trying to do the
@@ -283,8 +283,8 @@ harmony installer.ui.render.run
 harmony installer.cmd.ui-show
 ```
 
-#,,,,,,,,,,.,,..,,..,,.,.,,,,,,.,,,..,.,.,,.,,..,,...,...,,,,,.,.,.,.,..,,..,,
-#T3IVQBON5FPNXG2DIPXXVIBTZESZKK56GMXUSMLNQ5L54TDS7HBPIEWRANP6LTQWMNC4CTQQSS6T4
-#\\\|3476FQUFVQXR6EJGYXQ3VMIQ6CMPLZZOVYRFOZK2UHJUKIJAKE3 \ / AMOS7 \ YOURUM ::
-#\[7]RCTX7ZXRHNXL3YKHG7XU3IMOVJHLNHYNMNFUGJVD2XBWRSUX7QAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,.,.,,,...,...,...,,.,,,.,,...,..,,...,...,.,.,,.,,...,.,,,..,,
+#6IJBUJNDQMBR3AR6YYO4JR22QHDQR6H47VFW5JOUZO64WYMFF6ACFTWBOWPHTDBJCFDHQGTZSTYOO
+#\\\|EMQ6UDV4N2IVPYJY7DKPG5ICM2EE5BOMGZD6PGPBEGOHNWU4DDE \ / AMOS7 \ YOURUM ::
+#\[7]R6BO7SBBGE7DHS7XSC4HMFMEDI7US4OR2SHVMW2ZUPKMO7GTKMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

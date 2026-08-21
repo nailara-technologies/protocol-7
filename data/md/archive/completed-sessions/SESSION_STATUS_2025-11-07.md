@@ -207,7 +207,7 @@ All planning documentation created, stub modules and configurations in place, an
 
 ### 5. ✅ Zenka Configuration Files
 
-**cfg/zenki/httpsd/start**
+**cfg/zenki/httpsd/zenka.v7**
 - Protocol-7 compliant startup configuration
 - Module loading (auth, net, protocol, io.unix, io.ip, httpsd)
 - HTTPS address and port (0.0.0.0:443)
@@ -219,7 +219,7 @@ All planning documentation created, stub modules and configurations in place, an
 - User/group dropping
 - Proper signature placeholders
 
-**cfg/zenki/template/start**
+**cfg/zenki/template/zenka.v7**
 - Protocol-7 compliant startup configuration
 - Module loading (auth, base, template)
 - Template engine selection (mustache)
@@ -231,7 +231,7 @@ All planning documentation created, stub modules and configurations in place, an
 - User/group dropping
 - Proper signature placeholders
 
-**cfg/zenki/letsencrypt/start**
+**cfg/zenki/letsencrypt/zenka.v7**
 - Protocol-7 compliant startup configuration
 - Module loading (auth, base, crypt, letsencrypt)
 - ACME configuration (environment, email, domains)
@@ -404,9 +404,9 @@ All planning documentation created, stub modules and configurations in place, an
 6. `/data/projects/protocol-7/src/letsencrypt.init_code` (83 lines)
 
 ### New Configuration Files
-7. `/data/projects/protocol-7/cfg/zenki/httpsd/start` (44 lines)
-8. `/data/projects/protocol-7/cfg/zenki/template/start` (46 lines)
-9. `/data/projects/protocol-7/cfg/zenki/letsencrypt/start` (59 lines)
+7. `/data/projects/protocol-7/cfg/zenki/httpsd/zenka.v7` (44 lines)
+8. `/data/projects/protocol-7/cfg/zenki/template/zenka.v7` (46 lines)
+9. `/data/projects/protocol-7/cfg/zenki/letsencrypt/zenka.v7` (59 lines)
 
 ### New Configuration Directories
 10-15. `/data/projects/protocol-7/cfg/zenki/{httpsd,template,letsencrypt}/{source,pm-dep}/` (6 dirs)
@@ -528,8 +528,8 @@ Ready to begin Phase 1: HTTPSD Zenka Implementation.
 **Session**: Protocol-7 Architecture Planning & Initialization
 **Next Session**: Phase 1 Implementation (HTTPSD Zenka)
 
-#,,,.,.,.,...,,,,,,..,,..,...,,.,,,,,,,,.,.,.,..,,...,..,,..,,,,,,...,,..,,,,,
-#W6FQUGRMFZBLT2HY7C6QVSF7UWTH2CFPHRTDBMY4KBS6Z7VSPYHNVUHL3F7NAFXTAW77XEC5UMBSK
-#\\\|WY3VPW3VCRX3EVHOYAMIGPOISH6XKAPRMA5OPOYRNDYVACW32QE \ / AMOS7 \ YOURUM ::
-#\[7]TLCJK5G6QRAT44S2W4WUT7M6FDYI2NZQKVLENLBQXOATWX7FQSAA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,..,,..,,.,.,...,..,,,,,,,,,,.,,,..,,...,...,..,,,..,.,,,.,,,,.,,
+#AWLMRCJHC4Q37OAXZPQLXIUQRL2BYWRTAJ6IMJ3XNZDGLUCTPBRX42MABHDSJKP5YII3BEKH5YCBK
+#\\\|2MK5PBKOT52VUHPKMTZYE3RDYSODX3TIFAYGU32SR4LAZKAGGAV \ / AMOS7 \ YOURUM ::
+#\[7]GGNQVXFLTQ4FOZAYZV7M7IPODZDXPUAXHP6ULIZ3GFONTJUFUECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -287,7 +287,7 @@ while (1) {
 ### As nshell-zenka (50-line change)
 
 ```perl
-# modules/nshell-zenka.init-code
+# src/nshell-zenka.init-code
 
 # Connect to buffer instead of STDIN/STDOUT
 my $buffer_id = 'nshell-001';
@@ -415,8 +415,8 @@ Protocol-7 unified buffer:
 
 *All shells unified through the 3D buffer: from bash to nshell to custom languages, all Byzantine-validated, all synchronized, all simple to implement. No special cases, just different zenka writing to the same substrate.*
 
-#,,.,,,..,...,...,.,.,..,,...,,,.,,,,,..,,,,,,..,,...,...,,,.,.,,,..,,,,,,.,.,
-#PSWYHZPPYF2MR6IONIAARKROJJHGHFJLKYROUMUHJS4LBRVH2MRZL5VDFK6HTCHPU5CYJ4QABZMWM
-#\\\|S7SULHG5BS7SYB7KJ7A4O2W2DT5VH6ADAR5ZPCLMO3OJT7623EI \ / AMOS7 \ YOURUM ::
-#\[7]IDWCO4B5LMNXMBCIKNM5KLHC7BPSMBUJXJHVPASIWDOWET25BSDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,,.,,,,,,,,,,,,.,,..,,,.,,,,,..,,...,.,.,...,..,,,,.,...,..,,
+#U6KJ5S732IT56XHQZUDAUJSMEECQJB42VGR6UPQBH7GTWIGSZHO56BZHO6IE7KAJCJ2CT5ZANQVIS
+#\\\|CYKQ7UWKABQ2LNXGOTQPT44VNOR7J3N3ABJZNAYGQU7P3ENH6KE \ / AMOS7 \ YOURUM ::
+#\[7]MG5544NAWKLSEDGJHYFSQCVUW6MH3C2MGNIYRIVRNEGOXWYMGGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

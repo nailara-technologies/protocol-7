@@ -185,7 +185,7 @@ numbers. introduce a separate task-local `<task.cfg.gpu_cold_temp_c>`
   supporting `->cancel` / `->is_active`. `task.post_init` already
   registers one such timer — a natural sibling site for the sweep timer.
 - **config**: the task zenka currently loads only `shared-params`
-  (`cfg/zenki/task/start` line 4), no `task.cfg.*` accessors
+  (`cfg/zenki/task/zenka.v7` line 4), no `task.cfg.*` accessors
   yet. new values get added as `<task.cfg.*>` defaults in `task.init_code`
   (mirroring `<coding.cfg.gpu_target_temp_c> //= 80` in
   `gpu_temp_update`).
@@ -218,7 +218,7 @@ numbers. introduce a separate task-local `<task.cfg.gpu_cold_temp_c>`
    the timer in `<task.cold_queue.force_timer>` so a later call can
    `->cancel` a pending one; with no delay, forces immediately. **must
    also add `trigger-cold-queue` to `access.cmd.usr.cube`** in
-   `cfg/zenki/task/start` or the command is unreachable.
+   `cfg/zenki/task/zenka.v7` or the command is unreachable.
 
 ### phase 2 — layer the GPU-temp gate (event-driven, the automatic trigger)
 
@@ -250,7 +250,7 @@ precedence in the sweep handler: **force flag** (manual override) →
 - **changed**: `src/task.init_code` (config defaults + subscription
   callback), `src/task.post_init` (sweep timer),
   `src/task.cmd.summary-tree-notify` (record last-notify timestamps),
-  `cfg/zenki/task/start` (add `trigger-cold-queue` to
+  `cfg/zenki/task/zenka.v7` (add `trigger-cold-queue` to
   `access.cmd.usr.cube`)
 
 ### open questions / risks — need a human decision before implementation
@@ -298,8 +298,8 @@ reasonably be picked up on its own without waiting for the other two.
 
 #,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
 
-#,,,.,.,,,,..,.,,,,.,,,..,,,,,,.,,,,.,..,,,.,,..,,...,..,,.,,,,,.,...,.,.,.,,,
-#J7LG3AST2FUANUGUJ4TTJ6JNNDJBFNYDYBAVFUJJTPYIIK2YUVGFPR4NMLAOLC37QI6D77TWZVDQ6
-#\\\|HKAOOYPNR67L2A4L6K65HCL4B4LZQQWZIZS2JBRKKLWVKLGEUSO \ / AMOS7 \ YOURUM ::
-#\[7]XUR55JNQIJJHZN6M7KAS5OTKKEQYXPLCFQL6LDRM5OEMDK3J74DQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,.,,.,.,,,.,..,,,,,,.,,,,.,,...,..,,...,..,,.,,,,,.,,.,,...,.,.,
+#5TMWDCK6ABKZKUCZDRFXOKLHFVLPLCNHDUVLR3RIZE3WGMNDXTQRXGFESF2QYDF2GNDTKP65NOWAY
+#\\\|DMCGAD3T25R6F4RM57OX6K6FIR33BMG633VGXLSL5JE3C72XJE7 \ / AMOS7 \ YOURUM ::
+#\[7]3XWY4LF64JZNDOODBTNS6B5HYCR5DG5VEWEM7IQVUO7EOSDKBECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

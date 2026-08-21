@@ -692,7 +692,7 @@ first, note the reuse potential.
   '<' : '+<'` ; no new code needed for the read side ] — and **this is a
   genuinely cross-user pair**: senders may run as `taeki`
   [ coding-admin-group ] or as bare `protocol-7` [ `task`, etc. ], while
-  **`p7-log` itself is bare `protocol-7`** [ `cfg/zenki/p7-log/start:24`,
+  **`p7-log` itself is bare `protocol-7`** [ `cfg/zenki/p7-log/zenka.v7:24`,
   bare `[root.drop_privs:<system.amos-zenka-user>]` ]. a `taeki`-owned segment
   read by a bare-`protocol-7` p7-log is exactly the `'+<'`-EACCES case the
   read-only open fixes [ `/dev/shm` world-readable ]. **but** the sender here is
@@ -862,8 +862,8 @@ first, note the reuse potential.
    a partially-filled active slot?** this is the pool analogue of the old "ring
    capacity" choice, but with a real latency dimension the ring did not have.
 
-#,,,,,,.,,.,.,..,,,.,,..,,,,,,,,.,,.,,,.,,...,..,,...,...,..,,,.,,...,,,.,...,
-#5IG33UQUM7OIVAZNHTONUTZWDSFLIOLVNP3MXKADL3IWSDWVUKPMBICU2WY3I4OAP764SO7GJPRG4
-#\\\|WW4Z3CCOHGBEXQWKL52MBTRVMSXJJR3MTQZHYQRWG6W6SFRO6DQ \ / AMOS7 \ YOURUM ::
-#\[7]EK5YOADWISVQZXZ5YL4UHVN2G3TI6NHIMEDVLXJFAVHVUW7XEEAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,..,,,,,,,.,,.,,,,,.,..,,,,.,.,,,..,,...,.,.,,..,,,,,.,.,...,.,.,
+#ER2CS4AMAIMCLVECZIELCZ5FULHCKTBR7CBA4E3Z2VHKMU5TJWY6V3GHYZRB2DBJA2MDPVZ2T2YYM
+#\\\|4IH7Q7YM6FJYNHWTMCLMBB4VHB4DLK7SSYRWUJG5TRDVQMQQ2Q3 \ / AMOS7 \ YOURUM ::
+#\[7]5TR64MG57S7VKGWWJMGX4E2SJ2BDUAUVQZTJH4OLZQIBR5OI6WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

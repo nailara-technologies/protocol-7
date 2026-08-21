@@ -11,7 +11,7 @@ The `model` parameter in `coding.tools.handler.summarize_context` and
 **Why:** True per-call model switching requires `coding.cmd.switch-model` to be
 called before the inference request, then switched back after. Not yet wired in.
 
-**Config is ready:** `cfg/zenki/coding/start` already has:
+**Config is ready:** `cfg/zenki/coding/zenka.v7` already has:
 - `coding.cfg.base_work_model` — model for task inference
 - `coding.cfg.base_compaction_model` — intended for compaction [ currently same as work model ]
 - `coding.cfg.summarize_model` — intended for summarize_context [ currently empty ]
@@ -21,8 +21,8 @@ the same switch-before / switch-back pattern. CPU backend running a separate
 large-context model simultaneously is the cleaner long-term solution (no
 switching needed — two backends, two models).
 
-#,,,,,.,,,...,,,,,.,.,,,.,,,.,,,,,,.,,,,,,.,,,..,,...,..,,...,,,,,,.,,,..,,.,,
-#SX6YBUHJUZ7T5526DKFQW2M2CDK2RS56ICGQN3NTKXXPCBI6XGD5YK6ORXEULJLQSAOLW5MV6LOA4
-#\\\|QYIYJHQGVWZT7X3RZCQ4FYFRDGUSSJXQWIHH4TSAPAL4OKNUWSA \ / AMOS7 \ YOURUM ::
-#\[7]TQPSM676ZML2IEIAOVDQ4AREARCE63JVTN76F3IQNOUYNYCZJIBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,,,.,,,.,,.,,.,,,...,,..,,,,,..,,...,.,.,,,,,...,,..,,.,,.,,,
+#3M3Q3TTMOPPP4654HACUCRXLJL2ZFRFVU5YVX47TIHXF3HMWLBU5CZT5GBJZTBYR2KQOVNL3IX6RA
+#\\\|KAS7AC6R6P6DH4EYZ7BJA5UK2LVNQYN5LUKXNZYPRG352OW7YEH \ / AMOS7 \ YOURUM ::
+#\[7]S5K2QFB4TGQ74SHWCY7FFCOX6A2G62MXOEE3RAWR4CJEN5NST2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

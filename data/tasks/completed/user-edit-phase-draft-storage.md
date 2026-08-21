@@ -84,7 +84,7 @@ exactly, don't rewrite it differently.
   hook this into
 - any `phase_2_rendering`, `phase_3_form`, or `users.*` integration
 - do not touch `src/user-edit.init_code`, `src/user-edit.outbox.*`,
-  or `cfg/zenki/user-edit/start`
+  or `cfg/zenki/user-edit/zenka.v7`
 
 ## Verification
 
@@ -116,8 +116,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 chose for the "skipped" return value and why, or if `mpv.snapshot.write`
 turned out not to exist under that name).
 
-#,,.,,,,,,,,.,,.,,,..,..,,.,.,,,,,,,.,,..,.,,,..,,...,...,,..,,,.,.,.,,,.,,.,,
-#IHNXTJSCMADHRWVXNCS3AF6KXEOUMNCG4554AQM5LV74DXNIZ4S5ZAHQWBJCJCOOVDUDISZHGHIGC
-#\\\|5LLZQAYQGDODB6OTIJRHXWA4BDKCCXDAVCRKWFUCWT3SYCUEVZ6 \ / AMOS7 \ YOURUM ::
-#\[7]GUYORCA6UQWPQYIC5LS2VUIYY2HHYQNWAEKCMKMVTR5KFRP3JMCA 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,,,.,,.,,.,.,,,,,,..,.,.,.,.,..,,...,...,...,.,.,,.,,,.,,,.,,
+#ODZ3VPJY2YNEUZBWOLH6LENTYPTIW2INPETXZILPZMQAJM4DXIN3I5MHVOA4IU6LTPPYD5ENSHPX4
+#\\\|5THCKAFF4V7ERJ4I3DEGG2D75LQ5ZW2KCLEGLQ6FJG6WRUDKRQ4 \ / AMOS7 \ YOURUM ::
+#\[7]FYRT4NVRQTABJ6CFFNMWMQP4H5T7WLW3I6CBBJT6QKSVFASGZEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

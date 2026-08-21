@@ -27,7 +27,7 @@ p7 screenshot.capture --help   ## check screenshot zenka api
 ```
 
 if chromium not available: use whatever browser is installed.
-the browser command is configurable in zenka-startup.v7.
+the browser command is configurable in start.cfg.
 
 ---
 
@@ -184,7 +184,7 @@ render the minimap HTML using the browser zenka / xvfb:
 ## zenka configuration
 
 ```
-## cfg/zenki/visual-feedback/start
+## cfg/zenki/visual-feedback/zenka.v7
 [load_modules:visual-feedback.capture-sequence visual-feedback.analyze-delta
               visual-feedback.render-minimap]
 [init_modules]
@@ -192,7 +192,7 @@ render the minimap HTML using the browser zenka / xvfb:
 ```
 
 ```
-## cfg/zenki/visual-feedback/zenka-startup.v7
+## cfg/zenki/visual-feedback/start.cfg
 start.on-demand = 1
 restart.disabled = 1
 heartbeat.disabled = 1
@@ -252,8 +252,8 @@ p7 visual-feedback.render-minimap '{
 - [ ] peak frames in minimap have gold border (visual distinction)
 - [ ] full sequence from iris.html → minimap.png completes in under 30 seconds
 
-#,,..,..,,,,.,,.,,,..,.,.,,..,,.,,,,,,,..,...,..,,...,...,..,,,..,...,,,,,..,,
-#45JCZRSMGA34NSL2GFU35K75YRSCCLKYF4PNVOIPUZSY6RPG5WGFKQTMZR7FUQY5IL7HY5QLHXCIK
-#\\\|MOLLR7DIQ6A6BAEJAOWFMM2VOLSXGMKLWGCCZDM5QS7LCAZZX2R \ / AMOS7 \ YOURUM ::
-#\[7]GSTW7NR2TA6RKXM2SOIXGT4VVDWSDDYAMOC5U2CQTBCSP52E4YDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,..,...,...,,..,,,,,...,,,,,,,.,..,,...,...,...,...,.,,,,.,,.,,,
+#4I7GSLSI6CSRG6NWALY7ZPVSKOB6VFMP43AQC53CJCHL4VDXO6TE7RCKMUJQFBILNZKNWJMAQXXDG
+#\\\|KCL23TJNRM4TNVQCTHVXMQUQRHI3LQRNPBSGGH74QODNNLDTHNO \ / AMOS7 \ YOURUM ::
+#\[7]5AS7LDBXIJOTMHBPS5UDXSBUY7IGARYOGJO35TZWDCUIP7L6ZGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

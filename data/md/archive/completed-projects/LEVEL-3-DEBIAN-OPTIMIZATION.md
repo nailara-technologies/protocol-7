@@ -52,7 +52,7 @@ restart.disabled = 1   # ✓ Already manual restart only
 Add idle timeout to debian zenka startup configuration:
 
 ```perl
-# In cfg/zenki/debian/zenka-startup.v7
+# In cfg/zenki/debian/start.cfg
 
 dependencies = cube
 start.on-demand = 1
@@ -145,7 +145,7 @@ When on-demand zenka (e.g., calc) about to fork:
 ### Step 1: Locate debian zenka config
 
 ```bash
-cat cfg/zenki/debian/zenka-startup.v7
+cat cfg/zenki/debian/start.cfg
 ```
 
 ### Step 2: Add idle timeout line
@@ -161,7 +161,7 @@ After the `restart.disabled = 1` line, add in the `zenka-init` section:
 ### Step 3: Verify configuration
 
 ```bash
-grep "set_ondemand_timeout" cfg/zenki/debian/zenka-startup.v7
+grep "set_ondemand_timeout" cfg/zenki/debian/start.cfg
 # Should output: [base.zenki.set_ondemand_timeout:445]
 ```
 
@@ -241,8 +241,8 @@ The debian zenka is **perfect for idle timeout auto-shutdown** because:
 
 **Result**: Self-managing, resource-efficient dependency system that cleans up after itself.
 
-#,,,.,,,.,,.,,.,,,,,.,,.,,...,..,,.,,,,.,,,,,,..,,...,..,,,,.,.,,,,,,,,..,,,.,
-#YP72RDPEXY43KX5WSBJMGZJP3UO2OJPDRHSI275F3F4RU5KIEGI2M3CD2KKTAXM26E5GNTU75LAHE
-#\\\|QWZPUGFZOS45IGTLEACVMWTVBW3H532JJLIXCIZNJESREHUYO53 \ / AMOS7 \ YOURUM ::
-#\[7]7MFJ3RWU7KL2I5GWJY6NOAOMVMCEYNO2YV5QFS5F7L4R6NYAUADI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,.,,,,.,,.,,,,.,,..,,...,..,,..,,...,...,.,,,...,,.,,,,,,...,
+#QMHKR2HLR73KM6A6MNQDP3MD6WZUNRO6YKO6QZMMBGOAZTP644RQH5HCAF4JQFFUE2LCOUVRP4TCO
+#\\\|MOQ2X6BZMICVJY7WZMW2UV4WEOKVV5P6WW4JRVZBYTWZOZKHBMN \ / AMOS7 \ YOURUM ::
+#\[7]4EIJMKDBEYMFV2E7G6AVAA7GFPD5ODQNPO23JMJGJ5FJZBNTYCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

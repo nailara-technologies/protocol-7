@@ -147,7 +147,7 @@ stylesheets. if js is needed for anything, inline it in the template.
 
 ### configuration
 
-add to `cfg/zenki/web/start` near the `plugins.load` line:
+add to `cfg/zenki/web/zenka.v7` near the `plugins.load` line:
 
 ```
 plugins.load = plugin.web  ## already there
@@ -200,7 +200,7 @@ this bit the 5.1 implementation. do not repeat.
 
 ### index.gen_path is available in the web zenka
 
-confirmed loaded via `cfg/zenki/web/start:9`. call as
+confirmed loaded via `cfg/zenki/web/zenka.v7:9`. call as
 `<[index.gen_path]>->(\$seed)` where `$seed` is a string or scalar ref.
 returns a `/`-separated coordinate tuple string.
 
@@ -275,8 +275,8 @@ before marking complete:
 - coordinate primitive: `src/index.gen_path`
 - json endpoint template pattern: `/var/httpd/space.v7.ax/grid.json.tmpl`
 
-#,,.,,.,.,...,,.,,...,,,,,.,.,.,.,,.,,...,..,,..,,...,..,,...,,..,,,,,..,,.,,,
-#AQT5DMRJF47VE4C4XLFL7V7KYLJBFWYMJYCZFWJVCD6ITGAFTM3TK26WDFJ5HGZKKMEZDHBQR7GRQ
-#\\\|WUETKUMWOONYINIQABJYPQF65HMT5DRDCBIEFJMMOXULAF2MUUF \ / AMOS7 \ YOURUM ::
-#\[7]PYPDHBXHSECLUWFOMXKGWBHRPO5FYDP5V27ZITXB3C5PON5KAYCA 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,.,.,,..,..,,..,,..,,,..,,,,,..,,...,...,.,,,..,,,,,,,,,,.,,,
+#PWVIWTLYQQMDEUDBIQESWXAY2HCDDTA5OXYH7HC5P42EQ6VCQF4BWMKOQSN7S5O5CDJUOS7BMNQ7S
+#\\\|W4DTMUBHGNSLF7QCH666W65FHOR423R6SVZHZGY5BN66MUYGU2O \ / AMOS7 \ YOURUM ::
+#\[7]YSNSTBYRPWPDK3WSZOE5NZTFWAWAEWW34533GEAKYSZYMDEBPWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

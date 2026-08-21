@@ -2,7 +2,7 @@
 
 ## Current State: Styled XTerm Wrapper
 
-The `amos-term` zenka (`configuration/zenki/amos-term/start`) is currently a lightweight desktop terminal wrapper:
+The `amos-term` zenka (`cfg/zenki/amos-term/zenka.v7`) is currently a lightweight desktop terminal wrapper:
 
 ```
 amos-term zenka
@@ -55,7 +55,7 @@ amos-term.mode = hybrid
 
 ### Phase 1: Configuration Structure (Non-Breaking)
 
-Add to `configuration/zenki/amos-term/start`:
+Add to `cfg/zenki/amos-term/zenka.v7`:
 
 ```perl
 # Terminal mode selector
@@ -318,8 +318,8 @@ This upgrade serves multiple purposes:
 
 ## See Also
 
-- `configuration/zenki/amos-term/start` - Zenka configuration
-- `modules/amos-term.*` - Current implementation
+- `cfg/zenki/amos-term/zenka.v7` - Zenka configuration
+- `src/amos-term.*` - Current implementation
 - `bin/atom-delta-term*` - Reference protocol implementations
 - `read-me/documentation/dev/holographic-transmission-protocol.md` - Protocol spec
 - `read-me/documentation/dev/ttf-glyph-mapping.md` - Visual glyph system
@@ -330,8 +330,8 @@ This upgrade serves multiple purposes:
 
 ```
 
-#,,..,.,,,,,.,,.,,,,,,,..,.,.,,..,...,.,.,,,,,...,...,...,..,,,.,,.,.,,,.,,,.,
-#AUOGTQ6ANCIYZYCQCMH2LVLS4KMN2RYQPSLOTQ3CRRGZGXCANNYVFM35U7EI6HIFETXHBS7ZUNMEK
-#\\\|IHVP43ZNETQQ2CXTCUPSG22Y2FGXY2YAQXUNLYXMEFLXTLDRXHW \ / AMOS7 \ YOURUM ::
-#\[7]QM3TKG7W7HB4MZBQPSK6KZDY7TLBFGMKOAC4UNRMEXSIU7T4YQDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,.,,,.,,,,.,,.,,.,,,.,.,,,,,...,...,...,...,...,..,,,,.,.,,,,,.,
+#4L3UY6SWRGR3URNDTCOME5TRDG6HWFGFHP6M2RNJTM6Z5RA4TVM36TWYLGUASQOQUYNMC7JVZBGYU
+#\\\|ZULBMOTQCBAR44YN2RGRFR2F2MXWMHPGNJYUQIUCQOS2CKKFZLR \ / AMOS7 \ YOURUM ::
+#\[7]V3QLU2H6A2EEXG7GIFKYWOF3NSLWJ6ZMR2X2CK7OJOA7DOCTXYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -66,8 +66,8 @@ for the top-level roots. this is not theoretical — it's live for at least two
 zenki today:
 
 ```
-cfg/zenki/httpd/start:   httpd.system.user   = httpd
-cfg/zenki/httpsd/start:  httpsd.system.user  = httpsd
+cfg/zenki/httpd/zenka.v7:   httpd.system.user   = httpd
+cfg/zenki/httpsd/zenka.v7:  httpsd.system.user  = httpsd
                                     ## httpsd runs as httpsd:httpd for /var/httpd access
 ```
 
@@ -238,7 +238,7 @@ migration has something correct to default to:
 ## interface surface
 
 **durable config**: `cfg/zenki/coding/path-policy` (new file, loaded
-from `cfg/zenki/coding/start` alongside the existing `coding.cfg.*`
+from `cfg/zenki/coding/zenka.v7` alongside the existing `coding.cfg.*`
 block). declares the default profile, named profiles, and this zenka's own
 taint declarations for subtrees it owns. resolves through the existing
 `<coding.cfg.*>` template-accessor mechanism.
@@ -374,8 +374,8 @@ execution-time backstop already present in dispatch from phase 1.
   `src/base.path-set-up.check-zenka-paths` — the existing per-zenka
   ownership convention this design relies on rather than reinventing
 
-#,,.,,,,,,,..,..,,,,,,..,,...,...,.,.,,,,,..,,..,,...,...,.,.,,,,,.,,,...,.,,,
-#KCUMHMUWRSDHYTGJHTL4ZGASIXNTARJF3ZNOQCER3XJDNSADCKAI7LEOAANROQP2QWVVZHJI5HZ26
-#\\\|ZBD6TG6WUZJCEPZGP4NYCLKPJDMD5G3DJYDWGVCTA7VTSUKRSMB \ / AMOS7 \ YOURUM ::
-#\[7]ARLIZ2NZBVXW4BO4UEOAWUV2OAI5UX47IS7THTI2QY2WNFGOGECA 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,,..,..,,,..,,,.,...,..,,,..,..,,...,...,.,.,,,.,,..,,.,,.,.,
+#QPBNCQC2EHECT2N3XSSUR7267DTWASVHJBEUA2T37VIB2DGAANACBWJHZ3PIQ7X62Q34Z3A7JMJ7E
+#\\\|MYAOHCP6VTUCOGHZONRY7QZHGCHKXTHJFTZWWRH5VFCPSOBNM3Y \ / AMOS7 \ YOURUM ::
+#\[7]3XF4LUVV4NT33FX62TBVDKEVE52EO2Q3FRGHYKW33XFV7MFMF4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

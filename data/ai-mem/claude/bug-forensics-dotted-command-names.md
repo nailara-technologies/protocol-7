@@ -97,7 +97,7 @@ confirmed via grep:
 - `cfg/zenki/cube/access.zenki:331`:
   `access.cmd.usr.openvas = forensics.investigate.finding` — the actual
   openvas phase-2 report-to-forensics handoff grant.
-- `cfg/zenki/forensics/start`'s `access.cmd.usr.cube` includes
+- `cfg/zenki/forensics/zenka.v7`'s `access.cmd.usr.cube` includes
   both `sweep.run` and `investigate.finding` — operator-facing
   (`p7c forensics.sweep.run` / `p7c forensics.investigate.finding`).
 
@@ -168,8 +168,8 @@ adjacent command-naming/routing gotcha (bare-name collision across
 zenki sharing a process, not a regex-shape violation) found the same
 general class of naming trap in this project before.
 
-#,,,.,.,,,,.,,..,,,,,,.,.,.,.,...,,.,,,,,,...,.,.,...,...,...,,,,,..,,,,.,.,,,
-#4RUXABQG45FLLVYP6TZ75LNU2QK6HEYLTMQCYX2TYDOWKBQSQHP7JW3UXQAOVYNKSOGEJ3UCVKVB2
-#\\\|4WS67OKKZ7SGM7O6L64FR734N6CCX5SEAUYE6BL44QU54UJPCVO \ / AMOS7 \ YOURUM ::
-#\[7]EB6FF7FSOT3HCNUYNE5JXKVYUIABX2WJR4INKVIJSHUB73BEOWCY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,..,,..,.,.,.,,,.,.,,,,,...,,..,.,.,...,.,.,.,.,,.,,.,,,..,,,..,
+#ELGS7H25JILZWK2VOEYHTOUQWU5Z6THI5L4RPMUQCWK73YIY4CY7KSZ7GKVKJO4XHHWTVNJSKC7FU
+#\\\|RWTALMEVABDQHBNMTOUBYELVKFF5I4LRO3A6YX5MZH2BNGJKF6I \ / AMOS7 \ YOURUM ::
+#\[7]ALW6Y67LXXQQOCOOTKTAWGPJ6XEXMHNU2LHDB4O6U2WVC5N23UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

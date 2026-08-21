@@ -41,7 +41,7 @@ pattern ].
 
 ## network run/start context
 
-- the network runs as ROOT: `cfg/zenki/cube/start` does
+- the network runs as ROOT: `cfg/zenki/cube/zenka.v7` does
   `[root.drop_privs:<system.amos-zenka-user>]` → exits when non-root.
   v7 as taeki also fails on `/dev/shm/.7/STDOUT` perms [ protocol-7 750 ].
   start = `bin/Protocol-7 v7` as root [ systemd unit points at
@@ -71,8 +71,8 @@ pattern ].
   gained base.zenki.resolve_routing_sids; runtime ignores signatures,
   human re-signs before commit.
 
-#,,.,,,,.,...,.,,,..,,,,.,..,,,,.,.,,,,,,,,..,..,,...,...,.,.,...,.,,,,.,,,,,,
-#LGJJC7STI2Y4AFWLLJ5FH6ZZ2LVQOABISVG6IILBDSZ5KPXGV6ZMK6YKRZGXR7P5U4YOGHRV6LFKS
-#\\\|V5KJI3M4TNP6YVFACB3QOVWNWTTOGPPCMA6GT2CT7ABC7P5FVF3 \ / AMOS7 \ YOURUM ::
-#\[7]UFARJMFZRGZ6DC2JLI3G5LIMTD2MZKCA3JUTQ6OJKLBZ4RQHPACA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,.,,,.,,.,.,,,,,.,,,..,,...,.,.,..,,...,...,..,,.,,,.,.,,,,,,,,,
+#CMIYVFYDOS6C2EU3WQRA6CUWQM5KLHNDO5CKPMXBYPB7IFPS32RRI5XXWZ4PSCSMUCMXZKRKMI45W
+#\\\|ZIFGFFASZV2UMVNT7T363DVX7VAQA6OQKJQBPMAMXEHAT6OI7KD \ / AMOS7 \ YOURUM ::
+#\[7]7RYZ2EOC2HRJGSIICWA7K3G4LCBXQG642DYXZJI4IRRFMFAVN6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

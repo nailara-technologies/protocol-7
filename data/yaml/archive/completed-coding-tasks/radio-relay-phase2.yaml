@@ -27,7 +27,7 @@ task:
     - src/radio.init_code      ##  add jingle state init  ##
     - src/radio.handler.stream-chunk  ##  add track timing + jingle mute  ##
     - src/radio.cmd.status     ##  add jingle state to output  ##
-    - cfg/zenki/radio/start  ##  add new modules to load list  ##
+    - cfg/zenki/radio/zenka.v7  ##  add new modules to load list  ##
 
   track_state: |
     add to <radio.stream.icy> in radio.init_code:
@@ -50,7 +50,7 @@ task:
     title pattern match (radio.filter.jingle):
       match against <radio.jingle.patterns> (arrayref of regex strings,
       default: [ 'psyndora', '\bjingle\b', '\bID\b', '\bpromo\b', 'station id' ])
-      configured in zenka-startup.v7 as space-separated list:
+      configured in start.cfg as space-separated list:
         radio.jingle.patterns = psyndora (?i:\bjingle\b) (?i:\bID\b)
       if any pattern matches: return 1 (jingle)
 
@@ -130,11 +130,11 @@ task:
       track duration: N seconds (if known)
 
   startup_config: |
-    add to cfg/zenki/radio/zenka-startup.v7:
+    add to cfg/zenki/radio/start.cfg:
       radio.jingle.min_track_seconds = 90
 
     radio.jingle.patterns is initialized in radio.filter.jingle as a default;
-    override by setting in zenka-startup.v7 if needed later.
+    override by setting in start.cfg if needed later.
 
   acceptance: |
     - ptd -c all modified and new radio.* modules passes
@@ -148,8 +148,8 @@ task:
     - radio.cmd.status includes jingle state
     - no background source, no keep-library playback, no disk writes in this phase
 
-#,,.,,,..,.,,,...,,,.,..,,,,.,,..,,.,,,..,.,,,..,,...,...,.,.,,,,,...,.,.,.,,,
-#VYKWLCMDEW3PCRR2C4CURSX2QKIK6C5ME4YLYOO3CH5RLYYY4KDSQ6GY624WG2BGMFGLWSDM4CY7W
-#\\\|ISYLCTD62JUJQNNAMPT3UFLLNPOY7JTH7Y4ZTEWVEMIGEUXSVTH \ / AMOS7 \ YOURUM ::
-#\[7]53YQNP6ULYS3SEZM7FJNIJRFFH6AK5CZ3Q3SQWTLN3YJDZR7KCBA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,,,..,,,,.,,,.,,,,,,..,,.,,...,..,,...,...,,..,,.,,...,.,.,..,,
+#XECJJ46Y4HMHMLRI4STVPF4GDQ2OO5L2KMX3KLM5HXY5QSC2PTWSCFRZ7JXDOVQMJ3FZU6BVKJKBO
+#\\\|FWVGDJYFOH4YG7JXWYM3TLW3AB4VA6ZPXVW5ZSY6TKBU7XVDKVB \ / AMOS7 \ YOURUM ::
+#\[7]D4EGYJUUOSG4SYFYTPMZGISPIRAESIN5XEVQXW4K6GM7DAJLCEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
