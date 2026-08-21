@@ -61,9 +61,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [ext-bundle backup alias](reference-ext-bundle-backup-alias.md) — `gbc` bash alias creates+verifies the ext-bundle git backup; it's a `.bundle` file not a real remote, `git push` to it always fails harmlessly
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 - [nshell SS3 arrows + live debug probe](reference-nshell-ss3-arrows-and-live-debug-probe.md) — DECCKM terminals send arrows as SS3 not CSI, `cat -v` settles it in one step (0747face5 fix); `debug-status` safely reads any live session's state, `char-add` injection only works if zenka started with `-no-tty-debug`
+- [verbosity console levels](reference-verbosity-console-levels.md) — `system.zenka.verbosity.*` is a 0-5 numeric intensity scale, not a named-severity enum; 3=compiled-in call/param tracing, 4=parsed-code-to-console, 5=full %data dump (devmod); don't let a model invent a FATAL/ERROR-style mapping for it
 
-#,,,,,,,,,,..,...,,..,,,.,.,,,..,,.,,,,..,,,.,..,,...,..,,.,.,.,,,,,.,.,.,,,,,
-#D4WFDQRZLMRUBNAFDY33YZZYOSVKAOWP7FF5WIDOW73THNKFIXDG7ZHCX5IQTCFT6OX2ROQCFBOLE
-#\\\|LDEVPNC33Q674CBYRKI7HVJ6K3XJC5PH2VH7PDY2BJOH5ROOSKJ \ / AMOS7 \ YOURUM ::
-#\[7]K26GETSOKA5ACFM35F5G5HJVG7DXYQ7ZSKZSI7VG4V76A53W66AI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,.,.,.,.,,..,,..,...,,..,,,,,..,,...,...,,..,,,.,.,.,.,,,.,.,
+#7RZKRTHRFTWNJCVMPJZKIH7FXBDMTDHI5XEAEFXDH7QUVMYVZF7TAOUHN7PT4EO4K6UNY5GIX6FV2
+#\\\|5ZG5YJU4CT464NKKY326TN5SGF63KWKXEGS2AMRIDFXTC7X3TZL \ / AMOS7 \ YOURUM ::
+#\[7]UE5QF2UKZPZ2HKCR5DLS7O6L6KBT7D75NM535AFMPLHIQMCIGWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,18 +9,11 @@ my $root            = $args->{'root'}            // '.';
 my $recursive       = $args->{'recursive'}       // 1;
 my $follow_symlinks = $args->{'follow_symlinks'} // 0;
 my $batch_size      = $args->{'batch_size'}      // 100;
-my $pattern         = $args->{'pattern'};
+my $pattern         = $args->{'pattern'}         // '';
+my $files_only      = $args->{'files_only'}      // 0;
+my $dirs_only       = $args->{'dirs_only'}       // 0;
 
-# Find command setup
-my @cmd = ( 'find', $root );
-push @cmd, '-maxdepth', '1' unless $recursive;
-push @cmd, '-follow' if $follow_symlinks;
-push @cmd, '-type', 'f' if $args->{'files_only'};
-push @cmd, '-type', 'd' if $args->{'dirs_only'};
-
-my $depth         = 0;
-my @pending       = ($root);
-my $current_batch = [];
+my @pending = ($root);
 
 return {
     'type'   => 'file-list',
@@ -68,20 +61,27 @@ return {
                 my $st = File::stat::stat($path);
                 next unless defined $st;
 
+                my $is_dir     = -d $path;
+                my $is_symlink = -l $path;
+                my $type       = $is_dir ? 'dir' : 'file';
+
+                next if $files_only && $type ne 'file';
+                next if $dirs_only  && $type ne 'dir';
+
                 my $item = {
                     'path'  => $path,
                     'name'  => $entry,
                     'size'  => $st->size,
                     'mtime' => $st->mtime,
                     'mode'  => $st->mode,
-                    'type'  => -d $path ? 'dir' : 'file',
+                    'type'  => $type,
                 };
 
                 push @$batch, $item;
 
-                if ( -d $path && $recursive ) {
+                if ( $is_dir && $recursive ) {
                     push @pending, $path
-                        unless ( -l $path && !$follow_symlinks );
+                        unless ( $is_symlink && !$follow_symlinks );
                 }
             }
         }
@@ -105,10 +105,8 @@ return {
     },
 };
 
-# SPDX-License-Identifier: ISC
-
-#,,.,,..,,,.,,,.,,,.,,..,,,,,,,,.,,,.,,,.,..,,..,,...,...,,,,,,.,,.,,,,,,,.,.,
-#TOXQGXSBN5JOOHOTJJDFY25QWPHPUDSDQNFP2CL6XQRGDDZRYHVAGRJ6N74QXYZ3UPODCFU6GJAPK
-#\\\|RATEAZLC7Q4NCRYHH3TE7NH3JOVFNSHXR4RGILM5UTAXCIT4QE5 \ / AMOS7 \ YOURUM ::
-#\[7]FRXZLQAFDVU3X4KLMF6RO7SJMBK3ZJE3OTB6J7CXNPUII26OFEAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,.,,.,.,.,,,.,,,,.,,,..,,..,,,,,..,,...,...,,,.,..,,,.,,.,,,...,
+#M2P5XGM2COFNTYTEZRTJ5OKOJVKBM3R6CZYWAMMWEM5VLJKFYUT7BOHRT7G2Z5MNX6SJ452DH6BVG
+#\\\|5SANFAHQHYHP6VSI7FKVVJE2DYY5Z45LXN76R7RYC75LNGZL7BH \ / AMOS7 \ YOURUM ::
+#\[7]F2UZS77JE2WUDY2I63TLZNWBHFQTICG4POVQFTC7E7ILG7P5ZEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
