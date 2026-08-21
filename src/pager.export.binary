@@ -27,7 +27,13 @@ for my $page_num ( $start_page .. $end_page ) {
 
 # Extract visible slice
 my $offset = $start - ( $start_page * $page_size );
-@items = @items[ $offset .. $offset + $count - 1 ];
+if ( $offset < 0 || $offset > $#items ) {
+    @items = ();
+} else {
+    my $end_offset = $offset + $count - 1;
+    $end_offset = $#items if $end_offset > $#items;
+    @items      = @items[ $offset .. $end_offset ];
+}
 
 # Determine byte width based on format
 my $byte_width = {
@@ -49,21 +55,20 @@ for my $item (@items) {
         my $algo = $item->{'algorithm'} // 'bmw';
 
         if ( $algo =~ /bmw-L13/i || $format eq 'L13' ) {
-            $bin = <[base.decode.bmw-L13]>->( $item->{'checksum'} );
+            $bin = <[base32.decode]>->( $item->{'checksum'} );
         } else {
-            $bin = <[base.decode.bmw]>->( $item->{'checksum'} );
+            $bin = <[base32.decode]>->( $item->{'checksum'} );
         }
     } elsif ( $item->{'path'} ) {
 
         # Hash path to binary
-        my $hash = <[chk-sum.bmw.L13-str]>->( $item->{'path'} );
-        $bin = pack( 'H*', substr( $hash, 0, $byte_width * 2 ) );
+        $bin = <[base32.decode]>
+            ->( <[chk-sum.bmw.L13-str]>->( $item->{'path'} ) );
     } else {
 
         # Default to item fingerprint
         my $data = join( '', map { $item->{$ARG} // '' } sort keys %$item );
-        my $hash = <[chk-sum.bmw.L13-str]>->($data);
-        $bin = pack( 'H*', substr( $hash, 0, $byte_width * 2 ) );
+        $bin = <[base32.decode]>->( <[chk-sum.bmw.L13-str]>->($data) );
     }
 
     # Pad/truncate to exact width
@@ -81,10 +86,8 @@ if ($output) {
     return \$binary;
 }
 
-# SPDX-License-Identifier: ISC
-
-#,,.,,,..,.,,,,,.,.,.,,.,,.,.,..,,,.,,...,.,,,..,,...,...,.,.,.,,,.,.,,..,.,.,
-#RB7MGROUSA33ZZ6NUMMAADHLBRP5FJJOR6MHJ2DMKDR2FZOFJ6LCUSTYNDVOE3JDRIXFPJDVSFCZA
-#\\\|IHUCKEA64JS4S5LJLXVABH3CSACLWG5RYS5EXBISCNYZD2OQXPF \ / AMOS7 \ YOURUM ::
-#\[7]5TQCMZBEUG5OZ5CAEXF5WBJCOBPNFPNG6A352DQFCVAENFYI5KDA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,,,.,,,,,...,,..,,.,,,.,,,..,..,,...,...,..,,,..,.,.,...,,,,,
+#3BPZLWZSPSKOWXHMLNSTCLICFUL57YNIKEZZ6362QZPMSSCBVW4MAARVOQYBLHSRRFFKR54S4JX2M
+#\\\|M2IOWKJRONLTXDQG2U3ICUZXZYKS5V6MA44K3HN5TWCLTTKFJJI \ / AMOS7 \ YOURUM ::
+#\[7]O3Z73Z55S5HWATFNFAXKTTAAVRK42CGJ5LGV2IDRKAEQI2VANOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -34,7 +34,7 @@ for my $i ( 0 .. $lines - 1 ) {
     if ( $item && $item->{'checksum'} ) {
 
         # Decode base32 checksum to binary
-        my $bin = <[base.decode.bmw]>->( $item->{'checksum'} );
+        my $bin = <[base32.decode]>->( $item->{'checksum'} );
 
         # Pad/truncate to 9 bytes (72 bits)
         $bin = substr( $bin . "\0" x 9, 0, 9 );
@@ -42,8 +42,8 @@ for my $i ( 0 .. $lines - 1 ) {
     } elsif ( $item && $item->{'path'} ) {
 
         # Encode path as 72-bit fingerprint
-        my $hash = <[chk-sum.bmw.L13-str]>->( $item->{'path'} );
-        my $bin  = pack( 'H*', $hash );
+        my $bin = <[base32.decode]>
+            ->( <[chk-sum.bmw.L13-str]>->( $item->{'path'} ) );
         $bin = substr( $bin . "\0" x 9, 0, 9 );
         print $fh $bin;
     } else {
@@ -62,7 +62,7 @@ if ( $args->{'async'} ) {
 
     # Non-blocking launch
     system("$cmd &");
-    return { 'temp_file' => $temp_file, 'pid' => $! };
+    return { 'temp_file' => $temp_file };
 } else {
 
     # Blocking launch
@@ -71,10 +71,8 @@ if ( $args->{'async'} ) {
     return 1;
 }
 
-# SPDX-License-Identifier: ISC
-
-#,,..,.,.,,,,,..,,,.,,.,,,..,,,..,...,,.,,,,.,..,,...,...,...,,.,,...,,.,,..,,
-#PH6LDWJDOFKGKQKLHGKYZSKDMFGK5FOE55ELO2HKHPCR3S2HFNBPCP2STV3TOA6MMV5WXTSUAJ4JY
-#\\\|2USJ6P7G5HLXWWKWKIBYJH54KC23PSIPAOXJTMUF34BHGO2KSOK \ / AMOS7 \ YOURUM ::
-#\[7]W2MFE6XBYFG3PJ7DDESE66DTPOZYKH4WGZ32XKFFVAJ66JEUHKDY 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,...,,.,,,..,.,.,,.,,.,.,..,,..,,...,...,...,.,,,...,,,.,,,,,
+#YAQIPPFDOBBYZFLDCTP6DNWLN3CD23EWGVEQO5B5PSTS4QMY6ST4GPIJW3U344CUWKKADFIIVEOZS
+#\\\|K43RXHYK2TPTFSLGXMWJRXZVGC3366QKUGMW63KUTIBIODCOIDZ \ / AMOS7 \ YOURUM ::
+#\[7]XJQRPQIQKFIQDPGYTNYH2UJNIRWVLABIAJNGSWSNERIJ6PPW24CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
