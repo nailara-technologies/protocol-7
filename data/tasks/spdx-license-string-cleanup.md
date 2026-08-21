@@ -84,8 +84,11 @@ code as first assumed).
 
 ## status: batch 1 in flight
 
-#,,.,,...,,,.,,,,,,..,...,,,.,...,,,.,.,,,,,,,..,,...,...,.,,,..,,,,.,,,.,...,
-#4LOPYZVKWQDTURC3FZUCCLJSICHX77TMEQWNNNEMOPKRFSUQGMJD5C3NT3DJUFVW7YYMJCHO52LDI
-#\\\|R2LRDF6JBCD5YPGRWR3CR3G7W5DZ3PEOAIGMLBJJ5ES2LBMMFJ4 \ / AMOS7 \ YOURUM ::
-#\[7]PJVUCFDWP7TCMVWBWXO46527HVGD5CTGMIYITOAJLFJZW7MTTUAY 7  DATA SIGNATURE ::
+corresponds to todo item `G5X` ("review routines with SPDX marker and
+remove on pass") — mark that done via `todo` once all 4 batches land.
+
+#,,,,,.,,,,,,,.,,,,.,,,,.,,,.,,,.,,.,,,.,,,.,,..,,...,...,.,,,...,.,,,,,,,,..,
+#DAL3QVCTXUHFENOXNU6OS2PR6KGWR42FOREZ5BYICBRWRX5DHV6IROX2IAS44W2B4GCIOK37OPD5S
+#\\\|IZMB5XHBQPN6Z7HVAUP4IQ7NGJCKHYMYWVW3GEHQPGQW4FTFSDL \ / AMOS7 \ YOURUM ::
+#\[7]55A4CRGA3SY4A7NYKE6VZXQV3NHQNST4V26F56R2M32SRC2CLQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
