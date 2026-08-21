@@ -32,15 +32,15 @@ my $queue = $bs->{'queue'};
 unless ( grep { $ARG eq $task_id } @{$queue} ) {
     push @{$queue}, $task_id;
     <[base.logs]>->(
-        1, 'backend_acquire: %s queued behind %s [%s] (%d waiting)',
+        1, 'backend_acquire: %s queued behind %s [%s] [%d waiting]',
         $task_id, $bs->{'lock'}, $backend, scalar @{$queue}
     );
 }
 
 return { acquired => FALSE, queued => TRUE };
 
-#,,,,,,,,,...,,,.,.,,,.,.,,.,,,,.,,..,...,,.,,..,,...,...,,.,,...,.,.,.,,,..,,
-#TM3C2O22X7D6RN7LAG5DMEIAPUTX5PTAAMUF6GZBMOBVYPKUGTVYIK73EZXULO6HY77C7AIPQLFDY
-#\\\|HKTIUMDQJ4WKVT7MFSFKGRUZFGZX27GF2UDNRTGJXEOXUUHLSKN \ / AMOS7 \ YOURUM ::
-#\[7]CZBI6ERB6E56GYUSO6QO22ON4XSFTZV2WWTYULYP244VXACBLEDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,...,,..,,.,,,,.,,.,,.,.,,,.,.,.,..,,...,...,...,...,,.,,...,.,.,
+#6SQLMCLBUYERYTBXFHZXJ6DUJR36MHK5P5CZN4LIRWQVFERR45I4VLZKPDRIAX4OKRZ2WQUPCGTQA
+#\\\|IFDHM6JVEWZIFK4YGUSBS2HBYJ5HPT4NVPGA33OQNVS5PV2DJN5 \ / AMOS7 \ YOURUM ::
+#\[7]V4LHJU5V7BMP6QVZYA635JCU7AQQROZUEYBBXN2R3S5JEIKFS6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
