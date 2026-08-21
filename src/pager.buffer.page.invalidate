@@ -16,6 +16,7 @@ if ( defined $page_num ) {
     if ( exists $buf->{'pages'}{'cached'}{$page_num} ) {
         my $count = scalar( @{ $buf->{'pages'}{'cached'}{$page_num} } );
         delete $buf->{'pages'}{'cached'}{$page_num};
+        delete $buf->{'pages'}{'dirty'}{$page_num};
         @{ $buf->{'pages'}{'lru'} }
             = grep { $ARG != $page_num } @{ $buf->{'pages'}{'lru'} };
         $buf->{'memory'}{'current'} -= $count;
@@ -34,10 +35,8 @@ if ( defined $page_num ) {
     return $total;
 }
 
-# SPDX-License-Identifier: ISC
-
-#,,,.,,,,,,..,.,,,,,,,,,.,,..,,..,..,,,..,.,,,..,,...,...,..,,,,.,,..,...,,,.,
-#56Q34W7NBFFQRSLN4IDE3JJPU5O62WYOBY4JNGTOPKDKRV2NGYI5BETLEJP7WCCO34LCSSAXVXB56
-#\\\|PRDAG5IESCYNCVMFCBLH4MVUGXQ477UHFJ2NIZWQVWBKJ2LVH2T \ / AMOS7 \ YOURUM ::
-#\[7]TQKHYAYJOR6F5GKDDH76O5BVA55XDEBXUDX4IGJYWZ4XIYZCNQBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,,.,,.,,,..,,..,,,,,,.,,,..,,..,,...,...,...,.,,,,,.,,,,,,,,,
+#G2JF5HX347NBU576RAU7OITMHWGQ7WYFQYJBK7LGO4UPNUIQCNFGVUOLFM3T3NHP5FSHYGO5GZLGI
+#\\\|BRD7LZX2A4QCSTU3JXUDV332J2E54RYRR4GINZY6DAQ447KSVXO \ / AMOS7 \ YOURUM ::
+#\[7]LTIFC2BBFTY2LAEVYKDPC6PUSG4MTWHZUAK3NZTGUTTX3FNMLQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

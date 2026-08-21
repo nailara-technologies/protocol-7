@@ -44,10 +44,48 @@ for each file above:
 do not remove the marker line from a file before it has actually been
 reviewed — it is the only record of which files still need attention.
 
-## status: not started
+## batching plan (added 2026-08-21, after a prior no-batch dispatch attempt
+## hit the weekly kimi budget instantly with zero landed result)
 
-#,,.,,.,.,,,,,,,.,,,.,...,.,,,.,,,.,.,.,,,,,.,..,,...,...,..,,,.,,,,.,,..,,,,,
-#DU5K4W6FISQIFLCHHG3PAS2XCZ6ES262EOU2PTJ6QR6QNH3DGGQAYPR2JAODUFH4WALVKMLWD53TA
-#\\\|DEKT3W75LWFPYQ5GMLAEEBK7C75PYY3YGVNKYNWS5PLEHIR6HHF \ / AMOS7 \ YOURUM ::
-#\[7]RCUJWAFE7O2GHBWG3WRWJCWYKSNQYZEOUMKHC7CKOQRM2E7YTKDQ 7  DATA SIGNATURE ::
+dispatch in small per-namespace-family batches, one at a time, k2.7 by
+default — hold back anything actually live-called for extra scrutiny:
+
+- **batch 1** (dispatched 2026-08-21, k2.7) — DONE, verified: `pager.buffer.virtual`,
+  `pager.buffer.page`, `pager.buffer.page.invalidate`,
+  `pager.buffer.page.invalidate-all`, `pager.init-code` — 5 files, none
+  currently called from anywhere in `coding.*` (verified via grep), but
+  all compiled at `coding` zenka startup (`pager` is in its
+  `modules.load`) — a syntax error breaks that zenka's reload, so static
+  syntax verification per file is required even though nothing invokes
+  these yet. all 5 syntax-checked clean (`bin/dev/ptd -c`) and diff
+  reviewed directly: SPDX line(s) removed cleanly (including the
+  duplicated pair in `pager.init-code`), plus one real bug fixed in
+  `pager.buffer.page.invalidate` — single-page invalidation left the
+  page's entry in `$buf->{'pages'}{'dirty'}` behind (invalidate-all
+  clears the whole dirty hash, single-page invalidate didn't), fixed
+  with a matching `delete`. staged, not yet committed.
+- **batch 2** (not yet dispatched): remaining `pager.source.*`,
+  `pager.filter.*`, `pager.sort.*` — note `pager.source.file-list` is
+  genuinely live-called from `coding.tools.dispatch`, treat that one file
+  as correctness-critical (live coding-zenka reload + an actual
+  `coding.tools.dispatch` call exercising it, not static-only).
+- **batch 3** (not yet dispatched): remaining `pager.view.*`,
+  `pager.editor.*`, `pager.export.*`, `pager.command.demo`,
+  `pager.decode.direction`.
+- **batch 4** (not yet dispatched): the 9 non-pager files —
+  `base.editor.*` (3), `storage.9p.mount`/`umount`, `context.tree.*` (2),
+  `context.template.resolve`, `base.decode.bmw-L13` — `base.decode.bmw-L13`
+  is checksum/crypto code, consider a k3 pass for that one specifically
+  rather than bundling into a k2.7 batch.
+
+see [[reference-spdx-marker-flags-suspect-session]] for the corrected
+blast-radius assessment (the family is loaded live by `coding`, not dead
+code as first assumed).
+
+## status: batch 1 in flight
+
+#,,.,,...,,,.,,,,,,..,...,,,.,...,,,.,.,,,,,,,..,,...,...,.,,,..,,,,.,,,.,...,
+#4LOPYZVKWQDTURC3FZUCCLJSICHX77TMEQWNNNEMOPKRFSUQGMJD5C3NT3DJUFVW7YYMJCHO52LDI
+#\\\|R2LRDF6JBCD5YPGRWR3CR3G7W5DZ3PEOAIGMLBJJ5ES2LBMMFJ4 \ / AMOS7 \ YOURUM ::
+#\[7]PJVUCFDWP7TCMVWBWXO46527HVGD5CTGMIYITOAJLFJZW7MTTUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

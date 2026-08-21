@@ -32,8 +32,24 @@ reading it closely first. This came up while assessing pager.editor.integration 
 "safe" first integration target for [[editor-namespace-interface-design]] work — it's
 low blast-radius (dead stub code) but NOT necessarily sound code to copy.
 
-#,,.,,.,,,...,,.,,..,,,.,,.,.,,,.,.,.,,,.,..,,..,,...,..,,,..,,..,,,.,.,.,,,.,
-#PXEMQGW27L37X6H45ZEE6SIXRQWQLV6OVCGHBELDCOY5ZPL32HNCCQJPEYLCPCHDVTYBRK3BT6VYC
-#\\\|O5RXA3DBXBDBSG4UHIKYKPFYZQW7WMPIEOZZSCC4PLCOSPV4ZXJ \ / AMOS7 \ YOURUM ::
-#\[7]KFGAWJMV5BZID2T75K3UAUZ22FCZDD2F2OOK3Y53WY7AFPOSYQAA 7  DATA SIGNATURE ::
+**Correction, 2026-08-21**: the "dead stub code" framing above is only true for *some*
+of the pager.* files, not the family as a whole — verified live before dispatching
+[[spdx-license-string-cleanup]] batch 1. `pager` is in the `coding` zenka's
+`modules.load` (`cfg/zenki/coding/zenka.v7`, marked "during development"), so every
+flagged pager.* file gets compiled at `coding` zenka startup/reload — a syntax error in
+any of them breaks that zenka, not a no-op. Worse, `pager.source.file-list` is
+genuinely called live from `coding.tools.dispatch`/`coding.tools.definitions` (a real
+tool the coding zenka exposes), so it is NOT dead code and needs live-verification-grade
+care, not just a static read-through. `pager.buffer.*` (the family dispatched in batch
+1) is not itself called from anywhere in `coding.*` yet, so it's still low-blast-radius
+in the sense of "nothing currently invokes it," but a syntax error there would still
+break the whole zenka's compile step. Any future batch touching `pager.source.*` should
+be treated as correctness-critical, verified against a live `coding` zenka reload plus
+an actual `coding.tools.dispatch` call exercising `pager.source.file-list`, not
+static-only.
+
+#,,,.,,,.,,,.,,..,,,.,,,.,.,.,..,,.,.,...,,..,..,,...,...,...,.,,,,,,,...,.,,,
+#OKAQXFQPKEQICYYTP3L5KDDOIHHQMFWPPJWXHE5PDFY7KNPFP5YUZRV5W6GMMMME7RMW6ZND3MMTM
+#\\\|45B4GSDIILZXC5DZ2RVEBJ2ODE5MXQYT5EZAB5MHEYLY7HP54IV \ / AMOS7 \ YOURUM ::
+#\[7]NH7Z6UERKUYNAXYWRUEIUPHA5LXSYMZZVW6A5D2EJOANOJ6OTKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
