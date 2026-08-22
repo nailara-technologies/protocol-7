@@ -1,8 +1,23 @@
 ## [:< ##
-# name  = plan-9.protocol.constants
-# descr = 9P protocol message type constants
+# name  = plan-9.protocol.constants.pre_init
+# descr = 9P protocol message type constants -- populates the
+#         plan-9.protocol.constants.* data-tree path so <plan-9.protocol.
+#         constants.KEY> resolves for every caller across plan-9.client.*,
+#         plan-9.server.*, and storage.9p.*. Previously defined via a
+#         plain Perl 'use constant' block, which never actually populated
+#         %data at all -- <...> is this codebase's data-tree read syntax,
+#         completely separate from a use-constant symbol, so every
+#         constant read anywhere in the 9P stack silently resolved to
+#         undef since the day this was written. A .pre_init suffix makes
+#         base.init_modules run this once automatically at zenka start,
+#         same as any other pre_init hook. Uses real Const::Fast constants,
+#         same idiom as crypt.C25519.init_code's <crypt.C25519.regex>.
 
-use constant {
+delete <plan-9.protocol.constants>    ##  allow updates during reload  ##
+    if <[base.is_defined_recursive]>->(qw| plan-9.protocol.constants |);
+
+## requires Const::Fast to be loaded ##
+const <plan-9.protocol.constants> => {
 
     # Message sizes
     HEADER_SIZE  => 7,       # size[4] type[1] tag[2]
@@ -68,13 +83,15 @@ use constant {
     OEXEC   => 3,              # Open for execute
     OTRUNC  => 0x10,           # Truncate
     ORCLOSE => 0x40,           # Remove on close
+
+    # Version string
+    PROTOCOL_VERSION => qw| 9P2000 |,
 };
 
-# Version string
-our $PROTOCOL_VERSION = "9P2000";
+0;
 
-#,,,,,.,.,.,.,,..,.,,,,.,,,,.,,..,.,.,.,,,,.,,..,,...,...,,,,,..,,.,.,...,,..,
-#JF33LGVKVPJLRCG5VIMYUWA6UM2RXPWBKQHZ723H53QGADVE55YBJ2BC2GRZ4PJK7NTOMXRNJHYXG
-#\\\|W3IAP467WBGJROHFS4BYZGWJBARTALSREM73JOWSJERLFW2J6ZH \ / AMOS7 \ YOURUM ::
-#\[7]3PKAJADKH37PSMCQAKC5KOKKU3XS3YZZ2BESGSIDA7IU422SAKCI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,.,,,...,,,,,...,...,.,,,.,.,..,,...,...,,,,,..,,,..,.,.,.,.,
+#WES5K25UG6WYG3V4GIOY4AXNHJZJHIKRJFZ4Q3UHNATHJMIVG6FSXSUJQVAXNIHUWQGRIS2L4SQDI
+#\\\|T5PXXZRQCK3UCEJPSGE6UVXIF3WNCBKN6HLMXFRD2RPOHUDD3RS \ / AMOS7 \ YOURUM ::
+#\[7]CYEM4TEQZOF2IDE4KHPIAHA3O56WKXKNSFSDBUICPVQRQDV5YOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

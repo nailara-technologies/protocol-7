@@ -30,7 +30,11 @@ if ( $p7ref && $p7ref->{'type'} eq '9p' ) {
     );
 }
 
-return undef unless $mount_point && -d $mount_point;
+## storage.9p.mount is a direct 9P client, not a real local FUSE mount --  ##
+## $mount_point is a remote path string, not a local directory, so no -d   ##
+## check here [ that mount style was tried and abandoned, see the disabled ##
+## amos-term.cmd.{mount,umount}_fuse.disabled files ]                      ##
+return undef unless defined $mount_point and length $mount_point;
 
 # Use storage.9p.scan for enumeration
 my $queue  = [];
@@ -111,8 +115,8 @@ return {
     },
 };
 
-#,,,.,...,.,,,,,.,.,.,,,.,.,,,...,,.,,,.,,,.,,..,,...,...,..,,...,.,,,,..,.,,,
-#4FU66AEGVMDHZXUJR3B2AHVQ42BJOF7WP434LH5CKO3FVGQOPNKBHZ3XOMISXKIPEFB6YTS7S7NQU
-#\\\|C2EBSWNTBWS2GNPSH37YQOWN6XH45UCO62YBF5XSPLTUML5KDWG \ / AMOS7 \ YOURUM ::
-#\[7]NZ4TMTXAVVO77265IP7D5ID5GAGTI6SQK2UKWG32SSNQLCCQMWDQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,,,,,,,...,.,.,,,.,..,,,,.,,..,..,,...,...,.,.,..,,.,.,,.,,,,,,
+#QAFLQCPIBWTNKS2BUNE5RQ3W7LIMS2OIZZRPGBLFR3YDS2TNA66J36ENVZRCV6L7VBLSLVQR2OKYW
+#\\\|7W3WTDMS4PMMBWB54X3ZHQE7LSBCHQPDSCY6WT5RB72AMAWCQKW \ / AMOS7 \ YOURUM ::
+#\[7]ROF3RUNLK6RVTNTLJ6BJOXQHRQJOUPRI635GQLD5E3ZASJ3I76DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
