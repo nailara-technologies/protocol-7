@@ -8,13 +8,13 @@
 # on_buffer_change dispatch delivers the completed reply to the pending
 # question's reply_handler.
 
-my $reply = $call->{'args'} // '';
+my $reply_text = $call->{'args'} // '';
 
 return {
     'mode'     => 'false',
     qw| data | => "usage: interaction-reply " . "<text>\n"
     }
-    unless length $reply;
+    unless length $reply_text;
 
 my $state = <amos-term.interaction.state>;
 return { 'mode' => 'false', qw| data | => "Error: no interaction channel\n" }
@@ -42,7 +42,7 @@ if ( not defined $state->{'user_attach_id'} ) {
 my $cursor = <amos-term.buffer-attachments>
     ->{ $state->{'user_attach_id'} }->{'cursor'};
 
-foreach my $char ( split //, $reply . "\n" ) {
+foreach my $char ( split //, $reply_text . "\n" ) {
     <[amos-term.buffer-write]>->(
         $sid,           $cursor->{'x'}, $cursor->{'y'},
         $cursor->{'z'}, $char,          4,                # p7_fg_0004
@@ -57,8 +57,8 @@ return { 'mode' => 'true', qw| data | => "reply written\n" };
 
 #AMOS7_SIGNATURE_PLACEHOLDER
 
-#,,.,,.,.,..,,,,.,..,,,,,,.,.,,.,,.,,,..,,.,,,..,,...,...,..,,...,,..,.,.,,..,
-#T7XKAI5S75O6EPVINT7TTR3HY7F67DWK3GFZW6GKHNMIMU5K2POFIURCY5GTCGVHK3Z25FTW43QHO
-#\\\|2ZKULKT3SKHQKQPCNT6T6EJPLDZYDKHIKH2P47ASKVIU2M54VWJ \ / AMOS7 \ YOURUM ::
-#\[7]YWQ3OHKWSBLYJ3USAWOSCFKEC4UGLS5O62A2YFQAYNV3RBOXMABI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,,,.,,..,...,,,.,,,.,,.,,..,,..,,...,...,...,...,.,,,.,.,.,,,
+#3WZ7SXZN4YISAEICN7OOSHOLRLG2CQHQV5JFLHHLJSQL2RJZDIPAROFVGMKXV76ZU5D3DWV266TNU
+#\\\|47T7PRT4XJD6VQD4HJWQTB7DSIXJ6YQOQEDRWF3MU5JDH376PQS \ / AMOS7 \ YOURUM ::
+#\[7]AJLBYC236PYHKJYK2FQCY37ODUTYBCZSHZZLXMPLCXKUPICGFKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

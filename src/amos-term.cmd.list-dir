@@ -1,0 +1,27 @@
+## [:< ##
+# name  = amos-term.cmd.list-dir
+# descr = List a directory over 9P (plan-9.client)
+
+my $args = $call->{'args'} // '';
+my ( $name, $path ) = split /\s+/, $args, 2;
+
+if ( not length( $name // '' ) or not length( $path // '' ) ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: list-dir <connection-name> <path>'
+    };
+}
+
+my $result = <[plan-9.client.list-dir]>->( $name, $path );
+return $result if $result->{'mode'} eq 'false';
+
+return {
+    'mode' => 'size',
+    'data' => join( "\n", @{ $result->{'data'} } ) . "\n"
+};
+
+#,,..,,,.,,..,,..,,,.,,..,,..,.,.,,.,,,..,..,,.,.,...,...,..,,,,,,.,.,..,,,.,,
+#5NSYVLDKMRI6KMQI665WZAB5DTFN66MEHXDQ35Y5BDNECT6WNF3KYVNRUZOTJE7YHKFPTYKYQ4BDE
+#\\\|BSTFJR5C36IYTVZ3PTYUUXSWXM3QCOHB6A4TH7AXU5J6JC7PSRH \ / AMOS7 \ YOURUM ::
+#\[7]J7FJIOBCA4RXYHZTREQGUSGQJZRTKWMW4KF2KDBWLFJLBLR5F6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
