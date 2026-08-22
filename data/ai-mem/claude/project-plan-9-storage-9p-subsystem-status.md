@@ -135,23 +135,118 @@ export-root removal rejected, duplicate-create rejected, read-only
 export rejects both create and remove, non-empty directory removal
 fails cleanly with no recursive delete.
 
+## update 2026-08-22 (fourth round, same day): port-default audit + config fix
+
+User asked for a quick audit of the same bug class that produced the
+`storage.cmd.plan9-connect` port-default drift (see the second round
+above): every OTHER 9P client/server default-port site, checked by
+grepping for `5640`/`15640` across the whole tree. Found real drift in
+6 more files (`storage.9p.connect`, `storage.9p.mount`,
+`plan-9.client`, `amos-term.cmd.mount-9p`/`mount-9p-client`,
+`plugin.storage.p7ref.index`/`.resolve`), all fixed.
+
+**Found something bigger while auditing**: `plan-9.client` (used by
+`amos-term.cmd.mount-9p-client`) had `$data{'plan-9'}{'client'} = {};`
+as its very first line — an unconditional wipe of the ENTIRE client
+connection registry on every single connect call, so a second connect
+silently discarded the first connection's registry entry (the socket
+itself leaked, unreachable by name). Fixed with `//=`. Also found,
+while starting `amos-term` for the first time this session to
+live-verify: (1) `amos-term`'s `post_init` crashed outright —
+`Linux::Inotify2` was never autoloaded (missing the
+`<[base.perlmod.autoload]>->('Linux::Inotify2')` call every sibling
+zenka using inotify has in its own `.init_code`), fixed; (2) a real
+logic bug in `amos-term.handler.interaction-timeout` — `qw| A B C D |
+. ' ' . qw| E F G H |` evaluates each `qw//` list in SCALAR context via
+comma-operator semantics, silently keeping only the LAST word of each
+list and discarding the rest (the "useless use of a constant"
+warnings were the tell) — the timeout-reply message was actually just
+"degrade] assumption" instead of the full intended sentence, fixed by
+using a plain string; (3) a cosmetic `my $reply` shadow warning in
+`amos-term.cmd.interaction-reply` (confirmed harmless — framework-level
+lexical shadow, doesn't reproduce under standalone `ptd -c` — renamed
+to `$reply_text` anyway to silence the noise). None of these three were
+related to the port audit; all surfaced purely because `amos-term`
+hadn't been started in a long time and nobody had seen its startup log.
+
+**The real fix, following the user's own design ask**: rather than
+just re-syncing every hardcoded literal to `15640` (which is exactly
+what drifted before), added `plan-9.default_port = 15640` to
+`cfg/shared-params` as the single source of truth, genuinely
+per-zenka overridable (any zenka can add its own
+`plan-9.default_port = <value>` in its own `zenka.v7` after loading
+shared-params — same pattern `system.zenka.verbosity.*` already uses).
+Every port-default site now reads `<plan-9.default_port> // 15640`.
+
+**A second dead-config discovery along the way**: `src/plan-9.config`
+(the ORIGINAL attempt at a single source of truth for these defaults)
+turned out to have never actually worked — every reader used
+`<plan-9.config.port>` (data-tree syntax), which only resolves values
+populated via `.pre_init` constants or plain config-file `key=value`
+parsing, never a bare `return {...}` module. Proved this empirically:
+changed the file's port value, restarted, confirmed zero effect on
+the real listen port, then reverted the test and deleted the file
+(also had to drop the now-nonexistent `plan-9.config` token from
+`plan-9`'s own `modules.load`, since it was named there explicitly,
+not swept in via a namespace token). See
+[[feedback-use-constant-vs-data-tree-const]] for the closely related,
+first instance of this same "config that looks wired but isn't" class
+found earlier the same day.
+
+The whole chain — server listen port AND every client's own default —
+was live-verified by changing `plan-9.default_port` to a distinctive
+test value (15642), restarting, confirming both server and clients
+moved together, confirming the OLD hardcoded port no longer worked at
+all, then reverting.
+
+## update 2026-08-22 (fifth round, same day): amos-term's missing .cmd. wrappers
+
+User caught a sharper diagnosis than my own memory note from the
+fourth round: `amos-term.cmd.mount-9p-client`'s follow-up commands
+weren't just misnamed (dots violating `cmd_re`) — there was no
+`.cmd.`-prefixed wrapper file for them AT ALL
+(`ls src/*.cmd.*list-dir` → nothing). Added
+`amos-term.cmd.list-dir`/`amos-term.cmd.read-file` (mirroring
+`storage.cmd.plan9-read-file`'s shape, calling the already-correct
+`plan-9.client.list-dir`/`.read-file` subs), fixed `mount-9p-client`'s
+help text to the real command names, granted both plus the
+already-existing-but-ungranted `mount-9p-client` in `amos-term`'s
+`access.cmd.usr.cube`. Live-verified: connect → list-dir → read-file
+round-trips correctly. See
+[[bug-forensics-dotted-command-names]]'s correction for the general
+lesson (check for a missing `.cmd.` wrapper before reaching for a
+naming/regex diagnosis).
+
 ## how to use this if picking the subsystem back up
 
 - Client-side entry points: `storage.9p.*` (connect/scan/read-file/
   write-file/create-file/remove-path/mount/umount/walk/stat/readdir),
   routed through cube as `storage.<name>` (the `.9p.`/`.cmd.` segment
   is stripped by cube's own convention — don't include it when typing
-  a live command).
+  a live command). `amos-term.cmd.mount-9p-client` is a SEPARATE,
+  parallel client entry point (via `plan-9.client.*`, not
+  `storage.9p.*`), with its own cube-routable follow-ups
+  `amos-term.list-dir`/`amos-term.read-file` — these didn't exist at
+  all until found+fixed the same day (the underlying
+  `plan-9.client.list-dir`/`.read-file` subs already worked, they just
+  had no `.cmd.` wrapper; the dots-in-name framing in
+  [[bug-forensics-dotted-command-names]] was a secondary, not the main,
+  cause — see that file's correction).
 - Server-side entry points: `plan-9.cmd.export-directory`/
   `plan-9.cmd.export-buffer` (also cube-routed as `plan-9.export-*`),
   backed by `plan-9.server.*`.
+- Port/host defaults: single source of truth is now
+  `<plan-9.default_port>` (`cfg/shared-params`) — see
+  `data/md/design/STORAGE-9P.md`'s "Config: plan-9.default_port"
+  section. Never hardcode a 9P port literal in a new file; read this
+  value instead.
 - Still open, not started: `Twstat` (rename/permission change over
   9P) — deliberately out of scope, a separate and larger increment
   needing a new `decode-stat` codec module.
 - If extending further, re-read `data/md/design/STORAGE-9P.md` (now
   documents create/remove, the write commands, the symlink-policy
-  flag, and the server/client module tables) and
-  `STORAGE-MAPPING-PLUGINS.md` first — and re-verify the
+  flag, the shared port config, and the server/client module tables)
+  and `STORAGE-MAPPING-PLUGINS.md` first — and re-verify the
   double-size-prefix stat-record quirk (`storage.9p.stat`'s buffer
   INCLUDES the entry's own leading size[2] field, `storage.9p.readdir`'s
   EXCLUDES it) before touching either.
@@ -160,8 +255,8 @@ fails cleanly with no recursive delete.
   before signing — don't assume the placeholder convention was
   followed correctly just because it looks plausible at a glance.
 
-#,,,.,,,,,,,,,,.,,...,..,,..,,,,,,.,.,..,,.,.,..,,...,...,...,..,,,..,...,...,
-#RVKVG7IE5FRKECJ7VOZDUQX4USSXH5F3LBJ64T6ZZJNFLTO52PXVSUBJUI4WCCXBYZTTIUIRRA6BS
-#\\\|VBUWZLWFBISNUEDFJEUSX4FGOHYMFHTRR6NVSPJ6SO6MVHN6OFL \ / AMOS7 \ YOURUM ::
-#\[7]ATOOJNU22Q3LYGSK2ZYIDVATTKM7EHNM2OYPNFJMOWZRFPLWVACA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,.,,,.,...,..,,...,,,,,,..,,,,,..,,...,...,,.,,.,.,...,...,..,,
+#XYYJ24PK6ALSWLMYHXP7RZTEZGRIKIQ6YEUII6JHMCS6FCXCCXZ4HEPNCXUTYOJYYBNIE6QMN5CXC
+#\\\|K5GMTQKCPEJ7KHHL6NB6B4RO4V2TMRE5MEQVUWKU5F55CKZSKH5 \ / AMOS7 \ YOURUM ::
+#\[7]52BIK6AWSAOBYEGX2H6V5FT26AA7ZYBQAIWUSZPSJQNM6ZVB7OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

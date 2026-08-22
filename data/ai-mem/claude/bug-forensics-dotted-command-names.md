@@ -204,8 +204,38 @@ the fix is almost certainly swapping `cmd_re`'s `[a-z]` for `[$anum_lc]`
 (or equivalent), not inventing a new pattern from scratch — the design
 already exists, dormant, in the same file.
 
-#,,..,...,,.,,.,,,.,.,.,,,,..,...,,,.,,,,,,.,,.,.,...,...,.,,,,..,,..,,..,.,,,
-#QW4BPSLFAWIUFMP2HYWW443ZKVQTW7HUYVMWFU3COKACLRYA7H5VFQNHWCAYVPGUNFTCKS3EA63Q4
-#\\\|NLEWLAS74D34R3A4ATQ3CXNXXMICICMK4X5XGWQA4IP7AILIH7Z \ / AMOS7 \ YOURUM ::
-#\[7]F2J53JVUEACWIV5EHH77KI3ZPOZJNDLECSH2WTY4RM5INYXRKIAA 7  DATA SIGNATURE ::
+**Instance found and fixed, 2026-08-22**: `amos-term.cmd.mount-
+9p-client`'s own help text suggested `p7c plan-9.client.list-dir <name>
+/path` and `p7c plan-9.client.read-file <name> /path` as the follow-up
+commands after connecting — neither was reachable via cube.
+**Correction**: my first pass mis-attributed this to the dots-in-name
+`cmd_re` rejection (the same class as `9p-connect`/`9p-scan` above) —
+the user caught the sharper, more basic diagnosis: `ls src/*.cmd.*
+list-dir` returned nothing. There was no `.cmd.`-prefixed wrapper file
+at all under `amos-term` for either operation — `plan-9.client.list-dir`/
+`.read-file` are plain internal subs, not cube commands, regardless of
+what name you'd try to route to them. The dots-in-the-suggested-name
+issue was real but secondary; a hyphenated rename alone (the
+`9p-connect`→`plan9-connect` fix) would NOT have fixed this one, since
+there was no wrapper to rename. Fixed by adding real
+`amos-term.cmd.list-dir`/`amos-term.cmd.read-file` wrapper files
+(mirroring `storage.cmd.plan9-read-file`'s shape, calling
+`<[plan-9.client.list-dir]>`/`<[plan-9.client.read-file]>` — those
+underlying subs already worked correctly, just had no cube-routable
+front door), updated `mount-9p-client`'s help text to the real
+`amos-term.list-dir`/`amos-term.read-file` command names, and added
+both plus the already-existing-but-ungranted `mount-9p-client` to
+`amos-term`'s `access.cmd.usr.cube` list. Live-verified: connect,
+list-dir, read-file all round-trip correctly end to end.
+**Lesson**: when a command is unreachable via cube, check for the
+existence of a `.cmd.` wrapper file FIRST (`ls src/<zenka>.cmd.*<name>`)
+before reaching for the naming/regex-shape diagnosis — a missing
+wrapper is a more fundamental, more common cause than a
+regex-incompatible name, and the naming diagnosis doesn't even apply
+if there's no wrapper to rename in the first place.
+
+#,,,.,,..,,..,..,,,.,,..,,.,,,.,,,,,.,,,,,,..,.,.,...,..,,.,.,,..,,,,,,,.,.,.,
+#66JZ3CTVHKYINA5QRD4N2HYXDM3BQGFRYQFM3VY6RO36XYIUZ7VBURMGBOZ5KH3NQZZWIVQ7Z3MSA
+#\\\|SRI72IJBKQ5NHUHKM3FTQFZPE5QVCARAHQ2G2N3SGPL45ETKLXF \ / AMOS7 \ YOURUM ::
+#\[7]UVJR5BNM4GZXNDUGAHBBKUUIMMG3TS6AQP432X66UHX3N5J5U2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

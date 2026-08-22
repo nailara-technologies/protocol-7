@@ -1,0 +1,24 @@
+## [:< ##
+# name  = amos-term.cmd.read-file
+# descr = Read a whole file over 9P (plan-9.client)
+
+my $args = $call->{'args'} // '';
+my ( $name, $path ) = split /\s+/, $args, 2;
+
+if ( not length( $name // '' ) or not length( $path // '' ) ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: read-file <connection-name> <path>'
+    };
+}
+
+my $result = <[plan-9.client.read-file]>->( $name, $path );
+return $result if $result->{'mode'} eq 'false';
+
+return { 'mode' => 'size', 'data' => $result->{'data'} };
+
+#,,..,,,.,...,..,,...,,,,,..,,,..,...,,,.,,,,,.,.,...,...,,..,,.,,.,.,.,.,..,,
+#PN3D2XPMAU6Q46EJMKMLZ27C2FBFHOKYQA7NDFRBLD5PJU6YBSXQ26HS5RLS6XVLAHZ5WI6D5FGES
+#\\\|3BZ5QMCLQWDCC3OBQE6P5F4RRDVUXZDAHDRXTNYA7MY6OBI7V6T \ / AMOS7 \ YOURUM ::
+#\[7]TFZTGNYAZOA3LBHSLL5Y7BD53VKUD5HVKL7PDFGUJDTGTWQBFQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

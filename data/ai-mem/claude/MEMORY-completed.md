@@ -84,10 +84,21 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   smaller findings from the same round. **Third same-day round**: Tcreate/Tremove dispatched to kimi
   k2.7 (narrow, precedent-pointed task file), independently live-verified afterward — caught a real
   malformed-signature-footer bug in kimi's output during review, see the addendum in
-  [[fake-signature-marks-ai-scratch-content]]. History/next-steps live in the linked file.
+  [[fake-signature-marks-ai-scratch-content]]. **Fourth same-day round**: user-requested port-default
+  audit found drift in 6 more files, a `plan-9.client` connection-registry-wipe bug (every connect
+  discarded the prior one), and — while live-verifying via `amos-term` for the first time this
+  session — 3 unrelated pre-existing bugs (missing `Linux::Inotify2` autoload crashing post_init, a
+  `qw|A B| . qw|C D|` scalar-context bug silently truncating a timeout message, a cosmetic var
+  shadow). Root-caused the whole port-default class to a second, distinct "config that never
+  actually wired up" bug (`plan-9.config`, a dead `return {...}` module) — proved empirically, then
+  replaced with `plan-9.default_port` in `cfg/shared-params`, genuinely per-zenka overridable. See
+  [[feedback-use-constant-vs-data-tree-const]] (broadened) and
+  [[bug-forensics-dotted-command-names]] (a still-open, separate gap found along the way: amos-term's
+  `plan-9.client.list-dir`/`.read-file` are unreachable via cube, dotted command names). History/
+  next-steps live in the linked file.
 
-#,,.,,,..,.,.,..,,.,.,,.,,...,,,.,,,,,..,,...,..,,...,...,.,,,,,.,,..,.,.,,.,,
-#3XRVXTROXA7N2OHYPP3LKU2RJBD6ENUVTSHJR3H3SUYJHMUXMY4SQKA5SGTANRWJ7WUIQCVP62HM2
-#\\\|3RP6PJFZO2KMRHZ5L675RKML5R4ZV7PWKJEBYKNEJ6TJKT4HCJF \ / AMOS7 \ YOURUM ::
-#\[7]DYHLB3XNTQ5WPZMFXKDYGVRDKS3YTONDHFU2UJLCAH2KPBZMNEAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,,,.,...,,,.,..,,.,,,...,...,..,,...,...,..,,...,.,,,...,..,,
+#GRGP4YXWV3B4N6WJPBBGZXHDXFJPMZWXW54UK7IKPCF2LOBRBDCVIBYPLUEUS7E4VDCTYZ3FB3XS6
+#\\\|ETPMDSREPVR6HJH35E3X3MMXVRAJI2FYIGXCEC2MAIMPIF7UX3W \ / AMOS7 \ YOURUM ::
+#\[7]UFPLGFNITVON4Z2LXXNHO3IUOQ7EXSTNUKWKFLUCAKICLZLPHSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

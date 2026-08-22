@@ -33,7 +33,9 @@ plan9-connect <host> [port] [name]
 
 Parameters:
 - `host` - Server address (default: 127.0.0.1)
-- `port` - Server port (default: 15640, matching `plan-9.config`'s server default)
+- `port` - Server port (default: `<plan-9.default_port>`, `cfg/shared-params`
+  — 15640 as shipped; every 9P client/server default reads from this single
+  shared value now, see "Config: `plan-9.default_port`" below)
 - `name` - Connection identifier (default: host:port)
 
 ### plan9-scan
@@ -185,6 +187,33 @@ my $result = <[storage.9p.scan]>->({
 });
 ```
 
+## Config: `plan-9.default_port`
+
+Every 9P client and server default port reads from one shared config
+value, `plan-9.default_port` (`cfg/shared-params`, ships as `15640`) —
+`storage.9p.connect`/`.mount`, `storage.cmd.plan9-connect`, `plan-9.client`,
+`amos-term.cmd.mount-9p`/`mount-9p-client`, `plan-9.server`, and the
+`p7ref` `9p:` type's authority default all read `<plan-9.default_port>
+// 15640` (the trailing literal is a last-resort fallback only, in case
+`shared-params` somehow wasn't loaded).
+
+**History**: this used to be a hardcoded `15640`/`5640` literal
+independently duplicated in 7+ files, and it drifted — some files said
+`5640`, others `15640` — a real, silently-broken bug found and fixed
+2026-08-22. There was also an earlier attempt at a single source of
+truth, `src/plan-9.config` (a plain module returning a config hash),
+but it was **never actually wired up**: every reader used
+`<plan-9.config.port>` (data-tree read syntax), which only resolves
+values populated via `.pre_init`/`.init_code` constants or plain
+`key=value` config-file parsing — never a bare `return {...}` module.
+Proven empirically (changing the file's value had zero effect on the
+real listen port) before being removed and replaced with the
+`shared-params` approach, which is confirmed working the same way
+(`system.zenka.verbosity.*` already relies on it) and is genuinely
+per-zenka overridable: any zenka wanting a non-standard default can add
+its own `plan-9.default_port = <value>` line to its own `zenka.v7`,
+after its `[load_config_file:'shared-params']` line.
+
 ## Server: Exporting Real Directories
 
 The `plan-9` zenka (separate from `storage`, see below) is the 9P
@@ -296,8 +325,8 @@ This creates the "implosion vortex" - remote data naturally flowing into Protoco
 
 *9P is the ingestion membrane of the storage singularity.*
 
-#,,.,,...,.,,,,,.,,..,,,.,,..,,,,,.,,,,..,,.,,..,,...,...,.,,,.,.,,,.,,..,...,
-#3ECNFIRZIZ4MQ3VFEIBB37HSCB3OEUMBJFZ7DVVVGRUROMTI3ZDIA4YYYKNZKDHRNDXCVGZJYOG54
-#\\\|HYIW4XPSJXNUFYTHFWTNG3L2FFCWSUUIAVKVTWDK7AJRNRYMRXL \ / AMOS7 \ YOURUM ::
-#\[7]EB6MR72SJ5PJK63RX3EKQNM7FS2QSP56CMWQLYQ7UQS34ZQCNOCA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,,..,,..,,.,,,.,,,,.,,.,,,.,,..,,...,...,,,.,,.,,.,.,,..,...,
+#FAK2PIJJZEMZ5UR33MEG6SDDU2GC7UI4UXS5YERSMKYWV77XJYUUDJ3L3TK4AF5X7GYH5QH2AFGNK
+#\\\|77O3EM5OI3QJNBH2PHWDSX75IK2BMLYIWNDJ4LGO56XVYOOPLHR \ / AMOS7 \ YOURUM ::
+#\[7]M2AZIHT44AZTUNM2Y73SKI4P5W6BBFUOHYNTHU64BW6NEMGUCMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

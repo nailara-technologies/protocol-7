@@ -2,6 +2,10 @@
 
 # name  = amos-term.init_code
 
+## amos-term.post_init calls amos-term.plugin-install_watcher, which needs ##
+## Linux::Inotify2 already loaded -- same idiom as X-11/mpv/index          ##
+<[base.perlmod.autoload]>->('Linux::Inotify2');
+
 ## xterm default parameters ##
 <amos-term.xterm-params> //= [
     '*cursorBlink:true',         '*cursorOffTime:769',
@@ -18,8 +22,8 @@
 
 0;
 
-#,,,.,,,.,,,.,,..,.,.,.,,,.,,,..,,,..,,,.,,.,,..,,...,...,...,,.,,,..,...,...,
-#6US52GQ3QJGGDCULJ6QTM7YQ47DXIENBMX3FKTHQQV3J3TJYXAMKUOGGQZYSHEY3JYIX6NVJ54RWQ
-#\\\|ZIMUUPNI5FEOFXEMHJVECCS4ASK27536HLZR2WAKUSSNZJAIVDP \ / AMOS7 \ YOURUM ::
-#\[7]SVR4ASVRNH6CDPSG5S2HHZWYF7EIV2PMLRMIK5IU5JBH546K6YCA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,...,,,,,,,.,..,,.,,,..,,.,.,,,.,..,,...,...,.,,,.,,,..,,,.,,..,,
+#6EDAL6YHKL2K7A5M3BPFFXQP4HOMS36QKZ7FW56MJ3CVBIGNLWWQTQ7FJZE3WKRZAJHIXO7A5HQG6
+#\\\|OKU3I6VOZHOSSTILXS76E3M2OCFK7KTUV5SZAXOTKUB5YTU66TQ \ / AMOS7 \ YOURUM ::
+#\[7]NCA644QDMUVFZ23SMDDDCNESMJRHM2DR4NZCPCUOFISS5OWTXEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
