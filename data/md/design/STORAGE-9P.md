@@ -6,15 +6,15 @@
 
 ```bash
 # Connect to WSL Windows host
-storage 9p-connect 127.0.0.1 5640 wsl-host
+storage plan9-connect 127.0.0.1 5640 wsl-host
 
 # Scan Windows Documents (text files only)
-storage 9p-scan wsl-host /mnt/c/Users/$USER/Documents \
+storage plan9-scan wsl-host /mnt/c/Users/$USER/Documents \
     --include '\.(txt|md|csv)$' \
     --exclude '~$'
 
 # Scan with multiple filters (AND logic)
-storage 9p-scan wsl-host /mnt/c \
+storage plan9-scan wsl-host /mnt/c \
     --include-all '2024' \
     --include-all '\.pdf$' \
     --exclude 'temp' \
@@ -23,12 +23,12 @@ storage 9p-scan wsl-host /mnt/c \
 
 ## Commands
 
-### 9p-connect
+### plan9-connect
 
 Connect to a 9P server.
 
 ```
-9p-connect <host> [port] [name]
+plan9-connect <host> [port] [name]
 ```
 
 Parameters:
@@ -36,12 +36,12 @@ Parameters:
 - `port` - Server port (default: 5640)
 - `name` - Connection identifier (default: host:port)
 
-### 9p-scan
+### plan9-scan
 
 Scan directory with advanced filtering.
 
 ```
-9p-scan <name> <path> [:option: value ...]
+plan9-scan <name> <path> [:option: value ...]
 ```
 
 Options:
@@ -84,7 +84,7 @@ Filters are applied in this order (first match wins):
 
 ```bash
 # Index Windows Downloads for checksum analysis
-storage 9p-scan wsl-host /mnt/c/Users/$USER/Downloads \
+storage plan9-scan wsl-host /mnt/c/Users/$USER/Downloads \
     :include: '\.(exe|msi|zip)$' \
     > windows-installers.txt
 ```
@@ -93,7 +93,7 @@ storage 9p-scan wsl-host /mnt/c/Users/$USER/Downloads \
 
 ```bash
 # Find important documents from 2024
-storage 9p-scan wsl-host /mnt/c/Users \
+storage plan9-scan wsl-host /mnt/c/Users \
     :include-all: '2024' \
     :include: '\.(doc|pdf|xls)$' \
     :exclude-all: 'temp' \
@@ -104,7 +104,7 @@ storage 9p-scan wsl-host /mnt/c/Users \
 
 ```bash
 # Find Git repositories
-storage 9p-scan wsl-host /mnt/c/dev \
+storage plan9-scan wsl-host /mnt/c/dev \
     :include: '^\.git$' \
     :no-recurse:  # Just find repos, not scan contents
 ```
@@ -160,8 +160,8 @@ my $result = <[storage.9p.scan]>->({
 |--------|---------|
 | `storage.9p.scan` | Filtered directory scanning |
 | `storage.9p.filter-check` | Pattern matching logic |
-| `storage.cmd.9p-connect` | CLI connect command |
-| `storage.cmd.9p-scan` | CLI scan command |
+| `storage.cmd.plan9-connect` | CLI connect command |
+| `storage.cmd.plan9-scan` | CLI scan command |
 
 ## Future: Checksum Integration
 
@@ -182,8 +182,8 @@ This creates the "implosion vortex" - remote data naturally flowing into Protoco
 
 *9P is the ingestion membrane of the storage singularity.*
 
-#,,,.,,,.,...,,,,,,,,,..,,.,,,,,,,..,,..,,...,..,,...,...,..,,.,.,.,,,,.,,,,.,
-#6XWFPW4T7WBKALLYR6QD23GV756O3KHYPKGHBNJKJL5XGMMXMCOCVBMTQK32SL6GJRCFXLOIQAPIE
-#\\\|CYXESTDFADE5YRCULIDKETOWLABHRLPCMGPVFGITZ2W2JOSNRAS \ / AMOS7 \ YOURUM ::
-#\[7]TTOWWWGBD6CTGECJP3FWZ2GVRFC5QWZH2LIV53JRK3D2BKOHF2AI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,,,,..,,,,.,.,.,.,,,,.,,...,..,,...,...,,.,,,.,,..,,,,,,.,.,
+#2U2ACUO6BLSCNRVNL63XWKB3NPDMP3WVT2D3BGRGYDYFCA5HOZMGYGPTW6EBVYMXOS7T2ZDEEPRZA
+#\\\|2WH2NTAU3ZEZKKBZZVIDV7ZIUOCPWJCLL6J4S3XIQ6PUVKZ4V7Y \ / AMOS7 \ YOURUM ::
+#\[7]TZXVS4UUCYMHDK7MEDCGBFWXKSON5GLE3N5BGHMP7LIJAHVN6KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

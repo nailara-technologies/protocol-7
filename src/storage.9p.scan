@@ -16,9 +16,10 @@ $args //= {};
 
 my $name = $args->{name}
     or return { 'mode' => 'false', 'data' => 'name required' };
-my $path      = $args->{path}      // '/';
-my $recursive = $args->{recursive} // 1;
-my $max_depth = $args->{max_depth} // 10;
+my $path        = $args->{path}        // '/';
+my $recursive   = $args->{recursive}   // 1;
+my $max_depth   = $args->{max_depth}   // 10;
+my $max_results = $args->{max_results} // 0;     ## 0 = unlimited ##
 
 # Filter options
 my $inclusion_add = $args->{inclusion_add} // [];
@@ -145,6 +146,9 @@ if ( $start_fid != $conn->{root_fid} ) {
     <[storage.9p.clunk]>->( $conn, $start_fid );
 }
 
+## cap results if caller requested a limit [ pager.source.9p batching ] ##
+splice( @results, $max_results ) if $max_results and @results > $max_results;
+
 <[base.logs]>
     ->(   "Storage 9P scan: $stats->{scanned} scanned, $stats->{matched} "
         . "matched, $stats->{rejected} rejected" );
@@ -155,8 +159,8 @@ return {
     'stats' => $stats,
 };
 
-#,,.,,,..,..,,.,.,,,,,,,,,.,,,,.,,,,.,...,,.,,.,.,...,...,...,...,.,,,,,.,.,.,
-#LR5G7GHXLPOYV73GJ3VW2ZDN74532LRVP2F73ZTBXTMKTXW4XWZRSFKOAQ6OS67IL7WFSER7BWUC6
-#\\\|HEZZQIEIDCO3R7RSNPKV6P3J4YLWNXTI6IVAQ6SZSXUPHXQ6N3H \ / AMOS7 \ YOURUM ::
-#\[7]CKQKXCA7D6HT3QYAFWCIBDMJUQLCS6R2FLILKPPDAFUH7SMDJECY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,,..,,,.,.,.,,..,.,.,,,.,.,.,.,.,...,..,,.,.,,..,..,,..,,,..,
+#CZ3Q2P52EKITXM25FOY2KD24ETS3BBUA5EEW3ZHH3AXHVHO77TKBTRBKGMNDVT2EVT5AWLH5F5SE4
+#\\\|L6QB325DHIAA325BUXKJIVI74BIV25ZQUMI4OPJDZMAYU77Z63T \ / AMOS7 \ YOURUM ::
+#\[7]LY4YEM5277UX4GRZMC6ZCP6F53R6PCG7NITLJ3U3BYIY72ZHJ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

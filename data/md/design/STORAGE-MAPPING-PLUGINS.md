@@ -91,7 +91,7 @@ This reloads all `plugin.*` modules without affecting core storage code.
 The checksum mapping works seamlessly with 9P:
 ```bash
 # Scan 9P mount and checksum all files
-storage 9p-scan wsl-host /mnt/c/data :include: '\.pdf$'
+storage plan9-scan wsl-host /mnt/c/data :include: '\.pdf$'
 
 # Map each found file to checksum
 storage map-file checksum /mnt/wsl-host/data/file.pdf
@@ -100,8 +100,8 @@ storage map-file checksum /mnt/wsl-host/data/file.pdf
 storage lookup-checksum checksum <checksum>
 ```
 
-#,,,.,..,,..,,.,.,.,.,.,,,.,,,,,.,.,.,...,,.,,..,,...,...,.,,,.,,,...,,,,,,,,,
-#ADUWVDTDZLSNHIWANI5Z5A6HHXGLJP6GL5B2QJVVS4H5MHSVMXBILXLLFUUTG7Z6F6G5XP2GQOLXC
-#\\\|GSU36SZVOGIOZCQYN7CIMRIF52HQAMNJNBUY4HBMFKF3KO2RIBN \ / AMOS7 \ YOURUM ::
-#\[7]FD3PTDPCPST7727HZDXVVKWHHQPNJMKEGEWNNFOB4HGN6PBKYABA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,.,,...,,.,,,..,,,,,..,,,.,,.,.,..,,...,..,,.,,,,.,,.,,,,,.,,,,,
+#ME23HA276LG6GVCJW5WXQ2FKAAELRZXLLBP32FVPPXYEJV23F5V4VBXVF6ZUP3VB6Y5BC7XYVNOA4
+#\\\|TGJ4R432ARTXL7Z264S5VGXXZRN7VC4OIBG5V5GSI3MG7IFJQG2 \ / AMOS7 \ YOURUM ::
+#\[7]NZDQHEXURXHWRENUEHMKFNLYNIRWTVMSTPOR6GHIRHUIJCB3D6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

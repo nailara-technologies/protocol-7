@@ -4,21 +4,44 @@
 
 my ( $conn, $fid ) = @ARG;
 
-# Open directory
-my $open_res = <[storage.9p.open]>->( $conn, $fid, 0 );    # OREAD
-return $open_res if $open_res->{'mode'} eq 'false';
+## clone the fid first : opening the caller's fid directly would leave it in
+## open state, and 9P2000 forbids Twalk from an open fid (strict servers
+## reject it, breaking subsequent walks from the same fid).  A zero-element
+## Twalk clones $fid into $dir_fid; the clone is opened, read and clunked
+## here, leaving the caller's fid untouched.
+
+my $dir_fid = $conn->{next_fid}++;
+my $clone   = <[storage.9p.walk]>->( $conn, $fid, $dir_fid );
+return $clone if $clone->{'mode'} eq 'false';
+
+# Open directory clone
+my $open_res = <[storage.9p.open]>->( $conn, $dir_fid, 0 );    # OREAD
+if ( $open_res->{'mode'} eq 'false' ) {
+    <[storage.9p.clunk]>->( $conn, $dir_fid );
+    return $open_res;
+}
 
 my @entries;
 my $offset = 0;
-my $iounit = $conn->{fids}{$fid}{iounit} // $conn->{msize} // 8192;
+
+## read count : iounit from Ropen, where 0 means 'no preference' : fall back
+## to msize minus 9P header overhead ( IOHDRSZ = 24 ). count must stay below
+## msize, else a server reply clamped to msize would be shorter than count and
+## falsely signal end-of-directory below.
+my $msize  = $conn->{'msize'}                // 8192;
+my $iounit = $conn->{fids}{$dir_fid}{iounit} // 0;
+my $count
+    = ( $iounit > 0 and $iounit <= $msize - 24 )
+    ? $iounit
+    : $msize - 24;
 
 while (1) {
     my $tag = ++$conn->{tag} & 0xFFFF;
 
     my $req
-        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+        = <[plan-9.protocol.codec.encode-uint32]>->($dir_fid)
         . <[plan-9.protocol.codec.encode-uint64]>->($offset)
-        . <[plan-9.protocol.codec.encode-uint32]>->($iounit);
+        . <[plan-9.protocol.codec.encode-uint32]>->($count);
 
     my $msg = <[plan-9.protocol.codec.encode-message]>->(
         <plan-9.protocol.constants.Tread>,
@@ -29,6 +52,7 @@ while (1) {
 
     my $resp = <[storage.9p.read-message]>->( $conn, $tag );
     if ( $resp->{'mode'} eq 'false' ) {
+        <[storage.9p.clunk]>->( $conn, $dir_fid );
         return $resp;
     }
 
@@ -50,8 +74,12 @@ while (1) {
         my $stat_data = substr( $content, $pos + 2, $stat_size );
         $pos += 2 + $stat_size;
 
-        # Extract name from stat (skip to name field)
-        my $name_pos = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;
+        ## 9P2000 stat wire entry : size[2] type[2] dev[4] qid[13] mode[4]
+        ## atime[4] mtime[4] length[8] name[s] uid[s] gid[s] muid[s].
+        ## $stat_data EXCLUDES the leading size[2] field, so name starts at
+        ## 2+4+13+4+4+4+8 = 39. ( storage.9p.stat uses 41 because its buffer
+        ## INCLUDES the entry's own size[2]. )
+        my $name_pos = 2 + 4 + 13 + 4 + 4 + 4 + 8;
         next if $name_pos >= length($stat_data);
 
         my ( $name, $rest )
@@ -65,13 +93,15 @@ while (1) {
     }
 
     $offset += length($content);
-    last if length($content) < $iounit;
+    last if length($content) < $count;
 }
+
+<[storage.9p.clunk]>->( $conn, $dir_fid );
 
 return { 'mode' => 'true', 'data' => \@entries };
 
-#,,..,,..,.,.,.,.,.,,,,,.,..,,,.,,,.,,,.,,,,.,.,.,...,...,.,.,,..,..,,,,,,,..,
-#S5MOVX5HC4IH7ZDB4DPWPDTWB4RPJZ7BKQJDTXYHAN5DOZWWDJKXMOAORGSL54YSHCCPUUUUGNDOS
-#\\\|QNXK6MBB6ZEBAK4WNCHIYW4C3K337H4A4OL6HJYI5PEDJQVK747 \ / AMOS7 \ YOURUM ::
-#\[7]SPUTGKS5FZOQB4D4L2KJUMKIYFJ6SS6S5B6XM5OPP64YOMJU6QBI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,,,,,.,,,,..,,,.,,..,,.,,,,.,.,.,...,...,..,,,,.,...,,,.,,..,
+#44L5VXQVSINI5GZYPHEGFS7YSRWTYWP7YSQVBBUER53KPPQ7J7I366HV625223FAKYD756MVFN3UM
+#\\\|NYXSULAVRXAZZCIHVXK4BUEO7N4TVZNTWGCLFAGG5T574SR62OS \ / AMOS7 \ YOURUM ::
+#\[7]FN54BACC4TMTVSD4WTKMWPJCQDTXJNZTH7DIE4Y2C5PZMI5UHUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

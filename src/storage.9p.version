@@ -4,7 +4,7 @@
 
 my ($conn) = @ARG;
 
-my $tag     = ++$conn->{tag} & 0xFFFF;
+my $tag     = 0xFFFF;     ## NOTAG : required by 9P2000 for Tversion ##
 my $msize   = 8192;
 my $version = '9P2000';
 
@@ -35,8 +35,8 @@ $conn->{msize} = $r_msize < $msize ? $r_msize : $msize;
 
 return { 'mode' => 'true', 'data' => $conn->{msize} };
 
-#,,.,,.,.,.,,,,..,,,.,,..,...,,.,,..,,...,,.,,.,.,...,...,.,,,.,.,,,,,.,,,..,,
-#VQQZNKFPYHAB4NSQ375CGJK7D2344KSYURLLTAF2E5QQNSNBQ73UEVO5FD7CIRG6QHSD26FTYXVZI
-#\\\|XVCA2DZCDVOGNBGQN2SK3BOCTDVUW4N32A62PAQZUFECL56N3RB \ / AMOS7 \ YOURUM ::
-#\[7]7W775ZYIXTNHQ56UKI4YAXEO5PUZQ4SNK4KG56RSWUWXR4KBVSAQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,..,,,..,,,.,...,,,,,,,,,.,,,.,.,...,...,..,,.,.,.,.,.,.,..,,
+#JXZ6ZCVY2ICBUNFMFVHKMKIEIFJTDBNJDCGQRJY54YBL3K3PFBHT5E2APPTSGYIQV3Z3X5MP7J6QK
+#\\\|RAOJHZOORISIP6RRRHHA5WBXK3KDAYQYAXA6FER4FISAUPL6YFZ \ / AMOS7 \ YOURUM ::
+#\[7]UKFCLFD42TLPEKZ7SKULGFQBDJOMOHGTP5NCX4DV6MRDYHIFASBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

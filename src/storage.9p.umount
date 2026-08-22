@@ -3,18 +3,42 @@
 # name  = storage.9p.umount
 # descr = unmount 9P remote filesystem
 
-## [ stub ] clunk fids and disconnect from 9P server ##
+## teardown : resolve a mount point [ as returned by storage.9p.mount ] to its
+## connection, close the socket and drop the connection + mount registry
+## entries. Shape mirrors plan-9.client.disconnect. As a fallback a connection
+## name is also accepted as 'mount_point'.
 
 my ($args) = @ARG;
+$args //= {};
 
-my $mount_point = $args->{'mount_point'};
+my $mount_point = $args->{'mount_point'} // '';
 
-## TODO: implement 9P clunk + disconnect ##
+return { 'mode' => 'false', 'data' => 'mount_point required' }
+    if not length $mount_point;
 
-return 1;
+my $name = $data{'storage'}{'9p'}{'mounts'}{$mount_point};
 
-#,,,,,,..,,,.,,.,,,.,,.,.,,..,,,.,,,.,.,.,,.,,.,.,...,...,..,,,,,,,.,,...,,,.,
-#OPEBHC672A7ZDWQU7C636BJTNZ5EZV7M2NZUUZ6QLE36G5LU3VXKLXADR443UB24TRERPOJGZ6KF2
-#\\\|LPX5HYRLNV2YPB3RYDQJQ5Q3TNIZZAA4MS5IDWXDTPXTRUJYWMS \ / AMOS7 \ YOURUM ::
-#\[7]PNIKMHV3PWXZBOOO35BWFX3OPLQBE4VQM5WQJOB25W4OAJ5SH6AA 7  DATA SIGNATURE ::
+## fallback : accept a connection name directly ##
+$name //= $mount_point
+    if exists $data{'storage'}{'9p'}{'connections'}{$mount_point};
+
+return { 'mode' => 'false', 'data' => "not mounted : $mount_point" }
+    if not defined $name
+    or not exists $data{'storage'}{'9p'}{'connections'}{$name};
+
+my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+
+close $conn->{'socket'} if $conn->{'socket'};
+
+delete $data{'storage'}{'9p'}{'connections'}{$name};
+delete $data{'storage'}{'9p'}{'mounts'}{$mount_point};
+
+<[base.logs]>->("Storage 9P: unmounted $mount_point [ connection $name ]");
+
+return { 'mode' => 'true', 'data' => 'unmounted' };
+
+#,,,.,.,,,,,.,.,,,,..,,,.,,.,,.,,,...,,,.,..,,.,.,...,.,.,..,,,,.,.,,,,.,,,.,,
+#HAP5UEIET7G3BST5YSBPUM7ASQJWG3WNIT6YJHLUCC24RV3YMO43SEGRRHGNJILTW4CNSYSN7EZHC
+#\\\|TEEPQ75C3JSUXNCTFR3332AK3XHZM52MZKKBG43YC4OOGCJEGNR \ / AMOS7 \ YOURUM ::
+#\[7]WCMJK66MO4PKPKS3CLRSI2XSV6SWLLN35YLVPONPH33HGWWZREDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
