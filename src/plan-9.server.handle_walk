@@ -35,9 +35,12 @@ foreach my $name (@wnames) {
 
         if ( ( $buf->{'kind'} // 'buffer' ) eq 'directory' ) {
             $walk_result = {
-                type     => 'realpath',
-                realpath => $buf->{'realpath'},
-                qid      => {
+                type           => 'realpath',
+                realpath       => $buf->{'realpath'},
+                root           => $buf->{'root'}     // $buf->{'realpath'},
+                writable       => $buf->{'writable'} // 0,
+                symlink_policy => $buf->{'symlink_policy'} // 'reject',
+                qid            => {
                     type    => <plan-9.protocol.constants.QTDIR>,
                     version => $buf->{qid_version},
                     path    => $buf->{qid_path}
@@ -67,6 +70,33 @@ foreach my $name (@wnames) {
             or $name =~ m{/};
 
         my $child = $walk_result->{realpath} . '/' . $name;
+
+        ## a symlink component is a per-export policy decision -- 'reject' ##
+        ## (default) blocks it outright, 'contained' allows it only if the ##
+        ## resolved target still lives under the export root, 'allow' does ##
+        ## no check. checked with -l (doesn't follow the link) so a        ##
+        ## rejected/broken symlink is caught before -e/-d ever follow it.  ##
+        if ( -l $child ) {
+            my $policy = $walk_result->{'symlink_policy'} // 'reject';
+            if ( $policy eq 'reject' ) {
+                return <[plan-9.protocol.error]>->(
+                    $tag, "symlink access denied by export policy"
+                );
+            } elsif ( $policy eq 'contained' ) {
+                my $resolved = Cwd::abs_path($child);
+                my $root     = $walk_result->{'root'};
+                return <[plan-9.protocol.error]>->(
+                    $tag, "symlink escapes exported root"
+                    )
+                    unless defined $resolved
+                    and $root
+                    and ( $resolved eq $root
+                    or index( $resolved, "$root/" ) == 0 );
+            }
+
+            # 'allow' falls through with no check
+        }
+
         return <[plan-9.protocol.error]>->( $tag, "file not found" )
             unless -e $child;
 
@@ -75,9 +105,12 @@ foreach my $name (@wnames) {
             //= $data{'plan-9'}{'server'}{'next_qid'}++;
 
         $walk_result = {
-            type     => 'realpath',
-            realpath => $child,
-            qid      => {
+            type           => 'realpath',
+            realpath       => $child,
+            root           => $walk_result->{'root'},
+            writable       => $walk_result->{'writable'},
+            symlink_policy => $walk_result->{'symlink_policy'},
+            qid            => {
                 type => $is_dir
                 ? <plan-9.protocol.constants.QTDIR>
                 : <plan-9.protocol.constants.QTFILE>,
@@ -146,8 +179,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, $resp
 );
 
-#,,..,.,.,..,,,,,,,,.,,.,,,,.,..,,,.,,...,,,,,.,.,...,...,...,,..,,,,,,,,,..,,
-#LD4KGTVS53OX3FTJCI62JTFYNCIN7YZWBA6X56UB67NV5DAYGG6L7U4HPARCGK35VZKJCY2JS7VMA
-#\\\|JQGK64DJFTTVQ73BPDL2WMTUTVSVH7WVOJKG74FAGWPWKQW2XRM \ / AMOS7 \ YOURUM ::
-#\[7]OPVPFXF5PBSNVFTANGAW44IXW2ZGQOKPUAEJM4A723WC5CPXEQCY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,..,.,,,,,.,.,,,,,,,,.,,,.,,,,.,.,.,...,...,..,,...,.,,,...,,,.,
+#4ZDQRA2ESMMXXPX4QASCTUHBNGQHSNVTHUAVL2GDUWYUHU5POETQAX5GTUMDBGDLSMFHCAK4B2CYQ
+#\\\|Q2JBFR522OGYMVB3LTWSBDZNZPZJYNQO4DP4CKDG5TYEQE45C6J \ / AMOS7 \ YOURUM ::
+#\[7]MYSHYVWAKE43OKMZTVLXM3FTLF547V6RDWNJZKAG5GCJIRECSUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

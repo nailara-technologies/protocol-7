@@ -1,28 +1,52 @@
 ## [:< ##
 # name  = plan-9.cmd.export-directory
-# descr = Export a real directory for 9P access [ read-only ]
+# descr = Export a real directory for 9P access
+#         <path> <name> [:rw:] [:symlinks: reject|contained|allow]
 
 my $args = $call->{'args'} // '';
-my ( $real_path, $name ) = split /\s+/, $args, 2;
+my @tok  = split /\s+/, $args;
+
+my $real_path = shift @tok;
 
 if ( not defined $real_path or not length $real_path ) {
     return {
         'mode' => 'false',
-        'data' => 'usage: export-directory ' . '<path> <name>'
+        'data' => 'usage: export-directory <path> <name> '
+            . '[:rw:] [:symlinks: reject|contained|allow]'
     };
 }
 
+my $name;
+if ( @tok and $tok[0] !~ /^:/ ) {
+    $name = shift @tok;
+}
 $name //= '';
 if ( not length $name ) {
     ($name) = $real_path =~ m{([^/]+)/?$};
 }
 
-my $ok = <[plan-9.server.export_directory]>->( $real_path, $name );
+my $writable       = 0;
+my $symlink_policy = 'reject';
+
+for ( my $i = 0; $i < @tok; $i++ ) {
+    if ( $tok[$i] eq ':rw:' ) {
+        $writable = 1;
+    } elsif ( $tok[$i] eq ':symlinks:' and $i + 1 < @tok ) {
+        my $val = $tok[ ++$i ];
+        $symlink_policy = $val if $val =~ /^(?:reject|contained|allow)$/;
+    }
+}
+
+my $ok = <[plan-9.server.export_directory]>->(
+    $real_path, $name, $writable, $symlink_policy
+);
 
 if ($ok) {
+    my $mode = $writable ? 'read-write' : 'read-only';
     return {
         'mode' => 'size',
-        'data' => "Exported $real_path as '$name'\n"
+        'data' => "Exported $real_path as '$name' "
+            . "[$mode, symlinks:$symlink_policy]\n"
     };
 } else {
     return {
@@ -32,13 +56,8 @@ if ($ok) {
     };
 }
 
-# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
-# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_4
-
-#,,.,,.,.,,,,,,.,,.,,,.,.,...,,..,.,.,.,,,,.,,..,,...,...,...,..,,...,,.,,.,.,
-#7RYD6N7AI2BCBXT2BN3YUTT5HXQBYYLZB6JKPWCJWI6SBLZTPMGU3LHR74POYSODBIMR72QIN26UI
-#\\\|K5TB4M4DQBNY2X2YWMEMPPTRQFZ7JDHQUSW4EA7OIBF7HEXZ2RT \ / AMOS7 \ YOURUM ::
-#\[7]RFFM2B5N6ZJNW4O4O6RNY7HPFTJBD6Z6ZBN6TI3NI4W5JFZ2TSAI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,,,.,,,.,,,,,,.,,..,,..,,.,.,..,,...,...,.,.,.,.,,.,,...,,,.,
+#4YPRV6M3A7FOVZGFCI6FQOQTB5DLC6TLZCKYLIVECSGOI3IZ7BXPXEJJSKCJO5UOHWXKFJA62YDG4
+#\\\|G66ESE2LXY2UD54G3MLJJOK3WWR6TWX6OR6IXUMZPMWZ52OWIKD \ / AMOS7 \ YOURUM ::
+#\[7]L2ZTOQBF4HPCPYWCIMVEFLGKG4ZNQKD7GLN6FAT33AG54SFLP4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

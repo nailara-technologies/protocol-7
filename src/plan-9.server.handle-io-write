@@ -16,7 +16,11 @@ return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
 return <[plan-9.protocol.error]>->( $tag, "fid not open" )
     unless $f->{open};
 
-if ( ( $f->{omode} & 0x03 ) == 0 ) {
+## OREAD=0 / OWRITE=1 / ORDWR=2 / OEXEC=3 -- only OWRITE/ORDWR may write; a ##
+## plain "& 0x03 == 0" check lets OEXEC(3) through too, since 3 & 3 == 3    ##
+my $base_mode = $f->{omode} & 0x03;
+unless ( $base_mode == <plan-9.protocol.constants.OWRITE>
+    or $base_mode == <plan-9.protocol.constants.ORDWR> ) {
     return <[plan-9.protocol.error]>->( $tag, "read only" );
 }
 
@@ -26,6 +30,19 @@ if ( $f->{type} eq 'layer' ) {
     $written = <[plan-9.server.buffer-write]>->(
         $f->{buffer}, $f->{z}, $offset, $content
     );
+} elsif ( $f->{type} eq 'realpath' ) {
+    return <[plan-9.protocol.error]>->( $tag, "export is read-only" )
+        unless $f->{writable};
+    return <[plan-9.protocol.error]>->( $tag, "cannot write to a directory" )
+        if -d $f->{realpath};
+
+    open( my $fh, '+<:raw', $f->{realpath} )
+        or return
+        <[plan-9.protocol.error]>->( $tag, "cannot open for write: $!" );
+    seek( $fh, $offset, 0 );
+    print {$fh} $content;
+    $written = length $content;
+    close($fh);
 } else {
     return <[plan-9.protocol.error]>->( $tag, "cannot write to this file" );
 }
@@ -37,8 +54,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, $resp
 );
 
-#,,,.,,,.,,,,,..,,,.,,,,,,,.,,.,.,,..,,..,,..,.,.,...,...,.,,,...,.,,,,..,,,.,
-#G5Q3RO6MA4WSU33KN4VLS4SZYJKOVDXUHDEBQR44IPDRMC5JAVWNEFQ7QANFZUSV4CV5CRQFQBG2A
-#\\\|SMEW6AZAB2L5US53UAVOIPDAAQTTN773XDSDM5EJFTA4RYIJZXU \ / AMOS7 \ YOURUM ::
-#\[7]4HOIDZE2ZOAZBR4SRBZGQVSVSDSJ2ZAO5ZJ73B73F2KGK5FTZWCY 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,,.,,.,,,,.,,,..,.,.,,..,,,.,.,.,...,..,,...,.,.,,,,,.,.,...,
+#SDUKQE2YJF2FISBAVTTZNWIZMCYTUASPQBHOWZZJQ2WUWW5AKC3HSNCLX44RNZ67636WOXJ5H3DUY
+#\\\|5VQPUAY5UKBSRJLAQEMZLGJWEOSRVDHJC7T5YTXPFZQZEPS5LG6 \ / AMOS7 \ YOURUM ::
+#\[7]MIIJ4R5IRS7GX5BIIA3OEKC2UJZ6OBAVQVSVKXG3WXGQMQ32OGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

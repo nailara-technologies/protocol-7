@@ -1,0 +1,38 @@
+## [:< ##
+# name  = storage.9p.write-file
+# descr = High-level whole-file write to 9P server
+#         overwrites (truncates) the file by default; pass truncate => 0
+#         to write at offset 0 without truncating first (short writes into
+#         a larger existing file leave the remainder untouched).
+
+my ( $conn, $path, $content, $truncate ) = @ARG;
+$content  //= '';
+$truncate //= 1;
+
+my @parts = grep {length} split m|/|, $path;
+my $fid   = $conn->{next_fid}++;
+
+my $walk_result
+    = <[storage.9p.walk]>->( $conn, $conn->{root_fid}, $fid, @parts );
+return $walk_result if $walk_result->{'mode'} eq 'false';
+
+my $mode = <plan-9.protocol.constants.ORDWR>;
+$mode |= <plan-9.protocol.constants.OTRUNC> if $truncate;
+
+my $open_result = <[storage.9p.open]>->( $conn, $fid, $mode );
+if ( $open_result->{'mode'} eq 'false' ) {
+    <[storage.9p.clunk]>->( $conn, $fid );
+    return $open_result;
+}
+
+my $write_result = <[storage.9p.write]>->( $conn, $fid, 0, $content );
+
+<[storage.9p.clunk]>->( $conn, $fid );
+
+return $write_result;
+
+#,,,,,.,,,,,.,,.,,..,,,.,,,..,.,.,...,.,,,,,,,..,,...,...,.,.,..,,,,,,,..,,..,
+#753J5YBL2GE2RVETB5ORK2QOZ6HHX6CW7OFF5U4TKTQ2DE2CWMRBALZEYRLKE3MAZBIWCCXQZ5STQ
+#\\\|LDVD6C4N5QK2HN5COI5DXYHODDD4JYLPE5RVT5CPTOOQVN2BZT2 \ / AMOS7 \ YOURUM ::
+#\[7]HH4DKACD4HGGLGWSWULVNED7SWBEKB4NPVNC2QXMWF3FHQMLLGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
