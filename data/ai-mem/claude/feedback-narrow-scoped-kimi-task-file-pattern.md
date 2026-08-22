@@ -67,8 +67,19 @@ have been caught by trusting the task's own stated verification
 criteria, only by independently reasoning about what the called sub
 actually does in the missing-directory case.
 
-#,,.,,.,,,.,.,,,,,..,,.,,,,,,,,,.,.,,,,.,,...,..,,...,...,...,.,.,.,,,,,,,.,.,
-#C6W732P45DIZKZDXGI27XPHLLXCNUWLMIG4IJKF6OQEFCAHTWJNT3NZMMYZLEQCIBMDPCZBWAWUFQ
-#\\\|UHWTZXBAFHMKUVDCYIQBNRBCJ2KV7BP6PD4455TQIJMNXXA2F5Q \ / AMOS7 \ YOURUM ::
-#\[7]HK2SITYOBTUNTLSXICPEBLPU5SLZXWCR4LHOGPSZFEAZWAJBS2AI 7  DATA SIGNATURE ::
+**Efficiency data point, 2026-08-22**: a k2.7 dispatch built with this
+exact shape (Tcreate/Tremove for the 9P subsystem — 8 new/changed
+files, 4 named precedent files pointed at directly, explicit Twstat
+out-of-scope note, static-only verification) used only ~4% of kimi's
+session token budget and came back with correct, working logic on the
+first pass — the only real defect found in review was a malformed
+signature-footer shape (see [[fake-signature-marks-ai-scratch-content]]'s
+addendum), not a logic bug. Confirms the pattern scales down to genuinely
+small budget cost for well-bounded feature work, making it a good default
+for weekly k2.7/k3 budget balancing, not just a quality-of-output win.
+
+#,,,.,.,,,,,,,,,.,,..,..,,..,,,,,,.,.,.,,,.,.,..,,...,...,.,,,..,,..,,.,,,.,.,
+#RHTZILBZHNXHU3RV4LBWGESTDNUYEOWVWKX37C7CPPVH2YAMVKZYMQHUKEWJC2SYCVVQAH7LYI6LM
+#\\\|TDXZS4B4YJAJRPDAXVELI6KG3VOWTBBXNZLGLBO246PGVH6FMPN \ / AMOS7 \ YOURUM ::
+#\[7]27ZBGB7WVPTYCCERP77ZAT42D3V5PM6NJDXDRMTTBHRN2LAXSYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
