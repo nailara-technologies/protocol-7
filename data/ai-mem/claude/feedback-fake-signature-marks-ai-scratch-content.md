@@ -42,8 +42,29 @@ design before deleting — see
 (table of what each stub delegated to + why it matters, not a verbatim
 code dump).
 
-#,,,.,...,,..,,,.,..,,,..,.,.,..,,,.,,,,.,..,,..,,...,...,,..,,,,,.,.,..,,..,,
-#PKNXO2XDPBW37BZZQ6F7ZJELW24V6GKKZYZD2ZHTEHQACEIAA67QNTCTOO3JDDS7G4DCTGDA2COZW
-#\\\|OQT2FBPWD5V4CACB5VJHDQPHL6NBKUX62P4UZZYV7LNNDUJJZM3 \ / AMOS7 \ YOURUM ::
-#\[7]7OJZMNGS4GKZTZFB5JK65VZBP33CVZEY3FZAD5GBWR6WIIH324AI 7  DATA SIGNATURE ::
+**Inverse failure mode, found 2026-08-22**: the placeholder convention
+itself can be malformed by a dispatched agent that's imitating the
+*shape* without the exact form. A kimi k2.7 dispatch (9P Tcreate/
+Tremove work) produced all 8 new files with the marker text merged
+INTO the structural signature-block skeleton lines (e.g.
+`#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2 \ / AMOS7 \ YOURUM ::`)
+instead of the clean, separate 4-line form
+(`# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1` through `_4`, nothing
+else) every other file uses pre-signing. Confirmed by diffing against
+this session's own already-signed files: the real signer fully
+replaces a clean placeholder block with fresh content regardless of
+what came before, so there was no need for kimi to draft a skeleton at
+all — and a malformed one risks the signer failing to recognize/
+replace it, or producing the double-footer bug (see
+`bug-signature-endline-restoration.md`). Caught only by reading each
+new file's tail during review, not by any automated check.
+**How to apply**: when reviewing a dispatched agent's new files before
+signing, check the placeholder footer is the plain 4-line form and
+nothing more — don't assume a plausible-looking signature-shaped block
+is correct just because the marker text is present somewhere in it.
+
+#,,,.,...,...,,..,,.,,,.,,.,.,,..,,.,,.,,,...,..,,...,..,,.,.,..,,.,.,.,.,...,
+#56KTCMU6ITONDT5IHC6H6W4Z5R5YAWEQQ6WVR4UQOOEI3SO6DMBTFTZRE5S22QT5RRT7F46PO32VA
+#\\\|373ISGGNNHARED43DIUHZBFHFRVNWUFTRT6BSTGTRXACNUDDW33 \ / AMOS7 \ YOURUM ::
+#\[7]EB3XSAZH4TL2X5V26TP2S3YPZ6PJKNGBLGVLORSDUPMSD4HBMMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
