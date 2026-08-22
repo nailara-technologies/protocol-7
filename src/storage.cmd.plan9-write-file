@@ -1,0 +1,31 @@
+## [:< ##
+# name  = storage.cmd.plan9-write-file
+# descr = Overwrite a whole file over 9P
+
+my $args = $call->{'args'} // '';
+my ( $name, $path, $content ) = split /\s+/, $args, 3;
+
+if ( not length( $name // '' ) or not length( $path // '' ) ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: plan9-write-file <connection-name> <path> <content>'
+    };
+}
+$content //= '';
+
+my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
+
+my $result = <[storage.9p.write-file]>->( $conn, $path, $content );
+return $result if $result->{'mode'} eq 'false';
+
+return {
+    'mode' => 'size',
+    'data' => "Wrote $result->{'data'} bytes to $path\n"
+};
+
+#,,.,,.,,,,.,,.,.,..,,,..,,..,..,,,..,,,,,..,,..,,...,..,,.,.,..,,.,,,.,.,,..,
+#BTOKJVSIVGPWTQCKXVISLZL5IJP5ODCXILNUHPCWDKA7QGKMUGDGTABKGV6J3PHMICOQZJQOUG2UM
+#\\\|6BIPSRY5FTPLOLDDYKRMZPPF7ESWZOHULHNZX6VKTL2XQL5O2RS \ / AMOS7 \ YOURUM ::
+#\[7]TOAJ6MPFANJ5K3ZWA6I4G22S7VECA3NV5XHSRIFBPVKFLKW35EAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

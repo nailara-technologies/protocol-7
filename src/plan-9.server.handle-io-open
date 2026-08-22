@@ -10,6 +10,23 @@ my $mode = <[plan-9.protocol.codec.decode-uint8]>->( substr( $data, 4, 1 ) );
 my $f = $client->{fids}{$fid};
 return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
 
+if ( $f->{type} eq 'realpath' ) {
+    my $base_mode   = $mode & 0x03;
+    my $wants_write = $base_mode == <plan-9.protocol.constants.OWRITE>
+        || $base_mode == <plan-9.protocol.constants.ORDWR>;
+
+    return <[plan-9.protocol.error]>->( $tag, "export is read-only" )
+        if $wants_write and not $f->{writable};
+
+    if (    $wants_write
+        and $mode & <plan-9.protocol.constants.OTRUNC>
+        and -f $f->{realpath} ) {
+        truncate( $f->{realpath}, 0 )
+            or return
+            <[plan-9.protocol.error]>->( $tag, "cannot truncate: $!" );
+    }
+}
+
 $f->{omode} = $mode;
 $f->{open}  = 1;
 
@@ -27,8 +44,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, $resp
 );
 
-#,,..,,.,,,,,,,,.,,..,,.,,.,,,,,.,.,,,,..,,..,.,.,...,..,,..,,.,.,,.,,.,,,..,,
-#35QLDX3UQ6A6SMKWQ7JJFXPGSOWPILXQZW2VN36SVBHMM7D3PLXCAILU3NISRLTITXSFRKTBZOOSS
-#\\\|H6G4VOA3N5IUUXWDRRGCO2ZZCFANQI4EPVUOILANKFQMLFDS2W3 \ / AMOS7 \ YOURUM ::
-#\[7]QNY5SQPES3PRYJ3UAWSACAXMDHDA6OOPC4HD5OTTCZFNEJSFX2CQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,,,.,...,.,.,,..,,.,,..,,,..,.,.,...,...,.,.,.,,,...,,..,.,,,
+#Y6UDBMQKXWUS3MYYAQFLPXXK3PJ7UYG4L6XK7IUACRWESWYQ35GZK2UCTBMUUC2TZRBM2C37OMULY
+#\\\|TGIZM5KH3ZBAIH6REI3WNLWHUAKDYMNJHYRJDGB2WOE3TEHACXT \ / AMOS7 \ YOURUM ::
+#\[7]PZXVLKU44HNZHQDFQNQPXUXJKC6Z6NHS47HPZQW25H6VEU2BZOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
