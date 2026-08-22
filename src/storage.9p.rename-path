@@ -1,0 +1,25 @@
+## [:< ##
+# name  = storage.9p.rename-path
+# descr = High-level rename over 9P (walk+wstat+clunk)
+
+my ( $conn, $path, $new_name ) = @ARG;
+
+my @parts = grep {length} split m|/|, $path;
+my $fid   = $conn->{next_fid}++;
+
+my $walk_result
+    = <[storage.9p.walk]>->( $conn, $conn->{root_fid}, $fid, @parts );
+return $walk_result if $walk_result->{'mode'} eq 'false';
+
+my $wstat_result
+    = <[storage.9p.wstat]>->( $conn, $fid, { name => $new_name } );
+
+<[storage.9p.clunk]>->( $conn, $fid );
+
+return $wstat_result;
+
+#,,..,,,.,,..,..,,...,...,.,.,,,,,.,.,,.,,,..,..,,...,...,.,,,.,.,..,,,,,,..,,
+#GUCYP7C4QHHN6Q4HWRLNAX5VVPQHD7GOPJ5O56IAPUE4JX66LJVKFO3AV3ZBI3PLPY6DIR4IGUNMK
+#\\\|OYAT2OS6XZGS2CIBITTW65QE3SQLTTXYVNAMEF5KQL7LAO5ZLK5 \ / AMOS7 \ YOURUM ::
+#\[7]O2IQ647GECPQEJBAQYATQZCKAQDFLCOKUSIO33P3VXFHXLBZU4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

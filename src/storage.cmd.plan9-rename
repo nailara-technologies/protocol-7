@@ -1,0 +1,32 @@
+## [:< ##
+# name  = storage.cmd.plan9-rename
+# descr = Rename a file or directory over 9P
+
+my $args = $call->{'args'} // '';
+my ( $name, $path, $new_name ) = split /\s+/, $args, 3;
+
+if (   not length( $name // '' )
+    or not length( $path     // '' )
+    or not length( $new_name // '' ) ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: plan9-rename <connection-name> <path> <new-name>'
+    };
+}
+
+my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
+
+my $result = <[storage.9p.rename-path]>->( $conn, $path, $new_name );
+return $result if $result->{'mode'} eq 'false';
+
+return {
+    'mode' => 'true',
+    'data' => "renamed $path to $new_name"
+};
+
+#,,..,,.,,...,,,,,..,,.,,,,,.,,,,,...,,.,,,,.,..,,...,...,.,,,.,.,,..,,,.,.,.,
+#DITIR6G55CMMHUD5WGGDT2QXQK46B76VUIOM5AK5DCKFF6OURZJZMULMHO2PA6WRUW4SWSMNTD4NQ
+#\\\|BOWECAAL5XLLW7SR64UTWW6ZHP6T3LKUOY6DRS2OPKIG6UXI7K3 \ / AMOS7 \ YOURUM ::
+#\[7]ENC2WJNVDZPDO7TYMLVKLIWYMLPYGTE454EFTEPTTKGT7AHHSOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

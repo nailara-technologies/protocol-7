@@ -96,10 +96,35 @@ plan9-remove <connection-name> <path>
 - Both commands hit the same `writable` gate as `plan9-write-file` — a
   read-only export (no `:rw:` at export time) rejects both with "export
   is read-only".
-- **No `Twstat` support** — there is no rename or permission-change
-  command. Adding it needs a `decode-stat` codec module (none exists
-  yet) plus handling 9P's "don't-touch sentinel" field convention;
-  deliberately deferred as a separate, larger increment.
+
+### plan9-rename / plan9-resize
+
+```
+plan9-rename <connection-name> <path> <new-name>
+plan9-resize <connection-name> <path> <length>
+```
+
+`Tstat`/`Rwstat` is implemented for a deliberate subset only: rename
+(the `name` field) and resize/truncate (the `length` field). Mode,
+atime, mtime, uid, gid, and muid changes are silently ignored — this
+virtual filesystem doesn't model real ownership/permission bits, so
+honoring those fields wouldn't mean anything. A field carrying its 9P
+"don't touch" sentinel (empty string for `name`, `~0` — the max
+representable value — for `length`) is left alone; `plan-9.protocol.
+codec.encode-wstat` defaults every field it isn't told to change to
+that sentinel, which is why it exists as a separate encoder from
+`encode-stat` (that one's omitted-field defaults are friendly display
+values for directory listings — the opposite of "don't touch").
+
+- `plan9-rename` walks to the target, sends a `Twstat` with only
+  `name` set, rejects a name that's `.`/`..`/contains `/`, rejects
+  renaming an export's own root, and rejects if the new name already
+  exists (no implicit overwrite). The stable qid mapping is migrated
+  to the new path so the file keeps its identity across the rename.
+- `plan9-resize` walks to the target and sends a `Twstat` with only
+  `length` set, real `truncate()` underneath; rejects resizing a
+  directory.
+- Both hit the same `writable` gate as the other write commands.
 
 ## Filter Logic
 
@@ -240,12 +265,13 @@ plan-9.export-directory <path> <name> [:rw:] [:symlinks: reject|contained|allow]
     of symlinks, blocking them unconditionally would limit legitimate
     use — `contained` is the middle ground for exports where that
     matters.
-- `Tcreate` and `Tremove` are implemented (see `plan9-create`/`plan9-remove`
-  above) — both respect the same `writable` gate, and `Tremove` refuses
-  to delete an export's own root directory. `Twstat` (rename/permission
-  change) is **not** implemented — that needs a `decode-stat` codec
-  module that doesn't exist yet, plus 9P's "don't-touch sentinel" field
-  semantics; deferred as a separate, larger increment.
+- `Tcreate`, `Tremove`, and `Twstat` are all implemented (see
+  `plan9-create`/`plan9-remove`/`plan9-rename`/`plan9-resize` above) —
+  all respect the same `writable` gate, `Tremove` refuses to delete an
+  export's own root directory, and `Twstat` only honors the `name`
+  (rename) and `length` (resize) fields — mode/atime/mtime/uid/gid/muid
+  changes are silently ignored, this virtual filesystem doesn't model
+  real ownership/permission bits.
 
 Recursive descent (multi-level `Twalk`, and `storage.9p.scan`'s
 recursive client-side walker) was already implemented before real
@@ -269,6 +295,8 @@ symlink, exercising all three policies.
 | `plan-9.server.handle-io-write` | Twrite — vterm layer + realpath file writes |
 | `plan-9.server.handle-io-create` | Tcreate — new file/directory, writable + name-validity gated |
 | `plan-9.server.handle-io-remove` | Tremove — delete, writable-gated, always clunks the fid |
+| `plan-9.server.handle-io-wstat` | Twstat — rename + resize only, writable-gated |
+| `plan-9.protocol.codec.decode-stat` / `.encode-wstat` | Stat blob decode / sentinel-defaulted wstat encode |
 | `plan-9.cmd.export-directory` | CLI export command |
 
 ### 9P Client, Low-Level (`storage` zenka)
@@ -285,6 +313,7 @@ symlink, exercising all three policies.
 | `storage.9p.write` | Write bytes to an open file (Twrite) |
 | `storage.9p.create` | Create a new file/directory (Tcreate) |
 | `storage.9p.remove` | Delete a file/directory (Tremove) |
+| `storage.9p.wstat` | Rename/resize a file (Twstat) |
 | `storage.9p.stat` | Get file metadata |
 | `storage.9p.clunk` | Close/release resources |
 | `storage.9p.read-message` | Protocol message handling |
@@ -299,12 +328,16 @@ symlink, exercising all three policies.
 | `storage.9p.write-file` | Whole-file write (walk+open+write+clunk) |
 | `storage.9p.create-file` | Create file/directory (walk-to-parent+create[+write]+clunk) |
 | `storage.9p.remove-path` | Delete file/directory (walk+remove, auto-clunks) |
+| `storage.9p.rename-path` | Rename file/directory (walk+wstat+clunk) |
+| `storage.9p.resize-path` | Resize/truncate a file (walk+wstat+clunk) |
 | `storage.cmd.plan9-connect` | CLI connect command |
 | `storage.cmd.plan9-scan` | CLI scan command |
 | `storage.cmd.plan9-read-file` | CLI whole-file read command |
 | `storage.cmd.plan9-write-file` | CLI whole-file write command |
 | `storage.cmd.plan9-create` | CLI create-file/directory command |
 | `storage.cmd.plan9-remove` | CLI remove command |
+| `storage.cmd.plan9-rename` | CLI rename command |
+| `storage.cmd.plan9-resize` | CLI resize/truncate command |
 
 ## Future: Checksum Integration
 
@@ -325,8 +358,8 @@ This creates the "implosion vortex" - remote data naturally flowing into Protoco
 
 *9P is the ingestion membrane of the storage singularity.*
 
-#,,..,,..,,,,,.,,,,..,,..,,.,,,.,,,,.,,.,,,.,,..,,...,...,,,.,,.,,.,.,,..,...,
-#FAK2PIJJZEMZ5UR33MEG6SDDU2GC7UI4UXS5YERSMKYWV77XJYUUDJ3L3TK4AF5X7GYH5QH2AFGNK
-#\\\|77O3EM5OI3QJNBH2PHWDSX75IK2BMLYIWNDJ4LGO56XVYOOPLHR \ / AMOS7 \ YOURUM ::
-#\[7]M2AZIHT44AZTUNM2Y73SKI4P5W6BBFUOHYNTHU64BW6NEMGUCMAI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,...,,,,,,..,.,.,..,,,.,,,.,,,,.,..,,...,...,,..,.,,,,,,,..,,,,,,
+#VFVRM2VQIZ4XXRJ4DS3VCGV6TMDIJG5ZIHUDHKJRF5AR3SIYRYD2JL5ZI4L4TWMAUQLSDLKXK2PMQ
+#\\\|DXGUNIONNUQ5FC2FF5F55TNCEMOCF72WS4YHC2UTGHNUG32YQE2 \ / AMOS7 \ YOURUM ::
+#\[7]TVD7UPUJQWOWXILFCMJKD576XNVOST45XH2AUIIVQZHBQ64NG6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

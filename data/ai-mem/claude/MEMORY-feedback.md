@@ -57,7 +57,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md)
 - [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false](feedback-true-false-constants.md)
 - [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md), [task-show-multiline](feedback-task-show-multiline.md)
-- [list-return-format](feedback-list-return-format.md), [stop-and-revert](feedback-stop-and-revert.md)
+- [list-return-format](feedback-list-return-format.md) — mode `true` single-line/no-newline, `size` multi-line; repeat-offended across 7 new `.cmd.` files same session despite already being documented — actively check every new `.cmd.` reply against this, don't just copy the last sibling's shape. Lowercase-leading reply strings too. [stop-and-revert](feedback-stop-and-revert.md)
 - [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md)
 - [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals
 - [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = pager strips +/-, colors lost
@@ -82,6 +82,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
 - [v7-reload-init-live-swap-subs-crash](feedback-v7-reload-init-live-swap-subs-crash.md) — RESOLVED: bare `v7.reload init` crashed backend when an un-whitelisted nested lifecycle hook (v7.zenka.init_code) resolved on a later pass than its whitelisted sibling, tricking swap_subs's destructive wipe; fixed via stub-flagging + per-namespace (not global) generation-gating in bin/Protocol-7 + base.swap_subs + base.handler.deferred_compile; confirmed via reproduction; corrects [[feedback-v7-zenka-startup-config-placement]]'s old advice (now safe again)
 - [ptd-vs-format-code-two-reasons-to-keep](feedback-ptd-vs-format-code-two-reasons-to-keep.md) — ptd skips reflow AND never loads PPI (~175ms), format-code does both; don't retire ptd assuming feature-parity means redundancy
+- [ptd-syntax-check](feedback-ptd-syntax-check.md) — use `ptd -c`, more P7-tolerant than `perl -c`; but it only catches fatal errors, NOT non-fatal warnings (e.g. a `0xFFFFFFFFFFFFFFFF` literal's "non-portable" warning) — after restarting the zenka, also check `<zenka>.show-buffer compile-errors` ("no such buffer" = clean); prefer `~0` over a literal max-value hex constant
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 - [check-local-session-log-before-kimi-continue-roundtrip](feedback-check-local-session-log-before-kimi-continue-roundtrip.md) — before paying for another kimi_continue round-trip to re-extract data a session already produced, check kimi-legacy -r session log, session_catchup, or coding.show-buffer first
@@ -96,8 +97,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [live-verify-dispatch-must-spell-out-cube-routing](feedback-live-verify-dispatch-must-spell-out-cube-routing.md) — a k3-256k live-verification dispatch burned ~85% of session budget not knowing cube strips `.cmd.`/`.9p.`-style segments from routable command names; any live-exercise dispatch prompt must spell out the exact routable command, start order, and auth grants — don't assume this is inherited knowledge
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 
-#,,.,,,,,,,,,,,..,,..,.,.,..,,,,.,...,.,.,,..,..,,...,...,...,...,.,,,.,.,,,,,
-#ONJERCELR3HAXAOIZXFJSEPB44KSK243YLVPIS5WVK4BXELN6MHS52FXQAYXJWITZKLW4V5IYFPHW
-#\\\|ITQ5OQDB3OCBXC2FGNES23575YAPELRJCCMEWER4NP4WFWMPIIS \ / AMOS7 \ YOURUM ::
-#\[7]ZD4I4GSVM7UXLFJH6BML2TH4KU65AMRN3Q4UFILH6I2YEXY65IAQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,...,,,.,,.,,,,,,,,,,.,.,,..,..,,...,..,,..,,,.,,.,.,.,.,,,,,
+#OO4DRI4FEAJB5TE6MHXPF4K2LZMJBSD2BWARKDY2VCF25V7X5N3RATFTPXAK5C24XJYQH6KDG5S72
+#\\\|YSSGECOXB5JL72F77KRB647BKR4T2WOWJY3XCM66A2J7TZLZVLW \ / AMOS7 \ YOURUM ::
+#\[7]IGJP4XJQIPJYCMQSK6QI57CZFXDZSCRR3ISRXT6UTSTJDJ3KPOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

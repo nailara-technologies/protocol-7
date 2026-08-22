@@ -1,0 +1,56 @@
+## [:< ##
+# name  = plan-9.protocol.codec.decode-stat
+# descr = Decode a 9P stat blob [ mirror of encode-stat's wire format ]
+#
+# Expects a buffer that INCLUDES its own leading size[2] field, the same
+# shape encode-stat produces -- unlike some callers elsewhere in this
+# subsystem that strip it first (see storage.9p.readdir vs storage.9p.stat,
+# and plan-9.server.handle_walk's identical name_pos=39 note).
+#
+# 9P wstat "don't touch" sentinels are returned as-is in the hash (type/
+# dev/mode/atime/mtime == 0xFFFF or 0xFFFFFFFF, length ==
+# 0xFFFFFFFFFFFFFFFF, name/uid/gid/muid == '') -- this module only
+# decodes, callers decide what a sentinel means for their own use case.
+
+my ($data) = @ARG;
+
+my $type = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 2, 2 ) );
+my $dev  = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 4, 4 ) );
+my ( $qid_type, $qid_version, $qid_path )
+    = <[plan-9.protocol.codec.decode-qid]>->( substr( $data, 8, 13 ) );
+my $mode
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 21, 4 ) );
+my $atime
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 25, 4 ) );
+my $mtime
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 29, 4 ) );
+my $length
+    = <[plan-9.protocol.codec.decode-uint64]>->( substr( $data, 33, 8 ) );
+
+my ( $name, $rest1 )
+    = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 41 ) );
+my ( $uid, $rest2 ) = <[plan-9.protocol.codec.decode-string]>->($rest1);
+my ( $gid, $rest3 ) = <[plan-9.protocol.codec.decode-string]>->($rest2);
+my ($muid) = <[plan-9.protocol.codec.decode-string]>->($rest3);
+
+return {
+    type        => $type,
+    dev         => $dev,
+    qid_type    => $qid_type,
+    qid_version => $qid_version,
+    qid_path    => $qid_path,
+    mode        => $mode,
+    atime       => $atime,
+    mtime       => $mtime,
+    length      => $length,
+    name        => $name,
+    uid         => $uid,
+    gid         => $gid,
+    muid        => $muid,
+};
+
+#,,,.,,,.,,,,,..,,,..,..,,,..,,,.,.,.,,.,,.,.,..,,...,...,...,,,.,,..,.,,,,.,,
+#5BDWW3QHYO2XOVE7QYOLANYNJUTE2NJVMOAVKOLZLZYJANCGRM5UDRDAX53XXBUUHIPPRSRZQNBPW
+#\\\|4SQT6VANZMVW5BMTM62OIXTGAJYTFLX53OUYHCKVRWDFCOEWVAK \ / AMOS7 \ YOURUM ::
+#\[7]BYOCBCZOAJQAGKIH2UOANERFIRUN4DZBM5UOCWK3DE355WFYOKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+## [:< ##
+# name  = storage.9p.wstat
+# descr = Send a Twstat (rename/resize) request to 9P server
+
+my ( $conn, $fid, $stat_fields ) = @ARG;
+$stat_fields //= {};
+
+my $tag = ++$conn->{tag} & 0xFFFF;
+
+my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-wstat]>->($stat_fields);
+
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Twstat>,
+    $tag, $req
+);
+
+$conn->{socket}->send($msg);
+
+return <[storage.9p.read-message]>->( $conn, $tag );
+
+#,,,,,,,.,,.,,,..,,..,.,.,,,,,...,,..,,..,...,..,,...,...,,,.,,..,,,.,,,,,.,.,
+#FRNGM63XUTNSRW2QY6T5N6OFAZ2VUWWXOFYDSZPJAN6WH6NZFKEN6O3SJW7A2J5XGNHYM23NA35IY
+#\\\|MXAC2MS2AHGWMHEP4UGKSNOTWQQI6G2JSVUQK2IRJOG73PRNZQI \ / AMOS7 \ YOURUM ::
+#\[7]5AH63HR5JOSZ7NUP5DUOBPCAFE6IUPAKEHI77SUZZPFHB56WXUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
