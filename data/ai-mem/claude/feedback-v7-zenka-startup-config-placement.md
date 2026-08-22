@@ -62,8 +62,19 @@ See [[zenka-name-routing-modes]] for the downstream design work this
 incident motivated (bare-name routing ambiguity when a supposedly-singleton
 zenka ends up with multiple live sessions).
 
-#,,,.,...,,..,..,,,,,,.,.,..,,..,,.,,,..,,..,,..,,...,...,..,,,,.,.,.,,,,,,,,,
-#EP2QY2ZYSR6UHDDZ4FMBPCRZQSSS6JEDL5MQ5Y3KH5C6RYPOGAWAQOTTEL7YNE6WTLRFLAM4UUSUU
-#\\\|UB5A3PBOJFG2BV54EJ6GI3TGVCBVWMWTLI66Z34KIHNGLCYBE7Q \ / AMOS7 \ YOURUM ::
-#\[7]RWEIAJ2YWA25LSIY3RX5EACH576TXL57DA4YAVG6AG5IN4D5LQBI 7  DATA SIGNATURE ::
+**Confirmed again, 2026-08-22, for a slightly different case — a
+zenka with NO `start.cfg` at all yet**: brought `plan-9` from
+"never had a `start.cfg`" to startable by writing one from scratch
+(see `data/tasks/completed/plan-9-server-event-loop-wiring.md`). Bare
+`v7.reload` (not `reload config`) was what made `v7.list available
+plan-9` start showing it and `v7.start plan-9` stop saying "zenka
+plan-9 not found in set-up" — consistent with this memory's claim that
+`start.cfg` is only parsed at `v7.init_code`/`v7.init_start_setup`
+time, now confirmed for the "brand new file didn't exist before" case
+too, not just "existing file's value changed."
+
+#,,,,,,..,,,.,...,,..,.,.,,,.,,,,,,,.,...,.,.,..,,...,...,,,.,,..,,..,..,,,..,
+#J43J7YPAX3OJX54ALJWTPMXH2IAQXRIJAZQ6ZWOIIHFTKURR3BNP54JQRSRSRT7QFH5WIVLLCYSZS
+#\\\|SWLO2RNH7WL77PFXHRS4RQ4563NLXXNAASVA7KCWTVR2AXCDUNC \ / AMOS7 \ YOURUM ::
+#\[7]ZJQSZYZXTTT3VLANRBCF4762HOBMWV4RD7QI74JY7PLZGUOPFQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

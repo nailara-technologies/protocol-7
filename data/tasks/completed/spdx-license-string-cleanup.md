@@ -1,3 +1,10 @@
+## archive: DONE ✓ -- 2026-08-22
+## commit: 7ed1ba794 -- spdx cleanup batches 3-4: last src/ files, plus retire phantom base32 duplicate
+## notes: all 4 batches landed (365b1e26c, fa3e379c9, and batch 3-4 in 7ed1ba794); every
+##        SPDX-License-Identifier marker confirmed gone from src/; also retired the
+##        phantom base.decode.bmw/bmw-L13 duplicate of base32.decode found along the way;
+##        closes todo item G5X
+
 ## [:< ##
 
 # name  = task: remove false SPDX-License-Identifier strings from suspect-session files
@@ -157,8 +164,8 @@ code as first assumed).
 corresponds to todo item `G5X` ("review routines with SPDX marker and
 remove on pass") — mark that done via `todo` once all 4 batches land.
 
-#,,.,,,..,.,,,,..,.,.,,.,,,,.,,.,,...,,.,,,,.,..,,...,...,.,.,,,.,...,,..,...,
-#JALQE6MEMPATQHBPPHDQ5UVOFBDA4HNI7HB53UWUOJU2R32R7OKWMLA3JLAZQWFVL7K6N2IW47NGI
-#\\\|M5ZQ7I4OOUKIIBAQH7H5LB6EOSVUXWMGXM3AHEG7H6CC2NDXBMC \ / AMOS7 \ YOURUM ::
-#\[7]DLIMJ3VYGXHVKDWRXZDB4QPSLYAHC5FYXXQVBEYFY6M7DLEAQCDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,.,..,,.,,,.,.,,,.,..,,..,,,..,..,,...,...,...,.,,,..,,,,.,,.,,
+#BBCQRFKZGXEMDCQ2JOYXX5PDVE5XFGMZFYEJTDJO5UX6F3OKOEDKV6SP43AP4A7RXUTDRZVIXVZNC
+#\\\|IH434KO47SB4F7MZWFFJLF5RZCFZJXJONF65FFNNC754JM357M7 \ / AMOS7 \ YOURUM ::
+#\[7]JW6HAC4FNRYBCFDHLQMSFUCPMAQ5VAL3FYOYN2CFGNSUDEJ3UUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

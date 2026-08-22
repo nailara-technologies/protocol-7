@@ -1,3 +1,9 @@
+## archive: DONE ✓ -- 2026-08-22
+## commit: 599a24103 -- wire plan-9 zenka into v7/cube and complete real-directory 9P export
+## notes: live-verified end to end against a real plan-9 + storage zenka pair; see the
+##        commit message and the file body below for the full 5-gap arc and the
+##        File::stat shadowing gotcha found along the way
+
 ## [:< ##
 
 # name  = task: wire plan-9 server's accept/read/dispatch loop into the event loop
@@ -278,8 +284,8 @@ another pre-existing bug, `send_to_socket` requires a real filehandle),
 # PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 # PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_4
 
-#,,,,,,,.,..,,..,,..,,.,,,.,,,,,.,...,,,.,.,.,..,,...,..,,...,,.,,.,,,,..,...,
-#LOQBKLV3FQN6BSUFRCKLWSET7GRW7POER5M5XH7XL2X7BZOWZF5XMG7A3VJFFQJI55OXUI7VZYY3O
-#\\\|JUL6MF6TZ77Y6EQF7S3FCUG5TDXLAI3ML4JIR5TUOFIWGWTF5UR \ / AMOS7 \ YOURUM ::
-#\[7]L6FRMAIK2NGY4D3BWO43N5ZR3Y74JXRBYAEEAC7TR3AD3BK5ZGCA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,.,,,.,,,..,,..,,,.,,,..,.,.,..,,...,...,..,,,,.,.,.,,.,,,..,
+#U6RXWSKMW4CJ4ZBQHNQ5GLKKTOX2ZADSWABM43NJ7MJHF3ZKVHRY7QO6MF6YRO5RAK27HCJADW7KM
+#\\\|H2RON7DTBMHP54ZTJBFRZT65UZV4PWKF4KCVHDYO2XRG6GUFTDV \ / AMOS7 \ YOURUM ::
+#\[7]QBY5AWEAQ6HTSBWFO7U6A2FNONY36HMC66ETG3UDAWHVXCKS7OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

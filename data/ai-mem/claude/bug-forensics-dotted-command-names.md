@@ -168,8 +168,44 @@ adjacent command-naming/routing gotcha (bare-name collision across
 zenki sharing a process, not a regex-shape violation) found the same
 general class of naming trap in this project before.
 
-#,,.,,..,,,,.,,..,,..,.,.,.,,,.,.,,,,,...,,..,.,.,...,.,.,.,.,,.,,.,,,..,,,..,
-#ELGS7H25JILZWK2VOEYHTOUQWU5Z6THI5L4RPMUQCWK73YIY4CY7KSZ7GKVKJO4XHHWTVNJSKC7FU
-#\\\|RWTALMEVABDQHBNMTOUBYELVKFF5I4LRO3A6YX5MZH2BNGJKF6I \ / AMOS7 \ YOURUM ::
-#\[7]ALW6Y67LXXQQOCOOTKTAWGPJ6XEXMHNU2LHDB4O6U2WVC5N23UAY 7  DATA SIGNATURE ::
+**A second, distinct `cmd_re` violation found 2026-08-22 — leading
+digit, not a dot**: `storage.cmd.9p-connect`/`storage.cmd.9p-scan`
+(external names `9p-connect`/`9p-scan`) start with the digit `9`.
+`$cmd_re = qr|[a-z][$anum\-_]{1,22}|` requires the FIRST character to be
+`[a-z]` specifically — a leading digit fails exactly like a dot does,
+just for a different structural reason. Confirmed live: `p7c storage.
+9p-connect` (any args) gives "protocol mismatch" (cube's generic
+"command syntax not valid" response, `base.handler.command.route_to_
+target`'s `YYOPDKA` message), while `p7c storage.whoami` (valid shape,
+just unregistered) gives a *different* error, "command does not exist"
+— the same discriminator technique this file's `calc.commands` check
+used to separate "not live-routed" from "live-routed", applied here to
+separate "regex rejects the shape entirely" from "regex matched, target
+just isn't registered." These two commands were unreachable through
+cube routing since the day they were written (2026-03-27) — fixed by
+renaming to `plan9-connect`/`plan9-scan` (see commit `599a24103` and
+`data/tasks/completed/plan-9-server-event-loop-wiring.md`).
+
+**The `[a-z]`-only restriction may itself be stricter than intended,
+not a deliberate protocol rule** — `src/base.regex` has its own
+commented-out TODO block sketching a more permissive design that was
+apparently never finished: `my $cmd_str_re = qr|[$anum_lc][$anum_lc\-_\.]
+{0,}|;` (`$anum_lc` = `[0-9a-z]`) allows a *leading digit*, just not
+all-uppercase (reserved for reply codes like `TRUE`/`FALSE`/`SIZE`/
+`STRM` — see `'base_32' => qr|[A-Z2-7]+|`) or all-digits (reserved for
+session ids, `'sid_str' => qr|\d{3,17}|`). A command like `9p-connect`
+can never collide with either reserved shape (it has letters, isn't
+pure digits). Deliberately **not changed this session** — relaxing
+`base.regex`'s live `cmd`/`cmd_str` patterns has much wider blast radius
+than any one rename (it's the regex for cube's entire command-routing
+surface) and deserves its own dedicated audit of every caller first,
+not a rushed fix bundled into an unrelated task. If picked up later:
+the fix is almost certainly swapping `cmd_re`'s `[a-z]` for `[$anum_lc]`
+(or equivalent), not inventing a new pattern from scratch — the design
+already exists, dormant, in the same file.
+
+#,,..,...,,.,,.,,,.,.,.,,,,..,...,,,.,,,,,,.,,.,.,...,...,.,,,,..,,..,,..,.,,,
+#QW4BPSLFAWIUFMP2HYWW443ZKVQTW7HUYVMWFU3COKACLRYA7H5VFQNHWCAYVPGUNFTCKS3EA63Q4
+#\\\|NLEWLAS74D34R3A4ATQ3CXNXXMICICMK4X5XGWQA4IP7AILIH7Z \ / AMOS7 \ YOURUM ::
+#\[7]F2J53JVUEACWIV5EHH77KI3ZPOZJNDLECSH2WTY4RM5INYXRKIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
