@@ -1,6 +1,6 @@
 ---
 name: feedback-use-constant-vs-data-tree-const
-description: "use constant {...} in a P7 module populates a Perl-only symbol table, NOT the %data tree that <module.path.KEY> reads from -- these are two unrelated mechanisms"
+description: "a <module.path.KEY> read resolving to a plausible value is not proof it's actually wired -- use constant {...} and a plain return {...} module both silently fail to populate %data, confirmed twice same day (9P protocol constants, then plan-9.config's port)"
 metadata:
   type: feedback
 ---
@@ -83,8 +83,53 @@ semantics of `.init_code`, not what it populates),
 no-op due to wrong mechanism" class of bug, in `start.cfg` instead of
 module constants).
 
-#,,,.,,,,,...,,.,,.,,,,,,,,,,,.,,,,,.,,,.,,.,,..,,...,...,..,,,,,,.,,,,.,,...,
-#RFIOKASIT5BYPQWPYYZP33ZXUT467PSJU5RAB6ADBBAV5PUPMPIZUO2YRLSGKT4AEHHOZM3L2DBZU
-#\\\|4MZMITP2SLXWCGNLOH7UEZJQCLGWDQ36GJKCBHC3WR5X7HFAMCT \ / AMOS7 \ YOURUM ::
-#\[7]PIJIC7XVMVBENLVYZQ3VHHGXEU5Q33UQTMLAR6HVFGM5SNWHZCBY 7  DATA SIGNATURE ::
+## second instance, same day: a plain `return {...}` module is ALSO not enough
+
+Found a few hours later in the same subsystem: `src/plan-9.config` was
+a plain module doing `return { 'port' => 15640, ... };` — no
+`use constant`, no `const <path> =>`, just a bare hashref return. Every
+reader used `<plan-9.config.port>` (the data-tree read syntax), on the
+apparent assumption that a *compiled* module named `plan-9.config`
+would somehow auto-populate `%data{'plan-9'}{'config'}` just by
+existing. It never did — nothing calls `<[plan-9.config]>->()` and
+stores the result anywhere. Proved this empirically (not just by
+reading code): changed the file's port value, restarted the zenka,
+confirmed the real listening port didn't move, reverted. The file had
+been **entirely dead** since it was written — every real caller was
+either hitting this exact same silent-`undef`-then-fallback pattern
+or just hardcoding the literal directly instead of trusting the read.
+
+**The general lesson, now confirmed twice in one day**: `<some.path>`
+resolving to a plausible-looking value is NOT evidence that path is
+actually being populated by the mechanism you think it is — it may
+simply be falling through to a `// <hardcoded literal>` fallback that
+happens to match. Before trusting a `<...>` read as the real source of
+a value, verify something concrete actually writes that path: a
+`.pre_init`/`.init_code` `const <path> => {...}`/`$data{...} = ...`
+call, or plain `key=value` config-file parsing (`shared-params`/
+`start.cfg`, confirmed working — see
+[[feedback-v7-zenka-startup-config-placement]]). If you can't point at
+the actual write, assume the read is silently falling through to
+whatever fallback follows the `//`, and test that assumption by
+changing the presumed source and confirming live behavior actually
+moves — exactly the empirical test that caught this one.
+
+**The fix that actually solved the underlying need** (a single,
+per-zenka-overridable default shared across many files) wasn't a
+`.pre_init` constant at all — it was a `cfg/shared-params` entry
+(`plan-9.default_port = 15640`), the same pattern
+`system.zenka.verbosity.*` already uses successfully: loaded via
+`[load_config_file:'shared-params']` in each zenka's own `zenka.v7`,
+individually overridable by any zenka re-declaring the same key in its
+own file afterward. Use `Const::Fast`/`.pre_init` for truly immutable,
+never-overridden shared constants (like protocol opcodes); use
+`shared-params` for anything a specific zenka might legitimately want
+to override. See `data/md/design/STORAGE-9P.md`'s "Config:
+plan-9.default_port" section and
+[[project-plan-9-storage-9p-subsystem-status]] for the full incident.
+
+#,,.,,,,,,,.,,,.,,,..,.,,,,..,,.,,,..,,.,,,.,,..,,...,...,,.,,...,.,,,...,..,,
+#H6NGGX5RT5TGMEXIHZT6YWRQVUCGCE6KJHCVEUS2MC4XNOAMNGSJMOI5IWLCMRHJ2ALDREKPV64PM
+#\\\|FGUG56K5XMYJBLNBCTWKRESG4AD2KNWKROZ6YZR2TVTGCXSKFZJ \ / AMOS7 \ YOURUM ::
+#\[7]RJRDVY5CMJVDGCASG4EYSHMRJ7U7K4ZD5NTZDFUMUD3XR5GOPUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

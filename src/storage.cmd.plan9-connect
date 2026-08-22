@@ -6,7 +6,7 @@ my $args = $call->{'args'} // '';
 my ( $host, $port, $name ) = split /\s+/, $args, 3;
 
 $host //= '127.0.0.1';
-$port //= 15640;          ## match plan-9.config's canonical server default ##
+$port //= <plan-9.default_port> // 15640;
 $name //= "$host:$port";
 
 my $result = <[storage.9p.connect]>->(
@@ -25,8 +25,8 @@ if ( $result->{'mode'} eq 'true' ) {
     return $result;
 }
 
-#,,.,,,,,,,,,,,.,,,,.,,,.,,,.,.,,,.,.,...,..,,.,.,...,...,.,.,...,,.,,,..,...,
-#VHCLLB5NVT2EEOAVJ7HBAK4JKTKWKPYTV6K2TQDI6W3AJ6HH2JPEYXIKCKZSD4SGMINCLFLOZBG3Q
-#\\\|5OIS3T6W3PE53KPCARDOA2DL64WHU6JUVTR2LJ5WTV7CVGRMOIV \ / AMOS7 \ YOURUM ::
-#\[7]FO5WTG3ZLOYKDZI5PCJ2W2YIYRYARVYISLXUW7FZKI6MUDWMTIDI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,,,,.,,.,,,.,.,,,.,..,,.,,,,,.,.,.,...,...,...,,,,,.,.,,.,,,.,,
+#HP4TDNSI3G4XX5OTHZVLBP5647QFO6RWTFTOE3ONMMLHMQD3SPU6N4YPSMKEJO3Q6GL3UB5YKU6JG
+#\\\|DRFEWK4TGMSQIKNPJB74MG3TPML2ZSJASHCMHC5IAGFZDAL5QFI \ / AMOS7 \ YOURUM ::
+#\[7]VCUWCNUJ36MPYVOESQZVBTW3ZEROUXXS5HVTYCIWJAKIX6RU5WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

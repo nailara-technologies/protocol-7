@@ -25,7 +25,8 @@ if ( $parsed->{'type'} eq 'checksum' ) {
         unless grep { $ARG eq $p7ref }
         @{ $index->{'by-checksum'}{$checksum} };
 } elsif ( $parsed->{'type'} eq '9p' ) {
-    my $key = ( $parsed->{'authority'} // 'localhost:5640' )
+    my $default_authority = 'localhost:' . ( <plan-9.default_port> // 15640 );
+    my $key = ( $parsed->{'authority'} // $default_authority )
         . $parsed->{'address'};
     $index->{'by-9p'}{$key} //= [];
     push @{ $index->{'by-9p'}{$key} }, $p7ref
@@ -46,8 +47,8 @@ return {
     }
 };
 
-#,,.,,,.,,.,.,,,.,,,.,,.,,,..,.,.,,,,,.,.,,.,,.,.,...,..,,...,.,,,,,,,,,,,,.,,
-#GYRKINB3RVRDGFZ762GCLQKKRK3D6DENEKGDWOMD7AEYZRBUEP5JB6YPKBO6KID757BRPDEPD46II
-#\\\|Q7KJZ27UKFFLS7LM6UVKCMGDTSDXKGXUHSVSN45E5NGYJC6VWAK \ / AMOS7 \ YOURUM ::
-#\[7]WE35PSQAL63URL4ICCJ5H2OOKT2YRJP7555U3L3WGYTNZCANZABQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,,,,,...,,,.,.,,,,..,,,,,,,,,.,.,...,...,,.,,,.,,,,.,.,,,,..,
+#GFDHOCBLXR3PPEBS7EVDJYSJCPBQRAS3ZKJ3RTR5HJIPXEMXHYLHRBHU7HUOCNPBJIEVPKSGLQDGI
+#\\\|EDPDTVZL6HGW5LVKZ5FL27BOQD57KGI2R2TVHMQ6VOGFJ7NLWTP \ / AMOS7 \ YOURUM ::
+#\[7]ODNDM2C43B6APOHROVTMNQPA3QW4ZG3QYX5EYAYQBS4O5F7LCMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

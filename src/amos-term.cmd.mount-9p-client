@@ -6,7 +6,7 @@ my $args = $call->{'args'} // '';
 my ( $host, $port, $name ) = split /\s+/, $args, 3;
 
 $host //= '127.0.0.1';
-$port //= 5640;
+$port //= <plan-9.default_port> // 15640;
 $name //= "$host:$port";
 
 ## Connect to 9P server ##
@@ -33,14 +33,14 @@ return {
     'mode' => 'size',
     'data' => sprintf(
         "9P client connected to %s:%d (name: %s)\nRoot directory has %d "
-            . "entries\n\nCommands:\n  p7c plan-9.client.list-dir %s /path\n "
-            . " p7c plan-9.client.read-file %s /path/to/file\n",
+            . "entries\n\nCommands:\n  p7c amos-term.list-dir %s /path\n  "
+            . "p7c amos-term.read-file %s /path/to/file\n",
         $host, $port, $name, $entry_count, $name, $name
     )
 };
 
-#,,,,,,,.,,,.,,,.,.,,,.,,,,,,,.,,,..,,.,.,,..,.,.,...,...,.,.,.,.,,..,,.,,,.,,
-#54IASXXJ7VW2XZXMUB4VSRWRS5OEMB4L7IXKNX4HIENWKIUH5WYTVH7LFBJCVZUC44ZGU2HVVTLNK
-#\\\|POSYE3N4ZTCQSFOKJNKMOHLVOMRMOPGQYV7V2CJZKAWDRGML3NY \ / AMOS7 \ YOURUM ::
-#\[7]6I5D7LYK7VKGXQQ3YX67VK2WT3V5U2YS24BGX34GX35SDHLXEICI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,...,...,,,,,,..,.,,,,,,,,.,,.,.,...,.,,,,..,.,,,..,,.,.,.,.,
+#ZCRO2JB76VAES4DVDXJNY26WFJNND4VFPJL2SFXTVUYPPDTZWJVSMLUKLOG3ZALRREJGUOR4KURYK
+#\\\|M3ITMGBVOK7OX5JGZ7HNHEHKINSLCA6Y5O2WPXRTTMWWLRTH7AU \ / AMOS7 \ YOURUM ::
+#\[7]WHBHD2NWJSMQSNVXKVDUYN5BKOEH7XMJR5K66K6DLLFBVCUZAECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

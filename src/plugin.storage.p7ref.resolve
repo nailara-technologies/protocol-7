@@ -46,14 +46,16 @@ if ( $type eq 'checksum' ) {
     $path .= '/' . join( '/', @{ $parsed->{'segments'} } )
         if @{ $parsed->{'segments'} };
 
+    my $default_authority = 'localhost:' . ( <plan-9.default_port> // 15640 );
+
     $result = {
         'mode' => 'true',
         'data' => {
             'protocol'  => '9p',
-            'authority' => $parsed->{'authority'} // 'localhost:5640',
+            'authority' => $parsed->{'authority'} // $default_authority,
             'path'      => $path,
             'full'      => "9p://"
-                . ( $parsed->{'authority'} // 'localhost:5640' )
+                . ( $parsed->{'authority'} // $default_authority )
                 . $path,
         }
     };
@@ -141,8 +143,8 @@ if ( $result->{'mode'} eq 'true' ) {
 
 return $result;
 
-#,,,.,.,,,...,,.,,,.,,.,,,,,.,..,,,,,,...,..,,.,.,...,...,...,,..,..,,.,,,.,.,
-#HOJE3QGQFNPTLYNATYDMYLQCFMOSNE73WRZ7VVV6WWB3ACW45H3SFRU6WZFZCDQWSF44SHL7R2PR4
-#\\\|DX5CYRTE27IUWJCIVZQYSKUFTUOARDLN7QX7B6E7FFC7QWEKVKL \ / AMOS7 \ YOURUM ::
-#\[7]OVS54RCDR7BGAUP2QEI6N3TTO4CQS53NI5O7DXJKMOKJARNFLOBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,.,.,...,...,,,,,,..,,,.,,.,,.,.,...,..,,...,.,.,,..,.,,,,,.,
+#7TE7DAD6A6MMZ5AFW4EYUY6W3TF45UWUG2WJED6JMTUP7ZUETVNO4ACA4NHKPJZOJTBES6KTO2LXG
+#\\\|EERMRDCALQPCM4RIVAJY7IBXXRZ736UOKCMYPL7HTQYHO4ATAKN \ / AMOS7 \ YOURUM ::
+#\[7]5GTHAELQ72HKRWJXVXOMIBWMFP6V4PINOJOT7AB7XLAMLW2QBQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

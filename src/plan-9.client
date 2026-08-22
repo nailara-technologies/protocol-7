@@ -4,15 +4,16 @@
 
 use IO::Socket::INET;
 
-# Client state per connection
-$data{'plan-9'}{'client'} = {};
+# Client state per connection -- must survive across calls, or a second
+# connect silently discards every prior connection's registry entry
+$data{'plan-9'}{'client'} //= {};
 
 ## Connect to 9P server ##
 my ($options) = @ARG;
 $options //= {};
 
 my $host = $options->{host} // '127.0.0.1';
-my $port = $options->{port} // 5640;
+my $port = $options->{port} // <plan-9.default_port> // 15640;
 my $name = $options->{name} // "$host:$port";
 
 my $socket = IO::Socket::INET->new(
@@ -59,8 +60,8 @@ return {
     'data' => $name
 };
 
-#,,,,,,.,,..,,,.,,,,.,..,,...,,.,,..,,,,,,,,.,.,.,...,...,,,.,,..,,..,...,,,.,
-#F57XNMHDWSREOZCDBT7QIYYCOW756SJK2XI5KXPOAF54JYKDV3HAK42VR4SGDOTFTBV6HIVGGRRKO
-#\\\|7V4U3ZNWFDIY3Y4N6VY2HWFAUDXI2LT3GC5TZ3QVEWB6F35VHDT \ / AMOS7 \ YOURUM ::
-#\[7]T63JPCAVTTRDVDZTQENQCBIOA4XK7LGFOW7BQSTQU4MFO2JP2OAA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,..,,,..,,.,,.,.,,,,,.,.,,..,.,,,.,.,...,...,.,.,.,.,..,,...,,..,
+#F62H64KHRSOCE6D36GPMOEB665GMU3MG2AZCRD5KBXB34ISHEJZZX2FKGTGWXZRB3PUK53VXXMFRU
+#\\\|QS6GMTTT3PJE6OEEYOT4TG6UUOFW36KRLDKLEYZQQC347A6XRQD \ / AMOS7 \ YOURUM ::
+#\[7]YZ74HEOI75J2SAE2NKUTK6THUUSC5MUK7DA6LLA3M465IJAJQYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
