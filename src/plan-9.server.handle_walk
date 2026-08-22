@@ -28,18 +28,61 @@ my $walk_result = $current;
 foreach my $name (@wnames) {
     if ( $walk_result->{type} eq 'root' ) {
 
-        # Walking from root - look up exported buffer
+        # Walking from root - look up exported buffer or directory
         my $buf = $data{'plan-9'}{'server'}{'buffers'}{$name};
         return <[plan-9.protocol.error]>->( $tag, "file not found" )
             unless $buf;
 
+        if ( ( $buf->{'kind'} // 'buffer' ) eq 'directory' ) {
+            $walk_result = {
+                type     => 'realpath',
+                realpath => $buf->{'realpath'},
+                qid      => {
+                    type    => <plan-9.protocol.constants.QTDIR>,
+                    version => $buf->{qid_version},
+                    path    => $buf->{qid_path}
+                },
+            };
+        } else {
+            $walk_result = {
+                type => 'buffer',
+                name => $name,
+                qid  => {
+                    type    => <plan-9.protocol.constants.QTDIR>,
+                    version => $buf->{qid_version},
+                    path    => $buf->{qid_path}
+                },
+            };
+        }
+        push @qids, $walk_result->{qid};
+
+    } elsif ( $walk_result->{type} eq 'realpath' ) {
+
+        # Walking inside a real exported directory tree -- a wname must be
+        # a single path component, never a traversal/escape attempt
+        return <[plan-9.protocol.error]>->( $tag, "invalid path component" )
+            if $name eq ''
+            or $name eq '.'
+            or $name eq '..'
+            or $name =~ m{/};
+
+        my $child = $walk_result->{realpath} . '/' . $name;
+        return <[plan-9.protocol.error]>->( $tag, "file not found" )
+            unless -e $child;
+
+        my $is_dir = -d $child;
+        $data{'plan-9'}{'server'}{'realpath_qids'}{$child}
+            //= $data{'plan-9'}{'server'}{'next_qid'}++;
+
         $walk_result = {
-            type => 'buffer',
-            name => $name,
-            qid  => {
-                type    => <plan-9.protocol.constants.QTDIR>,
-                version => $buf->{qid_version},
-                path    => $buf->{qid_path}
+            type     => 'realpath',
+            realpath => $child,
+            qid      => {
+                type => $is_dir
+                ? <plan-9.protocol.constants.QTDIR>
+                : <plan-9.protocol.constants.QTFILE>,
+                version => 0,
+                path    => $data{'plan-9'}{'server'}{'realpath_qids'}{$child},
             },
         };
         push @qids, $walk_result->{qid};
@@ -103,8 +146,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, $resp
 );
 
-#,,,.,,,,,.,,,.,,,,..,...,.,,,,,,,,,,,,..,,,,,.,.,...,..,,,.,,.,,,,..,,.,,...,
-#7FTWCP3MUQKM6FOY6UFOB7CTPGV3DNBP552X6MJEL3ONXR77XOK4VZTHPVNFMGT2FBNWIOXL6QD5Y
-#\\\|3H7X3IT6MAZPRZ74DO4JNRADBSPPEG3EV7E5AOIZOEDSBXSZAZB \ / AMOS7 \ YOURUM ::
-#\[7]ZRBYMJ4N43C43YCDD2FBY6KPPIIOTKDJW2GCWTWBNKWLG6ZYOUCI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,,,.,,.,,,,.,..,,,.,,...,,,,,.,.,...,...,...,,..,,,,,,,,,..,,
+#LD4KGTVS53OX3FTJCI62JTFYNCIN7YZWBA6X56UB67NV5DAYGG6L7U4HPARCGK35VZKJCY2JS7VMA
+#\\\|JQGK64DJFTTVQ73BPDL2WMTUTVSVH7WVOJKG74FAGWPWKQW2XRM \ / AMOS7 \ YOURUM ::
+#\[7]OPVPFXF5PBSNVFTANGAW44IXW2ZGQOKPUAEJM4A723WC5CPXEQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

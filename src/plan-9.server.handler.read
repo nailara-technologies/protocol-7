@@ -1,0 +1,43 @@
+## [:< ##
+# name  = plan-9.server.handler.read
+# descr = event.add_io callback for a connected 9P client socket -- reads
+#         available bytes and hands them to plan-9.server.client.data,
+#         which already correctly frames/dispatches 9P messages and was
+#         just never fed any bytes. Mirrors proxy.handler.connection's
+#         read/error/disconnect handling.
+
+my $fd = shift->w->data;
+
+my $client = $data{'plan-9'}{'server'}{'clients'}{$fd};
+return unless $client;
+
+my $sock = $client->{'sock'};
+
+my $chunk = '';
+my $bytes = <[base.s_read]>->( $sock, \$chunk, 65536 );
+
+if ( ( $bytes // -1 ) == -1 ) {
+    <[base.logs]>->( "9P client fd=%d read error: %s", $fd, $OS_ERROR );
+    <[plan-9.server.client.close]>->($fd);
+    return;
+}
+
+if ( $bytes == 0 ) {
+    <[plan-9.server.client.close]>->($fd);
+    return;
+}
+
+<[plan-9.server.client.data]>->( $fd, $chunk );
+
+return;
+
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_4
+
+#,,,.,..,,,,,,...,...,.,,,,,,,.,,,..,,,,.,,,.,..,,...,...,.,,,,,.,.,.,..,,,,,,
+#Y3DUESFXXUEGGWCUJIQ4ONVET7AWKEJTBNPM334UQMKC3AEQH3PSYB3P57HQBUJU5436GNY4DAIHG
+#\\\|YEADV5VPAZGYPBAK33RYOSXPGXFBXCOXJUSYRFJHU6KOMDYMIHM \ / AMOS7 \ YOURUM ::
+#\[7]LZQBQWUZCYHRBL6YQHKV7HSJ53MWNHN3SMTOQTQCPNCEP5ETP6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,11 +4,20 @@
 
 my ($fd) = @ARG;
 
-<[base.logs]>->("9P client disconnected (fd=$fd)");
-delete $data{'plan-9'}{'server'}{'clients'}{$fd};
+my $client = delete $data{'plan-9'}{'server'}{'clients'}{$fd};
+return unless $client;
 
-#,,,,,,..,,.,,,..,..,,,.,,...,,,,,,,,,,,.,,,.,.,.,...,...,,.,,,..,...,.,.,..,,
-#7JKSQFDBM52C4ZXRPYVXPSQZKLMHEKINKCJOBM5H2SEXBEKPFC2ISK43PH4TRYGJXROXAJ2EPLWIY
-#\\\|T6JSDHN3YRWWKT3TK3LU4UMDDLIWORZOPGCME4UMUITPJSFXWD5 \ / AMOS7 \ YOURUM ::
-#\[7]H2JD7JN4KTZURQ4PLWIOHNVBMFZOCCHPKQZPVERPCYJISZZYXSDQ 7  DATA SIGNATURE ::
+## cancel the read watcher before closing the socket -- mirrors ##
+## proxy.client.close                                           ##
+if ( defined $client->{'watcher'} ) {
+    $client->{'watcher'}->cancel if $client->{'watcher'}->is_active;
+}
+$client->{'sock'}->close if defined $client->{'sock'};
+
+<[base.logs]>->("9P client disconnected (fd=$fd)");
+
+#,,.,,,.,,,.,,.,,,..,,.,.,.,,,,.,,...,...,,.,,.,.,...,...,.,,,,,.,,,.,.,,,,..,
+#ON46CWHGAP7Q44UWITD4HTPOEYNERMUQSBINLAPVHHXT4FXVFVMPTPMNAAWXUDXT4WAVBIB35VOCI
+#\\\|F2YEA7ZAP6WE4C5ENLJV2K2CDTPL2SHJVD5UQY2DPAZ6UACX4JY \ / AMOS7 \ YOURUM ::
+#\[7]PLGEKSV3RCDTX572CBLG2WTLTXD2C2IQ2TB6ZAA54AQO7LTIVCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

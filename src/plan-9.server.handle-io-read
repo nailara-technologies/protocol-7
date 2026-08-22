@@ -31,6 +31,9 @@ if ( $f->{type} eq 'root' ) {
     $content = <[plan-9.server.buffer-read-metadata]>->(
         $f->{buffer}, $offset, $count
     );
+} elsif ( $f->{type} eq 'realpath' ) {
+    $content = <[plan-9.server.realpath-read]>
+        ->( $f->{realpath}, $offset, $count );
 }
 
 my $resp = <[plan-9.protocol.codec.encode-uint32]>->( length($content) )
@@ -41,8 +44,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, $resp
 );
 
-#,,,.,.,.,.,,,...,.,,,,..,,,.,,.,,...,,..,..,,.,.,...,...,.,.,.,.,,..,...,,,,,
-#652AMGYEAKALHYBPMXIM6OD2JPOBJ75O6WVPQ5A4SDLXG2KRUS322WUHO3PRELG5I75WZKW6J5VYS
-#\\\|5PAUHSVBWK3NC6XWZGLX4ZWDB65V32NRNKYYJJQA77Y423LIU4K \ / AMOS7 \ YOURUM ::
-#\[7]4TGBOZMZMKJBIKNDC2XDQCLJQPGDJ2GGWDLAPHE5V4CPLS7XLYBI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,..,,...,,..,,.,,,,,,,,.,.,.,,,.,.,.,...,...,...,.,,,,.,,...,,,.,
+#EXFRKN2KNQAB7INQYCKUHLY43ZXFHMPEP4QVAYHE3LWAI5ULQXERUZE6D3VGF66GSBFJZN5RBCEBO
+#\\\|GUABBR5FQCLWL7TGB4HERF3HJA2C2RNUBC3A6CYDV433IX6GMFS \ / AMOS7 \ YOURUM ::
+#\[7]6WIHVGZWAJGISMM4O73URF54JFZM46EDMXJJJYD7H7BYS7YPZCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

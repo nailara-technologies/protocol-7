@@ -1,0 +1,65 @@
+## [:< ##
+# name  = plan-9.server.realpath-read
+# descr = Read a real filesystem path for 9P access -- directory listing
+#         (same stat-entries-concatenated wire shape as
+#         buffer-read-root-dir/buffer-read-buffer-dir) or raw file bytes.
+
+my ( $real_path, $offset, $count ) = @ARG;
+
+return '' unless defined $real_path;
+
+if ( -d $real_path ) {
+    my $entries = '';
+    opendir( my $dh, $real_path ) or return '';
+    for my $entry ( sort readdir($dh) ) {
+        next if $entry eq '.' or $entry eq '..';
+        my $child  = "$real_path/$entry";
+        my $is_dir = -d $child;
+
+        $data{'plan-9'}{'server'}{'realpath_qids'}{$child}
+            //= $data{'plan-9'}{'server'}{'next_qid'}++;
+
+        ## bin/Protocol-7 does 'use File::stat' globally : shadows the ##
+        ## builtin ; use the OO form like the rest of P7 does          ##
+        my $st   = File::stat::stat($child);
+        my $stat = {
+            type     => 0,
+            dev      => 0,
+            qid_type => $is_dir ? <plan-9.protocol.constants.QTDIR>
+            : <plan-9.protocol.constants.QTFILE>,
+            qid_version => 0,
+            qid_path    => $data{'plan-9'}{'server'}{'realpath_qids'}{$child},
+            mode => $is_dir ? ( 0755 | <plan-9.protocol.constants.DMDIR> )
+            : 0644,
+            atime  => $st     ? $st->atime : time,
+            mtime  => $st     ? $st->mtime : time,
+            length => $is_dir ? 0          : ( $st ? $st->size : 0 ),
+            name   => $entry,
+            uid    => 'root',
+            gid    => 'root',
+            muid   => 'root',
+        };
+        $entries .= <[plan-9.protocol.codec.encode-stat]>->($stat);
+    }
+    closedir($dh);
+    return substr( $entries, $offset, $count );
+
+} else {
+    open( my $fh, '<:raw', $real_path ) or return '';
+    seek( $fh, $offset, 0 );
+    my $buf = '';
+    read( $fh, $buf, $count );
+    close($fh);
+    return $buf;
+}
+
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_4
+
+#,,.,,,,.,.,,,,,,,,.,,,.,,,,,,.,,,,,,,,.,,,..,..,,...,...,...,,,.,.,,,...,,,.,
+#XVORNRXVTWZF42D5UZPD2KDXUN725YCU72E3EF4UYT76JB5I4NIHM22XTVRZ2Z3PJIG7FMYTNSMTE
+#\\\|Y7OSK7WLM2DTJS4TTJBUAMVEFW42MTDFTNFRCIBTKEAY4YATP6E \ / AMOS7 \ YOURUM ::
+#\[7]OK5IM42JXNLSZHKEX23FZP46WBJ7Q4IHZZGZMLOK2HKYMXFPRSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

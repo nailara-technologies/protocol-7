@@ -16,15 +16,17 @@ sftp.allowed_unix_users = <system.amos-zenka-user>  ## running as ##
 system.zenka.verbosity.console = 1
 system.zenka.verbosity.buffer  = 2
 
-modules.load  =  auth.client net protocol io.unix ui storage plan-9 plugin.storage.checksum plugin.storage.p7ref  ## devmod
+modules.load  =  auth.client net protocol io.unix ui storage plan-9 \
+                        plugin.storage.checksum plugin.storage.p7ref  ## devmod
 
 access.cmd.usr.cube-13 = whoami name heart commands src-ver rel-ver src-age
 
 access.cmd.usr.cube    = verify-instance commands heart reload cur-pid \
                          list list-deps src-ver rel-ver src-age \
                          show-buffer buffer-erase buffer-erase-level \
-                         name subname plan9-connect plan9-scan map-file lookup-checksum p7ref \
-                         * ## <-- devmod
+                         name subname plan9-connect plan9-scan map-file \
+                         lookup-checksum p7ref \
+                         * ## <-- devmod [ restrict later ]
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -36,8 +38,8 @@ access.cmd.usr.cube    = verify-instance commands heart reload cur-pid \
 
 [zenka.loop]
 
-#,,,.,.,.,,,,,,,.,,..,.,,,,,.,...,...,...,.,,,..,,...,...,...,,.,,..,,..,,...,
-#BHRTQLGXQTCXWDK5BYZMD36OGPXOBZSX36VZLZYHKJWYJXYW4SEZJBMR74XRB4ADI57IKCPZXXIEM
-#\\\|YCIDNVUA4BO5UQ4EMVXTJIKXHXQYP2EWNVBJ4JEXCT7LAWKQUI5 \ / AMOS7 \ YOURUM ::
-#\[7]4ZKUM6RLWJWE3ERNGZ3B2GYR7VRBT6BSCBC4SBJWSVA5J2SYDICI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,.,.,,,.,,.,,,,.,,,.,..,,,,,,..,,...,...,..,,,,.,.,.,,,.,,,.,
+#UBWTHFYCXPTWJXZCFL2MWL4DYHXOVL4WOSIATWUJPBTNCRBNTSYDSAN7BNSIFSZKSN3KA5TSCURGM
+#\\\|N3G4QAK2PXFGEEH2ARWTT4PRKNRGYTDRGFM5BA4CAICUEZMQQZY \ / AMOS7 \ YOURUM ::
+#\[7]X62EJVLZQR33M76QREUVOKWBIMWNC7NQV6XZQR3UNWGRKRM2EACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
