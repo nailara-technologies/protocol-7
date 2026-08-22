@@ -1,22 +1,39 @@
 
 .:[ 'plan-9' protocol zenka ]:.
 
-modules.load = plan-9.protocol.constants.pre_init plan-9.protocol.codec plan-9.protocol.error \
-               plan-9.config plan-9.server plan-9.server.export_buffer \
-               plan-9.server.handle_version plan-9.server.handle_attach \
-               plan-9.server.handle_walk plan-9.server.handle_request \
-               plan-9.server.handle_io plan-9.server.client.accept \
-               plan-9.server.client.close plan-9.server.client.data \
-               plan-9.server.buffer.read plan-9.server.buffer.write \
-               plan-9.server.buffer.stat
+[load_config_file:'shared-params']
+
+system.zenka.verbosity.console = 1
+system.zenka.verbosity.buffer  = 2
+
+modules.load  =  auth.client net protocol io.unix io.ip ui \
+                        plan-9.protocol plan-9.config plan-9.server plan-9.cmd  ## devmod
+
+access.cmd.usr.cube-13 = whoami name heart commands src-ver rel-ver src-age
+
+access.cmd.usr.cube    = verify-instance commands heart reload cur-pid \
+                         list list-deps src-ver rel-ver src-age \
+                         show-buffer buffer-erase buffer-erase-level \
+                         name subname \
+                         * ## <-- devmod [ restrict later ]
 
 [load_modules:<modules.load>]
 [init_modules]
 
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+## nothing else ever calls plan-9.server -- it does the real listen-socket ##
+## bind via io.ip.tcp.input.open, without this the zenka compiles         ##
+## everything but never actually accepts a connection                    ##
+[plan-9.server]
+
 [zenka.loop]
 
-#,,,,,,.,,...,.,,,...,..,,,,,,.,.,,,.,,..,..,,.,.,...,...,.,.,,.,,.,.,.,.,..,,
-#TBP4AE4UJ7COM5BVZL2CLXJO26VFFZFIFZCZYDFHACDBBFFGLBPWGTQ7VNLPL7S6M5DECJJHVV6OO
-#\\\|BS3QPLTT3Z2TLHQP2VUJV4FSUVZSK44KBET6ORTWPTWBCLKYATX \ / AMOS7 \ YOURUM ::
-#\[7]Y6DYFCWK5GHLW545NEVT2BNU3ZIF4WZQ43PCQNIHZ2DKNLWCHEBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,,.,,,..,.,,,..,,.,,,,,,,.,.,.,.,...,...,.,.,,.,,,,,,..,,...,
+#YS5ZE2DNDDBJF5RQ2WYUTK3JCCU6L6WAZN7QA4E3UYTUEGUFURD6EZOUXZVMXK6OIG6X3DH2Q7QXA
+#\\\|XBPS5LMM32WOQPSFHEQUC4TYX2BHIU3KSK6LU5KIOOX6YUYLK7F \ / AMOS7 \ YOURUM ::
+#\[7]Q34P6PXF6HPQ32XD27HY4OTJNATT4FDQOUIOQTDEPVTHQADO4QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
