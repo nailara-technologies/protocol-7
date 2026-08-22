@@ -1,0 +1,46 @@
+## [:< ##
+# name  = plan-9.server.handle-io-remove
+# descr = Handle 9P Tremove/Rremove
+
+my ( $client, $tag, $data ) = @ARG;
+
+my $fid = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+
+my $f = $client->{fids}{$fid};
+return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+
+unless ( $f->{type} eq 'realpath' ) {
+    delete $client->{fids}{$fid};
+    return <[plan-9.protocol.error]>->( $tag, "cannot remove this file" );
+}
+
+unless ( $f->{writable} ) {
+    delete $client->{fids}{$fid};
+    return <[plan-9.protocol.error]>->( $tag, "export is read-only" );
+}
+
+if ( $f->{realpath} eq $f->{root} ) {
+    delete $client->{fids}{$fid};
+    return <[plan-9.protocol.error]>->( $tag, "cannot remove export root" );
+}
+
+my $ok
+    = -d $f->{realpath} ? rmdir( $f->{realpath} ) : unlink( $f->{realpath} );
+
+unless ($ok) {
+    delete $client->{fids}{$fid};
+    return <[plan-9.protocol.error]>->( $tag, "cannot remove: $!" );
+}
+
+delete $client->{fids}{$fid};
+
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rremove>,
+    $tag, ''
+);
+
+#,,,,,,..,.,.,.,.,,.,,...,,,.,,,.,,,.,.,,,.,,,.,.,...,,.,,...,.,.,,,.,,.,,.,,,
+#IJNBIUHVV4ZYRTMMJMHG3XSKHEUZXOEXPO57L6LOXOQ252ZKHT5MYFCDDJU6VIEGP327JKGE7FECC
+#\\\|H5KVE5ELQEFK7VGAVU5D4CXC75TSI3HVD7V5ECJVF34C2IRW44D \ / AMOS7 \ YOURUM ::
+#\[7]HCJQCUPBLQSGHPRLHYZ3R7COBLFIVFGXRAB2LHLKXM2XKZHTQ6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

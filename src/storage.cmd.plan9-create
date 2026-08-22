@@ -1,0 +1,47 @@
+## [:< ##
+# name  = storage.cmd.plan9-create
+# descr = Create a file or directory over 9P
+
+my $args = $call->{'args'} // '';
+my @tok  = split /\s+/, $args;
+
+my $name = shift @tok;
+my $path = shift @tok;
+
+if ( not length( $name // '' ) or not length( $path // '' ) ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: plan9-create <connection-name> '
+            . '<path> [:dir:] [<content>]'
+    };
+}
+
+my $is_dir = 0;
+my @content_tok;
+
+for ( my $i = 0; $i < @tok; $i++ ) {
+    if ( $tok[$i] eq ':dir:' ) {
+        $is_dir = 1;
+    } else {
+        push @content_tok, $tok[$i];
+    }
+}
+
+my $content = join( ' ', @content_tok );
+
+my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
+
+my $result = <[storage.9p.create-file]>->( $conn, $path, $content, $is_dir );
+return $result if $result->{'mode'} eq 'false';
+
+return {
+    'mode' => 'size',
+    'data' => "Created $path" . ( $is_dir ? " [directory]\n" : "\n" )
+};
+
+#,,,,,,.,,.,,,.,,,,,,,..,,...,,,.,..,,,,.,,.,,.,.,...,...,...,.,,,,,.,,.,,...,
+#LFF7N6EYPBJUBCYRY2NG6PAQR46EOHBP266WXYEINZU5SJXSAPPF2IXZOCZZT3WUYE2DDVKMUQS6Q
+#\\\|BYIG5JEGSBVHIN2D4I2HWAK5AOVHSZR652EWAJQ2QGK63WQ6KPO \ / AMOS7 \ YOURUM ::
+#\[7]WTLMDITDUNPLMWBAZNGXMPTFMSKCCT6MZV3UDFT4WYLT5Z6PVKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

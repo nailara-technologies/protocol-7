@@ -1,0 +1,47 @@
+## [:< ##
+# name  = storage.9p.create-file
+# descr = High-level create file or directory on 9P server
+
+my ( $conn, $path, $content, $is_dir ) = @ARG;
+$content //= '';
+$is_dir  //= 0;
+
+my @parts = grep {length} split m|/|, $path;
+my $leaf  = pop @parts;
+
+return { 'mode' => 'false', 'data' => 'missing path component' }
+    unless defined $leaf and length $leaf;
+
+my $fid = $conn->{next_fid}++;
+
+my $walk_result
+    = <[storage.9p.walk]>->( $conn, $conn->{root_fid}, $fid, @parts );
+return $walk_result if $walk_result->{'mode'} eq 'false';
+
+my $perm = $is_dir ? <plan-9.protocol.constants.DMDIR> : 0;
+my $mode = $is_dir ? 0 : <plan-9.protocol.constants.OWRITE>;
+
+my $create_result
+    = <[storage.9p.create]>->( $conn, $fid, $leaf, $perm, $mode );
+if ( $create_result->{'mode'} eq 'false' ) {
+    <[storage.9p.clunk]>->( $conn, $fid );
+    return $create_result;
+}
+
+if ( length $content and not $is_dir ) {
+    my $write_result = <[storage.9p.write]>->( $conn, $fid, 0, $content );
+    if ( $write_result->{'mode'} eq 'false' ) {
+        <[storage.9p.clunk]>->( $conn, $fid );
+        return $write_result;
+    }
+}
+
+<[storage.9p.clunk]>->( $conn, $fid );
+
+return { 'mode' => 'true', 'data' => $path };
+
+#,,.,,,,,,,,,,,..,,,,,.,,,.,,,.,.,..,,,.,,,,,,.,.,...,...,..,,...,.,,,...,.,.,
+#HAUUAVBZH6Q5CFM6MZMO3Q26WYYPUZ2FTHQBJT3VNZLRMY64RGNVE36E4MK3U2KIHEQ3U37BNMB2U
+#\\\|BUNDOQZ546TETQVBZ6JMHVTHKEQGPO4SACH3DOULRY4BNDCYV2Q \ / AMOS7 \ YOURUM ::
+#\[7]RHJUCHUIT26O6VM647VANCRMQ2FG5XSQ7QDVVUT2EGUGA2SUUGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

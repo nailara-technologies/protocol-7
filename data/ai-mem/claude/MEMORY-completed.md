@@ -81,10 +81,13 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   client primitives (none existed before — client was read-metadata-only), and live verification of
   the already-written-but-never-tested recursive Twalk/scan descent against a real nested tree with
   contained + escaping symlinks. See [[feedback-data-shadow-and-client-server-config-drift]] for two
-  smaller findings from the same round. History/next-steps live in the linked file.
+  smaller findings from the same round. **Third same-day round**: Tcreate/Tremove dispatched to kimi
+  k2.7 (narrow, precedent-pointed task file), independently live-verified afterward — caught a real
+  malformed-signature-footer bug in kimi's output during review, see the addendum in
+  [[fake-signature-marks-ai-scratch-content]]. History/next-steps live in the linked file.
 
-#,,..,,,,,.,,,,,.,.,,,,.,,..,,,,.,,..,.,.,.,,,..,,...,...,.,.,,,,,,,.,,,,,,,.,
-#HZKGZVWZXH6HP26OYINGWCE4J3PTO6O3P74ZRRNZR7IPWWB72HRZP4YBH4WVNPBHIBELOZHTZ3XL4
-#\\\|64GGQRBGYPYL67KDQPXRCMIYJW5IZ4UII7IFIRZB5TT7AOCDYVA \ / AMOS7 \ YOURUM ::
-#\[7]ZTS2BYLP6YW4XKWY3Z76LM57NFFGKPTAVS24WZEHXSVDZDFDFYCY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,.,.,,.,,...,,,.,,,,,..,,...,..,,...,...,.,,,,,.,,..,.,.,,.,,
+#3XRVXTROXA7N2OHYPP3LKU2RJBD6ENUVTSHJR3H3SUYJHMUXMY4SQKA5SGTANRWJ7WUIQCVP62HM2
+#\\\|3RP6PJFZO2KMRHZ5L675RKML5R4ZV7PWKJEBYKNEJ6TJKT4HCJF \ / AMOS7 \ YOURUM ::
+#\[7]DYHLB3XNTQ5WPZMFXKDYGVRDKS3YTONDHFU2UJLCAH2KPBZMNEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
