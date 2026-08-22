@@ -1,0 +1,37 @@
+## [:< ##
+# name  = storage.9p.read
+# descr = Read bytes from an open file on 9P server
+
+my ( $conn, $fid, $offset, $count ) = @ARG;
+$offset //= 0;
+$count  //= $conn->{msize} // 8192;
+
+my $tag = ++$conn->{tag} & 0xFFFF;
+
+my $req
+    = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-uint64]>->($offset)
+    . <[plan-9.protocol.codec.encode-uint32]>->($count);
+
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Tread>,
+    $tag, $req
+);
+
+$conn->{socket}->send($msg);
+
+my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+return $resp if $resp->{'mode'} eq 'false';
+
+my $payload = $resp->{'data'};
+my $len
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $payload, 0, 4 ) );
+my $content = substr( $payload, 4, $len );
+
+return { 'mode' => 'true', 'data' => $content };
+
+#,,,.,.,.,,.,,.,,,.,,,,.,,,.,,..,,,,.,.,,,,.,,..,,...,..,,.,.,,.,,.,.,,,.,..,,
+#PED3EVQT3TL4KEAMO4NI5CVSL353VSD2KJK42PO62HQKGIEY5JRNCJLAMBJWRLBOEGNAWDNCJIBLQ
+#\\\|7SCGKOUKS6ZYRHR7M2Y4D67E7KQQW7K5TXY6YQ6R6YRH7PBUXF3 \ / AMOS7 \ YOURUM ::
+#\[7]TME7UBZZKRMM66F33ZXV7ZN4DCLLXFG4TWUA5S27WPEMLDBJFCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
