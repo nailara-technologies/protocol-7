@@ -1,0 +1,309 @@
+[38;5;25mdiff --git a/src/plan-9.client.list-dir b/src/plan-9.client.list-dir[m
+[38;5;25mindex cd29ca89f..763585c4a 100644[m
+[38;5;25m--- a/src/plan-9.client.list-dir[m
+[38;5;25m+++ b/src/plan-9.client.list-dir[m
+[38;5;32m@@ -52,7 +52,10 @@[m[38;5;25m [mwhile (1) {[m
+[38;5;25m         $pos += 2 + $stat_size;[m
+[38;5;25m [m
+[38;5;25m         # Extract name from stat[m
+[38;5;18m-        my $name_pos = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;    # Skip to name field[m
+[38;5;34m+[m[38;5;34m        # $stat_data excludes the entry's leading size[2] field, so name[m
+[38;5;34m+[m[38;5;34m        # starts at 2+4+13+4+4+4+8 = 39 (type dev qid mode atime mtime[m
+[38;5;34m+[m[38;5;34m        # length), not 41.[m
+[38;5;34m+[m[38;5;34m        my $name_pos = 2 + 4 + 13 + 4 + 4 + 4 + 8;    # Skip to name field[m
+[38;5;25m         next if $name_pos >= length($stat_data);[m
+[38;5;25m [m
+[38;5;25m         my ( $name, $rest )[m
+[38;5;25mdiff --git a/src/storage.9p.mount b/src/storage.9p.mount[m
+[38;5;25mindex c1678c867..3572f26bc 100644[m
+[38;5;25m--- a/src/storage.9p.mount[m
+[38;5;25m+++ b/src/storage.9p.mount[m
+[38;5;32m@@ -3,17 +3,76 @@[m
+[38;5;25m # name  = storage.9p.mount[m
+[38;5;25m # descr = mount 9P remote filesystem to local path[m
+[38;5;25m [m
+[38;5;18m-## [ stub ] connect + attach to 9P authority and return mount point ##[m
+[38;5;34m+[m[38;5;34m## thin adapter over storage.9p.connect ##[m
+[38;5;34m+[m[38;5;34m##[m
+[38;5;34m+[m[38;5;34m## authority : 'host' or 'host:port' [ default port 5640, matching the[m
+[38;5;34m+[m[38;5;34m##             storage.9p.connect default ]. IPv6 literals not supported.[m
+[38;5;34m+[m[38;5;34m##[m
+[38;5;34m+[m[38;5;34m## path      : NOT the 9P attach aname. Callers ( pager.source.9p and[m
+[38;5;34m+[m[38;5;34m##             storage.9p.scan ) resolve 'path' by walking from the[m
+[38;5;34m+[m[38;5;34m##             attached root at scan time, so we attach to the server[m
+[38;5;34m+[m[38;5;34m##             root [ aname '' ] and validate 'path' with a probe walk.[m
+[38;5;34m+[m[38;5;34m##[m
+[38;5;34m+[m[38;5;34m## return    : the mount point path on success [ pager.source.9p checks[m
+[38;5;34m+[m[38;5;34m##             '-d $mount_point' ], undef on failure. The connection is[m
+[38;5;34m+[m[38;5;34m##             registered under the authority string itself, because[m
+[38;5;34m+[m[38;5;34m##             pager.source.9p invokes storage.9p.scan with[m
+[38;5;34m+[m[38;5;34m##             name == $p7ref->{'authority'}.[m
+[38;5;25m [m
+[38;5;25m my ($args) = @ARG;[m
+[38;5;34m+[m[38;5;34m$args //= {};[m
+[38;5;25m [m
+[38;5;18m-my $authority = $args->{'authority'};[m
+[38;5;18m-my $path      = $args->{'path'} // '/';[m
+[38;5;34m+[m[38;5;34mmy $authority = $args->{'authority'} // '';[m
+[38;5;34m+[m[38;5;34mmy $path      = $args->{'path'}      // '/';[m
+[38;5;25m [m
+[38;5;18m-## TODO: implement 9P connect + attach + walk to path  return local mount ##[m
+[38;5;18m-## point path on success                                                  ##[m
+[38;5;34m+[m[38;5;34mreturn undef if not length $authority;[m
+[38;5;25m [m
+[38;5;18m-return undef;[m
+[38;5;34m+[m[38;5;34m## parse authority : 'host' or 'host:port' [ default port 5640 ] ##[m
+[38;5;34m+[m[38;5;34mmy ( $host, $port ) = $authority =~ m|^([^:]+)(?::(\d+))?$|;[m
+[38;5;34m+[m[38;5;34mreturn undef if not defined $host or not length $host;[m
+[38;5;34m+[m[38;5;34m$port //= 5640;[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mmy $name = $authority;    ## scan-by-authority convention [ see header ] ##[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mmy $pre_existing = exists $data{'storage'}{'9p'}{'connections'}{$name};[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mmy $result = <[storage.9p.connect]>->([m
+[38;5;34m+[m[38;5;34m    {   'host'  => $host,[m
+[38;5;34m+[m[38;5;34m        'port'  => $port,[m
+[38;5;34m+[m[38;5;34m        'name'  => $name,[m
+[38;5;34m+[m[38;5;34m        'aname' => '',        ## attach to root : path walked at scan time ##[m
+[38;5;34m+[m[38;5;34m    }[m
+[38;5;34m+[m[38;5;34m);[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mreturn undef if not ref $result or $result->{'mode'} eq 'false';[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m## validate path with a probe walk from root ##[m
+[38;5;34m+[m[38;5;34mmy @path_parts = grep {length} split m|/|, $path;[m
+[38;5;34m+[m[38;5;34mmy $conn       = $data{'storage'}{'9p'}{'connections'}{$name};[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mif ( @path_parts and $conn ) {[m
+[38;5;34m+[m[38;5;34m    my $probe_fid = $conn->{next_fid}++;[m
+[38;5;34m+[m[38;5;34m    my $walk      = <[storage.9p.walk]>->([m
+[38;5;34m+[m[38;5;34m        $conn, $conn->{root_fid}, $probe_fid, @path_parts );[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m    if ( $walk->{'mode'} eq 'false' ) {[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m        ## path not reachable : tear down connection we just created ##[m
+[38;5;34m+[m[38;5;34m        if ( not $pre_existing ) {[m
+[38;5;34m+[m[38;5;34m            close $conn->{'socket'} if $conn->{'socket'};[m
+[38;5;34m+[m[38;5;34m            delete $data{'storage'}{'9p'}{'connections'}{$name};[m
+[38;5;34m+[m[38;5;34m        }[m
+[38;5;34m+[m[38;5;34m        return undef;[m
+[38;5;34m+[m[38;5;34m    }[m
+[38;5;34m+[m[38;5;34m    <[storage.9p.clunk]>->( $conn, $probe_fid );[m
+[38;5;34m+[m[38;5;34m}[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m## mount point -> connection mapping for storage.9p.umount ##[m
+[38;5;34m+[m[38;5;34m$data{'storage'}{'9p'}{'mounts'}{$path} = $name;[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m<[base.logs]>->("Storage 9P: mounted $authority at $path");[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mreturn $path;[m
+[38;5;25m [m
+[38;5;25m #,,.,,,,.,.,.,,..,,,,,,..,,.,,,,,,.,.,,,.,,.,,.,.,...,...,.,.,,..,...,...,,,.,[m
+[38;5;25m #GSUGZ3WJINFCGNXBHWFSD4TU3QICW27SC7NRHQ7HRJP6ED472CL7DZLJWUHJK5CFMJM35IFTHXJNG[m
+[38;5;25mdiff --git a/src/storage.9p.readdir b/src/storage.9p.readdir[m
+[38;5;25mindex 91ec5b805..086844ee9 100644[m
+[38;5;25m--- a/src/storage.9p.readdir[m
+[38;5;25m+++ b/src/storage.9p.readdir[m
+[38;5;32m@@ -4,21 +4,43 @@[m
+[38;5;25m [m
+[38;5;25m my ( $conn, $fid ) = @ARG;[m
+[38;5;25m [m
+[38;5;18m-# Open directory[m
+[38;5;18m-my $open_res = <[storage.9p.open]>->( $conn, $fid, 0 );    # OREAD[m
+[38;5;18m-return $open_res if $open_res->{'mode'} eq 'false';[m
+[38;5;34m+[m[38;5;34m## clone the fid first : opening the caller's fid directly would leave it[m
+[38;5;34m+[m[38;5;34m## in open state, and 9P2000 forbids Twalk from an open fid (strict[m
+[38;5;34m+[m[38;5;34m## servers reject it, breaking subsequent walks from the same fid).[m
+[38;5;34m+[m[38;5;34m## A zero-element Twalk clones $fid into $dir_fid; the clone is opened,[m
+[38;5;34m+[m[38;5;34m## read and clunked here, leaving the caller's fid untouched.[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mmy $dir_fid = $conn->{next_fid}++;[m
+[38;5;34m+[m[38;5;34mmy $clone   = <[storage.9p.walk]>->( $conn, $fid, $dir_fid );[m
+[38;5;34m+[m[38;5;34mreturn $clone if $clone->{'mode'} eq 'false';[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m# Open directory clone[m
+[38;5;34m+[m[38;5;34mmy $open_res = <[storage.9p.open]>->( $conn, $dir_fid, 0 );    # OREAD[m
+[38;5;34m+[m[38;5;34mif ( $open_res->{'mode'} eq 'false' ) {[m
+[38;5;34m+[m[38;5;34m    <[storage.9p.clunk]>->( $conn, $dir_fid );[m
+[38;5;34m+[m[38;5;34m    return $open_res;[m
+[38;5;34m+[m[38;5;34m}[m
+[38;5;25m [m
+[38;5;25m my @entries;[m
+[38;5;25m my $offset = 0;[m
+[38;5;18m-my $iounit = $conn->{fids}{$fid}{iounit} // $conn->{msize} // 8192;[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m## read count : iounit from Ropen, where 0 means 'no preference' : fall[m
+[38;5;34m+[m[38;5;34m## back to msize minus 9P header overhead ( IOHDRSZ = 24 ). count must[m
+[38;5;34m+[m[38;5;34m## stay below msize, else a server reply clamped to msize would be[m
+[38;5;34m+[m[38;5;34m## shorter than count and falsely signal end-of-directory below.[m
+[38;5;34m+[m[38;5;34mmy $msize  = $conn->{'msize'}                 // 8192;[m
+[38;5;34m+[m[38;5;34mmy $iounit = $conn->{fids}{$dir_fid}{iounit}  // 0;[m
+[38;5;34m+[m[38;5;34mmy $count  = ( $iounit > 0 and $iounit <= $msize - 24 )[m
+[38;5;34m+[m[38;5;34m    ? $iounit[m
+[38;5;34m+[m[38;5;34m    : $msize - 24;[m
+[38;5;25m [m
+[38;5;25m while (1) {[m
+[38;5;25m     my $tag = ++$conn->{tag} & 0xFFFF;[m
+[38;5;25m [m
+[38;5;25m     my $req[m
+[38;5;18m-        = <[plan-9.protocol.codec.encode-uint32]>->($fid)[m
+[38;5;34m+[m[38;5;34m        = <[plan-9.protocol.codec.encode-uint32]>->($dir_fid)[m
+[38;5;25m         . <[plan-9.protocol.codec.encode-uint64]>->($offset)[m
+[38;5;18m-        . <[plan-9.protocol.codec.encode-uint32]>->($iounit);[m
+[38;5;34m+[m[38;5;34m        . <[plan-9.protocol.codec.encode-uint32]>->($count);[m
+[38;5;25m [m
+[38;5;25m     my $msg = <[plan-9.protocol.codec.encode-message]>->([m
+[38;5;25m         <plan-9.protocol.constants.Tread>,[m
+[38;5;32m@@ -29,6 +51,7 @@[m[38;5;25m [mwhile (1) {[m
+[38;5;25m [m
+[38;5;25m     my $resp = <[storage.9p.read-message]>->( $conn, $tag );[m
+[38;5;25m     if ( $resp->{'mode'} eq 'false' ) {[m
+[38;5;34m+[m[38;5;34m        <[storage.9p.clunk]>->( $conn, $dir_fid );[m
+[38;5;25m         return $resp;[m
+[38;5;25m     }[m
+[38;5;25m [m
+[38;5;32m@@ -50,8 +73,12 @@[m[38;5;25m [mwhile (1) {[m
+[38;5;25m         my $stat_data = substr( $content, $pos + 2, $stat_size );[m
+[38;5;25m         $pos += 2 + $stat_size;[m
+[38;5;25m [m
+[38;5;18m-        # Extract name from stat (skip to name field)[m
+[38;5;18m-        my $name_pos = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;[m
+[38;5;34m+[m[38;5;34m        ## 9P2000 stat wire entry : size[2] type[2] dev[4] qid[13][m
+[38;5;34m+[m[38;5;34m        ## mode[4] atime[4] mtime[4] length[8] name[s] uid[s] gid[s][m
+[38;5;34m+[m[38;5;34m        ## muid[s]. $stat_data EXCLUDES the leading size[2] field, so[m
+[38;5;34m+[m[38;5;34m        ## name starts at 2+4+13+4+4+4+8 = 39. ( storage.9p.stat uses[m
+[38;5;34m+[m[38;5;34m        ## 41 because its buffer INCLUDES the entry's own size[2]. )[m
+[38;5;34m+[m[38;5;34m        my $name_pos = 2 + 4 + 13 + 4 + 4 + 4 + 8;[m
+[38;5;25m         next if $name_pos >= length($stat_data);[m
+[38;5;25m [m
+[38;5;25m         my ( $name, $rest )[m
+[38;5;32m@@ -65,9 +92,11 @@[m[38;5;25m [mwhile (1) {[m
+[38;5;25m     }[m
+[38;5;25m [m
+[38;5;25m     $offset += length($content);[m
+[38;5;18m-    last if length($content) < $iounit;[m
+[38;5;34m+[m[38;5;34m    last if length($content) < $count;[m
+[38;5;25m }[m
+[38;5;25m [m
+[38;5;34m+[m[38;5;34m<[storage.9p.clunk]>->( $conn, $dir_fid );[m
+[38;5;34m+[m
+[38;5;25m return { 'mode' => 'true', 'data' => \@entries };[m
+[38;5;25m [m
+[38;5;25m #,,..,,..,.,.,.,.,.,,,,,.,..,,,.,,,.,,,.,,,,.,.,.,...,...,.,.,,..,..,,,,,,,..,[m
+[38;5;25mdiff --git a/src/storage.9p.scan b/src/storage.9p.scan[m
+[38;5;25mindex 8073956d3..e26ce9b58 100644[m
+[38;5;25m--- a/src/storage.9p.scan[m
+[38;5;25m+++ b/src/storage.9p.scan[m
+[38;5;32m@@ -16,9 +16,10 @@[m[38;5;25m [m$args //= {};[m
+[38;5;25m [m
+[38;5;25m my $name = $args->{name}[m
+[38;5;25m     or return { 'mode' => 'false', 'data' => 'name required' };[m
+[38;5;18m-my $path      = $args->{path}      // '/';[m
+[38;5;18m-my $recursive = $args->{recursive} // 1;[m
+[38;5;18m-my $max_depth = $args->{max_depth} // 10;[m
+[38;5;34m+[m[38;5;34mmy $path        = $args->{path}        // '/';[m
+[38;5;34m+[m[38;5;34mmy $recursive   = $args->{recursive}   // 1;[m
+[38;5;34m+[m[38;5;34mmy $max_depth   = $args->{max_depth}   // 10;[m
+[38;5;34m+[m[38;5;34mmy $max_results = $args->{max_results} // 0;    ## 0 = unlimited ##[m
+[38;5;25m [m
+[38;5;25m # Filter options[m
+[38;5;25m my $inclusion_add = $args->{inclusion_add} // [];[m
+[38;5;32m@@ -145,6 +146,9 @@[m[38;5;25m [mif ( $start_fid != $conn->{root_fid} ) {[m
+[38;5;25m     <[storage.9p.clunk]>->( $conn, $start_fid );[m
+[38;5;25m }[m
+[38;5;25m [m
+[38;5;34m+[m[38;5;34m## cap results if caller requested a limit [ pager.source.9p batching ] ##[m
+[38;5;34m+[m[38;5;34msplice( @results, $max_results ) if $max_results and @results > $max_results;[m
+[38;5;34m+[m
+[38;5;25m <[base.logs]>[m
+[38;5;25m     ->(   "Storage 9P scan: $stats->{scanned} scanned, $stats->{matched} "[m
+[38;5;25m         . "matched, $stats->{rejected} rejected" );[m
+[38;5;25mdiff --git a/src/storage.9p.umount b/src/storage.9p.umount[m
+[38;5;25mindex 8db5e7bdb..e8668ae5f 100644[m
+[38;5;25m--- a/src/storage.9p.umount[m
+[38;5;25m+++ b/src/storage.9p.umount[m
+[38;5;32m@@ -3,15 +3,39 @@[m
+[38;5;25m # name  = storage.9p.umount[m
+[38;5;25m # descr = unmount 9P remote filesystem[m
+[38;5;25m [m
+[38;5;18m-## [ stub ] clunk fids and disconnect from 9P server ##[m
+[38;5;34m+[m[38;5;34m## teardown : resolve a mount point [ as returned by storage.9p.mount ][m
+[38;5;34m+[m[38;5;34m## to its connection, close the socket and drop the connection + mount[m
+[38;5;34m+[m[38;5;34m## registry entries. Shape mirrors plan-9.client.disconnect. As a[m
+[38;5;34m+[m[38;5;34m## fallback a connection name is also accepted as 'mount_point'.[m
+[38;5;25m [m
+[38;5;25m my ($args) = @ARG;[m
+[38;5;34m+[m[38;5;34m$args //= {};[m
+[38;5;25m [m
+[38;5;18m-my $mount_point = $args->{'mount_point'};[m
+[38;5;34m+[m[38;5;34mmy $mount_point = $args->{'mount_point'} // '';[m
+[38;5;25m [m
+[38;5;18m-## TODO: implement 9P clunk + disconnect ##[m
+[38;5;34m+[m[38;5;34mreturn { 'mode' => 'false', 'data' => 'mount_point required' }[m
+[38;5;34m+[m[38;5;34m    if not length $mount_point;[m
+[38;5;25m [m
+[38;5;18m-return 1;[m
+[38;5;34m+[m[38;5;34mmy $name = $data{'storage'}{'9p'}{'mounts'}{$mount_point};[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m## fallback : accept a connection name directly ##[m
+[38;5;34m+[m[38;5;34m$name //= $mount_point[m
+[38;5;34m+[m[38;5;34m    if exists $data{'storage'}{'9p'}{'connections'}{$mount_point};[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mreturn { 'mode' => 'false', 'data' => "not mounted : $mount_point" }[m
+[38;5;34m+[m[38;5;34m    if not defined $name[m
+[38;5;34m+[m[38;5;34m    or not exists $data{'storage'}{'9p'}{'connections'}{$name};[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mmy $conn = $data{'storage'}{'9p'}{'connections'}{$name};[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mclose $conn->{'socket'} if $conn->{'socket'};[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mdelete $data{'storage'}{'9p'}{'connections'}{$name};[m
+[38;5;34m+[m[38;5;34mdelete $data{'storage'}{'9p'}{'mounts'}{$mount_point};[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34m<[base.logs]>->("Storage 9P: unmounted $mount_point [ connection $name ]");[m
+[38;5;34m+[m
+[38;5;34m+[m[38;5;34mreturn { 'mode' => 'true', 'data' => 'unmounted' };[m
+[38;5;25m [m
+[38;5;25m #,,,,,,..,,,.,,.,,,.,,.,.,,..,,,.,,,.,.,.,,.,,.,.,...,...,..,,,,,,,.,,...,,,.,[m
+[38;5;25m #OPEBHC672A7ZDWQU7C636BJTNZ5EZV7M2NZUUZ6QLE36G5LU3VXKLXADR443UB24TRERPOJGZ6KF2[m
+[38;5;25mdiff --git a/src/storage.9p.version b/src/storage.9p.version[m
+[38;5;25mindex 620b3c456..5138d58c2 100644[m
+[38;5;25m--- a/src/storage.9p.version[m
+[38;5;25m+++ b/src/storage.9p.version[m
+[38;5;32m@@ -4,7 +4,7 @@[m
+[38;5;25m [m
+[38;5;25m my ($conn) = @ARG;[m
+[38;5;25m [m
+[38;5;18m-my $tag     = ++$conn->{tag} & 0xFFFF;[m
+[38;5;34m+[m[38;5;34mmy $tag     = 0xFFFF;    ## NOTAG : required by 9P2000 for Tversion ##[m
+[38;5;25m my $msize   = 8192;[m
+[38;5;25m my $version = '9P2000';[m
+[38;5;25m [m
+[38;5;25mdiff --git a/src/storage.9p.walk b/src/storage.9p.walk[m
+[38;5;25mindex 427eec4ab..f74e320d3 100644[m
+[38;5;25m--- a/src/storage.9p.walk[m
+[38;5;25m+++ b/src/storage.9p.walk[m
+[38;5;32m@@ -29,6 +29,16 @@[m[38;5;25m [mmy $data = $resp->{'data'};[m
+[38;5;25m my $nwqid[m
+[38;5;25m     = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );[m
+[38;5;25m [m
+[38;5;34m+[m[38;5;34m## partial walk ( nwqid < nwname ) means the path does not fully exist :[m
+[38;5;34m+[m[38;5;34m## fail instead of silently leaving newfid bound to a parent element ##[m
+[38;5;34m+[m[38;5;34mif ( $nwqid != scalar @wnames ) {[m
+[38;5;34m+[m[38;5;34m    return {[m
+[38;5;34m+[m[38;5;34m        'mode' => 'false',[m
+[38;5;34m+[m[38;5;34m        'data' => sprintf( 'walk incomplete : %d of %d elements walked',[m
+[38;5;34m+[m[38;5;34m            $nwqid, scalar @wnames )[m
+[38;5;34m+[m[38;5;34m    };[m
+[38;5;34m+[m[38;5;34m}[m
+[38;5;34m+[m
+[38;5;25m # Track new fid[m
+[38;5;25m if ( exists $conn->{fids}{$fid} ) {[m
+[38;5;25m     $conn->{fids}{$newfid} = { %{ $conn->{fids}{$fid} } };[m
+
+#,,..,.,.,..,,,.,,.,.,,,,,.,.,.,,,..,,.,,,,..,..,,...,..,,,..,,,,,.,.,,.,,...,
+#VNNM4H2Y7A3CCJTIFZDFXGB5SDKDP22NDNS2NW3IBUYKJJ3GVRPMUSJ3IJUX2ICVFDDVFWVBK7SBS
+#\\\|M5HXES6WAIC6ZPW3EKPLWZRIFNYFAYP6OLCORVBD4ZKBYX4ZLFT \ / AMOS7 \ YOURUM ::
+#\[7]SX7KUMZ3ELFOTPYJYIPUKVZ6GQFPPU6AV3LFMQ2KKPBALWVFGYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

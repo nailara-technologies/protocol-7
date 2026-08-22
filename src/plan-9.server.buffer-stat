@@ -46,12 +46,28 @@ if ( $f->{type} eq 'root' ) {
     $stat{mode}        = 0644;
     $stat{name}        = 'metadata';
     $stat{length}      = 1024;
+} elsif ( $f->{type} eq 'realpath' ) {
+
+    ## bin/Protocol-7 does 'use File::stat' globally : shadows the builtin ##
+    ## ; use the OO form like the rest of P7 does                          ##
+    my $st     = File::stat::stat( $f->{realpath} );
+    my $is_dir = -d $f->{realpath};
+    my ($base) = $f->{realpath} =~ m{([^/]+)/?$};
+    $stat{qid_type}    = $f->{qid}{type};
+    $stat{qid_version} = $f->{qid}{version};
+    $stat{qid_path}    = $f->{qid}{path};
+    $stat{mode}
+        = $is_dir ? ( 0755 | <plan-9.protocol.constants.DMDIR> ) : 0644;
+    $stat{name}   = $base // '/';
+    $stat{length} = $is_dir ? 0          : ( $st ? $st->size : 0 );
+    $stat{atime}  = $st     ? $st->atime : time;
+    $stat{mtime}  = $st     ? $st->mtime : time;
 }
 
 return \%stat;
 
-#,,.,,,..,,,.,,,.,,,,,,,,,.,.,.,,,.,,,,,.,,,,,.,.,...,...,...,,,.,.,.,,.,,,,.,
-#3T7CN6ONXBPACX56FI3E4H3H4RGOT7DYOA45EFAVVJ7GKSM7UUBXFAHIBZ3TZTI3GCOYJF4FKYSAM
-#\\\|5VM7GSJWSU2TDI7J7P5JDAGF5WYJ5KZ5KZ3IPCBIEXYFKLXF2DA \ / AMOS7 \ YOURUM ::
-#\[7]5OPSGNYVVY4POALILARLUFKPFX6ZBS5YGT42GCNU5VMOBIJ454DA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,.,.,,,,,.,.,,,,,,,.,,,...,,..,.,.,...,...,...,.,,,,,,,...,,..,
+#BJOG3PH2CTJY4UETH6G46AMXOUL7Y3DPSU7CXRQBZPPYBH7KGDJWUJ3ZUTPF6ZIWNUDJJXSWSTRWQ
+#\\\|YOIEZQ7XGJXORVM7Y46PRSAIOP2PQNEMX7GRORWF2EME5ETRJAP \ / AMOS7 \ YOURUM ::
+#\[7]BGKLGJ7DBTO3MU3YA5NHR5Q6H5VTMPIFTGKJVES2P64N7RUNIMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

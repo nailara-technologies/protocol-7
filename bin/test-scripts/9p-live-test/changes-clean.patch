@@ -1,0 +1,309 @@
+diff --git a/src/plan-9.client.list-dir b/src/plan-9.client.list-dir
+index cd29ca89f..763585c4a 100644
+--- a/src/plan-9.client.list-dir
++++ b/src/plan-9.client.list-dir
+@@ -52,7 +52,10 @@ while (1) {
+         $pos += 2 + $stat_size;
+
+         # Extract name from stat
+-        my $name_pos = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;    # Skip to name field
++        # $stat_data excludes the entry's leading size[2] field, so name
++        # starts at 2+4+13+4+4+4+8 = 39 (type dev qid mode atime mtime
++        # length), not 41.
++        my $name_pos = 2 + 4 + 13 + 4 + 4 + 4 + 8;    # Skip to name field
+         next if $name_pos >= length($stat_data);
+
+         my ( $name, $rest )
+diff --git a/src/storage.9p.mount b/src/storage.9p.mount
+index c1678c867..3572f26bc 100644
+--- a/src/storage.9p.mount
++++ b/src/storage.9p.mount
+@@ -3,17 +3,76 @@
+ # name  = storage.9p.mount
+ # descr = mount 9P remote filesystem to local path
+
+-## [ stub ] connect + attach to 9P authority and return mount point ##
++## thin adapter over storage.9p.connect ##
++##
++## authority : 'host' or 'host:port' [ default port 5640, matching the
++##             storage.9p.connect default ]. IPv6 literals not supported.
++##
++## path      : NOT the 9P attach aname. Callers ( pager.source.9p and
++##             storage.9p.scan ) resolve 'path' by walking from the
++##             attached root at scan time, so we attach to the server
++##             root [ aname '' ] and validate 'path' with a probe walk.
++##
++## return    : the mount point path on success [ pager.source.9p checks
++##             '-d $mount_point' ], undef on failure. The connection is
++##             registered under the authority string itself, because
++##             pager.source.9p invokes storage.9p.scan with
++##             name == $p7ref->{'authority'}.
+
+ my ($args) = @ARG;
++$args //= {};
+
+-my $authority = $args->{'authority'};
+-my $path      = $args->{'path'} // '/';
++my $authority = $args->{'authority'} // '';
++my $path      = $args->{'path'}      // '/';
+
+-## TODO: implement 9P connect + attach + walk to path  return local mount ##
+-## point path on success                                                  ##
++return undef if not length $authority;
+
+-return undef;
++## parse authority : 'host' or 'host:port' [ default port 5640 ] ##
++my ( $host, $port ) = $authority =~ m|^([^:]+)(?::(\d+))?$|;
++return undef if not defined $host or not length $host;
++$port //= 5640;
++
++my $name = $authority;    ## scan-by-authority convention [ see header ] ##
++
++my $pre_existing = exists $data{'storage'}{'9p'}{'connections'}{$name};
++
++my $result = <[storage.9p.connect]>->(
++    {   'host'  => $host,
++        'port'  => $port,
++        'name'  => $name,
++        'aname' => '',        ## attach to root : path walked at scan time ##
++    }
++);
++
++return undef if not ref $result or $result->{'mode'} eq 'false';
++
++## validate path with a probe walk from root ##
++my @path_parts = grep {length} split m|/|, $path;
++my $conn       = $data{'storage'}{'9p'}{'connections'}{$name};
++
++if ( @path_parts and $conn ) {
++    my $probe_fid = $conn->{next_fid}++;
++    my $walk      = <[storage.9p.walk]>->(
++        $conn, $conn->{root_fid}, $probe_fid, @path_parts );
++
++    if ( $walk->{'mode'} eq 'false' ) {
++
++        ## path not reachable : tear down connection we just created ##
++        if ( not $pre_existing ) {
++            close $conn->{'socket'} if $conn->{'socket'};
++            delete $data{'storage'}{'9p'}{'connections'}{$name};
++        }
++        return undef;
++    }
++    <[storage.9p.clunk]>->( $conn, $probe_fid );
++}
++
++## mount point -> connection mapping for storage.9p.umount ##
++$data{'storage'}{'9p'}{'mounts'}{$path} = $name;
++
++<[base.logs]>->("Storage 9P: mounted $authority at $path");
++
++return $path;
+
+ #,,.,,,,.,.,.,,..,,,,,,..,,.,,,,,,.,.,,,.,,.,,.,.,...,...,.,.,,..,...,...,,,.,
+ #GSUGZ3WJINFCGNXBHWFSD4TU3QICW27SC7NRHQ7HRJP6ED472CL7DZLJWUHJK5CFMJM35IFTHXJNG
+diff --git a/src/storage.9p.readdir b/src/storage.9p.readdir
+index 91ec5b805..086844ee9 100644
+--- a/src/storage.9p.readdir
++++ b/src/storage.9p.readdir
+@@ -4,21 +4,43 @@
+
+ my ( $conn, $fid ) = @ARG;
+
+-# Open directory
+-my $open_res = <[storage.9p.open]>->( $conn, $fid, 0 );    # OREAD
+-return $open_res if $open_res->{'mode'} eq 'false';
++## clone the fid first : opening the caller's fid directly would leave it
++## in open state, and 9P2000 forbids Twalk from an open fid (strict
++## servers reject it, breaking subsequent walks from the same fid).
++## A zero-element Twalk clones $fid into $dir_fid; the clone is opened,
++## read and clunked here, leaving the caller's fid untouched.
++
++my $dir_fid = $conn->{next_fid}++;
++my $clone   = <[storage.9p.walk]>->( $conn, $fid, $dir_fid );
++return $clone if $clone->{'mode'} eq 'false';
++
++# Open directory clone
++my $open_res = <[storage.9p.open]>->( $conn, $dir_fid, 0 );    # OREAD
++if ( $open_res->{'mode'} eq 'false' ) {
++    <[storage.9p.clunk]>->( $conn, $dir_fid );
++    return $open_res;
++}
+
+ my @entries;
+ my $offset = 0;
+-my $iounit = $conn->{fids}{$fid}{iounit} // $conn->{msize} // 8192;
++
++## read count : iounit from Ropen, where 0 means 'no preference' : fall
++## back to msize minus 9P header overhead ( IOHDRSZ = 24 ). count must
++## stay below msize, else a server reply clamped to msize would be
++## shorter than count and falsely signal end-of-directory below.
++my $msize  = $conn->{'msize'}                 // 8192;
++my $iounit = $conn->{fids}{$dir_fid}{iounit}  // 0;
++my $count  = ( $iounit > 0 and $iounit <= $msize - 24 )
++    ? $iounit
++    : $msize - 24;
+
+ while (1) {
+     my $tag = ++$conn->{tag} & 0xFFFF;
+
+     my $req
+-        = <[plan-9.protocol.codec.encode-uint32]>->($fid)
++        = <[plan-9.protocol.codec.encode-uint32]>->($dir_fid)
+         . <[plan-9.protocol.codec.encode-uint64]>->($offset)
+-        . <[plan-9.protocol.codec.encode-uint32]>->($iounit);
++        . <[plan-9.protocol.codec.encode-uint32]>->($count);
+
+     my $msg = <[plan-9.protocol.codec.encode-message]>->(
+         <plan-9.protocol.constants.Tread>,
+@@ -29,6 +51,7 @@ while (1) {
+
+     my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+     if ( $resp->{'mode'} eq 'false' ) {
++        <[storage.9p.clunk]>->( $conn, $dir_fid );
+         return $resp;
+     }
+
+@@ -50,8 +73,12 @@ while (1) {
+         my $stat_data = substr( $content, $pos + 2, $stat_size );
+         $pos += 2 + $stat_size;
+
+-        # Extract name from stat (skip to name field)
+-        my $name_pos = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;
++        ## 9P2000 stat wire entry : size[2] type[2] dev[4] qid[13]
++        ## mode[4] atime[4] mtime[4] length[8] name[s] uid[s] gid[s]
++        ## muid[s]. $stat_data EXCLUDES the leading size[2] field, so
++        ## name starts at 2+4+13+4+4+4+8 = 39. ( storage.9p.stat uses
++        ## 41 because its buffer INCLUDES the entry's own size[2]. )
++        my $name_pos = 2 + 4 + 13 + 4 + 4 + 4 + 8;
+         next if $name_pos >= length($stat_data);
+
+         my ( $name, $rest )
+@@ -65,9 +92,11 @@ while (1) {
+     }
+
+     $offset += length($content);
+-    last if length($content) < $iounit;
++    last if length($content) < $count;
+ }
+
++<[storage.9p.clunk]>->( $conn, $dir_fid );
++
+ return { 'mode' => 'true', 'data' => \@entries };
+
+ #,,..,,..,.,.,.,.,.,,,,,.,..,,,.,,,.,,,.,,,,.,.,.,...,...,.,.,,..,..,,,,,,,..,
+diff --git a/src/storage.9p.scan b/src/storage.9p.scan
+index 8073956d3..e26ce9b58 100644
+--- a/src/storage.9p.scan
++++ b/src/storage.9p.scan
+@@ -16,9 +16,10 @@ $args //= {};
+
+ my $name = $args->{name}
+     or return { 'mode' => 'false', 'data' => 'name required' };
+-my $path      = $args->{path}      // '/';
+-my $recursive = $args->{recursive} // 1;
+-my $max_depth = $args->{max_depth} // 10;
++my $path        = $args->{path}        // '/';
++my $recursive   = $args->{recursive}   // 1;
++my $max_depth   = $args->{max_depth}   // 10;
++my $max_results = $args->{max_results} // 0;    ## 0 = unlimited ##
+
+ # Filter options
+ my $inclusion_add = $args->{inclusion_add} // [];
+@@ -145,6 +146,9 @@ if ( $start_fid != $conn->{root_fid} ) {
+     <[storage.9p.clunk]>->( $conn, $start_fid );
+ }
+
++## cap results if caller requested a limit [ pager.source.9p batching ] ##
++splice( @results, $max_results ) if $max_results and @results > $max_results;
++
+ <[base.logs]>
+     ->(   "Storage 9P scan: $stats->{scanned} scanned, $stats->{matched} "
+         . "matched, $stats->{rejected} rejected" );
+diff --git a/src/storage.9p.umount b/src/storage.9p.umount
+index 8db5e7bdb..e8668ae5f 100644
+--- a/src/storage.9p.umount
++++ b/src/storage.9p.umount
+@@ -3,15 +3,39 @@
+ # name  = storage.9p.umount
+ # descr = unmount 9P remote filesystem
+
+-## [ stub ] clunk fids and disconnect from 9P server ##
++## teardown : resolve a mount point [ as returned by storage.9p.mount ]
++## to its connection, close the socket and drop the connection + mount
++## registry entries. Shape mirrors plan-9.client.disconnect. As a
++## fallback a connection name is also accepted as 'mount_point'.
+
+ my ($args) = @ARG;
++$args //= {};
+
+-my $mount_point = $args->{'mount_point'};
++my $mount_point = $args->{'mount_point'} // '';
+
+-## TODO: implement 9P clunk + disconnect ##
++return { 'mode' => 'false', 'data' => 'mount_point required' }
++    if not length $mount_point;
+
+-return 1;
++my $name = $data{'storage'}{'9p'}{'mounts'}{$mount_point};
++
++## fallback : accept a connection name directly ##
++$name //= $mount_point
++    if exists $data{'storage'}{'9p'}{'connections'}{$mount_point};
++
++return { 'mode' => 'false', 'data' => "not mounted : $mount_point" }
++    if not defined $name
++    or not exists $data{'storage'}{'9p'}{'connections'}{$name};
++
++my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
++
++close $conn->{'socket'} if $conn->{'socket'};
++
++delete $data{'storage'}{'9p'}{'connections'}{$name};
++delete $data{'storage'}{'9p'}{'mounts'}{$mount_point};
++
++<[base.logs]>->("Storage 9P: unmounted $mount_point [ connection $name ]");
++
++return { 'mode' => 'true', 'data' => 'unmounted' };
+
+ #,,,,,,..,,,.,,.,,,.,,.,.,,..,,,.,,,.,.,.,,.,,.,.,...,...,..,,,,,,,.,,...,,,.,
+ #OPEBHC672A7ZDWQU7C636BJTNZ5EZV7M2NZUUZ6QLE36G5LU3VXKLXADR443UB24TRERPOJGZ6KF2
+diff --git a/src/storage.9p.version b/src/storage.9p.version
+index 620b3c456..5138d58c2 100644
+--- a/src/storage.9p.version
++++ b/src/storage.9p.version
+@@ -4,7 +4,7 @@
+
+ my ($conn) = @ARG;
+
+-my $tag     = ++$conn->{tag} & 0xFFFF;
++my $tag     = 0xFFFF;    ## NOTAG : required by 9P2000 for Tversion ##
+ my $msize   = 8192;
+ my $version = '9P2000';
+
+diff --git a/src/storage.9p.walk b/src/storage.9p.walk
+index 427eec4ab..f74e320d3 100644
+--- a/src/storage.9p.walk
++++ b/src/storage.9p.walk
+@@ -29,6 +29,16 @@ my $data = $resp->{'data'};
+ my $nwqid
+     = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
+
++## partial walk ( nwqid < nwname ) means the path does not fully exist :
++## fail instead of silently leaving newfid bound to a parent element ##
++if ( $nwqid != scalar @wnames ) {
++    return {
++        'mode' => 'false',
++        'data' => sprintf( 'walk incomplete : %d of %d elements walked',
++            $nwqid, scalar @wnames )
++    };
++}
++
+ # Track new fid
+ if ( exists $conn->{fids}{$fid} ) {
+     $conn->{fids}{$newfid} = { %{ $conn->{fids}{$fid} } };
+
+#,,,,,,,.,..,,,.,,..,,...,.,,,,..,.,,,.,,,,,.,..,,...,...,,.,,..,,,,,,.,.,...,
+#OO2IYBPWHO7KEXRD7UDAQ5PG4AHJOPTMGB27BTLQT4D4QCL5RVQXIRHZPJ4KII5WK2VA4R7ELQIP4
+#\\\|RUWPLRYQOULQWO3XSM6P4RCDBA24JQEXWDCTVJEXWL3XXY5MBNE \ / AMOS7 \ YOURUM ::
+#\[7]5I3RKXEGZKS7JKTCTXY6K5AOB5GL6GN3UUGTPKBKFOYDOXLNSACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
