@@ -29,6 +29,18 @@ my $data = $resp->{'data'};
 my $nwqid
     = <[plan-9.protocol.codec.decode-uint16]>->( substr( $data, 0, 2 ) );
 
+## partial walk ( nwqid < nwname ) means the path does not fully exist : ##
+## fail instead of silently leaving newfid bound to a parent element     ##
+if ( $nwqid != scalar @wnames ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf(
+            'walk incomplete : %d of %d elements walked',
+            $nwqid, scalar @wnames
+        )
+    };
+}
+
 # Track new fid
 if ( exists $conn->{fids}{$fid} ) {
     $conn->{fids}{$newfid} = { %{ $conn->{fids}{$fid} } };
@@ -42,8 +54,8 @@ if ( exists $conn->{fids}{$fid} ) {
 
 return { 'mode' => 'true', 'data' => $nwqid };
 
-#,,.,,,.,,...,,.,,,,,,,,,,,..,...,...,,..,...,.,.,...,...,.,,,..,,...,,,,,.,,,
-#JWE5W22HLM72QHQTW5J6FTJJYCAREJSQ6YE7TFXUZMTZMHKQZH645YZDWSEGZIM3LAAQTQL364SNE
-#\\\|HW7VN66C34VOXVJNGONUDF2375FHE7BMNHKABVBJ7OT3DRPVNUX \ / AMOS7 \ YOURUM ::
-#\[7]EEPN4MW3GRQBT4Y5FEFAI4HWVNCA2XV5ZGKCZQMEPZTKE2CMVGAA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,,,,,,.,,,,,,.,,,...,,.,,.,.,.,.,...,...,,..,,.,,,.,,..,,.,.,
+#EN2YNDJ2YTP4CXRTBZBLACSA2DTONUEEMZ65EJZS3B3GMXY6QKMFD7PRTGHR7GVJ467ZPSXPTH3AY
+#\\\|DTXZ6JLLE4PVRQUQTXASQL7UT73LKMTTPBGJJEAYKMSA4DD2XA3 \ / AMOS7 \ YOURUM ::
+#\[7]UGQGKHRWLNXCIC6C4RKBZRNH6ABJ3AM5HSB24LDORCS23EQP4YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
