@@ -1,0 +1,33 @@
+## [:< ##
+# name  = storage.cmd.plan9-resize
+# descr = Resize (truncate) a file over 9P
+
+my $args = $call->{'args'} // '';
+my ( $name, $path, $length ) = split /\s+/, $args, 3;
+
+if (   not length( $name // '' )
+    or not length( $path // '' )
+    or not defined $length
+    or $length !~ /^\d+$/ ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: plan9-resize <connection-name> <path> <length>'
+    };
+}
+
+my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
+
+my $result = <[storage.9p.resize-path]>->( $conn, $path, $length );
+return $result if $result->{'mode'} eq 'false';
+
+return {
+    'mode' => 'true',
+    'data' => "resized $path to $length bytes"
+};
+
+#,,..,.,.,..,,...,.,.,,,.,,.,,,,.,,.,,..,,.,,,..,,...,...,...,,.,,..,,,..,.,.,
+#TISDQECPRMKRXIKKP642YAYAOYVDCXHI2B4QHPZZFDYJUTCL2FAQQGI6G76BMUIPGX74J3HONNJ4G
+#\\\|6Z4JYXLKHL6BBMU4OU4EKDBGJL7VMU4FRW4KHDLK4EYUOQT4BUF \ / AMOS7 \ YOURUM ::
+#\[7]HZOP7MF3CPGYBORP43O5QSKXOUBYKK5UXH5FZ7EKGWBWLWYRPKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

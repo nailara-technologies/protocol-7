@@ -44,20 +44,20 @@ my $ok = <[plan-9.server.export_directory]>->(
 if ($ok) {
     my $mode = $writable ? 'read-write' : 'read-only';
     return {
-        'mode' => 'size',
-        'data' => "Exported $real_path as '$name' "
-            . "[$mode, symlinks:$symlink_policy]\n"
+        'mode' => 'true',
+        'data' => "exported $real_path as '$name' "
+            . "[$mode, symlinks:$symlink_policy]"
     };
 } else {
     return {
         'mode' => 'false',
-        'data' => "Failed to export $real_path -- check "
+        'data' => "failed to export $real_path -- check "
             . "it's a real, absolute directory path"
     };
 }
 
-#,,..,.,,,,,.,,..,,,.,,,.,,,,,,.,,..,,..,,.,.,..,,...,...,.,.,.,.,,.,,...,,,.,
-#4YPRV6M3A7FOVZGFCI6FQOQTB5DLC6TLZCKYLIVECSGOI3IZ7BXPXEJJSKCJO5UOHWXKFJA62YDG4
-#\\\|G66ESE2LXY2UD54G3MLJJOK3WWR6TWX6OR6IXUMZPMWZ52OWIKD \ / AMOS7 \ YOURUM ::
-#\[7]L2ZTOQBF4HPCPYWCIMVEFLGKG4ZNQKD7GLN6FAT33AG54SFLP4DA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,..,,,,,,,.,,..,,.,,,,.,,,,.,..,,...,...,.,.,,..,...,.,.,,,,,
+#D52XXZNFS2NIMN5ZBZ5I25NXORJBCRE6H3VP4DXSKNWRVZ7S6EDJTVXPQQG6QHVCFS5DUYTCGZRLA
+#\\\|JIWYAIKA6M6AQFAJXG3F4AD57QLYYTEP2ZW45GHEGYZCWWE63EN \ / AMOS7 \ YOURUM ::
+#\[7]O4YUMRKTS646X2UH6FR7OOZQSUWDYBGNENE7T3DI67M7MTSPWSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

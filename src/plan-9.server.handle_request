@@ -14,6 +14,7 @@ my $Twrite   = <plan-9.protocol.constants.Twrite>;
 my $Tclunk   = <plan-9.protocol.constants.Tclunk>;
 my $Tremove  = <plan-9.protocol.constants.Tremove>;
 my $Tstat    = <plan-9.protocol.constants.Tstat>;
+my $Twstat   = <plan-9.protocol.constants.Twstat>;
 
 if ( $type == $Tversion ) {
     return <[plan-9.server.handle_version]>->( $client, $tag, $data );
@@ -35,12 +36,14 @@ if ( $type == $Tversion ) {
     return <[plan-9.server.handle-io-remove]>->( $client, $tag, $data );
 } elsif ( $type == $Tstat ) {
     return <[plan-9.server.handle-io-stat]>->( $client, $tag, $data );
+} elsif ( $type == $Twstat ) {
+    return <[plan-9.server.handle-io-wstat]>->( $client, $tag, $data );
 } else {
     return <[plan-9.protocol.error]>->( $tag, "unknown message type: $type" );
 }
 
-#,,,,,...,.,,,..,,,,.,,..,.,,,.,,,.,,,,,.,,.,,.,.,...,..,,.,.,,,.,,..,,,,,,..,
-#5KKNTXKVVB5AK5EHPBHQE2C7ODYKVWY3CV735MCODGHYBAYPMZQ4HFFDFUMMYC5YRBDIUYX5X5KZA
-#\\\|WFDUIHMGKOO2D65NLTQUKFMKTK4OZLFVWGMM7CMA6USF2M5RVGN \ / AMOS7 \ YOURUM ::
-#\[7]KIVZ2S4P7RCHXDURACH3IXPBWZFKJ3MNJ53UEHKPA4OLPRS6RGCA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,.,,,...,,.,,,..,,,,,,,.,...,.,.,...,..,,.,,,.,,,...,.,.,,.,,
+#SRLJX65EGPM65RATNHHCQNXUOYWVRKOUW6R57IJGRYCYN4HEGJHNJ7KEBIWDPV2EWGYEZTZVV33L6
+#\\\|2RW65EHOSFQNRHVSWK7YAXJUB2GUNBBPME7LUYEVMD7FJY2NYMO \ / AMOS7 \ YOURUM ::
+#\[7]R3IXWHQXM3RFHZQHMBSLSKI3LGWHRJHUAY4PFPSGISCH5HDD2UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,12 +36,12 @@ my $result = <[storage.9p.create-file]>->( $conn, $path, $content, $is_dir );
 return $result if $result->{'mode'} eq 'false';
 
 return {
-    'mode' => 'size',
-    'data' => "Created $path" . ( $is_dir ? " [directory]\n" : "\n" )
+    'mode' => 'true',
+    'data' => "created $path" . ( $is_dir ? " [directory]" : "" )
 };
 
-#,,,,,,.,,.,,,.,,,,,,,..,,...,,,.,..,,,,.,,.,,.,.,...,...,...,.,,,,,.,,.,,...,
-#LFF7N6EYPBJUBCYRY2NG6PAQR46EOHBP266WXYEINZU5SJXSAPPF2IXZOCZZT3WUYE2DDVKMUQS6Q
-#\\\|BYIG5JEGSBVHIN2D4I2HWAK5AOVHSZR652EWAJQ2QGK63WQ6KPO \ / AMOS7 \ YOURUM ::
-#\[7]WTLMDITDUNPLMWBAZNGXMPTFMSKCCT6MZV3UDFT4WYLT5Z6PVKCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,...,,.,,.,.,,.,,.,,,...,,,,,,.,,.,.,...,...,.,,,,..,,,,,,..,..,,
+#VUSU6N7MAQZ5IYAGYIZWSQ6NYULHH6A6XAOMRZAL46V4CY6NRTESLEJ55SVPPAQGGJI3X4CMQVBO2
+#\\\|3SZ4XZLZXXDR37R7BRZILMCQ5SYKSQCYGYX444SCA6BEYEXYOUN \ / AMOS7 \ YOURUM ::
+#\[7]DXYOHA3JOH26PEZEMWRQQNUGURCBXHVQAW7A6WQ5CCFDJFHJO4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,39 @@
+## [:< ##
+# name  = plan-9.protocol.codec.encode-wstat
+# descr = Encode a 9P Twstat stat blob
+#
+# Defaults every OMITTED field to its 9P "don't touch" sentinel -- NOT
+# encode-stat's friendly directory-listing defaults. These are
+# semantically opposite use cases: an omitted wstat field must mean
+# "leave unchanged", never "here's a sensible value", so encode-stat
+# itself is the wrong encoder to reuse here.
+
+my ($stat) = @ARG;
+$stat //= {};
+
+my $encoded = pack( 'v', 0 ) .    # size placeholder
+    pack( 'v', $stat->{type}  // 0xFFFF )
+    . pack( 'V', $stat->{dev} // 0xFFFFFFFF )
+    . <[plan-9.protocol.codec.encode-qid]>->(
+    $stat->{qid_type}    // 0xFF,
+    $stat->{qid_version} // 0xFFFFFFFF,
+    $stat->{qid_path}    // ~0
+    )
+    . pack( 'V', $stat->{mode}  // 0xFFFFFFFF )
+    . pack( 'V', $stat->{atime} // 0xFFFFFFFF )
+    . pack( 'V', $stat->{mtime} // 0xFFFFFFFF )
+    . <[plan-9.protocol.codec.encode-uint64]>->( $stat->{length} // ~0 )
+    . <[plan-9.protocol.codec.encode-string]>->( $stat->{name}   // '' )
+    . <[plan-9.protocol.codec.encode-string]>->( $stat->{uid}    // '' )
+    . <[plan-9.protocol.codec.encode-string]>->( $stat->{gid}    // '' )
+    . <[plan-9.protocol.codec.encode-string]>->( $stat->{muid}   // '' );
+
+# Fix up size
+substr( $encoded, 0, 2 ) = pack( 'v', length($encoded) - 2 );
+return $encoded;
+
+#,,,,,.,.,,,.,.,.,...,,,,,,.,,...,,.,,,,.,.,,,..,,...,..,,.,.,,.,,,.,,...,,..,
+#CK3Q6WVGW2RALWYLEHIIUTNNDZ4BPDIKLO3M5HVCTXY7VJLLKKBHOBWRI4UIGCABCFFM6NF7N3GOK
+#\\\|CZCUOPSNLPR34EYX2NXTC7DYR2JWAFLD6ICXKAWLT3ZNG44DUBG \ / AMOS7 \ YOURUM ::
+#\[7]CLYYJB5PA4AYDPS3VWKVNX3TVZNGLOU3G2SMK66MWMXHTTCWYWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

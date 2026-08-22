@@ -92,13 +92,17 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   shadow). Root-caused the whole port-default class to a second, distinct "config that never
   actually wired up" bug (`plan-9.config`, a dead `return {...}` module) — proved empirically, then
   replaced with `plan-9.default_port` in `cfg/shared-params`, genuinely per-zenka overridable. See
-  [[feedback-use-constant-vs-data-tree-const]] (broadened) and
-  [[bug-forensics-dotted-command-names]] (a still-open, separate gap found along the way: amos-term's
-  `plan-9.client.list-dir`/`.read-file` are unreachable via cube, dotted command names). History/
-  next-steps live in the linked file.
+  [[feedback-use-constant-vs-data-tree-const]] (broadened). **Fifth round**: user caught a sharper
+  diagnosis than my own memory note — `amos-term.list-dir`/`.read-file` weren't just misnamed, they
+  had no `.cmd.` wrapper at all; added both, live-verified end to end. **Sixth round**: `Twstat`
+  landed (rename+resize subset, new `decode-stat`/`encode-wstat` codec modules), closing out the
+  full 9P message set — no deliberately-deferred message types remain. Caught a real `ptd -c` gap
+  along the way (a `0xFFFFFFFFFFFFFFFF` literal's non-fatal "non-portable" warning, invisible to
+  `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
+  first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,,.,,,,,,..,,..,,,.,...,,,.,..,,.,,,...,...,..,,...,...,..,,...,.,,,...,..,,
-#GRGP4YXWV3B4N6WJPBBGZXHDXFJPMZWXW54UK7IKPCF2LOBRBDCVIBYPLUEUS7E4VDCTYZ3FB3XS6
-#\\\|ETPMDSREPVR6HJH35E3X3MMXVRAJI2FYIGXCEC2MAIMPIF7UX3W \ / AMOS7 \ YOURUM ::
-#\[7]UFPLGFNITVON4Z2LXXNHO3IUOQ7EXSTNUKWKFLUCAKICLZLPHSDA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,,,...,,..,...,...,...,.,.,..,,...,...,,.,,.,,,..,,,,,,...,
+#GE5G5MZQXCVHL6HWFTH4PCAWE6A4BOB5QS5YYDGCL2S2GRWBNE46GKUD56ZJX6QSGKPOPQIQUH5C4
+#\\\|EWFXLZ5VHDSOY2XQN4LBJ23EPD3W22X462AOQUWDCWY22ZJTY4G \ / AMOS7 \ YOURUM ::
+#\[7]XBUR6OJRVM5UN3TYBTRFLNIF57ZBBOOCUIEY6M2D7QL7OXYQ5EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
