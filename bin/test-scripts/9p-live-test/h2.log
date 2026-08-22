@@ -1,0 +1,35 @@
+modules loaded OK [ client + real plan-9 server handlers ]
+  [log] Exported buffer term-alpha for 9P access
+  [log] Exported buffer term-beta for 9P access
+exported buffers : term-alpha, term-beta
+  [log] Storage 9P: connected to real
+ok   - connect : version+attach vs real handlers
+ok   - readdir / vs real server
+ok   - readdir / lists exported buffers [offset fix vs real encode-stat]
+ok   - walk to term-alpha
+ok   - readdir term-alpha
+ok   - term-alpha lists 13 z-layers + metadata
+ok   - stat term-alpha
+  [log] Storage 9P scan: 30 scanned, 30 matched, 0 rejected
+ok   - full recursive scan vs real server
+ok   - scan found buffers + layers + metadata recursively
+ok   - qid types correct through real server
+  [log] Storage 9P scan: 30 scanned, 13 matched, 17 rejected
+ok   - filtered scan : 13 z-layers of term-alpha
+  [log] Storage 9P scan: 30 scanned, 2 matched, 28 rejected
+ok   - filtered scan : both metadata files
+  [log] Storage 9P: connected to 127.0.0.1:15643
+  [log] Storage 9P: mounted 127.0.0.1:15643 at /term-beta
+ok   - mount /term-beta vs real server
+  [log] Storage 9P scan: 14 scanned, 14 matched, 0 rejected
+ok   - scan via mounted authority connection
+  [log] Storage 9P: unmounted /term-beta [ connection 127.0.0.1:15643 ]
+ok   - umount teardown vs real server
+
+=== 15 passed, 0 failed ===
+
+#,,..,,,.,...,,..,...,,,,,.,,,.,.,...,,,.,.,,,..,,...,...,..,,,,.,,.,,.,.,,..,
+#K2NRR77BSJYWKEMFMSCJ5QRJBUVJMT64HXOQ3HY6Z3FIKJBMLBDSDNHVEHE5U7FLC32DK6P7Q4O6S
+#\\\|GR4BFHEXBEMUXBGYOFEW2TCRQ7QU4535DI5IK3SRT4EKFOT7OOS \ / AMOS7 \ YOURUM ::
+#\[7]ZNZC3LLLFN22OYEMGEBZAYNBUSVFVVMQX3V2ZJ37EWOYTKB32OCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:< ##
+# name  = plan-9.server.export_directory
+# descr = Export a real filesystem directory for 9P access [ read-only ]
+#
+# Registers into the same top-level $data{'plan-9'}{'server'}{'buffers'}
+# root registry that plan-9.server.export_buffer uses, so the existing
+# root-listing/attach/dispatch code needs no changes -- a 'kind' field
+# distinguishes a real directory export from a vterm-buffer export.
+# Walking below the exported root is handled by the 'realpath' fid type
+# in plan-9.server.handle_walk, and content reads by
+# plan-9.server.realpath-read.
+
+my ( $real_path, $name ) = @ARG;
+
+return 0 unless defined $real_path and length $real_path and -d $real_path;
+return 0 unless defined $name and length $name;
+
+## caller's responsibility to pass an absolute path -- this is a plain ##
+## registration step, not a path-resolution one                        ##
+return 0 unless $real_path =~ m{^/};
+
+$data{'plan-9'}{'server'}{'buffers'}{$name} = {
+    'kind'        => 'directory',
+    'realpath'    => $real_path,
+    'qid_path'    => $data{'plan-9'}{'server'}{'next_qid'}++,
+    'qid_version' => 0,
+    'exported_at' => <[base.ntime]>,
+};
+
+<[base.logs]>->("Exported directory $real_path as '$name' for 9P access");
+
+return 1;
+
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_4
+
+#,,.,,,.,,,,,,,.,,...,.,,,.,,,,,.,.,,,...,,,.,..,,...,...,...,,.,,...,...,.,.,
+#Q3DHHPTM25EVJYCWQE62ULAEPNEP5EP2MCD5QZFB4675ZAUYTMQWCSTCWWTFEIRAJXTR5UUUEDUBI
+#\\\|AFQTVSLQHLO4A4J7Y7N5WGGPO2WI5WSZX5FE5II4PWKOZECQK4P \ / AMOS7 \ YOURUM ::
+#\[7]PCOBY56Z33GF5YQ72DLZK5GARJJO55HHUFDICZZ5OPVJKWTRBEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

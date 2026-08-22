@@ -1,0 +1,42 @@
+## [:< ##
+# name  = plan-9.server.handler.accept
+# descr = event.add_io callback for the 9P listener socket -- accepts the
+#         new connection, then registers a read handler on it. Mirrors
+#         proxy.handler.accept's shape exactly; plan-9.server.client.accept
+#         already does the per-client state init correctly, it was just
+#         never called from anywhere.
+
+my $listen_sock = shift->w->data;
+
+my $client_sock = $listen_sock->accept;
+return if not $client_sock;
+
+$client_sock->blocking(0);
+
+my $fd        = fileno($client_sock);
+my $peer_addr = $client_sock->peerhost // 'unknown';
+
+<[plan-9.server.client.accept]>->( $fd, $peer_addr );
+$data{'plan-9'}{'server'}{'clients'}{$fd}{'sock'} = $client_sock;
+
+$data{'plan-9'}{'server'}{'clients'}{$fd}{'watcher'} = <[event.add_io]>->(
+    {   fd      => $client_sock,
+        poll    => 'r',
+        handler => 'plan-9.server.handler.read',
+        data    => $fd,
+        desc    => '9P client read handler'
+    }
+);
+
+return;
+
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_4
+
+#,,,,,,.,,,,.,.,,,,,.,..,,.,.,,,.,.,.,..,,..,,..,,...,...,...,..,,,.,,,..,,.,,
+#JPAL7RJIWQCSQJWXBFYDFLN4LEBKKW7KE4LBXXPZSOPAVGCQ2JV2N5RNNN7RZAKOOGBES27V6FNDG
+#\\\|67QM2LF5XMS6TJNGSFCC2NVVYQR2QZ3OAQQN3O6UJEC4U3CZSYE \ / AMOS7 \ YOURUM ::
+#\[7]FBFPJ4AHFMZNNT72J6EVYVFNSCSVP4S42BO54ZJSYR6S6I76YGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

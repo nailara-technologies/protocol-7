@@ -38,6 +38,19 @@ if ( not defined $lsock ) {
 }
 
 $data{'plan-9'}{'server'}{'listener'} = $lsock;
+
+## nothing accepted connections on this listener before -- see         ##
+## data/tasks/plan-9-server-event-loop-wiring.md for the full history. ##
+## mirrors proxy.listen's registration of proxy.handler.accept.        ##
+<[event.add_io]>->(
+    {   fd      => $lsock,
+        poll    => 'r',
+        handler => 'plan-9.server.handler.accept',
+        data    => $lsock,
+        desc    => '9P server accept handler'
+    }
+);
+
 <[base.logs]>->("9P server listening on $host:$port");
 
 return {
@@ -45,8 +58,8 @@ return {
     'data' => "9P server started on $host:$port"
 };
 
-#,,,,,...,,,.,.,,,...,,,,,,,,,,,,,,.,,..,,,,.,.,.,...,..,,,,,,,.,,...,,,,,,,.,
-#IUZJZB5T6DKE3MDWUPV5GSYKSB2TPSCH35ALBTY4BIIKVWS2BRKPEEIYAYYPRTMCT2CMJKU6EJ4QW
-#\\\|6VFKUP65YL2ERI7Y5BHCH3W2AHXXGBVN52BWLJS2JG44YMAV36I \ / AMOS7 \ YOURUM ::
-#\[7]DZHIADOVOT34UFB6ZYTVNLRL4F27XSF44MCG54D4ABH577B6QMDA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,,,,,..,,.,,,...,...,,,,,.,.,.,.,...,...,,.,,,,,,.,.,.,,,,.,,
+#TNICN5KVZUZ7EIJIPPRYRTUVVZRTLMFKAQLO3NYOD2257C65FASCPB3W3FAAPDAPTSCTEJZBLVF7A
+#\\\|ZCUWBXNOYDOOKGQRJXZKUGCPRKFCB2HBNSSCU7ZBQ6QXYC77WK2 \ / AMOS7 \ YOURUM ::
+#\[7]FDYEXBZLGXEPA3ZYELBVZDVPHLTGMH2FPQRCTG5VIBVDT7MZDYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+modules loaded OK
+  [log] Storage 9P: connected to test
+ok   - connect to strict 9P server
+ok   - version negotiated msize 8192
+ok   - attach returned dir qid
+ok   - walk / -> docs
+ok   - partial walk detected as failure
+ok   - readdir / on strict server
+ok   - readdir / entries exact [name offset fix verified on the wire]
+ok   - readdir /docs
+ok   - readdir /docs entries exact
+ok   - stat /file1.txt fields
+  [log] Storage 9P scan: 5 scanned, 5 matched, 0 rejected
+ok   - scan / recursive
+ok   - scan / found all 5 entries ( recursion into subdir worked )
+ok   - scan qid types correct
+  [log] Storage 9P scan: 5 scanned, 1 matched, 4 rejected
+ok   - inclusion_add filter ( pdf only, still recursed into docs )
+  [log] Storage 9P scan: 5 scanned, 4 matched, 1 rejected
+ok   - exclusion_add filter ( no tmp files )
+  [log] Storage 9P scan: 5 scanned, 1 matched, 4 rejected
+ok   - inclusion_and filter ( report AND 2024 )
+  [log] Storage 9P scan: 5 scanned, 5 matched, 0 rejected
+ok   - max_results honored
+  [log] Storage 9P scan: 3 scanned, 3 matched, 0 rejected
+ok   - no-recurse scan lists top level only
+  [log] Storage 9P scan: 2 scanned, 2 matched, 0 rejected
+ok   - scan /docs direct walk
+  [log] Storage 9P: connected to 127.0.0.1:15641
+  [log] Storage 9P: mounted 127.0.0.1:15641 at /docs
+ok   - mount returns path
+ok   - mount registered connection under authority string
+  [log] Storage 9P scan: 2 scanned, 2 matched, 0 rejected
+ok   - scan via authority connection name
+ok   - mount of nonexistent path returns undef
+ok   - mount with default port refused cleanly
+  [log] Storage 9P: unmounted /docs [ connection 127.0.0.1:15641 ]
+ok   - umount mode true
+ok   - umount removed connection entry
+ok   - umount removed mount entry
+ok   - scan after umount fails as not connected
+ok   - double umount reports not mounted
+  [log] Storage 9P: unmounted test [ connection test ]
+ok   - umount by connection name fallback
+ok   - fallback umount removed connection
+
+=== 31 passed, 0 failed ===
+
+#,,,.,.,.,,,.,...,,,.,.,.,..,,.,,,,,,,,.,,..,,..,,...,...,...,.,.,,,,,.,.,,,.,
+#TBOANDNFCW4T2DXUEC23BQB5QS2GQRJVSSQX35G3K765OG62OBTV7SSGWJH6XKSI53WHVDPEJ7XX2
+#\\\|GGAIKA3GT6C6WJ5GIU2ONOZIBDGPO5AKPQOVR7AW2YU5ITJARHA \ / AMOS7 \ YOURUM ::
+#\[7]EBMUQXAUF7P5QHNU7ACPVLK4VLOCB6HM6U57LOT7RDMCZYUNJKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
