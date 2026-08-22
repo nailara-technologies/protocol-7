@@ -1,6 +1,6 @@
 ---
 name: project-plan-9-storage-9p-subsystem-status
-description: "history and current live status of the storage/plan-9 9P (Plan 9 filesystem protocol) client+server subsystem -- FUSE-abandoned-for-WSL origin, SFTP-for-storage-appliance sibling, now a fully live-verified real-directory 9P server as of 2026-08-22"
+description: "history and current live status of the storage/plan-9 9P (Plan 9 filesystem protocol) client+server subsystem -- FUSE-abandoned-for-WSL origin, SFTP-for-storage-appliance sibling; full 9P message set (create/remove/write/wstat) live-verified as of 2026-08-22"
 metadata:
   type: project
 ---
@@ -217,17 +217,59 @@ round-trips correctly. See
 lesson (check for a missing `.cmd.` wrapper before reaching for a
 naming/regex diagnosis).
 
+## update 2026-08-22 (sixth round, same day): Twstat landed (rename + resize)
+
+After a clean audit for other instances of the "config that looks
+wired but isn't" class (`base.parser.config` is genuine parser
+machinery, not the same bug; every other candidate plain-return-hash
+module either has real `<[name]>->()` call sites or is orphaned dead
+code, a different and lower-priority issue, left untouched), moved on
+to the one remaining deferred 9P feature.
+
+New `plan-9.protocol.codec.decode-stat` (mirrors `encode-stat`'s exact
+byte layout, name field starts at offset 41 — same `2+4+13+4+4+4+8=39`
+math as the readdir/list-dir fix, +2 for the leading size field this
+buffer still carries) and a SEPARATE `encode-wstat` (not a reuse of
+`encode-stat` — wstat's omitted-field semantics are the opposite of a
+directory listing's: omitted must mean "don't touch", not "here's a
+friendly default", so every field defaults to its own 9P sentinel).
+`plan-9.server.handle-io-wstat` honors only `name` (rename) and
+`length` (resize/truncate) — mode/atime/mtime/uid/gid/muid are
+silently ignored, this virtual filesystem doesn't model real
+ownership/permission bits. Rename migrates the stable qid mapping to
+the new path (file keeps its identity across rename, matching real 9P
+semantics), rejects renaming an export's own root, and rejects an
+already-existing target name. Client side gained `storage.9p.wstat`
+(low-level) and `.rename-path`/`.resize-path` (high-level) plus
+`storage.cmd.plan9-rename`/`plan9-resize`.
+
+**Caught a real bug myself, missed by `ptd -c` entirely**: the natural
+"max uint64" sentinel written as a literal `0xFFFFFFFFFFFFFFFF`
+triggers Perl's "Hexadecimal number > 0xffffffff non-portable"
+warning — `ptd -c` reported clean "syntax ok" regardless (it only
+catches fatal errors, not warnings), only visible via
+`plan-9.show-buffer compile-errors` after an actual zenka restart. The
+user caught this from their own terminal ("startup errors") before I
+did. Fixed by using `~0` instead of the literal (also more portable,
+matches the build's native word size). See
+[[feedback-ptd-syntax-check]]'s addendum for the general lesson.
+
+Live-verified: rename (byte content + identity preserved), rename to
+an already-existing name rejected, renaming an export root rejected,
+rename against a read-only export rejected, resize/truncate (byte-exact
+against the real filesystem), resizing a directory rejected.
+
 ## how to use this if picking the subsystem back up
 
 - Client-side entry points: `storage.9p.*` (connect/scan/read-file/
-  write-file/create-file/remove-path/mount/umount/walk/stat/readdir),
-  routed through cube as `storage.<name>` (the `.9p.`/`.cmd.` segment
-  is stripped by cube's own convention — don't include it when typing
-  a live command). `amos-term.cmd.mount-9p-client` is a SEPARATE,
-  parallel client entry point (via `plan-9.client.*`, not
-  `storage.9p.*`), with its own cube-routable follow-ups
-  `amos-term.list-dir`/`amos-term.read-file` — these didn't exist at
-  all until found+fixed the same day (the underlying
+  write-file/create-file/remove-path/rename-path/resize-path/mount/
+  umount/walk/stat/readdir), routed through cube as `storage.<name>`
+  (the `.9p.`/`.cmd.` segment is stripped by cube's own convention —
+  don't include it when typing a live command). `amos-term.cmd.
+  mount-9p-client` is a SEPARATE, parallel client entry point (via
+  `plan-9.client.*`, not `storage.9p.*`), with its own cube-routable
+  follow-ups `amos-term.list-dir`/`amos-term.read-file` — these didn't
+  exist at all until found+fixed the same day (the underlying
   `plan-9.client.list-dir`/`.read-file` subs already worked, they just
   had no `.cmd.` wrapper; the dots-in-name framing in
   [[bug-forensics-dotted-command-names]] was a secondary, not the main,
@@ -240,9 +282,15 @@ naming/regex diagnosis).
   `data/md/design/STORAGE-9P.md`'s "Config: plan-9.default_port"
   section. Never hardcode a 9P port literal in a new file; read this
   value instead.
-- Still open, not started: `Twstat` (rename/permission change over
-  9P) — deliberately out of scope, a separate and larger increment
-  needing a new `decode-stat` codec module.
+- The full `Tversion`/`Tattach`/`Twalk`/`Topen`/`Tcreate`/`Tread`/
+  `Twrite`/`Tclunk`/`Tremove`/`Tstat`/`Twstat` set is now implemented
+  on the server side — no more deliberately-deferred 9P message types
+  remain. `Twstat` is subset-only (rename+resize, see the sixth round
+  above), which is a permanent design choice, not a gap.
+- **Live in-memory only**: exports (`plan-9.cmd.export-directory`)
+  don't survive a `plan-9` zenka restart — re-export before testing
+  anything after any restart, hit this repeatedly during live
+  verification this session.
 - If extending further, re-read `data/md/design/STORAGE-9P.md` (now
   documents create/remove, the write commands, the symlink-policy
   flag, the shared port config, and the server/client module tables)
@@ -255,8 +303,8 @@ naming/regex diagnosis).
   before signing — don't assume the placeholder convention was
   followed correctly just because it looks plausible at a glance.
 
-#,,..,.,,,,.,,,,.,,,.,...,..,,...,,,,,,..,,,,,..,,...,...,,.,,.,.,...,...,..,,
-#XYYJ24PK6ALSWLMYHXP7RZTEZGRIKIQ6YEUII6JHMCS6FCXCCXZ4HEPNCXUTYOJYYBNIE6QMN5CXC
-#\\\|K5GMTQKCPEJ7KHHL6NB6B4RO4V2TMRE5MEQVUWKU5F55CKZSKH5 \ / AMOS7 \ YOURUM ::
-#\[7]52BIK6AWSAOBYEGX2H6V5FT26AA7ZYBQAIWUSZPSJQNM6ZVB7OCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,..,,,,.,.,,,,..,.,.,,,,,.,.,..,,...,...,...,,,,,,.,,,,.,.,.,
+#CATOQRIKOMKUYGYHQYNOMVVFLIFKDSF74T4AAFJYAP4GT2KYQKNPR2SJG52HTQV7WUEBVZ754HCPS
+#\\\|7F4HAZGMOOHLLJ7IGEX74CMHFTICAH6KUVNNVL7X3HVVVPG5PXS \ / AMOS7 \ YOURUM ::
+#\[7]ITE3HT3QYASNA5NVWXXKK75MYV66C6MRSACYZCLT7Y7YQE6W3ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

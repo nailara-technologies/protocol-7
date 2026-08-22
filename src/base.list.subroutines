@@ -362,6 +362,7 @@ return [ qw[
         ticker.calc_incr
         ticker.calc_decr
         system.init_code
+        storage.9p.wstat
         storage.9p.write
         storage.9p.mount
         storage.9p.clunk
@@ -1659,6 +1660,8 @@ return [ qw[
         ticker.cmd.set-monitor
         system.process.cmd.top
         storage.cmd.plan9-scan
+        storage.9p.resize-path
+        storage.9p.rename-path
         storage.9p.remove-path
         storage.9p.create-file
         start-anim.open_window
@@ -2212,6 +2215,8 @@ return [ qw[
         system.process.post_init
         system.process.init_code
         system.cleanup.init_code
+        storage.cmd.plan9-resize
+        storage.cmd.plan9-rename
         storage.cmd.plan9-remove
         storage.cmd.plan9-create
         source.acquire_checksums
@@ -3500,6 +3505,7 @@ return [ qw[
         plugin.storage.util.find_path
         plugin.image-resize.init_code
         plugin.external.udt.init_code
+        plan-9.server.handle-io-wstat
         plan-9.server.handle-io-write
         plan-9.server.handle-io-clunk
         pdf.html.base.write_stub_page
@@ -4305,6 +4311,7 @@ return [ qw[
         plugin.storage.checksum.init_code
         plugin.auth.zenka.no-keys-defined
         plan-9.protocol.codec.encode-stat
+        plan-9.protocol.codec.decode-stat
         pdf.html.child.handler.conversion
         pager.util.buffer.load_page_items
         pager.filter.division-13-harmonic
@@ -4461,6 +4468,7 @@ return [ qw[
         plan-9.server.buffer-read-root-dir
         plan-9.server.buffer-read-metadata
         plan-9.protocol.constants.pre_init
+        plan-9.protocol.codec.encode-wstat
         plan-9.protocol.codec.encode-uint8
         plan-9.protocol.codec.decode-uint8
         pdf.html.child.check_cache_timeout
@@ -5319,8 +5327,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,.,.,.,...,...,,..,,..,,,,,,,,,,..,.,,,.,.,...,...,.,,,,.,,...,,,,,...,
-#AFUQGMYCB5J3TKXUGDBFLZONBJB6YNFAHOR6WKYIAEA2IYVPZR4EM7WVKRESKPPTOMPKDPF7Y5CR6
-#\\\|D2WD2QXX27GZCJCFZXV3NTS5O6AAXYNMB6OK473Z34UUO7ZF3VA \ / AMOS7 \ YOURUM ::
-#\[7]ZFJOLMZPZQREGQO6RFGW7R377XD4GSVPV4S4LGQWDMIEQ6XT5YBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,...,,.,,..,,.,,,,,.,..,,.,,,.,.,...,...,..,,,..,...,,..,...,
+#UKJA2FKU7EUTKC6OOSQAXHNNJXOOAVGDYZBCGPHWTU6XIKN5FQIU6I5EINY5WRACFWPXGATB5NJFC
+#\\\|OXHRBZXM3BAPZ6VI62OLKYA7LK5G2VE7X3WRU7IA5Z3YFOQTUGH \ / AMOS7 \ YOURUM ::
+#\[7]P5AFAGVIN3JS345DQXQNE26WZCBO6M5FUILXIQFWBB6MC4Y7YYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

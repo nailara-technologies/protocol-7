@@ -1,0 +1,72 @@
+## [:< ##
+# name  = plan-9.server.handle-io-wstat
+# descr = Handle 9P Twstat/Rwstat -- rename and resize only
+#
+# Only the 'name' (rename) and 'length' (resize) fields are honored --
+# mode/atime/mtime/uid/gid/muid changes are silently ignored, since this
+# virtual filesystem doesn't model real ownership/permission bits. A
+# field carrying its 9P "don't touch" sentinel (empty string for name,
+# 0xFFFFFFFFFFFFFFFF for length) is left alone.
+
+my ( $client, $tag, $data ) = @ARG;
+
+my $fid  = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my $stat = <[plan-9.protocol.codec.decode-stat]>->( substr( $data, 4 ) );
+
+my $f = $client->{fids}{$fid};
+return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+
+return <[plan-9.protocol.error]>->( $tag, "cannot wstat this file" )
+    unless $f->{type} eq 'realpath';
+
+return <[plan-9.protocol.error]>->( $tag, "export is read-only" )
+    unless $f->{writable};
+
+if ( length $stat->{name} ) {
+    return <[plan-9.protocol.error]>->( $tag, "invalid path component" )
+        if $stat->{name} eq '.'
+        or $stat->{name} eq '..'
+        or $stat->{name} =~ m{/};
+
+    return <[plan-9.protocol.error]>->( $tag, "cannot rename export root" )
+        if $f->{realpath} eq $f->{root};
+
+    my ($parent) = $f->{realpath} =~ m{^(.*)/[^/]+$};
+    my $new_path = "$parent/$stat->{name}";
+
+    return <[plan-9.protocol.error]>->( $tag, "already exists" )
+        if -e $new_path;
+
+    rename( $f->{realpath}, $new_path )
+        or return <[plan-9.protocol.error]>->( $tag, "cannot rename: $!" );
+
+    ## migrate the stable qid mapping so the file keeps its identity across ##
+    ## the rename, matching real 9P semantics                               ##
+    if ( exists $data{'plan-9'}{'server'}{'realpath_qids'}{ $f->{realpath} } )
+    {
+        $data{'plan-9'}{'server'}{'realpath_qids'}{$new_path}
+            = delete $data{'plan-9'}{'server'}{'realpath_qids'}
+            { $f->{realpath} };
+    }
+
+    $f->{realpath} = $new_path;
+}
+
+if ( defined $stat->{length} and $stat->{length} != ~0 ) {
+    return <[plan-9.protocol.error]>->( $tag, "cannot resize a directory" )
+        if -d $f->{realpath};
+
+    truncate( $f->{realpath}, $stat->{length} )
+        or return <[plan-9.protocol.error]>->( $tag, "cannot resize: $!" );
+}
+
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rwstat>,
+    $tag, ''
+);
+
+#,,..,,,.,,,,,.,.,.,.,,,,,,,,,.,.,,..,,,.,.,.,..,,...,...,,,,,,..,...,..,,,,,,
+#GOGREEM4ECSJTF4PSJSBCY264XKOJDECB45T2MI4NENESDFPQDQK6UKOIOIWW5EFBRAQD4Q6XDN5A
+#\\\|2ZWTVNYARPRAMEFKKMGSQKWCAI2RNHPW7MEXH3JH7GLQUDBIIZW \ / AMOS7 \ YOURUM ::
+#\[7]5VAIXZOLBKEEXBIKX77PHSEJPU73WDPIKQZCR73WYYWAL5JHYQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

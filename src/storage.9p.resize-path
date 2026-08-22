@@ -1,0 +1,26 @@
+## [:< ##
+# name  = storage.9p.resize-path
+# descr = High-level resize (truncate) over 9P (walk+wstat+clunk)
+
+my ( $conn, $path, $length ) = @ARG;
+$length //= 0;
+
+my @parts = grep {length} split m|/|, $path;
+my $fid   = $conn->{next_fid}++;
+
+my $walk_result
+    = <[storage.9p.walk]>->( $conn, $conn->{root_fid}, $fid, @parts );
+return $walk_result if $walk_result->{'mode'} eq 'false';
+
+my $wstat_result
+    = <[storage.9p.wstat]>->( $conn, $fid, { length => $length } );
+
+<[storage.9p.clunk]>->( $conn, $fid );
+
+return $wstat_result;
+
+#,,..,..,,,..,..,,,,.,.,,,,,.,..,,.,.,...,,.,,..,,...,...,,,,,..,,,.,,.,,,,,,,
+#QAE6DGL6FRGWRDDSK73N76LSZVNOUYANFCM6VTVB2I6YEKAPTEOXM76BZM6NNN76YBGZLLX6FNSEC
+#\\\|WRTHV4535NWVJROFRFLLYA7OMATCQG5BCBH4NMXC72IPJ7BJO4O \ / AMOS7 \ YOURUM ::
+#\[7]EG2JGVRM4Z2QT7FD7G5RUP7QR6WVRGWJ4IVBGD2AVIK6N7U5TQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

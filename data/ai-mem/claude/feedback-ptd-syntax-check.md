@@ -24,8 +24,24 @@ produces. Safe to script against the exit code now; see
 [[project-ncode-write-path-2026-07-24]] for the fix and how `ncode.cmd.apply`
 uses it as a hard write-gate.
 
-#,,,,,,,.,,,,,.,.,.,.,...,,,.,.,.,...,...,,..,..,,...,...,.,.,..,,.,.,..,,,,,,
-#GPZHERSPYDLVTVVN43FO7L24GUPAS4VEU4RAV3N5XFZNF33VIXXMLJPUOF7VHYM2D26S5M5Q2QI7A
-#\\\|53LOWT6NWGHBSPHOSYJC5TN5ZQ5RFSULIKYFEY5DRRPF4I67JGQ \ / AMOS7 \ YOURUM ::
-#\[7]74JHJ3WHUHHZBNQLQA6JKXNEG4P4EHIHKYQIPCGNJTHVRUCL5WDA 7  DATA SIGNATURE ::
+**Gap found 2026-08-22**: `ptd -c` reports clean "syntax ok" for a file
+that still produces a real Perl compile-time WARNING (not a fatal
+error) — e.g. `0xFFFFFFFFFFFFFFFF` (a 64-bit hex literal) triggers
+"Hexadecimal number > 0xffffffff non-portable", visible only via the
+live zenka's own `<zenka>.show-buffer compile-errors` after an actual
+restart, not via `ptd -c` at any point. `ptd -c` only validates that
+the file compiles at all (exit code / fatal-error check) — it does not
+surface non-fatal warnings. **How to apply**: `ptd -c` is necessary but
+not sufficient before considering a file done — after restarting the
+zenka that loads it, also check `<zenka>.show-buffer compile-errors`
+(the buffer only exists/has content when there's something to report,
+so "no such buffer" after a restart is itself the clean-pass signal).
+Prefer `~0` over a literal max-value hex constant for a 64-bit
+"unlimited"/sentinel value — it's both more portable (matches the
+build's native word size) and avoids the warning outright.
+
+#,,..,,.,,,..,,,,,...,,..,.,,,,,,,,,.,,.,,,.,,..,,...,...,..,,.,.,.,.,...,,..,
+#UQGKMUIQJRFRMZS3ZF3VAVPBVO4ZYJAKW55BRBHIQ7FGG7IICKISYLLJ5N6LU6SGNHD2WOTN4UURK
+#\\\|UJMYKDJE5A555J7HLPWLADMJF2XXBDRHNUHJLAYUMEHFCEADCVW \ / AMOS7 \ YOURUM ::
+#\[7]BXZ52BQU34NMR34VA2VXIKZ3OBAPP6ZHPB4CDSLBV4ILFCGOOMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
