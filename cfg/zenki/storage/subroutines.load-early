@@ -80,6 +80,7 @@ auth.auth_list
 storage.9p.walk
 storage.9p.stat
 storage.9p.scan
+storage.9p.read
 storage.9p.open
 plugin.auth.pwd
 net.read_binary
@@ -100,6 +101,7 @@ base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
+storage.9p.write
 storage.9p.mount
 storage.9p.clunk
 plugin.auth.unix
@@ -210,6 +212,7 @@ base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
 storage.cmd.map-file
+storage.9p.read-file
 plugin.storage.p7ref
 plan-9.client.attach
 io.ip.tcp.input.open
@@ -239,6 +242,7 @@ base.chk-sum.bmw.ctx
 base.buffer.add_line
 ascii.frame.validate
 storage.map-dirs.tree
+storage.9p.write-file
 plan-9.protocol.error
 plan-9.protocol.codec
 plan-9.client.version
@@ -363,6 +367,7 @@ storage.map-dirs.init_code
 protocol.sftp.read_ssh_env
 plugin.storage.p7ref.parse
 plugin.storage.p7ref.index
+plan-9.server.handler.read
 plan-9.server.client.close
 plan-9.server.buffer-write
 plan-9.client.read-message
@@ -385,11 +390,14 @@ base.check_dependency_dirs
 storage.visual.util.extract
 storage.sftp.unix.sock_path
 storage.map-dirs.check-dirs
+storage.cmd.plan9-read-file
 storage.cmd.lookup-checksum
 plugin.storage.p7ref.search
+plan-9.server.realpath-read
 plan-9.server.handle_attach
 plan-9.server.export_buffer
 plan-9.server.client.accept
+plan-9.cmd.export-directory
 net.read_linewise_estimated
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
@@ -408,9 +416,11 @@ base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 auth.client.zenka.init_code
+storage.cmd.plan9-write-file
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 plugin.storage.p7ref.resolve
+plan-9.server.handler.accept
 plan-9.server.handle_version
 plan-9.server.handle_request
 plan-9.server.handle-io-stat
@@ -456,6 +466,7 @@ plugin.storage.p7ref.init_code
 plugin.storage.inference.store
 plugin.storage.checksum.verify
 plugin.storage.checksum.lookup
+plan-9.server.export_directory
 crypt.C25519.key_name_and_type
 crypt.C25519.chksum_cache.retr
 base.zenki.ondemand_registered
@@ -617,8 +628,8 @@ protocol.protocol-7.protocol-version-path-set-up
 plugin.storage.util.inference.update_branch_meta
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,...,,,,,..,,...,...,.,,,.,,,...,..,,,,.,..,,...,...,.,.,,..,,..,,.,,.,,,
-#WVUROLKQKU6BTIJK2JCRGTGN32DB727P3FLCBARJVJMFFECX3FFWMLM5SCNJKIRHE6UJHYBH6WRUC
-#\\\|QINXM63VZQ7K5XSNOEXBNGEZUXCT62GVDPLPBDN5AXCBXOW3PYR \ / AMOS7 \ YOURUM ::
-#\[7]HFYIGLLYYS6JBAXVJF3XWKFXTLVR5N3LS4F3KKZIHOC5Q3DXROAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,...,.,,,,..,...,,,,,,.,,.,.,..,,...,...,...,,..,.,,,.,.,.,.,
+#CWYOXZLM3U2RH3F4NKDR66PBOOUVJOU4AZZ54VWGDWVBIPEOXN3Q5NGPOYQL76FIRYRIDZNHYVFW4
+#\\\|DYD7FFSLTKPCNDLPNMDO25RTV7KD66XWLIODUOM67FUBHBEPXIU \ / AMOS7 \ YOURUM ::
+#\[7]36FDG7C7SNFNRMOAACHT3K6UKAG2MOS4EA6HKQ5VA34FR7RB3EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

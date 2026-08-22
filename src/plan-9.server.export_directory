@@ -1,6 +1,6 @@
 ## [:< ##
 # name  = plan-9.server.export_directory
-# descr = Export a real filesystem directory for 9P access [ read-only ]
+# descr = Export a real filesystem directory for 9P access
 #
 # Registers into the same top-level $data{'plan-9'}{'server'}{'buffers'}
 # root registry that plan-9.server.export_buffer uses, so the existing
@@ -9,8 +9,13 @@
 # Walking below the exported root is handled by the 'realpath' fid type
 # in plan-9.server.handle_walk, and content reads by
 # plan-9.server.realpath-read.
+#
+# 'writable' and 'symlink_policy' are opt-in per export -- read-only and
+# 'reject' are the safe defaults unless the caller asks for otherwise.
+# symlink_policy: 'reject' (default) | 'contained' (allow only if the
+# resolved target stays inside the export root) | 'allow' (no check).
 
-my ( $real_path, $name ) = @ARG;
+my ( $real_path, $name, $writable, $symlink_policy ) = @ARG;
 
 return 0 unless defined $real_path and length $real_path and -d $real_path;
 return 0 unless defined $name and length $name;
@@ -19,25 +24,34 @@ return 0 unless defined $name and length $name;
 ## registration step, not a path-resolution one                        ##
 return 0 unless $real_path =~ m{^/};
 
+$symlink_policy = 'reject'
+    unless defined $symlink_policy
+    and $symlink_policy =~ /^(?:reject|contained|allow)$/;
+
+## canonicalize once at export time so every containment check downstream ##
+## compares against the same normalized root                              ##
+my $root = Cwd::abs_path($real_path) // $real_path;
+
+my $writable_flag = $writable ? 1 : 0;
+
 $data{'plan-9'}{'server'}{'buffers'}{$name} = {
-    'kind'        => 'directory',
-    'realpath'    => $real_path,
-    'qid_path'    => $data{'plan-9'}{'server'}{'next_qid'}++,
-    'qid_version' => 0,
-    'exported_at' => <[base.ntime]>,
+    'kind'           => 'directory',
+    'realpath'       => $real_path,
+    'root'           => $root,
+    'writable'       => $writable_flag,
+    'symlink_policy' => $symlink_policy,
+    'qid_path'       => $data{'plan-9'}{'server'}{'next_qid'}++,
+    'qid_version'    => 0,
+    'exported_at'    => <[base.ntime]>,
 };
 
-<[base.logs]>->("Exported directory $real_path as '$name' for 9P access");
+<[base.logs]>->( "Exported directory $real_path as '$name' for 9P access "
+        . "[writable=$writable_flag symlinks=$symlink_policy]" );
 
 return 1;
 
-# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
-# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_4
-
-#,,.,,,.,,,,,,,.,,...,.,,,.,,,,,.,.,,,...,,,.,..,,...,...,...,,.,,...,...,.,.,
-#Q3DHHPTM25EVJYCWQE62ULAEPNEP5EP2MCD5QZFB4675ZAUYTMQWCSTCWWTFEIRAJXTR5UUUEDUBI
-#\\\|AFQTVSLQHLO4A4J7Y7N5WGGPO2WI5WSZX5FE5II4PWKOZECQK4P \ / AMOS7 \ YOURUM ::
-#\[7]PCOBY56Z33GF5YQ72DLZK5GARJJO55HHUFDICZZ5OPVJKWTRBEDQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,,.,,..,,.,.,,,.,,..,.,.,.,.,..,,...,...,...,..,,,,.,..,,,.,,
+#OW63ZOGRUKVKRNXLOLEHAJYIEADTAMLFK5K6K353TLG5U2Q2HW4WYTLNPVNZNOQ7NSOH3U5DPWWF6
+#\\\|YKQVDJTVBAMUDWZEY4LL5SFMDK3UMYV7BLBAHJTAG5C7UB3CPZP \ / AMOS7 \ YOURUM ::
+#\[7]RUZN54SGLKFDWHVZJSYSIKF63C2TH67JZPS7NPXDK7GD4NPCQOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

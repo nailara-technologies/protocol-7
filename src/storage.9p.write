@@ -1,0 +1,37 @@
+## [:< ##
+# name  = storage.9p.write
+# descr = Write bytes to an open file on 9P server
+
+my ( $conn, $fid, $offset, $content ) = @ARG;
+$offset  //= 0;
+$content //= '';
+
+my $tag = ++$conn->{tag} & 0xFFFF;
+
+my $req
+    = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-uint64]>->($offset)
+    . <[plan-9.protocol.codec.encode-uint32]>->( length $content )
+    . $content;
+
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Twrite>,
+    $tag, $req
+);
+
+$conn->{socket}->send($msg);
+
+my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+return $resp if $resp->{'mode'} eq 'false';
+
+my $payload = $resp->{'data'};
+my $written
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $payload, 0, 4 ) );
+
+return { 'mode' => 'true', 'data' => $written };
+
+#,,.,,...,.,,,,,,,,.,,...,..,,..,,,,,,.,,,,.,,..,,...,...,,,.,,..,,,.,,,,,..,,
+#4RPM24UV5NF5TFR4RCMWKMK6IOOOLZPGUP5LKSYUO3Z7V7D2SRCDAK6YOEKBEO53TXRU6PPQQXT2Q
+#\\\|EXPRFOIFDF4RECQ7KKQQBXRX7I3CDK4KFUPCXWFL2JE7VRJP6LV \ / AMOS7 \ YOURUM ::
+#\[7]YJXUD5ENNAQYGAFXFSNZ55AXGHZK2KKJLCZAOVPTQQ2OOR3B7MDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

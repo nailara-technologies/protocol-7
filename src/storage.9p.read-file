@@ -1,0 +1,45 @@
+## [:< ##
+# name  = storage.9p.read-file
+# descr = High-level whole-file read from 9P server
+
+my ( $conn, $path ) = @ARG;
+
+my @parts = grep {length} split m|/|, $path;
+my $fid   = $conn->{next_fid}++;
+
+my $walk_result
+    = <[storage.9p.walk]>->( $conn, $conn->{root_fid}, $fid, @parts );
+return $walk_result if $walk_result->{'mode'} eq 'false';
+
+my $open_result = <[storage.9p.open]>->( $conn, $fid, 0 );    # OREAD
+if ( $open_result->{'mode'} eq 'false' ) {
+    <[storage.9p.clunk]>->( $conn, $fid );
+    return $open_result;
+}
+
+my $content = '';
+my $offset  = 0;
+my $iounit  = $conn->{fids}{$fid}{iounit} // 8192;
+
+while (1) {
+    my $read_result = <[storage.9p.read]>->( $conn, $fid, $offset, $iounit );
+    last if $read_result->{'mode'} eq 'false';
+
+    my $chunk = $read_result->{'data'};
+    last if length($chunk) == 0;
+
+    $content .= $chunk;
+    $offset += length($chunk);
+
+    last if length($chunk) < $iounit;
+}
+
+<[storage.9p.clunk]>->( $conn, $fid );
+
+return { 'mode' => 'true', 'data' => $content };
+
+#,,,.,,..,,..,,,.,,,,,,,.,.,,,,,,,,,.,,.,,...,..,,...,...,.,.,.,,,..,,,..,,,.,
+#ZPYTDAVGT5Z5SXJT65DR74MY5RBVFNAYPA4CPT3ZCOIALRL5XTXZMT23EHX54M26M4WTPLMSBS5GW
+#\\\|F2H2WSL76KHTLOHM6OMWP2K5VBPBKMB5EDTFGE4J6DC3XP7BHNS \ / AMOS7 \ YOURUM ::
+#\[7]FOY6S44KUCDQENFYCTI42JFVIKBOGINRCEY7BLU22UXAE5MM64AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
