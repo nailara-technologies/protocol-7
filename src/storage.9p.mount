@@ -3,20 +3,80 @@
 # name  = storage.9p.mount
 # descr = mount 9P remote filesystem to local path
 
-## [ stub ] connect + attach to 9P authority and return mount point ##
+## thin adapter over storage.9p.connect ##
+##
+## authority : 'host' or 'host:port' [ default port 5640, matching the
+## storage.9p.connect default ]. IPv6 literals not supported.
+##
+## path      : NOT the 9P attach aname. Callers ( pager.source.9p and
+## storage.9p.scan ) resolve 'path' by walking from the  attached root at scan
+## time, so we attach to the server  root [ aname '' ] and validate 'path'
+## with a probe walk.
+##
+## return    : the mount point path on success [ pager.source.9p checks
+##             '-d $mount_point' ], undef on failure. The connection is
+##             registered under the authority string itself, because
+##             pager.source.9p invokes storage.9p.scan with
+##             name == $p7ref->{'authority'}.
 
 my ($args) = @ARG;
+$args //= {};
 
-my $authority = $args->{'authority'};
-my $path      = $args->{'path'} // '/';
+my $authority = $args->{'authority'} // '';
+my $path      = $args->{'path'}      // '/';
 
-## TODO: implement 9P connect + attach + walk to path  return local mount ##
-## point path on success                                                  ##
+return undef if not length $authority;
 
-return undef;
+## parse authority : 'host' or 'host:port' [ default port 5640 ] ##
+my ( $host, $port ) = $authority =~ m|^([^:]+)(?::(\d+))?$|;
+return undef if not defined $host or not length $host;
+$port //= 5640;
 
-#,,.,,,,.,.,.,,..,,,,,,..,,.,,,,,,.,.,,,.,,.,,.,.,...,...,.,.,,..,...,...,,,.,
-#GSUGZ3WJINFCGNXBHWFSD4TU3QICW27SC7NRHQ7HRJP6ED472CL7DZLJWUHJK5CFMJM35IFTHXJNG
-#\\\|SBWSW7JDM5KNZRGGBUKNHYMWVTUPG4TBQPY7XEJFYYZSAPVHVE2 \ / AMOS7 \ YOURUM ::
-#\[7]T77D3A5OPMEP5PIDY5M4RYFAKTPIF3VBWMZRQZZYFZ4YNUKZLQAA 7  DATA SIGNATURE ::
+my $name = $authority;    ## scan-by-authority convention [ see header ] ##
+
+my $pre_existing = exists $data{'storage'}{'9p'}{'connections'}{$name};
+
+my $result = <[storage.9p.connect]>->(
+    {   'host'  => $host,
+        'port'  => $port,
+        'name'  => $name,
+        'aname' => '',      ## attach to root : path walked at scan time ##
+    }
+);
+
+return undef if not ref $result or $result->{'mode'} eq 'false';
+
+## validate path with a probe walk from root ##
+my @path_parts = grep {length} split m|/|, $path;
+my $conn       = $data{'storage'}{'9p'}{'connections'}{$name};
+
+if ( @path_parts and $conn ) {
+    my $probe_fid = $conn->{next_fid}++;
+    my $walk      = <[storage.9p.walk]>->(
+        $conn, $conn->{root_fid}, $probe_fid, @path_parts
+    );
+
+    if ( $walk->{'mode'} eq 'false' ) {
+
+        ## path not reachable : tear down connection we just created ##
+        if ( not $pre_existing ) {
+            close $conn->{'socket'} if $conn->{'socket'};
+            delete $data{'storage'}{'9p'}{'connections'}{$name};
+        }
+        return undef;
+    }
+    <[storage.9p.clunk]>->( $conn, $probe_fid );
+}
+
+## mount point -> connection mapping for storage.9p.umount ##
+$data{'storage'}{'9p'}{'mounts'}{$path} = $name;
+
+<[base.logs]>->("Storage 9P: mounted $authority at $path");
+
+return $path;
+
+#,,,.,..,,,.,,.,.,...,..,,..,,..,,,,,,.,,,.,.,.,.,...,.,.,...,..,,...,,.,,...,
+#HM2KC74IPS725PYTDDWIIK6GT24UCCLRK4KFEVRY3JH7L5OOGRW477S623H57PVSJFVN3KEP2TGKO
+#\\\|H4VFNYADMS3OTP76NCKD2E6KWTCR7CZRCMEWP3LOSZQFD7R3QYX \ / AMOS7 \ YOURUM ::
+#\[7]IU7LZMK7MGFHWIA45H7LWVEKK3GPUR4HMW5UUY6W7UZWW4XIMEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

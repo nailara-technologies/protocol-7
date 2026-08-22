@@ -52,7 +52,10 @@ while (1) {
         $pos += 2 + $stat_size;
 
         # Extract name from stat
-        my $name_pos = 2 + 2 + 4 + 13 + 4 + 4 + 4 + 8;    # Skip to name field
+        # $stat_data excludes the entry's leading size[2] field, so name
+        # starts at 2+4+13+4+4+4+8 = 39 (type dev qid mode atime mtime
+        # length), not 41.
+        my $name_pos = 2 + 4 + 13 + 4 + 4 + 4 + 8;    # Skip to name field
         next if $name_pos >= length($stat_data);
 
         my ( $name, $rest )
@@ -70,8 +73,8 @@ while (1) {
 
 return { 'mode' => 'true', 'data' => \@entries };
 
-#,,,.,...,.,,,,..,,..,,.,,.,,,,,.,,.,,,.,,.,.,.,.,...,...,,..,,,,,,,,,,.,,,,.,
-#LO5OIN5IU2BW7ZP4T75B7UGJNYLK4US2EVD3FPSXG34JQNNMNZXGAOMK32SFLWHVH7MI4CZW6DR2W
-#\\\|3AX3OD7F6BGOJK6NX5MNIDFH6MEV7RGWXDV337IWZFNAHU74FQ3 \ / AMOS7 \ YOURUM ::
-#\[7]BRLY2OPKJL3TK3NXFD3CIGNL6WS3PIJGSKU2CQGPTOVG6XSJ4SCI 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,,..,..,,.,.,,,,,...,.,.,..,,.,.,...,...,.,,,...,.,,,,..,.,.,
+#KPZSHAZMMZG7LFJ3MYH6CAJRI3J5UYRLZLM3YMXOSLBGY6I2REMIFJXPYEYW25HX2QKUOAG3336GA
+#\\\|RF77N4YUJ6TIXDYTEEKVJH3SRPOILH6DAPVD4CC424JDJ4MUCYJ \ / AMOS7 \ YOURUM ::
+#\[7]3SMRNY5TUUNQHUACBJE36AOJ2BX67ZNPKUZYW325OX362VG4GUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
