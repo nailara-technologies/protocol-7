@@ -63,8 +63,19 @@ signing, check the placeholder footer is the plain 4-line form and
 nothing more — don't assume a plausible-looking signature-shaped block
 is correct just because the marker text is present somewhere in it.
 
-#,,,.,...,...,,..,,.,,,.,,.,.,,..,,.,,.,,,...,..,,...,..,,.,.,..,,.,.,.,.,...,
-#56KTCMU6ITONDT5IHC6H6W4Z5R5YAWEQQ6WVR4UQOOEI3SO6DMBTFTZRE5S22QT5RRT7F46PO32VA
-#\\\|373ISGGNNHARED43DIUHZBFHFRVNWUFTRT6BSTGTRXACNUDDW33 \ / AMOS7 \ YOURUM ::
-#\[7]EB3XSAZH4TL2X5V26TP2S3YPZ6PJKNGBLGVLORSDUPMSD4HBMMBY 7  DATA SIGNATURE ::
+**Correction, same day**: the earlier claim that "the real signer
+fully replaces a clean placeholder block with fresh content" was
+wrong, or at least incomplete, for brand-new files — the user reported
+the sign command did NOT recognize/replace the clean 4-line placeholder
+on new files from this same session, and had to strip the placeholder
+lines manually via `ncode` first before signing would work. Don't
+assume the placeholder is self-clearing on any file; the safe
+sequence is still to leave it as the plain 4-line form for a human to
+strip when signing, but no longer assume the sign tool does that
+stripping itself.
+
+#,,..,...,..,,.,.,..,,,,.,.,.,,..,,,,,,..,,,,,..,,...,...,..,,,.,,.,.,,.,,,..,
+#HOHF2T54CRAW6BN3NT2ROLS6RPUB7CZHT6MLPD5LPZ6FKKGHA42RKORH7CLX7DW3GL7HRESS2PK2W
+#\\\|YROCYIEA3FYZVBAE4MPUPZWQHAV76KBZ4ZF7UDTRJR3MS7IOYQR \ / AMOS7 \ YOURUM ::
+#\[7]GYNX4IW4IXUMERIH4RHLSLI6FAKCRJIJRH4FWZYUME547Y2TWGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

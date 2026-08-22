@@ -61,9 +61,12 @@ $state->{'pending'}      = undef;
 $state->{'reply_buffer'} = qw||;
 
 my $handler = $pending->{'reply_handler'} // return TRUE;
+## qw| ... | . qw| ... | evaluates each list in SCALAR context via the ##
+## comma operator -- returns only the LAST word of each list, silently ##
+## dropping the rest (also the source of "useless use of a constant"   ##
+## warnings for every earlier word). Plain string, not word-lists.     ##
 my $timeout_reply
-    = qw| [unanswered - timeout degrade] | . ' '
-    . qw| proceed on flagged assumption |;
+    = '[unanswered - timeout degrade] proceed on flagged assumption';
 
 if ( ref $handler eq qw| CODE | ) {
     $handler->( $question, $timeout_reply );
@@ -76,8 +79,8 @@ if ( ref $handler eq qw| CODE | ) {
 
 return TRUE;
 
-#,,,.,,,,,...,,,.,..,,,,.,..,,.,,,,,,,..,,,.,,..,,...,...,,.,,..,,,,.,,.,,,,,,
-#CNDMFPW2XTYRB5RPR622ACCUQN3MS7EG6UDFWOIFGAR5HFMFTLHE3M7CBWCX2DCRTLE6LM2YNHWMC
-#\\\|MAGUK3T5SGXMEGD6FCSCVVPM4BB3MVKTIEJ5H4LNR44QX756UUP \ / AMOS7 \ YOURUM ::
-#\[7]QRO6XYM7S4AL2GXE2XA36PCA5YJMK6ESG6RISPHYMQTRCZBZEWAA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,,,,.,,,,,,,.,,,.,,,,.,,.,,,,,,..,,...,...,..,,.,.,.,.,,.,,..,,
+#QBNYTVJOIQCJNCNHT6WZX6MBZMSJDGJTDAF7IFOZXSE52ROHNBYPIDSE66VEIQ5HIPYYJMRICYIQU
+#\\\|NJ24JPKVSCNCOTAANT7IZG5SJX5XLBODX7TLTPY3NI54TGYU4ZD \ / AMOS7 \ YOURUM ::
+#\[7]CXBJC7GMAABY3TBY37NQRD4MOMLQRT5KMFYQD5VIQMU3ECNFY4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
