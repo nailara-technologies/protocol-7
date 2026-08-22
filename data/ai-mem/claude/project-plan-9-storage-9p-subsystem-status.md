@@ -53,33 +53,69 @@ loop was bound but never registered with `event.add_io`, socket-vs-fd
 passing to `base.net.send_to_socket`, `File::stat` shadowing on the
 new real-directory export code — see [[feedback-file-stat-shadowing]]).
 
-**Read-only, single real-path export granularity right now**:
-`plan-9.cmd.export-directory <path> <name>` registers one directory at
-a time into the server's buffer registry; no recursive auto-export,
-no write support yet (`plan-9.server.realpath-read` only implements
-reads). Test harnesses used during live verification were rescued
-from `/tmp/p7-9p-test/` into `bin/test-scripts/9p-live-test/` (would
-not have survived a reboot otherwise) — that directory's own
-`README.md` explains each script.
+Test harnesses used during live verification were rescued from
+`/tmp/p7-9p-test/` into `bin/test-scripts/9p-live-test/` (would not
+have survived a reboot otherwise) — that directory's own `README.md`
+explains each script.
+
+## update 2026-08-22 (same day, second round): write support landed
+
+`plan-9.cmd.export-directory <path> <name> [:rw:] [:symlinks:
+reject|contained|allow]` — both flags default to the safe/restrictive
+option (read-only, `reject`). `handle_walk` enforces the symlink
+policy at walk time (checked with `-l`, never following an untrusted
+link) and propagates `writable`/`root`/`symlink_policy` through every
+level of a nested walk; `handle-io-open`/`handle-io-write` gained
+`OTRUNC` handling and a real write-mode gate (fixed a latent bug where
+`OEXEC` was incorrectly treated as writable — `& 0x03 == 0` isn't the
+right check when `OEXEC == 3`).
+
+`storage.9p.*` had **no file-content read/write at all** before this
+round — only directory listing/stat (`storage.9p.open` existed but
+nothing called `Tread`/`Twrite`). Added `storage.9p.read`/`.write`
+(low-level) and `.read-file`/`.write-file` (high-level: walk+open+
+read-loop-or-write+clunk) plus `storage.cmd.plan9-read-file`/
+`plan9-write-file`. No `Tcreate`/`Tremove`/`Twstat` — writes only
+replace bytes of a file that already exists.
+
+Also fixed a real, independently-hit bug: `storage.cmd.plan9-connect`
+defaulted to port 5640, but the server's actual default
+(`plan-9.config`) is 15640 — silent "connection refused" for anyone
+omitting the port. Client and server config defaults drifting apart
+like this is a class worth checking for elsewhere in the codebase
+whenever a client/server pair has its config split across two files.
+
+Recursive descent (multi-level `Twalk`, `storage.9p.scan`'s recursive
+client walker) turned out to already be fully implemented from before
+real-directory export existed — this round was the first time it was
+exercised against a real one. Live-verified with a 3-level nested test
+tree containing both a contained symlink and one escaping the export
+root, confirming all three symlink policies behave correctly and
+recursion/byte-content is correct at every level.
+
+Landed as `f36ccfd7b`.
 
 ## how to use this if picking the subsystem back up
 
-- Client-side entry points: `storage.9p.*` (connect/mount/umount/
-  walk/stat/readdir/scan), routed through cube as `storage.<name>`
-  (the `.9p.` segment, like `.cmd.`, is stripped by cube's own
-  convention — don't include it when typing a live command).
+- Client-side entry points: `storage.9p.*` (connect/scan/read-file/
+  write-file/mount/umount/walk/stat/readdir), routed through cube as
+  `storage.<name>` (the `.9p.`/`.cmd.` segment is stripped by cube's
+  own convention — don't include it when typing a live command).
 - Server-side entry points: `plan-9.cmd.export-directory`/
   `plan-9.cmd.export-buffer` (also cube-routed as `plan-9.export-*`),
   backed by `plan-9.server.*`.
-- If extending write support or recursive export, re-read
-  `data/md/design/STORAGE-9P.md` and `STORAGE-MAPPING-PLUGINS.md`
-  first (both were updated this session for the rename, so should be
-  current) — and re-verify the double-size-prefix stat-record quirk
+- Still open, not started: `Tcreate`/`Tremove`/`Twstat` (create/
+  delete/rename over 9P) — deliberately out of scope so far, a
+  separate and larger increment if ever needed.
+- If extending further, re-read `data/md/design/STORAGE-9P.md` (now
+  documents the write commands, the symlink-policy flag, and the
+  server/client module tables) and `STORAGE-MAPPING-PLUGINS.md` first
+  — and re-verify the double-size-prefix stat-record quirk
   (`storage.9p.stat`'s buffer INCLUDES the entry's own leading size[2]
   field, `storage.9p.readdir`'s EXCLUDES it) before touching either.
 
-#,,,,,,..,,,,,,,,,.,,,,..,,,.,.,,,...,.,.,.,,,..,,...,...,...,,..,.,,,,.,,,,.,
-#7QBAL2SEW2GTIK3IQJT2YST575W3LR53VPGPB5NBUSKLSKO34C6VAETIVC26INSL4B3KYMVH64SRY
-#\\\|HZSCUZ5ART4XSFNNUC6RXDN76VSVE55SPRPAEZ425CX6L3DVYC3 \ / AMOS7 \ YOURUM ::
-#\[7]S5CVEP3E3V34XHZQJ5ICAYOHTQQ6HUZO5IEWGXKSIMO4UUHJFICQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,,,.,.,,,.,,,,..,,,.,,.,,,,,,..,,...,..,,,,,,...,,.,,,..,..,,
+#K25H7KGAZB567T4RIZYXXCF73D3K4WRYNJNHPTXO6ORWUYIZJFV7UUI2SF2WHFUPMOHL2VSSX433S
+#\\\|UMISMC5EMDHSTCHTY7OI3V7IQQPNMCS6QXYDJ3THEOV7SHEQUPH \ / AMOS7 \ YOURUM ::
+#\[7]YTHVF5JLQYLSAUGU2NJOEG3C3D6SFK6CVVJCTI75YKNEVURI5CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
