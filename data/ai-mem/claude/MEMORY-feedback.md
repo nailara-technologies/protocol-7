@@ -94,9 +94,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [check-existing-safety-nets-before-adding-new-one](feedback-check-existing-safety-nets-before-adding-new-one.md) — coding zenka's async/self-test machinery has multiple deliberately-layered, cross-referencing watchdogs with a documented history of drifting out of sync (4c3cf0e73); grep for an existing timer on the same flag before writing a new one, advisor caught me about to duplicate `verify_inference_startup`'s fallback with an independent literal ceiling
 - [use-constant-vs-data-tree-const](feedback-use-constant-vs-data-tree-const.md) — `use constant {...}` populates a Perl-only symbol table, NOT the `%data` tree `<namespace.KEY>` reads from; was the silent root cause breaking the entire 9P subsystem since 2026-03-27 — cross-module shared constants need `const <path> => {...}` (Const::Fast) in a `.pre_init` file, per `crypt.C25519.init_code` precedent
 - [live-verify-dispatch-must-spell-out-cube-routing](feedback-live-verify-dispatch-must-spell-out-cube-routing.md) — a k3-256k live-verification dispatch burned ~85% of session budget not knowing cube strips `.cmd.`/`.9p.`-style segments from routable command names; any live-exercise dispatch prompt must spell out the exact routable command, start order, and auth grants — don't assume this is inherited knowledge
+- [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 
-#,,,.,...,..,,,,,,..,,.,.,...,..,,...,..,,,.,,..,,...,...,,,.,..,,,.,,,.,,...,
-#TDYYBHLJRDER3V5FG7DS4TUXMVT7PLQOPXOSV4F6YW2WCRQSI3GKJWBTXX64YZSZQYTBUN6MV5ZS6
-#\\\|O4ON6NGL4V52NZ6YCWVKNAK4IWWZI6FKUMMKJZN7ABVHBPEHXFG \ / AMOS7 \ YOURUM ::
-#\[7]N5ZNKSKJHOZ7ULPLMJG76TVUGM5IISZ3MCZ52NNDOOBJZWWC2GCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,...,,..,.,,,,..,,..,,,.,,.,,..,,...,...,,,,,,,,,,,.,..,,,.,,
+#7TDMWEILOKPUMN2RW3EYQ4WRJVFHBU4UYRYPCI7IDPB2GUBXGVKU5RQOPHMCP33U4UC2ELBBW4M5C
+#\\\|5VMN6FMD2JQOHQHKKLOE5FHLW3KCZBTW3JGQEDUTSNSH6YKYUX4 \ / AMOS7 \ YOURUM ::
+#\[7]KTATIRGMBB6TYVRNVETFNJU2ZK4B5KRGWBVFJZ7NBFZW3V6XJUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,10 +75,16 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   live-verified real-directory 9P2000 server+client (new `plan-9` zenka, v7/cube-integrated). Root
   cause was [[feedback-use-constant-vs-data-tree-const]] on both sides at once; also fixed cube
   command-name leading-digit rejection, unwired event loop, socket-vs-fd send bug, `File::stat`
-  shadowing on new real-dir export code. History/next-steps for this subsystem live in the linked file.
+  shadowing on new real-dir export code. **Same-day follow-up LANDED f36ccfd7b**: opt-in write
+  support (`:rw:` + `:symlinks: reject|contained|allow` on `plan-9.cmd.export-directory`, all
+  default to the safe/restrictive option), new `storage.9p.read`/`.write`/`.read-file`/`.write-file`
+  client primitives (none existed before — client was read-metadata-only), and live verification of
+  the already-written-but-never-tested recursive Twalk/scan descent against a real nested tree with
+  contained + escaping symlinks. See [[feedback-data-shadow-and-client-server-config-drift]] for two
+  smaller findings from the same round. History/next-steps live in the linked file.
 
-#,,.,,,..,,,.,,,,,,,.,.,.,...,,,,,..,,,,,,.,,,..,,...,...,..,,...,,,,,,.,,.,.,
-#A6PLS7A44W4KK4RCABG52MEQ76INXFHVR47YEO6UVE2JNACEYGHZ5IJQV4H546DH43EUGSTZNTQL6
-#\\\|OOEDQNHFP47RDJW4EMR5C3P62WXIWGEZALY3CREQ7FDL53D7TCE \ / AMOS7 \ YOURUM ::
-#\[7]WP6P4G3K3H3YPXK4FA5OT6LBG4BQSEQXD47EWA7QILJER3GVF2BA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,.,,,,.,,..,,,,.,,..,.,.,.,,,..,,...,...,.,.,,,,,,,.,,,,,,,.,
+#HZKGZVWZXH6HP26OYINGWCE4J3PTO6O3P74ZRRNZR7IPWWB72HRZP4YBH4WVNPBHIBELOZHTZ3XL4
+#\\\|64GGQRBGYPYL67KDQPXRCMIYJW5IZ4UII7IFIRZB5TT7AOCDYVA \ / AMOS7 \ YOURUM ::
+#\[7]ZTS2BYLP6YW4XKWY3Z76LM57NFFGKPTAVS24WZEHXSVDZDFDFYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
