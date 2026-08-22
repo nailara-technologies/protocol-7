@@ -92,9 +92,11 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [frictionless-capture-dissolves-deferral](feedback-frictionless-capture-dissolves-deferral.md) — a precise mid-session one-liner spec ("add :stage: switch...") is evidence the diagnostic work is already done; implement same-session, don't park as a todo just because it looks small/personal
 - [modal-prompt-navigation-never-loses-content](feedback-modal-prompt-navigation-never-loses-content.md) — a cancel-on-navigation key (Left-as-Esc in a modal prompt) must gate on buffer CONTENT being empty, never cursor position — ordinary cursor movement must never be able to discard typed text; caught live in editor.control.prompt.handler.key, applies to any future modal input control
 - [check-existing-safety-nets-before-adding-new-one](feedback-check-existing-safety-nets-before-adding-new-one.md) — coding zenka's async/self-test machinery has multiple deliberately-layered, cross-referencing watchdogs with a documented history of drifting out of sync (4c3cf0e73); grep for an existing timer on the same flag before writing a new one, advisor caught me about to duplicate `verify_inference_startup`'s fallback with an independent literal ceiling
+- [use-constant-vs-data-tree-const](feedback-use-constant-vs-data-tree-const.md) — `use constant {...}` populates a Perl-only symbol table, NOT the `%data` tree `<namespace.KEY>` reads from; was the silent root cause breaking the entire 9P subsystem since 2026-03-27 — cross-module shared constants need `const <path> => {...}` (Const::Fast) in a `.pre_init` file, per `crypt.C25519.init_code` precedent
+- [live-verify-dispatch-must-spell-out-cube-routing](feedback-live-verify-dispatch-must-spell-out-cube-routing.md) — a k3-256k live-verification dispatch burned ~85% of session budget not knowing cube strips `.cmd.`/`.9p.`-style segments from routable command names; any live-exercise dispatch prompt must spell out the exact routable command, start order, and auth grants — don't assume this is inherited knowledge
 
-#,,.,,,,,,...,,,,,,,.,,,.,,,,,..,,,,,,.,,,,.,,..,,...,...,..,,.,.,,.,,.,,,,..,
-#PKUYVQ3TZV3SDSDUYAWVGFNX7OSZVK26426BXTL4KXDXG6EZWRGUMVN7LTF6MIXJEZHIL6TRPHC6O
-#\\\|JZIBOKIBVS4PQAFZDVDPE2XOJUJQXOMAF4NKXN2EGK3QXZPIO5G \ / AMOS7 \ YOURUM ::
-#\[7]6GBJDT42W6GJF5BO3LKKZNHDRRCCLOTY4COTQMQLOWQBCYHRLOAA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,,,..,,.,.,...,..,,...,..,,,.,,..,,...,...,,,.,..,,,.,,,.,,...,
+#TDYYBHLJRDER3V5FG7DS4TUXMVT7PLQOPXOSV4F6YW2WCRQSI3GKJWBTXX64YZSZQYTBUN6MV5ZS6
+#\\\|O4ON6NGL4V52NZ6YCWVKNAK4IWWZI6FKUMMKJZN7ABVHBPEHXFG \ / AMOS7 \ YOURUM ::
+#\[7]N5ZNKSKJHOZ7ULPLMJG76TVUGM5IISZ3MCZ52NNDOOBJZWWC2GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

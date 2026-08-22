@@ -45,8 +45,20 @@ imports before modules compile [ `use English;`, various AMOS7
 exports ]. Treat the set as a shared compile-time preamble when
 reasoning about module scope.
 
-#,,,,,..,,..,,...,,,,,,,.,.,.,,,.,,,,,,,.,.,,,..,,...,...,.,,,,.,,.,,,..,,,,.,
-#HYLOIGXI5OMU57IQVZVAYZDLJH4FVYOHDIWGP5JXIEVV2XND2VZC5YFUXVDLD2XW3BVKHJ7BVMVIC
-#\\\|MBKWQTB4PXRNUIZ3YNVNNNQJPBF6H6V4URHSE6SHDXRXDHU6OUL \ / AMOS7 \ YOURUM ::
-#\[7]5DTZUPBU55YA6SWVFVRYZ7K5TZNBBZ2JASMC4EIQU6C7ZAQ54ABY 7  DATA SIGNATURE ::
+**Second independent hit, 2026-08-22**: rediscovered from scratch (same
+`CORE::stat` A/B diagnostic, before recalling this memory existed) while
+building `plan-9.server.buffer-stat`/`realpath-read`'s real-directory
+9P export — a bare `stat($path)` there silently returned an empty list,
+sizes displayed as 0 for every real file. Fixed the same way, `File::
+stat::stat($path)` OO form with a `$st ? $st->size : 0` guard, matching
+existing precedent already live in `plugin.web.space.grid.scan`/
+`index.scan`. This memory apparently didn't surface in that session's
+context despite being directly on-point — worth deliberately searching
+memory for "stat" whenever writing or reviewing any P7 module that
+touches file metadata, not just relying on automatic retrieval.
+
+#,,.,,..,,...,..,,,,.,,,.,.,,,...,,,.,,..,..,,..,,...,..,,.,.,,.,,,,,,...,,,,,
+#7TNT337NRPHTZDEWSA4VA64URNUZ3WNROOLOIV6VAMXYEUZW7ZAEGS7MJEUL65Y74W5ELX5FL2AMW
+#\\\|LRRV7QFG2RW445XVUNNR3BV4KJIJAM6OR2IGM2ZGODHNXO3HUHW \ / AMOS7 \ YOURUM ::
+#\[7]IU4K4H3Q2ZSNA6DKENYVLWYR5626NZFCMTQTVPXLFJM53UEWUQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

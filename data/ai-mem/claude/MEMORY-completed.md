@@ -70,9 +70,15 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   mostly pre-existing from a Nov 2025 filter-branch event) surfaced during unrelated history
   hygiene work. New `bin/dev/fix-tag-drift` script + `commit-map` root-cause-split method fixed 124/127,
   deleted 3 genuinely-abandoned-release tags rather than force-matching them.
+- [plan-9/storage 9P subsystem, 2026-08-22](project-plan-9-storage-9p-subsystem-status.md) — LANDED
+  599a24103: `storage.9p.*`/`plan-9.*` taken from "never worked since written 2026-03-27" to fully
+  live-verified real-directory 9P2000 server+client (new `plan-9` zenka, v7/cube-integrated). Root
+  cause was [[feedback-use-constant-vs-data-tree-const]] on both sides at once; also fixed cube
+  command-name leading-digit rejection, unwired event loop, socket-vs-fd send bug, `File::stat`
+  shadowing on new real-dir export code. History/next-steps for this subsystem live in the linked file.
 
-#,,,.,,,.,,,.,,,.,...,.,,,,.,,,..,,..,...,.,,,..,,...,...,.,,,,..,,.,,...,,,.,
-#OYUYZ7HRBU77DYCJ632XERZFPIUZIB7ULUJHK4XVCWIH4MKZEAMEYWEMMHR3WPIRXGIO34G5PFMGI
-#\\\|PUBNDORYSD5GJAGWPNELSD7F2G5KOGJWOEOSWN3PEVDLA4KV4QM \ / AMOS7 \ YOURUM ::
-#\[7]NNPEYRT4IJKZM5KLST2SDZG4Q7JFGNKLXBO6ZITXNBFWPIAZQQCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,,,.,.,.,...,,,,,..,,,,,,.,,,..,,...,...,..,,...,,,,,,.,,.,.,
+#A6PLS7A44W4KK4RCABG52MEQ76INXFHVR47YEO6UVE2JNACEYGHZ5IJQV4H546DH43EUGSTZNTQL6
+#\\\|OOEDQNHFP47RDJW4EMR5C3P62WXIWGEZALY3CREQ7FDL53D7TCE \ / AMOS7 \ YOURUM ::
+#\[7]WP6P4G3K3H3YPXK4FA5OT6LBG4BQSEQXD47EWA7QILJER3GVF2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
