@@ -1,0 +1,26 @@
+## [:< ##
+# name  = storage.9p.remove
+# descr = Remove file/directory on 9P server
+
+my ( $conn, $fid ) = @ARG;
+
+my $tag = ++$conn->{tag} & 0xFFFF;
+my $req = <[plan-9.protocol.codec.encode-uint32]>->($fid);
+
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Tremove>,
+    $tag, $req
+);
+
+$conn->{socket}->send($msg);
+
+my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+delete $conn->{fids}{$fid};
+
+return $resp;
+
+#,,.,,...,,,.,,..,,,.,.,.,..,,,..,,..,...,..,,.,.,...,...,.,.,,,.,...,.,.,.,.,
+#6LC5F2YMARFCAQGCBNILPZBSO5Y4RQD4DAALTC3HXGSFJTL5NZQWCNRU3BB4XPTJ5C5A4QRTSYWEG
+#\\\|43BAX6N22Q2RMNY4ICH5VD6E7BETRCWETZ67M6ZO5JDZLXLFEDM \ / AMOS7 \ YOURUM ::
+#\[7]DU67OFILGTONNCIFUFT4JFAQWOA4537FXKAPO5DBHJMWKTZCOUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

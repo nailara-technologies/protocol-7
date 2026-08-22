@@ -1,0 +1,79 @@
+## [:< ##
+# name  = plan-9.server.handle-io-create
+# descr = Handle 9P Tcreate/Rcreate
+
+my ( $client, $tag, $data ) = @ARG;
+
+my $fid = <[plan-9.protocol.codec.decode-uint32]>->( substr( $data, 0, 4 ) );
+my ( $name, $rest )
+    = <[plan-9.protocol.codec.decode-string]>->( substr( $data, 4 ) );
+my $perm = <[plan-9.protocol.codec.decode-uint32]>->( substr( $rest, 0, 4 ) );
+my $mode = <[plan-9.protocol.codec.decode-uint8]>->( substr( $rest, 4, 1 ) );
+
+my $f = $client->{fids}{$fid};
+return <[plan-9.protocol.error]>->( $tag, "invalid fid" ) unless $f;
+
+return <[plan-9.protocol.error]>->( $tag, "not a directory" )
+    unless $f->{type} eq 'realpath' and -d $f->{realpath};
+
+return <[plan-9.protocol.error]>->( $tag, "invalid path component" )
+    if $name eq ''
+    or $name eq '.'
+    or $name eq '..'
+    or $name =~ m{/};
+
+return <[plan-9.protocol.error]>->( $tag, "export is read-only" )
+    unless $f->{writable};
+
+my $child = "$f->{realpath}/$name";
+
+return <[plan-9.protocol.error]>->( $tag, "already exists" ) if -e $child;
+
+my $is_dir = $perm & <plan-9.protocol.constants.DMDIR> ? 1 : 0;
+
+if ($is_dir) {
+    mkdir($child)
+        or return <[plan-9.protocol.error]>->( $tag, "cannot create: $!" );
+} else {
+    open( my $fh, '>', $child )
+        or return <[plan-9.protocol.error]>->( $tag, "cannot create: $!" );
+    close($fh);
+}
+
+$data{'plan-9'}{'server'}{'realpath_qids'}{$child}
+    //= $data{'plan-9'}{'server'}{'next_qid'}++;
+
+my $qid_type
+    = $is_dir
+    ? <plan-9.protocol.constants.QTDIR>
+    : <plan-9.protocol.constants.QTFILE>;
+
+$client->{fids}{$fid} = {
+    type           => 'realpath',
+    realpath       => $child,
+    root           => $f->{root},
+    writable       => $f->{writable},
+    symlink_policy => $f->{symlink_policy},
+    qid            => {
+        type    => $qid_type,
+        version => 0,
+        path    => $data{'plan-9'}{'server'}{'realpath_qids'}{$child},
+    },
+    open  => 1,
+    omode => $mode,
+};
+
+my $resp = <[plan-9.protocol.codec.encode-qid]>->(
+    $qid_type, 0, $data{'plan-9'}{'server'}{'realpath_qids'}{$child}
+) . <[plan-9.protocol.codec.encode-uint32]>->( $client->{msize} // 8192 );
+
+return <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Rcreate>,
+    $tag, $resp
+);
+
+#,,,.,,..,.,,,,,,,.,,,,,,,.,.,..,,,,,,..,,..,,.,.,...,..,,...,..,,..,,..,,,..,
+#NGUABSR3Z5XEDCG6VVCWVCY47MRRVV3Z2V77RTNIKNITZBSEGF7PC2TQN4ZWP3QQSJ77NYRFYGG6S
+#\\\|MDOGSSZYXLN5QTZI4Y6SEG5LE2XXUF7SJVWPHYKUYWEV4YY7ZIL \ / AMOS7 \ YOURUM ::
+#\[7]CH3JVEJ53FGODW4IEOS4JDZOEZ2GRVJYUNHI74JVUXJVCBEBTCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

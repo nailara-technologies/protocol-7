@@ -1,0 +1,30 @@
+## [:< ##
+# name  = storage.cmd.plan9-remove
+# descr = Remove a path over 9P
+
+my $args = $call->{'args'} // '';
+my ( $name, $path ) = split /\s+/, $args, 2;
+
+if ( not length( $name // '' ) or not length( $path // '' ) ) {
+    return {
+        'mode' => 'false',
+        'data' => 'usage: plan9-remove <connection-name> <path>'
+    };
+}
+
+my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
+
+my $result = <[storage.9p.remove-path]>->( $conn, $path );
+return $result if $result->{'mode'} eq 'false';
+
+return {
+    'mode' => 'size',
+    'data' => "Removed $path\n"
+};
+
+#,,.,,...,,,.,..,,.,.,.,.,..,,,,.,.,.,,,.,,.,,.,.,...,...,.,,,..,,..,,.,,,..,,
+#PWIMQ2I54NQ7UGFU467CAUGCIWOGEXETKIGZK637LLAXLZQIHY674RSYMIXYODZTW6N2FQG74EKDS
+#\\\|GEF755HYT223N6P6INWNG3MK2ZTWIWEJNN37RY4BNG3FQ4VMHV3 \ / AMOS7 \ YOURUM ::
+#\[7]VZUYD5HIGBUYA2ZKF3CJPEIGZM3SZU4T4PQBRYOEGQCQ7K5WKSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

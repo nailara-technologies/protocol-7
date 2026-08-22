@@ -1,0 +1,23 @@
+## [:< ##
+# name  = storage.9p.remove-path
+# descr = High-level remove path on 9P server
+
+my ( $conn, $path ) = @ARG;
+
+my @parts = grep {length} split m|/|, $path;
+my $fid   = $conn->{next_fid}++;
+
+my $walk_result
+    = <[storage.9p.walk]>->( $conn, $conn->{root_fid}, $fid, @parts );
+return $walk_result if $walk_result->{'mode'} eq 'false';
+
+my $remove_result = <[storage.9p.remove]>->( $conn, $fid );
+return $remove_result if $remove_result->{'mode'} eq 'false';
+
+return { 'mode' => 'true', 'data' => $path };
+
+#,,,,,,..,.,,,.,,,,,.,,,.,,..,,,.,,..,,.,,,.,,.,.,...,..,,.,.,,..,,,,,,.,,,..,
+#6V5V2IOICQAVJDLMACYBP2MNDB6ASOUR7MDVIAIUF2JDDRBNAAEQYIXDJPGY7LPRBQQV5CC4NXXKC
+#\\\|4WUROMAZITTZ63FYARF5ETVURQFV5PBTC6EA4YTLLJCFRRQB5RY \ / AMOS7 \ YOURUM ::
+#\[7]C5WGSILKU2JDWKW6Y5JD7NUH43BER2ZMYTZG64ZT26JGONEE5WAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

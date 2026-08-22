@@ -65,13 +65,39 @@ plan9-write-file <connection-name> <path> <content>
 - `plan9-read-file` walks to the path, opens `OREAD`, reads in
   `iounit`-sized chunks until EOF, clunks the fid, returns the whole file.
 - `plan9-write-file` walks to the path, opens `ORDWR|OTRUNC` (truncating
-  the target first), writes `<content>` at offset 0, clunks the fid.
-  There is no `Tcreate` support — the target file must already exist, and
-  a write against a non-existent path fails with "file not found" rather
-  than creating one. Whether the write actually succeeds also depends on
-  the export it resolves through (see "Server: Exporting Real Directories"
-  below) — a real 9P client, not just this cube command, hits the same
-  gate.
+  the target first), writes `<content>` at offset 0, clunks the fid. The
+  target file must already exist — see `plan9-create` below for making a
+  new one. Whether the write actually succeeds also depends on the export
+  it resolves through (see "Server: Exporting Real Directories" below) —
+  a real 9P client, not just this cube command, hits the same gate.
+
+### plan9-create / plan9-remove
+
+```
+plan9-create <connection-name> <path> [:dir:] [<content>]
+plan9-remove <connection-name> <path>
+```
+
+- `plan9-create` walks to the PARENT directory, issues `Tcreate` for the
+  leaf name, and — unless `:dir:` is given — writes `<content>` (if any)
+  into the new file at offset 0. `:dir:` creates a directory instead
+  (`Tcreate` with the `DMDIR` perm bit) and ignores any trailing content.
+  Fails with "already exists" if the target is already there — there is
+  no implicit overwrite; use `plan9-write-file` to replace an existing
+  file's content instead.
+- `plan9-remove` walks directly to the target and issues `Tremove`, which
+  deletes it and releases the fid in one step (per 9P spec, `Tremove`
+  clunks the fid regardless of whether the removal itself succeeded).
+  Removing a non-empty directory fails cleanly (`rmdir` semantics — no
+  recursive delete, by design) and removing an export's own root
+  directory is rejected outright ("cannot remove export root").
+- Both commands hit the same `writable` gate as `plan9-write-file` — a
+  read-only export (no `:rw:` at export time) rejects both with "export
+  is read-only".
+- **No `Twstat` support** — there is no rename or permission-change
+  command. Adding it needs a `decode-stat` codec module (none exists
+  yet) plus handling 9P's "don't-touch sentinel" field convention;
+  deliberately deferred as a separate, larger increment.
 
 ## Filter Logic
 
@@ -185,10 +211,12 @@ plan-9.export-directory <path> <name> [:rw:] [:symlinks: reject|contained|allow]
     of symlinks, blocking them unconditionally would limit legitimate
     use — `contained` is the middle ground for exports where that
     matters.
-- Neither `Tcreate` nor `Tremove` nor `Twstat` are implemented — writes
-  only ever replace the bytes of a file that already exists (via
-  `Twrite`, with `OTRUNC` honored at open time). Creating, deleting, or
-  renaming files over 9P is out of scope for now.
+- `Tcreate` and `Tremove` are implemented (see `plan9-create`/`plan9-remove`
+  above) — both respect the same `writable` gate, and `Tremove` refuses
+  to delete an export's own root directory. `Twstat` (rename/permission
+  change) is **not** implemented — that needs a `decode-stat` codec
+  module that doesn't exist yet, plus 9P's "don't-touch sentinel" field
+  semantics; deferred as a separate, larger increment.
 
 Recursive descent (multi-level `Twalk`, and `storage.9p.scan`'s
 recursive client-side walker) was already implemented before real
@@ -210,6 +238,8 @@ symlink, exercising all three policies.
 | `plan-9.server.handle-io-open` | Topen — write-mode gate, OTRUNC |
 | `plan-9.server.handle-io-read` / `.realpath-read` | Tread — directory listing / file bytes |
 | `plan-9.server.handle-io-write` | Twrite — vterm layer + realpath file writes |
+| `plan-9.server.handle-io-create` | Tcreate — new file/directory, writable + name-validity gated |
+| `plan-9.server.handle-io-remove` | Tremove — delete, writable-gated, always clunks the fid |
 | `plan-9.cmd.export-directory` | CLI export command |
 
 ### 9P Client, Low-Level (`storage` zenka)
@@ -224,6 +254,8 @@ symlink, exercising all three policies.
 | `storage.9p.readdir` | Read directory contents |
 | `storage.9p.read` | Read bytes from an open file (Tread) |
 | `storage.9p.write` | Write bytes to an open file (Twrite) |
+| `storage.9p.create` | Create a new file/directory (Tcreate) |
+| `storage.9p.remove` | Delete a file/directory (Tremove) |
 | `storage.9p.stat` | Get file metadata |
 | `storage.9p.clunk` | Close/release resources |
 | `storage.9p.read-message` | Protocol message handling |
@@ -236,10 +268,14 @@ symlink, exercising all three policies.
 | `storage.9p.filter-check` | Pattern matching logic |
 | `storage.9p.read-file` | Whole-file read (walk+open+read-loop+clunk) |
 | `storage.9p.write-file` | Whole-file write (walk+open+write+clunk) |
+| `storage.9p.create-file` | Create file/directory (walk-to-parent+create[+write]+clunk) |
+| `storage.9p.remove-path` | Delete file/directory (walk+remove, auto-clunks) |
 | `storage.cmd.plan9-connect` | CLI connect command |
 | `storage.cmd.plan9-scan` | CLI scan command |
 | `storage.cmd.plan9-read-file` | CLI whole-file read command |
 | `storage.cmd.plan9-write-file` | CLI whole-file write command |
+| `storage.cmd.plan9-create` | CLI create-file/directory command |
+| `storage.cmd.plan9-remove` | CLI remove command |
 
 ## Future: Checksum Integration
 
@@ -260,8 +296,8 @@ This creates the "implosion vortex" - remote data naturally flowing into Protoco
 
 *9P is the ingestion membrane of the storage singularity.*
 
-#,,..,,,,,..,,,,,,,..,.,,,,.,,,,,,,,.,.,.,,,,,..,,...,...,,.,,,,,,,..,.,,,,,.,
-#C5ZL7YI4FPFTN2UDDMJBKCVKDOFGLTM6MO625QFJNUVWGPFOXWJZKSKIFHYKZIOYSAHNFLJPWFATW
-#\\\|R52H4TBICC2ESIQEICZCXSQJHROVLQX72XMFBF3UACU6JO3Q4YV \ / AMOS7 \ YOURUM ::
-#\[7]J4JYYVUCXR3UXH7APXOJWDIL3E4X6EKZSAEXTTJ5VE4NINT6AYAQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,,..,,,.,,..,,,,,.,,,,..,,.,,..,,...,...,.,,,.,.,,,.,,..,...,
+#3ECNFIRZIZ4MQ3VFEIBB37HSCB3OEUMBJFZ7DVVVGRUROMTI3ZDIA4YYYKNZKDHRNDXCVGZJYOG54
+#\\\|HYIW4XPSJXNUFYTHFWTNG3L2FFCWSUUIAVKVTWDK7AJRNRYMRXL \ / AMOS7 \ YOURUM ::
+#\[7]EB6MR72SJ5PJK63RX3EKQNM7FS2QSP56CMWQLYQ7UQS34ZQCNOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

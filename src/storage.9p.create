@@ -1,0 +1,51 @@
+## [:< ##
+# name  = storage.9p.create
+# descr = Create file/directory on 9P server
+
+my ( $conn, $fid, $name, $perm, $mode ) = @ARG;
+$perm //= 0;
+$mode //= 0;
+
+my $tag = ++$conn->{tag} & 0xFFFF;
+
+my $req
+    = <[plan-9.protocol.codec.encode-uint32]>->($fid)
+    . <[plan-9.protocol.codec.encode-string]>->($name)
+    . <[plan-9.protocol.codec.encode-uint32]>->($perm)
+    . <[plan-9.protocol.codec.encode-uint8]>->($mode);
+
+my $msg = <[plan-9.protocol.codec.encode-message]>->(
+    <plan-9.protocol.constants.Tcreate>,
+    $tag, $req
+);
+
+$conn->{socket}->send($msg);
+
+my $resp = <[storage.9p.read-message]>->( $conn, $tag );
+return $resp if $resp->{'mode'} eq 'false';
+
+my $payload = $resp->{'data'};
+my ( $qid_type, $qid_version, $qid_path )
+    = <[plan-9.protocol.codec.decode-qid]>->( substr( $payload, 0, 13 ) );
+my $iounit
+    = <[plan-9.protocol.codec.decode-uint32]>->( substr( $payload, 13, 4 ) );
+
+$conn->{fids}{$fid}{open}   = 1;
+$conn->{fids}{$fid}{omode}  = $mode;
+$conn->{fids}{$fid}{iounit} = $iounit;
+
+return {
+    'mode' => 'true',
+    'data' => {
+        qid_type    => $qid_type,
+        qid_version => $qid_version,
+        qid_path    => $qid_path,
+        iounit      => $iounit,
+    }
+};
+
+#,,.,,.,.,...,,,,,.,,,.,,,.,,,...,,,,,...,..,,.,.,...,.,,,...,..,,...,,,,,,,,,
+#IBZEJJGYJ5OX6JNDM25FUUPISGVWUTNSHBJQMV64MQTTHMCI7R52IXXOXPP624D6M5YAFHYFROJ6O
+#\\\|D7LXO5XNIHGQ4FW2F5J2KTIU4BG3RQTO7JG5KZJLEBE3XMKVAT6 \ / AMOS7 \ YOURUM ::
+#\[7]BSWMS4PKT2TMD7ECJB6JNWCO7YBR2HXQ7D3UAPR2NIKN7NSXJUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

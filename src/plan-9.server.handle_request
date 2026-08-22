@@ -8,9 +8,11 @@ my $Tversion = <plan-9.protocol.constants.Tversion>;
 my $Tattach  = <plan-9.protocol.constants.Tattach>;
 my $Twalk    = <plan-9.protocol.constants.Twalk>;
 my $Topen    = <plan-9.protocol.constants.Topen>;
+my $Tcreate  = <plan-9.protocol.constants.Tcreate>;
 my $Tread    = <plan-9.protocol.constants.Tread>;
 my $Twrite   = <plan-9.protocol.constants.Twrite>;
 my $Tclunk   = <plan-9.protocol.constants.Tclunk>;
+my $Tremove  = <plan-9.protocol.constants.Tremove>;
 my $Tstat    = <plan-9.protocol.constants.Tstat>;
 
 if ( $type == $Tversion ) {
@@ -21,20 +23,24 @@ if ( $type == $Tversion ) {
     return <[plan-9.server.handle_walk]>->( $client, $tag, $data );
 } elsif ( $type == $Topen ) {
     return <[plan-9.server.handle-io-open]>->( $client, $tag, $data );
+} elsif ( $type == $Tcreate ) {
+    return <[plan-9.server.handle-io-create]>->( $client, $tag, $data );
 } elsif ( $type == $Tread ) {
     return <[plan-9.server.handle-io-read]>->( $client, $tag, $data );
 } elsif ( $type == $Twrite ) {
     return <[plan-9.server.handle-io-write]>->( $client, $tag, $data );
 } elsif ( $type == $Tclunk ) {
     return <[plan-9.server.handle-io-clunk]>->( $client, $tag, $data );
+} elsif ( $type == $Tremove ) {
+    return <[plan-9.server.handle-io-remove]>->( $client, $tag, $data );
 } elsif ( $type == $Tstat ) {
     return <[plan-9.server.handle-io-stat]>->( $client, $tag, $data );
 } else {
     return <[plan-9.protocol.error]>->( $tag, "unknown message type: $type" );
 }
 
-#,,,.,,,.,,,,,,..,.,,,...,..,,.,.,,,.,,,.,...,.,.,...,...,,,.,...,.,,,...,,..,
-#XPSSODWH7W6TY72OXPKNQTSYXEP75EU27GP2T4GYI74E6RG2IVWIWXEG2YFS2Y3BJHJ4H3A454HEK
-#\\\|JISFMIVN3FG22O6LFNRLFEM6DU2NWOURGFVKUUO2UEAZFNV3WPU \ / AMOS7 \ YOURUM ::
-#\[7]IYI5GMNW6D6CSFJ773FJNIQZPOUOHC2VTWFNYLMLIGC572BVMUAY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,..,,,,.,,..,.,,,.,,,.,,,,,.,,.,,.,.,...,..,,.,.,,,.,,..,,,,,,..,
+#5KKNTXKVVB5AK5EHPBHQE2C7ODYKVWY3CV735MCODGHYBAYPMZQ4HFFDFUMMYC5YRBDIUYX5X5KZA
+#\\\|WFDUIHMGKOO2D65NLTQUKFMKTK4OZLFVWGMM7CMA6USF2M5RVGN \ / AMOS7 \ YOURUM ::
+#\[7]KIVZ2S4P7RCHXDURACH3IXPBWZFKJ3MNJ53UEHKPA4OLPRS6RGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
