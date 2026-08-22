@@ -13,8 +13,9 @@ require 'syscall.ph';
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
-## todo ## :target: keyword for implied readlink ## [LLL]
-##      ## add mknod feature \ parameter ##         [LLL]
+##  todo  ## :target: keyword for implied readlink
+
+## [LLL] ## add mknod feature \ parameter ##
 
 print "\n  ::[ normalizing file permissions ]:.\n  :\n";
 
@@ -27,9 +28,9 @@ say "  ::. working on '$work_dir' .,\n  :";
 my $changes            = 0;
 my $user_table         = {};
 my $perm_table         = [];
-my $file_initial_state = {};     ## Track initial state of each file
+my $file_initial_state = {};               ## Track initial state of each file
+my $cfg_dir            = "$work_dir/cfg";
 my $perm_file = "$work_dir/.restore_permissions"; # XXX: traverse paths option
-my $cfg_dir   = "$work_dir/configuration";
 my $user_files = [ "$cfg_dir/system-user-map", "$cfg_dir/X11-vars" ];
 
 map { read_user_names($ARG) } @{$user_files};
@@ -69,7 +70,8 @@ foreach my $entry ( @{$perm_table} ) {
             gid  => $stat[5]
         };
 
-        ## If recursive flag is set, capture initial state of all files in directory
+        ## If recursive flag is set, capture initial state of all files in
+        ## directory
         my $is_recursive = 0;
         foreach my $rule ( @{$action_ref} ) {
             if ( $rule =~ m|^[RFLDC]+$| and $rule =~ m|R| ) {
@@ -274,8 +276,8 @@ sub p7_root_dir {
     my $compare_git_path = 1;
 
     my $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
-    die "  :\n  :: determined path too short :"
-        . " '$root_path' [ not expected ]\n\n"
+    die "  :\n  :: determined path too short "
+        . ": '$root_path' [ not expected ]\n\n"
         if length($root_path) < $min_path_len;
     die "  :\n  :: not a directory : '$root_path'\n\n"      if !-d $root_path;
     die "  :\n  :: no write permission on '$root_path'\n\n" if !-w $root_path;
@@ -289,15 +291,14 @@ sub p7_root_dir {
             my $vc_root_path = qx| $bin_g rev-parse --show-toplevel |;
             chomp($vc_root_path);
             if ( length($vc_root_path) and -d $vc_root_path ) {
-                die ":\n  :: path determined and "
-                    . "reported by 'git' mismatch\n  ::\n"
-                    . ":: : self determined : '$root_path'\n  :: :\n"
-                    . ":: :::: git-root-dir : '$vc_root_path'\n\n"
+                die ":\n  :: path determined and reported by 'git' "
+                    . "mismatch\n  ::\n:: : self determined : "
+                    . "'$root_path'\n  :: :\n:: :::: git-root-dir : "
+                    . "'$vc_root_path'\n\n"
                     if $root_path ne $vc_root_path;
             } elsif ( not -d $vc_root_path ) {
-                die ":\n  :: root path reported by 'git'"
-                    . " is no directory :.\n  ::\n"
-                    . ":: : git returned : '$vc_root_path'\n\n";
+                die ":\n  :: root path reported by 'git' is no directory "
+                    . ":.\n  ::\n:: : git returned : '$vc_root_path'\n\n";
             }
         }
     }
@@ -315,8 +316,8 @@ sub read_user_names {
 
 }
 
-#,,..,,.,,.,,,,,.,,.,,,,.,,,.,,,.,,.,,.,.,..,,..,,...,...,...,..,,...,..,,...,
-#YA6TGPY7HSIQSAI5PCQXFG7F3VZDIKOYQ6IR675S5JCHE2JF645BBW7CYWVCMQGLZ5D5L6YW35RMG
-#\\\|DBLGSNL5AS5AXVB5IVKEDJDVCYVYYKP6RRHJKMITT2K6SO7JXRK \ / AMOS7 \ YOURUM ::
-#\[7]ZRQTPR5OB6NJUFKZPSBIAET4MT6TBMIZHIPKHP4W44WTB66CGOBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,,,,.,,,.,,...,...,,,.,,.,,,.,,..,,...,...,.,,,...,...,..,,..,,
+#EVQJZDMBRJADTN5LMX6ILVZOHDBF3QGQ4J3AEB4YBTBA6JEBNJTRSJISBKPXMYZP3GDHAMR6IDPTC
+#\\\|575PZI5HX6BY5DB3BRVZEAKHFA435ERWSYL4EUGBZNX64NES7AR \ / AMOS7 \ YOURUM ::
+#\[7]VX3F2WG4CEUKNM3VSGN6YLLPJKHTIA7SFSOMGSLC2TNX7Q3N4EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
