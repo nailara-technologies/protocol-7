@@ -6,7 +6,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
 - [disk-edit-host-edit-zenki-planned](project-disk-edit-host-edit-zenki-planned.md) — user direction 2026-08-14: two more zenki likely emerging soon in the same style as user-edit -- disk-edit and host-edit, no scope yet
-- [keys-zenka-integration-direction](project-keys-zenka-integration-direction.md) — user direction 2026-08-12: integrate keys zenka functionality too; keys ALREADY holds the TOFU host-key pins the users remote/ work depends on (`crypt.C25519.init_code`'s `tofu_hostkey` regex, `remote-host.<host>_<port>.public`) and already carries a credential command (`github-pat`); secret/identity material now spans keys+credentials+cred-mesh+users — reconcile ownership, don't start moving material
+- [keys-zenka-integration-direction](project-keys-zenka-integration-direction.md) — user direction 2026-08-12: integrate keys zenka functionality too; TOFU host pins now live in `.n/remote-keys/known/<host>_<port>.public` (landed 2026-08-23, `f14c524d4`, was `remote-host.*` in user-keys) and keys already carries a credential command (`github-pat`); secret/identity material now spans keys+credentials+cred-mesh+users — reconcile ownership, don't start moving material
 - [credential-types-into-user-edit](project-credential-types-into-user-edit.md) — user direction 2026-08-12: move real credential types (external sites, android app accounts, host passwords) into p7 via user-edit/users as built; makes editor.control's `masked` type load-bearing (currently hard-rejected); `credentials.cmd.add`'s closed type whitelist covers only 1 of 3 named cases; first real target is the uninstalled fanless desktop node whose `taeki` AND `root` accounts both need p7 management Topics
 - [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — step_0/1/2 landed+verified (`290a8f72f`/`e039f1912`/`47a2bf87e`); step_4 also found already landed 2026-08-10 (was thought pending — memory was stale); only step_3 (multiline) remains unbuilt
 - [user-edit-console-zenka-status](topic-user-edit-console-zenka-status.md) — todo JUE+5PN; 2026-08-13: windowed lists, sort order, plugin detail-tabs, zero-field bootstrap (contact/location optional), multiline note editing all live and pushed; see file tail for latest
@@ -120,8 +120,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - task-archiving-2026-08-16 — 4 completed task files moved to `data/tasks/completed/` with archive headers per `data/tasks/task-archiving-with-context-templates.md`'s documented (not yet automated) convention: `editor-inframe-prompt-primitive.md`, `user-edit-key-actions-create.md`, `user-edit-key-actions-rename.md`, `user-edit-key-actions-delete.md` — signatures now stale, staged for user signature same as every other change this session
 - [jobsite-coding-queue-paused-task-loss-landed-2026-08-19](bug-coding-async-send-request-enqueue-round-timer-mismatch.md) — LANDED `dd162183b`: coding zenka silently dropped any task retried while `queue_paused` was set (wrong `event.add_timer` shape — `'params'` key it never reads, `coding.task.enqueue_round` armed as a timer-handler when it's direct-call shaped); general bug, not jobsite-specific; live-verified via devmod. Also fixed same commit: [[bug-jobsite-pending-count-leak-nonassessing-cycle]] (jobsite cycle wedge) and `coding.cmd.list-tasks`' ntime-vs-base.time garbage elapsed-time display. Closes the "exact line" gap left open in [[topic-coding-zenka-wedged-backend-queue-gridlock-2026-08-05]]
 
-#,,,.,.,.,.,.,,,.,,,,,,,,,..,,,.,,.,,,...,.,.,..,,...,...,...,,.,,..,,...,,,,,
-#DRG52BMDMPFUFY7RKTXXCHVQRU7J5NBIUHL5FI4Y2RF3CYPXZWAPP2MEATSXSMS7TUF6EXWNM5HI2
-#\\\|CTHXPYY7CBKRGSUL52FDOQ4HYWOW7UH7KOOXW5R4OKSDS4YFZDU \ / AMOS7 \ YOURUM ::
-#\[7]VI6XTWPHXYDI5TRIZBQSR4VXKN2UWIPXCF3QXQ3ALHZAVKDJFEBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,..,,..,,,.,...,.,.,...,.,,,...,..,,...,.,.,.,.,,.,,,..,...,,,,,
+#VCPPTSGQPUEA6YBYGSIYT3WTCX5RYCG5WM7JSBDTJRLINP22FPQTVU3SMN64GVW3MWI4EYCCILS62
+#\\\|IGN3BNKOFWARU2SCY3PC4IOKSF4PJCSAO4Y4Q6LLW7ZT2PAJESZ \ / AMOS7 \ YOURUM ::
+#\[7]SAU2W3EMTPI2DC6KSC7ZWHD7TQZYVTFLG5OL2Y57FD2WASXEWGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
