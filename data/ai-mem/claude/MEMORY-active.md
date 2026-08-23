@@ -70,6 +70,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED, all fixes live through 2026-07-10, no longer CRITICAL
 - [jobsite-ui-usability](topic-jobsite-ui-usability.md) — CONFIRMED: badges + render-gated sync, focus preserved
 - [user-interleaves-debt-cleanup-with-creative-work](user-interleaves-debt-cleanup-with-creative-work.md) — this user runs dedicated backlog-clearing sessions between feature work (audio waveform viz, povray pipeline) and values them explicitly, not just as overhead
+- [user-professional-background-honeypot-systems](user-professional-background-honeypot-systems.md) — first professional project was building a honeypot system at an ISP; treat scanner-defense/deception-system design as peer-level technical discussion, not needing fundamentals explained
 - jobsite tech-debt catch-up, 2026-07-28 session — a full backlog-clearing
   session, all LANDED same day: assess/repair dispatch watchdog timer +
   attempt-token stale-reply guard (65bbe1380); repair-done
@@ -120,8 +121,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - task-archiving-2026-08-16 — 4 completed task files moved to `data/tasks/completed/` with archive headers per `data/tasks/task-archiving-with-context-templates.md`'s documented (not yet automated) convention: `editor-inframe-prompt-primitive.md`, `user-edit-key-actions-create.md`, `user-edit-key-actions-rename.md`, `user-edit-key-actions-delete.md` — signatures now stale, staged for user signature same as every other change this session
 - [jobsite-coding-queue-paused-task-loss-landed-2026-08-19](bug-coding-async-send-request-enqueue-round-timer-mismatch.md) — LANDED `dd162183b`: coding zenka silently dropped any task retried while `queue_paused` was set (wrong `event.add_timer` shape — `'params'` key it never reads, `coding.task.enqueue_round` armed as a timer-handler when it's direct-call shaped); general bug, not jobsite-specific; live-verified via devmod. Also fixed same commit: [[bug-jobsite-pending-count-leak-nonassessing-cycle]] (jobsite cycle wedge) and `coding.cmd.list-tasks`' ntime-vs-base.time garbage elapsed-time display. Closes the "exact line" gap left open in [[topic-coding-zenka-wedged-backend-queue-gridlock-2026-08-05]]
 
-#,,,.,..,,.,,,,..,,..,,,.,...,.,.,...,.,,,...,..,,...,.,.,.,.,,.,,,..,...,,,,,
-#VCPPTSGQPUEA6YBYGSIYT3WTCX5RYCG5WM7JSBDTJRLINP22FPQTVU3SMN64GVW3MWI4EYCCILS62
-#\\\|IGN3BNKOFWARU2SCY3PC4IOKSF4PJCSAO4Y4Q6LLW7ZT2PAJESZ \ / AMOS7 \ YOURUM ::
-#\[7]SAU2W3EMTPI2DC6KSC7ZWHD7TQZYVTFLG5OL2Y57FD2WASXEWGDA 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,,,,,,.,,,,.,.,.,,..,,.,,,.,,..,,...,...,...,.,.,,..,,,,,,,,,
+#FLJNYDMJR5WWWJH7B7NFDZHVT4IQGNXCIODSRXW4KOLPM7WIHAKGMZIKGGH66ZKJCBTW4FZ4W3SOA
+#\\\|OTQ5UYADFP2I5MFEVBU65GYA6GOW337JRIOK25GAHBXOLTPMV64 \ / AMOS7 \ YOURUM ::
+#\[7]UR7ATPR2ELDVJDKIRTC5JN7RL7WASV6V323O6MQMTXUYEKBM3GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
