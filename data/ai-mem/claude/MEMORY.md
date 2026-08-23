@@ -7,7 +7,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 ## CRITICAL
 - [user-screen-brightness-sensitivity](feedback-user-screen-brightness-sensitivity.md) — real physical reaction to bright screens, not aesthetic; default new HTML/UI work to dark violet/blue-toned themes proactively, keep print forced light
 - [rapid-pattern-visual-disruption-risk](feedback-rapid-pattern-visual-disruption-risk.md) — real, lasting adverse effect (temporary inability to read text) from sustained attentive exposure to dense high-entropy ANSI-cycling visuals (bin/atom-delta-term); default any future rapid/psychedelic visual work (incl. vision-orbital-hop-sequence-hyperspace-flight-animation) to conservative, easily-slowed cycling rate, not max intensity
-- [no-personal-data-in-repo-tree](feedback-no-personal-data-in-repo-tree.md) — never hardcode emails/PII into any repo-tracked file, even gitignored; use `<[file.zenka_dir.load]>->('cfg-dir:<zenka>/file')` or `/data/<project>-data/` external dirs instead
+- [no-personal-data-in-repo-tree](feedback-no-personal-data-in-repo-tree.md) — never hardcode emails/PII, or real hostnames/IPs of live deployments, into any repo-tracked file — src, gitignored, or memory files (`data/ai-mem/claude/*.md` is git-tracked too); use `<[file.zenka_dir.load]>->('cfg-dir:<zenka>/file')`, `/data/<project>-data/` external dirs, or generic phrasing instead
 - [memory-write-path](feedback-edit-memory-via-ai-mem-path.md) — always Read/Edit/Write memory via data/ai-mem/claude/<file>, never the ~/.claude/projects/.../memory/ symlink path (same files, home path re-prompts every edit)
 - [settings-json-repair-mode-does-not-persist](feedback-settings-json-repair-mode-does-not-persist.md) — broken .claude/settings.local.json (e.g. trailing comma) triggers in-session repair that burns tokens but never saves; verify JSON validity on disk directly, restart required after manual fix
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart
@@ -49,8 +49,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,...,.,.,,,.,...,,,,,.,.,.,.,,.,,,.,,,..,..,,...,...,..,,,,.,.,,,,,.,,,.,
-#4DZVLED3FCMU4Z2ABJKZO4JKV4ZLIHIYUP5BPH42SYUYL4ISJYGSA3GBVAY3RM6H7NDROY57WKM6I
-#\\\|IW7GBTAJFYAZTKOI7TM54RZCCGNX4BTAVLV7HG3JUTUCFL4FWCN \ / AMOS7 \ YOURUM ::
-#\[7]KBHCJ7YLEFTTOTR6BSNNXB7LV6DTNVO77IRBDR34HPETR3SD5QAI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,,.,,..,,,.,,,..,..,,,..,...,..,,...,...,...,...,.,,,,,.,,.,,
+#U4GO4GBNFFX6KNSONN5GQP72YTML4LZFLIFZGVIVSEO6TVUQB6BREFDTZDYFJYFKU2RWQVNZQGS5I
+#\\\|5B2WTBHLZBRMITXPFFP3JIQ5N3TPCQ47M2U46OH5S2O53KV3XR6 \ / AMOS7 \ YOURUM ::
+#\[7]CCCWHY3E7ICH7YR3MQLDHU5UPAZL2DCDWWGJ2DS7QCSLCC2PKGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
