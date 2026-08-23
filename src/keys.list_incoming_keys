@@ -1,0 +1,105 @@
+## [:< ##
+
+# name  = keys.list_incoming_keys
+# descr = collect and structure pending [incoming] client-key entries for display
+# return = hash of pending key info organized by display name
+
+my $key_vars_ref  = <[crypt.C25519.key_vars]>;
+my $incoming_dir  = $key_vars_ref->{'incoming_dir'};
+my $auth_base_dir = $key_vars_ref->{'auth_dir'};
+
+return {} if not -d $incoming_dir;
+
+##  Scan for pending username.public / username.host_port.public files  ##
+
+my %incoming_keys;
+
+foreach my $file ( <[file.all_files]>->($incoming_dir)->@* ) {
+    next if not -f $file or not -r $file;
+
+    my $file_name = <[file.basename]>->($file);
+    next if $file_name =~ m|^\.|;
+
+    ## deliberately permissive: only trust the one real structural          ##
+    ## guarantee [ the file ends in literal '.public' ], don't try to       ##
+    ## enumerate every character a host_safe segment might legitimately     ##
+    ## contain. an early version restricted this to [0-9a-z_]+, which       ##
+    ## plugin.auth.auth-keypair.cleanup-incoming-keys also uses -- that     ##
+    ## silently drops any dotted IPv4 host_safe [ '127.0.0.1_42' has a '.'  ##
+    ## the class excludes ] there too, not just here. a tighter but         ##
+    ## still real gap: RFC4007 IPv6 zone ids [ 'fe80::1%eth0' ] survive     ##
+    ## tr/:\//__/  untouched since '%' isn't replaced, so a class-based     ##
+    ## match would drop those too, even though '%' is currently unlikely in ##
+    ## practice [ IO::Socket::IP's peerhost() doesn't emit zone ids by      ##
+    ## default, per src/io.ip.tcp.input.connect's usage ]. matching on the  ##
+    ## '.public' anchor alone sidesteps needing to keep pace with every     ##
+    ## address format this could ever see                                   ##
+    my ( $username, $hostname_port )
+        = $file_name =~ m|^([^\.]+)\.(?:(.+)\.)?public$|;
+
+    next if not defined $username or not length $username;
+
+    my $restricted = defined $hostname_port;
+
+    my $display_name = $username;
+    if ($restricted) {
+        my ( $safe_host, $port ) = $hostname_port =~ m|^(.+)_(\d+)$|;
+        if ( defined $safe_host and defined $port ) {
+            my $host = $safe_host;
+            $host =~ tr|_|:|;    ## primary restore [ same lossy reversal ##
+            ## keys.list_remote_keys uses -- an       ##
+            ## underscore could originally have been  ##
+            ## ':', '/', or a literal '_',            ##
+            ## display-only ambiguity, doesn't affect ##
+            ## matching/authorization ]               ##
+            $display_name = sprintf( '%s@%s:%s', $username, $host, $port );
+        } else {
+            ## unparseable middle segment -- show raw rather than hide the ##
+            ## entry: an admin visibility tool that silently drops entries ##
+            ## it can't pretty-print defeats its own purpose               ##
+            $display_name = sprintf( '%s@%s', $username, $hostname_port );
+        }
+    }
+
+    ## authorized under any zenka -- same check cleanup-incoming-keys ##
+    ## applies before expiring an entry                               ##
+    my $authorized_zenka;
+    if ( -d $auth_base_dir ) {
+        foreach my $zenka_dir ( glob catfile( $auth_base_dir, qw| * | ) ) {
+            next if not -d $zenka_dir;
+            my $auth_link = catfile( $zenka_dir, "${username}.public" );
+            if ( -l $auth_link and -f $auth_link ) {
+                $authorized_zenka = <[file.basename]>->($zenka_dir);
+                last;
+            }
+        }
+    }
+
+    my $pubkey_b32 = <[file.slurp]>->($file)->$*;
+    next if not defined $pubkey_b32 or not length $pubkey_b32;
+    chomp $pubkey_b32;
+
+    my $mtime = ( stat($file) )[9];
+
+    ( my $stem = $file_name ) =~ s|\.public$||;
+
+    $incoming_keys{$display_name} = {
+        'username'         => $username,
+        'restricted'       => $restricted,
+        'hostname_port'    => $hostname_port,
+        'authorized_zenka' => $authorized_zenka,
+        'pubkey_b32'       => $pubkey_b32,
+        'file_path'        => $file,
+        'mtime'            => $mtime,
+        'stem'             => $stem,
+        'type'             => 'incoming'
+    };
+}
+
+return \%incoming_keys;
+
+#,,.,,..,,,..,,,.,,,.,,..,,.,,..,,.,,,,..,...,..,,...,..,,..,,,,,,...,.,,,...,
+#BDFL2GJKDEH6RVQUNTKKKKPL4FU2RNZXUNIGNXGHBAISG2VMXLUBNU3KTCSRJ7TBMXRUBJMO6LI7W
+#\\\|FUR7Y6ZCBYBT2H4W42PWD2J24YBU4IVX62T4EWPDGGNDU6QENNJ \ / AMOS7 \ YOURUM ::
+#\[7]U34J3QDGWOPV2553KZFVMXCHNRSHVR72O4P4MPCMDDHYITJEPQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
