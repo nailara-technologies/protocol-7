@@ -56,7 +56,7 @@ my @key_types = qw| private public secret |;    # virtual #
 
 my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
 
-## lowercase names + underscore support [ TOFU hostkeys: remote.host_port ] ##
+## lowercase names + underscore support ##
 my $name_regex = qr|[0-9a-z\.\-_]+|;
 
 ## uppercase names ##
@@ -75,9 +75,7 @@ const <crypt.C25519.regex> => {    ## requires Const::Fast to be loaded ##
         qw| virtualpk | => qr|^($name_regex)\.vp$|        ## virtual p.key ##
     },
     qw| key_file | => {
-        qw| virtual |      => qr|^($name_regex):\Qseed-phrase\E$|,
-        qw| tofu_hostkey | => qr|^(remote-host\.[0-9a-z\.\-_]+)\.public$|
-        ,    ## TOFU pinned remote server hostkey ##
+        qw| virtual | => qr|^($name_regex):\Qseed-phrase\E$|,
         map { $ARG => qr|^($name_regex)\.$ARG$| } @key_types
     },
     qw| key_files | => qr|$re_keyfiles|
@@ -255,8 +253,8 @@ const <crypt.C25519.keys.sizetype> => {    ## <- will be read-only [again]. ##
 
 0;
 
-#,,..,.,,,..,,,,.,.,.,..,,.,,,.,.,..,,,..,,.,,..,,...,...,.,,,..,,,.,,.,,,.,.,
-#CD4QLGY3ELIZE7OPZ7NBTB6XMSDNSH2A4WTH76FQQ33BDS2OXBPDHOQN7HGBGDPB7AFSQCAYH6HZ4
-#\\\|GV7NKK4PSO4XACPNJO5UF5U6LKUXQYC45Z2MQ7PMJBP3PQEMGHI \ / AMOS7 \ YOURUM ::
-#\[7]MXYDXKN34CV2RGA3NDHZKSD5UFOJQGYN6C5YKNYI4HJBGFQ3VSCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,,,,.,,,..,.,,,.,,,.,.,.,.,..,,...,.,.,..,,.,.,...,.,.,.,,,
+#QYA7NCQUE5YP7VPTSSRKZV2NPE6RZWM4LH3HN6YSAYSV2V5BLYMEWCKALDPBNUNRPN6NFZAPEZSJU
+#\\\|4YHBXJY6GZRLYC5NYUCR4SDQGMJKWBQUH5SGKJ5WJ7SEVBH5GTM \ / AMOS7 \ YOURUM ::
+#\[7]F3XZZ6IESATKDBPIWEXACGEVI7PEFXCTXLFTXFL44AB4U24BAQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

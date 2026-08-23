@@ -78,9 +78,6 @@ foreach my $file (    ## collect signatures ##
 
 my @display_kfiles;
 foreach my $file (@k_files) {
-    ## skip TOFU pinned hostkey files - handled separately in remote_keys
-    next if $file =~ m|remote-host\.[0-9a-z\.\-_]+\.public$|;
-
     push @display_kfiles, $file;
     if ( $file =~ m|([^/]+):seed-phrase$| ) { ## : todo :  add single keys  ##
         push @display_kfiles,
@@ -292,8 +289,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,..,...,,,,,,..,..,,,,,,..,,,,.,.,.,,..,,,.,.,.,...,...,.,,,..,,,,,,..,,.,,,
-#R63LVU2FOYUIZNHVNGUTIQEFINNZJQL6I5HWTMYA724Y7G2JI65MEJ54GTZZUZXAE22JRG56VZ5VM
-#\\\|QBHF4IXOPZNKEDM6BGUYJ6G2ODPWZCSENZFRLL5YBKN7DCMRG24 \ / AMOS7 \ YOURUM ::
-#\[7]7BHZJBPTFRKOTTFS25YJLRBXYLZM4CTXUZFTI5PJGBKH5RCFL4AY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,.,,,,..,...,,.,,,,,,,..,,.,,.,.,...,...,.,.,..,,,..,,,,,..,,
+#XQUWUURAKKBI6EBYIYSJ44D4GJRMQ5R2S6AWSOZGZSMERHEEURPES4BGZRLO6EMQXBN5L5NRZYN32
+#\\\|343GNGU3QK5SENNDBIYRLOMUFBUEW2VXHEJLA3W3GQPMPYIVJUH \ / AMOS7 \ YOURUM ::
+#\[7]WOEVRGW4QLYR3QQGONWB6KU36CYOB5CHWGWHXN2CUOTQWZO4ZKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
