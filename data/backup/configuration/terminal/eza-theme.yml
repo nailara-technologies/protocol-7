@@ -1,0 +1,105 @@
+# protocol-7 eza theme — built from data/gfx/palette/protocol-7-palette.md
+# and data/color-themes/p7-blue.yaml. no raw ANSI defaults (no plain cyan/
+# yellow/gray) anywhere in this file — every color below traces back to a
+# documented project hue, a tint of one, or the muted "secondary surface"
+# slate used for fields that should visually recede (punctuation, inode,
+# other-bits, temp files).
+#
+# hue key (for anyone re-tuning this later):
+#   T      #0647C3  primary blue accent      (deep, for bold/large text)
+#   T_lite #154EB4  lighter tint of T         (for dense small read-text:
+#                                              perm letters, date, sizes —
+#                                              T on its own reads too dark
+#                                              against a near-black violet bg)
+#   P      #4427AC  secondary purple/blue     (already used for filenames)
+#   G      #399C05  positive/active green
+#   O      #9E7106  attention/warning gold
+#   R      #6A2481  neon red (workflow-zenka-patterns.yaml wf_neon_red)
+#   S      #405592  muted slate-blue          (cube-sampled "disabled/held"
+#                                              tone — deliberately low
+#                                              contrast, used to de-emphasize)
+#   bg_panel #180324  dark plum               (cube-sampled panel bg)
+
+filekinds:
+  normal:        { foreground: "#4427AC" }
+  directory:     { foreground: "#0647C3", is_bold: true }
+  symlink:       { foreground: "#154EB4", is_bold: true }
+  pipe:          { foreground: "#9E7106", background: "#180324" }
+  block_device:  { foreground: "#9E7106", background: "#180324", is_bold: true }
+  char_device:   { foreground: "#AE7C07", background: "#180324", is_bold: true, is_underline: false }
+  socket:        { foreground: "#154EB4", background: "#180324", is_bold: true }
+  special:       { foreground: "#9E7106" }
+  executable:    { foreground: "#399C05", is_bold: true }
+  mount_point:   { foreground: "#0647C3", is_bold: true, is_underline: true }
+
+perms:
+  user_read:           { foreground: "#154EB4" }
+  user_write:          { foreground: "#9E7106" }
+  user_execute_file:   { foreground: "#399C05" }
+  user_execute_other:  { foreground: "#399C05", is_bold: true }
+  group_read:          { foreground: "#154EB4", is_dimmed: true }
+  group_write:         { foreground: "#9E7106", is_dimmed: true }
+  group_execute:       { foreground: "#399C05", is_dimmed: true }
+  # "other" = world. a world-write or world-execute bit being SET is the
+  # thing you actually need to notice (security-relevant); read is benign
+  # and stays calm. so unlike user/group, these are undimmed and, for
+  # write/execute, alarm-colored — the opposite emphasis of user/group.
+  other_read:          { foreground: "#405592" }
+  other_write:         { foreground: "#6A2481", is_bold: true }
+  other_execute:       { foreground: "#9E7106", is_bold: true }
+  special_user_file:   { foreground: "#6A2481", is_bold: true }
+  special_other:       { foreground: "#6A2481", is_bold: true }
+  attribute:           { foreground: "#9E7106", is_bold: true }
+
+size:
+  major:         { foreground: "#405592" }
+  minor:         { foreground: "#405592" }
+  number_byte:   { foreground: "#154EB4", is_bold: true }
+  number_kilo:   { foreground: "#154EB4", is_bold: true }
+  number_mega:   { foreground: "#154EB4", is_bold: true }
+  number_giga:   { foreground: "#154EB4", is_bold: true }
+  number_huge:   { foreground: "#154EB4", is_bold: true }
+  unit_byte:     { foreground: "#405592", is_dimmed: true }
+  unit_kilo:     { foreground: "#405592", is_dimmed: true }
+  unit_mega:     { foreground: "#405592", is_dimmed: true }
+  unit_giga:     { foreground: "#405592", is_dimmed: true }
+  unit_huge:     { foreground: "#405592", is_dimmed: true }
+
+users:
+  user_you:      { foreground: "#399C05", is_bold: true }
+  user_root:     { foreground: "#6A2481", is_bold: true }
+  user_other:    { foreground: "#405592" }
+  group_yours:   { foreground: "#399C05", is_dimmed: true }
+  group_root:    { foreground: "#6A2481", is_dimmed: true }
+  group_other:   { foreground: "#405592", is_dimmed: true }
+
+links:
+  normal:            { foreground: "#405592", is_dimmed: true }
+  multi_link_file:   { foreground: "#9E7106" }
+
+# punctuation covers permission-bit dashes AND the symlink "->" arrow —
+# this is the fix for "the arrow is still default gray"
+punctuation:          { foreground: "#405592", is_dimmed: true }
+date:                 { foreground: "#154EB4" }
+inode:                { foreground: "#405592", is_dimmed: true }
+blocks:               { foreground: "#405592", is_dimmed: true }
+header:               { foreground: "#0647C3", is_bold: true, is_underline: true }
+octal:                { foreground: "#405592" }
+flags:                { foreground: "#405592", is_dimmed: true }
+symlink_path:         { foreground: "#405592", is_dimmed: true }
+control_char:         { foreground: "#9E7106", is_bold: true }
+broken_symlink:       { foreground: "#6A2481", is_bold: true }
+broken_path_overlay:  { foreground: "#6A2481", is_dimmed: true }
+
+file_type:
+  image:       { foreground: "#4427AC", is_bold: true }
+  video:       { foreground: "#4427AC", is_italic: true }
+  music:       { foreground: "#154EB4", is_dimmed: true }
+  lossless:    { foreground: "#154EB4" }
+  crypto:      { foreground: "#399C05", is_bold: true }
+  document:    { foreground: "#154EB4", is_dimmed: true }
+  compressed:  { foreground: "#6A2481", is_dimmed: true }
+  temp:        { foreground: "#405592", is_dimmed: true }
+  compiled:    { foreground: "#9E7106", is_dimmed: true }
+  build:       { foreground: "#9E7106", is_bold: true, is_underline: false }
+  source:      { foreground: "#399C05" }
