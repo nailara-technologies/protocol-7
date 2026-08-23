@@ -5,6 +5,33 @@ metadata:
   type: project
 ---
 
+**Landed, 2026-08-23, commit `f14c524d4`**: this file's own "Idea, per user
+2026-08-14" section below — moving TOFU host pins out of the regular `keys`
+directory into a parallel directory — is now built. Settled shape:
+`.n/remote-keys/known/<host>_<port>.public`, a third sibling next to the
+existing `.n/remote-keys/{authorized,incoming}`, dropping the `remote-host.`
+filename prefix entirely (meaning now comes from directory location, not
+filename). Naming process worth remembering: the user vetoed `tofu-keys`
+outright ("tofu" is jargon that says nothing without a footnote) and
+`host-keys`/`remote-keys` alone as directory names for being ambiguous with
+*this host's own* serving key or *inbound* client-auth keys respectively —
+settled on `known` (deliberately unqualified, mirrors SSH's `known_hosts`,
+reads naturally beside the existing `authorized`/`incoming` siblings) only
+after confirming with their `harmony` mod-13 divination tool that the bare
+word alone scored ambiguous/FALSE but resolved TRUE once path-qualified as
+`remote-keys/known` — consistent with it always appearing qualified in real
+code, never bare. Cascaded cleanup once the directory did the disambiguating
+work: the filename-based `tofu_hostkey` classification regex in
+`crypt.C25519.init_code`, and five now-unreachable `remote-host.*` exclusion
+filters across `keys.console.list`, `crypt.C25519.all_key_names`, and three
+`user-edit.key_actions`/`build_user_keys_field` guards, were all removed
+outright rather than left as dead code — per direct user framing during the
+session: "now we have removed key meaning being defined by filename or
+prefix thereof but returned it to the context they are found in." The
+**"two concrete connections" section below is now stale** where it says
+`remote-host.<host>_<port>.public` and shows the old classification regex —
+kept as historical record of the prior state, not current fact.
+
 **Landed, 2026-08-15, commit `0bd1f6679`**: the `key_vars` base-identity
 hijack root-caused throughout this file's "how much freedom exists to
 redesign" section is now actually fixed, plus the additive
@@ -260,8 +287,8 @@ both up and down, not just a single strict parent-chain per key the way
 `key_signed_by`'s current attached-signature-file scan implicitly assumes.
 Still exploratory — no file format/syntax decided yet as of this message.
 
-#,,,,,.,,,,..,,..,..,,,.,,,,.,,,.,,,,,...,,..,..,,...,...,,,.,.,,,,..,,,.,.,,,
-#I55GIMO2JSCYEHUPWPXZKR47RAUPHACNDFEGYHW7LTEO4YGMCIXTGD6BLWTK47QPRPV4ZNNNBTOLO
-#\\\|7HCV6FUCGWKSN6QAI4ZSUMWOZ3GCE5AWG6IGRXCUS5TPKZDITET \ / AMOS7 \ YOURUM ::
-#\[7]M5FUPEWOQCID3SAWELT56LMUW6LM4QQKNIORKTQN5UPEKWA5HUDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,.,.,..,,,.,,,,,,..,,,.,,,,.,..,,...,...,,..,,.,,..,,.,.,,,.,
+#QPLKD4K2WNI5C327UKCPBBOQ46JTZNGKVHJVT5AWOHXOPWA6QUTIWOKFWOPSTENDY3KG5R3EE4WPU
+#\\\|3YUSNAU2OQNFZGNAVMDR5TIG5OVC4XQTIGBOI7QUNLC7MW4XSKQ \ / AMOS7 \ YOURUM ::
+#\[7]U4TESKKQKPPZSE3L4UWTLYDL6KBIL2JURDDNJXTIWBRCKBI4TCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

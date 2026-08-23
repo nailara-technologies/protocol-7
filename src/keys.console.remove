@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = keys.console.remove
-# param = <key-name>
+# param = [user:|known:]<key-name>
 # descr = delete the C25519 key with the specified name
 
 my $name = shift;
@@ -9,6 +9,19 @@ my $name = shift;
 if ( not defined $name or not length $name ) {
     say "\n  << expected <key_name> parameter >>\n";
     <[base.exit]>->(qw| 0110 |);
+}
+
+## optional 'user:<name>' / 'known:<name>' category prefix -- forces        ##
+## resolution to a single directory, both to disambiguate a name that       ##
+## exists in both [ see the ambiguity check below ] and as an always-       ##
+## available explicit form. category words mirror the directory names       ##
+## themselves [ user-keys / remote-keys/known ], not role-adjectives like   ##
+## 'hostkey' -- a user-keys entry can itself BE a host's own identity key   ##
+## from a connecting client's perspective, so 'hostkey:' would collide with ##
+## that meaning rather than resolve it                                      ##
+my $forced_category;
+if ( $name =~ m{^(user|known):(.+)$} ) {
+    ( $forced_category, $name ) = ( $1, $2 );
 }
 
 ## intentionally NOT gated on crypt.C25519.validate_keyname here: removal  ##
@@ -33,22 +46,84 @@ my $key_usr   = $key_vars_ref->{'usr_name'};
 
 my $shred_bin = <keys.bin_path.shred>;
 
-## warns when absent ##
-my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
-
 my $match_re = qr|^(\Q$name\E$re_kfiles)$|;
 
 my $key_found = FALSE;
-foreach my $file (@k_files) {
-    $key_found = TRUE if $file =~ $match_re;
-    next              if -w catfile( $key_dir, $file );
-    printf "\n << no write access to '%s' >>\n\n", catfile( $key_dir, $file );
-    <[base.exit]>->(qw| 0020 |);
+my @k_files;
+if ( not defined $forced_category or $forced_category eq qw| user | ) {
+    ## warns when absent ##
+    @k_files = grep {s|^.+/||} <[keys.get_keyfiles]>;
+    foreach my $file (@k_files) {
+        next if $file !~ $match_re;
+        $key_found = TRUE;
+        next if -w catfile( $key_dir, $file );
+        printf "\n << no write access to '%s' >>\n\n",
+            catfile( $key_dir, $file );
+        <[base.exit]>->(qw| 0020 |);
+    }
 }
 
-if ( not $key_found ) {
-    printf( "\n  << specified key '%s' not found >>\n\n", $name );
+## known-host pins live in a separate directory [ known_hosts_dir, not    ##
+## key_dir ] and never carry a filename extension keys_re recognizes, so  ##
+## they need their own resolution -- reuses keys.list_remote_keys as the  ##
+## single source of truth for valid names, both the 'list' display form [ ##
+## port-hidden, e.g. 'local' ] and the raw file stem [ 'local_42' ], so   ##
+## remove always accepts exactly what list shows                          ##
+my $known_match;
+if ( not defined $forced_category or $forced_category eq qw| known | ) {
+    my $remote_keys_ref = <[keys.list_remote_keys]>;
+    if ( exists $remote_keys_ref->{$name} ) {
+        $known_match = $remote_keys_ref->{$name};
+    } else {
+        foreach my $info ( values %{$remote_keys_ref} ) {
+            next if $info->{'stem'} ne $name;
+            $known_match = $info;
+            last;
+        }
+    }
+}
+
+## a name resolving in both places is unsafe to guess at -- the directory ##
+## split exists specifically so a user key and a known-host pin can never ##
+## be confused for one another, refuse rather than pick one               ##
+if ( $key_found and defined $known_match ) {
+    printf(
+        "\n  << '%s' is ambiguous -- matches both a user key and a known "
+            . "host key, prefix with 'user:' or 'known:' to disambiguate [ "
+            . "e.g. 'known:%s' ] >>\n\n",
+        $name, $name );
     <[base.exit]>->(qw| 0010 |);
+}
+
+if ( not $key_found and not defined $known_match ) {
+    if ( defined $forced_category ) {
+        printf( "\n  << no %s key named '%s' found >>\n\n",
+            $forced_category, $name );
+    } else {
+        printf( "\n  << specified key '%s' not found >>\n\n", $name );
+    }
+    <[base.exit]>->(qw| 0010 |);
+}
+
+if ( defined $known_match ) {
+    my $known_file = $known_match->{'file_path'};
+
+    if ( not -w $known_file ) {
+        printf "\n << no write access to '%s' >>\n\n", $known_file;
+        <[base.exit]>->(qw| 0020 |);
+    }
+
+    say "\n::";
+    printf " : purging '%s'\n", $known_file;
+    system( $shred_bin, qw| -fzu |, $known_file )
+        if length $shred_bin
+        and -x $shred_bin;
+    die sprintf( ":\n: unlink failed : %s\n:\n", <[base.str.os_err]> )
+        unless unlink($known_file)
+        or not -f $known_file;
+
+    printf " :\n :: [ removed 1 key file ]\n\n";
+    return;
 }
 
 my $del_count = 0;
@@ -77,8 +152,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,..,.,.,.,.,,.,,,,,,.,,,,.,,,,.,.,,,,..,,,,,..,,...,...,..,,,..,.,.,.,,,,,.,
-#MEUZ3FJEO3WYRQ6VJFBQOEDUOZNB346CBGKCLYYFPJ2RTEB7P53XNIW4PQ3S2BEHOT5PKLWOUT5SQ
-#\\\|3S6YFZNAVYEZ5VRQTFPKXKPSVECXAC7VH7OWGJ7LD6AC6ATTOMO \ / AMOS7 \ YOURUM ::
-#\[7]BWX7TW3OVGDOGG3G2YTFNOMRH66XLAWKYPSAK5OVGOA7X6DPTODA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,...,,.,,...,..,,,,.,...,,,,,..,,...,..,,,..,,,.,...,..,,...,
+#CECUB66R4B47OTVGTSBYJE46ZQTYOCG35PFQXYFWAFLIMBABOIINZ63MOHJPIA2LWJPJTBPOLSBKY
+#\\\|44B6CFBO3KX4L76FRYYO7JJATJ2BNXKAZISV5HD6RL63ZZGLXE2 \ / AMOS7 \ YOURUM ::
+#\[7]MOPGL4IQPEIJUV74NVXVFTQEDSS36OEHGHILX67LNOOGQZG7R4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

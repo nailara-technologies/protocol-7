@@ -62,14 +62,16 @@ foreach my $file ( <[file.all_files]>->($known_dir)->@* ) {
         'pubkey_b32' => $pubkey_b32,
         'ntime_b32'  => $ntime_b32,
         'file_path'  => $file,
-        'type'       => 'hostkey'
+        'stem'       => $key_name,    ## e.g. "localhost_42" [ raw filename ##
+        ## stem, alt. lookup key for remove  ] ##
+        'type' => 'hostkey'
     };
 }
 
 return \%remote_keys;
 
-#,,.,,.,.,...,.,.,.,.,,..,,,.,,.,,,,,,,,.,,,.,..,,...,...,..,,.,,,,..,..,,.,,,
-#EEUU3CGSI5EJNGXL2ISNEBGUNYDTR3VRI454T7LKCFK5DWBP2FSRU6RH4WZKIUWMTKIIJXY4OQ55G
-#\\\|N6Z4OFDR4LJVUSDR7FM7OHI4C3JTQQEH7YTEISL6JMGDBDWJMDR \ / AMOS7 \ YOURUM ::
-#\[7]CAKAMA3EBZ3UTAC3SWASXBEULHY66XXF3LGLODMB5ICAFDNFXWCQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,..,,,,,,,,,,...,.,,,..,,..,,..,,...,...,.,.,.,.,,,.,..,,..,,
+#MOVLJK4ORGHOWYHXLCD4JKDBCPTXUXJSSRL7P4RDJM4JEJXHNPZ7UWZFKFOGK6TMKFEA66K6XYPXM
+#\\\|KPG7BZMWUJEGULQZRUQFXCSG5XHNUWFLP5TRIHV6X76SSFPEIL3 \ / AMOS7 \ YOURUM ::
+#\[7]BZ6KSJFEJQV2SDHX33WDI2WQOOR5FL3GZ6YY54YNJE4LTM35ESBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
