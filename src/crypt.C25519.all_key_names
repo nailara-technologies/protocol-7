@@ -5,10 +5,6 @@
 my %keynames;
 
 foreach my $file (<[crypt.C25519.keyfiles]>) {
-    ## skip TOFU pinned hostkey files (remote-host.*.public) - handled ##
-    ## separately in list_remote_keys                                  ##
-    next if $file =~ m|remote-host\.[0-9a-z\.\-_]+\.public$|;
-
     my $name = <[crypt.C25519.get_keyname]>->($file);
     ##  unrecognized key file, already warned  ##
     next unless defined $name;
@@ -18,8 +14,8 @@ foreach my $file (<[crypt.C25519.keyfiles]>) {
 
 return <[base.sort]>->( \%keynames );
 
-#,,,.,.,.,.,,,.,.,,..,,,,,..,,,.,,,..,,..,.,,,..,,...,...,..,,,,.,...,..,,,..,
-#T2BN6YCBXNZDW4A7A7SF3I6Z3JPVYZ5KSOBHM36BGHXG2NNHF3PP6ZMY3WBSXAXW7BUDTQE3BTK6A
-#\\\|DLFOSVUCBORS6SCQ4C3HC42I5ISRMJOY5D3WPO5D4BAGSXCH2QC \ / AMOS7 \ YOURUM ::
-#\[7]2WU42SRRHKCUUJPMPXL2I2SAF3Y4PP7AMJAXPY3CJCUEP3QVXODI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,,.,,,,,,..,,,.,,..,,,,.,..,,..,,...,..,,,..,,..,.,,,,.,,,,,,
+#4BY4UOH3PCXJVB3GEDZ5GTWBVM3UPXREWTTJKZJM2QGUYSHYXSBD2KGE26B4LUU23X2WBQWFXC34O
+#\\\|IAIYIVXKZQBFDUAM5V4SW6GYQQX44LJ2T2KOXXNOENCU3PV4KLL \ / AMOS7 \ YOURUM ::
+#\[7]VRFX3M5NRFCI7HDHXXZZGM3L3C4FPH5ZANL6Y753IRTDP3ICS4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

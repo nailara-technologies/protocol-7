@@ -9,9 +9,8 @@
 ## from prompt.handler.key's Enter branch -- nothing here may block on the
 ## terminal.
 ##
-## these guards pre-empt the actual rename : the source key must exist, must
-## not be the self identity key, and must not be a remote-host key -- the same
-## exclusions user-edit.form.build_user_keys_field applies to the list.
+## these guards pre-empt the actual rename : the source key must exist and
+## must not be the self identity key.
 
 my ( $editor_state, $value, $prompt ) = @ARG;
 
@@ -35,20 +34,14 @@ return $fail->(
     sprintf( q|key '%s' does not exist, nothing renamed|, $name ) )
     if not <[crypt.C25519.key_exists]>->($name);
 
-## guard 3 : refuse self identity key and remote-host.* keys -- same
-## exclusions user-edit.form.build_user_keys_field applies to the displayed
-## list.  <crypt.C25519.user_key_name> is the canonical identity name, with
-## <crypt.C25519.base_key_name> as its fallback.
+## guard 3 : refuse self identity key.  <crypt.C25519.user_key_name> is the
+## canonical identity name, with <crypt.C25519.base_key_name> as its fallback.
 <crypt.C25519.user_key_name> //= <crypt.C25519.base_key_name>;
 my $identity_name = <crypt.C25519.user_key_name> // '';
 
 return $fail->(
     sprintf( q|'%s' is the self identity key, cannot rename|, $name ) )
     if $name eq $identity_name;
-
-return $fail->(
-    sprintf( q|'%s' is a remote-host key, cannot rename|, $name ) )
-    if $name =~ m|^remote-host\.|;
 
 ## stage 2 : the new-name prompt, same anchoring row.  the old name travels ##
 ## in the new prompt's opaque 'data' slot                                   ##
@@ -64,8 +57,8 @@ return $fail->(
 
 return TRUE;
 
-#,,.,,,..,,,,,.,.,,,,,...,.,.,,,,,,,,,,..,.,,,..,,...,..,,,,.,..,,,,.,.,,,...,
-#I5H262KVR4LK5DH35U2LYB5RFPW2USETIGWG33FWA2KJ7XFNZ57THVGF3X67NOB5XUX5WNQ6TV5JC
-#\\\|2PGV4CPNA6TXV6PYNLZQ7FPCOBCHEYPMHG7J5ESPKFK5266SHFA \ / AMOS7 \ YOURUM ::
-#\[7]SLE2HOONPK2UAKLXKYRB5Y2VVO5DZW3RQ3FVKADN5RBDXFTGSUAY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,..,,,,.,.,.,,,,,,,.,.,.,..,,..,,...,...,..,,,,,,,,,,..,,,,,,
+#57NXQETUTOTG2DSWELCHXM7A3FN56EXMXL6C6HNLU36DYDJDOKRQR4Z3IDV6VJK72YSLCIW3L2HDO
+#\\\|USZB5PVINUH35XY6DN26X72W6FTWFSAPOSA45XCPGBXVV5FRNX3 \ / AMOS7 \ YOURUM ::
+#\[7]VV7F67GTH3GWRCCMFC25HKM7BP2ZSVCPYRCYKTSG56437WWOMKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

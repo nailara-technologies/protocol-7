@@ -5,19 +5,18 @@
 # return = hash of remote key info organized by hostname:port
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
-my $key_dir      = $key_vars_ref->{'key_dir'};
+my $known_dir    = $key_vars_ref->{'known_hosts_dir'};
 
-return {} if not -d $key_dir;
+return {} if not -d $known_dir;
 
-##  Scan for remote-host.*.public files  ##
+##  Scan for known-host *.public files  ##
 
 my %remote_keys;
 
-foreach my $file ( <[file.all_files]>->($key_dir)->@* ) {
-    next if $file !~ m|^.*\/remote-host\.(.+)\.public$|;
+foreach my $file ( <[file.all_files]>->($known_dir)->@* ) {
+    next if $file !~ m|^.*/(.+)\.public$|;
 
-    my $key_name
-        = $1;   ## e.g., "localhost_42" from "remote-host.localhost_42.public"
+    my $key_name = $1;    ## e.g., "localhost_42" from "localhost_42.public"
 
     ##  Read key file  ##
     next if not -f $file or not -r $file;
@@ -38,7 +37,7 @@ foreach my $file ( <[file.all_files]>->($key_dir)->@* ) {
 
     ## Extract hostname and port from key_name  Format: hostname_safe_port ##
     ## (e.g., "localhost_42", "fe80__1_42" for IPv6) From                  ##
-    ## remote-host.hostname_port.public, extract hostname_port part        ##
+    ## hostname_port.public, extract hostname_port part                    ##
 
     my ( $safe_hostname, $port ) = $key_name =~ m|^(.+)_(\d+)$|;
 
@@ -69,8 +68,8 @@ foreach my $file ( <[file.all_files]>->($key_dir)->@* ) {
 
 return \%remote_keys;
 
-#,,.,,..,,,,.,..,,.,,,,.,,,.,,.,.,,..,,,.,,,.,..,,...,...,...,,..,.,,,,,,,.,.,
-#27KKDID5MUWO7OQFY6TUM4US4KKR3MORFZLAXLWWFQKQNSTZHG55QFS5WATQX6EMIRQ5VHDWK37JK
-#\\\|QFNBHX5XJSPZC4X26LLOQPDHQ7I3ZXHNCW5CSIQ3BGTECFCTOJZ \ / AMOS7 \ YOURUM ::
-#\[7]G6YI4PRVNTNZWSXHTYRNRURXUJAVTIXRQTUSWMPMZLCOLEYQPKAY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,.,.,.,,..,,,.,,.,,,,,,,,.,,,.,..,,...,...,..,,.,,,,..,..,,.,,,
+#EEUU3CGSI5EJNGXL2ISNEBGUNYDTR3VRI454T7LKCFK5DWBP2FSRU6RH4WZKIUWMTKIIJXY4OQ55G
+#\\\|N6Z4OFDR4LJVUSDR7FM7OHI4C3JTQQEH7YTEISL6JMGDBDWJMDR \ / AMOS7 \ YOURUM ::
+#\[7]CAKAMA3EBZ3UTAC3SWASXBEULHY66XXF3LGLODMB5ICAFDNFXWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

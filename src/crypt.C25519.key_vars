@@ -49,6 +49,9 @@ my $key_dir = <crypt.C25519.key_dir>
 my $auth_dir = <crypt.C25519.auth_dir>
     //= sprintf( qw| %s/.n/remote-keys/authorized |, $home_dir );
 
+my $known_hosts_dir = <crypt.C25519.known_hosts_dir>
+    //= sprintf( qw| %s/.n/remote-keys/known |, $home_dir );
+
 ## When running as root from console, allow non-existent key directories The
 ## directory will be created by chk_key_dir if needed  Only enforce
 ## readability if directory already exists
@@ -90,16 +93,17 @@ foreach my $type (qw|  secret  private  public  virtual  |) {
 }
 
 my $key_vars_ref = {
-    'uid'          => $uid,
-    'gid'          => $gid,
-    'usr_name'     => $key_usr,
-    'usr_home'     => $home_dir,
-    'key_dir'      => $key_dir,
-    'auth_dir'     => $auth_dir,
-    'key_name'     => $key_name,
-    'key_basepath' => $key_basepath,
-    'key_file_ext' => $key_file_ext,
-    'key_filename' => $key_filename
+    'uid'             => $uid,
+    'gid'             => $gid,
+    'usr_name'        => $key_usr,
+    'usr_home'        => $home_dir,
+    'key_dir'         => $key_dir,
+    'auth_dir'        => $auth_dir,
+    'known_hosts_dir' => $known_hosts_dir,
+    'key_name'        => $key_name,
+    'key_basepath'    => $key_basepath,
+    'key_file_ext'    => $key_file_ext,
+    'key_filename'    => $key_filename
 };
 
 <crypt.C25519.key_vars> = $key_vars_ref  ## updating key_vars when base key ##
@@ -110,8 +114,8 @@ my $key_vars_ref = {
 
 return $key_vars_ref;
 
-#,,,,,.,,,..,,,.,,.,.,.,.,..,,,,,,..,,.,,,,,,,..,,...,...,,,,,,,,,,..,,,.,.,.,
-#CATFA55OKPXNOQYP4DGHJPX34MPDKHKUWFP65BE3GP5P5DV5OW2FCFT5WDPNI7NRSV2ZN23IQUIWG
-#\\\|FVELOQU25B3O4ZHJ34SQ3CN3O64OQGBLKHYHYT5R7N4QQG76LLS \ / AMOS7 \ YOURUM ::
-#\[7]6XTPLM5DKVMMOZ7YGOZ44RJTVY4BLFWGKGN6RDEOLD2GJOSLQ6DA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,..,,..,.,.,,.,,,..,.,.,,,,,,,.,..,,...,...,..,,.,,,,.,,,.,,,,,,
+#XBNB2BL466FATRIVQMAVLL5EF4UFR6ED65LEG7XFIBJ3E2OLCTKULWCOBMBE3OMBV2EFM553ZCTRS
+#\\\|UYXOTBNJQS2GR7NLP4O76WSZQNEFE2T3N5I2KYZV5HAHDNQ4PCS \ / AMOS7 \ YOURUM ::
+#\[7]ZICHHQKSZPF7BDCOXZP46EMFTI2FWVWYWZPLZHHQKUXRGJ3EBCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

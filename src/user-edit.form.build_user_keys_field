@@ -31,7 +31,6 @@ foreach my $file (@key_files) {
     my $keyname = <[crypt.C25519.get_keyname]>->($file) // next;
     next if $keyname eq '';
     next if $keyname eq $identity_name;
-    next if $keyname =~ m|^remote-host\.|;
     next if $seen_keyname{$keyname}++;
     push @other_keynames, $keyname;
 }
@@ -73,8 +72,8 @@ return {
     qw| user_keys_names |  => \@other_keynames,
 };
 
-#,,,,,,.,,..,,..,,..,,..,,,,,,..,,.,,,,.,,,.,,..,,...,...,..,,,,.,...,,,,,..,,
-#ZZKMZRAUXCBBF7B5CCRT3M75OKGU7PSEM3NQ6JVZK324ZTMWCPAGU42UMM2JTAHOHPY33RQ2AQGZQ
-#\\\|WZBVU2YQZOPNELHS7FYFJIGPFF4T6B6DPWK5SRNQJV7S5JMGPGT \ / AMOS7 \ YOURUM ::
-#\[7]FJJS5FBNWXQ3ISBJEAJUBFB42YTQ36B72D643S4AJRZNR3IRW6DI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,.,,,.,,.,.,,,.,,,.,.,,,,.,,,..,..,,...,.,.,...,.,.,.,,,...,..,,
+#54XWNMKHPGVRKWJBQPMJJWMBA3UYEEHSKWPDCUEMVSF6ZZ4HZDBGMODYSC2ENGJ3XFEF5YC7F6XDI
+#\\\|RNLT63GO6BYMBUDAPAXPPE4OMOWJ5ZW5UUOXF26KX7SMIWHPDIT \ / AMOS7 \ YOURUM ::
+#\[7]7CTQDOIDI2XFLBVIGSBSWG6SIHU3VSCZE434VDMNDG4TBV7H7CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
