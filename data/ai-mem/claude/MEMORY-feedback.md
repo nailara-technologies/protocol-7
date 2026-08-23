@@ -96,9 +96,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [use-constant-vs-data-tree-const](feedback-use-constant-vs-data-tree-const.md) — a `<path>` read resolving to a plausible value isn't proof it's wired; `use constant {...}` (broke the entire 9P protocol-constants subsystem since 2026-03-27) AND a plain `return {...}` module (`plan-9.config`, found same day) both silently fail to populate `%data` — verify with an empirical test (change the presumed source, confirm live behavior moves), not just code reading. Immutable shared constants: `const <path> => {...}` in `.pre_init`. Per-zenka-overridable defaults: `cfg/shared-params`, not a module return value
 - [live-verify-dispatch-must-spell-out-cube-routing](feedback-live-verify-dispatch-must-spell-out-cube-routing.md) — a k3-256k live-verification dispatch burned ~85% of session budget not knowing cube strips `.cmd.`/`.9p.`-style segments from routable command names; any live-exercise dispatch prompt must spell out the exact routable command, start order, and auth grants — don't assume this is inherited knowledge
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
+- [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 
-#,,..,.,.,.,.,,.,,...,,,.,,.,,,,,,,,,,.,.,,..,..,,...,..,,..,,,.,,.,.,.,.,,,,,
-#OO4DRI4FEAJB5TE6MHXPF4K2LZMJBSD2BWARKDY2VCF25V7X5N3RATFTPXAK5C24XJYQH6KDG5S72
-#\\\|YSSGECOXB5JL72F77KRB647BKR4T2WOWJY3XCM66A2J7TZLZVLW \ / AMOS7 \ YOURUM ::
-#\[7]IGJP4XJQIPJYCMQSK6QI57CZFXDZSCRR3ISRXT6UTSTJDJ3KPOCI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,.,.,.,,,,..,.,,,,,,,,,.,,,,,..,,...,...,...,,.,,,,.,,.,,,.,,
+#4X5UR2G362DWP3RL75JWFILHTDJD7I3KX3UPFJ5C3TWHI7S2P3AA5K4YRS6LTNVAF2OTAKPDY5AJO
+#\\\|F3R522UBGBP2K4O7XHCICDEZDK4NRHDXNWDS4QMGCB5BLZ32UXD \ / AMOS7 \ YOURUM ::
+#\[7]CSQYSO4OYNIFGQO5G5U7ZGCYMYZBWQ3XDM3AHQCP6W5HJMNOJ4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

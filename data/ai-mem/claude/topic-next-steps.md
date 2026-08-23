@@ -726,8 +726,44 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,.,,,,,,...,,..,,.,,,..,.,,,,,,,,,.,.,.,,,.,..,,...,...,.,.,...,,..,..,,.,,,
-#AUUODVQGLLGQV6CEMLFQ2342OT5UU6SMLNTS6RYA5MQ5TJOUO6H4J3SRWWHJLUIHLDLN2P2UKTQVY
-#\\\|YIKSZWNPRIFP6PYNYOX3JRUYJOPNPWXRSXGBFMAKYIXH4VE3DEG \ / AMOS7 \ YOURUM ::
-#\[7]T2FGDYAU7HELTAACPXRQJJTNEH4WT2ZBUUDEPVFT7JS3GI3OSWCY 7  DATA SIGNATURE ::
+## queued (2026-08-23) — httpd/httpsd long-lived connection forensics
+
+user noticed via `netstat` + `httpd.list sessions`/`httpsd.list sessions`
+on a live public-facing deployment host: several `input` sessions on
+ports 80/443 sitting at **16d, 10d, 6d, 1d+** age (`httpd.list sessions`
+output, session ids e.g. 1027977/2337229/9792777/4052277). Unusual for
+plain HTTP — legitimate keep-alive connections don't typically persist
+that long. **Confirmed same session via `httpd.show-buffer zenka | grep
+'not found'`**: this is an active automated `.env`-file scanning sweep —
+dozens of sequential 404s (docker/app/.env, laravel/core/.env,
+.env.swp, .env-example, aws/.env, kyc/.env, etc. — a recognizable
+credential-harvesting botnet path list) fired down ONE persistent
+session id, not new connections per probe. So the long session ages
+are NOT stuck/dead sockets — they're a bot reusing one HTTP keep-alive
+connection to run its sweep, which is exactly why a pure idle-timeout
+wouldn't catch this class of activity (the connection is never
+actually idle). Checked: **no rate-limiting/IP-ban/abuse-detection
+mechanism exists anywhere in `httpd.*` or `io.ip.tcp.*`** — this would
+be new defensive infrastructure, not a misconfigured existing one.
+Right-shaped fix is abuse-pattern detection (e.g. N 404s against
+suspicious paths within a time window ⇒ drop/ban that
+session/peer), not just a connection-age cap.
+
+**Same shape as a bug just fixed this session**
+([[project-keys-zenka-integration-direction]]'s TOFU-pin work,
+`plugin.auth.auth-keypair.cleanup-incoming-keys`): unbounded
+accumulation of external-facing state with no/broken automatic expiry.
+Worth checking whether httpd/httpsd has an equivalent
+cleanup/reaper mechanism at all, or needs one built.
+
+**User's explicit call: leave the long-lived connections open** rather
+than kill them now — wants deeper forensics on what they actually are
+(stuck sockets vs. genuine long-poll/scanner clients) before any
+cleanup mechanism gets designed, so investigation shouldn't start by
+closing the very evidence it needs.
+
+#,,,.,,.,,,,,,,.,,,,,,...,.,.,..,,,,.,,.,,,,.,..,,...,...,..,,..,,,,,,,..,.,,,
+#GOMWLA7YDP7SUVV5MTSB3ITZS3M4VETOX74DY6PQQK5ICDRFP24KAUXD7LMZUVTU7UFYAYQIHHNMQ
+#\\\|JNAT4XSHRMMB6ZBNOBXGPMGPM4QNEYWJXTR7P6I3LROD4G3T53T \ / AMOS7 \ YOURUM ::
+#\[7]BEHSV42BYM4V6R6FJVBNFPP5LH6LDEDI6YSABMWR67YAWRNKZSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

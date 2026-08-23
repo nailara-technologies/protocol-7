@@ -1,12 +1,14 @@
 ---
 name: feedback-no-personal-data-in-repo-tree
-description: never write personal data (emails, PII) into any file inside the repo working tree, even gitignored — use dynamic external-path helpers instead
+description: never write personal data (emails, PII) OR infrastructure-identifying details (real hostnames, IPs of live deployments) into any file inside the repo working tree, even gitignored, even memory files — use dynamic external-path helpers or generic phrasing instead
 metadata:
   type: feedback
   originSessionId: c1eec834-9b20-4b16-a6bf-4eea9ef8a64a
 ---
 
 never write actual personal data (email addresses, specific personal file paths, etc.) into any file inside the git repository's working directory — **not even a gitignored file**. personal/sensitive data must live entirely outside the repo tree, referenced from repo-tracked code only via dynamic path-construction helpers or generic external path strings that carry no PII themselves.
+
+**Extends to infrastructure identifiers, and to memory files themselves — not just PII in source code.** 2026-08-23: while writing a [[topic-next-steps]] entry about long-lived httpd connections, named the actual hostname (`pri`) of a live public-facing deployment in `data/ai-mem/claude/topic-next-steps.md`. User: "that memory entry is too public for that form.." — `data/ai-mem/claude/*.md` is git-tracked and gets committed same as any src file (confirmed: prior commits in this same session included `MEMORY-active.md`/`project-*.md` diffs), so anything written there is exactly as exposed as hardcoding it in `src/`. A real hostname isn't PII in the strict email/personal-file sense this memory originally covered, but the same repo-exposure logic applies to it — and memory files are easy to forget are part of "the repo" since they don't read like code. Fixed by generalizing to "a live public-facing deployment host" — specific enough to be useful, carries no identifying value if the repo is ever shared/pushed.
 
 **Why:** during the jobcenter evidence-dossier work ([[project-jobsite-report-dossier]]), assistant hardcoded the user's two real email addresses as a regex default directly into `src/jobsite.report.mail_evidence_collect` (a tracked file). user stopped it immediately: "wait, you cannot write my personal email address into the public repository code.." First fix attempt used a `[load_config_file:'zenki/jobsite/local-secrets']` + gitignored file — user corrected again: "that will likely not work, because the path is outside the repository directory.." meaning even a gitignored file still physically sits inside the repo's working directory, which breaks the established pattern. Only the third attempt was accepted.
 
@@ -18,8 +20,8 @@ never write actual personal data (email addresses, specific personal file paths,
 
 If personal data is accidentally staged/committed, treat it as a real incident — check history for prior commits before assuming a working-tree fix is sufficient.
 
-#,,..,,,.,..,,,.,,.,.,...,,,.,,,,,.,,,.,.,,.,,..,,...,...,.,,,,.,,...,...,...,
-#KWLLHLLTLQ3OBCXO355CPAD72ZY37RVBJ5E7OXFBF2U5T6OO2QN2J57A7KWESCJYI4IL6XTZUSY5M
-#\\\|WGOU3NS5LPTJW7ZB5BXH7HTN2PSDGHRJPDKU32V5LH2UIQEOGPG \ / AMOS7 \ YOURUM ::
-#\[7]QGSAHXYWXPWFTNQRR7CQTXQVAP26X2LA3LDAOGPU7HMVWAU4IECY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,.,,...,,,.,..,,,.,,.,,,,,,,,.,,..,,...,...,,.,,.,,,,..,.,,,,..,
+#LA567WYYJALVTUUI3FLLPWJAKCP2N3LRFEN7SPEW2SENU7WHSUH46WQCTTH5D4AOD7BFHHYJW2FSO
+#\\\|T6BVKCRKRTUYLI2J6QFKAWJ2Y6S5CZWQ53AXCDNBEBF64RJBIPK \ / AMOS7 \ YOURUM ::
+#\[7]UYA6T6F274WAIPERI2TJZT76VHQTOQ2KXCSREGCF5LXZT3KFXKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
