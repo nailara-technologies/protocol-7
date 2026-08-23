@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = keys.console.list-authorized
+# param = [zenka]
+# descr = list authorized remote client keys, grouped by zenka
+
+my $zenka_filter = shift;
+
+my $key_vars_ref  = <[crypt.C25519.key_vars]>;
+my $auth_base_dir = $key_vars_ref->{'auth_dir'};
+
+my %users_by_zenka;
+
+if ( -d $auth_base_dir ) {
+    foreach my $zenka_dir ( glob catfile( $auth_base_dir, qw| * | ) ) {
+        next if not -d $zenka_dir;
+
+        my $zenka = <[file.basename]>->($zenka_dir);
+        next if defined $zenka_filter and $zenka ne $zenka_filter;
+
+        foreach my $file ( <[file.all_files]>->($zenka_dir)->@* ) {
+            my $file_name = <[file.basename]>->($file);
+            next if $file_name !~ m|^(.+)\.public$|;
+            next if not -l $file;    ## only real authorization symlinks ##
+            $users_by_zenka{$zenka} //= [];
+            push $users_by_zenka{$zenka}->@*, $1;
+        }
+    }
+}
+
+my $names_len = 16;
+
+my $list_string = "\n";
+$list_string .= sprintf( "%40s\r :: authorized remote users :.\n", '' );
+
+my $count = 0;
+foreach my $zenka ( <[base.sort]>->( [ keys %users_by_zenka ] ) ) {
+
+    $list_string .= sprintf " : %*s .\n", $names_len, '';
+    $list_string .= sprintf " : %*s .\n", $names_len,
+        sprintf( "'%s'", $zenka );
+
+    foreach my $user ( <[base.sort]>->( $users_by_zenka{$zenka} ) ) {
+        $count++;
+        $list_string .= sprintf " : %*s : %s\n", $names_len, '', $user;
+    }
+}
+
+if ( not $count ) {
+    $list_string .= sprintf " : %*s\n", $names_len, '';
+    $list_string .= sprintf " : %*s\n", $names_len, '[ no authorized users ]';
+} else {
+    $list_string .= sprintf " : %*s .\n", $names_len, '';
+}
+
+$list_string .= "::\n";
+
+return say $list_string;
+
+#,,,.,,,,,..,,...,..,,,,,,,..,,,,,,,.,,,,,,..,..,,...,...,.,,,,..,..,,...,.,,,
+#L42JPOGCFGLWSWWZ2OYK3JWBR4O6PFHHOAU6OUX2KD645UE7A4Q5YVV7NLKXTCM2AU2EH7MVMSQNQ
+#\\\|NXP4FPYC7MNKQ7SZCUODSXAAVOULSD6U5R5UJ6QMK52ISWLPHJI \ / AMOS7 \ YOURUM ::
+#\[7]UNFBHBQIBQBDV37Z5BCMDTS5DM5DCYT3NP3NPROLOECXW4M3I4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

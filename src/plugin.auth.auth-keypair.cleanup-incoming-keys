@@ -35,9 +35,14 @@ foreach my $file_path (@incoming_files) {
     my $file_name = <[file.basename]>->($file_path);
     next if $file_name =~ m|^\.|;    ## skip hidden files ##
 
-    ## Extract username from filename  Format: username.public or ##
-    ## username.host_port.public                                  ##
-    my ($username) = $file_name =~ m|^([^\.]+)\.(?:[0-9a-z_]+_\d+\.)?public$|;
+    ## Extract username from filename  Format: username.public or         ##
+    ## username.host_port.public -- deliberately permissive on the middle ##
+    ## segment [ was [0-9a-z_]+_\d+, restrictive enough to never match a  ##
+    ## dotted IPv4-mapped host_safe like '__ffff_198.235.24.91', which    ##
+    ## meant real dual-stack peers silently never got cleaned up here at  ##
+    ## all -- only trust the one real guarantee, the file ends in literal ##
+    ## '.public', matching keys.list_incoming_keys's fix                  ##
+    my ($username) = $file_name =~ m|^([^\.]+)\.(?:.+\.)?public$|;
 
     next unless defined $username and length $username;
 
@@ -91,8 +96,8 @@ return $cleanup_count;
 
 1;
 
-#,,..,,,.,.,,,,,.,.,,,,,,,,,.,.,.,,..,,..,..,,.,.,...,...,,,,,,,,,,..,.,,,...,
-#XVTXANAHAYXROZHIJJ3TMGRI5MHCJ3QFQGBPGQ5LRBY6OR6KPOEISJFEMPJUFBP77HZQFBQG2LIU6
-#\\\|ROPAGLXG6HOMWDGJDDSNYVX7SPWGRFARB7MRQVCU2JIBA34IY6U \ / AMOS7 \ YOURUM ::
-#\[7]TWSDLCAAJYNAZWCWQ7W2AEACDTZ4QSGB2UWIGP53IOOLSOIMLMAQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,..,,.,.,,.,,,,,,.,.,.,.,,,.,.,.,...,...,.,.,...,,..,...,,,,,
+#M5MUP6AICSBZVAZK6Y75X6FIGV2BXT5ML4WHI2FWLBTOAUJLXZS7PT37BVZVCTFGGAEZXCMLHN2D2
+#\\\|JMGTTGW6BHLKTFK3M2MP64336VRJ7TBB36C6OKEPMD6YKRHNQ7D \ / AMOS7 \ YOURUM ::
+#\[7]JWANJMCTC2JPVICNOTWP6YRDSBQCPBMXEV6NWRL4HPLO2IB7RYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
