@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = keys.console.authorize
+# param = <zenka>:<username>
+# descr = authorize a pending incoming client key for a zenka -- creates
+#         authorized/<zenka>/<username>.public as a symlink into incoming/
+
+my $arg = shift;
+
+if ( not defined $arg or not length $arg ) {
+    say "\n  << expected '<zenka>:<username>' parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my ( $zenka, $username ) = $arg =~ m{^([^:]+):([^:]+)$};
+
+if ( not defined $zenka or not defined $username ) {
+    say "\n  << expected '<zenka>:<username>' [ e.g. 'cube:taeki' ] >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
+if ( $zenka =~ m{[/\x00]} or $username =~ m{[/\x00]} ) {
+    say "\n  << zenka \/ username must not contain '/' >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
+my $key_vars_ref  = <[crypt.C25519.key_vars]>;
+my $incoming_dir  = $key_vars_ref->{'incoming_dir'};
+my $auth_base_dir = $key_vars_ref->{'auth_dir'};
+
+## authorized/<zenka>/<username>.public is checked by                       ##
+## plugin.auth.auth-keypair.validate-incoming-tofu purely for existence [   ##
+## -l && -f ] -- its target is never read/compared there, the actual pubkey ##
+## match happens independently against whatever incoming file the           ##
+## connecting client's host:port resolves to. so any currently-pinned file  ##
+## for this username is a valid target; prefer the unrestricted pin [ same  ##
+## fallback order validate-incoming-tofu itself uses ]                      ##
+my $unrestricted_file = catfile( $incoming_dir, "${username}.public" );
+
+my $pin_file;
+if ( -f $unrestricted_file ) {
+    $pin_file = $unrestricted_file;
+} else {
+    foreach
+        my $file ( glob catfile( $incoming_dir, "${username}.*.public" ) ) {
+        $pin_file = $file;
+        last;
+    }
+}
+
+if ( not defined $pin_file ) {
+    printf(
+        "\n  << no pending incoming key for "
+            . "'%s' -- nothing to authorize >>\n\n",
+        $username
+    );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $zenka_dir = catfile( $auth_base_dir, $zenka );
+my $auth_link = catfile( $zenka_dir,     "${username}.public" );
+
+if ( -e $auth_link or -l $auth_link ) {
+    printf( "\n  << '%s' is already authorized for '%s' >>\n\n",
+        $username, $zenka );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+make_path( $zenka_dir, { 'mode' => 0700 } ) if not -d $zenka_dir;
+
+symlink( $pin_file, $auth_link )
+    or die sprintf( "<< symlink failed : %s >>\n", <[base.str.os_err]> );
+
+printf( "\n  :: authorized '%s' for '%s' ::\n\n", $username, $zenka );
+
+#,,,,,.,,,..,,,,,,...,.,.,,..,.,.,,,,,,,,,,,,,..,,...,.,.,,.,,.,,,,,.,,.,,.,,,
+#E4SP2AR5U2YDHSCOOOCW4VPJH3F3ADO555B6XAOISBRPGBDTRTJGZQA3NTAQ5KVWGXKATLK24WOZA
+#\\\|67YV6MUAAKWQIIEZ6WEEBH5TK3Q4U272UIXERGPCRJPB2ZPDAKS \ / AMOS7 \ YOURUM ::
+#\[7]V4QNDYEYPOY65V5QVEIXDJRMX7KOAIVZHBYTD5KJZ2ZGXLTQY4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

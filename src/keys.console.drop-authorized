@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = keys.console.drop-authorized
+# param = <zenka>:<username>
+# descr = revoke a client's authorization for a zenka -- removes only the
+#         authorized/ symlink, the pinned key in incoming/ is left untouched
+
+my $arg = shift;
+
+if ( not defined $arg or not length $arg ) {
+    say "\n  << expected '<zenka>:<username>' parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my ( $zenka, $username ) = $arg =~ m{^([^:]+):([^:]+)$};
+
+if ( not defined $zenka or not defined $username ) {
+    say "\n  << expected '<zenka>:<username>' [ e.g. 'cube:taeki' ] >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
+if ( $zenka =~ m{[/\x00]} or $username =~ m{[/\x00]} ) {
+    say "\n  << zenka \/ username must not contain '/' >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
+my $key_vars_ref  = <[crypt.C25519.key_vars]>;
+my $auth_base_dir = $key_vars_ref->{'auth_dir'};
+
+my $zenka_dir = catfile( $auth_base_dir, $zenka );
+my $auth_link = catfile( $zenka_dir,     "${username}.public" );
+
+if ( not -l $auth_link ) {
+    printf( "\n  << '%s' is not authorized for '%s' >>\n\n",
+        $username, $zenka );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+if ( not -w $zenka_dir ) {
+    printf "\n << no write access to '%s' >>\n\n", $zenka_dir;
+    <[base.exit]>->(qw| 0020 |);
+}
+
+unlink($auth_link)
+    or die sprintf( "<< unlink failed : %s >>\n", <[base.str.os_err]> );
+
+## clean up the zenka directory if this was its last authorized entry ##
+if ( opendir( my $dh, $zenka_dir ) ) {
+    my @entries = grep { !/^\./ } readdir($dh);
+    closedir($dh);
+    rmdir($zenka_dir) if not @entries;
+}
+
+printf( "\n  :: revoked '%s' from '%s' ::\n\n", $username, $zenka );
+
+#,,..,,..,..,,,,.,...,.,,,...,,,,,,.,,,..,,..,..,,...,...,,..,.,.,,,.,,..,.,.,
+#ISJI2L3HO7FYDBGX6ICO5JI5CPZPLIRNPIFIXZUCU6SIQG47THVEO6PGH3SM36D7HFQMDHKQSKIQ4
+#\\\|GS6C2D6ONZWVR3VN7EWIEV7TDBXKEU2MKG33CBHZKDCCT3FNKEE \ / AMOS7 \ YOURUM ::
+#\[7]4NN4E2UXZNQR3FRD4OA33MNKNALZSAUYUZZKUYNACRUCWFTORKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
