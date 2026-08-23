@@ -9,10 +9,8 @@
 ## from prompt.handler.key's Enter branch -- nothing here may block on the
 ## terminal.
 ##
-## these guards pre-empt the actual delete : the target key must exist, must
-## not be the self identity key, and must not be a remote-host key -- the same
-## exclusions user-edit.form.build_user_keys_field applies to the displayed
-## list.
+## these guards pre-empt the actual delete : the target key must exist and
+## must not be the self identity key.
 
 my ( $editor_state, $value, $prompt ) = @ARG;
 
@@ -36,20 +34,14 @@ return $fail->(
     sprintf( q|key '%s' does not exist, nothing deleted|, $name ) )
     if not <[crypt.C25519.key_exists]>->($name);
 
-## guard 3 : refuse self identity key and remote-host.* keys -- same
-## exclusions user-edit.form.build_user_keys_field applies to the displayed
-## list.  <crypt.C25519.user_key_name> is the canonical identity name, with
-## <crypt.C25519.base_key_name> as its fallback.
+## guard 3 : refuse self identity key.  <crypt.C25519.user_key_name> is the
+## canonical identity name, with <crypt.C25519.base_key_name> as its fallback.
 <crypt.C25519.user_key_name> //= <crypt.C25519.base_key_name>;
 my $identity_name = <crypt.C25519.user_key_name> // '';
 
 return $fail->(
     sprintf( q|'%s' is the self identity key, cannot delete|, $name ) )
     if $name eq $identity_name;
-
-return $fail->(
-    sprintf( q|'%s' is a remote-host key, cannot delete|, $name ) )
-    if $name =~ m|^remote-host\.|;
 
 ## stage 2 : the confirmation prompt, same anchoring row.  the target name ##
 ## travels in the new prompt's opaque 'data' slot                          ##
@@ -66,8 +58,8 @@ return $fail->(
 
 return TRUE;
 
-#,,..,.,.,...,..,,,.,,,.,,..,,,.,,,..,,.,,,,,,..,,...,...,,.,,,,,,,..,,,.,...,
-#AJN3RLXTT2PQU22NTOSWCJKKKTHAX75T3FDHGHQ5UTJRS6TJH5QMWQU6VIMWQJPJ4D5O5EUS6UE6Q
-#\\\|YDYZEAMRN7YML7672ML7KLR4HVQSVIQZIP5J3OFGEHBQDYW33C3 \ / AMOS7 \ YOURUM ::
-#\[7]V47XB3AFWIX7OYFJUNVGWJZUFBZVY3S4IVMMYZGTFHUYRQEJ5WAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,,.,,..,,,,.,...,,,.,.,.,.,,,..,,...,...,...,.,,,.,.,.,,,,,.,
+#HBLHK2HKMKPD2GE5U5NWQKXEMRK2Y5Y7FQBBQANVW3E2FEAIYK7LZ3JXIW3BA2NU2OGYNZYSICZMG
+#\\\|V5WNLQPQYER6ZFFZPISXAQ4QUUZ3BY2XFG2YSQS54MQ4MXQ4SKD \ / AMOS7 \ YOURUM ::
+#\[7]3AUJY3VJL2OILBYYMQXW4SGAPXQ77FH3GPWTSD2LCRKSCMFZDUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

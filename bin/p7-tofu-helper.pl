@@ -27,6 +27,7 @@ BEGIN {
 # Import crypto modules
 use Crypt::Misc           qw(encode_b32r decode_b32r);
 use File::Spec::Functions qw(catfile);
+use File::Path            qw(make_path);
 
 ##[ Main Entry Point ]########################################################
 
@@ -58,18 +59,18 @@ sub op_validate_tofu {
         && defined $port
         && defined $server_pubkey_b32;
 
-    my $key_dir = "$ENV{HOME}/.n/user-keys";
-    mkdir( $key_dir, 0700 ) unless -d $key_dir;
+    my $key_dir = "$ENV{HOME}/.n/remote-keys/known";
+    make_path( $key_dir, { mode => 0700 } ) unless -d $key_dir;
 
     # Use default port (42) if not provided or empty
     $port = 42 if !defined $port || $port eq '' || $port == 0;
 
 # Normalize hostname for filename - replace colons (IPv6, unsafe chars) with underscores
-# Format: remote-host.<hostname>_<port>.public
+# Format: <hostname>_<port>.public
     my $hostname_safe = $hostname;
     $hostname_safe =~ tr/:\//__/;    # Replace unsafe chars
     my $filename_base = "${hostname_safe}_${port}";
-    my $key_file = catfile( $key_dir, "remote-host.$filename_base.public" );
+    my $key_file      = catfile( $key_dir, "$filename_base.public" );
 
     # Validate server pubkey format
     my $server_pubkey_bin
@@ -118,8 +119,8 @@ sub op_validate_tofu {
     }
 }
 
-#,,,.,...,..,,..,,.,.,,,.,,.,,.,,,,..,,..,,,,,..,,...,...,,..,..,,...,,.,,,..,
-#4SLNAJIIBPFC6DP53JO73IOXLHX523JEUYCOE6CEWDHFDRU7E6HRIJN5277ET6SQ624JHYTH72Q7Y
-#\\\|KFNBHU5RNEG5LGIUBLMZUFIX27CQLPZT7CWQH3AYPIGEQRFX7T4 \ / AMOS7 \ YOURUM ::
-#\[7]L3EPGZ2Q6MPHLPD5AC36A2VEALWXHXVLF3KYMS45MGQVWWUZX4CA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,.,,..,,,.,..,,,,,,,.,,,,,,,,,,..,,...,...,.,.,...,...,,,.,,,,,
+#ASREWMJK7XUFPFUXFLACAJFCU3ITQ2OBQWR2YEMFRCSGHZJ3SAW6PKNHL4UAOR7ADJORD7OJNGSZ2
+#\\\|CMY2AO2IHBEFPO3BGPEUVBQD57UQ7XWZQPJAR6XRISHUAKGXOI2 \ / AMOS7 \ YOURUM ::
+#\[7]KP5C2B63YT6GP7IMJ4FERNDAJCGKI5EAN2MNLRSBON6HLWEQ4KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
