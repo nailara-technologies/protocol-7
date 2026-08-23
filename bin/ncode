@@ -1890,21 +1890,14 @@ sub parse_file_options {
         my $pattern     = $2;
         $target = $base_target;
 
-        # Convert the pattern to a regex and add to includes
-        # Support wildcards: * becomes .* and ? becomes .
-        my $regex_pattern = $pattern;
-        $regex_pattern =~ s/\./\\./g;    # Escape dots
-        $regex_pattern =~ s/\*/.*/g;     # Convert * to regex
-        $regex_pattern =~ s/\?/./g;      # Convert ? to single char
+        # pattern is a real regexp [ per documented example 'bin:\.pl$' ],
+        # matched against the full relative path, so it also works across
+        # subdirectories [ e.g. 'zenki:.+/zenka' ] -- not a shell glob, so
+        # dots/wildcards are left as-is instead of being escaped ..,
+        my $include_re = eval {qr/$pattern/};
+        die ":\n:: invalid pattern :. $pattern\n\n" if $EVAL_ERROR;
 
-        # If pattern doesn't have anchors and looks like a substring search,
-        # make it match anywhere in the filename
-        if ( $regex_pattern !~ /^\^/ && $regex_pattern !~ /\$$/ ) {
-
-            # Keep as-is for substring matching
-        }
-
-        push @{ $options{'include'} }, qr/$regex_pattern/;
+        push @{ $options{'include'} }, $include_re;
     }
 
     # Check for recursion marker in target itself
@@ -1974,7 +1967,26 @@ sub load_source {
     my @params = @_;
     my %source;
 
-    my @load_types = ( split( '\+', $type ) );
+    # '+' combines multiple targets [ e.g. 'src+bin', 'src:file+zenki:v7' ],
+    # but a target:pattern pattern may itself contain a literal '+' [ regexp
+    # quantifier, e.g. 'zenki:.+/zenka' ] -- so a '+' only starts a new
+    # target when what follows it up to the next '+' names a real target;
+    # otherwise it's kept as part of the running pattern ..,
+    my @load_types;
+    {
+        my @raw_parts = split( '\+', $type, -1 );
+        my $buffer    = shift(@raw_parts);
+        foreach my $next_part (@raw_parts) {
+            my ($next_base) = $next_part =~ /^([^:]+)/;
+            if ( defined $next_base and exists $targets{$next_base} ) {
+                push @load_types, $buffer;
+                $buffer = $next_part;
+            } else {
+                $buffer .= '+' . $next_part;
+            }
+        }
+        push @load_types, $buffer;
+    }
 
     foreach my $PATH_key (@load_types) {
         my ( $clean_target, $options )
@@ -2164,6 +2176,8 @@ sub files {
 
     my $path = $targets{$type};
 
+    die ":\n:: no such target :. $type\n\n" if not defined $path;
+
     # Check for legacy recursion marker '..,' in target path
     my $legacy_recurse = $path =~ s|\.\.,$|| ? 1 : 0;
     my $recurse        = $options->{'recurse'} // $legacy_recurse;
@@ -2172,7 +2186,6 @@ sub files {
     my $exclusions = $options->{'exclude'} // [];
     my $inclusions = $options->{'include'} // [];
 
-    die ":\n:: no such target :. $type\n\n"         if not defined $path;
     die ":\n:: target path not exists :. $path\n\n" if !-e $path;
 
     # Helper to check if file matches any exclusion pattern
@@ -3156,8 +3169,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,..,,.,.,..,,..,,..,,,.,,...,.,.,,.,,.,.,..,,...,...,...,...,,.,,,,.,.,,,
-#AEEKLVHCVQVFVTXTGJQTVDBCJMEUZK2BOXITEBKEB5NOVPMW35H3VNANTFZ3GKZ2EF47XKE2CVW7G
-#\\\|6AFBMLS2UF3JICMF436YTFP2NZKS652SHNVE3SF7XG6LFTC2QNB \ / AMOS7 \ YOURUM ::
-#\[7]LHQZVR5JHOXNYL23TW4TWE25YGCBQFZ2FXEN5T63NFIVX3KIOOAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,.,,,,,..,,,..,.,,,,.,,...,.,,,..,,...,...,.,.,,,.,...,,..,..,,
+#FVNXTHPST3J6OBR72TAUGVI5K7BN5HBA5TF5XEVZLAIYF27PKQXR6DG65UARKIJB57T7UXU7I3JUC
+#\\\|S5YPLPNSRKOUGPSCB6UNIEGQR6B2BQPHCSF7XRU2G5DNTOFCSVZ \ / AMOS7 \ YOURUM ::
+#\[7]22FOEOSAEV7436RBV6VCE6HCMIHYETQHGGHCTT5PJGRSRONZOIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
