@@ -52,6 +52,9 @@ my $auth_dir = <crypt.C25519.auth_dir>
 my $known_hosts_dir = <crypt.C25519.known_hosts_dir>
     //= sprintf( qw| %s/.n/remote-keys/known |, $home_dir );
 
+my $incoming_dir = <crypt.C25519.incoming_dir>
+    //= sprintf( qw| %s/.n/remote-keys/incoming |, $home_dir );
+
 ## When running as root from console, allow non-existent key directories The
 ## directory will be created by chk_key_dir if needed  Only enforce
 ## readability if directory already exists
@@ -100,6 +103,7 @@ my $key_vars_ref = {
     'key_dir'         => $key_dir,
     'auth_dir'        => $auth_dir,
     'known_hosts_dir' => $known_hosts_dir,
+    'incoming_dir'    => $incoming_dir,
     'key_name'        => $key_name,
     'key_basepath'    => $key_basepath,
     'key_file_ext'    => $key_file_ext,
@@ -114,8 +118,8 @@ my $key_vars_ref = {
 
 return $key_vars_ref;
 
-#,,.,,,,,,.,,,,..,,..,.,.,,.,,,..,.,.,,,,,,,.,..,,...,...,..,,.,,,,.,,,.,,,,,,
-#XBNB2BL466FATRIVQMAVLL5EF4UFR6ED65LEG7XFIBJ3E2OLCTKULWCOBMBE3OMBV2EFM553ZCTRS
-#\\\|UYXOTBNJQS2GR7NLP4O76WSZQNEFE2T3N5I2KYZV5HAHDNQ4PCS \ / AMOS7 \ YOURUM ::
-#\[7]ZICHHQKSZPF7BDCOXZP46EMFTI2FWVWYWZPLZHHQKUXRGJ3EBCCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,..,,..,,.,,,..,,,,,,..,,,,,,..,,...,...,,..,...,,..,,..,,..,
+#27ZGNLDEZNN7HBRZLAULM73KOX5KJT7SWAJWK66KRXTGAC2FTSKQMA2JQUTC67UKP2NSK2GNXTSZE
+#\\\|NN6X7AOS7VNNZFVKHJ2AWBKRXVLHFOR6NHAFN5ZKSBASYPCGHLY \ / AMOS7 \ YOURUM ::
+#\[7]RPNZALZEE4W6T2DMIEP6GJJLO3FQRL5BBYPWARPGTA544GWRKADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

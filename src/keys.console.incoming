@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = keys.console.incoming
+# descr = list pending [incoming] client keys awaiting authorization
+
+my $incoming_ref = <[keys.list_incoming_keys]>;
+
+my $names_len = 24;
+
+my $list_string = "\n";
+$list_string .= sprintf( "%40s\r :: pending incoming client keys :.\n", '' );
+
+my $count = 0;
+foreach my $display_name ( <[base.sort]>->( [ keys %{$incoming_ref} ] ) ) {
+    my $info = $incoming_ref->{$display_name};
+    $count++;
+
+    $list_string .= sprintf " : %*s .\n", $names_len, '';
+    $list_string .= sprintf " : %*s .\n", $names_len,
+        sprintf( "'%s' %s",
+        $display_name,
+        $info->{'restricted'} ? '[restricted]' : '[unrestricted]' );
+
+    my $age = <[base.parser.duration]>->( $info->{'mtime'} );
+    my $auth_note
+        = defined $info->{'authorized_zenka'}
+        ? sprintf( "[authorized:%s]", $info->{'authorized_zenka'} )
+        : '[pending]';
+
+    $list_string .= sprintf " : %*s : age %s %s\n", $names_len, '',
+        $age, $auth_note;
+}
+
+if ( not $count ) {
+    $list_string .= sprintf " : %*s\n", $names_len, '';
+    $list_string .= sprintf " : %*s\n", $names_len, '[ no pending keys ]';
+} else {
+    $list_string .= sprintf " : %*s .\n", $names_len, '';
+}
+
+$list_string .= "::\n";
+
+return say $list_string;
+
+#,,.,,,..,,..,.,,,.,.,,.,,,.,,,..,,.,,.,.,.,,,..,,...,...,...,.,.,,..,.,,,,..,
+#BJHSCKN6N7WVGIUK53P6P6MFAO2CZ7QRRCIHIGFQUXUTXI7J5OFEGBMT65DCJO3UEPJ4CYYD6G6XQ
+#\\\|3K4GJVWEHHPVNWR36TCK2WHPVD57H7ZFQFIQP2A7FGBW3KJIMLF \ / AMOS7 \ YOURUM ::
+#\[7]FMCNHFO7QKDMK7LIPERODRPRSVWWS3KAUVT3626W76KSMLCWLYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
