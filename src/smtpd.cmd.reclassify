@@ -5,7 +5,7 @@
 # param = <message_id>
 
 my $msg_id = $call->{'args'} // '';
-$msg_id =~ s|^\s+|\s+$| | g;
+$msg_id =~ s{^\s+|\s+$}{ }g;
 
 return { 'mode' => qw| false |, 'data' => 'message-id required' }
     if not length $msg_id;
@@ -55,8 +55,8 @@ return {
     $parsed->{'intent'}
 };
 
-#,,.,,,..,,,,,..,,...,...,.,,,.,,,,..,...,.,,,.,.,...,..,,..,,,.,,,.,,,,.,...,
-#CR3Z7PHEBYW7ONFD3THO2DGKUJ5MNGC4VAWNKYH7PMKOTUZQ7TVWYIYUA5UDR32JHAZYWR7DRERKK
-#\\\|L2CHAQVAZTAC6X7H3SZFKQPLQW3VZWBE6XRP2VNIQ32YQCWCPCE \ / AMOS7 \ YOURUM ::
-#\[7]Z5BFOLARYYYVUERDEPFITIAUPPMZLTIS5HGOKYSB4M5KB5G42UCI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,...,..,,,.,,,..,,,.,,,.,.,.,.,.,...,...,,.,,,,.,.,,,,,.,.,.,
+#74LZZNILBGWTY7Z4ETJU3P34EGR5N7JPWQ4HCCIT6K77FEFI63HJFPXIOCUPKEYG2RZXVBZI6X2SG
+#\\\|7YGKIQD7UXTKEEU5GNZ76F3KZCX5OOHWFUYDXULJQHRQJWV4U6S \ / AMOS7 \ YOURUM ::
+#\[7]SUN6AKWGFASYFJMWFVGFLPULBU4IRNZHCVMOKBC7K5T7NTUTRQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

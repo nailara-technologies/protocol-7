@@ -37,10 +37,33 @@ if ( not -d $store_dir ) {
     <[file.make_path]>->( $store_dir, 0750, $p7_user, $p7_user );
 }
 
+## load shared pattern-registry seed patterns [ classify domain ] --        ##
+## data/yaml/pattern-registry/ is shared across future consumers            ##
+## (forensics/httpd), the smtpd-* glob prefix is what keeps this zenka from ##
+## ever loading a pattern file that isn't its own                           ##
+<smtpd.cfg.pattern_dir> //= qw| data/yaml/pattern-registry |;
+my $pattern_dir = <smtpd.cfg.pattern_dir>;
+if ( $pattern_dir !~ m|^/| and defined <system.root_path> ) {
+    $pattern_dir = <system.root_path> . '/' . $pattern_dir;
+}
+if ( -d $pattern_dir ) {
+    foreach my $file ( glob "$pattern_dir/smtpd-*.yaml" ) {
+        my $result
+            = $code{'base.pattern-registry.load'}->( { 'file' => $file } );
+        if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
+            <[base.logs]>->(
+                2,
+                ':. smtpd.init: loaded %d patterns from %s :.',
+                $result->{'data'}->{'loaded'} // 0, $file
+            );
+        }
+    }
+}
+
 <[base.logs]>->( 1, 'smtpd: ready, store=%s', $store_dir );
 
-#,,,,,,,.,,.,,,.,,,.,,..,,.,.,,..,,,,,.,.,..,,.,.,...,...,.,.,...,.,.,,..,..,,
-#B5PZWQZERLAUTOYGS6FMBV5U45HVKWMCHC544JNC33JDJ2H7KCUWPYFDUU7KF7ZRP6U5PV7RGJDHU
-#\\\|NB2FK2QUPSC3AVNTFPNWANNI33ABLEXWOK6U4GCOSM663UCIELG \ / AMOS7 \ YOURUM ::
-#\[7]TRQ7MFIIQPEVEWMOQWZCZ2HW2SG2DBUM23ZCT3HUNEZUX6BUI6AA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,.,.,..,,,..,,,.,..,,,..,..,,.,.,...,..,,,,.,,..,.,,,,..,,,.,
+#THYE7QFYXHEM6HWSOS7O7UDGUFYXGOSVMUFR6S5PEXKYR3WP2Y2BXJPXKGM6HCACU3OCWY5VKXDSO
+#\\\|PDX6OTSJZFRJPU5OIRN2XWJMATQL6BUUHX4E5S4JEFNDB6MPZSE \ / AMOS7 \ YOURUM ::
+#\[7]GK5HB5CSSQNQUP53D55CO6GHKQ7HMSBB5JMHUVATFBANFJB37YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,27 +51,32 @@ if ( defined $llm_result and ref $llm_result eq qw| HASH | ) {
     }
 }
 
-## keyword fallback for intent when llm unavailable or failed ##
+## keyword fallback for intent when llm unavailable or failed -- via the   ##
+## shared pattern registry [ data/yaml/pattern-registry/smtpd-classify.    ##
+## yaml ], same trigger position as the prior inline chain: only runs when ##
+## the llm path above didn't already set intent                            ##
 if ( not defined $parsed->{'intent'} ) {
-    my $combined = lc("$subject $text");
-    if ( $combined =~ m{\binterview\b} ) {
-        $parsed->{'intent'} = 'interview_request';
-    } elsif (
-        $combined =~ m{\b(ablehnung|rejection|regret|unfortunately|
-        nicht\s+berücksichtigt|nicht\s+ausgewählt)\b}x
-    ) {
-        $parsed->{'intent'} = 'rejection';
-    } elsif ( $combined =~ m{\b(angebot|offer|stellengespräch|einladung)\b}x )
-    {
-        $parsed->{'intent'} = 'offer';
-    } elsif (
-        $combined =~ m{\b(dokument|document|unterlage|cv|lebenslauf)\b}x ) {
-        $parsed->{'intent'} = 'document_request';
-    } elsif ( $combined =~ m{\b(reply|antwort|feedback|status)\b}x ) {
-        $parsed->{'intent'} = 'reply';
-    } else {
-        $parsed->{'intent'} = 'information';
-    }
+
+    ## flatten to one line : the engine matches per-line after splitting on ##
+    ## \n, but the prior inline chain relied on \s+ spanning embedded       ##
+    ## newlines in one un-split string -- collapse whitespace first so a    ##
+    ## phrase spanning a body line-break still matches                      ##
+    ( my $flat = lc("$subject $text") ) =~ s|\s+| |g;
+
+    my $result = <[base.pattern-registry.apply]>->(
+        {   'input'     => $flat,
+            'file_type' => 'mail',
+            'namespace' => 'smtpd.classify'
+        }
+    );
+
+    my $classified
+        = ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | )
+        ? $result->{'data'}->{'classified'} // []
+        : [];
+
+    $parsed->{'intent'} = $classified->[0]->{'label'} if @$classified;
+    $parsed->{'intent'} //= 'information';
 }
 
 ## apply defaults for all classification fields ##
@@ -104,8 +109,8 @@ if (    $parsed->{'action_required'}
 
 return $parsed;
 
-#,,,.,.,,,,.,,..,,,..,...,...,,.,,.,,,,.,,.,.,.,.,...,...,..,,.,.,.,,,,.,,,.,,
-#NIRUAHXWYJ7GTMNP7VMBZOHHHFLBTJ5WMEJN5OSELUI5YAF6SLOHYKU6VBBBTAMK63D3L3UADWVTI
-#\\\|GUG6QAY42NYAACUO3QFGFE4GNKZ7PNHSYAUZB37UP7XO2STOKIG \ / AMOS7 \ YOURUM ::
-#\[7]54F7K33TBB5BD32AGJ5TLBTMHZULIRTCSNSYVTIZDUYD7Q667GCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,.,,,.,,,,..,,,,,,,.,...,,,,,.,.,...,...,,.,,...,.,,,,,.,...,
+#SQWUCZHXJG6E6WICH4X2KXRXZ752YMVDLQZWRTZ5OIBHQOIWZRJGVIJE4HGP73LFEYDSVHLASVM2A
+#\\\|FZEWLDQMRWER3YYAHFEK5QE4WNDGDNFNMSYZUTUFMIHOWFWU2FA \ / AMOS7 \ YOURUM ::
+#\[7]7HM3UYORIK7QAWFLY7VBTSLRSDDGZHNQWOCLYGX6J3UBKIHAGSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

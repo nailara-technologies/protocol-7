@@ -5,7 +5,7 @@
 # param = [filter]
 
 my $filter = lc( $call->{'args'} // '' );
-$filter =~ s|^\s+|\s+$| | g;
+$filter =~ s{^\s+|\s+$}{ }g;
 
 my $index   = <smtpd.mail_index> // [];
 my @entries = @{$index};
@@ -15,7 +15,7 @@ if ( length $filter ) {
     @entries = grep {
         my $to_local = lc( $_->{'to'} // '' );
         $to_local =~ s|@.*$||;
-        $to_local =~ s|^\s+|\s+$| | g;
+        $to_local =~ s{^\s+|\s+$}{ }g;
         index( $to_local, $filter ) >= 0
             or index( lc( $_->{'subject'} // '' ), $filter )
             >= 0
@@ -42,8 +42,8 @@ for my $e (@entries) {
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) };
 
-#,,,,,.,.,...,...,,..,..,,.,.,..,,..,,.,,,...,.,.,...,...,..,,...,,,,,,,.,,,,,
-#TU6CX3GM5INFGEBYZD7XXCZFGZFHR7VY5LA3MVROY24G3IYPIDHZBXXQNTT57PXRL2QKOYLNYRLTK
-#\\\|H5FQHU5X3VPTFYKLTKZKUXDQFAHVJTFEV5JH7CX3ARTGWP4HNBQ \ / AMOS7 \ YOURUM ::
-#\[7]NUE7RRRGDQWIOYCDIN2WXXKJO3HUJY62IBFULIDRLOAFQI7ISUCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,,.,.,.,.,,,..,,.,.,,,.,..,,.,.,...,...,...,..,,,.,,.,.,...,
+#SWF72Y2ZRWC7PHZ2UPBHHKLPXYPP7GER76CY7P2ADIZECASBALAA32OECF46EZM2VKKX7QQOT44HU
+#\\\|H7J4O4TZC6LV3KTLBBLPREDWSR6EQOLS2G4UMKC3ZIU7X4B7RRG \ / AMOS7 \ YOURUM ::
+#\[7]I24Q6UXVJPO2HFJ5SDQDGKYEXU4DVL3Q2QM7NICETZ4WFEGTY4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
