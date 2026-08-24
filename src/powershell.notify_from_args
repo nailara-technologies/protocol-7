@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = powershell.notify_from_args
+# descr = shared implementation for the powershell.cmd.notify-* command
+#         family : parses a raw '<title>' ['<message>'] arg string [ same
+#         quoting convention as notify.cmd.loves ], extracts an optional
+#         leading '::icon:<name>::' tag, and fires the resulting toast --
+#         individual notify-* commands are thin wrappers that just supply
+#         their own default icon key
+# param = { txt_param, default_icon }
+
+my $params = shift // {};
+
+my $txt_param    = $params->{'txt_param'}    // '';
+my $default_icon = $params->{'default_icon'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'no message text submitted' }
+    if !length($txt_param);
+
+if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
+    utf8::decode($txt_param);
+    utf8::downgrade($txt_param);
+}
+
+$txt_param =~ s|\\0||go;
+$txt_param =~ s,^\s*|\s*$,,g;
+
+my $extracted
+    = <[powershell.util.extract_icon_tag]>->( $txt_param, $default_icon );
+$txt_param = $extracted->{'text'};
+my $icon = $extracted->{'icon'};
+
+my @matches;
+if ( $txt_param =~ /('[^']+\'[^']*){1,2}/ ) {
+    while ( $txt_param =~ s|^\s*'([^']+)'\s*|| ) {
+        push( @matches, $1 );
+    }
+}
+
+my ( $title, $body );
+if ( !length($txt_param) and @matches ) {
+    ( $title, $body ) = @matches;
+} else {
+    $title = $txt_param;
+}
+
+return { 'mode' => qw| false |, 'data' => 'no message text submitted' }
+    unless defined $title and length $title;
+
+return <[powershell.notify]>->(
+    {   'title'   => $title,
+        'message' => $body,
+        'icon'    => $icon
+    }
+);
+
+#,,,.,.,,,..,,.,,,.,.,,..,.,,,...,.,,,,.,,.,.,.,.,...,...,...,...,,..,...,.,.,
+#5ZOFVXE5PUVRLQ5KU6LJXCECHXR4SZNXXHIWSEF44ONQUD5DL3AR3JJY4TZVRADMRWPM4G3DMF2FM
+#\\\|NEDVMISW4NLFNTOLWUL73GLCNYUQBLN4RWOZWUR5X2ZJPSTOLUC \ / AMOS7 \ YOURUM ::
+#\[7]S6EACSUQJ2MVWMZYQOWBWHBW7YUKGCMDQWF6NIR7VG2NQVLNYIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
