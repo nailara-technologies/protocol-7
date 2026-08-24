@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = dunst.handler.process_output
+# descr = reads output from dunst child process
+
+my $event = shift;
+
+## [ whitelist from observed output [ 2026-08-24 ] ] ##
+$event->w->data->{'log_whitelist'} //= [
+    'wayland',                 ## wayland init failure + X11 fallback ##
+    'Could not find theme',    ## AdwaitaLegacy theme warning [ cosmetic ] ##
+    'MIT-SCREEN-SAVER',        ## Xlib extension warning [ cosmetic ] ##
+    ## WSLg's Weston doesn't implement these two wlr-protocols/extensions   ##
+    ## -- dunst falls back to plain xdg_shell [ compositor-placed toplevel, ##
+    ## explains the randomized notification position ] and no fullscreen    ##
+    ## detection ; both non-fatal, notifications still work                 ##
+    'zwlr_layer_shell_v1',
+    'zwlr_foreign_toplevel_v1'
+];
+
+return <[base.handler.child_output.simple]>->( $event, @ARG );
+
+#,,..,.,.,...,..,,.,,,...,,,.,.,.,...,,.,,,,.,..,,...,...,..,,,,,,...,,,,,,,,,
+#D5TCPUJ2RQ7FRD2WS63MDPQYGJ6YD4SQSC62W7TP2O7HQ44WSMHYP7MGBFPZLCVYWKKKNBRB3KZQW
+#\\\|P7UHSFN5OJYXBVRACCI5SRQ5DMT3JXO4UCOQ3LPVJRPJ3HMP42D \ / AMOS7 \ YOURUM ::
+#\[7]YUYJCGIGPBHRHCHUWM4DIZHRICSX6XDQO6J6TSLDUYVTDGCLTMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
