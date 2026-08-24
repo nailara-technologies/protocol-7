@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = base.pattern-registry.action.replace
+# descr = terminal action : regex substitution, line-by-line [ parity target
+#         for a future ncode.regex.* migration onto this engine -- not
+#         called by anything yet, action_type defaults to 'replace' so an
+#         unmodified ncode-style pattern def would dispatch here unchanged ]
+# param = { def, name, output, matches }
+# return = { output, count }
+
+my $params = shift // {};
+
+my $def      = $params->{'def'}    // {};
+my $output   = $params->{'output'} // '';
+my $compiled = $def->{'compiled'};
+my $replace  = $def->{'replace'};
+
+return { 'output' => $output, 'count' => 0 }
+    unless defined $compiled and defined $replace;
+
+my $count = 0;
+my @lines = split m|\n|, $output;
+for my $i ( 0 .. $#lines ) {
+    if ( $lines[$i] =~ $compiled ) {
+        my $old = $lines[$i];
+        $lines[$i] =~ s|$compiled|$replace|;
+        $count++ if $lines[$i] ne $old;
+    }
+}
+
+return {
+    'output' => join( "\n", @lines ),
+    'count'  => $count
+};
+
+#,,.,,,,.,,.,,,..,,,.,.,,,.,,,..,,,..,.,,,..,,.,.,...,...,...,.,.,.,.,,.,,...,
+#TD3JKFD7U6SVUBJOIBCZWP2QDL6DOSEAF7IUSGNWGWYUZH2Y42SQDB3DL3PIEEVDKLJ6FYUBFUZKC
+#\\\|WPUVOZR5MCK5N6SR6JOI37P2UR3I6U24ZMMXTSAKMHD7HHVNHLA \ / AMOS7 \ YOURUM ::
+#\[7]QW3EO6U6FKL5VM6SGNRTYPS33JL66P3UWRBOC4FW73CI636BZOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

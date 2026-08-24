@@ -1,0 +1,187 @@
+## [:< ##
+
+# name  = base.pattern-registry.apply
+# descr = run applicable regex patterns on input text [ domain-agnostic port
+#         of ncode.regex.apply -- see src/ncode.regex.apply, ncode's own
+#         usage is untouched by this file. gating pipeline is structurally
+#         identical; only the terminal "fire" branch differs -- dispatches
+#         to a pluggable base.pattern-registry.action.<action_type> handler
+#         instead of hardcoding text substitution ]
+
+my $params = shift // {};
+
+my $input     = $params->{'input'}     // '';
+my $file_type = $params->{'file_type'} // qw| module |;
+my $namespace = $params->{'namespace'} // '';
+my $mode      = $params->{'mode'}      // qw| apply |;
+my $threshold = $params->{'threshold'}
+    // <pattern-registry.cfg.auto_apply_threshold> // 0.90;
+
+return { 'mode' => qw| false |, 'data' => 'no input' }
+    unless length $input;
+
+<pattern-registry.patterns> //= {};
+
+my $patterns = <pattern-registry.patterns>;
+
+return { 'mode' => qw| false |, 'data' => 'no patterns loaded' }
+    unless keys %$patterns;
+
+my $output = $input;
+my @applied;
+my @flagged;
+my @classified;
+
+foreach my $name ( sort keys %$patterns ) {
+    my $def  = $patterns->{$name};
+    my $app  = $def->{'applicability'} // {};
+    my $conf = $app->{'confidence'}    // 0.5;
+
+    ## check applicability conditions ##
+    if ( defined $app->{'file_type'} and $app->{'file_type'} ne '*' ) {
+        next unless $file_type eq $app->{'file_type'};
+    }
+
+    ## scope gate : pattern applies only when the caller-supplied namespace ##
+    ## matches the currently-active entry of its scope stack                ##
+    next
+        unless
+        <[base.pattern-registry.util.scope_match]>->( $namespace, $app );
+
+    ## check for required predecessor patterns ##
+    if ( defined $app->{'requires'}
+        and ref $app->{'requires'} eq qw| ARRAY | ) {
+        my $prereqs_met = 1;
+        foreach my $req ( $app->{'requires'}->@* ) {
+            unless ( grep { $ARG->{'name'} eq $req } @applied ) {
+                $prereqs_met = 0;
+                last;
+            }
+        }
+        next unless $prereqs_met;
+    }
+
+    my $compiled    = $def->{'compiled'};
+    my $replace     = $def->{'replace'};
+    my $action_type = $def->{'action_type'} // qw| replace |;
+
+    ## count matches ##
+    my @matches;
+    my $line_num = 0;
+    foreach my $line ( split m|\n|, $output ) {
+        $line_num++;
+        if ( $line =~ $compiled ) {
+            push @matches, { 'line' => $line_num, 'text' => $line };
+        }
+    }
+
+    next unless @matches;
+
+    ## status gate [ phase 1 parity with ncode.regex.apply ] : an         ##
+    ## llm-required pattern is never auto-applied here, regardless of its ##
+    ## own confidence -- flagged for review instead, same shape as the    ##
+    ## below-threshold branch below                                       ##
+    if ( ( $def->{'status'} // qw| llm-required | ) eq qw| llm-required | ) {
+        push @flagged,
+            {
+            'name'    => $name,
+            'matches' => scalar @matches,
+            'action'  => qw| requires_review |,
+            'conf'    => $conf,
+            'lines'   => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'skipped'}++;
+        next;
+    }
+
+    ## below threshold or flag-only: report but don't act -- action-type ##
+    ## aware : a classify pattern has no 'replace' field by design, so   ##
+    ## requiring one unconditionally [ as ncode.regex.apply does today ] ##
+    ## would flag every classify pattern permanently                     ##
+    if (   $conf < $threshold
+        or ( $action_type eq qw| replace | and not defined $replace )
+        or $mode eq qw| scan | ) {
+        my $action = $app->{'action'} // qw| flag_for_review |;
+        push @flagged,
+            {
+            'name'    => $name,
+            'matches' => scalar @matches,
+            'action'  => $action,
+            'conf'    => $conf,
+            'lines'   => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'skipped'}++;
+        next;
+    }
+
+    ## dispatch to the registered terminal-action handler [ P7's dynamic- ##
+    ## name invocation, same idiom steps[].tool dispatch already uses ]   ##
+    my $action_sub = "base.pattern-registry.action.$action_type";
+    if ( not exists $code{$action_sub} ) {
+        push @flagged,
+            {
+            'name'    => $name,
+            'matches' => scalar @matches,
+            'action'  => qw| unknown_action_type |,
+            'conf'    => $conf,
+            'lines'   => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'skipped'}++;
+        next;
+    }
+
+    my $result = $code{$action_sub}->(
+        {   'def'     => $def,
+            'name'    => $name,
+            'output'  => $output,
+            'matches' => \@matches
+        }
+    );
+
+    if ( $action_type eq qw| replace | ) {
+        $output = $result->{'output'} // $output;
+        if ( $result->{'count'} ) {
+            push @applied,
+                {
+                'name'  => $name,
+                'count' => $result->{'count'},
+                'conf'  => $conf,
+                'lines' => [ map { $ARG->{'line'} } @matches ]
+                };
+            $def->{'stats'}->{'applied'} += $result->{'count'};
+        }
+    } else {
+        push @classified,
+            {
+            'name'    => $name,
+            'label'   => $result->{'label'},
+            'matches' => scalar @matches,
+            'conf'    => $conf,
+            'lines'   => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'matched'}++;
+    }
+}
+
+my $changed = $output ne $input;
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'output'           => $output,
+        'changed'          => $changed ? TRUE : FALSE,
+        'applied'          => \@applied,
+        'flagged'          => \@flagged,
+        'classified'       => \@classified,
+        'total_applied'    => scalar @applied,
+        'total_flagged'    => scalar @flagged,
+        'total_classified' => scalar @classified,
+        'total_fixes'      => ( scalar map { $ARG->{'count'} } @applied )
+    }
+};
+
+#,,,,,...,..,,,.,,.,,,...,..,,...,,..,.,,,...,..,,...,...,,..,.,,,,..,,.,,,,,,
+#E7LT6KVS45MOTXK6NJH5EZFBGH3RYOPCPYZNABAFJ4TLQWWV2BEWPIWG4DB6XOF3L2FYO6BQCEJEE
+#\\\|X76BXT277OMHPMJ43Q5VZJAGWEPQE4FITOKHMLM2UBVTWFYHQXO \ / AMOS7 \ YOURUM ::
+#\[7]2NQXWSIA7ECR6UZYOBC7TF2LAYNZEJEUA5HRGBIDFU2JYKCPC6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

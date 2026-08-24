@@ -5,7 +5,7 @@
 # param = <message_id_or_path>
 
 my $query = $call->{'args'} // '';
-$query =~ s|^\s+|\s+$| | g;
+$query =~ s{^\s+|\s+$}{ }g;
 
 return { 'mode' => qw| false |, 'data' => 'message-id or path required' }
     if not length $query;
@@ -55,8 +55,8 @@ if ( -f $guess_path ) {
 
 return { 'mode' => qw| false |, 'data' => 'message not found' };
 
-#,,..,,,.,,,,,...,,.,,,,,,...,...,.,.,,.,,,.,,.,.,...,...,,,.,.,.,,,,,,.,,,.,,
-#H5WSOO3LYE4NPXUDEYGGSHCQKY2GUNT6UCGYWP3QUGOUTEL6HOWGX3PIASCZSWBQWALKW5NEAHVJG
-#\\\|Z3B6LK5EBV3L3UEHL6YUX2EC4YJKTGS3KCQVVAP3J67YHC5SNQA \ / AMOS7 \ YOURUM ::
-#\[7]UV2MLIO37K4SMBP4SE3SCMHUOOXFLRWB2544RYMKYFYAJZDC4GCY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,.,.,,..,,..,,..,..,,,,.,.,,,.,.,...,...,...,..,,,.,,.,.,,..,
+#ETJNHNQBMSEUARSVDN7553HSTIMR6WUO2W2AHUTRKKKBICBPAAB3LOCXKZSX5HXQNZT5UWCOG5QRC
+#\\\|NSBB5ATPAU4IAO4FCSCUF7VNBNIGJFA74T7QUKNYEXX56LSVPU7 \ / AMOS7 \ YOURUM ::
+#\[7]2AGDVBGSXRGFPYD3EWCSCZ3F5W4XXKVQGRIWD5NWECPBFCCN5YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

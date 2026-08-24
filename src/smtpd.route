@@ -13,7 +13,7 @@ my $to_addr = $parsed->{'to'} // '';
 ## extract local part of address ##
 ( my $local = lc $to_addr ) =~ s|<([^>]+)>|$1|;
 $local                      =~ s|@.*$||;
-$local                      =~ s|^\s+|\s+$| | g;
+$local                      =~ s{^\s+|\s+$}{ }g;
 
 ## match routing table ##
 my $routes = <smtpd.cfg.route> // {};
@@ -54,8 +54,8 @@ if ( ( $parsed->{'action_required'} // 0 )
 
 return $target;
 
-#,,,.,,.,,,,,,.,,,,..,,..,..,,..,,,.,,,,,,...,.,.,...,...,.,.,,,.,,,,,..,,...,
-#LC2CCFZYFJCDAGLA65T2IGFE3SFEBA57ZRNUZUPWVXM6CBNEWERJMZ3CZ5U2NCSLP6GP44KZ3S6JQ
-#\\\|YLALWS6YUNLZ7JGQM77JN4Y3MLUY5T2KVUSTKVZACRXERXFZEJY \ / AMOS7 \ YOURUM ::
-#\[7]WHQXMGLRSNMC2JZM5PQSWCX3Z7R7ZXF6BYEEE35Y4CFOYCAACODY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,,..,,,,,,,,,.,,,..,,,,,,...,.,.,...,...,..,,.,,,,..,.,,,,.,,
+#4MHEYPAT3K7D6MHFT5G7YMJKRU4AOANKNWPBQJXIX6FYOARJOF3MKPVVTI27DVVBJO7R3255AMRDI
+#\\\|XR3ZYBPEWYO7EXYY7LZKUKS3SMZSJ54M45VN6D22L6K7HFWNLVY \ / AMOS7 \ YOURUM ::
+#\[7]SAOK7KLKOQCYG7VXL33OPKGIRK5W4LDDAMCNIOVXFGBBEMYWXWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
