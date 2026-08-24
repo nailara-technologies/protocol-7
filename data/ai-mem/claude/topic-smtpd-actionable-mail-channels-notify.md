@@ -67,26 +67,46 @@ pattern itself contains alternation). Verified live: `dbus` reaches `online`
 status reliably now (`p7c v7.restart dbus` + `v7.list zenki dbus`), and
 `notify`/`notify-osd` both come up online right after (on-demand, chained).
 
-**problem 3 -- environment gap, WORKED AROUND (2026-08-24) rather than
-fixed on the X11/dbus side**: with dbus and notify both online, `p7c
-notify.loves '...' '...'` still failed: `notify-send exited with code 1` /
-`Failed to show notification: GDBus.Error:org.freedesktop.DBus.
+**problem 3 -- environment gap, worked around with a Windows-toast backend
+AND separately fixed for real via `dunst` (both 2026-08-24)**: with dbus
+and notify both online, `p7c notify.loves '...' '...'` still failed:
+`notify-send exited with code 1` / `Failed to show notification: GDBus.
 Error.ServiceUnknown: The name org.freedesktop.Notifications was not
-provided by any .service files`. The D-Bus session bus was genuinely up and
-reachable, but nothing was registered on it implementing
+provided by any .service files`. The D-Bus session bus was genuinely up
+and reachable, but nothing was registered on it implementing
 `org.freedesktop.Notifications` -- WSLg provides X11 + audio passthrough
-but not a full desktop shell, so there's no notification daemon (e.g.
-`dunst`, `notification-daemon`, `xfce4-notifyd`) to receive `notify-send`
-calls. Not a protocol-7 bug -- a missing system package/service. Rather
-than install `dunst` on this box, built a working alternative instead: a
-native Windows toast notification backend via the `powershell` zenka --
-see [[topic-powershell-native-toast-notifications]] for the full
-implementation (AUMID branding, Start-Menu-shortcut+COM icon registration,
-local icon caching, `::icon:<name>::` selectable icons). Confirmed working
-end-to-end via `p7c powershell.notify-msg`/`.notify-loves-it`. `dunst` remains a real,
-still-undone option for non-WSL Linux desktop deployments -- see
-[[dunst-notify-zenka]] -- but is no longer the immediate path for this
-host.
+but not a full desktop shell, so there's no notification daemon by
+default. First worked around with a native Windows toast backend via the
+`powershell` zenka -- see [[topic-powershell-native-toast-notifications]]
+(AUMID branding, Start-Menu-shortcut+COM icon registration, local icon
+caching, `::icon:<name>::` selectable icons), confirmed working end-to-end
+via `p7c powershell.notify-msg`/`.notify-loves-it`.
+
+Separately, [[dunst-notify-zenka]] was then actually built (mirroring
+notify-osd's zenka shape, dispatched to Kimi for phases 1-2, live-verified
+in an interactive session for phase 3) and DOES render visible popups on
+this WSLg host -- but only once pointed at the REAL wayland socket
+(`/mnt/wslg/runtime-dir`, `WAYLAND_DISPLAY=wayland-0`) instead of the X11
+fallback both notify-osd and dunst use by default. This is likely the
+actual root cause behind notify-osd's whole "renders nothing, no error"
+mystery: WSLg's Weston compositor doesn't implement `zwlr_layer_shell_v1`
+(confirmed via dunst's own startup warning), so a client that goes through
+XWayland/X11 for its popup window gets a window Weston never properly
+composites/shows, while dunst falling back to plain Wayland `xdg_shell`
+(no `zwlr_layer_shell_v1` needed) at least renders SOMETHING. Styling was
+then fully fixed live (project-owned `cfg/zenki/dunst/dunstrc`, custom
+'White Rabbit' font wired via a fontconfig snippet, dark blue/violet
+"blacklight" colors) -- see [[dunst-notify-zenka]] for the settled values
+and two real gotchas hit getting there (`-config` disables dunst's OWN
+config search entirely, so a minimal override file loses the shipped
+config's font/icon/padding defaults too, not just colors; Pango point-
+sizes render much smaller than expected under this WSLg session's DPI/
+scale factor -- 17pt was needed where a normal desktop would use ~11).
+One defect remains, NOT fixed: notification position is randomized (no
+anchor hint under plain `xdg_shell`, entirely compositor-controlled, same
+underlying flavor of issue as the still-unresolved
+[[gtk-wsl-window-positioning]] investigation) -- structural, likely needs
+a WSLg/Weston update adding `zwlr_layer_shell_v1` support to actually fix.
 
 **design smell, still open**: smtpd hardwires *how* a human gets told about
 actionable mail (a desktop OSD popup, needing a live X11/dbus session) into
@@ -122,8 +142,8 @@ in `src/smtpd.route` with a channel publish.
 
 related: [[pattern-registry-engine]], [[topic-powershell-native-toast-notifications]], [[dunst-notify-zenka]]
 
-#,,.,,,,.,,..,.,.,.,,,..,,,,.,.,.,...,,,,,,,,,..,,...,...,..,,..,,,,,,.,,,.,,,
-#DCOZ4FZFOOEFMH63SBMKL4N33AL4Y3NWYR2DZSWXQLBHHWZSKNHIMYKM5WDJYQ2VEAGJFYCPX62GS
-#\\\|E5JQ3FHBENX7RJKPY5YIBOZJ3KBMXHCFVEEXS4CGBVLOJ7PXTTK \ / AMOS7 \ YOURUM ::
-#\[7]EYTRQVKYWRCI4LDA3DEIV43V4TMP5HBOUS2L6JLBTCWSZMOJQWCI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,,,,,,,,,,,...,...,,.,,,,.,...,..,,...,...,.,,,.,,,..,,,,.,,,.,
+#CJB52HV2L5RKEGTF3JGYNNUTIE32MWRUWW7XQXVM3APUWWH3EMCYKZ4KONWVCF25HEQ4MLZW2VERO
+#\\\|5MOVPXWR6E7UYEGESRLR5NPVFF6C65J4OLOLOI3MYKN7ZRK5O27 \ / AMOS7 \ YOURUM ::
+#\[7]6ZIE6JI4L5BGKFS26QX5PTNCTOOOGSXDGGKSR7LE4WAGH5HYIIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

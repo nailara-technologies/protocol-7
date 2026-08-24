@@ -1,6 +1,8 @@
 # dunst notification zenka — task
 
-## status [ 2026-08-24 ] — drafted, de-risked by a manual smoke test, not started
+## status [ 2026-08-24 ] — phases 1+2+3 complete, dunst renders visible,
+## properly-styled dark popups on this WSLg host; one follow-up defect
+## remains (randomized position, structural/compositor-level, see bottom)
 
 ## context
 
@@ -177,7 +179,8 @@ dunst needs its own on-demand timeout/restart-disabled flags matching
 notify-osd's conventions (check cfg/zenki/notify-osd/start.cfg for any such
 settings) before assuming zenka.v7 alone is sufficient.
 ```
-STATUS: not started
+STATUS: done — `cfg/zenki/dunst/zenka.v7`, `cfg/zenki/dunst/start.cfg`
+(dispatched to Kimi, k3-256k; live-verified clean startup end-to-end)
 
 ### task 1.2 — src/dunst.init_code
 
@@ -192,7 +195,7 @@ message naming the apt package ('dunst') if not found, matching
 notify.init_code's existing die message style
 ("please install 'notify-osd'").
 ```
-STATUS: not started
+STATUS: done — `src/dunst.init_code`
 
 ### task 1.3 — src/dunst.startup
 
@@ -212,7 +215,18 @@ here by omission. Register an event.add_io handler
 (src/dunst.handler.process_output, task 1.4) for the child's stdout/stderr
 the same way notify-osd.startup does.
 ```
-STATUS: not started
+STATUS: done, then AMENDED live — `src/dunst.startup`. Kimi's version
+matched this prompt exactly (GDK_BACKEND=x11 forced, WAYLAND_DISPLAY
+deleted, report_child_pid called immediately) and worked without errors,
+but rendered NO visible popup -- same symptom as notify-osd. Live
+investigation found the real fix: point dunst at the ACTUAL wslg wayland
+socket (`/mnt/wslg/runtime-dir`, `WAYLAND_DISPLAY=wayland-0`) instead of
+forcing X11 -- v7 hides the real socket via a sandboxed `XDG_RUNTIME_DIR`
+for other GTK zenki (see `base.gtk.ensure_display`), which was blocking
+dunst from ever reaching wayland at all. The file now checks for the real
+socket (`-S '/mnt/wslg/runtime-dir/wayland-0'`) and only falls back to the
+original X11-forcing behavior if it's absent. This DOES render a visible
+popup -- see phase 3 and the notes below for the two remaining defects.
 
 ### task 1.4 — src/dunst.handler.process_output
 
@@ -230,7 +244,14 @@ sequence looks clean once wired through the real zenka before finalizing
 this whitelist, since a correctly-connected run may emit different lines
 than the disconnected manual test did.
 ```
-STATUS: not started
+STATUS: done, then AMENDED live — `src/dunst.handler.process_output`. The
+DBus-connected run under real wayland (see task 1.3's amendment) emitted
+two NEW warnings not seen in the earlier disconnected/X11-fallback manual
+test: `compositor doesn't support zwlr_layer_shell_v1, falling back to
+xdg_shell` and `compositor doesn't support zwlr_foreign_toplevel_v1`.
+Confirmed non-fatal (notifications still work) and added to the
+whitelist. These two lines are actually the most important diagnostic
+output this task produced -- see phase 3 / notes.
 
 ## phase 2 — wiring
 
@@ -248,7 +269,23 @@ before creating a new one) so `p7-deps` can install it on other hosts --
 dunst is already installed on this dev host, so this step doesn't block
 testing here, but still needs doing for reproducibility elsewhere.
 ```
-STATUS: not started
+STATUS: done — `access.cmd.usr.dunst` added to `cfg/zenki/cube/
+access.zenki`; `cfg/zenki/dunst/subroutines.load-early` generated via the
+real tool; `apt: dunst` added to `.deps/profiles.yaml`'s `X11-Desktop`
+profile (grouped with `notify-osd`, which already lived there). Also
+needed but NOT anticipated in this task's original scope: an
+`auth.setup.usr.dunst = :zenka:` entry in `cfg/zenki/cube/auth.zenki`
+(separate from `access.zenki` -- this one governs whether cube recognizes
+`dunst` as a valid zenka-class auth identity at all, every other zenka in
+that file has its own line) -- added live, both `cube` and `v7` needed a
+reload to pick it up. Also switched `cfg/zenki/notify/start.cfg`'s
+`dependencies = notify-osd` to `dependencies = dunst` for this host's
+current parallel-testing state (notify-osd was stopped to free the
+`org.freedesktop.Notifications` bus name for dunst) -- this is a
+per-deployment operator choice, not something this task should have
+hardcoded either way; whichever backend is actually running needs to be
+the one `notify` depends on, or its on-demand startup loops trying to
+reach a dependency that never comes online.
 
 ## phase 3 — verification
 
@@ -267,24 +304,94 @@ report_child_pid wiring actually works, don't just trust the zenka status
 line). p7c v7.restart dunst and repeat the visible-popup test to confirm a
 clean restart cycle.
 ```
-STATUS: not started
+STATUS: done — `p7c v7.start dunst` reached `online` cleanly (after also
+adding the `auth.zenki` entry noted in task 2.1). First `notify.loves`
+test succeeded with NO error but ALSO no visible popup -- same as
+notify-osd, under the originally-planned X11-forced startup. Live
+investigation (not scoped in this task's original phase 3 prompt) found
+and applied the wayland-socket fix described in task 1.3's amendment,
+after which the popup rendered visibly, top-right on the primary monitor,
+large correct `loves.png` icon. `p7c v7.stop dunst` + `ps aux | grep
+dunst` confirmed the real binary dies with the zenka (report_child_pid
+wiring works). Two real defects found; styling was fixed live (project
+dunstrc, see notes), notification position remains randomized (structural
+compositor limitation, not fixed).
 
 ## notes
 
 - do not touch notify-osd/notify-osd.* in this task — parallel, not a
-  replacement, per binding constraints above.
-- if dunst also fails to render visibly on this host, that would be a
-  strong signal the problem is structural to this WSLg setup (some
-  compositing/window-manager gap affecting override-redirect popup windows
-  generally, not specific to notify-osd's GTK3 rendering path) — worth
-  documenting as its own finding rather than assumed away.
+  replacement, per binding constraints above. (notify-osd was `v7.stop`ped
+  during live testing purely to free the `org.freedesktop.Notifications`
+  bus name for dunst -- an operational step, not a code change.)
+- **the actual root-cause finding of this task**: dunst only renders
+  visibly on this WSLg host when connected to the REAL wayland socket
+  (`/mnt/wslg/runtime-dir`, `WAYLAND_DISPLAY=wayland-0`), not under X11
+  (whether via XWayland directly or dunst's own X11 fallback). Once
+  connected via real wayland, dunst logs `compositor doesn't support
+  zwlr_layer_shell_v1, falling back to xdg_shell` -- WSLg's Weston doesn't
+  implement the wlr-layer-shell protocol proper anchored notification
+  popups use. This is very likely the same underlying gap that made
+  notify-osd's popup render nothing at all (X11/XWayland path, no wayland
+  fallback available to it) -- worth treating as resolved-by-explanation
+  rather than a remaining mystery, see
+  `topic-smtpd-actionable-mail-channels-notify.md`.
+- **defect 1, not fixed**: notification position is randomized across the
+  screen -- plain `xdg_shell` toplevels (the fallback from
+  `zwlr_layer_shell_v1`) have no anchor/position hint, so Weston places
+  them itself with no consistent policy observed. Likely the same flavor
+  of issue as the still-open `gtk-wsl-window-positioning` investigation
+  (Wayland compositors generally don't let clients position their own
+  toplevels; layer-shell exists specifically to give panels/notifications
+  an exception to that rule, which this compositor doesn't implement).
+  Possible angles for whoever picks this up: check for a newer
+  Weston/WSLg build with layer-shell support, or check if dunst has a
+  wlr-layer-shell-independent positioning fallback config option.
+- **defect 2, FIXED live**: default dunst theme was light-mode (green-blue
+  background, light grey frame). Fixed with a project-owned `cfg/zenki/
+  dunst/dunstrc` passed via `-config` in `dunst.startup`. Two real gotchas
+  found getting there, both worth remembering for anyone touching this
+  file again:
+  - **`-config` disables dunst's OWN config search entirely** (per man
+    dunst) -- a MINIMAL override file doesn't just override colors, it
+    loses every other shipped default too (font, icon size, padding),
+    falling back to dunst's much smaller compiled-in minimums instead of
+    `/etc/xdg/dunst/dunstrc`'s generous values. Confirmed live: the whole
+    notification, icon included, rendered tiny before `padding`/
+    `min_icon_size`/`max_icon_size`/`font` were added explicitly (values
+    carried over from the shipped config, see the dunstrc's own comments).
+  - **Pango point-sizes render far smaller than expected under this WSLg
+    Wayland session** -- confirmed via a live DPI-scale test: 11pt was
+    "far too small", 24pt was "very large", 17pt landed about right. Pixel-
+    based settings (`min_icon_size`, `width`) were NOT affected, only the
+    point-based `font` size -- consistent with a compositor DPI/scale-
+    factor mismatch specific to Pango's text layout under this session,
+    not a font-loading failure (confirmed separately: `fc-match "White
+    Rabbit"` resolves correctly even reproducing dunst's exact
+    environment). If a future WSLg/Weston update changes this scale
+    factor, `font = White Rabbit Regular 17` may need retuning again --
+    treat 17 as empirically-fit-to-this-host, not a portable constant.
+  - custom project font also wired up: `data/ttf/console/white-rabbit.
+    flipped.ttf` ("White Rabbit" family) is made discoverable to Pango/
+    fontconfig WITHOUT installing it system-wide, via a small fontconfig
+    snippet `dunst.startup` regenerates fresh at every zenka boot
+    (`/tmp/protocol-7-dunst-fontconfig/fonts.conf`, chains in the real
+    `/etc/fonts/fonts.conf` via `<include>` then adds just this one font
+    dir) and points `$ENV{FONTCONFIG_PATH}` at it before spawning dunst.
+  - final settled `dunstrc` values, for reference: `width = (300, 777)`
+    (auto-sizes to content within that range), `horizontal_padding = 14`,
+    foreground colors deliberately kept well short of white/pure-grey per
+    this user's real screen-brightness sensitivity (see `[[user-screen-
+    brightness-sensitivity]]`) and pushed toward a blue/violet
+    "blacklight" hue rather than neutral grey (`#8070e0` for
+    urgency_normal, dimmer/warmer variants for low/critical) -- all tuned
+    live against the actual rendered output, not guessed.
 - a future native GTK3-based notifier (mentioned by user, not scoped here)
   would presumably reuse base.gtk.ensure_display directly (in-process, no
   spawned binary) rather than the open3-wrapper shape both notify-osd and
   dunst use — out of scope for this task, noted for whoever picks that up.
 
-#,,,,,,..,...,.,.,,,,,,..,...,,,.,,,,,,.,,.,,,.,.,...,...,...,.,,,,,,,,,.,,.,,
-#AGX72YTKRTLX3MDFGS3RC5ZSRW3KW7LK6WRYDDCXFDW3ZV4DKC6ACIJBTR62X2MFLHRBNEETLKU4E
-#\\\|E4SI3GXCYN7JW2JOSJV67DEGXUL7CFELQMDMOGW4FENNLQF4RHQ \ / AMOS7 \ YOURUM ::
-#\[7]DZROMEHUH7MCMDOVRL6JB4HEQ3DRR2TYT4ERGL72SV5UUQHHHMCY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,.,,,..,,,,,,,,,,...,,..,.,,,.,.,...,...,...,,,.,,,.,.,.,.,.,
+#OMBTTEKWLRJN2ZS6WCE7EQQXD4CR7WHGGXMO6PCSL6UOASPDHFJBSGFDBRRMRZQT2PGDODBPKO66C
+#\\\|XRROVFHTQ64IFKNW3I3OYONG27RWS36SHQYLBSM4IAHQARTSKMH \ / AMOS7 \ YOURUM ::
+#\[7]RTJYPG6BVK3XKHYI44OW2NXHBMLG5O5RZW7NJ5ZYHEHARS4CQQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
