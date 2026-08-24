@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [p7-local-command-route-and-deferred-reply-mechanics](reference-p7-local-command-route-and-deferred-reply-mechanics.md) — base.route.add's two callers (cube route_to_target vs any zenka's own send.local, self-referential) vs a locally-dispatched .cmd. module (neither, just <base.cmd_reply>); deferred sends nothing over the wire and must be manually cleaned up if never completed; base.session.cancel_route sweeps both sides + synthesizes a FALSE reply unconditionally on session close; v7.zenka.instance.stop's shutdown-flag race-proofing; pause-instance suppresses heartbeat (use devmod.cmd.sleep on mod-test to actually test hang detection)
 - [appliance-sync-point-tags](reference-appliance-sync-point-tags.md) — `git tag -l 'D-*'` marks commercial-appliance release sync points; last is `D-RNTBZAQ` (3115d344d, 2021-04-22) — nothing after this was ever shared with the forked-off appliance codebases
 - [forked-child-lazy-load-and-event-safety](reference-forked-child-lazy-load-and-event-safety.md) — a P7 module name passed as a runtime string (e.g. to event.add_signal) never triggers the on-demand loader, only a literal `<[module.name]>` occurrence does — prime it first; a forked child must NOT use Event.pm (inherits the parent's live watcher/polling state, Event::loop() can return spuriously) — use plain %SIG + POSIX::pause(), matching cred-mesh.key_holder.child
 - [wslg-pulseaudio-bridge-check-before-mpv-debug](reference-wslg-pulseaudio-bridge-check-before-mpv-debug.md) — mpv silently idle after "submitted for playback"? check mpv's own end-file event log + `pactl info` against WSLg's PulseServer bridge BEFORE chasing Protocol-7 routing/STRM code; stale bridge socket (exists but connection refused) needs `wsl --shutdown` from Windows host, not a code fix
@@ -64,8 +65,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [verbosity console levels](reference-verbosity-console-levels.md) — `system.zenka.verbosity.*` is a 0-5 numeric intensity scale, not a named-severity enum; 3=compiled-in call/param tracing, 4=parsed-code-to-console, 5=full %data dump (devmod); don't let a model invent a FATAL/ERROR-style mapping for it
 - [powershell native toast notifications](topic-powershell-native-toast-notifications.md) — working WSL-native Windows toast backend (`powershell.notify`/`.cmd.notify-loves`): AUMID branding needs registry `DisplayName` AND a Start-Menu-shortcut+IShellLinkW/IPropertyStore COM registration (registry-only IconUri doesn't show the small icon); toast `<image>` src can't load `\\wsl.localhost\` UNC paths (must cache to `$env:LOCALAPPDATA` first, `Copy-Item` can read the UNC fine though); WinRT type-literal `[Type, Assembly, ContentType=WindowsRuntime]` syntax can't be line-wrapped at all; use a single-quoted `@'...'@` here-string for any untrusted text in toast XML, not `@"..."@` (which interpolates `$vars`); 2026-08-24: if toasts stop appearing entirely with `.Setting`=`DisabledForUser`, check `HKCU:...\PushNotifications\ToastEnabled` (separate from DND/Focus Assist) — registry fix needs a `WpnUserService_*` restart to take effect, see `powershell.cmd.notify-recover`
 
-#,,,,,,,,,..,,..,,.,,,,,,,.,,,.,,,.,,,,.,,.,,,..,,...,...,,,,,,,,,,..,,..,.,.,
-#U5JIPALQAXVR7D22HJEAGVK76AILGF3MELUDRMJIVR2CIJSBBFSIRVXO62TX3X6OJAY6BAYHK3AAO
-#\\\|7EYVFKD6WBUIFFU5J2CMO3BI4T4NA5EKAFYAVMNAMA5XXSGBQLZ \ / AMOS7 \ YOURUM ::
-#\[7]E2HY2DAA7HLPNST5EQSBKXCOX77AK4TMU46EKROA7URUSASHUACA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,..,,...,..,,.,,,,,,,,.,,,..,..,,...,...,.,,,,,.,.,,,,,.,,,,,
+#LG556AL3FEALDRQFQORNUM3JFVTMXNDEPZGME4ZBLFU4HDVWYCTAXHLBIZWEL3MW5JCZO5FS4FT6K
+#\\\|KKM6PHMVC4SA6J7RHOJISJBPNSS7EOIB5VZGHB77F6SE2YYPNG5 \ / AMOS7 \ YOURUM ::
+#\[7]EPWHQRD77YO3YOOCQEGPWFTC7TYD4WTQL6IN32PYENLUEDC7PGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

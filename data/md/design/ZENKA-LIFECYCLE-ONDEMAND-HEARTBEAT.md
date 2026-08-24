@@ -5,6 +5,24 @@
 
 ---
 
+## status [ 2026-08-24 ]
+
+**"hybrid mode — on-demand with heartbeat monitoring" and "unregister
+command" (implementation order items 1-2) are LANDED** — see
+`data/tasks/completed/v7-ondemand-heartbeat-idle-term.md` and commit
+`0f1ba4446`. the shipped design is simpler than proposed below: no opt-in
+`heartbeat.on-demand.hybrid` flag, no `pre_stop_window` — exclusion of
+`heart` from resetting the idle timer is unconditional/automatic for
+every on-demand zenka, and `v7.idle-term` (not `zenka.unregister-heartbeat`)
+is the zenka-initiated pre-exit notice, wrapping `v7.zenka.instance.stop`
+directly rather than a separate suspend-then-fire sequence. verified live
+on a throwaway on-demand+heartbeat test zenka.
+
+"configurable timeout behaviour", "wake permissions", "network priority
+levels", and "WoL integration" below are all still open, unimplemented.
+
+---
+
 ## route-triggered spawn chain (already partially working)
 
 on-demand startup already chains naturally through the routing system:
@@ -181,10 +199,10 @@ remediation via the task zenka.
 
 ## implementation order
 
-1. **hybrid on-demand + heartbeat** — simple coordination change in v7,
+1. **[ LANDED ] hybrid on-demand + heartbeat** — simple coordination change in v7,
    high value immediately. check v7 zenka registry for existing correlation.
 
-2. **unregister command** — small addition, needed for hybrid mode.
+2. **[ LANDED ] unregister command** — small addition, needed for hybrid mode.
    verify v7 can call it or v7 handles internally.
 
 3. **configurable timeout modes** — forensic-first first (most useful),
@@ -210,8 +228,8 @@ remediation via the task zenka.
   lifecycle categories (disposable/decoupled/monitored)
 - `data/tasks/v7-teardown-whitelist.md` — v7 access control, related work
 
-#,,..,,,.,...,,,,,,,,,...,.,,,..,,.,,,.,.,,,,,..,,...,...,.,,,...,,,,,.,,,...,
-#6DGMKN6PQFIR4I4WML23U3T2U44MJKWWTWJ3QFIUTIGM426KGMACWXOJ2235GB23EKHQVAGIXOEKS
-#\\\|7GYEBECQJMIRPXTOEWQBJREVO4LMKAXMC3H4HVCF6DZRVPLMVPX \ / AMOS7 \ YOURUM ::
-#\[7]XS2DVUWLIBQ6ISLEIT3O34CY5XXBUVBVYKA2BBCMFF4G77YRDYBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,...,..,,,..,..,,.,,,,..,,.,,..,,...,...,...,,,,,,.,,.,,,,..,
+#VJ33FCHGA4BKXWOCYYEPLSDQADRI7O7SH3WNLRMM3PC2WLKQN4KLI2GLS2OFZ6ODUJ3EHWIWI6WRC
+#\\\|AJ5NG2LBYZCBZBA7MWEOS4XKSCS3XVIMQVY5ZUS3AULOI4F3FZR \ / AMOS7 \ YOURUM ::
+#\[7]EBF7NTDL3VDHQWMYLUWV64LHJWMUFA4XUUSFZR2Q42MPKUZELKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
