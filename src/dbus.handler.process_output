@@ -40,6 +40,27 @@ while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
             ": socket path : %s [owner:'%s']",
             ${^CAPTURE}[1], $privs_user
         );
+
+        ## dbus-daemon doesn't remove its own socket file on a hard kill   ##
+        ## [confirmed live -- stale /tmp/dbus-* files from prior sessions  ##
+        ## accumulate], so register it with v7 for automatic clean-up on   ##
+        ## this zenka's own exit/restart. this fires long before the cube  ##
+        ## session id / instance verification round-trip completes, so a   ##
+        ## direct report-temp-path call here loses the race [ confirmed    ##
+        ## live -- v7 logs 'no instance matches cube-sid', it hasn't       ##
+        ## learned this instance's cube_sid yet ] ; queueing it as an init ##
+        ## report instead defers actual sending to base.session.           ##
+        ## send_init_reports, which already waits for                      ##
+        ## system.zenka.initialized before flushing -- same pattern        ##
+        ## io.unix.socket.input.open uses for its own socket file          ##
+        push(
+            <system.init_reports>->@*,
+            {   'target_command' => qw| v7.report-temp-path |,
+                'param'          => <dbus.socket_path>,
+                'descr'          => 'registering dbus session socket file'
+            }
+        );
+
         <[base.async.get_session_id]>;
     } else {
         my $log_level = $output_line =~ m{ctivat(ing|ed) service} ? 2 : 0;
@@ -47,8 +68,8 @@ while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,,.,,.,,,,.,,,,,,.,,,.,,...,,.,,.,.,...,,,,,..,,...,..,,.,,,...,...,..,,,..,
-#OAMJQ6ZAPGH64NQIWWBUZ4JCHXZNDGZR7DZLH63CRFQOKVH5T7VPKC5QEWMXKTLVDOXU6ODC6BVUG
-#\\\|GPH7CVFCQDXPBQ7GOCVWAKK4U4NI44DWWK4FL24CLILW5INGBYN \ / AMOS7 \ YOURUM ::
-#\[7]GGFU27K47EB7JXG3LVAKJWIZQRXZHJUSTO2G3V4UW5YTJ2M25EBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,,.,,,.,..,,.,.,.,,,.,,,,..,..,,...,..,,,..,,..,..,,,,.,,,.,
+#3BWB2XQLCT62CMLNCHUVJ2ZTK2VXZRCVFLTBRA2GGKBEVYYGUMVJTF7L2TXHCAPIGVTWXFMSIKPEW
+#\\\|6SWYJ57SLEXSIENTNDEPNWC3JMR7KQNISIKM3XJJYLOULUEODL5 \ / AMOS7 \ YOURUM ::
+#\[7]2DZASWVY4MVXP4DKA2D3RV4ESCSGS6J6VXDZCDVT4YWTIAB4FEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

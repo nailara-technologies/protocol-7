@@ -29,8 +29,45 @@ my $after_count = scalar @{ <X-11.monitors> // [] };
 
 <[X-11.WM.update]>;
 
-#,,,.,,,.,..,,,..,,,.,,.,,,,,,.,.,..,,.,,,,..,..,,...,...,.,,,,,.,,.,,,..,.,.,
-#R4FE76R4AUKUHW5PZEHKPPPBZKF2GG2GUCW4VDSN3WBPZZBT2DCIY5KZOGDJO363Z3J3SAEH7752O
-#\\\|OD7OBRZXG4FYWHE7BUZ7T2FOLTHSTZ44WKXI7MT6K4XCVWM2PMY \ / AMOS7 \ YOURUM ::
-#\[7]URPDK5FISBNA7YTPMPGGDQGTODMEPZLBNYPVCTXFFCJV74KUX4CI 7  DATA SIGNATURE ::
+## windows' own notification platform has been observed stuck with toasts   ##
+## silently accepted-but-never-shown after a monitor topology churn [ the   ##
+## master 'notifications' toggle, HKCU ToastEnabled -- separate from focus  ##
+## assist/dnd -- getting left disabled ; confirmed live 2026-08-24, not     ##
+## confirmed to be CAUSED by the topology change itself, but the check-     ##
+## then-fix recovery is a no-op when already enabled, so firing it here is  ##
+## cheap insurance ]. only relevant on a WSLg host with the 'powershell'    ##
+## windows-bridge zenka available at all -- most deployments of this        ##
+## codebase are plain linux desktops with no windows host to bridge to, and ##
+## 'powershell' is on-demand with a short [147s] idle timeout, so an        ##
+## unconditional call here would wake-and-drop it for nothing on every one  ##
+## of those. auto-detected when unset, overridable either way via           ##
+## X-11.notify_recover.enabled -- base.cfg_bool defaults an undef input to  ##
+## FALSE rather than passing undef through, so definedness is checked       ##
+## before it, not after, to still fall through to auto-detection when unset ##
+my $notify_recover_enabled_cfg = <X-11.notify_recover.enabled>;
+my $notify_recover_enabled
+    = defined $notify_recover_enabled_cfg
+    ? <[base.cfg_bool]>->($notify_recover_enabled_cfg)
+    : ( defined $ENV{'WSL_DISTRO_NAME'} or -d '/mnt/wslg' ) ? 1
+    :                                                         0;
+
+if ($notify_recover_enabled) {
+    ## cooldown-guarded the same way as the display-switch toggle in ##
+    ## X-11.handler.screen_change, on its own timer so the two don't ##
+    ## couple.                                                       ##
+    my $notify_recover_cooldown_s = <X-11.notify_recover.cooldown_s> // 30;
+    my $now                       = <[base.time]>->(3);
+    if ( not defined <X-11.notify_recover.cooldown_until>
+        or $now >= <X-11.notify_recover.cooldown_until> ) {
+        <X-11.notify_recover.cooldown_until>
+            = $now + $notify_recover_cooldown_s;
+        <[protocol-7.command.send.local]>
+            ->( { 'command' => qw| cube.powershell.notify-recover | } );
+    }
+}
+
+#,,,,,...,,..,...,..,,.,,,...,,..,,.,,,.,,,.,,..,,...,...,,..,,..,.,,,.,,,,.,,
+#BP3PYQUYM7PQ5VNVHJAY6CM7ICXREX5DH3N55JKS64JGCBD6L2TAHMNZLXULTST2P3DIGA54TVFB4
+#\\\|5CRYIL4RRFLT4AE6OHVZGVUYTP77L7PTGGKTGHPBLC7WAFNSFIB \ / AMOS7 \ YOURUM ::
+#\[7]F3F4LARLET6PABPITQV6FJNV3TBDUTM4OXAQ65YDJQ75JIYYWWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

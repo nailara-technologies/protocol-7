@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = screen.setup.cmd.gtk-focus-recover
+# descr = diagnostic: flick a dummy window to test grab fix
+# note  = briefly show + destroy a tiny, invisible, dedicated dummy
+#         window -- never reused, never anything the user actually sees
+#         or interacts with -- testing whether this clears a stuck cross-
+#         process compositor button grab the same way a real menu-open-
+#         close cycle was observed to [ confirmed live 2026-08-24 against
+#         protocol-7-menu's own graphical menu window, freezing THIS
+#         zenka's windows -- likely a stale begin_move_drag grab from
+#         ticker or window.place, see screen.setup.open_window's map
+#         handler comment ]. self-contained on purpose : does not depend
+#         on protocol-7-menu being installed/running at all [ it's on-
+#         demand with a short idle timeout ], and never risks flashing a
+#         REAL, populated menu open in front of the user once protocol-7-
+#         menu's own menu stops being empty.
+
+<[screen.setup.ensure-display]>;
+
+my $dummy = Gtk3::Window->new('toplevel');
+$dummy->set_decorated(0);
+$dummy->set_default_size( 1, 1 );
+$dummy->set_opacity(0.01);
+## off-screen, belt-and-suspenders w/ opacity ##
+$dummy->move( -100, -100 );
+$dummy->show_all;
+
+<[event.add_timer]>->(
+    {   'after' => 0.15,
+        'cb'    => sub {
+            eval { $dummy->destroy }
+        },
+    }
+);
+
+<[base.logs]>->( 1, ': gtk-focus-recover : dummy window flicked' );
+
+return { 'mode' => qw| true |, 'data' => 'dummy window flicked' };
+
+#,,.,,,,,..,,,,,,.,,..,,,,,,.,.,,,.,.,.,,..,.,.,..,,...,...,,..,...,,..,...,..,,
+
+#,,.,,.,,,.,,,,,.,,.,,..,,...,.,,,,.,,,,,,...,..,,...,...,...,...,,..,,.,,.,,,
+#TOSEDA2TWNO6N3MTG5GNXHEHT4NXBZMUPPBR7V4EKB4JKBNGJA7TB62RP77A4MF5KNKMYTV3FPA6W
+#\\\|LI7W22WU2WQ75I2QWYIZH4XCG7HK4ILIX2IPC7EOML52BHBEPKS \ / AMOS7 \ YOURUM ::
+#\[7]SYUG3OEVPLGYCCV26PWA64SK2AOWT5DXT44SHR4CTXH6R74ZJ2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
