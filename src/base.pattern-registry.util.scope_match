@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = base.pattern-registry.util.scope_match
+# descr = check a target namespace against a pattern's active scope entry
+#         [ deliberate verbatim duplication of src/ncode.util.scope_match --
+#         relocated under base.* so a consuming zenka (e.g. smtpd) can reach
+#         it without adding 'ncode' to its own modules.load. this is a
+#         cross-namespace load-dependency avoidance, not drift: keep both
+#         copies identical if either one is ever fixed ]
+# param = $namespace, $applicability [ pattern applicability hashref ]
+
+my $namespace = shift // '';
+my $app       = shift // {};
+
+return TRUE if ref $app ne qw| HASH |;
+
+## resolve the scope stack [ legacy single-string namespace is treated as a ##
+## one-entry stack ] ; no scope at all means unconstrained                  ##
+my $scope = $app->{'scope'};
+if ( ref $scope ne qw| ARRAY | or not @$scope ) {
+    $scope = [];
+    $scope = [ $app->{'namespace'} ]
+        if defined $app->{'namespace'} and length $app->{'namespace'};
+}
+
+return TRUE unless @$scope;
+
+my $active_idx = $app->{'scope_active_idx'} // 0;
+$active_idx = $#$scope if $active_idx > $#$scope;
+
+my $glob = $scope->[$active_idx] // qw| * |;
+
+return TRUE if $glob eq qw| * | or not length $glob;
+
+## a scoped pattern never matches an unknown [ empty ] target namespace ##
+return FALSE unless length $namespace;
+
+## trailing .* glob : the stem itself or anything below it ##
+if ( $glob =~ s|\.\*$|| ) {
+    return TRUE
+        if $namespace eq $glob or $namespace =~ m|^\Q$glob\E\.|;
+    return FALSE;
+}
+
+## plain entry : prefix match [ same semantics as the legacy check ] ##
+return $namespace =~ m|^\Q$glob\E| ? TRUE : FALSE;
+
+#,,..,,,.,,,.,.,.,...,.,,,,..,,,,,.,.,.,.,.,,,..,,...,...,..,,,.,,..,,,.,,,,.,
+#25POODVWK6GGH6E5T66Z7JUZY6MKULHAJE6ZDDNRLVB2FBBZSJGS6HPJMOYSNT2ABU47XDXXQGHGY
+#\\\|VUEM3YVLT53JWVXULLEOYECSS65AM6WUSBSUPXNCQAKB42AHXC2 \ / AMOS7 \ YOURUM ::
+#\[7]4BZAKHAQWOIAQM6F6MTCOBMAL2DYPFSZHDO4FVUHFLMNEHA3W6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,156 @@
+## [:< ##
+
+# name  = base.pattern-registry.save
+# descr = persist current regex patterns to yaml file [ domain-agnostic
+#         port of ncode.regex.save -- see src/ncode.regex.save, ncode's own
+#         usage is untouched by this file ]
+
+my $params = shift // {};
+
+my $file      = $params->{'file'}        // '';
+my $filter    = $params->{'filter'}      // '';
+my $min_apply = $params->{'min_applied'} // 0;
+
+return { 'mode' => qw| false |, 'data' => 'file path required' }
+    unless length $file;
+
+<pattern-registry.patterns> //= {};
+
+my $patterns = <pattern-registry.patterns>;
+
+return { 'mode' => qw| false |, 'data' => 'no patterns to save' }
+    unless keys %$patterns;
+
+## collect patterns for export ##
+my @export;
+
+foreach my $name ( sort keys %$patterns ) {
+    my $def = $patterns->{$name};
+
+    ## optional namespace filter ##
+    if ( length $filter ) {
+        next unless $name =~ m{^\Q$filter\E};
+    }
+
+    ## optional minimum applied count ##
+    if ($min_apply) {
+        my $applied = $def->{'stats'}->{'applied'} // 0;
+        next unless $applied >= $min_apply;
+    }
+
+    ## build exportable structure [ no compiled regex ] ##
+    my $entry = {
+        'name'    => $name,
+        'descr'   => $def->{'descr'}   // '',
+        'pattern' => $def->{'pattern'} // '',
+        'origin'  => $def->{'origin'}  // qw| unknown |,
+        ## status persisted correctly here -- see ##
+        ## base.pattern-registry.load             ##
+        'status'        => $def->{'status'} // qw| llm-required |,
+        'source_task'   => $def->{'source_task'},
+        'note'          => $def->{'note'},
+        'applicability' => $def->{'applicability'} // {},
+        'stats'         => {
+            'applied'        => $def->{'stats'}->{'applied'}        // 0,
+            'matched'        => $def->{'stats'}->{'matched'}        // 0,
+            'false_positive' => $def->{'stats'}->{'false_positive'} // 0
+        }
+    };
+
+    ## include replace if defined ##
+    $entry->{'replace'} = $def->{'replace'} if defined $def->{'replace'};
+
+    ## include action_type only when it differs from the default -- same ##
+    ## yaml-clutter-avoidance philosophy as the steps synthesis below    ##
+    $entry->{'action_type'} = $def->{'action_type'}
+        if defined $def->{'action_type'}
+        and $def->{'action_type'} ne qw| replace |;
+
+    ## include label only when defined [ classify-type patterns ] ##
+    $entry->{'label'} = $def->{'label'} if defined $def->{'label'};
+
+    ## include steps only when they carry custom logic beyond what        ##
+    ## load-time synthesis would regenerate from pattern+replace [ avoids ##
+    ## yaml clutter ]                                                     ##
+    if ( defined $def->{'steps'} and @{ $def->{'steps'} } ) {
+        my $pat   = $def->{'pattern'} // '';
+        my $rep   = $def->{'replace'};
+        my $steps = $def->{'steps'};
+        my $is_synthesized
+            = @$steps == 1
+            && ( $steps->[0]{'tool'}   // '' ) eq 'ncode'
+            && ( $steps->[0]{'search'} // '' ) eq $pat
+            && defined $rep
+            && defined $steps->[0]{'replace'}
+            && $steps->[0]{'replace'} eq $rep;
+        $entry->{'steps'} = $steps unless $is_synthesized;
+    }
+
+    ## remove undef optional fields ##
+    delete $entry->{'source_task'}
+        unless defined $entry->{'source_task'}
+        and length $entry->{'source_task'};
+    delete $entry->{'note'}
+        unless defined $entry->{'note'}
+        and length $entry->{'note'};
+
+    push @export, $entry;
+}
+
+return { 'mode' => qw| false |, 'data' => 'no patterns matched filter' }
+    unless @export;
+
+## serialize to yaml ##
+my $yaml_fn = $code{'format.yaml.write_file'};
+my $success;
+
+if ( defined $yaml_fn ) {
+    $success = $yaml_fn->( $file, { 'patterns' => \@export } );
+} else {
+    <[base.perlmod.load]>->('YAML::XS');
+    my $yaml_str = eval { YAML::XS::Dump( { 'patterns' => \@export } ) };
+    if ($@) {
+        <[base.logs]>->(
+            0, ':. base.pattern-registry.save: yaml dump error [ %s ] :.', $@
+        );
+        return {
+            'mode' => qw| false |,
+            'data' => 'yaml serialization error'
+        };
+    }
+
+    ## write to file ##
+    my $fh;
+    if ( not open( $fh, '>', $file ) ) {
+        <[base.logs]>->(
+            0,     ':. base.pattern-registry.save: cannot write %s [ %s ] :.',
+            $file, $!
+        );
+        return { 'mode' => qw| false |, 'data' => "write failed: $!" };
+    }
+    print {$fh} $yaml_str;
+    close $fh;
+    $success = 1;
+}
+
+return { 'mode' => qw| false |, 'data' => 'write failed' } unless $success;
+
+<[base.logs]>->(
+    2,
+    ':. base.pattern-registry.save: wrote %d patterns to %s :.',
+    scalar @export, $file
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'file'  => $file,
+        'saved' => scalar @export
+    }
+};
+
+#,,.,,,.,,..,,...,..,,,.,,,,,,...,,,.,..,,,,.,..,,...,...,.,.,...,..,,,,,,,.,,
+#RIUP2HQYDMSFV6ONPYQEPK3F6I2VFEIJ4XBDKN5WU7SXOMK5QLTUSYDQLQ7YQTHUJFX7XECMGUS3Y
+#\\\|MCZSUSVVPTB5PO5CY4MA7RID5DV3XHZMIPEBJJKE4O5RJJNJNYA \ / AMOS7 \ YOURUM ::
+#\[7]CRR5IRZKA7SKMUOLXOPZUCMQYBBIECVCM5AVE7YIWLJ5CDK6KKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

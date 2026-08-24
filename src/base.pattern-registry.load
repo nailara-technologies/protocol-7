@@ -1,0 +1,128 @@
+## [:< ##
+
+# name  = base.pattern-registry.load
+# descr = parse regex pattern definitions from yaml file [ domain-agnostic
+#         port of ncode.regex.load -- see src/ncode.regex.load, ncode's own
+#         usage is untouched by this file ]
+
+my $params = shift // {};
+
+my $file = $params->{'file'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'file path required' }
+    unless length $file;
+
+return { 'mode' => qw| false |, 'data' => "file not found: $file" }
+    unless -f $file and -r $file;
+
+## load yaml ##
+my $yaml_fn = $code{'format.yaml.load_file'};
+
+my $data;
+if ( defined $yaml_fn ) {
+    $data = $yaml_fn->($file);
+} else {
+    <[base.perlmod.load]>->('YAML::XS');
+    $data = eval { YAML::XS::LoadFile($file) };
+    if ($@) {
+        <[base.logs]>->(
+            0, ':. base.pattern-registry.load: yaml parse error [ %s ] :.',
+            $@
+        );
+        return { 'mode' => qw| false |, 'data' => 'yaml parse error' };
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'no data in yaml' }
+    unless ref $data eq qw| HASH |;
+
+my $patterns = $data->{'patterns'} // [];
+
+<pattern-registry.patterns> //= {};
+
+my $loaded  = 0;
+my $skipped = 0;
+
+foreach my $def (@$patterns) {
+    my $name = $def->{'name'} // next;
+
+    ## validate required fields ##
+    my $pattern = $def->{'pattern'} // $def->{'detect'} // '';
+    unless ( length $pattern ) {
+        $skipped++;
+        next;
+    }
+
+    ## compile regex for fast reuse ##
+    my $compiled = eval {qr/$pattern/};
+    if ($@) {
+        <[base.logs]>->(
+            0,     ':. base.pattern-registry.load: bad pattern %s [ %s ] :.',
+            $name, $@
+        );
+        $skipped++;
+        next;
+    }
+
+    ## store pattern with metadata ##
+    <pattern-registry.patterns>->{$name} = {
+        'name'        => $name,
+        'descr'       => $def->{'descr'} // $def->{'description'} // '',
+        'pattern'     => $pattern,
+        'detect'      => $def->{'detect'} // '',
+        'compiled'    => $compiled,
+        'replace'     => $def->{'replace'},
+        'action_type' => $def->{'action_type'} // qw| replace |,
+        'label'       => $def->{'label'},
+        ## status persisted correctly here -- ncode.regex.load never stores ##
+        ## this field at all, which makes every yaml-loaded ncode pattern   ##
+        ## permanently 'llm-required' regardless of what the file says.     ##
+        ## left as-is in ncode [ out of scope there ], not reproduced here. ##
+        'status' => $def->{'status'} // qw| llm-required |,
+        'steps'  => do {
+            my $yaml_steps = $def->{'steps'} // [];
+            if (@$yaml_steps) {
+                $yaml_steps;    ## explicit steps — use as-is
+            } elsif ( length $pattern and defined $def->{'replace'} ) {
+                ## synthesize single-step from pattern/replace [ form 1 ##
+                ## patterns ]                                           ##
+                [
+                    {   'tool'    => 'ncode',
+                        'search'  => $pattern,
+                        'replace' => $def->{'replace'}
+                    }
+                ];
+            } else {
+                [];    ## detect-only [ replace: null ] — no apply steps
+            }
+        },
+        'verify'        => $def->{'verify'}        // [],
+        'applicability' => $def->{'applicability'} // {},
+        'origin'        => $def->{'origin'}        // qw| loaded |,
+        'source_task'   => $def->{'source_task'}   // '',
+        'note'          => $def->{'note'}          // '',
+        'stats'         => {
+            'applied'        => $def->{'stats'}->{'applied'}        // 0,
+            'matched'        => $def->{'stats'}->{'matched'}        // 0,
+            'false_positive' => $def->{'stats'}->{'false_positive'} // 0,
+            'skipped'        => 0
+        }
+    };
+
+    $loaded++;
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'file'    => $file,
+        'loaded'  => $loaded,
+        'skipped' => $skipped
+    }
+};
+
+#,,.,,,.,,,..,..,,.,,,...,,,.,,..,.,.,..,,.,,,..,,...,...,,,.,,,,,...,...,...,
+#7XFG7MYBIRVW4RR5BLCF5DFQMDW2FHCCMK35ZIJHJEOR5SQKJW3YWN5P3TIYKCRHPXK7T22JAXKFQ
+#\\\|YZSSBAOK7FXEJBZD5BC7JXINSKPKALMMBGPF32QNIFD54S3RQIK \ / AMOS7 \ YOURUM ::
+#\[7]CVIZBFL7BGBJ674D5PUDKHJXBPQ6Z4QCJHNNEFDHE5T7DX3YCUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = base.pattern-registry.action.classify
+# descr = terminal action : match -> label, no output mutation [ smtpd's
+#         actual need -- the "what does a match mean" decision is left to
+#         the caller, not the engine, matching how ncode.regex.apply
+#         already leaves "what a fix means" entirely to its callers ]
+# param = { def, name, output, matches }
+# return = { label }
+
+my $params = shift // {};
+
+my $def = $params->{'def'} // {};
+
+return { 'label' => $def->{'label'} };
+
+#,,.,,,,,,...,,,,,.,.,,,,,...,,,,,,,,,.,.,.,.,.,.,...,...,,.,,,,.,,.,,,..,,..,
+#5BN3NB5IHONOLLRPG3QWVDG5PDEO755QVEUMFDZNKIPPTFPUZEXMUSG5CZZ25IJKKXKHAT2NJVNAA
+#\\\|UYBDZ4GWTVN4YNGZBXJTS32HLDYUQ7JDWR3YL6CD7XM7RRVRR7B \ / AMOS7 \ YOURUM ::
+#\[7]PMTR6TY6N2CYVDZUJZHLWXKQOZVQCBALDVJT7M6C7LMXBAITE4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
