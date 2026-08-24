@@ -75,6 +75,12 @@ after all 7 new modules are created and source files updated:
 - the combined v7 console output is tailable at
   `/dev/shm/.7/STDOUT/NIW7OAQ` if you need to watch reload output live
 
+## status [ 2026-06-13 ] — DONE, landed same commit as this task file
+## (`5242ebb3d`): all 7 target modules exist and are registered in
+## `src/base.list.subroutines`; no `sub _*` inline helpers remain in
+## `src/download.*`, `src/letsencr.*`, `src/source.*`, `src/space.*`,
+## or `src/work.*`; dep-graph regenerated. re-verified 2026-08-25.
+
 ## non-goals
 
 - no behavior change — pure refactor, same logic moved to sibling files
@@ -89,8 +95,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,,,,,,,,,,.,.,.,.,.,,,,,,,,,...,..,,,,,,,,,,..,,...,..,,..,,..,,,..,.,,,,..,
-#5SOEB4IU5ZYXXDIPCNT7W7MSGCEMQCHTBPAVC5JHEJHS3LAOKOHKUI3L6SIB4FPJXYNOUKVIOU7TC
-#\\\|OEHXCGND5XKX42UHI2UTAWUP3CNV4QXWM5Q26FVBOED3HZQX3DC \ / AMOS7 \ YOURUM ::
-#\[7]7GQGXC5KBK7GGN23PBBTMWJILPV7Z2B766BXJZ7HBVEBCMFXO4DY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,.,,,,,.,,,.,,,,,,..,..,,,..,..,,...,...,..,,,..,.,.,...,,,,,
+#6YKVKBCI3SWTL2HMPU2IPXDURU5O6XJC3OEHBMEKJWLQTXBBGHUF7OBHTTSPWQTVZXWUCLROT5KK6
+#\\\|ICRS5DQHL4M6MYFEPPBOUTCJECKQLL6IW4GPDY267JZWXFMI66Y \ / AMOS7 \ YOURUM ::
+#\[7]7RJ5PF5XXM7O5LCFPH7CIXEHR5WZVYHGYRXJUOKFXY4NW4ZEHAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
