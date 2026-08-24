@@ -42,8 +42,8 @@ if ( $target ne qw| mail.store | ) {
 ## notify on actionable mail ##
 if ( ( $parsed->{'action_required'} // 0 )
     and length( $parsed->{'subject'} // '' ) ) {
-    <[base.protocol-7.command.send.local]>->(
-        {   'command'   => qw| cube.notify.message |,
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| notify.message |,
             'call_args' => {
                 'args' => 'mail: '
                     . substr( $parsed->{'subject'} // '', 0, 120 )
@@ -54,8 +54,8 @@ if ( ( $parsed->{'action_required'} // 0 )
 
 return $target;
 
-#,,..,,,,,,..,,.,,,..,,,,,,,,,.,,,..,,,,,,...,.,.,...,...,..,,.,,,,..,.,,,,.,,
-#4MHEYPAT3K7D6MHFT5G7YMJKRU4AOANKNWPBQJXIX6FYOARJOF3MKPVVTI27DVVBJO7R3255AMRDI
-#\\\|XR3ZYBPEWYO7EXYY7LZKUKS3SMZSJ54M45VN6D22L6K7HFWNLVY \ / AMOS7 \ YOURUM ::
-#\[7]SAOK7KLKOQCYG7VXL33OPKGIRK5W4LDDAMCNIOVXFGBBEMYWXWAI 7  DATA SIGNATURE ::
+#,,..,,,,,...,,..,..,,,,.,,..,.,.,...,,,,,,..,.,.,...,...,.,.,,..,.,.,,,.,.,.,
+#OTW2MHQIXKHOQSF6QJI35S65JDSKW7UE4M324XVAG47PU6RRZRIWZQGM46KKS6LJEGZI3QND24D5A
+#\\\|NO5RP5CROPU4LJNMREUBBCBLSCM4BE5WGGHVCMKZDP2SL2Z6G5B \ / AMOS7 \ YOURUM ::
+#\[7]YFQNYS6NISIQP7FRNPGL3N7AADFOLEVM3IABZ6NIU2WEVJ67BGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
