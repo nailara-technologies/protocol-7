@@ -129,12 +129,83 @@ decide feasibility: (1) is the boundary the current-monitor edge or the
 global-desktop edge; (2) does this Weston honor `_NET_WM_MOVERESIZE` at
 all. If (2) is no, there is no programmatic cross-seam path on this build.
 
+**Broadened + escalated 2026-08-24 — the hazard is NOT limited to
+begin_move_drag, and it can get WORSE, not just persist.** Chasing a
+freeze where closing one `screen-setup` minimap window (via ANY close
+path — right-click, Escape, or WM delete_event, no drag ever involved)
+froze mouse input (not keyboard) on the other still-open window, and
+simultaneously on an unrelated `protocol-7-menu` window too — proving
+this is a genuinely global, cross-process compositor state, not a
+per-client X11 grab:
+
+- **Confirmed dead ends, in order tried:** `Gtk3::Gdk::pointer_ungrab`
+  from the closing client's own process — no effect. `GdkSeat::ungrab()`
+  (the modern, device-agnostic API, confirmed live this zenka's default
+  pointer is a `GdkX11DeviceXI2` not the core pointer) — also no effect.
+  `powershell.display-switch-toggle` (DisplaySwitch.exe host-side
+  re-push) — no effect. Restarting the affected zenka, X-11 itself, and
+  even `explorer.exe` on the Windows host — none cleared it.
+- **The one thing that DID clear it, reproducibly:** a genuine right-
+  click landing inside protocol-7-menu's own menu-zone (hit-radius
+  around its window center) that successfully opens the menu. This
+  unfroze BOTH the menu's own window AND the unrelated frozen
+  screen-setup window simultaneously. It is specifically the click
+  *landing and being processed*, not "a new window getting mapped" —
+  a standalone command that just does `$window->present()` +
+  delayed `->hide()` (no real click event) did NOT reproduce the fix,
+  ruling out the "any window map" theory. Two untested/unwired
+  diagnostic commands exist for whoever picks this back up:
+  `protocol-7-menu.cmd.gtk-focus-recover` (present+hide the real menu)
+  and `screen.setup.cmd.gtk-focus-recover` (flick a throwaway dummy
+  window) — both built, neither confirmed to fix anything, since the
+  real fix needed an actual processed click, not a window-map event.
+- **XTEST/synthetic input is unreliable for testing this.** `X-11.cmd.
+  set_mouse_pos` (raw `XWarpPointer`) visibly does nothing under WSLg —
+  WSLg forwards the HOST's real cursor into the X11 session, but
+  `WarpPointer` only updates the X server's internal notion of pointer
+  position with no path back to actually move the cursor Windows is
+  rendering. A synthetic XTEST `FakeButtonEvent` was never actually
+  tried (blocked on this same coordinate problem — the click needs to
+  land on real host screen coordinates, requiring translation from the
+  X11-side XWayland-output rect to the corresponding Windows monitor's
+  own screen-coordinate origin, e.g. via PowerShell's
+  `[System.Windows.Forms.Screen]::AllScreens` matched by resolution).
+  Worth attempting from the powershell-zenka side (real `SendInput`,
+  originates from the host like a genuine click) if this gets picked up
+  again, not from X-11's own connection.
+- **DANGER — a "helpful" fix attempt made things categorically worse.**
+  Tried self-healing on close by synchronously destroying + immediately
+  recreating each surviving instance's own window in the SAME call
+  (right after the closed window's own destroy). Result: mouse input
+  broke on EVERY window, including ones that had never been touched.
+  Reverting the code did NOT fix the now-broken live process — needed
+  `v7.restart` of the affected zenka (no effect), a Windows
+  `explorer.exe` restart (no effect), and finally a **full Windows host
+  reboot** before it recovered. Lesson: don't chain a destroy and a
+  recreate synchronously in the same call under this stack when
+  debugging a freeze already caused by window destruction — a broken
+  live state from live experimentation can escalate past what a process
+  restart, an X-11 restart, or even an explorer.exe restart can recover
+  from, and land you needing a full host reboot. Prefer read-only
+  diagnosis (stacking order via `X-11.get-stack-order`, geometry
+  read/write via `X-11.set_geometry` from a SEPARATE connection to
+  confirm the window itself is still responsive to non-input requests)
+  over live destroy/recreate experiments once a freeze is reproduced.
+- **Also confirmed:** the frozen window remained fully responsive to
+  non-input X11 requests the whole time (an `X-11.set_geometry` call
+  from a separate connection successfully moved/resized it) — the
+  process/event loop and the window's own X11 resource were never
+  actually stuck, only mouse *input delivery* was. Rules out a hung
+  main loop as the mechanism; whatever's broken lives inside
+  XWayland/Weston's own input-routing state, external to any zenka
+  process.
+
 ## related
 
 [[topic-tile-window-place-hybrid-desktop]] · [[topic-gtk-wsl-window-positioning]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,..,...,,,.,,..,.,.,...,,.,,,..,.,,,.,.,.,,,..,,...,...,,,.,.,.,,,.,...,,.,,
-#7V2MMAFNDVXQI3OTPMRM5MBN6QBJ3OXT6WL7MBDPG2NFZNHDVSYI2X4IZUTO7PCT77DX2XXUBATHC
-#\\\|TTD6MDYW4UC6P27KYAF22VCGET4VJK7H2GMJDWPDMN4UWS4YVXF \ / AMOS7 \ YOURUM ::
-#\[7]XGMJRYLNFFOF54UVYI3ZABGZ3Y65BW5FUZBLMLYHSGKJHMQJLSBA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,,..,.,,,,..,...,,,,,...,,,,,..,,...,...,...,.,,,,,.,.,,,..,,
+#J3HPHLTCFGGVQIJM7LTYKQFGZE36GIN53FCA3O2QHOISYGHMZBMRXAJTCAYMEW7JQ5ERCV53LHEPM
+#\\\|6ILKIU77XYFMAMMNXXMXKN5HYGX27TIRY3EUCCQEPZTLI7EWGL7 \ / AMOS7 \ YOURUM ::
+#\[7]IIJLOAHDYIVEC4RQH7VSMILOESVB3GJ5JRCYPVUSJ67AQQT7JQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

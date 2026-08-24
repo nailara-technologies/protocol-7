@@ -12,9 +12,10 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [settings-json-repair-mode-does-not-persist](feedback-settings-json-repair-mode-does-not-persist.md) — broken .claude/settings.local.json (e.g. trailing comma) triggers in-session repair that burns tokens but never saves; verify JSON validity on disk directly, restart required after manual fix
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
-- [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — begin_move_drag not move(); window.place grab-leak fixed fff81c212, initial-placement-before-show_all still open
+- [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — begin_move_drag not move(); window.place grab-leak fixed fff81c212, initial-placement-before-show_all still open; 2026-08-24: hazard broadened past begin_move_drag (a plain close with no drag also freezes cross-process mouse input), real fix still unconfirmed — read the 2026-08-24 section before touching this again, and NEVER chain a synchronous destroy+recreate self-heal on a live freeze (escalated to needing a full host reboot)
 - [editing-p7-owned-data-files-reowns-them](feedback-editing-p7-owned-data-files-reowns-them.md) — hand-editing a protocol-7-owned data file (e.g. a users.* record) via Edit/Write silently reassigns it to my own unix user, and the owning zenka then reports the record as NOT FOUND, not a permission error — check `ls -la` ownership before ever hand-editing such a file
 - [rename-scope-policy](feedback-rename-scope-policy.md) — never cite scope/blast-radius as a reason to hesitate on a rename; judge renames on improvement only — `bin/ncode` makes even large ones mechanical, and commercial deployments elsewhere forked off `base` years ago so nobody tracking `base` is disrupted
+- [hour-of-day-hedging-not-genuine](feedback-hour-of-day-hedging-not-genuine.md) — citing "the hour"/lateness as a reason to suggest stopping is a disengagement tic, not real signal (I don't know the user's actual local time); if a hard problem isn't converging, name the real uncertainty directly instead
 
 ## Category files — open the one that matches the topic in play
 
@@ -49,8 +50,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,...,.,.,...,,.,,..,,,.,,,..,..,,,..,...,..,,...,...,...,...,.,,,,,.,,.,,
-#U4GO4GBNFFX6KNSONN5GQP72YTML4LZFLIFZGVIVSEO6TVUQB6BREFDTZDYFJYFKU2RWQVNZQGS5I
-#\\\|5B2WTBHLZBRMITXPFFP3JIQ5N3TPCQ47M2U46OH5S2O53KV3XR6 \ / AMOS7 \ YOURUM ::
-#\[7]CCCWHY3E7ICH7YR3MQLDHU5UPAZL2DCDWWGJ2DS7QCSLCC2PKGAA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,..,,,,.,,..,.,,,.,,,.,,,...,..,,...,...,,,,,,,,,.,,,..,,,.,,
+#WUAEAVVFHCXA7XTPGOBO5KD6BDMA5MDAOCPLS7ICJTRDYP6W47LRR7CGHE3YEELEN2PQTN2QRH3US
+#\\\|5AVCTNNDNDD4ZHMJOMTLMQXRU4LYSZJM7XOHI4K7PDCY6MPP77H \ / AMOS7 \ YOURUM ::
+#\[7]SHJ3WOTQCWJDBQAPVDJI74KV4BQAAPEE7J7HCZ5NZWYBJD4V3UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
