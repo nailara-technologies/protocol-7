@@ -83,6 +83,18 @@ gated on categorization/categorized-storage tooling built on the
 `lm-vision` zenka -- not started, no scope yet, just don't be surprised
 when `loves-it`'s icon file changes identity later.
 
+**icon design bar for future custom icons, 2026-08-24**: applies beyond
+just `loves-it` -- `notify.cmd.message`/`.warn`/`.info`/`.msg_reload`
+(both the powershell-toast and `dunst` backends) still use generic
+default icons, not ugly but visibly generic. Deliberately deferred, not
+urgent -- explicit design bar for whenever this gets picked up: suitable
+quality, non-default symbology, unambiguous (must still read clearly as
+what it represents) yet psychedelic (fits this project's visual
+aesthetic, not corporate-flat). User expects this as "a more relaxed
+weekend session" task, likely once a native desktop is available again
+(rather than this WSL dev environment) for actually producing/reviewing
+the artwork.
+
 ## gotchas worth remembering
 
 - PowerShell's WinRT type-literal syntax `[Namespace.Type, AssemblyName,
@@ -126,8 +138,8 @@ notifications to.
 
 related: [[topic-smtpd-actionable-mail-channels-notify]], [[dunst-notify-zenka]]
 
-#,,.,,,,,,,,,,.,,,,,.,,,.,...,...,..,,,..,..,,..,,...,..,,,..,...,,,.,,..,,,,,
-#ZX4SD46AZ6EPI6VS3G4ZAYPX6ONZAYGXLYXDBUTPRW4RWMPW7F7SFQZYMC4YAP335ULB6TP3BVRXE
-#\\\|P3D4SBPH47EXVYRI5WOFCBMKRKHZ6YW75A52ZVTAQIK6AMBDAG2 \ / AMOS7 \ YOURUM ::
-#\[7]F57ZXCGXMN7ZJPZ3OF2VB4RXPFXZY2GH4YNT3ELACXF7MPUTPGAA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,...,...,.,,,,,,,,,,,,,,,,,.,..,,...,...,,,,,..,,,,.,,,,,,..,
+#SCOUEI6AJFML7UUZNMDSSSO4B5AKTZMFN4N6FMGRX4GJRAIYB2OCTZ4Q7QTTR2JXB7D2XHMHEKFHU
+#\\\|WJ7WPPENHSJT6KRJENFV3Y765NNDYVAJ2J37B6EN5PP642KNVFR \ / AMOS7 \ YOURUM ::
+#\[7]SJHWH7QJSDTQSQWYVPCMNLD3USOZ5AYQNI7LEPKDL53XREMKAIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
