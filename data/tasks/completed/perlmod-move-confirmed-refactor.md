@@ -102,6 +102,11 @@ other preload calls).
     this on a 200ms repeating timer for the entire zulum zenka lifetime —
     it always runs, so eager-loading at boot is strictly correct.
 
+## status [ 2026-07-26 ] — DONE, landed in `33e58f17b`. all 11 files
+## confirmed re-verified 2026-08-25: no `perlmod.load`/`perlmod.autoload`
+## calls remain in any of the 11 source files, and each target `init_code`
+## carries the corresponding load.
+
 ## Verification per file
 
 - `bin/dev/ptd -c <file>` on both the edited source file and the target
@@ -127,8 +132,8 @@ other preload calls).
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,..,,..,,,,,,,,,...,,,.,..,,.,,,,..,,,,,,,,,..,,...,..,,...,..,,,,.,,,.,.,,,
-#ZT5HQFKKYOALXWTFJNE7LITC3MM4WLUF6IGO6EJ6CQN5CUBNMJHAAGXOASNJRSZ5VDYNKBXVUDZCS
-#\\\|OF4AWUTHPO7VJBF7WDCH3A6HWA7RPFNMELM4QRRGZQ6Q2ATWZJQ \ / AMOS7 \ YOURUM ::
-#\[7]MO3KWXPHHF24JMT7DT4G2B44SVSAZG2RVD7TNDQNHPSS6RJEZQDI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,,.,,..,,...,,..,.,,,...,,..,..,,...,..,,.,.,,..,,..,,..,,..,
+#JM7ZQHUI4GYYLNQSQ2GRJLGRH3S6WGY2HDR22H6ZZILTFEKZZ53NI7NB2N33R57QK5CWNFA4B2F4W
+#\\\|4J2C37M7ECA4PXIXWGA3BAW23SUM442YIDF5MW5BIMRLZ54GV73 \ / AMOS7 \ YOURUM ::
+#\[7]HSPVI2JPFUHPTP6KPHEO7WYIXGN7TPPLZMMRH5B46YKOLC457OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
