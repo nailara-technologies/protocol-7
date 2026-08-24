@@ -1,0 +1,48 @@
+## [:< ##
+
+# name = protocol-7-menu.cmd.gtk-focus-recover
+# descr = diagnostic: flick menu window to test grab fix
+# note  = briefly present + hide, checking whether this clears a stuck
+#         cross-process compositor button grab -- confirmed live 2026-08-24
+#         that a real right-click-open-close cycle on this same window
+#         does, for a frozen left-click/drag affecting OTHER zenki's
+#         windows entirely, not this one's own -- likely a stale
+#         begin_move_drag grab from ticker or window.place, see
+#         screen.setup.open_window's map handler
+
+return { 'mode' => qw| false |, 'data' => 'graphical mode not enabled' }
+    unless <protocol-7-menu.init-graphical>;
+
+unless (<protocol-7-menu.graphical-initialized>) {
+    <[base.log]>->( 1, "initializing graphical menu on-demand" );
+    <[protocol-7-menu.graphical-init]>;
+    <protocol-7-menu.graphical-initialized> = TRUE;
+}
+
+my $window = <protocol-7-menu.graphical-window>;
+return { 'mode' => qw| false |, 'data' => 'window initialization failed' }
+    unless defined $window;
+
+$window->present;
+
+## short enough not to be visually intrusive, long enough for the real ##
+## show/present request to round-trip through the compositor first     ##
+<[event.add_timer]>->(
+    {   'after' => 0.15,
+        'cb'    => sub {
+            eval { $window->hide }
+        },
+    }
+);
+
+<[base.logs]>->( 1, ': gtk-focus-recover : menu flicked' );
+
+return { 'mode' => qw| true |, 'data' => 'menu flicked' };
+
+#,,.,,,,,..,,,,,,.,,..,,,,,,.,.,,,.,.,.,,..,.,.,..,,...,...,,..,...,,..,...,..,,
+
+#,,,,,,..,...,,,.,,,.,,,.,..,,.,,,,,,,,,,,,..,..,,...,...,.,,,,..,,..,,..,,,.,
+#Z7KSDFODLCH43XY6JAXCIHMAONDKDTWO5FL4DZNH5DCV67DXPSBE7DSUMRIURGS3A4EL54JOYYJVS
+#\\\|GMDDE54X4WPA244CW57Z44ZJCYSCXD36KTZ7DGBDWW74S76A7IW \ / AMOS7 \ YOURUM ::
+#\[7]KHUQ5T6BJJPALMH6FD5DZN5MXON7Q7OPW7V3KS43DC2A55HKIQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
