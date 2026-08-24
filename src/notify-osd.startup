@@ -6,7 +6,9 @@
 <[base.log]>
     ->( 1, "starting notify-osd on display " . <x11.display> . " .," );
 
-$ENV{'DISPLAY'} = <x11.display>;
+$ENV{'DISPLAY'}     = <x11.display>;
+$ENV{'GDK_BACKEND'} = 'x11';           ## force XWayland under WSL|Wayland ##
+delete $ENV{'WAYLAND_DISPLAY'};
 
 <notify-osd.pid> = open3(
     <notify-osd.in_fh>, <notify-osd.out_fh>,
@@ -24,6 +26,8 @@ if ( !<notify-osd.pid> ) {
     );
 }
 
+<[base.zenki.report_child_pid]>->(<notify-osd.pid>);
+
 <[event.add_io]>->(
     {   'fd'      => <notify-osd.out_fh>,
         'handler' => qw| base.handler.child_output.simple |,
@@ -31,15 +35,16 @@ if ( !<notify-osd.pid> ) {
             'bin'           => 'notify-osd',
             'pid'           => <notify-osd.pid>,
             'log_whitelist' => [
-                '_OB_WM_ACTION_UNDECORATE', 'Gdk-WARNING',
-                'not present in theme',     'org.gnome.ScreenSaver'
+                '_OB_WM_ACTION_UNDECORATE',      'Gdk-WARNING',
+                'not present in theme',          'org.gnome.ScreenSaver',
+                'SpiRegistry daemon is running', 'dnd_is_idle_inhibited'
             ]
         }
     }
 );
 
-#,,,,,..,,.,.,,..,..,,...,,,,,,,,,...,...,,,,,..,,...,..,,..,,.,.,,,,,,..,...,
-#Z3BSCDMNDV6EPDUA7BWLDAEICL5G4MXO52OEKSSNRHEYKFBXZFGCQYH53WTTR3RYKCVT7EU4GLRI2
-#\\\|PMKBQDW2RUOK7SSP5AZXUOQGP36SW7FTL5ITAKBQPB2K754O5I7 \ / AMOS7 \ YOURUM ::
-#\[7]42KPGFFRQIOJW32XZZOLIX2HHKLMAXF6ZKZZ6G5QMQ7PDQUDFKCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,.,,,,,,,.,..,,,.,,,.,,,,,,,..,..,,...,...,...,.,.,,,,,..,,...,
+#DKCHGK3OIEERKBA3DESYW2BTBXPT5IG4YLNRNN5FKMKPOSRCC46IVYZAGVRKQWY6UMT4KAFLLTJ2O
+#\\\|CDQBJRRZ4ZEK55BLNNFKCQY5QJDYJBOIARWT4TXGEDPE44MRUZN \ / AMOS7 \ YOURUM ::
+#\[7]JGHU2PLI2FO6F7NTSNWBMXEA4IIKLQKIDUVEFFW3GVIEQQVRGGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

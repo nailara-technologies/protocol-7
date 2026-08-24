@@ -32,7 +32,7 @@ if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
 while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $LAST_PAREN_MATCH;
     $output_line =~ s|\r||sg;
-    if ( $output_line =~ m|^(unix:abstract=([^\n,]+),[^\n]+)$| ) {
+    if ( $output_line =~ m{^(unix:(?:abstract|path)=([^\n,]+),[^\n]+)$} ) {
         <dbus.socket_addr> = ${^CAPTURE}[0];
         <dbus.socket_path> = ${^CAPTURE}[1];
         my $privs_user = <dbus.privs_user>;
@@ -47,8 +47,8 @@ while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,,.,.,.,,.,,,,,,,.,,,..,,.,,..,,..,,,,.,,,,,..,,...,...,...,,,,,..,,.,,,,.,,
-#6QR5EPUTN62LVQYHQDLNSHB4WRYDHVRL66P22L4TPCLA7AL36BXY7AWTXZCIVKOQ2CNIOSWEDLIEI
-#\\\|O7MZ7ILWZ6VDZ3HCUL3K25IDHXB3EG73QL2I57OAG5P43RRT6YG \ / AMOS7 \ YOURUM ::
-#\[7]BEKARQA2RCV5JWFEVQNVQC6W774YMAFT4R4HGG3QTILNWPSO4IBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,,.,,,.,,...,,.,,.,.,...,,,,,..,,...,..,,.,,,...,...,..,,,..,
+#OAMJQ6ZAPGH64NQIWWBUZ4JCHXZNDGZR7DZLH63CRFQOKVH5T7VPKC5QEWMXKTLVDOXU6ODC6BVUG
+#\\\|GPH7CVFCQDXPBQ7GOCVWAKK4U4NI44DWWK4FL24CLILW5INGBYN \ / AMOS7 \ YOURUM ::
+#\[7]GGFU27K47EB7JXG3LVAKJWIZQRXZHJUSTO2G3V4UW5YTJ2M25EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
