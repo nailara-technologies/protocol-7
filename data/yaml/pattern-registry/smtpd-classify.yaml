@@ -1,0 +1,72 @@
+---
+patterns:
+  - name: smtpd-classify-10-interview
+    descr: interview request keyword match
+    pattern: '(?i)\binterview\b'
+    action_type: classify
+    label: interview_request
+    status: auto-apply
+    origin: manual
+    applicability:
+      file_type: mail
+      confidence: 0.95
+      scope: ['smtpd.classify', 'smtpd.*']
+    stats: { applied: 0, matched: 0, false_positive: 0 }
+
+  - name: smtpd-classify-20-rejection
+    descr: rejection keyword match (de/en)
+    pattern: '(?i)\b(?:ablehnung|rejection|regret|unfortunately|nicht\s+berücksichtigt|nicht\s+ausgewählt)\b'
+    action_type: classify
+    label: rejection
+    status: auto-apply
+    origin: manual
+    applicability:
+      file_type: mail
+      confidence: 0.95
+      scope: ['smtpd.classify', 'smtpd.*']
+    stats: { applied: 0, matched: 0, false_positive: 0 }
+
+  - name: smtpd-classify-30-offer
+    descr: offer keyword match (de/en)
+    pattern: '(?i)\b(?:angebot|offer|stellengespräch|einladung)\b'
+    action_type: classify
+    label: offer
+    status: auto-apply
+    origin: manual
+    applicability:
+      file_type: mail
+      confidence: 0.95
+      scope: ['smtpd.classify', 'smtpd.*']
+    stats: { applied: 0, matched: 0, false_positive: 0 }
+
+  - name: smtpd-classify-40-document_request
+    descr: document/CV request keyword match
+    pattern: '(?i)\b(?:dokument|document|unterlage|cv|lebenslauf)\b'
+    action_type: classify
+    label: document_request
+    status: auto-apply
+    origin: manual
+    applicability:
+      file_type: mail
+      confidence: 0.95
+      scope: ['smtpd.classify', 'smtpd.*']
+    stats: { applied: 0, matched: 0, false_positive: 0 }
+
+  - name: smtpd-classify-50-reply
+    descr: generic reply/status keyword match
+    pattern: '(?i)\b(?:reply|antwort|feedback|status)\b'
+    action_type: classify
+    label: reply
+    status: auto-apply
+    origin: manual
+    applicability:
+      file_type: mail
+      confidence: 0.95
+      scope: ['smtpd.classify', 'smtpd.*']
+    stats: { applied: 0, matched: 0, false_positive: 0 }
+
+#,,..,..,,,.,,.,.,.,.,,,.,,,.,,,.,.,,,.,.,...,..,,...,...,,,,,.,,,.,,,,..,..,,
+#7GTIHPWOIPDR47DSMSLTZFNTV2MXQROKEKU37CRDAIG7ORWSDEUL7Q6CAQHBOFB6INLTVFAU4AUWE
+#\\\|KQRDIRMGIOXAWKKF2L55ECXD5EBCD7NZAV67675M3NZ5NPR27SL \ / AMOS7 \ YOURUM ::
+#\[7]77LPLUE6RJAR2L5KRYUZAFZF7D5POK2VO2TGVAUKNY35A3KMDMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
