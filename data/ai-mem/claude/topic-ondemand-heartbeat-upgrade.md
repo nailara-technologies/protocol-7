@@ -57,12 +57,74 @@ safe and what it isn't the same as. Full design writeup + verification:
 updated with a status note; its "configurable timeout modes" / wake
 permissions / priority / WoL sections remain open, unimplemented.
 
-**Still open:** `tile`'s `start.cfg` has *not* been updated to add a real
-idle timeout — heartbeat no longer blocks it from having one, but nobody's
-asked for that yet. Revisit if/when tile's idle-shutdown becomes desired.
+**2026-08-24 — first real rollout, zenka-by-zenka (commit `70a2e4013`).**
+Went through every on-demand zenka and actually read its command-handler
+code for blocking calls rather than flipping `heartbeat.disabled` in
+bulk — see [[heartbeat-probe-backlog-mechanics]] for why a blind bulk
+flip would have been wrong (a big `heartbeat.timeout` does not make a
+long single blocking call safe; it just delays the same probe-backlog
+problem).
 
-#,,.,,...,.,.,,.,,,..,.,.,,,.,,,.,.,.,...,.,,,..,,...,...,..,,...,,,.,.,,,,.,,
-#Y6K2XTTNH6DG6KNLJT4C7WELZKXN5EB7WXEQTRAFKQJZ6J5T64GLDPGXSWGE43QLLLHSPMT35RSXC
-#\\\|TM3CEG3JGHYYFSB33NHY3YDD6B6YXRS4XKZBUXMRGQSSSKVUTED \ / AMOS7 \ YOURUM ::
-#\[7]OSXPS3LU5WYJXEBXGU53JMG65RORSV7RQILMEZYJ2KHL7ZHGJ4DA 7  DATA SIGNATURE ::
+- 28 zenki with zero blocking code found: heartbeat re-enabled at the
+  internal 17s default — `audio`, `calc`, `channels`, `fetch-files`,
+  `forensics`, `geoloc`, `graphics-matrix`, `image2html`, `index`,
+  `index-mem`, `invoke-web`, `jobsite`, `mediainfo`, `menu-commands`,
+  `opencv`, `pdf2html`, `povray`, `reasoning`, `screenshot`, `set-up`,
+  `smtpd`, `sys-deps`, `task`, `test-link-upgrade`, `transport`,
+  `users`, `vision-batch`, `X-11-pointer`.
+- Bounded blocking calls, `heartbeat.timeout` sized to the largest
+  internal call bound + margin: `kimi` = 30s (LWP calls capped at 10s),
+  `invoke` = 60s (max internal 30s), `letsencr` = 45s (max internal
+  15s, excluding `letsencr.child.*` which runs in a forked child),
+  `site-yaml` = 60s (LWP timeout=30s).
+- `tile`, `mpv`, `external`, `screen-setup`, `select-region`, `weather`,
+  `window-place`, `content` — these were already heartbeat-monitored by
+  default (no `heartbeat.disabled` line ever set, the `tile`-style
+  pattern above). Confirmed clean on inspection (`mpv.open_player`'s
+  `waitpid` is explicitly `WNOHANG`; the X-11 UI zenki load only
+  generic modules, no zenka-specific code to block on), so given an
+  explicit `heartbeat.timeout = 47` — WSL can add real jitter, so a
+  value comfortably above the 17s internal default was wanted even
+  though nothing here actually blocks.
+- Left heartbeat disabled where a single command handler can
+  legitimately block for an unbounded or very long duration, since no
+  `heartbeat.timeout` value fixes the probe-backlog problem there (see
+  [[heartbeat-probe-backlog-mechanics]]): `ffmpeg` (rescale — hours,
+  known design limitation, needs a full refactor), `fs` (mount/umount —
+  can legitimately take minutes on sequential-spin-up disk arrays),
+  `melt` (frame extraction via blocking `waitpid`, no I/O-event
+  pattern), `powershell` (`.exec` blocks on WSL-interop `getlines`; a
+  false-positive kill mid-script could interrupt something on the
+  Windows host that doesn't tolerate interruption well), `build`,
+  `nessus`, `openvas`, `ncode` (all bare `waitpid($pid,0)`, no internal
+  cap — build-recipe/scan/generic-subprocess duration is open-ended),
+  `download` (LWP `timeout` is a stall timeout, not a total-duration
+  cap — a large slow-but-active transfer could run long), `ext-pkg`,
+  `memory`, `notify` (no internal bound at all, not resolved this
+  session), `kimi-web` (mixed: several paths bounded at 10-30s, but
+  `cmd.dispatch`'s synchronous branch takes a caller-supplied timeout
+  defaulting to 300s with no cap), `lm-vision` (`handler.http_analyze`
+  has an internal 300s LWP timeout — same backlog magnitude as the
+  `fs`/`melt` case, so held), `models` (LLM/model management — sync
+  LWP with no timeout at all in `backend.api.invoke`, unbounded
+  `sha256sum`/install/local-server-start calls), `coding` (LLM
+  orchestration zenka — its own code comments reference a past
+  "waitpid incident," too complex/sensitive to certify from a
+  read-through alone), `debian` (`apt_child` — same package-install
+  duration uncertainty as `ext-pkg`).
+
+**Still open:** `git`, `session`, `sessions`, `work`,
+`workspace-transfer`, `zenki`, `branch`, `os-pkg` (no idle timeout, some
+already heartbeat-monitored) weren't reached this session. `tile`'s
+`start.cfg` still has *no* idle timeout — that specific "still open"
+item from the original design remains unresolved; only its
+`heartbeat.timeout` was addressed this round. `kimi-web`, `lm-vision`,
+`models`, `coding`, `debian`, and the open-ended-duration group above
+all need either a real bound discovered/added in code, or a genuine
+async refactor, before heartbeat can be safely turned on for them.
+
+#,,.,,,,,,,,.,...,,.,,..,,,..,,,.,...,,..,..,,..,,...,...,,..,.,,,...,.,.,,,.,
+#M4CMAW2IYM4WKCD7DANPACCOFNRKVPIGE7ZGSQ5SQ3AK32SLOLEDIYJGVUQYTVZ7J2UBWE42PCRNM
+#\\\|5CKUDDCH647LUI2E5F3DRVJ3ANN24YHJNAORRO5VR6GR6JTUKBW \ / AMOS7 \ YOURUM ::
+#\[7]KSEOJ5DGTJUAEC4B2CFOHIZRD3ZVXHKCDN643TNQHIFGFEIAP2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -48,7 +48,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED 531aa14db, CLOSED (rare paint glitch only)
 - [screen-setup-zenka](topic-screen-setup-zenka.md), [amos7-shm-phase1](topic-amos7-shm-phase1.md) — minimap+overlay LIVE; SHM phase 4 open; 2026-08-24: X-11.raise-window/keep_above access-grant bug fixed, cross-process GTK freeze still open (see [[feedback-weston-move-unreliable-use-compositor-grab]])
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — renames LANDED
-- [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — LANDED 0f1ba4446 (v7.idle-term + heartbeat-exclusion), see [[p7-local-command-route-and-deferred-reply-mechanics]]; tile's start.cfg not yet given a real idle timeout
+- [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — LANDED 0f1ba4446; 2026-08-24 zenka-by-zenka rollout `70a2e4013` (see [[heartbeat-probe-backlog-mechanics]]); tile's start.cfg still not given a real idle timeout; git/session/sessions/work/workspace-transfer/zenki/branch/os-pkg not yet reached
 - [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md), [mpv-persistence](topic-mpv-persistence.md) — placement+geometry LANDED; persistence planned; 2026-08-10 (`4526a0360`) socket-wait polling → inotify + one-shot deadline, send_command per-command jobqueue job → plain replay buffer, live-verified
 - [verify-instance-callbacks-initialized-deadlock](feedback-verify-instance-callbacks-initialized-deadlock.md) — v7's whole verify-instance handshake is console-log-scraping only (zenka-output.patterns, NOT send_init_reports): two traps hit the same "stuck in starting, restart loop" symptom — (1) deferring get_session_id past a system.callbacks.initialized push (mpv 2026-08-10), (2) console verbosity silenced below the two handshake lines' level 1 (site-yaml 2026-08-10, console=0 by design) — both need get_session_id's + verify-instance's console lines to actually reach v7; fixed via new base.log.forced_console helper, live-verified on site-yaml
 - [x11-multi-server](topic-x11-multi-server.md), [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — LANDED
@@ -123,8 +123,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [jobsite-coding-queue-paused-task-loss-landed-2026-08-19](bug-coding-async-send-request-enqueue-round-timer-mismatch.md) — LANDED `dd162183b`: coding zenka silently dropped any task retried while `queue_paused` was set (wrong `event.add_timer` shape — `'params'` key it never reads, `coding.task.enqueue_round` armed as a timer-handler when it's direct-call shaped); general bug, not jobsite-specific; live-verified via devmod. Also fixed same commit: [[bug-jobsite-pending-count-leak-nonassessing-cycle]] (jobsite cycle wedge) and `coding.cmd.list-tasks`' ntime-vs-base.time garbage elapsed-time display. Closes the "exact line" gap left open in [[topic-coding-zenka-wedged-backend-queue-gridlock-2026-08-05]]
 - [smtpd-actionable-mail-channels-notify](topic-smtpd-actionable-mail-channels-notify.md) — 2026-08-24: smtpd's notify-on-actionable-mail path hardwired to legacy send.local (fixed, use route-send) + a dbus regex bug (fixed) + notify-osd rendering nothing on this WSLg host even once fully online (worked around, see [[topic-powershell-native-toast-notifications]]); still-open design smell: smtpd should publish to `channels.*` instead of calling a notify target directly. Drafted-not-started task `data/tasks/dunst-notify-zenka.md` covers a parallel non-WSL Linux-desktop backend, deprioritized on this host
 
-#,,,.,,,.,.,,,,,.,,,,,...,,..,...,,.,,,,,,...,..,,...,...,...,,.,,.,.,,,,,,..,
-#UN2XHAEQPBQPG3X7KZPXOUI443OMLR4QA7OZRZGJZNYHHIQM4JKVVAO4TEUDJYVZGXC3FZCPUS55Y
-#\\\|JQOTC5JUB5EJFJ2AC5IYLDP6GUYOOIHAJIL6AP2KWOZAYHDHZBN \ / AMOS7 \ YOURUM ::
-#\[7]35TWLROGOXXSAUPL7NMYXZ7LTBXBVUE6TFBVAFUVTSFSR2NUPKAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,,.,,,,,,...,,.,,...,,,.,,..,..,,...,...,,,.,,.,,,,,,,,.,.,,,
+#NYT3RC7NHBHVYQVIR44H2CNKEINIPAZUVOUR2DMKVGQNRKMOICHK2FE3CANJPRLXC6BBZ3G4ZSZIU
+#\\\|YUUJ3P2675TPCMKGJKDTPWSF74CCDUKBHC62LMUT7T2RLXSZYBW \ / AMOS7 \ YOURUM ::
+#\[7]HT2HYIXIVZC4TYJKTQOK6PZPA2NEPYK2LXTHGXA2WOIZNSJGY2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
