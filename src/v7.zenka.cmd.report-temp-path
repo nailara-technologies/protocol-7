@@ -25,7 +25,9 @@ $err_reason
     and abs_path($tmppath)    ##  checking minimal exclusion list  ##
     =~ m,^/[^/]+(/local(/s?bin)?|/share|/s?bin)?$,;   ## system directories ##
 
-( my $inv_chars = $tmppath ) =~ s|$valid_chars_re||g;
+my $inv_chars = '';
+( $inv_chars = $tmppath ) =~ s|$valid_chars_re||g
+    if not defined $err_reason;    ## <-- $tmppath may be undef otherwise ##
 $err_reason = sprintf 'temp path contains not valid characters [%s]',
     $inv_chars
     if not defined $err_reason and $tmppath !~ m|^$valid_chars_re$|;
@@ -144,8 +146,8 @@ my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
 ##  reporting success  ##
 return { 'mode' => qw|true|, 'data' => sprintf "registered '%s'", $tmppath };
 
-#,,..,.,.,.,.,..,,.,,,,.,,..,,..,,,.,,.,,,,,,,..,,...,...,,,,,,..,...,..,,,,,,
-#II3XBGPDFPYIGAUCN4WG4WKNH4SYDRLLTZDIZXUVRVRGSSF7REPBHDSEA6WVPS6ZBIBNSSKQQ2SEI
-#\\\|WILT7PGRPHRPXCFX2VFDYJ7RJ5KSEJFDDZYK6V3GESF5LAW6LRN \ / AMOS7 \ YOURUM ::
-#\[7]4XUPYHAIACB5DLGP5EP6CF7YIVRD642QRNMFM7HONJ2XVTZ53GDQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,,,.,,.,,.,,,.,,,..,,,,.,,..,..,,...,...,...,,,,,.,,,.,.,,,.,
+#EZTNGV2DAM4Z25BXOXP2XT4VKK6PVGMW55OZ4CB55M663PG6CJG3PISCZ24QD5KQB3YQNJJ2QK6VO
+#\\\|RBH25ON4W55DSCPCE6UH474FQMVMTYCSTU7AOH3HENTFGO2UGGD \ / AMOS7 \ YOURUM ::
+#\[7]5LGVB652ASJBNCDQYKIN2TQ4ET4HFDOGCPYW7DJEOOJMTPBVW4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

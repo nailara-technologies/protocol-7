@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = powershell.cmd.notify-recover
+# descr = repair windows' master notifications toggle if off
+# note  = separate from focus assist/dnd -- confirmed live 2026-08-24 :
+#         a plain registry write alone does not take effect until the
+#         per-session WpnUserService is restarted afterward
+
+return { 'mode' => qw| false |, 'data' => 'windows toast setup incomplete' }
+    unless defined <powershell.cfg.local_appdata_win>
+    and defined <powershell.cfg.local_appdata_wsl>;
+
+my $aumid = <powershell.cfg.notify_aumid> // qw| protocol-7 |;
+
+my $ps_escape = sub {
+    ( my $s = shift // '' ) =~ s|'|''|g;
+    return $s;
+};
+
+## the WinRT type-literal line below cannot be split across lines [ see ##
+## powershell.notify's header comment -- confirmed live, neither a bare ##
+## newline nor a backtick continuation is accepted inside it ]          ##
+my $ps_script = sprintf( <<'PS_TEMPLATE', $ps_escape->($aumid) );
+[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+$aumid = '%s'
+$before = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($aumid).Setting
+if ($before -eq 'Enabled') {
+    Write-Output "unchanged:$before"
+} else {
+    Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications' -Name ToastEnabled -Value 1 -Type DWord
+    $svc = Get-Service | Where-Object { $_.Name -like 'WpnUserService*' } | Select-Object -First 1
+    if ($svc) { Restart-Service -Name $svc.Name -Force -ErrorAction SilentlyContinue }
+    $after = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($aumid).Setting
+    Write-Output "recovered:$before->$after"
+}
+PS_TEMPLATE
+
+my $out = <[powershell.exec]>->($ps_script);
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    unless defined $out;
+
+chomp $out;
+
+<[base.logs]>->( 1, ': notify-recover [ %s ]', $out );
+
+return { 'mode' => qw| true |, 'data' => $out };
+
+#,,,.,,..,..,,.,,,..,,.,.,.,,,..,,,,.,..,,,,,,..,,...,...,.,.,..,,,.,,,,,,...,
+#GZIGJME4ZNFEJXITIK25JA5JPGRGYS7YOZOZC46RJM73OVYA66FDZ2F2W43KTOVZXWVCQIUVVLHCK
+#\\\|NRP53NTDJ3OVCAR7HI7QZUWMKLQOMKQTNSABD2J4MCR243X6ODJ \ / AMOS7 \ YOURUM ::
+#\[7]WUJC66IHYOMUGNEBDR4O3UXLBY7BP5B6CBOKV36TEFPWKARH2KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
