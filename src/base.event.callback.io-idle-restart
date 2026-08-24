@@ -30,8 +30,9 @@ if ( defined <watcher_list.paused>
     $event->w->stop;
 }
 
-if ($PID == <system.process_start.pid>    ##  is parent \ not forked  ##
+if ($PID == <system.process_start.pid>        ##  is parent \ not forked  ##
     and defined <system.ondemand_timeout>
+    and not <base.ondemand.idle_term_sent>    ##  idle-term in progress  ##
     and (  not defined <base.timer.ondemand_timeout>
         or not <base.timer.ondemand_timeout>->is_active )
 ) {
@@ -45,9 +46,22 @@ if ($PID == <system.process_start.pid>    ##  is parent \ not forked  ##
         }
     }
 
-    ##  shut down zenka after ondemand_timeout  ##
+    ## shut down zenka after ondemand_timeout  arm with the remaining time  ##
+    ## since last real activity instead of the full window [ 'heart' probes ##
+    ## do not refresh the timestamp, see base.handler.command ] -- ntime    ##
+    ## delta converts to seconds                                            ##
+    my $after = <system.ondemand_timeout>;
+    if ( defined <base.ondemand.last_activity> ) {
+        my $elapsed_secs
+            = <[base.ntime.delta_seconds]>->(<base.ondemand.last_activity>);
+        if ( defined $elapsed_secs and $elapsed_secs > 0 ) {
+            $after -= $elapsed_secs;
+            $after = 0 if $after < 0;    ##  fire [ nearly ] immediately ##
+        }
+    }
+
     <base.timer.ondemand_timeout> = <[event.add_timer]>->(
-        {   'after'   => <system.ondemand_timeout>,
+        {   'after'   => $after,
             'handler' => qw| base.handler.ondemand_timeout |,
             'data'    => {}
         }
@@ -57,8 +71,8 @@ if ($PID == <system.process_start.pid>    ##  is parent \ not forked  ##
         and not $has_open_producer_stream;
 }
 
-#,,..,,.,,,..,...,,.,,,,,,,..,..,,,,,,..,,.,.,..,,...,.,.,.,,,...,..,,..,,,,,,
-#7UNQZDBR66AHPJPLVXLXLLSLT3BFBZBV5KM5QNUEGUF77RRYCDEIMA53KPUIGI5FHJQ5FNVNDUHRI
-#\\\|M4B2OPUX7GZG5KG3QIOK7MG72XJASVTXA5QGSY6PQ4RR3WPL632 \ / AMOS7 \ YOURUM ::
-#\[7]TDAKOKTIIHEI32KJE6ZCRFP4H5U2F32DX5GLTBQB5NUAKHIM7MBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,.,,,,,,...,..,,,,,,...,..,,..,,...,.,.,,.,,,,.,,,.,,,,,,,.,
+#BX2WRS5FDUI555ZRHH77K74YXVMWW6K7KKZXTEGH34C55XRETF2RLQKGSPVQ4YZ4CGUPKBVCGX4QC
+#\\\|DIZ3TGCU7ZZAIJ6I327J3E2R6FRLA4LFTZYCEXXX55M65UROBAT \ / AMOS7 \ YOURUM ::
+#\[7]MK2KHZUOSPCQPQXXUCXGHHHWF5TGVOU323IAOAX44NT7NIAB2OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

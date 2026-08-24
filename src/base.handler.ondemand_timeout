@@ -5,12 +5,46 @@
 my $timeout = <system.ondemand_timeout>;
 my $s       = $timeout == 1 ? '' : 's';
 
+## idle-term request already sent [ guard armed or re-armed timer refire ] ##
+return if <base.ondemand.idle_term_sent>;
+<base.ondemand.idle_term_sent> = TRUE;
+
 <[base.log]>->( 1, "zenka idle shutdown.., [ $timeout sec$s ]" );
 
-exit(0);
+## ask v7 to terminate this instance cleanly [ stops heartbeat tracking and ##
+## prevents restart ] -- fall back to bare exit on error, false reply or    ##
+## when no reply arrives within the guard timeout ..,                       ##
 
-#,,.,,,,,,.,,,,,.,,,.,.,,,,..,,,.,...,,,.,.,.,..,,...,...,..,,...,,.,,.,,,.,.,
-#J2B3Z2TN7XUKYY2LBU7XXCS2SDUEGISANATZHRUU7DIWY3PO7KOF4LSOU7MSIPJLANJUBCTLM2ZKA
-#\\\|4GBKQHNJ3PNFA7IPE2I7ZLDVGB5SCF3HPWNES2VUV6PAYT4KRLE \ / AMOS7 \ YOURUM ::
-#\[7]SF3ZQSWAWCANZOI6ZKAYEVNKD3ZYV3BAIGIRB64B3DMWLB3ASGCA 7  DATA SIGNATURE ::
+my $guard_timer = <[event.add_timer]>->(
+    {   'after'   => 2.3,    ##  guard : idle-term reply wait limit  ##
+        'handler' => qw| base.handler.ondemand_idle_term_guard |,
+        'data'    => {}
+    }
+);
+
+if ( not defined $guard_timer ) {
+    <[base.log]>->( 0, 'idle-term guard timer failed, exiting directly ..,' );
+    exit(0);
+}
+<base.timer.ondemand_idle_term_guard> = $guard_timer;
+
+my $sent = <[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.v7.idle-term |,
+        'call_args' => {},
+        'reply'     => {
+            'handler' => qw| base.handler.ondemand_idle_term_reply |,
+            'params'  => qw| cube.v7.idle-term |
+        }
+    }
+);
+
+if ( not defined $sent or $sent < 1 ) {    ##  no route to cube \ v7  ##
+    <[base.log]>->( 1, 'idle-term request not sent, exiting directly ..,' );
+    exit(0);
+}
+
+#,,,.,.,,,,,.,.,,,..,,...,,,.,,,,,.,.,,,.,,..,..,,...,...,...,.,.,,..,,,,,...,
+#7RCAUXXKUUWRKDLET3SNJR4PBUWGR3FRLSUZV6XQXW2ESVIWS7OJKW6ILBOYAVHU6ZIFMOMKE4UCE
+#\\\|PGDJSBDP272I2MUSIVCCTWM6KXUXCCSRVCW6DED62Y425ADMJUH \ / AMOS7 \ YOURUM ::
+#\[7]7VTLJGCSVBRXPE33746M3ISLZ4SVZXI3N3HQEGZHPHSRGEHGF4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
