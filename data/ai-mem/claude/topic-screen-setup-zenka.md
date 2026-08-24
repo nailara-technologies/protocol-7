@@ -217,12 +217,38 @@ Deferred: (1) STRM-based live window list (X-11 pushes on open/close);
 (2) dynamic per-monitor border (brighten on hover);
 (3) `_NET_WM_MOVERESIZE` direction-10 cross-seam probe.
 
+**Access-grant bug FIXED 2026-08-24 (`dfda82fb7`):** `screen.setup.
+open_window`'s placement-retry path calls `base.X-11.raise-window` /
+`base.X-11.keep_above` unconditionally, but `cube/access.zenki`'s
+`access.cmd.usr.screen-setup` only granted `X-11.move-window` — missing
+since this zenka was created. Silent failure for screen-setup (raise/
+keep_above just no-op'd, no crash), but the SAME missing grant on
+`protocol-7-menu` caused a hard, loud crash-loop there (`v7` verification
+timeout on every start attempt) once its own window-placement code path
+started actually reaching that call. Fixed by granting both
+`X-11.raise-window X-11.keep_above` to each, matching `ticker`'s already-
+correct grant. If a new GTK zenki's window ever needs raise/keep-above
+behavior, check `access.cmd.usr.<zenka>` in `cube/access.zenki` up front
+— the failure mode ranges from silent no-op to full crash-loop depending
+on how the caller handles the resulting `command not known or no
+permission` error.
+
+**Separate, still-open freeze investigation 2026-08-24:** this zenka's
+window-close path was where a cross-process mouse-input freeze got
+discovered and chased at length — see
+[[feedback-weston-move-unreliable-use-compositor-grab]]'s 2026-08-24
+section for the full investigation (dead-end fixes tried, the one thing
+that worked, and a DANGEROUS self-heal attempt that escalated a
+recoverable freeze into one needing a full Windows host reboot). Not
+resolved; `screen.setup.close` is back to its original, un-augmented
+form.
+
 ## related
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,,.,,..,,..,,.,,...,,,,,,..,.,,,..,,..,,.,.,..,,...,..,,...,.,,,,.,,,,,,,.,,
-#HUHLGGWAMPXPGZIQXMMQBFRXPJ6MOJRNC3HVJFGTUCJOEOKH2FEGYSTLBRUK7HYGS2ERIXM4CVDUE
-#\\\|VQNKEU5KGXWZG4U6EZ7MZ7Q2HNOK4JF3D3CQS5OTGQDTEWTYJR3 \ / AMOS7 \ YOURUM ::
-#\[7]WYU5NDM7Q2DQQWM37HWNS5JAZRLTZQZX3MEWPGVDBVAYKCAPOIBI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,,,.,.,,..,..,,...,,..,,,,,,.,,..,,...,..,,..,,,..,,,,,...,,.,,
+#T6MNSJYOUNK42CDCP3LXDIHYD44XMORWQ6ATJ6OAYSE4UQLBPOZCPHKBIBGHSXU4APSHDADSJWARY
+#\\\|3XUYYD4EE3OBY4XKN6ZPGVW7YAUSF3WIFDXA7UUPNGL6ZCPGYXF \ / AMOS7 \ YOURUM ::
+#\[7]42SNOMAQKDGBNVRN73JLMVOIECKERAYY4TQVHOD5K2XCOYHUCUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
