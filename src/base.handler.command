@@ -431,6 +431,16 @@ if ( $cmd =~ s|^\(($re->{cmd_id})\) *||o ) { $cmd_id = ${^CAPTURE}[0] }
 $call_args->{'command_id'} = $cmd_id;
 $call_args->{'session_id'} = $id;
 
+##[ ONDEMAND \ LAST ACTIVITY ]################################################
+
+## record last real activity for the ondemand idle timeout ; 'heart' probes ##
+## are excluded so the idle timer can still expire while v7 heartbeat       ##
+## monitoring stays enabled [ re-arm uses the remaining time since this     ##
+## timestamp .., base.event.callback.io-idle-restart ]                      ##
+<base.ondemand.last_activity> = <[base.ntime]>
+    if defined <system.ondemand_timeout>
+    and $cmd ne qw| heart |;
+
 ##[ REROUTE ]#################################################################
 
 # 'reroute' replacement regex
@@ -1082,8 +1092,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,.,.,...,.,,,..,,..,,..,,..,,...,,..,,..,..,,...,...,..,,.,,,.,.,,..,.,,,
-#VVGSM2X2USYGJRG3VM7CWWG27SWWMH2PIPT7RRE4HFTAYMVTB7FJ77ENKOISAGOLAGJIEQWXEGRB6
-#\\\|QQ6HGDCAGVTGBQG4WVL4OQ3QWIS6SBRBR2H5MON7N3FR6ARCF5K \ / AMOS7 \ YOURUM ::
-#\[7]PLYPN7LDFUCU6OHTWZDH4EOV72NV4ZDD2MI42Z3UXQ7LBYYHO6DY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,...,...,.,.,...,,.,,.,,,,,,,..,,...,...,,,.,...,,,,,...,,.,,
+#DRF6U6PYXYN53DDZKX5EXBWQLJVR7VPZPJPYICVT6QQC7FJ2BKPOBJ27BLEHW6USLE7BZLXBXODBC
+#\\\|4BCPC5U4Z4PSFHXVQF3O6TNG3LT5GYH7JHSDLMQMQMK3XVAPO7T \ / AMOS7 \ YOURUM ::
+#\[7]5BKZ25N7UKWXSERWOXPCMKJZ7BQHFMRYFHMCKCSZR53AVAJ2RYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
