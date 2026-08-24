@@ -136,10 +136,49 @@ The `dunst` task ([[dunst-notify-zenka]]) remains relevant for pure-Linux
 (non-WSL) desktop deployments where there's no Windows host to hand
 notifications to.
 
+## windows master notifications toggle getting stuck disabled, 2026-08-24
+
+Separate failure mode from anything above: toasts stopped appearing
+entirely (call succeeded, `.Setting` on a fresh `CreateToastNotifier`
+came back `DisabledForUser`) after a bout of monitor/DND troubleshooting
+on the Windows side. Root cause: `HKCU:\SOFTWARE\Microsoft\Windows\
+CurrentVersion\PushNotifications\ToastEnabled` (the master "Notifications"
+switch in Settings → System → Notifications) was `0` — a DIFFERENT
+switch from Focus Assist/DND, easy to flip by accident while looking for
+DND settings, and toggling DND does nothing to it. Fix has two parts,
+both required: (1) `Set-ItemProperty` the registry value back to `1`,
+AND (2) restart the per-session `WpnUserService_<id>` service (`Get-
+Service | Where-Object Name -like 'WpnUserService*'` then `Restart-
+Service -Force`, no elevation needed) — the registry write alone does
+NOT take effect until the service picks it up fresh; confirmed live that
+`.Setting` still read `DisabledForUser` from a brand-new PowerShell
+process after the registry write alone.
+
+Built `powershell.cmd.notify-recover` (check-then-fix, idempotent —
+queries `.Setting` first and no-ops if already `Enabled`) and auto-wired
+it (WSL-detected via `$ENV{WSL_DISTRO_NAME}`/`-d '/mnt/wslg'`, cooldown-
+guarded, overridable via `X-11.notify_recover.enabled`) into `X-11.
+handler.monitor_settle_check`, on the theory that a future recurrence
+might be triggered by the same kind of display-topology churn — though
+this specific instance was more likely caused by manual Settings
+fiddling than the monitor event itself, so treat the auto-wiring as
+cheap insurance, not a confirmed causal fix.
+
+**Separate, unrelated dunst bug found the same night:** dunst (the
+parallel Linux-side backend, see [[dunst-notify-zenka]]) stopped
+rendering popups entirely when the "beamer" (3rd monitor) was
+disconnected, independent of the Windows-side issue above and NOT fixed
+by restarting dunst, the dbus zenka, `notify.*`, or `powershell.display-
+switch-toggle` — only physically re-enabling the beamer fixed it,
+reproducibly. `dunstctl count displayed` incremented normally throughout
+(dunst genuinely received + "displayed" the notification internally),
+so it's a WSLg/Weston render-with-reduced-output-count issue, not a
+dbus/notify-pipeline problem. No scriptable workaround found; left open.
+
 related: [[topic-smtpd-actionable-mail-channels-notify]], [[dunst-notify-zenka]]
 
-#,,,.,...,.,.,,,.,...,...,.,,,,,,,,,,,,,,,,,.,..,,...,...,,,,,..,,,,.,,,,,,..,
-#SCOUEI6AJFML7UUZNMDSSSO4B5AKTZMFN4N6FMGRX4GJRAIYB2OCTZ4Q7QTTR2JXB7D2XHMHEKFHU
-#\\\|WJ7WPPENHSJT6KRJENFV3Y765NNDYVAJ2J37B6EN5PP642KNVFR \ / AMOS7 \ YOURUM ::
-#\[7]SJHWH7QJSDTQSQWYVPCMNLD3USOZ5AYQNI7LEPKDL53XREMKAIBI 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,,,,,,..,..,,,,,,.,,,,,,,,..,..,,...,...,,..,,,.,,,,,,.,,,..,
+#HNSR65H72UBHG43T4RADBNAHF3GVKB6F7VPLUTZI25IVHV7L7AKEEWYRBAWRFKFHMY533TKOYUNOS
+#\\\|WSKCB6JEM7KYRT3LY4XT3J5RA72RZTINCQ4YYIFYT4QWX2J4NZJ \ / AMOS7 \ YOURUM ::
+#\[7]ZF7GFWNH7IGB7Y32UQ44Z6GW525KKFFAOXHOTSKACZEQK4RIGKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
