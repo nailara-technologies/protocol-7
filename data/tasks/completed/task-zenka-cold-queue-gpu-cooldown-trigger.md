@@ -287,19 +287,23 @@ precedence in the sweep handler: **force flag** (manual override) →
    working in both `task.post_init` and `coding.init_code`) — keep that
    exact token, don't "correct" it to `<[base.event.add_timer]>`.
 
-## status: planned, not started
+## status [ 2026-07-21 ] — phase 1 DONE, live-verified: deferred consumer,
+## GPU-gated cold-queue sweep, manual override, notify-timing debounce
+## fallback (`task.handler.cold-queue-sweep`, `task.handler.gpu_temp_update`,
+## `task.cmd.trigger-cold-queue`); `gpu_cold_temp_c` tuned 45→57°C from live
+## measurement (idle floor measured 59-61°C, load pushes 70+); task zenka's
+## missing `X-11.gpu_metric` cube access grant (was causing crash-loop
+## restarts) also fixed here
 
-design pass complete (context, requirement, and now a concrete phased
-implementation plan grounded in the actual `task`/`coding`/`X-11` module
-code). no urgency — ready to be picked up whenever this becomes active
-work. the task zenka change described here is the smallest, most
-self-contained of the three related gaps in the section above and could
-reasonably be picked up on its own without waiting for the other two.
+the other two related gaps noted above (coding zenka's own idle-debounce
+reuse, ambient-weather-adjusted threshold) remain not started — this task
+zenka change was the smallest, most self-contained of the three and was
+picked up on its own, as anticipated.
 
 #,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
 
-#,,..,,..,.,,,,.,,.,.,,,.,..,,,,,,.,,,,.,,...,..,,...,..,,.,,,,,.,,.,,...,.,.,
-#5TMWDCK6ABKZKUCZDRFXOKLHFVLPLCNHDUVLR3RIZE3WGMNDXTQRXGFESF2QYDF2GNDTKP65NOWAY
-#\\\|DMCGAD3T25R6F4RM57OX6K6FIR33BMG633VGXLSL5JE3C72XJE7 \ / AMOS7 \ YOURUM ::
-#\[7]3XWY4LF64JZNDOODBTNS6B5HYCR5DG5VEWEM7IQVUO7EOSDKBECA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,,..,.,.,.,.,,.,,.,.,.,.,...,..,,...,..,,,,,,,..,.,,,..,,,..,
+#ZEKEVCF54TTWCYQE4GQB2GSNURNIQJAJSLOVDU3G4KGHU5UBED527TOLZZNVCKFNBUR2DGGGM4DH4
+#\\\|ML3BYA3R6FZWAZN7GKS4TVNAXDIMBPJFYA4KV4KJPKHQCEOOP5L \ / AMOS7 \ YOURUM ::
+#\[7]A3AQJDT2NEF3UVQ67QCXFQYX4ZPCSJ2XLIQ3UW6Z7GGKVY3HBICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
