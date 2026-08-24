@@ -62,9 +62,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [v7 zenka symlinks](reference-v7-zenka-symlinks.md) — `v7.work`/`v7.sourcecode`/etc are symlinks to bin/Protocol-7 itself (argv[0] prefix strip), not a cube/network route; checked/refreshed by the v7 zenka on every startup (v7.init_code -> v7.install_zenka_symlinks), unrelated to sourcecode's checksum-symlink commands
 - [nshell SS3 arrows + live debug probe](reference-nshell-ss3-arrows-and-live-debug-probe.md) — DECCKM terminals send arrows as SS3 not CSI, `cat -v` settles it in one step (0747face5 fix); `debug-status` safely reads any live session's state, `char-add` injection only works if zenka started with `-no-tty-debug`
 - [verbosity console levels](reference-verbosity-console-levels.md) — `system.zenka.verbosity.*` is a 0-5 numeric intensity scale, not a named-severity enum; 3=compiled-in call/param tracing, 4=parsed-code-to-console, 5=full %data dump (devmod); don't let a model invent a FATAL/ERROR-style mapping for it
+- [powershell native toast notifications](topic-powershell-native-toast-notifications.md) — working WSL-native Windows toast backend (`powershell.notify`/`.cmd.notify-loves`): AUMID branding needs registry `DisplayName` AND a Start-Menu-shortcut+IShellLinkW/IPropertyStore COM registration (registry-only IconUri doesn't show the small icon); toast `<image>` src can't load `\\wsl.localhost\` UNC paths (must cache to `$env:LOCALAPPDATA` first, `Copy-Item` can read the UNC fine though); WinRT type-literal `[Type, Assembly, ContentType=WindowsRuntime]` syntax can't be line-wrapped at all; use a single-quoted `@'...'@` here-string for any untrusted text in toast XML, not `@"..."@` (which interpolates `$vars`)
 
-#,,,.,,,,,.,.,.,.,.,.,.,.,,..,,..,...,,..,,,,,..,,...,...,,..,,,.,.,.,.,,,.,.,
-#7RZKRTHRFTWNJCVMPJZKIH7FXBDMTDHI5XEAEFXDH7QUVMYVZF7TAOUHN7PT4EO4K6UNY5GIX6FV2
-#\\\|5ZG5YJU4CT464NKKY326TN5SGF63KWKXEGS2AMRIDFXTC7X3TZL \ / AMOS7 \ YOURUM ::
-#\[7]UE5QF2UKZPZ2HKCR5DLS7O6L6KBT7D75NM535AFMPLHIQMCIGWBY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,.,,,,.,,,.,,...,.,,,,,,,,,,,..,,...,...,..,,,,,,.,.,.,,,,..,
+#EQMB5X6KBMLJ276AQ2DW56VE5N3NG66W6VAWJRXOZALFT7JJKZAYNXUY2EWEEOEDXNBI4PBYX77K4
+#\\\|SRBGDZ7EGITYSXU4U27N2WTONABM3EHL7TDKSXPPULF7Q7TPGEW \ / AMOS7 \ YOURUM ::
+#\[7]QLLNVM3YZW2C4WI2X7RTUZKX7BGRPF4ORXBJBH653G5T4MSLBSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

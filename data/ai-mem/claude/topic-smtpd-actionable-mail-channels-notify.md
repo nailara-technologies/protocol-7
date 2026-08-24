@@ -1,6 +1,6 @@
 ---
 name: topic-smtpd-actionable-mail-channels-notify
-description: smtpd.route's actionable-mail notify call was hardwired to a legacy send.local path (fixed) and depended on a dbus zenka regex bug (fixed) and a missing notification-daemon (env gap); still routes to a desktop notify-osd zenka that can't run on a headless smtpd host -- proposal is to publish to channels.* instead, syncing cross-host to wherever a desktop session exists
+description: smtpd.route's actionable-mail notify call was hardwired to a legacy send.local path (fixed), depended on a dbus zenka regex bug (fixed), and hit a missing notification-daemon on this WSLg host (worked around via a new native-Windows-toast backend, see topic-powershell-native-toast-notifications); still routes to a desktop notify-osd zenka that can't run on a headless smtpd host -- proposal is to publish to channels.* instead, syncing cross-host to wherever a desktop session exists
 metadata:
   type: project
 ---
@@ -67,19 +67,26 @@ pattern itself contains alternation). Verified live: `dbus` reaches `online`
 status reliably now (`p7c v7.restart dbus` + `v7.list zenki dbus`), and
 `notify`/`notify-osd` both come up online right after (on-demand, chained).
 
-**problem 3 -- new, NOT fixed, environment gap**: with dbus and notify both
-online, `p7c notify.loves '...' '...'` still fails: `notify-send exited with
-code 1` / `Failed to show notification: GDBus.Error:org.freedesktop.DBus.
+**problem 3 -- environment gap, WORKED AROUND (2026-08-24) rather than
+fixed on the X11/dbus side**: with dbus and notify both online, `p7c
+notify.loves '...' '...'` still failed: `notify-send exited with code 1` /
+`Failed to show notification: GDBus.Error:org.freedesktop.DBus.
 Error.ServiceUnknown: The name org.freedesktop.Notifications was not
-provided by any .service files`. The D-Bus session bus is now genuinely up
-and reachable, but nothing is registered on it that implements the
-`org.freedesktop.Notifications` interface -- WSLg provides X11 + audio
-passthrough but not a full desktop shell, so there's no notification daemon
-(e.g. `dunst`, `notification-daemon`, `xfce4-notifyd`) running to receive
-`notify-send` calls. Not a protocol-7 bug -- a missing system package/service
-on this dev box. Installing and running a lightweight notification daemon
-(e.g. `dunst`) would resolve it here, but this is an environment decision,
-not something to silently add as a code fix.
+provided by any .service files`. The D-Bus session bus was genuinely up and
+reachable, but nothing was registered on it implementing
+`org.freedesktop.Notifications` -- WSLg provides X11 + audio passthrough
+but not a full desktop shell, so there's no notification daemon (e.g.
+`dunst`, `notification-daemon`, `xfce4-notifyd`) to receive `notify-send`
+calls. Not a protocol-7 bug -- a missing system package/service. Rather
+than install `dunst` on this box, built a working alternative instead: a
+native Windows toast notification backend via the `powershell` zenka --
+see [[topic-powershell-native-toast-notifications]] for the full
+implementation (AUMID branding, Start-Menu-shortcut+COM icon registration,
+local icon caching, `::icon:<name>::` selectable icons). Confirmed working
+end-to-end via `p7c powershell.notify-msg`/`.notify-loves-it`. `dunst` remains a real,
+still-undone option for non-WSL Linux desktop deployments -- see
+[[dunst-notify-zenka]] -- but is no longer the immediate path for this
+host.
 
 **design smell, still open**: smtpd hardwires *how* a human gets told about
 actionable mail (a desktop OSD popup, needing a live X11/dbus session) into
@@ -102,8 +109,9 @@ host and the desktop host, cross-host sync mechanism, then swapping the
 scope-creep this into the pattern-registry commit, which is already done
 and merged. Problems 1 and 2 (the crash and the dbus regex) turned out to
 be quick, concrete fixes and were landed the same session instead of
-deferred -- only the channels redesign and the missing notification-daemon
-package (problem 3, an environment decision) remain open.
+deferred; problem 3 got a working alternative (the powershell-toast
+backend) rather than a fix to the X11/dbus path itself -- only the
+channels-based redesign of the call site remains open.
 
 **how to apply**: when picking up the channels redesign, start from
 `channels.memory-sync.*` for the cross-host sync precedent, design the
@@ -112,10 +120,10 @@ channel path/payload (probably at least `message_id`, `intent`, `subject`,
 wherever notify-osd actually runs, then replace the `notify.message` call
 in `src/smtpd.route` with a channel publish.
 
-related: [[pattern-registry-engine]]
+related: [[pattern-registry-engine]], [[topic-powershell-native-toast-notifications]], [[dunst-notify-zenka]]
 
-#,,.,,..,,...,..,,,..,.,,,.,,,.,,,,.,,,,,,,..,..,,...,...,.,.,.,.,,..,,,.,,..,
-#6OGFM6ZMOSHEUXJS4WU7VUL3EV2NK43LZRM7RJWRCVHTSCNAZBNTQLSRVI563BYHLTXPXGZE5CW7A
-#\\\|ZZMPYRJFKVTOCRXHT6N2GLYMKLWHZIMNRQWZWHTOR6GJ5VWL2E5 \ / AMOS7 \ YOURUM ::
-#\[7]V6BRAG6YN3UCQHOB3NTGEOLS7HBH4ZEUUFUH6E3E3MVOU7GWOQCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,.,,,..,,,,.,.,.,...,,,,,,,,,..,,...,...,..,,..,,,,,,.,,,.,,,
+#DCOZ4FZFOOEFMH63SBMKL4N33AL4Y3NWYR2DZSWXQLBHHWZSKNHIMYKM5WDJYQ2VEAGJFYCPX62GS
+#\\\|E5JQ3FHBENX7RJKPY5YIBOZJ3KBMXHCFVEEXS4CGBVLOJ7PXTTK \ / AMOS7 \ YOURUM ::
+#\[7]EYTRQVKYWRCI4LDA3DEIV43V4TMP5HBOUS2L6JLBTCWSZMOJQWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

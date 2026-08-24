@@ -36,10 +36,204 @@ if ( not defined <powershell.cfg.wsl_distro> ) {
     }
 }
 
+## selectable notification icons [ <[powershell.util.extract_icon_tag]> ##
+## resolves a caller-supplied '::icon:<name>::' tag against this map,   ##
+## falling back to a command's own default when absent/unknown ]        ##
+<powershell.icons> //= {
+    'p7' => <system.root_path>
+        . '/data/gfx/logos/nailara_logo.trans-dark.png',
+    'loves-it' => <system.root_path> . '/data/gfx/icons/lain/loves.png',
+};
+
+## one-time native-toast setup, confirmed live end-to-end:                  ##
+## 1. register a real 'protocol-7' AppUserModelID via registry [ HKCU ]     ##
+## -- covers WinRT toast branding [ DisplayName ] reliably by itself        ##
+## 2. ALSO create a Start Menu shortcut + set the AUMID via IShellLinkW/    ##
+## IPropertyStore COM interop -- the registry-only IconUri property is NOT  ##
+## enough to make the small per-toast attribution icon show up in Action    ##
+## Center [ confirmed live: registry-only + explorer.exe restart still      ##
+## showed no icon ; the shortcut+property-store path immediately fixed it   ##
+## ]. Both are kept -- the registry keys remain the officially documented   ##
+## minimum, the shortcut is what's actually load-bearing for the icon on    ##
+## this Windows version.                                                    ##
+## 3. cache every <powershell.icons> entry into a local windows-side        ##
+## directory -- WinRT toast <image> elements do not reliably load from      ##
+## \\wsl.localhost\ UNC paths, confirmed by direct test ; a real            ##
+## windows-local file is required. Copy-Item CAN read the UNC source        ##
+## directly [ unlike the toast image loader ], so the whole cache step runs ##
+## windows-side in this one script, no separate perl-side copy.             ##
+if ( not defined <powershell.cfg.local_appdata_win> ) {
+    my $aumid = <powershell.cfg.notify_aumid> //= qw| protocol-7 |;
+
+    my $p7_icon_unc
+        = <[powershell.to_unc_path]>->( <powershell.icons>->{'p7'} );
+    my $loves_icon_unc
+        = <[powershell.to_unc_path]>->( <powershell.icons>->{'loves-it'} );
+
+    my $out = <[powershell.exec]>->(
+        sprintf( <<'PS_SETUP', $aumid, $p7_icon_unc, $loves_icon_unc )
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+
+[ComImport, Guid("00021401-0000-0000-C000-000000000046")]
+internal class CShellLink { }
+
+[ComImport, Guid("000214F9-0000-0000-C000-000000000046"),
+ InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+internal interface IShellLinkW
+{
+    void GetPath(
+        [Out, MarshalAs(UnmanagedType.LPWStr)] out string pszFile,
+        int cchMaxPath, IntPtr pfd, uint fFlags);
+    void GetIDList(out IntPtr ppidl);
+    void SetIDList(IntPtr pidl);
+    void GetDescription(
+        [Out, MarshalAs(UnmanagedType.LPWStr)] out string pszName,
+        int cchMaxName);
+    void SetDescription(
+        [MarshalAs(UnmanagedType.LPWStr)] string pszName);
+    void GetWorkingDirectory(
+        [Out, MarshalAs(UnmanagedType.LPWStr)] out string pszDir,
+        int cchMaxPath);
+    void SetWorkingDirectory(
+        [MarshalAs(UnmanagedType.LPWStr)] string pszDir);
+    void GetArguments(
+        [Out, MarshalAs(UnmanagedType.LPWStr)] out string pszArgs,
+        int cchMaxPath);
+    void SetArguments(
+        [MarshalAs(UnmanagedType.LPWStr)] string pszArgs);
+    void GetHotkey(out short pwHotkey);
+    void SetHotkey(short wHotkey);
+    void GetShowCmd(out int piShowCmd);
+    void SetShowCmd(int iShowCmd);
+    void GetIconLocation(
+        [Out, MarshalAs(UnmanagedType.LPWStr)] out string pszIconPath,
+        int cchIconPath, out int piIcon);
+    void SetIconLocation(
+        [MarshalAs(UnmanagedType.LPWStr)] string pszIconPath, int iIcon);
+    void SetRelativePath(
+        [MarshalAs(UnmanagedType.LPWStr)] string pszPathRel,
+        uint dwReserved);
+    void Resolve(IntPtr hwnd, uint fFlags);
+    void SetPath([MarshalAs(UnmanagedType.LPWStr)] string pszFile);
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct PROPERTYKEY
+{
+    public Guid fmtid;
+    public uint pid;
+    public PROPERTYKEY(Guid fmtid, uint pid)
+    {
+        this.fmtid = fmtid;
+        this.pid = pid;
+    }
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct PROPVARIANT
+{
+    public ushort vt;
+    public ushort wReserved1, wReserved2, wReserved3;
+    public IntPtr p;
+    public int p2;
+
+    public void SetString(string value)
+    {
+        vt = 31; // VT_LPWSTR
+        p = Marshal.StringToCoTaskMemUni(value);
+    }
+
+    [DllImport("ole32.dll")]
+    private static extern int PropVariantClear(ref PROPVARIANT pvar);
+
+    public void Clear() { PropVariantClear(ref this); }
+}
+
+[ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"),
+ InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+internal interface IPropertyStore
+{
+    void GetCount(out uint cProps);
+    void GetAt(uint iProp, out PROPERTYKEY pkey);
+    void GetValue(ref PROPERTYKEY key, out PROPVARIANT pv);
+    void SetValue(ref PROPERTYKEY key, ref PROPVARIANT pv);
+    void Commit();
+}
+
+public static class AumidShortcut
+{
+    public static void Install(
+        string shortcutPath, string appId,
+        string targetPath, string iconPath)
+    {
+        var shellLink = (IShellLinkW)new CShellLink();
+        shellLink.SetPath(targetPath);
+        shellLink.SetArguments("");
+        if (!string.IsNullOrEmpty(iconPath))
+            shellLink.SetIconLocation(iconPath, 0);
+
+        var propStore = (IPropertyStore)shellLink;
+        var key = new PROPERTYKEY(
+            new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
+        var pv = new PROPVARIANT();
+        pv.SetString(appId);
+        propStore.SetValue(ref key, ref pv);
+        propStore.Commit();
+        pv.Clear();
+
+        var persistFile = (IPersistFile)shellLink;
+        persistFile.Save(shortcutPath, true);
+    }
+}
+'@
+
+$Aumid = '%s'
+$IconCacheDir = "$env:LOCALAPPDATA\protocol-7"
+if (-not (Test-Path $IconCacheDir)) {
+    New-Item -Path $IconCacheDir -ItemType Directory -Force | Out-Null
+}
+
+$P7IconLocal = "$IconCacheDir\nailara_logo.trans-dark.png"
+$LovesIconLocal = "$IconCacheDir\loves.png"
+Copy-Item -Path '%s' -Destination $P7IconLocal -Force
+Copy-Item -Path '%s' -Destination $LovesIconLocal -Force
+
+$RegPath = "HKCU:\Software\Classes\AppUserModelId\$Aumid"
+New-Item -Path $RegPath -Force | Out-Null
+Set-ItemProperty -Path $RegPath -Name DisplayName -Value $Aumid
+Set-ItemProperty -Path $RegPath -Name IconUri -Value $P7IconLocal
+
+$StartMenuDir = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs"
+$ShortcutPath = "$StartMenuDir\$Aumid.lnk"
+$TargetPath = `
+    "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
+[AumidShortcut]::Install($ShortcutPath, $Aumid, $TargetPath, $P7IconLocal)
+
+Write-Output "LOCALAPPDATA=$env:LOCALAPPDATA"
+PS_SETUP
+    );
+
+    if ( defined $out and $out =~ m|^LOCALAPPDATA=(.+)$|m ) {
+        my $local_appdata_win = $1;
+        $local_appdata_win =~ s|\s+$||;
+        <powershell.cfg.local_appdata_win> = $local_appdata_win;
+
+        ## C:\Users\X\... -> /mnt/c/Users/X/... ##
+        ( my $wsl_path = $local_appdata_win ) =~ s|\\|/|g;
+        $wsl_path =~ s|^([A-Za-z]):|'/mnt/' . lc($1)|e;
+        <powershell.cfg.local_appdata_wsl> = $wsl_path;
+    } else {
+        warn 'failed to complete windows toast AUMID/shortcut setup <{C1}>';
+    }
+}
+
 0;
 
-#,,,.,,.,,...,.,,,.,,,,,.,,..,.,.,.,,,,,,,..,,..,,...,..,,.,.,.,,,...,,,,,.,.,
-#7VNXULB7UPYCGO7625NP2GXSW6FENBF4LVTQEA6JUWPKFL2NDK2ADHVXZYYV2QI5FPD3VF5SNKAUK
-#\\\|OTJZP4HG3HTMPKJEPWGTIWA755G2GI52AEXWNKQGNBRICEMWRGL \ / AMOS7 \ YOURUM ::
-#\[7]GJR5MABYJ2HQNGQAJPG2NAIT6FAFMUZHL5HC23XZ3PIYRMDM6ODI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,..,,,.,,...,,.,,.,,,.,.,..,,..,,...,...,,.,,,,,,,.,,,,,,,..,
+#XDHKEKX3KP7SF3RAMJKB73ZQMDWHK6AHD3HY77ZPEKTJY56HSXJB3HRZBD4YMLANCFQYRV5X46FZ6
+#\\\|BN6OP4XB7IPB73BHC3AFYE3BWDFLPAQSEXCVL3R655BBWPSICHC \ / AMOS7 \ YOURUM ::
+#\[7]NL2YBAEON623HICUCJBE7VOZJ32JWKG3YA6Q4ZGE5KUURIOKQIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -120,9 +120,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [bracket-call-trailing-comment-misparse](reference-bracket-call-trailing-comment-misparse.md) — codebase-wide gotcha, NOT delete-specific: a `<[module.name]>` bracket with a trailing same-line comment, args on the next line, silently misparses as a zero-arg call whose return value gets invoked as the real subroutine; grep pattern and full mechanism in the file, worth a `src/` sweep at some point
 - task-archiving-2026-08-16 — 4 completed task files moved to `data/tasks/completed/` with archive headers per `data/tasks/task-archiving-with-context-templates.md`'s documented (not yet automated) convention: `editor-inframe-prompt-primitive.md`, `user-edit-key-actions-create.md`, `user-edit-key-actions-rename.md`, `user-edit-key-actions-delete.md` — signatures now stale, staged for user signature same as every other change this session
 - [jobsite-coding-queue-paused-task-loss-landed-2026-08-19](bug-coding-async-send-request-enqueue-round-timer-mismatch.md) — LANDED `dd162183b`: coding zenka silently dropped any task retried while `queue_paused` was set (wrong `event.add_timer` shape — `'params'` key it never reads, `coding.task.enqueue_round` armed as a timer-handler when it's direct-call shaped); general bug, not jobsite-specific; live-verified via devmod. Also fixed same commit: [[bug-jobsite-pending-count-leak-nonassessing-cycle]] (jobsite cycle wedge) and `coding.cmd.list-tasks`' ntime-vs-base.time garbage elapsed-time display. Closes the "exact line" gap left open in [[topic-coding-zenka-wedged-backend-queue-gridlock-2026-08-05]]
+- [smtpd-actionable-mail-channels-notify](topic-smtpd-actionable-mail-channels-notify.md) — 2026-08-24: smtpd's notify-on-actionable-mail path hardwired to legacy send.local (fixed, use route-send) + a dbus regex bug (fixed) + notify-osd rendering nothing on this WSLg host even once fully online (worked around, see [[topic-powershell-native-toast-notifications]]); still-open design smell: smtpd should publish to `channels.*` instead of calling a notify target directly. Drafted-not-started task `data/tasks/dunst-notify-zenka.md` covers a parallel non-WSL Linux-desktop backend, deprioritized on this host
 
-#,,..,..,,,..,.,,,,,,,,.,,,,.,.,.,,..,,.,,,.,,..,,...,...,...,.,.,,..,,,,,,,,,
-#FLJNYDMJR5WWWJH7B7NFDZHVT4IQGNXCIODSRXW4KOLPM7WIHAKGMZIKGGH66ZKJCBTW4FZ4W3SOA
-#\\\|OTQ5UYADFP2I5MFEVBU65GYA6GOW337JRIOK25GAHBXOLTPMV64 \ / AMOS7 \ YOURUM ::
-#\[7]UR7ATPR2ELDVJDKIRTC5JN7RL7WASV6V323O6MQMTXUYEKBM3GCY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,,,.,,,,,...,.,.,,..,..,,...,..,,...,...,.,.,.,,,.,,,...,,.,,
+#LY6GXOUKD56NYNPTT7R2RRXZPJWEX3VWOLNIFAVTY5BYWULETXJI6SA5GRMJUVWBA4TKUATNF3PJY
+#\\\|MNOFO5IXV5TZNIVMWIZZ3U7TOT5DWX4L247E3ZUU7H4ESDKQQKM \ / AMOS7 \ YOURUM ::
+#\[7]PWPKIPWCVWV47ETLFXT2I3ET4DDSCZ6CGQB5QXZFZE3LFC4G4ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

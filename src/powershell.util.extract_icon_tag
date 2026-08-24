@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = powershell.util.extract_icon_tag
+# descr = strip an optional leading '::icon:<name>::' tag from raw command
+#         text, resolving <name> against <powershell.icons> ; falls back to
+#         the caller's own default icon key when no tag is present or the
+#         named icon is unknown
+# param = $raw_text, $default_icon_key
+# return = { text => <raw_text with any tag stripped>, icon => <resolved
+#            icon path, may be undef if default_icon_key is also unknown> }
+
+my ( $raw_text, $default_icon_key ) = @ARG;
+
+$raw_text //= '';
+
+my $icon_key = $default_icon_key;
+
+if ( $raw_text =~ s|^\s*::icon:([a-z0-9_-]+)::\s*||i ) {
+    my $tag = lc $1;
+    $icon_key = $tag if exists <powershell.icons>->{$tag};
+}
+
+return {
+    'text' => $raw_text,
+    'icon' => <powershell.icons>->{ $icon_key // '' }
+};
+
+#,,,,,,..,,,,,,,.,,,.,,..,,,.,.,,,...,,..,,,.,.,.,...,...,...,,,,,,..,,,,,...,
+#BRYQNWIAT4OPKZQEL6T75CAEG65D7PXSOXCQU5VVWPXNTJI2Y3WPSJUSN5CLLJPYIUOGIIPLL4EMA
+#\\\|EOVXJGAMJ35WYGIWKYJNTXGLM6MTNVRUFBMNXGXNVHBXU6YVBOL \ / AMOS7 \ YOURUM ::
+#\[7]HKX6LHS2IQDFCFW6XB6KQYWRB3ZQ6GWSFSSYHFWZFPWDC6QYVOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
