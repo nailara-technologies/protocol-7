@@ -1,0 +1,57 @@
+## protocol-7 dunst config -- dark theme, loaded explicitly via
+## dunst.startup's -config flag [ disables dunst's own config search
+## entirely, see man dunst -- anything not set here falls back to dunst's
+## internal built-in defaults, not /etc/xdg/dunst/dunstrc ]
+##
+## origin/offset/width are set for when a future WSLg/Weston build adds
+## zwlr_layer_shell_v1 support -- on this host today, dunst falls back to
+## a plain xdg_shell toplevel and the compositor ignores these, placing
+## the window itself [ known limitation, see data/tasks/dunst-notify-
+## zenka.md ]
+
+[global]
+    origin = top-right
+    offset = (10, 50)
+    width = (300, 777)    ## (min, max) -- auto-sizes to content ##
+    corner_radius = 4
+    frame_width = 2
+
+    ## sizing -- carried over from /etc/xdg/dunst/dunstrc's shipped        ##
+    ## defaults ; -config disables dunst's OWN config search entirely, so  ##
+    ## omitting these falls back to dunst's much smaller compiled-in       ##
+    ## minimums instead, not the distro-shipped values [ confirmed live -- ##
+    ## the whole notification, icon included, rendered tiny without them ] ##
+    ## 'White Rabbit' made discoverable via a fontconfig snippet dunst.  ##
+    ## startup generates at boot [ data/ttf/console/white-rabbit.flipped ##
+    ## .ttf, not installed system-wide ]                                 ##
+    font = White Rabbit Regular 17
+    padding = 8
+    horizontal_padding = 14
+    text_icon_padding = 8
+    min_icon_size = 48
+    max_icon_size = 128
+    icon_position = left
+
+[urgency_low]
+    background = "#12101a"
+    foreground = "#5850a0"
+    frame_color = "#3a2f52"
+    timeout = 5
+
+[urgency_normal]
+    background = "#181428"
+    foreground = "#8070e0"
+    frame_color = "#5a4a86"
+    timeout = 8
+
+[urgency_critical]
+    background = "#241030"
+    foreground = "#c85898"
+    frame_color = "#a84a6a"
+    timeout = 0
+
+#,,,,,,,,,.,,,...,,..,.,,,,,,,,..,,,.,.,,,,,.,..,,...,...,...,.,.,.,,,,..,.,.,
+#OVOQ7ISCUWPHRZS5WIA4LLARMH2NF66FXUOAIPBMFHW4OE5E5B42YQBK33BSZETZZ7GIOPWXKXHQI
+#\\\|4CAWS6Y4FPPEOGBEHARQWWO7OF24DTWNWFS4SN46DL4SGGVB7MJ \ / AMOS7 \ YOURUM ::
+#\[7]ZJVDIQ3SSAZB6FXCZ5LUPG2HUOGYWCIAS3XLK5GHEAKXEQNV46AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

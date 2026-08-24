@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = dunst.init_code
+# descr = initializes the dunst notification daemon zenka
+
+<[base.perlmod.autoload]>->('IPC::Open3');
+
+<x11.display>         //= ':0.0';
+<dunst.path.exec_bin> //= qw| /usr/bin/dunst |;
+
+<base.message_parsers.child_output> = [ $code{'base.parser.xclient-errors'} ];
+
+if ( !-x <dunst.path.exec_bin> ) {
+    ## [ PATH-based fallback ] ##
+    my $path = <[base.file.which]>->('dunst');
+    if ( defined $path and length $path and -x $path ) {
+        <dunst.path.exec_bin> = $path;
+    } else {
+        die "dunst binary not found (please install 'dunst')";
+    }
+}
+
+0;
+
+#,,..,,,,,,.,,,,,,...,..,,,,.,..,,,.,,,,.,,,.,..,,...,...,,..,,..,,,,,.,.,,.,,
+#TZH63LOFK3C66YXWKXFIB5JDH2CUI46A5KARR3FXEARFQCKO5QLSFHGTMUVGKJNG6BZUKQ47JMMJI
+#\\\|6OQPMB4MLQB3UBXM7ACYHICSZHXHRVEBR2N4E5VZRS2LPJZE42C \ / AMOS7 \ YOURUM ::
+#\[7]PNCR3SEIUIDB7L4T4JCYOY7Q2QVTXCPFXIYS33N6HSBFFFZACUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

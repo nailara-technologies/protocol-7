@@ -1,0 +1,80 @@
+## [:< ##
+
+# name = dunst.startup
+# note = primitive implementation,
+#        improve error handing before production usage
+
+<[base.log]>->( 1, "starting dunst on display " . <x11.display> . " .," );
+
+$ENV{'DISPLAY'} = <x11.display>;
+
+## point at the real WSLg wayland socket instead of falling back to X11 -- v7
+## sets XDG_RUNTIME_DIR to the zenka's own home dir for other GTK zenki [
+## deliberately hiding the real wayland socket to force X11, see
+## base.gtk.ensure_display ], but that's what stops dunst from reaching
+## wayland at all here ; only override for dunst if the real socket exists
+if ( -S '/mnt/wslg/runtime-dir/wayland-0' ) {
+    $ENV{'XDG_RUNTIME_DIR'} = '/mnt/wslg/runtime-dir';
+    $ENV{'WAYLAND_DISPLAY'} = 'wayland-0';
+} else {
+    ## fallback : force X11 the same way notify-osd does ##
+    $ENV{'GDK_BACKEND'} = 'x11';
+    delete $ENV{'WAYLAND_DISPLAY'};
+}
+
+## project-owned dark theme -- disables dunst's own config search entirely, ##
+## see cfg/zenki/dunst/dunstrc's own header comment                         ##
+my $dunstrc = <system.root_path> . '/cfg/zenki/dunst/dunstrc';
+
+## make the project's 'White Rabbit' font [ data/ttf/console/white-rabbit.  ##
+## flipped.ttf ] discoverable to pango/fontconfig without installing it     ##
+## system-wide -- a small fontconfig snippet that chains in the real system ##
+## config [ <include> ] then adds just this one font dir, regenerated fresh ##
+## on every startup [ cheap, avoids stale-path issues across hosts ]        ##
+my $font_dir     = <system.root_path> . '/data/ttf/console';
+my $fc_conf_dir  = '/tmp/protocol-7-dunst-fontconfig';
+my $fc_conf_path = "$fc_conf_dir/fonts.conf";
+mkdir($fc_conf_dir) if not -d $fc_conf_dir;
+if ( open( my $fc_fh, '>', $fc_conf_path ) ) {
+    print {$fc_fh} <<"FONTCONF";
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <include ignore_missing="yes">/etc/fonts/fonts.conf</include>
+  <dir>$font_dir</dir>
+</fontconfig>
+FONTCONF
+    close($fc_fh);
+    $ENV{'FONTCONFIG_PATH'} = $fc_conf_dir;
+} else {
+    <[base.log]>->( 0, "<< ! >> could not write fontconfig snippet << ! >>" );
+}
+
+##  stderr merged into stdout [ undef ] so the handler sees all output  ##
+<dunst.pid> = open3( <dunst.in_fh>, <dunst.out_fh>,
+    undef, <dunst.path.exec_bin>, '-verbosity', 'warn', '-config', $dunstrc );
+if ( !<dunst.pid> ) {
+    <[base.log]>->(
+        0, "<< ! >> unable to start dunst [ \l$OS_ERROR ] << ! >>"
+    );
+    <[base.log]>->( 1, " : aborting zenka startup .," );
+    exit(1);
+} else {
+    <[base.log]>->( 1, " : dunst process started [PID=<dunst.pid>]" );
+}
+
+##  register child pid with v7 [ restart + shutdown tracking ]  ##
+<[base.zenki.report_child_pid]>->(<dunst.pid>);
+
+<[event.add_io]>->(
+    {   'fd'      => <dunst.out_fh>,
+        'handler' => qw| dunst.handler.process_output |,
+        'data'    => { 'bin' => 'dunst', 'pid' => <dunst.pid> }
+    }
+);
+
+#,,.,,.,.,...,,..,,,,,,,,,,,,,,..,..,,.,,,,,.,.,.,...,..,,.,.,,,,,,..,,.,,..,,
+#BOZKQHF3VETWHWRE2K35OEW2P4YBXTJAL2VEBWWHF36P63IXBATBI66UE7GWWN3W56AZBCMXUKILM
+#\\\|32TEWTJEXTIOLZADKYYJFTYXRURFYVU7JE32FS4P2HMIQXJ6BIT \ / AMOS7 \ YOURUM ::
+#\[7]67RZVQC2YZRAVT7YW2QNINCAEIXR4UOPJKCX5JYRTWRU3AY3LYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
