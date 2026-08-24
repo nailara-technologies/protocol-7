@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = powershell.cmd.notify-loves-it
+# param = '<title>' '<message>'
+# descr = native windows toast [ 'loves it' icon by default ]
+#         thin wrapper over powershell.cmd.notify-msg's shared parsing,
+#         see powershell.notify_from_args. icon tags still work here too;
+#         the loves-it artwork itself is expected to be amended later with
+#         extracted/categorized elf-avatar renderings
+
+return <[powershell.notify_from_args]>->(
+    {   'txt_param'    => $call->{'args'} // '',
+        'default_icon' => qw| loves-it |
+    }
+);
+
+#,,,,,.,.,..,,.,,,...,.,.,,,.,..,,,,.,,,.,..,,.,.,...,...,..,,.,.,,.,,..,,,,,,
+#XJOZ7HE4KPEW2ZKKERPTVOKSIT5U53YZGKPHGUTU7PWI622DC26R22DDTAP2QVRZA3E4UGP3Q6LQO
+#\\\|IVF5J7RFTJGBY4SOTSIVBKQIYHQHGUIWUPFVFUIMEMVV373RUYJ \ / AMOS7 \ YOURUM ::
+#\[7]ZX27WV2IU2PAFU7FVBFGKVMPPYJRWNDCQ34LZMWYCNC5WEJVS4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

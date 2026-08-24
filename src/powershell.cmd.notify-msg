@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = powershell.cmd.notify-msg
+# param = '<title>' '<message>'
+# descr = native windows toast [ generic, p7 icon by default ]
+#         pick a different one with a leading '::icon:<name>::' tag,
+#         see powershell.icons
+
+return <[powershell.notify_from_args]>->(
+    {   'txt_param'    => $call->{'args'} // '',
+        'default_icon' => qw| p7 |
+    }
+);
+
+#,,,,,..,,..,,.,.,...,,.,,,..,,.,,,,.,.,.,.,.,.,.,...,...,,,.,...,.,.,.,.,.,,,
+#H6PT3VM3EZ4L2JGT2SKT65X2CR3RBWPHLADL6EBEASTN2N7NZ4TAPFYBMHZ6RZWAKMZM5RIRTCI5M
+#\\\|U475JOCGABACAE7VXL47HRU6V6RVOQGFZMWRLTJKWHDIJ6YY7K5 \ / AMOS7 \ YOURUM ::
+#\[7]7WY32BZWK7SASBXMVTWYFQ22QHEBONLPADJXG6OENRJSHIFHRYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

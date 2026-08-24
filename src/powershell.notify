@@ -1,0 +1,116 @@
+## [:< ##
+
+# name  = powershell.notify
+# descr = show a native windows toast notification via powershell.exe, with
+#         proper 'protocol-7' branding [ registered AUMID, see
+#         powershell.init_code ] and a locally-cached icon [ WinRT toast
+#         <image> elements do not reliably load from \\wsl.localhost\ UNC
+#         paths, confirmed by direct test -- must be a real windows-local
+#         file ]
+# param = { title, message, icon [ linux-side absolute path, optional ] }
+
+my $params = shift // {};
+
+my $title   = $params->{'title'}   // '';
+my $message = $params->{'message'} // '';
+my $icon    = $params->{'icon'};
+
+return { 'mode' => qw| false |, 'data' => 'title required' }
+    unless length $title;
+
+return { 'mode' => qw| false |, 'data' => 'windows toast setup incomplete' }
+    unless defined <powershell.cfg.local_appdata_win>
+    and defined <powershell.cfg.local_appdata_wsl>;
+
+my $aumid = <powershell.cfg.notify_aumid> // qw| protocol-7 |;
+
+## cache the icon locally on the windows side once [ source-basename keyed, ##
+## re-copied only if missing -- these are static project assets, no         ##
+## mtime-based invalidation ]                                               ##
+my $icon_win_path = '';
+if ( defined $icon and length $icon and -f $icon ) {
+    my ($basename) = $icon =~ m|([^/]+)$|;
+    my $cache_path
+        = <powershell.cfg.local_appdata_wsl> . "/protocol-7/$basename";
+    if ( not -f $cache_path ) {
+        <[file.copy]>->( $icon, $cache_path )
+            or <[base.s_warn]>->(
+            'failed to cache icon for windows toast [ %s ] <{C1}>', $icon
+            );
+    }
+    $icon_win_path
+        = <powershell.cfg.local_appdata_win> . "\\protocol-7\\$basename"
+        if -f $cache_path;
+}
+
+## escape for embedding in a powershell single-quoted string [ '' escapes a ##
+## literal single quote inside '...' ]                                      ##
+my $ps_escape = sub {
+    ( my $s = shift // '' ) =~ s|'|''|g;
+    return $s;
+};
+
+## escape for embedding as xml text-node content -- title/message may come ##
+## from untrusted sources [ e.g. mail subjects via smtpd ] ; the toast xml ##
+## template below uses a single-quoted powershell here-string [ @'...'@ ], ##
+## which does not interpolate $variables/backticks, so xml-entity escaping ##
+## is the only protection actually needed here                             ##
+my $xml_escape = sub {
+    my $s = shift // '';
+    $s =~ s|&|&amp;|g;
+    $s =~ s|<|&lt;|g;
+    $s =~ s|>|&gt;|g;
+    return $s;
+};
+
+my $text_lines = '<text>' . $xml_escape->($title) . '</text>';
+$text_lines .= '<text>' . $xml_escape->($message) . '</text>'
+    if length $message;
+
+my $image_line
+    = length $icon_win_path
+    ? sprintf(
+    q{<image placement='appLogoOverride' hint-crop='circle' src='%s'/>},
+    $ps_escape->($icon_win_path) )
+    : '';
+
+## the 3 WinRT type-literal lines in the template below exceed the usual    ##
+## line-width convention and cannot be wrapped -- confirmed live: neither a ##
+## bare newline nor a backtick continuation is accepted inside [Type,       ##
+## Assembly, ContentType = WindowsRuntime], powershell requires the whole   ##
+## construct on one physical line                                           ##
+my @ps_options = ( $text_lines, $image_line, $ps_escape->($aumid) );
+my $ps_script  = sprintf( <<'PS_TEMPLATE', @ps_options );
+[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+[Windows.UI.Notifications.ToastNotification, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
+$template = @'
+<toast>
+  <visual>
+    <binding template='ToastGeneric'>
+      %s
+      %s
+    </binding>
+  </visual>
+</toast>
+'@
+$xml = New-Object Windows.Data.Xml.Dom.XmlDocument
+$xml.LoadXml($template)
+$toast = New-Object Windows.UI.Notifications.ToastNotification $xml
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier(
+    '%s'
+).Show($toast)
+PS_TEMPLATE
+
+my $out = <[powershell.exec]>->($ps_script);
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    unless defined $out;
+
+return { 'mode' => qw| true |, 'data' => 'notification sent' };
+
+#,,,,,,..,,.,,,.,,...,,..,,,,,...,.,,,,,.,.,,,.,.,...,...,.,.,,.,,.,.,,,,,,,.,
+#XGI5VZM2AJCZSPZJ2IFR6UNRGZ65JSSEMI5LNBZB3PGPTPNKFF6O4OBYORV4ARW4AHYZGZSUBCHB6
+#\\\|SCK6M6HUZE7PDT62U56MANOL6IPOGR5JGMXESQWFI4YCFVQ7225 \ / AMOS7 \ YOURUM ::
+#\[7]OAH7BG4YTSVZAA6WYMBXUBXGYIEZDLY3TPNHBMSBXTXALQ4LESCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
