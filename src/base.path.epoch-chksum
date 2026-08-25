@@ -1,0 +1,165 @@
+## [:< ##
+
+# name  = base.path.epoch-chksum
+# descr = canonical <encoded_epoch>/<amos_chk7> path for a payload
+# param = { data, ntime?, epoch?, window? = 1, depth? = 1,
+#          chksum_len? = 7, exclusion? = TRUE }
+
+my $params = shift // {};
+
+if ( ref $params ne qw| HASH | ) {
+    warn 'expected parameter hash reference <{C1}>';
+    return undef;
+} elsif ( not defined $params->{'data'} ) {
+    warn 'expected defined data parameter <{C1}>';
+    return undef;
+}
+
+state $epoch_divisor //= 4200 * 86400 * 365 / 13;    ##  13 month year  ##
+state $epochs_total  //= 385280;
+
+##[ EPOCH DERIVATION ]########################################################
+
+my $epoch_num;
+if ( defined $params->{'epoch'} ) {
+    if ( $params->{'epoch'} !~ m|^\d+$| or $params->{'epoch'} > 385279 ) {
+        warn 'epoch parameter out of range [ 0..385279 ] <{C1}>';
+        return undef;
+    }
+    $epoch_num = $params->{'epoch'};
+} else {
+    ##  deriving integer epoch from ntime [ supplied or live ]  ##
+    my $ntime = $params->{'ntime'} // <[base.ntime]>;
+    if ( not defined $ntime or $ntime !~ m|^\d+(\.\d+)?$| ) {
+        warn 'ntime parameter not a valid network time value <{C1}>';
+        return undef;
+    }
+    $epoch_num = int( $ntime / $epoch_divisor ) % $epochs_total;
+}
+
+my $window     = $params->{'window'}     // 1;
+my $depth      = $params->{'depth'}      // 1;
+my $chksum_len = $params->{'chksum_len'} // 7;
+my $want_excl  = $params->{'exclusion'}  // TRUE;
+
+if ( $window !~ m|^\d+$| ) {
+    warn 'window parameter must be a positive integer value <{C1}>';
+    return undef;
+} elsif ( $depth !~ m|^\d+$| or $depth < 1 ) {
+    warn 'depth parameter must be a positive integer value <{C1}>';
+    return undef;
+} elsif ( $chksum_len !~ m|^[1-7]$| ) {
+    warn 'chksum_len parameter out of range [ 1..7 ] <{C1}>';
+    return undef;
+}
+
+##  bare V7xxxxx form [ no harmony suffix : addressing, not display ]  ##
+my $encoded_epoch = <[base.ntime.epoch_timestamp]>->($epoch_num);
+if ( not defined $encoded_epoch ) {
+    warn 'epoch encoding was not successful <{C1}>';
+    return undef;
+}
+
+##[ EPOCH WINDOW EXCLUSION ]##################################################
+##
+## degrades to inclusion-only template when the AMOS7::TEMPLATE epoch ##
+## window helper is not loaded [ collision guarantee weakened ]       ##
+
+state $degraded_warned //= FALSE;
+
+my $exclusion_active = FALSE;
+if ($want_excl) {
+    if (    defined &AMOS7::TEMPLATE::configure_epoch_window_callback
+        and defined &AMOS7::TEMPLATE::CALLBACK_epoch_window ) {
+        $exclusion_active = TRUE;
+    } elsif ( not $degraded_warned ) {
+        $degraded_warned = TRUE;    ##  s_warn once per process  ##
+        <[base.s_warn]>->(
+            'configure_epoch_window_callback not loaded, epoch %s chksum '
+                . 'generated inclusion-only [ no adjacent-epoch collision '
+                . 'guarantee ] <{C1}>',
+            $encoded_epoch
+        );
+    }
+}
+
+##  exclusion fill : adjacent-epoch inclusion template  ##
+my @excl_templates = qw| %s:%%s |;
+
+if ($exclusion_active) {
+    if (not defined AMOS7::TEMPLATE::configure_epoch_window_callback(
+            $epoch_num, $window, \@excl_templates
+        )
+    ) {
+        warn 'epoch window exclusion callback setup failed <{C1}>';
+        return undef;
+    }
+    ##  timeout scales with window radius [ exclusion sprintf cost ]  ##
+    AMOS7::TEMPLATE::template_timeout( 10 + $window );
+}
+
+##[ CHECKSUM SEGMENT GENERATION ]#############################################
+
+my $gen_round_chksum = sub {
+    my $input_str = shift;
+
+    ##  inclusion : must look like a current-epoch chksum  ##
+    my $template_set_ref = [ sprintf qw| %s:%%s |, $encoded_epoch ];
+
+    ##  exclusion : must not look like an adjacent-epoch chksum  ##
+    push( $template_set_ref->@*, \&AMOS7::TEMPLATE::CALLBACK_epoch_window )
+        if $exclusion_active;
+
+    ##  per-tree segment length policy [ applied to every segment ]  ##
+    my $saved_str_length = $AMOS7::CHKSUM::str_length;
+    my $saved_sstr_start = $AMOS7::CHKSUM::sstr_start;
+    $AMOS7::CHKSUM::sstr_start = 0;
+    $AMOS7::CHKSUM::str_length = $chksum_len;
+
+    my $chksum = <[chk-sum.amos.truth_template_chksum]>->(
+        $template_set_ref, \$input_str
+    );
+
+    $AMOS7::CHKSUM::str_length = $saved_str_length;
+    $AMOS7::CHKSUM::sstr_start = $saved_sstr_start;
+
+    return $chksum;
+};
+
+##[ PATH ASSEMBLY ]###########################################################
+
+my @path_segments;
+my $round_input = $params->{'data'};
+my $gen_failed  = FALSE;
+
+foreach my $depth_round ( 1 .. $depth ) {
+
+    my $chksum = $gen_round_chksum->($round_input);
+
+    if ( not defined $chksum ) {
+        $gen_failed = TRUE;
+        last;
+    }
+
+    ## outer epoch segment repeated : the nested-grouping case [ session    ##
+    ## inside epoch ] is the caller invoking a second pass with a different ##
+    ## epoch parameter, not per-round threading                             ##
+    push( @path_segments, $encoded_epoch, $chksum );
+
+    $round_input = join qw| / |, @path_segments;
+}
+
+AMOS7::TEMPLATE::reset_temp_valid_timeout() if $exclusion_active;
+
+if ($gen_failed) {
+    warn 'epoch chksum path generation was not successful <{C1}>';
+    return undef;
+}
+
+return join qw| / |, @path_segments;
+
+#,,..,,..,..,,...,,,,,.,,,,,.,,..,,,,,.,,,...,..,,...,...,..,,,,,,,..,...,.,.,
+#2OJUSDFTJ7GW7VNFJ33UZ5EIAMNO6TXVMEN7CNTANXI6NQZBY4WR5BOORMW3BSHB5WNWEUACSZAFQ
+#\\\|OE23VKEE2KEK6MBUD53ZJK3TBOVMZFO2OUBFLVUCKZIUNJQO3NV \ / AMOS7 \ YOURUM ::
+#\[7]VMZFSQUDPAME4LTEOOP52J4MERGQT2IHWR5ZJIRCJKBQXQ5A6QCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
