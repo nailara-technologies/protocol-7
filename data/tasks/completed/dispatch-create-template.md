@@ -181,6 +181,16 @@ leave module signing to `bin/Protocol-7 sourcecode update-signatures`.
 
 ---
 
+## status [ 2026-08-25 ] — DONE, landed in `25c869953`. dispatched to
+## kimi (model=k2.7) after dispatch-template-param.md, validated: added
+## create_template only to kimi_dispatch/claude_dispatch (not the
+## _continue variants), placed after auto_summarize and before the
+## result line, correct _do_summarize signature, slug sanitized against
+## path traversal. one addition made during review (not by kimi): an
+## existence check now log_msg's a notice before overwriting an existing
+## template of the same slug — the overwrite-on-collision behavior itself
+## stays as spec'd (intentional), just no longer silent.
+
 ### dispatch
 
 model: kimi
@@ -200,8 +210,8 @@ prompt: |
   use $ARG not @_, lowercase comments, bracket annotations [ like this ].
   $ROOT_PATH is defined at the file top — do not redefine it.
 
-#,,..,,,,,,,.,,..,...,,.,,,,,,.,,,,.,,..,,,..,..,,...,...,...,..,,..,,,,.,..,,
-#KV22QJK4O3B765HUEFKIM6WHLZ6SZ3XL3NWEDAVEPL3JQK4A7MROPKJRKXR6LPSVHMZO7SPFUIYMI
-#\\\|JHRJFLCUTLOF63G66CJVYIBL75IAVMNW22SC7GYU53UIR6BPAG3 \ / AMOS7 \ YOURUM ::
-#\[7]3UIAWSAUP5JI2GMQ4RVFD2BQE2ZQRXAIZSQQBB3DL4K6W4GTHUAA 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,,.,,,,,,.,,,,,,,,,,,..,,..,,..,,...,...,,,,,,,,,,..,.,.,,.,,
+#ZMNYKOH54OSUQJDBLCAHO2NHJB4VMNH4DJPMMNWW72UMJZRIP7ES6IRW776MB343FO2SF772CKZ4E
+#\\\|XBMM57E3WLFUXUZT4MVDGLURHCCIJOIWA3M2BQIYK5BHAUVM4FI \ / AMOS7 \ YOURUM ::
+#\[7]OR7SAJCGH5GFNCYG2UW2N7X35NC6FNB2XXURPUAUFIRK5233E4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
