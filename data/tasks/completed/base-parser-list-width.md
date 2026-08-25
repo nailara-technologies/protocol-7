@@ -18,6 +18,13 @@ affect multiple UIs.
 
 analysis reference: `data/md/development/DEGRADED-FEATURES-AUDIT.md`
 
+## status [ 2026-06-09 ] — DONE, landed in `c54c255c7`. removed the stale
+## `$max_len{$last_d_key} -= 2` workaround; separator width now always
+## `sum(max_len)-1` regardless of table width, fixing last-column
+## underflow for all key patterns including `ex0:ex1`. `src/base.parser.
+## list` line 25 carries `[ resolved ]` in place of the old TODO;
+## re-verified 2026-08-25 — no `todo` comment remains in the file.
+
 ## signatures note
 
 do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures`
@@ -72,8 +79,8 @@ test cases:
 - [ ] TODO comment removed or updated
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,..,,,..,,..,,,,,.,,,,..,..,,..,,.,,,..,,..,,...,...,...,,,.,,.,,,,.,,.,,
-#37HEVT67SJFXK53KOHOE7LBIO4BEOLGQSZI4SS2S66IWBAY3CMKUTTUJIR6XYJGYL56OLK44LL34G
-#\\\|CPMJHIGIJHNZCRC43SC4EUAZD556QO6GAGXQOSNPFYULCE2XU2R \ / AMOS7 \ YOURUM ::
-#\[7]PRDLFGEFUPJDPSYGCFBGRM6PLQBCNQY4CXZWU5E7VNPRGIM4ZOAA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,..,,..,,,,,,,.,,,,,,.,,,,,,,..,,...,..,,,,.,,,,,,,,,..,,,..,
+#2ZZPZXPUXYNKJL5L6SDK5PC63YVRTXSNRVHEKOOKFI7WRYCWC76TQRLPSMENVR2DI77DJRURNY3EI
+#\\\|JOWP5ZW5QDXMOU4AWHCAKO4UTOUGOM2S23K5Q5UFGGIE7YYJGLB \ / AMOS7 \ YOURUM ::
+#\[7]L4FJHWEWBAQIJWQ7VXMBXOFNN7GEFEU6L6RFIQIOBGKE7ZYZ7ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

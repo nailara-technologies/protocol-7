@@ -124,6 +124,18 @@ my @external_tools = (
                     . 'for verification (default: false)',
                 0
             ],
+            [   'template',
+                'name of a context template from '
+                    . 'data/yaml/context-templates/ to prepend to the prompt '
+                    . '(e.g. "kimi-dispatch-workflow")',
+                0
+            ],
+            [   'create_template',
+                'slug name for a new context template to create from this '
+                    . 'session (e.g. "p7-mcp-tool-impl") — written to '
+                    . 'data/yaml/context-templates/',
+                0
+            ],
         ],
         'timeout' => 4620,    ## 77 minutes
     },
@@ -164,6 +176,12 @@ my @external_tools = (
             [   'keep',
                 'keep stored summary focus after use '
                     . 'for verification (default: false)',
+                0
+            ],
+            [   'template',
+                'name of a context template from '
+                    . 'data/yaml/context-templates/ to prepend to the prompt '
+                    . '(e.g. "kimi-dispatch-workflow")',
                 0
             ],
         ],
@@ -218,6 +236,18 @@ my @external_tools = (
                     . 'for verification (default: false)',
                 0
             ],
+            [   'template',
+                'name of a context template from '
+                    . 'data/yaml/context-templates/ to prepend to the prompt '
+                    . '(e.g. "kimi-dispatch-workflow")',
+                0
+            ],
+            [   'create_template',
+                'slug name for a new context template to create from this '
+                    . 'session (e.g. "p7-mcp-tool-impl") — written to '
+                    . 'data/yaml/context-templates/',
+                0
+            ],
         ],
         'timeout' => 2400,    ## 40 minutes
     },
@@ -245,6 +275,12 @@ my @external_tools = (
             [   'keep',
                 'keep stored summary focus after use '
                     . 'for verification (default: false)',
+                0
+            ],
+            [   'template',
+                'name of a context template from '
+                    . 'data/yaml/context-templates/ to prepend to the prompt '
+                    . '(e.g. "kimi-dispatch-workflow")',
                 0
             ],
         ],
@@ -3721,7 +3757,24 @@ sub tool_external_command {
     }
 
     ## params handled here, not forwarded to the shell command ##
-    my %skip_in_cmd = map { $_ => 1 } qw( auto_summarize keep );
+    my %skip_in_cmd
+        = map { $_ => 1 } qw( auto_summarize keep template create_template );
+
+    ## template: resolve and prepend to prompt before dispatch ##
+    if ( length( $args->{'template'} // '' ) ) {
+        my $tname = $args->{'template'};
+        my ( $tok, $tresult )
+            = cube_command(
+            "kimi-web.resolve_template template=$tname budget=4000");
+        if ( $tok and length $tresult ) {
+            $args->{'prompt'}
+                = "$tresult\n\n---\n\n" . ( $args->{'prompt'} // '' );
+        } else {
+            ## non-fatal: log and continue without template ##
+            log_msg( "template resolve failed for '%s' — dispatching without",
+                $tname );
+        }
+    }
 
     ## build command from params
     my @cmd_args;
@@ -3845,6 +3898,64 @@ sub tool_external_command {
                 );
             }
             $output .= $resume_line if length $resume_line;
+        }
+    }
+
+    ## create_template: distill session into a reusable context template ##
+    if (    not length($error)
+        and length( $args->{'create_template'} // '' )
+        and $ext->{'name'} =~ m{^(?:claude|kimi)_dispatch$} ) {
+
+        my $tslug = $args->{'create_template'};
+        $tslug =~ s{[^a-z0-9\-]}{}gi;    ## sanitize: slug chars only ##
+
+        if ( length $tslug ) {
+            ## use summarized output if available, else raw session text ##
+            my $session_text = $output;
+
+            my $inst
+                = "you are generating a reusable YAML context template. "
+                . "based on the session below, produce a template that "
+                . "would help an AI agent perform the same kind of "
+                . "task more efficiently in the future. capture: what "
+                . "the task pattern is, key files and modules "
+                . "involved, conventions to follow, common pitfalls "
+                . "observed, and any useful examples. output ONLY "
+                . "valid YAML with this "
+                . "structure:\n---\nname: $tslug\ndescr: <one line "
+                . "description>\nbudget: 3000\nsections:\n  - static: "
+                . "|\n      ## <template title> ##\n      <content "
+                . "here, indented 6 spaces>\n";
+
+            my $tresult = _do_summarize( $session_text, $inst, 1200 );
+
+            if ( defined $tresult and length $tresult ) {
+                ## strip any markdown fences the model may have added ##
+                $tresult =~ s{^```(?:yaml)?\n?}{}m;
+                $tresult =~ s{\n?```\s*$}{}m;
+
+                my $tpath
+                    = "$ROOT_PATH/data/yaml/context-templates/$tslug.yaml";
+
+                ## overwriting an existing template is expected/intended [ a
+                ## later dispatch's insight replaces an earlier one ], but
+                ## stay loud about it rather than clobbering silently
+                log_msg( "create_template: overwriting existing %s", $tpath )
+                    if -e $tpath;
+
+                if ( open my $fh, '>:encoding(UTF-8)', $tpath ) {
+                    print $fh $tresult;
+                    close $fh;
+                    log_msg( "create_template: wrote %s", $tpath );
+                } else {
+                    log_msg( "create_template: failed to write %s : %s",
+                        $tpath, $! );
+                }
+            } else {
+                log_msg(
+                    "create_template: summarization returned empty — skipped"
+                );
+            }
         }
     }
 
@@ -4001,8 +4112,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,,.,...,,,,,..,,..,,.,,,.,,,,.,,..,,,.,,..,,...,...,.,,,,.,,.,.,...,,.,,
-#PBJ36XUJ6YDMGJIVV6I6VRDLOTU4K764NIJPFY6VOFELEP6PS5CGW3WHRYLEP4IDLQW7BMMVAANKI
-#\\\|GTHEDYNQKJJUBNPQCXYCI6DUTFRM3L3F6EGX4D2IO2XELKDCEU7 \ / AMOS7 \ YOURUM ::
-#\[7]CUJWNM7FPIXM6SZVNLAFDOKBGS2DRL6DEFLVCZH7MS6Z4W4B4KDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,.,.,.,.,..,,,,,,.,,,...,,..,..,,...,...,.,,,,.,,,,,,.,,,..,,
+#X7XSMV573BY7IHHRXIGNMS62TYJIO2HAOLXJZZBFJH2YTJ76RQLK5RSCZX6KIQBUIAXIV6IYEOOHM
+#\\\|AZSHCYQ3LPWX46DC5HKB37RNKKZZ6J4NRGKTCHBY3WM6VJZPVMM \ / AMOS7 \ YOURUM ::
+#\[7]VXDM435FGRI4SHWU4UZ2DDS6GUUQENFON5VXPQEDGUVLD6NSPUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
