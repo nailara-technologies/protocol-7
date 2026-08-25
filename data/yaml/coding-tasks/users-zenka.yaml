@@ -1,10 +1,24 @@
 ---
 # Task: Users (v7-managed) Zenka
 # Date: 2026-08-10
-# Status: phase 1 shipped (host-system/ records + users.value-get/set/all);
-#         storage layout fully decided (record_format, var_vs_etc_tier);
-#         discovery/transport boundary resolved (two-layer + native-Perl
-#         p-7-r-compatible handshake); phase 2 (remote/) not yet built
+# Status [ 2026-08-25, supersedes line below ]: phase 1 shipped
+#         (host-system/ records + users.value-get/set/all); storage layout
+#         fully decided (record_format, var_vs_etc_tier); discovery/
+#         transport boundary resolved (two-layer + native-Perl p-7-r-
+#         compatible handshake); phase 2 (remote/) slice 1 also shipped
+#         (cb38cdc90 — live peer record fetch over auth-keypair, event-
+#         driven, not blocking: users.cmd.remote-fetch/remote-get,
+#         users.remote_fetch.run). REMAINING GAP, real and unresolved:
+#         users.cmd.remote-fetch's own header flags "KNOWN LIMITATION:
+#         does not TOFU-validate the peer's own server pubkey" —
+#         plugin.auth.auth-keypair.validate-incoming-tofu's client-side
+#         counterpart is not implemented. worth a dedicated task file of
+#         its own before this is genuinely done, not just archived as-is.
+# Status (original, superseded above): phase 1 shipped (host-system/
+#         records + users.value-get/set/all); storage layout fully
+#         decided (record_format, var_vs_etc_tier); discovery/transport
+#         boundary resolved (two-layer + native-Perl p-7-r-compatible
+#         handshake); phase 2 (remote/) not yet built
 # Context: todo 5PN [ new-zenki ] "create users v7-managed zenka design file"
 # Related: data/yaml/coding-tasks/user-edit-console-zenka.yaml (JUE) — the
 #          console this zenka is canonical storage/authority FOR. That doc's
@@ -882,8 +896,8 @@ tags: [new-zenki, users, discovery, key-authority, path-registry, user-edit,
        smtpd, nameserv, set-up, reproducible-setup, p-7-r, link-upgrade, ssh,
        bmw-l13, addressing-trinity, signed-commands, crypt-c25519]
 
-#,,,.,...,,..,..,,..,,.,.,..,,...,,.,,...,.,,,..,,...,...,,.,,.,.,..,,.,.,,,,,
-#PBEABRI6QGFW5UZTEMBJ74QOTGR4HKP7IHAGFP7LF6F5KLL4EFXLM43IXGVQO7MHERTHYYNOLWLGS
-#\\\|HGD3IJRIDBGOXUTOSA57ZNOPCCO7KZAMSI7TLASGJ3E5B5PEBM2 \ / AMOS7 \ YOURUM ::
-#\[7]UQRZ4JDTZOGP27TMXHBYERUPMJVZIWFYUBUXKWIDLTDILBRJUEDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,.,,,,,,,,,.,.,.,..,,.,.,,,.,..,,...,...,...,,..,,.,,,,,,,,,,
+#5LSLWJSCE2BDRQDFFJR5UGNRUB7KEECSYQ47QLSPNAJIRWS6L72BXOQL6HBY57BB5QRVJIFFDNID6
+#\\\|2CGAREHD2BI57OKMJF27TS46YGGIBNTUN7ORIOSXIZUO7665LA3 \ / AMOS7 \ YOURUM ::
+#\[7]SEI4UB6T5TAAIXVUICNKG4KRQ2ITLVT4Y27FAUX6DIV2P53KTSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

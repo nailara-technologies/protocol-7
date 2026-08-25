@@ -1,11 +1,19 @@
 ---
 # Task: user-edit address clusters (multiple addresses via a plugin)
 # Date: 2026-08-13
-# Status: DESIGN DRAFT, not yet implemented. Raised by user right after the
-#         simple 'address' multiline field landed (commit 989e5ebb3 +
-#         follow-up fix for the add_field/schema_from_record drift) : one
-#         scalar address is not enough once home/work/billing/etc. all need
-#         to coexist. Consulted advisor before drafting.
+# Status [ 2026-08-25 ] — DONE. Implemented via da2cca07f (scaffold) ..
+#         3b247caf7 (complete address-cluster plugin -- real editing logic
+#         + fixes), plus six follow-on polish/fix commits (fe4e68648,
+#         6c36effef, 5092b3ff3, ef08d6a79, c2f79fe78, 3a624ddf7). All 10
+#         src/plugin.user-edit.address-cluster.* modules confirmed present
+#         2026-08-25. Archived to completed-coding-tasks/.
+#
+# Status (original, superseded above): DESIGN DRAFT, not yet implemented.
+#         Raised by user right after the simple 'address' multiline field
+#         landed (commit 989e5ebb3 + follow-up fix for the add_field/
+#         schema_from_record drift) : one scalar address is not enough
+#         once home/work/billing/etc. all need to coexist. Consulted
+#         advisor before drafting.
 
 context: |
   'address' today is exactly what 'note' is -- one multiline scalar. Fine
@@ -628,8 +636,8 @@ Right re-enters normally afterward.
 created: 2026-08-13
 tags: [user-edit, plugin, checksum-addressing, multiline, implemented]
 
-#,,,.,...,.,,,,..,,.,,.,.,.,.,,,.,,.,,...,,,.,..,,...,...,.,,,.,,,...,.,.,...,
-#AX32SVJ7UI6MOUKRWVXQL4MZJZRPTM6L3UGLJ4GL27B5ZN5QGK4EJVCOKTSS5AY7EM6ULTTVKNFSG
-#\\\|BLI26P7BSYN5ZDDFCS46QNJUTNYJADBYOWEJMJEVCINGNB75IXH \ / AMOS7 \ YOURUM ::
-#\[7]MJT6AR356CRR7UTG3WKOD2I6EDY3VTK2WCHTSTISD37Z4PWZR6AQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,..,,,,,,..,,.,,.,.,,,.,,.,,...,..,,...,...,...,,,,,..,,...,.,,,
+#W7CGNTYK5JMIW3RI5RXO2N2ITXBWIUCNPSXO2CXVQXJYTQGRGA5RIR2YSFRTJ6D6BVMD6CC242V22
+#\\\|4HPFFVHVO5D3XVY6FH67457UEW44SRS6MV3T5TFMXJID3TNGA5T \ / AMOS7 \ YOURUM ::
+#\[7]ZQ2JFGHXF2CXFUEEXBPSLAKSNKEE3CKSGM7UIOZXTLLKVJSQHEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
