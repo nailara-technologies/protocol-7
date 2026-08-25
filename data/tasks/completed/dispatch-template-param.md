@@ -126,6 +126,14 @@ leave module signing to `bin/Protocol-7 sourcecode update-signatures`.
 
 ---
 
+## status [ 2026-08-25 ] — DONE, landed in `25c869953`. dispatched to
+## kimi (model=k2.7), validated: only the intended 4 param-def blocks +
+## %skip_in_cmd + the resolve/prepend block changed; the flagged
+## kimi_continue/claude_continue legacy-format pitfall turned out to be
+## moot (current code already uses the params array for those two;
+## template resolves generically on $args before any format-specific
+## command-building, so it works uniformly regardless).
+
 ### dispatch
 
 model: kimi
@@ -145,8 +153,8 @@ prompt: |
   follow existing code style: $ARG not @_, lowercase comments, bracket
   annotations [ like this ].
 
-#,,,.,.,,,,,,,.,,,...,,,.,,..,..,,.,,,,..,,,.,..,,...,..,,..,,.,,,.,.,,,,,,,.,
-#GBDWTDQNA2OZ3FWMOKCTSX6N2535VBBN5ZXZLYO77G7MT6OKAPVI7MSWXNWBXAQACCU2XCGCRUUTY
-#\\\|T2RSX3UWXN7GECNZO2KTZTO5JNSMCS6YNCMJFUWPEN7FGB2N2L5 \ / AMOS7 \ YOURUM ::
-#\[7]TJJJDCFJAEXDSBHEP6YDB5HEU2DCGH45ZQMRA2IKWSPGNSSILEBA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,,,.,,,,,.,.,,,,,,,..,,,..,,.,,..,,...,...,,.,,,..,,..,.,.,,,.,
+#GL34J54S6J5GHLLAL7FQFURIEGEYNLPT4OPIM56JUIKB6YGQPX4DDWLUOWJOJJ2HJXGSYDDSFSNEE
+#\\\|LPYLCTD3KGWSZJBGIYF2CQZZKKBKIOUZ324UGUFQFSJX4ROKKH6 \ / AMOS7 \ YOURUM ::
+#\[7]M5PG6NEPZELK7N753RAYH3AILHR3F6O6KFH7XPUIINCUBR2ZHOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

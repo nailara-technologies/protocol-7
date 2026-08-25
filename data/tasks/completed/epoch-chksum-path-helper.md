@@ -105,8 +105,31 @@ authority.
 harmony base.path.epoch-chksum
 ```
 
-#,,,,,,,.,,.,,,..,,,,,,.,,..,,,,,,...,.,,,.,,,..,,...,...,,,,,,,,,,,.,,.,,,,.,
-#5YZATM2KXR3T5PV2EKYPOXBULSF7LBSY6ZYG653OW5IHUREANQYH6GH4MR5PYTUJAFNOGY4PJYIH4
-#\\\|DE4H23Q2H3REB4CURMOPFCVRZHTGBRW6V4HPOEZS6XJSZLSISEL \ / AMOS7 \ YOURUM ::
-#\[7]57CQVULAXKD44ZFKX2PNAFK33KDZPSKZA2G4UBZXQJSQ3LPZ6OAA 7  DATA SIGNATURE ::
+## status [ 2026-08-25 ] — DONE, landed in `25c869953`. dispatched to
+## kimi (model=k3-256k, domain warranted stronger reasoning than the
+## mechanical dispatch-param tasks above). validated against all five
+## semantic rules and the acceptance-criteria list by reading the actual
+## AMOS7::TEMPLATE source (configure_epoch_window_callback/
+## CALLBACK_epoch_window/template_timeout/reset_temp_valid_timeout all
+## confirmed present with the assumed signatures, not guessed), tracing
+## the depth=1/depth=2 examples by hand, and independently re-running
+## `bin/dev/ptd -c` (syntax ok, no lines over 78 cols). kimi's own
+## standalone harness against the real AMOS7::CHKSUM/TEMPLATE libs
+## passed all 6 checks (inclusion fill, exclusion rejects adjacent
+## epochs, determinism, depth=2 nesting, chksum_len=4, ntime-derived
+## epoch matches explicit epoch). one minor non-blocking deviation: epoch
+## derivation reimplements base.ntime.epoch_dec's divisor/modulus math
+## locally instead of delegating to it, since that sub has no ntime-
+## override parameter and this task requires one — numerically identical,
+## verified against epoch_dec's own source. not live-verifiable without a
+## running zenka: the live `<[base.path.epoch-chksum]>->({data=>"hello"})`
+## acceptance item and the `harmony` check above — both explicitly noted
+## as such by kimi rather than faked. module signing/whitelisting were
+## left to the human as instructed; base.list.subroutines was updated by
+## the signing process itself when this landed, not by kimi.
+
+#,,,.,.,,,..,,.,,,,,.,...,..,,.,.,,..,...,..,,..,,...,...,,..,,,.,,,.,...,,,.,
+#RGV47EIOMER6DASLMOHM7PHFHBK6JGJNYTZ3JNAZAXJ4HQYU2B6JJZR4VXMC5WNI5RPCAGVAS3Y7S
+#\\\|ZPM5N3G3HYXDOIQQ2VBBFJ3LTXUJV4NZZCCHQM747LMZHPENDCC \ / AMOS7 \ YOURUM ::
+#\[7]6HUU55FPK3CFKUOSWJHZQBYYUPUB3RPR4YQXQP7GUULJOSFA22AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
