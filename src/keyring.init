@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = keyring.init
+# descr = initialize keyring namespace key derivation system.
+#         loads root key from C25519 session private key if available,
+#         otherwise generates a random 32-byte root for the session.
+
+## load required primitives ##
+<[base.perlmod.load]>->( 'Crypt::Mac::BLAKE2b', qw| blake2b | );
+<[base.perlmod.load]>->( 'Crypt::URandom',      qw| urandom | );
+<[base.perlmod.load]>->( 'Crypt::Misc',         qw| slow_eq | );
+
+## already initialized guard ##
+if ( $data{'keyring'}{'root'}{'loaded'} // FALSE ) {
+    <[base.logs]>->( 2, 'keyring: root key already loaded [ skipping ]' );
+    return TRUE;
+}
+
+## derive root key from C25519 session private key if available ##
+my $zenka_name = $data{'zenka'}{'name'} // '';
+my $root_key;
+
+if (    length $zenka_name
+    and exists $keys{'C25519'}{$zenka_name}
+    and defined $keys{'C25519'}{$zenka_name}{'private'}
+    and length( $keys{'C25519'}{$zenka_name}{'private'} ) == 32 ) {
+    ## domain-separate the keyring root from raw key material ##
+    $root_key
+        = Crypt::Mac::BLAKE2b::blake2b( 32,
+        $keys{'C25519'}{$zenka_name}{'private'},
+        "keyring-root\x01" );
+    <[base.logs]>->(
+        2, 'keyring: root derived from C25519 key [ %s ]', $zenka_name
+    );
+} else {
+    ## no session key present — random root for this session only ##
+    $root_key = urandom(32);
+    <[base.logs]>->(
+        1, 'keyring: no C25519 key found — using random session root'
+    );
+}
+
+$data{'keyring'}{'root'}{'key'}    = $root_key;
+$data{'keyring'}{'root'}{'loaded'} = TRUE;
+
+## initialize namespace cache ##
+$data{'keyring'}{'namespace'} //= {};
+
+<[base.logs]>->( 2, 'keyring: initialized' );
+
+return TRUE;
+
+#,,...
+
+#,,,.,...,.,.,,,,,,,,,.,,,.,,,,,.,...,..,,...,..,,...,...,..,,.,,,..,,...,,.,,
+#2Y43QRRL2MMYPFQNDGTFT6HRVWQ4UNZVQZOJ4CHPV2TEMY2E3MLI5ERG5ZKVGIGJSV3BFZQII3BQI
+#\\\|5KBMHAHYCCA4WWJFXFDABO6WOKE4XB3BF6EDPZCEVLSYC4GDC2W \ / AMOS7 \ YOURUM ::
+#\[7]HLNVNHOCGRYQSDLJ5TPZGUGN7PBKZCWQKBH27W5YRHJT3ZGPTSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

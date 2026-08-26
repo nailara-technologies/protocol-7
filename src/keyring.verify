@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = keyring.verify
+# descr = verify a keyed BLAKE2b signature against the key at a
+#         given path. returns TRUE if valid, FALSE otherwise.
+#         constant-time comparison prevents timing side-channels.
+
+my ( $dot_path, $datum, $signature ) = @ARG;
+
+return FALSE if not defined $dot_path or not defined $signature;
+
+my $key = <[keyring.derive]>->($dot_path);
+
+if ( not defined $key ) {
+    <[base.logs]>->(
+        0, 'keyring.verify: key ' . 'derivation failed [ %s ]', $dot_path
+    );
+    return FALSE;
+}
+
+my $expected = Crypt::Mac::BLAKE2b::blake2b( 32, $key, $datum // '' );
+
+## constant-time comparison — prevents timing side-channel attacks ##
+return Crypt::Misc::slow_eq( $expected, $signature ) ? TRUE : FALSE;
+
+#,,...
+
+#,,,.,,,,,.,,,,,,,.,,,.,.,...,..,,,.,,.,,,,..,..,,...,...,,,,,,.,,,,,,.,,,,.,,
+#6HFMPCBOWU6E5FIPAXMXQNW7ECC4H3ZWY4R4ODZTQFWU4RKPORXALM3QPZGYOVVMUGA2R43YSPJLW
+#\\\|LXZ3D463KMJAPJEJ3YSN7OJPPBNCHAV4WT5VJ3OK5M5T3BGAPFU \ / AMOS7 \ YOURUM ::
+#\[7]QHPJISBYMTJRIQRAT3WJ3JYYNMP7FFWCJSYHAQSQX7S6UT5INADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

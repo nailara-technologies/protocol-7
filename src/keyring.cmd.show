@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = keyring.cmd.show
+# descr = show key metadata for a namespace path [ no raw key ].
+#         triggers derivation and caches the key if not present.
+
+my $dot_path = shift @ARG // '';
+
+if ( not length $dot_path ) {
+    return { 'mode' => qw| false |, 'data' => 'usage: keyring.show <path>' };
+}
+
+## derive [ populates cache ] ##
+my $key = <[keyring.derive]>->($dot_path);
+
+if ( not defined $key ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'keyring.show: ' . 'derivation failed [ %s ]',
+            $dot_path
+        )
+    };
+}
+
+my $entry      = $data{'keyring'}{'namespace'}{$dot_path};
+my $depth      = $entry->{'depth'}      // scalar split( /\./, $dot_path );
+my $derived_at = $entry->{'derived_at'} // '?';
+
+## distance from session root = depth ##
+my $root_distance = $depth;
+
+my $output
+    = sprintf( "path:           %s\ndepth:          "
+        . "%d\nderived_at:     %s\nroot_distance:  %d",
+    $dot_path, $depth, $derived_at, $root_distance );
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,...
+
+#,,,,,,..,..,,,..,.,.,.,.,.,,,,,.,,.,,...,..,,..,,...,..,,,,,,...,.,.,..,,.,.,
+#ULID7WACWGSKN7K6Q7RDJRQDPC7QJV4DUEVCZWMU6NZOM7KRECIP4KYLZGYM2L2YV7GBVSFIBJXUO
+#\\\|5YF7CIAJVHVYKMCPMSSJ3HEXBMX2KN3LUJ4A3NQZXTDQFCXGOBE \ / AMOS7 \ YOURUM ::
+#\[7]FQ4U5FFDHP46H3WYOBW2ZWKXCRPNG2J7MU2CSPT3DDJ4UOPPUKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
