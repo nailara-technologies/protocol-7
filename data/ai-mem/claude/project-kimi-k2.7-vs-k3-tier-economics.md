@@ -78,8 +78,34 @@ no model field). See `data/tasks/kimi-zenka-model-awareness.md` (K3 dispatch
 `kcbdrrlm1`, in flight) for wiring this into `kimi.cmd.list-models`/
 `kimi.cmd.set-model`.
 
-#,,,.,.,,,,,,,.,,,,.,,..,,.,.,,,,,.,,,...,.,,,..,,...,...,...,,.,,,.,,.,,,,,.,
-#BHJSNMK6U7IVWXFUEXEF3MMU7TMAXXP4JZ4PPD4D7TV3AMWJ7U6LK3BZ7Q2YKTSEWYM7ZHZMZH7J2
-#\\\|6V5SM35PJUVEC6AIXP2NMXFU6N7NHHUK5YRV5VFUEAXEV4GRCAT \ / AMOS7 \ YOURUM ::
-#\[7]U4TRWBLC7KWNLHAHURLKKEOAM2V3ZYL6YQQTW2UVMOREIIJKD4DA 7  DATA SIGNATURE ::
+**Opus-design + k3-256k-implement split, validated end-to-end (2026-08-25)**:
+for a task with real FFI/C-interop correctness risk (binding missing
+libgit2 functions via FFI::Platypus — pointer lifetime, `git_buf`
+alloc/dispose, matching an existing wrapper library's internal conventions),
+user proposed splitting into `claude_dispatch(model=opus)` for design-only
+output (no code) followed by `kimi_dispatch(model=k3-256k)` implementing
+against that spec. Worked cleanly: Opus's spec was independently verified
+line-by-line against the actually-installed source (exact `FFI.pm` line
+matches, exact `nm -D` symbol offsets, verbatim `check_rc` convention
+citation) with zero discrepancies found, then k3-256k implemented against
+it, self-caught two real bugs via its own live testing (an FFI `attach()`
+package-binding mismatch, and a buffer-lifetime bug in a helper sub) and
+fixed both correctly. Confirms this split is worth reaching for whenever a
+kimi task's *design* step carries real correctness risk that's cheap to
+front-load into a spec (FFI bindings, protocol/wire-format work, anything
+with pointer/memory-lifetime stakes) — Opus absorbs that risk in a
+code-free pass, k3-256k gets a mechanical-enough target that it can also
+self-verify against instead of guessing.
+
+**k2.7 confirmed again same session** for two genuinely narrow, mechanical
+MCP-server param-addition tasks (`dispatch-template-param.md`,
+`dispatch-create-template.md` — both had the exact Perl code to insert
+already written into the task file, one named precedent each) — both
+landed clean, no fixes needed on either, consistent with
+[[narrow-scoped-kimi-task-file-pattern]]'s track record.
+
+#,,.,,,,.,,.,,,..,.,.,,,.,,,,,.,,,,.,,...,..,,..,,...,...,,,.,...,..,,.,,,,.,,
+#JCOPPVYBQIMVXWHGCEVDSFFUBJEJEQGMSM7IRXK4ISX7ISWQUPECHGRVVLTMDMQ6ZFYNYHQLPASMC
+#\\\|WDL77D26UVJT4EKSBW47EWGGB7YCYP5SAHZW35XIEGJ7O4OBPHD \ / AMOS7 \ YOURUM ::
+#\[7]JWIZMSWTWSDLOAIIGA5RKXGDTSXMJJDONRA6WMAP76MFIZLLOGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,18 +25,24 @@ unless ( -d "$root/.git" ) {
     return "<!-- not a git repository -->";
 }
 
-my $git = Git::Wrapper->new($root);
-
-## git diff --stat for uncommitted changes ##
+## git diff --stat for uncommitted changes [ native libgit2 ] ##
 my $stat_output = '';
 eval {
-    my @diff_args = ('--stat');
-    push @diff_args, $since_commit if length $since_commit;
-    $stat_output = join "\n", $git->diff(@diff_args);
+    require Git::Native;
+    require Git::Native::Diff;
+    my $repo = Git::Native->open($root);
+    $stat_output
+        = length $since_commit
+        ? Git::Native::Diff->tree_to_workdir_stat( $repo, $since_commit )
+        : Git::Native::Diff->workdir_stat($repo);
+    1;
 };
+## on error $stat_output stays '' and the log fallback below fires,
+## matching previous Git::Wrapper failure behavior [ silent eval ] ##
 
 ## if no uncommitted changes, show recent commits instead ##
 unless ( length $stat_output ) {
+    my $git = Git::Wrapper->new($root);    ## log stays on Git::Wrapper
     eval {
         $stat_output = join "\n", $git->log( '--oneline', "-$max_files" );
     };
@@ -79,8 +85,8 @@ if ( $file_count >= $max_files ) {
 
 return $output;
 
-#,,,.,...,,,,,..,,,.,,,,,,,,.,,,,,.,.,.,.,..,,..,,...,...,,..,.,,,.,,,...,...,
-#BATRFLKA4LBZHI2AG4QSXOXUMMPQVEJ6IX7GBAOSHN3BW4W7JYYDEJ4OBELNNWOZTR3DHBZEAS5J4
-#\\\|K6L2X62YJIYSWUE52NDZWWK7QXSET7K4C3G4FS22UVV7V3LODJB \ / AMOS7 \ YOURUM ::
-#\[7]ZGI4L45DDIHJBZDEN2CBWSP2P5MVXJUAMCWBSSOX5QTDAPTWAWDY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,..,,,,.,,,,,...,.,,,,,.,..,,,,,,..,,...,...,...,,,.,.,.,,,,,.,,,
+#KF33235OQNADAEO7VYMLBPBK2P3IZ2FBRNAPYQKBQMKL3CR6X3GIYWA342EXZZFFIHZX3KCY5Y5HO
+#\\\|LRZUF6KDFDBIQAIBTW27JJDPCGF2AZQ27T2DZWBDLPYAAXBIGPP \ / AMOS7 \ YOURUM ::
+#\[7]WKEO5QLYJ5NPSNXPLWIRTA7PZSWJFLIH64PFJKMTWKXPGMETKUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
