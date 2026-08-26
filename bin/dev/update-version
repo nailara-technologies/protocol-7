@@ -245,6 +245,21 @@ sub get_release_version {
     close($fh);
     $rel_version //= '';
     $rel_version =~ s|\s+$||;
+
+    ## sanity check : $rl_v_file is meant to hold nothing but the plain
+    ## 'AMOS7-vX.Y.Z' output of `release-version` -- if a wrong command
+    ## ever gets redirected there instead [ has happened : ANSI-colored
+    ## output from an unrelated zenka console ], silently accepting
+    ## whatever's on the first line corrupts every generated file this
+    ## script writes into, and the later substitutions can't detect or
+    ## repair an already-malformed target line on their own. reject
+    ## anything that isn't the exact expected shape instead.
+    if ( $rel_version !~ m|^AMOS7-v\d+\.\d+\.\d+$| ) {
+        warn "$rl_v_file : content not a valid release version "
+            . "[ '$rel_version' ] -- ignoring\n";
+        return '';
+    }
+
     return $rel_version;
 }
 
@@ -303,8 +318,8 @@ RETRY_BASE_NTIME_B32:              ## only choose harmonic values ##
     return $encoded_ntime;
 }
 
-#,,..,,.,,.,,,,,,,.,,,...,,,,,,.,,,..,...,.,.,..,,...,..,,,,,,.,,,.,.,.,,,,.,,
-#4HE6W7C67BYL2FAL3HPN2XRH4TGIB7GFBNZKQZ3THMS7PSKZGEYBUD466GFHMFKYJJEUIOUZ5DDNW
-#\\\|AQALE57TOMFFFGMVULBCQWGBYJ4HE6DBMR5HN33XPOWSYW2BF5G \ / AMOS7 \ YOURUM ::
-#\[7]UAJM4CHBTZVZWWAIAA25PVXFFPBWQR3DIBY73ODSIOQUW77YWUAI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,,..,,.,,...,...,...,,..,.,,,..,,...,...,,..,..,,,..,,.,,,,,,
+#V7A5CRRKHMKXCMRV3KNXIZ4M7RV72X5TUJZ7B36R4XWDJSGWVQQCJT6NRQUPDTJKYCUDK7NVM2VR4
+#\\\|VL6NCL5BBISTDBGZPL3NFNSKFUIDFPDQUHXUURUZNCYXV2BKZSO \ / AMOS7 \ YOURUM ::
+#\[7]NSC53PKSTIPJESMBXMQKS5HM72GDYJVNFPUKHL3NZWUKHGAXK6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
