@@ -1,6 +1,6 @@
 ---
 name: cpanm-triggered-inline-elf-utf8-boundary-bug
-description: "RESOLVED 2026-08-26: sudo cpanm --force forced a perl 5.40.1->5.42.3 version churn that surfaced two real C-source bugs in AMOS7::CHKSUM::ELF::inline_elf (stale-len STRLEN underflow, forced u8_len=1 misalignment), both fixed and verified (C now matches pure-Perl fallback exactly); caused mass signature-verification failures and the user's C25519 key-decryption failure via key_32's entropy validity check -- key recovery confirmed separately via a remote server's pristine pre-incident environment, fix does not itself recover the key"
+description: "FULLY CLOSED 2026-08-26, committed 0875c8668 + 94aa460a7: sudo cpanm --force forced a perl 5.40.1->5.42.3 version churn that surfaced two real 2021-era C-source bugs in AMOS7::CHKSUM::ELF::inline_elf (stale-len STRLEN underflow, forced u8_len=1 misalignment) AND, once the resulting keys.backup.* infrastructure enabled a real end-to-end test, a THIRD independent 2021-era bug in crypt.C25519.load_keypair (read wrong key file, unconditional prefix-strip) that was the actual root cause of .secret-bearing keys failing to re-encrypt; all three fixed and empirically verified against a real key, all changes committed and signed"
 metadata:
   type: feedback
 ---
@@ -217,8 +217,104 @@ NOT have this problem — no new block is introduced, so `my` there
 scopes normally to the rest of the enclosing block. Only the full
 block-form `if (...) { }` needs the variable predeclared outside it.
 
-#,,,.,..,,,,.,..,,,,.,,,.,,,.,,,,,..,,,.,,,,.,.,.,...,...,,.,,.,.,,.,,,.,,...,
-#LSSK7USIBVHCCPW4SCMYHCOSBMY6M34SKYG4BHMNCMFZIXDTUSIWME3QULA4RL3BIZK55SOHOZECO
-#\\\|EIK6FGXU74AAXGNP37CEOALAFVETVANS5POI5RSSKNO7BQGVPIN \ / AMOS7 \ YOURUM ::
-#\[7]3IPJKOCCDSJTLJT4VWGGQH7MGC7H2BOWP2Z4DT7JEKKQ5GQHSYAA 7  DATA SIGNATURE ::
+## FULLY CLOSED 2026-08-26 — keys.backup.* infrastructure + third bug + commits
+
+Once the `.private`/`.public` main identity key was successfully
+migrated (decrypt on a pristine remote → re-encrypt locally under the
+fixed algorithm, checksum unchanged, confirming genuine key-material
+preservation), a *separate* key with a `.secret` file couldn't go
+through the same path — `keys.console.change-passwd`/`dec-key`/
+`enc-key` all hardcoded `qw| private public |` in their write-
+permission and backup/rename loops, never touching `.secret`.
+`crypt.C25519.write_keys` already handled `secret`/`private`/`public`
+uniformly and correctly — the three console commands just never gave
+it the chance to, because they never renamed `.secret` aside, so
+`write_keys`'s own "file exists, won't overwrite" guard aborted the
+*entire* write whenever `.secret` was present.
+
+**Fix, approved via plan mode**: extracted shared `keys.backup.*`
+modules (`src/keys.backup.{create,rollback,list,restore,prune,
+remove}`) — timestamp-*prefixed* backup naming (not suffixed, for
+glob-recognizability; ordering by *decoding* the base32 ntime back to
+numeric, never raw string sort, since the encoding is BER-packed and
+variable-length), content-hash dedup via `chk-sum.md5.hex`, and
+`.:`/`U:`-marker-aware unencrypted-content detection before removing a
+backup (confirms via `base.term.ask` only when it'd be the last copy).
+Plus three new console commands: `keys.console.{list-backups,restore-
+backup,prune-backups}`. `change-passwd`/`dec-key`/`enc-key` now call
+`keys.backup.create` with all three types instead of their old
+copy-pasted two-type loops — this alone fixed the original abort bug.
+
+**Live testing then found a THIRD, independent, also-2021-era bug**
+(`git blame`: 2021-09-11, commit `4be439a307`, same file family, never
+touched by anything in this session before this exact moment) in
+`crypt.C25519.load_keypair`: line ~215 checked `-r $secret_key_file`
+but then slurped `$public_key_file`'s content into the variable meant
+for the secret — a copy-paste typo. Combined with an *unconditional*
+2-byte prefix strip (line ~352, unlike the `private`-key handling just
+above it at lines 254-255, which correctly gates the same strip on
+`$key_status->{'prefixed'} == TRUE`), this silently fed the 32-byte
+*public* key in as if it were `.secret`, stripped 2 bytes off it
+regardless of the (correctly-detected, `prefixed == FALSE`) type
+status, and handed a 30-byte non-16-multiple garbage value to
+`AMOS7::Twofish::encrypt`, surfacing only as a cryptic "payload data
+needs to be multiple of 16 bytes" deep in `Twofish.pm` — nowhere near
+the real bug. Diagnosed via a safe, size-only diagnostic script
+(`secret_len_check.pl` — reads only byte lengths and the 2-char
+marker, never key content) that confirmed all three on-disk files were
+byte-perfect, which is what pointed the search away from file
+corruption and into the load path. Fixed both lines; user confirmed
+**all three file types converted successfully** on a real key
+immediately after.
+
+**`keys.console.split-keypair` was checked and is NOT affected** — it
+uses a different function, `crypt.C25519.load_keys_from_secret`, which
+reads the correct file and additionally has an explicit
+`length(...) != 32` post-strip guard that `load_keypair`'s buggy path
+lacked entirely (which is exactly why the corruption there silently
+propagated all the way to the Twofish call instead of failing close to
+the source).
+
+**Two bugs of my own found and fixed along the way, both instructive**:
+(1) `keys.console.list-backups` used `qw| [ unknown time ] |` where a
+single-quoted string was meant — `qw()` splits on whitespace into a
+3-element list, which in the scalar context of a ternary collapses to
+just its *last* element, silently discarding the rest with "useless
+use of a constant" warnings. Fixed to `qw| unknown-time |` (one word).
+(2) `secret_len_check.pl`'s own diagnostic script had `local $/; my
+$b32 = <$fh>; chomp $b32;` — `chomp` depends on the *current* `$/`,
+which was locally undef right where `chomp` ran, so `chomp` silently
+no-opped, leaving a trailing newline that made `decode_b32r` reject
+*every* file identically — a strong tell (uniform failure across
+independent files) that it's tooling, not data. Fixed to slurp inside
+its own `do { local $/; ... }` block, then strip trailing whitespace
+with a regex instead of relying on `$/`-dependent `chomp`.
+
+**One unrelated discovery, not fixed (out of scope, user's own
+tooling)**: `bin/test-scripts/sig-iter-cnt-style-chk/study/
+scratch.tar.xz` showed up as changed during the bulk re-sign — turned
+out the signing tool had appended a text AMOS7 signature footer onto a
+*binary* `.tar.xz` file, corrupting it. Not something either of us
+touched deliberately; user restored it with `git restore`. Worth a
+signing-tool file-type-filter fix someday (exclude binaries), but not
+chased further this session.
+
+**Committed and landed on `base`**: `0875c8668` (60 files — the actual
+fix: `inline_elf`, `crypt.C25519.load_keypair`, all six `keys.backup.*`
+modules, three new `keys.console.*` commands, the three fixed existing
+`keys.console.*` commands, `sourcecode.console.verify-p7-signatures`,
+task docs, memory) then `94aa460a7` (2202 files — the pure signature-
+only re-sign under the corrected algorithm, split from the real fix via
+`bin/admin/vc-changed-files -sig-only` so the meaningful diff isn't
+buried in mechanical churn; includes one incidental real change, an
+over-length `# descr =` line in `protocol-7-menu.cmd.input-password`
+shortened to pass the pre-commit descr-length hook). Working tree
+clean after both. `_Inline/` was NOT added to `.gitignore` this
+session — still a minor gap if a future session compiles a standalone
+test harness the way this session's `-VL7` canary comparison did.
+
+#,,,,,.,,,.,,,..,,.,,,,.,,,.,,,.,,.,,,...,..,,.,.,...,...,.,,,..,,,,,,,..,,..,
+#W6JNVF5RAX32OWWJTWTPXBK74K2IZBMZCPB3OYE5LCWSHYURVABFO73OQGKA2OBQSUTZBGT63VH3C
+#\\\|W4AJWE2MKKEEKTFF7VO5AQFNSXZBBFBPRHOON2KLU3Y3DL6F5UQ \ / AMOS7 \ YOURUM ::
+#\[7]UCNQI4BQPD3IGK57JPLCXOBWPSR7WXZFFR7YJ5XCVFJH2WZQGOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
