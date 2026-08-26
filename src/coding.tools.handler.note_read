@@ -5,11 +5,16 @@
 
 my $args = shift // {};
 
-my $task_id = $args->{'task_id'} // <system.task_id> // 'unknown';
-my $level   = $args->{'level'}   // 'L3';    ## L1, L2, or L3 ##
+my $task_id     = $args->{'task_id'}     // <system.task_id> // 'unknown';
+my $level       = $args->{'level'}       // 'L3';    ## L1, L2, or L3 ##
+my $offset      = $args->{'offset'}      // 0;
+my $max_results = $args->{'max_results'} // 20;
 
 ## validate level ##
 $level = 'L3' unless $level =~ /^(L1|L2|L3)$/;
+
+## clamp offset ##
+$offset = 0 if $offset < 0;
 
 my $result = <[note.read]>->( $task_id, $level );
 
@@ -21,14 +26,39 @@ if ( $result->{'mode'} eq qw| true | ) {
     if ( $level eq 'L1' || $level eq 'L2' ) {
         $output .= $data->{'summary'} // '[no summary]';
     } else {
-        ## L3 - list all sections ##
+        ## L3 - list sections with offset/max_results pagination ##
         my $sections = $data->{'sections'} // {};
-        if ( keys %$sections ) {
-            for my $name ( sort keys %$sections ) {
+        my @names    = sort keys %$sections;
+        my $total    = scalar @names;
+
+        if ( $total == 0 ) {
+            $output .= '[no notes found]';
+        } elsif ( $offset >= $total ) {
+            $output .= sprintf
+                "offset %d is past end [ %d sections total ]",
+                $offset, $total;
+        } else {
+            my $end = $offset + $max_results - 1;
+            $end = $total - 1 if $end >= $total;
+            my @visible = @names[ $offset .. $end ];
+            my $shown   = scalar @visible;
+
+            $output .= sprintf "[ sections %d-%d of %d ]\n\n",
+                $offset + 1, $offset + $shown, $total;
+
+            for my $name (@visible) {
                 $output .= "=== $name ===\n" . $sections->{$name} . "\n";
             }
-        } else {
-            $output .= '[no notes found]';
+
+            ## truncation hint when more remain ##
+            if ( $offset + $shown < $total ) {
+                my $remaining   = $total - ( $offset + $shown );
+                my $next_offset = $offset + $shown;
+                $output
+                    .= sprintf "\n[ %d section(s) remaining "
+                    . "-- next: note_read offset=%d ]",
+                    $remaining, $next_offset;
+            }
         }
     }
 } else {
@@ -37,8 +67,8 @@ if ( $result->{'mode'} eq qw| true | ) {
 
 return { 'content' => $output };
 
-#,,..,.,,,.,.,,,.,...,,,,,...,,,.,,,,,..,,..,,.,.,...,...,...,,..,.,,,.,.,.,.,
-#P4H5XU7N74LF7JNQLLWCEHLSYM43O5HT2XGOVVK7AOMHIQ626CSOLQU7BWLAFYMW2SYYIH6M2T53A
-#\\\|DFFZGGF5Q4MIAXI2VGTWYIYNJCNG6HQQQC5TND2FSMLIH2356XC \ / AMOS7 \ YOURUM ::
-#\[7]5OIHCSMHYURI4XU36P777AHTATDWUKKPN2GCA7FUGMXTVWDRAUDY 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,...,.,,,...,,,.,,,.,,,.,.,,,.,.,...,...,,,.,,,.,,.,,,,.,.,.,
+#QYQAHOYL4WXE4N4XC7VHZ6VAEGABDUDEFZZQ522FWUHZTLUURKLOXDNCWQHSKMVFAPVNLN3A6BUSA
+#\\\|WJXYYW7YH5YBWDVZDVOTIDVFKVJPHUSKTKW5LO73FXOAQWI3AXS \ / AMOS7 \ YOURUM ::
+#\[7]EYVQLV5SAT7IUVJXZJ4Q5QH6Q5NN3YY23WN2LSYY3P5CIWW3UGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
