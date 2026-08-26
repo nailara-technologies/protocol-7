@@ -104,8 +104,8 @@ symbol '$call'` error visible when the target zenka is actually booted
   `subroutines.load-early` to verify, then revert the whitelist to the
   tool-generated state
 
-#,,..,.,.,,,,,,,,,..,,,,,,...,..,,...,,,.,,.,,..,,...,...,,,.,,,.,,,.,..,,.,.,
-#YDJRLMZ4RVXSNLEPRNGLS7UEPCFBKKYFIRCKEL2U2Q6TXJCTGDZY3JN4QRC7ABIEVU2KJVN77IOIE
-#\\\|HB6GME6WLSBKMTVIB36CB4NSX3XPM7ANSQCMIZ24PUGUWS52CMM \ / AMOS7 \ YOURUM ::
-#\[7]TXUZUEGINRHHHZKBLGIWFPDN5PJ5BVDFP7QO6FZ7BDXER3UPOQCQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,...,,.,,,,,,,,,,.,.,,..,.,.,..,,...,...,,..,...,.,,,.,.,,,,,
+#JKQI46SHR5A2PC2ZDGP73BD64KMIBB2OJZU4FCJ2GAXNAXOPXHOKOVPNB4TGYF5DXP7QFRHX5A2ZQ
+#\\\|Q6PTEUEK7O6YVPLHXWSFQPKNBGX22ZQEFSSNT3WXOEIJPW7VZ34 \ / AMOS7 \ YOURUM ::
+#\[7]MSYZ7RLXZKGALEEFQD4AJPRQV5P43ZQPDSBNFI6ZMJNWO6S5I2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

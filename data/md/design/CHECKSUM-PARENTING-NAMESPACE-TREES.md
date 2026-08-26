@@ -339,8 +339,8 @@ faithfully enough that further conversation can either confirm the
 auto-parenting mechanism for implementation or extend the trunk / ring
 / mirror sketch into something concrete enough to design against.
 
-#,,,,,..,,.,,,,,.,,,,,,.,,,.,,..,,,,.,.,.,..,,..,,...,...,,,,,...,...,..,,.,,,
-#RPSY5DN2TFBLUEFNQ4ETITFKXII2FRIRNGFHYVHMAVLRDRH2FUPIERWPZDELS7IHM4H56DQUPOLPK
-#\\\|TEOM6HW6SECL4M6P2RATEEIBH2ENMTFCER6MOLLOSM2JOIGPQHN \ / AMOS7 \ YOURUM ::
-#\[7]32QHS6AZNUWK5GR3RSK55ISJAJHMCVS5K6CWONKX5TPNMGLIS4DI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,.,,,,.,,.,.,...,,.,,.,.,...,..,,...,..,,..,,,.,,,,.,,,,,...,
+#UF3JYZZRSXOOIY7TK55S5BYO42GZ32CIBUVBMT2ATNZ6LMCCD66R6UFRGK3FSGTKD3WNRJCBLBOS6
+#\\\|2LSWN7W3P4RKGHWXOJD4ALWVPZCUQL3IEMSUUMRFZ62NC5QQJUW \ / AMOS7 \ YOURUM ::
+#\[7]EVU2OJR4P5EZTCL37CTFUCB7XNA3J6NIJY7T26O4UXRW6XAXJCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

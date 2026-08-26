@@ -223,8 +223,8 @@ p7c ticker.cmd.set-window-profile bottom-strip
 - [ ] `fullscreen` profile still works for kiosk deployments
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,.,,,.,,..,..,,,..,,,.,,,,,.,,,.,.,,..,,.,,..,,...,...,..,,...,,,,,,,,,,..,
-#Z73KFJ5PCHY3ABRWQY7TTTUNQTYLMUQWRU255L4AMMMNQHK6PH4TZE4PR2VBFO5M5ULRZLTTF6O3O
-#\\\|43PPB5KTNUJSK4DZVAJACJVQPCTDES65WENMHZL6WMFP4CONZ5C \ / AMOS7 \ YOURUM ::
-#\[7]YWD75YUNSZ427INE7B4SWEXSBF7HV3XTQWXVDUDQUJHC54TAP4CY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,,,,,,,,.,,...,,,,,,.,,,,.,.,,,..,,...,...,.,.,...,,,,,...,..,,
+#5Z6HOB6IAZLUAO2RGVRPOORVZ4Y5DBTQQIBC5RGL3V4FF73JRQLK3RVYFDE3GIZY6PMFAXENGRK4Q
+#\\\|QEIN3W4A77AMQD2R3245FCPYTGALUUBKVX4TLKB3IJTI3W6JA2Y \ / AMOS7 \ YOURUM ::
+#\[7]6QLHZ34UORQQF6JTZ3HTZLWDX6QND2HPWPQAL5DJRYMB4UAAOEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

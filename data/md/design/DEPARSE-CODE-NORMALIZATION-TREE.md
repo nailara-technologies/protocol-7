@@ -501,8 +501,8 @@ section 3 is settled enough to act on.
   captures the six pieces surfaced so far but is not claimed
   exhaustive.
 
-#,,.,,,,.,,,.,,,.,...,,.,,,..,.,,,,.,,.,,,..,,..,,...,...,...,..,,,,,,,,,,.,.,
-#7JPKK4PA5TDOX2IAX3K6NX5IMDQL3TAGWFF322HVOV67BWV4RF2I5R4ZN32H6A76WWIN3IDUUPLVI
-#\\\|N4LGYMYY2OHXCSTZXRPJMLSYKFZ3RSDJOLB4PYBIVEXOJXFIZ3Z \ / AMOS7 \ YOURUM ::
-#\[7]RAMR6BMQKSMPUPRTIHPNHXKPSOGIOGPT4SKOQ7CWC5LKRQDS2MDY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,..,,..,,,.,,.,,,.,.,,,,,...,..,,...,...,,,,,,..,,,,,,,,,...,
+#WKAKU6DALWSQWUMM473PU2HRRWQYB4YVKSIOOK6BJKUW4N76YE5I3OVNRUADOJBZ7R7K2TLEZ4M7O
+#\\\|YNQKOGHPHGUPAMXIDZ7GUFM57ZMQYLWCXF3HSZ2VWMMDQC2PMCA \ / AMOS7 \ YOURUM ::
+#\[7]4IHJFIGT7SIADJA5YUI32LHRO2T5QMKCD534M5WGKKTUIEU2ESDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -101,8 +101,8 @@ touch must not be modified.
   the primitive to close it was built and live-verified in the same session as this task file,
   for a different (SHM) pilot case
 
-#,,,.,.,,,,.,,,.,,,,.,,,,,,,.,,,.,,,,,,,,,.,,,..,,...,...,.,,,,,,,,..,,,,,.,.,
-#62GNNDGNJE4AUQLZ2LABVUTM4F2K4CVLQU4GUGTQUQJOOC7UO7PWPVECMA6XL6NPXT5FZV75D2HCE
-#\\\|QGGO5PDZ5WY7GIRZYBFIS4AKIAJUAJNT2ZCVD2JRLVOJ4L2FXGV \ / AMOS7 \ YOURUM ::
-#\[7]7POKLBZCLRF2HOV4TUNPCKKN62VUUPKRDGRFTIFSLKD4EHJAIGCQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,,,.,...,,,,,,,,,,..,...,,..,..,,...,..,,...,.,,,..,,,,.,,..,
+#I6TKFCJXGK34GXDA43ED6EPVEGBBVNO4HD7DU4C6LG6EARLLPKGXJG7UD3IO3OCOEGE7MUFNL24GW
+#\\\|5M6KK4RFOHJ6INSXWB7DFKQ75QPQBHT5EMNDKEKJIV55UHNUGNT \ / AMOS7 \ YOURUM ::
+#\[7]PEN4LJ236ZJTWMX5YKREX2SJAWDJM6UDVWXEF3OSSI3UK7MSREDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

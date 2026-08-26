@@ -582,8 +582,8 @@ We've documented:
 **Last Updated**: 2026-01-25
 **Status**: All three layers documented, Layer 1 ready for testing, Layer 2 ready for specification
 
-#,,.,,.,,,...,,,,,,,.,.,.,.,.,...,.,.,.,.,,,,,..,,...,...,,,,,..,,...,..,,...,
-#6WIB2IUFJC7QR4GMWT2INKXZMI2HBTOLXOLLQIYW44K2B7HOZYFP5PLHZ77MTIKRBHQRPB5WURYTG
-#\\\|DPCSEGQ7XV5OSLS2F7LFLRZHBFKL5JCVKOBP2OJW2TRQPJFHR7N \ / AMOS7 \ YOURUM ::
-#\[7]GSIVNPSUAMX6CCQIN6SZFT7NB5B2A5HQBZXCSZBTTGDWYTYE6KAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,..,,,.,,.,.,,,.,,.,,,..,,.,,..,,...,...,..,,...,..,,..,,..,,
+#CYO3UEU3XN4PSJN6KWM23ZOBJAVRTLCXTHJ4CVGYBT6B33P47KX3ZSP7DLD425T6Y67TLZT6ISCTU
+#\\\|4F2CJ7NTL7BFZ6SQDHEL7LZUQWON5JI5QHAB4STSZTD3BBQPJLA \ / AMOS7 \ YOURUM ::
+#\[7]PFTS5XOJRKDNSXK7P5H5YSRCOGRGSMEY4YRRHYXDLZL4L56WLYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

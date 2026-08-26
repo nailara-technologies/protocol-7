@@ -100,8 +100,8 @@ Once Phase 6 validates locally:
 - Monitor: `p7c list sessions` for active connections
 - Key location: `~/.n/user-keys/remote.*.public`
 
-#,,,.,,..,.,.,,,.,,,,,.,,,,..,,.,,,,.,...,,..,..,,...,...,.,.,.,,,,,.,,,.,,,.,
-#MBI3CVSXAUVEIVFVSDSQRUDSGH7SYKUKYG6C7LNICXFK56JSN7KK3F5K3VRCVY3TANCFLCZ7ELNAY
-#\\\|IYWUFOYV65XB5G3IBDZ3K2SB2S27QXUUAZ46HCA75JHHIWOEQ3X \ / AMOS7 \ YOURUM ::
-#\[7]OA4D4F4NASZJURSPIZBHYAIW6IYGWT3EOMQRSVZHUGM4S2L6QADI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,,,,,.,..,,,.,,.,.,..,,..,,.,,,..,,...,...,...,.,.,,,.,,..,,..,
+#R2S46J5SQ3ZZIWQMAWUSOKHODPDU4243TQ6DZWIPMKDGNF5Y7LISWDRCAD5DLO5WJAWPVKII6PLOG
+#\\\|WUNRXYAFRC7R6NYEZBVIMP4E74V4LZLTB6SZ2EEQ5TIXDEY6YDW \ / AMOS7 \ YOURUM ::
+#\[7]RZODTCBD3ZSL5JRZB5WZKWBNRBRINGPVZAMMY37J3YUOGPPHNAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

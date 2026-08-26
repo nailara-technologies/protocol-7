@@ -54,8 +54,8 @@ format of `claude-design-seed.yaml`.
 
 do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures` when done.
 
-#,,..,.,,,,.,,..,,.,,,,,.,.,,,,.,,.,,,,.,,...,..,,...,...,...,.,.,..,,,,,,.,,,
-#5JRD3G75MYQHXQQRTM3WKL76XKFGTHSOK6QUUJW32ZPH5TP4CQ2ZYTPRBA7SH4UYDLTYYVBVL4GNG
-#\\\|WKMBNYPZPCVIFDGW4JLIHQX7P2AK6P4WIYVYM3DDNFWWGCFHALH \ / AMOS7 \ YOURUM ::
-#\[7]US5U7PTO5CEKEBDEYS2ZX2LOP3CBMX54GFA3CP6DD5GW6ELCZ2DI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,,,.,,,.,,.,,,,,,,,,,.,.,,.,,..,,...,...,,..,,,.,,.,,,,.,.,,,
+#BSHAPDQINMB33PC7XX6Q6H357IQLLPDMBXGWLAOIIKKEXJMGNHQA6MGERYJYXGXA3CPEFL5EXRRXW
+#\\\|FPY43XPVXBPNWB6PBFSDPPP6VOH47RRDZWDQ45P45UZQTWHT4OR \ / AMOS7 \ YOURUM ::
+#\[7]B66GZYV7FB2PUBRU46ZYMHCIBTRM47Y2Y563OFY7GYCJWU32QSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

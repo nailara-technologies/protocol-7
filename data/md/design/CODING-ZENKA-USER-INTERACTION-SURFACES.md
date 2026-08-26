@@ -204,8 +204,8 @@ design only. nothing in this document has been implemented. next concrete steps,
    timer, inotify watcher, plugin-type scaffolding, GTK window-open path —
    details in `data/yaml/coding-tasks/amos-term-interaction-plugin.yaml` ]
 
-#,,,,,..,,.,,,...,..,,,,,,..,,.,.,.,.,..,,...,..,,...,...,.,.,.,,,,,.,,,.,.,,,
-#H7PHMJ4ZCG4YXI2B2U6GKOFVGEPJTTP7Y2MAVFJ63CKWTYXGPVY5MYPE4BYRMJFVPBBSM4X7UNBGA
-#\\\|O7Z3JK4AZMXX7KM5G3TSGXR2AIHIOZXLB4VFBJTJ7OOSBBL3ACN \ / AMOS7 \ YOURUM ::
-#\[7]3UHHQ3F44YJ3CMLRRU72YNC4R53JMN3AP544WHTCWT6MHVUUH6DQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,.,.,.,,,,,.,,,...,..,,,.,,,..,..,,...,...,.,.,,,,,...,..,,,,.,
+#TEFVMPGFZ63CPG4KRGADSWAH47WSP5ERDCQP3MXIKZ3GZ4VNGGJQGS2FYKWDUHXA44ET5BQ62X5ZS
+#\\\|PSQTLIXYQOYL2YWQP757HLBMCJKMOV5FU3XVD5ZNU5F7VGRPAGP \ / AMOS7 \ YOURUM ::
+#\[7]XGWPL3TAKXDNNNGIW3E7KRVUJ4SCC44QGTYYKQKGC6EJJBC5BOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

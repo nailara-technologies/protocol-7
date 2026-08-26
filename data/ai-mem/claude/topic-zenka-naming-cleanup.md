@@ -34,8 +34,8 @@ add a target to `%targets` (`..,` suffix = recursive) for doc/task dirs,
 then `ncode -ai-friendly -confirm replace <target> <old> <new>`. user
 handles the src/cfg/module rename pass themselves typically.
 
-#,,,,,..,,...,.,.,,.,,...,.,,,.,,,,.,,.,.,...,..,,...,..,,,.,,,,,,..,,..,,,.,,
-#5ESX45Z5UMR7A33WROAJIKD424NM7EYZ6WJ2D2FTEYIZOALWTXMZ66PU7FC2AJSZJXPDG52TG3FSW
-#\\\|SDFEX7BFJIA5RJ3FB25JILSUG2S6R4JV5SRBFJTN6WAYLN5D52F \ / AMOS7 \ YOURUM ::
-#\[7]FWSVZO5N6RD77S7HMA3W536UWYMO5CML5X6VBS6ECOHZBJKIMWBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,,,,,,..,,,.,...,,,,,.,,,.,,,..,,...,...,.,.,,..,..,,,.,,,.,,
+#UWJGJ63X5DO2V5MQDEQF7FEPJ3ITVDWCY73A4WWS6RVU2AGPOVBNTC2DJ7TDXSIJ3PL7YWQZVVILE
+#\\\|4MADMJOUTSF4ST6IXEGLDG674CECNEPHTL7QUDDGVQOMAON5HWI \ / AMOS7 \ YOURUM ::
+#\[7]WQH3WRBYO7F6NH2MBW5IC7NZRM5OVBKHMUJLOB5NIU7D7UCDEIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

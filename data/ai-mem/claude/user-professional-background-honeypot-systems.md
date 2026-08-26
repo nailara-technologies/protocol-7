@@ -22,8 +22,8 @@ professional judgment about avoiding known failure modes (the
 fail2ban-self-lockout example they gave), not caution from
 unfamiliarity.
 
-#,,,,,.,.,,,.,.,,,,..,,..,..,,,,,,...,,.,,,,.,..,,...,...,.,,,,.,,..,,,..,,.,,
-#XOCYODIOPBAATE6K7HNE2UJMUREUCWWL6M26RTBXILISB6AQZSF5V6Y4Q6KWLX5ZPVT7VFOUXXEOQ
-#\\\|QHKCL52FX34GOC5ARZWF7IU6UAXFO2AQEMUWOQUA7TYD6T4OV2G \ / AMOS7 \ YOURUM ::
-#\[7]KK3NEMNFGTSCALMZ7CKNK4ALGMGEAAMOAZEMRLJ6Q5QT6STVAYDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,..,,,..,..,,,,,,...,.,,,,,,,,..,..,,...,..,,...,.,.,,..,...,..,,
+#BNT6TONN4HKMLIXT3KMOXYIYS7XID3ECK2H234YDKB2CIESMNUQTV6HS6ZXSYGLIT5FQ2B3QLUOTW
+#\\\|7L2FXTGN33WQOZJ6YCTCGFOWJWCS3MSQ2WJI44K2PNT3VYG7WKW \ / AMOS7 \ YOURUM ::
+#\[7]WUVQ4QSJZYAPD7DHHIXNL4BZIJE3HQSSUCWQXY3ULEOKMLN7WMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

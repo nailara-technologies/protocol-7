@@ -73,8 +73,8 @@ plan-9 not found in set-up" — consistent with this memory's claim that
 time, now confirmed for the "brand new file didn't exist before" case
 too, not just "existing file's value changed."
 
-#,,,,,,..,,,.,...,,..,.,.,,,.,,,,,,,.,...,.,.,..,,...,...,,,.,,..,,..,..,,,..,
-#J43J7YPAX3OJX54ALJWTPMXH2IAQXRIJAZQ6ZWOIIHFTKURR3BNP54JQRSRSRT7QFH5WIVLLCYSZS
-#\\\|SWLO2RNH7WL77PFXHRS4RQ4563NLXXNAASVA7KCWTVR2AXCDUNC \ / AMOS7 \ YOURUM ::
-#\[7]ZJQSZYZXTTT3VLANRBCF4762HOBMWV4RD7QI74JY7PLZGUOPFQCY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,..,,.,.,,,.,.,.,,..,,,.,..,,..,,...,...,,,,,,,,,,..,,,,,,,,,
+#TAZMU7Q75NSHE5RY65THPMM5H2P2SCKOT5QKUYIQDMDXOWEK7SD66LEUK46YE6MLCVKMWGZIA3I7U
+#\\\|VXLCN5AQQDVDKOB6TOT4VQLBRWJU5ZRGMZSCFP5GG7WWWSMYSOH \ / AMOS7 \ YOURUM ::
+#\[7]D67HZFC4LDN2ZO76JPHCE3NESYTUP4S7QWQIOFI2IJ2ZRRPSHGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

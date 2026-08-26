@@ -149,8 +149,8 @@ when done.
 ## - NOT done by agent: bin/Protocol-7 sourcecode update-signatures
 ##   [ requires interactive key decryption password ], no git commit
 
-#,,,,,,,,,,,.,.,.,..,,,..,.,.,,..,,,,,,,.,,,.,..,,...,...,..,,,,.,,.,,,,,,,,,,
-#YU4O6SDAOSYAYWR662DSINEOR6ABQEMB7M5SYZOOJ32NNFPGGY3XZVY2GTCL4ZC45WD64574MVAKS
-#\\\|O37I3GGQQXBJRQHYKAOOB3CCAKWKR7QIQNYIJNJS2JBFHEYTCJC \ / AMOS7 \ YOURUM ::
-#\[7]IJGQ5276M7DYL6ZKFMUFYEEMTFO4C3YCTCVO7YLGLZ2HGDDKQCBQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,,,...,..,,.,,,.,,,..,,..,,..,,..,,...,..,,...,...,,,.,,.,,...,
+#SSLXJBL25MWX2TXGTLA22TWOZ6FOWFWO36APLRZGLNUZHEIK2EA2FWKQCZNUAOY6IDZZ7CQ556PQC
+#\\\|YYJHM4WNYLOLQE3HMECTBXHSIPBY7FBRBXCZYLWK4SEP5FSGKWR \ / AMOS7 \ YOURUM ::
+#\[7]YQU74NTKBZJAZWQNYD6M5R543O5QGFTX5WVF7V5GT5LRVZOBQIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

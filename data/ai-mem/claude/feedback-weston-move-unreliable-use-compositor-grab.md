@@ -204,8 +204,8 @@ per-client X11 grab:
 
 [[topic-tile-window-place-hybrid-desktop]] · [[topic-gtk-wsl-window-positioning]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,,.,...,,,,,,..,,..,.,,,,..,...,,,,,...,,,,,..,,...,...,...,.,,,,,.,.,,,..,,
-#J3HPHLTCFGGVQIJM7LTYKQFGZE36GIN53FCA3O2QHOISYGHMZBMRXAJTCAYMEW7JQ5ERCV53LHEPM
-#\\\|6ILKIU77XYFMAMMNXXMXKN5HYGX27TIRY3EUCCQEPZTLI7EWGL7 \ / AMOS7 \ YOURUM ::
-#\[7]IIJLOAHDYIVEC4RQH7VSMILOESVB3GJ5JRCYPVUSJ67AQQT7JQDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,,,..,,,.,,...,,.,,,.,,.,.,,,.,..,,...,...,.,.,..,,..,,.,.,,,.,
+#QALTA4SGET2YKJPIJAUCZ3LQO7WHCY2U45H5ZV6JTOXRTJ4NPRD2HXMEADIWCV7OTTTF3DWKPDSTQ
+#\\\|3YQ2ZZEN6QCZ4TAJR52UUOEKHUJDOI57RQVTGHYRCQCRWTVU3L7 \ / AMOS7 \ YOURUM ::
+#\[7]HNM4LQPTGRNQMR7TZGDU4YI4JV3ZRPBDLNRZDH54OZMBHT6HUIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

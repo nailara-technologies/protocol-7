@@ -91,8 +91,8 @@ fixes land here).
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,,.,,,.,...,.,.,...,,,.,...,.,.,.,.,,.,,,.,,..,,...,...,,.,,.,,,,.,,,,.,..,,
-#I4KYLQOZOS7VPURGF2VDFJM7JHTHBEDR3F6IYDXBRP2V3CBWNWP4AEC5MDMHVY6WOUHIYDJG62CGM
-#\\\|Y3VDC65YZH44RNKP44OXVUBW6IGO3KPMKI32IYHWGUK6M6T5HSD \ / AMOS7 \ YOURUM ::
-#\[7]IBIUZOTWXQJEDGMJ3A6E3AJ55B6MTTTNWDUQEZ3JIWEZ4VRDE6AI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,..,,...,,..,..,,..,,,,,,..,,.,.,..,,...,...,...,,.,,,.,,..,,..,,
+#XROZQQXBC5YDLUCESVGVADRZ5CLR6TQN74LR54CJCHMF53ZB7GKZOHAFSBGYC6I36JEKP5X6RLUVY
+#\\\|RD2KDCM5QCK2T6P243YTKWNR2G4HN6DBJCPCJ6KX2W4QEF3UI4L \ / AMOS7 \ YOURUM ::
+#\[7]74XXQUE2ZBE7UIT3GAD7APS4BQVHE637DT7SOP4COMY5A4WTKCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

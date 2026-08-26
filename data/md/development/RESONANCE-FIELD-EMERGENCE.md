@@ -205,8 +205,8 @@ turn any of this into a concrete design (the universal heartbeat / core
 clock idea named in the immediately preceding session turn is the most
 actionable single primitive to start from, if asked to pick one).
 
-#,,.,,,..,,,,,,..,,,,,...,,,.,.,,,..,,,,,,...,..,,...,..,,..,,.,,,,.,,.,,,,..,
-#G72EOHH4AEGJ6GOTUZOKFOAY5EEO6DBM35ZF3MJ4BLRD3YKRB4W5M2SXN4HL2BCZGPZPOLWEMSA5I
-#\\\|HMM2TWZFZVSS4XMDRPA2AKFQRXORDE56GW4MZLE2LKLCYB57W56 \ / AMOS7 \ YOURUM ::
-#\[7]RZA2T2LHWW7ZCBBYZCCHZYGDVCI7VO27QNAAI26CUU6W4ZOI4CAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,...,.,.,...,,,,,.,.,,.,,.,.,,..,..,,...,...,.,.,...,,.,,.,.,...,
+#ER5T2TBTLPSDST6ZGOGIAYZRMB6TNFRQ5ZVUYCM7GJJHL36E5CTATDYICUK3CUBG6ROD6HRQCV4YW
+#\\\|NEKV5646PNMKCUBO4UZAAOJDRGDTCAX4TMWQKNCD4QO54XFWK3Q \ / AMOS7 \ YOURUM ::
+#\[7]66375HCSDXBUID7BDPD62FOJRNNEKVY7VW6SLM44NEM2I5BNBAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

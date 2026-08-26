@@ -88,8 +88,8 @@ under `v7.reload init` on a live process — which is precisely the
 scenario that produced the original crash in (2), so that remains the
 discriminating test if anything in this cluster misbehaves later.
 
-#,,..,,.,,,,.,.,.,,..,,,,,.,.,...,,,.,...,.,,,..,,...,...,...,...,.,.,,..,,,.,
-#M4ZJ6ERXMZIRN7UTT4N6HKXDVDVBH2MSXJPVTG4W6WFITKB5SDXLAROTVJJRD6YRV2ONGYENUVOI2
-#\\\|QJESNGMVYOQTZKUAP3RCGM7TD42LOMMJWUPKOPEZCXBEAERR2NR \ / AMOS7 \ YOURUM ::
-#\[7]VYRE2GOQ44ZQ3NIRYDZLOFE67I2WRMQH6VW64IA4H4GGFYLIDSBY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,,,,,,,,,,..,,,,,..,,,.,,.,,,..,,...,...,...,...,,,.,.,.,.,,,
+#PHXD3RBTREFHRA4HHWRPJ4R4YO6JRBJE2TBEFCVUTYUY5ESJK4P74VKQ5XFIQF7XYVZXUKJ7A3ZOG
+#\\\|AV7Y3A6L573OQ7CFTIBN4JHBEPZCGMR3BHF7TKLBM56TYB3HKWE \ / AMOS7 \ YOURUM ::
+#\[7]7IV5Z6ICXEXJCTPLKZHGOXFMNE67YEV5LPPDPAZTMD4UTW5E3ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -146,8 +146,8 @@ output: data/tasks/research-findings/loves-it-tree.md
 
 new files in data/tasks/research-findings/ — leave clean, no stub footer.
 
-#,,,.,..,,,,,,.,.,..,,.,,,.,.,.,.,..,,.,,,...,..,,...,...,..,,,..,,.,,...,..,,
-#ZTX3SGHI2VSXE7GVGEK6TA4RB5YOXRBDKU36ZFWBAAXEUVNLHBF5XANGBD7VRTVP3CXVORA4KGEPO
-#\\\|ZQPLLTGSU5VJBD5AYEGWM5B3SU3CJVFANEMIPXLBLMWF6M7K2FJ \ / AMOS7 \ YOURUM ::
-#\[7]NADMHH26OEYN5PF763EOLVY3F7EFBXTM4WG44NXNJGYNUK3RPEAI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,.,,..,,.,,,,,.,,..,.,.,.,,,...,..,,...,..,,...,,..,,,,,,,.,,..,
+#QDCV3EKQYFGKSRPRHSEOPNC6OCS5UXP7MA4GH33UE7D2OAP2EBGFSDUHRROWF2AGIVDWKMOARC5KK
+#\\\|XXKQDYYAOXX6GKKNJ4FKJDSRRYMVI37CCZBNPAFKL63L75MHEFA \ / AMOS7 \ YOURUM ::
+#\[7]QQNUHPPWOY5D3IFBA53HPD5A7NE7I57CK52KRPZEZVBQ5UISYEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

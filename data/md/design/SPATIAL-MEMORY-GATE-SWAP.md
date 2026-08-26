@@ -210,8 +210,8 @@ applications:
   the network's spatial knowledge is the interior that every zenka benefits
   from contributing to; the shared-interest loop is the omnidirectional pull
 
-#,,,.,,,,,,,,,.,.,...,...,,..,,,,,..,,.,.,,.,,..,,...,...,,,.,,,,,.,,,...,...,
-#AVIZQIQKR2HB4MRGPRZL4OONPALJQLSWROTHKTFAKS6SXO5YU5TWCJDN6ONIF35QTICUWEQAW2USC
-#\\\|KPVHX6CIO4TNTU55JROAV72CNCRHYYSGSUDHCF6IIN5EXMXRDKH \ / AMOS7 \ YOURUM ::
-#\[7]SHTJN3KMMJJSHYZL3I665OJKHL752NS5L5JERNFQAKACYNVFKOBA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,..,,,,.,...,,..,.,,,..,,..,,..,,..,,...,...,,..,,,.,,..,.,.,,.,,
+#DGWBHJNWUZN7NJ4UNAH3Q4DVRQ5EO4TUPE34HTR6TYKNV7PENH6F3STDV7GJOWER6D6UN4MKSF3KE
+#\\\|APZ77P6KDOWFAO55Y6EQ2M3UZVHORBBJASNHAWBX64YWAENNHMN \ / AMOS7 \ YOURUM ::
+#\[7]NW2ZYK4RLR5XA7A3KVRAHY5MVRLEU7TLG222J3G5VFOB75UVUGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

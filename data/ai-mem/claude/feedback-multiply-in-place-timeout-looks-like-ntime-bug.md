@@ -35,8 +35,8 @@ delay IS intentionally designed to grow by a 1.2x factor on each
 successive restart attempt (exponential backoff). A growing
 `restart_delay` in logs is working as designed, not this bug.
 
-#,,,.,,,.,,,,,...,...,,,,,...,,,.,..,,.,,,.,.,..,,...,...,,,,,..,,,.,,.,.,,..,
-#EUF6HEPSOJW5FFTLOYYJKEC5DEPQQTCL5PG5X3LNVHQR3X2U7LV66EHFMLKYJ3AFTUPYQAC7V5EAG
-#\\\|XKYJBYTJJVZW4B54VT7YCEY4DNJ47LBRZZK6VQ6EBU75K5SKATC \ / AMOS7 \ YOURUM ::
-#\[7]XBZJKMBAKRAJ2EULN2EZNCNOJS3HCYEUCT7ZY6SWCXTTNB4U34AI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,..,.,.,,,,,,,.,,,.,,,.,..,,.,,,..,,...,...,.,,,,,,,,,,,,.,,,,.,
+#IIHK2IRKBXZSIRYQVDQGDCFCCTQS4GZA73OCRY24ROOLQ4ZZDD2RAO3GYGEMDJ56W6CEBYTD5TXV2
+#\\\|P6ICU2K5SC76XE2SPIQ7HLIGXAWLIYMOG72SPP7KTDF7ULGDJXL \ / AMOS7 \ YOURUM ::
+#\[7]AYUFP7WDR6XFXTIB73AOTT3GD4L4IKHP3Q3N4VZC5MEBCKWSPKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

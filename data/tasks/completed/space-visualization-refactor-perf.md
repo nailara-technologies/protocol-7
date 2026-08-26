@@ -83,8 +83,8 @@ made and their expected impact, any bugs found/fixed (separately called
 out), and whether visual verification was possible. No signing, staging,
 or commit commands — the human handles that.
 
-#,,.,,..,,.,,,,.,,.,,,,..,,,.,.,.,..,,.,.,,..,..,,...,...,,..,,..,,,,,.,,,,,.,
-#CVVBOBLAZNWCGE6MGBF4XTOYHMIPLT4Y2E667GOZ3FNJGHXNPRXHTAWHK5LO4CJXJ3GBTL2OR4RDM
-#\\\|XER22VC4AMM5O4XMAWV2UF3G3T2LTJOSV22FYAMM2QB3IAJLLKJ \ / AMOS7 \ YOURUM ::
-#\[7]2EBDALOHPGUGI336IY3YGDPSCUTW3DGSILAP2RWGWQV6RLPFYODI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,...,,.,,,,,,,,.,.,,,,,.,,,.,..,,...,...,..,,...,.,.,.,.,,,,,
+#4TZYUH3LDUWA4AHPR3XKB7VJPLTYU2SGKF6UHZHP6JO46XWM5PSYAYHD77VPRUBBXDYBWNSSTQHNK
+#\\\|AJYBZJUMBKA6ALIGEIQEOIWXT6RLRFDSRIQXUI44Y227FYXEP7D \ / AMOS7 \ YOURUM ::
+#\[7]IZZBCXY34YOCPBCBFTBHPGZVVZPQJPPKF4VZGAKWOTDAINQFTQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

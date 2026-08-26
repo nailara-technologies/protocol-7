@@ -71,8 +71,8 @@ complete [ test import deleted after — claude triage: all droppable ].
 - coding zenka restart to register the sweep timers.
 - commit [ files staged for review ].
 
-#,,..,,,,,.,.,..,,,..,..,,,.,,...,,.,,.,.,,.,,..,,...,...,.,.,..,,,..,,.,,.,,,
-#43HK5PARMPC3DGHO6GJIEX7GWH6DQPTPRUCOKTYENJ5W4CXEMXFVIOKGPKD5FHT4COLN7GFMNKMS4
-#\\\|MKKBSYF2NH3WJTLIAKQ7U4IT6N56CSDT4RCIRO3W6YPQ7625G56 \ / AMOS7 \ YOURUM ::
-#\[7]SNBWMLVMMMROFQO6OVFHAORKNGDTPPM5ZIDDUFR4XHDWQDMG5ABY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,.,,,..,,,.,,,,,,..,.,.,..,,,..,..,,...,...,..,,,..,...,,,,,..,,
+#FUPTFRTL233MYNFXMWLZUTPY7XPBR56WNTH6L3MEZE5SEVPJQDQH5FWLF5UMVDZQZJHFCVNWTPC72
+#\\\|QYNZ233YBLHBARSHMRTXONV3MWPDXMOHW3JTLLDMAHF2V5IRBXY \ / AMOS7 \ YOURUM ::
+#\[7]IMHJVT4IUYOTOBGESZTDREHFOGST5I7M7CZ6GHWPOOUXQEBAE4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

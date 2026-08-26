@@ -180,8 +180,8 @@ p7c test-strm 50
 - Non-STRM responses work normally even with locking enabled
 - Locking provides strict safety for automated use cases
 
-#,,,.,,,,,...,.,.,.,.,..,,,,,,.,.,...,.,.,,..,..,,...,...,.,,,.,,,,..,..,,,,,,
-#YWQMCXWBGCCLHQDOP5RZGYHMCUMM2DW7QSBE6GPSWKIAZ6GUAL5JKTDLAMW4R7UDZAUVJKZD2GPHO
-#\\\|7A3L2J3ABHQVYWBGCKJ3ELLC4BVAXPYKJICI5S4W7GPXPP2DBX4 \ / AMOS7 \ YOURUM ::
-#\[7]62YH6Y3VWGGDBURKWTL6MUGF6LJ4PVJLZLJ233IF7FONECQ7CIBY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,..,,.,,..,,,.,,,.,,.,.,...,,,.,..,,...,...,..,,,,.,,,,,.,.,.,.,
+#BSGOZPG33HJ6DEP4WH2RZRCIDKGWY255665CSSHPQB42COIAEDF7EMJJKE4ICO6V4ALJRZ5UAYBYK
+#\\\|XFYIIUEQUWFOOOJJLK2RGLG76SX6T2L5BIJFVGNUETJLM3DUKML \ / AMOS7 \ YOURUM ::
+#\[7]7MC7YSJWUAEDANS6ILEXTIPB3QEVE5JGR6TVRW6PVYSAE2EDYIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

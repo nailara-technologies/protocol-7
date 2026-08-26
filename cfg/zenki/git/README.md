@@ -132,8 +132,8 @@ Blacklight neon aesthetic:
 - [bin/admin/vc_commit](../../../bin/admin/vc_commit) - Interactive commit tool
 - [bin/dev/update-version](../../../bin/dev/update-version) - Version management
 
-#,,.,,..,,..,,...,,.,,.,,,..,,,,,,,,.,,,,,,,,,..,,...,...,.,.,,,.,...,...,,,,,
-#QBGVMPP2DYMC2HST3PO22UPO4BF7JBIMM7VYLEN2YII5G6MUMQYTDXJIZSJT274YUB3FATMJBSEUI
-#\\\|VQIAXHT6THFTLHFZSSCPNMKZBFZY4AJHHCZ2IKHK3YLGTSJFC3R \ / AMOS7 \ YOURUM ::
-#\[7]6J7TGH62RIBUSD7CRKMC6SZR2FROXNY4UCNK2VERBZYZIBQJMOBA 7  DATA SIGNATURE ::
+#,,..,,..,..,,..,,.,,,,,.,,.,,,..,,,,,.,,,,,,,..,,...,.,.,.,,,,,,,,.,,,.,,.,,,
+#MLLKLDLCOUZNTJ3YFTZGO32I7YQ5DHXJDSKTFLYJFV2MMFPZJYINDK2SWGZGMZ5DMGMNTA5OQCA5U
+#\\\|T24RDU4445W72RI7ESLVTFZCVFY3PF2SZJ7A3T6Z5WXZTLFIZXT \ / AMOS7 \ YOURUM ::
+#\[7]AJPD6KE6ZI6GA6UMX7A2H2E67DH5QYK2UUVHUAV656OJNLUDLKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

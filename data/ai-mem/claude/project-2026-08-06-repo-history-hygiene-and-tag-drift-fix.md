@@ -35,8 +35,8 @@ rewording). And its post-rewrite `_record_metadata` step can throw an
 empirically (`git log --all -S`/`-i --grep` sweeps + `git fsck`) rather
 than trusting the exit code.
 
-#,,,,,,,.,,.,,,,,,..,,,..,.,.,.,,,,..,,..,.,,,.,.,...,...,..,,...,,..,...,...,
-#NKSHJYCSOFJNXYYC6MM73TNADL4QBV4HYAEJDF7HM2CKPO6C7ENCOPLHDRFYTJ4Y7IFTPGZJB3HSW
-#\\\|DK5BLC4F5NBNQSLWI73OVFUBAQJEHV3OXVOFNDLCRXBVTEEO3O2 \ / AMOS7 \ YOURUM ::
-#\[7]4A6F7ULYJBH6KZWMUG77LQSYZM7T426MHBTKKUEVQCIFF6FDPKAQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,..,,..,,.,.,,,,,.,.,,.,,,..,.,.,...,...,...,,..,,..,,,.,,,.,
+#BZOLJVVDEWSCSJORV7OAQ2PXN7N5TWMLCORNT7XG3XOKS7MSMRSPDK6J4JIDY6HP2AZQECD4QMG7S
+#\\\|MNSYFSFONCF7K2KPRMV6DMQNOPAXXRRPVN265K3IFBHMQ6NDCQF \ / AMOS7 \ YOURUM ::
+#\[7]CXY53ITKVHWKVSO74JZFTQAYHYD4GIMKBXRVQJ2SO7RW4C7JPSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

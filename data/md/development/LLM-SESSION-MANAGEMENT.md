@@ -323,8 +323,8 @@ push back to light mode (document.hidden = true, JS throttled) when done.
 the Amiga screen-pull as multi-model coordination metaphor — each model
 is a screen, the network is the desktop `[:<`
 
-#,,,,,...,,..,.,,,,,.,,..,,,.,.,.,,..,.,.,,.,,..,,...,..,,...,...,,,,,.,,,.,,,
-#7JIVT2FYO4TO65CNZLOVCVDJV7GHD4SZ7UH6CZNR3TNG4MO5XUQLOXEEGH6PUVTGTAFZLGZLASZF6
-#\\\|BOV76HUY7FVWZ6WOLMYG4YFB4RPPHITKGKIS6QER667LKXDZ2VU \ / AMOS7 \ YOURUM ::
-#\[7]5RY7KP2YTEIDI2ZCUM2SSF25UDPEBXTOOKUU5MAKT7BGMZPVGCBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,,,,,.,,,.,..,,,,,,,,.,,,,,,,.,..,,...,..,,..,,,..,,,,,.,,,,,.,
+#H3LW44NKL54VPVI3FCG5CBH3ID2JX4YSLD2CPE7VF6ZYL2LIFXOJZO2UKVOOA2O6UQT2YN2QYD7IW
+#\\\|TCXL73YBROEYMLJ6VBQGTWY5C2V3X3BIFW663TC4GZZQ2NI65I3 \ / AMOS7 \ YOURUM ::
+#\[7]3NV7NGGBWM76YQJM4YCJEDYYRA5JW3TLY3D257I7JQ76GXPSBSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

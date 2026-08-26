@@ -274,8 +274,8 @@ it. lowercase comments, `[ word ]` annotations. no emoji.
 
 #,,..,...,,,..,...,,,..,,,,..,..,,.,,,,..,,..,..,,...,...,...,..,,...,,,.,...,
 
-#,,,.,..,,.,,,,,.,,.,,,,,,,,.,.,.,..,,,..,,,.,..,,...,...,.,,,,,.,,,.,,,,,.,,,
-#KWHDSRDOPFS2TNWVP65BY3OZSPCWLQNKGFUVZTIKKZOJFA3NODE56NSLUNC25IG4HBL7UUV24ILGY
-#\\\|IL5VSZ7QBPTTPA5JVM2IUS3RGT3TP7DGFPMY6XLH5TOOWE4DB4X \ / AMOS7 \ YOURUM ::
-#\[7]ZHH7CDMAXBLPFXWEDCE35IJFLJFYN4WIITQPGC4Q6J6DLW2GMKCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,,..,.,,,,.,,...,,..,,,,,,,,,..,,...,...,...,.,.,.,,,,.,,..,,
+#PS4RTIKWA5AJ5MNQ6CZKS7TEXKFDSHJXKZ5EVTVGSNQJO5GV77PM5P6JE2X6JCNRCRSJUKZ5QY5UE
+#\\\|5JLF5VKF6XUZINJQIYGPIWKYMAFFOAPP33JK4PY2J37D7Q5U2YA \ / AMOS7 \ YOURUM ::
+#\[7]65QPROYBSHHYKKAAU3DLNWGBB4EEKGQLVTCY53WSPYK3JZJWA4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

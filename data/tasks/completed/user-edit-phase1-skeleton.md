@@ -90,8 +90,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` (whichever fits) if you hit anything non-obvious
 along the way — same as any other task.
 
-#,,,.,..,,,..,.,.,,.,,.,,,.,.,...,,..,,,.,.,,,..,,...,..,,..,,.,.,.,,,,..,,.,,
-#LCPJAJJWX3DMWC6PMP7ONGHAJLTQNPAIUIPWD7BZ4DGJJDYGFKEDCKNI3M2SYHQK63VIQL6EXFSEE
-#\\\|O6ZFWDLFRSQCWAJMOMWFOKN7CNLDH7GPD4UTL4VRSQEPV6DX4XH \ / AMOS7 \ YOURUM ::
-#\[7]6TTD4BOSEV36UGGFBLQTNWORQRBQLEWBNG6DG32JSTJW2SFMWABA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,,.,,,,,,.,,.,,,..,,,,,,,..,..,,...,..,,.,.,.,,,,,.,,..,...,
+#SJBHELBOY7BTML5DRYUDVRZYXCGU56XZETVVE4BP7NZWTOUB7STLJGEVHURFA5FWEI5VEMZZDDJKQ
+#\\\|6UYP4YDWZW4ONMYKI7ACILNUXS6XS3RMHYIBZ472MRZ4XICX2FU \ / AMOS7 \ YOURUM ::
+#\[7]S52G4BJEOT3LMSW7L7CLL4ZFW765XRC4BWPIVE32UQXUF6X6VOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

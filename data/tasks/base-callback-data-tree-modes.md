@@ -147,8 +147,8 @@ guarded by `$reply->{'mode'} ne 'size'` check — ensure this still works).
 isolated module edit — no dependencies on other tasks.
 parallel-safe with all space-engine-*.md and branch-calc-*.md tasks.
 
-#,,,,,,,.,,,,,,,,,,,.,,,.,..,,,,.,..,,,,.,..,,..,,...,...,.,,,,.,,,,,,,,,,.,,,
-#WDFKQME6TBDINYGLDKFOZ2KOMLU2HX6Q3X2XWGM5MEIKQ72K2CHRDA7TDQGRPIZJYJCYC7V4AO7F2
-#\\\|IKZMUAUQPY2PRVKIBIRAMQ656F36ZEMNDJJBNJ7FFVELAFWGEC7 \ / AMOS7 \ YOURUM ::
-#\[7]6CJ3SZ44XSFA4I7IKCHTD7ZSDAO66ZAX4Q6MEZYWK6G5EOQLCOCA 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,,..,.,.,,..,,..,..,,.,.,,,.,..,,...,..,,.,.,,,,,.,.,.,,,.,,,
+#VBDFJF5N3ATWMKQOCU2ACV3XMPUYLKA6YYRNRBKOTKBEAX6SSSTPSMX5JC4MD63MP56QRTTFU5RXE
+#\\\|LEOSMMEEUTHMC2SBNTWWMXH3MSVU35J22NIJTPCGPLRMUKVLEJ2 \ / AMOS7 \ YOURUM ::
+#\[7]ZI5IBNIGRBSE3LUZMRGFNQ2O3VDEHMDFMTAO4B3HTZHBMHKQPKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

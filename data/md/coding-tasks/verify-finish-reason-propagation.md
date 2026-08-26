@@ -78,8 +78,8 @@ Propagation already functional. Integration verified across all active backends.
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,,,,,.,,.,,...,.,,,,,.,...,,..,,..,.,,,..,,..,,...,...,..,,,,,,,..,.,,,.,,,
-#QXKSKM7VJCBUM6UA7SVLV4VXJDEAE6VRWEERMLGFJOMHT5RFUX7VZVDGHN52WFSCWK7K5XUOAOX72
-#\\\|SUNODXK4EHHGDCP5G64UZAET66SF4FD6HEA3EVMZ7VX45YTXOHS \ / AMOS7 \ YOURUM ::
-#\[7]Y3MNJQXWMYG6BRNVIH5AE7LRIUKPZTGYEGFADT7NKV25RJ7HFGCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,,.,,..,,,..,...,.,,,,.,,..,,..,,...,...,..,,,..,..,,.,.,.,.,
+#CJQAQ7VKYM57GGX3TNNLE3FBUICOSO4FO2KEAHXK3ANWCOT7JNSIIZF7HEXKSMMK6LLMMYQKABTEU
+#\\\|RNBONJUGPWMNIIDD2TKD2CSVMOFP36LGVXDT3VKXZAHWRZV7HA3 \ / AMOS7 \ YOURUM ::
+#\[7]XGGQGCN5ATY6DY52DEEEBRDHGYIWCOZWYF4NA4GUNKGZR5XDPEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

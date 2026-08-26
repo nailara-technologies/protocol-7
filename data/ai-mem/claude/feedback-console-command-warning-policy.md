@@ -49,8 +49,8 @@ all, it was the same fact rediscovered by every independent call path that
 hadn't cached its own answer. worth checking for that shape of redundancy
 too, not just adding a quiet flag over noisy-but-correct repetition.
 
-#,,.,,.,.,.,.,,,.,,,,,...,.,,,...,,,,,,,,,..,,..,,...,...,,..,,.,,,,.,...,,,.,
-#LAIN7WRVB25FLIVA5L7PUSN5ELUOOR5W6NT4FMUINBHL3CLREXYKSG4IIIEPYKIQMWPZKS5W2WMK2
-#\\\|TFJSSKS2MNZ2PX4PARDJX34A5X2A4QVJYRFJ2FF3P5LIUK7NEGU \ / AMOS7 \ YOURUM ::
-#\[7]7VORU4WB6MBRE66FZVOTA3EMSBTFYY6SWHYF2RUF7JPT3ACJ4KBQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,,,,,,..,,..,...,.,,,...,.,,,..,,...,...,..,,..,,.,,,,,.,,,.,
+#OFVQSDMZN5LHF552A4UMBTECBGQIQSP5K7BQ3ZDIM7FP7EYLHG6JMSDNIPLYJCVKYFY2N7WZALWV4
+#\\\|7PHBU3GIEUV4EP3JZ2S5XM6JI3XKSMWQRZ6NRGGA4T5TOES7XA5 \ / AMOS7 \ YOURUM ::
+#\[7]HF56YA4PP5SFVSOIVREBFL3PUG6ODZUKUFRENMFC4KPJCNLE5CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

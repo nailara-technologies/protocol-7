@@ -74,8 +74,8 @@ sequence is still to leave it as the plain 4-line form for a human to
 strip when signing, but no longer assume the sign tool does that
 stripping itself.
 
-#,,..,...,..,,.,.,..,,,,.,.,.,,..,,,,,,..,,,,,..,,...,...,..,,,.,,.,.,,.,,,..,
-#HOHF2T54CRAW6BN3NT2ROLS6RPUB7CZHT6MLPD5LPZ6FKKGHA42RKORH7CLX7DW3GL7HRESS2PK2W
-#\\\|YROCYIEA3FYZVBAE4MPUPZWQHAV76KBZ4ZF7UDTRJR3MS7IOYQR \ / AMOS7 \ YOURUM ::
-#\[7]GYNX4IW4IXUMERIH4RHLSLI6FAKCRJIJRH4FWZYUME547Y2TWGBA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,...,,..,,..,.,.,..,,...,,,,,..,,..,,...,...,.,.,...,...,.,.,...,
+#DFLHXJHJCLEYYQWNCWYWQ7KPWHUHAXIU3QBFJQCDHK5UY4TPQEYOL4XHUGLUKIA5SGNACQOUW6W3Q
+#\\\|ORFWJGQQEPFN6P4F2HRHZTLLJLFBWGZCVBSZYHJRXBHATLCHJM5 \ / AMOS7 \ YOURUM ::
+#\[7]FZPKFELTVVBD57RNJ2IXR73E2UECJZ6NXAXTJGVY5NZKT5J56ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,8 +19,8 @@ request. Internal writing (code comments, memory files, this session's own
 prose) is unaffected — this is specifically about text a third party reads
 without knowing an LLM was involved in drafting it.
 
-#,,.,,.,.,,,,,,,.,,..,...,,,,,,,,,,,.,,..,.,.,..,,...,...,,,.,...,,,.,.,.,.,,,
-#SCXB3SCL3CWX5DVSTXATT2QYLVIKAOQ4KMZMNYHWPIVRCSKOT5XXQMQ2URSIS6JP2ZEJS7VDBB3T2
-#\\\|WZX3M3VIVKH33JHZ3ZI2F5OWNPQKXQEIF5QI6KW3LFTE7CIIIL3 \ / AMOS7 \ YOURUM ::
-#\[7]KCE4FVCWXP6MIFFKO5NESMJ35QDKHC5FRLS6N5PBP2HOHSBEE4BY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,..,,,,,,..,,,,,.,.,.,,,,..,.,.,..,,...,...,.,.,,,,,.,,,.,,,...,
+#QRFCFJHBE5TLNHFIA7TCRXGFJ377WJB7ADDSLMDHUQ6O7TWF7MJ7G2ICP5R6X6BDKL73LIX5MDDRS
+#\\\|O4THKY5GPAAGYOKUEYVGIV562HV2TSLHQWOLEOKLONFMGV2UGRZ \ / AMOS7 \ YOURUM ::
+#\[7]OCA4DIVOBVIQDLTBD7ROXJH4Z4R2XJP26H4RPQPHEKMS5YYQLUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

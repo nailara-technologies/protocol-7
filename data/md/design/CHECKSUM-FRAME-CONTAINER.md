@@ -290,8 +290,8 @@ border is a stronger integrity guarantee, not just an aesthetic choice.
 - `data/yaml/reasoning-templates/infinite-space-topology.yaml` — the
   reasoning template this is an existence proof for
 
-#,,..,,,,,,.,,...,..,,...,,.,,.,.,,..,,..,.,,,..,,...,..,,,,,,.,,,,,,,,..,,..,
-#RZEVEINP54BQCKT55LO5PQL7FLXC66PPRZNAGWFCYOUHDYOCXV54ATMVABEMQKXJLVALD4QQ6KXNG
-#\\\|TDLEVSKIF6DFWEQLLN4UC6YIION2WSK6OG37HHOFGP4L5YRN2AG \ / AMOS7 \ YOURUM ::
-#\[7]XPTHVJQRYZHS5RXHYUDBRJ36B5WSUAOFNZ2CLNEPDTKESOLLASCA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,,..,,.,,...,.,,,.,,,...,.,,,..,,...,...,...,.,.,,..,,,,,.,.,
+#CL22OQYJTSPBEYHXDFOY6AEDF2JFMELUGHWSY2N664JPLI62W3XGGJF4BRK473SBC2WIHRCGNF4TO
+#\\\|DYTFFCGFWTTBVHRJFLFXDNFGJM7KDWKALIKTPY3PDYZBLCTVGV6 \ / AMOS7 \ YOURUM ::
+#\[7]QCNHPZMFK3UHQZ6O2NQG44XLZE2BVIQS45CROG7DPN3NVQ2F6EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

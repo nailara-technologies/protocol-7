@@ -352,8 +352,8 @@ seed structure:
 - [ ] seed prompt file generated at reasoning-design-seeds.txt
 - [ ] print/PDF rendering works (no clipped elements, no fixed-position overflow)
 
-#,,.,,.,,,.,.,,.,,,,.,,,.,,.,,..,,,,,,,..,,..,..,,...,...,...,,.,,..,,,.,,,..,
-#6EU7JK6XUZKGFPBQ7H35CNGP5BOVXMB5ED5XZA7D4ZE25PNLH3FDJLMA5PX2HIXVSQJ7MEO663BVC
-#\\\|33FFERBYSU3R7PTKPPJZ6YECTLLZMRH676LKX4A3H245425FR2R \ / AMOS7 \ YOURUM ::
-#\[7]VMNWCIYKKFGRA6NK2CM42ZLQMROP5XMMG64RO2KRKHQ5QZWS46BY 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,..,,,.,,,,.,.,,,,..,.,,,,.,,..,,...,..,,...,..,,...,.,,,.,.,
+#WIVJWML5HF4NETD4RNMQTYPKYICSLESL5XAXDJVEKLMXVGSUIQIGCPKHUKWRFLBIANR5XQQVHJDIW
+#\\\|N5Y3O22LHXYIXPPXAHWXCXNAOZNWEFGKPTVFLJFF6ZWS3QMLTFA \ / AMOS7 \ YOURUM ::
+#\[7]C6AXG7A2NS7MQBRNCW6UNQXG7FQLWWLOSNNPHGZSXCACRPFYGQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

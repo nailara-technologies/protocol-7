@@ -148,8 +148,8 @@ new module *extracts* the waveform back out for povray's texture input
 4. if waveform-only is chosen, build the `graphics-matrix.filter.alpha`
    extraction step feeding into it.
 
-#,,.,,.,,,...,,,,,.,,,.,,,,..,,,.,..,,..,,.,,,..,,...,...,..,,,..,,.,,.,,,,,.,
-#MEF6NZWAOZXPO3RRVOZ4FBYESBIHE225ZJ4OMOKFWWHU7X5RL5CXFH3VOCDVQO5LIEFS4HLSD5E22
-#\\\|YYRPNZEECDNDFEZYXWYCBE2QOA7HOP3UZE7J2N6JWB243EVUSC5 \ / AMOS7 \ YOURUM ::
-#\[7]OH6CD7CKNYOUWGZLCTE7DYZTLXYWCYYSX6UGOOWO2PYNDJZPU6BQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,,,,.,,...,...,.,,,,,.,.,.,,.,,..,,...,..,,.,.,,,,,,..,,,.,..,,
+#DD54JBDLLYSQETF34TR55QUAE3LQAQO7DX2TGCHUORJWQBXX3T6T5MS3YN4AMG2IUNIZFRVBN6GKC
+#\\\|LD7TIMJDWYYOVXK3CLDYUDJ5PKFRT73IDTIWVAA6AXBEW5BQ3IM \ / AMOS7 \ YOURUM ::
+#\[7]WKNRKJFURWRCNUAXQYP7MHQQPXULYANB36VRJW3HOHQQVIFFSMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

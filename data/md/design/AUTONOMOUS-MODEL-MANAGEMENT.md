@@ -179,8 +179,8 @@ these are the minimum viable pieces before consensus-based management is useful.
 - anomaly detection: sudden score drop on a stable model → flag for review
   before autonomous demotion (could be a benchmark bug, not model regression)
 
-#,,,.,...,.,,,.,,,,.,,,..,...,.,.,...,.,,,.,.,..,,...,...,.,,,...,,,.,,..,.,,,
-#7NI5PU3DUIKCVO3M54XGSCZPFX76RYVHNXQLCRV4G3GS2N67B2AGGDSWIRV7RDPRPVBR5Q2MCR2R4
-#\\\|G46D3WWZBYBJALR6ZAWUNR4UMKRFSFAZGLDXIZU4HJV7LHYX3LZ \ / AMOS7 \ YOURUM ::
-#\[7]ZSDRD4NNV5A6K5T4L5F5EKXAOJOJXRM4UU5W3LNWVUZYSSNFMSCI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,,,,,...,..,,,,.,,,.,,.,,,,,,..,,...,...,.,,,.,,,.,.,.,,,,,,,
+#FARL65KCM233ISYG5LVWNT5DOC3SOZRWR4NW7KOKOS5PRSMKR5TS6JPKG25N2U5UWID3LIW7YBM66
+#\\\|AQBTEV6DV2S57CH6ZQ7OHODLSLJTSUQEYOXREFKY62LTRNL7QEP \ / AMOS7 \ YOURUM ::
+#\[7]B5TMFWVWQ6ECEEXY6LUQYT4S3G3NU7ZS7LR4JJPJDV7DUFBQKEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

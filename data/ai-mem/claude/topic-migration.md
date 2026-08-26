@@ -23,8 +23,8 @@ is away (e.g. during sleep). This:
 - Features that reduce Windows dependency or support the KVM/Debian target environment
   may be prioritized over lower-urgency work
 
-#,,,,,...,,.,,,.,,,..,.,.,,,,,,.,,.,.,..,,.,,,..,,...,...,...,.,.,,,.,.,,,,.,,
-#RBCBWBYMAJ5T24CB55KF4OMBT5XO7C4G4XTZIQVE7YUKYDKE7TVITVGB7OEKNSUB7QIQPQF2N2HBO
-#\\\|CIXRGRLKBTOIJAXHL3HLV26UQ6EKDKGKXZTPVWJ36DI2HGKYOFL \ / AMOS7 \ YOURUM ::
-#\[7]SVHPMYDA4GQD7OZTEROTSANJG472OKK6XSVN4Z3A3RLCDTFFOUCQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,,,.,...,,.,,,,.,,,.,,,.,...,..,,...,...,.,.,.,.,..,,.,.,..,,
+#TZWS2Z52DONCFPQKR6I5RCUJOVJQLC4U727VTKEPFFTVM72SQS7I7SIOZW3M3DX7DQRV266EW34VG
+#\\\|K76Q7GKSZ75ASDZEUGVEOZYJFIV4OCTTI6K6SEGVJIMA2XI4YHU \ / AMOS7 \ YOURUM ::
+#\[7]5VBNTLRGRTMKTZYKYDIKIWZDIYGJCBCOKP3D4LQMQ4GVJMPQHEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

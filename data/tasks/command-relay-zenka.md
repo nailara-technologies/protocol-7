@@ -64,8 +64,8 @@ need, or when [[topic-hybrid-namespace-routing]]'s connection-type
 work progresses far enough that this zenka becomes its natural first
 concrete consumer.
 
-#,,.,,...,,,.,...,.,,,,..,,..,...,.,,,..,,,..,..,,...,...,,,,,,..,...,,,,,,.,,
-#6S5NEYZGQIFSCWW44QMDASE2YFWLOBWUHUGEQCMTXUHAJJ72VBKVAAOZS3PZPHPZ2MOT34LUWOZJY
-#\\\|WOJ7AVRCHLLUZ7KQCF2A4TSVJCZY6B34NGEWXVP64EBHCTIFFSL \ / AMOS7 \ YOURUM ::
-#\[7]QDOWXRRQ4UCWWI7N4KH2SZXSEELBCFU3Q2ARD2EMTYNHNCC572DY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,...,..,,,,,,...,,.,,.,,,,,.,..,,...,...,,.,,,.,,,.,,,,.,.,.,
+#7COJWJEVTGX7ILWQJPDBCZ7J2JFVZSZ4P7RVXJBCHVDTKBGMBMEZHRYOHAYIHUQYUVMJHUYAMKVFK
+#\\\|BJBME6QL3QCAJ3Q7ECK7KR4TE54EBBFCQL2LRENGBKV6KMYQF7W \ / AMOS7 \ YOURUM ::
+#\[7]Z2MSSP2GITFCTPAZYBUXDZ6VYISRDFRKT6N2FRWJWDVQ2YSYBKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

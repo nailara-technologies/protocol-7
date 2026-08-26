@@ -159,8 +159,8 @@ register a repeating timer (interval 60, repeat => TRUE) that:
 
 parallel-safe with `branch-layer2-discover-groups.md` and `branch-dep-graph.md`.
 
-#,,..,,,.,.,.,,,.,.,,,,..,..,,,..,,,,,,.,,..,,..,,...,..,,.,.,.,,,...,.,.,...,
-#I5FFKPFP6J5FCPH5PLWIF2TJ3WPGEKHHBHSOQUUDW6Z2DJCPOFIFBEMGORKDJMP5C2A7RQ7VXRJT2
-#\\\|4EH4ZT6WMT76DF7BRKUYQLXYXW64DUXD5EQSQFHW7T56WQBQZIG \ / AMOS7 \ YOURUM ::
-#\[7]VYBLL3KRMWA3JWSSYB2O54U7YZHHQCPSNOTRO2SOXKUZYGET2IDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,,.,,.,,,..,,,.,,,..,,.,,.,.,..,,...,...,.,.,.,.,..,,.,,,...,
+#GJP7Y3FUKCIHVAFXCT7S6ZB63V52DW7IGQOZUGTXH5B7KLQKORQGT2P7ZKIA2Z3QTEX7XOLF2C6KQ
+#\\\|SSADXGOI4Z46KPCM6OIWGP7FXDA2UH2HZODLSR7VHMZE62WIJEX \ / AMOS7 \ YOURUM ::
+#\[7]PKKHAVFN55M2ER32ITYECQRLFBEOZBAI75GQQ4ZO4EK3URWSBSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,8 +29,8 @@ spec, `claude_dispatch` oversees the `kimi_dispatch` to keep parent context lean
 prepares the result for review/sign-off. See [[feedback-claude-dispatch-strategy]]
 and [[feedback-kimi-dispatch-pattern]] for the mechanics.
 
-#,,.,,,..,,..,..,,,,,,,,.,..,,..,,.,.,..,,...,..,,...,..,,...,,,.,,,,,,..,..,,
-#TUSAGEGSGB36MZL2LWLUAACO4SAVB3HU26MARBE3NFHUHADKUEVLPYLWTDIEKUTJUAA7TJGX6N6S4
-#\\\|2Z6LIBWSQ35P6QZPSPVD3JP547RF24YSWQJF65XMLWRWEGL7B7O \ / AMOS7 \ YOURUM ::
-#\[7]72PEO7MOXFCJXZR35CQ6W6W3VAONZJWXUYR5PSH4WLNVRPRH7KDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,..,,,..,,,.,,,.,,,.,,,.,..,,...,..,,...,...,.,.,...,,,,,,,,,..,,
+#7SGM72IFXCAUKVSI2DPFNUMKFPRX4XYH7VXZDM6KCMLKSU65TFXDG2J42BLWEZZ73T5NUGOAPLHVQ
+#\\\|NUKQE6BQVJUBQT5CKQ7HHWU2O656HUZO2FWSVSRCFXMUPPGYLFD \ / AMOS7 \ YOURUM ::
+#\[7]A66ENEXCXHD2T4BBUSUKJS3IC477XOJKMDY6NO64U2XSRAZDMGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

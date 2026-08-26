@@ -140,8 +140,8 @@ test ring loaded with 0 members and no active routes.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,,,.,..,,.,,,,,.,.,,,...,,.,,,,,,.,.,,.,,..,,...,...,.,.,,.,,..,,,.,,.,,,
-#BAVWQY6Q73FP2YFPHSEWOOBCHC4OTBBFAA3R5NOYVOYBD5KYOJBAKTVJZHWDDRHFNTHIBR7RIMKOC
-#\\\|RYOYD57C4KRQDXTQWPKGBS3JVUGGYSVNR74D3C6CV6RSZURX2WS \ / AMOS7 \ YOURUM ::
-#\[7]RBO6DE6D4GGG2ZOJXQPMDLSQTMY2OOSZA7SREKAUSLBKRH5LTQBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,.,,,.,.,,,,,,..,,,,,,..,,,,,..,,...,...,.,.,.,.,,..,..,,,,.,
+#UUMPDVPDDSOHYIUKEP3ERKWH2XLNA4QDZ3YYQAXEFQEAPUCV4N3VZKBIC2KLUVWURMWRP6XX4OLKE
+#\\\|UUU4CHFHN6NDT7AQXATC7L4IBH2MT4OHBV7FJ47QJZYJAGT5S35 \ / AMOS7 \ YOURUM ::
+#\[7]DK6DYS5BZGRVEIZEMLRR72VDYBVQK4E3XL276GGSFKTFT4F2OICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -73,8 +73,8 @@ with a structural mismatch, never from unsigned files.
 - commit `26bad5e0e` — removed `harmonize_payload_line_feed` state 0/7 early-return
 - `bin/dev/tests/timing/test-endline-state7-oscillation` — regression net for the original bug
 
-#,,.,,,,.,..,,,,,,,,.,.,,,,.,,,,,,,,.,,..,.,,,.,.,...,...,.,.,,,,,.,,,..,,.,,,
-#OCL5OSG26YMZW5H5KJGPSQ7CBBWAF2V6CWZHU2PLFQ2GTVUFJNCEAZHYTNZQWJVPQEVXB64L4I5R4
-#\\\|OG5NJHAN6IMXL35AXD3LPO6CNRFCLZO5YDFKIQG2O5FHIYFMQ4C \ / AMOS7 \ YOURUM ::
-#\[7]RP2RCRFHPGTEWKEUUMIYLK6XA6P2PIAZ5LQJNBXTZ23OKDF4LCBA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,...,,..,..,,.,.,...,...,,,,,.,.,...,...,,..,.,,,...,.,.,...,
+#BTA4UDILT4IGZUY2N2LUDN2ARMPE3GLNKNC6G7YCLKRB5HQ2KBWLCSVFUFWUFR2K7NYXWNEZMVKKE
+#\\\|E4D6YLBTBXDA25AUSTEMGD7U2GVZ4FK3SUCLWH6WB6Y6IT2KNC4 \ / AMOS7 \ YOURUM ::
+#\[7]LVAV7BYJIUMJQ7NAOP6DLDQTHRBG56RIVBOSUKUYBSE3BFMKDMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

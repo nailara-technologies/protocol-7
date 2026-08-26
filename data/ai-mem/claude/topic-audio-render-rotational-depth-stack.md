@@ -204,8 +204,8 @@ the povray glass-cylinder wrap
 (`data/tasks/audio-icon-povray-glass-cylinder-wrap.md`), which now
 has an agreed-default status of its own.
 
-#,,..,,,,,,..,.,.,.,,,,..,...,,..,..,,...,.,.,..,,...,..,,,..,.,.,,.,,,..,,,.,
-#M6PWOJZTN5QZMZIHFI3AADV2XD3VE3C4GT2NOL5USW63RMKK7ICNYVZWDKIFNYHHUBOQKYJALL7RW
-#\\\|62DUGZH27DPFAW7BHKCYT5LWW7ONU2PXMXZ2BDRDTPFK4L57ZTW \ / AMOS7 \ YOURUM ::
-#\[7]4NYGRKEZGRIKAIPS6R3O34ZDZJAYXX5TDFCY47OND7YO5N64CECQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,..,,..,,,,,,,,.,,.,,..,,..,,..,,...,..,,..,,.,,,...,.,,,.,.,
+#4F5TX2D37WONZ4WTZFPHBC34Y4RS7BSX5EOZHSFVC5ISWRPHINT3GA5Q2U6OJOWCPTUE6EDH642TA
+#\\\|EJFQBY62DU446KXZFSO6UT7XPWA7WKV654EGPXQQWN4D3NP663N \ / AMOS7 \ YOURUM ::
+#\[7]QBP5UR4MD2EOH52EX3XY24UW7PY23AV2AYPXMR73HXCV3WZVDUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

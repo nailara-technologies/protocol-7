@@ -332,8 +332,8 @@ Level 3 fits seamlessly with:
 
 The system is **coherent, extensible, and production-ready** by design.
 
-#,,.,,,..,..,,.,,,,..,...,,..,...,...,.,,,...,..,,...,...,.,.,...,,.,,,,.,,,,,
-#HVDMQLRBUDRKA7YD6NIFRZQYFBIYMRHZZMVANUE7WAW2TIEILZVI6NU2R37NV2XRWATE2EP2FBQ6S
-#\\\|WHI6TKF7YJ4UKPXQBCVW4JVHD3J5TSFC7CBII5XE2VL4P6TWWVA \ / AMOS7 \ YOURUM ::
-#\[7]5EINOJ4J42MQ27W4A4C673BDT4PPPBDGFXJCB4Z35UVDEMSEMQBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,,,.,,..,.,,,,.,,...,,.,,..,,..,,...,..,,,,.,...,,.,,,,,,,..,
+#VGIAHCLUE4IM6LSSTAFOK76RR6B2TI5JR6NHVTRKBIAQQNPLJBY3QOEAX2LZNSEV3G7FEI5T5NEPI
+#\\\|GV3JRWHXS35FCLNVGEL3RFBAMBMA4ZI7HZPGM67Y4YCZD53BS2R \ / AMOS7 \ YOURUM ::
+#\[7]JIVYSDQ3IA55Q4GOZCB3WAGHXMYYC27EU6GNGYRWJ4MHOVZRR2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

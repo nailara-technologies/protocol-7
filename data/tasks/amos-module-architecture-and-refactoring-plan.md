@@ -436,8 +436,8 @@ This architecture supports that evolution without redesign.
 
 **Next Step**: Implement bin/list-amos-components using AMOS7::Metadata
 
-#,,,,,,.,,.,.,,.,,.,.,,,.,,,,,,,,,...,.,.,,,,,..,,...,..,,..,,...,.,,,.,.,,..,
-#2IOJA7UTY6FMEFP5R6HH6MYLDPIDARBBUCBZKQSOCAGVBAYXIUZ3JVUGYP4APJASUTYVSTQ3Q6BHE
-#\\\|BSNGEXJQMYSZXWZB6LIIC55JGQWCLI6GQS47QSIHB7DPJGRSJYD \ / AMOS7 \ YOURUM ::
-#\[7]KJWBQKSAIEHEVEZBAXRSXGDHSIOC5WUC6KS6NJYFE5KBNHFICIAA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,.,,,,..,,,.,...,,.,,,,,,,,.,..,,...,...,.,,,...,...,...,...,
+#S7AP3QNPSBUHD5WR4L6ZFFOBHVYR7VOHQCPIOLA357E2ZMCWQFNGID7BVBWDZ4VDO55OI55PYWEIS
+#\\\|HJCXD36P5644MVRJG5XN7PIZX7SMBKAF4ZA5RNP4OXREEANS3X2 \ / AMOS7 \ YOURUM ::
+#\[7]NSZ7GM3YUEWPFYBQA6BJ3QQZSAZ43FN7R2SJ6NRFUYGI5BTJ3QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

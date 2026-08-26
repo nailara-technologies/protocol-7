@@ -332,8 +332,8 @@ complete tree, *because both are already true* of the protocol-7
 namespace, P7REF, and the addressing trinity. the console layer's job
 is to stop denying it.
 
-#,,.,,,..,,,.,.,,,.,,,,..,,,.,.,.,,,.,,,.,,,,,..,,...,...,..,,..,,...,,,,,..,,
-#FXESZOYQMIGISBBNRQE6AONW2J26EU6RJ6FBMXPIDALFAQELH7RP2YQMYYPIHOVJHXFZTDBZFUVPI
-#\\\|I7PRSHN7S2HF4QYPJZMX65BOCPBXU7PN55QRD3GFGG2P47BTLTZ \ / AMOS7 \ YOURUM ::
-#\[7]RG2ONVTNVFSY7HV4DR7T4KJ6SNVULCF45OWFVJYTJERIVU7KU4DQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,...,.,,,.,.,,..,...,.,.,...,..,,...,...,.,.,,..,,.,,,.,,,,.,
+#22D2VHFU5Y3S6UGGHQSW7G2OQUKYIM22XTGNSQZHSQWEALHIBRZO75LBI4JONMSYBQOCUKGDZCET6
+#\\\|2WK23RRKPOFHQ374RVBODALETZCSE46A6XEADFCBOORTXQRD7CG \ / AMOS7 \ YOURUM ::
+#\[7]GSWVZJQMOM6FHNZQ67FGVEJ5TTOAOKXPCOTR7I6NXBW44EVK24DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

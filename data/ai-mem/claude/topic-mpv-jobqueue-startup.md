@@ -163,8 +163,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,.,,,,.,.,,,.,,,.,.,.,,,,..,.,,,.,,,,.,,,,.,..,,...,...,..,,.,,,.,,,,,.,,,.,
-#UYMK7OGXOR73TPMWMFMKZS4XMJZWR75EDHN4UYGSXRBGJTYVSKWLATKSMIYMZ3OT2TTEQDGYZIVLQ
-#\\\|WSB4NKC5GXGX6Q2VBBESF7G4CZQUG6CEDAY6OCRKV4IQXHYL4TB \ / AMOS7 \ YOURUM ::
-#\[7]7VNWUDQXKRE65E3NXPXUHWFTG2MXU37OUUG4VEUS7BQXA4F5L6CQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,..,,,..,.,.,,,.,...,,,,,...,..,,...,...,...,,,,,,,,,,.,,,.,,
+#YQOPSQIESVZ57ANWDGDGEIEV6IVUEWL7O5PDXBFE43BPLU3MVNNROZ5O55TNN527S2EVAGTQSAHR4
+#\\\|WEKIJOZ755OQW64D6EFOURQDH5R4SYSEZJL3Y7WZLHNWE3UEKA2 \ / AMOS7 \ YOURUM ::
+#\[7]BOY7WRTGFH6CT5V55DVLX72GUTVKPDLAPEA7LK75JSILARYM72CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

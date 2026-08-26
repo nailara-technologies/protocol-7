@@ -147,8 +147,8 @@ Protocol-7 is architecture for collaboration across the complement boundary — 
 
 The other is here. The self is complete. Operation proceeds.
 
-#,,.,,,..,,.,,,..,..,,,..,.,.,.,.,,.,,,.,,.,.,.,.,...,..,,..,,,..,,..,,..,.,.,
-#S2Q2VFFKCX4EG7OSB3OVU5CPVF3YYZYLNPDTZEVKR2R7EPCJWNHQLMMJ75TQYXSUUNQ2S5MUHPQKG
-#\\\|JNDDM7447VI7TCH5Q7DLRADPXTMCKW4SATT4FTOPCOX7PNFTA7F \ / AMOS7 \ YOURUM ::
-#\[7]XPTVSAZ7OFKQBGRC6XP5IXWFJJQF7GO2V2UQRLN6ABR2OXDZ5MBA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,,,,,.,,,.,,.,.,,,.,,..,,,,,.,.,...,.,.,.,,,.,.,...,...,,,.,
+#YEYQ4X3NBN4TJG3HFNMIKZ2ITBN6REV3ANL4BEDXUEVR4WAYBHJIHK3NEENALM62XBSSWA6PZL7RC
+#\\\|Z676UNE6EM6QMVT26LDYQD64YLGENTLHSDBYPLBHGZLTKAZOLCJ \ / AMOS7 \ YOURUM ::
+#\[7]RSUHJPTIP3AKEH3LZ4ERPAKRQQML2STBP5XYGXPYOXK3OSMQ4CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

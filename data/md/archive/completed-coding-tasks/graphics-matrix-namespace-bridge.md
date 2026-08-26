@@ -206,8 +206,8 @@ reference: `cfg/zenki/invoke-web/subroutine.white-list`
     verify $ARG not $_ throughout
     verify lowercase comments
 
-#,,,.,...,,..,,..,.,.,.,,,.,,,,.,,,,,,,,,,,..,..,,...,...,..,,...,,,,,,..,.,,,
-#MNN6YHOUAWPZCIVKZRKHJ7BBZIKSDKNGLF3ZLGPBPYG3EYQCWQ7UG5BLGGSUJJ4V3PNLLIIXNK3YA
-#\\\|QXK3SKYQYUMR7FH3XFQ3CU2AJWZ33JGDDCRJWIKBRT33SCNIFGI \ / AMOS7 \ YOURUM ::
-#\[7]AAZPXPWMEKRWXDJBF4T2DDE3IHIUTTSGMM4NVYTD3GN6TLD44IAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,.,,,,,,,...,,,.,,.,,,.,,.,,,..,,...,...,.,.,,,.,,.,,,..,.,.,
+#XZZW76KRSXG6DTKP67OQFDDS7GM6SMDIZXM72YECEPNIVJCODX6IJ43LW6JD4HPAMSU3JR37OZEVC
+#\\\|4OMURO5NQO4TJ5MTWWNOO4LZEWF7ONVIEDN2MKARHDI5H644U5J \ / AMOS7 \ YOURUM ::
+#\[7]7LDG5ESPGXZBIZIPZNGDUJBKDMVZRFUC7WMYZQDGVIMA7M4PUGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

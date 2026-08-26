@@ -240,8 +240,8 @@ should return only lines that don't match any known pattern.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,,,.,,,,,.,,,,,.,,,.,.,.,..,,...,,,.,,,,,..,,...,...,..,,.,.,,,,,.,,,.,,,
-#4F4JXN2DARFM36QYXPZ6Y2WLG6RHZMNOAUFEAKFAWVJX2U4W4P3NSN7KS3H3HWKIUYKVRCE2CG372
-#\\\|JBVRLX7PGXDVFUJJXEEXKYQ3A7D3NCYI64356AG4DM5KQIR3XIN \ / AMOS7 \ YOURUM ::
-#\[7]BBBBW7XKERQXPHEUPC3OLOBMMZPL3ILNW7OBK5SL5HOLMC4XMKCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,,,,,..,,,..,,,,,,,.,,,.,,,.,..,,...,...,,,,,.,.,..,,..,,,..,
+#OTU3FBRXRNRLSAIKTOJGLGOQ7GUXQ3Z4RM3VHUCIPHCZE32C2RZCNVKGWNU6JU323K2SSWULTMNJY
+#\\\|3FUB7LVRIXGDJWCQA3GHN4JO5YBSDESYBOZAZQKZOP7OE47Z4KE \ / AMOS7 \ YOURUM ::
+#\[7]I7EDL4YP2DVIKXKQAU2C4WYZOXYZLORC53RSH4NK2W6GUSKOVIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

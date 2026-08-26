@@ -287,8 +287,8 @@ participates in the network as a full citizen.
 - `data/md/vision/habitat/VISION-CONTEXT-COMPACTION.md` — tool results in compaction
 - `data/md/vision/habitat/VISION-SESSION-IDENTITY.md` — audit trail and route record
 
-#,,,.,,,.,...,.,,,.,,,...,.,,,,.,,...,...,.,.,..,,...,...,...,.,.,,.,,...,,,.,
-#CV7DOAF4RPEORPL2RNWXMZIVMMOTAN6MUQM5UWCZBG7IIRSF5FTZIZX56D5H77774FRGJTEVTCBBC
-#\\\|DBEI6R2AB6KDR2TK7GICKDGCDO7HG4BJJ26J2I4MO6LUVRJUG7L \ / AMOS7 \ YOURUM ::
-#\[7]4A557TR3S56IEBYUHI53YT3OGV3GW624Y6KH3SBUDG3I3XRN26AQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,,..,.,.,,..,.,,,..,,,,.,,..,..,,...,...,.,,,.,.,.,.,...,.,,,
+#KP7XB4Q7SLZZW2M7F4WGEMKLYCKHTQPBZJJOYHNDPJ2J3PBXMFNULODQKL5XHV3TKSLIKMKSXWAFG
+#\\\|5ZSWM64SR4BF7BRY7HKJ24INGH4LFWIFT64M2HGJWE5HNXPLXAG \ / AMOS7 \ YOURUM ::
+#\[7]CUCI2SRNY2ZAC5BACHVH3DG6OPDNPZDIZZSXZAUSD6JQTUIUQICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

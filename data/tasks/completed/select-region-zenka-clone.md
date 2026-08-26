@@ -234,8 +234,8 @@ manual test sequence (report exact `p7c` output for each):
 ## the full manual test sequence and report the actual output of each
 ## p7c command. do not modify any window.place.* or window-place/* file.
 
-#,,,,,,..,.,,,..,,,..,...,,.,,.,,,...,..,,,..,..,,...,.,.,.,.,.,,,.,,,.,,,..,,
-#KAT2VRUKB4YNV5HQMU2LYRK4CWAIU5F73Y5MIDFI6JRZKEO4PLTYT2OHNS2UYG2MCJQEUKI6W5Z7E
-#\\\|IQ4LHVMCR6RZSKG74DAD5X4WM3XQI5XENZLXFZWEXBZGO336EA3 \ / AMOS7 \ YOURUM ::
-#\[7]E4QAYMNEZ6UDJ4FRODU7E26W7P5RGUZYNH4LUUISOMNR6JO346BA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,...,,.,,...,,,,,..,,,,.,,.,,..,,...,..,,..,,.,,,..,,,..,,,,,
+#V5BL4343BW5R2DR4JHXHGN7FTFZ4ZCOZE5KJWJPIDKVDU6KQ5ZAA3CPYBOW4X6MXZUTJPQ27FWBW4
+#\\\|TP3FJJG5O7YG6LBVVNLD4ISWDM4GKAWY47Z642LJYLKHTJKOJD4 \ / AMOS7 \ YOURUM ::
+#\[7]5Z3VVGV6N3IKI57IKYZ4TGM66NXBFQQRHXELHU7H5M2Y7NYLMYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

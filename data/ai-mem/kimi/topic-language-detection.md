@@ -38,8 +38,8 @@ Layer 1 complete, Layer 2 stub, Layer 3 stub. Design docs committed. Code change
 ## Early Pagination Break Optimization
 Default scan stops when a page returns all duplicates. `scan :full:` disables optimization. Queue-preload protection for resumed scans prevents re-fetching already-queued jobs.
 
-#,,.,,.,.,.,,,,.,,.,,,,.,,...,..,,,,,,..,,...,..,,...,...,,..,,,,,,,.,,..,,..,
-#TKYMJ5JAJSIIJQUTRF2DQGXCCZDMDKXYQWTMAIM3PNTMA2EIETCQYX6SK564TDH4AQKOZNLVUH2S4
-#\\\|M4QXDZVXQBBDZ5ATAZ2A6EDP2VA3FLJHDGIUWFZFAHLP7SDZU6R \ / AMOS7 \ YOURUM ::
-#\[7]A7HXMOTCHVS7VCO6SK5L2UIJ6SZGKNCP2JDWARIGVOI2QTGYWGAA 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,...,...,..,,,,.,,..,,..,,..,..,,...,...,.,.,...,,..,,..,.,.,
+#RVGO5DMDBVUESERCX4ZEJ2WDNHPMNN6PYLP4KYHZDFFVO3E3GQP4Y3FOLNMVVFGM5NHBO4I3B3EIQ
+#\\\|TVZKHW363DMCOLDE65TXCO3LQLJZIBHFMR7XDTPGYDX2RC3FKNM \ / AMOS7 \ YOURUM ::
+#\[7]MMRKQV4GOWMJO3LDEWSLLCD6OZDYPGMPBY7VZZ6CAJK3C5H35WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

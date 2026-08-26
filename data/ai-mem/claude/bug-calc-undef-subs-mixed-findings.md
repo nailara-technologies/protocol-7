@@ -58,8 +58,8 @@ dynamic-sprintf-dispatch needing manual confirmation before acting on a
 flagged name) — add "not-loaded-in-scanning-zenka" as another confirmed
 false-positive shape alongside those.
 
-#,,.,,,,,,.,.,.,.,..,,.,.,,.,,.,.,.,.,,.,,..,,.,.,...,...,...,,,,,.,,,.,.,.,,,
-#VXB5VJZT5EGW7FD27BDAXXKXCTQO7UKY7TOKPMCRXKHK2RGDSHB7ZRDSN6GIIIG7UORGKYSCJG3ZU
-#\\\|PUQSR2M2IYCOTU6ZU7ZXSMXS7TPZ2333AIMHWHVZUYXAKOCRJMJ \ / AMOS7 \ YOURUM ::
-#\[7]APYXWO5F2NMEDLYE7XEFBQLELORHWCH777YVBZLEQCODD5W6TMCY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,..,,,.,,,.,,.,,,.,,,.,.,..,,.,.,...,...,...,...,,..,,.,,,,.,
+#7HBCHTHI52NVHBP72SZEMJQNELBHONU2BCP3PCIWJR2XGL47Y2B4IQ4EZJJC3UTIM3PI74O2B25LW
+#\\\|42ZPJS4EHPAZJFPUQIFDBSYZKYQHXCKPB5V2Q5S7EEU34RYE466 \ / AMOS7 \ YOURUM ::
+#\[7]EW775H2DX5GJROYKFNMIAAU4BUXD33HJNVFISTOONIGB6PF5VKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

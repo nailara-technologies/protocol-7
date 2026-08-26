@@ -58,8 +58,8 @@ used by the iteration loop to decide retry / advance / escalate.
 - lowercase comments, `[ word ]` bracket annotations
 - no use statements, no pragmas — P7 modules load clean
 
-#,,.,,,,,,,..,.,.,,.,,,,,,.,.,.,.,..,,..,,,,,,..,,...,...,...,...,...,...,..,,
-#HJRRK3LYUHDSBY4Y3XMKNBBSSNJNWC3C43PDPTI7GTJWCEARGUB2THI5NQLPW233AEPDVTAR5VEDM
-#\\\|VKPFJEF5U7IU2BS5HE3L2MU7RKA4USK2ODKAMEXPEV34ACSFRYY \ / AMOS7 \ YOURUM ::
-#\[7]XWNFGW6XGPHQBWBBZLHEZQ6X35BF4AMDMQYK5J5K2NHZ3Y75O4CQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,,,.,.,,,,,.,.,,..,,.,,,,,,..,,..,,...,...,,..,.,,,...,,,.,...,
+#6LOCS6CCCA4Z7LIAHQMPGOFSH6U6NBXBNDDBX425TV5GZ34VYULVNYEAUUCRQROX5N5ELUYQBVPM4
+#\\\|NK5PVW5DWYG2HNFBD5Y4MLL5ZRWXUPUGQJ5M7Q2FFYZMH63BRTD \ / AMOS7 \ YOURUM ::
+#\[7]HAJFPKOKS57WULGRNYSLZSPLBEG33G7CB43SFWCYTWIAK32VJGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

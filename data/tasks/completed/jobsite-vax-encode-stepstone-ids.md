@@ -319,8 +319,8 @@ The script must refuse to run if any of the expected zenki are still online
 - Do any external consumers (backups, reports, mail templates) reference numeric IDs?
 - Should the migration also rewrite historical `store.yaml` if it still exists?
 
-#,,,,,..,,,,,,...,.,.,.,.,.,,,,.,,..,,...,...,..,,...,...,..,,,.,,,,,,,..,...,
-#T34QFJD7RUNSFT5PQWNWL7EVHXZIENOP4PN6OJADZZNVDNLY5R4RBVUDOBXLF2POXFPMUOJZDA5FK
-#\\\|GSDMH4I5W7BLFDW5DCJ2BIV46WH3HXHHDCEFM2DWSMDIQ6TV4JL \ / AMOS7 \ YOURUM ::
-#\[7]4PMWKICZTK3WF7OIBFWOTMPVM6SDDLUSRGNGL7GEK6NT4LPYPWBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,.,,...,..,,..,,..,,..,,...,...,..,,...,...,.,.,.,.,..,,,..,,,,,
+#Y5Y23STZOL5YDBIWAYYTTFH3HLGSYVNNSMGDYTKX6O5XJDNMO65OZALSU2WS3M2RHR2EB774SQLC4
+#\\\|T7TNRTIWZVSYWHOGR3J543XNQ7DDCXAHRTLWGUM54ZBRCX2OLHT \ / AMOS7 \ YOURUM ::
+#\[7]FSZD3HKTWTQSDIGBWT7JDQRJMZCC6DEAFLJRIZCGDYN6SKFM76DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

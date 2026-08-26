@@ -26,8 +26,8 @@ Landed by the coding zenka in a session that had timed out; user committed direc
 - `mergeJobs()` was dropping notes on fresh loads / empty localStorage: server persists the field as `notes`, UI reads/renders `note` — no mapping existed between the two, so new jobs (or a cleared cache) silently lost existing notes on merge. Fixed by mapping server `notes` → UI `note` inside `mergeJobs()`.
 - `repair_failed` badge/stat checks used `=== true`/similar, which never matches the zenka's `TRUE=5` constant arriving over JSON — see [[critical-patterns]]'s TRUE≠1 entry, now cross-referenced there. Fixed in `renderCard()` (badge display) and `updateStats()` (rfl metric count).
 
-#,,..,,..,..,,...,...,,,,,.,.,,,.,.,.,,,,,,..,..,,...,...,,,.,...,,,.,...,.,.,
-#BNGSUVROI32PNHKH6CJQ45IDXO3NYB7VQWOZW73NRWBUJYGV3E6IVXIPRULVC7WDVAV5LLGN2T2ZS
-#\\\|JFNMMIDQJKGZTFLSEZE6WWI75EDGZKL6GC5P6GSGWSTOOWFCEHC \ / AMOS7 \ YOURUM ::
-#\[7]BJL5LVUSAS3RY3N74RKK5QMANEHTOEYVG64TNUYBEJILK6JUC6DI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,.,,.,.,,..,,,.,..,,,,,,..,,,,.,..,,...,...,.,.,,,.,,,,,...,,..,
+#AUS27GIRVTFFRSLCLLPCSQ63HRSFZQGUIBYTNBH424V3LA52G7VBWLRAQBEBFIWDVTGDM2OXU3ENO
+#\\\|RBGLNJBHWEY6ZLLOH2NI3EL2KYJQR7UVME75CNOS2TZAWSASHHS \ / AMOS7 \ YOURUM ::
+#\[7]MIIVIPCYJO2YX2WESHHUE5K72PT2GCBF57UCBUC44ST255D6N4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

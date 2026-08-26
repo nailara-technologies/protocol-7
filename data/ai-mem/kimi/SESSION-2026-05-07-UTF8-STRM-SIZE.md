@@ -86,8 +86,8 @@ cancel, immediately cancel timers, clear `blocked_by_stream`, and delete stream 
 - `src/devmod.cmd.utf8-stream-test` — shortened descr
 - All kimi UTF-8 fixes remain correct and committed
 
-#,,..,,..,..,,.,.,.,.,..,,,..,...,...,,.,,,,.,..,,...,...,,..,,..,.,.,...,..,,
-#R6PFXZHREHY6MUINCW7RRTCQ5DYFRPETDCUZJH6VXD5KCMUKVDCX7UFMXGPRSVVBFEXSHHSTHFMHG
-#\\\|GN2D5FNHOFJSPUKTZB2WEUJ4POTWGVDHXKNZO7HH2T2QGX5LQQG \ / AMOS7 \ YOURUM ::
-#\[7]ARF64CQ2LFJIJXPDEZHQCFLU7K2RHG2WGZID2Y4GO24J5IHJBACA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,.,,,.,,.,.,...,..,,..,,..,,,.,,..,,...,..,,...,..,,...,,,.,,..,
+#GXMSRXSTB5SM7YOOQF2LO2UGLNYYPTBIEQWH4NHWTT2R2K3E66XMRKZ4O6TDGQEW5DWQOBWCB5TIE
+#\\\|M4GLZO3YOHZUTK4NYDKPWBDBPASCBUK56VKADLRU5N4IYUO56Z6 \ / AMOS7 \ YOURUM ::
+#\[7]OLQB2WLIARDOCJBLLANKAYDM2MAC44IM6QSD3PRNERHOTSTHSOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

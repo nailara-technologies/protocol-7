@@ -165,8 +165,8 @@ bugs found and fixed along the way; one real architecture question left open at 
 to `self_test.run`), `cfg/zenki/coding/zenka.v7`,
 `cfg/zenki/coding/subroutines.load-early`.
 
-#,,,.,,..,..,,..,,,.,,,,.,,,.,,,,,...,...,.,,,..,,...,...,...,,,.,.,,,,.,,...,
-#2WHXOWMZNUUFE3EWTSM33HXDRIDXBVE6LOK6BRZWRBSINMYCQVWIQHG5JZXF4N7WZEX7WW46UM2J4
-#\\\|ZGNQ3WWS5YYS6L5HSJIIBZHBH57NPME3EN2HCGTON7ZC3KBZLX2 \ / AMOS7 \ YOURUM ::
-#\[7]26MQJI4EWQUZMKDAX7XUZSSOQCZDAZSSZANOWFJNSXR45ORZIOAI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,.,.,..,,,..,...,,,,,,,,,,..,..,,...,...,,,.,.,.,,..,..,,,,.,
+#ER73MX6C4DIULWNA5ITLF62W2NYUWSY5I7GNAPLNTA3E4R3VFABNEAAISL7NI54YGGSVZXUI3ZFSA
+#\\\|LVZ5IRYUI6ZW65NYUIZFLJQWJWAW76Z5GJIGH6RABCNWNHSY6UC \ / AMOS7 \ YOURUM ::
+#\[7]TI6P6QHYB3UAJBZGYSDSVZ7CIXMFAMTZ2ILEBXWFFFWTMRC25MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

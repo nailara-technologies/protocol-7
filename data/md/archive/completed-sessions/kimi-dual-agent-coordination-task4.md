@@ -91,8 +91,8 @@ once both sides have appended, a human (or a single resumed agent) can decide ho
 - run a live test of `address goto <addr>`, `address resolve`, and `address label` to verify runtime behavior
 - confirm the channel task (`context-channel-frequency-separation.md`) was fully completed by this agent in the prior turn, since the address task depends on it
 
-#,,,,,,,.,.,,,,,,,.,,,.,.,,,.,.,.,.,,,,,.,,.,,..,,...,..,,,,,,.,.,,,,,.,.,...,
-#WQDSPDB2NKNMWIAOYD6RCYD2DQS55BDSHNZPVSVAJENVYRT4XH2DCBV2N6ENCXF2CBYFS3BKBCIBC
-#\\\|SUZJLBG2DLF7KV4NU7XWQS7QLVMWLPJW33MQACUP62BZ6MRA5SZ \ / AMOS7 \ YOURUM ::
-#\[7]XSLE4GKB2ZDQNJCEJFPAWJIHGZ5TI3A4DL6XNABQGY24JH7OJKDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,,,,,,..,.,.,,,,,...,,,.,,,,,..,,...,...,.,.,,.,,,..,.,,,,..,
+#C6NEZLWU77ETQ5I6QUGAXBAY2GXCOLMMTDXO7ITWBOOP36B2367JTV4CLQOW4RQQN3ILNCAMFZSWE
+#\\\|KS4E3LAJYDDNJVA6DCYGAMKOQVJBZTMRDXY666CDAKN4TD4ROVG \ / AMOS7 \ YOURUM ::
+#\[7]NT66TCGK6W4LQWLN2U52D7DGFS6WIUIZDRL5QLN7BXWPCZ2EJ6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

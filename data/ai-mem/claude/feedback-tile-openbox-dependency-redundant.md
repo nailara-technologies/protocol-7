@@ -32,8 +32,8 @@ openbox as a zenka dependency when a compositor/WM is already running. If a
 window zenka won't restart cleanly, suspect a redundant WM dependency before
 suspecting on-demand/keepalive. Related: [[feedback-wslg-deiconify-limitation]].
 
-#,,.,,.,,,.,.,..,,,,,,,,.,...,...,.,,,.,,,..,,..,,...,..,,.,,,,.,,,.,,,,.,,,.,
-#4YGVU6ZWEE2N5R33PCBQXPYUBRLV3QFU6FUE3FRWVELA5MSTSY3A4PUWMACDL3DXM5A7L5DGPG7VQ
-#\\\|3M4WQDYTRWHCAANRAHUQCF6FE3DHAWHORIBA2OBOI2TBGUUQXRY \ / AMOS7 \ YOURUM ::
-#\[7]HCHU4MPOJ3K45GQ3IC47HGJSTOIG53J2QGQ7CAH2L3ILK7XPH4AA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,.,,..,,,,.,.,.,,,,,.,,,..,,,,.,..,,...,...,..,,,..,,,.,,,.,,..,
+#VMYXNZABVO3K6JIPAC7OWE5JNCM4FS4AOTM3ZHOTL4LESMPFVDRQD6GVHWHI3ZIS2SFQDZ5M7W2VY
+#\\\|QD62MMPTS7WL7G5FXA6WD6WYPC27RSPVGYAF4HY5MMO3DXCGNXB \ / AMOS7 \ YOURUM ::
+#\[7]GSD4UHKD5WONQHICUKGSHPQ4KLEYM4LY4M3EECNPL5W2KMTZXSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

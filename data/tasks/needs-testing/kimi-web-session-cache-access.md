@@ -186,8 +186,8 @@ p7c kimi-web.cmd.inject-context-to-coding '<uuid>' \
 - [ ] `inject-context-to-coding` feeds context to local model
 - [ ] no signature stubs, no whitelist changes made
 
-#,,..,...,.,.,...,,,.,...,,,.,,,,,...,,.,,.,.,..,,...,.,.,..,,,,.,,,.,..,,.,.,
-#Y6XMRC7AAZ7ZZPOKQZL5P62L62NFN6KVPJGQJUQ27TTIAPYF6GJAC7PM2OG5UMQ3POWPP6TH3ZPYQ
-#\\\|P2GZDXA3B6S6MGS6Q6PCYMRW4UQB2VSWWMR6ITPBSMTHOH7SVVT \ / AMOS7 \ YOURUM ::
-#\[7]IVFMBYVK2SKZZEHCR5EHVC6P26R22SWLXQX47BUYC3QZK5EALOAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,..,,...,,,,,,..,,,,,..,,.,.,..,,...,...,.,.,,.,,..,,,,.,.,,,
+#3W4YDDZYKAQ3F2RZCZHAYYX6DWKWXQ5IAPHLIRDBZ54LVC6SOKAQVECJQAIBLXN5MRD6ZH4SCYOKY
+#\\\|6KLVDEOO57BE3FKBNBJUR6IJSKVCZXCRLCDDNY6G2EGEV4TGWBR \ / AMOS7 \ YOURUM ::
+#\[7]7AKJVSQUDMKCHVPUO66AEYAX6G4YAYSH5OP4HLNRSO7XRNBIPOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

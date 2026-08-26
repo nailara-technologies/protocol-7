@@ -30,8 +30,8 @@ logging at level 0) for a real failure ("cannot bind to multicast socket").
 - never use bare `qw| true |` / `qw| false |` strings — they numeric-
   compare unpredictably and mask the real success/failure signal
 
-#,,.,,.,,,.,,,,..,,,,,,.,,..,,,,,,...,,,.,..,,..,,...,...,.,,,..,,...,.,,,..,,
-#2M22DXWVBIVVBDRH7JTNX6WSHG6BPB5CUILRGKWDZFZWIM7W2E4EDE4W3RBQZC2XSCBWWJL33W4RM
-#\\\|3UYO3H2JXT27NGZW3GV4YPYRNP3PTCTHMPGAWZFUNPAHPSCA5TB \ / AMOS7 \ YOURUM ::
-#\[7]WJP47KSNULXYJ2OAAPB5XCWPCX5OWANQLUG43K67GRRCHQ5THQCQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,..,,,.,,.,,,.,.,...,,.,,,,,,,.,,..,,...,...,.,,,...,..,,..,,,.,,
+#YFJS4BX7CDMEAJPMYWKMWX77OKDADPB7PTEC7LLPQQGUANOUY7W5OX6WYAKFMHWX7IO6AT3E5MX34
+#\\\|5E3QEBANCCEBL643DJCGZDGCIOHYJBBS2BYAMCQIOJCO2IEIIFL \ / AMOS7 \ YOURUM ::
+#\[7]CZXAGEKTZODRN4PSGT6XJWR3MEOEYF3J4W3QEH3G72NK6QTFNKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

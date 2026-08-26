@@ -59,8 +59,8 @@ so the parent only ever sees the final summary.
 can be continued via claude_continue if review needs follow-up; kimi session can
 be continued via kimi_continue for additional passes.
 
-#,,.,,.,.,.,,,.,,,...,.,.,.,.,...,,..,...,.,.,..,,...,..,,.,.,,,.,.,,,.,.,,..,
-#6TZZYFSKQY3P4VGNG6PGG77CJX4AT3C7CG4BPMCMJDC26D2NKVFULP7LL3WQ3FV6VIDAU26FCW5X2
-#\\\|7FJTOI6GEPYZA4Q6INQOGXL2P32PAO5FITOY4H3WPCHC2VO7Y7E \ / AMOS7 \ YOURUM ::
-#\[7]UICZTYCTE5HXGA4AGEOR5M6LE3QAHKGCUDN5T4WXI33XDD3W42DI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,..,,.,,,..,,,,,...,,.,,,..,,,,,..,,...,...,...,,,.,,,,,,.,,.,.,
+#2MHNDPE6TPFGOCMXJMTZCSC7S4XLSHSIFVFJW3YQATUSMI55O2Z3PUUDJ2JC7ZLF7S44AC7DJAIWI
+#\\\|3AXH3EMRSSHJSX2URBCD77UGGMLO2FZQ7K4JDU4YRP5BWPMMI74 \ / AMOS7 \ YOURUM ::
+#\[7]OUTZGDCBB25UB6USNXMSTTUBEVPCLJ3VKACAF22P5MQCSTL2HICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -250,8 +250,8 @@ answered there.
 this could eventually feed into), [[topic-ncode-pattern-learning-loop]]
 (the session this conversation branched off from)
 
-#,,..,.,,,,..,..,,..,,,,,,,,.,,.,,,,.,..,,.,.,..,,...,...,.,,,...,,,,,,,.,.,,,
-#7454RMWF4SRRNHONDVCHBJI4BVH4KS5NB2W2CTFPISAKMFFAM5HC3ATP546CDFY5GXGN22HG625KK
-#\\\|U53FSPKXWE5VLLJVC25PJKBRQBZBGO47WT7JOMRY63BKKXJCLXR \ / AMOS7 \ YOURUM ::
-#\[7]FRN2HHHMXCRFHE4AF6IW6LFA7XPHQVPVJM6Q4LKBSVMTA7ZIYYBA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,.,,.,,..,,,,,,.,.,,.,,,,,,.,,,..,,...,...,,..,..,,...,.,,,,,,,
+#5NKDNZ7DIKWFYXNXJM4CYTQQOIQUAWG7JASRLJO3DAVEG6D7OO7WXQV5KSXIDRJPFBZ2HGAPUHD4W
+#\\\|J2D32JIOSATLHUO5PF2LAUC52HZ5VVB7EWGXILTJMBSYUBZ5YUV \ / AMOS7 \ YOURUM ::
+#\[7]ZJJPMK4S2DBPKQI6AD5MLSZ2XRD6Z3QO4AQEOBLL3WQ2VOOKVCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

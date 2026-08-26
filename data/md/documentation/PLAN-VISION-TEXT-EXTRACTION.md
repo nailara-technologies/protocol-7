@@ -281,8 +281,8 @@ cfg/zenki/coding/zenka.v7 - Load new vision-parser modules
 - Caching of vision analysis results
 - Direct callback chaining to avoid polling
 
-#,,,,,..,,.,,,.,,,,,.,,.,,...,.,,,.,,,,.,,..,,..,,...,..,,...,.,,,..,,,..,,.,,
-#VFSHX6OGMCBKEPLBR6Y4GI4E2UMP67KLUU3GB45CU24DYXVGDYMSK3XGZ5ATK6BAMEEGIJRIWDSYI
-#\\\|JNUDGWHQU5IMCZF7VLHOJ5HGMNA4FBTXZBN73TDM5C4H3Q7KLVC \ / AMOS7 \ YOURUM ::
-#\[7]BJSRNF6AAU7XG3DSHGDJBKA6K4A7LP5MMBMKY4Z24DEH5SIRQEDQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,...,,,.,.,.,..,,...,..,,.,,,..,,...,...,,,.,.,,,,..,,,,,,.,,
+#MVHCKPQCSFXAIW4JVF3VFOPCPILG6MKPWJCY6EMGIUAPX4DCBLG5XTEYGCDLDC3W6ZKSRHNGPDAUQ
+#\\\|2D45T4ZL4CDWCXSVZX6B3ARLVKUZSDBJMLQIG3NKWZWBESJ5CRI \ / AMOS7 \ YOURUM ::
+#\[7]F7DZLE4WGZKAXPECQWAV6ITVURJQX7G6H3IW5OLZXMUCFL6SPMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

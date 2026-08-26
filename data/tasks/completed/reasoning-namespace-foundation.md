@@ -296,8 +296,8 @@ once reasoning.tree.* is working:
 3. reasoning.chain.* — persistence layer (see REASONING-CHAIN-REPOSITORY.md)
 4. task zenka loads reasoning.* — "what to do next" becomes narration inference
 
-#,,..,,..,.,,,...,.,,,,.,,,,.,.,.,.,,,,.,,,,,,..,,...,...,.,,,..,,.,,,,..,,.,,
-#WEK72HNEZHC2EWRLKMV7SSXD7FAH4Z6Y23RRWC4B7WISSTXMUUAVRTTHSEVKFLCYFRNII7HNVIW62
-#\\\|AB6V7ZHYAMLNLL6UYQRJ5KFPI4WZMXLI4FTDD2FDZSB6YWK43IM \ / AMOS7 \ YOURUM ::
-#\[7]GMF7CTMTXVRWNLQJEWIHUJPDQXBBXJSEGAE6KDCPF3ERSWTKTACI 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,,..,.,,,,..,,.,,..,,,..,,,,,..,,...,...,,..,.,,,...,..,,...,
+#FX3QMWOH2ZVJTGTI5X66UKNL424C2NLVUBUUZNFWW34NYUEUKXBBOTFXELGM67FNXHHPCGAM5NUBQ
+#\\\|DTNDMKSHJW3VY7JPCOWPTUDNNCPDTLUBBPUN4F56IRJKZFQDN5D \ / AMOS7 \ YOURUM ::
+#\[7]HLIFV6SZMJWH5UU67APFIO6FYP7KT7RKRRPNO66HPGQAMBVMRQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

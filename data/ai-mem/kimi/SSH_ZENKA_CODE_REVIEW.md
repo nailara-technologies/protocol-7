@@ -336,8 +336,8 @@ All critical and high-priority issues have been addressed:
 
 The SSH zenka now starts cleanly and maintains its robust connection recovery behavior that was refined over years of laptop sleep/wake cycle testing. The fixes bring the 11-year-old codebase into better alignment with modern Protocol-7 conventions.
 
-#,,,.,.,.,..,,,.,,,.,,.,,,,,.,..,,,,,,.,.,,,,,.,.,...,...,.,,,...,..,,...,,,.,
-#YTBV7ZN6YEGABEJU3E7754KPL5Q7SXT6K6KSWOLSVP6MSTAO4BDXCFN7WFZUNGEYBHL5B5X6RI7LG
-#\\\|SWV3GA6RKNQVDTLB4RAYPMFA43LOIIC7J7TF2SIRJRLQFQPKZYM \ / AMOS7 \ YOURUM ::
-#\[7]4R7WKQS5X4MICVKXXKBFRKCVZ7IODHXH5KUDSMZ6QSDIE355BGDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,.,.,,..,,,.,,.,,.,.,..,,,,.,.,.,...,...,..,,,..,,.,,,..,.,,,
+#7SLYXEVEMYJ6GQO2KDJDAMYYC4PD4CK4YIT2RVFCCXCSQIN2QPLGTBSMHXKJ2IZVRRWIERXXPX5RE
+#\\\|XFH5K4UYSRFHYFB7GD2CNIRPATK3MK4CZIRKU6SSO6WBAUB2ZON \ / AMOS7 \ YOURUM ::
+#\[7]QHFS5HNAD7OULBZZISPRQMKLT5JFWPJ57HGWBWDAI7RASAK2OSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

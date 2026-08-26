@@ -246,8 +246,8 @@ signature:  <sig-of-above-fields>
 
 #,,..,,.,,,.,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,...,..,,...,..,.,,.,
 
-#,,,.,,..,,,,,.,,,.,,,,.,,.,,,.,.,,..,,..,.,,,..,,...,..,,.,.,.,.,.,,,.,,,,,.,
-#LHSCZGRGNJFE7W7DXRBA35JRCEMSTNEZJQAVVJN5AIVHG6POTJWBLT22TNDJN5LAA4EBCTGCF5GDU
-#\\\|LZEKTXIPY7QVKONW6CKHCJ2QWIIP2CKSXOOZN2RZ6P4SBETBIRK \ / AMOS7 \ YOURUM ::
-#\[7]HRJ7EW5VHK7RYZKTXVOPYEXK5YJX6SWTA7D42AXR7QAUVN4OL2BY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,,,,,,.,,.,,,..,,,..,.,,,.,.,..,,...,...,,.,,...,.,.,.,.,...,
+#TK4XXKYSZMEJ5BRAA5WFRF2OLIIXE75RE36BRLNKA5LTGPFDCUB6S4UZ3M2I45K5TILS4NRRLG57U
+#\\\|3HRISLMRAOH22MELHQNYB6B34VHAO6LV3MHUFJMIREHLUKTODMU \ / AMOS7 \ YOURUM ::
+#\[7]UDCQAGT44PJLEZ4XXOWDIO3CQXVRFSKIC2MPXCPCYYSGNRO6PCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

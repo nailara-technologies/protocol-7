@@ -237,8 +237,8 @@ curl -s 'https://space.v7.ax/orbital.json?context=NODE:NODENAME:ADDR' | python3 
 the context response should have `self.p7ref` equal to the context arg, and
 `known[]` should contain real nodes (minus the context node itself).
 
-#,,..,,,,,.,,,.,,,,..,,,,,...,..,,,,.,,..,.,.,..,,...,.,.,..,,..,,..,,..,,,.,,
-#IDTFEVDYL3EBKU36AHONM6R4EVIJXMWUGTDSJ5GT26JAMBBCQC64KXLG6WY45ZXEH3O3KQQG4DKH6
-#\\\|X7WKKFJBJNQT6UKSAAOCZM5TFVN233ESAKVVMZKFDB5MNQGCWZK \ / AMOS7 \ YOURUM ::
-#\[7]S2HN4LSUXPY43WH5CZT252ZVN3LGQ2APFAUNBUGDIAS7MCWRXYAA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,.,,,.,,,,,.,.,...,,,.,,,,,..,,..,,...,.,.,..,,,..,,,,,..,,,,,,
+#E6HKTBZMBOGG5DSEMXLW4ULJ5SKVQF7NXZOO7O3AXBPFMQDCKCJ56DFJNLVVKQ2BGWYVNODIZ6WSI
+#\\\|34SDCFLIFMOC7CA6HLVCEDHH2JU4FVFB3DRQWELXFWQD46OFCGT \ / AMOS7 \ YOURUM ::
+#\[7]W6YXESRZMDGROWNSNZX6JQNEP6DTDXMPYZTPAHB374AUFPOM6YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

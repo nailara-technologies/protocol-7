@@ -139,8 +139,8 @@ matching the BASE32 high-res timestamp convention used elsewhere
 ## style fixes. verify each module with bin/ptd -c before moving to the next.
 ## do not modify signature footer lines.
 
-#,,..,,.,,,,.,...,.,.,.,,,,..,,..,.,,,,..,,..,..,,...,...,.,.,.,,,...,,..,.,,,
-#EZBV4SI5IHGQGSJNFEX2LKKO4AWVX3GAQ3PYGFUBO7YO4E6X3KGTAP7T743DCQOFZZDTCXBM6FEXC
-#\\\|CMMMIYKHRUM7VJM756XOMFSCVGFG32LJVASRLEN4OCUM26E7YHS \ / AMOS7 \ YOURUM ::
-#\[7]26H6PSDU5IDN54R7AXT6ZNUYJSCXSWLP5B66BHTZSLLR6FGRHABI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,..,,.,.,.,.,,,.,,.,,,..,,,.,..,,...,...,.,,,.,,,.,,,,,.,,..,
+#A2QMCWHJK4AR7GKMENN363HFTN5NEJPQGEHTU6NV7C4PDXYDEGGHWXQCSF4LTKEADDYV5ZN7ZH3TC
+#\\\|I4NOGJWXEXRW55WOTBPHPQST2NKPEA6QGJI77NAJPVFJ6LOZOT3 \ / AMOS7 \ YOURUM ::
+#\[7]TSFOKRRSOFH55I3PTK5QRQOETQOFQITELGCIDJFBPY5H5DRH6ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

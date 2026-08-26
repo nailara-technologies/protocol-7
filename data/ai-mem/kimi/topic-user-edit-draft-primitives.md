@@ -9,8 +9,8 @@ in list context or `qw| skipped |` in scalar context. `skipped` was chosen
 so callers can distinguish "nothing to save" from `TRUE` (write succeeded)
 and `FALSE` (real write failure) without colliding with either numeric value.
 
-#,,,,,..,,,,,,...,,..,,,,,..,,,,.,,.,,,.,,..,,..,,...,..,,..,,..,,.,,,,,,,..,,
-#INVH2FFVSQBMCKHXSYAQ3XQBSGNCW72JERGML63VF7VLSJM7WQTWOK74W6JOYJPPOV7I7SYZ6KFT6
-#\\\|Q6XPZJOSTUKLS4VZBZ4RZPKXQXJV4FMJ4ECYPHDSSKZZ6DV3SKF \ / AMOS7 \ YOURUM ::
-#\[7]IJFRJSED4M7DXBV3LZRMNUCSUXCFKQZDCPG3CUKMMGTQ273CACCA 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,,,,,..,,,,,,.,,,,,,,,,,,..,,..,,...,...,,,,,..,,..,,,,.,,..,
+#KWDVWSC6AAO5CQ4JNCPG3WN454WF224CQVUSP2ZLRRY3QRWSNGGG4KIGMULBWRGVDR3L4DE6IGBP2
+#\\\|UCMVTYRSLJMMOQREXKFOS3DTB2CTR6ZP425PSDOBFXM42KVPKVR \ / AMOS7 \ YOURUM ::
+#\[7]PAZV7FSJB7U2O4RRLS33S5TWNWTFI4HVIBXMY2UV4X3W4OOMUOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

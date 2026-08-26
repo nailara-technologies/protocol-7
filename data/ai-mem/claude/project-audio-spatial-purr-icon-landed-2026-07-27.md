@@ -80,8 +80,8 @@ hardcoded recipe by design, not derived from config, so "what's
 current best" is a deliberate one-line code edit each time, not
 automatic.
 
-#,,..,,,.,,,,,..,,,..,..,,..,,,,,,,,.,,,.,.,,,..,,...,..,,.,.,...,,,,,,..,...,
-#Y5UQGSFVNECUY6LZPISW6Q7DEHMKR4GBXYOJGWCNNKVEXQVIKEF4KWCCD3UBMPSUPNAGZOEB4OLFA
-#\\\|TS4TPCJSSN33BB5XBI2INXME72NRUOS7YMFUM3EWG3PFAGJING3 \ / AMOS7 \ YOURUM ::
-#\[7]NOCOKZ2ML6LWHNXTPKQAV3AWEMOIV5BU7QFTX4DBWCIWTEHREKBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,,..,,.,,.,.,.,.,,..,.,.,..,,..,,...,...,...,,,,,...,,,.,..,,
+#IZ75KBHVMZHC64SJINK7JWYYDFV4ULOR7NWNNOFYKAGRMABNRZJPQSL7V2DV64ZQP2OGINNND6HFI
+#\\\|HADNAH4ISX743LAVTV3TWUJQSD7CGHLQDNHJQNAL4FIQT2AWWPN \ / AMOS7 \ YOURUM ::
+#\[7]JHWJ3ROBJSSLWIBIRKVQ5DVK4UQOG6I4RDGIADZ4EEEFQXW6YEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

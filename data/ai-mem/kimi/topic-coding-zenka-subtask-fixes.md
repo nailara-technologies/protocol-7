@@ -87,8 +87,8 @@
 - `finish=undef` (connection closed without finish_reason) → enqueues another round
 - `finish=stop` with no tool calls → completes normally (model chose not to use tools)
 
-#,,.,,.,.,,,,,...,,,,,.,.,,.,,,,.,...,..,,,.,,..,,...,...,,.,,,,.,,,.,..,,..,,
-#IBMGXVK7MCBJDAW2KF52GWHNZTZN2TIQ7PQB3KLEAT7HLRKPW7KH5PTSD4FGLTEAOYAPL3B3ORDRA
-#\\\|SU67Y4WVLIU466G2HM2ZKLA5OLTAFKC37WXG7OF26B5NQCJTAGW \ / AMOS7 \ YOURUM ::
-#\[7]AM3O5P4SZIQ4AHCPRGXNZSG6TXU22HSQ7TYB4DLCEYLSE653SUCI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,,,,..,...,...,,.,,,,,,.,,,.,.,..,,...,...,..,,..,,.,.,..,,...,
+#GIHSKXP3HMZ4EHVQCHVVA2NDAJR43CPZDAALWMPVT2M6EXNNHQXCXWCZVZ5R72OTUO2BNVTQVPDZW
+#\\\|7Z2Z5XZUC77KL3Y67GXWMLDNN72DKBUKO4XEAUVJNWV66ULXL7U \ / AMOS7 \ YOURUM ::
+#\[7]VET2EYD6AHLGBDAUEGQNHEK7SHWID5QGGFBFMJUDGQH7UDWC3KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

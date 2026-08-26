@@ -41,8 +41,8 @@ elaborates a literal "13 surrounding gates" design later.
 [[style-philosophy]] · [[topic-protocol-as-self-governing-authority]] ·
 [[topic-distributed-hybrid-inhabitants]] · [[project-vision-origin]]
 
-#,,..,,..,..,,,.,,,,,,,.,,.,.,,.,,..,,,.,,...,..,,...,...,..,,.,,,..,,..,,,..,
-#K3GYTHWOK5VFMPSUZROGT4RAUWO5D36P7X6XNKTCCFZRR2N2M3DHH7NFXACE2OUBZWL5RHVGOUQL2
-#\\\|AMRDHDVA2OTAW5QIVCQIFPVKTB6R4MLVZ3CKFSSN3IJXEX3CHBF \ / AMOS7 \ YOURUM ::
-#\[7]RCK3KPSH4RNLSZRNQ6ISCSYL6E4WWNDCC7SXRL4DFZUYUK4X64CQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,...,,,.,..,,.,.,,,.,,..,.,,,..,,...,...,,,,,,..,,..,...,...,
+#QOROWJFVDR5DQ7VBN4GQZFRON6C3V45SD2IWL4WEYIGXQYXIHQFVD4TXMYQRVDPE5TGRCKBSEKFV4
+#\\\|6HXMJFYRFXWH74IZDIQDYZMEBTTM3O4D6KTGGAE37NKDZM4IFJQ \ / AMOS7 \ YOURUM ::
+#\[7]CIJQP5MPHCRUMMFKXM7FFAL4FEUNWSBXNAISTZISSWXUEIYIIUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

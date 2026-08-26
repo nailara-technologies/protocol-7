@@ -122,8 +122,8 @@ boundaries — the scale factor equals the base.
 - parent_lookup("63") returns 'cube-nodes'
 - ring_position("076923") returns the 1001-ring index for the 1/13 family
 
-#,,.,,...,.,.,.,.,,,.,..,,,..,.,,,.,,,,,,,..,,..,,...,...,,,,,,,,,,,.,,..,,,,,
-#6PLLN6QCRKR4SPM34L5NZRCF6PGTRARZXWHNHE3SMAOEJAWL276JCOC3IVDT52557R7N7E7QSFDJG
-#\\\|VL4KLTR55M2AMF64XH7MO4Y23CQNO2NPBACBWXQFI7RZXS7I2ZK \ / AMOS7 \ YOURUM ::
-#\[7]Y4GSU2NADYA2SVMTGEH3IXMQMJ2T4XDOEIZ5D342JJABDMFOFUCY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,.,,,,.,...,,..,.,,,,.,,,,.,.,.,..,,...,...,..,,,..,,.,,.,.,,.,,
+#J7QNSEAF3BU5ZAKAS3EEUSAN6K32JL4JN2WRYRPCDNIYG5PLSKW3LIOZDGAZCBUFZZTY7HN7BJV24
+#\\\|NXCXR5Y2MH6JFOXUVIS3H2EGPTPWGNOB2QUOPBOR2QHLMWAP463 \ / AMOS7 \ YOURUM ::
+#\[7]JW24UVAB2EGBRQAYZJWWIKXHVZCHN4NV7ZONKI4FIGFLK6QVNIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

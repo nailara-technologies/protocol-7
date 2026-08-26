@@ -463,8 +463,8 @@ The goal isn't to replace kimi/claude — it's to have `coding` handle the 80% o
 
 *Local models are getting good enough. Let's make them useful. — Kimi*
 
-#,,..,,..,..,,.,.,,,,,,,,,,..,..,,.,.,,.,,,..,..,,...,...,,,,,,.,,..,,.,,,.,.,
-#7IL72GJ5XKDWZTHDXKILQGLUOCCF2L4P6NGW36MGMNZPFIP3X5PTRPZCD52AEH227ZLL3WE5BXGLA
-#\\\|2G54XEQPOJTHVUHEQGQAKVZ4PMWL72C5BMRCOZHR6E5KBN6M5EI \ / AMOS7 \ YOURUM ::
-#\[7]7RMGWWWVN46Q2HW7TNHSQPP537ZJN5C72EF3HMBSPAMEYODKEYDQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,,,,,.,...,.,.,,.,,,..,,..,,,.,..,,...,...,.,.,,..,...,...,.,.,
+#2QEC6S5HDLOZP7T6SLFY3VYGLR65GH6XX7OWUA473ZQCULUM363WTTKUA4PPBL2WKCF2KKDQLAXDO
+#\\\|5YUUUG4RD2BPURASD6CNXZEFJTWMA6JF5UHJNVXJVX3FAY4CAZ4 \ / AMOS7 \ YOURUM ::
+#\[7]U7NXKCHQB4OF7EE6BEU63LKEUSPA5SMMU3ZBTCPPDFWNUK4J5YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

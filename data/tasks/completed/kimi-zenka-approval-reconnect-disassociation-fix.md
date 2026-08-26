@@ -123,8 +123,8 @@ instruction, if this surfaces a codebase gotcha worth remembering (e.g.
 anything about `<kimi.approval.pending>`'s type history, or the
 reconnect/flush lifecycle in general).
 
-#,,.,,..,,,,.,.,.,.,.,.,.,.,.,.,.,,.,,,,,,..,,.,.,...,..,,,,.,.,,,.,,,,,,,,.,,
-#JFNNEXXD62FVPAFYIM5QFGPIQ7BWTPNFQJ377JEW455RGK2SE4JFXXTGABWWLVL3IG7ELLFLTQAWM
-#\\\|ZQETZIZV5ZT3SUDFL7VP34WS2SZGIPEVIC5YPRQB6OG5O3M2UP7 \ / AMOS7 \ YOURUM ::
-#\[7]LFIT3WF7P4I5HORQ6YLACDO5BBQVRM7KDTLQBOSAVORHMQXIVIBA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,,,.,,,.,,..,.,.,.,,,.,.,,,.,.,.,...,...,,,.,,,.,..,,,.,,.,.,
+#AATFOVBOPBLE3XAW3D7B3V2RUWMIJ5PYD4AH6PEWRCKCC2GWD2Q3WDALCF35U4FNZ2EMR5S2GMOYW
+#\\\|TTYHLYUWTVPQLBEW4YTDVFJP5NPB72TCYXBH5LYNPR6HUACBUL3 \ / AMOS7 \ YOURUM ::
+#\[7]R5CPSF4TMDK7VSWMSD2R2MOCVNFCI2PSUIVDA7IPCJJ4TFXF2MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -231,8 +231,8 @@ likely the same as other design seeds in this lineage: fold into a task
 file once enough of the mechanism is nailed down to be actionable,
 distinct from the philosophical framing captured here.
 
-#,,,,,..,,.,,,,,,,..,,..,,,,,,,.,,..,,..,,,..,..,,...,...,..,,..,,,.,,,,.,...,
-#GUAK3UFCZJVA7HB2CDZEZQ7GLWNONN3EGZAF4CPY2Z5KIZ4TTJGOWK766Z4AC7V64BKWPJAROKXTY
-#\\\|MVSSTJA7FSLZ7A4YHUKRW3PIAXGSQ7KK42OORJSZDYDXLNOVEBB \ / AMOS7 \ YOURUM ::
-#\[7]XJ47S5EUHUUJLMQMZJH3BLWRLQHH7XCGFSDC6UPSSMRXWK4O4KCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,...,,,.,...,,,,,...,,,.,...,,,,,..,,...,...,.,.,,..,...,...,,,.,
+#4DWMYHWU5BB55AIBOAH5PZVHVKMBYEO2UKVUNBGELXCWOLR2M4L2NE5GYBYIMY7OIIO63KLMDPGZK
+#\\\|TYGJ6QQAPSVIXEE3FA32R24AXWTXDIPZZII7MOUQNCYFA4FQMY6 \ / AMOS7 \ YOURUM ::
+#\[7]57HJSTRCXEGTNFB6G36HDD7V7HAPJABGVW4QL5GPKKLTAI7XNMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

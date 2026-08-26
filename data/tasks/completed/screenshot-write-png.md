@@ -91,8 +91,8 @@ captured region.
 - [ ] test run produces a valid PNG file
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,...,,.,,,.,,..,,..,,.,,,,..,.,,,,,,,.,.,..,,...,...,...,.,,,..,,,,.,.,,,
-#EWWQ6YI5LCXS7T65BNAO67II2RH7XC6NSDQM2COZ72Q4YN6UCGPOWXOSF2B2MHTGFGOO62YMXNK7G
-#\\\|5NKF2DJ2INP2JVHFVJKZJMR2ZADXYIQU2ZELMAY5SJ3LM5JLULG \ / AMOS7 \ YOURUM ::
-#\[7]FA4JTHJN3FUUQFFYU4TY7HE6XN434SGRBZOGH3B3CRX6KFJTAKDY 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,...,.,.,...,,..,.,.,,..,,..,..,,...,...,.,.,..,,.,.,...,,,.,
+#UM3DILKQNT3AB7GLSUZFF7GHKTRCQSCIN5ML5UJHK5VOYXZDXEUNHEMSD7RCUZX2UOS3SZJD3EIMG
+#\\\|2HOOBC4OX4GBPMOHTFJANE46HW75QFV2VIJ52GFTLIATUKDR6H4 \ / AMOS7 \ YOURUM ::
+#\[7]JHIT7ESZVQECY7ISG3O6EBEMNZSHYVJXX7NE3EBD4W5GDLQBF2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

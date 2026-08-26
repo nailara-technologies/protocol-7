@@ -48,8 +48,8 @@ two bugs above are real and would need fixing either way if anyone patches
 this module conventionally), but the recommended path is redesign-around-
 the-bugs, not patch-in-place, given the reframe above.
 
-#,,,,,,,,,...,..,,.,,,,,.,..,,,,.,.,.,,,,,...,..,,...,...,.,,,,,,,.,,,.,,,.,,,
-#NOTPLFZYP7MCPCJVKDTNGI4S7VMHQSGDBWHMNQYSZ2D5LVJXBIFHATGTDQQMZHNHO2A2MO4YFIDVY
-#\\\|APNOPLL2TLYLNWFVZY744WMRQ3AKK7SHJIZAQVHUYA37WNLFWJZ \ / AMOS7 \ YOURUM ::
-#\[7]I6RT3BRDY7DEUN3VPRSG4K2LZW4MRZOA6WZTNENLONAGQUIXZOBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,.,,,...,,.,,,.,,...,..,,,.,,..,,...,...,,..,,,,,,,,,.,,,...,
+#4VULLPPFWAGLMFQLBNDI7II2K7GSYYHXAMHZ6IOGKCO2ELJZRLX42WKVGZ2I4V5L62EVUSZ22H2OI
+#\\\|PYDDTGRMJVSXHMFIWZA5OQVUOXFFDX6FS3SFUTQ34TVI2ZFTR33 \ / AMOS7 \ YOURUM ::
+#\[7]GNITXF7YGQPP2WTSUTJT73R2QIAOS2EAKAYMQGS2CRKW3S5ZUUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

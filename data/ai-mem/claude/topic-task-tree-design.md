@@ -105,8 +105,8 @@ The valued tree handles priority/ref-count propagation.
 Task tree parent/child is a separate (simpler) layer on top.
 `queue_order` remains live-queue-only for next/claim iteration.
 
-#,,..,.,.,,,.,,,,,..,,.,.,...,.,.,,,.,...,,..,..,,...,...,...,.,.,,,.,,..,,,,,
-#2TXE57653ILVBVMMDB7OYFF7AOQEOWVQQSNRV4MPVX47Z7FT2BOQC7B4IRKRE47RGCTSAR3IRHX6W
-#\\\|SQMRUSX655BQPPJQMT2YCWND7KPEHDVI4F54XD2MTZVZUFGAPXP \ / AMOS7 \ YOURUM ::
-#\[7]KALHFEJ6IV4POEHLMT3VNCQFJX56LGXWQJZ5G7C5LMLD7TXHPMBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,...,...,.,,,.,,,..,,,,.,.,.,..,,...,..,,..,,.,,,..,,,,,,.,,,
+#KQ7FILEUXHI5CLPCAO6LH6YZB4CMBTOZ5NU7W6YN3YOBU5T7QLKQINJRFURNXNZWKMPKGBO4SALQW
+#\\\|KGQ6ZT5EFWHC3KETAL6I2FL2PSZ2CAM4MLDDYADB44IJ6J427EL \ / AMOS7 \ YOURUM ::
+#\[7]AUEXDIYEVZEXFB2PI6BLCWUIWWRT22KIHE32XYNLRTNAT5IUXIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

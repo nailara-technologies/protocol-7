@@ -32,8 +32,8 @@ Plan agreed with user:
 (k3-256k) dispatch — spec the `AMOS7::TERM` function signatures + `bin/todo` call
 sites explicitly in the dispatch prompt rather than leaving them to be inferred.
 
-#,,..,..,,..,,,,.,,,.,.,.,,,,,,..,.,.,,,,,..,,..,,...,...,...,,,,,.,.,.,,,,.,,
-#5RE36E5V2L2GP7AWE2CAUFU4D2N2HZ5FKDXA2MDECAG5T76FMST7PXUVDSJEGC7AB5LRLYLFFLMHY
-#\\\|3525FLEDT4EP3ID2KVGHHDP6Z7RHSSWWGOKHZ5677LVZMM6MQL5 \ / AMOS7 \ YOURUM ::
-#\[7]3MJ6PXW56RG32PF2MLIEKSYQUECDVIDJV3N4FGXR2LTRLSAEVOAI 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,,..,.,.,..,,.,,,...,.,,,.,.,..,,...,...,,,.,,,.,.,.,..,,.,,,
+#U22J6JS43RDTERKFR6CR7HML6ELQORIHK5B5O3MP6UPD42VKDCS6RZFXMCJJMPQW42FMSSVC5PU6I
+#\\\|OPABEWXPAY3DKGWUMYREPUDU4PRHASHYKNN3WF3ITA7PSWSCAFN \ / AMOS7 \ YOURUM ::
+#\[7]SMUNNDUXDBBBO5BTODIM2EA7TKCGHT75GLNCXXOZRQK4JZHAOQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,8 +39,8 @@ message. See [[feedback-swap-subs-not-fragile]] for the same session's
 other subtle-but-real bugs (swapped-name mismatches) caught only by
 pushing new code through a live round-trip, not by syntax-check alone.
 
-#,,.,,,..,,..,.,,,,,.,.,.,.,,,...,,,.,..,,..,,..,,...,...,.,.,,..,,,.,,,,,.,.,
-#XTWSLFHZZD5E54KOGKGU2E4OEHE6UN5N2EQJTETFQDOAESMIRISQRKVJIPGUNQJI3JKP5W65MQRB6
-#\\\|U2R6HZCRBOKU5HIZU2VN4YH5NHIDXKPWGVYNCVHQIFM5EH2JQ2R \ / AMOS7 \ YOURUM ::
-#\[7]QVJPWXCO5XCEDXG2C5EPU7GFLR27F2LKQPHF3QH74BLAY535XGBI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,..,,.,,,,.,,,..,,,,,,,.,,,.,..,,...,...,..,,,,,,..,,,,,,,.,,
+#37CJW332FQSUKWU72SFE6QDUCAEYAKN5TDNUUZR7AUU3BRNY2SI6QCPEW5JJ6BFT4D5IKUUHZCMKE
+#\\\|EIJGVMJBOSKZKPD3QZ77VJCN4V3P5JHJ7AECQEOQF4TENMU7PPF \ / AMOS7 \ YOURUM ::
+#\[7]5XXEKOYPFEJHGHAYNZKXOWU5NDNRNFWV3ZONHZR3HQYGMOUNC6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

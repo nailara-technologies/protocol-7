@@ -209,8 +209,8 @@ suppress bias by policing intent, it strips ulterior motives structurally,
 the same way checksum-identity strips social credentials — by leaving no
 channel through which either could travel uninspected.
 
-#,,,.,,,,,,..,..,,,,,,.,.,...,...,,.,,,,.,,..,..,,...,...,,..,...,,,.,.,.,.,,,
-#O7BSC4K7SCETN5BA725DYNQAHBY4UQZ5GF6RSITI2STULIQC26JGHGSDZ5VYVM346WMSESAOYPTZA
-#\\\|ZHF7R3RDOATJRQVN3MC2PE4P7RN2LCUMVWEE65Y7VZBEP2IUQPR \ / AMOS7 \ YOURUM ::
-#\[7]BAHR2PQOSQGIGPP4YOHGPQWMIN4XHLETJMMFCPS6KKP4YVCWPOBY 7  DATA SIGNATURE ::
+#,,..,,,,,...,..,,.,.,.,,,,,.,,..,,,,,,,,,,,.,..,,...,...,..,,,,,,,,,,,..,,.,,
+#NRKT42BSG67RW3A7SYOJTAIPGUEOCGBLMKLDOURP2WNAHKTUSDF75LP2INL5SDIVGZRSKD2TQK7J2
+#\\\|NJVBKI5JSFUBLD2TNBUBGBGJ2X6RHPAH2NBQ4MF664BE7TBRSXY \ / AMOS7 \ YOURUM ::
+#\[7]5K63XZGGDFJYPUIUZDONGSHCW5N4MNPTQ6FBO5OFJ3ZAWI2CYEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

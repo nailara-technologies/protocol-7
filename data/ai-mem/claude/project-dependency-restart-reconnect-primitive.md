@@ -97,8 +97,8 @@ as well as `kimi_dispatch`, not just a kimi-specific quirk.
 
 [[ondemand-idle-timeout-active-streams]] · [[topic-kimi-dispatch-infra-hardening]]
 
-#,,,.,,.,,,,.,,,.,,,.,.,.,,.,,,,.,,..,.,.,.,.,..,,...,...,...,,,.,.,,,,,,,...,
-#EGTCVAJ22656LHSXOZ4367VP2YM45VDH3QVHPA3DH5RWRNBRNMVR7QOFDPZGO2TM75DPPBXTY42PY
-#\\\|2SEPOJPXR66V36RXUIONW3PUQ7WEZ5LILWAX25UYS7SG4O44LMD \ / AMOS7 \ YOURUM ::
-#\[7]PBIYZJDNI5A44DACEYBA23KGCNTXNZMHF7TMSVPKGFYOZKBJSMCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,.,,.,,,..,.,.,,,.,,,,,,.,,...,..,,...,...,...,,,.,,..,.,,,.,.,
+#HD46GAT2GI3KR524NDYXRBS2YAVGECKWLENOUBWH73RAKU5KUKBCGD62MF2347WLGIGHHGSRM7JIS
+#\\\|3UWQ2E5ZWDGK5T33VTEHH5I2WIQR3AOMZ7K5ZBJVSZ5B6DBIWLP \ / AMOS7 \ YOURUM ::
+#\[7]PLXGRHPSWFZ7GQYNYEV3LHIYXJBIIKBIPZT6Y5PNZYOWTTORNABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

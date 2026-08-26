@@ -49,8 +49,8 @@ model-routing param pattern in `bin/mcp-server-p7` (~line 3048) once real.
 
 [[topic-kimi-dispatch-infra-hardening]]
 
-#,,,.,.,.,,,.,.,,,,,,,...,..,,..,,...,,..,..,,..,,...,...,...,,.,,.,,,.,.,..,,
-#JVIHUILNLKGYGDPGOHTR5FREGWB3GEQ3ZSRGJLOS2E76VVECZW4N5H472XYOUICZ6TMYZY5PHWG3Y
-#\\\|BMOGQO6MM2TRRJRRKXOIG42FO6S3FP2NUN7VJFNXYW4J2E4HWEC \ / AMOS7 \ YOURUM ::
-#\[7]BAQ4XHFOJN47S6CPGF3TLX3PNLVVASNF2WBPXP2DM2B3LNFCPWBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,.,,,,,,,,.,,,.,,..,,...,.,,,..,,...,...,.,.,...,..,,,.,,.,,,
+#X4GVIUD6MDFVA3CQPZAPFMNVBA5KG2TLNQKWCPB6AA3DV3CFE5D3MYRTYN6OUXFDUU7IOR2FZTPRC
+#\\\|5WTN3R6WAWSC2F56XQ3GG5NTNIMRVFFCIV4SX3PLL6RHKFK6GFS \ / AMOS7 \ YOURUM ::
+#\[7]2KLE556E7ITV5OHF26ZKF75OV2V6DT5IBHWPXHWDDVVDS2KNYGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

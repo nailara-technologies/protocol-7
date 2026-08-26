@@ -126,8 +126,8 @@ These need more design, live system testing, or are lower urgency:
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,..,,,.,...,.,.,.,.,...,...,...,..,,,..,,,.,..,,...,...,,,.,,..,.,.,..,,,,.,
-#Z2MX6IL4FFIUTTJIVE42DNYGI5FS34E5V6VZV6SNARIBXMILSRIDTXNWSYNLHBE5DRCY23KBV2GE2
-#\\\|YTLEGHLFBP64QQKBPCECUJGODQK7YX3YADHCN6YGJ3NZX55TIQQ \ / AMOS7 \ YOURUM ::
-#\[7]F3CWNXRGQZXHN4L3REVZLBXQPZPVTOLXNPSZ7Z5BTRLADPVUGQBQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,,,.,,,..,,,,,,...,,,.,,.,,.,.,..,,...,..,,...,,,,,,,.,.,,,...,
+#TNC63DMWZWTHI5GQSHL2IHWUV55D5GNHAWEQUGZ4Y52MPSDV567SNL55ORT6OJHWX3D2OVUNJT2C6
+#\\\|53MYFEPRPAYUX4HCDNO3Y2ZJCDK4KXQ5PIRCCE2E3CPAKPOLKSQ \ / AMOS7 \ YOURUM ::
+#\[7]F74V5WL3XJH44ZZQEGFLDCKAUBF2IGQJ7K4GA7RFCCNI5NVKLIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

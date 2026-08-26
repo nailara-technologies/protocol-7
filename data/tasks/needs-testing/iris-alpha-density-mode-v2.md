@@ -98,8 +98,8 @@ add to cfg/zenki/httpd/subroutine.white-list:
 - new module: leave clean, no footer stub
 - existing modules: signatures will be updated on commit
 
-#,,,.,,..,...,,..,.,,,...,,,,,.,,,,,.,..,,...,..,,...,...,.,,,..,,,,,,,.,,,,.,
-#XHMC6XIEJ6AZNKLUZZF55Y56RDOL5JM3ECBDTGGPE4F2544MEYHECPL7AREU5EL3ZASWBPNK7NQHC
-#\\\|4N42ADUO3OUWVAXQD3VFJ3RP6BYTH733TOYRBYN3F5WHGSBO7C4 \ / AMOS7 \ YOURUM ::
-#\[7]MLE6KO5XOYGMAU3FMNKK3XZMDXIEAKSTVVM6UYF5UMVCXYV5GUCI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,.,,..,,,,.,,..,...,,,,,...,...,..,,...,...,...,.,.,..,,.,.,..,,
+#BBOP7BFI3OMI65J7F2CTXWV6FG4EQV2VS3FXMDZ7XZKIO75LOVCMH74IGP6MXJLIKGM3JRI43NXCS
+#\\\|PRBYGIM2BFXMM4VDXSK2BGJ5JLFZ2NHLXX7WNU2TNIJOM7HAY7J \ / AMOS7 \ YOURUM ::
+#\[7]S2MQYPTWZ6IM52UXYJW4IVPIQNAJEAFY3NKZH4SYWIYOQNKLFOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

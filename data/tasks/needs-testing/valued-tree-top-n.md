@@ -46,8 +46,8 @@ sorted highest first.
 - `<[base.logs]>->( N, fmt, args )` for logging
 - lowercase comments, `[ word ]` bracket annotations
 
-#,,..,..,,,..,,.,,.,,,,,,,,..,,..,.,.,,.,,,,,,..,,...,...,..,,...,.,,,,,,,,.,,
-#HUS2UE4L3BP2PUXSZ5LS57TUWDTFZ6I6RSFOBGNIS2GL37BYDLWZEQLFFS7ZFXC5XPZDPHVXUXFD6
-#\\\|RIMXWIBA5NRCWYZ3TZE7WQH7UMAJIEKIGXIBDK5LYQ34RQ5ED2Y \ / AMOS7 \ YOURUM ::
-#\[7]GZI6O6OKYM2YRDS3LZQ2WYYRLBMESBFZEP6ROYUE6HQJI5K4AEAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,.,.,,.,,,,.,..,,,,,,,,.,.,.,..,,...,...,.,.,.,.,...,.,.,.,,,
+#7WVAQKPWQIQ6M7PUWCAEY3XEHYLV2QK6PLBCQJV3WGEVWIR2YGVJOWD5OJ262TGENOAESEPVWON5O
+#\\\|4IMIGGXG5ZGOFW2YSON3PY4JMTPQXFS5C44DLPYTYPKYNT7HVVN \ / AMOS7 \ YOURUM ::
+#\[7]JI3MOZE4WOBEZSHHZQTC32X7VD7N2GIXZM3GSRQP7UFQHCONO4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

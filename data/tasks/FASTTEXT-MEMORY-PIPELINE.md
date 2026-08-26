@@ -219,8 +219,8 @@ modify coding.complete-analysis:
   to support deduplication and parenting? likely yes — aligns with
   checksum-parenting-namespace-trees design
 
-#,,,.,...,.,,,...,,,,,,.,,.,,,,,.,,,.,..,,,..,..,,...,..,,.,.,.,,,,,,,.,,,.,,,
-#KRPKBNXBODST6ZF6QRFH36LAMURWFMIQYA4QMR4SM5OTRMXU7AADTW4NYWVNK3YJMHN3ADIDI4MR2
-#\\\|3LHWLH2K2K6YDPYHSEYBLESOVIHA3URZAHDURMXDZHDNTFEDWE7 \ / AMOS7 \ YOURUM ::
-#\[7]OOTEZ667DRJTZUKYVJPAMSJC5G57AXFCFNRB2KLPA63OKVCABQDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,.,,...,,,.,,..,,,.,,..,,,,,...,..,,...,..,,.,.,.,,,,.,,...,,..,
+#KVSCBCD2PC5N55BQIV7NI7H3ILCUN55GD5QBSR6RQH7OHPGK2T5AGEJV7WFCRUDJB3WAZBZB2MBR4
+#\\\|7HHFGISH476XOOP62QX5EOL6RW26IJO7EJJSC7XXZQV7QZRO37X \ / AMOS7 \ YOURUM ::
+#\[7]IMX3JEEVZFWEAITJT2WJ6F675C6IWRFE5OMS45URDOVA5RIFIKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

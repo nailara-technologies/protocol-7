@@ -118,8 +118,8 @@ watch for the next one or two before raising it again.
 [[feedback-access-grant-scope]] · [[topic-dot-path-case-notation]] ·
 [[coding-zenka-improvement-pipeline]]
 
-#,,,,,...,,..,,,,,.,,,,,.,...,,,.,.,.,...,..,,..,,...,...,..,,,.,,,..,.,.,,..,
-#OSNMD5RSJILRS5FX4EJMZC4FPH7R6PRDQR43YPQBEXD7DETFGU5NJXFLZH5HGMQU23MVBYPZIPIQO
-#\\\|KLY3Y6JFECUNSOHNJKGP3F3TW3S2JHTOKGBK43MM3ZKQO6R4EZ7 \ / AMOS7 \ YOURUM ::
-#\[7]JRONO4ZUNTBYASXPRXXQXEPGHKVYRUUZBQ7BBIYQHBSIVUB6WYBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,,,.,,.,,,,,,..,,,,,,.,,,,,,,..,,...,...,...,,,,,.,.,...,...,
+#S5LCKVS2HEVBW6QNHHD4GFBSDJHUMAGQA4VHEYWM2IJUZZSADINHV6OMBPOJ6YHHQHL4JV4EHNHLM
+#\\\|PUY2HWA3IEFLE4BVTBJDW674QLQUKQYGDRM2LZ6N3REHNEN3Q4R \ / AMOS7 \ YOURUM ::
+#\[7]RPVI3QKW7EP6L5AVEAF7MPRTY5NCLRWGEY7KNWBBUO7F3ZRXHWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

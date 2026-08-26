@@ -166,8 +166,8 @@ delegated/grouped key under a namespace prefix. User has not yet chosen
 between these two shapes, or may intend both to coexist under the same
 multi-perspective framing as everything else in this entry.
 
-#,,,,,,,.,.,,,,..,,..,,,,,..,,,,,,...,..,,,,,,..,,...,...,..,,..,,.,.,,.,,...,
-#5CETI6UOUFSKY4TRWURGNJ3RXQOP3DMWAMZHM7KZ6NVUTWABZ5DB5MC7YEFB4D2P5KJ4QAFIKWEUG
-#\\\|JWGTS3WXYAVGZ4VVFR7SEUHLVAJ7RJ2FRRESSGCFYKPBYFSEEMK \ / AMOS7 \ YOURUM ::
-#\[7]XA7BW6G2XJX6BZ4QR4LNBOZXMG3ZHA2F7OPAPD4AVVYQKLCS66CQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,.,,...,..,,,,,,,,.,,.,,,,.,,..,..,,...,..,,.,.,..,,...,.,,,,..,
+#GNXN34DHVRXWRWFOU7VHPPVHDS7P66CNEN5C655JJK5P37GWIYMVYW3RVXFSANLODPVDX3LHLVVKC
+#\\\|KDCKWDUBEY3HKGAC2YOTUGN2VL2REYZ35KBQH73PG5Q2DX6CZIB \ / AMOS7 \ YOURUM ::
+#\[7]SPNM7AQDW2AZBEAJVJGXQWKF66V37HOBVZ7ES2TEOAHLIET3MOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

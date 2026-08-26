@@ -79,8 +79,8 @@ the node group is 8 × (4×4×4) ambient cubes arranged in a 2×2×2 formation.
 
 **How to apply:** use these numbers for recursive-scale-navigation task, any visualization geometry, and the "zoom into void = zoom into identical structure" navigation model.
 
-#,,.,,..,,,,.,,..,,,,,,.,,.,,,,,.,.,.,,,,,,..,..,,...,...,.,.,,.,,...,.,,,,..,
-#PIR3VECHFAWZF2XJLFUYMCDEOCWYFQS2RCIHPYL622DX2LFHGCVRF2V3KCS7EHCWKACUSBA4ECNS6
-#\\\|7245J6T7DJVEBHQT525XZ4MSN3E32OCBP4HJEF7T3LIDUUC7MCZ \ / AMOS7 \ YOURUM ::
-#\[7]KQPDX7JHFGQFUELZUEA4CCEQLVXT4GCCFRZBPBA37OBLGMP5Q2AI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,,,.,.,,,.,,..,.,.,.,.,,,,,,..,..,,...,...,.,.,..,,.,.,...,.,.,
+#DIC57AFHENIEKHX6HMM2TCAZVEEUHCJBIBRFHZDMNOOZTM4JTVI4MQBAYOIO4F4NY3KVMZ6IVBAVK
+#\\\|MVCGDGZYYQ23TG6KE55IX7M4NOKICFSQLIKQ2VBF7AWAHBXQ4L4 \ / AMOS7 \ YOURUM ::
+#\[7]IXOMR32FNOSIA4FTC3X7U64LBM6VFQRP7SWFOPSIS35NIGFAUIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

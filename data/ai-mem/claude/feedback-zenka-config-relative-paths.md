@@ -13,8 +13,8 @@ Zenka config values that reference filesystem paths (data/, cfg/, var/) must be 
 
 **How to apply:** any time you write a `<zenka>.cfg.*` config value pointing to a path in the project tree, prefix with `<system.root_path>/`. Verify with `p7c <zenka>.eval-code 'return $data{<zenka>}{cfg}{<key>}'` after reload.
 
-#,,,,,.,.,..,,,.,,.,,,.,,,...,...,,,.,...,..,,..,,...,...,,,,,,,,,,,,,,.,,,.,,
-#MOS6NSNIDIS7D3E5V2AV3KUS7NHUMG35OZR2KC7U6TI6HGVF3WSXYAZNKNZWLD3IU6G7STGWG5E7K
-#\\\|PSWQMRNH3L63TOKXX36KG5Y24BMSZ3KW7OM4VQ55SGGX7YB2AVP \ / AMOS7 \ YOURUM ::
-#\[7]D25NP7EKROE7E6RLYZ77G6UUH4QMTN2LBEZOQFDMQQHT4LJRO6AI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,,..,.,.,..,,..,,...,,.,,,.,,..,,...,...,,,,,.,,,,..,..,,,,,,
+#WF5UIXYF5OKHLNXNWXUTVR6IVCMY2BD6BXO2AWTWYESHDQ4FLCB7LOUOE46RLXAQO4L4XAYWQ7CGM
+#\\\|M625I4FCCTYXGXXP7N4RS7OBK3LA2X6CQYDME5OBXYGB4ZBXB3D \ / AMOS7 \ YOURUM ::
+#\[7]U35JXR4GMARWTT5B634TXERH7E7J5OL7CNQ5RHM7VM5QFH5MWKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

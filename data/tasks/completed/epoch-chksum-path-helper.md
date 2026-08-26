@@ -128,8 +128,8 @@ harmony base.path.epoch-chksum
 ## left to the human as instructed; base.list.subroutines was updated by
 ## the signing process itself when this landed, not by kimi.
 
-#,,,.,.,,,..,,.,,,,,.,...,..,,.,.,,..,...,..,,..,,...,...,,..,,,.,,,.,...,,,.,
-#RGV47EIOMER6DASLMOHM7PHFHBK6JGJNYTZ3JNAZAXJ4HQYU2B6JJZR4VXMC5WNI5RPCAGVAS3Y7S
-#\\\|ZPM5N3G3HYXDOIQQ2VBBFJ3LTXUJV4NZZCCHQM747LMZHPENDCC \ / AMOS7 \ YOURUM ::
-#\[7]6HUU55FPK3CFKUOSWJHZQBYYUPUB3RPR4YQXQP7GUULJOSFA22AI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,,..,..,,,,,,.,.,,,.,.,.,.,.,..,,...,...,.,,,...,.,.,.,,,,..,
+#5YKWA7WP2FYHPUCWOC6OSGYA2AEQFPRBB5V4JKFM4MFSKIHGB7GSGL5D3CTIFHQGVOT5HSSO75EFM
+#\\\|GLVIIHFXNMCBQCYVHTOTCM6CZ544AWI4IEXSOOJFZPERZEFTAG6 \ / AMOS7 \ YOURUM ::
+#\[7]VXSBJSLT4X2JR6XJKC2KKYOOPAJHXQLQGZJJM36QYEEDFQZXSGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

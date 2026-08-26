@@ -101,8 +101,8 @@ as the earlier YAML-codegen check (nothing existed there either).
 
 [[feedback-base-swap-subs-promote-pattern]] · [[topic-format-code-bugs-fixed]]
 
-#,,..,,..,.,.,.,.,.,,,..,,,,.,...,,,.,.,.,..,,..,,...,...,,..,,..,.,.,..,,..,,
-#GTCK5DS33IJNL4TMFN6RKIFDVMNDZ7FZCUNQ6M5TSBWSI2OTHYESIC2G4R4XJMMIMH4A6WDPZ6HSU
-#\\\|FX4ESVPIXQR6FQSBLHNODXZAFCPADZGLT4KAZLIWGBMWUVSKJPD \ / AMOS7 \ YOURUM ::
-#\[7]RIIGMCSC5ZICDU2K562Q7SH423KKGALUEXTBVSHZ3CGYQZM2WWDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,,,.,,..,,,.,.,.,..,,,..,,,.,..,,...,...,..,,...,,,.,.,,,..,,
+#BMXE223Q7DH5D2BUWJQ7PLTJ5X2H46Z3EZMA4MWPNQWAEUQSLVVBE46RJ2RRSRJMWFWQOC5YKMRBE
+#\\\|KJFPYE7OLHRBMZW5E5KIAKJCDQBHJWJNDREUNNLTNT54HMVFSAQ \ / AMOS7 \ YOURUM ::
+#\[7]VG6QW4OAE6U547EG3A2EBKHIGYBZVF2JDJFW6JZ2IXCP7MVABMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

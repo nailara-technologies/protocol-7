@@ -178,8 +178,8 @@ producer from inventing its own ad-hoc notification path in the meantime.
   layered-promotion / autonomous-threshold principle this queue's future
   refinement would draw on
 
-#,,,,,.,.,.,,,,..,,,.,,.,,,.,,,,,,.,.,.,,,...,..,,...,...,...,,,.,,,,,.,.,.,,,
-#LFPDRKPEA5ROBMHQOZVWZG25ZJVDCX4NALF67JDZ4SEYGNILJ5OJWJDJDLZTZIOFZQELEOMG76U2M
-#\\\|ES6OWEHQVH273HOBJRAC353C3T6XWPQ2THFUT24MCDDKB4QAJJM \ / AMOS7 \ YOURUM ::
-#\[7]CEZTRJOZPM7GGQAVZA75LC6DM66AYEEPKIFQESAVA3J4LXUV7OBA 7  DATA SIGNATURE ::
+#,,..,...,,.,,..,,..,,,.,,...,,..,,,,,,,,,...,..,,...,..,,.,,,...,.,,,,.,,...,
+#7KOJN7G2RMO4NZOU7SFDZID3P47TGI4FWB5ODXFXYO4GCQFXS233SUB7M74QQNN7Z6YEYKAENEH4G
+#\\\|AFDQPKWBOULUBS27NF7ZSEBDMZH6Y5X4WTOPLVSDQVIFHGQ7G3L \ / AMOS7 \ YOURUM ::
+#\[7]T47LJ27AXIOPDXKE6W7MJWBWS5QVRFE6NPJZTTXIBQ6UGWWRMSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -107,8 +107,8 @@ subroutine whitelists beyond what's needed for the test zenka.
 lowercase comments, `[ word ]` annotations, `$ARG` not `$_`,
 one-sub-per-file [ no inline `sub {}` helpers ].
 
-#,,..,,,.,,..,,,,,...,,,.,.,,,,.,,...,,,,,,..,..,,...,...,..,,...,...,,..,,,.,
-#XST4WTW2WFUR3VCXKTBLOJAEASJ33OM2MNRPSY2I5MA5HOZDEOTWEWRO2PCDX4SD5LEOOAULGCCZ6
-#\\\|553XICHSJMHRBY52IRFH6Q4PUYPQK3U6GPGRFBK3MOYXRZI5LPZ \ / AMOS7 \ YOURUM ::
-#\[7]S3LUJ4O6RAMZ2IDYSRCZHWPM6BB3YO2O7FM27PRW737AGFM3IABQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,.,,..,..,,,,.,,,.,,..,,,,,,..,..,,...,..,,...,.,.,,..,..,,,,,,
+#QM776FRRL34FI7RZILRPJFO7NIUUNPVVJRMBE2227NKLZPOBH64BQVHMBDIEAEP6S5N4B6RZTCNLI
+#\\\|BFQK3C52DVNWV42XKYBXALWOBAXTANZP3RQC2BZ6ZFKBXUFGFDN \ / AMOS7 \ YOURUM ::
+#\[7]VJLSIBC3IETMHEFBSFIHH5TQNBQ62Y6HGYY3WB74AHVI326MO6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -131,8 +131,8 @@ $ARG not $_ in loops
 <[route.bmw384.visual.ring-label]>->($ring, $spoke) call pattern
 lowercase comments, [ word ] bracket annotations
 
-#,,,,,,.,,.,.,,,,,.,,,.,,,.,,,...,,,.,.,.,.,.,..,,...,...,...,,.,,,..,.,.,,..,
-#IV7HFHOHM5IHJNB3L3LO2MJ5PXASOK5TV4ZHU3E34H2KFUJRCP5GZWPSYUSUZ7I2XMJEXCO36OPGG
-#\\\|6PNJSRJDASD2YXMPQSVRQC4NXPZCR6EETRFSDFKQ7ZMKJF3YA2D \ / AMOS7 \ YOURUM ::
-#\[7]SBGGR6RMENES6ENP4NJQFVX4B4VYV4KNA33NQJ2YYENKQ4SMC6BQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,...,...,..,,,..,,,.,,,.,,,,,,.,,..,,...,...,,..,.,.,.,,,.,,,.,,,
+#3DCDLZDPE6JCXJAJV7I3S3YAC7RH4R2Z2P3NIQXPT72SQ4PH6J3O7YQPK7HAQTIBR3DVBEQWPOQPM
+#\\\|6I5YRK5IPZTCFJZTDF4FQIF5BGDVJSE55ZQFHU4IYUTKIO6LMSD \ / AMOS7 \ YOURUM ::
+#\[7]I6L45CSC5M6MTJPVDZ27C5QORBANUVWDI4G4SJQBLOCTBZTJEIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -115,8 +115,8 @@ don't touch must not be modified.
   `protocol-7-menu`/`powershell` pointer-stream gap as a second, independent instance of the same
   underlying architectural hole
 
-#,,,.,,,.,.,.,.,.,..,,,.,,,,,,..,,,..,,,.,,.,,..,,...,...,.,.,..,,,,,,,,.,.,,,
-#ZREZEKUNIA7PQROHTPDM2PNW6QEPN3GHTYGRQNV7L4PHV3T7Y7CQOFXJPT6XWTA2NZIEORQUZKMEE
-#\\\|DJZTOTPSQ6BLAF7FGFFSY7LOYFYO5KD53RVHHYPVQOVF4M4V27V \ / AMOS7 \ YOURUM ::
-#\[7]QTQV43BUZQ66BTSF7E5ESKH7557BKCLSM5KK4KBMVPHIGFNRL6AI 7  DATA SIGNATURE ::
+#,,..,...,...,,..,,,,,.,.,.,.,,,,,.,.,...,..,,..,,...,..,,,..,,.,,.,.,...,,..,
+#ZHOLMXBCSPE6VGOD7BPXHJCZJ55KA7FN5TLEO4OUHDFTVQRXZEMO6NWYIF27QR6FMGJ6S4DTCI2HG
+#\\\|BZWE73FPGBPFSC6EYNRFQITZQRAIM46Z6IRIDKSP44M6XSUM6QG \ / AMOS7 \ YOURUM ::
+#\[7]HTTP4QKRASQ3V5MTCJBVQAZTZJGSQMK6PJAWD35JRKBMYOKQCMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

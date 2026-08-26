@@ -62,8 +62,8 @@ verify that:
 - [ ] no visible interruption from zenka restart
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,..,.,.,,,,,.,,,,,,,.,.,..,,.,.,,,,,,,,,...,..,,...,..,,.,,,,..,..,,,,,,,..,
-#KLN22PH2M2JUWAU7RTJ7YBK4FSLHFPX55VQX4742PAMW3KIAWJF3P2T52ERKUCE52EK4FALPAWQQU
-#\\\|YIJTXDAP3GCYEAXPVE22KLG53R4NH2YD5ZHMNWRE75IPOL7EAE7 \ / AMOS7 \ YOURUM ::
-#\[7]QOAS5HC2VZ72BRFWZCR34EAL5MXY2OZZMUGPLIPIBWT3KJ7BB6DQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,,,,,..,,...,...,,..,...,.,,,..,,...,...,.,,,..,,...,..,,.,.,
+#6IMP6IFXOA3X6W3TNX22XW7YXTCKBFY4MUJFJER7TMZBGQ263A47FQQJMOW3CPDVKEWX4C5MNX5QA
+#\\\|74DFRHC77QV6E7VGWQLWKXAFUY6CFT4V7SKN3N6NUFG62ZBALVC \ / AMOS7 \ YOURUM ::
+#\[7]JRUAL3FTGKFRQGRTM5CWFKTUUTWV7XGNAKHML64UERN2KOWRP2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -119,8 +119,8 @@ range, both use subname suffixes but different separators, `:WxH` vs
 [[topic-x11-protocol-hardening]] · [[topic-window-canvas-addressing]]
 (unrelated identity question, already solved differently)
 
-#,,,.,,,.,.,.,,,,,,..,,..,,..,...,..,,,.,,,.,,..,,...,...,...,,.,,...,,,,,...,
-#3YIDGOMIZ2KSDJ423MXESKLZH5DAYHJDPBNXO72SNKZOMY72EZ4QRBIYMW5YMRZVBLZXIGMASQYUY
-#\\\|4P3Z425MMD3IXIN3BN4I4LJQRFI765LFKMZKKL5JJ26H62OSAZC \ / AMOS7 \ YOURUM ::
-#\[7]6PCQLZJQQXQ4K74NDN6C6FIG2C3ARCDZS2F2U3HKN6IOKFZX4UAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,.,,,,,,,,,,,,,.,...,.,.,,,,,..,,...,..,,..,,.,.,,.,,,..,,,.,
+#OBWOG3A3G27SBFIL4XRHBHJVQTBT5L7XN4O77C4TK53JHZFNEUF45DGT6C3ZYVFLWBD2JZHW6T2RS
+#\\\|ZG2VHI6FEUDAAGZLXBPUBYLF64P2F5TEV6G5JZVFPXYOPY3OYIW \ / AMOS7 \ YOURUM ::
+#\[7]LKHZNRDR7NZVSYSISMPVUD4G22FFFWB3RILQFKKHCC6UDGVSL4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -92,8 +92,8 @@ embeds context in `$prompt`) → `coding.ask-reply` → `coding.intake.work` sto
 build.zenka → build graph → network distribution → 5/7 consensus → LLM audit
 intake → minimal OS end state. layer 1 buildable now.
 
-#,,..,,..,.,.,...,.,,,.,.,,,.,..,,.,,,,,.,,..,..,,...,...,,,,,,..,,..,...,,,.,
-#4X7YRMDGD6GF7SKZWHMQT7OAWSNOHDF66XDOKDWKQNMSFWDZHLW3H5FKH5IFJKT45RXBVCBGND4HO
-#\\\|LAS76QHBDV4ZUIDCDMYWTEISMAZ427PH37R6CI6BIBQUFNUVMAE \ / AMOS7 \ YOURUM ::
-#\[7]VMWOJGA3BCKUEU2FEFRMGBMFGYSZBPZV6PRS7ADTECRNWG5BDSCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,,,.,,..,,..,,,.,.,,,.,.,,,.,..,,...,...,.,.,.,,,,..,.,.,.,.,
+#3YTI27M6IG4MJMLEXWVQQIQNUIGYY52XP5DWUPCXVBJWWMK75OSMUHM4NL7CFX5XB7LFQHSXNX2DS
+#\\\|DF6TQUEF7MYXQHNXYWS2QBK2XJALBOU5JN6Q2OSDERHDJZVBTAL \ / AMOS7 \ YOURUM ::
+#\[7]BCTFIQWJJSYVKFLYVHPJY5F3XR7ICMBBDVS6XCYTQEB2U24PUCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

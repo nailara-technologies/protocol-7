@@ -49,8 +49,8 @@ two-field pattern (`<amos-chksum of the grouping key>.<ntime.B32>`)
 is the one to reach for — cheap, needs no index file, sorts correctly
 by construction.
 
-#,,.,,,,.,,.,,..,,,..,.,.,.,,,,,.,..,,,,,,...,.,.,...,..,,.,,,,..,,..,..,,,,.,
-#QM5EG3636ZOQ53UT5YBEPJCWXKIUSBLBLBQVKQOJDZSD4BHMI4VZV5F54F335R33DJO4Q4UQZB7PQ
-#\\\|C7CPBDOWDHLB2WO5O2XWF5QGQWBBJS327KNXJTILOCI4CH4VU4Z \ / AMOS7 \ YOURUM ::
-#\[7]OYVQJI7UAJFAY6JAO7UOR4JJUC5ZGT3PYXFZZPJTQZWWORQMJAAI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,..,,,.,,,.,,,.,...,,.,,...,..,,.,.,...,..,,,,.,...,,,.,,,.,...,
+#EQSZLXEEQO5WBTMUUHEY4IIQF2NRJUVQ6HKZ3PAET4A7CQI57XMN6FOFFPNUZDKDU4DAR6N7VTIZK
+#\\\|NPQM7DS6J3TOH3QMN37ODYWQ72DOWNADFAAFKPCDGUXDQI6JYK7 \ / AMOS7 \ YOURUM ::
+#\[7]F6H4NYSZLH6HTD3F4Q2JAHM3VXUCLPZYV3EZNI7UXOC5RHNDPWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

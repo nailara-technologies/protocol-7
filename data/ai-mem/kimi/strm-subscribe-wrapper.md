@@ -70,8 +70,8 @@ publisher-restart re-affirm: `<base.strm.subscribe.registry>` entries
 persist after success so a future hook (e.g. on `command route
 collapsed` over a pending subscribe route) can re-issue attempts.
 
-#,,.,,.,,,,.,,.,,,...,...,.,,,..,,.,.,,,,,..,,..,,...,...,.,.,,,.,.,,,,,,,.,.,
-#5K5RBENZJ7KW3CEVDTQN5TY7FV4ZULWE7KP2YT3LZM3YCH4YMYP5FTNFVGHTXPZF6CYV7QBZXVRL4
-#\\\|P7XLLWQDBQVZ4N3D3VTZGBW5WXA25XDDNA4AYZMSVTIUHVQXVAF \ / AMOS7 \ YOURUM ::
-#\[7]IQ5JODKJJ7SV6MM2A3XZZOYF4I5UEG2ZZTWXVEF4LRUX5PMNZECI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,,.,,,.,,,..,..,,..,,.,,,,..,..,,...,...,...,,,.,.,,,,..,...,
+#2OVIOE4ZHJXY6G6W2SLITG4EZKILBVK56QKFLTGMMI3QQE36ESPPL2XGGQQV4OIQPLVIYSSVO6MC4
+#\\\|KXJBPTYSTKVZOKNGPHVGZZ5DLI5GA54U3FEQKV6UKY344D7NE2H \ / AMOS7 \ YOURUM ::
+#\[7]QISUIW7EBQGMCRRE3LE4C2RIGDJZEC4B3YV5Q72BRVPXZFGDD6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

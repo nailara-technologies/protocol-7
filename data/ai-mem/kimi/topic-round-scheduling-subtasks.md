@@ -131,8 +131,8 @@ These bugs were resolved after kimi's handover:
 - Full parallel task execution would require per-task isolation of globals. The round-based approach avoids this by never running tasks concurrently.
 - Server-side incomplete responses (no `finish_reason`) still occur occasionally; client-side retry handles them.
 
-#,,..,,.,,,,.,.,,,,,.,.,.,.,,,...,,,.,.,,,,,,,..,,...,.,,,.,.,,..,,,.,,..,.,,,
-#OKGKTPNW42VLWSVGE2NC4BLP3ETERU7LLZRFFQGQJAZDDMCWHVUMF5AIUMEYTXORRD3VOSYZ65HVW
-#\\\|UI4G7BJKZ5PDJICMO5LBPM6RXOIQNAYCFKCGYOB26YT7YLPDVBT \ / AMOS7 \ YOURUM ::
-#\[7]IDVDYLLN3C7WEWFBILEHPBUSYSAVVFATCXRTKFXNS7UI3VXK5GDA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,..,,,..,,.,,.,.,,.,,..,,,,,,.,.,..,,...,...,..,,.,.,..,,,.,,.,,,
+#NVDHBOTBKR5WYYTKVW7L7T7GPXONB4LCWY3BVGKVUCVNHJGRQO7TPK347SYVIKCQ7OUSOPS3HKNZU
+#\\\|LDOQKQ3KLE5RP57UR45ULHS4ESVJI6ZMXZFIHELKPFIP7KKXJBT \ / AMOS7 \ YOURUM ::
+#\[7]KTK7AZ6IQO4YRMPMHMFV7LMARTCUIPQXX52B6OJICZRKJY5OIMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

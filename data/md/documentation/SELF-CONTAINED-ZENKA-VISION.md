@@ -370,8 +370,8 @@ The adapter plugin generalizes this pattern:
 - `data/md/documentation/module-dependency-graph.asc` — current dep-graph
 - `data/yaml/coding-tasks/src-subdir-pm-extraction.yaml` — .pm cleanup
 
-#,,,,,,.,,..,,.,,,,.,,...,.,.,...,,..,..,,,,.,..,,...,...,.,.,,..,.,.,..,,,.,,
-#4BZP2RP5LU5MOCK75MFG4C2PDIWQMCA7WGAL2IMQAIEIK5SCHJO4DCPFRIFFXZKJINM3VHHXGLM5A
-#\\\|K5VRCFYNQF55USTHGOJBQNOWNMI2W5S6VVCAWC3EALVVIAD3CWJ \ / AMOS7 \ YOURUM ::
-#\[7]4BDPFIXQGHJR3G26ADK6GKVYMANV47BL4XQTKGQQDCAJWR7WDYBI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,.,..,,.,.,..,,,..,,..,,.,,...,..,,...,...,..,,...,.,.,..,,,,.,
+#RUGWVY3MASXNDQFOEVGWULUCCLEHYWFVABG37VLNG3YHYLO3FGPH6M57E5XLXFAYFWCBMKFRQWOHW
+#\\\|PVPJUB22KNDGIAHMVVE4ZITVQAEWDZGJTRLOYELQ54RKPOR44LD \ / AMOS7 \ YOURUM ::
+#\[7]HEMQ5MPPHZT66SUL7ZOLYMPSYCHB7JQAFDWE2WMJLYLJ7XLQXWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

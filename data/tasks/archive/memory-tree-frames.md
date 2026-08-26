@@ -69,8 +69,8 @@ hand-builds a node hashref and prints all three variants, to prove rendering.
   `::` bars.
 - comments are lowercase narrative; annotations use `[ ... ]` not `( ... )`.
 
-#,,.,,,,.,,..,,..,..,,.,.,...,...,..,,,.,,.,.,..,,...,...,..,,,,.,,,.,.,,,,,,,
-#M3363MN6XSUWFXI4SYJA6LLDPYUPPSC7HFIKRGQDSNIRIV7ZLIKOEMKAU53L32L2X3GJB5OUDSY62
-#\\\|CIWXK2ANJZCP3LLXNVKDV2FNMMRBRXTTWUOKVWV67YQ2VKJKPDI \ / AMOS7 \ YOURUM ::
-#\[7]7PW3ERSVT2P2WWCC5CJFTDCWO3TTIDI75ZWURIZ4MXL63QXNFUBY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,,.,,..,,.,.,,..,,,.,.,.,,,,,..,,...,...,..,,,,.,.,.,,,.,,,.,
+#QGMEECQB7CV3KC3GSI3UBWYZXOYUYXUXPE54OTLWTLDFBZSU7JDIKLAY4LH37AREI4PL4QQCC2JCY
+#\\\|L6CGD3NJIWL4LKSZAKZBPVQIGXZ2HK6GHJOS4666FBHFCHJGDRD \ / AMOS7 \ YOURUM ::
+#\[7]F3RXLGOKGM4T6JQKHWNH5LSF7GYXL54WQDH6XWK7EU7ZBU5ZNKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

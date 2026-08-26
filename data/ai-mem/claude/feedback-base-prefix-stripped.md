@@ -23,8 +23,8 @@ when writing modules for any zenka, the `base.` prefix is stripped from subrouti
 
 **a different failure mode in the same family, settled 2026-07-25**: `base.session.init`/`httpd.route.handler.web-relay` call `Event->io(...)` directly instead of the existing `<[event.add_io]>` wrapper — investigated at length (ruled out: a `prio`-field bug in the wrapper as a deterrent reason; ruled out: the wrapper being added later, `base.event.add_io` predates these call sites by a decade, since 2015). **Actual answer: LLMs writing/editing this code over time simply ignored the existing wrapper — and requests to use it — falling back to direct `Event.pm` calls instead of checking for an established convention first.** Not a swap-direction mistake (calling the pre-swap name), a *different* mistake: bypassing the promoted wrapper entirely and going straight to the underlying library. Full task write-up: `data/tasks/direct-event-io-to-wrapper-migration.md`. **How to apply**: before writing new code that touches an established primitive family (event loop, checksum, whatever already has a `base.X.*` wrapper family), check whether a wrapper already exists and use it — don't assume direct library/module calls are fine just because nearby code does it that way; nearby code may itself be the same mistake repeated.
 
-#,,.,,,..,.,,,.,.,.,,,...,.,,,,,,,,.,,.,,,,,,,..,,...,...,,.,,..,,.,,,,,.,.,.,
-#I5FCKQCIFCZKFA6YGKUK7YC7XDNTY6V4DE46O4JRADVL4R3NFQ55P7SOAEYKQQPI56K444OAKNKIA
-#\\\|IMHBBAIDXHALZ7N3RTULUFIGQRX4ANJ27LWHMS36NHMQVN2UDT3 \ / AMOS7 \ YOURUM ::
-#\[7]HFXD44AXMC6GVWDGETVCAXZWM7MAQCOYK3X6VDB4AQSFJDLQJSCA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,...,.,,,.,.,..,,,,,,,..,,,.,,..,..,,...,...,,.,,..,,.,.,.,.,,..,
+#FYFU37KIBH4YGSGXGFE3CLOUEW5LX5BHQR6Q7NYJJ6EXN4JJSJXMPOID3XQ7C2V4HIRQSN5SOULRI
+#\\\|T5QVFHMM67GGQRJRS2SU2ZGXXFIGSZ72M7OL5NZECTI4XO2EPOP \ / AMOS7 \ YOURUM ::
+#\[7]6Z6A54HQQB2TRL7L262WAFBZDUJMPIBXJ2I7BNIZALPC7JXFVGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

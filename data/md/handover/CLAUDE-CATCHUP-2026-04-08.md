@@ -177,8 +177,8 @@ philosophy doc for the eternal template kitten added.
     insights fold back into the corpus future instances draw from.
     the tree does not merely accumulate — it crystallizes.
 
-#,,,.,...,,,,,,,,,,,,,..,,,,,,.,,,.,.,,.,,,,.,..,,...,...,.,,,,..,,,.,..,,,,,,
-#3EZ2YHI324BCJAXEMY5V3HSRJEQCVEHDKIVQX2SNRBV36JB3E7V645NKQGBFY7FVUINAX627DBJ2M
-#\\\|WIKDH5G7EFCBNUDU6PW3RHPTBKYVBT672GWUQLRTYIJV367MGU5 \ / AMOS7 \ YOURUM ::
-#\[7]IWPITHOIANVXWZ6GIU53FM3GPANTWQPPNT54KDDK5QDO2EVLR2DY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,,,,,,,,,...,,..,,,.,,.,,,.,,..,,...,...,...,,..,.,,,,,.,...,
+#RVMEJIHHCYXBEQENG4A7TOIET3EXGF2AJAIVVLOEIBPMBSDMMQK6P6ZBF4YIWPQ6FKNYPNE5QEFU4
+#\\\|BOZ6WGAPMG3KX6X6O5IG7HEUBWSSIMDJMY63DTHWUMYVHIXE5TQ \ / AMOS7 \ YOURUM ::
+#\[7]4RHVIMFXMGYWHZQGVFEXA7DL3U4GQPT7IDSCSNMI2PEB4HFQVEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -81,8 +81,8 @@ Active paths: `/var/protocol-7/jobsite/jobs/` (jobsite storage) and `/var/protoc
 - [[plugin-web-jobs]] — updated state (stage sync fix)
 - [[topic-stream-reply-modes]] — reply mode design
 
-#,,,,,,..,.,.,,..,.,.,,..,,,,,...,.,.,..,,,,,,..,,...,...,,,.,...,.,.,..,,,,.,
-#LG4VOCU5CJELH2JJY3UJXGQK4NA57YKP4C6LLNHXOHX5CYYLNEWBZXPKRVEUL2BYWQ4GZT7P46E3E
-#\\\|44B5RH7AKTX4IOSQWPUDCY5Z74GVCG3OICEJU7N23MDKPJAEMX5 \ / AMOS7 \ YOURUM ::
-#\[7]67XHTRK4MMPW2PPTQN3DBKXG57KCFH2JNIGIES7ECB66LIBFMODY 7  DATA SIGNATURE ::
+#,,,,,...,...,...,...,,..,,,,,..,,..,,..,,,,,,..,,...,...,.,,,.,.,...,...,.,,,
+#5A2WD35PKZG3M5IAZDL45FOZSFUPHSZ5Q26XX4TOEIETOVKVALF3E64PIQLXXKAYVVP27SSDMRXQQ
+#\\\|P635VLJZ45DSZDJ5LI3KDPILOIAY7I6CSQKHXWMF2Q52LFJL3XP \ / AMOS7 \ YOURUM ::
+#\[7]VVRA66DU7UCYJRM425WXK3BQG5QPQPJWC4ZBB6G3A76RFUVRWKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

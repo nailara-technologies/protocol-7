@@ -356,8 +356,8 @@ The checksum is not a property of the data—the checksum **IS the address of th
 
 *"The checksum is not a label—it is the coordinate in a multi-dimensional information space where time and content intersect."*
 
-#,,..,,.,,..,,.,.,...,.,,,,,.,.,,,..,,,,.,.,.,..,,...,...,...,...,,.,,.,.,.,,,
-#PCQYD3FCRMJP5LD7HSKZDZHCFDQ5X3F3ORKLQPM75EOLK4S3BIHLLS4TKRRHWCSPPZSXCBMBVFIRG
-#\\\|ZCIBQFE2RMEWRBDHQGIDDBOX2UVFSFTB6LGN6TDHXPDRCEBQ6WB \ / AMOS7 \ YOURUM ::
-#\[7]U2NOYWSIFJQR5WVCMYS2ZPQI4SX67ZV4ZDWRZ6KGLZ3RXYLWKQDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,,..,.,,,...,...,,.,,.,,,,,,,..,,...,...,..,,.,,,...,,..,..,,
+#AE3SYUHGFORWZ2IGE4MF3R5WCHBTZYUHHTNCXPGGAEHSZNEBZ7HIOH4G4SIQQYHAK4KXXTRHFZSP2
+#\\\|5OUKP4I63B6UBR3IRMEQO5MG4FAHET3Y6246BQ34RSPLRIDQ3DV \ / AMOS7 \ YOURUM ::
+#\[7]TVG5YAGME3BVQXVDN4XGR7NX4RA4VDARCQO452GAVHF6WLZCJYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

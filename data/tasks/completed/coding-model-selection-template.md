@@ -159,8 +159,8 @@ how often self-selection matches caller expectation, success rate correlation.
 - reason field: freeform text, min length enforced at validation
 - backend names match existing `coding.inference_servers` keys
 
-#,,,.,,.,,..,,,,.,..,,,..,,..,,,,,.,.,,.,,,,.,..,,...,..,,...,...,,.,,,.,,..,,
-#5PEJBTKQHEQ7KVPQGZLMYPL37ZZAWXWGUNSMQ6QXC5W2OEY6MV5VURN7QSJ4B2WFQ3HV4BNV2JRFS
-#\\\|KVUDD5NMXRCKD4SI3344R6UX4EOKSX536JBK7QTMHEK42WW5E5L \ / AMOS7 \ YOURUM ::
-#\[7]UBXA7BJC6POKGEUN24DL7AHMNAQIZ4CH6JRBQLDHJOMBSFLHPMDY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,,,,,,,,,,,,,,,,,.,,,...,.,.,..,,...,...,,,.,...,..,,,.,,.,.,
+#RRGYUU63CSFFPNG4QDEC2L5SFTZKNCSEQSYPCQX6RSJPOZV6N3XFUP2NHFJNX652DJZ7KTV5TP6X4
+#\\\|QDGGQYJ2QYXIOMF4OVNCAZQZJR26SWZPPI4WMGGGU4DVAZWO2BO \ / AMOS7 \ YOURUM ::
+#\[7]PWZGGB5EQFCAHNSO6JSRDJP7ILEVHFRM4YJ3O24I3CU7PIIBS6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

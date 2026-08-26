@@ -136,8 +136,8 @@ being developed further. now cross-linked with a fourth independent
 confirmation and two concrete pieces of existing, reusable code
 (`waveform_trace.v1`'s overlay, `rotation_stack`'s layer compositing).
 
-#,,..,...,...,,..,.,.,.,,,,,.,,.,,,..,,,,,,.,,..,,...,...,.,,,,.,,,,.,...,,,.,
-#MQGOXGVG73NZVMBHH4DHYTIFWHOX63ZCWVFRPTRLP5OM6C6AMPT46POULKUNATCAFDV5X5ONUAMRC
-#\\\|XQ4LJNDYWCYJQEJ3V2YNFLWQ5Z6ZWLBRSWA2LJ33I4DDTSJKAG4 \ / AMOS7 \ YOURUM ::
-#\[7]MYY2YCWLFUDR3HONIKEQ3W6YVKMZTFGII4IOEX6B5OEEUVCDIKCA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,.,,,.,,,.,,.,,,.,,,...,.,.,.,,,..,,...,...,.,.,,.,,.,,,..,,,.,,
+#M56UAVTJEYXGR7WP5MD4YRBPH2ZANM5F3I3T2BCIF5PHE3SRWYOEPMT6RC3OLFAH2E7QOR2EXPMNS
+#\\\|AI3NYGVBRBGS35OJNQVFRJGHTZNFE555L6S4QZQ6PCAAGLE5Q6Y \ / AMOS7 \ YOURUM ::
+#\[7]PYZFOBIDLMWIMLA5OZDTTJ5VWZY2D4CNOR7J2O34YO3ZXBQLKODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

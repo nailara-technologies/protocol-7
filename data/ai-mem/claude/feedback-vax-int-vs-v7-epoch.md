@@ -30,8 +30,8 @@ wrong date before the user corrected it.
 check which subsystem produced it (vax-int encode call vs. ntime/epoch_v7 call)
 rather than assuming one universal decoder.
 
-#,,..,.,,,..,,...,,,,,...,,.,,..,,...,,,.,.,.,..,,...,...,,,.,...,.,,,...,,.,,
-#OTACW32OQH3VCQ74LOSMEY6N7WIYVN3YYOZZH2T7VQBXFT5SEJU4HQINURG4PLSUJLYGO6PBDSTES
-#\\\|JHSKGSBJPPLQNHBRSIW6X2ERVU4O23BOBLGYQKR5HWWRWL4RGCT \ / AMOS7 \ YOURUM ::
-#\[7]IQKROWULJNTB2AP75HXN2BAFBRRXZ6SCIDFY2HX6E66FMR4SWEDY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,,.,,..,,,.,,,..,,..,.,.,,.,,..,,...,..,,...,.,.,.,.,.,,,..,,
+#CAX6QHTDKWSHDHEU3Q7HUGSIAU6ABPR4LIN42BNTZQQ6OPF3WB5ZAJLB2ZUMN5PG4OEQ7EP7TDHDQ
+#\\\|IHPFLEW2PIVHE476SELULNDVOIC7ZCXTOSRJZQ5FMR6ILHSJSWJ \ / AMOS7 \ YOURUM ::
+#\[7]2HD6I5VCISE6EJKVKH75DAKQVGYEYCDXQ4BO4WOBLFBHVPJQJ6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

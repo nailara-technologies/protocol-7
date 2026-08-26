@@ -71,8 +71,8 @@ whitelist <zenka>` (confirmed still present on disk) — worked fine for
 this one-line addition, but the script is the canonical tool and should
 be preferred for anything bigger.
 
-#,,..,...,,,.,,,,,.,,,,,.,,..,,.,,..,,.,,,,,.,..,,...,..,,.,,,.,,,,,,,.,,,,,,,
-#PG6YTZC7EM2AVNF2Q2P27YZU5WP6DDZ5EMCTRHFJCHGWWRPDSS3A5AT6NTACR5B5HRDOQZNDOUGOA
-#\\\|R2YWZ46NBKPHD2SG24ZYMSEIRCN3K2GMRNK2QTWGRN6L5NDQLAH \ / AMOS7 \ YOURUM ::
-#\[7]M7JIKZELA2J7KS2BCEM7W5MDE7LZBKDWQ4QCNR3MW5T25RKPN6DY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,,,.,,,,,,.,,,,.,,,.,...,,.,,..,,...,...,,.,,.,,,,,.,.,.,..,,
+#6L5CU2KYTBQPW3CSU4R3CGBIRRF7CFFK4OZU3BMP3YS44IRIB6DURCU3KIUBW2X774MI5KY252VYE
+#\\\|OXTXHVVPXYZ7HDAC2JI7YJBCDR7S5JFBYWRUHLB53VPP6W3HTOE \ / AMOS7 \ YOURUM ::
+#\[7]YYMSXTZL5BIY7QKVYSIZHDEW74HOOJVS5MR4W2U43IVOZLYMV2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

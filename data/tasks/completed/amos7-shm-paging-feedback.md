@@ -776,8 +776,8 @@ prompt: |
   Follow the project's lowercase-comment, dot-notation style exactly. No
   signature stubs — the signing system adds them.
 
-#,,,.,,.,,..,,,,,,..,,...,,..,,,,,,,,,,,.,...,..,,...,..,,..,,...,,.,,,..,,,,,
-#DOLVTJHU3WK2XVTOU56LTBX6E2SND67SHKZBO7RYVGZVVDX3HY2WUH4RPK4UP7WSP4PEPTMID6NMW
-#\\\|UXJIQGCATHSSMI7SCSZJ7AGGCUPLURPZKKTS3GIDYURN5N7Z3PZ \ / AMOS7 \ YOURUM ::
-#\[7]PYBOSVDIMBN74UD4M6DDITFPQTNSAFGPAJUBHESNKXCWPZH3LECI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,.,..,,...,.,.,,,.,..,,...,,,.,..,,...,...,...,.,,,...,,..,.,.,
+#WC7DV4OAD4AZASN2ZEFOEEUB2QCAJXE7LYQSCQ2LH3Z3F4SH6HMW645H4PDPESYPHKVLR7BPIDGYI
+#\\\|WUBRI2LDH3XHVU7FG537YXNLDLYZ5VR75N3WTVFZHYOKHEITXBV \ / AMOS7 \ YOURUM ::
+#\[7]S37ER3GYNGT65CIQ3SI7DHOUMHHEQE2ZJY4K2WTAK34VEA6M4WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -151,8 +151,8 @@ Aligns with Protocol-7 philosophy:
 - ✓ Self-documenting (code carries own documentation)
 - ✓ Relaxed (no big upfront planning needed)
 
-#,,.,,.,.,,.,,,..,,,.,..,,...,,.,,...,,.,,...,..,,...,...,..,,,..,,.,,...,,.,,
-#W7DESXNTDF225MXHWIL3OTR2Z2CCGNORVNQEUCNOIBHMME7JBSASP726Y5MXSFYAAGLF4PN3TRZAM
-#\\\|HMF2L5L35U5JUZYBMJSWXIX2RFVOCTLTPG5IBFOROBC5JEPKDCC \ / AMOS7 \ YOURUM ::
-#\[7]FSBIEZZMA33U5W3WWEGIYTVT4LHLE5AILBAUUFAOEAZ2O65FKOCI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,.,.,,,.,...,.,,,.,,,.,.,..,,..,,...,..,,..,,,,,,...,,..,,,,,
+#TIB47MFZJVTDTCCNAW345PO3WIZODD7FGAJJDUXT6LI342AGMX4EUZQAQLILM42VHBIEFNHIT7IVY
+#\\\|YMMM3VNL5NVVYEIOTLRUCZP3L6HZS4D7ZJUOHSS6FJJLPFUYPSX \ / AMOS7 \ YOURUM ::
+#\[7]QJEYE4GW3KHUMZYLCD3VKI6KH4JDTUW63ZQ6ITEZWBONUEZDSIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

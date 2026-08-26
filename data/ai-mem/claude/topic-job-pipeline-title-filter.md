@@ -47,8 +47,8 @@ Excluded IDs added to a skip set alongside the already-known check.
 **Future extension:** also filter by location pre-fetch (title often contains city),
 could add score_title as a lightweight pre-score stored in the job record.
 
-#,,.,,.,,,,.,,,.,,..,,.,,,.,.,,,.,...,.,.,,,.,..,,...,...,.,.,...,,..,..,,,,.,
-#EGQG35HMBA7XYNP6AXMVPYZR4QWX4M4SDD6EQAH353XKDN7F2ZCQFOY3YVXRU2FPZTABYS7KC5CYS
-#\\\|RSQAKH43PYJ77BGEIQWDS2E6NPM55I5EXIHEQ56QFJBSPNG2ZE2 \ / AMOS7 \ YOURUM ::
-#\[7]76G7CCGT2ESQYZBMGJS44HYB4STNS7RXLFGGDCYOLFXM5DNBFCCQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,,,,,...,,..,,..,,,.,...,...,..,,...,...,.,.,.,.,,,,,.,.,,,.,
+#BNXXX2NEZXHPT5WWQJABV44XUJENNDMX3ZER3CHRDYEBYBGLXSDSB2XKIZ6BNKXAZJWI5HDECPFAS
+#\\\|ZGXBY5J5KQ5GDE2YO5EBBHNJTRF6HUDE775IQHDD7TECEZMU4GD \ / AMOS7 \ YOURUM ::
+#\[7]5MGHWCNYHXSUFMDQKHVXPHY3XBAFUN44QGNYNHCUDUAZWYEJ2MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

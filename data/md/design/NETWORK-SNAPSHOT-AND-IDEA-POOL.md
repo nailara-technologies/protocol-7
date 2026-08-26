@@ -105,8 +105,8 @@ applied to capability.
   domains exist)
 - whether snapshots become git-committed artifacts or runtime state
 
-#,,..,,,.,,,.,,..,.,,,..,,,,.,..,,.,,,.,,,,,,,..,,...,...,...,,,,,..,,.,,,,,,,
-#5FLJXR3TA3GFI3BILZ3YISGGTEGZCQAP57GNQAOFXI2BPURIPXREUIX2T52LHK6UMEHAUEM5AKZB6
-#\\\|U52WTQDOK3G6FTQR6AUKQTXX43IHBGD4Q5VO5DPM3BP5VVUUQC5 \ / AMOS7 \ YOURUM ::
-#\[7]BC6B6XX2ZQM7YUAMZL3SIEUBM6LVHXGF5LE5OQP6JTL7XAUWHGDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,,.,,,.,,,,,,..,,,,,,...,.,,,..,,...,..,,,..,.,.,.,,,,.,,.,.,
+#ABMHJZMUFAYODVPCKDYQSMVLUD2HWIAYTNULQUZETRJ7NZAZ55OOM7HSYZFOOANLICMGLTWVP7YRU
+#\\\|X73CUO5UQSGCYTQUNJCRKAWVJGHRPBCEIEKVCJCXQW4CKIHWSID \ / AMOS7 \ YOURUM ::
+#\[7]2TJ4UXCTJYIEMNRCD6WCAWIAWXIAKUIXTHCAAJXRHDWF754PNOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

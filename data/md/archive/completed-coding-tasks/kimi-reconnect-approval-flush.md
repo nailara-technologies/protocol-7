@@ -71,8 +71,8 @@ manual test path (if zenki are running):
   `p7c kimi.approvals` — should show empty after reconnect
   `p7c kimi.status`    — should show busy/processing, not stuck waiting
 
-#,,..,..,,,,,,,.,,,.,,.,.,..,,,..,,.,,...,..,,..,,...,...,...,.,,,...,,,,,...,
-#4PAYSKD5JMFJ7RXVXQPLEZ4OTI5STHVGE2C66G4B3KVU3RVBG47DHU37VUMQ4QTH3SRXZ7LGEYTIY
-#\\\|KQCB6IHSIBRCGUXNI5STZJJ72L4M2V6DWVOBT2AMPMD5K4M5X7H \ / AMOS7 \ YOURUM ::
-#\[7]DGDQATZMDVBT5ZNUZO3UTNF45WMANMJF7QY32CY4GJAPFHTO4ADY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,,,,,,,.,,.,,,,,,,,.,,,.,..,,..,,...,...,...,...,,,.,,,,,.,.,
+#NXM2DOYGGHQC2DL6XJOVSXNXMRV6VPNJBOJTWZKUDEJOPO4L3XEE6L7JHSFUFV2QSBBXN6BSESU32
+#\\\|3Q5GFNJZQ46VZZVOYGLW4AJ7EG6SLPD4XE7WMCOBR4GF6I446RH \ / AMOS7 \ YOURUM ::
+#\[7]ZB5NPLGSSX22A3VZGQSG6X75Y2KVYV2SRKCS7KJHVCOI7BRFP2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

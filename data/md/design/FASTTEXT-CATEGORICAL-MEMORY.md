@@ -220,8 +220,8 @@ inherits the full accumulated geometric context immediately.
 - [[AUTONOMOUS-MODEL-MANAGEMENT]]: the model selection layer determines
   which base model loads alongside which embedding categories
 
-#,,..,.,,,...,...,.,,,...,,,,,,.,,,.,,...,,..,..,,...,..,,...,.,.,,..,...,,..,
-#EW65L66EVQF544FTFFLKP3XOSGL2ANGIHIE2ORSLPWCCSXI4R6A3KFDG5JXECJ563Q3MOVD7K73GE
-#\\\|L4TOBD3BGCW7C6WLUS5O6DSGA37RD24TZXXG4ZAT7QPTNK75CKQ \ / AMOS7 \ YOURUM ::
-#\[7]4FSEZSJFB3E7PBHVW24IMHQDLH3X6FM2T3DGK32D72HSRU272YCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,,,,..,,,.,,.,,,.,,,,.,.,.,,,,,..,,...,...,,..,,,,,...,.,,,,,.,
+#FHSJN3PZBHJXL5JMGNQ56F6SSBR5I7DSQ57LMIHJXKHDH7VNBGD2XEOLOUTMDLFPNIGJXQ4MXLDL2
+#\\\|K4SSVR5ZXK73FHULSXR33FCK54UMET2MWDW4L5CVQBHFMRBEE2K \ / AMOS7 \ YOURUM ::
+#\[7]OCM43GEW32R3DC7CZIJZDR2E5RG44SLHOTQI2OF7EAG5KBQOMQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

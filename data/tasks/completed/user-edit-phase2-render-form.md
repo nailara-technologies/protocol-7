@@ -146,8 +146,8 @@ When done, write a note to `data/ai-mem/kimi/coding-style.md` or
 this is genuinely useful for whoever builds the interactive loop next,
 whether it worked or not.
 
-#,,..,.,.,.,,,,.,,...,..,,..,,,.,,.,.,,..,,,.,..,,...,...,..,,.,,,,,.,.,.,,..,
-#VKAD5IGNIUDXVZDNVGZK22DBNA3PU22XXQLW2HMNP722SYG6QHRR2CSCMTZFHSML3EBBIZOBKSS36
-#\\\|O75IY7XQPU2FNOX3BUGIBQKXXHWVWFXM5N5ZVMIXUK4INUGGDHV \ / AMOS7 \ YOURUM ::
-#\[7]VPGHJWX2K6DTWOEE3ZEWZSBYHHRXB7IP5BFATBOGKUSQZFVBV2DA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,.,.,.,,.,,...,,..,,.,,..,,.,,,..,,...,...,..,,.,.,.,,,,.,,,,.,
+#6NK2DLIFGORZF4XG6AZGSHQSSQUIK7E7HOY6TIGASXTP2445SHHOUZVETVCPL2GRUUR2JD73D35WG
+#\\\|U6U7TJYT2BQNP5UJFP7UO5JVR6GKOI2HM2GJPZDTD3GYE2XIMIA \ / AMOS7 \ YOURUM ::
+#\[7]2PJXBWYORUOW3OKKBP4BVAC7ASNZ5UBCJ7AEV2LHDCWUQ7DPSSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

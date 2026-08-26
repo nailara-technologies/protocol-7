@@ -57,8 +57,8 @@ a conservative cycling rate, make speed adjustable and easy to slow down
 or stop, and treat "it felt psychedelic" as a signal to check in about
 comfort, not just a success metric.
 
-#,,,.,.,,,,,.,.,.,...,,..,..,,.,.,...,,..,,.,,..,,...,...,,..,.,.,...,,,,,,.,,
-#YKDC5RVPHBWYELES5TFDVYOWVIYBZRPY42UED3WOVXSNXDWHL4AS7YPVARIJFPQCNJDANAIYNZNE6
-#\\\|EFRCE2M6AP2YFVGIXHJTWGLG6I3DTMACVLSEHZKKXC724BJKHPA \ / AMOS7 \ YOURUM ::
-#\[7]HCDQSQ6VC3EJRIADOJ7PPO5YIEZNU5ZO3H45U5GJDH5BBNYKOQAY 7  DATA SIGNATURE ::
+#,,..,..,,..,,...,,,.,,,,,,,.,..,,.,,,,.,,,.,,..,,...,...,,,,,,,.,.,.,.,,,..,,
+#6MNIF4AVYY2ILDT46OG55IZ4W6XWJLLSPDNSE7LCZ7E4A2G7UUHXC5S7P6PP3PUMJO56BNUOH4YCQ
+#\\\|R5T4XOC5LYR5Z33JFTINPIXBZ2GYRYKWLUE4XYIZ5DJXO56QT6X \ / AMOS7 \ YOURUM ::
+#\[7]ZYMGQZEBLKOO4KEIKKNCKG2DNZ7YNB65AISPYD7WXOGS6HZRHWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

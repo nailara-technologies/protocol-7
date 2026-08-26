@@ -101,8 +101,8 @@ set <route.bmw384.cfg.rings> temporarily for the render call.
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,,.,,,,,.,.,.,.,,..,...,,,,,,.,,,,.,...,,.,,..,,...,..,,...,,..,,,,,,,,,.,,,
-#K4HYSRD7S25LQILTUOM4J6LOLCJM32QCHXNAKMZI3MKLET446KEU3ICC46EGMCXRR66LPE2EXYTBS
-#\\\|GGUHI6RQPAEKXYQWNGB4C2XOR63G467XDLTYKD6D7TUL7GHVKKC \ / AMOS7 \ YOURUM ::
-#\[7]YV7N3MDZYBK7G5ZTQOZSKIUYOTSVDR5XWUCA3P627V7V5BP6Z2DQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,..,,,.,,,,,,..,,..,.,.,.,.,.,,,..,,...,..,,...,,,.,.,.,...,,,.,
+#ILMROCMVOUX6BUVDGNALX7B3G5LLFR22JW5Q2IBBRN7EHN6OZM4IDNRWWUDXWFNVGTREN47ILWGUQ
+#\\\|ZOZIMOGL4675F2EJMPUTZAMGQ4A3URRDJCSWWXVKFCNL35QTLM3 \ / AMOS7 \ YOURUM ::
+#\[7]2KIAFXY5XZXOCWEPCTT4QQE25XWSYQUUA6TUW5UUBMVVBVEYWWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

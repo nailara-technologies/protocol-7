@@ -43,8 +43,8 @@ appears there, regardless of how that value got there.
   see [[topic-coding-state-machine]]) — worth re-testing that scenario now
   that this clobber is fixed.
 
-#,,,.,,..,,..,...,,..,,,.,,.,,,,.,,.,,..,,.,.,..,,...,...,.,.,.,,,...,.,,,,,,,
-#6VSWX7OXJEK33NDQ2M2I4KJFMKUQQCOPCUO5MYRYLAF2TRHV7VPR2VV7FGDAS47WMUHEG545HMLIW
-#\\\|6RJ72DG44GG7VALFDSJGDQI4VOFEBM33QNIGKI3BPDRZIYF75FF \ / AMOS7 \ YOURUM ::
-#\[7]4I3AET6WGV3H6TM5Q3B5S77SMNBJHTBF7DHXOKRP3YS46OISACBI 7  DATA SIGNATURE ::
+#,,..,,..,,..,,.,,..,,.,.,,..,...,.,,,...,.,,,..,,...,..,,.,.,...,.,,,.,,,,.,,
+#5XBFCVI2P2V2WVNP4TLD6GEK6YUOIO65R7BW7X3JDITUAH5GN3JFGVTE4B66LILZMLD3ITVLDGY6I
+#\\\|ITUEG2J7MOF7NXZN7DFYECUPPZ74LQJYZBVF4PR6C6MDS3CVT5L \ / AMOS7 \ YOURUM ::
+#\[7]F2QXG4QW7VYMIBSZRWTQ5ZL73UMKKK7Y4SSFWSK4VEFQYWZ7EGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

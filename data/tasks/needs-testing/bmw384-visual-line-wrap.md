@@ -64,8 +64,8 @@ leave the 4-line footer exactly as-is — do not regenerate or stub it.
 
 low — mechanical reformatting only.
 
-#,,,,,.,,,,.,,..,,.,.,,..,..,,.,,,.,.,..,,..,,..,,...,...,.,.,,..,,,,,.,,,.,,,
-#3PJBTSEQXW3HLKCZJUOYD2MTIPZRFBKUEF3R3A264D7SOK7SALZKT4JZEJXONP5R4U6OIGNC7MML6
-#\\\|UCLFL3MXBUO3AZQQL5UYYJL3FD34QNHCWIBKYXIHMK3DNUZ66JX \ / AMOS7 \ YOURUM ::
-#\[7]FUIYMBPHHQNTM54UM3OEUCR7QGKP45MQUCN6S76SVKP2ACUBFWDI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,.,,,..,..,,,,.,..,,,..,..,,.,,,..,,...,...,.,.,...,,,,,,,,,.,.,
+#S7E5EWUEBTNOZT7YPNV7YSZQJY67Y3Z3AWP6OJUAXYXE7RC4VEBWYKHNRZJDO576Y3VKG7V3LCQMG
+#\\\|ABCYE62XITRYSGTPFMU7TNMA3FZKBQQQJVGZGNJ6KMP5SJC7FUF \ / AMOS7 \ YOURUM ::
+#\[7]ZJFAD26Q5TLMESPXD23YFN7ULTA2TT7PA7OOFP45SYLB7MEGSQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

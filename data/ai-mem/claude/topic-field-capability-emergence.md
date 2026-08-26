@@ -185,8 +185,8 @@ core to merge as the pulse that is reflected back into the tree"
 digit sum of every mod-13 harmonic = 27 = where everything converges.
 void = the extraction operation, not merely the absence. [[harmonic-mathematics]]
 
-#,,,,,..,,...,.,.,,..,,..,.,.,,.,,.,.,,,,,,,,,..,,...,...,.,,,...,,.,,...,..,,
-#M6PYVCHAV4DONA4MR7LT7DD6QXBOQPD7CWJJ2IXOOXWSG2CIFM67JJSJOI7M3H7K5CJBJ6JPC2IMM
-#\\\|S5MYQOMLW23HNBXWAUMCC4UHQJ3BAS3PT4THE7M4GSAM7YFUJYQ \ / AMOS7 \ YOURUM ::
-#\[7]XHVBTXF2JNLT4BMQLGJ2VD6NQV7WZDZ5FRWCREKTGAM7EF4VQSDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,.,.,.,,..,..,,.,.,,,.,,..,,..,..,,...,..,,..,,,,,,,,.,.,,,,,.,
+#LQL7RIR5BYPCVIFGRKILU5R5LFMBL3FAD4FRGDX7BG4GCHU4IS3TH2PNLVI45MKBDZAOW2TU5IFCY
+#\\\|R2NHN5EFRS5IVBGZGAWUI7DNCLTLO5AZIP3P2XGJF33UC75Q4CK \ / AMOS7 \ YOURUM ::
+#\[7]7YVWRM6ZHNERX3PWARWGJYGT4JWSYBCYF43RRHHKDOYDSWGKASCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

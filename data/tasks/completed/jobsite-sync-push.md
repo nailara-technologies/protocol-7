@@ -95,8 +95,8 @@ the signing system adds them separately.
 4. Updated `cfg/zenki/jobsite/zenka.v7` (add cfg keys if missing)
 5. Updated `cfg/zenki/jobsite/subroutine.white-list` (add both new modules)
 
-#,,,,,.,.,.,,,,,,,..,,,.,,,,.,.,,,,.,,.,,,...,..,,...,...,..,,..,,,,,,,.,,,,.,
-#BXYPLNOPP2EIKMZJ53SVG2J5SKWCHBV3GFBGTJ2QNSJVM226YQCZCXYKR2GMYARWHZWEQYKJMWG7K
-#\\\|PMKFSZ7EME64ZF37E6TZ6XO5M2VTJV2RV2VTIG55FTQ2SZONN3M \ / AMOS7 \ YOURUM ::
-#\[7]I7KTWYKT5EU7VMS7XPCXUP4G66V6CTSE75NQKSPU4INJFOSBNEDA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,.,,,,,,..,,,,.,.,.,.,,,...,,.,,..,,...,...,...,,..,,,,,.,,,...,
+#QDUMLPXMD44473NTOX7GN5TPPRAI3NFWJOVEWZ7KZ6WASIE5WBEWB62Q7S4EJ2EACA4S7TUMHXUKY
+#\\\|3JIDAEH5HMVVDI6O3WLOPTR2OLKDKU7CIZFPPY272BQTZVK7UPT \ / AMOS7 \ YOURUM ::
+#\[7]RITDOMHO43SCTL7GSS6DHVJ7UBMUPA4CUZXV7NOWS5OMF4JW36DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

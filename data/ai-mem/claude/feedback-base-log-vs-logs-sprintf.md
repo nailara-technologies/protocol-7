@@ -49,8 +49,8 @@ and the message never gets substituted.
 
 [[project-sys-deps-wiring-completion]] · [[project-ondemand-zenki-registry-wipe]]
 
-#,,,,,..,,,,.,,,,,...,,,,,.,,,,,.,,..,,.,,,..,..,,...,..,,..,,,,,,,,.,...,,,,,
-#NXX7SV65W3TQA4SD2A5AXNQUFGSJJW3K6DBIXAAADOT3XICUALHX4H6XTOY5AOJQOQK7FRCPUYI3E
-#\\\|NUTN5UUNJQGWS5BBMELCC7JXAHKAMYWOQ52Y4UCUYWB3YFGXXBO \ / AMOS7 \ YOURUM ::
-#\[7]3GG3TJYCP753P3J3LKF624TLO5SMV4GNYLPJQEIOJVKPNUCJFQAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,.,.,,,,,,.,,,.,,,..,...,,,,,..,,...,...,,..,.,.,..,,.,,,,,.,
+#P4O77XMT4AABPAECOPVYMUIZ6PWGAR4G27SR6IKB4QIAOPHPZSETZXAYNKRGNFW4ADJ2SFK3QUQCY
+#\\\|WZC7UHKJZZZRM4365BRBTJU2KOMS66SX2KKV6SQOA4QRO67BA4S \ / AMOS7 \ YOURUM ::
+#\[7]KKCFKR7OFJBWDMYVJYJIG7JML7YTF3JOT34IRS6NIJXOCPXH3YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

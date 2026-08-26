@@ -410,8 +410,8 @@ cycle N:  99% regex, 1% LLM   [ maintenance only ]
 - cleaner structure from early ncode passes reduces integration code
   for follow-up design steps — each improvement compounds
 
-#,,,,,...,..,,,,,,,,,,..,,,.,,...,,,.,..,,..,,..,,...,...,.,.,,,,,..,,,,.,..,,
-#IMI5MDYVCVBHI5PE66KLUXCHPSTQQMSDGC7XCYNQRMSZFS5V5KX7T4V7NA32CJEVKOPWT6XI4YWH6
-#\\\|JO74BVUCQPYLMVVPW656IYMQFQPYEKMAR3JBAKXMI4PHGNASCOX \ / AMOS7 \ YOURUM ::
-#\[7]PWS6RZO5SNHCG4ODS5HU3NIDUABREKLYFAOUEDAPXGBC3HI7BACY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,.,,,..,,,.,.,.,,,.,..,,.,.,,.,,..,,...,.,.,..,,...,.,.,.,.,...,
+#JLSNAD664E6STWRV6LZDXHEELZTVE7IVLAPPRVXMP4E2PPO4JP4HE2HPVUSLDO2OF4CTVCA3CBDQC
+#\\\|EH5ZSZ2VYO3VDPRUYNEYYMDIA5YTC4KWQK2I25KOUF7SUPLLJOG \ / AMOS7 \ YOURUM ::
+#\[7]VUDJ6UJ4X7TMO7CCRABMVBVPZXYQYKT7NEEKJK2ZTKONCMREB2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

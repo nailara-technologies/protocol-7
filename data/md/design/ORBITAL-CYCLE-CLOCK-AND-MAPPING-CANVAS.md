@@ -964,8 +964,8 @@ each with a distinct 45°-rotation meaning. the two shapes stack at
 different levels [ `360 → 364` by corner overlap, `364 → 365` by fold ]
 rather than being the same pattern twice.
 
-#,,,,,...,.,,,,,,,,,.,,..,,,,,,.,,..,,.,.,.,.,..,,...,...,..,,,,,,,.,,..,,,,,,
-#ARRZ5SJAG2XZRDGUJUQLFTLKPQ47HRVIBRDUXQLH574LA6TXIZV5FT23QAZETYRUMNVRRHBXLDHNW
-#\\\|URE2CYKDX7CRQFG34FRJJ4JWT2URF2PB6UIDOYTKTYVCPM6XURN \ / AMOS7 \ YOURUM ::
-#\[7]2LMBLJ2CTW2SAL4FFVQ7HQHJPXSKCHKW2ZMLGYJNZSARJGTQRYAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,..,,,.,,...,..,,,..,,,.,,..,..,,...,..,,.,.,,,,,..,,..,,.,.,
+#Y6SCDI5BMUIPLZVCHDQRHVCZ4JFJA2POC7V6NB4MZOGJ6O32YJ6M7W6RKQW7PHZ76OLZTZYBVXEWM
+#\\\|YJUCVK5EYR2PR6OFEISDLJI6W7CC5IP4U7CVACPBOUHF44LRYAM \ / AMOS7 \ YOURUM ::
+#\[7]NEHNLI3XDD7NQUTDPG6DYQAULBW5AOU53YBSPAYPSLLCHTCZUSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

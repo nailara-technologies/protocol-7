@@ -168,8 +168,8 @@ do NOT add stub signature line to new files.
 - `data/md/documentation/harmonic-storage-architecture.md`
 - `data/md/documentation/entropy-at-deduplication-root.md`
 
-#,,..,.,.,.,,,.,.,.,,,...,...,,,.,..,,..,,.,.,..,,...,...,..,,,..,,.,,..,,,.,,
-#2WZQVPLI7U2NWWSAXYYOC4CFYQTPWFX4GHJ65372QSBHA2VOYDVYNF7QXN3VY5IQNDWQTZY5T3PD4
-#\\\|4LELEHYAFHS2LDPW3QXDPZNKJUD7WT45SLAJBF4UU7ZWJQ2U7E3 \ / AMOS7 \ YOURUM ::
-#\[7]DNMJOV3TLSMUYM5ILL2J2SPE5HEUQNZS4GOWPQ5USDJPBWCM6SAY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,..,,..,,..,,.,.,,.,,,.,,...,..,,...,...,.,,,,.,,,,,,,.,,..,,
+#76WWY5RNFXUWH4C3VE3W4ZILPER2KMK4ASMOSJBHQLHEA4HSTMOOK5P7FUC3BBBG3BJMSAGEHHAU2
+#\\\|6V2AOR5CWUOVPQEHSAJVYMT3BXR5KCBOCB37YDI7TM6W5BIN642 \ / AMOS7 \ YOURUM ::
+#\[7]HBGWW4CAXZDZPIIQW7PYRIZUSRCVRET2YK7TBOP5E2IO47K6MCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

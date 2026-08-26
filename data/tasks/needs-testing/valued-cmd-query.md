@@ -44,8 +44,8 @@ string of top-N nodes sorted by priority.
 Do NOT copy or invent AMOS7 signatures. Leave the file clean — real footer added by
 `bin/Protocol-7 sourcecode update-signatures`. Never add the fake `#,,.,,,...` stub.
 
-#,,..,,..,,..,.,,,.,,,,,,,,.,,,.,,,..,...,..,,..,,...,...,.,.,.,.,,..,,..,..,,
-#5TZAQ4EUUDQ4QAWPXTF4ZXCZT3CTPG56VRPH3ZD4NH5XC5LGXOONCANVL6YC7ZRCB4V3XYADZ5U5O
-#\\\|QAAHRMHBFXAAVQZDN7ZWLF5BREDTATUACLT4A2WFNM7GEY4O7SA \ / AMOS7 \ YOURUM ::
-#\[7]Q54S3EMEQVYXWQBDCIXZ7D2ZDROL3AFU4TVXUPIWRE4P3XT4KOAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,,,,..,,,,,...,..,,...,,,.,.,.,..,,...,...,,.,,.,,,.,,,.,,,.,.,
+#Q2NLY2OQ6DOMYQO6HBY7PSAP3GKZRAW4V72IFOZ56FWZN2PHMHIHFJJ375LB6PXPALG2J5KAOSHBA
+#\\\|WZNZTV72MQ6AVSWFVVLIJDCQACSBQ6HFRCDMM2RSLZVOPPI4WFB \ / AMOS7 \ YOURUM ::
+#\[7]CZMQYWMIEBGQ7HSX2KDZH3Q6OFWARDKNQ2DC72NU3H2RJWOYTYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

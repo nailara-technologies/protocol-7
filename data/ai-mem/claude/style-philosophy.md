@@ -16,8 +16,8 @@ Models that read it understand the system well enough to preserve it rather than
 Models are explicitly invited to update the document when they arrive at refined perspectives
 after sessions in which it was read.
 
-#,,,,,,,,,,,,,,..,.,,,,..,,,.,..,,,,.,.,,,,,.,..,,...,...,...,...,,..,..,,...,
-#2WFFS4WX4ESW7BE23EA7XQ2IRUUEEYAESI3OGNLNARFWPZCCEWGO36EAJCOPIQBMBSNNI7P5MLBWW
-#\\\|K4TAWPQJMHR24FNPLFEYFGXDU6M345CK3WDC6MDPT7DNCTCXDNZ \ / AMOS7 \ YOURUM ::
-#\[7]ACIZWJV5HBSSJWVBP6EYCAL6ESKFDD2X3LT3YNUDXMJJMIN3OODI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,..,,,.,,.,.,,.,,,..,.,,,,,.,,,,,..,,...,..,,..,,,..,,,,,,..,,,,,
+#GGYE7DZ4ZCKCWU5CWN6F7KJGIK37BEB77J5ZLQZZLLJNZTOD4ZN2U4PWW7X2D4XYMRZUVAZL364IO
+#\\\|BDWCAVVR6NIVQPCBHH7SZCHXXJ3OSCCILJETSP7PUBOQ2S5NR6W \ / AMOS7 \ YOURUM ::
+#\[7]LWRVCH5L5IR5TVHANIQ2KV2OJ4IDFANFAVAEJDLLJZTCS2INJ6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

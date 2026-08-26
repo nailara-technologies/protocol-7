@@ -57,8 +57,8 @@ apt-installed on the host from K3's live dep-install testing — no root to remo
 [[project-ondemand-zenki-registry-wipe]] · [[topic-auth-client-namespace-split]] ·
 [[project-kimi-k2.7-vs-k3-tier-economics]] · [[project-depgraph-conditional-calls-blindspot]]
 
-#,,,.,...,,,,,,,.,,..,,..,...,..,,..,,,.,,.,,,..,,...,...,.,.,..,,.,,,,,.,,..,
-#WI2LGMFSEMUI4R7Z36RWMTUSO6QXHA7RXWZV2ZFZQ7ZIAUAMVGGYBMACGBUVJ6LVOVFVW2ZMNT4DY
-#\\\|DKEETFLWBCSKLMCAIC4IHPP5MYHCC2FEUY6QXIZ2MRH75OMG36G \ / AMOS7 \ YOURUM ::
-#\[7]N4PMWJELDSUTSVWGE7MD6STM7BUFFNLT6ALH73DSUH66XLHAG6DY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,...,,..,.,.,,..,.,.,,.,,,,,,,,,,..,,...,...,,..,.,.,,,.,..,,...,
+#6O3YVMJRK65O5RC35K474RBY4QM2AUMCME33NYR4TADZEPJRPQRRAQCYSOX46CXFIWYEXKT4NAEXU
+#\\\|X45TYTUUH6QOWKDD3H2KERWKYRLSVUXNR3PQMHAJ6PCPHVDQGST \ / AMOS7 \ YOURUM ::
+#\[7]4YGMYSLL2CJK2AWMMCIY4QDVADJS2D2AMCRHHAGJUBV27DL5RWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

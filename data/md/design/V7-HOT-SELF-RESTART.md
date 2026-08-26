@@ -250,8 +250,8 @@ extending them could unlock:
   when available — the same intent, resolved through whichever
   resolution-capable substrate the local environment actually offers
 
-#,,..,.,.,.,,,,..,,..,,,,,..,,.,,,.,.,.,.,.,.,..,,...,..,,,..,..,,..,,,.,,,,,,
-#KUTS4EPQX7WOYKIPB27GEUJTJWYRZNKPX3NNJNRM7QKWVYOGZHKX2OESVAMZTCQMRQFU3EQ5NR2NM
-#\\\|4JB5L2XWTZS2XGYJWL5F27MR47EG3R4OXZDURKKQIL4SE2HCFW3 \ / AMOS7 \ YOURUM ::
-#\[7]JPVHESPKFN6KUR4XWDLVB5UQ3SZZVGZBMVHMBHICIKIVPBDF6SBI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,.,.,,,..,,,,,,,..,,,,,..,,..,,..,,...,...,,.,,...,...,,,,,...,
+#7Z7FMS7O2VLYVQITZVEMVDR22GVJ73QV43V5H4IDVF4X4JS5VY3B2NZON3ZJ6N7WNIFQ46JSVWQRA
+#\\\|QHZ6CTIUKL6MAT4NHQGAMNLQ3TUBQK7N4C3YGLHTH3THE3YBFLT \ / AMOS7 \ YOURUM ::
+#\[7]QYCFYWBS63IEPL7OV23D3M7L7TWAO5OQVHDQ6NQAL3QCSDD27WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -83,8 +83,8 @@ cleanest pull model: lazy, composable, hot-reloadable.
 - [[session-62]] — STRM refactor history, bytes::length fix
 - [[stream-transport-layer]] — STRM stack overview
 
-#,,..,..,,.,,,,..,,..,,,,,..,,,.,,..,,,,,,,,.,..,,...,...,..,,.,,,...,...,.,,,
-#4APYDRXHICGNG7X35Y55JIJ5CT6JIOPMP5QGCMRURRTCYZWVKJYZGPMR7IRY4EL7G5W65GV6U6UXM
-#\\\|LLTC3BYQOPHOIWXKJ6T6OBG6U22RYUDBHC2YNC6FPO7A7L7GJ4F \ / AMOS7 \ YOURUM ::
-#\[7]ZELD5D6SC4FVC7XQMAWOCD74KYU55DFOBIOXYILVDOWYW2QVJ4AA 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,,..,,..,.,.,,,.,,..,..,,,,.,..,,...,...,...,,.,,,,.,,..,.,.,
+#2ICV4V74ODT7PTCYOOHC7HO2Z6BLK7WDMWZTHK3PZHJNOQFLC3MIHOI454DXSG7QKPSBYFB62MY2U
+#\\\|ECMFGA3A7AYIXUPLI7XL55VECNG2F5VO5MFDNR67GUU5FENL6I6 \ / AMOS7 \ YOURUM ::
+#\[7]EV7N64W45RGB4C2CAIRRX4BJXFCY5ITPHNM5HVSD2XTZUBQXEYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

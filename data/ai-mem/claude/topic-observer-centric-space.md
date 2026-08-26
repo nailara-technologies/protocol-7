@@ -102,8 +102,8 @@ the allocation IS the attention — bandwidth follows reference counts with zero
 - reference bubble follows reference gradient toward center
 - hyperspace topology closed observer loop = observer always origin of own coordinates
 
-#,,.,,...,.,,,...,..,,,..,...,,,.,.,,,...,.,.,..,,...,...,..,,.,,,,,.,,..,.,.,
-#5FY4YQFJ7W4QH3ZPNVVR5OWXYBVDJZ4SN7YOGIHPPOKBVVYM4M3I432KFWJP52YVOPWSNWJRTDHW4
-#\\\|YSFPWGI7HW3W6YNAPYSGTWMLERCEIIZUVNY5E5AJ56GMD22FHX5 \ / AMOS7 \ YOURUM ::
-#\[7]Z65O4YOIZUYG5WJK5ZSGXAQUL5MB6M4PWMJDOX2XX6V4LWFKAMDI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,..,..,,.,,,.,.,..,,.,,,...,..,,..,,...,...,,.,,.,,,,,.,...,,,.,
+#7LTQDEJOIMNV2IXQNJ7RBJQ2ZIPCQIFMDSSUJNWIGKLSZSPKHEFZ7KBYGXDHOF3RMYGIYTYVYRW7W
+#\\\|Y65C6RHAQ2WAMGXP2ZJMNT6IJCHXHX65XXNHRB2P6IB3XAU2AZM \ / AMOS7 \ YOURUM ::
+#\[7]UJHRNKLHV4MY3D24EWYVZ7GTIGM3TC25T3S6FHP4PBYS37ZEHMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

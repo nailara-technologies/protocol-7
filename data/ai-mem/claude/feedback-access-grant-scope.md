@@ -67,8 +67,8 @@ inline in `start` (where it already has to live anyway) and put any
 future-grant documentation as a comment next to it; add the separate
 `access.zenki` file only when a real non-cube grant is being added.
 
-#,,,,,..,,.,,,,.,,.,,,,.,,...,,.,,.,.,.,.,,.,,..,,...,...,...,..,,,.,,...,.,.,
-#L5LG4NXJBAXXQ7SDGJWXZD4BYLNFRRYJDVQLGMI66YSA2RPD6OSSRMT3MTRWHCNZP6LWSCMSPOG7W
-#\\\|SJZUUU6OC2BRNRRAG6OTFH2U6FPSGSMZESOPDGWIQGFX2ZT2BD2 \ / AMOS7 \ YOURUM ::
-#\[7]ZCBM23NVDN2T3MH7AGTG3W24FUNCMEMIORTXEHWZY2V5EK2UFKBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,,,,,,.,,,.,,.,,,...,...,.,,,..,,...,...,,,,,...,...,.,.,.,.,
+#MSCAVPTZPL3EKBIDEN5S56PEEXFPU2OVO4BFAITDGD5TISK42EVFC2PQMQTAT3S5NKEM6D6N5EFDK
+#\\\|RRFEWQKUF6ZBNMAUAM5TSWDYLLRVHKUJS4X5LSFACV7CUM32UGF \ / AMOS7 \ YOURUM ::
+#\[7]UQKZG25KK662NUPTXB327DLHD3EKHSHBK46C2Q66U37LP4K7UEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

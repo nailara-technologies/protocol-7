@@ -51,8 +51,8 @@
 - **Dead / stub code:** `debian.console.*` (superseded by CLI tools), `debian.parser.*` (display-only), `debian.parent.callback.*` (registry boilerplate)
 - **Keep as-is:** `base.debian.install_package`, `bin/dependencies/debian_dist_upgrade.sh` (until `AMOS7::deps::deb-pkg::d-upgr` replaces it), `debian.cmd.install-history` (unique dpkg-log parser)
 
-#,,,,,..,,...,,,.,,,,,..,,..,,...,.,,,,,.,.,.,..,,...,...,,,,,.,.,,.,,,..,.,.,
-#M6R2PSL6BOLMPRVN6XUGSVFMNBQIR2RIBSWPI6C4ESZ4D6TY5EPM7YQQ4Y3VMSRTP76SS6R6TPDYA
-#\\\|ZPLMGTJGHQHMWX7MYID735QWSFGBGK4AHINYTV4O5WFWHY4OSOL \ / AMOS7 \ YOURUM ::
-#\[7]LTWNZXPEWSUHOQWRAJUSU3YME7KI4MBT4X2KUMYI2LDAN3Q55WCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,..,,,..,,,.,.,,,..,,,,.,,.,,..,,...,...,.,.,...,.,.,,..,,,,,
+#VN7JRMTAONE3ZJJFRPKWTA6WS24IJFJIBF2D4ZAUSO7MNIRJQMQHX6FE3AXRTYMPE5GKW5ABFEZFW
+#\\\|ATAL6THT34HVYMLWOGRTM7N235LYVQCKXG3MY7MR4ZKMGRO7PJR \ / AMOS7 \ YOURUM ::
+#\[7]UUEHZNYSHOB4TQ5C2RASZ7XK57ND36URNJJQ3L4GW5UPLSNFMUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

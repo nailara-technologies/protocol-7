@@ -154,8 +154,8 @@ claude (JS/HTML work) — once grid has more functional distinction between laye
 extend to include grid-layer drag coupling. touch events can be wired in the
 same pass as the click resolver.
 
-#,,..,,..,,,.,,.,,..,,.,,,,,,,..,,,,.,,.,,..,,..,,...,...,,..,..,,,.,,.,,,...,
-#SRDHSFQ2PCKYDFYD7W4GXQEIEBKMHNSUKK4266H35JIV7DMDCODJAE6TE3A74OPQLOPF5NL32XDRU
-#\\\|L4L57DFAGRRROK6PAJX6M5PRJF65E6DFPZOAIX5L73PX7OMRKND \ / AMOS7 \ YOURUM ::
-#\[7]YKGZIP5HFMJ6PKVSJD2UQ4PYPXOMZ6FKKNIX4CZVAPTZTXTVCABA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,.,,,,,.,,,.,..,,,.,,,,,,.,.,..,,...,...,..,,.,.,..,,.,,,.,.,
+#ZNYJLSVMI4CIJAOFPRDBZZFVGZBLZXXLGJSONAEJGDV44DZYTWWBSPJRU6HS62XD5FZCOC6TT34HS
+#\\\|FLCNHTBXBYEWF4WNE45I3T3EMVALYRH3XNVFOAK7PS4ROSOP7GX \ / AMOS7 \ YOURUM ::
+#\[7]O7NOS6X7N73FHCPCP6X4QFEQDU5GKW6N3VWMMHRMFNVCRHLXWUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

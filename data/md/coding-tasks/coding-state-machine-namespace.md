@@ -109,8 +109,8 @@ of polling via timer. Fires once when status becomes `complete` or `failed`.
 - the `<coding.state>` tree can later be written via zenka_dir routines and
   reloaded on startup — same pattern as valued tree persist/restore
 
-#,,,,,..,,,..,.,.,,,,,...,,,,,,.,,,.,,...,.,.,..,,...,...,.,.,.,,,,,.,,,,,.,.,
-#ADTDFGXPVYQQTEQV6YK4TFZFIXJV44WIQHJAKTHKFQX27X7QT5EQGMMSFF3R2ERX7XV2MDIOLYEWK
-#\\\|TRSF7VYVLTN3YSHHM32DW5PLES3EMQRXYSVZLKW26ZHPBRELXFO \ / AMOS7 \ YOURUM ::
-#\[7]P3GNDOLQL5726RPQ6RK32QGNT25ONDVGCC2UFLAC2YCRGNXXRQCI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,,,,,,.,,,..,..,,,.,,.,.,,..,..,,...,...,...,.,.,,..,,,,,...,
+#WGENFCOUFCCN3P5PZITPRJGVP32XNPQOXMZZNLNIPFEP5AQ6RCJB3ABJ63SBM3SHAI6P7W2LJMELG
+#\\\|FBK3LOPU5IZWG5EGVOYRFBP4VW57JVA56XH6CJYORT33JXUB3O4 \ / AMOS7 \ YOURUM ::
+#\[7]L23QTP6A6GWSY7E6HYLE6WV5EJ5DIPRCADGLMGGPF3ZEUBMLL6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

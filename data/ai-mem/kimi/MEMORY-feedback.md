@@ -36,8 +36,8 @@ lesson confirmed : NEVER `v7.reload init|all` on a live network to
 register a new zenka — wait for a network restart instead. single-zenka
 `audio.reload source` worked fine for module iteration.
 
-#,,,,,,..,..,,,,.,.,.,.,.,.,,,..,,,.,,,,,,.,,,..,,...,..,,,,,,.,.,,..,.,,,.,.,
-#J7BGGNCXM4DGXFOJXKRWV75LI53DONG2ORPSWJZ2DBCN3UOW5R6NITK53RGE2NQ7SQZGRZKQ3RJQK
-#\\\|SWU3P4E3BGQPHSCCGGJBLIDUXPCYA3YIL3OSKAEO4I6OYZXOY5O \ / AMOS7 \ YOURUM ::
-#\[7]6QI64EC36ZBGOWWI5ECURTMWRU2AESA6X6VDPOYZRP4QWHDMT2AQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,,.,,.,.,,.,,,.,,.,.,.,.,,..,..,,...,...,..,,,,,,,.,,,,,,,,.,
+#JX4JMXHHDDAWR62U2KXPVPSPVDHZGHYUZY6P25WLCCWHKZSXXSW6VGM2VTRQ5X6ELFUE5J7TBB6LK
+#\\\|YVSHLESUVCQTZHIWUR5XUARBADRROGAFF5DTYZQW4RVVNLS2KC6 \ / AMOS7 \ YOURUM ::
+#\[7]REKI7EUEUJL3KEG5WQVKINMEHM2HQQ6JHFPVA34PPRRCQ5JZPWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

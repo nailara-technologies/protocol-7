@@ -80,8 +80,8 @@ the commit message before it lands — expect the hook's own stdout
 ("removed author metadata from commit message") rather than an error
 when that happens, it's normal project policy, not a failure.
 
-#,,,,,,..,.,,,.,.,,,.,,..,..,,..,,...,.,.,,,,,..,,...,...,.,,,,.,,.,.,..,,..,,
-#ZBFMJTG245ZMYG3UX7UKEDYTEKGUUFRZVKMTSXT5LQNUAECFMTKST272D2Y3TC2LGYD5UIONRTIOK
-#\\\|QSZMECXTH7UTL5FWBVOAGTG3LQ32CKLXLTNWFAQT46KBGZH2AUH \ / AMOS7 \ YOURUM ::
-#\[7]Q73WIJLKYL45FKHAXA24SR463XPEG2PSNUKSDL5C2LHCD2ZAMKCY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,.,,.,,,..,,..,,,,,..,,,,,,.,,,..,,...,...,...,...,,,.,,,.,...,
+#JOQP5JRJOGWRLR22JZMLBO5NHVUQ5I3L5B26ZA3AUULOJ44CF26ATTKUZA6F6OYZN5X3HRAPWFIGK
+#\\\|DD2ZU52X3QS3Y34FLU3BS7U5EGUEPDX5QSAUFYU7WBRG7PNKYS2 \ / AMOS7 \ YOURUM ::
+#\[7]5A634SW3UPIYPTAVF4UTLJR5RJAZZ6VELQL3SZ6WVTICZZHIKUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

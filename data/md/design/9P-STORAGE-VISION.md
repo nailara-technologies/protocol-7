@@ -212,8 +212,8 @@ Every byte that flows through 9P becomes part of the inevitable content-addresse
 
 *This is not just file sharing. This is data gravity well formation.*
 
-#,,.,,.,,,.,,,...,..,,.,,,,,,,...,.,.,,..,,.,,..,,...,...,,,.,,,.,...,,,.,,..,
-#BVWOLVTWA43V3KGOPSEHN2WGMO5VS734ERAEWLNUUEUMMRBZLFDEFHB6GFFENCAHJU2ELQKUX4MVG
-#\\\|F5SZCEXAI7RV6CFTUBPFKJT6OYSSPG3N5OL6ZHJRGZMEDTC2YNX \ / AMOS7 \ YOURUM ::
-#\[7]AWEGQSIJHBQXTTH3PSUIEV4FSHAMP32INYSMJBPJK7FLE3KRCUAQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,.,,,,.,...,,..,.,,,,..,,,,,,.,,..,,...,...,.,,,,..,..,,..,,,.,,
+#7FQTJQS7J64734DQEIEX54ZGGTNPOASUYY7NJZ2V74ZIQUCU6UMNT47TUIOUCJ4ZQDFPTYRSUV3YU
+#\\\|4RDNUJS23PC3VVFHQE6SCIT4FZWRLF5HJZZ4CZ4I6UGRSIDUDVI \ / AMOS7 \ YOURUM ::
+#\[7]B2S3F46QQDQIEVGGJZ63A5V2JNG6B2U5OITN34K5RH5QTT6PFADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

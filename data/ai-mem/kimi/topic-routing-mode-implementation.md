@@ -71,8 +71,8 @@ pattern ].
   gained base.zenki.resolve_routing_sids; runtime ignores signatures,
   human re-signs before commit.
 
-#,,.,,,.,,,,.,,.,,,.,,.,.,,,,,.,,,..,,...,.,.,..,,...,...,..,,.,,,.,.,,,,,,,,,
-#CMIYVFYDOS6C2EU3WQRA6CUWQM5KLHNDO5CKPMXBYPB7IFPS32RRI5XXWZ4PSCSMUCMXZKRKMI45W
-#\\\|ZIFGFFASZV2UMVNT7T363DVX7VAQA6OQKJQBPMAMXEHAT6OI7KD \ / AMOS7 \ YOURUM ::
-#\[7]7RYZ2EOC2HRJGSIICWA7K3G4LCBXQG642DYXZJI4IRRFMFAVN6BQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,..,,,.,,...,,.,,...,.,.,,.,,...,..,,...,..,,,,,,.,,,,.,,,,.,,.,,
+#MXAJWU5XBX42YIWGQ7O4YZU4IYAI7WGDDYJWXQGGZC3AYCXBCFOI6QWSYNSQY35TOCG5OI2I2FNG4
+#\\\|O6JLPHUGQXHJ3CGH4X533T65W5NID5LNRRSG4MX2VH4L3YOYUCI \ / AMOS7 \ YOURUM ::
+#\[7]RA6E36EVQIIZKPZAYE6DMNUG33RAPJFYN75OJTZSUGQJ6SK56KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

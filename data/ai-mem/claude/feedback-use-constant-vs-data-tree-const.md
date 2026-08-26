@@ -128,8 +128,8 @@ to override. See `data/md/design/STORAGE-9P.md`'s "Config:
 plan-9.default_port" section and
 [[project-plan-9-storage-9p-subsystem-status]] for the full incident.
 
-#,,.,,,,,,,.,,,.,,,..,.,,,,..,,.,,,..,,.,,,.,,..,,...,...,,.,,...,.,,,...,..,,
-#H6NGGX5RT5TGMEXIHZT6YWRQVUCGCE6KJHCVEUS2MC4XNOAMNGSJMOI5IWLCMRHJ2ALDREKPV64PM
-#\\\|FGUG56K5XMYJBLNBCTWKRESG4AD2KNWKROZ6YZR2TVTGCXSKFZJ \ / AMOS7 \ YOURUM ::
-#\[7]RJRDVY5CMJVDGCASG4EYSHMRJ7U7K4ZD5NTZDFUMUD3XR5GOPUCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,.,,,,.,,,,,,,,,,..,,..,,.,,,.,,..,,...,...,,..,..,,,,,,.,,,,..,
+#OOBX2GJD7GZKU4BS3AHNWMEQC76KU3FKYPPJWUYRAZL63FD3YZECBIVGPVIH3CNZDWBJP3R22ULHS
+#\\\|UORSIKLFZ7ZYKGH7BSR7GRU3V66GGYAOS7SY27U7I7Q2P7WXHFU \ / AMOS7 \ YOURUM ::
+#\[7]6XELZR7RJAQAD5GS6RK4NMQ7FD6MRAE2UHEMUXT4KQ2HX7NXSQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

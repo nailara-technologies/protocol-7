@@ -132,8 +132,8 @@ src/models.chat.export_task         ## /task → coding task .md
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,,,,.,,...,.,,,...,.,.,,,.,...,,,.,,..,,..,..,,...,...,,..,...,,..,,,.,,,,,
-#4FO7QTUQZYDD4FW6F7U2UN4ZMU7NCRWMQRTDFV77DUSRGI7DYFNUI7DJ2FTBDJIPYLA5QJ35UB4QM
-#\\\|HNA53FFI2C5ZSC2B4V5PRSP3BXUFDPEOHK5QTXHSJFEHYA2JZ5N \ / AMOS7 \ YOURUM ::
-#\[7]DZR2RQWLEHGMZKWMFB5GAN5ZIFBFVHZ6EMXRVZPFLQXUBUKC2YDI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,.,.,,,,,,.,,...,,,,,..,,.,.,..,,...,...,...,.,,,.,.,,,,,,,,,
+#CHDQEFHX2DY5EMDBHVI4YJUJKPSY4PVYEBXZUNA3GLDQXDBKQ4NRUS3M7MUDG3RZQJ53EU2YRNM24
+#\\\|IFLVOJJWWNZ7NRDUH36RL6RQCU4A62SNEYRJNSRB4O2QH4NAP3R \ / AMOS7 \ YOURUM ::
+#\[7]W233UUA4P6HQRJLUUU3I3RBOSA6F5ST3GJFZ5VQUAAK4EGEZFYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

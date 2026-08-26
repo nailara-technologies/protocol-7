@@ -60,8 +60,8 @@ concepts (`v7.zenka.instance.track_handover`,
 in `src/v7.zenka.*`) but those handle *zenka* handover between
 instances, not *intent* surviving an actual crash.
 
-#,,,,,...,,.,,..,,.,.,.,,,,.,,.,.,.,.,,,.,,..,..,,...,...,,,,,.,.,..,,...,.,.,
-#FG4B2CN5F75IXOYDXD3MUBGNMNM3K4F333Y3OCOUM5AXZBZZKPL4QWDNJHJHW5JE4VTHFD5FYLEYO
-#\\\|6XD23X4H3JNOBK7UBG3TLTPBWHKGFNU76Z7BU624RRBGW7JSUN4 \ / AMOS7 \ YOURUM ::
-#\[7]EK53ZKAXZBLQA2AQEOHJNZXQKFOVSSC647P47UYK2NG5QEUAMUCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,,..,.,.,,..,.,,,..,,.,.,...,..,,...,...,...,,.,,,.,,.,,,,.,,
+#WVRW7R5HM6FHAUUN4V2SNR5STCYX6GEZ4N44CVAQYGGQAOF4ICG7V4IMEBJQTLDAFZMBSLUP2F754
+#\\\|OX6WTWBBBUR5KQPGAY7IRYTZO35REBIGMW42UTAMYOQC5BTKFPR \ / AMOS7 \ YOURUM ::
+#\[7]CDNGOUFJHPGFWF3MTDV5TIZXHJ33OKNBKLN6JBDX5MYIJEHLU2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

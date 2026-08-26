@@ -59,8 +59,8 @@ the `memory` zenka builds a focus-weighted tree over `data/ai-mem/*.md` and rend
 
 related: [[topic-ascii-frame-system]], [[namespace-tree-intelligence]], [[feedback-perltidy-sil0]].
 
-#,,,,,.,,,.,,,,,,,.,,,.,,,..,,...,,,.,,.,,.,.,..,,...,...,.,.,,,,,,,.,,,,,.,,,
-#B5OLBOUK5SKSFYWK7HA5Z2CGBUXOSOVEUJKO3GU4ZNTS7OZCXHYAAK6GM3NGMGLSH5HOVV5OR5QT6
-#\\\|QLAGHD536ZNFM5JBQJYWO7LTYQRILJ776V5VSF6KJ4TDZO5FYLV \ / AMOS7 \ YOURUM ::
-#\[7]4OEDPV4ONREREQE4YR6TIEYDIHXJMFDMTG7FEN5YR23GLRDQ2CBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,..,,..,,..,...,,,,,...,..,,,..,..,,...,...,.,,,...,,..,,,.,,,,,
+#NJQ3LSB6TQOFDN75GQQKWOTTXT3ZXSOM4UJG3DKRJQ3XT5AJOSKH2EPH5TPDZSGOTSPGIKOXTDLWA
+#\\\|YT4YLP32PIJKFL4BPL7BMIU5VQVLDVKEBZRAROH6C7NRMONTTVE \ / AMOS7 \ YOURUM ::
+#\[7]MOAYWUGMUFNNIJK4EU5QJC3APATCXRTPAO6WDVVYNFREDZIRNKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

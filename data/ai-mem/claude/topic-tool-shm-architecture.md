@@ -175,8 +175,8 @@ reuse.
 Design-only, no implementation started. See [[project-checksum-addressing-
 implementation-survey]] for the reference-encoding half of this thread.
 
-#,,,.,,,,,,..,,,,,.,,,,,,,,.,,..,,,,,,.,.,,..,..,,...,..,,...,,,.,,,,,,,.,.,,,
-#DOVH5IZAFNSMUEBG4B3KDJ7VN3EUGHEENRDNGI4A4IZZXDMCH42G67W75OGPXDOQZQXO2JSTSBZJS
-#\\\|GF7MGTTMVATALMLTJUA2U25AWKOHFIUZ5KRFCO7HWIENPYJ7QQS \ / AMOS7 \ YOURUM ::
-#\[7]CYF7MYC2VZ3K5P2VE5C7YI7ZW3ESHHT6KYX4ZRLXMPJWUONG2YDY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,.,,,,.,,,,.,,..,,.,,,,,,.,.,..,,...,...,...,,..,,.,,.,,,..,,
+#ZQXCE57GBPVMATNGGMRGCSNXJM2DU6K7YVDFC7YFW5B2JS32O5SQ2BKDQPHTSZK4I7UVYYGOJPPLI
+#\\\|TX5AWNTSMVJ57TUPINUNAOTS4PFF3JWMMWIRRM3NJO4JKS2TPVO \ / AMOS7 \ YOURUM ::
+#\[7]XT4YNUTVZTVEFTGQFJJYD5XRGW5ZXSQQUS2R3HRWO6J7ET6UHECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

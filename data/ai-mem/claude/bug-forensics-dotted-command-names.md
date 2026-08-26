@@ -234,8 +234,8 @@ wrapper is a more fundamental, more common cause than a
 regex-incompatible name, and the naming diagnosis doesn't even apply
 if there's no wrapper to rename in the first place.
 
-#,,,.,,..,,..,..,,,.,,..,,.,,,.,,,,,.,,,,,,..,.,.,...,..,,.,.,,..,,,,,,,.,.,.,
-#66JZ3CTVHKYINA5QRD4N2HYXDM3BQGFRYQFM3VY6RO36XYIUZ7VBURMGBOZ5KH3NQZZWIVQ7Z3MSA
-#\\\|SRI72IJBKQ5NHUHKM3FTQFZPE5QVCARAHQ2G2N3SGPL45ETKLXF \ / AMOS7 \ YOURUM ::
-#\[7]UVJR5BNM4GZXNDUGAHBBKUUIMMG3TS6AQP432X66UHX3N5J5U2AY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,..,,,..,,..,...,...,,,,,,.,,.,.,...,..,,.,,,,.,,,..,.,,,,.,,
+#S5YD7N7KAC5672WIKCCBH4JWY3MQ3JNTN5UCVDX66YS7S6CLKTXQ3FG4MVXG34EL5XV2CYFDSYDK4
+#\\\|JG2HULY2J3WA7ISWUEJHOQCHFVZAU2IFSCWX57GCBVEWA5GPCPO \ / AMOS7 \ YOURUM ::
+#\[7]57XLACX7K55PYPIQ7ZRWGTLC23K2XF4M7MTTVNYV7OMHPNUIDQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

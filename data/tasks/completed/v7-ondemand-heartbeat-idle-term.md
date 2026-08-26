@@ -202,8 +202,8 @@ forever waiting to be killed.
   still results in the zenka exiting on its own within a bounded time, not hanging alive
   indefinitely.
 
-#,,,.,,..,.,.,..,,,,.,,,.,,,.,..,,,,,,.,,,,,,,..,,...,...,..,,,.,,,,.,.,,,,..,
-#IXQQ47VQ5C6CQLCCZMEOSFLBG6QZZUNSCSO4B2EUA4KO5C62BGLVI3CT7LMX7OVVNYTGLPU5W3BSK
-#\\\|PTWS5VQF2OOIXFZLUNDD37UQP4EDRETJBHELWAXOPAZUWFP7UQG \ / AMOS7 \ YOURUM ::
-#\[7]57JWVFZNVGWNX56SM7N6V7TSF3Z5I7243DCSTHRJ6NU2PVM4O2DQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,,,,,...,..,,,..,,,,,..,,,,.,..,,...,.,.,,,.,,,.,,.,,...,..,,
+#Y3CHEJLWGKJPIEVGH2P2LWZDZ7HOP2QPCWGHWWSK3KP7Y6VFNKDGZF26GVXABIYR3ZME35FPMATOK
+#\\\|MMBQEK7QITSXDNIKTCRFWCWSXTHI4MW2RNYBR4U5DIX5LBJV6GM \ / AMOS7 \ YOURUM ::
+#\[7]XOCWLDQWPJNO6SSTGYOQYT5DBYMNIYHS3TWOEHKFXRXRE4Z3HSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

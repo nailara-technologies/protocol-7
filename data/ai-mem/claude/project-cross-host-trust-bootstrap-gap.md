@@ -151,8 +151,8 @@ working-style takeaway.
 [[project-zenka-cryptographic-identity-survey]]
 [[topic-write-access-security-infrastructure]]
 
-#,,,,,,,.,...,,,.,...,,..,,.,,,,,,..,,,..,,..,..,,...,...,.,.,.,,,.,.,,,,,.,.,
-#PRHVHENBLYWBVR6MSBCKXTSZ3A5XBTF3562RJ7BMOIQXWY6BKMQDCBMRJQX6FB7UHUKDKR6ZBL6OG
-#\\\|WXIBLZ4QDLJV7NJJHO6HKYGBGACDZZJDOXYMXB4AGRC7VAT7JHI \ / AMOS7 \ YOURUM ::
-#\[7]7SGCIVFKBVPE44L7SGPK3GM6VN5SJKRUPXGBJIEWDTLLXNLIXUAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,.,.,,..,...,,,,,,..,..,,,,,,..,,...,...,.,.,,.,,,..,,,.,.,,,
+#6FUUE7Q33HYIBZAMKRMJWCAM4AZECEBF6FX46VJXVRE4FJKN7YAOPKB7B7H3RW26245YNJRE5NWEM
+#\\\|PVBDZAMQMLO3DQX7NDKGSJZSP7WUZRBYB4366UY6IZ756FA5TOC \ / AMOS7 \ YOURUM ::
+#\[7]TBKG556SCYCFYYWPRI7IIADTIO64PUJIB5HGM4KFFO7W5RLC3CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

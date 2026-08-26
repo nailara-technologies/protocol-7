@@ -59,8 +59,8 @@ current setup:
 - module file format: starts with `## [:< ##` header block, no `sub {}` wrappers,
   module name = filename, invoked as `<[module.name]>->()`
 
-#,,,.,...,,.,,,,,,.,.,,,,,,..,,..,,..,.,,,,..,..,,...,...,.,,,,,.,.,,,,..,..,,
-#FTWLOB7SPPMYHAI6A3YKJA4H7KLEBSFHNWCHUFAMTZNT6ZGQU43TCEZOEFWPDM5GL6GPGDAFCBXK4
-#\\\|KZ6Z4W6YKAP2CVWEI6IEJU3XZ2J73N6RS5MJW4XBNCD5I44Y4A7 \ / AMOS7 \ YOURUM ::
-#\[7]2UZK6S2WOHGP3ENUMIRPAV2LU25XRQ5OB7KVHGV3GKNKI6VCB6CY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,,..,,,,,.,.,.,.,,,,,...,..,,..,,...,...,.,.,...,,.,,,,,,...,
+#JNPLXMDHMEUOAEXKRK5CA4VPT7YVHC4MVX2RIHX4AP2GGLKC5LLPSBZD6CCXPEZK6H7MBP7XVXWDO
+#\\\|6D3H2XKXUYW7UNG4IRQJJUUWLVYQEZ73SFGSDMKAQNXU2QRZRQE \ / AMOS7 \ YOURUM ::
+#\[7]Z2NNHE7BLLQ5MKPPZNB4WUSZRXBGZPNKSGAUQ34K2KWHHAZ2S6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

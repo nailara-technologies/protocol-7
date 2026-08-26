@@ -146,8 +146,8 @@ no signature stubs.
 parallel-safe with branch-calc-reference-space.md and branch-calc-route-navigation.md.
 all three use separate $data key namespaces.
 
-#,,,,,.,.,...,.,.,..,,...,.,.,,,.,..,,.,,,,,,,..,,...,..,,.,,,.,,,,.,,,,.,,.,,
-#BITNHTEAN6A3KSUY7RWF4VKPWGZKSKBC5FKAKLILQ67MMN7YDWXQFU74EM2E5CQQI2DTKUCRVCUFC
-#\\\|3RNYDNCOWOTPG5L6LTU4AX4CJTS7KNJKVIBW5VNV5REZDKETN6F \ / AMOS7 \ YOURUM ::
-#\[7]Z7SNZT6U7PBC4GI4WEL67FJU2ZPLUOIED7YZPJDDGNWQHESZQACQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,,.,,...,...,,,,,...,...,,.,,..,,...,.,.,..,,..,,,,.,...,...,
+#2U5XBEXIECT3BOTIO2PFM4C7J7MXOEXZLDTGAJVGJSCCJZ2GW4O6VC2ZKDRM5HW32DLPQXRDGLBAC
+#\\\|6DZNZKUIZWFSJAB2MOSUZ7IKFP56FFLXRVRI6G5GQXB44VMCPM7 \ / AMOS7 \ YOURUM ::
+#\[7]K3BLUWBV6E3GQF7W5GQPEXIPJUB4WWQ7VADACBXV366473UUBYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

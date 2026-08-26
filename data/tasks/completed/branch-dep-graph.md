@@ -145,8 +145,8 @@ $data{'branch.nodes'}{$id}{'satisfied'}  ## undef | 'satisfied' | 'unsatisfied' 
 parallel-safe with `branch-layer2-discover-groups.md` and `branch-layer3-routes-keys.md`.
 uses `$data{'branch.deps'}` and `$data{'branch.dep.reverse'}` — no overlap.
 
-#,,,,,,.,,,..,...,,..,,..,.,,,,..,...,.,.,,..,..,,...,..,,...,.,,,,,.,..,,,.,,
-#PI7AL7G5LSV322JAF6A67VH6CC2V2N2MUGPXIWFPQSSL6XD53MAFXF7QSVCS2NONXR7MLCAFQMKI4
-#\\\|JISFLPNUYX2STTJ3V3V4K5KJFTWGALDFPOJGXOCPSLMMK3S32Y5 \ / AMOS7 \ YOURUM ::
-#\[7]KQLUN2JHQWAWJGFHBC4G3G2KZFWWWWCKC3FGHYBOFDH62UNK6UCY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,...,,..,,..,,..,,,.,,..,,.,,,,,,..,,...,...,,.,,.,,,,,,,,,,,,..,
+#EKSYUCFVCPXF4VI45G6ZIEKAGJE6WF7ZA7TQ7PJMEPBJWY2JNHH3BKNQ5PM3XK3THAAC4CIL3YY6Y
+#\\\|4WOXE7RA4CEHYUPKGFNN5CBAAWVVSAWYL72CVF2L6LCD5QICZXN \ / AMOS7 \ YOURUM ::
+#\[7]6DJRRIX5SH2WF7YJMDMOU4JZGN3LGE2LZVAVPIUYN4JRNXTTFCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

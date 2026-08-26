@@ -140,8 +140,8 @@ enough that the convergence felt less like invention and more like
 recognition of a shape already implied by `V7-HOT-SELF-RESTART.md`'s
 broader-vision section.
 
-#,,.,,,,.,,,.,,,,,...,,..,.,,,,..,,..,.,,,.,,,..,,...,..,,.,,,..,,...,,,,,,,,,
-#EPEM5ZFPNTTKELNVOWSURJDGDNA325YSUFJNHNLNSRKJBAH66WA2Y53YWKDDXGB3QV32LB5YSM5OM
-#\\\|V4QQGM2LHPWGJCWUHTUJTGGSYRI3GNGHRYUFYI4Z2MEG62SNTCP \ / AMOS7 \ YOURUM ::
-#\[7]SUWXD63ZSXURF6HTUW4SVIF2UP7FQX4DYZPLPAEYQ2VC7KGKVSBA 7  DATA SIGNATURE ::
+#,,.,,...,...,.,,,,.,,,..,.,,,...,.,.,,,,,..,,..,,...,...,..,,..,,,.,,..,,,..,
+#ZGWPHFBVKJJTHJ7R6BSWYTTBVQCSF42B56LOXKRX63X5WCG7FYGNWGAJ4HUQFG4U7JE6SZKDTFL3E
+#\\\|7YLMWTKJX2IUOKPPNIUC6OIGANVJZC6TFL2GU4DCWLPA543ERNP \ / AMOS7 \ YOURUM ::
+#\[7]2KFMD2OIX47N5MACPOQH53TJMBAQM6CWIVJE5K3WQRJJOIJEUQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

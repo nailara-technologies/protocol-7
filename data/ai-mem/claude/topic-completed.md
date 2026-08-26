@@ -127,8 +127,8 @@
 ## Full Archive
 - [Complete session archive](archive/topic-completed-archive.md) — all detailed session summaries preserved
 
-#,,,.,.,.,,,,,...,,,,,,,.,...,,,,,..,,,.,,...,..,,...,...,...,.,,,..,,.,,,,..,
-#P366YSAT277AWPLQBOYLZYOGX3KKURIT2CMYI5TORAD4S4VLZSOGJN7WRTZUYZUAQHQ5HTCUMVCAG
-#\\\|T6EWT7SIWQMKRYXTZH2XPBU4WIVBYEUYB52E4QTF35T6REHIFVB \ / AMOS7 \ YOURUM ::
-#\[7]SHKDC6ULP4YJWGILYNVDGWEO64UDIEJ2LY7PL6WNGWKDV7TBBGBI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,,,,,.,.,...,...,...,...,,,.,..,,...,..,,..,,.,.,.,,,,,.,.,,,
+#YYOT7UF7TJVNUUPVQBCLSZE5SGQN7VV3YXLWO6R5JSAW3EOENKAJKOTLC2FKQ4CM3MZM6SSHIW64G
+#\\\|5JKTOJDRRA2AOLX7XJHT4B6JHPKKXTDPOGG25H5GGT3TRI43EIX \ / AMOS7 \ YOURUM ::
+#\[7]3FQH2I6WJKSWRIHOUCEOGYK4YKEOXRND4K3D5LXS4D2QJ3SPNAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

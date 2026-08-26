@@ -52,8 +52,8 @@ query* a grant allows; this is about correctly scoping severity *within* an
 action that already spans multiple identities sharing some structural
 attribute.
 
-#,,.,,.,.,,.,,,.,,.,,,,.,,,.,,..,,.,,,,.,,,..,..,,...,...,.,.,..,,.,.,,..,.,,,
-#BT5KTRK2G7JWL2LAOOHFBHBQPDBQT3VJ7IYFL3TE7KYJDQJWCQKKXQIN6J3TO7OYBQBEZWNMVWWSA
-#\\\|7MRKDN7UHDXJCEFIAKH7RJUX3TG6SRHXFPPFRHIZEYAGA2HH2JV \ / AMOS7 \ YOURUM ::
-#\[7]QDT6LPGP24QDAJYHUBR6BWADDE2QLAHK3MFIW2CFWO5QENNTJCDA 7  DATA SIGNATURE ::
+#,,.,,...,,..,..,,.,.,,,.,..,,,,.,.,.,,,,,,,.,..,,...,...,...,,,.,,,,,...,,..,
+#FTSFQIYX2CYAGLNOYEXLPPXE7SIZ5X2GSTAMYJBMA3NXSVKHE4ZYBLNHUJGGLLN3QN5AH5LGT5XDU
+#\\\|4IUOCR4JZM4G5CUEBVXHUGZUFRSDIF7DYF4KCQCODQS2L747PRT \ / AMOS7 \ YOURUM ::
+#\[7]IFIR2FVYNBAM3BS4VFIU7TL52ZCEM4PZBS5YASGZ2FKJD7GC3SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

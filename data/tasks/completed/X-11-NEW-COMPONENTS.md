@@ -266,8 +266,8 @@ extends these to programmatic frame sequences.
   GPU load alert system already exists (tile.gpu_load_alert) and should
   gate the most expensive visual operations.
 
-#,,,.,...,..,,...,,.,,,..,,,,,,..,,.,,,,,,.,,,..,,...,..,,,,,,...,,,.,.,.,,.,,
-#XQAVLVIDMAS3SEBCHAEYRRCC23LETE3MHXF3YK6QZJPR22W5LUX25RPMKT2DANTBMYOPE7WTTNNNY
-#\\\|RXH3UBFHJFEWL4PZHKED3VKDPWQKI76GLS6CE7OV5XWMHGZAJGK \ / AMOS7 \ YOURUM ::
-#\[7]TCTXIQJJXT5Q3IHV3L3LRPGEZP3F7AH3E5VEWSFDZX6V4K4AG2BY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,...,,,.,...,..,,..,,,,,,,..,..,,...,...,..,,,,.,.,,,,,,,,,.,
+#YHYYPS5FEDCTYVSUDTWGZOKC6LAE5VT6B56MUWELQWAPTIRFPN24JXOMZD26XKKJU2LMP5GV35LAO
+#\\\|WH6HNXOQGRRIQ7VI5HRJ3XJ7TYMORQ5GQ5DZI2GBJVIOQN4AA2C \ / AMOS7 \ YOURUM ::
+#\[7]G6EYEQ467CKFWYKL6XQFQ7BNVSMEMLDGRS5QSAQYEOEW3LUM74AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

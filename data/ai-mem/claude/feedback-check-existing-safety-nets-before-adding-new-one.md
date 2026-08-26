@@ -40,8 +40,8 @@ literal if one is genuinely still needed.
 
 #,,.,,,.,,..,.,,,,,,.,,,.,,..,,,,,.,,,,,,.,.,.,.,,,,,,,,,.,.,,,..,.,,,,.,,,,,.
 
-#,,,,,,,,,...,...,...,.,.,...,.,,,.,,,..,,,..,..,,...,..,,...,,..,,,,,,,.,,..,
-#2T4JDJS6KNF235FHG4LQXZPAPZJEODYQEQ3Y2QORNGAABXIVCKSTVSBTW4SHBCMRLPTEAVKFL55I2
-#\\\|UGHRMO53LGXHPGQW7Y2M4JKQRQAIC37N7ZJTYPMR2PTBJ5WQIYQ \ / AMOS7 \ YOURUM ::
-#\[7]RRALGHF7KWCQ3A7BQC5P2VQRD7KYWX5UNQBKOZHLLEJC6P3NL4AQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,..,...,,,.,.,,,..,,,..,..,,,,.,..,,...,...,,,,,.,,,,,,,,..,...,
+#OJPSWPEYNXTMH25IE3UNHF73D7P5QRNSIV7HXUI6TMI66OZZRPO54EMTPGZCR644N3VJ7ECMBMMTE
+#\\\|7YLQAZ2WQEDV25DNYAVWMMB5QQ6TO7L5ZN2FSWNI3ICPLQZUJIF \ / AMOS7 \ YOURUM ::
+#\[7]J37GFBQIZ7WQCMNFZZGVMSKP6YS6SVJ3EP3NYM2Z75Y3MBBTWIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -113,8 +113,8 @@ text on disk.
 - versioning scheme for template waves (generation counters in the
   template headers?)
 
-#,,.,,,,.,..,,.,,,..,,..,,,,,,,,.,..,,..,,.,,,..,,...,...,..,,.,.,,..,,.,,,,,,
-#NDNIGANDBRFRWMN3AHEW3F7OWD6KYLJDAXPOZEKAXDRKV4HFZCRTFXR5CIPEERFJFDHKWHY2ZR5LW
-#\\\|UQTHDDYTRO2LUKP4RNPDB5YHKIVXWDS5TSJT5GYYH2N2YOFZWH2 \ / AMOS7 \ YOURUM ::
-#\[7]52UW4XL564GQEJTUZN2TY7FFZEHWBYQ24N4W2RQHNVH4IQYX7KBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,...,,,.,.,,,,,,,.,.,,,.,.,.,..,,...,...,...,.,.,,,.,..,,..,,
+#K3AY4XS34MAZZE4G4UKWKZMBDSIY6WEN7R3O3BORIJPL7S7AYLNCLMCLUGY3ETDKMR6BC6UKY2NOI
+#\\\|GD3CG5YCOKLK6BNPWEE3Y2JKLWLOFQP7DVQB4GOQTFGZBPC34GW \ / AMOS7 \ YOURUM ::
+#\[7]RXXUDJUIUYTKH3LOQGKNNYDD5QJWHQF2JYOHYQ23XSCVCARWAOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

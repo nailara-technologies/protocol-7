@@ -98,8 +98,8 @@ subroutine whitelists. lowercase comments, `[ word ]` annotations,
 keep `# descr =` lines under 55 chars [ split to a second `#` line
 if needed, but keep each line under 55 ].
 
-#,,,,,,,,,..,,,..,..,,,,.,,.,,,..,.,,,,.,,,.,,.,.,...,...,..,,..,,,..,,,.,.,.,
-#VXCU6UDDJ3ZSPSHYVID754HDYKTGVOUTC5PR2N2REY4XHCRWYWXRVWT2R2V4T6CCA6YWIUX35DUOG
-#\\\|274H6PD6PDMGX7BGPIUKEBCAACLZEKLEKQGFCDDXZ4YPJZZ3KDU \ / AMOS7 \ YOURUM ::
-#\[7]PJUHUVTZJSYW6ZSVG24DT54RUEJN2QDO2ZH6N4GRJASXQPUWN6BY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,.,.,.,.,.,,.,,,.,,.,,,.,.,,.,,.,.,...,...,...,,,,,.,.,.,,,...,
+#ROHY4T7HIYO6N5RAOHKKZYTJQO2S7JZNSBGV6W3POPT5JSRGV7TTRQNROIOTOAHP3I7CZAGKWKFLK
+#\\\|OWB5W34NFQECXGBBZEIKPDYZTVTAIF7P7FAB5UH7YVOBAOTDH7V \ / AMOS7 \ YOURUM ::
+#\[7]V4VAW42A2RMVXUQYTNHB4VNIJ4R6L2SDXPU4Q3F5W2XEW4BSFSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

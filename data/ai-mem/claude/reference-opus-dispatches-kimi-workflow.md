@@ -38,8 +38,8 @@ worth the price difference, and [[topic-kimi-dispatch-infra-hardening]]
 for the --afk flag / MCP bridge timeout gotchas that apply to any
 kimi_dispatch call regardless of who initiates it.
 
-#,,,.,,,.,.,.,.,,,...,.,,,,..,,.,,,..,..,,,,,,..,,...,...,..,,.,,,.,,,.,.,,,,,
-#2CKY4RGYOLP4V2JRJNA2V75T7LF2ZLMDDUIKZYEVDLYSI5FGKG5WSZMVX74DEQMLDL3EAXSZYVNOK
-#\\\|QOXBT6SG4GLKENJ222W6RTNFXPSZDYHIR5AGDFMVFNFKS7EYXSV \ / AMOS7 \ YOURUM ::
-#\[7]5NCSTXVLFDGKZHPLYUEXNS44YG5Y2JLJL5MJ6X6AJWFSE6O4ZMAA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,,,.,.,,,.,,,...,.,.,...,,.,,..,,...,...,,..,,,,,,..,,..,,,,,
+#CLD2HJO6M52PEYQXLOQZU5TRCV65DZ7EHFECABCYLLJQRC64YH5HKKS7SKUCUYBVOUH7GYVCWRJPK
+#\\\|2ZB542WI6QUPGLTAGLUASAKBCSUDLMMQ7TILP7CLHQBNVWVIBPQ \ / AMOS7 \ YOURUM ::
+#\[7]Q2QXIP5L52VA2H2IEXAOVY6CKI2SIBKR7JMRENDEJ4YEUFPTSYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

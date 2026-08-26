@@ -42,8 +42,8 @@ the restart/stop command's own success message.
 [[vision-sessions-zenka-key-holding-children]]
 [[feedback-stuck-zenka-recovery-v7-stop]]
 
-#,,..,.,.,,,,,,..,,..,,,,,..,,,.,,,.,,,,,,,.,,..,,...,...,...,..,,,,.,,,,,,.,,
-#2K3AVFFDZJ5EDTZPGIH3D2FVSIWZSBBAJME6GB42XYNUXOUDJMABW56R7ITRBOAFKHRVZ7PARPOEG
-#\\\|SDNX6UF2A4MHFXO4JA2E7IQGWUURV5GU3ZHO4C7A7ZVIZIEXRVI \ / AMOS7 \ YOURUM ::
-#\[7]XMTT3ORWR2RVZCL75OZZGQO5DT745EWW7G3Q6Z6BPXNG2GISIEBI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,.,.,,,.,,,.,,.,,,,,,.,.,..,,..,,...,...,.,.,...,..,,,,.,,,,,
+#WH4ZLIUDLDLCWYOIJ25UYGGGMNTQOSGK3QV3TSMWYWWA4DRVJAFAJ6OSCSIX5CWNBATNKYS64L45Y
+#\\\|33OBS3N2KBQI2A6VSBXBYZWJRLTLXVRDMIJRPWMULFV4INOABJV \ / AMOS7 \ YOURUM ::
+#\[7]NLCNVQS7GOPKF437APCWIU2D66VZYYWH4IUNSRMYAZ2EVZFGSEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

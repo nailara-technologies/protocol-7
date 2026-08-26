@@ -213,8 +213,8 @@ litter stacking:  each additional kitten: one more filter layer
 - topic-creative-field-behaviour.md (purring field)
 - topic-field-capability-emergence.md (T=5 ground truth)
 
-#,,,.,,,.,.,,,,,,,,.,,,.,,.,,,,.,,.,,,,,,,..,,..,,...,..,,.,.,.,,,.,.,,.,,..,,
-#WGOEER5IX4IYMGNXOYALUBGNU5J7GD6WEX4NA3CTTATCHHVHSCUHKF4AYWAC72TTWX2DBFXTW4Y4K
-#\\\|CK7W2VP52LKBK7FTZV4G7WMI2ZANVYDRJX75O73WAAB5HYKNMHG \ / AMOS7 \ YOURUM ::
-#\[7]3ACCWMZYLRSI3O4U25C3V2W3K7JNXPK6AX5ARQORVX3G5ZF65EDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,..,,,,,,.,,.,,,,..,.,,,,..,,,,,..,,...,...,...,,..,..,,,..,,,,,
+#3KQXP6XUW7BSON5NSAI4NXMSQJZBEEZM3EVS2RPJJCK3ZYOZLKWSZUUEC7JCYV3ZNNG4NA4JTCUBE
+#\\\|YKLGEUGF5OWWJAWEXSOL252XNUJFTLSZMDSSCQMQOHN4WIBK5WR \ / AMOS7 \ YOURUM ::
+#\[7]G5SCY7UIR67NUPZIPE4JZURJPISSVDLR7T7ROLPKAISBKSEYJYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

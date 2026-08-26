@@ -54,8 +54,8 @@ preprocessor transforms).
 **How to apply:** always review + live-test kimi-generated P7 code before considering it done.
 Expect 2-3 iterative fix rounds for non-trivial modules.
 
-#,,,,,..,,,,.,,.,,,..,,.,,,..,,.,,,..,..,,.,.,..,,...,...,.,,,,,.,,..,,,.,.,.,
-#XQC7RD6EGVPE6OJ2XJR3HZERILDYV4ZMCSV6XGCVOOHQV4XM6EKWXE6ZWT7EOWE7CZ3XC4XW7XWOI
-#\\\|4VCRLA5WCBIFXWHM24UUOTQVNILK2RD5BQLXAEXJDSVM4QX6SV4 \ / AMOS7 \ YOURUM ::
-#\[7]IAHQT6KSHS2ZYT26EM6GYPVGUMESQA7AOPZU3D4OVU4AAHPVV6AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,,,.,,,.,,,,,..,,,,.,.,,,..,,..,,...,...,.,.,.,.,,,,,.,.,..,,
+#3ILVPT45DNF5RFWIMIVMAXJLNEI7F6JUBXHCHG4PREEGOKU2ZYR5QPLTT2CR5J3W67OWSOPENXLXY
+#\\\|6XXTHQEKDBEHUOLFKJQ4NFHDRZEWNBX25DDWMM7TZOKOHQRAYYD \ / AMOS7 \ YOURUM ::
+#\[7]IDIJAEYIEWVHZWRFIKJ3D6VRPTHM25W7JQZRPHL3LUQ3SUN6HQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

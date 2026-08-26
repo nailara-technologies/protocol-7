@@ -65,8 +65,8 @@ if a bug appears, fix it before declaring the command stable. common candidates:
 - [ ] repeated reloads do not leak memory or crash
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,.,,..,,,,.,...,,.,,,..,...,,.,,,,,,,..,,..,..,,...,..,,..,,...,...,,,,,,..,
-#QJNMQPTMHB5I2VJPJSCJKSL63WLAJKSCVRAQXFQDBFK7UVLNYH3FAHP562B2OWVJW7UHX4RGHMFC2
-#\\\|AX3EJXVHMPOUPQGFGI54DZOF6CVTOYZ3LOO5RDWH626OXSNE6JB \ / AMOS7 \ YOURUM ::
-#\[7]B4EC665W7KBROUL3TE2SSUNLCOC2PD4464BIYCZBIMCLPTX7YMCI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,...,,,,,.,,,,,,,.,,,..,,,..,..,,...,...,.,.,.,,,,,.,,,,,...,
+#3AJADWGTDG7IWC2D32QIBXYABETMWJ3XMS62RYA7UZMLULNJHCL5BWQTSDZBEYBIITVPZIU4OFZ2G
+#\\\|XXTJVOOJSTTUU52OV6XHEBLC2CVVAKMY5OTVRG7RETSINPC6DN7 \ / AMOS7 \ YOURUM ::
+#\[7]QXJ73DLL5SC7NGG4WVZK25TGCIC7AKJ6K65YZ2Z53GUSOSGM5UBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

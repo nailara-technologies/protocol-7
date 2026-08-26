@@ -41,8 +41,8 @@ actual tool that makes large renames tractable is `bin/ncode`
 workflow and division of labor (agent stages ncode targets, user
 typically runs the actual src/cfg/module rename pass).
 
-#,,,.,,.,,.,.,,..,...,..,,,,.,.,.,,,,,,,,,...,..,,...,...,..,,,.,,...,,..,.,.,
-#Z4VDUI6S7I5NXETQT6HUY32X5AL5FOWQX22CMM6SOVHAK4Y3XSFNBN3GSPDAFKAZJQYOMASXQOJT4
-#\\\|KXAST4O3XEFCWZMMO5KVXVXEZ73CW6BK6PZQCYH3EDKG4BLTMQ5 \ / AMOS7 \ YOURUM ::
-#\[7]J3CTNORXGZ6QIHS2IY55BNVHVX2A4MAWVPBEIB4RFWWXDQ6KXWAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,.,.,,..,,..,,,,,.,.,.,.,,.,,..,,...,...,,..,.,.,.,.,...,,.,,
+#5SKOVGRQRSPO7RTIHAIZCJGE3V2U5PHWHHF4B5UNSGCRABCLQOLKJTA6EVBGVH26I3UW2V6J6ULWQ
+#\\\|75M5QD4EREFISYRMYAQIZ6NGQWIHOPABBQBJY7AWKEIYRF3M3ML \ / AMOS7 \ YOURUM ::
+#\[7]C4A6SIY2VLLDZODR67LUHC75FDPX7GNZYAAUH2GIBLIG227SQQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -95,8 +95,8 @@ the dispatch's investigation found `%DB::sub` alone insufficient for
 this note exists only because the AMOS7 module batch from that work is
 what the user happened to be live-testing when this surfaced.
 
-#,,,.,.,,,,,.,,.,,.,,,,,.,,.,,.,,,,,,,.,.,,.,,.,.,...,...,,..,,.,,.,.,,..,...,
-#W3KMYJJM5TR4BGXKHC43MRPU3N4ZMRK4XYLSNT4EIQKVS2CBJK7VHGRWOJF3DCZZ5P6VD2IKJNRHW
-#\\\|PTAA7SNB6EW2O5PZIUVKMOD4QAES5PPINNUWSRP65AVFZWDPUVR \ / AMOS7 \ YOURUM ::
-#\[7]TLVFCJEISWITVBVSN6ADP4VZQACLDAF2WYUFQW6A5V65NZRZXMDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,...,,,,,.,,,.,.,,,.,,.,,.,,,.,.,...,...,...,,,.,,.,,.,,,,.,,
+#HXCWK6ILYEKGX22HNH5JT6AJZWPBYLJ77F4FO7ZED5W4PMM7KQWNEZP4PCKLV6Q6T7OH2NAIPOG7G
+#\\\|GUH57EUMSX36MBXNXNTUHFRDV3UFUWTVUAOGTB4VSSVVSJ5WSUB \ / AMOS7 \ YOURUM ::
+#\[7]BHXSU7RIIOEGSPDWKYW6EFR6N3FSLRMRRBNTFEOMEAI23JWI24AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

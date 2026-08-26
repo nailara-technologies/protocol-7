@@ -103,8 +103,8 @@ the eternal lovers as living demonstration: they chose separation (phase offset)
 - `BRANCH-OPEN-CAPACITY-SESSION-DAG.md` — Z.Y.X as cross-mapped scale coordinates
 - node group geometry: 8×(4×4×4-1=63) cubes as the physical ring-field-sphere instantiation
 
-#,,,.,.,,,..,,.,,,.,.,...,...,,..,..,,,,.,.,,,..,,...,...,.,.,.,,,,,,,,,,,...,
-#NMEYI5GW2ZNJCHRDYQREI3FG46M33YO5QTSQUON23KYQ54ZGVRW553SFXCJVC4QAA5ONP7J4MOADU
-#\\\|XO3THQNR7ZZLYQT4366ASFNYQ2QUE5EY5CB2UYBGJVO2L4OKKF5 \ / AMOS7 \ YOURUM ::
-#\[7]SLB6WNTH3YP5IEKX3K77E4VQAFCCH6DDJBVMZM4KKP2ZFCNU7MCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,.,,,,,,,..,,,.,,,.,,,.,..,,,..,..,,...,...,,..,,,.,.,,,.,.,.,,,
+#YR3ROZTDKJTUV6CXTXXPM6NQ4DEY4MFMVYXJRO5JP6LGH5IVKDYNC4IP7ZUJCURP573L55CB2TA7E
+#\\\|42NXRLVV7ZS5EHTXD6UR3B5LOFD2P5NDHEB6GARQ7O3WBLX424A \ / AMOS7 \ YOURUM ::
+#\[7]OHSDC4HGGO2433PKSMBIWR4XXK7BPUJOF2TB7UQ5G2HRX5YUCGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -224,8 +224,8 @@ coding.cfg.summarize_backend = cpu       ## cpu = background, gpu = foreground
   at startup. GPU runs fast task model. summarize_context routes to CPU by default.
   no switching needed — two backends, two models, running simultaneously.
 
-#,,,.,,,,,,.,,.,.,.,.,.,.,,,,,.,.,.,,,,..,,..,..,,...,...,.,.,.,,,...,.,.,,.,,
-#QRZYDXGOKLJ7EQ32D3UZS6HHFV6IC5I6NP7FURYJTR5CYT346B7QMCLHBMFMQQMZV22GWRAV7TKJY
-#\\\|4F3ZQW2RSMFK4F23A4UPP6BCLA7NR6NYBALXZK5K7IZS2PU77C5 \ / AMOS7 \ YOURUM ::
-#\[7]RIXFYAKXKTBCVVY7FWOF47YO4GCFBMNU4V3N6GIX3HGA4L6BNYBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,.,,,.,...,...,...,,,.,,..,.,.,..,,...,...,,,.,.,,,,,,,.,,,..,,
+#C4NFGQY2Y77V6UFGUWNXLYAFV5U5OKVFILKMEVT5MGXM7Z6LD4QBNC566D4A6DJMAISCZHK7VW6TC
+#\\\|EOZFL3DV7TSMJJH6UCFGDVHSKBW5J2EF3DGAHNYS55NVVQYBHJ7 \ / AMOS7 \ YOURUM ::
+#\[7]XNM7LNFRXC6FQAQZ7YLNPVE4XYYYTY27KGJ7UXZ2DTC2BWYBI6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

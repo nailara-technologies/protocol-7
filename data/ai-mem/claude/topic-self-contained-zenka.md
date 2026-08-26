@@ -89,8 +89,8 @@ deserialization = roaming agents defined purely by declarative task graphs.
 - dep-graph: already done ✅ (prerequisite for packing tool)
 - `-use-http-src`: already in `bin/Protocol-7` lines 597, 1162, 1396-1416
 
-#,,,.,,..,.,,,...,.,,,..,,,,.,,..,...,.,.,...,..,,...,...,.,,,...,.,.,,..,.,.,
-#FCVRR5KSE4SVLRXBJPE6U3JARAL5QA4UVZV6OTMIZMDW3OXHI5VFD456I5HPWHYOFGQ7UACXZZ7IS
-#\\\|IZ22F4XHZTG4IKS6RUII3IPUF7YWHI2VUGIYK4LYO2T7EFH5KY7 \ / AMOS7 \ YOURUM ::
-#\[7]OKG37Q7USM7I5VLRR2ZFUCZZRL7LDSJCYHLSAPNIPGECH4PNZ2AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,,.,,,,.,,,,,.,,,,,.,..,,.,.,..,,...,...,.,,,..,,..,,,,,,,,,,
+#E4UVR4PDNSQRK3DM4BWN65ZQ34AVI5QFUHPW3UPEII67A4TQ7ONZHRO6P7KG6VAQ362GK2D6XILOK
+#\\\|Q7JPOU3D5IVAH6EM4TZQK5SAOUZK6LQ3OOQ26OXQFER7IDEWLCU \ / AMOS7 \ YOURUM ::
+#\[7]RMQFLWP2FBQXXM7QFJONG3FMM3C5R7NCIAXPCIP22ZZBNBJNFECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

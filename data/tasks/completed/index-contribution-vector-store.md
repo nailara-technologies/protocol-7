@@ -149,8 +149,8 @@ return { 'mode' => 'size', 'data' => join("\n", @lines) . "\n" };
   be rebuilt from scratch by re-feeding with the new instrumented ingest;
   or populated lazily on next replacement/removal operation
 
-#,,,,,,.,,,,,,,,,,..,,..,,,,.,.,,,.,.,...,,.,,.,.,...,...,...,,,.,,..,...,,,,,
-#RBNS3KYSQKGDRBMRBAMRIKEFUHTH3TYDLPNDKIZNJQZ5ZN526SPCNHXBKD7BD6BLI35C7VCU552O2
-#\\\|WX3XQ6SH3IY6OTCD7FZKHB46HBWQSATLBI2INQUDN4CBNIPNMX4 \ / AMOS7 \ YOURUM ::
-#\[7]WCUKHFHYR4GBDKNZWNRRMPQXMLV2WTZ5VTY3FUULZ4B4XEKNIICY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,.,,,.,,,..,,,.,,,.,,.,.,..,,.,.,...,...,...,.,.,.,.,..,,.,,,
+#GVPXNQJEMFWVT362GDWCJ5A5JSAPCIMNUG4AOOGIAC6RFYHMDGBQCFH5UUQ2ZR3QPAFHNYA3ZYMHK
+#\\\|RARTXGPTR3LLGTZYZ7VYOQBVAGKAGS6IQ4AVBCTBIOPCI4Q2F6K \ / AMOS7 \ YOURUM ::
+#\[7]N7LLC7MRE6CRP2CP2FVT5RXFSFJ3SJXFOSSWXZCPXIXWD4VODIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -242,8 +242,8 @@ If `:` is present but zenka pattern doesn't match, the system rejects execution 
 - Protocol binding: Protocol-7 base modules
 - Unix socket configuration: System administrator guide
 
-#,,,,,..,,...,,,.,,,,,,..,,,,,,.,,,,.,,.,,,.,,..,,...,...,,,.,.,,,..,,,.,,.,,,
-#QQQ2YM3T3XCX2AI64LN72GOCFO5A52VNWMXZAEN2WA3G5RIH36OIW4SBETTDSYC4VJYRIW2TO5RBG
-#\\\|V2TH2GZ65CEUBGUO7WWF3KQV7GUWKCAIHEBLZKL3S7GE2IA7NU3 \ / AMOS7 \ YOURUM ::
-#\[7]HWYURAP57FTSZFDQJRABY3T7WDNGWCB5BQ5WTMT2ZIOU4MJXIQAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,...,,.,,,.,,,..,.,.,,.,,,.,,..,,...,..,,,..,.,.,.,,,..,,,.,,
+#K33CG54FQBX3UUTKY7ERPX4D27K4QIIHLOICFLPWZE6XQ62Q64ELXKTB6MYR2FRW2GB4LPDZ4DDCK
+#\\\|IO3V46ZMLJSIUDM2DXL2NJOSOFFF54ODM7LTDWNXVQ2O3LPL3ZB \ / AMOS7 \ YOURUM ::
+#\[7]N4HOPFMHGVD6YQZ2KIJE46K5SICIWSS4VBD3WVI6C3L4O6ZEYCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

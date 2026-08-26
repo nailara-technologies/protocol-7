@@ -142,8 +142,8 @@ the large dependency chain that previously blocked this is getting short —
 LLM zenki are live, the job pipeline works, consensus voting exists in
 `llm.service.consensus_vote`. layer 1 is buildable now.
 
-#,,,,,...,,..,,,.,.,.,,,.,...,,,.,..,,,.,,...,..,,...,...,.,.,..,,.,.,,,,,,..,
-#W67FQ27ZCOPWOLCXUUHTWPDN532JRSDTR4K7PN53PYZPPKAUZ23IW67ME2ABU6N7EILGZ2JACUOXQ
-#\\\|NL7XE6UO4GNUSOOFSHHNMRGIQ64LQKL3I6PRPSRIBV4QVDTYT3Y \ / AMOS7 \ YOURUM ::
-#\[7]NEFQRJ7G6ISBPE742W6ZBMS7ARUYPFAAUAN7RNJHJFS5S563KMDA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,.,.,..,,.,.,,,.,,,,,,..,.,.,..,,...,...,,.,,.,,,..,,,,,,.,,,
+#M5JRU3E3U7LTF4ANWKN2RTQAF63OLMQRGCCZZH5IPVBJ64RUHRPWCUBCD2INHWYXO33V6LDSYOFX4
+#\\\|7QVXBWFN7GPRJ4JQ4ZHI47SXPLFIEZO2OXROCMIQCJVRTCZNNQZ \ / AMOS7 \ YOURUM ::
+#\[7]UOTWXUWPWHEMM4XWGCEHZ3WBFQJEQCCAVBUMZ5O23HCFOHIGBCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

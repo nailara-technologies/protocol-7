@@ -150,8 +150,8 @@ no signature stubs.
 - [ ] resonance combines reference count × harmonic × shell correctly
 - [ ] all pass ptd, no signature stubs
 
-#,,.,,.,,,,.,,,,,,.,.,..,,.,.,...,..,,.,.,...,..,,...,...,..,,...,.,.,,,,,.,,,
-#P3EMY4UM3OV32XEA6LS65QNCFPLMAAMJRCUXQKAIBLOKVT5ZVONH4MMYO6D3UBB67CYQQKMJVELBI
-#\\\|KQBYPXCPFMQKDNFIHTHQYVOTITHBQZ34XQ5P7JCMYJ3L7JJO2GE \ / AMOS7 \ YOURUM ::
-#\[7]K6T2CBN2XZCGUTLU6I4WEL5WLKMXPGBJDKVKQJFI4WLPLQ4T4EAA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,,.,,..,,.,,,...,..,,.,,,,,,,..,,...,..,,..,,,,,,,..,.,,,,,.,
+#LDFVSLAVE5LG6NL3IPS75BEYPGUTCEJK6KMFWOTET754MIYUZP4IV7ALEMHAMXN6HZK6TKTFTMCY6
+#\\\|6IYBIOGQ4CUVG3FTMGW7S33QLTIHRNNXYIILRVYFURE5BN3RSEF \ / AMOS7 \ YOURUM ::
+#\[7]X4MILTSAZ3QSVLKJG6NUOK36EHPZDH4R7PWL5NK5FXEAOQPNCADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

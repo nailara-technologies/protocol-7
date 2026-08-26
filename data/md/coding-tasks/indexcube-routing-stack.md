@@ -362,8 +362,8 @@ Everything else can be layered on top of a populated `@INDEXCUBE[0]`.
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,,,.,,,.,.,.,,,,,,,...,...,.,.,.,,,,,.,.,.,..,,...,...,.,.,,,,,,,.,...,...,
-#V7GQFQJKK5MVDFL2ZOU6J6JL3GYLBJ4XROWO4Y2NI2BZSYSH7XWABXSX2P4DQUQUKFRVCOYDLFUKI
-#\\\|MQG6UJBEIUIE6W4IM76P4OKQA74373BK2U2MCLKDZQRAFHKMRBI \ / AMOS7 \ YOURUM ::
-#\[7]PUBKZW4CTLCWAVHPFL6ODLKDOVA3N76N6LM53PYYOJBJCXCZNWAI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,..,,.,.,...,.,.,..,,,,.,...,...,..,,...,...,...,.,.,.,.,.,,,,,,,
+#TP4JVI4GR6H4KSOF67KSTU4X6JHJ736PSB7UMBBA5EOXFW5CETLY3PITO4JS5L5H457EYQO2ZV6JM
+#\\\|YIFMROSTHLZ3G2XFCXGWN2SJCLINVNO3NUWOL26NVPUQ3I2WVEX \ / AMOS7 \ YOURUM ::
+#\[7]NTOJRXS4YNVZXL6SELAUQTNGN3IVSX3VGTXJTUVD2AMDGGS7N2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

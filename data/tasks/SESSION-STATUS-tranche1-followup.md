@@ -63,8 +63,8 @@
 5. `cfg/zenki/coding/zenka.v7` — taeki's manual context-size edit
    (37000 -> 30000), unrelated to tranches, can commit independently
 
-#,,,.,,,,,,.,,.,,,.,,,,,,,,,,,..,,,,,,...,,,.,..,,...,...,,.,,,..,...,,,.,.,,,
-#XLDAAANR4KUG7WMK7HPTMD3SFSYS5WKIAKKMQ35HQLTMESTJHRUXUUIAG2NZT7KX5SGSPJEFGS3WU
-#\\\|YA4QP6ALAVKJEZFLI3QNTD2LW6YENYSBZTGGEYJPKSUY7MIN5VU \ / AMOS7 \ YOURUM ::
-#\[7]3W5VKOMRHC5MVQRZKORVOJ2FT4KZYHHNUY4HSB2O3AI33NCFG4AI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,...,,,.,..,,...,..,,,.,,.,.,..,,...,...,,,,,...,,,.,...,.,,,
+#4HLSDVNA4AXJ72P2TKEYCVERE2B74UF4KPWUFEAAUTDE7I2RQMYZYPC2QLBPPGFNOIW6JQR3TKQVQ
+#\\\|3LNTJ2P6LGNC3CLUFMQSAG3G37ZLN4LIQDE3PECAO2LNM2DE7QF \ / AMOS7 \ YOURUM ::
+#\[7]P7VC67XXAQQTBQITCVANOVEFMCXMC2EFFGWVGPOO26D5OJYKBACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

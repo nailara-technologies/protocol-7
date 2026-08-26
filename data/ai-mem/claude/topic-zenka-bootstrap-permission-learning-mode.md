@@ -59,8 +59,8 @@ Open questions before it becomes a task file:
   — the auto-derived grant needs to respect the same rules a human
   author already has to follow
 
-#,,..,.,.,,..,.,.,..,,.,,,,.,,...,.,.,..,,..,,..,,...,...,,,,,..,,.,,,,..,,,,,
-#N6NURNWAACTN4ETFMWX5VKL7JENNW2V5XO6VVK4QRUX2OE3DYYRLEIYINHGPTPVGFNQFPKMXTAP2M
-#\\\|GFAA7NIEHGZVWOQJ64JT3ZLM6OSZ3D6JRU35X6VRQGYEK5UCAGU \ / AMOS7 \ YOURUM ::
-#\[7]WBHSNSRTULP3JPEEJNQHOA2ROZ2DNOHG2JH3SVSOWDILUAV524AI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,,.,,,,,,...,...,..,,.,.,,..,..,,...,.,.,...,.,,,...,..,,,,.,
+#OTJHED3SDWFRKTOVQQWEUG3GKV3BVRNECOPOVIFRSQ3SCVLVWBBWW5SZLV7SCA6776GNA43OW42ME
+#\\\|GSOQ7AUPE7GJ4ITJN3XYSO7KQGP4BXNJ2MXR3B4FZDPXFJ7IL3I \ / AMOS7 \ YOURUM ::
+#\[7]RGJGLKU33UMAV5RM74CA465RC3255EZGZFV4EUMA55RKJL67TWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

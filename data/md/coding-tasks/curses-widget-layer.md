@@ -174,8 +174,8 @@ read the design doc first:
     lists all invoke + lmstudio models, navigate with j/k, view detail with d,
     repair symlinks with r. foundation for full ui.app.models.
 
-#,,.,,,,,,.,,,..,,,,,,,,,,..,,,.,,,,.,,.,,.,,,..,,...,...,.,.,..,,..,,,..,...,
-#UU4AZRQARV42H3TJUMZROFUTEQFCF6FWPA74LXCU7TY3NP5QS7UCWGWJEAK6FCTNBIQ7S32OA2JIY
-#\\\|7WJL25AS6X4NUMYNEC36VJDRFBQBJTNJJYXCSTAZK6MHP72WWRQ \ / AMOS7 \ YOURUM ::
-#\[7]M3F34QXOC2B4KJEDH5GTTTSRVV44NZJJZCEGFQT25BFAIS4ORIAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,,,,,..,,,..,,..,..,,..,,...,..,,...,...,..,,,,,,.,.,..,,..,,
+#PWND6FWBWLJO3VOE2JGIPJRWJV2WHQSYO2BDDV27PTVDCB5LAPMJFN3FQNU7EDZKQNFZO2LDHCDBU
+#\\\|FFAOTFQTESGNDMH5UR5LW4GM6VNQSZZT23IHTEZYQBRYNH2CSUE \ / AMOS7 \ YOURUM ::
+#\[7]YG6KWGA6QOKVNAQJFOPPOLTOYO6BIFQIVKX6FST5KJRIGUXZRSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

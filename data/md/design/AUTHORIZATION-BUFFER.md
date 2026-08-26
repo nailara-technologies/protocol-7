@@ -283,8 +283,8 @@ one approve, remembered forever.
 - `data/tasks/credentials-zenka.md` — auth buffer as credential release gate
 - `data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md` — signature-as-identity
 
-#,,,,,.,,,..,,,,.,,.,,.,,,...,...,..,,.,,,...,..,,...,...,...,,..,...,,.,,,,,,
-#WTERYJBXQBZE32W7UZL467AHUZHBK5KLRNLDILEO474XR64VGTZZWAZ2ULZCDYCCSYOMQJXMQFILS
-#\\\|YA3UF6AA4L5VZA23R2H3J74RBHDOYQAKQ25MIUP6TYKTSIFMBZO \ / AMOS7 \ YOURUM ::
-#\[7]3FDJAD5MSFEF67J3LUDUOJPZWYTAYLIXDKTEPQ7HODLZ362MO4CQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,,,,..,.,,,,,,,..,,...,,,.,,..,..,,...,...,...,,,.,,..,,.,,,,,,
+#LYXWS2P37YAD2DNR2QJPS4QK56A3MR63GYUWU4JAHR2LP36NB4XPJ4RKJPSBSX7ZENHG3NOPFALV2
+#\\\|ZLRJZCYAMDELXJ7ZB45QCZUB47DAT5ARKHNZA2GPUELHOURYKSF \ / AMOS7 \ YOURUM ::
+#\[7]MPV6QC42IBWQ6PRD5CU4G574OP224XCCFR5MKFJGWJ56GGP25QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

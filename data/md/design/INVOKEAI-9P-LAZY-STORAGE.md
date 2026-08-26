@@ -193,8 +193,8 @@ cfg/zenki/invokeai/                     ## stub dir, empty
 - phase 3 9p server extension does not break existing amos-term buffer serving —
   `root` walk still checks `buffers` first, new `paths` registry is separate
 
-#,,,.,.,.,...,.,.,.,,,,,.,,,.,...,...,.,.,..,,..,,...,...,,,,,.,.,...,.,.,,,,,
-#GZHTXS72N2SZMBZEZKQQ47ZOYZP3MKQFZIK7CLZ2CQVOBF5KVXASMUUJTJ7RP3QE65NTPX3Z7X4QI
-#\\\|V5WRQQTEKGRWXLFRD4B3XK7LTSS4NVRO7TKACPR6GV257SZ33WL \ / AMOS7 \ YOURUM ::
-#\[7]UV5QN5YF6DKTKJSTWTSEDMBJ5NXNWJHVAHR6YL25VB2GBM6LX2CA 7  DATA SIGNATURE ::
+#,,,.,,..,...,...,,..,...,,.,,,,.,...,.,.,..,,..,,...,...,..,,..,,.,.,,..,.,.,
+#PPFRI7BG6MAY5D26FRP5I3GHBSN76AHH5DYEHEY734HGZ4DVUTR4QB6EB54LMPM4MLNUMNTA55VEK
+#\\\|3SSIDBBLNEVCNIK7XCZMWMUEBY6BJ3S6QRXTETKSIK2AVI3FIKH \ / AMOS7 \ YOURUM ::
+#\[7]Y7WNNELCVLV4M64PQ5MSJMVRIARNJXBR6BC7UWIFFMTCWF4IIQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

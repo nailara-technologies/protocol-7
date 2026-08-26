@@ -454,8 +454,8 @@ p7c p7-log.show-buffer jobsite
 - [ ] jobsite.cmd.mail_received receives and logs routed mail
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,.,,,.,,,.,,,,,,..,,,..,..,,,..,...,,..,..,,...,...,...,,..,,,,,,,,,...,
-#ZOOWR6UDCQYFI7L2CYDQ2AXRUQZ6ORW67PZZRN3UYX7EVN7XL56K6ZHK3ZLRILZ3O2BTWDK6X5DCU
-#\\\|D4WVGW62O3OP3Q2E6U4REGFTKXINDGWUXYJ7Y7YMDIG6PGTWCBI \ / AMOS7 \ YOURUM ::
-#\[7]R755DU46P2DBNXME2VHWQAOCCC7LWACQV37EJA7E6A46E63TIMBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,,..,.,,,,.,,,,,,,,.,.,.,.,,,..,,...,...,,.,,,..,...,,,,,.,,,
+#C6M4Z33E5XBB5N3NEQD7E52YIJDIOVELM3LNHRXNUVD2DCEODB33WHLL2AQUU42KTRD47XLDRL5CA
+#\\\|4W2GRPZYIZ3FOT4MPYDLNVPD77IPX6KDTNLMTZAIMAZNJE3ZPGT \ / AMOS7 \ YOURUM ::
+#\[7]KGM3B6ZJCU6YCAD4GFZI3FVTMFWGXQACEEERVZ63BAMVNVMWLUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -413,8 +413,8 @@ reference. open questions 1 and 4 are the blocking ones: 1 changes the
 allocator's signature, 4 decides whether phase 1 ends at a well-formed
 signal or must ship a consumer. everything else can proceed on defaults.
 
-#,,.,,..,,..,,.,,,.,.,.,.,,,.,.,.,,..,,,,,,.,,..,,...,...,...,,,,,,.,,,,.,.,.,
-#NELSWD3LJ5T3LNLYSU4RQPNVHGT2ZEGDRES4BZK5AR2BN7V6D5G4I456CDUFPVXH4XHUKK43GREE2
-#\\\|6E7N5UAA2C4JDZS7QCONK7F2WVVHOQW55XPF2HMSDHGDVCUSAZ5 \ / AMOS7 \ YOURUM ::
-#\[7]UHAD5MHJ2ID5DHMMNDTFHSZUPJAMTWFXOY26CDEMQXEN7MOMQIDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,..,,.,,,..,,,.,,.,,,.,,,..,,..,,...,...,..,,...,...,.,,,.,.,
+#P6BXGJ5KX7VWXQTDTY5JPZD2GDGXYC6JOLIPWGDPNUL3PKR2Q23XP3ALLAN3QPKPQCDPJ5WGTALOO
+#\\\|I6EBZV4UZHYWPZYQNDGXNGZ6A3TACVPLUPPNGTZUQZ3PIEJKTD4 \ / AMOS7 \ YOURUM ::
+#\[7]YD4QWONF4UQGYKGK7QPBBI7LGNKQTJFT5EONR6J7CPQF2BT6BQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

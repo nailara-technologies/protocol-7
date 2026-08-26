@@ -204,8 +204,8 @@ see `ROUTING-CRYSTAL-HARMONIC-INFERENCE.md` for the full crystal model.
 - stream framing protocol — `dot=0 comma=1`, separator inversion on 000
   maps directly to the `01`/`10`/`1[zeros]1` checksum tree structure
 
-#,,..,...,..,,,.,,...,.,,,.,.,,,.,,..,,..,.,.,..,,...,...,.,.,,.,,,..,.,.,..,,
-#SMTXEFZE6OXY77ZW466MHG4Q3263WEARCUXE3IP6ONQ2JR7ZQT2EL7QUCDM4SQI6F4JBWU3JKHYLG
-#\\\|OM3NL6MUYDYEQEAMOQ2GUEVEZ6R4H2LX7UYKG2DJDHJA6R7NVFW \ / AMOS7 \ YOURUM ::
-#\[7]3ZU3W5R2T6Q2ACTVJFZENO72BXBVCT7PW3WSI5LKV4SSMYEBLWAI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,,,,,,.,,.,.,.,.,,,,,,.,,,,,,..,,...,...,...,,,.,.,,,,,.,.,,,
+#54W4BNLJG7WDWBOXFOO73FBCN5ALICLG3SKDO3ZUU5E4PYTKM44TDSAXKYKF5OR7OUA35LE4HCETI
+#\\\|SAVI63NHUUQFMJ3ZWWIQWV32TH73B4ODT7PCEHFTXJIJEEXTSMG \ / AMOS7 \ YOURUM ::
+#\[7]FANJRXBJB4KPR3J3SWLD2VP24KBCB5DICNLYNHKX6FZ6CGGPKICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

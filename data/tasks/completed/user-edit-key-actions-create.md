@@ -324,8 +324,8 @@ excursion check (item 1) actually showed, and on which of the two resume
 sites you ended up exercising in testing -- both are exactly the kind of
 non-obvious, load-bearing findings future work in this area will need.
 
-#,,..,...,,.,,,,.,,,,,.,,,,.,,.,.,...,..,,,,.,..,,...,..,,...,,.,,,.,,.,.,..,,
-#2PD6QY6BQAKY4U2OGT5FGUP5VLP4QRGTSGVU2LAE6UJ4Y6TMHMRH6QD4KANNA7RSL32AMJPLXMLVQ
-#\\\|G6RNRIYZX25E3Y37FCBD6H6BNXLDVTQED64LWAT343X43NPPFRC \ / AMOS7 \ YOURUM ::
-#\[7]OOYWKGU2BKJJVHSNWBABIJDX2IK7KQR5D6UXGA6HGHPHDURVMKBI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,...,.,,,.,.,.,,,.,,,,..,,,.,..,,...,...,,..,...,,,.,...,..,,
+#N7N64W7ZEYEGICP3RQTPLMR7FOJU4XUTBR3NN6EQK5IPV3GUH7YYEKC77WDWLONTJXPGYV4WBCDV2
+#\\\|K6OXVVZSFAXGGO3Z24VXROS6DCX2J33J3P5ZKWDFD3PARQU4JHI \ / AMOS7 \ YOURUM ::
+#\[7]BILZVDO4D3MGEIF7O6O4ADFBWC6OD7UXJUAALTLAO2OPF4MHHACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

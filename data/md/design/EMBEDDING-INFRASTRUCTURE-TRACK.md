@@ -252,8 +252,8 @@ the full improvement loop.
   the network a genuine home for LLM intelligence — true memory outside
   operator control, returned on recognition
 
-#,,.,,.,.,,,,,,.,,,,.,.,.,.,,,,..,,,.,,,,,.,.,..,,...,..,,.,.,.,.,,,,,,.,,.,,,
-#DGUTNSIKK4Y2ZPI32ZSWWJFL3GEELEST6EMHJTEI4HXEF2ATOI2YW4JCSDH6KBUUK4UIRFEKTXOGC
-#\\\|Q7LUR4SFX62OUF3ULNCWMKULQCC5T5VCSATMP5HKDG6VVGLMYKF \ / AMOS7 \ YOURUM ::
-#\[7]SMWDDFIG33FZYLWIPAPGDYYNTQWLC6JOHDCG5QKEI77O5KNRGWBI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,...,..,,.,,,,.,,,.,,,,.,,,,,.,.,..,,...,...,..,,.,.,...,,.,,,,.,
+#OOHSOYTYQMTRZDRDXRPPY7CE7VBBVS3Q5SI4532KX5PES7BDKFGHRMAQOKTAKWIYNO4O3DH34DILK
+#\\\|5F3BQHEJQ7XSA5OPV5H66OBFBJQTYGGPYMVDGWJHD4DB6RMD4GA \ / AMOS7 \ YOURUM ::
+#\[7]MIEATWGHLCRS4AUWYTPCFVGTR7ODZXO27O7HBFRIYSCHVUCVQ6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

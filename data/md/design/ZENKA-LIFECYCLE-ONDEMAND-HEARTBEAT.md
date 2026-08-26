@@ -228,8 +228,8 @@ remediation via the task zenka.
   lifecycle categories (disposable/decoupled/monitored)
 - `data/tasks/v7-teardown-whitelist.md` — v7 access control, related work
 
-#,,,,,,,,,...,...,...,..,,,..,..,,.,,,,..,,.,,..,,...,...,...,,,,,,.,,.,,,,..,
-#VJ33FCHGA4BKXWOCYYEPLSDQADRI7O7SH3WNLRMM3PC2WLKQN4KLI2GLS2OFZ6ODUJ3EHWIWI6WRC
-#\\\|AJ5NG2LBYZCBZBA7MWEOS4XKSCS3XVIMQVY5ZUS3AULOI4F3FZR \ / AMOS7 \ YOURUM ::
-#\[7]EBF7NTDL3VDHQWMYLUWV64LHJWMUFA4XUUSFZR2Q42MPKUZELKDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,,.,,...,..,,,.,,,,.,,,,,,..,..,,...,...,..,,.,.,,,,,..,,.,.,
+#B34DGZIEMVX4PRZ3NKEXN3TVNALPDBWVDJCPW2L5JTYFKVUHWSOG5DXWT4IMRASE33PB3LCHCL74E
+#\\\|6Y6OG23ZC42XNSFJVWLY2KOGFR7FRYKZB77CNVVAO5OCLQB5RSV \ / AMOS7 \ YOURUM ::
+#\[7]4JV7PEKXFY7ADQLPM65FG74P2VUKR4NVLXKV7H34DQC5WLUSIGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

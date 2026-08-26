@@ -15,8 +15,8 @@ Originally spun off in the same session that landed [[topic-plugin-web-jobs]]-ad
 
 **How to apply:** when asked about website templates, screenshot automation, or deterministic reproduction of interactive-animation bugs in the web-browser zenka, this design doc is the starting point — don't re-derive from scratch. It explicitly builds on the `graph_template.*` / `window.debug*` conventions, so keep new work consistent with those rather than inventing a parallel mechanism. Website-template work is understood to be *blocked on* this capture/replay layer, not the reverse.
 
-#,,,.,,,,,,..,.,,,,,.,,,.,..,,...,,,,,.,,,,,,,..,,...,...,.,,,,.,,,,,,,.,,...,
-#C3YGZIOFGBNYYWS4KNTDTYF3VTBG7QKFO7ALRYZ5MXOREXF2AVRCXN5TU3SMKHFPTXHHRCTHQPY64
-#\\\|4PAFM44UQ3P7QIDSHFLHYQP2IFPBQ7ND44PQ56VBE7KCASGTGSC \ / AMOS7 \ YOURUM ::
-#\[7]B2Z7XHEVHVCHT6LWZR26QAS6JSPFEOMDCLKK3TGFVCFACHJH4EAY 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,.,.,.,,.,,,..,,,,,...,...,,,.,..,,...,...,..,,..,,...,...,,,,,
+#Y2RIHYVFNAOHXVYPJDO4WM35EJROLLJFJW5DQEQMIZGXJVJ42KRWYX6KVZOZLJSAMTDA6VCU2KLHC
+#\\\|RH7QOCWY6DQSZYMXSZN7BA6OFAY5OQENL7UYMCKVOD67OVJOMDB \ / AMOS7 \ YOURUM ::
+#\[7]HIWW4IG3MXROHBWPOPBHIVOUNADRJL3BL6LUI5DGF4X6B2JMNCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

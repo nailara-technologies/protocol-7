@@ -56,8 +56,8 @@ document fonts makes any amount of font-serving/CSS cleanup irrelevant until the
 is allowlisted — this is a profile-level permission problem, not a code problem, and no
 amount of WOFF2 optimization, path fixing, or CORS/caching header tweaking will resolve it.
 
-#,,,.,,..,,,,,.,,,,,.,..,,.,.,,.,,..,,,,.,,..,..,,...,...,.,.,...,.,.,,.,,..,,
-#ERWL6IQZ3455A4FF66P76JMLW7UNV4U4LJPGGRPXHYZLAQIK6RELM3I6CR42DOI2WCDY7YSVVL66E
-#\\\|IZWJUZQ3XHP3X22W7IP2HSCWWMP2A5PBLWITIIKH6LIX6OH62Z3 \ / AMOS7 \ YOURUM ::
-#\[7]C4V6VQJ6QZXNEKT2YSH4UAUBQEPUAZUVYBABMDO27MT3TBB5GCCY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,,,...,,,,,.,.,,,,,,,,,,,.,,,,,..,,...,...,,.,,,..,,,.,,,,,,,,,
+#ZIXE2EJ4PPU4HYFJ3XI5AG7PR575T2ANQW56GMZZ3UUDRCULIPFTOLCE4CESZ4BFCQGWBXWKTCC3I
+#\\\|LQDHFABKUXAJFBO46WR6LP3MTAQVWXDVWFGGJVYBIJLHE4NOSXI \ / AMOS7 \ YOURUM ::
+#\[7]ARKMSVUTTVUOVVUADEFOIBTIGX5HAIVDP7OZ4HJ4PMAOODVQHGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

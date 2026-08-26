@@ -454,8 +454,8 @@ and extended the debug infrastructure. All fixes are in production.
 - `b2777cc0b` — Ctrl+O cycle fixes + enhanced debug infrastructure
 - `df7568781` — Enter display, TRUE reply colors, Ctrl+O debug logging
 
-#,,,,,,.,,,,,,.,,,.,.,.,,,,..,,,.,,.,,..,,,.,,..,,...,...,,,.,,..,.,,,..,,.,,,
-#EQR5G3M5NBALRFTBSQLRZCBBI3NWRYEEUP7KYPHM5OAPU2V4PIC25ZNTIWBOS6TW2HCLSFT7Y26OE
-#\\\|WCOALNF33HRGYVEBATTOSNGUEBSIUQISOLSWMQVSKLKZTEBP7ZM \ / AMOS7 \ YOURUM ::
-#\[7]DLI4LZPCJIOA6P5B6TFHY6TZ77U3WZD37AEPCSYXXC3SXGVWSICQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,,,,,,,.,,.,,,.,,.,.,..,,...,..,,...,...,,,,,,,.,..,,,.,,,.,,
+#JO3PYEVVM5SGILAG5N5XQ2DBZK6IJSV3AXXAZ7FMZJ3QAJ7ZGO3DLDYK7IRENAZVBOBLP7FYYQIQW
+#\\\|NVG7YB3GAONTTBNZ6UC35RNDWQMVCKGRNOFYVLJDGCKTP4W6ECK \ / AMOS7 \ YOURUM ::
+#\[7]FF6OWZQ7KCLWGXWDIDV3QTYUNKWBNRGIT2TQ7S4NIMCID4BFY2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

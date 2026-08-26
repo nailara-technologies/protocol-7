@@ -36,8 +36,8 @@ named-level mapping for it — the real scale is 0-5 numeric intensity, with
 3/4/5 specifically wired to compile-time tracing / parsed-code dump /
 full `%data` dump respectively, not to severity meanings like FATAL.
 
-#,,..,,..,...,.,,,...,..,,..,,,,,,,,,,.,.,,,.,..,,...,...,,.,,,.,,,,.,..,,.,.,
-#GS5CYLEXQQD2CUWNJTLTZ5WC7EBN4I6XPKKQDJSAJVUSSLJWBGXUMNZP7MKZ7ELOBPXFP3P363FIM
-#\\\|J7AUN36PQHPLXMUU5NM23C2J3LOGZ44ITI5MREBXFASBS5LHQKP \ / AMOS7 \ YOURUM ::
-#\[7]4VL4G6PZVMDMOS3O7ALLXRGYMZXPDGLUZWVYIMSKVNH6OMIO2CAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,...,..,,,,.,,..,.,,,.,.,...,,,.,..,,...,...,,,.,...,.,,,,,,,...,
+#ZTI7F5CCITR4N3V7GLQEKQXQ3XJD7PG6PCED7ROHRRKE7P4A7QWYDDCZG253XJTUAXIM2NNKC7P74
+#\\\|664HIYGLVIYAJMFQS57FGUZEY576X2ALJIHMMBERGYXDGRZZV7B \ / AMOS7 \ YOURUM ::
+#\[7]K4FWA2ZE2T4OYAVL7TXJU3PZ6E3NN37J26K2WBZAAXDADO76FODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

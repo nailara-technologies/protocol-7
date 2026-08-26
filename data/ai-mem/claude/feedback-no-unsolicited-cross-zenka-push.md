@@ -31,8 +31,8 @@ to call into a more-trusted zenka uninvited, stop — flip it so the trusted
 side initiates. See `jobsite.stray.check` / `site-yaml.cmd.list-stray-jobs`
 for the landed example (commit a52a6a4b8).
 
-#,,,.,,,,,,.,,,,.,..,,,..,..,,,.,,.,,,,,.,,..,..,,...,..,,.,,,...,,.,,..,,...,
-#DCHCTW77WWAYY4ABLVCCDTFCXPF6EZSXBXRIFNAGFN2TX4GZIYIWMGH5XCZ3CTCXWPCCYPOCWOW72
-#\\\|S7ES3RW6A7I5BYVY4WU36XRDHBU47POMSGR5BD7VRATKLC7X6TU \ / AMOS7 \ YOURUM ::
-#\[7]O6MQGWFY3N6SCVKBDHF6LUFOAZYH6WMUGJ2INPJMUQTSJEKA42DA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,,..,.,,,.,,,..,,.,.,,,.,.,.,..,,...,...,.,,,...,,,.,.,,,,..,
+#JXHI3VVOVQVANRBHS4HOSALAHQSSIWRIVBYCT5TV47W7HH7LWUKP7YF5IAUOJ3USJ5ESIH2QF43A2
+#\\\|N2Y6OZ67UTRISJ4XXXXPRMPE6JX27YETEOTZU43CT4PJ2FLLT4I \ / AMOS7 \ YOURUM ::
+#\[7]SUV5V3JGGGNMUOCYCIBGPPJD6DQR3FO2QSTILXFCL2MRFT7RXMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

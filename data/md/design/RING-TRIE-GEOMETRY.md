@@ -114,8 +114,8 @@ this geometry applies wherever a token space needs:
 
 the index zenka is the first implementation. the pattern is generic.
 
-#,,,.,..,,...,,,,,...,,,,,,..,..,,,,,,..,,.,,,..,,...,..,,.,,,.,.,,,,,,.,,,.,,
-#X2PPTGX3SAG6YZ2PNYVOYJAI7GBY2AJYVT3VPZHGD3WVQC4O4N4PCU2UGTR4W366LTEO6SWF7U6QC
-#\\\|PFDC4GPURVU3JUVKK6U7OU2W63BU6ATLCEH3FHTR337PS2EWNZG \ / AMOS7 \ YOURUM ::
-#\[7]XWLISOVYRW53SIG44UFPUDCYZSMYM2MP7M2FCTIB2PLR3BJFTADA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,.,,,,,,,,,.,,,.,,.,,,,.,,,,,..,,...,...,...,,,,,,.,,.,.,,,,,
+#ZCVOPS3JB5FIC4OY3FLRXPYLEWOGE23IAREFPCB3DKYC4FSYWHOVSQL4YA3EN24PAD2LYTDOLOMXK
+#\\\|56IPRBJDBXQ2ZRLJOTV4XGFUQHT2UNUZRUQMT6YCTOSHVTS3Y62 \ / AMOS7 \ YOURUM ::
+#\[7]JR7UE4V4JN2J4S5JYFBJPWJTND64353RAJYKHAYD5SRLQBBXMUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

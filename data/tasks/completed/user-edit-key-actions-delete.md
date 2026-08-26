@@ -172,8 +172,8 @@ of evidence that actually matters, not a UI message alone.
   whatever the exact-match confirmation shape ended up looking like, and on
   the `crypt.C25519.unload_key` / loaded-key finding.
 
-#,,.,,,..,...,.,.,,,.,,..,,,,,...,...,.,,,,,.,..,,...,...,..,,,,,,,..,,.,,..,,
-#TWV5DXTUJNW3LNWGUVZ7UNFWCMZDTOLADRRYC2J2RNZKNJQ4IQSUTNWJSUTGFW6BNG73A6SCE23HM
-#\\\|F62DY3J3DBZOPDBHNZNBYS5B3VEDABAG3G2ES2XEIGFZHHVFUPR \ / AMOS7 \ YOURUM ::
-#\[7]UWE323DUV7D2JOLZGRAOIAYUH3WZPBRV4P4HS6BWA2INY6H6GUDI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,...,..,,,,.,.,.,,..,.,.,..,,..,,...,...,...,,,,,...,..,,,..,
+#ABY46IYISO6WEKIPKTJZBDJJTL7GXWWYRKCDVY5Q2MAMGIHPTQNUZPJGFMHXRXFP72555XPTDSJTK
+#\\\|DU3IF4T2ERFTDBORRSFCSRDEFCVZF7LTZABIZCBEASGICKXIEC2 \ / AMOS7 \ YOURUM ::
+#\[7]37PASQRGRTPKOSBM2PGQWCSAMBNKKCN4G2XE3HGOTZQTCCBONKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

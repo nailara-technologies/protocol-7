@@ -218,8 +218,8 @@ much prior lore surfaced on a single grep pass.
 [[project-cross-host-trust-bootstrap-gap]]
 [[topic-multidimensional-identity-session-topology]]
 
-#,,,,,..,,.,,,,..,...,,.,,...,..,,.,.,.,,,.,.,..,,...,...,...,...,,,.,,..,.,,,
-#WI4XKHUEADBJCJIAITU7DRUR6M3OERXM5BXR6ZQF636HS7W6IIFPIKO7A5PUHQUUVQJPUSLVHHVGM
-#\\\|5MA5DRDRT26LZJZ67O66FEMC3K6WNZZE5MXBA4XWEPKS3RY4C5U \ / AMOS7 \ YOURUM ::
-#\[7]HVVTAOOW3QVMMNM2CXMQWGK7YJO3FFCEFXSJQDN55RF7FA4T2GBA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,.,,,,,,,,.,..,,.,,,,..,.,,,..,,..,,...,...,..,,,..,,,,,,.,,,,.,
+#TVHH3ML47YYYKFPKHFJECBRK6HLHAW7HGLKKZXDPZZDC7LDIFXVMKJLUBUOMGXKJE5PJ7Z2BR4TNY
+#\\\|WSTYSZEVJ3PG5IQ6NJ4BYVLMALWPBZ6BZIM36A7JKU5HLVSBAET \ / AMOS7 \ YOURUM ::
+#\[7]YB7BWPZ6C2G722J5VGVLEHEUVM6PJU3ZFAX3L6FZNKK6AIJKD2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

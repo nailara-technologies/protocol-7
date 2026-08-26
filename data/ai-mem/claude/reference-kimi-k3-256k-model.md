@@ -88,8 +88,8 @@ turned down. Practical implication unchanged either way — default to
 `k3-256k` unless a task concretely needs video input or is expected to
 approach the 256k ceiling.
 
-#,,..,,,.,,..,,,,,,..,.,.,,,,,.,.,.,.,...,...,.,.,...,...,.,.,...,,..,..,,.,,,
-#566OHRIZTWYFFBX27ZQA3L7J5FENNZO7EU6QWIHH3D5LD3XO5VJ5RJ7RVCI2UQCPQJWI7VGCX6P6Q
-#\\\|IRWYUEG7NDXPN5KR36ELVDX4NAUGFEE2ZFAXZL6WPB3VD35G3FG \ / AMOS7 \ YOURUM ::
-#\[7]CNKDHOWGAFKTTU3SLNN4NG4XWL66IYX3Q3M2MF4RWWQKYCMF4KDA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,,,.,...,,,,,...,,..,,.,,,.,,.,.,...,...,...,.,,,,.,,.,.,..,,
+#GTV3JLHUJ4QV35V355W2HFJGAQ3U6JCLONAUCPGCMOES2SO5A2SG6G5MDICUHOYS7DLGZI2AEB5V2
+#\\\|HO5IUDYYPOETHBILGMCNCGR5FNYHGUKNK33HQ3IBZEFKLXHZI2M \ / AMOS7 \ YOURUM ::
+#\[7]5QS5PR4DNP2JRASWDVKYOQL2QHIF6EDBRGEYUTO3WWXXCYFDXYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

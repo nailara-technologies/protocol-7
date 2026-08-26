@@ -21,8 +21,8 @@ Code strings passed to `p7c <zenka>.eval-code '...'` (or via `p7c_eval`) are NOT
 
 **How to apply:** whenever writing eval-code snippets (in task files, test harness scripts, or inline `p7c <zenka>.eval-code` calls), always write out the full `$data{...}` hash path. See also [[feedback-p7-data-nesting]].
 
-#,,,,,...,.,.,.,,,,,.,,,,,,,.,.,,,.,.,,,,,,..,..,,...,..,,..,,.,,,..,,..,,.,.,
-#V2EMNPS5JYWWHTYDWBWV5EYEG4G6BIRNAI3XTFJY4S5TWDZV3OFAAPP7YNKCUDQNOPZRNIPG24LQM
-#\\\|VHCH6IXODO7FZ23MC35R2AADB66NOPLBMYVHNTST4TRI7ZEE7RV \ / AMOS7 \ YOURUM ::
-#\[7]6CWHUB5CIF4CLWJM7TQW2LV2F34J4R7CHLIQCPLQKVWIGQPGQWDI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,.,...,.,.,,.,,.,,,,.,,,.,,.,,,..,,...,...,...,.,.,,,,,,,.,,,,,
+#KCEZC44JMRBKFEERCNVMTVX7EDZ3UMKNLZAETXS74NYR7LEJKOXQF3DLMLZSL42VNSVYVPILLKQDE
+#\\\|XPKNSEIRNPWKC3MY4ANC325ZMOEGVYV6GU53P42PXD5IIW76RBA \ / AMOS7 \ YOURUM ::
+#\[7]ZE6W4BLCPBQNXJOVKQBL6JY6K7ARP63PIWBMU5O7QZRKR33W22DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

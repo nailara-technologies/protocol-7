@@ -141,8 +141,8 @@ coding.model.review     = <model_id>   ## code review / verification pass
 - do not add inline subroutines — extract to named modules
 - verify syntax with `ptd -c src/<name>` after each module change
 
-#,,..,,,,,...,,,.,...,,..,.,.,,..,,,,,.,,,,,,,..,,...,..,,...,,,,,,,,,...,,..,
-#TMCXYL6C6C4NPNAUAVZIEXI7PZFLANDKJP6TFQHLPYJY5F62E4IB3OFPDBUCRZW5RAZR2XEZLMBQC
-#\\\|3UXEIY6HDHXMRGQ2D634G6W25EQGEAKXP52FEYPX5ZTCVKNIAR6 \ / AMOS7 \ YOURUM ::
-#\[7]TL57OCCJAKNL3PFJTCTLTN5YX54MBLWZWZQISXNW5BO6M7WSL2DA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,...,,.,,..,,..,,,,.,,.,,,..,,,,,..,,...,...,..,,.,.,,.,,,.,,,.,,
+#WAMVB4VYHM3LGLGEO3R2DY34SGHYLDAJTK4NIUXTNMTUH5UTKCURGOIWIMW5XCEKFRWNGSHPGFE4A
+#\\\|FQLQVIFNLJG7OTJMMUR3JX2SVSXILSHFZ3XLOMFFM5B7UVGCKSR \ / AMOS7 \ YOURUM ::
+#\[7]6XQDI6TCFDKG7XUFXH42ZSJA3LNWPPCSXADT7MTJJDLVSQDLZABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

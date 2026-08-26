@@ -34,8 +34,8 @@ message at a flat 0.777s forever with no backoff. Now grows `*1.2` per retry cap
 growth + min/max envelope), the canonical backoff pattern to reach for in this codebase
 rather than inventing a linear/additive scheme. Fixed in commit `3b3cc5ab7`.
 
-#,,..,.,,,.,,,.,.,,,.,..,,.,,,.,.,,..,..,,,,.,..,,...,...,...,..,,,.,,,,.,,,.,
-#SN2CBL2LJBJPPO3PWWFOGQYA7CCWVUBR63WF7X52JA6FUQKHHEVUXR6WGS2XIJQQW6RERMUS2VL7M
-#\\\|GTHRSAH745PU6JEG2Y4EFWE3XYCWZYEMTYYOS3ZX4HM3S7VD4UF \ / AMOS7 \ YOURUM ::
-#\[7]MD7UN6QLB3DCSCN2UKVWBSOZ46GS7ZH3VZICWRFJA2GXGAQFLUDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,.,...,.,,,,.,,,..,.,.,...,.,,,..,,...,...,..,,,.,,..,,,..,.,,,
+#4UA6KR3YPTASYBWF7GWEPIC3ALOMGX3QIZ4CDWGVEE4F6GW27Y7I264NWSMWNXXSTLIBPZKKJS57A
+#\\\|WEMLABIOEVEQJQOICL7YTLSNQOSKQGRGZ74RMCFUHW34RRBEVUM \ / AMOS7 \ YOURUM ::
+#\[7]PE6OQNTPAQUYEY3P2I6R3IUPJ7TMXKZ4VJXDXARMCI3ZXNC42SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

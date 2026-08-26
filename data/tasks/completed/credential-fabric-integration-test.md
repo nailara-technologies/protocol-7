@@ -173,8 +173,8 @@ it. lowercase comments, `[ word ]` annotations.
 
 #,,...,,..,,..,...,,,..,..,,,,,.,,...,..,,,,,,,..,,...,...,...,,,..,,,..,,...,
 
-#,,,.,,.,,.,.,..,,..,,...,.,,,,,,,,,,,...,...,..,,...,...,.,,,..,,,,.,,.,,,..,
-#MR7DMFGBWB6CF7VOBIWOO574JRM5LRUN6YXGTZNY2RPWRKCZW4RFF45HPOAVDISE4BFMXHL4LIN46
-#\\\|VJHYIMYLPH5OWH6RUPZB4HOTOHRPDTTNVVJGAZEYBPQOCI7BNVV \ / AMOS7 \ YOURUM ::
-#\[7]UPSHY7DONBFJRDMH33ED6H4LTQKFPWQ3CGGSXLQZ6JNWRXHH54DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,,.,,...,,,.,,..,,..,.,.,,..,..,,...,..,,.,.,.,,,,.,,..,,...,
+#GM7BI3FAD5VKEGMROZPQWUA4BPNOWVYG3S4JG4R4HFTVXSJXW5VCW2D4TSKXJBJDGTTWEYZFCQ5XY
+#\\\|NLO65NDQW4O4T5OHCKX7LA2D5CSCT4ALYLO7DLY3IMLKQDSL3OC \ / AMOS7 \ YOURUM ::
+#\[7]S4AE23QVKYPETUSYDARRVAYSPDJXF6E3RVWHRP7DQG7T6CQQ2SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

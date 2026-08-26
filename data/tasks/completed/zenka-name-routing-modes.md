@@ -324,8 +324,8 @@ cause produced it (this bug, or anything else, ever). would have turned
 this entire incident into one loud log line instead of a silent
 byte-corruption mystery.
 
-#,,.,,,,,,,.,,,,,,..,,..,,,,.,.,.,,..,..,,.,,,..,,...,...,,..,...,,,,,..,,..,,
-#TMUVZZQKU7JRKKU7EZBCWIG2J77YW2QFYMIQWDADD2OE3MKUT2FMG5OBFJMZKHTW2I55MYTFIEYNI
-#\\\|IY23FTAXM7VQVSDC2B3XRP2VNOP5FGGRXRRXMQFPMYRD7HDXSNE \ / AMOS7 \ YOURUM ::
-#\[7]JH3AU3ZHNY43VRR3IRJRG2IY3BL2A53VVE2527OMHOJASPZLTUAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,..,,..,,.,,,,.,,..,,..,,...,,..,..,,...,...,,,.,,.,,..,,,..,,..,
+#DSWLXJWJZCS4OKXPSBIAC5LOCDH7NNWNCG2BI5XBPLVDLP6HR5KMPSGBHYKI6DBFTLQCERFZIO76A
+#\\\|JQXZD4XGKKWFMYJUJ7VJAWX3N4PR62B7JI7VXUIDEOLGM3BLIQR \ / AMOS7 \ YOURUM ::
+#\[7]2DS5VJLFEP735733TAPA2JCYFAWYH5SAQGNMETLQONH5M3FW6OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

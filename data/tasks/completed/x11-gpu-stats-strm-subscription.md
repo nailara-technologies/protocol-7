@@ -192,8 +192,8 @@ prompt: |
   and nothing more — leave utilization-based decision logic for later.
   No signature stubs, no update-signatures run.
 
-#,,,,,,..,,..,,,.,..,,,,,,.,.,,,,,.,,,,,,,..,,..,,...,...,,,.,,,,,,,.,,,.,,,.,
-#LHOWSHVP4JFXQ6CKBLTYCH6KVIS3WS6XFYIJUV3JTPLZXZRY3K44NVE3TTCS37KKQ6L2UGZUAHOKO
-#\\\|LT5ONKN4DYVE3JLUNHKMFGWB6GE5IKLVFNMRPZX6EI435BRFI37 \ / AMOS7 \ YOURUM ::
-#\[7]AFQPCVCUX7EY4ZQVI5DHSYVXHQ5CDKLVP3Y3EMD6WMOD7QBTXKBI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,.,,,.,.,,,,,.,.,,,,,,,.,,,.,.,..,,...,..,,.,,,..,,,.,,,..,,..,
+#FAUBTZSIVOTKGVJYSPAWXLYSDRE4K2OC6ADNW75H2J6I3VRTUBIZNOUHBNRJ3IECW6DDLZRDQ6IAU
+#\\\|LDZU2BLL7N5VBYSSBEL6PQHTZDSZFLST3QTCGHRGVIVER4OZKUA \ / AMOS7 \ YOURUM ::
+#\[7]JT2Z6OJRJIUNFDAQQLQXETH4ZUPCZWF5MWFQ3JSAM5CH3QK42KAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

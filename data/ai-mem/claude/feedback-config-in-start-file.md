@@ -10,8 +10,8 @@ Never create a `src/coding.cfg` or similar file for configuration. The module lo
 
 **How to apply:** all `coding.cfg.*` keys go in `cfg/zenki/coding/zenka.v7`. Commented-out defaults (not empty assignments) are safe to add there. Never set a key to empty string in the start file — it actively sets the variable, overriding any `// 'default'` fallback in the handler.
 
-#,,,,,..,,,.,,...,,.,,,..,,..,..,,,..,.,,,.,.,..,,...,.,.,...,,.,,,.,,,..,,,.,
-#6SP4QJABJ57TAOQTIAZ5EROSLNCUQMTRPTNPZUENZY23OIIHKA22YFULKXZPAUL6XQILNN7ZB2OCK
-#\\\|55FMVXX7EAWN2JGRXJLSUDFQFD57R5VRPJCQPMQIM7H7F7LM7YQ \ / AMOS7 \ YOURUM ::
-#\[7]KDCJHR5PAA5EIKV6OFDUH66SK2VYV7UUCCZDZEPDMROBOHRVCEDY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,.,,,.,.,,.,,.,,,..,,,,.,..,,..,,...,...,..,,..,,,,.,,,,,,..,
+#VOJUSTVWVFMUDFC3Q4DJ6SYLTA42UYWFWXSHJ6FRXCHFNR3FPTQGHDQDNOSGNP3CUE5OFHNLU6KJ4
+#\\\|NK3J2WBODIIFFMDNRF2GTA6GYT4TV7ULXW55TD7NXKZPJ6KV5DF \ / AMOS7 \ YOURUM ::
+#\[7]YOJ7CCFSLG53LV3JCTVBQS6OY7BVMX2H56LQMNCIV46MIEUUU2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

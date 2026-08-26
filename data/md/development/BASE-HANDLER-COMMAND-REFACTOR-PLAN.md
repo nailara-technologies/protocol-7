@@ -64,8 +64,8 @@ Local models: mechanical extraction execution within verified-safe steps
 
 Plan the namespace map in a dedicated session before touching any code.
 
-#,,,,,,,,,,,.,,,,,...,,,.,...,...,,.,,,..,...,..,,...,..,,,,,,.,.,,,.,.,.,,,,,
-#PY2EBHNEWRLDWEPRO4CM4KD5JRNWLZ2XBHIOHR7FTQO7APDINGCOQP4E3R7U6A3EO677BZNKI5WYI
-#\\\|FFMABQUIKWLHVQUWPWAQ6JQQ2P6Q72UHR77SERTLJUSV3KOD3KS \ / AMOS7 \ YOURUM ::
-#\[7]64VOJVS4D6T5Q7Z6AHIHP7EQ4EKOVYAMUPOIO476TOOOP7CERUDQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,.,,,...,..,,,,,,.,.,.,,,,,,,..,,...,...,,..,.,.,,,.,.,,,,,,,
+#YAPPZYYNEMJTWQJYVKSASKEXJ644DYXSOYEQQWKD2EEPQSXD34G2NLK2QHD3YRND5PDXPHSTWDAGG
+#\\\|ACCBKV7PRKQLYXFIA7IN3HREVSAA7MXRSMZI3HBREWP6XQMFQSW \ / AMOS7 \ YOURUM ::
+#\[7]KLLUTJGCDBCPGNK6YAB25RVM2ROVQYJE46AH3PVCLA6CG3MRYIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

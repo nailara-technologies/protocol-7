@@ -497,8 +497,8 @@ The network sees. The network knows. The network validates what it sees.
 
 *"The network has omnipresent visions, and multiple perspective layers. What you see as a user is one angle of what the network sees as a whole."*
 
-#,,,.,,,.,,,,,..,,.,.,...,..,,.,.,.,,,,..,.,,,..,,...,...,.,.,,,.,.,,,.,.,.,,,
-#3FSUOMQWSNGNORLTAGXWRGLGMAC4XZXUABXWPMBUVO2YA5QGVAC65UK5URUEDIIT6PODMAOPTHW6G
-#\\\|TMRJVFRKQ6D45ZKVZ6NW22IGGZCYDSFMTZOVJVJVA4VOEMLXV5V \ / AMOS7 \ YOURUM ::
-#\[7]O3LAPAFCFJ2FBE42XOWV4Y73BQUS7DKRHOA2RRDESVW76KLZHICA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,.,.,,,,,..,,.,.,,.,,...,,..,..,,...,..,,.,,,..,,.,,,,..,.,.,
+#QWRDNAGJD3FFQQASZQFVCGWK2CC2LWU5ARY4AASEHTMIT5JQRVUTAM57OR7MU2Z4GMHMXGWRH6P2G
+#\\\|IVVFEHOOBR7R6CKPJA4TWQNPDIPVIEFSITHP6QY242A7RTGQKDQ \ / AMOS7 \ YOURUM ::
+#\[7]3XHSWF6EF35ABV54FESQVVQWSLRIEXNGNBNKMM5S4FH4Y7P6SABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

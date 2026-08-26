@@ -153,8 +153,8 @@ after all tasks complete, feeding `data/md/` should:
 3. `p7c index.address .` — should return 0 or low address
 4. `p7c index.decode 0` — should return most frequent character
 
-#,,,,,..,,,,.,,,.,.,.,,,.,...,.,.,,..,,..,,,,,..,,...,...,.,,,,..,,,,,..,,,.,,
-#WT4GRNZKYRF2WHML55OYCIJPPQLPNWH5MAJEPRCHOHLGQUMUDQRBYNMJW7Z7RIRFOICDIGBRBIEWC
-#\\\|H2FRFP72LJURLE7JM6KZZVBU2QBL2JZ4ZYRRAPNBXRWZYTDKFSC \ / AMOS7 \ YOURUM ::
-#\[7]VAS2WHRIZD3BF5V5TKVGNBWVSUNT5RYTEWI572MXCUNKTOCZ7WDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,.,..,,..,,..,,.,,,,,,,,..,,.,,..,,...,..,,...,...,..,,...,.,.,
+#OGQPLONTSRFA7DSQJ4XB2E7FWHMSGENTD4BCJZSNRL2ZG35WMX6LDFLU3BZE4ADLE3HSIQNRCZOIM
+#\\\|BONG6FFHMOO5IR4HB7IITQN5U6K7O3RLGDXXBEWTOJ7QP5RXFBL \ / AMOS7 \ YOURUM ::
+#\[7]DA6FE2QKBB5BVO6V6RBA4SFLJ5HR2WS5KD3CTDFXBZ6PYNSS2CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

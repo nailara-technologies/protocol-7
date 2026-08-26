@@ -142,8 +142,8 @@ index.activate index.deactivate index.source.register
   deactivate all ancestors, not just HEAD; under snapshot policy it is always
   exactly one deactivate call
 
-#,,,.,,.,,..,,,,,,,.,,,.,,,.,,.,,,.,.,,.,,.,.,.,.,...,...,..,,...,,..,...,...,
-#36V35JWUYTRGU547QTPEZQ33BYW62UQNDIAJ5INSXKE5AJMTUGBTNQYSJ2FG64J3PA546PO4Y4VM6
-#\\\|GGSHYENKPHWXI2ROON5HJDUSM2GJBHH4SFCWISSIA4V7I3R7TCQ \ / AMOS7 \ YOURUM ::
-#\[7]REMJYGOX7SECYKPTFT6BUMMGJWYKIH7P474YSXZLQBECGA3HJ2CA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,.,.,,..,,..,..,,.,.,,,.,,,.,.,.,...,..,,...,,..,,,.,.,.,,.,,
+#INA33WX25GBWPOO4C6ODC3NXK6PQLI3DSLKVXA7WGVUST2PUI5C35JSR4CICPS6NOFHEEAOSHQ3VM
+#\\\|UK5O4UYIFFLIADBVI7RJIUQAZ4VHRGHAX7WTFHGICHES5AQM62I \ / AMOS7 \ YOURUM ::
+#\[7]HCUSAMTLMZK45WBNLJP6RLFNKNDABZQSTBRRPHRYONEGIIMI3WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

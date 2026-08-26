@@ -63,8 +63,8 @@ Found while landing `user-edit`'s first console command; the user
 spotted the `p7.`/`v7.` mismatch and correctly predicted a second,
 `'-'`-related bug rather than accepting the first fix as complete.
 
-#,,,.,...,...,,,.,...,,,.,,..,.,.,..,,,.,,.,,,..,,...,..,,.,,,.,.,,,.,,.,,,,,,
-#55E3ZSV3EF5DN4EEUHFNBQI52GH5M72E2ZTXFBFBWOFEFWURJEXFI25SPMK5OBGSTJPH6FMEWLELM
-#\\\|MDIDXSKP5WJMCAYR3QBHW42BVRBE7SASNGREYIEU6FBFZJ4WHDL \ / AMOS7 \ YOURUM ::
-#\[7]XXJPQJX5ARBFKUGPY4VFTNN7WJFL3U2LJW7BDMGFWD3WTP5S76CI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,,,,,,,,..,,,,,...,.,,,,..,,,.,..,,...,..,,,,.,,,.,,..,,,.,,,.,
+#TZOH2VAKO7OJ6MQ2MBX5OFL2KUVASARPHDVUGCIBZKXP34KW6MXQPL3NTQDNV3FU4L7A7TBY2QSEI
+#\\\|ROHO6CZ6FOKSJTIYEVRUCFPTIK7ZF556DISPLJ6UR3YILPAFTID \ / AMOS7 \ YOURUM ::
+#\[7]6UR55CVGRRU7DZ3YQRF3ZWY2Q7W6PTMNIS25RIF3DXXBBND43QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

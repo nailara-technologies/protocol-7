@@ -117,8 +117,8 @@ that mistake: confirm live.
 - If you need to restart the coding zenka mid-task for a clean state,
   that's fine.
 
-#,,,,,.,.,...,,.,,,..,,.,,,.,,,..,..,,,.,,,,.,.,.,...,...,.,.,,,,,...,,,.,.,,,
-#6CZHVJKTCTK7AIOTNZJ6VHVL2SWJLJTHVS7QKHURAVSIAQQM7DM7U77YTH27NPEKJWF4DR6EPLGV2
-#\\\|UA523BNLCW5LPHDO3ZPA7CU6GIWNJU65V567HCYRUBCH2QKXAAR \ / AMOS7 \ YOURUM ::
-#\[7]WW5RHJQZAA4ELFQMW75J5WXSOBNHYMVHWMJ44C53S2UJKFXGIYBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,,,,,,,.,..,,,,.,,,.,,.,,.,.,.,.,...,...,.,,,.,,,,,.,.,,,...,
+#6V5L4NBF4MMVS66RZIIZFMEXRTBDFGQTRLRPEHVIWLHZUF66DU4W54I3GHQ42LC2UQKD4N574PMAA
+#\\\|WKGABQJ5ADKEEBYEZWFM6KU2PUJV2KJ4OPXHNWX5LHRJHOWQEG5 \ / AMOS7 \ YOURUM ::
+#\[7]6MPCGRXCRZIE7OE5E6VNFP5H4BVWK5XRWFJAQUAQXAO6E7PVRQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

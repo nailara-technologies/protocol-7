@@ -278,8 +278,8 @@ Related design documents:
 - `RING-TRIE-GEOMETRY.md` — current trie structure and geometry
 - `ADDRESSING-TRINITY.md` — checksums + names + timestamps as coordinate systems
 
-#,,.,,,.,,,,.,,,,,,..,.,.,,,.,,,,,..,,...,,,.,.,.,...,...,...,,..,,.,,,.,,.,.,
-#SQ3RQWQUSSADSX2QWJFVXAL5VQTYGHFUEKD3VEAXQVDEEXVJY4YY54LWLPR3HRUORGQSCKSD57Y3C
-#\\\|VFU4NSWUDIYGGL6WM62QPCEYBGQU6XOF3XVYHNMPL5TV4PXPSE6 \ / AMOS7 \ YOURUM ::
-#\[7]SRXGJTCLCH7HUGSTOZ3VVQS5BOVA7LC3O2TDKWOUSCIRBQG6DGDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,,..,,.,,,,.,,,,,.,,,,..,,,.,.,.,...,...,...,...,,,,,,.,,..,,
+#HIVLJCVH3E5C5MPBBZLA72PLAD6PEEZ5P73SXW6EHUKFCZYNWRLRVKHMFVI6GQPEQH5DNDDQM57M2
+#\\\|QPLVWPMRXG7ODJTPCCK6YHSU2ID4VZANSI6LAEO2HOQOMZ7SA2S \ / AMOS7 \ YOURUM ::
+#\[7]64CBVOER5IPOZ6MAHMFFT7MOFKSRTWOZD3JHNRUDZNTQPBPXIWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

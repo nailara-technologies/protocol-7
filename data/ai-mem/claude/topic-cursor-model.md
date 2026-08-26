@@ -71,8 +71,8 @@ elements are not widgets on a canvas but luminous planes with semantic depth.
 3. wire selX/Y/Z as live p7c command through graphics-matrix zenka
 4. color threshold module: global BRIGHTNESS curve scalar over all rgba alphas
 
-#,,,,,,.,,.,,,..,,..,,,..,...,,..,.,,,.,,,.,,,..,,...,...,,..,,,,,,..,,,,,.,.,
-#7SCYR6K43FVY27ZGRDHA42BHEAWGIEBMEKDT4ERFMVU2Z2ZLPRY6PVWCBHEMXCC7XAI3MVMWK3SBU
-#\\\|ZCHGYWAWIJ5XJFITP4Y2RK2JNZS5AYB2J2NQQMUKH3C3IZNX3KP \ / AMOS7 \ YOURUM ::
-#\[7]AQHMUZ2MFE26QACG5E3JZJC3BIPHAMWO6WWF5BGAYPM6JV3D5IAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,.,.,.,..,,,,.,..,,..,,,..,...,..,,...,...,...,.,.,...,,,.,...,
+#J723VQR2S36EGDQAVKADRROY4VKQKDWUHDBT4BNEXJRE5BT5UOBH35GCJGYPTW6YMMFBG65IFT7MY
+#\\\|P2KRZ3S4CZ5P5QGRVO4PEQMIRW6LLUZEDHYSKQY5PKGQSR5DVPM \ / AMOS7 \ YOURUM ::
+#\[7]4QN5X5E2WMHXLJHAXAA344VX2PL3WBSJKEDHCKRY3U7HELKIPCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

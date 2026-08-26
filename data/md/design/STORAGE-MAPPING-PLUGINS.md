@@ -100,8 +100,8 @@ storage map-file checksum /mnt/wsl-host/data/file.pdf
 storage lookup-checksum checksum <checksum>
 ```
 
-#,,,.,...,,,.,,.,,...,,.,,,..,,,,,..,,,.,,.,.,..,,...,..,,.,,,,.,,.,,,,,.,,,,,
-#ME23HA276LG6GVCJW5WXQ2FKAAELRZXLLBP32FVPPXYEJV23F5V4VBXVF6ZUP3VB6Y5BC7XYVNOA4
-#\\\|TGJ4R432ARTXL7Z264S5VGXXZRN7VC4OIBG5V5GSI3MG7IFJQG2 \ / AMOS7 \ YOURUM ::
-#\[7]NZDQHEXURXHWRENUEHMKFNLYNIRWTVMSTPOR6GHIRHUIJCB3D6BI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,.,.,..,,,,.,.,.,,,,,,,,,..,,..,,...,...,,.,,,,,,..,,,..,.,.,
+#KR5OT6R5TNR5XCYUOW27PH2MIESH5MITXWKXW54LXWOIKPJD555GXZYOVS427PTPG6GX7VLIYYTCK
+#\\\|LP5KCCCCZQ7VCMUWOQ2VITHX65ZWMS5B5NI5MW7R44OYXKZQSH3 \ / AMOS7 \ YOURUM ::
+#\[7]WFFMCMCEH4UVKQVE276RF35HDDXX7AZRF56GV4MMG2WGKPX36WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

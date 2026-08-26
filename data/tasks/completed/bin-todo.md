@@ -173,8 +173,8 @@ todo list all
 - [ ] `~/.p7/` directory auto-created if absent
 - [ ] no signature stubs, no whitelist changes
 
-#,,..,.,.,..,,..,,,..,,,,,,..,...,,,,,,,,,...,..,,...,...,.,.,.,,,,.,,..,,,,.,
-#YRH2N4EZA5UIPKTH5JV4CP62IGSXEZISLYVRUCVCOIKATCHDEAWPJWXF42E3BPTRUB4VYNE4T6LP2
-#\\\|JHMLIQPWSK4ZQDIJDWMMKX6Z4VTKKFF2TIB3UC2OLBDJ52VOOEY \ / AMOS7 \ YOURUM ::
-#\[7]DHURHYILWSNKKB2Z3OA2LYOD5EBI3OUAF76UPHXCVNLGJTSRJ6DY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,..,.,.,,..,..,,..,,...,,,,,,,,,..,,...,...,,.,,..,,..,,,.,,...,
+#OBLQTPJMLFAX6QD2LFRDJ2ZZYLWLQMHGNRHQZNTUN4NGQ3NJNDEEQQY5QZFYAI5PRFXUNK62WBN2W
+#\\\|KL2CRI4MHXHVGS5C4LUUPB3OK5ENDIQR2CMRQILBRWJTHLXSQWY \ / AMOS7 \ YOURUM ::
+#\[7]L64ZRVJE53Z3FGRQSG566QXGWS2UNXTDGSHQ44ZAH4LNQWUCIMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -647,8 +647,8 @@ to confirm it's initialized in `coding.init_code` or add it there.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,.,,,.,.,.,,,.,,,,,,,,,.,,,.,...,...,,,.,..,,...,...,.,.,..,,,.,,.,.,,,,,
-#UMGC7JWOKVM6MO3UHS223GUJ4H6OQLRKE5K5G63BMWHGUIGSZVABJVOJ56WO4YFRREWFKDMGE6NRS
-#\\\|UALNWQU2QEXGYYV7Q5AV3SUT4ZIZTJS7JYVVYJWAX5AQSOLIVUX \ / AMOS7 \ YOURUM ::
-#\[7]B7LJT5FPYHNOYA4RMVIBOPBB2XGIJDSN37PU44LAJ6EOOSD7WGCY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,.,,.,,.,,,,..,.,.,.,,,.,.,..,,..,,...,.,.,.,,,...,,..,,,.,,.,,
+#5Y5PMFRCO2NBYU7PQQW7JGQCRXS6DSCDYX4E7C5W3Y5KU5GIBIA25MJ7PGU73QR3QQXOHX3DZSIMW
+#\\\|DZ3G3B2RALY52W6MBJDIL4DBTMSVH25D654QDDPGSLB53JHBSOR \ / AMOS7 \ YOURUM ::
+#\[7]ITKAIQOVZNQC4JYCDFOVOYUKCDSGALSKIDWSNO65HMKWXUWZFGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -101,8 +101,8 @@ before (kimi_dispatch already had both). Reviewed directly: no other
 tool definition still used the legacy format, schema-building already
 had a generic branch for the array format, `perl -C31 -c` passes.
 
-#,,..,,,,,,.,,...,.,.,,.,,..,,.,.,...,,,.,,,.,..,,...,...,...,.,,,,,.,,..,..,,
-#47EBSW44X2PANQZQDJKD26IPKZ3F4Q7JWAH3ZTMK3DI4MZLGYIMWACY5VFL2YPEZDJIGU2D7F34CC
-#\\\|LBBGS2K67UDOAUYYLMRJFJ6W2UVTG4KGWK4FWXKIJD4ZC3SQY7O \ / AMOS7 \ YOURUM ::
-#\[7]OKHIKO6OSFGHP4FIQL5HRVYU5OMUZTFTEMB356QCMGAFFNGTNADY 7  DATA SIGNATURE ::
+#,,,,,..,,...,,..,,.,,,.,,,..,...,,,.,,,,,,,.,..,,...,...,..,,,..,,,,,...,..,,
+#Q7YPTIC64AFMZ36BFIKOXLAB3R7TGK2KYTYVQM3Y77PIM37BPLT64XQ7HY7K5O4HGHDSB4WX54OWO
+#\\\|333B2UPYYY2ZZG55QRC4OLHPZSSVWZB667M6XBJXMUFXVPM2564 \ / AMOS7 \ YOURUM ::
+#\[7]UDM2RZBEYWV4AFPYM5BA5JFJ3QNJ3S2A2XWAYVQBJS4C6G7Z46AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

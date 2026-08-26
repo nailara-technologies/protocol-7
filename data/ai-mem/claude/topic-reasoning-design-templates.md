@@ -69,8 +69,8 @@ this vocabulary for consistency. Feed the HTML document to claude design as cont
 
 Related: [[reasoning-namespace]] [[harmonic-mathematics]] [[vortex-intake]]
 
-#,,.,,,..,,.,,...,.,.,,.,,..,,,.,,.,,,.,,,,..,..,,...,..,,...,.,,,.,.,.,,,,..,
-#2CCBYLTEXXQMXEWQRHDTDNTFWOAGN2YH5ND4KILDLO3L56U2WHRZMMET73WO77T3GAGO6G2JDAFWW
-#\\\|YT5EFJS3DHATQHMVPEQSHYPNNVKY7I2NZFA3OOWQU5BR2P4HYRA \ / AMOS7 \ YOURUM ::
-#\[7]K5PNOXAB6GZTWKKP5TSCKATSJKHCNYYWYEFQIEK2ACE2NMIFIYAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,,,...,.,,,,..,..,,,,,,,..,..,,...,...,.,.,,,.,.,.,..,,,,,,
+#VJZQOPMREQ7F2HGOTYZ37QOZWJY6ERBU56FUFX43KHG6YIIQWPQG3TUD4WBYTKTV2BTGLH2O55HMW
+#\\\|2N2IOCHBETPMQ6AZIQCZLGXRLP5BPVHLIDTYJMC47NGBUAVH4FI \ / AMOS7 \ YOURUM ::
+#\[7]JY7HXP5O35VVHBNQQMATEKSIUUOGLDJL4AMI6GN32UFQYA66XSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

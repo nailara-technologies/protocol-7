@@ -370,8 +370,8 @@ step does NOT need to be re-run on lazy compilation, only the `eval`.
 - `## todo-list` comment at line 1730 documents the known intent this task fulfills
 - speed/memory profiles should be adjustable at runtime without restart
 
-#,,.,,.,,,,..,...,...,,,.,,..,,,,,..,,...,,,,,..,,...,...,..,,..,,.,.,,..,,.,,
-#HM2DD4A7CX7RDIYQOK3AFB5XIOAEGE4RPQCNQIVQB7222JN567SBL5T36NKXR4P26VAWG2VEMWSAE
-#\\\|QHB2X4OB3LXT56YCTDB65W2DQF5I24U3XG7C76QHLA4NOLTSAF5 \ / AMOS7 \ YOURUM ::
-#\[7]H7OOKKBC4Z4QFGD3SYH7QQS5GXYRO773MUANWKYWPRCVM6TK7YAY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,,,.,,.,,,.,,..,,.,,,...,...,..,,...,...,...,,.,,,,,,..,,,..,
+#3KFBCJUV5RFXMGDIHU6FJKRSN5WJLKG66U33ADK354YXIG2R3O5VHPQIPOU74TH3ZQBV3G6ARVYD2
+#\\\|MXYWF2LNEIVZJXY7QSRLEYA5XKZPQP32ZHDUGUMJJR6ZPJMXAWU \ / AMOS7 \ YOURUM ::
+#\[7]WJ7O4IE36CS4HRVZV6LX6LBCTKEGFUOZKNHDOZJDORIU3DRA3IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

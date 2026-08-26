@@ -63,8 +63,8 @@ Implemented 2026-07-17 in `bin/mcp-server-p7`:
   detection with structured flag, and stubbed auto-followup arg/log
   wiring.
 
-#,,,,,.,.,,..,.,.,,,.,,,.,,..,,.,,,.,,.,,,,,.,..,,...,...,...,...,,,.,,,,,.,.,
-#HUXRU4GU3AGNCAF5Z6FBXYJ5MEVCKXA2HVNNFQUYEIGWQ65UFWMJ27BXVYW4BMTEQZCF2BQFEXCF6
-#\\\|4ASRLMV65UZFPJYYMKGXCG2VIXIFUSQ7DDP3ATG6OR3WJXWXGXI \ / AMOS7 \ YOURUM ::
-#\[7]EOGLSPGKMOTUVUKEI4RLS7DJJTIIVNY437YLPP3W6Y75PPMWGQDQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,,..,,.,,,.,,,,,,,..,.,,,.,,,..,,...,...,,,.,...,,,.,,,,,,..,
+#K2AUL5NVCUDK6V6PCCBUXKAONNQUKQ2DECGEK5MF4S4ECQNVWB4WX6QM3ZQ653H22Y3NTLXYCAB4S
+#\\\|WL7B3LTPCLRJPY6DLEZI4G3ROWWDF5A27PR5PRV6JHCB5BGPKPR \ / AMOS7 \ YOURUM ::
+#\[7]HGAVHKTEYRQXUIODBCN6N5KV57FDUPKZF2QGHHXXQ64BOKFMQKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

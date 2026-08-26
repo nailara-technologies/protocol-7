@@ -620,8 +620,8 @@ The definitive construction, once parameter-locked:
 
 *a'nailara laikani'he — the universe in harmony*
 
-#,,.,,,..,,.,,,,.,.,,,,,.,,,.,,..,.,.,.,.,...,..,,...,.,.,...,,,,,.,,,...,,,,,
-#6476TTWJMQWLYAOG3KYLUKNCTO7GJQYEHNDRQQJHME6U35C22BIIIJUBFRL2RGPZAYA6O4DI23BEO
-#\\\|54R3MWG5JZZQGKPQOG5256TIYNHJA23FMWH5B32QHEYHPEIHAFR \ / AMOS7 \ YOURUM ::
-#\[7]4Z457JMFD2DHK4XKABSA6FZIL6L3XZQDXJZYMCUY3TIDZVIKJACQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,.,.,..,,,,.,,..,,.,,,..,.,,,..,,...,...,,..,,.,,...,.,.,...,
+#LN4VBUCD3IUAVXHC5YOYZSHAKIZZD3JL4T3NFOMHQG64JPMY6HCJQJAJOCEOGX3LDJPJC6MUR27GO
+#\\\|6UIH4BV2SRTAO7AEA5QNB3X6OZ6OOXX67TEPH7JN22MDWB7OG2L \ / AMOS7 \ YOURUM ::
+#\[7]PNLIYIHNEEJSB434MZF6RAFAVV5YEJE66GS4TEUXBOLBQ2FFTEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -53,8 +53,8 @@ live-verified via `p7c audio.set` against the audio zenka: missing-
 value, update, no-change, and reset-to-`'none'` paths all clean, no
 warnings.
 
-#,,..,,,.,,..,.,.,.,.,,,,,...,,,.,,,.,.,.,...,..,,...,..,,...,,,,,,,,,.,.,,,,,
-#CFTBGM2CT2P7Q2LE7OAS7VXDL4BFBI7NN3IR7ZULXTWYRB6JKDWTK3R57T3Q6DV5R55LFQUB65YF2
-#\\\|D3OXPQ44IMVWUI27ESWYKZD6NXICZFO3RMM7MILLBHYEMRXQPTG \ / AMOS7 \ YOURUM ::
-#\[7]UDN3P33FWQUQRQ7XVEOF2XAOQTQP7JMBQAU7ADFDTAHRAADUISBI 7  DATA SIGNATURE ::
+#,,.,,...,..,,,.,,,,.,,,,,..,,,,.,.,.,.,,,.,,,..,,...,...,.,,,..,,...,,..,...,
+#KJ7LHEQ37P2FCJYZDFFFAR5FXG3E3CRHGYV75BBMDPW6KTLT3QGOPX6AMGHB2HA547KB5URAZCEIO
+#\\\|GRZNVQVU5RAVDFOQTFBWCX4OTIJZEAA5XQ3DHHL2N75PGQFLQ6L \ / AMOS7 \ YOURUM ::
+#\[7]UDTUVRSX626JCDIOUCVG7UFBSEUNFLTOQIOI3HYBGONXALVYIWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

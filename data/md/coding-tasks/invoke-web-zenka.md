@@ -355,8 +355,8 @@ look at cfg/zenki/models/subroutine.white-list for exact format.
     do not attempt to run — invoke.ai process management requires the
     full zenka environment. report any uncertainties as inline comments.
 
-#,,..,.,,,,..,.,,,,,.,,..,,..,,,.,,,,,...,..,,..,,...,..,,,.,,..,,.,,,..,,.,.,
-#U3WZ5TZQUBUEYMY5ASI5DWMZA47BESW3ILSEFB4N5MN3FHBKSIM5YYWCDFYXYVNCI6QYAI6OF364M
-#\\\|LIUHMZ7LJRTPUCCMEFLIXLNHFTREXLDJAUY5BKKDE7PKOCX2JRR \ / AMOS7 \ YOURUM ::
-#\[7]AZVUXI4AH4R2KIHMVFXC55QU5DXJ4T3G6AK2EFXD3NBOOIJRJCBY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,..,.,.,.,,,..,,,.,,,,,,,..,...,..,,...,...,.,.,,,.,,,,,...,,,,,
+#M2YZTRUANXSFBKBQA3MQ5AFAFENRUYFE2MTEZVEE5ZZW7XCPBKJXW5LX3D3QNSS4744VBBKFKQSLW
+#\\\|CJZP73DWMOQBU2VXIVAV4NKFTAMFW2YM5TFZGZ7AISEB2MJJCTH \ / AMOS7 \ YOURUM ::
+#\[7]2IQQHQTR7WSIQ63ERO5HGUL3CEQ6QT34GVU23OAVU5VYQNARWYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

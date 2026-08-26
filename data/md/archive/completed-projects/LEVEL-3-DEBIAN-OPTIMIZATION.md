@@ -241,8 +241,8 @@ The debian zenka is **perfect for idle timeout auto-shutdown** because:
 
 **Result**: Self-managing, resource-efficient dependency system that cleans up after itself.
 
-#,,,.,...,.,.,...,.,,,,.,,.,,,,.,,..,,...,..,,..,,...,...,.,,,...,,.,,,,,,...,
-#QMHKR2HLR73KM6A6MNQDP3MD6WZUNRO6YKO6QZMMBGOAZTP644RQH5HCAF4JQFFUE2LCOUVRP4TCO
-#\\\|MOQ2X6BZMICVJY7WZMW2UV4WEOKVV5P6WW4JRVZBYTWZOZKHBMN \ / AMOS7 \ YOURUM ::
-#\[7]4EIJMKDBEYMFV2E7G6AVAA7GFPD5ODQNPO23JMJGJ5FJZBNTYCBI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,,.,,.,,,..,,.,.,,,.,..,,.,,,..,,...,...,,,,,,,.,..,,..,,,,.,
+#B2KVPRXNMS3THFQUW7Q62APNWFPOZK5R22PGCI43YW7DZYMCIKJ3IKQUGTCVIDNONSARQ3AJQLSN6
+#\\\|TJKBMYUF3LYYJYS3MCUZPNT6T4C4B6JZMY5TMD6YL5AKHE76QIV \ / AMOS7 \ YOURUM ::
+#\[7]LQ5CQMBB6RKVWBVZDC5Y4HKDVD5E4MR5DIXTRKG66GB3DXF4SGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

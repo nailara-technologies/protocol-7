@@ -300,8 +300,8 @@ Please be explicit about:
 - How to test each change
 - Any architectural patterns we should follow for future cross-zenka wiring
 
-#,,..,.,,,,.,,...,...,,.,,.,,,..,,,.,,.,,,,.,,.,.,...,...,...,,,,,..,,,..,,..,
-#55QYRIWD5MZQIH7LZ3YQ6K3RNGPXDRJLHRF6HT4EGGQ2DZMPUDHZIIDOVMLDYW4P3IUZVYZJX6FQ4
-#\\\|OHXS6KQWWSSOWJCAAO34ZYYADAK6LHPZVYJALVUDDRPU6RTTDC2 \ / AMOS7 \ YOURUM ::
-#\[7]J5WHGPNPJKLZ5TTP233XAI34HOL2XUNBYUW7SPAC7WS4GZALA6CY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,.,,.,.,,.,,,..,,.,,,.,,...,.,.,.,.,...,...,...,..,,.,.,..,,,.,,
+#I6UDSMIOFNWW5HCIVVJKE55BXXFK2SSPPH2LKQZVO6OAIG3IY5GYRDX4WLX2HAGPJ5Z2K4JJTLT6W
+#\\\|RGY6Y4RJBGLNJAANZ4DWX46Z6FHMBR3CFELYXLLULVBKLOMRO4Z \ / AMOS7 \ YOURUM ::
+#\[7]DNIILKVKGBLK5LNPHZ7GDQUCHHDYIUMTQ76S4EWMUTL2SOSYXIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

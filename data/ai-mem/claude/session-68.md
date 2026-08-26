@@ -45,8 +45,8 @@ session 68 — 2026-06-01 — auto_summarize chain fully debugged and fixed
 
 **Why:** decode_json/from_json bug traced through -C31 unicode flag; all three socket fixes (FD_CLOEXEC, cube_disconnect, 2>/dev/null) are defensive but from_json is the actual root cause.
 
-#,,,,,...,,,.,...,..,,.,,,...,,.,,,..,,,.,,,.,..,,...,...,.,.,.,.,.,.,,..,...,
-#7UKNLKVQ4ZU5UANG3GARXWV3XX3OKFHDF3GEZ5ZYMT7W7VT5URAUZMYNCOMTCBJI6Y2WDP7GM6D56
-#\\\|B32PR4XPAHVV7AODCUZ57ULWQG6PMGVNK2ZBHY2GLR5A3RTHKP6 \ / AMOS7 \ YOURUM ::
-#\[7]YVQ5H7KCIDOLADN2RDILQ4WOF2RRJIUFCI67OBNHECSXU6KEDKCI 7  DATA SIGNATURE ::
+#,,.,,...,...,...,.,,,,..,,,.,,..,,,,,...,,.,,..,,...,...,...,,.,,,.,,.,.,,..,
+#ELIRYLWIQM3MOL3ITENKRVWCIKNEDBHGRPM5EXEFNJ6U2MOFMNFC6PLZAWDLOQSK6GIT3UBGRLJZY
+#\\\|UVC6BCWSIVNUZO5Y2OFKFQSCOUBUOHTTD53WBSARQJMBR246QMX \ / AMOS7 \ YOURUM ::
+#\[7]R7HBIPKT53AXRRLMZFSTIDUYVNWM6X5RDXDM5FCYPPYJH7POR4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

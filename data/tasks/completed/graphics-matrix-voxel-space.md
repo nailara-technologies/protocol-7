@@ -166,8 +166,8 @@ do NOT add stub signature line to new files.
 - `data/md/documentation/entropy-at-deduplication-root.md` — character ray
   table and semantic constants reference
 
-#,,,,,,..,,,.,,,.,.,,,,.,,..,,..,,,..,...,.,.,..,,...,...,..,,.,,,,,,,,.,,,.,,
-#WFQ6UCTI5MZSRZMXWHE4PLU5Y3777DMBD5LHY2J5G2NR3B6FNPIFMBCUE5LMDMXPNRDZ7NCY5PPSG
-#\\\|LEGSBPKHUBER7T6SGULYBUGZJZ74H3VBORSOHQC5WFLAVM4EJQF \ / AMOS7 \ YOURUM ::
-#\[7]Q2KD2XJJ2JH4KWA54H43W7A37Y4GSINSECUCTMKVYDDYS7QLMUCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,...,,.,,...,,.,,,,,,...,.,,,,..,..,,...,...,...,.,.,,..,,,,,,..,
+#KRAUVMLD7RHEIMZNZ3LQUYC3RWX5SQXJEI5VOMAZISYBZOYXY2BUVYWDDESUGPHL5NYTHZ4RAYA5G
+#\\\|BCRZTOZHWCTV7NG6O6PYI3QCK74OHLOU6EVIL6NNYPB54VIQQEP \ / AMOS7 \ YOURUM ::
+#\[7]6DILYG7Z3JSTRTODWAYYCPPKDGD5OXCI3T6DZX2NFIACHLW67GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

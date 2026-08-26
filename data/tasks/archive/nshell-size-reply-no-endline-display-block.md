@@ -82,8 +82,8 @@ raw-ANSI SIZE replies.
 - TRUE/FALSE and SIZE-with-`\n` replies show no regression in visual spacing.
 - no manual AMOS7 signature stubs in edited files.
 
-#,,,,,..,,..,,..,,,,.,.,.,.,,,,..,.,,,,,,,,..,..,,...,..,,.,,,,.,,,..,.,.,..,,
-#CX2LKSP4DHB6EVJD7CSAC74HQSX7W7DJYXC5YEGPPVYKK37RSS5ASCCHVVJEXHOHZR4Z3Z2EMNWPY
-#\\\|MNYTJIYJLI6FQEPWNHJUTIRPV4ODBN4226J3KZMGBFRL5FN2J3C \ / AMOS7 \ YOURUM ::
-#\[7]4YXKQRYZ7NZG55REEX2C42H4ALLCZFALSJMECNWDGH6W7OM7LQAA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,,,,,,.,,...,..,,,..,.,.,,.,,..,,...,..,,.,.,.,,,,..,.,.,,..,
+#K3GUS5DYHDL2GXLDOJG2XSTSXAHAUS52SYW2A4M46KX7CF6G2VVIDHASCTMLNNKCK73HDZHFCLTLY
+#\\\|6HYJSHAK7U7GKV3533OS3FK2R3IIGM3OFYQ2HZERDKSZV3C6JUC \ / AMOS7 \ YOURUM ::
+#\[7]WLKRNSK4SFLMARJRBLVPEH3D7FVYR4NTXYNXEYGOQPKAARZQC6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

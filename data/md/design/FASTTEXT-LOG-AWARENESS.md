@@ -179,8 +179,8 @@ relates to:
   data/tasks/coding-model-self-test-cycle.md (calibration + test harness)
   data/md/design/HARMONIC-SILENCE.md         (canvas of absence concept)
 
-#,,..,...,.,,,.,,,,,.,..,,,..,,,.,.,,,,.,,.,.,..,,...,..,,,..,,..,,.,,,,.,,,,,
-#GOWRBYGBI4T4UEX7XQ6WADTWSVYDC5WKNBSIUFAXEBTINR57Y4BNRHIYMNQVYUMLYYGMK2HJCRANQ
-#\\\|IEFYUFYSGSZUB7NZSXGKI7Z2A3IE4ESIXXEMKSPYJG67V2EV2EK \ / AMOS7 \ YOURUM ::
-#\[7]ADTDVDCTPQSWV4OPBDV56FMNI7F76JDA4YIOO2T6FALS76HRCICQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,,..,,..,..,,...,.,.,,..,.,.,,,.,..,,...,...,.,,,,..,,.,,,,,,..,,
+#QOVG3AMDJSPKLU4MY5HBJW27Q4XX46XJSW4JZXXUBMJG34XHVWG54ETFP4HWWWG6FQUYENOIRXWKI
+#\\\|EBFTULWHJQXJYSHPADNGVYMW5N6RQ5DSU5VJ4PJZ6YCV5N7KSCR \ / AMOS7 \ YOURUM ::
+#\[7]EQHZ52AYYBBNHJASD7NHHEUOPQMQQ2G7V6V6WNHJAQZAU2WP2ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

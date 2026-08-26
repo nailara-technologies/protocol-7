@@ -29,8 +29,8 @@ things that already exist:
 **How to apply:** apply all three preemptively when writing or reviewing
 any new module header / log call, don't wait for correction.
 
-#,,,,,,..,..,,.,,,..,,,.,,,,.,.,,,,.,,,,,,,,.,..,,...,...,..,,,,,,.,.,,,.,,.,,
-#MRMQAHNISDAG7H35Q2OTS6YI4PS7PS6G4UZSBUK4CBX5Z6WFNXJQDXONBP2FQKTJY7L6SV2GUMHGI
-#\\\|JXXGYLILOFS5E4QU5ISCEU5ZY3Z7NHPGMYERTAXKMR5ZPCOHVUD \ / AMOS7 \ YOURUM ::
-#\[7]VVYKNVDMIVDQU7WVSORALZNSP53MRS36676AM55FOIQV4D466KCY 7  DATA SIGNATURE ::
+#,,,,,...,...,..,,,,,,.,.,..,,.,.,...,,..,..,,..,,...,...,,,,,.,.,,,,,.,.,,.,,
+#ENMVXMXXLZJMHCGX3JNJBMKH3FPJAONFGEM7ZQPF2JOMXOIAVZLDYRDVHYGJ5FG4ZUQEFO44E36P2
+#\\\|MPSXBDHRLCQFQJVMBJJLMZ64YCS6BI2WMBATVDY76W6ZBYYA7HB \ / AMOS7 \ YOURUM ::
+#\[7]JDPJG64PTDYBASNDZ4WEFSU3ZEMJM66HILWZ6AHJ4DJLAK3WKIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

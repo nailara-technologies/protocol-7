@@ -460,8 +460,8 @@ This session is **complete and production-ready**. All code has been committed a
 **Previous**: /home/user/protocol-7/docs/SESSION_STATUS_2025-11-15_web-zenka-progress.md
 **Related**: Also updated workspace-transfer/bin/deps with Nailara colors & path discovery
 
-#,,..,...,,,.,.,.,..,,.,,,,,.,,.,,,..,,.,,...,..,,...,...,...,,..,,,.,.,.,,.,,
-#XFSTUPW743J4YA35MT2CRHBFZRKRO7WSSFNBIJZBFB5E7CCVAME3M6HO7WMTFIEV72FSLCUWQM3JQ
-#\\\|PPEL6UHQUAFPG2LQQ4HIUSXZWT6FGUJHAEJJXEB4DSKMEJD4C3V \ / AMOS7 \ YOURUM ::
-#\[7]AEHGCCAORLJTPFAOLOLBK5F2YHKAQB7QOOKXQ2NM4N2QIK7SASCA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,,..,,,,,,..,,,,,.,,,,.,,,..,..,,...,...,,,,,..,,.,.,,..,,..,
+#RZKZXHDWXG7K3OMMDLKNHO3UEI4G7EEK4LQ7H2AUHNVWSJ5SU4BPLS2HJGWCCJY7MW6SFHY7PGKOK
+#\\\|KXVINE2FDQGRV7752UWGB3VW7R7WY5MSUDEZRRVV46A4F6HGWZV \ / AMOS7 \ YOURUM ::
+#\[7]KKFZUJSTKUU7J45JPBE74ZJ3QJKZ75NXNDDCZGFWSOA3YL6CIUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -322,8 +322,8 @@ Any future OSC option that needs a `#` prefix should follow the same pattern.
 
 *End of plan.  Next step is user review of priorities before implementing Phase 1.*
 
-#,,..,,.,,,,,,,..,,,,,,,.,,..,.,,,.,.,...,,,.,..,,...,...,...,,..,,,.,.,,,..,,
-#D5WGLF4DGLPK36PF6RVKC3P62DC7BLSUNU2FT3VHR3JLQF5UOHW4MNCRHQW7VWE75KCQVZ4AHXAZQ
-#\\\|MFJF5BWSW423HMJO2WC6IVXWZNEXLRU6D5LUZA2Z5ITDIRPG7PX \ / AMOS7 \ YOURUM ::
-#\[7]L4TKOT5DTFZVRDDK4V4JS7OT4NYG6B7Z5UGKBA65YLKDMC3JEUDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,,,,,...,,.,,..,,,..,,..,,.,,..,,...,.,.,...,,,,,...,.,,,.,.,
+#UJBPDVEPXCO3GYASYSJDD42NJJUEPFNPV5SBQNMV6XTCLIG4IT2VV2DJNW6DF7XN7JG5DWELIYXIC
+#\\\|EH53Q3CAXPFSMZRPD7O5BL5JBKXFXVOCOIYUYEOC3M3IVKTGOH5 \ / AMOS7 \ YOURUM ::
+#\[7]UGE2HFSPEAU253HTQUF6KNMCS55BYNF4DTVLHVPSIWRDNR6S4OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

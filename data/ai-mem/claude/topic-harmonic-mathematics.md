@@ -730,8 +730,8 @@ structure's own source document — not shown, anywhere checked, to be a
 naming layer over structure (4)'s caravan. Cross-referenced into
 `recurring-cube-number-collision-audit.md`'s structure (3) entry.
 
-#,,,,,...,.,.,,.,,,..,...,..,,...,,.,,.,,,.,.,..,,...,...,...,,,.,,,.,.,.,,,.,
-#OGIEMJEQ5VAZIZ5X3CCAPZQ7GCS47ET25ZYOQEWYIDWEMDTGICGVU6FOAREIWTT6RA7B4VTAXKNMS
-#\\\|QI3PCKIBJKRSLOQL26ZFF2FNPHJWEWVRFM3X5AOGOQFTPC7POM5 \ / AMOS7 \ YOURUM ::
-#\[7]YHCU53KEDSNI75NNJFVQDHYDQYSGGGWOPAJUTDSDSV4QZEZUK2DI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,...,.,,,,,.,.,.,,.,,,,.,.,.,,.,,..,,...,...,,..,,,.,,,.,...,...,
+#LRBPETL5OOOCTCU7AZ4XSZVGWFF4STASUYI5CQQW6FYKUFX5ZC2PJPFF5NAEOQB3NE6QUR6ILES3W
+#\\\|2M7OVPLXGSLWNTIGYUE5KVDKBEEGYW24AMRE624X3OOSYKZYKGC \ / AMOS7 \ YOURUM ::
+#\[7]BXOBZSM4DBVONYUIJ6RTBWRW3Q4P52O22JST4ZCWEDH4T5KRA4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

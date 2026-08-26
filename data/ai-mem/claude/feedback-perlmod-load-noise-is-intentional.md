@@ -92,8 +92,8 @@ future optimization was sketched as, same conversation: a hybrid
 deferred/eager load window, generalizing `deferred_compile`'s existing
 self-heal pattern from P7 subroutines to CPAN module deps.
 
-#,,,,,,,,,,,,,...,,,.,.,.,,.,,,.,,,,.,..,,.,.,..,,...,...,..,,..,,..,,...,.,.,
-#36V2CEV53RLNA4PKV5LZDIRD5HO73IKSNR3LUUDZZIAESSV7SDRZ64PE6SQXJNDKX5USS5CL6QWTA
-#\\\|3CKI45R2AYSB6SRVVSWFLB7XEYGIVVU52ECHYQMKL6ZAHFQ2ALT \ / AMOS7 \ YOURUM ::
-#\[7]6SDL4KEPKNMH3A6XXADSZHEABWOEQYHMEBZJEWGTKDPB3ZKHKABQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,.,,,.,.,,,,,,,.,,,,.,,...,,,,,..,,...,...,.,,,,..,,,.,.,,,..,,
+#EENGLKJJDXTJCJSPOISAUOG6VISTK22LJGMAXA3BPVRLEEN4UFHKFZPPKATMRBAZYDDLDKE5YFJXW
+#\\\|54BTYYZUEW3FXV7VN5QXNJWBMZ6OYPNQDBCZFCDBCAASUZSZ3Z5 \ / AMOS7 \ YOURUM ::
+#\[7]N3GDMOWA2CE6BAYL6Z35MQPKI6NTOE3KUM4BHWK6KWMAXNGXJGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

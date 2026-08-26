@@ -221,8 +221,8 @@ app logic receives abstract actions; adapters translate input → actions.
 this is the same principle as route-send vs direct socket calls —
 the transport is irrelevant to the message content.
 
-#,,.,,,..,,,.,,.,,...,...,..,,..,,,..,,.,,.,,,..,,...,...,.,,,.,.,,,.,,,,,.,,,
-#JZ6BG5FAQDXWMIHHPTXKNFV7LMWYGEJYEAM575ZEER3ZI3G6X6KM47GZ44MYGCBIV3NGB5VAZTZAW
-#\\\|25LH4WJDDJXFPINLMXASCXUSLTXU7BT4BWLEX6R55UYPQHDES66 \ / AMOS7 \ YOURUM ::
-#\[7]I3S4YSRI66FESSXCYCGNB65VFJLCKY25RZRWL2WCA3K2OBOLNIDA 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,.,..,,,,,,,.,,,,,,...,,.,,,.,,..,,...,...,,.,,...,.,.,..,,,..,
+#TJMTMJ7SDG4R3WM7OGQKEUYUU473OMYQV66WMFQUWZ66JIAQHXAMWGHFXKBIDOKBLZJMXL2WLEPGK
+#\\\|XUPW64LUURBISNCRSWUB2JSPSVZF4HSFLQZ5CWK5NO5Y3L6FCNM \ / AMOS7 \ YOURUM ::
+#\[7]7Z6AT6OOBXHALJ3IO6EV2NDSB2LRWNAUBQACKCJMH4K72NDBZ6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

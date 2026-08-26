@@ -325,8 +325,8 @@ architectural vocabulary it already speaks. [:
 - [[FASTTEXT-CATEGORICAL-MEMORY]] — the rolling triple-window that makes
   visual style memory stable across sessions
 
-#,,,,,.,.,.,,,..,,...,.,,,.,.,,,.,...,.,.,..,,..,,...,..,,.,.,...,,,,,,..,,..,
-#MORG24XZBC4HYNQAIMRGNSNXP6TJEHUVZSEXVYWR56TJA2PRCGEPFRD36OYLLQBM6F3HFWKVK2BWG
-#\\\|DCEMTRNEYFMNRSSF6ONYVALTC4YFNVRYA43C7Y3X47ZU5YDX2FJ \ / AMOS7 \ YOURUM ::
-#\[7]CHZLXYJFJQILBZ34EYWAZA7ER5CLONS2AUG3YEJ6OEAAG2UI3CBI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,.,,...,,.,,..,,,.,,..,,..,,..,,..,,...,..,,...,.,.,.,,,.,,,...,
+#6G2XSHNTLBZN5EDTAMI3DRSMYE3RJRNNDOQWHWZIJTUKVPB45YRA2KSOM5Q4VLQ5YZJXAG4JOBHA4
+#\\\|N7YYWC2IGNPMIRZ53WOJMPAFHU76XUVSWOAMYXMJQLXJDL7IOBS \ / AMOS7 \ YOURUM ::
+#\[7]ABZHVMEZJRX33HDG3WT5SKW5HG4SHGQAVOP3E5F4DE64UVHX7GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

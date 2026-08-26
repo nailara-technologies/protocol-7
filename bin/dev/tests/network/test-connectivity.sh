@@ -62,8 +62,8 @@ echo ""
 echo "If all tests show successful responses, system is ready for link-upgrade testing."
 echo ""
 
-#,,,,,...,,,,,,..,,..,,,,,..,,...,,..,..,,,,,,..,,...,...,..,,,,,,.,.,.,,,.,,,
-#F4LONTW4YCTNTJGYLJBUO2TZWV7XLUKEJVPKJU72WJCP7OGNGNF353ZGW7QJRWPTZNVHZZA6PAX3G
-#\\\|W27DKWSED2XZLFSUTP3EOUKIBIC6CD2LJ6M3J5DXQLKEQQLWMAT \ / AMOS7 \ YOURUM ::
-#\[7]V6QXLME775C6VB43NVRYJNKNMT6NX36KZW7OLUSQUHQFHPD2CYAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,.,,.,,,..,.,,,...,..,,,,.,..,,..,,...,...,..,,,.,,...,...,..,,
+#MPSN2QOIGP7QXVSXZ7CICRQKYCUFDH7NM2V33MJMWHRENEFOQHLNW7EHLSIOGIC2DM4UTKNJDANTK
+#\\\|OZUHUOQPIHLW3ZXWNOAW6KPSG65CZJ3EJK5FR7GB6ECVFVHPHPK \ / AMOS7 \ YOURUM ::
+#\[7]EGGKVVT454K7GJBBJZOX25PW3WE43NNE5N3RXOXQNZAYKZV6IAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

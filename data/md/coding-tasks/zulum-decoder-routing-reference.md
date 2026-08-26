@@ -405,8 +405,8 @@ echo "decoder.show-buffer 5" | p7 decoder
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,,,.,,,.,,,,..,,,,,.,.,...,,.,,.,,,..,,.,,,..,,...,...,...,,.,,..,,,,.,...,
-#V2SAAIUOJV6J33DSS3STVS6POWJVVIW3ECMEILWOK7QZQBGPKOGYWPXEX2OGDV463OYKPXORS23GK
-#\\\|HTYHYDW6OUI6Y7MAWGZB4LMQAW7HSM7WM7X2HNKBOWKIIPULIKL \ / AMOS7 \ YOURUM ::
-#\[7]RB2AYQ6BWBSMIDLLI72FCDR63664IJCWRF47F7DTLLAEVIQHEWBA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,...,..,,,,,,,.,,..,,.,.,,.,,..,,...,...,,.,,,.,,...,,,.,..,,
+#IT54SZXV62C4MRPVYWNBQ2AIAMFUXR4CORWVFDKIW4ZZBEUSFCJYW5OTM5TVRNR2IJRGUCLKHDMIE
+#\\\|5LMIFP4AHRNFUINBLNRQ5MJA7T6KTANMWPP66TEVLE5PMZCDHUD \ / AMOS7 \ YOURUM ::
+#\[7]VMMMB3QAFFYL5PLQ7JWXDJIO4BHROPH7Z3GGFGNLV5PRCYJU2IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

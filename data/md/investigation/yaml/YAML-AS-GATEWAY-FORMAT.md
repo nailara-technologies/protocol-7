@@ -422,8 +422,8 @@ Each becomes:
 
 A gateway format that's human-readable, machine-executable, securely signed, and free from bloat. Perfect alignment with Protocol-7's design philosophy.
 
-#,,..,,,.,,..,,..,,,,,,..,.,,,,..,,,.,.,.,...,..,,...,...,..,,,..,..,,.,,,,..,
-#XUKS777DFHOQ6HR4RZXAVJCTXU2SHOOOPWATUZSMWOYLHZP6JA6CFU2LVMGDNDEM4TSLWAIESAQQ2
-#\\\|MOLVCL5P2ARU6WYVG6SGV2NHGX47YXJ4KZ7JT3ELTQQSHVLZKMJ \ / AMOS7 \ YOURUM ::
-#\[7]SHBKWL72B4A7SOVIBIGUVAEWBFEEMQLVZIURBLI2KBJSVO3PCMCQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,,..,.,,,,..,,..,,,,,..,,,,,,..,,...,...,.,,,...,,,.,...,,.,,
+#4FZHYRGG4PLBZYYDMP4FQ5UUUGKFQSXU6XFR3J7NPBMESQB7MKPEQU7MRDTSZOKAPZYMKFOABEI5Y
+#\\\|RKHQBMJNURLL3NGXEPUPUCSWKI2OFST3CD4UIK6ME4ELGQNOY6H \ / AMOS7 \ YOURUM ::
+#\[7]ZUNGATIH4IBIZEOC446QXAM3QG7G66EBNQRRY5F3MWEAIOOKZADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

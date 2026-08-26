@@ -114,8 +114,8 @@ plus auto-generated whitelist / src-ver / dep-graph as usual.
   the NEXT layer after convergence; genuinely kimi-shaped work, unlike this taste-laden pass)
 - prior: git `e8eedf1de` (s3a), `7f2c04a03` (s2)
 
-#,,,,,,.,,,,.,...,...,.,,,,..,,,.,,..,..,,..,,..,,...,...,...,...,,,,,...,,,.,
-#JKRQTEEQBMJHEB2KZDWO7ZWVXDS5T2OXWME3CPY7ANTNCMWXYNX55IFIWZXZ3B6KXMWHKY2OZJGB4
-#\\\|32E5U3CFJHBAFOQVVPO67UIU7TBAKDE5N4TZTZG4JKY7PK5WFUK \ / AMOS7 \ YOURUM ::
-#\[7]A6WJA3E7O5TGOKD5XQ4TAXPZOTTB5GAYFW7432FFRD4NO2E3ZMBI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,.,,..,,...,.,.,,.,,,,.,.,,,..,,..,,...,..,,...,,,.,,.,,,.,,.,.,
+#F6F7GLFCT4HFR2ZLNC6CVBTJJ3IOTA4ZVOMFEVDN74IG6D2KYMOIJ4Y2BSZJ35XZVLKODFE4OTH3K
+#\\\|QOD5WTMHG3P3NJGS5KDEX4JINJY7XKDPSBKTFGQ7IBGONH3MGJ2 \ / AMOS7 \ YOURUM ::
+#\[7]X35RMHJZDHTAEKZ2O6KSUZCLF73XOWAX4VW7KV7YS4AF5UAYOGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

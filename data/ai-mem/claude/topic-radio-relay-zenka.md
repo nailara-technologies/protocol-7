@@ -153,8 +153,8 @@ crossfade above — the fade primitive it reuses (`$instance.fade` via
 `protocol-7.route-send`) is exactly what twin-instance crossfading would
 need for both instances, just not yet orchestrated between two of them.
 
-#,,,.,,,.,.,,,,,.,..,,,,,,,,,,,,.,,.,,,,.,...,..,,...,...,,..,,,,,,,,,..,,,,.,
-#KLYRU5CVD4WEIT26AQXOKLMIEFZ7DPBTTEUWWBS6IOO6RZ6SOOMYOONTLOH3KZ4MCXSI6DA6WLD4G
-#\\\|POSPLE7GVFYFD7GXVNTLWCHTD5OBBPX56FW22KPKJTOOZYGJFYJ \ / AMOS7 \ YOURUM ::
-#\[7]R3UZ7UNKVLDR6TWKONWU5226FYWLIFQIAGREWVWDQI3BMXWEHKDI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,,.,,,,,,..,,...,..,,,..,..,,..,,...,.,.,.,.,...,,,,,,,,,,.,,
+#5GAZPPI26L3FLT5HHQPC5ZG2VV463TE3LMAMFE6B3IHKNHVVQ35SWPSQ5MQJU4NA7BJ2IZLVVZ3KY
+#\\\|DWQCHG4FHMFRR7DCA5CVEARIPKU7YNR6FK4TTH56N3JSJBBVS52 \ / AMOS7 \ YOURUM ::
+#\[7]7NLTAOPPCU7ZTIIWX3IWVPMHLXXR4JFWVRAKB6W4GPFE65STJYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

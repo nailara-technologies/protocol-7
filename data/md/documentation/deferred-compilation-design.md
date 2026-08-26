@@ -124,8 +124,8 @@ the swap-boundary dispatch pattern (documented in MEMORY.md) is the sharpest
 concrete constraint: any elegant solution must handle the case where a deferred
 sub's compiled name differs from the name callers use after a swap has occurred.
 
-#,,..,,,,,,..,.,,,.,.,.,,,,..,,,,,..,,,..,,..,..,,...,...,...,,..,,,.,,.,,..,,
-#7T7SAT2SW7HBFFPMCHZI5WZECHZO6H2HESW7GI53F5L3IOOI2ISNXJFSENHZTTO2XWTANIJ5N76VW
-#\\\|QWNVKSCAXCQ7Q6ZKV46T2ZJLWUHA4PCIPUCL7BR4ZAB22KMAAYT \ / AMOS7 \ YOURUM ::
-#\[7]AVR44ZEWGMA4TKXXUURPDTQBZKBSDZ4QRDJZXU7AZ4FBHLSM36CY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,...,,.,,,,.,,.,,,,,,.,.,,,,,..,,...,...,..,,,..,.,,,,.,,.,,,
+#AHR6SOQRABWESIHY3HRL37EBLCIEXOM7E6TVINF5RVYHOZCMSQGHPXB46OPGQPLTSN4Z47U2VRGFW
+#\\\|AWB2YH4PINTCTR6FRROQJTUDKQZNKFXFOQFU5TI4JGD4UNJSRGF \ / AMOS7 \ YOURUM ::
+#\[7]IFQDEZDOMPOMPPIOFFVUTWQ3OOK3SWOXEL7KXHFM3BPKAQPNPIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -129,8 +129,8 @@ automated pipeline (future):
 - batch scoring: `no_tools: true`, single round, structured json output
 - results stored in data tree: `tree_write harmonics.quality_study.*`
 
-#,,,.,.,.,...,.,,,,..,..,,...,,..,,,.,.,.,.,,,..,,...,...,.,,,,.,,..,,,.,,.,.,
-#DX5EFN5DBOZWYDVCDLHQA4Y3JRAWRXSITYCQMRCQFK4Z3XPO62YJXKS2XVZ5ZF5J67KQA5HKJRDGE
-#\\\|EVHSETQDETWXGNQG5BDRHOGN7TEII5S2XQQUORBYDKU6L6GX2PM \ / AMOS7 \ YOURUM ::
-#\[7]Z6WQDTH7JZY2R5KU4GNRIRNCTQSVIMONER5BMKNZPRBPM26MUQCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,,,,,.,.,...,.,,,.,.,,,,,,,,,..,,...,...,...,,..,...,...,,,.,
+#NLEYGI7EXYOOEO2LT43FZG2MAM6QO7G4W3TADWGSDA5IJAYAVSRVZ736FKGVIYG3E6HSTK33LGORK
+#\\\|6BS237NBOA6O6JQVIK6OUPYXCENHA5P6ASWQXGYV5IYFX7KP5DF \ / AMOS7 \ YOURUM ::
+#\[7]6H56WQWU2MZGGMWOY7CVZVPWMDHL47SOI6SZ26B5Z7EU7RT4GWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

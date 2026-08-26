@@ -56,8 +56,8 @@ independently put the coding zenka into a restart loop. Worth re-testing
 (see [[topic-coding-state-machine]]) now that *three* restart-loop causes
 are fixed.
 
-#,,,.,,..,.,,,...,.,.,,,,,.,,,,..,,,,,...,..,,.,.,...,...,,,.,.,,,,,.,,,.,,.,,
-#Y366VPOSYSZ3CQEAT3VY73JZXC244MPXRQJ4OD2ENUB5BOHE4L7THPI7YGCHOAQ5XMFQOTDNIL3XQ
-#\\\|5XMO55LIQ7BAYD3CANH3FNDQ6ZXTXOLPO4LIYCARZ7W6QAI52QO \ / AMOS7 \ YOURUM ::
-#\[7]TSFIFBCHZQ4AFP3RCBJ62GTSEWXVXNJ5H255WPR6RLB4XLJVZMBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,,,,,,,.,,,,,.,.,.,,,..,,,,,,.,.,...,...,,..,.,,,,..,,,.,..,,
+#A5CQSKR4U7ZSIYQSMS7ZM3Z533XIUSJ3PQB3M33OLEQF65BNQQW7IP7V2XSYZOTMFV4LTSEFM3SM2
+#\\\|Q7BPJMBW5OZEFGZMAZ6JV4IFZKFMZK7ZXQILFGCDLTMDUYURK7Y \ / AMOS7 \ YOURUM ::
+#\[7]SGZ5TXHTOCPBLUJMWRGAWGARUYRVT4CYA4CPHON63O4K4K26CQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

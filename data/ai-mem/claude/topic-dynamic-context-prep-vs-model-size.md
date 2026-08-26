@@ -43,8 +43,8 @@ already partially built as the coding-zenka's context-template system
 treating "how much discovery cost did the task file save" as a first-class metric when writing task
 specs, not just correctness of the final ask.
 
-#,,,,,..,,.,.,.,.,,.,,.,.,,,,,.,,,,,.,..,,...,..,,...,...,.,.,,,.,,,.,...,,,,,
-#3HJFKHHGKKSBVRGUIU3GDTQ2ZYE2LVINSQXPJ5TO3R6Q4IDETSVNXSU47WIX3Z4PWSFX26MYBW7YK
-#\\\|2L2WES3QDYII4CDBVND4DQEJ6AMCTS2PNHSD2XQ6UQK2AZNADUB \ / AMOS7 \ YOURUM ::
-#\[7]BGQPDZHJ66BGPWAGPDSV53KRLWLFHC4K7WO4GI4HKTLYHI5554DA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,..,,.,,.,,,...,.,,,,,,,,,.,,,,,..,,...,..,,.,.,...,,.,,,,,,.,.,
+#G2RATNOKHNKDOW4DMDEALBWEMRG4KEBR7VLBVEEXFRB6VUWBSTYGODGFHDTF52E3AGIFZ5YM3JCNU
+#\\\|AQQR7E22FDRWVWUHQJR7UKH4DZROY44EQYKYT36E24ULNPPSZSR \ / AMOS7 \ YOURUM ::
+#\[7]5DW2BDMNKJR7SD2RPOMP4OZC5SCG2KG4HEATS43W356I5HZHHKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

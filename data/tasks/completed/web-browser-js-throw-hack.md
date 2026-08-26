@@ -83,8 +83,8 @@ test commands that exercise `js_call`:
 - [ ] existing JS callers (scroll, run_js) work without regressions
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,..,,..,,,..,,..,,.,,,,,,.,,,...,..,,,,.,..,,...,...,.,.,,.,,...,,..,,,.,
-#JF3CO4WRGVXGO4JQUXRU244EKUUOEGCWHCVKK4273QIAKHYFQ72XL7CQEGTTLXR2ETEWYW5JL6JKE
-#\\\|PQUAWIJNUV2NQQVB3RRDAAZQC3XXMMVQ6ML76YPBPNRYSYBBGP7 \ / AMOS7 \ YOURUM ::
-#\[7]7NYM7WLJ35M4QVUW7MEIJ4YNGMNOF6C3SWVF7SYFFC5UNREG5CBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,..,,,,.,,..,,..,,..,..,,,,.,,,.,..,,...,...,.,,,,,.,...,.,.,...,
+#IHPOYFTRFB47RUEVQLZHMU5X5DM4ZDYD6X6MQMQ63PRJTJNJSCNBLPLLOBYPMUKOXHSJPYH3IFBZY
+#\\\|CWOL7GQEVTLOF74BU626KUNPDLLXGOSEBEGRFPNPEBM7Z2QCZGO \ / AMOS7 \ YOURUM ::
+#\[7]XMJGP27Q7HSO2VVOVDE7DUOTUUXWR453CYPEFIQZFQW4SRT2OADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,8 +41,8 @@ explore agent; `subagent_id=fable` correctly selected 1 of 6 transcripts
 with an accurate summary of its derivation; no-match filter returned a
 clean error with no wasted inference.
 
-#,,.,,,,.,.,.,.,,,.,.,.,.,.,.,..,,,,,,..,,.,.,..,,...,...,,..,...,.,.,...,,,.,
-#LMLKFGNO3HQTPPLJQ6CYFN2JGGU7UPMATXLWZWRANAURLRVUCVPSLSF4G6TH7AKQLNCTKOL5BL7OQ
-#\\\|W7COIBLQ54YGHMU4OQ6PSVJDCRTQSR7RKZE3DGTI2NHLZXOKYQG \ / AMOS7 \ YOURUM ::
-#\[7]IYDIVGMLF4DBOWKJWRGGWP3LWN6LXLN4467FZC2KPUNK444OP4DQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,,,,,.,.,.,,,,,,,,,,,,,.,.,.,..,,...,...,..,,.,,,.,.,,,.,,,.,
+#XJD6RRYQUO5LKMSKL5NRZ5FQ54ITUN6U6EOGYQVZCTKXOWNA7KXR6QOXET6HBI6RR4VGTR3IOEWGA
+#\\\|GBNGBBHPASHF3YTXMM2DNGFA3M23NJYXDBWGFS4LMYMZTU57PRJ \ / AMOS7 \ YOURUM ::
+#\[7]U6GTAI4XBVYNXAEK4EQZBFTNVKO543AYUQH47INXY7J7WBMZI2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

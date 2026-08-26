@@ -347,8 +347,8 @@ the test: can you describe what the zenka is currently doing in one sentence?
 if yes: that sentence is the narration. the next step is the delegation.
 if no: the zenka needs `reasoning.summarize.*` before it can self-delegate.
 
-#,,,.,,.,,,,.,,,,,,..,.,.,,..,..,,,..,,,,,,,,,.,.,...,...,,,,,,,,,,.,,.,.,,,.,
-#KHSD2DGCHOO5HLTMV2UYYSV2DAV5F5JKCFNHH2M64GLXCISFS244M6UFO7KEELBXU6QJBKR4JU7PE
-#\\\|VMBDOKOWMIOEV2DRW6OAM7JH5PE2XJUAOU5TMCSJX5QNMLX4HXG \ / AMOS7 \ YOURUM ::
-#\[7]CGILK3PQC7GD45F6GNJPCPFD6BUYRG6WDX3HLYOVUBFQCBTLBKDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,.,.,.,.,.,.,,,,,,.,,,..,...,.,.,...,...,..,,.,,,.,.,...,.,,,
+#JWOHUR3UB3OOYB5V2FSUJIPREV4M752EMG2HSXW5ZWTFF4S6JBGAGKUGLVOJAZPTLOZU3K7ZB2IRQ
+#\\\|I2LXUO2D7BPZOC7HR2XWNAJKRGD3BH7L6ZEGMDLIUK3WXIZJVDB \ / AMOS7 \ YOURUM ::
+#\[7]H2RJ3U5D2EXVTFLMUEGQVB3ZOFVY24BYIQEYV3OPUZOLC34NDEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

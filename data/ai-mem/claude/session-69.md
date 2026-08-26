@@ -59,8 +59,8 @@ inference rounds to complete before force-kill.
 **instance-scoped pid files**: `state/inference.gpu.$$.pid` — prevents spawn_inference_server
 orphan scan from killing sibling instance's live GPU server.
 
-#,,..,,..,..,,...,.,.,.,,,...,...,,.,,.,,,,.,,..,,...,...,,.,,,.,,.,,,,..,.,,,
-#PV3SNPJVSCD4AQNGQG5KZFXIXSSVJCMCM3LARCXCJAWW3MSMMD7RFZQNWNYPFV7W3NGFCB7G4EKRS
-#\\\|RCIIDUQJX5E3MECCINH24JLBUB6XYQ3YXDTISPNMOU457KKIJRU \ / AMOS7 \ YOURUM ::
-#\[7]PD42J6URDB7OSDRHMP6J63DDM3TLQOE2YENIV56SC33VFP3W6KAA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,.,,,,,,.,,,..,,,.,,..,,,.,,.,,..,,...,...,...,,,,,,.,,,..,.,.,
+#66D4YJQZXW6O32OLKSCWU4J5JHCSF34LFR22JYJL2GHVENEKIJOXCMVL37NP5UWFH65HDIWNBTDYU
+#\\\|DMF4DWSDT3PGLG4IIF3Q642ZI32WIHQF6LRF2SFRCGSXL7E2CZZ \ / AMOS7 \ YOURUM ::
+#\[7]5N2G6B4K5M2IGGOH5T6FFEAEJHCRQHPQX7B7Q4XKHDVSOWH5FECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

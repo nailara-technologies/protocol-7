@@ -50,8 +50,8 @@ leaf tasks go one level below branch nodes, following the same format.
 they should reference their parent branch and list any `depends_on` nodes.
 the task zenka loads these on startup and holds the live view.
 
-#,,..,,,.,.,,,,,.,,,.,...,...,...,,..,.,,,,,.,..,,...,...,,..,.,.,,,.,,.,,...,
-#4D5VVG34XG2DVQJNZY4DUDRYU7G6OSK4KQA4FQI4ATHBWHXZYHNFBOEMNQ34R5EQGUP7ABETYMJO6
-#\\\|TVV2CQZR23QF4KOPXHLFNZ5HXA36KEPMJLHFOKQWKU7SRP554CP \ / AMOS7 \ YOURUM ::
-#\[7]3EI5WXOZOXOI4MY3MMQTGPBO4H5BS3L2DQS65GPORFDHH3REFMCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,...,.,.,,.,,,.,,,.,,.,.,,,.,,,,,..,,...,...,..,,,,.,,,,,..,,...,
+#DR6IHBSNVX3D3333TEWTLTHQPVPBUUHQBKPNOSMLPP2APKC5ZK6RN3DKZ3HVMXFKOZ7TBV3QRKKSA
+#\\\|CF7M42Y6PVD52XFEF4TG3MOFGCNYG6HZTB6MEZ33XBMKRXP7SZG \ / AMOS7 \ YOURUM ::
+#\[7]45BGRKENVBNYWQCL63TXNOWD6WP2BWM3WISPQDS5MCZJ6DGYDQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

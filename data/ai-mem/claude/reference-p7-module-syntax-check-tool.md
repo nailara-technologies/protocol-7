@@ -58,8 +58,8 @@ already existed on `HEAD`, it's this class of noise, not a regression.
 call-injection-not-caught-by-perl-c]] class of bug either — boot-testing
 the owning zenka is still the only real verification for that one.
 
-#,,..,,..,.,,,,..,..,,,.,,,,.,.,,,,,,,,..,...,.,.,...,..,,,..,...,.,,,,.,,...,
-#WW74HB2XOXU5YB6AVXQK6QFMYKWWTCMX6JOC73MB4ZAGPQ64HGQ2IKAJZBI2UFQ466I2GOPGXPM2Y
-#\\\|3CY4SJE4AE62N3QWDCUVYK5V67K6MCORR766E5GIWJLA6ZACKWW \ / AMOS7 \ YOURUM ::
-#\[7]FBHY5V76Q5BZ6QIM2LX7AZV7ON56ATY25PV6G5AKHYENG4ECGMCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,,,,,,,.,,,.,,..,..,,...,,,,,.,.,...,..,,...,,.,,,,,,,,,,,.,,
+#VTWMEFASKTVDJVMJHLMILTPQ5CK3JUGPRZLUC2SSLHKDZPDKDC5XIOVBB6726CNUPNAYB6UUXPXDE
+#\\\|JD6YSL3U25HYACJ5Y5CPICVCVFP5MJBKE23U4V2ZAL2RKVN45RA \ / AMOS7 \ YOURUM ::
+#\[7]SH2EMS5DD2UQQWPRZ2IQXPPQ3LVN47UYJV5ECMOQX7QYPEMBBQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

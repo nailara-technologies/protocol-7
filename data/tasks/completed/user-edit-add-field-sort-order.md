@@ -120,8 +120,8 @@ Report actual captured output for each check, not just "passed."
   the right amount of abstraction for the single synthetic field that
   exists today.
 
-#,,..,...,,,,,...,,..,,.,,.,,,,.,,,,,,.,.,...,..,,...,...,...,...,.,.,,.,,,,,,
-#EEBXQJ4K6DCHCJM7EYQE3ZTC6OEP64RSQTGQ6CSL2KSPAC5TIXLTWS4K6PDXY7J34UP6PRYNEJAEM
-#\\\|4FQ3LO57MEDWEA4ZU5K6R5PU756AKG6JWCYSIGZ5PQGRZAZMMFE \ / AMOS7 \ YOURUM ::
-#\[7]UZE5TP2KJIBATQQQEPRNCNOYTLKDEQSI3GOXWEPTRTCDUG7OPQBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,,,.,,..,,.,,,.,,.,.,,.,,,.,,..,,...,...,,,.,,.,,,,.,,,.,,.,,
+#3GZXAOQDGSZP54QBKWMNYTNTTEUF3S2DJAMYUTNYSRTD7XFVQUU5ZYBO52AS6TLFBATQSO75NPN2C
+#\\\|J6F7TT77MOCKMXEIDCCPNWQHV3ISTASH2UOCBJOYXDGHYYOMQTS \ / AMOS7 \ YOURUM ::
+#\[7]AY3E2WURSM4UKZQECDZAFF5FPEUDSQE46KLQRR33574BDBRR2OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

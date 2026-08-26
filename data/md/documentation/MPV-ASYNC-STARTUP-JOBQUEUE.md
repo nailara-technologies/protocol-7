@@ -85,8 +85,8 @@ is ready (or after binary crash) drain automatically when socket resolves.
 - **`:twin:` restart integration**: zero-downtime player config reload using v7
   twin restart when zenka is still processing traffic
 
-#,,.,,.,.,,,.,,,,,...,,,,,,,.,.,,,.,,,..,,,,.,..,,...,..,,..,,,,.,.,.,,,,,..,,
-#NG3VWVYJU4BZ4PM77QA7B6CO26YRVLHH4WM4MS4J5KKOPWKNVRXYKTJFQKPU62XOMSAPQJTSIR4PW
-#\\\|GQYRIWXG7FQMJCTVTAJHZUTHY7P4BBV2RA2L3VEF5LOWQ2QJOWL \ / AMOS7 \ YOURUM ::
-#\[7]6YVKM4GRX6HIPDTLJWASRNNATCB5DCAY7OPSGH6AMRGNPNVSZSDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,,..,,,,,...,,.,,.,.,..,,,..,..,,...,...,,..,..,,,,,,.,.,,,.,
+#CLTPFDKSI6XDILRCUHZJRVXFB6HXM4EJ6DT55J6OKENA4MKHJYHFCJTOAGLMPFR5VKXN6AB7TIT3Y
+#\\\|GMPE5MWSNDB5OYH5I6BDYADMOLWNLBFATOUQXETISK3IVJTGBP2 \ / AMOS7 \ YOURUM ::
+#\[7]AHAXIFLLNO3JBRXUDUL77GZMRTNCYQEWRLYB5FS657IEPHO4GABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

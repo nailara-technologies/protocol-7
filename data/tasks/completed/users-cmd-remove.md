@@ -114,8 +114,8 @@ that aren't backed by shown output.
 - Do not touch anything under `credentials`/`cred-mesh`/`sessions` — this
   task is scoped to the `users` zenka's own record storage only.
 
-#,,,.,,,,,,.,,,,,,,..,...,,,.,,..,...,,,,,...,..,,...,...,..,,...,,.,,.,,,,..,
-#6GGFENTVITUCW3BRBZGPOPK6CVJAJRJZI663RRPAMISBYSLQJHDGUTLE7EPOMAPB5RE2HFTWJ4B4Y
-#\\\|AR7FGFQZ5Y56E3FARTMXJH55ONNMJ4IFGRZCDMLN4I4B3SWKBMV \ / AMOS7 \ YOURUM ::
-#\[7]YJU4G4QHDZXE4YI6EZE36QC46RMGP7T3M2N5HYQBM43DZGZRVABQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,..,,...,...,.,.,,,,,,,.,.,,,..,,...,...,...,..,,,.,,.,,,,..,
+#57ML5BC3BMSYFX54WBM6ZE5JGISUKZ4IBLIAHF7FTVICITCL3TTRZTZ7SFL2ONDX3XJ2MGLHTWYWE
+#\\\|6UQVNEWVMF6M5XKUBLPPSFK4WNBVXT3UTHKRO5PSS4MA6VSG5AN \ / AMOS7 \ YOURUM ::
+#\[7]YAUO6DS56ZPNUPV3K2447EZHDNFO5V5BRRP4VWR3ETC34FVEXEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -60,8 +60,8 @@ the p7ref ADDR_B32 suffix encodes position — change last chars for different c
 
 do NOT add stub signature line to new files.
 
-#,,..,,,,,,.,,.,.,.,,,.,.,,,.,,.,,,,.,,,,,,,,,..,,...,...,...,.,.,,,.,,,,,...,
-#L5WOWEIEEI7QT3DNRTUMHR3I5ZGVDSZQZ567JX6AWQUS4XBSSLUR3VNVF7SPIRL2VSLZMVAOEMXYW
-#\\\|LNTEV4M7ZB3Z6SFFZVGS4FFN4E6XXMIWDZNI3SHJQ7UNVY5GXUE \ / AMOS7 \ YOURUM ::
-#\[7]HXEI4INQUBW2EMPLK4QURWWJ2LAJS3DMJ6MGJ67426U4A6B7WWBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,,,,,.,.,.,.,..,,,,.,..,,,.,,..,,...,..,,,..,.,.,,,.,.,.,,,,,
+#HPMYYF3OP3BQOSW3Q63DIYNEQ2UC7FNWAVBHCPVTAOJ5LAGZV6ZOYSCAUY435AWRVYVAIKTYJZZB2
+#\\\|XBJYWRJXM73Z62TRCGBQWTCU3Q4OIBYQFFIV4NQWP2ILWALK25W \ / AMOS7 \ YOURUM ::
+#\[7]GOVAQGH65CNETO4C4MXYUZZGTDUVOFNYPUNUF5LCPYORZM37N6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

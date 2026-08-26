@@ -325,8 +325,8 @@ These provide the **baseline TCP connection pattern** that `transport.handle.dir
 
 **Removals (none):** the original list is otherwise sound.
 
-#,,,.,,,,,,,.,...,...,,..,.,.,,..,...,,.,,.,.,..,,...,...,.,,,...,.,,,.,,,...,
-#G7TYYY3SI7HUDWPTKVQCZ256F6XE7FNXYSGAA7IF4LYXXD2LNGMGDGPXG3HAEQFVNEASLXB35S3RA
-#\\\|J3GW2RIEQBZ5GEOONHORVYRNVQKT47NWPZACQWQ3DLF3RDYLXKD \ / AMOS7 \ YOURUM ::
-#\[7]PRNBSMICYRIJULNUP7X566DYGWTF3E2YDKKL73SCOANGHICW3YDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,,..,,..,.,.,,,.,..,,.,,,,.,,..,,...,...,.,,,..,,,,.,,..,,.,,
+#ZYDXRSURXWQDIA54NZ6NNA3O6X7UFQHGWBLIGHN4JMX7TSQDZWOHJIUYW5G6FB2E3RGTAZH67YWAQ
+#\\\|OIHZKG7FMJRVPFXFTIMIIZLQY5PNHLMHDOQMDFORKW46DONBPY7 \ / AMOS7 \ YOURUM ::
+#\[7]XL33FWEMOOGUEMUDGRXJDUBBUR3SCPP2HDSXCXIN7QWYTH5SQUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

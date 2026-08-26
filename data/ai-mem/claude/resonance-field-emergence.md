@@ -39,8 +39,8 @@ user wants to start building rather than continue riffing, is the
 session context — a clock/tick layer unifying spatial (checksum-tree) and
 temporal (ntime/timers) addressing into one synchronization substrate.
 
-#,,..,..,,.,,,.,.,,,.,.,.,,.,,...,.,.,,.,,,..,..,,...,...,..,,,.,,.,.,,.,,,.,,
-#DUIQRI5DC3RZLAXAOQM62K2H5A7PWWS4LEZIPHBPNYQTOMZUK4LVCLC5FPLEG7ESC4TR6I35GOFVA
-#\\\|72IGX7M6SEW2AUC5SG4U2TQY5MHHPZIXLWRZ5PDWRLAYCLRBFUV \ / AMOS7 \ YOURUM ::
-#\[7]QSE66E3JICF67RXQXFYN7MJHFTGM3SJOQPIDDIIQMXD4WWFBPGDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,,.,,,..,.,.,,.,,,.,,...,..,,..,,...,..,,...,,..,.,,,,.,,.,,,
+#KRS7EUN4OB5F3DVQVLDFVSVSNRX3JNV7RDON7OOYEZRKIMG5OEGTERMRVZXPDAA4D4EPYBM6PHVBU
+#\\\|Y6QFE7ZOLZRCWODVYGXD4Z4ES7UNNYP63YYUSXXVVVFMZ3DQ5EC \ / AMOS7 \ YOURUM ::
+#\[7]7B2MQCFXQ6Y6O5LJB7AJSO66ALCSSGCDQND2RJCTIEYDLUQXYSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

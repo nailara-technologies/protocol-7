@@ -18,8 +18,8 @@ $interval = 30 if not $interval or $interval < 5;
 ```
 Never pass `$cfg->{'key'}` directly to `after`/`interval` without a `// default` fallback.
 
-#,,,,,...,,.,,..,,,,,,..,,...,.,.,...,,,,,,,,,..,,...,...,...,,,,,.,.,,,.,..,,
-#DC5BOD2UT2XC5CZNH4JP5GAAUI6JDNOT5R3QYJZQTR7CJ6WYFMQCWV766M5DTUIMRMGWZSWACIMAS
-#\\\|QBEJWQ3MNTU265FZ7KSU4E3BZWUQNV6JTCBTRPCT73HWQKDE4AN \ / AMOS7 \ YOURUM ::
-#\[7]Q7U3YYKO3YNIB3IOWBH2PY2Z25GQVUXQMIKKSH4CZMDSDVT4LWDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,.,,,.,..,,,..,.,,,.,.,,..,.,,,..,,...,...,...,,,.,,,,,...,...,
+#CXFV6N25HTYQ4H6MHJPELAQQQVNH4EJFIN3673YN2LNKJMCC3NAMF7I7M2A5ZMRYTPZ3I5XO2PQPW
+#\\\|KIPQ4ML3VPH7UYD6QTGTIW5HS5VWSYMNA4CTZKQ3NHM6RTVTHBY \ / AMOS7 \ YOURUM ::
+#\[7]BIKWVTXMEI537DAJ6UAQ47O2D6GGVDECHTSAWTO66YWYPHIMHKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

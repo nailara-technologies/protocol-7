@@ -155,8 +155,8 @@ Report actual captured output for each check, not just "passed."
 - No hostkey (`remote-host.*`) entries in the list — named keys only.
 - No changes to `identity_key`'s own existing render/plugin mechanism.
 
-#,,,.,..,,,,,,..,,,,.,,,,,..,,,..,...,,..,,,.,..,,...,...,.,.,,,,,..,,...,,..,
-#7DVVFCIW6VOOUKFUMOY3TKBTCZDX2DOX72U6BWNNJX5VVPNYO6FIDEHTPKTHAUANFS5QL7WF2IDXO
-#\\\|L45IMHSPIGBR6R4XB6EMH5MKO545XL34PRRH3TJ5IQ4S6SGNUNK \ / AMOS7 \ YOURUM ::
-#\[7]Q453K7MRPFYLDAHWRW5MUFXFGS5GD2VZUR5SFMFMUSNADYCWNQDQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,.,,,.,,,,.,,...,,.,,.,.,...,..,,...,...,,.,,,,.,.,,,...,.,.,
+#CW76ZEOEWVYVFC5ZDLMCXISVKDXXXEN4FDSUWXMGX7CXS65RW77KFBC6AR6BIUDBGC7BMMJDRGUXM
+#\\\|DZWXGRWNO34YZI47JPDHNWDSEABTBQCLMY3HNHGMYL4FTBAJ2GL \ / AMOS7 \ YOURUM ::
+#\[7]73YO7SSMD6G65KXUFFJ7ZD46P6S6IQP3MPQ4DFA5ERUQ32F3SOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

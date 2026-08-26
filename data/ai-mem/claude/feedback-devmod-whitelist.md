@@ -39,8 +39,8 @@ them, but they MUST be present or the module fails to initialize.
 lifecycle hooks for all `modules.load` namespaces are unconditionally
 included. Current issue visible with `devmod.*` on the models zenka.
 
-#,,.,,..,,,..,,,,,,,.,..,,.,,,,.,,,,,,,..,.,,,..,,...,..,,,,,,,,.,,,.,,,.,.,,,
-#3E24SGIE5T277VVXFWNVU4HYM3H67UXJZIILTBNIILS75ADDLMGGHG6VQTWBDEHLWJQBLCK5QHRHM
-#\\\|6STJHOICCEERYDE3AQ52443HOISDY45DPYNGQBGHFRH2GDUZF56 \ / AMOS7 \ YOURUM ::
-#\[7]Y7CODY53PZEYG6GL4ZNCXQDUZJOSLAUMJJZOAXZE6WTNQEYDB4CI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,,,,,.,.,,,...,.,.,,,.,..,,.,.,..,,...,...,.,,,...,...,.,.,..,,
+#WOHFY7226LMCPXLT327D3OR6LH3747NQCOKI6Z4KDGNBPCITWXSDLG3C7A25C53FRHKQE5BV7FI3Y
+#\\\|BABDVXQPJFD2AX5QOGZ2OPMV46YZYZTYZKD33FKCCOWEMUA7245 \ / AMOS7 \ YOURUM ::
+#\[7]AGIGCPHTUZ4ISYJJSU5IXQMOTXAJQF6OX4M7DA6TT53GWEMJTEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -567,8 +567,8 @@ Output: numbers 0-9 rendered as 7-segment digits
 - `read-me/documentation/dev/epoch-content-addressable-storage.md` - Protocol storage
 - `read-me/documentation/dev/multi-resonant-unified-architecture.md` - Complete system
 
-#,,..,.,.,,.,,,,.,...,,..,,.,,,,.,...,,,.,,..,..,,...,...,,,.,,,.,,..,,,,,,.,,
-#JVSUNCWTWRCVISUFS7VU36BSY2OKC6GDSUV3FJGPKEP5DQUXMIYGXW6GEBPF4VUOBCBDYCMUPZTFI
-#\\\|3XUEWJNCQKOGWTN2DX755NEXRQATQGQHXPLQMLCA4U4GDSHTEY7 \ / AMOS7 \ YOURUM ::
-#\[7]KOITB6PRFGV4PWQHZHGHO34NHN5FXIHOBHMNWBDF6XU6VSSE22CQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,...,...,.,,,,..,,,.,.,,,.,.,.,.,..,,...,...,...,.,.,.,.,,,,,.,,,
+#7LBIAYEUV7JK6ZIN46GZIXJMXBKEQVKG6HZ7YXF5GMUDVSVO4CIIZ77SG3OB7JETXYZVVCHG2Z4EY
+#\\\|S7LAK33FCD3FHIFKC4XZPR5FE7N2TFB3SFCMMBUYAW6YDGA7UO6 \ / AMOS7 \ YOURUM ::
+#\[7]UWHY4IZ7TQPBYLTOENRTIVBK3G2WBLIL3E2VSLBZANHMGGVQQUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,8 +32,8 @@ Leave actual numeric literals (counts, IDs, indices, math) alone.
 
 Related: [[style-philosophy]] (lowercase narrative, visual cohesion).
 
-#,,,,,.,,,,..,,,.,,,.,,..,.,,,...,.,,,.,,,,,,,..,,...,...,.,.,.,,,,.,,.,.,,,,,
-#G56FV33RRNIDUJSGWPYOIMIUGGIY7VRK7T7J67I7NP56EPQNIUZVV2MUVDZY3QKQTWS7MSPBGAYIM
-#\\\|QNC6W6EHMGI42IHGSRH2VHCEQ4GEPRGJAZLDDMTQB7MVYF26AUG \ / AMOS7 \ YOURUM ::
-#\[7]KIGODVQYMUEVBGXAOZAJKLSZVERNPG3M5GA356DXXR273B25HCCI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,,,.,.,,.,,.,.,...,...,,,.,,,,,..,,...,..,,...,...,,..,..,,..,,
+#GVZCI5R2EQQCEOBRCYB44OP5EFXMHHYSX64FJVKORJA4GMKUAVVWWPSTXJCVVMEJVB5FV3HVKI2KO
+#\\\|6Q544HJD7DZDEXQKXT3LGNSMMHV3R5FEINB3FXFH7D6EDHH7OHE \ / AMOS7 \ YOURUM ::
+#\[7]D7JYOIRUF6XZ7HYWKVVGEUURWIQ6XRV6NCKFZKWDLIOCCRUJKSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

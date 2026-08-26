@@ -68,8 +68,8 @@ noise-driven cleanup starts surfacing enough per-call loads that a
 systemic fix becomes worth the design cost over one-off `init_code`
 placement moves.
 
-#,,..,..,,,..,,.,,,,.,.,.,..,,.,.,,,,,.,,,,.,,..,,...,...,,,.,.,.,,,,,,,,,.,,,
-#AAUF265AR4SSN74AA3MCX4XKRELDT5EXNETQNZVD53UKVAO6V44ISSWXQZTCIU4OUVP7OAXHR25B4
-#\\\|37FT64OHGEELY7YAIJCV5RQEQ2OBCGC62SRNXM2Y2CCXYF4MVH7 \ / AMOS7 \ YOURUM ::
-#\[7]VQPE4M7JAHQNPRTTGDLW5J5OLP7EORNGNFBPZX7ZF7W4AE4SHWBA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,,,,,...,,,.,,,.,,,.,,,,,,..,..,,...,...,..,,...,,..,,,,,.,,,
+#F6FGXIY3FIPJEQTUNMPVCQ2HO7ZTPHY6JKINBRTKG4HQLI2BNY4RQJDJOMEMP7G4LR4P55PICWY2Y
+#\\\|I5KF2D5VOU4Z4SCACVQ4QDTSQIF6SN4YIIAPNTRLQWVWHCDEL3V \ / AMOS7 \ YOURUM ::
+#\[7]TPSQEAITDTNBP44F7WXUCVKT2FYHKVZ6WLAVJDQQGZAVZLOBZCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

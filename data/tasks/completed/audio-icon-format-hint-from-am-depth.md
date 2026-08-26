@@ -108,8 +108,8 @@ this task is only about generating the per-file signal; consuming it
 consistently across a listing context is deferred to whoever builds
 that UI.
 
-#,,,.,,,.,,..,,,.,.,,,,,.,,..,.,,,.,.,...,.,,,..,,...,...,...,..,,.,,,.,.,,..,
-#77LUK4CDS77O4CHPQX3DPIK37ANOOCR7IWH6DIZHTLGRGA32MZPQW3V66LDC4AV2IFEFFM2UVY5PY
-#\\\|M25BW2EOUERQR6ONHURWBKF2TJAXVMAQYJ4TMQF4UKZRKRS4DMY \ / AMOS7 \ YOURUM ::
-#\[7]2INTYUYV2VT6YHVJ4HHPUQXCLJOQ2T24VVMVB6VDYQKFTWK3IOAY 7  DATA SIGNATURE ::
+#,,..,..,,...,..,,,,.,,,,,.,.,,.,,,,.,...,.,.,..,,...,...,,..,,..,..,,.,,,,,,,
+#TVSNQF2J7L3KUIHMVY3TTZ3NEXV3G6JZ5TWEJ7MWPOUXQK743LY6TOCETNB457Z2RI4AQZGJEGBHK
+#\\\|2S3TKY5KIBHDJA7TC7232X7SCUHJBWRBFFCDETGUBGORTJ5LJHL \ / AMOS7 \ YOURUM ::
+#\[7]X535YIGJN6GHNCCOMJPORBLTNGVO2Y6LVQY6I6DXLRV6CADOPUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

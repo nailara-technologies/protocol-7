@@ -78,8 +78,8 @@ Guard added: `return if defined <nodes.orbital.session_start>`.
 - nodes.orbital.update_position — immediate fix applied (first consumer)
 - [[topic-base32-namespace]] — same session, swap_subs lessons apply here too
 
-#,,..,...,,,.,...,..,,,,,,,..,..,,...,,,.,.,.,..,,...,...,,..,,,,,,,.,.,.,,..,
-#2XE3OHLBE5E7OQALY4PFRO44U54ICJ7FL675RBYN2UJRGBVNZDN6X3DODPIOZD7RL37ENRXN5RVHO
-#\\\|FMTMOQJBI5V7I4NBFMQHJGN62ZFUTQVSCMPFQRL7VN6SEXGAHBE \ / AMOS7 \ YOURUM ::
-#\[7]7FQ2QITF7ZUF47NN6QZLEK3GZU3MXPZZFG63UZNOSWRFQOGLTKCA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,..,,.,,,.,,,,..,...,,,,,,.,,..,,...,...,,..,..,,,,,,,..,,.,,
+#7USN5MENBKS6UVWDCNDJAAJQML6IYNDFHG6VE7TIMUVWPYZ5WPR2CAZP7IXCOG2DHYRSHZ3I3DBM6
+#\\\|HFWB2E4XWXWV5PSEK7KPNCZQJ2YK2HTNBBTWYD6RRU6B5L7WRDS \ / AMOS7 \ YOURUM ::
+#\[7]2NRNOJO7SW4WQ3QOLZH7DNKEM2V3RMSMFO5BAJTUXKICFXFEJ4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

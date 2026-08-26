@@ -485,8 +485,8 @@ The result: **You know what the network knows. And it's never more than it needs
 
 *Privacy through explicit marking, minimal diffs, and transparent visibility.*
 
-#,,,,,,,.,,..,,.,,,.,,,.,,..,,.,,,...,,.,,,..,..,,...,...,.,.,...,,.,,,,.,..,,
-#M3IIIQ37YGPMKV6MHJWX44EOUJKMQLGC5MNTKNTC7CAWIKVVQDT6JZ6TOHFTR65DFIHL3OCX43MM6
-#\\\|MGQEM64QHF3BSBVG6JNNKWCG2FKM67CP2MS5ULBKDGFP7RAG5IU \ / AMOS7 \ YOURUM ::
-#\[7]BEX6ANQQ35IC2PUK4Q63CXB4HG44OOSXVNBRUHKOJ2MBITVO2WAQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,,,,.,,,,.,.,.,.,,,,,.,...,,,.,..,,...,...,.,,,,..,..,,...,...,
+#O6VBJU4WWCHECSAHCHOOGLMMHR4H2KSW77VURSLOC3ZCHF7XBA23EG353REQW54PGBUQODVZVM33Y
+#\\\|KLEQPM6UPCKWSOT7ROCICC6P7A77A3DHZYZY34DFLAXQ6F4G7UD \ / AMOS7 \ YOURUM ::
+#\[7]RNBO5XKSK7G4LSILODOFTW6NYA5GMT2KJLJIJGZZBXNX7F5TEYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

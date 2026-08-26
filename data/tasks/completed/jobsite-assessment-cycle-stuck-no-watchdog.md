@@ -120,8 +120,8 @@ has conventions for.
 - confirm the exact recovery semantics wanted: retry the same job,
   skip it and move on, or mark it failed/blocked pending manual review?
 
-#,,,,,...,.,.,...,...,..,,.,.,...,...,,..,..,,..,,...,...,,..,...,,,.,,,.,...,
-#SF5IOW6XPBWEXIUW7IYPSEIROHWFHO5MCQQ5ZZ6TAJ37SCBR5RUNR5IBTAOUDWBKGYQBUHHCMQUQ4
-#\\\|6JHAL4Y52JCPPJNPEKL4FASB4HHJPKJPA2BDNXGTXBSJ6ZXPSZ3 \ / AMOS7 \ YOURUM ::
-#\[7]MBTBOH5DTI5S2PBEOY2EALBEP6KEKBVKPIOPJOBUBNMPYU4Z56CY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,.,.,,,.,...,,..,,..,,,.,,,.,..,,...,..,,.,,,...,,.,,..,,,,,,
+#7XB4MTNQPHOUYFJIX5HNNN54TV6TZ4POD24WTNTDWQM2O26KZ4YCE6EOSCSZTNW6BOLKB2M55IDD6
+#\\\|O4BWWMYDP77757NAHTTDJZABGRJWKI2HD5VFVXG6DX6EMGGR3CS \ / AMOS7 \ YOURUM ::
+#\[7]VNEZGJ3AXSWZKMNZSRNRSNO7XAUYRKM4GAQREFMMKBEKHTJL5UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

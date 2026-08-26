@@ -692,8 +692,8 @@ cube coordinate; routing decisions use Manhattan distance or CCW geodesic.
 
 #,,,.,..,,,,,.,,,..,,,.,,,,..,.,,,,,,,,,,..,,,...,...,.,.,,,.,..,...,...,..,,
 
-#,,,.,,.,,.,,,,,,,,,.,,.,,,,,,...,..,,,.,,...,..,,...,...,.,.,,..,..,,,,.,,,,,
-#YRNEEMNUQDAGTSUDOSJAM66I7NXB23GTXHABVSYQ45DIN5PIHUIROUB2CC5EPP4VXNUPHI3DA5HVK
-#\\\|ZHFRZSWBYAAEMB5C2C5ZPT4EEV53AKYZAV2ICDZXJWBBY4KJEWV \ / AMOS7 \ YOURUM ::
-#\[7]5JNUHZORTS4D2FXYREDM2WHS4MMW4D2AZ2LFVTE5ESF3DNOCP2CQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,..,,..,...,,,,,...,,,,,,..,..,,..,,...,...,...,..,,,,.,.,.,..,,
+#4GO4CQWBE7MBGO4W524SNYTOA7AFEJPSBSAZNZBWJGU2YUIRHM2MK2MOGV4UKYOS5VN3DOAYR4V36
+#\\\|DLD3USYHQH252DZ5XSCPBOV6ASAFCCW6QBB6WV363ETRKQ7APEY \ / AMOS7 \ YOURUM ::
+#\[7]XLM3EZ6AQ6WKYZHT7V2V5SAF2FFTKFFBANKKTRFJ5XFCUIDDE4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

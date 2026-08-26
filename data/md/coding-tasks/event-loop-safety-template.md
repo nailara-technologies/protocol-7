@@ -148,8 +148,8 @@ After writing the template:
 - if you find a clear DANGER case during research, note it in note_write
   with the module name and line — a separate fix task will address it
 
-#,,,.,,.,,...,.,.,.,.,,,,,.,,,.,,,.,.,..,,,,,,..,,...,...,...,,.,,.,,,,..,.,.,
-#4PTYZ3BAIQFL6ICUUDDTUHOSFDQGFP4DW72TWOT4YPOM7NKJBV2EJ447SOEDF35MG7YWYRAQPHSLA
-#\\\|DVMCLZ2HDPIMLGXWFH3WMYZPR7IIT52CTIRUVIRIE2EC7BEPKGJ \ / AMOS7 \ YOURUM ::
-#\[7]VS267SYXZDOEQSU2DQIDNM4OLTANQYTT2UPOJU6RHPOMRJ6HHAAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,,..,,,.,...,.,,,.,.,.,.,.,.,..,,...,..,,,..,,.,,..,,.,.,..,,
+#UCY4FZUWFYXQ56HQPUZRZ2GKETKYPJMVHH6CM52EI5HEMT6FNXQGYO4AXGTYDY3IVO4G2TMLXNUEY
+#\\\|WPZV35AORP7GWWPBDNQZ6AOXNVIRKUCMP5TS4NMRFHEZPQ4U7RA \ / AMOS7 \ YOURUM ::
+#\[7]4L3NZKARGL2A5CGLG6P7AMTH6PBN6GJGZWAVCNGTOK7X4T4FMACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

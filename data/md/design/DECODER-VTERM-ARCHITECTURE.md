@@ -261,8 +261,8 @@ candidates — the strongest spikes in the parallel-assertions framework.
 - `bin/amos-data-pager-56` — reference for `AMOS7::INLINE` true_int coloring
 - `Term::VTerm` v0.08 — installed, full surface available
 
-#,,,.,,.,,,.,,..,,,,.,,,,,..,,,..,.,,,,..,,.,,..,,...,...,,,,,,,,,.,,,.,.,,,,,
-#5NBOF4JXRIHFNRCJPXOM3QPUNB7F6E6WER6W2J7LBSW33FJGONXO7LOIFVWAZDK2DJDTSSQNBFFL2
-#\\\|6SXHDV2HP7JSRI5UG4XSR3UT7LWKV2SNFVEY6SSSOTQH6BU4B52 \ / AMOS7 \ YOURUM ::
-#\[7]U75JL2BYKUJAD3JVRF7DYGD4RLHTIEW47G2OFAMAA3RFPDEPNQCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,..,,,,.,.,.,,,,,...,..,,,.,,..,,...,...,...,,..,,,,,...,.,,,
+#CPPQFPFDENSXRSFGEPPC3QSB2EWFBGF4LLSTNMZK73TVUZTDT2SA6KXG5AFSBKNGXH3BSM3COTFK2
+#\\\|KFMXMMM56X5HTTM5AJ6LQVXOLHV4UOEV2SSV2YBGRG3RV5W42O6 \ / AMOS7 \ YOURUM ::
+#\[7]HSYEUD5YQ5VA2DP5NNEDVPUDESJMJKFHC7OHTKCX4KCA6SRQPIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

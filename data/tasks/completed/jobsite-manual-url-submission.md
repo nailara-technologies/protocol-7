@@ -353,8 +353,8 @@ handles the local-vs-remote judgment once a posting is found.
   vs. leaning more on manual submission for one-off finds — not obviously
   one or the other, likely both.
 
-#,,..,,,.,...,..,,.,,,,,,,..,,,.,,..,,..,,,..,.,.,...,...,,,.,.,,,,,,,..,,.,.,
-#ABASZT6J3V2EYYU2IW66I236WNXEJGKGU4DXHYOODF7NCPUN6JLHZFTDAPD7HIFPGJ7VBVTK6CFBE
-#\\\|H2YC7JC2UMTXA4H2ZMJMOYI6OYJ26ATARS6DOYIQTI4HDKCAVQL \ / AMOS7 \ YOURUM ::
-#\[7]SWITPOFDO2Z2KE3FXWXQ63IX7YZPERSG5SQC4LTS75ZRLK3LEKAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,.,,,,,,,,.,,,,,,,.,,,.,,..,,,,,.,.,...,...,..,,.,,,,,.,,..,.,,,
+#7MPQVO6NVS7G42DGW5MWN2ICJPZ7ZVPVICVB5ABRK67AK36IYVQ2Y55SKOLIZM7P6AUM4JNZT7BZI
+#\\\|QY22H3MVJLI3MNIWAVV2XVGGGJ7KI4I7INXD6S53V6DVYWDR4U7 \ / AMOS7 \ YOURUM ::
+#\[7]2FEOZULIIIQNY43YJHE6R7PI65GHYRSYFWVQ3PFW3FPVLYHLY2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

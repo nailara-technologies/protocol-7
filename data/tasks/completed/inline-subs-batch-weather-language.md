@@ -72,8 +72,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 
 #,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
 
-#,,..,,,.,,,.,,,,,,.,,..,,,,.,...,...,.,.,,,.,..,,...,...,...,,.,,.,.,..,,,,,,
-#GYMCQBE6WW36JZTK7TF65VDNCUGUFL765DMS5S3AS2ZHBHJTX5HXS6EDBSAUOQU3BHH2QMKO4WACI
-#\\\|QIDGP2FP5ABCHHQMYBJAA53CIAR532JJ2DSHJSWCQOVMESCEY2D \ / AMOS7 \ YOURUM ::
-#\[7]B3I7NHGZFSOZ6LTGBMLTFBWTHRKJWIC5ZXC5EPEUAFLYAEHOJSAQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,.,.,,.,,...,..,,,..,,,.,,..,..,,...,...,.,.,,.,,,,,,..,,..,,
+#KBBORSRQ3T3D6BDIKDYWAJBFCKAADXDJMR6QKWNG7ZTD2LHGND22NUKAJZXJJUT2CUUV3BM673K54
+#\\\|WPF4HLWMCW7RXQX6RAFGGZEFIQ3HXR2NUBTUPNEYYSSDATYMWWH \ / AMOS7 \ YOURUM ::
+#\[7]EN2BCJS4LIMHQXZI4XAQATU4BTNY3KPXN6TUTMJ2GZY53AMGV4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

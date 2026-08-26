@@ -64,8 +64,8 @@ conventions. `$ARG` not `$_`.
 do not investigate or modify AMOS7 signatures. leave signature lines
 at end of module files untouched.
 
-#,,.,,...,..,,,.,,,..,,..,...,..,,,..,,..,...,..,,...,...,,..,,,.,...,.,.,,,,,
-#D7LH5RYENDMFKTMWUENVX7CFPU5DPDWHLMUAJAB775HJA35DLMWG3HTPIATJ5XBNUDZ6OMOXPMSZ6
-#\\\|B6ZAPFNBZBUC7RIT5MTCK2MZFBUTJMGWDY77CCO3AG7FI27QOGU \ / AMOS7 \ YOURUM ::
-#\[7]F4XD74CUSSGWFNP7M5C4FU4NCZ6T2X3JORJH5LNMYWW2WWNYFUDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,..,,,.,,,,,.,.,.,.,.,,,,.,,,.,,..,,...,...,..,,..,,,,.,,..,,,.,
+#6BIBCG7E5J4TQ5W5NB5TGJDA55WZD653AV3DVFHSCMPGGCRVXQGBMKXGNJSCCX3IZB2FGHKCYIPCE
+#\\\|ITLAK3N5UOEXNAK7ST3CFN5DPDOERY7REMQYUIKEHBAK4TW3QGF \ / AMOS7 \ YOURUM ::
+#\[7]YJMVDTNQ5BPMLQMDHNR5TZ7GHCVE7F6KT354OZBTDMXCDJT5EWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

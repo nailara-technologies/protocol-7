@@ -10,8 +10,8 @@ The local LLM (Qwen3.5-9B) frequently fails to use edit_file with apply=true. It
 
 **How to apply:** When reviewing coding zenka task results, check if edits were actually applied (look for file modifications) vs just described. For critical edits, implement manually after reviewing the model's plan. Consider adding edit_file usage examples to the system-base template, or forcing apply=true as default.
 
-#,,.,,.,,,,,.,.,.,.,,,...,,.,,,..,.,,,,,,,.,,,..,,...,...,..,,.,,,.,,,...,.,,,
-#AIKAESIOWMAVX3LYIXVM3LDKS4YHNWY5Q7ELWWKNNSDO4LWDVWQQJEQOVR6FZ22KA7ZVYIZ3G25SC
-#\\\|UVP4CRRB2IUMHHQN2QSFJG3R6TYBTEAA42QCDVN5AWPX6ZPAWK2 \ / AMOS7 \ YOURUM ::
-#\[7]PEZ4PC22LZUZXJ63SPU7U6CEJNGGYSLM7MJXKKJ54ANWDEUOVKDI 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,,,,.,,,..,...,,,.,,,.,,,.,,,.,..,,...,...,.,.,,..,..,,,..,,,,,
+#4YRDUVCHVQXRIE7J6C2ZBX72DNL5LTDLE7PF3MUIN42A4AFLVWXOC52UR4GW4FIXE3WE4P4Q62Y4M
+#\\\|TSIBJH7UIYAFH3C7BVZQAVTOGPY5FUPAH44RIQGGBUT6263352L \ / AMOS7 \ YOURUM ::
+#\[7]KFX3XEAW7F45ZDBSMC2VOAOM55MYAU52MXRJI3ZWWNQYOMP3FOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

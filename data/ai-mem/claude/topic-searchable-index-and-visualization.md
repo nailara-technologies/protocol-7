@@ -57,8 +57,8 @@ an overarching document with actionable sub-components, written from the
 beginning with styled web templates in mind. consolidates the scattered
 design and planning documents into a single reference.
 
-#,,.,,..,,..,,.,.,,.,,...,,..,,,,,,,.,.,,,..,,..,,...,...,..,,,,,,,..,.,.,,,,,
-#6MNEEFXBY2D47LL4CUIZQ242LTUMBSXKXCGKVBHXMIMP5ZM4ES5F6CYQQTCFNVR67YBI5DPQ5NHBK
-#\\\|4EEQRTJA5OWM7VKY7HM232HYJOCKQVMRNXIHL6TXR3BLXSVLKQ4 \ / AMOS7 \ YOURUM ::
-#\[7]575BAQ5JZTS4R4V3RALWJRKWHGE4NZACSERQWZZFFL6XXTKTYGDY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,..,,.,,,,..,,,,,,,,,.,.,,.,,,,.,..,,...,...,,..,...,,,,,,.,,..,,
+#DGQOPBDXDFZXRZFBJ2BVLOCZCFELUALU7JRZGQBFMJZQUNTWD23TGL7NMXMFFJI7FHGDZ5NV2GQA6
+#\\\|NOHTZHCQW7YQ2WC62X5WJOG7SFVB3HI3AS7WA7ATAF43XBV27SS \ / AMOS7 \ YOURUM ::
+#\[7]KAOOQHV76XZLPH4EW4ZFIQRXCLUSAPM423BLVM6LS3K66DWGJUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

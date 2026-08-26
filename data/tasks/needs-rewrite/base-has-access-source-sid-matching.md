@@ -167,8 +167,8 @@ prompt: |
   change. The goal: access.cmd.usr.cube.system = teardown works correctly
   alongside access.cmd.usr.cube = *. No signature stubs, no whitelist changes.
 
-#,,..,,.,,.,.,,..,,.,,..,,...,..,,,,,,...,,..,..,,...,..,,,,.,...,...,,..,,.,,
-#ECWTPQACQXBWRHE5RM5XVO3X4SRYWLFXP6STZIMEGJPPORYD3JZQMYFPPMVRDENQO2UT45V4PRBXW
-#\\\|AFLX4LITXP5ZKSUXT7KYFOIF42ILABKKHMSWC6H674NMMMXISLY \ / AMOS7 \ YOURUM ::
-#\[7]IWIYDFH2LQY4CTSOZOCXUPRN4G6WQL4WHTVRJ33UGT5DNLCBLWCY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,..,,,,,,,.,,.,,,.,.,...,,.,,..,,...,...,,,.,.,.,,..,,.,,.,,,
+#5JZA2SNLVELM6IIJ3TRJJRF6MPGFMQGUHUDFAEXBEBT6GGF2IWNFO2Y4QG2FWJ5DHWLS27WNEQXDW
+#\\\|6HYRG2EGYPYVPES2TBJXCFE6X4G7PQB74QENQ33S7YZA4FD5QTE \ / AMOS7 \ YOURUM ::
+#\[7]DZ3X3WOFCYDVDWETM6DLAQH24XN76OQ2IKX66D5EU5LVUXQYRODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

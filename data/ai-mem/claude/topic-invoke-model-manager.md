@@ -62,8 +62,8 @@ around what a deployed zenka actually requires.
 is a zenka need or an invoke.ai/model-management dev-tooling need before
 assuming it's dead weight to prune.
 
-#,,,,,,,.,.,,,,.,,,,.,,,.,...,.,.,.,,,.,.,,,,,..,,...,...,.,.,.,,,.,,,..,,...,
-#Q65VKE2B5PSYSTO2MIGABF33TBN2FWXG7Z4OB2NH2Q72CDETUHW7ZYQJCK4EMHK5I4VFQXGQKQWLQ
-#\\\|SHH4AFFDH52TS3P6ROQCOCTJMMS665UHJVLJJD6ZVO46KMCINEF \ / AMOS7 \ YOURUM ::
-#\[7]B7I6VVUSRFDBXCONNZURS6IWZWK37BOUUNL34BKCHBRXAGU6D6CY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,,..,,.,,,..,.,,,,,,,,,,,..,,..,,...,...,...,...,...,,.,,,,.,
+#CCBIG3D3LALLEQHCU3EBBBRU7OYDCZ5RXCI3MBFD7FWGUUFIXOI2L3VGDGNV3YYCGECXUO2I5CLWC
+#\\\|L2QDMPZYHPIOM5AFZV4RNNLTFB3ONPZNM4MDH4IOEHVTSBJORHK \ / AMOS7 \ YOURUM ::
+#\[7]UK5FMZYDJFV4Y5TLXJVIISGH3S2ZZVHL2NLTLFPG5PPIEWL5AUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -53,8 +53,8 @@ zenka start/reload re-harmonized signatures: `cfg/protocol-7.src-ver`,
 plus auto-registered untracked `cfg/zenki/ncode/pm-dep/*` — system
 automation, not manual edits. `data/ai-mem/claude/*` was dirty from elsewhere.
 
-#,,,,,,,.,.,,,,,,,,,.,,,,,..,,.,.,,..,..,,.,,,..,,...,.,,,..,,.,.,,,,,,,.,.,,,
-#TIYBAMUTHC2TXM4CAXQWDTLQU7EJENUEFGRGWVVZAMH24PWVFTM3SK7XNH6LKADE6FAXWMAVW3PP2
-#\\\|XBWGCGMNRITUJTYFAJSURTHYHKODVGDUA6GK7XSKDYRK54KR2UW \ / AMOS7 \ YOURUM ::
-#\[7]U6JVNJNGYLKSDGTPPJCTWMNF75YZU6V6NF6E6ANQXYIKPU2LWODQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,.,...,.,.,,.,,,..,,.,,,,.,.,,,..,,...,...,.,.,.,.,..,,..,,,,.,
+#B5VU3UC3JLZMEI47TJ2IV5WTN3HNYIY36QK6QJ3RIZPPELX77DF45YWCJXU6LU7WMYEJ4STHWXZ3O
+#\\\|3HV4WUFJKPPDUJAKFL72SLI4UL2WIDESVSX74IBHHT3EQUKRE2C \ / AMOS7 \ YOURUM ::
+#\[7]KUFBO5JK5JU5YXWO5JUE7P3Q2LLZZFIILJVXGAH3B6QYALN3VSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

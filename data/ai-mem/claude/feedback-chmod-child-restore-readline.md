@@ -15,8 +15,8 @@ After every `print {$chmod_fh} "restore ..."` call, always follow with `<[coding
 `ncode.cmd.apply` — every `printf {$chmod_fh} "restore ..."`/`"create ..."`
 is paired with a `<[ncode.chmod_child.readline]>` immediately after.
 
-#,,..,,,.,,,.,,,,,.,,,.,.,,..,,,.,.,,,...,,.,,..,,...,..,,,..,,..,...,..,,...,
-#UVP2WRLOCNOUX2XXXLLU22ERRF5PCHB6EN6XYMBXGJ6CHVZWUV4S2L3HBHI3FSVJCO5FQP2GHHY4E
-#\\\|V7KED6NKJ3NLFH4N5EKCJAIURMBOQVNRU46X4UT2UHZQLQVX3BF \ / AMOS7 \ YOURUM ::
-#\[7]RXFFGEIPLTPERZATFVDGCWYR5B6L7ISLHFDBJRKA4OBV6UFAEUAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,.,.,,,,,,,.,,,,,...,.,,,,..,..,,...,...,...,...,..,,,,.,...,
+#VCVOIVG5A52DA6OCHZHM4XRBFCSBWKKNFLZ4VERTEZOZPXC6BNLTDPLLQDEGYBR2BHFA4WJZWKUD2
+#\\\|7S7CMUTI52XOMAWG4R7WFJ6OSWVO7J3O233JWRTL3VTUUZBQ25L \ / AMOS7 \ YOURUM ::
+#\[7]TLQQD7P6YCWFMHTC2VTBYM2RZZNAJ5IDIWGY3NT7AYZ7AMJI7EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

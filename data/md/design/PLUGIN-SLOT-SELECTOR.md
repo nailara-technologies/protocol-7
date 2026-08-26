@@ -143,8 +143,8 @@ perfectly without it; scrollbars + bottom echo are purely additive.
   switches. `ascii.frame.bar` left-justifies to `$width`; text providers
   ( "7 of 162" ) must pad too.
 
-#,,..,,,,,..,,,,.,,.,,...,,,,,.,,,,,,,.,.,,..,..,,...,.,.,,.,,.,.,.,.,,,.,..,,
-#6SKQOMJ77AOB4DFCX2ZLBMWS2DYMQFD5MU6M3UKLUYZYCY5QMWZXI27VAJNWC6O7KJSWDRLV5Q3OU
-#\\\|6M2YGJTSBNQMQFPYD3D3DN5GUY2KW4QS4MPPBPUX4Q6UKTZGDGD \ / AMOS7 \ YOURUM ::
-#\[7]V7YTQIRHF6CKG7VQEMHKBJFJLFHPLA72FDBUVMJHK3YDJM33SCCA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,,,,,,,,,...,,,,,,..,..,,,..,..,,...,...,,,,,..,,,,.,.,,,...,
+#OVQ3DDR4Y5OUDKEGR6W2D5KRKKRVJ2U3TNVJDUOQT4BSXXYJWBHIPRUVMTETDRVNWTXWKKNKNDTVK
+#\\\|FS6Z6DZXVF6KQI4CJFWA4H2QPN37XNLTEKLPGZ6PUG3A5SHKKNR \ / AMOS7 \ YOURUM ::
+#\[7]L6ZYV4UYJURJEJFGAFN6K3VYSNO2WZFLA6HL45V7UXRE5O44AMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

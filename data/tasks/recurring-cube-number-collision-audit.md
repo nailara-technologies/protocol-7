@@ -635,8 +635,8 @@ messages; same design-only, not-committed status applies.
 
 ## unsigned : new file, signing system adds the real footer on commit
 
-#,,.,,...,.,,,,,.,,,.,...,.,,,...,,.,,,,.,,,,,..,,...,...,...,...,,,.,,.,,...,
-#7C4IFOK33VNLN2PDNHHTMV5NFUPTEDCKNLXUFXQOTL25YFNR3YDBDC3YG4LB2H4YUF2OJGG5RLIFG
-#\\\|LKSKWO3E7R3XJMXCDQJD43TUBWRXGLJWLONF7XCFJZHE4OVJ5VS \ / AMOS7 \ YOURUM ::
-#\[7]US6TGFXNU7D2ROOGT6M6XUURZDDYE3S2MHGPO7X2P3TKJL6GKKBA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,,,...,.,.,,,.,..,,.,,,,,,,,.,,..,,...,...,.,,,,,.,.,.,,.,,..,,
+#H3TSENP4J4PW4CRYU6BUUKAWZKRA2H2WPC6AHWDIJEQESH5OIXL6FJPA3QXEBGAFCTRBBJGEB3V3Q
+#\\\|PP3XEPUFMFZYOTG2DCTW2WKN2XA5CLVZVZX2SPS3SONDVBH6FH2 \ / AMOS7 \ YOURUM ::
+#\[7]CIV4BXDAJLTFFVYC32MZI7ZBF3ZRHDWGIBMGTFP7ZPVIVWFWA2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

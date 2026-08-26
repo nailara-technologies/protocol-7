@@ -259,8 +259,8 @@ See `VISION-IMPLEMENTATION.md` for complete implementation status.
 - **data/patches/iqk-symbol-extern-c-fix.patch** - IQK symbol linking fix
 - **Upstream commits** - fc3be34ea (fused norm, device management, graph optimizations)
 
-#,,,,,.,,,,,.,,,.,...,,,,,,,.,,.,,.,.,...,..,,..,,...,..,,.,.,...,..,,.,,,,,,,
-#XW5UCPNQ5JA552XP4FJDUDBVP4CP2TTRFH4FKFTYHJZF5WPEG5FE5LTHQVQHS3MR6TJCZBMHYSJ44
-#\\\|UU3GNBGCMH6GLMBCYOLABX74PJL3CI76LHFLPGPI3JYQTLENSWE \ / AMOS7 \ YOURUM ::
-#\[7]OJFQBY76MIJMCXENZNVFR6IHMYYRRVUHAMIS22XRN35EATKCAQBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,,,.,,,,.,,.,,,,,.,,,,,.,,,.,,,..,,...,...,...,,..,,..,.,,,,,,,
+#CKZ6DPFICPSKI6TVHMQ4KD36P4JKUKVF75JPX7ZO37UR5P7JLIDDXHKYENKAWQ4OPYBD5SYDINCBM
+#\\\|NBESFOHMOZQ3F3RUVS5NSFKD37GESG7XWIXGWI4H3HZKUTYSMJ6 \ / AMOS7 \ YOURUM ::
+#\[7]H6GPLMHBY6ZJ2UYM7XWTXK54YID4JSIQ2JXQOOHOJAS4UHKEU6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

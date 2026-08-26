@@ -80,8 +80,8 @@ cursor substitution. Use `s{...}{...}` — which is what
 string contains a space, comma or `|`, switch to `q{}` / `qq{}` / ordinary
 quotes.
 
-#,,..,,.,,,,.,,..,.,.,,.,,.,.,...,,,,,..,,.,,,..,,...,...,...,..,,...,,,.,.,.,
-#JMGAIT54GXEJMYQJZUFTYHYGLQ6L5TU6PX4VQTGUO5AG5FXZEZTTLJMLJIEBMYGWNHPXQQUHMFQHG
-#\\\|PVLSHU6PGDXU5CA6VCIWOQLMHBM2QMTHMROIJPO4VZEBDGZ6V4L \ / AMOS7 \ YOURUM ::
-#\[7]JCDWQDFVM6SNMPFQPPUDR5TNXCPN5OHWS47TFA3GEZA54NLRY6AA 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,,,...,,,.,.,,,.,.,.,,,,,,,,,.,..,,...,...,.,,,..,,,..,,,,,.,,,
+#RGLUD2GVVGK5T3WGKD75UOWF6OPWUUD4JFJAOQGX4X7XBLWIPV3SQSLQPRPMGGDQKWW4SKLGV2I4E
+#\\\|EAXFPZ62RE4FJC4TW5S5HEMH6KKH3L6XTCPTNCHRGZC62ZK45WF \ / AMOS7 \ YOURUM ::
+#\[7]YAJERGRRWKRRVVFZWC6BD5W2R46QVFX72UO6TZTOQLSOCQZGJADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

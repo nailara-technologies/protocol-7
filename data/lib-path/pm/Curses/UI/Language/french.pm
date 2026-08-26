@@ -73,8 +73,8 @@ Voulez-vous vraiment écraser le fichier "
 [file_err_opendir_post] "
 [file_err_nofileselected] Vous n'avez pas choisi de fichier !
 
-#,,,.,,,.,.,.,,,,,...,,..,...,.,.,.,,,..,,..,,.,.,...,...,...,,.,,,,,,,.,,,.,,
-#VGMYIFWQVGVITUNE52JQHHLOSW34DRALSHOMG2KA2WHN6T4ROUZNEBASLJRFERWDUVA2JTXPZR6ZO
-#\\\|HRAODXQXTDPFFNO4ETTQBQQPDPJKQZVB3E6YPEUJ5FPWXVI3QZ2 \ / AMOS7 \ YOURUM ::
-#\[7]POVR2HBHP2PQ5NWGDYD6KOLHI3RLOAOPNZOWEUTAP74HWUQQPUDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,.,,..,..,,..,,..,,...,,,.,,.,,.,.,...,...,...,,,,,.,.,.,,,,,,,
+#3UFZQXAKJO4OFNPK7WBLO6O2PNN6QNOARCVFVRQCQJHPZLSVGXUGPHCF3PIPZ6QXPW7WP3RSEU5WE
+#\\\|56WJARRPEBBSLX6Q5YF34NL6PQIJEGSYPNXF75LCTUXY67N2UTV \ / AMOS7 \ YOURUM ::
+#\[7]R275T6HNRQGY2XOSIGL7VT7QXWDPKBHAK6VPDCNXIIETJCGMZMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1360,8 +1360,8 @@ Skip calling harmonize_payload_line_feed when both conditions are met:
   request-dispatch not first-byte; was reading as a contradiction
   against the data-start-timeout log line).
 
-#,,.,,,,.,.,,,,.,,...,,,,,...,..,,.,.,,.,,.,,,..,,...,...,.,,,..,,..,,...,,,,,
-#5JNZCVCXRR3NSJNDWD34OUHXGOQEHJAJX5LR4WOQVCHUZMLFNDHYC2T4YI5I3GD7QOH2J3VL6WTGU
-#\\\|L6ORHNLAABY3XISP5MEJ7AUFIMJWKK6AAKBEYWRLKAH5O6I3UAC \ / AMOS7 \ YOURUM ::
-#\[7]HCK6Z6S56F3LEIHBLTYRUU6UORRKUHR46SGPPBSAY6OBR6VVJABY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,.,.,,,.,.,,.,,,..,,,.,,..,..,,..,,...,...,,..,..,,.,.,...,,.,,
+#IZ4376GS64X5PDH4GPN2ORWMZO3XUUL24NLERJUUNKNT7QO4M26JPHUP2ZIOQ4KJC7M2SUEG7FQ4S
+#\\\|ZPMXLATXVO2FKCBLW23H6Y4UJD5RDSSNILFB3CIHNHRMKPA3KCX \ / AMOS7 \ YOURUM ::
+#\[7]POSQ5PMEZCHHWHBUSOFMZ7KQ222IDFGTPCPULWTKYMYEB3JC6SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

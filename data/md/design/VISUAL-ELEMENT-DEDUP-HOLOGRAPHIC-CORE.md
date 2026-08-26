@@ -4965,8 +4965,8 @@ always moving toward the quality attractor at the center.
 
 Simple rules. Content-agnostic. Already complete. The rest is data.
 
-#,,..,.,,,,,,,,..,,,.,...,,,,,,,,,..,,,..,.,.,..,,...,...,,.,,...,.,,,..,,,,.,
-#P7KT7NCUZ7HVS24AJGT5MBJT72332CCCJMHHHM46Y2DDHYT4ZMDLP5K5643KWGOTMAHZEMOIWUSMA
-#\\\|CMUHOYEX2PTDQ5YPWJYE6VE43QZTOC4AHMUE72JW65YIZHHVDBQ \ / AMOS7 \ YOURUM ::
-#\[7]3XAODWQT5ZV5SEXERIQ3K7VOFUZZJPLYYFTTP62OUJ26A35OOCAY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,,.,,...,.,,,,..,,..,.,.,,,.,..,,...,...,.,,,.,,,,,.,,,,,,,,,
+#TB7SCHGU5745W5CQXNR3H3QZWYPB4TL5GYIAELW2YTQCVKID5GVE2MGP732GLPH7GPYL6FAN4BK4I
+#\\\|Y7YIH5HNHMJUKWMIIDRDE6JGVETXFOSG3PF34HH7WAE6UHOX5JW \ / AMOS7 \ YOURUM ::
+#\[7]FIQCHO57ZBR2MG5WFOHJ43ARSZKLHD3X4EMZCZFIBGBBS3HIBUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

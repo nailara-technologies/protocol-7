@@ -48,8 +48,8 @@ Known design issues (deferred to forensic mode implementation):
 - Review: `data/yaml/code-reviews/src/vterm-post-refactor-review.yaml`
 - Pre-refactor review: `data/yaml/code-reviews/src/vterm-inline-subs-extraction.yaml`
 
-#,,..,.,,,.,.,..,,.,,,..,,.,,,,.,,,,,,,,.,,,,,..,,...,...,,,.,..,,,,.,.,.,,..,
-#II4CWLE2B7Q4DNU3EC4UL4DUYDAU65ZELLOADRWBRJDNZHL3SZZFW4GZGIBPZO3CVBTHZLJ6UUECA
-#\\\|7CD4VR3ISTLHKEB7IYW2GVJZDKYBVDMGSH7MLIYXHO2CDGA27EO \ / AMOS7 \ YOURUM ::
-#\[7]QWSS2M67D446PAYH7K24OX643WF6NB66ZCJJLKRXMLJ2YUEN7UDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,.,,,..,,..,,,.,,,,.,...,,.,,.,.,..,,...,..,,...,,.,,.,,,,,.,,,,,
+#ENSEZX6YUIF6JJT7KD3MJWCHPSAEFDD634SBIR2RLQCY42QG2SGPFAOYXJFVONV4YX5FTGKJJRX7Q
+#\\\|2RW75TBFWASS3KM64UMSFYUNZ66TAYTBJH7CV253W6G6SJKPAPO \ / AMOS7 \ YOURUM ::
+#\[7]43MLV4MHG5R4U6Y35ULFZ3M2UG3C35ORIFVQ25CCQR57WEOTEUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

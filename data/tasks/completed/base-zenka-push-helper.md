@@ -119,8 +119,8 @@ check before implementing any runtime load paths.
 do not modify or regenerate any AMOS7 signature lines. the signing system
 handles all footer blocks — leave them untouched.
 
-#,,,,,..,,,.,,..,,,.,,..,,..,,.,,,..,,,,.,...,..,,...,...,...,.,.,.,.,..,,.,.,
-#ATSEOSBUDCUNBNSU4IERRPMCHCBTCEAVHT7GC6HVR6MJA2RWQW4AZDKVECSYNK6AJJI5SZPE77J6Q
-#\\\|OU4IN6PVNBYOJVMQX7RZEC72GZW4DIVLQUJKX4ZPSKVFPPLK3CT \ / AMOS7 \ YOURUM ::
-#\[7]GOAV3LIBPBIU2KGQEJSD3DD63DUEKX5IZRQY5TN2GJAIHGMYVADI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,,,,,,..,.,.,,..,...,.,.,..,,..,,...,...,.,.,,.,,...,,,.,,.,,
+#SA4SFXJYG33T6YR5RQLCIZE45PSLQOP2ON63HDOKCO3VAHDUEZI5EUJWICLMLHL77JFJO4EX7QIUI
+#\\\|VNC5HRQ5USH5VYQTUPG5THTP7KIHFD2YNE6LOAPRZBRYMAUHM6B \ / AMOS7 \ YOURUM ::
+#\[7]25PSUO2MZNYEZUWGHDXU5NUJ5H4VPVD2EA3UZ3ACXY4GCXPCMAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

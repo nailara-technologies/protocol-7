@@ -197,8 +197,8 @@ dispatcher — they are two modes of one infrastructure, not two systems.
 [ ] async state machine option (post-initial implementation)
 ```
 
-#,,,.,,.,,,,.,,,.,...,...,,,,,.,,,,,,,,,,,,,.,..,,...,...,,,.,...,,.,,..,,..,,
-#TOYQNUOHENSQO7POF45MVJHPG5XVYF57SIWX4JXIBX5OWYQ2AR66DE2B2COSENHIQTFLJEQEHWHW6
-#\\\|3QLXRO5JQIEDWHOQBKQCXSKIC3MHD64JBFOPHYEJIHRKPI5TDAR \ / AMOS7 \ YOURUM ::
-#\[7]ZYHIDO3E3QGEXRKVO6STJZ5R4DU3EK5BUB2JHU6V525KPDLVIKAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,..,,,.,,.,,,.,.,.,.,,,,,.,,,,.,,..,,...,...,.,.,,..,.,.,.,,,...,
+#2S5RDYPRQZSRWTF4CARKT7LOZNYXBGWG46HX2X454SBZDLEFTBQFQCKZCFHUGLBAWFWK2LJMQHRFO
+#\\\|3Y25ACQVRPKNEFUVOZKLUDNLGL6PP5IVRAZWF4GFRA6BP7QTRYD \ / AMOS7 \ YOURUM ::
+#\[7]H7NSNAXYTFWCXSDRKRGZX4XTBWA7URZQQGXTWJNLW7DAMRABW2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

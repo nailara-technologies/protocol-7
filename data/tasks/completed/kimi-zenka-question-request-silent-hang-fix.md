@@ -128,8 +128,8 @@ stuck until the user manually answered it via the kimi-web UI directly.
 Add to `data/ai-mem/kimi/coding-style.md` and/or `data/ai-mem/kimi/
 MEMORY.md` in your own established format.
 
-#,,,,,,,,,,.,,,.,,,,,,.,,,,.,,..,,...,,,.,..,,.,.,...,..,,..,,,,,,,,.,.,,,...,
-#VZYY76ULWV4ESROY75AU4D3NVWMBHNIN7YCNP4RRVJTYJSNSWYALZ2TW23RDUTC6GR4TEARDVFPDM
-#\\\|EZ242AEM2BJNUKO3LMYZPKRQ44RHVPRUC6DSSXPM2DSAKACXSC5 \ / AMOS7 \ YOURUM ::
-#\[7]ACYJCQUDW22RD5VHVIJDLFRATE37TREZSFBLBZYQCVMAXUDXBIBA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,,,...,,.,,,,,,...,,.,,,,.,...,.,.,...,...,..,,..,,,,.,,.,,.,,,
+#F5DQXKLWBGVHGIZWFUEQMOJZYT4LZEAZ3CHW355O5Y67WQD526FXK5OIOKWR5F5SXDZW6TF6X4O7E
+#\\\|VL7LQ72OXJK5MB4347IRQX5B32ICKNDJAENDQX7VKCKQOLQKODM \ / AMOS7 \ YOURUM ::
+#\[7]XKADI5G5FVEU3DZRZ3LPRL5JNIYJRGPUE2IKSAQEGSTQEGQ2GYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

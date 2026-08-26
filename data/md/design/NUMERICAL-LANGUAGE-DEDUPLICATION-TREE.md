@@ -121,8 +121,8 @@ the deduplication tree is the galaxy's address book, self-written, self-organizi
 - `HARMONIC-TREE-ADDRESSING.md` — tree coordinates as expressions of 0 at specific scales
 - signature footer encoding — `.`=0 `,`=1 already live, the minimal numerical language prototype
 
-#,,.,,.,,,,,.,,,,,..,,,,.,,..,,,,,,.,,.,,,.,,,..,,...,..,,...,...,.,,,,,.,,,.,
-#C47WFV3GOV2QW3PFDLVYR37A6Q5BJKS7HXTRGNHSOJF7H5PC6IDX2ZKIODRMXZZKOWG5BXKYAPOZM
-#\\\|I4A7AOMCHUHRQWXXJ6TZJ7JY4IEU6E2JYTAHHJW4QVGYGRS3W6U \ / AMOS7 \ YOURUM ::
-#\[7]6KB6TG2K2NJEBC4KEZOTFZLOEVQJTT77WNPD7XYYWZLHZIAQ72BI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,,,,,...,,.,,.,,,,,,,.,,,.,,,..,,...,...,...,.,.,,..,...,,,.,
+#JETDDCPPZNYEHPKKXSDO3L3NLHPELLDHVONKZIMGO3YZETVGAMDFGYJORRJWKFHJDUFSYU53JO7JM
+#\\\|EW54UOI2RPYXRM43XATFKBOU5GUXPKXUDKDRECX4FKQKWT7T423 \ / AMOS7 \ YOURUM ::
+#\[7]XMY4FM64DTXU4MMVSBLID5SNVKVFF2CH2L4JBIYOLFRSMZE36WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

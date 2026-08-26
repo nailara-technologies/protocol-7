@@ -108,8 +108,8 @@ grep -rn 'js_call\|run_javascript\|run_js' src/web-browser.* | grep -v Binary
 - [ ] no `run_javascript` calls remain in web-browser modules
 - [ ] no signature stubs added, no whitelist changes
 
-#,,,,,...,,..,.,,,,,.,,,,,,,,,,.,,,,,,...,.,,,..,,...,...,,.,,,..,,,.,,..,..,,
-#RU4QNBVWV7SRC4OSJVZ3M6NS7HJMTVT46BU3UK5GWUV76KVDYWN6MODA7ZLQD3SO3MNFHPVUR6KXI
-#\\\|A7E56MR4NIV6CBUASNP4BSBHPGS5EBNGGSRK37Y5UJW5KE2L7OO \ / AMOS7 \ YOURUM ::
-#\[7]4RZVYTNL4FEJO5JVYJF6CBAYTGBT6RPBEFWKXKJIPYKKH3IXXOAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,...,,,.,,.,,,..,,,,,,,.,,,.,...,..,,...,...,...,,..,.,,,,,.,..,,
+#BDPALSGLB5ZSAIB3JG6IYJPMKB6PICFYPXAQ2KPOPP4TQNDWWSZ3W4HC3SKC5OUKAO5ZUG4XZTK7M
+#\\\|CKB4JXHLX3TWXETBQV55WDFXES34LGTLL2R3YP5H25S5TTYJH6J \ / AMOS7 \ YOURUM ::
+#\[7]CVW4DXA6ELSW2PGX4SLTBG36L2AM4NRY2T2LT7NQMRJUVDETYMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

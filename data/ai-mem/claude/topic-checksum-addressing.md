@@ -160,8 +160,8 @@ BMW384 = 360 + 24 bits:
 - Same addressing and routing primitives at every layer → each new capability inherits base reliability
 - Complexity investment front-loaded but repaid through minimization and reuse at every subsequent scale
 
-#,,,.,,,,,.,,,...,...,,,.,,,,,,.,,,..,.,,,.,.,..,,...,...,...,,,.,..,,...,...,
-#APEVKA4HH2463SVAJUY34JH5BWRSXCHCQCF6ONZNYNCBFFXXCWGVQI7P75KCPS2U63GBRTFLUR62W
-#\\\|LLJ3YQQ3ZUP7NDTHKPU74IKL2AK2PHTGIFM65HV3MRIPKJL6ZEK \ / AMOS7 \ YOURUM ::
-#\[7]VSBLIHGHAAWHYBZEXGFAHD7LQ4SSZLEVWHFCFKBH5TIJEU64WWCY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,,,.,,,...,..,,,..,,,.,,,.,...,..,,...,...,,..,,..,.,.,.,,,,,.,
+#CX3RGBMFDWWVMINK6T2LUTNLQO57FQBB7VP4A6KBCPXV6EGQC5Q5P6UGC6IOBERNTRFT5RY2M4XCU
+#\\\|45B6TBCJN77IW2PHLYVNVFBACQK5WYTAEW4O3MYWQ4NUAETIM6I \ / AMOS7 \ YOURUM ::
+#\[7]2H7ZLITJVFEFRI7RKB547ZZMVP7DN2D5O6ZVLAU4B22RTIDKE4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

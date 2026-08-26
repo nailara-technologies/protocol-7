@@ -49,8 +49,8 @@ afterward (precedent: `cfg/zenki/image2html/start.cfg`,
 
 [[bug-auth-keypair-client-composition-gotchas]]
 
-#,,.,,,,,,,,.,.,.,...,.,.,.,,,...,.,.,...,,,.,..,,...,...,.,,,,,,,.,.,,,,,,,,,
-#HJEEEC36V6V6ZK42SWATNQUYQXG5QRPK6E2KVYQKTDBVHDZ6ND4MFMRGMFXURYFK2BIVUCYPFXUE4
-#\\\|CQMH5IR4O4GWYCW32H6DUQUH7UJDL4QLQ67FHFCFQARHISZZK55 \ / AMOS7 \ YOURUM ::
-#\[7]6242AU2RDTQWK2MWC3QXZYQV6ABWVBH6AIUADWUTENWKX6CRS4DA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,,..,,.,,,..,..,,,,.,.,.,,..,..,,...,...,..,,,,,,,,.,.,.,,..,
+#S6XUN3SM7C2VQX6CJYURNIPOTCE4KGG2X5VD6HDCLUJBPCOPRNC6AYEU2TNEC3DI56TDZLCUYN3Z6
+#\\\|GFHKPTRKBEY3FH7UGL3FX67Y7DWYV46CK2EYX2NVEMXNXI46EHF \ / AMOS7 \ YOURUM ::
+#\[7]QLNBLIE4XOOMRN6VIJ4EF75WQBUSJFKKB2RXH3JSTX4QLAHSDACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

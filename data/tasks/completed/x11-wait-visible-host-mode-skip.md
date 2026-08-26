@@ -158,8 +158,8 @@ prompt: |
   log noise in base.X-11.wait_for_window to distinguish "skipped" from "timed out".
   No signature stubs, no whitelist changes.
 
-#,,,.,,,,,,,,,..,,.,,,,.,,...,,..,,,.,..,,,,,,..,,...,...,.,,,,,,,,,,,.,,,.,,,
-#JBK3A5YBLAYZ3QGGSP5UZ35MKM2Q2CVK27NJ77WIFSQZ6JTKV7BCJ2LXVUFP4XNL7KDSQSVVQZSJE
-#\\\|XITXXZZZOBGSQ5RVSEVKAW352CH55WITADVDNX7RWNV276MQLSN \ / AMOS7 \ YOURUM ::
-#\[7]G6PJX6YDTRHUVDWFY2ZAAQ6JAZFVODQJYIO2SNJ75KUK2WBN7MBI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,..,,.,,,.,.,.,,,,..,,,,,.,.,..,,...,...,.,,,,.,,,,,,,,.,,,.,
+#4JLDVF2DC6U7C52WTD3TJMWACH5TO2O43HTHDUEQEWTNEIEYJSJBVKDUUNK74UI325MD22JSJYYMU
+#\\\|YJO2QOSEF5KQGL6ZL2BPBHGF7WHXFNYUP7BH7TPIU2ODS52V22A \ / AMOS7 \ YOURUM ::
+#\[7]DKS76FUWFSDKRMBXDPGPOEUUBXPC2PYVWUZJ636JQ4N3ONH4A4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -157,8 +157,8 @@ zenka.clear-registry [:re-fetch:] # clear and re-fetch from models zenka
 - [ ] Non-vision models have empty mmproj_path
 - [ ] Config model ID matches spawned model ID
 
-#,,..,...,..,,,,.,,..,.,.,,,.,...,,,,,...,.,,,..,,...,...,..,,,..,,.,,,..,,,,,
-#3FWTLXZD5CBU7NCMSCE6BATUJVFLIDU6XYDALS3HQC4WPC33I7VR7K7EA2AWZQM2YHGELXTIHOGWM
-#\\\|H4TX2UO3VNBD4HBHHA56SEOVNIDDEAZDOXAGYOEKDQHOKS327DH \ / AMOS7 \ YOURUM ::
-#\[7]VRUPVYHRFHUW65I4VQZ6IK645LHM4BFE5EVDIE447KG3ZXIEUUBQ 7  DATA SIGNATURE ::
+#,,..,...,..,,...,..,,..,,...,,,.,,.,,,.,,,,,,..,,...,...,.,.,...,,,,,.,,,.,.,
+#DAVVS34U7PKAHCKYTOHDCSMIHX6FDDSH7EOBLFT6BJSIL53TUSXBLFJEYHHVOXK74TKIU2SLTAUN6
+#\\\|U4Q3N57IO3ARH25QUNFELGD76DH2MP45J4N52NLK5NVUPSC6ZFO \ / AMOS7 \ YOURUM ::
+#\[7]73IWDPXO2YYSMPSL3SLDBWRKAK3E73TMSHKUZXUXMZ2FCXZVSICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

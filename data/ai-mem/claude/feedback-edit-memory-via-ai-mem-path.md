@@ -29,8 +29,8 @@ Read/Edit/Write when saving or updating memory in this project, never the
 `~/.claude/projects/.../memory/...` path — same file, fewer prompts. The
 `MEMORY.md` index lives at `data/ai-mem/claude/MEMORY.md` the same way.
 
-#,,,,,,..,,,.,,.,,,.,,,,.,...,.,.,,.,,.,.,,,.,..,,...,...,.,,,,..,,,.,.,,,..,,
-#FLQEOAAS2MD7Q566377LWVHBTHXDTVN66CT6V3XGMQMMEMP6OTAMBHAQLCMA6GHP4OP6S4XH2TDP4
-#\\\|PA2AOLRC5V33W6P472XVZSKVG7E3DOXFCENXKIBFVZDV33SQE7F \ / AMOS7 \ YOURUM ::
-#\[7]4IQ6FF4D4UNMAMHXPGNR6L5GYOBAYS5G5LTBANNBCSKTYHFP66CI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,.,.,,..,,..,...,..,,,..,,,,,..,,...,..,,..,,...,..,,...,,,,,
+#SNZZ3YYDHXUSXBEOPGL3YUK3FXTTNPYL6KQCLCOPYHROYMZ5CRBWODDMWVEIDUKCAIUQHZADVTPKK
+#\\\|RNIZN4OKNHW3D67BZMAUJSBGOFT63GWFKE7YMPLJDSDLVIQENFR \ / AMOS7 \ YOURUM ::
+#\[7]AHBPAYKPX3ZZKW3O4R6KCY5MSGFUWHE37ODSW52ETK5LGVWAJCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -186,8 +186,8 @@ a network of P7 nodes.
 - **width-unbounded**: multi-line tree addressing exceeds single-line limits
 - **distributed-native**: parallel acquisition from multiple network sources
 
-#,,,.,..,,,,.,.,,,..,,,.,,..,,.,,,...,,,,,.,.,..,,...,...,,..,.,.,,.,,..,,..,,
-#T35JUQCOJNMKFHNYRNGWF3N3IMKENTK6DGG6PPJVWLPWQ6DTCRRVRZWE4SUSK7NLY4ZY4NPB6AO64
-#\\\|BHHRNAVNQXFGNYS7IOGGD2M2GD7J3O76TP35PWX6HZVQ7J2MJQO \ / AMOS7 \ YOURUM ::
-#\[7]L2GDRPDWFWY7IOPMX3FRE2GJQTJYRGPK7UJ7PTITD7PFQJSSXSCI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,.,,,...,...,..,,,..,...,.,.,..,,...,...,,..,,,,,..,,,,,,.,,,
+#5LIVUY647HVXCLLWNLJPLVZMBJM5YIRZBSBMUKQOBORXDSKO4U7SCX4FITQEK2CX6Y6F2VHQXPN4I
+#\\\|GL7KSUHCJ5X252Q42MV525U4XEIKCVD6OXUNQEJAG5OKBECSFTT \ / AMOS7 \ YOURUM ::
+#\[7]MFKZKW4J5F7ZOCTAATTUSHLQBDK2UDCYZSS6XK3RLKHQPTBG4KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

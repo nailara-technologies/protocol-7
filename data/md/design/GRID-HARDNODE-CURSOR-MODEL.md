@@ -186,8 +186,8 @@ graphics-matrix zenka — cursor position becomes a routed namespace address,
 grid responds to live namespace state, glow intensity driven by actual
 reference counts from the checksum cluster index.
 
-#,,.,,...,,..,..,,,.,,.,,,..,,,..,,..,.,,,,,,,.,.,...,...,,,,,,..,,,.,,.,,,.,,
-#HFWWT4GF776N762IL54IB2XZXC5C376ZN2F3TBAAMW4VK2ZPMC5QZBI2AQW4GEGSNQOQVUEYJIJOY
-#\\\|FZSZTRP7TRKKS5Q2I5TNZM4TXTD6W3MGWJ2KQBMXXZX2XIED4EH \ / AMOS7 \ YOURUM ::
-#\[7]EAHF2YFEPR7DHRLEVU675TEVOCILEXLT4UNWANS2NIR32NGMFMAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,.,.,,..,,.,,...,..,,.,,,.,,,.,.,...,...,...,..,,...,.,.,.,.,
+#KLHFO3AT4342B445NASCGNEUKQLBLIRCRG237SWBAYZ7OJPDAFNJEOC3USVBTQEOL4P6YPVKJVJ72
+#\\\|57CBVMZVUHJYUYQYAFJ6TNTOW2263WWYQKVL7BH5JBOGWIEFZEB \ / AMOS7 \ YOURUM ::
+#\[7]SPDSLB3VKWPDJK3NQ2C5UISESAQAPFVTHCSB5G5RAMKBVCMA4YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

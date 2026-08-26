@@ -70,8 +70,8 @@ this preserves security by default while allowing exceptions.
 - [ ] `source.cmd.get-code-signed` rejects files without headers
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,,,,,,.,,.,,,.,.,,,.,,,,,,,.,,,.,,,,,,,,,..,,...,...,..,,..,,,..,...,...,
-#XRUAIRWFJQRAORCDM2KTEUUOHWSB5ZWMVM6DFZZMSJAS2JTZAHJTNNIMSNTJJYCGUOW7COG2KGTZ6
-#\\\|XCJTOJ5RRDMABJD4G2ARQEZF55ZSOQOGGS333YMM6JLAJG7KB3V \ / AMOS7 \ YOURUM ::
-#\[7]HXQUE6FECU3RUW5ZID4OQYTQJXADYMAQMW6P52KPJCVRSD5SG2DY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,,..,..,,...,.,.,,..,..,,...,..,,...,...,.,,,,..,,..,.,,,..,,
+#LKHG77EKTWMARZWYKDAFKNNJWRDNRWUC2XBUDWPL7W3MIMSJ5JI5HIKKOWSBT76KSJICGMF4JKM3A
+#\\\|TLRWECURJIOOJ32HY2PQR4XBCPRYM2GR2I6UMP4QYDEQH6MMJFS \ / AMOS7 \ YOURUM ::
+#\[7]5NZQAY3IRCVLESQYJNGTSCCVS6O3F6MOLZXCMDGSXXKTLD34IUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

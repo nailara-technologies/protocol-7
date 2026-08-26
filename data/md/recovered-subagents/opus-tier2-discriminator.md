@@ -2647,8 +2647,8 @@ No substantive disagreement — and importantly, no place where K3 is wrong that
 
 If you want a literal line-by-line diff of K3's final Perl against my proposed module body, that's where pulling the full buffer via `coding.list-buffers` would earn its tokens; the summaries already confirm the logic matches, so I held off unless you want the verbatim code check. Nothing edited in the repo throughout.
 
-#,,,.,...,...,.,,,,,.,,.,,.,.,.,.,.,.,,..,,.,,..,,...,...,...,,.,,,,,,..,,,.,,
-#6ATQF5V3FXMLM4NS3WYNVOSES4VIRYT47Z22GTB4X5LT6WZO72RL4SMVTO5YICUS7KBS7ELUKWIR6
-#\\\|DTULQRVELJVMDR2KBP34Y5HOWFEDYZXHXTGAF5LPQRYY7SHDUNB \ / AMOS7 \ YOURUM ::
-#\[7]337WNJIH3GRPX3ZCONZFOOGRKMHUUBWXWCOJKQG5VLAQSP6RDYCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,...,,,.,,..,.,,,...,,.,,.,.,..,,...,...,...,..,,.,,,...,,..,
+#PXKYBS3LTINBBK632IT4YTLXTLZ4NCR22NFKA3HKSOJC52DC5YQMNVSAIWGK4UB6FLS3S4JRMESCA
+#\\\|DG6MKPMJZZDKOZTZH4O5JUTDIEE4GTZLQQBMGRBGDPJBGHX62VG \ / AMOS7 \ YOURUM ::
+#\[7]V2SLYIQ7YRO6ZASBVGN2HKNYZXZV4WUZRABYJEZ255QUCONXI6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

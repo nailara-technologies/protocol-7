@@ -660,8 +660,8 @@ The infrastructure (watchers, timestamps, mounting) stays unchanged. Application
 
 **Next Steps**: Pick a pattern that matches your use case. See `FABRIC-PATTERNS-QUICK-REFERENCE.md` for code snippets.
 
-#,,.,,.,,,,,.,..,,..,,,.,,.,,,,,.,,,,,,,.,,..,..,,...,...,.,,,,,,,.,,,.,,,,..,
-#L3G7MLRJO2JEYGYVWK4TZIUETQKNXCUKTYOUAPCCMJ4Q54YQDHPW26L7EHWEXNYH3JEBPMWLQ5PPC
-#\\\|JJCPWHADAZO4DNUKD2HTKE3PSSIJRV6LE2RNTDVWLEF72QL7ARW \ / AMOS7 \ YOURUM ::
-#\[7]T4QGEU3ATLPRNVYRUFGAQSATX6A5MTP4JFVVADWFUELDDNMCE4AA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,,,...,,,.,,..,,,,,,..,,,,,.,.,..,,...,...,...,..,,..,,,..,,,,,
+#6YZW6H4DDXWSHLPLLW4GH4O7NW5OASX326ICNKRTMCUAIJROF5PXMBHWGKPOJMJXDVQMYFXFDT2CA
+#\\\|WK7W2B3UWYCATYXB6EGVPPZHTI6R2SNEQMTVFKIRRR6RWBXSUG3 \ / AMOS7 \ YOURUM ::
+#\[7]GZH5NJV7FZEG7YT3WK757E5AHJSSEADTHNPMEYT3TP6IEI34FODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

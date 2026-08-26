@@ -40,8 +40,8 @@ type: project
 - `8b0fe7d9c` — jinja-safe tool_calls, retry, shared sanitization
 - `54ec6e47b` — include tool_calls in assistant messages, add jinja sanitization
 
-#,,,,,.,,,,,.,..,,...,,..,.,.,,..,...,...,,,.,..,,...,..,,...,...,,..,,,,,..,,
-#LSKJQ23WMJHX5NFAUQEH55TCCPQKEFLIPIQW3LJ45GQVXVUPGRSWJOFZZEX2H7ICL3WPVQH3OUELO
-#\\\|NFT4XU25DKCYYHX36PIB4EGLKIFOWUUZ6MRV3PB2HB4N3DZWZW2 \ / AMOS7 \ YOURUM ::
-#\[7]JRSW4CUWJAWPQT2KV4P7VUG5Z4ILR2G3YPDJQIOJKKWUQ3WU3UCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,,..,..,,,.,,..,,,,,,,..,.,,,..,,...,...,..,,,,.,,..,,..,.,,,
+#F6LXHATRN2PQP5B75YA2Q5L33QV7AOGYDZP2E2KBBAR7JMM577Q3QOXKF6EZ4F64VN6X4H3VPSGO4
+#\\\|MFBOTITGLVYN3HGASFVODYRY2AXYMSB7CXOTD2JWG3F5BX5L5KE \ / AMOS7 \ YOURUM ::
+#\[7]HPC2U3F5FNPCD2JQBBPFLYIWAWH56GYH6OZUSPN4PMVXXXFNXMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

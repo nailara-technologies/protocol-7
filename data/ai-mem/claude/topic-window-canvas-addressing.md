@@ -181,8 +181,8 @@ content for virtual canvases, to group+tree-path for physical ones).
 [[topic-checksum-addressing]] · [[topic-routing-crystal]] ·
 [[topic-reference-bubble]] · [[feedback-source-identity-spoofing]]
 
-#,,,,,...,.,,,,,,,..,,,,.,,.,,..,,.,.,,,,,,.,,..,,...,...,.,.,,.,,,.,,,..,,,.,
-#ZMXSYHS2RZZT6ISIB3SQD4FJVLYETELXLJIFQYKIGM4CF3LAIY7IGOCRFOVXQMXNKACHZEWFUFE76
-#\\\|2436TVZFVATDRNHWTXIFDOLQX2FMGUNA3K2K5A5ULTOC2BSKW7M \ / AMOS7 \ YOURUM ::
-#\[7]L6LWYTSXMKJU52NEUNB6OZ5PDFKC2B5FHEPWKZ2YIXOJLUBW74AA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,..,,,,,,..,...,,.,,.,.,,..,.,.,..,,...,...,,.,,,..,,,.,.,.,,..,
+#VZV7GMZ2R3AWH5KA3BACZ23NTKVTHYEFKJQREZUQLNLBPTGHINDOYCX55S5AGSYHYL6DF2CKGOXNQ
+#\\\|3IULIDTKK2FEI6JPLVRLXKVTSL6CM5LCGJMOSTJ24PRBYQVDZDB \ / AMOS7 \ YOURUM ::
+#\[7]LPWADAFQW3HAF643O2YBKJGB6BCVSKLFHBQOIZGHTAMLNGPKVQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

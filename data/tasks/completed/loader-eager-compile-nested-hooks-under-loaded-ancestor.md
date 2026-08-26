@@ -141,8 +141,8 @@ already-fragile, just-stabilized area without re-testing in between.
   (fresh restart, `v7.reload init` × 2, `v7.reload all`) to confirm no
   regression.
 
-#,,,.,...,.,,,..,,,..,,..,,..,,..,,,.,,..,,..,..,,...,...,...,..,,.,.,.,,,,..,
-#OQOS6GR2BNOCVQIJTEJOK2BVNOEACTYNNWBBGZNM7ZXA2MDBIQS7ZZBD5VJKMXN3EORRJTFCMCZBS
-#\\\|IPHMF6DMIHJ2ZVJEX7UIS32J5ORYSIPJOL4Q5J7SMUCBA5UFLYV \ / AMOS7 \ YOURUM ::
-#\[7]WS4BTAUCGNHIW3DNV35VUSMA5X3SBGGM7SLKPHCPKB4ZVZGCPQCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,..,,,,.,,,,,,.,,,,,,,,.,,..,..,,...,..,,,,,,..,,,..,,.,,..,,
+#MAZD7OR4GGAX2ZKYKKMGKIATACFSNENRBOQ77INKWWCXNDZNCEA76FPJBGGCXTKQOOWISIK4D4E5O
+#\\\|QGPDW5O2RJA5BK2HRULU2NYS3DAQQJQ242K3EO3G37XV3GZO7P6 \ / AMOS7 \ YOURUM ::
+#\[7]HYYZ546MOIOQFY6UGLGZISWLSJ76I35QJ6KE4NYV7K7RERTRLGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

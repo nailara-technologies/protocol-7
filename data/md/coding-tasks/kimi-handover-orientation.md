@@ -64,8 +64,8 @@ include pipe-delimiter detection, comment style, qw-quoting, module
 call syntax, and other P7 conventions that ncode should eventually
 enforce automatically during code generation.
 
-#,,.,,,,,,,,.,,,.,,.,,..,,,,,,...,..,,.,.,.,,,..,,...,...,,..,,,,,,..,.,.,.,,,
-#N6JQVSD4C56ON4DO3FVLN423UKREO5QC4Y2MDIOPZO3DTCCJXMSABTXUT3FWVP2YVQAYOA6CJRAZA
-#\\\|N7NKJN2XN3OGGFP4TYYJAXEWJS35FWHPNHUC4I5RZACESA6UY6Z \ / AMOS7 \ YOURUM ::
-#\[7]EZROF4QXK2KA5W7URIXDTGTRNR2ITID3QBDS7QRBXVB565GVXMCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,,,,,.,,,...,,..,,,.,.,.,.,,,..,,...,..,,...,,,.,.,,,,,.,...,
+#BRRCE3ZLT6AYSRE2F7D33RJYLZQUCKZ2JZMIBWGERMA5KPH7CFPKJR4ALNHFN6UIR37VJQGMSE5YK
+#\\\|7F3QQJ5FMGB3KF53PJDDQHAYAI67IW6GZPNYZSQWVX5NYZFBB2F \ / AMOS7 \ YOURUM ::
+#\[7]RK6GXNY4MPNPH5EOFIIGTQR7SRIZVCV3FMYBDN53FZMGK7BO6GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,8 +10,8 @@ The pre-commit hook rejects `# descr =` lines longer than 55 characters with "de
 
 **How to apply:** keep descr lines tight and factual — describe what the module does, not how. Skip implementation details. Example: `# descr = summarize content via inference [ model-pinned ]`
 
-#,,,,,...,,..,,,,,..,,...,.,,,..,,.,.,.,,,..,,..,,...,...,.,,,...,..,,...,,,,,
-#CEALXDED5TW6SIRY4LSPOODYTGTAVGIXK4WUZG3C5SZ2QFIS2YYWLDMNJD5Q7Q22I6UEQRTBXOFBG
-#\\\|RAI25E26BJBHV6W7M47CFUZ5KSFPCDFNDKVGXIBH2ZA2EHOPRC6 \ / AMOS7 \ YOURUM ::
-#\[7]FOTL3J3ML3FHDVK5ET4H55XS7TMF7ECQBUNMTYANXESGHOQLNKAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,,,,,.,,,..,,.,,,,.,,,,,,,,,,..,,...,...,.,,,,..,,,.,..,,,,.,
+#PVTUHCOJTKN2AZVAXT4EU7S7S25EL5CNWSNGGJ3CWMQORIXWYQRCD7J7C6KHJSXM5MAHODXNAKAPY
+#\\\|JXKBD2JKE65CB63PXEBRTBWFTIVAQFHRGRP7YQPL2ZNOV3TCWJY \ / AMOS7 \ YOURUM ::
+#\[7]INZKDWKEYZBOXXREUECYFHZCSZYMXMDH37YM53XRUBNNIJCNIOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

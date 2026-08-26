@@ -300,8 +300,8 @@ The awareness tree doesn't just remember. It **anticipates**.
 
 *The future is already here, unevenly distributed — but evenly observed.*
 
-#,,..,,..,..,,...,,,,,...,,,,,...,...,,..,.,.,..,,...,..,,,,,,...,.,,,.,,,,.,,
-#LYO7O3RKN2ZAMD5DKWE4PSF62MS5ZSJWO6CQ325Q5TFHCQ65JORZ5BWERMI25VEOFJRLNOF7IB2W4
-#\\\|GP2DPUOIMRGCJTUIKX6SBV4ARIBFU33X5QFZECG3OHYEEUFXJKC \ / AMOS7 \ YOURUM ::
-#\[7]POOW2PAM7JS6VFC2FUAAE6EUUJ7PIMG2EIK22Y4HLTVLFGFROGAY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,,..,,,.,,,,,.,,,,..,,.,,,.,,..,,...,..,,,,,,.,.,...,..,,...,
+#54UCCBD47Z2JKYZAPQPBWQSGAZBH6RI4L6E4VRTIPJOJ7LPPCOLFH7JBVP4KQOZC5E5XSMTCX52GY
+#\\\|ZVUL4OBVBOHQY4LJ4IYPWTC5PJ5DGSWG7PJB7UR3Y7WH3SQ724Y \ / AMOS7 \ YOURUM ::
+#\[7]LPNUJRC3ZZRNRJXZY5VVVKZNWB7HBHRKJNOSKCM3HZ2KJBZWZWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

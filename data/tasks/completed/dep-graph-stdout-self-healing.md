@@ -152,8 +152,8 @@ in place first — the stdout + subprocess approach sidesteps the file-write
 signing requirement entirely. policy is applied at read time in the handler,
 not at write time to a file.
 
-#,,..,..,,...,..,,,,,,.,,,.,.,,.,,,,.,,,,,,,,,..,,...,...,,,.,,.,,.,,,.,.,...,
-#OR34SDYXNTMKNJ7GMGTSKV23YKRUME6MTZPW64R45QAL2TNCLSMPOPUNWH67V3FCNVVSBRB7RYFJ6
-#\\\|O6CXU767BRR4QZQUFI2ORI4ZEXAV3RKMPLTPZOQWEGGIEA2KK7N \ / AMOS7 \ YOURUM ::
-#\[7]QBBFLO2ICQRWAFWZMAIWJJNC3GG3JMBGM7XMZ5YAFQZRYCZWHYCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,.,,,..,...,,..,,..,,,,,...,.,.,..,,...,..,,.,.,,..,...,.,.,..,,
+#FBXLBJ7XSVSHLCRGWSRXCOT4LGNMD3QY3KEYCLA45LVCDOX7S7BT3S6ETFFWQHHJFDJQKQL3DD5KU
+#\\\|RDY57ELBCHYH7R6BY5RKLWNHJ4KFHFTYHCM2E3JNYVKCF5ACZVA \ / AMOS7 \ YOURUM ::
+#\[7]QZVAWPDW6VOER3OBFLP627LEDA65UYPDDHSLPQWFWFEIUUTVYGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

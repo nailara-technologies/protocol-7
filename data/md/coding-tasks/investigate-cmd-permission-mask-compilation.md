@@ -94,8 +94,8 @@ Using wildcard `*.receive-entropy` instead of `cube-13.receive-entropy` allows z
 - `cfg/zenki/cube-13/access.zenki` - cube-13 specific access
 - `cfg/zenki/cube-13/access.users` - user authentication
 
-#,,,.,.,,,.,,,..,,.,.,...,..,,.,.,.,.,.,,,,,.,..,,...,..,,.,.,,,,,.,.,,.,,,.,,
-#UH25EK3YWGXWD3VX6ODITPOUZU4K3PAKYI3J353EFTH7UMIEF5ILAEZTZEFFZFJT3ZSY3F5X2SU3M
-#\\\|4FSBVNFNHOYD6P67KVL4ECRR3EK7365CRADBNB5JG5SSAFBRKWJ \ / AMOS7 \ YOURUM ::
-#\[7]WZSNXWXERDF4X66YSTPSGXWQYF5GQHRI5AMX5ECJG542U7PDLGBA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,,,...,,.,,...,,.,,.,,,...,...,..,,...,...,,,.,,.,,.,.,..,,,.,,
+#BRCXXIACYK2IUOUYFKJRNVUG2AXL6H7INRUXID2F57FRKAHS66TDVX4IR22SMAYZ6KFS5MUJPVNLG
+#\\\|2KOB2SHOJJ3VJKFY4GF3H5AJ6NLUMOCSECP3MQU6XRWJ5VK3YDO \ / AMOS7 \ YOURUM ::
+#\[7]CRRGTBI5LC3P7E3SLCNKZFLVHKVBGN6JFCS63AA3V5DFRQ3JG2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

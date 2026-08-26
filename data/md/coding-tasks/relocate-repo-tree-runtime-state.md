@@ -108,8 +108,8 @@ for genuinely external state is to stop writing it inside the repo tree.
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,,,,...,...,,,,,..,,,.,,.,,,,,,,,.,,,.,,...,..,,...,.,,,..,,,,.,.,,,,,.,,.,,
-#52ZQDJPZ5RQZIXMYKMP23BF4ONRWEV6LTXNKIHBIF5DQXBCF3CWGIMGCONCLD2E3PHOCFTO3VUKN2
-#\\\|HARYEIKKKQJ76MC2HHBWUM3YYPO3JV42WTX6FN32IX3QEAN5BDB \ / AMOS7 \ YOURUM ::
-#\[7]XY7UTRW55UUPMT27BE24XTZ346HUFZWGHJCZIJFLMDMTGJBFZYDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,.,.,...,,.,,.,,,,,.,...,...,..,,...,...,.,.,,..,,..,.,,,,,,,
+#M76PSNY4J5PWKH5BJH3PJ7TY3K2EOQWDOWDB722APNJGRJECV3TTCTGPA7VZXIOMOOOBVST2VIVGO
+#\\\|DWOKHBG5STMYEQTJGWRU7IAGMGLABJHUOZXQQEYD63RMEHWLIVH \ / AMOS7 \ YOURUM ::
+#\[7]SJXTHIJDAEM5ZT6TGVTQ57LE7IPFG2GYGXGZZVMSKZ22MXVPACAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

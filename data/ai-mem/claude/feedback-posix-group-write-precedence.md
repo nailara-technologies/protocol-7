@@ -41,8 +41,8 @@ it took a second multi-hour live debugging session to rediscover). Treat
 `write_with_perms` as a confirmed, unfixed, real bug — not just a "don't
 copy this" note — see the roadmap item in [[topic-next-steps]].
 
-#,,,,,,,,,,,,,,.,,,..,.,,,,.,,.,,,.,.,..,,..,,..,,...,...,.,.,.,,,,..,,,,,,..,
-#JH3QZHPTTVSAXJJEQUI5Z7FTB2GMBPHDBQYBPK2E537TVDB7L3JQR35B4OVM4I5EOUXGQ3WXZZOOS
-#\\\|NPT5FGL6FRIGCNTE3GLOVNEJZR4KZI6OFHYVZWP2UNHPTB7GFDN \ / AMOS7 \ YOURUM ::
-#\[7]IUA2WFOPVZ3XP2HTBHLSB42O7FKGJEOGSIQNRBZT3RBBZS3VHUDY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,.,...,..,,.,,,,,,,,,.,,..,..,,...,...,.,,,.,.,,,.,..,,.,,,
+#D2OZECIORDANITQ4CKU6SM22ESHLALQODBUWCA33V5AZKP5NR34KXXWHZYIMBQGRICMW3NLLC4SZM
+#\\\|HXMML4DAYWS65YK5J4SYAAY7QWYS6Q3TVJC2JON36ARBFMECZHV \ / AMOS7 \ YOURUM ::
+#\[7]WUI2UUY3WQETP56S5OUOV6PHB473RJ6Z3EI6KVJBO4J5XPA3X4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

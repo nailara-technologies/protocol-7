@@ -97,8 +97,8 @@ base.buffer.add_line -> base.s_warn [ 1 call  ]
 call each other — the format must handle cycles gracefully without infinite
 expansion ]
 
-#,,.,,.,,,,,.,,.,,.,,,..,,,.,,...,,.,,,,,,,.,,..,,...,..,,..,,..,,,..,,..,..,,
-#PCCELGOFS6QUXJK2RZT7UEV62G54AIM77LO2E5S5OZBFIDDICQPYCA4DOAO4UJ6KMZH3O3X6TQH5C
-#\\\|GI7TMR2TAXOVSWNJGP2X2RLMSZO6DV7FC4A5NL52YZBOQWFJQPP \ / AMOS7 \ YOURUM ::
-#\[7]7FK3E6IUQBF2XGA2IHJ4ONFLVOYYITQW7WBJ2UBZDPHBAJHUNSDA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,...,..,,.,.,...,,,,,.,.,,,,,..,,...,...,...,..,,,..,,.,,,.,,
+#H2BNWQW3DBQG72Y5NWQTHCJUXFMSW4HM474WDSI5CW3HDGWT4ZMR2GKZBNHLB3FPXN6GWXNLM4HYO
+#\\\|FM2ILJYST6XJ3QH5NDEC76WQF5B64TOPSXORJKU6NQM2FWWL22J \ / AMOS7 \ YOURUM ::
+#\[7]ERKV2QJ32HOZCKW25ISQHCQNTBYHKEDLFFRQTLE4EQGOMV45YCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

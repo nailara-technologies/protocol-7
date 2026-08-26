@@ -44,8 +44,8 @@ actually come up rather than guessing further now.
 [[topic-user-edit-console-zenka-status]]
 [[project-keys-zenka-integration-direction]]
 
-#,,..,..,,.,.,.,,,,,,,,,.,,,.,..,,,,,,.,.,...,..,,...,,..,...,.,.,,.,,.,,,..,,
-#C2QNZU4CLUIY4KMG53J7CA5ASKSOX6RTUXQ5M67LBFHL2YOVIG65W4XXD6X5YPC6NX7HGQ4HYDLY4
-#\\\|FEAH2LQG3KJTSQTQTT6ECOOO3QA7FLZSREPGWIFWFDRRK6ISNBO \ / AMOS7 \ YOURUM ::
-#\[7]6DKQ4NP6YA4TZRKGVEUTW7NLPQSMW6AIMZXHK2QU2G2YD3XHSEBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,..,,,,.,..,,...,,..,..,,..,,.,.,..,,...,...,..,,,..,,.,,.,.,..,,
+#AZS2CDRZHM6MHZC7QRM45DIPI73763Y4NDROAD4P5YMT22T4B74RH3LH7543Y5IC4CXLVEDZEWYPS
+#\\\|DLVUCAC7FWIXBNBBXAW7VGOLDEZLOJHTBDBC6BUWIJ5L3XFB6YO \ / AMOS7 \ YOURUM ::
+#\[7]UIQU2NL5ARVTTXPDMN7A3LWCUOWU556C66WNQWXCLZDMNH6LPWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

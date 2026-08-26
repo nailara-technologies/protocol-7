@@ -144,8 +144,8 @@ now." two shapes worth considering, not mutually exclusive:
   producing a plausible-looking but groundless score? separate from the
   orphaned-file bug itself, but discovered via the same incident.
 
-#,,,,,...,,,.,,..,...,.,,,,,.,.,.,,..,,.,,,.,,.,.,...,...,...,,,,,..,,.,.,.,,,
-#ZHD6XOFHCOSDBJDBBQDZ36VSFXKHCO5DWH6DFNXFBS7X6CNFDK3HEW2EJ6RXPPNMUNROAHQVFKGJC
-#\\\|FYP3KSGG7XT34HPK4KZDQLWGXMU24RIECYPI23W4KFXPTTI6YJI \ / AMOS7 \ YOURUM ::
-#\[7]EIOALQSI3F25ZPT5ATCUG7B7GMLNHL67WTEPK3VAQRD4T6S6LGDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,...,.,,,,,,,,.,,...,,,.,.,,,.,.,...,..,,,.,,,,,,...,,,,,..,,
+#OV664SAMHRRL7YKGL6RGWZENVTZBZKEUJR2ZP4KQYPNE2TP2RTMG2VM6H3ID7TVT4W5NVCC5IEUCE
+#\\\|LZHIY3D6AJT4JZLGLFQJU6D3HTJPBC4ZXR37IX625VXG2ASKJRW \ / AMOS7 \ YOURUM ::
+#\[7]AJHSYNH3TYVRXYMSGCL4KF6FPB2UF4MJUD6TO6ZQTYTOYUE7R6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

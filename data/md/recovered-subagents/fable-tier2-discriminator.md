@@ -1232,8 +1232,8 @@ Style matches the existing `base.stream.frame*` family: no pragmas, `$ARG`-free 
 
 No repo files were modified; the only artifact is the test script in the scratchpad.
 
-#,,,,,,.,,..,,.,,,,..,.,,,..,,,.,,,,,,,,,,,.,,..,,...,...,,,,,,,.,.,.,,.,,.,.,
-#YUBJP7R6Q5KM2ZICR5FQLS7FXRAROQV3YRJMHBNL5Z6M4MDPH6PI5OHNT6DNA5EUWNAWJGACEBTX2
-#\\\|WNPFAHYRS6IHBIDW4VCOAVIUSFE7I7ETECGTCA7A66OY3YAEXIS \ / AMOS7 \ YOURUM ::
-#\[7]KQUYNRIJCSFWNASMVCQ55QE7VLQROWCKALMH7KUM3ZV7MOONQCDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,.,.,,,,,.,,,..,,,,,,..,,..,,..,,...,...,,,.,..,,,..,,,.,..,,
+#6ZP5YNX25DAQLVFPP5VQPV4QCCZWDTXFXQKWSHT2A3KYAIHYFJRLHF4GODUTXBXZ7WFLFMKXRNVSO
+#\\\|PGUIQI3IR6DZHABJQF5WKDGA4WNO5UHDXC6VAOTHG7W7GBJPWTD \ / AMOS7 \ YOURUM ::
+#\[7]ZTAATIDBAUFI7HAFVGSWS5VGFBZJFNJT2FJUD35T23HDBQF5LMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

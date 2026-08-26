@@ -57,8 +57,8 @@ needed, simply because they didn't contain any triggering pattern.
 Don't assume "it's under `data/tasks/`" means it will be checked —
 check the content shape first.
 
-#,,,,,,..,.,,,,.,,.,.,..,,.,.,.,,,...,.,.,..,,..,,...,...,,..,..,,,,.,,,,,..,,
-#BGDOUMHF44Q7Y4FFNKLNO3K7XXKNMQWQY3L54X5XOQC57SVTVHBTWUSHZ4BPW3OIEQXFNFFRT4SD4
-#\\\|T7C3GD337FITPP7BNCQ34ICTLVFTY6UUSSHPTAEW2KQ3CRB6EGD \ / AMOS7 \ YOURUM ::
-#\[7]22I4IDKGURYKJZU6K3U4GI4NLM7RADJX4XAGS6SRQHVGB3ZS22AA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,,,.,,.,,..,,,,,,,,,,..,,,,.,..,,...,...,,..,.,,,..,,...,,.,,
+#A3CNN6634IJUDD6SLVDJ376RO5E5RP27JGQQZSLBHR2PYA7TIZ4ASUXJCOTLMJJ4CGFVLZWRC7X4U
+#\\\|744H7EMDJBWAGLHHHUWVDK24YXAE24K3YTETQEDGIQQ32ZHU6AK \ / AMOS7 \ YOURUM ::
+#\[7]ANWLO4RX4A5RRG5IV6NWZSZLGCMXRZOC2G5EBMRJQM5CROFC7SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

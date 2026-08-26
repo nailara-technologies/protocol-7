@@ -172,8 +172,8 @@ use the same format as the existing web-browser fix task files.
 - [ ] stub task files created for all high-priority candidates
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,.,,,.,,...,,..,,,.,,.,,,,.,,..,...,...,..,,...,...,...,.,,,,.,,,..,,.,,
-#BUWATLP56LG5LEB4QUZ7SW43PTJ25CAM2LI4F7KEDZVJBACF5FCDZ42MEYDDY7MTKCKTJGX6AFBQW
-#\\\|7QQIRSRE5RS2REL3FSHUQTGIVNBKFNOYR7VF6FZJH7ZVD2WCDGJ \ / AMOS7 \ YOURUM ::
-#\[7]ZZDEGA3N3UPNX4BLFEBVGGFOPTZ4674YNKH23ZB3BWIZBNC656DY 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,.,,..,...,..,,.,,,,,,,.,.,.,.,..,,...,..,,..,,...,,,,,,,.,.,.,
+#TM7SN5SQSA7R5YPOTIDU2WHM3GQCUI5HKQI2BZBZVCX4S65MEAF3Q6GBSR74HJFAQVY7NNORNV42Q
+#\\\|O6VGBU34IN3D362GZQAGA33WW44CBQTNESWWSOF4CSYM2XGHQPJ \ / AMOS7 \ YOURUM ::
+#\[7]5HIELXMB774TXLKDCHA4ICMZCDPULVB3NFSEZM2AD33BQF6PKEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

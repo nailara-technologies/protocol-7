@@ -76,8 +76,8 @@ outside of the display_poll or callbacks.initialized coderef.
 [[topic-mpv-jobqueue-startup]]
 [[tile-window-place-hybrid-desktop]]
 
-#,,..,.,,,.,.,,,.,.,,,,,.,.,,,,..,..,,,,,,,.,,..,,...,...,.,.,,,,,,,,,,.,,,,.,
-#4GPMNJIJXMFNQQWUREXR32Q52JN5BMA7BGEDR63OYRLE2LKV2ANVH6KALLW5EDYZYY36FQ6G67F62
-#\\\|OHPCYQD22ORXWZLS722GBQJ3MPVNXMISDIHSH3IXBK37TS2BWEG \ / AMOS7 \ YOURUM ::
-#\[7]NPIT3WEMAUCRU3EI3U4Q3FCKE52IPEFOKFPY3TUTJTFQ7EUJNGBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,.,,,.,.,,,,.,,,,,,,.,,,,,,...,..,,...,...,.,.,..,,...,.,,,.,.,
+#CYDWERBGUR7H3BRROVUSXQS4F7C7OLTMLPWATWRJ3OSY6BM2LY72QXWFPXWWYYLJPFJILMORS5CIG
+#\\\|QUD46S4EMUD7HCJEARKRPUYMOXJJG6BQ5XKY35YNRGSKFTOHLXP \ / AMOS7 \ YOURUM ::
+#\[7]LTHWX3RUGXFQIKIYJLF7ZSCYE5ZNGKX25DKFHUDKSZO3HONWG4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

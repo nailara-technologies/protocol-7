@@ -67,8 +67,8 @@ analogy overstating current independence) are design-level, not a code
 task — see the vision note for that discussion. this file is just the
 two concrete, buildable items.
 
-#,,,.,,,.,...,.,.,,,.,,,.,,,.,..,,,..,,.,,,,.,..,,...,..,,..,,.,,,...,,..,.,,,
-#ERD2XYEFF4XH6FAVPBX64A45CVYYUOZ4D463IYFDPYWBSXQLEY4ITQH2MFHTMOJKYBNLLL7SHAVS6
-#\\\|B66JKYZCXABERDQUI6V2QQMSXDVHDDOG6XWXCL3SWVTX3Q2ZWUV \ / AMOS7 \ YOURUM ::
-#\[7]MUISXVMBDPRCR5ROCVPSGYMLPEX2QSFJD747NWCNAPUAT6KV5SCY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,.,.,..,,.,.,.,,,.,.,,..,,..,..,,...,..,,.,,,,,.,,.,,,,.,,.,,
+#NK3YQTWF425XYXELV2SOUMNEAJW7B4H6GN5MGNCB3RKMYFN2AQLTTCFFD2RVJJ6D7DXA3M24JVNYS
+#\\\|YS55U7J6UMCP5DI6UHE6XTD6YXMACLZS7OHWMYJWZDNFJYUKDP2 \ / AMOS7 \ YOURUM ::
+#\[7]754KABCSJV46MYO3PH2A6KEZ3SDXDP6CSMH647I6EQ4VNXDQD6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

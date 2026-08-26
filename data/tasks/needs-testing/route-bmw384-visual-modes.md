@@ -164,8 +164,8 @@ implement in this order (simplest first):
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,,,,,,.,...,..,,.,.,,,,,...,...,,,,,,,.,...,..,,...,...,,,,,,..,.,,,.,.,..,,
-#V3BEOG657Q53EGVHMA3N4LLXVYFGAXQNNQ5BF2QIJ24DO2UQQVV4GEF262DRTO6QVV2QTGDLPZVII
-#\\\|MEPPA4IZFYUUKDM4X2H7P634B3K4MHXDNV723W2X6DRLS64IMA2 \ / AMOS7 \ YOURUM ::
-#\[7]QK36CYHCGTTP763HJLDNUFSTGMK3I2QXYMRKGZUDHA4ZR4CCMKBA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,.,..,,...,,,.,,..,...,.,,,...,..,,...,..,,,.,,.,,,,.,,,.,,.,.,
+#HIB6CYAESUPQPQETYH4XW3F3TE4PLTUNP5TNAMQRTTDIW6WN3QCV63Y3BRDONHFQC6IDQKOYWSTUO
+#\\\|SHLN2KCEMUXK2KBOGDM5JX2UQHFOK7HFP5WLR4543SO6WTTSPRP \ / AMOS7 \ YOURUM ::
+#\[7]CDCTGQ6LKNVFEIWW5NWXICKMEXF4NVQEML23ULEX5SL57ZQINUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

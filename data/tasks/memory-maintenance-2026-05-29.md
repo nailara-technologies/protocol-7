@@ -107,8 +107,8 @@ if nothing needs changing, say so explicitly.
 - do not propose style changes to memory files — content accuracy only
 - write your proposal in the same lowercase narrative style used in the memory files
 
-#,,..,.,.,,.,,,..,..,,,.,,..,,.,.,,,,,,,.,...,..,,...,...,.,.,,.,,,,.,...,,,.,
-#2LJ3ZIZ24UQHFHJFQRJQB4C76URCVWUZWAUJ6RTTFYUCKHT6TJ35BQW45HC5NTUQZYPULDFUTNFAU
-#\\\|SD4YRGRCPQB3JU3T55CWFR3OXUJB4RBGDR2RURN5AAXFQPP5F5B \ / AMOS7 \ YOURUM ::
-#\[7]HH2COQP4QVYTX56ABFTCGDYNMZHFXPHSIZXZ5NJLU2V2EARSJKBY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,,.,,,,.,.,.,,..,.,.,,,.,...,..,,...,...,,.,,...,,,,,...,,,,,
+#7DNGNZOUCIPQTB56LVALGOFKDSRBLKJDPXZAOA6XPY7CLQEDIEYJVAEDLXJRW7THWX6TFRKSTFQQY
+#\\\|75W3RKDXRJ5PVUNN4U6DPFXCGULQVRKXKCNTMDZU4X4ITJZZCBA \ / AMOS7 \ YOURUM ::
+#\[7]XOOQR5Y3NAYYZ74BWN5S2LBFLR57XIZQY5VTKME45MAQZZZPQOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

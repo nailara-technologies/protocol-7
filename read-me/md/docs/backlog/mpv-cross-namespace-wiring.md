@@ -144,8 +144,8 @@ Both should be executed in the same migration window so that new commands (e.g. 
 
 *End of wiring report.  Next step: human review of promotion candidates and priority order.*
 
-#,,,,,..,,..,,..,,,,,,,.,,...,,.,,...,.,,,..,,..,,...,...,.,.,.,,,..,,,,,,,..,
-#MSPYFUGEXE66YHXOX2QDSSN76GYRCAQB5ED2FSFVL3NBN325WHRS3K3YU3GUO4SADI7ILLLQTWIG2
-#\\\|IX6AIIUZV6N352IYBBJPCDDAV55RJOVLT6M3GYYOXOBP3RIUZ5O \ / AMOS7 \ YOURUM ::
-#\[7]KQ27LBPW3X5KOAE6IRNTUFVP3BS3C5Z24ZSM77LC64KZ2JOI62AQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,..,,,,.,...,.,.,,.,,,,.,...,..,,...,...,,,,,,..,..,,,,.,.,.,
+#RAMMWQGLWVSJTOKT45QY6LRTNYMXWW75PH5GIW5C3LPSXGIQQI2PKNKXLFKFOPGX2VEKZDQ3WUPNS
+#\\\|6MKSOAJOBTDSJN54FA2VYQY3WLRACITNFI2ADTAQATYKG2NEBSJ \ / AMOS7 \ YOURUM ::
+#\[7]4MERGCHKUG6TCT2G52FREKX3CAVO5BRDON7FLXFDS6P3X3MAT4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

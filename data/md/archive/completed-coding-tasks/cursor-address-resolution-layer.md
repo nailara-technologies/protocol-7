@@ -51,8 +51,8 @@ After wiring:
 - keep the POST handler lightweight — no auth needed for local loopback vhost
 - debounce is important: arrow key held down fires many moveSelection calls per second
 
-#,,..,,,.,,.,,,.,,...,,,.,.,.,,,.,,,.,,,.,..,,..,,...,...,.,,,,..,,,,,,..,..,,
-#HZMLAMIB5GIIKGKUEPDPTXGLKXQLR7THB5JW5NDDBWNSGLJ5IGAS7J7KIJRW3UMQGBW67HVUMD4B4
-#\\\|Q4NAMH7UIZ4XVQQJ5O2MYC67DRWCN6MBHCAGBZT2D7RZVY3QT6V \ / AMOS7 \ YOURUM ::
-#\[7]O7KEVUR24GAZH7B5SHLSIDXNQB5JDW7MUZAPSDOIMFJPIB245QCA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,.,,,.,.,.,.,,,.,.,.,,..,,..,..,,...,...,..,,...,.,,,.,,,,.,,
+#5D26EBSM2LZF6P4R7GFCG662WZSUIWMT3B7L3DKL4GG3HKXKQWMJK6CP57ZJBJ4TOD565DGDUQ2ZM
+#\\\|UJQLLGPNTQ5B6JK2YVSYA6S53BVQ3GTLGOGGGJSDH7WR6M2GBLU \ / AMOS7 \ YOURUM ::
+#\[7]G35GMP7NQO7DZO635ULK5TGS3EHLRWIK4YLXRPZNWHNWUEOIPKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

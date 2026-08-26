@@ -116,8 +116,8 @@ known or no permission". two compounding issues:
   findings doc are walkable from a `p7c` console session as an admin
   user (verified live, or explicitly marked unverified with reason)
 
-#,,..,..,,,,,,,,,,,..,.,,,,,,,.,.,.,,,.,.,,,.,..,,...,...,...,...,.,.,,,,,,..,
-#WMZTTIA7RJ3JT2YXJNDLHKTQNQ6D2VC5ZH7YTENMXSK6D76OC5L4KP2QCYVURTVZFKI3CA2J33IGO
-#\\\|N3UOQT2JQTTVTVXUAO2X2TWMMBQD5VNXWLV4MKNDMKLFAYGN33W \ / AMOS7 \ YOURUM ::
-#\[7]UIWRELFNFYS2SMZHFQGUXVBPIR6EGIIVY4WU3IKYDHNWGZIBFIAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,..,,,.,..,,,..,.,,,.,.,,.,,,.,,..,,...,...,..,,..,,...,.,,,,,.,
+#WNRR7OWS4WEXMMPFFHCUE6RDZGK2VB5XU66Z2RC7U3HGXTVFGRRR3MBEXWTTW4Y7MZ57FILYSVUVU
+#\\\|HDEJLYHMOM7S4OFODMVWKFJJZCDQTM3CLQ3MU3ER6UGU5VKEFZN \ / AMOS7 \ YOURUM ::
+#\[7]QFW3OSZPQLN2RBOGNLZ3TYXF6NPVNPS4EHDIQDQEAHNEYCFTREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

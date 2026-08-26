@@ -114,8 +114,8 @@ plus auto-generated: whitelist / src-ver / dep-graph / source-markers.
 - inspiration: `read-me/documentation/dev/research-notes/user-interfaces.00007.asc`
 - prior session: git `db76d35fb`, `data/ai-mem/claude/topic-memory-tree-zenka.md`
 
-#,,..,,..,.,,,.,,,.,.,,..,,,,,,..,.,.,..,,,..,..,,...,...,.,.,..,,.,,,.,,,.,.,
-#4LQBEED4OCKE46WM3P4YLDHYRO25RKQDDN3GPSCPUECK22YXBEO7JSP2AAEJRH5XMM6OBXZ4Q5IHQ
-#\\\|HRBJP2EMJ73W7VKUKTIEZXMPHK4QJVDBUYD345ZPP4SRBBEZ72I \ / AMOS7 \ YOURUM ::
-#\[7]KDEDFR3MEEMRBQAN67ZE5GBVOFMNREDCBJNYIBKRZCWWLIMUWMDY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,..,,.,,,...,,,,,,.,,..,,.,,,..,,...,...,...,,.,,,,.,,..,...,
+#TPSYGRE4KL2FWLT3E43CH7IYHD7ZDCNTX4GEYSTVJLVKE7U2DTBALHYY3JBXCAK6CHLDXEGFNXT6O
+#\\\|DCVPJEAGCHGDMJRMGL3RJRLTALUFX7H77C4A5HVB3RTCRZ6AHLP \ / AMOS7 \ YOURUM ::
+#\[7]APM3YII76HWFLEQ6C2EZMPFLYDAF2OJGWOSJ5JFAERRVXR6T4KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

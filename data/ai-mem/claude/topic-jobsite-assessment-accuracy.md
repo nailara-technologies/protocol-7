@@ -34,8 +34,8 @@ to gain efficient abort-inference capability first — this is blocked on
 [[coding-zenka-improvement-pipeline]], not a jobsite-side fix. Don't attempt a
 jobsite-side cancellation hack before that infra exists.
 
-#,,,,,.,,,..,,.,.,...,,.,,,..,...,.,,,,,,,.,.,..,,...,...,...,.,,,,,,,.,,,.,.,
-#DKOAQEVZK2DV6GT4N46U7ISJIJZ2CZZ2CO6N65TRHJRKIUVRU3XWBRDC2JRW2UNPFXASGPJWDGWTK
-#\\\|77RPS4N3MKVYOXRKVILOSL7O6NUPURCQWKO3B6WGXMUHWDO3D7H \ / AMOS7 \ YOURUM ::
-#\[7]TK2WMBUKTSEY3NEBAOA4H5JFLDQOWEP5ZHAYDICA6RUT4J6JWUDA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,..,,,.,,...,...,,,.,,,.,,,.,..,,...,...,,,.,,,,,,..,.,.,,,.,
+#EKPQIX6WZ3QGMJRV6T7PERLTBKJLZJ5GDWC62NLZXWZDDZPMQRSWVUCH7F4YQVCXSGNJQW2VPZE2I
+#\\\|2ZFHS4DPE4LSMDXC67EI22UR3I7FMDOPZMYFPVBSNW44ELW3GWX \ / AMOS7 \ YOURUM ::
+#\[7]MUI2M35ODAWUPIJTZ74RDBY3K3FYEK33M4RIICKHGVW4A7UD5KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

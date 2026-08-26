@@ -591,8 +591,8 @@ as a gate, not a hope.
    leaning prefix-string for symmetry with the existing convention, but worth a
    nod.
 
-#,,..,..,,,,.,,,,,,,,,,,.,,.,,,.,,,..,,,,,...,..,,...,...,,.,,,..,,.,,,..,,.,,
-#R7CRP6NPWZOUZYZOY4YJQ5EN3XPNE7FXJC2QL5OONEESEWJZGMLKYSFXIA2Z4D2B6CTRDBQQ3WHVE
-#\\\|WZ4T3XJIR22IJH5RAROPJK4EKZWYZG3MXYV6AZ5RQYWAGFLP2VL \ / AMOS7 \ YOURUM ::
-#\[7]A5P2D77XVAHYGZRRK5UHH3RTP2DGBG7PPR3TIF6LFODGKCSKOYBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,,..,..,,.,.,.,.,,..,..,,,,.,..,,...,...,.,,,...,.,.,...,..,,
+#F4PT5I6B7AMZQBU5FQAPKNGNSMFMOR7TE5QZIVMP53I3CMX6ZQFXR6JOKW3VDD2CKM3DBAWVRP6NA
+#\\\|4YRPBOILONU4OFVDCWNBCTOKTAM3JUJOE6VEY4ULGQ4D237YAHZ \ / AMOS7 \ YOURUM ::
+#\[7]FOBZ3XQLWCRF3CFA5BHDJOA4ZFZZ5TCJ4BBJFP5TUADKFA7CM4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

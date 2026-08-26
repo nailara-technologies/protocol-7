@@ -52,8 +52,8 @@ site-yaml → dedup task → LLM categorize subtask → jobtracker → email mon
 Keep generic: site-yaml and the task tree structure should be reusable for any
 content-discovery workflow (podcasts, music, news).
 
-#,,..,,,,,..,,.,.,,,,,,..,..,,,.,,,..,...,,..,..,,...,...,..,,...,,,.,.,,,...,
-#MVJ7ACVGIDKTPC5OLHIYSGDWXF5IB6P4J6LEYJ4KJC4Q73RGRF5DI5QN66YGG6JJZFTPULNYIOL5E
-#\\\|K344JEGFJELEXBFXARFGSWMPR4DYBUZTJEFRVJICR6O2KYZ6UVR \ / AMOS7 \ YOURUM ::
-#\[7]UU4VSBRKJDTTSKHR4TZUZ4K32RT7LMTMC4RLNVRYNJJQDZBXGOAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,,,...,..,,.,,,,.,,...,.,,,..,,..,,...,..,,...,,,.,,,,,,,,,...,
+#2DXGKKMIUH7QH2MTUXWIFPOAVQPYC2MKCFUCB2BLNA7TFUAPSOJXOLRXD4HGZVQUEPNMQENXAUOUE
+#\\\|GLQAXNHIPAFKFGOENQ6N573YOGC4U7IM7RRMEEHINDNMBLIARMU \ / AMOS7 \ YOURUM ::
+#\[7]GJP2BEEUTJBOV3YNQBO2QN6YGKW7MLOGJWV2NWGFHO2LVA5GVWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,8 +55,8 @@ This is a shape/architecture note, not an implementation plan.
 adapter onto a shared regex/pattern-registry engine generalized from
 ncode's self-refining-regex design, rather than inventing its own store.
 
-#,,..,.,.,,,,,.,.,...,,..,,..,,,.,.,,,,.,,,..,..,,...,.,.,...,...,,.,,...,,,.,
-#D3VM6EXUPDECP4HS7NBJNZPLTQFECBOZOWSVMT3RWUDIVUJP5ZKPW4VN4A5LLLV57TYAQB5XYGKXC
-#\\\|VNZWX2R7ZOPYHNHKGOSBD27LUZATN5CXJ2R3NG7POEOY2PQOFAQ \ / AMOS7 \ YOURUM ::
-#\[7]57DVQST4TZK3FSSFBBXY7LUI43KOTV7OOVOFDUUGUKJQJXEKRMCA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,,.,,,.,,,..,,,,,.,.,,.,,.,,,..,,...,...,,,.,,.,,.,,,,..,,,.,
+#UNBVTVOQCDLNWSCZBEM2QFNR4L4CBXUASXTMWTDYBAOOKRA3ZTFTQ4K3RUXDVX6O4NHVKMJBLXKQ4
+#\\\|IMXTVUSXS33J6CMNVRNY3XJ2RRKUFDJBWIJXIKUESA35SA5FUEJ \ / AMOS7 \ YOURUM ::
+#\[7]XP2LN6VNNO72HSTA2LSNGSCEZQ6AFWDB5ULYY4FMXHMGONHAGCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

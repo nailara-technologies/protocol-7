@@ -23,8 +23,8 @@ Use these exact signatures in P7 module code — generated code frequently gets 
 
 **How to apply:** Any time generating or reviewing code that reads/writes files or checks file mode in a P7 module, verify against the above.
 
-#,,,,,,,.,,..,.,.,,..,,,.,,,.,.,,,.,.,,,.,..,,..,,...,...,,.,,,.,,,,,,,,.,,.,,
-#KFDTH2347C42CFZLYZPAUSMUDYKJETVWO7HVQBMG6JQQ3EZNDFJDUE4NTN5VV7IZNL34AJTDSRUNY
-#\\\|LS2QEXE5QV55DVTPGBSPZP6ZHE7FIFXBXVZJB3DODGBUCF5R32H \ / AMOS7 \ YOURUM ::
-#\[7]PLQOMU2FFPZH2FHCJVGGT7MCEWG46FESI5TM46727PGNUFUVOEAA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,,..,,..,...,,,.,,,,,,,.,..,,..,,...,...,.,.,.,.,.,,,...,.,.,
+#XBVIX4D2ASZXLS3YSZ7HRDHVWYENFXQU3UYTIEEPUX57VBD5G75SRRLBHZ2A2JD4AUA5ENMWVGR7M
+#\\\|B45YDB6YQSNRRZM4NMOHD7VL2BGZ53UWQCGFCCO7JPNWASYFTHH \ / AMOS7 \ YOURUM ::
+#\[7]4QD5R2Q7OU7Q56P5JWHGTQFGRRLNGJOMAQMGF4LAUIXOZLNFL4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,8 +44,8 @@ c) if channel.palette returns wrong format: fix the map in orbital-sync to match
 
 do NOT add stub signature line to modified files.
 
-#,,,.,..,,,,,,,..,,,,,,.,,,.,,...,.,,,,..,,.,,..,,...,...,.,,,.,,,.,,,,.,,.,.,
-#GFLS7X73A4VJQ77WKRLJQVSI7D2G4SRMJHIJGASPYKSO76QKNAGTYJC2BITFKSFMAXDP6RZPMBLFO
-#\\\|3KGXMT62ZBQAKFQBI62KRIZKQD3XNB7YWJDFTVZIKDYFGOHDGJ5 \ / AMOS7 \ YOURUM ::
-#\[7]QIHLWNATHUQSJZ5ORTERYOYTRXMA75D5N2V5LS4P6TALECWBAOCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,.,,.,,...,,,.,,..,...,.,,,,,.,..,,...,...,,..,.,,,,..,,,,,,,.,
+#IGISO4HQHQ3CJHB5ZBLNMH5NULVNA4SYLY2HVWLQP7J45WICUJR3HRN6RFS324YFQQNDBWEAWKCIY
+#\\\|LQ72XNAMVHT2U4SLQBWR2UA454IJONI3UJ4AUBNJEX3EPPO4OI2 \ / AMOS7 \ YOURUM ::
+#\[7]RRI2JI32S7XPZTEQNY5RZHOTJLKC5Z7NGVRJUB2DZCNHARBXRSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

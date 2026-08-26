@@ -285,8 +285,8 @@ Protocol-7 applies this to information.
 *"If you only knew the magnificence of the division by 13, then you would have the key to the network."*
 — Protocol-7 =)
 
-#,,..,...,,..,,,,,,..,,.,,,..,,,,,,,,,,..,..,,..,,...,...,...,..,,,,.,,,.,,,,,
-#EUCWKFBZON7R6Q5DYPKF4E53VJ7JK34JIULYUP6MUUSVQQ6C2MW6B6QTOLVKDFGTZOXTIINC7CTNS
-#\\\|T35JUFDBN5ML2ZQFI6UKSD4UDXC43ISV5DYNYQEDYFBMP2UIXCK \ / AMOS7 \ YOURUM ::
-#\[7]6XYCK3IVUFDQNPUKEQFLJCRHWPKAAQITEXHEETNZL2KEFQPQDGAY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,..,,.,,,...,...,.,.,,..,..,,..,,...,...,...,,..,,,,,,..,,,,,
+#GJQGJ35V6IUWQDMTXEZA3JV7ENQXZZZC3BM3GAX3RTP4ZGOVDGJQMMP2ALRUFMZW2KM5MOD6KQRZG
+#\\\|IKISIYNHFBRHCRZSTF2O5UZKAXV5J7K6QMERWJYAPUMHENURKQU \ / AMOS7 \ YOURUM ::
+#\[7]FXDL6BUUSSK4YCYH7VDCO5SBQAZDDXUY5ICVNJKV3JMDCRZ54WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

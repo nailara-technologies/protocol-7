@@ -166,8 +166,8 @@ scanner gap worth investigating before assuming the file itself is bad).
 - Debian/host system upgrade was requested and deliberately deferred — do it as its own
   isolated task, never stacked on top of a binary/deployment change in progress.
 
-#,,,.,,..,.,.,,,,,.,,,...,.,.,,..,...,,..,.,.,..,,...,...,...,..,,.,.,..,,.,.,
-#ME25OFI2AGEH52YTBLTGMEWL3GWZLGGFIBOFLS2RNVFFBR2PIZLH75NFW7JSXGAHQ332QBIDVLDIY
-#\\\|M2GLESF5ZS7ZKATIIPWL5N2UPV2ZXG4IW2R2IGNPRFWODFOSRBM \ / AMOS7 \ YOURUM ::
-#\[7]ACD7T4LPXHPLFVD64LJIVPDRHR4QQ4YQMLQXEFQOFK6PTRD4BQAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,..,,.,,,,,.,,..,..,,,,,,.,,,..,,...,...,.,.,,..,,,,,...,.,,,
+#A7VEAPJJQA7WT6XBKMDQT6LQC75S5KZTDJS7QRVHV6KMLOPRROVKUZ5TS5QX7DEAOH6M2H3U5HJCA
+#\\\|7SHIVMJWB2LKHPSX646TSPXZPU5AOOEAA7HLVTJ4BETTM3CRF3Y \ / AMOS7 \ YOURUM ::
+#\[7]76RLWFEU7R7E4YTGUR2FAHMYIENQX46JMDO2UOVEVDIIZVJ7OGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

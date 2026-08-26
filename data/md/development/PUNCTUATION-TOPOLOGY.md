@@ -107,8 +107,8 @@ this unifies what otherwise appear to be different concepts:
 routing, scheduling, caching, addressing, logging, documentation.
 they are all the same topology at different scales. `[:<`
 
-#,,,,,.,.,.,,,..,,,.,,.,,,.,.,.,,,,.,,.,,,.,,,..,,...,..,,,,,,.,,,,.,,.,.,,,.,
-#5HZYIYXTNEZDPYQYYYFUZSUHGYOHJKWPU5S3BUJ2ISQ4AWNB2VVDWXV3OEI3QVKRS3W2HQUFNYQBS
-#\\\|PYAF6KCHUSZXW5RBJLXJVJD3SBOB5ANCLZ6ZU7EUV2BHYU7CAWF \ / AMOS7 \ YOURUM ::
-#\[7]GAGXZUZXCZKDMNB4ANC7CFQ7HXRXGAJZZASKSISWMZXQEU5T3KDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,.,,,..,,,,.,..,,,,,,,,,,...,..,,...,...,,..,,,,,.,,,,..,,,,,
+#VLK3VNODQATDL7KS5GPZNDX7CT25A43RH5OWAF2EO2GHZTJOBXOL52TEVRHIBUH3RIMNFGO6LWFFG
+#\\\|X3TEJPAF32JYV4XIC7SKQX4HJWJ3NVN7SYBUCT3VYQ532RWSTJK \ / AMOS7 \ YOURUM ::
+#\[7]OS4NFEV5TFB2EVMPUFIRGIKFTBKR4PCH6G5Q3ZR4CZGGF6BWMSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
