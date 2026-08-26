@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = v7.resolve.object.zenka
+# descr = cascade-start a zenka dependency that failed its
+#         readiness check, so a stuck dependency can self-heal
+#         instead of requiring a manual restart
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+my $object_type = <dependency.object>->{$object_id}->{'type'};
+if ( $object_type ne qw| zenka | ) {
+    <[base.logs]>->(
+        0,          "object %d is of type '%s' and not 'zenka'",
+        $object_id, $object_type
+    );
+    return undef;
+}
+my $zenka_id = <dependency.object>->{$object_id}->{'zenka_id'};
+return undef if not exists <v7.zenka.setup>->{$zenka_id};
+
+my $zenka_name = <v7.zenka.setup>->{$zenka_id}->{'name'};
+return undef if not defined $zenka_name;
+
+<[base.log]>->(
+    1, ": resolve : cascade-starting zenka dependency '$zenka_name'"
+);
+
+## recursion => 1 forces implicit start-mode in zenka.cmd.start [ see its  ##
+## own start_mode ternary ] regardless of the ambient call context this    ##
+## hook runs under -- respects <v7.zenka.manually_stopped> and stays quiet ##
+## in the log, matching a passive background self-heal rather than an      ##
+## explicit user-requested start                                           ##
+return
+    <[zenka.cmd.start_once]>->( { 'args' => $zenka_name, 'recursion' => 1 } );
+
+#,,,.,...,..,,.,,,,,.,..,,,,.,.,.,..,,.,,,.,,,..,,...,..,,...,...,,.,,,.,,.,,,
+#CS5US5UQ3RJMT5RY7OA6OTD7BC7OPZSIAHB42ZWBUFOEORWUI7LF3ABWNYEF33ANVKH25XLXYBDIU
+#\\\|4HV3L5D7DMFQQ2JVCLIR7PE734VWXH3FF2SXXJQ36LM24IPETPO \ / AMOS7 \ YOURUM ::
+#\[7]T3VBUSIKLAKWW2FVR5EN6PEZSEHM2SWUXHRWLRKKS27TVWWR62BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
