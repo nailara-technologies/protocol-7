@@ -370,13 +370,24 @@ if ( $state->{'phase'} eq qw| record | ) {
         }
         ## anomaly text [ follow_up explanation ] is produced later by the ##
         ## tier-2 disposition path on a NO verdict - not here              ##
+        ##                                                                 ##
+        ## when a tier1 reformat ran, tier1_reason was computed against    ##
+        ## $reformatted_answer, NOT the original $cur->{'answer'} shown as ##
+        ## 'got' below - showing only the original made a genuinely empty  ##
+        ## reformat (real, confirmed cause of a 'missing_token' verdict)   ##
+        ## look like a regex bug, since the original text visibly contains ##
+        ## the expected token. always show both when tier1 ran.            ##
         <[base.logs]>->(
             1,
-            "[self_test] prompt %d : model %s : "
+            @$tier1_attempts
+            ? "[self_test] prompt %d : model %s : FAIL [ got "
+                . "'%s' reformatted '%s' expected '%s' tier1=%s ]"
+            : "[self_test] prompt %d : model %s : "
                 . "FAIL [ got '%s' expected '%s' tier1=%s ]",
             $prompt_id,
             $model_id,
             $cur->{'answer'} // '',
+            @$tier1_attempts ? ( $reformatted_answer, ) : (),
             $prompt_def->{'expected'},
             $tier1_reason || 'n/a'
         );
@@ -529,8 +540,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,.,,,,,,,,.,...,.,.,...,...,..,,,.,,.,.,,..,..,,...,...,.,.,.,.,,,,,,.,,..,,
-#IKONTRDPEUDOPQZ4A5C7LN6S23KCYFZFUEWZYETBVDHWOWWK6L7JYLM3IGQ3OW47WGPUK5JAKL5UI
-#\\\|LTF4EVQVATEBJIWVBLS7L7ALWJG57TCHOTOUHWA3CT5633TN3GN \ / AMOS7 \ YOURUM ::
-#\[7]AEBO23KZEHM6ZPEMQ535DFYULJNEXH5W72W7WSMFPOZ52HCBXKAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,,,,,.,,,..,,...,...,,.,,,..,..,,...,..,,,..,,,,,..,,,..,,.,,
+#5VZBAYJAOFPEALT2GFCM2AM5C75JNOTMRWEBNG7PTUSPNVP6LQOXFXC5LUT5VVLXUOYSP7TARSBF2
+#\\\|YVQQGVWGO3XHJ2237Q5DHVEFUUQ7AA2D5DU6QBJUGT2EBINWGXH \ / AMOS7 \ YOURUM ::
+#\[7]UZM542JOKOIDXTJ5RQDAIQRT2UUVUVXTIFUBEXFQPR4GHSBVAMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
