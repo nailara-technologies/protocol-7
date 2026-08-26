@@ -4,7 +4,8 @@
 [load_config_file:'shared-params']
 
 modules.load  =  auth.client net protocol io.unix io.ip ui format.json \
-                 httpd jobsite.job httpd.route route.bmw384  devmod
+                 httpd httpd.classify jobsite.job httpd.route route.bmw384 \
+                 devmod
 
 plugins.load = plugin.httpd.radio plugin.web.auth
 [load_plugins:<plugins.load>]
@@ -37,6 +38,15 @@ httpd.cfg.max_post_size = 5242880  ## 5MB
 max.connections     =  1024
 httpd.timeout       =  23
 
+##  httpd request pattern classification [ phase 1 : observation only ] ##
+##  deliberately opt-in : no state, no timers, zero cost while disabled ##
+##  [ human-reviewed before enabling on the live deployment ]           ##
+# httpd.classify.enabled         =  1
+# httpd.classify.ring_size       =  64
+# httpd.classify.peer_ttl        =  3600
+# httpd.classify.max_peers       =  10000
+# httpd.classify.expire_interval =  300
+
 # development: enable debug logging for ACME endpoints [buffer, file, console]
 system.zenka.verbosity.buffer  = 1
 system.zenka.verbosity.logfile = 0
@@ -45,6 +55,9 @@ system.zenka.verbosity.console = 0 ## <-- reduce again after initialization ##
 [load_modules:<modules.load>]
 
 [init_modules]
+
+##  request pattern classification init [ internal guard on enabled ]   ##
+[httpd.classify.init]
 
 [base.net.connect:'unix']
 
@@ -57,8 +70,8 @@ httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 
 [zenka.loop]
 
-#,,.,,,..,..,,..,,...,...,.,.,,..,..,,,..,..,,..,,...,..,,,,,,.,,,,,.,...,,,.,
-#7YJFK3FJRBFRUGHQJI5ITVYQ4AP5JE3BYRGT4BVZXNHXYKOC76UJ5EI4Q5NSZLYBJLZEXKNHY4SNI
-#\\\|6KDXSIZXOCUHIEJTMMD3BWPWV6REQIRS2XKOQFHEPZVU5T6VT7K \ / AMOS7 \ YOURUM ::
-#\[7]PFAJL6ORBOPJX57UTRDGGHRKZNJ6HGWACFWSS3X6H7IPXMRLGCAA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,...,,,,,,,,,.,,,,,.,.,,,,,,,..,,...,...,..,,,.,,..,,,..,...,
+#JOW3G3FYFXHED4BNJASHSB3MUXHLMBSGYTKQQUMDNYVXITEKRZ35AT4HHEGN4SM476D6ZQNHS4KBW
+#\\\|OVFX5ABNJMPWRHKUO3JJLM3P3227SE6HMPMQAXT5BVX42DUONTX \ / AMOS7 \ YOURUM ::
+#\[7]A7LZDEYF3R5NKD42AYW6562R5MVY6234AWX7G6AYICAHIENZR4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

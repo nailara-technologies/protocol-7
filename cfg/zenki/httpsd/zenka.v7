@@ -9,7 +9,7 @@ system.zenka.verbosity.logfile = 2
 
 ## Load httpd modules + httpsd wrappers
 modules.load         =  auth.client net protocol io.unix io.ip ui io.ssl \
-                        format.json httpd httpsd ## devmod
+                        format.json httpd httpd.classify httpsd ## devmod
 
 net.https.addr       =  0:0:0:0:0:0:0:0
 net.https.port       =  443
@@ -63,9 +63,21 @@ httpsd.system.group   =  httpd
 max.connections     =  1024
 httpsd.timeout      =  14
 
+##  httpd request pattern classification [ phase 1 : observation only ] ##
+##  deliberately opt-in : no state, no timers, zero cost while disabled ##
+##  [ human-reviewed before enabling on the live deployment ]           ##
+# httpd.classify.enabled         =  1
+# httpd.classify.ring_size       =  64
+# httpd.classify.peer_ttl        =  3600
+# httpd.classify.max_peers       =  10000
+# httpd.classify.expire_interval =  300
+
 [load_modules:<modules.load>]
 
 [init_modules]
+
+##  request pattern classification init [ internal guard on enabled ]   ##
+[httpd.classify.init]
 
 [base.net.connect:'unix']
 
@@ -78,8 +90,8 @@ httpsd.timeout      =  14
 
 [zenka.loop]
 
-#,,.,,.,.,,..,,.,,,,.,,,.,,.,,,.,,...,.,,,...,..,,...,...,..,,..,,,.,,.,,,..,,
-#EHABC5TVZACT4N6D4UB2P3ME4H3YEXQGPGMRJLWNGSULXM7MK3WIBELPL27A65S343GWTCRNVEPUY
-#\\\|PTA4AH6RQU7LEFFQUOQPJCWFU75DGWSISVKHZNOXIONNMBSC7AV \ / AMOS7 \ YOURUM ::
-#\[7]PSGQ4J7E5R7CHQFOU3ICZED33U3PTWX533C5H5HZ2OUE7QBUZYBY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,.,.,,,,,,..,,.,,,,,,..,,,..,..,,...,..,,.,,,,..,,,.,,..,,.,,
+#CNOYZEML3NPV5JQUB3CNKVGCGVQT3UGZOHSN2IMIKQFYQGJ3A2QURRVRSZW7ANJNYOC3WWCLEGO7Q
+#\\\|EG57D2SIN663MOBKRWMWP23ZSLF5MQKXSJ2UA5PSNGFWNTCIFAJ \ / AMOS7 \ YOURUM ::
+#\[7]E7AKTQKZ65SKZ4KS645FNTMJPNZ4VWPR7RTKQEATMFTPFG7KGCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

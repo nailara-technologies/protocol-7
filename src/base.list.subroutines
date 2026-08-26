@@ -1014,6 +1014,8 @@ return [ qw[
         httpd.download_init
         httpd.cmd.del-vhost
         httpd.cmd.add-vhost
+        httpd.classify.load
+        httpd.classify.init
         forensics.init_code
         devmod.console-dump
         devmod.cmd.true-int
@@ -1240,6 +1242,7 @@ return [ qw[
         httpd.json.init_code
         httpd.determine_host
         httpd.cmd.vhost-list
+        httpd.classify.match
         httpd.benchmark.init
         git.parent.init_code
         format.yaml.pre_init
@@ -1490,6 +1493,8 @@ return [ qw[
         httpd.route.init_code
         httpd.request_handler
         httpd.diagnostic.init
+        httpd.classify.record
+        httpd.classify.expire
         graphics-3d.init_code
         format.yaml.load_file
         format.json.init_code
@@ -2325,6 +2330,7 @@ return [ qw[
         httpd.parse_range_header
         httpd.event.remove_timer
         httpd.cmd.install-vhosts
+        httpd.classify.cmd.stats
         graphics-matrix.cmd.glow
         graphics-matrix.cmd.cell
         ffmpeg.cmd.rescale_video
@@ -2838,6 +2844,7 @@ return [ qw[
         httpsd.handler.drain_check
         httpd.vhost.read_manifests
         httpd.handler.acme_request
+        httpd.classify.cmd.history
         graphics-matrix.graph.init
         graphics-matrix.glow.query
         graphics-matrix.cursor.set
@@ -4545,6 +4552,7 @@ return [ qw[
         httpsd.check_certificate_available
         httpd.route.handler.iris-negotiate
         httpd.handler.input.body_remainder
+        httpd.classify.cmd.reload-patterns
         graphics-matrix.cmd.filter-rep-col
         external.handler.reset_retry_delay
         editor.ui.ascii_frame.render_field
@@ -5369,8 +5377,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,...,,,.,,,,,...,,,.,...,,,,,,,.,.,,,,.,,.,.,...,...,,..,,,.,,.,,.,.,,..,
-#RFK3WTIHVY2WQ4GFHD33P5E534GBR4R6INDALRJTFVDY2MYZ5UWEKFF3JFWTHSHX747O7FCD232MY
-#\\\|OYXWUO634U5ZLTQNRG3KGLV6MCRZAQQKD7TL3EMXKWMQ3E27IXH \ / AMOS7 \ YOURUM ::
-#\[7]6DHMDXLCDJXYNSSMNOBI2JVJFQKDAYWMNAAH25775S6TY7K7BQAI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,...,,.,,..,,,,,,..,,.,,,.,,,..,,.,.,...,...,.,.,,,.,.,.,,,.,..,,
+#YLBAATUODNCPXOJQUCHTJU7H6ZU55FL2CMAPK55YPSS3FPLXWLRM6AW7T6HWVBVQA465BR7Y3BSPS
+#\\\|FLXLGZ2QEZTYFTB7FYB5WBDXJGCZENFGE6GPQN6JZN6JNX5B3W7 \ / AMOS7 \ YOURUM ::
+#\[7]UFFUKPBZS3IW57VXMKAGU5PMTIAOC2IMCLJ7HB2W3SXN5QNYBECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

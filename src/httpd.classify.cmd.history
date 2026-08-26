@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = httpd.classify.cmd.history
+# descr = show bounded rolling request history for one peer_key
+# param = <peer_key>
+# note  : path + method + status + classify tag + timestamp only --
+#         request bodies are never stored, so none can ever be shown.
+#         registered as 'classify.history' by httpd.classify.init
+
+my $peer_key = $call->{'args'} // '';
+$peer_key =~ s|^\s+||;
+$peer_key =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : classify.history <peer_key>'
+    }
+    if not length $peer_key;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'httpd classification not enabled [ httpd.classify.enabled ]'
+    }
+    if not exists $data{'httpd'}{'classify'};
+
+my $peer = $data{'httpd'}{'classify'}{'peer'}{$peer_key};
+return {
+    'mode' => qw| false |,
+    'data' => "no classification history for peer '$peer_key'"
+    }
+    if not ref $peer;
+
+my @out;
+push @out, sprintf 'peer %s : %d requests , first seen %ds ago',
+    $peer_key,
+    $peer->{'request_count'} // 0,
+    time - ( $peer->{'first_seen'} // time );
+
+foreach my $entry ( @{ $peer->{'ring'} // [] } ) {
+    my $tag
+        = defined $entry->{'family'}
+        ? sprintf ' [classify=%s/%s]', $entry->{'family'}, $entry->{'name'}
+        : '';
+    push @out, sprintf '  %s  %-6s %-40s status=%s%s',
+        scalar localtime( $entry->{'time'} // 0 ),
+        $entry->{'method'} // qw| - |,
+        $entry->{'path'}   // qw| - |,
+        $entry->{'status'} // qw| - |,
+        $tag;
+}
+
+return { 'mode' => qw| true |, 'data' => join( "\n", @out ) };
+
+#,,,,,.,,,,,.,.,,,..,,,,.,,,,,,.,,,,,,,..,,.,,..,,...,...,,..,.,.,,.,,,,.,,,,,
+#ZLO44IL77BA2KZ5KVHNSXQ2YXI5CTSMC5NIIMJCSSDWH6X2RFUZ6EB7WVV6NMXB4POXPMQLGS7YKC
+#\\\|EAYVDVEZX4GPWZ6UZAEKNV4C6IEQKMBSP7MSSBNS4FUQPSA7PRO \ / AMOS7 \ YOURUM ::
+#\[7]E7FPIFFQC6MVQI77FPDXMJDYAT7X3BKKCCZUJZNANBKL7IK2W6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

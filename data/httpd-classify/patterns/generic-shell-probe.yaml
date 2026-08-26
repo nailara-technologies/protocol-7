@@ -1,0 +1,18 @@
+# [:< ##
+#
+# httpd classify pattern family : generic-shell-probe
+# webshell / command-execution path probes
+# [ phase 1 matches path only, query strings are never stored or matched ]
+
+family: generic-shell-probe
+descr: webshell and command-execution path probes
+severity: exploit-attempt
+patterns:
+  - name: shell-path
+    path_regex: '^/(shell|sh|cmd|exec|command)\.(php|cgi|pl|jsp|asp|aspx)$'
+  - name: downloader-path
+    path_regex: '^/(wget|curl|fetch|download|upload)\.(php|cgi|pl|sh)$'
+  - name: known-webshell-name
+    path_regex: '^/(c99|r57|wso|b374k|alfa)[^/]*\.(php|phtml)$'
+  - name: tmp-shell
+    path_regex: '^/(tmp|temp|cache)/[a-z0-9_]+\.(php|phtml|sh)$'

@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = httpd.classify.cmd.reload-patterns
+# descr = reload the YAML pattern library, keep per-peer state
+# note  : named ..cmd.reload-patterns [ not ..cmd.reload ] on purpose :
+#         bare-name auto-registration would collide with and overwrite
+#         base.cmd.reload in the zenka command dispatch table.
+#         registered as 'classify.reload' by httpd.classify.init
+
+return {
+    'mode' => qw| false |,
+    'data' => 'httpd classification not enabled [ httpd.classify.enabled ]'
+    }
+    if not exists $data{'httpd'}{'classify'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'httpd.classify.load not loaded'
+    }
+    if not exists $code{'httpd.classify.load'};
+
+my $library = <[httpd.classify.load]>;
+
+my $family_count  = scalar keys %{ $library // {} };
+my $pattern_count = 0;
+map { $pattern_count += scalar @{ $ARG->{'patterns'} // [] } }
+    values %{ $library // {} };
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "pattern library reloaded : %d families , %d patterns\n"
+            . 'per-peer state untouched',
+        $family_count, $pattern_count
+    )
+};
+
+#,,,,,,..,,.,,,,.,,..,.,,,,,.,,,,,,.,,...,,.,,..,,...,...,..,,,.,,,,.,.,,,.,.,
+#FFLB4DKPXGSONZI7562RY5O5XBYZETDYTCAIGBZ2IQDYXP5FYXN4JIRL4DGIIGSV7ALJCFWBZRRBE
+#\\\|KAMHLRJAQUJSI7NO57F7X6HM23V6GD2F5HYTAILIF2MY3T2KE6Y \ / AMOS7 \ YOURUM ::
+#\[7]RCFFWIDRGXL67RYUJXQVG4BIPZSH2B4VQETXZUYQS32MQN7VCUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
