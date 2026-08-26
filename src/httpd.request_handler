@@ -123,9 +123,30 @@ if ( index( $h_req->uri, qw| %0 |, 0 ) >= 0
     return 2;
 }
 
+## request pattern classification [ phase 1 : observation only ] records   ##
+## the request into <httpd.classify.peer> and returns a match for log      ##
+## annotation -- never touches the connection, and when the feature is     ##
+## disabled the <httpd.classify> branch does not even exist [ exists-guard ##
+## also prevents autovivification ]                                        ##
+my $classify_tag = '';
+if (    exists $data{'httpd'}{'classify'}
+    and <httpd.classify.enabled>
+    and exists $code{'httpd.classify.record'} ) {
+    my $match = <[httpd.classify.record]>->(
+        $request->{'client'}->{'addr'},
+        {   'method' => $request->{'method'},
+            'path'   => $request->{'uri'},
+            'status' => undef,    ##  determined later in the serve path  ##
+        }
+    );
+    $classify_tag = sprintf ' [classify=%s/%s]', $match->{'family'},
+        $match->{'name'}
+        if ref $match eq qw| HASH |;
+}
+
 <[base.logs]>->(
-    2, ' < %s > %s', $request->{'client'}->{'addr'},
-    $request->{'uri'}
+    2, ' < %s > %s%s', $request->{'client'}->{'addr'},
+    $request->{'uri'}, $classify_tag
 );
 
 $session->{'http'}->{'close'}      = 1;
@@ -171,8 +192,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,.,,,..,..,,,,,,,..,,,.,..,,,.,,.,,,..,,,,,,..,,...,...,..,,,,.,.,,,.,.,,..,
-#BSHK5YVLSGKQX346MIP2DWFQTDTLHH2EFWYCHD44JHMXQR6THXOWCEO2SZTTFVNA6FK5XQRWCHSWA
-#\\\|7NDTIOGAX6Y4V2F64XOMBVA2Z5AAQCK6WIA5DC3QXLYBHRMDEMT \ / AMOS7 \ YOURUM ::
-#\[7]RX6CVZRMJGE4G7U66JIMSXZGKXKJ4SGF7FFPTRVVKQHG3SNA4CAY 7  DATA SIGNATURE ::
+#,,,,,...,...,...,,.,,,..,,.,,.,,,,,,,.,.,,.,,..,,...,..,,,,.,..,,,,.,.,.,,..,
+#67UDPSCMG47DRFLMBJLDU2O34PMKCHAR3KY3VH32IO5UL3PX6AL4YOSJLYPXOWVZNB5DAGZDYAAMQ
+#\\\|BCICVTUQEMQ475RT5KME4COH47BJN7L6PLD5AXTYUZH6ILUNZNI \ / AMOS7 \ YOURUM ::
+#\[7]QFKDIXE3BNSD23BHRL6MO42P3ODKB4ZYCTIFBO7POSDR5VKZUYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

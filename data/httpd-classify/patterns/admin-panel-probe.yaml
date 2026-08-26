@@ -1,0 +1,19 @@
+# [:< ##
+#
+# httpd classify pattern family : admin-panel-probe
+# generic admin / management console discovery probes
+
+family: admin-panel-probe
+descr: generic admin panel and management console discovery probes
+severity: probe
+patterns:
+  - name: admin-root
+    path_regex: '^/admin(/|$)'
+  - name: tomcat-manager
+    path_regex: '^/manager/(html|status)(/|$)'
+  - name: jenkins
+    path_regex: '^/(jenkins|hudson)(/|$)'
+  - name: adminer-panel
+    path_regex: '^/(administrator|adminpanel|cpanel|webadmin)(/|$)'
+  - name: phpinfo
+    path_regex: '^/(phpinfo|info|test|pi)\.php$'

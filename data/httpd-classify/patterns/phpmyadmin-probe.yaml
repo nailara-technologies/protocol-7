@@ -1,0 +1,17 @@
+# [:< ##
+#
+# httpd classify pattern family : phpmyadmin-probe
+# database admin panel discovery probes
+
+family: phpmyadmin-probe
+descr: phpmyadmin and database admin panel discovery probes
+severity: probe
+patterns:
+  - name: phpmyadmin
+    path_regex: '^/phpmyadmin(/|$)'
+  - name: pma-alias
+    path_regex: '^/(pma|myadmin|dbadmin|mysql|sqladmin)(/|$)'
+  - name: phpmyadmin-case-variant
+    path_regex: '^/(php[Pp]?[Mm]y?[Aa]dmin|pma\d*)(/|$)'
+  - name: adminer
+    path_regex: '^/adminer(\.php)?$'
