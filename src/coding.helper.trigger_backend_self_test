@@ -1,0 +1,329 @@
+## [:< ##
+
+# name  = coding.helper.trigger_backend_self_test
+# descr = start async self-test for one ready backend + per-backend retry
+#         on single-flight guard contention [ parallel-backend gap, opt 1 ]
+
+my $params     = shift                // {};
+my $backend    = $params->{'backend'} // '';
+my $server     = $params->{'server'};
+my $tested_pid = $params->{'tested_pid'} // 0;
+
+## optional since the var-watcher redesign : named watcher handlers cannot  ##
+## carry closures [ base.event.add_var requires a %code name ], so          ##
+## coding.helper.self_test_guard_watcher re-invokes this module with only a ##
+## backend string and this default reconstructs the resume logic            ##
+my $resume_queue = $params->{'resume_queue'}
+    // sub { <[coding.helper.resume_task_queue_for_backend]>->($backend) };
+
+return undef
+    if !length($backend)
+    or ref($server) ne qw| HASH |
+    or ref($resume_queue) ne qw| CODE |;
+
+my $test_model_id = $server->{'model'} // '';
+
+## async transport [ 2026-07-31 ] : self_test.run returns immediately {   ##
+## mode => 'deferred' } and delivers its result to this continuation from ##
+## the probe state machine's 'done' phase. $resume_queue now runs from    ##
+## on_done, NOT immediately here - see the comment above $resume_queue's  ##
+## definition in coding.handler.monitor_inference_startup for why         ##
+my $run_started = <[coding.self_test.run]>->(
+    {   model_id => $test_model_id,
+        url      => $server->{'url'},
+        backend  => $backend,
+        on_done  => sub {
+            my ($st_result) = @ARG;
+
+            ## $server from the outer scope is a live hashref and may have ##
+            ## been replaced by a newer spawn while the probe ran -        ##
+            ## re-fetch and bail if the pid no longer matches [ same stale ##
+            ## guard shape as the watcher guard in                         ##
+            ## coding.handler.monitor_inference_startup ]                  ##
+            my $srv = <coding.inference_servers>->{$backend};
+            if ( !defined $srv
+                or ( $srv->{'pid'} // 0 ) != $tested_pid ) {
+                <[base.logs]>->(
+                    1,
+                    '[monitor_startup] self-test result for stale server '
+                        . '[backend=%s tested_pid=%s] : skipping seed-retry '
+                        . 'decision',
+                    $backend,
+                    $tested_pid
+                );
+                return;
+            }
+
+            ## cat-test (prompt_id 2) tier1 structural failure : restart    ##
+            ## the server rather than just recording the fail. seed=0 [ the ##
+            ## configured default ] derives a fresh harmonic seed from      ##
+            ## ntime+fortuna on every spawn, so a plain restart already     ##
+            ## gives a different seed -- no separate seed-forcing needed.   ##
+            ## guarded against looping forever on a genuinely broken model: ##
+            ## caps at coding.cfg.self_test_seed_retry_max attempts per     ##
+            ## model_id, reset on any clean self-test pass                  ##
+            my $cat_failed = FALSE;
+            if ( ref $st_result eq qw| HASH |
+                and $st_result->{'data'} ) {
+                my $data = $st_result->{'data'};
+                if ( not $data->{'all_passed'} ) {
+                    for my $r ( @{ $data->{'results'} // [] } ) {
+                        $cat_failed = TRUE
+                            if ( $r->{'prompt_id'} // 0 ) == 2
+                            and not $r->{'passed'};
+                    }
+                }
+            }
+
+            ## NOTE: deliberately NOT nested under <coding.self_test> --   ##
+            ## that hash is the self-test ARCHIVE ( epoch => model_id =>   ##
+            ## record ), keyed entirely by numeric epoch timestamps [ see  ##
+            ## coding.self_test.archive /                                  ##
+            ## coding.self_test.cmd.self-test-status ]. a sibling string   ##
+            ## key there breaks status's numeric epoch comparison [        ##
+            ## confirmed live : "argument 'seed_retry_count' isn't numeric ##
+            ## in numeric gt (>)" ]. use a separate, non-colliding         ##
+            ## top-level key instead                                       ##
+            <coding.self_test_seed_retry_count> //= {};
+            if ($cat_failed) {
+                my $retry_max = <coding.cfg.self_test_seed_retry_max> // 2;
+                my $retries
+                    = <coding.self_test_seed_retry_count>->{$test_model_id}
+                    // 0;
+
+                if ( $retries < $retry_max ) {
+                    <coding.self_test_seed_retry_count>->{$test_model_id}
+                        = $retries + 1;
+                    <[base.logs]>->(
+                        0,
+                        '[monitor_startup] cat-test failed for %s : '
+                            . 'restarting for a fresh seed [attempt %d/%d]',
+                        $test_model_id,
+                        $retries + 1,
+                        $retry_max
+                    );
+
+                    ## consequence of the async inversion : dependencies    ##
+                    ## were already rechecked above, so real tasks can be   ##
+                    ## streaming while this decision fires - a respawn      ##
+                    ## right here could kill the server mid-task. defer     ##
+                    ## until the backend lock is free and the queue empty [ ##
+                    ## bounded at 120s in the handler ]                     ##
+                    $data{'coding'}{'seed_restart_defer'} //= {};
+                    my $defer_id = <[base.gen_id]>
+                        ->( $data{'coding'}{'seed_restart_defer'} );
+                    $data{'coding'}{'seed_restart_defer'}{$defer_id} = {
+                        'backend'  => $backend,
+                        'model_id' => $test_model_id,
+                        'pid'      => $tested_pid,
+                        'started'  => <[base.time]>->(3),
+                    };
+                    <[event.add_timer]>->(
+                        {   'interval' => 2,
+                            'repeat'   => TRUE,
+                            'handler'  =>
+                                qw| coding.handler.defer_seed_restart |,
+                            'data' => { 'defer_id' => $defer_id },
+                            'desc' => "seed restart deferral $defer_id"
+                        }
+                    );
+                } else {
+                    <[base.logs]>->(
+                        0,
+                        '[monitor_startup] cat-test still failing for %s '
+                            . 'after %d seed retries : giving up, leaving '
+                            . 'server as-is',
+                        $test_model_id,
+                        $retry_max
+                    );
+                }
+            } else {
+                delete <coding.self_test_seed_retry_count>->{$test_model_id};
+            }
+
+            ## self-test has now actually concluded [ pass or fail,         ##
+            ## decision made above ] - any contention-retry state left for  ##
+            ## THIS backend is obsolete, then safe to let real tasks start  ##
+            ## [ self_test_retry_count delete kept as rollover hygiene from ##
+            ## the poll-timer design, the count itself is gone ]            ##
+            delete <coding.self_test_retry_pending>->{$backend};
+            delete <coding.self_test_retry_count>->{$backend};
+            $resume_queue->();
+            return;
+        },
+    }
+);
+
+if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
+    my $fail_reason
+        = ref $run_started eq qw| HASH |
+        ? ( $run_started->{'data'} // 'unknown' )
+        : 'unknown';
+
+    ## lost the race for the single global in-flight guard [ another       ##
+    ## backend's self-test is running ] : NOT a real error. the guard      ##
+    ## clears once that probe's on_done fires [                            ##
+    ## coding.self_test.handler.poll_probe ], so instead of silently       ##
+    ## dropping this backend's self-test we mark it pending and let a      ##
+    ## variable watcher on the guard itself wake it the instant the guard  ##
+    ## clears [ task : coding-self-test-parallel-backend-gap, option 1,    ##
+    ## watcher redesign 2026-08-26 - replaces the original 10s polling     ##
+    ## retry timer with the jobqueue event.add_var precedent, see          ##
+    ## jobqueue.event.register_job_queues ]. the guard itself stays a      ##
+    ## single global flag - self-tests still run strictly one at a time,   ##
+    ## this only ensures every backend eventually GETS its turn. ALL retry ##
+    ## state is keyed generically by the backend identifier string in      ##
+    ## hashes - never two named variables or a fixed-size structure - so   ##
+    ## nothing here needs rework when multi-slot support grows beyond      ##
+    ## gpu/cpu                                                             ##
+    if ( $fail_reason eq 'self-test already in progress' ) {
+        <coding.self_test_retry_pending> //= {};
+        <coding.self_test_retry_timer>   //= {};
+
+        if ( <coding.self_test_retry_pending>->{$backend} ) {
+            ## this backend is already waiting on the guard watcher - don't ##
+            ## stack a second wait. the watcher's wake-up will either start ##
+            ## the test [ on_done resumes the queue ] or the safety timeout ##
+            ## below fires [ which resumes the queue ]                      ##
+            <[base.logs]>->(
+                2,
+                '[trigger_self_test] backend=%s : %s : guard '
+                    . 'wait already pending, not stacking another',
+                $backend,
+                $fail_reason
+            );
+        } else {
+            ## the wait budget must cover a REALISTIC full self-test cycle, ##
+            ## not an arbitrary small count -- coding.init_code already     ##
+            ## computes the worst-case duration of one full cycle [ 3       ##
+            ## prompts, each up to 90s * retries worst case ] into          ##
+            ## <coding.cfg.self_test_max_total> [ ~1700s by default ].      ##
+            ## confirmed live 2026-08-26 : the original flat 15s budget     ##
+            ## gave up on gpu's self-test while cpu's own cycle had barely  ##
+            ## started. the watcher wakes the backend the instant the guard ##
+            ## clears, so this number is now only the safety-net timeout [  ##
+            ## total wait seconds, not a poll- attempt count ] for a guard  ##
+            ## that genuinely never clears [ hung probe elsewhere ].        ##
+            ## cfg.self_test_retry_max is kept as an explicit override of   ##
+            ## that same seconds value                                      ##
+            my $wait_timeout = <coding.cfg.self_test_retry_max>
+                // <coding.cfg.self_test_max_total> // 1700;
+
+            <coding.self_test_retry_pending>->{$backend}
+                = { 'tested_pid' => $tested_pid };
+            <[base.logs]>->(
+                1,
+                '[trigger_self_test] backend=%s : %s : waiting '
+                    . 'on self-test guard watcher [ timeout %ds ]',
+                $backend,
+                $fail_reason,
+                $wait_timeout
+            );
+
+            ## ONE persistent var watcher on the guard for all backends [ a ##
+            ## single global scalar - not per-backend ]. register only if   ##
+            ## the previous instance is gone or no longer active, tracked   ##
+            ## in a single %data slot [ mirrors the watcher                 ##
+            ## cancel/re-register guard in                                  ##
+            ## jobqueue.event.register_job_queues ]                         ##
+            my $guard_watcher = <coding.watcher.self_test_guard>;
+            if (   not defined $guard_watcher
+                or not eval { $guard_watcher->is_active } ) {
+
+                ## the watched scalar must EXIST before its reference is    ##
+                ## taken - autovivifying it later would leave the watcher   ##
+                ## on a detached scalar [  user-edit.setup_stdin_watcher ]. ##
+                ## explicit $data{..}, NOT                                  ##
+                ## '\<coding.self_test_probe_in_flight>' : a leading        ##
+                ## backslash is the translator's ESCAPE ((?<!\\)<..>), so   ##
+                ## that form would silently watch a reference to the        ##
+                ## literal name string and never fire [ a real past bug in  ##
+                ## user-edit.setup_stdin_watcher ]                          ##
+                <coding.self_test_probe_in_flight> //= FALSE;
+                <coding.watcher.self_test_guard> = <[event.add_var]>->(
+                    {   'var' =>
+                            \$data{'coding'}{'self_test_probe_in_flight'},
+                        'poll'    => qw| w |,
+                        'prio'    => 0,
+                        'repeat'  => 1,
+                        'handler' =>
+                            qw| coding.helper.self_test_guard_watcher |,
+                        'data' => [
+                            qw| self_test_guard |,
+                            \$data{'coding'}{'self_test_probe_in_flight'}
+                        ],
+                        'desc' => 'coding self-test in-flight guard',
+                    }
+                );
+            }
+
+            ## per-backend safety-net timeout : if the guard genuinely    ##
+            ## never clears [ hung probe elsewhere ] give up exactly like ##
+            ## the old exhaustion path did - clear state, log loudly,     ##
+            ## resume the queue. the watcher cancels this timer when it   ##
+            ## re-triggers the backend first                              ##
+            my $old_timer = <coding.self_test_retry_timer>->{$backend};
+            $old_timer->cancel
+                if defined $old_timer
+                and eval { $old_timer->is_active };
+            <coding.self_test_retry_timer>->{$backend}
+                = <[event.add_timer]>->(
+                {   'after' => $wait_timeout,
+                    'desc'  =>
+                        "self-test guard wait timeout [backend=$backend]",
+                    'cb' => sub {
+                        return
+                            if not
+                            <coding.self_test_retry_pending>->{$backend};
+                        delete <coding.self_test_retry_pending>->{$backend};
+                        delete <coding.self_test_retry_timer>->{$backend};
+                        <[base.logs]>->(
+                            0,
+                            '[trigger_self_test] backend=%s : self-test '
+                                . 'guard wait timeout [ %ds ] : entering '
+                                . 'service WITHOUT self-test validation',
+                            $backend,
+                            $wait_timeout
+                        );
+                        <[coding.helper.resume_task_queue_for_backend]>
+                            ->($backend);
+                        return;
+                    },
+                }
+                );
+        }
+        return;
+    }
+
+    ## any other failure reason [ model_id required, missing on_done, .. ] ##
+    ## is a real error, not a race : no retry                              ##
+    <[base.logs]>->(
+        0, '[monitor_startup] async self-test did not start : %s',
+        $fail_reason
+    );
+    ## on_done will never fire if the probe never started -  don't leave ##
+    ## the queue paused forever                                          ##
+    $resume_queue->();
+    return;
+}
+
+## started cleanly [ mode eq 'deferred' ] : clear any contention-retry      ##
+## state for THIS backend so a stale entry from a much earlier spawn cycle  ##
+## can't block a legitimate future retry. a still-armed safety timeout [    ##
+## e.g. server replaced while pending, then this fresh trigger won the      ##
+## guard directly ] is cancelled too, not just left to no-op on the pending ##
+## check                                                                    ##
+delete <coding.self_test_retry_pending>->{$backend};
+delete <coding.self_test_retry_count>->{$backend};
+if ( <coding.self_test_retry_timer>->{$backend} ) {
+    my $stale_timer = delete <coding.self_test_retry_timer>->{$backend};
+    $stale_timer->cancel if eval { $stale_timer->is_active };
+}
+
+return $run_started;
+
+#,,.,,.,,,.,,,..,,...,,.,,..,,..,,...,,,.,,,.,..,,...,...,.,,,..,,,.,,,.,,...,
+#HNSPZ6FIFE7NY6RRFXUIC2XVAMM3LZNXJOL2THIMTL2JOYS4OZQZ2VAWQHQBQQZX7QQFWHSAVD6ZY
+#\\\|OATWIAOL6W6MAAMUW4K3PGVWTDS7SW7U6KYD7PCE25PX47OKWC3 \ / AMOS7 \ YOURUM ::
+#\[7]MXSW6U4CZFU7GTX5A2662GYT3TD7YXAFJQB2RHEBELB23MOISQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

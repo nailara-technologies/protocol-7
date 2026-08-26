@@ -51,7 +51,7 @@ own attempt, seconds later, found it already set and gave up entirely.
 
 pick one of two shapes (not both):
 
-1. **smallest fix: per-backend retry on drop.** in
+1. **smallest fix: per-backend retry on drop [ CHOSEN, 2026-08-26 ].** in
    `coding.handler.monitor_inference_startup`, when
    `run_started->{'mode'} ne 'deferred'` specifically because of
    `'self-test already in progress'` (not other failure reasons), queue
@@ -61,6 +61,22 @@ pick one of two shapes (not both):
    `coding.self_test_probe_in_flight` genuinely clears once the first
    self-test's on_done fires (`coding.self_test.handler.poll_probe:526`)
    so the retry has something to succeed against.
+   `<coding.self_test_probe_in_flight>` itself stays a single global flag
+   -- self-tests are still meant to run one at a time, this fix is only
+   about making sure every backend eventually GETS a turn instead of
+   being silently dropped.
+
+   **design constraint (per user, 2026-08-26):** today only two backends
+   exist (`gpu`/`cpu`), but per the already-filed "future: generalized
+   multi-slot / multi-model support" note in
+   `coding-cpu-and-hybrid-offload-path.md`, that's expected to grow to N
+   slots eventually. all NEW retry-tracking state this fix introduces
+   (pending-retry flag, retry count, backoff timer per backend) MUST be
+   keyed generically by the backend/slot identifier string [ a hash,
+   e.g. `<coding.self_test_retry_pending>->{$backend}` ] -- never as two
+   separate named variables, an assumed-fixed-size array, or anything
+   else that hardcodes "exactly two backends". costs nothing today, and
+   means this fix doesn't need rework when multi-slot support lands.
 
 2. **bigger fix: make the probe state machine genuinely per-backend.**
    `<coding.self_test_probe_in_flight>` becomes a per-backend flag/hash
@@ -89,8 +105,8 @@ more correct long-term but needs its own investigation pass first.
 not urgent -- filed same day as the CPU spawn fixes that made it
 reachable, not a regression in previously-working behavior.
 
-#,,.,,,,,,,,,,.,,,..,,.,,,...,,.,,.,.,.,.,,,.,.,.,...,...,..,,.,.,.,.,,..,,,,,
-#UOWRSCUMSQ6Z7K7VIJTKENWIPXAM4MIX42P53C7J6UMRO4C3SQVO5IKS6ZK6W73FLF33JOJI32MUU
-#\\\|FNRLNRILF4JRQJ3VVJLDBM4DJ2ANY52CJ5T4B45ODHA7ZBFKKXR \ / AMOS7 \ YOURUM ::
-#\[7]YHMG63PBIM4AA6ZWUKSTHSAQFZPJAO6REDC7O64226KMA42OU4BY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,.,,..,,,..,.,.,,..,..,,.,.,.,,,.,.,...,...,,,,,...,,,.,,,.,...,
+#VJ4TJUNBDJXRW635RU3HTPC2OFSFS7MZMOPLL33H3Y7ODH4K4PYITC4G3CZHEAWAUYY7JOKYKSHKG
+#\\\|GE7BBOFXC3HNEISQQZJR6ZGUWQLK2HRJSPAONPTSIFPTKITTEK2 \ / AMOS7 \ YOURUM ::
+#\[7]B2CE42RHSA52GMGPEUCVK422E5Z4IKIB3CXZOCFN454NKXTK72BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
