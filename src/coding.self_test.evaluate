@@ -214,12 +214,35 @@ if ( $step eq qw| tier1_done | ) {
         $ok = $recheck && $recheck->{'mode'} eq qw| true |;
         $reason
             = $ok ? '' : ( $recheck->{'data'} // 'tier1_recheck_mismatch' );
+
+        ## same "empty content but the model DID reason" signal poll_probe ##
+        ## already logs for the tier0 answer [ confirmed live : whole      ##
+        ## max_tokens budget went to the <think> trace ] -- this branch    ##
+        ## never checked it for a tier1 reformat round, so an empty        ##
+        ## reformat always surfaced as a bare missing_token/exact_mismatch ##
+        ## with no visibility into why. reasoning/finish_reason are only   ##
+        ## stored, not acted on here -- self-test-detail surfaces them     ##
+        my $reasoning     = $tier1->{'reasoning'}     // '';
+        my $finish_reason = $tier1->{'finish_reason'} // '';
+        if ( !length $reformatted and length $reasoning ) {
+            <[base.logs]>->(
+                1,
+                '[self_test] tier1 reformat : model %s : empty content, '
+                    . 'reasoning present [ finish_reason=%s, %d chars ]',
+                $model_id,
+                $finish_reason || 'unknown',
+                length $reasoning
+            );
+        }
+
         push @{$attempts},
             {
-            hint        => $hint,
-            reformatted => $reformatted,
-            reason      => $reason,
-            ok          => $ok,
+            hint          => $hint,
+            reformatted   => $reformatted,
+            reason        => $reason,
+            ok            => $ok,
+            reasoning     => $reasoning,
+            finish_reason => $finish_reason,
             };
     }
 
@@ -302,8 +325,8 @@ return {
     eval    => { mode => qw| false |, data => "unknown evaluate step $step" },
 };
 
-#,,.,,.,,,,,.,,,.,,.,,..,,,.,,,.,,.,.,..,,..,,..,,...,...,,..,.,.,...,..,,...,
-#ZZAE6IQZB47HSQJDDNK5ITNHEVL2MZIK3R64BRZVZ6CNAP7JV35EDRO6TSR7NHIXUVJTYODCGHR2A
-#\\\|S57BITV2GB3BUQPUKZGDKZFELQQMUDZ5HO3BI5MWPC4UTYMI62R \ / AMOS7 \ YOURUM ::
-#\[7]MYA42MDG4YAAKJKDAK42KA4PBBU3H2PYCFHMMHEV6UVRI76MTSAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,..,,.,.,,..,.,.,...,..,,.,.,..,,...,..,,...,,,,,.,,,.,,,,.,,
+#4TH3VB4LKZPXUALWQVEFI5TPJYMHRZZOBQ3IVA2Q2WWD4IKD22RI6NOOZGMKNKSKDZ5PHOOBZIJZA
+#\\\|2ACC2X2BPUO4SRQJIDRIFITJKAV2ZZOCZOCCFDPSQPFVO7C4FOO \ / AMOS7 \ YOURUM ::
+#\[7]TU6QT7UO6D3TJTMNFASCI22DF24HAAODMGTONH6EVMYLYH4UM6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

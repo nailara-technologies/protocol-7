@@ -116,6 +116,23 @@ for my $prompt_id ( sort { $a <=> $b } keys %$prompts ) {
             push @lines, sprintf "    got back  : '%s'", $a->{'reformatted'};
             push @lines, sprintf "    reason    : %s", $a->{'reason'} || '-'
                 if !$a->{'ok'};
+
+            ## same "empty but reasoning present" signal as the top-level  ##
+            ## answer above, per tier1 attempt -- this is what was missing ##
+            ## for a reformat round: a bare "got back : ''" with no clue   ##
+            ## whether the model reasoned itself out of tokens             ##
+            if (   !length $a->{'reformatted'}
+                and length( $a->{'reasoning'} // '' ) ) {
+                push @lines, sprintf "    finish_reason : %s",
+                    $a->{'finish_reason'} || 'unknown';
+                my $reasoning = $a->{'reasoning'};
+                my $preview
+                    = length($reasoning) > 400
+                    ? substr( $reasoning, 0, 400 ) . '... [truncated]'
+                    : $reasoning;
+                push @lines,
+                    "    reasoning (no final answer emitted) : $preview";
+            }
         }
     } else {
         push @lines, "  tier1 attempt : none [ tier0 structural "
@@ -126,8 +143,8 @@ for my $prompt_id ( sort { $a <=> $b } keys %$prompts ) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,.,...,,,.,...,..,,..,,,,,,,,.,...,.,.,,..,.,.,...,...,.,,,.,,,...,...,.,.,
-#ZPDM6IFJZJ2SMFGI424ATNKLJ7JNG2OJQKNEC4TQ6UNLT4X35534YT5EDEFEEAQW4NUWBBJOAUSHA
-#\\\|BRBHY4NT73YCTVKN3YEN5PQW2NQZHCFH6YXLSEUKSYMJ3EEITWJ \ / AMOS7 \ YOURUM ::
-#\[7]MN2ICWNPYYXW7NTAPEYPC25OB733TST7HMQB74OVGZDU7KO74CCY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,.,.,,.,,,,,,.,,,,,,,,..,.,.,.,.,...,...,,..,,..,,..,.,,,,.,,
+#GQWAJEAMR7MV45C4O3UCUZ2RKKOQE7YPWIESJMWKEF6WQCLB4EOBWRYJ4ZUOR37NYD5C37XKCNG62
+#\\\|C3FO7KUFOB4RXRHFTSWFNMHJ2CTB5VNUEIB6PFFMORSVRJRDVAI \ / AMOS7 \ YOURUM ::
+#\[7]XKT24RA4URD6LG3SQNA43IQIMRMFE2VJIOOLLVTXLCD57JLFFEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
