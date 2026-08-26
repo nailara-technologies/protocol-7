@@ -34,6 +34,39 @@ foreach my $cb (@callbacks) {
     2, '[init_dependencies] registered %d dependency callbacks', $cb_count
 );
 
+## model_path : standalone, NOT chained into the discovery/model_available/ ##
+## server_ready graph above -- that graph is not currently gated on by      ##
+## anything [ async_spawn_inference_servers used its own raw                ##
+## <inference.model.path> check instead ], so its other legs [ discovery    ##
+## status, memory thresholds ] are unverified in current practice. adding   ##
+## this standalone, with its own resolve hook, replaces just the specific   ##
+## race this was built for [ the 0.5s deferred spawn timer routinely firing ##
+## before coding.resolve_model_path's async reply arrives, confirmed live   ##
+## 2026-08-26 ] without newly gating spawn on the rest of that graph        ##
+if ( exists $code{'coding.callback.object.model_path'} ) {
+    <[dependency.setup]>->(
+        'model_path',
+        {   'callback' => $code{'coding.callback.object.model_path'},
+            'resolve'  => $code{'coding.resolve.object.model_path'},
+        }
+    );
+    <coding.dep.model_path_gpu> = <[dependency.add_object]>
+        ->( { 'type' => 'model_path', 'backend' => 'gpu' } );
+
+    ## dependency.ok(X) checks whether X's OWN chain members are satisfied  ##
+    ## - it never invokes X's own type callback [ that only happens when X  ##
+    ## appears INSIDE someone else's chain ]. model_path_gpu has no chain   ##
+    ## of its own, so callers need a small root object that DEPENDS ON it,  ##
+    ## and check dependency.ok on the root instead. type is arbitrary here  ##
+    ## -- this object is only ever a root, never a chain member, so its own ##
+    ## type callback [ if any ] is never invoked                            ##
+    <coding.dep.spawn_ready_gpu> = <[dependency.add_object]>
+        ->( { 'type' => 'spawn_precondition', 'backend' => 'gpu' } );
+    <[dependency.add]>->(
+        <coding.dep.spawn_ready_gpu>, <coding.dep.model_path_gpu>
+    );
+}
+
 ## 1. Model discovery dependency ##
 <coding.dep.model_discovery> = <[dependency.add_object]>->(
     {   'type'        => 'model_discovery',
@@ -120,8 +153,8 @@ return {
     server_cpu      => <coding.dep.server_cpu>
 };
 
-#,,.,,,..,,.,,,..,.,.,,,,,.,.,,.,,,,.,...,,,,,.,.,...,...,.,,,..,,,..,.,,,,..,
-#Q6Y3E2CJISQJVOE5SX2NLJ5JRS3TSGV5DVSE5OZ6TEQCFEJUAKAUU2WA4TFTRBMGIQGEGHR7ISE66
-#\\\|JA3GJ4LWBYOC6RQYGSBPNED2KP7MASSRDJRF2JC775SQEPNXMF2 \ / AMOS7 \ YOURUM ::
-#\[7]VCKEW4QI4ODMAJX7NCNYNXNXOIQUQU6K35RHW62GK4EOOMJRTYDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,...,.,,,.,.,,,,,...,.,,,..,,.,,,.,.,...,..,,...,,.,,,.,,,.,,,..,
+#WHLG6PM3ZROL6YITDUTPF7BGKE5AUBXMNFJD3IXZRGNSM43PTTV5CRDGV2UAMNK5ONAMC4YXYAC2Y
+#\\\|LCYTP6M477NU4JZZHIPYE6RPYLDU7P42DXIQNAMHY6TFPHVOSF4 \ / AMOS7 \ YOURUM ::
+#\[7]YCJQ2BFS57T6A3RH673IHAL254MTD2N7Y2SJNLHC2IXHURXKMWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

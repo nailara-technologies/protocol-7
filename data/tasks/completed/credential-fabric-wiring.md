@@ -246,10 +246,8 @@ do not modify or regenerate any AMOS7 signature lines. the signing
 system handles all footer blocks — leave them untouched. **do not add
 the `#,,..` stub line** to new files — the signing system writes it.
 
-#,,..,...,,,.,.,,,,,,..,,...,..,,,,,,,,.,,,,,..,,...,..,,,,,,...,,...,,..,...,
-
-#,,..,,,,,,,.,.,,,.,.,...,,,,,,,.,,.,,.,,,.,.,..,,...,...,.,.,...,,..,,.,,,..,
-#NKPQ467IYNTGTEFCBLLB5AOSPN7V4BOPSUSNLW3DJEOFIVEWAUIYQUIQRWGEVYTDCRL56V4IBJYVC
-#\\\|HLUU3TP7QICTI33JP47TKHX2CZSV46ARVCHM5W6XRRLZ665S7UC \ / AMOS7 \ YOURUM ::
-#\[7]JQZR7VCSVP7QMTTAA4TJDTNQPTUTMPE57SUHEAUBW2WDQHHURCDA 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,.,,.,,,..,,,,,,.,,,..,.,,,.,,,..,,...,..,,...,,,,,,.,,,,,,...,
+#YJBC6UU665XPVNGAZYMBH6QDQOU6JO7GSLVI24DGJIQCSKZMFHNZ3RS4A6LMR5Z5VKQBJU4GIND2K
+#\\\|MWIKCPF2AMIOY2ZZCKUHKNJWJ5UGBZ64TFARNQVWBHYJJ3JKFNG \ / AMOS7 \ YOURUM ::
+#\[7]L45R7ONLXJ7BFCRIDCKSOAH2WXEZSSOP3RTTHRQUANYBWRH2YOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

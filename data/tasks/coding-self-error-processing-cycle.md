@@ -189,10 +189,8 @@ checkable prompts/answers). before dispatching implementation:
   are meant to converge on — this needs its own short spec before
   `coding.error.classify`/`resume_round` can be written meaningfully
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,.,,..,,..,,,.,,..,,,.,,,.,,..,,,,,,...,,..,..,,...,...,.,,,,,.,,.,,...,,..,
-#GKV3WID4CJIUI72F22ZYIHMIIMHX2FMN4SCBHHBW7HXIN46YB7EGJQKMHYSWCS7R6ZF36NGZYV2LQ
-#\\\|GRC5LUY4JAH2XF4CEIWXEXBRJBHX74I7H5IQYA7QLYVEMOLLS2P \ / AMOS7 \ YOURUM ::
-#\[7]OBD22IURYW6RIFFSV6CFXF4Q5CEXXOLV5Y3VLGC54OL6Z3OB6KBA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,.,,,,,.,,..,.,,,,,.,,,,,,..,..,,...,...,,.,,..,,,,.,..,,,..,
+#OA23R2LB4IZGTOGGGQ27GSUDZAKTVUKLNTVTYUTJOGKOFCVQRV5KTMIVJIXQR6YQGPN27V7TYJUPQ
+#\\\|B4P4GRVSWEQIIZPHCFP4OCWCVCVP3SJHFL4ZZYZRWHONT32UVMU \ / AMOS7 \ YOURUM ::
+#\[7]BI5ZDIIJNOZWPWNKXMW6A5YYYF2VOT2SMQVSRG3ATGPHD2MAX6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

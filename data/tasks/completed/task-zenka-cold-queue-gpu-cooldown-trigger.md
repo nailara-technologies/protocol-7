@@ -300,10 +300,8 @@ reuse, ambient-weather-adjusted threshold) remain not started — this task
 zenka change was the smallest, most self-contained of the three and was
 picked up on its own, as anticipated.
 
-#,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
-
-#,,,,,.,,,,,,,,,.,,,.,,..,,..,.,,,,,.,,,.,...,..,,...,...,..,,,,.,...,,..,,,.,
-#B6ZPHFYJGP3ORERXH2GKYKMW7DML7G3XNXV5O5ERRS6PYKNW43PE5PBBBHW3ZW7VFRNL7QR3PM6CO
-#\\\|CQBHWUMSS632FAXHWD7UFSEGUYSHXX3KZUKIEU5V2U4XVGPH5CI \ / AMOS7 \ YOURUM ::
-#\[7]AT6YCMHR4JOD7CULU6FFE4DRZXYW4MC5D2J3AAOOFUDN5PS7WCDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,,,,,.,.,,,.,,,,,,..,,..,...,..,,...,..,,,.,,,.,,.,.,...,,,,,
+#LLCEKMX5RIWSX7TEWGURLS2V7RZCW3T3RCJKQZBXW6J43YDKKNCIKDUROY3HDWNJUTWRRP7F7QQV2
+#\\\|QQ5TXXNS3LKE3R4JDRVZKJPGVYOABNHJYVPOAJ65VG6H7L3WTT2 \ / AMOS7 \ YOURUM ::
+#\[7]VI5MQTZDBLRHX5A4T5Q4DUXNZDXUDJNSXOAXJVJHE7VL3BZTYKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
