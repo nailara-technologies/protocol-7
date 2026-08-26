@@ -219,10 +219,8 @@ use HMAC-SHA256 as the derivation and signing primitive (available via
 verify the path-composability property and sign/verify round-trip
 before marking complete.
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,.,,,,,,.,,..,,,..,.,.,,..,..,,,,.,..,,,,.,..,,...,...,,.,,,,.,,.,,..,,,,.,
-#CJNGW7NP4XK3TUM3KEC7XCKIHXMPYOL2LSXU2KRGODATHQ3JLTO5FN6KVS7DDZ4PZCGIVA5ZK4N5A
-#\\\|7YOCDQFZJ3VVS6TIGQCDYYMLWGVDG7OJAZPON4V4XHTHAPZWTQ2 \ / AMOS7 \ YOURUM ::
-#\[7]YVWIQNYVLYC3ICNGTFX25YX7E63YRNFUZPSZT24ENA7RQ3NNTICQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,.,,,,.,,.,.,,,.,...,.,,,,,.,..,,...,..,,...,.,,,..,,,..,,,,,
+#F7BU62D73PU5HA7476FAEZS6FOYI5D2QNRTC5S6AKQBSGOGDVKZBTB4Q63ZT4ZMP3WLUEY7MVXFLS
+#\\\|D5KN6ITJSMG6I2VGR2XT4YUS62K7K5NO6FKOTKPGNHC24FUSIP2 \ / AMOS7 \ YOURUM ::
+#\[7]6YEG3K565YCRKT7AUNV4K4JQ2IKE72KMDFRVI2AMUZ6ZS2J4MUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,8 +75,22 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
             my $now          = <[base.ntime]>;
             my $min_interval = <dependency.resolve.min_interval> // 5;
             my $last_resolve = <dependency.resolve.last>->{$chain_object_id};
-            if ( not defined $last_resolve
-                or ( $now - $last_resolve ) >= $min_interval ) {
+
+            ## ntime is NOT seconds -- base.ntime.delta_seconds divides by  ##
+            ## 4200 to get real seconds. comparing raw ntime deltas against ##
+            ## a plain "5" made this debounce a near no-op [ ~1.2ms, not 5s ##
+            ## ], confirmed live: repeated un-throttled resolve calls for   ##
+            ## the SAME chain object [ cube, during v7's own dependency-    ##
+            ## chain setup at boot ] spawned multiple redundant cube        ##
+            ## instances before the first one's v7.zenka.instance entry     ##
+            ## existed for zenka.cmd.start_once's own idempotency check to  ##
+            ## catch -- see data/ai-mem/claude/ session notes, 2026-08-26   ##
+            my $elapsed_secs
+                = defined $last_resolve
+                ? <[base.ntime.delta_seconds]>->( $last_resolve, $now )
+                : undef;
+            if ( not defined $elapsed_secs or $elapsed_secs >= $min_interval )
+            {
                 <dependency.resolve.last>->{$chain_object_id} = $now;
                 <[base.log]>->(
                     2,
@@ -106,8 +120,8 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
 }
 return TRUE;
 
-#,,,.,..,,,..,...,,,.,.,.,,..,,,.,...,.,,,..,,..,,...,..,,..,,,,,,,,,,,,.,,.,,
-#ENFYB4VGL272USJPMHSACNPVMWIRNWPLXEYWRDSX3LFZK4NFZFZYPJDEBWZMYIWFLNGYSYVTN6H3Y
-#\\\|LBFINNP7VLTVCZ4HRHX34PIODIISV5ZFXLKDBLOK7KTK3KJTCOZ \ / AMOS7 \ YOURUM ::
-#\[7]7AWVGMWWP7ETQJOWOT3VTCV35OD75KANIPDIP5EUSN42VO2QKKDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,...,.,,,,.,,.,,,.,.,,.,,,,,,...,..,,...,..,,,.,,.,,,...,,,.,,,.,
+#PTJPCIOBKNYVLZ6M4F27NLXBYBDHSAHEYASEZ6USNYCV36KB2CZJAWJNU7V2QGHUIXWLJEHNXHD2W
+#\\\|CUCHPVYS67JGZTJK2I27U2QZYLWZFE5W2WDUL65ABF47OUKLVS7 \ / AMOS7 \ YOURUM ::
+#\[7]XUH3WGY3TJGTOWLX6CLOKOI37EXUORFWNAPVL4GSZ6YEIAZF6OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -496,10 +496,8 @@ arguments in this task file. if unsure whether a change crosses
 that line, do not make it — leave it for the phase-specific
 follow-up task.
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,.,,.,,,,.,,,,,,,,,.,,,..,,.,.,...,...,...,..,,...,...,.,,,,,,,,,.,,,.,..,,
-#ZEOQVSIQ22PVRYEEUS4CIF6CAG5ZKQF7VQEZSWGPKJNUEFIXNSSYF7AZXZ5UH7AIQPDLACSPLV4KI
-#\\\|4KYH4D2Y6CKNRH2WFP7MHHHCYUHWRAYNNSEJPJS2MF23QAQBCXQ \ / AMOS7 \ YOURUM ::
-#\[7]NBXGOSSSD6W6ZFRUSJEL4PVWXURKAMQPMUD7JE5LOQZZOJQ2QQBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,..,,,.,,,.,,,,.,...,...,,.,,..,,...,...,.,,,.,,,,,,,,.,,.,,,
+#3MTQ6BUBNR5AV5P2ZAYZJCVBA6QMQTTWUY7CWNIPURVVFMCPRHUAJPJOHBP4EYQBFQHAAAWJAUP4Q
+#\\\|V3G3KV27ENR5E24F4FYORFNZDHNKCAC6TOHU7UGNHDLZ2UCKPOA \ / AMOS7 \ YOURUM ::
+#\[7]BE4PMNFRGCWYKZZ4UIX4GQB3CQV5SOBXL6DTQ54YD3C53SUHMWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

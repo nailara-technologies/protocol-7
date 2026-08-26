@@ -7,6 +7,21 @@
 
 my $model_amos_id = <inference.model.amos_id> // '';
 
+## in-flight guard : this is now called from two places [ the original    ##
+## unconditional init-time call in zenka.v7, AND the resolve hook [       ##
+## coding.resolve.object.model_path ] that fires whenever                 ##
+## async_spawn_inference_servers finds the path still unresolved ] --     ##
+## without this, the common case [ deferred spawn timer firing before the ##
+## original init-time request has replied ] would send a genuinely        ##
+## redundant second request every time, not just occasionally. cleared by ##
+## coding.handler.model_path_reply on any reply, success or failure       ##
+if (<coding.model_path_request_in_flight>) {
+    <[base.logs]>->(
+        2, '[resolve_model_path] request already in flight, skipping'
+    );
+    return TRUE;
+}
+
 <[base.logs]>->(
     1, '[resolve_model_path] amos_id from config: [%s] (length=%d)',
     $model_amos_id, length($model_amos_id)
@@ -45,16 +60,22 @@ unless ( $clients_reached == 1 ) {
         0, '[resolve_model_path] failed to reach models zenka (clients=%d)',
         $clients_reached
     );
+    ## not in flight : leave the guard clear so a later resolve-hook retry ##
+    ## [ or the deferred spawn timer's next dependency.ok check ] can try  ##
+    ## again, instead of being permanently blocked by a flag nothing will  ##
+    ## ever clear                                                          ##
     return FALSE;
 }
+
+<coding.model_path_request_in_flight> = TRUE;
 
 <[base.logs]>->(
     1, '[resolve_model_path] model path request sent, awaiting async reply'
 );
 return TRUE;
 
-#,,..,,..,...,,.,,,..,,..,..,,,,,,...,,,,,,.,,..,,...,...,...,,,,,,,.,,,,,,,,,
-#CALBKDCUMDNPJ2GGR24W4OWJAU4A46B33ME7PGYI6PSYQMVINELDHQDHET242D7J6KPEXX2FPNX46
-#\\\|54KUSITD4MTSFSOOCKRXOUTFNRSGFJS3XQYCPNH4RVYVKW7P22A \ / AMOS7 \ YOURUM ::
-#\[7]MZTSXBZ7QY5246DTCAPMUJPLLGGL62ZRMQGREZRSYYOIIC6ALACQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,..,,..,,.,,,.,.,.,,,...,,,,,..,,..,,...,...,.,.,,..,..,,,,.,..,,
+#LW2CHQPRMKY7NTVVPSBUCWVKJ4IZ4HKVBM45Q2LEGPG7PNDHU42JJY3KRZPR2T7ELD2NQEHQZFINM
+#\\\|LL7XYSWWR2FQKCU6HM2XPEJZGVIBAGFP2TPNXJCCAVX6E45FVWY \ / AMOS7 \ YOURUM ::
+#\[7]XJMBIDJ3I2BFIVT5BCSU5JOX7MRMA4S6LD6YATMNGKDFBFQJDCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

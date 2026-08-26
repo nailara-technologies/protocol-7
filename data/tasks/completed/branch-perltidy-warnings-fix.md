@@ -147,10 +147,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 `[ word ]` annotations, `$ARG`/`@ARG` not `$_`/`@_` (these files already
 use `@ARG` for params — keep that).
 
-#,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
-
-#,,..,..,,.,.,.,.,..,,...,,,.,...,,.,,.,.,.,,,..,,...,...,.,.,,..,..,,,.,,...,
-#VZK62TFKBQSO3OG6HIDCKPO6FPZAH2PC543BLHZ4OQKBVLBPXDUS6GXBNCPYP4GE5ACMJGTKB2WTY
-#\\\|OPDEXN4URADPRMV6K4CB366HLPSDLSP4DUH4LR37ZU2UW2HNDGU \ / AMOS7 \ YOURUM ::
-#\[7]SXBZMVIRV2225T6GT4HQ6JT2AR36GLATZOPBVJOVVO7N7NRYVMDQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,.,,..,,...,.,.,..,,,,,,.,.,,,,,..,,...,...,.,.,,.,,,..,.,,,,,,,
+#6QFDLGTASVVAM6RAQE4BGVJCNYBH6OUZDTBF75FGZEWHTC2EPUSJQUP63EU56BIPOEXBRX7EWB2MS
+#\\\|W5JIY4H5MCC4RNGXKTVJTGCHOPRNOFXFIYSEJVVGVBSUYIGI5AF \ / AMOS7 \ YOURUM ::
+#\[7]JWSFV74K6YB5DV3FMOGTEEYMMNLLZQT3Y247XVVHK5HGIPFOAECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

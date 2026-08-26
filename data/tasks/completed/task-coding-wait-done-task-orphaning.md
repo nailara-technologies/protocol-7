@@ -158,10 +158,8 @@ completed and fired deferred_reply — they vanished from `coding.list-
 tasks` because that command only lists active/pending tasks, and a
 completed task moves to the completed list.
 
-#,,.,,,.,,,.,.,.,.,,,.,.,..,,,.,,,,,,,,,,.,..,,...,...,,,,,..,,,,.,,.,,.,.,
-
-#,,..,.,,,,,,,,.,,,..,,..,.,.,,.,,.,,,,.,,..,,..,,...,...,,,.,..,,,,,,...,...,
-#MAANNWSBNVJOL2LFGOG4FP4VWI72TWDDCWV7S5BRBX4K6CCL4MH5EQ7DL3HDIYV3PK2IBBPK3RMHW
-#\\\|EY7LSP37ROUKRM7PDRYTWCY7V5SESPCDUZTFSYZSRDYV4CFBCZW \ / AMOS7 \ YOURUM ::
-#\[7]46F5DIBB7V76ZBGRAQ6ZOXRVSHHRQY4KAUZ5GP5DTDG4PCGYCIDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,,.,,,,,,..,,...,...,.,,,,,,,..,,...,...,,..,.,,,.,,,,..,,,.,
+#C4L7GAJMGEPHI4VXBCJCJHEBNFJQGXW2YCKB2E2MTDP35PRHF7MWB5SW2ZW7S7UGMN4QPTRLYGXX6
+#\\\|TLJVNW5NZPSLA4OVY6OXQKKYVMSJNUHKY5YDW3EYNXCKE555PJS \ / AMOS7 \ YOURUM ::
+#\[7]2CP7Y43CMFM3U26UBDMZJD6QR2UGX7VXMTZSC6ZGX5JQREX6B6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

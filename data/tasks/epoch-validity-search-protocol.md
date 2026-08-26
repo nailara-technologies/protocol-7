@@ -169,10 +169,8 @@ check `data/tasks/epoch-bmw-l13-truth-templates.md` and
 `data/tasks/epoch-chksum-path-helper.md` for what may already be
 implemented — build on rather than duplicate.
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,,,...,,..,..,,..,,.,,,,..,,.,,,,.,,..,.,.,..,,...,...,..,,..,,,,.,,.,,.,,,
-#JP2AY3XFHBVIOUPBBM3HCSYPFCB26HFMYGVSEO4ZN3B3MG5CBBPWGKSN2X6NMEPQWGLHAPDQY5YSC
-#\\\|6EH75G7HTH6FPTNYMMWZX47BEJMNJ4UJBF3FBB3L6FAESRDDLUO \ / AMOS7 \ YOURUM ::
-#\[7]5AKRDIGVZX5CATHSGFMPD2CBU66MIYGAWHCDMET4JEWZXVVR6UDY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,..,,.,.,,,,,.,,,.,.,,..,,..,..,,...,...,...,.,.,..,,.,,,,,.,
+#EPT7UACXQKEJI4ECXQKQ2FWQQRIVE4CLFWFUL5IYPYKKFGKOSDJV36ZJTMFY72EN57LVVLXSBXIPQ
+#\\\|LHJ23CGCXKXDRUJKQW4YZLK3RVWKCHO46XN6CMNUO4FUWUGZG6A \ / AMOS7 \ YOURUM ::
+#\[7]4BVK66BLQEIDOXSRJ3ZPS5T6A3WRDUHVHKDGN5C76WATJ4SEYYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
