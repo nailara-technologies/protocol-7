@@ -143,10 +143,8 @@ the same shape -- worth having, not worth interrupting other work for.
   contact once the dependency comes back (same mechanism validated live
   today: reload + resolve hook cascade-start).
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,.,.,,,..,,,,,,,,,,,.,,...,.,,,...,..,,,.,,..,,...,..,,.,,,...,..,,...,,,,,
-#7CNIQNG4ELE4HJQC2NLTOAVSDTUKS7XK3LRJPVE7EP7C6CB3TSVXJ63EUEXDYPC6SPBV3QV3CQSWM
-#\\\|OVB3OZ637W2TIXCUXLTKGCVHHITPFMBWYWOP4RBXUVDYNXIVSBA \ / AMOS7 \ YOURUM ::
-#\[7]TTZZKVDL3FYVW5WGWYLWADN6X3ZCT3DPSNVQCNR7EMK7HMSQS6DI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,,.,,,..,...,,.,,.,.,..,,,.,,..,,...,...,...,.,.,,..,.,.,.,.,
+#EGMPS3K7U5GHRUIBF44AH2WV2RNA2J4RY6WL4ZHFYHLLY7SOH3W2Z4DPJ4GA6PUYGOSNGEV5QMIOY
+#\\\|TW26FC3NCTIBMTX5S6ASEOSVPNRP3S3VPV5QD4PGNCTXZXZOU6E \ / AMOS7 \ YOURUM ::
+#\[7]L2RNEDWH34J4OLPEP4ZPCFV5RVMSD6HG5KMCOX5LJWBKBDZOJSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

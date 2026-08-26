@@ -28,7 +28,16 @@ my $model_id = $params->{'model_id'} // '';
 ## LWP's inactivity timeout disconnecting mid-generation. this module now   ##
 ## only STARTS the test : the actual cycle runs non-blocking in             ##
 ## coding.self_test.handler.poll_probe via coding.self_test.async_probe     ##
-my $timeout = $params->{'timeout'} // 90;
+##                                                                          ##
+## UPDATE 2026-08-26 : 90 -> 127. the LWP-inactivity concern above is moot  ##
+## post-rewrite [ streaming + independent stall watcher in                  ##
+## coding.handler.http_io actually catches hung connections now ], but 90s  ##
+## turned out too low for this class of reasoning-heavy model on its own    ##
+## merits -- confirmed live: a genuinely-passing tier1 reformat took        ##
+## ttft=118.26s, well past the old 90s soft ceiling, hitting the extend-    ##
+## to-777s path [ coding.handler.http_timeout ] as routine noise for an     ##
+## ordinary successful request, not an actual problem                       ##
+my $timeout = $params->{'timeout'} // 127;
 my $backend = $params->{'backend'} // 'gpu';
 my $url     = $params->{'url'}
     // ( <inference.backend.http_server_url> // 'http://127.0.0.1:8000' );
@@ -164,8 +173,8 @@ $data{'coding'}{'self_test_probe_state'}{$probe_id} = {
 
 return { mode => qw| deferred | };
 
-#,,,.,,..,,,,,,,.,...,,,,,,,,,,..,,,,,..,,,.,,..,,...,...,..,,,,,,,..,,.,,,,,,
-#GQKP2U774A5HYOXFQB6YJTZTDCUYMBJFCAWCX4FPTFYALSNPJ57V2BXSQV4W2Y5ZFXWMOB5J4ZWSG
-#\\\|SMMFA7SFEBAYYGBLNO754BMQLPVUXCCIEFJFWW2PKI62NGQ65LQ \ / AMOS7 \ YOURUM ::
-#\[7]73X4C2HOVWMNQE27WTRD6VZFJTIIWK3FJZQCU2FIPGE7ZNZNYADY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,.,,.,,,,,,.,,,,..,,.,,...,.,.,..,,...,..,,,,,,.,,,..,,,,.,.,.,
+#2PQYCCU3XEYNALRAVTUYBPHGEPJXT7PT3ARGIGBHL4FI2IHHBB3FX6HEXMG3F2L7N3FXDEIPEEYS2
+#\\\|WBILCPUB75MKVWPQ4A5HI22DT7XW2GXJA7FXITNPBYZ3OIFV3VF \ / AMOS7 \ YOURUM ::
+#\[7]YXL7TRBSURRHO7JXH6ZEUZQO4DZP6STDAKHECOLZ3GYVMBASIOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -134,10 +134,8 @@ and `base.handler.command.route_to_target`:
 verify: `p7c zenka.cmd.status` → contextual reply naming the fix,
 not generic "no perm"
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,.,,,,,,.,,.,.,..,,,,.,.,,,,.,,,.,,..,,,..,..,,...,...,...,,..,..,,,,,,...,
-#X6O4YJS6RMVR2M5QLUDNYR6EZANVGP6DL4UVNFWVQHJFXJ3TLV3KGOVS4KI2LGW52KMSKPQHE4R56
-#\\\|VMRELVUPZ2ZZW5C6DNAH75TNRC55UO63LFCKLN4COUUNFHBKZMM \ / AMOS7 \ YOURUM ::
-#\[7]QYJMNZQDNLAJNDKVVKNCLEY3Q2LVYQNR7N4SVQVLCODLBI5UYUBA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,...,...,.,,,,..,.,,,,,.,,..,..,,...,...,...,,,.,,..,,.,,,,,,
+#3FQ4LWSQBPVCJ4UMCP2NO77KJGMFRODX6DO24KHGE66J64I7OKLZICDMOWYKH2E5TPCFGXB6PPRN2
+#\\\|6KQAAACM2CWDJAHJ4DMUQTHBRYJL2FTFMKCBUARSY5UZBSZGRXQ \ / AMOS7 \ YOURUM ::
+#\[7]DTZERAAEWMG3ME4WYCJDSEDVNK42XJ2Z4K6LA6IMWF6CHDKKAGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -317,10 +317,8 @@ child`, the phase-1 render modules that added `row_keys`).
 do not add the `#,,..` stub to any new file. lowercase comments,
 `[ word ]` annotations. no emoji.
 
-#,,..,...,,,..,...,,,..,..,,..,..,,.,,..,,,..,,..,...,...,..,,,,.,,,..,..,...,
-
-#,,.,,.,,,,.,,.,,,,,,,.,,,...,.,.,,,.,.,,,,,.,..,,...,...,.,.,,.,,,..,.,,,,,.,
-#AAPOVPMXP3TGOK6EVDCNLLVMSHHFH6JICKFVUQHLEKQ5YZ2MOXVNJDAPG37CQAPBB2N47T3RCYSAQ
-#\\\|W5M7D63ILXPARKEDINXEFXQJRULW5D6YL4ETKDXO45W3TBHTVCO \ / AMOS7 \ YOURUM ::
-#\[7]VUBJ4DYFDWUGFXEZ5TBYDKSCEIEJK77WB4FCCX23NDPKUWKBNEBQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,...,...,..,,,,.,,,.,,.,,.,.,..,,...,...,,..,...,.,.,.,,,,..,
+#3AHCY75RGI75R6XTRPTDBD4IPYNQBARUZ7YMA332575GCVF4KBIY36PM6S6E3SFBMAHHE7T5KZ6YG
+#\\\|XOCQ4KNOS7LMXTPHXSK2CT6XO74ANYCIS5IIH4KAOM7VF52QHWU \ / AMOS7 \ YOURUM ::
+#\[7]KR4IRKW5LSROWPFWV3W5XBIBAASVXCLRWIYV7NJIIAFTF3OQXACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

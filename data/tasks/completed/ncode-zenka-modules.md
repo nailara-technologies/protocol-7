@@ -205,10 +205,8 @@ implement the ncode zenka on-demand zenka.
 check `bin/ncode` source for exact argument syntax before implementing
 — use it directly rather than re-implementing logic in Perl.
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,.,.,.,,..,...,.,.,,..,..,,,,,,,,,,...,..,,..,,...,...,...,,..,.,,,,,,,.,.,
-#DNQ7IPSNKONKJKP5UETZZPRSWKUIHK3YN2DEBX64WU7DBUI7JTURWMR6UX4C6HHW2IWLHKZZNKTH6
-#\\\|B5DYKWNROECJG2C66KSYUX3D6AKIV4YWKBB4XDDFNG2CUQFLYGE \ / AMOS7 \ YOURUM ::
-#\[7]QHA24CW2G6TZTHD6GJGBXLBAAKYVPUPN3QD2SCKAYKOXKIJXBSCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,,,,,,,,,,..,..,,.,,,.,,,.,.,..,,...,...,.,.,.,.,,..,,,,,.,.,
+#IL6RCIOPVKOXW6LBLYKH65RUU5F4Q3WDMFOMRC6DHUQJSW4RZUTOZHVPFXOVSNONBQKSPUQ4TELJM
+#\\\|CI62N4YVJIJOHKMFW72X5DH37IGZ3OLEKFARPE6RPLZIL26QRE3 \ / AMOS7 \ YOURUM ::
+#\[7]AW7YCYM6WT3F2LXTHSDDTGXBFD6BMRPCOLLZO2WCCYAYTIHER2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

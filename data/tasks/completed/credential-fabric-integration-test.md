@@ -171,10 +171,8 @@ failure with a `[ fixture kept: /tmp/credfab-test-... ]` message.
 do not add the `#,,..` stub to any new file. the signing system writes
 it. lowercase comments, `[ word ]` annotations.
 
-#,,...,,..,,..,...,,,..,..,,,,,.,,...,..,,,,,,,..,,...,...,...,,,..,,,..,,...,
-
-#,,,,,.,.,,.,,...,,.,,...,,,.,,..,,..,.,.,,..,..,,...,..,,.,.,.,,,,.,,..,,...,
-#GM7BI3FAD5VKEGMROZPQWUA4BPNOWVYG3S4JG4R4HFTVXSJXW5VCW2D4TSKXJBJDGTTWEYZFCQ5XY
-#\\\|NLO65NDQW4O4T5OHCKX7LA2D5CSCT4ALYLO7DLY3IMLKQDSL3OC \ / AMOS7 \ YOURUM ::
-#\[7]S4AE23QVKYPETUSYDARRVAYSPDJXF6E3RVWHRP7DQG7T6CQQ2SDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,,,...,,.,,,.,,,,.,,,,,,.,,.,,,..,,...,...,..,,...,.,.,,,.,,.,,
+#4IOTA5QA7IQKBOWA6AB3WNESMGN2WAIRPD65ISTW6IXVSLCF2WZEXBJRG7WTGJY73THQXOMZNUZL2
+#\\\|PALMFVGWDTEV4B53CEZ5ZDBFEDEYTCEOB3435BR7BOFSW26JFYJ \ / AMOS7 \ YOURUM ::
+#\[7]7BRRXY3IMUSLV43FMMC7H3CEGF5ASPNXLH43TCKQM5RWMWMH6EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

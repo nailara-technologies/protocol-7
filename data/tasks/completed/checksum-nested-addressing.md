@@ -157,10 +157,8 @@ check existing AMOS7::CHKSUM modules in `data/lib-path/pm/AMOS7/CHKSUM/`
 for the correct primitive to build on — do not re-implement the base
 amos checksum, only the nesting convention layer.
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,.,,.,.,.,.,.,.,.,.,,..,.,,,...,,,.,,..,...,..,,...,...,.,.,,..,.,.,,,,,.,.,
-#KRAWP4FTKNT3MTZEHPH3BZBKGLWGULIJSCZX7H2BF375OHRQC7XNDQAHZWV2CMY3ZMTXHK7YJBU2Y
-#\\\|TINPXRDRBHGE6KWFVWSAZZUWFAWBTJXMRDBC6K2XWV4KDS3ZQ5Q \ / AMOS7 \ YOURUM ::
-#\[7]UE7LF7Y3XG7FIFC7GQUGI3SNGPOXVVN3MDY7F6QF62IYP3DQMWAA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,,.,,,,.,.,.,...,.,,,,..,...,..,,...,..,,,.,,,,,,,.,,...,,.,,
+#ORHUCGKAW3RMWCH2UJNTO2YMYYXAGI7QKJMUTFXBIOWQVIJNNGUJ4P6OONE3LLSQRCGWRY52KBDPW
+#\\\|2ECXSSVVAKX7HKNLGRZODYKHRJIOVKYCRAHYZ2RNETMPGROYAPR \ / AMOS7 \ YOURUM ::
+#\[7]MTVQZM6Y546GVXZRDQYJL2SSSMPVFDZZ3BPOPCL42VETWDRRFIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

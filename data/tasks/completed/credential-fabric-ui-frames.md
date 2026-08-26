@@ -272,10 +272,8 @@ re-run harmony on `credential_fabric.rotate` and
 do not add the `#,,..` stub to any new file. the signing system writes
 it. lowercase comments, `[ word ]` annotations. no emoji.
 
-#,,..,...,,,..,...,,,..,,,,..,..,,.,,,,..,,..,..,,...,...,...,..,,...,,,.,...,
-
-#,,,.,,.,,,,,,,,.,,..,.,,,,.,,...,,..,,,,,,,,,..,,...,...,...,.,.,.,,,,.,,..,,
-#PS4RTIKWA5AJ5MNQ6CZKS7TEXKFDSHJXKZ5EVTVGSNQJO5GV77PM5P6JE2X6JCNRCRSJUKZ5QY5UE
-#\\\|5JLF5VKF6XUZINJQIYGPIWKYMAFFOAPP33JK4PY2J37D7Q5U2YA \ / AMOS7 \ YOURUM ::
-#\[7]65QPROYBSHHYKKAAU3DLNWGBB4EEKGQLVTCY53WSPYK3JZJWA4DA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,,.,,..,,.,,,.,,,,,,,,,.,.,,,..,,...,...,.,,,.,,,,..,,..,..,,
+#RMYTUHQPFEQI22RWMHWL6T6TT2PGDG7RVORJLSK776O3UYRBHQ5SIAHHUDRCOQNFQ2MHCS5R4LIDK
+#\\\|HXPTGKFE2Z5JNXLULPBKCUA3R65CYKSYDILV4MOEQJOM3JC5RLT \ / AMOS7 \ YOURUM ::
+#\[7]ABQDR4CQI4RMQJFK3U5YJGIMTEEZCHTDLGPOE3ZZVFJN2B6TNQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -155,10 +155,8 @@ comments, `[ word ]` annotations, `$ARG` not `$_` for new code,
 one-sub-per-file for any new helper modules. keep `# descr =` lines
 under 55 chars.
 
-#,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
-
-#,,..,..,,,.,,,,,,,.,,,.,,...,,.,,,.,,,.,,...,..,,...,...,..,,.,,,,..,,..,.,,,
-#5KEOT2IAHNO47MMJVLXXXRFOA5HW2VSD4VMBIEHSA5QFRYQ5K5DXQIX2YZVSTBPIYGOW2IUEUMIG4
-#\\\|UITYZPZMINDVFC4UNMOPQJ23T2OH6GJFKA3DNEMATAFXSGWNCXX \ / AMOS7 \ YOURUM ::
-#\[7]S6LXZWRF57Z2ME6WBXGG3T4I2J76FTRV7LRMAWEKACJTFITAHUBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,...,,,.,...,.,.,.,,,,..,...,..,,...,..,,...,...,,..,...,,,.,
+#YJOW2PDF4NUQ5A5Y3PE2KXZXL326IJUYRRHCVPJAG4F7SFWMLMWR2S42QA4ZMT7ENZC65LW2HC7R4
+#\\\|ENIECNXNEMN4JH4TYZUUBZH2EDFPHEPHPTO6RUVH5UOBKA3DDXS \ / AMOS7 \ YOURUM ::
+#\[7]G6EO2QGOWYVZAH726YVSEW5LLLNHSBEXSO737Q44KUMWUVN2P6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

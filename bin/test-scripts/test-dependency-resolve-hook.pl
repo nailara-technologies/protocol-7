@@ -55,7 +55,13 @@ our %data;
 our %code;
 our $call;
 
-## controllable fake clock : advanced explicitly by the test, not real time ##
+## controllable fake clock : advanced explicitly by the test, not real     ##
+## time.  ntime is NOT seconds -- base.ntime.delta_seconds divides by 4200 ##
+## to get real seconds [ confirmed live 2026-08-26 : the original debounce ##
+## compared raw ntime deltas against a plain "5", making it a ~1.2ms no-op ##
+## instead of a 5s one -- this fake clock must respect the same scale or   ##
+## the test would validate the wrong thing all over again                  ##
+use constant NTIME_PER_SECOND => 4200;
 my $FAKE_NOW = 1000;
 
 ## simple sequential id generator -- real base.gen_id does harmonic/mod-13 ##
@@ -63,10 +69,15 @@ my $FAKE_NOW = 1000;
 my $NEXT_ID = 1;
 
 my @start_once_calls;
+my %FAKE_START_COUNT;    ## zenka_name => count, controllable per test ##
 
 %code = (
-    'base.log'    => sub { return TRUE },
-    'base.logs'   => sub { return TRUE },
+    'base.log'       => sub { return TRUE },
+    'base.logs'      => sub { return TRUE },
+    'v7.start_count' => sub {
+        my $zenka_name = shift;
+        return $FAKE_START_COUNT{$zenka_name} // 0;
+    },
     'base.gen_id' => sub {
         my $href = shift;
         my $id;
@@ -107,12 +118,19 @@ compile_module($_) foreach qw|
     base.dependency.add
     base.dependency.install_callbacks
     base.dependency.ok
+    base.ntime.delta_seconds
     v7.resolve.object.zenka
     |;
 
 ## real runtime aliases base.X -> X via base.swap_subs [ base.pre_init ] : ##
 ## install_callbacks calls the short form internally, so mirror that here  ##
 $code{'dependency.setup'} = $code{'base.dependency.setup'};
+
+## delta_seconds' regex branch is dead for our always-numeric inputs, but ##
+## it interpolates this into a qr// unconditionally near the top of the   ##
+## function, so it must exist even though it's never actually matched     ##
+## against                                                                ##
+$data{'regex'}{'base'}{'base_32'} = 'UNUSED_IN_THIS_TEST';
 
 ##[ tiny assertion framework ]################################################
 
@@ -191,11 +209,23 @@ ok( scalar(@thing_resolve_calls) == 1,
         . ' total calls ]'
 );
 
-##  advance the fake clock past the default 5s min_interval : must fire again
-$FAKE_NOW += 6;
+## advance by slightly less than 1 real second [ well under the 5s min ] : ##
+## this is exactly the shape of the original live bug -- v7's own boot     ##
+## sequence re-checking the same still-starting dependency (eg 'cube')     ##
+## across sub-second-spaced ticks spawned multiple redundant instances     ##
+## because the debounce compared raw ntime units against "5" directly      ##
+$FAKE_NOW += int( 0.9 * NTIME_PER_SECOND );
+$code{'base.dependency.ok'}->($obj_a);
+ok( scalar(@thing_resolve_calls) == 1,
+    'resolve NOT re-fired after 0.9 real seconds [ still well under '
+        . 'the 5s min_interval -- this is the exact scale of the live bug ]'
+);
+
+## advance the fake clock past the default 5 REAL seconds : must fire again
+$FAKE_NOW += 6 * NTIME_PER_SECOND;
 $code{'base.dependency.ok'}->($obj_a);
 ok( scalar(@thing_resolve_calls) == 2,
-    'resolve fires again once the debounce interval has elapsed' );
+    'resolve fires again once 5 real seconds have actually elapsed' );
 
 ##[ 3 : a resolve hook that dies must never propagate out of dependency.ok ]#
 
@@ -243,6 +273,87 @@ ok( scalar(@start_once_calls) == 1,
 my $unknown_id = $code{'v7.resolve.object.zenka'}->(999999);
 ok( ( not defined $unknown_id ), 'unknown object id returns undef' );
 
+## already-starting guard : confirmed live 2026-08-26 -- a resolve call  ##
+## racing against a zenka's own normal startup produced a genuine SECOND ##
+## instance of a max_concurrency=1 singleton ('cube'), because           ##
+## v7.handler.zenka_status's delayed-instance auto-fire never re-checks  ##
+## max_concurrency. this guard keeps the resolve hook itself from ever   ##
+## contributing that second request in the first place.                  ##
+$FAKE_START_COUNT{'models'} = 1;    ## already starting/running ##
+my $reply_already = $code{'v7.resolve.object.zenka'}->(99);
+ok( scalar(@start_once_calls) == 1,
+    'already-starting zenka : start_once '
+        . 'NOT called again [ still 1 total call ]'
+);
+ok( ( $reply_already->{'mode'} // '' ) eq 'true',
+    'already-starting zenka : resolve still reports true [ not an error ]' );
+$FAKE_START_COUNT{'models'} = 0;    ## reset for any future test ##
+
+##[ 5 : v7.start_count -- the actual root-cause fix, tested against the ]#####
+##[     real function, not the fake stub sections 2-4 used above        ]#####
+
+say ': v7.start_count [ real function, real jobqueue/instance state ]';
+
+## swap in the REAL compiled function now that every earlier test that ##
+## depended on the simple %FAKE_START_COUNT stub has already run       ##
+compile_module('v7.start_count');
+compile_module('v7.instance_count');
+
+## v7.instance_count's own deps : v7.instance_ids [ simple key-list over ##
+## the same instance hash real code uses -- not worth compiling the real ##
+## one, it has no logic of its own beyond that ] + a subname regex only  ##
+## exercised by the optional zenka[subname] suffix form, unused here     ##
+$code{'v7.instance_ids'}
+    = sub { return keys %{ $data{'v7'}{'zenka'}{'instance'} // {} }; };
+$data{'regex'}{'base'}{'subname'} = 'UNUSED_IN_THIS_TEST';
+
+## no instance, no queued/depending job : genuinely never started ##
+ok( $code{'v7.start_count'}->('cube') == 0,
+    'start_count : 0 when nothing exists for this zenka at all' );
+
+## a live v7.zenka.instance entry counts, regardless of its status -- a ##
+## zenka mid-'starting' must count as "already running" too             ##
+$data{'v7'}{'zenka'}{'instance'}{111}
+    = { 'zenka_name' => 'cube', 'status' => 'starting' };
+ok( $code{'v7.start_count'}->('cube') == 1,
+    'start_count : a starting [ not yet online ] instance counts' );
+delete $data{'v7'}{'zenka'}{'instance'}{111};
+
+## the actual bug : a job sitting in 'queued' [ reached with zero unmet     ##
+## dependencies, eg 'cube' -- v7.zenka.cmd.start's target_queue goes        ##
+## straight to 'queued', never through 'depending' at all ] was INVISIBLE   ##
+## to the old start_count, which only ever scanned 'depending'. confirmed   ##
+## live 2026-08-26: this exact gap let two concurrent start requests for    ##
+## 'cube' [ max_concurrency=1 ] both see start_count=0 and both proceed - a ##
+## genuine duplicate singleton instance in production.                      ##
+$data{'jobqueue'}{'joblist'}{'queued'}{'by_timestamp'} = [4242];
+$data{'jobqueue'}{'joblist'}{'by_id'}{4242}            = {
+    'name'            => 'zenka.start',
+    'callback_params' => 'cube',
+};
+ok( $code{'v7.start_count'}->('cube') == 1,
+    'start_count : a job sitting in QUEUED now counts [ THE root-cause '
+        . 'fix -- this assertion fails against the pre-fix function ]'
+);
+
+## depending still counts too [ regression guard -- this half already ##
+## worked before the fix, must keep working ]                         ##
+delete $data{'jobqueue'}{'joblist'}{'queued'};
+$data{'jobqueue'}{'joblist'}{'depending'}{'by_timestamp'} = [4243];
+$data{'jobqueue'}{'joblist'}{'by_id'}{4243}               = {
+    'name'            => 'zenka.start',
+    'callback_params' => 'cube',
+};
+ok( $code{'v7.start_count'}->('cube') == 1,
+    'start_count : a job sitting in DEPENDING still '
+        . 'counts [ unchanged behaviour, regression guard ]'
+);
+
+## a queued/depending job for a DIFFERENT zenka must not be counted ##
+$data{'jobqueue'}{'joblist'}{'by_id'}{4243}{'callback_params'} = 'models';
+ok( $code{'v7.start_count'}->('cube') == 0,
+    'start_count : a job for a different zenka name is not counted' );
+
 ##[ summary ]#################################################################
 
 say '';
@@ -253,8 +364,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,.,,...,...,,,,,,,.,...,..,,,..,,,.,...,..,,...,..,,...,,,.,.,.,,..,..,,
-#HV6AFHVSSEXXJIKOGXPP6Y6Q5JNBE6KW37KY2DJ3CRHDVTYA3LVM6IZTG3ZY5AIVRKUQAI4FC4PES
-#\\\|R2ZAFVNMJWKZCFBQGGXOAMLIC2QZM575FY7WHJDU4IIGS3PW6ZC \ / AMOS7 \ YOURUM ::
-#\[7]7LCNBDDXUICWGXQZB46OQCQZP3SWIGYAP5JSURTN3MRODUMXQECY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,..,,,.,..,,,,,,...,..,,,..,...,..,,...,...,...,,.,,,.,,.,.,,..,
+#32BDAWM67TUNZVNJHJMYKW5UW6VNI7OVVAEXWXQH24TTSLI2PNCIOXUN4EISW6S74A6MFZTNCCT3U
+#\\\|HJCISCCMHJJFXYB52FSWJIAA5UEBXJT3F3D24GVP67ANDC6DCJY \ / AMOS7 \ YOURUM ::
+#\[7]L3GHSDTBILD7PZXJJQXQYY3ZYK3A63R4HP5KGEZHKDVOBGABW2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

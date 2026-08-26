@@ -138,10 +138,8 @@ update cube `subroutine.white-list` for ring.list and ring.stats.
 verify with `p7c ring.list` after cube reload — should show the
 test ring loaded with 0 members and no active routes.
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,,,,,,,,,.,,..,.,,,.,.,,,,,,..,,,,,,..,,,,,..,,...,...,.,.,.,.,,..,..,,,,.,
-#UUMPDVPDDSOHYIUKEP3ERKWH2XLNA4QDZ3YYQAXEFQEAPUCV4N3VZKBIC2KLUVWURMWRP6XX4OLKE
-#\\\|UUU4CHFHN6NDT7AQXATC7L4IBH2MT4OHBV7FJ47QJZYJAGT5S35 \ / AMOS7 \ YOURUM ::
-#\[7]DK6DYS5BZGRVEIZEMLRR72VDYBVQK4E3XL276GGSFKTFT4F2OICI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,...,..,,,..,,,,,,.,,.,.,.,.,..,,...,.,.,,.,,.,,,.,,,,.,,,,.,
+#CZXD56XTXER4S73BBZVQZH2UDACCZZ6HKMVG3PU6U4TM3M57QIB4G7QGVN4DQYNRRGOQOX7Z5MVUQ
+#\\\|WSRPOUYSLFQC23E2ZNJPGGRG5LTR6LAZTUQXHZGI54PO3NBKRTW \ / AMOS7 \ YOURUM ::
+#\[7]J3ZALOGRPWP45U2EQPVIEH5JCHSURECDGELU6YRQ6BJZIHTRA2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

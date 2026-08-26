@@ -70,10 +70,8 @@ no `#,,..` stubs. do NOT run update-signatures. lowercase comments,
 `[ word ]` annotations, `$ARG`/`@ARG` not `$_`/`@_`, one-sub-per-file
 [ no inline `sub {}` helpers ]. keep `# descr =` lines under 55 chars.
 
-#,,.,,.,,,,,,,.,.,.,,,.,,,.,,,,,.,,,,,.,.,.,.,.,.,...,...,...,,.,,,,.,,.,,,,,,
-
-#,,..,..,,,..,.,,,.,.,,.,,...,..,,,..,,,.,,..,..,,...,...,.,.,,.,,,,,,..,,..,,
-#KBBORSRQ3T3D6BDIKDYWAJBFCKAADXDJMR6QKWNG7ZTD2LHGND22NUKAJZXJJUT2CUUV3BM673K54
-#\\\|WPF4HLWMCW7RXQX6RAFGGZEFIQ3HXR2NUBTUPNEYYSSDATYMWWH \ / AMOS7 \ YOURUM ::
-#\[7]EN2BCJS4LIMHQXZI4XAQATU4BTNY3KPXN6TUTMJ2GZY53AMGV4BY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,...,...,,..,.,,,.,.,.,,,..,,..,,...,...,..,,.,,,...,...,..,,
+#P6UAAYQKQP7EQ6QQFTMZOAUB5JH5HNQSSZJEUDAB7O2KPKFU6CUOIK6SUPPCJ2OATHK2OMXXADFXG
+#\\\|53RFQCHIQTBJSIBCXO45QIATTZTVBYK4TJGYRAIPZLEQW2VOQM5 \ / AMOS7 \ YOURUM ::
+#\[7]TCT7FOKFW425LWCGYUIREV5LXU7TYCYA4BXGO7X4WM7VSV2MCUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

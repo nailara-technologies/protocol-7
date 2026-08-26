@@ -8,8 +8,15 @@ my $url      = $params->{'url'}      // '';
 my $prompt   = $params->{'prompt'}   // '';
 my $model_id = $params->{'model_id'} // '';
 my $backend  = $params->{'backend'}  // 'gpu';
-my $timeout  = $params->{'timeout'}  // 90;
-my $on_done  = $params->{'on_done'};    ## coderef : ( $result_hashref ) ##
+## 127s, not 90s [ confirmed live 2026-08-26 : a genuinely-passing          ##
+## reasoning -heavy tier1 reformat took ttft=118.26s -- 90s was hitting the ##
+## soft ceiling [ coding.handler.http_timeout ] routinely for ordinary      ##
+## passing requests, not just slow/failing ones. see coding.self_test.run's ##
+## own note for the fuller history of this default. real hangs are still    ##
+## caught independently by the stall watcher [ coding.handler.http_io ]     ##
+## regardless of this value                                                 ##
+my $timeout = $params->{'timeout'} // 127;
+my $on_done = $params->{'on_done'};        ## coderef : ( $result_hashref ) ##
 
 ## LOAD-BEARING : the SAME id poll_probe used to acquire the backend lock.  ##
 ## ownership split : poll_probe acquires [ only when free, never queued ],  ##
@@ -136,8 +143,8 @@ $finish->( { mode => qw| false |, data => 'request_failed' } )
 
 return $http;
 
-#,,,,,,,,,,..,,,,,,.,,...,.,.,,,,,,,.,,,.,.,,,..,,...,..,,,..,,.,,..,,,..,.,,,
-#56MFS7VUWXUTPR2ZFMK2JNGZC6BBPYK7BTPAJP7RV4PDPW5VPXGXQIG24VZJ3TS5MULASJ5CCATHC
-#\\\|F3T5LC2CYXUO2ZY4IQYE3WLO7LXXVZKICBK74EIUTTMAZLH6SVO \ / AMOS7 \ YOURUM ::
-#\[7]CNJ67A2MC6KTBEBKNNAU7MITYNHQGL5MJ3IQSQASB7IU3G2FFUDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,.,,.,,,,,,,.,,,,.,..,,,,.,,..,..,,...,...,..,,,,,,,..,...,,.,,
+#5IWIVL4WDBHSRQKWNKE57XQ4ZGYVJNKKJGDYLR7FWGSS3BF46SERV7L4DDR5MRKKGF2RSUNGO25A6
+#\\\|Z4WXUI6RCID3GOBLOMKUEOUQEE44WIWOOJGAYC6UJTUD6GRLSCB \ / AMOS7 \ YOURUM ::
+#\[7]6RSKGGV6GQUO6DC2B23K3TCYCWYUIVCCMHYD6MQMFNV6IQ6KTEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

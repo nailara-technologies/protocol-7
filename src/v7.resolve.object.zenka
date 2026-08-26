@@ -21,6 +21,28 @@ return undef if not exists <v7.zenka.setup>->{$zenka_id};
 my $zenka_name = <v7.zenka.setup>->{$zenka_id}->{'name'};
 return undef if not defined $zenka_name;
 
+## don't even attempt a cascade-start if an instance already exists in any  ##
+## non-error state [ starting/delayed/online/etc ] -- zenka.cmd.start_once  ##
+## has its own 'already running' guard via v7.start_count, but that check   ##
+## happens AFTER max_concurrency is re-validated only at REQUEST time, not  ##
+## when a 'delayed' instance is later auto-fired by v7.handler.zenka_status ##
+## on the PREVIOUS instance coming online [ that path never re-checks       ##
+## max_concurrency at all -- confirmed live 2026-08-26 : a resolve call     ##
+## racing against cube's own normal startup produced a genuine second       ##
+## 'cube' instance despite max_concurrency=1, because both requests saw     ##
+## start_count=0 before either had created an instance ]. checking here     ##
+## too, proactively, keeps this hook from ever being the request that       ##
+## exposes that gap, regardless of whether that deeper bug gets fixed       ##
+if ( <[v7.start_count]>->($zenka_name) ) {
+    <[base.logs]>->(
+        2,
+        ': resolve : zenka dependency \'%s\' already '
+            . 'starting/running, skipping cascade-start',
+        $zenka_name
+    );
+    return { 'mode' => qw| true |, 'data' => 'already starting' };
+}
+
 <[base.log]>->(
     1, ": resolve : cascade-starting zenka dependency '$zenka_name'"
 );
@@ -33,8 +55,8 @@ return undef if not defined $zenka_name;
 return
     <[zenka.cmd.start_once]>->( { 'args' => $zenka_name, 'recursion' => 1 } );
 
-#,,,.,...,..,,.,,,,,.,..,,,,.,.,.,..,,.,,,.,,,..,,...,..,,...,...,,.,,,.,,.,,,
-#CS5US5UQ3RJMT5RY7OA6OTD7BC7OPZSIAHB42ZWBUFOEORWUI7LF3ABWNYEF33ANVKH25XLXYBDIU
-#\\\|4HV3L5D7DMFQQ2JVCLIR7PE734VWXH3FF2SXXJQ36LM24IPETPO \ / AMOS7 \ YOURUM ::
-#\[7]T3VBUSIKLAKWW2FVR5EN6PEZSEHM2SWUXHRWLRKKS27TVWWR62BI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,,,..,,..,,,,.,..,,..,,,,.,,.,,..,,...,...,.,,,,,.,,.,,,,.,,,,,
+#DW6ZTER7MUXQB6TICYOOY4HZMSSZZSYRJTB7EUOSGNCQ2SBYEGBKEFETUUWZGO7UC2MGDYHZXMLEU
+#\\\|AHMJI2LGZMNG57DRNL37IJGLJ5BSODMES3VTJKW3IBVXRWIAFVH \ / AMOS7 \ YOURUM ::
+#\[7]TFAN2FH4D4QFMUZQCID3TWKCDKPIWJHFQP45S7HRLK5R4MF22EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
