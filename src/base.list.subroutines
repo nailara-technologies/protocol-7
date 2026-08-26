@@ -412,6 +412,7 @@ return [ qw[
         kimi.task.status
         kimi.task.intake
         kimi.cmd.approve
+        keys.backup.list
         jobsite.job.read
         jobsite.cmd.scan
         jobqueue.add_job
@@ -576,6 +577,7 @@ return [ qw[
         keys.get_keyfiles
         keys.console.path
         keys.console.list
+        keys.backup.prune
         jobsite.sync.push
         jobsite.job.write
         jobsite.init_code
@@ -770,6 +772,8 @@ return [ qw[
         kimi.cmd.approvals
         kimi-web.init_code
         keys.checksum_href
+        keys.backup.remove
+        keys.backup.create
         jobsite.state.load
         jobsite.job.rescue
         jobsite.cmd.status
@@ -982,6 +986,7 @@ return [ qw[
         keys.console.rename
         keys.console.remove
         keys.console.create
+        keys.backup.restore
         jobsite.stray.check
         jobsite.store.prune
         jobsite.stage.fetch
@@ -1213,6 +1218,7 @@ return [ qw[
         kimi-web.cmd.enqueue
         keys.console.enc-key
         keys.console.dec-key
+        keys.backup.rollback
         jobsite.stage.review
         jobsite.job.load_all
         jobsite.cmd.progress
@@ -2549,6 +2555,7 @@ return [ qw[
         kimi.helper.task_priority
         kimi.flush_on_acquisition
         kimi-web.cmd.find-session
+        keys.console.list-backups
         jobsite.util.fix_encoding
         jobsite.util.build_prompt
         jobsite.report.mail_split
@@ -2804,6 +2811,7 @@ return [ qw[
         kimi.wire.approval_respond
         kimi-web.cmd.list-sessions
         keys.console.split-keypair
+        keys.console.prune-backups
         keys.console.clear-chksums
         keys.console.change-passwd
         jobsite.sync.apply_reverse
@@ -3058,6 +3066,7 @@ return [ qw[
         kimi-web.is_auto_approvable
         kimi-web.cmd.resume-session
         keys.write_key_archive_file
+        keys.console.restore-backup
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
         jobsite.validate.assessment
@@ -5353,8 +5362,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,.,,.,.,..,,,..,,,,,.,,,..,,.,,,..,,.,.,.,.,...,...,..,,...,,..,,..,..,,
-#CKFI3HELIZNCNGT3YNOF6QJU3FGTIWENNHZ2YB25GEUE2L5DPQSVPCS2BM2NCFCJIKTDMS6KJGSK2
-#\\\|RNFAEX3DUEQC5TAEVRYBD5WHYYPUDTKBO7UVCLNYXJZSSNKRNEY \ / AMOS7 \ YOURUM ::
-#\[7]PHTFZQZLCOAUM2OWUS3ASLJKNQFVJCPJRGEXRB4RBMRAS7COJSDI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,...,,..,...,,..,..,,,.,,.,.,.,.,...,...,,..,,..,,,.,.,,,,..,
+#LTX255OXGXMPXRMJMQGQO4RAQ3SJ7SEWG3A64EALYYWNZ365CAGBZ62N5247ENXRSUWQ53QFOXG2S
+#\\\|3Q3TRPTQN4UTRWZIHEZCTO5YIUJ5HLW6Q5EAYE3APR376Y7OBFI \ / AMOS7 \ YOURUM ::
+#\[7]Q3LZFLG5ZUHKBQP7OEWC5YWURKMLDGSZQW44C74N6BWZZTHEIACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

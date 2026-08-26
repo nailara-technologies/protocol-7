@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = keys.backup.create
+# param = <key_name>, <types_arrayref>
+# descr = rename [ never copy ] the given key-file types aside into
+#         timestamp-prefixed backups, all-or-nothing on permission
+#         failure ; returns { type => backup_path } for whichever
+#         types actually existed on disk [ others are simply skipped ]
+
+my $key_name    = shift;
+my $types_param = shift // [];
+
+if ( not length( $key_name // '' ) ) {
+    warn 'expected key_name parameter <{C1}>';
+    return undef;
+}
+if ( ref $types_param ne qw| ARRAY | or not @$types_param ) {
+    warn 'expected types arrayref parameter <{C1}>';
+    return undef;
+}
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_filename = $key_vars_ref->{'key_filename'};
+
+## only types that actually exist on disk participate ##
+my @present_types = grep { -f $key_filename->{$ARG} } @$types_param;
+
+return {} if not @present_types;    ## nothing to back up ##
+
+## all-or-nothing : check writability before touching anything ##
+foreach my $type (@present_types) {
+    if ( not -w $key_filename->{$type} ) {
+        <[base.logs]>->(
+            0,
+            'no write permission : %s',
+            $key_filename->{$type}
+        );
+        return undef;
+    }
+}
+
+my $backup_paths;
+my $retries_left = 5;
+
+RETRY_TIMESTAMP:
+$backup_paths = {};    ## reset : a retry starts this pass over clean ##
+my $tstamp = <[base.ntime.b32]>->( 5, TRUE ) // '';
+if ( not length $tstamp ) {
+    warn 'cannot acquire timestamp <{C1}>';
+    return undef;
+}
+
+foreach my $type (@present_types) {
+    my $orig_path = $key_filename->{$type};
+    ( my $basename = $orig_path ) =~ s|^.*/||;
+    my $backup_path
+        = catfile( $key_dir, sprintf( '%s.%s', $tstamp, $basename ) );
+
+    if ( -e $backup_path ) {    ## same-tick collision : roll back this
+        ## pass so far, retry the whole loop with a fresh timestamp   ##
+        <[keys.backup.rollback]>->( $key_name, $backup_paths );
+        if ( $retries_left-- > 0 ) {
+            goto RETRY_TIMESTAMP;
+        }
+        <[base.s_warn]>->(
+            'backup path already exists, out of retries : %s <{C1}>',
+            $backup_path
+        );
+        return undef;
+    }
+
+    if ( not rename( $orig_path, $backup_path ) ) {
+        <[base.logs]>->(
+            0, 'cannot create key backup file %s --> %s [ %s ]',
+            $orig_path, $backup_path, <[base.str.os_err]>
+        );
+        <[keys.backup.rollback]>->( $key_name, $backup_paths );
+        return undef;
+    }
+
+    $backup_paths->{$type} = $backup_path;
+}
+
+return $backup_paths;
+
+#,,,,,,,,,,.,,,,.,...,.,.,.,.,.,.,,,,,,,,,,,.,..,,...,...,,,,,.,,,,,,,,.,,...,
+#JKY4MNYEBGPICHJPZKFMJBQ3ZBO4QXEUVPZ4EMAHUSRFZS2OIF4HERHCMLKO5CK6HCCIHQHJHOKWK
+#\\\|5Z45KEC7AMQ3GGTQ2F4AA6LV47HMATASPV4YYP5WROZW6KCBBM7 \ / AMOS7 \ YOURUM ::
+#\[7]PWQK3ARC2XKR7I6RU237XZDQL3W2H7WK5N5UVSJTDWBBZWWR26BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

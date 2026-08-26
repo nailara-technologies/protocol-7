@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = keys.backup.remove
+# param = <key_name>, <type>, <backup_basename_or_path>, [ \%opts ]
+# descr = explicitly remove one specific backup file. if its content is
+#         unencrypted [ 'U:' marker, see crypt.C25519.write_keys ] and
+#         it would be the last remaining copy of that content, confirms
+#         via base.term.ask before shredding -- opts.force lets a
+#         --yes console argument skip the prompt without a second code
+#         path [ base.term.ask's own 'given' semantics ].
+
+my $key_name   = shift;
+my $type       = shift;
+my $backup_sel = shift;
+my $opts       = shift // {};
+
+if (   not length( $key_name // '' )
+    or not length( $type       // '' )
+    or not length( $backup_sel // '' ) ) {
+    warn 'expected key_name, type, and backup selector parameters <{C1}>';
+    return undef;
+}
+
+my $backups  = <[keys.backup.list]>->($key_name);
+my @matching = grep { $ARG->{'type'} eq $type } @$backups;
+
+( my $sel_basename = $backup_sel ) =~ s|^.*/||;
+my ($target) = grep { $ARG->{'basename'} eq $sel_basename } @matching;
+
+if ( not $target ) {
+    <[base.logs]>->( 0, 'backup not found : %s', $backup_sel );
+    return undef;
+}
+
+my $content = <[file.slurp]>->( $target->{'path'} )->$* // '';
+chomp $content;
+my $decoded        = eval { Crypt::Misc::decode_b32r($content) };
+my $is_unencrypted = defined $decoded && substr( $decoded, 0, 2 ) eq qw| U: |;
+
+## is this the LAST remaining copy of its content [ across the other ##
+## backups of the same key/type ] -- only that case risks real loss  ##
+my $is_last_copy = TRUE;
+if ($is_unencrypted) {
+    my $target_hash = <[chk-sum.md5.hex]>->($content);
+    foreach my $other (@matching) {
+        next if $other->{'path'} eq $target->{'path'};
+        my $other_content = <[file.slurp]>->( $other->{'path'} )->$* // '';
+        chomp $other_content;
+        if ( <[chk-sum.md5.hex]>->($other_content) eq $target_hash ) {
+            $is_last_copy = FALSE;
+            last;
+        }
+    }
+}
+
+if ( $is_unencrypted and $is_last_copy ) {
+    my $confirmed = <[base.term.ask]>->(
+        {   qw| question | => sprintf(
+                "remove unencrypted backup '%s' -- last copy of this "
+                    . 'content?',
+                $sel_basename
+            ),
+            qw| type    | => qw| yes-no |,
+            qw| default | => FALSE,
+            qw| given   | => $opts->{'force'},
+        }
+    );
+    if ( not $confirmed ) {
+        <[base.log]>->( 0, ': backup removal cancelled.,' );
+        return FALSE;
+    }
+}
+
+my $shred_bin = <keys.bin_path.shred>;
+if ( length( $shred_bin // '' ) and -x $shred_bin ) {
+    system( $shred_bin, qw| -fzu --random-source=/dev/urandom -n 42 |,
+        $target->{'path'} ) == 0
+        or <[base.logs]>->(
+        0,                   ': shred file : %s : %s',
+        <[base.str.os_err]>, $target->{'path'}
+        );
+}
+
+if ( -e $target->{'path'} and not unlink( $target->{'path'} ) ) {
+    <[base.s_warn]>->(
+        '%s : while unlinking backup : %s',
+        <[base.str.os_err]>, $target->{'path'}
+    );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,.,,...,,..,..,,..,,..,,,.,,,,,,.,.,...,.,.,..,,...,...,..,,,,,,,,.,,,,,..,,
+#EE2WPFKLE5VXZ4PL4VC2VLVMUY3PECPFHTPDYBRNK4QWN3Z2U3MUU5WEITOWMPBS3FADVYTQQMACI
+#\\\|NWPLBR27DAKLTGEFMVZL674DM2EDJKUZTJ55YFQSGXWXI6REXOT \ / AMOS7 \ YOURUM ::
+#\[7]TFMKPK6JU5YYHHNTAS3A4QCUDNJAN6I4GFEW4BPCCUMLV7HDMABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

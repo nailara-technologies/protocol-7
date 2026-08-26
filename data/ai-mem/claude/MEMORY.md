@@ -16,6 +16,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [editing-p7-owned-data-files-reowns-them](feedback-editing-p7-owned-data-files-reowns-them.md) — hand-editing a protocol-7-owned data file (e.g. a users.* record) via Edit/Write silently reassigns it to my own unix user, and the owning zenka then reports the record as NOT FOUND, not a permission error — check `ls -la` ownership before ever hand-editing such a file
 - [rename-scope-policy](feedback-rename-scope-policy.md) — never cite scope/blast-radius as a reason to hesitate on a rename; judge renames on improvement only — `bin/ncode` makes even large ones mechanical, and commercial deployments elsewhere forked off `base` years ago so nobody tracking `base` is disrupted
 - [hour-of-day-hedging-not-genuine](feedback-hour-of-day-hedging-not-genuine.md) — citing "the hour"/lateness as a reason to suggest stopping is a disengagement tic, not real signal (I don't know the user's actual local time); if a hard problem isn't converging, name the real uncertainty directly instead
+- [cpanm-force-install-blast-radius](feedback-cpanm-force-install-blast-radius.md) — `sudo cpanm --force <module>` for one narrow CPAN need can silently pull in an apt dependency chain that upgrades shared system crypto libs AND shift the effective default perl version — check `dpkg.log`/`apt list --upgradable` before *and* after any force-install on this host, flag explicitly even when the target module has nothing to do with crypto
+- [cpanm-triggered-inline-elf-utf8-boundary-bug](feedback-cpanm-triggered-inline-elf-utf8-boundary-bug.md) — RESOLVED 2026-08-26: two real C bugs in `AMOS7::CHKSUM::ELF::inline_elf` (stale-len STRLEN underflow + forced u8_len=1 misalignment), both fixed, C now matches pure-Perl fallback exactly (640/640 vectors); caused the 2212-file mass signature-verify failures AND the C25519 key-decryption failure. Fixing the algorithm does NOT recover the key (produces a third value, matches neither old nor new) — real key recovery confirmed separately via a remote server's pristine pre-incident environment. ~2233 files still need a one-time re-sign once a working key exists locally (accepted, not urgent). Read this + both linked task docs before touching `crypt.C25519.*`, `AMOS7::CHKSUM::ELF`, or a bulk re-sign
 
 ## Category files — open the one that matches the topic in play
 
@@ -41,7 +43,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   undef-sub scanner verification (guards/eval-wrapping/dynamic-sprintf-dispatch before renaming),
   swap_subs nested-lifecycle-hook gate (base32/chk-sum.bmw crash-instead-of-defer, e90dd04ae).
 
-- **[MEMORY-vision.md](MEMORY-vision.md)** (48 pointers) — long-horizon architecture, mostly design-only.
+- **[MEMORY-vision.md](MEMORY-vision.md)** (50 pointers) — long-horizon architecture, mostly design-only.
   open for: perspective/navigation geometry, C25519 trust identity & source-spoofing, namespace/routing
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
@@ -50,8 +52,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,,.,,..,,,,.,..,,,,.,,..,.,,,.,,,.,,,...,..,,...,...,,,,,,,,,.,,,..,,,.,,
-#WUAEAVVFHCXA7XTPGOBO5KD6BDMA5MDAOCPLS7ICJTRDYP6W47LRR7CGHE3YEELEN2PQTN2QRH3US
-#\\\|5AVCTNNDNDD4ZHMJOMTLMQXRU4LYSZJM7XOHI4K7PDCY6MPP77H \ / AMOS7 \ YOURUM ::
-#\[7]SHJ3WOTQCWJDBQAPVDJI74KV4BQAAPEE7J7HCZ5NZWYBJD4V3UAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,...,..,,,.,,,,,,,.,,..,,.,.,..,,...,...,,,,,,..,.,.,,,.,,,,,
+#MYRARB5R4FHG7LR22MKTEUUCXEWP65QRMTHRNXBGPHRZ2ZOH4K5CEMEFZTUIF336YWGCTFLIKX4AE
+#\\\|QMSFSB4QLVMFHSEPG6RVLVABZJESIFCGCZ2ABT6QOGV7GDNSOF2 \ / AMOS7 \ YOURUM ::
+#\[7]X5LEFCCDHRZ4XJLHO4CKTPQIEO7WHJ6OULFGMC6QQSRFQRHJ7IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

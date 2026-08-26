@@ -219,11 +219,41 @@ items:
   - bin/todo
   text: upgrade current timestamp string in yaml files to ntime.B32
 - added: 3WXJPCUCBI
-  details: ''
-  done_at: null
+  details: |-
+    scoped down from the literal ask once investigated: Git::Native (CPAN,
+    libgit2 FFI via FFI::Platypus, no fork/exec) has no diff support at all
+    upstream, and Git::Native::Commit exposes no author/email at all -- both
+    real gaps, not oversights (Git::Libgit2's own README marks diff text
+    output as an incomplete-by-design TODO).
+
+    shipped: diff-only migration. new in-tree FFI extension
+    data/lib-path/pm/Git/Native/Diff.pm binds the 9 missing libgit2 C
+    functions (git_diff_to_buf, git_diff_get_stats, git_diff_stats_to_buf,
+    git_diff_stats_free, git_diff_index_to_workdir, git_diff_tree_to_index,
+    git_diff_tree_to_workdir, git_diff_options_init, git_diff_free -- plus
+    git_object_peel, needed for revspec resolution but missing from the
+    design spec's own attach list). src/coding.tools.handler.git_diff_output
+    and src/context.git.recent_changes now call it instead of Git::Wrapper.
+    Opus designed the FFI binding spec (module placement, exact attach()
+    signatures, git_buf lifecycle, pointer extraction from Git::Native
+    wrapper objects), k3-256k implemented against it, both independently
+    verified against the actual installed source/symbols (not just the
+    self-reported summary) -- live-tested against this repo's real git
+    state and a throwaway scratch repo, byte-identical to real `git diff`/
+    `git diff --stat`/`git diff --cached` output.
+
+    deliberately NOT migrated: src/git.parent.get_log / git.parent.init_code
+    stay on Git::Wrapper permanently -- the author/email gap in
+    Git::Native::Commit makes that migration a real feature loss, not a
+    mechanical swap, and wasn't judged worth it.
+
+    dependency declarations added: FFI::Platypus + Git::Native in
+    src/base.known_dependencies and the `tools` profile of
+    .deps/profiles.yaml.
+  done_at: 3W37PAG2DY
   id: J5N
   priority: low
-  status: open
+  status: done
   tags:
   - git-zenka
   text: start replacing Git::Wrapper with Git::Native
@@ -339,9 +369,18 @@ items:
   tags:
   - http[s]d
   text: more intelligently address long running http sessions
+- added: 3W37N64HL4
+  details: ''
+  done_at: null
+  id: JEG
+  priority: high
+  status: open
+  tags:
+  - coding-zenka
+  text: reset self-test if was in progress on model switch
 
-#,,,.,,..,,.,,..,,...,...,,,.,,.,,,.,,.,.,,,.,..,,...,...,.,,,,..,..,,,..,...,
-#JOXZOA2YXWLKA6C6F5SOXLCNYXRDAK7KF6UBXN2RYJLESWRDMSMCR6ORUIZSMSDSDR6NQNNGYNYHW
-#\\\|E6QOYMEQXC3SAHNF3YM4YKOENJQLURXNAKHTJUIDHDYNMIDMJW7 \ / AMOS7 \ YOURUM ::
-#\[7]QUNLYPB5BW26FKGNCV4WS2WXX7F6BU6RGGI2WCOQA3C6QMORISCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,.,.,,,,..,...,...,.,,,.,.,.,.,..,,...,...,,,.,.,,,.,.,..,,.,,,
+#7VAFO73UIBMS53FIQJVFIBPD5LAMFA4QK336JLDBEDGTKGKIWUXA6DBBW7EBVMAO6SK53B766QHMU
+#\\\|SDP3SBVFSEDHBRZINXOSU756VLELF6CYJY2GB4TCVJCB2P5UKIZ \ / AMOS7 \ YOURUM ::
+#\[7]IED52JION6HTMJG6FHAVX2WTD3XFZFZT5F2II7KLZJEQFHY3VMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

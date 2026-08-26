@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = keys.console.restore-backup
+# param = <key-name> <type> [backup]
+# descr = restore a key-file type from a backup [ default: newest ]
+
+my $key_name   = shift;
+my $type       = shift;
+my $backup_sel = shift;
+
+if ( not length( $key_name // '' ) or not length( $type // '' ) ) {
+    return print "\n  << expected <key_name> <type> [ <backup> ] >>\n\n";
+}
+
+my $result = <[keys.backup.restore]>->( $key_name, $type, $backup_sel );
+
+if ( not defined $result ) {
+    printf "\n  << restore failed, see log above >>\n\n";
+    <[base.exit]>->(qw| 0110 |);
+} else {
+    printf "\n  ::  restored '%s' [ %s ]  ::\n\n", $key_name, $type;
+    <[base.exit]>->(qw| 00000 |);
+}
+
+#,,..,..,,,..,,.,,,.,,.,.,.,,,..,,..,,,,,,.,,,..,,...,...,,..,,..,,.,,...,.,,,
+#MLWGNY5YB5MOUZVDWYTBRBZOMCBFXROWTSDUNADLTROIF4LXATBGJUQQYSKIO3OCCXDNH6QVPWVLW
+#\\\|KCE3TZACWZUZEEEYHRUI4GCJLKFPGJ2RDNQ3H5ZLAG32KGGS3GX \ / AMOS7 \ YOURUM ::
+#\[7]MTH4EZOCEFRBEUWJACZ3UTZQGG2NJDELAGUCH2QPMZRO5U6NXEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

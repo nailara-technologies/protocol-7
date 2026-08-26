@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = keys.backup.rollback
+# param = <key_name>, <backup_paths_hashref>  [ as returned by
+#         keys.backup.create : { type => backup_path } ]
+# descr = plain inverse of keys.backup.create : rename each backup path
+#         directly back to its original live location. used both for
+#         same-call collision/failure rollback and by callers that need
+#         to undo a keys.backup.create after a later step [ e.g. a
+#         write_keys ] failed.
+
+my $key_name     = shift;
+my $backup_paths = shift // {};
+
+return TRUE if not keys %$backup_paths;
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
+my $key_filename = $key_vars_ref->{'key_filename'};
+
+my $all_ok = TRUE;
+foreach my $type ( keys %$backup_paths ) {
+    my $backup_path = $backup_paths->{$type};
+    my $live_path   = $key_filename->{$type};
+
+    next if not defined $live_path;
+
+    if ( not rename( $backup_path, $live_path ) ) {
+        <[base.logs]>->(
+            0, 'cannot move back key backup file : %s --> %s [ %s ]',
+            $backup_path, $live_path, <[base.str.os_err]>
+        );
+        $all_ok = FALSE;
+    }
+}
+
+return $all_ok;
+
+#,,..,...,.,,,,,,,.,.,,..,,..,,,,,..,,,,.,,.,,..,,...,..,,.,.,.,,,.,,,,,.,..,,
+#CGMQBTDGGOBA4766F6XU75S3MP5FLIB7RSV65I7UUNMUI6COKJWV3Y3RV2WX3ISUQ7YZTCIUFERQE
+#\\\|36RHJIUHLWPQJARNLIIH7N237U7WFFX3YXHCTNGFVWOCKVXWBGX \ / AMOS7 \ YOURUM ::
+#\[7]IFSFQEODTH2URIX4AIWIEEH5NI3EENFC3FUWDWIZ3KLZQCPS4KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

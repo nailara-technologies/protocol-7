@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = keys.backup.restore
+# param = <key_name>, <type>, [ <backup_basename_or_path> ]
+# descr = restore a key-file type from a backup [ default : newest ],
+#         after first backing up whatever is currently live -- a
+#         restore is itself undoable. moves, never copies.
+
+my $key_name   = shift;
+my $type       = shift;
+my $backup_sel = shift;    ##  optional : backup basename or path  ##
+
+if ( not length( $key_name // '' ) or not length( $type // '' ) ) {
+    warn 'expected key_name and type parameters <{C1}>';
+    return undef;
+}
+if ( $type !~ m{^(secret|private|public)$} ) {
+    warn 'type must be one of secret|private|public <{C1}>';
+    return undef;
+}
+
+my $backups  = <[keys.backup.list]>->($key_name);
+my @matching = grep { $ARG->{'type'} eq $type } @$backups;
+
+if ( not @matching ) {
+    <[base.logs]>
+        ->( 0, "no backups found for '%s' [ %s ]", $key_name, $type );
+    return undef;
+}
+
+my $chosen;
+if ( length( $backup_sel // '' ) ) {
+    ( my $sel_basename = $backup_sel ) =~ s|^.*/||;
+    ($chosen) = grep { $ARG->{'basename'} eq $sel_basename } @matching;
+    if ( not $chosen ) {
+        <[base.logs]>->( 0, 'backup not found : %s', $backup_sel );
+        return undef;
+    }
+} else {
+    $chosen = $matching[0];    ## already newest-first ##
+}
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
+my $live_path    = $key_vars_ref->{'key_filename'}{$type};
+
+## back up the current live file first [ recursive safety ] ##
+if ( -f $live_path ) {
+    my $pre_restore_backup = <[keys.backup.create]>->( $key_name, [$type] );
+    if ( not defined $pre_restore_backup ) {
+        <[base.logs]>->( 0, 'cannot back up current file before restore.,' );
+        return undef;
+    }
+}
+
+if ( not rename( $chosen->{'path'}, $live_path ) ) {
+    <[base.logs]>->(
+        0, 'cannot restore backup %s --> %s [ %s ]',
+        $chosen->{'path'}, $live_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+<[crypt.C25519.clear_chksums]>;    ##  invalidate checksum cache  ##
+
+return $live_path;
+
+#,,..,...,,.,,.,.,,,.,..,,.,,,.,.,,.,,...,..,,..,,...,...,,,.,,..,,.,,,.,,...,
+#SF52UN5JV47KWJE3U2T4QEXAX3HA65JW6I2F4EO47WSBEBMONVW7RXYZUH3KAX3YVKEKH6HUABXRM
+#\\\|RCD62HYO6OCO6DOTSQV46J46AYXYVMEZAETC4534LZZE7GA4WML \ / AMOS7 \ YOURUM ::
+#\[7]KFQLZVV2Q57CUYMUMX7ZFBRBA7PJV277QSWCZ4PFWFGF5TRKDABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

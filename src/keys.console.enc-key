@@ -41,7 +41,8 @@ if ( $key_status < 0 ) {
 
 my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
 
-foreach my $type (qw|  private  public  |) {
+foreach my $type (qw|  secret  private  public  |) {
+    next if not -f $key_filenames->{$type};
     if ( not -w $key_filenames->{$type} ) {
         <[base.logs]>->(
             0,
@@ -68,46 +69,12 @@ goto ABORT_KEY_ENCRYPT
     if not defined $enc_pwd
     or length $enc_pwd < $AMOS7::TERM::pwd_min_len;
 
-my $backup_file_names;
-ANOTHER_FILE_TIMESTAMP:
-my $tstamp = <[base.ntime.b32]>->( 5, TRUE ) // '';
-<[base.exit]>->( qw| 0110 |, 'cannot acquire timestamp' )
-    if not length $tstamp;
-foreach my $type (qw|  private  public  |) {
-    if (   not defined $key_filenames->{$type}
-        or not -f $key_filenames->{$type} ) {
-        <[base.s_warn]>->(
-            'error while acquiring %s key filename <{C1}>', $type
-        );
-        goto ABORT_KEY_ENCRYPT;
-    }
-    $backup_file_names->{$type} = sprintf qw| %s.renaming.%s |,
-        $key_filenames->{$type}, $tstamp;
-    goto ANOTHER_FILE_TIMESTAMP if -e $backup_file_names->{$type};
-}
+my $backup_paths
+    = <[keys.backup.create]>->( $name, [qw| secret private public |] );
 
-foreach my $type (qw|  private  public  |) {
-
-    if ( not rename( $key_filenames->{$type}, $backup_file_names->{$type} ) )
-    {
-        <[base.logs]>->(
-            0,
-            'cannot create key backup file %s --> %s [ %s ]',
-            $key_filenames->{$type},
-            $backup_file_names->{$type},
-            <[base.str.os_err]>
-        );
-        if ( $type eq qw| public | ) {    ##  restore first file  ##
-            rename(
-                $backup_file_names->{'private'},
-                $key_filenames->{'private'}
-                )
-                or <[base.s_warn]>->(
-                '%s [ while restore of %s ]',
-                $key_filenames->{'private'}
-                );
-        }
-    }
+if ( not defined $backup_paths ) {
+    <[base.log]>->( 0, 'cannot create key backups, aborting.,' );
+    goto ABORT_KEY_ENCRYPT;
 }
 
 ( my $keywrite_status, my $key_checksum )
@@ -116,22 +83,26 @@ foreach my $type (qw|  private  public  |) {
 if ( defined $keywrite_status and $keywrite_status == TRUE ) {
     <[base.log]>->( 1, 'write was successful, removing backup files..,' );
 
-    foreach my $type (qw|  private  public  |) {
-        if ( -x qw| /usr/bin/shred | ) {
+    ## these backups held UNENCRYPTED key material [ the key being upgraded ##
+    ## to encrypted ] -- shred, don't just unlink                           ##
+    my $shred_bin = <keys.bin_path.shred>;
+    foreach my $type ( keys %$backup_paths ) {
+        if ( length( $shred_bin // '' ) and -x $shred_bin ) {
             system(
-                qw| /usr/bin/shred -fzu --random-source=/dev/urandom -n 42 |,
-                $backup_file_names->{$type}
+                $shred_bin,
+                qw| -fzu --random-source=/dev/urandom -n 42 |,
+                $backup_paths->{$type}
                 ) == 0
                 or <[base.logs]>->(
                 0,                   ': shred file : %s : %s',
-                <[base.str.os_err]>, $backup_file_names->{$type}
+                <[base.str.os_err]>, $backup_paths->{$type}
                 );
         }
-        if ( -e $backup_file_names->{$type}
-            and not unlink( $backup_file_names->{$type} ) ) {
+        if ( -e $backup_paths->{$type}
+            and not unlink( $backup_paths->{$type} ) ) {
             <[base.s_warn]>->(
                 '%s : while unlinking key file backup : %s',
-                <[base.str.os_err]>, $backup_file_names->{$type}
+                <[base.str.os_err]>, $backup_paths->{$type}
             );
         }
     }
@@ -144,25 +115,14 @@ if ( defined $keywrite_status and $keywrite_status == TRUE ) {
 } else {
     <[base.log]>
         ->( 0, 'write was not successful, restoring backup files..,' );
-    foreach my $type (qw|  private  public  |) {
-        if (not
-            rename( $backup_file_names->{$type}, $key_filenames->{$type} ) ) {
-            <[base.logs]>->(
-                0,
-                'cannot move back key backup file : %s --> %s [ %s ]',
-                $backup_file_names->{$type},
-                $key_filenames->{$type},
-                <[base.str.os_err]>
-            );
-        }
-    }
+    <[keys.backup.rollback]>->( $name, $backup_paths );
 }
 
 ABORT_KEY_ENCRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,,,,,,.,.,,,,.,,,.,,,.,,,,.,.,.,,.,,.,,,..,,..,,...,...,.,.,.,.,,,,,,..,,,,,
-#RWCORIGKR44WC2SD7TVZNSLV3C7NPCM5ASIBTHZW6DE3OZOIA2VDXO7OOHL5EYNB5D47CDR3BYNFA
-#\\\|WBKNKHDPLHZQLHFXPY2VD3DQYKCSD6VCKLDA5LGCKCVT27TS6EU \ / AMOS7 \ YOURUM ::
-#\[7]YXUQXVERA32OQMATALCRJZIANZSHOPVW4VHC2F75334RL4QWT4DI 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,,.,,,,,,,..,..,,.,,,..,,,,,,..,,...,...,,,,,,..,...,.,,,,,.,
+#5H544T4RIZAS7LBDMQISJO7DBE3RIGQNS7KL5EFOFOMKEGCRFRE772CHGTTEIAGR3JOP7K4F73WUA
+#\\\|2MQ2BHU2H656XQC3TYWN4EESQQB4SCNVXCTBY2QRNK445W2JXRF \ / AMOS7 \ YOURUM ::
+#\[7]EN55DO5CVSC5JP2XEVLXZKLRJ7P72X45G4HYKLZUAVMVPFQ6RKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
