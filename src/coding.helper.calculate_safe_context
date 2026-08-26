@@ -1,9 +1,10 @@
 ## [:< ##
 
 # name  = coding.helper.calculate_safe_context
-# descr = calculate safe context length from available GPU VRAM
+# descr = calculate safe context length from available VRAM/RAM
 # param = { model_path => ..., mmproj_path => ..., backend => ... }
-# return = { context_length => N, calculated => N, explanation => "...", limited_by => "..." }
+# return = { context_length => N, calculated => N, explanation => "...",
+#            limited_by => "..." }
 
 my ($params) = @ARG;
 
@@ -19,39 +20,6 @@ my $MIN_CONTEXT = 7777;    ## below this, system prompt + tools may not fit ##
 ## covers most consumer GPUs without excessive KV alloc                   ##
 my $MAX_CONTEXT = <coding.cfg.context_max> // 131072;
 $MAX_CONTEXT = 0 if $MAX_CONTEXT < 0;    ## treat negative as uncapped ##
-
-## for CPU backend, RAM is usually not the tight constraint  use configured ##
-## max if set, otherwise a generous default                                 ##
-if ( $backend ne qw| gpu | ) {
-    my $cpu_ctx = $MAX_CONTEXT || 131072;
-    return {
-        context_length => $cpu_ctx,
-        calculated     => $cpu_ctx,
-        explanation    => 'CPU backend: using maximum context',
-        limited_by     => qw| none |,
-    };
-}
-
-## query GPU memory ##
-my $nvidia_smi
-    = qx{ nvidia-smi --query-gpu=memory.total,memory.free --format=csv,noheader,nounits 2>/dev/null };
-
-if ( $? != 0 || !defined $nvidia_smi || $nvidia_smi !~ m|^(\d+),\s*(\d+)|m ) {
-    <[base.logs]>->(
-        1,
-        '[calculate_safe_context] nvidia-smi '
-            . 'failed, falling back to minimum=%d',
-        $MIN_CONTEXT
-    );
-    return {
-        context_length => $MIN_CONTEXT,
-        calculated     => $MIN_CONTEXT,
-        explanation    => 'GPU query failed: using safe minimum',
-        limited_by     => qw| gpu_query_failed |,
-    };
-}
-
-my ( $total_mb, $free_mb ) = ( $1, $2 );
 
 ## model weights size [ file size is good proxy for Q8_0 / Q4 ] ##
 my $model_size_mb = 0;
@@ -70,7 +38,8 @@ my $est_params_gb = $model_size_mb / 1024;
 
 ## KV-cache bytes per token  derived from typical transformer             ##
 ## architectures: 2 * layers * kv_heads * head_dim * 2 bytes when we know ##
-## layer count, use a more precise estimate                               ##
+## layer count, use a more precise estimate  [ shared by both backends -- ##
+## the KV cache cost per token doesn't depend on where it's computed ]    ##
 my $kv_bytes_per_token;
 if ( $est_params_gb < 3 ) {
     $kv_bytes_per_token = 18 * 1024;    # ~18 KB  (3B class)
@@ -85,6 +54,149 @@ if ( $est_params_gb < 3 ) {
 } else {
     $kv_bytes_per_token = 140 * 1024;    # ~140 KB (70B class)
 }
+
+## for CPU backend : RAM-aware clamp, mirrors the GPU/VRAM math below using ##
+## /proc/meminfo MemAvailable [ same source as                              ##
+## coding.handler.spawn_smart's own pre-flight RAM check ]. added           ##
+## 2026-08-26 after a live crash: the prior unconditional MAX_CONTEXT-or-   ##
+## 131072 default let a 9B model auto-expand to a GPU-tuned                 ##
+## coding.cfg.context_max [144993] with zero RAM check, crashing the CPU    ##
+## llama-server on every spawn attempt [exit=11, consistent with a KV-cache ##
+## allocation failure]                                                      ##
+if ( $backend ne qw| gpu | ) {
+    my $mem_available_mb = 0;
+    if ( open my $fh, '<', '/proc/meminfo' ) {
+        while (<$fh>) {
+            if (/^MemAvailable:\s+(\d+)/) {
+                $mem_available_mb = int( $1 / 1024 );    ## kB -> MB ##
+                last;
+            }
+        }
+        close $fh;
+    }
+
+    if ( not $mem_available_mb ) {
+        <[base.logs]>->(
+            1,
+            '[calculate_safe_context] /proc/meminfo '
+                . 'unavailable, falling back to minimum=%d',
+            $MIN_CONTEXT
+        );
+        return {
+            context_length => $MIN_CONTEXT,
+            calculated     => $MIN_CONTEXT,
+            explanation    => 'RAM query failed: using safe minimum',
+            limited_by     => qw| ram_query_failed |,
+        };
+    }
+
+    ## fixed OS/runtime overhead reserve [ conservative flat allowance --  ##
+    ## RAM pools vary far more than a single GPU's VRAM, so no overhead    ##
+    ## constant is precise here; err generous like the CUDA overhead below ##
+    ## ]                                                                   ##
+    my $os_overhead_mb = <coding.cfg.cpu_ram_overhead_mb> // 2048;
+
+    my $remaining_mb
+        = $mem_available_mb
+        - $model_size_mb
+        - $mmproj_size_mb
+        - $os_overhead_mb;
+
+    ## cannot fit model at all ##
+    if ( $remaining_mb <= 0 ) {
+        <[base.logs]>->(
+            0,
+            '[calculate_safe_context] model does not fit '
+                . 'RAM: available=%dMB model=%.0fMB mmproj=%.0fMB',
+            $mem_available_mb,
+            $model_size_mb,
+            $mmproj_size_mb
+        );
+        return {
+            context_length => $MIN_CONTEXT,
+            calculated     => 0,
+            explanation    => sprintf(
+                'Model too large for RAM: available=%dMB '
+                    . 'model=%.0fMB mmproj=%.0fMB',
+                $mem_available_mb, $model_size_mb, $mmproj_size_mb
+            ),
+            limited_by => qw| model_size |,
+        };
+    }
+
+    ## adaptive safety margin: 30% of remaining space for generation        ##
+    ## buffers [ compute buffers, temporary allocations, headroom for token ##
+    ## generation ]                                                         ##
+    my $safety_min_mb = <coding.cfg.cpu_ram_safety_min_mb> // 512;
+    my $safety_max_mb = <coding.cfg.cpu_ram_safety_max_mb> // 4096;
+    my $safety_mb     = int( $remaining_mb * 0.30 );
+    $safety_mb = $safety_min_mb if $safety_mb < $safety_min_mb;
+    $safety_mb = $safety_max_mb if $safety_mb > $safety_max_mb;
+
+    my $available_for_kv_mb = $remaining_mb - $safety_mb;
+
+    my $calculated_context
+        = int( ( $available_for_kv_mb * 1024 * 1024 ) / $kv_bytes_per_token );
+
+    my $final_context = $calculated_context;
+    $final_context = $MIN_CONTEXT if $final_context < $MIN_CONTEXT;
+    $final_context = $MAX_CONTEXT
+        if $MAX_CONTEXT && $final_context > $MAX_CONTEXT;
+
+    my $limited_by
+        = $final_context == $calculated_context ? qw| none |
+        : $final_context == $MIN_CONTEXT        ? qw| minimum |
+        :                                         qw| maximum |;
+
+    <[base.logs]>->(
+        1,
+        ': RAM=%d MB : model %.0f MB mmproj %.0f MB KV [ token %.1f KB ]',
+        $mem_available_mb,
+        $model_size_mb,
+        $mmproj_size_mb,
+        $kv_bytes_per_token / 1024,
+    );
+    <[base.logs]>->(
+        1, ': safety=%d MB : calc : %d | clamped : %d [ %s ]',
+        $safety_mb, $calculated_context, $final_context, $limited_by
+    );
+
+    return {
+        context_length => $final_context,
+        calculated     => $calculated_context,
+        explanation    => sprintf(
+            'RAM=%dMB model=%.0fMB mmproj=%.0fMB KV/token=%.1fKB '
+                . 'safety=%dMB -> calc : %d clamped : %d',
+            $mem_available_mb, $model_size_mb,
+            $mmproj_size_mb,   $kv_bytes_per_token / 1024,
+            $safety_mb,        $calculated_context,
+            $final_context
+        ),
+        limited_by => $limited_by,
+    };
+}
+
+## query GPU memory ##
+my $nvidia_smi_cmd = 'nvidia-smi --query-gpu=memory.total,memory.free '
+    . '--format=csv,noheader,nounits 2>/dev/null';
+my $nvidia_smi = qx{ $nvidia_smi_cmd };
+
+if ( $? != 0 || !defined $nvidia_smi || $nvidia_smi !~ m|^(\d+),\s*(\d+)|m ) {
+    <[base.logs]>->(
+        1,
+        '[calculate_safe_context] nvidia-smi '
+            . 'failed, falling back to minimum=%d',
+        $MIN_CONTEXT
+    );
+    return {
+        context_length => $MIN_CONTEXT,
+        calculated     => $MIN_CONTEXT,
+        explanation    => 'GPU query failed: using safe minimum',
+        limited_by     => qw| gpu_query_failed |,
+    };
+}
+
+my ( $total_mb, $free_mb ) = ( $1, $2 );
 
 ## fixed CUDA context overhead  [ empirical: actual overhead ~1256MB for ##
 ## WSL2 + CUDA + FlashAttention ]                                        ##
@@ -163,8 +275,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,,,,.,,,.,.,,.,,,.,,..,,,.,,..,,,,,,.,,,..,,.,.,...,...,..,,.,,,,,,,.,,,...,
-#W6L6AP5C2HQQZGD5ONYLBIMMHK7ZJDS5WGFHIUO4R4OTG4TCMQEVOHXNWZ7W4M7CSAWSZ5HIR5VQE
-#\\\|YBJWVHJQXOFN5AUJOZZEO6EJFWBMO5UA7MRN6ECDXAXGHQ3WLD4 \ / AMOS7 \ YOURUM ::
-#\[7]FIBDPHVXTK7BCDTPNQ2OEYZGVRV76SKIBI66BINTQJZAQJJAQ2BA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,,..,,.,,,.,,,..,.,.,.,.,,..,.,.,...,...,,..,..,,...,...,.,.,
+#SDNSYBD4PIYXL7EQTDWYGGNYCK3KVAC5AJAJEO2HXDWGRMKH52JUAGLZOX2BLFT4KCW5S75EPJ7JI
+#\\\|EG363G4ROSEEM3NYVK2VX6GWMHL6XWMH55QGHAPLO4RNCUVNYMA \ / AMOS7 \ YOURUM ::
+#\[7]HXWQN3OAUZI7EGQS5OY4GYVH5S5QRNYYGFSMEVIEUWUN6J6INQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
