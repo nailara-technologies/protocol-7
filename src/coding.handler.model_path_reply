@@ -8,16 +8,18 @@ use YAML::XS qw| Load |;
 
 my $reply         = shift;
 my $model_amos_id = $reply->{'params'}->{'model_amos_id'} // '';
+my $backend       = $reply->{'params'}->{'backend'}       // 'gpu';
 
 <[base.logs]>->(
-    1, '[model_path_reply] received response for amos_id=%s',
-    $model_amos_id
+    1, '[model_path_reply] received response for amos_id=%s [backend=%s]',
+    $model_amos_id, $backend
 );
 
 ## clear regardless of outcome below : a reply arrived, the request this ##
 ## guard was tracking is no longer in flight either way [ see            ##
-## coding.resolve_model_path's own comment for why this flag exists ]    ##
-<coding.model_path_request_in_flight> = FALSE;
+## coding.resolve_model_path's own comment for why this flag exists ] -- ##
+## per-backend now, so a cpu reply doesn't clear an in-flight gpu one    ##
+<coding.model_path_request_in_flight>->{$backend} = FALSE;
 
 my $response_text = $reply->{'data'} // '';
 
@@ -53,37 +55,65 @@ unless ( defined $model_path && length $model_path ) {
     return FALSE;
 }
 
-<[base.logs]>->( 1, '[model_path_reply] model path resolved' );
+<[base.logs]>->( 1, '[model_path_reply] %s model path resolved', $backend );
 <[base.logs]>->(
     1, ':. %s', <[base.parser.ellipse_center]>->( $model_path, 60 )
 );
 
-<inference.model.path>        = $model_path;
-<inference.model.mmproj_path> = $entry->{'mmproj_path'} // '';
-<inference.model.is_vision>   = $entry->{'is_vision'}   // 0;
+## cpu writes its own backend-scoped slots; gpu keeps writing the shared ##
+## <inference.model.*> keys exactly as before [ other code reads those   ##
+## directly today ]                                                      ##
+if ( $backend eq 'cpu' ) {
+    <inference.backend.cpu.path>        = $model_path;
+    <inference.backend.cpu.mmproj_path> = $entry->{'mmproj_path'} // '';
+} else {
+    <inference.model.path>        = $model_path;
+    <inference.model.mmproj_path> = $entry->{'mmproj_path'} // '';
+    <inference.model.is_vision>   = $entry->{'is_vision'}   // 0;
+}
 
-## re-trigger spawn if servers not yet running [ race with deferred timer ] ##
-## also respawn if mmproj_path became available after initial spawn         ##
+## re-trigger spawn if this backend's server is not yet running [ race with ##
+## deferred timer ] -- per-backend now, via <inference.gpu_pid> /           ##
+## <inference.cpu_pid>. the needs_respawn check [ mmproj became available   ##
+## after initial spawn ] stays gpu-only : cpu model config has no           ##
+## mmproj/vision path currently                                             ##
 my $gpu_pid       = <inference.gpu_pid> // 0;
+my $cpu_pid       = <inference.cpu_pid> // 0;
+my $backend_pid   = $backend eq 'cpu' ? $cpu_pid : $gpu_pid;
 my $needs_respawn = 0;
-if ($gpu_pid) {
+if ( $backend eq 'gpu' and $gpu_pid ) {
     my $server     = <coding.inference_servers>      // {};
     my $old_mmproj = $server->{'gpu'}{'mmproj_path'} // '';
     my $new_mmproj = <inference.model.mmproj_path>   // '';
     $needs_respawn = 1 if length($new_mmproj) && !length($old_mmproj);
 }
 
-if ( ( not $gpu_pid or $needs_respawn )
+if ( ( not $backend_pid or $needs_respawn )
     and exists $code{'coding.async_spawn_inference_servers'} ) {
     <[base.logs]>->(
-        1,
-        '[model_path_reply] path resolved, triggering %sspawn',
-        $needs_respawn ? 're-' : 'deferred '
+        1,        '[model_path_reply] %s path resolved, triggering %sspawn',
+        $backend, $needs_respawn ? 're-' : 'deferred '
     );
     $code{'coding.async_spawn_inference_servers'}->();
 
-    ## cancel deferred spawn timer : we've already spawned, avoid duplicate ##
-    if ( defined <coding.timer.spawn_servers> ) {
+    ## cancel deferred spawn timer only once BOTH backends are settled : a  ##
+    ## cpu-first reply must not cancel a timer the gpu side [ or vice versa ##
+    ## ] may still need. 'settled' = genuinely spawned, or that backend is  ##
+    ## not enabled at all. re-read the pids after the spawn call above --   ##
+    ## it may have just set them                                            ##
+    my $spawn_params = <coding.spawn_params> // {};
+    my $gpu_settled
+        = ( $spawn_params->{'gpu_enabled'} // TRUE )
+        ? ( ( <inference.gpu_pid> // 0 ) ? TRUE : FALSE )
+        : TRUE;
+    my $cpu_settled
+        = ( $spawn_params->{'cpu_enabled'} // FALSE )
+        ? ( ( <inference.cpu_pid> // 0 ) ? TRUE : FALSE )
+        : TRUE;
+
+    if (    $gpu_settled
+        and $cpu_settled
+        and defined <coding.timer.spawn_servers> ) {
         eval { <coding.timer.spawn_servers>->cancel };
         <coding.timer.spawn_servers> = undef;
         <[base.logs]>->(
@@ -94,8 +124,8 @@ if ( ( not $gpu_pid or $needs_respawn )
 
 return TRUE;
 
-#,,,,,...,,.,,,..,.,,,.,,,,,.,,.,,,,.,..,,,.,,..,,...,...,..,,,..,,..,,..,.,,,
-#ABLH6QVKB4MRHVCQJBRC7ZG6UEDYNZMDZFBNSYGGR5LIHHT3MDRBKOJ7T53MHTLUS37SVPDXAT3OG
-#\\\|4TK26SAWPRSFGCYR3BWZT6JCTNH4B46FMT2YPTUF6ILC3YBEL6F \ / AMOS7 \ YOURUM ::
-#\[7]TW42KINDJ66XLY4OUYLJ47NVPJZPG4N5JOOVFM236RJJQ72CECBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,..,,.,.,..,,...,,..,..,,.,,,,,.,..,,...,..,,,.,,,,.,..,,,..,..,,
+#6EXYTWZJXPOC527T3VRABNHPMJVPKQGY4QZCALEPRCGMLPM5N6RHNNXSRIJQTGNU3LXV5LDKLCN32
+#\\\|D72E4VWYNGIYZVOG6H3CCHSFRZ4R7OZNJBVGZJMGYWZBKQ2IRFV \ / AMOS7 \ YOURUM ::
+#\[7]OP22I46X4JZAFKM7CUKPJNFT4ZQU2WWOZOPORHR2MRA2K7I6HACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
