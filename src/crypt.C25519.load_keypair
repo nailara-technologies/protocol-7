@@ -212,7 +212,7 @@ REENTER_GEN_ENTROPY:
 
     my $B32_secret_key    ## load secret key if present ##
         = -r $secret_key_file
-        ? <[file.slurp]>->($public_key_file)->$* // ''
+        ? <[file.slurp]>->($secret_key_file)->$* // ''
         : undef;
 
     my $encoded_private_key = <[file.slurp]>->($private_key_file)->$* // '';
@@ -348,8 +348,11 @@ REENTER_GEN_ENTROPY:
             <[base.logs]>->( 0, ': secret key format not valid : %s', $name );
             goto SKIP_SECRET_KEY_LOADING;
         }
-        ## stripping prefix ##
-        substr( $keys{'C25519'}{$name}{'secret'}, 0, 2, '' );
+        ## stripping prefix [ only when the type table says this value
+        ## actually has one -- matches the 'private' handling above,
+        ## lines 254-255 ] ##
+        substr( $keys{'C25519'}{$name}{'secret'}, 0, 2, '' )
+            if $key_status->{'prefixed'} == TRUE;
 
         if ( $key_status->{'encrypted'} == TRUE ) {
             my $decrypted_C25519_sref
@@ -389,8 +392,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,.,,...,,.,,,,.,,..,,.,,,,.,,..,,..,.,.,.,.,..,,...,..,,,..,...,...,.,.,,,,,
-#G53SNVVHVDBHMKNBWA2PWKFUYMAIWRXZDDO3UUSCHMR3JC232QYWPBGRYIL5PAL3AATC7BMQORMAC
-#\\\|GFI3LHYSQSKXNBPDRQDF47GMGZAAW5O2IXM4QT3KZ6L6GRBU2YO \ / AMOS7 \ YOURUM ::
-#\[7]UXGTJOMQ5AJCNKS6WULAOUXTJP5JM25IL6F4GWQ5A3AUZHSBM6BA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,..,,,,.,...,..,,.,.,,..,,,,,,..,..,,...,...,...,,..,.,.,...,,,,,
+#ZG3ZVMUI2BJIH7GUWH6GTAM3IINWJQ4FOTQVJBIS7DL3Q7PDGFZWVPDL3NEBO7GORJCV65U2ZAJOS
+#\\\|JMAWIJOJHL7OBG5Z57HB2DGP46GYAHCRIAHNAZYJTGZLM47SOVS \ / AMOS7 \ YOURUM ::
+#\[7]LCJXTGLADGOEYYZ7J2GALNN7ZH6VUWEPAV5D37NQ4MTN47ETS4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

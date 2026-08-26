@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = keys.console.prune-backups
+# param = [name]|remove <name> <type> <bak> [--yes]
+# descr = dedup backups, or explicitly remove one
+
+my @args = @ARG;
+
+if ( @args and $args[0] eq qw| remove | ) {
+    shift @args;
+
+    my $force = FALSE;
+    if ( @args and $args[-1] eq qw| --yes | ) {
+        $force = TRUE;
+        pop @args;
+    }
+
+    my ( $key_name, $type, $backup_sel ) = @args;
+
+    if (   not length( $key_name // '' )
+        or not length( $type       // '' )
+        or not length( $backup_sel // '' ) ) {
+        return
+            print "\n  << expected : remove <key_name> "
+            . "<type> <backup_basename> [--yes] >>\n\n";
+    }
+
+    my $status = <[keys.backup.remove]>->(
+        $key_name, $type, $backup_sel, { qw| force | => $force }
+    );
+
+    if ( not $status ) {
+        printf "\n  << removal not completed >>\n\n";
+        <[base.exit]>->(qw| 0110 |);
+    } else {
+        printf "\n  ::  removed backup '%s'  ::\n\n", $backup_sel;
+        <[base.exit]>->(qw| 00000 |);
+    }
+
+} else {
+    my $name_filter = shift @args;
+    my $removed     = <[keys.backup.prune]>->($name_filter);
+
+    printf "\n  ::  deduplicated %d redundant backup%s  ::\n\n",
+        scalar(@$removed), ( @$removed == 1 ? '' : 's' );
+    <[base.exit]>->(qw| 00000 |);
+}
+
+#,,,,,,.,,,,,,,..,..,,,,.,,,,,,,,,,..,.,.,,,,,..,,...,..,,,..,,..,,.,,,,,,...,
+#2B4XGF6LZDL3OKM4UPZWSLJOTRVOKXCNIQ7GTOMLVUBC4I5OVNNB5ROAUO3Y4YHFJB7JEBRNFQ6CO
+#\\\|VW76KQDHXPJ7277GXGWFSIXTB4KRDA3VXUPLUYFO5GQVGYUAR72 \ / AMOS7 \ YOURUM ::
+#\[7]3NJSP5672VBJJIVOCJVN3DVUABP6NKD7SX2JSKSXQMZ5XTKTDQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

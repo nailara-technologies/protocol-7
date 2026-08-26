@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = keys.backup.prune
+# param = [ <key_name> ]  optional filter
+# descr = content-based backup deduplication : within each key/type
+#         group, keep only the newest [ by decoded timestamp ] backup
+#         among files with byte-identical content, shred+remove the
+#         rest. never prompts -- by definition nothing unique is lost.
+#         returns an arrayref of removed backup paths.
+
+my $name_filter = shift;
+
+my $backups = <[keys.backup.list]>->($name_filter);
+
+## group by key_name + type ##
+my %groups;
+foreach my $b (@$backups) {
+    push @{ $groups{ $b->{'key_name'} }{ $b->{'type'} } }, $b;
+}
+
+my $shred_bin = <keys.bin_path.shred>;
+my @removed;
+
+foreach my $key_name ( keys %groups ) {
+    foreach my $type ( keys %{ $groups{$key_name} } ) {
+        my @entries = @{ $groups{$key_name}{$type} };
+        next if @entries < 2;    ## nothing to dedup ##
+
+        ## hash content, group by content hash ##
+        my %by_content;
+        foreach my $e (@entries) {
+            my $content = <[file.slurp]>->( $e->{'path'} )->$* // '';
+            my $hash    = <[chk-sum.md5.hex]>->($content);
+            push @{ $by_content{$hash} }, $e;
+        }
+
+        foreach my $hash ( keys %by_content ) {
+            my @same = sort {
+                ( $b->{'tstamp_unix'} // 0 ) <=> ( $a->{'tstamp_unix'} // 0 )
+            } @{ $by_content{$hash} };
+
+            next if @same < 2;    ## unique content, keep ##
+
+            shift @same;          ## keep the newest, drop the rest ##
+            foreach my $stale (@same) {
+                if ( length( $shred_bin // '' ) and -x $shred_bin ) {
+                    system( $shred_bin,
+                        qw| -fzu --random-source=/dev/urandom -n 42 |,
+                        $stale->{'path'} ) == 0
+                        or <[base.logs]>->(
+                        0,                   ': shred file : %s : %s',
+                        <[base.str.os_err]>, $stale->{'path'}
+                        );
+                }
+                if ( -e $stale->{'path'} and not unlink( $stale->{'path'} ) )
+                {
+                    <[base.s_warn]>->(
+                        '%s : while unlinking duplicate backup : %s',
+                        <[base.str.os_err]>, $stale->{'path'}
+                    );
+                } else {
+                    push @removed, $stale->{'path'};
+                }
+            }
+        }
+    }
+}
+
+return \@removed;
+
+#,,,.,,..,.,.,.,,,,,.,,..,..,,,.,,.,.,.,.,,,,,..,,...,...,...,.,,,,,,,,,,,,.,,
+#65NYD3MEUCZL5C62QH52QECMRUILRI5DAFQRC57RAO6E5WJF3TQ63YB33I2L5FW2YPGP3GCRMBMQC
+#\\\|OASTEUMJXTXFZN4XYDZ3Y43SETJSPIAX6ZMHNPTY5PPYDFPI5PU \ / AMOS7 \ YOURUM ::
+#\[7]OLCEGKGBRCVSPDPR77SUFJXG7LJCLWOSED4DIYZRDG5YWNLOT4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
