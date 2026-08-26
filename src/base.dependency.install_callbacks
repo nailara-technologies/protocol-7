@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.dependency.install_callbacks
-# descr = set up callbacks for checking zenka dependency fullfillment status
+# descr = install per-type dependency check + resolve callbacks
 
 my $name_prefix = shift;
 $name_prefix //= <system.zenka.name>;
@@ -9,27 +9,37 @@ $name_prefix //= <system.zenka.name>;
 <[base.log]>
     ->( 2, "installing '$name_prefix' dependency object callbacks.." );
 
-my @callbacks;
+## object_type => { callback => sub_name, resolve => sub_name } ##
+my %by_type;
 foreach my $sub_name ( sort keys %code ) {
     if ( $sub_name =~ m{^$name_prefix\.callback\.object\.([\w\.]+)$} ) {
         my $object_type = $1;
-        <[base.log]>->( 2, ": found object type '$object_type'" );
-        push( @callbacks, [ $object_type, $sub_name ] );
+        <[base.log]>->( 2, ": found object type '$object_type' [callback]" );
+        $by_type{$object_type}->{'callback'} = $sub_name;
+    } elsif ( $sub_name =~ m{^$name_prefix\.resolve\.object\.([\w\.]+)$} ) {
+        my $object_type = $1;
+        <[base.log]>->( 2, ": found object type '$object_type' [resolve]" );
+        $by_type{$object_type}->{'resolve'} = $sub_name;
     }
 }
 
 <[base.log]>->(
     0, ": no dependency object callbacks found for '$name_prefix'"
-) if !@callbacks;
+) if !keys %by_type;
 
-map {
-    <[dependency.setup]>->( $ARG->[0], { 'callback' => $code{ $ARG->[1] } } )
-} @callbacks;
+foreach my $object_type ( sort keys %by_type ) {
+    my $type_setup = {};
+    $type_setup->{'callback'} = $code{ $by_type{$object_type}->{'callback'} }
+        if defined $by_type{$object_type}->{'callback'};
+    $type_setup->{'resolve'} = $code{ $by_type{$object_type}->{'resolve'} }
+        if defined $by_type{$object_type}->{'resolve'};
+    <[dependency.setup]>->( $object_type, $type_setup );
+}
 
-return scalar @callbacks;
+return scalar keys %by_type;
 
-#,,..,.,.,...,.,,,.,.,...,.,.,,..,,..,..,,...,..,,...,..,,,..,.,,,..,,,.,,..,,
-#WD7ETEECENUDGKNFYGGQ56WOIQTB6HLBQW7Q7A3KTBPZ5I7UIUGAYKU7PKVXFUVNW6NRB2QOK43AO
-#\\\|Z6PBYJBKWPZVSEVKT5IRGLPIYYUEHX3ILNUZNBOZF2TPBKP7W2N \ / AMOS7 \ YOURUM ::
-#\[7]2XWBEENHDBKOUCY34QYC2JGJ3BM66UBGCKBM6OX5ETZAPWYIYWAI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,,,.,,,,,,,,.,,,..,,..,..,,,..,..,,...,...,..,,,,,,.,,,,,.,,,,,
+#RY4QIPV5OEB6SYOJMLRP6BZQA67CB7HI65FQUB5353Q22BUUUYF774PYHQFYRYVJXBVGODOSVSGBM
+#\\\|IF4WQZPAEHLPBQLABFSHOFW5VXMXWPSZLWRMMYHJUDDZCOI3GCX \ / AMOS7 \ YOURUM ::
+#\[7]LB3YFXLACNP3GBOA5R6XNVS26VP2ONXLPWR3GVTOZYMWX5ZVG4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
