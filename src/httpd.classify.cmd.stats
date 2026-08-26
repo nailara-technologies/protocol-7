@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = httpd.classify.cmd.stats
+# descr = show request classification statistics [ observe only ]
+# note  : registered as 'classify.stats' by httpd.classify.init
+
+return {
+    'mode' => qw| false |,
+    'data' => 'httpd classification not enabled [ httpd.classify.enabled ]'
+    }
+    if not exists $data{'httpd'}{'classify'};
+
+my $classify = $data{'httpd'}{'classify'};
+my $stats    = $classify->{'stats'} // {};
+my $peers    = $classify->{'peer'}  // {};
+
+my $peer_hash_size = scalar keys %{$peers};
+
+my $oldest_peer_age = 0;
+my $now             = time;
+foreach my $peer_key ( keys %{$peers} ) {
+    my $age = $now - ( $peers->{$peer_key}{'first_seen'} // $now );
+    $oldest_peer_age = $age if $age > $oldest_peer_age;
+}
+
+my @out;
+push @out, 'httpd request classification [ phase 1 : observation only ]';
+push @out, sprintf '  total requests   : %d', $stats->{'total_requests'} // 0;
+push @out, sprintf '  total classified : %d',
+    $stats->{'total_classified'} // 0;
+push @out, sprintf '  peer hash size   : %d [ max %d ]',
+    $peer_hash_size, <httpd.classify.max_peers> // 10000;
+push @out, sprintf '  oldest peer age  : %ds [ ttl %d , sweep %ds ]',
+    $oldest_peer_age,
+    <httpd.classify.peer_ttl>        // 3600,
+    <httpd.classify.expire_interval> // 300;
+
+push @out, '', 'by family :';
+my $by_family = $stats->{'by_family'} // {};
+if ( keys %{$by_family} ) {
+    push @out, sprintf '  %-24s %d', $ARG, $by_family->{$ARG}
+        foreach sort keys %{$by_family};
+} else {
+    push @out, '  [ none ]';
+}
+
+return { 'mode' => qw| true |, 'data' => join( "\n", @out ) };
+
+#,,,,,,.,,,.,,.,,,,.,,,,,,.,.,,,.,,,.,,..,...,..,,...,...,,.,,.,.,,..,,,.,,,,,
+#AVQKDJBAJVM7MDSSPDOV5T6LHPA57OSPJU7IB4WPTL6XW63NG3BBTXYP34EZ2RN76R57FJHWYBLS6
+#\\\|CVIE35ECOUTUOV55RI2YHMKHLMUPKA33AGIF2W5BNPZ65QCOURG \ / AMOS7 \ YOURUM ::
+#\[7]6LYBODI7RA6UNSK7ECRHQZQY6LNXMD5YJ4TCWJPL6NF5ONKIGICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = httpd.classify.match
+# descr = pure single-request classification against the pattern library
+# param = ( path , method )
+# return = { family , name , severity } or undef
+# note  : MUST NOT mutate %data -- reads the compiled library only.
+#         the exists-guard below also prevents autovivification of the
+#         <httpd.classify> branch when the feature is disabled.
+
+my $path   = shift // return undef;
+my $method = shift // '';    ##  reserved for future method-aware patterns  ##
+
+return undef if not exists $data{'httpd'}{'classify'};
+
+my $library = $data{'httpd'}{'classify'}{'library'} // return undef;
+
+foreach my $family ( sort keys %{$library} ) {
+    foreach my $pattern ( @{ $library->{$family}{'patterns'} // [] } ) {
+        if ( $path =~ $pattern->{'compiled'} ) {
+            return {
+                'family'   => $family,
+                'name'     => $pattern->{'name'},
+                'severity' => $library->{$family}{'severity'} // qw| probe |,
+            };
+        }
+    }
+}
+
+return undef;
+
+#,,,,,...,.,,,,,,,,.,,..,,.,,,,..,,,.,,,,,,,.,..,,...,...,.,.,...,,,,,,,.,...,
+#PYQZ732OC5UYJMWEOBDYFIZOSZZ7MNWKEKVLU2QODVFHIOH4O5ZCLYK7JFGVCB7CMYP45B67YFXXW
+#\\\|YZLHNL7Q2X7P57QGTSFBHIYQYEITHKX4XEYGHZ46M6ZQ7RAHUVL \ / AMOS7 \ YOURUM ::
+#\[7]O6AHS7QWJPBSCHVNWRGZ4PVVJSTMTD673HVJLFGTNCI6D3UQQKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

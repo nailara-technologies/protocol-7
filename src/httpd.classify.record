@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = httpd.classify.record
+# descr = record one request into the rolling per-peer history
+# param = ( peer_key , request_meta_hashref )
+# return = classification match hashref [ for log annotation ] or undef
+# note  : phase 1 observation only -- never touches the connection,
+#         never writes persistent state. ring bounded by
+#         <httpd.classify.ring_size> [ default 64 ].
+#         query strings are stripped before match/store : they may
+#         carry secrets and are never classification input in phase 1.
+
+return undef
+    if not exists $data{'httpd'}{'classify'}
+    or not $data{'httpd'}{'classify'}{'enabled'};
+
+my $peer_key     = shift // return undef;
+my $request_meta = shift // {};
+
+my $path = $request_meta->{'path'} // return undef;
+$path =~ s|\?.*$||s;    ##  never store or match query strings  ##
+
+my $method = $request_meta->{'method'} // '';
+my $status = $request_meta->{'status'};       ##  undef when not yet known  ##
+
+##  classification [ pure match , no state change ]  ##
+my $match
+    = exists $code{'httpd.classify.match'}
+    ? $code{'httpd.classify.match'}->( $path, $method )
+    : undef;
+
+my $now = time;
+
+##  global stats  ##
+my $stats = $data{'httpd'}{'classify'}{'stats'} //= {};
+$stats->{'total_requests'}++;
+$stats->{'by_family'} //= {};
+if ( defined $match ) {
+    $stats->{'total_classified'}++;
+    $stats->{'by_family'}{ $match->{'family'} }++;
+}
+
+##  per-peer rolling state  ##
+my $peer = $data{'httpd'}{'classify'}{'peer'}->{$peer_key} //= {
+    'first_seen'    => $now,
+    'request_count' => 0,
+    'classified'    => {},
+    'ring'          => [],
+};
+$peer->{'last_seen'} = $now;
+$peer->{'request_count'}++;
+$peer->{'classified'}{ $match->{'family'} }++ if defined $match;
+
+##  bounded ring : append , drop oldest past ring_size , never grows  ##
+my $ring = $peer->{'ring'};
+push @{$ring},
+    {
+    'time'   => $request_meta->{'time'} // $now,
+    'method' => $method,
+    'path'   => $path,
+    'status' => $status,
+    (   defined $match
+        ? ( 'family' => $match->{'family'}, 'name' => $match->{'name'} )
+        : ()
+    ),
+    };
+
+my $ring_size = <httpd.classify.ring_size> // 64;
+shift @{$ring} while @{$ring} > $ring_size;
+
+return $match;
+
+#,,.,,.,,,.,,,.,,,...,...,,,.,,,.,..,,,..,,,.,..,,...,...,.,.,.,,,,.,,,,,,..,,
+#AFIGCPKMNNRSO7YIINIGIQYPRJGU3VDX42CXAQAZ3SSXCHILSNTJRRCS56Y5QMYVANCO6NM2SWHYY
+#\\\|YLRZVPBGWLWWEFOHDF4OD4Z727MKC3B4DH2MCFS5J7YKUFRNRMR \ / AMOS7 \ YOURUM ::
+#\[7]JVFPKCI5XTCX7HHJVTLRZWMVHBNNKBRGCZK7IMOQTC7EACKD7WCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,19 @@
+# [:< ##
+#
+# httpd classify pattern family : git-config-leak
+# exposed repository metadata probes
+
+family: git-config-leak
+descr: exposed .git repository metadata probes
+severity: probe
+patterns:
+  - name: git-config
+    path_regex: '^/\.git/config$'
+  - name: git-head
+    path_regex: '^/\.git/HEAD$'
+  - name: git-index
+    path_regex: '^/\.git/index$'
+  - name: gitignore
+    path_regex: '^/\.gitignore$'
+  - name: git-refs
+    path_regex: '^/\.git/(refs|logs|objects|packed-refs)(/|$)'

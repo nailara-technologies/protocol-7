@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = httpd.classify.init
+# descr = initialize httpd request pattern classification
+#         [ phase 1 : observation only -- no connection effect, ever ]
+
+##  feature guard : when disabled there is no state, no timer, no cost  ##
+my $enabled
+    = exists $data{'httpd'}{'classify'}
+    ? <httpd.classify.enabled> // 0
+    : 0;
+
+if ( not $enabled ) {
+    ##  ensure zero data-tree presence when off  ##
+    delete $data{'httpd'}{'classify'} if exists $data{'httpd'}{'classify'};
+    return FALSE;
+}
+
+##  configuration defaults  ##
+<httpd.classify.ring_size>       //= 64;
+<httpd.classify.peer_ttl>        //= 3600;
+<httpd.classify.max_peers>       //= 10000;
+<httpd.classify.expire_interval> //= 300;
+
+##  state tree [ never persisted across restarts by design ]  ##
+$data{'httpd'}{'classify'}{'peer'}  //= {};
+$data{'httpd'}{'classify'}{'stats'} //= {
+    'total_requests'   => 0,
+    'total_classified' => 0,
+    'by_family'        => {},
+};
+
+##  load + compile YAML pattern library  ##
+<[httpd.classify.load]> if exists $code{'httpd.classify.load'};
+
+## dotted command aliases [ auto-registration maps only the bare name after ##
+## '.cmd.' ; the reload module is deliberately named ..cmd.                 ##
+## reload-patterns because a bare 'reload' would collide with and overwrite ##
+## base.cmd.reload in the dispatch table ]                                  ##
+my %cmd_map = (
+    'classify.stats'   => qw| httpd.classify.cmd.stats |,
+    'classify.history' => qw| httpd.classify.cmd.history |,
+    'classify.reload'  => qw| httpd.classify.cmd.reload-patterns |,
+);
+
+while ( my ( $cmd_name, $sub_name ) = each %cmd_map ) {
+    if ( exists $code{$sub_name} ) {
+        <base.cmd>->{$cmd_name} //= $sub_name;
+    } else {
+        <[base.logs]>->(
+            0, 'httpd.classify.init : handler not loaded : %s', $sub_name
+        );
+    }
+}
+
+##  periodic expiry sweep [ bounded external-facing state by design ]  ##
+<[event.add_timer]>->(
+    {   'handler'  => qw| httpd.classify.expire |,
+        'data'     => {},
+        'interval' => <httpd.classify.expire_interval>,
+        'repeat'   => 1,
+        'desc'     => qw| httpd classify peer expiry sweep |,
+    }
+) if exists $code{'event.add_timer'};
+
+<[base.logs]>->(
+    2,
+    'httpd request classification initialized [ observation only , ttl %ds ]',
+    <httpd.classify.peer_ttl>
+);
+
+return TRUE;
+
+#,,,,,.,.,,.,,.,,,...,,.,,.,,,.,.,,..,,.,,,.,,..,,...,...,...,,,.,...,...,,,,,
+#V6MZPHXKJTP7ZVVVAAEVG3CGUBZVQFZYL5CJFTBYKHVDMUDESUOJAWXYEUNSZGQOH5JJM2VEHJDII
+#\\\|H2RR4M63ZDENNCHKLSPWGEWQTPEMY7HAR5ZALNKNR32YBLILJQH \ / AMOS7 \ YOURUM ::
+#\[7]ZSSKNHBI2MA3Z5NM5YKPWNAV5SSVD23APKL2SO56OSI2GH7YN6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

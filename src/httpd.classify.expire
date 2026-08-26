@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = httpd.classify.expire
+# descr = periodic sweep : evict stale / excess per-peer classify state
+# note  : timer-driven [ <httpd.classify.expire_interval> , default 300s ].
+#         entries are observation data, not correctness state -- under
+#         cap pressure still-live entries are dropped rather than
+#         allowing unbounded growth.
+
+return FALSE if not exists $data{'httpd'}{'classify'};
+return FALSE if not $data{'httpd'}{'classify'}{'enabled'};
+
+my $peer_hash = $data{'httpd'}{'classify'}{'peer'} // return FALSE;
+
+my $ttl       = <httpd.classify.peer_ttl>  // 3600;
+my $max_peers = <httpd.classify.max_peers> // 10000;
+my $now       = time;
+
+##  ttl eviction  ##
+foreach my $peer_key ( keys %{$peer_hash} ) {
+    my $last_seen = $peer_hash->{$peer_key}{'last_seen'} // 0;
+    delete $peer_hash->{$peer_key} if $now - $last_seen > $ttl;
+}
+
+##  hard cap : drop oldest-last_seen entries until under cap  ##
+my $peer_count = scalar keys %{$peer_hash};
+if ( $peer_count > $max_peers ) {
+    my @oldest_first = sort {
+        ( $peer_hash->{$a}{'last_seen'} // 0 )
+            <=> ( $peer_hash->{$b}{'last_seen'} // 0 )
+        }
+        keys %{$peer_hash};
+    while ( $peer_count > $max_peers and @oldest_first ) {
+        delete $peer_hash->{ shift @oldest_first };
+        $peer_count--;
+    }
+    <[base.logs]>->(
+        1, 'httpd.classify.expire : max_peers %d reached , evicted oldest',
+        $max_peers
+    );
+}
+
+return TRUE;
+
+#,,,,,,..,...,,.,,.,.,.,.,..,,,,,,.,,,.,,,.,.,..,,...,.,.,,,,,...,,..,.,,,...,
+#4LSNU72WFAXWOFANES3OFEQLIBWLBN56XPY645JRBV6VQ5X6FPNGIQTUCS46CDVK6TWEOK4ADLB2K
+#\\\|E4I75TZBPAQCQULTSSV3OQLHALZCHS6MHKITMCOH7ZYXOOQWOSC \ / AMOS7 \ YOURUM ::
+#\[7]2BL4BFMIKRXNJ6UZ77JKEVTFXIZZBFEB7USOQZG235VYMZG3FCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

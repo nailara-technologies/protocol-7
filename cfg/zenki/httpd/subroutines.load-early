@@ -75,6 +75,7 @@ base.hide_list
 base.file.temp
 base.file.read
 base.file.open
+base.file.glob
 base.file.copy
 base.dump_data
 base.conf-wrap
@@ -215,6 +216,8 @@ httpd.get_mime_type
 httpd.download_init
 httpd.cmd.del-vhost
 httpd.cmd.add-vhost
+httpd.classify.load
+httpd.classify.init
 devmod.console-dump
 base.vax-int.encode
 base.vax-int.decode
@@ -245,6 +248,7 @@ io.ip.tcp.input.open
 httpd.json.init_code
 httpd.determine_host
 httpd.cmd.vhost-list
+httpd.classify.match
 httpd.benchmark.init
 format.yaml.pre_init
 clients.http.request
@@ -286,6 +290,8 @@ httpd.send_error_page
 httpd.route.init_code
 httpd.request_handler
 httpd.diagnostic.init
+httpd.classify.record
+httpd.classify.expire
 format.yaml.load_file
 format.json.init_code
 crypt.C25519.key_vars
@@ -384,6 +390,7 @@ httpd.system.memory_free
 httpd.parse_range_header
 httpd.event.remove_timer
 httpd.cmd.install-vhosts
+httpd.classify.cmd.stats
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
@@ -441,6 +448,7 @@ io.unix.socket.output.open
 io.unix.socket.input.close
 httpd.vhost.read_manifests
 httpd.handler.acme_request
+httpd.classify.cmd.history
 crypt.C25519.encrypted_key
 base.warnings.from_bitmask
 base.session.split_subname
@@ -642,6 +650,7 @@ plugin.auth.auth-keypair.init_code
 jobsite.handler.stray-job-exported
 httpd.route.handler.iris-negotiate
 httpd.handler.input.body_remainder
+httpd.classify.cmd.reload-patterns
 crypt.C25519.load_keys_from_secret
 crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
@@ -733,8 +742,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,.,.,.,.,,,.,.,,,,..,.,.,,..,,,.,,.,,,..,..,,...,...,...,,..,,.,,.,.,...,
-#4VB6HI25ET3WSO32L6EHYNOSQMHJDZLL5ZQ6GR4F3377XRUAJO2M3AZ6ZOWDQO4XVYWTW3SUKR5BY
-#\\\|BS4DVK75RWPVLLDFWLT2H2FGYVV6JWVTHX7CK2TJ4MZL2QT7XNH \ / AMOS7 \ YOURUM ::
-#\[7]TYWKFBQ75SIENA65K73MMGPODNGEBM4EFTH3ZI7X43VTADARTSBQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,,.,,,,.,.,,,.,.,..,,,,.,,..,..,,...,..,,...,,..,,,.,,,,,,.,,
+#UK3EI5ZPR4IV25P244RYTJTSFEKG7G5WAHK6V527WZTT24LK5T6ZHUWPSYMR5F3GL5EU2SV6Y4CNM
+#\\\|CZ7BRYUGVHAPKLYWD5WFFDC6TO37TVWTUDKOVU5NBVB6DNGF2GN \ / AMOS7 \ YOURUM ::
+#\[7]Y2IDTUG2RPOQW6XSRGB46M35LDRB5NALDI6YNXP6K7Z52J2PTWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
