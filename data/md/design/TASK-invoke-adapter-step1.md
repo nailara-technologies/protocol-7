@@ -143,8 +143,8 @@ and to subroutine.white-list.
     - terminal.app.models (list view data source → this discover)
     - safe model remove (add invoke.remove module next)
 
-#,,..,.,,,..,,,,.,,,,,,.,,,,,,.,.,,,,,,..,...,..,,...,...,.,.,.,.,,..,.,.,,..,
-#NMNIFJNOICGKZN2IEWZOPR2OB5A5W52WS6JRISDCBAZHLO3B6S75ADYY4AA2UFTW6I7LQBTXXDI5S
-#\\\|AI4E2AYRDKURN2VZZSXQRZMAIEIPMKZWFOSQV5HJRVNRMO6RFCB \ / AMOS7 \ YOURUM ::
-#\[7]KKOOA6EPGVOH56RX7CB67SZGHQ2ORRY7KOV6I6HTJ6TK4JOUIYCA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,.,,..,,.,,,..,,,..,.,.,.,,,.,,,..,,...,...,.,,,,.,,..,,.,,,.,.,
+#G7U2ANR6WQZU3FEFJUQQG3YCOH6SFFRA7UWET2ZBR3BSUFIOBBWVDXKQCIOAXHE37K7WHTPT5I2QA
+#\\\|XQR6YJSAIFSGWMJVNEOK5FV3CXEXGZVSKZWOYX356RWFPUTO7R5 \ / AMOS7 \ YOURUM ::
+#\[7]Q6TU6TXQDCAFGZVABZQWAIQTTPJLRI5RHLW3DWJNOGDWP66OIGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

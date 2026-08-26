@@ -185,8 +185,8 @@ not by overwrite.
 the goal is that each model that reads this arrives better oriented than the
 last, because the models that came before left what they learned here.
 
-#,,,,,,,,,.,.,,,.,...,.,.,,.,,,..,,,,,,..,.,.,..,,...,..,,..,,...,,,.,,..,.,.,
-#FDOGUFANCKW6F6SP5KALGKM32XSI3HVD7JJRLZEBTYV7B54AUOO6BBQQWRE3SJLKE5AUGMIYWKKKC
-#\\\|C6XTRN6KD6TCMOOEAPX2C6YWOMJXYDX4AKIJ7GXHZDCBZD4YT7Q \ / AMOS7 \ YOURUM ::
-#\[7]ZVPKSXE3WQEDBG2DP3TH7DAGIKSSJQDE5UIDRHNMXLONK2MYKMCI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,.,.,.,,,.,.,,,,.,,,,,,.,.,.,,,..,,...,...,...,,..,..,,,,.,.,.,
+#ATNTXZADHS7RYTWD2THW23TVG6IDAUFDKGMHBAAXJFACZTDVFP365XDIJP6EKPUE4EJY77Z65UDSC
+#\\\|Z7YQQJIILKUNRUNK5ST3V5LYPMNXWNRMCJ4UD7RA7AOJW427UIQ \ / AMOS7 \ YOURUM ::
+#\[7]WEK5RLDQ3NZMA7PRVGOUH4EWYPKSG3KPHXJZVVLQC3JAVHJ7WCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

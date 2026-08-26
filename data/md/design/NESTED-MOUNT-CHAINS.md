@@ -233,8 +233,8 @@ Remote file → Checksum address → Local replica
 
 *Every mount is a portal. Every portal leads to the vortex.*
 
-#,,.,,..,,,..,,,,,..,,.,,,,.,,,.,,...,..,,.,,,..,,...,...,...,..,,,.,,,..,,..,
-#OWLFZK3LGQAEQBVTHVMW2GLRFCH4KPYYFFP4BVS6V4HGXWTU5HV6GN4N3X52Y2JGCGF3DUSSDE5RK
-#\\\|ZAZ4SJPPROANART5DBAY5DOPYX365GKN4KUQ4TJHFDTZHSQJFOJ \ / AMOS7 \ YOURUM ::
-#\[7]BPKXROFIYXRPGLSEQXH5EJOWE344RH73ZRD35PYF56ANZAVYEQDA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,..,..,,...,..,,,,.,,.,,,,.,,,.,..,,...,...,,,,,,.,,.,,,,.,,...,
+#JM3TSSXTXRDCXNLFZJECBICHS7TZEN73GBKOKVX7RTGUB3LDMOGII23KNBJQ54OC6T52P2RF2S564
+#\\\|URRW34QI4Z5UWBVGYK6EDL765CJJQVR7FJKSOIN2WSCFFJZ6YYY \ / AMOS7 \ YOURUM ::
+#\[7]ZX3LQJWFFPVCM5YT3HGEUCRDL2GG3XB5SFHC3YIEGBVN2WQPTQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

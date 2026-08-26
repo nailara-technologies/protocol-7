@@ -582,8 +582,8 @@ my $new_ts = '3OMY5G5IPO6VW';
 
 **Key Takeaway**: Watch for `last-changed` key, mount remote data for sync, push updates for others, and let the infrastructure handle the rest. Simple pattern, powerful system. ✨
 
-#,,..,,,,,.,.,,..,.,,,,,.,.,.,,,.,..,,,,.,,,,,..,,...,..,,,..,...,.,.,,.,,.,.,
-#Z3CZRQA5IS5YYMAT5H3TK5Y3IKW6BDGCQXLS7JBDYQLQZUU2FOHFZPQIPV7BCWW64QODX2PJEWWU6
-#\\\|VV3KQHSJRRP3SYQWFV4UBK7WTOWTZIKPEUVZCCTAXVDEQ6K6SZ3 \ / AMOS7 \ YOURUM ::
-#\[7]AZVD6ZEF2XO2BSLPZFIXK22RRCBMDIDF4W4M3RVWBKROARJMECDI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,.,.,,,,,.,.,.,,,.,.,.,.,,..,..,,...,...,...,.,.,,,,,...,.,.,
+#BWCUHNBGHAIXTERMNQA6QOHPAJLAFUSODC7XRZU6NJ6OS7FPT3EAIZDHJDLXF7M6SV2UOONNB23Y6
+#\\\|3WQ53M6IOASMCIUWATQS3RSQAQQREMERTODGVGOACGJCCLNRFDJ \ / AMOS7 \ YOURUM ::
+#\[7]U4MXCUWW23SENOLRMJRXDZEQIEAJB2WHKDEORA6NMG4MFLEHLKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

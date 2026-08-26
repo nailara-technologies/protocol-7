@@ -111,8 +111,8 @@ do not add or modify subroutine whitelists — these are managed separately.
 - [ ] cert bundle correctly saved via save_certificate after reply
 - [ ] no signature stubs, no whitelist changes
 
-#,,..,.,,,,,,,,.,,,..,,.,,,,.,,,,,,,.,,,,,.,.,..,,...,...,...,.,.,.,,,.,,,,,,,
-#XFPVRJG7RCIIV3AXX2FBX5CH27JMO4HXS444X5V74VUQBT7D2ZXY42ZPERAVQA5AE6ZEAY2HE6OJI
-#\\\|ZKAWRHWVG3VXXBUIW5YSYA6ZARNIME7YYD2ZUEVGRP4GAUMWZ4W \ / AMOS7 \ YOURUM ::
-#\[7]ORVHBYU6E3OGDRKQHRIWOXCDFGKU2VXRY2EP5UTXAWCRLVPWPAAY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,,,.,,..,,..,,,,,.,.,..,,,,.,..,,...,...,,,.,...,,,.,,,.,,,.,
+#F52YK755QQWHUDLRVTH64BEF6DGRTZEQ72MEZ256ZWKWCUY7ADDZWNDH5OODMRAUY3Q3UQITXNQAU
+#\\\|LXHQLWBUQ2Q3RG55VJU7FVWIFNQXPSWNGSDFDDVTCP4GLQDT4RT \ / AMOS7 \ YOURUM ::
+#\[7]4KYPIC3FVIVOVYYJG5O7OHVAK6FN57T56JNYLYG4R4GJQYMEZKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

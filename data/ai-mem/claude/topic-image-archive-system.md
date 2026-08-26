@@ -66,8 +66,8 @@ do NOT remove model if referenced by high-quality images at full res.
 47K+ images at varying quality is not manageable without vision llm assistance.
 quality scoring, culling, provenance, and defect detection all require it.
 
-#,,..,...,...,,..,.,,,,,,,.,.,,,,,..,,.,.,,.,,..,,...,...,..,,,.,,..,,,,,,...,
-#RMPBI57D6VGHHFNKQMCXTJHO6BPZ37WUJIEQZKXKIF2NODWWYUFKSO5KTN4O4VSRG546CWWTYQHEY
-#\\\|GU5NLSQ6KUWEPVHURXSWTEZCWC2G46X6H4LRUPWFD76WD4ABRXW \ / AMOS7 \ YOURUM ::
-#\[7]H4KWJY5UCJNUC6GRK52XAH2XRZOL7VVAG4U6M3TYRYTGOZ5NFOBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,.,,,,,.,..,,,.,,,,.,...,...,..,,...,...,,,,,...,,,,,.,,,.,.,
+#ZRCPCNZPRONYNNAFVUDPRR3E24XNBYKPS4GDYC5DP3BPKEUAX3CSYT4MKZGTNYQDEZKBZLZFNJCN6
+#\\\|SEYUJEM225AW7EO2JZICSTKR66FBQP64KPJIKNSAGE6GZA65KQV \ / AMOS7 \ YOURUM ::
+#\[7]DIZP2NHBYNA3D7UBJVHMS647CDMILC7U3D3VEN6L6MQVDYODEGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -154,8 +154,8 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 8. src/httpd.cmd.vhost-status
 9. note on where httpd.vhost.init_code should be called (start file or init_code)
 
-#,,..,,,.,,,.,.,.,.,,,,.,,,.,,,..,,..,...,..,,..,,...,...,,.,,.,.,,..,,,,,,,.,
-#4DITG7PF7ZJM3B3JMMYOBNRBNW7LX4REWZR57ZPHRWF7Q4L4RVTG2HZE32V74EGIHOBMS64MQXIFE
-#\\\|TL6JZOXBA5XS67JLVZ2SPEDJFIOZXCNBAQW4TYGWNAFWNXO5MKV \ / AMOS7 \ YOURUM ::
-#\[7]SNF5LLIPMGIJRTJNHJJB3YSLZNZBSJDZNC35CVEMEKOMUQMBQQCY 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,..,,.,,,,,.,,,,,,.,,.,,,..,,..,,...,...,,..,.,,,...,,,.,,..,
+#JTNAQD6YR4AHBYDRYBL7GDKNBD66U2RLO74FJMD35JL2LX34KZT2PBKRIS5CJKEHR5GZXQ2VCINIW
+#\\\|OATNF6LQCM7NP4DULB3YKBYAOYLG53SNNZRQAKKVVRLGKZCXXZ7 \ / AMOS7 \ YOURUM ::
+#\[7]FXBGHF5FAQIJ2MAT6HAY65Q2K2GTTYVNKNJTHQXIS234R2CYICBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

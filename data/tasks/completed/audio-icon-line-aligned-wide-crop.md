@@ -85,8 +85,8 @@ with breathing room, reading as an intentional frame edge.
   as the richer presentation for whenever that's built. not yet
   decided whether both should exist or one supersedes the other.
 
-#,,..,..,,,..,,.,,..,,,,,,,.,,,..,,,,,..,,,.,,..,,...,..,,..,,...,,,,,,.,,..,,
-#BFWTEKCJWGKZT4XZWNMUACDSJQ6QH6PQ22IEVICQKOEEMBG54STW7NA22WGWD5OHH6FSPZ4YT2HFG
-#\\\|LCH7P63U7ARGSTOZV4RFU2LKE5WST3GQ5QOVAWSIPTF3XY6RLB3 \ / AMOS7 \ YOURUM ::
-#\[7]H6S66KNO45EQVVW5ZTAAAAYR4MXYDF22EHUWZGXVRLNAOB2DA6CI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,,,.,.,,,,,,,.,...,..,,,,.,,,,,..,,...,...,.,.,,..,..,,.,,,,.,,
+#ICU2KZGSOIV34MWVC3EW3NXYSJU5QNKC36EXRO4Q7EUJ4M263RYOFGIMTUS7OEUAKUMH7KE7R3PNU
+#\\\|WG3YRJK26ETDLCRKDSM37ZKL6OCSZPRI4FKT6L3FJX42GXA2QLK \ / AMOS7 \ YOURUM ::
+#\[7]NHF7K5PUN4FMZPUBOAAAA63HH5OGSWCHGTYJ7NPS6LKTDS6Y7EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

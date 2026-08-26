@@ -131,8 +131,8 @@ total expected: from ~2GB for 2.5M chars → well under 500MB
 - `index.rebalance` calls `index.rank` — verify it still triggers correctly
   after these changes
 
-#,,,,,,,.,...,,..,.,,,..,,...,.,,,,,,,...,...,..,,...,..,,,..,,,.,,,.,.,.,...,
-#2H4Z7FRJUUCPPYTQLTQMNLZ5XPTJOFZDVISV7HPJJ3ONEPF65CS35M4PYWU4XJS7AKBHZZ26VPDOY
-#\\\|5NNHF4T3OLJ274ND62ZKCGGPRSRHAZXG6GWQF7LUYS2VK4K47G7 \ / AMOS7 \ YOURUM ::
-#\[7]ZTW3HPJJZAU3FJFQWM3EBHRV4UZ73DSJSYHBRNB3WTK77FD7J2CQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,,,,,..,,,..,.,,,,,.,,,,,...,..,,...,...,.,.,,,.,,..,...,,..,
+#W2PYTCBGSPLOUDGVK7AFH42VDWRRJNEVWWC7RJXVYTVSNZHU34DDG3B743UPUDY3EFQSHQSTS4WCE
+#\\\|IKRR5KWUAJO3RELEFDZTQQAGB2FXKVXFX67XBLOYOQTJ43YW5K2 \ / AMOS7 \ YOURUM ::
+#\[7]5AXCJ4M34Q2QY665EMAWMP7AZLV7HGNSVV2UAKSWYELNPNVPXGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

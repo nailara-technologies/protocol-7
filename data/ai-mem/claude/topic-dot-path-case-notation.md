@@ -99,8 +99,8 @@ trinity is the underlying machine address space).
 idea + design doc only, not implemented. next step when picked up: a
 `base.data.dot-path.*` parser/resolver pair, forward direction first.
 
-#,,.,,.,.,.,.,.,,,,.,,.,,,.,.,,..,,,.,,,,,,..,..,,...,...,.,,,,..,,,.,,,,,,,,,
-#QYOGFB6774ECLMFAMLAPHSAQU7DLRPQFWMAFDA2T4HDPMFZT6JKASDGW5ALWQ5QUG274D5EVBGA5M
-#\\\|KV3Q3GVZLX5VXTE5V2Y2OWT4PTWMBL3U46SVKZ4RJJS7HNGOBR7 \ / AMOS7 \ YOURUM ::
-#\[7]4OGTFVQM3A4NQYF2W2CZCBRFH6AEZCI76OYSUJWDSGX5DDJRHKDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,,..,...,,,.,,,,,,.,,.,,,...,..,,...,...,,,,,,.,,.,.,...,..,,
+#4VXDX7RT35CMLS3FE5Q7SAQBCHJ46PSTEYTYUB2ULJKW5Q2JZTIRAINVMOYZJU2WPD35R6BENSHM4
+#\\\|OD6HQFB5JVKYRGBEQ6NSL6OYDIMD4GOE3YK3WJ52JHEIBFC6RD3 \ / AMOS7 \ YOURUM ::
+#\[7]D5O6AU7MFOJP5BBFGCDW4HZG4HTNVYA2VJLGEOP5JVZWZGMA3EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

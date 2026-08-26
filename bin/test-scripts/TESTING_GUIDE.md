@@ -185,8 +185,8 @@ p7 coding.vision-parser.cmd.status
 - Metrics reset on v7 restart (expected behavior)
 - Full end-to-end vision test pending extraction LLM
 
-#,,.,,.,,,.,.,.,.,.,.,,,.,...,,.,,..,,.,,,.,.,..,,...,...,,..,.,.,...,...,.,,,
-#TENHEQVRLP5AU54NPIRWHUKYJBJGFUZOWJVESAMPIQOS63BVX55DSWYPPT7QI7VM2GP5DLKKMTYSQ
-#\\\|AKT6DTFXTOCZP52VHJ4ZGWPVGFV6WIFSNP6QQAE4JTQ7TGALQIN \ / AMOS7 \ YOURUM ::
-#\[7]BEKTNUKB63JAGIDU7XJKJTXFKNXT5JZTNTBIGQXWTCCZ22GI7SAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,,,,,.,,,.,,..,,.,,,,,,,.,,,.,,..,,...,...,..,,...,..,,.,.,.,,,
+#ROFR2YZCWFFSR7L2TKWD5IRESVYUVRFP3EV2KE36QDQVJTQKNKVFHRXFBPTPUVAUWDWFMI3S4CO5Y
+#\\\|LPRYFJIWLW4IYU2FASDDAHA76IGA3GF4262CGJ4TKU2E7EONVYR \ / AMOS7 \ YOURUM ::
+#\[7]TUXL6XXIC5RJQLSQSPJ24KWCAYR2ILS2NBBUJUGE5SYDGFCTBSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

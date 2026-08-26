@@ -489,8 +489,8 @@ By using **modular handlers with dynamic dispatch**, the system remains:
 
 **Adding new**: Create `auth.callback.cap-neg.<action>-<capability>` module → auto-discovered
 
-#,,.,,,.,,,..,..,,,..,,,.,,.,,.,,,,,.,,..,,.,,..,,...,...,..,,...,,.,,..,,,.,,
-#PP5KABPRE3DGFL2EKMTGMR4Q4CGESRH3HDWCNQU5HD247SHQGYTI4HN6SS4WMHKUE44TV73R2W4GQ
-#\\\|BAOPGJW6XJ7RDSJ4RAWCFFFBDC5XLLGFPJ7M3DE34VIIGFZ2I3D \ / AMOS7 \ YOURUM ::
-#\[7]UANXOCSV2TGUKYD6I5GGQYEGYTN6JWJDQWYMUGUVLV6YSI6YDADI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,,,.,,..,...,,,.,.,.,,..,,,,,..,,...,...,..,,,,.,,..,,,.,,,,,
+#R73ZOKYR24W4V4MQNNWQL4REEPPWRFO6B52NR2HHIHFJOZW3TBCV7R5BBO47L2B77U5XQ6KOHSELO
+#\\\|JDOZHRUDYPENUEFROWNJP4XCHYTMK5GOUXRME2CK65RJ3OUQBOV \ / AMOS7 \ YOURUM ::
+#\[7]2FUKOSAB2LMH46VLICMOSD3EXCLZCDFNXDX5JQREXH3XNL26DMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

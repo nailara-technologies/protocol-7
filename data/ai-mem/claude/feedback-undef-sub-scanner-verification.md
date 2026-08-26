@@ -108,8 +108,8 @@ See also [[topic-auth-client-namespace-split]] for the concrete namespace-
 split case this methodology was built around, and [[feedback-ncode-tools]]
 for a caveat on `ncode replace` hit during the same session.
 
-#,,.,,,.,,,,.,,.,,.,,,,,,,..,,,..,,,.,,,,,..,,..,,...,...,,.,,,.,,,,,,,..,..,,
-#Y5LAIP2DSQK6B7KAIDL6LAAR6BS2GOG3HAKXQCVMECAM4IVMH4SKV2LYAELMTHHAVSEYLZ5JPQOY4
-#\\\|V2QCJG5IY4RZOE6SJK7UEJ2VXYGAYMTORZT5GH7QCR2JLBDXMMZ \ / AMOS7 \ YOURUM ::
-#\[7]IAKR5VTFYYSBA4FICASIJAFG55C3YQYQ5RIFKFBX7CEBAXELIMBY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,.,,..,,.,,,,.,,.,,...,,.,,,..,..,,...,...,..,,,.,,,,,,,,.,,,.,
+#GLVK4CZ7DB6WTSAK3RXTMMNCGR5H3CBVWGMDOE65C2GZ2G6MWRVX2UEKERJM5LGPPX6PCLTDXAZAW
+#\\\|3P53RRP2LH2SNT2OBOLOXIC5FYK42KMYHSREDKYGEJZ7WUEMXDK \ / AMOS7 \ YOURUM ::
+#\[7]IPZHZACMRY6B4GWM7HZNJ5AQ7ZEBNNUAVYZGU5WFVD5RFUQ3GIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

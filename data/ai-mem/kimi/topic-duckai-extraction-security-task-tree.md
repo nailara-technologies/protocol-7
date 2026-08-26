@@ -83,8 +83,8 @@ user's backup) into repo artifacts. committed as `737836d5d`.
   relationship-to-existing-systems table when overlapping implemented areas
 - user signs + bumps version afterwards; commit only after their go
 
-#,,,.,..,,,..,..,,,,,,..,,.,,,...,.,,,..,,.,,,..,,...,...,,..,...,.,,,,,,,..,,
-#7UK4UK7SP3BXRFX7BT2PFISYUI2FN7KZGOVN6ZT5ULUQNLLXLI4K7YHOU62223J56OCTT2PPHMJCC
-#\\\|RLPZJG74EF772BYKKU5FC6W7ESI3RJDSN2PHNHISAZD6TVYLEYI \ / AMOS7 \ YOURUM ::
-#\[7]2UUOEFEDJC5HAFQSDPAIP5D6CNWNTAYQ6E7XOVBI7T6EFZ435QAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,,,,,.,.,,..,.,.,,,,,.,,,,,,,..,,...,...,,..,,..,.,.,...,...,
+#YJJHNDLAZRTWGQRTGQAFAXY46DNTLE27CMH4K63DJYNI5JX54IF476EMJMVZHUS7QWR3YC3ALFAQW
+#\\\|4Q2FLP2WOTJMMAJM43O5XMS4GMRNQSB7YQQG45CSTTVW5YOSP72 \ / AMOS7 \ YOURUM ::
+#\[7]BEAS6KDZOOAOJS4WRAIMLMGIBADTAHSKSBB5MLRUZKST6HQLNKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

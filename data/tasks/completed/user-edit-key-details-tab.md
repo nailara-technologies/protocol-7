@@ -211,8 +211,8 @@ Report actual command/capture output for each check, not just "passed."
   whatever minimal, narrow fix step 2's `tab_info` note above turns out
   to actually require (check before assuming — it may need nothing).
 
-#,,,.,,,.,,.,,.,,,,,,,.,.,..,,,..,,..,.,,,..,,..,,...,...,,..,.,.,,.,,,.,,,.,,
-#YM4UX2EDJ24QTRE6LO5K6ISGN33GK3QOJLEQF3PILAPUBFEEPPLDL4DSKP6Y4FQGTNMYKCBMYNR3E
-#\\\|LI3VUH46UF5EQEJC52OFVVPIYH76DIO5ORKO7I5QHMMZR4YS4X5 \ / AMOS7 \ YOURUM ::
-#\[7]VT2DZJ67CPVMYAEEKG6PGABD65WZHXSV2HDRYYT6BDCT4RQC5UBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,,..,.,.,,..,,.,,,.,,.,,,.,,,..,,...,...,,,,,,,.,,..,...,.,.,
+#4CH6EIOUSJ4MEKT2GCXEVVNXPBE5JI2JWHRGTVA5NU7LWXY354UQH4W6WNOZFEOWIFBAIVIELN6SW
+#\\\|FELVSZEIUI7LHQZIML7VCQTVVZINBVU6Q75FXEOMANNKFIG3E32 \ / AMOS7 \ YOURUM ::
+#\[7]QIH536ZSVZZSH4H7TDUNE2YMDAXHWZXSSTZFQZFS4PAGNF6G4UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

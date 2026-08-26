@@ -37,8 +37,8 @@ investigated) or don't rely on this browser for it; a real Firefox/other
 non-ephemeral browser session is a separate, persistent client of the same
 sync API and unaffected by this.
 
-#,,,.,,..,.,,,,..,.,,,..,,,.,,..,,..,,.,,,,,.,..,,...,..,,,,,,,.,,..,,.,.,..,,
-#UFNPMS5LJ3SBFMCQRAAIV6XE6ZRBCLBHIEITPC4FH7H3ZILVOYCLJKPXFPKELIJIN7WYIZ6V5DJO2
-#\\\|IBQIVGYVMLYQGUWD3AHNCMVB7VWMY6RPBNRLDT6BPZHIPQOSUWD \ / AMOS7 \ YOURUM ::
-#\[7]HWO3HL7SL7EGBGOV6ZSXCXH7657YXSOQPZM37P2JIGWWCLD6HECQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,.,,,..,,..,,,,.,.,.,,,.,...,..,,...,...,..,,,,,,..,,..,,.,.,
+#3XVKB3TB3H5IKBWWR4YAIHZOIKEECR5Y6AKN2DH35MC24QFWMRPK32C4CSAEB3ZJO6Q6CUPSNW5DW
+#\\\|JRJHAWJJX54CKONB37762JJICSWN2XOBZC2XJ43OAO5TCPQ5SRE \ / AMOS7 \ YOURUM ::
+#\[7]VMYPWP6WCWOYR6LFUJOBFG4G62NQMUEXP3WXG5SHVYWHAN2TJQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

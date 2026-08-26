@@ -85,8 +85,8 @@ narrative comments, `[ word ]` annotations, NO manual signature stubs.
   compact and expanded variants; passing a smaller `n` visibly shrinks the tree.
 - no manual AMOS7 signature stubs in any new file.
 
-#,,..,.,,,.,,,.,,,,..,,.,,.,.,..,,,..,,,.,.,.,..,,...,...,..,,.,.,,,,,,,.,,,,,
-#UFNZBXQAQ65QVSZIIAJJ7VJAN3ASEDK2L22ECDXHQE7I4ZFJKESD3C5PI4MCG5VAPQCQDVR5CCF7Q
-#\\\|JZ7OPIKKP3B6K4GU6CQUWVVZBIJIK4UY2W7VNDW3U64BT6YQHW3 \ / AMOS7 \ YOURUM ::
-#\[7]JZRIAW7BQBYO4C53ROBLZRPNXOCTQUHIVKUDHHK2EN3E5BJS6KAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,,,.,,,,,.,,,.,,,,.,,,..,...,..,,...,...,...,.,.,,.,,.,.,...,
+#IC6ELFHZJVNKNZBZJKHLYHXAY62Y63G4EGDV5JCPCSCNIH7G4Y63UUOTEGQR4NTYL2E5H2ZKG2IK4
+#\\\|BJGN35MKMW4K42PDSISJTADEG7A2R6IWOAMQF6BZXVA3ICVYB2Z \ / AMOS7 \ YOURUM ::
+#\[7]KZQMQ3SLRRCNYRC3K2Q5NJS46X7PRNIKK7HGOAIVDWCFM3AO3AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

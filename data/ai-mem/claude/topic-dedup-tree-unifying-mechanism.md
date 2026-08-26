@@ -86,8 +86,8 @@ threshold-based-scheduling design doc, in the style of the AMOS7::SHM design
 series [[topic-amos7-shm-phase1]], grounded in whatever of
 [[coding-zenka-improvement-pipeline]]'s tiering machinery is reusable as-is.
 
-#,,..,,,,,.,,,,,.,.,.,...,...,...,..,,,..,,,,,..,,...,...,..,,..,,,.,,,,,,,..,
-#75I7TJUOYSISDPZYJUQDGR7MPHYRKKPGOXBPHM333X2ANHY6XSIBU33HLEPNJWK65IJDK5KXCISOO
-#\\\|3ISU2HJMCGFEXBCPFA5J5WHYC5ZWTOOQVHQ477BEFJPJWTIOUDI \ / AMOS7 \ YOURUM ::
-#\[7]7F5EBA5QMTNSHBRSFCBHS4ZBMQP57I3JBZSGDCATWXTAACFUS2AI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,.,,.,,..,,,..,.,,,.,.,,.,,.,.,..,,...,...,...,,,,,...,,,.,...,
+#D54AAPB63NBTBUPDJCKEVFLYIHGHLSQ2JKDLBTF7O7YXSA4HSI65GJE2DZFNEBRYZJVSIMMLTWXTE
+#\\\|TXPLQVL6SFXQ7MQYQOK3L7YIDDKYSUF4WX6YUQDPRBY3UUSME7G \ / AMOS7 \ YOURUM ::
+#\[7]PS2FYOV6QQ4G36SCTDPMZ77THVAJHQALTVH7NIY37LEOCH4R42DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

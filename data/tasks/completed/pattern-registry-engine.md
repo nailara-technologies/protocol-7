@@ -287,8 +287,8 @@ verification checklist:
 - [x] a below-threshold or `llm-required` test pattern still flags instead of auto-firing under the new engine — verified with a temporary test pattern, not committed
 - [x] `src/ncode.regex.apply`/`.load`/`.save` unmodified — `git diff` against them is empty
 
-#,,.,,,,,,.,.,.,.,..,,.,.,.,,,..,,,.,,,..,.,.,..,,...,...,...,.,.,.,,,,.,,..,,
-#KHOBBFUGW6VYD3TRDGUQK4I2NVY3HKN64CWUR4MS6M73IJZUN3ONPJU5FPK5BNWEWAUK23VTI6GC2
-#\\\|IOMRNA2S52QN2WC33OMDYB5JMBYS7SADWHBPRMGWO724JTL7TYU \ / AMOS7 \ YOURUM ::
-#\[7]SQQ7Z7DUIQLAXYC7YYJK22NNCWRMVTH44DWYWZ3SDXWJTKROCOAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,...,...,,.,,...,...,,,.,,,.,.,.,..,,...,...,...,.,,,...,.,.,.,,,
+#EC2G3KO7NZ3IXJDNSFH6OHLOCVNWOFU7REHSI33QODRAGORYTG2MSJ5YWSUNJY2INPHQFK6Q5HGOQ
+#\\\|4PXIVNFGAQYXCOH25OSOXHACK3ZXRP4XYEDVUINK37YHMRMNZHF \ / AMOS7 \ YOURUM ::
+#\[7]OFUD5DYPJWTXTFTIKFAS2VCQIW6CF7FVVFF64G7M5IFCDQGOVECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

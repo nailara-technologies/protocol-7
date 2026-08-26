@@ -65,8 +65,8 @@ the vision-layer material without a dedicated design pass first.
 [[project-input-capture-replay-website-templates]] ·
 [[topic-implicit-perspective-navigation]]
 
-#,,..,,.,,.,.,.,.,.,.,,,.,.,,,..,,,,,,...,,.,,..,,...,..,,...,.,,,..,,.,.,.,.,
-#AGIOYYIIFCVVE4Y27FOIUPTYZLSFMOIQQALIPZZCKXPNOOPIYUPXOELBNTUWOWAEUGD4ZCRBDG3IY
-#\\\|3BM6Z3CPOIDSEDQ7SGJ2RGWQRSFE3EIIQY6RZKQTA5GCM6N2TFX \ / AMOS7 \ YOURUM ::
-#\[7]4SZFKXTP47XKEWUGRBZ5U4TDTZMWVNFRK76IKYAG5CMZQ35PEECA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,..,,...,.,.,..,,.,.,...,.,.,..,,...,...,.,.,,..,.,.,,,,,,..,
+#MECP3QFDUULAVEBKHYUGUIGOEFLUGVJVILPVORD2F6AY32XCV7XI4Y7AGYWPQV4KZSA6XQ2B3I7TM
+#\\\|47WSEUXC4DVP6NWA2IDF55RD6IWJUVO62EQBC4EJ5GCZXV2WG3C \ / AMOS7 \ YOURUM ::
+#\[7]C6Y7CUDW3QECDOCFCAQ6VC7SBY6BZWAS6GCCGRQWJJBOZCTMF6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

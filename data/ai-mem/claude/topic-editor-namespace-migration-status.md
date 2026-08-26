@@ -92,8 +92,8 @@ eventually un-stub) are among the files from a prior low-quality session —
 treat their existing code as unverified scaffolding, not a design
 reference, until that cleanup task reviews them.
 
-#,,..,...,,.,,,,.,,,.,,..,,.,,,.,,,,.,..,,...,..,,...,...,...,..,,,,,,.,.,,,,,
-#UVFZZRVC4OHUD43ERMHFPI3D2P4ZWE6ZHOPLMTNMF7TLMH6P26FXAHXFEMCE62L2267BQFZIM6BM4
-#\\\|UQH5M3TUS7D3EIOBTMZEB3QPDCRXCXL6IS26WTLW4N3ZZHVO2YT \ / AMOS7 \ YOURUM ::
-#\[7]J5A6FAYRKQUHQPC3WN4LWYGB35I2KXN26FUBURNJ4GLIYBOLEOBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,,,.,.,.,..,,,..,.,,,..,,...,..,,...,..,,.,,,...,.,,,.,,,.,.,
+#JZC3TNL3W3BPWTI5V73WUPKPM3HA54DJOF44G6WSMSVFY5OMWCAN6EIODXOKFF7ZSE6TZAKHPQP6U
+#\\\|QPDUBAAO3SQHVWIQHPEVIXLNQN76D32HZDQP5DKBOBUKNXCJNVM \ / AMOS7 \ YOURUM ::
+#\[7]KMTZHA52637ZIWR5PL4SWNVABV24UIMQ7SPN6V63JFNATX4UY2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

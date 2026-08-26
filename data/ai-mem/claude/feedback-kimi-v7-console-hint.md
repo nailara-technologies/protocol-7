@@ -18,8 +18,8 @@ whether a `reload` error was pre-existing.
 path so kimi can `tail`/`grep` it directly instead of re-running
 commands and reasoning about baselines.
 
-#,,,.,,..,,..,,,.,...,,,.,..,,,,,,,,,,.,,,,,.,..,,...,...,,,,,..,,,,.,,,.,...,
-#2PPVNWFVT7UYKXRBD7DET6E5NZSA6X3DC4OKOYMJHGNRQ2AV7MDIKHTNFTF5RYE2NHSRR7ONIGDRQ
-#\\\|ASNERP3BNMGSUQNSXKSAE7A77O72IM2FJW4Y73T6C5NYPM7R73S \ / AMOS7 \ YOURUM ::
-#\[7]P4T4RGQOWNOTCQ677D2JZ75FOVQUKTGAFNQMRHDW4KCD3VEVTCAA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,.,,,.,.,,,,..,.,,,.,.,,.,,,..,..,,...,...,...,.,,,,,.,,.,,,..,
+#IIXURJVRRZMHTGHA47A3PXIFFHSWOG5RJEIYRHLE5I5SQMTDAUGKJB4HLIIVD6NPR4P436WIIDB7A
+#\\\|FQCZOU5YISNEBW6STQBN2YG7ASNSLU2FS7SPLJOLRIDAA3EF7IP \ / AMOS7 \ YOURUM ::
+#\[7]73DAVNKP7XHEEB6UFSAPBI7BIR4QTVMLJOIO5YGOCER3XBHBC6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

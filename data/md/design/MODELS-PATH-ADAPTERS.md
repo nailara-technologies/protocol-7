@@ -166,8 +166,8 @@ step 4 — export/import (collection profiles)
     - yaml snapshot format definition
     - invoke.import for fresh-install bootstrap
 
-#,,,,,,..,.,,,..,,.,.,,,.,.,,,..,,,,.,,.,,.,.,..,,...,..,,,,.,..,,.,,,,.,,,..,
-#QI4NZMI6WOBDJ2JUG3RP4IJICNCM2CB5AIYBZ7O7E4CAZYXDS2PAQPHEVCA2VERSWPFVITTO2PZMW
-#\\\|V5DM5UONTT5NGR6M5GCMYRXH56OVU7B4LN77ISGZVFO5FJ6PZAK \ / AMOS7 \ YOURUM ::
-#\[7]2XBYWYWEU5VQANV7SLU2CSFKUSSP7FPZSK65ZTYBVZZEIL344YDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,..,,,.,,,..,.,.,.,,,,..,..,,..,,...,...,..,,,.,,...,,,,,.,,,
+#5TG5UHLZIC2OVQQTMMYWTLXSQ7NHKSG6JKXQ2IZZ7PCSQBEPU2X267JPSO64YUJQ2OLMOQFIFZE5A
+#\\\|4DXKTWS6IJY5EDJUQF3JQH3COBNKG7QYDG2BFL477NHJ2ZJ3YNN \ / AMOS7 \ YOURUM ::
+#\[7]I7S7P6HF76CW5NUJIRDMVN4RPDUHGKEI2M6WECO66NQTAPBPUUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

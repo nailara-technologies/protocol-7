@@ -102,8 +102,8 @@ channel. embedding-space diff = visible code-structure momentum.
   direct callees are weak [ hub-node effect, documented ]
 - full results: data/md/documentation/DEPGRAPH-EMBEDDING-PHASE1-RESULTS.md
 
-#,,..,,..,.,,,,.,,,.,,.,,,,..,...,..,,,,,,,,,,..,,...,..,,.,.,,,.,...,,,.,,,.,
-#5LNXU32I5ATR3ZBM3XGJV6GDJS4ZAS6HVK65QB5URCU4ZWQV5HQDBDCC2RCWVYJK6XYP7A2HD5PBW
-#\\\|6PUU6KHOS3IIACOFHR3NEKOZTDUITXSMMNACCPYJL25H56OCV4H \ / AMOS7 \ YOURUM ::
-#\[7]7ZT4H77US3X2RNCU2H6ZPTZ5BXBKUDLJFQ4EE46F5XPQTFS3L4BA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,,..,,,.,...,.,.,.,.,,.,,,,.,..,,...,...,,,.,,..,,.,,,,,,,..,
+#5CSLR5UPSZV5BGTCB4RHIRZF3DDAUZ7CFPDWKNWUECCWBNNKDJDTYNEXMMS7WZR2OEIAS6ZS6DZE2
+#\\\|7XBA2TMOJKTL7WSDDVSLTZJNRCEO6WCZIU6DBXSHWJMJRF47AZQ \ / AMOS7 \ YOURUM ::
+#\[7]KG6PTYL35P257OWIQRD36KDFWP6EPIUU6MMACSS7E26C237YLCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

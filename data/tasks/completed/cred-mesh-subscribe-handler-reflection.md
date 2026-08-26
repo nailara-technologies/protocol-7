@@ -185,8 +185,8 @@ independent and can be dispatched in either order or in parallel.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,.,,,,,,.,.,,,.,.,.,.,,,.,,,,.,,,..,.,.,,..,..,,...,...,,,.,...,,..,,..,...,
-#2ZBSQYFKB45TLA37GID4FGEM22ALA3KCY5UJWP3GNG5XKUZAY2TE6W6P37F5VJ5ESSKC2WWDTRGZS
-#\\\|IQI6ZDAKZFNKFYWJX2CETRDDRTIAPM65FHBSZUBS2XTGTYJMLZI \ / AMOS7 \ YOURUM ::
-#\[7]XDCGC5DW7M7CBD3M4NRJVC7HPW6ED3NQDGTVQR2JBIBYXXZKSSCQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,..,...,.,.,.,.,...,,..,,.,,.,.,..,,...,..,,..,,,.,,,,,,,.,,.,,,
+#CIPSLASQSEZQXCUNXS5S5THMKCFZSWRDDN5XNSJP5HHY2YTLCRN4M5WCEUMOQIXJA3WXV7BYQUDJY
+#\\\|EKTPEBGFVBRISHOHR33RRKRXSSUBGXLKVHS337AYWE73O3LHUID \ / AMOS7 \ YOURUM ::
+#\[7]5JZCEWBNT7DC5EP7F4B3SLQQEO4F7UYBZKPY42C7QYETALVDAAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

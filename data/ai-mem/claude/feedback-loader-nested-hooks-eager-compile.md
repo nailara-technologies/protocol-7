@@ -41,8 +41,8 @@ already-running zenka, don't conclude a fix failed just because
 first is needed to clear accumulated registry state, before treating a
 lingering symptom as evidence the fix itself is wrong.
 
-#,,.,,,,,,...,,..,.,,,,,.,,..,,,.,,..,,.,,,,,,..,,...,...,,.,,,,,,...,..,,,,,,
-#4HIUFNAYD3BARIMWUGPKQLG6VGTAELVEKNM267I72FJBOCPUSXI3T5KIVH4PJRJ5YBPLZSDXZJTZI
-#\\\|4MEFOFK26GVALW6YH3S5RMPXV2PQ33U5SR2P62FJVLFEOCSHGZ2 \ / AMOS7 \ YOURUM ::
-#\[7]SKGESCNOKKG47GMSJHZTCRYFZN427PSP4LTNARVFY3LUHJGJKMBA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,,.,.,,,..,,..,,.,,,,..,,.,,..,,...,...,.,,,,..,...,.,,,.,.,
+#EED7KPXW477MOHUYKU6T6A53ALRDFSP4BWZYNDOGBKLUPMUEDENR4FB2S5MEZNPFBUPWHL5SSBTC4
+#\\\|TK4FITFR5JVCJRR3N3ZVMLLIKSLTFCMJEQUW7EIVJ4I3N4S3X5Y \ / AMOS7 \ YOURUM ::
+#\[7]U4FBPVAMNZ7D7GKWYHINUL7AZBGQD5YBQY6W2SUCINLRHDUMVGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

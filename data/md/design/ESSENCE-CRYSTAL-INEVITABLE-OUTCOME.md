@@ -241,8 +241,8 @@ core complexity:       minimal  (one truth, structurally derived)
 utilization diversity: maximum  (terminal reference for entire class)
 ratio:                 the most efficient possible crystal
 
-#,,,,,...,,,,,,..,,,,,,,,,.,,,...,.,,,.,.,.,.,..,,...,...,.,,,.,.,..,,.,.,,..,
-#ZK4E7DRHO3YWFHPEDK6JU2KZ5RHKYA6UNDJNAI5PVUVT3MSF2DSMU22VX5X7MPAA4OEJM7HINYLCO
-#\\\|FDDJA3NR4KO7YGXZNUALBCAYBHJHIY7NOOYQHCC7BDYFMFBVLEE \ / AMOS7 \ YOURUM ::
-#\[7]TEU3MMHGIAQ7PSHNO2E5G5DCOVBW4TDGMNFXF5DHUG4SANZDDEDI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,,.,,,,.,,..,,..,...,...,..,,..,,...,...,..,,..,,.,.,..,,.,.,
+#VQZGDXI6RI4Z3FOWIL5N3H5UEYWYRFPXZ5KY2BGQ5IIHFHXH77I3YUDMDT34QATMNABZAZMWBWLCI
+#\\\|5HPEVHQYCAVZBCOHNUTEWHDSJ4TDXTKR443LMKIS6YNBT4YJNAG \ / AMOS7 \ YOURUM ::
+#\[7]ININE4SZXWVEIKERYH3YMAQ37LUW2KCS3DOYFVPOP75WG6XUWQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

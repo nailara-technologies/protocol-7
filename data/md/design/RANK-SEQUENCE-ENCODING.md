@@ -282,8 +282,8 @@ natural choice for rank sequences.
 - `<index.packed_rank>` — live rank table in index zenka [ pack 'N*' ]
 - `data/md/design/BLUE-DOC-FORMAT.md` — glyph ID usage, layout stream
 
-#,,,,,,.,,.,.,,.,,...,,,.,,,.,,,.,.,.,,,.,.,.,.,.,...,...,,..,..,,,,.,,,.,.,,,
-#DAAVPQOSCV3FLJMG6COTYVO6JDDF7QQABG6PLNJQYCTAYTCHAMJSLE5KKCZ5CGDZCOBSK4FCOZ5LA
-#\\\|SU27TIVGS4W7E5O6O7XBRGEVBUB4CGLKMSUWZSR5ZHSIFXCUNAY \ / AMOS7 \ YOURUM ::
-#\[7]MUUEZFFGTG3V4CSWHHBM3MHPDOQ4PGLYJAD5F6EAJJ3AP7IUIIBI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,.,,,,.,,.,.,.,.,,,,,.,,,,,.,.,.,...,...,.,.,,..,..,,,,.,,.,,
+#SX5MXL3N3HWT37HRQSUG2R4DL4GBU72ERQDYTVP52PLMBEQGFBRWSGLM5XCZEZQS6IKL3XD5RENNI
+#\\\|OU6KPSRCFPJV54ZEMBXD6WZDR3DV32LRM5X74HECHYDW7J4VVPX \ / AMOS7 \ YOURUM ::
+#\[7]M4YUZZJGZVWPNLR34VT33GP74IRG6DS7GNJPL3QYESHGUKMZT2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

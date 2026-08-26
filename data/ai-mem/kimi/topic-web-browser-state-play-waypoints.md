@@ -82,8 +82,8 @@ whitelist regenerated [ 652 subs ]; signatures pending - user re-signs.
   live-tested [ no v7-resident caller in this pass ].
 - whitelist regenerated [ 655 subs ]; signatures pending - user re-signs.
 
-#,,.,,,.,,,,,,.,.,,,,,,..,,..,.,.,,,.,.,,,,,,,..,,...,...,.,,,,,,,.,.,.,.,,..,
-#J3CW2HKRIBFMH2EZFGB2OYW3A5LKQ5OB6XEQP22OUD7NDFRSYNDWRURDLLNKR7SXQV6I232ALWUKC
-#\\\|M5ZUIYJNTC35YQC6L5PIYRKQ2UBIYVXT5HHOU77QJPXCI5EPZOY \ / AMOS7 \ YOURUM ::
-#\[7]V5XLKXLPBQBCC5UYBWQAIYHIF75Q7F2AKBXX5UOVJY7MTUZSTUDA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,...,.,.,,,,,.,,,.,,,,.,,,..,..,,...,..,,.,,,,.,,.,,,.,.,,.,,
+#NHKNSHC4EQ6N6KXVBGGHBUPREOKQJ6BVCXHLT2VOHWLNPGTQE75RUDYU2OK2RKI5T755FBLIL5ZMO
+#\\\|J43G3PFWKRKPYMAL4VCCMTMOHTYXOKA7CAHKGQDMHNKH4KH4IFN \ / AMOS7 \ YOURUM ::
+#\[7]DPNDDVCEQ5P2Y2AWXUWFWYGQY5CRZEEIUEMYQ5ZI3BBYEYAMG2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

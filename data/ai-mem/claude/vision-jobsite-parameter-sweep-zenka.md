@@ -53,8 +53,8 @@ modeled on the existing enrichment-handoff shape (dispatch → collect outcome
 → correlate/report). keep application-sending itself manual/opt-in — these are
 real applications, not synthetic test targets.
 
-#,,.,,...,,,,,.,.,,.,,,..,,..,,.,,,..,,,.,,,,,..,,...,...,.,,,.,.,..,,..,,,.,,
-#GE3D4QIZHOPDOH5ILY64FVFZE3F4XWZLF6GKLXIAF74A336DY5TE5V7PQWTYXBB6BUXA6KVUKFI4Q
-#\\\|GHIOQ6ISNNT3Z6QSWMSUFFJQFVBD2KIU3V2QCYLRI3I5TJ4V7KR \ / AMOS7 \ YOURUM ::
-#\[7]JELGAS4OPBA62V6XNAYS3SD3Z63YELMXILXZSIUG6N5FMFWX2GCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,.,,,.,,.,,,,.,..,,..,,.,.,,..,..,,...,...,.,.,,,,,.,,,.,,,..,,
+#ADHOMKRLKUPXBMYLX3RYU7PA2REEHQA6M7NO4ZYIV3DTJXTEBE7Y3VSI7EC4BBB5Y4RLRV7YLPGD6
+#\\\|5QKB7E5XPWJY3AVWGYHE52254NV7OS2CSEFPBQ62LJENGVZFEY5 \ / AMOS7 \ YOURUM ::
+#\[7]GF636NX6JSE6YBQWFR66A4NYTSKLOO7FO7UBDZFFBFNZNVMDJUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

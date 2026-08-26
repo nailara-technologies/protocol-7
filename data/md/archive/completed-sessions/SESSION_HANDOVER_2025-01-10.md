@@ -681,8 +681,8 @@ Protocol-7 session setup-keys                 # Create key directory
 
 ### UPDATE: 'workflow' zenka renamed to 'work', in PATH as 'p7.work' [symlink]
 
-#,,..,,,,,,..,,.,,,..,,,,,.,,,,.,,,..,.,,,,,,,..,,...,...,...,,,.,,..,.,,,..,,
-#2ZUICQSMN5UYSWBZOISIEJF4DGJS7UZYIKRASCPN6XO5FTTV7YEFINTGZDOGYVPITJDPWBVLBDNK4
-#\\\|2WAEQ7ZM7C3A7SRFAYWNEYEMZGY6O6JPE3RZS7D7Z7FPUMV36IS \ / AMOS7 \ YOURUM ::
-#\[7]LWIRAFSGF525QZE3JXCO3UYX2Q4FO2CV2VT6Y4TKFTPMOGUFTYAI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,...,,,.,,,.,.,,,.,,,,.,,.,.,..,,...,...,,,,,,.,,,,.,,,,,.,.,
+#KFTSAGYWQCHCQNTO6UNNOLZ4QFA3QB7XBV73LGOA7EK2464JVLPT6OOPYNQXQ2X7KTHJRXX55VOVO
+#\\\|QXGIUX4F6DZ4Y7AYVOGBRIAKLEWPBMZVJ6SAHAIMEYH3PXLUPCT \ / AMOS7 \ YOURUM ::
+#\[7]HDVWOXKRMORFR53T453EQFPAZNVD5AFUDNFW5MSGMUWKZKZW6ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

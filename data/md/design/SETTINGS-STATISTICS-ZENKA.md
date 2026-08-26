@@ -438,8 +438,8 @@ access.cmd.usr.cube = report status opt-out
 
 *Privacy-preserving configuration through inheritance and minimal diffs.*
 
-#,,..,..,,.,.,,.,,,..,,,.,,..,,.,,,,.,..,,.,.,..,,...,...,...,,.,,,..,..,,,,.,
-#4ARFAS4T7N3EZAGSLOYWALS5DEHAAWHTB3UDTZABRDBXOKGNIJBL2XDQWCSBXWTZ2GFHHOWWKYI36
-#\\\|3ZJAMU3SCEXG5ZJWVIPEBL3GCP6JWATMSTUQN3CSVQ6YSJQXJ24 \ / AMOS7 \ YOURUM ::
-#\[7]AG6PJJUPYBRJH5JBH4M5PA55Y5EKPVQYZZKL6F23QDF4355DJ4BQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,.,,..,,,,,,,,,,,.,...,,,,,..,,..,,...,...,...,...,...,...,..,,
+#XGHV76VG6L6LHUJAYSZKKM54K3SMEKR7TL3NTSD5GZ36ZHWQYSXJ7MDFHELTHFSVUZ2OYTBH6WQU6
+#\\\|4TEA5DOQ2RBRAO6MQFNMQ6YVKKKJHSMHEWH63WYVXQ64U3OK4VQ \ / AMOS7 \ YOURUM ::
+#\[7]IDMW4VN35OORDDGMMOQ2YEMA7TKQNV2VWRWT65RMVMKJ273YLGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

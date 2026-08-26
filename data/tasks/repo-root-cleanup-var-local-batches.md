@@ -76,8 +76,8 @@ or just remove if no longer needed.
 once tracked files are removed and `var/httpd/static/` moves to absolute
 path, add `var/` entirely to `.gitignore`.
 
-#,,,,,..,,,,,,,..,...,,,.,...,,..,,.,,..,,,..,..,,...,..,,.,.,,,.,.,.,...,,..,
-#Q4BG5JBBRQS7MMOWNHAYODQMYYXTC4NM75NK665HLLMR3KD6QFV4PDK2RZW466LZBE4OX5WRJJYZK
-#\\\|7JX22ZAPSWRB3PN4IN5VHGRFM45MMPCBWNGLQ25V5FF6BTPORW6 \ / AMOS7 \ YOURUM ::
-#\[7]YDGGVBTW32UXHWTXPQX5HUYNVAJX6SXNLXZWREMWK6CGSPZZO4AA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,.,.,.,...,,,.,,,.,.,,,.,,,,,,,..,,...,..,,,,.,,..,.,,,,..,..,,
+#KSEHETEUT3EU4QDDYUPGTXW6LEI7AFVMEXISJXRK7FTUG47ZYWB64VHJ3LUEW4YHCS7AMK7HUU4C4
+#\\\|YRSCO4W5L3I63XCMURCBGJTOHVBISVYACK75YNLQ4ZPV6NRB34E \ / AMOS7 \ YOURUM ::
+#\[7]FIVXDBCE7LQFRLZILDRPB2YJZFLVAQJI4SOSDQR2SJ3IGMTYIADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

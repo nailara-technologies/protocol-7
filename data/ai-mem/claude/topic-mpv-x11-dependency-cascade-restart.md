@@ -64,8 +64,8 @@ viable syntax (mpv only needs one rule today, so this is not urgent to perfect),
 user to propose a shorter naming convention. The mechanism/code side does not need to change
 regardless of which directive syntax wins.
 
-#,,,.,...,...,,,.,,..,,.,,...,.,.,.,.,..,,...,..,,...,..,,,,.,.,.,,..,,,.,,,,,
-#2EKC4RRDBWLPDLRAZTWMEBYJFVJ5N6JVDJNYHIU2C2RM2NRAP7FKBN2MVICNLHP3XQN2AK46YC5WM
-#\\\|H764PBZMUK4GKSVRQLAO46MUTJCPCD5NAIIUOXRR537HPPYLRT6 \ / AMOS7 \ YOURUM ::
-#\[7]MQPSWR4GZW4TAZYVCETR6V5BYVIUTHBRZARSQBGWWV4QSBSAE6AY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,.,,.,,...,.,,,...,,,.,..,,...,..,,...,..,,,.,,,,.,.,,,.,.,..,,
+#JUNFMQWS2IRTWMADSVXLAMU4T3R5V77FF3TDVYXDWYKDRZG73HLK5TRKFV3DXZRC3SZ4CWE5VEJ6G
+#\\\|2FWRUG2U26MFP7GTDD5IZMDMLQA53SATYNXZWFH7CRYDYYAXWBN \ / AMOS7 \ YOURUM ::
+#\[7]WVIBBFPX5JQ3KMFIQGYFK7IFCS34CKE4MOEHDHSV725MQQFH3CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

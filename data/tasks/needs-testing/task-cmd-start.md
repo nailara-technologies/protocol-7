@@ -49,8 +49,8 @@ Do NOT copy or invent AMOS7 signatures. Leave the new file without any signature
 footer — `bin/Protocol-7 sourcecode update-signatures` will add the real footer.
 The fake single-line stub `#,,.,,,...` blocks signing — never add it.
 
-#,,.,,,,,,,.,,,,,,..,,.,.,.,,,.,,,..,,.,.,.,.,..,,...,...,.,.,,.,,,,,,..,,,,.,
-#2TOW3Q75BX4LTIK33VZSJQWEDF3M47W35GDC5NCWOAIVUW5QR4TWBLC476GE7ML2G525TTIHIKIR6
-#\\\|6IJWEVC6PKTDXOUMS52RXS23XOQQTMIMVBWSMNZDDLC7IHYWYCN \ / AMOS7 \ YOURUM ::
-#\[7]A2RUVCWCBSI32COM7G45GYLZT7Q6WRRAW3PFXSTEUR6FRUZZVCDI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,..,,,..,,.,,,,,,.,,,.,.,,,.,..,,...,...,...,,..,,,.,,..,.,,,
+#4DBT34LXNZ6H5V5NRHMGVZB637HVHSZ2ZH6MPMLYQZXRC5RUDZBFFMD7BRWMTP3YGCFPH4M2ZJA5W
+#\\\|NLCOBIFG3YCPLL3CBZX4XO6LRBCZBCOEPMEACRDL5DEA3NU7DYR \ / AMOS7 \ YOURUM ::
+#\[7]JV353JF4JMJAYC3CVCGVRWN3T6LMCWIDYCIGOT4IP2TQIYY57WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

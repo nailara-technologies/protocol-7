@@ -51,8 +51,8 @@ explicit, so it was preferred.
 
 [[feedback-kimi-dispatch-pattern]] (kimi-cli MCP integration notes)
 
-#,,,.,.,,,,,,,,,.,,,,,,,.,,..,.,,,,.,,..,,.,,,..,,...,..,,,..,.,.,,,,,,.,,...,
-#LNCSH2WUHTDIAVNP3CYSO5OB7UGK2JLZMZU5GISFOBCW5OR5MFFJQIKMTYK4CUVF4M2OEASZMFKGA
-#\\\|VQYFCMFDVY24RFEVGGKMM5IPC34UBPQQ72THS52SHKBROGLGP5I \ / AMOS7 \ YOURUM ::
-#\[7]KZBRWEYKH6RFSN43S6TQRQPXWAZQMWAE537B64HMZ3Q7SR2WQOCY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,..,,,.,,,.,,.,,,,,,,,.,...,,..,..,,...,...,.,.,..,,.,.,..,,...,
+#MLB3KDM5CUFTKFP2BMKH5BMP2LKUYBHXTPQKMN3FA37RE3P4A6NCQUMHKCARXGE3QCROJR3HBQSNE
+#\\\|RGA3IAUDWP3XW4OIBKPADYV7VLACEA3U5O55UYEZJA6J55VK5DY \ / AMOS7 \ YOURUM ::
+#\[7]ILIYMIGOXFI3QBQIFA6FHSEPAAVQ6ECVWEQWKSKBLI2OLLSO3SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

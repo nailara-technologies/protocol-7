@@ -51,8 +51,8 @@ new workspace = spawn perspective layer
 context switch = change primary observer layer
 all UI changes = view spec parameter changes only; data space unchanged
 
-#,,..,..,,,,.,.,.,,..,..,,,..,,.,,.,,,...,,..,..,,...,...,,.,,...,.,,,.,.,..,,
-#B4OM235J6T54BAMABNZZV4ECLUKU47FPJYPPHKPUVBU4IHHAY7HLZRAJ3L2ZL2QJMVJETVJUZ3XBC
-#\\\|6XLCIOZ7CAA66ALZYIORGIB5QK74VERBONJYBB4RI3BXF5EXFBS \ / AMOS7 \ YOURUM ::
-#\[7]4B26233NTC3VXJFK4R55BZPDIVKOTZROZLQ2W2SQAETXAQQLHUBY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,,,.,.,,,,,.,.,,,,..,.,.,,,,,..,,...,...,...,.,.,...,,,.,,,,,
+#7JRYYWGTZQ6MSDGS7ATTKY6OH3TPKVVXGAGYWELCOBIT563YN2R5XMS7ZRY6ARXYIEWBPTKYDJVJ4
+#\\\|SMVVFIDFTAYLNFWMYJEIBH5P3CJ4RGFWYJYATV6O7XC72XGHCVW \ / AMOS7 \ YOURUM ::
+#\[7]ZDI4DQSEMZL6MCZ4AH65W5YGLU2PN26N6TY3M4BEPT3SIYH3GYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

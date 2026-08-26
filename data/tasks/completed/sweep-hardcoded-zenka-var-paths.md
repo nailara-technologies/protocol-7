@@ -63,8 +63,8 @@ which the existing template doesn't explicitly call out.
 3. include `base.*` modules in scope, not just zenka-specific ones —
    user explicitly flagged base as containing instances too.
 
-#,,,.,...,..,,..,,,,.,...,,,.,..,,..,,..,,...,..,,...,...,,..,..,,.,,,,..,...,
-#OGKQEBP5YZVC2PXS7PEW65ULEI27WGUC6FOZ7XVBS4AXUAK6UEC6FIV6GJSMB5AYLFAAFDHBKW7LE
-#\\\|QNHR5OFGKNVFA4Y6YBBG2HPD5WUOCSJ7HEP2TS5OSYPXUVMI2XP \ / AMOS7 \ YOURUM ::
-#\[7]5ZU76TZBRQ6CK74JN27BF6MGPWBIV4GIZQ4ZIFUPIKGTT3KA52CQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,.,.,.,,,...,.,,,,,,,,..,,,.,..,,...,.,.,...,,.,,.,.,,.,,...,
+#LWCD7654JMOTBZGOH6AHZFLGBCWRISKMSHWND7JHO2JHDHYZL4CTZ7UP22SRI2JYMU6WTDGA6XQHG
+#\\\|5UVGR5RSBLKCY6SHP7DUKEACBAQEB7V376ZT5L2GSBF5RHEJJMD \ / AMOS7 \ YOURUM ::
+#\[7]QDN5HMHUF6VSA3TXOHWZH7LCETUYGR3ZPR42PVXT57XWUSRZVUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

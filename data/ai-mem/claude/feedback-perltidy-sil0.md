@@ -13,8 +13,8 @@ when sub-extraction (or any edit) leaves a whole P7 module uniformly indented (e
 
 **How to apply:** the fix is the perltidy flag `-sil=0` (`--starting-indentation-level=0`), now added to `bin/format-code` and `bin/dev/ptd` arg lists — they are kept in parity. this forces the top-level baseline to col0 (inner blocks still indent normally) and preserves `<[...]>` P7 syntax. it makes the formatters SELF-HEALING: just run `bin/format-code src/<name>` on an over-indented module and re-sign. verify with `git diff -w` (should be empty = whitespace-only) — note perltidy may also re-wrap a line that now fits `-l=78` differently at col0 (benign, semantically identical). `bin/dev/ptd -c` is only a syntax check (`perl -c`-like), NOT a format diff — run without `-c` to see reflows. relates to [[topic-memory-tree-zenka]], [[utf8-module-literals]].
 
-#,,,,,...,..,,,.,,.,,,..,,...,,,.,,..,,,.,.,,,..,,...,...,,,.,,,.,.,.,.,.,,,.,
-#6IUZ2P2FNAE4DWJSNXA2MNJ6IY5EUUIMMYROFWYEDR6ZIQDPSHEAZAKN5ELNFVZHYHBGBO4TJ5KPU
-#\\\|SHKMMREWDKVWLKBCY4KHMTD33BDSNRO332NNJV2JYH55K7W7PP7 \ / AMOS7 \ YOURUM ::
-#\[7]GBZNZB6RREVWNSJAJX6RJZNNIGZOTVWEBWY3NWRJPBJP44MAYGDI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,,,,,,,.,,,,,,.,,...,.,.,,.,,..,,...,...,..,,,.,,,..,,,.,...,
+#EHHZMHU5HMWJP4PQUU5O7TTIMF4ATZ7XEGH2PVY2NS2OGWV6YKYZAUUSXVBLHIQJT4ZEWJ62YAJ4G
+#\\\|G3WHREZENWPMFPSXMFFTZKEV7SPD3FNSTYPPT27VBN4N3A7GQWE \ / AMOS7 \ YOURUM ::
+#\[7]EO6HUQVVBG3OLBR6NTATPJ47K7NV2FOJTIS6B5RG3V37WPZNHMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

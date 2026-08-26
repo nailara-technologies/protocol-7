@@ -79,8 +79,8 @@ orbital pipeline fully live:
 - graphics-matrix idle timeout: 23s → 420s
 - cube/access.zenki: web + httpd + discover + nodes permissions fully wired
 
-#,,..,,,.,..,,,..,...,..,,..,,.,.,,,.,..,,,,,,..,,...,...,...,,.,,.,.,,,,,,,.,
-#OSTSOBNSEZRWMSNZ6WBB2ZNCZPDCIKJMH3XYT7LCD7P2SR4DUDS4H23OX6NHABNQABDR2TC7G4LI4
-#\\\|DLQD6S4FKW6IVPWLP7YHHQLWBRW3S3CSBKQPDFHC3V7SAQWLGFZ \ / AMOS7 \ YOURUM ::
-#\[7]DUUOZAKCAT4YY2CGXRQXS2MWNNYIKFKKR7SJVZFED5UDF6J32MAY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,,,,,.,,,.,.,,,...,...,,..,,,.,..,,...,...,,,.,..,,...,..,,...,
+#4JSXTE5XSKVWFYGCONL2SHK72GLF3VWBACOIGCOJWNR456A3VCWAKUTWHSH6TEJTXEJ6NXFXP7FI4
+#\\\|IQVHHYYGTQRX22VO2PCI5KSMEIAQTNEQ4GV6NZJND5DPBUGWQSZ \ / AMOS7 \ YOURUM ::
+#\[7]BTW6IWQMKDH5U7XZDKONWKVHTI6M6N6BWL4HDISNPCMEHN4XZSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

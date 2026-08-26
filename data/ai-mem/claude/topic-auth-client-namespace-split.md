@@ -100,8 +100,8 @@ one file.
   used throughout, and [[feedback-ncode-tools]] for a tooling caveat hit
   during the `auth.client` config sweep.
 
-#,,.,,.,.,.,,,,,.,,..,,,,,..,,,,.,..,,,,,,.,.,..,,...,...,,,.,,,.,..,,.,,,...,
-#55OR4YDILFTHCTEK5KHPJNRR33VZ2V5NOOWVD4A664H7ZVJLD5MZFRP2JZO62P4RYLPYE3MHDNP7Q
-#\\\|73Q3U3WWFHPN7VVXG2Q7W6XOPEUNSEUID6ZRHGB2QOY4F5AX7NL \ / AMOS7 \ YOURUM ::
-#\[7]TK47GVATBX7OJL4OFJHIXUXWUEQBIOUHP6GOBSLOAX57EB53OQBI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,.,,.,,,,,,,.,.,..,,,.,,,,,,,.,,..,,...,...,.,,,.,,,.,,,,.,,.,,,
+#4ASPIDSX5AHS7KEBXUUNRMCPOBPBVVLJH7ZTZBZ5MMGG4SDHO3HD6Z2FAQTL6O6CW5HRKCXC4FPSK
+#\\\|ZO2ZS45S5YPV5PS3FURMPOJSGLHZT44WT7UVEFCKR2JYQUSYEIK \ / AMOS7 \ YOURUM ::
+#\[7]JVCUJIDGHRKBLT66OV5EW3KKKGHS5IQFJL22APDQHXUELGZNFYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

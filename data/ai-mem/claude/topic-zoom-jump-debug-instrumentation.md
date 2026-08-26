@@ -38,8 +38,8 @@ attempts (console-capture, code tracing) stalled. See also
 [[project-input-capture-replay-website-templates]] — spun off from this same session to make
 this class of reproduction fully deterministic instead of live-capture-and-hope.
 
-#,,.,,,..,,,.,...,.,.,.,.,,.,,..,,..,,.,.,.,,,..,,...,...,.,,,.,.,,,,,,,,,,..,
-#DTPV7MHXMGIJFWY7W55XS5FCIWO3KOFTHYJWPNI4PZ66HDFTU7HNXK5ZG43YZP5ZEPSBMYBHPUYSC
-#\\\|IY3KTTF5E3643FIIG3WPACM3AAWIFJKX22KJ5PQCKKZTUEDYZ5G \ / AMOS7 \ YOURUM ::
-#\[7]74DKH2BZZT36PRPRRXM3IQ6QILGIAXLXLIJJ6OMOBTQTXRR272DA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,.,,.,.,...,,,.,,..,,..,.,,,,..,..,,...,...,.,,,..,,...,,,,,.,,,
+#CNYFETGKAV5YN643MJX6XLXRJA7QWHAEDO7PIGWTJONQ4CKAVYJ5V3OPFRHVRZQIIF7MDXLBJQA5K
+#\\\|UZNA6RST2ZZAXVPRGLOA7QNXC6LEOAAL6PCRESN66YSK7EOCGMG \ / AMOS7 \ YOURUM ::
+#\[7]MKYCA2OYK53GZA5ARJKMHA4JZOGCTZ3BKAI5S3P37YTNVIZYPIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

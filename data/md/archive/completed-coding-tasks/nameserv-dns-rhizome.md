@@ -111,8 +111,8 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 4. src/nameserv.handler.p7ref_lookup
 5. modified src/nameserv.init_code (add discovered hash + timer)
 
-#,,,,,...,..,,,,.,,,,,..,,..,,.,,,,.,,,..,.,,,..,,...,...,..,,,..,...,,.,,...,
-#AV4BL6NGE5RHED5ABDCVCARZYOUZIJUBTKTDBFZ4LXYGPYZMB5THVGFE5SOZE53SFTPKWV326HNWA
-#\\\|SNKNWPGZUQYUNJPWBSK3BYZ36XZXPBPUT64D5DP35FSAFSHD5PX \ / AMOS7 \ YOURUM ::
-#\[7]WNSHJF3RK247644N4YJISI5YIRW2MGPEW2XTP23AUB4RQO6S7WCI 7  DATA SIGNATURE ::
+#,,..,...,,..,...,.,.,...,.,,,.,,,,,,,...,...,..,,...,...,,..,,..,,,,,...,..,,
+#ZMOYPYYQK73USSHIHDVOJHME6EDNQDDUBASVFCIZOVAGEA3QSXL3AKIONYE4TX2GABT3BE7W3KX3O
+#\\\|BKL562GMZAZEXTC5QWTO2M6I5RCKI3RHSID3WNOXWAAVX263KKY \ / AMOS7 \ YOURUM ::
+#\[7]5QHVYKG5C7SKNLUVAFBJS2IMDH2Y54DFRIDNNU32LDDU2LNEHGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

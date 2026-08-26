@@ -10,8 +10,8 @@ Low reasoning budget causes models to call `task_complete` before finishing — 
 
 **How to apply:** Use medium reasoning for both SLERP 4B and 9B models when tasks require investigation + implementation in the same session. Only drop to low reasoning for pure style/format tasks where the model just needs to rewrite existing code with no discovery phase.
 
-#,,.,,..,,.,,,,..,,,.,..,,,..,.,,,,..,,..,,,,,..,,...,...,,..,...,..,,...,.,.,
-#STNT3AWK4RMJWNAYJR4LZHVJTI426RXUANLWQEGAVSGDDASCLI45THWZBG6KBN5TBW7MQI2FYZY6I
-#\\\|CM6DXJZPP4YUM6JSIZSDHC7W23C2IUNW52GDMZEVCHCJGGJ6HRX \ / AMOS7 \ YOURUM ::
-#\[7]L74H5M6VF7T7R6G72W4R3J6T42IGB6PG2SKFU4HGLEBLIBDDYECY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,,,.,.,,..,,..,,,,,.,,,.,,,...,..,,...,...,...,.,,,,.,,...,.,,,
+#XFW56FPYHNUFKMBML4Q3PROBPEGNJMT5UU5C6TRX6ITEVWJPB4IHS5KYASNQ4ISX5BOQDE4QXL6II
+#\\\|YAAS3ICN45OSDFQM6H6WQEG5BG4QYSMRVY5REFI2UGPZUKXX6ZM \ / AMOS7 \ YOURUM ::
+#\[7]VFAFNJTGBJE56QYGYYG5V6DYLNI67XKWYEJ2RZQXFZT4ZTOUU2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

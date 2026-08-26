@@ -60,8 +60,8 @@ templates for repeatable workflows, and the meta-cascade orchestrates follow-up 
 tool list, and known issues. Template vars use `{{name}}` syntax, conditions use
 `has_X` / `task_type=value` / `not_X` patterns.
 
-#,,..,,,,,,..,...,,,,,..,,...,...,..,,,..,,,,,..,,...,...,...,,.,,.,.,,.,,.,,,
-#7YH55O5OERWG722NNOAUW7K76QDTZ2RDTBTQWGWB5TQOTJ3H5LYXXA7MWXZVLYJPDOSKAW7BOVSLW
-#\\\|KO4IYY75GMVCPB3SQRGEDDCP6IVNLSRTE7QFRVCPB5XLGD57IXH \ / AMOS7 \ YOURUM ::
-#\[7]A3TRIFYBPD77HTEFYMITBTOD3IARAANCQ7LBX3UPXRLUCR4IG2AI 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,,,.,,,,,..,,,,.,.,.,.,,,,..,..,,...,...,.,.,,.,,,,,,.,,,,,.,
+#4YU3ATMRUX6RQLVUOM2O2H7CY4OFTWCXDQ7KCJFMO353ZMQRK4XMUAOSPAFMVUAIYYOSEIQTH3RUE
+#\\\|QKDSYGYQBPBYZNVAGGI6VEQAY66HNGRD7J7UFUUBWFRTCN3KY7H \ / AMOS7 \ YOURUM ::
+#\[7]FL3M32GFDJ77BYJI6FFNPR2MNZJKUHJYXKCMKB4NK7CJPSPQS4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

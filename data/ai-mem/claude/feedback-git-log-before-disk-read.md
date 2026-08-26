@@ -23,8 +23,8 @@ actual files when git log doesn't turn up a relevant commit, or when the
 detail needed (e.g. exact config key name, exact code path) isn't in any
 commit message.
 
-#,,,.,.,,,,.,,..,,,,.,..,,...,..,,,.,,,..,.,.,..,,...,.,.,..,,,,,,...,,..,,..,
-#CI6L76B3AI3B64NIT3ZV34LGV5PA2LNMJR5BEECOPQ5S77AWWSAOMMW3A75KPCNOLDA7WLYM62SQ4
-#\\\|MUL3EF5HY7CQDEPYWJ43OMGDWHCHPCUCX3JVE7W2T37NCKKOLGW \ / AMOS7 \ YOURUM ::
-#\[7]NEEUT7IMXTICPJB54TFTHUNXJEYT5FWLZDRJONJ7TEKK724SNOCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,,,.,...,,,,,,..,,..,.,,,.,.,..,,...,...,.,,,,,,,,,,,.,,,,,,,
+#JAE5GSHRNV2VSBRGSW6AYQWXJPKRTPWWR3GBOSH65G3EYHUDEY3FE5L4WUZ5QWIGYAC42OTUE5E5W
+#\\\|GELWO3XCCSNND7Q5R3KUW234XKELYUMJFMGHZVDCFSWCHSQAPJ5 \ / AMOS7 \ YOURUM ::
+#\[7]2Q6ZFNXPLJMS5MRD5BN74OMY4G2CNPWXFCHLFWHUYCHE46QUTGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

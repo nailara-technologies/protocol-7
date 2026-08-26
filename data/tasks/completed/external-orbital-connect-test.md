@@ -37,8 +37,8 @@ once a second node is available (see nodes-orbital-second-node-setup.md):
 
 do NOT add stub signature line to modified files.
 
-#,,,.,,..,.,.,,,.,.,.,,..,,.,,,,,,.,.,.,,,,.,,..,,...,...,.,,,,,.,.,,,,,,,..,,
-#A7OY3KEU4LWKBRYEO6ACE32DHFRJWNNWNKIS6LUZ45YPPB7XNBQYJFY3OIWOTXMWBRWI7DNLSOQHQ
-#\\\|3RAG4LFRWCDS2B4FML6ZI5S5AZ6DO5NE4PB544OUIDI2SYFKZTU \ / AMOS7 \ YOURUM ::
-#\[7]6TDVRUZ2T4LXBHI6MMJSLRQT6XZKO5PMUJ6TLZ4CB7N27QJBFYDY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,.,,,.,,,...,,.,,.,,,,,,,..,,..,,...,..,,,,.,,,,,,,.,...,,,.,
+#7GATV4SYDEZUWVBCFEO5EK2ENNVRAF4TOQVFAFA7OFC5WGGXSY6IQVCAI76MIFOVAYFMOJG6XDUX4
+#\\\|I3W3P6DK6RVSL6UUPE4Z2STU3LRNF4KWED5ZZ7YLG77R6NZ6DNI \ / AMOS7 \ YOURUM ::
+#\[7]YX6J7WJ6FRNTNWUXWNR5PKVJQ7XC4DRI6V75EYPQFCYLAKLAEOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

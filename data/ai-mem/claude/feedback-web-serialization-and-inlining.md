@@ -55,8 +55,8 @@ includes rather than script tags. At that point format choice
 [ JSON vs YAML vs native ] becomes a per-call decision rather than a
 per-endpoint decision. For now, the parallel-endpoint default stands.
 
-#,,,,,..,,.,,,.,,,,,,,..,,,,,,.,.,,..,...,,.,,..,,...,..,,,,.,.,,,,,.,.,.,,..,
-#XUZIP7YTIJQVJ7YLDZWLFA4FBDKDROVNOLKS55EEIIMA375APQJDA6JTJRFVBTNIQFZKZ7C2IROBO
-#\\\|QXLDRFNUM6VY3MTAWRKTDIGHANOL2LXVPYCRHU4GXF3JQRNSOMB \ / AMOS7 \ YOURUM ::
-#\[7]HCUFOIF4LGQENHYQ2UX7XQD5ZH2CEVQL6JX4SOJXNDY2IZN2DAAQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,..,,,,.,,,,,..,,.,.,.,.,,..,..,,...,...,...,..,,..,,,..,...,
+#PQ67ATTRBGD6FVZJGW6B6EELZXDLFMXWGOFSSEMGLCXEAWRPMQKUPCYZXBCIL5SCGWCI3CCLPVXC6
+#\\\|Y3EXARE4ZLOKXW36SVAIYEE3775ZDWADUK3YBQ3ODUBFZ26YYBE \ / AMOS7 \ YOURUM ::
+#\[7]CTME4W6WHEDFFUWLLFU66EO4MIIMBMJN5AOX7YURZQYK4RGX2MDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -429,8 +429,8 @@ handles all footer blocks — leave them untouched.
 - `cred-mesh.store.local` should wrap `credentials.read_archive` / `credentials.write_archive_file` for the actual file I/O, passing the C25519-derived key instead of the old password-derived key.
 - `credentials.cmd.request_session` and `credentials.spawn_web_session` remain in use for SMTP/IMAP/web sessions until the fabric subsumes them.
 
-#,,.,,.,.,.,.,,..,,.,,.,.,,.,,.,,,.,.,,,.,,..,..,,...,...,,..,.,.,.,,,...,,,.,
-#24XXITLGXE42WOGS6DWXWW2UJDNIMAMIV6F6V2ZEO3ASNL6DFZJTTVA3L6FQ3BQ6UPREKXBBEKCVY
-#\\\|KCELENPYSCXEWLXIET2VSOQ6ORCK3OO6P3YYRI5AX5C6EFK7EHH \ / AMOS7 \ YOURUM ::
-#\[7]T5PB2B2ZRDJJBFTHJEXGFXEP5EI7XFBOYE3CYMY4EZY5OA5W7GDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,.,..,,.,,,.,.,...,..,,,,.,.,,,..,,...,...,..,,.,,,.,,,,,,,,,,,
+#6CI7ECN6MZU4634GYFNQ3I3TLL2XW5NCDICAOVU6EDFR4JQND63HMLTXSH32Y3NF2WM545HEXI4OW
+#\\\|UOQSAPEUVMGOBET7W4YXGP46FR6GL5DZNJC635ENWCW2CFZNOFF \ / AMOS7 \ YOURUM ::
+#\[7]EZWYNNV6YTHXL4UPKPAIMBPGM2KZEI6U5V7DFTA3APHSVGFZ2ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

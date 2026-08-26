@@ -40,8 +40,8 @@ Don't assume this is scoped or wanted immediately; the user said "step
 by step" — surface it as context, not as a queued task, unless they
 explicitly ask to start scoping it.
 
-#,,.,,,,.,.,,,,..,...,,.,,,.,,...,,,,,...,,..,..,,...,...,,,,,,,.,...,,.,,,,,,
-#7LNHXAUOXPN3LWBBMDHC4L3IVBRG5FCNNFCU64PDQTL73LQGRRZZ4P3OGWN6ETBAJRINBZNRATV5W
-#\\\|TIPQQSJPN4ZECGHZJLHOOFNR36UO45IMRCCCBM52T5YLKOHMUF7 \ / AMOS7 \ YOURUM ::
-#\[7]UZOPT5PWOJHDEWZXBXZZI3MUEM6YWOU6W3F6IX2PD26Y4EHKOSAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,.,,,.,.,.,.,.,,,,,.,...,.,.,..,,...,..,,,.,,..,,.,,,,,.,.,.,
+#R3OWKGHTSMOWJEEIFXMS2QD377ZRRELWJPZHU57N3UTVQ6IHDJXF57XB6CNF6UFUN4T6BHKQABEUC
+#\\\|JTSYPOUNJXKHIQ443VAQZZ7NMUBS546WOZ2Y7JSNRICZ5VVBXEY \ / AMOS7 \ YOURUM ::
+#\[7]R77KQNVGPW6GXOYKXVDO2J44GLSUBUAR37NM74MVWN6LA3QBDECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

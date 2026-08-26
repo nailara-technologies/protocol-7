@@ -360,8 +360,8 @@ do not add signature stubs. run `bin/Protocol-7 sourcecode update-signatures` wh
 - [ ] `git-watch.snapshot.restore` produces repo with all rescued commits reachable
 - [ ] zenka starts on-demand cleanly, poll timers staggered to avoid simultaneous ls-remote
 
-#,,,.,.,.,...,.,.,..,,,,,,,,.,..,,,..,,,,,,..,..,,...,...,..,,,,,,,,.,..,,...,
-#XZQRAHSKWJ5MF7DN3VGGBM5M66JOBBVLJTEA4Z6PLELGUNXOEYRXUE6BHRED3E3GSQN34XTO5SIV4
-#\\\|63BUN4N7NATRATRBJ2TRGYGV6WEPWNZTO5L63V475PZBSHT3EJK \ / AMOS7 \ YOURUM ::
-#\[7]6EKBVCDLQNCBFZR6TWE4SGQBF5GWAXEKPDGGH7U4AYKUQPGZNSCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,.,,,,,,,..,,.,,,,..,.,.,..,,..,,...,...,..,,.,,,.,.,.,,,...,
+#OLK3H3CZZZ5TQEPDDNDIFH7EBXECANNX72MACVYWYDG6XBOR7P5MXUHRXFN3Y2MDVDPEIBZZOA4NI
+#\\\|AHEB3SSK2R2KWG7LOY5VP2R74GHE3RRZ2ZQ5TCTXXQFZLS4ZQIM \ / AMOS7 \ YOURUM ::
+#\[7]JRUPVOXPEZ22KCAESXFVRG3GUWLLMFMOW7OCFW24G5C53U4WX2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

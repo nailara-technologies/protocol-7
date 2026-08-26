@@ -227,8 +227,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 τ = 2π (already available as τ constant)
 
-#,,..,,,,,..,,,.,,.,.,,,,,,,,,.,.,,..,,,,,,,.,..,,...,...,,,.,.,.,...,,,.,...,
-#N7IXMIRN4ICSCSJIYCDEZE26H5YLU6YQICGIDTO7IL37GGLYL56PEWQ7T7F25SIEOITNA4W2LXKJM
-#\\\|GB4BVVV4LMGDPZ62K4IN7AHW6OYPOJ4TYPD2JNYKCWLLFU5WGUS \ / AMOS7 \ YOURUM ::
-#\[7]3I2GC66W22C5TYP5W3GULISWN7BYORR52HMOLOHC6DAQT3UCX6CY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,..,,.,.,,..,,,.,..,,..,,..,,..,,...,...,...,...,...,,.,,.,,,
+#EDGZBCDGMDCAFZPRBVNO65ZADO4EFSYJWJELI6BOJHY3NCC47WBA765HBQXBBOA6OCKSVBDXTP4AA
+#\\\|XAFBFF3MTCZTNPZNQHDIGSXI7OFVUUI3MXFVNUGROPF2A7RHHQB \ / AMOS7 \ YOURUM ::
+#\[7]5MJFXWYNCIXIX76NUKDNUM3D5NX2264HWFFEF7KFULJRAPW33KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

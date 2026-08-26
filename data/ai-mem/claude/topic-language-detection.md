@@ -23,8 +23,8 @@ Locale vision pipeline: model writes translation → render screenshot (web/term
 
 **How to apply:** base.language.detect implementation is next kimi task after bin/chat.
 
-#,,,.,...,,..,,,.,,..,..,,,,.,.,,,,,,,..,,,,,,..,,...,...,,.,,.,.,.,.,,,.,...,
-#7CC7IUFOGLO2SNWSELYITVNP3PNO4PKYI472W5CLQI64GL3XZMNWLAWZTC6CRMLV2F2WAHCAXN5K2
-#\\\|MC4XCJGBGZORXORBEBWL6CTEZMRU7J47PPB7L4VXO37TL7OOH44 \ / AMOS7 \ YOURUM ::
-#\[7]QAIJYNI7PFEC6J3CMA5ABEANRUWEDHK7CSEA2DAOFVHHH6P2ZWCY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,,,.,.,.,.,,,.,,,..,,,.,,.,.,..,,...,...,..,,.,.,,..,..,,...,
+#F4POJR476SD7CHBSOLJF6VVM2FSOZFZS6BVIDYCCXG5UGTYLZHIIAEL3BH3RG5E4BMDG3RGRU6LBQ
+#\\\|ITFZ4QFCU24NJ7IJDFPT4WAGO6CKHZLVGPJDYHDU74FLZQ6CT6R \ / AMOS7 \ YOURUM ::
+#\[7]CUNNKS65CSJMJZR2SQYGR4TAT6SLTZU2BPMLFLBV2D7C5WMQKUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -255,8 +255,8 @@ With compression (empty clusters shared, common prefixes):
 
 *Checksums cluster like stars in constellations — individually unique, collectively meaningful.*
 
-#,,,.,,.,,,..,.,,,,,.,..,,.,,,...,..,,.,,,..,,..,,...,...,..,,.,.,,,.,,..,,.,,
-#22YY6G2N4SSP7SBZ42LB6TY6MY3IHCDL2XP2Z2DWWJXWDGPKAPXPXXFAUQJDMECJGGTY5KK65NW3S
-#\\\|JLHG55FPEHWYR46G3AEIC562XXNS667YFUHDLDRELZ5SSSBH2QH \ / AMOS7 \ YOURUM ::
-#\[7]GGUDYPWNFAUOUXZKDJRV2OJP3IJBNG4IGHCPJ6KDPHR2PXO4WOBI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,,.,,...,,,.,,..,,,,,.,.,,,.,..,,...,...,.,,,..,,,,,,,,.,.,,,
+#3QGRIY57JFF5T3DX4OGQ4INZPYOMXNZOL2PDUFJD76Z3I75LVEY55RB3A6SYCXSVZRYCTNKU6DE66
+#\\\|K5ND6JUHF5EXT24U24SUZ5NQP52UYR4NNDJLT4N2TK7ZMNNA37G \ / AMOS7 \ YOURUM ::
+#\[7]IG6EYTIRL2A4ZV7HWZHGW757BZLLC5CTPYR5ID3YBTORXIFAHCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

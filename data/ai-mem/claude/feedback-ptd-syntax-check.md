@@ -40,8 +40,8 @@ Prefer `~0` over a literal max-value hex constant for a 64-bit
 "unlimited"/sentinel value — it's both more portable (matches the
 build's native word size) and avoids the warning outright.
 
-#,,..,,.,,,..,,,,,...,,..,.,,,,,,,,,.,,.,,,.,,..,,...,...,..,,.,.,.,.,...,,..,
-#UQGKMUIQJRFRMZS3ZF3VAVPBVO4ZYJAKW55BRBHIQ7FGG7IICKISYLLJ5N6LU6SGNHD2WOTN4UURK
-#\\\|UJMYKDJE5A555J7HLPWLADMJF2XXBDRHNUHJLAYUMEHFCEADCVW \ / AMOS7 \ YOURUM ::
-#\[7]BXZ52BQU34NMR34VA2VXIKZ3OBAPP6ZHPB4CDSLBV4ILFCGOOMAY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,...,,,,,.,.,.,.,,..,,,,,,.,,,.,,..,,...,...,..,,..,,..,,,..,..,,
+#INJIDRL3NRXHMJJ333LCAIELS27MZNPC7N2EGPGIZDAS74BSDCI2H7IE7YWY77X3T7NDUZZ756YZW
+#\\\|UTZ7RA2P2Z3WFZSVRH5DWJ3XE2THAQG6R272KCXY46H5CLXBPC6 \ / AMOS7 \ YOURUM ::
+#\[7]5P4JDBBSO2QBBZNBAVDFTLNC3XXU63XET5AX76IE2VPYXEOXLEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1474,8 +1474,8 @@ Module A → Module B → Module A
 - **Configuration**: See `cfg/zenki/*/start` for zenka-specific configurations
 - **Dependency Management**: See `src/debian.*` for example of complete zenka implementation
 
-#,,..,.,.,...,..,,...,.,.,,..,,,,,,,,,,,.,.,.,..,,...,...,.,,,,,.,.,,,,,.,.,,,
-#XSX2GRBCTOJPHVFTG67K2XTRKOMEAXA2WRXQSCBY3KTU3MBOVW5FFDTXARJU4W6Z6RT4JORNV5QVY
-#\\\|UF7USF7ENO4T4RGQHA22DQRHDGIGMRT7NXSLOFFEKBZKB7XFID6 \ / AMOS7 \ YOURUM ::
-#\[7]AFOV2637RBE7XEDDMDZXGUNCL4WXK7UK5I5F6WW34G2LXCMB3QCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,.,.,.,,,.,,,,,,,,,,,.,,,.,,,..,,...,...,.,,,...,...,,,.,.,.,
+#77B2QMZEOLTX5XHVL23PSU2VREWSK4MBBGY6XI664ZQHCG6I3Z24XUKUBCLCLGGUNLZIJ64R4DLPE
+#\\\|Q6MPLISGKCI6CDCQ6QB22KBZSJ7LWLCFTHT3KER2GQGN2VRINPF \ / AMOS7 \ YOURUM ::
+#\[7]4RF2AHA7MBNN6IBWNXGJQ5CYJ5AAFCFR3ZV5LZIRIBW4MD22JGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

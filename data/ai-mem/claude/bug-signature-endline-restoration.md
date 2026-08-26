@@ -52,8 +52,8 @@ unattended reproduction.
 **Record**: `data/tasks/completed/signature-endline-bug-FINDINGS.md` (full
 writeup) + `signature-endline-bug-sanity-checks.md` (original task, banner-marked).
 
-#,,,.,.,.,..,,.,,,.,.,.,.,,,,,..,,..,,,..,,..,..,,...,...,.,.,,,,,,,,,...,.,,,
-#BZJFUJC6DDVEHXED3IYHULHS6DPXOWSJG6HXMJSZXFAVR7I3FD5PHJPP7YLFNW64SCKL6LCMWJ2LY
-#\\\|UEZWVCJPMZXT7YV52CEVKF5LF5GXQG5X2ZSXSOCKS3XL6MMJMEK \ / AMOS7 \ YOURUM ::
-#\[7]VUSTQ27I5CEXU44I44Y37MLRJQL3N6KNA4EYN7QC2LAFLPCNRWDY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,...,..,,,,.,..,,..,,,,.,.,,,.,.,..,,...,...,.,,,,.,,,,,,.,,,,..,
+#W5UTJUDIA3PH4MGUAYWHL62JFSGL5NCC7PRHO5QJ53QCDMF5PCQCUHKPGHJJUUILIDDD23MFZSX7W
+#\\\|B2SZCZWSND7MW4TFKHIGPQOC5CIPMKFH5TZBTQUOJWSN2N6OTXY \ / AMOS7 \ YOURUM ::
+#\[7]VQEDW525IEN3V5DTQBUYNMX23AWI5PCOZBYF7FVGYE4US6VHLGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,8 +40,8 @@ approvals exist, auto-approve them (same as the flush in kimi.connect).
 
 do NOT add stub signature line to modified files.
 
-#,,,,,,.,,.,.,...,.,,,,,.,,,.,,..,.,.,,,.,,,.,..,,...,...,,..,,,.,,,,,,..,..,,
-#C62FHSWCVP6WBZUYTMPNPFIWD63BAOB5DT3BUKE2CZCUF6WME7HB276RRZV5PG7Y2ETNSEBDME5ZC
-#\\\|54GB4LSXZKTRXTHRW5NS3I23FH6S5QXNYXE4346B27NJ72RAPII \ / AMOS7 \ YOURUM ::
-#\[7]EPKZCPQNDYGQ4OQYPZAVPWD2YXKDSRL6GHJBGRIESDMYKWJBOGAY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,,.,,,,,,,,.,,..,...,..,,...,..,,...,...,..,,,,.,..,,,..,.,.,
+#TM3ZOCYXGDRXYQ72ZUCFQVIQM3SBZX7HMCC73H2IUHQDF36FN5IWRLLEWATXSKFX44EQO2ASDDKJA
+#\\\|27EMPD5GNTMVECQ7SFJ2RCOVSQNY5EGDWWYHG7G65R72H3Y3NWF \ / AMOS7 \ YOURUM ::
+#\[7]W7N55EPXYZB32XZ2E7OQ3SVYKS44ZZO37I7N6JUC47QKKPPCY6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

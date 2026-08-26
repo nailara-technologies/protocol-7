@@ -140,8 +140,8 @@ page close AMOS checksum = natural ACK (received AND verified).
 - max chunk size tuning for non-terminal transports
 - write spec doc for `0`-prefixed self-delimiting checksum format
 
-#,,,.,...,..,,,..,..,,,,,,,,.,..,,.,,,..,,..,,..,,...,...,,,,,.,,,,,.,,,,,,,.,
-#EQH233L5UY4UEVY3KLW44JDPGPDAB5VA2MKRD6FOVNIKNEPUOSMHQI42LOSCLM3YZN6V53L6XUFMW
-#\\\|Y7T3NATPP3HDI7RBYIOUMBCMZ2NE7ILA533DIHI7ZMYK3LRM4HE \ / AMOS7 \ YOURUM ::
-#\[7]42YHD4BLQM7F6B2XVN5PUA5M2QBMT4S45EGGV7E6DNHMBYQPNODI 7  DATA SIGNATURE ::
+#,,..,.,,,...,,.,,,.,,.,.,,,.,.,,,,,,,,,,,.,.,..,,...,.,.,.,,,...,,,.,,,.,..,,
+#CMTQTLE2RX4QO45G66KXD3F2LMFXPJNIG5PSNGKDP2QIUMTWXRPCNH4DK6I3MMZWDHUZ2HOGHOMJ6
+#\\\|XVCZ6SKXDQJTHP6RRNIXUDTYII7YRGQXXFLMECXT3IRYOOCEUTB \ / AMOS7 \ YOURUM ::
+#\[7]LVF7WPLBD35FI6YCTMGYAD623DZPFKD6NUKBH3GJEXVJMKIQEEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

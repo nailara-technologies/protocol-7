@@ -145,8 +145,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,,,,,,,,,.,,,.,,,.,,,..,,..,.,.,,,.,,..,..,,.,.,...,...,,..,...,.,,,.,,,,..,
-#2S56EFGDLMPUQXYHSAWHQKVFSVEM6GEE5FKKY2SLXLZ7J3TFIWPEQWKNTM2DAIRKXSIH2ITDBNVNA
-#\\\|XKMR4N4DPEYF3P7ITSVSAOTQG6YQ5XZRA2TEPEINKYMCHLKKV62 \ / AMOS7 \ YOURUM ::
-#\[7]4DJYWU5CSWR4IR6A3HBXPDFRF6PYEPBUYI3XKL2K6PRWWES43WBA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,,,.,...,.,.,.,.,..,,.,.,,,,,.,.,...,.,.,..,,,,,,,,.,..,,,,,,
+#KBJ2XJZ2XHFWIEJ7W53YVXSL6SGWDQTSGXMBA3XMFM4P3FTOTCBRA7HM5DOM2N27Q6T457EX7A3VK
+#\\\|DCVLKZ5GQE2O4PXABOHFSQUUJBK6EYH3XNW6YXQFHXSBAV6KAO4 \ / AMOS7 \ YOURUM ::
+#\[7]QHFOT6DXHUGOLWCRZISOKQJHL2H6KOP35NTH7JWFLJ7SX3TFXEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

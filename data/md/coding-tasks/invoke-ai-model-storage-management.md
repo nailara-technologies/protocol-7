@@ -120,8 +120,8 @@ data/lib-path/pm/AMOS7/                       ## for checksum ID generation
 - zeroed vs missing behaviour in invoke.ai: **test before implementing zero**
 - `.z` suffix approach preserves original path as missing if zero is problematic
 
-#,,.,,,,,,,,.,,,.,,,.,..,,..,,.,.,.,,,...,,,.,.,.,...,...,.,,,...,.,.,.,,,,.,,
-#S5XOPK7SIT24IZZ4QO27BI4TFRCJMTNKHOZWNACDLKSFCBF3EV7Q6QO5F7A5HTVLWLRE364ABITR6
-#\\\|VRY4G4C6WMFAXS2UJYQR3A4FSMRXFC5FIR4PJWQM7R53JYZYBBJ \ / AMOS7 \ YOURUM ::
-#\[7]VJGXKG4E7CMISVJWRDZYTL4IQKTTSHBHRIR47DTVC5KTF3LFJGDY 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,,,,,,,.,...,,.,,...,.,.,...,.,.,...,...,.,.,.,.,...,,,.,,.,,
+#MWXKTVN6LXXP3DHG7J54SSGMDJVE7JIAT34OPIMBSPZLULO4PYRQT2YSTHK4QJ7NJUW3LNARRUF2I
+#\\\|RUPRHG4NLAODDL6XLG2HWWOKLXKCZFUFRWNT3MAMM2CFVYNFHJK \ / AMOS7 \ YOURUM ::
+#\[7]E3HIKVYOUQVD2OEFWIXA7ZHBNINBX34FM6V3MN7ZQUY76JSTDCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

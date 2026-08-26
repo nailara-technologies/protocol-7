@@ -93,8 +93,8 @@ external refinement is optional enrichment per wave.
 - reports are also training corpus for the security FastText domains —
   see [[security-intel-embedding-domains]].
 
-#,,,,,,.,,.,.,.,.,,,,,,,,,...,..,,...,...,,..,..,,...,...,.,,,.,.,,..,,,,,..,,
-#S6ATYNNHDGTRFEZIODSKRXP5T24QX2BNHOWL4WI3USXJUGSEJQ54SILUKQQG54ZIUN7HSIT4KFWTK
-#\\\|NRYJJVXFOIVGFKBDTCABWTADWLUS5QH2BJ7W2G6HKCWEG7BIOCZ \ / AMOS7 \ YOURUM ::
-#\[7]QLWMSPLA5TJBHRORXFUVHH5S4PGO7OTRPKGIMTQTPWISCZ7SPWBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,.,,,.,,...,..,,,.,,.,.,...,...,..,,...,...,,,.,.,,,,.,,,..,,,.,
+#SY6H6XBMVXTPPLJVWO4V3YYSHPTCPOBEMFAUXQC5LOFAVJRCQ66CIWXCGZR5WWWQ3VGSDWGHDL5XK
+#\\\|NZSP4YDZ7TTS627SVWSDTWB6IFQCNF44RPDZE46SI5CKEWGUKFQ \ / AMOS7 \ YOURUM ::
+#\[7]KGHHQNP6HNAXWCZ5V3EYQWBEOYZ2DIW5PO5B3MFU2OUB7OHBUUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

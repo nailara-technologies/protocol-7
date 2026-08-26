@@ -325,8 +325,8 @@ Architecture section 8 prefix table as live lookup module in decoder. Creative/a
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,,,,,...,.,,,,.,,..,,...,..,,..,,.,.,..,,.,.,...,...,,..,,,,,,,,,.,,,,,.,
-#XJTDQOW4UDYQH5ZBS6RUS7CGJBYK5YDAFMPFWQS3G2U642OO5VZKNG6LR7E5CCRDTYB5ZWDD3F4M4
-#\\\|LM5JSXI4P47JFYOAXHE424DXVYXBEUQWRRLUQLRGDJDWMVPVSWP \ / AMOS7 \ YOURUM ::
-#\[7]G4ANIZZIORNC3XYVJCWPURH6U23L4HMJGZ7YV4TOOSGAUJA53IAY 7  DATA SIGNATURE ::
+#,,..,..,,..,,..,,,,.,,,.,,,.,,,.,...,...,...,.,.,...,...,,,.,.,,,,,,,...,,.,,
+#MJMNMLCLXBKWQHKRGFMYMDQZTDRIOLJBCII6BKLOVXHKRP25GNCKH3DOY226CT7UPWTQZJEW7THBG
+#\\\|MOIO6EMRE32ZJJYRRP2FTOFH7K2RHQFC4RF7IYFNF5YR3RSEQJ4 \ / AMOS7 \ YOURUM ::
+#\[7]MNN7SYEWVVOJR3TDOFIJ4TQGFKJDUS6BOI4666INMYG5ZMSWIGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -83,8 +83,8 @@ done as part of this investigation — scope was this one file.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,..,..,,,.,,,..,,,.,...,.,.,...,.,,,,,,,,..,..,,...,...,,,.,,..,,,.,..,,,..,
-#JXAKJ2HONMBYA7OEOWRKO4PW44P5JKVW526ZPYAAJVD5KTKNW2INTQWVSO7ZXPOV65HWP4JNVZJWI
-#\\\|4XLZC4XEZ2D25WPCZR2MEC7TIJ7U3QNROR6N4UIUWGN3E4UX6EP \ / AMOS7 \ YOURUM ::
-#\[7]BKJAOW3YZF42C7QSX2S62QQPADPMUPG73K73CWGEI4TB3BL2GEDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,,.,,...,,.,,..,,,.,,...,.,.,..,,...,...,,,,,,..,,,.,,,,,,,,,
+#65QIZGTXR25G74WYWFP6WOU3344CBWE6S55CWBBYYOAS62RF7CPCPXRMUJRI6KPFXDUFEECN3JIFI
+#\\\|CHTJMZZA5B3ANLELD5MAQZ5QDYLRDRUOIGBULGZNNHABTZDKABH \ / AMOS7 \ YOURUM ::
+#\[7]YXH5LJTG7S3AWZJM7FU7PDUD3IGYVWEOMK2RTTFYNFKUNLLCC6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

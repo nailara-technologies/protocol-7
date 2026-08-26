@@ -184,8 +184,8 @@ taint-declaration channel (open question in the design doc) are the remaining op
 mechanism: that one gates *write actions* on approval, this one scopes *what's even reachable* per task/profile
 before approval would apply).
 
-#,,,,,...,..,,.,,,.,,,..,,,..,.,.,..,,,..,,..,..,,...,...,,.,,,..,..,,,..,,..,
-#CRTFHFUDIYXD2XRK5SS4KV53WZKT2MOAVODHLQHF36CJON3XAX67LLMBRTPJMRTTODZ347JCKX4HK
-#\\\|CFGHNYQ5BUKEFCSRCLB7PWPFMPQP5MVPO77QL5DKIQKPIHHUB2H \ / AMOS7 \ YOURUM ::
-#\[7]NJUMTKVLQKZNLVK3OFJSMY5HSAE2MVS2MAUPKPRC3IP2UYG57UCA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,,.,,.,,..,,..,,,,.,,,.,..,,..,,...,...,...,..,,.,.,.,,,..,,
+#QNIFKCY6WZYCAD4NTF23FMIVRB2VOWIBQ457VCAHLID4JRMIFZSUJA5QTNR2BU3QL6RGTCYM6N5TC
+#\\\|H63RHH2I75HTNKL46R64CM2V664NDSJ2KVKPLFPER45ZBA5W7TL \ / AMOS7 \ YOURUM ::
+#\[7]ONYETWLIYQCNDQAGFMU47GMC4LM7NXNOAMSPM4LG4RTB4IY4JMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

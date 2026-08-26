@@ -115,8 +115,8 @@ handles X," check both ends, not just the one you're touching.
 
 [[topic-strm-subscription-evolution]] · [[base-caller-route-send-detection-off-by-one]]
 
-#,,,.,..,,..,,,,,,,,.,...,,,.,.,,,...,,,.,.,.,..,,...,...,...,..,,.,,,...,...,
-#IT7NY6XXWVWKV4PUBWWKC3HKUQOLXAGJTX6HBYEXG2RKDOBMZZEE72KP6XZVD3SIXNR4YCV3NNV36
-#\\\|KYFHV5ENYFYAEXO5UZA4FM6ZLJBNNNCUARQOTUZ2G7TGWQ7SK6B \ / AMOS7 \ YOURUM ::
-#\[7]7W6EIZ5Z6NFKJETQKXJXATNQ5IVVQEJCR3FDSRHKBQDI4Y7D34DI 7  DATA SIGNATURE ::
+#,,..,,.,,...,,.,,...,,..,,,.,,.,,..,,.,.,..,,..,,...,...,,..,.,.,,.,,,,.,...,
+#KHBBXM3I236YW43DDCRMFPWW46V2KA7FFO3PIBN5XB2VIVGKBWG5QA3DKEP47GBDNNDNOMSQECDUW
+#\\\|5I2D4BBOADLGAHBD2XEEWSIWC5ATHTGKVIHTYSGEX5A4T26V7PU \ / AMOS7 \ YOURUM ::
+#\[7]LFSJ4KHW3LLAXG33NGUUVSRO3EGVBGQTN2M6HZNBWLA2BINRO6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

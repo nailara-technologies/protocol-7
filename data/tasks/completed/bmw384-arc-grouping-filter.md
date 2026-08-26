@@ -90,8 +90,8 @@ prompt: |
   { mode => 'size', data => $formatted_string }. New modules: leave clean, no signature
   stubs. Use $ARG not $_, lowercase comments.
 
-#,,,,,.,.,.,.,..,,..,,,..,.,,,.,.,.,,,.,.,,,,,..,,...,...,,.,,,.,,.,,,,,.,,,.,
-#IYEAKTXAQKHBYTCD6CFIQGGGSNAMUWTKUNHJY67RHECFT5HISZJEAOMGTZSORDCYJCUZGMF44JZOM
-#\\\|TU76CXBKAV35MLVKZL7GKNV7EJS3NWFCIZC7T7DWFC27G6CQJEE \ / AMOS7 \ YOURUM ::
-#\[7]BN5V24VRLTRVZH7QAN2KEJGZWSQUQ5DIWOX3DP3DOJKRNNUJYCDA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,,,,,,,,..,...,...,..,,.,,,,..,..,,...,...,...,,.,,,,.,,,.,...,
+#YXFZT75LBL3EEG6PPBJP6MPVPRUOFS273PZQUS4VLTSBPELPPZDDAERCMXU7KYWJCV2RL46Y47HT6
+#\\\|4YVALB7BPRZ2OW6RIWHO2TWDBJ4WOUP4RVTSZZTF5CUWRLE6626 \ / AMOS7 \ YOURUM ::
+#\[7]TEXMSGVJEK2HVL2247XNOXEM2ZME2WIB5B67AXE7I2RMEP42P4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

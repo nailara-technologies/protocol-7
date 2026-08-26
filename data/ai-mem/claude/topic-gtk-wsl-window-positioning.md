@@ -158,8 +158,8 @@ about focus/stacking, not position, and contains no `move()`.
 [[feedback-source-identity-spoofing]] · [[topic-mpv-jobqueue-startup]] ·
 [[topic-zenka-naming-cleanup]] (select-region clone landed this session)
 
-#,,,,,.,,,,,.,,..,.,.,,.,,..,,..,,,..,...,,,,,..,,...,...,.,.,...,.,,,,.,,,,.,
-#HMSC2ANGO2HBR64UXT5KHFUHUTEEJVOOPUISYV6KFVOXV6CO45QIRSGBWYYJIFNDA4HSBNATVUSOC
-#\\\|UZLOREGUOVB4Z4AMLONSPIRFACCB3QY3DJNUBWKP3F5EYNJEFDP \ / AMOS7 \ YOURUM ::
-#\[7]NJM7OZH7DI45GD2EFHAGRK5GFSNVJDPHO43ULKRXEW2HOZS4KGAA 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,,,,,..,,,..,.,.,,,.,..,,,.,,..,,...,...,..,,,.,,...,,,.,,,,,
+#U2XZLKCLSZV5ZFFBX4XOEKQCLXDA6FWLZ73PRFSHEP34KU65POFZXM6GINCLJQL2NUHYMVBIFHRSY
+#\\\|KLRRYNP5BHUEBGJG7SVZJXYUIOVKJALYJ4NUOYLLET7EDLKALVX \ / AMOS7 \ YOURUM ::
+#\[7]YBNNOXN6UIETSEJW65HXYQLCNDQ4SDAJD3AGBKQMJKNYTLR7U4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

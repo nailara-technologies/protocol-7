@@ -36,8 +36,8 @@ no params. loads persisted tree into live index:
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,..,,..,..,,,.,,,,.,,,,,.,,,.,.,,.,,...,,,,,..,,...,...,.,,,,,.,..,,,..,,..,
-#JGMWN474QRJTONOICV4KER5LAF6E4CO2Z63IVE7K5YP3MJTNQJHSN7FEWZTYO6GY772M5QH2M7IYS
-#\\\|TT2KIFVLO64F5JZZG666OE35HZCMCRQA57WDKWS4I65RCYPQX23 \ / AMOS7 \ YOURUM ::
-#\[7]EDJQDOHTLYKY2FVLGNAA2B63P6NSC2EFBS63TTCN6YT7RTM6NCBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,...,,,,,.,.,,..,,.,,..,,..,,,,,,..,,...,...,.,,,,,,,.,.,..,,.,,,
+#RGUPLN4ROXQWBO64L2SZZSCKHH5R3TGTALOOFHJ56M7NCD4BPO33P6BAJ34EW67C2TSKZCYMQTQHO
+#\\\|4QCZ2AD5PHF25BRSAVNYFNIBDWKANXDT4LTZX2KKY6NCD4OSB5B \ / AMOS7 \ YOURUM ::
+#\[7]IOKIUQPBUSS6W3JZ4PWNWMC5I2OCJCL2JVOEAFR2SQG5NFS54ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

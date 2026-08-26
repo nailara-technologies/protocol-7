@@ -24,8 +24,8 @@ exact command (or a short list of them) and ask the user to run it, rather than 
 back. Don't try to route around it via a different privileged mechanism either; just hand off
 the command.
 
-#,,,,,,,.,..,,,.,,..,,,..,.,.,...,.,.,,,,,,..,..,,...,.,.,,..,,,,,.,,,,..,,,,,
-#Y43MNRLAOY2TL2IRKIWOL53OWRG5OZHFYIAN75KKOEBS7QJ3IIXMAJY3QHCWAE45UPQSPRAXGKUCI
-#\\\|PMJKBNYMK5XAU27W2MXTEWRNUZHF2NRXQUPHQ7VBX6WDVRBDMGH \ / AMOS7 \ YOURUM ::
-#\[7]HXM4FVM3RMCDE6YTNEWJUH4UFJEHNUIHTQHNMC4BCYPAMKTOW6DY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,..,,..,,.,.,...,.,.,.,.,.,,,..,,...,...,...,,,.,,,,,..,,,.,,
+#622YHWWKMGB5VX7KGFCZ57BMHYTTPRGY6P273RDLZJYNH27IQNKB3RBJSDBYLK7PPGQGBCO4PPIIE
+#\\\|2GFGTEHBJZN3AS2BHR2OCW7JD7Z3RWVM5UMQT54JRFV24XZZSZT \ / AMOS7 \ YOURUM ::
+#\[7]UMYT5QWXWFCCU2I3JYB6L5FAAID47YLI4XS6FYG3FCU3AU44RWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

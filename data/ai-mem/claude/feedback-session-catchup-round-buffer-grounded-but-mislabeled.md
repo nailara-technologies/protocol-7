@@ -85,8 +85,8 @@ each round without any new grounding evidence.
   are the way to check whether input size is genuinely growing from
   live activity or just churning
 
-#,,..,,.,,..,,,..,.,.,...,...,,,.,..,,.,.,.,.,..,,...,...,,..,,,,,,,,,.,.,,..,
-#YNHII4CJB47H7PYTDXHOALSR4UKPU36WADBKGPDDXCP62FI2BVTXTWEJFGT3JLOT63RZVPCY4NDSC
-#\\\|GWHBQOPF5W4U4ZEVAWOCDUQA5HQP2CNNSHY24RXMCEBZ4S6F4NA \ / AMOS7 \ YOURUM ::
-#\[7]BXCL57FXGCBPVPPAZQ4A5ZOGV3S65OVSSJ5CFYJK65CLVDVTTYBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,,,,,,,,.,,,..,.,.,.,.,.,,,.,,,..,,...,...,...,..,,.,.,.,.,,..,
+#PLRIHYXDRILQRMLODAWRWEKEMNIJCRSGCAHSNR7CDJYSY7JVGE3Q3OFNI64Y6NUQRYU7VOVTWSWBI
+#\\\|EU2XPMRQDIZYGOXYMMEBS3GIFJNXAA37NDFO6UBQ3GYGTLYLQDF \ / AMOS7 \ YOURUM ::
+#\[7]K4E35Q54XEJGWZMC2XPL4ZEE3E55PMOWWWJVKVENEIXYZOOWPYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

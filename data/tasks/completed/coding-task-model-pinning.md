@@ -136,8 +136,8 @@ non-default model) is a latency optimization, not required for
 functional correctness, and explicitly deferred. configurable self-test
 suites (from the earlier tier 1 follow-ons) also remains open.
 
-#,,,.,,.,,,,.,..,,..,,,,,,,..,...,.,,,..,,..,,..,,...,...,..,,,,,,..,,.,,,,,.,
-#IOM7JTZTZTPRBQTDTCPGMRJEFTNXX5MUQ3HUBVW7HROTWHBN3MNCBPWK2BQPKVSDGRZWQGDC46LBI
-#\\\|ENNLZTPATJX7ZHR2IMHYNXSUXCFYHUETCCFMIQZ4O6SPBW34KAV \ / AMOS7 \ YOURUM ::
-#\[7]6YYIEWCB55SHNDOUKYQDRL3VUQPC4DM4JZRE4T37HRLLAGDDSGDI 7  DATA SIGNATURE ::
+#,,,,,...,..,,...,...,,,,,,..,..,,.,,,,..,..,,..,,...,...,..,,,.,,,,,,,.,,,..,
+#AE5FYN6TSPKLQG7ICFSV7Q43VIQL6AD5B2A6LMA4ODGB374GFQO7C25ACUV4IMYAHUX73R4Z3RNZA
+#\\\|D2RC2ZKAIUOXFRAEP6A3YIMMRJ77DV5XPV5WZQEHXYKVKXO4BLK \ / AMOS7 \ YOURUM ::
+#\[7]CD32WVFIVGHYD6S3AI22UVNB57AC3ZSGM77TDWR5WQQPVVS7KUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

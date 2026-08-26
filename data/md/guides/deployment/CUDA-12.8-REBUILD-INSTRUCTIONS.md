@@ -174,8 +174,8 @@ For immediate testing without GPU:
 - Original binary is always backed up before replacement
 - Build takes ~10 minutes on typical hardware
 
-#,,,,,...,,..,...,,..,.,,,,..,,,.,..,,,,.,,.,,..,,...,...,.,.,.,,,...,,,.,,.,,
-#D24JRM6IYKX3VZ2IAUWPRFE5STMIYIL5TGPBROMTZZTTPGMMNDDT3EK7JCQ6DO74HTWSIFWPXSHDM
-#\\\|MYXGPU227VU4OLR4PKH7XJOEMNJD6FERVJDQTQGGX3UQKROJU2A \ / AMOS7 \ YOURUM ::
-#\[7]PFXGDIF4LNAJSED2CAKIECWJSRJP3JX7ANO4UNHXHZ7R3ASWI6DA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,.,..,,,,.,..,,,.,,...,,,.,.,.,..,,...,...,.,.,,.,,,,.,...,..,,
+#YK7TPM3MNNQUK5A7APGUPIJCNVSKRX3NRUQQDOJD5LKKM2RMU5DKODYAKI2PIWDWPFKLBK4AU7L6S
+#\\\|SCM4YKYYM6K2HHWBNBDC4HE5KZ65T6UX4LFZ7DJFRQ4FT6LJMWO \ / AMOS7 \ YOURUM ::
+#\[7]V5HN3CQ6DKOHMCREQB3TH65B2CIDGNJCAC3KSXE7MDG54NNKGYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

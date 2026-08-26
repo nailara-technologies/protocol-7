@@ -188,8 +188,8 @@ return { 'mode' => 'size', 'data' => join("\n", @lines) . "\n" };
   covered by the compartment's own checksum frame. this means the chain link
   cannot be altered without invalidating the compartment.
 
-#,,.,,,..,,,,,.,.,...,.,.,,,.,,.,,.,,,,,.,,,.,..,,...,...,.,.,,,,,,,,,..,,...,
-#QUZPOR4AL5XORM76HI72DHQ3SHIFKOPHJ4SZ424ZXOD4XST4BTEUQP6ZA6SPSLZIGXB7LOZIFAFWU
-#\\\|QQ6O4JU4QTOSX2QECZ5UJVEJHJVDGWACFFKQX2REYBAAPRCFSGF \ / AMOS7 \ YOURUM ::
-#\[7]UJRYZL3EAMBXSEEJMFFS3N74KNLQB4JKCY4EOVXYEGU55WPM2MBA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,.,.,..,,,..,.,,,,..,,.,,,,,,..,,...,...,..,,,,.,,,,,,..,,,.,
+#DPSFRZGA6YK5Z42HZQME7VDNFW5FGRY2YKCSHBNPZNGKWYEEL2UI7N6WZ55532ZDALXXRDKVAIMVQ
+#\\\|H24M2JJ4EK4LWQS7J6APF3IQDR2UBV25JM5MTAJ7A7PZSIPZH43 \ / AMOS7 \ YOURUM ::
+#\[7]FMOXZ2IK6K5VOBYHCTTYQOXOQUPUWDMZJQPG3QO5FE6BNKOQO6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

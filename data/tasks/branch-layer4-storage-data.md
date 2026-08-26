@@ -155,8 +155,8 @@ lowercase comments, `[ word ]` annotations, `$ARG`, no signature stubs.
 
 depends on round 1 complete. parallel-safe with `branch-layer7-resource-attach.md`.
 
-#,,,,,,,.,,.,,..,,,..,,,.,,.,,.,,,.,,,.,,,,,.,..,,...,...,,,,,,..,,,,,,..,,,.,
-#LKYQGX7RPWJ4RKDIYDLF66KFY43TEQFOWTN6PTKLZWAAID7YFRE6TEJUWZVLVVGE5JZ2ICHGR6K4M
-#\\\|LDQI2IOPLWG6TSYNGYUQE5QUFFAVBL4BJCGN4SACXAPM6MCIGAY \ / AMOS7 \ YOURUM ::
-#\[7]CXGO7I4UMQLEZXP52UIQW5VEHOHDCETD5D7AW3AYYVYKL7GVN4CA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,,.,,..,,...,..,,,.,,,..,,,,,..,,...,...,...,,.,,...,..,,...,
+#H2LCM557OYS5H3JC6VN77KGVFOQSQFIIHAFD6N3NEUIOGR6FPNHNAEZSW4AXE2C7W4XFJ2SOY3Y3Y
+#\\\|Y3IZLUPHQGMJLOSF2H5JYJ6CW6OFXQYI4TNB54WAETTZ54CQ24W \ / AMOS7 \ YOURUM ::
+#\[7]X2LHLUIQ54KQW26RYIICHQWYJJ6ANNWOL6EDVUEHWQZUDRQR5OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

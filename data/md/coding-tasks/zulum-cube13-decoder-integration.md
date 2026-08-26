@@ -184,8 +184,8 @@ sequence of cycle positions visited.
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,..,.,,,.,,,,,.,.,,,...,,,.,.,,,.,,,,..,...,..,,...,...,..,,.,.,..,,,,,,...,
-#JASRWWJRU26L7ROI3U5MCT4EH2DJWX6CVXVDUMZ4BSTFDROFLTNKW4BK3SQ5CHQ6USBICETHREFJU
-#\\\|OAQOWK3ESCQUGC6VVVAX4HXI6QY6MJ4X6A37VXA6TWHAPTVHZE7 \ / AMOS7 \ YOURUM ::
-#\[7]TNL4EQV3PEN5CIZG7Z37P6WZSBKHR3R7DEOBFOJ5NUG6Q24RFWDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,,.,,,,.,,,,,.,.,,,,,,.,,,,,,..,,...,...,.,.,.,.,.,.,...,,,,,
+#6HAWK4ALUGRTY35C6DVC2562HGPHYMOAHVR3G5GJOLY4HOEYSQMEIVOYCOJS7WRSFQOP5EUPXSWFM
+#\\\|J7ZBJMUURNSA7X5CCSMWO5YGNIKAIOZ6SKROLFVZJF3JZEKLLYW \ / AMOS7 \ YOURUM ::
+#\[7]PSPCG33QVKMPBKG625W3ZSHPE3YGHZ2DZTVA6JBREME27JGKRKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1511,8 +1511,8 @@ plugin (stashing the checksum for render_form to pick up later) is
 visible to both — same hand-data-forward pattern `user_keys_names`
 already established for the same reason.
 
-#,,.,,,,.,..,,,,,,.,.,..,,,,,,.,.,.,,,.,,,,,.,..,,...,...,.,.,...,.,.,.,.,.,.,
-#HLWWNIXRRIZZX3LQTC4SCUVI3GQTGV44MAKNBCU2FBMQYVPCJQYEFICRB4TMLBXDOMFLXLVYXRBNM
-#\\\|3P4IQJWBZM46DDFNOB5TSVQCG5QWOA3CODOD552ROVJJZXQKSEM \ / AMOS7 \ YOURUM ::
-#\[7]UB3QNYJLWH2U5C2NKM46XC7X6K2GVHZ3JBEZJHISEAAY323EFYBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,..,,,..,.,,,,,,,..,,.,,,,,,,..,,...,...,..,,.,,,,,.,,.,,.,,,
+#7BKB3DVESPTR7JSOLOHHQSEY4KIXLT7FUZBWZH2MG5ZHEJVT5677LSW7CYYG3S7KRCNEKKVFR3KYS
+#\\\|UPZULZSDADRSVQNTZVLKOXSANEBV7WSMEBLFWXTYMMP7RQDU73J \ / AMOS7 \ YOURUM ::
+#\[7]3GCRDFJE7MXSBXR2G4ZNMD7X244SMEWMTC6QFEM2PEDTDTMY62BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

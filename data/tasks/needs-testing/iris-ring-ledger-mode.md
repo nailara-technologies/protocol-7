@@ -260,8 +260,8 @@ prompt: |
   src/route.bmw384.visual.wheel first for SVG rendering patterns. New modules:
   leave clean, no signature stubs. Use $ARG not $_, lowercase comments.
 
-#,,,.,..,,,..,...,,..,,,,,..,,...,.,.,...,,.,,..,,...,..,,..,,.,,,.,,,...,,,,,
-#AXG6WSZG4YGISWVTK22AHHUKXDPNV6FLS2QJWBBTJA5YMIKA4QMXMMOWDJUY3UG3B4GLROBRGFJB2
-#\\\|GYASHZR6RCW5AZXSQ6KD4ZU56AFRTZBVJQBJ5D46FU2HRXPW7PI \ / AMOS7 \ YOURUM ::
-#\[7]7GRAVEMCZ4NIYDGXD3KZNQVPTUCXY34X2YDTACLARRRA7GRXOEAI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,..,,.,,,,,,,...,.,.,.,.,,..,..,,...,...,.,,,,,.,,,,,,..,...,
+#KAM2ZNKROZD7UKTYX3OSLSVIWXY7O7WJVLCKGC2WNYZGY57EYFWLRRCKENGRUVYWFSZE24XOVMOHM
+#\\\|KN4MJVG2AJ3ZGIRKTFMJJBCZOU6BVQYDRAFJ7W6LDCGVWB3ZFFZ \ / AMOS7 \ YOURUM ::
+#\[7]36CLIBAXVPKUAY74TYEVLZORDNIUPREAKCA2YB3DFBO4EEFLMABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

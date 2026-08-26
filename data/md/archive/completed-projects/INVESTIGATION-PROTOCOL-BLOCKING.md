@@ -288,8 +288,8 @@ The reply handler unconditionally calls `idle-callback-set` even when the target
 - `src/base.log.send-buffer.reply-handler.notify-online` - Fixed idle callback loop (COMMITTED)
 - `src/nshell.shell_loop` - Fixed protocol mismatch, now uses direct buffer relay (PENDING)
 
-#,,.,,,..,...,,.,,,,.,.,.,,.,,..,,,,,,,,.,.,,,..,,...,...,..,,,,.,,..,,..,,,,,
-#6EJZQNJATT6GW2U5TFBLCE3DDZO5AWZKOVUJG6HILJGRFMMDQOJZZCIWWSDNC2H5XRKD6ZHDCAGUS
-#\\\|DBKOQO6U6UROVM4T6SYFTCHXTOGGQBDMNN34JZGUQRQJDI7UQC5 \ / AMOS7 \ YOURUM ::
-#\[7]Y5CE7EQ2VNM5X32W7EI27AVGECQLXQPCR5T2TGTU4YH3H6ZIW6BQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,...,,..,.,.,.,,,,.,,,.,,,,,,...,..,,...,...,.,,,,.,,,..,,.,,,,,,
+#7LQN235HLZCPCCLHWBQ6OV4GCEKBF2XFRRVCTFOFGBJQTSQPQV5FTMZJMRE6VMT2QU4YLILUXHXNE
+#\\\|VMRPZXEWYDLBFXAKVNH444JK5SBSFOF7ZV4NTKM2FK6R6D4BJRZ \ / AMOS7 \ YOURUM ::
+#\[7]3MNRT6GMYYVGWUOYAXPJLLJ2UTOKDAWTO2EPHNUZYBV4UIVCBUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

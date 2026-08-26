@@ -48,8 +48,8 @@ be treated as correctness-critical, verified against a live `coding` zenka reloa
 an actual `coding.tools.dispatch` call exercising `pager.source.file-list`, not
 static-only.
 
-#,,,.,,,.,,,.,,..,,,.,,,.,.,.,..,,.,.,...,,..,..,,...,...,...,.,,,,,,,...,.,,,
-#OKAQXFQPKEQICYYTP3L5KDDOIHHQMFWPPJWXHE5PDFY7KNPFP5YUZRV5W6GMMMME7RMW6ZND3MMTM
-#\\\|45B4GSDIILZXC5DZ2RVEBJ2ODE5MXQYT5EZAB5MHEYLY7HP54IV \ / AMOS7 \ YOURUM ::
-#\[7]NH7Z6UERKUYNAXYWRUEIUPHA5LXSYMZZVW6A5D2EJOANOJ6OTKAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,.,,.,,..,,,.,,,..,.,.,...,.,.,..,,...,...,.,,,,,.,,.,,,,.,,..,
+#E7KXJ3F4V2P7NEJRIECGZQHYWEHLWU7WAAGIGS4DHDREUCR23KWHKELZXGS5FUTFMQCDVWUHQC6PY
+#\\\|LX5KM25MGWGTHOIM4OM3LJQUIMGNIN2FUVKM2PQSORFESBSMDAU \ / AMOS7 \ YOURUM ::
+#\[7]EIT4FEPMUFIRIDHPPFCQWU5E23TZTTHCNRS4677UN3BV4PE32MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

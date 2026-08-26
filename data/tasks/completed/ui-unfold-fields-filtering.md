@@ -130,8 +130,8 @@ signature footer; the pre-commit hook will refresh the footer ].
 perl -c src/ui.unfold src/ui.render.fallback
 ```
 
-#,,..,..,,.,,,.,.,.,.,.,,,...,,,,,,..,,,,,.,,,..,,...,...,,,.,...,.,,,,.,,,.,,
-#O7XEAV67QS2NC227NEQBO7D5QVPKRSSMDHCOOFV5TAMALR5PFY4T653WCITXWKVL4S4GK6YYZT7SY
-#\\\|4E54QUVHOEPMCN7D5Y25K2CMWYJP7WDL7UL6VV6WEQEQM6HTZZ2 \ / AMOS7 \ YOURUM ::
-#\[7]XWB3DZRGS2CPWDR4WNP3ITXUJZFWI4S3KWHQ35LUVRW4HWBHE4BY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,,,,,.,,,.,...,...,..,,,,.,,..,..,,...,...,..,,..,,,.,,.,,,.,.,
+#FB3AWUBF6F766N5CIMB7NKGP3HBWYXE43E7ZMGOFGCYVCE7PPJUJWKVMPPQJYX55YOR26IXODZPF4
+#\\\|DUNLKRT5CVE24O5UBFO2U6TVEFI62LLXUX7F52OC33MGZTCW7HY \ / AMOS7 \ YOURUM ::
+#\[7]MXGG7AO5V6WDMWBRN3QKQN63TOKKR5OSXPLI6WKUEM6VN74ACIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

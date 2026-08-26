@@ -306,8 +306,8 @@ auth.setup.usr.unix-admin  = :unix:unix-taeki,:unix:taeki
 - Template dependency analysis (detect unused templates)
 - Enhanced error reporting for unrecognized templates
 
-#,,,.,...,..,,,,.,,,.,..,,,..,,,,,..,,,,,,,,.,..,,...,.,,,.,,,,..,,.,,,,.,.,.,
-#6TVF25GODMR6UJYWHFB66IK2EI6REVQYWCJ7XQ6TD4XUWWL2DFIGMGIFU5LLFNZ56UMTJUF4DQZXA
-#\\\|OROZO3BCQAYTIVK6ZB765RHULMWUQSQ5WKQXAEMFB4N5QYD5Q3D \ / AMOS7 \ YOURUM ::
-#\[7]OR3LYCRDMRZ3Y4UXVAJQ2FMUMJHYJIHN55SCHJNQM4XAVLFX4SDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,,,.,.,,,,..,,,,,,,,,.,.,...,..,,...,...,.,.,,,,,.,.,,,,,...,
+#HCP6JFGPMRPMOGHGTOFHEP7EVRC3A4FQEM2N72T5U3J5NSR2KPFKM75GMZSZIGBYBL2GXGHHYWVAE
+#\\\|2VM4LRSAQOEJ7LEV6VINZA5RWRFM72P2AVFAONWIT4GTC36ZAMS \ / AMOS7 \ YOURUM ::
+#\[7]V6MX6HODC3SBLFSJ6FLUFEJANVLDYRYYJA7K75X5AA732SGFE6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

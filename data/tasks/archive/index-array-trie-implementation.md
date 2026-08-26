@@ -126,8 +126,8 @@ is a literal single-char string, never confused with a multi-char sequence.
 - `src/index.stats` — step 5 change here
 - `src/index.export` — step 6 change here
 
-#,,,,,,,.,,,,,,.,,,..,,,.,..,,...,,.,,,,.,,,.,..,,...,...,,..,.,.,,,.,,.,,,,,,
-#KE2ILMDUZNEKS2LRKV53ZTKNAMGDTSLQSQMFHZ7QATVV74HUF2ATV46WEWYJRJRCVCUWEOSNA4GJW
-#\\\|FZALOWYTRHUYTL2URW2MS3C2OMHV3RDTWAXNHE4EFFT3JVDSJVB \ / AMOS7 \ YOURUM ::
-#\[7]NJV5JKTVXUVUYJDM33N3FUKO5O7JMROVRBTJH6JMJLTHK4YFFGDI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,.,.,.,.,,..,.,.,,..,.,,,,.,,..,,...,...,,.,,..,,,.,,.,,,..,,
+#EXZRURDVCICGDBB5IRWRHVHBCQGAKFSSXKTWVZ7NAY4TXHTQTY3QVE4WBJ3UPXOBNXBKXROBB4VW2
+#\\\|BLACU2LSHBHKFYXRDVUXS44BAR7XBJSYDUXIXQ7I662VVUDHB7I \ / AMOS7 \ YOURUM ::
+#\[7]BFMV3EPB2E2W4LTAVLVOYUQQTLDKTHLYC2JK7AFBVCLKXDZQWOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

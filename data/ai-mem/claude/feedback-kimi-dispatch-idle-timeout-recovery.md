@@ -54,8 +54,8 @@ normally with the same content `session_catchup` returned — a second,
 independent recovery path when the MCP wrapper itself is degraded (e.g.
 right after an MCP server restart).
 
-#,,,,,,,,,,,.,,,,,,..,,..,.,,,.,.,.,.,.,,,.,.,..,,...,...,..,,,..,.,,,,.,,.,,,
-#ISI2L3WKQLG3UQERSHC6F3NJREDCNV5IJZVHUPUN6YEOKO2MHCFOGCBR4VOMVROK5D6F3LGAA73WE
-#\\\|NSICFKKCIOMD24ZNJMXVHYQYWLPRN3QFZ56KCSPU3WTE446XKTI \ / AMOS7 \ YOURUM ::
-#\[7]T4SQSSRKHSZGQSQ3IAPV3IVCN55CHA4LJNFUC6F3LN5FYJUEEUAA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,...,,,,,...,,.,,,..,,,,,.,.,..,,...,...,...,..,,.,.,..,,...,
+#25WA526QHCVG4O66NABVYFHU2HAQMSI3JKVOMVXA54NSIXBRBVESDHZ3UH6HZKS563W6BTWNEDTYO
+#\\\|DDAKMN2A5K32A5UAB7FYY4K4DWYWAJBMGNL7ADVZME2GXEGFSNZ \ / AMOS7 \ YOURUM ::
+#\[7]AKKIZ2J5XUY2WJ46G7MBAQM4IM7KZGS3CII4AVIHSU2E6W26G4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

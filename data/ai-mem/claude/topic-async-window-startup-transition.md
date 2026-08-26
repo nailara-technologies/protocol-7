@@ -609,8 +609,8 @@ commented out) and cfg/zenki/v7/start-set-up.base
 ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
 a leftover debug toggle from a prior session, taeki wants it disabled for now.
 
-#,,.,,..,,.,.,...,,,.,..,,,..,,,,,,,.,.,.,,,,,..,,...,...,...,,,.,,,.,...,.,.,
-#TN4QW4GIZHXZ643TMLD2YVY36VPDKL66JLXVDEPWFMW7ULRQREHAWTQPXLXU7IXNOC2RXDPK6GBJA
-#\\\|DYS4ASYMAPB6OSGSLFFJZO6KOY5F5YWL3YPPDXYDFPA5GCLABFT \ / AMOS7 \ YOURUM ::
-#\[7]E7PHBHNJ7VBP7BCFNI6BI4CWFGKLAPDFCJLVQYNXNMQAQBXVHOCA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,..,,..,,,,,,,,,,,..,,..,,,.,..,,...,...,,,.,,..,...,,,,,,..,
+#P4UWASHLG4TLF4F35N3SWHNBIU2QOSVYTN2EEKHPGWWMWNKSHIIZFYGA2FRIQNURBK2YM2NE5U6DS
+#\\\|77VPFULV5N225NMS5HFP3LTJLYNGWXGXJRONGDWHSTPZD56KFFA \ / AMOS7 \ YOURUM ::
+#\[7]3PLOWFKIZTWSEQ6KA5I2GDB63NXMUIQ4ZCLKCBKB7FBFLEI4JQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

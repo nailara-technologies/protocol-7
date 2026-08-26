@@ -36,8 +36,8 @@ allowed list for the requesting session.
 **How to apply:** revisit when 3+ zenki expose buffers via show-buffer and the
 config location feels natural. Don't force it earlier.
 
-#,,,,,,.,,,,.,,..,,..,.,.,,..,...,,,.,,..,.,.,..,,...,...,,,.,...,,,.,,..,,.,,
-#PHMQ6CD5B76CMGPYULTLVWWZGKPAQUKNHIGXBNQFTJIBV6TGHVSYUTUSBZCY5BHVRPDDJMAW5V4SQ
-#\\\|K67OHBFIQ6B6JNN4DRX3YHHTVIWCE4B6QCD4S4EMOMTACPMJXSR \ / AMOS7 \ YOURUM ::
-#\[7]VABGFX3IB2VUX5HGGGIGBLA56U6IVDOKCWSFRIVDNH3R2SCYTEBI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,,,,,.,.,,.,,.,.,,..,,.,,,,,,..,,...,...,...,.,.,,,,,..,,,.,,
+#DVV5MYYKFWANKQAAOXRQ5FHV3CEFMYHURBAOFNPTWMALSWB257BAQHTGDIL3P2W7OHII5CDKNGPQS
+#\\\|HA57KVQDSU7AA3EHWSYOTQEZD5MLMMEUF6RYBYQZTRRUYZRAMIN \ / AMOS7 \ YOURUM ::
+#\[7]DBSDEFNWIM3MIXPRQ7P4SBOSRH6FSFBMRWSFY4N6DIBNJLZHLAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

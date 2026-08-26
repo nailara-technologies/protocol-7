@@ -91,8 +91,8 @@ Register all three in a single `register_keywords({ ... })` call, matching
 When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` if you hit anything non-obvious.
 
-#,,,.,,,,,..,,,,.,...,,,.,.,,,.,.,,,,,,,.,.,,,..,,...,...,...,,..,,,.,,.,,.,,,
-#EIQH2TE3HBRANDTRM43KZNI5COZMG6LKKWBGIYUWA2NXGGOCEMLCX6I6JAWUW66KKMKFEE2M2SZ5E
-#\\\|BI47YETA4R4BC47SW72SYFZDH5NU4VLNFQFXIAH54IAMNLULV6R \ / AMOS7 \ YOURUM ::
-#\[7]W7IXQNPGP2ZNZNV6IUQGW4I265JVFEHPRW3TU56VJ4U3EUGHRGBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,...,...,.,.,...,..,,,,,,,.,,..,,...,...,,..,,..,,..,,.,,,..,
+#C7B7MJUW6VJAO3DL6HKVVQMLAJ4MLRU7EB36ZZUYITNBJ7FIR4WA47FLQTQHHCKXGUQM3BO36VQYM
+#\\\|ISDTUFJFUTPPEVEBAO632GBMRUJ43YQFKB6JW5WU74KHMQDBWUT \ / AMOS7 \ YOURUM ::
+#\[7]GRKLG6OE2CLFJGKI3UV6SDZB4DV5AVFXMDMNBLDDE6UK4T6QHGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -124,8 +124,8 @@ this ensures every task dispatch starts a fresh kimi session.
 - [x] sequential task dispatch produces independent sessions
 - [x] no timers, no polling — pure async chain
 
-#,,,.,..,,.,,,.,.,...,,,,,,,,,,,.,.,,,..,,,,.,..,,...,...,,..,,,,,.,.,,..,..,,
-#H2QCTA4IC6YBAGXR6NSHQCSE5FDC3ZCPJ5FXIALYQBAL5QA4ECAORO4S6MKA2BJOWOIU2ZLQBQWPW
-#\\\|CTRYPMFLVVHVWVEV3D3TUWQZKBZJXLNKVGW4VLM2YA3ENFZOCKI \ / AMOS7 \ YOURUM ::
-#\[7]ZI36ZFP3BNZBQAKARHSRQKIXICJN3XMSBEUWEY6PN7N2JZGMR4CY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,..,,..,,.,,,..,,,,,,..,,..,,,.,..,,...,...,..,,,.,,,.,,,,.,..,,
+#5MZCP6EOI4YQYFPSFVCEQAYXQRRLGL6D3AFQKDVCWWOCZ3TM4XGHNSPYDNZMLVW4FN62A7JBM2WMG
+#\\\|RQMA3XWXZIJN7DYLCDO6SGDUMTQ6RSIG3XQ4Z4IYUSWCIVERUUN \ / AMOS7 \ YOURUM ::
+#\[7]PJ5KRQVX24D5SVAC5CPLYVIXKPIQK657LUQ3EHMVBLEFWBLIVAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

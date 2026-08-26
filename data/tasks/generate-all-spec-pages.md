@@ -165,8 +165,8 @@ commit all six as one commit:
 - [ ] titles follow the pattern: "<name> · design spec · iris.v7.ax"
 - [ ] the prompts/ directory is now a complete gallery of all design templates
 
-#,,.,,,.,,,..,,,,,,,.,,..,,,.,,.,,..,,,..,.,,,..,,...,...,..,,.,.,...,.,.,,.,,
-#6EIJT4RGPS5MGY7Y5YHD3UWGRBT4TLPEFVSH4OH3KWRHUNC7OZD2L576VFYUATXHTJXOKFYFKVQ42
-#\\\|XV6O7J5DPKUO6AIJUBLWS2AK53SRQBVVOUUZTJKVYNT3NCM3ARX \ / AMOS7 \ YOURUM ::
-#\[7]YG2A5RE6F5GSR5NQAVXLDWNCSFYTDJRCLVYAZQBHPKH3EWFKFOCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,..,,,..,,,.,,..,...,...,.,,,..,,...,...,,..,.,.,.,.,,.,,...,
+#5IF5QDZK3SESQQQC5MGC6FBVVVXCGHQU7JAFZQWIWVN3Y2ZAWCWOCN3V2OSSUGDKN74NFXLYKSWSS
+#\\\|BVGAU33TIHXA5LHDZPSLLZBNWWLTEKRHWT3RXSYS2MH7KXP2COG \ / AMOS7 \ YOURUM ::
+#\[7]TLHAJJO5FTMJSTNABIOIG2XVRIEKL2J37GY5472LYXLMEU4VNIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

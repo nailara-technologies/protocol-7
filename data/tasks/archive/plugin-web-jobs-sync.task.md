@@ -164,8 +164,8 @@ after writing all modules, run:
 
 report any syntax errors and fix them before marking complete.
 
-#,,.,,.,,,,,,,...,.,.,.,.,...,,,.,..,,,..,.,.,..,,...,...,,,.,,,.,,,,,,..,,,,,
-#CTIJQ6XQSTICJZFTO5QLH6P52A2V4QZ5GSENXE46PNUNN3KWBIB6RP5ETYDRB5LTARXJ3DOLQ6ZTC
-#\\\|5XGSFDCBGVFWH2CEOXMZDGFJ2PB3HCI4Q6WSDWMGFWOQJ23IIM3 \ / AMOS7 \ YOURUM ::
-#\[7]EUCIKUSKWT7C5P2UYFR6ID4W4VZ44BP7Q3SWYEBCVL6N5BDKVKDA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,,..,,..,..,,..,,,.,,..,,,.,,..,,...,...,..,,,..,.,.,,.,,,,.,
+#RESIIULGOVDZDIR75ETKHQ2GHMRRY34Y3QIQFH4E3GN3UWZRDVVVGVH7RE33I4XIABQV72JJVB2S2
+#\\\|2SGMC3VXG4IPOJGXHTB6UJBFXAAJ7QMI22IB24ZT7AQOOJYINAD \ / AMOS7 \ YOURUM ::
+#\[7]A2FR64WQVAN64WQJNW3FYWR4RDGF2YKZX2LQNVOMUACFNC6NACAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

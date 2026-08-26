@@ -192,8 +192,8 @@ relates to: `data/yaml/reasoning-templates/categorical-compartmentalization.yaml
 6. knowledge base 3D grid     — longer horizon, builds on memory tree system
 ```
 
-#,,..,,.,,,,,,..,,..,,.,.,.,.,,,.,.,,,,.,,...,..,,...,...,...,...,.,,,,,,,,,.,
-#L6TQNHUG2DTIUD52BBNRQ5A7JY5IGQ2UANH3DNXLGNMKZDWGVS2H4WI64HKVEANOPDB5KINTYOKUQ
-#\\\|YJQJZVLLKI53RIWSNVNQK36RAOHSMBTXE75VQRNTXDIQNSZXOXX \ / AMOS7 \ YOURUM ::
-#\[7]IVW7VN2OURPTTQ4T2YKQ3CNEY3Z7KJDCY7TKQ5LEDQS6JQ73J2AI 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,.,,,...,,,.,.,.,.,,,.,,,,,.,..,,...,...,..,,.,,,,.,,...,,,.,
+#JCLAKKR76P64QM7F5YMSLM5Q3OU5BLZTCFAQ22GNHCQVBYEUYJBM72NW3G4PAMS7II2AN4LI6X72O
+#\\\|WYLMPUTRE7PEXSKIS4QZO3OCU3C62Q64TK3VWCWZSCP3VLLHXHS \ / AMOS7 \ YOURUM ::
+#\[7]WJHHSDUGMKOCPRU5DGQW7NPTFGQJB75AUKN7NZY33W55FDOABGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

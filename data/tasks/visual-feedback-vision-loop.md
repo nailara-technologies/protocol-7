@@ -315,8 +315,8 @@ p7 visual-feedback.loop '{
 - [ ] model adapter works with at least one available vision model
 - [ ] the CCW/CW correction is detectable from minimap (integration test)
 
-#,,,.,...,...,,,.,,,,,,,.,...,.,.,,,,,...,,,.,..,,...,...,,,.,,,,,,..,...,.,.,
-#256TOHPJF3JB4IE26GXKERJBQXFU6YHQQOB3LLPREQW3KLNYGR5ARRHX6WXWY37DZJQNJ75AD74D6
-#\\\|LQKOXQ4VVSOZJZLKZWIXDQN6CKTI7EUEAI63YJ7YFSZB2KRCY2F \ / AMOS7 \ YOURUM ::
-#\[7]WOXKT74SXX3EQ7V6XX7CKC4V5KY3UUMMOUVEVQU2IKTZYYUDFICQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,..,,..,,.,.,...,,..,..,,..,,..,,...,.,.,...,.,,,,..,,.,,.,.,
+#QQEKJMRO6CSDY5KKV6MZ445RNRBSFMMQKD3A33JKFLT7TQZC3JYEPS67JBDN4VDBRRQNKP3XBHDVC
+#\\\|737AGZEHAQVK4WJVVG4LTYA627FMLURZNZ2BHNNICE75JC6Y23Y \ / AMOS7 \ YOURUM ::
+#\[7]F6WSIP7WWHYL44OIJWTHSFX4XW2HI2U3ITFG2TGJVD3XHAPIJSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

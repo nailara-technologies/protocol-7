@@ -296,8 +296,8 @@ full YAML stubs follow in:
 when ready; do not add signature stubs per the task brief, instead run
 `bin/Protocol-7 sourcecode update-signatures`.)
 
-#,,,.,...,..,,...,,.,,..,,..,,..,,.,.,.,.,,,,,..,,...,...,..,,.,,,,,,,,,,,.,.,
-#QBSBMGXWDAKFB5FQPGI2MW2YHDS32CFGJJTRZ7JRUSDMIXNIA5XYVTTSCWFSV7ICSRYIHVDAJMBHW
-#\\\|QAYF3EUJPU7PGD6PXDQCXO6ZGWBRBVTO4USK4HAEK3V5MBFUKVB \ / AMOS7 \ YOURUM ::
-#\[7]Z7RVZCOYOHHALXN2AOKIH4JGOA3CXSYSP2KTXBTANDNTQEVUHIAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,,..,,.,,,,,,,..,...,.,.,.,.,..,,...,...,.,,,,.,,..,,.,.,,,.,
+#5EIX32CFCM2QEYLT3SSYRV6D5ZWDWZDUEGIQHPCRRUHBWXMPMDH2LOO7P24LVJFP3YMIQSLO5LPOM
+#\\\|VXO5DZ53UC2SVPTQSZUG3V2IO5I45WRS7JYY7B25DULTQOUSZ7C \ / AMOS7 \ YOURUM ::
+#\[7]NIWL7OC4MP7B4FFTL4SOQUHQQPIYF3X3JBRWT26GKNNJX2WVXEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

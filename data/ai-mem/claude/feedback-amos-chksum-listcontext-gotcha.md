@@ -35,8 +35,8 @@ never bare `return EXPR`, unless the wrapper is deliberately meant to be
 context-transparent. Caught live in [[project-bin-todo-random-id-scheme]]
 while building `bin/todo`'s id generator.
 
-#,,,.,...,.,,,...,...,.,.,.,,,,,,,..,,,.,,.,,,..,,...,...,.,.,.,,,,.,,,.,,,..,
-#4SAGDBZ37TKGBSNXDDE62QQZAFQZFNDA7IRPIRL5OZ7CWN7COMWHAHSDKQKOGQCMBYXEZ7LPNLAMA
-#\\\|LXY7D2W2VP6XT3UNJKDT6JBFCBRHYZM2NKKW4HC5KBZV2TM2XQ7 \ / AMOS7 \ YOURUM ::
-#\[7]BL2VIAF5363ZYWAX6WFU3XP6ZG3TMDVV3KGVZFVO2DNIQM6GZMAQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,...,.,,,.,,,,,,,..,,..,,,,,,..,,...,...,,.,,..,,,.,,,,,,,.,,
+#OOQGYHSKPWU7G7UH7GK7AK4AAQLP5BWT3SPXZQSEGZEAJXJT3LILPTF23U4TLBJLUMDI4OPOBBNR2
+#\\\|JCARMGKG5DEJX3PAC2KT2TN5PMPGOPI66VEKXEE6H3UMATJ4BPC \ / AMOS7 \ YOURUM ::
+#\[7]DBJQRI2XMWBT4HPHXSUYYBTRUCSRF5FOLRGE7ABSVQZW643JICDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

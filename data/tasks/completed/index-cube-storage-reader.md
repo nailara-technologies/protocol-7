@@ -173,8 +173,8 @@ its own v2 fallback internally, simply swap the module name in `init_code`.
 - the root concept `''` does not have a compartment — it is the header itself,
   the 0 that generates the address space without occupying it.
 
-#,,.,,.,,,.,.,,..,..,,,,,,.,.,.,,,,..,,.,,.,,,..,,...,...,..,,...,.,,,.,.,,,,,
-#OFUQPJJ5RTW7NTXFF6TFZ5ZSNF3O4T2OBX2KZHOZLJLHM5HCFTKG62BYCCXZFYCYXQGF7C6AR4CUM
-#\\\|37L227RN25L53EHRPPVM2TNPRGG2VR6VI5S2QNF34A36BHMZ3DI \ / AMOS7 \ YOURUM ::
-#\[7]Y6CLJMTLBRGN5U7B3ESW4HEG5K3B4PKC5VQ5HHULENO5I54YTMAI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,..,...,...,,.,,,,,,.,,,.,.,..,,...,...,...,.,,,...,,,,,,.,,
+#BYWO7E33P6VJG6M3PF3TCB5QK7PUFDAGISYFRSQAR6LE5N7ZFHO2DDBICUCPORNNDPM5N3TSX6346
+#\\\|VUY6U4U6R7YZF5OLIYD6RLNC45CNJ7OWLKXSW6AXS2GIMUEBMH2 \ / AMOS7 \ YOURUM ::
+#\[7]4KN6PPQVHHKJ7DIC7I3BTTR3NLR4FENWO6PVB34OY25K7KSM4ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

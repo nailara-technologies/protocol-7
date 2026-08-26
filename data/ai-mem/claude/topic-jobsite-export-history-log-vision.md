@@ -43,8 +43,8 @@ can browse and act on individually" — the export history log would likely reus
 shape (a small per-batch record store + shared-prefs-style cross-browser watermark) rather
 than inventing a new pattern from scratch.
 
-#,,,,,,.,,..,,..,,..,,..,,,,.,..,,,.,,.,,,...,..,,...,..,,...,,.,,,,,,..,,.,.,
-#7XZ4Z53JMIWAARN7375XEXXFTIEHOYGDWM4E3HNEJ25U2ZKAGKOJFZS5T6GCZSK4YSEW45FHYARYW
-#\\\|OY5ALRIWIYTCAICR7ZKIIDGAYENTAEDSX2BPFM5J5FFUPOPL574 \ / AMOS7 \ YOURUM ::
-#\[7]HJAF6M77DVXDQQFJPQD2G2UATYFSG5P3BPIOWAVFFIYPXMFXFKBY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,,,,,...,.,.,,,,,..,,.,,,,,,,..,,...,...,,.,,...,,,.,,,.,,,.,
+#IDEOIRJXCHCMPX5PTPXCCSV34NDI2VLNLWDUIES5YIEQPZWBNHQPBCCFAUADNJ6WM76GNXZZMMCU6
+#\\\|XI6SAHGMCGZTSKQFSKI6H34XXTWQ65EP4W6IDS2HO2IONQDGECG \ / AMOS7 \ YOURUM ::
+#\[7]FH4HRI6TH6ZWFQRLBH4I6HCY3ELGTFOKP4Z2HNLFBGM3FM5Q4IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -88,8 +88,8 @@ schema or the jobsite↔web sync/watermark machinery.
 - No hand-written AMOS7 signature/footer blocks in new/modified Perl files
   — the project's signing tool generates those at commit time.
 
-#,,,,,,,.,,,,,,..,,..,,,.,..,,,,,,.,.,.,.,,..,..,,...,...,,,.,.,.,.,,,.,.,,,.,
-#J5FUB3MPRK2WVP55OQRYPDPWNHCKVFW3OFKAVPULFE3WA7XLQKTWKF7P75BFTR4LYNAQYRLXM5UMO
-#\\\|XR2UAQ2QJILJTDHSXATO5MK6I2FRWJYQUWUOGWACDFS6U7WD5PN \ / AMOS7 \ YOURUM ::
-#\[7]H7ZEQUANAPO2WAW2VVNTCNHTQ2XAREBJB4ZNNWOYJXHTUW3FRWDY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,,.,,..,,,,,,..,,.,.,.,,,...,..,,...,...,...,.,,,,..,..,,,..,
+#L25R4F6WBKBLC3FI5DHZ5OJO7EBTAS55TVKN3GPXP36MBQWASUS5X2OEL3RM3EXJBDS4BHIL5WTUW
+#\\\|QRYK3HWCAWCTY2GR2EICGVH4EBZP7OKQYUU43474FXMSI6OQWXP \ / AMOS7 \ YOURUM ::
+#\[7]RL3L2LDW4TOP42SJAFZKJXM3VBKJJJJR57PVXLUAFOUFPXYCWMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

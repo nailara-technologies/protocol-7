@@ -96,8 +96,8 @@ this makes redundancy visually apparent — a thick ring = multiple co-located n
 - no use statements or pragmas in zenka modules
 - SVG/HTML strings: use heredoc or concatenation, keep readable
 
-#,,..,.,.,,,.,.,.,,,,,,,.,,,.,...,,..,,.,,,..,..,,...,...,...,,..,..,,,.,,...,
-#I42ZIT6HUU4NWAWZLIMDDNTEISUMZGFO4KVBONFMKUQIHLBKZMAMBWKGN62UEZ3SRIOXARY26WIRM
-#\\\|4PNS44SISWAEGCML5T3MRGESO6G2NQ42HHZ6K4MGTVIVUABFHQT \ / AMOS7 \ YOURUM ::
-#\[7]2LH3HS55ZSSGGPJFLJMFIWVNVUNKVJ3TQPRAP7Z66Y3TEJLNHKBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,,.,,,.,,..,,,,,,,,.,,..,,..,..,,...,...,.,,,,,.,.,,,,,,,,,,,
+#NEOIGTB3NUF2SOW6IMFDBRELRZJKUMY6Q3GKLTMU3TDOH2QRYRQCIXBLGFRGMU5NOBNLWI7ZHWK22
+#\\\|5TZ7XNPHEG5UFYN2NS4XH6KST5KVBGH6Q5RS4C7XO5GFJ7O37GU \ / AMOS7 \ YOURUM ::
+#\[7]QNWYLDUWSVAFXEI5WKMY5ZA3XSS4UMZ3522J4COS5FWDOML5FCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -49,8 +49,8 @@ next: vertical slots (per-row border state in `ascii.frame.render` = renderer
 change), bottom-right mini scrollbar echo, cleaner double-colon pass. related:
 [[topic-ascii-frame-system]] [[topic-memory-tree-zenka]] [[topic-ascii-desktop-domains]].
 
-#,,.,,,.,,,.,,,..,.,,,..,,,..,,.,,.,,,,,.,.,.,..,,...,...,...,,,.,,..,,.,,.,.,
-#MR6QCCHMVTVBR2WKA4GECSQTASROBA7IHRIQUUCF27J6QGCZIS3VRV4TPEQU34RORLHFK2S275FRO
-#\\\|IKDPFLVBGT6RUPDCMKYTW7P2AXCMUWW23FNGUBUH3CJXUNXWJAM \ / AMOS7 \ YOURUM ::
-#\[7]OPJG6XTZJMTQXK3AILWNFJPGH6AUYJKQ265Z2KQO73CBU2FX4MCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,...,.,.,.,.,.,.,,.,,,,.,,.,,.,.,..,,...,...,.,,,,..,,,,,,,.,...,
+#GBBEXRZGGMHQEQKWY2XMF2Y5MCYINXZ4US7C3WPH6KOD36KXDNMN22VW7SVZH7FVTQME4IJN4XM5Y
+#\\\|TAUCMYKI4DX7CCT2ZXRIHKKT46CRCZHBMD5DO7NXDZ2EXDYGFDW \ / AMOS7 \ YOURUM ::
+#\[7]U5QTM3BPC2WZBXDDRZKH6WB6MCDP5MONEI3EED7AVSLLYFHGAKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

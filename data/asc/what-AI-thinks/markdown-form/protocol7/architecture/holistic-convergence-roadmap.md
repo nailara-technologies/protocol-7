@@ -355,8 +355,8 @@ A cat watching harmonic bioluminescence flowing through cubic space topology isn
 
 The complete system converges from here. Not through planning every detail, but through activating each layer so they can emerge together.
 
-#,,,.,,..,.,.,,..,,..,,,,,,,,,,..,.,,,,.,,,,,,..,,...,...,...,,,.,.,,,.,.,,,.,
-#HA5KLXADBAD2HZQ4NLBPVV65LLRHO4PMNPE4LXTY5JO7OIPVTYVP2FGIOD2O47AHAE5DT5EHTUAM2
-#\\\|YN6KYYSKT6XLSXA5EIVCI4ZMSCED7EYMPWVAXB4RI6KYN5OCHJZ \ / AMOS7 \ YOURUM ::
-#\[7]YI43XICTDFGD3RQT72Q66SGC2V75WXEORVWAJM3KM7UC5YV4JCBY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,.,.,,,,,...,,..,..,,.,.,..,,..,,...,..,,,,,,,,.,.,.,,,,,.,,,
+#H555HYXXIZMSA7CKNZISJFU2OUR4P4D6GG4VFT2CGZF6HNX6XNN7SV2EXHEEHE623DOMOVPL3JBQO
+#\\\|WMEU37VLIIQZX5LBB6Z4NOIMLF3HQEXEY4BDAR6UFBQWZBMVHNC \ / AMOS7 \ YOURUM ::
+#\[7]BZDYMCFPF7PMQT5TXVVM4KFDIHKDEUJ5RLUZRBMVQM6T4LRZ2OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,8 +13,8 @@ metadata:
 
 **How to apply:** Never put `keys %hash` in a `continue` block on a `while(each)` loop. If iterator reset is needed after modification, restructure using `for my $k (keys %$h)` instead. The `each` iterator is safe to use with value modifications mid-loop; only key deletion needs deferral (collect keys to delete in `@drop`, delete after the loop).
 
-#,,.,,.,.,,,,,.,,,,,,,..,,.,,,.,,,..,,...,,.,,..,,...,...,.,.,,.,,.,,,,.,,..,,
-#Y6U6Q7PEH5FRNYEJRGTCV6M62WR5RAUUXNS7MFKVLG36JTBUD276MJV77ECAA3G377ATGDBRGRVGY
-#\\\|W3EOXAMJ4BNFRFJR5WQZASVROCX5K4MDYJ2ZXWPJ4IQQEJJO7ET \ / AMOS7 \ YOURUM ::
-#\[7]3DG6NGCGV7KBZDBQBURTXAWBW62QG5I4AJ6QUIKZBEVQCWMOGCBI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,,,,,,..,,..,,,,,..,,...,..,,..,,...,...,,,,,..,,,..,,,,,...,
+#COV7PVHKOHJWP6SXYOKXOP3NXOGSRZD4PNNDGCLWEJ2T6SE6Z2W5236654RPRVNGTGAVDHW33KPPM
+#\\\|UHQEJJBPMOIKJ4PI4E3SZ6YBO6YD6K5SRLTKQGXIL62HWFWJBZQ \ / AMOS7 \ YOURUM ::
+#\[7]FEL2BWRH6AVPABBC4PTGPNP7J7PYKOGDEHVWDG52GRDJ55CCJIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

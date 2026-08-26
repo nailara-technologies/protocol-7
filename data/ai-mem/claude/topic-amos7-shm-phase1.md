@@ -209,8 +209,8 @@ to cover the phase-3 FIFO's lifecycle alongside the segment's.
   fork and add a timing gap, or you'll get a false positive from whatever
   fallback path silently activated.
 
-#,,..,,,,,...,.,,,,..,,..,,..,,,,,,,,,...,,.,,..,,...,...,...,.,,,.,,,,,.,.,.,
-#BZYQBXQGBTWFM3MVQ3WGGZTADS6HHUFOLA5JL2ZWDWDE657TV4A67GJWMRVZ3BRFGY47K7DKV2R7Y
-#\\\|GB2WDQ6SJ3Y23FOE4NSCGZTLKHNVJTGAKK2L6KHCAWDXD5LG75P \ / AMOS7 \ YOURUM ::
-#\[7]FEECYVKADSGZ6N5PJP2GWOJ5HY2JJ3JOP4IZOOAZSIVZFDUDG6DI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,.,,,,.,,,..,.,.,..,,,,.,,.,,..,,...,...,,..,,..,,,,,...,...,
+#WC2ICVWAF7AFM5QCY6TU3PPC2PWJD6KWU6GGYDGBG2JRWZ7LRIZH4RCTJ4RAEAUOWIH53X5P5L6LE
+#\\\|FYUAK6WJGRYY5OPQMMJYAQL45NFKPJV55DJRPTHNLWRLZ7BKUR3 \ / AMOS7 \ YOURUM ::
+#\[7]LQCPPSJTJ5DAY3YYALV5DINNUIV6XD3ENXPYFVUV67GQ7IDFBEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

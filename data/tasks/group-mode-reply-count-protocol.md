@@ -147,8 +147,8 @@ chars each) for whenever `!GRP!` itself lands.
   exist between them, to avoid the same fix needing to be applied twice
   and potentially drifting.
 
-#,,,.,,,,,..,,,,,,.,,,.,.,,,.,,,.,,,,,...,..,,..,,...,...,...,...,.,,,..,,.,,,
-#WOFD4S5RS42BGAOMQS52YMO6NVE5IL2H3FVF7DVXEPMTSR7GLIKRTX4V4XE3Z7IRTCWXMVM36LJFE
-#\\\|KRDYCNDMFTCAODDCDZTJC5HCLRACCX2VKPRMLFBFYA5S6LGJUGR \ / AMOS7 \ YOURUM ::
-#\[7]V3ZN4IMN5SQ2LARJBOGWU4WCWZFXTSWPIHSHMZZEI4HYTPGK7KAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,.,,,.,,,.,..,,,..,,,,,,.,,,.,,..,,...,...,...,,.,,,.,,,,,,,,.,
+#T5H3Z7EYBQGWVBUZBEUFCP5OHYKQAGP6F5IT3HHNDVAWWZFRT6PPMGEL3LGT6RGPEQ3BXKMVV5SU4
+#\\\|Y6SWZLLHZCTUQVVZJLMXP7F4EP5T2F5B66QGE5UJ2GB43Q5UV6D \ / AMOS7 \ YOURUM ::
+#\[7]AVHWRODY5Z3AAKDUEC646BING3PRMIQB3PB2Q5DDQCJMAMWBD6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

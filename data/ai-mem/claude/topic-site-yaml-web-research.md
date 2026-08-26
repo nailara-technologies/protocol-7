@@ -74,8 +74,8 @@ when fetching a page, site-yaml:
 - site-yaml already has domain regex/template pattern infrastructure
 - AMOS chksum already available via `<[base.chk-sum.amos]>`
 
-#,,.,,,,.,,.,,.,,,,.,,.,.,,.,,..,,,,,,...,.,,,.,.,...,...,.,.,,,,,,..,..,,,,,,
-#BDTRPWPSAW3HE2HKYE7CTH63FVKSUB3AHN55P5FKXQ65NNUBYRRZKQRMP56LMRROE3MHU4VQBCFMW
-#\\\|YFQ2THM3T7WAWEPQMYQW5FTZZD6XVS5PLILAYLHLYTWTRMZ63TG \ / AMOS7 \ YOURUM ::
-#\[7]UEKB7O2O5Q5G3AZMXNDIPMZYS4TDAKGOUA5WVD2UZQBFENTQ62AI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,.,,..,,,,,,..,,.,,,,.,,..,..,,.,.,...,...,.,,,...,,..,,.,,,,,,
+#43BOXOK5XNCQ7DZR3LQUFIETNXKAEPBQIK3HDSHD44YEUGH5UMXQBMLZL3AWLNFKIPOU2QZLTAIS4
+#\\\|G4QSJ3YT4Z6O46LVNUGOKXYTB3HJTEWXMK6WCKBX2LFZN2HCABD \ / AMOS7 \ YOURUM ::
+#\[7]MBCCZAFLAPRDLKIOUV4DV7UHKEEU6CBTX32HXUOX2HZCI4CVGICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

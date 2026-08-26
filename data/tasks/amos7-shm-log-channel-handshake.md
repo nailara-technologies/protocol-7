@@ -862,8 +862,8 @@ first, note the reuse potential.
    a partially-filled active slot?** this is the pool analogue of the old "ring
    capacity" choice, but with a real latency dimension the ring did not have.
 
-#,,,,,..,,,,.,..,,,,,,,.,,.,,,,,.,..,,,,.,.,,,..,,...,.,.,,..,,,,,.,.,...,.,.,
-#ER2CS4AMAIMCLVECZIELCZ5FULHCKTBR7CBA4E3Z2VHKMU5TJWY6V3GHYZRB2DBJA2MDPVZ2T2YYM
-#\\\|4IH7Q7YM6FJYNHWTMCLMBB4VHB4DLK7SSYRWUJG5TRDVQMQQ2Q3 \ / AMOS7 \ YOURUM ::
-#\[7]5TR64MG57S7VKGWWJMGX4E2SJ2BDUAUVQZTJH4OLZQIBR5OI6WDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,,,,,...,.,,,..,,.,.,,,.,,.,,..,,...,...,,,,,...,.,,,...,.,.,
+#KJMC6E32LYQK4R3ZUP3UGMEG22BJG6WIR6WFZKYJAGYKCEZX4BKHN5N4Q2PAWYYY5HK34SIHZI57Y
+#\\\|RSW55OJHRY2Z6K5Q2JFSQ4XVWNO24SIEFAQ33ST7LHXVFZGT34U \ / AMOS7 \ YOURUM ::
+#\[7]ERTZFIC2RCDBAWUJMJNQGIW5PLM54XM3YIY2RYNKX3CDG5WLMOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -832,8 +832,8 @@ because they are mathematically bound to that bucket's template.
 - no policy decisions about *which* trees adopt the epoch outer
   dimension. that's per-consumer; this dispatch ships the substrate.
 
-#,,,,,..,,,,.,...,,,.,..,,.,.,..,,,,.,...,,.,,..,,...,...,.,,,...,.,.,,.,,,,,,
-#VUQOPE6OIU4UTD6TJSPGRO66Q3U7G3G7KDDRJ4G2EW3Q6F2BCAJ3XRCECQLFM2SAE2GC4HNBRJV4G
-#\\\|5F4WVT6TC2CWFLTHX4CGWKUHGVO7GPIQHSWE3R6NZFD6DFBTLDF \ / AMOS7 \ YOURUM ::
-#\[7]WEBCCHNMXXHXGOAPTGXJVRTAMA5QM5SPOYDX47ANKQDWKQUCXOCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,...,...,,,.,.,.,,,.,,,,,.,.,...,..,,...,...,,.,,.,,,,,,,..,,.,.,
+#5FBEKUVJRWQQ6KQBL543OOO7G2D2AQCZMBEXAUILP6VJH2GVT7KBKXA5ODCAASZSZECURON7JRIDI
+#\\\|BDW4NFKSXQDZMFXNQ772IB5T5GFRUGSNBRP77KU7PE3CMPD3BL3 \ / AMOS7 \ YOURUM ::
+#\[7]B3D2CGUDAQ4NDZLOOURQGTLBMSANPN2L3RBYUF6QJVEH6ELLA6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

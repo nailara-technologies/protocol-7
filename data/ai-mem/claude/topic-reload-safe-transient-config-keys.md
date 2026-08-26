@@ -58,8 +58,8 @@ meaning.
 `src/base.reload_config`, `src/base.execute_zenka_code`,
 `src/base.pre_init`, `src/devmod.cmd.unload-devmod`
 
-#,,,.,,,.,,,,,.,.,,.,,,..,...,...,...,.,.,,..,..,,...,...,...,,..,,.,,.,.,,,.,
-#HSWDEVY5U7TTGPZUIZZMGF23IDSONSC2RFMHL5M3FCBMPODURS7DPAM3REEMF7R52SVYTQ66ZBH7G
-#\\\|SSIZKYF735WQOF4Y2CWARKM75YDDNK5PZWPB7GL3CUYPMYQTFIC \ / AMOS7 \ YOURUM ::
-#\[7]H4RAZPA7Y2EF2RMR2ZDV7TUG7BCA7CZISVBCFXJY5CODWRQUYSDQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,..,,..,,,.,,,,.,,.,,,..,...,..,,...,..,,,.,,.,.,,,,,,,.,...,
+#HBHPXQZFUCBUTV4TRH4HHX76QDPIYGR6EI7G2G4Y25GYUO5BL3OF7UJJGVVBD4M4NRISJ4ID3EJAI
+#\\\|GGAL3QVUW46EQDJROSBZJS6VFBZKBM2E6SAGH5P73FRKQ2Q4Z36 \ / AMOS7 \ YOURUM ::
+#\[7]J6HPRETNFP6QAHFMVWUV3IYWBLOPHMN6JRMWKPSC3R4OV22WQUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -56,8 +56,8 @@ changes. The license itself is still time-limited (2026-08-05) — check
 `systemctl status nessusd` before assuming it's even running in a
 future session.
 
-#,,,.,..,,..,,,..,...,,.,,,,.,,,,,.,.,,,,,,,,,..,,...,...,...,,..,.,,,.,.,.,.,
-#E4OFM3NM5AZMZXD6ZKA437GLFX5G3VN54MW23DUZYUTUMRMRBIWKP6IUKNCQOFRROGCGZ2UHKPPBI
-#\\\|JY3TM65B7Y3AKITS2IWSFL2TA3ZL6SWUPIYJY7JIHD7A7HZTSTI \ / AMOS7 \ YOURUM ::
-#\[7]N4IJPBSRP3Y5GVSNKG47BEHP4T7KCLE3OQCPNPK2TDF2NCQ35CDY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,,..,,,.,,.,,,,.,.,.,.,.,..,,..,,...,..,,.,.,.,,,,,,,.,,,.,,,
+#HSKFFZMUOSKFBZ65PQXJJ72BVP6FKROSPVNOTTJAVSB6YEW5FA4UOEEWJDEQSKEBJGRPDMHVZQ546
+#\\\|BJE56AMGPOU34U66AEUKYIDJK6UZSSS5Y5YCG5I7M7VI5EP4PYB \ / AMOS7 \ YOURUM ::
+#\[7]D3TLYESGL7EVRZJGLVEG6FI3IVYIE5MRJOOUP5DYBFSLKMMVJICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

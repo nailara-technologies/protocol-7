@@ -36,8 +36,8 @@ RPC path (e.g. route via cube to `kimi.task.enqueue` — `branch`'s
 `base.protocol-7.command.send.local` is cube-side session routing, not
 a zenka-callable RPC primitive). Not scoped.
 
-#,,..,,,.,,..,...,.,.,...,...,,.,,,.,,,.,,.,.,..,,...,...,.,.,.,.,,..,,.,,,..,
-#T4U3YI7JXAM5OY4FTIKXFPCGYXNKN2CVEM7DUGDZCVHW2HM3KGKAKDMZ4IRZAM2VURMC4S7SQW5UU
-#\\\|5C75JSEGGD2P54QLI4CTFFGUMTYVAW2VGCEVZ4ZB3MJWKSRG3XY \ / AMOS7 \ YOURUM ::
-#\[7]NLCRERERVPA32CKTROBJJX5HTDQNZTEPR777O7YUXPONFN4B2WAY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,...,...,,.,,...,,..,,..,..,,.,,,..,,...,...,.,.,..,,.,,,.,,,,..,
+#QU45GMKJ4P6ATKFPTGYCSEM4BJFR7626OQPFU77M3TAILHBG3ADZGMXD3MR6XBQ55IQGT7PST4G7I
+#\\\|FLNBQEHUCV6PKFWGTEGZFRBE7V6CDKEVT63KVTRLETUE7WTHNPV \ / AMOS7 \ YOURUM ::
+#\[7]PV66PU4HFQHXHA3GX2W5LFX7TPMRLDQ2Z66RIPDRTIPMJKCQ7YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

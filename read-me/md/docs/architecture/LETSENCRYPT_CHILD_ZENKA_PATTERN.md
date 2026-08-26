@@ -583,8 +583,8 @@ We should also create event handlers in an events zenka that can:
 
 **Next Steps**: Clone weather zenka to create letsencrypt zenka skeleton, then implement ACME modules
 
-#,,,,,,,.,,..,.,,,,.,,.,.,...,.,,,.,.,,,.,,..,..,,...,..,,...,..,,,,,,...,...,
-#XZFG7XV266SA3YUQ5UU2X5YOGTO4BOLZKM5HWMPGNWXQCJTDCPI5NWKNUC7CA46ODKICPZYGSRJAW
-#\\\|VS7GNNCVYGCNINZMFKNLFWJTQTG6366VZVMRGV23B5NNXCDRJTH \ / AMOS7 \ YOURUM ::
-#\[7]CDD22QYJYKC5P7DUVDHFHVOZKCKOZI35GN2A5A4OPGUM7E2IFWCQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,,,,,,..,.,,,..,,,.,,,,.,,,,,..,,...,.,.,..,,..,,,..,,..,..,,
+#FK5KADQP2XDNLROWSZOPRLDUR47HU2AWDO4KGPGP3RKLER26TEARER7MHMHIC3SJ6BQ6T7OEWPV7U
+#\\\|ZPHDOYRWR2ZQO4ID3MY7Z5UBDYZQRPDVOGTXCFRPOHD3HKNTUDQ \ / AMOS7 \ YOURUM ::
+#\[7]2EBBOEWJFZOZYSYQPFIPGUDEMB66VW7CBXDJN5HNAF5ZGFQYJKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

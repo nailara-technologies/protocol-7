@@ -44,8 +44,8 @@ gotchas:
 - new modules are NOT in a running zenka until `p7c <zenka>.reload source`.
 - whitelist regenerated [ 649 subs ]; signatures pending — user re-signs.
 
-#,,..,.,.,..,,.,,,.,.,..,,,..,...,...,..,,.,,,...,...,..,,..,,,..,,..,...,,,.,
-#DVFVMBCVDUAUHULCFA3WUBTXKBH3Y2EVJVAYA4HNIT4OMDQO3Z7YOI5D22X5PH5BEQ6K5ES5KL5Y2
-#\\\|HVVK72WFFVQ6QVS6OKOAKLFKQTKWTG5BHN2QKOK64FEK4OQZ4RT \ / AMOS7 \ YOURUM ::
-#\[7]7UXWPAGAUPOD3E72TA67MZMPM72IKD5H326UUFDGQBUTQZB25UBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,.,.,,,,..,,.,,..,,.,.,...,.,.,...,...,...,.,.,,,.,,..,.,.,,,,,
+#KMIDUV7PJZTR6R3NOBQT5OBREDTYZTXQDDDMDDPJHCIGFIDZRWJZ6CQULSBDVOXEA64FUT4UOMCVY
+#\\\|NDOW6FKVLG2EVHUW26S4X2Q76TS3ECQDFKBM2MTRIZCAHROMLIY \ / AMOS7 \ YOURUM ::
+#\[7]RV4L2CYIRMVPNBSW573HV3QNJSXS57TJCJDHSN3KYSET5UWOVMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

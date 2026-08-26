@@ -116,8 +116,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 chose for the "skipped" return value and why, or if `mpv.snapshot.write`
 turned out not to exist under that name).
 
-#,,.,,..,,...,..,,,,.,,.,,.,.,,,,,,..,.,.,.,.,..,,...,...,...,.,.,,.,,,.,,,.,,
-#ODZ3VPJY2YNEUZBWOLH6LENTYPTIW2INPETXZILPZMQAJM4DXIN3I5MHVOA4IU6LTPPYD5ENSHPX4
-#\\\|5THCKAFF4V7ERJ4I3DEGG2D75LQ5ZW2KCLEGLQ6FJG6WRUDKRQ4 \ / AMOS7 \ YOURUM ::
-#\[7]FYRT4NVRQTABJ6CFFNMWMQP4H5T7WLW3I6CBBJT6QKSVFASGZEAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,,..,,,.,,,,,...,.,.,.,,,,,,,..,,...,...,...,..,,.,.,.,,,,,,,
+#MV4M5M4WBZKIWWIAD2BWZVSFIC5A22K37AVLJCOZBY6HLS3QGJWCIXQ4PMIWDHFDY2MXALW46FC74
+#\\\|VJVK6LR3PPT477WBOOYKFPLIFAVBR7ZGU64LI4GS4GD5VOA5EEH \ / AMOS7 \ YOURUM ::
+#\[7]6MHEF7WMNXEEVKUZ7ALZJGUT5LT3FEIHUZOBT7O3JDWXP5J3FKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

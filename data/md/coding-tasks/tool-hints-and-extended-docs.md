@@ -285,8 +285,8 @@ return "hint '$name' staged at data/yaml/tool-hints/staged/$name.yaml\n"
 - hint injection adds minimal overhead: only loads registry file once (cache after first load
   via `state $registry` in the hints.check module if performance matters)
 
-#,,,.,,.,,.,.,..,,...,,,,,,,.,.,,,,.,,,,.,,,,,..,,...,...,.,.,,,.,..,,,,.,,,,,
-#FXRYL4WPSY7TIIUXY5Q4DE6LMQDDLLPRNWFARCE6S4CB2PFSIFOFQLKA2C5BPUKA4M7733F4WY6DG
-#\\\|ZI7Q7TYFLKGAHODA6ACOXCLAQPCOUI57JFG2OCWMNLZDNE7IJ6F \ / AMOS7 \ YOURUM ::
-#\[7]TTNYYNFEJQRTZLZ244HBKAMQ2DAZV6Z2MWABIPKKUJ6GNINAN4AI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,,.,,,,.,,,,,...,.,.,.,,,,.,,..,,...,...,,..,,..,,,,,,,.,,.,,
+#6UR2NZVXKGQC22K6RWFFOGF5CDWOBLEBWTUBSYLK3332LH3IDV6JRQZFXCDWAYBZKQIKKS2YCUQCM
+#\\\|CWJXD26LBNJWPLAGRXZUMSJ4OVJRDQXN2DYBGAL4FYWKCQOG3SL \ / AMOS7 \ YOURUM ::
+#\[7]W7RYQQJ2FIMN5EY2K6WXP5EWZ5WY3D5UHS3PE2BZLWYCCHY4W2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

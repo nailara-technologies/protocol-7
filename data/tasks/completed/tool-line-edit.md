@@ -101,8 +101,8 @@ error string on failure.
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,.,,...,,..,,,.,,..,...,,.,,...,,,,,,.,,..,,..,,...,...,...,.,,,.,.,.,,,.,,,
-#MLQRI422CRBVAQGHG4RJ72IDV7P6NZZJPAWS272F6YDSJGLT4SEJDIAWJEWFOJW35MKFVPYUWGTPG
-#\\\|J2YFTE37H2TUEHTFR6ZEYD4WAG3ZS5W5JNGGAB3DMIOXPYILO5N \ / AMOS7 \ YOURUM ::
-#\[7]CPFP63XLOGE4UO3F32YAP5UDCGRD2CLAXNHI7JLTKJGLSHWPDEAY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,.,.,.,...,.,,,.,.,,,,,,.,,..,,..,,...,...,.,.,..,,..,,.,.,,,.,
+#WL2P3AVZ32MUL3Z252DS4KO6Q7TMEWC3YSXEIFAHFBTESFJ2UJTU5QDXCUVP4RM2CSKGUEFEUEICE
+#\\\|3756F2DWHNSJ72FVU4MMAO5LSNZ6FVUZ4J3HFKXX57UOYSRXJBI \ / AMOS7 \ YOURUM ::
+#\[7]FGMLPG6DP4MTRWYA5LL4R3ANMQXOIHYZI3ALADVC4L3FRHMVTGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

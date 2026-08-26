@@ -110,8 +110,8 @@ no special handling needed — the two filters compose correctly.
 - the existing access.cmd filter (Phase A) is already correct and
   composes with this fix — no changes needed there.
 
-#,,,.,...,.,.,...,...,.,,,,..,,.,,.,.,.,,,,,.,..,,...,...,...,,..,.,,,,.,,.,.,
-#B47DGUWRTQLXMKXF6753OECPFRP4FWC55AQUY3W2HXZCO6ARDUPCDCHMFCMVSG26JSGFML2AKTS4Q
-#\\\|AJ6DFRHJJ5EOGI2OOP3CNAIIZRNWZRXPSHV5STVUZUSYLGE6G2F \ / AMOS7 \ YOURUM ::
-#\[7]SK7HEWONSCEV2UUJGS6YMRANLTKORCLV43MHRXPTF7BTWIUML4CY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,.,..,,...,..,,,,.,,.,,,.,,.,.,..,,...,...,..,,,.,,,..,,,.,,,,,
+#BB2U2Y3KJVPZRI634JM6WPGC2CGHJ5ON6RSN5XQKN2OO2G75GYKZM4TMLKYOE625XZIYRQ5XTXWRW
+#\\\|A2KU75ETA7XZQBXVQYGY2VCKMQ2QJREWP7FJ46F6WD4NMID3IFK \ / AMOS7 \ YOURUM ::
+#\[7]I5ARSP63BT333MVH4363HL2RPFMXYEB5JYTTDCRHXVX7Y3USNCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

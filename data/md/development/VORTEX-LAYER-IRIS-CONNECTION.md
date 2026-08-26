@@ -349,8 +349,8 @@ no entry in the reasoning chain can ever be orphaned —
 it is always visible in the iris, always connected to the generic structure,
 always reachable from the EXISTENCE center at the wheel's heart.
 
-#,,,.,.,.,,,.,,..,.,.,..,,,,,,,.,,.,,,,,.,...,..,,...,...,.,,,,..,,.,,...,..,,
-#QKXR2OOPRF5QMSOF7CIM2B5WP6AXEIZVTN3NZOHXLBAISFNDOO76FFINCQMXUM7A6APNTOKCEJD5U
-#\\\|RU4NOH2FJI7IV2ZUP6B2MLZVFMBFHGTRRDNJS6RVVYNHE5NH7BM \ / AMOS7 \ YOURUM ::
-#\[7]FESUR22YZE4X7XGSBBJIGMBXW32DXFGLM6PAYJLYHSZPW2MAKQBI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,.,,,,.,,...,,.,,..,,..,,,..,..,,...,...,.,,,..,,.,.,,,,,,,.,
+#4ZLCVDL3SMJ7RNOVWCFZB7BK32XPNZMXTPIYPEEEA6VUATUFPS366IYSBQEY3TRSVRESGO5KHZXUW
+#\\\|7I54A6PW4UOZL4ZXXANPHS3GEBJGOMRKAEKOVARKXC4EMVYVDBX \ / AMOS7 \ YOURUM ::
+#\[7]DZ25GZYMPOD775ZBRFHODHEIYGPQ6PQU2UOODO52IQZXEGAQWCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

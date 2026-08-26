@@ -32,8 +32,8 @@ literal `file-stat-usage-fix` template + a fresh/reverted set of target files) a
 first automated eval cases — it's already proven to discriminate (this run failed it) and
 requires no new infrastructure to score, just a `git diff`/grep-based checker.
 
-#,,..,,,,,.,.,,.,,,,,,,..,...,,..,.,.,,,.,..,,..,,...,...,.,,,.,.,,.,,..,,,,,,
-#XZZKPCIXP3I5FA2TYKCIK4NDK5WQX7FKG5K3H6YTXMKN7U3GA6ZJXZONVFACN6Q45DJ7B3F5ZFE54
-#\\\|RLLWPT5AAJJG3ONJ2GHHTARIRTBP7BLTANWXVIU2434UNFO3JSP \ / AMOS7 \ YOURUM ::
-#\[7]NBOI3DYAVOU5MJFZC563G5MQ6EXSNULLPM5LZLI7JTHFVCUI6IBQ 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,,.,...,...,,,,,,.,,..,,..,,..,,...,..,,...,,,.,,.,,.,.,..,,
+#EZ75OAZMZMLGUZTJI5NUWMGSKT2QVILU4VPL4PORP7TVHBDSTKF7ILKXPPJPDHVUHFWCS7XAPLZ4C
+#\\\|45WQ5WF3FIGBJ7ULFETP56EYMEGPFNKIEJZLF5EUABOWYZKEITB \ / AMOS7 \ YOURUM ::
+#\[7]DY5OKDKWC57C7SGM4ZENLY5Q72JZOMQATWE6JE74X7S74CHOKQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

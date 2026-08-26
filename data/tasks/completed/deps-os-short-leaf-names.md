@@ -68,8 +68,8 @@ generically. that type string is then compared literally
 bin/p7-deps, bin/os-pkg — the initial assumption was that renaming the
 leaf dirs would require updating all of those comparison sites too.
 
-#,,.,,..,,.,,,,.,,.,.,..,,.,,,...,,,.,,.,,...,..,,...,...,,,,,.,,,...,,,.,..,,
-#ATIZZM7GKQYNYB2DACJHSS5WYOO7H25KK7RQ2TPE5CKG47RM6OFXD2QH7MYTJCLVLDE6DRBYX4ICU
-#\\\|57GH4ZGS5CEZCWV7YMGIHYAQJOHK4CMUV2AJGEVJH5D2XR76SDS \ / AMOS7 \ YOURUM ::
-#\[7]N2RTSYJDXLS52VWJKW74PXTX6XGD7YXZUBX75B6NBSQDCBERFQBA 7  DATA SIGNATURE ::
+#,,..,,..,,..,,..,...,...,.,,,,..,...,...,,.,,..,,...,...,,.,,,,.,,,.,.,,,,,.,
+#ENVJNQCYVJF7YCAK3YIIHNVKNMCGWFP34COI6OQLQUB7HCOZXLGQEFCPDSOJTRTSP6ZIFB6TEX5GW
+#\\\|PVQCS2HGMUSIYDKBFFRB5OUOZ6WS4RDT22HMNSNHMAHKFRJRLU7 \ / AMOS7 \ YOURUM ::
+#\[7]M5M4GN3XS2OKVOXYROO7KAOPZNNQI5ADD4AZ4ZSFB5AHKM5XS2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

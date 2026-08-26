@@ -86,8 +86,8 @@ the `line` (default) and `none` modes correctly. only `all` mode bypasses it.
 - no regressions to `needs_newline_prefix` / next-prompt-newline behavior
 - no manual AMOS7 signature stubs in edited files
 
-#,,,,,.,.,,.,,.,,,..,,,.,,,..,..,,...,,,.,,,,,..,,...,..,,,.,,,.,,...,.,,,..,,
-#WXPEZVJSDNXYXRO5I3FQKR6VD5MZDSAHBTWGQ4R4JZPIVPXWE2SSUE5AUWNBTFC3MJUKQECIQ2GOO
-#\\\|HOQN7OJWQDNA6EVCL6KO4EIZU56OUOLWU4KSGOO4ZF5WX7MFCWF \ / AMOS7 \ YOURUM ::
-#\[7]UOR2ULND6GVL5B3U5OJCH57K5UQ2AZNIZH45XFWVNISJGMJ72WAA 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,..,,,.,,,.,,,,.,,,.,..,,,,,,..,,...,..,,,..,.,,,..,,,..,,..,
+#VVVSQ7VVXAKKQXK2ZALJKQTP2YNU4T3IE6GMLVV6PZOGIPZ2X2YLV2PEUOTCOLUGGPMSNO7TLM4QW
+#\\\|PC4P32TVDJQUIOCSFT7RVP4KLAZCZVM55FQTBW4CQPFGIK3WOOT \ / AMOS7 \ YOURUM ::
+#\[7]3TIWZ73QVN5X3QHTSEXU3XYMKJD6QQVH2RIY42X7CQURMOJZ5WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

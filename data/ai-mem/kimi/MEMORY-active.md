@@ -210,8 +210,8 @@ screen; the newline is now only emitted when the help block is visible. when the
 scrolls out of view, one empty content row is kept as top padding so fields do not sit
 flush against the terminal top. see [topic-user-edit-vertical-viewport.md](topic-user-edit-vertical-viewport.md)
 
-#,,.,,.,,,..,,..,,,,,,,.,,...,,,,,.,,,.,.,,,,,..,,...,...,,,.,...,,.,,,..,.,,,
-#UKMVKGSAZXC3424E5OSBSU3FSTIXEOXSR5MV4IGQU3GD63XHK3KIBOXLLGF6F53VK44K4D6SOPQ2C
-#\\\|3XGQNTFTK7X2UGPIYRB22AHJ7NU2RHC4WRIC6PGKC47MGRDRMAU \ / AMOS7 \ YOURUM ::
-#\[7]HEFWHA7V3GOPWBES2ZAUTDHIZCENHBFHMGYLWKNZX4V452NVBQAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,.,..,,,,.,..,,,.,,,,,,,.,,,,,,..,,...,...,.,,,,.,,,,.,.,,,,,,,
+#JY6EYJR4OV6Q2BKY4L4RO2PT6FMU3APKJUPYKVDTUDNZ5JNYQE3N6OVAH6P4NRYNDIIKQWEQ4FGC4
+#\\\|ENELGIAFFKF3V4NDFZVIINZC5DFBQPACANUMMC5KGQCS3DB6MDE \ / AMOS7 \ YOURUM ::
+#\[7]CFDQWQJXPDARZKPJBHXZQ556LW7IN6HRB4LF4454RBGFGSFIK2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

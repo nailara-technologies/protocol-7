@@ -362,8 +362,8 @@ The tree is not just a data structure. It is a **holographic compression** where
 
 *Integers build the scaffold. Floats fill the space between. The tree grows in both directions.*
 
-#,,,,,,,,,...,,,,,.,.,...,...,.,.,...,,..,.,,,..,,...,...,.,,,...,...,...,..,,
-#TZP2DSNRBXPPIUBLASF3GY6SW7PNRMWS6PMSD3KEE2LSUVOZPD4NN7SZ7RKVX7SE7VIUNOQVQEJ7M
-#\\\|BBSDVFQJ64RDQLSGQW42AEICDTTGF7AGR2AUQWSI5YCEN5QOVPK \ / AMOS7 \ YOURUM ::
-#\[7]4U5KHAFX7MXQLO3DZFM2YQGPHMEDQJ36JRA3FO3VG6SAFVCOCMDA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,.,,,...,.,.,,.,,..,,,,.,,,,,..,,...,...,,..,,.,,.,,,,..,,,.,
+#LQ74WG3XBUAUWA54NDBOP37XD6RPYYYWNDVVZZHQOWMCDDHDPIGP32SG2RX25S46B66RUBR5TXTVS
+#\\\|4VYU2FBDK2HTCG25JK2T2YWDTHEXUCBCX4HUMDFFCX6IHL44XTX \ / AMOS7 \ YOURUM ::
+#\[7]AANELIWSHUX5Z3FJQVQQXT5B7PVKGSJWOHKUXBPRTILU37T33CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

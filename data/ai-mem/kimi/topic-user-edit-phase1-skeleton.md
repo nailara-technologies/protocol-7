@@ -14,8 +14,8 @@ following `keys/start`'s exact working order: load shared-params, set
 `pm-dep/` or `subroutines.load-early` hand-authoring — those are
 tool-generated separately.
 
-#,,..,,,,,,,,,.,,,,,,,,.,,.,,,.,,,,.,,,.,,,,.,..,,...,...,..,,...,.,.,...,.,,,
-#FM7X3FRWSL6DIYLPBHIZVEZXVPSIWAWOEUXOH3FPHZNOWPKY2UF7MXQXKYCE6L4UWQDH5DWXTLOCW
-#\\\|D4EXZLPYJY2HQVDBJJFJPZMKVYPSIGCWHZAJZR6UNPMKG25UDJU \ / AMOS7 \ YOURUM ::
-#\[7]53VTSUOBUVG3IZUA74D4P3YQJ5TUWIMCPGSTOVMHRF5TG66MPQCA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,,,.,.,.,,,...,.,,,,,.,..,,,,,,..,,...,...,.,.,.,,,,..,..,,..,,
+#F2EW3LWVCXPJLKALD2UEAVTQCHVK6VOAPJSADWJKMJ63YHDWZE376A73ED66DAYUVB7F47FYZUZBI
+#\\\|V7R5JB4RMAYKBTQXTNT7LLOPAJGKXLJMDV6XGQ6HVUSQYMZFGYZ \ / AMOS7 \ YOURUM ::
+#\[7]52XZTWWLZU7XZLGQQB5QVU3F3YYWRBZYZXM5C4M2BVAUNQJ7AAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

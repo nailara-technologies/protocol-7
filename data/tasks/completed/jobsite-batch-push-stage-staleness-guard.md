@@ -61,8 +61,8 @@ up, same as before, just without the visible wrong-value window in between.
   agree on `stage: review, status: review`, distinct fresh `last_modified`
   values (each side stamps its own), no drift.
 
-#,,.,,,.,,...,.,.,,.,,,.,,..,,,,,,,,.,.,,,.,.,..,,...,..,,,..,,..,,,,,.,,,.,,,
-#3KEFM5SOW6GNRH7TBRKDRPOJK4BSK5O4EYALW74JLCC2PWL3UIYMOUZ2YJXZFLY7EX5NAIN6GFUQI
-#\\\|374ILIIOEJHAWZXGQFJ5LZTULGJO75WJLTEHKUNUJQZBILCJ3ZI \ / AMOS7 \ YOURUM ::
-#\[7]SGM4FJ3RVQN6TGCNWZIYSJOZDDI2R3632IQPNCOA3VZCQW4YTWCA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,..,,.,.,.,.,,,,,,,,,..,,.,,,..,,...,...,,.,,.,.,.,,,...,..,,
+#LQTI77CEPJCS2YNU42HOLTJDSKZKIOXVBND45MNINGG5MCWPVVLSKWHHQIS3DQPHPQXRHG56MMVKC
+#\\\|FCJQSDNFMVD5MDKVR2ADZQSYASSDSC6ASBDHQOOFUW7DTDVM5V4 \ / AMOS7 \ YOURUM ::
+#\[7]2NBCWAHTZRHMEZW7XG22N5OH3BIMJIN7VERO6QX4K22AUSJBV2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

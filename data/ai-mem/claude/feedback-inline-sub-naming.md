@@ -19,8 +19,8 @@ Pattern: `sub cmd_proximity` → `storage.visual.util.proximity`
 
 **How to apply:** When instructing extraction from a `.cmd.X` source, specify target namespace as `X.util.*` (drop the `.cmd.` entirely). Include all three rules explicitly in the task prompt.
 
-#,,,.,.,.,.,.,,,.,,,.,,.,,,..,..,,,,,,.,.,..,,..,,...,...,.,,,...,.,,,,.,,,..,
-#POTCSRT43NN2ECBGSH2UYJC6WUYVFY4R55LGHCQRL7VHSDVBXQRNQOHPQFRJPNW74BC3YUKUSOIP2
-#\\\|2WBER2FJYX5MRNYXMCI75D5VGJBUYJ7YUIJONEIFPSGLHOF6SNM \ / AMOS7 \ YOURUM ::
-#\[7]ZPE6SNWFIFRGH55WHIQQQOATBCLUFTX4F6PJXYQCAWZXZZOCHGBY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,.,,,..,,,,.,...,,..,,,.,...,..,,...,...,.,.,.,,,.,,,,,.,,.,,
+#MGEGPHROXOTFVDWTBI5TGVQR7PGZXFRJZTQBU76MX4DFPUPXLHRWJMBKQ62PQYMICCZ2TPIJ7WWXK
+#\\\|OZ2JKV2TEB5CW5AG5P5TNTNW5LTWND4ZNKCNGFUXOMYR7CHXAMR \ / AMOS7 \ YOURUM ::
+#\[7]7JOQ7QMBCHLXTN5GXHAK43IUZIJGC3I4OLKOPNWL6ADXQAWJEQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

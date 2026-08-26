@@ -74,8 +74,8 @@ contact/appointment state tracked per listing in the existing tab UI.
   precedes this in priority — but both ride the same abstraction from
   task 1.1, so doing 1.1 first serves both.
 
-#,,..,,,,,..,,,..,,.,,,.,,,,,,.,.,...,..,,.,,,..,,...,..,,..,,,.,,,,,,,.,,,,,,
-#UE2WL62BYSAPICBSXRGYLXN3WQCEX6WE3TLNZYKJ2CXB7TQ7DWOLYHG5ZOQ4VTT3N2TLNBULKJWVC
-#\\\|APJP5C3ALL4A4TJXCH4IZJULL2OY5QU2NBWFQA5XXAHGXIKUDSO \ / AMOS7 \ YOURUM ::
-#\[7]HOQOPSJV53CS6DVUVFASEBQMHXJN4OMYVIMM7EWFB3OEINLBMOCA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,,,.,,,.,...,.,.,,,.,,,.,,,.,..,,...,...,,.,,,,,,.,,,,,,,,,.,
+#QGLAU2FS6D3YSVJAQVEGK2SDH7WRKUUCUQ33L3ZCYTWCMMUHPN4J5MPGTPITZRAGLIU7GTDEY2IUK
+#\\\|QHKSA5D6OJZ54L4WYYYIEBLYMCD5GSSDG3YVBNK7AASKXDOS47A \ / AMOS7 \ YOURUM ::
+#\[7]MHNF6AFNMSEOQPFWG7OX5Z6FR74ZY3PYTKZ7QBIRY3UDHRQDF4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

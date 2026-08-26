@@ -115,8 +115,8 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 6. modified src/plugin.web.space.state (add orbital-json section)
 7. data/web-root/space.v7.ax/orbital.json.tmpl
 
-#,,..,,.,,,,,,.,.,,.,,,,.,,,.,..,,.,.,,,.,..,,..,,...,...,,,,,,.,,,,.,.,,,,.,,
-#36UHWKDXL5O7L4VFQYVTBFQFF7WENJRRXX37JFRWOMFMAGJVVW6YY6DLQLCRY5SELOO5MR4XAJCKU
-#\\\|F6HL2THEZIJNNNQLO6RI6ZMXL65J2EB72XS43QDVTMJYTKX3ZKD \ / AMOS7 \ YOURUM ::
-#\[7]E3ISIX6646K2XKQWHKZNTWUNDNHPI44XW6YWMXON2K5EVBPFBEDQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,,.,,,,.,.,.,,,.,.,.,.,.,,,,,..,,...,...,..,,,,.,.,.,,,.,,..,
+#W4PRUNY2QPJM5BWZETH7OMZGWZCXB2CWMSBHRRFSPYTAHDB4VCJWICFDVER6MQ6KWYUNVVBNWKAPA
+#\\\|J2EZBKDBC6BGVAOWKSPO5XCACIQGL5SO5264E7ZPNOODBCORWPN \ / AMOS7 \ YOURUM ::
+#\[7]UATM6YYNFCC36YRXCGJKRYN5KQMRXSPWQ64M3TC6SAKJ5TKNYCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

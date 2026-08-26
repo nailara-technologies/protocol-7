@@ -295,8 +295,8 @@ add `graph` to the access.cmd.usr.cube line.
     verify graph.cluster produces correct connected components
     verify cmd.graph connect parses addresses correctly
 
-#,,.,,.,,,,,,,,..,,.,,.,.,..,,,..,,,.,,,.,.,,,..,,...,...,..,,.,.,,,,,.,.,...,
-#5PRVNFWIQSAJCUF26HMALNGIFAP3KLU6DHEGOWDEITYGEELXNSHRXJQHGECJXOMQM4ON3N4TKO4UK
-#\\\|G5CQ46PYPRL2YMGOSP73FZMKIEW65RAK2QQEIITW5PIKJME6CYB \ / AMOS7 \ YOURUM ::
-#\[7]EVG22RX3M7TEKMPCBCD5AYGLURZBSFU3N46IDX3KEUIPMHFBSQAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,..,.,.,,,,,...,.,,,..,,..,,...,..,,...,...,...,,..,.,.,,..,...,
+#AAIU7WPKNKA3BKTJX6C6GESRDTENKVURGVXGDBSXQJZTDBXJHSIHCC3SCAHF7PFZWEKM62QBHW7ZK
+#\\\|2IVZWF2WBBKXWTXOSZTIZGFUFK5Y3WZJF5TTAYT2JJ6ZS4VUUDD \ / AMOS7 \ YOURUM ::
+#\[7]SAY5SJHKPEQI7LXTJVBUNYUHUBJ6RNITYYSWWI7YM7ZQJZKKRQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

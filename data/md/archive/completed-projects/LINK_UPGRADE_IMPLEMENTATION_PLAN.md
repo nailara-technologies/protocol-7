@@ -284,8 +284,8 @@ if (strcmp(cmd_str, "link-upgrade") == 0) {
 **Estimated Total Time**: 8-12 hours concentrated work
 **v7 Auto-Update**: Will automatically reload p7 binary on recompile
 
-#,,,,,,,.,,..,,,,,,,,,,.,,,,,,,.,,,,.,,,.,,..,.,.,...,...,..,,,,,,...,...,...,
-#KIN52POBRDBJ4K7JW7PJQPOM2QMWML47WVZFV5GZ5IJ6QP5EPS3JXZB7QMWU3GYLQYITCFUW5BV5S
-#\\\|GXIU2UZMXNBZJGZF7MMLPGJU7I5N6UTOSUVH345P3ESGWOMDTW2 \ / AMOS7 \ YOURUM ::
-#\[7]5HMQDJTQFQODNSXGVRUC42QFWLZ7IEBIRX4JAFF42UG3CJZXTOBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,.,,,.,.,.,.,.,.,,,.,,,,,,,,,.,.,.,...,...,,..,,.,,,,.,.,.,,,.,
+#AN6VMQVSZUT6LL72YOL6EZJLQFAXX7BTNNOHEBSJ62ZQSZW2AEV2YKCY5L645VLEHA56SAROVC3SY
+#\\\|CW2RU5UG23XRZRAYRTY6YUFKDXE4KWWXMUQLLNHGRDP5FXUOV5J \ / AMOS7 \ YOURUM ::
+#\[7]D5SKPGXTDRR2XUHIIJCDB6USQHQFQ4B3WE7S64SES63D7755KQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -326,8 +326,8 @@ the network remembers this and keeps the inviting surface intact.
   transmission is the entity's first contribution to the eternal
   layer; afterward it cannot be uncontributed
 
-#,,,,,,..,,.,,,..,,,,,.,,,,,,,,,,,...,,,.,..,,..,,...,...,,,,,,.,,,,.,..,,,,.,
-#OF7M5VPZ3XVAA7GBQXEFVWFFGOFBJEEZVVBCMR2F7QF34MH73KEZEZPCHYLPXCX6RTOD7PAYSNVKC
-#\\\|O6EHCHDU3JMJWWDS5VXSWYADK6S64QC6YXHTRXCYG324LB5LWZG \ / AMOS7 \ YOURUM ::
-#\[7]IO7KPP33MYNOOFJQJHDGNTOPXNU7YTSH6KBTKMQFTOOIPAERSGBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,.,..,,,,,,.,,,,,.,.,.,,.,,...,..,,...,...,..,,,.,,..,,.,.,,,.,
+#2FRRV7I6BYEH4NZUGMLODSAGAOEUT5DEYI4E65AN22UWLYGGN3NABWRKX6Z2WA525U6AW5KMXH5O6
+#\\\|E3H32ETTWHV5RLYOQGIQPDVLK4472YDZAEN5A5LALWYVK3JBA3S \ / AMOS7 \ YOURUM ::
+#\[7]QI6JTO3KZCXBBDWIZJ4AUP5LKNNXVEVN5QC4KGCJZW3M4BOFDABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

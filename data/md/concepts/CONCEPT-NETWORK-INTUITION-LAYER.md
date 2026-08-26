@@ -606,8 +606,8 @@ All without explicit tagging. All from perceptual proximity. All enabling a netw
 
 **This is how a network becomes not just organized, but intelligent.** ✨
 
-#,,..,...,.,,,,,,,.,.,.,.,.,.,,.,,,,,,...,.,,,..,,...,...,...,,..,..,,...,,,,,
-#Q2WJZVYIMMMUIDVGYVN3257TSWCPSTHL7NEISJ3QI4QLVWL6POR3CLBREOPMDJRWYSFXHMFO4V3NK
-#\\\|RPNDG3WGZBAPKTZK4HC6FM45CBSTOFFQU3V6NX2KHBESUPBR5LN \ / AMOS7 \ YOURUM ::
-#\[7]SILI7BYLO5QKBLDL7FLBOLCYTWCMXTBIM5OTPCGFWXSDNLM5TICA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,,,.,.,,.,,.,,,,,,,...,.,,,,.,,..,,...,...,.,.,.,,,.,,,,.,,.,.,
+#HZMEMLTTMBURFKKVOR4L4IU5VVJ7PKNTQNZYETEHULGIGSEFEIUY3HG2ZNWM32VPBELM44GMZQM22
+#\\\|ZSEDFPQASWP4VE3F3RB3KNWQGK6M32FQE4NO2EE4KXR3NA5BOXC \ / AMOS7 \ YOURUM ::
+#\[7]WCGXPMLAX373KFWQOZC3KATHQA6ZWLGOTBM7CGRBJMKI5NEV6CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

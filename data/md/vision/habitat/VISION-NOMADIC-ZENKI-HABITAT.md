@@ -231,8 +231,8 @@ defining rather than hierarchically ordered.
 - `data/md/data-zenka/DATA_ZENKA_SHM_MOUNTING.md` — SHM mounting implementation
 - `data/md/data-zenka/AGENTS.md` — LLM developer guide for data zenka
 
-#,,,.,,,,,,..,,.,,,.,,,..,.,.,,.,,,.,,,..,.,.,..,,...,...,.,,,,,,,,,.,.,.,...,
-#CGHSIFY6WPLL6KM5XOOWZIMFVX53YXZZFS4YWHEWORAPOYA2LEBT2HZEAZFW6M3L5M4Y6HZUWFPZ4
-#\\\|ZYVA62KL3CO2MNAQPS4VTXIXBXILWJU7BIDIU4IHY62JBJ22BII \ / AMOS7 \ YOURUM ::
-#\[7]ISKKLP3PYNL72XCB5Q4TYLL7XVFHK2WLE3MMNLZZMD54BP2YNKDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,...,,,,,,,,,,,.,...,.,.,,.,,..,,...,...,..,,.,.,,,,,.,.,.,.,
+#4TYYRLFGP7JV5B3TI2X5NH2YJQ6YNSWQSCVM77X73HIXKZB3GIV5JWRLFL5JOIIRCYRDJEZOUDJR4
+#\\\|G5Z4LRBKODIPUBAFKNXJRY7GZV2ERIT6NYQ5EC2G52ZJOKOTCHO \ / AMOS7 \ YOURUM ::
+#\[7]BWIYBFR25D4TMERB7TEDG67HZF3Z2ZW7UR5VQWBKJLADPS4J6UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

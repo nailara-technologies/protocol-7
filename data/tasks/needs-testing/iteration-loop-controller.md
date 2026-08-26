@@ -77,8 +77,8 @@ formatted summary of all attempts with best result highlighted:
 - valued tree updated on advance or escalate
 - iteration.init_code exists and initializes <iteration.state>
 
-#,,,.,..,,..,,.,.,,..,...,,..,..,,,,,,...,,,.,..,,...,...,...,...,...,,,.,...,
-#U6IPU7JYJMWL3VSVRRUNEVUE66B4U2OL5NN33W5Y3PRCINFNIRC3QMSUKM6HHFM7IKFE7DLM4VSMM
-#\\\|NXKWQZO7UHEIAUZ35UK2WN4YKWCSATSLGMC5QMTZBPIGC3LEU55 \ / AMOS7 \ YOURUM ::
-#\[7]CFOOE225KZ3R6NQ3TZK7M5T5LDLZOSHQ25NNRYEMZLXVVRXIMEAA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,..,,,,,,...,,,.,.,,,,,,,...,,,,,..,,...,.,.,,.,,,,.,,..,,,.,.,.,
+#636I62MRS4JFL6C44SEO33QC7EBFA24XXYIWMHFL4CREW56TDICEO7FAKBOXOOBJGKD6P5PM2INYC
+#\\\|LLLKTJAW6JI3W2QNLCZSFKBP5VIF5H2KNQ3FWU6DBRP7JRIVKD3 \ / AMOS7 \ YOURUM ::
+#\[7]TTBADDJNGRCPE3U4SV4NBDUP5UKUQSD55EVSFDEIQJ4ZIGH5RGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

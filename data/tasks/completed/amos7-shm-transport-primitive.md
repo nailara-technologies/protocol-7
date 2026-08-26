@@ -183,8 +183,8 @@ specifically ] vs single-process, and confirm explicitly that the checksum-
 algorithm-is-caller's-choice decision is documented in the module itself, not
 just in this task doc.
 
-#,,.,,.,,,.,,,,,.,.,,,,,,,...,,,.,,,.,.,.,,,,,..,,...,...,.,.,,,.,,,,,..,,...,
-#WMR3JHWJPVLQBIPN3CYSKSLBWKYQGYDIYMN63SCZE4PIC6XVEQY3DWZMRX4MMX7SEB63SJ3X7KTSC
-#\\\|MESVYOWTLWFTF3ZOHXLNMZJR3XGVEZC2YZZJFDBZGO45IS2HWTD \ / AMOS7 \ YOURUM ::
-#\[7]LNBDWFQAROEBYODB3RYGDIAKBBNAQSUHQUMSNAYGOMEJTE4ODOCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,.,.,,,.,,,.,.,,,.,.,.,..,,.,.,..,,...,...,...,...,...,,.,,,,.,
+#6IWKC73FQNGJUHQW7BPES4J3E2CTAJWH77EBFCQ67UD3VWKOK523RLOUMOPNZB5I5BMUPSZD32HCK
+#\\\|UP6GX4OUB5FG4N67QUQPMYOSCLU7RCYXLERIWO6CLSC2VFWWUEI \ / AMOS7 \ YOURUM ::
+#\[7]2SW4F6DD2UQYHKWXXE26PFLVOYKTWWL5GS3WOOKU6QDF6TWZDCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

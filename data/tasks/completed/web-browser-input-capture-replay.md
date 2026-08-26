@@ -224,8 +224,8 @@ recorded/synthetic input + state verification). The "screenshot-batch
 across all visualizations" convergence idea from the relationship section
 above is a distinct follow-up task, not yet started.
 
-#,,,.,...,,,,,,,.,.,,,,..,...,..,,,.,,.,.,,,.,..,,...,.,.,...,,.,,...,,,,,,.,,
-#3WBWRCFXT44DQNZO3NKF4Q22VDTVNSTMQH5LXXKZRKUGPVCZX2G4SI26T5SGK74QPJZYUJMBR7PD2
-#\\\|QWADDIH4H3D4FG2MXMLD24PZ57IBVJS3USFSGQ5FZHJFPBC3YX7 \ / AMOS7 \ YOURUM ::
-#\[7]OIQ6OEOFPRNY63TMOLA56GEBGNI4OHXSZDUGBEZMAOSGFLPS6GBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,...,,..,..,,,..,,,.,,..,,..,,..,..,,...,...,..,,.,,,.,.,...,.,,,
+#SMUYHZKK3CKRLAPAHU4Z5S4H5N5UJILRJ7TQ22NY7SECVZPLIYQPUTHYCQZIDLECH3VP3JZGERJWM
+#\\\|Y4G467TOYED64HIZLIBMYKFKR4QGLNSQ5ALE26UVUPFSOU2GDUO \ / AMOS7 \ YOURUM ::
+#\[7]YBWOTEUYQPZTMX6NE7BFPUB6UNBWRP65FTBTGDKFIVO23IE7IGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

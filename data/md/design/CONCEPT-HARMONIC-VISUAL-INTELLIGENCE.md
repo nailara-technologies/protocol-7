@@ -298,8 +298,8 @@ to the full multi-modal stack when audio synthesis is added.
 - `bin/amos-data-pager-56` — 56-bit viewer with `true_int` harmonic coloring per row
 - `data/gfx/backgrounds/` — calibration image vocabulary
 
-#,,..,,,.,,,,,..,,.,.,.,.,,,,,,,.,.,.,.,.,,.,,..,,...,..,,...,.,,,,,.,,,.,..,,
-#4WUIXF7ELQ543G7AFAVRCD3XMUQ63PQK2TLSSGYRG432OFFRM7OHAZEYEAEBYQ7C3H2UV3BSJHI42
-#\\\|AFLEPCHMA5BXSTVCURS7SJLD7D7GN6LJG6D4PWPCYGPVMV3MRES \ / AMOS7 \ YOURUM ::
-#\[7]44NXFA3FLAATXPIVQW4M5FBRLGBLWJVSJFCLIIQPFKI45EHVK4BA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,,,,,...,,,,,.,.,,,.,,,,,.,.,..,,...,...,...,..,,..,,,,,,,.,,
+#CES565AQTVDDF7Y3EOBM4WRJBW3SOKESKFVWZ7WQQXXWSB6MVGGV4J4MSECPH7MI3EAF6MNJQXHIY
+#\\\|G3X2Y7ZUGU546GVVC4JLOSPDMDFGVAB3CWCR3DIRVPI4YXB5VZG \ / AMOS7 \ YOURUM ::
+#\[7]GMOK75R55ZMZX6EIBABILA32UXA6UX2UASLGIHJBGLOUIONIASCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

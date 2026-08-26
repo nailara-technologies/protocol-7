@@ -169,8 +169,8 @@ The user who maintains this system ends up spending hours fixing accumulated deb
 
 Style compliance isn't about aesthetics. **It's about preventing your mistakes from compounding in a system where they can cascade.**
 
-#,,..,.,.,.,,,...,,,.,...,,..,,..,,,,,..,,,,,,..,,...,...,,..,,..,...,,,,,.,.,
-#N2OV35433WLQZQML53UWIWWQLZAN33PSZ2I3E4TGGN5DVCMRGBWG44X73OG7U56M2YOEL6MFPPX4M
-#\\\|VUP2MCFF6E4CEUVKNSHIC4L456TA2PYOLWLWKKQBN7BWRPJRY4B \ / AMOS7 \ YOURUM ::
-#\[7]W7TCJ6D7A2R5L3VHD4EMEPZ6AETYQJS7RIQX3MCY43GUX4XQUSBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,..,,,.,,.,.,...,..,,.,,,...,,..,..,,...,...,.,,,,,.,.,,,,..,...,
+#H4QW7SKKCVSX45YGH6F3KDVCVQZNKKZ4HZD6RL5ZZ6MPB2WSIXB2WYDCX547K72TFPY5JYMY3NA2E
+#\\\|PHWRUUYPSJG2ICJGXIP63EHVEIGWBUF5A5GAQOEJXKOVCJDSYIP \ / AMOS7 \ YOURUM ::
+#\[7]COEAUTNWMW6434SUCTMUKDMZRWXCL5EPG2YRW335PD4F7UZNA4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

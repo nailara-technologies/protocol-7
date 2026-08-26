@@ -77,8 +77,8 @@ kimi K3 dispatch `kbx4su758` on 2026-07-24, against a scratch file; what
 was untested until now was `assess` as the entry point against a real
 repo occurrence).
 
-#,,,,,.,.,,,,,,.,,..,,,,,,,,,,.,.,.,.,,,,,...,.,.,...,...,.,.,,,.,,..,,.,,,,.,
-#Y7LPMEW7XMF7YKQB553THYJBPLGT76FWLJPUNZYZPEJ4FC2HSIYBBLSUNMLFH5OJZWD656YJ77YB6
-#\\\|3N4FHXBZTYRWVEHKHPLD2FQ6QMFKQTMEPY23TPNOYZ5JRUK2KYH \ / AMOS7 \ YOURUM ::
-#\[7]ZNDG24PZTNIHN5C6ERR5G7XQ7Z5WUNFXQAL2KY3RK3S5YSQHDECQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,,.,,,,.,,..,,,.,.,,,.,.,,,,,.,.,...,...,.,,,,,,,.,.,..,,...,
+#OKN2WOFC5EBFJUVRTEZHVATFGVKOMZAP45A3N6JTB2OE6DMI2MMOO2RIDSHTKLIV64X6NLSG6RJBU
+#\\\|FGYGI443YSFQ5Z76MJVQUMXTAUKFBIXDIE7SBRNVRZE3HAP3L2R \ / AMOS7 \ YOURUM ::
+#\[7]BLNHDGST6GDNEYZQBDJNLYKK33TNZZJ5EZYXMZIZG4BDHBOF2WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

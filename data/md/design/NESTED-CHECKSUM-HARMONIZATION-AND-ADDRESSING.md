@@ -433,8 +433,8 @@ is already a closed, tested task
 future pass turning sections 3 or 4 into task files would need to resolve
 the open cost/termination and encapsulation questions first.
 
-#,,.,,...,,,.,,.,,.,,,,..,.,.,,,.,...,,,.,,..,..,,...,...,,,,,,,.,.,.,,..,,..,
-#25SCHUSRAOYSED452IXPOBHFCY3KFPNCAYS2LQ2VU7II7KXEAVNZLZVWLXOFRNMCJWP34KIILMS72
-#\\\|5NGEV2LOK7OKM2XQ6JKIKWTG2USCCRQUGBVJGT6R5DFXQWIM2KR \ / AMOS7 \ YOURUM ::
-#\[7]5MRFZGYVREUXJMN4DQNJNECCFRHLSJPVSHQ5FRATY6B272M4L6CY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,..,,,,,,,.,,.,,,,,,,.,,,,,,,..,,...,...,,..,,,.,,..,...,,,,,
+#CSEJJTYAKLPQVIGOTQ7YC7SXXLPSG3XWKTYA5MV47TV6OS6XNIXHZHBF2U6GU6A2MJRTHRQRGT53I
+#\\\|MXEU6MZK2ZMDZXEB3XPPDHQSRHEX6YBOBWKDCGTVFZ5F5ZB7OO6 \ / AMOS7 \ YOURUM ::
+#\[7]ZP7VLDIEWADFTASMRW64J7HU345UUILWI4LJYLM7SABVPS6GK2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

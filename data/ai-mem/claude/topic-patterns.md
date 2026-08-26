@@ -62,8 +62,8 @@
 - Always pass `model_path`/`mmproj_path` through to `spawn_smart` — it uses provided path
   directly, skipping metadata lookup that can resolve the wrong model
 
-#,,.,,,.,,.,,,,,,,,.,,,..,,.,,,.,,,..,.,,,,.,,..,,...,...,,.,,...,.,.,.,.,.,.,
-#6JZBMMXERFD3DYLDBKZTIQRS6S2HS7U47EAABVWTV5CVG5LPVYLRTFMYEV4R754Z4WZQOTPPYELAI
-#\\\|RD4EWNY22DFODENR3C75EFRCYNHO5YEYRGSN5MAHY4M4DFFXPOT \ / AMOS7 \ YOURUM ::
-#\[7]Q4D6FQ4NFTYVJMPBFBTD4VVE2ZTJNEEALRVLKU2ASGJU47NXVSCI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,,..,..,,..,,...,.,.,,.,,...,..,,...,...,,..,.,,,.,,,...,...,
+#VDLBTW6PXYSFMA6EVII4577VCHGZKHUPLUORSRBTPJCTTAWOZ2BBPAYLQ3AMWSG5JXPO5BMU5HT7C
+#\\\|IDFYJPTOW4W4223XXYVJV4BLCC4D4ZWGXISVDY6XN2IP27QQEKV \ / AMOS7 \ YOURUM ::
+#\[7]ZFHZFHS44ZOVKWELQ5KECBBKRBZ5U2XPQ3VHTWELE5ASNLXHSQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -98,8 +98,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 
-#,,,,,.,.,,..,...,.,.,.,,,,..,.,,,,,,,,,.,,,,,..,,...,...,...,,.,,,,.,,.,,,.,,
-#4X5UR2G362DWP3RL75JWFILHTDJD7I3KX3UPFJ5C3TWHI7S2P3AA5K4YRS6LTNVAF2OTAKPDY5AJO
-#\\\|F3R522UBGBP2K4O7XHCICDEZDK4NRHDXNWDS4QMGCB5BLZ32UXD \ / AMOS7 \ YOURUM ::
-#\[7]CSQYSO4OYNIFGQO5G5U7ZGCYMYZBWQ3XDM3AHQCP6W5HJMNOJ4BI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,...,.,.,...,.,.,..,,.,.,.,.,..,,...,...,..,,.,.,..,,,,.,.,,,
+#JJIAM4E5X3RKQCGC73X7FZI65ZK6TCTHRZMVIXNIRCF3XNIZKAIJKGZMIJQNEIEMUDYZFS3EOOKXK
+#\\\|FGO6SOQBF65KDWLRJ6H3OMDOSSQG5J77CRS4LHCNY6UB4TYVIXN \ / AMOS7 \ YOURUM ::
+#\[7]4JNVJZ5JN4TRWLHM2Z3RLTXMXQADLG3YFAUHOCAIDFAXYUPSHIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

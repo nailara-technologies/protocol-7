@@ -356,8 +356,8 @@ and why, the exact table-parsing approach you used for the `list
 subnames` reply, and what you decided about the cache-invalidation
 question (TTL-only vs. some disconnect-notification hook, and why).
 
-#,,,,,,.,,..,,.,,,...,,,.,,,.,.,,,..,,,..,...,..,,...,...,,.,,.,.,...,.,.,,.,,
-#44YNNJA2B6FPSGTQHUIUYAPV7N26HS5B4U35HCPTPCU7XX2INUUA2STYUWK7EA6AVD4MXRBMDDBBU
-#\\\|ONBLT6ZF2JHP3PTIREAHVMBC5OGMX6CASZD7TM4X2PK5XFTOP33 \ / AMOS7 \ YOURUM ::
-#\[7]27XUHLWOFUCYISDJTC7CQL7DLNFGTIQMLC4V5UGKO2BYX6JABODY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,.,.,..,,,,.,,.,,.,,,..,,..,,..,,...,...,.,.,,,.,,,,,,..,...,
+#FZZMPX4DPJUTQWD62KMU2KVGNDE6KSFI7VG2T3SFQ7GBT4MLQVPSIXSWJ24BKWCT27UJJTU7FJPHC
+#\\\|UQJ5ROIKY4KLTQWZSEM2NNBURJKNW4ALCLKDXVEUXXJSVEKMT5D \ / AMOS7 \ YOURUM ::
+#\[7]SN7ZFHJLHLXRKHMDES76XIXDPZFJOPRZZ5JOGWRNOAMOUPJ5UUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -104,8 +104,8 @@ counter reset ].
 - `follow_up` + `tier2_judge` still use the blocking client — deliberately
   out of scope (post-test disposition path), separate lower-value task.
 
-#,,,,,.,,,...,...,,,.,..,,..,,,.,,,..,,..,,,,,..,,...,..,,...,..,,,,,,,,,,,..,
-#VPPDEGP32WEVP6WHCRV2CU3O4Z6G4Q6PDDJVR6TDP2YORYU745FOS3LYKHE4XQG5AGX224OWN4622
-#\\\|IIHP65JJ3KDWCJHQDCCOBLHSWANZE5CEF7ZLWUQW2VIUR3VTAA3 \ / AMOS7 \ YOURUM ::
-#\[7]XMB73SU4QD4BBSYV2ZWB3GVMUDELXI6AXIUIJRT3CL7CXCADG4BA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,,..,..,,..,,,,.,...,,..,.,.,..,,...,...,...,.,,,,,.,..,,.,.,
+#23DTUMWSM3OBXQYF6YB7XX6UPRX7NYPJ6CAGKQWWXYXVGYNSVQ3BUOF5YJGYQRIXO43V2ZJ4IK7IW
+#\\\|K3JAOVN2RLBLS2IMPS3BVPW3BCN4OLT5PRF2TRGN4KCLK6TNFN2 \ / AMOS7 \ YOURUM ::
+#\[7]F7TARRAH2E7WK3STJSGAEKWOR4MPIVM7IBKLUZ3NAV3GLC75KUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

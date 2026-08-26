@@ -54,8 +54,8 @@ needing user input.
 - returns 'nothing executable' when queue is empty or all tasks claimed/done
 - ties broken by insertion order [ first in queue wins ]
 
-#,,.,,.,,,,..,,.,,,,.,,,.,.,,,,..,..,,,,.,,,,,..,,...,...,..,,.,.,..,,..,,.,.,
-#GAAJFMVPUKSNKZRSKHRJ5GSEPRPGBLIOIKYM3M6AHLJV4RX6T2PTE5YO2YAFZZUI6FCG5JAMX3J6Y
-#\\\|ICL7CYZCM2KBOWOEKEZG2JQYIIV3KMMPZ5XOBK6QPXA5P5732NV \ / AMOS7 \ YOURUM ::
-#\[7]ZRYTCTXD37AOM2FABIZ3RC6H4ZCEV7BKFACNWYPMNBUOEJNYMQBI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,.,,,,,,,,,,..,,.,,,..,,,.,,.,,..,,...,..,,.,,,..,,,..,,.,,,..,
+#U5W3OCLMKG5SIE2GDHM7QIAD5WBDVKED4NNRNCIHKE5H6GTJAGON4U7DZHSG3OSMC5WRAYIW6IESW
+#\\\|XQOL6P76MOFNY4Q6T3564D2WW4FQJMYOLOV5FXJ3X3XEF45AF3Z \ / AMOS7 \ YOURUM ::
+#\[7]HBPHQRPYIAWCG4QCZSP3QLRLPUWE7GLPR57NZN4LFDHBEK4HDEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

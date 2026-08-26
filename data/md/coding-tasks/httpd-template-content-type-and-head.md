@@ -76,8 +76,8 @@ after modifying both modules:
 1. `ptd -c` both modified module files
 2. confirm no `$_` usage (should be `$ARG`)
 
-#,,,,,,.,,...,,,,,.,,,,..,,,,,,..,...,...,,..,..,,...,...,...,,.,,,..,,.,,,..,
-#3A2GKUYTHXJO5YLH54XQTBRRJSZA2HCCPHHW7WJGSLMBU6BAZEFDZLD4IVDYEK4FNOVJ3WFQJXPS4
-#\\\|MLNCIC3RJRJEPIEBYJYI6MXIKZAA3A5BMPFWPI56LCNTL6H4HDA \ / AMOS7 \ YOURUM ::
-#\[7]2Y7J25VIJQJSSXPTZ6J57V5V4SGUHUOKFVAFFUVOVR4TMHAD42DY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,,..,...,.,.,.,.,...,,..,,,,,..,,...,...,...,,..,.,,,..,,..,,
+#5TKROYCS2XZRM5J3P6EX2SSKESCRC3XXGNJZGLXT6L2AIBGZP7I5B6PPUEOM5JQNBUE3ZXVHJV4ES
+#\\\|6CDLIVVDNKWS347CU44ZE4B5R4KQRAXRXVVEP3QO2DW6T74RQSH \ / AMOS7 \ YOURUM ::
+#\[7]5FES6XIXU44NGKSVP5DNFQKQIMQ6NNC74UA25K3FHICLHL74SMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

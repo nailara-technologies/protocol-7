@@ -88,8 +88,8 @@ infrastructure]] (the other open write-access security design track —
 check whether these should eventually merge into one doc or stay
 separate concerns).
 
-#,,,,,,,.,.,.,,,.,.,.,,..,.,,,,.,,,,,,.,.,,,,,..,,...,...,,..,..,,..,,...,,,,,
-#3PRDSXFU5XK6SUGLP4MFSFW7SPJFHKZBPDC6OSPY5SPCRROTGL7L3RJ7Y2VGDH2ABAVLS62MIAD6C
-#\\\|2UAAEMZ22NBI2FB6JQOFO3QXE2Y4DZLM3WY22DJERSCGVHDN4OD \ / AMOS7 \ YOURUM ::
-#\[7]RN6H5HGTVSFN6KGLLQOX7OEIAS5PFJEGY7ICQB46FPBDJ52GBCCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,.,.,.,,,,.,,,.,,.,,,...,,,.,..,,...,...,..,,..,,...,..,,,,.,
+#HCOQJKUH6ICJPPABA7F5HLTPVR4OPHSNQW2OGGHMF5FQZR5XNAK5CNAD3RMS4B5XRAVUVJJ4Z3N2U
+#\\\|LGJRRSXORLBD4JPCT23ZY6VGMKK3SLW2Z5RAC57EL27XAFX3NNU \ / AMOS7 \ YOURUM ::
+#\[7]MEUOUFHZPG32Q5KKD3SPXGAULIEFPK5PGANUAP6S2UA37H5WJGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

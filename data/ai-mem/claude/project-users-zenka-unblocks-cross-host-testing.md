@@ -47,8 +47,8 @@ storage, link-upgrade encryption, command-level signing.
 
 [[project-checksum-addressing-implementation-survey]]
 
-#,,.,,..,,,,,,,,.,.,,,,..,,,.,.,.,,..,.,,,.,,,..,,...,...,.,.,,.,,..,,..,,,.,,
-#IPRJENM7O4PI2I36JCEZVA5EPBCGVGO2E3GUZ4I4XH3GOYEZT55XIU345B2XAEDNJMBVK6SVP67ZM
-#\\\|SAKVGIGMQ3KZUA4A4PIJPLHU4VFKZ5LEESMW6HOLLZ3DZ54K4R7 \ / AMOS7 \ YOURUM ::
-#\[7]UG4LBCEO3KBH72VLL6LAMHYMHP5OG5UEDJLAL245HKKIHLVOAYBA 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,.,.,.,,,,,.,...,...,.,,,.,,,..,,...,...,..,,.,.,,.,,.,,,..,,
+#55Y65AQC66O2QKUXNPYAVM5NX52XIWMPAMUQP5R7WYQ42ITCOIJE6FWIOUW6VVY6FXVJUURLNA5WY
+#\\\|QOXO2ZWU4JW5ZJXG7Y2ZQR5U7JPPCWPET7ERBFUP6AO4E5JLHGH \ / AMOS7 \ YOURUM ::
+#\[7]T5SJ7HQFAFZOBYBUOBTZU6H5N26Q2KFXSZ3QHBQBVPOQZVFDXKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

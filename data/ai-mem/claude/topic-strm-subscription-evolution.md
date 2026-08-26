@@ -112,8 +112,8 @@ addressing so deeply that a pubkey-addressed channel can't slot in later).
 [[strm-generic-subscribe-wrapper]] ·
 [[topic-kimi-dispatch-infra-hardening]]
 
-#,,,,,.,,,,.,,...,.,.,,,,,.,.,.,.,..,,,,.,,,.,..,,...,...,..,,,,.,,,.,,..,,..,
-#47C3KCFGWDMAJPLE7P74L6USSYZ2LRCBXHB462EWF2FDI7GXH2SBQOSQPNWXIWCAO3CTKV4PMEKRS
-#\\\|B6WKIKDRYFNICDNFK3WZF5ZYJYB35SDWQKSYWLOLWMMMRDBBL7P \ / AMOS7 \ YOURUM ::
-#\[7]DF4JYFTDSZJZOGCOOMYOZ72R2R2AG22FVF26V67IO62MR4V35KDI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,..,,..,.,.,,.,,,,.,,..,,.,,..,,...,...,...,,.,,.,.,,,,,,..,
+#XL7DFRPU5DPDGKYJB73L2W7LHMM66KYX7RYZLU2JTZNNHS3H64S3ZVU27KWCMSZF772U7DASPSHUC
+#\\\|52NTUEMGUJQNFDQYLPN5ZT3Y47KJXPHDOLVGXI2542DWADUZSDL \ / AMOS7 \ YOURUM ::
+#\[7]NI5XRCOPT2LRBMMGJPM5CTHQ2ZJYSJCWYAAMME2ZKL3QV6X3YCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

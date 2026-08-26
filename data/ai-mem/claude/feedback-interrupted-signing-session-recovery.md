@@ -71,8 +71,8 @@ no way to front-load the signing for a multi-commit split. 14 batches
 this session meant 14 rounds of the user manually running the sign step
 and saying "signed"/"ready"/"done" before each commit could proceed.
 
-#,,,,,.,,,,.,,.,,,,,,,..,,,,.,,,,,,..,,,,,..,,.,.,...,...,,.,,.,.,...,...,..,,
-#6ALHBNUTQVAEPSKCLTCEVGVYWA5MG24VZ7JUZQVLX3ONH6O2UJ7DU5TPCNER7WC3BKY6D65A4WXH4
-#\\\|A4S2DCGCIIIH5DITM2ZHCN7VY2VUSA5L6KYINJMW2AKH6ZEEMRI \ / AMOS7 \ YOURUM ::
-#\[7]TXBUMDRFXK3CS2MX57OJOEF7OHGBAGWIFGY7SR7MLJQGMVS3QOBQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,.,,,.,..,,,..,..,,..,,..,,,..,.,.,...,...,..,,.,.,,,.,,,,,,..,
+#6C3T5O4S2QQD47DDV5D4KPZCVYAFBPVIHCSEEPGFFZRZ6W5M6VPWPUUZPUMXQVJO6M24UX3MDAMFO
+#\\\|FC6OGLSDVWFHXU22U7ESPAZK2P6CSQ2ZPFT7YGCRBZQTJPDKJII \ / AMOS7 \ YOURUM ::
+#\[7]RRVNVNLGXPWJ3RAQMG5TNUSD7OZILCCYVC7EYXN35LUJR3G37KBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

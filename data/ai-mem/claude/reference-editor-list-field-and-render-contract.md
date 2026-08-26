@@ -167,8 +167,8 @@ history now, not guidance. Padded labels work.
 user-edit keeps right-aligned labels anyway, because aligned colons read
 well, but it is no longer forced to.
 
-#,,,,,.,.,,,.,...,,,.,,.,,.,,,...,.,.,,..,,.,,..,,...,...,...,,,,,,,.,,.,,,..,
-#T7XMLV7T4F3P6CMEHI7GEO4LCWK5KCZMABNHZNSHGWEBYRTVI5E2GKZE5RV43V4BXCXYECUJ7MLP4
-#\\\|PNGBGA2Y6YHE3553ZG5AA6KH2FOX74GYF2DGV2NMWBNSQ3BLOBF \ / AMOS7 \ YOURUM ::
-#\[7]AIUCHLWYKEKJGS7XNNET2K3IUOVVLY2ZDT7WRXO6XTZGOS7KDCCA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,.,.,.,.,.,.,.,.,.,,..,,..,,,,,..,,...,..,,,..,..,,.,,,...,..,,
+#BO2ANUOQMTPNPOELOOOF3MBGJC76Q6NMKR6IZUTJA3OYQ4YYVQ335KUZLKDASZZIOBHKNAVBFE4GS
+#\\\|XQS7MDQGNYL5W3RIRU62RH4NCW3G3ATHG7G4F7VDAWMTTTMBQUP \ / AMOS7 \ YOURUM ::
+#\[7]4NCKVWHEYYWL47SX77PYPOYSMV35AMJ3JIZ3RPQ2LCF26ASBZWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

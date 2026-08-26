@@ -44,8 +44,8 @@ user notices and values when resource-consciousness is respected versus
 when a suggestion would casually re-introduce the kind of bloat being
 implicitly criticized here.
 
-#,,,.,,..,,..,,..,.,.,,,,,,.,,,,,,,..,,..,,,,,..,,...,...,.,,,,..,.,,,,,.,,.,,
-#4MBLW5EDJS744MJGRUWJG72AEMDEVFYBOTYZS3ECI7KYA3CXPUY6PDFRISJOY3X7WGEXLVM7HIACI
-#\\\|EDO5WD5PTYINAIKNQMNKNWKXA5D3KGZ7J4NZZ4PBGW5EB5QVXIM \ / AMOS7 \ YOURUM ::
-#\[7]HPWVXMKVTXYNQJVYVB736RZ3FCPEGDGLSAETF73CJT6GVO4JYMBA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,...,...,,..,...,,..,.,.,,.,,..,,...,...,.,.,.,.,,,,,.,,,,,,,
+#3INHLPTIQR66AJQ4CML4QHWBVJNFKD5K4QNKIRPF2ASGFITWOGZCTBGR5YTEUIYYREPBYT2672MDC
+#\\\|YKTDUJQBGXSVVNXKPLGSVHOODIKUPKQFTSQG5ZCX2MXG4ARLULX \ / AMOS7 \ YOURUM ::
+#\[7]EZOJRYTRUMKBAP6VPUY2MGEA25ZYKAYVAAZS7SQD5RDTWBPYSCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

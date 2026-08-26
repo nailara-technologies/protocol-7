@@ -118,8 +118,8 @@ BMW-L13 checksum switch on top is also **LANDED, commit `932a539b8`**.
 Read [[topic-summary-tree-phase1]] before touching this area again — don't
 re-derive the architecture or re-hit the same bugs.
 
-#,,,.,,..,.,,,,,,,,..,,..,,..,.,.,...,,,,,...,..,,...,...,,..,,..,,..,,,.,,,.,
-#ZKEZVWJYAZA4F2QJTSKXVHV5Q5ZO5EIVWRAOUKJOTZZF5G5KFVTHW3WK2TXOUEGOMHFMXP3P2CNLQ
-#\\\|XZ3MMJAVUT77OFTISZJHCYK6VUBK5WXIAOCWUTKNO4MBSEQHA6S \ / AMOS7 \ YOURUM ::
-#\[7]B2F3AOB4SVOSPSJZKMII4UGXTGZNKIFESRRO4DIJICKFTYLP66DA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,.,,,.,,.,,,,.,..,,,,,,.,.,.,,,..,,...,...,,..,,..,,.,,,.,,,.,,
+#DXI47GLQKA4KCKM66B6XETSLZ2Q26ENHWM2CPLSQAZCI5B75WJATMXNBUCOUY3CHQGH3Z3MHHKJDE
+#\\\|RXPDKPKVHZSVMRZDZ4LJYDGOMZF2IBK5KGDCQJDACZ2XGMSMR6C \ / AMOS7 \ YOURUM ::
+#\[7]5E7CBDQAZXYLPG6XYXZO4YXDWRCBPGVV2KDOE2HMWNMH4QENY2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

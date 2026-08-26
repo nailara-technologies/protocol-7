@@ -43,8 +43,8 @@ multiplexing" as a lens for both diagnostics (read system state from pacing/shap
 without instrumentation) and design (choose orderings that make useful
 distributions visible by construction).
 
-#,,,.,.,.,,,.,.,.,,..,.,.,...,,.,,,..,,,.,.,,,..,,...,...,,,.,...,,,,,,..,,,.,
-#DSGAWRAV66ZPPEWJG7GEOIHVHBC35BHEYD3BDBTYSWTUIQJFZEPKWL7ILQPCODZDWXW5DW7UZ2FQC
-#\\\|3SLVLWFBUMMRI5YWMGPU4JOC7PVPAFSZXUX4JZGJEXX7WWQZVUC \ / AMOS7 \ YOURUM ::
-#\[7]SI6RSJOSUOLER3QSXHGKNX6NWY52X6YBLX7KQVTFG2YVDV4VUMBI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,...,,.,,...,..,,.,,,,,.,...,..,,...,...,.,.,...,...,,..,...,
+#F4P7WUXEPVDERPBDF7P2C4GMDWCN7NHPRQW5PWA34QX2IXCIYZKJKMFW6PY3K7EJGHZTMEEUSSFXS
+#\\\|CYTAGSK5ZODSQBM34SOPA3JQACKY6IH3YQI4VIJ7D7UFFD25TP7 \ / AMOS7 \ YOURUM ::
+#\[7]GFACU4OELFKUA42A66SDRUUVCMDDOTTKO6W3JOMT7ZBUEZHIY2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

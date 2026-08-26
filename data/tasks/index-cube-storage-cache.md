@@ -151,8 +151,8 @@ return { 'mode' => 'size', 'data' => join("\n", @lines) . "\n" };
 - the LRU list stores only `(depth, rank)` tuples — the actual compartment
   data lives in `<index.cube.loaded>`. this keeps the eviction metadata small.
 
-#,,,,,..,,.,.,,..,.,.,,,,,...,.,.,,,,,...,,,,,..,,...,...,...,,.,,,..,,,,,.,.,
-#MO3X46KG2IPKRPJFTUUL6SQABOSGV3FUEPV2JKKD6T5ATNP6Q2LL5FC3WXDWVRN4IEL2AMOAWYPYG
-#\\\|5JAXJI4SEQE7LHG6IXD75D5GAXGK4JLR3J6ITAVJUUSJCNEOIUH \ / AMOS7 \ YOURUM ::
-#\[7]232QZRVBY35422QUJ7XXYSAH2S22XNMXDM54T7K7DY2WF5LEMQDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,..,.,,,..,,,,,,,..,.,,,...,..,,...,...,..,,..,,,..,..,,,,,,
+#SBWX64XTJVKHD4MELSINTHAEE2TPTX646E4FC2UKJR27D3ORKULY4UD4VHKKYY3ZMJMZZW7ZCPJBY
+#\\\|NBAI5KUAG6747C3XTZOUOKMF5RPTPI7DZAQOAF2RVNEHT7DKOAY \ / AMOS7 \ YOURUM ::
+#\[7]CQ7YLWWAK7PVO6NPJMF53EJKYIH3SGIFTFTHQWJ6VCKACTYPB4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

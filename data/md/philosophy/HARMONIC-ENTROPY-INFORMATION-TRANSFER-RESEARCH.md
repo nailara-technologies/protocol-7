@@ -473,8 +473,8 @@ The same stratification applies to any multi-layer harmonic accumulation system,
 including the VTERM layer system described in DECODER-VTERM-ARCHITECTURE.md and any
 LLM group pattern memory that accumulates harmonic spikes over time.
 
-#,,,.,.,,,..,,,,.,,.,,,,,,...,...,,.,,,,,,..,,..,,...,...,,..,,.,,...,,..,,..,
-#3ZW6FAFGBC6FUKKY2D3OIP5BKAUZOVXGO3A5P2Z2EVT3GSZXBHNJWAZLEM7CEQBVAS6HQWGOVGCOM
-#\\\|XQOY3JLGZ2OHHMMS2JHCYKW5K4LILV7BVT666DFIE3RMCJ3WEIR \ / AMOS7 \ YOURUM ::
-#\[7]ASYOPEWAPEE2KTXPPJWMV2G5ABMZ7FHKISFT66S577GU5L4SIADA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,,,,,,,,,.,,.,,,.,.,.,,,,.,,..,,...,...,,,.,,,.,,,.,..,,.,,,
+#3QGIN3OO4TI2LOGRGDLK6LAFN3ZMGW532SOJH52EZVC6DTORZIHPRQELF4DLIBKCZFCHFTMQR3GOA
+#\\\|YP6LQGYW2BQNHFKNJIYICHQ5S6HNWUKHYGF6XJB574XQVUXJCJP \ / AMOS7 \ YOURUM ::
+#\[7]YJC6FJETVC3OAWWKGTCCKKVYGRMPN6LCJ22YXAER72SVESWIAYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

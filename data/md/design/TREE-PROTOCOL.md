@@ -264,8 +264,8 @@ DATA becomes TREE. the pivot IS the oscillation node.
 - `devmod.cmd.dump` — DATA is the protocol form of this
 - checksum tree wire format — TREE END checksum IS a checksum tree leaf
 
-#,,.,,...,.,.,..,,.,.,.,.,...,..,,...,...,,,,,..,,...,.,,,...,,,.,,.,,,.,,,,.,
-#CDJM3GSPKHCFIK4L7TCRCBWOGVZIGQJLOMXZNP6Y3VOMICR7PENO2X4RQ6GEIGRGFCOZ6HX4ZF65M
-#\\\|H5KCOHA7QE4HI2SUEPBQOUMAZHVR33DS4UGPZC6QQWAEG25XYPR \ / AMOS7 \ YOURUM ::
-#\[7]W4XW7QL5ST4WWC5UXAYCQF4Q4LJGNQJKN3SZNFDIDSG3RHSDTQAI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,..,,...,.,,,,,,,.,.,...,.,.,..,,...,..,,,.,,,.,,..,,,,.,,,,,
+#G4INW62LJZW7U64QDPGNAWGJQNCNCHBDPVHM45PV6HOSFPM2COQTYXU4IUXMIPKRXLEUQXVEGCAE2
+#\\\|RM53WUYMT5OYMRBODD5JYKIEFTTM7SZMLEAKN5Z2WRLJ2ULGWA6 \ / AMOS7 \ YOURUM ::
+#\[7]MKPBS3LOJYVPS7E6QH2Z6J2NC7YK4OTPPVX7PBLMU4JPMOGKGADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

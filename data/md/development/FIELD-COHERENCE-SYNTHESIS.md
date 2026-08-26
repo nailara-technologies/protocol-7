@@ -186,8 +186,8 @@ the same way parallel witnesses correlate waves into a confirmed node.
 adding more documents increases resolution. the synthesis is never
 complete because the structure has no boundary. `[:<`
 
-#,,..,...,...,.,,,.,.,,.,,,,.,.,.,.,,,.,.,,..,..,,...,..,,..,,,,,,,.,,,,.,,..,
-#XWMYJQ4Q56P6WL4FCB7SEU6HVY2P7DWN7U7MMLRQXVXADT6CKJCIBEDN2YAKHDETOT7WLL474PEL4
-#\\\|Z2MPQ2FBB5VAZS7TLAQUATB2VF5VUOBLPSZNUUTU24XY6GIPG2L \ / AMOS7 \ YOURUM ::
-#\[7]AV2TPYESXQAUBQJOS6P3JKNQVFWQUHS7CXSFJZZGSO45YREFBOCA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,.,..,,..,,.,,,,.,,,,,,,.,,,..,..,,...,...,,.,,.,,,,,.,..,,,,.,
+#ITQBLFR7HZFBSQO4LXDTSNC3OOFCTDMOICVSOG7XDVFXHE3DEE6GPRKP5ELFKLFRG7MJBPOHLLHIG
+#\\\|BGZ26QQPWM52LKZCR3V7EFMSBQUFFTNAY6G4CL5LLVXILT7F7A4 \ / AMOS7 \ YOURUM ::
+#\[7]TFTWME2AH7DX3RU2KLFOE7EOPQ7TQEZTH2TZ7LKTNKOQU673EYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

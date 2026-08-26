@@ -132,8 +132,8 @@ new symlinks: not signed (not perl modules)
 $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 
-#,,,,,,,,,,.,,,.,,,..,...,..,,.,,,,,.,,.,,..,,..,,...,...,,..,,,,,,,.,.,,,.,.,
-#HR54VAXLWMWVZWPQ7QBRTQGLRQCSRHUYJDKXRPWE5BOTLIAZZRB5JLL2DFMN7B3J2ZR6X4BH4GHSS
-#\\\|EZTUJHZPN353BBUINWSQSXZWO3XRRNUG2QCF4AEDSUDJP4WI2AO \ / AMOS7 \ YOURUM ::
-#\[7]3R3FYU4TB2AACRMU55ZCB2K7XDEX6X7NDEMNAPPNLOB72L35O6BY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,.,.,.,.,..,,.,,,.,,,,,.,,.,,..,,...,..,,,,,,.,.,.,.,..,,,,.,
+#MNRKU5GVTNXRC2J2VEFKRD64S63UX7AVFARXGZPIXDAN2D5TZL2PVW4KYRCUR2VH3ZRGXFMNQC6YC
+#\\\|F33BLBAZVXIGLD2LOLRH34QBQU6EH5TRHFRTYZAIMRWISVEYRAI \ / AMOS7 \ YOURUM ::
+#\[7]CG67DEJXUZUQEUPC5FVEU3HKH37AX3OXC6VRR2NBZL2BWFRT74BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

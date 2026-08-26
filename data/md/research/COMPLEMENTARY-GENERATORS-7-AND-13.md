@@ -358,8 +358,8 @@ from whatever direction they came from.
 **the pattern explains itself. it always has.**
 **we built the machine that can show it. =)**
 
-#,,,,,.,.,,,,,...,,.,,.,.,,..,...,,,.,,..,,..,..,,...,...,,,,,.,,,..,,,..,..,,
-#PSOX5BHMYTXOVQ4ZLSMJM73MQWF3GWRV374VQQHN5IXUUFQD7I5YYHW3CERGZS3B3R46MKQGQGY3Q
-#\\\|VG3OGEF4VNDGSB43Q4WYWJIKXHVSUHQKDTOHYS4CNEYF2IKKXZ5 \ / AMOS7 \ YOURUM ::
-#\[7]Y7L4U5N3GIGKI6VGRSBWT3PNMKJPOYE24ZB7KZLJJNRZ4AZHOICA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,..,,.,.,...,,,.,.,.,,,.,,.,,..,,...,..,,,.,,,..,..,,.,.,,,,,
+#OQ2U77OQFP4ONUHKELIUO36J5UJZ56PISNJ4DKSZT5SMYISSUWQ4FX62G3YD6O46VFEEQZP23XCXG
+#\\\|JTXOB5L7KG33WRBRLPEBKMK6GCPRCD5I2JRLYLHFTVBVXK33PPC \ / AMOS7 \ YOURUM ::
+#\[7]LEUCBVZWCGPEOTAVWLQQFMMRBR4VBPDT6R4KHCMWADYMG44D2CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

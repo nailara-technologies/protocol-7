@@ -204,8 +204,8 @@ The topology is built by use. The habitat builds itself as it gets inhabited.
 - `data/md/data-zenka/DATA_ZENKA_HOLOGRAPHIC_TOPOLOGY.md` — implementation details
 - `data/md/vision/habitat/VISION-NOMADIC-ZENKI-HABITAT.md` — sessions as routes in practice
 
-#,,,,,,,,,..,,.,.,.,.,,..,,..,.,.,.,,,.,,,,,,,..,,...,...,...,...,.,.,,.,,..,,
-#AWOUX3LMOGWCIOIOAYTRROANLBGDTNF7N4HND7Q5IBEGJKFXFJB7LXIHPK7MUOBBFXNUPL7FCBPHS
-#\\\|TSCHURHLLH5LH7NX5CKGT3L23GP2B5UV3SPACG7MYCTSSSG6I4U \ / AMOS7 \ YOURUM ::
-#\[7]CO4XOAFI42MXI3UNNL5FCJD4KX5NQVK3KKJO3O3X6WM6JHYLA2CI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,..,,..,,,,,.,,,,..,...,,.,,,,,,..,,...,...,...,.,,,.,,,.,,,.,,,
+#FU76EMIN7WX34OBRJ3MBSA3EB3XL6G3HD7OBL3OQZIWZRFQVTFLQINNTNKENYE6DF72GP3FY4V52C
+#\\\|A3SJRCEF75CDN27CEOHTQ7CBM34PODV2LHK7SF4GLOZSRO5EGZX \ / AMOS7 \ YOURUM ::
+#\[7]NZ5OKX6NQ5XAO2W53TOTXDKE7EYRLVANV5GWSTA6CS7VZADEXEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

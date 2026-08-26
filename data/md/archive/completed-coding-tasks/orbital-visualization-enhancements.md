@@ -53,8 +53,8 @@ use the existing manualZoom + camera offset system.
 this task modifies `data/web-root/vhosts/space.v7.ax/visualization.html` only.
 no P7 module signatures involved.
 
-#,,.,,,..,,..,,,,,.,.,,,.,,..,,..,..,,,.,,,,.,..,,...,..,,.,,,...,,..,...,...,
-#CDJIMMI7OEULGP56OKBZVO2AS2O57ZA3Q6EBKZ2EWKYPL45OE6WKAROQ3NDF3242F3OATLQDUOGKQ
-#\\\|ZB7OHLDGE5EQYXMDZTRN4RIB4OOFKK2A3WGQBRCBS44SLSH6E3Y \ / AMOS7 \ YOURUM ::
-#\[7]RJRKFN4F3OJUOYX4N3JUTQTLKKI46WB4MNF4IWY6GFFLB5A5JUBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,...,,,.,,..,.,.,,,,,.,,,...,,,.,..,,...,..,,,,.,,..,,..,,,.,,,.,
+#2LVKN7PHKGBYQ6NJV5A34Y2UJQZAJ3CICC2TXIGE6Y77B7STE4SPW2MKGJPRIXK5N6CFRTBSPY7OQ
+#\\\|YFMO35RGMQPIEKDXBVKBTJMTUDGYKMQLRVUX2WIGHIXT6XA46ND \ / AMOS7 \ YOURUM ::
+#\[7]INOCDZWK3ZM42A5JXLNTM7OAY5PXIGWKKO2JRIKCJNRXCDIPSADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

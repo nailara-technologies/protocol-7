@@ -247,8 +247,8 @@ its next coordinate. The habitat and the inhabitant develop each other.
 - `data/md/vision/topology/VISION-ROUTES-AS-SIGNATURES.md` — routes as identity foundation
 - `data/md/CONCEPT-SELF-MOVING-REFERENCES-VISUAL-HABITAT.md` — visual profile as coordinate
 
-#,,,.,.,,,,,.,.,.,,,,,.,.,,,.,,,,,.,,,.,.,,.,,..,,...,...,...,,.,,..,,...,..,,
-#U45HLNWFEC4LGIUDAAMCBAKRQXQFUI67GTNNEKL6KTZKDOQFZLIAPBCK46B2DRRWYGGZXRE34VHWI
-#\\\|7BKP66FPR2UPJMRE3LB7MIVHR3U754EZVBAJILLZZ3KJPYNWK7Q \ / AMOS7 \ YOURUM ::
-#\[7]RJLJP6S4MRGV42PYAGFUULV45W63SVFYGZ5TRI53NWQ3FGXTEQCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,.,,,.,,..,,.,,,,,.,,..,,,.,..,,...,...,,..,,,,,,..,,,,,,,.,
+#CZMOZ4VAARGW24IN7TLWCKQDMWECGCYLELY4IHLAHMRW4OJ34CYFYSQHHSWEDTQ2MVO6A7YJNOSTA
+#\\\|ZTYMA76RQLVBQZSOL2UGUZC3HZPECH7OGKBLV3HCQHU7H577UPU \ / AMOS7 \ YOURUM ::
+#\[7]Q7WAPDRIVZUK5O43T7CXGPSDPGEWNISMAXF3LVGI3OQEDKHPKSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -143,8 +143,8 @@ from what they already have.
 3. where do packets start?      (4 bit window, frame boundary)
 4. payload vs frame?            (window size determines writeable proportion)
 
-#,,..,.,,,...,.,,,..,,,.,,.,.,,,,,..,,,,.,.,.,..,,...,..,,..,,,,.,,.,,..,,,.,,
-#577JG7SIVOM5CNPHTS7DQBCY4IYTZQIYNRZECDXCPWDEIP4IMEYSIQ6QLG7LZ6Y3TKQORDO54U3IM
-#\\\|FAPPRVN7HHPHZB2KS24L5XUC5GOYZZ6VX4PZ2PWFC5LW26HAL72 \ / AMOS7 \ YOURUM ::
-#\[7]4BRAAY4YK2CPRSFTUWU5UFC5TMLD3ABW3777CXWDKCSZMVZFA6AQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,..,,..,,...,..,,..,,,,,,,..,..,,...,...,..,,..,,,.,,.,,,..,,
+#6XQEFWS6PKVWHS6ULJ2JCPBCM2FAF24XH7BWIVW247KHTWEMJ3MT2KKMGJXFP4UJDJTHZVA7XEDZA
+#\\\|PUHBWNAJB35TLWZW2WPQIKZPISABP6EBB5DTRRZFXSZYXLP7LFB \ / AMOS7 \ YOURUM ::
+#\[7]SNXPOZS5V7INYC2ANOSX2SJYLLYL3SB37FWX4QBMC3XMR4LD42CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

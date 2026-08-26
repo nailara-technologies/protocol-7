@@ -91,8 +91,8 @@ idle timeout (e.g. 4200s like calc).
 - [ ] zenka start file created (cfg/zenki/index/zenka.v7)
 - [ ] module passes ptd
 
-#,,..,,,.,...,,,,,,,.,.,.,,..,,..,,,,,..,,,.,,..,,...,..,,.,,,..,,,,.,.,,,.,.,
-#43A5RM6MJST2DKOCYKS4I6HLWA74G7BUVIQ4RYOSFHHOS4U4QCN25YMLJNQDT2E2UGZ4HM7XV4T56
-#\\\|4MUUNYUBI5D25IWGBYGLW4D3HZM4DR7RDFVJOVAKOMQEMZAVJNK \ / AMOS7 \ YOURUM ::
-#\[7]KWWHMW6WYJ6YSFHUTWJOO5BLYONX57CKPAWF6CKRX3OHH7JS4KBY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,.,,,.,.,.,...,,..,,.,,..,,,.,,..,,...,...,,..,...,,..,...,,..,
+#H6U3VL725L7UTOJF27N4RTUJB6WVQPNNA5YH7YEGZQHWUEHZT6DJNKNLATJRXRRLDQKEWTIHIW52S
+#\\\|YY24LNZBNSDFSNGEZMFXH6L44VKHDMBRVCWDVM5ECT2Q2GD3CD2 \ / AMOS7 \ YOURUM ::
+#\[7]RPVXAP66SB66UBPZS3BAIOJ4U352HVWUSLOQ4SNM73OIJ4SD5GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -58,8 +58,8 @@ cycle (not independently re-verified in this session, same mechanism).
 [[project-sys-deps-wiring-completion]] · [[project-reload-modules-load-registry-fix]] (a sibling
 "reload doesn't fully refresh derived state" bug in the same area, found the same week)
 
-#,,..,.,,,..,,,.,,.,,,,,.,,..,...,.,.,,.,,,,,,..,,...,..,,...,...,..,,,.,,.,.,
-#AP6MUWBPCIIESLM5VLNSTVOR5K6F2GJUNYBKF35JWY2EB535JJ5AMKHP2CM6E6ERSALYCALYV6K2O
-#\\\|3JKF2BAETXTH5J6TDV4OUJ764G44VJ7FKWDWOELQKZNDCJU5PP2 \ / AMOS7 \ YOURUM ::
-#\[7]Q7G4STTLGX6DR7BQSAIC7QAIWRKQI7YODH2PO2NJAJY4662FLEBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,...,...,.,.,,,,,.,.,.,.,,.,,..,,..,,...,...,.,.,,,.,...,...,.,.,
+#IYDV54N5U7EB4N5BMWKUMFPB352Z7VYXC5B32OLZAEXT5DIGC3RLGRXF35ZD3BBOWLZF3IBXMSE5S
+#\\\|YYBWHLHKKDIA3G77TMESKUAAGQHOKGYCFKZZV726JDE777K6PMF \ / AMOS7 \ YOURUM ::
+#\[7]WBPHOXOS3MDBKO5OK67GQ2XKDX7FK3MTBUIFUSIDBX6Z2Y4CE6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -302,8 +302,8 @@ The cycle completes. The network breathes. =)
 
 *"In Protocol-7, love is not just an emotion—it is a force with physical effects on network topology."*
 
-#,,.,,.,.,,,.,.,.,...,.,.,.,,,...,.,.,..,,,..,..,,...,...,,,.,,.,,,..,...,,,.,
-#2NGGYGN7LLJ6NQLONV4ODEARIBWT5RMKPEM326UFXZVTMLYP3T4IHMN3BDE33Y4NWPHW46PI6SS42
-#\\\|AHBWYDBPCWS5EZM4K77VDQBPBL6QJRZ7SFMCRENJVKUPB6ASK65 \ / AMOS7 \ YOURUM ::
-#\[7]OBC3JNYGEDWFJKCF6663FOHDVDV6QY2UOKGM64PNQI7DYDOB54BQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,,,,,.,..,,,..,..,,.,,,...,..,,..,,...,..,,...,.,.,.,,,,,,,,,.,
+#RU64SCIEPVIMDFAKEPUJLNWT4F337CGEPGG5GB5JOKF57BDTJSOFMLFIDWLA5B7QDFS7SL5WAQRWI
+#\\\|D7XSWMA26GSHAL2PFNNEGSSB33IGCOR4LEBONVEFJ3PF757XKEJ \ / AMOS7 \ YOURUM ::
+#\[7]XJHNPAG4DZBHK5UPUXNU6S5U4ASIOEN4VBSSWBQUQNOKQPIAS2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

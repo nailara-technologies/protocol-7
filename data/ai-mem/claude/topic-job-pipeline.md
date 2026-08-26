@@ -419,8 +419,8 @@ infers it correctly every time from a posting's text.
 `--noproxy '*'` first if any live-page fetch/debug against a job-board domain
 times out through the configured proxy.
 
-#,,,,,.,.,,..,,..,.,.,.,.,.,,,...,,,.,.,.,.,.,..,,...,...,,..,.,,,,,,,.,.,,,.,
-#2YWLPMHWFRZ2G6QG2EIZCHOOZQLM7HRNYPQ2KM5CINMEMYBJA6DGSBGFZTYRTILGBXL6XRKS2MYII
-#\\\|RTQYKKSEHQHK4ABJQVK7T5E2POSOIQOAYKJTFNUVF6JWFF7KLJ7 \ / AMOS7 \ YOURUM ::
-#\[7]ZLTROKRIWHC3GEKOEA25HP43ELPJ2S5IJAMHWDLBX3KZN3D2VEAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,,,.,,,,.,,.,,,,..,,.,,.,,,,.,,..,,...,...,.,.,,,.,.,,,...,.,,,
+#EET2V6MAHVQCPIGI3CCULWDJWU2TCQJOZTOB3IJBHEVER6UR5XHARJ6NLTULKUFG4UECGHW3BVLMY
+#\\\|PWFU2SWQQDR4P7YSRDEWOCQD22YPHVBXHNAHDPWXBIDIZQA4TTL \ / AMOS7 \ YOURUM ::
+#\[7]2OE6FWYNMJSFULI2QWPEVPR4UCEDP77RYZSWVRA4QCWI5IAWNQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

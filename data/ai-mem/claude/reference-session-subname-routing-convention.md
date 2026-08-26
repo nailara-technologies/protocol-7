@@ -171,8 +171,8 @@ Landed in `d0848477b`; live-verified both paths — `mpv[audio]` (pre-existing
 zenka auth, unaffected by the refactor) and `taeki[user-edit]` addressed via
 `p7c 'taeki[user-edit].char-add'`, with the subname released on exit.
 
-#,,,.,.,.,,.,,,.,,...,,.,,..,,..,,..,,,.,,.,.,..,,...,...,,.,,..,,,.,,..,,...,
-#IOWDTJGMEM6FXELT2ENCGDCH4J7VZLC3A6GVD47TK2M7CJY6CCJKKMEHXDGV62S75EK4AONKG3YCA
-#\\\|K573JP5FSMABDBKNMRPC6N6WONZSYF6CFSF2QVNKUF5MF54VBLP \ / AMOS7 \ YOURUM ::
-#\[7]IQFXCW6OLRTQSDFYWL2UHVN3VP6OTDEGQDJE66E5YRDUGWZ4VECI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,...,...,.,,,..,,.,.,..,,,,.,..,,...,.,,,,.,,,.,,,.,,,..,...,
+#TEHZU67NTFQUTC22XOPRZNQIYTAARRD5QHQGGSMDIVW5JQ4N7IF32C2EP4HNC7JKSFGSB5D4XNIKU
+#\\\|UMGVUJXR5EWHGXKLMOUNZS5NCHTHZG52DUXXAGBKSRPI7ADCRX4 \ / AMOS7 \ YOURUM ::
+#\[7]6M6AAM63N2QJP6YXSG2FGWYJA5HGPKVYCS74LUGOOHIQ7SI5C6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

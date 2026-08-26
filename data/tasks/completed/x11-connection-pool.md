@@ -186,8 +186,8 @@ you made (and why), any additional per-connection registrations you found
 beyond `RRSelectInput`/`GrabKey`, and any call sites you identified as
 needing the `X-11.pool.query` wrapper but didn't convert in this pass.
 
-#,,,,,.,,,.,.,.,.,..,,...,,,,,.,.,.,.,,.,,,..,..,,...,...,...,.,.,,..,,..,,,,,
-#U5I6JJZVQKXRXTWQYQ7DMTD5RBETXCMNKJFZ4VCN3L7GNYF52TVFM5WCCBXGXRFROZ5D5RNWM4A3Q
-#\\\|BTI22WUWPMDYDXGLVXEFJ5P2DFUNCQS7XPLJ5YSAA3T4TQAMOHF \ / AMOS7 \ YOURUM ::
-#\[7]XMNTWGXMJOAN6RSEZWTM6FAV5F6LBTCG3YSWTI3KBUMJGYQX7SCY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,,..,..,,,,.,.,.,.,,,..,,...,..,,...,...,,..,.,.,.,,,,,,,,,.,
+#MIREP4MLKFOJIGMGBONKW6GIVV2UW2EFX24C3XZVICO26ZSQ7SZZ3EE4FDU6TXXFE3CTGANDE5QBK
+#\\\|QK2ZNFQOW6UQUKLRFVUPNKQ36KA2TXCC5BZJ5YXBDTY2CQO7RG5 \ / AMOS7 \ YOURUM ::
+#\[7]SWDUSKWN6FKYKJVMBZRQPBRL776DTA26EUFRLQFWGYQ7KB4U36AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

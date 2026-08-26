@@ -34,8 +34,8 @@ triggers) actually wrote its fix back to disk; verify the file on disk
 independently, and expect a full Claude Code restart to be required after a
 manual fix, not just continuing in the same session.
 
-#,,.,,,,,,,,,,,,,,,,,,,..,.,,,,,.,,..,,,,,,,,,..,,...,..,,.,,,,,.,,.,,.,.,..,,
-#GQXGCPLP23CD7V34RGGFKYQHWEYWLFOMBF34DPPWSYSXJ37NVNQX3D7ZTMEELSA2UGLL5NVCNQLBU
-#\\\|BESH7MSMMXDOBFH4AMIJAJ3JQT2456MF657ZDJNWRPSXOY2LV2O \ / AMOS7 \ YOURUM ::
-#\[7]Z7PUWOZA5H2REF3FD3Q46N3JE2DPJK4U7PNFPWBOVUYIFTWJKYBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,..,.,.,...,...,,,.,,,.,.,,,..,,...,..,,,,.,...,,..,..,,...,
+#PCF2APO2BIWTARQ2S77TZLKDCM3JL3TKDMZDEEPHNWSYTN2S65XCOBJGHYAHRG2ODAYOYLLWON5RQ
+#\\\|Z2GFFOCX2EIBPJP2D3TD32MGLS2X222JGZ5F4OYJ5XLE4DXYJNU \ / AMOS7 \ YOURUM ::
+#\[7]7GFO7P2LCAK23ACGNSVGNNWWGVEGA2XR2MFBVLQWCR2XU4INE2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

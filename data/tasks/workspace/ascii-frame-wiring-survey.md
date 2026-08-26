@@ -277,8 +277,8 @@ print STDOUT "\n$colored\n";
 | **Border-style in engine** | ⚠️ Partial | Parsed in `load`, applied in `context.provider.frame`, ignored in `ascii.frame.render` |
 | **Modes config wiring** | ⚠️ Dead code | `cfg/ascii-frame [modes]` is not read by any module |
 
-#,,..,...,...,..,,,.,,.,.,...,.,.,,.,,...,.,.,..,,...,...,...,,..,...,.,.,,,.,
-#O7GRB7SR2BCA64VAJ6ZIWUAR24D7V7UHWDBLZBS2RNB3HZD4DE6TNQBLRYMAU2WKS7WG6MBQI7436
-#\\\|X5N3VGCEZRQWYCHSY2J33ZFULWM774H7QK5ZCN2IDXKE323GZN2 \ / AMOS7 \ YOURUM ::
-#\[7]YMESFEJ5YZ5JEDLSEQ5P355ITXKHHEMZFTUMI3QBQWSWUG3I3IDQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,...,..,,...,.,.,,,.,.,,,.,.,.,.,..,,...,...,.,,,.,.,.,.,.,,,,,.,
+#AFIP54NR4GLKPJMT7VQJJBW362TYKXHRC5VFQUZHS7DPOMI35OL3G5X6C7ZWPPEPHR6K4UXVQFOAS
+#\\\|3ZWFZKCQE4SFVICU6ZW2FNYC5IZCZ65QLU3JJEUDONIQE7XUZ2X \ / AMOS7 \ YOURUM ::
+#\[7]VTMVAAARPP64CUBAJQIGZPFWLPETLY3TWZJWOFVZ3UOQEBQ7VSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

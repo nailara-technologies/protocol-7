@@ -296,8 +296,8 @@ tail /var/protocol-7/credentials/audit.log
 - [ ] cube command_aliases updated so source_zenka injects caller identity
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,.,,..,,,.,.,,,,..,,,.,,,.,,..,.,,,,,,,,.,,..,,...,...,.,.,.,,,,,.,.,.,,,,,
-#MXBCTEUQFDGJRICMR726SRXIG3C7QGHAORQHXMRCXKKP4Z5AMMQGA67PRJAM4O2MPNMVDIGZ7YUE6
-#\\\|X5IJMM7Y4SRMKOACUAEXHFPGBEICLBWZP7XE4P5KNNBP6HNQOWE \ / AMOS7 \ YOURUM ::
-#\[7]RT2XWVEDGERCXIMZR26YAUME32DYH2AP46WI5WRHURBS23BGZ6DY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,.,.,..,,,..,...,.,.,,.,,.,,,..,,...,...,..,,,,.,,..,,,.,..,,
+#VHILREGUCDQEPBEH4OZDVKNLHU7QEWNZZHDRVNDJXYYQS3QT3MOEIL6E7P6HNZ7A4QQXKRTJXEQA2
+#\\\|ZCIRS4VDXTQLSBHQIIOIZGOPM4KMYMGHM3CYSANKSJEROKYC5WT \ / AMOS7 \ YOURUM ::
+#\[7]Z5IQGTNMJVB5JZXXHB23NBYEO6YON7TDX435UYWQD7YSIHPGICDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

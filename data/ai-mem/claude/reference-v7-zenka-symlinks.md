@@ -20,8 +20,8 @@ lrwxrwxrwx ... v7.work -> /data/projects/protocol-7/bin/Protocol-7
 
 **How to apply:** if a `v7.<zenka>` symlink is referenced or behaves oddly, remember it's just `bin/Protocol-7` under a different argv[0] — same startup/module-load path as any other invocation, same [[reference-add-new-ondemand-zenka]]-style caveats apply, nothing zenka-symlink-specific to debug beyond confirming the symlink target and that the zenka's own `.console.*` commands exist.
 
-#,,..,,.,,,,,,.,.,.,.,,,,,.,.,,..,.,.,..,,,.,,..,,...,...,.,.,,.,,,,,,.,,,.,,,
-#WRKOEPOCN7DBUF7WS7HVTCM74TDGZESYT4KBV23YLPVTEYDG3W3CJTDYMHTAAZ3JN2D7JWWXA7DXE
-#\\\|RZFZX2YS7NQSJI7YVX7YWCSD3H63AOSXLB3BEOVRD3YON3SH524 \ / AMOS7 \ YOURUM ::
-#\[7]WKCKV5Y3NJAQOUVXOV26BDIVN4XHNM2J5I2ZYLXEP3DUHXFIB2AI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,..,,,,,,..,,.,,,,..,,.,,...,..,,...,...,...,,,.,,.,,..,,,..,
+#6BESDTNZVS3ZIXM5XF75GQ4PWAWH3NWI3V4V2P3N5K2YU3ZZQLT25PTI6EBWRIWFJOYLP6AWH5E5E
+#\\\|TDSISULQUABZ6UFDHIYHVC3W7EKHE4EQRZW4W2KBIYPIUDRYDM7 \ / AMOS7 \ YOURUM ::
+#\[7]WZL2S56A35VS4X35ZUJCPBNTBCHHAZEAQXHNVI4BIM6DSK2UJUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

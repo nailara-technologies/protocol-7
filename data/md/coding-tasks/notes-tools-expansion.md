@@ -156,8 +156,8 @@ Implement one complete tool (backend + handler + definition + whitelist), verify
 
 ### Round budget: 5 rounds per tool (35 total for all 7)
 
-#,,,.,,.,,,..,.,.,,,.,,..,,,,,..,,,.,,.,.,,..,..,,...,...,,.,,...,.,,,..,,,..,
-#5XXL664U6S23X7Z4FX63QBIBQ7JT5BRYGWMYUGHEZXTXCP54N4PZL6YQ3U6GID5IE4KIL3RN6NANC
-#\\\|EUA35WANC3MED6F56JHHULBD4WIHK2BOMWTBUEJUPKTOKCICOVT \ / AMOS7 \ YOURUM ::
-#\[7]ECCAQPSABXFGJAR3ZBFDHMJUGOJEJ2INJROBGH44H2HD2ERV3YCA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,.,,..,,,,,,...,.,,,,.,,...,...,..,,...,...,...,,..,,,,,,..,..,,
+#Q6C35P5UPEWJ5ZVUHNTQPPJB4W3E6PP3YFBYZR2I2GDKD7J3NY5UUVCZOURGUDCKQFUEAMRQU7GDO
+#\\\|3QMPA7RZKQ7LPFIOHSB6FAHHVHBI2MFLU2E7E7W25MBA24MCWUL \ / AMOS7 \ YOURUM ::
+#\[7]BL2DSLZ66N6QZS2H47QDXKZCIZEAJTQX26M4VHO2QDCL7HCNYODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

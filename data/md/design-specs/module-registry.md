@@ -112,8 +112,8 @@ any → failed           [ compile errors, signature mismatch ]
 - eviction policy for `source.cached` after compilation [ free memory ]?
 - how manifest format maps to this structure [ signed list → registry entries ]
 
-#,,,.,,,.,,,.,..,,,,.,,.,,,.,,,.,,,,.,..,,.,.,..,,...,...,...,,,,,,,.,,.,,,,,,
-#LM45GVQKIFZY2TU2SZNNG63ZXGJALGRK2CVPWGIC3MOWVMUIBQZ34Q2ZW2JPFYADLT7EUODZ5RSVU
-#\\\|HUUOFND3R7O5LKN2FZT47BQPXUNYIA7PBAL52N3YYCDQG7TEE7C \ / AMOS7 \ YOURUM ::
-#\[7]VJHECCQHIG6XT56R272XCIVMTXYSEF2BGTKIXXV7L7AM2ENVBIBA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,,,.,.,...,,,,,,,,,,,.,..,,...,..,,...,...,.,.,.,.,...,,,,,,,,,
+#DIISZXEWXCMFQY3GUTLJT3NXO7QIE5U3MEYRT6LIOG3TAA7KLOKY2HFKREFEYZUQLXO2HVDVAR53C
+#\\\|6BARENMGC5VBRAAUEJ4VMF4RSXV4X5ZHKU2BT5JTESFZK3L5FYH \ / AMOS7 \ YOURUM ::
+#\[7]O2IVXIOSZMVW5QMD6LWWAB37Z3SMIXO5FZQEP4RQNJAWL6WVMYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

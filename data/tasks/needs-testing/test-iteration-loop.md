@@ -54,8 +54,8 @@ criteria:
 Do NOT copy or invent AMOS7 signatures. Leave the file clean.
 The fake single-line stub `#,,.,,,...` blocks signing — never add it.
 
-#,,,,,,,.,.,.,,..,,..,,.,,,,.,.,.,,.,,,.,,,..,..,,...,...,,..,,.,,..,,,,.,,.,,
-#SXY7EAGSQTBGOUCYVBAJVL55GTVXSCZRTW3Z7JFDRK3KXPJ4WFBVDX3JXQ7XW7PJFCR3XGHM6BMJM
-#\\\|LXDQ6LRJ4H56QM62M3W4LO6DKMO52POPZWX4T2T3FUBLW6IM23S \ / AMOS7 \ YOURUM ::
-#\[7]UMPHAANCL466UD3VZP65SZZPQFRHHGNEDSEXKBRB72KF42YTX4AQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,,,,,,,.,,,,,,.,,..,,,.,,,..,..,,...,...,,..,..,,.,.,,..,.,.,
+#3VG5T3DZ327HY7B435CW2BHYRZSYUAAG4X6YYN6XMUICFAX2MQ2IMYQWJGVPYJR6LBDHAORVN3IUU
+#\\\|FQICUFJO3NBLJJ7E45GDQT5M7XZOLVYNZ5CGYHJYYQLARJEYIHG \ / AMOS7 \ YOURUM ::
+#\[7]7JG467NSR2DACLBZ7HSPNKAIHSBXDUBPJIPLIYYASNSORFQJ2MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

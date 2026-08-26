@@ -965,8 +965,8 @@ User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,..,,.,,,..,,..,,.,,,.,,.,.,,..,.,,,,,,,,.,,..,,...,...,.,.,...,.,.,.,,,,,.,
-#TJ42P37QMJVRNKDTSAXT2BSUW2T6FUUGGVLT32GAJ5HUZS5UPK3ST7IL4EJAKPHFJ3HDXTYZEKXGK
-#\\\|MJK4UTODGUF6NI7HG732JSMA2ROHCBSLMHTSWTXJ4WDFD4PBOEA \ / AMOS7 \ YOURUM ::
-#\[7]V3BRAWDDF2GPNSHXGK2JDYYHOGI5SAVMZTNBZEAOM23QTBIWCYAI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,.,,..,,..,,.,.,,,.,,,,,,,.,..,,..,,...,...,,..,...,.,,,.,,,,..,
+#3WMLSFHVCJNDIN4KLYZE6X7XTEGK7BYNKKARATW22AQPGQCHDVXZ536DCZLDYSWILGPYVEGHMWKHA
+#\\\|P235PBHFOH3LVXMSWRBITCTL6K7M25T76G7QJ4I27EFN3C3JTIL \ / AMOS7 \ YOURUM ::
+#\[7]DMBZTC7MRHTIETZQ7AVVAMO3MDQD6SFKSUCMGWLMN3Y7SOHC2UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

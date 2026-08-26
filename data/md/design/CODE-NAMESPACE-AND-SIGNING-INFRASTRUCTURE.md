@@ -243,8 +243,8 @@ ncode.* (now)      →  policy-aware modification with signing integration
 no premature abstraction. each tool has clear lineage. the working system
 is the foundation, wrappers have immediate multiplier effect.
 
-#,,,,,..,,,,,,...,..,,,,.,.,.,,,,,,.,,..,,...,..,,...,...,...,..,,,,,,,,,,.,,,
-#JU44AIAJXCAK5V32CNSZ2SPA4SO7MSL3HXOCNH52T4NFXE4YIV5BCVNAXYWJ23TSQEOS42GGKCVG2
-#\\\|UTRD5E53CVU6436GFTEIOTXYDOAJMT5N7BJFIXMJXYDOMK7JYQS \ / AMOS7 \ YOURUM ::
-#\[7]VHNDSCIZYJRG7EWIGHFMMADCXP3RA2LGQOTTNQITZ436L3QPGIDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,.,,,,,,,.,.,,.,,,.,,,..,...,..,,...,..,,.,.,.,.,...,.,.,,.,,
+#C7ZJY7GU6LQUZNDI35T4VRYKCXVOTAMIAC6AFGJGG7GMSQY2XLXKENJSZET7XIDHFXYRLYDSJPZ7Y
+#\\\|3R32PALZXWHLAKH4ZIY7LYWFNCDMKXWMPWUOFINQM5MKHXHLTMZ \ / AMOS7 \ YOURUM ::
+#\[7]AD4O5NFRA2TNITBULPCZYRLVMCZIRO7CQAFXXXS24QBTAI6ZZADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

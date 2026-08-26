@@ -69,8 +69,8 @@ Until AMOS7::P7 exists, porting/duplicating logic out of zenka modules (e.g.
 prioritize not degrading style/functionality/flexibility. revisit consolidation once
 AMOS7::P7 lands.
 
-#,,..,...,,,,,..,,,,.,.,,,,,,,.,.,,..,..,,,,,,..,,...,...,...,...,..,,..,,,,,,
-#FYQPZEEDIMMUQNE2WFSR732OMZNJR2X5S4D5OSVUE4JHXVCQZWSZQKUYSF4QBZT5RVXEQICUJRTJY
-#\\\|ZYAZFQATO2EBOUNYZ44OSCP272HD3CF6GVUXWZMTWZABQFCHDWV \ / AMOS7 \ YOURUM ::
-#\[7]CPYMVKMSNVQ67A63AY3Q5DTFNYZZYKPCLJNZ7WYCQ4TJ22YLBQAA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,,..,.,.,,..,,..,,,.,.,.,..,,..,,...,...,,.,,,..,...,,,.,,..,
+#2QK4PKUVM26K7ZYVXIEVSBZSCDNZAZSDFV2RLKSTSRS7TIECFNZVUIYRWXKGOX3BF2REJUASBMDNO
+#\\\|WION5SAXH63MOG5WUAHNQB3URSGCRXDEAKYMUHG35EQE4EAOQYY \ / AMOS7 \ YOURUM ::
+#\[7]XCGYGQ3HSYERA6IGSSDHW6HZHO53TQJGEHZ5ODX3YHOGI2CXKABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

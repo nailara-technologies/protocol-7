@@ -189,8 +189,8 @@ p7 X-11.cmd.gpu_load 5
 - [ ] `collect_intel_gpu_stats` config key still accepted (backward compat)
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,.,.,.,,,...,,..,,.,,,,,,.,.,,..,.,,,.,.,..,,...,...,...,,,,,...,,.,,.,,,
-#VNWRM445VOJESCSXL5H6WV6BQMLEG3MGIHDXWVREPNJGV45FKU6YMYC267W6YIYFDYNIAOP6WKO3A
-#\\\|X6DRAGUHXW7KW7MHALDKYQCWIUWJT4ESNLWZNF4RF7DX7B5SXU2 \ / AMOS7 \ YOURUM ::
-#\[7]G5XEA6Q6R2QYTU27P4CYQ3ZLIIOSMLHNZTANOL4K7BMYNJQHKWAY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,.,,,,,.,.,,,,,,,,,,,,,,,.,,,,,..,,...,...,...,.,,,.,,,,..,..,,
+#SFXSNKYNEGZB7Y5BTGKNJXU7PZ7GO42NNALOYSIR4M6JS7RIVM56KXQFOHL3SC4DL66CLITFKNCBE
+#\\\|MDRWWQGTOEU3RA4MFUJOKDAWI4N4ZXTKS2WSQCBVCR6MA6JFGNI \ / AMOS7 \ YOURUM ::
+#\[7]WRYYOTOHGKTLHJR6DLSX7JDAGJCJL25AXI6WDENNZBE7DA5YZICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

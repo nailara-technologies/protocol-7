@@ -130,8 +130,8 @@ a task IS a branch node with a bound intent vector. task state transitions
 - registered return slot fires correctly when subtask resolves
 - parallel dispatch calls kimi_dispatch for each open node above threshold
 
-#,,.,,,..,.,,,.,.,,..,,.,,,,.,,,.,,,.,.,.,,,,,..,,...,...,.,.,..,,,,.,...,,.,,
-#MZLUGKNZVBDPZQZSMJJFX7TTKSXZC4PDYG2UYPFOKEWOFQW2HKC6IO5LZIX2QXHQ4TY4X6IV6RLXK
-#\\\|JLAYV7MYEXT4WJSPKDX7XASQL42UR7ZYKAKTSLWMO7TTVI6MVYY \ / AMOS7 \ YOURUM ::
-#\[7]N5NS5ZA3GO4VJKINWWOY34GAZ23YILG4XFTZFKHRXTDMT4EYUWAI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,,..,..,,,..,...,...,...,,.,,..,,...,...,,,.,,,.,.,,,,.,,...,
+#ABAACQ7RBXUH5NUCVBA5LJFIRHO46WSIVW7E4OJBBZ6ECVBX7EGUVHXFEGLN4JWPX7TWQUEEQK65M
+#\\\|ZY7H2OBDAE3PWU45RHSYIOYJH3UNQMXLX4USP3VXG2OFI3XEFPF \ / AMOS7 \ YOURUM ::
+#\[7]NPT6SBV2YIJANBSMN4G7VCE7TW53Z7IXQJN4SPULSK66DI2IXYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,8 +31,8 @@ for the user's schedule when that isn't actually the reason.
 
 #,,.,,,.,,,,,,,,.,,..,,..,.,.,,..,,,,,,,.,...,..,,...,...,,,.,,,,,,,.,...,.,.,
 
-#,,,.,...,...,.,.,...,,.,,.,.,,..,...,,.,,,..,..,,...,...,...,,,,,...,,,.,...,
-#DJAS3S5C2QE7RBGU56JPOJHPYRY6324V2LLCTGTH3TBMQMOK4WZHOIY3UHEOPVS3ACRWVHYBSLJIG
-#\\\|RGSMCMKM37OV5KDWWLU5WHIOYXMRCKBYUD2IIRZK6F5GSVPUZ4C \ / AMOS7 \ YOURUM ::
-#\[7]T2OTZSAMMN7NRAHJK5E2QT5STRELLLFS26AVSRSDGXVSLIETTIAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,,,,,.,.,.,,,.,.,,,,,.,.,.,.,..,,...,...,...,,,,,.,.,.,,,,.,,
+#GC76KCPDZLBEG5TWPD3MGMV2K4AMO2FEAW5YHD33LRTEVJRSVTJZYBVX2ZM4ZNNTLL6EH4ITH2SY4
+#\\\|WG322STOZLF2AY5XRJAMIZEIN3TPU277VCUYTU4SDO4HHMOE3Y2 \ / AMOS7 \ YOURUM ::
+#\[7]COZOVM6YOBE6M35IZRJ3XDXUHFWRQCKKVGFPBJDO65SP337PO6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

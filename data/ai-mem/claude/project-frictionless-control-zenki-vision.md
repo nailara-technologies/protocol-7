@@ -47,8 +47,8 @@ that overall system usage becomes effortless.
   excursion/dispatch mechanism) -- scope and dispatch it as its own proper
   task, not a quick inline patch tacked onto whatever else is in flight.
 
-#,,,.,,..,.,,,,,,,,,,,.,.,.,.,,,.,,,,,,..,.,.,..,,...,...,...,.,.,..,,.,,,...,
-#PVW2BB3AYK7NEC645UQN4RNX4QOPQ5BCHZ7NM25DXPKDUYOQJPYC25OCEEWVXHPVOKGW2NVQDS2TC
-#\\\|SX4GZCSCJ7A7XLQD3FPCQPAHZVWAGKVZ7LIWP27A25B5FGSRSUZ \ / AMOS7 \ YOURUM ::
-#\[7]UGTEGD4SNAPG25DUZOJYN2SYKW42EPR3FKTJDSRHOFMHBDENYOCA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,..,.,,,,,,,,.,,,.,,,,,,,,.,..,,..,,...,..,,.,,,...,,,,,.,,,...,
+#AJOWZEMO22FTH5P6DNEPTSSLN5HK2X6TQVS63MM6JI5OVDFVGSG3MGAZKH7DHMIWQCMUNLEDBRP3Q
+#\\\|3TDQWVWOBFCS3BKHSSHD2UVBPKMI6LC2WBPOJHDRL6EYMKHQFLU \ / AMOS7 \ YOURUM ::
+#\[7]NTWEWOLWRJ4MWO26ROSHUJJY5ISC3G4RERRGCID5AIVJGMW734BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

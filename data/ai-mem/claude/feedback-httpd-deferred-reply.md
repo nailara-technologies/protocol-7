@@ -22,8 +22,8 @@ synchronously. route-send only works within an existing P7 network (same cube),
 not cross-host. Deferred reply works fine in non-HTTP zenki where there's no
 open client socket to worry about.
 
-#,,..,,,,,,,,,..,,.,.,..,,,,.,,.,,.,.,.,.,,..,..,,...,...,...,.,.,...,,,.,..,,
-#DGIKIDG2BB77GZOMGLG4EXSEUKNMNVRTSBLN232OVFZGWZMKWTOWALZIDXV4XHNXEMYRPKL3IVKWC
-#\\\|ETB54RHHTMTQRDIB4XKTFWHRJ6GQ5GGQXWZ4LNVQRHMFOKPL3PY \ / AMOS7 \ YOURUM ::
-#\[7]6RAXTDBRONRJD34E3F3VBKBP6RS47QPLOSRB32KENEPCIRWB5GBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,...,.,.,..,,..,,,.,,...,,,.,..,,...,..,,,,.,..,,..,,,..,.,,,
+#F7FANKEARMO6HACEIME4WPKUDDV6GNY5BUHQLH5TEZZZHYCNPRHIS2GA7IPFCLVKXX44VARXZOFTI
+#\\\|C46CLFOKAN5AZ73A32BN5ZJZTELNHN65ZROBHEPJL3PQBXYDXOW \ / AMOS7 \ YOURUM ::
+#\[7]SBFVMNTEQB55GMWFJ4CXG4F6ZK2Q6L7EPV43S5267ZIDIGG6VUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -166,8 +166,8 @@ bug the fix exposed and also fixed, in [[topic-next-steps]]'s done log.
   or reviewer-gated, or gets folded into that bigger design is an open
   decision, not yet made.
 
-#,,,,,,,,,,,,,.,.,..,,.,.,..,,...,,,.,.,.,.,,,..,,...,...,.,,,,.,,.,,,,,.,,,,,
-#PX734EXSAZL2DAGF255UM7SRK4HKASQ2GXBTJYUXR7RTJ6KEQTOJHSUJ3IMJR6LGC4DOOKCWREBCE
-#\\\|JO4OVHP6BJXFU3EOCW2XJUXLBPWQOSGMTRJXJPRABJVNGYDGKKY \ / AMOS7 \ YOURUM ::
-#\[7]NCKYZZJHXOUULYWZUN3X4DD6DCQRAUOZ56YP2U2OJBNTGLNJTUDI 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,.,.,,,,,,.,,.,,,,..,.,.,.,.,..,,...,...,...,.,.,...,,..,,.,,
+#LR6Y7DHG4M7PMDOOHMYGKNHBQ4HCW4WMBRPBZEGGCDV74ZMO7UFQ3VR3AMBDWISOKB3PSPAETP5EU
+#\\\|NLHKJTZKJUWEGZDJTWMOOFQOWWUYN2S6RFFZR3LJ365M3L34D2Y \ / AMOS7 \ YOURUM ::
+#\[7]RIIZSVPQ3RH6VC64CE667L5SYUSE3ZKFJCZDX4PQEJTUGU6IGUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

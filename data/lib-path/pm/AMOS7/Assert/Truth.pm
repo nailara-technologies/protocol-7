@@ -271,8 +271,8 @@ sub is_template_syntax_valid {
 
 return TRUE ##################################################################
 
-#,,.,,...,.,,,..,,.,,,..,,,,,,..,,...,.,.,...,..,,...,...,..,,...,.,,,.,.,,..,
-#VZJL3NXLGG556S3OBRUHP7Z4PACWYORRPDRMY6VDQHH665DYVE62FJGTSPHVCCDFRS5AWIDLMOWBM
-#\\\|OVMU2IDCC6NHAOUQNHKAXP42YDW7DQUNSQHH4UBQTAPZC4U2M6Q \ / AMOS7 \ YOURUM ::
-#\[7]CVCA75W6NFOXGC2PYUBD66M6NEO6WXFJIGZUVJX3WM3OINTQTSAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,..,,,.,,.,.,,..,...,,,.,,,,,..,,...,..,,.,,,.,.,,,.,.,.,,.,,
+#R2QLCJP4RD3HAAJ7CSTBRSRVOPNJUSGKPOE3U36OYAAYB2QF3KYVSNG7BTSW2SR4C35HVYJEUBQLA
+#\\\|H3JFKHIEFHYY3NOQRJINXZB742PYA725CCWRTYAYDE4FFTAXKEH \ / AMOS7 \ YOURUM ::
+#\[7]6WMONAYNC3XBA62BO6QH3OTNEYW5YNT7CIAEKTHEANWLPYBMYKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

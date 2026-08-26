@@ -253,8 +253,8 @@ expensive to discover missing later.
   and live-verified (not just `ptd -c`, since start-file syntax isn't
   Perl), one commit per tier.
 
-#,,.,,,,,,.,.,,.,,...,.,,,.,.,..,,,,,,...,,..,..,,...,...,,..,.,,,.,,,.,.,.,.,
-#ZZQGGPTCCMFTB2OQDUTZIV36U2DAEKP77MTCG6BVUM3GBEVB4GOHITECV64GQLU6U45ZVG5V2CRT2
-#\\\|76WD6OPWYHDZXUSGOG7FQDVOFD3BTLHVCY76GBAMM5XHUHWXK2T \ / AMOS7 \ YOURUM ::
-#\[7]TFFKKBQAHRGHKJ6LUK6CKOVFQYDOQOSKYSZKX5BFWPAMSKN4CIBY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,.,.,,,.,.,...,,,.,.,,,.,.,,..,..,,...,...,,,.,.,,,.,,,,,,,..,,
+#5DVLLLOQIWK4GCQBPJHIHC7UARFA7ETDCT4YFOYFUULVITND3K3EHN7Y6FGU53JHQDHG43YFX3LKS
+#\\\|5HW6QGSWLKIVVF5B674JIIU5W2NPIDRQRGGH6IT2QTOMRJ6NWZN \ / AMOS7 \ YOURUM ::
+#\[7]XDMEPO226MIORPIXQJWXFWL7SWVDN2ZHYXJ36HI43KZGK32PHACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

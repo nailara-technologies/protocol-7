@@ -61,8 +61,8 @@ Don't assume an unfamiliar reply shape matches a shape you've seen in a
 different context (e.g. httpd-specific STRM consumers) without checking
 whether it's the same code path for non-HTTP zenka-to-zenka traffic.
 
-#,,.,,,,.,...,,,.,,,.,...,,,.,,,,,...,,.,,,..,..,,...,..,,.,,,,,.,.,,,..,,,,.,
-#QVOXGE3BWDEV7VTES3WQL3WX4GSVMDQJRLK5TNSGLQVSIHIDPSYKBELSUJ5RC5IUOAWCH744BFXV4
-#\\\|EVAWLG243IXEGB4PDLQIBCS4ZJ5QGN7LTAFVEG7MZRNFRSYQNZ4 \ / AMOS7 \ YOURUM ::
-#\[7]LSZL3JYHSU6GWITJSKAWMV6633KLUKMNLO4FKXFENMYDH5SYO6BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,.,,,.,,.,,,,.,,..,,..,.,.,,,,,..,,...,...,,,.,..,,,,.,..,,.,.,
+#GZISQL2XYAJ7P3X4VO3Y2E6OYKN65DQT6RA2BWCKIXYNFSYN3FZN7XOGZ7TE7AQY4QNWXA2ZUGVTW
+#\\\|F7OT3ISGGLKJB2DT5ALB4ISGE5IEGTNCWJWM3MT5OKXTR24C3KP \ / AMOS7 \ YOURUM ::
+#\[7]PYQZ7VDMGNIRCY5MFLGY5YGP4TPNKSDORJSS234O54V3AXINQ6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

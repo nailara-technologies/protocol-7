@@ -157,8 +157,8 @@ p7c models.chat  # Shows last 20 exchanges
 - `310ea2236` - Use bracket notation for content markers
 - `6b1382aa4` - Add content-addressed announcement system
 
-#,,,,,...,...,,.,,,..,,,.,,,.,.,,,.,,,.,,,.,.,..,,...,...,,..,,,.,,.,,,,,,,..,
-#O2WQ6A4SU7RUBXXOMU4ZB43Z3AY7NUFUFH6SGXTQGPZSJJ7JLSKCNNZ6IG7UORFAXH2ADSKAMOUTC
-#\\\|5NCQA3DSRK3UN74PQC2R5CWDZ4Z4ZMQC5AYTTLEAQCJELWHO5GB \ / AMOS7 \ YOURUM ::
-#\[7]QIGDVSVTLMCXDYPMGADDLKXKZ56FCBPQBGSMSRIN3SLI3KX2A4BA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,,,.,.,.,.,,,...,.,,,.,,,.,.,..,,...,...,,..,,..,,,,,,,,,.,.,
+#KDEZ3T6CCHVPMVI4XLBHMPWNKVRY7E5OF6UN7ID24QZUAJFHTQC6WGRV4S2WBVS422YKIM3VQJ3ZC
+#\\\|HKJIJIZP6DMHZNSIS5JI7ND6PLRMPUJS7V6C24SCIGDTHCL5LNO \ / AMOS7 \ YOURUM ::
+#\[7]PMZUX2NRA5ITOWS62MT57J73QNHYKGRKVWBIQDU6PILXJQ3BU4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

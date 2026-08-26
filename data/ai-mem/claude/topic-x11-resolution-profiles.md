@@ -75,8 +75,8 @@ suffix parsed together, not two competing single-suffix designs.
 
 [[topic-x11-protocol-hardening]] · [[topic-x11-bare-name-routing-ambiguity]]
 
-#,,,.,..,,.,.,...,,..,...,,..,,..,,.,,.,.,.,.,..,,...,...,..,,,.,,,,.,..,,...,
-#VBR3GRG6BHU6XCLXOBVTIBUKNIFEOMUEKPPSWX62BBZBUCEEQGQAIZAUPFXMG7M3ATL534DWJYT4K
-#\\\|ABAAFVUG4JYWM3B4VBXZMKL2L3WBW6VTGKNYELQ76XGNXINF566 \ / AMOS7 \ YOURUM ::
-#\[7]KLZMSL6T3VBSKX6YQFOAAI4AN3SAQKMSGICWXSSW3ORJUEMKVMDA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,,..,,,,,..,,,..,.,.,...,,.,,..,,...,...,...,..,,,..,,,,,.,.,
+#KDAE5KMFYHMWZYYYYDQSITMH2RXCPPCLFX5TIO26W5KB3EPFQQPS3IA3KG5NFBTGAUVTSHQ3R7WLU
+#\\\|HLY7EUZ2II2ZDZBLXUXM7QRRQ3Y56WZF45L3ENWFD4I3HVUB3CA \ / AMOS7 \ YOURUM ::
+#\[7]V5NR6LDSYLOZCTU2DF4SU5FYNVQCOOBCUETKKWX3QEVQD3PAEUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

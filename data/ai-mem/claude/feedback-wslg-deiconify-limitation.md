@@ -24,8 +24,8 @@ On WSLg (Weston + XWayland), `iconify-window` works via `X11::Protocol::WM::icon
 
 **Update 2026-06-24:** the host-side Windows taskbar restore path is NOT blocked by this limitation — clicking a minimized window's entry in the Windows taskbar successfully restored a `protocol-7-menu` window that had gone iconic (confirmed live). So the compositor-level block is specific to deiconify requests issued *from within* Linux/X11/Wayland; the host (Windows/WSLg integration) has its own restore path that still works. If a window gets stuck minimized, try the host taskbar before assuming it's permanently lost.
 
-#,,,.,,,.,..,,..,,.,,,.,,,,,.,,,,,,,.,,..,,..,..,,...,...,.,.,...,,,,,,,,,,.,,
-#UUHAFFHGNEVNSDKMZXRHRENACAN66XZDJ33IBQQQX2VJEEC43CNRIOLGSYHLHBBAD4MQTRBHVBA5I
-#\\\|EBNZV53SYWK5BZ7KQRHKMV3X46CCVAUCMXHS5SHKIAUDLYBLGU2 \ / AMOS7 \ YOURUM ::
-#\[7]QSAFJQL75ATRMQ723W5DXMPPHJAC2Q4IAGJILOIFJFQCZKJK2YBY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,..,...,,,.,,..,.,.,...,,,,,,,.,..,,...,...,...,...,..,,,,.,...,
+#MVWGKB2YOCHTCZ2M2PJVVCSKBWNCHCZTYI2IPJUUA6HLLUNWVNE2ZLMSBKDUNARA4LDXTA2SKFR3G
+#\\\|A2PPMSAJARYFEH6F25L66HZ2CYG3AJUQVLSUE7X3JOGDKVDFR7N \ / AMOS7 \ YOURUM ::
+#\[7]3BYONOZU3YB6NHSGQTTOAXP4P43YAGAHS5JB5V6AHXYFGUUOW4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

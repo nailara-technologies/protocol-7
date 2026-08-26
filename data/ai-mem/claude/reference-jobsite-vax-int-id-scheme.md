@@ -104,8 +104,8 @@ decoder).
 See also [[project-jobsite-reports-archive-vision]] for the case that
 motivated this investigation.
 
-#,,.,,..,,.,.,,..,.,,,,.,,,,,,..,,,..,.,,,,,,,..,,...,..,,.,,,,,.,..,,,..,,.,,
-#RVXW4U32IQWLHCD7MT72OCH6IFRANWMHP7R3LUBYVBYLMBDZICWGSJQUAS63U5XM4UM3Z5LZ6MC5A
-#\\\|FTB7X2VELE42BAXG6IZITMIO5AFGZIK4XCIKZSFJRDSZQY7EKDX \ / AMOS7 \ YOURUM ::
-#\[7]3SP23A6QKW56Y5YQQBQJ7S5IB4BAK45T5BVXQNWMPOBGCFWOMEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,,.,,...,.,,,..,,,.,,,.,,,.,,..,,...,...,..,,...,,.,,.,,,.,,,
+#6CPKV6AYNTFYC5FNUX6VAVKYDSODTUT7VXI6SN6HJZ6KHBO3MMCR6LOB54GSY7ECONVUDWZF3EWLY
+#\\\|ZHPHDQ6Z2LNVORGBG5E66A5K4F3VUMUVFUJQMGYWABW33QFZ2MF \ / AMOS7 \ YOURUM ::
+#\[7]HA5I3RFDOPTWDW2LOY73IHHQLBTPXU7PKKMMDFG36UBSZLHAK4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

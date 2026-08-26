@@ -428,8 +428,8 @@ workflow.testing:
 
 This is a **meta-level quality system** that uses the architecture documentation itself as the validation mechanism, reinforced by workflow integration.
 
-#,,.,,,,,,..,,...,...,.,,,,,.,...,,.,,,,.,,..,..,,...,...,.,,,.,,,.,.,..,,,,,,
-#ZB5NV4YL7YL7JMVQNGRAKOXNFVX3AJPR4MBFD66KCFHLE2QM2NCFSCM46V6ZSJBNINHXRZMV5HZ3Q
-#\\\|CF4GH45DE7YVWLLDKJMZJBZSTAC3YLDN34W26OC5EVIBXXKBTHC \ / AMOS7 \ YOURUM ::
-#\[7]LZN7LGKU5G2TOEWVKYNDHYHL7MBLER5MN4KUM44VPTA3TDWNHQBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,.,,...,,..,,,,,,,,,.,.,,,,,,..,..,,...,...,...,,,.,,.,,,.,,.,,,
+#3T3MEVB734XAPJWRCENZE2CD3APQQHIABMHK7MKUKELEGRARLJZFEQB7SGE7XYVGAC5ZFGFLLVQLI
+#\\\|6O2FOSIY2RZYXTTUBIHJF3BRZAHWE3MW2QI7BWEHZ6QXREKQRPA \ / AMOS7 \ YOURUM ::
+#\[7]ATUK3K66MJHBRN75F23G7Z7UAID7ZRWM2FYWIABPKULOGNCXY2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

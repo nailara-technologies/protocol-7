@@ -53,8 +53,8 @@ spawning and connecting, `auth.zenki` + `access.zenki` + cube's own
 produces a different, specific error message — use the error stage to
 tell which piece is still missing rather than guessing.
 
-#,,..,...,,.,,...,,,.,...,..,,,,,,..,,,..,...,..,,...,...,.,,,...,,,,,,.,,,.,,
-#BF257ZUFSFMUTLL63UMH4QTWDP5KRMS6FBVLFX3UOZ6MKJOSCMV6GK3Q33PPHPDSJYYOSQIWO3WVO
-#\\\|AODDFJMSIIHEYLSBH7LAJAIG6X6OBS3Z3IGMBT6ZNJREX2VF6QS \ / AMOS7 \ YOURUM ::
-#\[7]TTJ54LS7XHSWV6UGI7VOF35L2FPJ3BUQQHUEZJ22ZU2VSZPQYQDY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,.,.,.,.,..,,...,,.,,,..,...,..,,...,...,...,,.,,,..,,,,,,,.,
+#PBLGFAVFFR5KNUNAVNCUKH3O6OKIAIXINTBYR7377LG2NVDKGDRYQAYOODCHVRZDQRL6CCWOHU7SA
+#\\\|QAB647PXVPOID6BJYAZQQQLVISUVHVX6GA5S4B5DLARVJCQGKHI \ / AMOS7 \ YOURUM ::
+#\[7]7LOOJJYYWLBDPAEDMNWFCH6V6ORLMZ3ZNDQ4ZKPI5GWJEF53P4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

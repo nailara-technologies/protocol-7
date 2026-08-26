@@ -528,8 +528,8 @@ Ready to begin Phase 1: HTTPSD Zenka Implementation.
 **Session**: Protocol-7 Architecture Planning & Initialization
 **Next Session**: Phase 1 Implementation (HTTPSD Zenka)
 
-#,,.,,...,.,,,..,,..,,.,.,...,..,,,,,,,,,,.,,,..,,...,...,..,,,..,.,,,.,,,,.,,
-#AWLMRCJHC4Q37OAXZPQLXIUQRL2BYWRTAJ6IMJ3XNZDGLUCTPBRX42MABHDSJKP5YII3BEKH5YCBK
-#\\\|2MK5PBKOT52VUHPKMTZYE3RDYSODX3TIFAYGU32SR4LAZKAGGAV \ / AMOS7 \ YOURUM ::
-#\[7]GGNQVXFLTQ4FOZAYZV7M7IPODZDXPUAXHP6ULIZ3GFONTJUFUECA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,,,.,,,.,,.,,,,,,...,,..,...,..,,...,...,.,,,,,,,,..,..,,..,,
+#2DNUXNEGJR55WODC3KGM3LDTZAP7SFD2NQ7B2GUT4CUNLIVK6MAO7U2VUCSJ36KEXKMYWF3IJQVKO
+#\\\|EWOCYM4WOQETLHCSCSVYGRHGV72P5RE2H3YI3VNXKV4BTTW24E7 \ / AMOS7 \ YOURUM ::
+#\[7]B2F26WYAXOHZOHXFVCDGG47HHG7KNC776MI4UROQMBFGS7Q2ZAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -50,8 +50,8 @@ non-assessing cycle at that exact line is the fingerprint.
 
 #,,,,,.,.,,,,,...,..,,...,.,.,..,,,..,...,..,,.,.,...,..,,...,,..,.,,,,..,.,,,
 
-#,,,.,,.,,..,,.,,,,.,,,,,,,,.,.,.,..,,,,.,,,,,..,,...,...,,..,,..,.,.,.,.,.,.,
-#BG7JBR6RFD4P6WGQ2UYGHXLAUMZGDIR2ONI2LIUINS77XZOCMW2LNQ6IXSOMCPU43TQJTUHU2Y3ZW
-#\\\|GDPBGST756DRQINPH4PVHS7XZRVMMQAF25TKZK7QBDREQQ52DGS \ / AMOS7 \ YOURUM ::
-#\[7]NUMFB6LMPNXU2QGT3RNGRK2UW3Q2U77NTE2ONP3RZ7NJOU2IVEAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,,,,,.,,..,,..,.,,,..,,,,.,,,,,..,,...,...,...,,..,..,,..,,.,,,
+#FMQAARHC4FFYIOQEDPXNJSOQUHNAXJOQTTFDVEGLUHAN4IIDYU6BL7DVWSFKZHGJIOA3A7P4YSJH4
+#\\\|LHJ23JT5QUWFSW2TJBNMUJI4TFW44C4F27VH5X5DW7FLQV5HXAC \ / AMOS7 \ YOURUM ::
+#\[7]NWLO4AO6GVVZDYXYWEXMS3V6QKKI2Z7YVDQYM74J7MWTE7IAZSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

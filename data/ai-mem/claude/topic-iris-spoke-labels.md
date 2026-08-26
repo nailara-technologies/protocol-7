@@ -138,8 +138,8 @@ use this sequence. the `ring_label_advance` config drives the
 current linear repeat — the new system replaces that with a
 fixed 63-position lookup table per ring index.
 
-#,,,.,...,,.,,...,,,.,,..,,,,,.,.,..,,.,.,..,,..,,...,...,,..,...,.,.,..,,...,
-#UBXBVJOE67LK6FHDXA7MLPNPXPAJUH4KXRNVSFKVG25E23XYXPRFDE3LHVEI7LNWU6VC2GR3WJW2I
-#\\\|FVZEF2E2PXF3B5EFMDSIWM35FNSS5WNC2D26QZUW5HTGXTRWARC \ / AMOS7 \ YOURUM ::
-#\[7]M6KGY222WYO5YEGIU5ANJSMCZUU2PIMQNYFXA3QND65O23VIWQCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,,..,,.,,..,,,..,,.,,.,,,...,..,,...,...,..,,,,.,,,,,.,.,,,,,
+#L3PGXXRVQZB3DDY3BIMZYYWBMR25QZX2NACYZ2IXTAL4ZV5VLDTTOSE73NBQRZYXTAXVTDMB7R672
+#\\\|GLPDDMX7FRMFBFNC47ECLGA25G6TMHW4BNNPZWIYE2FBFEQPLRD \ / AMOS7 \ YOURUM ::
+#\[7]2PUGS6NHOFV35HX5B2MJJXZBG3S4DTXRCDPIFCHYPPZDAGIYGQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

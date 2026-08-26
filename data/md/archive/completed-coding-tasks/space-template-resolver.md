@@ -153,8 +153,8 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 7. modified src/plugin.web.space.state (add template-json section)
 8. data/web-root/space.v7.ax/templates.json.tmpl
 
-#,,,,,..,,,.,,,,,,...,,..,,..,.,.,.,.,,.,,..,,..,,...,...,,.,,..,,,..,...,.,,,
-#3YRZOJ4CVLSC7D64PSWWJJD4KSKFFJPLQPCWY5HY4PIISN7LCY5YN3CPNHIBAXKEW74BH3LBVMMQA
-#\\\|LBVAVBHMSAJ43JG3ZK7VQTFVYOQE5LFDJJF2QFDEHMF3VHDMAYL \ / AMOS7 \ YOURUM ::
-#\[7]L6I2CCEMPUSZZOKPRVIBQ4IBND5ZBAX5YTE4PVCUC55E3JOE36CQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,..,..,,...,,,.,,.,,,.,,,,.,..,,...,...,.,.,...,..,,...,.,,,
+#JZVKFIW5SM7GSPQ6L4SJC3SNYICUDLUMVDMEHXCBTTHMRJI5CPWA2Q4WGDGERXQWOL5DIRJIYYMP2
+#\\\|GV5JO5TWN6ANHYVZSGD34Q6KHAF5P5B7227VYQGELHLLAFVVAQD \ / AMOS7 \ YOURUM ::
+#\[7]HUEUU65XP7B62556W4NGV5VX4GJSQESBCURVPSVVO6LJC6B62WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

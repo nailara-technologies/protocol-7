@@ -48,8 +48,8 @@ category of WebKit-vs-Firefox divergence in this project — this is the
 same "WebKit-blind, Firefox looks fine" testing gap, but on the event
 side rather than styling.
 
-#,,,.,.,.,,,,,,,.,.,.,,,.,,,,,.,.,..,,.,.,,..,...,...,...,,,,,,,.,...,,.,,,,.,
-#3BJWFH6TUP6UKJBVFQZ6YPOBAWITS3VBQ3R4VRIE7JHCD2GBNS62ON3JY7XZUHIKK4WVIVPCMZQRK
-#\\\|PWBCV44NNJSQ54DW7XLEDYSQWZ5UZSAV3OIBEINYU5PN2XDRD7O \ / AMOS7 \ YOURUM ::
-#\[7]O2BBH77JG74CQA6KADNIEHCBEDIIYXBOE2ZANEY27P7VYR2YX2AA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,,,,,..,,.,.,,,,,,,.,.,,,...,...,...,...,...,,..,...,,,,,,,,,
+#GWBWVMMUXFMTYLAHWJ3KO2XQWGPFAVT5TY4YJHC3YP6JRGTZPEVUOXLCD2L5SETEQ3OO3VA7UFJZ6
+#\\\|JFYWLI7R6HPB7OAUSKAZQY6FBI4A2LNOTDC7OXDPSKMH5CRHMTN \ / AMOS7 \ YOURUM ::
+#\[7]TWY5ZFCWPIYFFXJUIW4DC4COWWYGAVBFUQVZDRV5RMFH5PVS5SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

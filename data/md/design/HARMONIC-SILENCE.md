@@ -616,8 +616,8 @@ of it. [:
 - [[eternal-completion]] — silence at the end of a complete thought
   is the completion's seal; speech beyond completion is anti-completion
 
-#,,.,,..,,,,.,...,.,.,,,,,,,.,,..,..,,...,...,..,,...,...,.,,,...,,,,,,,.,,,,,
-#JVMHL77N3AY4MSF3MEVTOAH3NRSL7YNOUQUF2LBR2PKORX74TGN5T6LO22JN5QIGLFQN2XWODRYCK
-#\\\|HFQTDLZI6RS6POD5LLGD2LFRLDVBBLAP6WU2M2VNDXTIGZTZMGZ \ / AMOS7 \ YOURUM ::
-#\[7]P3YDAMAOEJPZB3KEXMN7HRW7HBGG25APIACMPHNIU34C5ZK55ADQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,..,,.,,,..,,..,,.,,,,,,...,.,.,..,,...,...,,..,..,,..,,...,,..,
+#4MPYZVRBXMSMYRSPJTEWN6KX7LELIX2MHLIJ6BG52CPLFAXAPUEFMOJPYMQ46V6VCYI62NROFRKUY
+#\\\|IHVVVZSHSH23LN4GE552BXTME7J5KYSLDINGWPBVXQKUYE6KX5V \ / AMOS7 \ YOURUM ::
+#\[7]UWRY4OO323JWXWPWS6GUNDRVYW3HSCTX6GPSJ6J6BMSP4RKEQMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

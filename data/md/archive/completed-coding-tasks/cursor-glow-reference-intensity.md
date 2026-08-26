@@ -170,8 +170,8 @@ add glow initialization after cursor init, before `0;`:
     verify lowercase comments
     verify bar rendering uses utf-8 block character
 
-#,,,,,,,.,...,.,.,,.,,,,,,..,,...,.,,,..,,.,.,..,,...,..,,,..,,,.,...,,,.,,,.,
-#V5P73NDM42WVWTOOB7DFYHYGY2IL7AWBU62JOZPHP4BXEHDHROM6L4AXVSYWSUISXLQ5WWNSD5O42
-#\\\|PRHZHGVTC3DWTPIBW6JOTD6LAMHD7HQIXP5OTFMBCZWDCQTFBZX \ / AMOS7 \ YOURUM ::
-#\[7]SIDM4TYBTZMQWESIJ7O5YJXL27MDUC2ZDJ3UOYBCNY6HRRJQ3QDA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,.,,.,,...,.,.,.,.,...,..,,,,.,..,,...,...,,,,,..,,..,,,,.,.,.,
+#22N2NQSA6TCPHCTXIGKI5ZTEB4JJNIXHY7WR5VXGNWHHVFDDH57LWHCB7LAKU45PMNW2ABWOSN7AW
+#\\\|7XVYCDEO2HZWOX7AUCTAFXUJG4LRLH6GVYMPZPEXVRAL2APLREI \ / AMOS7 \ YOURUM ::
+#\[7]35SLWGCYX6KRTACGPTQHFRCZZHK3CN6FQWPUVTWDQM2Z3CDFSUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

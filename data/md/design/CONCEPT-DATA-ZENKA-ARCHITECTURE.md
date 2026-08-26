@@ -916,8 +916,8 @@ No source/destination correlation
 
 This is **Layer 3D** - not just routing, but spatial positioning of data in truth-space, where storage and transmission become the same operation.
 
-#,,..,,,,,.,,,,..,,,,,,,,,,,,,.,,,...,,..,.,.,.,.,...,...,.,.,...,,,,,,,,,,.,,
-#JRRCZL4CM46ZF7KL2NTHNBAIOLYZHK62675EQFIRIWGATFLO6AWTCC6XNZSVTNTOWBC4UOQEUWVDK
-#\\\|6NO3SX7HYQ4ZW774IRLR3U2FT2NBXOSNK7GSUNRWKU4EIW57IAF \ / AMOS7 \ YOURUM ::
-#\[7]XNXHTKMD5QJCDIGSV3RIFHFOTIDB5IRAVG7L7WXT4EMDF4R4JODY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,,,.,..,,,..,,..,...,...,...,.,.,...,...,.,,,,,,,,.,,..,,,,,,
+#YAMXNME34OH6Q5VRJKEH3EDROOWXSM62QIU7ICSES7VTS5P6ZYQ6LCVIDLHHCKH5KGV6FZTY5T2GY
+#\\\|MIGWNCRDVRACFZFUFMZJ5SN6E2PPVN63B2CDW6CMQZSXTRPZDZ2 \ / AMOS7 \ YOURUM ::
+#\[7]6NFX4POEV6YWUYV4NKSKIQ6SIBG5FIFMG2S7WIXVIJZ4FGCCPCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

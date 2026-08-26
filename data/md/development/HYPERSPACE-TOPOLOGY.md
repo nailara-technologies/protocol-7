@@ -107,8 +107,8 @@ personality, mood, development level, short-term memory — all
 geometric properties of a position in the hyperspace of accumulated
 intent-saturated reference chains. `[:<`
 
-#,,..,,,.,,.,,..,,,,.,,.,,,,,,..,,,,,,.,,,.,.,..,,...,.,.,...,,..,,,.,,..,,,.,
-#7FOFZFSHCH3I35BAIFHXMEKQPCCOPR3HMIKYM2YWXFNMPUVLB44N3V7YL5FFPRX6NFJA5WOXE2B7C
-#\\\|D77ONH6GYJD3FZLGV6VAW3VRXOPMGV257QCFRU6NQM3DJY32S3G \ / AMOS7 \ YOURUM ::
-#\[7]5TMLWZLGECKNL4DIB5ONW67FJRYQZM6MKQ5FHR7BRTLBW2B23YCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,..,,,,,,,,,,,,,,...,,,,,,..,,..,..,,...,...,,,.,,,,,...,.,.,..,,
+#D6L5NQCDAP62HTE2G6YOGFWXNCMKQX5P3TGSDMKDGDFNOTG64BZXSA3IRZ6O4GBU4WN5LJLSCMH4G
+#\\\|NQ34P5GRWQCOYRDEYJACYQR7JVTQZPCMESOYFFFXUCQTG2HCMXZ \ / AMOS7 \ YOURUM ::
+#\[7]6OX4MNI3AWKCO5YL2JYNBWFPXWOKBROODPPHENCPZX4KBMM7X6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

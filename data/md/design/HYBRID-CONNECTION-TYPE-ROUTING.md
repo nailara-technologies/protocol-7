@@ -117,8 +117,8 @@ precedence: if/when nested submodule directories are ever supported,
   cube technology existing at all — purely speculative until then
 ```
 
-#,,,.,.,.,,..,,..,.,,,,.,,...,.,.,.,.,,.,,.,.,..,,...,...,..,,,.,,,,,,.,.,.,.,
-#QA3SGJ5ENKFTCC43FORAHHSAIFN7RPJDRTNMR3BV6INCH2CELK6SRARBSPFJWIJCWFUK4KEUWFBFE
-#\\\|FFDEFN5WGFTP6JJOJIOVCN4FLOLJZN7TKFGHO25CZAK6AFZFHEM \ / AMOS7 \ YOURUM ::
-#\[7]MP4CXTEENIGUOAM4OHB2RKZXLPSSUVH43EAWJ7G6NPZ3NDSOQ4BY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,...,,,,,..,,.,.,..,,,..,,,,,..,,...,...,...,...,.,.,.,,,..,,
+#HLLXBXDRR6PIQZVKNJN4R2RU6D2UVZQXJNWZ3GH5BNVKMO5EWKUVOCVIHKIEICFXZF7NYJVDK2GYG
+#\\\|5ABE2XQODJ2PMNLERKKTDUELIM7D6RTOZYACPQCCOHDSGD2I3GU \ / AMOS7 \ YOURUM ::
+#\[7]GF42QCOQLIWQVS7REGDBXDAQ5FRZKIOHRUMZS64SOFCX5JGUD2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

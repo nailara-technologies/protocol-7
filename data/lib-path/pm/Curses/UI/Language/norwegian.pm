@@ -73,8 +73,8 @@ Er du sikker på at du vil overskrive "
 [file_err_opendir_post] "
 [file_err_nofileselected] Ingen fil er valgt!
 
-#,,.,,.,,,.,.,,,.,.,.,,,,,.,.,..,,,..,..,,...,.,.,...,...,,,,,...,,,,,,..,...,
-#EJUXRWMOQUH7PQUI3CJIKDSSKC5UZYRAAU2C5XUSYEGUZFRPXGXFKPKYXVPFRHH4G33BEAGEDT6DO
-#\\\|IKR4A5BUH3LK55PHSTS256MUET235SCEHEXCLHBKOGNGSGF53K6 \ / AMOS7 \ YOURUM ::
-#\[7]U6QMPFGVLIMTAFKV74JXDEGAGTCREMN2B2WSKPOZLAHTAIWMRYCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,.,,,.,.,,,.,,,,..,,..,,,,,,..,.,.,...,...,,.,,,.,,.,.,.,.,,..,
+#I4FAZVPVJPFIZK6LJZIWDYGNNQ2HFLPRXRZYISJZRTYMYNVG7YWCELAHZAKWB75TOEPNWI6X3QSRM
+#\\\|XRR35QPJD3XPGS6TNLVTQJDVE4JISLKAB7BY3FH4P4EBBNWLJN6 \ / AMOS7 \ YOURUM ::
+#\[7]YZD6ETXBUQHQKT7MNORJJKAQ2EWATXEWDIXX6ZST7FY266NO5MCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -121,8 +121,8 @@ do NOT add, verify, or modify AMOS7 signatures. leave new files clean.
 5. src/external.orbital.sync_grid_fragment
 6. modified src/external.init_code (connections hash + auto_connect)
 
-#,,.,,,,.,,.,,,..,..,,.,,,.,,,,.,,.,,,,,,,.,,,..,,...,...,...,,.,,,.,,.,.,..,,
-#ON46FNU674DPMTXKM2ZO36KGNEDBI3EKJ4WCPA2YMZ5D6TO4E5JE6O3BW4VEFIUF7AA5OQXYYB2MG
-#\\\|H65GACCZCQLBBAM5CPEOBCZGONDSYEG5PFX7Y5JWRQ4TOPZGC4G \ / AMOS7 \ YOURUM ::
-#\[7]5TMP7Y6LANMZGC6ZKKNASLTMP23S26P5KGNZZBWNFVBEQUJNFWCQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,.,,,.,,,,,.,,,.,...,..,,...,..,,...,...,,.,,...,,.,,,.,,...,
+#NDIJ6XOLPRVNP6RS5E2AV7DD3ZMHY5S46VCV2UYGE26POU4KKLCQIVEIZM7PU3DUL57R6LUVMD6HK
+#\\\|KSOE3SRKMIS3OVDK5EOEXW7QHN4S5JB42JTSSUA3YJDDAOCNAKT \ / AMOS7 \ YOURUM ::
+#\[7]J4LPGAPUH7NWQ472MU4H5UGO7JPTU2KKB7L6XKOEPDVUPTIJEECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

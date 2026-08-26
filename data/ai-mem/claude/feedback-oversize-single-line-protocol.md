@@ -23,8 +23,8 @@ isn't a small bounded token. See
 details and why base32-wrapping a payload is an unrelated workaround, not
 a fix for this.
 
-#,,,.,,..,.,.,..,,...,..,,.,.,,,,,,.,,.,.,..,,..,,...,...,.,.,,,,,..,,...,,.,,
-#5A2UNHYMV2EI5XI3K7VAB2CBM2YQ7SHXIVRKYQEF7EKJE7MVQXG2NXEOTPXJMAYP5OFPGBZ6TJT3G
-#\\\|3FHEXFI5G7O4ORENBKQXMPYGWAZ2OSKMTHI44U7VCCBES73RXUJ \ / AMOS7 \ YOURUM ::
-#\[7]P4NAQRTE4TEZYPVG7GVTMNSJUHKQDGZZJU5GLHQUAAUY2FJW6GDY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,,,.,,,,,.,,,..,,.,.,,,,,,,.,..,,...,...,...,.,.,..,,,,,,.,,,
+#ZUVG4EAAP63SOX5IZRHQS3AJMG2WPTSKI2KPCGBRLCQOMCQ4IK6YAQQ34WNSVPUHN7ORZ356EPPR6
+#\\\|THFIBNFLODPBHDYKWGH3Y5GZW6NOPEXX7X56EHIJM5BLRBDAJDJ \ / AMOS7 \ YOURUM ::
+#\[7]UP4IAVBHQ2X22UEZY6X7O3RB6ZVS4VNVQUCABLWA3EP4YY765EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

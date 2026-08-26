@@ -186,8 +186,8 @@ similar helpers (`wait_for_log`, `proxy_port_ready`) as a pattern reference.
 - `transport.handle.socks5`'s own internal protocol logic (no credential
   resolution there, no changes needed beyond the calling convention)
 
-#,,,,,...,.,,,.,.,,.,,...,,.,,..,,,.,,..,,,.,,..,,...,...,...,.,,,,,.,,,.,,,.,
-#SKHUVWPKS6B6SADOHQGCEJRNPRJCYCQU3RUIMTFISMLLDIRNK5UD7SMQCIK2NFTCEJFDF5TJZZYB2
-#\\\|4PFGYWZYV5ZHOH423GWH5GEYKUTNZWN3LVIDTXA2M7EHIQEKEIH \ / AMOS7 \ YOURUM ::
-#\[7]RPLDYROQDZL3GH7ELLRTXFXINMKMUWIKNC2JEW4R4IVI3CSNPIDQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,...,,,,,,.,,,.,,,,,,.,.,...,.,,,..,,...,..,,.,.,,,.,...,..,,.,.,
+#YOI7VK64DJWCQVY5YMM34Z77UXIGLAKTD2F2HNIALFCO5SOHHTC5SM5XDW5352AM73U6D6PF6VWKG
+#\\\|MS5IZ4MQLYAY7MKE3R7Z4P7SQE47FU4HSC4DEND7RBL7JAU74LC \ / AMOS7 \ YOURUM ::
+#\[7]PHNPGSHTM26GNDTKNB3PWMQD656U6Y3FT4Q7BBT36NHWGNDCBEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -61,8 +61,8 @@ for namespaces meant to load on-demand per-request rather than eagerly at
 zenka startup, which is not what `editor.*` needed here (nshell wants it
 loaded once at start, not recompiled per call).
 
-#,,,,,,.,,,,,,,,,,.,.,..,,.,.,,,.,,,.,,,,,,..,..,,...,...,.,.,...,.,.,.,,,..,,
-#HCXP6GC6LIZI3DZYESC6OGZDHBTZFOE77KYJJTSHUEY4ZHCWOJ3OM6TNPOD3WYXKI7VOQE3DVNXOA
-#\\\|BGHSMONP6Z5X3377LWB5WV662C6U5FFAJC7GDSHTIWXK6TZ5H7U \ / AMOS7 \ YOURUM ::
-#\[7]RIA73XGUPDA2DKLY6245PWJWJCMIY6XLOICWCIWTNI544WYQHOBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,.,.,,,.,,..,.,,,,,,,.,,,...,..,,...,...,..,,...,,,,,.,.,,.,,
+#LPMJ73VDBT3T4BDIZF2Z7FBVEJP5KHNYR7O7CQVR7G47A3YNYWOM7H2T6FHS3NUSKE6RM33DFLNIM
+#\\\|HPT4SJPFEGCYP3AWG6A6WXIRKDSJKJCBO45PE6V7XLE6NIA3XK3 \ / AMOS7 \ YOURUM ::
+#\[7]CGBTMSWZC7YQPCCX6OFDWGHPLTH6IMVEYDAF2YHTT7LUT3MAYUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -128,8 +128,8 @@ both out of scope here and already tracked as delegated in the retired
   async-proxy pattern from `x11-capture-commands-rewrite.md` if shelling
   out to ffmpeg)
 
-#,,.,,.,,,..,,,..,,..,,.,,,..,..,,.,,,.,.,.,,,..,,...,...,...,.,,,...,.,.,,,.,
-#6QGSPBZLXWXWHDUEK6BQRJJ6U2HYY5UWPKWRQGNUEZCP6OLRNBHBZTHBZFCZ5H252WT4XG6UWBJYM
-#\\\|ZELGMIQSYZ3K4TSDPCZUY24M25BZPG46AS6NZN2ZTHMQWBIORMD \ / AMOS7 \ YOURUM ::
-#\[7]5PCQ3PD32OWWOFTDUWKHHSOMICQPRN2NFUFNPNYU4IPDERBYUGDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,.,,.,,,,,.,,..,.,,,,,,,.,.,...,..,,...,...,,,.,..,,..,,,,.,,,,,
+#T6I7LF44RTOLTQZTSKWVRKXPFZ3ME3YE5WUS5TWRR2T4I2PPZB74Z75GIIVTISG3FRYC3EFK66YLQ
+#\\\|SA7ILAGRW4LLPUIQESECV74LA7XID6J2VZBQFI4KO5KQDZWYRT5 \ / AMOS7 \ YOURUM ::
+#\[7]CYVQPHGAR64EKAYCYGQP7OVQWJSCEHMUYSKYXI7VQ5W2QPEALWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

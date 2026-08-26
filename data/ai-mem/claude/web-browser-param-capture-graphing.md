@@ -41,8 +41,8 @@ promptly after reproduction or the event scrolls out). See
 input replay + state-vector snapshots) that removes the "hope you catch it live" step
 entirely.
 
-#,,..,,,,,,,,,,.,,.,.,.,.,...,,..,,,,,.,.,...,..,,...,...,.,,,.,,,.,,,,,.,,,.,
-#APKV7WW5DGPS7D74LMSEV2BKOPMY2PBDFGOGQOAQY66M5ZEXGQA53AXN4KMSMHIOXL2YR6CT3U7IU
-#\\\|DVM772OZFMTTIL335OTXLW3FKT6RG5TSJOV7XRPWAWBMSV2SQF7 \ / AMOS7 \ YOURUM ::
-#\[7]BGCZZWF2O4DSKUFDENSUDQVINHXY3UAQOXKQ26Q7JWYLFET45ICY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,,..,,,,,,,,,...,.,.,,,,,,,.,..,,...,...,.,,,..,,...,...,,,,,
+#UJYNPVXPJKYAVYRPBL64WVVV7IA6LPNYNQLSZP5T5YY2AWRQOSQAL3BKR6SSJKTS626NKFH3T5HPA
+#\\\|JWY73JVSMACZ45EZUAJZZF7B4QDMD46W6ISISQFIDW3M5FRJJOU \ / AMOS7 \ YOURUM ::
+#\[7]G6BSVREBGPQLZLWBBTL5JBHST3SKRTFHCT77S4ZFQIK7MUQIPWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

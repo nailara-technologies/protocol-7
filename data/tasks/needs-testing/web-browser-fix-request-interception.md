@@ -118,8 +118,8 @@ grep -n 'decide-policy\|request_starting_signal' src/web-browser.init_view
 - [ ] whitelist logic preserved with correct WebKit2 `$decision->ignore` call
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,..,,,.,..,,.,.,..,,...,.,.,,.,,...,,.,,...,..,,...,...,...,,.,,,,,,..,,...,
-#XLQ2CPFQGFNESI54LRUCBSPVIDDRBMZE5BQ4HRUX4GTI2NER5QP2B3WT3ZQPR324CS5FRIMRUCKHG
-#\\\|2NQS54A7PZSDF7MP3S4CS2H3V2LGJGEUZ6VOR3ZFUXNH6LHXV63 \ / AMOS7 \ YOURUM ::
-#\[7]KNLFHMDELD6RDFKJP5NMPWAPKZ4KMXKSOWIJ2BW2AWJ2U7VQJMAA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,...,,,.,,,,,,..,,,.,.,,,.,.,..,,...,.,.,..,,,,.,.,,,,,,,,.,,
+#YDUVFE34MGBVUOES42A5PWEGDNB2M3DX7ELF6SOTKQXNC3YHI6KZZWGDPHIHGPXPVGAWK3QYNLAZY
+#\\\|GMEB7WQEYOPGVHYOHSN6SCEXG5U4F5ESNTY5WVTRG6GG5PIGMSO \ / AMOS7 \ YOURUM ::
+#\[7]ETA7SFSUJP5GB75UKVDDTQKG5XULFOSHFYTKW6KPVY5WO5ABMACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

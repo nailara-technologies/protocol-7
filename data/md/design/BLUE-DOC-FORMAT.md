@@ -346,8 +346,8 @@ output quality exceeds the source scan because :
   for standard formats at 150/300/600 DPI [ baseline, needs constraint scoring ]
 - `bin/dev/division-13-table` — division-13 matrix, color space origin
 
-#,,,,,...,.,,,.,.,,..,.,.,...,.,.,.,,,,,.,,,,,..,,...,...,.,.,,,.,,.,,.,,,,,.,
-#WRY72RPXSCWO32IN77BSBCCHTC37RKBBJVZL7AO6NTWFZ5D24UXD2UPLYEOR4NVUFTVD7QMCXBFVO
-#\\\|UNYTZEMKQO2CGROZFHADAG4OGGTY2CIDJCAUO27P6XALSSNSAZQ \ / AMOS7 \ YOURUM ::
-#\[7]W4D6GR4KB23VMBTQG3FWQMYCH4KCZIZF7VCET6MN44Y636VOQ6DY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,...,...,,..,...,...,...,.,,,..,,...,...,..,,,,,,...,..,,..,,
+#53ZOHCEI73RAMZ5I3SZUJVC47R4LZEDXEIG56TDRD3JENK23KMK64YTYOONGGDPZEECVZF5CJHQYI
+#\\\|P3KLXVMP53ARP6TXZ6UFLSOAUWVBIF6ZCV7MWDPG2NOECTSVN5G \ / AMOS7 \ YOURUM ::
+#\[7]YGA3KK4WOUBXOLS5VV7SAFS6E6XZZKCSAPPAVYVJN3DJ67LMUAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,8 +63,8 @@ once root cause is identified, implement the minimal fix. likely options:
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas
 
-#,,,.,.,.,,,.,,.,,,,,,..,,,.,,,,,,.,.,.,,,.,.,..,,...,...,.,,,.,.,,..,,..,,..,
-#PXRX7HLAPLRJRQO4UQ6JYTMSZKERAJRCQ6KSQ4NQ2MQASZ2IS4VQXSERTYLIRPNSC5W2VSXYMDV44
-#\\\|RZNTNNKOQNIX7BY5QTOHQAVGKJWLGSLIBTRK3TPQOZ5XUYKBFML \ / AMOS7 \ YOURUM ::
-#\[7]D76W2JRNVXC7HKVOKLP4S7YQSBD6EXECF7KYHYDJ3LRGG67PMKBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,,..,..,,,.,,.,,,.,,,.,.,...,..,,...,...,,,.,,,.,,..,..,,,.,,
+#6ZB3GFT54RB4XNZV2SU4Y4WWN7NLG3YOLNSYC4STJYOY5NJ2AJDUIRT7R4ZM6AOTLQ7AUGCTSOWPM
+#\\\|3U6XT5KILLOUCDNEID7BOXSACPHGHINJDZ2YCDEA6A7FPD2C4R2 \ / AMOS7 \ YOURUM ::
+#\[7]AAX774XT3HW6LOLZV6TARZGLTIGTYZRAQZHFVVK7LOW35TDBFEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,8 +32,8 @@ Fix: added buffer write (with same markup stripping as STATE_COMPLETE) before `c
 
 **How to apply:** When touching models.handler.task-result or coding.async.state_machine, remember the flag-conditional encode pattern and that no_tools tasks take the STATE_TOOL_EXEC early-return path.
 
-#,,,,,,.,,,..,.,.,,,,,,,.,.,,,...,..,,,..,..,,...,...,...,...,,..,..,,.,,,,..,
-#6S5S7MAFFKN2TWI2KDQN3IRB5FZZWHLTOUU5F3B657MBXRXU53FXN6W6FQDZYUKNRKURO3XUZCLYW
-#\\\|HT5UBUTDGYHYDPOWT57E2ADHG3LIEBM5ID72KTRA3UHTODU4PRE \ / AMOS7 \ YOURUM ::
-#\[7]WFDDDK7GSY37OZYB3KC6AYB4JCTE47QGQFAXS4PASPAAN4ZZQSDI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,,,.,.,.,,,.,...,,.,,,..,..,,...,...,...,...,..,,..,,...,.,,,
+#TG5SFB2TGUDTX4J7XIWX4AEK2B56YBY4SV4UM6FSITEQN73O5R7ZDTQIRPHRQ7GQY7A7HSKMT4MPQ
+#\\\|2UN4ZKWMZXUEXHNRDRBOXO7KFG4GEU3B7UIJE4EH7AKYM625PES \ / AMOS7 \ YOURUM ::
+#\[7]EYPL4N5L5QYMN6JTEHD43X6BGEWNBOQ55MZDGWF4DCMYGNCUUUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

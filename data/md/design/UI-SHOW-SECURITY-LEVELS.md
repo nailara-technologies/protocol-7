@@ -113,8 +113,8 @@ with the group-based one.
    `credential_fabric` (slot names/metadata) as the proven case
 6. (later, separate task) generic key-based level authorization
 
-#,,,,,...,.,,,...,...,,,,,.,.,,.,,,,,,.,,,,,,,..,,...,...,..,,..,,..,,,..,...,
-#5QEZ7CY3GOQI2ZUY7SNR32YMQ6BFBMSXJUNGQMMR5MH5L3TEG465V5FHU7KVELCL46NRZRWB5XOG4
-#\\\|BGDOJHEXBC7XUVXGDR3LQ2BRVBDQQOVDGZVRXJW3UX26Q5I4WOR \ / AMOS7 \ YOURUM ::
-#\[7]W4VHF23237FEZ6CBKWSCOFSCIRGYZPY3A34YL2AORHNU72LXM2AY 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,,..,.,.,,,,,.,,,,..,...,,..,..,,...,...,,,.,,,,,,,,,..,,...,
+#UNUDDDVM73F32O74QCK6PQAQQSGQTWKJYFD5A4OMVYBTYRCFPBFF733KIJKAT77ZVQVWC2BH7TFRU
+#\\\|ER2PRQZQMZKQRZZJGI5GECB5TLE3AWEMAV25BDKOGSSW65AVUSZ \ / AMOS7 \ YOURUM ::
+#\[7]MO42JWGSAAF7GDBCVGOO3NLE3OCQOUJA7AKJVW6DCBZFFUA23CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

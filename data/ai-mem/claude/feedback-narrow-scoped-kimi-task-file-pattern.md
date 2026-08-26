@@ -78,8 +78,8 @@ addendum), not a logic bug. Confirms the pattern scales down to genuinely
 small budget cost for well-bounded feature work, making it a good default
 for weekly k2.7/k3 budget balancing, not just a quality-of-output win.
 
-#,,,.,.,,,,,,,,,.,,..,..,,..,,,,,,.,.,.,,,.,.,..,,...,...,.,,,..,,..,,.,,,.,.,
-#RHTZILBZHNXHU3RV4LBWGESTDNUYEOWVWKX37C7CPPVH2YAMVKZYMQHUKEWJC2SYCVVQAH7LYI6LM
-#\\\|TDXZS4B4YJAJRPDAXVELI6KG3VOWTBBXNZLGLBO246PGVH6FMPN \ / AMOS7 \ YOURUM ::
-#\[7]27ZBGB7WVPTYCCERP77ZAT42D3V5PM6NJDXDRMTTBHRN2LAXSYCA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,,,..,,,..,,,,,.,.,,.,,.,,,.,.,..,,...,...,...,,.,,,,,,,.,,...,
+#K4MI23H6KYMR5PEPKIVH4VYXLLTSE4DTSMBPD2CAHHXPQGCYHKV2ODEX6GMH6SWPYGHX6PGXRL2RS
+#\\\|RP4BTU2R5HXUMG5D4DUOWNSS2IDNB75UEEBJM3VMZCE6NUT6ZLZ \ / AMOS7 \ YOURUM ::
+#\[7]W4GSWFOHPCPNDRDEBSLQPD6ICV43WWYPGRFZOIJGYFNBDQZGJ2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

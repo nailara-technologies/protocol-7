@@ -321,8 +321,8 @@ The `proxy.handler.request` module should be split into two variants if both mod
 
 **Recommendation:** commit to standalone model and add `proxy.listen` + `proxy.handler.connection`.
 
-#,,,.,,,.,.,.,,.,,,,,,,..,,,.,...,,,.,,..,..,,..,,...,...,..,,,.,,,,,,...,,,,,
-#LK4AZ72V5SFVEN6DVDV72SCJLVA7WB3FT5IDVLTDARPNB2TMMELI2ACU33DT2YEHDRW5RZKNPXGNC
-#\\\|TF2QKGVBQPA2E4PUZP633OKZW2M62H27S45BBYUBP32NDT3DWNZ \ / AMOS7 \ YOURUM ::
-#\[7]4QAZPXTWRERTPKBAIITNEB5OWEZEXT36PFELCG7PTZYJZG5JYYAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,...,..,,,..,,..,,,.,.,.,,..,..,,...,...,,.,,...,...,,.,,,,,,
+#V4RIONL2YTEL2OXYZPCG3YWWSZHVLBO7ZIMBIUNR3ZEGHXLJZQV7Z65QIIK4AD3ODRQYV3IPCZPAE
+#\\\|JGRBJSB3DCHTRBLOS5QHF4CFTSSX6EFZU2MFFPC5CWAVDCJYRBC \ / AMOS7 \ YOURUM ::
+#\[7]I4M5DAZ6Z444WBUNXMHN2WABYVGV57S5UCM5H7TSNQEYSKP4AAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

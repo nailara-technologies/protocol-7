@@ -55,8 +55,8 @@ assumption — file-mtime-unchanged is NOT proof a no-op poll didn't run.
   noise (separate pre-existing issue, user flagged as known/separate,
   not fixed this session).
 
-#,,,,,,..,.,,,,,.,.,,,.,,,,.,,.,.,,,.,..,,,,.,..,,...,...,.,.,,,,,...,.,,,,.,,
-#GJUOQPDSCZDYFLAXKU6PA5OFUZUPFP6QIUKQAOPVTGIWMP4S26ZDBSBQT63NFFDR7X4EJNDNAA4Z6
-#\\\|MYVSR4TCXC4A4GK2M3XANVBCJR5FUZWEOKPQMB4XVJTXAGQC22Z \ / AMOS7 \ YOURUM ::
-#\[7]IEIWQECG5HVZVTFHSBIB7HR5T42J6BT4PX7K6GLXA3UBRPDD5YAA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,,..,,,.,.,.,...,...,.,,,.,.,..,,...,...,,..,,.,,,,.,.,.,..,,
+#4AVGWVBOM5WNYP5GPXTX47GFA62L2KHESZRDOE67RTUNTOEQZKE6SFVZAS24HXBUYSHTINS64DOSY
+#\\\|KMMF7HCTZ6PRXCRVMSSQV6D4UY3UASZX44W2AWSTCPTNBRARG54 \ / AMOS7 \ YOURUM ::
+#\[7]UBTP5T3YCSQJ7GGHUV676JV53JBMJQ65XPKWCMGXLMC74Z265KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

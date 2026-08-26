@@ -69,8 +69,8 @@ if `gpu` works, delete the line from `cfg/zenki/mpv/zenka.v7` and update
 - [ ] default updated in `src/mpv.init_code`
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,..,.,.,.,.,,..,..,,.,.,,,.,...,.,.,,..,,.,,..,,...,...,.,.,..,,...,,,,,...,
-#IGGAVVYOMPRBZ6OXX5VGDQAFB6N4LAHEQBQD653VG67WKCZVJCRDVS4NH4MIB4ESQXFTTLE7SR2UA
-#\\\|TLPCLDXGA6FOLSNRXELUHJJXPUN4NAC4YHAC6QI5MQ4SB3NQABN \ / AMOS7 \ YOURUM ::
-#\[7]BQAIGYY6KHCBWJRHMYVTUN4VPUC2YHSTIKOITSUBCBSF2YSQRIAI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,.,.,,,.,.,.,,,.,,,.,...,.,,,..,,...,...,.,,,,.,,,..,..,,,,,,
+#QQ4XDWBMML2QD7CHMUXHU27RYRIHRL46TCIKTKXN2VTGNRZ6VAUSWBEGWYNPP4EMD7EJGKJEISSEK
+#\\\|R4GIEPVQHKETVWWC5RA4NLNQ6D7OY2TZVZIALFN2SIWG5N2YNRN \ / AMOS7 \ YOURUM ::
+#\[7]ZJKX2JBX4JK4FNKCW6TVQ6BHX6F4HZHQRVUQHXRKGAJDB7SVRECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

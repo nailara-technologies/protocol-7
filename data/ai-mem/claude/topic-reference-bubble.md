@@ -53,8 +53,8 @@ file access, dedup, branch namespace, consensus voting.
 every branch node IS a zenka seat. occupied bit = the bubble.
 the bubble IS the occupied bit, traveling. positions remember it was there.
 
-#,,.,,...,,.,,...,.,.,..,,,.,,.,,,,,,,...,,,.,..,,...,..,,,.,,,,,,,,.,,,,,.,,,
-#OFYYEWYQYYAJQMBRLXCS2OV4YVJ3KKZZJM34JEJCPFVT4TEFMJEZ3JLTKR5DF7RHY7N7KT642NA52
-#\\\|CJXUWJBTJQNJNQHUTLJSMXPP6DX5OH73SHUFWKROLSYD2YYIS7D \ / AMOS7 \ YOURUM ::
-#\[7]QR22OHZJFI2IGIYVODQHUXYA6WPZKPHSUX6ZINHMBE7RJ3EAZUAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,,.,,..,,..,,...,..,,...,,.,,..,,...,...,..,,.,.,...,,.,,..,,
+#ZL72KYRCZQ473ABQVPVNZ53HQBRTF3WWKRGT244HXZN4WUI534SSB7SNYHU4P4MHIGVZMGCXI5Q2O
+#\\\|LHJVC6RDNHZJ63UTYEH46NEDHHB6A4VLGB7OKOGWC2PUHPVNDOW \ / AMOS7 \ YOURUM ::
+#\[7]H7H7IFQZSLVPXWCNCANPTKTBFOJMYJ4CHKDRLOWWVZSO6OQLI4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

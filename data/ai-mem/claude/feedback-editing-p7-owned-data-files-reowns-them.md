@@ -37,8 +37,8 @@ directory) BEFORE editing, not after something breaks.
 #,,,,,,,.,..,,,.,,..,,,..,.,.,...,.,.,,,,,,..,..,,...,.,.,,..,,,,,.,,,,..,,,,,
 #PLACEHOLDER — awaiting sign
 
-#,,,,,..,,,.,,,..,,..,..,,...,,,.,.,,,.,.,,..,..,,...,...,...,,,.,,,,,..,,.,,,
-#VONFCRGEUU2V3U7RV5AQXXS33RQH63ODTK7TQEEBYDZP5NBSG4BJBLSNLDDLSC52PT5H4TWX75QNW
-#\\\|ZS2RCUN3EBHKIE5KHL4KYVMRRFMKEIFBWR3XCUYQVUZR5OX2TT7 \ / AMOS7 \ YOURUM ::
-#\[7]ZB4E5BFZSHAAHQKYZYH7245OP6IEUTRUPCBWPOIKR5E7WKFQFUAQ 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,,,.,,..,..,,,,,,,,,,,..,.,.,..,,...,..,,.,.,...,,..,,.,,,,.,
+#4QSK5EIVFWZMB57XDJARIPMGJXSRIJ53Z5KEM33YXWQLJSCYR7V3AJ4OZT3KIUEMH65LPQ7OLT6UI
+#\\\|V2A2DQLLTRWBGOUHJQQZWDE65MTMEQWRULH3Y7KA5ITGCAC3Z4M \ / AMOS7 \ YOURUM ::
+#\[7]ETD2FDRCGSPVHGUE2TT42YZFAX7CQYGBKLLDHNDQB4M4AFWYGEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,8 +29,8 @@ metadata:
 
 **INDEX-CORPUS-VERSIONING.md** — `data/md/design/INDEX-CORPUS-VERSIONING.md`; clash between streaming accumulator and replacement semantics; solution: checksum-keyed contribution vectors; diff stream model is resolution-independent (`[checksum, parent]` works for whole files or diff chunks); `trie = Σ active_contribution_vectors`; partial rewind and branching free; connects to CHECKSUM-FRAME-CONTAINER and ADDRESSING-TRINITY
 
-#,,,,,,..,.,,,,..,.,.,..,,.,.,.,,,.,.,..,,,,,,..,,...,...,..,,...,,,,,.,.,..,,
-#TRCNKJHLTVQ6XCVVCYKTPICPW4PET2NTGDSMZFNRRJTCJQ7QMSKWBJGA3XLQHI6AL3B5FXKMG6U5A
-#\\\|UK6ACKH5XHPVTWDIQNAIIWRUZTN6PJIS5G3GY62PKC5O2PKILKM \ / AMOS7 \ YOURUM ::
-#\[7]ZOQFJCG4W5RIYYLTS7M6G6W6A57VAOA7ANXHWH3QHSVADCUV5UDI 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,..,,,..,,,.,,,,,,,.,.,,,.,.,..,,...,...,,.,,...,...,,..,,..,
+#OZNQQTZEIU2C6U427KUYLIFJJWJCGIOIHPXJQ3FPJJ5S2GFR2ZSSDVNEZKKYFFU4VTEAZ7B47LNA6
+#\\\|AT625ECC3JDBZLIWQSJSOSU2PSB2X56ILCJ3DQ7WWGVSYDJZG5P \ / AMOS7 \ YOURUM ::
+#\[7]HCDUILRNYXTSPYOC5Q5CMUWJE6L3R2BDVCE5WPFWBVWGRWRQCSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

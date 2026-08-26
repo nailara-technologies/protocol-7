@@ -362,8 +362,8 @@ total recycling: nothing is lost. specs become transformation records.
 implementations become capabilities. capabilities generate new specs.
 the vortex is closed. the development cycle is self-sustaining.
 
-#,,.,,..,,...,.,,,,,.,..,,..,,..,,,.,,...,.,,,..,,...,...,.,,,,..,,,,,...,,,.,
-#ROLZVOMJ24ITGYOHBMI4XID3E2C4XZQEIUMNPLCUXV4V7AWQJ4FUAWBLGNLVK54UE54MJGIPD2G6I
-#\\\|FWV5URPKSQRKRBVGZI2DXJLU6MQJU4GFTEQIGVSV3TP7E5X53LK \ / AMOS7 \ YOURUM ::
-#\[7]JXUHJJ2PMKOTENK6QZNI6TBU5GSYAVWSSYHSJVDHFQB4KJ6EN4BY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,...,,,.,.,,,,,,,.,,,..,,.,.,..,,...,...,..,,,.,,..,,,,.,...,
+#ANBLQ4JC4LCUYTHYO737N43CMGMC2GQA3C3ZGHBDEC7PKI7RHJ4BYCOJY25UJIMH5CIAUV77N5BYU
+#\\\|MBBBJNT6JGZJLAG5VRXJUL3RS4S3NVVJVUOTQ26SYKMBY73UWBH \ / AMOS7 \ YOURUM ::
+#\[7]JQKUNUGNE5N4LLC4EEIVDS5AZGEO6YMLVK6EVKKLGRWBWM6CBMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

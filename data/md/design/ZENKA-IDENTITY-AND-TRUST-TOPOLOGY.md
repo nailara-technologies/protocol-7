@@ -272,8 +272,8 @@ discovery) not started.
 - `data/ai-mem/claude/project-zenka-cryptographic-identity-survey.md`
   (ai memory) — ground-truth crypto/identity inventory this builds on.
 
-#,,.,,...,..,,,.,,,,.,,,,,,,.,.,,,.,,,,.,,...,..,,...,...,.,.,.,,,,..,,.,,,,,,
-#OIT4M4WJCCKPVUFHXK33MDOOZW2FXZ5RP6BTXPS4J2CYO3KSHIZJRPY5N444HDYC676YGLVCBCRFM
-#\\\|TAMSGFX2YCTVVVW446VT5VEGUFUUGDU6HYQUDXZ562AHXEHZCNG \ / AMOS7 \ YOURUM ::
-#\[7]XYGNS655OPVDWKIGI4UBHEZUF4JQ2P2AXJTNHS7EGKWOYZLWAEDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,...,,,,,,.,,,..,.,.,,,.,..,,..,,...,...,.,,,.,.,...,...,,,.,
+#2DY6RT33IYYNBHQZ5M5SDOE23TWQQM7AXGMJNGAPVJ55WOE27HXC7NDAKSKFMT5TABKKH4XZ2WX7K
+#\\\|FXPOZYBLQXM4LGF5OB2TWFFVS4AXSS7WDIIAO6PLX3ZGHINUFQG \ / AMOS7 \ YOURUM ::
+#\[7]5IVS464EWSCBMTTFXX27EGWRAVZGXKYGY25CH5LV2B2THLSAA2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

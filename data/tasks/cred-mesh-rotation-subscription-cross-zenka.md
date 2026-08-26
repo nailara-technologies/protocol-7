@@ -414,8 +414,8 @@ longer throws `undefined value as subroutine reference`.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,.,,,.,,..,,.,.,,,.,,..,..,,,.,,,,,,..,,,..,..,,...,...,,.,,,,.,..,,,,,,,.,,
-#PKHFEHAEYAJDDAB7KPVQPXAOKJZKOT75OJIZZQMSFEVGENUX72SIS7N7LI4DA52YFWZC2WOG7H6OC
-#\\\|7YQD2TH6QB67YCBY5A6JNATCBXGPZG3SLFGHXLBKQ3SV4JZZPQN \ / AMOS7 \ YOURUM ::
-#\[7]5G4IWYD274XILX77CHM6F3G36WORFZRENRETP24RWF4BVAMUFSBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,,,,,,..,..,,,.,,...,...,.,,,..,,...,..,,.,,,,.,,,.,,.,,,,.,,
+#EKJA4HKFVFBYUIO2UGFW7EFFIGQT4JPG2OUZ7DJC5LF3OGCG6SPHO2XKZC2L3NH6VIIB62LIRVJ34
+#\\\|4ZTQRV57TEI4S4IHOCMUUD5USASH6JHSPUUOAJ5RVXBJPXQLOCB \ / AMOS7 \ YOURUM ::
+#\[7]FTFY63MPTQVANKKABJPJRXBFVCCT4ZQL3AH3JJV5BUNGLXIAX2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

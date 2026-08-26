@@ -60,8 +60,8 @@ The alternates chain is the key efficiency — total storage barely exceeds one 
 
 Related: [[usb-backup-zenka]] [[self-assembling-network]]
 
-#,,..,,..,...,,..,,,,,,,.,,,,,..,,,,.,,,,,,..,..,,...,..,,.,.,,,.,,.,,.,.,.,.,
-#IIQCJRZK5YUT37E7JD4OTMD2ATSZPKXSVDBKF5MFZ4XZ67WOGP2R6QNT4R67C4K3Y3U2FWZMJOWUM
-#\\\|7VNQZJZ7ZN3RKNZO3OWXAGMF4UVYXV5SCRCXXTPBNZLL3SRXF36 \ / AMOS7 \ YOURUM ::
-#\[7]D5ZQ7NKH2X6V47MHXK7R627EMQFVQAUQPOT7CFQUFBRX7DDCTGCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,.,...,,.,,..,,,.,,,..,.,.,,,,,..,,...,.,.,..,,...,,,,,,.,,,,,,
+#4KCBAUTVW7SDM5CKWUIBPK6YCD2GRRTOH5SG3FDSCBWSNR6AQDSOR42CXBBB3QBSBEAULVR3XKMM2
+#\\\|55SDK7TMKL5GIRFOLWSCZ3WRMQNGQSLTOFNZ7ACBIK23UUS4D65 \ / AMOS7 \ YOURUM ::
+#\[7]5AE64PXGKQPBL6BZ4F5J7AR4IHX33QEFWTLT3YSCNK2V3YVIB2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

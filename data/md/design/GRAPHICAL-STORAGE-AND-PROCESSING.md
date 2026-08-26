@@ -215,8 +215,8 @@ thermal imaging data ] is the format hinting at its own geometry.
   for the contribution model; high-bit-depth and tile compression can
   come later
 
-#,,,,,,,.,.,,,,,,,.,.,,.,,.,,,,,,,..,,..,,.,,,..,,...,...,.,,,..,,...,,.,,,.,,
-#PQGY426M5QYTSFUOJL6YWR4GW5IZDDSANTA6Q72JZ6SGJCFSAVSZVIIONXXGV5F5IKRW75I54MIYG
-#\\\|SZD3JLO53EQ6NL6FMY7YJMRFKJUQ4WCV2L3L6XFEFOCZUV62LWL \ / AMOS7 \ YOURUM ::
-#\[7]LD4VZ6VELG4BNS4366OEM6GVEFTTEP3QY22YAMOTL26WIVHPHIDQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,..,,..,,,.,,..,,.,,,,,,,,,,.,,,..,,...,...,,,.,,.,,,..,..,,.,,,
+#5A23Y44WZONFBJOKA6NPI4ALPFECAOEJBRINEVR4IYQY5DVOA3AAMVQQ7QH62SUJZIICA7R77BO5E
+#\\\|DREEB4PEJWFMQCVVZKBVPQZDMOHFY6IIELZIS2VAJYQAPW7QDTJ \ / AMOS7 \ YOURUM ::
+#\[7]3JKLOPJPCBIUSXQJUAGQ66YFWZSSIIHGVSZ6GGRWHHEAGLPVF2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

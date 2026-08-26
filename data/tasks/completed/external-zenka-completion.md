@@ -151,8 +151,8 @@ For each of the 7 gaps: state what file(s) you changed and why, or — if you
 decided NOT to fix a gap as written (e.g. gap 4's access decision) — say so
 explicitly and explain what you flagged back instead of guessing.
 
-#,,,.,...,.,,,,.,,,..,...,..,,,.,,.,.,,..,,,.,..,,...,..,,,..,.,.,.,,,.,.,,,.,
-#LHWPLBVYOETWHBKWZ3FJPFVR2H4WWL64EG3XZBIFBBH7GIGXMWZZLXGKYKH5NRX532RMNQSY3WYAM
-#\\\|TZAJ3ERWME75DUBHX4HCL6LJGZY7QWJDHAXOO5VIRKYWRE3I2BZ \ / AMOS7 \ YOURUM ::
-#\[7]IMRQTI5CMSZMA6VFD5KM32R2AJGUBWVO5JNXXOBO2OMJ6HVFICDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,,,,,.,.,,.,,,,,,,.,,.,,,,,,,..,,...,...,.,.,.,,,,,.,,,,,...,
+#BN3FPAQCKZFICSYGHBBXEEH7C7FOXEMWCM2C34ND6VUHNZHKZHUNYSGWNGTESZ7Y54NWNOMMFSC5W
+#\\\|FBUPP673QURIA6FL7O2QTPVXFCRUKPLZWHWBVKDPWANCWVR4G6P \ / AMOS7 \ YOURUM ::
+#\[7]ZEIKJC3BYFRBBERZPTJMVD5NFIYTQMYOCRDBPR63JSWUHGD6JGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

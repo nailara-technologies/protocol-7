@@ -103,8 +103,8 @@ directly from the coding zenka — that's a different location/owner/perms
 situation and `session_catchup` already solves it by extracting text in the
 privileged process and passing it as content. this task is scratchpad-only.
 
-#,,..,,,,,,.,,,,,,,..,.,,,.,.,..,,,,,,,,,,.,,,..,,...,...,..,,,,.,,,,,,.,,,..,
-#J3AVDOSBUCU3QJ3UFTAUPCQXSPTFR2SFQ3FRPLTX3TJIK4YM57ONGZCCIJIF7Q2BOEXBD27R5APZW
-#\\\|N7G7MCVD73DWHQ5GQIUCWXBMDDHG4LSAFNW6RDH2FRN5DRNXHEW \ / AMOS7 \ YOURUM ::
-#\[7]GIP6WTFTQ7U7VL53ZJLXXVZTIKQRHPU2B45K6OYFFSELPCDZGIDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,..,.,,,..,,.,,,...,.,,,...,,.,,..,,...,..,,.,.,,.,,...,,,.,,..,
+#TMFPFGIJ3VJY47MKAKGE2V2B5FGSE5TNH6ZYGR2VKUHUTAKWA2B3VE3JGN4T7DMWAF4QPH56EUTMM
+#\\\|PKOWVRFHW3N7PWCNLMRBXKLUMVZLK6L2ZKUHK6DOGTYU6XW6233 \ / AMOS7 \ YOURUM ::
+#\[7]VQJPQETRKW2GXL6ANQ62KWOUQP6ZQ5GPOGMZBJCOQDKPSDDKHKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

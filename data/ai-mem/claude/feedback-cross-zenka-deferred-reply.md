@@ -27,8 +27,8 @@ Also: `call_args.data` is NOT transmitted over routes — only `call_args.args` 
 Multiline content must be base32-encoded: `encode_b32r(Encode::encode('UTF-8', $text))`
 and passed as `:B32:<b32>` in args. Receiver strips `:B32:` prefix and decodes.
 
-#,,..,.,.,.,,,,..,.,.,,.,,...,,..,,,.,,.,,,.,,..,,...,...,.,,,..,,,,.,,,.,.,,,
-#YG4AYXVH3DAVZN6NAM4HN7YLLJHIOCUIC2RXTAA3JRQY4T57F6GCUEGZA7EJHICDVVIMJ2IZFPB7C
-#\\\|E23QM5OQKWRKF5J6GGDANKH3NIAX4LSLT76ZRFOQBQCWR6UW3KM \ / AMOS7 \ YOURUM ::
-#\[7]CCV2F5H4YLHTWT3QTEO547C3U5KPWFP6ZE73FS2BGCBH2H2JXMDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,.,,,.,,,,,.,,,,..,.,,,,,.,,..,..,,...,.,.,.,,,,,.,.,.,.,.,.,.,
+#OOTNKG5JHICSSUVLKNA64K3IXWOLDEKA3IOWNBSOXIYA6IXF7PQELEVDSFT5FMTTUR325NC6SFEWE
+#\\\|ZDM7OIVNWHKF55CKLW3CAQUK4ARMC2NZ5JSLNO2ZA7DFDCRCBL2 \ / AMOS7 \ YOURUM ::
+#\[7]A23E2HFCCUTSVFJYH4TVXHRZRTKSUSMQEKCFQGPVHJETBVXXIKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

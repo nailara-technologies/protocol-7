@@ -148,8 +148,8 @@ harmony calculation (for log timestamps) is skipped at level > 1 or when
 `system.zenka.verbosity.logfile > 1`, reducing calculation load for
 high-frequency debug output.
 
-#,,,.,,..,,..,.,,,,..,,.,,..,,,,.,,..,,,,,..,,..,,...,...,...,...,,,,,,,,,,..,
-#3454KU6HSROOVS32TJXBJD3RRC4APSQI5ELPOYGH4GCRLSKNHWKKFITBMOUW6PZKBMNUUWTIGFFRW
-#\\\|VO2VQWVZUKSKIA4IIEACQ4P345EOW3KYVHGD3WMAJZJTD455CZA \ / AMOS7 \ YOURUM ::
-#\[7]O7SLKRTCN2F4LV3QMZOPE65TLM72RCEVVJPDKDL42YSMVXSBYUDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,.,,,,,,,,..,.,,,.,.,,.,,,.,,..,,...,..,,..,,,,.,,,,,,,.,,..,
+#WGH4GVVP5TSA4MURHKVJPQPFB6X42LJ4HYC7NIYLOQ3HE4SB6ZITQVZBARUB6SVLLLWCIZYYU57W4
+#\\\|PVH35YSMQ25MRONKEMWXU4NBDQSTNJB5YHULYJWGKUNKAGJGAGY \ / AMOS7 \ YOURUM ::
+#\[7]UE77P7AOZFXTXDQC3JW7F3FCN75JK7V4VJLPIQUBP3YDMHAWZCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

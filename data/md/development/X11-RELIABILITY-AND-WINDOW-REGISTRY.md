@@ -267,8 +267,8 @@ then wrapper.
 - `X11-WAIT-VISIBLE-HOST-MODE-SKIP.md` (task) — superseded by window registry
   (keep as fallback for external-process windows not using self-registration)
 
-#,,,.,,..,,..,...,.,.,,..,,.,,,..,,,,,,..,,,.,..,,...,...,..,,.,.,...,.,,,,,.,
-#Q2YA5QVVTT2G6CIF63S24EHIXIYOYH7W76I2LA7UZYMEP7JPA4WEPNIK2N7EWH3GJ3WMZI5GU4BQG
-#\\\|TIIAOJAC2XISX2MWIBNOOVHRIHFV2ZKFCYB2VW4QMFQCVA55X3A \ / AMOS7 \ YOURUM ::
-#\[7]WYJL3ZXGBNVGAMHS6MAVSOGIJGZP4BF5TNFXT73LYX5GIXN5E2BI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,..,,...,.,.,...,.,,,,..,.,,,..,,...,...,...,.,.,...,,,.,,,.,
+#IGLD4BYBOBVITSIX7SK5MMHQRBW53BSTTHFF7CZIXYV5NRE6CFFEI33WTBX7GG646HV5NG3OYTUHA
+#\\\|HLRTTDJK6CQDCDX3ZZLTTJE7E3I4RL2NSL3IDFRAN4HK4UHQ6CH \ / AMOS7 \ YOURUM ::
+#\[7]CVPICRVROGB2FR6WWKJ4GJ4B2R6JVME65GR4H4APIIN4PB2BWMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

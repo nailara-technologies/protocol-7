@@ -562,8 +562,8 @@ The path forward is:
 
 *The holographic transmission protocol: rules before tools, tools before patterns, patterns before payload. Currently implemented, continuously refined, eventually exact.*
 
-#,,..,.,,,,..,...,.,,,.,.,..,,,..,,..,,,,,,..,..,,...,...,...,,,.,,..,...,.,,,
-#X6VDCXTEFAIKJHT77ASA27BQSVYJOPTAP2ETWLS4NMBCGPIFOPJ4TUJN66Y2XDFWP2JL5YWOBNQF4
-#\\\|VYWCR6YN3AJBUZ6CAQXXZAODL4YOM7GK6NWWXSVKP4V3JL5TAPU \ / AMOS7 \ YOURUM ::
-#\[7]4XUSDH4JLW677BPZOGLOCAH24S3XIT5H6QHBTTCMGK525TFZQQCI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,.,..,,.,,,..,,,..,.,.,,,.,,,,,..,,...,...,,.,,..,,.,,,,..,,,,,
+#4WYT4KPMPDYFPOKWSZEA65OXT4T7DDM6YUT6QL3HJPVKC4MB5KJ5C2WELZTJDWJEC7UQVSMRB4VKI
+#\\\|DVEXAHM4G3LMDAOX2UWHTJUX6ABFHCP4MUKWXJBB3XPRB5IULBW \ / AMOS7 \ YOURUM ::
+#\[7]4NUSCYAESVJYXUYBMITA67RTA5IRSZSB5VHMPXJVDZDJOJQ3FSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

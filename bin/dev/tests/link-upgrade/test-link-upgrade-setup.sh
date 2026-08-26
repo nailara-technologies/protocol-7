@@ -122,8 +122,8 @@ echo "System is now ready for link-upgrade testing."
 echo "Run: ./bin/test-link-upgrade-workflow.sh"
 echo ""
 
-#,,,.,,.,,..,,.,,,,.,,,.,,,..,.,.,,,.,.,.,..,,..,,...,...,,,,,...,,,,,.,,,.,.,
-#KSZ2LZIUANQHMEHGECBYOT2QSZ6MYO6X6C57XWRLBKLR2QSZGU5OJHXKGXR5MA3XWVS67BULEZMN6
-#\\\|J53DT6TKILJFLZDTWHKQCR4N6CY2RJB35QKSFXEPVKPWQHSZ77K \ / AMOS7 \ YOURUM ::
-#\[7]BHGM527LGKADC3Y25YPNX57DNMSZRLYEW3XP7YZGC7F5GVCOEGCY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,.,,,..,,,,,,..,,...,,,.,..,,..,,...,..,,..,,,..,,..,..,,,,.,
+#LRSAREBH6K2A4CVE5NGV4RD5OYXQXVBYEVMTJ2JNWQ72P5LVYKWP2ENMFRX7P66SXVF7JS73IDHIY
+#\\\|4FK23YTMNM5Q6FM4XPDOVPQMDC4Z2QMOPEKXTGNI6AY3Q7WX6T4 \ / AMOS7 \ YOURUM ::
+#\[7]FCOSOFKI2CQ2G4CWLK7X35QMZ7MJ4JNUVM6BBW3ORC5H552QCQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

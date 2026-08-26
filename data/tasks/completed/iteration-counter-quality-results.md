@@ -374,8 +374,8 @@ quality ranking.
     # part 4 (one invocation per series -- key regenerates per run)
     bin/Protocol-7 sourcecode test-sign-and-verify "<space-separated paths>"
 
-#,,..,...,.,,,.,.,...,..,,,.,,.,.,..,,,.,,.,,,..,,...,..,,..,,,,,,...,.,.,.,.,
-#HV7FVJL76NYOGDUH73RASGBOYAKRBIIQTR3VCYRB7H46C7ZGEJHIIDLLIGKYQIYT6QRJ4TUK2XTNS
-#\\\|DFJGZGWS2WHY5VHCL4MDLALQWTB7XOWSWV4C2RDH2RZO32GXSPW \ / AMOS7 \ YOURUM ::
-#\[7]HSCELUON6OU6DHADPZIFPU4PFAQB5G2ZDPKKPF5RWUXPO2K23ADY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,..,,,,,,..,.,.,.,.,,,.,...,...,..,,...,..,,,,.,..,,..,,,.,,,.,,
+#NCWAZKGIGLZVMVYSX2WPFBOFISOUILYYPXMKZ3UGHQJDQXCV6EOUHRI2BU3O2YGHDQK2FEBC7KXKY
+#\\\|KQV53V6SKIWOGITU3LHUGURMBHR4M7IBYSF7DMD2QMAVYTBMLAJ \ / AMOS7 \ YOURUM ::
+#\[7]5XW33X3YYE7NLIQBI7BIBZY3JKMWIUTEQICSDHLJ72LHYZLT26CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

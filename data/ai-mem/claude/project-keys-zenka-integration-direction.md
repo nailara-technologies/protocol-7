@@ -287,8 +287,8 @@ both up and down, not just a single strict parent-chain per key the way
 `key_signed_by`'s current attached-signature-file scan implicitly assumes.
 Still exploratory — no file format/syntax decided yet as of this message.
 
-#,,.,,,,,,,,,,..,,.,.,..,,,.,,,,,,..,,,.,,,,.,..,,...,...,,..,,.,,..,,.,.,,,.,
-#QPLKD4K2WNI5C327UKCPBBOQ46JTZNGKVHJVT5AWOHXOPWA6QUTIWOKFWOPSTENDY3KG5R3EE4WPU
-#\\\|3YUSNAU2OQNFZGNAVMDR5TIG5OVC4XQTIGBOI7QUNLC7MW4XSKQ \ / AMOS7 \ YOURUM ::
-#\[7]U4TESKKQKPPZSE3L4UWTLYDL6KBIL2JURDDNJXTIWBRCKBI4TCCA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,,..,..,,...,...,,,.,...,,,,,..,,...,...,.,,,.,.,..,,,..,.,,,
+#T7LUDXT2PQDAVG7MW6G2FP62VNJF4RK2TLULLLICNH4XI4GCCTS3E23U7KKVASVJK7MKDHO7ZMTKK
+#\\\|I7WK2PPSH4WY6INBXBOFBSFY7CNQRHTGMGRKTN4XPHL74UVNUL5 \ / AMOS7 \ YOURUM ::
+#\[7]JCSC2ZGJ4KU3W66KDFG5IZFE4UUNCLVBCQV6NDZMYBFHPVRPXQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,8 +30,8 @@ correct for a regex-context operator.
 See [[reference-show-buffer-command]] for where this surfaced (`show-buffer`'s new
 `[pattern]` param), fixed in commit `121abccff`.
 
-#,,..,..,,,,,,..,,..,,,,,,.,,,,,.,,,,,,..,...,..,,...,...,...,,,.,.,.,,,.,.,.,
-#FWZMP4DG4UYJB2ILDNGUDM5VIMFWW6FND64AQZYAVR6XYGEH24TPAEBH6DRBSXVZ5GVALKV57VRYO
-#\\\|BYLEKZ2EOOVEHKE7ZDOAVFEWVDG7CSBVSSFMR6KOP3TNMUHS7W7 \ / AMOS7 \ YOURUM ::
-#\[7]P77T4LBUSUCQA3V4WR3RR7AF27IPPNWQCJP2EC6ORHYJULMF7ODQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,,,.,,,,,,,,.,,,..,,,,,.,.,,.,,..,,...,...,,.,,..,,,,.,,.,,...,
+#M2EEBBE2FPBAEVINM7YHDJ6W32NJUGKMB2SDVR32FV6GPK35IBKIRG6BKZJ2HBML433I4NXHL53RU
+#\\\|WVLP4WYZEF7U4TQAOMAKBFEO4BSYDESBBFGVJKIY7ZWK2CDIWNR \ / AMOS7 \ YOURUM ::
+#\[7]PAS62BU4NNDBQKJZOYP7POBC5H6AQCC4LPUCV2UN6Z3AX2J3RCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

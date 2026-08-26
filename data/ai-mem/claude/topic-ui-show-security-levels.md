@@ -58,8 +58,8 @@ vs 1 vs 2 vs admin) still pending.
   resolver beyond `ui-show` itself — could be the real-world driver for
   step 5/6.
 
-#,,..,,,,,...,,.,,,..,...,,.,,.,,,,,,,,..,,.,,..,,...,...,..,,..,,,.,,.,.,.,.,
-#6FA4C2V52DJFIOWERPXTD5KOAIHLYBT3LL6N7RTNO4CZAJ3EIDTIQHEV3BYWSC2DROTSK3ANFPXAI
-#\\\|6MZ2MREB7XPSXU7CVM2RCRLZLS4KDRTYEH5CHOAUCQWDRI2UPLB \ / AMOS7 \ YOURUM ::
-#\[7]ZBWP2IUEBSKN47MP4V6OVYHFSHWDAJZJHDZGJRNS2NBWA2GBOCCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,,,,,.,..,,.,.,,..,,,,,...,,.,,..,,...,...,...,.,,,,,.,.,,,,,,,
+#L2RQJO27D23PYVBJZ46JJOBOZHWIXE6ZSQR3EPDMFQDNG2VDZXF7XJBPCSIQ2CGH6Q3VN6YQLF7KO
+#\\\|5L43UJP3DDXIVS44AQ7UNXLS4TUXJMLYIV2CKELJ2GXJ7GXPX42 \ / AMOS7 \ YOURUM ::
+#\[7]ANQ2KVBC5YDYRWP5Q42S5JGLANUW6QXEALS5GD4OUTJLDCD6NIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

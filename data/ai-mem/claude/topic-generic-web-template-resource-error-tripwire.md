@@ -76,8 +76,8 @@ remediation text itself, all in one pass — this pattern is now battle-tested, 
 designed, and safe to carry into the generic web-template work without re-verifying the
 approach from scratch.
 
-#,,,,,,,,,,.,,.,,,..,,,,,,,,,,,..,..,,..,,,,,,..,,...,.,.,.,.,,,,,,,,,,..,...,
-#LFTJXCCHUY26MKREZRKMOUZAGKKFWCCLO7AW5EKX7G7MR4JY7WYMLT6LA44S2LO7LU4AUZJVSZHGM
-#\\\|OB47IBGBB6FSPL4G762YEOBKX6JNYFBOH2WB2HF52FW3EBVGCRT \ / AMOS7 \ YOURUM ::
-#\[7]KI2BMYV46ETWWVWW5YDNYE64HJJUI4RKQSX2N3FKZ67MIDPZOAAA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,.,.,.,...,.,,,,,,,,,.,,,.,...,..,,...,...,.,.,...,..,,,,.,,,,,
+#36WXRTCI7DOJQN23YVGNGKACDZF2QEVW4WA44YRXRI5P7KIUINWBKWLFZLU5HG3GKCIDIV7SCXQU4
+#\\\|EZ6PN6HL34MKAKR4W5EWUFL2WT2ME56WYYXOYR7M6MLUNRTH6WC \ / AMOS7 \ YOURUM ::
+#\[7]XPRHJYWJ675PDWC3HANE3PBZGT3R7HRDHBANW3AW6JQSYMEW3ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

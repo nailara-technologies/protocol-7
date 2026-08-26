@@ -28,8 +28,8 @@ all fixed in session 52 with `my $x = @_ ? shift : $ARG` pattern.
 
 see also: [[arg-regression]] — related issue where local LLM reverts $ARG→$_
 
-#,,..,,,.,,.,,.,,,...,,,,,.,,,.,.,,,.,,.,,...,..,,...,..,,...,..,,.,.,..,,...,
-#VF7NK3BP6K2C5DSB2PIG224TOAVU4I2Z6EPT7PRFBBDAJXI7OTIIMV42QBBKINGNRGJEO2SPQGRXI
-#\\\|ZEJH3ZPA5XDCRSXI7EYX65FCGW3O6K7CCSWKXTHKNKQB4LX25DA \ / AMOS7 \ YOURUM ::
-#\[7]5EUKDKTYVQ5POY47UETSV42IWHF6QHTRL3TAVE4CO7JVKYBEVIDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,,..,,.,,,.,,,,,,...,...,,,.,..,,...,...,.,,,...,,,.,,,,,.,,,
+#LBJB5PQE5TRDTCCO62IDDKPUT5OAZBMHAD2NB4UUH5CSSFHNDRK57CFQLDFSUX7HPAXZY3AWJM4EI
+#\\\|WSLE4ZQXSDZBEGSLV3INSI4XKAGJGPWGNMLFEMJKH44HIC6RKQI \ / AMOS7 \ YOURUM ::
+#\[7]25GYHZZ34RILELSADHVOFQOH3PHBLSPY76YCAKLDOG72623PKGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

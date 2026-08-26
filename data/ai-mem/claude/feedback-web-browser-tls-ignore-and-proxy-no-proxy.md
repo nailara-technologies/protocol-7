@@ -66,8 +66,8 @@ not scoped to one host). The proxy call-order issue is now fixed, so
 `use_proxy='no'` reliably means no proxy on every boot, not just when
 timing happens to work out.
 
-#,,.,,,,.,...,,..,,.,,.,,,,,,,,.,,,.,,...,,.,,..,,...,...,,,,,,.,,...,,.,,,,.,
-#6X6Y4XCHDHSCYUN5X5WBCTCOWXVTQ5O2BBDTDOJXTMDIB4OGQJFIJGIRGNO2ZUMZ5TG76H4AMWZSM
-#\\\|W4MQKCBUJDGGCJN4GIDIL6JIAXH6AXM3XVFGXLY3DCU7COYBQLX \ / AMOS7 \ YOURUM ::
-#\[7]H6A3KMRPMPG6SQJCG5KWF5ZXWWIGHCCLFVFZR2RJX7RRDNO5UUBQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,..,,...,..,,..,,.,,,...,,,.,...,..,,...,...,..,,,,,,,,.,,,.,,,.,
+#FYB6RWI2RSPIRK7XETFXEZUWPMXBP2VV767VFISZTFIEHBPAWLRDTTKYTCN5IIANBENH6JXW6JZ7I
+#\\\|KO6OIJUA2XCHLP56EEORWLCGR53DDFWNHGOENBSJMQEBZC3PKUO \ / AMOS7 \ YOURUM ::
+#\[7]UH3EQDBS3UVGWW2KQ2ADLMY26K2WZPLODQ7DEKJMUIGZ4N2P2ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

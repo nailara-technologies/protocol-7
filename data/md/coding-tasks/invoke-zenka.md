@@ -587,8 +587,8 @@ look at cfg/zenki/invoke-web/subroutine.white-list for exact format.
     do not attempt to run — requires live invoke.ai instance.
     note any uncertain API field names as inline comments.
 
-#,,.,,,.,,.,.,,,.,,..,.,,,...,,.,,...,...,,,,,..,,...,.,.,...,,,.,,..,...,.,,,
-#ZQ3FVIBPFDEAHT7UOZQO6DGXOJFF5NZDJ2V2ZT4X4CSX676WC7H72R2KJ3MWWSDDIS7TB57LWFUSK
-#\\\|TLB4F532XYUXZ6K46RLSOJ6Y766D4AIVQGLTTPJM4XTXJVRYD3J \ / AMOS7 \ YOURUM ::
-#\[7]EMY3OFHKHE2GZAB7BWG3X2YPCFRKVH6ZZEWELWDOU3LPB7C2OMBQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,,,,,,,,,.,.,,.,,..,,,..,.,,,..,,...,...,...,..,,,..,,,.,,,,,
+#MDEUIJBMLD2EROZ5FLLSMSNGD5PZ45QHMHDL5BHRK2SUSR36QEZ725SFAQ6VDJGTNLFOOJJXL3SJA
+#\\\|6LID33EMNHXUTOLR7Z6YF2Q7G4LQ3KV7B7GIRSRESBHXFB5HKDJ \ / AMOS7 \ YOURUM ::
+#\[7]VZZ2LV3CF6CBQP6W4WYG5FQTWZ75KEOZIGJFCBT6YFUBFA4RGABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

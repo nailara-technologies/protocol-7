@@ -101,8 +101,8 @@ signature footer. modified files will be re-signed automatically.
 5. modified src/discover.format_discover_mcast_packet (append p7ref line)
 6. modified src/discover.process_host_packet (extract p7ref + trigger relay)
 
-#,,..,,,,,,..,,,,,.,,,.,.,.,,,.,,,,,.,,,,,.,,,..,,...,..,,..,,,..,,,,,.,.,,,.,
-#EPTA7AOBS74ACVKOOI3YCG3F5DTY64VB5T5SQ4D4KLZ525Y23VSCSJFTVXCWU7BGFOEPGKRJ4Y4J2
-#\\\|ATILPMGJ732ZJMW5BYEQYD7B64GVOVZEPADFYBG6EE2JIG4JOIE \ / AMOS7 \ YOURUM ::
-#\[7]5IF3DKHBE25UCVCMKQ6E3ELWUMIHH3G6WWSHUP7UYBQN4SYCDABQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,,,,,...,,..,...,,,.,.,.,,,.,..,,...,...,...,,,.,,,.,...,,.,,
+#UBFYSIQNIU6LJCMXU6IFGSIE4J2G3WJOALVNEMAORC2GXPNV2RCF7IILYODXRFAK2ZZU3QDDQEXOW
+#\\\|PQH2R2222SYF45MWUJ3F55K7FUQQJS3E2EYKPQ25RDTMPQN4M7A \ / AMOS7 \ YOURUM ::
+#\[7]5RIWGWW5SNN3TH6Y52PBLMY26RBWY6XRDAIPJZQZOJL74LSYUWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

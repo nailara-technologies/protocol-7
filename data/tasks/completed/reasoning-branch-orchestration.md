@@ -368,8 +368,8 @@ p7c reasoning.branch.status
 - [ ] ANSI color when TTY (running=amber, paused=dim, resolved=green, rescue=violet)
 - [ ] no signature stubs, no whitelist changes
 
-#,,.,,...,,.,,,..,..,,,,,,.,.,.,.,...,..,,...,..,,...,...,,.,,,.,,,,.,,..,.,.,
-#YTNYRPZHBB7V45MIZORWFR6E2WAELA4U4TAZNTW4HVDKFQZZUGPBCZXGIKELPKVZHMEHYRZPE46YE
-#\\\|UW2I63TDWMXCZZRW7JLFG7MZOCS5EKJSWMSUELDGBHML2INIQGL \ / AMOS7 \ YOURUM ::
-#\[7]XBLUOYFDYPVDI6DQ32WW5QVJFR7KRLNYYXSTNBTU6A7BLZX5XOCI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,..,.,,,,.,,,..,,.,,.,.,,.,,,.,,..,,...,...,...,.,,,,,,,,,,,,..,
+#WYMDABTQBXFHOEBNXHDLXFWW4MVJWC5ALAFBW5INUROB7SNHNKOVBWZNIKQVOHPMKLBDOTALBYEQU
+#\\\|UWFSIKYKHYZEYCEXIWBXGZ3XK2LDSRPHR5Y73FGMCMVPCUPX2XI \ / AMOS7 \ YOURUM ::
+#\[7]U2HIRB44DXHBOTYIUXIXNKJGD2O3L2BR4OPTJVAYQWQ7EKANT4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

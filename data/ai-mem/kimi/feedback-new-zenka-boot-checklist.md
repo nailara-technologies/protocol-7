@@ -50,8 +50,8 @@ and running gen-sub-whitelist, do: auth.zenki grant → `p7c reload` →
 0110 = drop_privs when run unprivileged manually). Create needed dirs
 in init_code, never lazily in post-init handlers.
 
-#,,..,,,,,...,...,..,,...,...,.,.,.,,,.,,,...,..,,...,...,...,..,,...,,..,..,,
-#G77ZC3PDZHTF2PXFAXAZSJRVDH2D7HPIZH22HSNB7SNXEO45XWIJBUIEKKHLHE5VST5ESTDQG6LYC
-#\\\|56235PGAIUJHYWHVY4XRIY5AJTBXXG7Y42AC7BD7P4PDENXKEAB \ / AMOS7 \ YOURUM ::
-#\[7]MQXGPXUHUCLFD3OGCLBKWOI6PQIMB6ZZTVA3NIHUZBJKELB7X6DY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,...,,..,,..,...,,..,,,,,,.,,..,,..,,...,...,...,,..,.,.,,,.,,,,,
+#4HMOTN3LJY7WUBG65NIVNQ2C3626GIRXR6XIABSAG4GDHZLHZXVKUZ2WLQDTR64MJ7IOCYWWSBQPG
+#\\\|WTMLPU3CAVXB6SOCDHX46SHL6HX7T6G7J2A5XVD7AKSH4DLYMUP \ / AMOS7 \ YOURUM ::
+#\[7]SXJFT2OGHEVRQIXUAMGOSUA3RB57E3K4EGHEH5APO7ZP75SL7ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

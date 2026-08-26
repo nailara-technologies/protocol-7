@@ -79,8 +79,8 @@ test cases:
 - [ ] TODO comment removed or updated
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,,..,,.,,,..,..,,..,,,,,,,.,,,,,,.,,,,,,,..,,...,..,,,,.,,,,,,,,,..,,,..,
-#2ZZPZXPUXYNKJL5L6SDK5PC63YVRTXSNRVHEKOOKFI7WRYCWC76TQRLPSMENVR2DI77DJRURNY3EI
-#\\\|JOWP5ZW5QDXMOU4AWHCAKO4UTOUGOM2S23K5Q5UFGGIE7YYJGLB \ / AMOS7 \ YOURUM ::
-#\[7]L4FJHWEWBAQIJWQ7VXMBXOFNN7GEFEU6L6RFIQIOBGKE7ZYZ7ADY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,.,,.,.,,..,,,.,.,,,,,,,,..,..,,...,...,...,...,...,,..,.,.,
+#BNYYDUNOSL6HV3PERNAG24CC523LIXSDLMRZJBLKKRYEZDHYY45KPLK2RWWZECR55DI22VCNUS34A
+#\\\|JHS4WKNS6RTKN7N2VYC5LA7S3PLZCNHSFGULG2V2HED5LJZPE7P \ / AMOS7 \ YOURUM ::
+#\[7]QXR2FARK6BRA2H2PVXDJT7PGUO653PWY3QB4AJEBYNWAJJ5XKMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

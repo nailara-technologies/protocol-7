@@ -30,8 +30,8 @@ copying the shape of the most recently written sibling command
 propagate the same mistake forward (all 7 here were copy-pasted from
 each other in sequence).
 
-#,,,.,..,,,,.,,,.,,,.,,.,,,,,,,,.,,,.,,,.,,,,,..,,...,...,..,,.,,,.,,,...,...,
-#I6DINMZS3GM4ML67MUW5X6Y32C7OWLRW4JFBYJTU2PHP7ZH7TFRA5MHCNMDK4TD2ZB4UWSTMKWUTK
-#\\\|GFZKBN3DWR5PS5E77QKXRW7MGDEFF33NC5TZWFT6EZ6E4AR7HQQ \ / AMOS7 \ YOURUM ::
-#\[7]RFJSGM6E3QKIFYCTMYBJOLYCLQNR7XSAKIFSGIVFIHNIKYBVAQBY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,,,,,,,,,,,,,...,,,,,,.,,,.,,..,,...,...,,..,,.,,.,,,,.,,,,.,
+#SX6CIEI7BMYZB5AS5AEMGKZSWOVJHPZSVDMRKYIYGVODV7NODPZXQ2BJV75DMRCIPPDVICZIA3LYQ
+#\\\|DOWXI2VKG2UJ6LMQZQTNE3VWJLYSTCVZWJUONG6XZWVJNY6YDLO \ / AMOS7 \ YOURUM ::
+#\[7]3WKDVUVUPANUW2UWW5GOCG3X4ODSICRCBWGNCC2LSB4CCHC6ICBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

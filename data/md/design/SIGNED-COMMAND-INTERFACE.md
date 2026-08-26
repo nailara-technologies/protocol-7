@@ -278,8 +278,8 @@ development environments may skip pinning for flexibility.
 6. key authorization list per command
 7. nonce dedup store (simple ntime-windowed set)
 
-#,,..,..,,,,,,,.,,.,,,,..,.,,,...,.,.,,,.,.,.,..,,...,...,,,,,...,,..,,..,,..,
-#4PLLRGORQGSDCPNSKSDDAXWYJNCQKATYQWCXN4GE3N56T7ZNHSK6R53KHPZGS2VEL6WYPN4CLGPZE
-#\\\|MRCJ64AKFZ4QTZM2PAKCL7PMB5WAWNFB5QHA5NSCBZYS43ZKFRG \ / AMOS7 \ YOURUM ::
-#\[7]Q4HAI4EHWEB6VCHL4UJP4K63NL4TWNEEX3XXANII5BD3K7DZ3GAI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,,,.,..,,,.,,,,.,,,.,,..,.,,,..,,...,...,...,,,.,,..,.,,,.,.,
+#7CBAE7UW6VGOXHIEUJ7DKRNDGJ4HM4B7ZTIXHLTJ44LZZYYBUSKEKRENDLBQWPBDDY2T4LQRWMHKO
+#\\\|BLTU3JTSH7S2WNQTZJRGQLBJARY4GS2SRWKXQHOTHUFEVJ5VIPK \ / AMOS7 \ YOURUM ::
+#\[7]6XGP5HD2OOPFGNSL6GAXJDG7ACK7ZLOVOUSFD54ZMSJ3C62EESAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

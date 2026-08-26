@@ -48,8 +48,8 @@ across all four.
 STATE-TRANSFER.md` together when picking up any of these threads —
 they cross-reference but deliberately don't duplicate each other.
 
-#,,.,,...,..,,,,.,,.,,..,,...,,.,,,.,,..,,,.,,..,,...,...,.,.,,,,,,,.,...,,,.,
-#PWYDPPZ25EUBWD4OJGPWFWW63NLWQ3Q4HM3FUZ7MNUBQWOMCARVTNJ3HX47DHBFDJXBSXFVSQN4RU
-#\\\|UEJNUFYP67I2LVPHVI66ZCWM6R4U44EG4H4LRES2EM5IL5RIWC7 \ / AMOS7 \ YOURUM ::
-#\[7]JLMYMVIJ7XQCB4G4CKLEI5KO6CO2TAETQHFAE6QTCDZXYWBOFODY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,,,.,,,,,.,..,,...,,.,,...,,,.,..,,...,...,..,,,.,,,.,,.,.,,,.,
+#WF2GUA3YLYGYGGX5VAOMPJDCAM7E3MOXJMM4GNX5WGKCZH2KCOQIBLQFS6KZ3HOMOIODXZJLAEJ4Y
+#\\\|4T5NBJHJCBTDSZ7P7USU6BAVAKYBQCEWA3OC6CJALQ64KJPTEEE \ / AMOS7 \ YOURUM ::
+#\[7]5DILXNI6E37HP6QLU7IN32NG26W4TZOOHSEKSBL6E4QI45IJ2WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

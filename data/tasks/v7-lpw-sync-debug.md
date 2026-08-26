@@ -65,8 +65,8 @@ the stepping should be gradual (1 step per timer tick, 0.13s apart) not instant.
 - `<[module.name]>->()` invocation syntax; `<data.key>` for data tree access
 - `$ARG` is the loop variable (not `$_`); `@ARG` is args array
 
-#,,..,..,,.,.,..,,,,.,,..,.,,,.,,,..,,..,,...,..,,...,...,...,,,.,...,,.,,...,
-#CSERYZZVC2TZ5OZBWRIL4SCVB7LIJCH5JR6BB57JE7L57Y7RQY4BHOWYSI6U3WCIVZHJ6RJYUN6S6
-#\\\|J7H7AVWEU2N5MXB6IAT7M6XGXKVMHHPAGXEJPCJ2KGFFTC5XS6G \ / AMOS7 \ YOURUM ::
-#\[7]V6XWW63PZLGNW4HUYAFIX6LJ2OIG4OF7BPNRMGOJELLVXLTNXICA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,,,,,,.,.,.,,,.,,,.,...,,.,,..,,...,...,.,,,,,.,,,.,,..,,,,,
+#TZ4FXYZMBOCHJCPGT5YXE6VPYGOM73BHA24ULXCAEYWN2WPVCUP5OXEQIBOMRMLHG2GLPAQQT6WXI
+#\\\|L5VMHCISBGP2FVYOXPQOL2MERBHVLDHZJ2IJ3OVPRSANCWS52VP \ / AMOS7 \ YOURUM ::
+#\[7]J6MEK5FS3DHIHRO34S6GXAA4Z62JYQY4IUE4WB4HORXKL2HNUQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

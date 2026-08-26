@@ -303,8 +303,8 @@ against the real filesystem), resizing a directory rejected.
   before signing — don't assume the placeholder convention was
   followed correctly just because it looks plausible at a glance.
 
-#,,,.,.,,,,..,..,,..,,,,.,.,,,,..,.,.,,,,,.,.,..,,...,...,...,,,,,,.,,,,.,.,.,
-#CATOQRIKOMKUYGYHQYNOMVVFLIFKDSF74T4AAFJYAP4GT2KYQKNPR2SJG52HTQV7WUEBVZ754HCPS
-#\\\|7F4HAZGMOOHLLJ7IGEX74CMHFTICAH6KUVNNVL7X3HVVVPG5PXS \ / AMOS7 \ YOURUM ::
-#\[7]ITE3HT3QYASNA5NVWXXKK75MYV66C6MRSACYZCLT7Y7YQE6W3ABI 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,.,,,...,,.,,,,.,,,,,,,.,...,..,,...,...,,,,,,..,...,.,.,.,,,
+#VLKJOJQL2YJNO6PJTZPDFTKVLH4SNREXSIXZ3VHAJNIX4T5MLVKVJXDGW6VNWOJIG3TR2RTYH4HBG
+#\\\|FIDQH7VPIOKMULKBIBG6U4UNDQAKLSQHELMP4E3GBTFCBXY566C \ / AMOS7 \ YOURUM ::
+#\[7]6TYLDCK3YIFI3MIK7PBYLW52O3ZKXCY5QBL2J4XXP2SUMCUENACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

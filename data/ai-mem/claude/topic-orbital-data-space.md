@@ -95,8 +95,8 @@ originSessionId: 4eafab32-f1ff-4563-a22d-899a251afa89
 
 - [Full content preserved in archive](archive/topic-orbital-data-space-archive.md) — all 70+ sections, complete technical and philosophical detail
 
-#,,,,,.,,,,,.,.,.,,..,,,.,.,,,,,.,.,.,,..,,.,,..,,...,..,,...,,.,,.,,,,,.,.,,,
-#X74GFM3UKXVY46JF7IVHHYHYBEG5ACPDM5XUGCD7VHJJZ37YJDE3WOCYFZI4KQXIIOZCZ4JCORWEM
-#\\\|ZW7AN2CLDT2KJIX5WDSVSON5CXGT4TO4SNWROOOO4HSA2DFSSQE \ / AMOS7 \ YOURUM ::
-#\[7]JIRBZC3WM6ZPTODXIS3KSTHL5JDWCRFZRNGHPPZM5CXINGLEUACY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,.,,,.,,,...,,..,...,.,.,.,.,..,,...,..,,..,,,,,,,.,,,.,,.,,,
+#CGA25ITAFMABY2GYOGZXCK3WTTDFGUG6Y4PXIRHTGKQ73RJUIS347BJJZROUVWVH7SLVAMVZEXPB6
+#\\\|4KIMJVOPJWDA5I5ZMXYU4BPAMDTGII454OZCNTJGSAVXEGNO7HX \ / AMOS7 \ YOURUM ::
+#\[7]GYAAE2FBNIYDM4KXNUMZNHAAGTC2TLLSAQELH55ZBGETHRMGV2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

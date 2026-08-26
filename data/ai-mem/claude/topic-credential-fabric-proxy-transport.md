@@ -330,8 +330,8 @@ scenario 2: 5/5; scenario 3: 2/2. Remaining OOS items: credential_fabric
 no v7 always-on/on-demand registration; on-demand auth 407/pending/approve
 end-to-end not verified.
 
-#,,,,,...,..,,,,.,..,,...,,,,,...,,.,,...,,,,,..,,...,..,,...,..,,,,,,.,.,...,
-#HJCZTE4GBI2Y4LQHABBTYGVTWCODVLZB2MJRBCXTXFCDK7I7RATFCMD2IE5TQWZFSWZPLQBPADGPM
-#\\\|35K527SCN7YHFFCYZXKVHZ3EHEPH2HFAGDVJOKW2IW7LVCL3D4Q \ / AMOS7 \ YOURUM ::
-#\[7]I4YLUKNYWK7HQ5FANMASHIYPQFB6TQKUYTTCS2YZ2UC5YAUY7OBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,,.,,,,.,...,...,.,.,,,,,.,,,..,,...,.,.,.,,,,,,,.,,,..,,,.,,
+#EBJMBXSEEX2UKGGBQGBQVI7KOSNSEMGYMXJPEWMLSCLSOCNMUOERVCFZXC4S4QKF5GU3YFRM4BPWO
+#\\\|33KXMSJPR7SYOFNLNQLSRS53HBCCNBDO32ALXSCHRRXFMD5TGFB \ / AMOS7 \ YOURUM ::
+#\[7]UZIR4GLED5WXJIV3S2WVPSCRSUPQXJL3BXUUG6BYRCZPGE4KQUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -156,8 +156,8 @@ prompt: |
   and implement tool_external_command. No signature stubs (this is a script,
   not a P7 module).
 
-#,,,.,,,.,...,.,,,,.,,,,,,.,.,,,,,,,.,..,,...,..,,...,...,..,,.,.,,..,...,,.,,
-#23S2WCSUGUTZLYDRP2DYRDUPPVXYTA3N2D4NCVMZAQPQYDID6WWYS5XPXO74JLSXVQL72Z6Q2QC62
-#\\\|EG76GC5YXEGU2G4XCPXIKYM475ASVPB5TKFDC2A3IY2S6GVPM5E \ / AMOS7 \ YOURUM ::
-#\[7]LUCJEDTYBGXNPCVLWINFLCO2U5YYTTTG4XHQRNHBQKNBGUGP5CBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,,.,,,..,.,,,...,..,,.,.,,..,..,,...,...,...,.,,,.,.,,,.,,,,,
+#WUSURTLDYCAWCKRID5PYVOL4CMQJSSX75AGVVG5KZZOQ47LXJ7ETSACWMOBG3ONIOTHQHIOBJKRQ6
+#\\\|DY6WWB6BS3NGQWXBASQOSP35ZISSLIRSD2TRXKSJO3LWS4TH72V \ / AMOS7 \ YOURUM ::
+#\[7]33LQXJMK6I22RLCSOSYEIKSBP2MFVF3ZWTBFNOM73X3DU4A45ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

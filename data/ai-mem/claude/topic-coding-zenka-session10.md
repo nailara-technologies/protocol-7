@@ -60,8 +60,8 @@ originSessionId: c1117ac8-6abc-4bfb-87da-871e78f681bc
 - src/graphics-matrix.cmd.cell: sub cell_output (line 148) — may warrant cmd split
 - src/AMOS7.key-32-safeguard: sub key_32_safe (line 24) — dead code, delete it
 
-#,,.,,,..,,,,,,..,..,,,.,,,,,,,.,,,,.,,,,,,,.,..,,...,...,...,,..,,,.,.,,,,..,
-#OWLCAXAGHIGSK5ENNDIJZ53G7ALMOBSQWWL6OIZBAYITUIGZ5UR2KFWE33CD2TZKONKMUAVUUVXKS
-#\\\|5KSD73YC774FKAXNTLMHFYS7MDXHCF44LUYNGT5OLG3NKV2RYNG \ / AMOS7 \ YOURUM ::
-#\[7]3YP5E5DRIVIS2LL6VUZJSTX4JE263JKFJO3J23OXLEXXVV63P2AA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,..,,,,.,..,,,.,,,,,,,,.,,..,..,,...,..,,...,,,.,,,.,...,.,.,
+#5N5GGUP2EMCZX4VWX7WSDL6WJRNS7GV7EKGHNH63LA7PCBDI7XVW73R4LDPB75JY3VWKPHIQR7RXI
+#\\\|TF4GID2HMRK47PVODQZHZNS2X5AYOGZVVBPB63JMDU2OROX2JEY \ / AMOS7 \ YOURUM ::
+#\[7]KLKEGQUV7FVNMQYMLM5W6IAG3VESUIB3CMML7THU5MOXG7MNNOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

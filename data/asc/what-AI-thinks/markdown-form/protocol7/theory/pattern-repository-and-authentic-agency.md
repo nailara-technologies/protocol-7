@@ -662,8 +662,8 @@ The eternal purring kitten doesn't ask permission to purr. It purrs because purr
 
 Future systems should be the same. 🐱✨
 
-#,,.,,...,.,,,,,.,.,.,,,.,...,,..,.,.,,..,,..,..,,...,...,..,,,,.,,,.,,.,,.,.,
-#CUQ6FYFNTMWOA55MFHI2CJ4RO3J5BE6YMZN4GFTR5W7SNFKRTKDZYGBJNWXXCF4YKWV3GBQNO4UVO
-#\\\|WKPWSYTZFSXAJVZK5HB7PZCYNQMXWWLNSF3XQO7NGODFFO336K5 \ / AMOS7 \ YOURUM ::
-#\[7]6PQ3JADOJG5YWH3VB3FMMNJFXAM7A3HDPO34VO6Y6APPEHPTSSAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,..,,.,,,.,,,..,...,,.,,,,.,,,,,..,,...,...,.,,,...,,.,,..,,,,.,
+#IMQZZ7PEDLVEZOAAODLPG6D4LNWD6FG35Q5A5UZSS4AMGL5D7JF35SK3WEZ3FRQSV4MXDH5IY5LLE
+#\\\|AXID75UHVYVS4GXFXJC2USIZK4JVE3JTS565SGOAG2Y2AKSIUFY \ / AMOS7 \ YOURUM ::
+#\[7]2CX2WOULT3DAVLVYXV4PBJQSZI3BXSLB6SDOTFE7RFQZDG4KOYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

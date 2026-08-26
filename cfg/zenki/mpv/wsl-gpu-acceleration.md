@@ -115,8 +115,8 @@ For Protocol-7 mpv zenka, consider implementing:
 3. **Environment variable injection** for D3D12 driver when running video playback commands
 4. **Optional WSL mode flag** in zenka config to explicitly enable/disable WSL optimizations
 
-#,,,,,.,,,,,,,..,,,,.,..,,,,.,,,.,.,,,,..,,.,,..,,...,...,,,.,.,.,,,,,,,.,,,,,
-#GILWWYHCCSCOPTVJ4E2HJRLPI4YKQDPIR3FAFSZLA54RKMMYXGVBU6OSWERSWXS27LGIDTTRKMAVE
-#\\\|T2IDRTMTUWNFZBYYTRPIWVJTYAWYRDARQJVJZUM2OXTDVHTIVF6 \ / AMOS7 \ YOURUM ::
-#\[7]NRIKWPEBABVPJC6ZJNW3QIWEWR3RPBPKO4YV4TN24HBRMXCRWODY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,.,.,,..,,,,,,,,,,..,...,..,,..,,...,...,,..,..,,,.,,.,.,,..,
+#C722UGPAX5MGMR5DRB44YDI276F3VLQZHSMSIQL3RJ6GKQXSOIX2V5EUAU4WJWG2ZYSLVA3NSESXS
+#\\\|HIFOYPRUW5N7G5BV6K7CXAEXKENXEQCDZJNFMRRHLSX2DYJIUPZ \ / AMOS7 \ YOURUM ::
+#\[7]XBQGEMGNCCRJB4YSS44MIYAWPMKFFFXUT4ICEJIOTNLHVIANJKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

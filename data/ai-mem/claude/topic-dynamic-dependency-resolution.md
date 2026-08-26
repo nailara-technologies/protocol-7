@@ -74,8 +74,8 @@ Pure design/vision, nothing implemented. No concrete task spun off yet —
 the graph-params precedent is real and shipped, but the generic resolver
 itself doesn't exist as a mechanism anywhere in the codebase.
 
-#,,,,,,.,,,,.,,,,,,,.,...,..,,.,,,,,,,...,,,,,..,,...,...,...,,,,,,.,,,,,,.,.,
-#GRDQMQBX7QIIABEDQCFR7CGWPA3L5II5QKOKNEIZINVWVTPZAB6RZL3SYC7DIFYNPEPMUDSB262HA
-#\\\|D3APTQL3E7ERGNKV6EK26YNCAEVQBLJVSX2GBEOJQ4PCA3SGVJL \ / AMOS7 \ YOURUM ::
-#\[7]QMAZK6JZ5FJ2OWXTBO4WTXYHKRQCZAUIUZGMED7OXIN6VDDCXADI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,.,,,,,.,...,,.,,,.,,,,.,...,..,,...,.,.,.,,,,,,,.,,,,,.,,.,,
+#I6HUTBW7X3LILGTDIVFUIW72IXVF5JWY5ZC7H4JGKMZ7JD3T4KHRXYZLJBHLLKCIJVU4FLSLDIJO2
+#\\\|XXXE3F3NAY5AS3JPGQFJJEKRARUZAOKFKNFW47UMHYNZIVX4IUV \ / AMOS7 \ YOURUM ::
+#\[7]V65RSEHAHO3QVRRRHW4H7EPKU24AVVIK6GUVNXNC34F3VENMCMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

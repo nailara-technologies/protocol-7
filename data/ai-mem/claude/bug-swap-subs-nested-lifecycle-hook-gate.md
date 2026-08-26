@@ -126,8 +126,8 @@ update note.
 needed beyond adding the file" assumed the lifecycle-hook gate already
 handled nested namespaces correctly; it didn't, until this fix.
 
-#,,,,,,..,.,.,,,.,.,.,..,,,.,,,,,,,,.,,,,,...,..,,...,..,,,.,,..,,,..,,,.,..,,
-#AZFNKXPQVYJEB7TMXMMCQKPFPAAQKNPJXA6GQH4BQBFMJFPUAXA64NLCQ4DTV2VEXKBYBFWCP3LEK
-#\\\|RQQFWB67Z5RVBA52TTU36N5QPD7VPKJIDFZ6VJLXOFGIFU3XETI \ / AMOS7 \ YOURUM ::
-#\[7]Q3J4VFLFGZLDQGHWFS47LOFXZIU3EHD7QCMDGA2IXKSSM7OBRKCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,.,.,,..,..,,.,.,.,,,.,.,...,..,,...,...,,.,,.,,,.,.,,.,,.,,,
+#SFMUV2Y7BMAX2RTAQFBVMIU2HZGWTP5HVPV7BP76UXYVNCMQZJ5YFLAJVE6MMNTU5MTMJRTOM5NAS
+#\\\|LYNKYBKJUZOYKPUY3FH2KDSMGD6QWATOXNTGHUJHLK5O4VEKFDE \ / AMOS7 \ YOURUM ::
+#\[7]XEEOU3JKPJ5GCO2EFPMJMGSHNYFVPFFD7LWUCKDJ7P5QY7DJX2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

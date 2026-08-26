@@ -39,8 +39,8 @@ duplicate commits (always comes back empty), and if the agent was
 reading paged/piped diff output, assume color was stripped along the way
 before trusting any "duplicate line" observation from that output.
 
-#,,.,,.,.,.,.,.,.,,,.,,,,,.,,,,..,,.,,..,,,..,..,,...,...,.,,,..,,..,,...,,..,
-#WFDALMIOV3UZVNAPI2EODZ2BWMOUZCA7CC6PWE5OUGGWR3C7J2DZETG5T3LAILKR5QHWFJPEYABM6
-#\\\|SCO5LAEUJJBPKA6NMMIXGY5PS52UFLOXUQFHVVWOHMSYZSJHFC5 \ / AMOS7 \ YOURUM ::
-#\[7]QPFH3ZNZUD6LV4YMAM4PBHOXCJIAW4UZONALIRD6DQCRTHZO7MCI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,,,.,,.,,,,,,.,,,.,,,,,,,,,.,..,,...,...,..,,...,,.,,,..,...,
+#3S7ZWIDE6JQXXMQPXDZ6UZD3JDD4FAAQLWAQGPPJIL7VOFT4RGS7MCVNF6GE3TJLMQCE5STXEW3NS
+#\\\|G366AKUFZJROED7OCC2KXEJFKLE4TSC2YHEDJKJUM46YVVETBV5 \ / AMOS7 \ YOURUM ::
+#\[7]4LBARAS2TTFIQ3X3AYSMPJXQLVJFMECEWMW6Z5UQGENGV5YKS4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

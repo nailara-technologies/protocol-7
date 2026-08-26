@@ -57,8 +57,8 @@ large = structural depth, convergence = what's actually real.
 - deduplication tree as epistemological instrument: data/md/research/COMPLEMENTARY-GENERATORS-7-AND-13.md
 - model alignment benchmark: built into the entropy-research template
 
-#,,,,,.,,,,,,,,..,.,,,...,.,.,..,,,,,,,,.,..,,..,,...,.,.,...,.,.,...,,..,.,.,
-#N6QOY4FOTPUMQ7PRYZ6GVHBF2P732N2QRTKGBQS2XF3NG2SL7JTNCCQHEZ6O3ER2LZRSRZCWTBZWK
-#\\\|O4KSP7B2KX3IUSAX23GEMKULQ7DYMAF3JR7CBDBCHLE5JBX54KZ \ / AMOS7 \ YOURUM ::
-#\[7]OGEQY3D2M2UIRKJFGMDUQC3HQWGCKBAS6RIS25BNVSLPU3G7A2DY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,,,,,.,.,.,,,,.,,.,,,.,.,.,,,..,,...,...,..,,...,,,.,,,.,..,,
+#DHJBV4XPXIYVFTNZC5GF4JYDBYEX2BIAVJUGRZIT3CHLZ3XTGAHYXCSYALY6X3R5PM6MJHLCOYJCA
+#\\\|ERV2E2OAHJGGH3UPQGCHWZ3OC4SGBURLSWBH25OTZB7PAV3UKJ5 \ / AMOS7 \ YOURUM ::
+#\[7]RB5DTKBK26T7OLMVYZISTW4QLPTJWLRXI32VLWB3OJ5TUY7CPQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

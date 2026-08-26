@@ -154,8 +154,8 @@ reports stale domains to the forensics channel.
 - keep domains loadable independently — an agent should be able to run
   with only cve+cwe loaded (small memory footprint).
 
-#,,..,...,...,.,,,,..,.,,,...,..,,..,,,,,,.,.,..,,...,...,,..,,,,,,..,,..,...,
-#R4AFEVAGVPV2LK27RTRJ275HJCGKBYVMSAIMS3LWKIDYFZYHUBCF3Y3EI7HEP4AOSHS5S3EMLYDQ2
-#\\\|4IMZCBY67O7TDJUECFBZOSBWXS45NWF5QYSHDT4EUBLAN644RZ7 \ / AMOS7 \ YOURUM ::
-#\[7]S7AZS2SDJ2DODVW63KU3JLLPI6P3JQNOMLCMTRGHAULGRVVKOYDQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,,,.,...,..,,..,,.,.,.,,,..,,..,,...,...,..,,.,.,,.,,..,,...,
+#4YVNJBYSBVDNTKAAFIWQB7LBUOWTSYWEIYQLBHVTI57VTWS6XQGVBPZH4PTPAK7MVXZPG3IWZSM6E
+#\\\|JAQ4WDEGLUBBE62SZSJQJDKCIGHRGNMBHZUUIRFPKUL3XTFITPE \ / AMOS7 \ YOURUM ::
+#\[7]57RYPKGVHDRM7CWDJG7A653TKAYW6EIRAQW76BJJ4ZXCJGLWCCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

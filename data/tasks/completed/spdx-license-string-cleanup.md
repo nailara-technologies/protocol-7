@@ -164,8 +164,8 @@ code as first assumed).
 corresponds to todo item `G5X` ("review routines with SPDX marker and
 remove on pass") — mark that done via `todo` once all 4 batches land.
 
-#,,..,,,,,,..,,,.,..,,.,,,.,.,,,.,..,,..,,,..,..,,...,...,...,.,,,..,,,,.,,.,,
-#BBCQRFKZGXEMDCQ2JOYXX5PDVE5XFGMZFYEJTDJO5UX6F3OKOEDKV6SP43AP4A7RXUTDRZVIXVZNC
-#\\\|IH434KO47SB4F7MZWFFJLF5RZCFZJXJONF65FFNNC754JM357M7 \ / AMOS7 \ YOURUM ::
-#\[7]JW6HAC4FNRYBCFDHLQMSFUCPMAQ5VAL3FYOYN2CFGNSUDEJ3UUDQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,..,,,.,,...,,.,,.,.,,..,..,,..,,...,...,...,..,,..,,,,,,..,,
+#Y4WKT2K5A64YCFKN3KWMMMUAZYH5FDKDRL4MH6XCXLR3RX5K6O36TN5LSGKAQLKHNIVESTHSAK7UW
+#\\\|5XLIJB2EDEFFHHSXOKOG7GJBOV3BXLRFN7UIM2QZKIM4AAT6QXA \ / AMOS7 \ YOURUM ::
+#\[7]WXC77KEKGA4WLESSJOAEXSQTRNBU4TI6NALENYDJ2LB32TX764DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

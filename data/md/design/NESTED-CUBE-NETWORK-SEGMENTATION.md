@@ -238,8 +238,8 @@ the main cube is the outside world.
   (yes, if the gateway honors the flag — it should, as part of its
   transparent bridging contract)
 
-#,,,,,.,,,.,.,,,,,.,.,,..,..,,,..,,,,,.,.,..,,..,,...,...,.,.,...,,,,,...,,,.,
-#U2NASEBSEVILNX7GLOTZYH5SMMXHIK4BKTBWDL6AEB2SUAP2SRLYC2GKKNZBWXNXO7F65BJSAWIPK
-#\\\|7NVI5TE2YT4QVJUR4HPHLWUKVLXOZMPID4D44XEL5STSNAIBDJX \ / AMOS7 \ YOURUM ::
-#\[7]FEOMI7RU4V5K242W5QCPSU7JTDT3XIBBYOAZD5UCC7DLA7LU4EDA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,...,,,.,...,...,,.,,,.,,,,,,..,,...,..,,,.,,,..,,.,,...,,.,,
+#EHRHCVROKUIGVZOEPXXHAVWATDLFSE5D74KGUY6EHMFOKDCP6GM2YLIFR2FXAAL7VGLAVMLWGR53E
+#\\\|THYFSRW3PPRWLZGZX3OIFWITW7YRV2TWQXSIYJMNWWLOGZDT3BJ \ / AMOS7 \ YOURUM ::
+#\[7]OPD5BH5UA5GKPCEAY7THJBTTZJ3DY7KVIWQKPJSCE42ZPB5K6IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

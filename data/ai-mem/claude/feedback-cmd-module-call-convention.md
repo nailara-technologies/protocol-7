@@ -69,8 +69,8 @@ any `.cmd.` module, alongside the `$ARG`/`shift` mistake above.
 [[arg-calling-convention]]
 [[topic-ncode-safe-refactor-workflow]]
 
-#,,,,,,..,.,.,,,.,..,,,,,,,.,,.,,,.,,,...,.,,,..,,...,...,.,.,,..,,,,,,..,...,
-#UIE5EWLJRW77YUZ5WMEXALR26HQR7AL4FY7VKL4TIPK63ZLHIOWEXUO2VDW2MGEK3SLOYYTQ54IFU
-#\\\|FGWJQRLI2ZKB2B4VHQICF74J4GJ3LWZ22QNGGMZGUZE236ZHZGZ \ / AMOS7 \ YOURUM ::
-#\[7]YG47OKLZVD3RKE5UGMKVDIWCSR4ZQTPMZLXUGTATQDGANM5AWQBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,..,,..,...,.,,,,,.,.,.,..,,,,,,..,,...,...,.,.,...,...,,,.,,,.,
+#MTXTBVBFBEOXMN4K6EAKQTOP6IHMMNGUH3XRYREVSZ44SBQWZAB2JOSGRJNHCIYAIROXDNV7FTJFM
+#\\\|TVWBACDICFY42FX7R4G3NFAQA4XWIKRUYVJCQD546CWL7BM3U3A \ / AMOS7 \ YOURUM ::
+#\[7]5WKOHSRI2Y7QM3WN57VD3ESDD35ABACWQ7TU53M25A5ADLUNDSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

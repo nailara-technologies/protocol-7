@@ -89,8 +89,8 @@ toggled on temporarily.
   wire shapes (`call_args` only transmits `args`, reply `cmd` values,
   SIZE/STRM producer-side modes)
 
-#,,,,,.,.,...,,..,,,,,.,,,...,.,,,,,.,,,.,,,,,..,,...,...,,,.,.,.,,..,..,,.,.,
-#LMU4O5UXHGXBTHCCCHKJXYHV7UC5Z3DAECRZSRNXLFIM3NUTUDKR626UKAW4GPZWQWGOVKPUUZTSY
-#\\\|JK7KOMZYRUIBXXUBY3UJFHHN6X6ROQV7ENTSPITR2VZTC3J4SML \ / AMOS7 \ YOURUM ::
-#\[7]AGISE7HKFRUO5CFPMVSCQYSLCJDX7PFKU3BVSTXCRZOSF45P2OBI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,,..,.,,,,..,...,.,.,...,,,,,..,,...,...,..,,,.,,,..,..,,,,,,
+#ONQMVVAST5S7BQ35QBAL5F777BXO65X5WVJWASFMY4UFHP3YVTMFYJ3LITMQJDVAGKTCAUTWKOP4K
+#\\\|R4UHTMHWEZU2WLY42SLM33M3ZLWTHW5TRZIGVXVOU62R44DSNLI \ / AMOS7 \ YOURUM ::
+#\[7]5AIDYAWYLETJOKEZQAAZHTZCGSF57YJFSVE7FP7TILW6KP4WLABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

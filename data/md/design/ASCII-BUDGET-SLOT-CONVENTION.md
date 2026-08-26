@@ -87,8 +87,8 @@ from outside the frame-system's own docs before.
 - `src/coding.cmd.round-progress`, `bin/dev/ptd` (`show_progress`) — independent
   existing instances of the pattern named here
 
-#,,,,,,,,,.,,,,,.,..,,...,..,,.,,,.,,,,.,,...,..,,...,...,..,,.,.,,.,,,..,,,.,
-#SUYNJJ5ASSZTQ7JV6P7RNXNAFWKO4CX5SD6VJ37QXTJEOSXXPCAU4MU36YOMNMICRBEBSRDIGH3EO
-#\\\|LX4IQQ2EB623NUYKU3MNFRHJQNXIZI3XD5UTNEJ2GVAPCZEHENG \ / AMOS7 \ YOURUM ::
-#\[7]SNCOD3W5K5LDN66EJCVXX3J3IIVXOAXXCEGZEZO3UOBMSUKBSOAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,.,,,,,,..,.,,,.,.,,..,,,,,,,.,..,,...,...,.,.,,.,,..,,...,,,.,
+#V3NY2JXMTSFOVE4QI5VTX2JJ3XH7S3BDUBX2XVRYARONWYAGSPRTML7KYTJSTBF5PQXQFAYY6PNBY
+#\\\|GYRDEPOYZ4ZJIEFOVVKKGQOBRJCLJRJQQLC5FBGSYKPMLTYWWJO \ / AMOS7 \ YOURUM ::
+#\[7]DZGWAMZBVOLUTIWBGGYGNNVWJZAEY4MPLGOEN6WLC5K35EEHCICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

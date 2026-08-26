@@ -71,8 +71,8 @@ so if a command is "not known" or "no permission," check `access.cmd.
 usr.cube`/`access.zenki` first, and only reach for `subroutines.load-early`
 if the actual symptom is a deferred compile error.
 
-#,,,,,.,,,,,,,...,,,.,.,,,,,.,.,,,.,,,,.,,,,.,..,,...,...,...,,.,,.,.,..,,..,,
-#SYNBWUIW53EMLUPUTY4QBVRHR4N3Q3LHZ33WH4RWCSG675DDGKK5KKH7BNAWTIPS6GDHBGKECQPNE
-#\\\|PZQDJJABPFKFSWXYHM4AJ5OLERWLMT47BPY3TYMR72R3WZBOK25 \ / AMOS7 \ YOURUM ::
-#\[7]H63NZ5TRUIG6HUJSPEAFIWDNK2XI4W4SP7G5POUI5E6JHBW6WSDY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,..,,...,.,.,,..,.,.,,.,,.,.,..,,...,...,,,.,..,,..,,,..,.,,,
+#7ZUPAIGSQTA46XMMMKU5SOVPBCCOW7O4RUWYGXGNI25IMQQPRWW2QCHUCYCX4N35M4P4NZVB3AE6I
+#\\\|5UU2IPNCMPQ5OMQJU4JTID7E2TK2GW24VCWXJRTROG2NPCUJSS7 \ / AMOS7 \ YOURUM ::
+#\[7]KFKSZ7ARAO63G4HKQ7SHQQUIQKWWEPC7YXXBXIWUGOGQQG5XQWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

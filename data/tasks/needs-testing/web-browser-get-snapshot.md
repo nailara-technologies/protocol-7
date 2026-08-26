@@ -163,8 +163,8 @@ ls -la /var/protocol-7/visual-feedback/capture/snapshot_*.png
 - [ ] async callback pattern matches existing zenka reply conventions
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,,,..,,,..,...,,,,,,.,,...,,,.,,..,,.,,,,.,..,,...,...,.,,,,..,,,,,.,,,..,,
-#6BMTYXSEEHNPQ47Y44XN2EY3IXM4VMIAXR3LIRGXADT4XKYLRGDBDKZ55RNN72AQNU4IT5ABIMAYY
-#\\\|H7TVUO6L3EME5JT56JRPNV3LJ472TFDALEOXJCPIUGUULO2CSYL \ / AMOS7 \ YOURUM ::
-#\[7]DMKP7FTEQBALGAFM56M5IOPXV633R3AJ7CZX3UJCOHEDST4SIGAY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,,..,.,,,,.,,,..,.,,,..,,..,,..,,...,...,.,.,,,.,...,,,,,.,.,
+#IUSPK2UCGIKXRCWU24G5AU63253NQDG33EHV5V2NL3T2QGDOSR7GMS3YLPYWUWSYE5ASL7X2OKWF4
+#\\\|6JAG2D4A4TJOO6UQ3C63QRUZG5C2VWSFVUQ2CN7YUPZZ6ERB2LB \ / AMOS7 \ YOURUM ::
+#\[7]JQ4ESIHCZF22PGC5NKSIHUHHMUP22GV66RNBJCQ4P3ZRZG7B7GBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

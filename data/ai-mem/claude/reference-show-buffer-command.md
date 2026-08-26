@@ -63,8 +63,8 @@ bearing for it. (The user separately lowered the coding zenka's `verbosity.buffe
 match console level 1, which stopped the chunk-spam eviction problem for future review —
 but that was a review-quality fix, not a correctness one.)
 
-#,,,.,.,.,...,,,,,...,,,.,.,.,,,,,,,.,..,,,,,,..,,...,...,.,.,,..,..,,...,.,,,
-#YKUDIGO3DT73LCGCSZWP4GIO7MKDYMY5G77EOOPPVDLJVEF5AANG45QQA626W3YR4ERKUZ7IUVOBE
-#\\\|MHIRPQDSKP3A6DDHO2KDCV2KV63VGUYWIVRLGNOLGO7SYT5IAGR \ / AMOS7 \ YOURUM ::
-#\[7]6DTAD7R5EJCDSD76TNM4SJYZPC3WNL73ALKBCYSHIRXVTBF33IDI 7  DATA SIGNATURE ::
+#,,..,,..,,..,..,,,,,,,..,...,.,.,...,...,.,.,..,,...,.,.,.,,,.,.,..,,.,.,..,,
+#B6FCRXT2OCOEORKNGIGXDYZGNMRUWPSR5WNA36V7456KQS5W7D3LMCNG6L4Q4W4EKJSV2UQ5ZHE6Y
+#\\\|NKXSEDJO5KLE3TN25Y5RGZC5CG4UX4GCQF4TYBY5FGT72CXMRNA \ / AMOS7 \ YOURUM ::
+#\[7]UWHDHKMCWAWVSMEAEFMJRA7WODW2SGCXNBATS2DCPJ26YWQYOWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

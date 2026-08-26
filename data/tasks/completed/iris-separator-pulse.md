@@ -111,8 +111,8 @@ if show_separator_pulses = 1 and pulse buffer is non-empty:
 
 new module: leave clean. existing: re-signed on commit.
 
-#,,.,,,..,...,,..,...,,..,,.,,.,.,.,.,..,,.,.,..,,...,..,,,.,,.,,,.,.,,.,,,..,
-#QXMH5QFBTML73Y6F7QICLPSKZVWWMI4J4NBVGLKKTCF2YXUZMZ7YUW6BDIJ5I2BKEJ7EJGDTM42VM
-#\\\|FVZSFPEENCPIUEHT7OQR3USKE6FUT36Y36DO2HRE3IY5HZRRHDX \ / AMOS7 \ YOURUM ::
-#\[7]DOJPVMQV45IXIMEXLKIADVETNUY7ZFEAN635N3OWTFDKYMOKY4BQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,,..,,..,.,,,,,,,.,,,..,,...,..,,...,...,,,,,,.,,.,,,,,.,,..,
+#47ODTC2B25U7AQZG4LL6LZ7ZLKUHBJMOJ74KDJFFKOJ2GBDFHWHIUUFBASORIQM5VC6B5K7MFQBHC
+#\\\|WB65VZFSJZ6LSECYJ4QBUFZJKEKN5P2QR7UBS2FCZBSD27NXIJX \ / AMOS7 \ YOURUM ::
+#\[7]AWNPDUPASJWSTYCXZ7VFKBXK4VUHVD3E4DJ5BNWGP4G4VKJKDWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

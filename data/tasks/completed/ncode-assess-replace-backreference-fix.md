@@ -136,8 +136,8 @@ backreference there would be wrong, not just unhelpful.
 - Read `data/ai-mem/kimi/MEMORY.md` and `data/ai-mem/kimi/coding-style.md`
   first per this project's convention.
 
-#,,,,,,.,,..,,,,,,.,,,,,.,..,,.,,,.,.,.,.,.,,,.,.,...,...,.,.,.,,,,.,,..,,,.,,
-#O4FIINSFQDTXRQA5X3464JWDKRSZBZMFMW6ARAL4Z574SZFCYCKIMYXQOSVASVBO7EORFKJHLJG3K
-#\\\|Q2BU3NWZINLFDX52J4PX5EKTOZN6WXPU23A7T6ZKJXCJZFNGQCR \ / AMOS7 \ YOURUM ::
-#\[7]ALFFWKV62TYQE5XQVONJ7EIEWLUWM6FEBP3GGEJOGTLAR5VH52AA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,.,,..,,..,,,.,..,,.,,,,,,,,,.,.,.,...,...,...,,,.,,..,,..,,,.,
+#DAMWT2U4ITBUNZMYH3WEIFSYJHL2BXZ7QNG6PDMAMPP4KUAUELFCMSHW4W27SSPT3ZTNGDSO23RE6
+#\\\|SLCJ2X5MZMO7BQP3BTOYWGTM2FT5ZJ5VV54GETXRKZB6TXADQ4L \ / AMOS7 \ YOURUM ::
+#\[7]AHUOZTVZRPEUMU5XWZUV3BSO3X5QLIGZ7D76BTKZUJKQRMEGRUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

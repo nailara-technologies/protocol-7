@@ -67,8 +67,8 @@ echo "Web path:        /static/"
 echo ""
 echo "Note: httpd must be configured to serve /static/ from /var/httpd/static/"
 
-#,,..,.,.,,,.,..,,,,.,,,,,...,...,.,,,,,,,.,.,..,,...,...,,,,,,.,,,..,.,.,.,.,
-#JBUAD55UWZUEFXPPKTDLWZGTACPDDWB6B7KNNXI3CSQ5V3RDZBSNN334AV36VTBTRBONCJAODWASY
-#\\\|557OGTF6G7KUTQOF5NCKCOR52TELN3NQRX2RS6KU6EHK4HNA2JF \ / AMOS7 \ YOURUM ::
-#\[7]3QRWK7ERSOOPUSQIHQEIDM6T3D6QV5AZW4QAFQNJSQLAJTMR7SCA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,.,,,.,,...,,,,,.,,,...,...,..,,...,..,,.,.,,.,,.,.,,,.,...,
+#C253QFF6JTGHILZG3SLNORV6JFOCGRAF5EC7NEGT4UYWRTRPTFQBGPDNHIPXARRQX6H2TPWBYWILW
+#\\\|SGZ5S2YZG7YAS3YTINBQKAKVUTCGOJBHU5BZFDQQJUU6IUWF7PQ \ / AMOS7 \ YOURUM ::
+#\[7]V3ON2EQJQT3JTXJUJO53JQVEEBQ6YPLQW7KKHAL46J35ANYZSADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

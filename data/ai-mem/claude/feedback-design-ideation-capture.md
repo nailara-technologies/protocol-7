@@ -37,8 +37,8 @@ whether it's interesting.
 when a riff visibly converges several open threads into one shape,
 that convergence itself is the signal to propose durable capture.
 
-#,,,,,..,,,.,,,,.,.,,,,.,,,.,,,,,,,..,.,.,.,,,..,,...,...,.,,,.,,,,,,,,,.,,,,,
-#TWCVOCCJBS23QTCRWMVMEJYOE6H3MJ6GWHMRV6OPMQEVTUGD56SZVMXL66KTUKWWLJYDDBCXCTSYG
-#\\\|D2YRZKTB4BLQHQYON3KFVHNMQECJYNMJPQOPF25JTR74MGKAD6A \ / AMOS7 \ YOURUM ::
-#\[7]2T2FBEFB3R57OOGTFOWUVBB5HWS4RMEV3AYYMWEZNXKVA7WMU2DA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,.,.,,.,,,.,,...,...,,..,.,,,..,,...,...,,.,,,,,,..,,.,,,,,.,
+#6SI7Y4D5DJJNA45ZKAS4JEXMXYW3CG36GE5KKFS7T27ZQ5GHWH2PQ6XDDAUJJHXQNFNPAIFEVLPMC
+#\\\|DS7TV7BVRFEPB3RYDCRXSXQZ3MHSH4P2EZMK4QG7ODNDMDFK5XP \ / AMOS7 \ YOURUM ::
+#\[7]LSIFBIKNML6YEO5DOPUUJULYKDZDGIU2PYEUHPRX55FIDAMLHIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

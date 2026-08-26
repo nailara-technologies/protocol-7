@@ -96,8 +96,8 @@ modules above + `coding.spawn_inference_server` first; produce a short plan
 issue B as separate edits. syntax-check; operator signs + restarts coding zenka
 to verify [ unsigned modules will not load ].
 
-#,,.,,..,,,,.,,,,,.,,,.,.,..,,,,,,,,.,.,,,.,,,..,,...,..,,.,.,,..,.,,,..,,,..,
-#X6LAPQVL5BGZEJY5BULJYYZ32A6LWNWCWCFZNB4H465TDVTJ5L54QEQGGQFJ3HDEVYJXHGFTMUVH4
-#\\\|V4PIMAWCILPL64MHIDLU5MN4Z5IUSTKNRMI6UO3URA7TRSORCCL \ / AMOS7 \ YOURUM ::
-#\[7]BBTYSPQGFLJF3SE7YWQT7RWAU3X57KWII3AM52BSKKHR7SDEPKDA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,..,...,...,.,,,..,,.,.,.,.,...,..,,...,...,..,,,..,,,,,...,,,,,
+#7MBBNVE6JPXV4QU52DKSKZ6MPCF3ZXSTABP7VGZOFBLJEL4ROECDBGGHGFQ4MDTMMDTYEZIZB4CUO
+#\\\|NYWVTFRIKEXBNQLCXXWHNMQBIUXC4WYKMLGQQ43X5TTL2OPEDR7 \ / AMOS7 \ YOURUM ::
+#\[7]A2MMOSRZLWGKZGUAU3HECLULNGCUUOQ5YZWUVR3U5XPADUYKKMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

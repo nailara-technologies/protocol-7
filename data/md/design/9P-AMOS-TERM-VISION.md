@@ -527,8 +527,8 @@ Plan 9 showed the way. We are bringing it to the modern terminal.
 *Document version: 2024-03-27*
 *Status: Living document — add ideas as they emerge*
 
-#,,.,,,..,...,.,.,...,...,.,.,...,,,,,,,.,,..,..,,...,...,..,,.,,,,.,,,,.,,..,
-#OUULTGJXQEDCCV4TTGMZIDQO3BQJYKO5PL3MTKYKUB7S5TBINSGHK5URXAHPE73XNYSXCHQL53MRU
-#\\\|T7TJT5PCOQTEQQWILURZSXBKKGGXRSCFQPR5NXM4ZA6C2RI6U54 \ / AMOS7 \ YOURUM ::
-#\[7]ERHONMA2FQV24EUPLZCUMV55F3436NACJWYCXR6MJZQ5P6NZHOBA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,...,,.,,,,,,,..,.,.,..,,.,,,..,,...,...,..,,,.,,,..,.,,,,,,,
+#LFN535F5M4APWKP4NJW67DSD3STJGDMXNVYE6Y6YPHWOU3OGMOWC4MOZB55ELAZ3JZIB3DEH2K3ZQ
+#\\\|OMQEIGLXQREOZHOUQLHH2LT5TOYZGUAQZMU3JVPVNZASHCIY2M2 \ / AMOS7 \ YOURUM ::
+#\[7]YSSJ6TFHVOIFSJBADKRSDBYQASZYQCAMORGW5YNJKKR7LPATRQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

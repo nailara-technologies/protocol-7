@@ -158,8 +158,8 @@ no signature stubs.
 parallel-safe with space-engine-route-travel-jump.md, space-engine-template.md,
 base-callback-data-tree-modes.md — all use disjoint $data key namespaces.
 
-#,,,,,,.,,..,,,..,,..,,.,,,..,,..,.,,,.,.,,.,,..,,...,...,..,,...,..,,,..,,..,
-#ZGK3FEG3ZASBW7LECNZE6LSN5JYL7XUQM4QPTA4U4X4QPYWX53SRDGT2SEXTEWYB6GWOO7UMJ3BRM
-#\\\|2MVBEJLZFA3KGBTUFCTKCZ3H6HGF2Y2PH3BK5GG5U2PGTDRCSLT \ / AMOS7 \ YOURUM ::
-#\[7]W3DUZDMJLNAJG2CBBXJGEN6PVSDMIIS55YGRCPITPQXXK3IOHSDY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,.,.,,,..,,,.,,...,,..,.,,,,.,,..,,...,...,.,.,.,.,..,,,.,,.,,,
+#M45BWNR4OHDQ5VQNAEB6EMUUUL4DRCKBHHI4AJ4MIBIX4GPIUSGLWCHAFDEWOZR7IAUJ2TES3OZP2
+#\\\|EAGGP7DP2JP7JPTTHNY57SSBRVT5777PBPXE6MGQXMLUYG5OCW4 \ / AMOS7 \ YOURUM ::
+#\[7]HIX3YTIWMLYZZUFUGB7CJ5WVZTCFE6J3DIR7ZJN6ADRYYLJDYICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

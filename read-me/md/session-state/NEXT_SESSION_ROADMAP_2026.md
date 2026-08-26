@@ -240,8 +240,8 @@ ML Consensus Network Implementation
 - `acc7f2647` - Fix p7.c link-upgrade crypto helper path resolution
 - `bdddf1b33` - Implement p7.c link-upgrade negotiation (Phase 1)
 
-#,,..,,,.,,..,,..,..,,,.,,..,,,.,,,..,.,,,...,.,.,...,...,,..,,..,.,.,...,..,,
-#UJ62NSRZVYTTGOF2E6224VQXMRE5NOJZEQ3KVZNUQSLUWRETI5IRYX4AEFTE26EQZVAXCDYVL6M6M
-#\\\|QUDVELSZR42AADVGUQLSNXYME6EELOTT5NNQ54SUM7TSYNIF6ZX \ / AMOS7 \ YOURUM ::
-#\[7]QUOCFTH5DC4BXJK7YZR4IOAML5JBQBRPTPDWYNAROWP7J6OMUUDA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,...,.,,,,,.,.,,,..,,..,,,.,,.,.,...,...,.,,,,..,,..,,.,,.,,,
+#HNIKX3UGK5UNBUP5WQC33G2JQMFT4A6QUF7ATLZ3NK4UVF22CPU5DUAWYMXMFYPTJGEHA6BZEYQMQ
+#\\\|JYH5HFYC74USZ2DCQEKYCTFW4Y7NEOWTJREDIKWYJEYWKOWSJ5E \ / AMOS7 \ YOURUM ::
+#\[7]N5TUCDXDCTS2UE7RCPNIW52PEDYAPBQAP3AMG2PFSTN63KUT74BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

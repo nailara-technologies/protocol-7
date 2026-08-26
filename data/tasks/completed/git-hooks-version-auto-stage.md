@@ -106,8 +106,8 @@ watch out for:
 do not add the `#,,..` stub to any new file. the signing system writes
 it. lowercase comments, `[ word ]` annotations.
 
-#,,.,,,.,,,,.,,,,,..,,,..,,.,,,..,...,,,,,,.,,..,,...,...,..,,..,,,.,,..,,,.,,
-#VUCZNP6HQAKBKXUTN4J5UJC5USPDTFYZAEW5MXU3ZJ4YFWNP5TQ32XD2WVYJO4XHR3XTSJESYV6LE
-#\\\|NUIL6RGT4JWFUPDV44BOOFY4UFIQDOUUV4WTEDBG674IAOU5WVN \ / AMOS7 \ YOURUM ::
-#\[7]MWDKOGSAX56XEPRCNIM2SCGLWTJD3IB5ZNVP3VQQWXVYBMEQUWBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,,,.,..,,..,,,..,,,.,,..,,..,..,,...,...,.,.,..,,..,,...,...,
+#IBBKNX6SD3GSYJOJTM737MMHXQQWLXDGK4NGDKIJRCVUSTFDG6CWZ7RDFDEZBMMFMNAG2G5I6DGA4
+#\\\|DG7BZCN57F4ILAAHEVR5IJD7P4Q2A6AUMOQGKZBZEMPAGYCF3FT \ / AMOS7 \ YOURUM ::
+#\[7]6RR5MUVS53CZ6QA3WJLOKPGI5LOYW4QK6RKR6RQDWCHEMHTA7MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

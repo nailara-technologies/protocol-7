@@ -98,8 +98,8 @@ compose and daytime/ambient factoring live in base.curve, not in mpv.
 first; then refactor mpv volume fade to use it; then add compose for
 the daytime/ambient chain. radio relay uses compose for crossfade.
 
-#,,,,,...,..,,...,,.,,,..,.,.,..,,..,,,,.,,,,,..,,...,...,,..,..,,..,,...,,.,,
-#ETN2G4OZEXC2X45XDGBKW5SQ6FOWR6ZYM7I6FCTE3AN2GJ25HHKUUXIW3HAGJSEWRAMBLUZEERSCU
-#\\\|CKH3ZM77E7G3D73AWPWN6U5G5NMLWY7UERJSACH2TZLSSFP6F6L \ / AMOS7 \ YOURUM ::
-#\[7]3B3QPSBK2O3DXJMJWYL6VOLPREAMNI72YEHV6QUC7VQY35MKOKAI 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,..,,...,...,,..,.,.,..,,,,.,..,,...,...,.,,,...,,,.,,..,...,
+#T2TSKM2SENY5WQEGNNA5PYRGBLL6LRTYOZQOTIOZ4PIKOKIP75NBBVHUMX5KVO2BDKEN7RY5ZTLIY
+#\\\|KFK2CCYKU4ZVETUCX3K6MGAVYG6ZBDAL4YVYBNYX2HJJ36OLBAS \ / AMOS7 \ YOURUM ::
+#\[7]USRUNWL5JZCG2WABG4QLC7USFX5WLWKHCRSV4NSAQLFFZCJJX2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

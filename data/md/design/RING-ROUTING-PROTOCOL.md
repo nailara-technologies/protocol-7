@@ -235,8 +235,8 @@ phase 5:  dynamic rings (session-scoped)
   fabric already uses tree authority; ring routing is the transport
   anonymization layer beneath it
 
-#,,,,,,,.,..,,.,,,.,.,,..,...,,,.,,..,,.,,.,.,..,,...,..,,...,,,,,.,.,,..,..,,
-#5YTTDRBNWCPPFQBAIKK6U6RCFMPKRCSWIE5FNHKLEWLTGHRNX6VPXRNRRP46IOTB4ZZZ6FXI5QDXQ
-#\\\|26RY72ZLA7ND7SWE5IBH6JXECEMZLPGGPLTQ6HUXRXBWAJQOKRK \ / AMOS7 \ YOURUM ::
-#\[7]LCDIVB3QJHZAFIO5TBPTUGKC6SPJFWIAFJ7BYYX3TG7D2Z4JIGAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,,..,,..,,,,,,.,,,,,,.,.,..,,..,,...,...,..,,,..,,.,,.,.,,,,,
+#DC5XZDXXHFKWBEYSNQZC2XE24VTF4SQCX6E7OUKQ7BQHZO2RRXXN5RWQJQSXQAS6YIBWXOHD5FHEQ
+#\\\|TWFSJGRPVSAK3BUOXD5HIEVAXTY5BGJ3GBS4XV32SGRYXUWB57C \ / AMOS7 \ YOURUM ::
+#\[7]DHTUBDXSHDDPMFIDJZQ6RUOUUOF73CC2TWOONACVT4UB245IM4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

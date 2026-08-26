@@ -117,8 +117,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 no use statements or pragmas in zenka modules
 
-#,,..,.,.,,,.,,..,.,.,,,.,,,,,,,.,.,.,...,...,..,,...,...,..,,.,.,...,,..,..,,
-#SPCF65VRHQSNGI6XV7OK3YUYYQNV53ZQIUJN3OGEN6X72S5YYXFRD44ZY6A5AJOK3D2O7UWLYVTUY
-#\\\|5O43IFQZTCXZLZGPVEUY7AXFDTQ6LYCB7WVWPWUJVSJH5A4DIHT \ / AMOS7 \ YOURUM ::
-#\[7]SIKUPXV23PWBLWYH57CJ2NPQHEXYSGQJCMP7XBQLLYSFAATQVMBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,,..,,..,.,.,,..,,.,,,,.,.,.,..,,...,...,.,.,...,...,,.,,,.,,
+#YJIDLV5RQD6OZPXFKHED74JUGNRBIX24PBQTIKHO7SXHUA3DLP3C7KR2CDGDJXSX6J6OYNDKZYVOW
+#\\\|F4TX5YSVXIP7FSUMXA3VGWYRFF5AIZ3B4YC5ZREP5VBQ2EKXJRJ \ / AMOS7 \ YOURUM ::
+#\[7]OPS4CFGW4OX3JWHMHZJROD4VN6JU2MMKSCURPLG2HRN5J5XXXADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

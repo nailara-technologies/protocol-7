@@ -130,8 +130,8 @@ looking up a source and installing something by hand.
   global-install permission questions) stay isolated per zenka instead
   of accumulating as special cases in one shared module.
 
-#,,..,,,.,..,,,,.,,.,,...,,,,,.,.,...,,.,,...,..,,...,...,...,...,..,,,,,,,,,,
-#FGWY45IB2DE5XEFDJDILW47RX5XRADA5ZJ5WX72MZSCWDKDJ75P6CO4WISMWT7JME7RHXMHJIJQPY
-#\\\|F7YSK7CIJZ5A4Z2N6JA3BXCMTKD7VJLM7HVXYJM4ZKABIGK7AM4 \ / AMOS7 \ YOURUM ::
-#\[7]GA7IJM73637SVOQMVAR6ISX6B2X4KE7YTPTDLDCV5LAKUGDETWDI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,.,,,,,.,.,.,.,..,,,,,,,.,,..,,..,,...,...,,.,,..,,.,,,...,...,
+#53JGR677QM7KD3575PZQ2V3FOWPANXQRXWXYXBPEIEZC2ZZOWH26YFF3X7FQX3GY4HW22367LG7BE
+#\\\|ODRIDVUKQR2JC67D6HBOV4D3Z3FFUHN2VXZKTXHXY7GO47Q46EW \ / AMOS7 \ YOURUM ::
+#\[7]UK5MUBUJ6IQCLDJ2LJHNSUWGMLDQXK5DY2FSCEQVKMV5TZMPKODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

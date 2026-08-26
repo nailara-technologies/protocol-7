@@ -71,8 +71,8 @@ modules.load: `auth net protocol io.unix fetch.file fetch-files.cmd devmod`
 `p7 fetch-files.hf-list '{"repo":"..."}` to see quantizations, then download with hf-download.
 LAN check happens automatically before HF download.
 
-#,,,.,,.,,.,,,,.,,,.,,..,,.,,,...,..,,.,.,..,,..,,...,..,,,..,.,.,.,.,..,,.,.,
-#4SIPPBJSYIKY2CCX3WAZ7SJJPJW55PWJEYMJBD2LLJZCHC4TGNXDKJUIJDCVDMXUJ6NLFUG2KXWZI
-#\\\|MTBT7JJLCXAPLBCRWFSDUWAWXXM2Z6BO7Y7WR3GTOF7XIHQ6W7Q \ / AMOS7 \ YOURUM ::
-#\[7]YQWHFHRCL6ESBCVHPE7BLQO3KZTJJCRGBNG7P7JCPQCGYPHZ7ECY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,,,,,.,,..,,.,,..,,...,...,..,,..,,...,..,,...,.,.,,,,,,.,,...,
+#TWYJYYM3OZSSY42FBYVNZP264OT7UIT5MFSW4WQMDZFT23APAHDXRKMSCI2MSVNVZJ3VSNENGZJDE
+#\\\|FEQCVB3PWWCAHCOUX5NN6XEHKOCI4M3TNDQHPZLOUTUEDRKDFQH \ / AMOS7 \ YOURUM ::
+#\[7]VZQWB56CLEB432D4FGTGCC6AORKOAJFSEQYKLFCOUJV3KV5PJWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

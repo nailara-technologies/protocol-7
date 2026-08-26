@@ -92,8 +92,8 @@ To revert to old direct-HTTP system:
 - `src/models.backend.local.invoke_sync` (REFACTORED)
 - `src/models.chat.messages_to_prompt` (NEW)
 
-#,,,.,.,.,,.,,,..,.,.,...,.,,,,.,,,..,,,.,..,,..,,...,...,,..,,,.,...,.,,,.,,,
-#GM7TGIDOZDFZHVL2ZKOKD5VY4NK3KVYHTKWKY4NUYQBHHVZDJB5C2KJVJO5M6FWRM4IKAP7KRYPXS
-#\\\|2DCLJYLNZJ5Q3DA6WTDHBJ7TFKWW5Q3GO45OCXPNWD753XHONDO \ / AMOS7 \ YOURUM ::
-#\[7]BMWWPG4CLBQQ6Z6ZWCD2YIE7SETW4EYY2DTKGRNNAXYJHG2OOEBI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,.,,...,,.,,,..,..,,...,,..,,.,,..,,...,...,...,,,,,...,...,..,,
+#UBZ76DVLXGSXEJI2NLVMD4LBH7M4BS2D6GDCIUUPXDKDR2KICKYMATUWTDU4EAZUEDUO7HW4OWPCW
+#\\\|TADTJVM4NRKIQTR3XTLMTQ6BLX3TTHTH7QG3WB5K7NYMC5WIIM2 \ / AMOS7 \ YOURUM ::
+#\[7]V23JQ7IWJUDSDV6CSQPAVH2MEFURWMVKPZ4ESDWF22IDTHSP4KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

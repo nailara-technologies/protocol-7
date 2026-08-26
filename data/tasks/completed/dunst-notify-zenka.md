@@ -390,8 +390,8 @@ compositor limitation, not fixed).
   spawned binary) rather than the open3-wrapper shape both notify-osd and
   dunst use — out of scope for this task, noted for whoever picks that up.
 
-#,,..,.,,,,..,.,.,.,,,..,,,,,,,,,,...,,..,.,,,.,.,...,...,...,,,.,,,.,.,.,.,.,
-#OMBTTEKWLRJN2ZS6WCE7EQQXD4CR7WHGGXMO6PCSL6UOASPDHFJBSGFDBRRMRZQT2PGDODBPKO66C
-#\\\|XRROVFHTQ64IFKNW3I3OYONG27RWS36SHQYLBSM4IAHQARTSKMH \ / AMOS7 \ YOURUM ::
-#\[7]RTJYPG6BVK3XKHYI44OW2NXHBMLG5O5RZW7NJ5ZYHEHARS4CQQAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,...,.,.,.,,,..,,,.,,..,,.,,,.,.,...,...,.,.,..,,,..,.,.,...,
+#MERJDIE5PJCTOCL6ICKF46HP24TDL4RBWB3IWDUICCPBFIAXL2JUQVXYKZDCZIP5HZ4UA32IHBH6I
+#\\\|JO4RBWBVF57CY3QOQSOCB3OLS2HR6XKDGCBVVWHMXDWC2B5432Q \ / AMOS7 \ YOURUM ::
+#\[7]DSP3FHNJDTUQAZ247RP4ENXWCXKKC7NCJ4CC2WC3RC67UAPY34CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

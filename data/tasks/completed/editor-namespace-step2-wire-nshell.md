@@ -284,8 +284,8 @@ when done (will need taeki's passphrase — leave pending, that's fine).
 ## - NOT done by agent: bin/Protocol-7 sourcecode update-signatures
 ##   [ interactive passphrase ], no git commit
 
-#,,..,,,,,,,.,...,,..,.,,,...,.,,,,.,,...,.,.,..,,...,...,...,,,.,...,.,,,...,
-#UVJK45VCCIMAX67XXXM7FZLD6OSDJR4GLN2DS2TW4EO3JCXDJOXW62HZ6BJU5C7FOABF5T2QABHEG
-#\\\|GZCRTCRNMSM2C5U6EVAKM5CW2YUFPLCGGGIQHL277G3KIB5N53V \ / AMOS7 \ YOURUM ::
-#\[7]AHXIQB6V75MXVFUQ4RX3FRQHFQF5SYXD7ITG3ODZNF5BFMWXKKBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,.,,...,,.,,,,.,.,.,,,.,,,,,.,.,..,,...,...,..,,,,.,.,.,.,,,...,
+#L5SFAXLQNE7OQGUEFO6P4JS25SLCHEG7EUJSFU4ZE5BHZR2U3EVUP5Z6DNRCSEGEA772FSZQHRM4U
+#\\\|F57ZFWRRKRZEFMVKWDY6ZBRHI7UOTMB3J4Q7WRSM6DGQLZ7QLTB \ / AMOS7 \ YOURUM ::
+#\[7]TXST7GCMW4L5GF6GV3C56OTXMLKKQFFL27FPEDPG4RHRAGKVN6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

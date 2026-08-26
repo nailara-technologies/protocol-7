@@ -274,8 +274,8 @@ Read-only tasks produce no rewind_stack entries (nothing to undo by definition).
 - rewind.apply uses direct file.write bypassing chmod child since it
   restores to a known-good previous state (already existed with right perms)
 
-#,,..,.,,,..,,..,,,,,,..,,,,,,,.,,..,,,.,,.,.,..,,...,...,.,.,,,,,.,,,.,,,..,,
-#HSTULBKRXWQJUTJZCXHKWRR7Q5RL5EEUXQT7IYRKLJ2XZHA6LONWZ4JCBXGPAYMXJYYGXSOKKVHEI
-#\\\|CXWQS7XYRMUBFEIFKE4POGBLWICD2S77QZAC4CQFF53IWBBTERJ \ / AMOS7 \ YOURUM ::
-#\[7]V6PUOEXA3CDROWFTXSEUKPRLTKXV6OPRRBQT75IVB4Q6UAXVHMAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,,.,,,..,..,,,..,,,,,...,..,,..,,...,...,.,.,..,,.,.,...,..,,
+#27KDARZVLSYARVFKBT6Z5UDVRCDZ2MQIONBKAWFJRYXE4NWV5FNP6WZI2WBPSQSQTYCAXF3DFQKKC
+#\\\|JNGF2NWSYXHJHSE2Z46ZGG7WW34AOKWDHJSN54HLR4ICXYAMAAW \ / AMOS7 \ YOURUM ::
+#\[7]AEX5HYTX5M6QQ7K5QO6IZYILHDN7VROY4ONLH64LQFEYPYBHICDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

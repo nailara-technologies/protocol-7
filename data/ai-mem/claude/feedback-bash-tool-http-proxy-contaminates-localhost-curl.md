@@ -29,8 +29,8 @@ dropped or reordered env-var prefix is easy to miss and produces plausible-looki
 false evidence. When a local-server test result looks surprising, re-check with `-v`
 that the connection actually went to `127.0.0.1`, not a proxy, before trusting it.
 
-#,,,.,,,.,,..,,..,.,.,.,.,,.,,,.,,,.,,.,.,.,.,..,,...,...,,.,,.,.,.,,,,..,,.,,
-#BCUBQM6VB4EKE5AVWF3MBUIXNK2DCRRM6QGM6IR5YSX2UTMAVVIEEVIDRNWL5MRNO7GODHTUY6WUI
-#\\\|L4ZCQUU2FUKEZTJWR73MTOK4ANDZGGOGEED53LTLPWIRRN4JPI7 \ / AMOS7 \ YOURUM ::
-#\[7]VEYYSX2EESWOYVQ5KZCFK6CL3NWLBXUAJB72D3DFLMGXTENWBEAY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,.,,...,.,,,...,...,,,,,,.,,.,.,..,,...,...,..,,,,.,.,.,.,,,,..,
+#R3UKHARJYBN3B2JDD7R7UIXPOE7MDF445K4NDDTF7J2LKL42LRH3R2SGAEBCVQBQJYUKU2GTVARC2
+#\\\|HUU62UN3AAE2N2MBWXLECU5A35BY22ZTKKJQAMMHFJI5IVGDANN \ / AMOS7 \ YOURUM ::
+#\[7]ZTSY7CH7YMJEM7JDJE5CBVVOPUKQ5ARYGGYB35GPZ4Q5LUTYNEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

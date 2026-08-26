@@ -91,8 +91,8 @@ the zenka actually uses `modules.preload` or a literal `load_modules` call inste
 `modules.load` (the union fix doesn't cover those), (c) `dump base.p7_mod.loaded` for stray
 leaf-level pollution if something was recently self-healed via `whitelist_miss`.
 
-#,,..,,.,,...,,..,...,,.,,.,,,.,,,,,.,,..,...,..,,...,...,..,,.,,,,.,,.,,,..,,
-#WSIZCMIKJCQGD37OMQKFECEWAJTNKSEVUSBLQEZDFC4ADUGJIFD54A5OWFJ4663KGGO33VEUXHQJ6
-#\\\|KX2YQFC5JJASXZOGCTPOWZ73XMZAPXXIY2WMH2RV7G4IZZHTDFI \ / AMOS7 \ YOURUM ::
-#\[7]A3EBDSPRKNMWVK4HYKBG643DXOR4R4TFEO2CRIY6V2BCSDGKLGDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,.,,,..,,..,,..,,,.,,,..,.,,,..,,...,...,.,.,,,,,...,...,,..,
+#V7FROALHKJRLY7JRZCCM6TL6QWESXWKNSOUF7XWLWH426HN6KAKQJ7Y3625XYJSIQRUK23UE3XZTA
+#\\\|VK5SYAUAV2SK65N6ZR4WRFG2NJJ3TMLMWWAX3HD5FZEQMAS7RGN \ / AMOS7 \ YOURUM ::
+#\[7]SW2BKRUDU6PPTCROVPC35J355KC6DO2NHOMQDHBVGNPDIJMEWCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

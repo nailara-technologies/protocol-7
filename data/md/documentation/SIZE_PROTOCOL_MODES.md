@@ -256,8 +256,8 @@ if ( $next_hop->{'strm_size_support'} ) {
 - Message templates: `src/protocol.protocol-7.message-templates`
 - p7 Client source: `bin/c_src/p7.c`
 
-#,,.,,,,.,,..,.,,,.,,,,.,,.,.,...,..,,.,,,,..,..,,...,...,.,,,.,,,.,,,,..,.,.,
-#UBNSUIJNOXMCUWZINHXMMRPSVUAC5NCVYNR5MKSTYDJIZLJXUWVP2Y4OVM3F6ODU3ENQTNTZ5LUXO
-#\\\|HODV3CNUUVIW34NF6ER3WLDNQV4LKKI6YTYEJI7N5GIRMCKDQ2I \ / AMOS7 \ YOURUM ::
-#\[7]AKJUDQZ5KBMXAGLGDO4FSMQW5M2EGVVOQNC6ALC4RBYC7H246OCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,...,,..,.,,,.,.,...,.,,,,.,,..,,...,..,,...,,..,,.,,.,,,.,,,
+#VBVPPCUZSPYMZFTFDR2EWN556MW52XY5DWMESRGRUI3GWAK6RIEJD76WPIPYTGVWOVTKOF45ITO6O
+#\\\|DQP6FLSIDDVT7PM3UHC7ZYJAQGJINK2XN2TIP4UPNVKW4KGRWXM \ / AMOS7 \ YOURUM ::
+#\[7]DQ5YXDV6M27YFKURYQSMRREMKWGSTAKVQGKZ5LNCBPVHLGSVN6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

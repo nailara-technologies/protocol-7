@@ -161,8 +161,8 @@ see `X11-RELIABILITY-AND-WINDOW-REGISTRY.md` for the reference implementation.
 - `v7.teardown` access control: restrict to `system` zenka only
   (currently `access.cmd.usr.cube = *` — any zenka can trigger full shutdown)
 
-#,,..,.,,,.,.,,.,,,,,,,..,.,,,,.,,,,,,,,,,,..,..,,...,..,,.,,,,..,...,..,,,,,,
-#AZXHCPBNF3WFHVUAYRQ7K2JXY6FVSCELYZBAGS6ZAJWSV5G7O2RTNR54BWWQVMLRCDO2UXDCYRJWG
-#\\\|RJAHOX3UIJ5VOIHLIOSQXXBPGHGKS63WBYND5XWPVEQWM5EK66B \ / AMOS7 \ YOURUM ::
-#\[7]2BTVPMO6VIA4LY47TPLFIX5IFSAMWSQKOJKLXVRRCJJEILNJWWCA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,,.,,.,.,,,.,..,,...,,,.,,..,..,,...,...,.,,,,,.,,..,.,,,,,,,
+#JWOOJ462I2SNEWM2KOXIS2LSBZRB6VH5QQRLPJWYJ6STUSZIHO4P2OWURP43C3SBFWIIPNUVSM5KK
+#\\\|MCOST4FIAKEIXZHOU573GSBUSYIMZOFH4G4DCDQ3BCTK7HHCBKG \ / AMOS7 \ YOURUM ::
+#\[7]5IDEL3EDD5GI47WTIZ7MYAEVWXS7CMRP4X44NITXJSAOWEMMFWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

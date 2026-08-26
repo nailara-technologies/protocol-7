@@ -389,8 +389,8 @@ dependency order: codec → transport → demux. the existing v7 relay
 two coexist while zenki are migrated to the multiplexed transport,
 so no zenka has to flip atomically.
 
-#,,..,...,,..,.,.,,,,,,,,,,,,,,..,...,,.,,.,.,..,,...,...,,..,,.,,.,.,,.,,,,.,
-#IUDSPF5NTPD7PLW7RFNTVNJTEJ2T3P2NR6PPZHQT7WC5FHNIKWZ36Y4ET7W7AQWYMNBMW6ZV6QO4U
-#\\\|VDHCTBS57WO7TYO54Z4ESSCFPJQTR5NWOLF2DVY4R6MD6J2ONO5 \ / AMOS7 \ YOURUM ::
-#\[7]MONDPHO6GIPQUOF7Y75JCH4OKEW3NHUIXFUOEZ3OLHWOH7WPBYBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,.,.,,,.,,,.,.,,,,,.,,,.,,..,..,,...,...,...,...,,,.,..,,.,,,
+#2F7YIGVDJ374A7VQKZMGPBMQ7VZSRAA2QNXU3EQE26ZWAXYJVF6LREG6DXGHNXUD7HDUBIZHVEJWW
+#\\\|6PTBO7OJQ6YSORAY2QFTH5BEVQTJB27BH2QGOW7HLRU6SZT52HS \ / AMOS7 \ YOURUM ::
+#\[7]UXF3ELE5MGZBUQ4QRR7TYUYF56QZB4FSO2VT7OVJMUENHCZAVGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

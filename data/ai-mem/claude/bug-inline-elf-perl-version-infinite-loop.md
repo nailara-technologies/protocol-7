@@ -142,8 +142,8 @@ whole tree before declaring it fixed — near-identical logic gets
 hand-copied into a second module in this codebase, not always something a
 plain "who calls this function" search would surface.
 
-#,,,,,,..,,,,,,,,,.,.,.,.,,..,.,,,,.,,..,,,.,,..,,...,..,,...,,..,..,,,,.,.,.,
-#7X367BES3NBA6GTVOPZ2SNURBUH6J3OZSQUMZ5NF3CH3Q6ZRLQOT5UFL7E43T3IUSRKYMAU3JI6LO
-#\\\|7FMDUC7RYVQBWGXVWBTJXCOSIHSHHKVFT65AGI5MJ7MCQ2IGESZ \ / AMOS7 \ YOURUM ::
-#\[7]LILBMGTEVPUGPTPPGZYQWAD3S4ZCHRNDAQB4AA6YSUDGNKAT3IDQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,.,..,,.,.,,,,,,..,,.,,..,,.,.,..,,...,..,,,.,,.,,,,.,,.,.,...,
+#66PHVGASFNC5QV7QT6IEG74OBYMYQFRFNLG7UKFBWFUX7EOHOKUZJ2XJWHMHDJMTXICU7GA2GKIZU
+#\\\|HINKN7CXAMR26JWK3KOJNNTH6YENAEOIT4TEIFTRLOECCMUI6RT \ / AMOS7 \ YOURUM ::
+#\[7]M5CPT4AN24F7AR3ATLEDNZCCP7AUAHILRFNG37HMWI2CUAZR2MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

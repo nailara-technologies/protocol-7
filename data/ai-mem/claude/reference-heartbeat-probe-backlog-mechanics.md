@@ -74,8 +74,8 @@ refactored to real async, don't just pick a bigger number. See
 [[topic-ondemand-heartbeat-upgrade]] for the 2026-08-24 zenka-by-zenka
 rollout this came out of, and which zenki landed on which side.
 
-#,,.,,,..,.,,,.,,,.,,,,.,,...,.,.,...,,,.,...,..,,...,...,.,.,..,,..,,,,,,.,,,
-#CLVGWRFGO3BOXY6SFLN5K75UQAIKSNI3HQOMJTGNIOZPR7GSRINQJH3HR5ORGG2CEKNXFVG75X5NC
-#\\\|XKHUPHZVYFXO45ZIBPAOHTINIXBMPUW4OWXAV6HY2F4FLZO7RWC \ / AMOS7 \ YOURUM ::
-#\[7]UHBOQVUS4HWXY2P5G4G47TEQOWRJT4VXJVZ5DS4MLC6QAEENHYCQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,.,,,,,,,,.,,,.,.,,,.,.,.,.,,..,..,,...,..,,...,,,.,.,.,,,,,...,
+#3NFEAENB4PYSS5BCZGH7CPC3GJ62HND73SMXQ2VODQ7V3FB3RZGYPRIIVHZ5JX6ZZLYGGITSGI6CM
+#\\\|ZEC6MMPGYCH6HY7BUFPX53DHDQYYQTH4WTS5XSL3ZBXYBKP5643 \ / AMOS7 \ YOURUM ::
+#\[7]6O2TGFJ4LOO53ZFJGXS7GLBYSQR5W27WGOVACUEWXRF6PGPNE2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -735,8 +735,8 @@ The visual layer becomes the primary oracle of trust. Cryptography provides hist
 
 ✨ Trust becomes something you can see. Economy becomes something that heals itself.
 
-#,,..,,.,,..,,,,.,.,.,,,,,,..,,.,,.,.,,,.,.,,,..,,...,..,,...,.,.,..,,,,,,.,.,
-#RM2RE4CZFGDYQR7MFBSSUTPHC3UC7X6BFSJFPJTR6TRH5DJQJZLTCXY5MNQBRHSKS7OGI7QVYYW4Q
-#\\\|XVOPS77I7LLJEOR6JOF56G6FAREMK6WCL5SNWNZJOXEXWUYUBMB \ / AMOS7 \ YOURUM ::
-#\[7]74ULDDAUSAY3TOLMD2LRGV35OZQWWH5I54P2L3POCNEL3OMRWSBA 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,...,...,.,.,..,,,..,..,,,,.,..,,...,...,.,,,,..,,,,,..,,,,,,
+#HVOZCBXZZBOHDNNJAATNWLEE7XY4EC7YRS2Z6XUL6RH5DD7CICTKOQ6QN3GM46N2LU522URLYLL2S
+#\\\|E4EA642LOS3OEFDO5VZLJ4HAF3BFFPHRUJT6VB26GJD6QHTIEPP \ / AMOS7 \ YOURUM ::
+#\[7]Y6UAVWERO3GH2W43G6P4ZKJSIP447PGLRQTEQRW2YTUUWTN4EMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

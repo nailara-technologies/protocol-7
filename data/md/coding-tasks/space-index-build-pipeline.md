@@ -275,8 +275,8 @@ before marking complete:
 - coordinate primitive: `src/index.gen_path`
 - json endpoint template pattern: `/var/httpd/space.v7.ax/grid.json.tmpl`
 
-#,,,,,...,,..,,,.,.,.,,..,..,,..,,..,,,..,,,,,..,,...,...,.,,,..,,,,,,,,,,.,,,
-#PWVIWTLYQQMDEUDBIQESWXAY2HCDDTA5OXYH7HC5P42EQ6VCQF4BWMKOQSN7S5O5CDJUOS7BMNQ7S
-#\\\|W4DTMUBHGNSLF7QCH666W65FHOR423R6SVZHZGY5BN66MUYGU2O \ / AMOS7 \ YOURUM ::
-#\[7]YSNSTBYRPWPDK3WSZOE5NZTFWAWAEWW34533GEAKYSZYMDEBPWDY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,..,.,,,...,,,,,,..,,,.,...,,..,..,,...,...,...,,,,,,,.,..,,,,,,
+#HZ2F5WFFRVDDU3LN6P3WXPGZIVL4CZDO3WLLHUERI4FVOLK664HFJ4OWQH3YO5ZLRRWAI3SW75UVO
+#\\\|NRXJJPJW6UB7NNDXM3Y5H7EUYKOX3BJLZ4BHNQUYPAXT72P7E7V \ / AMOS7 \ YOURUM ::
+#\[7]XZ5FF63YD47N42TF2FTKGPCMM5IALSJTCTQYLZOSN2MPXGSJLMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -46,8 +46,8 @@ Note this code lives in a `BEGIN` block inside `p7_security_hardening` —
 it runs at compile time, before any zenka-name resolution, so changes
 there affect every invocation of every zenka.
 
-#,,,,,.,,,,,.,.,.,.,.,.,,,,..,,,,,,..,,,,,.,,,..,,...,...,,.,,,..,,..,.,.,,..,
-#TXC62NWV2DKTEVD4XAKODYM6263UABVRWVO5DQS7SIKTGNFBT3D57A2XNMIHGIF27U6AQWMO6XXRC
-#\\\|XVFG5YD4U22A5Q67LTKOTX5DL6PZC4WP3PQL6S6H7GU3TN5VZE4 \ / AMOS7 \ YOURUM ::
-#\[7]ZXE3UGIJB3X6Y572TO7QKLOGC425OHCYIJC5P66REBM6RDV436CQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,..,,.,.,,,.,.,,,...,...,,,.,..,,...,...,..,,,.,,..,,,,.,,..,
+#VPR472YPISQGTSCA2RGIG5UCHYZCAGMIMB5GORSI42TK7SHMBQFG4WZNB3INKWXU244VH6VQYGSDU
+#\\\|YM3WM7QY3XCLIJ7D43JTPLCURURSRBZJ6QGXTA4ABRWJZHMZ7O3 \ / AMOS7 \ YOURUM ::
+#\[7]VZKZ6GC4H22KNESEMIEAWPI5YDXBB3H555VSSPJQTRZCIKGXP6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

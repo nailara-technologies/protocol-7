@@ -68,8 +68,8 @@ jobsite → `task.create` (task zenka) → `models.task-notify` → models/codin
 
 **How to apply:** When touching jobsite assessment pipeline, YAML parsing in assess-done/repair-done, or models.handler.task-result, refer to these fixes.
 
-#,,,,,,,,,.,,,,..,...,..,,...,.,,,...,...,,,.,..,,...,...,.,,,.,,,,.,,.,,,,..,
-#2S6IIS7U4M2M4GLAAZ7SPQQMMIKA46T2OUCVLZEFYI62Z62S7ILYRDEUSGW5APGKPEAZCEXRDJJ6W
-#\\\|CZGSPXWCUXPP3GNC4YE44FVZOFNXMOOJM7HO7GANGYDLTJR5GQJ \ / AMOS7 \ YOURUM ::
-#\[7]RDBZLX5YCTRWPVOISYU3HOODLXFT6AQDVMMCG4XBDHVJVDG2HKCY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,.,.,.,,,,,.,,..,,..,,.,,..,,..,,...,...,.,.,,,.,,..,,.,,.,,,
+#CKAWEWM7BN35FG5MYN2OKOMCVWS2TJN3APG3X4BKNHMTLZ2DD27H4IPWZHW7BQ4FWJK5IXBB3M3KM
+#\\\|SRXYVTFGC2NHU7LMMXDP73UWSSAACH664R7K2KRJ5YVHBIJTRWK \ / AMOS7 \ YOURUM ::
+#\[7]FKIT3APX7ASQE7RD4GFJGY7F5IH2ZIDC3JAW3SV22S3QFDIK7CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

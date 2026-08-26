@@ -418,8 +418,8 @@ see: `data/md/INITIATIVE-MAP.md` § distributed rendering
 - should dissenting voter notes be shown as a brief overlay on fade-in?
   ("2 voters wanted more vortex turbulence — noted for next render")
 
-#,,..,...,...,...,,,,,.,.,..,,...,,,.,,,,,...,..,,...,...,..,,.,.,...,.,,,,..,
-#RXB62AYF2NTTMSIU47UFVXEF2SA2NHGSUJJIFCEDPECYEBWEWRTITEXUFHI6O2JV3LKLGGD3SPX2K
-#\\\|KA7GYV6LPLCRLMZKCQZI6O7MNMAEEPNKO3RSQNDGS364ADEX4Y7 \ / AMOS7 \ YOURUM ::
-#\[7]7GN462QS45UFXZZVYXVI6ZUT4Y4QLLX6ZN3VLEM2JKYPZ44IWKCI 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,.,,.,.,,,,,.,.,..,,,,.,,,,,..,,...,..,,,.,,.,.,,,.,.,,,.,,,
+#52THHVMYR6GZBYBCFL76ZGRENER5D5VGHA4ONAFSTEEOYT6T3MBJXJ5C7PRWGK7HHZWMLSVHMZHSW
+#\\\|T5OVQO46URPKZT4THCDQXRU6I6OND7J3R4M27NJEBDOZCWCILWA \ / AMOS7 \ YOURUM ::
+#\[7]DN4VYT4IR4VZIWDEEGLRXKNUDQOQBG37ZVOVZXRO7QODXZWU3WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

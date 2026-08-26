@@ -228,8 +228,8 @@ handles all footer blocks — leave them untouched.
 ## and window.geometry.resolve in that order. verify each step in the live system
 ## using `p7c X-11.get_monitors` and `p7c X-11.get_pointer_scr_rect` before moving on.
 
-#,,..,,..,.,,,...,,..,,..,,..,...,,,,,,,.,,..,..,,...,..,,..,,.,.,,,.,,,.,...,
-#6MKK75MMSUZZUNZZCJFKW5C7YGNVTGEZU7Y7WHROSGPSNP7W62QPQQLR7VK2EWV7JBBWDAIF5JSKO
-#\\\|Z5MJ7UJ732WKK575UBWJOKBQA6DPKBNU44Q22NLNKCW265LPLRX \ / AMOS7 \ YOURUM ::
-#\[7]KBSEOK4LHK3W6QOCTJBG3YIGPEPW42FKRJD3UA7WTYIXXGVOM6CQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,.,,,.,,.,.,,,.,,,.,.,.,..,,...,..,,...,...,..,,.,,,.,.,,..,,.,,
+#L27NENZPR7ONLUCUX3HCT6S2VUFTCLHLJRAFC2EX6T5HA3D3WPHQITVWQC4GXUGAQJIQRMPHSRCCO
+#\\\|FDZC7RXPPZ2JQV4YSNC45J76VU6DJ4H4SSNZZ6NF4LX7LVE7IRN \ / AMOS7 \ YOURUM ::
+#\[7]WELWENSOQXK2MV3WGPUQHML7UCIASTTZCLPXP7V63O4GNGBQIICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

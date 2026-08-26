@@ -53,8 +53,8 @@ request server-side, so just respond every time.
   error with empty $@ ]. building JSON in-code via JSON::encode_json hit a
   transport-level "syntax error near '})'". prefer real-path triggers.
 
-#,,,.,..,,.,,,.,,,...,,,.,...,,,.,,.,,,..,..,,..,,...,...,..,,,,,,,,,,,,,,.,.,
-#JDTHPILRRYM7EBQGF2AXG34FNQWSRMWV7B3KDGSEICEUJ6IXS7PEXI4VJ2FXN2ECSM4GSQ2T7UZEM
-#\\\|6FXHZFPDICPA63ZEXAE3L3DTS4A5AL3ZCKTD3ELYFBIUC577T3D \ / AMOS7 \ YOURUM ::
-#\[7]NLDR4TJHKV7RLRTHTWQ55WFYKFUB2RH72FHZ2N2XEHGJEVJQ3MCI 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,,,,,,,...,.,,,,,,,.,,,...,,.,,..,,...,...,...,,.,,,..,...,...,
+#JMRZNVKQH6W3BDNXPADEE4RBTK653I4FC677L2OLPT4PP45YDXZ2LMRFDDTLF7LUBAODZ5Y3FOFXY
+#\\\|WNCUKUB5VOBJEYA4B6MUHMENP7XES24FWDPPA5MA6IPLRXLS7SR \ / AMOS7 \ YOURUM ::
+#\[7]LZGTWL4RMRLRAAJS66CWKU7ARWBYZF7723A55K3VMSX5H5AZRYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

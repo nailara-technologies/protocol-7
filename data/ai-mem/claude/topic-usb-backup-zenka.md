@@ -43,8 +43,8 @@ restoration agent. Irreproducible data gets copies; fetchable data gets referenc
 - multiple backup profiles possible via udev rule sets (full, quick, user-only)
 - future: incremental backups via delta detection, encrypted medium support
 
-#,,..,,.,,.,,,..,,...,,,,,.,.,,,,,...,...,,..,..,,...,...,,,.,,.,,.,,,.,.,,,,,
-#N3KJHXYVLXEDYGWC2U6XZMOVKOMLB53QNIKW5C3M6DFXEFGPED5SGPYGY5AXY5LEXU4WZ6BQCUG5U
-#\\\|LU2THBLLV6FQAMZB26FVZU3DNK7L224W2LPUY4XW27DNAM6ITDV \ / AMOS7 \ YOURUM ::
-#\[7]W7SBVLUPI2JK7D5EKHMEUUPXB56VWT367SBYNRD6PKHOO7GQICBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,,,,.,,,,,,,,,,,,.,,,..,.,,,..,,...,...,.,.,,..,.,,,,,.,..,,
+#J4N7GME7H2GTHQGOEUXXIIIGAH3PPI33UGODIQJ2DQYLJGUKFUDYCYXQLGA7Q3UZQXVL4SXFZDCTK
+#\\\|ELKFNEU4F6YCC2VHSDV7CAOMUYNAQ4HODTMH6VY2XNSVLASFSAX \ / AMOS7 \ YOURUM ::
+#\[7]LIRY5BTDXS2N6X7BQZL2AOFOVUV5S4HO2TCYTHFZDYQYXDFQA2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

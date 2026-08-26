@@ -115,8 +115,8 @@ hardcoded per-zenka again.
   `amos7-x11` to exist at all — worth confirming before assuming an
   ordering dependency that isn't actually there).
 
-#,,,,,,,,,,.,,,,.,...,...,...,,.,,,.,,..,,.,.,..,,...,...,.,,,.,.,..,,.,,,.,,,
-#6QFPZ7Y2P5FUCW2U6MR2222CFSOKYRG7QHDMYS6IXDTQCNB4I22R7ZUXGFMNGJ4BILBO6ICFNLN7S
-#\\\|YSSDGAG3I3XICYHRVIWEOEXVJS64KYL7WR4X2IKFOLSGVPCFZPE \ / AMOS7 \ YOURUM ::
-#\[7]24UJ6OJCSFGQSB5R72CPIPGW43FP4TJ32YF7BG7JE7NRQZZRACBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,,,.,.,,.,,,.,,,.,,,,,,...,..,,..,,...,...,..,,.,.,.,.,,..,,..,
+#RCAONHI5ZXZH7FRFF2UIDVSN54ZMPCZFEME6FXU2PYEFHK7KCFPFQ6XTBHFARKOQYGOJL36C3T54A
+#\\\|76GEJP4IFBJAUDUW7PJM6I6EBCHRMVVBBM3UFFTOCZZ7X7CFDHF \ / AMOS7 \ YOURUM ::
+#\[7]SQSXQLYIDRLIHN7TS6UA5XH6MOUXLTRDQ5NX4APYRHOBP3Y3HQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

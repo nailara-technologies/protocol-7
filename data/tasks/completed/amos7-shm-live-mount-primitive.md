@@ -183,8 +183,8 @@ were only single-process-verified [ per the breakdown above — items 1-3, 5 are
 fine single-process ; item 4's ding must be cross-process or it does not count
 as proven, per this whole session's established bar ].
 
-#,,.,,,,,,...,,.,,.,.,,.,,.,.,...,.,.,,,,,,.,,..,,...,...,..,,,.,,.,.,,,,,,..,
-#DQHNCCLTXOKG4ZRNOBAPERU4T366N4ZXAVKJSTEVC2VKI7BPACHLS25IZIS2V3Q3GD6MX2XWSQX6Y
-#\\\|AAPK5FZIKETBCRT5ZS7GJQOTTO3EJRYMDIUCFMC7M72IJDMYTJB \ / AMOS7 \ YOURUM ::
-#\[7]46HCNGHB36CUJD2VFTYGD5XN2G3XBTYX32VN47O5H3DMQDNQUSCY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,,..,.,,,,..,,,.,...,..,,..,,..,,...,...,.,.,.,.,,,.,,,,,.,,,
+#BNR6WKVLKI2WMSWWMD7OMZOMHHSAUP27BLBTSKBKCBUDM6HT3KEUD6ZQBSDTG7SLZOG7ZKGA7K3NS
+#\\\|7TKXZUFY5D6KZMK7RVHW5NRFAJWBAOTVOMH557FVQJF6IA2EL6Q \ / AMOS7 \ YOURUM ::
+#\[7]3JQO4PTYYGDEUGHGWPASMWVK554RDJ6HN3MZLKGTAMU4DAKC5OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

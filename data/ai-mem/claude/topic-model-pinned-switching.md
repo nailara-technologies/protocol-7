@@ -21,8 +21,8 @@ the same switch-before / switch-back pattern. CPU backend running a separate
 large-context model simultaneously is the cleaner long-term solution (no
 switching needed — two backends, two models).
 
-#,,,,,,,,,,..,...,,,.,,,.,,.,,.,,,...,,..,,,,,..,,...,.,.,,,,,...,,..,,.,,.,,,
-#3M3Q3TTMOPPP4654HACUCRXLJL2ZFRFVU5YVX47TIHXF3HMWLBU5CZT5GBJZTBYR2KQOVNL3IX6RA
-#\\\|KAS7AC6R6P6DH4EYZ7BJA5UK2LVNQYN5LUKXNZYPRG352OW7YEH \ / AMOS7 \ YOURUM ::
-#\[7]S5K2QFB4TGQ74SHWCY7FFCOX6A2G62MXOEE3RAWR4CJEN5NST2DA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,.,,,..,,,.,,,,.,,.,,.,.,.,.,..,,...,...,..,,.,,,..,,...,...,
+#ONTECJHFDMVHF5SAUZVPUFL77MVS66SJHETU3WOXOTPZGZSVKYS3WK6WOGR5SD255KWC2TUMAQHRS
+#\\\|Q3XZTSYDXURVQ4YB5EOIDJJ5DTLKBDY6TAXY3RACPDRF7ZCWWTW \ / AMOS7 \ YOURUM ::
+#\[7]BLFDSVDHYRPWNIBZTLEOKZSV3V6R3LOIV7CDICMQNPXTWXLHYQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

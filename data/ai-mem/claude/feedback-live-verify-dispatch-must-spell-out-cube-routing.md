@@ -67,8 +67,8 @@ any P7-specific wire convention the dispatched task depends on being
 right the first time — a wasted 85%-of-budget session on a single
 missing sentence is a much worse trade than a slightly longer prompt.
 
-#,,..,,.,,...,.,,,.,,,,,,,.,,,.,,,..,,,.,,,,,,..,,...,...,..,,,,,,,,,,.,,,,..,
-#56SGYBOEZIKVLQRSQZGDFZY7BY54YV2GQCRJOISDAI7WHZX54XOZZELGNE25OB2U4IB75LFESVCI6
-#\\\|XKKZX2Z4F5RTFZ3FG27A4VMAFPMVXXK34MZCEYOTOFX7TBJKP7W \ / AMOS7 \ YOURUM ::
-#\[7]Z3WH2TKHKPHRFBKC63KDQUWWZTVVKZVU2ELHSCGTNRFFVZCW4CDA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,,..,,,.,,,.,.,.,...,...,.,.,..,,...,...,..,,.,.,,.,,,,.,,..,
+#XVW55F3AHUSIHZY5DTU63LF3PWBTJ5LSVQSUI2R6VWEXKNMTEUQZ37JXJIHNW6PAEL62JZMM2PZFK
+#\\\|O7F7SGNAIBVRIDB7NZHN4TKD2CV565QRLRMUUAPQMYESZH62J2X \ / AMOS7 \ YOURUM ::
+#\[7]FG7BR4R443O7FSPJVGCPJPQPCB76NOOMNYEMSGT3ZKBBNEXJKKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -185,8 +185,8 @@ X-11.handler.capture_reply
 ## create X-11.handler.capture_reply as described above.
 ## verify with p7c after each module. do not modify signature footer lines.
 
-#,,.,,,.,,.,.,,.,,,,.,,..,,,.,,,,,.,,,.,.,...,..,,...,..,,...,,,.,.,.,..,,,..,
-#XHILMK462T34CXULHOCZDVLDRAHWLFSJDFCEYDI7RUX5GULGLRGX52GRCBJ2TOJ6VK3W4CYQX4IAI
-#\\\|UQ2LMK43CXFKSS7LQFP5FJLTYLGZJ6QUBH4YMH6INULNDJNWA7E \ / AMOS7 \ YOURUM ::
-#\[7]HJJJFZEY5U2TADW25HMBSOPPILX3KNTEWAI3VI65WWXL7KYXAACA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,..,,,,,,,,,,.,,,,..,..,,,,,,..,,...,...,,.,,,.,,..,,,,.,,,.,
+#4NNQHFNUY4OSYIAIMX63AY6FQ2MDCSWIP2F4IIQCB2G5WY47MS6JAI5K47U2IZNUDL56LWVKRH3CE
+#\\\|4RYL6DQD7HKWV7ABZXKSXJHB6F3TZXKN4PL2XR5PLPAFVIPPRV5 \ / AMOS7 \ YOURUM ::
+#\[7]CWTZ24UKO6SYPV6NBCATMYTP5IWCLZFXQ2OL2XBWFMOFP7ZV3IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

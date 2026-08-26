@@ -250,8 +250,8 @@ at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper mod
    for clarity.
 3. confirm the **no-new-access-grant** framing (parameter of an already-granted command).
 
-#,,.,,,,,,.,.,...,.,,,,.,,...,,..,,.,,.,.,...,..,,...,...,..,,...,,,.,,,,,,,.,
-#FIBFT2TPE7YCF7ZEQWGDB5SUV75ISWRSEKV5ORLUOH22ROF6JBMQMU2KLNDFCZAZC5FVHMFUMQJUA
-#\\\|PSE3Y4WMJTKJHTFHT76OBK5O6VICXZGQEAEOCGRDI7M6MV377OX \ / AMOS7 \ YOURUM ::
-#\[7]4FGNZQUXESFETNN2UTMASCILEANSHA5JKC4MH6AHG66KKGUBCCCY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,.,,.,,,...,,.,,.,.,...,,,,,.,.,..,,...,...,.,,,,,.,,..,.,.,,.,,
+#KRVRTYIPGAVOBAT2PW6YGPXUZIQPAOGDOIZ6EDSYVK7EILBR6DOOLNR2ONOTTRP44THMQDD4NWMD6
+#\\\|L43LC6CRTR7WP6CJNOPQAY2Z6P36ESSX6VG2NNB3C3NOXEZI5UG \ / AMOS7 \ YOURUM ::
+#\[7]R66NVVPNJTHRSOUWBIDVQ4BHZN5Y4TROJAYSKHFAVYLBU5JOBGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

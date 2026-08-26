@@ -124,8 +124,8 @@ applies there.
   sessionId" jsonl structure) — when they state a hard constraint, trust it
   and act on it rather than re-deriving/re-verifying from scratch first.
 
-#,,,.,,..,..,,,,,,...,.,.,...,...,,,,,...,.,,,..,,...,...,,..,...,,,.,.,.,,,,,
-#BSUM5RKCXVWXBKLERXQC2YGNTVBLJTYMB6S3FOOCQCAA5HBVMO5XJORFZN5ZTG4VURK22AZZKTQXK
-#\\\|2ENAVRDCMD2QKRPFQVQZHSE2OWBSBMK2T4G5IBMV4WZ5AM3QOCS \ / AMOS7 \ YOURUM ::
-#\[7]4F2JC3NOHVZ5E6VUPOOKAYKHXLL2ZFWBK3AJHWFRZ37JD7CILYAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,.,,,,..,.,,,,.,,,.,,,..,.,.,..,,...,...,.,,,..,,.,,,,,,,,,,,
+#KZU42ETOVLP4GJEH5VO3MWIQWY4PNFXJYBHLGXZPYPOIJ4QARAK47HQGPXTLOSI7CHEYT5CPYRT3W
+#\\\|6ZZQL7MIWPH2AX3IREUY4YKZ7XYE6N6M57GMGK627NUIYXZ7X3D \ / AMOS7 \ YOURUM ::
+#\[7]5YA4T3FDD24G5BLSBWNBOHMTLTN63TVYB7R7KCJSHEOGUAGB2IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -94,8 +94,8 @@ its correctness/safety from it rather than needing separate scrutiny.
 [[topic-hybrid-namespace-routing]] · [[project-vision-origin]] ·
 [[coding-zenka-improvement-pipeline]]
 
-#,,,.,.,.,...,.,.,,,,,,.,,,,,,...,,,,,...,.,,,..,,...,...,...,,.,,...,...,,,,,
-#A65VNZ7JGNREJDS6V2S3IIJNRARMJJHRKGCL6SIGGVZQUUEZMD66QX2UYACPY2UQNGASNS5C4LDK6
-#\\\|4DT647IMYTGY7BUG25VIB3FQDMKWVBM7OZBOB5T6ZP3DISGGHUZ \ / AMOS7 \ YOURUM ::
-#\[7]NVFXQCZDJEBVQZKS4DVOSGNCCKFJFSWS7J4X3GSUQR663AES4UDI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,,,,,,,,..,..,,,.,,...,,..,...,..,,...,...,,..,..,,,,,,,,,,,,.,
+#EDSMB55PNH7O3C33DJVOCXOMR47HB2C2SVTIYWJHGGNM4LUY4HPHBF2MKWV5JGQKU2DM6ULG4FGMU
+#\\\|44ZD6C7AIBP2T6LAIHS7KUEYVPPLI56CK22LACYK2FHRDELGDPG \ / AMOS7 \ YOURUM ::
+#\[7]DND2EBKFIGZ3RG56VVIQ5I4C6KF3A7ON2QO6HE6HA6424AZZZOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

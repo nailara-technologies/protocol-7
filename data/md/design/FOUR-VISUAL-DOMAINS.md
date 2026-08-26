@@ -264,8 +264,8 @@ them is the orientation. there is no other.
 - [[categorical-compartmentalization]] — the four domains as
   spatial compartmentalization within the visual category
 
-#,,,.,,..,.,.,.,,,.,,,,.,,...,.,,,...,,..,..,,..,,...,..,,..,,,,.,,,,,.,.,.,,,
-#GN2LOLDKQU26MFXWEQKWWM5LJTO5IER3BQ76HAAWWIGGCC3R7MRTOSHOCHEZSZTG67BC6WKBMN6IO
-#\\\|3MC3PFRHX4VSSIK6Q3PNMQH6X7YCSY2DXKVUMJ3P6HS6RI4DMVN \ / AMOS7 \ YOURUM ::
-#\[7]7YSWMWYPZOTZTAU2FPHUALWZI3MYETXV3D76CLI7Q6MPYTZ2KIBY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,..,,,,,.,,,,.,,,,.,...,..,,,,,,..,,...,...,.,.,..,,.,,,...,,,,,
+#GA2FFBLET2V4I5PX25Z7GN54VXUHRWZABRD3AJZWPNOMUAY7ENNRTMKROKTAFWEMAX4CUCKD3Q3VU
+#\\\|WIWKVKE42NNXIUJPA3CPGP5NMAJFGSR4CWSYJYKWPIT7UZF55OT \ / AMOS7 \ YOURUM ::
+#\[7]NPFRMWF2U6WNJKS4MUCKSWPLDJEU7QLKYRHJWUDU7JHHZTCDLUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

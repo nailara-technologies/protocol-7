@@ -123,8 +123,8 @@ item from the original design remains unresolved; only its
 all need either a real bound discovered/added in code, or a genuine
 async refactor, before heartbeat can be safely turned on for them.
 
-#,,.,,,,,,,,.,...,,.,,..,,,..,,,.,...,,..,..,,..,,...,...,,..,.,,,...,.,.,,,.,
-#M4CMAW2IYM4WKCD7DANPACCOFNRKVPIGE7ZGSQ5SQ3AK32SLOLEDIYJGVUQYTVZ7J2UBWE42PCRNM
-#\\\|5CKUDDCH647LUI2E5F3DRVJ3ANN24YHJNAORRO5VR6GR6JTUKBW \ / AMOS7 \ YOURUM ::
-#\[7]KSEOJ5DGTJUAEC4B2CFOHIZRD3ZVXHKCDN643TNQHIFGFEIAP2AI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,,,,..,,,.,.,.,...,..,,,..,,..,..,,...,...,.,,,.,.,.,,,.,.,,.,,
+#N2SYEDI4FUGNUEB5IQ5FI5T3WNR3KRIYNVOWFEKZR4YQ2E4O6ZWEU4M3LOKALPBF6Q3VZU6VV2L4O
+#\\\|R6WPLUO22VUIYJH6EKUJTBNXO2UZ4XOPQGOYVRNKTKDG6BO35KH \ / AMOS7 \ YOURUM ::
+#\[7]AIDOJX32XT2SERSY4YR3NIGRUOTYKGWPAS3J3TM5EBIQFDGRI2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

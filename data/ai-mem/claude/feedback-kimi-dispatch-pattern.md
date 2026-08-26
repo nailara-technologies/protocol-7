@@ -109,8 +109,8 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
   that bar too. Re-check this default periodically; it's about relative
   quota cost, not a claim that k3-256k is literally the same model.
 
-#,,.,,.,.,,.,,...,,,.,,..,,,.,,,.,,..,...,.,,,..,,...,...,...,.,,,,,.,.,,,,,,,
-#WOGH2XVJSYCZ3YWAVE6TB445VNXVFU3W7KTFW6VYWWTS77PDEMSEGOOXDPTUZN6YA4YYAS5TBG57C
-#\\\|MEGMSBOOOR5RCIUGM7XZVPWO4FH63DS5NAF4VF3UQQ5P5QQKRH7 \ / AMOS7 \ YOURUM ::
-#\[7]B77Q5X5ZAHUA5XLX3ABUDK3EJ7SN3WLZHA7YDTK4724EOXXBFKBI 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,,,.,,..,.,,,,,.,,.,,.,.,.,,,..,,...,...,,.,,,,,,.,,,,.,,,,,,
+#2HW3NOILGTT6FZVMD6PET42NYQMTTKKAWBKOOLII7TJC6NIS5KDW2OIGFYQQBOAS6CJL2CORPYJBI
+#\\\|RZKNS4MWMYLEEJJVSBH6ZYEXITRZBIOMESMA4GD243SK5BSEBQY \ / AMOS7 \ YOURUM ::
+#\[7]WBUPCJKW4TBAG2EADDVMM6JDL36AXQYBZ3SVX3UYEJADRPCRI6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

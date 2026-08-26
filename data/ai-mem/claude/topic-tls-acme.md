@@ -44,8 +44,8 @@ type: project
 - runs in child (non-blocking AIA HTTP fetch)
 - "chain already valid" means .pem file is correct — if curl still fails, it's a sending issue
 
-#,,.,,..,,,,.,,,.,..,,...,,..,,.,,.,.,,.,,..,,..,,...,...,...,.,.,,..,..,,...,
-#HRPBKHDSOXULEC2Z6M5Y7QZB3P75PUE4N54QPGN46LFE5WVRVOGYRKWRBEBHFMP7IIEAHZ5SFZIOI
-#\\\|572UZOD55PHAECIO2OCK7ACYU2OGQ4TFXZ2I73KJ44OXVNYYGDP \ / AMOS7 \ YOURUM ::
-#\[7]KBRK4SQUUGJYTSPM77YNRCB3HMP4BE2HGL5JC7OL72Q4VCJUWGBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,...,,,,,,.,,.,.,.,.,.,,,,,,,..,,...,...,.,.,.,,,...,...,.,,,
+#HSJUJSI46NNLLDVBMFSZUJBJJPOAVKMUDIRS2KMF47Y5RFCSCYFJUS4EOXQQH2VSIGC5MT5GTIJP6
+#\\\|2INVM2NSY3ZBZ4GD3LLRAFCQZRWZT6WMF4VLM5EEDRTQOZBKMRP \ / AMOS7 \ YOURUM ::
+#\[7]3M74AFSV7QDJ35KPROTVLUK7JJJTHWVM643DN3ERJCGC6H3KRSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

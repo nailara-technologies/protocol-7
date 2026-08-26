@@ -67,8 +67,8 @@ overflow, which doesn't route through this timeout path at all) — check
 whether it clears on its own before assuming a hard hang, especially if
 under ~13 minutes have elapsed.
 
-#,,,,,...,,.,,,..,.,,,,,.,..,,..,,,,,,.,,,,,,,..,,...,...,..,,..,,..,,...,.,,,
-#XKVW7PE4TV7EWJWN2GIG6DLFMZJXRGCZHMLODMB2KOO4JO2V4ABCMXJSEL4ARYOFZCMORLYLVVJA6
-#\\\|PYHMWFVW6XAHESDIF2T4RGAIFQY66U2GNJPO6MYKX7JXRX5JKKS \ / AMOS7 \ YOURUM ::
-#\[7]RN6FMLVSASXRD3YRYX2V26ZRVDEX55LRCI3IG2RKTQ6VRXY32UAA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,...,,,.,..,,,,.,,,,,,.,,...,..,,...,...,,..,,.,,,.,,..,,...,
+#DXYVG5CF4P4TW55PPJJMLTB733XNLWPTISWA6LZBXBLDUKNECIDLN2MREUE5HIX26UOQUOAP3PAHS
+#\\\|ZCNCSQEPZS4ETT3JELQU5OBJO6IVUOVMOQBZ7FIMT5GSM3OJUWQ \ / AMOS7 \ YOURUM ::
+#\[7]U5TDCO5CPAN36TAAGVFWP27EX23YUMQTMIRACLDJEND7INHJB4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -108,8 +108,8 @@ vision/                 # VISION docs (complete, data-sync, timestamp)
 ## Result
 Both `data/yaml/` and `data/md/` root directories are now clean - no loose files. All content is categorized for easier navigation and maintenance.
 
-#,,,,,,..,..,,,,,,.,,,.,.,.,,,,..,.,.,,.,,,,,,..,,...,...,.,,,.,.,.,,,..,,.,.,
-#PP3UANYIU67ZCPF2BPVOWC6BMB4TZZAYTUGJ2PNPYPUNEH54WWQFBPCCJNFKQACGRNAWOY7DR24AO
-#\\\|JHUZ2OUMJKUWGOPVCQKIG3LGKQJC4MV47WRXCQ7QKM6Y3JQCJGR \ / AMOS7 \ YOURUM ::
-#\[7]FWBYQJPRFFDB6FNVFUFEU733ZCCKM7SOJQ3REIZLRNLLPSVCYQDQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,.,.,,..,,,.,...,...,,,,,,,.,..,,...,...,...,...,.,.,,..,..,,
+#ZXWO7UWFRBQSN36EUZDF2QULYECCH6SPHD4E3NBEJ2RDEKUHJJ6EUSJIPFZDCND6BQB2YJES334KI
+#\\\|LPWLTHAYUGYNXYJVTE5F5STYQ5NSBKWWGNHLXNH5SA7M6LNZUJ7 \ / AMOS7 \ YOURUM ::
+#\[7]X33HSBAPIED5DQVRQB5GQX6ELBWKTIRTWJEUBSU2HEEI35AJ4ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

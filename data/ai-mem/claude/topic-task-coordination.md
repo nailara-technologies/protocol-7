@@ -49,8 +49,8 @@ originSessionId: 982c43a3-00c1-40ac-9d1c-a6fafdb428c8
 `modules.load = auth net protocol io.unix calc format.yaml task valued`
 `access.cmd.usr.cube` includes: `create continue queue show result claim complete fail reset start next handover wait-done valued-list valued-query valued-stats`
 
-#,,,.,...,.,.,...,,,,,.,,,.,.,.,.,,..,.,.,,..,..,,...,.,.,,..,.,,,...,,..,.,.,
-#ND366V7C6IY7RQRR3TSW2SQMGSDJMA65JUSW622FMOITKEQYKBVSNDTD7OHM2WCGMOKDJBC3KQLDQ
-#\\\|FNLTCEL3WVGWQQ5HBMPR2EGQYLIUHU4IURGT7YHHW7Z72KUQG53 \ / AMOS7 \ YOURUM ::
-#\[7]HOGKKK4JOU4WMHZMQ7NZT2EYTUUW43XFGNCQBHJEHEXUUP4NUYCI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,..,,.,,,,,,,,,.,...,,,.,.,.,,,.,..,,...,...,...,.,.,..,,.,.,,,.,
+#IC2WGSSBVMBHWQIOQLJUWASGC4PBXM3XGHK3YVHTNQKBA7QSVFCVTJX2CALD65DBRAGPI33PBQ4AY
+#\\\|6PCMFATT7ZP5DKE6O7OM6SGAP4I5K577ADUVTSV5KWYCBLONMV2 \ / AMOS7 \ YOURUM ::
+#\[7]2JKEXHATR7MCCQ5SL36D4JELLGV3CA35H6VNO3VDC27FG4OTTIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

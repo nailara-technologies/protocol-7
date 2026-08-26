@@ -319,8 +319,8 @@ do not add the `#,,..` stub to any new file. lowercase comments,
 
 #,,..,...,,,..,...,,,..,..,,..,..,,.,,..,,,..,,..,...,...,..,,,,.,,,..,..,...,
 
-#,,..,,..,,,.,..,,...,,..,,,.,,,,,.,.,.,.,...,..,,...,...,..,,,..,...,,,,,...,
-#34CS7T4K6T3K4OAK5PYYT6YMSSVNO5QQMBBWMCQ6NCUNK4LAL6FORIQVAOAOOE7TOIE4YUWDVJDEC
-#\\\|Y4UGJP4QOP2PAGP27XDT4QR4BVSFTUDHZJYFWSPTTRDOQ7KTTRD \ / AMOS7 \ YOURUM ::
-#\[7]OFQ5G3M46I7PWH2MYZRR555KK2YRMS7SDPPFAURTI2JQZGMVICCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,,,,,.,,,...,.,.,,,.,.,,,,,.,..,,...,...,.,.,,.,,,..,.,,,,,.,
+#AAPOVPMXP3TGOK6EVDCNLLVMSHHFH6JICKFVUQHLEKQ5YZ2MOXVNJDAPG37CQAPBB2N47T3RCYSAQ
+#\\\|W5M7D63ILXPARKEDINXEFXQJRULW5D6YL4ETKDXO45W3TBHTVCO \ / AMOS7 \ YOURUM ::
+#\[7]VUBJ4DYFDWUGFXEZ5TBYDKSCEIEJK77WB4FCCX23NDPKUWKBNEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -99,8 +99,8 @@ self-parsing, and directly usable as hash keys and routing table entries.
 - should hop count be encoded in the address or remain a routing-table property?
 - can this format encode the "defined hop sizes" concept directly?
 
-#,,,.,,.,,...,...,..,,,,.,..,,,,.,,.,,..,,...,..,,...,...,.,.,...,,.,,.,.,,.,,
-#FYUBJIKWHWNDZZYTPTTVJR3Y7T63356R4M5Z2C7PKIA4CYSXDNUNS6RNTQN7G6IGJC6YTWKEHUVZC
-#\\\|DUEEYBQNBSS3PNGQ5RMH3MBKJO6YFKL4TGVID6DHVRWVY2CYGHK \ / AMOS7 \ YOURUM ::
-#\[7]DMWR4NVRFZEOMY2FOEL2SMMYQI3PNKHY2FAJUVMVHYMWTPDMV6BQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,.,.,...,.,,,,,,,..,,,.,,,.,,..,,...,...,.,,,.,.,...,,,.,.,,,
+#QNRIQILFHRRAWOSJBMOHW3C432Z6LM56YGG7AQ37PD5TMST5DFRDEAVRYIPMAAFYMUMZ733OC7LZY
+#\\\|DTTVLXMR6POAUDOBHAHKK4KNVT2LZP4BBZADQ6TOPWTEUQNGGIO \ / AMOS7 \ YOURUM ::
+#\[7]4M5DZA7KETV3L4YH4YSB3SL2Y6MAQKMC4Y3NVG6UNFCYF6FKNQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

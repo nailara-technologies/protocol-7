@@ -177,8 +177,8 @@ p7 design-workflow.fix-standard '{"directory": "iris.v7.ax/dome/V0/"}'
 - [ ] evaluate step produces convergence score from qwen
 - [ ] notify.cmd.loves fires on completion
 
-#,,,.,,,,,,..,...,...,,,,,,,.,.,.,.,.,,.,,,..,..,,...,..,,.,.,,,,,..,,..,,.,.,
-#RRA5GFDAIYZZNOI4ILPP4R3YVABZU6JUFXTBNNM2TFJIUGSDWH5XUO6RC55RLSJ5FTQQ3YLTUVTDA
-#\\\|MMEUC2UFG2FWPQIBNPTSL24MKMBM4CKBQFC4W5GGBPDQYK2I2E4 \ / AMOS7 \ YOURUM ::
-#\[7]TG6PRW7LSLN5TYTB4IXPAYCKGX5GSGYVVUVM3HPDZCZYM7X3PQAI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,,,,,.,,,,,.,,..,..,,.,,,...,..,,...,..,,..,,...,.,,,..,,.,,,
+#J2WJILQI2IUVUPXSKFLYHBE7G5BGLCRY7EKTWDL3TESXPD5FLREE664FLRWNPI5LKNORSQS3NDLJW
+#\\\|CPGFFBF3P5D6VMDCMN23ZZPGRPI4Z2QER4Y2ZAU2YQSADJBPPCT \ / AMOS7 \ YOURUM ::
+#\[7]4JIYTKQHB77M4NEVYOUEGUGEYBDXI27UNTB6S6C7CL4ANAY4VICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

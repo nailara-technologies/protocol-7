@@ -127,8 +127,8 @@ registered in).
       `<[base.logs]>` logging; TRUE/FALSE/UNKNOWN honored; NO hand-written signature footer.
 - [ ] new modules added to the coding zenka's module-load list and `.cmd.` whitelist.
 
-#,,,,,,..,,..,.,,,.,.,,.,,,,.,.,,,,..,...,.,,,..,,...,...,,.,,,.,,.,,,.,,,,.,,
-#HZ33PCKPPINPN77N3V536S6SJOAQYSJU7Q3SIZOFX3XLJ4EJXVYJ4LLPHTYASWE5BSLMWCTIV7DWE
-#\\\|EKSS6NF6DGVK7DVBAMDDSHKZ66CMY3S6MSDEHSQSKN52FIQP7W4 \ / AMOS7 \ YOURUM ::
-#\[7]FOCKAZF2OIS2HB3ADVBRLBC6BMTHXJYD2S4HCGEZRP3HJ7RNSKDA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,...,..,,,,,,,..,..,,..,,,..,.,,,..,,...,...,...,.,.,.,.,,,,,.,,,
+#V35EHGBV7FB5YESZ4BPLRKIJGZ6MJ4C4LCWOVQDOPNB4W3L2EFNCBWNWYP35LXUPOB4TJTGXTPCPK
+#\\\|WJKC4727EJEE22FMCP7RSSR5SUECIPJ7BRJHBIANLFIRGNGDLZD \ / AMOS7 \ YOURUM ::
+#\[7]U3LIGA5QR2FIJ44RDLV3NABPUNSKSHTQX7OFR24KLALMKLKOXCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

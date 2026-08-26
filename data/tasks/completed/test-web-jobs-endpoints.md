@@ -60,8 +60,8 @@ Report what passed, what failed, and any relevant log output.
 Do NOT modify any module files. Leave signature blocks (lines starting with
 #,,,  #\\\|  #\[7]) completely untouched — the signing system manages these.
 
-#,,.,,,,.,...,,.,,,,,,,,.,.,.,,,,,...,.,,,..,,..,,...,...,..,,..,,.,.,,,,,,,.,
-#KDIBULTKC6EYIQ7M7V7ZJ7M3HFBUZ4SSSWQXFL25NRWY4YOPX3K7UDSRDZDAXO7MNMNPP6QS3SQIS
-#\\\|OHPMIQL3I47QBFYKZYLU2C43C3L6ME6NRY6XK4PVK7XMBIDPIXC \ / AMOS7 \ YOURUM ::
-#\[7]I73BPJO67L44QQWPZSBRRZYCTJSBE5SBLSKMV47OKZ5WEIMXMKBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,,,,,,,,.,,,.,,.,,,.,,,,.,,,,,,..,,...,...,...,.,,,,,,,...,.,.,
+#2M4MIWHRPIBZF26ADY6CRUIXSQXUKVUFS4DSKDO7FSBEM55PM3OSFBSNF4Z64UXVEHSBH5OZ3KGGY
+#\\\|MZEW4SKPQH7L6PSNL7FQ3YB7EICSN26HTBG4LTWN2OLYKZ7EEOK \ / AMOS7 \ YOURUM ::
+#\[7]NBQJC36GDFJQZCNSQBGVHOXU47CM4EU4VWQF2NRT5RPFNTKVYGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

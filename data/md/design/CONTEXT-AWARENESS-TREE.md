@@ -412,8 +412,8 @@ The awareness tree **overlaps** with semantic deduplication:
 
 *We don't just store what is. We remember what happened, why it mattered, and what's happening now.*
 
-#,,,.,.,.,,,.,.,,,..,,,..,,.,,.,.,...,,,,,.,,,..,,...,...,,..,..,,,,,,,..,,,,,
-#2XQ4DQOM7WU77T4GUDD7HS2W4HCDSJVQPE5UIN4VCYT76ILZU7LKVEZVSSQTXKXELOUFULWTOFHUI
-#\\\|WR5RNYJGQCBNY5PKR7QR5AFAJSFFHYQFAHEN3JJXKWWYUUZJLWG \ / AMOS7 \ YOURUM ::
-#\[7]EBALSXGGTWN4NUHQ5AQ5AECK4MY2YACCMYOF3RSRTTRIUZVXDQDY 7  DATA SIGNATURE ::
+#,,,,,..,,...,,..,,.,,..,,,,.,..,,.,,,..,,.,,,..,,...,...,.,.,.,.,,.,,...,.,.,
+#SYQJUQQHKQPWKUKYFQDL5HID25WSQWKHECL7P46AK2H6K7TA4JH2TO7T7I6ANFJ7VNZZ3HIEUUBTE
+#\\\|CB4IMKZLC6LE6KAPEOQ2LO5RNTAKWJXU3FJC7ZMVU6TKR2YIR7K \ / AMOS7 \ YOURUM ::
+#\[7]GYXEDX52O65ARJLCH3VUWEQVQNBXUF56W7QLHYNBJKVD5ORUTGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

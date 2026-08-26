@@ -692,8 +692,8 @@ prompt: |
   use $ARG not @_ where the file already does; lowercase comments; bracket
   annotations [ like this ]; do not touch the trailing signature blocks.
 
-#,,,,,,..,..,,,..,,,,,...,.,,,,..,,,,,...,.,,,..,,...,...,...,,.,,..,,.,,,.,,,
-#DOWQCGFJ36YKWGF5WVHM23WYZLJG6B4KVAN4ISMLP6UPNEXX4IZLG7FLFXASSYIMRCGQVDRWMIZR2
-#\\\|GTODRRUU2GKB2WT7G6KLOHZFDFWFRBRL7HJCDARPYTWAJV6YL6J \ / AMOS7 \ YOURUM ::
-#\[7]DC7CF6SSWJU5YUQUR25SEQLJH6MR2SBDAMA7M5YSWR44QKYM3CAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,...,...,,,.,,.,,,.,,,,.,...,..,,...,..,,.,.,,..,..,,,,.,..,,
+#JFO2CJ2UU6YFRLLO5WEESR2444QB7TWHPXCGQVHZZAHTV6W6FV3VHHMIFFHXE3L3ZCP24DTHJ6MNI
+#\\\|FIGWX5UPUZ3KB44SIWLPHHYV5CL6WFH2O26NTL45UXM4TWSSLKZ \ / AMOS7 \ YOURUM ::
+#\[7]3FEF6IHN3LUK53SAUPZCY43NR6KAP2NVZDFBFMM4MVFZGWNXYMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

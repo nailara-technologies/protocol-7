@@ -108,8 +108,8 @@ just note where the new init hook goes (cfg/zenki/nodes/zenka.v7).
 4. src/nodes.orbital.addr_b32
 5. brief note on the start file integration point
 
-#,,,.,,.,,...,.,.,,,.,,,,,,.,,,,.,,,,,,.,,.,,,..,,...,...,,..,.,.,,..,,,.,..,,
-#3W3TCMLKDOIRC55AM7GI5OVHADSIHXDKWAXDXK2SVQRRDWY76W72A4VT6N3ZJMVFHPZ2EPIDCPQ7A
-#\\\|254ELDB5OTSBSTTLKFP66FLI2K6IKBDFU3UCSGJD5WWHREOVKE6 \ / AMOS7 \ YOURUM ::
-#\[7]UITLM2SNEBLSUZA76BFYZ63NXEQFJHCGVIAUXN6B3UQ7X6EW4MCY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,,,..,,,..,.,.,..,,,..,.,,,,.,,..,,...,...,.,.,,..,.,.,,..,...,
+#BBT6CUPPQYYILMENOAOEKUMWEBIZUQHO7I7J3ZBTI43HAYMIM6M4YDSRKKJ7AZ2HCCEURJKV5R4UQ
+#\\\|S5D5WGTOOMZ2JDOCAX4EJQ4FTCMSTSEMAQ5LWKE6BMMKHLESPXI \ / AMOS7 \ YOURUM ::
+#\[7]KY2AOGMGLWME26XXZROJ6643RTNHVVWK67KORWAZGYWOKIO6ZGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

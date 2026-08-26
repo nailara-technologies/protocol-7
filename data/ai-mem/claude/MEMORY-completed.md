@@ -101,8 +101,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   `ptd -c`, only visible via `<zenka>.show-buffer compile-errors` after restart — user caught it
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
-#,,,,,.,,,.,.,.,,,.,,,...,,..,...,...,...,.,.,..,,...,...,,.,,.,,,..,,,,,,...,
-#GE5G5MZQXCVHL6HWFTH4PCAWE6A4BOB5QS5YYDGCL2S2GRWBNE46GKUD56ZJX6QSGKPOPQIQUH5C4
-#\\\|EWFXLZ5VHDSOY2XQN4LBJ23EPD3W22X462AOQUWDCWY22ZJTY4G \ / AMOS7 \ YOURUM ::
-#\[7]XBUR6OJRVM5UN3TYBTRFLNIF57ZBBOOCUIEY6M2D7QL7OXYQ5EBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,.,,.,,,..,.,,,.,.,...,,,.,,,.,..,,...,...,,,.,,,.,..,,..,,,,,,
+#6322OTJLD6N4R72YI2KCL5OTEJ6FYN6KWWFLR4NI43BVNVMKWVFEVRGQN6ZVWSDLLPMVWAQGCQ3PW
+#\\\|DYUTUB76QNGBYTUBBNJIALHA6DOCG5CJ325GGE2QPVCDN7Z5VNH \ / AMOS7 \ YOURUM ::
+#\[7]RPBYW4W3MDVMLAFBZJI5MDM567LQ7GYNV52WM64FE6RSXFI274BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -561,8 +561,8 @@ new frame YAMLs (`data/yaml/ascii-frames/`):
 - **deferred init** — push the first tree build onto `system.callbacks.initialized`.
 - **json** — `from_json`, not `decode_json`, for coding-zenka summary output.
 
-#,,,.,.,.,,,.,,,,,,,.,.,.,...,...,.,,,,,,,...,..,,...,..,,...,,..,,,,,,,.,,,.,
-#ET4MBXVDTP2IROYNC6KBTKCY5LX27DXR7TSXHIPMUFJZ37ENPHVR55MZ754VWSRZOFE6GUHMHUASK
-#\\\|NEDCYEZA235SVCBN5ZZGI2R7PIHYEHG4CIJUJQYTYUGMBQ25T3Q \ / AMOS7 \ YOURUM ::
-#\[7]AIHWRUBM4OPUA24EJ6DC7I3JWAW7TLNHU6ONBSP7KJLDBDE6UMDY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,.,,,,.,..,,,..,,..,,.,,,..,,.,,..,,...,..,,..,,,..,,..,.,,,,.,,
+#JGOW3H2VZ35R4Y2X6KD6OA23XFLGXRJBWTK7FEU2FCCJAS3QH77653D47BTZVRPQ466CNNK6R6QSE
+#\\\|RDXOFSYLMDS2HEDUA2XL43MEBNTF23U4FEFDOGPRJTTKCGW4ZTL \ / AMOS7 \ YOURUM ::
+#\[7]WIN6EEEJ4AKE3BATE35TGC4WYOOU67ZOXILU2XI6TCX3CSRHOSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

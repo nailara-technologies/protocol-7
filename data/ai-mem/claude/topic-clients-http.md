@@ -62,8 +62,8 @@ Same check in handshake write loop for WANT_WRITE during syswrite.
 Add `clients.http` or `clients.https` to `modules.load` in start file.
 Whitelist auto-populated on restart. No explicit whitelist entries needed.
 
-#,,,,,,,,,..,,.,.,,.,,,.,,..,,,,.,.,.,,..,.,.,..,,...,...,,.,,,.,,..,,,,.,,..,
-#QD6PTLHS5WCUSO42Y4JKIAUSUVFCCKLEHO5XQIEG7RFL2RLOPHIBF2PDPG5YFPJ7O4PMCXLD3WNFE
-#\\\|BVLCLHDF6VMPLZJ6HJ5YCUAU2UVLQ5H6HEXSDLRVZ22P66FXLY7 \ / AMOS7 \ YOURUM ::
-#\[7]LZ5QG5BHKV6DFRN7K6WZHFSGCINL744YUBJEUG7ISSQL5N4TBIBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,,,,,.,,..,,,,,,,..,,.,,,.,,..,,...,...,..,,,,,,.,.,,,,,..,,
+#HGBUNRLOXOX4SBLUAGOD6AUNLGXBETFOPTOFN7GQSKYEGDZY7H6V7B756NJEXRPP3MEM2IEHFHQZ2
+#\\\|2N5YT53WMRYLNSDTSUCKLTG5TE5DTO47LEDX2NLQ5RFP6UJUKCI \ / AMOS7 \ YOURUM ::
+#\[7]GIE4G4HCUMGTCLRY3STG54NZIEYXWV2W5CFUXILO72WAFJL3PKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

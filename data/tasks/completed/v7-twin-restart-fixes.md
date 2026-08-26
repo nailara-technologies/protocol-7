@@ -121,8 +121,8 @@ do not modify the 4-line checksum footer. module format: `## [:< ##` header,
 no `sub {}` wrappers. `<[module.name]>->()` invocation; `<data.key>` for tree.
 `$ARG` is loop variable; `@ARG` is args array.
 
-#,,.,,..,,,,.,,,,,..,,...,...,.,.,,,.,.,.,,,.,..,,...,.,.,...,...,,..,..,,.,.,
-#5RGM6UMY4NZJR6KIZUC7NJO6EDJ5W53FFGUVSF6AKTEN4RBYMFSFCR6C65NWZASS6M2PEOWF6XJ7W
-#\\\|BOVFRBURJMSQE7D3ISYZPP7XUWAUZVR3XWLR7L3DL6NWMNFNGRB \ / AMOS7 \ YOURUM ::
-#\[7]TKZCG42EOMMZTYCKGXBN2LVPJQUMS2REONQSHOWDRD7OVIN4DWBY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,.,.,,..,,.,,,..,,,.,..,,.,.,..,,...,...,,.,,..,,,.,,,..,,.,,
+#BPMB3VVR5GRNL3TKUMJQUWQDIY3NTN3ON22UWFZQWPBEREEQVLZ6OXKVEWCVCI725CYHPOGT4HY3S
+#\\\|EISFE5KWNNZVRBEY4Y5XFONGQFASPU2YZKEDK6UP5CET6TKDSZO \ / AMOS7 \ YOURUM ::
+#\[7]3HTCJCO2RTZUEIQXUNKPXL34JBVCHIACEJEMTURUMWTJVO7APACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

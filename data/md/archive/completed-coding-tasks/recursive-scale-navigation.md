@@ -93,8 +93,8 @@ the web zenka's orbital state handler needs a context param:
 phase 1 modifies visualization.html only.
 phase 2 modifies plugin.web.space.fetch and related web zenka modules.
 
-#,,.,,,,,,...,,..,,,.,,,.,,.,,..,,...,,.,,.,,,..,,...,...,,.,,...,,,.,...,,.,,
-#AP33L24DRFU5CVZKO5ZSBIRRLJWXLII2XUQOM4QNZ3XXMNEEB6KEB2JMIAQCOEUYZSFFP4O5LM6QS
-#\\\|EBY3X3SDEKQNDNXCIGIHYNQ7Y4ZTRQ6VQVQ7ONVHKHOW5OYLSZV \ / AMOS7 \ YOURUM ::
-#\[7]DSB6KJC7NZHIC6C7BROES6TTVGSA33S5AE4GD2B6ISQUU733LYBA 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,...,,,,,..,,..,,,..,,,.,,,.,..,,...,...,.,,,..,,,,.,..,,,,.,
+#OIEFRS77ULSLN3ZWF4GKQDYSDPMVZ2TYMU5XK4DDF6ZBMIVRZR3WE2P3RNDW5FE7LZTUNZKG2ZV2K
+#\\\|MYP45M4UZCBYNP6XJ7NTZCPBG7RC7RPSA75QVVC5HCFBYSBVJC3 \ / AMOS7 \ YOURUM ::
+#\[7]N6VPAJ5SKUVH3327W57TOXYAZO7WFS24YLWBWT7L4ICH3XFHRKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

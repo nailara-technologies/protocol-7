@@ -32,8 +32,8 @@ chasing anything more exotic.
 against `(declare|select)-` is cheap insurance, though the real fix already
 landed so new names should be safe now.
 
-#,,.,,.,,,,,.,...,...,,.,,,,.,...,,..,,..,,..,..,,...,...,,..,.,,,,..,,,.,,,.,
-#4MJRQ6UZHYCWLNEJ3QQBZCKHXENMAC5UV3GUJNHKXPYBYCCGUKHJC4ZALREXEAKWI434NAWGUBAQS
-#\\\|JFTQXG7CJO3U47JHAQR475XKW36Y6JEAU7RS7POTIRQJJUJMNPX \ / AMOS7 \ YOURUM ::
-#\[7]GT577QDSVZ4C7ASP77RPHJAZM556O4E6PWUHJ7FI7CO4RVQ7ICBY 7  DATA SIGNATURE ::
+#,,..,...,.,.,...,,,.,,..,.,.,,..,,,,,.,,,..,,..,,...,...,.,,,.,.,,..,.,,,,.,,
+#4EAHOXPUMAKBWZIHKQM5UMIRHKRQWYWFMNVLASYYXJ3CU4VLG7BIQIITR35DUL3SJL64LORPNXRZA
+#\\\|RKY5W2QBLWTHSKWCA4ZAPELIYLXU4MNLRPOHYS3IMMWKJKDIQTX \ / AMOS7 \ YOURUM ::
+#\[7]X67QZE4ZPISYZGO7W2OWGQSLEFUGGSX2IYNQTQY5A7ETNQVLEABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

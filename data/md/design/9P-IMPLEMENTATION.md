@@ -148,8 +148,8 @@ return {
 - [Linux 9P Documentation](https://www.kernel.org/doc/Documentation/filesystems/9p.txt)
 - [cat-v.org 9P Resources](http://cat-v.org/plan_9/4th_edition/papers/9p/)
 
-#,,,,,.,.,,,,,,.,,.,.,,,,,...,.,,,,,,,,.,,.,.,..,,...,...,..,,,..,.,,,..,,,.,,
-#5P7XBNAVWLFTO547XK6HESLT6SQIL34H4G5PVY4XJRFXV6FUSG6GKAQWK6Z5DTBR3E7YZZQMM7QEQ
-#\\\|TP7WBB6PXE65DAIOJMS5ZXL6JL36XVOWTKM7FK7XSXA3NGYM4RG \ / AMOS7 \ YOURUM ::
-#\[7]YWWXC57TDFLTREXSWCRH53F426TUK4AW7LR6BOELOPHATT4LCKDY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,..,.,,,.,.,,.,,.,,,.,,,,,.,,,.,..,,...,...,..,,..,,...,,,.,,..,
+#SWN33GELRFVINN6425F7CN5JD57PFIWLWPGKLLYHMGPXQNIQWVIM67WTWHUYIBSQOOPY3WCZX5JSU
+#\\\|IT75VZ7NTWNK7CGXJIZNM4Q7LR6XXJBG5LGJO5ZDWGVFBPJT7NF \ / AMOS7 \ YOURUM ::
+#\[7]LGZHT2K6ULYLXQGHFZBF6CX3WBTC5KJ4BCNF73RHE6EGXV6DZIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

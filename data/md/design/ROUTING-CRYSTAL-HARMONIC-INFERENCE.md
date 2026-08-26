@@ -180,8 +180,8 @@ new route traversal  →  adds to harmonic memory
 - `harmonic-mathematics` memory — generator 076923, quadratic residues,
   cube geometry, CCW matrix routing — the crystal's mathematical basis
 
-#,,.,,,,,,,..,,.,,..,,..,,...,.,,,,.,,,,,,,.,,..,,...,...,,..,.,,,...,,,.,,..,
-#JQ2R2AG4O7S4A5B56PBFA6AUJJFYKOPTTVQINQNKKYADIHDPWSNPQFLOXCNRXL4HXDXUPBXHK2WXI
-#\\\|5RER73SYVTFRC77GXC6F6RECHANEVMIAIBZCO6YGRP3RIKWOLHT \ / AMOS7 \ YOURUM ::
-#\[7]ECDY5HG3MMGZMEDDQTANB5ZRSFL6J6P74SFQSUEQF5JSKRHXHACA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,..,,..,,.,.,,..,,..,...,.,,,..,,...,..,,..,,...,...,..,,..,,
+#ROBT7LDYBE46IWWHD54KH5Y6Z7MHSBTQJKYXTEM3Y2TF3CMIXHH2J3BNCFW7QEYVPG2ZD4WJAEBNW
+#\\\|7FBQM4YIF5KXOTZALNR4EFELR2DIIG4WPAMAQQAV7ZDHIBWJDUO \ / AMOS7 \ YOURUM ::
+#\[7]KI4LDKDAWTESOZOCSXK242XT7D647XMUZXE763VTMKUKQTZVIGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -151,8 +151,8 @@ it. existing signatures on files you don't touch must not be modified.
   namespace-split gap — see that session's commits (`81403b3b8`, `c06c9d503`,
   `c80dfacfc`, `e1ca9351e`) for the trail that led here
 
-#,,,,,...,,,,,,,,,...,.,.,,,,,,,,,,.,,,,,,.,,,..,,...,...,.,.,,..,,,.,...,,..,
-#2AOTZASIG7Z3NVWQIS7QJETJF5MBFNI4N424HX5I2IZQAJI77W35GN5UMOLTLRLMDM7OWVAQORENA
-#\\\|QTKLB2J55KILYVWUDCBS6RW6U2LPECJJYRPMVCXYMVB3ZG4QFES \ / AMOS7 \ YOURUM ::
-#\[7]BHWEY2RJTGR2XUVTYAL5BWXK35SQYR44SG46GCKW6755X3SDE2BY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,.,,...,,,.,.,.,,,,,,,.,.,,,.,,,..,,...,...,..,,.,,,.,,,..,,...,
+#QDXM6C25V3G4YPNM6ZUKLZE5QT473GNEBT2LGHS6B7PRBA7EXJNUXASWAXONTKGD3UDCJK62ZU4NM
+#\\\|ZUMDG2EFYDYG2DQXV2TPX2FJLQXLKNRNRDIWEU53FPHB4VXIJUC \ / AMOS7 \ YOURUM ::
+#\[7]ICI7OW7FUPL4LJOKD2RGTQTYPISABU5W6XIV742GLAVV7ESG34BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

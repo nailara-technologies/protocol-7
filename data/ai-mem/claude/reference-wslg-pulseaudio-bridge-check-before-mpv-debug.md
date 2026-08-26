@@ -45,8 +45,8 @@ level-2 "no handler" catch-all in `mpv.handler.event`) when the instance is audi
 (`<mpv.audio_only>`, e.g. radio's `mpv[audio-0]`) — playback IS the entire intent there,
 so any end-file error is total failure and should never be buried again.
 
-#,,,.,...,...,.,.,...,.,,,.,.,,,,,.,.,.,,,,,.,..,,...,...,.,,,...,,,.,,..,,..,
-#7BEZVOAOC4EUBTMR4QX2HKCHUPBKJ6JTQJ7TKGVH23TIYC7DYAMU3QAYOCRAWBBQJ6AXQVEI42DLK
-#\\\|JVVPUO2ZFIXGZXHMLQ4GJRR5YF2EUIFOWPPE5HEOEBCOA6RBSG4 \ / AMOS7 \ YOURUM ::
-#\[7]TOO6WWWIVNYML5Q5CHLDJYSQ3ZUK5PKXNEGOD52NEYPDZDQYPGAQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,.,,.,,,,..,..,,,,.,,,.,,.,,,..,..,,...,...,,,,,.,,,...,,.,,,.,,
+#JCMC4RVAINE2N2DHZULXCN37VF7AMGP3R5FYWPFTH4NXJKP7WBRNE7TTFA3AHRQK5PV47GM5WYR76
+#\\\|BG3ZZKZ4HU5ZMV6OBLJLJA6EVZZO3EXRKA42B76SDFNA7RJG5CV \ / AMOS7 \ YOURUM ::
+#\[7]KRNSTU5ZRSPB3SY2MADGKG4I6F57X27T3M7KCGFVGUMKDON5LGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

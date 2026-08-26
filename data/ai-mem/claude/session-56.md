@@ -72,8 +72,8 @@ metadata:
 
 **whitelist lifecycle hook skip rule** (bin/Protocol-7 lines 1568-1574): lifecycle hooks (`pre_init`/`init_code`/`post_init`/`end_code`) for OTHER namespaces not in the whitelist are silently `next`'d — they never even get a deferred stub; this is distinct from regular subs which get `base.handler.deferred_compile` stubs
 
-#,,.,,.,,,..,,,.,,,..,,,,,...,..,,.,,,,.,,...,.,.,...,...,,.,,,..,.,,,...,...,
-#AU5PKFNJEMUIETFI543RNIIBTJJJ5A4ACGZTNUTS2FWVRW6LITFCWH3UX3JVFZZ6S4FH2AJS6UGJ6
-#\\\|GUCESGJ5FB6ONPWN2EARFYFATSTKBB3O5ZYOWXZDUVHRJOKRB2K \ / AMOS7 \ YOURUM ::
-#\[7]LOW43HR2B3GE3CKDABJGPLJ6OOG5ICFHWUO6HZ2GZAOVAFVGMMCQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,,..,.,,,,,,,,..,,..,,.,,,,,,.,.,...,..,,.,,,,,.,,.,,,,,,.,.,
+#X4KOH5DCOYXLTTKQY55EQ4WTEU5IZ5PSQADPBDFDVDBJLHCNRIBEB5DVPNLSGSN7ACZY5AZVD3YZG
+#\\\|KE7IG2DXTMPUTBEGLUELXPIBZ4VVJ4NPPOSG6TRLJQFMO5NOGGU \ / AMOS7 \ YOURUM ::
+#\[7]DTFXHMNLRKZ3UUSCMDFS752LTUPNEAXKJXTJLVWMNG6MTTKOBGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

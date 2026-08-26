@@ -71,8 +71,8 @@ Actually cleanest: reset `<jobsite.sync.last_server_ntime> = ''` (or clear jobsi
 - [[session-63]] — investigation start, simulation showed correct results but actual still broken
 - [[plugin-web-jobs]] — delta sync, stage fix
 
-#,,.,,..,,,..,.,,,,.,,,,,,...,,..,.,,,.,,,,,,,..,,...,...,...,...,.,,,.,.,.,,,
-#RSG3ZYY226UNWNYKG2EKHP4ZR3F6TQJM2FVPSGQXP3XK6BXOPQG6XIZM4XTUWXX54DBN5FM5QIY6A
-#\\\|DEZT3CR2GZPJADCKWEJ2HU52LJ5FBWBCMSNH6WHSLXY2RPAY2UD \ / AMOS7 \ YOURUM ::
-#\[7]YH6Q4I6IPRYQAN575DD6QPR2EJFE4DGVZXQFQBHTU5MXEDVI56BY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,.,,,,.,...,..,,,,,,.,,,,.,,.,.,..,,...,...,...,...,..,,,.,,,,,,
+#V7EDCTHZO3HZ7RFTIMDOXS52KMBHKBCU2C5S4OBEVEABXTJKKHXAVWDRGHTOS7SIVJGUWHWB6ASFA
+#\\\|TXASERIXGYMQGWQ4AEMDPGJMUMFH2Z5RT4ABGQ6IZD3H3GOSHQO \ / AMOS7 \ YOURUM ::
+#\[7]TPED43YA5HRTD5ZSG3YG6YWNVSFGFL7I5ZGJSMCGRI2M3SGB4SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

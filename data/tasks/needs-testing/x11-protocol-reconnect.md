@@ -172,8 +172,8 @@ grep -n 'reconnect\|error_handler' src/X-11.post_init
 - [ ] sleep/timer approach matches existing event loop pattern
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,.,,...,..,,,..,.,,,.,,,,,.,,,.,,..,...,,.,,..,,...,...,..,,.,.,..,,.,,,...,
-#4ELLJD77SCRGTVDJHF6ZCX2ZA7F3WL6C6LVXE26HV3XKTLP67YHVU43EWIXAMBODVZSTRPDIFIXKO
-#\\\|ZM7GVWW644XIMQUEFFGW2NV366VWY26URAZWWTS72WRYOGGXANF \ / AMOS7 \ YOURUM ::
-#\[7]5KJL7JUBCBRJORDFWULWAGTTJ5BLJUFONLEN62QWWAAGKYUOAQDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,..,...,...,.,,,.,,,...,...,,.,,..,,...,...,,..,,..,,.,,.,.,...,
+#2VULPLAC6HSMZSTYR7EPFKNBXHM2HW7G6QR3O5A6ZDARJ3GAW3RAFEVX24BOZEBMCPWEU7NNF373Q
+#\\\|G75DT56HUQ7NIXDGNEBGY22CQAIUJBURGYKAMQTKKGOQQL3SDFP \ / AMOS7 \ YOURUM ::
+#\[7]SYSINNBS62DM5OX7ONTMNPAEEVR7CXXIQ25RCIOSHGQANKGXA6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

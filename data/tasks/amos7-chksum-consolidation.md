@@ -151,8 +151,8 @@ harmony src/base.chk-sum.jha.*
 [ a full family sweep after consolidation; any rewrapped module
 should pass cleanly. ]
 
-#,,..,...,..,,,.,,.,,,..,,.,.,.,.,..,,,..,..,,..,,...,...,.,.,...,,.,,,,,,.,,,
-#U7HOQYQ3XP6IO3XKS6BB5NILQNTN4TZHRVRLFQ4WUWPUDNDGRUCPGPXUHXTCBMAA5P73YWPEISXQ2
-#\\\|HAXVGV66YYXGMBKU5YTI66MINISRKT2PXFQM3JDA5V5CIMZQG5W \ / AMOS7 \ YOURUM ::
-#\[7]VNTRUY2KE5K6OAGGK5CDE7A57RHYJE5UF7A7ULH7EDRVHRI64YCY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,.,,,..,..,,...,,..,.,.,,.,,...,..,,...,...,...,...,,,,,..,,,..,
+#AAHHLGPFPGOZHE7KHJLBZC4IW6LILRIBXJ7IJI6GEADAKUMJOODFXDI4H5SZ6FGM36DREKTCF2DQK
+#\\\|3TOU5NW3SHZLOSN2AAXN3UCCGP5SYBLTQ73XCQJB4QEAYQYRRAT \ / AMOS7 \ YOURUM ::
+#\[7]BTRHTD743CXLFQXHTOM5T4LN37CIYQHOZROK3FDB63K7HGXGOIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

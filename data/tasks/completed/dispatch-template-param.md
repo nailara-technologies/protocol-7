@@ -153,8 +153,8 @@ prompt: |
   follow existing code style: $ARG not @_, lowercase comments, bracket
   annotations [ like this ].
 
-#,,.,,..,,..,,,,,,.,,,,,.,.,,,,,,,..,,,..,,.,,..,,...,...,,.,,,..,,..,.,.,,,.,
-#GL34J54S6J5GHLLAL7FQFURIEGEYNLPT4OPIM56JUIKB6YGQPX4DDWLUOWJOJJ2HJXGSYDDSFSNEE
-#\\\|LPYLCTD3KGWSZJBGIYF2CQZZKKBKIOUZ324UGUFQFSJX4ROKKH6 \ / AMOS7 \ YOURUM ::
-#\[7]M5PG6NEPZELK7N753RAYH3AILHR3F6O6KFH7XPUIINCUBR2ZHOBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,,.,,,.,,,..,,,.,..,,,..,,.,,..,,...,...,.,,,.,.,,..,.,.,,.,,
+#MSDBTCRC22QQZVKGPK2OLGHAVUQM4ZBMIGVFXICLBHKJK54EO44WLXAG57GKASGLRDVQPRADRQEKO
+#\\\|APEFTBPI22VNFFFNF36PWIVZVBYWZFECQT4AOWV32VPMXKC6GDD \ / AMOS7 \ YOURUM ::
+#\[7]567GEQKHRDZ5ATEXD5Z4M3QHLZ5HHK6D2TH7YYDKG2CLHUWOTIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

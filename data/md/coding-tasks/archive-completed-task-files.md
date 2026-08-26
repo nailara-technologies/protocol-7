@@ -65,8 +65,8 @@ Produce a final report structured as:
 - subtask_spawn is available and preferred for parallel evaluation
 - summarize_context tool accepts: content, focus, model, backend, max_len, store, node_id
 
-#,,.,,.,.,,..,,,,,,.,,,..,.,,,,..,...,.,.,...,.,.,...,...,..,,...,,,,,..,,..,,
-#SQF4RBBLFEK5FQA27NYHDIAKABAO2CXSXNI4AROCBJ4MWSMUST75GG3YNWVSV2R4MJR4T24GDPBY6
-#\\\|IJKQXJ3JTXQW3FPKVGDXS32IFPNJPSWRX746L47EJ4IL5E4QLS5 \ / AMOS7 \ YOURUM ::
-#\[7]ALXGXH7BKCX4N3R7QR6MJ7QYLSLRP3JZUEEK5FRNGQH4255Y7CAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,,,,..,,.,,,.,,,,,,,,,,.,,,.,.,.,.,...,...,,..,...,.,,,,,,,,,.,
+#B5N3NTALJT65X5FLJFS7G76IRHLKGPCEA5MF6PYHIRWMYGXZS3T3HIDEDAFNNLPYXSPRIZYKBPKII
+#\\\|NXOLKGCNPSPPBRJZJZ3VG22NR3BX7I6YRFLS7GFSNHYUSHQPNO4 \ / AMOS7 \ YOURUM ::
+#\[7]FS635NQEGQYXH76WVN4KKZB6AVHNJMXO54FW5JRUW5NU4NCNFYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

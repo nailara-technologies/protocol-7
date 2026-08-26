@@ -71,8 +71,8 @@ add after the existing `stuck_retry` pattern (after line ~136):
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,.,,,,.,,..,,,,,,..,.,,,,..,,,.,..,,,.,,...,..,,...,...,.,,,..,,,,,,,.,,,,,,
-#VAQ6WI5Y5E4L5QKELB3FN25ZX5YP456FIYKPBNJXN36YW2AKGNMKFQFU3VSSGWFQZYYRTAHDVZUAE
-#\\\|XPFUMVYP2H2IQXIJFLA6VKGZUEF4ACBCPY77EF25FXAFSXZTDHL \ / AMOS7 \ YOURUM ::
-#\[7]T2LXXLXWPSDI7CDK6F45IUSQ7JUNOK2UR724HYKBSB67G2XSUOBI 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,.,.,,,.,..,,,..,...,..,,,..,..,,...,...,,,,,,.,,,,,,.,.,,.,,
+#KTJLLLNQFAX6KWWOT2QM4RJAGBI2VTPZZU3X3X44EVGCWAPPUAYWF4GDNBBDDBQO3KXAOMEDQZQSG
+#\\\|3VTLHU667GWXWPOENYB3L52XHFWQRV6EV5A2KKO7OXBD5MLDISF \ / AMOS7 \ YOURUM ::
+#\[7]FG6TY66X7R5ABOVSRGFGUIEWECCKBDLBNZR5OU3BB26BAPNAMUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

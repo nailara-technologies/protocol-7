@@ -76,8 +76,8 @@ Prajete si prepísa» súbor "
 [file_err_opendir_post] "
 [file_err_nofileselected] Nezvolili ste súbor!
 
-#,,,,,.,,,...,..,,.,,,,,.,,.,,.,,,.,,,,..,,,,,.,.,...,...,..,,,..,,,,,.,,,.,,,
-#3JHZGFP4GEJQUKM25RPXFO7RUBZJH5QYJ6D4ALS7AVYDI4ZRTNMAUETUZCXBUB2EJEGOIYH3LVL66
-#\\\|DE226JQWD3Z3MLQCAOJAXWLM7YDYN6G7XDCDVO4VJ3PVEQIDR76 \ / AMOS7 \ YOURUM ::
-#\[7]KVLMGKKH5Q5KW4KQLHUXPTDZWSEAREXHUMHB2RKQYHQAPUYR6ACY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,...,,..,,.,,,,.,...,...,...,,..,.,.,...,...,...,,,.,,..,.,.,,,.,
+#7FPT2ZQNAEHGEHWRDKGZSHFKFSIWCH22T4SXZAZ3KJSFHGBW7JSK32O74J2LJAARLREYLQEIL5W7S
+#\\\|FSPDPA5SA3SLJ5CUM3QFRUDKOMVM6NY5DSZHMDSTN75QQUPBKDM \ / AMOS7 \ YOURUM ::
+#\[7]ACQ64HBXYYACQXZWK3B7YDAOUTE7H6QTQWD3N63MIFLGJC4H62BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

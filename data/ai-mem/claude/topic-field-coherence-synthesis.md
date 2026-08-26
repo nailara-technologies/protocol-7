@@ -21,8 +21,8 @@ All these are one structure. Each document is one reading of it.
 Adding more documents increases resolution. The synthesis is never complete
 because the structure has no boundary.
 
-#,,,,,,,,,,,,,..,,.,.,.,.,,,.,,..,,,,,,,.,,,,,..,,...,...,...,,..,.,.,,.,,.,,,
-#7Q2FTOQMA6KZZR37B53H3TGNQTMEEOXRTQDRJIBA3ICOVMWWCZRWJETZP2GA6T7YZWEIB77QFINBA
-#\\\|64RHWCG4HWAODUQBGCLJCHOWQOX7CWWBM7HHWUBQOWEBLHXAXS6 \ / AMOS7 \ YOURUM ::
-#\[7]LBZ6OKXEN25URTM364TOIFWMPWC4QYDNAU26XAVGVPGSZPS2SYCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,...,.,.,,,.,,..,,,.,,,,,..,,,.,,..,,...,...,.,,,,,,,.,,,.,.,.,,,
+#TN4XXWNLZZBZ7JRCIDJ6PRAI7AASMS2BDWMFHORJ4ZYGYHJAYULMUIPN66NYTD5CKXAJ5YTKKCEZI
+#\\\|E45FEACMTURLZZVXRGPERT4H2AND4OISHO2KCTREF2WSOB4YBED \ / AMOS7 \ YOURUM ::
+#\[7]EBV7SFXSPAMOL6NFRRFFJHARPEA2DQHEI5BGPXA5MQ2AQ4BIEQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

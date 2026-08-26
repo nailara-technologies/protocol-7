@@ -193,8 +193,8 @@ The dependency issues are minor and non-blocking:
 
 **Next task**: Implement `p7-link-upgrade-helper.pl` for p7.c integration
 
-#,,..,,,,,,,,,.,.,.,.,..,,..,,.,.,,,,,,.,,,,,,.,.,...,...,,,.,..,,,,.,.,,,,,.,
-#AQEXBMBHLNEAZ6FLMWG6SQXULMXYFIBGR4WFEMDRAOZSWNGZHOTHRR565WA7VF7DIEOYNNNAYNLUG
-#\\\|VPNSL5LCVSCZLGER4OMX3PX4YHYBQIOIUHV6USZ73TR4FXOSTZJ \ / AMOS7 \ YOURUM ::
-#\[7]CYUIXVC2JPDZO46VSSFTSIIUNYI5Q6WWIXY4EOSUPVTA6OJ66GAI 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,.,...,..,,,,,,..,,.,.,..,,,,,,.,.,...,...,..,,,..,..,,,,,,...,
+#N7M4VJXDRIUV3VRLCBA6LO7UC5VPS73UC3JKNB2B3ZHSTVXLT5F7F4GOJMW2CXVMJHMTP4FRN2RTQ
+#\\\|IDQWUZTY2IGDZPZXQILRNMF6LMPTEXRAK7J67C5IU5BRDNM3GUC \ / AMOS7 \ YOURUM ::
+#\[7]AEPJCXOEXQ7DKGYNQWRUQ6SCEXIWGIWQXGR5DSOUNYIQ6LI2YIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

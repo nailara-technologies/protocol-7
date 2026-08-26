@@ -69,8 +69,8 @@ landed in commit `67f30d0a0` and extended in the following commit.
 
 todo `W2O` resolved in `src/v7.setup_stdout_redir`: when `<system.admin-user>` is configured, `/dev/shm/.7/STDOUT` is created owned by `<system.amos-zenka-user>` with the admin user's primary group and mode `0750`; the per-socket SHM log file is created with mode `0640` and `chown`ed to `<system.amos-zenka-user>:<admin-group>` when running as root. falls back to the original `0750`/`0600` setup when no admin user is configured. runtime verified: `-rw-r----- 1 protocol-7 taeki` on `/dev/shm/.7/STDOUT/NIW7OAQ` and admin user can `tail -f` the log.
 
-#,,,.,.,,,.,.,...,...,,,,,,,,,,,.,,.,,.,.,,.,,..,,...,...,..,,,.,,.,.,.,.,.,.,
-#2EPZJSXGGFDJPUJYRKRHRFEPDQBKCMH5H7J27NV464N5AFGJZ4A3KXAOAEFVS4GMFRSLZYC7XXAKQ
-#\\\|262TQC5IRNO47VEUWTT7FBPF4SHEA5IYVGPQ2ZMIHGCD6MRN4TU \ / AMOS7 \ YOURUM ::
-#\[7]BKMB74TFCCAW64YIBCQSAJSVURAFOI4Y7LO65LAWMJN4HBM5F4AI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,.,.,.,,,.,...,,,,,,..,,..,.,.,..,,...,...,...,.,,,...,,.,,,,.,
+#CIA6JBF3KWVVW2WWSAZLKCSUBDCWIWEYVZYNRJRONB3LCWRRT5YWNEX54VLTBWWQSCLXG3ETW66UG
+#\\\|KT6RFGS7Z3RITMLQ5UESYZLSKWWOR265T7MM42IPAIJ2ZDUODXZ \ / AMOS7 \ YOURUM ::
+#\[7]B4CBNTT43ZLZTJQGXUZUG2NQJFZJ7PWLPIYKBXFQJSHXCFF6DGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
