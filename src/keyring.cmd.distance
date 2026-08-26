@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = keyring.cmd.distance
+# descr = compute distance between two namespace paths.
+#         also shows their lowest common ancestor path.
+
+my ( $path_a, $path_b ) = @ARG;
+
+if ( not defined $path_a or not defined $path_b ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'usage: keyring.distance <path-a> <path-b>'
+    };
+}
+
+my @a      = length($path_a) ? split( /\./, $path_a ) : ();
+my @b      = length($path_b) ? split( /\./, $path_b ) : ();
+my $common = 0;
+$common++
+    while $common < scalar @a
+    and $common < scalar @b
+    and $a[$common] eq $b[$common];
+
+my $distance = ( scalar @a - $common ) + ( scalar @b - $common );
+my $ancestor = $common > 0 ? join( '.', @a[ 0 .. $common - 1 ] ) : '(root)';
+
+my $output
+    = sprintf( "path_a:    %s\npath_b:    %s\ndistance:  %d\nancestor:  %s",
+    $path_a, $path_b, $distance, $ancestor );
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,...
+
+#,,,,,..,,...,...,,.,,,..,..,,...,...,..,,...,..,,...,...,.,.,...,,,.,,,.,,,.,
+#MZ7MLUMIE73B4B6NPR6L744KLSJLAORRW3SSLYUIEJDAY4RSH5KN4Q4JIX5ULDLOPPPBPV5EJCMCC
+#\\\|QXKYG5PEO4JWJ7TKUDIOJEEGZUL2HCS2IHSNDMNYPWDPRYJ6MR6 \ / AMOS7 \ YOURUM ::
+#\[7]GQRO2FSC36PB6RC2NDO2VNSKOUOISPVAT5QH62IJL7IQLK3GQABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

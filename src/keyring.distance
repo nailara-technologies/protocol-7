@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = keyring.distance
+# descr = resonance distance between two namespace paths.
+#         finds lowest common ancestor depth, returns combined step count.
+#         distance 0 = same path, 1 = parent/child or sibling-of-sibling,
+#         2 = siblings [ same parent ], higher = less related.
+
+my ( $path_a, $path_b ) = @ARG;
+
+$path_a //= '';
+$path_b //= '';
+
+my @a = length($path_a) ? split( /\./, $path_a ) : ();
+my @b = length($path_b) ? split( /\./, $path_b ) : ();
+
+my $common = 0;
+$common++
+    while $common < scalar @a
+    and $common < scalar @b
+    and $a[$common] eq $b[$common];
+
+return ( scalar @a - $common ) + ( scalar @b - $common );
+
+#,,...
+
+#,,..,.,,,,,,,.,.,,..,.,.,,,.,...,...,,..,.,.,..,,...,...,.,.,,,,,..,,..,,,,,,
+#FQDMVCQNKLTIIM6GTKYEAFSQAQFVV75EMLTHOQXJI7CDTFN76DM7N5SQBVLZMRWQLF3NFXG7NX4DQ
+#\\\|6UAWMKX67E2VGX6C4FSSHLZ7LXLQVW53JTHWF4OD3GSIJLIWYYB \ / AMOS7 \ YOURUM ::
+#\[7]Z4DTWPGBP67QEBDPK4V7H32ODD4QZF22UDCZD33RMAJM47ZZ6GAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

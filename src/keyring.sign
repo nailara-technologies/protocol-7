@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = keyring.sign
+# descr = sign a datum with the key at a given namespace path.
+#         returns 32-byte keyed BLAKE2b signature.
+
+my ( $dot_path, $datum ) = @ARG;
+
+my $key = <[keyring.derive]>->($dot_path);
+
+if ( not defined $key ) {
+    <[base.logs]>->(
+        0, 'keyring.sign: key ' . 'derivation failed [ %s ]', $dot_path
+    );
+    return undef;
+}
+
+return Crypt::Mac::BLAKE2b::blake2b( 32, $key, $datum // '' );
+
+#,,...
+
+#,,..,...,,.,,,.,,,,,,,,,,.,.,...,,..,,.,,,,.,..,,...,...,.,.,,.,,,,.,,.,,,..,
+#XQD54GQQWFURDC4WTKKTASH2VCYKICR2QADTLEVWPJVHTILDXT7KPSS6ZTUAANDSFR6N3JL36AQLK
+#\\\|KVXH7TBBLKWBYLQXY6LZKOAEFPMM5BS4PIQ3FUCAJRNXCO3XCWU \ / AMOS7 \ YOURUM ::
+#\[7]HZRJTMDNWYYUSB6Y5CYHRKT4MC6Y4XBVVQGOZD77MMTXJUFOUADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
