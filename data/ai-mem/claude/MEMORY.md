@@ -17,7 +17,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [rename-scope-policy](feedback-rename-scope-policy.md) — never cite scope/blast-radius as a reason to hesitate on a rename; judge renames on improvement only — `bin/ncode` makes even large ones mechanical, and commercial deployments elsewhere forked off `base` years ago so nobody tracking `base` is disrupted
 - [hour-of-day-hedging-not-genuine](feedback-hour-of-day-hedging-not-genuine.md) — citing "the hour"/lateness as a reason to suggest stopping is a disengagement tic, not real signal (I don't know the user's actual local time); if a hard problem isn't converging, name the real uncertainty directly instead
 - [cpanm-force-install-blast-radius](feedback-cpanm-force-install-blast-radius.md) — `sudo cpanm --force <module>` for one narrow CPAN need can silently pull in an apt dependency chain that upgrades shared system crypto libs AND shift the effective default perl version — check `dpkg.log`/`apt list --upgradable` before *and* after any force-install on this host, flag explicitly even when the target module has nothing to do with crypto
-- [cpanm-triggered-inline-elf-utf8-boundary-bug](feedback-cpanm-triggered-inline-elf-utf8-boundary-bug.md) — RESOLVED 2026-08-26: two real C bugs in `AMOS7::CHKSUM::ELF::inline_elf` (stale-len STRLEN underflow + forced u8_len=1 misalignment), both fixed, C now matches pure-Perl fallback exactly (640/640 vectors); caused the 2212-file mass signature-verify failures AND the C25519 key-decryption failure. Fixing the algorithm does NOT recover the key (produces a third value, matches neither old nor new) — real key recovery confirmed separately via a remote server's pristine pre-incident environment. ~2233 files still need a one-time re-sign once a working key exists locally (accepted, not urgent). Read this + both linked task docs before touching `crypt.C25519.*`, `AMOS7::CHKSUM::ELF`, or a bulk re-sign
+- [cpanm-triggered-inline-elf-utf8-boundary-bug](feedback-cpanm-triggered-inline-elf-utf8-boundary-bug.md) — FULLY CLOSED 2026-08-26, committed `0875c8668`+`94aa460a7`: three independent 2021-era bugs found and fixed — two in `AMOS7::CHKSUM::ELF::inline_elf` (stale-len underflow + u8_len=1 misalignment) and a third in `crypt.C25519.load_keypair` (wrong file read + unconditional prefix-strip) that only surfaced once new `keys.backup.*` infrastructure (also this session, fixes `.secret`-bearing keys in change-passwd/dec-key/enc-key) enabled a real end-to-end test. All verified against a real key, all committed and signed, working tree clean. Read before touching `crypt.C25519.*`, `AMOS7::CHKSUM::ELF`, `keys.console.*`, or a bulk re-sign — the full bug-hunt methodology (safe size-only diagnostics, never touching real key material) is worth reusing
 
 ## Category files — open the one that matches the topic in play
 
@@ -52,8 +52,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,.,,,,,,,..,,...,..,,,.,,,,,,,.,,..,,.,.,..,,...,...,,,,,,..,.,.,,,.,,,,,
-#MYRARB5R4FHG7LR22MKTEUUCXEWP65QRMTHRNXBGPHRZ2ZOH4K5CEMEFZTUIF336YWGCTFLIKX4AE
-#\\\|QMSFSB4QLVMFHSEPG6RVLVABZJESIFCGCZ2ABT6QOGV7GDNSOF2 \ / AMOS7 \ YOURUM ::
-#\[7]X5LEFCCDHRZ4XJLHO4CKTPQIEO7WHJ6OULFGMC6QQSRFQRHJ7IDY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,.,,,..,,..,.,,,..,,.,,,..,,,,,,..,,...,...,,,.,.,.,..,,,..,,,.,
+#PKCKQ4M5HKLQ7FSZXGRARYXKKHC7BLW43G3QZ7NGWFTNEJWALR3HAMBM7MBKDF5QPWRS3PQ5JJJ3S
+#\\\|MMDCXRUDKYY6W43BEV2QQGT6Z3ARFVRDQMNJ3FS25ZCV26BNZLC \ / AMOS7 \ YOURUM ::
+#\[7]BXBNILGDLDPYRON6KFQWK3DBIWZSQZVATQIK2LV5WXOCPZDLOOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
