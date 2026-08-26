@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = keys.backup.list
+# param = [ <key_name> ]  optional filter
+# descr = enumerate key-file backups [ created by keys.backup.create ],
+#         newest first. ordering is always by the DECODED timestamp,
+#         never by string/glob sort -- the base32 ntime encoding is
+#         variable-length [ BER-packed ], so plain sort is not
+#         guaranteed chronological.
+
+my $name_filter = shift;    ##  optional  ##
+
+my $key_vars_ref
+    = length( $name_filter // '' )
+    ? <[crypt.C25519.key_vars]>->($name_filter)
+    : <[crypt.C25519.key_vars]>;
+
+my $key_dir = $key_vars_ref->{'key_dir'};
+
+my $backup_re = qr{ ^ ( [A-Z2-7]+ ) \. (.+) \. (secret|private|public) $ }x;
+
+my @backups;
+foreach my $path ( <[file.all_files]>->($key_dir)->@* ) {
+    ( my $basename = $path ) =~ s|^.*/||;
+    next if $basename !~ $backup_re;
+    my ( $tstamp_b32, $key_name, $type ) = ( $1, $2, $3 );
+
+    next
+        if length( $name_filter // '' )
+        and $key_name ne $name_filter;
+
+    my $tstamp_unix = <[base.ntime.B32_2_unix]>->($tstamp_b32);
+
+    push @backups,
+        {
+        qw| key_name    | => $key_name,
+        qw| type        | => $type,
+        qw| tstamp_b32  | => $tstamp_b32,
+        qw| tstamp_unix | => $tstamp_unix,
+        qw| path        | => $path,
+        qw| basename    | => $basename,
+        };
+}
+
+## newest first ##
+@backups
+    = sort { ( $b->{'tstamp_unix'} // 0 ) <=> ( $a->{'tstamp_unix'} // 0 ) }
+    @backups;
+
+return \@backups;
+
+#,,.,,..,,.,,,,,,,,,,,...,...,.,,,...,..,,,,,,..,,...,...,,,.,...,.,.,,,.,,.,,
+#JNKJBA7W2CE6HLLCEF34W7AOP24446RIJCTZTW5AM54O7YCIQGCM3KF6XQ43SWF3RA7L5KQ65UJWG
+#\\\|FPBHFPHYF3YDOMHNOFNTX43FPWM356Z5HXJTXPEXML4242J736D \ / AMOS7 \ YOURUM ::
+#\[7]RWY4RMONJOVAVK5JQ7PJU6EQBWX26AYJMZZPJ7VA4CPMYOB2QEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

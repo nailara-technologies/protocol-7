@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = keys.console.list-backups
+# param = [key-name]
+# descr = list key-file backups, newest first
+
+my $name_filter = shift;
+
+my $backups = <[keys.backup.list]>->($name_filter);
+
+my %C = %AMOS7::C;
+
+if ( not @$backups ) {
+    say sprintf( "%s:%s\n%s: %sno backups present%s\n%s:%s",
+        $C{'0'}, $C{'R'}, $C{'0'}, $C{'T'}, $C{'R'}, $C{'0'}, $C{'R'} );
+    return;
+}
+
+say sprintf( '%s:', $C{'0'} );
+foreach my $b (@$backups) {
+    my $when
+        = defined $b->{'tstamp_unix'}
+        ? scalar localtime( $b->{'tstamp_unix'} )
+        : qw| unknown-time |;
+    say sprintf(
+        '%s: %s%s%s.%s  [ %s ]  %s',
+        $C{'0'},      $C{'T'}, $b->{'key_name'}, $C{'R'},
+        $b->{'type'}, $when,   $b->{'basename'}
+    );
+}
+say sprintf( '%s:', $C{'0'} );
+
+return $backups;
+
+#,,.,,.,.,,.,,,.,,..,,.,.,...,,,,,.,,,..,,,.,,..,,...,...,,,,,.,.,.,,,,,,,..,,
+#RYZGOK6QV7W6IRWZXBLPERZC4FLB2FHISLOP3DSBQJZC2POM3MJHQJ6Q6UWG56EU3UZSOZJ4FTXHQ
+#\\\|A4XAKUQ2YJO4W44IPTQGJFHRWVKKV3KYEFYCSRHTAWB7EMCSRR4 \ / AMOS7 \ YOURUM ::
+#\[7]ACIMDQ4OTBFX47UYLJINJFQZB57Q7OKIKUTQZAYFYUEE52L6TWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,7 +35,8 @@ if ( $key_status < 0 ) {
 
 my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
 
-foreach my $type (qw|  private  public  |) {
+foreach my $type (qw|  secret  private  public  |) {
+    next if not -f $key_filenames->{$type};
     if ( not -w $key_filenames->{$type} ) {
         <[base.logs]>->(
             0,
@@ -56,46 +57,12 @@ if ( not defined $load_success ) {
     goto ABORT_KEY_DECRYPT;
 }
 
-my $backup_file_names;
-ANOTHER_FILE_TIMESTAMP:
-my $tstamp = <[base.ntime.b32]>->( 5, TRUE ) // '';
-<[base.exit]>->( qw| 0110 |, 'cannot acquire timestamp' )
-    if not length $tstamp;
-foreach my $type (qw|  private  public  |) {
-    if (   not defined $key_filenames->{$type}
-        or not -f $key_filenames->{$type} ) {
-        <[base.s_warn]>->(
-            'error while acquiring %s key filename <{C1}>', $type
-        );
-        goto ABORT_KEY_DECRYPT;
-    }
-    $backup_file_names->{$type} = sprintf qw| %s.renaming.%s |,
-        $key_filenames->{$type}, $tstamp;
-    goto ANOTHER_FILE_TIMESTAMP if -e $backup_file_names->{$type};
-}
+my $backup_paths
+    = <[keys.backup.create]>->( $name, [qw| secret private public |] );
 
-foreach my $type (qw|  private  public  |) {
-
-    if ( not rename( $key_filenames->{$type}, $backup_file_names->{$type} ) )
-    {
-        <[base.logs]>->(
-            0,
-            'cannot create key backup file %s --> %s [ %s ]',
-            $key_filenames->{$type},
-            $backup_file_names->{$type},
-            <[base.str.os_err]>
-        );
-        if ( $type eq qw| public | ) {    ##  restore first file  ##
-            rename(
-                $backup_file_names->{'private'},
-                $key_filenames->{'private'}
-                )
-                or <[base.s_warn]>->(
-                '%s [ while restore of %s ]',
-                $key_filenames->{'private'}
-                );
-        }
-    }
+if ( not defined $backup_paths ) {
+    <[base.log]>->( 0, 'cannot create key backups, aborting.,' );
+    goto ABORT_KEY_DECRYPT;
 }
 
 ( my $keywrite_status, my $key_checksum )
@@ -104,11 +71,11 @@ foreach my $type (qw|  private  public  |) {
 if ( defined $keywrite_status and $keywrite_status == 5 ) {
     <[base.log]>->( 1, 'write was successful, removing backup files..,' );
 
-    foreach my $type (qw|  private  public  |) {
-        if ( not unlink( $backup_file_names->{$type} ) ) {
+    foreach my $type ( keys %$backup_paths ) {
+        if ( not unlink( $backup_paths->{$type} ) ) {
             <[base.s_warn]>->(
                 '%s : while unlinking key file backup : %s',
-                <[base.str.os_err]>, $backup_file_names->{$type}
+                <[base.str.os_err]>, $backup_paths->{$type}
             );
         }
     }
@@ -122,25 +89,14 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 } else {
     <[base.log]>
         ->( 0, 'write was not successful, restoring backup files..,' );
-    foreach my $type (qw|  private  public  |) {
-        if (not
-            rename( $backup_file_names->{$type}, $key_filenames->{$type} ) ) {
-            <[base.logs]>->(
-                0,
-                'cannot move back key backup file : %s --> %s [ %s ]',
-                $backup_file_names->{$type},
-                $key_filenames->{$type},
-                <[base.str.os_err]>
-            );
-        }
-    }
+    <[keys.backup.rollback]>->( $name, $backup_paths );
 }
 
 ABORT_KEY_DECRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,,.,,.,,,..,...,.,.,.,,,.,.,.,.,,,,,.,,,..,,..,,...,...,...,.,,,..,,,,.,,,.,
-#WBQWCOANZSO4T7RLWQNLDGGDO5AJCHIO6HBSHKDPO7BVYVNUJFCHBC2RN2A6UKHI5XWJJMJECAQJE
-#\\\|YDX2VUERHER77LJLWZDH4MJJK36D3Q3JZ3FHKVYJUH2RWLFRID6 \ / AMOS7 \ YOURUM ::
-#\[7]G7N7Z7AOQKIUTGFXNPSLOONGQ5U5QZQV6O6CLMNK6SEI6WJNIADA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,,..,,..,.,.,.,,,..,,.,.,,.,,..,,...,...,,,,,...,,,.,,,.,.,.,
+#H4NX4CZ6MH7TWN4R3NBUBN2QPFLL2PDILE34JFZDCRBRWPBWJMWCZO6GJ6PNDSCD6T75GAZXUEDEO
+#\\\|ZXOI7G3RG7XXII3IHI2TYOYR4PR34KB5GB5JHWRAVW7LPPHRRJS \ / AMOS7 \ YOURUM ::
+#\[7]4WKQFLBOHVRKJVWUIDVGGXHNGQTVCB745LPQUSOJGUBLYHZWRIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

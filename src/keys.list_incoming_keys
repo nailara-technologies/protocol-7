@@ -47,11 +47,10 @@ foreach my $file ( <[file.all_files]>->($incoming_dir)->@* ) {
         if ( defined $safe_host and defined $port ) {
             my $host = $safe_host;
             $host =~ tr|_|:|;    ## primary restore [ same lossy reversal ##
-            ## keys.list_remote_keys uses -- an       ##
-            ## underscore could originally have been  ##
-            ## ':', '/', or a literal '_',            ##
-            ## display-only ambiguity, doesn't affect ##
-            ## matching/authorization ]               ##
+            ## keys.list_remote_keys uses -- an  underscore could ##
+            ## originally have been  ':', '/', or a literal '_',  ##
+            ## display-only ambiguity, doesn't affect             ##
+            ## matching/authorization ]                           ##
             $display_name = sprintf( '%s@%s:%s', $username, $host, $port );
         } else {
             ## unparseable middle segment -- show raw rather than hide the ##
@@ -98,8 +97,8 @@ foreach my $file ( <[file.all_files]>->($incoming_dir)->@* ) {
 
 return \%incoming_keys;
 
-#,,.,,..,,,..,,,.,,,.,,..,,.,,..,,.,,,,..,...,..,,...,..,,..,,,,,,...,.,,,...,
-#BDFL2GJKDEH6RVQUNTKKKKPL4FU2RNZXUNIGNXGHBAISG2VMXLUBNU3KTCSRJ7TBMXRUBJMO6LI7W
-#\\\|FUR7Y6ZCBYBT2H4W42PWD2J24YBU4IVX62T4EWPDGGNDU6QENNJ \ / AMOS7 \ YOURUM ::
-#\[7]U34J3QDGWOPV2553KZFVMXCHNRSHVR72O4P4MPCMDDHYITJEPQBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,...,,,.,.,,,,,,,..,,,,.,.,,,..,,...,..,,,,,,,,.,,..,.,.,,,,,
+#OKCS7R4T6QDLCGNPDL76A4G6CRQ7ZUMTS2CUMBKIXWSADRKZN7MPAKMYZTARIMENKPWYR5D744PCG
+#\\\|5H6DNYFLIBH3CG2Z3IPNSQBGZIUC6MI2LD3OYGZRCAMSUUP5HE7 \ / AMOS7 \ YOURUM ::
+#\[7]R27EE5QLSQ44DFBTS2PDCBJICALNXI7QRAEACHRX226VXFFVMYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

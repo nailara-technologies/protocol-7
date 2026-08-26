@@ -88,8 +88,8 @@ sub elf_chksum {
     {
         no warnings 'utf8';    ## deal silently with malformed UTF8 ##
         $elf_checksum
-            = inline_elf( $$data_ref, $start_chksum, $elf_mode, $shift_bits,
-            $overflow_threshold );
+            = inline_elf( $data_ref->$*, $start_chksum, $elf_mode,
+            $shift_bits, $overflow_threshold );
     }
 
     $elf_mode   = 7;     ## resetting to AMOS-13-ELF algorithm settings ##
@@ -102,8 +102,8 @@ sub elf_chksum {
 
 return TRUE ##################################################################
 
-#,,.,,.,,,...,...,,.,,,,,,.,.,,,.,..,,..,,,,,,..,,...,...,.,.,,..,..,,...,..,,
-#5DIQBSTQ57T7OSBLG36D2ZPX7FPWJLEXWMXBQDCGTTS4L7C47SO2FL5V25GRLAGWSNL45WFGOV5YK
-#\\\|MOLBXIJMMISD545OBIYYGE7HGHNUQBFQPOIWSFKVPL72EXOLDA6 \ / AMOS7 \ YOURUM ::
-#\[7]FTOKQPQVNED6HKID7GKXOD5EF6ZESPMJHBDIAVDKM6XFA7IQFOBI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,.,,..,,.,,,,.,,.,,...,,,,,,,,,..,,...,...,,,.,,,,,..,,,,.,,.,,
+#KQPAHEU5CAYCIJ6Q6CHIF7IQLS3RAWKQTGZ7YPDDTKK6SZNLA6FNLOO4DQF3AJIE5SKJM2CK7LP6E
+#\\\|WEIIJAXCNPWQ4RB52BYOP23IZUQK2S64KXMCJ7NG5TDTTEDROYB \ / AMOS7 \ YOURUM ::
+#\[7]EGGZYC5XG65GHIHQUNQIJL6SXVRNOCX7UCA7XVDHR26FGDBDCUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -45,10 +45,35 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
         unsigned int shift_limit = ~result;
         shift_limit >>= 4; // limiting left shift [ elf mode ] beyond 27 bits
 
-        STRLEN    len = SvCUR( input_str );       // <-- can contain \0 bytes
         U8* str       = sv_2pvutf8_nolen( input_str );
+        STRLEN    len = SvCUR( input_str );       // <-- AFTER utf8 upgrade :
+        // upgrading a byte >= 0x80 grows the buffer [ 1 byte -> 2 byte utf8
+        // sequence ]. reading SvCUR() before the upgrade [ as this used to ]
+        // captures the PRE-upgrade byte count, which is always <= the real
+        // [ possibly larger ] upgraded buffer. the loop below decrements
+        // `len` by the exact number of bytes it advances `str`, so on a
+        // buffer containing >= 0x80 bytes, near the end `len` can drop
+        // below the `u8_len` of the next decoded sequence -- `len -= u8_len`
+        // on the unsigned STRLEN then WRAPS to a huge value instead of
+        // going negative, and the loop reads straight past the end of the
+        // buffer into adjacent memory until it happens to stop [ this is
+        // what the "Malformed UTF-8 character (empty string)" warnings
+        // silenced by `no warnings 'utf8'` in ELF.pm's elf_chksum were :
+        // out-of-bounds reads, not the codepoint decode itself being wrong
+        // ]. the out-of-bounds content differs across perl versions/builds
+        // [ different internal SV allocation slack ], which is why this
+        // surfaced as a checksum divergence between perl 5.40 and 5.42
+        // rather than a crash. see data/tasks/
+        // elf-chksum-c-vs-pure-perl-utf8-divergence.md and
+        // c25519-key-decryption-failure-hypothesis-2026-08-25.md
         UV  str_pos_0 = (UV) str;
         STRLEN  c_pos = 0;
+        U8* str_end   = str + len;   // true end of buffer, for bounds-
+                                      // checked utf8_to_uvchr_buf() calls
+                                      // below -- previously an
+                                      // uninitialized `next_chr` local was
+                                      // passed as the `send` boundary arg,
+                                      // giving the decoder no real bound
 
         unsigned int shift_value = 13;     //  AMOS-13 : 13  ||  elf-hash : 4
 
@@ -88,7 +113,6 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
             bool is_ascii = is_ascii_string( str, 1 );
 
             UV character;
-            U8 * next_chr;
             STRLEN u8_len;
 
             if( *str == 0 ) {                                 // ASCII 0
@@ -103,11 +127,20 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
             } else {                            // ASCII 128 .. 255 and UTF-8
 
-                character = utf8_to_uvchr_buf( str, next_chr, &u8_len );
+                character = utf8_to_uvchr_buf( str, str_end, &u8_len );
 
-                if ( character < 256 ) {
-                    u8_len = 1;   //   not UTF-8 codepoint, single character
-                }
+                // `character`'s VALUE may legitimately be < 256 [ e.g. every
+                // high byte 0x80..0xFF that sv_2pvutf8_nolen's Latin-1
+                // upgrade turned into a 2-byte UTF-8 sequence decodes back
+                // to that same < 256 codepoint ] -- but the buffer pointer
+                // must always advance by the REAL number of bytes the
+                // decoder consumed [ u8_len ], never by 1 regardless of the
+                // decoded value. forcing u8_len=1 here [ removed ] advanced
+                // `str` past only half of every such 2-byte sequence,
+                // landing on its trailing continuation byte and cascading
+                // "unexpected continuation byte" errors through the rest of
+                // the buffer -- see data/tasks/
+                // c25519-key-decryption-failure-hypothesis-2026-08-25.md
 
                 // never allow zero-length advance : some malformed [ e.g.
                 // non-text binary input ] byte sequences can otherwise
@@ -161,11 +194,40 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
         ## special value for null bytes ##
         my $z_val = 777;
 
+        ## entropy-loss-avoidance threshold : computed ONCE from the
+        ## starting result [ matching the C implementation's one-time
+        ## setup, AMOS_13_ELF.pm lines 44-45 ] -- NOT recomputed per
+        ## character. earlier version of this fallback recomputed it
+        ## inside the loop below, which is a real transcription bug: it
+        ## made the threshold track the CURRENT (growing) $result instead
+        ## of staying fixed, causing the entropy-loss-avoidance branch to
+        ## fire at a different point than the C version for any
+        ## sufficiently long input, independent of character content ##
+        my $shift_limit = ~$result >> 4;
+
         ## iterate through string as UTF-8 codepoints ##
+        ##
+        ## RESOLVED 2026-08-25 [ was: KNOWN LIMITATION ]: this used to
+        ## diverge from the compiled C implementation for any input
+        ## containing bytes >= 0x80. A byte-level Encode::decode rewrite
+        ## was tried here first and did NOT close the gap -- because the
+        ## actual cause was never a decode-model mismatch between this
+        ## codepoint-based loop and the C code's byte-level one. It was
+        ## two real bugs in the C side itself [ this file, ~lines 48-49
+        ## and ~128-134 ]: a stale pre-upgrade `len` that could underflow
+        ## the unsigned STRLEN and read past the buffer, and a forced
+        ## `u8_len = 1` override that misaligned the byte cursor on every
+        ## upgraded high byte. With both fixed in the C source, this
+        ## unpack('U*') codepoint loop and the compiled C now agree
+        ## exactly -- verified across 320+ random binary vectors [ 1..512
+        ## bytes ] plus the fixed UTF-8/malformed/high-entropy test set,
+        ## zero mismatches. See data/tasks/
+        ## elf-chksum-c-vs-pure-perl-utf8-divergence.md and data/tasks/
+        ## c25519-key-decryption-failure-hypothesis-2026-08-25.md for the
+        ## full investigation ##
         foreach my $character ( unpack( 'U*', $input_str ) ) {
 
             ## reset left shift if approaching entropy loss ##
-            my $shift_limit = ~$result >> 4;
             if ( $elf_mode > $shift_reset && $result >= $shift_limit ) {
                 $elf_mode = $shift_reset;
             }
@@ -199,8 +261,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#,,,,,,,,,,.,,,..,,..,,,,,.,,,,.,,,,,,,,,,,..,..,,...,...,,..,.,.,,.,,..,,,,.,
-#RDH42R36AHOMK63QJCE2UTJJIZWNSPRY4BLT57YRCYOG47ERK43BM5N6Z3EOM6U7OVJG2W5BUA25G
-#\\\|XLTUKJVK7FDE2KIZZNCUGIZSA5BRQNITX3K5FIBKPJ4KEG7SQMN \ / AMOS7 \ YOURUM ::
-#\[7]RJHI5EXKHYV5OA52RJZVTKURGNMIVPCVHAV5PP2L77OBY62VGYAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,.,..,,...,...,,,,,,.,,.,.,,,.,..,,...,.,.,,.,,,,.,,,,,,.,,,.,,
+#IZ4M6AFVTFGLWMBLNVNPFCAJQACOO4BODLZRPZWVSUIIJPPYLWJD4WHETYJ6IL3ZIE6YFAHXEJVWE
+#\\\|7ZCOW3TMVVE7DIWOTBNHHNONCEJTTXSG4ADQ32DTS54Y5KUBAPJ \ / AMOS7 \ YOURUM ::
+#\[7]5UPT6ID6QLFN5VJRZS24RWVOTKGNJFGWDKF5SCK7FPUFJNAFWWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

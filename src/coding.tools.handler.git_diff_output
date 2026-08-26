@@ -1,12 +1,10 @@
 ## [:< ##
 
 # name  = coding.tools.handler.git_diff_output
-# descr = core routine for git diff output [ staged or unstaged ] via Git::Wrapper
+# descr = git diff output [ staged or unstaged ] via Git::Native FFI
 
-my $git_args   = shift // '';
+my $git_args   = shift // '';    ## kept for signature compat; unused
 my $stage_type = shift // 'unstaged';    ## 'staged' or 'unstaged' ##
-
-$git_args = '' unless defined $git_args and $git_args =~ m|\S+|;
 
 my $root = <system.root_path>;
 
@@ -18,16 +16,20 @@ unless ( -d "$root/.git" ) {
     };
 }
 
-my $git = Git::Wrapper->new($root);
-
-my @cmd_args = grep {length} split ' ', $git_args;
-unshift @cmd_args, '--cached' if $stage_type eq 'staged';
-
-my @output_lines;
-my $error = '';
-eval { @output_lines = $git->diff(@cmd_args); };
+my $diff_text = '';
+my $error     = '';
+eval {
+    require Git::Native;
+    require Git::Native::Diff;
+    my $repo = Git::Native->open($root);
+    $diff_text
+        = $stage_type eq 'staged'
+        ? Git::Native::Diff->staged_patch($repo)
+        : Git::Native::Diff->workdir_patch($repo);
+    1;
+};
 if ($EVAL_ERROR) {
-    $error = $EVAL_ERROR;
+    $error = "$EVAL_ERROR";
     $error =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;
     return {
         'mode' => qw| false |,
@@ -37,11 +39,11 @@ if ($EVAL_ERROR) {
 
 return {
     'mode' => qw| true |,
-    'data' => join( "\n", @output_lines )
+    'data' => $diff_text
 };
 
-#,,,,,,,,,,..,.,,,,,,,,..,,,,,,,.,,..,...,.,,,..,,...,...,,.,,..,,,,.,.,.,...,
-#JY5AB6Z3OR5MTGW4V3U7WOQSPGFE4G6675KGJFESNRO7IZLXJA6ESSBRC53WR44NPBBTIHQ4WWFKO
-#\\\|KIS3V2OM3ZZBAMTADILL4GZT63SCPNQK3ZUAOVGL3F33HJOHB5X \ / AMOS7 \ YOURUM ::
-#\[7]7BW376ACOOHEMZX26TDFTHWXAZ6LT4ESVEYGAI7R53NA3OWNV2DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,.,,,,..,.,.,,.,,.,.,,..,.,,,..,,...,...,,.,,,,,,.,.,,..,.,,,
+#X2XCTERFOMNYOU4LKTZS4YQM5VB7OZBNUOQKAF7PTJYORZYHCOEWYIAXGBNTVSLJFKFFE4MVEKG62
+#\\\|6TLRVOXQ65UALODKIGBFPJ7TBP24WVDUV66HGMZIXCO2QMNGK5W \ / AMOS7 \ YOURUM ::
+#\[7]HXNJPBMQPCITK5YYHCM5ADOGDIKKGXL4W67OYHC5UNYIALEHJQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

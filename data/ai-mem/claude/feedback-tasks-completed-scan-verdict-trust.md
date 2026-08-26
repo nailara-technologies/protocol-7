@@ -48,8 +48,34 @@ rate on "still open" is not a one-off — treat every batch-scan "still
 open" bucket in this repo as unverified by default, not just spot-check
 the surprising ones.
 
-#,,..,...,...,..,,.,,,.,,,.,,,.,.,,,,,,,,,,.,,..,,...,...,,,,,.,,,,..,.,,,.,.,
-#2PKVEUWEQEPEGM5XDGBZYAQG4LWFWFXM5GVDL42LBD6HRZWP73D3VOZ64GPVXY36B2ID2BJCBJTUM
-#\\\|3374UHJCR5QECQUUYBFVUABG4E64I6XB3ECM2YKWY7UC3VVZK3G \ / AMOS7 \ YOURUM ::
-#\[7]DJATAPYJAAWYTFFQSJCLXHVUL2YA4XNEFCFK4XUMFNZ66YYZ6YAI 7  DATA SIGNATURE ::
+**Broader than batch-scan verdicts (2026-08-25)**: the same distrust applies
+even with no automated scan involved at all — task docs just organically go
+stale after the work lands, because nobody circles back to update the status
+line. Found **six** separate instances in one session, purely from
+independently re-verifying task docs against `git log`/`grep` while doing an
+unrelated review: `task-zenka-cold-queue-gpu-cooldown-trigger.md` (said
+"planned, not started" — feature shipped same-day, commit `c54c91c4c` +
+threshold-tune fix `e1c3f6b2d`), `inline-subs-batch-misc.md` and
+`perlmod-move-confirmed-refactor.md` (both fully landed, zero status update),
+`base-parser-list-width.md` (fixed 2026-06-09 in `c54c255c7`, doc never
+touched again), plus two `data/yaml/coding-tasks/*.yaml` docs —
+`user-edit-address-cluster-plugin.yaml` (still read "DESIGN DRAFT, not yet
+implemented" despite a full implementation + six polish commits) and
+`users-zenka.yaml` (said "phase 2 not yet built" despite `cb38cdc90`
+shipping it — this one also surfaced a genuinely real remaining gap, not
+just a stale line: TOFU peer-validation still missing, flagged in the
+code's own header comment).
+
+**How to apply, generalized**: never trust a task doc's own stated status —
+whether it came from an automated scan or was just hand-written months ago
+— without independently checking `git log --oneline --all --grep=<topic>`
+and/or grepping for the described functionality in `src/`. This is cheap
+(a few grep/log calls) and catches real, load-bearing inaccuracies, not just
+cosmetic staleness — the `users-zenka.yaml` case shows a stale doc can also
+be hiding a genuine unresolved TODO underneath the wrong headline claim.
+
+#,,.,,,.,,...,,,,,,..,,,,,.,.,,,.,,,.,,,.,..,,..,,...,...,,,.,.,.,...,.,.,,..,
+#VCP4TE332EJ3UT43SSEKSY2FEAFPU726AOGGUTC62MMYG55KRYQZQXPO465BOPNYXGEZCFGCTK3GW
+#\\\|3YO4HYABEZ35AGUCAWV3OAQOVFIOAF2YHFZC6R6ECYHSKDV26C6 \ / AMOS7 \ YOURUM ::
+#\[7]QMPBE2BPQI2SRA5M4IZSSQUMAVCOWOLPDRHQMW2TRBOXQ7X6N6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
