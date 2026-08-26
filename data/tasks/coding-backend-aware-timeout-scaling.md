@@ -24,6 +24,19 @@ live evidence, not a guess:
   `coding.init_code`) also aborted a cpu round mid-flight: `[poll_probe]
   probe 4779119 exceeded 1700s total budget : aborting` /
   `[self_test] complete : ... : 1/2 passed`
+- cleaner same-session, same-model, back-to-back pair [ cpu's cycle
+  completed, gpu's started immediately after, both against
+  `M7XXVGY:AH6BYCA` ] : prompt1 [ simple literal ] cpu=48.96s gpu=4.66s
+  -> **~10.5x** ; prompt3 [ simple literal, same shape as prompt1 ]
+  cpu=63.23s gpu=6.75s -> **~9.4x** -- consistent with each other,
+  tighter than the cross-run ~7-8x estimate above. prompt2 [ the
+  reasoning/tier1-reformat prompt ] is NOT a clean hardware comparison
+  the same way : cpu=88.22s vs gpu=124.15s ttft in this same pair -- gpu
+  came out SLOWER here, because reasoning-trace length varies per run
+  [ sampling, no fixed seed ] and dominates that prompt's timing more
+  than raw throughput does. this is the concrete case the seed-sync idea
+  below exists to fix -- without it, prompt2-class timings aren't
+  comparable across backends at all, only prompt1/prompt3-class ones are
 
 so it's not just the two `coding.handler.http_timeout` ceilings (soft
 127s, hard `<coding.http-timeouts.request-completed> // 780`) -- the
@@ -112,8 +125,8 @@ results via its own internal per-prompt retry-after-failure, not a
 crash or hang), filed same day as the CPU spawn fixes that made this
 gap observable at all.
 
-#,,..,..,,,..,.,.,...,.,,,.,.,,.,,,,,,.,,,.,.,..,,...,...,,..,...,,,,,...,.,,,
-#HO6AFOUOFO76YTLYS5L4MBJ2KUE2MJZYEXT3WUDVYPWNKK6NSKXWMRBEP55QILU7M5QUPBTOAZG3I
-#\\\|TMNVXAOFFTOO26VMHNT2LC245LKF2WOG7AI6ZONBBPIB2JWV4CR \ / AMOS7 \ YOURUM ::
-#\[7]R64GJHHPUYLE4FMYNSGQTRNF5A2BNFAQQ3MA2N4HNALYV4MB5EDY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,.,.,.,.,,.,,..,,..,,.,.,,..,..,,...,...,...,.,.,,,,,.,.,.,,,
+#2P5CQABE4XL3YG22BC25SITWLCMRFC4LF72QPQYDXOIDY7VFURUMCIL25R6LWZI6YR76CGTSXFU3A
+#\\\|CYFJAC5OFBOL7DZTS4O4J6OWJALV5G3HQDMII4C3WJLBERZ6LDL \ / AMOS7 \ YOURUM ::
+#\[7]IISUYXYUXS4YGTNJWVWXB2L3P76SS5RZUYYIY2QKQZFZQO4F26AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
