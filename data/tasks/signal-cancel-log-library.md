@@ -7,6 +7,35 @@
 #         is the unknown. forensics and coding zenki read the canvas
 #         rather than hunting through noise.
 
+## status [ checked 2026-08-26 ]
+
+phases 1-4 are already implemented on disk (tracked in git since the
+`modules/`->`src/` rename, well before this check) — this task file was
+stale, not a real gap:
+
+- `src/signal.cancel.init_code`, `.load`, `.match`, `.cmd.filter`,
+  `.cmd.check-line`, `.cmd.scan-baseline`, `.cmd.baseline-capture`,
+  `.cmd.add-pattern` all exist and register their `signal.*` commands
+  via `<base.cmd>` in `init_code`.
+- `data/signal-cancel/patterns/{cube-routing,v7-heartbeat,
+  zenka-lifecycle}.yaml` all exist with real patterns.
+
+**the actual remaining gap**: nothing loads these modules anywhere.
+`grep -rl signal.cancel cfg/zenki/*/zenka.v7 cfg/zenki/*/start.cfg`
+returns nothing, and there is no `cfg/zenki/signal/` standalone config
+dir either. So this is a wiring task, not an implementation task — add
+`signal` to some zenka's `modules.load` (candidate: a small standalone
+on-demand zenka, per this file's own phase 6 note; or fold into an
+existing always-on zenka like `p7-log` if that fits the intended
+consumers better) and call `[signal.cancel.init_code]` from its start
+config, then live-verify with `p7c signal.filter < <a real log>`.
+
+Phase 5 (nshell visual canvas) genuinely not started.
+
+Do not re-dispatch "implement phase 1/2" again — a claude_dispatch was
+sent for exactly that on 2026-08-26 before this was discovered; caught
+before it did (further) redundant work.
+
 ## the core principle
 
 every log line belongs to one of two categories:
@@ -240,8 +269,8 @@ should return only lines that don't match any known pattern.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,,.,,,..,,,.,,,,,..,,,..,,,,,,,.,,,.,,,.,..,,...,...,,,,,.,.,..,,..,,,..,
-#OTU3FBRXRNRLSAIKTOJGLGOQ7GUXQ3Z4RM3VHUCIPHCZE32C2RZCNVKGWNU6JU323K2SSWULTMNJY
-#\\\|3FUB7LVRIXGDJWCQA3GHN4JO5YBSDESYBOZAZQKZOP7OE47Z4KE \ / AMOS7 \ YOURUM ::
-#\[7]I7EDL4YP2DVIKXKQAU2C4WYZOXYZLORC53RSH4NK2W6GUSKOVIDI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,.,.,,..,...,,,,,,..,,..,,,,,..,,...,..,,,.,,,.,,...,.,.,,,,,
+#NKD4QUACFGZLIH3G5PPRATPX3LTJCECL4UCVST5HN4XWWYAUFP2E6N3R3B42YPB5Y27SXNI2VRQYQ
+#\\\|PROFRJM6XSGMKGJITURQIPZRKZMHUVSW3BYWPRACNSZZFT2JKWG \ / AMOS7 \ YOURUM ::
+#\[7]ZB4QA7YNRZYW42TOX5SFTQBFCP35GHA5YFLHBYP2GRKMQORCGQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
