@@ -1,40 +1,56 @@
 ## [:< ##
 
 # name  = coding.resolve_model_path
-# descr = Request model path resolution from models zenka via async reply handler
+# descr = Request model path resolution from models zenka via async
+#         reply handler
 # note  = Called from start file after network connection established
-#         Actual response arrives asynchronously via coding.handler.model_path_reply
+#         Actual response arrives asynchronously via
+#         coding.handler.model_path_reply
+# param = backend [ 'gpu'|'cpu', default 'gpu' -- the bare-macro call in   #
+#         cfg/zenki/coding/zenka.v7 passes no args ]
 
-my $model_amos_id = <inference.model.amos_id> // '';
+my $backend = shift // 'gpu';
 
-## in-flight guard : this is now called from two places [ the original    ##
-## unconditional init-time call in zenka.v7, AND the resolve hook [       ##
-## coding.resolve.object.model_path ] that fires whenever                 ##
-## async_spawn_inference_servers finds the path still unresolved ] --     ##
-## without this, the common case [ deferred spawn timer firing before the ##
-## original init-time request has replied ] would send a genuinely        ##
-## redundant second request every time, not just occasionally. cleared by ##
-## coding.handler.model_path_reply on any reply, success or failure       ##
-if (<coding.model_path_request_in_flight>) {
+## amos_id : backend-scoped config slot first [ new, may be unset ], ##
+## falling back to the shared <inference.model.amos_id> so existing  ##
+## single-model configs keep working with zero cfg changes           ##
+my $model_amos_id = <inference.backend>->{$backend}->{'amos_id'}
+    // <inference.model.amos_id> // '';
+
+## in-flight guard, per backend [ nested-hash macro access, same pattern as ##
+## <coding.inference_servers>->{$backend} ] : this is now called from two   ##
+## places [ the original unconditional init-time call in zenka.v7, AND the  ##
+## resolve hook [ coding.resolve.object.model_path ] that fires whenever    ##
+## async_spawn_inference_servers finds the path still unresolved ] --       ##
+## without this, the common case [ deferred spawn timer firing before the   ##
+## original init-time request has replied ] would send a genuinely          ##
+## redundant second request every time, not just occasionally. cleared      ##
+## per-backend by coding.handler.model_path_reply on any reply for that     ##
+## backend, success or failure                                              ##
+if ( <coding.model_path_request_in_flight>->{$backend} ) {
     <[base.logs]>->(
-        2, '[resolve_model_path] request already in flight, skipping'
+        2, '[resolve_model_path] %s request already in flight, skipping',
+        $backend
     );
     return TRUE;
 }
 
 <[base.logs]>->(
-    1, '[resolve_model_path] amos_id from config: [%s] (length=%d)',
-    $model_amos_id, length($model_amos_id)
+    1, '[resolve_model_path] %s amos_id from config: [%s] (length=%d)',
+    $backend, $model_amos_id, length($model_amos_id)
 );
 
 unless ( defined $model_amos_id && length $model_amos_id ) {
-    <[base.logs]>->( 0, '[resolve_model_path] no model amos_id configured' );
+    <[base.logs]>->(
+        0, '[resolve_model_path] no model amos_id configured [backend=%s]',
+        $backend
+    );
     return FALSE;
 }
 
 <[base.logs]>->(
-    1, '[resolve_model_path] requesting model path for amos_id=%s',
-    $model_amos_id
+    1,        '[resolve_model_path] requesting %s model path for amos_id=%s',
+    $backend, $model_amos_id
 );
 
 ## Request model path from models zenka via network (route through cube)
@@ -48,7 +64,10 @@ my $clients_reached = <[protocol-7.command.send.local]>->(
     {   'command'   => 'cube.models.get_path_by_amos',
         'call_args' => { 'args' => $model_amos_id },
         'reply'     => {
-            'params'  => { 'model_amos_id' => $model_amos_id },
+            'params' => {
+                'model_amos_id' => $model_amos_id,
+                'backend'       => $backend
+            },
             'handler' => 'coding.handler.model_path_reply'
         }
     }
@@ -67,15 +86,17 @@ unless ( $clients_reached == 1 ) {
     return FALSE;
 }
 
-<coding.model_path_request_in_flight> = TRUE;
+<coding.model_path_request_in_flight>->{$backend} = TRUE;
 
 <[base.logs]>->(
-    1, '[resolve_model_path] model path request sent, awaiting async reply'
+    1,
+    '[resolve_model_path] %s model path request sent, awaiting async reply',
+    $backend
 );
 return TRUE;
 
-#,,,,,,..,..,,..,,..,,.,,,.,.,.,,,...,,,,,..,,..,,...,...,.,.,,..,..,,,,.,..,,
-#LW2CHQPRMKY7NTVVPSBUCWVKJ4IZ4HKVBM45Q2LEGPG7PNDHU42JJY3KRZPR2T7ELD2NQEHQZFINM
-#\\\|LL7XYSWWR2FQKCU6HM2XPEJZGVIBAGFP2TPNXJCCAVX6E45FVWY \ / AMOS7 \ YOURUM ::
-#\[7]XJMBIDJ3I2BFIVT5BCSU5JOX7MRMA4S6LD6YATMNGKDFBFQJDCCY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,,,,,...,,,.,,..,...,..,,,.,,..,,...,...,,,,,.,.,.,,,..,,.,,,
+#CU3H4JDMRE7CZYPYS4HTGBH2OB2UZEQMDHCBSVNR5UH3XWECVQI2OJSYUL4RJMYB67AYAWV3IVOVI
+#\\\|VRKH4VJ4SOZBIVSKD2G7BZW2CMZYYMNARCV5QISSI6JMKYO6J2Z \ / AMOS7 \ YOURUM ::
+#\[7]NQQNVRD3QRMXVWS4UHK5LO337MEJWIKQL5GQBACAPFKJ3A6MWKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

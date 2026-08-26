@@ -146,7 +146,7 @@ say ': the actual regression -- no double-send';
 my $r1 = $code{'coding.resolve_model_path'}->();
 ok( $r1,                      'initial resolve_model_path call succeeds' );
 ok( scalar(@send_calls) == 1, 'exactly one send after the initial call' );
-ok( ( $data{'coding'}{'model_path_request_in_flight'} ? 1 : 0 ) == 1,
+ok( ( $data{'coding'}{'model_path_request_in_flight'}{'gpu'} ? 1 : 0 ) == 1,
     'in-flight flag set after a successful send' );
 
 ## step 2 : the deferred spawn timer fires [ 0.5s later, per coding.       ##
@@ -173,7 +173,7 @@ say ': reply arrives -- guard clears, path resolves';
 
 ## simulate what coding.handler.model_path_reply does on a successful   ##
 ## reply, without needing YAML::XS / a real reply payload for this test ##
-$data{'coding'}{'model_path_request_in_flight'} = FALSE;
+$data{'coding'}{'model_path_request_in_flight'}{'gpu'} = FALSE;
 $data{'inference'}{'model'}{'path'} = '/mnt/models/test-model.gguf';
 
 ok( $code{'coding.callback.object.model_path'}->($obj_id),
@@ -201,8 +201,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,..,.,.,.,.,,..,.,.,,..,.,,,...,,.,,,..,..,,...,...,.,.,,..,,..,,..,,,,,
-#2LQB2L4JZZIHYJHORTYU57CWAJTURFHGSCEUM54W7N2HTEPCQOQPZV6OLYHFE5SHGLJGC2N7HGOMG
-#\\\|GJ2NQJPT5FGH5QLSCDYOFV4SAX5C2NKYDTY2M32U3X4AHR66PDX \ / AMOS7 \ YOURUM ::
-#\[7]IAXSTUJY2BNZI6OY7FX4V7MIYUBBW4VVNTOMSDJYFHQACDYLJOCY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,.,.,,.,,.,.,,,.,,,,,.,.,..,,..,,...,...,.,,,,.,,,..,..,,,,,,
+#NPIXAXBCMSLQN6X3RFSSCZ3MA42HY4HSVH34GT7ATKYET25P2XEXEF4OVQII7C362NZOMPUKSL2WS
+#\\\|AQKKTFWUUOV4OU7GU5HPEEORRV4NTWB4GGBIBW3A6N36BKUQG4L \ / AMOS7 \ YOURUM ::
+#\[7]4VQOHSQ7ZYTTEFVXMK2CQDU25OEGSUVHI24MLQKY2N7KQFDH4WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

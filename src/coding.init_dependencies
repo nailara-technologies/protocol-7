@@ -3,6 +3,14 @@
 # name  = coding.init_dependencies
 # descr = Initialize dependency tracking for inference pipeline
 # purpose = Create dependency chain: discovery -> model_ready -> server_ready
+# note  = NEVER INVOKED -- loaded into %code but nothing calls it [ confirmed
+#         2026-08-26, exhaustive grep across src/+cfg/ ]. the model_path
+#         object-creation this file used to also contain now lives in
+#         coding.init_code instead [ where it actually runs ] -- see there
+#         for the live version. everything below this file's own header
+#         [ the model_discovery/model_available/inference_server/memory_*
+#         graph ] predates that finding and was already known-unused per
+#         the comment ahead of it -- left as-is, not in scope here
 
 ## dependency object types  Note: callback modules use underscores in ##
 ## names, not dots                                                    ##
@@ -34,38 +42,8 @@ foreach my $cb (@callbacks) {
     2, '[init_dependencies] registered %d dependency callbacks', $cb_count
 );
 
-## model_path : standalone, NOT chained into the discovery/model_available/ ##
-## server_ready graph above -- that graph is not currently gated on by      ##
-## anything [ async_spawn_inference_servers used its own raw                ##
-## <inference.model.path> check instead ], so its other legs [ discovery    ##
-## status, memory thresholds ] are unverified in current practice. adding   ##
-## this standalone, with its own resolve hook, replaces just the specific   ##
-## race this was built for [ the 0.5s deferred spawn timer routinely firing ##
-## before coding.resolve_model_path's async reply arrives, confirmed live   ##
-## 2026-08-26 ] without newly gating spawn on the rest of that graph        ##
-if ( exists $code{'coding.callback.object.model_path'} ) {
-    <[dependency.setup]>->(
-        'model_path',
-        {   'callback' => $code{'coding.callback.object.model_path'},
-            'resolve'  => $code{'coding.resolve.object.model_path'},
-        }
-    );
-    <coding.dep.model_path_gpu> = <[dependency.add_object]>
-        ->( { 'type' => 'model_path', 'backend' => 'gpu' } );
-
-    ## dependency.ok(X) checks whether X's OWN chain members are satisfied  ##
-    ## - it never invokes X's own type callback [ that only happens when X  ##
-    ## appears INSIDE someone else's chain ]. model_path_gpu has no chain   ##
-    ## of its own, so callers need a small root object that DEPENDS ON it,  ##
-    ## and check dependency.ok on the root instead. type is arbitrary here  ##
-    ## -- this object is only ever a root, never a chain member, so its own ##
-    ## type callback [ if any ] is never invoked                            ##
-    <coding.dep.spawn_ready_gpu> = <[dependency.add_object]>
-        ->( { 'type' => 'spawn_precondition', 'backend' => 'gpu' } );
-    <[dependency.add]>->(
-        <coding.dep.spawn_ready_gpu>, <coding.dep.model_path_gpu>
-    );
-}
+## model_path dependency setup + object creation moved to coding.init_code ##
+## [ this whole file is never invoked -- see the file header note ]        ##
 
 ## 1. Model discovery dependency ##
 <coding.dep.model_discovery> = <[dependency.add_object]>->(
@@ -153,8 +131,8 @@ return {
     server_cpu      => <coding.dep.server_cpu>
 };
 
-#,,,,,,,.,,,,,...,.,,,.,.,,,,,...,.,,,..,,.,,,.,.,...,..,,...,,.,,,.,,,.,,,..,
-#WHLG6PM3ZROL6YITDUTPF7BGKE5AUBXMNFJD3IXZRGNSM43PTTV5CRDGV2UAMNK5ONAMC4YXYAC2Y
-#\\\|LCYTP6M477NU4JZZHIPYE6RPYLDU7P42DXIQNAMHY6TFPHVOSF4 \ / AMOS7 \ YOURUM ::
-#\[7]YCJQ2BFS57T6A3RH673IHAL254MTD2N7Y2SJNLHC2IXHURXKMWDA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,.,.,,.,,...,.,,,.,.,,,,,.,.,.,.,...,...,..,,.,.,,..,..,,...,
+#XMGCD2EINZVGKVYOY65O37JG24AAX26AYEUBBOQRPIK37XBUSFNFCNE56HIWJCHPTEAHGZDG4KI5Q
+#\\\|BBMQGE2YLPHQ6P6Q657KHP7DMLHAMTJQU5MZ3OA7HFQZ4TEG3GU \ / AMOS7 \ YOURUM ::
+#\[7]7RTXI2Y7PK556ZWCMWT7SB6WEIEVZP2JAPKDWFY663BJFKNYIIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

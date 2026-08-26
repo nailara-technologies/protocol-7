@@ -4,16 +4,21 @@
 # descr = resolve hook : ask the models zenka to resolve the model file
 #         path if it hasn't been requested/resolved yet. debounced
 #         generically by base.dependency.ok -- no in-flight tracking
-#         needed here
+#         needed here [ coding.resolve_model_path has its own per-backend
+#         in-flight guard on top ]
 
 my $object_id = shift;
 return undef unless exists <dependency.object>->{$object_id};
 
-<[base.log]>->( 1, ': resolve : requesting model path resolution' );
-return <[coding.resolve_model_path]>;
+my $backend = <dependency.object>->{$object_id}->{'backend'} // 'gpu';
 
-#,,..,.,.,,,.,..,,...,,,.,...,,.,,,.,,,,,,.,.,..,,...,.,.,,,,,...,...,,.,,..,,
-#QALSSX5JHG2XXV43O2NGKE3AIPKR4MWPGTPVUZ4INBJUZSMSSWGWW5O7Z64SHDARDCKR2B6LTWCIC
-#\\\|FCY6AV3T4H5VSH6AN2BLMVXMXQOVSLWUTMKFLD7JZW4CHGULDDW \ / AMOS7 \ YOURUM ::
-#\[7]HA5ZAIYSK366TTUSEDF7KDVJRZNLHIBCKKJGFZNYNZUSX6OIIEAY 7  DATA SIGNATURE ::
+<[base.log]>->(
+    1, ': resolve : requesting ' . '%s model path resolution', $backend
+);
+return <[coding.resolve_model_path]>->($backend);
+
+#,,..,..,,,..,..,,..,,.,,,.,.,.,.,.,,,,,,,.,.,..,,...,...,...,.,.,..,,,..,.,.,
+#3EOBFJJG6WPQG6V3NRQGTESILENZLCKWPHC5H2MR6KQTUURUDDSCMRV2OR6QTFPL5QQKBOZ557HJS
+#\\\|JUKOZMLTIAAL7FKB2QNQJ3L5HJ7ZKQUX37PHJT4BCUJNJHEPI2H \ / AMOS7 \ YOURUM ::
+#\[7]OLNHO6UMMY7WDZX2YKY62BCM7HBHSJP4DYZKXCDBBUSRJUB2LYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

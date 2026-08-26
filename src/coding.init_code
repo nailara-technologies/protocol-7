@@ -236,6 +236,7 @@ $params->{'cpu_binary'} = <inference.backend.cpu.binary>
 $params->{'gpu_binary'} = <inference.backend.gpu.binary>
     // <coding.lib_path> . '/llama-server-cuda-fa';
 $params->{'gpu_enabled'}  = <inference.backend.gpu.enabled> // TRUE;
+$params->{'cpu_enabled'}  = <inference.backend.cpu.enabled> // FALSE;
 $params->{'cpu_model_id'} = <inference.backend.cpu.model_id>
     // 'gemma3-glitter-4b';
 $params->{'gpu_model_id'} = <inference.backend.gpu.model_id>
@@ -424,6 +425,36 @@ if ( not $already_initialized ) {
     <[dependency.add]>->(
         <coding.dep.cpu_server>, <coding.dep.gpu_self_test_pending>
     );
+
+    ## model_path readiness [ 2026-08-26 ] -- standalone, NOT chained into  ##
+    ## the graph above [ that graph is not currently gated on by anything   ##
+    ## else either -- async_spawn_inference_servers uses its own raw        ##
+    ## <inference.model.path> / <inference.backend.cpu.path> checks ]. the  ##
+    ## 'model_path' type itself is already registered by                    ##
+    ## dependency.install_callbacks above [ auto-discovers                  ##
+    ## coding.callback.object.model_path / coding.resolve.object.model_path ##
+    ## by name ] -- this only creates the OBJECT ids that                   ##
+    ## async_spawn_inference_servers checks via dependency.ok. previously   ##
+    ## lived in the never-invoked coding.init_dependencies, so these ids    ##
+    ## were always undef and every dependency.ok call on them silently      ##
+    ## failed open -- confirmed live 2026-08-26                             ##
+    if ( exists $code{'coding.callback.object.model_path'} ) {
+        <coding.dep.model_path_gpu> = <[dependency.add_object]>
+            ->( { 'type' => 'model_path', 'backend' => 'gpu' } );
+        <coding.dep.spawn_ready_gpu> = <[dependency.add_object]>
+            ->( { 'type' => 'spawn_precondition', 'backend' => 'gpu' } );
+        <[dependency.add]>->(
+            <coding.dep.spawn_ready_gpu>, <coding.dep.model_path_gpu>
+        );
+
+        <coding.dep.model_path_cpu> = <[dependency.add_object]>
+            ->( { 'type' => 'model_path', 'backend' => 'cpu' } );
+        <coding.dep.spawn_ready_cpu> = <[dependency.add_object]>
+            ->( { 'type' => 'spawn_precondition', 'backend' => 'cpu' } );
+        <[dependency.add]>->(
+            <coding.dep.spawn_ready_cpu>, <coding.dep.model_path_cpu>
+        );
+    }
 }
 
 <[base.logs]>->(
@@ -635,8 +666,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,,..,,.,,,,.,.,,,.,.,..,,,.,,,..,...,.,,,.,.,...,...,...,..,,,,.,.,,,...,
-#UP2P4A2KTNBELLNJ5L3B5W3M7UL3AWK6HHOZEDP7ODDVXHDGAGTPA5CUC6W7MBGK55PMDMHUUZRTQ
-#\\\|PJDRAFVAHEG5JQ47IUXHGXVRARK6YM62E6RKP7FZ5AVG6XAQ7O5 \ / AMOS7 \ YOURUM ::
-#\[7]DWTJFD47IALCFTBSGNOMLWJFHQMFZN2VDBKYVGYEMQMNFMSLDSBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,..,,,,.,,..,.,,,.,.,.,,,,..,.,.,...,..,,.,.,,,,,,..,,.,,.,,,
+#UFATLSTSUMN2BGTQB5SJP3NKGKPEF6DAKUUYNAEUVBY6YC6FIVFOWQV53PFQIE4AY4KWHIJ4O2DBK
+#\\\|C3OG5UNZVGMFZX7ON4VXQQUDCKMR545M53OHTDO3VJA4C4SRP2A \ / AMOS7 \ YOURUM ::
+#\[7]7FDGPFHAT7AXTQR3QBJUAE6P57XUIWFX573YN73AZIF3CU6BGKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

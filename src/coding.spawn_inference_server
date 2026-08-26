@@ -440,9 +440,17 @@ push @cmd, '--seed', $seed;
 my ( $server_in, $server_out, $server_err );
 $server_err = Symbol::gensym;
 
-# Set up environment for llama-server [ same as lm-vision does ]
+# Set up environment for llama-server [ same as lm-vision does ] -- gpu-only:
+# <coding.lib_path> is the CUDA rebuild-out dir [ inference.backend.lib_path ],
+# and it carries its OWN libggml.so [ built for CUDA, same filename, different
+# ABI ]. applying it unconditionally made the cpu binary link against that
+# incompatible libggml.so instead of its own build-cpu one, segfaulting on
+# every launch [ confirmed live 2026-08-26 : reproduced standalone, crash
+# only happens with this env var set, matching the exact live crash shape ].
+# the cpu binary needs no override at all -- it resolves its own libs fine.
 local $ENV{'LD_LIBRARY_PATH'}
-    = <coding.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
+    = <coding.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' )
+    if $backend eq qw| gpu |;
 
 my $pid = eval { IPC::Open3::open3( undef, $server_out, $server_err, @cmd ) };
 
@@ -558,8 +566,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,...,..,,,,.,...,...,,,.,,,,,.,.,..,,,.,,..,,...,...,...,.,.,.,.,,,,,,..,
-#NDJ5OQ6XHS5OY5T44THATFVA4LA5Y3NGECRMCFZ4CYJ7ICHBWZEVMTPI5APQ5GG6VKQXESRY2J2WW
-#\\\|7POEETQ3A3PDRJNOUIBUFFSW6ZJZWTVK2RIKXRYSRWIIAJY7HQC \ / AMOS7 \ YOURUM ::
-#\[7]MLJIPNBIKQUEJR3CTOVAIXWDJH5XNS4SA4CR74CUMSD24PHLBCAY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,,,,,.,.,.,,..,.,,,.,.,,..,..,,..,,...,...,.,,,,..,.,.,,..,,.,,
+#VB5CULL26DDXIY3IVCEOPQF44XNWISFO6NQVITZFMISAV4AR2YQUIXS7KFIAKRMDQ5FZSYUZGJ3I6
+#\\\|XHIBARV72PRIWHPPA5GTVEFECSRVFOJDQXDLJ2HCXKXJTW67F3O \ / AMOS7 \ YOURUM ::
+#\[7]ZONOSRRNLTEQ7FC4HYHLCKP2D3HSI3YR5TE2H7CJAR4RSKMVTAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

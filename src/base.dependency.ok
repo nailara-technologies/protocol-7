@@ -7,9 +7,7 @@ my $object_id = shift // '';
 my $event_id  = shift;         # <-- optional
 
 # virtual object_id 0 means "explicitly no dependencies" : resolves silently
-if ( defined $object_id && $object_id == 0 ) {
-    return TRUE;
-} elsif ( not defined $object_id or not length $object_id ) {
+if ( not length $object_id ) {
 
     # Warn when object_id is undefined\empty [ not 0 ]
     # This indicates inconsistent state - job created without
@@ -22,6 +20,8 @@ if ( defined $object_id && $object_id == 0 ) {
         0, ":. use object_id 0 for any explicit no dependency cases"
     );
     return TRUE;
+} elsif ( $object_id == 0 ) {
+    return TRUE;    ## implicit resolution ##
 }
 
 if ( not exists <dependency.object>->{$object_id} ) {
@@ -120,8 +120,8 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
 }
 return TRUE;
 
-#,,,.,,,.,.,.,...,.,,,,.,,.,,,.,.,,.,,,,,,...,..,,...,..,,,.,,.,,,...,,,.,,,.,
-#PTJPCIOBKNYVLZ6M4F27NLXBYBDHSAHEYASEZ6USNYCV36KB2CZJAWJNU7V2QGHUIXWLJEHNXHD2W
-#\\\|CUCHPVYS67JGZTJK2I27U2QZYLWZFE5W2WDUL65ABF47OUKLVS7 \ / AMOS7 \ YOURUM ::
-#\[7]XUH3WGY3TJGTOWLX6CLOKOI37EXUORFWNAPVL4GSZ6YEIAZF6OAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,,.,,..,,.,.,,,.,..,,,,.,.,.,..,,...,...,...,,..,,,,,,,,,..,,
+#3QMAUPSXTAQA7V5XS7DFT45UDQNBBH2NATTA5QB2O5NWUPOJSOHHTFNWFCEDUDT667RRP2VFIAABI
+#\\\|MUY6U423YRQSQV2ONCM5TCPSOPYKNLKGL3NGLD3YG43MXE767YW \ / AMOS7 \ YOURUM ::
+#\[7]66LU3QFTSTKWKIHSYEUNMYUQSJLNZVHZYVI47YLZZ5PGSNTJYIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
