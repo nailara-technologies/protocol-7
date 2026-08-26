@@ -7,6 +7,21 @@ Trigger: `sudo cpanm --force Git::Native` upgraded system perl 5.40.1 →
 5.42.3 and libcryptx-perl 0.089 → 0.090 and cascaded Inline::C
 recompiles.
 
+## FULLY CLOSED 2026-08-26 — see feedback-cpanm-triggered-inline-elf-utf8-boundary-bug.md
+
+Everything below this note reflects the state understood at the time it
+was written. Since then: the `.private`/`.public` migration described
+below succeeded (checksum-verified unchanged), which surfaced a key
+with a `.secret` file that couldn't migrate the same way — leading to
+new `keys.backup.*` infrastructure AND a THIRD independent 2021-era bug
+in `crypt.C25519.load_keypair` (unrelated to `inline_elf`, a copy-paste
+wrong-file-read + unconditional prefix-strip). All fixed, verified
+against a real key, committed (`0875c8668` + `94aa460a7`). Full account
+of that final stretch is in `data/ai-mem/claude/feedback-cpanm-
+triggered-inline-elf-utf8-boundary-bug.md`'s "FULLY CLOSED" section —
+read that for the complete, current picture rather than treating this
+doc's original RESOLVED section below as the end of the story.
+
 ## RESOLVED 2026-08-26
 
 H1 confirmed and root-caused precisely, via a live diagnostic (`P7_ELF_DIAG`
@@ -297,8 +312,8 @@ weak lead; test only after H1 and H1a are eliminated.
 Do not attempt any fix (source edit, .so rebuild, cache clear) before
 step 1 completes — the current cache state is diagnostic evidence.
 
-#,,,.,.,,,,,.,,,,,..,,,,.,..,,.,.,,..,.,.,...,..,,...,...,.,,,.,.,,.,,,..,,,.,
-#VCNRHXEFHV6XLNKMFAP4EDXG66IZB5N4E7M5HWKNO7IM7LGXSYTP54VANWDGIGA6FY5QJVKS65X7S
-#\\\|IFZDTOLCZM5HHRLIL2TQZ2MPZID4ELMYXLJ6W6RIH35GQUXC5VL \ / AMOS7 \ YOURUM ::
-#\[7]XIR25BTBWQ3J274PDOW3BN3EEFBPJVISDMMOZJGUWRM6AKVXQACQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,,..,,..,..,,,..,,..,,,,,,,,,..,,...,...,.,.,,.,,...,.,,,...,
+#VEBNA44C7J4DLA6C2ZCAXQVNCISE42MABKF4E52LTH6AXJ34PXX5TRR7K3YT6PXMA44U3EEY3GKQ2
+#\\\|H57TRIEOK3LHUV3GPICPHL5SJK5NPQQV7WDEGZUTGQA3EQD773A \ / AMOS7 \ YOURUM ::
+#\[7]7FYENK27AD2SQWVXBNDICNKAOQH6CL4TPRYMFS5LKNUDLKBNX6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
