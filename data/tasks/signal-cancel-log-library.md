@@ -267,10 +267,8 @@ implement phase 1 and 2 of the signal cancellation log library:
 verify phase 1+2 with: `p7c signal.filter < /dev/shm/.7/STDOUT/NIW7OAQ`
 should return only lines that don't match any known pattern.
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,.,,..,,..,,.,,.,.,,..,...,,,,,,..,,..,,,,,..,,...,..,,,.,,,.,,...,.,.,,,,,
-#NKD4QUACFGZLIH3G5PPRATPX3LTJCECL4UCVST5HN4XWWYAUFP2E6N3R3B42YPB5Y27SXNI2VRQYQ
-#\\\|PROFRJM6XSGMKGJITURQIPZRKZMHUVSW3BYWPRACNSZZFT2JKWG \ / AMOS7 \ YOURUM ::
-#\[7]ZB4QA7YNRZYW42TOX5SFTQBFCP35GHA5YFLHBYP2GRKMQORCGQBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,.,.,..,,,,,,.,.,...,.,,,.,.,..,,...,...,.,.,.,.,,.,,,.,,...,
+#AMBWYBGNOL3FPQDMVK6BPOZAWQJWEUJY566L6XAYW4TZDW2J4HS7NCASQHMMQXW7OF5YEOHO7ZKVS
+#\\\|235M6FCEKLXE7W63L54FJZILGJWIB7FGNMU2VZ4KRK4BCQYWYAP \ / AMOS7 \ YOURUM ::
+#\[7]CWTWJGGCV5HFJX3OZZUSUIACIUUDTUZ2CH2APEBON4LUWUUSRIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

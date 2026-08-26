@@ -40,9 +40,30 @@ if ( not keys $spawn_params->%* ) {
 # Get model path (resolved earlier in startup after network connect)
 my $model_path = <inference.model.path> // undef;
 
-unless ( defined $model_path && length $model_path ) {
+## gated on the model_path dependency [ coding.init_dependencies ] rather   ##
+## than just re-checking the raw flag directly : this is what triggers the  ##
+## resolve hook [ coding.resolve.object.model_path -> coding.               ##
+## resolve_model_path ] when unresolved, instead of silently failing and    ##
+## relying entirely on a separate, bespoke catch-up check in                ##
+## coding.handler.model_path_reply. this deferred-timer's own 0.5s delay is ##
+## a best-effort nudge, not a real wait, so hitting this branch is the      ##
+## COMMON path whenever the models zenka needs any cold-start time at all - ##
+## not a failure, hence level 1 not 0 [ confirmed live 2026-08-26 ]         ##
+## checking dependency.ok on the ROOT [ spawn_ready_gpu ], not              ##
+## model_path_gpu directly -- dependency.ok(X) only checks X's OWN chain    ##
+## members' callbacks, it never invokes X's own type callback. a standalone ##
+## object with no chain of its own would trivially always read "ok" here.   ##
+## dependency.ok(undef) also fails OPEN [ returns TRUE, its own "no         ##
+## dependency" convention ] -- keep the raw check too so a broken           ##
+## init-order edge case [ coding.dep.spawn_ready_gpu never set up ] can't   ##
+## let a genuinely-unset $model_path slip through to the spawn call below   ##
+unless (defined $model_path
+    and length $model_path
+    and <[dependency.ok]>->(<coding.dep.spawn_ready_gpu>) ) {
     <[base.logs]>->(
-        0, ": model path not resolved - cannot spawn inference server"
+        1,
+        ': model path not yet resolved - deferring '
+            . 'spawn until model_path_reply arrives'
     );
     return FALSE;
 }
@@ -106,8 +127,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,,.,.,,,,,.,,,.,,.,,.,.,..,,.,.,.,,,.,,,,.,,..,,...,...,...,.,,,,,.,..,,,,.,
-#QDIT7MSAQI7NRGYZOBVAXZXOEE6E5PS2TA4AJQEBHMGUC2ZDAIS2A7OFTJO3TPNQVOH3EQU553H5G
-#\\\|A5Y3IRJ6QZY6HFMXGN3DHWFT55KRF2NWY6DGQLFJACLKULVAD5V \ / AMOS7 \ YOURUM ::
-#\[7]ZO2WGRC35AQMHSB7ZC2OFMPSYPJHUQ27F5O5P4RWYRYJLMJUQYDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,.,,,,,.,,.,,,..,.,.,,,,,,.,,..,,...,...,...,.,.,...,,,,,.,,,
+#IWBBLI4CYIRWYJF5YXAU7RGLGXOT42MCBIYOTJ2FXLBTNAUK34BR5ONSEEN3Q5SMBXJCG3SX6NN3A
+#\\\|2APO335PA22LDJQV333WV6S3QJIVRN7W2VQPAJJ2S4LCQAVNCVW \ / AMOS7 \ YOURUM ::
+#\[7]2GW6Q56BPXLT2TFAGDN45CAMAE4ZUG3CNX5A53W226NBLDSOZMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,8 +20,16 @@ my $ceiling_used = $callbacks->{'timeout'}
     // <coding.http-timeouts.request-completed> // 780;
 my $hard_ceiling = <coding.http-timeouts.request-completed> // 780;
 
+## diagnostic only : this fires unconditionally before the stream-alive     ##
+## check below decides soft-extend vs. genuine failure, and the soft-       ##
+## extend case is the COMMON one [ confirmed live 2026-08-26 : hits         ##
+## regularly, average completion closer to 120s than the 90s soft ceiling ] ##
+## -- level 0 here made routine, already-handled extends look like a real   ##
+## failure. the actual failure path further down had no log line of its own ##
+## at all, so a genuine hard timeout was ONLY ever recorded via this same   ##
+## line -- added one there instead                                          ##
 <[base.logs]>->(
-    0,
+    1,
     "async.http_timeout: request timed out after %d seconds [ceiling=%d]",
     int(<[base.time]>->(3)
             - ( $state->{'request_start'} // $state->{'last_activity'} // 0 )
@@ -96,13 +104,23 @@ if ( $stream_alive and $ceiling_used < $hard_ceiling ) {
 }
 
 ## already at the hard ceiling : genuine timeout, existing failure path ##
+<[base.logs]>->(
+    0,
+    "async.http_timeout: genuine failure after %d seconds "
+        . '[ceiling=%d, stream_alive=%d]',
+    int(<[base.time]>->(3)
+            - ( $state->{'request_start'} // $state->{'last_activity'} // 0 )
+    ),
+    $ceiling_used,
+    $stream_alive ? 1 : 0
+);
 my $error = "Request timeout";
 $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,,.,.,,,...,.,.,..,,..,,,..,...,,..,,..,.,.,.,.,...,...,...,,,.,,.,,...,.,,,
-#3MYGTJ72EDVGXL4QOVAC4XJ6JXZJW2NSQACET77JTH3HSD4EAKYMO7KXNHXDEQV4EDGUZQQAL2CFO
-#\\\|INUCAMU2KX7GBDKRKGHMNUNE4IPKB3YAOFAJT2YS4ZRA24KHXLT \ / AMOS7 \ YOURUM ::
-#\[7]P7Y3R34TIAHX4PUSUPO7I3OCXNTK5MEWZNOWOBCPCXLPBWDUWOAI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,.,.,,,.,,,,,..,,,..,,..,.,.,.,.,...,...,...,,,,,.,.,,,.,,,.,
+#G2VESOEHJOLFWGBHUPKOIFK7CIZYO2YHBZ2SWSRTBV4VXX43JRTBMDWPSOYATRDRFB2GBGAKRYPAS
+#\\\|CVZK7XRIYNNP2MWYTUVYPFUZTN7UHFVYIEWLCX3JLSUJQSUYUZO \ / AMOS7 \ YOURUM ::
+#\[7]HHCR57ET3RNGWAEYRBDOUQU7YZ3ZMTDEWQN6YAXYFT2SHK77USDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
