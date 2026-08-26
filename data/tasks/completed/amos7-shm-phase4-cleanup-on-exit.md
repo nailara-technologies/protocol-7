@@ -221,8 +221,8 @@ reporting done.
   honest statement of what was and was not live-verified [ especially the
   zenka SIGINT/TERM half — see verification step 1 ].
 
-#,,,,,...,,,,,,,.,.,.,.,.,..,,...,,..,.,,,.,.,..,,...,...,..,,.,.,,..,..,,.,,,
-#J6NGIMR7N5VVDHDMRPL6I7UBXP6OAYVEC6GQI7FOQ7A77LJLMKVEOL3V6ON62I2R7D2AZ7YDXDDIS
-#\\\|QNYY26MUGN6HFDF6464EMXTS2EIWOUNNXTK35PDUZJY6VINVH5P \ / AMOS7 \ YOURUM ::
-#\[7]XYKXU2FFW5DODGHZHM6S4AFRSKFQGEABFZXK6WE7SPIZPMUEX2DA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,.,,,.,,,,.,,...,,,,,.,.,...,..,,...,...,..,,,,,,,..,...,.,,,
+#Q3CDRX6PYETNSKQOV4R2P5LU3MK5E5ANMUV6Q6JRQQXN6IWQMFGPH2BKB4FIGVJ5G66HSWTJZR66C
+#\\\|OFQCPR7L6UPDL7AFV2PDBJVE3UZ6ENKY5X5R5NOK4ZMOKUC3YCG \ / AMOS7 \ YOURUM ::
+#\[7]QLADYN67MOXYMWQJ5GXPTMCW265JZDDFXMUAIS72IFRYDK734YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -82,8 +82,8 @@ consumer exists (per-zenka log/output panes, [[topic-cube-tree-
 dashboard]] branch frames, or a generic "file minimap" for
 console/editor-like views).
 
-#,,,.,...,...,.,,,...,,,.,,,,,...,,,,,.,,,,,.,..,,...,...,,..,...,.,,,,..,..,,
-#P5ZQHJ5FPHWVNZT4OXZVXDKELCSHBMPVXM4SX7GAPDMBO5SYYM5TMQBP7GLTTM4VDLWM6AETYZC42
-#\\\|64JDPGXWU7UU5UQORXGJOQWDWKPCK5QMBRBS6NOSKBJGFHOA2Q5 \ / AMOS7 \ YOURUM ::
-#\[7]G46E3ZNBYMEFLOEJNICRTD2OXERAJ2EAKZLQNYKOZIVBKD57KECI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,.,.,,,.,.,.,,.,,,,.,..,,,..,..,,...,...,..,,,,,,.,,,.,.,.,.,
+#R7U7Q6XAPSTYKN5JSXVYM4BQOLIHMJ6OBKE7ARVPF47FTOFG7UDV7YQNC37R6ONYFMPC36R6TBYKA
+#\\\|PKBVOLGNISN5RHLJPJ3CPD3YD4UUCAQATESEQGNRAHLUJ7JTFGF \ / AMOS7 \ YOURUM ::
+#\[7]MJSM3PTZJ4IG62SSDDXIIXP4CPYTH6U2RLDPKTZJMGYIH77R66CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

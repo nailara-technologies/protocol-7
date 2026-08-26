@@ -119,8 +119,8 @@ create a simple end-to-end test of the delegation flow:
 - never add signature stubs — leave clean for signing
 - see `data/ai-mem/kimi/coding-style.md`
 
-#,,,.,..,,,.,,...,,,.,.,.,...,...,.,,,.,.,,.,,..,,...,...,..,,.,.,..,,,,,,.,,,
-#PLLWDDICWGTTWTW2OBQ2PB53BVBNQV4M6MAPZRUAFSEZY4IM3UOXAC5D27OU7PBI64M7BUHCVEHU4
-#\\\|WETJNRHU746THLZJYUCWBPNJS47UJOB2JX2L2ZQSCSSTV3NV6C4 \ / AMOS7 \ YOURUM ::
-#\[7]DL6KLVSRJ3WB7JT3HA5ETJ3CGWAROESMRIBXPHV7WJIN5R56LWDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,,,..,,.,.,,,.,,..,,,,,...,..,,..,,...,..,,..,,,,.,,..,,..,.,,,
+#5QLYQB4VMEDNFAHLREFHQWY3PJCADQA6M4C7ER3UACSX6B5WY7RUX53EDPOXAU2QQZNZJSNZS4UNY
+#\\\|BXML445NZCBDLAILPRTPGGMJ7G32OANIWPBRLRUTJVPWKZ5H4MJ \ / AMOS7 \ YOURUM ::
+#\[7]HO2YL36YOJBIRA737LWVMETYVM2QABWRK26PS2IGIVHJNMQ552DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

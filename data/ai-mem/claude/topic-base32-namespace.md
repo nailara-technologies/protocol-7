@@ -70,8 +70,8 @@ Two more bugs stacked on top once that one was fixed (a self-recompile
 infinite loop in `deferred_compile`, and `register_src_deps` bloat).
 Full chain + fixes: [[bug-swap-subs-nested-lifecycle-hook-gate]].
 
-#,,,,,,,,,,,.,.,.,..,,.,.,,,.,.,.,,,.,.,,,..,,..,,...,...,...,.,.,,..,,,.,..,,
-#TOFI4ZUOJFJTIBL4TXRDHYN25WDGVU52PY3G7YATAZXSYHSMNMMS6O4LKDWV4XU6CZUME4MWGCWDM
-#\\\|IHMKYB2P3WAAKSU6JPMCXD7EOVK5ZRE2VA3R4QMKZRC5CNRS6MG \ / AMOS7 \ YOURUM ::
-#\[7]56L7MJOHZVKUFPVDMMVKSGKLOSDBYNOKT2BMU4HJIHK7WN4I5KCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,.,,,.,,,,..,..,,...,..,,,,,,..,,...,.,.,..,,,..,.,.,.,.,,..,
+#BOPKHFPDGFC3CKZTIKECVYWMP4BXEH64TWEBTOP3BS2LGTHKWNYTOWYF4XH75TMUL7ETYKLOSNDHW
+#\\\|RC2OBESFPNICRP4K642Y5J5RXM7UW5ZZSS6TRPZIV23ZW6K7VBD \ / AMOS7 \ YOURUM ::
+#\[7]KABJH5HT23KEEENC6J4SNYAN4WQ3BZDZDHBBYAC44WFLX2AM62AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

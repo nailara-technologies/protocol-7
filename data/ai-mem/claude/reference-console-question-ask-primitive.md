@@ -108,8 +108,8 @@ perl -Idata/lib-path/pm -MAMOS7::TERM \
 `bin/dev/update-amos-versions` covers only AMOS7::CHKSUM/ELF/ELF::Inline,
 so TERM.pm's `$VERSION` tag needs no regeneration when edited.
 
-#,,,,,,.,,,,.,,.,,,..,..,,.,,,.,.,,.,,,,.,.,,,..,,...,..,,,,.,,,.,,,,,...,,,.,
-#KAZBQVXZ3X6L35HTHTYBS4KV6DPCTIZLVEQVIWHP3EE5RYWEMQCVW2LFCYJRE2SKMD5O3TPRKAXGM
-#\\\|NE5J7UWULGZOA2QXDQMMNHBAYVNJVNNSWU4YMJDFCNWCMKEBBQE \ / AMOS7 \ YOURUM ::
-#\[7]LXTAUNRJ6ITEDSE43IUBQAXY2XIFG52WT4MOXX7W4NAUWLRXC2CY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,..,,..,,,..,,,.,,,.,.,,,.,,,,.,,..,,...,...,...,..,,,,.,.,,,,..,
+#E7QTCECRFVTKIC4OF7B6TIQZDUM37TN7GPM2SY6P6C23RRDHUWLD7GXAZQ4IT75ISNTP3UEZ6WEBM
+#\\\|F7AMBIHEEPJMIPC33DL23K5VEP2JDEQSMHUOJSLFYCG3PWTZFHG \ / AMOS7 \ YOURUM ::
+#\[7]NDIVFQ4GM2HZMHLMYIPY5SS55OADP3LA6SS2QHX5YV2UFDFQMKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

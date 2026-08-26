@@ -168,8 +168,8 @@ question-answering (that's the much larger, already-designed
 [[topic-next-steps]]-adjacent fallback-chain/interaction-surfaces thread,
 `db8e3cbba`, `data/md/design/CODING-ZENKA-USER-INTERACTION-SURFACES.md`).
 
-#,,.,,,,.,.,.,,.,,.,.,...,,..,.,,,...,..,,,,.,..,,...,...,..,,.,,,..,,,..,.,,,
-#I5ETOSMZYNJG6HDRSE5TV4CWYTF4INLWEEZ7D2Y7BWC4BZGOO4I43PLXWR3JJCMOFUF5T5DUBFGXU
-#\\\|PYJBDSZYILWCXGDIFHKV2DB5TDRLVJ6FDV5MBTUCXZJCIGMDBZW \ / AMOS7 \ YOURUM ::
-#\[7]VYGATHMG2OGIKY2OM5Q6LGFKIKEPH56Q6A22PVDV7EPXCB2FI2BA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,,,.,.,,,.,..,,.,,,,..,,.,,.,.,..,,...,...,..,,,,,,...,..,,.,.,
+#L6B4DGSFZTGRGNNT7SFMGCO2XAVJTWOL2YHM72TNULMYQTZWVCSKYAYPBSA6IGS62JJXGW3ZFC2SS
+#\\\|QNAVMG4PTUZCW4B5BYTSDV7Y5FAKLM533SN3MVA6CS3GV4SRFDZ \ / AMOS7 \ YOURUM ::
+#\[7]WDVHV4FEDJGKEICNUZJLMHTWQLORLU7FGE2ONL2D7V5IAMXLFIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

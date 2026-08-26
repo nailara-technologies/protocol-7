@@ -119,8 +119,8 @@ increases total awareness. None of them can decrease it.
 *This document is posture, not policy. It explains why the mechanism doesn't need
 to be adversarial to be effective — not a substitute for the mechanism itself.*
 
-#,,..,,,.,..,,,.,,..,,...,,,,,,..,,.,,,,.,...,..,,...,...,..,,,,.,.,.,,..,...,
-#46CJFNJKPODIM4I4E25AHUAGNQ4VJJHKYTJFZLPR4FA4LBW7ICVBPHGLTZIBXUH43ARJMGJOI4B5A
-#\\\|XIMLX2YOFMLLD4RHSSCS42DBOZLWSRQ52TINACZ72RJ4OKJNGZW \ / AMOS7 \ YOURUM ::
-#\[7]ODTAB4DYG4RETEMEUIWR43JA4JNF66MAPIFI2UML5AI26XIDX6BQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,,,.,...,.,,,...,..,,..,,..,,..,,...,...,...,...,...,,..,,.,,
+#5E76HK5WZGRMX4HIXLZ6FV2JCBZWRBISO2GDC55QPDKV6DYJMLSHFOVH7EVXHGWSRRV643C26CY3K
+#\\\|M2SAKNWNLPGGK5GG5CUV56J7WJJVWKAQLTVGEJZLVFJDPZZFGOS \ / AMOS7 \ YOURUM ::
+#\[7]Q7TCSBRQCZDXJDTR3BYPZJIHPRNLB2R7AFLDW3JXGQWFF7JQAUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

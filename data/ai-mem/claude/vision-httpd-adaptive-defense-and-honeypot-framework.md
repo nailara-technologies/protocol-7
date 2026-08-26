@@ -509,8 +509,8 @@ not a proposal.** Next step per the user is still open — they were
 asked whether to start with an observation/classification-only first
 step (no blocking action at all) but hadn't answered as of this entry.
 
-#,,,,,...,.,,,,.,,.,.,,..,..,,,..,,,.,...,,.,,..,,...,...,..,,...,,.,,,,.,...,
-#EZKRKU6OGXS5MFEBFMFRG6QDKDJYN3VRCC6CASRD3YKELI34GVN3SIJGCYA6H27SYIGTLVWQFIFY2
-#\\\|ZOJBEHWJLSJVLWZVCBMZO5NWJB4UURVPYPXAMHWNE5LLATHGHZX \ / AMOS7 \ YOURUM ::
-#\[7]ZTATL2C3EDPKZP5RUMTUYVAC3ZN45NHM7UM2XVNVJT4P36MHIICA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,...,,,,,,.,,..,,,,.,...,,.,,..,,...,...,...,,,.,..,,...,,.,,
+#HC2PU2CSSG24T7RIKTHIH5C5M76I5UKRBSNOQPVA7D2GOXGY2ZRJQKLIJ2WVUAC64OESF7OQXJCZU
+#\\\|TICQUOUPTYSP6BXYP4WGHYMHLDFTQ6B6NLX7W3OHJ2DSRP7RKGA \ / AMOS7 \ YOURUM ::
+#\[7]ZW4XHRJRL4PRQC5YCB5EAOFN4FEZP3DFYDHVFIGM3P7AXX6ZG2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

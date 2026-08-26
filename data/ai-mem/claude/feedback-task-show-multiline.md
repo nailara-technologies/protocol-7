@@ -15,8 +15,8 @@ to just `:local: :simple: you are a job matching assistant.` — model received 
 multiline value, escape `\n` → `\\n` in the emitted string, and unescape after parsing.
 Current fix lives in `task.cmd.show` (lines 66-67) and `models.handler.task-poll-step` (unescape step).
 
-#,,,,,.,.,..,,...,...,,..,.,.,,..,,,,,,,,,.,.,..,,...,...,...,,,,,..,,,,.,.,,,
-#OXVNPBCONBFHVJS3BKA25J4F7KAX7U3BAGN6VSCWZYY7RAG3XF6PSI424UVQLTL4WOUAZ2YHFXEMC
-#\\\|WM5SXISDLUPANCF7RRMDYUADU4RC34WLG325VZRGBZE6Y33OMGX \ / AMOS7 \ YOURUM ::
-#\[7]JCZ6RPCIKZGLR2PMABJFNLF63VHCMNNLJGXXYTR2C5RGGHXAJ4CQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,,,,.,,,.,,...,...,..,,,,.,..,,..,,...,...,..,,,.,,,,.,,.,,.,,,
+#N2E3TFZEGC7F2SIO2DPADNPLT3ISXYTC35J6OKM6GBJEPDXCK3JWTP3TULAUPPS2UEUKOS4T72DAA
+#\\\|ZGAKJZKXN27RJML2HF2VOZU47ZVTZGJBB2DJ6P5GSRP7XBAJKSO \ / AMOS7 \ YOURUM ::
+#\[7]3G3YQBMYF5TDXQMBDOZU35OCRQRJVTL6F5MYIZCSNPWU4E2A5GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

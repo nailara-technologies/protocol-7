@@ -304,8 +304,8 @@ This is not aesthetic decoration. The harmonic color mappings emerge from:
 
 Colors reveal what text conceals. The blacklight canvas makes truth visible. 🌊🎨
 
-#,,,,,.,,,.,.,.,,,,,.,.,.,,,.,,.,,,.,,.,.,.,.,.,.,...,...,.,.,,..,,,.,,..,,..,
-#JPPKDFRNV5ISHPNG7NSLI2YBBQ7ZZ2YOYFXRVZCJGU4Y27EUVLA3KP643IFQG7DZC73BGJO3D6VXO
-#\\\|LGTVVI3VTZVZH4QW6PPXPO6NYA34BQ4Z4KL7IFLO46FQWPQCLW5 \ / AMOS7 \ YOURUM ::
-#\[7]OYMH5AGKJVCNUIHGNEC6INGOQPAIE6L4VDL3BCN5HF7TEQGZ4CCI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,,,,,,,.,.,.,..,,..,,.,,,,,,,.,.,...,...,,,.,..,,.,,,.,,,...,
+#DR26CVSUNZDL4QZ4ZUP3WQZBZIBB5NPTI6UY3QF4VGL7ZS44LQA2KT2SIUV6MF4OEU4CTROQ3LZKU
+#\\\|NNMORXCVAE2FVWD24P3L7G7XYHS667XSG4ZEVFCDRV52B2FT73N \ / AMOS7 \ YOURUM ::
+#\[7]6SJZC7Y7MUKWTZXIWQPLSMZYCKZ4JD43N6DMOG4YRAFJHPDYYACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

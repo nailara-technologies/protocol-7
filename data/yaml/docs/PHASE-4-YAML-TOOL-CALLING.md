@@ -429,8 +429,8 @@ Complete conversation shows:
 - Incremental implementation possible
 - Full benefits when models generate YAML well
 
-#,,.,,,,,,,,.,,.,,,,.,,..,..,,,.,,...,.,,,...,..,,...,..,,..,,.,.,,..,...,,.,,
-#7DJLV6SBMSEFVMUKOF7FDKD6KGEXNUXOPMXAVXW2UITAX5MJM6DHPZZE6SOZB7HOII7ECLQ2UE3OA
-#\\\|5RE4JVKGFSAUZTMX6WPELI4ZKOZIZO4U2OGSRO74NQOZKNJJZHD \ / AMOS7 \ YOURUM ::
-#\[7]L4SXUXUWPQSGVPDCYUCOUOQ3MCCOYZBVJGD5EN3ND7HZXBMQROBA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,,,,,,,,,.,,,.,,,,,,,.,.,.,,,..,,...,...,,..,.,.,..,,.,.,..,,
+#DGDDO45BA7RAMHMNFKD77P6OOTZBFW5H7UIWHICT64A7SQYDJU4XB7VL3WXHB7WPP4WWPCXZXEIMU
+#\\\|432YVELAKD5H6DMPO7MHGNSAJW4VE4UJWLLEPGOITUN2QHTJECT \ / AMOS7 \ YOURUM ::
+#\[7]K2XDUONXZFZ4I242GBO6ZRIBLMQED7GHDHZQNNCGH7WW4JM2RMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

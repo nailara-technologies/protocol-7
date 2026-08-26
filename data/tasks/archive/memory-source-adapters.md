@@ -66,8 +66,8 @@ guidelines for every adapter:
 - no manual AMOS7 signature stubs written into any source file or output.
 - comments lowercase narrative; `[ ... ]` annotation style.
 
-#,,..,,,,,,..,,,.,,,.,...,,,,,.,,,.,,,..,,..,,..,,...,...,,,,,,..,,..,.,.,,..,
-#UJE7RWY25MOHYQSNEHW7WMQONKOSO6ZHHV5SNIEINVBCKX7O2WVM7QM3KCZBMSLFXAVVISMF4E3A2
-#\\\|FU4JD2DGWIV2SR524LK2N4J5YESO7N63PK636WSTLY42JD5OPWE \ / AMOS7 \ YOURUM ::
-#\[7]PCVFUADLQRHZONS5MGWQW7LBTDOYBP2K6LGEHHSIAPJEQIAT6GCQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,..,,,..,.,.,...,.,.,,,,,.,.,..,,...,...,,,,,,.,,,,.,...,.,.,
+#VK2ADONO55TUWANCJXVAH333PKMU56OU3QZPR76QA262ZENXSRPIHABHPYYWNTQLRD25DC2AOLAPQ
+#\\\|RIA5U6XJTIUCXRLZS66RUUF47WMFTZRUCBB6BLUHRD4ALV7QCEE \ / AMOS7 \ YOURUM ::
+#\[7]EODW7YBFND7YARQP45SQUPJJB6WOYF3CODFHGNKXAKZORKH46OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

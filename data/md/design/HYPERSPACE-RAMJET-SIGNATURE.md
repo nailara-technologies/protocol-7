@@ -415,8 +415,8 @@ announced acoustically before any other communication begins. [:
   trajectory embedding capability, sharing the FastText pipeline
   with spatial audio memory
 
-#,,.,,.,.,.,.,,.,,.,.,.,,,,,.,...,,.,,,,,,,..,..,,...,...,...,.,.,.,.,.,,,,,.,
-#DQYWISDHTROEMLFB54K4L5OIBUJVQKBBOGJ5SABX7H5D5NOZLDZF6YN4UK7NF67A4FRWXBJ5R4C32
-#\\\|X56INMJOZIPW23EQ6XWSNTISX3UKJB4BCY2UMQAD3MKQWRETOLQ \ / AMOS7 \ YOURUM ::
-#\[7]E557QXGPJYJZBLP5BSEZ5EM6DXFBYY2TRXUVRI5VAZZG22VGFOAA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,...,.,.,,,,,...,,.,,,,.,,,,,..,,...,...,...,,,.,..,,.,.,.,.,
+#H4N3SV5KNWGB3HT2BAYAN4IBY47YH3PTVV7TWZ3AHM2ZH6LWCSCOGMSRWZSXSK7RFR2S5CLX7HXCW
+#\\\|XW3R5HUY7AYTADUD3HOQNTKR4IGSBMRJH4F3ROVHV22PGPZZXLQ \ / AMOS7 \ YOURUM ::
+#\[7]QZPM2FJYYU2HQMASHX4OHWTYC5JA6SU64VXTOK2NIFTH3ZGZS2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -250,8 +250,8 @@ Quick start:
 
 **Architecture Vision**: Menu is a **living network dashboard** where services register themselves and push updates. Protocol-7-menu stays clean, simple, and focused purely on rendering changes. All complexity externalized to provider zenki. ✨
 
-#,,,.,,,.,,.,,.,,,,,.,.,,,...,.,,,.,,,,..,,.,,..,,...,...,,,.,,,,,.,.,...,,.,,
-#23J7A7ZD33DU5SGZTGM6TACDTCKJIG6T6FJK6M75ME32H7KEJATJLXDAIQZ6TZFW5WLLTIIXYSDQY
-#\\\|ASSBSPDDB4YOOKNVUH2Z3Q7Y44Y6BIE3UI37VOF47QTNTM2F5YO \ / AMOS7 \ YOURUM ::
-#\[7]O3CJRW2XU6BBFP7EXM2OYEVYHVKDTMSQR66H6ZZBM2MA3SUMOQBQ 7  DATA SIGNATURE ::
+#,,..,...,,..,..,,.,.,,..,,..,..,,,,,,,..,,.,,..,,...,...,...,,,.,.,.,..,,..,,
+#I4IXZ3GGAUN4KFAOUYRCFR6DKMFMQN67UBGG5WWVSLQPKKS2C4QCLJVWJ75BNY3F53KL5M52RYMJ4
+#\\\|DJQXBRNIO6I32VHVMX65TOWJ5U6P7IOL264K3XWWG3AK4QUH6IO \ / AMOS7 \ YOURUM ::
+#\[7]SDEFJI22T3JW6SDL4XGVAR3XT5C2BWJUF3LB7HATDRSQOMU5JKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -121,8 +121,8 @@ Priority = 0.30*momentum + 0.25*explicit_priority + 0.20*dependencies
 - `src/context.template.resolve` - Template resolution engine
 - `src/coding.cmd.ask` - Main interface for template queries
 
-#,,.,,.,.,.,,,...,.,.,...,,..,..,,,,.,,..,.,.,..,,...,...,,,,,,..,,.,,.,,,,,,,
-#OXXUO7AP2SM3LL43QYFIVSWNOOSED5OIPXGORFV7V4WFW4PY5JWNSOGJ2XB77ESLAMQMN5YKFEYSS
-#\\\|D4LANEPMJ2SRFUONIC6YA4XDKO436G542YZKDFCWKOHRERNIG3D \ / AMOS7 \ YOURUM ::
-#\[7]3LV5YPTBCTXYTYBNQXQ3EPPI2HKEMFCLTRCWXOKR5RWPDYPSKQAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,.,...,,,.,,,.,.,.,,,,,,..,.,.,..,,...,...,,.,,,.,,.,,,.,.,,.,,
+#ORXN3J54QBGAEOLCAH4OL765XFWHIAMIYZC24L5M3M4TG3DTHOZJUD5H3CRPZCLYPI2XKESNGYRXE
+#\\\|CR26P6725NQHFQYNH73A7L7YE6FPAWMEOEKWRGS7MIXVCDDPS4I \ / AMOS7 \ YOURUM ::
+#\[7]AYA5TLWDW3ODZT2FCGYKQFFVK5AZKWXELFAWTYKBMP64QXWXYSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,8 +57,8 @@ context despite being directly on-point — worth deliberately searching
 memory for "stat" whenever writing or reviewing any P7 module that
 touches file metadata, not just relying on automatic retrieval.
 
-#,,.,,..,,...,..,,,,.,,,.,.,,,...,,,.,,..,..,,..,,...,..,,.,.,,.,,,,,,...,,,,,
-#7TNT337NRPHTZDEWSA4VA64URNUZ3WNROOLOIV6VAMXYEUZW7ZAEGS7MJEUL65Y74W5ELX5FL2AMW
-#\\\|LRRV7QFG2RW445XVUNNR3BV4KJIJAM6OR2IGM2ZGODHNXO3HUHW \ / AMOS7 \ YOURUM ::
-#\[7]IU4K4H3Q2ZSNA6DKENYVLWYR5626NZFCMTQTVPXLFJM53UEWUQCY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,...,.,,,,.,,.,.,...,.,.,,,,,,,.,..,,...,...,.,,,.,,,...,...,...,
+#PKALN44YPHAR67BKLCPA3JFXB7R5QHJV3HW5KFG5EG5K3LJM7QHY52QXNXVLXOQRQYSVWZMA3RAYA
+#\\\|QS3Y6FKM2QU6USCAZZ5T6NHYNM23RHLJCSDJDCYTUVSCR7IYQU3 \ / AMOS7 \ YOURUM ::
+#\[7]4Z2MQOTHPYKQZ5KCCD7Q24ZTCQHFAFVINLLM7SXEIP7AG5SBCYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

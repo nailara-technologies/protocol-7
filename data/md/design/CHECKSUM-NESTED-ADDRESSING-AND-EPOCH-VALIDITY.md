@@ -106,8 +106,8 @@ fold these three into separate task files via the next opus
 "task file generation" dispatch (same flow as
 `console-stdio-slot-addressing.md` / `console-foldable-render-baseline.md`).
 
-#,,..,,.,,..,,,,,,,,.,,.,,.,,,...,,,.,,,.,.,.,..,,...,...,...,,,.,..,,...,,..,
-#BPUQS5LUMXGJM3APSXKFJ7PCEGA2EKZKWI2FCC56T43ZVNSFF6C545DMTT7DH7GRRLUYANH74FZ6W
-#\\\|2TF4E6RUAVHVTQQWNQFLRO63D4O54HJNMCVK6R5SV43744ETCVF \ / AMOS7 \ YOURUM ::
-#\[7]X52WJLXPJO3Q5XJOVBQ4G2HCGB2L4UBDSETYFQNFZUK2ESAQKWDY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,..,,.,.,,,,,...,...,,..,..,,..,,...,...,.,.,..,,,,.,,..,.,.,
+#GJWQIJ53GETTFJM5BSJUOE3XENIFG7O6VXZKNR3CHZNY3SJPUE7BZC33TMLS2VETGPVXK5RDLR7A4
+#\\\|ZUL42KO5HM36HT2QHSHPUUWBWDLF4CSRUYTPP6U6HX54FN523GD \ / AMOS7 \ YOURUM ::
+#\[7]FYPWW3P27O3OAUKJPCOTPI45H6I2ECGDCQXMUG43F2ZUFELSIGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

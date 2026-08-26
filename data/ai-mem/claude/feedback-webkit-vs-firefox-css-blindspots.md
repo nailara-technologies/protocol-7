@@ -36,8 +36,8 @@ actual CSS rules (not the JS logic, which was correct in both cases). Ask the us
 fixes for Firefox-reported bugs directly, since my own tooling is WebKit and structurally blind
 to this class of issue.
 
-#,,,.,..,,.,,,,,.,,,,,..,,...,..,,,.,,,.,,,,.,..,,...,...,.,.,...,,..,.,,,,.,,
-#CYQBGTPHRLE5WCYPDXA3RZZ7GLACFPEEIAY7SNXZ4ET5VTTB62EA6CNFFH7GRRTUAAD6XN3BEC3IU
-#\\\|55LIKTNFHKLFPO3CGJLYI2S36E3JCVOVNQNEFUDBG7VXHIEUZQJ \ / AMOS7 \ YOURUM ::
-#\[7]AN3PQ4QPYCVSCBGUOI3HPDICTIMWQRRQALGVQVHN5QS2DPUIIIDA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,,,,,,.,,,,.,.,,,,.,,,,,,,,.,..,,...,...,,.,,.,.,..,,,..,.,.,
+#A7XK3XFAKQM2SU6ESMRANW263HSMKQS75TIVNGDELEV27WPUMI5QDU322VYCGQPEQMPZRKSFQDUHI
+#\\\|4BPKADOXBXOLOR6NG2XQMUZKYYWFL3LT5ZSO6XRVVSABCJHEWEZ \ / AMOS7 \ YOURUM ::
+#\[7]7NFSTJGTLCRYNV6KEGFNTXZCRYHW3W2KAEDPIMI6OV4UTHME4CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

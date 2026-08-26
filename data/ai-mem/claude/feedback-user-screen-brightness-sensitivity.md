@@ -16,8 +16,8 @@ the user has a genuine physical reaction to bright screens, not just an aestheti
 - if a print/export path exists alongside the screen view, keep print forced to plain light/black-on-white regardless of the screen theme (the physical paper output has different constraints than the screen) — don't let a dark screen theme leak into print output.
 - prefer violet/blue-toned dark palettes over plain gray-on-black for this user specifically (explicit preference, not just "any dark theme") — gray text on dark background was flagged as insufficient, violet/blue was requested by name.
 
-#,,,.,...,,,,,,,.,.,.,...,,..,,.,,,,.,,.,,,.,,..,,...,...,...,.,.,,,.,,..,...,
-#57KSOLX2WWPVTR57I2P3WNBWGUOQK6JZRP7DZ74C4SQVJV2TZOK5UGLJEDDCAJQXZI64AI3J6A4OE
-#\\\|TQSJJDJATYJVRZGOBJHZHEBJZURG2EEHROL2FJ5FSP3IIFC45PY \ / AMOS7 \ YOURUM ::
-#\[7]LQRQXQ7HQUJTIFZ3KJ4W5MSQL6MFGXSUSFDI3GHED7AZ4FX6FOCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,.,.,,..,.,,,,,,,..,,.,.,...,,,,,..,,...,...,.,.,,..,.,.,,,.,,,,,
+#ZKW2B2SLCIL22536OQB2HF5B3WHI4PVTWFOZZFTM2I6HXUFRFBU6DDRTDRY7ATBH7YVWUTE7YI5UG
+#\\\|PVZ3H6BJDFSOMDONYQNZNQT2AM7WLTKQJHVF6RXFTVLK7T75BTD \ / AMOS7 \ YOURUM ::
+#\[7]YUZTHNHOO7HUZ5Y6YZK2NSWRJNH5ZBG3DSDMBP7GG2OGXJQ3CUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

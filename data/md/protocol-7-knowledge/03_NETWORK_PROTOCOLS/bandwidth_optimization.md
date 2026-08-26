@@ -651,8 +651,8 @@ Throughput = (Bandwidth × Coherence) / Latency
 *Bandwidth optimization through geometric organization*
 *The mathematics of network performance*
 
-#,,,.,...,,,,,,..,.,.,,.,,,.,,.,.,.,,,...,.,,,..,,...,...,..,,.,.,..,,,,,,,,,,
-#7KGH5IM4BNBV3U2TXIMZJRWOI2AQCF5QUZRLSWJNGKSD47HS4XXEB24EJ64ITSU74JCCQFMRYSIKE
-#\\\|MK3FCRHMMJJ63OHCADDUV3OUTRN3F4PSB65IK3IB5MJVP2MXM7G \ / AMOS7 \ YOURUM ::
-#\[7]ICQYOMVT6VM44A7BWJM4HIY5PEDO3FAR755SECVESLQQY2CVNQDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,..,,.,.,.,,,.,.,,,,,.,,,.,,,..,,...,...,...,,,,,...,...,...,
+#DUYRDX3ZM77SRYCCKMT3W4PXVLZVA4CJFINP3VZS5WZO5IOWW4777D7ARKPRIM6OJTZH3RSRM7PYI
+#\\\|B7OWUSX4IRWSGKKHUWWNDPWV4HRBXIKMQXTBU3KW4ZIM4VH2CYP \ / AMOS7 \ YOURUM ::
+#\[7]DFB4Y4FKVOH6SODBGJDF6DRDG5UH2NFEBCM24ZR76BROC74C7KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

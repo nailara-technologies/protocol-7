@@ -110,8 +110,8 @@ perl -e "
 - [ ] perl one-liner above confirms `NetworkProxySettings->new()` works
 - [ ] signatures updated
 
-#,,..,..,,.,,,.,,,.,.,.,.,.,,,...,.,,,,.,,...,..,,...,..,,.,,,,.,,,,.,,..,..,,
-#HTTOQLPEJ2XY23EYL3CRBPRED54MF7CLHLX5HJ6TUMX4RPYBILUWHJEHSKS4XH7UUB6OO6XCBNVDM
-#\\\|ZZL2CXP5ZTWB5MF5BCE33I6CROTYBUX4CLF2BDIBU5H5ZIGRVJG \ / AMOS7 \ YOURUM ::
-#\[7]4YBCLGH2HHD3KJ6GVUCHG6FFRCFWJNXWH6IHXM4V7NVDRUSP4YDY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,.,,,.,.,,,,..,.,.,..,,...,..,,..,,...,...,...,.,,,..,,,..,.,,,
+#3BGFHMBQR7XYZCW67APVUHEGT6HG4KQ47ALIICPSMUHTCPJE4XLB3BLQJVKY4Y47IUESA3DFG6USA
+#\\\|GCINEMH3KESRUIEBR4FZR3SHDA6BSDYJXHZ5WATTEM4IUSLPE7Q \ / AMOS7 \ YOURUM ::
+#\[7]W7ZYI4QKVKJ7O2GZ6AURPK7WTBRPQSM6JS6326RYIXTEC6TSMGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

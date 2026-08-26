@@ -163,8 +163,8 @@ before marking task complete:
 the output doc becomes the input to the NEXT implementation task. keep it
 useful as a reference, not as implementation instructions.
 
-#,,..,...,...,,,,,,,,,..,,.,,,,,,,...,,,.,..,,..,,...,...,.,.,,,.,...,.,.,,..,
-#OLKCANJSCPGDPZUAU3CP2RXL3LUGW5CFRKK5XI4EQ4UHZYD35D7XVDF2QSHGBF5FTRPJV2UTHZIOC
-#\\\|6LUZPSH4XKUFLBMIL6MINFBZWZV2RARMKXPTUTT5K3AKJL7L5MJ \ / AMOS7 \ YOURUM ::
-#\[7]ZDADN7XN5MMYDLSJ7VYBDE6M3VZJCAXAOAAISYTBML3GX7XGC6AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,...,..,,,.,,,,.,,,,,,,.,...,..,,...,..,,...,,,.,,.,,,..,,..,
+#JSEYMYW5DLWMTXD2TSKTZPXM6XNI4FXO2Z2X2J5SBQPLOOJHTFDWTYQABVOGAVTHUEL2ZQGKYCAIY
+#\\\|6O6UDRPSATZNPHPX3A4TSCE4BQTYZUW4Y3QTZ5ZW7TAIYTGO3KE \ / AMOS7 \ YOURUM ::
+#\[7]F27HTDWQTDPU64ATQVAZVIVGA2OJDFYEQAHOPLS7WSUB3V3CAOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -95,8 +95,8 @@ file format ]
 - unsigned files : sign before commit with
   `bin/Protocol-7 sourcecode update-signatures <path>`
 
-#,,,,,...,,.,,.,,,..,,.,,,..,,,.,,.,.,,,,,,,,,..,,...,...,...,..,,...,.,.,...,
-#XVUB5RHEUK33EIRGDN5KVR74K44W5XDYSP52UGSQ3IO3NQNMRXPLFDX5U5PJTJ6IDCDMLP4Q4KD7A
-#\\\|HIY3PD57NVQAGBML5FPPV4KYARYX46ZMRZWJG7S72MEIW4MFBH3 \ / AMOS7 \ YOURUM ::
-#\[7]VPYXEDAB5YDN36EZMQ7G7JXJ4G4J7I4VALEZ4IUQLSTCGHXO2ADQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,.,,.,.,,,.,.,.,,.,,..,,,..,..,,..,,...,...,...,.,,,.,,,,,.,..,,
+#QRJH7YAP5LMYKM5E74QHQGJ347DXOK6REIOQL34KYDSEFBBF3SE7FIJIBJZF2VE7DTALUBKVWUKEE
+#\\\|H5KDTGQNJU4MH7THTUWH3TUOAFRVIH2GEUJXHNNWZXO7V22BMXK \ / AMOS7 \ YOURUM ::
+#\[7]TJAXNFY263IHF3JKN7MPAJPBMQDZJIEMJTGAEPQMTUV4NXBXRYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

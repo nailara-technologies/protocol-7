@@ -187,8 +187,8 @@ add `lookup search` to `access.cmd.usr.cube` in
 - if `<index.level>` is empty (future: after explicit finalize), freq lookup
   falls back to `<index.freq>` for ring 0 chars
 
-#,,.,,,,,,,.,,...,,..,,,.,.,,,.,.,,,.,,,,,,.,,..,,...,...,.,.,...,,,.,,..,,,,,
-#FOQW3MTMENYJWDZVNFC34JZ4IRFPGEJQGMW7W4CKYWI3XJL2APBBFXH3C3LZXVID4ZSKGGKNMVO7E
-#\\\|H5RFTZWJIVG6TOPTHTWLXNMUCWYGIGI5BNZJAXLCDHTXBYS66PR \ / AMOS7 \ YOURUM ::
-#\[7]RDXF52OBNUM24QMHMRSE3STRTUIF7PHKKES2CNYX2R6XZSCJYCBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,,,.,,..,,..,...,,.,,.,,,.,.,..,,...,...,,..,,.,,,,,,,.,,...,
+#VHVHPVF67S3R64UMCTPVWMQ74LCR57IJDBZ4E7OWV3NP4EWTJORDCD6I47QXMYPPICPC4BH4UOZH6
+#\\\|PLC2Y55BRLVJPSKTKSMCE7JM6I44QBWMQPENIJ4REQP6KOPW5SA \ / AMOS7 \ YOURUM ::
+#\[7]CGC22KNRFK644UKDPURNBSZYS5FOXDWLSWBBO2JG5LA6MYOCS2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -318,8 +318,8 @@ llama-mtmd-cli-cuda -m model.gguf --mmproj mmproj.gguf \
 - `/data/projects/protocol-7/src/image-batch.parent.execute_job` - Fixed protocol message format
 - `/data/projects/protocol-7/VISION-IMPLEMENTATION.md` - This documentation (updated Dec 27)
 
-#,,,,,.,.,..,,.,,,...,.,.,,,.,,..,.,.,.,,,,,.,..,,...,..,,.,,,,,.,.,.,,,.,,.,,
-#5KJ4K6NDJCYMY3XICDEK2U63NP3QB2GKC4Y42QDHZHTD3QAPWOHDVYRBB6H7RSQ6Q7G5OYZ2G6VUW
-#\\\|DD3UGR6COUKOD4OPSBELR2LRSSKBG366W5CY7KVPHT7GDUK2OGV \ / AMOS7 \ YOURUM ::
-#\[7]23LDI63VRC7KPY4RW4DVABJMRKVZWA6NNG5JG2JSB4G55B77E2AQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,..,,,.,,..,.,,,,,.,..,,...,,.,,..,,...,...,..,,,,.,...,..,,,.,,
+#ELQHFDXCGLRHKTVBHWJXLXEDY6EUU5GSXKZYYQLEINNVCPUDZF37VJ2NU6EOUV3VQX263JRN7THWK
+#\\\|SZ5Z6YHCJA5UOQWAU6LW4DRJWNAFDYIUCTGHEUYQ764W5TAQSUL \ / AMOS7 \ YOURUM ::
+#\[7]HYS253XZFCQXNFXLEV54M7TIE2GGVX5SWQBGWOF32XUS6N6FV6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,8 +39,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - **[MEMORY-completed.md](MEMORY-completed.md)** — explicitly-completed / resolved work.
 - **[MEMORY-archive.md](MEMORY-archive.md)** — stale chronological session log.
 
-#,,,,,,.,,.,,,.,.,..,,,.,,,..,.,.,...,...,.,,,.,.,...,...,.,,,,,.,.,,,.,,,,,,,
-#NKOAPAVIT5CJZ6FQVNSIIHBADAQOCETLKVK5I5RNHEI4B3V5FY3FPZ5UZ2KFA5SWQN5YOY2XRQA6Q
-#\\\|ZEAIDIVOASW6IY4X5BRMJ2CIC7GPFLXYQREPDVNKVNWIIMOVHWW \ / AMOS7 \ YOURUM ::
-#\[7]T4TBGCPY3DHLYVYVDR6MQ4O3FAYHDCDTAMYQSYHM62XNRPPTJADY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,,,.,.,,,,,,,.,.,,,,,,.,,.,.,.,.,...,.,.,.,,,,,,,,..,,,,,.,.,
+#3EAUE7VJLUZJHNA43RO6VROHEFBIGMO4K4VNU3IDALP5G46PETLZVHAB4RXDORIIZIHNOIT2GRZOM
+#\\\|J45AB6NG3Y246ZUSIRDRWX7T4ASFI44VPZIVGF7JFGHAI3ZKQYU \ / AMOS7 \ YOURUM ::
+#\[7]OPWLVUWM7EXSA43BF2QC4L5GR5WDQB2LCKHT5JEBTGPLFBARHACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

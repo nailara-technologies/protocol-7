@@ -167,8 +167,8 @@ $ARG not $_ in loops
 <[base.logs]>->( N, fmt, args ) for logging  
 lowercase comments, [ word ] bracket annotations
 
-#,,,,,...,.,.,...,.,.,...,...,,..,.,,,.,,,.,.,..,,...,...,,,,,...,.,,,...,.,.,
-#BZ6PT6KPJUGZDYCMNEUVQZPRBEX3YTVYNM4EPZAHV2T7QWKIA4RWQCDUHEZNWNZE2SDQN6JPATGK4
-#\\\|JOTIDL4KBLQVM7SKIVYRPFA76YRQ555DWAKMPEZRHR5BE76ZGDW \ / AMOS7 \ YOURUM ::
-#\[7]PFM65ZLHP4GUEQ4DGSSHN23QKA3CXRFC6VWOT553HTRZHJ5Z2QAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,...,..,,,..,,..,,.,,.,.,,..,..,,...,..,,,.,,,,.,,,,,...,.,.,
+#JM3LEPEP3P53T7QU2D7ZV2TMJCP2ZAEKEIVJOEPMHLUVCWD4SF7WDNH6F6BZONFP2FPQKBLTIR6EK
+#\\\|THPFAZA4ZBTCB6VDXUYA2VHY4EI63GCZNURNH4SR42DFDOX3PTT \ / AMOS7 \ YOURUM ::
+#\[7]UVZBCOIEZV6K622D74UVEBOPBVBWK3LUFIEHUYE7FO7KQ33I7CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

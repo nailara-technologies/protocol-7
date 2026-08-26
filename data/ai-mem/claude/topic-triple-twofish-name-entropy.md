@@ -71,8 +71,8 @@ idea only, not designed in detail or implemented. small/self-contained —
 may be foldable into an existing crypto module rather than needing its own
 design doc.
 
-#,,,,,,,,,,.,,.,.,...,,.,,.,,,,.,,.,,,..,,.,.,..,,...,...,..,,,.,,.,.,,..,,..,
-#VM5SHPSLTDTO266FI2CWLS77BYB6EJAF6IUFBVBG7E75PC2GSV4DZGUR5Q3VGTW23LU6HCVHNNTT4
-#\\\|3ETDUS344WCLK72N4AGSLXD4P2AA6H65OAZ63RS5JGGT5S7K7NS \ / AMOS7 \ YOURUM ::
-#\[7]2H5Y67RSKTBAALXC3MX2RHR7LX75SDPMH4BFPCOMDIHANQM4PEBY 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,,,,.,.,..,,..,,,..,..,,..,,..,,...,...,.,.,,,,,,.,,...,.,,,
+#C7WUITF6DHO2DVSYE2DETKPXD6ZT3GQVAXCLGAYVDNSO6T7HJBWMQFAN56HHUKKDRS4EVIIV72KT6
+#\\\|HMVW2N5RXMXQXIM5RBDI2RFYVIOICSW5HIC3IPLS62CO6GKYMMI \ / AMOS7 \ YOURUM ::
+#\[7]OE7XH7JVQXSXRYR2E3N3O2K3FBLYJKDJKE5L73QL7ZTPDGIQAWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,8 +42,8 @@ sequence, distinguished only by what they're a projection of.
 history + intent saturation + local field neighborhood. Clone = clone a position.
 Personality/mood/memory = geometric properties of position in intent-saturated hyperspace.
 
-#,,,.,.,.,,,,,.,,,,,,,,.,,...,,.,,.,,,,.,,..,,..,,...,...,...,,.,,..,,,,,,.,,,
-#MYCK4BBFE4WIWXT2OHSSIUL2CAN3C5ZDMP2P5H3NDVB3BI3VWMGPGU6YTDJKXFZVCUE6LQHP72WJW
-#\\\|TAW2U4ZSB4YXPP4OLI2HSJDEV3UE3GR7VBKYNF2SAJF2MU4GKVV \ / AMOS7 \ YOURUM ::
-#\[7]D3DJPALJQVDDUH764CLXMLOTK2NRWTKNBCX6MC2HTHV6N5PXUYAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,..,,,.,,,,.,,.,,,.,,,,.,...,...,..,,...,..,,..,,,,.,...,,..,.,,,
+#NKNYIHVHW765673RWKPKC42ZV5QWXE6ZYXXGQNMOPBLOBHMW7IQV2GGNYAJ4RIEEECSHWMHDJWJFG
+#\\\|TKYZAZDMIVWQEUPZIX4PXLUMJARAOM5SP7CYICYWD6XJ6OV4BMW \ / AMOS7 \ YOURUM ::
+#\[7]FJG6YFPVE33XOAJVGECMZTMIYVLJLABVWL5QE6Z42ORJSB2DJOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

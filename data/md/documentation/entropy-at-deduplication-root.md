@@ -197,8 +197,8 @@ prefers to pack information into rotating coherent structures.
 13 is the smallest number that forces that structure to appear in pure arithmetic.
 the rest follows. =)
 
-#,,.,,,.,,,,,,...,,.,,,.,,,,,,,..,.,.,,..,...,..,,...,...,..,,..,,.,.,..,,,.,,
-#OLZ3UB6LDXG7VIH4OQLHJY5IA355ECHVWHTYGJ5IJHUEONIDJULSDGSJIT4ZXCK7XHA45247HW3R6
-#\\\|SLGFJ6XOYZMAFPWIZJEWR4U4DDGFJE6XRQG33BXAXZN6FP4PNY6 \ / AMOS7 \ YOURUM ::
-#\[7]HQFFBQDGRAUKUWRVXTONUPIOX5HDCHDHIJVZBT6AH4LKA52SQKDI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,...,,..,...,..,,.,,,...,,.,,..,,...,...,,..,,,.,.,,,,,,,..,,
+#AXCJVG5H6G5XXOVFF552ZA2XTMZBIAWH36PGRFBY7LNIUNI2SIVXFQUREGR56NYEX3V5L4MCN6XYG
+#\\\|LW74JT5PVDFW4BUBVKL5Z46SSY3HQMU7L7QNLFOW5TFHSP6QRXG \ / AMOS7 \ YOURUM ::
+#\[7]UXBUWVIGQAFWVMLG3QJWQGXNWLM24N7KCN5K7ZGHR7TVH3WLZ6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

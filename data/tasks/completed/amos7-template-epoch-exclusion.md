@@ -107,8 +107,8 @@ footer — leave it.
 - no cube command for it; the path helper task is the user-facing
   surface.
 
-#,,.,,,.,,,.,,,.,,..,,,,,,,.,,.,,,,,,,...,,,.,..,,...,...,...,,,,,.,,,..,,,..,
-#BGPPRLN2GF5OMR6ZGQEHSAO5SLIQFROZCGU3IIH3QFWUV4EAI6AT2QX6QCYSX6W4RPA7XBJKHED2M
-#\\\|GAXEZNP2GZIZWUOEU5JAYCIPSS3Z2PVN5TUIKZLR3S2IHOKBOVY \ / AMOS7 \ YOURUM ::
-#\[7]IKK3KGYN4YBMSG5PHZVGVTKFCPA3BHOWYHSKBFN2DCF4BRLZRCDQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,...,.,.,,,,,...,,,,,..,,,,,,..,,...,..,,...,,,,,.,.,...,,..,
+#VN3T3QQRVJELDVOFGHWV4FBFR4T4HCKYQKDJ5WHZZ6MJVEYGYXLV27ZEWW2Y4RHJWP5IGQX4WNX66
+#\\\|OOXTSQVI4GIGU36D3AQRDEOQFWNFWZ2FSGOYIVBH26YMTP3DEK7 \ / AMOS7 \ YOURUM ::
+#\[7]M67Y5VYRLSGGPIZDYKDVM63FFN56EQWID7FF36DIXAPCKYL3RCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

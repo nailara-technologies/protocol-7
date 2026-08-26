@@ -243,8 +243,8 @@ first — this doubles as the batching order for the follow-up refactor task).
 
 - signatures_note: leave signing to the system, no stub lines
 
-#,,,.,,,,,..,,..,,...,,..,,,,,,,.,...,...,..,,..,,...,...,,..,,,,,..,,...,,,,,
-#UIINLNRUENBKSG7QWUZAMFI7CPSX4WGPSNUKQVQSNVSPHHOCOK5ZLAIRT5SBBZHPVL2FM37ORASRO
-#\\\|BJZY6KSY4MNUIA7RVLMMVDLRAVCFOZHVHHSFLJ5B2RTM64SLJNO \ / AMOS7 \ YOURUM ::
-#\[7]CCJQQVUGV3OJBQ3J6IIT4PQRCWHDSGM7HNLVPETX2YXKQ4YVFQDQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,,,...,,..,.,.,..,,.,.,.,,,,,,,..,,...,...,.,.,,..,,.,,,.,,,..,
+#KFC4OMODFQKU7ZDOITXZRTXOHKEINYCLP33SMA3YCY5FSJU4QB6MKB6575POPYGNRXFMVCQQNJMAO
+#\\\|UFVVVGNQTHTUP666DSDDRVE5POPMDUDVBOQZNGMVX7KCZ3ERVFV \ / AMOS7 \ YOURUM ::
+#\[7]TNDKOQ6XFEDZGXVFTU5AWIZCM6L37Y47KOBU2RONPBJSAJRR7EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

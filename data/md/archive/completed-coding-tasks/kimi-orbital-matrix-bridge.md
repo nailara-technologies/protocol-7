@@ -115,8 +115,8 @@ once implemented, test sequence:
 - use `$data{'zenka-name'}{'key'}` for zenka data tree access
 - use `protocol-7.route-send` for cross-zenka calls, `protocol-7.command.send.local` for same-zenka
 
-#,,,,,,,,,,.,,..,,,.,,...,...,.,.,,,,,.,.,.,.,..,,...,...,,.,,,,.,..,,..,,...,
-#CIOENM5YH7ZJLGJDET5THYRM5IV2RKCLMZZP4RA5PQIDW3VK744YNN5Y3G4UKJ2TLWSBATAZKLKAU
-#\\\|BHNO7IGGSAWAANHQUG6HVYUY5BXF35MJYOQMIQPT35KDTVOASOQ \ / AMOS7 \ YOURUM ::
-#\[7]O3ZYUEVBXAYLW4KNURZIO6Z66MMRXWHHE5NBY44QNGH67ISHVGBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,.,,.,.,.,,,,,,,,.,,,.,,...,.,.,..,,...,...,..,,,.,,.,.,,,.,,,.,
+#4YZNFAG53F32XU5XAABFGJWXURNUGIPLGMPGZWJMSFTVX27EG7RQ3Y3YIURENX66ADZYKRPGHHC74
+#\\\|PP4YCECI2GSHKQIKLXEENZSDMW5W72JNZC2JGGWDQJ4UABRYFNZ \ / AMOS7 \ YOURUM ::
+#\[7]VOWVNIBZMXSLASIFICGVOPUEZKW4ZATESDJKIY2EQFWGTU7WHYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

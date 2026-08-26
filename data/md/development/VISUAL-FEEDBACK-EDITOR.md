@@ -424,8 +424,8 @@ the vision model evaluates against the structured spec:
   overall convergence: weighted mean of field scores
   structured feedback: field-by-field corrections
 
-#,,,,,,.,,...,..,,,.,,.,.,...,.,,,.,,,.,,,.,.,..,,...,...,,..,,,.,,.,,,..,.,,,
-#X753QFZM66XTVCUZBWW5Y7EDDMHBZ2C6TMLNZ7BNXPVWFQDPU7TXNNSV2OX5LNUKMKTNFDXADUCSS
-#\\\|RV6ZAAFMFR62VODXAXGXWFPATIDYJ43AGTOFMSUG44E3L4VK253 \ / AMOS7 \ YOURUM ::
-#\[7]YJJXO4VZ33Q2XZV4SETDCW3CYWDUIC42TZUJLOM4ZOMQFSP5N6BQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,.,.,.,,,,,,,,.,,...,,..,.,,,..,,...,...,,.,,,.,,..,,.,.,,,,,
+#2HU2ZLLR2M6S3NJ6JXJE536H5NLP72K7RUTLTCNBVAIUPV5RUZ2GY74OBFOS5DEZIPTVIVIRNRRM2
+#\\\|N4MCA7BBPIE3UW5FG6B4OEYAIL5QIRPRXIFMHGFRTB44DLF2F43 \ / AMOS7 \ YOURUM ::
+#\[7]SRGJPCEJRYTVSC65FQW26XXDU4G5OGDXAJLMHHC2LR4YCHIOUOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -97,8 +97,8 @@ its own console output and buffer accumulation.
 - temporary post-init calls in `work.init_code` confirmed that
   `log.string` and `log.fmt` delegate correctly to `base.log` / `base.logs`.
 
-#,,,,,,,.,,,.,,.,,..,,,.,,.,.,..,,,..,...,,,,,..,,...,...,.,,,...,.,,,...,...,
-#56TNCKQSAMJXGGT5773PXZDBABXP2GMWYZGBVXTYRUTBTETMKFXX2UEB3WECUQPIBEUSJVIHWDFRY
-#\\\|UV63OFSRVA2JCKSMJPAYBJ7SYWRNCKKYYBDS2Q7PI5N4M2A5T2U \ / AMOS7 \ YOURUM ::
-#\[7]NW3VSZBFKZXT4RWALSVRJXO4ZKF6FXVFRRY7K3RVAIBWIJY2ZOCY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,..,,,,,,,,,,..,,...,,,.,..,,,,,,..,,...,...,..,,,.,,..,,.,,,,,,,
+#CTB24QIBGC55WRZ4HO26XME7LSYJFCXSQT4GWHUN67OTOKCYDOBWAQXEGWINHLZSQVK3XJBVZVGLS
+#\\\|P7UQH4ZWOEKMKCCMMRM5KT4F3OXEPSXEVFU27SBFYK4VLHEOGIR \ / AMOS7 \ YOURUM ::
+#\[7]HTEE4GSMT3XB365VVJI3PG7Q53Y5UM4NL5THKXAFF7CBNVFCECCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

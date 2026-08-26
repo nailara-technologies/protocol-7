@@ -291,8 +291,8 @@ verify: enable anon, run a command with a file path argument, confirm log
 shows `[L:XXXXXXXX]` in place of path, `p7c log.anon.resolve XXXXXXXX`
 returns the original path.
 
-#,,,.,,.,,...,.,.,,..,,..,,,,,,,.,.,,,,.,,,,.,..,,...,...,.,,,,,,,.,,,,.,,.,.,
-#C6PQJ7ZWR3B6BSPMHJYFZLSKJTV4ZYUCC636GAMJLZRTWPDVFPUHM344MMC54SCVJILVJAKX32U3W
-#\\\|V5NPC4PF6OLGP4UWJ6JR3Z6HVGWPFJBDC2DVUHD46ACMNY57EUG \ / AMOS7 \ YOURUM ::
-#\[7]YPATCJJL77DCSMVS6ULQF4MNYP5ERWRZ3632SSABMLC3SMUEZEDY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,..,,..,,,..,,,.,,.,,,..,,,.,...,..,,...,...,...,,,,,..,,,,,,...,
+#3CVATGAARHVY22D332VUL4VVOUP3I7WDU4TN7HQGSQH4R47HCZ4YYDVJ5UWGWI4QACFK4QGSML3KY
+#\\\|ZVIIFI4N6ACRTKTCLPGUD63WREGUKB7RPVYQEI556X5DIBW7AO3 \ / AMOS7 \ YOURUM ::
+#\[7]6JJVJTFWVTF44HLMYOO4J53KATF6OJLXPJF47IWEYD2QSMHBD6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

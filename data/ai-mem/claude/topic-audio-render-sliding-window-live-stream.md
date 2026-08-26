@@ -56,8 +56,8 @@ contract or as a new command entirely (`audio.cmd.spatial-purr-stream`
 or similar) given the one-shot version's "returns a single path" reply
 contract doesn't fit an ongoing sequence.
 
-#,,,,,,,,,,..,,,.,,.,,.,.,...,.,,,,.,,.,.,..,,..,,...,...,.,.,...,,,.,.,,,.,,,
-#ALEMZILJJQYE4OABVTYDFAS3SMSKCQVPWJCJL4AAJVOSQZNM6HF6JCZE4CZL3WGDAHNCOZNXJRRW6
-#\\\|6NHKBDBM7RMGULVUCUQK5UC6ZSZZTAB53NF4HO7LHC3NEFJEJKP \ / AMOS7 \ YOURUM ::
-#\[7]DP3DWHWHOTDEOTPXBNDJIE2KY6FUQA3GV25B6BGGQNHBF6GDEYDQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,,,,,.,,,.,,,.,.,.,,,.,,..,...,..,,...,..,,.,,,...,..,,.,.,...,
+#OH5WJPB64LRCOG5RDCSH7ZDHX6HZDPFB4CEPQLLI4KJUU2SBC5PTGLDL4WT7R5KCRVPA3BVKS5QAA
+#\\\|6YVZWQJ3XL5P2Q2TXP2WV6GZBHF4TONRPLL6E7FYDY6KDB6SGFM \ / AMOS7 \ YOURUM ::
+#\[7]IC4DPE2H6GBCWYLZ5PBLIRB3KLBFC7SOXKVJR5ISUWZTD4IWISBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

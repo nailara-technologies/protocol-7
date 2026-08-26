@@ -59,8 +59,8 @@ pending-question ambient indicator.
 - coding-zenka tool wrappers (`ask_user_choice`, `ask_user_text`, etc.)
 - amos-term `interaction` plugin track
 
-#,,,.,,,.,,.,,,,,,,.,,.,.,,.,,,.,,,,.,,,.,.,.,..,,...,...,,.,,.,.,.,.,...,,..,
-#3OYPDOBHBXO6CSCRCVFJQY64HBEDDIXOEGD7NVK3L5RO7V6CPH2YKC77V2OC6KNPSFEJCAU3FXF74
-#\\\|67C75Q2EAZCSJB5QMUWESBKEI4PGZV3ZVRXKHAEJ3LPAYIHPQKZ \ / AMOS7 \ YOURUM ::
-#\[7]BCKFV4MHSK7ZISMKLS4M5MBV7KIS346HQVQWQPATXL2FZRCW5KCA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,.,,,,,.,.,.,,..,.,,,..,,,,,,..,,...,...,..,,,,,,,.,,,,.,.,,,
+#GB3DSMN5V275FOE67S3XHYGCTYXLQOLPOUBZH4AH6KDATJ2QZSSUHX3UTENQGZPKLMQQHKSWL2H4A
+#\\\|QJMGK55U5N42G5CVVM4UI2EHVJS7GMU6XMBYJ2R25CZ5ZUROGT3 \ / AMOS7 \ YOURUM ::
+#\[7]HW7RINFZ7QTDCDUNE6JKSGDELFALVLXURP3DAIFFNCIRXFA7ZQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

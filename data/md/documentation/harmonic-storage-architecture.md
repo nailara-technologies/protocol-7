@@ -322,8 +322,8 @@ structures the network itself.
 
 every local directory is a global ring seen from one vantage point. =)
 
-#,,.,,...,..,,,.,,,..,.,,,.,,,,,.,..,,.,,,.,,,..,,...,...,..,,..,,.,,,,.,,,,.,
-#4BL26EI4YU6SUMWVUCBGB4D5M75I4FJQZB4SJ6PCED6CRMJSUF3S37ANJACVZZ32YKIMYEPKGUY56
-#\\\|CKQXWXHLBRKU7WPK3JHA5YDWSHUT7BVYYDEW6MRWOVEIMVBUU5P \ / AMOS7 \ YOURUM ::
-#\[7]X4RY35JN4E2Z6VFRVNVFXADZ3I7CL2UFUNQTKPP5UACXH4VEBMBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,...,...,,..,,,.,,,,,...,.,.,..,,...,...,..,,..,,,.,,,.,,.,.,
+#EV3O5PHXLG5UEJOQD3RHITB3LTOAIK4J7HPRHDOBNUTSCJ2WVAPNVAUGYNVAO2FX4ABLG25XCS2RU
+#\\\|AEU546KHO7KCFHESIXABX7CEHTKUOFGGPREU7GYZ4JSIJYB3VVL \ / AMOS7 \ YOURUM ::
+#\[7]KTQ3WKPEGM3FP2BCIZPEG64JZBHOW3E5IEI4RPE56MTKHRG6ZIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -95,8 +95,8 @@ perl -c src/ui.fold src/ui.unfold src/ui.cmd.ui-show
 grep -c 'modules.load.*\bui\b' cfg/zenki/*/start
 ```
 
-#,,,,,..,,,,,,,,.,,..,,.,,,,.,,..,..,,.,.,..,,..,,...,...,..,,,.,,,,.,...,.,,,
-#3JY46FLBJYO2U3XTH5KTZKD26BYHIQ55IZXHODOFYB2CAZIVRWVHBD4KAGZ2XZTRAR5ACZUQ42GN4
-#\\\|TJ7YFEDPCLCNT7TFXKJGEGFFPNJAIZJDPQQHUKAF44KDVEYDYIE \ / AMOS7 \ YOURUM ::
-#\[7]KJDQNVSRXN5ZJNPQOBFPR5PC6RK3LRMNFP7HRH4IFB6SYFH4IYAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,...,...,.,,,,,,,.,,,.,,,,,.,..,,...,...,,..,..,,...,.,.,,,.,
+#ENN66TG4AHWKMUG4QHHBQXESJD2ZNBGSVPC46XDKAB7EOBJ3D2DINGQWGBH2D7SSWU23UYGS5YAMC
+#\\\|LP5ANPEUP5G5MXQ6DEYSDQYSLMMOZWKEDFFNJVNHXW6BQAYW3PG \ / AMOS7 \ YOURUM ::
+#\[7]IRQNCQXLQCRZC3Q4EGZYPRNVZ6L7QILD6PJEORCANADTSDOIBSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

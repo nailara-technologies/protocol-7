@@ -145,8 +145,8 @@ mockup:
 - DRC validation catches errors early in the pipeline
 - All three components work together: parse -> validate -> render
 
-#,,..,..,,,,.,..,,,.,,,,.,,..,..,,,,,,,,.,.,.,...,...,...,.,.,..,,.,.,...,.,,,
-#NGDRDO6YYISSQNJBZ76FAYSPRXK2NKJXXOKDRHFIQT6ODV4NSR5ZJ2ACZQSFQ6Z7LLULYG26QXGLG
-#\\\|4BXHY5KWCEFCNJ52PDFVEOAK7RETEKTCQEWDAN27PGCSQVJG4DG \ / AMOS7 \ YOURUM ::
-#\[7]IF2LUBIRAALNCSIAQT446NPDHM3KGMLKL2FP3LW6CIM7CJSKWQBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,,,.,,,.,.,.,..,,,.,,.,.,...,...,...,..,,..,,,,,,..,,,,.,.,.,
+#FO5CSQGVY4DQ7IYQ3AKWZHMJ3WP7U4BG2GU2NK6SK2HULDTJPR5QQVGIZZIPGHB75JCCTUHWSOJVW
+#\\\|YNOSN7R3BTZ2L2OKD6H36M7E45V75VKMOXFD25C7CQIYZPUOJRR \ / AMOS7 \ YOURUM ::
+#\[7]NKNZIOGG5SGPJR6HGFD24DHQEASRWY7SFEPC5QCPDOYGYPBX6WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

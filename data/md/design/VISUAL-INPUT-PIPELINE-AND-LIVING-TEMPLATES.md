@@ -408,8 +408,8 @@ image archive system (topic-image-archive-system.md):
   probably: only when root tier changes (global best changes)
 - should the web UI update its palette mid-session (websocket push) or only on page load?
 
-#,,,.,.,,,..,,,..,,.,,,,.,,,.,,..,...,...,...,..,,...,...,...,..,,,.,,.,.,,,,,
-#TSPERAROOXM3F4RKGI3AZBSTOTPPCGZEMO6MUEFEHX5E6CBCJUXVY5SR3O74GBMQGSJAVWL7XNXDS
-#\\\|MWJD2UFDW6FEYOWGFGTTWY3NZYAI7LSMKQAYHO5EALI3JXBDVOM \ / AMOS7 \ YOURUM ::
-#\[7]RMH6P32RUGY7ATYO7QN2BQGPPJO7W6I4NGJXYEDIUQDTMH2AAYDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,,..,...,,,,,,.,,...,,,.,,.,,..,,...,..,,.,.,.,,,.,,,,.,,,..,
+#2KYYJS2RKP3U56QMSSCK7IEML56YL3MLVOWBYQIAP235WQLLCVRHAFW6HZPRCFRWL5245P6YVVAMU
+#\\\|BRGYXEHLCVANZLH5RVIZ2HK2O6XNWUL7TKVQQ5ZAKHHOMXWAOVJ \ / AMOS7 \ YOURUM ::
+#\[7]NKVSH33ROQODVBIB6YU44OZX6DXKU3WEC7XBJPMWO2HKAODPAECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

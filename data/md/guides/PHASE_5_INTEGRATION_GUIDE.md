@@ -275,8 +275,8 @@ A: Routing adds ~0.1-0.5ms per request. Negligible for most sites.
 All modules are syntax-validated, tested, and compatible with Protocol-7.
 Ready to deploy on signal.
 
-#,,,.,,,.,.,,,...,...,.,,,,,.,,.,,.,.,.,,,,..,..,,...,..,,,.,,,.,,..,,,..,.,.,
-#JNF646DEJNKHFZOGD7TA2FDSZR3WJMJXBNUSORKRPKBO3Q6SSHZ6ELHWAUNXXXLJZVKOWJSKEUI24
-#\\\|NHNI3AFL7YQXW5FTLWKFDMMDOOWLLTJDFHFY4EG2RQJJWIM4JSQ \ / AMOS7 \ YOURUM ::
-#\[7]UKQ4UTE5SRTUEIHOF62WAVLII57QLWMVPZUILAWCGHV5BUZYV6BI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,,,...,,,.,.,.,.,,,,..,...,.,,,..,,...,...,...,,,,,,.,,...,...,
+#UJPZ2HBSRK5JLQDJBASYJ6F6DLX7LPRSABB2NKPTLY47MY7MBJ5QDU73JUMF6ZUNZLBZ4UJK542BY
+#\\\|ONL23TNQURGTEMQYYCN4RZL32223A6KGQFNBYDIUXM4XBKKFJRZ \ / AMOS7 \ YOURUM ::
+#\[7]NSMXOOMLHLVMXFDSVL32ZXMB3KQKJAFJDRXYVOYL57TIQBHC4CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

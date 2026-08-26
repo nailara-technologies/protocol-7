@@ -120,8 +120,8 @@ see [topic-jobsite-scan-refactor.md](topic-jobsite-scan-refactor.md)
 
 see [topic-language-detection.md](topic-language-detection.md)
 
-#,,..,...,.,,,,.,,..,,,,.,.,.,,,,,,..,,..,...,..,,...,...,.,.,,..,.,,,,,.,.,.,
-#WHT7YCQQHI7WJV7B5DCCWKUFVICPGQQLPZQDEJDQIXMOGCS66I7F2OE53UAU375YKSOQTRVY5CI64
-#\\\|HRRN3BD2PTOOT4RZQKYVOONRUNNE5H5ZVNX7MW7GPQEJPENAAQS \ / AMOS7 \ YOURUM ::
-#\[7]FXDTHRNBX3K5YM75ZW4RWIGMXVLKMFSLQB6UBLRXBS3QO22ALICQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,,,...,,,,,...,.,.,,.,,..,,,,.,..,,...,...,...,..,,...,,..,.,,,
+#BOGTBMILRCJEUVKS3O6V5C2HKLUTEVJVPKPTK4EEZMT2BC5R675CPLIO7JXFZQRSS43PIDEWRXQ3I
+#\\\|RBIUBKP4GO7TMPXRYN5QPWHNOJGRUKPCGA324LNIBIJ6MFTIUWZ \ / AMOS7 \ YOURUM ::
+#\[7]OOGVJVA5Z3RVSAH66O2Q555JOT7TVDXLR4JVJUA7S6I55SCFRCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

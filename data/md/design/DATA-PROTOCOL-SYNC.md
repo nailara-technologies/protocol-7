@@ -283,8 +283,8 @@ verified, not just received.
 - `DATA-PAGES` receiver implementation and page reassembly
 - per-stream UDT transport attribute declaration format
 
-#,,,,,...,,,,,,..,,,.,..,,.,,,,,.,.,,,,,,,...,..,,...,...,.,,,.,,,,.,,...,,,,,
-#A2LPXDMWIAEAEUV2GSXETEABWOYD3BQSNQAAOG3NUADA2QF62J5INV3LTY5FNLARZHV73UUQSZLFW
-#\\\|AADL6W6Q5Z55UFK7CP672WH66BLRLEN7IZSI5EA2QXWZFQFMPVK \ / AMOS7 \ YOURUM ::
-#\[7]ICZRZCFDJUWSF2HMTGJETOIOYGYCPN3DCNLYQRBNFV7KGEMIYMBI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,,,,,..,,,,,,...,,,.,,..,,,.,..,,...,...,,.,,...,,..,..,,,.,,
+#WMD2WL3HSS7BCBLIMLZY23UHVDMBA47PANEO2HXAQ3WYDXJT7BBLVYVQ7IYEZ6TVCMZWVNZGU57LU
+#\\\|K77GV2SDP2LEDI5JOEA6RSXNK7DOZQG4TXRBJNMHZXHRMMPL7W7 \ / AMOS7 \ YOURUM ::
+#\[7]ISIQOV2P67SWW7RAHKK3ISF7WEBIYIYW3UOIIAI7WLX7BJJT26CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

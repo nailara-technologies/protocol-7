@@ -222,8 +222,8 @@ natural — a hashref here ]. when done, state plainly: every file changed/creat
 with line ranges, full test output, and the one explicit non-goal [ no timer ]
 restated so it isn't mistaken for an oversight later.
 
-#,,,,,.,,,,.,,,..,,.,,.,,,.,,,,,,,.,.,.,,,,,,,..,,...,...,,,,,,,.,...,,..,,,,,
-#33HMP2JJL56QYOBQJW2SIU36ABAY2YM6BG4F2UHE5MBAUOPGFYJ2A7FSSQTU4DCWN4Z2JWPA3WIOW
-#\\\|AAD6T7GUQOWGHVEF2LZQ7YI4UY5INOEDOQA4SJ66T4G5Y7LGIHU \ / AMOS7 \ YOURUM ::
-#\[7]YXTVUTDXHLQBZRRX3PH6DF6JIG6YITPKF7JSA5347NTA3BZ352DI 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,...,,,,,,.,,,,,,..,,,,.,...,..,,...,...,..,,.,,,,..,,,,,,,.,
+#BXTJHS5QPF6BWGHCITE53PXOO6H6CPW3AFP7LQEJPNDKXOWB4SICGB3TYI7CY3TE6ZVL6MAM2WEHW
+#\\\|KNET4GKUK6CESVNGDMEZQ6F4DRKBZ7XCBNUCVROS7H3SFM4J35W \ / AMOS7 \ YOURUM ::
+#\[7]RUQBUOVPT42XAXPFI2J3Q4CUIH4QJN3UY24JXW7JLHJ43ROKFYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

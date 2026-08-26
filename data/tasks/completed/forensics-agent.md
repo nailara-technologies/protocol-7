@@ -93,8 +93,8 @@ the forensics channel. schedule: weekly event slot.
 - all analysis local: local models + pattern store, no external calls
   with operational data (see [[HYBRID-LLM-GOVERNANCE]]).
 
-#,,..,,..,,,.,,,,,,.,,,,.,...,...,.,,,,.,,,.,,..,,...,...,..,,,,,,.,,,.,,,,.,,
-#CUDBTRO7455KKM4ZT6X2BQW3EBLRPAZKNBRX4JVSWDKJITFJ52SS42EDESTXBOZ7CYAFJ3B6UYXMK
-#\\\|OSJYWZYM3BEMURDVZS6UIGKEPNUNM3LMJI5WBLPO6WYZGUO62BM \ / AMOS7 \ YOURUM ::
-#\[7]D5PQZE3HEWWPCIA3NXNCI4JD7PJJLPWK6IERSOA6YHC7SZKV2OBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,.,,,,.,,..,,,.,,,..,.,.,,.,,..,,...,..,,...,..,,,..,.,,,,..,
+#DO7X7VF2V55VALHHMBT5TCC6OSBI2PIEXT43SSNMBGUB7DT3OTSUVJP4AQWYK3PZ7JD567RCYTM7S
+#\\\|MD4O5N5QJEB6QQ7GJMOK5OFQLAURDFHPHMG652XCEC6VT33ZHEY \ / AMOS7 \ YOURUM ::
+#\[7]3W6KWPFLNKICDM276PY5SOQCGKWNODWOAHMF3VUCDE42TYE3SSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

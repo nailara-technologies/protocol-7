@@ -31,8 +31,8 @@ Default model switched to Qwopus on 2026-05-09 based on this evidence.
 Deepseek Opus distilled. Kimi VL A3B needs think-block stripping before output is
 usable. Qwopus remains the reliable all-rounder.
 
-#,,,.,,,,,...,...,.,.,.,,,,,,,,.,,.,.,..,,.,,,..,,...,..,,.,.,..,,..,,...,,,.,
-#7NV22B2ARKBMDXHSFVWZLJYGK7GVWSF7TLN2Z245PX3LVLVQVNCGCIBPOHJCOG2GI7667I7R3BSDM
-#\\\|5DYWUSNL3OLZ7IC4QAACXKDAO3T5DPPELAQSJVOTIQRYD6WLGND \ / AMOS7 \ YOURUM ::
-#\[7]LNJB2BFLODLAI63IA335SYOEFL435CTQUPYQREJX6ONGMUJBRWAI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,.,,,.,.,...,..,,,,.,.,.,...,..,,...,...,.,.,.,.,.,,,,.,,,.,,
+#L4PTXUFD2HX666BZJZHPG5M6UXLPHYEJ7IS7DYTZAMIWOLNVHWAUY7735X44MLJ6WWONQ6UXJ3Z4M
+#\\\|5HTHFJOWUQI2CMKYQHMIHY6BTUKDDTYKUWSZZTAPTVRSXRSGIDU \ / AMOS7 \ YOURUM ::
+#\[7]DI7YFVKDPUNL3CBAINTVRNJDMFWGSOPEQ5JOSIG5KHRPQXYVP4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

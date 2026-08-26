@@ -76,8 +76,8 @@ annotations, NO manual signature stubs.
 - the focus-decay timer is registered repeating (after + interval + repeat:TRUE).
 - no manual AMOS7 signature stubs in any new file.
 
-#,,..,,..,.,,,,..,,,.,,,.,,.,,,.,,..,,,,,,.,.,..,,...,...,.,,,,,.,.,.,...,,..,
-#IJ4ZJ6T36GDBJQJUW5ZYLZCAB2IIY6VFYN457TMN5X5XZXYF4DCF7ASYHL62QYOY6GGBR7JKPA3RW
-#\\\|ZVV4V476KSFYC4O67ESINNWACNT7PNEC73PCPWMVEHLLPBVK6ZD \ / AMOS7 \ YOURUM ::
-#\[7]LJRIRNEN6KC3GTHTOHYKI7XLAJP2RIUBCXLFVHBS4SX6GIPCLEBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,...,..,,..,,,,.,,,,,.,,,.,.,..,,..,,...,...,.,,,.,,,..,,,,,,,,.,
+#2RMVCMGZFQBFT2DGXRZ43AWLQMSP42QIMHHZE3WBBSJHVLWIQKHG7YOCBHSFCBEWCHG7CMZR6FNJA
+#\\\|NRDLNQA67ZUMMCHXYHU4WQA6SWTQQX44Q67UAH5XQ2Q347MC7PF \ / AMOS7 \ YOURUM ::
+#\[7]523RA4Y6SNBDYC3KPYYPLQJJUXDJQ2QDN6SOQZTMYEHBC6DD7QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

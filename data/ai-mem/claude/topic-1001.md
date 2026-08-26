@@ -70,8 +70,8 @@ time is observer-relative — ntime measures from own creation event.
 `00` tunnel duration = ntime delta between gate entry and exit = always 2.
 comparing ntimes = comparing relative distance from own darksuns.
 
-#,,.,,,..,,,,,,,,,,.,,..,,.,.,...,,,,,..,,,.,,..,,...,...,,.,,,.,,...,..,,..,,
-#7KXYUE6P2AL3257ROWYJGTI5XBZ5R2XYCXB6PPQEHKAJWMHNIOKIQACOMFYKX646NSHF63VMJYG2S
-#\\\|FJQAYJRNOGFQTV533HFS2CU2TZCJUIGSUAFX5A6ZTVYINGNFVVT \ / AMOS7 \ YOURUM ::
-#\[7]5THZZLBGEYVXJ5RQJ65MYWX4WDZWKRPZM555GZESO5HOPQ6OHUBI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,...,.,,,..,,.,.,...,..,,.,,,...,..,,...,.,.,...,..,,..,,,..,,.,,
+#5NBL7MHHM4K4J3ICZYZLEBUQ43L72BK5L5TR3W7XOU6IB5V6VE2QU4IDOQP7KMCTQPGRLBFHAUTYY
+#\\\|TLCNEIJM2FJCGVSR2RCHZA24DNS2WCU5M65E6JLYZGWLGVPA53H \ / AMOS7 \ YOURUM ::
+#\[7]MPPXRLS33HTRAFSSB7QPRMJ36WRDC65EJAZDLF2FVWGCJCJZ4UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

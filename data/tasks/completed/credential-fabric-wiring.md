@@ -248,8 +248,8 @@ the `#,,..` stub line** to new files — the signing system writes it.
 
 #,,..,...,,,.,.,,,,,,..,,...,..,,,,,,,,.,,,,,..,,...,..,,,,,,...,,...,,..,...,
 
-#,,..,.,.,...,...,.,.,,,,,,,,,...,,..,,.,,,.,,..,,...,...,,,.,...,,,.,..,,...,
-#BOSGQYVNA6PHXZROEIYFBNLNG6FA575AQK32OTWDSANKISEEGVPTERC2VBOATJUREPLLSGMTMIWTE
-#\\\|GAFY2NVKHQMEO5UR63GR2HTCU5BHGCOOICGBMSXKXKIWVSLCSJV \ / AMOS7 \ YOURUM ::
-#\[7]TL6NCGMQYNHGQMNANB6IIAC6645NO6RTR7AQ4HAHENBPYU54D2DQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,.,.,...,,,,,,,.,,.,,.,,,.,.,..,,...,...,.,.,...,,..,,.,,,..,
+#NKPQ467IYNTGTEFCBLLB5AOSPN7V4BOPSUSNLW3DJEOFIVEWAUIYQUIQRWGEVYTDCRL56V4IBJYVC
+#\\\|HLUU3TP7QICTI33JP47TKHX2CZSV46ARVCHM5W6XRRLZ665S7UC \ / AMOS7 \ YOURUM ::
+#\[7]JQZR7VCSVP7QMTTAA4TJDTNQPTUTMPE57SUHEAUBW2WDQHHURCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

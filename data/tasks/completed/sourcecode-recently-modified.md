@@ -129,8 +129,8 @@ p7 sourcecode.recently-modified '{"since":"ZDY6JCVRHY"}'
 - [ ] tool callable as recently_modified from within a coding task
 - [ ] tool result is the formatted two-column string
 
-#,,.,,,..,,,,,..,,.,.,,.,,,,.,.,.,.,,,,,,,,,,,..,,...,...,..,,,,,,,..,.,.,,,,,
-#KBPEHSXKOM434YWJKU7OXAX5TF6SCMN3UVU3UBJ3ZY7PZGG25HHL2VXUQ7PTKXUNGANS5OYN6P2YU
-#\\\|7KH3EUHM4HFOYRYH6LN5K4VU64DMPAHLXHXNKOK5WZNDQRNJKAQ \ / AMOS7 \ YOURUM ::
-#\[7]JCH6QTGIYX6E443AMW62MNVONAC5XACWZW4UGFEO2RLIW32JEEDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,,,.,,,.,.,,,,.,,.,.,,.,,..,,..,,...,...,..,,,,,,.,,,.,,,.,.,
+#ZYGI3UTWUX44ETROXJ4AHVW7Z2PZDVF44K7FYLWSHDDS4BELYNGEB3DFBSWDD5A3M7OSJ5LX4AAFC
+#\\\|F5XANBWHTZX5LF5CKFLHGBU3EPOMAQ2LWZY45ZVCLLMW3RT5LRL \ / AMOS7 \ YOURUM ::
+#\[7]5GBDU5U2M2JXQDZKJUTKYICU23ZZJSAKUTG7XJ7NMKKS3P4JR4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -356,8 +356,8 @@ All layers should leverage:
 
 *This document outlines infrastructure layers that should be built to extend Protocol-7's foundation established by channels and nodes zenka. Each layer follows proven patterns for distributed systems.*
 
-#,,.,,,.,,,,,,,..,..,,...,.,,,.,,,,,.,,,.,,.,,..,,...,...,.,,,,,.,,,,,..,,.,.,
-#DKCSDVZQUKCMXRKJ6PHNFEJWU2TNO7SPDBP5SP7XLZD5VSGWA6JWPOMHV5PE7KOTJPMHICNLGEREG
-#\\\|W6YPOWU4IKYWU557AK5TBNP763C5HF3V2YPQOWCZC7BRNR574IN \ / AMOS7 \ YOURUM ::
-#\[7]6TSWRPTAALJYIEQQYEZ4H7OV72RKZZSBKZSFJCWK7LYILIIKFCAI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,..,,,,,,.,,,.,.,.,,,.,,,..,,,..,..,,...,..,,.,.,..,,.,,,,,.,,.,,
+#ERL7LVFBHNDDBELWQ6PEEZR7YNTTRXV347ULKOH2EKPOEYHU43BSWR7U2FBPNZXOV7JKYO53WPA4G
+#\\\|OGI3OPMWNNYNHSODPWCID3ACBTEXVAZ33C2GLOYWUJFIUBL4IX6 \ / AMOS7 \ YOURUM ::
+#\[7]APLTKBH7N3PTQWG3TWLDH64YVJYN4WNH7EQ77QSCSA7VLN4AAQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

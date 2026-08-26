@@ -176,8 +176,8 @@ The `llama-mtmd-cli-cuda-fa` binary (CLI fallback) was not rebuilt in Mar 2026. 
 **Integrated Task**: HTTP backend (complete) + CLI fallback (downgrade) + LOVES_IT allocation (new)  
 **Session Target**: Implement Phase 1 & 2  
 
-#,,..,,,,,.,,,.,.,,,.,..,,,,.,,,,,...,,,,,,,,,.,.,...,...,...,.,.,..,,.,.,...,
-#6U3QZSV5EXBAM3RWKEZRODZJBPNZ4AC5SWCFQGY4OGECKC3TB3N4YIDSXORQ3TSTK572ZDHB63CPS
-#\\\|LNU7IMH7W7ABCUE3UY6V3RKVZYCSD55QIN3GEBIXEGRCXHULVRU \ / AMOS7 \ YOURUM ::
-#\[7]UWED65COGHFSANRZTXTZ6IEIIKVKLBTLSOEN6YYHRZ4BEOIYDGDY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,,,,,,..,,,,,.,.,,,,,..,,,,,,.,.,...,...,.,,,..,,.,.,..,,,..,
+#7ELWO4KF2ENIBW7RQYL23GMIWLZWOHTOEET5LVOAS7ICEBAL3WWWN2AWKZU3VL7GRMXTMLJIUK2MM
+#\\\|H5DKBNOZEBIDL2HPPWPZXGVRI25W7IUTOZTXS5XMHGQQJUS6WRJ \ / AMOS7 \ YOURUM ::
+#\[7]UWTQIYYHI75LFI2NKZ2GTGYYQNBQF4ESZQDTO7GNDBKXOY26POCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

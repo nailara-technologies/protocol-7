@@ -89,8 +89,8 @@ case mpv's own docs say "may fail anyway" for cache-only (partial)
 seekability. Undefined (property never observed yet) is treated as
 not-seekable, the safe default.
 
-#,,,,,.,,,...,.,,,.,.,,,,,,.,,,.,,..,,,..,...,..,,...,...,.,.,,,.,.,,,,,.,.,.,
-#5BFZ66MKFKJ3EXMGG74Y6HDYUUD4EBGSLSY6U34OONBFNNGLIXASF5ROCKR63NHCCTNT4NBYIWA2E
-#\\\|3TXCPVBSI5HFVUFNP7T6VIMMCYUIN2SMXXKFYAUH4FAURTDYFXC \ / AMOS7 \ YOURUM ::
-#\[7]Z3JL267ZJVDRMVANGDYSF4WVQSYR6P6M735YYY3QT6CP5AHROIBY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,...,,.,,,.,,...,,.,,,,,,,..,..,,...,...,.,,,,.,,.,,,,,.,,.,,
+#ENRRQWS652WSSWDUE3GJERASKEQRD2LAUVXBF5GTCUS2OEY3JIEXECQGQFG4YDHGYVVZMPZCKHFTW
+#\\\|WZNJZRFBZMVX4FBQBPXM26LVQTOLU77TUFPZNROSDL2IURGDKF6 \ / AMOS7 \ YOURUM ::
+#\[7]GP45LE56ODSKK55RTXB3ROFFUYHDHKTS2XHHHPWIEIRMP3VL3OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

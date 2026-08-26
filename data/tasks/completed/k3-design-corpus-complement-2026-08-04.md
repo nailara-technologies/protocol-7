@@ -714,8 +714,8 @@ visibly rather than applied silently to the audit file.
 
 ## unsigned : new file, signing system adds the real footer on commit
 
-#,,..,,,.,.,,,,,.,,,.,.,.,,,.,,..,.,,,.,,,.,.,..,,...,...,.,.,,.,,,,.,,.,,.,,,
-#SS5S4ZLDSFYJSEATNHNVKO3GNEQPYTB3NL5REQUAMQ4RA44WYQM6FH64JOCMU2WJXHNT2XZWXTW4G
-#\\\|7TOLALLJNAHC6ZMGDKKMKU3D6XIAJD5BJELYQIDK5IYJILQJPUZ \ / AMOS7 \ YOURUM ::
-#\[7]VUGPZT3ZGBBAUZ36HYJ6E32J6HRIFSCHZDFN4QZXZ2BICRVIB4AQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,..,,,.,,..,,..,,,..,,,,,,..,..,,...,..,,,.,,.,.,,..,,,.,...,
+#EAJGNXHLXAVPRER2GUKB6KX5IFQF6AQJOZAEM5LQ7PWWESRVUOM4SC5YM73M3FMA6DWWIXFESEKDA
+#\\\|PPYZFVHCYDKIUOFMDWWQN56L7DB25EWMTHHXBKDW6C7R4PXXPUB \ / AMOS7 \ YOURUM ::
+#\[7]ZPQ6GBBOLY6JSA4SOWEPE3QVLQTZGDJF73TUWQSH63WAYCO764DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

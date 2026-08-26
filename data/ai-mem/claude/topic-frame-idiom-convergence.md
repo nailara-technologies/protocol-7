@@ -85,8 +85,8 @@ fixed, the column's RAGGED LEFT EDGE is literally a bar-chart of digit-count
 itself a coarse, near-zero-cost comparison signal that both sorting and alignment
 exploit ahead of (or instead of) reading exact values.
 
-#,,,,,,..,,.,,..,,,..,,.,,...,.,.,.,.,,.,,...,..,,...,...,.,.,...,.,,,.,,,.,,,
-#RG2YD2HIDCALVTYHEVRVTMFULW4DEKDW5UNJZFS3XKIAYAONMFNFKSPP3CKCNVUTXVMYKYPKFHFSC
-#\\\|ZFKVJW7RK4QEFIZBLUJ77ALIW3LUM4PHKDVKBDDL7TO2JETG5FL \ / AMOS7 \ YOURUM ::
-#\[7]7LS6QYGCBXBET3RYEN5L6KU6DEIN46KLGHWPZ5ZJS3YP4DYGWYBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,,,,,..,,..,,..,,.,,,,..,...,..,,...,...,,,.,,,.,,,.,,..,.,,,
+#ERCJGPPKSB3KMXFRL4WXFSBXT7PW22772RFEQGDNKTCNAQWC5XURO4Z26XOLBHBAOALPEQMTWQRFY
+#\\\|3QIOZ4FA3LXEVJAGIMAITWGRAGUKL2MBDYYCHCN6XNY2NT22JN2 \ / AMOS7 \ YOURUM ::
+#\[7]22I4OBJQ7J5IKTUHN735UKEL4UKLM7NQADJPQTZ2TCF7QKDGGYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

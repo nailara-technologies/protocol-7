@@ -214,8 +214,8 @@ sibling feature):
   drain that only waits for that exact sequence will legitimately time out
   on some keystrokes; treat that as normal, not a hang.
 
-#,,..,,..,,.,,,.,,,.,,,,.,,.,,,.,,,,,,...,.,.,..,,...,..,,.,,,,,.,.,,,,,,,,.,,
-#GUJZZVIPDXSEQ4RR2VY3XXARB6HQSAUBJGHZOHY7KMBNHKBBOCVVSYGL2GAZDWIWKZ5DB3W5L4GYM
-#\\\|XYQY2IOE2UBTBI4K2CQBF53ALO4MY7BOL7F535BUJORQMRD3CO6 \ / AMOS7 \ YOURUM ::
-#\[7]R6R4IO6BMDF2WD7IOEJLLTRTDUG4IBGTYIFWQBJOE3GEY4PO5MDY 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,.,.,,,.,.,,,...,..,,.,.,...,..,,...,...,...,,,.,,,.,,.,,.,,,
+#ATVQ5KUYC6NE6RELK4FW5XNTV4DDSA45OWG7VGB2YRQVKCUJUKNLW2DTEL563AQGG6E2NBPDA7TFO
+#\\\|K47OVF4LMVH63TWRJCH7RUANRLRHLDG2VR4XC7QSTHKU4MQBRDD \ / AMOS7 \ YOURUM ::
+#\[7]66BMRPIS3K4BXJUKJDSCLRNKW5MYLH5QREYXT3HWTDY2K62226DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

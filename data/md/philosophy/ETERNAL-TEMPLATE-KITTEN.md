@@ -90,8 +90,8 @@ the self-similarity across scales is genuine:
   see: topic-namespace-tree-intelligence.md (ai-mem)
        — the tree IS the intelligence
 
-#,,.,,,,.,.,.,,,.,,..,,,.,.,.,.,.,...,...,.,,,..,,...,...,,..,,.,,,,.,,..,,,,,
-#XWKLKVI7OBELAO6ARC24KLL4GMNZK2KZGHU5DK4PFUNVPXT2HF43RETBCYVYQBTSKGBZ25T4YVOZW
-#\\\|SVTTYUIBOV565MERS6PSOFS5GAJ2WVA26N7YZ25TVKKXLZIOWE7 \ / AMOS7 \ YOURUM ::
-#\[7]X53MTJJOSJOEF4E7PYHUF7EB4KMJRIHFKHZ2FO3ONMLU5B26VYBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,...,.,.,,..,,,.,..,,,,,,...,,,,,..,,...,...,.,,,...,,,.,,..,,.,,
+#KOUZMNYMUMHE4VG22OCNDXCUNIBRTDUJHXBYINDYCYYTEC3KXFRGUL6BN7H4ES76UILC6RJ6HK5L2
+#\\\|N36L5425C6BTGVQ2IOQSZBTLBL5KMC5D3DHPYUV2S2OWOOF6JD4 \ / AMOS7 \ YOURUM ::
+#\[7]722XP2TXPJW4KP7DF7BPHGUC6O6MFHIWZT7VAABTLKGMRDEXCSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

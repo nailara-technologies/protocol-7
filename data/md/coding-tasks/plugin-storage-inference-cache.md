@@ -447,8 +447,8 @@ p7://inference:ABCDEFGHIJKLM|meta                # branch metadata
 - `data/md/coding-tasks/next-steps-plan.md` — overall priority ordering
 - `read-me/documentation/dev/epoch-content-addressable-storage.md` — 3-layer path design
 
-#,,..,.,,,.,.,.,.,,..,,.,,..,,,,.,,.,,,.,,,,.,..,,...,...,,,,,.,.,,,.,,,.,,..,
-#6QUH374OJW37KH3ML25ERZ2F7CBDLFMXKCPZUV7NJDNTOVHBEUOQ5IDMPKQI6AR23TL2WPVYS5Z5M
-#\\\|6NYVJ3XJNKRCELJICHVV7JFQPXHM3AX4UR7VZR3IKVSEEHZEZYC \ / AMOS7 \ YOURUM ::
-#\[7]TSYWS36V4IB53L4MOJRVDIJRBASRKKKV4XPNQBAQPRF442XZNEAY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,.,,.,,,..,,,,,.,,,.,.,...,.,.,..,,...,...,..,,.,,,...,...,...,
+#PVERJQKRVBKYLEW54QRM6PEGGHRH5VKIH2XBSEZQRDN2Y4RHZU5QVTM2SXV2Q5H2QP2IRV5BVV742
+#\\\|433RZVJL6GK5IUFBWLTB6FOZ5WI663IXHUJ3GAOEQNMGD56EKUL \ / AMOS7 \ YOURUM ::
+#\[7]K4HVBSYNTJVJQUPWMV774LHQDLOROTB5EFAAOEIBPFQJN2IENSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -108,8 +108,8 @@ on-demand zenka, and adapt zenka-specific values:
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,..,,.,,,..,.,.,.,,,,.,,,,,,,,,,..,,.,.,..,,..,,...,...,.,,,,,.,.,,,,,.,,,,,
-#3PEBBYBTRYTPQKPRVMK5JWZ5D7ULQJFUZK4BY6S3H6TDKVJYNL3HOMTFGKAU3VTJL64WSZQGYOMHO
-#\\\|JHXRGOC7RAUB6SYDHT5D52BE7PWMVOPPNOMEAYX3T7UDOJFM45O \ / AMOS7 \ YOURUM ::
-#\[7]R5CCZSRUTM2J5C5VNAOTOXOVHOELV7UO7LR6ABFDGGZYSMKQY4BI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,.,,..,,.,,,,,,,.,,..,,.,.,.,.,..,,...,...,,..,.,,,,.,,,.,,.,.,
+#4NR3K4RMNNFS6LOJAKUWSUFGFMHJZZCTBKLH63WNYCQ2QSJAFEF5CK3C54JRLNVVWM2TDOP2G46OO
+#\\\|A566N563VH5525USKL6SZAPNQPQ4FJMW6FY34IDNEOSAWD5RYBB \ / AMOS7 \ YOURUM ::
+#\[7]D4ZT776Z7RFQSTOJ7ZIH3SGOSXQZN3SCJNZFI7G64WMKAPR7LMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

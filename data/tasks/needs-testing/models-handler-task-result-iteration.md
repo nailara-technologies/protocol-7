@@ -43,8 +43,8 @@ and before the final task completion logic, insert:
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,,.,,,.,..,,.,.,,.,,...,,..,,.,,,,,,.,.,,..,..,,...,...,...,..,,,..,,,.,,,.,
-#FTJZO3BKDIGSQSI5YMN6U4BS6PVRDKC6V2NONBLBAWOEMKNABFGNTWJKPYT5V7LDEYKWMBCCXLNC6
-#\\\|DDCZJTUSONHBBQ2F3IOLZSCRPSOR3NIIYAAYCGY2PN67BJMHFKI \ / AMOS7 \ YOURUM ::
-#\[7]SXOM2OZ7BPSG4HIGVY256FMJ5VHLSR45CZUVZPTM4WK5M7Q77UCA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,,..,...,,.,,.,.,.,.,,.,,.,.,..,,...,...,...,.,,,,,,,..,,.,.,
+#4T33F27DKSP6HD5B4HTYWZWOZFAA3OWMBEOVR74LT3LJTRZPCH554TIJJKJT3222YGZFDARY7BEVM
+#\\\|IF3DS35JZIKLLMAQMJ7AEUHVCRKIVTT32HFLUKFI2KUR2O7EW6X \ / AMOS7 \ YOURUM ::
+#\[7]TDTC4U6MIVFGZBCJRHPREO3HWGRXZ5FABNYZQE2HF5DOLZRNVEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -386,8 +386,8 @@ This is a "straightforward work" task (Phase 6 especially) - no algorithmic brea
 
 Wave 2 refinement will happen naturally through reviewing and correcting the visual representations.
 
-#,,..,.,,,...,,.,,,.,,,,.,.,.,...,.,,,,,.,..,,..,,...,...,,.,,...,,.,,.,,,...,
-#YCPKEJJHZRFAB2FHMNY2FCX6BX4HDZQ6EZQ5IUQZU232VPYXWI52VQQPBBHRDBXENY5DELYMWRB6S
-#\\\|JWYJQEITF4SDQBCDJ6IDVYMCPMAQHLTBHOETL7EDNGB5NMV5JBN \ / AMOS7 \ YOURUM ::
-#\[7]YW2NM4AR4HP236VIFXWSB5SMA7XMKJR2GEPYDRB2WUJZVM456KAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,.,,.,,,,,.,,,,,..,,,.,,...,,.,,..,,...,..,,,.,,,..,..,,...,...,
+#A7VIG5DDX4XUP22DKXRQK7HCJEPUXTMG6WXEBDS5NFJCSPVBT6RWTUVD3ZBGWC42D2ORBIQ5YFATS
+#\\\|UYXSQBUKXS6B6CUFWNLJZPB5KFZQP45OJ7DVGNDLTHFOILRSDFX \ / AMOS7 \ YOURUM ::
+#\[7]47BKIWTNWSAI2G7FG5ZSPSQDLMGREPVHXGDNNN75LRJHL2JYR2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

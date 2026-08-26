@@ -76,8 +76,8 @@ are all precedent for the same pattern (`bin/Protocol-7`'s core subs
 can't be called via `<[...]>` outside a running zenka; port the exact
 formula/algorithm instead, don't approximate it).
 
-#,,,.,.,.,,,.,.,.,,.,,,..,.,.,.,.,.,,,.,,,,..,.,.,...,.,.,.,.,.,.,,..,.,,,...,
-#3PODDAM3EG45LJ6P4RX46XQ43FK7QM2BSDMBSY337PCRUSL4KFST6SGSBVK6DHWGSUQOV4VGEKELI
-#\\\|GP5W4TJ26CT5ANPQYOSMA24736WPA7HRSHLESZO6RAGEFVCODBB \ / AMOS7 \ YOURUM ::
-#\[7]VKXGSQ4OTT57NOAML5DPWKN67CJZWNVKZWH4W3JS54JNUOLDFWBI 7  DATA SIGNATURE ::
+#,,.,,...,...,,,.,,,.,.,,,.,,,,,.,,.,,,..,,.,,.,.,...,..,,.,,,,..,,,.,,..,.,,,
+#IO6T435QSZTVXARNIIKYI37Q743BDKPPI7JGEA7Y4CYRFIEMAA7RTT73TYFB6TGKTG657VNHMZAF4
+#\\\|NHC75QQFNAXOSHEQZ2QC4YTVZKIM4CFJVTDKUUVWG3DXQL5FVBU \ / AMOS7 \ YOURUM ::
+#\[7]GD443YLVBJSCCS5XA47JOC4F4X5UVC43D3C5CGJBPIARNW4S7YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

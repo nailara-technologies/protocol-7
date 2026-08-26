@@ -459,8 +459,8 @@ the PID had changed (session restarted) and the exclusion silently stopped
 matching. Fixed by filtering on the TTY column (`awk '$7 == "?"'`, only kill
 processes with NO controlling terminal) instead of a PID, going forward.
 
-#,,..,...,.,.,,,.,..,,.,,,,,.,.,.,,,,,.,.,,..,..,,...,...,...,,..,,..,...,,.,,
-#EODMMYU6TYEZUSN6TYGGEIFF7D3PQFLDXZ3EYQKB2VYBCQWZ77N7WHDC7LCOFIVPLUBP6OEAAFOD6
-#\\\|2N4YIFKOW5CY5BFBKEOARTWPUJICQFDRFGY7FC27HUEJLJKECSJ \ / AMOS7 \ YOURUM ::
-#\[7]BCWD54R4K4M6JMFRQOFHLQGOSIRRAE3QKJNPNV3I262RKOHFNKBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,.,,.,,...,,..,,,.,..,,.,.,,..,..,,...,...,,,.,...,,..,...,.,.,
+#MG3DXLRJTIAZQU22S6UGDQWCFKJLK7MO7CHDLGZPAH42JMN3K6DRWMGQHAZOYNPOYIM5RW4QTLOSI
+#\\\|NMKXZ6TPTSOAU4JKKADLSE23X4JWLTT5CGP677CD6ATP2CY3AK6 \ / AMOS7 \ YOURUM ::
+#\[7]5LLNECYKQGVMDZM5IEB53YMHN4SG2UO5RLE6LI7NEE47ATLOVACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

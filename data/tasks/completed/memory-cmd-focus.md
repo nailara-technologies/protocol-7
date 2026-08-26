@@ -82,8 +82,8 @@ for the dispatch pattern, or `memory.render.term` for SIZE reply format).
 - `p7c memory.focus apply` → TRUE (triggers index lookup if focus changed)
 - no manual AMOS7 signature stubs in new or edited files
 
-#,,.,,.,.,,.,,...,...,,,.,...,..,,,,.,.,,,...,..,,...,...,...,,,.,,..,,..,.,,,
-#USIML4NMHWDA2NGGSGWHRRBJHKTH4D2XNRXTSVZBWLP4LN6H2KCZTWAKXHSSV4QMFQWSURI5PDRLE
-#\\\|CPCMR5PRIZK6IRLBAMDVV4ZJCLSRFIBKAYAXGQ5I3BZQRD37KAX \ / AMOS7 \ YOURUM ::
-#\[7]2MWM5HDBDHICR42MK2KRCH6JUBXSQNU6XU6V5IAX6ZMVNQJAEWAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,,.,,...,,,.,...,,,.,,,.,,.,,..,,...,...,..,,...,..,,.,.,..,,
+#O3CE6GWMA2LPAVG4TVO6PAVV6ZRRF3VTYFYFOFGMIJLB6GUAD55TSNMP7CG4N7UR5H3NWJD4KK6IK
+#\\\|GTHRDBJ3IKYGL4EHCYJRI4O5VGGBCRBK527S4LBJ7T2JPAKXD4T \ / AMOS7 \ YOURUM ::
+#\[7]XH5T7WUMDWGYIJQZW63YATPCFFQT7ISO2DU47FZVENQ55DHGPCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

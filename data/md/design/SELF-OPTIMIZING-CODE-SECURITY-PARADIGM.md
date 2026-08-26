@@ -260,8 +260,8 @@ self-optimizing code as a security paradigm:
 not despite reduced oversight — because of precise measurement.
 =)
 
-#,,,,,...,,,,,...,..,,,.,,,..,.,,,.,,,,,,,.,,,..,,...,...,..,,...,,,.,..,,,,,,
-#7TM6HCZHY2BD77M5X6DTNX2ZHFP4FL37MGVRLYGTETBOGSSFA2USTAMMQBLXADXM52VNLASMYP3LK
-#\\\|TNEVTBTW4BBHQSJNW4I4BFMS4VPU4N57HNNNYC3LTM36FLIDXC3 \ / AMOS7 \ YOURUM ::
-#\[7]T2ISHP2TD4XXEI4XAUWJ5LF4OBWJZOBEPPBYJ7EDDE5TYITBIABA 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,.,.,...,.,.,,.,,,,,,...,..,,..,,...,...,,,.,.,,,.,,,.,,,,,,,
+#L2MOYV73HWHCBOBAKKCRQ7FSYHGQEWJ5BSB5234SB3T6EAMQZ37FEIUTNZSDXMHEJM3MISHPRMMZ6
+#\\\|UTMTY63NYN34MEWOGOYHPJMVRYH6L5GJCBEIGOSLE5JCXPBTXS5 \ / AMOS7 \ YOURUM ::
+#\[7]FXMSUH5MCE5O74ZOGWRUTLRUYOLBZBOBSKRKMPTUB55TKYTKVACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

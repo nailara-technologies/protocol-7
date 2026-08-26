@@ -144,8 +144,8 @@ than purely as an eventual nice-to-have.
 
 Design-only, nothing implemented. No code written yet in this session.
 
-#,,..,,..,.,,,.,.,.,,,.,.,...,,..,..,,,,.,.,.,..,,...,..,,..,,,..,,,,,,.,,..,,
-#FTTT3NAZUJXA2YQ362Q64ZHC75RJGVQ775HRXWR5CDMD2OOIGYK7YN5HZQEL3ANMFWADYXOXO73VA
-#\\\|MKHFTN6NSUP4RWSTPBHE5EKPG3XVRKDGMUPSKXPNE67O4TPTYEZ \ / AMOS7 \ YOURUM ::
-#\[7]DQMP4PLVWDMQVS6PL4USD7INQ745JWEB4BNKXXCKNG2TJO3BUABI 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,,,,,.,.,,,,,,..,..,,,,.,...,..,,...,...,.,.,.,,,,..,,,.,.,,,
+#BTHSZKXEDQLFLKAZ4Q62HQP4VEVZGHGUIM7Q7JA4G7IHWPXTNPSZ7TODEDWEYQ7PRYSMORYJMPWOI
+#\\\|SB4TZOFQCHKEEDPYIGEJINIZ2RM7MWHERO35N3TDQPNXDMJ7XVW \ / AMOS7 \ YOURUM ::
+#\[7]L6ECK7DNABFAZRVTCC4OYPOO7LY2JYJ765TK2VKHWNB2BV34PACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -150,8 +150,8 @@ touch must not be modified.
   traced to `base.log`/`base.logs` confusion in `base.code.call_expected` → broader sweep found
   this. See `data/ai-mem/claude/` for the fuller trail if useful context (not required reading).
 
-#,,.,,,,,,...,.,,,,..,,..,,,,,..,,..,,,,.,.,.,..,,...,...,..,,,,,,,,.,,..,.,.,
-#QLGCYNOA45TONTJWEBPPJSWBJB7HLCLUSKIH27LOX6IDRV6MKTXH277T5EMYWDK5X7HKAEP7KQHPM
-#\\\|A6NLR5VQLKL2VP7R4HXDU6KAQGY7AGVLZH2BSELNUZIZD65YGCZ \ / AMOS7 \ YOURUM ::
-#\[7]L6X6DFQMO2LGFEAOSE25ILTMVHZMON3LWAMOQWOTJRE2KAOUOUBI 7  DATA SIGNATURE ::
+#,,,.,..,,...,...,..,,,.,,,,,,,..,.,.,,.,,.,.,..,,...,...,...,,.,,,,,,..,,.,,,
+#55IWNUBDYNQVUOVEJZ3OHFJ6ADWRFKAYVYAGLYYWK37TTQ4XMGHQXBQS5BKMBDP2D4H4A6RDJTMCW
+#\\\|UB47DEOOKVPCIVWSBZRRJYB6UKONEWUVE3IURCZ7K4TKWB3CIXG \ / AMOS7 \ YOURUM ::
+#\[7]NMUUYXRBXCNVU36O3UKH5LRQH4AJL77LX2ODRHFBFLSXWE74BUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

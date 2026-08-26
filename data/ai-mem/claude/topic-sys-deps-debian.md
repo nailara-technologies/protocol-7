@@ -89,8 +89,8 @@ needs: cpanm install (not in apt repos) + pmindex apt source + `apt-pm update`.
 fix: added `reasoning.branch` to `modules.load` in `cfg/zenki/task/zenka.v7`.
 also added `cfg/zenki/task/source/reasoning.branch` empty source marker.
 
-#,,,.,,,,,..,,,.,,,..,,.,,...,,.,,,..,,.,,,,.,..,,...,...,,.,,,..,,,,,,,,,,.,,
-#3NMA6SUBJH6SCYNSYQVQLBCO2JCTETZISBRUNPDUXUUEPM2RB3ROJ4T2MPBKVODCBDDOGLADTIR2Y
-#\\\|5IEOWFUO7N43LLCDDCN2362EHBW3736BAS6F7HDLAY2BJLE4YNK \ / AMOS7 \ YOURUM ::
-#\[7]GGS3OL3DP7RHQC5S4OLCGUCNL4HDDISCSKKDD27YCN475LYMXCCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,,,,,.,..,,,,.,.,,,,..,,.,,,,.,..,,...,...,,..,.,,,...,,.,,...,
+#IRFRMLAYPK27E26J3MUVNGSAOM6CIIQUBAFYMZLAWIFDUQ6TJCUTHAZWBEQVN7ILC5PEZB6RQKHRQ
+#\\\|IWQ7VAOAR3E7RTVDEF2NNYES247ZLMSZ7T6T5JMUFZEYGUS4WLK \ / AMOS7 \ YOURUM ::
+#\[7]FC6N7GOZNZE2F3HHKDLQ4NCITN52UUQ6JQ42PQZWAPLXLDODLSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

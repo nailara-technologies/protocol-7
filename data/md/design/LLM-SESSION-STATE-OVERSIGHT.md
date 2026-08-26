@@ -130,8 +130,8 @@ the richest pattern data for the coding zenka to learn from.
 the grid sees its own inhabitants through the void. the task engine sees its
 llm sessions the same way — omnidirectional awareness, locally anchored.
 
-#,,,,,,.,,,,.,,.,,.,.,..,,,.,,,,.,...,,,,,,.,,..,,...,...,,,.,.,.,.,.,,..,..,,
-#IDWNGFJNQXE3BF7UH2BQVL2TM7YR33JNESWILGEGKVLMR4ZAQGQPUX4LLF5PRTETZFHSZCHBFRV4K
-#\\\|6LNYMPTP33E2M4WJGTJZ46OHDIZNV77ACJDRHIXW2TJZWOHZNJ3 \ / AMOS7 \ YOURUM ::
-#\[7]OO2AFJEFQCL3ETGQCPY2ZKXNM3WSPKJ7TSG7XBBNPTSP3YY3X4DI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,..,...,,..,..,,...,.,.,.,.,,,.,..,,...,...,,,,,..,,.,,,,..,,.,,
+#PZQFSKQ64LL5USXKS5ZJMXIGA2RD45KJEY4BC4XII4FWEDC2Q2H5RANANJMATA6ULXDT56QCK4ZWI
+#\\\|DPG77PAWFM6Z6ZEXLJNERBVZMO66ZCFQBOYAQGLYC6MYWXCRFOM \ / AMOS7 \ YOURUM ::
+#\[7]SK3RKFOEBXMSD4OB664DG5PNFK5ZTCQPJZMXGCG2BRTKJQO2RWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

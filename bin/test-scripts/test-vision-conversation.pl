@@ -93,8 +93,8 @@ print "- Async operations may complete in background\n";
 print "- Check v7 logs for completion: tail -f /var/log/protocol-7/v7.log\n";
 print "- Job results available via callback mechanism\n\n";
 
-#,,.,,,,.,,,.,,.,,..,,.,.,..,,.,.,...,,,.,,..,..,,...,...,...,,.,,...,.,.,,.,,
-#K3M45W6IUHYM7WL2F7NCELNVFG64C7YEQBIWCGMLEVEVSPJZCRN5OAXNM74QKJFBS4JTIAO4ZFX2W
-#\\\|2667SLWYQFWS4AXGMYPJ2ROGTCKY3OZ73ZT3EW56AFX2VD7HFR5 \ / AMOS7 \ YOURUM ::
-#\[7]WFTAFT4BRKUTU4D2OBN3RBUPW3A3A2TBRZZKRQXINIUMVIUYVSCI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,.,.,.,.,,.,,.,.,.,,,,,.,.,.,..,,...,...,...,,..,,,.,.,,,,..,
+#KPHAHXBEYTQHZBWEZA6MNUHVYFLB6DG7F4HOKGMC74M3C7QANZRRI22RH3MKXNAVDVH5U6EPFUSOE
+#\\\|HU45J734DFZHBENF67XI7DRGAEJ2TXUC6KZUISJHPTWA42PNJDU \ / AMOS7 \ YOURUM ::
+#\[7]RKHB7ZILI2A3QAJQW4UBAH723LLBAB7JHXHNPGDR3OKQWVTQCEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

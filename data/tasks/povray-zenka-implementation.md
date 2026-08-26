@@ -480,8 +480,8 @@ things this plan considered and rejected :
   to milestone 2+. one symlink at finalize is fine ; a real cache
   index is not.
 
-#,,,.,,.,,,,,,.,.,...,,,,,,,.,,,.,,..,..,,,.,,..,,...,...,...,...,...,,,,,,,.,
-#LITHZEMC2IX3UAAVEJHP3MIOABZVFYIJGITOQWPP4WFL4NQFVWPGJALSJUABNGWLR6CZUNNHJJ22O
-#\\\|LW3AB55KNDZR6AJI5W7WI2E44NB6LV2SWZRIWGMHNVOMIEVLBA4 \ / AMOS7 \ YOURUM ::
-#\[7]AYOVJNQH7PABEENVAFXR4TMYNQUJSCHUHIBNSM7B4H63A7ZJB2BA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,.,,,.,,,...,.,.,.,.,..,,,,,,..,,...,...,,,.,..,,,,.,.,,,,,,,
+#JNKUDW5XROQFJEKPA77PFHTT2IGWKFYQ2SU6URRVYDRAY3JMTJ44NIR33N2FFOOQ5EITMJ4RVWDY6
+#\\\|OG4KXUOFD732EVMDZEWOMDV7G6XMREMRQH3JUCUG7MDIJCXLGEQ \ / AMOS7 \ YOURUM ::
+#\[7]CWE3ADFI5XFWMKWNV7YJUEJPGTDNGOO33XZIFR76UEZAZ4ZZFCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

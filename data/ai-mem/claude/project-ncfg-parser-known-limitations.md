@@ -48,8 +48,8 @@ piece of work — not scope creep to suggest, just don't bundle it into unrelate
 being asked (see [[topic-mpv-x11-dependency-cascade-restart]] for a case where this exact
 constraint shaped a design decision instead of triggering a parser rewrite).
 
-#,,,.,...,...,,.,,...,.,.,...,,,,,,..,.,.,,,.,..,,...,.,.,..,,,.,,...,,.,,,..,
-#ECYKE2W763H72LFMUFU6S3JA33MPQYJSSI7F2DNA4R677UZHOVUM3MN4GNIL3BBC7NX5BTY5DA626
-#\\\|XVKPEVZZXLOH64B3FSRVRZNSKZJ4JHEBVJQ7ZGQJQRRHSSKKTBT \ / AMOS7 \ YOURUM ::
-#\[7]5ZATWTOQQR5PCKQNKFE2X4EEGS5GGWO77YEHLN3PMB3BPGIWTCCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,,.,,,,.,,,.,,.,,..,,...,...,..,,...,...,,,.,..,,,.,,.,,,.,.,
+#IVDCD7FZY33DGCIWJQXTKMJJDZ3IXDHZ3ZZDEQISN34N67FTULFO3JRCUKQKJQCYEFVCBKZWSKHLC
+#\\\|VMZPXWWNYEI22QFZSKLJTQBGX2OAARKQF2UZOJ6NNCGDXNJM7YI \ / AMOS7 \ YOURUM ::
+#\[7]TZWP2RAVHHK4LQE4MKBJEMGQ3IWXTUEBOT6Y6T4N6NAFJ3OUKOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,8 +41,8 @@ resulting log file bytes directly (`hexdump -C`) to confirm/bisect encoding
 fixes without waiting for real traffic. Remove the command from the start
 file again once done testing.
 
-#,,,.,,,,,,..,...,,.,,..,,,,,,...,..,,.,,,...,..,,...,...,.,,,...,,,,,...,,.,,
-#VFWMH4OQCFPURSTSDHVRCICGGHZHX6N3LPV3QGU4RQ6WVJSBPIYE4MPI5N6BXKEQKMWM2YQDO2D2K
-#\\\|76Q3KCFB5MK633RQNBZQ6DPD73ZO2LZT36YDBVFG5UP5RYTWRT5 \ / AMOS7 \ YOURUM ::
-#\[7]2JBDUFHJ3WLTARETLIR5YWTSBPUCISHGFPWUHZMTQ5SZVEPR4ABQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,,,.,,,,,,,.,,.,,.,.,,..,.,,,..,,...,..,,...,..,,...,,..,,.,,
+#HI5CFEPDVRPUXANYBRXY3CO5A5YJVRKY5S337DASOUV64XYK5LYGIUBSAMXO3TJRZAJ5RMOZ3I2A6
+#\\\|BCQM4NX2AGXLIWHIXQUXAUOF2D2OAFXWPXQJ2XWVNR6JEBWCECK \ / AMOS7 \ YOURUM ::
+#\[7]PW7DOH6ZMYQNDIBZBEFHOW2AC7R2BNLLDZVKI65KYFKVWEVQ62BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

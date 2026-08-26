@@ -405,8 +405,8 @@ spatial audio extensions:
 - [[IMAGE-ZENKA-NATIVE-ARCHITECTURE]] — the audio→visual conversion
   feeds the image zenka's conditioning layer as an additional source
 
-#,,,.,.,,,,,.,...,,,.,.,,,,.,,.,.,,..,,,.,,,,,..,,...,...,,..,,..,..,,...,,.,,
-#GC62HPUHZFEYRVLRLHVHLE57UD5IS6ABL6CN3M2SBIXT4PHDEOOWHVN3CDDZENA3FLI4XPXAG5ZMC
-#\\\|2HRBRDOICGI4MNMFJFHGB6JQDPHAOPYGCSYSXPQPRPAYELSNGM4 \ / AMOS7 \ YOURUM ::
-#\[7]3XVCX6FU5QLFQEPIEAXWEKOMTAJIMQPM4PAXP6UBK6HR47OMZGCI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,,,.,.,.,,..,.,,,..,,...,.,,,..,,...,...,.,,,,,.,,.,,...,,.,,
+#3RZRD3RSGU2H2WOYBT6PVEHPV244K6ZYXSYIO6WAHZMZC7Y7OHLETJHIBZMXY5CI4R3PPZT4GZBZ2
+#\\\|VWQHBF5OKA4T5VQDTQJLTW7ODRRZJMNQDQ6P5SSNPOGKOUAQ5ZA \ / AMOS7 \ YOURUM ::
+#\[7]IJVRP6I5N2CWIRRXUDO5HJSAXZIJDUMKZFNQDRMMHN4PNDRITMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

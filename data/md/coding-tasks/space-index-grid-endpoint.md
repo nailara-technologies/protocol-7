@@ -206,8 +206,8 @@ before marking complete:
 - the primitive: `src/index.gen_path` [ produces the coordinate
   tuple from any string or scalar ref ]
 
-#,,,,,,..,..,,,,,,.,,,,,,,..,,.,,,,..,...,...,..,,...,...,.,.,,,.,,.,,,,,,,,,,
-#IHHWLJ6SQ5LI66NBJVGJQD67CGPV2OIQGVCDAD5CZC623CFSXOCGBTMA677XXVNZCBZUBFBSGHT5M
-#\\\|W6BSXXBOPY2T754JMTDR5GM6MXXBZ3DWYHRWLZ6QV2DID5VKNKM \ / AMOS7 \ YOURUM ::
-#\[7]VQAR7JXHU3BS5FIPYKRMNYTQ2YJZGBPOUY673AX25AIWKYDH5YAA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,...,,..,,.,,,,,,.,.,,,.,...,...,..,,...,...,..,,...,.,.,.,.,..,,
+#NNPQLKHFMGCS6WZOCJHYWYAJI2MSECAGHESCM6FPHIQTU3J6I5HPRQQAAI3CI4QHLX7WDLSNLNTAS
+#\\\|CK6WNBWKNZUMTX2OPA7BYT2J2HSL2JLQSDYTEXPSCSCO6L3YT33 \ / AMOS7 \ YOURUM ::
+#\[7]34UHC7UB7JN33ETPRDY5VNNSHKXHOPOTHNWAJKEJATDBRQIP3YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

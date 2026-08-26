@@ -13,8 +13,8 @@ Stop making changes when the root cause is not confirmed. Several times this ses
 
 **How to apply:** if a fix doesn't clearly address a confirmed root cause, stop and ask rather than trying the next idea. revert cleanly before investigating further. only one change at a time when debugging.
 
-#,,.,,,.,,.,,,,,.,.,,,,,,,,,.,...,..,,.,,,.,.,..,,...,...,.,.,...,,..,...,,..,
-#V2CNS7YTLGX6N5KG4XF5PLJXHXMYQHM7VOAEMGLYMLUOT6U3VGA7JDLBYVTO447RGJPZJKYSIXAWM
-#\\\|STHJTTRJYHRMCS66SCD4PXOJVRGYZ2W6CCB5FXCORUN7SXATTG6 \ / AMOS7 \ YOURUM ::
-#\[7]AYJY6WH4BQC323OSD4DVK4OYZMQQWFMUIV42E2PEK7TQ4PPBJCAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,,,.,.,,,.,.,,,.,.,.,.,,,,,.,..,,...,...,.,.,,.,,...,,.,,,,,,
+#2NAOU6TATTXJPQDH3W6FYL7BTH2IMVNNUTLFRXSYXBZ7J4ZNUBJAMS7LAFN2Q2ITMGABWX7GAALMM
+#\\\|RFGA5LYIA6YRWS4QP44RQDBMFJNHJ5AUOULMBU7BMHO3WOJPIA6 \ / AMOS7 \ YOURUM ::
+#\[7]BRXJPGALNLFL2GW4F3E652F4T4IQ2JMKW3GAIBX7JHMTH7ZZDEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

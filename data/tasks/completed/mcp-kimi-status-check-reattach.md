@@ -90,8 +90,8 @@ instead of "go check ps aux and the log file by hand."
   its own restart anyway, and that's an acceptable limitation given
   today's manual process already had the same gap).
 
-#,,.,,..,,...,,..,,,,,,,.,...,,.,,..,,...,,,,,..,,...,...,,,,,.,.,.,.,.,,,,..,
-#CC5MLH2HR2MJQALMQQZ5QLRI4K3HRROBCMZVPZI7FUFU4XD54472IVDYPQUESM6JQJDECPKL4B5HK
-#\\\|LA2S762LZQT643J4IBNY6RTSFUIISYLB4U6GZLC4RFOSZUAGSOK \ / AMOS7 \ YOURUM ::
-#\[7]MU4LENLCAB6YCPNTH5ZTVS3RMSAJRNS2FZRDTJZPV3A6MU3TNOBY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,,.,,.,.,,.,,.,,,.,.,,,.,,,.,..,,...,..,,,..,..,,...,.,,,,..,
+#55OQDQ43QHUIB2NEZNNXXBK4OPQNFFYDPUMKPB4TAT5MMWGJG4DO2ENS4IQRP2XBTQN5SFQDZQBG2
+#\\\|HNHCQR7ZAJEIABQV5IEJCJSM5MXA73PVXUYB7AWEUBXMWEJSO33 \ / AMOS7 \ YOURUM ::
+#\[7]J2U5L2AJS4VBJCZAWSMBHRUGYRZ3RAA7LTNJGDIPIAY4WMTDTUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

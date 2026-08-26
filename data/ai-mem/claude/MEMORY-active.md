@@ -123,8 +123,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [jobsite-coding-queue-paused-task-loss-landed-2026-08-19](bug-coding-async-send-request-enqueue-round-timer-mismatch.md) — LANDED `dd162183b`: coding zenka silently dropped any task retried while `queue_paused` was set (wrong `event.add_timer` shape — `'params'` key it never reads, `coding.task.enqueue_round` armed as a timer-handler when it's direct-call shaped); general bug, not jobsite-specific; live-verified via devmod. Also fixed same commit: [[bug-jobsite-pending-count-leak-nonassessing-cycle]] (jobsite cycle wedge) and `coding.cmd.list-tasks`' ntime-vs-base.time garbage elapsed-time display. Closes the "exact line" gap left open in [[topic-coding-zenka-wedged-backend-queue-gridlock-2026-08-05]]
 - [smtpd-actionable-mail-channels-notify](topic-smtpd-actionable-mail-channels-notify.md) — 2026-08-24: smtpd's notify-on-actionable-mail path hardwired to legacy send.local (fixed, use route-send) + a dbus regex bug (fixed) + notify-osd rendering nothing on this WSLg host even once fully online (worked around, see [[topic-powershell-native-toast-notifications]]); still-open design smell: smtpd should publish to `channels.*` instead of calling a notify target directly. Drafted-not-started task `data/tasks/dunst-notify-zenka.md` covers a parallel non-WSL Linux-desktop backend, deprioritized on this host
 
-#,,,.,.,.,...,,..,,.,,,,,,...,,.,,...,,,.,,..,..,,...,...,,,.,,.,,,,,,,,.,.,,,
-#NYT3RC7NHBHVYQVIR44H2CNKEINIPAZUVOUR2DMKVGQNRKMOICHK2FE3CANJPRLXC6BBZ3G4ZSZIU
-#\\\|YUUJ3P2675TPCMKGJKDTPWSF74CCDUKBHC62LMUT7T2RLXSZYBW \ / AMOS7 \ YOURUM ::
-#\[7]HT2HYIXIVZC4TYJKTQOK6PZPA2NEPYK2LXTHGXA2WOIZNSJGY2CI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,,.,,,..,,,,,...,,..,...,.,.,..,,...,...,.,.,,,.,,,.,...,.,,,
+#ANYAGGXKCGS3KOCEMERUEQGD2P5QLXPJW4TBSHDFT5J53EKECLWKKA64PEENXNBB4FPBWJITM77SC
+#\\\|7B4UYWSXDHRUAG6DBB6XUVA357PMRYZCO7YJCEF2XAPOSBACRKE \ / AMOS7 \ YOURUM ::
+#\[7]SZUC5MQNJWY54FPLGFACQBAACJSLTO5A4O7RHIB4BC37DWP77QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

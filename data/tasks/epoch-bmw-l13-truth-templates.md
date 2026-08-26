@@ -103,8 +103,8 @@ harmony base.chk-sum.bmw.truth_template_L13
 [ run also against `base.chk-sum.bmw.calculate_L13_sum` and
 `base.chk-sum.bmw.template_L13` if either is touched ]
 
-#,,,,,,,.,..,,.,,,...,..,,,.,,,,,,...,.,,,.,,,..,,...,..,,..,,,.,,..,,.,.,.,.,
-#VY7ZT6FQJH4HPJXX4TWYNJ7W6FFOLOOICXRMBO6DYRQVLX5XELK4OSLKKTUG3QDL2KYZIYX6M4A3I
-#\\\|GDEJVELABEPJUCKX2DFQSRY2MABL5AUEL7X2WSZD4D3FYNHN66D \ / AMOS7 \ YOURUM ::
-#\[7]OOYJAMWUY5BHIVQV4REHUTGSPJTUFTCOJQUWC4SFBXLG27KX7YBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,.,.,,..,..,,...,,.,,...,..,,..,,...,..,,,,,,,,.,...,..,,...,
+#MFGKZ5KFX5GV2H52XPCHXVDVKBS2XAUWPBWAHT4YLRXDX2M7JZYENBJSOJCUQ6TKQRZFYWABT7I6G
+#\\\|BDD4XOH3FC2BGHXYSWBPDPR3L3GJ5OTJBOBIMCCCMSI527BJEIU \ / AMOS7 \ YOURUM ::
+#\[7]OQLVECI5W2K4HQCJBLYEJD2CCT66BE2XFMNY75WHOXD454FYVIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

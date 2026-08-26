@@ -102,8 +102,8 @@ perl -e "
 - [ ] `cfg.plugins_enabled` default and any config reference removed
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,.,,,.,,,..,..,,,.,,,.,,,..,,..,,..,.,,,,.,,..,,...,...,.,,,,.,,,,.,...,.,.,
-#S77ZLDIXSKVMVF7GSGCBDV4P7VV3M5WMAAJYIKBZENUQJI77WGFLSWINHBYZBMP3LI7BAMAGR66HI
-#\\\|YJ7JAYTJN4TAYCSIIADO7CH7FV5TEWWVXB5ANZMW36WR63QOC5I \ / AMOS7 \ YOURUM ::
-#\[7]AO6POIADYZFE6Z37XXC7EA52XEPKIV755ZJK7LFKGCSS6P6ULIBY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,..,,,.,.,,,...,..,,...,,..,..,,..,,...,...,,..,,,,,,,,,,..,...,
+#W3YTRRT2LL5KMBJECF464VTPJ45SHD7BGCVHOG7OINCOMEOKEQU2VVZK7DNDLQSO6WM6SCUETD7K2
+#\\\|E2WUTNOWQBPT4ELU46PHTMIAEJ2UWR2OCADUEHB2SZ3LCWZTSDA \ / AMOS7 \ YOURUM ::
+#\[7]2EHOB567FKACTHXVIJWDSC4DGJEWBB36Z7HT7FQKZVRQK5XTGYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -266,8 +266,8 @@ never leaves the detached key holder child process.
 10. **native adapter pipeline** — tooling to accelerate zenka creation
     from adapter-candidates.yaml
 
-#,,,.,...,.,,,.,,,.,,,...,..,,,.,,...,,.,,..,,..,,...,...,..,,.,.,,,.,,..,,,,,
-#33LZMBHFGJUEHUMCLNRBIXYFKYLRFIJCHWVKUCTBF3RDJ6SRQLP7CD6HBKKTZ2EXC7HOLQQCQGCC6
-#\\\|FH7734OVLVKEQD5QGLK7RF6CNUSXQXGT6PSBUXXQO37GTZFTCES \ / AMOS7 \ YOURUM ::
-#\[7]WHMGO2OP7CHQKBFPXLZFDOJUSW5NN3LZE32AR6NYPM2EAZGODUBA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,.,,,,,.,,,...,.,.,,,,,,..,,,.,..,,...,..,,,..,,.,,..,,.,,,...,
+#KGNUFI4PP736WALNAN5VEBW5SWROLXCYZIEBEEIEHR564H3J6WEWH7GX3WIKZVEG4GBPMXRQSITP6
+#\\\|V22HEVDKEQOKBDOJM6FPAA226LTVKOTKGTE7Q7GXTZKIOUR7RPG \ / AMOS7 \ YOURUM ::
+#\[7]NQQAH54CDIZNDBRIGNCTRCZ3NFQXD56ZAL5XXAPZDU7M6DPWK2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

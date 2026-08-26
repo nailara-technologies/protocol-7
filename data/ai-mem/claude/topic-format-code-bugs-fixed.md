@@ -538,8 +538,8 @@ its own doc comment — would corrupt that pass).
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,,,,...,.,,,...,,,.,,,,,,.,,,.,,.,,,,,,,...,..,,...,..,,,.,,..,,,..,,,,,..,,
-#LFXX4EXLV273UQ7HN25OR4VU5XXR64WLMWQ6KWXNOBWOXU2KONRR5K2HBYUCM5DZLXFRMAZ77ZJQA
-#\\\|HNIGOOXIEUHZHO4JQKIQJIN7I67P72Z7XPOSSVJ5PX2MYGZ2LCD \ / AMOS7 \ YOURUM ::
-#\[7]PLYOSGRM3CKLO7HOFX45VKOIKDUXKX75KTGMV7LXFAIKXEGG7SBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,.,,.,.,.,,,,.,,,,.,...,.,,,,,,,..,,...,...,,.,,,,,,...,..,,,,.,
+#4STANZ42H2BRSEP3MHB5LO74M44CBH2J7YSFKEZDPQ3LDUGAEIZRQ74EUDPYVPPYWIUJCO6WYEEEQ
+#\\\|ILQ3YNCEWNUYZ5RZ2B4VBPDLIXNDT4QCUK7OD5LHIODXR4RBAN4 \ / AMOS7 \ YOURUM ::
+#\[7]6CPCHERJ2EL75OFOBAMEO26FNC2K64SNQLC7PUUWLFMPJSUOXSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

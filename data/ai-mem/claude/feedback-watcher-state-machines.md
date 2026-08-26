@@ -24,8 +24,8 @@ reconnect hang is a direct consequence of not using watchers.
 - reference implementation: coding zenka backend lock (`coding.state.backend.gpu.lock`)
 - task file for kimi upgrade: `data/yaml/coding-tasks/kimi-state-machine-upgrade.yaml`
 
-#,,.,,,.,,.,.,,.,,..,,,..,...,,.,,,.,,,,,,,..,..,,...,...,..,,...,.,,,..,,,,.,
-#YPHW2V2NG4UKCICQVYJ6PQEU2TKLIADKMFFFTXIQJIXTVAXJEF334UMK7LK2Q3646G4S5PH5FEP7Q
-#\\\|UZ2EYFDIHISMQJZQ6UYMEEOGFYTCVDUZ56UAEICQI2SMGKVGUB2 \ / AMOS7 \ YOURUM ::
-#\[7]3R6DUBWKRV7OP2COUWJ3DXY54S5OQDYOIRWODSRYULRU5J547UDY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,,,.,,.,,.,.,,,.,.,.,..,,,.,,..,,...,...,...,,.,,,,.,.,,,.,,,
+#HCRD5VHBTD27H5IKQBZFMT3L4FJ32L4XBF34EJ2XDKHVUECUBXPHUWYKWUSOB23VAC5QB4DY7HMTO
+#\\\|24Z652KA6XIE5FYXVRBYXORBIAWA4UTSMW6TE4QPNOXPK7HD6ZM \ / AMOS7 \ YOURUM ::
+#\[7]PPBRXCTHVOZAYXMOB6CCV73OJTAFCTPPYPU56BVPQJWNUGC2YKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -114,8 +114,8 @@ principle applied to multi-model consensus voting instead of camera nav) ·
 implicit split independently rediscovered for orbital hop-sequence
 animation vs. local fluid rendering)
 
-#,,..,,,.,,,.,..,,,..,.,.,.,,,,,,,.,,,,,.,.,,,..,,...,...,.,,,..,,.,,,,,.,...,
-#Y4VLPMN3VIWYKGPZTIKFC2UYZGKT6LALLL3SOTFIIRT4VHIDND3CVCXCUGHG7AT377J72VRHGKQCO
-#\\\|MSRNLO7M3JILYV774VT75H37KGOHHOY2UJPKBNURZTGWVB4VFSY \ / AMOS7 \ YOURUM ::
-#\[7]LI7SMXIA2RBB6OUC7L44GBNIWUSTBEA2UYKC4YM3DFI7OX4DB2CQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,...,,..,.,,,.,.,,,.,,.,,.,,,..,,...,..,,,,.,,,.,,.,,...,.,.,
+#6BA4SZ63PYUCT4FDIIXMQAEZFDLPM52GT2ZA5QKQMC2CT6KAO5U7EVMSSLODCJOBKPPONDZ7KCNEK
+#\\\|U4Z4OZLX5ANJAKZW4W7ACJIGM7VFQNLBKCHMS66M2MEO35LGZ4R \ / AMOS7 \ YOURUM ::
+#\[7]WH7IH4B6DMNDRBEJAHI2RFBTP3IOQ67IKFXMVNOKH2ISN3L5CICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

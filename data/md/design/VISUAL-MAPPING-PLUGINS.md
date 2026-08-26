@@ -290,8 +290,8 @@ my $embedding = <[plugin.storage.visual.neural-embed]>->($p7ref);
 
 *Visualizing the implosion vortex as a navigable starfield.*
 
-#,,,,,,,.,.,,,...,,.,,,.,,.,,,,,,,,..,,,.,,,.,..,,...,..,,,,.,.,,,..,,,,.,...,
-#337O4LZJJ6CONOP32UBJCMQJ4SWK3O3J3LO4TDQIMCKI52WKR3MCGNWERVM6Q65QOQTKYZLDXIMBY
-#\\\|RZUUOPF7D5OEAWCPYOOI3DNMAPBEUSM5DENP6LF6JKHKJAF5S5N \ / AMOS7 \ YOURUM ::
-#\[7]T2CVCVVVVHR7J5DB5OJZDIDQ2E2GL4RXS5HOKBE622S4AGDYHMDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,.,.,...,.,.,.,.,.,,,...,...,..,,...,...,,..,,,.,,,.,...,,,,,
+#MGQVCH4OVLZNYLVA4XZM2MICA57XEO6MMH6QHAWNM2N4SG36JJ5LDNICSO7J2JFCQEKJSMW2MY3GQ
+#\\\|MS7NE4DCA7T4CEYIG6AF6BS6MCCB3H32NCO42V2KNBAZ5FHXSQD \ / AMOS7 \ YOURUM ::
+#\[7]SX2N5DHX7EGUOAOHBPZNYVYI6Z5E7YSRJTFR4XC25NS7N62R2OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

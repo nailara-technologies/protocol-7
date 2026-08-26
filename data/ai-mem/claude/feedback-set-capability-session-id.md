@@ -45,8 +45,8 @@ Consuming only one before sending the next command leaves an orphan line
 in the stream and aliases every subsequent response to the wrong send.
 Read one line per command, not a loop that bails on the first TRUE.
 
-#,,.,,,,.,,..,,..,,.,,.,.,.,.,.,.,,..,..,,.,,,..,,...,...,,.,,,,,,,..,...,,,,,
-#4CG7T6PQDZRDNZR5HXLJFLMKNJJMNXN42KHYG3R3NUKJMVMC34Q3NL3QYFUYQS3U52OUEJ6ZV2YM6
-#\\\|NR2IKFLVYEPQCLB4VHD327HEUYOL2LCNWOPLWBEBFM6SWPFBIVR \ / AMOS7 \ YOURUM ::
-#\[7]L2ME4DN7KYMYD7LUUV5O7OXSY4MDHVP2K3OZDA4H62SFW5EUNIBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,,..,,..,.,.,.,.,,,,,,..,..,,..,,...,...,.,,,,,.,.,,,,,.,,,.,
+#GBVYYPAGMZNLMHJDNLQBFNODI5QHTLS56LEYSUTM2EJ52CVWI47L5352XEZFFR4CQS5Q4RMRZM6M6
+#\\\|LCDOXFIS2VPFKWAYHSEWEJD6SY7V4VWQAW3RI5JEKUJP32A6FZP \ / AMOS7 \ YOURUM ::
+#\[7]KKMEGAY4VCKUHTQC77SYDY7YNGISEBAJDUPT2S6ZTIBKSCARJICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

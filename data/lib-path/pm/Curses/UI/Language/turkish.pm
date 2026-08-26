@@ -76,8 +76,8 @@ Gerçekten üzerine yazmak istiyor musunuz "
 [file_err_opendir_post] "
 [file_err_nofileselected] Bir dosya seçmediniz!
 
-#,,.,,,,.,...,,.,,..,,...,,..,...,,,.,,..,.,,,.,.,...,...,,.,,..,,,..,,.,,..,,
-#RBSKR4HSKG4JC2YNNR45WPSAEMSN3GOS3WLM7V6GSYOXTAU2OM22MEYFPEYTDPCW24R7MCDUOHGH2
-#\\\|KXVNIQHO36FH2WMCEP2WIWQMXYYN6JEUMHAOAUUZMEPCFRTK2PF \ / AMOS7 \ YOURUM ::
-#\[7]ICOVLGPIEFORYDIKOZTCTUBWIAPERCQTHXS3N2QXWHT2FY5HVEAI 7  DATA SIGNATURE ::
+#,,,,,...,...,...,,.,,...,..,,.,,,,,,,.,.,,..,.,.,...,..,,..,,...,...,...,,,.,
+#IRYWAFOTQT3BYELMNWYPNZ3LLF265RVA7BIPCCZ7DBIJLV5AQ7J3JRD7QHV3AYFXS6FUYKK5FEXGG
+#\\\|JZVWT6HIFMRQLAGIPKRF7PKBYMJIFIQVP2UKULXKMOPENVQJ7AK \ / AMOS7 \ YOURUM ::
+#\[7]RBWA3I6Y7SHOD5AVYAFSDNXJZNLAOGUZE4WGEQTIQORLDQ7NT6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

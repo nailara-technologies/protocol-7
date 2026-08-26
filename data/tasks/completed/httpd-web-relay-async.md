@@ -162,8 +162,8 @@ this is a research + fix task. read the working async handlers first to
 understand the pattern, then produce the fix. do not guess — derive the
 mechanism from the working code.
 
-#,,..,..,,.,.,,,,,,,,,,,,,,.,,,,.,...,,,.,,.,,..,,...,...,,..,,,,,,.,,,,,,..,,
-#WSDIHWGMAAS4YMJC2TORIPUN2AMVQ24NHNOF3RJ3VC4MWDZFFWSOQHBABG5YQMRCP2L6O3C4CDUHK
-#\\\|WDE6OZDW3ZHMF7KKR3SWP2WVDSUCALMM3BVY2M5MAA7XXYSF5J7 \ / AMOS7 \ YOURUM ::
-#\[7]T6C7JF36RFK3NGOTZZDLHCOTP5VCKIXU5HKJQTNEYGTTUJQEEKBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,...,.,,,,,,,,,,,.,,,.,,,,,,,..,,...,..,,...,.,.,.,.,,..,,,.,
+#AEPR75AO5HGXFO3XEF7E7M24LJREKGZXECJUEMPXDKGXVKQKWATT5QKDNI5PT3LY2CBQ3BAQ6QD3S
+#\\\|7B2HRR6TNCE6WQE4NOTPGDDUG6F5IVESW7X55VBE5UTQEXIL45H \ / AMOS7 \ YOURUM ::
+#\[7]WH46EVMNQE3YZLVLQ2SCUJPQ6DRCF3CSAPB3VRGMMO2WHG6ENIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

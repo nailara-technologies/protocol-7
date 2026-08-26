@@ -285,8 +285,8 @@ mpv[top-right].pause  # pauses only top-right
 | Session ID      | single session  | ephemeral    | precise point-to-point targeting  |
 | Composition     | any of above    | —            | multi-hop routes, cross-segment   |
 
-#,,..,,.,,..,,,,,,.,.,,..,,,.,,..,.,.,,..,,..,..,,...,..,,,..,,,.,.,.,.,.,,..,
-#D7P3XYHDILY3IVVDJDN7ED42FVR6PDWBE3C6QDZHLK4OCXF37CLBE7G3NMFRC2UXHW6KU7JIHODG4
-#\\\|C5IEJ7GU7X5WLQVUZZ5VVCOYHYOWHO77VOL2B2DWXUDPOUD7575 \ / AMOS7 \ YOURUM ::
-#\[7]5RFDK4CCS2PNTZHRT7UMCUDHZXRYT4XTDHAHX3Z4POHM2YNW4YCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,..,,..,...,.,.,,.,,,,.,,..,,,,,..,,...,...,.,,,.,,,.,.,.,,,...,
+#I4DELE7LDS73VQAGBBI4E7L2AA7VAQVV7BK467MR5X4U3QDHOZ4EK7FHHL237ZBHQ664KUV2EP4HS
+#\\\|K6GBKSTXRHGXO2NLZX3MABOVA7ZXXTM4XC6CQG7AFZEQJ5RKIX6 \ / AMOS7 \ YOURUM ::
+#\[7]Z2HUY3HBRXJPMY52BSLULHDJRE7MKCOKKT6WLWDVJ46IP5KFVEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

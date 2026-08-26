@@ -56,8 +56,8 @@ add TREE branch to base.callback.cmd_reply (after DATA branch).
 node lines ordered by base.reverse-sort (reference count descending).
 stream_id = AMOS_chksum(node_id::face_id::ntime).
 
-#,,..,,,,,..,,,..,,,.,,,,,.,.,,..,...,,.,,.,,,..,,...,...,.,.,.,,,.,.,..,,..,,
-#GR3BQX37L72SIBQM6GCDZ5YBEP5HYMG2C7MMEQDMERK2IGXQTH7ITA7AYXRVAEUOYBXYFZ6WEILHK
-#\\\|2MKD6XH2FAA5ANBTBYJREBVD7DGMU35TTSQEIHT2SJ5ELXGTUAA \ / AMOS7 \ YOURUM ::
-#\[7]JCABCMKZZGWSXRINSDPJ7B64XF4IZQTAO6EMOYAAEW46J6BFVIBY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,..,,,,.,,.,,.,,,,,,,,,,,...,..,,...,...,.,.,,,.,,,,,.,.,.,.,
+#5IFZSTKF3EBQ6GM65AMMYH3RBM5EYJHTKKHYTAO4KZSPRSPHMIJ55LHEINCMP5PDHLDUB5EOB27XU
+#\\\|PR3V5XMTAUDPBUKT7VO3D5W6FZC4YZP5PHILCQSGJMJTHRLJDNQ \ / AMOS7 \ YOURUM ::
+#\[7]37NJWA4MZ2RN4XDCMBN5FIIX6DR3PUEMVVWZVDEY7R42ICFL6IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

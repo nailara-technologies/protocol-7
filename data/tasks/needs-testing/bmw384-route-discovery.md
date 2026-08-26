@@ -108,8 +108,8 @@ returns { mode => 'size', data => $output }
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,.,,.,.,.,,,...,.,.,..,,..,,.,.,,.,,...,,..,..,,...,...,..,,,,,,,.,,.,,,,,,,
-#56GWN5K2B6AOMS64XJXHMGFJ2VNECLONCQ5SGGW34IGWWESOENSEMOJZ3GYK6PMU73J4G3U2JCYAW
-#\\\|USJPQ3WGX5M653DMNA46DQDBWEPDULHK7UKK4GN7CYDQGDSCKML \ / AMOS7 \ YOURUM ::
-#\[7]R57IWMG7HUFAP6KKT7676KPMQW6K5XXCPNHRQWEB3RVYZUVQGMBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,,.,,,.,,..,,,..,,,.,.,.,.,.,..,,...,..,,.,.,.,.,,,.,,,.,,,.,
+#5VGFNZP2X3NSRKES7MPRUREHCRMQHPTJGPJFRNUYLSFLO6GXMJCRGSGCPPKZJYZNT4NJOETZFAL6Q
+#\\\|XETGJY2EP2GIJKPZCSBCHVJHJIDCG6GKAIPEKUEHPHO4ZUQORJI \ / AMOS7 \ YOURUM ::
+#\[7]YKFVZU5WAX7DRQYUM3CPGVIEHOQIQCHWPVLKMLLF6RQ7QWBE42AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

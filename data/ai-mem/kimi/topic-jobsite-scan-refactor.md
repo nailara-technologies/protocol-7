@@ -172,8 +172,8 @@ Title blocking removed:
 - The blocklist now only uses `ID` (source/posting id) and `URL`.
 - `site-yaml.cmd.import` no longer checks `title` for pre-fetch blocking.
 
-#,,..,..,,,..,,,.,,,,,,,.,,.,,...,...,..,,.,,,..,,...,...,..,,...,.,,,.,,,,,.,
-#ID4KVOQFODHNACQMFKJTK4E2TELEDIOWLZMRBZJG3N3C2SR6XQLNKQP737M5IXU7E5BL4AKWCLOJE
-#\\\|KSA2RWQU774RH24R6L6WPLQCV4IRIKUW6I5CQIZWEULDU27AMHO \ / AMOS7 \ YOURUM ::
-#\[7]LMJZW2OWODCAI7UCCDHWE662EW7MCDVY7A72VTHOAPJTGWL5L2BA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,..,,,.,,...,...,.,,,,.,,,..,..,,...,...,.,,,.,.,,..,,..,,..,
+#AGDB7CBLLOMZ7J7HJEIBLXOPZBBVPTOPKMAPXVE3CVTNHXBNT6EHOMFPBH6K77UG573BQLQAVHMM4
+#\\\|5V3H5ULNQ52DHBPLNLBX4OQNOH3NL7WWNFHV6L6JKFKSPR4XO3T \ / AMOS7 \ YOURUM ::
+#\[7]D5VM63ZJMEHOLYPLQOD4TWDXKK6TPTRLJBR7ASTYFGZ6Z5MNYSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

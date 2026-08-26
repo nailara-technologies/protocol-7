@@ -99,8 +99,8 @@ populate manifest fields based on what type of content is there.
 3. data/web-root/shared/ with any shared assets
 4. brief list of what was found in data/web/ and data/html/ and what was done
 
-#,,,.,,,.,,..,,,,,...,,.,,.,,,.,,,,..,.,.,..,,..,,...,...,...,,,,,,..,,,.,,,.,
-#L4H3DVFI7VGVJHLT6ZHXUKDGVPGSUWCNR2SEPRLA47ZIR5COZR7I5ZI63BM5GKMZT6YXU7WSZDIUM
-#\\\|TLUWQA3EVDMH5Q47YHCJZLFLD7WZXFLQE6D6ZDHFT33GZMVO6C2 \ / AMOS7 \ YOURUM ::
-#\[7]6NEPF6OQRAVU7WIUNC7P4CXU2OJ5JUDILCZGDK6UHWX3MUVEEICI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,,..,.,,,...,,..,.,.,.,.,,,.,..,,...,...,...,,,.,.,.,,,,,.,.,
+#PDIL6UXEFYB3VOYKWU3PHKIUFY2UYMIXVI5CFFXBEOTTW5KMYJ77GRFHCVVH4ZBEQXXA32CC4NS7K
+#\\\|AC5ZSNHH7ZTEXQEFERKTROVCT7YD56U4JGDL3GHSC2C5XP2TKAM \ / AMOS7 \ YOURUM ::
+#\[7]AJRGZD543E4IFAANUAOTO6M5HNMCDVGA6IFRIAQWB7IEEGCDO4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

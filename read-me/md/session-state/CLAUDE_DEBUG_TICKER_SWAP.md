@@ -316,8 +316,8 @@ visibly moved to the top edge).
 ## How to synchronize
 This file lives at `session-state.md/CLAUDE_DEBUG_TICKER_SWAP.md`. Edit it in place if you update the plan. The Kimi session can read it back via `bin/chat` or file tools.
 
-#,,.,,.,,,.,.,,..,,,,,,.,,.,.,.,.,..,,.,.,.,.,..,,...,.,.,,,,,,,,,,,.,,..,,..,
-#AXI34PEIKUDJ3HIIVO7ZQDDQQAZ4NVLWUXFJ5U24PNJCQAOBG7HAUTZRRAKLGBXTAVHX6DS5LSDFC
-#\\\|ZJ2L6NBRRA2AHJRLMOJ3BJHT5M6Z5GJE2RRYWPCX63NE3MHKVBB \ / AMOS7 \ YOURUM ::
-#\[7]KPNKD33OCBKAWX4GOPPC4E5Y225OYAV62OYOEMF3BRW3QLEXSSAA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,..,,,,.,.,,,,,.,,,.,,,.,,.,,..,,...,...,,..,.,.,...,...,..,,
+#S4ANUFKAGDIAOX5FTJFTCTMZFZJ6IEJGPA32G7ERZRRTOLGXJUMSAWHOWGTQ2MBYHIUB3YIPYWZ2I
+#\\\|BJNW4XJVAZILPTQTIWUBFAL6TTZC2UAZ4X7V5K7TOOQPGNA23JO \ / AMOS7 \ YOURUM ::
+#\[7]RI277ILW62KLY77E24HQQZBZQUKMSZGJUDYAA2RXRUCXFABWM4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

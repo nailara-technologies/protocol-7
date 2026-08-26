@@ -40,8 +40,8 @@ The input_buffer watcher is stopped in base.handler.command (line 114) to preven
 re-triggering during buffer modification. The output_buffer watcher is separate and
 only stopped within base.handler.write itself.
 
-#,,,.,..,,,,,,,.,,,,.,.,,,,.,,.,,,,..,,..,.,,,..,,...,...,.,.,,,.,..,,,,,,..,,
-#6RX4VBQY2Z4QWWNEEXQQDCYAVW7TEIWPPG23QSDOWW7Y5UYRDY7M5LOFTEGWZKEZZ6DUIGUNR5SSO
-#\\\|7PTPVF7E7O6EXY6NKGQZ6ZQLXVENXQMXBGMXQODJEBD6HQODMRE \ / AMOS7 \ YOURUM ::
-#\[7]XACCHO6QECQAGX2YMPOU3YHZMQWQSR3XZFRT66F5UJ7Y3BIJOGBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,,,.,,,..,,.,.,.,.,..,,,,,,,..,..,,...,...,...,..,,,,,,,,,,.,.,
+#7QS7HTEGJ5Q2DXSHEEMV3NOZ7L6KMHJKCRTWB4JLQPRSLPP6Y6I6O6AFJD4PGVRFYU5MN5LFYHAMU
+#\\\|PUZTEPJU3LXALOCKKUT6JDGR6O3PIRNQ5UPPJWTALKX4A633SLD \ / AMOS7 \ YOURUM ::
+#\[7]KCOCAYWHJAYPSCMUBGENUNJOEFQSSSYYKYBAIIE5ZIMHXUANJ6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

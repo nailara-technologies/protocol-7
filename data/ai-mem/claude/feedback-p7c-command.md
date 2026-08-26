@@ -10,8 +10,8 @@ Always use `p7c` for Protocol-7 network commands, never `p7`.
 
 **How to apply:** any time issuing a network command via the CLI — `p7c list users`, `p7c nodes.orbital-position`, `p7c v7.restart X`, etc.
 
-#,,,.,,.,,,,.,..,,.,,,,,,,,,,,.,,,,..,,,.,,..,..,,...,...,,..,.,,,.,,,.,,,...,
-#35SXSV5Q3VE4W3QB6ZK7G5ZJGM6MIMKHFV34LFP4S4TEZOWSSUBA36X4OR6RADFCGOO3X3KROLSKY
-#\\\|YU6PCLCHE3HDN4G6S34OEII7F4JIRXQVOCGGIVCNEFZVRV4VRC7 \ / AMOS7 \ YOURUM ::
-#\[7]AGX4C2GNCD3FYCVQ2SHSAXRIRAKGNC7TEQLWROOAIETZ6HCSQQAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,..,,.,.,,.,,,..,.,.,.,.,,.,,..,,...,...,,..,.,.,,,,,,.,,...,
+#GLZ7BX3JLM6KB7X3445KBJZLMV7KEFIASCGZ3NP237LPV5AYUVH53MPO35EJJP7OCJMF6R52RG5K6
+#\\\|LXDKASZEVV745BY223QWMK6GBMNT4CSKDMF5IC2YTO6XE7LSPDA \ / AMOS7 \ YOURUM ::
+#\[7]YGSEYGVTJDULN6OJMJQ3DPP4F2SW6IKJ3GIWO4X3EHYHMB23FQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

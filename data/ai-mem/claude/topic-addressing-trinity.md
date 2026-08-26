@@ -84,8 +84,8 @@ checksum chains as holographic frames). The timestamp IS the frame number in the
 hologram sequence. The rolling epoch window = the readable arc of the rotating
 hologram cube at any given moment — three adjacent faces always illuminated.
 
-#,,,,,...,..,,..,,,,.,,,.,.,.,,..,,,.,,,.,,.,,..,,...,..,,,,,,.,.,.,.,...,,,,,
-#GPGYT3WCOYL7A5UCLQBYLRLHTBXHWT2WSVSL3TCGMZO4UHNZVAXJ6JOU7LFOUXCXR2TEN7ID5TDRU
-#\\\|SRPZERVF36NGAG3H4QSS4VCKULQM56ZQJI6GVOQ5T56THUSMJC3 \ / AMOS7 \ YOURUM ::
-#\[7]P2MJCWHBV5R3ZDL5QL4CI6Z7OWEQAA6Z7ZF4GYPGWXIX7WY43YAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,,.,,,,,,,,,,.,,.,.,,..,.,,,..,,...,...,...,...,..,,..,,,..,
+#26EW33DDRGWHFADUYESYAV4UYGER3OMHHPVY33BZKPMVJZX2ZOGY7IBJKQXKUYJ2WQALD5ADOS7VO
+#\\\|3SPILPMSMORM7KTP2QIJNSYHSWPBSQAZLQLWDOAK3AA7R65KXP7 \ / AMOS7 \ YOURUM ::
+#\[7]EKX2ZI72R622KNKO4LRA2AAMGEMWM75TZQPP5OJUZFFGPOCZNSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -48,8 +48,8 @@ just the httpd abuse-detection case:**
    positives against legitimate traffic) as a first-class concern from the
    start, not something patched in after the first bad ban.
 
-#,,,,,,,.,,,,,,,.,...,..,,.,.,,.,,,,,,.,,,,,.,..,,...,...,...,.,,,,,,,..,,.,,,
-#WFGQX3P4X5KXQAI4UEWPUVVNC2FH47HES3SN25G3AK6KT36RNPXQ672BDOGPOW6OLJQHGXPX3FN7Y
-#\\\|L6CE4TRR5O7IJRLSQ67UTRIF7NKX33IAIPJ376FAXRJFPHB4RVX \ / AMOS7 \ YOURUM ::
-#\[7]GSTKZUTDIZOQ7HCYGHCXT6N7QXNXRMOSQYB5LVPPX3DLPWZP6YBA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,...,..,,,,.,,..,.,,,...,..,,..,,...,...,..,,,,.,.,,,.,,,,,.,
+#3USSAPKSWJPW4SOQL7BXY5GV5KUVYFGIC5ZYSULJHQK4QBGFJJZWKKTE3HR74RDSTNAH3OCMZZK6O
+#\\\|57DNDBLQATNK37RFK4QFLHNII73YBJW6UA5HPIBXTHDN74SWXCQ \ / AMOS7 \ YOURUM ::
+#\[7]23CLLNVTUENZO5TUAEPXYF25QTYADNKNJ4ABWHSISBFGGGUMHADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

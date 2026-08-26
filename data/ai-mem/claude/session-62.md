@@ -99,8 +99,8 @@ close at receive-side lines 1075-1090). cube correctly ignores it, but it is noi
 fix: in `base.handler.command` STRM send path, skip the fall-through TRUE reply
 after `base.stream.close` (add explicit return or skip-flag for STRM mode).
 
-#,,,,,,.,,,.,,..,,...,.,.,..,,,..,..,,.,,,,.,,..,,...,..,,...,,,,,,..,...,,..,
-#XG7DMFGHGPNLJZX3ZHJRYSGF4ZH3ZXKYPGUM3CW2354I2K2IX4IQMANKOBLPFCQJ7E3L55JPNR572
-#\\\|5RWENEUX7PEV7NEA5X36ORQMEG2YTNLXI3DQZOW5JN3M5QNKNTZ \ / AMOS7 \ YOURUM ::
-#\[7]DURDFJLX3GJIE3PYYGLMBZ4QW5ND5D2TECL7WNRC6R56LGP2ACDY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,.,.,,,...,,..,.,.,,.,,,..,..,,..,,...,...,..,,..,,...,,..,...,
+#H2NOSKY3THLAJNA4THARQ6EXVRJGWCYNX2FPNAVWAGFFOANPKZHCI5QX5WCGWSHGEDOF7ZHPWPAF6
+#\\\|2UXSHQNFAKA42ZQSMWLQ7V3GWXPRHJXV4GI36MLW4VE6GGR5BJU \ / AMOS7 \ YOURUM ::
+#\[7]NZEGGKY5UCYA4YYR7PNNFHGFS4DWBQLTHQH2LYZJ546UVOHUYKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

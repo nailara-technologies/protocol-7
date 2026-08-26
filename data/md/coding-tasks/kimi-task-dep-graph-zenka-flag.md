@@ -258,8 +258,8 @@ these calls are detectable by the dep-graph scanner (already scans
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,..,.,,,,..,...,,.,,.,,,..,,,,.,,,,,,,.,,..,..,,...,...,...,.,.,...,,,.,...,
-#I2ZAMJD3YF5W3AGZLY27XOAVXMVOYIWQFZXYQNPH662Q7J5HGB4XTEEI5CFNF35F5QRVHQ56Y5IA4
-#\\\|276ZRXWPMNZUURCIJOE2CMPNS6BRUPUYZEMRR7RYNETOWHLHWUN \ / AMOS7 \ YOURUM ::
-#\[7]2PGLPPK3WFYTYGMSLBOPYFGO6ENDEFE35EZ4N45NJIMP4K42WEAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,,,..,,..,,.,.,.,.,.,,,.,,,...,..,,...,...,,,,,...,,,,,,,,,.,,,
+#L5L4XIKLZXITUT2LGQWHQOFU3OPALV6SE3ZCJ6PKI6EJIVWMV6OU4Y5O34RPOXTFXIR7YDQ5XBWTC
+#\\\|THGHGQQKZTRWMXL4UYIE3KYBFTFI3HJ4WOBJCY7JDWVIZLSKFSP \ / AMOS7 \ YOURUM ::
+#\[7]YZSEPI2WALDY5O6GA2KGKQWNIXDTMKR72HF5YWIK2RHMF3PPDYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

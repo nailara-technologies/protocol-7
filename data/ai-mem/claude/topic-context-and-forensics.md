@@ -59,8 +59,8 @@ shaping model behavior invisibly across iterations.
 - **kimi** — tool access, file I/O, complex multi-step tasks
 - **coding zenka local models** — fast inference, no file access, good for review/generation
 
-#,,,.,,.,,.,.,,..,.,,,,..,,..,...,,.,,.,,,,,.,..,,...,...,..,,.,.,.,.,...,,,.,
-#QJMAGFQLW6XOAUJDLVLCJIWMGVNTV3ABRBBCFJSA6CPB2SRG3LUZW7425KCR3V6V5SMLTJYZF74RK
-#\\\|57652QAMJVH3MEQWNE34B64OH7MGYVYKIRITWNZBF5CNUJAEMNM \ / AMOS7 \ YOURUM ::
-#\[7]RZOMVMOBRGNAR6QHTG43MUWSJZYSKBXQQEBLOS5ZNP37V3OZWICQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,...,,,,,...,,,,,,,.,,,,,,..,..,,...,...,,..,,,.,,..,.,,,,..,
+#P7V3PLC5EPLXH3DLYKZWRADRQRSXAR23CTEMOTP3FDDFJURYNWVGWJME2XDBYJ72YA4LXYROXCGWC
+#\\\|R3SV4DJEZEKQ4PYNDC52SZSOCIR2H4MFUGVLQ5DKMEWBDKNCDEZ \ / AMOS7 \ YOURUM ::
+#\[7]V2KWWHYAZJMUVCAOKYQ73BHHE5ZX3QTTI7CNH342VLKXPYQ34UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

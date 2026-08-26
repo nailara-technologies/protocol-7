@@ -21,8 +21,8 @@ return format: `{ 'mode' => 'size', 'data' => $str }` where $str is:
 
 empty tree returns "no nodes".
 
-#,,,.,,.,,,..,,..,.,.,...,...,.,,,,,,,,.,,,,.,..,,...,...,...,,..,,.,,.,.,,.,,
-#UA5DXPXOKCMHADP6RBCH4W2M4N67HS6XYPBPGPPZBU2MY7R7ZZ4MA4URRC5KJFXBQ7S4NK3JBYQ7Q
-#\\\|GRIO77LAYAZKYGKOYLSMYMMVBZJYFRCBKOC2AO3ESLJEJP7R3DP \ / AMOS7 \ YOURUM ::
-#\[7]PXG3JR65J22IJHW5VJTVIAD3IGHZDFFOSF3D6QK2IOENYP6KBWAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,,,.,...,..,,,,.,,..,.,,,.,.,..,,...,..,,,..,.,.,,..,.,.,.,,,
+#SZ7SM5KEBNJV5PAUHSYQL3OJSLGX5IFH4D63UFYRZHLLY5RNZX6DTXVFCMOJNO6GJFZT6XKJ76GW6
+#\\\|WSSWXTBKMFL54CDQIE7TYODMCPB2PREFZIIJZUZK2K33BZ4LUN6 \ / AMOS7 \ YOURUM ::
+#\[7]JW2QKCQ7YXWXZPFXMQ5LNJOTX5S7WWVGXE2SKLCRTE3YJFK5CEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

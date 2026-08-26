@@ -47,8 +47,8 @@ nameserv, C25519 identity), before writing code:
    decomposition is agreed, rather than needing every detail nailed down
    first.
 
-#,,,.,,,.,,,,,..,,.,.,..,,,,,,...,...,,,,,...,..,,...,.,.,.,,,...,..,,,,,,...,
-#5LEE7MCVH22YJGGYYW4P2B5PWSGFSSOMRRKYZU4S76L552HS2LVJJAK73HVCAZFMJOXOJXAQGRXL4
-#\\\|7HNP773WY6KKM5R4X2FEOTA5N2WWYAA5URULWOEW55EWB3UZPX7 \ / AMOS7 \ YOURUM ::
-#\[7]INUMPYYL37DP4UWC2LRZ74B3NHUC7FS6AGUSD6LWIJARLGCJEOAY 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,,.,,,..,,,.,,,,,..,,.,,,...,..,,...,...,...,.,.,.,.,,.,,,..,
+#USZ3NXHFTBJD2M5W27YI4KTKOGVVBGNRQUE425R3YONTMF7BNJMXHDCHBICSEVJ4Z5CAGWCZNCKOM
+#\\\|AVT4DGOJWN4TQRT5KXBHKMMJRAVQK6C34OCTXQUTUA3C7GASNRI \ / AMOS7 \ YOURUM ::
+#\[7]G2Q6UD46NVLWPVOMN2NE3YWVUZNKCNVF5CYNWCHWFFOS6UJ2XYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

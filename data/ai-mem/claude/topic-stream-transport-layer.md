@@ -84,8 +84,8 @@ second consumer appears with similar idle/timer loop patterns. premature now.
 **How to apply:** next STRM consumer is the trigger to extract transport.register.
 unbounded extension needed for any open-ended feed (no known total at open time).
 
-#,,,.,.,.,,,,,.,.,,,.,.,.,...,...,...,..,,,,.,..,,...,...,...,...,...,...,,,,,
-#XSZ6FII46IJT6TII5IFXFHDTXQUM5Q6C75FWV4I27AW2OIIJUUXC732CXLTFGSPGCMC2GXHFY4CCK
-#\\\|W4F2FB3ZVUGXSI4S4EL2C5OS4XGOHJQQG62WUYQ5HYIQ6YUKSTU \ / AMOS7 \ YOURUM ::
-#\[7]CXST7CFDDBYMCOWQ7WWCTPWIRCUX7TKQAKCBFMCQ4CSZEGH7TECA 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,.,.,..,,,.,,..,,.,.,...,...,..,,...,...,..,,,.,,...,..,,,.,,
+#4N5EGWZJG5BOROI5DT6DNLYGAS25KW7IV63APN5ABZSXNMO35LOXNJTOZ2EY24JIJVCGFTFDE3ZIW
+#\\\|2OINBF5NU573CVUY3COF54V44IBXK6Z66KPBNCQRIISHHXMKEOY \ / AMOS7 \ YOURUM ::
+#\[7]RNF5L4FBO3Y4XP2QTRISYU4NRR55NBI2XE3YOQ3VOU6NHXDQ6ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

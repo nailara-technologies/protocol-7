@@ -67,8 +67,8 @@ Full subtask round-trip tested via `coding.submit` → `coding.wait-done`:
 - Child completed, result injected into parent context
 - Parent resumed, reported child result correctly
 
-#,,,.,.,.,,..,.,.,,.,,,,.,,,.,.,.,.,.,..,,,..,..,,...,..,,,,.,,,.,,..,...,,..,
-#Q5J4W5GI5XBN2SNOKDG6BDZPWH3TKMJGOWBFOS2EJPO6YQ5G2ZHB46IQ3PIMZPKOZEM7UVBBBRYRC
-#\\\|FEPUGOX7UF4GQFDC6JGX6TEAQW3KMKI4FJ7TU5ETPMUX2GJ4MEU \ / AMOS7 \ YOURUM ::
-#\[7]XNJIZXJRSIVRUNGNX7NNNLBMCTHBBSFON66QLO57N6LFAIMUEYDQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,,.,..,,..,,.,.,,,,,,,,,..,,..,,...,...,.,,,..,,...,...,,..,
+#CVS4LZNDHXSFB7LGOAGLM6FFTID2VJTUI7CAATQURIUXYQMFGEXJCU54MEFKKTVO2OO63W4UUGCXA
+#\\\|NRBNJWIG7DKFSLKEXJR2SKVZTJ7LYBRAVNOMCISAICBYE4Q7X6P \ / AMOS7 \ YOURUM ::
+#\[7]36DTYPNQI3F7RMHYZG2RCIT2S4LWMWVZR2THAF35JTU2JUWVUIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

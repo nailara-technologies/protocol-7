@@ -366,8 +366,8 @@ packages in tracking log not yet promoted to any `os-dep/` config dir.
 - do not modify `.deps/protocol7_full.yaml` — generated output, not source
 - `var/sys-deps/` directory must be created if missing (tracked.yaml lives here)
 
-#,,.,,,..,,,,,,,,,,,.,...,.,.,.,.,,,,,,.,,,,.,..,,...,...,.,.,,.,,.,.,.,,,...,
-#75NRQKNOUPTQUUO6HIW4KCGPPOKEZSHP6QULD3BYBZIXNQ2MVFFA766SJXRP3S4QL6ZZSKSFKH2JQ
-#\\\|GP4NDGOVFJMGL7DM3IXS4IWJ6AE65N3BW2LMBVV2JZDRKIJ5GYL \ / AMOS7 \ YOURUM ::
-#\[7]UAUDYEBCLQZBQN4JZQUN5G7OI6H7PJRUG3GEW544OHUJCXC4RODI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,...,,..,.,,,,,.,.,,,,.,,..,,..,,...,...,.,,,..,,,..,...,..,,
+#75Y62DKDDIGJQRQP5FVGKZV7ISD2UKRLGMJQ2K3TKAIPU7FYZXAS6N6U5AL4YMY7JTVTKYEMXLZIU
+#\\\|IAOL3IY3CZYKEIDWH2EXIW24JSPJVO6NHNHFDYZIRWXTJQCRHHJ \ / AMOS7 \ YOURUM ::
+#\[7]P5CMOLHSDMLMZXGTHOT7NJD52B5WJ2VOH27RTARACH3CYU2PCMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

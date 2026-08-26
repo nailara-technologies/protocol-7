@@ -105,8 +105,8 @@ never about; still correctly designed and un-regressed.
 [[project-2026-07-30-gap-audit]] — tracked this as an open item, now
 closed.
 
-#,,..,.,.,,.,,,..,,,,,,,,,,..,...,.,.,,..,.,,,.,.,...,...,...,..,,,,,,..,,,.,,
-#QWSJDBGQ323AFVGFHX4WHK6TP2FKFNVBLTED4VH2N3MPMF3CTGPNVMUDOICZNRET5D3EMQJBFJ2R4
-#\\\|ZLCNFDPMWXD4SHFHLNPDON5BRHBN4XQI323VXJKSZ2APEMYU2ES \ / AMOS7 \ YOURUM ::
-#\[7]7JFAD7N2JERIZTAJEZYDIEYANMVK64Y27WWGICPFGNDWJIOCNECQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,,.,,,.,,.,,,.,.,,,.,,..,.,,,.,.,...,...,,,,,,.,,,,.,.,,,,,.,
+#PLFC4DJEM3YPKXUKK53AF56HGFKQHDW6BGL22D5UQ75BWC6PBGM43ENQWELNP7HPE24AY33F2PYWS
+#\\\|MFNU6ESO3ZBCJ6ONZR5GFJGT77FVCCAIHBQF335Y6UAWX6MRMDU \ / AMOS7 \ YOURUM ::
+#\[7]GPBOPVYHGZZCZ2HHGSR5OQEB42A7HEMLE6QRV5XE4LAY4GYTS6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -117,8 +117,8 @@ cleaner check. Both need to actually be run before concluding anything.
 Add to `data/ai-mem/kimi/coding-style.md` and/or `data/ai-mem/kimi/
 MEMORY.md` in your own established format.
 
-#,,.,,.,,,,.,,,.,,.,,,,.,,..,,..,,,..,...,..,,.,.,...,...,.,,,...,,.,,,..,,..,
-#7CZJOSDXHO7O7W4TZKVP56ABTEK6XPH2CZOUQDRNHQSTNHPEYF4JUNNKSNMXBI6TFXNNKE4L2RGS2
-#\\\|UZXW2QMSNSNXQV2QEI5VKNRG5SH3N4F4KK32OBDQWJFC2WMVBA5 \ / AMOS7 \ YOURUM ::
-#\[7]7K3WSZIUJS2XU3UDCMNM4JFVWGVBSLXDIISUHOCZ5Z22P4LP62CA 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,,,,,,..,,..,.,.,,,,,,,,,...,.,.,...,...,.,.,,..,..,,,..,.,,,
+#BMZACVGWMQDXYZB7KBOM6HILNAJS5BOO7PMQ7B5PT22KU56FWTFJH5PYFEVQOFIJF2LGJJBPCMX72
+#\\\|VFAEKX752BGPO4ZOGSZQF75MWUYR25JQIDIG7FUQTKVT5XVAUAS \ / AMOS7 \ YOURUM ::
+#\[7]OZOO5X2BWKXN27QRMHWVB4VI2EWD4WK3B3WTM5DMRTCOTW26A2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

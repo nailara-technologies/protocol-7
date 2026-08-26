@@ -41,8 +41,8 @@ also: `Gtk3::Gdk::*` constants (SHIFT_MASK, KEY_Escape, etc.) are subs, not
 barewords — need `()` call form under `strict subs`
 (`Gtk3::Gdk::KEY_Escape()`, not `Gtk3::Gdk::KEY_Escape`).
 
-#,,,.,...,.,,,,,,,..,,..,,,.,,,,,,.,,,,,.,,.,,..,,...,...,...,..,,.,,,..,,,,,,
-#SPJS5OZ442DMM52MS24P65WVEPHISBKQRZTELV5F2UEN4DUMIBEYISC5S3EOYULQ57XQFEL75LJKA
-#\\\|XWAKJNJIQVJX7TTZJQ5RLCAQHMO7GGKYCHE3EZUKTE2BQPTJ6DK \ / AMOS7 \ YOURUM ::
-#\[7]RBR73HOD5LENKXUWDOQRJQLU2KQLHN2WOGXL3VK3RL6ZYK6OXYDI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,,,,,,,,,.,,,..,,,,,,.,,,...,..,,...,...,...,.,,,,,.,.,,,.,,,
+#YVRB56ACTB5GIM3VAVTTR2ZVMAXLBRJXGOQGHX4VMU6XLOYANQNZTC3DOCESX6JBPXGZWMHXGWPYK
+#\\\|BA7WRCRVY4WM2VBV3E6HFMAVAWIS6DVOZOHQP44HAZ646TXWMW2 \ / AMOS7 \ YOURUM ::
+#\[7]MEGPDXWGSBLNZBHLSB5OXJHAGGZARCEDW332FHXUVFACEOYZKIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

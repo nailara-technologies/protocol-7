@@ -319,8 +319,8 @@ p7c kimi-web.cmd.enqueue '{ "prompt": "task 2" }'
 - [ ] `kimi-web.process_queue` starts next task after STRM closes
 - [ ] no signature stubs added, no whitelist changes
 
-#,,..,,,,,.,.,,,.,,..,..,,..,,,..,,..,,,,,,,.,..,,...,...,...,..,,,.,,...,.,.,
-#HNELS5RCHCL4PYMDKVZQWPXR4BQYGYTAPSI7IEV5YBOCK4YIC7TADLGARRBRTKKJSGC7LCXBE2F7W
-#\\\|XU2V7ZBU2LVSHO4IWVTAOM47EVJJVVPQ5FPPDACHW3OGSLFWLGF \ / AMOS7 \ YOURUM ::
-#\[7]ZH6BH5GTOCBO2RMKA46BIIWJMQQV2ZGLKFN5QNYB2XBYIW5RVQCA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,,..,.,.,.,,,...,,..,,,,,,,.,..,,...,...,.,.,.,,,,,.,.,.,,,.,
+#VNG6KDQXNRM2A6CV3CSPUTCBJTDY5WMTZDHB4AWJJAE2LJTV5H4A4VJ2HFZID4BAZTY3Y2D4TTAY4
+#\\\|YU3HHXNT3ANFK23UD47YNGI45LUZ5FZGKCYGHMPN5JYMOX5RCB5 \ / AMOS7 \ YOURUM ::
+#\[7]T2R4BXKU6NCZGTL4XELYORNU5NCTCDD5XC5A4BWHS3KL2VZR5IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -60,8 +60,8 @@ invoke sometimes has 2+ db entries for the same model (same source, different
 uuids). the recover script downloads to both — if one download is interrupted
 the other may still be complete and usable.
 
-#,,,,,.,.,.,,,,,,,,,,,...,.,,,,,.,...,,..,.,,,..,,...,...,,,,,.,.,...,...,,..,
-#NMYBFECMZ6JJHDONIDHJG475BGR5BQT33WMJR6UNTY34VRQAUMKVXXIDITZZMHALWGJNTCGWQ6YA6
-#\\\|WB3CW7BV3SXUM5BDDKBBRYQPT633VE7POFMPOG4IVN557UGUBPC \ / AMOS7 \ YOURUM ::
-#\[7]763JFWL5IULKWLIEDZS6QKSPXF66HMHWELA7JLI7XTKCHWGFFACA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,..,...,.,,,..,,,,.,,..,,,.,,..,..,,...,...,...,.,,,..,,..,,,.,,
+#PL7K5LUOBLRYW2O3Q3LRHPNC4Y3K5IQU4WPCAG7YWHIMH7TJQWOHIUJZS4IZZSHHCKCK6PCXYMUU2
+#\\\|TGLKDK2BYMAJRCXZXOCK4HNM3YCHXGIDLL74ZNQHAZ4V6VDBCPB \ / AMOS7 \ YOURUM ::
+#\[7]ZWBDC6PXBQRKYS5MP22IVHGGORRO2OCRVPVBH4FJ3HP372B4SUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

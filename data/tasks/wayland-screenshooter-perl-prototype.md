@@ -152,8 +152,8 @@ do NOT touch `src/screenshot.*` or `src/X-11.*` in this task.
 ## finding, even if the prototype fails — a precise failure report is still
 ## useful here.
 
-#,,..,...,...,,..,.,.,,,.,,..,...,.,,,,,.,,.,,..,,...,...,,.,,,.,,.,,,.,,,.,.,
-#T4SXFRHRVKSUDBD4GX6TMPQXYBTHAHX26BGFNFK6HTZFT7ONVMIN7YQ7PVUFGYGWCLU67XHVLPZPS
-#\\\|ARABNUXLAJLG42A24WR6A6MNVQJHJHYAOSBUTWNNESQ6KD4RGIU \ / AMOS7 \ YOURUM ::
-#\[7]G2KECYD6J67OZMETNUSDIYASY3VTUAD6JGXB56FO3LGYXSR75YCQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,..,,.,.,,..,,,.,,,,,,,,,,.,,..,,...,...,,..,,.,,.,,,,..,,.,,
+#T7IPWWX4ZBXAZX7Q63QDIFLBGYL4EOLPCYWRVIH7RL6YKIGNESSJUBE73HXUFSL7HCLVCF5VIWCOO
+#\\\|DAP3GXP2X2ADW5FB2B6NUMHPEPAINGQZ6JU4YDPPOSSH5W4NKET \ / AMOS7 \ YOURUM ::
+#\[7]C6XBPR2HX6YNC2FMCGUTSVY5G3GEJ7JX4GJDLUIU7T3NMMOO6WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -91,8 +91,8 @@ prompt: |
   leaving the wildcard * for all other commands unchanged. No signature stubs,
   no whitelist changes.
 
-#,,.,,,,,,.,.,.,.,..,,,.,,,,,,...,,,.,,,.,,,,,..,,...,..,,,.,,.,,,.,.,..,,..,,
-#Q734H55PUKKWRAOHYXF2LO2TQHLB7ZI4M6UU3C5EDQ7442DW7UVZVYMFBIJRHHMNGY2UIMRZK7ZTO
-#\\\|FES5NDIIYQTPMS2CRFTDKOKK72AFCCTXQ6SAKWD2ESIKOTVZSBG \ / AMOS7 \ YOURUM ::
-#\[7]I5N4ZTOWXAVVJ3HCJ55S7ZN4SYDZNXH4M2KAFVF425X6XYLCQMAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,.,,.,,,,,.,,,,,,..,,.,,,..,..,,...,..,,...,,.,,,,,,...,,,,,
+#EWYNK7KFSU6SVF3BUZE2SXRK6DDGFYKV2E3JMJOTGANNHKKSQOZANA62B55NPMZORKFIEVON67D6C
+#\\\|S22OT3AQJYW4RGTY6IXZA5VSU35RBHQ5WI25JZUW7G7XLHGXOK3 \ / AMOS7 \ YOURUM ::
+#\[7]WFKPMJRDALVBLOF3Q3NQ453BF57XN5YA5N4HJOMKIJIWOH5B5WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -60,8 +60,8 @@ step 2-3 of this pattern now hold unconditionally, as originally claimed.
 [[topic-p7-text-formats-landed]]
 [[bug-swap-subs-nested-lifecycle-hook-gate]]
 
-#,,,.,,.,,,.,,,.,,,,.,..,,.,.,,,,,.,.,.,,,..,,..,,...,...,.,,,.,.,,..,.,.,.,,,
-#KAJZUTX2LUHUEMOGMEQH5JS23TRF6TOBW533YRH7EFY444NSRNTA6VOQMIGNEFS23GJEXLHKMTFWY
-#\\\|RQ33VTMBHNPUUOVL7O6GKDXYQ2RYA6C3XISV6DSAMR3TQYKTPYF \ / AMOS7 \ YOURUM ::
-#\[7]M6PTCEQNN3M5ZZLR2QBRWLMQNUNSG2FCZZ4QBYWNM6N7G7XMIEDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,..,.,,,,,.,,.,,,,,,..,,.,,,...,..,,...,...,.,.,,.,,,.,,,,.,,..,
+#2YTOBPJZN7ZSZGZKHK4TOJJOETTUMX3AL74UY2VWEOVMORPZOGZFUCL37XGDQJ4EKHY3MJPJL37J4
+#\\\|AM3E6WUFTTF5CP5K4MPPTFKNC64KPHIA7EN3XXG4WWGDS7FSE4F \ / AMOS7 \ YOURUM ::
+#\[7]4IVVH5QAXIJGNL3VVJ3PMUQPIT5DH4IKDSQVYLMD3WXPN4ASWSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

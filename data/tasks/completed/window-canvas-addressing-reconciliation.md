@@ -124,8 +124,8 @@ Do not write any code, do not touch `src/`, do not touch
 `cfg/`, do not run any signing/staging/commit commands. This
 task's only output is the memory file edit above.
 
-#,,,.,,..,...,.,,,.,,,,,.,,,.,,..,..,,.,.,...,..,,...,...,...,.,.,.,,,,,.,,..,
-#EENPIAPA5PCICVUOTWG3ERJ4SA34SBHNEBV26RHYPMKIXFWGGXGEPDE7FS4DESAWWXAPFULIQDAQY
-#\\\|4IGQ63SKEWJ3WAIVBCQCIVZDGSTSPIBRG52TC5J6IIRVLXQ3PKT \ / AMOS7 \ YOURUM ::
-#\[7]NGSOHQYNV5ETOPY6ZCIAWRWNU2UD7R77GVORUMHR2J7VOEMB7KDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,.,.,,.,,,.,,..,,.,,,.,.,...,..,,...,...,...,,,,,..,,.,,,,..,
+#H7VKQCPOE4MWCZTSP53R3ACRNIGXXRAZK2SLHNQSOFGUFDFCKG7UHRCOCW4V2QUAKQCDDREVJSOQS
+#\\\|6SOOQMEUA7K7Q4MXZBFRWAAIBF5T3LDONXKNL5O23FQHRE7DSBO \ / AMOS7 \ YOURUM ::
+#\[7]KK7YSV6ILMJSFBDMQRLCWJ6ILNBQTIEB5TPNP7YXVZ5PVL5BCMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

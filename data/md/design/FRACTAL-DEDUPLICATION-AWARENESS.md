@@ -359,8 +359,8 @@ All through the same mathematical structure: **reference, difference, compressio
 
 *Space, meaning, and time — unified by the geometry of difference.*
 
-#,,,,,..,,,..,..,,,,.,.,,,.,.,,..,,,.,,..,..,,..,,...,...,...,...,,..,...,,..,
-#MOWG2JPZAFDJDJYSQDXW4MTU7CLOCVHSEKMIL6OV4B2HD5QPJUTXAB3JBHR4WUXOLTWJYG2JQHVFW
-#\\\|XXKVFYYKDMUQ5PREA3GDQR77ORDNV5DOU7DPKDOQQ2ENEGF6XUF \ / AMOS7 \ YOURUM ::
-#\[7]EEQHD42NXEKBSWC2RJ5JN4TJR3ROIMCQAJQM2DQQN35U2QT4YECA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,.,.,,,,,,..,,.,,...,.,,,.,.,..,,...,...,...,...,...,.,.,,,.,
+#EM637N44N5D27XQYCAWAC2MJ6VWR3NDF7E6FS5KRE6X4E2VSGUIACTOXK7MLRR2PS3VJVFD7VL2IQ
+#\\\|DAGEXPKM7Z44IJN6YYW6ED2H6RMFHC6WY3GQ77RP3FLQPO6RV3V \ / AMOS7 \ YOURUM ::
+#\[7]U2TCSCVBYMAUYMSAESKYNSCDFNCOWM6TNUEZ75RMCE3YHZ5IKABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

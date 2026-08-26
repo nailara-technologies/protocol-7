@@ -135,8 +135,8 @@ lowercase comments, `[ word ]` annotations, `$ARG`, no signature stubs.
 depends on layers 2–4. parallel-safe with `branch-layer6-file-abstraction.md`
 once both are in round 3 (file abstraction depends on 9P bridge being defined).
 
-#,,,.,,.,,,.,,.,.,...,.,,,,,,,..,,,.,,,..,..,,..,,...,...,...,,..,...,...,,..,
-#S3VJM4N2WOYIG2NM6WKENDEWY3DIVOOA52DFW73RTTXVKXKDGXXIQCX77CNKHMMXW3PZYCBSEMEYE
-#\\\|KAYK6J5XREXSN3SIQC7VRIRBPVCAWHC4PLJ3ZASH2XINPJ2TMAR \ / AMOS7 \ YOURUM ::
-#\[7]CWDWK44NYT5FBPYG7WZHJ6RQ7WKGQUPAYDBCA67DXJS2VUYABSAI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,,,.,,,,,,,.,..,,..,,.,,,,..,..,,...,...,,..,...,,,,,,.,,,,.,
+#UOJCTYJDH3XMR2A4E442FDVJ7V5J3TNLZRT3IF6M7LBN6KAVNDJ5QYWKFKQBL4CSKFTNFFI6SYN7S
+#\\\|LEFACHWZ5HTWLCU2ELMMENXIBUQXMGT4KYVEE7IDL2CJJJVADAS \ / AMOS7 \ YOURUM ::
+#\[7]LQ5FNJYDFYVT5W5CJXM5OF7C7N5IP7ASWQDKXK2VSHYQULME3QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -62,8 +62,8 @@ new modules must be added to `cfg/zenki/web/subroutine.white-list`:
 - plugin.web.content.util.calculate_checksum
 - plugin.web.content.util.generate_submenu
 
-#,,.,,.,,,,.,,,.,,.,.,..,,...,,,,,.,,,...,.,.,..,,...,...,,.,,,,.,,,.,.,.,,..,
-#HSKFIZHW3SH5M26FJOBI5WRJCKLMVWRP4P7P5TAPEYVVT43IVG7SSHDATLMX5ITVVCIZSGD45EKIY
-#\\\|CEALUSHUOGRPCGZNVPHABYWF3HKXE6Y4GTA3CG5YLW6UIC2IFTT \ / AMOS7 \ YOURUM ::
-#\[7]JU2MHXECRKHFRFOXV5UCLGFVD6IM2CQCHTR4HHDYLTGYBSFSAYCA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,,,,,.,.,,.,,.,,,,.,,,.,,...,..,,...,...,.,.,...,,,,,.,.,,..,
+#VD4HBCCYAWH4D3AJZBTWH5RLEJL5FX5P7ABFFJNLYM5U2SSXUGUVYDYVKTAYMJPAAIWVFTSOHAZSI
+#\\\|7O7NVHHUXFAIWK4KTEMKRKGOYIP7JTYV66EK6TCTWTKN5FQ7OJO \ / AMOS7 \ YOURUM ::
+#\[7]TGTK7NQTZYYMYEOTAAUKTLJJTUA7KYTEAH6DFMORS5U3MKGOIWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

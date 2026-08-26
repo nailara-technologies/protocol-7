@@ -79,8 +79,8 @@ each branch field node lives in the branch data tree:
 - split produces two children that sum to parent capacity
 - field branches (2+ axes) report all open axes correctly
 
-#,,,,,..,,.,.,..,,,,,,,,,,.,,,,.,,.,.,.,,,..,,..,,...,...,...,,,.,.,.,,,,,,,.,
-#7R32WQSUCICVNDSCMPBZNEGXVQV7ZJIW6FFTUVQ5EMFY62BK5CEA2ZWYPEWGHHJBFXQK2UVIOVHEI
-#\\\|ZEZZKNWF76XWSCIQXPYIKZU5EYL766TFACVHAH4YKY5TSAFMRNH \ / AMOS7 \ YOURUM ::
-#\[7]CUP74LPNWZSS76ANLPF7PSG5GPOG5OKLMU4UYZPW74EMMRV3RYCI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,..,,..,,..,,,,,,,.,,,,.,,.,,..,,..,,...,...,...,,..,.,.,,.,,,..,
+#6TL2P4XLHTCM5DFPLVXCMIPCI64ERDZOEJIDHXCGCCAZ36VZLD3YFVBZEQ2BHQZGWXBTC3BOVT7UC
+#\\\|FGCDFMZF7ANXZ5W6IEEEPYTT6IXQYVKS45KIXBN7JRFHE7DQ65R \ / AMOS7 \ YOURUM ::
+#\[7]2OYVL4G5SHMCAHR2CAN33EI2CYL4OXTRELYCEXUIMMYLSEHGA4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

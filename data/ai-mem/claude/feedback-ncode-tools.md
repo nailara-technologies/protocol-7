@@ -54,8 +54,8 @@ step (files were already git-tracked, so this is safe/reversible). Prefer
 verified plain-perl one-liner + git-diff review for `\K`-based patterns
 or conditional/branching bulk edits.
 
-#,,,.,..,,...,,.,,,..,.,,,.,,,...,.,.,,.,,..,,..,,...,..,,...,.,,,.,.,,..,...,
-#23WGVKT3E3OPZ4QGYCK4G2ADEKPVJOEIWT5F2BPDS7ORNRUUIBRM55UAI4MK2GDVRXEHGXIGFUEQO
-#\\\|I7HDV7ETKYFAHWPMNKYSDYPEDTULDEIEK4FQTL3WZCFF6AP33SA \ / AMOS7 \ YOURUM ::
-#\[7]CJFOCRET62HBT4DDAEESSN6OC5SL6F3R3EDXAVNXZXQP2J43B2AI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,,,.,...,,.,,.,.,,..,..,,.,.,..,,...,...,..,,..,,.,,,..,,.,.,
+#RWG6PTSZ7UPK6LIUMOB6ZLXQ74BYINRKJBJIUJPSN6TCRBTM3EZSEPSYRKHOTF4PWNRJCW2UOIGJY
+#\\\|C6XAMVAU644JYGPYD7EIB3Y7GTU6STSR5HN6UWFD4MOLLZF7PPL \ / AMOS7 \ YOURUM ::
+#\[7]JWY2VMYT6TCMFZKEAWSAZR3WDEGEZ74DEH3RAJUCOQG7HWL5W2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

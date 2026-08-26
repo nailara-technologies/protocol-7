@@ -22,8 +22,8 @@ change to just `$glow_total + 0` (or keep sprintf and accept string — low prio
 
 do NOT add stub signature line to modified files.
 
-#,,..,...,...,.,.,,..,.,.,...,.,.,..,,,,,,..,,..,,...,...,.,.,..,,,.,,.,.,.,.,
-#MWHFSKV6O7K4VNMKKRZQ7QMOYGQMV2XUBLIUFOY6BYYQPPDJSXLAVKKS2IBZTOWXA4VNEEPSBJL46
-#\\\|TA3G6HB4FWATUCSZBWKHMXTNPBWEZZBVPBZKQPZPDQT7ZHE5QK6 \ / AMOS7 \ YOURUM ::
-#\[7]K5KRWNRW3O65MW77RFGDKROKQFJHU45MYQ6YTYRLGWFD3SY7P2CI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,,,.,..,,,,,,..,,,,,,,,,,,,,,..,,...,...,,,,,.,.,,..,..,,,,.,
+#Q2COKQQOWZFBZEHSF3N5K3NBMWS7KWJJ4VQGN5F2D5OJLXD764JQRKERAKBGCN2FYIXQRGLJ5IOMS
+#\\\|AMFD5DDMTTPMKJMUKNOBPYF3VNCPJ3FDKQNAKUUQOJDU2L6QMUN \ / AMOS7 \ YOURUM ::
+#\[7]BUIWL42KSGQD7B32ANBGTIOHOVQWLDDF5IW5NFAY5FAXZR7GTQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

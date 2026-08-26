@@ -441,8 +441,8 @@ structure's own overhead rather than letting it accumulate unbounded.
   "stays open indefinitely" the actually-intended behavior?
 ```
 
-#,,.,,,.,,,,,,,..,,,,,.,,,.,.,,,,,...,,.,,,..,..,,...,.,.,,,.,,.,,,,.,,,,,.,,,
-#JKZEEDLW6U5LKTU6KA5CMGIMSCB6AX4A2J44SYGYBJYPITQNIUY3WD7KQRSUXSHUAZ4NJDE6SEJY2
-#\\\|JS36AKPVGXCMGX22EUARBQJJCODYIPUZJ3V6PI4VOR3JFQBC3RP \ / AMOS7 \ YOURUM ::
-#\[7]FTLIADF3RD2PMWSSPQAPFL2BU6IZ7VIVZCFNCQZDL2UHWSIBQ4AQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,.,..,,..,,.,.,,..,,..,..,,..,,..,,...,...,...,,,.,,,,,..,,...,
+#IAJ6WVFD3A4WTA52NEG6K7DGQNCGAFOIBV5JPPPVQUQTRNR4MW3FNSZSVDG4MAIREWSKEZH5WBIHW
+#\\\|WO3N5DU352QEN56KMWBS5AN7PTJSIUNFMYDXMXLKTCG6KCEYW7H \ / AMOS7 \ YOURUM ::
+#\[7]3IZ6YOF55JPGZPCE5T6HQN3XOZBEQOGQIIX4S2MZVTSHULCGTGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

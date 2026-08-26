@@ -125,8 +125,8 @@ if ($self_match) {
 - `index.cmd.lookup` already reads `terminates` correctly from the trie node —
   no change needed there once `index.rank` is fixed
 
-#,,,,,,..,.,,,,..,,,.,.,.,,,.,.,.,,..,,.,,,.,,.,.,...,...,,.,,.,.,..,,..,,..,,
-#3CTNQKVXX23DA4N7LAIPOQYMTKPGLCRVKPKXQWDOC5AWMQX6X6WLM56D4C3V5PTLDNQME2BSPSWWW
-#\\\|XIH5SMGA7WT55CNNHEYPXU6PFL6A5B6Q77GBYP6ZG6ERVA3JXPG \ / AMOS7 \ YOURUM ::
-#\[7]WHKNQJLTUWMM46OVU24LB3KUPG3CQC7OE6YWJO3CHKWWQ3KBNOAA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,..,.,,,.,.,.,.,,,.,.,,,,.,,..,,.,.,...,...,.,.,..,,..,,,..,..,,
+#7H3OSBJUIKRK2XQF66BKLMVMTL7HTXBJQIWS5L2ZAUQ7Z6MWMDDL3H2NYSH5RH2FQK6VC5IV3PMLA
+#\\\|V27ADEH7A6GFYFBKBLUGIMBQFU3WHOICHLVB47DP5BZ6SDSKEAD \ / AMOS7 \ YOURUM ::
+#\[7]VGRXVGF64UWUZG4E3YAQKCFMF5UVU7ARKHONFKFSJAX2DDK26UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

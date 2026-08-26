@@ -127,8 +127,8 @@ no signature stubs.
 
 parallel-safe with branch-calc-route-navigation.md and branch-calc-bandwidth-temporal.md.
 
-#,,,,,..,,,..,..,,,..,,..,,,,,,,,,..,,...,..,,..,,...,...,..,,,..,.,,,,,,,,.,,
-#CGSXEJ5TJ77AHZVUUJERKXO4JU7VPVHAXMEPFU37G2P7HJ6WIHRAGOPFXWGU2SQAO63ZUOU7W57HK
-#\\\|QUPVQBZBQJWUCTNZSPALBNBKSKKYAP7WBX5UNZR2EYM37B77QBC \ / AMOS7 \ YOURUM ::
-#\[7]EPHRBLKROMUEWXL2CB7XROA7NTWVBUOBZVMUNIK7AGQD3DNAJKBA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,...,,,,,...,..,,.,,,,.,,..,,..,,...,...,..,,,,,,.,,,,..,.,.,
+#6FIUHL3BBZKM6VBVR3THRJVXN5SUT5WMUPDDEMOKQS4DN2S5SOHYOPJKB6RGFZXATNSIPO3RCWRJM
+#\\\|TUMHXT74T26KNYMUYM4XWV7A2KX47SQV7UVFG3XXQG2T5KSCDE7 \ / AMOS7 \ YOURUM ::
+#\[7]VQQY6ACGMQG6K72RIHAFSTIXIA2GTXNHKGPGY5K246XU3UJRZKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

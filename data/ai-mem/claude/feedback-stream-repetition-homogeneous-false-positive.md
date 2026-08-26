@@ -50,8 +50,8 @@ new class of legitimate repeated content has shown up that the fix
 didn't anticipate — don't assume the fix fully closed the false-positive
 surface, only the two specific cases it was verified against.
 
-#,,,,,,.,,,,.,,.,,,,,,..,,...,,..,..,,.,.,.,,,..,,...,...,...,..,,...,,.,,.,.,
-#GX2VPNI24D7DOUMG2XIPQ6MVQU6VGKZUC6F5SB7BWP7CORU55Q2XNVFSTJKTBSADRN5LMEDIZFE3O
-#\\\|USL4N6OAGOJRFBMJIRYHKNKO6DMNLYSTFDUD3KEWN2E7LYSEZPG \ / AMOS7 \ YOURUM ::
-#\[7]CPWA5U6YTTXSYHVDWTMNW55NYK7ZOVY6FEO5UFVZY7FUICGWGWBY 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,,..,..,,.,,,,,,,,..,,.,,..,,..,,...,...,,,,,,,.,,,,,,..,,,,,
+#RPWF6UFQ2Q3TLMIEERLXPMPCD36CBDITCQB3QJRA4R7IPKCYIGTYFS6AU6J6L6P66REH2NB6M3CI2
+#\\\|JYQYS4Q6HKMWOLBF5APLZ4NI4AJYVPFNSEC2HZYIUQ6CDI2EDHU \ / AMOS7 \ YOURUM ::
+#\[7]I7J45NE3E4N7LHKTE3V2M6M6BB5TSEOXNQYWKCCPGYRZ6A7XLKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

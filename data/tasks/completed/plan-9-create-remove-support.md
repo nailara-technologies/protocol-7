@@ -185,8 +185,8 @@ you're unsure of the exact framing).
 Do not start any zenka, do not run any `p7c` command, do not commit. Leave
 all new/changed files on disk for review.
 
-#,,.,,...,...,.,,,,.,,.,,,.,.,,,.,,,,,..,,..,,..,,...,...,.,,,.,,,,..,,.,,,,.,
-#SMIB54THCH2R2ZJAYSNPSHSKJ7HCK4NVWHZA6QD5RD4LCPDLCSEN75SYNFBAFFQ62GE4IP5GNICWY
-#\\\|3NYONWLVFKBAEXUHJ6YSV7XCLBDK2QH5VCC64CTIF5VVEOT5WOM \ / AMOS7 \ YOURUM ::
-#\[7]BC4DEPA6DYBN7HZV2JUY3ONKLVRVATGDZSEWFA4CMAIHPU4KC6AY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,..,,.,,,.,.,.,.,,..,..,,,,,,..,,...,..,,..,,,..,,..,.,,,,,,,
+#TFFIWZWBHLPFADLIOHOYOORZJXCPVPCZPCDLCGPDBVKELIZXFKBECJPE7NCQKFHDSJD4FBC2QIS5M
+#\\\|S3B2RJS3V56SFFGJ4UFLS6L3SWIWWH64Y7WSPQFNHC4JSLEGOO2 \ / AMOS7 \ YOURUM ::
+#\[7]36P5HMGBQV3GDGVTR67D7MDYNSWDQMPL2J6CV77MJHAEVHUEOCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

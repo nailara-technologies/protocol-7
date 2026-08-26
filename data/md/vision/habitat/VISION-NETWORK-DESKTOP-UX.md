@@ -248,8 +248,8 @@ unexplored, and how to navigate toward what they need.
 The map is the documentation. The topology is the organizational memory.
 The visualization is access to all of it at a glance.
 
-#,,,.,,.,,...,.,.,,,,,.,,,,.,,,,,,.,.,,,.,.,.,..,,...,...,,,.,.,,,..,,,.,,.,,,
-#M4V2Z52LQSKBMO423CD25ALZTSXXRMFGE46B3XMMMJ7CEV4V2LYBBDBPTMXVYLUAPJVJDX6VEZF4O
-#\\\|6QJVXEOCW54A7RP4ELXGMVYGXXOTFI3VTLKJAIZCLG2UH4N6RYN \ / AMOS7 \ YOURUM ::
-#\[7]IHWWIMM2TZZYCFSLJUNTNPAIH36PSDEZJQULDXPTIJ7DQZXI6YAI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,.,.,.,...,,,,,,,.,,,.,.,.,..,,...,...,..,,,..,,..,..,,...,
+#AP7K2T4QDQOYUBUGXHCP4L3SNEULHY3YWHYIRA3MPARVIHH3VHYEHXSBDO4HSR47ZX6N2R2YO3QXI
+#\\\|OF3H3OSRHTJD3DM4P74M5CS6TXH3N2DRZER4RHKPHFPCXIX4JAX \ / AMOS7 \ YOURUM ::
+#\[7]VJK6JQLBNL6DC2OKSXO64V45UJMZOATLLFDO53KG3RSTBFETTODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

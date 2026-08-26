@@ -192,8 +192,8 @@ p7 fetch.file.huggingface.status
 - [ ] zenka starts on-demand cleanly
 - [ ] downloaded file appears in `p7c coding.list-models` output after completion
 
-#,,..,.,,,,..,.,.,...,,..,,..,,..,..,,,..,,.,,..,,...,..,,..,,.,.,..,,..,,...,
-#5HP62QAYKGEA76QEBHVKOL5HP56CMWFEMG53CVK4VXJ4HD4JYLT64K6X47K3D7WZTMRILFDZ5YRII
-#\\\|VPGKA6NJAIWABLLTD6P3CAB2KXXEQOB3UOCOZGU2KECDCWILZIG \ / AMOS7 \ YOURUM ::
-#\[7]R3JTCCOP34TZVFFNLLQJ2OEIVL4URCNWWIVMNPAK3LESAMZ5NIDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,..,,,.,,...,,,.,.,.,..,,.,.,..,,..,,...,...,..,,.,,,.,.,.,.,,.,,
+#DE7FWUQXTXCCSW7DP27RE5B7VMKTB2CSESVLMOJ43UEJFMVJ7ZR5W4OEQ4P36UM2LBUXCDG53O7SY
+#\\\|UDH7H3UDBD6MYOQVTANH5WZUIQWDBBDIRWGEWPMST2SF4LT4S7P \ / AMOS7 \ YOURUM ::
+#\[7]KXYAFRHUJC6YFUWQ4PW55METJLBNXEVDLDERCGZJLBSU3NG5GGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

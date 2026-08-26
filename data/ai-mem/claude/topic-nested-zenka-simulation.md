@@ -79,8 +79,8 @@ real, same-session incident that prompted this
 [[topic-orbital-data-space]] — recursive cube mapping / nested orbital
 addressing, the structural trick this borrows
 
-#,,,,,.,.,.,.,,,,,..,,.,.,..,,..,,.,,,..,,,.,,.,.,...,...,,..,.,.,..,,,,,,...,
-#BY6RGAYQW2OSAR2LBMJJFIP7CUBRZJIYHZULMLBPD4NDZHWFDMVTVX6NXNOSBS426WRXFTVFTD4CG
-#\\\|GRX6IZ2KZSLUD5GTAU527N72YEJNURWAY4WQOFRVYIOPINUPYLB \ / AMOS7 \ YOURUM ::
-#\[7]CLFLUJ5XK4ALXI3XM66J6QVDU5CXQEGH5AEPMNANPXUMS2RUVKCY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,..,,,.,,,.,,,..,..,,,..,...,,,,,.,.,...,...,.,.,,..,,,,,,.,,,..,
+#QF2X72CVHFVLLTTUZQQEBGONYDHX7RKUBUB7HX4XF53ZO2ZVXJYWLEZUPWKVUUFOAL7Q74LXIOTC2
+#\\\|VBP7N52MM6WPN2DDPYRTGQC4BE2GRT5E5WFOZ5ISJTYKVTYHFRZ \ / AMOS7 \ YOURUM ::
+#\[7]NPCITUBG4VZXP34TT6BKUOFAO4DJKK6OQUDW46SLQJIXHTW2R4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

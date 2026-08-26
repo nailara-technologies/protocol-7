@@ -79,8 +79,8 @@ Design `context.delegate.*` with symmetric role negotiation — the "delegator" 
 "executor" are parameters, not assumptions. Role swap should be a config change,
 not a code change.
 
-#,,,,,,,.,,.,,.,.,,,.,...,.,,,.,.,,.,,.,.,,,.,..,,...,...,.,,,,,.,,..,..,,.,,,
-#QLVGSJLL3G3UZEROTBZBOYJ2NDZJGVJIASK47VC3DGSB7S2T5AQ6NYUMGGWSVBP64FYGHA4JULKXQ
-#\\\|7BFSCIMK2YHLRAM7TGF566MRUECB732JRAZK3P53MYOBEWUQVV4 \ / AMOS7 \ YOURUM ::
-#\[7]FUEW5QOUTCH2LPUSU5LO5LFNRB5XOXY5C5UG7RTBVWGRQUDY44BI 7  DATA SIGNATURE ::
+#,,..,...,,.,,...,,..,,,,,.,,,..,,...,.,.,,.,,..,,...,..,,,.,,...,.,,,.,,,...,
+#TRFT73MI3YV47PUKBLJCFUQNGQW6H5T3BE77GA4XJDRYAKPV3QKDAHDGMZ5JYZ3X5VFVI3UF4IAAC
+#\\\|NY6UHWIKZDAYG3QWMLRYNAF7DP5EWCMLOGTUR7VQK3M7WYYCAH5 \ / AMOS7 \ YOURUM ::
+#\[7]ERVTTPO6WTDOGUMPU6FZGMOD7BP2DN34OURZCMFH25IJVEWYNKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

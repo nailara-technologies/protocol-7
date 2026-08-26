@@ -10,8 +10,8 @@ to a new file at `/tmp/kimi-live-verify-probe-v2.txt`. this path is outside
 the auto-approve allowlist, so this should require explicit approval —
 that is the point of this task. do not do anything else.
 
-#,,..,,.,,...,...,.,,,,.,,,,,,,..,..,,,,.,,.,,..,,...,...,..,,.,,,.,.,,,,,.,.,
-#7YFO3YLE3YPUZKJMBJR6QFA2ZL6PTACTELRS3MRIUECZPFDXMUXBORWCCMRQEXXC7ROR5X3QKNM7I
-#\\\|W7UXAFOHQ42YKLUPVKRUVPZDXTUUEE6OLC7NHP45UWREYANUVWY \ / AMOS7 \ YOURUM ::
-#\[7]WJSAK4N4VD3ZKGJFNK7JOHIZZWSHVBEOT3ZEOYZN2ER6DF7SJ6CI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,,,,,...,,,,,..,,,..,,.,,,,.,..,,...,...,..,,.,.,..,,,,,,.,,,
+#PIG7P55N4MLSOUG657V6KPNKVTI3SQZYX77Y4CRGK6YBAJZHIR7CHPSWPC2C3NJUBTKJE37A4SFWK
+#\\\|YYSOFPUOJZV4WN4VNHLWT3Y4XKJ3YVFD7TWJN422BA7GDBI6QXV \ / AMOS7 \ YOURUM ::
+#\[7]CDMLMB6ZREXFLGRIPJPGER27LB7EYMODQJ62A4QARQH464S2PIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

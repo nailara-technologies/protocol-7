@@ -301,8 +301,8 @@ ticker.cfg.font.calc_outline_col. do NOT reimplement HSV→RGB manually.
     verify channel f4 returns mode => 'alpha', not mode => 'color'
     verify cmd.channel displays alpha for f4, hex colors for f0-f3
 
-#,,,,,,..,,,.,,..,.,,,.,,,...,...,,.,,..,,...,..,,...,...,,.,,...,.,.,,.,,.,,,
-#O6TISYQM74QSRCLRPEGNDVTB5G6JJTAEJXYS24SQNYEPWUDKKU7IGHIEK7HHWTSJS6TFDLFUMK2BG
-#\\\|2QKC3BEJFLRJNQKKXCYPOBMYKN7RB6D5BYEIC2Q5FQPOOGT7G44 \ / AMOS7 \ YOURUM ::
-#\[7]RGEW3GGKTYFTBLSLQXG3FRGFWDSILUOBU6OKTUIYI6JKNKXNYYBA 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,,,,,.,.,.,,,..,,..,,.,.,..,,..,,...,..,,..,,.,,,...,.,,,,,,,
+#YVZWHLUXNJDZLMZJYXMUVA4BRUMOGPCVBKZWDNRWQDSDHSQDUPQXJUJV3BHV5ETINW2WTLRPMNIII
+#\\\|P6AMG6JXDPP5NRW5SA4EJNZ7P6GOB7YVFHROE7HXW7F4IH7DJWR \ / AMOS7 \ YOURUM ::
+#\[7]2XLZOVD25FUITIP6WY52GQLCXVJYKB2I4M6AK5Q3WNO6Z6SAV2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

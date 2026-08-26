@@ -64,8 +64,8 @@ trust layer; just respect that gate and keep the per-source cap in `apply`.
   vs cleared.
 - no manual AMOS7 signature stubs in any new file.
 
-#,,,.,,.,,.,,,,,.,,,,,.,.,,,,,.,,,,.,,,,,,,,.,..,,...,...,...,.,.,..,,.,.,...,
-#EZLCDK6M24XI6YBMFI4RDDVSICZPRQNHYMOBGWBAYVBCVGNUS5Z4UULXUCZHYOLYYIZMIZAI2V24E
-#\\\|GET42F4XX6TZREQL4JPP4YZ5IQPZ6UIQKTPVOPVABTFAGGWVF4W \ / AMOS7 \ YOURUM ::
-#\[7]SKKNMIICRBVTGE4T2KDQ67SOD5MXC57BEYQMJJTFBABOBRQWRACQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,.,,,,.,,,..,.,.,.,,,..,,,,.,..,,...,...,,.,,,,,,,.,,,,.,.,,,
+#33VSVK4XJM43RRPUERH3JHHKUL6K6TYCLWMYYONMDS6L7VBSMTZ6WDMCXMJQBU6FKNG4EQTMMHVHW
+#\\\|XIURJ4XYVAMBYB7FNDEWT6BXOJMQZ365FS3X4RIWSDPU6VQCHEV \ / AMOS7 \ YOURUM ::
+#\[7]CDK3BLBMUPMNCPOAF647MNMQBQNPCJD5Z2GLGNPCQB3CQ7VW2QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

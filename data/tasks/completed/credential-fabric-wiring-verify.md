@@ -75,8 +75,8 @@ that walks through each item in `cred-mesh-wiring.md`'s
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,.,,,,,,.,.,,..,,,,,,..,,,.,,,,,.,.,,,.,..,,..,,...,...,,,.,,..,,..,...,,,.,
-#M7LED6W4DYWNYDS4M2XC6MW7U6NZEIB3TAGLK4JN5LEPXRONDUTFUT3AMMNIQZR6UA6MDPPUDFGV2
-#\\\|ENWCXKRTTUMJWDW6SZVXLCL4HLG6DDUB3G2EZCE7WHQRHHM6MZC \ / AMOS7 \ YOURUM ::
-#\[7]HPQ6SXNDDU5NVYQDM3WXQA5XMCNGFY2JXATPFATAI3JKPBX6MADA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,...,.,.,,.,,.,.,..,,.,,,,,.,..,,...,..,,..,,...,..,,,,.,,..,
+#ZOYQIAEC253PHG6LBCDT5TF4WGFQVP2OWCSVRBZGPA3IHRHZDRAPZY2D27CDQ5M6QQRERAMJ2JPG6
+#\\\|AOE5BHGC3Z7XG4QJTAD6JWAARAUV5DINM2LD5MMGI3CF4DVZJBE \ / AMOS7 \ YOURUM ::
+#\[7]A5PFQWBESDQLV5NZSEOQSGI2LGPWN5D3MKSCP65IM5V2QX352WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

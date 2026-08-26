@@ -57,8 +57,8 @@ the optimum keeps moving, but the direction stays valid regardless of landscape 
 - [[topic-orbital-data-space]] — zenki orbiting a work/memory ring; profiles as ring state
 - [[topic-self-improving-system]] — continuous recalibration as the self-improvement loop
 
-#,,,,,,,.,.,.,,..,,.,,..,,,,,,..,,...,,..,,,.,..,,...,...,..,,,.,,,..,.,,,,.,,
-#OAD4YC7RTAIO6HPNLFGJLM5XJE3LYJL4A4I4U3XJRBTFDMBV6J2WLG4FN7536KKTFUEET4YIZ5HZO
-#\\\|KBS4YSQMWU27OU4MVQ74Q5WXCYYPVZWG7N3MBHVHC227K5QZ4QG \ / AMOS7 \ YOURUM ::
-#\[7]NZREQYUJSU3S3HORD44BSP7MAAHZO5UUBLSH5MZ54F2AT4Z2FECQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,...,..,,.,,,,..,.,,,,,,,,,,,..,,...,...,..,,.,,,,.,,,.,,.,,,
+#YEX6V7XSOWOORSBJ5V2CRRHYMRBETHLXG2RUZMSHOP7N7GPJRQGD4IRNHQG4ISSZFW5CTKDQDHZLI
+#\\\|4AZLXI3MAMKKUTEU2Y5WCCG5ACUHKPLEGOFBC5HZ3CZ7DHUZQ6F \ / AMOS7 \ YOURUM ::
+#\[7]O6EB3TF3YVTOLKCETQKJSARS2V2YZSMXCIB5SZ6QRIVZ5OUL5IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

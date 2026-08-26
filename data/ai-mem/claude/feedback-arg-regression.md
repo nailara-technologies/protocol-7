@@ -19,8 +19,8 @@ is compacted and the convention reminder is lost. The model then "fixes" what it
 - When reviewing model edits manually, grep for `$_` and `@_` in the diff
 - The observations stash may contain false "bugs" claiming $ARG should be $_ — dismiss these
 
-#,,..,...,,,,,,,,,...,.,,,..,,,,.,,.,,,..,,,.,..,,...,...,,,.,,,.,.,,,,,,,..,,
-#QRBEOVBTDAU2MPVXVJGJVENQ5DYEBOVJFXJAWGLS7EOF5643ZHJ52AH7IKXYUL6WQYZPKBSMLD62O
-#\\\|IRZ3XRCO66V2QPBU5L5YFOOGROKN5YZUSBCS7KEB5AMFA5HSOCS \ / AMOS7 \ YOURUM ::
-#\[7]DDULHDCUS4JXKSI5W4DS6VRTE23RBBTLLM2FD3PEYWDUYAXZ5CAI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,.,,...,..,,,..,,..,.,,,,,,,,,,,..,,...,...,.,,,..,,,,.,.,,,,,,,
+#MZQN67ONL3UUHHZZIMUX6NH2WCIIFLP55UYQNL4BR7WFL47X2L2IVHQKTUQODZFDTZ2R3XS57BYQA
+#\\\|NQV6F2BC34FEGWM4FSSGS66TS7AB4UAQEGS2P4EY2GOABLHNK3E \ / AMOS7 \ YOURUM ::
+#\[7]H6BDBD5IC7223BTLN3FBRL4QJA7B4LJMFR36QAHADCOSGLTWXGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

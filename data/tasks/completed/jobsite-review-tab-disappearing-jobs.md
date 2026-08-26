@@ -133,8 +133,8 @@ any 2-4 letter permutation of `{m,w,f,d,x}` slash-separated in parens.
   (`apply: 1, review: 1, skipped: 1`) matching the three affected jobs'
   intended end states.
 
-#,,,,,.,.,,,,,,,.,.,.,,.,,,..,,,,,,,,,.,.,.,.,..,,...,.,.,..,,,.,,.,,,,,.,,,.,
-#3DPZ574MLEJ4B3IQ3ACQUE2RW6MGK27TT27VSHGQYX7U2STZ5PO5FA4AGGASNLVR6RYNCS7QOAIOI
-#\\\|QU5O4M5JA3NMRIN3BETK7HE5UAR6FIZZ5SCGZQS2SDRYUBUXAIV \ / AMOS7 \ YOURUM ::
-#\[7]UIBVUJLI3KQTDGNWIA7BIZEN7LXEEKDT6UMDYWCLPJ4ZZ2YKZOAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,,,,,,,,..,,,,,,,,,.,,,,,,,..,,..,,...,...,..,,.,.,,.,,...,.,.,
+#DYSEMEBNN5FXIJO4SRVRK6JTYKZF6Z2CN4UNGKNM2QWNIORNSMMGADA3CO3UWU6W6BLQS2DIOUTFS
+#\\\|SKINP4IR6OSTT5TMIPXIV5EZS36HJ2HB3H6FLUQOKHX3PNUEAGF \ / AMOS7 \ YOURUM ::
+#\[7]FW267VKPS5VWFIQNRYM5SY4CSKEJOB7KYUDILKQDMWJIP6IYZWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

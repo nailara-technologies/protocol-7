@@ -53,8 +53,8 @@ background/motivation context, not an active complaint to act on.
 [[project-vision-origin]] · [[topic-mpv-jobqueue-startup]] ·
 [[topic-self-improving-system]] · [[user-perfectionism-and-pace]]
 
-#,,..,,..,...,...,,,.,,..,...,,,,,.,,,,,.,,.,,..,,...,..,,,.,,,.,,,,,,.,,,,,,,
-#BIIOAIVFMOOKJZ3ZYM2BAO3BBGHBGSMAINRUNQSZSTRQTJ5KLQHJ3V6Z2TVILO7EQA4NGNHD3IIO2
-#\\\|RYNMZYJ6PYF66Z3UG6PNXOSZLLHUSU3OXBUG3C4SK23G25RT3YM \ / AMOS7 \ YOURUM ::
-#\[7]LCQNJY74CF3D6KUFJGKDJMHQEVASVZ46BUMSH4YXC3ZZ3VFDKICY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,.,.,...,,,.,.,,,...,,,,,,,,,..,,...,...,.,.,,,.,,.,,..,,.,,,
+#7B7NHQ6ADOH7HCPG3KOYDIJLAXWP7R53GLFTRNI44RA6NO5I4EU5LLEMAYCWQR7SM4PGLMIQH5EE2
+#\\\|S576H6VBJPW5HUV6JPOED7MAIVIYRLVFYIPQQX274MYTIGBZONP \ / AMOS7 \ YOURUM ::
+#\[7]FPEGJF25624DLTVQZKLHX5PBIA5Y5LDAKXXJBCCUHQTE4TCNTMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

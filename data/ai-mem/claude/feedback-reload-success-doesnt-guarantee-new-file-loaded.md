@@ -88,8 +88,8 @@ lands: **default every live-fix dispatch's verification instructions to
 `<zenka>.reload` — treat reload-then-verify as unreliable by default,
 not just as a fallback for when something looks wrong.
 
-#,,..,,.,,.,.,.,,,..,,.,,,.,.,...,,,.,..,,,,,,...,...,...,...,,..,,.,,..,,..,,
-#WYOFGSYKVJFCOJPFBUGPXTH6XZHAUOGMVLKWR44EPXYPJ2XFPU2F3AFGBD746J6YORC3QL74FW6NM
-#\\\|BLDIE7HSVQODUYV5EES5F4LW34FOH4G2DZACH3RTCOLEU2A5X7B \ / AMOS7 \ YOURUM ::
-#\[7]P73KQOJSVH4ACIC6XMTV5FBPEGWI2AZOFE3GAINNRSE7USM34EAY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,.,...,...,,,,,,..,,..,...,,.,,...,...,..,,...,..,,...,..,,,,.,
+#PU266J4METFAC5LGLPWRBGUP3N3JSSMQISASXE73O6NKQLYSMXOMU7M6WS4LN5VLB4AN2JYYINPPK
+#\\\|4GBD6Z6L2QUB7BTGLU3BWEEXIL25YA7KFLL73KU7HWL3YS7HREH \ / AMOS7 \ YOURUM ::
+#\[7]IYGDKLVJWEGZJMEGPTGS2BGTWR3OP3BKTT7CODBR4VKS3AFRBKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

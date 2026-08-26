@@ -49,8 +49,8 @@ width rigid). still-open prior pass: converge frames to the `/tmp/frame.asc` idi
 (` .:[ ..x.. ]::[ title ]:. ` / `:….:`) + parser tweak for leading-space/low-density
 top line — must precede or accompany any role-vs-glyph work.
 
-#,,,,,,..,.,.,,,.,.,.,,..,.,,,.,.,..,,.,.,,,.,..,,...,...,..,,.,.,,,.,.,.,,,,,
-#XOLLQRZS6QAMNIGTMBYNH3EIMSYBWLSMDFOYGAYJJTI3SEJDKU7VHU6LDJ452L7WCHYY6OCD32TAA
-#\\\|TBRCDXZWVPHEQUHPZAZ5BAYWVYIJR7PGXO255OA6TXEYCOEIDOC \ / AMOS7 \ YOURUM ::
-#\[7]6SGBIBSRCUDLVAQGSU5BUEHPLJFCJJIF5QHHKGLQQ6H3WH34HWBY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,...,,,,,,.,,..,,,..,,,.,,,.,..,,..,,...,..,,...,.,,,,..,,.,,.,,,
+#QKEMGCKUCHDBS72GOPGT3DS5DDJOD6VJLZA5FZ6LJ6FMZJI2JNSHQDEYKAPM4DRJRHLNUR5RCP6CW
+#\\\|FENZVLESHZFSOWVF2YXBLARES6253QMM4RBPKC3VS6BY6FUIERD \ / AMOS7 \ YOURUM ::
+#\[7]WPO2RZKRKO43WPDT4LQP36IZS4WEZRB3GW4CR3OLOOWDLLFJ6ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

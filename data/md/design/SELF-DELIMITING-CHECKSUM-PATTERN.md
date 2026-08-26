@@ -227,8 +227,8 @@ together — separating them is the source of the coupling the pattern eliminate
 - `DANCING-ZENKI-RHIZOME-STATE.md` — checksum tree wire format, bubble travel
 - `AMOS_CHECKSUM_BLOCKCHAIN.md` — AMOS7 left-shift blockchain properties
 
-#,,,,,,..,...,,,,,...,.,.,,,.,,..,.,.,,,.,,.,,..,,...,...,.,,,...,..,,,,.,..,,
-#LWW23YAP4EWM2VE4GUR5UZ74PKQ232XMWCRGK7PMST6EVISZSVNGXOBRU6NA77OQN7YJKJW2IQ3YS
-#\\\|6HVPBDVTPJDYYPG5DKRRYGG3ZG6M4VWV55VYTEBR75PJM2MIFMA \ / AMOS7 \ YOURUM ::
-#\[7]EXFYENNNCUWMV4U7ZX6MPDP5LVDFU4X2WFMOPXLSA2236EHBJSBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,,.,,,,.,...,,..,,.,,...,.,,,..,,...,...,.,,,..,,...,,,.,...,
+#REWW4VP2CNN37YN6JEICRJTEMVU7TCKWP6ISYKCYKC5TPRSFPXI3YJM6LUN624KZLD3GX3SIZ4FUC
+#\\\|4ASP5BJOJACGM3QREHHSVEFPSXEMCAWRRWZ7HXBIFXCWET35432 \ / AMOS7 \ YOURUM ::
+#\[7]YFVDUXY2FCN6F3PWDZRU2OBNDR3XKWNWJLXMAUO3PELR2ATMHUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

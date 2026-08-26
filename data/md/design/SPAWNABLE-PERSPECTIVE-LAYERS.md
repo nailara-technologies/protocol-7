@@ -167,8 +167,8 @@ iris ring structure        →  the visual form of the sphere shells
 living background system   →  5/7 consensus render = 5 layers composited
 ```
 
-#,,..,.,.,..,,,,.,..,,.,.,..,,...,,.,,,,.,...,..,,...,...,..,,,,.,.,,,.,,,...,
-#I7ZY3K2BGZ3PTXLUAMD3M3CVNPTAUQ2XFGIBJYRSQN56P4CAD5RWF4UF7RV2CEYTBE5LBMVA35ZWM
-#\\\|IIE2TKSR4NVQBIKJ246UFQ7X47T3TVD5KL6F45TCGF4GOLVWTLJ \ / AMOS7 \ YOURUM ::
-#\[7]5REIMC7JB22ZYZS5J5755SPNTTNJDWOBFCAC7KON5VW7DD4JQ4DY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,,,,.,,..,,..,,...,,,.,.,,,,,.,..,,...,...,,..,.,.,.,,,,..,,,,,
+#AA7SYKTYRKQ4K4U4Y47F3RUCRDEJMVOZAQWDLFKHNYGOAQ474HPD7EGZOQW2GNKXFOKTK55BSGUNO
+#\\\|SCWKGF4ZQETZ44HNWRCQB7JSJW2X3NXTILZSLB7432OFXGPFCAR \ / AMOS7 \ YOURUM ::
+#\[7]6BY74GS36WMJC6Z7UZIJFAS4I4S6GPW7NTWFCJKE3LICDQRYRGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

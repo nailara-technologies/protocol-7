@@ -101,8 +101,8 @@ curl -s https://space.v7.ax/templates.json | python3 -m json.tool | grep -A 20 a
 
 do NOT add stub signature line to modified files.
 
-#,,..,.,.,,..,..,,..,,...,.,.,.,.,.,,,,.,,,.,,..,,...,...,...,..,,,,,,.,,,,,.,
-#2Q42FLYAXAU63TBSBUGT5SHYWC6T7PDJJDSJR46WAI74HV5WQ43T73KT36DJFCBQSM6VIN4FKZJ5W
-#\\\|VW3O52C4R2P7JNQJBJJNWJW6766QGXXFA7VMIWIYR645JK7D6IO \ / AMOS7 \ YOURUM ::
-#\[7]6J7UZTKNPRRWNHLXS5TO3BLCT7EGRI4T2ZKOZLPYNPQCDVUEYIBA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,,,,..,..,,,,.,.,,,,.,,,..,,.,,..,,...,...,..,,,.,,,.,,.,,,...,
+#STOQW7N4CIOEN3AAJNC6KG4CD2BTXJHY764E32PF5WM7GLLNKUJRYH7G3KRQEE4RPHLWNVPJF5Y7C
+#\\\|XPI3A2MYKQJMQVE4RHPU5RE4EVVQSDPAGMRHW6YORHT4XAGJY23 \ / AMOS7 \ YOURUM ::
+#\[7]DVMSIG2HSQWELP4RXY6EWCYJ45JDPAEFV7UH6K4S2BMTAOE3BUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

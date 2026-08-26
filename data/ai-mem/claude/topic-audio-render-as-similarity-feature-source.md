@@ -163,8 +163,8 @@ queryable per rendered file — e.g. alongside the PNG in
 doc's own note about checksum-keyed caching for non-purr audio — rather
 than only using it for the one-shot log line it currently produces.
 
-#,,,.,,,,,..,,.,.,.,.,...,.,,,.,.,,,.,,.,,...,..,,...,...,.,,,,,.,,,,,,,,,...,
-#XDAHWGD6CYLFITDCVLKA46QGO6TUUXLFYCKUJBXWSUPWFG7XJFCCKTKZSJBDO5YCVI3TZWRQZWT4U
-#\\\|KRSUH7L6XUHHLKJFIORJHC7E7MTEWUAA7DB3GRAM3XE7EIGMCQD \ / AMOS7 \ YOURUM ::
-#\[7]BJBVIAF4WW2MZQAS6WQUMJ2GJWWFAWAT4PAPDNVXOCPLXXAZGUAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,,,,,,..,..,,,,.,,,.,,.,,...,..,,...,...,.,,,,.,,,,.,.,,,,..,
+#CFLWEINJ4MXW3GZ4MCKZ3BYFFXGDPLD5NGCM3WW2Y57L6INEC4QBFAFQKCAH6H6K6K3IPGGZPKXC4
+#\\\|3RUPMEBSM4G6675UK3AFQMCAIFESXAC2CAD52MQVO2J562GZQIO \ / AMOS7 \ YOURUM ::
+#\[7]SNJYL7HXZKUKDBQXZSPPS4TL2ZNWQPYFDSZU7ZVMSGGPT3UTJKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

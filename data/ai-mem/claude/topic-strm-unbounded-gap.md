@@ -28,8 +28,8 @@ lands. Extension path :
 Spin a kimi/coding task for this when audio/webcam relay becomes
 concrete. Not blocking cancel-stream work.
 
-#,,,,,..,,,.,,,.,,...,.,.,..,,,..,.,.,,,.,...,..,,...,...,.,.,,.,,,.,,,.,,,,.,
-#F5UYNYSO3H2XO4OYS2DCILWM7SSVHSPMBWSTU46HSJI7T7XRV42NRT4XWHOI5AOP7AV4P2MNBPGNA
-#\\\|CNSXUQY4UZIZB3PZM3B6ETUHQB2K43BE6NXFK5OY5ON3KCWGYHA \ / AMOS7 \ YOURUM ::
-#\[7]S35GZUUOKEY3ULDDD5QBX44UGN5ZPOSHC7IF6DKCGBZLHJ4VNOAI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,.,,,.,,,.,,,..,,,,,,,,.,.,.,..,,...,...,,..,,,.,,,.,,.,,.,,,
+#3SVP6NJDDI4ZZ6FSCLVZRNEO7M7ECPTFHPKKWCJYY4JO5PBIPOZQ3BYVRWRV4TETPLXOMA4BM7D4O
+#\\\|KPONIA3AXFMQL7BRPGLVABQKCKGXDD2EYUEQ5V5HWQUZYXLVJR5 \ / AMOS7 \ YOURUM ::
+#\[7]22Z7BKXIAMZTDUPIHKN5L4RRMZNP67TC4AIHAJHCFHY3TMA76ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

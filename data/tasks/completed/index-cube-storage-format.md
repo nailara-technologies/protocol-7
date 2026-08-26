@@ -146,8 +146,8 @@ directory IS the index, and the index IS the directory.
   16 bytes uses exactly 17 bits for its span; with a 6-bit depth selector, the
   full compartment address fits in 19 bits.
 
-#,,..,,..,,,,,,,,,...,,,,,,..,,..,.,.,...,,,.,..,,...,...,.,.,.,,,.,,,,..,,,,,
-#Q5XSPYFYCW5P2TV7VI5LX5AX2TPIV24GHWDKYDC3U4M2RHLSZQUKZT2G5V574PXIBSFC4IUVGB2G6
-#\\\|JBDI74UAVPFEERDKJUKSPJMAGXYNUFJCNYK7YO2T3YI5XACJYOK \ / AMOS7 \ YOURUM ::
-#\[7]GSOPEA7GZCULQHZJH2DPCBAKBOTNKIWOSGSJR4CINCLZGVGWIEBY 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,,,,,,.,,,.,,...,,,.,,,.,..,,..,,...,...,..,,.,.,,..,,,.,...,
+#QX7CN3O3UCPKPYJGC7JLQ6Q7GTF3G4DENMSWHKJF3RBUFO55SKZYEKCFME6YERMRJLVJ5YLVFUXZ6
+#\\\|Q2YU62VH2VLFIU73HVWD2U7MA4KAV4QIIIZRIQH6ESEMD6IYVCK \ / AMOS7 \ YOURUM ::
+#\[7]YDCVFMCVQXVGHL7WT42PVNWAMNA77HD6ACDXG7B6S4IVPV6X6SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

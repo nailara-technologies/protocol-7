@@ -147,8 +147,8 @@ For future testing reference:
 3. **Medium-term**: Implement multi-server registry in coding zenka for fallback support
 4. **Long-term**: Consider Unix socket transport for production (avoids proxy/port issues)
 
-#,,,.,,,,,..,,.,.,.,.,,,,,..,,..,,.,,,,.,,,..,..,,...,...,.,,,.,.,...,.,.,,.,,
-#Y4EAMSDV7URKFD5JZBZ3SVALIYZL7JRXRVK4QQ7Q3G5V3WHKSXJD37VRIJGCWNJMG65K24JKPIL5I
-#\\\|WYK6HKDI5QCFSI63UBVL6GPBNWBK7IYCP7RAPLKBASJCOAG53T6 \ / AMOS7 \ YOURUM ::
-#\[7]WXOPZH6UTETSF47KXPVOOXSMZINXT6VRU4UAGK6UARVMYJ36IQDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,..,.,.,,,.,,,,,..,,...,,.,,..,,...,...,.,,,,.,,..,,.,,,,..,
+#TOUZKGSOCEKISSVKMFVHWHL2P3UJ6XOXGZBVSCUDQOXM4GT56J7WE7EEVTWAGDAGJYAZUCTGCJRTS
+#\\\|5QTIILVNOCLIW4PKE7FXS2I5XPMP5BGRAZUBZ3DNOVCLLDJT6YB \ / AMOS7 \ YOURUM ::
+#\[7]ZIJAJ45DX3CPT6IDV5U2WC6WBQ47SRK2EKGQNWWFALW34I67POBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

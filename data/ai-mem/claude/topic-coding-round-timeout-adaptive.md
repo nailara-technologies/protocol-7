@@ -160,8 +160,8 @@ liveness (exists-because-it's-a-task, not exists-because-it's-alive) is
 a different question than liveness itself, and the two conditions can
 silently diverge for any caller that doesn't populate `$x` the same way.
 
-#,,..,,..,,,,,,,,,...,,.,,,.,,.,,,,.,,.,,,,,.,..,,...,...,.,.,,.,,.,,,...,,.,,
-#PVWHV5C5CAHETC2FAUR5TNQZIBNIQDWEG7ASWVQ3UDGCQC4PGZ7L6YDJFHDIPZX46B6LGRSTG767U
-#\\\|CJPGV4SBROUHMDBZNZH24GVN2LCVDACOKEJW6JS66L6HXTXN3PO \ / AMOS7 \ YOURUM ::
-#\[7]A54G4WAKPYG4QPMOZUYWMWGXMB572W7HR44HMKF24M3PYXQSLEBY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,,.,,...,,..,...,,.,,,.,,,..,..,,...,..,,...,.,.,,..,,.,,...,
+#3EDACHAAJSPMG7TCCZ6QNU43JNDQE2QSXVFIEPREP4HNAOUB3VBAPHFJWBT2VWICLRZVFXV5WWQ2M
+#\\\|3LDZRB7JPFPZK3IWWRNOE4XW2D5C2SZV5DGMUXUGV3ZD6LADAEV \ / AMOS7 \ YOURUM ::
+#\[7]UYBIS4OR6JA3ZB2UXNYHNCHAAGVEYBFJRCW7AZWZ5Z3GXSKMS2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -121,8 +121,8 @@ v7.sourcecode report-endline-state /tmp/test-no-newline -vvq
 ## should log warning and not corrupt the file
 ```
 
-#,,,,,,,.,..,,...,,,.,...,...,,.,,..,,,.,,.,.,..,,...,...,.,,,,..,.,.,,.,,,.,,
-#TXF6CP2PWOLIEMFSUK26K7IRASOTNMKGYKEMSSH3JLINRJL5HRESL3AEPP4254SKQ7BD4LLIEO3VK
-#\\\|AH7DUZSW3LDHXIO3NEFQZAUGPEMLQ3JREUYTM2QFRNRA3QI5OAU \ / AMOS7 \ YOURUM ::
-#\[7]E6CERRQXH5FTZ3FE5QSW5UL36OFTGOXOQFQDYIQ3Y4NLMRXHZSBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,...,,,.,...,...,.,,,.,,,...,..,,...,...,..,,..,,,,.,,,.,.,,,
+#JJMWUH7E6JWLTFPEELGSGOM7KTOD34BEUII2KLP523HYHRPMMOOEVXWGOH6PMS4RHS3VBDEOONRQM
+#\\\|6ZV6QSZFNCKXBVUEND4U5GWTXH5SG2WXEAKBFIPP65RKXKWWD4V \ / AMOS7 \ YOURUM ::
+#\[7]DWFCZAO7NXOETRV36WIMQTZNRTAT3VI63277SOJUNXDT5FQ26WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

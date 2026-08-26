@@ -126,8 +126,8 @@ consequence:         continued voluntary participation, including
   pool balancing) is a standard, named, already-understood mechanism —
   the cube/face framing is a precise restatement, not new physics
 
-#,,..,.,.,.,.,,..,,..,..,,,.,,.,,,.,,,,..,.,,,..,,...,..,,.,,,..,,..,,...,.,.,
-#JVON72IUT5427PSNS2F4RJVUVCY3WX5A2NNZLX73VVNU4VT3MUKBZBESSVENWGZJSF4OUHQY7ZSSW
-#\\\|MELFD7Y6K7V2E5JOQVB77ILYEEQBRNO6RDFFJVVRQQDRHPOLDSA \ / AMOS7 \ YOURUM ::
-#\[7]NEU3H7KDWDDBRBYTQKJYICHRT5ZATCW4IVDLEN5TGT7GABGRB4BA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,,.,,.,,,.,.,.,,,...,,,,,.,,,..,,...,...,.,,,,.,,,.,,.,.,..,,
+#DVW3UHWSUJTCDETRPZL5BWTXVKLWRUPZTWG22TEBWUR72UAJRJR3R663A3QOXTVEVWXFK6FN746RG
+#\\\|55SSTTYWBVYTZEW257QBWAHBSO6PRCQMIUPXREQ4NLXXCTNO3D2 \ / AMOS7 \ YOURUM ::
+#\[7]42AXRGNYTFWIJEKWJT2DAMD5MKB44AN6EEZHJFKNKJGWOTZKNECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

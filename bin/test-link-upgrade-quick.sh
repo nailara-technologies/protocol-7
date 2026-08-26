@@ -61,8 +61,8 @@ echo "  cat /tmp/link-upgrade-diag.log | grep '\[link-upgrade\]'"
 echo "  p7 cube.show-buffer zenka | grep -E 'link-upgrade|error' | tail -30"
 echo ""
 
-#,,.,,...,,,.,,.,,...,..,,.,.,...,,..,...,,..,..,,...,...,.,.,,,,,..,,..,,.,,,
-#23DB2GUDJVMJJ7O3R245PAWTYLAOZ7TOG5CSYHRJCV2FJ4UGRLUI4LJXWJR3FKRV3FPUPVTQJ5PFK
-#\\\|GBIHCOZXQTSZQN7LBXHBI4SXNSHFCLY54AGP5ZI3TNUE74AMQPM \ / AMOS7 \ YOURUM ::
-#\[7]JQU7S4XCBQQCAH34UTEQOSIXXU5XRCVNBWS4GGTDDTHTLJCWLAAY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,...,...,,.,,.,,,...,..,,,..,..,,...,..,,,..,,,.,...,.,.,,,.,
+#NBA3EXYNSS6CB5BVZ7NZTA3WYDX3C4LIHKM7I7LITHNMRJZAOFKKBD6HYADCXVNFGI6CRSDXGYDVO
+#\\\|MTTHJWB5ED6SBC2EI437P5VCJSZLSKH2NXIOQ6HMGFPG6WCLQJ7 \ / AMOS7 \ YOURUM ::
+#\[7]XIEEEAKOWX2HHJTI2DZQRI2CJHBEMTXCQ6QL5KP6H6GJAE7MEMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

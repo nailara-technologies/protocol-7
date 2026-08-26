@@ -179,8 +179,8 @@ Report actual captured output for each check, not "passed".
   ended up looking like -- the delete task will want the same file-
   enumeration answer without re-deriving it.
 
-#,,,.,.,,,,..,,.,,,,,,,.,,,,.,,.,,,,,,,,,,,.,,..,,...,..,,.,.,,.,,,..,.,.,...,
-#BHAINZNKOLVNJ5ZGLZNEBDJ27VEQPPY67VD7QEERYBCB3VO3FPIM6AO7SOV4MQQGDZVWBSIAPSAAM
-#\\\|MP53RNT4IO26Q5VI64ZDXWBMZ6AK26SOSPTT3DWTVQR5ROUYAUS \ / AMOS7 \ YOURUM ::
-#\[7]EV6BR5AEYGJBLCE7VGM4XXWJCV7YTJNWYG7PHTY34ZYKWRRJKWBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,...,,,,,,..,..,,,..,,..,,.,,..,,...,..,,...,..,,,,,,,,.,,,.,
+#K5ZK73DM66XQQ432WJ7SUB6VOKPNL7556PWX5U2YPTLG5BNJZMBHJCFWQKJOHJEP3XKYSDMCJ7JGI
+#\\\|H3JUZ7L5MSBNNO74B3UJYRKH3FCQKRDYGTMY433QYAJHTBJCXB2 \ / AMOS7 \ YOURUM ::
+#\[7]PMEC5PUSUX3QY7G76OXTROXHHK7VC7QNFXZE2K4RZCJUPQOCLQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

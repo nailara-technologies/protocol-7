@@ -99,8 +99,8 @@ if the attention task is not yet complete, add the call as a comment stub.
   follow speed — confirm by observation
 - `setCurveSet('ambient')` visibly slows it down
 
-#,,..,...,,..,,..,...,,.,,.,,,..,,,,.,.,,,.,.,..,,...,...,.,.,.,,,.,.,.,,,...,
-#DHZOPOMI6OLDE2LDBBBH4I3RQKQ3KRYK35R2TLR3XO2HZXJI5IAUSWJVGLNWQH6LFLQI4P75AOEGW
-#\\\|7ZZENLG3TDQDXJNRZOILGGMTRSE5PTZFXPTATLJ64TVQMIBCHYH \ / AMOS7 \ YOURUM ::
-#\[7]MWXLSTXNSVRCK7HFO46NUNIDHPYZLHJEIE6DD527P2E55KPWJYAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,,,,...,.,,,.,.,.,.,.,,,.,.,..,,...,...,..,,.,,,...,,..,,,,,
+#VSTBZEMVWXQFHPNBZCYCONG4D7OSRHTIEPPX2TQGLT4PMACESBOYQD5THLIW7IM5F3LWLNIWIK2T6
+#\\\|FVPGNACQ7NBRRI4SQSDECBSB6KB2NBL322LOOTSWOKEGGRCREHP \ / AMOS7 \ YOURUM ::
+#\[7]M3OUOEUE3F5VPQEUK4GRFKMVDWYHNWVUIBVAD55WGADYZ4V754BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

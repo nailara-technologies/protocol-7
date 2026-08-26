@@ -31,8 +31,8 @@ followed by a separate `and`/`or`-modified statement if the low-precedence
 short-circuit control-flow idiom (`open(...) or die`) was actually the
 intent.
 
-#,,.,,,.,,,,.,.,,,...,,,,,.,,,,,.,...,.,.,,.,,..,,...,..,,...,..,,...,.,.,,,,,
-#Q7GA2K7RAIF4FGDIJZK5OJNAZDKWQU2TAKS653UJIYRDAZPJ7W55CU3EAXH3RBGCAWBXSSHSO7QZA
-#\\\|QWYYZGUD7APJKBIJ3V4TKKAQJLTM36W6P4NHL3JZKSXB6ABEUU5 \ / AMOS7 \ YOURUM ::
-#\[7]OGGTKHSUOZN473QKV7CYKZSMAWLA3LCYPUPAFAF75WNXKWLB7IDA 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,,,,,.,,,,,,,,,.,,,.,,.,,,.,,..,,...,..,,,..,,,,,,..,,..,..,,
+#3TJ257JH5DH44M23KKYBAMM6SHTFBSORJSG4C2WTNDHVGIFBYUOS3N22XRG7BZL4P3Q24QNEUZSSI
+#\\\|X7NKQWLGGTUGOX5TXFF2WQU7V6UQMUXRHG2YD774S6FJRV5KYK6 \ / AMOS7 \ YOURUM ::
+#\[7]RSMVIAFFPGO7AU7RAFZSOG7NXVT5AWALVDILI4HUOJSZANSTAYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

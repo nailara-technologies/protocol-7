@@ -330,8 +330,8 @@ Via v7:         coding.cmd.submit routed through v7 zenka
    - Test cmd with network routing simulation
    - Test hybrid with both invocation methods
 
-#,,,,,.,,,,,,,,,,,...,.,,,.,.,.,.,.,.,,..,.,.,..,,...,..,,.,,,.,,,,,.,.,,,,,,,
-#ZP3IX3Q4BN2WSS6YRXJMZHN7RYLXH2E73AU4HPECPYQNFLHZUSLXRWSLDXNNNSH2VMRDMAOQJOOQE
-#\\\|K276BLWCT372HKFDNC7M5H4HU64VTQNDZ6VW2JAXKRBGKULOBFW \ / AMOS7 \ YOURUM ::
-#\[7]4UY7Q7B5EHJZZUHFAROWPMUR5PFTE4IR7ZFADRQHNQWKRHAQWKBA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,.,..,,,,,,.,.,,.,,,,.,,..,.,.,..,,...,...,..,,,.,,...,...,...,
+#XG4SGISSGLJATXNUM7SHGPPEUBXJQA2N4TYRWACXORCDZEUAK7AJCJ2RCB2ZA32HOT732OFYKST3S
+#\\\|KDPPYQ5YDGALULFWPFKTKHPG7LCLWWNEAR23BY6GH2L2OTBSF2I \ / AMOS7 \ YOURUM ::
+#\[7]3G7GDSGU77QPKQLRCXRO5SHSM7S5RUFH3GD66D74GTIYMEE2LACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,8 +55,8 @@ perltidy side -- worth surfacing again if a future session considers
 retiring it outright (e.g. a further move to `bin/dev/legacy/ptd`) and
 starts reconsidering whether `ptd` is still worth keeping at all.
 
-#,,..,,..,...,.,,,...,,,,,.,.,..,,,.,,..,,,,,,..,,...,..,,..,,..,,,.,,,..,,.,,
-#LZASPBI33D24BKQYGQGPPTVWWFTYL5E5J2PVZ5MCGGIYNJ5BUJQSPGHTJDSQQC7DR7IRX2QAQ3UYW
-#\\\|XXEZQZXLZR4LCIJ4X72LLNB4LRH5QJ3TND2TQRZP4V2KV7KTIBX \ / AMOS7 \ YOURUM ::
-#\[7]IWSPGIIHSYLYWILVTCNKZR5HEQF3YJ6JY5EYM5MFZVUSVFOOLOCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,.,.,,,.,,,.,.,,,...,,,,,.,.,..,,...,...,...,.,,,,,.,.,,,,..,
+#3PO64VMVZXWEOOZRL3RXFKF7IM6BADVW4APSF6MMPBTVDML3YHAITW7EFJXN6N5CBG75C64ZIG4CQ
+#\\\|GCRUVYCULJOXWGD44MGFED6IPN422ZOAA76MRBXS5626YF53X3E \ / AMOS7 \ YOURUM ::
+#\[7]SSCDMNUMOX4LUK7BA2E4EHE5P5TYTIEC5L6XBWVUU2RRURO3VKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -198,8 +198,8 @@ existing modules: re-signed on commit.
 $ARG not $_ in loops (use for my $ARG, not grep/map with $_)
 lowercase comments, [ word ] bracket annotations
 
-#,,,.,.,,,.,,,,,.,.,,,.,.,.,.,,,,,..,,,.,,...,..,,...,..,,,..,,,,,,.,,.,.,,.,,
-#ZIX7HG2VDVLZ6TTTNYCZZCFVWMEAHAYGOZYAJZ4IUOOG7D7EM45XYW5ACICR66OI4EN2IVMPA34QQ
-#\\\|Y5EGPBW5ZLAET2O725VSF4JSDPFGE3CGAR3LT44LF64EZAINRBS \ / AMOS7 \ YOURUM ::
-#\[7]DZN3KFEDSGYGTH6UOY3TEUSB2AAG3QBHP5SV3PVJGCBFZFOKISAY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,.,,,.,,,...,,,.,...,..,,,.,,..,,...,...,.,,,,,.,..,,...,..,,
+#MIGROGTLO5VDVMGW4APQGUWZNI5A7V7LZZJ4UCHR5IZL4AILXM3WWGI53B7DO3KOMVEEC3J7UTGX6
+#\\\|PK76DSD4T6LSL6E35FVFBWP5QXW3E6E5HKGWZKXLMQERT7BMBYR \ / AMOS7 \ YOURUM ::
+#\[7]BO2AQLIJ7MEU3KRXLYNY7ZHV7JUHCEHCLMRL7RZFNIXOKOLS54DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

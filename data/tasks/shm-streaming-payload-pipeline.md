@@ -286,8 +286,8 @@ curl -X POST http://localhost/jobs-sync \
 - use `encode_b32r()` from AMOS7 for B32 encoding of digest bytes
 - do not add the stub signature to new files — signing adds footer
 
-#,,,,,,,.,,..,...,,.,,.,.,...,.,,,,,,,.,,,.,.,..,,...,...,...,.,.,...,.,.,,,.,
-#57HFFQ4SLEGLJESR5CUPUNRDD7PM5UZDBS3BV5L32IMOG3UAAL6TMOMFWQWH3B2NAK67BNP6HD6KO
-#\\\|PWIWQHK3KK6BKJXZKDHKD6RTH5NGTHXY634SIXJPP2WX63FAU4I \ / AMOS7 \ YOURUM ::
-#\[7]TZNJCIO4DDL3UNU32PX7CMYZDLUVNB3YNBD4FQT524VVDEZSWMDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,,,,,...,,,,,..,,..,,..,,.,,,..,,...,...,,..,...,...,,..,..,,
+#OSQ5UAI75BE334DHVGJRPYGCOU6CVF4NNSWRDZMUWAGLXPURZWYS6A3GA24BCRXNKY4N63XAIIHHW
+#\\\|AXN7K4DUCF5D36HLCGPUNFZYZFXT4LCCEP7KP6IPI5OYBBGI7TI \ / AMOS7 \ YOURUM ::
+#\[7]WS4FY4UCR25S3EVNKLJT3QZ6XG4S6M2O35RBV64AK2HOLOFA4MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

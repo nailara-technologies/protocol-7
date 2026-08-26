@@ -264,8 +264,8 @@ concrete reason why.
   both are exactly the kind of non-obvious, load-bearing findings future
   work in this area (the deferred `masked`-field task) will need.
 
-#,,..,,..,,,.,..,,,,.,,,.,..,,.,.,.,.,,,.,,..,..,,...,...,,.,,,..,,..,...,.,,,
-#4FALRG5NVL5N3462YISRCHK32SO236GSRDEWVM5IIVWOU6TOEVMHLVBQ4I62UV6OASSYYNNR7NSXK
-#\\\|LMABLRZ4XD4QKGTNV6B5GNM5RXTUNGQVZGUDUK5AQGZANFRJGD4 \ / AMOS7 \ YOURUM ::
-#\[7]E6BDU5M2FXTNKKAH2OZSZZRHSBCVPD3DRXOII4DY67CXYVOURIAA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,.,,,,.,,..,,...,,..,,,.,...,..,,...,...,.,,,,.,,,..,.,,,.,,,
+#5XIIBIPM2SQ3ROXZAW7FU6ONC7LNDK6H23LWDOFVCQT3NPOCUUBT67YWVUJWN2ZQVQERE4WFN6I66
+#\\\|5KAWWAAFVXG4MJCF6XU42BAHEHDZ5QDU4M2UNXPS5FUM4KJPOXH \ / AMOS7 \ YOURUM ::
+#\[7]HB6LV3PT6ULT5POA4EQYLFMIICNTAB6NXOYJC5ESHER4OSXGO2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

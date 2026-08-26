@@ -363,8 +363,8 @@ branch-3: routing-alt-approach
 this is the same analysis that took 200K tokens in one branch, potentially
 resolved in 50K by a rescue branch with a better entry point.
 
-#,,.,,.,.,,,,,,,,,,,,,..,,.,,,,.,,,..,,,,,,,.,..,,...,...,.,.,,,.,,.,,.,,,,.,,
-#5CYFN2MINZYCB3E73LT5T44ZAODXDWOGHTZTIGTQGA7OMO5HZZXHF5FAPYBAVRIC7UOW6FPEDCA3K
-#\\\|XHIMWPIBOXR7VVIWRK5IFFMJEJZLAOQD53WE5YJRQ3WGL45IY4N \ / AMOS7 \ YOURUM ::
-#\[7]IILUSG25LYXRMUCLE66AVNEF54BCS4KSBEMB53YXWIC6AV7CQSCQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,,,,,.,..,,,,.,,,.,,..,,,.,,.,,..,,...,...,...,..,,...,..,,,..,
+#AOECOTVC5J7CF67T6QO5SD6DJZEY5SXIAZGQQIRVXDA2P4RP2UE5QAMW6LO3FNJJPKWFFGSYQBKNE
+#\\\|2742AJIJVWRGNGLENYRCLGYAXCOKDI5O4XSXIA7KKCOBLU2KW5R \ / AMOS7 \ YOURUM ::
+#\[7]QPNEBC77JXTJ3TOYKGJZCFFGFYPTCY2UNRM2XOVDKSOTGE2ALUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

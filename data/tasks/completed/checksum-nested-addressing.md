@@ -159,8 +159,8 @@ amos checksum, only the nesting convention layer.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,...,..,,.,,,.,,,,..,..,,.,,,,,.,,..,...,..,,...,..,,...,,.,,,,.,,,.,,.,,
-#YENFVLANSAJERTDM5RJ3TPGLJYOTYSYCH4RUQPQO7SGVLGAZ2SLD762L3Z5CTR6RNNG5JVDTROSMA
-#\\\|OFNE6HHPWHZCW2BISHVG2I6FXHIM7BT3IXSF7CAURNEQEDDU6LY \ / AMOS7 \ YOURUM ::
-#\[7]EQSONYBMYI42B3JO77OYNKDQF3WTC5OSFT6VKFEEUXZLVCNFNEDA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,.,.,,..,.,,,...,,,.,,..,...,..,,...,...,.,.,,..,.,.,,,,,.,.,
+#KRAWP4FTKNT3MTZEHPH3BZBKGLWGULIJSCZX7H2BF375OHRQC7XNDQAHZWV2CMY3ZMTXHK7YJBU2Y
+#\\\|TINPXRDRBHGE6KWFVWSAZZUWFAWBTJXMRDBC6K2XWV4KDS3ZQ5Q \ / AMOS7 \ YOURUM ::
+#\[7]UE7LF7Y3XG7FIFC7GQUGI3SNGPOXVVN3MDY7F6QF62IYP3DQMWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

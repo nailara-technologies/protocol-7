@@ -168,8 +168,8 @@ harmony ui.budget.tty ui.estimate.cost
 harmony base.slot.fold base.slot.unfold base.slot.move base.slot.refresh
 ```
 
-#,,.,,.,,,.,,,.,,,..,,.,.,,,,,.,,,.,,,.,,,,,.,..,,...,...,.,.,,.,,,,.,,.,,.,.,
-#GA4NBOHOI3F6DF6DTSTRLP3H6OKWSX5QKDJA42ZQFQWZF6ZBLNYJFN7FOHFPQAT5AZAML6AYGVTLI
-#\\\|HH3G3R4HVAA37IYMAD2WUAZMYPFGR73RNCTUSLVHH353J22P4HM \ / AMOS7 \ YOURUM ::
-#\[7]KUU4VZAUG763UFDM75BVBKQNXITFMFPESDGECM4Y7LUZB6DXXADA 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,.,.,,,.,,,,,.,.,,,.,,..,,,.,..,,...,...,,..,..,,..,,,,,,,.,,
+#USVCOTZIIN7CXL3C4H57JQKDITLKV7C6TV4345GIZQAM54ENHXKDPE4SJV2GVFISSX47B55U5LATS
+#\\\|MOCRTI3XI3SALCRUP3BA256ECTVCV2YRNEZ45LMFPHSCZIEFEUB \ / AMOS7 \ YOURUM ::
+#\[7]3NETSSYPBDEF4J5IL42VOANWQJSP2J5TDBNVEB5HEX5LRLPD24DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

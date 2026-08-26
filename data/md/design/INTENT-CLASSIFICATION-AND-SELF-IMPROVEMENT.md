@@ -244,8 +244,8 @@ data/yaml/cluster-registry/intent-classification.yaml
 src/intent.*                          ## classifier zenka modules (to create)
 ```
 
-#,,.,,,..,,,.,..,,,,,,,,.,.,.,.,.,.,,,,..,..,,..,,...,...,,..,,..,,,,,,..,...,
-#QZMKYWZQTQANVHRZRUFB52GKK65BLMMOANTXFPPNDAJ257BRISDUOCCCBQ6NYBS5JZ3EDLYGGSQUK
-#\\\|OW45FKHXIDKEGRYESG4FQPHM7QG36APE6SNYJ6G6G2SGBVPY3LS \ / AMOS7 \ YOURUM ::
-#\[7]NCXKXYROKBWMY7VDZL2B4N3DGW3MDK6XJHVZBV2MRHGYMOR25ADA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,.,.,,,.,...,.,,,...,,,.,.,,,..,,...,...,.,,,..,,,,,,,..,,,.,
+#KFJ3V6LDPWXDGBABA4GJIQWOBAIKOWFNB55EJGKO276CX5MPFBI2P3CAIVQ7KOERVZ6PL3RDQ4X7A
+#\\\|R6EFO3NKKAHODCO46LDULEIIC4VH63NFZMHE4ZLJIOQJJYAYPUW \ / AMOS7 \ YOURUM ::
+#\[7]JDTYSU7MY5ZRKXEFX54YH6SVXXWCQSSJ3X5PZRRQMAW7KA7JHOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

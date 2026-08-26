@@ -123,8 +123,8 @@ run it, paste the output. fix anything that fails before reporting done.
   changed in `SHM.pm`, the path of the test script you wrote, and the full
   output of running it.
 
-#,,.,,..,,.,,,..,,,,,,..,,.,.,,,.,.,.,,,,,,.,,..,,...,..,,,,,,,,.,,,.,...,,,,,
-#VAN6OTUMS2FZ3KZ2DMKSYGYGH34LOKZ54LYJF2COWXVAEE6WD54P7ADJIIN4QXPSXURYYBG4WNP7E
-#\\\|EHSCKRTWW5GMLTGQ4ARXJBNBMLAYDMO3W6MBIOWHYTTQOG5FCSF \ / AMOS7 \ YOURUM ::
-#\[7]Z3IJKEKG2YZOVIRODH7A77U3UTRR5S7PDG6H25ENC4FEQNTAUIDY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,,.,,,.,,..,,...,...,,,.,,..,..,,...,...,.,,,.,.,,..,.,.,,.,,
+#67YA2THGPJHZWPFW2GBYB2SLCZTVFNQIFUO45XVFY4CTXTME2MCDODWAIZXZHQSPVOYGKFDFS55Z2
+#\\\|R3OPFGSC2MJ44OOGD3OE6YJWBSG7WINO5NDV6F3JQ4DITO3NGJN \ / AMOS7 \ YOURUM ::
+#\[7]K67ULNC7BBID2MXO5PSJDYOKGMYBAJ2TEFVT5Q5Q4NGGJTE3YUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

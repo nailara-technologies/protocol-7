@@ -65,8 +65,8 @@ detected cut points ] on top of segmentation alone. that normalization
 work is also upstream of any renderer, not something the renderer itself
 compensates for.
 
-#,,,,,.,.,,.,,,,.,,,,,.,.,.,.,.,.,..,,,..,,.,,..,,...,...,..,,,,,,,,.,.,,,,,,,
-#F2F4B24QB7TFNPIU6YDQ5Z226W6YEMTCFA3DCXRON2TPWFLNHBCPR3ZCNZ6WDHJBGJDTONMU35UEA
-#\\\|VQGEARX4DZUHXSEMRUKSGVMGF3NQMK3WUOMI347JBY3K2SIF4IW \ / AMOS7 \ YOURUM ::
-#\[7]KIH5KPW25G35JETRXGEKT6QBE5CJ4W55SUHESHFRH7OZCSD33CAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,.,,,.,,,,.,,.,,,.,.,,.,,..,,..,,...,..,,.,.,,.,,,,,,,.,,,,,,
+#4OC3RPMQVKUHMIMIGMKSIHSNOTRQAR7XAEXIN467A62NEFURMUK2ZDAKDKN6KA45HEUIXY5JZ2V6Q
+#\\\|OEJEKZLJKIC6KBDM7733JJMLHOZYDAXEK5L2ZUF5PVYHFJ3RFTE \ / AMOS7 \ YOURUM ::
+#\[7]JKVUG4FEGQNJPIJCZWJQ3WTGGDCBUQAOFEN4DDNFHW7VABRTQGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -82,8 +82,8 @@ registration. Worth checking other zenki's `init_code` for the same two anti-pat
 [[project-sys-deps-wiring-completion]] · [[project-ondemand-zenki-registry-wipe]] ·
 [[feedback-base-log-vs-logs-sprintf]]
 
-#,,,,,..,,,.,,.,,,.,,,...,.,,,.,.,,..,,,.,.,.,..,,...,...,.,,,,..,.,.,.,.,,,.,
-#OJ5NFPDE4JRS7AHFIK66L5IJFRZRUNLKJRVXFEERJXKPF6DE2FAQS2JXHKR7UU6GWNCNWKWTY7J7I
-#\\\|7FZ76HSOCX2DLQAKHRI2ZKV3TQ372IN63VOI4HRGJK6KKKQRICQ \ / AMOS7 \ YOURUM ::
-#\[7]GJDLWUZQEKIKZXPEWKTV33ND2NMS42XR6CQSYDSJUALCM3W2T6AI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,.,,,..,..,,..,,,,,,..,,...,,,,,..,,...,...,,,,,,,,,...,,.,,..,,
+#RNY7AC4GKFAHAJIPSHSUSUIDTMCFLS7G3OKTHB2KQGVGMBANHYYBN7WFPUBKI4Y2HDUKZ2GWF3UUC
+#\\\|SDUJ3UGNQCTYDITHQONX4KRNYOMMCPZH7NIZBF3SQLMQP53CCLJ \ / AMOS7 \ YOURUM ::
+#\[7]5J6VL6ZVEJXYSQDW3LK6EZ7SAO5AQ5D2BCNJAZYGAMQS3HVWF4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

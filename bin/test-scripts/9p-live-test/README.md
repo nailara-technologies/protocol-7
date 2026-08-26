@@ -39,8 +39,8 @@ the protocol layer itself.
 - **\*.log** — captured output from the harness/daemon runs referenced
   above.
 
-#,,,.,,,,,...,,,,,,,,,,,,,...,,..,.,,,.,.,,..,..,,...,...,.,,,..,,,,,,..,,,,.,
-#PIG3XB6BMXHCCK2CFF235XIJDHJDQD3ECWFIRUQUZTFPUHUFFVCCAAPHPJFVZJK6NNLWLZEMWDPWE
-#\\\|T4U3DUKKIYYR6LDNLMZDE3OEMGPDVG2GIFXSBM35CMAPWSJJSYB \ / AMOS7 \ YOURUM ::
-#\[7]7A3W7QUTD6XP7YNUVQ5IN4TXTS6IXNKLG3UCENNQ72RI5EV2DOBI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,.,,,.,,,,,.,.,.,.,,.,,.,,,...,..,,...,...,...,...,.,.,,.,,...,
+#C6ESZ4RL2HIBBGAFXPAT7NEAL3LAF6PKDC7G7MKOU6EBOF4TREIRCUQMMR5EZ7USNY4CDDBLBVVYU
+#\\\|RTN4Z2FKCZK7A44D4LJN6XG5RNZQRGZMDI2J5KC4MUQASLZFDN3 \ / AMOS7 \ YOURUM ::
+#\[7]GAHMUOQOPOZ3U3JEJQDG75E5XB2SJ6GNRSEZNBQNYO6F4CMUF2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -364,8 +364,8 @@ This is the realm of **self-sustaining, coherent systems** where every layer str
 
 *"The system doesn't enforce security. The system IS security."*
 
-#,,..,,.,,,.,,.,,,.,,,.,.,,,,,,,,,...,,,.,..,,..,,...,...,,..,,,.,.,,,.,.,,..,
-#5YJFW6PITZOLG6KMBBMVOCPCELY3HQTH33ODPMUSZJHEGJUUSPABZRFVH5ITU2FHDDERKGXX5TXAW
-#\\\|3W7ZVZGZKXLKVODC3IMEJSTXEWOZYEB6PJILVL5TEMC3RVZZ55E \ / AMOS7 \ YOURUM ::
-#\[7]LNVT4IEVJ5DVGS4XK2MPAGSLS6OXK3BGQTR7GH4TJ3A3DVPGBQDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,..,,...,...,,..,,,.,..,,,.,,..,,...,...,...,,.,,..,,...,,,.,
+#TZHZXORBCERKAQC3ZQTVCHO37XSOWTWAXJUS5TG6GTYCFXEMERUPI5H7ODCMLFECUJ5T5PPSIZXHW
+#\\\|JJ6N7IFS4DV7LOAV45HGXF5NQNGCYRM775VT4CID3K2R36PDNRE \ / AMOS7 \ YOURUM ::
+#\[7]M6XZGXJ2V3IHRTGLYYPZNM7P4KWQBQUWO3YRFZ2U5LDN7I27SUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

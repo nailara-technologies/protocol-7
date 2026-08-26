@@ -374,8 +374,8 @@ execution-time backstop already present in dispatch from phase 1.
   `src/base.path-set-up.check-zenka-paths` — the existing per-zenka
   ownership convention this design relies on rather than reinventing
 
-#,,..,,..,...,,,,,,..,..,,,..,,,.,...,..,,,..,..,,...,...,.,.,,,.,,..,,.,,.,.,
-#QPBNCQC2EHECT2N3XSSUR7267DTWASVHJBEUA2T37VIB2DGAANACBWJHZ3PIQ7X62Q34Z3A7JMJ7E
-#\\\|MYAOHCP6VTUCOGHZONRY7QZHGCHKXTHJFTZWWRH5VFCPSOBNM3Y \ / AMOS7 \ YOURUM ::
-#\[7]3XF4LUVV4NT33FX62TBVDKEVE52EO2Q3FRGHYKW33XFV7MFMF4BQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,.,,,.,,..,,.,,..,,,..,,..,.,,,..,,...,..,,..,,,,,,.,,,.,.,,,.,
+#DY4V5ZKIF6XSJTRF7LG2TZZZADDD7RBVR4OA2F7IZFVNAWKG4WMW73V7Z7IGFY2L26YIWPMGBOWDY
+#\\\|LWCD5ZW3R3W5KZDXRTMUONNLXJJS7COWBMYHVLD54KVRKZHSXUZ \ / AMOS7 \ YOURUM ::
+#\[7]ZHURVF7U6U6H7TTNFYHDJB2GWO2WXOJVTALVKRL3Z6SOLE5VZYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

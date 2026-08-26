@@ -210,8 +210,8 @@ prompt: |
   use $ARG not @_, lowercase comments, bracket annotations [ like this ].
   $ROOT_PATH is defined at the file top — do not redefine it.
 
-#,,,,,...,,..,,..,,.,,,,,,.,,,,,,,,,,,..,,..,,..,,...,...,,,,,,,,,,..,.,.,,.,,
-#ZMNYKOH54OSUQJDBLCAHO2NHJB4VMNH4DJPMMNWW72UMJZRIP7ES6IRW776MB343FO2SF772CKZ4E
-#\\\|XBMM57E3WLFUXUZT4MVDGLURHCCIJOIWA3M2BQIYK5BHAUVM4FI \ / AMOS7 \ YOURUM ::
-#\[7]OR7SAJCGH5GFNCYG2UW2N7X35NC6FNB2XXURPUAUFIRK5233E4BQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,..,,.,.,.,.,.,,,.,.,,.,,..,,..,,...,..,,...,..,,,,,,...,.,.,
+#YOYNPPM4REORRN6N2FMU3KP2MYPMMTFZG52LQXJHVDY6TA3XNIY5NXEQPX2VS6YRJQYU7CFLAHNVA
+#\\\|JQYNDWYN5HFPEND4GBNYX44IZXU3E73B7POCR2GJVPUMN7LG4Z7 \ / AMOS7 \ YOURUM ::
+#\[7]D5R5T65RSTECMA5CMQX2GLANKMCWVJJJYDCGGJRDZ4PZ5GNXVUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

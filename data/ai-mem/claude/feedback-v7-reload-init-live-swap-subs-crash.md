@@ -173,8 +173,8 @@ further architecture-level effort.
   no longer dangerous now that this fix is in, but the note's original
   reasoning (before the fix) was wrong to suggest it as safe.
 
-#,,..,..,,,..,,..,,..,.,,,.,.,.,,,.,.,,,,,,..,..,,...,...,.,.,.,,,...,,,.,..,,
-#M3Z5ONIZZYFAN3SWKAD6CYMNEQOIVSBSPQ7G3TAMBVNH26QC7JXWNQXFY5YQS54CY54AMISRLHNZY
-#\\\|PSVFD7YIL3FXFT2PRXXZJXW76MJGEAYDA3DAYVE3KCCRYD6DDP3 \ / AMOS7 \ YOURUM ::
-#\[7]AR2PVF4G6SNI3RWYZYW3N2HOW7ZBT2LC67XA2HOKIXCZNUVCTOCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,,,,,,..,.,,,..,,.,.,..,,,..,..,,...,...,...,...,..,,,..,,..,
+#5ELOAZXPOBQGCROSKHW2HMZV5XQJZKNHPCR2LJYELITM3W5IHLML33MYV6ER5ODFTZLWOKITIA6RK
+#\\\|R43Z66HSZPVCZNZUR7RVHHEJXIY43NVSW742MGDJYV5UERDH3ZW \ / AMOS7 \ YOURUM ::
+#\[7]K7LSYFHQ6KFOYRLSFDRMSD3Y5CVE2EMFEGKZLWAGBGWUYZWUIEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

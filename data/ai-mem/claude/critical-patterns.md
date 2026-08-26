@@ -149,8 +149,8 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 ## ptd usage
 - Use `ptd` (not `ptd -c`) after writing modules — formats + checks syntax in one pass
 
-#,,.,,..,,,,.,,,,,..,,..,,,.,,,.,,,,,,...,...,..,,...,...,...,.,,,,.,,,.,,.,.,
-#3TJ3KJKB353M65PMN3NW2PLKHFDAB5BFZ5KR5OCUNZT333A6ANH4QEI6T7U2YGTSDTM4PWB6AIQG2
-#\\\|V6BASHI35Y7NKMN6GEEXDMBAA3RXSZFJF2YO52M3QUBAD6SNME5 \ / AMOS7 \ YOURUM ::
-#\[7]MITTD6C7CFEPBDUSITQUTOD5BRREV6BE4O6OCGNG7JAWIT3GDWDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,,,,..,,..,.,,,...,,,.,.,,,.,,,..,,...,...,,.,,..,,..,,,..,,.,,
+#E2KPSKYHLT74XC2LR5JQ57GNHWITXIME6MNNY3O34QPM4UJHOQ7PU2O2Z6HC2K2NACGLGO4OUZKKW
+#\\\|FTUWRVAFWJRLLSIUAZ4BXZOEB75XLDFVWO7ZYP5MFKU6ZSWNNMO \ / AMOS7 \ YOURUM ::
+#\[7]ACBETBJKBYEEV7TOHLNWNPRSRWBMEWXOBZTFSX3E3APMZ3IGY2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

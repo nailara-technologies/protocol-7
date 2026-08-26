@@ -76,8 +76,8 @@ the perl foundation means no special model training is needed. any llm with perl
 understanding can participate as a reasoning agent in this process — asserting logical
 and semantic aesthetics natively, with the translator handling the p7 layer transparently.
 
-#,,,,,,..,.,.,,..,,.,,..,,...,.,.,..,,.,,,..,,..,,...,..,,..,,,,,,..,,,,.,...,
-#TKGYPYINZBGRISU5RH55PS5HP3DLGQNWSVBEEEIXG6X3RWX7L5Z2RGMOAYKFJI4AAEJKHW5AK2IAI
-#\\\|TFN77YDM6VJLRSYWBSQNBMW45VR7NVYPE453H3WG6OIW6IS3D6M \ / AMOS7 \ YOURUM ::
-#\[7]CYHRKOGMMIBOPXMETA2TKZFKM4RDLZOYRBPO6LIAE4EKEGMZWWDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,..,,,,,,.,,,,.,,,,,,,,.,,,,,..,,...,...,.,.,.,.,,,.,...,...,
+#HWZ6RHESQWHGF5DHCBEDS3KJITYJXZGBJINLYH243WSTMAWYGKT2HLYRLWYY2DILK4GHZLUO5LYJM
+#\\\|XR5J3RAVOYYQ46VSDBU2QWZT3TXKADD6GUI3LWKALUTSBMSL2YC \ / AMOS7 \ YOURUM ::
+#\[7]J4Y6FHVZBHWHYWZFB3IMFT7NPWKCBWQLOPAOPRFMPILMRKZV6YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

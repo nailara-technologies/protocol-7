@@ -173,8 +173,8 @@ Report each check's actual result (not just "passed") — this project
 distrusts self-reported dispatch summaries and always re-verifies the diff
 and live behavior independently after any dispatch.
 
-#,,..,,,,,,..,..,,,,,,,.,,...,,,,,,..,,.,,,,.,..,,...,...,,..,,..,...,,.,,..,,
-#V7EOOXD7P2JS6VSUPHZUXMCYZCOJUYILAQGQ6MPA5VUEV5MRPLW3N45VJSA4EIZ7732GZLLWQDKUI
-#\\\|OIPUS3MY4DTOMKYO5J24XL5LRUDFA2FLV6XFPWSZ4622D4YLZGD \ / AMOS7 \ YOURUM ::
-#\[7]7MAHHPHUODHFHOGBD6XEKZSQWGUKGUL5FZNHBJ32I4LLTI4IWKBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,.,.,.,,,,..,.,.,,..,,,,,.,.,..,,...,...,..,,,,,,...,...,,.,,
+#BESS4WRUDQNRCYZFWYZUGH6ETHALLGX525E65UFLEIJ5VXIFOLMXC2S2X7Y3TWRI7ZJ3QYN5DB2XI
+#\\\|PSVHDMGSPWB3G2JSY75KYQ55SWMAG6BJR6TKH6CJ6WKMQBJC76K \ / AMOS7 \ YOURUM ::
+#\[7]BQR2YD5DSYR6MJLBKVWBGYN6KY5KQFGLSU73LZFJXRBX6YEBYEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

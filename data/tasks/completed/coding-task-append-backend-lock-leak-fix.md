@@ -107,8 +107,8 @@ trace; if there's a second site, fix that too and explain why.
   state for testing, that's fine — it's your own dispatch target, not a
   shared resource other work depends on right now.
 
-#,,,,,.,.,,.,,,,.,,..,,,.,,,,,..,,..,,.,.,,,.,.,.,...,...,..,,,..,,.,,,,.,...,
-#H4MHE66BFWJYG5YNOXIEHWETA2TIKYPNBGBS45NYKFEEJ4YJJTOY72IXNFIKWT6OIC2KDFUAHG2YC
-#\\\|SUNF2VHJWGH7VJPUTZTCREQ26XRER6U3QRDTTTGAO3UEFXC2EAA \ / AMOS7 \ YOURUM ::
-#\[7]FQHRHC5TMA4NTJIXLRDGOGFULBJQR5P6A33PPDY4RVVTHRPG7KDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,.,...,..,,,,,,.,,,.,,,,..,,,,,.,.,...,.,.,...,,,,,.,.,..,,.,.,
+#3WFMPLM554ERLDFJNICLXWXZPAGUWEENUFNC5Z2O3N2N5BXKF2SMD7KW47IHOXYSVQWKQ576K6RTC
+#\\\|6IZSXM32X6X7TP2DO42PM465EMPQ7ZIVS6XXXHI5W3CYLYWXAJL \ / AMOS7 \ YOURUM ::
+#\[7]6AMI5ORSIPMAMR7Z65OELPWAR3SOVARVKNEXDXP5UEXFUGNPK6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

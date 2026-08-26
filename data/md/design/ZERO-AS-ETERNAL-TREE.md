@@ -64,8 +64,8 @@ the root is not where the network starts. it is the network recognizing its own 
 - `HARMONIC-TREE-ADDRESSING.md` — coordinate systems as expressions of 0 at specific scales
 - `BRANCH-OPEN-CAPACITY-SESSION-DAG.md` — Z.Y.X ordering as 0-relative coordinate unfolding
 
-#,,.,,,,.,..,,.,,,.,,,,,.,.,.,..,,,..,..,,,,.,..,,...,...,,,.,,.,,,,,,,..,.,,,
-#IR7DFJPJDWBRBMM7DPIZAWESMM5COXEQ4BGVCI4S4J3G2VKD2AHFPN3TWU7G5J56DIDF6UZG2LQKC
-#\\\|36S2D6W76NJCKE7PMDKLGF5V4OAQRY4YIKLDJWUFLMES3MQZAKU \ / AMOS7 \ YOURUM ::
-#\[7]ZSR4GP3URZYDXOTNR6JPQCFB3JV2FYMG2UCQSMKOUN4KG7QYQEAQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,,.,,,.,,.,,,,.,,...,...,,,.,..,,...,..,,.,.,...,,,.,,,.,,,,,
+#F6VRBYIDV3TWDQG6KMBVBYEAKIX36X5BL2D6FNYIN2A2LY2E3K5WSJ44FI5EJVQ3MWO2RZXGHELP4
+#\\\|ZIWVVHQL7DFUBDJE2AJ26UOSUCNSV763ANIAEJJA2YWVBYRORNP \ / AMOS7 \ YOURUM ::
+#\[7]PJJL7TLWEU5F2CWK6WBZNJC6TWUKA4IDYSYTRVGSYO2S6GB426CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

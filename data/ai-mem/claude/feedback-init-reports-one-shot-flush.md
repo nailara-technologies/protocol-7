@@ -68,8 +68,8 @@ is gone" — the error clearing is necessary but not sufficient; the
 regression here cleared the log noise while silently breaking the
 actual reply-triggered behavior.
 
-#,,,,,,,,,,..,.,.,,,,,,..,,..,,,.,,,,,..,,,,.,..,,...,..,,,..,,..,,,,,..,,..,,
-#PXE2NWS6UC67SZ5DKP4CF3B23BEIQZNIAP67H5BPO467RETNJ425UY3Z3DE4W7R565EK4QQRRFSM4
-#\\\|VYFVNMUOSDCPQ3AMY25YE7UDPEOZDSSDDQBKCPHDNQSEYO4DKKZ \ / AMOS7 \ YOURUM ::
-#\[7]Q2CZB7OXKDPRBMDEPFUCUPHUMOSGTV5H2LFYDG3JWV6RS7WXMGAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,,..,.,,,.,,,,..,,..,...,.,.,..,,...,...,..,,,.,,...,,.,,,.,,
+#D4LFI5DMAUYSZFSCXH45YINZV357VJ2A5W37UXA6YWW3UJ2YC2LIANAKBQBWDDF5PT2MCY7JBVMSY
+#\\\|XMUIGIN3KLFMT3MWDSZDTQCHICQIIID6SQEX7DDES5F4FU4EWWP \ / AMOS7 \ YOURUM ::
+#\[7]SUSVKOUTNKHOFEP7SH6ZA2RDEFFFMFVQAWKEEM5OZ4ELBMSDKWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

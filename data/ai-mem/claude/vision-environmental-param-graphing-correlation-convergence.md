@@ -49,8 +49,8 @@ tier1 retries, failure-class stats, primed second-pass prompt) proceeds
 independently; if failure-class stats end up capturing context-size/memory
 data per attempt, that data becomes exactly the input this note describes.
 
-#,,..,...,,,.,...,...,,,.,,,,,...,.,,,,,.,..,,..,,...,...,...,.,,,.,,,,,.,...,
-#JB4EHJVESBKQGP3MUST62DYKKPPYVLELNLDUXSZPFJUVW5R4B73PUBEOFHAPNCNOERUHMPITIXHLY
-#\\\|BKCEXUNUKEV2CPVEVQEWAYUVHAEHWZJAYC4R5IZVWV7GVBKKCPC \ / AMOS7 \ YOURUM ::
-#\[7]LN5NFXZJ4AG4XY66A2RZ5RAHMTKKPYR7LVJCSDGIWEYCEZT5HMAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,,.,,.,,,.,,.,,,...,...,.,,,..,,...,...,..,,,,.,,,.,,,,,.,.,
+#36N4HXWDIVTPBB77QQCIYI42BUDTPZRGBCWH2ADY3HPACBLE5EWYV7MM4JGYILHWKKQLW6Y5BQTAE
+#\\\|N4D4XMYPY6KGEPNXAEPCP6XUGJ4S6I2FL2B7T3DXG3JOPG5VPG3 \ / AMOS7 \ YOURUM ::
+#\[7]RQHK45JCTL2QWPKCQSWL3ZYH6VIQ533GDUQ6G67CZE5LE22MYQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

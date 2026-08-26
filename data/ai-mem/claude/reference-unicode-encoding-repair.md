@@ -27,8 +27,8 @@ documentation, or zenka logs (common cause: prior coding-zenka edits or MCP
 `p7_memory_update` writes before the recent encoding fixes). Run with
 `--dry-run` first on a directory to see what would change.
 
-#,,,.,,.,,.,.,,.,,.,,,...,,..,,,,,,,.,,.,,..,,..,,...,..,,..,,,..,.,.,,..,.,.,
-#L4HGWPDE3XF76YJ2SQO5WA34FHONBVEZPSEOX3LWWP37LMMJKR7VOR63F73UG62ASQKWNI6HSV5N4
-#\\\|REAFOQFRYPD3OEOWQWNM6HV7QLZU7W447VM4FDJOTB36LU3CSR6 \ / AMOS7 \ YOURUM ::
-#\[7]PSMQVIWEUGREU4CQTPEBBFX6RTHYT5D54XA4CFABTDOFJ6HC72CY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,.,...,...,,,,,.,.,.,.,,.,,..,,..,,...,...,...,,.,,.,,,,.,,.,,,
+#CVQQLIQ2JPJCOWUEO22JS7AOZGGRX6KUZTPO6A3S42PE4DH5WFKGVWSW6CK7XKRYY6NSKWPCKDYAW
+#\\\|Z5DAQWVADZFLZ5WJQAYMQNBVQY73Z3Q4BYVVHH7BZTMB57F5U3F \ / AMOS7 \ YOURUM ::
+#\[7]DIWZPNJHF6NRZJYTJ25KOGMWX2VTIPRJHCD42XTKDTWZM2RFRQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
