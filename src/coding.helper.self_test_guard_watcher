@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = coding.helper.self_test_guard_watcher
+# descr = var watcher on <coding.self_test_probe_in_flight> : wakes backends
+#         waiting for the single-flight self-test guard the instant it
+#         clears [ replaces the 10s polling retry timer, task :
+#         coding-self-test-parallel-backend-gap, watcher redesign ]
+
+## registered ONCE [ single persistent watcher, one global scalar ] by   ##
+## coding.helper.trigger_backend_self_test's contention path, tracked in ##
+## <coding.watcher.self_test_guard>                                      ##
+
+my $event = shift->w;
+my ( $watch_name, $guard_ref ) = @{ $event->data // [] };
+
+## fires on EVERY change of the guard [ set TRUE and clear FALSE both count ##
+## - poll => 'w' ] : only a cleared guard has work for us. the watcher is   ##
+## edge-triggered on the next event loop tick and a burst of synchronous    ##
+## writes coalesces into ONE firing [ same semantics as                     ##
+## jobqueue.handler.queue_counter ], so all state is re-derived from        ##
+## <coding.self_test_retry_pending> here, never assumed from the firing     ##
+return if <coding.self_test_probe_in_flight>;
+
+<coding.self_test_retry_pending> //= {};
+my @pending_backends = keys <coding.self_test_retry_pending>->%*;
+return if not @pending_backends;
+
+<[base.logs]>->(
+    2,
+    '[self_test_guard_watcher] guard cleared '
+        . ': waking %d pending backend%s [ %s ]',
+    scalar @pending_backends,
+    @pending_backends == 1 ? '' : 's',
+    join( ', ', @pending_backends )
+);
+
+for my $backend (@pending_backends) {
+    my $pending = delete <coding.self_test_retry_pending>->{$backend};
+    my $tested_pid
+        = ref $pending eq qw| HASH |
+        ? ( $pending->{'tested_pid'} // 0 )
+        : 0;
+
+    ## the watcher got there first : cancel this backend's safety-net       ##
+    ## timeout so it cannot fire stale after the backend got its real turn. ##
+    ## if the re-trigger below loses the race AGAIN [ several backends      ##
+    ## pending, guard still single-flight ], the contention path re-arms a  ##
+    ## FRESH timer itself - so cancel unconditionally, not only on success  ##
+    my $safety_timer = delete <coding.self_test_retry_timer>->{$backend};
+    $safety_timer->cancel
+        if defined $safety_timer
+        and eval { $safety_timer->is_active };
+
+    ## stale server guard [ same shape as the guards in                     ##
+    ## coding.handler.monitor_inference_startup and                         ##
+    ## coding.helper.trigger_backend_self_test's on_done ] : if the server  ##
+    ## was replaced by a newer spawn while this backend was pending, the    ##
+    ## new server's own readiness event runs its own trigger cycle - resume ##
+    ## this one's queue and bail                                            ##
+    my $srv = <coding.inference_servers>->{$backend};
+    if ( !defined $srv
+        or ( $srv->{'pid'} // 0 ) != $tested_pid ) {
+        <[base.logs]>->(
+            1,
+            '[self_test_guard_watcher] backend=%s : retry '
+                . 'for stale server [tested_pid=%s] : giving up',
+            $backend,
+            $tested_pid
+        );
+        <[coding.helper.resume_task_queue_for_backend]>->($backend);
+        next;
+    }
+
+    ## self-tests still run strictly ONE at a time [ the guard stays a     ##
+    ## single global flag ], so if several backends were pending only the  ##
+    ## first re-trigger below wins; the rest immediately re-hit 'self-test ##
+    ## already in progress' and re-register as pending [ plus a fresh      ##
+    ## safety timer ] via the normal contention path. no pre-sorting or    ##
+    ## prioritizing - the existing single-flight semantics sort it out     ##
+    ## naturally. resume_queue is NOT passed : the trigger defaults it to  ##
+    ## coding.helper.resume_task_queue_for_backend for the backend [ var   ##
+    ## watcher handlers cannot carry closures ]                            ##
+    <[coding.helper.trigger_backend_self_test]>->(
+        {   'backend'    => $backend,
+            'server'     => $srv,
+            'tested_pid' => $srv->{'pid'} // 0,
+        }
+    );
+}
+
+return;
+
+#,,,,,.,,,.,,,,,.,,.,,,..,...,,,.,,,.,...,...,.,.,...,...,..,,,..,.,,,.,.,...,
+#3ZQ467ZRGHFDMYESYXB4CNSAGCHSNFYLCS55YYZOBPN6WEROF7L3MBEMDNFK2BK5XC5YEB3QCWDZI
+#\\\|EGPVLTA5NGMGU6IK6PWANBGXVI6LCHSEHOS7Z5RPIPOCVZB3ZUV \ / AMOS7 \ YOURUM ::
+#\[7]I3GXKZWCUYVYZSK5AOPM52ZD3P2CK36QTKNVJ54BNEXLVSKPDQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

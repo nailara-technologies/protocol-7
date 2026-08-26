@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = coding.helper.resume_task_queue_for_backend
+# descr = unpause task queue + reset failed state on a ready backend's
+#         dependency object, then recheck waiting jobs
+
+## extracted from coding.handler.monitor_inference_startup's $resume_queue ##
+## closure [ 2026-08-26 ] : the closure only ever depended on $backend [ a ##
+## plain string ], and the self-test contention retry moved from closure-  ##
+## carrying poll timers to a named var watcher [ event.add_var handlers    ##
+## must be names present in %code, no closures ], so this logic needed a   ##
+## named home both call paths can reach                                    ##
+
+my $backend = shift // '';
+
+return undef if !length($backend);
+
+<coding.task.queue_paused> = 0;
+
+my $dep_id_ready
+    = $backend eq qw| gpu |
+    ? ( <coding.dep.gpu_server> // 0 )
+    : ( <coding.dep.cpu_server> // 0 );
+
+if ( $dep_id_ready && exists <dependency.object>->{$dep_id_ready} ) {
+    <dependency.object>->{$dep_id_ready}->{'failed'} = FALSE;
+    delete <dependency.object>->{$dep_id_ready}->{'error'};
+}
+
+<[jobqueue.check_dependencies]>;
+
+return TRUE;
+
+#,,.,,,.,,..,,,,.,..,,,..,,.,,...,.,.,,,,,,..,..,,...,...,...,...,..,,,,,,,,,,
+#ARGRFEPSMBADTSWTOSNECL3CEAN2ICELDVCTDT5FP5WBXX7F2UH4M7G6GWRCXEAE37TXSZKU3VXG6
+#\\\|SSQSBP2GFWVB5YSIWVSE7X4UTZYFX7TSC32TLFILLFOQEZ4TIOZ \ / AMOS7 \ YOURUM ::
+#\[7]AQFTISSABICXKJUE7RCHRHTJIPYTSE7PKWOWTI3ZH76SP4LLF4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

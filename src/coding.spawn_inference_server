@@ -219,12 +219,22 @@ if ( length($model_path) && !-f $model_path ) {
 if ( $backend eq qw| gpu | ) {
     my @other_procs = qx{ pgrep -a 'llama-(server|mtmd-cli)' 2>/dev/null };
     my $own_pid     = <coding.inference_servers>->{$backend}{'pid'} // 0;
+
+    ## a running cpu backend never threatens this check's actual concern [ ##
+    ## VRAM/GPU-process collision ] -- it runs on system RAM, not VRAM.    ##
+    ## without this exclusion, ANY gpu respawn [ crash-restart, seed-retry ##
+    ## restart, .. ] is permanently refused for as long as cpu is alive :  ##
+    ## confirmed live 2026-08-26, cpu spawning only just started working   ##
+    ## today so this was never reachable before                            ##
+    my $cpu_pid = <coding.inference_servers>->{'cpu'}{'pid'} // 0;
+
     my @foreign_procs;
     foreach my $proc (@other_procs) {
         chomp $proc;
         next unless length $proc;
         my ($pid) = $proc =~ m|^(\d+)|;
         next if $pid && $pid == $own_pid;
+        next if $pid && $cpu_pid && $pid == $cpu_pid;
 
         ## Skip defunct (zombie) processes - they're dead but not reaped ##
         if ($pid) {
@@ -232,9 +242,10 @@ if ( $backend eq qw| gpu | ) {
             ## briefly)                                              ##
             next if grep { $_ == $pid } @killed_stale_pids;
 
-            ## skip child processes of our own server (llama-server forks a ##
-            ## worker on first request : same cmdline, different PID)       ##
-            if ($own_pid) {
+            ## skip child processes of our own gpu server OR the running   ##
+            ## cpu backend (llama-server forks a worker on first request : ##
+            ## same cmdline, different PID)                                ##
+            if ( $own_pid or $cpu_pid ) {
                 my $ppid = 0;
                 if ( open my $sfh, '<', "/proc/$pid/status" ) {
                     while ( my $sl = <$sfh> ) {
@@ -242,7 +253,8 @@ if ( $backend eq qw| gpu | ) {
                     }
                     close $sfh;
                 }
-                next if $ppid == $own_pid;
+                next if $own_pid and $ppid == $own_pid;
+                next if $cpu_pid and $ppid == $cpu_pid;
             }
 
             my $stat_file = "/proc/$pid/stat";
@@ -566,8 +578,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,..,,,..,,,,,,,.,.,.,,..,.,,,.,.,,..,..,,..,,...,...,.,,,,..,.,.,,..,,.,,
-#VB5CULL26DDXIY3IVCEOPQF44XNWISFO6NQVITZFMISAV4AR2YQUIXS7KFIAKRMDQ5FZSYUZGJ3I6
-#\\\|XHIBARV72PRIWHPPA5GTVEFECSRVFOJDQXDLJ2HCXKXJTW67F3O \ / AMOS7 \ YOURUM ::
-#\[7]ZONOSRRNLTEQ7FC4HYHLCKP2D3HSI3YR5TE2H7CJAR4RSKMVTAAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,.,,..,..,,.,,,..,,.,.,.,,,.,,,..,,...,.,.,,..,,.,,,,,,..,,.,,,
+#7UIX4XPBVN4T6C72MYQEYCOB5SPTPJGBFQM3YFEM4MG46RQTE7JWBPTADQFMPGGUR2Q2KUKAEO4J2
+#\\\|NQWWZWEYAVJNL2QHHO3BH7CZDSJDPOE73JEPLIBEZBX7C5GGFQE \ / AMOS7 \ YOURUM ::
+#\[7]EZ74ZY734HBDP2MSBLRP7F7M5ZAAZGK2YHDG53JRNG23ANSZ4YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
