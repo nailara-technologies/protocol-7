@@ -26,8 +26,8 @@ Session 57 (2026-05-27) — index schema v4 cube, performance fixes, graphical s
 
 **design doc** — `data/md/design/GRAPHICAL-STORAGE-AND-PROCESSING.md` : ring-trie as polar disk, ray-from-center = trie traversal, APNG as append-only contribution stream, XCF layers as corpus contributions, assertions as constant-time image ops (radial band, arc segment, alpha mask). Thermocam magic-byte coincidence noted.
 
-#,,,,,.,,,...,,,,,.,,,..,,,,.,,,.,,..,,..,,,.,..,,...,...,..,,...,.,.,,..,.,.,
-#YV4UDI4YVKSBGNFIMKHMKJOTU6JSGUHLM74UKF4GFT2WL3RIQRKWG22ALVEAOREOVTPVYMPM52XQC
-#\\\|PD7RYUMXCWJ6WEH352F33JGVSK7EFRXY5AR66IXJNTUEAAXY32A \ / AMOS7 \ YOURUM ::
-#\[7]SFIZSAMMN36XWVR7HHKARIMELXS2CK3TJWB227EGCOIZ2D2KXWBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,.,,,.,,,..,.,.,,,.,.,,,...,..,,...,..,,,,,,...,.,.,,,,,,.,,
+#QF7BK35YB3NZTWK6A3ZDUGFF7OU4ZP3Y5I2WKTJ6TDJDLMUS3KB5Y2OCLY7OIK5HICAQRRSGUJ52M
+#\\\|NJXDKMIJUXNB2LZZWEVHZPYWKYJQBZOJW23WC344U327LWNWE7R \ / AMOS7 \ YOURUM ::
+#\[7]6NTA752GRN2QIJEWBWNZHWTSES55SEKZTQNBJ4BXML7KYZUO7WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

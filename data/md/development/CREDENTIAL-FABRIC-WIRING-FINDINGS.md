@@ -1271,8 +1271,8 @@ per-scenario assertion counts from the restarted run:
 | 5 | make scenario 5 harness resilient to 502 HTML / configure site-yaml or hosts for `auth-relay-test.local` | **p1** | scenario 5 |
 | 6 | tighten harness seed assertions so `"failed to store rotated credential"` is reported as a failure | **p1** | test signal quality |
 
-#,,..,...,,.,,,.,,,..,,.,,,..,.,.,..,,..,,,,,,.,.,...,...,,,.,,.,,.,.,,.,,,,.,
-#MU7DYMOIDR4NPEVWUC6AOKP2P3I4UA5DZA4MYLXAIG3JRZC6SIT2JFXF7HENHOUE7KOHPCYHOWXOA
-#\\\|KC3IEHC23ASK3LTUBW2BFVXWX4GFTSYAJHURY537DSRWRYHKFQQ \ / AMOS7 \ YOURUM ::
-#\[7]CJMCVJKSQRSW4RM52CIL2HAMVPWWEO6M5VWTN66JXP4JI6CLGIDY 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,...,,,.,,..,.,.,,,.,..,,,..,.,.,...,...,,.,,,.,,,,,,,,.,,..,
+#45J3U7Z2NN63JK4NRISQHX7KFDP2Y6LONHYKWLXGOLDYXPX67M5TBYCVPER7BDHDZPEZ5ZNPAKL42
+#\\\|F6BBEHVNF7J5T7DAYAC22RMMKX6X273Y3P4SYFTSCV5PIIY72YT \ / AMOS7 \ YOURUM ::
+#\[7]CVB35XCUKZBTUP4SPAQ6J4FTQQS2VX3JVQCCS2HW4WXN4BILHUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

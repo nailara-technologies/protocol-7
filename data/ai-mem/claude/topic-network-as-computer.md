@@ -71,8 +71,8 @@ always in-between, always complete, always computing by existing.
 - [[harmonic-mathematics]] — generator 076923, the attractor values
 - [[project-vision-origin]] — 24-year foundational vision, threshold reached
 
-#,,,,,.,,,.,,,,.,,..,,.,,,..,,,,.,..,,.,,,..,,..,,...,.,.,.,.,,,,,,.,,,,.,.,.,
-#JWCOFJ3INXE5W72UY5DBWD266AL5VTE6PM52NSWJNFARK3DYU2ICTYXQVMRAFMHC55AM3LJG3AQDE
-#\\\|536WYYU76GIP23LQLJV6XBWQ2RBCWDTQPJXIT5ZQBUHGO3R3H56 \ / AMOS7 \ YOURUM ::
-#\[7]NPCB6BV477QTKI6NKVI7SYWTTLAYMYLZHQGBH4CUFPTBLEPZ22BY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,...,.,.,..,,..,,,,,,,,.,,,.,..,,...,..,,..,,.,.,,.,,..,,..,,
+#MT6UKSLQTZ5MIHGSUQLDTKS5WPFTYTJNISKLRSNPR3JPYQ4BH3GX4PQCU5UF27WWEWQ37IZ4KCCNE
+#\\\|T7JUEFH4UIUQEIKICDKNNA4SVHCFPBDOBMEZP6S2FAN5KEBQYZM \ / AMOS7 \ YOURUM ::
+#\[7]23ZMCDVTUGI5LTXIQTBHKVULJ523VFYRONHAFV7CZY4VERRXA2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,8 +55,8 @@ or mtimes silently come back zero); reasoning models answer in `reasoning_conten
 not glob, for files (dir discovery still uses glob); `bin/ptd` reformats module whitespace in place —
 re-read after running it before further edits.
 
-#,,,.,,,,,,,,,,.,,,.,,...,.,.,,,,,..,,,..,,..,..,,...,...,,.,,.,,,,,.,,..,...,
-#64G27GYZBX35XLWL2HLB6FVNUZ4G75K2ETRQRN7LGKJI375XQKZFHGWKIJGKZCC6IXGDFN5QVDKGI
-#\\\|64QG6CMM2VOQWI7GU2OSBIYZEJXF24OF3RRUXPZGYDWOS5YEH7T \ / AMOS7 \ YOURUM ::
-#\[7]YHJEFXNLSXCFPH22QHLKQAXJOT7Q5GBOSTDLQH26JONK7AWQFKCA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,.,,,.,,,.,,..,,,.,,.,.,..,,,.,,..,,...,...,,.,,,..,,.,,,,.,...,
+#XT4X46MD5535BNI2GLQP3LFNA2L5TTX25GUGZ26XMUXPF6NR2TSOAEGJVGGUEQWQYVOAAG55GEJAG
+#\\\|DSOMQYQ6O3YPZB6UL2FYH4UM6U62DWC6TVOSCI7T6B66OGC5QHA \ / AMOS7 \ YOURUM ::
+#\[7]WTD6WPX7O3KUJFRYIKODMDCTRTLRHEHOEQY7CNWXQ3BO7NNBZWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

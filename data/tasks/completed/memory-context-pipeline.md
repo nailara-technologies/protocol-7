@@ -172,8 +172,8 @@ place immediately before `return TRUE;`.
 - no pre-commit hook failures
 - no manual AMOS7 signature stubs added to any file
 
-#,,..,...,,,.,.,.,.,.,,.,,,,,,,.,,...,,.,,,,.,..,,...,..,,.,,,..,,.,,,..,,.,,,
-#AV3MWKJATFOZS5QHHSXMRCKQ2N5VCZBLKQ2FY35UTYMTSWTZFTMELTH7MIO7T5BO4XUBHF4CICIJQ
-#\\\|MYYNAYJDEFJA3MEUBF5SGGYHRPMSSUUGAKJ7T63WLIBEPB4QSHW \ / AMOS7 \ YOURUM ::
-#\[7]EEEEUU2G22HWH2BZHMJ5IZ5E3MXJAN76LJ62XRJOEAP3SEMYBOAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,.,,...,,.,,,,.,.,.,.,.,,,.,.,.,..,,...,...,...,..,,,..,.,,,...,
+#FXHX3TDHP4KLFVHPRK45VC37DX6OHPLMWCD2R72ML72LVJXXU5YTK6KUS6FAZQKED4MD3E36AWCAK
+#\\\|FO6EPPRXBXT65TXYBL7LHKPJH6AMMOJQ6A2WZIVG7MNFLAWGV3M \ / AMOS7 \ YOURUM ::
+#\[7]S7KB46XMSQUBA3ROGXHL4CT2TGIXMLLJUA5TJUMCNUZ54WNXJ4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

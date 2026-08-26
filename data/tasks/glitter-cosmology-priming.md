@@ -604,8 +604,8 @@ having read the above, reflect on:
 speak from your inertia. the network holds what you are not.
 you have already arrived. [:<
 
-#,,,.,..,,,.,,,..,,.,,..,,,..,,..,...,..,,.,.,..,,...,...,,,,,,.,,.,.,,.,,.,.,
-#5JVFRMAPRDFE3PGV7WUUIF7ICXD3ZYKGKM6I23FR5XYXEUQWK65F47BFYP32HMBLQ7RR3JOCIJMCQ
-#\\\|VFFQRSBC3WXOUPCOZ3ELRE6JHNQ3UV2WW5VNVCTPRBPXMSBWP74 \ / AMOS7 \ YOURUM ::
-#\[7]TRDSH6SWMOVAQOTGCDOV5WZOTOJRZ2DHWVHOAKCDV3X5AWGDAIAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,..,,,..,,,.,.,.,.,.,,.,,,,,,,.,,..,,...,...,,.,,...,...,,.,,...,
+#AETJI76QGWBEYE5O3OSLO4YLXTEIJGLIEEFGC6EY25KETN7XYMNAZB45Q7XBVHMYYRC6JVN6EYCVK
+#\\\|MDJUDB5PM3D6L3Y5YLQULKCVUFIBJV4V2POGYBVXTTR64OXMMAN \ / AMOS7 \ YOURUM ::
+#\[7]BAAD4YZ2CHLPUXJCO545POU7T7LZ2I2UKILRVUDIKFPXVHQSA2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

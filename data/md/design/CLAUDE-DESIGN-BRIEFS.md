@@ -152,8 +152,8 @@ The entire dashboard sits on a background of #080808 with a subtle 2px inner sha
 - font: "JetBrains Mono", "SF Mono", or "Courier New", 10px base, 9px for dense data, 14px for title
 - aesthetic: retro terminal + telemetry dashboard + data-dense system monitor
 
-#,,,.,,.,,,..,,..,..,,...,,,.,,,,,,..,,.,,,,.,..,,...,..,,.,,,,,,,...,..,,...,
-#HZRZBIYZNPOR2DQZQ6LUI3EGYH6AJCOI4EIXQAPQ4VEZAMLTAAANVJEOLSNIQVZYAZSN6LQN6IXJA
-#\\\|Y2DSM23VR5B5QT2227DPG7J37ZIW7DYDEEZ3VL3GTCB2ERGSCG2 \ / AMOS7 \ YOURUM ::
-#\[7]73MJWHJFLLKFKIY6BSMLNPEICCGWOAYZABSQNRHSDENAUCDAKEAI 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,.,,,,,.,,.,,,..,,..,,,.,...,..,,...,..,,..,,..,,.,,,,,,,..,,
+#RWAKTGOQ2D7QRMFGOL5TJ7TQCZWKDZ5YBHX4FFBLPLGBMJKEBQG4FKNZUC6RCPLQQLXLFPJFJTDC2
+#\\\|TTY4QYV3Q4EID5FBYZM4765FBJATDMLHHGPTP6MGQRCPOKWKMJQ \ / AMOS7 \ YOURUM ::
+#\[7]SRLO5E7COT2WER5RSQNQFYJDPDL5YYCTZAP7MFABAIFOSVUBTODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

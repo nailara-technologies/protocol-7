@@ -92,8 +92,8 @@ access.cmd.usr.cube   = verify-instance commands heart reload \
 - async index lookups fire for each term (visible in logs at level 1)
 - no manual AMOS7 signature stubs in new or edited files
 
-#,,,.,..,,,,,,...,,,.,..,,..,,.,,,,,.,,..,..,,..,,...,...,...,,..,.,,,,.,,,,,,
-#2BZRCTDH5MXJ2LL27PVHK6SEZNHJXJNNWJAZSF3YO5DAOVJ6ZTJAB5V7JYU52A6UWG3H3TNVFWCHG
-#\\\|UGUGPDOFC3BY2I6KNNOQLYQ4S2IE2T2TRWAQIKCD4ZQ5QYXXIN3 \ / AMOS7 \ YOURUM ::
-#\[7]O4U2US25SA6NNMHAMRDQGRLOF6UVBDZXB7SPM2YN77EI446F3SBY 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,...,.,.,,.,,..,,..,,,,,,,..,..,,...,...,.,,,...,.,.,.,,,...,
+#LOB2HNJ5PXOGQQR5GUHYNV557RLOVBTUJFX2DBTY6L6UGWV4H27TZIL5HYSRGQLJWU4MLOMAAZFJY
+#\\\|GDTU57ODSH25J7IFFX3HX7EY6NSFDYURQWLRQ3TBOCI3C3I2BOT \ / AMOS7 \ YOURUM ::
+#\[7]CO3TTAI77QD5KDG2VCUUOBNIK3E4EOUE2C7GM2KYJHKEQRIE3MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

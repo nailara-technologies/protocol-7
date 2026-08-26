@@ -68,8 +68,8 @@ This follows the same pattern used in the recent `base.file.read` encoding fix
 (commit 6e3cef26b). The line-edit tools were not addressed in that fix because
 they use `file.write_encoded` directly rather than going through `base.file.read`.
 
-#,,..,...,,.,,,..,.,,,,..,,,.,..,,.,.,,,,,..,,..,,...,...,..,,,,.,,,,,.,,,...,
-#EYQH7QPCN7PE7XDGXBGV3ZVRHW4TFW2PZYAOED6W7LQNO2T5E734YNY7SSM5FHSTTLCWQ7JAFUAUW
-#\\\|E4CRRI5UOUAN4VAVUQ5RKWEAC57NJ4H7MUI7P5VPGYYALQ4CB4F \ / AMOS7 \ YOURUM ::
-#\[7]NJPTL4NNOLC62F2EDV5FCRPBMYMVAVOZ2HLMMHWMN6QDIG3XIYBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,.,,,..,,,,,,...,.,.,..,,..,,..,,...,...,.,.,.,.,..,,,.,,.,.,
+#MYVIQLDJKLAI36RRZZNNTNHSQNF5RLXUACMBSNXPGNYRVXRVJGICJRI2RTTPIHBTHQYNTKSG73XGK
+#\\\|EHS6YGWN4U7EOCBAHZKE263OOUV42ECJLXJJIVXBTLNDTWHA6HT \ / AMOS7 \ YOURUM ::
+#\[7]C5GBFXKH3JAOP3H3Z5H43DNQPVZVSKNKVII4P5LPPLRISEIBRYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

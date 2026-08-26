@@ -170,8 +170,8 @@ sub index.persist.cube {
   it is not already a separate module, so that both `index.init_code` and
   `index.migrate.v2-to-v3` can call it directly.
 
-#,,,.,.,.,..,,,..,.,,,,..,...,..,,.,,,...,...,..,,...,...,...,..,,..,,.,.,,..,
-#AV7ITDPYWO33VV4XQZHAKRJ2AO4A5RZDTURL4D7MZHMAULYHYEAKOK3PV66K5RYIIRQW6YOM4CTE4
-#\\\|FIINS7QWYQTX4E5KAVVTDXXNU6TGOZX3F5U4B5VULP3N4UAGFCJ \ / AMOS7 \ YOURUM ::
-#\[7]5B6M7HPOAWYUN73WFKM2AQUPMB274JSHW5IZB3Q6NAIIRZQIYWCI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,,,,,,,.,.,,,..,,,,.,,.,,,,,,..,,...,...,...,,,,,...,,,,,,,,,
+#SGOILM4S55YN466SS4BTSATC2DR4QGHLW63EUNLX4RC7LRHE26Q6IPJRKNTBPNVB4G2Y6FKQRGDWG
+#\\\|7Z6TPPHRDSF2JHP2FXOTA6UPNELBJAELJAOWTN5ENX47K7FGEFG \ / AMOS7 \ YOURUM ::
+#\[7]7XXXB6JQMSOFES27HHQG6HGL2D7ASFPFU75N2GBYHHITLF6QEMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

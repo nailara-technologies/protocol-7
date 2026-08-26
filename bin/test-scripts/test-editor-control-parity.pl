@@ -289,8 +289,8 @@ check( $new_st->{'kill_buffer'} eq '', 'full reset clears kill_buffer' );
 printf "\n%d checks : %d passed, %d failed\n", $pass + $fail, $pass, $fail;
 exit( $fail ? 1 : 0 );
 
-#,,..,.,,,,.,,.,.,,,.,.,.,...,,,,,..,,,..,,..,..,,...,..,,,..,,,.,,,,,,.,,.,,,
-#XHSWD5OQPIFQGZ4NASQEKE6KQDMN74RWMWI2KCSME557PAM2L5WTRJR2CAS37OS5XTU3M5IJGWUJC
-#\\\|NJY4JX3A4UIJC33BGWMFIQHLNGT27XDZNQK65WBDKQUHEDCR2WX \ / AMOS7 \ YOURUM ::
-#\[7]WEC4EJXNVVG6QYCFYH2WLLZPSU7ECATIUXPPS43XBIKI6PM5IMAI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,,,,.,,,,.,..,,...,,.,,,..,...,..,,...,...,.,.,,.,,,,,,.,,,.,,,
+#7CN2EVPFN4X74TKNMBUEIO5DCGKCTXFWVVMUGJV55ABTZ5KYUKDZR2X4VWRIIJIBVW32RRFQGNJ3G
+#\\\|MSJI7MGBAC5GXYMHQ7UC5KOUVOFP5PBNHL7RZX6JB5GE3W5S73J \ / AMOS7 \ YOURUM ::
+#\[7]UYK2KKXSIWIINGPTVMTUZCSVQWU4ETRTFG5FNB76UYBNEDQAPGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

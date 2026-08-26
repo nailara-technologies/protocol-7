@@ -585,8 +585,8 @@ This is why Protocol-7's visual architecture is so powerful: **complexity is off
 
 ✨ The foundation remains mathematical. The visualization layer remains artistic. Never the twain shall corrupt.
 
-#,,,,,,,.,...,,,,,...,,,,,,.,,.,,,...,.,.,,,,,..,,...,..,,,.,,...,,,.,,,.,,.,,
-#FXOX4SHH7J6WUZBTCAVQYRKCWBMEDB66JC72VJF4K7FUWGKJSSXX6BGQAZ4UNJVHZXTNGRPC3TEWS
-#\\\|3TH2TZEXAXF24W4KZ665SPNZJEWA2K747UCVNY3FYDSKMYBJ75Z \ / AMOS7 \ YOURUM ::
-#\[7]FDJLDIGPUFGDI44H7MJVSBXW2HRQJ5CG2PUXHTA5FFMXMGBZDOCQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,...,.,.,.,.,,,,,.,,,,..,,,,,..,,...,...,..,,,,,,.,.,.,,,,.,,
+#QHVX65QXJBZBUPBJWO5UP4K5BUE45RRQR3VL7YHRTLBS76I2XANI5IWZGCNRGGHOZUBBJJIQW3JQA
+#\\\|AXJEHQAVSRYO7UDWBBBGQ7PTDL2JBNG4NEITE4MNNYOM6AD2GOG \ / AMOS7 \ YOURUM ::
+#\[7]7RNXSNQT5P2CEQC52QBWJKAKC2CNDWQMF2RWSRKXERVLXBKU6YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

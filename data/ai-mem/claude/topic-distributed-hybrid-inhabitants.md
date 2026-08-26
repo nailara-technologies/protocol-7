@@ -31,8 +31,8 @@ infrastructure from [[topic-synchronous-multi-legged-pattern-extraction]],
 since that idea and this one are clearly the same direction described from
 two angles (the cognitive mechanism vs. the resulting ontology).
 
-#,,,.,.,,,,..,,,.,,..,.,.,.,,,,,,,,,.,,.,,,.,,..,,...,...,..,,.,.,,,.,,..,...,
-#6IJXXCMB6HTNUJB5REREQ2ZDJAVBHTMM2OTISDNFN2NU45SQSJRPYDS4KWAEW2UT3DP2PUZGUC3HS
-#\\\|J3B2NNU7SLZGFIXV7ACMRA7LQDDQJDVX2RB7AU5JMPM4ADIY25U \ / AMOS7 \ YOURUM ::
-#\[7]OU3WVCFT7PSLJNLO7N45LD6ZRS5MCQK4WBYUB2AEGWZ66QRTA4AI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,,,,.,,,,,,,.,.,,,.,,,.,.,,,..,,...,...,,..,,..,,..,,,,,..,,
+#O6RLU5QI3CAJTEPHZ2NJZKBGYDOYB37BLVODEZVIVQCMD6MK6FRBFTKR2I6KENCVOXKNRRT7ZCZUA
+#\\\|BQZ4DCTDSHSR7AWU2DNMY4POX5BTPA3Q2VMXXMYJN4NXJFFAYMT \ / AMOS7 \ YOURUM ::
+#\[7]UFCSXT2FZO7NSI5LCTWNSZ73TINBNGLC3TUCUNUE4HJ5YBTLUKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

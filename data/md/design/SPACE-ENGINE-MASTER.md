@@ -456,8 +456,8 @@ is the darksun of the computation layer — always 0, never evicted.
 | (to write) space-engine-export-import.md | space.export-* space.import-* | pending |
 | (to write) space-engine-template.md | space.template-* | pending |
 
-#,,,.,,,,,...,...,,,.,.,.,...,,,,,,,,,...,..,,..,,...,...,...,,,,,,,.,.,,,,..,
-#XJEUUOLW4QVHFPNFEP5GILBPBN4UNWX3MKMCM6WOCWVODB3BB3RV62PKDJY5QFRBFS4IDACMCJGHW
-#\\\|LF7L4KEDLOBPBBBXIA7C5MCM6BCC6JV5OPDMU5OSWJE6A7M5HTX \ / AMOS7 \ YOURUM ::
-#\[7]3SPMUTPLDKBWZXPEI5AFJ7SAFMDAFISFGA2E4PNYWMBB6JMBSKCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,.,,,.,,,..,.,.,..,,,.,,..,,,,,,..,,...,...,...,,.,,.,,,,,.,,,,,
+#MT23LQGVGK4ZJDK2WQ6TZLU2RQX2SQN6ZLJBMCCDH3LQCZY76262PZNFGECUIHWD7ONYXQ3NZEQW4
+#\\\|SQ3MH2B647JOVZQPFBKUCINAJ4WUOLZ4K2TPNBH75FXPI7F6SHG \ / AMOS7 \ YOURUM ::
+#\[7]KKRRQ26JSBTYJZUMWNIA3OIMYVDZVKFL7MXXCST33RJRJE2GTWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

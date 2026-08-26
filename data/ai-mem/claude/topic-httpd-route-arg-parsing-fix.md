@@ -33,8 +33,8 @@ Leads into [[topic-jobsite-stray-recovery]] same session: starting `web`
 on-demand exposed that `jobsite`'s periodic `/jobs-sync` push had been
 silently failing, which is what surfaced the site-yaml/jobsite desync.
 
-#,,,,,.,.,.,,,,,.,,,.,.,,,.,.,,.,,,,.,...,..,,..,,...,.,.,.,,,,,.,...,.,,,,.,,
-#LUB52VQKNWPM33HPILCXTXWXI2DSSDFKLMWUALIQB2ACJUIK52YJOV2XT37RFSWBATJPL6YSUCQMM
-#\\\|XAQ4FI3L6ETJDOM2NWPD54T4Y4SGNVYDO6RQSWUDMXXO3PICTFK \ / AMOS7 \ YOURUM ::
-#\[7]QYUTJQXTO76T6GQX5AYFSXMDALORY3QZEXDJ7W4PM6RFORNYVYDA 7  DATA SIGNATURE ::
+#,,..,,..,...,.,.,..,,,,.,..,,..,,,.,,...,,..,..,,...,...,.,,,.,,,,..,.,.,,..,
+#5VQCBTWNCXLHTNASM6PA4A2CU5RPXJTFCJMO32EBLMH4DHX62QDFMONSX74UPUJ7IFEILLEB2NP2Y
+#\\\|BC3SJ6S6FSVM5R5DTVDMLNAJBE7OUYLCGYNTOMT62PSGGONH7IA \ / AMOS7 \ YOURUM ::
+#\[7]KWLEK6ULS2HAKLKUMR6DI2XNWB7TJR2XIDFJX7UVIYQEY6WR5MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

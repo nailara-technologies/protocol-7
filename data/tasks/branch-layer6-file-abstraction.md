@@ -153,8 +153,8 @@ round 3 task. depends on layer 5 (9P bridge) being complete.
 parallel-safe with `branch-layer5-9p-bridge.md` if 9P bridge is written first
 and this task references its interface.
 
-#,,,,,,,.,..,,.,,,.,.,...,,..,.,.,.,,,.,,,,,,,..,,...,...,.,.,,,.,,..,,.,,,..,
-#NSJYQZFS2T7X3ANBME2AP7IPDRJQDLOJ6VD6XCFLP5VLLYK2ESJ2R2G3HSBVH7H4VSK7G4FX72GNY
-#\\\|FUW4BYHYHOKYAI2R6IKIQ22SH6VJJWCULIQ3BY5BOLR62663SOZ \ / AMOS7 \ YOURUM ::
-#\[7]GDJJOIAIE7S5DP7E6SMWJHWYZ6SCOUJMWBIQARLFXOLB4OAMK2BI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,,,.,.,,,,.,,,,,,,.,,,,,,...,..,,...,...,...,.,.,..,,,.,,...,
+#H32TSR7WMGDS5Z76AHSXPZKYKZC372NAXO5C4XAJKAOECNCP5C4AQWPED5N5NJ6UY5XPOZZJ7KLVA
+#\\\|MDEAZEQ5MVAXPEEM4MQWUGABHTCOSWM2NH6ZGUZLYFKY56D4DPY \ / AMOS7 \ YOURUM ::
+#\[7]ZK7GSK7N6JWYA4JZKFJIY47OKPST556M4P6KKHQ2YMFACQLJECCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

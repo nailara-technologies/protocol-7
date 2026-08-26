@@ -74,8 +74,8 @@ duplicated in ~/.claude tool-results/ ]. First scratchpad import of session
   `data/md/recovered-subagents/` (copied there by the parallel claude session;
   originally extracted to data/recovered-subagents/ by kimi).
 
-#,,..,.,.,,,,,,..,,.,,...,,,,,..,,...,..,,,,,,..,,...,...,...,,.,,.,,,..,,...,
-#JLJ4JQKW5L2YFYYZEKOLFG3DK3S26V3ZP4LENDNEQIL3QY5LY54S2JEU47TAYESPOHXOZC52EGRO2
-#\\\|Z4Z6ID6VPY3X72B352C7S4RAZ5MXDIDZVIIB22URINQ4Y27E5MG \ / AMOS7 \ YOURUM ::
-#\[7]CZZ45I5G57XBDANY256RPQZE6HINKE4XCVS2PTZ4WDPJKSTFJMAI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,.,,...,,,.,...,,,.,,..,.,.,..,,...,...,...,,.,,,,.,.,.,,.,,
+#35Z5NOLXJ2WNZXWXMXV5PNVYTAGJGGVKO3WZM4S5MBLPRHG6GSK7Q5S6GY7KCCJCXGR3N3TSCFAGM
+#\\\|MYXKP3QX4FI6RBLLG24E566EVP5TV52F2OHWD6E6O6MQPYYPRFX \ / AMOS7 \ YOURUM ::
+#\[7]ARS4MOENJTJBLQUIJ5IKRJPPH3FGFVQSEBR7MDCDKBDYOAXFQSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

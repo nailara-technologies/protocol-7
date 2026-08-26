@@ -221,8 +221,8 @@ look at cfg/zenki/models/subroutine.white-list for format reference.
     - models zenka unified discover spans invoke + lmstudio via shared adapter modules
     - foundation for lmstudio inference API integration (next step)
 
-#,,.,,,,.,.,.,.,.,..,,,.,,,,,,,.,,,,.,.,,,..,,..,,...,...,,.,,,,,,,,.,,.,,,,.,
-#6RJK23WF4N7BTMNSPZI2UIXFOTEBKWHAJLWT4ZDR5HLWHFTSLLKA4W4HTBUCKQIHEVW5RGSB7UL5E
-#\\\|BOCAGRVLBGSUD4YHBP7NS23A3CXU5APWSZWFFYBRYONOWPFSOFL \ / AMOS7 \ YOURUM ::
-#\[7]EJL5AAXLJRDRZK3QQCQ2WZPHDZAGUEF5ACWAJWF2SXDTLSJJ26CY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,.,,.,,..,,,,.,..,,.,,,,..,,,,,..,,...,...,,..,,..,.,.,...,.,,,
+#E2XBTV46NKDVSIT6VF3S77H3MKLW2YN2SIGXJOIIOA7B2JAZ353RC5WBGKZRCTITCMQMXEHZ57RLE
+#\\\|MIHJULYU4TEUSNLZCV2KOJST4S36DLPUDKC5GAXEVLXR5OF6BSD \ / AMOS7 \ YOURUM ::
+#\[7]3Q6IS36C4BRBQA3PVPEQT4Q2D4OV2SMGNIK65WZ7XTHSVWSC2CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

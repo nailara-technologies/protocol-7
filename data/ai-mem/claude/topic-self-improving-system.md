@@ -48,8 +48,8 @@ could have been given in advance.
 blocked on user input during sleep. the coordination system prevents this
 by making work independently continuable.
 
-#,,,,,,,.,,,,,,,,,,,.,,,.,,.,,.,,,..,,,..,.,.,..,,...,...,...,,.,,.,,,.,.,.,.,
-#5NXSEIJQKI7WOCPYOQBUPNQJUFADLLD2MPFR2RPIZGF3GCDGMV5UPZOCUFOO2SEYFF32TSXOKYNO4
-#\\\|L4T4LSFFVMSLNMHD72P44S7FNUTMYY5RXHKRPIS5FLOUHTGEAKC \ / AMOS7 \ YOURUM ::
-#\[7]7WETYWNNNBQ5HEFOKOCWHSM5QQMOUVJ7JN2OUROV2JZZLLBFAMBA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,...,,,.,.,,,,,.,.,,,,,.,,,.,..,,..,,...,...,.,,,.,,,...,..,,,,.,
+#2KQCI3ZNJMGOPORAPCEXZ5VKNPK3YTVMSSVRZ76BOA5KQWWNNUEMS3VERFF37E7QBJDKVTE6L7NHE
+#\\\|AIJMJIBY7X3C3MGWCKKQGSM6AQNF4ADRFLA3BTN5IIUG6CSPPZE \ / AMOS7 \ YOURUM ::
+#\[7]HEQYMNGBU24YCMWU3VSDUSIETCA5OV55ABH5STX6Q3YLD23XLCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

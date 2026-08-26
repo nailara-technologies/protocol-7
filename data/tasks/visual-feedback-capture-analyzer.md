@@ -252,8 +252,8 @@ p7 visual-feedback.render-minimap '{
 - [ ] peak frames in minimap have gold border (visual distinction)
 - [ ] full sequence from iris.html → minimap.png completes in under 30 seconds
 
-#,,.,,,,,,.,,,,..,...,...,,..,,,,,...,,,,,,,.,..,,...,...,...,...,.,,,,.,,.,,,
-#4I7GSLSI6CSRG6NWALY7ZPVSKOB6VFMP43AQC53CJCHL4VDXO6TE7RCKMUJQFBILNZKNWJMAQXXDG
-#\\\|KCL23TJNRM4TNVQCTHVXMQUQRHI3LQRNPBSGGH74QODNNLDTHNO \ / AMOS7 \ YOURUM ::
-#\[7]5AS7LDBXIJOTMHBPS5UDXSBUY7IGARYOGJO35TZWDCUIP7L6ZGBQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,,.,,.,,,..,,,..,,,,,..,,.,.,..,,...,...,...,,,.,.,.,...,..,,
+#CEC4ULZMG4E3PTAPRDVWL3SGKCASKKWTLV3VJZYYYYJ3WFEISLKZLXBYTSIXNAKPJ7PG3RM5UFEQU
+#\\\|3VY5EZ4YEIM6DDINDYQZKLDWRTOC4DGNLQEZ4IG2YUE63SLWD7O \ / AMOS7 \ YOURUM ::
+#\[7]G5EBBTOIFKJ5SNAVQ6DG7GCGA73CSZHNWQ7GZGOVBL4GPZ3YAICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

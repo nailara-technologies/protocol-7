@@ -33,8 +33,8 @@ opencode evaluation also serve as a natural-habitat comparison of K3's
 tool-calling behavior outside the existing MCP-bridge dispatch pattern.
 Not yet tried either integration path as of this note.
 
-#,,,.,,,.,,,.,.,,,.,.,,..,,,,,,..,..,,.,.,,,.,.,.,...,.,.,...,,..,.,,,,,.,.,,,
-#5NZ7CS6UD2SOSED7WY3S3MQBW2PACPYIPJMDQAH7MZVRFROBEUUEFICWMLJ45FOFPANJGAKI6ONGI
-#\\\|BGMC5IILBO2JVYSE2UGNHUJWJ2HJZW7W6ZPCCCY5MC63S3UTGXK \ / AMOS7 \ YOURUM ::
-#\[7]IJXKB7HYJWZJXKEZ6UI6HSHQFDN5ET4VYKQ3W6BGLOGHQXX5EIBY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,.,,,,,.,.,.,,,.,,.,,...,,,.,.,.,...,...,,..,..,,.,,,,.,,,,.,
+#SYWXFDNUTMOGKXFTWY2MG3VO4JSY7EZWPOMEYRIJJEJYXGJYIWXTDUI2LEJTOAQYDNKBNIOYPPKCI
+#\\\|3HGHJTIDBIE5UB26RY3CZLCS4DH5MGGBODGCPAYX23XOFS2Q6JX \ / AMOS7 \ YOURUM ::
+#\[7]WVTC53LKLX5NNVMBNDDB5N3QMAUZG4LCIZTEJDXWM6KEWRZODCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -207,8 +207,8 @@ p7c web-browser.cmd.load_uri \
 - [ ] web-browser zenka loads TAWS as default start page (phase 4)
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,,.,,.,,..,,.,.,,..,...,.,.,.,.,,,.,,,,,.,,,..,,...,...,,,,,.,.,...,.,,,.,.,
-#UE3WVZ637MKKU2ETVO6JZVVUD7Q3ULJ6WOJYGLVSO66UIPUD4OTCTCFP5TFQCD4LLHYWVZE7KFCLU
-#\\\|A3NF3M3NB4X6PGESFCXCCA3OG6H6HEDHNDHX3HR5P4L57SI7AV3 \ / AMOS7 \ YOURUM ::
-#\[7]RDMVEHXXOWCHJQATRMDRGIUOPKZZT6FMJ7TWLKV63ZGLYPQQ2CAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,,,,,.,,,..,,...,,,.,,..,,,,,..,,...,...,...,,,.,,.,,.,,,.,,,
+#KMRCWNOSJFKVDKXQWMHDUJO4ANQPN7QVJC5KHQZUA26SEB5XDE7BNO3E2EZVJISHAFJPOHHJWV5PC
+#\\\|BRZLSIMWJK2EE4F72SBMOUPPKIKLCRFAKQNCCJIHCNBLNTXXOW3 \ / AMOS7 \ YOURUM ::
+#\[7]CP36GWHHHOS3VQ6LUX7TW5IYKVQV74EY3TBOQCXYPZ6N2FEXBKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

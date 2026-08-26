@@ -324,8 +324,8 @@ coding.llama_invoke:
 - `bin/dev/tests/ml/test-llama-server-gpu.sh` - Test script
 - `CLAUDE.md` - Project overview with zenka architecture
 
-#,,,.,...,,,,,,.,,.,.,,.,,,.,,,.,,...,,,,,,.,,..,,...,...,...,.,.,,,,,...,,,,,
-#27ACH5X3ZGVGJNLBOWBAZ6E2IKCROA3MVHXRVPFJOA3WP5A2ZW56YH6N6TBJZWDVRZP75SI6G6YNE
-#\\\|G5YN3CYZK62W3R2K5DMUD3I3B37H3KL2XCBKQG7FWUULFXOLJPC \ / AMOS7 \ YOURUM ::
-#\[7]WYM33PJVHM3625XLFNNVLRTB466DHDV5R5DGM4QQ2IHLYLUHN6CY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,,..,,,,,.,,,,,.,,.,,.,.,.,,,..,,...,...,,,,,.,,,..,,,,,,.,,,
+#A6YPFK3CWGR3VLWZSQHMD2SQK7CS273GQHW2CE4OCXMX2A46TQRLUC5X6JGLDQ6VIT5QPLK6BTM32
+#\\\|RXDWMUCCEK2R2VDWPTKM6SEJEZDCJI6HVJYDPWRJRIYEXJUSJSN \ / AMOS7 \ YOURUM ::
+#\[7]2E5ZBAAE5O527MS7ISQ6BNLI6JSLWTZIYWO4N7KPECBZHTPJ2EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

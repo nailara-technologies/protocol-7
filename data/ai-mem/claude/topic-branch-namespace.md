@@ -110,8 +110,8 @@ the position while there; node persists after.
 - `base.dump_data` — added reverse_sort flag (default 0)
 - `devmod.cmd.dump` — sets reverse_sort=TRUE so structural keys visible at scroll end
 
-#,,,,,,,.,...,.,,,.,,,.,.,...,,.,,,..,,,.,,,,,..,,...,..,,.,.,...,.,,,.,.,.,,,
-#K2UHLD5U3UI2DSWMHQ6WIXCKU3VQ2667M2O6GQBCGK3ILREQJNDEWGZACPMFGBALEUMPTBVAJ5XVM
-#\\\|PZCQ3OX3YIBVHQ6GJJGNUTBYQS5BFOUQTYYPDRT4NJ5VADVVUHB \ / AMOS7 \ YOURUM ::
-#\[7]ESQITDEMWQCG55QRCNQ2H7ISKPI5C4VD5SPAA24F67NY5LR2TOCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,...,,,.,...,,,.,,..,...,.,,,..,,...,...,...,,,,,,.,,,,.,.,.,
+#EHHYM34TAY34AVNCCNGHZJ24IRCXW3ZD66SRTFOF3KFV6CTGTSNG2H3VDSSWMGGH75PKQ3GD7EVCM
+#\\\|ZW4WW22YPVYHBQEKLVOCGF5DXUMFJLM4U23WWOERRE6PJE2PZYO \ / AMOS7 \ YOURUM ::
+#\[7]FJJEWGKK2YYUN5I263FKU4MIEOKBYVQFGVJFXIV6JUIHEFBPM2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

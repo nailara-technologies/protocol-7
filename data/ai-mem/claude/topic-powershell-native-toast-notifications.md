@@ -177,8 +177,8 @@ dbus/notify-pipeline problem. No scriptable workaround found; left open.
 
 related: [[topic-smtpd-actionable-mail-channels-notify]], [[dunst-notify-zenka]]
 
-#,,,.,...,,..,.,.,,,,,,..,..,,,,,,.,,,,,,,,..,..,,...,...,,..,,,.,,,,,,.,,,..,
-#HNSR65H72UBHG43T4RADBNAHF3GVKB6F7VPLUTZI25IVHV7L7AKEEWYRBAWRFKFHMY533TKOYUNOS
-#\\\|WSKCB6JEM7KYRT3LY4XT3J5RA72RZTINCQ4YYIFYT4QWX2J4NZJ \ / AMOS7 \ YOURUM ::
-#\[7]ZF7GFWNH7IGB7Y32UQ44Z6GW525KKFFAOXHOTSKACZEQK4RIGKDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,...,,,,,,..,,.,,,,,,...,.,.,..,,...,...,,,.,.,.,,.,,...,.,,,
+#7IMRBTFAQOOIFFZTK3V4WTGQAWCUJFYWLS5OBLRV6HRXDVEXOG4RI7LLQBDUBUWXLPJC4LCMTWNKW
+#\\\|NUSLMCPBNOGVRHRSDJALKZV4KLTJNZH6L5R5YTENLS54H5X4BJK \ / AMOS7 \ YOURUM ::
+#\[7]IBONNIELZAHXZVOQAL6LRC2OXKCLNIKVITG6SC6UOXHLY6AVPOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -164,8 +164,8 @@ the existing header comment block and signature footer.
 perl -c src/credential_fabric.cmd.ui-show
 ```
 
-#,,..,,.,,.,.,...,.,.,.,.,.,.,,,.,,,.,,,,,.,.,..,,...,...,,,.,...,,.,,,.,,.,.,
-#EXRYAWLEU3I2LRTXSM4PV4I64AC6HNPAIF7XROQOEZLQS2R7NR6ME3S4JPGVPA2OVY22SGJAR3KHC
-#\\\|RGQHZ4XEOSIV6QAFOQEOVEX5GCYVNKSUIH5SUEP4SGZ6GX4HDN6 \ / AMOS7 \ YOURUM ::
-#\[7]NNWXFMCA36O6DSGQAXLYESN7G6BW64K2NEPH7Y7VDANJAS6Q3SBY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,.,,,,,,,.,.,,,.,.,,,..,,,,,,..,,...,...,...,,..,.,,,..,,,.,,
+#GMFANAMYWH6OO3IMBPEL54MG5FWP2AQ5ZUWEZQWLDQVH3HOQ47XB5EJ34C3DSAIHGAG34XRFYRUOO
+#\\\|GK2N2ZEY2KQDFBBITBKYMYVXA3I5YPKZEQTAMTL4YYNSYENBWGR \ / AMOS7 \ YOURUM ::
+#\[7]BEIITJ4KRNLAWDSENM2BHVSPYJ56OEACQXSV63W5XZXP545WOSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

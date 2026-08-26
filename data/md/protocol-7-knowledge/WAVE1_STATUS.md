@@ -241,8 +241,8 @@ bc0fffd - Add bandwidth optimization documentation
 
 **=^.^= The tree grows from conversation into permanence! =^.^=**
 
-#,,,,,,..,.,.,.,,,,,.,,,,,,..,.,,,,,.,.,,,.,,,..,,...,...,...,.,.,.,,,..,,.,,,
-#HU32K3BPGHIVQJ5NHFURNTKFG5ACXBDAJBJDWUGEWSES5IQP5IPS77XVDZUX5ONJV3MN5Q5VEFSTG
-#\\\|EMWNAMXBHNYZBRE3RYOWYJGGYVLOY5JRWHP2V6T43OTHMTUDIUB \ / AMOS7 \ YOURUM ::
-#\[7]FCMTGFM5JKZ5DMNOOUNKFJE75LDU3YMIJYXO7HP5HXCWBAOQOWBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,...,,,,,.,.,..,,.,,,,..,,,.,..,,...,...,...,...,.,,,,..,,..,
+#7HBE3OF3GZJDGWDQTEWJP5BFXLHPMYQJFVZYIOUGLLXFKUXLSHHFQ4SKWKAHSQZSUVKSSQWPTAGNY
+#\\\|S4Y6SWHXQS5WY4B72MNYUB5EDHV2YHASHR7UEEK4F3HMZ5OLFPL \ / AMOS7 \ YOURUM ::
+#\[7]PI7VXPVFF7GRL3KU2G6AQHEHOJ6DUCUOBGQEWFB3OGMPXHCW5ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

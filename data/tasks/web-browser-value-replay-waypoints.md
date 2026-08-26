@@ -201,8 +201,8 @@ space as ambient substrate, parent-space nesting, dedicated inter-instance
 sync channels including `httpd` zenki) remains open for a future pass,
 not designed in detail.
 
-#,,,,,,,.,..,,,,,,.,,,,..,...,..,,,,.,..,,.,,,..,,...,...,.,,,,,.,.,.,,,.,,.,,
-#6TODOP23BBAFPCHUZXF7OW7PRPFZBWBR6YZ6CW3JEE7PNNTXU6M5NZSTHLS7LL5MONYDRZIKME2MO
-#\\\|BFHAU6CEBSFHPQORMXQDG6MOYPF3SHTDYLF5E5SZ5OX6CQLCBJQ \ / AMOS7 \ YOURUM ::
-#\[7]LV3BPMMEFPSFGSZZRRYAV5MZYGDQ3VVLGK5OTUAAEU6CBMYSQAAQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,..,,,.,,,.,,,,.,,..,,,,,,..,..,,...,...,,..,,,,,,,.,...,...,
+#6VVDE7244R5UIR7EW3QTXOAPHYBUDEZD6J7XNUUN36XFYNL2LYYGJ6M4T2PCM2KT7I6TQ42CZQTOW
+#\\\|UGRABVUMLUDDRM53KWKYCHLDPZQGW2HCRGGZHXJAHL5Y7B66DZD \ / AMOS7 \ YOURUM ::
+#\[7]RL37HBXNC5CLJEAON5YYVYOTBJZFCNEFHV2IR7LNUZTNLFMTSIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

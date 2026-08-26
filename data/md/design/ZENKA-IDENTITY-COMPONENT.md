@@ -264,8 +264,8 @@ per the umbrella doc's question 8, checked before adding structure:
   (ai memory) — ground-truth inventory establishing that delegation
   needs structure, not new primitives.
 
-#,,.,,,,.,,.,,.,,,..,,,.,,,.,,,,,,,,.,...,,.,,..,,...,...,,,.,.,,,.,,,..,,,.,,
-#EFSI4RPGZ3MUFJXBKEDIQ6NRYIXTSUOQZUG2HBDR7332L7OZ6RX7WKFLDOBYSA2NMK4DMUONMA6SE
-#\\\|ZGQAQBXFAQHEU2NTHBXCHQYFRLAXWBLNWBGASOPRORNOBNGQ7ND \ / AMOS7 \ YOURUM ::
-#\[7]TFL2KODFIHPLLBL52IE7XSEAEWQX5FOZEDDCUO4QWCEZBCO35SBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,,,,,...,...,..,,,.,,,.,,,,,,..,,...,...,...,...,,,.,.,.,,,,,
+#4O7PSZ3LZB553PJSUM6J2VZCXKNRIWZ7DPUDC7SHI6SEQLT3FO5X5AXOF3GED5QJ3R5HWT3WAOHIU
+#\\\|AZXCAMZUUHV66LGAQUXROM3K4LD4KNZ5P6WBDB3EU3GK3EKTPQM \ / AMOS7 \ YOURUM ::
+#\[7]XHJKTN6YNB7O6OIA3RJHGK2IG6PXW4IUPZXT2TG6VE6JGCSL2ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -267,8 +267,8 @@ the strategic layer moves native immediately.
   the network's visual memory cannot be arbitrarily reset; accumulated style
   history persists outside any single node's control
 
-#,,.,,,.,,,,,,...,...,...,,,,,,..,..,,...,.,,,..,,...,...,...,,..,.,.,.,.,,,.,
-#QHYCFYCTSPH7VERXJ4CUPGLAE6HO2AGNGQ6JE3UVEIUEXKXCVMIU6YOLDHSHD2NBKX3EJ2QELO6U2
-#\\\|AH76HS6ZBGAQ6LWVPM4XW42GTRDUYIKL42U533XR6W2IQZK3K3C \ / AMOS7 \ YOURUM ::
-#\[7]SRE2QRYNWWSWFTNGW6RRHQSCEVLLHHW5YKHFWWPDVBZS66R26QAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,,,,,.,.,,,,,.,,,..,,,,,,,,,,..,,...,...,,,,,...,,,,,.,.,,,.,
+#J2L3WDGKS62N77JWKQ3DQW4DTFGPEXEWJZ7C3NR2ZBAVSDWKOHUYWK45GTID3YXGZTVIV7C4I6FL4
+#\\\|W7TKVVYQARUJOILBWSNYA2JGVCWLDLGVLNMJM5JX7K5AQWCO4X3 \ / AMOS7 \ YOURUM ::
+#\[7]UR2V3GYGOV7NDA45UZTCKVEXSR2PYBAR3LK534PJLS7SVLLLBICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

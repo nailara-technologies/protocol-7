@@ -590,8 +590,8 @@ given everything now known:
   `AMOS7::SHM::*`, **never** `base.*`
 - guard any timer with a fallback interval [ undef interval = max-rate loop ]
 
-#,,,.,.,,,..,,..,,..,,,,.,,,.,,,.,,,,,,.,,..,,..,,...,...,...,,..,,,,,.,,,,.,,
-#H447ZJPWJQG7LTKGR5QFTBJY6QM7GZEXXWCTRK64NLIBZQI6JR7KOX7I3BFR2OCF4OORRKG2EHTAE
-#\\\|YTPBGV4L3NA3W5BUWLBEG65MHZG4YOXMXJZVKBOQA3Q3EGMGDVB \ / AMOS7 \ YOURUM ::
-#\[7]GV5UUTFJG65UQYAVXH6XS33RK67R6G2BL64MFTIAGRL4BHA726AY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,..,...,.,,,.,,,,,.,.,.,..,,..,,...,...,...,..,,,,.,,.,,.,,,
+#JXOLXQI5M6JDA6KXA5C2IPKIGQ4Z4KAFX6VSEFFMDGCHMKDM4MUVON5LB5AZMG6YILYA4RUGQVVCA
+#\\\|DXPZB2EJ3ZD4LQAKTSDXCX55ZTGI3YWERI7AZ46SEHIKIKCM5Y4 \ / AMOS7 \ YOURUM ::
+#\[7]I6FC4HY7P3IDCC22UUI7QCFKCHV4BN3VUQRZRZTEVP2OF4QN6SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

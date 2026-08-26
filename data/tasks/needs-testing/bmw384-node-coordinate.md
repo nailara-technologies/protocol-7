@@ -92,8 +92,8 @@ thin wrapper returning the compact string form.
 - lowercase comments, [ word ] bracket annotations
 - no use statements or pragmas in zenka modules
 
-#,,,.,,.,,.,.,...,.,.,,,,,,,.,,.,,.,.,,,,,...,..,,...,...,.,,,.,,,,.,,,..,...,
-#QD462HCKG5YRILKSAJRK344TXGIY3GUHB4RJYSIZL47E52WRACPAFRNZC7SJIL2AGBNRXG5LWTWMQ
-#\\\|ZIT4R4RZEZPWITFIXLLIESGQBQ2RLLBX5UNYORU4WEXVVGHQLNK \ / AMOS7 \ YOURUM ::
-#\[7]GKLAKJ2GDZB4HDU5OQBEN5IFJEGCVLBY2EZDH6YZLA7AQBSE6EAA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,,..,..,,,,.,...,,..,.,,,,..,..,,...,.,.,.,,,...,,,,,..,,.,.,
+#YHH32PY7VDFR4Z5I3GQ5SNF7XW3X3ZS7WSGXLYLLWVF2I3FZ3PZX32XLA6EPTAGSJLFWHQGXUFK3Y
+#\\\|D4HT45H2H6QSLMAR2M7RN2B26HVLFCVMKQ6AOJBEZGJMBZEV7M5 \ / AMOS7 \ YOURUM ::
+#\[7]VUIWJE3PZMO4IDYLEFCLUXO5MWDGY4CHE4Y2XMI2TIKQWMEJJCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

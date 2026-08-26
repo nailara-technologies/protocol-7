@@ -221,8 +221,8 @@ once the X-11 window registry STRM system is implemented
 can self-register its XID with X-11 — tile-groups can then manage placement
 of individual views independently if needed.
 
-#,,..,..,,,,.,..,,.,.,,.,,.,,,,..,,..,.,.,.,.,..,,...,...,...,,..,,,.,,,.,,..,
-#2SRAKHD3N6PPST3IZM366DQB36O2PVCSUH55L6JTDAFU73C5NKXQNCN7USPXM2SWBYR2K6UHPN422
-#\\\|S64ONGRLVHV2BDZHD3GISJH7ZZJXBDSRX7HA6XCTNUTZZKLHVD4 \ / AMOS7 \ YOURUM ::
-#\[7]TMQOM7OI5OL5FMIPGTWKWYTWIM7XFY4QYVJWDSDXU5SAFFUMWQDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,..,,,,,,...,,..,,,.,.,.,,.,,.,,,..,,...,...,...,,..,,,.,,..,,,.,
+#I6N3UNPNDNNJBBUTVWXQFSCLFU4RJZMFX3RNWOH5UIPDQ2ZTPQZC7CIIKHR5G2U74YA2V4S572YWE
+#\\\|ESH6CKJKPJCXNBGDHXIVYELX4NI3CQL5F36XXIKC6NGTCMZXVIA \ / AMOS7 \ YOURUM ::
+#\[7]YP6SOE4C5UV52X7HO4XXWAVHKMYOVLBRTPHI4NOLTWOCXRS2LUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

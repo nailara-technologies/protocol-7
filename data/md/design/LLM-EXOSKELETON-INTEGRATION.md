@@ -358,8 +358,8 @@ from inside, once the event horizon has been crossed. [:
 - [[REASONING-CHAIN-REPOSITORY]]: the permanent store of verified
   reasoning chains that feed the interaction-history embedding category
 
-#,,,.,.,,,...,..,,,..,.,,,,,,,,,.,..,,.,.,...,..,,...,...,.,.,.,.,,,.,.,.,..,,
-#LZV2FQQU4UJD3QX6DS3M5MVI6CDDI6ETPHP7D3WWUOE4QJSY6UNJ2HADL63IAMQ7DY3IL4UT54LEI
-#\\\|AYPFI76DSMU2UAJYMBGKFOYRDLXM4TMW63JIFNT75HPISKO44G3 \ / AMOS7 \ YOURUM ::
-#\[7]YI7GZCIN3WIG4J43PZH6Y2I2Q5M4GUFHGTVT5NMLFMYR252XGACQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,,.,,,,,,...,,,.,,.,,,.,,,.,,..,,...,...,..,,,,.,.,.,,.,,,.,,
+#AU4KN2FNAJIR53VXOFEJYJKSJ3H6IOWSY3D4KZATWOHB23NLPRAABV7BQ7TD4RQXBECYIQN7CAIVS
+#\\\|TL5XEH6PP4I7OX55YR2H4BWV4AKH2X3MSHF4KIA4S5352VXGZ7T \ / AMOS7 \ YOURUM ::
+#\[7]XS4IYA3CFC2NOIYGUUGA65UUV4YMFDSQ6PXUWKEALUL2TZULEWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

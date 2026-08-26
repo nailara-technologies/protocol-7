@@ -41,8 +41,8 @@ next thing to teach about `base.mod.exists`-gated `call_optional`/
 `call_expected` if this eval→pattern migration continues across other
 files — not urgent, flagged by the user as "complicated."
 
-#,,..,,..,,,.,..,,,.,,.,.,.,,,,.,,,..,...,.,,,..,,...,..,,..,,...,.,.,...,,..,
-#UCQNNA2YZPUUMG6YTRYCPMWEIVQAP7ACQEL4JDQNWDAGRNMNXCWMTTALFAEDWWMQC7ZYQDTX2BY46
-#\\\|ZWJI7QSRDCZKYB67APWUTUWQIQKBV4UIXVS4X3B5Q66WFPCDORO \ / AMOS7 \ YOURUM ::
-#\[7]NCNMVORYAU3PSVTF3RLT7QA2JRHYZJICZJR6N6AAWL2AXSLIXEBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,,,,.,,,.,,.,.,,.,,.,.,,,,,,.,,..,,...,...,,..,.,,,..,,,,,,.,.,
+#DJ2E6BM5N3VRLESTEPTM7GBY6WY3RNGNYFBPOMMCWLDVJLIXICN2O2RZI6NN3TADPTCRKDDWKOTOC
+#\\\|2SM6L44XOPJXZ3RQHYMXUT4WAJCD5HNDUXPWJNOAFO65GLJABCH \ / AMOS7 \ YOURUM ::
+#\[7]7C3PJKERBDLPQXPR6BTCEYMNAB3RGVKGE3HPEVZAV2JOVQDT22BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

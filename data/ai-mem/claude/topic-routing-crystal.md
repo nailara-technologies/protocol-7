@@ -65,8 +65,8 @@ through a crystal with sufficient harmonic memory.
 the full zenka network = this crystal at scale. each node group = one facet.
 collective harmonic memory = sum of all cached route patterns across all facets.
 
-#,,,,,,..,...,,..,,..,,,,,,,.,..,,.,,,...,,.,,..,,...,...,,..,..,,,.,,,,,,,..,
-#M6N6MFUUPYE4VYV5BS5JZ4DKKZQTZ3KF3PHPVMQA6LRBT6O5F6PA7NUGJNTSCXYNNJWKYKCQ6VWO4
-#\\\|RUUINLUTANLNPKX6CBKFREHSC6G5OMADGAHPF24UHT7CCT6QMJC \ / AMOS7 \ YOURUM ::
-#\[7]CY7FUZCXGUI42IBJTLHRSFEHIQLXFEGJX4EKL5CMNNLLLIJXJOCA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,.,,,...,,.,,,.,,..,,,..,,.,,..,,...,...,...,,..,.,.,,,,,..,,
+#KC2NUIOJXAZMC43WXFWMV75HGHCIYBOY5SU2PE4ZIKIHICUCV2Q2AGXSF2T7A2GZGUC4PI4V37JGQ
+#\\\|XJISYBZPBGV5YI2KZO3UJP4BKSALTXCZ7JYOS4V2DPL54NRLOLZ \ / AMOS7 \ YOURUM ::
+#\[7]SKOQT53GOVR36TCJNJ76LMSHLAGXODTIUH32BNVKX3ATG3LTA2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

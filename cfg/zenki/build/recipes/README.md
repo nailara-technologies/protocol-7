@@ -146,8 +146,8 @@ every run writes :
   installed artifacts [ via `base.chk-sum.bmw.filesum` ], install paths,
   recipe name/kind, timestamp
 
-#,,,,,..,,,..,,,.,.,.,..,,..,,..,,,,.,,,.,..,,..,,...,...,.,.,,,,,.,,,.,,,,,,,
-#X6KHUSN2WVKKUXU7YQLAESCKDEDSY6OKMGPSIQXE6F7SCONKVBIFXAT47NIB4O4HXHNTLS6XFA6ZG
-#\\\|6V2GVUC6VNWVXX35VY2YOCIUXFVLH5CBPT3MZ3I3TFXEGVT4HJR \ / AMOS7 \ YOURUM ::
-#\[7]R54EPR5AYN6HBYNC55CAK45ZSJWNPNBPGQK4NYI6VQWBIUVWXEDI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,,,.,,.,,...,.,.,.,.,,,,,,,,,..,,...,.,.,,.,,,..,,,.,...,..,,
+#UBANPKMK4UG27ACZZW4BPQGPPEX5K7AGJRGOW453DFJS2QGT2HAIHU2UHPGYQCH4PFKBQ6NDZSNEU
+#\\\|74NXTVB4GEVLWQQMUMFFLSUK443YL53CGDSMOK77P2YZP567CT3 \ / AMOS7 \ YOURUM ::
+#\[7]YR4P2GX76VUBZIARCJ62RT3EM2OBBVJEXYP5AGGSOQNYHVKWCCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

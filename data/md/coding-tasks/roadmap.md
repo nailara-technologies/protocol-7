@@ -133,8 +133,8 @@ items are loosely ordered by dependency, not strict priority.
 - [x] zulum→decoder entropy wiring
 - [x] kimi-web websocket client zenka
 
-#,,..,...,.,,,,.,,,.,,...,.,.,,..,.,.,,,.,..,,..,,...,...,...,,.,,..,,.,.,...,
-#2ME7RMY3U6PHEEXP7K3CGGOUFTYWFELJWRJY5X7USDSH47PEZSRCR5YMVCIO3FIBR6IN6JMSLERG4
-#\\\|JE4VPYPAHE7P6FBDIFXCX6KHEEZSOULLOWVOBTPUSUUI6C7TZQX \ / AMOS7 \ YOURUM ::
-#\[7]ARQOMFOVFFEN6PA3JKTWVCRUAGBFPZEMOBUQLT2THEL4IOM7PMBY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,,,.,...,.,,,,,,,.,,,...,...,..,,...,...,,,.,,.,,.,.,.,.,..,,
+#GP3R6NOHRHVM2FOZDHLJ5YCEU7CYSDIY2EJ6VRXO4U6M7R7KZUBMMTQP6PYTKJMHZGIVUJ7FQ6HH4
+#\\\|YD2HAKSSUNQHLOYNMSLGM6HZ3EZLJHVQAHOMOECUZQDMNKIMS4K \ / AMOS7 \ YOURUM ::
+#\[7]Z7ZHYNFL2VPDVVWJIYW7GS4K7WMESZODMKCLQHY6QFLTNBGQZQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -101,8 +101,8 @@ if no actual floor depth available, generate synthetic data:
 
 new module: leave clean. existing: re-signed on commit.
 
-#,,..,,,,,...,,..,.,,,,..,,.,,,..,.,.,...,,..,..,,...,...,.,.,...,,.,,...,..,,
-#2F63ZHPK5IQHLYBDEKUKFBCC3ZGS5HORJBYBV74WCMIDDDMMPP74HK2VZHSFAA57SSYKXJAIA6PTG
-#\\\|GKO6FXMCWMYLB7FRZ456VBIG55BU4WOTLFYWMYZDAQ6RCGMFG3K \ / AMOS7 \ YOURUM ::
-#\[7]6BE67QRABEZYJ4DL4MEVQXFENWIG2OBKT6FCM72ICYNLCARLG4CA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,...,.,,,,,.,,.,,,,,,.,,,.,.,..,,...,...,.,.,,,.,,,,,.,.,...,
+#5WM76B76ZVET63WW2CRAY7Y6Q7VN67HUI3IR4RP4J2IPZ3EERWMMWUCJQDUNS5EL5XXZPO3ZQGP5W
+#\\\|KZ65YFFA4ERTRENLWDSBHNNT3J64TOIMMLWY3KCCV2QVXBT63C7 \ / AMOS7 \ YOURUM ::
+#\[7]CRJAJYQVYYEYQ72JE75CKJBHAYL5DU3JOAONQ7UOGLARQWOFXYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

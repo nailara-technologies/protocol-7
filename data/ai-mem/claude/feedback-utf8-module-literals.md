@@ -13,8 +13,8 @@ Module source files are eval'd without `use utf8`, so non-ASCII literals (—, �
 
 **How to apply:** keep all sprintf format strings in modules ASCII-only. the test script at `bin/dev/utf8-sprintf-test` documents all four flag-state combinations and their outcomes. the correct fix (case 4) requires both format AND args to be unicode-flagged — a larger change involving `utf8::decode` at the network receive boundary.
 
-#,,..,,.,,,,.,,.,,,.,,,..,..,,..,,,,,,...,...,..,,...,...,.,,,,..,..,,..,,...,
-#EJ3MFAZHMY4RWLNRWLPM2NYUHB4JXEWKZ44PVIFGIQDMQOZ4NVHHVQQSB73H45TTF5CRCS2DT5JHO
-#\\\|XC4AGPD7VV4G6IBBWWCFYIEROIDPNJ3VDMYQ7YYT7GF3GCVZ26S \ / AMOS7 \ YOURUM ::
-#\[7]E6V6B3S3A7YA464NSUOB3CAOQG7A2RBC6DVV736VWVTENG7LQKDA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,,,.,,.,,.,,,..,,..,,...,,,,,..,,...,..,,..,,,,.,..,,,..,,.,,
+#AN7RRVYVNKODHYSK7CS3VVBDZIAFW2ETC2LP7OVJTHRS2L4NA4UM4YGX2TNCI6RDMK27QKSWCYGUQ
+#\\\|YVJCHTPIFJB2LUVGSIG7PDGGII7MA4PLRLCN5LE2JSANNB7W4X4 \ / AMOS7 \ YOURUM ::
+#\[7]UGBVJRFCYMDRTY3UCDBVDVPJ4BGHPN23NKMY5KKJXAO2QRR7OYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

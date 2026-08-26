@@ -230,8 +230,8 @@ cleanly regardless of how many commands are present.
 - `-no-config` / `auto_start: true` flag for automation / headless deployments
   should be addressed in phase 5 alongside the args interface
 
-#,,..,,.,,..,,...,,.,,.,,,,,,,...,,..,.,,,,..,..,,...,...,...,.,.,...,,.,,.,.,
-#JD75W4Z3CKYEBUF3Z45RYZQMFEXSLRRVF4JNIIUQYMR6ZTO3HBLCIC7CDO52I6DSSJFCINDAJDZGK
-#\\\|T54LYXT4VKQ6D62XXLQHC4A7LQFCO5OMB47FLSHPYSJQJWCX2RC \ / AMOS7 \ YOURUM ::
-#\[7]Q2QN3UTDMHSAP742NDEMAYPAYOBZZDDRYS6YPS7KMJDIX4O36KBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,,,...,,..,.,.,.,.,,,.,...,,.,,..,,...,...,.,.,...,...,...,,..,
+#47IM36ZA42UVR7QNUJ7LJABKCOD7QKCCGBOJXTGX6UFGCW273PYER5BRCVFF5E7TNE42563ATC5RU
+#\\\|G5TBF25ASIB3EAHPMKNK73UMHLOL2RODYTBS7TBGNK6MSZDDYYJ \ / AMOS7 \ YOURUM ::
+#\[7]PRYRKG4TGMLUZYBB6ATI5YNYLBPM4SRP77WI34J3VPRCK6PO3CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

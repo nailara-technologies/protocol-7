@@ -116,8 +116,8 @@ This principle represents the intersection of:
 
 When these three align, you have discovered something true about system design itself.
 
-#,,,.,,,,,...,,..,.,,,.,.,,..,...,,,,,,,,,,..,..,,...,...,,,,,,.,,.,,,,.,,,,.,
-#RX3FM4RFBW2OXV5TQEYUKM6O47XV7CNWGSQCFK6AQ747B2ELRM2ZFNDMITKUHAHBCH2GRICEMSU5M
-#\\\|LQGFVH63SDZZQFLETHCDDGGGRJVXH2MSTUOPYTA6HFJS5DALHUG \ / AMOS7 \ YOURUM ::
-#\[7]77ZHCS4S3BBYUEUYCA4AREGVR632QYOR63T47EZAD7BXIUGEMMDQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,..,..,,,.,,,,.,,,,,.,,,.,,,.,.,..,,...,...,...,,,,,.,,,..,,.,.,
+#63UVMPBDYMG5XU4W4ZQWRWPECT2RAM2FGOV2F2JEZRIEUL2ZRTYIP76MTUWND5IL4LXQAJZMJGHBG
+#\\\|3Q75V2QEPQ4QFDKD3GM47SOHG2JENZBYLIHUPOZ7YRDVFNAFUGW \ / AMOS7 \ YOURUM ::
+#\[7]64JHGTZIUVBYDESYTLFZZPHQLJLP7C3NH24ZORBZNY5WXUR6AYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -253,8 +253,8 @@ encryption_key = AMOS7::13::key_32(\$shared_secret, session_id)
 **Last Updated:** 2025-11-18
 **Status:** Server implementation complete, awaiting client support
 
-#,,..,...,...,,.,,,,,,,..,...,,..,,,,,,,.,,,.,..,,...,...,,,,,,.,,,,.,...,,,,,
-#MI2Z7HDRFY4QBOAWVTZA6UUS5MJQW2FTLY3BZVOXQT3HFZDH2CYSMVIBWD3M4K2GGTVKMKUORPBMM
-#\\\|XUWVIK3YZRIR7KUH5WFNHFVT6DMSBNHZ6H53AXGW3XUEJRIUTYZ \ / AMOS7 \ YOURUM ::
-#\[7]27HS6ZSKL5E3YD3R2BSFXBY2AUQMLYJTL3ENJHRURSWU2TKXOIBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,..,,,,.,,..,.,.,.,,,,.,,,..,.,.,..,,...,...,,,.,.,.,,,.,,.,,,..,
+#77IO3RLSBY2XEF4YZNLDY56TFF3Q7DDLTA5VERFEFZ66BFDQRUEK5TWMGZWYFMPSOW5F3SGZ3Z3VS
+#\\\|OKDV7LFWEXZIUR4VABVZWZKRVK7UZZCGWHAHDHBPJM332YKGVNG \ / AMOS7 \ YOURUM ::
+#\[7]KPHBBDSM4R3IQINOM64KZZOVRGKODBWIXP4FRKKLNZE7Y762WQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

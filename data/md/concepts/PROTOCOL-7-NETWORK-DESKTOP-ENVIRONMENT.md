@@ -195,8 +195,8 @@ The result is a desktop environment that exists wherever you need it, scales acr
 
 #,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...
 
-#,,..,..,,..,,...,,..,.,,,,,.,,,.,,..,,.,,.,,,..,,...,...,...,.,,,.,,,,.,,...,
-#7SSAPSXHMLRE3DYIM3Z4CFM66IFF6WBKWJMKALRW7XUQTBDNNC2CAC6E5J2E2BMG5CBCZO767ADQG
-#\\\|ZNAZZQYLBE457CZ2LZI4FUGHTIQJNCSJBYVAKCNA3DLPP53WPUQ \ / AMOS7 \ YOURUM ::
-#\[7]TUCTLPYBPSKPPFEWVI7N6XPMFP2DCJF3F3SDPJ6Y2KLQUPC3TODQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,,.,,,..,..,,.,,,...,...,,,,,..,,...,..,,..,,...,,.,,,.,,,.,,
+#SD2MV5ENVBC5BKS34MLC7ZRKEODQO5MEG2ISU6C3O2S7TXBIU6L535YFCCB3PJ4FSRN4GAW7QPPFI
+#\\\|VBRKH2Y5HGGBWOR52PBOSXOBWFLSTSGQJXWSF6BCBU3TCDYF2LJ \ / AMOS7 \ YOURUM ::
+#\[7]UKFGWWGPXYZC76XH5SFM533TTDLIQZQS775B2KBNTC5ONKRUKKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

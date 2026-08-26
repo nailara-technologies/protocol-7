@@ -225,8 +225,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 the visual is the truth assertion — trust what looks right
 
-#,,..,,,.,..,,,,,,.,.,,,.,,..,,,.,..,,,..,,,.,..,,...,...,...,,,,,,,.,,..,.,,,
-#UMZETU25NXOENZAYPE5J2WHKMK2THE5DJIR6IMBYZRWP5OPOED62DIEZD4QTYSLQQESHTQTFHGPYW
-#\\\|5L4UDUZQQUH4WTSOV7S5SPOFSG4IHSSA4UYEXPTHK64EZ6LJY3D \ / AMOS7 \ YOURUM ::
-#\[7]Q6QMI7VN537KGPFU2M4GRD3HMI4UWZB2KXRAPKDORKE5ZVXYB2AQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,...,.,.,,.,,.,.,,,,,...,,.,,..,,...,...,,,.,,,.,.,.,...,..,,
+#FRUDPR4WYB4XNISMYMQTMN4X34O2ADFXPI75XK7ZHUGGJM4T6RAFFBAOGBCTDGPVYK5OYNJZ7BUUC
+#\\\|FEDA4N6A2U5SB7H4TOWJUJNYBRKFE374PBWZBZUZ4WRHJZEQZNJ \ / AMOS7 \ YOURUM ::
+#\[7]53WIOF5K5RLL6BO7SY72TCQRT3X4RY25L54D2U7OI2HAPE7ZWMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

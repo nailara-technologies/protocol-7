@@ -67,8 +67,8 @@ including the generic real-signature extraction pattern, which reuses
 - `git stash`/`stash pop` touch only the pathspec'd files; ai-mem dirt from
   other sessions was left alone.
 
-#,,..,.,.,,..,...,,.,,,,.,...,.,.,.,,,...,..,,..,,...,...,...,..,,.,.,...,,,,,
-#TYNN3G24KQKCKKXTMLUVQAVVAF2R2ZRIMLQ2M6I5YBNIHZJMQ5C6TQNQKCNYAH237YW6BELJGKFUW
-#\\\|R2EUT67SGTC7XKD3N3PRGXIM64QNKONQ74LE4S6X2TN4AMWQVCO \ / AMOS7 \ YOURUM ::
-#\[7]W5H47NIJQCTXBOLESO6RRP3HNBUH43MKMOYKJ44DI725U7HJLCCA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,,,.,,,.,,..,,..,.,,,.,.,...,..,,...,...,.,.,,..,,,.,..,,,..,
+#5SMCQHOVS7XE7Q6CUHFELRSSKCZQAU3WAGXQVWYGWXEAMYIB2AFJOMJB2XIQ2V5NKWPZJYCFIGILA
+#\\\|NUM6OODF7ZHMUPYKTI2PAK2XH7FC536YSVKXSSDNHT4EKE3LCUI \ / AMOS7 \ YOURUM ::
+#\[7]KXVWIA5ACRCAGW35YRM3HM66I5ZAUWAOKSHTMSJKJT24OXXB4YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

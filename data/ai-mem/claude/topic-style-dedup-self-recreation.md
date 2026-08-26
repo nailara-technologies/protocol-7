@@ -73,8 +73,8 @@ vision (task-queue autonomy — a parallel, not identical, self-improvement
 axis: that file is about *coordinating work*, this one is about the system
 *recreating its own code*).
 
-#,,,,,,,,,,,,,,.,,,.,,.,,,,.,,...,,,,,...,.,.,..,,...,...,...,..,,.,,,,,,,,,,,
-#7IHNFGEUCEONPKITVN3W3M22N2APS2VZFUCK5JWU5RZFZ3X6P4O6DQATLGNV2FBI7CV4MJQLZ4JSU
-#\\\|GTV2HURVDV5D6WVG42SIHRADTUP22RE7XY3ASVNQH4RFGSBXO7F \ / AMOS7 \ YOURUM ::
-#\[7]F75YSPG2ZWCOHL2FF3KPRQQFVXCLQJ7WDABLZSVCWHW3H7SR4KBY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,,,,.,,,..,,.,,.,.,..,,,,,,...,..,,...,...,.,.,.,,,,,,,,,.,,,.,
+#7WB4E3RS62437GROHUSI7DIU3EXJUO33SD4YMTDFIY2EV7KUZYHLOLHKZDNB2HOC6ZODXA4GFD27M
+#\\\|AQUZN3PIQWRJITMXRNWPH24JLT7MGI6TRHGLYH345KYSEJMH6WK \ / AMOS7 \ YOURUM ::
+#\[7]64ZE3P5LCE3JV4TGXWNGNG2DUQGHHGKTOQSFVJ4FQRZ37K7U6GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

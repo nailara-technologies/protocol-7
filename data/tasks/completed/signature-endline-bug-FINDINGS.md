@@ -156,8 +156,8 @@ diagnostic otherwise.
 `data/test-scratch/osc.md` ( oscillating ) , `ctrl6.md` ( stable control ) ,
 `realshape.md` , `test.markers` , `test.trigA` ; `src/test.trigA`.
 
-#,,.,,.,,,,,,,...,,.,,,,.,.,,,,,.,,.,,,,,,,.,,..,,...,...,.,,,,,,,.,,,...,...,
-#X7QJSG6M7TLPD6IZICEWNC7TCPQ7K7IHQTASWLBNT2YFRRIWTFZ2FYA6SGGT63SUZNOVNNLOCUCD6
-#\\\|NBFEF7BQFOC3WTBCZKJBODEL272BDUMYNRKPGIMWYXXOCNY542Q \ / AMOS7 \ YOURUM ::
-#\[7]KVI2WJK5IEODVWERAFT6UHZGRDGFAKG7VX52RLU4YBIXZ6P23IAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,.,,,,,.,..,,,..,,,,,.,.,..,,..,,...,...,,.,,,,,,,.,,,..,,..,
+#CSQUKMXAKGXL3XGF4HBYRFECWG4DMLMLTDF32XPIVGP3F2KKSCKNYF3RKA5DENEZC5BPHLIF5ROSI
+#\\\|RJS5VZNB7G5VZ3MTTZDBQPB7FNJXGRIGFELBNX2ZKKLDU276RGC \ / AMOS7 \ YOURUM ::
+#\[7]VK4VRZXMMYJ2O2SJYXO5YZMDJAPEHFFADB3CATXR2TM77PBHUYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

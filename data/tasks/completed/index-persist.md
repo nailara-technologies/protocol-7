@@ -164,8 +164,8 @@ add `index.persist index.restore` to
 - the storable file will be ~10-50MB for a full data/md corpus
 - index.init_code already loads the path config before this runs
 
-#,,..,,,.,..,,.,.,.,,,.,.,,,.,,.,,,,.,..,,,.,,..,,...,...,,,.,,,.,,,,,..,,..,,
-#GXAN2OROHJBFPBRQ34QUZZB5PX4HP2KEGC2LRXNTO7NJMWR3IJG63NB5YCTYLIJGNJVYSECVDREM6
-#\\\|54NFQ6XCR7Q4T66WTLCJGJE3P4DDXU4A7IA4PV7GSPGVK6J2M4M \ / AMOS7 \ YOURUM ::
-#\[7]3XV23D6URRGS35WO3RYVP4FN2SDRVYXFW2DBMDYFBUREKTM26OBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,.,,...,,.,,,..,...,,..,,.,,..,,...,...,...,,,.,..,,,..,..,,
+#3ORAW7C3DXJQPG7USZDH4MSZOPWGL3N7CYV3TSFGX6Z4VLA3LRGXBQCLNBIDQHZNTHT5UDSTIYUWK
+#\\\|NHTIQTAYV3TP3XLYABAP2Z6MO6S757NEOMQ6OS7Q24GKGNCP2CX \ / AMOS7 \ YOURUM ::
+#\[7]4YAYCZXHTKYQT47NYJOKP6DS2BGE3OUMYGZQDTCIN54ALPQUT2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

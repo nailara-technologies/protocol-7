@@ -106,8 +106,8 @@ until the forensics agent is live — do not scan without a consumer.
   (weekly freshness, see security-intel task 2.2).
 - no external AI calls for enrichment — embeddings + local models only.
 
-#,,,,,..,,,..,,,,,,.,,,,,,,,,,...,...,,..,,..,..,,...,...,...,.,,,,.,,...,.,,,
-#TJVKQXA7BHDQOMLM22PI2GETA23UUJSSRWUJSIGJ35UU4WMOSGWEVOOOXTWI4BGDHW3ISHZPS6D7K
-#\\\|YFYEWTA7WP72CTGBDNGWMXC7N4G5SZM7J3TXPEIYROWKUKSELGC \ / AMOS7 \ YOURUM ::
-#\[7]PJASAGIVE6VTZZOT6QBK73EBHEZRDM2PFSWM5N4P2IXVBCOC62AQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,..,,,..,..,,...,.,.,...,,.,,..,,...,.,.,,..,,,,,,.,,.,,,...,
+#3HV3YA62QDMQ5DCKOYCVFEGFY2TK2YDRZG2JXRAZWDK3HGP32WFJOFT54XGCUFIVTURQ4YW6PJUPQ
+#\\\|55H42F5N5U4T3MW6DLWOJX4KM42QV5ZPNVZWMBOCPPUY24VXO57 \ / AMOS7 \ YOURUM ::
+#\[7]TN6BDZZSCA2EB5I3PJYEEGISKM2IKSRHBCV5I5LJBS3S6MTYLQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

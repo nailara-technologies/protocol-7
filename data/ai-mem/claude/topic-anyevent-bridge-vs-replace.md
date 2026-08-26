@@ -140,8 +140,8 @@ preserve exactly this seam, not just "watch a variable" in the abstract.
 [[feedback-base-prefix-stripped]] (the swap_subs mechanism + the scanner
 false-positive this stub currently causes), [[feedback-swap-subs-not-fragile]]
 
-#,,.,,,,.,,,,,,.,,.,.,.,.,...,,..,.,.,...,.,,,..,,...,..,,.,.,.,,,..,,.,.,.,.,
-#GFA2RHOCRVF37UALJJUTED5KAE7ZXSUNXCXEAONNY4PAIP5B4PHNPJQ2YFCUS5T7CTJXNULPGDOBY
-#\\\|OM4J53DHU5SV5VALWTCUL3ZVRLFHU3WTDGOF7STIX7ZVAWAV6PX \ / AMOS7 \ YOURUM ::
-#\[7]7DFQVLMWGQJMHG7MENFKS7PGMI7TBKS4OSZE4A75BTI63HLWMUBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,.,,,,,,...,.,.,.,,,.,,,,,,,.,,,..,,...,...,,,,,.,,,,.,,,..,..,,
+#6GQJC3NL24PSQDC2O3XJ5B7VREHUP2PWA2AQJHRA4FMNDKGXAGTCFJ6JP2XC3MPNOZWM6YPIH6NWO
+#\\\|HXVPAZJA2NRRG5FL6QPPPFW3D7GDPWELOMDQ3YI4HF5JVRCG57A \ / AMOS7 \ YOURUM ::
+#\[7]YTNYPEMSOMUP5LQ5NYPLAT76BRXNLP3DIVOF6HRMIQMQSMZRQCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

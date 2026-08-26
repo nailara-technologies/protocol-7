@@ -2750,8 +2750,8 @@ recognizing what it already knew.
 - `topic-namespace-tree-intelligence.md` — tree as intelligence layer; orbital position is
   another branch in the unified namespace: `client.<id>.orbital.{theta,phi,psi,omega,phase}`
 
-#,,,,,,..,.,.,.,,,,,,,.,,,,,,,.,.,,.,,..,,,.,,..,,...,..,,.,,,,,,,,,.,.,,,,,,,
-#AP5GDSJNWGWM7YD2O6ANS4ZG374Y2FY4CMN7MALBMOSLXEO5QJZPZ37FOZYAAMJNHCV22WFX4WRXS
-#\\\|FSP7UXJFAGWUP2ODCGIFDPQRE3CVSGCEKL2LCNL2S3HS5TXW4HF \ / AMOS7 \ YOURUM ::
-#\[7]KQPG5YMXE5YZO2Z43IPJPZWJJFX36PURWVROVHBTU7PPFC52VMAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,..,,.,,,...,.,.,,.,,.,.,...,,,,,..,,...,...,,..,,,,,,..,...,,,.,
+#YOHIZJTBASSFZHXRCD6ZWX2JLGLDGGYWZM776MBDFGI2BPXIBOAAUNNEPFCP2IIEMXI5IUEGUSW7O
+#\\\|O3W3DK3F3YOXNPSEXFGKD7LUPORTDLZF4UHHWLO6NHLBKLU5TNR \ / AMOS7 \ YOURUM ::
+#\[7]NVAHNLQC5LRITGFYVDOTBPCE2SUFRA3HL26CZGECGV77HT3U6GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

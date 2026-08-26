@@ -235,8 +235,8 @@ This architecture positions Protocol-7 as:
 
 All while being **simpler and lighter** than traditional AI agent frameworks.
 
-#,,..,,,.,.,,,,,,,,.,,.,.,,,.,..,,,,,,...,.,,,..,,...,...,...,.,,,.,,,...,.,,,
-#WYJNJUJHGJSOJ3I3HPMILLHTEEBT4BTASXOT7O5OBDCVMSVRIFXWLFGCIGEIB4ZFR6QQOTM3U4VZ4
-#\\\|RB2KXOCEFUYC5L2W7E445H6UP6GQSWZDRHT7DLZKWIK4XLZVDNJ \ / AMOS7 \ YOURUM ::
-#\[7]FMDZMTRC3VVKO4ZDZ667HGYISGSSCE2KNYZSDDOWLE7UAZNZTGDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,.,.,,,,,,,.,.,,.,,.,,,...,,.,,..,,...,...,..,,,,,,.,.,..,,,.,,
+#63ABDXBRD6Y4CLSXGXSAQEMTN3ONGYL6W6BWBJGQMPSLDVHZNCJX4A54H3FXBTDL4NUWR3BIZV65S
+#\\\|7M4RYWA223KI5FHHZHJRWYPEZ425FEJUNEXFWYYHTRCXTEATC6J \ / AMOS7 \ YOURUM ::
+#\[7]MJARN5COHY7RCZ2ZJOGREQICM4W4P3WPKNTFQHOZ3DKFTAGWAABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

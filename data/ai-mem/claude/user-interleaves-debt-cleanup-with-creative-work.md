@@ -29,8 +29,8 @@ session. Don't assume every session needs to be feature-shaped; a
 session that's entirely bug-fixes and forensics is valued on its own
 terms, not just as overhead blocking "real" work.
 
-#,,.,,..,,.,,,.,.,.,,,...,,,.,,..,.,.,,..,,,,,..,,...,...,,..,.,,,...,,.,,..,,
-#BST6KENYAI3RFXNX7LXZLLDT7TTLAHXVGEXFYSEYEGHYDPDNEYZYQDAHLDA6ZFCDOU5XHOH27SRXA
-#\\\|6NFEQVZOUKA26SRKZROIHKHRMCS4E64R24TYOONN76GU4JVJ5SH \ / AMOS7 \ YOURUM ::
-#\[7]4XPKVJK2JDFOY4X7LF5QJK3Q6N4LZPR67IJ7XXKDUWIJMGBWGEAQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,.,.,,..,.,.,...,,..,...,,,.,..,,...,...,.,.,.,,,,,.,.,,,.,,,
+#NEIGTPLH74NCS2HFSTY3BLFWRW6AHJ7MPF65HHI3DXQAZHCVMM7VCOGYITHPBJRO4PPNLQNBQWDH6
+#\\\|AZP74D5WVNO7RXUTOVIJLGRXPFR4CGSBXDJQHRLFX5TZ5WKTB4E \ / AMOS7 \ YOURUM ::
+#\[7]JUFO2THFLHE73QQUYY34POB5U2Y6W2D7BASWVDBPVCPUWCGKKAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -489,8 +489,8 @@ Result: Request processed with incomplete JSON body
 | `/data/projects/protocol-7/src/base.handler.input` | Input buffer watcher | 38-136 |
 | `/data/projects/protocol-7/src/base.handler.command` | Demonstrates bytewise mode for Protocol-7 | 203-207 |
 
-#,,,,,,.,,.,.,,.,,,..,..,,.,,,...,.,,,..,,.,.,..,,...,...,.,.,,,.,...,,.,,,..,
-#WCQPU7Q36H2RPJLQYWEXQSF43MJVWUJ2WTYTC5T6CX3TSI7EACZRN5M7ESS36SGW7X7O6QYVZ2NEU
-#\\\|WXOHD3XOPVBMD3LMVEBZQC5YAVDAXDK6F64DVJX3OM7BB64AKTP \ / AMOS7 \ YOURUM ::
-#\[7]D7NA5W76R7DOJAIOJLTADC4EKEUWCLE56PCUPS7KRDPHF4QJBQBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,..,,..,,..,,,,,,..,,.,,,,,,,..,,...,...,...,,..,,.,,...,.,,,
+#AH2GJO4TYTVCKKMHSNIASL3DZIKQGAF2C53NFU6VXRYN2A25PNGXK3QRMFJEWPT2TA2GBGN666NPK
+#\\\|4NP4DCPM4VFGWNMI23XOFWN3QAZKWMWRP4KNFBBNCRWHQAZODZM \ / AMOS7 \ YOURUM ::
+#\[7]IGJEQK54PLLRLENEITY6ZKODKJKTVXKFCNTJQGKGJKI36446QGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

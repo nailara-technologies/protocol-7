@@ -250,8 +250,8 @@ no signature stubs.
 - [ ] test data cleaned, patterns persist in YAML
 - [ ] all pass ptd, no signature stubs
 
-#,,,.,,..,...,.,.,,.,,,,,,...,.,.,,,.,,,.,,,.,..,,...,...,..,,...,,.,,,..,,,,,
-#5N5QQHUK2YKA3GUL63NQ42AL7XVWJU463WXNBZSYNQ245BO6KDNPIRBI3H4I6AEDEEWOBRTSR6S24
-#\\\|6Q2JFT2HKLEKSOUEWRAEB6V2VPCHMVIMWS6XBWAAOZHKKBUP2QT \ / AMOS7 \ YOURUM ::
-#\[7]F5TTBAXU342FXF6OF67EXQNISUNTMPGFMGN6K3SNYKRXE34Y4GAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,.,,,..,,..,,,,,,..,,,.,,..,,..,..,,...,...,,..,.,,,..,,,..,.,.,
+#IIDX3D3LBVFDVGPPD7OCOR6R4ZCFEXLUWYN7OYNLO5NMYEXZO4OIWAEYH64J6MOLWJVU6T5A4WGPO
+#\\\|4STGZ3L7TJ6GAO45CGAXAEUFJSN2TAGPRB7X557METFNMZA72N7 \ / AMOS7 \ YOURUM ::
+#\[7]OEQCVXYQLI2HNJMCUQN7T4DMFWOVIBO7QFMQT5SWQEVWIK5PECCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

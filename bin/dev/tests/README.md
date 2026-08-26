@@ -301,8 +301,8 @@ Current test coverage includes:
 - Link-Upgrade Testing: `/home/user/protocol-7/LINK_UPGRADE_TESTING_PLAN.md`
 - Crypto Functions: `/home/user/protocol-7/bin/p7-link-upgrade-helper.pl`
 
-#,,,.,,,,,.,.,...,...,...,.,.,,,.,,,,,.,,,...,.,.,...,...,,.,,,,.,,.,,..,,.,,,
-#UY65BTSDVNXSVGXQDH6SATF2OJ3O37GEQIPUWXKCKXKQRGIQIB6LT5Q65Y6KE6CWGDS65XYAE3JZS
-#\\\|NPC7C5FAT7NU4AN4LPGBSI7UPJEWSRMIMASUGZOFQYEBMTIQLUA \ / AMOS7 \ YOURUM ::
-#\[7]3XRF5ZY2C2CRQEZCVLPCKIIZFQ5PN5RDM6PTGQEYKRVHOZL3VMCI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,.,,,,,,,,,,,...,,.,,,..,,.,,.,.,...,...,...,.,.,.,.,,.,,,..,
+#YDHDSULN2GXJANNROOLT2RP6GFLIEKFSIFG74YCVHCDHNAH2UIVJMUHEHORAIJKMVER5S2KVAUDSA
+#\\\|O5HYBEQYGJ4NGUS4ZXZ5MTVWYMVEJEQ3CHTIWTCARSCFKZ6I66M \ / AMOS7 \ YOURUM ::
+#\[7]LCYNCNID2NJIWT3BIERSL724WWJPLDRPAERATKT36CFMP7COIKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

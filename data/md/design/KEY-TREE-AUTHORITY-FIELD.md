@@ -260,8 +260,8 @@ phase 5:  antenna / attractor field
   visual proximity sorting by key distance is the synesthetic
   space rendered through the authority lens
 
-#,,..,,..,.,.,,..,,.,,,,.,,..,..,,...,,.,,...,..,,...,...,...,..,,,,.,...,,,,,
-#77VA5ZXIVN5FVVFOL25X5BS6KLOYHJ7U2IIZQCYNTDIY77YJVRIXWKR7CY6SQQBFVMVB235ZV5ABG
-#\\\|4UM2CXVJLTV2L6V6KBZDTDQYMU2VCFUE4KNJIPRKLKV4EGYRVPO \ / AMOS7 \ YOURUM ::
-#\[7]ZFDWUQBYXIU6ZTZSCUKSOEU7PVWE7BCPIUQHUYZC4RNF5NXG6WCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,..,,,,,,.,,.,,,...,,.,,...,..,,...,...,..,,,..,,,,,.,.,...,
+#NKNOUF7UNEA4KEGJNYAJED34K3NT6XB4DISFG6MXPQ7WCF33BUOKQ7WXDTFCETGUBPMBH7N27DBYG
+#\\\|QEKSNZ4TSH2HP44MSUW4NOM3DK2RNFUOJ77GZWNUGSLH2X6GRHA \ / AMOS7 \ YOURUM ::
+#\[7]6M326Q5MTT7OBFQXBUFMM7HQCCNV52Y7FA4JL3VHVHXCPJVSFSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

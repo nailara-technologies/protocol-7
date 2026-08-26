@@ -27,8 +27,8 @@ nothing content-wise changed, only the message. **How to apply:** treat
 commit rather than creating a new one — filter-repo and `commit --amend`
 both, likely any other rewrite-history git subcommand too.
 
-#,,,.,,.,,,,.,,..,,.,,..,,...,...,...,,.,,...,..,,...,..,,..,,...,.,.,..,,,..,
-#62RZMDPJZCAZBIXPYHX37TLLMDRWIJHONKG5JTZ2L6QMIHDZN2C2FNPC2H4P447ZUC5GXZE3455OI
-#\\\|XWSP7OYYGUM7I57V6DWMKGXDDLA6ONMPSLBIPFBFHEBJTBSFFOK \ / AMOS7 \ YOURUM ::
-#\[7]IBHJ4Q7R2UOQBPVFEN4KDNIT7XRUZF4MCAZNECPUQ4THXSKJJQBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,,,.,...,...,.,.,..,,.,,,,..,..,,...,...,.,.,,.,,.,.,,,,,.,,,
+#6BYW2RINPFD3YBHOIHER6PRGSJ2URSLYPHNWIXKZWGKBDVHHTMSZUSYYTVCRLPM77DOROCY7WFU4O
+#\\\|QSFASNX2VZ4ID6FZHIHOFXEFLMJLAI2IGSPFD6G4EOTTQONOPF4 \ / AMOS7 \ YOURUM ::
+#\[7]3XHR5CWSRR5IHI4Z2YTBAOAUE2IRMTR7X64X65ADA4QCJY2FIOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

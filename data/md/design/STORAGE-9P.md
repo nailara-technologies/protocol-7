@@ -358,8 +358,8 @@ This creates the "implosion vortex" - remote data naturally flowing into Protoco
 
 *9P is the ingestion membrane of the storage singularity.*
 
-#,,..,,,,,,..,...,,,,,,..,.,.,..,,,.,,,.,,,,.,..,,...,...,,..,.,,,,,,,..,,,,,,
-#VFVRM2VQIZ4XXRJ4DS3VCGV6TMDIJG5ZIHUDHKJRF5AR3SIYRYD2JL5ZI4L4TWMAUQLSDLKXK2PMQ
-#\\\|DXGUNIONNUQ5FC2FF5F55TNCEMOCF72WS4YHC2UTGHNUG32YQE2 \ / AMOS7 \ YOURUM ::
-#\[7]TVD7UPUJQWOWXILFCMJKD576XNVOST45XH2AUIIVQZHBQ64NG6AQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,.,,,..,,,,,,...,.,.,..,,,,.,..,,...,...,.,,,.,,,,.,,.,.,,..,
+#5N2ZBXKGZALOBZVL2ZLNP3E5BJXBR327PKS4HHI7HR4FS4VTHDQFEF6GTR6JJBJM4Z36GPPBSEH46
+#\\\|W7LA5WAYCQMPQIQ5HPSXUPAJAJ3F5EGRCAA7YM262IBRFV7GTU4 \ / AMOS7 \ YOURUM ::
+#\[7]QU7EFGDYHV6BY2F2HJNLLMQRZMQM3ESGDJ2UL52PM3TFWSYIHEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -74,8 +74,8 @@ NO manual signature stubs. minimal change — do NOT refactor surrounding logic.
 - no regressions to the single-timeout recovery path.
 - no manual AMOS7 signature stubs in edited files.
 
-#,,.,,,,.,,,,,,..,.,,,,,,,,,.,.,.,...,,,.,,.,,..,,...,...,...,,,,,..,,.,.,..,,
-#PDL6QL2HPL5COQFXNX3V7CWDNLT4BVLO5GH2BFB2M47P2NSY77JV3PBELBG2RX2YEGR3XUWXROY4O
-#\\\|KWTZXA5MHGOEBOH7MWECY4TIXAVUYG2523CRKY47ZUI3NWKLHPB \ / AMOS7 \ YOURUM ::
-#\[7]23HF5D6QHM5PBTW2RITSIFNXVDNT7UDWNFKWUYKRRQYOCEMMXGCI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,.,,,,..,.,.,,..,,..,.,.,,..,..,,...,...,.,.,,,.,,..,..,,.,.,
+#HWAUP72LNYKHIOI4SAOJOJ5SMXWUZL57OLSMODLFPQQOTQYIAAWJN6CAQDO4DUMHLJ4BG3ZTMYDYE
+#\\\|MT3B7FNYYHOCYOUPYZADKQVHHBNEL2GM5F3WVJHW6UGJEACJ6SG \ / AMOS7 \ YOURUM ::
+#\[7]HX5QAPLDHLNW6RSHW3GBREP5TBS42KMKX7DSUYMRDELXKP2UFSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -90,8 +90,8 @@ add a stub `attention.json.tmpl` that calls `plugin.web.attention.blend`.
 - JS fetches it without errors (check browser console)
 - state stack push/pop preserves parent parameters
 
-#,,,,,,..,,.,,.,,,...,.,,,...,,,.,.,,,.,,,,,,,..,,...,...,,..,..,,.,,,.,.,,..,
-#DXYBELKT6T37PMWNBMN7NASXQOHCUKND7HZUVDYCWM2DYDC7N6B5OGTKTRUUWLYPGPYEUTWVKAX7Q
-#\\\|JL3JIIA7ZCX5INXR4MPAC7QOVN3FC66HKAUEL5Q36S6OOZXUMCA \ / AMOS7 \ YOURUM ::
-#\[7]N7XM2SKCHJNE66VJEUIOUOLRKUD4M6M5MQTXTI723CDJ5AAIFUDI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,..,,.,,,...,,,,,.,.,,,.,.,,,..,,...,...,...,,..,.,,,,.,,,,,,
+#XO4SH7NAPOOYDMB73SPDSDVGH3IPER6GJ47NTSRWARKVUJG3XNWAYCMJO4ONFM6FMAUKF7XZA7MCQ
+#\\\|3QPWPLMFX2D7Z7IVKPLMNMQTG3FYIUMATLKXZCNVDQNFQZO3M7C \ / AMOS7 \ YOURUM ::
+#\[7]CF7URIGXAU7LEUZJNN4SXYM7RZYB2GXCEPPNMQMMTQI2HA7TXABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,8 +41,8 @@ p7c coding.self-test-run <MODEL_ID>     # switch-test-restore against another mo
 p7c coding.self-test-status             # view archived results
 ```
 
-#,,..,,.,,,..,,.,,.,,,...,,.,,.,.,...,.,.,,,,,..,,...,...,,.,,,..,.,,,,.,,,,,,
-#ENFHWC4RXDO56R4QP4RBDQEI2XQLYXU35SXQSICF6NMOVIUVIWD3GKCMEHVC55CYT2PESNJM2AWHK
-#\\\|KCFHBTGKMRQ2RICULSSE6DKJCNR37X6KFBJVXORO27F37LFZOHF \ / AMOS7 \ YOURUM ::
-#\[7]AOKROKFV6TKPTYMJLXZ2WZXLEDABTXYKZIMDOWMPZTKOPQ4WS6BQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,,.,,,.,,...,,..,...,,,.,,,.,.,,,..,,...,.,,,...,,.,,,,.,...,.,,,
+#C6XZI57KKEM4U2IGQRJ4SHTX3GJFIXE225KGVJZLVL2WSCQSNXTRYX2HTJ3XTG4LFTQI7IYGJM5M6
+#\\\|CKAKOUBKUVB7C6SYXRVUGJFSFWSFS2RAA4ZQBE2YH3Z6YS2JY7B \ / AMOS7 \ YOURUM ::
+#\[7]JNXD4O4E23VYJ3UWWIKWA3MDHHOYIH6WIWXT6N4NRED5YYFD7YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

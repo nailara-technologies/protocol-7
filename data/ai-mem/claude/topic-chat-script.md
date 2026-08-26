@@ -61,8 +61,8 @@ bin/chat is fully implemented and operational at bin/chat (~1000 lines).
 - kimi flush_on_acquisition inline sub extraction (coding zenka extract-inline-subs template)
 - AMOS7::P7 dep-graph module loader (see topic-amos7-p7-loader.md)
 
-#,,.,,,.,,.,.,..,,,,.,,..,,,,,..,,,.,,,,,,..,,..,,...,...,,..,.,.,.,.,.,,,.,,,
-#QTBSVLXMUFIXAOVHHGAZCP4EVAVH4JQU7EMZ7635W5WCCQHANWQTA2NKL6GFPE3S4GSUDAA4QSF7M
-#\\\|FB6CKI7QFHAQ4C36XCYC2FHT2U7VDNRQ5I3P55IXO6VEJ37BP5Y \ / AMOS7 \ YOURUM ::
-#\[7]4AKCMA57WMN3F7PDDTHMGSUQ747B5BP5PB7CBG42HHQD2W5U5QAY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,.,.,,,,,..,,,,.,...,,.,,,,.,..,,...,...,...,,..,.,,,,.,,..,,
+#4GFFTY2GVEMOKWZ2GDAAGUO5NLC23SMNY7ZTYWIH7JITLXWXDKOQQAL5VGNWIDWJJYXZ2MTP67Y7U
+#\\\|IPRAZQQBIVJ6ZFHBVAKDWJQSDESUP76EFKQAYKWUYZHAULUU7CX \ / AMOS7 \ YOURUM ::
+#\[7]WDV5FJUC5V5LJECDXECBD25AOLCQ6SZZZINQZENRDAT5Q3WDZMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

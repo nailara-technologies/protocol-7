@@ -21,8 +21,8 @@ metadata:
 
 `protocol-7.route-send` is a thin wrapper around `send.local` that prepends parent_route hops, so the command string semantics are the same. The distinction is purely the `cube.` prefix behavior.
 
-#,,,.,,,.,.,,,..,,,,,,..,,,,,,,.,,.,,,,..,.,,,..,,...,...,,..,...,,,.,...,,.,,
-#3OOUKN34F2EMLIQZNIBD7HMPNZRERHEKVT7LR64MZNTY6VV7BKSXCO4CXRSU52AFQFPSK5TY2GWQW
-#\\\|ACMSWQG77IJJUCPVJU77B2C3P3Q5GN5DJG25GXYHWDTWVEKPRHD \ / AMOS7 \ YOURUM ::
-#\[7]OD4HFZGYVFTUWYVJ2QAJNCEJDUFHOGCRQ5OPI33DNRGG4M774YAI 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,.,.,..,,.,,,,.,,,..,,,,,,,.,..,,...,...,...,...,.,.,,,.,,,.,
+#ILLZOITKOU3IDKRUHJBTOD5YCABX733PIY22DW7Q7JIS7NX4FUSGKEQC33TPLK3RRP6BSX7VIQOVW
+#\\\|J4JO262GB6MQTG5WOQBMMMCNLV5TELK32XQOULC5RRDJHHGOHXH \ / AMOS7 \ YOURUM ::
+#\[7]EFBJ6B3UIWWATGJWE2SJR4GQBRHRPHCWVDLFABFCL3XB6EAOKUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

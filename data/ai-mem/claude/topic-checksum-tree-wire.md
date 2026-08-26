@@ -71,8 +71,8 @@ carried by the reference bubble.
 - comma-dot (`10`) = toward leaves
 - separator inversion on `000` = the zero-padding within `1[zeros]1`
 
-#,,,.,...,.,,,.,.,.,.,,.,,..,,,,,,,,,,.,,,,.,,..,,...,...,,,.,.,.,,..,,,.,,,,,
-#6QZRMGG2FQQWKXQZX7UKVDCO6V7D4CFLU7VP2CSZM63SCP56WQU4F2PCJY6XIVL5IBHRLO35DXJ6U
-#\\\|33SBIXLYJN5CP2OPVQZWYV7VLKOF3JX3KIGR7QCAJDTR2KK65SW \ / AMOS7 \ YOURUM ::
-#\[7]HSUP5JZ5LZXZENW25DL6HLYXPLGUBHW5M5C3UR3MNVSMQIEMYCBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,.,,,.,,,,,,,,,.,.,,,,,,,,.,,..,,...,...,,,.,..,,...,.,,,.,.,
+#BO2Y5VZ7U4YVIRTKQFZSSLIHFICOKUY7XEUVYBHPMJXTB7HCVYA7UAM3CCK7CD3WNIRDG4OF33ZEC
+#\\\|7TKAOBWTZWW2T5ZNFMCC6TZYAZ4TANU7O2T5HIMX4OJIJKCHMNV \ / AMOS7 \ YOURUM ::
+#\[7]CL424M2GUVDIEYEBMEQWBZLR2TPBYFITRYM7AI6QPVPJL4UB7QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

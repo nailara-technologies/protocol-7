@@ -191,8 +191,8 @@ checkable prompts/answers). before dispatching implementation:
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,.,.,,,.,.,..,,,.,,,,.,..,,..,,...,,,,,.,.,..,,...,...,,.,,,,,,..,,..,,,,.,
-#WKD5PVP44ZFMZCODHR67ZXNDMPD5PN2LDOB765Y5OWWK47D2STHJSJOWP5GGJVFJXH7LEJWVBFP7C
-#\\\|D2H7KA3M6J2KKML2IRYQXSBUPBLFUMVKCQGJZ64QUCYN3PA4ZZX \ / AMOS7 \ YOURUM ::
-#\[7]B6HIFZFTNDB4X2X25PJQGTQXFSPOJ6EXQQJZPC6VKO74FWVA3WBA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,..,,,.,,,.,,..,,,,,,...,,..,..,,...,...,.,,,,,.,,.,,...,,..,
+#GKV3WID4CJIUI72F22ZYIHMIIMHX2FMN4SCBHHBW7HXIN46YB7EGJQKMHYSWCS7R6ZF36NGZYV2LQ
+#\\\|GRC5LUY4JAH2XF4CEIWXEXBRJBHX74I7H5IQYA7QLYVEMOLLS2P \ / AMOS7 \ YOURUM ::
+#\[7]OBD22IURYW6RIFFSV6CFXF4Q5CEXXOLV5Y3VLGC54OL6Z3OB6KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

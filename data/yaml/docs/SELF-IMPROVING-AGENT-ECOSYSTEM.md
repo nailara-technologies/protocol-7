@@ -569,8 +569,8 @@ This turns the entire system into a **learning organism** where:
 
 Not in logs. In conversations. With the agents that care most.
 
-#,,..,,.,,,,.,...,,,,,,,.,...,,.,,...,..,,...,..,,...,...,..,,...,,,,,..,,...,
-#DAQSEUKEUSGS4Q2QXGLQAAJ2D4ZAKSB7QBY6CDXTCYB2E566CX27ZL2TLPJ7MPFELR74PXGFSFE4S
-#\\\|SDAIB5LG36UT6DVZ4BOMUKK6CDBJXR2A34MTOV5XO5RX3YQE3HZ \ / AMOS7 \ YOURUM ::
-#\[7]VNUQAPI5T7Y54CEITQIMKU5SVH6Z2AU45NPPQ73EJXK2RCV6OWAI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,,,,.,,,,.,,..,,,,,.,,,,,.,...,..,,...,...,..,,,..,,,.,...,,,,,
+#THJ7NXXUPYHBCDCYSZKLYNNMNUBGRNDWLDIK7VRVNSS7XRNNHTW6IHX3FB7XPZNKMRHKDVKPF6RIA
+#\\\|PRHGQDRBFVIGXN6KPP37DOQXHE4AIJ2EA4CYPJAL66HKRL4UFGI \ / AMOS7 \ YOURUM ::
+#\[7]BXPCJRAXPQ3DUAM4JDRWSVNNOLI4HGUQCIQGOBTUX24X5DGTCSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -92,8 +92,8 @@ Completed the open items from data/yaml/coding-tasks/amos-term-interaction-plugi
   future cross-zenka route-send to coding could move this to the coding data
   dir if desired.
 
-#,,..,,..,,.,,,,.,,.,,,,,,,,,,,..,.,.,.,,,.,.,..,,...,...,..,,,.,,,,.,,.,,...,
-#Y3ZEJ7YY2U2IQBCKEQW2P4CAEPLJJLSMREHSWFEM76QQDOJERPXU4TFFTXWTFXNVCNS6G5255733S
-#\\\|QJKP7MSFQ4V2XAWGEDVRHHQEO36DXEDXAPJFKHUFU4B6LABUWDA \ / AMOS7 \ YOURUM ::
-#\[7]VU6G5FI2E3XBHPKPBVEMOU7I6FUW7EYW5DEVKHKDBTRYBZMIKQCI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,..,,.,.,,,.,.,.,.,,,,,,,,,,,..,,...,...,..,,...,,,.,.,,,,,.,
+#E24MHLMAES3TPMIMBY5LBWN5JLDIKYMEYEY3UGZIXYUPWAK4AT7DETQDZVCHGJFC7A44CVPXU56SI
+#\\\|GZN5I4W2G3FZ5B5IXSLG6XEDAGIJOQP4QPZLKHPBF7G5ZFAL6OR \ / AMOS7 \ YOURUM ::
+#\[7]QUW2CEEZDJRGEN34JAFJ6C6RQYOMBWE4EXYVN6TZBZAIOTMFBOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

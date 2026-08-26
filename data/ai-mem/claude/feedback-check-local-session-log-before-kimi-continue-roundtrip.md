@@ -32,8 +32,8 @@ the `session_catchup` tool, or (if the task ran through the coding zenka)
 fall back to a live continue call if the data genuinely wasn't captured
 anywhere, or if new reasoning (not just reformatting) is actually needed.
 
-#,,.,,,.,,.,,,...,,.,,...,...,,.,,,,,,.,,,..,,..,,...,...,...,.,.,,..,,,.,.,,,
-#SL2IW4KXXTBFQZIOJMOTJP7MWVRMYUNOVFIYT3RV3WYHGBQJAMUDZ6ERYFAEODB4LPNHEJUNVWPDY
-#\\\|BFVTOKSXUCEGHI5QBOYFH3XVMTFOCHN6WHZMX5E3OERGVHY42NU \ / AMOS7 \ YOURUM ::
-#\[7]YFZHGQXBM6W3JVZ364OZXR7CVTB3ZTTQ4U5I4LX6J2AROIIB72AQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,,.,,...,,,,,,.,,,,,,,.,,,..,..,,...,...,.,.,,..,.,.,,..,,,.,
+#FMZRKHEACRNATU3PE4HDQJVUNUMLJSUIMUXA4MKBINDWHXGNCJ7KRFUKGE2JSKMJGWUKE3SBAH3H4
+#\\\|7UQ52CD6QIXXASER6TDFRWGUEE56XJ6ZFURBWQCL3E7FCDMPVUW \ / AMOS7 \ YOURUM ::
+#\[7]RBXQHKLCJ46W4BAOIVHWHMPJKROV3HAGWBWU6NA53Z4OAEUT2WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

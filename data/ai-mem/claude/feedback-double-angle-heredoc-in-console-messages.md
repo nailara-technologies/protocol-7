@@ -50,8 +50,8 @@ easily go unnoticed if you only check that the zenka starts. After adding
 console modules, grep the start-up output for `broken` explicitly rather
 than trusting a clean-looking run.
 
-#,,,.,.,,,,.,,.,,,..,,.,,,..,,,,,,,..,,,,,...,..,,...,...,,..,.,.,,..,,,,,,..,
-#W5PLYX3QPDJ7OOSXWNIMFUIB3FTVJLLNSG2VQZZXCIT7SYQIQ26KJPJCVNX4657WLQPXOLK3ZYWJQ
-#\\\|55DRPVDQ6H6EJSJK7CXI6BNU7VFOTYUFAGREBDQZSUHOGIOJNSZ \ / AMOS7 \ YOURUM ::
-#\[7]YMXFDMTV22KXGHNI4PR3H3BRQRLHCFW5LYGN4MJL2NLACPNFZCCY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,.,.,.,.,,,,,.,.,,..,,,,,...,..,,...,...,..,,.,,,,.,,,..,,,.,
+#DC3SCXYBZO22AXU7X65W5BSALITSMJ6YCGEP3QZIQJPEO2NYSLFZ7R6J52OQSIYEBYC7UAQQN2UYW
+#\\\|XSRCMRA5D6EL7WNXRGRBRK4SNLFAPQBT3P74DUH4FAHRPUREJ2F \ / AMOS7 \ YOURUM ::
+#\[7]4QZWC4JAPCJSXF4CFQ6UVTA3CVZDMQ2T6JT5VXHMNCIODGB2QKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -156,8 +156,8 @@ httpd-debug.query_state($amos_checksum)
 - No impact to production code (separate zenka)
 - Can be deployed alongside existing httpd without risk
 
-#,,,,,,.,,.,,,,,,,.,,,...,..,,,,,,...,.,,,,,.,..,,...,..,,...,.,.,,,,,,.,,.,.,
-#TC2J7ZODWQCU6S5ERWQCCQ7REG4YMMAIJUSPV2EGIEHCKZUWYGWS5NLMPLKAC7NIMXFVANUNJN754
-#\\\|QRZXKCGVG4GTLUICQ7TZD4QSJ7KIRQPGCWVNAQCZQRJPR3WXXSB \ / AMOS7 \ YOURUM ::
-#\[7]OH223O2D2WSHVDIELIW5G5DPDB77KJOJO6YVMSCYRXHRPVYRSYCA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,,..,...,,..,..,,.,.,..,,,,.,..,,...,...,.,.,.,,,,..,,,,,,..,
+#2EZW3UAZPOUMTILRSQWHZCFBDCNPSDUIQWQ2IJ6NLEWEU6K4Z67NYC7GJAQ4KOWKOJN7KUSN4AQWS
+#\\\|I4CTC6FWDPR5RCZJFDBZLKR7T4ND6IS5NZAHR2JDYSKJALFPBFT \ / AMOS7 \ YOURUM ::
+#\[7]RXIAVT732UZWGHITPQYMVLLTARPKY4G35FVHSBRNFVKMBHNII2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

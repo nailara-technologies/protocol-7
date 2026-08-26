@@ -634,8 +634,8 @@ STRM-SIZE close-timeout   # timeout abort (idle too long)
 - Need timeout guarantee? → **STRM-SIZE** or STRM with timeout
 - Need indefinite stream? → **STRM** (no timeout)
 
-#,,.,,,.,,,.,,...,,.,,,..,...,,,,,...,...,,,.,..,,...,...,..,,.,.,,..,,,,,.,,,
-#D2FHOVRVCGEPB3A7FCYJGVVDXG7FCIKYBX5TLTNMBIK2TWCTZCNEZOVOPRUTIH2YI5CKAH2DCIJ42
-#\\\|5L2LGA6B5JT7Q2DM22B4BBXA4GIA5LLV2DCFE37LRKZ4DQQRGTH \ / AMOS7 \ YOURUM ::
-#\[7]WUNBSHRYCKSV3U54QR25KJBAX5ADAQP47SJH3PS7IQJCMWRBZSBY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,...,..,,,,.,,,,,,.,,..,,.,,,..,,...,...,,..,,,.,..,,.,.,..,,
+#A4Z4XQW4PX5LLWOR57WK2PDZFTJLB4XDOUPTZSVPKK627TR26N3C7LWWWMHAWSIHBDRK2NL4MUL36
+#\\\|7XPOHKGSECA5YTYJYVZMEA6OM3PX52DQNM3M65ASGIQEJN22TIG \ / AMOS7 \ YOURUM ::
+#\[7]IMZRSIJ6V4T3UTN7JPM4TOF3PXXZXOM52VS7LATJGCFU5RP4A6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

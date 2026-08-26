@@ -277,8 +277,8 @@ Both strategies work **because they match the operational model** of each class.
 
 Result: **Self-healing dependencies without performance overhead**, appropriate for each zenka class.
 
-#,,.,,...,,,,,...,,.,,...,..,,,,,,...,.,,,..,,..,,...,...,,,,,..,,...,...,...,
-#RC3UXKC27KJ2CLPEHJQKGWL6DYHUH3P2BWRQLIBMNGVFAKR7DW4XQNXDHW44ZLWJLOJYIHD6DHVW2
-#\\\|3GXJLQOGSPYGCNZHDRP5BKKIKBHW7FHWIYT6IE6JAOGWGZ752LX \ / AMOS7 \ YOURUM ::
-#\[7]BDLZ56L2HKMQBCUFO3B4LIXKWBNSTKYNCETALITPJKDLUIYU66CI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,..,,,,,.,.,,..,.,,,.,.,,..,..,,...,...,,.,,,,,,.,.,,..,..,,
+#PB4JR53ETRGYNNHVCYXTSVJ6SSIWWRCF7PVX3EI5XGMUPJAVMVWOU3NG7GIDMXXVJI3N3QGQTFCHK
+#\\\|FDQL35C2EAFSVTI7XCXR5O4Y7IDBUXLQNK2UKVMZZGIKFG4TAKO \ / AMOS7 \ YOURUM ::
+#\[7]J2AZR3XYSRS2DO2TEG7JQQRZ73MSOQORHLW65BML2CDF3EAE32BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

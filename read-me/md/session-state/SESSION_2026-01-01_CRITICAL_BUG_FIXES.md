@@ -140,8 +140,8 @@ The system is now in a stable state with all critical bugs fixed and pushed. Any
 - Verify and repair source code signatures without data loss
 - Continue with feature development on a solid foundation
 
-#,,.,,.,,,,,.,,..,..,,,,,,,..,..,,,,.,,.,,.,.,..,,...,...,..,,,.,,.,.,,,,,,,.,
-#C5FWXP3XDBHRV2LUW3Z7PPKIN4TKSDCUYES4P5PXRMSDV3LITBZLP4E5FMU5X273WLNS7KCEO6RMS
-#\\\|7NZV5PDNH2CJXK4TKHYVMUKGD74GUIUQYD6QSYXKAOQXJ2BZXJL \ / AMOS7 \ YOURUM ::
-#\[7]SJZRWMXU3FBMIZNCF2DF27O7CABA25LFFOQLQXV6LJLHBLVWAYCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,.,.,,,.,.,,,.,,,,,,,,,.,..,,..,,...,..,,,..,.,.,,..,.,.,...,
+#TDQKAWZG36UELXF3HDCAQ4ODG6LZUJRP4T6VOP77XIPZDE43ABMTHMD5LFNHELOEVSCEWKOPSO2PG
+#\\\|SSF7BFUBFIE53VLM2DD6COELNPSK6GAF6FWP2PM562WEKB752RN \ / AMOS7 \ YOURUM ::
+#\[7]PLZWYYRVZSXJLI37EPD6CQE6TKT6BH63QWGWJBAZPZ6NJYY4JEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

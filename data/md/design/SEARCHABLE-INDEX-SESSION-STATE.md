@@ -262,8 +262,8 @@ Ordered by: (1) unblock visualization, (2) validate architecture on small test c
 
 *Last updated: 2026-04-17. This document is a synthesis reference; implementation tasks should use Section 5 as their starting checklist.*
 
-#,,,,,.,.,.,,,,..,.,,,.,,,..,,,,,,.,.,.,.,,,,,.,.,...,..,,,..,,.,,,,,,,.,,.,,,
-#4KTEXSRACS23GXC4U6UMNZSBURKAGR4GQQISUPZXC6TNZIXTLTOFVYZXLXDLHJ5LNQFNCPKSLUP54
-#\\\|KMQZKA5YTCH5H3XLJLHCFCUCWLLJ2WDZSN5PDWMP4RICC3SGORJ \ / AMOS7 \ YOURUM ::
-#\[7]MVIHWIP5BHV5IUKTYS4BJE56SSXJODISHUWJLTVLLZL6MB7ZFUBA 7  DATA SIGNATURE ::
+#,,..,...,..,,...,...,,,,,...,,,,,,,.,...,.,.,.,.,...,...,...,,..,...,,,,,,,.,
+#XJSYHDFNDU4N3TV545BTM5OFRBWZSPH4WJMXRQFHV3BQX77USD26JVRXJD4GUV3UQ7CRFH53N7KBE
+#\\\|7KEZYRNY4QD4WIXLFQ5C3HO45WBT7ZUB6XKNBUMKWURO7474BG6 \ / AMOS7 \ YOURUM ::
+#\[7]7K3ZZBF3WFWWFB6YKJNFB77ITP7HMWB2MLUMNLS7TMCTJCBAJ6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

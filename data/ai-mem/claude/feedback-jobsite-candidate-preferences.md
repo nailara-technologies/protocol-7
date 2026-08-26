@@ -38,8 +38,8 @@ decision about (e.g. a full past-employer sweep), prefer the deterministic
 `profile.txt` prose and hoping the LLM infers the exclusion correctly from a
 posting's text every time.
 
-#,,,,,...,.,,,,,,,,,,,.,,,...,...,,..,,.,,,,.,..,,...,..,,,,,,,,.,.,.,...,...,
-#KAYNJJQ2DRF7MCXQN552DZYG3O4NK44FE7CVWYHB7UCEIONAZXF6EE7ZKSOUVCLED5XZNBUQRUPAW
-#\\\|EFAT6OZAML6AGG4XXMJRDLUYEAARFZGA5QU3NNB5JKFLQDZENTO \ / AMOS7 \ YOURUM ::
-#\[7]RLU4HU6K7KYX5RIYXDS4DBMRSDWJ2ZYLQBHAPADCUHG6ZQRCGKBY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,.,.,..,,.,,,..,,,..,.,.,,..,..,,...,...,..,,..,,.,.,,,.,,,.,
+#IF3ONEIXS5FQIYZSK6KMZA6XL2DMTOUAGM5NOGQTTAHEI2HGYEERFONGHUX3JIBVEW2AMJIV6ML7O
+#\\\|JF7HJMBS4LJWZ2HWIGVFYMZKKJLSK3C63NVKBYLX2SKQNRJOCUV \ / AMOS7 \ YOURUM ::
+#\[7]IDACHG5JCEKDW5OJ5UZFRRTHVD4AN2VFSX6OA7SWXBSVSBJTLIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

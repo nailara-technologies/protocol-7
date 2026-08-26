@@ -122,8 +122,8 @@ specified. subword sharing [ minn 3 / maxn 6 ] reinforces the
   finding above is the knob to tune in phase 2 if semantic-load needs
   callee-precise hubs
 
-#,,.,,.,.,,.,,.,,,..,,,,,,,,.,.,.,...,.,,,...,..,,...,...,..,,,..,.,,,,.,,..,,
-#XB3EPT6SSW7R5A7NZSU375DFGBORU4WP2GL2CBISGCTM6WH36EF7BEHOKWA3N6ILXPPHW4YWGBUTI
-#\\\|S2MH3MTYL5K5I3H4CYVSR52EJD36QUL24VE6LTAMUFMN2IRKUHF \ / AMOS7 \ YOURUM ::
-#\[7]P27UGFSZFP4WYNBCY4L7NBRPCMA2F74GH2RPMSEKRQ4SC5ZKVYCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,...,,,.,,..,...,...,.,.,..,,...,..,,...,...,.,,,,..,,.,,...,.,.,
+#CEX6VPPM5Y5FYDXCGI4V37SR2E5GF27PIMXZK2SI7B3PCTLZXRZRD7FGYTWANFA7AH2B6QRH34TSM
+#\\\|TPFOCAGLZ2SEAFOSIPCVB72372MPUA3NDLTY3ZSZ54QEYSQ2AP2 \ / AMOS7 \ YOURUM ::
+#\[7]MYQHE3OVV3NHHIBXLDXY7WLGJQ7DZZ5EHZHLW6UTVFTV2SDA5UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -76,8 +76,8 @@ real `$SIG{...}`/`END` block of their own; `AMOS7::SHM.pm`'s standalone-mode
 `END` block is the correct counterexample, gated on `not defined
 $main::PROTOCOL_SEVEN`.
 
-#,,.,,,,,,,,,,.,.,..,,...,.,.,,,,,.,,,.,.,.,.,..,,...,...,,.,,,.,,,.,,,..,,..,
-#IKWDMVFOH7TMBFDC4PHLHBTBCGDM47TRF36BZVNRZNUW6EKMU227WIOFG3U3QBZRYTO4WPSGD4GOW
-#\\\|PTUHK5EGRZUQABXIVVM3RH3IU6KZKU23WQXNFM2AIFSX4QVQRM2 \ / AMOS7 \ YOURUM ::
-#\[7]KXM343IRYQOHDH7QLMRUPISUTWQNPMJYS2SVRBM4NO35ZKX7DMBQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,.,,,.,,.,.,,.,,,.,,.,.,,..,,..,..,,...,...,..,,..,,,.,,.,.,..,,
+#X4SKHW7M6AGJGKLU2P4HUVAHRGZRL63CTPIPYFQXRMEKPDZM7SOGTEN6JJLBLIQWUEVYBPEC726S2
+#\\\|EQUSQJ7H4K7VGXM5G63GGZ6QOOA6PAL4FQHHQELNQJIOVGFLST7 \ / AMOS7 \ YOURUM ::
+#\[7]AJP5DHNLLDQXHB6GOWDVTKI6ML6ALGSXQ5LPPRHJMJCSJHURP4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

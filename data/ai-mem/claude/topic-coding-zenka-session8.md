@@ -52,8 +52,8 @@ originSessionId: 6f91985c-b3f0-4cfc-b8d2-1a26499a7881
 - Sliding window paragraph compaction idea: center paragraph compacted with prev/next
   as anchors; group sizes adjustable; works for trees/networks too (neighborhood compaction)
 
-#,,..,,.,,.,.,..,,,,.,,,.,...,.,,,,,,,...,.,.,..,,...,...,.,,,.,,,,,.,,,.,,.,,
-#QRCQAFIL3JLW6FKK66IFBQYDBWNWV6COJ5NASVMCGG6QCQEEBS642URVGFOBIFZKHKSQRDGCJGX6O
-#\\\|Z6LFFZQC4FUDYIK7GQKSNT2OCGBUF4UWRPS5XXKB6IHPZS3Y4EN \ / AMOS7 \ YOURUM ::
-#\[7]OGUBK7X65I2WINPUB6KW75XA4UUHSRI4Y6V3CJHI34OC6A4XYKDQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,.,.,,..,,.,,.,.,.,,,,,,,.,,,..,,...,...,,..,...,.,.,,..,,.,,
+#ST5VZIVTT23JUHPOCOXHI6VVBWPOUCWBK7PWTRQRQYHKVJQOKEB3YBFOTGDJHITBHWIYELL7DNSKI
+#\\\|KDRBRHKV3ISU2Z6TN7SXGZCO6RG6W7ZIWWK6QUUVON2N7LAALT3 \ / AMOS7 \ YOURUM ::
+#\[7]LIUJTWAYOEFJX37XYKLJ6KLFAGF54Z4ICHF2ELZUD2Y6NWBXXWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

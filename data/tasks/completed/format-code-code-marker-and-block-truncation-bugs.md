@@ -146,8 +146,8 @@ not removing it.
   arc) — apply the same standard of live verification here, not just
   code review.
 
-#,,,,,.,.,,,.,,..,.,,,..,,.,,,,..,,..,.,.,,.,,.,.,...,...,..,,.,,,,,,,,,,,,.,,
-#GX6MRTA77E5QXH3AOAXAJ7WWBHJXWHEUIL4XF4CPLQW7H2B4PZPQFVWN2CPC6Q3ZV26FBS5MPPBXE
-#\\\|MMAXWNHOD327D5GKN3F4ILZUD5ZUEASSKEOKDJMIYZYUUDFNLUD \ / AMOS7 \ YOURUM ::
-#\[7]ULTCYGULDQBMG7PQPF3WT6XO7TGO2VDKEPH5GEXNXR3EHZREKMBI 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,...,,,.,,..,.,,,..,,.,,,,,,,.,.,...,...,...,..,,,.,,,.,,,..,
+#MNFVUNPAASWX2UCGVNBD27OTAAVI6GZ3ZQMCPTOHGMRJHCDX3WOSRCFXWOQFXWQPZ3C7B65EUS656
+#\\\|U3B7HFLYYV37DDPXNWK4TBYQNQ3EF2TX6FHZQ7QMBXPIYJ7JWIH \ / AMOS7 \ YOURUM ::
+#\[7]ULZ75KCSXZI46SPKEKULUIQG43DE7RTCI6C6KDOGTINN2ENTJ2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

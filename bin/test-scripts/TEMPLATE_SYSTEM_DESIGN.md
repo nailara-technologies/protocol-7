@@ -165,8 +165,8 @@ This design work ensures:
 - Handles context explosion gracefully
 - Models work with their own previous outputs
 
-#,,,,,.,.,,.,,,,,,,,.,,.,,.,.,...,,.,,,.,,..,,..,,...,...,..,,,.,,.,,,.,.,...,
-#OPCXUCX3YFPEESXNPSPD3CESAZQ2CXNQCELUNCUABZQ44T5A4A5WJAMZI5T66D6DJDP75BBD7ZTFK
-#\\\|35EJHKLXV23LZ64KI33CT3XWQ2T3EXJB5TL526IRZMPAOWBZEL7 \ / AMOS7 \ YOURUM ::
-#\[7]BV6ECKQUBKO27I4JDEEGCKMLCEQOIVPTFLYURGYIA3PEHK6OQOCI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,..,,..,,,.,,,.,..,,...,,.,,..,,...,...,,,.,,,.,,..,,.,,.,.,
+#6QCGKNCJRZKNEDDBJM5GLZ7QC6VF2ZP27RNWBOTGR77RXNTZ6VYCRGNAHEUV4Y2GYCFEJ5E3W6TVW
+#\\\|EEYIEQRCHBNTP4I5HVDGBNGAUP3E22PPPOHUBH4MCLCGZD52ORO \ / AMOS7 \ YOURUM ::
+#\[7]DTOJKVLPYPWLJYIWPEGBDXDE5CIGKWLUK3LK7SS44GKWVG3XYMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

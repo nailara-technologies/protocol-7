@@ -105,8 +105,8 @@ no explicit recursive forwarding needed.
 `base.cmd.*` vs `cube.cmd.*` namespace — leaning `base.cmd.cancel-stream`
 so any zenka with streams can implement it consistently.
 
-#,,.,,...,,,,,..,,...,,,,,...,,..,.,.,,.,,,,,,..,,...,...,..,,,.,,,.,,,.,,..,,
-#CVV4Z2BBUPSJJT6UG6D6NLJHSPENKN4C2FUW2P6ONMZ7RJWMV54Y37RDUTRSDP7HLJNY5HYANFF3I
-#\\\|ENFRK5XJP2DOXXVD6HPGDUD6N2YQ4TUYBV5NU5SHDLRPPLXXPIS \ / AMOS7 \ YOURUM ::
-#\[7]NW4GGAKZSMMR2XFIBQKWMZNMPZMVBDFSWDGUP6BVA637OISA6CBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,..,,,.,,,,,,.,,,.,,,,,,,,,,,..,,...,..,,,..,,,,,,,.,.,.,,..,
+#RJJ2EQ6ZXIQEF4PYIJ66GOMI4VWM2RRIWHCH33R5AWPD5CYFHEKKIDO6SGZI6F5GXFTYCH5KKZRNY
+#\\\|HZ3Y5H4YORNEP3JJT2YTM5QYHMZYYBSYKWC6CUCWQX5PCABCNGI \ / AMOS7 \ YOURUM ::
+#\[7]R33ENPNLE2YHBGUNO5GKMTV66LSSO4UW2QX4NHW4ILDRYUKNLOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

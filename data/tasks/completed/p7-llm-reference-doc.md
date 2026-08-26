@@ -154,8 +154,8 @@ p7c v7.restart <zenka>
 - [ ] fits comfortably in one terminal screenful per section
 - [ ] no code changes, no signature stubs, no whitelist changes
 
-#,,,,,,,,,.,,,...,,,.,,,.,...,.,,,,,.,,,,,.,,,..,,...,...,,,.,.,,,,,,,,.,,,..,
-#D6AGOA2UHIMVG77U6O2GVQFPWVDDGW5P2YSBYLGWEOVO7LN2KLLFYUM74AY5ABO5RBNFCMZWDXLQ2
-#\\\|HEFMY7Q5LF4INIEN4H3B6ISXO6COLKUJRPSYGRY46MJGZHX26AC \ / AMOS7 \ YOURUM ::
-#\[7]DMFF3NAVPDZQUHV42PVJ7NGEEK3YWBC7WK4HCHFKKJGBNRXTGMCY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,,,.,,.,,,..,,,,,...,,.,,,,,,..,,...,..,,,.,,.,,,,,.,,,.,..,,
+#BONZUMQSMP6HC3N5YNW5DMGHMURYAHXT5OJPDQVQ7T56LW2I5YHNMY7GHJ2QUUTVSXPG2C5WMBGHA
+#\\\|Z56Z7H3AY2E2YVT326BPOJ2LTB3BYOZGOJRFW5RVSLL37YCB65D \ / AMOS7 \ YOURUM ::
+#\[7]E7VC3OKKU43S7G373IISH5A7MIYRTJNIDZTLE2H2VIAYE34466CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

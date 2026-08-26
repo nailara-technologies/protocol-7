@@ -58,8 +58,8 @@ verify that the forecast output includes humidity and the value is reasonable
 - [ ] downstream display commands show humidity correctly
 - [ ] signatures updated with `bin/Protocol-7 sourcecode update-signatures`
 
-#,,..,..,,,..,,.,,,,.,,,,,,,.,,.,,,.,,..,,.,.,..,,...,...,,,,,,,,,,.,,...,,..,
-#UTCCTVUU72VOWAQZUSNGRERHAJPT5OGZDMFQPRXKE2WV7R4FAS2OCATJNLCN27TI6YKFJPGF6FSMY
-#\\\|NLVEWNYWORSYDBBF7FIMJO3MB5LT6NTCWWOBCH6SY7CPYGUDJ56 \ / AMOS7 \ YOURUM ::
-#\[7]WXUK3OCH52ERN6LWDZA4DEZPJXHUJFT253KSBJYONXZNPHD2WUCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,,.,,.,,,,..,.,.,,.,,...,...,..,,...,...,...,,,.,,.,,,,.,...,
+#7XLWIXCDDEUS6YPIH5FR5GLUPH3UI2LTBCZUDAHFNUYHKYWLXZTDTXCCNEXCFFTXR6WVPFZQHUNK4
+#\\\|U6LDDJX56HEEKE24MT4QKEVFGBCV6RCJPLS3JYX2UOL7KIR2VNH \ / AMOS7 \ YOURUM ::
+#\[7]HFFQVTHPYZNVGT6U6LRSBAHE6CKXV3E3Z24LFY2JIVVFSK7VROCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

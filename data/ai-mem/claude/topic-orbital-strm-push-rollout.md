@@ -69,8 +69,8 @@ v7-style backoff on the subscribe side — never a fixed-interval retry.
 
 [[topic-httpd-route-arg-parsing-fix]] · [[feedback-no-unsolicited-cross-zenka-push]] · [[topic-async-window-startup-transition]]
 
-#,,.,,,,.,,.,,,.,,..,,...,.,,,.,,,..,,,.,,,.,,..,,...,...,..,,,,.,...,,,,,,.,,
-#CMOCMBTUDQMBCM3F64JXDHWXNTKGLJ53CKMJMWJICPGB2X6NHKDMOSHTDVORBLRB7MJFEYFMGZEB6
-#\\\|2G7Y3JLSMJR5EA7M3VU2KF5LTVAAOZIPCOVCHQUO3XWCGPNHFVI \ / AMOS7 \ YOURUM ::
-#\[7]RPCO2HLEJJWMWYSQKSFWUSEWO22IISP4HOUG4RJYELRH4DI7IGAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,,,,,...,,,.,..,,,.,,.,,,...,..,,...,...,...,,..,,.,,...,...,
+#IIJS2FH3JDFSVLIK62A4UIMB3QL7DSBVUH5O22TMY7NBVVBWOFKRS6DPIYRTUXOUUO47LYQMTXJME
+#\\\|BLJPOQQHVCB5Y7YUHJ6S52KXGP2LROIX5ZDLYFNN3LB2EZHTOYW \ / AMOS7 \ YOURUM ::
+#\[7]KRU26WXS5KF2OC4SMYCXE5TJ2BLOLJPJUMWGQRYX52VUCULY7SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

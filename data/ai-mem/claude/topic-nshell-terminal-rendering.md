@@ -93,8 +93,8 @@ These are separate from the no-endline fix — the fix handles defensive recover
 - `src/nshell.handler.command_reply` — reply display, cursor redraw, history restore
 - `src/nshell.render.viewport` — terminal width, horizontal scroll, cursor rendering
 
-#,,.,,...,,..,.,,,,,.,,.,,...,...,,,,,,,.,..,,..,,...,...,,..,,,,,,.,,,,,,,,.,
-#YFQDI5SGDQDHW7PTSBTNHTOJD4PMI4O7FOLB3C3LZSVKAE4ONESLCVUGXTMB3LORAWV6TVOZQDSP6
-#\\\|C5GAJPUF2OIWWTOJXVPLOWXYBRWM67BPKQC2B242CQNTH3AIV4T \ / AMOS7 \ YOURUM ::
-#\[7]MP3WC6IL3PHD2BFTRDSMN2KXNONQHLMJL5KDVN6XKB3J5E4UJIDQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,.,,,,,,,.,,,,,.,,,,.,,..,,,..,..,,...,...,...,,,,,.,.,,,.,.,,,
+#3H4DBEGFWB7CMQFS4J4NU45ERYNCIWPBTH46LX3AFIGZTS4RD6753G4MPCXOU2VHQQHXXSGHUDBR2
+#\\\|OHPP23SBF7C5O3AQSO7SQCVUV5HQSALHGZFPXPK6D6EZZ642VGG \ / AMOS7 \ YOURUM ::
+#\[7]TXW22PTLMK5OCGIWJYXJWMYFSOBDQQIAXEVSHHOEYFG4ORRYA2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

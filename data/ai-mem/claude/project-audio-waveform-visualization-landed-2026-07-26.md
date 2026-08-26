@@ -83,8 +83,8 @@ using `audio.reload source` for its own module iteration instead.
 - task file `data/tasks/audio-waveform-visualization.md` not yet moved to
   `completed/` — pending final review/sign-off.
 
-#,,..,,,.,.,.,,,,,,,.,..,,.,.,,,.,.,.,..,,.,.,..,,...,...,...,...,...,.,.,,,.,
-#3LTB4W57GBX42KVNGZZ65YPWTXFXKWKKHSK2TZHQZN5FWCTJV4WW7DWXMI7GDEZ24CEE2I5CTUJUU
-#\\\|VYXMMYKZG53JBOWL2YXJXXI5XJM57G5CJZFL6KZRBLV32OXRCCD \ / AMOS7 \ YOURUM ::
-#\[7]TLROM2YRYA4MAR77DSIDHPDCUA3O3UF2XYYDM2YPGUIEVRCJ3WAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,,,.,,,..,,...,,,.,.,,,.,,,,.,,..,,...,...,...,.,,,,.,,,..,,,,,
+#KKDXBGIN7ZXW26ATKBXBO5ZSMXGOKV5AXIJFRB7KMD56QM5HSLSK5X65WTS3QQNEDV32V5TCKUHPW
+#\\\|KGSQMI5IWCLG53YBLGYSFEUYADMPUKJLTXJS66VFEJFETFJP5OA \ / AMOS7 \ YOURUM ::
+#\[7]IJCZXBPTMFZKYIV3RTTTULPFSM4SFJKHBYYDL5SUE2EW3YX2Y4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

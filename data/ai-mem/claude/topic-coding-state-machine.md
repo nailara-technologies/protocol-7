@@ -29,8 +29,8 @@ persisted), re-registered when tasks resume after restart.
 **How to apply:** When implementing, verify `event.var_watcher` call signature
 in base.event.* before writing the watcher registration code.
 
-#,,..,,..,.,,,,,.,,,.,..,,...,.,,,,,,,,..,,,,,..,,...,...,...,..,,.,.,,,,,...,
-#WRHTNT5Q6XMKAWG6JILKIIGKHJUU2DMRYSPXY2PSAEF5IRUJFTR6O3BFBJ43UWGNLI7ER3RRL6E6A
-#\\\|DTQWU2PP22BR2KB6CHDFYBTCPYWAT3CKBBP3YAAQBA2SUDDIJXG \ / AMOS7 \ YOURUM ::
-#\[7]ZXHQ327GYJ7F6LTAUVAFFDRYLEZCAPNZ6CLJDSGMIOVCCK6ZUODQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,...,.,,,,.,,..,,,,,,,..,.,.,..,,...,...,..,,...,,.,,.,.,.,,,
+#FS4AKF5RUADVMPRGUZKDTQATDPGYU5OUFTJYGAVJPZ2IJTW5KZ3SDSPD73SS2MO7N4WZ4IVNZ3MAK
+#\\\|XPXL3ZJ2M5VCZXYTXMYCPGE7VJGOOY76EIN5AMFAC36GIEB6U7L \ / AMOS7 \ YOURUM ::
+#\[7]ZLNMCAHYHBG5QTQ5BQQAL2JTQCPSJZAGMAEU4KFWWCXV77CR5WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

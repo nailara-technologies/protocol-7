@@ -267,8 +267,8 @@ optimizations are **additional steps per cycle**, not replacement steps:
 - how to express attribute compliance thresholds in review plan config?
 - should step group membership be static per plan or adaptive per page?
 
-#,,.,,.,,,,,,,,..,,..,..,,.,.,..,,.,.,,.,,,.,,..,,...,...,.,,,.,,,,,.,,,,,.,,,
-#B4OMK2SQHQDHOGFV6M7LDZCGIUZXVWPN3M72TW3ST5P44SMJCTDOVO6ZIAT6A3OUTEXWC7NDODQQA
-#\\\|2AFJV55ZHGDRTZ7YKVACANBOUHACULTMRNHHXA4CKYTVC4KWRKQ \ / AMOS7 \ YOURUM ::
-#\[7]S3VIN632XBUXYDYEDLIXAHRMHJGETQW6HGUQFTKR5JIVUHB2AGDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,..,.,.,,,,,..,,...,.,.,,.,,...,..,,...,...,.,,,,.,,,,.,,,,,...,
+#RIVXM6MM7TKLOICTGPZXIFGTYQYNR7DTR6B4HWO3JNZOXNHM4DKJKAATVGDZAMOV24SBHQ7FNTNJM
+#\\\|J6TIMICPO23MDMYXR3CUNVY6EQ6TR2JDSO6ALNIU7ZBB42UBHAP \ / AMOS7 \ YOURUM ::
+#\[7]YHUYN7LNYXROCDPGPJ6PAUEXGJL5PKDZ4T22NFKZN37JVEDWPUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -123,8 +123,8 @@ specific in-flight session uses.
 Add to `data/ai-mem/kimi/coding-style.md` and/or `data/ai-mem/kimi/
 MEMORY.md` in your own established format.
 
-#,,,.,,,,,..,,.,.,.,.,.,,,,..,.,,,,..,,,,,,,.,.,.,...,..,,,,,,.,,,.,.,...,.,,,
-#3HX4I2DWNJ4BXO74JP6B7TXFTIBPTSSUQHQXMEMUAWIKEAHKAHKMIU4REJ5UDVWHIDZZBA3RA7ZDM
-#\\\|GQUU4CA6TTDHAUKD3J7BMOH3BCMJXV6ZGBE2TS4H7CE74POTIS5 \ / AMOS7 \ YOURUM ::
-#\[7]T3MMVXDU6X4FKBCPLBY7BOKDOXQZT2W24VTWSWYQHANHTD7ZKABI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,.,,,,,,...,,.,,.,,,.,.,.,,,.,.,...,.,.,.,,,.,.,.,,,,.,,...,
+#EZCUK2UNYGCBZFW7K5NMAPCMOTB3NNYEHHOLY4YKY47RZIQZQINKX35OMGPGE4HZYGLP4PSWCTCCC
+#\\\|AVL6S4HCJYXQ3Q7537K7TE57OOB3PW7UCIZMIJDNIJ7YQTEQQOH \ / AMOS7 \ YOURUM ::
+#\[7]P2Y265A4NEC743CMC663IDL3JBQLK45XNMKHGTJZP63CFLWG7KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

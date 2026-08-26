@@ -13,8 +13,8 @@ Sync memory (write + commit) when approximately 42K context tokens remain. That'
 
 **How to apply:** Watch context usage during long sessions. When approaching 42K remaining, prioritize memory sync over new tasks. The commit can happen right after signing, before starting any new work.
 
-#,,.,,,.,,,..,,.,,..,,..,,,,.,,,.,..,,,.,,,,.,..,,...,...,..,,,,,,,,.,,,,,...,
-#KCX5XWBZC4YRHHWG7K3WE4HJXO7KJY4VA5CI4FH33RTP5QZGFRPVDWBVLQENJNYO6TKP6UZESICZ2
-#\\\|LWXJAOXDKHEY3VOQBZNXKZKXHQL35BJNSIMKFDPXLSEDQ4MI4QU \ / AMOS7 \ YOURUM ::
-#\[7]QGND7ZPTG4HFZFWULW5C3FG5TTRRMNG32TLYJLUSAERR4PTZ2AAA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,,.,,,,,,,.,,.,.,.,.,,..,..,,..,,...,...,.,.,,,.,.,.,.,,,.,.,
+#G6ASYPR4GWWJJZPIES3GCK452XHOMRS4IPQEQNCQQUPH6QRCPDNSVSMGKJHRQFJR4VP5KZ7OQ2BHQ
+#\\\|AMIX6MPG2CYRFGLXKVVEO3OZCOWKJ44MFX2AJ52U5LINGZTIF7L \ / AMOS7 \ YOURUM ::
+#\[7]GLPAZN2WZSIMY6KIKCQOIK4UXAQTU7XVFLO46PZKT3KDC7ZWTADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

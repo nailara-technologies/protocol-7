@@ -279,8 +279,8 @@ controls whether to present both — forced correlation is not possible.
 - **resistance against the user's own voluntary disclosure**: privacy is a
   choice, not a constraint
 
-#,,..,,,,,.,.,,..,,,.,,,.,,.,,,,,,.,.,,,,,,,,,..,,...,..,,.,.,...,...,,,,,,.,,
-#XZXJ4FJ6UDZ7KMZH44XDR2IJO2EU7AVUBW4VJIQ4FDU4YOIQFU5RRDJ2XNYVNZPQDGQFQC5G5DVOS
-#\\\|Q3GFNQAW7OMZ6YNKHFC5BCDUNYU5NTRCCMX4RGW4TC2QWOSHNTR \ / AMOS7 \ YOURUM ::
-#\[7]F2EX6YDQ7ZYXLIDR4GZT6D6BABP4XTB43EOTRZLS3S665GMZ4CAY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,,,...,,,.,,.,,,.,,...,.,,,.,.,..,,...,...,,..,.,,,,.,,,,.,,..,
+#UMYPKY46QD6FAFN2XUCTDBFPLP2VNUIEHDF7COHEY64YUP6OCCJTUWKD6HS3YBNK6J3RJ2R3SNSFQ
+#\\\|EZW7DL3YKFEGLZGEO5GGL5YAN3O2MRS7YGPG43FVIH35XMFH7BJ \ / AMOS7 \ YOURUM ::
+#\[7]AFI5K3YDFWE5ND2VR4WNZJOAATXWRMIIUIPRMFOLXZCGWZTAFSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

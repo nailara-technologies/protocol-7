@@ -81,8 +81,8 @@ exec-wrapper boilerplate) was not preserved verbatim — the table above
 plus `git log` on this task file / the deletion commit covers what's
 needed to reconstruct the shape if picked back up.
 
-#,,.,,,,.,,.,,,..,,.,,..,,,..,,.,,.,,,...,,.,,..,,...,...,,,.,,,.,...,.,,,...,
-#MNT7SFIO674Y4AI45RF3UXGRA6S7B7LZSV55TQIKVZGC7VFB6UKF5PEBRENOJUYL6TNIO4DDSW5ME
-#\\\|M6JTPPX4RTLH3B7XOYZFSGHF5PNQK2HKSS6X4XRPVBZF2W7ZWGL \ / AMOS7 \ YOURUM ::
-#\[7]E2EFHBBPY6OAQ3XD6VANFD3ZLD26FJZB4BJUID2NZCTCK7IAQOBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,...,,,,,,..,..,,.,,,,..,..,,..,,...,..,,..,,..,,,,.,..,,,..,
+#G5EURHMI5LIZWRY3ILS5F5DBJN46T667RJFZXLVRWXXTPDIBVUCPM3S2ANQGGAFDICJMMU3WSUXUC
+#\\\|26HUJB5R7IQUIRWXXC4ZDVHFCHAYX6RC2GQI2OATP3UFFUSPAOO \ / AMOS7 \ YOURUM ::
+#\[7]XFKZUAZ57XS5KP4HWHERLT4REBL4POX56MXKGWWQPOBCW42VO2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

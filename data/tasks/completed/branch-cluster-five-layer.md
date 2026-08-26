@@ -155,8 +155,8 @@ cred-mesh cluster:
 - register writes yaml and updates _index.yaml
 - mirror returns valid 5+1+5 structure without writing to disk
 
-#,,,,,..,,..,,,,,,,,,,.,.,,,,,.,.,...,,,,,,,,,..,,...,...,...,..,,,,.,,,,,..,,
-#3KPLZHGPLNYGXXGZKJANB2EJFLIC4RG5UORODFTOPAK5L2BGSZAVKXBCEGRZMLBMPXQEW6BR4AA3E
-#\\\|UK3SXIC3MPWLZBYKCYAS2OEL4PZVVJ4TY2OPUTDZYB6XTF4AHTX \ / AMOS7 \ YOURUM ::
-#\[7]LX76U2ZGIWTFN6YW572CJIWMGB4NKK63LZZPORUOU4MF2XQFGIAI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,,,,..,.,,,.,.,...,,,,,,,,,.,,,..,,...,...,..,,,..,,..,...,,.,,
+#OIVLGFDA4ZDZIOK7WFHWZRMH4Z3ZIZB2SYNI7ANBWIDKHOS4ESNLXRI7VCFSAKFZ5ZJYZ55WZQUUU
+#\\\|M6O2VLR3WPZAKC56KXPV74AJD744MNVQVMUTQIM6IOFHEZSB72S \ / AMOS7 \ YOURUM ::
+#\[7]5T7RDT4MCEV2UMMBU2CVLEY7TCVGVICKELO7SKKRZUZPMSBOVYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

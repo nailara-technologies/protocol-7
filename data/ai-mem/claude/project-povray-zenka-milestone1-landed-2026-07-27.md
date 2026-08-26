@@ -138,8 +138,8 @@ anywhere in the povray-side code) rather than something narrower and
 audio-icon-specific — that genericity is the actual point, not
 incidental design hygiene.
 
-#,,.,,.,,,,,.,,,.,..,,,..,...,,,,,.,.,.,,,,,.,..,,...,..,,...,,..,.,.,...,..,,
-#N5YZNAY7HJ4KINEKP2EEIO2EIQZDJZ7KRLTGYEYC2HSFPJDRAWJ2Z32E5BYVEA7N7PWJI7N54ZJ76
-#\\\|LPX7LHWXASWFKXJPNGJO6TH4HFLADJQCMFOAYEXCCKPHHOZDNTC \ / AMOS7 \ YOURUM ::
-#\[7]V6TENZH6VV5D52APSX6HLCLLOSKFEWOX2UOBPHOBEMHLWH2QV2AI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,,.,,..,,.,.,..,,.,,,.,,,..,,..,,...,...,..,,,.,,.,.,,..,,,,,
+#EYYFAILNXM4UR6TSLUGYXSS5JAGMPLZVSSRU73FTNCRYETXCJUMKVN75EONCD4OMXRCSIFNSXRGEU
+#\\\|VNGURSROJ7ZY5FMVKCXHBFNDXZPA73K4CAJ72SJARBLVG6I6RQF \ / AMOS7 \ YOURUM ::
+#\[7]MLYGHBLXHNDU4KFDDNDY2425JC46CHN3HOHKP32NO3KXEW2VPWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -67,8 +67,8 @@ distance from cursor to nearest node:
 - approaching a node snaps cursor and highlights it gold
 - cursor readout shows nearest node distance
 
-#,,,,,.,.,,,,,,,.,.,,,,.,,.,.,...,.,.,,,,,..,,..,,...,...,,..,..,,...,.,,,.,.,
-#KUKNDFXJ6Z3E4SBCGFTDHGGMEWAHQKBA73KLRRESUNXQ4W3CEQPJS2ZDLOJKO2DQXT3RNRZ4NFPW4
-#\\\|PNKPRKJFQG5NLQFKWOBENMBDEMYTMZVQ6LIYTWJWQSVSH6CYM5Y \ / AMOS7 \ YOURUM ::
-#\[7]3YWA6ND65BOUKBP3TFRA666PBLIUUH6LSRQ66Y54ETT3HFENEQDI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,..,,,,.,.,.,...,...,,..,,.,,.,,,..,,...,...,,,.,.,,,,,.,...,,,,,
+#FPU6D3BLS6JR43QIGCZT5ENWAFWDSY26WUYG7LN53G7Q2IIISGTGBD6J36J2EYWZMI4X3R2LOGWB4
+#\\\|NK37JQH2MXYUC26M53Q4MUBJCPIII6ZY2I5MIXAX2ST66RULBQM \ / AMOS7 \ YOURUM ::
+#\[7]J24KQUQEIC2IT5IR6VJNGYP2XZVCHGOLAHMAD7VM6VF4UK4UQ6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

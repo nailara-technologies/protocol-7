@@ -20,8 +20,8 @@ never write actual personal data (email addresses, specific personal file paths,
 
 If personal data is accidentally staged/committed, treat it as a real incident — check history for prior commits before assuming a working-tree fix is sufficient.
 
-#,,,.,.,,,,,.,,.,,...,,,.,..,,,.,,.,,,,,,,,.,,..,,...,...,,.,,.,,,,..,.,,,,..,
-#LA567WYYJALVTUUI3FLLPWJAKCP2N3LRFEN7SPEW2SENU7WHSUH46WQCTTH5D4AOD7BFHHYJW2FSO
-#\\\|T6BVKCRKRTUYLI2J6QFKAWJ2Y6S5CZWQ53AXCDNBEBF64RJBIPK \ / AMOS7 \ YOURUM ::
-#\[7]UYA6T6F274WAIPERI2TJZT76VHQTOQ2KXCSREGCF5LXZT3KFXKBA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,,..,,,,,..,,,.,,,..,.,.,.,,,..,,...,.,.,..,,,.,,.,.,,..,,,,,
+#ARHIFE7HL7OC5247ILGGE4BMRXDGZYB3JS4ODZEUJF6NTGHAUNORQRIGSCUJURYZKNTI5OKEHRZY4
+#\\\|LVHILFSZ2VCXUPF5FERMTVJMIWSRPRSWXVJUV2BPGCMME56UTOF \ / AMOS7 \ YOURUM ::
+#\[7]JFNUDMX7BMNPVDQSHNDSRCCURQYNUAZO75MVGVPNH53IXZBYNSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -77,8 +77,8 @@ actually gets built: a fourth domain wanting the identical escalation
 shape strengthens the case for one generalized engine over reimplementing
 the ladder per-domain.
 
-#,,..,...,,..,,,.,.,,,,,,,,,,,.,.,,.,,.,,,,..,..,,...,...,..,,.,.,.,.,,,,,...,
-#HNH5EUDL2UWTCZ4OYOTFRI67BV3PYWTZGAUJSGMJG2PIS7HT4HNDSUJQ2VUC4F6W555SGKKTFFLFQ
-#\\\|E3LXRMDQJKTOS7M67IH5ZQG4KW7LOFVBUNZMPBZ7J7PUGTERKG4 \ / AMOS7 \ YOURUM ::
-#\[7]WKEB7YO3JVSX6MUVQHTSHALRDWIJGTJIZ7SSLMW3RDCGBB7KMCCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,,,.,,.,,,,,,...,,..,,..,.,,,..,,...,...,.,,,.,.,,,.,,..,..,,
+#F7RD5QMXK4KOYQP66BNJDC65S2OGRDT243L23NPJ36YE27UNLDBFUTLWZ267FDG5K74JIYGSFRUOC
+#\\\|VCKDWP5ZTLWZN4EYVNI6DK73GVTQFY6BBXD5B2PLMQLORMMKBBO \ / AMOS7 \ YOURUM ::
+#\[7]OIZCZPNMOKKTST24BKETGWXVA4D45DKOBRE235A5CBDOZ67WSUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -188,8 +188,8 @@ letsencrypt.ratelimit.max-per-hour = 5
 
 The letsencrypt zenka represents a significant addition to Protocol-7's service ecosystem, providing secure, automated certificate management integrated with the existing zenka architecture.
 
-#,,,,,,..,,.,,...,,.,,,,.,,,.,,,,,,,,,,.,,...,..,,...,...,...,.,.,...,,.,,,.,,
-#YZ2E6SNGI2L7QSHUO5XOJEAU5RVJQ7QXY5Q6K37G7XLQM5TW65C5JL6544JJIP7AZUX53DPMPTQYA
-#\\\|5KZJZKBYFF7O6MAI7HT36VSLVUIPYGOT64WKOGTXVV65B7BJIA4 \ / AMOS7 \ YOURUM ::
-#\[7]I6AAKIUU2TJRZIVZJNUCVLJXAZCAKJZ4LGYJXT2J2BY2FCPEKAAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,.,,,,,,...,,..,..,,,,,,,.,,...,..,,...,...,,..,,..,,..,,,,,,.,,
+#MXI4CA4T6XZU42WTSVGDC3ZNL34LJCBQJDTWZ4FLDWSDP5X4CRWJK56QOEZ3PXTSWBDVIPAE25EIQ
+#\\\|SK3EQTCRJKXT2U4G2IFJYNIFKWY6LF6B3BKZAJIHIUNDV6V2KGV \ / AMOS7 \ YOURUM ::
+#\[7]M25YWUJQCKDM4WML6NOY55LNBY32XGFFJ7DLSHVF5D7W7XJSJGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

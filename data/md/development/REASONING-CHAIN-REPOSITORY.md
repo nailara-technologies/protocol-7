@@ -389,8 +389,8 @@ this minimal implementation already demonstrates:
 all higher capabilities (layer-aware retrieval, replay, BMW384 mapping)
 are additive — they extend the foundation without changing it.
 
-#,,.,,...,.,,,,,,,,..,,,.,,..,,..,,,,,,..,,,.,..,,...,...,.,.,..,,...,...,,.,,
-#ZZAC5UA2INLGXC26DRJIWNYM7MUEG33BR3X3ZRT2MZMBXKZNGTH77CS2XU7VWBKR5WCWZNNSAQBIM
-#\\\|UBGBAGPGALRABLGAU7VFZAKF7AJ7W2P4USMCEGML33UYGECF5SZ \ / AMOS7 \ YOURUM ::
-#\[7]7G2S56JVBKGJPRNP6MCYVHCQPZDPABPXGH4OVQJ2ZY5KRA7CH6BY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,,,,.,,...,...,,,,,.,.,,..,,,,,..,,...,...,.,.,,,.,..,,.,.,,.,,
+#PH6FVXLAYOH24PKPOG5IHM2DYOJYBCXBCVQORPFUHV7DZ5GIZ3V63T54QKLC7Q44HS35UZQ2VVH2E
+#\\\|GKMNGGYZC5QIPTCZY3ZZTX44LSM75R6IZKE7WEZBVLBEYLEUQF2 \ / AMOS7 \ YOURUM ::
+#\[7]5OGBCAT3YDCO7WYLEZQEPH2XBR5VS44NGLKEAG3UFUHQYN75KAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -217,8 +217,8 @@ structure:
 - [ ] upgrade plan produces at least 3 concrete follow-up task descriptions
 - [ ] document written to `data/md/development/WEB-BROWSER-WEBKIT2-UPGRADE-ANALYSIS.md`
 
-#,,,,,,,.,.,,,.,.,.,.,,,.,...,,,,,,,.,..,,.,.,..,,...,...,...,,.,,...,,.,,,,.,
-#WVK5HANBCKWUFXSVD7PBLAJM7B26NWJBD4ACO2UTJG3YYFUX4CMCVIEHTNHUEB3HXT2JIG6F7QMIE
-#\\\|OXP7VHQSSATIPXJZJRKH4KRMXFW3NF5XUXJ6VT43IKCLXZKLRHJ \ / AMOS7 \ YOURUM ::
-#\[7]QDBXLRZJUIJ54EYDFGJDFIWGKVRDLZKPJOKUK2BEFZ6S3DM3HWCQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,.,.,,,,.,,..,,,,,,...,,,.,,.,,..,,...,...,..,,...,..,,..,,...,
+#3KIUYJRRWW2MWVP2KENNZVMD3PFCNZG7O7VXUKIOC7XADU2P35EDCAZMWIKVMK3MKUTMLHBQSL7RY
+#\\\|BGHNWMMX24WEH6YRSD4SQ74FFXQCBXUSNUCZXJ6TCTGQQF5ITJP \ / AMOS7 \ YOURUM ::
+#\[7]DHSX2P2BK7PUUN7CLUXOFYPUFSERSDVV47KQ4YUTCNU6ZT2JAQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -371,8 +371,8 @@ Files with no actual `base.perlmod.load`/`autoload` call are marked N/A.
 |------|-----------|-----------|--------------------|-----------------|-----------|
 | src/zulum.cmd.export-streams | JSON | hot (.cmd) | no | MOVE | called on every (.cmd) invocation, modules should be in init_code |
 
-#,,.,,,,.,,.,,,.,,,,,,...,,.,,,,.,,.,,,..,,,.,..,,...,...,.,.,...,..,,,,.,,.,,
-#6XE3SDFB5CQDCK2CA2JMGSBHJQFEFDVX45UUD4UTLP4DGY2UK7BFYLTP4VQHEA7BHOY7IJYJU7UMW
-#\\\|OHEEAAFKLIIFMAKOFTJFHZ7YXFOVO27J6EN6LGYS3FZ4L2M3RQW \ / AMOS7 \ YOURUM ::
-#\[7]BIP3H7UM25XDQURFMV2YPDZIGIXH4CF6WKCXTWG5YSE5YELIM6DY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,..,,,..,,,.,,,.,,.,,,..,...,,,,,..,,...,...,.,.,.,,,...,,,.,..,,
+#MCPZ2J6EF2DDIQUL37JZ27CYVMZGTBSBX4LO5OUGPUOYGZF6ETSUCCXUNHFA2V2LHQJLB6JRED454
+#\\\|5B7PW3ECKJ6WOKJL37DVACFD7CAATIJMAEDGI6MKCP6TLWSEYXF \ / AMOS7 \ YOURUM ::
+#\[7]MZGAUZZX2KIEOVXHLYTAG4M2IYDEZWWIKHPQZ6GBM2TSVTAA2ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

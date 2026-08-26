@@ -207,8 +207,8 @@ check `bin/ncode` source for exact argument syntax before implementing
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,..,.,.,.,.,..,,..,,..,,..,,,.,,..,,...,...,..,,...,...,,,,,.,,,,..,,.,,...,
-#BKI2PYFCSHNJVYNS6IVBV5JREBBDK3SOFZYGE7WWZ53OHOBOJXDHEXBPQVKPVXZ4NXAMLZHK4JCM6
-#\\\|SGJ5ITC7742HB7I3KFV3IC7NESGCNEYX6CGHDRY5L4KQOG6OU33 \ / AMOS7 \ YOURUM ::
-#\[7]NF2DIINFH72T44GT6PRDI3UNZY22KRBAJIR46CBXLW7SSYEM76BA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,.,.,,..,..,,,,,,,,,,...,..,,..,,...,...,...,,..,.,,,,,,,.,.,
+#DNQ7IPSNKONKJKP5UETZZPRSWKUIHK3YN2DEBX64WU7DBUI7JTURWMR6UX4C6HHW2IWLHKZZNKTH6
+#\\\|B5DYKWNROECJG2C66KSYUX3D6AKIV4YWKBB4XDDFNG2CUQFLYGE \ / AMOS7 \ YOURUM ::
+#\[7]QHA24CW2G6TZTHD6GJGBXLBAAKYVPUPN3QD2SCKAYKOXKIJXBSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

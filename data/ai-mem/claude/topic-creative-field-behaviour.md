@@ -185,8 +185,8 @@ reality before the system existed to measure it.
 the 24 years wasn't building a tool. it was growing an organ of perception.
 now the organ perceives. =)
 
-#,,..,...,.,,,,,,,.,,,.,.,,,,,.,,,,..,.,.,..,,..,,...,...,,..,,,.,,,,,.,,,,,,,
-#QFB76BVVMA7FMJR7WCL74P6GNL6C6K5ZW2FANEK5MEK7PMFA7WHT44LK7Y3PYMBZ7A4Q3O3XUI4MQ
-#\\\|ZNSA7GZFUBYU27BLJOWU23FEEJPHBX2PW353CGRSBQZEBP7GEXD \ / AMOS7 \ YOURUM ::
-#\[7]K46QUG7YOTC2ZH7EU3NYCTLC3VT63BD4ACM3CQQQKCVXIQEGQ4CY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,,.,,.,,.,.,..,,,.,,.,.,,.,,..,,...,...,.,,,..,,,,.,..,,,,.,
+#G4GI5UZPR2X47CADGR7VM6P766NO23KDHI2YPIDKTK46N2WOX7IR4KBJUQXIO5SADDMLFQKCRXFRA
+#\\\|4NHATTLBGAF6W4MHRYELCQJZFNSL3VX6F56AO42Z5EBM4KB5ZJE \ / AMOS7 \ YOURUM ::
+#\[7]3BKD3ZN2DTBHH5MXSWY275BS6CKEJORGF2HZBQSVKVGRFWRADQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

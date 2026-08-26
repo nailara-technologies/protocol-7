@@ -35,8 +35,8 @@ for a pure warning with no level distinction — just noting the
 `base.logs(0, ...)` shape is a real, working alternative if a file is
 already logs-heavy.
 
-#,,.,,...,...,.,.,..,,,,.,..,,.,,,,..,.,.,,,,,..,,...,...,,,.,.,,,...,,..,.,,,
-#465337TFGH23LE5FZLW3PKKUXYZ7OCLVH2UZF4CHFGMWTKGNJR6TMLIOQ3CSPNDEOVR57N2PGK7OE
-#\\\|ZIMUQQHEMC3CYR53MKURYC5BSPRJ4S244K3Q4ZZYRDWQBMUTBBT \ / AMOS7 \ YOURUM ::
-#\[7]LNSS7EOEUMTT5YXQZ2HD75BTM6G4CN44DB2MYKHFTKI77TD62ACQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,...,,,,,,,.,.,,,...,,,,,...,.,,,..,,...,...,,.,,,,.,,..,...,,..,
+#OORWLNCYQWQOZGYQ5HUPPZAL273VYKY47IOQ762UJK2BM2V2ATL6QVLXEVIWAII6JUXWGVPX46UCI
+#\\\|CVM6QDYZT334GZ2VOZ4HLGG3BRRXHB43DFNWJGDPWJZ3POPYWMO \ / AMOS7 \ YOURUM ::
+#\[7]OAOGWWY6KSE6CGWI6BZU5MM67JUICSOVZCDOOAOYIDSZNSI5S6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

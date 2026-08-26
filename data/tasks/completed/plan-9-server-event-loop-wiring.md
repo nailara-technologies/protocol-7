@@ -279,8 +279,8 @@ another pre-existing bug, `send_to_socket` requires a real filehandle),
 `plan-9.server.buffer-stat` + `plan-9.server.realpath-read` (the
 `CORE::stat` fix above).
 
-#,,.,,,,.,.,,,..,,,.,,,.,,,,,,,..,..,,..,,,,,,..,,...,...,.,,,,,.,,,.,,..,.,,,
-#7RY7BYV7FSQE3WSVTBHUZHD7LBJ2I72UWTPIUAMG4ZJHQ7XWAMYV7BLBQBBND7TB7MXBREXR3LAOW
-#\\\|OEVPRMSOZNMJ7ICWIFTPKNG2BNMEEAYAV3MW62PMV75GCLWMAL7 \ / AMOS7 \ YOURUM ::
-#\[7]EO6URLQJPHHMQ2HQFVOVYF6323EBXGO3LKSRE32OR2L5VJOWGCAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,,,.,,..,..,,.,.,.,.,,.,,,..,..,,...,...,.,.,...,,..,,..,,,,,
+#RQPEFBDRHKJFYCCSMRAVUCLJRC5S66V2JUP6F5DKI4OTHVHKHZE7V3AX25ZC5F6DDIA2463S6NYVO
+#\\\|GQWE2KDEOAK7MJKDYFK3TYRCHMXM7OL6Y5QC6L2OVXTZQY7CWBV \ / AMOS7 \ YOURUM ::
+#\[7]PFHJK6S3IHBWDDSC7LHXWAIOTMYIFANSTIFVDCS6MD4KQBJZHOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

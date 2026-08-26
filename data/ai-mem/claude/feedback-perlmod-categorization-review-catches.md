@@ -141,8 +141,8 @@ design over a swap-on-load/restore-on-unload design — same behavior, but
 needs zero changes to `devmod.pre_init`/`devmod.cmd.unload-devmod`, so
 nothing to forget to keep in sync.
 
-#,,..,,,.,,.,,...,,.,,.,,,,,,,...,..,,..,,,,.,..,,...,..,,,..,,,.,.,.,...,.,,,
-#4CTRWFZX5E7AC6KTBLS3R4G3RSJVJ6E7N4GD6CGM4BD6UAGLVQ46MOZKTSMK7S5S3FQ6OIKVHUCDU
-#\\\|GFDBZKNANER5FYC3VI5NKCQPW6VWFM2KZZOIL62UG4KTMHYIACH \ / AMOS7 \ YOURUM ::
-#\[7]SVZ4EDE2ETP3DVH7CLMMBAXCGCGPAPWQWVTWI5BJ7UJXG5RJMCBY 7  DATA SIGNATURE ::
+#,,..,,..,...,...,...,,,,,.,.,...,,,.,.,.,,.,,..,,...,...,,,,,,,.,,,.,.,,,,,,,
+#KL256LJGGTFY4OTB2L77DBXQXHEBWNX7NUD5MDEXBMXCTBEVE4SAHNPT62MU3Q3FKWIWB7ZV7FMFK
+#\\\|R6NQKB5SQ6M36LEQFJUJVTSREED5YJSA3OM2VVNBQCITIPP2467 \ / AMOS7 \ YOURUM ::
+#\[7]SMSQGG7BZTAPD4V4VTVDBELNVSFFV7BD33DRBYUXW37UBKXDISAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

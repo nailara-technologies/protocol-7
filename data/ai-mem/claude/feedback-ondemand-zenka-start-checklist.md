@@ -24,8 +24,8 @@ For dev-only `eval-code`/`exec-sub`/`set`/`del`/etc., add `devmod` to `modules.l
 
 If `v7.start <zenka>` enters a restart loop (each attempt ~64.7s), stop it with `p7c v7.stop reasoning` between fix iterations to avoid resource churn — used this repeatedly while debugging [[topic-zenka-naming-cleanup]]-adjacent reasoning zenka startup (2026-06-16).
 
-#,,,,,..,,,..,.,.,,..,,,.,,..,...,.,.,,.,,,.,,..,,...,...,.,,,,.,,,,.,,,.,.,.,
-#ZETUSRS44NSEBSGWSE4D2QMOZLJXMOP2FJLDNN3ACDM6VUP3VMWJFCOECTNSLSNQ4OCVO4KLGZ3GA
-#\\\|74GY7F44UWT335G3GSJ7WTWA6P3ABP4LC3DKRAXW7LXOWQDSQ7J \ / AMOS7 \ YOURUM ::
-#\[7]ILPXMHDBEVN72ZVWZQDP45PNMBQBT2QNGTZGHJ7T3KETVWQ5DKAY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,..,,..,,,,.,...,...,.,.,,..,,,,,..,,...,...,...,...,,,,,,.,,...,
+#F4FAFJTZWJQRVHVLLNAQXOXZ4XXGJLJST4PJ3SQEV7FU52KMSHAA5AMR2HK6S2TVWYXC7XBF4G4HM
+#\\\|NBH2JAMXCR7IVE5YDF2ORJGJBI7UA3TTAGDW6VYKOQOTOO4X34P \ / AMOS7 \ YOURUM ::
+#\[7]YD5UVR5VNADHL4G7TUUKNJTRW2XYO46KYN6PKZBLHMS44EICZWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

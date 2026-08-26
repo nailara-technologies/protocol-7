@@ -101,8 +101,8 @@ still missing before writing new files.
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,.,,,.,,.,.,,,.,..,,,,.,,..,.,,,,.,,,,,,,..,..,,...,..,,,..,.,,,,,.,,.,,,,.,
-#OOKMLQWFCV75LGJZ5OEXJKDYEBIK7DMKWONH6OB3I7YP3ZFI75YDXRGYN6AF27HLUS3Z2XG2MDXWI
-#\\\|L4K633UFSMHET25AQ7RXVRJS26ESET752IFC6BLXZCPILOBXKXW \ / AMOS7 \ YOURUM ::
-#\[7]3NZ35BOVZBKOUUFMCH5PJCDS6F6EIDKPUC4VK565ZW7H542ADSCA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,.,.,,,,,,,..,,,.,,,,.,..,,,.,,..,,...,...,,.,,.,.,..,,.,.,.,,,
+#4VKUAZGTLU5JHZEZHK4K3YX7SUSEADZ2D4AWMJWSFAEHXAUI7VYWAMEO2DO4HIJOVBUPK2YBIXFMC
+#\\\|SDQS4OUFFZD2FJO2T6T7SPPALCBZ5HKKVKBKKIPQML264SX2EYV \ / AMOS7 \ YOURUM ::
+#\[7]AUV7IAHRQUI5JO3RO3E4FGSDBYYBHDEUDDISPKEOWCNVNYI3CMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -246,8 +246,8 @@ use constant CARRY_GROUP   => 7;    ## index of terminal/carry group (leading 0)
 - navigate clamps correctly at both ends of file
 - suction moves exactly the bits vacated by extract, no more
 
-#,,.,,.,,,..,,,,,,...,...,,,.,...,..,,.,.,..,,..,,...,...,..,,,.,,,..,..,,..,,
-#JDAYGKCBL2J7RMPHHPQ52BCVOFSZWUPNAT3X2QKEH2XKSN2XKA2LEJXTDVJXUOCNZXCGNGUZ7A4Q4
-#\\\|UHLZRUXL42FCH2JHFORZDSBHDSMGAMXXBPAKJKJNH5BVHWTZHZ5 \ / AMOS7 \ YOURUM ::
-#\[7]MSWZ2IFKL4PRT2VOKLDGTUMECKTDTXMR2KOCRTQXWSJZOXLTYEBY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,.,,.,,,.,.,,,.,,..,,.,,.,.,,..,..,,...,...,..,,.,,,,..,,,,,,,,,
+#7SA7WFFZKS6BC5QEUQZQQOV6HBYCAJXD3J5WBR2LV2VQME3YOYJGUPANIU3ZS3AN3WSJGVUGRGA3E
+#\\\|HIKWYO2HZFZADQGNPVU574CPFVP7TF4O67KESCMUZM32LSQXTIJ \ / AMOS7 \ YOURUM ::
+#\[7]AYUE75NIU2U6VXIOOT5YDGY4VCODLOPL6R7FCJJGK5F22DUWGKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

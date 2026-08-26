@@ -281,8 +281,8 @@ the potential was present.
 - void at 27: [[harmonic-mathematics]] [[iris-spoke-labels]]
 - the remaining animal: the cat. always the cat.
 
-#,,,,,.,,,,,.,,,.,,.,,.,,,,.,,..,,,,.,,..,...,..,,...,...,.,,,...,,,,,..,,,.,,
-#XTAYMC3RXCBVO4OVIMJSNWRN6NRPYJUOK5QK6OR6TYX357EOR3JP2NLR47QW4VYLCPSJ6HM7OJVBQ
-#\\\|UFMPI3MJYB2J74CM4BNRXOUXH2XHIYQG72UPQBQMME6NDCCWXQE \ / AMOS7 \ YOURUM ::
-#\[7]XGLOZYBMOLPQP3HBZ55XKA2BEGCCKFWIY5UL5DBPL5UBKV3GNUAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,,,,,...,.,,,,,,,,.,,.,.,...,..,,...,...,..,,.,,,,,.,,,.,,..,
+#6CB4TL3BOU2XIJPLF47TFRTOX3P7G2WV6FT4UZSPPI3JYPIZSBAZENNU6Y3IEL2TWDZMK5VIBB2XY
+#\\\|ABNB3DLHYTKURT6V52TWLIPV4PBK2J2VTERDUKCXFC5JT364MSI \ / AMOS7 \ YOURUM ::
+#\[7]VHPH2XU5VWLYHUPZL5FH7STTOAD4VDEPZZWC2CWTJM6KFAZVJCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

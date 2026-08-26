@@ -77,8 +77,8 @@ task=... round=... messages=...` line once unpaused.
 
 #,,,.,,..,,,,,,,.,.,.,..,,,,.,...,.,,,,.,,.,,,..,,...,...,..,,..,,,,,,,.,,..,,
 
-#,,,,,,,,,,,.,.,,,,.,,,,,,,,,,.,.,...,.,,,,,.,..,,...,...,..,,.,,,.,,,..,,,.,,
-#5MJ5LJ2LAGXWOKFUGZ3V73PMNVB7IJXA3JW63HIRBLUOMD3HRDTQVBK7MSUH3OBALJKS4RCRF7ZAK
-#\\\|C43LABPK3HBBXLNT7NI2S5RXTYADTFO6ADWN4GITJ72WLDWGBUT \ / AMOS7 \ YOURUM ::
-#\[7]YTUF3Y3DSAMB432MLKRMDAOG7S3DAFRX3XWJFNQZVU6MUQN4M6BA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,,.,,..,,.,.,,,,,.,,,,,,,...,..,,...,...,..,,,,.,...,.,.,.,,,
+#6DBMMDL7FSGPGLGPMJUIJKBISOXREIDDQ6DGXX4YO4EDXCM2Q4OGSW5OOIRACA3E7XI7HJMOISNKE
+#\\\|7ANPBATEPHDEIOAXS2CYKXOQFIFFBA4CXF65SELFPONBIPD2I7Z \ / AMOS7 \ YOURUM ::
+#\[7]WKF6KMOXFMAJBUKIUERZ5TGMGGFVOASGCK7G2NF7MHUPGJ2NNEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

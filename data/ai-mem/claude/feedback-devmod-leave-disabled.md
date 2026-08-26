@@ -13,8 +13,8 @@ When adding `devmod` to a zenka's `modules.load` (for `eval-code`/`list-subs`/`d
 
 **How to apply:** they can be enabled on demand by editing `access.cmd.usr.cube` and reloading config — don't leave them live after debugging is done.
 
-#,,,.,,..,,,,,,,.,.,.,..,,,,.,...,.,,,,.,,.,,,..,,...,...,..,,..,,,,,,,.,,..,,
-#ROFVTFNHBH6LH7VDK2NQOCHBFVAZ2KJ3JSXVKVHCX6FDF35AEWRT67W755GN6IO2VRDLR255VZAI2
-#\\\|BPNE6GQG6FR7SBJYZO57OOKC5IBWOEJMP2CNHRP72ABZOLK7SM6 \ / AMOS7 \ YOURUM ::
-#\[7]OZHKEUVZYIM2SSQRUJIKEZ7CSWKYITVASCCMPN6PPKL3RP3X3YBA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,...,...,...,,.,,,,,,,..,..,,..,,..,,...,...,,,,,,..,,.,,...,,,.,
+#BZGJWCSMJFXHHO4DXPG73NABTXW4IPV5HZBQMWZ5FY3PJSRM56ZKUHB5PINDZZYUG5EWYTNNDD5N2
+#\\\|6CSTV4XAD6YJ4AQEME5IX4LB2DFSP6LRBXGNRLR6SAB7WS56VMM \ / AMOS7 \ YOURUM ::
+#\[7]KXHLAHZ4WJXMNCDYVXMN6HJYUWPZX3IQ3PTQJ7QCPDFH5LNUIWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

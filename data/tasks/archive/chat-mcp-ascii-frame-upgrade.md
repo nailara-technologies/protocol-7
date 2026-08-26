@@ -107,8 +107,8 @@ this is ~10 lines of string math, no external deps.
 - plain-text output (non-tty) is unchanged.
 - no AMOS7 signature stubs in new or edited files.
 
-#,,..,,.,,...,,..,.,.,...,..,,.,,,.,,,,,,,.,,,..,,...,...,,,,,,..,,..,,.,,.,,,
-#KGUFFVU2YIPNQK4WK5NH4ZKWXHBBEVGQMWRHMCRF47EPB76YRZF3FIBEQSQT2O3SF5RQC2EZDNTHM
-#\\\|3PXKQ42LDNFVBNJVJM3LD6AHK42B57OXVR2NSKDQXKJ4FHUE5RV \ / AMOS7 \ YOURUM ::
-#\[7]QZRYVG67VSXOV7ERKKVTF3U4IYLNCYPIHUDWZGZEKP5MLGSICKDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,.,,,,..,,,.,.,.,..,,...,.,,,..,,...,...,...,..,,.,.,,,,,.,.,
+#6ZWFYKXGIGHPGZXGQQ7ICKYNVCDAFJPNVJXT27HQZ2GAMC5TYQGE6KUYJOE7COXA6C53KVKO5CHI2
+#\\\|X5RRUOCAAI6WKGVFNL3OWTYG5KWJMV4XEPGJIYSJ7VUNNBFJWP2 \ / AMOS7 \ YOURUM ::
+#\[7]XKCLZZIYHC7FRPFUYUYUIL6YNMLZKKSNFULROIYXS72CNBWDVCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

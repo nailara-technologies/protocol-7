@@ -101,8 +101,8 @@ touch must not be modified.
   long-standing, previously-deferred restart-loop annoyance, which turned out to be this
   unrelated bug, not the same one
 
-#,,.,,,,.,,.,,..,,.,,,,.,,,.,,..,,..,,..,,,,.,..,,...,...,...,,.,,,..,,,.,.,,,
-#MQKWJETYNMZFUP6JYNDU5CQPQBACPAC54ZDDGJV3JJUS5WWJBT6ROUFXZMRUHFKJ5ODM2HQNZMEWW
-#\\\|75ALGET7UQK7SMLSYAJ6HMSRE76JUZA2MD3YXBKPHRCLNJZEKR4 \ / AMOS7 \ YOURUM ::
-#\[7]2WH5366DHRIMAAIA6RGHDFXFPAUGPVP6MHGGEIS4VXL447DK7GCA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,..,.,,,,.,,...,,..,,,,,...,.,,,..,,...,...,..,,,.,,,,.,...,...,
+#IYPO32V4JHNT7A6IGOBD3OVGEZKWQGG4YD3J7XUEGX4JG46NIKXCX5LXNIBNTBNVPSNNMJYO45G36
+#\\\|R4HLDOVI5MSRIX5ZYUCS7BWXGOL3YP6XGCU7BOTP26N6TR47QTW \ / AMOS7 \ YOURUM ::
+#\[7]B2KMPDPZZULEBUNXVUGL6XJI4HNVDJJNKWZLLA2E4WLWOOCH7ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

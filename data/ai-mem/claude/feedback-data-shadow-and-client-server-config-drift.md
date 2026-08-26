@@ -53,8 +53,8 @@ that a `//= <literal>` default was ever verified against the real
 server. Worth treating as a checklist item for any future client/
 server pair in this codebase, not just 9P.
 
-#,,.,,,..,...,...,.,,,...,,..,,.,,,..,.,.,,..,..,,...,..,,,,,,,,.,.,.,...,..,,
-#BU3PL6GRZUL5QZTEFVX65JHZDCT3E5PSZWR7UHMYMB2JZP2KVTVZ76MJSJPS3ZRHCQRRV5JVH5XFA
-#\\\|4IHFSNR2TFX4FQSJ7BGQRYF2XLNZUWGEOAUXKRS2JN6DR5Z4JCK \ / AMOS7 \ YOURUM ::
-#\[7]S44AN24XOREHK6CQSEOGRIHIKNAM7E6ZS3HZIF6QG2KD47QEQUBQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,.,,,,,,,,..,,,,,.,,,...,,,,,..,,...,...,.,.,,,,,,.,,,,,,,,,,
+#N74O6TEO2IIRVCCE47CIT5JQ3IDRIOTGYIZ5NFZ6ZGQTMSEKCKMUKXH2HD5VV7OQA7W74Q5TTLJZI
+#\\\|BEHIGKISHTDXTIZXFABDLBXM6SYTTLLMNJPCEYUNTGOAQFAXTTQ \ / AMOS7 \ YOURUM ::
+#\[7]HWFZSANLEWNWWWPE6N2ZQ2UHT77KTNODHKVDKKCORT4M3IOBO6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

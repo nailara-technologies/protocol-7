@@ -116,8 +116,8 @@ that branch first, this is the same shape of change.
 - [ ] Explicit migration-tradeoff decision (above) documented in the PR/
       commit message, not silently chosen.
 
-#,,,.,.,,,,..,.,,,..,,,..,.,,,.,.,,,.,..,,,..,..,,...,..,,...,,,,,,.,,.,,,..,,
-#QI462B5F2RULVK7QW5MTB3JJELRHKDUHUAPOFLTXGTBAM6UKMWMIS6ZPJVRUZX5UZOTUHPYPJXFHS
-#\\\|F3BJIKUTDMHVJE7WCXTGEFE2IASDPAOMFYZX4QYG7J57HV6S6P5 \ / AMOS7 \ YOURUM ::
-#\[7]NPYAO6VSD7IBBEQSQQ5TDKZHXANHMLFTUCHYJ4WHNQUTSLGXWOBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,..,,,..,,.,,,.,,,,,,.,,,,,,,,..,..,,...,..,,.,,,.,,,.,,,...,.,,,
+#5V4N35GQAD4DVCX5LFEJXDAWBWBCEP7UUFQF6ZJX3KIRJBB2PKFLM5275LA3C4LN4QSWQ3QFGU46C
+#\\\|FRSXYQQO2A6FGNIUJHQMQJHMFVO55FMKOO4Q5BT5D4WUEY77YPQ \ / AMOS7 \ YOURUM ::
+#\[7]R6WN2MRHS3S4YR32NDMDXKCW5JHO6RUSA5TTV6BWXLI3ZPWLZOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

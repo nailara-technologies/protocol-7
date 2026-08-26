@@ -149,8 +149,8 @@ no `#,,..` stubs. do NOT run update-signatures. do NOT modify
 subroutine whitelists. lowercase comments, `[ word ]` annotations,
 `$ARG` not `$_`, one-sub-per-file [ no inline `sub {}` helpers ].
 
-#,,,,,,,.,,,.,.,,,..,,.,,,,.,,...,.,.,,,,,,.,,.,.,...,...,,.,,,..,..,,,.,,,,,,
-#B6ULNUVI3L7JHT3BLFAMC3INI7KJM4RLAQZ4JZ3ADVF7MPL7GGNC5PHNHACABPND474B3GOF4C7YS
-#\\\|XCRC3NEMQFAMGCB5W6FGLC66MGX7LXLNDPAIWWUWXTSN4EO6HCC \ / AMOS7 \ YOURUM ::
-#\[7]SPVODUGGH7BTR2UYCCHAXQNQ5P6DIEXCUDPU2NVIPMZZ2PB4Q4BY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,..,,.,,,...,,,,,...,,,.,..,,.,.,...,..,,,..,.,,,,,.,..,,,,.,
+#2RQWRZWXOONCFEZ23KOITNXI5Q6RO4ULW6YGGSGMXX3SK3ZL3D4G4QBJRHXU3SQUWIFACIKYO6QNQ
+#\\\|4YMPIB7M5ID73YH3A4FEKMAOCO4UO42QXWIRSRG6MFSYS5MDXTV \ / AMOS7 \ YOURUM ::
+#\[7]HUD755XFDZSEHYKVSQEVY2XSTCMAQLETKD6OFADDDM4R7AM5J6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

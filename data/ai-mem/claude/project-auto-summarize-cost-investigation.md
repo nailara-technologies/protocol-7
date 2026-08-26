@@ -93,8 +93,8 @@ consider it may just be legitimately working but slow on a small-context
 session — check elapsed time against the ~13min self-resolve window noted
 there before intervening.
 
-#,,.,,.,.,,,.,,.,,...,,.,,,..,..,,.,,,,..,..,,.,.,...,...,..,,...,...,,,,,,.,,
-#EBKR34SS3JNMSAC7J25FBNJ3MGKI5XJ3QYJMVN4EIAHCYCK2PPZI67FR73EEIHAXTAZAAGWQS2MP4
-#\\\|L7QLMMNY7RVSWKUMVTCHHRNEKJL4FPLC2WVQVJ4W5IUVHIQ7GON \ / AMOS7 \ YOURUM ::
-#\[7]TPO3HXB7XW3H6JF6ITQJRPY3N7EZ6GL4NQHKLNOM66CQKPFXWOBQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,..,,.,,,...,..,,,.,,,.,,,.,,.,.,...,..,,,,.,.,,,,.,,.,,,,.,,
+#C5UQFM4EYNMFFLZQZUDGRWPPL7B7753K4VI6UHQ2VIUPSAG3DKML2J3RNJKWRMGMVVIUM2VXBN22G
+#\\\|VAKSSRMXWUYOCKQ5JMJELOJIZO77CKTFCCZG5JAVO2CHASE5F63 \ / AMOS7 \ YOURUM ::
+#\[7]2LSHDFYE5AB4MRQSBSCK3IDYTL2DTG7RFPSQ4IRIS3HEET63E4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

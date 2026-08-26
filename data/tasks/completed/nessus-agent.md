@@ -81,8 +81,8 @@ see note below.
 - same rule as openvas: no scanning without a live consumer; manual
   invocation until the forensics agent exists.
 
-#,,..,,,,,..,,,,.,.,.,...,..,,.,.,,.,,.,.,,,,,..,,...,...,..,,,,.,,,,,,,.,,,,,
-#DPHIY776T32WQVS7CWG2RFDQDWC2P3MAXP62FJK77KYUBNJ52IQO5ROQDKY2VVRZE54TIB6KJFCBO
-#\\\|OGQQVNIWPE5PIFWFLCQR5KG4O7TAY3GZQ3XMEBU3G3RCGGVKFAF \ / AMOS7 \ YOURUM ::
-#\[7]JZWBTC7IHQVYQYY2HYHMI5W3DAOLJFT6QQIPIPBNDXTJMYFFL4BQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,..,,..,,..,,,,,,..,,,.,,,.,,..,,...,...,.,,,,,,,.,,,,.,,,..,
+#2RYALAU2NZAHHZIW2SXXIKJ4MQ5VNATNZIC6H7M5S2DFTBLJ2PLCIBJLROCLMA2W33UINEBMLN4MI
+#\\\|UG6SXDFAW4VFLXSWEET7H7BJQYMJSSTWYIFGJG4UDDJWGFWWTD7 \ / AMOS7 \ YOURUM ::
+#\[7]YB6BGSWL7LBQRJRLJAEW6TBXWVZFS76YANVDHEHCE7XRMZPMF4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

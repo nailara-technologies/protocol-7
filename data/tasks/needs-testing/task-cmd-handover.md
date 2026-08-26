@@ -40,8 +40,8 @@ empty queue: return 'no tasks in queue'
 - lowercase comments, [ word ] bracket annotations
 - no use statements, no pragmas
 
-#,,.,,,,.,,,.,..,,...,.,.,,.,,.,,,.,.,,.,,..,,..,,...,.,.,.,.,,,,,,,,,,..,,.,,
-#A6TD37A6UTT6AZXMLCKR2K5QORMOTRX77UAQSWSFDSHNITHXQ44SXEQ6ZHIFRN3CWWWXR52ENRKXS
-#\\\|YVKLX4VJV45KSCQDKOVG5Q3Z46AW5M2RDMOLDAHB6H7IK5ZTBZX \ / AMOS7 \ YOURUM ::
-#\[7]T3HJ6USGGPSLISUMLYAHCWA6KURSEZKMSCH6VGJ52P3H4RDTQMBI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,..,,.,.,,.,,,,,,..,,...,,.,,..,,..,,...,..,,.,.,...,,,,,...,,..,
+#2SVMLYLWLILV7HNBAKTJNZCQDGMBF4TWGDAJPUK5JMINGLCI6YWNWI4ESQ5IO5KM36ILQMIW34PFC
+#\\\|7I5524IBQNP22YBJ5RE5Q7K2FHM5BZ4BUKINOGIGAL5EYZQYDZN \ / AMOS7 \ YOURUM ::
+#\[7]W5DXIKNWF7JJ2VS6WOZ6XJOHK36KAUR4OG3XCY6HMVTMBKRQ4YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -224,8 +224,8 @@ leave it pending and say so).
 ## - NOT done by agent: bin/Protocol-7 sourcecode update-signatures
 ##   [ interactive passphrase ], no git commit
 
-#,,,,,.,,,..,,...,,,,,,..,...,...,.,,,,,,,..,,..,,...,...,.,.,..,,.,.,,..,.,,,
-#GPG3RUIMUUMXTWIZLGNUIGA2U37WH7KPI356TNZ2Y4IXI2X7QX4GXAAH6ELHALRAUNKDSABTRLRFC
-#\\\|KTWX4RRH2GAZTIP6CZPTMNVN6DJCOVDTY3MWG7KBIYW5ZTBUCYL \ / AMOS7 \ YOURUM ::
-#\[7]WEYZ3NZL5HRWG5WAMTBEEWV4UFZRFFO7YHV65MGZATBOJGIAJ4AQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,.,.,.,,,.,.,...,,,,,...,...,..,,...,...,,,,,..,,..,,...,.,.,
+#IW5VU6UA7WXCP4FFSGV3G5XSOT2BKVGPRBHGQPK7PX42K7W4LULTGPP4KSF5BUMAKKXAVPYHW7QO2
+#\\\|YMJT4ZE5BR57WIJESQIZLQ775NYXW7BEZVTN2MW6VCCVY7GBDUN \ / AMOS7 \ YOURUM ::
+#\[7]M4F7Q6ZLYP2CEEEEM6M2NKZWBB5XEWIRJZ4ROYQLRXEQB43CPYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

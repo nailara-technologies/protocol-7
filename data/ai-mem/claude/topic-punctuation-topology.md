@@ -84,8 +84,8 @@ The route IS the thing, read at the appropriate resolution.
 **Why:** unifies routing, scheduling, caching, addressing, logging, documentation —
 all the same topology at different scales.
 
-#,,..,.,,,,..,,,.,.,.,..,,,.,,.,,,..,,,.,,...,..,,...,...,..,,,..,,,,,,.,,,,.,
-#2GKVVEXO4WSCD4BEWV6SPYYT3Y5N36S2S5IAUJYHP6B6VXO5XR6BKO4BSMGMPVKVFNGP7P6L6ZLZ2
-#\\\|OQ3IIAIL4AKBHX5XLB6Q5OWFGGRGFT6G3CDGFC3JKVJT5KMDFP2 \ / AMOS7 \ YOURUM ::
-#\[7]W2M377BEUKA4NYT5KY6CV7HQQ7DYL5XXS5ILR2NKBZOQ4RLWQEAQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,,,,,.,,,,..,,,.,,,,,,.,,,,.,..,,...,...,,.,,,,,,,..,..,,.,.,
+#L7KXCWIPXP6HXEZHHSFGMMLG3HOA2FD7Y6ALR43JNJVWFG3Q2YANL2OZVEW3Z5G6GXP6DX6UW4S2E
+#\\\|LB3PCRSAAHKIOPQUJPQMR5DCZUSV33WHHEATFTIL6N2BOI7ICLN \ / AMOS7 \ YOURUM ::
+#\[7]DO7BUSE2TIBGDYOU2KCGARGEWTZVEHXK546F2WCEL32BIWDQDWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

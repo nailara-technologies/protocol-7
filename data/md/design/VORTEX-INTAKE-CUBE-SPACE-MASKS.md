@@ -216,8 +216,8 @@ the vortex mask renders this geometrically:
     arrival at center: all cube transitions complete
     =)
 
-#,,,,,,,.,.,,,.,.,.,,,,.,,.,.,,,,,,..,,,.,..,,..,,...,...,,..,,..,,..,,.,,.,,,
-#UUNX3OWMG5XMHEZO4A3CRMMDC6QZM47M72HTEYF63G64X2PJG3MXY47RLUEBYQLDL6PKX42IG6PDC
-#\\\|VGTDHBGBGC6S43JTLGKZ6GRU7NAF2O45PN5SJA3QFINHSTBBQPQ \ / AMOS7 \ YOURUM ::
-#\[7]GVFPNTBWBZZBQS3IF4SAITSJHHWSVSC6AJSSTPFJQGUUV2LZOABA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,,,,,,,.,,,,,..,,..,,,..,..,,..,,...,...,,,,,...,.,.,..,,..,,
+#BKRKQEY5JTEHRYRELXOEX6NPBWZ7NZ7PYH2QWUS5UVB7VGMKXQTYN6MODSZP36IXDUJK5SUNLCP2W
+#\\\|JLL5QU3ZZUUOLKELHSJOTAJFF2KITVGR2AARZPBGXR35YRR6FAZ \ / AMOS7 \ YOURUM ::
+#\[7]UURDZJYM7I7DPDTMEFCE4ISYJZR6RYO2M3TKTPN6S6RO2KZTI2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

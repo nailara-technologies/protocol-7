@@ -93,8 +93,8 @@ watcher -> cube cache), and the ascii-frame tree+zoom+crop rendering
 spec. then split into task files following the
 [[topic-ui-show-security-levels]] precedent.
 
-#,,.,,.,.,..,,,,.,,..,,.,,...,,.,,..,,...,,,.,..,,...,...,...,,,,,.,.,,..,,.,,
-#BZYBQ4AO7WEECNPJQKOHB3RVIFKRUKUFD5HZGKBKMWBH4AKBQTUFDGZEKXNG6TO4VGLX5NMD7S6I6
-#\\\|M4J4UNCYMJES2JFRULBHTGBWQN2IUQNKE6R2YFXP2GQJACCKQEP \ / AMOS7 \ YOURUM ::
-#\[7]B5B6ZBREU4TBUH5GEB7NLQZLLIXGYX6LY7ND6OBP6CW6SC2PVWDI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,...,,,,,.,.,,..,,,,,...,,,,,..,,...,...,.,,,,.,,...,,.,,...,
+#NCJ6RAAKHFODVH4GCOWVKLAP5YBEPUQHB6RBXO3LOXJD3HX5YQZWDUMKHIVCBCP335VX46DXL6ZGQ
+#\\\|ZOWQH4DNNJMZ5D3R23QQFR2DLK3PAOISI57QNLTY4L5TVYMF2DJ \ / AMOS7 \ YOURUM ::
+#\[7]4GPBJ5B6H45FTW3NG2GVSMDZKK67A2NKE65LMUYN3KAD53IN3WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

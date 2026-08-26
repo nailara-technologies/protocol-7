@@ -95,8 +95,8 @@ module_glob : var_name ~ /context_pattern/ -> resolution_template
 | `src/base.white-list.register` | whitelist + runtime verification |
 | `bin/dev/dep-graph` | parse white-list.register in start files |
 
-#,,,,,.,.,,..,.,.,.,,,,,,,...,,..,,.,,.,,,,..,..,,...,...,,.,,.,,,,,,,,.,,,.,,
-#PJW54PZFB7NNKBRZ7ANYYTPBIQDDGKCOZFMVAKN7GJENWKIYIDWOKLUW7KOCBKPT66R5656WXBOJY
-#\\\|AVCATJB2B2WEH5JUDAIFXVKIPJLSYIJ3NJOZI7V2NNVCLRBAM74 \ / AMOS7 \ YOURUM ::
-#\[7]NVNMPM7SWQSFSILJ6B4GRKIKKYJ2SIPBADMG6CEHHNSXJI2SYMCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,,,.,.,..,,.,,,,,,,,,,,,..,,,,,..,,...,...,..,,..,,,.,,,.,,,.,,
+#ZJ7GE5PWRO4R4YL7CTQOJ3ZMVOHI6MJTF5GLHZFAGCIBMG4LM54UESDZISCBYX3GFPYBYCRTPU5AQ
+#\\\|NHSD7XSKTRPDKAZHL4DHD6L6D2PWDNWDJADMUBB3KD3E3RDFIHZ \ / AMOS7 \ YOURUM ::
+#\[7]IGOSAAEPXHHOWYCVQHPCO3NNIKJ6CY62SRQ7QSN6PJOHTMHF5ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

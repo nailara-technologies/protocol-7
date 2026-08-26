@@ -174,8 +174,8 @@ start_mode = stdin-zenka
 - **Network daemon zenka:** ⚠️ 2 known anomalies (coding, data)
 - **Desktop/X11 zenka:** ? Requires user auto-discovery (needs testing)
 
-#,,..,,.,,,,.,.,.,.,,,,..,,,.,,,,,.,,,,,.,,,.,..,,...,.,.,...,...,.,,,,,,,,,.,
-#4SFU6C7INKI7RXJPNNHJ45A32ORH5W5YPY4TSZYEZER6GI2HGCSSJPVM2I2ZCQIXWVI35TCGKLEA4
-#\\\|5UPGYEOEORN4FYHPFSTDO5CBVX243EGH3VEMIBLVZEAVAXOADNO \ / AMOS7 \ YOURUM ::
-#\[7]PRWQOFH6MDPYN6LJP7JXBN5VIXCSYEMACREEG5J5Z4T4B6TTRWDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,.,,..,,..,,...,.,,,..,,...,,.,,..,,...,...,,..,,,.,..,,.,.,.,.,
+#WG2L3BETDWDL5Q7YAZ2YWUG6CQJUWLZPWHVSEXRFACRLBD57T3PGKWQUG2QDFPN3THG7Q7J4Q4RBI
+#\\\|6RUWDI5QYOM4NJ5WZMIDG7OAYA7LEVT3Y4CBQEJ4LVGK5UBSPSF \ / AMOS7 \ YOURUM ::
+#\[7]S3Q3RZFM4I4IBIIYD2IOEFOMTIIF2XY7W7N5Y4NT6QW5ZMTPTYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

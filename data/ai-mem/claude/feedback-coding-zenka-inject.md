@@ -14,8 +14,8 @@ When the local LLM is stuck searching for something (visible via `p7c coding.sho
 - If the model ignores the inject after 2 more rounds, stop the task and complete manually
 - Include explicit file paths and module names in the inject — vague hints don't help the local model
 
-#,,,,,,.,,,.,,.,,,.,,,.,,,.,,,,,.,.,,,,,,,,.,,..,,...,...,..,,,..,,,.,,,.,...,
-#QXZR72TWHULATQFBI5TBRCTV34WVZI2AYHS52KVIDCOHALL37A5PFSEMHWK4TOMYK2BJIKL5KUSH6
-#\\\|VXWLF7OSO6MJET7WDD3MEN6R7HGKAWFMBMOHXINXOXUHTMJMMTH \ / AMOS7 \ YOURUM ::
-#\[7]6O3PBAN45TR7XW6IVCZKOLKEZE2YE72NL4TUUJPESV4AIWNX6KAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,,.,,,,,,...,...,.,.,.,,,,,,,..,,...,...,.,,,,,,,.,,,..,,.,,,
+#XL27SF6Y7XGRSUWA3CO42J7FCLML37VYXIYJMRQQT3LU42C5NJEQMTKHTKADD2ACARSMJEP2VSETM
+#\\\|AR4VTI5OGBVW2EDYPVVCNI67444NK3WACKVVZZ5ELHWVECL56NI \ / AMOS7 \ YOURUM ::
+#\[7]KLZTKO2OJR724FXQRL7PMNP2ZYDDXVSMJX5SMSLRM7J5CC5AF2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

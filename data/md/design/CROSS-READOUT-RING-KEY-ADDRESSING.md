@@ -140,8 +140,8 @@ allowed to change without destabilizing an in-progress readout.
 `data/md/design/ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md` — the
 pre-existing `-90° CCW` rotation material this may or may not connect to.
 
-#,,.,,...,...,.,.,,..,,..,,.,,,..,,..,.,.,..,,.,.,...,...,,..,,..,.,.,,,.,.,,,
-#KFBBSDXXFQWPNLBCQY3P4XCDN2J3AI4IWADEWBFV2RQ5OQ3DA4ES4DN5XL7VLKZUV6QJALNLGDC5S
-#\\\|6LUFGLBMNS5STXSG3RHOMY7VE3QGVQ7ISPJNUQBCWC73ZGPHAHV \ / AMOS7 \ YOURUM ::
-#\[7]CK5ZY6IV42XECOSJIVNP3HAFEK3ZEU5NQIUUXJIAPNJCJ6WPWUAQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,.,,,,.,,,,,,.,,,.,.,...,,.,,.,.,...,...,,,.,...,,,,,,..,..,,
+#KZBXSBJ3JAXPOY4R2HJOR3Q5U5IRSZG7TXLKIVK76RTDUE236K2UU2R22ATHLTASAJTTMMRDM3CMC
+#\\\|H4OZWS3KXHZ5A4A5VRENBK6OFBKR4L3QAXHMZFIMVDJF47MAQNM \ / AMOS7 \ YOURUM ::
+#\[7]VZW577X4B6OYEAUG4WCXBRO7PEMPFXMI4BK54VAD5J4W2HCASECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

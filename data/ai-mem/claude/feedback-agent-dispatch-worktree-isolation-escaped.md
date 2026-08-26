@@ -78,8 +78,8 @@ unrecoverable — a plain `git checkout HEAD --` was sufficient here.
 
 [[topic-format-code-bugs-fixed]]
 
-#,,,,,...,,,.,,,.,.,.,,.,,,..,...,.,.,.,,,,..,.,.,...,...,,..,.,,,,,.,,,.,,,.,
-#3OUHDU47NXBV4JQLQVZFV73VFB6DWGRFVJF7NWBMNUNWQ2TXWSVBD2KCVB5WPYTY342PVJBXFDW6M
-#\\\|FOFUEWNUD4UZMJILLVWOA33XIDLCNGTBNDI3JI2C66W6G522KH6 \ / AMOS7 \ YOURUM ::
-#\[7]RIXR2NOHLLJVUF4E5SPPBLCXB3R4AHULX3JKW6DR7M7YZ2A75WCY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,,,.,,,,,.,.,,,..,,.,.,,,,,,..,.,.,...,...,...,,,,,...,..,,,.,,
+#2D47PHUPABL4TFAJVC6E43U3CMOIFMK55NSJRZHG53GU5LSMRLSSWD27NL23JOGMFJVDT2O3GJQSO
+#\\\|OWSYP3Q6MVOISMSN5NH6RGFNJ56WXNAZKEPNP77PECIO2M5QIYN \ / AMOS7 \ YOURUM ::
+#\[7]E76C6RG5ZLN4G2VD7HV63Q5MYHYHILNUC4VJLGPWOF6POMQ6OYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

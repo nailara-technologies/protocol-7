@@ -666,8 +666,8 @@ becomes an *exception channel* for the rare cases where "correct" and
 "wanted" come apart. That is a dramatically smaller, sharper, and more
 buildable thing than "an authorization protocol for the network."
 
-#,,,.,,..,.,,,.,,,,..,,..,,.,,.,,,.,,,.,,,..,,..,,...,..,,.,,,.,,,.,.,,..,.,.,
-#ESDACHPOFICPD6UU2BUPKKQOIH4CJ2VJUJ36VDQI6NSCJQFCH7KA42HPAUJ7UXAYSMD6QLYWHTYI2
-#\\\|KMNXS55QGMJAPRPID2ZKV2WXK5IP7DXPSGF34G4H2JRBBUG3OX5 \ / AMOS7 \ YOURUM ::
-#\[7]2BZ2YFYMFYHR2UNJS5BJPQFW64X23KVIIKPITBQ27XOW5Z34H4AQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,.,,,,.,,,,,,.,,.,,,,..,,,,,,,.,..,,...,...,..,,.,.,.,.,..,,.,.,
+#QFDOOWHZJGXWV3NG4EK7I3YRBOGKDBWKZNXGTZS43TXEAVUYOLFRT7JUG4CK6Y4RZG6XBOZ4PAQSE
+#\\\|MCEFE3MMJ4ZTSAF3LXFQ54KJGR64PGL5XWH76DDFKXSSAVBOT5B \ / AMOS7 \ YOURUM ::
+#\[7]52C2KBBLZLUOES4BEF6PACCDBHCYP2AUABRY35HYWU5JUXT5SSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

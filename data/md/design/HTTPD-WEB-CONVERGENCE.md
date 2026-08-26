@@ -436,8 +436,8 @@ The observer is stable. The content is stable. Only the phase shifts. =)
 
 *"You are always looking at something. The angle changes. The value remains."*
 
-#,,..,,.,,.,,,...,..,,,.,,...,,,,,,,,,,..,.,,,..,,...,...,.,.,.,,,..,,..,,,..,
-#B4MJ76N7TO3SMPQNC6RSDSN4GRKYNFRA552EMTLG42KO7ZJLV2NVX7YGVQDZWFGBTSCCP64BJSQGQ
-#\\\|HIM4WY7LEZZJ2LI2V5LY7KVDNHVEIABY3O2EZ2ZHSARUDXAAXBZ \ / AMOS7 \ YOURUM ::
-#\[7]KVEP6Z4JN6EUAERNBKPW3V6OS3VQVQDJIW22DMFLLTIUR66Q5YCI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,..,,..,.,.,,,.,..,,,,,,.,,,...,..,,...,...,.,,,,..,,,,,,,,,,,.,
+#K3UIKTLR5NAAJYS3WKUTWYAF4SAMENQLPVIRPVIO5ZBJKEQIBSDP2IVDWOO4M46JYISCSLCM5ULRO
+#\\\|346XNJLJA3TO3D4N336EYZPJPOPEOX3DESE7F2GYQNYYU2LPN7L \ / AMOS7 \ YOURUM ::
+#\[7]WRF7CK2EEJA6WX5Z54GEOTV57QANXUWEQW2UQ2QAL2J3LNT4GOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

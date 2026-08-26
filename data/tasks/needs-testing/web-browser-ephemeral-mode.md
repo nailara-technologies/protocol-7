@@ -162,8 +162,8 @@ already there). this makes ephemeral the default without needing init_code chang
 - [ ] no persistent storage created during normal rendering-engine operation
 - [ ] no signature stubs added, no subroutine whitelist changes made
 
-#,,.,,.,.,.,,,.,.,.,.,,,.,...,,,,,.,.,,..,,.,,..,,...,.,.,...,..,,,,.,..,,,.,,
-#T7WW5UZZ3NBZAWLACVJBFXABOWPEH6VJAUV3HQWINVM3FMPU77EP27UUJPZS3MM6INHBSOFUN6U4W
-#\\\|LL2RPDYCBYQWXBMPFZDHV7FNFTZR4P36Y5UGGJVIE5PM54YM3UG \ / AMOS7 \ YOURUM ::
-#\[7]TMFAO27P36W7J5MX3SVS3GYPPB4XWJBZL6VX4JSE7A7MAXLLIICQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,,..,..,,..,,,,.,..,,,.,,.,,,..,,...,...,.,,,,,.,...,.,.,,,.,
+#UFJFETMQRXPKX4FITH42BMSNNUQFKZTDWTP7A4GYAEGVSOZVWENF2I7QFODE2RFNKR6OROEHHZICK
+#\\\|T3BJAJYEFZ7ZEHKMSXF3OYMHOAJAAJOK2GOKO2I4L6XP6RSC2HY \ / AMOS7 \ YOURUM ::
+#\[7]SFCCYTJJIGVFNVNHGLO7TIXQBUKLTYZPQR2ZFDFTJBMJCXYADQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

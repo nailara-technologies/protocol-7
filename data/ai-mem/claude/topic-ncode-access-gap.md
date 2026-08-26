@@ -85,8 +85,8 @@ never to the human's own uname. Then check whether cube's own
 
 [[topic-write-access-security-infrastructure]]
 
-#,,..,.,,,,,.,,.,,.,.,..,,.,,,,.,,,.,,,,,,.,,,..,,...,...,...,.,,,..,,,,,,..,,
-#HMWXRUQ2DCGT2ZQNYDYE5NSYKYYGYY7MTY645MBAOQU7K372G7WZSK2I7JT46KPPCEHFA3OYELMVO
-#\\\|TLQ3B6MDEPV2U6INAGXFLKVZ4EWRFYD4CJTRLJR2VQYQSQYNNXH \ / AMOS7 \ YOURUM ::
-#\[7]DOHDW6R4OZGVMRMQVEGT35MLB3APPGXMQMBSSRHDYFURR2MDYWDA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,...,,,.,,..,...,.,,,...,.,,,..,,...,...,..,,...,..,,...,..,,
+#UGSK5HY6UHFC6ESUU2D2LLZWKVLLHQHYUPB3LY5MLQVU4LJCY2XGX37RNZDRDCKI7GQ464USZJCAA
+#\\\|PEDQDPCPB6YKG6OYIL2XL2YBRG3WNVO7V5VZ6V6WW333CZ253NH \ / AMOS7 \ YOURUM ::
+#\[7]L3TEX4XSBQGWEXJRIGRJQRRR2JQW6ZIIPFZM7HR4XQH7LADOTGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

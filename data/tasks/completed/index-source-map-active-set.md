@@ -180,8 +180,8 @@ restore:
 - existing corpus (7.2M chars) has no source map; populate incrementally as
   files are re-fed with the new instrumented ingest
 
-#,,.,,,,.,,,,,..,,,,,,,,.,,..,..,,,..,.,,,,..,.,.,...,...,..,,,,.,.,.,,,,,,,,,
-#ZSNJBE2RTZCHJJ3UD64KPI3XUYICO5PZKBYLERXTVLFS7ZDY4B247XBIBW5ELMOLGLPYTK2KJEN4K
-#\\\|AJTF5QK5PDKZLPJGZK4VX2MFEEVV3WXNYG2XQDWA5WVNENYHOAK \ / AMOS7 \ YOURUM ::
-#\[7]UED7WE5HGB5SQG2R3B7LPK4Q2GZD6AOODC5YPTBUYTAZCS472GBI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,,,,,,,,,,.,,,,.,...,..,,.,,,.,.,...,..,,.,.,,..,,..,...,,,,,
+#AMQ4P2CHEZN2L6VOYYJLQ3WCLOVX2QSBZASX2P44XV2CNVSCZAJEXERJ7GKYXTKF3QKSJM46DVC6W
+#\\\|S3WRHHG3PNNLCT5MTGY3DEPZEAYLAXCAUR3VTRPZT4IKISMN4EF \ / AMOS7 \ YOURUM ::
+#\[7]PUQMGO4UMDWDFIPGW3P2DGUP5AD2YUTW4DNP5A3HJDDBYFLTSSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

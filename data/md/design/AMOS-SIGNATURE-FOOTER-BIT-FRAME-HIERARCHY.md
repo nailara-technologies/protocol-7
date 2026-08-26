@@ -391,8 +391,8 @@ rather than starting a new one:
   throughout? currently: no evidence either way, flagged open rather
   than assumed.
 
-#,,..,,..,...,..,,,.,,.,,,.,.,,,,,..,,.,,,..,,..,,...,..,,,,.,.,.,,.,,.,.,..,,
-#UEL6MMTXZ7774GMVKZJDN6XPVW4E5AUNTJQM7XZFC4WH4QGO5LBUVOAHJHZHEENXI2QPYLXRH6NXY
-#\\\|JIRFPLVK4JPJT5CMVNIGELAQHT43D7XU3ZCUDT7NNJAVZGO2OVB \ / AMOS7 \ YOURUM ::
-#\[7]UOCAB35NN23VGI3FCDUBGMZBKWWW47U47W4FMNHHYRHTWGUWKWAI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,.,,,..,,.,.,..,,.,,,,.,,,..,..,,...,...,,.,,.,,,,,,,...,...,
+#JXWOZCNALNXESWBS5RZ6ETXXTMPC4MT2LJNONMUKCQ7ID55B7GH65ZDBMLYG5QB7XNKS6F3E5UPN4
+#\\\|SX2F4LIHWYXDZ5IE4XNPG4MDW5DG42E7HQ2RCKKJG6JEIPR5OOL \ / AMOS7 \ YOURUM ::
+#\[7]IFGCWBDG6HWEGJB5CRGUSCMEY3GFROX7FMB4F52XLQQF4JA7GGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

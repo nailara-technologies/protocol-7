@@ -406,8 +406,8 @@ not a usable review-priority signal.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,.,,..,,...,,,.,,,,,,.,,,,,,...,,,,,,,.,,,,,.,.,...,...,.,.,.,.,,,,,.,,,,..,
-#ZIEVZIIOJCX6EPFBPQYCLSQLYQ2VVHYZ7AZOJ3ARJ5NIBV75ITVK4KWT23KHC7SJFCYTHNQ2VVJFU
-#\\\|YWDFKJDQ42CNKGBTL54G4UPKUAEY2AU7WXBGAVKKUMETLHRV2NB \ / AMOS7 \ YOURUM ::
-#\[7]6KEESMSV6YS6HYOQUFQ2DBF37JMENN6BOKXB226IYVQY6AK7RACI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,..,,,,,,,..,,,,,,,,,,..,..,,.,.,...,...,...,..,,,,.,..,,,,,,
+#7LNS2DN3JEXMKXDO5CX7UUJM46MWWSMGPHD2XN3AQUG4V43TWDTGICJGSNU75CFLPV2KGHBZV5QQ4
+#\\\|VOXKGFU4NL5GTJZNZ5ZIYJ7COTRMFRU3QW6CDQYBY4SLBXAJMHI \ / AMOS7 \ YOURUM ::
+#\[7]7BQF7M7IXQ5DM5ZSZBUPQPLC2L2PH7FMAHM7ZYX2HYGOMD5BMUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -367,8 +367,8 @@ enough that it may warrant promotion to its own design doc
 following the [[topic-ui-show-security-levels]] precedent of
 doc-then-split-into-tasks.
 
-#,,,.,.,,,,,,,,,,,.,,,...,.,,,,.,,.,,,,,,,..,,..,,...,...,.,.,,.,,.,,,,,,,...,
-#Q76MRDSIOPBSPYS5XLN2UFAXSNAAJSOGWTDDQ43WBHL2L6NI4T52GHY4SNEYLCNVUH7KRIL7MXL74
-#\\\|MUVFC6DBQPKANZJMJBQ5RITE6ZWOPOPLXLNYBYMS5XYEB7FZSCX \ / AMOS7 \ YOURUM ::
-#\[7]ET5D6VLLNXZD3IIF2CWQFK5AMT2MAYUK4YYWPHHKOO6Q7SEQNSAA 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,.,.,..,,.,.,,.,,..,,,.,,,..,..,,...,...,...,...,.,.,...,..,,
+#LLFKYX4XN7HXE7CF5KL6F63I5UPN6G3HNNOAL7SVFV34FR6J6WHEF2FYC6BIGYVJ7TFKX4RV4KQDO
+#\\\|XWLSM47476RO6JM4EFRVA4W4F36Q7RJVW4B4RRASQP5GRHRY44O \ / AMOS7 \ YOURUM ::
+#\[7]36VHB7J2676RB6TIPRZJCOLFKM2OQU4IM2KSKYUZWTWHUU74OUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

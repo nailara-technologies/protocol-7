@@ -1095,8 +1095,8 @@ covers a follow-up on four distinct "5-of-7"-shaped structures and a
 bit-bookend-vs-heartbeat-sequence check. Not duplicated here — read
 that file for the full result.
 
-#,,,.,..,,,,.,...,...,..,,.,.,...,,.,,...,,..,..,,...,..,,,..,..,,.,,,,.,,,,,,
-#4ZJYZBJSUU25DSYJD6ZX6F2PX3W67QMLDMK7G22GI7NOKQGBSLQISSETLMXEROJC4F2HGLU2WSKLU
-#\\\|SQYHL4PB6SXHBKKJWZWOSGMTG6YCHDCLX23VFHTS7RJ3W3HM4TN \ / AMOS7 \ YOURUM ::
-#\[7]FM572BWRR74LHQASY5AGISGCVBXVEMF3Y7PGGMQFA3TOGWNQEGAY 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,,,,..,..,,.,.,.,,,,.,,,,,,..,,..,,...,...,..,,,.,,..,,,,,,,..,
+#DJ3USY5PXO5S2BLIY2D5JQMQ2E7JJAA4EWYEMWCRKFEK64GAY4NCQMRIHL4W7RGMY424QYLFK3UDU
+#\\\|LAOZTSVQ47LY3YIDCWXP52HLE4O74D3AT2OMVOHJOML7QPO4FHH \ / AMOS7 \ YOURUM ::
+#\[7]F5GAYHWVBMESI7YY7H2YNWSPMVOVI7JTLLEGUHANPZOYXBZJDYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -128,8 +128,8 @@ When done, write a short note to `data/ai-mem/kimi/coding-style.md` or
 `data/ai-mem/kimi/MEMORY.md` if you hit anything non-obvious (e.g. whichever
 unlink approach you picked and why, if it wasn't obvious).
 
-#,,,,,,.,,,,.,,..,.,,,.,,,...,.,.,,..,.,,,.,,,..,,...,...,...,...,...,..,,.,,,
-#RTEMZZEJIEZKKO54WEBJNWYRHGRJPJ4J6KBDFVEL6YIN3TQPRX3JHZXP2HCB5YTB5FQJDXL337FV2
-#\\\|7B4BPRX5GSPTS3JD27VGJCQVLBK55HTSSIS4TS6PAYG5F4UJXKZ \ / AMOS7 \ YOURUM ::
-#\[7]XFHJ2CQBCXG77JI7A5MH7PUOZ7NW6RB64XU4P6FGZQWLPR46DGAA 7  DATA SIGNATURE ::
+#,,..,..,,...,..,,.,,,.,,,,..,.,,,,,,,,.,,,,.,..,,...,...,,,.,,..,..,,,..,.,.,
+#CGRPX7BGTMO7ZAQGO3UNP3HB37464H7RQJDKEWURILHN6PGGPO6RMJTHMWLZMRG4NQIWIGICYHZBS
+#\\\|FEFIBHPQSJEBO5PCSPKWEGFTPSRSVHGL7DOMC6LCYE3STWEFUZY \ / AMOS7 \ YOURUM ::
+#\[7]NVWLFQG3KVDRMRJDTUVRVWEDTXIUM27KAK4W5EBDLMCREEC246DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -241,8 +241,8 @@ deferred there pending this decision.
 [[topic-jobsite-ui-usability]]
 [[topic-ncode-pattern-learning-loop]]
 
-#,,.,,,..,..,,.,,,.,,,,,.,,,,,.,,,.,.,,,,,,,,,..,,...,..,,,.,,.,.,.,.,,,.,,..,
-#REOU6JJALJ7LX6XJYGMEYMXUFHLHSK2WH2MHHDIICFMY7RBNSGCUJUOABRD26JNZMGIO3Y6BRADF4
-#\\\|G7UBZT5T5OHODLGQAGKJWZBXXPJX5CFWIFQ3A7MJQPRN6TWC7OL \ / AMOS7 \ YOURUM ::
-#\[7]DVSEUZBXMVTCRLYZO633FFY5GVM5BKYI3WP4E7ZQXQ6SR5GCQUAA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,,.,,.,.,...,.,,,...,.,.,,,,,..,,...,...,..,,,,,,...,.,,,,,,,
+#ITO2LAOQPP6FEBESAHCP63UNZB4C3CRC2LG27HX6JSXSXSZOJ3F3STSMZUINVVP6EBZCOC3OL6ORC
+#\\\|QVAMKCFIL3YL7NJBB2HLEXRKXVT3XWKXYGQNVGOKN2R6Z4J3IAW \ / AMOS7 \ YOURUM ::
+#\[7]36TGPVQ2YYKXDQ4XJROQPLCSYMR5FFNNUHZQFQCBZIUEJJZYPCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

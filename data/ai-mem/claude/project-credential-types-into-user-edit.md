@@ -162,8 +162,8 @@ inside a running form. `base.term.ask` is BLOCKING and pre-loop only — see
 [[reference-console-question-ask-primitive]]. And `enum` remains
 interface-only.
 
-#,,.,,,.,,.,,,,.,,,.,,,..,..,,...,..,,,,.,.,.,..,,...,.,,,.,.,,,.,...,..,,...,
-#S647Z2FB4HNMQ72EKZXPQYIORNCSMF2227GXPQMI4TJBDLFPVUT2GKTS7NLIDBAUJO4WYAENSTEUY
-#\\\|MQBDSDDSV2NRHVBY2R6D3UULPECLC5F6OJYUG23ISMSI7NSAOET \ / AMOS7 \ YOURUM ::
-#\[7]YIO7RWGNCRBI2DPOHHOSVB4KCLYKCYUA4LG5BHYE2OU2VEADZECY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,..,,...,,..,,..,,,.,,,,,.,.,..,,...,...,,..,.,.,...,,,,,.,.,
+#R2MXHVZ2IUWEVHN6NSWUPPCYTGGV3PE3VJA45WRL73VEUBSA6K7URPVVPMTCJLTM4V7EGYDBYW55E
+#\\\|4UW2WQXZOHALF3CJIEB7ETYICTWQ2LQFJNUP3ZAAVIOL3CHUXSV \ / AMOS7 \ YOURUM ::
+#\[7]SFD3GUCT2EKHKH5KO5APBHG2TTRQV5DTCQL6BS57O2TZPB5YBWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

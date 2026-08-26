@@ -201,8 +201,8 @@ system adds the real 4-line AMOS7 footer.
 
 when all 6 files pass ptd -c and the start file is updated, report done.
 
-#,,.,,,,.,...,..,,...,..,,,.,,.,.,,.,,,,,,,..,..,,...,...,...,,,.,..,,..,,.,,,
-#74JLLRHEWYDY7OLXKZDRR3DGKHYOQ6YEOQGW66USRA7OUT3VMNQVGVCOQCEKZGEITJSRG3QRVBRF4
-#\\\|VEZAEXQV5DWB27AWTLBUKELCDS5DAYA53PV75LPCXINQXNGPU33 \ / AMOS7 \ YOURUM ::
-#\[7]G5W4T7JETO5XLPK73YYF7EU23EVTW45JVVBFEMAT6LQX5ZNUSADI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,,.,,,.,.,,,,..,,.,,,.,,.,.,..,,...,...,,.,,,,.,,,.,,..,,,,,
+#Z3RCX7L2UTB5J2YHDZD2ENXC7W2OEDBNUNGYNTCLOP7TTF6FHS6BQL72WJYV6GYZCXAJQDZMLU5NW
+#\\\|573KHX5DQQQC5VUZJBKR7MMQ7TULCYKUHGMPN4MMUQ3O3TGGMOD \ / AMOS7 \ YOURUM ::
+#\[7]VRMLVIHBW5ZFVQCEOW4ZHJVI4OEAJVY3LBP6NEY7FRUKBDTTUGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -90,8 +90,8 @@ session; whether routing_mode/admin-override should be settable *within* a
 subname group too; `group-next` etc. naming vs. `next.group` dot-namespaced
 alternative (bikeshed only).
 
-#,,,.,,,,,.,,,,..,,..,,,,,,..,.,,,,..,,.,,...,..,,...,...,.,.,,,.,,,.,.,,,,,,,
-#GROUASWN4P7VMXABTPHQZTKQVHKZM3GN6PRW3OOJ323G3AA2ZTK6RLHDKMBPPRQZKRNJPCXAKKAKG
-#\\\|CFSUKQ3ORTNKPG7MAN2CJY2VYPBLP3Z7N4YZBDC7FZF2YVJFSW6 \ / AMOS7 \ YOURUM ::
-#\[7]ZXQCGSDNI5QHNMIEVOYZIERMPF5VMJMY6NRLLG5STAM2GSDEUWBI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,..,,,.,,,,,..,,,,,,,..,...,.,.,..,,...,...,...,.,,,.,.,,..,,.,,
+#LUGHTFCDBE3ZYBWXIHURQ23Q7CTBRB3CIAF2RTV54AL7E4BIWPQQCD6HLA2O4UTLW5HA22NKJ5SPY
+#\\\|VK7HDTF7L3WVVUXMKGDWX6VCSKRURS5AR4VPDQG64PSRKVIB7XB \ / AMOS7 \ YOURUM ::
+#\[7]V7ULZ2ZLQ22MK2OUHVBMINM74ZFZHK3U2W5VICDU5WYYVBDSGCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

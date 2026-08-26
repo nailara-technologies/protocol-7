@@ -342,8 +342,8 @@ fixtures :
 - a clean re-sign of all currently corrupted files in the repo ( one
   pass , no further oscillation )
 
-#,,,.,,,,,..,,.,,,,,,,..,,.,.,.,,,,..,..,,..,,..,,...,...,,.,,..,,,,,,,..,.,.,
-#72ANVHI2QWD2QTSE7TEQCIFSBPQD2FQWKOY6YMRM77T3BC5NC2LYDKRBZ7HV33X3CCARVOKFIHBIA
-#\\\|3OHADV7LH5NYMEVWAMUTBGLWQA2CU6F3HN5I3NO4PGX4PICTMJG \ / AMOS7 \ YOURUM ::
-#\[7]PN7DTMZG35Q3OMSPOVL4TWEY2DB7GPXRIHU4NLIPWAFLW6OAK6CA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,.,,,,,.,,,.,.,.,,,,,,..,...,..,,...,...,..,,..,,,,,,..,,,,.,
+#IBVMVECBEQXA5DXG7F67WDKUA7LAAMHDVOERMMB7XKIN57MJMXYIGDHSFUBZQD3MTNU72SPCLIVJE
+#\\\|Q6XK5PJ5QFU4V3ZMN4OM2XEQE4ADAO7PSCN6J45SFJRH4RQOOH3 \ / AMOS7 \ YOURUM ::
+#\[7]XLZY5Q5E2MM3PSCGM2PMULH2BFACGWUOO36IIZZOYEIOJHUU66CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

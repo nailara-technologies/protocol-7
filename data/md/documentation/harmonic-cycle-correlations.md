@@ -290,8 +290,8 @@ declaration but identity by convergence.
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,,,,..,.,.,,,.,...,,.,,..,,.,.,,..,,,,,,.,,..,,...,...,...,.,.,,.,,...,..,,
-#BHCO2A5A33ROIV5ZYXM7WB5VOP3OQZ5QKILQL6LSJE6GKKBM3JLB3FLDDQEQW7KOAGSHPZM56YNNI
-#\\\|NH5TCO4WZ57Q2XBGJZIFROOII2M4ZZBWTBJ5Y6C2VEEG5BT4ZL3 \ / AMOS7 \ YOURUM ::
-#\[7]L43J5DGDC7L4P2E5ZKN2HIYWJWYDEIUFEKTIMPMDXRKABSNUOEDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,..,,,..,,,.,,,.,,,.,,.,,..,,.,,,..,,...,...,.,,,,..,.,.,..,,,.,,
+#AJNGJNN2Z5Z7SGMJDUAUWMNORIKN5FWDTRLKP7K5PQR722IDSLEKUYLL2VNJJOWNFL7IGRTN7SS6K
+#\\\|O4KECAGGBLXYZ4F57HRRA3RAD2ZI3CYLBT6PY6LNCPZW2JRYQ4L \ / AMOS7 \ YOURUM ::
+#\[7]JVNFDXNVAZNY4VVUCHRNFAH5BDJCBY655OYGEWYZ2HQ54SONXYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

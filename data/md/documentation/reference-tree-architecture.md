@@ -360,8 +360,8 @@ traversable: task references become explicit graph edges, completion
 events update node weights, and the forensics zenka can query the tree
 for convergence state rather than reconstructing it from log history.
 
-#,,,,,,..,,.,,,..,.,.,,,,,...,,.,,.,.,,,,,..,,..,,...,...,.,.,,..,,,,,.,,,.,.,
-#7OV2JH5IDFCN6RRPWM2SIUZYDYH72SZWGWMRLMKUNJCQKFB6R7XUKTCFCDDJFSHNLJFLDOZR7I7G4
-#\\\|2KN44H33IUSP4A6JTNY6QE3YRZ7DIXYU7SQJEZD7OX7A6QA5VZG \ / AMOS7 \ YOURUM ::
-#\[7]W7SESBZ6RJIFL2GZM4IH72LJA7UUZPZWDGECH5MLNAKPSZF6RADY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,,,,,,,.,,,.,,.,,,,.,,.,,.,,,..,,...,...,,.,,.,,,,,.,...,..,,
+#UNX7WCW3IBQ5EMMTZGSLYPVI6NNMBQITAWY3VG7IJFOTQSZM2NLRE7SV2PAB5H4RILKVNN4HVT7AC
+#\\\|G7YEMK343QCDAPGU6IP6UGO4C6WAUQ5VR4NC2XFZTJ2KF5GFQYT \ / AMOS7 \ YOURUM ::
+#\[7]5JY62TIXW6ON7A56WBI6GRTAYGCONDMINJRNHVMDW7WYM4MWEQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -148,8 +148,8 @@ prompt: |
   keeps +/- prefixes and strips ANSI, leaving colored behavior completely unchanged.
   This is a standalone script, no zenka modules involved. No signature stubs.
 
-#,,.,,,..,,..,,,.,.,.,,,,,,..,,..,.,,,...,.,,,..,,...,..,,...,,.,,,.,,..,,..,,
-#GIPR4CGJXYGU4MAB5HTRI33GKJOEYIMH4EBAKURBSJCNDFI7JVJSAH53QDXIAJZVAYGVYP4QQTB72
-#\\\|DMRROWLQJLVQKELGHSF4QOH5VIUIR7RTBIEIFQKMQX6TLTVF3ZN \ / AMOS7 \ YOURUM ::
-#\[7]NBRMFKGN2XK23S4ZYJH4MVZZGMSS2VFCJQZULAXRPA6PXK3DZ4DA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,,,.,.,.,,.,,,.,,,.,,.,,,,,,,..,,...,...,,,,,.,.,..,,.,,,,.,,
+#AVMYNBEV7IPVJMVMJG4T2S4WDZFIGYEXQJK4W3UKVJSUOMKA5CFZDBIBN4CRVASTH2ID52WHQUOVC
+#\\\|WJQYOGEBA7FTUN6IOXOAUILDH44H6ZTY22NASHCU4K5CXJ6C6IW \ / AMOS7 \ YOURUM ::
+#\[7]PKI5XTZ2NP5EKZQY5BYVGIREZTC6N6ERLEXZAA2EVJGLKPGDUAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

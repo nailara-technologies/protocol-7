@@ -103,8 +103,8 @@ echo "Check for errors:          p7 cube.show-buffer zenka | grep -i error"
 echo "View client output:        cat /tmp/nshell-output.log"
 echo ""
 
-#,,,,,,..,.,.,,,.,,.,,.,.,,,,,,.,,.,.,.,.,...,..,,...,...,,.,,,,,,...,.,,,,..,
-#ZCFHP2FEQP2KXJTAEVY4WTRSPR4NBOBF676LAJ6XZUMRLRLHI3LGRTH64GZMIXS2E7ZGCZTAB6P7C
-#\\\|EB5IZCVGCSLRBEZZF3IUAC7EEUMDW5SDWZGUA44SZN2JY2OUNAR \ / AMOS7 \ YOURUM ::
-#\[7]BPMZQT43GMV4IK6WU2APXXNR7KWATODERRJVOCSP2KNW6EU7OEBY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,,..,...,,.,,,.,,...,,,,,,,.,..,,...,...,,,,,,,.,...,,..,,.,,
+#FONXWHGJPP72K6VJYMRY4UKVZUTGIIO7XGRZM22U6TNI7VS5HMWEF4RX5DARCJJZJGXJ5BZH72RCS
+#\\\|UXTXJML5VXIROC4TCHHQ5A5MTZH4FTBRG4D7EEDNF2STUTJUTBO \ / AMOS7 \ YOURUM ::
+#\[7]KLLC6DK2MUEZKRES6CEW43N4INBTJD622C742Q36MEEFQF7PXKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

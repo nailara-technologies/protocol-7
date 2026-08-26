@@ -247,8 +247,8 @@ when guessing at new fixes had repeatedly failed. Don't accept "platform
 limitation" without testing the actual mechanism (eg. the xrandr
 before/after snapshot above) when the user says something regressed.
 
-#,,,.,.,.,,,,,.,,,,,.,,,.,.,.,.,.,,..,,,,,..,,..,,...,...,.,,,..,,,.,,.,.,..,,
-#RUY7DVQ3I5Q225FTA5O3THG5FP6Q3GS2LXQDY2WJ5IQOE4IM24H7C65PNEWSM4GQPWI7MECCGBC6C
-#\\\|X6F3TSG6YUQDQMCW35MIRCBAXY5LJ4GJSVQI7HF4IFENTYVQTDD \ / AMOS7 \ YOURUM ::
-#\[7]7N2HSQDDMTUEDDQQ6BZOXTL2LNMYIGM4KEUCL3TVHRI6UZLM6GAY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,.,,,,,,,,,.,,,,,..,,.,.,,..,..,,...,...,.,.,,,.,,,.,...,,,.,
+#UG2QDUDVTPPBJ4KSUTNXHAUP3CT36BCTTDZRZ4EU7LORXPHXFTAVRZW545HQUNW7NMZZCRCMQHQGS
+#\\\|BDUJ3HRO4NJ4B5D25I36IYGLAONGLJZVDTPY743GVVJ2WDC55EL \ / AMOS7 \ YOURUM ::
+#\[7]3JCYMKHYB5CFYQZHE2ZBNM5YRTIRECWCQNT4EB42LC6TIA5XWQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

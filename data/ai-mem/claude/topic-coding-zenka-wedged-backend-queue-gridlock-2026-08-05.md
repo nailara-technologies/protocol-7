@@ -93,8 +93,8 @@ instead of dying after one shot, and resumes cleanly once unpaused.
 its 120s ceiling) is unrelated and still stands as a separate, lower-value
 improvement if this recurs.
 
-#,,..,..,,..,,..,,.,.,..,,,..,.,,,,..,,,,,,,.,..,,...,...,,,,,,.,,.,.,.,.,,,.,
-#V2GRZTMPLBITHOYSWEQMALREB6QKVUV7N35HVT4H4PIW453WFOZMCLLI4JZE3HRQH54KZP25BSHLW
-#\\\|GPNGSCB2JD4PY2RKTS6ZEMXL7UIWDPWWZ2BHCHSH7B7MIDQZRZL \ / AMOS7 \ YOURUM ::
-#\[7]KKEY5DQU26W5PAQ2ZUPNDVVIYHVXUMKWZTTPJ2FEKR4ILSLSMQCI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,,,,.,,.,,,,..,..,,..,,,.,,.,.,..,,...,...,.,,,,.,,.,.,,,,,...,
+#NDZSWBITFUNICI4SV7QBOBOANFKF4ALKJ3PZF5TUTFRVFMNERYZSNESVMMDIQP7MWM5DDJFY4JSM4
+#\\\|TSNSKMBKSWLIFNDF6ACXVR2IPNGK4O7A5YPRD2R7HZSF4EDHUB4 \ / AMOS7 \ YOURUM ::
+#\[7]ZAQGCMZBPY7UELUWWJ4ODEZU35AQXUMRSFSBCUZXMZY7LCTFVQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

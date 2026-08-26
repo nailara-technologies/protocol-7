@@ -68,8 +68,8 @@ args live on a following line. Grep pattern to spot existing instances:
 accident during live testing, not a deliberate search, so more instances
 likely exist unnoticed.
 
-#,,.,,.,.,..,,,,.,,..,...,..,,,.,,.,,,,,.,..,,..,,...,...,...,.,.,..,,...,..,,
-#UQYVRMTPKH3JYTL75BII7WCEWBU7LJ4ETFXDILMBEO4HYH4YK4EG5A2D5XIKUHRTGSTNPTXDZ4NZW
-#\\\|CNZGYSRPMYM7MZ5PFMLPBNQVBA46N4C2IPZZ2Y7HVFOGPH7NMLN \ / AMOS7 \ YOURUM ::
-#\[7]BL5RX4FBF4HS6II4DIJEYNY63C2XFOIXTHG3BBG3YRC3U56LVIAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,,,,,.,.,,,,.,,,..,.,.,,.,,,.,,..,,...,...,..,,,.,,...,...,...,
+#IVUDFJQYNBYW5CIGUTCEW3LZEONN7H4WS3A346ALNGBEDCGH4LB3MQMBGANFYA465ABZ4PPUE6TDM
+#\\\|7OWZWXIQKGVNCKYJWJSNSK2LODBNLXYEKTZRKMDTQKLYXR2BLKO \ / AMOS7 \ YOURUM ::
+#\[7]ZYNSQ66LABEDQTXO45JZCTRGG6MQQXXHY4JW73HN36ZQ6FS2AGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

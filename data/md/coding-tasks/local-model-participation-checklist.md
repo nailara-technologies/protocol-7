@@ -273,8 +273,8 @@ noticeably better local model experience.
 - `src/coding.handler.process-queued-task` — integration point
 - `data/yaml/context-templates/` — existing templates
 
-#,,,,,.,,,.,.,..,,,.,,..,,.,,,.,.,...,.,.,,,,,..,,...,...,...,,,.,,,.,,,,,,..,
-#TUOUASGOT7TWKLZW5KYGBYHRKR632L7SBPRIDSNZMDTBFX2BFKV5PEYCCTWTXD2BSV2F66O5SVQVW
-#\\\|5FJVZLNZV7ACWZJDWTJA46FTZDTR3E7UGUUILG4CGCS2DXDYY45 \ / AMOS7 \ YOURUM ::
-#\[7]2R536QG6GKW4NGZR4Y3Z4Q5GUS7X7T765GGE3U7NMXMOB3W54ACI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,,,,,,.,.,.,,,.,,,,,...,,..,..,,...,...,..,,.,,,,,.,,..,,,,,
+#SXSYR2FMGLO6OJD2A4BV6MFFAMQT5YVPKB3ARHKZIHWHBPAMYY55WSSMVRZKDKMHHJR2DCHOUM67C
+#\\\|BKMP6URUAHAF6SAUVMVK6KFOZW3BV5YTVFDT5HTNCWKRFCOSRJL \ / AMOS7 \ YOURUM ::
+#\[7]I64RHU7EAQNL3OT6IWLLXIBZ3X4C3KSPP35J6DR54A5DJP3DW6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

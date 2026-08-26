@@ -138,8 +138,8 @@ Add to `data/ai-mem/kimi/coding-style.md` and/or `data/ai-mem/kimi/
 MEMORY.md` in your own established format, same as any other task
 instruction.
 
-#,,.,,..,,.,,,..,,.,.,...,,.,,,..,,,.,.,.,,..,.,.,...,...,.,.,,,,,,,.,...,,,,,
-#CO5JG6JNK472COOA6GHKAVS7YMJCKSYI35GGD6AY64SV6ETOCPZDCUDTIOQYLBANRXY5TOGBCAR5S
-#\\\|OPZ5H22AXNNFAQNDJ3GPA45KDPTAGTCJNURQONSN4IUZAYNUM6Y \ / AMOS7 \ YOURUM ::
-#\[7]LODU4UT6NQOS55QNPOYWFGO5PTRWNN7L2GNR4ICZ2X5IPQKSSGAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,.,,.,,,..,,.,.,,,.,,,,,,.,,.,.,...,...,,.,,..,,,,.,,,,,.,.,
+#42OEDZRKSRU4KSXXOOEFF7ZRUUBO6OWVEI36UOF7CT6WZFABFA6B2HZXJ6QUCBNENZU6TPBEK3ZO4
+#\\\|LY4QUPTQ6WTPGWQTWL7KX4EGIGNFXOR4RNZEK6UZIUPAG3QBVCF \ / AMOS7 \ YOURUM ::
+#\[7]EPCLC5ZWEWXY7ZKTAHEUL6XWUSLMRXANM5ABKOFVNGGVG47U24DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

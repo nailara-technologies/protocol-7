@@ -158,8 +158,8 @@ existing modules: re-signed on commit. leave new code clean.
 $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 
-#,,..,...,,.,,..,,,,,,.,,,...,.,,,,,,,.,.,.,.,..,,...,..,,.,.,,,,,.,.,.,.,,..,
-#TZPN4JZS54UZS7B2YIFFJ2KPF5J4WW7IWYA76GRV6COSPSYX4QX3V2EQDPCCYIJEXTRQBHCAXKVPW
-#\\\|F6XLH4UB34VH7DMKTRRO4HFKRVMWAELI6L2ZIPB4UL3UMTHLPL6 \ / AMOS7 \ YOURUM ::
-#\[7]GZ5QPS2NY4RSA5V7A6KJKTE6DHASE4NYVXH7UOAEU3R2UNVPGCDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,.,,.,.,,.,,...,...,.,,,..,,...,..,,...,...,.,,,.,,,,,.,...,.,.,
+#Q5VXPOE4FGIM4SMLL7RSAI2TQS5SKSVWDXTJKHZYOX5HQHKOB2OTLWBE6QOJTNZYH5HJGZ2RGVQC6
+#\\\|RRRWJMEO42ACNCWWJNXDFY2OGM7I6HP3ZZNMP75DZ5235IKAAQI \ / AMOS7 \ YOURUM ::
+#\[7]4W3SQJMBFZ2V4JUZE5L2JHSB4Q5XNIW2OJLDB6W5PVSUK7ADWWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

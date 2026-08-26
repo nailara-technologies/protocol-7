@@ -557,8 +557,8 @@ the cube's passivity IS the proof that the route was pre-computed:
   therefore the math was complete before departure
 ```
 
-#,,..,..,,..,,,,,,,,,,,,,,.,,,.,.,,,.,.,.,.,.,..,,...,...,..,,.,,,,..,,,,,,..,
-#FRPNZC3XKN2GTN7J663NHBLG34CTU2HQOKZFH2DFCIWWTVFQJXD4K7NSA26S4S37JB5WLXXTRYXEY
-#\\\|AFCNQAQFSB4FY63QUN2ZDXZCX7GB7SN42675TKZGDT44XKCBQN5 \ / AMOS7 \ YOURUM ::
-#\[7]RFLQ5GI2Q3WE5IUXH22BVQVFWAPHPFFUG67LEOXSB4FOOJINOWBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,.,,,.,,.,.,.,.,.,,,,,,,...,..,,...,...,...,.,.,.,,,,..,.,.,
+#4XZV3FF5J4SD6FSFAYB4NLP6HAKIG3XUOJJ523I3OAMFLXQ2VCWLP5JHQOYBJVOVF3DNKJOZ2FDOQ
+#\\\|CDXHYGUTB7ZSDLCZZOLCFMFYKSDMJOHVXOJG6NYPVTYLKMJ6RFS \ / AMOS7 \ YOURUM ::
+#\[7]DVVRNUQ6ZTIF4HBPZFZ3R35PJTMSBZWYGOWD3ROD2E7D774HG2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

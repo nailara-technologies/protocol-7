@@ -100,8 +100,8 @@ or load it once via <[base.perlmod.autoload]>->('AMOS7::CHKSUM::BMW384').
 - no use statements or pragmas in zenka modules (wrappers)
 - AMOS7::CHKSUM::BMW384.pm may use standard Perl pragmas (strict, warnings, Exporter)
 
-#,,,.,..,,,,.,..,,,,.,,,,,,..,,..,,,.,.,,,.,,,..,,...,...,,..,.,.,.,.,...,...,
-#AZ4J2CPWEPKSI4UISIVAGGADMTO4HT424DEGBOMC6ADQFI5W3KSRVEJQKDYLULZMQOEJT5ME2ZXCO
-#\\\|YRDKU3ZSPXFTEXNYGD3OQCD6ZK42W64YJKWEWJPWTVFPCVX4A2K \ / AMOS7 \ YOURUM ::
-#\[7]ANLQZF7PFYTVFFNSDYTU7D5LNJEXH5L4ZUFBLALT7KSKLTCLJCDI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,..,,.,.,...,.,,,.,.,,,,,,,,,..,,...,...,..,,,,,,.,,,,,,,,,.,
+#HAXWKUYVHFY2HJ2RV3MM2RRSXCCQLN5GQKCRN5BX3F7RP6FGMIAK7VOBHQ6KK7XMCOP2N7Z3VHQNA
+#\\\|V2HL5B4JSHVY3HSOCEIO3KVAQD4YMTVBCBKGGQC3TT5PO6UYWNU \ / AMOS7 \ YOURUM ::
+#\[7]5SMOW4QSSROELYPTNYOZPFP27743D2HH3AJLZC5GNKBDW72WYMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

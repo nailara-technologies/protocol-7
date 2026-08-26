@@ -384,8 +384,8 @@ framing by being the smallest possible consumers of that language —
 they have almost no zenka-specific code because, per the philosophy
 doc, *they don't need any*.
 
-#,,,.,..,,,,.,.,,,...,,,.,...,.,,,...,,,.,,,.,..,,...,...,..,,,..,..,,...,.,.,
-#AWPG2W6AWGMIFPHCEPTXSNM4VZPX54XK7Y6ULXCPVWYXJRHUIO6ATGXNF2RWDR4ESYGMGQE4DT6LU
-#\\\|OWRI5ERJDTT2SOMMBQXHVCYWW57UHYIAWR6RU7QMTKWYVPY7KRC \ / AMOS7 \ YOURUM ::
-#\[7]DSQKGG4BWXJQ4E5HWSD4BKMZC3ROEKEQRS4OKTUJBDNEPI7D3CDA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,,,.,,..,,,,,.,.,.,.,,.,,,..,..,,...,..,,...,..,,,.,,.,.,.,.,
+#2GZ2UNHKC2BQ3H4FYWRYE7QHABMDX6PKN226A2JRLRAPU6Z5SSEDULU7NHPLCZZEA3J3KFIR433R2
+#\\\|3JOQTD34HVDRKOX5GEF44J2NDSX4IO57QEXQINOJ6GEZ2HAZTWS \ / AMOS7 \ YOURUM ::
+#\[7]FEBFMGG5TC5MRUEAAXAXIVZDCCCDFSH3CBXTN733F5CYKNCGJ2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
