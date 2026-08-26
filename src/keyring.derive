@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = keyring.derive
+# descr = derive and cache the key for a namespace path.
+#         keyed blake2b-256 chain from root: each dot-separated
+#         component is one derivation step. intermediate keys cached.
+#         returns 32-byte raw key bytes [ internal use only ].
+
+my $dot_path = shift // '';
+
+return undef if not length $dot_path;
+
+## return cached key if already derived ##
+return $data{'keyring'}{'namespace'}{$dot_path}{'key'}
+    if defined $data{'keyring'}{'namespace'}{$dot_path}{'key'};
+
+## ensure root is loaded ##
+if ( not $data{'keyring'}{'root'}{'loaded'} // FALSE ) {
+    <[base.logs]>->( 0, 'keyring.derive: root key not loaded' );
+    return undef;
+}
+
+my @components = split /\./, $dot_path;
+my $current    = $data{'keyring'}{'root'}{'key'};
+my $partial    = '';
+
+for my $component (@components) {
+    ## keyed derivation step : child = blake2b_32(parent, info || 0x01) ##
+    $current
+        = Crypt::Mac::BLAKE2b::blake2b( 32, $current, $component . "\x01" );
+
+    ## cache each intermediate path [ avoid redundant derivation chains ] ##
+    $partial = length($partial) ? $partial . '.' . $component : $component;
+    my $depth = scalar split /\./, $partial;
+    $data{'keyring'}{'namespace'}{$partial}               //= {};
+    $data{'keyring'}{'namespace'}{$partial}{'key'}        //= $current;
+    $data{'keyring'}{'namespace'}{$partial}{'depth'}      //= $depth;
+    $data{'keyring'}{'namespace'}{$partial}{'derived_at'} //= <[base.ntime]>;
+}
+
+return $current;
+
+#,,...
+
+#,,,,,.,.,...,,,.,.,.,.,,,,,,,,,,,,..,..,,,,,,..,,...,...,..,,,.,,,,,,..,,..,,
+#WJNBYVEVGEBXRUR2HIJ54DEK3H6OQWBCNMUSVEFJABA27VYNBBQZAQUZULQGXROSMCSCAZKBGWL56
+#\\\|3YPX22HJHGFEB67PJCY4LA4GGSKUSH2CMGRSXMKHBO3XFZBSQAK \ / AMOS7 \ YOURUM ::
+#\[7]X6ZWRSKEKJXBF7MOJQAC6IDYFDEWTVJTPT5DCA73I2FOVCOI6QBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
