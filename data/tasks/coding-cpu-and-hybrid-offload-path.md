@@ -118,6 +118,47 @@ don't assume the existing binary is the ceiling ]. per user: build
 scripts can be adjusted freely, that's a low-friction option, not a
 blocker to route around.
 
+## future: generalized multi-slot / multi-model support
+
+raised 2026-08-26 while scoping this task, deliberately NOT in scope
+here -- capturing the direction so the reasoning isn't lost.
+
+once CPU-only startup lands (this task), running GPU and CPU
+concurrently should fall out close to free: `coding.state.backend`
+(`coding.async.backend_acquire`/`.backend_release`) and
+`coding.inference_servers` are ALREADY keyed per-backend with
+independent locks/queues/status, and `coding.handler.spawn_smart`
+already checks each backend's own readiness independently rather than
+assuming only one backend is ever active. the only reason GPU+CPU don't
+already run in parallel today is that the startup path never calls the
+CPU spawn at all -- not a deeper architectural gap.
+
+genuine multi-MODEL support [ eg two different GPU models loaded at
+once, or more slots than just the two hardcoded `gpu`/`cpu` backend
+names ] is real, separate future work, but has a real head start: the
+model-lookup-by-name logic already in `coding.handler.spawn_smart`
+[ normalize + match against `coding.model_metadata` by `amos`/
+`model_id`/exact/partial name ] is already fully backend-agnostic -- it
+resolves "the model configured for this slot" generically, it doesn't
+hardcode gpu/cpu semantics. generalizing from two fixed slot names to N
+dynamic slots mainly needs: a slot-key abstraction [ replace the
+literal `gpu`/`cpu` strings threaded through `coding.state.backend` /
+`coding.inference_servers` with arbitrary slot ids ], and admission
+logic [ does a requested model fit in remaining free VRAM/RAM before
+it's allowed to claim a new slot -- this overlaps directly with the
+per-layer VRAM estimate needed for hybrid/partial offload above ]. the
+"find and spawn the right model for a slot" mechanics would not need
+to be reinvented.
+
+separately considered and set aside for now: this could instead be
+built as multiple `coding` zenka INSTANCES [ v7's existing per-instance
+isolation, already exercised heavily today via the dependency/resolve-
+hook work ] with a coordination/routing layer on top, rather than
+multiple backend slots inside one zenka. both approaches converge on
+similar new work [ routing, concurrent-slot tracking, admission control
+], so pick based on architectural fit when this is actually scoped, not
+raw effort estimate.
+
 ## validation
 
 - #1: live-verified spawn_smart CPU branch behavior, documented findings
@@ -131,8 +172,8 @@ blocker to route around.
   successfully, slower than full-GPU but working -- not just a
   calculation that looks plausible on paper.
 
-#,,.,,,,.,.,,,,,,,,,.,,..,.,.,.,,,,..,.,,,.,,,..,,...,..,,...,...,,,.,..,,..,,
-#DZ6JDKEQZP57S7KIPAXKZMHYQ3WEST5KKFCPCCJNJ5U2L6UU3YN4STCZOYHWZRH5G5DGFVZGM47Y4
-#\\\|RQZP24DRHUTDJGZJI7SNHUNBWDZAX26TK66GMR7AVD4UR37CUFA \ / AMOS7 \ YOURUM ::
-#\[7]7EMT45DTXFJV6ZMLKQSJ3V4KMPAF4QUBBIVNOCRC4X5XAYKIXACA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,..,.,,,..,,,..,.,.,,,,,,,,,,,,,..,,...,...,.,,,,.,,...,.,,,.,.,
+#2KDTGXQQJ4DWKISF5B4SGGB7QKIFGBZWTTZUHKABCWK7ID6AGJPSHASVJBKSVTBR22DDSJX2MRKLA
+#\\\|5JKCECO7AUSLK5AVGN5EPQVDY2T6EJPZDPRJTLSAFMHODFWC7U4 \ / AMOS7 \ YOURUM ::
+#\[7]XRSCHGURHUJC7K7WHVL4PCMAI5JSRLFR3QKJAHBUO4V6IAVJHQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
