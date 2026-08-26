@@ -1,0 +1,19 @@
+# [:< ##
+#
+# httpd classify pattern family : wp-admin-probe
+# wordpress login / xmlrpc / installer probes
+
+family: wp-admin-probe
+descr: wordpress login, xmlrpc and installer probes
+severity: probe
+patterns:
+  - name: wp-login
+    path_regex: '^/wp-login\.php$'
+  - name: wp-admin
+    path_regex: '^/wp-admin(/|$)'
+  - name: xmlrpc
+    path_regex: '^/xmlrpc\.php$'
+  - name: wp-installer
+    path_regex: '^/wp-(setup-config|install|config-sample)\.php$'
+  - name: wordpress-dir
+    path_regex: '^/(wordpress|wp|blog|site)/wp-login\.php$'

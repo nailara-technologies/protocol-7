@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = httpd.classify.load
+# descr = load + compile YAML pattern library into <httpd.classify.library>
+# note  : observation data only ; per-peer state is never touched here
+
+my $pattern_dir = <httpd.classify.pattern_dir>
+    // <system.root_path> . '/data/httpd-classify/patterns';
+
+my @pattern_files
+    = sort @{ <[base.file.glob]>->( $pattern_dir . '/*.yaml' ) // [] };
+
+my $library = {};    ##  family => { descr, severity, patterns => [..] }  ##
+
+my ( $family_count, $pattern_count ) = ( 0, 0 );
+
+foreach my $file_path (@pattern_files) {
+
+    my $doc = <[format.yaml.load_file]>->($file_path);
+    if ( ref $doc ne qw| HASH | ) {
+        <[base.logs]>->(
+            0, 'httpd.classify.load : yaml parse failed : %s', $file_path
+        );
+        next;
+    }
+
+    my $family = $doc->{'family'} // '';
+    if ( not length $family ) {
+        <[base.logs]>->(
+            0, 'httpd.classify.load : no family defined : %s', $file_path
+        );
+        next;
+    }
+
+    my @compiled;
+    foreach my $pattern ( @{ $doc->{'patterns'} // [] } ) {
+        next if ref $pattern ne qw| HASH |;
+
+        my $name  = $pattern->{'name'}       // '';
+        my $regex = $pattern->{'path_regex'} // '';
+        next if not length $name or not length $regex;
+
+        my $error_str   = '';
+        my $compiled_re = <[base.eval.comp_regex]>->( $regex, \$error_str );
+        if ( not defined $compiled_re ) {
+            <[base.logs]>->(
+                0, 'httpd.classify.load : invalid regex [ %s/%s ] : %s',
+                $family, $name, $error_str
+            );
+            next;
+        }
+
+        push @compiled,
+            {
+            'name'       => $name,
+            'path_regex' => $regex,
+            'compiled'   => $compiled_re,
+            };
+    }
+
+    if ( not @compiled ) {
+        <[base.logs]>->(
+            0,       'httpd.classify.load : no valid patterns [ %s ] : %s',
+            $family, $file_path
+        );
+        next;
+    }
+
+    $library->{$family} = {
+        'descr'    => $doc->{'descr'}    // '',
+        'severity' => $doc->{'severity'} // qw| probe |,
+        'patterns' => \@compiled,
+    };
+    $family_count++;
+    $pattern_count += scalar @compiled;
+}
+
+$data{'httpd'}{'classify'}{'library'} = $library;
+
+<[base.logs]>->(
+    2, 'httpd.classify.load : %d families , %d patterns [ %s ]',
+    $family_count, $pattern_count, $pattern_dir
+);
+
+return $library;
+
+#,,,,,,.,,,,.,.,,,...,,.,,..,,,..,..,,,,,,,.,,..,,...,...,.,.,,..,,,.,.,.,..,,
+#GIKS7XGGHFW2IM5HSKXFBCTI3WE3MBCAKHON7V5K62T2TR2EBCOSZUSN34ZIIZ2HLBGHDY6HKQEQM
+#\\\|3RH34O2ENVP3NHJ3P6QV75MJRNUDYTI7D6HLSKKT7ID7XFDETIQ \ / AMOS7 \ YOURUM ::
+#\[7]CBWBJWQ3YOA7ORZOZMOGQO3YF6JNXIQFWINFQ2JNE2KR46MWAAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

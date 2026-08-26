@@ -1,0 +1,21 @@
+# [:< ##
+#
+# httpd classify pattern family : path-traversal-cgi
+# apache path traversal / rce probes [ cve ids kept for later
+# openvas.enrich.finding linkage ]
+
+family: path-traversal-cgi
+descr: apache-style cgi-bin path traversal probes [ CVE-2021-41773, CVE-2021-42013 ]
+severity: exploit-attempt
+cve:
+  - CVE-2021-41773
+  - CVE-2021-42013
+patterns:
+  - name: cgi-dotdot
+    path_regex: '^/cgi-bin/[^?]*\.\.(/|%2f)'
+  - name: encoded-dotdot
+    path_regex: '\.%2e|%2e%2e|%252e'
+  - name: traversal-etc-passwd
+    path_regex: '\.\./.*(etc/passwd|etc/shadow)'
+  - name: traversal-windows
+    path_regex: '\.\.[\\/].*(winnt|windows)[\\/]'
