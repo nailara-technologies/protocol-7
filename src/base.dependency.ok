@@ -56,16 +56,58 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
         );
         return undef;
     }
-    if ( defined $event_id ) {
-        return FALSE if !$callback->( $chain_object_id, $event_id );
-    } else {
-        return FALSE if !$callback->($chain_object_id);
+    my $callback_ok
+        = defined $event_id
+        ? $callback->( $chain_object_id, $event_id )
+        : $callback->($chain_object_id);
+
+    if ( !$callback_ok ) {
+
+        ## generic resolve hook : gives a per-type callback a chance to   ##
+        ## actively fix an unmet dependency [ eg. cascade-start a zenka ] ##
+        ## instead of only ever passively re-checking it. debounced per   ##
+        ## chain object so a burst of dependency.ok calls across one      ##
+        ## unresolved object [ eg. check_dependencies sweeping the whole  ##
+        ## 'depending' queue every tick ] doesn't fire it more than once  ##
+        ## per <dependency.resolve.min_interval> seconds                  ##
+        my $resolve = <dependency.setup.type>->{$object_type}->{'resolve'};
+        if ( ref($resolve) eq qw| CODE | ) {
+            my $now          = <[base.ntime]>;
+            my $min_interval = <dependency.resolve.min_interval> // 5;
+            my $last_resolve = <dependency.resolve.last>->{$chain_object_id};
+            if ( not defined $last_resolve
+                or ( $now - $last_resolve ) >= $min_interval ) {
+                <dependency.resolve.last>->{$chain_object_id} = $now;
+                <[base.log]>->(
+                    2,
+                    ": object '$chain_object_id' [$object_type] unresolved, "
+                        . 'invoking resolve hook'
+                );
+                eval {
+                    if ( defined $event_id ) {
+                        $resolve->( $chain_object_id, $event_id );
+                    } else {
+                        $resolve->($chain_object_id);
+                    }
+                };
+                my $eval_error = <[base.str.eval_error]>;
+                <[base.logs]>->(
+                    0,
+                    "base.dependency.ok: resolve hook for type '%s' "
+                        . '[id %s] failed: %s',
+                    $object_type,
+                    $chain_object_id,
+                    $eval_error
+                ) if length $eval_error;
+            }
+        }
+        return FALSE;
     }
 }
 return TRUE;
 
-#,,.,,,,,,..,,...,...,..,,..,,..,,.,,,,..,...,..,,...,...,...,...,,..,...,,..,
-#SOBICPWVTMVRD6OY6B225OE6EFCUHQG7P4BMRJBFOT3OSJV2WNG7KFRRF4NVXOXYQZPZWZBQBDCR4
-#\\\|VZ4AT2TB3EABOCO77WRZIBJ6ATNRALIBYDA6YGVLHPAV2P7OBYW \ / AMOS7 \ YOURUM ::
-#\[7]EZCSMZE2E3L6FAAKV2FBEY7RNJWGF6NGMN5GPIXCQM2RB7NSGEAY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,,.,.,.,,..,,,.,...,.,,,..,,..,,...,..,,..,,,,,,,,,,,,.,,.,,
+#ENFYB4VGL272USJPMHSACNPVMWIRNWPLXEYWRDSX3LFZK4NFZFZYPJDEBWZMYIWFLNGYSYVTN6H3Y
+#\\\|LBFINNP7VLTVCZ4HRHX34PIODIISV5ZFXLKDBLOK7KTK3KJTCOZ \ / AMOS7 \ YOURUM ::
+#\[7]7AWVGMWWP7ETQJOWOT3VTCV35OD75KANIPDIP5EUSN42VO2QKKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
