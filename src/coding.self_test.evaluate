@@ -81,6 +81,61 @@ if ( $step eq qw| init | ) {
     ## acceptable scope with the user 2026-06-21.                          ##
     my $type = $constraint->{'type'} // 'exact';
 
+    ## local reformat : skip the tier1 inference round-trip entirely when   ##
+    ## the raw answer already contains every required token and the         ##
+    ## constraint is word_count -- extracting the matching token is a       ##
+    ## deterministic string op, not a second real inference call that can   ##
+    ## independently fail for reasons unrelated to content [ confirmed live ##
+    ## 2026-08-27 : a verbose-but-content-correct answer ["The cat. The     ##
+    ## mouse is now a snack."] failed self-test because the tier1 reformat  ##
+    ## request twice spent its whole reply on reasoning and emitted no      ##
+    ## final content -- the seed-retry safety net recovered it, but the     ##
+    ## round-trip was never needed at all ]. only word_count : that's the   ##
+    ## constraint this failure mode was observed against, and the single-   ##
+    ## scalar must_contain shape check_constraint's word_count branch reads ##
+    ## makes a whole-token extraction unambiguous. numeric/sprintf/exact    ##
+    ## keep going through tier1 unchanged - not the same simple shape       ##
+    if ( $content_already_correct and $type eq qw| word_count | ) {
+        my $must_scalar = $constraint->{'must_contain'} // $expected;
+        if ( length $must_scalar
+            and $answer
+            =~ m{(?:^|[^a-z0-9])(\Q$must_scalar\E)(?:[^a-z0-9]|$)}i ) {
+            my $local_answer = $1;
+
+            ## re-verify through the SAME check the tier1 recheck path     ##
+            ## uses, rather than assuming a single-token extraction always ##
+            ## satisfies the full constraint [ eg an unusual max_words ]   ##
+            my $local_check = <[coding.self_test.check_constraint]>->(
+                {   answer     => $local_answer,
+                    constraint => $constraint,
+                    expected   => $expected,
+                }
+            );
+
+            if ( $local_check and $local_check->{'mode'} eq qw| true | ) {
+                <[base.logs]>->(
+                    1,
+                    '[self_test] local reformat : model %s '
+                        . ': %s -> %s [ tier1 round-trip skipped ]',
+                    $model_id,
+                    $answer,
+                    $local_answer
+                );
+                return {
+                    outcome => qw| final |,
+                    eval    => {
+                        mode               => qw| true |,
+                        data               => $local_answer,
+                        tier               => qw| local_reformat |,
+                        original_answer    => $answer,
+                        reformatted_answer => $local_answer,
+                        structural_reason  => $structural_reason,
+                    },
+                };
+            }
+        }
+    }
+
     my $base_hint = sub {
         if ( $type eq 'numeric' ) {
             return 'Please restate your final answer as '
@@ -325,8 +380,8 @@ return {
     eval    => { mode => qw| false |, data => "unknown evaluate step $step" },
 };
 
-#,,,.,..,,.,.,,..,..,,.,.,,..,.,.,...,..,,.,.,..,,...,..,,...,,,,,.,,,.,,,,.,,
-#4TH3VB4LKZPXUALWQVEFI5TPJYMHRZZOBQ3IVA2Q2WWD4IKD22RI6NOOZGMKNKSKDZ5PHOOBZIJZA
-#\\\|2ACC2X2BPUO4SRQJIDRIFITJKAV2ZZOCZOCCFDPSQPFVO7C4FOO \ / AMOS7 \ YOURUM ::
-#\[7]TU6QT7UO6D3TJTMNFASCI22DF24HAAODMGTONH6EVMYLYH4UM6AI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,,.,,.,,,,..,..,,,.,,..,,...,..,,...,..,,,,.,..,,,,,,.,,,...,
+#7EMF2MR4BNJ2PCOK46IYDCYICVE2JNKCNWJB4SFUNMULDZDCI57MVFWGCEVSSLQMARV5YY4472NPU
+#\\\|3JN4OYE47GWRKX7JYVYW5RR6KDHDXOCGJTYQNV7ERCN662YS4PX \ / AMOS7 \ YOURUM ::
+#\[7]HSRX55FYDHM4IDR6JDXMAR7XXF7Q3UHORJBQW6GPBXA75TFUWCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
