@@ -102,14 +102,51 @@ if ( ( not $backend_pid or $needs_respawn )
     ## not enabled at all. re-read the pids after the spawn call above --   ##
     ## it may have just set them                                            ##
     my $spawn_params = <coding.spawn_params> // {};
-    my $gpu_settled
-        = ( $spawn_params->{'gpu_enabled'} // TRUE )
-        ? ( ( <inference.gpu_pid> // 0 ) ? TRUE : FALSE )
-        : TRUE;
-    my $cpu_settled
-        = ( $spawn_params->{'cpu_enabled'} // FALSE )
-        ? ( ( <inference.cpu_pid> // 0 ) ? TRUE : FALSE )
-        : TRUE;
+
+    ## normalize enabled flags to match async_spawn_inference_servers ##
+    my $gpu_enabled_raw = lc( $spawn_params->{'gpu_enabled'} // 'yes' );
+    my $gpu_enabled_str = 'no';
+    $gpu_enabled_str = 'yes' if $gpu_enabled_raw =~ m{^(yes|true|1|auto)$};
+
+    my $cpu_enabled_raw = lc( $spawn_params->{'cpu_enabled'} // 'no' );
+    my $cpu_enabled_str = 'no';
+    $cpu_enabled_str = 'yes'  if $cpu_enabled_raw =~ m{^(yes|true|1)$};
+    $cpu_enabled_str = 'auto' if $cpu_enabled_raw eq 'auto';
+
+    ## gpu is settled when disabled, already running, or cpu auto fallback ##
+    ## is already running because gpu fit failed / gpu startup exhausted   ##
+    ## retries                                                             ##
+    my $gpu_settled;
+    if ( $gpu_enabled_str eq 'yes' ) {
+        $gpu_settled
+            = (
+            ( <inference.gpu_pid> // 0 )
+                or ( $cpu_enabled_str eq 'auto'
+                and ( <inference.cpu_pid> // 0 ) )
+            )
+            ? TRUE
+            : FALSE;
+    } else {
+        $gpu_settled = TRUE;
+    }
+
+    ## cpu=auto is settled when either backend is running [ gpu success ##
+    ## means no cpu fallback is needed ; cpu success means fallback     ##
+    ## happened ]                                                       ##
+    my $cpu_settled;
+    if ( $cpu_enabled_str eq 'yes' ) {
+        $cpu_settled = ( <inference.cpu_pid> // 0 ) ? TRUE : FALSE;
+    } elsif ( $cpu_enabled_str eq 'auto' ) {
+        $cpu_settled
+            = (
+                   ( <inference.cpu_pid> // 0 )
+                or ( <inference.gpu_pid> // 0 )
+            )
+            ? TRUE
+            : FALSE;
+    } else {
+        $cpu_settled = TRUE;
+    }
 
     if (    $gpu_settled
         and $cpu_settled
@@ -124,8 +161,8 @@ if ( ( not $backend_pid or $needs_respawn )
 
 return TRUE;
 
-#,,.,,,,.,,.,,..,,.,.,..,,...,,..,..,,.,,,,,.,..,,...,..,,,.,,,,.,..,,,..,..,,
-#6EXYTWZJXPOC527T3VRABNHPMJVPKQGY4QZCALEPRCGMLPM5N6RHNNXSRIJQTGNU3LXV5LDKLCN32
-#\\\|D72E4VWYNGIYZVOG6H3CCHSFRZ4R7OZNJBVGZJMGYWZBKQ2IRFV \ / AMOS7 \ YOURUM ::
-#\[7]OP22I46X4JZAFKM7CUKPJNFT4ZQU2WWOZOPORHR2MRA2K7I6HACQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,...,..,,...,.,.,...,..,,.,.,..,,...,...,.,,,.,,,.,,,.,.,..,,
+#FOUEEBWD245VEV6EJIOKHPJ3KSBZS6ZGV76KVTOWLFIYX423M4J3MY2LGFV4UI4GIXM4CCDSZG47C
+#\\\|IGNNYYPTTGG7M4BFEBUNCO4JIFDJBOE27FBXLTXVSTQNNVICCXN \ / AMOS7 \ YOURUM ::
+#\[7]PYAB3G3KOTZIKVJD6BOLME22NXGNGCUJRDPVFXCG4U47GZHH2ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

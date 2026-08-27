@@ -42,13 +42,33 @@ if ( not keys $spawn_params->%* ) {
 ## nothing needed spawning or everything spawned successfully               ##
 my $spawn_ok = TRUE;
 
-## gpu and cpu blocks below are deliberately independent : neither may  ##
-## short-circuit the other, each re-checks its own <inference.{gpu,cpu} ##
-## _pid> guard on every call, so re-entry [ deferred timer,             ##
-## model_path_reply retrigger, backoff retry ] is always safe           ##
+## consume any cpu fallback request raised by verify_inference_startup ##
+## after gpu exhausts its retry ceiling [ cleared below once read ]    ##
+my $cpu_fallback_requested = <coding.cpu_fallback_requested> // FALSE;
+<coding.cpu_fallback_requested> = FALSE;
+
+## normalize backend enabled flags : yes/no/auto for cpu, yes/no for gpu   ##
+## yes/true/1 all mean "always attempt" ; auto on cpu means "fallback only ##
+## when gpu fit fails or gpu startup exhausts retries"                     ##
+my $gpu_enabled_raw = lc( $spawn_params->{'gpu_enabled'} // 'yes' );
+my $gpu_enabled_str = 'no';
+$gpu_enabled_str = 'yes' if $gpu_enabled_raw =~ m{^(yes|true|1|auto)$};
+
+my $cpu_enabled_raw = lc( $spawn_params->{'cpu_enabled'} // 'no' );
+my $cpu_enabled_str = 'no';
+$cpu_enabled_str = 'yes'  if $cpu_enabled_raw =~ m{^(yes|true|1)$};
+$cpu_enabled_str = 'auto' if $cpu_enabled_raw eq 'auto';
+
+## gpu and cpu blocks below are deliberately independent : neither may    ##
+## short-circuit the other, each re-checks its own <inference.{gpu,cpu}   ##
+## _pid> guard on every call, so re-entry [ deferred timer,               ##
+## model_path_reply retrigger, backoff retry ] is always safe. the cpu    ##
+## block additionally honors the auto/fallback flag set by the gpu block. ##
 
 # Spawn GPU server if enabled and not already running
-if ( $spawn_params->{'gpu_enabled'} and not <inference.gpu_pid> ) {
+if (    $gpu_enabled_str eq 'yes'
+    and not <inference.gpu_pid>
+    and not $cpu_fallback_requested ) {
     my $gpu_port   = <inference.backend.gpu.port>    // 8000;
     my $gpu_model  = $spawn_params->{'gpu_model_id'} // qw|gemma3-glitter-4b|;
     my $gpu_binary = $spawn_params->{'gpu_binary'}
@@ -90,57 +110,96 @@ if ( $spawn_params->{'gpu_enabled'} and not <inference.gpu_pid> ) {
         );
         $spawn_ok = FALSE;
     } else {
-        <[base.logs]>->(
-            1,         ": spawning GPU server on port %d for %s",
-            $gpu_port, $gpu_model
-        );
 
-        ## spawn_inference_server owns the spawning_in_progress guard ##
-        my $gpu_result = <[coding.spawn_inference_server]>->(
-            {   'backend'     => 'gpu',
-                'binary'      => $gpu_binary,
-                'port'        => $gpu_port,
-                'model_path'  => $model_path,
-                'mmproj_path' => <inference.model.mmproj_path> // '',
-                'gpu_layers'  => $gpu_layers,
-                'amos_id'     => $gpu_amos_id
+        ## live resource check before committing to a gpu spawn attempt ##
+        my $gpu_size_gb = $gpu_resolve->{'matched_entry'}{'size_gb'} // 0;
+        my $gpu_fits    = TRUE;
+        if ( $gpu_size_gb > 0 ) {
+            my $fit = <[coding.helper.check_resource_fit]>
+                ->( { backend => 'gpu', size_gb => $gpu_size_gb } );
+            $gpu_fits = $fit->{'fits'};
+            if ( !$gpu_fits ) {
+                <[base.logs]>->(
+                    1, ': GPU resource check failed : %d MB free, need %d MB',
+                    $fit->{'free_mb'}, $fit->{'required_mb'}
+                );
             }
-        );
-
-        if ( $gpu_result->{'success'} ) {
-            <[base.logs]>->(
-                1, ": GPU server spawned [pid=%d] - monitoring startup",
-                $gpu_result->{'pid'}
-            );
-            <inference.gpu_port>           = $gpu_port;
-            <inference.gpu_pid>            = $gpu_result->{'pid'};
-            <coding.spawn_retry_count_gpu> = 0;
         } else {
-            my $retries = ( <coding.spawn_retry_count_gpu> //= 0 );
-            <coding.spawn_retry_count_gpu>++;
-            my $delay = 2**$retries;
-            $delay = 120 if $delay > 120;    ## cap at 2 minutes ##
             <[base.logs]>->(
-                0,
-                'GPU server spawn failed (attempt '
-                    . '%d) — retrying in %.0fs: %s',
-                $retries + 1,
-                $delay,
-                $gpu_result->{'error'}
+                1, ': GPU model size unknown - skipping resource pre-check'
             );
-            <[event.add_timer]>->(
-                {   'after'   => $delay,
-                    'handler' => qw| coding.handler.spawn_servers_deferred |
+        }
+
+        if ( !$gpu_fits ) {
+            ## insufficient vram : fall back to cpu if cpu may spawn ##
+            if ( $cpu_enabled_str eq 'yes' or $cpu_enabled_str eq 'auto' ) {
+                <[base.logs]>->( 1, ': falling back to CPU spawn' );
+                <coding.cpu_fallback_requested> = TRUE;
+            } else {
+                <[base.logs]>->(
+                    0, ': CPU fallback disabled - no backend available'
+                );
+                $spawn_ok = FALSE;
+            }
+        } else {
+            <[base.logs]>->(
+                1,         ": spawning GPU server on port %d for %s",
+                $gpu_port, $gpu_model
+            );
+
+            ## spawn_inference_server owns the spawning_in_progress guard ##
+            my $gpu_result = <[coding.spawn_inference_server]>->(
+                {   'backend'     => 'gpu',
+                    'binary'      => $gpu_binary,
+                    'port'        => $gpu_port,
+                    'model_path'  => $model_path,
+                    'mmproj_path' => <inference.model.mmproj_path> // '',
+                    'gpu_layers'  => $gpu_layers,
+                    'amos_id'     => $gpu_amos_id
                 }
             );
-            $spawn_ok = FALSE;    ## gpu spawning not successful ##
+
+            if ( $gpu_result->{'success'} ) {
+                <[base.logs]>->(
+                    1, ": GPU server spawned [pid=%d] - monitoring startup",
+                    $gpu_result->{'pid'}
+                );
+                <inference.gpu_port>           = $gpu_port;
+                <inference.gpu_pid>            = $gpu_result->{'pid'};
+                <coding.spawn_retry_count_gpu> = 0;
+            } else {
+                my $retries = ( <coding.spawn_retry_count_gpu> //= 0 );
+                <coding.spawn_retry_count_gpu>++;
+                my $delay = 2**$retries;
+                $delay = 120 if $delay > 120;    ## cap at 2 minutes ##
+                <[base.logs]>->(
+                    0,
+                    'GPU server spawn failed (attempt '
+                        . '%d) — retrying in %.0fs: %s',
+                    $retries + 1,
+                    $delay,
+                    $gpu_result->{'error'}
+                );
+                <[event.add_timer]>->(
+                    {   'after'   => $delay,
+                        'handler' =>
+                            qw| coding.handler.spawn_servers_deferred |
+                    }
+                );
+                $spawn_ok = FALSE;    ## gpu spawning not successful ##
+            }
         }
     }
 }
 
+## cpu spawns unconditionally when enabled=yes, or as a gpu fallback when
+## enabled=auto. enabled=no blocks both cases.
+my $spawn_cpu = ( $cpu_enabled_str eq 'yes' )
+    || ( $cpu_enabled_str eq 'auto' and $cpu_fallback_requested );
+
 # Spawn CPU server if enabled and not already running [ mirrors the GPU
 # block above, minus gpu_layers/mmproj_path which are gpu-only params ]
-if ( $spawn_params->{'cpu_enabled'} and not <inference.cpu_pid> ) {
+if ( $spawn_cpu and not <inference.cpu_pid> ) {
     my $cpu_port   = <inference.backend.cpu.port> // 8001;
     my $cpu_binary = $spawn_params->{'cpu_binary'}
         // '/data/source/ik_llama.cpp/llama-server-cpu';
@@ -170,49 +229,81 @@ if ( $spawn_params->{'cpu_enabled'} and not <inference.cpu_pid> ) {
         );
         $spawn_ok = FALSE;
     } else {
-        <[base.logs]>->(
-            1,         ": spawning CPU server on port %d [%d threads]",
-            $cpu_port, $cpu_threads
-        );
 
-        ## spawn_inference_server owns the spawning_in_progress guard ##
-        my $cpu_result = <[coding.spawn_inference_server]>->(
-            {   'backend'    => 'cpu',
-                'binary'     => $cpu_binary,
-                'port'       => $cpu_port,
-                'model_path' => $cpu_model_path,
-                'threads'    => $cpu_threads,
-                'amos_id'    => $cpu_amos_id
+        ## auto cpu is fallback-only : verify ram before spawning ##
+        if ( $cpu_enabled_str eq 'auto' ) {
+            my $cpu_size_gb = $cpu_resolve->{'matched_entry'}{'size_gb'} // 0;
+            if ( $cpu_size_gb > 0 ) {
+                my $fit = <[coding.helper.check_resource_fit]>
+                    ->( { backend => 'cpu', size_gb => $cpu_size_gb } );
+                if ( !$fit->{'fits'} ) {
+                    <[base.logs]>->(
+                        0,
+                        ': CPU resource check failed '
+                            . ': %d MB free, need %d MB',
+                        $fit->{'free_mb'},
+                        $fit->{'required_mb'}
+                    );
+                    $spawn_ok = FALSE;
+                } else {
+                    <[base.logs]>->(
+                        2, ': CPU resource check passed : %d MB free',
+                        $fit->{'free_mb'}
+                    );
+                }
+            } else {
+                <[base.logs]>->(
+                    1, ': CPU model size unknown - spawning without fit check'
+                );
             }
-        );
+        }
 
-        if ( $cpu_result->{'success'} ) {
+        if ($spawn_ok) {
             <[base.logs]>->(
-                1, ": CPU server spawned [pid=%d] - monitoring startup",
-                $cpu_result->{'pid'}
+                1,         ": spawning CPU server on port %d [%d threads]",
+                $cpu_port, $cpu_threads
             );
-            <inference.cpu_port>           = $cpu_port;
-            <inference.cpu_pid>            = $cpu_result->{'pid'};
-            <coding.spawn_retry_count_cpu> = 0;
-        } else {
-            my $retries = ( <coding.spawn_retry_count_cpu> //= 0 );
-            <coding.spawn_retry_count_cpu>++;
-            my $delay = 2**$retries;
-            $delay = 120 if $delay > 120;    ## cap at 2 minutes ##
-            <[base.logs]>->(
-                0,
-                'CPU server spawn failed (attempt '
-                    . '%d) — retrying in %.0fs: %s',
-                $retries + 1,
-                $delay,
-                $cpu_result->{'error'}
-            );
-            <[event.add_timer]>->(
-                {   'after'   => $delay,
-                    'handler' => qw| coding.handler.spawn_servers_deferred |
+
+            ## spawn_inference_server owns the spawning_in_progress guard ##
+            my $cpu_result = <[coding.spawn_inference_server]>->(
+                {   'backend'    => 'cpu',
+                    'binary'     => $cpu_binary,
+                    'port'       => $cpu_port,
+                    'model_path' => $cpu_model_path,
+                    'threads'    => $cpu_threads,
+                    'amos_id'    => $cpu_amos_id
                 }
             );
-            $spawn_ok = FALSE;    ## cpu spawning not successful ##
+
+            if ( $cpu_result->{'success'} ) {
+                <[base.logs]>->(
+                    1, ": CPU server spawned [pid=%d] - monitoring startup",
+                    $cpu_result->{'pid'}
+                );
+                <inference.cpu_port>           = $cpu_port;
+                <inference.cpu_pid>            = $cpu_result->{'pid'};
+                <coding.spawn_retry_count_cpu> = 0;
+            } else {
+                my $retries = ( <coding.spawn_retry_count_cpu> //= 0 );
+                <coding.spawn_retry_count_cpu>++;
+                my $delay = 2**$retries;
+                $delay = 120 if $delay > 120;    ## cap at 2 minutes ##
+                <[base.logs]>->(
+                    0,
+                    'CPU server spawn failed (attempt '
+                        . '%d) — retrying in %.0fs: %s',
+                    $retries + 1,
+                    $delay,
+                    $cpu_result->{'error'}
+                );
+                <[event.add_timer]>->(
+                    {   'after'   => $delay,
+                        'handler' =>
+                            qw| coding.handler.spawn_servers_deferred |
+                    }
+                );
+                $spawn_ok = FALSE;    ## cpu spawning not successful ##
+            }
         }
     }
 }
@@ -224,8 +315,8 @@ if ($spawn_ok) {
 
 return FALSE;
 
-#,,,,,,,.,.,,,,,.,,,,,,..,...,...,,.,,.,,,.,,,..,,...,.,.,,..,.,.,..,,.,,,.,.,
-#TMMU4L4G2NJWYXC66I7YVYK6QAX6DKLSKFA2VIAOQNIGDE3JLBESJXRST75C73PL43JNNWEKQKTIQ
-#\\\|RDRHT2HF46TNYRSBYR7ND6DGCY5QAENYNDKFBGVR5U2ME6TMKE6 \ / AMOS7 \ YOURUM ::
-#\[7]W5R2V7EONI327UXOI6DQ2QK5LMN3GNVBVMZVPDGOIQPABAHBFOAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,,,,,.,,,.,,..,...,,,,,,.,,...,..,,...,...,..,,...,.,,,..,,..,,
+#DD2GHRU77QAACF22PQB244F3Z6YZEJ7SPMXQ2SABYU7ACRGIGLFYUBER4C4EMLI6FKTBFE5LZLR34
+#\\\|IBLUTPFHZMNISN2KT22G225N3N5M2C2UPPRRMTBI4TXRHZDUROY \ / AMOS7 \ YOURUM ::
+#\[7]DGPFEZJV4VKO7BE52DYNFSBRM2OJ2V2TUHAM4RHMNGLMOYFQ54CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
