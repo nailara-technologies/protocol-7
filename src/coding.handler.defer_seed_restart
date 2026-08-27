@@ -43,6 +43,54 @@ if ( !defined $srv or ( $srv->{'pid'} // 0 ) != ( $defer->{'pid'} // -1 ) ) {
 ## wearing a costume. giving up leaves the [ failing ] server running - the ##
 ## next readiness event re-arms the whole decision anyway                   ##
 if ( $now - ( $defer->{'started'} // $now ) > 120 ) {
+    ## liveness-aware [ task : backend-aware timeout scaling, item 5 ] :    ##
+    ## before giving up, check WHO holds the backend lock. for a self-test  ##
+    ## probe the lock value IS the probe_id [ poll_probe acquires the lock  ##
+    ## with its probe_id ] : if that probe's in-flight request is still     ##
+    ## streaming [ the shared coding.async.stream_tps/is_alive signal ] and ##
+    ## under its own auto-derived outer cap, the backend is SLOW, not stuck ##
+    ## - keep waiting for the probe to complete or stall rather than        ##
+    ## abandoning the seed retry at a flat 120s [ still bounded : the cap   ##
+    ## is frozen on stall and poll_probe's watchdog settles the probe       ##
+    ## regardless ]. a lock held by anything else [ a real task ] keeps the ##
+    ## flat ceiling - bounding the wait on task traffic is this ceiling's   ##
+    ## whole job                                                            ##
+    my $bs   = ( <coding.state.backend> // {} )->{$backend} // {};
+    my $lock = $bs->{'lock'}                                // '';
+    my $pst
+        = length($lock)
+        ? $data{'coding'}{'self_test_probe_state'}{$lock}
+        : undef;
+    my $wait_more = FALSE;
+    if (    ref $pst eq qw| HASH |
+        and $pst->{'in_flight'}
+        and ref $pst->{'http_state'} eq qw| HASH |
+        and
+        <[coding.async.stream_tps]>->( qw| is_alive |, $pst->{'http_state'} )
+    ) {
+        my $outer_cap = <[coding.async.stream_tps]>->(
+            qw| get_cap |, $pst->{'http_state'}
+        );
+        if ( $now - ( $pst->{'started'} // $now ) < $outer_cap ) {
+            $wait_more = TRUE;
+            ## throttled : this timer ticks every 2s and a long live probe ##
+            ## defers the give-up here repeatedly                          ##
+            if ( $now >= ( $defer->{'cap_defer_log_at'} // 0 ) ) {
+                $defer->{'cap_defer_log_at'} = $now + 60;
+                <[base.logs]>->(
+                    1,
+                    '[defer_seed_restart] backend=%s busy past 120s but '
+                        . 'self-test probe %s alive [chunks=%d] : waiting to '
+                        . 'outer cap %ds',
+                    $backend,
+                    $lock,
+                    $pst->{'http_state'}{'chunks_received'} // 0,
+                    $outer_cap
+                );
+            }
+        }
+    }
+    return TRUE if $wait_more;
     <[base.logs]>->(
         0,
         '[defer_seed_restart] backend=%s still busy after 120s : giving '
@@ -91,8 +139,8 @@ delete <coding.awaiting_resources>
 
 return $finish->();
 
-#,,.,,.,.,,..,.,.,.,,,,.,,.,,,,,.,,..,.,,,...,..,,...,...,,,.,...,..,,,..,,.,,
-#DS25YAPDZW4NXEFEOQQAAWAWIEFGISF7YYTQRNDDYEBNDATRO4BCDFYV63C65IAWNO2CUQVVSOOVQ
-#\\\|LNDXU66YK4EOZ4OAPXO2GDY7ZBNBPCR3F33WSS6DCRQELLUEPT2 \ / AMOS7 \ YOURUM ::
-#\[7]6CTSNJ3EW65FA2BESTFNIIMB5PL4NKANOIUNLNCB4ACLHHI4H6BI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,,,.,...,,,.,...,...,,,,,.,,,..,,...,...,.,,,.,.,.,.,,,.,..,,
+#OFLXCHNNQV7UZ63R3U3VEUXCF6PB7PLTHHCAENQHRI7LEVTHX5HM2S7FNBFYEPOOQQP7RNRPWCJZ2
+#\\\|LJB5JZCAWLIYSWQ4WWRGCYLCMLSDY75O7SVQQDGQI5LKUVXSXWQ \ / AMOS7 \ YOURUM ::
+#\[7]2B5EL6CBIRQAED3RUZE3C7CP5KSOWZ5JWR7PGTITVL24PQ3BGODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
