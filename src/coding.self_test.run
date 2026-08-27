@@ -37,6 +37,17 @@ my $model_id = $params->{'model_id'} // '';
 ## ttft=118.26s, well past the old 90s soft ceiling, hitting the extend-    ##
 ## to-777s path [ coding.handler.http_timeout ] as routine noise for an     ##
 ## ordinary successful request, not an actual problem                       ##
+##                                                                          ##
+## UPDATE 2026-08-27 [ task : backend-aware timeout scaling, item 7 ] : 127 ##
+## stays a LITERAL default, deliberately. since the same-day http_timeout   ##
+## rewrite this value is only the FIRST trip interval of the per-request    ##
+## liveness re-check, no longer a hard cap : a live stream is extended in   ##
+## place repeatedly [ up to the auto-derived outer cap,                     ##
+## coding.async.stream_tps ] regardless of where the first trip lands, and  ##
+## a hung stream is killed by the 77s stall watcher long before any ceiling ##
+## matters. deriving the first trip from a backend-aware base was           ##
+## considered and rejected : it would only delay the first liveness         ##
+## re-check on fast backends [ the common case ] for zero correctness gain  ##
 my $timeout = $params->{'timeout'} // 127;
 my $backend = $params->{'backend'} // 'gpu';
 my $url     = $params->{'url'}
@@ -177,8 +188,8 @@ $data{'coding'}{'self_test_probe_state'}{$probe_id} = {
 
 return { mode => qw| deferred | };
 
-#,,.,,,..,.,.,,,,,,,,,,,.,...,...,,,,,,,,,..,,..,,...,...,...,,,,,..,,,,.,,,.,
-#CKMI4TWY62AUAHHUXIGZHTHD6BZIUMPCEVGXXWAHNLANHB6EFZ25ODIXXAN6IU7STSV373YDP7DCG
-#\\\|3T2SLFABVSND75T4YATQ5OXVJPHCQL6ZL4W5XJJGVRMV7FR4YLR \ / AMOS7 \ YOURUM ::
-#\[7]K23ITAE3P4GJH4ULYRYI4DQ3P3PE4KK4UQN4EB3AW2MYKRNYD4DY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,.,.,.,,,,,,..,,,.,,,.,.,.,,..,..,,...,...,...,,,.,.,.,...,...,
+#BFVKU7PQE6OMENULDXEY652CE6D3LXNYM6GD372O36EILDBIFQQJNTU4CEDPQSGMQ6UTQSZI7L22Q
+#\\\|ESRLW3REZAYSOOFTBAP7SKFLLCAOYYID466LOCVSXT3PY2KB7SF \ / AMOS7 \ YOURUM ::
+#\[7]KWDPORNDI2Z5DYKMGKOFUBJGQXSAU4RIAXT4D54P7BICLVMD72DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

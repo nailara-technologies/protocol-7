@@ -208,7 +208,20 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
             ## total wait seconds, not a poll- attempt count ] for a guard  ##
             ## that genuinely never clears [ hung probe elsewhere ].        ##
             ## cfg.self_test_retry_max is kept as an explicit override of   ##
-            ## that same seconds value                                      ##
+            ## that same seconds value.                                     ##
+            ##                                                              ##
+            ## semantics note [ task : backend-aware timeout scaling, item  ##
+            ## 6 ] : this net is explicitly a "guard slot never cleared"    ##
+            ## fallback, NOT a self-test duration limit. under the          ##
+            ## liveness-aware poll_probe a slow-but-LIVE probe can          ##
+            ## legitimately hold its slot past this window [ deferred up to ##
+            ## the auto-derived outer cap ], so the callback below          ##
+            ## re-checks the holding probe's liveness before firing and     ##
+            ## re-arms another window instead of force-resuming the queue   ##
+            ## mid-round [ the premature-resume class of 5d32f8783 ]. the   ##
+            ## fixed derivation stays the arming value : the window's       ##
+            ## length is not load-bearing for correctness any more, only    ##
+            ## the liveness decision at fire time is                        ##
             my $wait_timeout = <coding.cfg.self_test_retry_max>
                 // <coding.cfg.self_test_max_total> // 1700;
 
@@ -268,38 +281,93 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
                 }
             );
 
-            ## per-backend safety-net timeout : if the guard genuinely    ##
-            ## never clears [ hung probe elsewhere ] give up exactly like ##
-            ## the old exhaustion path did - clear state, log loudly,     ##
-            ## resume the queue. the watcher cancels this timer when it   ##
-            ## re-triggers the backend first                              ##
+            ## per-backend safety-net timeout : if the guard genuinely     ##
+            ## never clears [ hung probe state machine ] give up exactly   ##
+            ## like the old exhaustion path did - clear state, log loudly, ##
+            ## resume the queue. the watcher cancels this timer when it    ##
+            ## re-triggers the backend first                               ##
             my $old_timer = <coding.self_test_retry_timer>->{$backend};
             $old_timer->cancel
                 if defined $old_timer
                 and eval { $old_timer->is_active };
+
+            ## named lexical so the liveness re-arm below can re-use the  ##
+            ## same callback [ a closure cannot reference itself inline ] ##
+            my $safety_cb;
+            $safety_cb = sub {
+                return
+                    if not <coding.self_test_retry_pending>->{$backend};
+
+                ## liveness re-check before giving up [ item 6, see the     ##
+                ## semantics note above ] : if the probe holding THIS       ##
+                ## backend's slot is still streaming [ the shared           ##
+                ## coding.async.stream_tps/is_alive signal ] and under its  ##
+                ## own outer cap, the guard is held LEGITIMATELY - re-arm   ##
+                ## another window and keep waiting. probe state is keyed by ##
+                ## probe_id, not backend : scan for the entry whose backend ##
+                ## field matches                                            ##
+                my $probe_states = $data{'coding'}{'self_test_probe_state'}
+                    // {};
+                for my $id ( keys %{$probe_states} ) {
+                    my $pst = $probe_states->{$id};
+                    next if ref $pst ne qw| HASH |;
+                    next if ( $pst->{'backend'} // '' ) ne $backend;
+                    my $http_state = $pst->{'http_state'};
+                    next
+                        if !$pst->{'in_flight'}
+                        or ref $http_state ne qw| HASH |;
+                    next
+                        if !<[coding.async.stream_tps]>->(
+                        qw| is_alive |, $http_state
+                        );
+                    my $outer_cap = <[coding.async.stream_tps]>->(
+                        qw| get_cap |, $http_state
+                    );
+                    next
+                        if <[base.time]>->(3) - ( $pst->{'started'} // 0 )
+                        >= $outer_cap;
+                    <[base.logs]>->(
+                        1,
+                        '[trigger_self_test] backend=%s : guard wait timeout '
+                            . 'but probe %s stream alive [chunks=%d, '
+                            . 'cap=%ds] : re-arming safety net [ %ds ]',
+                        $backend,
+                        $id,
+                        $http_state->{'chunks_received'} // 0,
+                        $outer_cap,
+                        $wait_timeout
+                    );
+                    <coding.self_test_retry_timer>->{$backend}
+                        = <[event.add_timer]>->(
+                        {   'after' => $wait_timeout,
+                            'desc'  => "self-test guard wait "
+                                . "timeout [backend=$backend]",
+                            'cb' => $safety_cb,
+                        }
+                        );
+                    return;
+                }
+
+                ## no live probe holds the slot : genuine guard hang ##
+                delete <coding.self_test_retry_pending>->{$backend};
+                delete <coding.self_test_retry_timer>->{$backend};
+                <[base.logs]>->(
+                    0,
+                    '[trigger_self_test] backend=%s : self-test guard wait '
+                        . 'timeout [ %ds ] : entering service WITHOUT '
+                        . 'self-test validation',
+                    $backend,
+                    $wait_timeout
+                );
+                <[coding.helper.resume_task_queue_for_backend]>->($backend);
+                return;
+            };
             <coding.self_test_retry_timer>->{$backend}
                 = <[event.add_timer]>->(
                 {   'after' => $wait_timeout,
                     'desc'  =>
                         "self-test guard wait timeout [backend=$backend]",
-                    'cb' => sub {
-                        return
-                            if not
-                            <coding.self_test_retry_pending>->{$backend};
-                        delete <coding.self_test_retry_pending>->{$backend};
-                        delete <coding.self_test_retry_timer>->{$backend};
-                        <[base.logs]>->(
-                            0,
-                            '[trigger_self_test] backend=%s : self-test '
-                                . 'guard wait timeout [ %ds ] : entering '
-                                . 'service WITHOUT self-test validation',
-                            $backend,
-                            $wait_timeout
-                        );
-                        <[coding.helper.resume_task_queue_for_backend]>
-                            ->($backend);
-                        return;
-                    },
+                    'cb' => $safety_cb,
                 }
                 );
         }
@@ -333,8 +401,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,,,,,..,...,..,,,,,,.,,,,..,.,,,,,,,..,,,..,..,,...,...,.,.,,.,,,,,,..,,...,
-#XMND4DMXJR6TMSET56SW5ZTC6UYI2KJ3VI5J3OBUXMRDHZJMKQDSYM3PQKZI6MOE2VEABSDKEBYX4
-#\\\|CUCP6EUGFW656MU66HWCC2GT7556Z3OG25CU6GSMOGHCWCL74TD \ / AMOS7 \ YOURUM ::
-#\[7]RGH74L7EN3VBDHKJTP24DHPJOOKWRM3QNCWKVTVUD7FCUO5T4IAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,..,,,,.,.,,,,..,...,,..,,..,..,,...,..,,..,,,,,,.,.,.,,,,,,,
+#6R6ZCYB6454BMQSEMRG57EBHRVERF5FC7WNU25ELP4A6HZZREA2NAQZ3UQOVSMHUWDDD4FEM6OYHW
+#\\\|ABCRZIXHWSKP7DXNDZJ5HM3LXUSFKEEOATLTHO4Y4ABX7LZSD6Y \ / AMOS7 \ YOURUM ::
+#\[7]4GME2NGMRDP5YHZHF52FNH4IC6NB7E23IZCSZA362XH2IL6LVGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

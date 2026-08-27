@@ -15,6 +15,12 @@ my $backend  = $params->{'backend'}  // 'gpu';
 ## own note for the fuller history of this default. real hangs are still    ##
 ## caught independently by the stall watcher [ coding.handler.http_io ]     ##
 ## regardless of this value                                                 ##
+##                                                                          ##
+## [ 2026-08-27, item 7 of the backend-aware timeout scaling task : this is ##
+## now only the FIRST trip interval of http_timeout's liveness re-check,    ##
+## not a hard cap - a live stream extends in place repeatedly past it.      ##
+## stays a literal default, see coding.self_test.run's own note for the     ##
+## reasoning ]                                                              ##
 my $timeout = $params->{'timeout'} // 127;
 my $on_done = $params->{'on_done'};        ## coderef : ( $result_hashref ) ##
 
@@ -143,8 +149,8 @@ $finish->( { mode => qw| false |, data => 'request_failed' } )
 
 return $http;
 
-#,,,,,..,,,,,,.,.,,.,,,,,,,.,,,,.,..,,,,.,,..,..,,...,...,..,,,,,,,..,...,,.,,
-#5IWIVL4WDBHSRQKWNKE57XQ4ZGYVJNKKJGDYLR7FWGSS3BF46SERV7L4DDR5MRKKGF2RSUNGO25A6
-#\\\|Z4WXUI6RCID3GOBLOMKUEOUQEE44WIWOOJGAYC6UJTUD6GRLSCB \ / AMOS7 \ YOURUM ::
-#\[7]6RSKGGV6GQUO6DC2B23K3TCYCWYUIVCCMHYD6MQMFNV6IQ6KTEDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,.,,..,,..,,,.,,,.,,,,.,..,,...,..,,...,...,.,,,...,,,.,,,,,.,,,
+#AJSL6VPGQQ73EFZWO7DGOGK6V2ZWBNEXIYBAABDS4TBPQNQ6Q2OW2MVLBDOQLN5ON6MCTVN56DLTY
+#\\\|FVMSUU7FOUBWJHYCG4CQLGTWSXRB2X5CFARDUH6JLEQAT3AMSCA \ / AMOS7 \ YOURUM ::
+#\[7]KTQTZGFIZMBCVTERMEHB2JB27BPMA656H66M24QK6UKEOC4LKSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,7 @@ for my $task_id ( $aref_active->@* ) {
     my $http_started  = $state->{'round_started'};         ## phase 1 start ##
     my $tools_started = $state->{'round_tools_started'};   ## phase 2 start ##
 
-    my ( $http_elapsed, $http_pct, $tools_elapsed );
+    my ( $http_elapsed, $http_pct, $tools_elapsed, $alive, $live_str );
     if ( defined $http_started ) {
         my $http_end = defined $tools_started ? $tools_started : $now;
         $http_elapsed = $http_end - $http_started;
@@ -39,6 +39,25 @@ for my $task_id ( $aref_active->@* ) {
             = $ceiling > 0 ? int( 100 * $http_elapsed / $ceiling ) : undef;
     }
     $tools_elapsed = defined $tools_started ? $now - $tools_started : undef;
+
+    ## liveness indicator [ task : backend-aware timeout scaling, item 8 ]  ##
+    ## : the ceiling can now be dynamic / much larger than the old flat     ##
+    ## value [ a live stream is extended in place by design ], so the       ##
+    ## percentage alone would mislead - show the stream's own liveness [    ##
+    ## the shared coding.async.stream_tps signal via the task's http_state  ##
+    ## ] alongside it while the round is in its http phase, and only flag a ##
+    ## high percentage when the stream is NOT alive                         ##
+    my $http_state = $state->{'http_state'};
+    if (    defined $http_pct
+        and !defined $tools_started
+        and ref $http_state eq qw| HASH | ) {
+        $alive = <[coding.async.stream_tps]>->( qw| is_alive |, $http_state );
+        my $tps = <[coding.async.stream_tps]>->( qw| get_tps |, $http_state );
+        $live_str
+            = $alive
+            ? ( defined $tps ? sprintf( 'live %.1f t/s', $tps ) : 'live' )
+            : 'STALLED';
+    }
 
     my $desc = $task->{'request'}->{'description'} // '';
     $desc = <[base.parser.center_ellipse_string]>->( $desc, 40 )
@@ -52,6 +71,8 @@ for my $task_id ( $aref_active->@* ) {
         'http_elapsed'  => $http_elapsed,
         'http_pct'      => $http_pct,
         'tools_elapsed' => $tools_elapsed,
+        'alive'         => $alive,
+        'live_str'      => $live_str // '',
         'desc'          => $desc,
         };
 }
@@ -72,10 +93,12 @@ if (@rows) {
                 $row->{'task_id'}, $row->{'round'}, $row->{'desc'};
             next;
         }
+        ## a high percentage only flags when the stream is NOT alive : a ##
+        ## live stream near its ceiling gets extended in place by design ##
         my $http_flag
-            = $row->{'http_pct'} >= 90 ? '!!'
-            : $row->{'http_pct'} >= 70 ? '! '
-            :                            '  ';
+            = $row->{'http_pct'} >= 90 && !$row->{'alive'} ? '!!'
+            : $row->{'http_pct'} >= 70 && !$row->{'alive'} ? '! '
+            :                                                '  ';
 
         my $tools_str = 'tools: --';
         if ( defined $row->{'tools_elapsed'} ) {
@@ -90,10 +113,11 @@ if (@rows) {
 
         push @output,
             sprintf
-            "%s %s | R:%02d | http: %03ds of %03ds [%%%03d] | %s | %s",
+            "%s %s | R:%02d | http: %03ds of %03ds [%%%03d]%s | %s | %s",
             $http_flag, $row->{'task_id'},
             $row->{'round'},   $row->{'http_elapsed'},
             $row->{'ceiling'}, $row->{'http_pct'},
+            ( length $row->{'live_str'} ? ' ' . $row->{'live_str'} : '' ),
             $tools_str, $row->{'desc'};
     }
 } else {
@@ -104,8 +128,8 @@ my $output_str = join( "\n", @output ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $output_str };
 
-#,,,.,.,,,...,.,,,,,.,...,,,,,,,.,,,,,..,,,..,..,,...,...,.,.,,,.,..,,,.,,,..,
-#526JJ7VRRVB2WX3KPB6MD5XLFYB7WQO2BTQDEBFRAHAZAVOWZDOLLTXTOTLSN4T5TNX6VNIBLOHIM
-#\\\|ZQ65ZKYP2723SRAUFPDQZO5LC5TE25FDTYWFDOWGAP4GACKURZL \ / AMOS7 \ YOURUM ::
-#\[7]NBRSVCJM63LE2BY4ZTRQSTR2JYVYQBFQIUI3OEJ257UETGUVFQDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,..,,,,.,.,.,.,.,.,.,,..,,..,..,,...,...,.,,,..,,,,.,..,,.,,,
+#4KG4TBFDVEEZHUWXAK72TORKBOXZHJPH23YBKXM3HRXTADJFP3COBXT7VXFXA5DPQWTIS4UGPQLW2
+#\\\|G5HBGRTXUV6PKRJLII5DJ3U7J5WV6PN5H43RLVCCPYWIDGB63NN \ / AMOS7 \ YOURUM ::
+#\[7]ZS526T5ZS7THY4X3LNSBZULKDVBRYFXBB4G6HJ73VEQHAMDCO2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
