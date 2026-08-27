@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 ###                                                            ###
-## coding self-test single-flight contention : retry harness   ##
+## coding self-test per-backend guard : parallel + retry harness ##
 ###                                                            ###
 
 ## exercises the real translated source of                                  ##
@@ -13,23 +13,27 @@ use warnings;
 ## coding.helper.self_test_guard_watcher +                                  ##
 ## coding.helper.resume_task_queue_for_backend against an in-process %data  ##
 ## / %code stub environment -- no live coding zenka required. covers the    ##
-## fix for the parallel-backend self-test gap [ task :                      ##
-## coding-self-test-parallel-backend-gap, option 1 ] after the 2026-08-26   ##
-## watcher redesign : a backend losing the race for the single global       ##
-## <coding.self_test_probe_in_flight> guard is marked pending and woken by  ##
-## a VARIABLE WATCHER on the guard [ jobqueue.event.register_job_queues     ##
-## precedent ] the instant it clears, with a per-backend safety-net timeout ##
-## in case it never does [ replaces the original 10s polling retry timer ]  ##
+## per-backend parallelization of the self-test in-flight guard [ task :    ##
+## coding-self-test-true-parallelization, 2026-08-27 ] : the guard is now a ##
+## HASH keyed by backend id, so both backends' coding.self_test.run calls   ##
+## succeed with mode='deferred' simultaneously and complete independently.  ##
+## same-backend contention [ a second trigger while that backend's own      ##
+## self-test is still in flight ] is still marked pending and woken by a    ##
+## PER-BACKEND variable watcher on that backend's own guard hash value slot ##
+## [ one event.add_var watcher per backend, the                             ##
+## jobqueue.event.register_job_queues precedent : a single watcher over the ##
+## hash's top-level slot would never fire on key mutations ], with a        ##
+## per-backend safety-net timeout in case the slot never clears             ##
 ##                                                                          ##
 ## mechanism note : base.event.add_var routes through Event->var [ a real   ##
 ## Event-module call, not %code ], which cannot run standalone here -- so   ##
 ## this harness stubs 'event.add_var' itself in %code as a call-recorder [  ##
 ## choice (a) from the task brief, matching how 'event.add_timer' is        ##
-## already stubbed ] and manually FIRES the recorded handler to simulate    ##
-## the guard variable changing, the same way the Event loop would deliver   ##
-## it [ edge-triggered, coalesced ]. timer stubs return fake watcher        ##
-## objects with is_active/cancel so the module's cancellation guards run    ##
-## against realistic semantics                                              ##
+## already stubbed ] and manually FIRES the recorded handler per backend to ##
+## simulate the guard slot changing, the same way the Event loop would      ##
+## deliver it [ edge-triggered, coalesced ]. timer stubs return fake        ##
+## watcher objects with is_active/cancel so the module's cancellation       ##
+## guards run against realistic semantics                                   ##
 
 use File::Spec;
 use Cwd     qw| abs_path |;
@@ -135,15 +139,18 @@ my $force_error = '';
     },
     'jobqueue.check_dependencies' => sub { return TRUE },
     'coding.self_test.run'        => sub {
-        my $params = shift;
+        my $params  = shift;
+        my $backend = $params->{'backend'} // '';
         push @run_calls, $params;
         return { mode => 'false', data => $force_error }
             if length $force_error;
+        ## the guard is a PER-BACKEND hash now : only a same-backend slot ##
+        ## blocks a new self-test, a different backend's slot never does  ##
         return { mode => 'false', data => 'self-test already in progress' }
-            if $data{'coding'}{'self_test_probe_in_flight'};
+            if $data{'coding'}{'self_test_probe_in_flight'}{$backend};
         ## the REAL %data slot is the guard : the watcher handler reads it ##
-        $data{'coding'}{'self_test_probe_in_flight'} = TRUE;
-        $on_done_for{ $params->{'backend'} } = $params->{'on_done'};
+        $data{'coding'}{'self_test_probe_in_flight'}{$backend} = TRUE;
+        $on_done_for{$backend} = $params->{'on_done'};
         return { mode => 'deferred' };
     },
 );
@@ -205,15 +212,37 @@ sub trigger {
 
 sub retry_pending { $data{'coding'}{'self_test_retry_pending'} // {} }
 
-sub guard_set   { $data{'coding'}{'self_test_probe_in_flight'} = TRUE; }
-sub guard_clear { $data{'coding'}{'self_test_probe_in_flight'} = FALSE; }
+## per-backend guard slot accessors [ hash guard, not a scalar any more ] ##
+sub guard_set {
+    $data{'coding'}{'self_test_probe_in_flight'}{ shift() } = TRUE;
+}
 
-## simulate the Event loop delivering the guard change : invoke the     ##
-## recorded add_var handler the way base.event.add_var's wrapper would, ##
-## passing the watcher object                                           ##
+sub guard_clear {
+    $data{'coding'}{'self_test_probe_in_flight'}{ shift() } = FALSE;
+}
+
+sub guard_is {
+    $data{'coding'}{'self_test_probe_in_flight'}{ shift() } // FALSE;
+}
+
+## most recently registered, still-active guard watcher for a backend [ the ##
+## watcher's data array carries the backend as its first element ]          ##
+sub watcher_for {
+    my $backend = shift;
+    my ($found) = reverse grep {
+        $ARG->is_active
+            and ( $ARG->params->{'data'}[0] // '' ) eq $backend
+    } @var_calls;
+    return $found;
+}
+
+## simulate the Event loop delivering one backend's guard slot change :     ##
+## invoke the recorded add_var handler the way base.event.add_var's wrapper ##
+## would, passing that backend's own watcher object                         ##
 sub fire_guard_watcher {
-    my $watcher = $var_calls[-1] or die 'no var watcher registered';
-    die 'var watcher not active' if not $watcher->is_active;
+    my $backend = shift;
+    my $watcher = watcher_for($backend)
+        or die "no active var watcher for backend=$backend";
     $code{ $watcher->params->{'handler'} }->($watcher);
     return;
 }
@@ -222,15 +251,20 @@ sub fire_guard_watcher {
 sub safety_timer_for {
     my $backend = shift;
     my ($found)
-        = reverse grep { $_->is_active and $_->desc =~ m{backend=$backend} }
+        = reverse
+        grep { $ARG->is_active and $ARG->desc =~ m{backend=$backend} }
         @timer_calls;
     return $found;
 }
 
-## simulate a passing probe finishing [ clears the in-flight guard ] ##
+## simulate a passing probe finishing [ clears THIS backend's guard slot,  ##
+## then runs its on_done - the same order poll_probe's done phase uses ].  ##
+## the slot clearing is what the Event loop would deliver to the backend's ##
+## guard watcher; the harness fires that watcher manually where a pending  ##
+## wake-up is under test                                                   ##
 sub complete_probe_ok {
     my $backend = shift;
-    guard_clear();
+    guard_clear($backend);
     my $cb = $on_done_for{$backend} or die "no on_done captured for $backend";
     $cb->(
         {   mode => 'true',
@@ -267,42 +301,76 @@ $data{'coding'}{'inference_servers'} = {
 ## pin the safety timeout explicitly : the real default derives from     ##
 ## <coding.cfg.self_test_max_total> [ ~1700s worst-case ] -- correct for ##
 ## production, but this harness tests the MECHANISM, not the derivation  ##
-## arithmetic [ derivation itself is scenario 8 ]                        ##
+## arithmetic [ derivation itself is scenario 9 ]                        ##
 $data{'coding'}{'cfg'}{'self_test_retry_max'} = 60;
 
-say ': 1. backend gpu wins the guard, backend cpu loses the race';
+say ': 1. genuine concurrency : BOTH backends start, neither waits';
 
 my $r_gpu = trigger('gpu');
 ok( ( ref $r_gpu and $r_gpu->{'mode'} eq 'deferred' ),
     'gpu self-test started [ mode=deferred ]'
 );
-ok( scalar(@run_calls) == 1, 'one self_test.run call so far' );
-ok( ( $run_calls[0]->{'backend'} // '' ) eq 'gpu', 'first call is gpu' );
+my $r_cpu = trigger('cpu');
+ok( ( ref $r_cpu and $r_cpu->{'mode'} eq 'deferred' ),
+    'cpu self-test ALSO started [ mode=deferred ] -- no cross-backend wait' );
+ok( scalar(@run_calls) == 2, 'two self_test.run calls, one per backend' );
+ok( ( $run_calls[0]->{'backend'}  // '' ) eq 'gpu', 'first call is gpu' );
+ok( ( $run_calls[1]->{'backend'}  // '' ) eq 'cpu', 'second call is cpu' );
 ok( ( $run_calls[0]->{'model_id'} // '' ) eq 'TESTID7:GPU',
     'gpu call carries its model_id' );
+ok( ( $run_calls[1]->{'model_id'} // '' ) eq 'TESTID7:CPU',
+    'cpu call carries its model_id' );
+ok( ( guard_is('gpu') and guard_is('cpu') ),
+    'both per-backend guard slots set simultaneously'
+);
+ok( scalar(@var_calls) == 0,   'no guard watcher needed [ no contention ]' );
+ok( scalar(@timer_calls) == 0, 'no safety timer armed [ no contention ]' );
+ok(
+    (           not exists retry_pending()->{'gpu'}
+            and not exists retry_pending()->{'cpu'}
+    ),
+    'no pending state for either backend'
+);
 
-my $r_cpu = trigger('cpu');
-ok( scalar(@run_calls) == 2, 'cpu trigger reached self_test.run' );
-ok( ( $run_calls[1]->{'backend'} // '' ) eq 'cpu', 'second call is cpu' );
-ok( ( not defined $r_cpu ), 'cpu trigger returned undef [ wait path ]' );
+say ': 2. both on_done callbacks in flight at once, completing independently';
 
-say ': 2. cpu marked pending, ONE persistent guard '
-    . 'watcher registered, one safety timer armed';
+complete_probe_ok('gpu');
+ok( ( $resumed{'gpu'} // 0 ) == 1,
+    'gpu queue resumed from its on_done completion' );
+ok( ( $resumed{'cpu'} // 0 ) == 0,
+    'cpu queue NOT resumed yet [ its probe still running ]' );
+ok( ( not guard_is('gpu') and guard_is('cpu') ),
+    'gpu slot cleared, cpu slot still set [ independent state ]' );
 
+complete_probe_ok('cpu');
+ok( ( $resumed{'cpu'} // 0 ) == 1,
+    'cpu queue resumed after its own self-test completed' );
+ok( ( not guard_is('cpu') ), 'cpu slot cleared on its own completion' );
+
+say ': 3. same-backend contention : pending, '
+    . 'ONE per-backend watcher, one safety timer';
+
+guard_set('cpu');    ## cpu probe [ simulated ] still in flight            ##
+my $r_cpu2 = trigger('cpu');
+ok( scalar(@run_calls) == 3, 'contended cpu trigger reached self_test.run' );
+ok( ( not defined $r_cpu2 ), 'cpu trigger returned undef [ wait path ]' );
 ok( scalar(@var_calls) == 1, 'exactly one var watcher registered' );
 ok(
     (   ref $var_calls[0]->params->{'var'} eq 'SCALAR'
             and $var_calls[0]->params->{'var'}
-            == \$data{'coding'}{'self_test_probe_in_flight'}
+            == \$data{'coding'}{'self_test_probe_in_flight'}{'cpu'}
     ),
-    'watcher watches the REAL <coding.self_test_probe_in_flight> %data slot'
+    'watcher watches the REAL per-backend guard slot [ cpu hash value ]'
 );
+ok( ( ( $var_calls[0]->params->{'data'} // [] )->[0] // '' ) eq 'cpu',
+    'watcher data carries its own backend name' );
 ok( ( $var_calls[0]->params->{'handler'} // '' ) eq
         'coding.helper.self_test_guard_watcher',
     'watcher handler is the named %code sub [ no closure possible ]'
 );
 ok( ( $var_calls[0]->params->{'poll'} // '' ) eq qw| w |,
-    'watcher fires on writes to the guard' );
+    'watcher fires on writes to the guard slot'
+);
 ok( scalar(@timer_calls) == 1, 'exactly one safety timer armed' );
 ok( ( $timer_calls[0]->after // 0 ) == 60,
     'safety timeout is the [ pinned ] cfg value, in SECONDS' );
@@ -312,8 +380,6 @@ ok(
     ),
     'safety timer is a guard-wait timeout for backend=cpu'
 );
-ok( ref retry_pending() eq 'HASH',
-    'pending state is hash-keyed [ not two named scalars ]' );
 ok(
     (   ref retry_pending()->{'cpu'} eq 'HASH'
             and retry_pending()->{'cpu'}{'tested_pid'} == 2222
@@ -323,42 +389,67 @@ ok(
 ok( ( not exists retry_pending()->{'gpu'} ),
     'gpu retry state never touched by cpu wait cycle'
 );
-ok( ( $resumed{'cpu'} // 0 ) == 0,
+ok( ( $resumed{'cpu'} // 0 ) == 1,
     'cpu queue NOT resumed yet [ waiting, not given up ]' );
 
-say ': 3. guard clears [ gpu probe done ], var watcher fires, cpu wakes';
+say ': 4. pending guard : a stacked trigger does not double-schedule';
 
-my $cpu_timer = $timer_calls[0];
-complete_probe_ok('gpu');
-ok( ( $resumed{'gpu'} // 0 ) == 1,
-    'gpu queue resumed from its on_done completion' );
+my $timers_after_first = scalar @timer_calls;
+my $vars_after_first   = scalar @var_calls;
+trigger('cpu');    ## same backend again while already waiting             ##
+ok( scalar(@timer_calls) == $timers_after_first,
+    'no second safety timer stacked while one is pending'
+);
+ok( scalar(@var_calls) == $vars_after_first,
+    'guard watcher NOT re-registered [ pending wait owns the watcher ]' );
+ok( ( $resumed{'cpu'} // 0 ) == 1,
+    'no premature resume [ pending wait owns the resume ]' );
 
-fire_guard_watcher();
-ok( scalar(@run_calls) == 3, 'watcher re-invoked self_test.run for cpu' );
-ok( ( $run_calls[2]->{'backend'} // '' ) eq 'cpu', 'third call is cpu' );
-ok( ( $run_calls[2]->{'url'} // '' ) eq 'http://127.0.0.1:8001',
+say ': 5. watcher firing while the guard slot is still SET is a no-op';
+
+my $runs_before = scalar @run_calls;
+my $armed_timer = safety_timer_for('cpu');
+fire_guard_watcher('cpu');    ## slot SET : watcher must not act           ##
+ok( scalar(@run_calls) == $runs_before,
+    'no re-trigger while the slot is still set'
+);
+ok( exists retry_pending()->{'cpu'}, 'cpu stays pending' );
+ok( $armed_timer->is_active,         'safety timer not cancelled' );
+
+say ': 6. slot clears [ cpu probe done ], its watcher fires, cpu wakes';
+
+guard_clear('cpu');
+fire_guard_watcher('cpu');
+ok( scalar(@run_calls) == $runs_before + 1,
+    'watcher re-invoked self_test.run for cpu'
+);
+ok( ( $run_calls[-1]->{'backend'} // '' ) eq 'cpu', 'the call is cpu' );
+ok( ( $run_calls[-1]->{'url'} // '' ) eq 'http://127.0.0.1:8001',
     'cpu retry re-fetched the live server [ correct url ]'
 );
 ok( ( not exists retry_pending()->{'cpu'} ),
     'cpu pending flag cleared once its self-test started' );
-ok( ( not $cpu_timer->is_active ),
+ok( ( not $armed_timer->is_active ),
     'safety timer CANCELLED once the watcher re-triggered the backend' );
-ok( ( $resumed{'cpu'} // 0 ) == 0,
+ok( ( $resumed{'cpu'} // 0 ) == 1,
     'cpu queue still paused until its own on_done fires' );
 
 complete_probe_ok('cpu');
-ok( ( $resumed{'cpu'} // 0 ) == 1, 'cpu queue resumed after its self-test' );
+ok( ( $resumed{'cpu'} // 0 ) == 2, 'cpu queue resumed after its self-test' );
 ok( ( not exists retry_pending()->{'gpu'} ),
     'gpu retry state still untouched after full cpu cycle' );
 
-say ': 4. non-race failure [ model_id required ] is NOT retried';
+say ': 7. non-race failure [ model_id required ] is NOT retried';
 
 $force_error = 'model_id required';
 my $log_before = scalar @log_calls;
 trigger('gpu');
-ok( scalar(@timer_calls) == 1,
-    'no new timer scheduled for a real error [ still 1 total ]' );
-ok( scalar(@var_calls) == 1, 'no new var watcher for a real error' );
+ok( scalar(@timer_calls) == $timers_after_first,
+    'no new timer scheduled for a real error'
+);
+ok( scalar(@var_calls) == $vars_after_first,
+    'no new var watcher for a real error'
+);
 ok( ( $resumed{'gpu'} // 0 ) == 2,
     'queue resumed immediately on a real error [ nothing hangs ]' );
 ok( scalar(
@@ -374,56 +465,59 @@ ok( ( not exists retry_pending()->{'gpu'} ),
 );
 $force_error = '';
 
-say ': 5. pending guard : a stacked trigger does not double-schedule';
+say ': 8. per-backend watchers : two pending '
+    . 'backends, TWO watchers, each on its own slot';
 
-guard_set();     ## guard held by a [ simulated ] other probe, never clears ##
-trigger('cpu');  ## marks pending + arms safety timer                   ##
-my $timers_after_first = scalar @timer_calls;
-my $vars_after_first   = scalar @var_calls;
-trigger('cpu');    ## same backend again while already waiting            ##
-ok( scalar(@timer_calls) == $timers_after_first,
-    'no second safety timer stacked while one is pending'
+delete $data{'coding'}{'self_test_retry_pending'};
+delete $data{'coding'}{'self_test_retry_timer'};
+guard_set('gpu');
+guard_set('cpu');
+my $vars_before_two = scalar @var_calls;
+trigger('gpu');
+trigger('cpu');
+ok( ( exists retry_pending()->{'gpu'} and exists retry_pending()->{'cpu'} ),
+    'both backends pending on their own slots' );
+ok( scalar(@var_calls) == $vars_before_two + 2,
+    'ONE watcher PER BACKEND [ two new watchers, not one shared ]' );
+ok(
+    (   watcher_for('gpu')->params->{'var'}
+            == \$data{'coding'}{'self_test_probe_in_flight'}{'gpu'}
+    ),
+    'gpu watcher watches the gpu slot'
 );
-ok( scalar(@var_calls) == $vars_after_first,
-    'guard watcher NOT re-registered [ single persistent instance ]' );
-ok( ( $resumed{'cpu'} // 0 ) == 1,
-    'no premature resume [ pending wait owns the resume ]' );
+ok(
+    (   watcher_for('cpu')->params->{'var'}
+            == \$data{'coding'}{'self_test_probe_in_flight'}{'cpu'}
+    ),
+    'cpu watcher watches the cpu slot'
+);
 
-say ': 6. safety timeout fires [ guard never clears ] : clean give-up';
+$runs_before = scalar @run_calls;
+guard_clear('gpu');           ## only gpu's slot clears                    ##
+fire_guard_watcher('gpu');    ## only gpu's watcher fires                  ##
+ok( scalar(@run_calls) == $runs_before + 1,  'gpu re-triggered' );
+ok( ( not exists retry_pending()->{'gpu'} ), 'gpu woke' );
+ok( exists retry_pending()->{'cpu'}, 'cpu STILL pending [ its slot set ]' );
+ok( ( defined safety_timer_for('cpu') ),
+    'cpu safety timer still armed [ untouched by gpu wake ]' );
+complete_probe_ok('gpu');
 
-my $safety = safety_timer_for('cpu') or die 'no active cpu safety timer';
-$safety->fire();
+guard_clear('cpu');
+fire_guard_watcher('cpu');
 ok( ( not exists retry_pending()->{'cpu'} ),
-    'pending state cleared on safety-timeout give-up'
+    'cpu got its turn once its own slot cleared'
 );
-ok( ( $resumed{'cpu'} // 0 ) == 2,
-    'queue resumed exactly once on give-up [ nothing hangs ]' );
-ok( scalar(
-        grep {
-            $ARG->[0] == 0 and $ARG->[1] =~ m{WITHOUT self-test validation}
-        } @log_calls
-    ) == 1,
-    'give-up logged once at level 0 [ into service unvalidated ]'
-);
-ok( scalar( grep { $ARG->[1] =~ m{backend=cpu} } @log_calls ) >= 1,
-    'wait/give-up logs name the backend' );
-ok( ( not defined safety_timer_for('cpu') ),
-    'safety timer slot cleared after give-up'
-);
+complete_probe_ok('cpu');
+ok( ( ( $resumed{'gpu'} // 0 ) >= 3 and ( $resumed{'cpu'} // 0 ) >= 3 ),
+    'both queues resumed through the full cycle' );
 
-say ': 7. independence : gpu state never touched by the cpu wait cycle';
-
-ok( ( not exists retry_pending()->{'gpu'} ),
-    'gpu has no retry state after the entire cpu wait cycle' );
-
-say ': 8. cfg budget : retry_max overrides, else self_test_max_total, else '
-    . '1700s fallback -- all as total wait SECONDS [ no poll-interval '
-    . 'division any more ]';
+say ': 9. cfg budget : retry_max overrides, else self_test_max_total, '
+    . 'else 1700s fallback -- all as total wait SECONDS';
 
 delete $data{'coding'}{'self_test_retry_pending'};
 delete $data{'coding'}{'self_test_retry_timer'};
 
-guard_set();
+guard_set('cpu');
 $data{'coding'}{'cfg'}{'self_test_retry_max'} = 42;
 trigger('cpu');
 ok( ( safety_timer_for('cpu')->after // 0 ) == 42,
@@ -445,68 +539,79 @@ ok( ( safety_timer_for('cpu')->after // 0 ) == 1700,
 );
 safety_timer_for('cpu')->fire();
 
-guard_clear();
+guard_clear('cpu');
 
-say ': 9. watcher firing while the guard is still SET is a no-op';
+say ': 10. safety timeout fires [ slot never clears ] : clean give-up';
 
-my $runs_before = scalar @run_calls;
-guard_set();
-trigger('cpu');    ## pending again, safety timer armed                    ##
-my $armed_timer = safety_timer_for('cpu');
-fire_guard_watcher();    ## guard SET : watcher must not act              ##
-ok( scalar(@run_calls) == $runs_before + 1,
-    'no re-trigger while the guard is still set'
+delete $data{'coding'}{'self_test_retry_pending'};
+delete $data{'coding'}{'self_test_retry_timer'};
+$data{'coding'}{'cfg'}{'self_test_retry_max'} = 60;
+guard_set('cpu');
+trigger('cpu');
+my $resumed_before = $resumed{'cpu'} // 0;
+my $safety = safety_timer_for('cpu') or die 'no active cpu safety timer';
+$safety->fire();
+ok( ( not exists retry_pending()->{'cpu'} ),
+    'pending state cleared on safety-timeout give-up'
 );
-ok( exists retry_pending()->{'cpu'}, 'cpu stays pending' );
-ok( $armed_timer->is_active,         'safety timer not cancelled' );
-guard_clear();
-fire_guard_watcher();    ## now the real wake-up                          ##
-ok( scalar(@run_calls) == $runs_before + 2,
-    'watcher re-triggers once the guard actually clears' );
-ok( ( not exists retry_pending()->{'cpu'} ), 'cpu pending cleared' );
+ok( ( $resumed{'cpu'} // 0 ) == $resumed_before + 1,
+    'queue resumed exactly once on give-up [ nothing hangs ]'
+);
+ok( scalar(
+        grep {
+            $ARG->[0] == 0 and $ARG->[1] =~ m{WITHOUT self-test validation}
+        } @log_calls
+    ) >= 1,
+    'give-up logged at level 0 [ into service unvalidated ]'
+);
+ok( scalar( grep { $ARG->[1] =~ m{backend=cpu} } @log_calls ) >= 1,
+    'wait/give-up logs name the backend' );
+ok( ( not defined safety_timer_for('cpu') ),
+    'safety timer slot cleared after give-up'
+);
+ok( ( not guard_is('gpu') ),
+    'gpu guard slot never touched by the cpu wait cycle' );
+
+say ': 11. cancel-if-still-active-before-reregistering [ jobqueue pattern ]';
+
+## the safety give-up above left cpu's guard watcher ACTIVE [ the safety ##
+## timer callback deliberately does not touch it ] - the next contention ##
+## must cancel that stale instance and register a fresh one, tracked per ##
+## backend in <coding.watcher.self_test_guard>->{$backend}               ##
+my $old_watcher = watcher_for('cpu')
+    or die 'no still-active cpu watcher after give-up';
+guard_set('cpu');
+trigger('cpu');
+my $new_watcher = watcher_for('cpu');
+ok( ( not $old_watcher->is_active ),
+    'previous watcher cancelled before re-registering' );
+ok( ( defined $new_watcher and $new_watcher->is_active ),
+    'fresh per-backend watcher registered and active'
+);
+ok( ( $new_watcher != $old_watcher ), 'new watcher is a new instance' );
+ok(
+    (   $new_watcher->params->{'var'}
+            == \$data{'coding'}{'self_test_probe_in_flight'}{'cpu'}
+    ),
+    'fresh watcher still watches the real cpu slot'
+);
+ok(
+    (           defined $data{'coding'}{'watcher'}{'self_test_guard'}
+            and ref $data{'coding'}{'watcher'}{'self_test_guard'} eq 'HASH'
+            and $data{'coding'}{'watcher'}{'self_test_guard'}{'cpu'}
+            == $new_watcher
+    ),
+    'watcher tracked per backend in <coding.watcher.self_test_guard>'
+);
+guard_clear('cpu');
+fire_guard_watcher('cpu');
 complete_probe_ok('cpu');
 
-say ': 10. generic multi-backend wake : two pending, one guard clearing';
+say ': 12. stale server while pending : watcher resumes and bails';
 
 delete $data{'coding'}{'self_test_retry_pending'};
 delete $data{'coding'}{'self_test_retry_timer'};
-guard_set();
-trigger('gpu');
-trigger('cpu');
-ok( ( exists retry_pending()->{'gpu'} and exists retry_pending()->{'cpu'} ),
-    'both backends pending on the same guard' );
-ok( scalar(@var_calls) == $vars_after_first,
-    'still ONE shared watcher for both backends'
-);
-$runs_before = scalar @run_calls;
-guard_clear();
-fire_guard_watcher();
-my @woke          = grep { not exists retry_pending()->{$ARG} } qw| gpu cpu |;
-my @still_pending = grep { exists retry_pending()->{$ARG} } qw| gpu cpu |;
-ok( scalar(@woke) == 1 and scalar(@still_pending) == 1,
-    'exactly one backend won the guard, the other re-registered pending' );
-ok( scalar(@run_calls) >= $runs_before + 2,
-    'both pending backends were re-triggered by the single firing' );
-ok( ( defined safety_timer_for( $still_pending[0] ) ),
-    'the loser re-armed a fresh safety timer via the normal path'
-);
-
-## finish the winner, then the loser wakes on the next guard clearing ##
-my $winner = $woke[0];
-complete_probe_ok($winner);
-fire_guard_watcher();
-ok( ( not exists retry_pending()->{ $still_pending[0] } ),
-    'loser got its turn after the winner finished'
-);
-complete_probe_ok( $still_pending[0] );
-ok( ( ( $resumed{'gpu'} // 0 ) >= 2 and ( $resumed{'cpu'} // 0 ) >= 2 ),
-    'both queues resumed through the full cycle' );
-
-say ': 11. stale server while pending : watcher resumes and bails';
-
-delete $data{'coding'}{'self_test_retry_pending'};
-delete $data{'coding'}{'self_test_retry_timer'};
-guard_set();
+guard_set('cpu');
 trigger('cpu');    ## pending with tested_pid 2222                          ##
 my $stale_timer = safety_timer_for('cpu');
 $data{'coding'}{'inference_servers'}{'cpu'} = {
@@ -515,11 +620,11 @@ $data{'coding'}{'inference_servers'}{'cpu'} = {
     url   => 'http://127.0.0.1:8001',
     port  => 8001,
 };                 ## replaced by a newer spawn while waiting        ##
-$runs_before = scalar @run_calls;
-$log_before  = scalar @log_calls;
-my $resumed_before = $resumed{'cpu'} // 0;
-guard_clear();
-fire_guard_watcher();
+$runs_before    = scalar @run_calls;
+$log_before     = scalar @log_calls;
+$resumed_before = $resumed{'cpu'} // 0;
+guard_clear('cpu');
+fire_guard_watcher('cpu');
 ok( scalar(@run_calls) == $runs_before,
     'no self-test started for the stale server pid' );
 ok( ( $resumed{'cpu'} // 0 ) == $resumed_before + 1,
@@ -541,8 +646,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,...,,,,,,,,,.,,,,,.,.,.,,,,,,.,,,..,,.,,..,,...,...,,,.,..,,.,.,.,,,,,,,
-#3C5CTPCQLXGVUZZMI56CJN5GABMRIU42D6E7IH67RL2C67TZW6D6HIBHNTQVLCEWDNZ3X72IPI3WC
-#\\\|B5XSACWE6PS74SWPA7G4LH37UPNNNZJ5O35XZCTNB2SUNSZJGBV \ / AMOS7 \ YOURUM ::
-#\[7]X46X6Y2LA7PWE5H3EX2T63TC5CCVK45EYU65TBFYDOXIAAIL52CI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,,,.,...,,.,,,.,,..,,.,,,.,,,..,,...,...,..,,,.,,,,.,,,.,.,.,
+#A33DZBB2ESGSGD5HUYNYQSW4PEMIURUKIQEHKLQLWT5V2Q5XU4NPZO5FYQL2BAR4JOY2JKGUB2TQI
+#\\\|32665QOU6D3JT6DBO3GD5NOODDMONPVCEO26N3TWO6SQXRPWQC3 \ / AMOS7 \ YOURUM ::
+#\[7]VMTBLBV346EURPNRDY7N4XZXNQ7X5T5VQ6OBGLCW2CKUIM2AFCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

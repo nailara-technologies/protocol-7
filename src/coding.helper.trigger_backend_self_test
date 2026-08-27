@@ -2,7 +2,8 @@
 
 # name  = coding.helper.trigger_backend_self_test
 # descr = start async self-test for one ready backend + per-backend retry
-#         on single-flight guard contention [ parallel-backend gap, opt 1 ]
+#         on same-backend guard contention [ guard is a per-backend hash :
+#         coding-self-test-true-parallelization ]
 
 my $params     = shift                // {};
 my $backend    = $params->{'backend'} // '';
@@ -160,22 +161,24 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
         ? ( $run_started->{'data'} // 'unknown' )
         : 'unknown';
 
-    ## lost the race for the single global in-flight guard [ another       ##
-    ## backend's self-test is running ] : NOT a real error. the guard      ##
-    ## clears once that probe's on_done fires [                            ##
-    ## coding.self_test.handler.poll_probe ], so instead of silently       ##
-    ## dropping this backend's self-test we mark it pending and let a      ##
-    ## variable watcher on the guard itself wake it the instant the guard  ##
-    ## clears [ task : coding-self-test-parallel-backend-gap, option 1,    ##
-    ## watcher redesign 2026-08-26 - replaces the original 10s polling     ##
-    ## retry timer with the jobqueue event.add_var precedent, see          ##
-    ## jobqueue.event.register_job_queues ]. the guard itself stays a      ##
-    ## single global flag - self-tests still run strictly one at a time,   ##
-    ## this only ensures every backend eventually GETS its turn. ALL retry ##
-    ## state is keyed generically by the backend identifier string in      ##
-    ## hashes - never two named variables or a fixed-size structure - so   ##
-    ## nothing here needs rework when multi-slot support grows beyond      ##
-    ## gpu/cpu                                                             ##
+    ## lost the race for THIS backend's own in-flight guard slot [ this     ##
+    ## backend's self-test is already running - the guard is a per-backend  ##
+    ## hash since 2026-08-27 [ task : coding-self-test-true-parallelization ##
+    ## ], so a DIFFERENT backend's self-test never blocks this one and this ##
+    ## path is now same-backend contention only, eg stacked restart paths   ##
+    ## each triggering a self-test for the same backend ] : NOT a real      ##
+    ## error. the slot clears once that probe's on_done fires [             ##
+    ## coding.self_test.handler.poll_probe ], so instead of silently        ##
+    ## dropping this backend's self-test we mark it pending and let a       ##
+    ## per-backend variable watcher on the guard slot itself wake it the    ##
+    ## instant the slot clears [ task : coding-self-test-parallel-backend-  ##
+    ## gap, option 1, watcher redesign 2026-08-26, per-backend 2026-08-27 - ##
+    ## replaces the original 10s polling retry timer with the jobqueue      ##
+    ## event.add_var precedent, see jobqueue.event.register_job_queues ].   ##
+    ## ALL retry state is keyed generically by the backend identifier       ##
+    ## string in hashes - never two named variables or a fixed-size         ##
+    ## structure - so nothing here needs rework when multi-slot support     ##
+    ## grows beyond gpu/cpu                                                 ##
     if ( $fail_reason eq 'self-test already in progress' ) {
         <coding.self_test_retry_pending> //= {};
         <coding.self_test_retry_timer>   //= {};
@@ -220,42 +223,50 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
                 $wait_timeout
             );
 
-            ## ONE persistent var watcher on the guard for all backends [ a ##
-            ## single global scalar - not per-backend ]. register only if   ##
-            ## the previous instance is gone or no longer active, tracked   ##
-            ## in a single %data slot [ mirrors the watcher                 ##
-            ## cancel/re-register guard in                                  ##
-            ## jobqueue.event.register_job_queues ]                         ##
-            my $guard_watcher = <coding.watcher.self_test_guard>;
-            if (   not defined $guard_watcher
-                or not eval { $guard_watcher->is_active } ) {
+            ## ONE persistent var watcher PER BACKEND, each on its own     ##
+            ## guard hash VALUE slot : event.add_var's poll=>'w' fires when  ##
+            ## the watched scalar itself is reassigned, so a single watcher  ##
+            ## on the guard hash's top-level slot would never fire again     ##
+            ## now that the guard is a hash [ confirmed via first-principles ##
+            ## Perl semantics in the task's audit ]. each watcher instead    ##
+            ## holds \$data{'coding'}{'self_test_probe_in_flight'}{$backend} ##
+            ## - a real scalar reference into one specific hash value slot,  ##
+            ## writes through which DO fire. mirrors the one-watcher-per-    ##
+            ## queue-name pattern of jobqueue.event.register_job_queues      ##
+            ## exactly, including its cancel-if-still-active-before-         ##
+            ## reregistering guard, tracked per backend in                   ##
+            ## <coding.watcher.self_test_guard>->{$backend}                  ##
+            <coding.self_test_probe_in_flight> //= {};
+            my $guard_watchers = <coding.watcher.self_test_guard> //= {};
+            $guard_watchers->{$backend}->cancel
+                if defined $guard_watchers->{$backend}
+                and eval { $guard_watchers->{$backend}->is_active };
 
-                ## the watched scalar must EXIST before its reference is    ##
-                ## taken - autovivifying it later would leave the watcher   ##
-                ## on a detached scalar [  user-edit.setup_stdin_watcher ]. ##
-                ## explicit $data{..}, NOT                                  ##
-                ## '\<coding.self_test_probe_in_flight>' : a leading        ##
-                ## backslash is the translator's ESCAPE ((?<!\\)<..>), so   ##
-                ## that form would silently watch a reference to the        ##
-                ## literal name string and never fire [ a real past bug in  ##
-                ## user-edit.setup_stdin_watcher ]                          ##
-                <coding.self_test_probe_in_flight> //= FALSE;
-                <coding.watcher.self_test_guard> = <[event.add_var]>->(
-                    {   'var' =>
-                            \$data{'coding'}{'self_test_probe_in_flight'},
-                        'poll'    => qw| w |,
-                        'prio'    => 0,
-                        'repeat'  => 1,
-                        'handler' =>
-                            qw| coding.helper.self_test_guard_watcher |,
-                        'data' => [
-                            qw| self_test_guard |,
-                            \$data{'coding'}{'self_test_probe_in_flight'}
-                        ],
-                        'desc' => 'coding self-test in-flight guard',
-                    }
-                );
-            }
+            ## the watched slot must EXIST before its reference is taken -  ##
+            ## taking the reference autovivifies it in place, so the        ##
+            ## watcher and every later writer share one real scalar.        ##
+            ## explicit $data{..}, NOT                                      ##
+            ## '\<coding.self_test_probe_in_flight>' : a leading backslash  ##
+            ## is the translator's ESCAPE ((?<!\\)<..>), so that form would ##
+            ## silently watch a reference to the literal name string and    ##
+            ## never fire [ a real past bug in                              ##
+            ## user-edit.setup_stdin_watcher ]                              ##
+            $guard_watchers->{$backend} = <[event.add_var]>->(
+                {   'var' => \$data{'coding'}{'self_test_probe_in_flight'}
+                        {$backend},
+                    'poll'    => qw| w |,
+                    'prio'    => 0,
+                    'repeat'  => 1,
+                    'handler' => qw| coding.helper.self_test_guard_watcher |,
+                    'data'    => [
+                        $backend,
+                        \$data{'coding'}{'self_test_probe_in_flight'}
+                            {$backend}
+                    ],
+                    'desc' =>
+                        "coding self-test in-flight guard [backend=$backend]",
+                }
+            );
 
             ## per-backend safety-net timeout : if the guard genuinely    ##
             ## never clears [ hung probe elsewhere ] give up exactly like ##
@@ -322,8 +333,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,.,,.,,,.,,,..,,...,,.,,..,,..,,...,,,.,,,.,..,,...,...,.,,,..,,,.,,,.,,...,
-#HNSPZ6FIFE7NY6RRFXUIC2XVAMM3LZNXJOL2THIMTL2JOYS4OZQZ2VAWQHQBQQZX7QQFWHSAVD6ZY
-#\\\|OATWIAOL6W6MAAMUW4K3PGVWTDS7SW7U6KYD7PCE25PX47OKWC3 \ / AMOS7 \ YOURUM ::
-#\[7]MXSW6U4CZFU7GTX5A2662GYT3TD7YXAFJQB2RHEBELB23MOISQBQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,,,,,.,,,,..,.,,,,,,,..,,,..,..,,...,...,.,.,,.,,,,,,..,,...,
+#XMND4DMXJR6TMSET56SW5ZTC6UYI2KJ3VI5J3OBUXMRDHZJMKQDSYM3PQKZI6MOE2VEABSDKEBYX4
+#\\\|CUCP6EUGFW656MU66HWCC2GT7556Z3OG25CU6GSMOGHCWCL74TD \ / AMOS7 \ YOURUM ::
+#\[7]RGH74L7EN3VBDHKJTP24DHPJOOKWRM3QNCWKVTVUD7FCUO5T4IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
