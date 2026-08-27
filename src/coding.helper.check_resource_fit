@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = coding.helper.check_resource_fit
+# descr = check whether a model fits in gpu vram or cpu ram
+
+my $params  = shift // {};
+my $backend = $params->{'backend'} // '';
+my $size_gb = $params->{'size_gb'} // 0;
+
+my $model_size_mb = $size_gb * 1024;
+my ( $free_mb, $required_mb, $fits );
+
+if ( $backend eq qw| gpu | ) {
+    $required_mb = $model_size_mb + 512;    ## model size + 512MB overhead ##
+    my $nvidia_smi
+        = `nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits 2>/dev/null`;
+    if ( $? == 0 && $nvidia_smi =~ /^(\d+)/m ) {
+        $free_mb = $1;
+        $fits    = $free_mb >= $required_mb;
+    } else {
+        ## cannot determine vram : do not block the attempt ##
+        $free_mb = 0;
+        $fits    = TRUE;
+    }
+} elsif ( $backend eq qw| cpu | ) {
+    $required_mb = $model_size_mb + 1024;    ## model size + 1GB overhead ##
+    $free_mb     = 0;
+    if ( open my $fh, '<', '/proc/meminfo' ) {
+        while (<$fh>) {
+            if (/^MemAvailable:\s+(\d+)/) {
+                $free_mb = int( $1 / 1024 );    ## convert KB to MB ##
+                last;
+            }
+        }
+        close $fh;
+    }
+    $fits = $free_mb >= $required_mb;
+} else {
+    return { fits => FALSE, free_mb => 0, required_mb => 0 };
+}
+
+return {
+    fits        => $fits,
+    free_mb     => $free_mb,
+    required_mb => $required_mb
+};
+
+#,,,,,,,.,..,,,..,..,,..,,,.,,.,.,.,.,,,.,,,.,..,,...,.,.,..,,,,,,,..,,,.,,.,,
+#P2AIJC4R3CR2CJACKOBSG6YMVIG2XWWCPHPFPC6GNHHJCZVPAMV2MLHPXCA6USFWEECH3GMC7JWBQ
+#\\\|YC5OJT4EYVRIXKHVRYBYL4KRCP6SBUNY4WZQ3363DLFLDECRVKI \ / AMOS7 \ YOURUM ::
+#\[7]DDMGZUAJJFIQDNHSSHDSZSXPBKJFVUCTELSLLTMVI5MEWLTX2ODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

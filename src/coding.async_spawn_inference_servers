@@ -55,6 +55,10 @@ if ( $spawn_params->{'gpu_enabled'} and not <inference.gpu_pid> ) {
         // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
     my $gpu_layers = $spawn_params->{'gpu_layers'} // 33;
 
+    my $gpu_resolve = <[coding.helper.resolve_model_checksum]>
+        ->( { model_name => $gpu_model } );
+    my $gpu_amos_id = $gpu_resolve->{'amos_id'} // '';
+
     # Get model path (resolved earlier in startup after network connect)
     my $model_path = <inference.model.path> // undef;
 
@@ -98,7 +102,8 @@ if ( $spawn_params->{'gpu_enabled'} and not <inference.gpu_pid> ) {
                 'port'        => $gpu_port,
                 'model_path'  => $model_path,
                 'mmproj_path' => <inference.model.mmproj_path> // '',
-                'gpu_layers'  => $gpu_layers
+                'gpu_layers'  => $gpu_layers,
+                'amos_id'     => $gpu_amos_id
             }
         );
 
@@ -139,7 +144,12 @@ if ( $spawn_params->{'cpu_enabled'} and not <inference.cpu_pid> ) {
     my $cpu_port   = <inference.backend.cpu.port> // 8001;
     my $cpu_binary = $spawn_params->{'cpu_binary'}
         // '/data/source/ik_llama.cpp/llama-server-cpu';
-    my $cpu_threads = $spawn_params->{'cpu_threads'} // 7;
+    my $cpu_threads = $spawn_params->{'cpu_threads'}  // 7;
+    my $cpu_model   = $spawn_params->{'cpu_model_id'} // '';
+
+    my $cpu_resolve = <[coding.helper.resolve_model_checksum]>
+        ->( { model_name => $cpu_model } );
+    my $cpu_amos_id = $cpu_resolve->{'amos_id'} // '';
 
     ## cpu-specific resolved path first, falling back to the shared       ##
     ## <inference.model.path> [ common case : one model file serving both ##
@@ -171,7 +181,8 @@ if ( $spawn_params->{'cpu_enabled'} and not <inference.cpu_pid> ) {
                 'binary'     => $cpu_binary,
                 'port'       => $cpu_port,
                 'model_path' => $cpu_model_path,
-                'threads'    => $cpu_threads
+                'threads'    => $cpu_threads,
+                'amos_id'    => $cpu_amos_id
             }
         );
 
@@ -213,8 +224,8 @@ if ($spawn_ok) {
 
 return FALSE;
 
-#,,..,,,.,...,.,,,.,.,..,,,..,.,.,,,,,,,.,,,,,..,,...,...,.,,,.,.,,,,,.,,,,.,,
-#HD6ITFPF7WJ3AWEIMFIFMO5OJ3RTPACGU3FY2VIQ4YXDSOITK4TMECFGAQH2MEA42YSM5AMR4QNVI
-#\\\|V5JPKUROPKW56VS2ATOMQTOIBAGSAKUCI7X72PLAK2ZEGWB5QY5 \ / AMOS7 \ YOURUM ::
-#\[7]EM6SVPZ5GD7XZ37L2JZKCSMAFJVQ5ZT2D7ZAQLPNQPZ6CRW224BA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,.,,,,,,..,...,...,,.,,.,,,.,,,..,,...,.,.,,..,.,.,..,,.,,,.,.,
+#TMMU4L4G2NJWYXC66I7YVYK6QAX6DKLSKFA2VIAOQNIGDE3JLBESJXRST75C73PL43JNNWEKQKTIQ
+#\\\|RDRHT2HF46TNYRSBYR7ND6DGCY5QAENYNDKFBGVR5U2ME6TMKE6 \ / AMOS7 \ YOURUM ::
+#\[7]W5R2V7EONI327UXOI6DQ2QK5LMN3GNVBVMZVPDGOIQPABAHBFOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
