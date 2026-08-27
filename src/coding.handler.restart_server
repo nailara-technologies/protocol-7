@@ -7,6 +7,7 @@ my $job_info   = shift;
 my $params     = $job_info->{'params'}   // {};
 my $backend    = $params->{'backend'}    // 'gpu';
 my $model_path = $params->{'model_path'} // '';
+my $amos_id    = $params->{'amos_id'}    // '';
 
 unless ( length $model_path ) {
     <[base.logs]>->( 0, "[restart_server] no model_path provided" );
@@ -33,7 +34,8 @@ my $result = <[coding.spawn_inference_server]>->(
     {   backend    => $backend,
         model_path => $model_path,
         binary     => $binary,
-        port       => $port
+        port       => $port,
+        amos_id    => $amos_id,
     }
 );
 
@@ -50,8 +52,8 @@ if ( $result && $result->{'success'} ) {
     return FALSE;
 }
 
-#,,..,...,...,..,,,..,...,..,,,.,,.,,,,..,.,.,.,.,...,...,.,.,..,,..,,,,,,,,,,
-#IWZ7L73QXNDGLVZMZOVUHUWBAI3ALZX5TSPRTVVXGJ7AMGBYIV2NH2X2RTKWXGEWZ3ACIJWD5PDXA
-#\\\|NGRSKBF323DSYGDTUETWJZ4MGJI4PYFSI6BGX7FYWDPK737IE26 \ / AMOS7 \ YOURUM ::
-#\[7]DTSCI2W5DLKMOPLJWSXDROBLHWYAZL32LGINR2MH77F7MFAOCOBI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,.,,..,,..,,.,,,,,.,.,.,...,..,,.,.,...,..,,..,,,..,.,.,,.,,.,,,
+#FASRKYOZ5NXQFNEHZBEBBSHDSXCL6KVWXZAUNVOIPG3OJFW6ODA6R2TKEVFBFJE6DMNGAFD2DUWWQ
+#\\\|44OUW2KH5ZKXWMXKI6A4677D5PQ2FTQ3GDXZAOHY6EFYM355HFQ \ / AMOS7 \ YOURUM ::
+#\[7]RXZQLHYGJ7TX77SEXYTLRV7CQZDS3DMEWONNF6QPK3C5ML3CBSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

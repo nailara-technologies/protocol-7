@@ -160,6 +160,21 @@ if ( defined $saved_meta_ref && length $saved_meta_ref->$* ) {
 }
 <coding.model_metadata> //= {};
 
+## load persisted model-status from disk if available
+my $saved_status_ref = <[file.zenka_dir.load]>->('state/model_status.yaml');
+if ( defined $saved_status_ref && length $saved_status_ref->$* ) {
+    my $loaded = eval { YAML::XS::Load( $saved_status_ref->$* ) };
+    if ( !$@ && ref $loaded eq qw| HASH | ) {
+        <coding.model_status> = $loaded;
+        <[base.logs]>->(
+            2,
+            'loaded %d model-status entries from disk',
+            scalar keys %{<coding.model_status>}
+        );
+    }
+}
+<coding.model_status> //= {};
+
 # Set library path for llama-server binaries (CPU and GPU backends)
 <coding.lib_path> = <inference.backend.lib_path>
     // qw| /data/source/ik_llama.cpp |;
@@ -666,8 +681,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,,,.,,,,,.,.,..,,,,.,,..,.,,,.,.,.,,,,..,.,.,...,..,,.,.,,,,,,..,,.,,.,,,
-#UFATLSTSUMN2BGTQB5SJP3NKGKPEF6DAKUUYNAEUVBY6YC6FIVFOWQV53PFQIE4AY4KWHIJ4O2DBK
-#\\\|C3OG5UNZVGMFZX7ON4VXQQUDCKMR545M53OHTDO3VJA4C4SRP2A \ / AMOS7 \ YOURUM ::
-#\[7]7FDGPFHAT7AXTQR3QBJUAE6P57XUIWFX573YN73AZIF3CU6BGKCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,,.,,,,.,...,,..,,,,,.,,,...,.,.,...,...,...,,..,..,,,.,,..,,
+#CBD6FG3L7NFHMQF5LDXCDPNR2S5AOOW7NZ7DYXASGPHFATUBQ7HBWBKNBVE5CDSDKV2ZZGWKTQE4U
+#\\\|IDZJQ7TF672IDVXYW26DZAEJM6BDW2YIZ2VPB2JNG3WHJSRLRUW \ / AMOS7 \ YOURUM ::
+#\[7]65227KTXTK5KQPFMTNCSYPXDD7AOYGCZMSEW72A7VCVZNV6LWODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
