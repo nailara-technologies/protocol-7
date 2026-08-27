@@ -56,11 +56,15 @@ return {
     if ref $on_done ne qw| CODE |;
 
 ## idempotency guard : a second self-test starting while one is in flight   ##
-## would race the probe state machine on the same backend [ same exposure   ##
-## class as the verify_inference_startup stacked-timer bug - multiple paths ##
-## each scheduling their own lifecycle with no cancellation ]               ##
+## ON THE SAME BACKEND would race that backend's probe state machine [ same ##
+## exposure class as the verify_inference_startup stacked-timer bug -       ##
+## multiple paths each scheduling their own lifecycle with no cancellation  ##
+## ] per-backend hash slot since 2026-08-27 [ task :                        ##
+## coding-self-test-true-parallelization ] : distinct backends self-test in ##
+## parallel now, each guarded independently - a slow cpu cycle can no       ##
+## longer hold gpu's availability hostage to race-order luck                ##
 return { mode => qw| false |, data => 'self-test already in progress' }
-    if <coding.self_test_probe_in_flight>;
+    if <coding.self_test_probe_in_flight>->{$backend};
 
 my $ntime = <[base.ntime]>;
 
@@ -160,7 +164,7 @@ $data{'coding'}{'self_test_probe_state'}{$probe_id} = {
     'on_done'    => $on_done,             ## caller continuation ##
 };
 
-<coding.self_test_probe_in_flight> = TRUE;
+<coding.self_test_probe_in_flight>->{$backend} = TRUE;
 
 <[event.add_timer]>->(
     {   'interval' => 0.5,
@@ -173,8 +177,8 @@ $data{'coding'}{'self_test_probe_state'}{$probe_id} = {
 
 return { mode => qw| deferred | };
 
-#,,..,,.,,.,.,,,.,,.,,,,,,.,,,,..,,.,,...,.,.,..,,...,..,,,,,,.,,,..,,,,.,.,.,
-#2PQYCCU3XEYNALRAVTUYBPHGEPJXT7PT3ARGIGBHL4FI2IHHBB3FX6HEXMG3F2L7N3FXDEIPEEYS2
-#\\\|WBILCPUB75MKVWPQ4A5HI22DT7XW2GXJA7FXITNPBYZ3OIFV3VF \ / AMOS7 \ YOURUM ::
-#\[7]YXL7TRBSURRHO7JXH6ZEUZQO4DZP6STDAKHECOLZ3GYVMBASIOCY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,,,,,,,.,...,...,,,,,,,,,..,,..,,...,...,...,,,,,..,,,,.,,,.,
+#CKMI4TWY62AUAHHUXIGZHTHD6BZIUMPCEVGXXWAHNLANHB6EFZ25ODIXXAN6IU7STSV373YDP7DCG
+#\\\|3T2SLFABVSND75T4YATQ5OXVJPHCQL6ZL4W5XJJGVRMV7FR4YLR \ / AMOS7 \ YOURUM ::
+#\[7]K23ITAE3P4GJH4ULYRYI4DQ3P3PE4KK4UQN4EB3AW2MYKRNYD4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
