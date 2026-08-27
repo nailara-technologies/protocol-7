@@ -39,23 +39,106 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
     ## self-test was legitimately still retrying prompt 2 after a 90s       ##
     ## timeout [ well within self-test's own bounded budget ], and forced   ##
     ## the queue open mid-self-test - exactly the premature-resume this     ##
-    ## guard exists to prevent. self-test's own watchdog is what guarantees ##
-    ## the flag eventually clears ; this ceiling is a last-resort net for   ##
-    ## the case that guarantee itself somehow fails, so it only needs to be ##
-    ## comfortably past it, not tight. self_test_max_total's default is     ##
-    ## derived once at coding.init_code from self_test_tier1_extra_rounds - ##
-    ## read here, never recomputed, so this ceiling and poll_probe's        ##
-    ## watchdog can never silently drift out of sync with each other. the   ##
-    ## guard is a per-backend hash slot since 2026-08-27 [ task :           ##
-    ## coding-self-test-true-parallelization ] : only THIS backend's own    ##
-    ## in-flight self-test defers its queue resume - a probe running on a   ##
-    ## different backend is irrelevant here                                 ##
+    ## guard exists to prevent [ commit 5d32f8783 ].                        ##
+    ##                                                                      ##
+    ## the bound is no longer a separately-derived wall-clock number [ task ##
+    ## : backend-aware timeout scaling, item 3 ] : poll_probe's watchdog    ##
+    ## can now legitimately defer a LIVE round far past self_test_max_total ##
+    ## [ up to the auto-derived outer cap, coding.async.stream_tps ], so a  ##
+    ## flat self_test_budget+120 ceiling here would fire mid-round and      ##
+    ## reintroduce the same race with a new number. instead this deferral   ##
+    ## mirrors poll_probe's own abort condition [ same shared liveness      ##
+    ## signal, same cap ] and gives up only once the probe's round is       ##
+    ## genuinely no longer alive OR has exceeded that same outer cap, plus  ##
+    ## the historical +120s last-resort slack - this fallback is the net    ##
+    ## for the watchdog itself failing, so it stays comfortably past it,    ##
+    ## never tight. the guard is a per-backend hash slot since 2026-08-27   ##
+    ## [ task : coding-self-test-true-parallelization ] : only THIS         ##
+    ## backend's own in-flight self-test defers its queue resume - a probe  ##
+    ## running on a different backend is irrelevant here                    ##
     if ( <coding.self_test_probe_in_flight>->{$backend} ) {
+        my $now              = <[base.time]>->(3);
         my $self_test_budget = <coding.cfg.self_test_max_total> // 1200;
-        my $defer_ceiling    = int( ( $self_test_budget + 120 ) / 2 );
-        my $defer_count = ( $server_info->{'queue_resume_defer_count'} // 0 );
-        if ( $defer_count < $defer_ceiling ) {
-            $server_info->{'queue_resume_defer_count'} = $defer_count + 1;
+
+        ## find THIS backend's probe state : self_test_probe_state is keyed ##
+        ## by probe_id, not backend [ the in-flight guard slot is the only  ##
+        ## per-backend structure ] - scan for the entry whose backend field ##
+        ## matches. at most one can exist per backend [ coding.self_test.   ##
+        ## run's guard rejects concurrent same-backend runs ]               ##
+        my $probe_state;
+        my $probe_states = $data{'coding'}{'self_test_probe_state'} // {};
+        for my $id ( keys %{$probe_states} ) {
+            my $pst = $probe_states->{$id};
+            next if ref $pst ne qw| HASH |;
+            next if ( $pst->{'backend'} // '' ) ne $backend;
+            $probe_state = $pst;
+            last;
+        }
+
+        my $give_up = FALSE;
+        my $bound   = $self_test_budget;
+        if ( defined $probe_state ) {
+            ## the SAME bound poll_probe's watchdog applies : while the     ##
+            ## probe's in-flight request is still streaming [ the shared    ##
+            ## coding.async.stream_tps/is_alive signal - never a second     ##
+            ## calculation ] the bound is that request's auto-derived outer ##
+            ## cap [ frozen on stall, so a stalled stream can never inflate ##
+            ## it ] ; not-in-flight or stalled probes keep the plain        ##
+            ## max_total budget, exactly as poll_probe's own abort          ##
+            ## condition decides                                            ##
+            my $probe_elapsed = $now - ( $probe_state->{'started'} // $now );
+            my $http_state    = $probe_state->{'http_state'};
+            my $live_wait     = FALSE;
+            if (    $probe_state->{'in_flight'}
+                and ref $http_state eq qw| HASH |
+                and
+                <[coding.async.stream_tps]>->( qw| is_alive |, $http_state ) )
+            {
+                my $outer_cap = <[coding.async.stream_tps]>->(
+                    qw| get_cap |, $http_state
+                );
+                $bound     = $outer_cap if $outer_cap > $bound;
+                $live_wait = TRUE;
+            }
+            $give_up = TRUE if $probe_elapsed > $bound + 120;
+
+            ## noteworthy, throttled : deferring PAST the old flat ceiling ##
+            ## means a live round is being correctly waited out - the      ##
+            ## 5d32f8783-class premature resume would have fired here      ##
+            if (    $live_wait
+                and !$give_up
+                and $probe_elapsed > $self_test_budget + 120
+                and $now
+                >= ( $server_info->{'queue_resume_defer_log_at'} // 0 ) ) {
+                $server_info->{'queue_resume_defer_log_at'} = $now + 60;
+                <[base.logs]>->(
+                    1,
+                    '[verify_inference_startup] %s : self-test probe past '
+                        . 'its %ds budget but stream alive [chunks=%d] : '
+                        . 'deferring to shared outer cap %ds',
+                    $backend,
+                    $self_test_budget,
+                    $http_state->{'chunks_received'} // 0,
+                    $bound
+                );
+            }
+        } else {
+            ## guard set but no probe state anywhere : the probe state      ##
+            ## machine died without clearing its guard slot [ poll_probe    ##
+            ## deletes state and clears the slot together in its done phase ##
+            ## ]. no liveness left to read - the bounded wall-clock         ##
+            ## fallback [ the pre-liveness behavior ] covers exactly this   ##
+            ## stale-guard case                                             ##
+            my $defer_ceiling = int( ( $self_test_budget + 120 ) / 2 );
+            my $defer_count
+                = ( $server_info->{'queue_resume_defer_count'} // 0 );
+            $give_up = TRUE if $defer_count >= $defer_ceiling;
+            $bound   = $defer_ceiling * 2;
+        }
+
+        if ( !$give_up ) {
+            $server_info->{'queue_resume_defer_count'}
+                = ( $server_info->{'queue_resume_defer_count'} // 0 ) + 1;
             <[base.logs]>->(
                 2,
                 '[verify_inference_startup] %s server ready [pid=%d] but '
@@ -74,11 +157,10 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
         <[base.logs]>->(
             0,
             '[verify_inference_startup] %s server : self-test still in '
-                . 'flight after %ds defer ceiling [ past its own %ds '
-                . 'watchdog budget ] - resuming queue anyway',
+                . 'flight past its own watchdog bound [ %ds + 120s slack ] - '
+                . 'resuming queue anyway [ last-resort net ]',
             $backend,
-            $defer_ceiling * 2,
-            $self_test_budget
+            $bound
         );
     }
     delete $server_info->{'queue_resume_defer_count'};
@@ -130,8 +212,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,.,,.,,,..,,.,.,,..,,,.,,.,,,,.,,..,.,.,,,,,..,,...,...,...,,.,,,,,,,,.,.,,,
-#JD7JQUAXJVUMVXUOFJQI334KXL4REAAPQWP5E346QVDPJJSMIZ4RFD7QSWARRYJXNXYZQ4MA3FBBG
-#\\\|QNTNPCM5CQIMKYAWTO4M3JUDRLXT5R7QWLTMOOHQCWGVD7FPP2T \ / AMOS7 \ YOURUM ::
-#\[7]DAPO5JRBGEY3I2Z5VGTZJDZ2NPGPOOEV3EY5HVJMWTFDR5B374DA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,..,,..,.,.,,.,,.,,,,,,,.,,,,.,,..,,...,...,.,,,,..,,..,...,...,
+#EOIHN2YLTBMVLZUJWJMY3URETCFXH5UP6R26EJMRJRTDL2CFUN7NPIMGQNODBXKXHPT5KRJQBWKEU
+#\\\|WTZAP5IAQED634AOIOXACIANPYY7PSB6ETJDS57XNAPY3O23S7W \ / AMOS7 \ YOURUM ::
+#\[7]STFXG7JGCENVZBO7BF2Q7SFWX7CW234OXMRN5SVHKE6GVXZFWODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
