@@ -1,0 +1,141 @@
+## [:< ##
+
+# name  = coding.async.stream_tps
+# descr = live tokens/sec tracking + auto-derived absolute outer timeout cap
+# purpose = measure real generation throughput per in-flight request and
+#           derive the last-resort timeout backstop from it, so slow
+#           backends [ cpu, remote ] get generous ceilings while fast ones
+#           keep their tight failure-detection windows
+
+## modes :  update  : feed one chunk-arrival observation [ called from      ##
+## coding.handler.http_io after the parse loop ]  get_cap : current         ##
+## absolute outer cap in seconds [ live-derived once the minimum-sample     ##
+## floor is met, static per-backend  fallback before that, FROZEN at last   ##
+## good value while the stream is stalled -- never recomputed through a     ##
+## stall ]  get_tps : last measured live tokens/sec [ undef before min      ##
+## samples ] is_alive: the SAME liveness signal coding.handler.http_timeout ##
+## and the stall watcher use, shared so the definitions cannot  drift apart ##
+
+my $mode  = shift // '';
+my $state = shift;
+
+## liveness : chunk[s] received AND last activity within the stall window. ##
+## identical to the check the stall watcher [ coding.handler.http_io,      ##
+## re-armed per chunk ] implicitly maintains - this is the one signal the  ##
+## whole timeout stack keys on                                             ##
+my $stream_alive = sub {
+    my ($st) = @ARG;
+    return FALSE if !ref $st;
+    return ( $st->{'chunks_received'} // 0 ) > 0
+        && ( <[base.time]>->(3) - ( $st->{'last_activity'} // 0 ) )
+        < ( $st->{'stall_timeout_sec'} // 77 );
+};
+
+## static per-backend fallback cap : used until the live t/s estimate has   ##
+## enough samples to be trustworthy, and as the FLOOR forever after [ the   ##
+## live value may only raise the cap, never shrink it below the tuned       ##
+## static default -- a fast model must not end up with a backstop below the ##
+## request-completed ceiling it had before this mechanism existed ]         ##
+my $static_cap = sub {
+    my ($st) = @ARG;
+    my $table = <coding.cfg.round_cap_static> // {};
+    $table = {} if ref $table ne qw| HASH |;
+    my $backend
+        = ref $st ? ( $st->{'callbacks'}{'backend'} // '' ) : '';
+    return $table->{$backend} // $table->{'default'} // 2700;
+};
+
+## context size of the backend serving this request : the actual n_ctx the ##
+## server was spawned with, else the configured model context length       ##
+my $context_size = sub {
+    my ($st) = @ARG;
+    my $backend
+        = ref $st ? ( $st->{'callbacks'}{'backend'} // '' ) : '';
+    my $srv
+        = length($backend)
+        ? ( <coding.inference_servers> // {} )->{$backend}
+        : undef;
+    my $n_ctx = ref $srv ? $srv->{'n_ctx'} : undef;
+    return $n_ctx // <inference.model.context_length> // 8192;
+};
+
+## [re]compute live tps + derived cap. ONLY ever called while the stream is ##
+## alive [ per-chunk from update, or from get_cap after its own liveness    ##
+## gate ] - running this against a stalled stream would divide a frozen     ##
+## token count by an ever-growing elapsed time, driving tps toward zero and ##
+## the cap toward infinity, which is exactly backwards : a stalled stream   ##
+## must keep its last good cap and let the [ short, per-chunk ] stall       ##
+## watcher kill it                                                          ##
+my $recompute = sub {
+    my ($st)        = @ARG;
+    my $tps_st      = $st->{'tps'} // return $static_cap->($st);
+    my $min_samples = <coding.cfg.round_cap_min_samples> // 32;
+    return $static_cap->($st)
+        if ( $tps_st->{'token_count'} // 0 ) < $min_samples
+        or !defined $tps_st->{'first_token_time'};
+
+    ## tps from time-since-FIRST-TOKEN, never time-since-request-start :  ##
+    ## TTFT [ prefill, queue wait ] is a separate, already-tracked signal ##
+    ## and must not contaminate the throughput denominator                ##
+    my $elapsed = <[base.time]>->(3) - $tps_st->{'first_token_time'};
+    return $tps_st->{'cap'} // $static_cap->($st) if $elapsed <= 0;
+
+    ## ~1 token per streamed SSE delta chunk [ llama.cpp servers emit one ##
+    ## data line per generated token ] - chunk count is the cheap proxy   ##
+    my $live_tps = $tps_st->{'token_count'} / $elapsed;
+    my $margin   = <coding.cfg.round_cap_margin> // 1.3;
+
+    ## cap = time to fill the model's full context at the currently       ##
+    ## observed generation rate, plus margin - deliberately generous, its ##
+    ## only job is being a last-resort backstop scaled to real throughput ##
+    ## and model size, NOT tracking normal request duration [ that is the ##
+    ## per-request extension interval's job, one layer down ]             ##
+    my $cap   = int( ( $context_size->($st) / $live_tps ) * $margin );
+    my $floor = $static_cap->($st);
+    $cap = $floor if $cap < $floor;
+
+    $tps_st->{'live_tps'} = $live_tps;
+    $tps_st->{'cap'}      = $cap;
+    return $cap;
+};
+
+if ( $mode eq qw| update | ) {
+    return FALSE if !ref $state;
+    my $tps_st = $state->{'tps'} //= {};
+    $tps_st->{'token_count'} = $state->{'chunks_received'} // 0;
+    ## first-token timestamp : latched on the first parsed chunk, so the ##
+    ## tps denominator starts at first token, not at request start       ##
+    $tps_st->{'first_token_time'} //= <[base.time]>->(3)
+        if $tps_st->{'token_count'} > 0;
+    ## a chunk just arrived [ that is why update ran at all ] : stream is ##
+    ## live by definition, safe to recompute                              ##
+    return $recompute->($state);
+}
+
+if ( $mode eq qw| get_cap | ) {
+    return $static_cap->(undef) if !ref $state;
+    if ( $stream_alive->($state) ) {
+        return $recompute->($state);
+    }
+    ## stalled : FREEZE at the last good value. the stall watcher kills a ##
+    ## genuinely hung stream within its short per-chunk window regardless ##
+    ## of what this returns - the cap must never balloon during a stall   ##
+    return $state->{'tps'}{'cap'} // $static_cap->($state);
+}
+
+if ( $mode eq qw| get_tps | ) {
+    return undef if !ref $state;
+    return $state->{'tps'}{'live_tps'};
+}
+
+if ( $mode eq qw| is_alive | ) {
+    return $stream_alive->($state);
+}
+
+return { mode => qw| false |, data => "unknown mode '$mode'" };
+
+#,,..,,,.,.,,,..,,...,.,.,,.,,.,.,.,,,,..,,..,..,,...,...,.,.,..,,...,,..,...,
+#JPHA54BPMJ2NNDAE4MZDO7WCGJZ35XEJIBQALQ5V2D2U2QCXCDROASQYC5XQL5WJXIY5B6WJKATAO
+#\\\|DNUGVENZQYQPI674XGHEKDIFKSJQ4DNKOQS5AFFILAYM5TD54WQ \ / AMOS7 \ YOURUM ::
+#\[7]YJ2AT3ZLWXVLQVUVJN5K6DSONUFRLT6MZ6SXENUAQ3TFBGSQRKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

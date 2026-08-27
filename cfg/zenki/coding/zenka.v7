@@ -181,6 +181,23 @@ coding.http-timeouts.stall = 77
 ## without permanently punishing legitimately-slow rounds                 ##
 coding.cfg.round_soft_ceiling = 384
 
+## live t/s-derived absolute outer cap [ backend-aware timeout scaling,    ##
+## 2026-08-27 ] : the repeating liveness extend in coding.handler.         ##
+## http_timeout and the liveness-gated max_total watchdog in               ##
+## coding.self_test.handler.poll_probe are both bounded by                 ##
+## cap = ( n_ctx / live_tps ) * margin, measured from time-since-first-    ##
+## token [ TTFT excluded ] by coding.async.stream_tps and FROZEN the       ##
+## instant the stall-watch signal says stalled. until round_cap_min_samples##
+## post-first-token chunks have arrived, the static per-backend fallback   ##
+## below is used instead of the [ still noisy ] live estimate, and it      ##
+## remains the floor afterwards : the live value may only RAISE the cap    ##
+## [ a fast model must not get a tighter backstop than it had before ]     ##
+coding.cfg.round_cap_margin          = 1.3
+coding.cfg.round_cap_min_samples     = 32
+coding.cfg.round_cap_static.gpu      = 900
+coding.cfg.round_cap_static.cpu      = 5400
+coding.cfg.round_cap_static.default  = 2700
+
 ## GPU-temp-aware timeout stretch : a thermally-throttled GPU is          ##
 ## legitimately slower, not stalled, so the soft ceiling + stall timeout  ##
 ## above both scale with coding.stretch.timeout_factor (continuous        ##
@@ -288,8 +305,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,,,.,...,...,...,,..,...,..,,.,.,..,,.,,,.,.,...,...,.,.,.,.,.,.,,,.,,.,,
-#IARGHHOISBA4HHXYA6RJ6C2CVCWLYI2D26AO2EWLT6LXMIRAAVNP77KQW6RXBWAPA45NFLSEAC2LM
-#\\\|OSFC6Z5S6SRWKPQN3CN3GUZCGYYNZ34MP2UJALCUBCF4SQU73UL \ / AMOS7 \ YOURUM ::
-#\[7]NYZXJ7F4YCPOJA5NKFH54CFUGQSFOH7MTKWZBS6CVWLWPXEHDADA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,...,.,.,,,.,.,.,,,.,,,,,...,.,.,...,...,.,.,...,.,,,.,.,,..,
+#XD23O63IH2EUQZA4XJ3BSLPFT2P7IVZZZYBKGLINAGUE5NCCD33V3UJZGNZ7OPWPG6FSUMJV7PCE6
+#\\\|T25IS3CCC3LXMDZFAWSHCKKVKQUDRGXSODH4FLLXI7YGTEYRYSQ \ / AMOS7 \ YOURUM ::
+#\[7]3NDT5SAGNBU52OV53F5FYV4SEPTSQUKX7Y3RDFU6MEUPHLPIFGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
