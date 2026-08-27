@@ -97,24 +97,58 @@ triggered anywhere in this handler or its callers.
 
 ## scope
 
-1. decide the config shape for opting a backend list into "auto"
-   preference at startup -- likely a new value for
-   `inference.backend.gpu.enabled`/`.cpu.enabled` (or a sibling key)
-   rather than the current plain boolean, since "auto" needs to mean
-   "try gpu first, cpu is the fallback slot" rather than "spawn both
-   unconditionally."
+1. **resolved 2026-08-27, `auto` as an explicit third value -- not a
+   reinterpreted boolean.** the actual requirement (from the user,
+   directly): the SAME `cfg/zenki/coding/zenka.v7` must work unmodified
+   on a GPU-rich workstation AND on a GPU-poor/absent remote server,
+   with zero per-host config editing. that does NOT require silently
+   changing what `cpu.enabled = yes`/`no` mean -- it only requires that
+   the ONE value COMMITTED to that file work everywhere, and this repo
+   already has the right precedent for exactly this shape:
+   `coding.cmd.switch-model` accepts `backend=gpu|cpu|both|auto` as
+   four explicit, independent values, `auto` meaning "try gpu, fall
+   back to cpu live" (see item list above). `inference.backend.
+   gpu.enabled` / `.cpu.enabled` should follow the same pattern:
+   `yes` / `no` keep their EXACT current unconditional meaning
+   (`yes` = always spawn this backend at boot regardless of fit,
+   `no` = never spawn it) -- unchanged, so any existing deployment that
+   deliberately set `cpu.enabled = yes` for a reason other than
+   "fallback only" (e.g. deliberately running both backends
+   concurrently for throughput) keeps working exactly as it does
+   today, no silent behavior change. `auto` is the new third value,
+   meaning "spawn this backend only if the live per-host resource
+   check (item 2) says it's needed as a fallback." the "same file
+   everywhere" goal is met by shipping the committed default in
+   `cfg/zenki/coding/zenka.v7` as `cpu.enabled = auto` (instead of
+   today's `yes`) rather than by overloading what `yes` means --
+   self-documenting in the config file itself, and a GPU-rich host's
+   live check naturally never triggers the cpu fallback while a
+   GPU-poor/absent host's does, from that identical committed value.
+   `gpu.enabled` most likely only needs `yes`/`no` in practice (gpu is
+   always attempted first when enabled, "auto" doesn't add meaning on
+   the preferred backend) -- keep it a plain boolean unless a real use
+   case for `gpu.enabled = auto` turns up during implementation.
 2. wire `coding.async_spawn_inference_servers`'s gpu path to call
-   `coding.handler.spawn_smart`'s existing VRAM check (or factor the
-   check out for reuse -- it already lives in `spawn_smart`, don't
-   duplicate the `nvidia-smi`/`/proc/meminfo` logic a second time)
-   before committing to a GPU spawn attempt.
-3. decide: does exhausting `verify_inference_startup`'s 5-retry ceiling
-   on GPU (genuine startup failure, distinct from the resource
-   pre-check) trigger a CPU fallback spawn, or only the pre-check does?
-   the user explicitly separated these two cases ("resources don't
-   allow" vs. "server startup fails") -- they likely want both to
-   fall back, but this needs its own decision since retry-exhaustion
-   fallback is a new code path, not reuse of `spawn_smart`.
+   **`coding.helper.check_resource_fit`** (landed 2026-08-27, already
+   in the tree -- the VRAM/RAM check this item originally asked to
+   extract FROM `spawn_smart` now already exists as a shared helper,
+   used by `spawn_smart` itself and by `coding.model_sweep.cmd.
+   model-sweep`'s pre-filter; this item is now "call the existing
+   helper," not "extract new shared logic") before committing to a GPU
+   spawn attempt; on a fit failure, spawn CPU instead IF
+   `cpu.enabled` is `auto` or `yes` (both mean "cpu may spawn," only
+   `no` blocks it) rather than the current behavior of just deferring
+   gpu and retrying gpu again later.
+3. **resolved 2026-08-27** -- yes, exhausting `verify_inference_
+   startup`'s 5-retry ceiling on GPU (genuine startup failure, not the
+   resource pre-check) ALSO triggers a CPU fallback spawn, same
+   `auto`-or-`yes` gate as item 2. rationale directly from the user's
+   stated goal: a host with a technically-present-but-broken GPU
+   driver must still produce a WORKING coding zenka via CPU, not
+   silently fail to start any usable backend at all -- "without it
+   doing impractical things" only holds if both failure classes
+   (resource-insufficient AND genuine-startup-failure) fall back, not
+   just one.
 4. **second zenka / GPU-memory-contention case: flagged by the user as
    "less likely... as we are implementing parallel processing" --
    correctly so, this is the lowest-priority part of this task. no
@@ -154,8 +188,8 @@ on a machine with both a working GPU and enough CPU RAM, which is the
 only environment this has been used in so far; this matters once a
 CPU-only or resource-constrained deployment is actually being set up.
 
-#,,.,,..,,.,.,,,.,.,,,,..,,..,.,,,,,.,,.,,.,.,..,,...,...,,.,,...,.,,,,,,,.,.,
-#B5J5J27UWCPQ7IHKWKTML7XJ24UQRWVOXAOJUMGLPEEDPIXUH73UYGE4ZJD566FE4RHG3WCS53LXO
-#\\\|CHGZX5GA5F3HQ4DMH5TYCM7EMAQZPZQL6ICFWG4645MSK2MVUVS \ / AMOS7 \ YOURUM ::
-#\[7]BSNYQIH3OS5J3JJTWGWO5HCV3M7E3OSOB3X7HKEMIP7OB6QXDCAA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,,,,,,..,.,.,..,,.,,,,..,,..,..,,...,...,...,.,,,,..,,.,,.,.,
+#FSN36RZEE4MQGGHABD4NANNY4JDYOLDDY5FP54WHZ7WSRSQSSSITJ5KHZ5A2762GVDQGSIU76TPYA
+#\\\|NQY4CINSTZDJBCJQ32ZBCCXGVHZW5HOUA2AL6AMD27L62HGLZ7X \ / AMOS7 \ YOURUM ::
+#\[7]42D6A34WPSZUTBIYT7E73P4G4RS265R667NG6RKAGIMGIGPDFSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
