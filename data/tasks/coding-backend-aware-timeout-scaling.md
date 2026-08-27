@@ -84,6 +84,33 @@ of hardcoding any ratio:
   `data/yaml/archive/completed-coding-tasks/base-curve-system.yaml` and
   `data/ai-mem/claude/topic-base-curve-system.md`.
 
+## tps was already half-built, then left dead (checked 2026-08-27)
+
+the self-test cycle this whole system runs on was designed and
+completed earlier (`data/tasks/completed/coding-model-self-test-cycle.md`),
+whose own step 3 was "compute: tokens_per_second, estimated timeout
+multiplier." checking the actual code: only the TTFT half of that ever
+got wired -- `coding.self_test.handler.poll_probe` computes real
+time-to-first-token per prompt, feeds `coding.self_test.multiplier`
+(rolling per-model `ttft_p95`, produces a real `multiplier` shown in
+`self-test-status`) -- that's the working half, and the "ttft=5.83s"
+style lines in the live logs come from it.
+
+the tokens_per_second half was never wired at all. grepped the whole
+`src/` tree for `\btps\b`: the ONLY hit is
+`coding.self_test.archive:21` -- `$store->{'tps'} = $result->{'tps'}
+// 0;`. the archive slot exists, gets written to the per-model/per-
+epoch stats tree every self-test cycle, and nothing anywhere computes
+a real value for `$result->{'tps'}` -- it has always silently stored
+`0`. so the storage + consumer side (archive struct,
+`coding.self_test.cmd.self-test-status` could easily add a column) is
+already there and doesn't need building -- what's missing is purely
+the producer: actually counting tokens generated over elapsed time
+during a probe and setting `$result->{'tps'}` in
+`coding.self_test.handler.poll_probe` before it reaches the archive
+call. that's the concrete starting point for the live t/s measurement
+in "the better approach" above, not something to design from scratch.
+
 ## relation to the "per-model statistics" direction
 
 raised the same session, separately: this live t/s measurement is the
@@ -120,13 +147,81 @@ multi-slot scoping already captured.
    gpu's baseline is available), which is more involved than a one-time
    backend-aware default.
 
+## second live reproduction + "stuck vs slow" framing (2026-08-27)
+
+live-verifying the just-landed `coding-self-test-true-parallelization`
+fix reproduced the exact same failure shape as the first evidence
+above, one day later, different probe id: cpu prompt2 soft-ceilinged at
+127s, extended once to the 777s hard ceiling ("stream is alive
+[chunks=399] : extending to full 777s in place"), then STILL hit
+"genuine failure after 904 seconds [ceiling=777, stream_alive=1]" --
+note `stream_alive=1` logged AT THE MOMENT of failure. the retry also
+timed out, and the round's own overall watchdog then fired: `[poll_probe]
+probe 5709741 exceeded 1700s total budget : aborting` / `[self_test]
+complete : ... : 1/2 passed`. same pattern as probe 4779119, confirming
+this isn't a one-off.
+
+the parallelization fix's value showed live in the same run: gpu
+finished its full 3/3 pass in ~24s total while cpu was still deep in
+this retry/timeout cycle -- gpu was NOT held hostage behind cpu's slow,
+ultimately-aborted round, which is exactly what that fix was for.
+
+the user's framing of the deeper fix, prompted by this run: timeouts
+should distinguish STUCK (no progress -- catch fast) from SLOW (progress
+continuing, just taking longer -- let it run, potentially a very long
+time or effectively unbounded). especially relevant for CPU-only /
+remote / background deployments with smaller models, where only
+eventual completion matters, not wall-clock duration -- "a user can go
+to sleep and return in a few hours." per the user: "we are almost
+already" doing this -- correct, and reading the actual code confirms
+exactly where the existing mechanism stops short of it:
+
+- **`coding.handler.http_timeout`'s soft->hard extension is ONE-SHOT,
+  not repeating.** `stream_alive` (chunks flowing within the 77s stall
+  window) already gates the soft-ceiling extend at line ~64
+  (`if ($stream_alive and $ceiling_used < $hard_ceiling)`), but the
+  moment `$ceiling_used` reaches `$hard_ceiling` that condition can
+  never be true again, so the SAME stream-alive check that justified the
+  first extension is computed again at the failure log line (`stream_alive=1`
+  printed right there, see live evidence above) and then simply
+  ignored. the fix this task's "better approach" section already
+  proposes (dynamic t/s-based rescaling) would help, but the simpler,
+  more directly-aligned-with-the-framing fix: keep extending
+  `$ceiling_used` by another `$hard_ceiling`-sized (or configurable)
+  window EVERY time `$stream_alive` is true at trip time, with no cap on
+  the number of extensions -- the 77s stall window (`coding.handler.http_io`,
+  re-armed per chunk) remains the only thing that can actually kill a
+  live request. this turns "hard ceiling" into what it already almost is
+  in spirit (a re-check interval), not a true ceiling.
+- **`coding.self_test.handler.poll_probe`'s `max_total` watchdog
+  (~line 38) has NO liveness check at all** -- it's `$elapsed > $max_total`
+  on wall-clock time alone, by explicit design ("bounded, never
+  unbounded... a state machine phase with no ceiling is an unbounded
+  wait wearing a costume"). that design comment is correct for a
+  genuinely-stuck phase, but the same phase can be legitimately still
+  producing tokens through `http_timeout`'s own re-checks the whole
+  time -- this watchdog currently can't tell the difference and aborts
+  a productive round exactly like a hung one. same fix shape: gate the
+  abort on stream liveness (reachable via `$state->{'http_state'}`),
+  not on elapsed time alone.
+
+**not implemented, deliberately** -- this is safety-critical watchdog
+machinery with a documented history of drifting out of sync across its
+several layers (see `[[feedback-check-existing-safety-nets-before-adding-new-one]]`),
+same caution that applied to the parallelization task. needs its own
+task file with a full audit pass (all callers/assumptions of
+`max_total` and the http hard-ceiling, same rigor as the parallelization
+task got) before any code changes, not a quick patch. captured here as
+the concrete direction + exact code citations so that audit doesn't
+have to re-derive them.
+
 not urgent -- self-test on CPU degrades gracefully today (partial
 results via its own internal per-prompt retry-after-failure, not a
 crash or hang), filed same day as the CPU spawn fixes that made this
 gap observable at all.
 
-#,,,,,..,,,,,,...,.,.,.,.,,.,,..,,..,,.,.,,..,..,,...,...,...,.,.,,,,,.,.,.,,,
-#2P5CQABE4XL3YG22BC25SITWLCMRFC4LF72QPQYDXOIDY7VFURUMCIL25R6LWZI6YR76CGTSXFU3A
-#\\\|CYFJAC5OFBOL7DZTS4O4J6OWJALV5G3HQDMII4C3WJLBERZ6LDL \ / AMOS7 \ YOURUM ::
-#\[7]IISUYXYUXS4YGTNJWVWXB2L3P76SS5RZUYYIY2QKQZFZQO4F26AY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,..,..,,,,,,,,.,,,,,.,.,..,,,,,,..,,...,..,,..,,,..,,.,,,,,,,.,,
+#HSGNSZRA6Y4YCUHF52QRIRN4HWCKW2TOKC6ELUJ2YQUIIVMMICIRKVPWROSGO7YB62L5JCRPLRADM
+#\\\|TT3MYXDLWUEW74DBN6HZBDWZX7IXT3G4O27DG36MFH7WPYL2BVA \ / AMOS7 \ YOURUM ::
+#\[7]GAVUHWDCKRATPVBDO6JDAR5AHXC2BLBG3EVVBCQOCET5HQDGOEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
