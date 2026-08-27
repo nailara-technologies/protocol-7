@@ -474,8 +474,64 @@ extend:**
   harness) should simulate chunk arrival timestamps and confirm that live
   streams extend while stalled streams still fail fast.
 
-#,,..,,..,,,,,...,,,.,,,,,,.,,,,,,,,.,,,,,...,..,,...,...,.,.,,,,,.,.,,,.,,.,,
-#AWUUYEZZK4KQML75PRFDO74RLE3UCSEYNSMGYF3P5AJJAW65C6UVYY3CWHWLTVRYM46T5MNENSCW4
-#\\\|WCW24CMYQK2C2PGN5HLERFHWT7CJSR3GBBNJL7BMXTBE75HSDB3 \ / AMOS7 \ YOURUM ::
-#\[7]VHPVJUBVIFMTLCWPPMYZNXFZMIMSLV2ZWNKWQ5P6IZGRNZIR2WCQ 7  DATA SIGNATURE ::
+## do NOT touch
+
+promoted from "places checked and found clean" above -- these are
+confirmed already correct, don't modify them as part of this task:
+
+- `src/coding.handler.http_stall_timeout` -- already the right
+  genuine-silence detector, independent of total elapsed time.
+- `src/coding.handler.http_data_start_timeout` -- already the right
+  ttft/connection-acceptance signal.
+- `src/coding.detect_stream_repetition` / `src/coding.handler.http_io_parse_line`
+  -- degenerate-content detection, orthogonal to timing.
+- `src/coding.async.http_client:167-172` / `src/coding.async.request:80-82`
+  -- these are timer *arms* only, not decision gates; leave them alone,
+  the actual elapsed-time decisions live in the handlers this task
+  changes.
+
+also out of scope, different systems entirely, don't conflate:
+
+- `coding.routing.select_backend` / `coding.cmd.switch-model` /
+  `coding.handler.spawn_smart` -- the OTHER "auto" concept in this
+  codebase (backend selection for spawning/routing, see
+  `coding-startup-auto-backend-selection.md`), unrelated to timeout
+  ceilings.
+- `coding.self_test.multiplier`'s `ttft_p95` tracking -- read from (per
+  the tps-noise-floor design above), never modified by this task.
+
+## validation
+
+1. `bin/dev/ptd -c` on every changed file.
+2. `bin/test-scripts/test-coding-self-test-retry.pl` must still fully
+   pass -- it's the harness for the just-landed parallelization work and
+   exercises the same `poll_probe`/guard machinery items 1-2 touch. a
+   regression here would mean the liveness changes broke per-backend
+   guard semantics, not just timeout semantics.
+3. new standalone test file needed (style of the existing harness,
+   execution-free -- stub time/chunks, no live zenka), covering at
+   minimum:
+   - a live stream (chunks keep arriving) extends past the old flat
+     hard ceiling repeatedly, never hard-fails while alive.
+   - a stalled stream still fails fast at the short per-chunk stall
+     window, NOT at the (now much larger) outer cap.
+   - the auto-cap computes correctly from simulated tps once the
+     minimum-sample threshold is met.
+   - the auto-cap FREEZES (asserted: value unchanged across ticks) once
+     a stall is detected, even though elapsed time keeps advancing --
+     this is the one behavior that's actively wrong if inverted.
+   - before the minimum-sample threshold, the static per-backend
+     fallback cap is used, not a garbage/zero live estimate.
+   - `poll_probe`'s `max_total` abort fires ONLY for genuinely stalled
+     probes in the new version, never for slow-but-live ones.
+   - `verify_inference_startup`'s fallback-resume ceiling does not fire
+     prematurely once `poll_probe`'s ceiling becomes liveness-aware --
+     this is the direct `5d32f8783`-class regression check.
+4. no live zenka restart at any point -- validation is standalone-script
+   only, same rule as the parallelization task.
+
+#,,,.,,..,,..,,..,,,,,,.,,,.,,,.,,..,,...,..,,..,,...,...,,.,,.,,,..,,,.,,,.,,
+#GTSWT26KJKUG37WQCDUWRCX5AUJWQLZATGFYO35FXZEPU3TIEFP6LG6M7QQYTUZLNFPOHYYK5Q2UQ
+#\\\|4SW3XWXOEHX4MBJGJSHA57YASGMAJGEEYDAY35Q7IKEQITRIO6M \ / AMOS7 \ YOURUM ::
+#\[7]6574P7PWCW7RNF4EDL5FZLUKKTJCHFLMVO6JRODZ4Y75VFECR2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

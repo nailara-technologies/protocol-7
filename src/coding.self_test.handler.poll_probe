@@ -37,21 +37,60 @@ my $elapsed  = $now - ( $state->{'started'} // $now );
 ## the task queue before self-test had actually concluded ]                 ##
 my $max_total = <coding.cfg.self_test_max_total> // 1200;
 if ( $elapsed > $max_total and $state->{'phase'} ne qw| done | ) {
-    <[base.logs]>->(
-        0, '[poll_probe] probe %s exceeded %ds total budget : aborting',
-        $probe_id, $max_total
-    );
-    if ( $state->{'in_flight'} and defined $state->{'http_state'} ) {
-        ## synthesize an error through the probe's own pipeline : releases ##
-        ## the backend lock via async_probe's $finish and settles once     ##
-        my $cb = $state->{'http_state'}{'callbacks'} // {};
-        $cb->{'on_error'}->('probe watchdog abort')
-            if ref $cb->{'on_error'} eq qw| CODE |;
-        <[coding.async.http_cleanup]>->( $state->{'http_state'} );
+    ## liveness gate [ task : backend-aware timeout scaling, 2026-08-27 ] : ##
+    ## a probe whose current request is still streaming is SLOW, not stuck  ##
+    ## -- the old elapsed-only check could not tell the two apart and       ##
+    ## aborted productive cpu rounds mid-flight [ live : probes 4779119 and ##
+    ## 5709741, both aborted at exactly 1700s with chunks flowing ]. while  ##
+    ## the in-flight stream is alive the budget is the auto-derived outer   ##
+    ## cap instead [ coding.async.stream_tps : frozen on stall, so a        ##
+    ## stalled stream can never inflate it ] ; the per-chunk stall watcher  ##
+    ## [ coding.handler.http_io ] stays the fast path for genuine silence.  ##
+    ## the abort below remains bounded - the outer cap IS the bound - and   ##
+    ## still fires the moment the stream stalls or dies, or once even the [ ##
+    ## generous ] cap is exceeded                                           ##
+    my $skip_abort = FALSE;
+    my $http_state = $state->{'http_state'};
+    if ( $state->{'in_flight'} and ref $http_state eq qw| HASH | ) {
+        my $outer_cap
+            = <[coding.async.stream_tps]>->( qw| get_cap |, $http_state );
+        if ( <[coding.async.stream_tps]>->( qw| is_alive |, $http_state )
+            and $elapsed < $outer_cap ) {
+            $skip_abort = TRUE;
+            ## throttled : this timer ticks every 0.5s, a long cpu round ##
+            ## defers here hundreds of times                             ##
+            if ( $now >= ( $state->{'cap_defer_log_at'} // 0 ) ) {
+                $state->{'cap_defer_log_at'} = $now + 60;
+                <[base.logs]>->(
+                    1,
+                    '[poll_probe] probe %s past %ds budget but stream '
+                        . 'alive [chunks=%d] : deferring to outer cap %ds',
+                    $probe_id,
+                    $max_total,
+                    $http_state->{'chunks_received'} // 0,
+                    $outer_cap
+                );
+            }
+        }
     }
-    $state->{'all_passed'}     = FALSE;
-    $state->{'watchdog_abort'} = TRUE;
-    $state->{'phase'}          = qw| done |;
+    if ( !$skip_abort ) {
+        <[base.logs]>->(
+            0, '[poll_probe] probe %s exceeded %ds total budget : aborting',
+            $probe_id, $max_total
+        );
+        if ( $state->{'in_flight'} and defined $state->{'http_state'} ) {
+            ## synthesize an error through the probe's own pipeline :  ##
+            ## releases the backend lock via async_probe's $finish and ##
+            ## settles once                                            ##
+            my $cb = $state->{'http_state'}{'callbacks'} // {};
+            $cb->{'on_error'}->('probe watchdog abort')
+                if ref $cb->{'on_error'} eq qw| CODE |;
+            <[coding.async.http_cleanup]>->( $state->{'http_state'} );
+        }
+        $state->{'all_passed'}     = FALSE;
+        $state->{'watchdog_abort'} = TRUE;
+        $state->{'phase'}          = qw| done |;
+    }    ## !skip_abort ##
 }
 
 ## helper : fire one async probe request [ probe or tier1 ] through         ##
@@ -211,7 +250,13 @@ if ( $state->{'phase'} eq qw| probe | ) {
         finish_reason => $result->{'finish_reason'} // '',
         ttft          => $ttft,
         total         => $ttft,
-        server_tail   => '',
+        ## live t/s measured during THIS probe's stream [ coding.async.     ##
+        ## stream_tps ] - finally gives coding.self_test.archive's tps slot ##
+        ## a real producer [ was silently 0 since it existed ]              ##
+        tps => <[coding.async.stream_tps]>->(
+            qw| get_tps |, $state->{'http_state'} // {}
+        ) // 0,
+        server_tail => '',
     };
 
     ## visible content empty but the model DID reason - most likely the     ##
@@ -452,6 +497,7 @@ if ( $state->{'phase'} eq qw| record | ) {
         expected           => $prompt_def->{'expected'},
         constraint         => $prompt_def->{'result_constraint'},
         ttft               => $cur->{'ttft'}  // 0,
+        tps                => $cur->{'tps'}   // 0,
         total              => $cur->{'total'} // 0,
         passed             => $passed,
         needs_tier2        => $needs_tier2,
@@ -545,8 +591,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,,,,,,.,.,.,,.,,,,.,,,.,,.,,,..,.,.,,..,,,.,..,,...,...,...,.,,,.,.,.,,,.,.,
-#EZNGNO4KZIAYRVPX7I57AOE5LVVKBCWFT5R5H3F74ATHOWTCNCN5PVSICMZVH6IYY5YVSWJX62RBK
-#\\\|ILHFUAHAZB7BRXJ4G6HI2WD4JVLYAP76AANMBH7J6F5PSMDUZ5X \ / AMOS7 \ YOURUM ::
-#\[7]7MYI4UISMLE4AZQJQARWLJXCEADGCD6RVLGQPW6SW6AHKNP3JCBA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,,.,,.,.,.,,,.,.,,,.,.,.,.,,,..,,...,...,..,,,.,,,,.,.,,,...,
+#AXZXOSXFPNDQJQHTFWIYC7OGSDTIKYAETWOR2RNQRBNLYORS2NWLXAXCY2NN2WE4X5TXHUI54CGAQ
+#\\\|L2YX4MJINISDJEPIZ3FBZW2KCQRRDLEZOEVHAVDG5MRT46JVGQS \ / AMOS7 \ YOURUM ::
+#\[7]KPHJNVSS7YFBK6YYCLVU56ISEWS2CBIDFZY57E4E7RQT36B3YEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
