@@ -1,0 +1,262 @@
+## [:< ##
+
+# name  = coding.model_sweep.handler.poll_sweep
+# descr = timer-driven per-backend model sweep cursor
+
+my $event = shift;
+
+## data lives on the watcher, not the raw event wrapper - same pattern as ##
+## coding.self_test.handler.poll_switch                                   ##
+my $timer_data = eval { $event->w->data } // {};
+my $backend    = $timer_data->{'backend'} // '';
+
+if ( !length $backend || $backend !~ m{^(gpu|cpu)$} ) {
+    <[base.logs]>->( 0, '[model_sweep] no valid backend, stopping timer' );
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return;
+}
+
+my $state = $data{'coding'}{'model_sweep_state'}{$backend};
+if ( !defined $state ) {
+    <[base.logs]>->(
+        0, '[model_sweep] no state for backend=%s, stopping timer', $backend
+    );
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return;
+}
+
+my $candidates = $state->{'candidates'} // [];
+my $idx        = $state->{'idx'} // 0;
+my $total      = scalar @$candidates;
+
+my $cursor_file = 'state/model_sweep_cursor.yaml';
+
+## helper : load cursor file from disk ##
+my $load_cursor = sub {
+    my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+    return ( defined $existing_yaml and length $$existing_yaml )
+        ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+        : {};
+};
+
+## helper : persist cursor for a given idx ##
+my $persist_cursor = sub {
+    my ($cursor_idx) = @_;
+    my $cursor_data  = $load_cursor->();
+
+    $cursor_data->{$backend} = {
+        filter     => $state->{'filter'}  // qw| default |,
+        candidates => $candidates,
+        idx        => $cursor_idx,
+        started    => $state->{'started'} // <[base.ntime]>,
+    };
+
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+            or <[base.logs]>->(
+            1, '[model_sweep] failed to persist cursor file [ %s ]',
+            $cursor_file
+            );
+    }
+};
+
+## helper : remove this backend's cursor entry on completion ##
+my $clear_cursor = sub {
+    my $cursor_data = $load_cursor->();
+    delete $cursor_data->{$backend};
+
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+            or <[base.logs]>->(
+            1, '[model_sweep] failed to clear cursor file [ %s ]', $cursor_file
+            );
+    }
+};
+
+## helper : finish the sweep and log a per-status summary ##
+my $finish_sweep = sub {
+    $clear_cursor->();
+
+    ## read counts back from coding.model_status [ source of truth ] ##
+    my $status_data = <coding.model_status> // {};
+    if ( !%$status_data ) {
+        my $saved_ref = <[file.zenka_dir.load]>->('state/model_status.yaml');
+        $status_data
+            = ( defined $saved_ref and length $$saved_ref )
+            ? ( <[format.yaml.load_str]>->($$saved_ref) // {} )
+            : {};
+    }
+
+    my %counts;
+    for my $checksum (@$candidates) {
+        my $entry = $status_data->{$checksum}{$backend};
+        next if ref $entry ne qw| HASH |;
+        my $status = $entry->{'status'} // 'untested';
+        $counts{$status}++;
+    }
+
+    my $summary = sprintf '[model_sweep] %s sweep complete : %d candidates',
+        $backend, $total;
+    for my $status ( sort keys %counts ) {
+        $summary .= sprintf ' : %s=%d', $status, $counts{$status};
+    }
+    <[base.logs]>->( 1, $summary );
+
+    delete $data{'coding'}{'model_sweep_state'}{$backend};
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+};
+
+if ( $idx >= $total ) {
+    $finish_sweep->();
+    return;
+}
+
+## helper : initiate switch-test-restore for the current candidate ##
+my $start_candidate = sub {
+    my $checksum = $candidates->[$idx] // '';
+    if ( !length $checksum ) {
+        $state->{'idx'} = $total;    ## force done on next tick ##
+        return;
+    }
+
+    ## need a current model to restore to after the test ##
+    my $original_model
+        = $backend eq qw| gpu |
+        ? ( <inference.backend.gpu.model_id> // '' )
+        : ( <inference.backend.cpu.model_id> // '' );
+    $original_model = <inference.model.amos_id> // '' if !length $original_model;
+
+    if ( !length $original_model ) {
+        <[base.logs]>->(
+            0,
+            '[model_sweep] %s : no current model to restore to, '
+                . 'aborting sweep at candidate %s',
+            $backend,
+            $checksum
+        );
+        $state->{'idx'} = $total;
+        return;
+    }
+
+    ## suppress monitor_inference_startup auto-self-test for this switch ##
+    <coding.self_test_switch_in_progress> = TRUE;
+
+    ## create poll_switch state, backend-aware ##
+    $data{'coding'}{'self_test_switch_state'} //= {};
+    my $switch_id
+        = <[base.gen_id]>->( $data{'coding'}{'self_test_switch_state'} );
+
+    my $prior_pid = ( <coding.inference_servers> // {} )->{$backend}{'pid'}
+        // 0;
+
+    $data{'coding'}{'self_test_switch_state'}{$switch_id} = {
+        'reply_id'       => '',
+        'target_model'   => $checksum,
+        'test_model'     => $checksum,
+        'original_model' => $original_model,
+        'phase'          => qw| switching |,
+        'started'        => <[base.time]>->(3),
+        'dep_id'         => 0,
+        'result'         => undef,
+        'prior_pid'      => $prior_pid,
+        'backend'        => $backend,
+    };
+
+    ## start the switch-test-restore poll for this candidate ##
+    <[event.add_timer]>->(
+        {   'interval' => 0.5,
+            'repeat'   => TRUE,
+            'handler'  => qw| coding.self_test.handler.poll_switch |,
+            'data'     => { 'switch_id' => $switch_id },
+            'desc'     => "model-sweep $backend $switch_id"
+        }
+    );
+
+    ## issue the actual switch-model command ##
+    eval {
+        <[coding.cmd.switch-model]>->(
+            { args => sprintf '%s backend=%s', $checksum, $backend }
+        );
+        1;
+    } or do {
+        my $err = $@ || 'unknown error';
+        <[base.logs]>->(
+            0, '[model_sweep] %s : switch-model call failed : %s',
+            $backend, $err
+        );
+    };
+
+    $state->{'switch_id'} = $switch_id;
+    $state->{'phase'}     = qw| waiting |;
+
+    <[base.logs]>->(
+        1,
+        '[model_sweep] %s : started candidate %d/%d : %s [switch_id=%s]',
+        $backend,
+        $idx + 1,
+        $total,
+        $checksum,
+        $switch_id
+    );
+};
+
+my $phase = $state->{'phase'} // qw| idle |;
+
+if ( $phase eq qw| idle | ) {
+    $start_candidate->();
+    $persist_cursor->($idx);
+    return TRUE;
+}
+
+if ( $phase eq qw| waiting | ) {
+    my $switch_id    = $state->{'switch_id'} // '';
+    my $switch_state = defined $switch_id
+        ? $data{'coding'}{'self_test_switch_state'}{$switch_id}
+        : undef;
+
+    if ( !defined $switch_state ) {
+        ## terminal phase reached : advance cursor ##
+        <[base.logs]>->(
+            1,
+            '[model_sweep] %s : candidate %d/%d finished, advancing',
+            $backend,
+            $idx + 1,
+            $total
+        );
+        $idx++;
+        $state->{'idx'}       = $idx;
+        $state->{'phase'}     = qw| idle |;
+        $state->{'switch_id'} = '';
+        $persist_cursor->($idx);
+        ## next tick will either start the next candidate or finish ##
+        return TRUE;
+    }
+
+    ## still waiting on the current switch cycle ##
+    <[base.logs]>->(
+        2,
+        '[model_sweep] %s : waiting on candidate %d/%d [switch_id=%s]',
+        $backend,
+        $idx + 1,
+        $total,
+        $switch_id
+    ) if int( <[base.time]>->(3) ) % 5 == 0;
+
+    return TRUE;
+}
+
+## unknown phase : defensive cleanup ##
+<[base.logs]>->(
+    0, '[model_sweep] %s : unknown phase %s, aborting sweep',
+    $backend, $phase
+);
+$state->{'idx'} = $total;
+return TRUE;
+
+#,,..,...,,,.,..,,.,,,,,.,,..,.,.,...,..,,.,.,..,,...,...,,,,,,.,,,..,.,.,.,,,
+#URYE7MC2F6TM63X3362DACVPPGAWBCZIHRPMHXOLKQRKLCZFIR36OWCA2ZBJM7GIQLYNCYXRCF6DQ
+#\\\|YCINRGEVMAIPWIASWYCC35CG5YYJRONXGF7RHN5GEJVCV2QYU7Q \ / AMOS7 \ YOURUM ::
+#\[7]L2GZHLQ7Z7JVERMQJZUZAJSZQR4PXCSM75LCMYTLJQV3ER4OICAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

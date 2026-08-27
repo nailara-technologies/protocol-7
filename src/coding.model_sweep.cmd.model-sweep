@@ -1,0 +1,182 @@
+## [:< ##
+
+# name  = coding.model_sweep.cmd.model-sweep
+# descr = start a per-backend model sweep
+# param = [backend] [:re-test-failed:] [:re-test-success:]
+
+my $params = shift // {};
+my $args   = $params->{'args'} // '';
+
+## extract filter tokens using substitutive extraction, order-independent ##
+my $re_test_failed  = ( $args =~ s| *:re-test-failed: *| | );
+my $re_test_success = ( $args =~ s| *:re-test-success: *| | );
+
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my $backend_arg = length $args ? $args : qw| both |;
+
+unless ( $backend_arg =~ m{^(gpu|cpu|both)$} ) {
+    return {
+        mode => qw| size |,
+        data => "Error: backend must be gpu, cpu, or both\n"
+    };
+}
+
+my @backends
+    = $backend_arg eq qw| both | ? qw| gpu cpu | : ($backend_arg);
+
+## determine filter label for the cursor file ##
+my $filter_str;
+if ( $re_test_failed && $re_test_success ) {
+    $filter_str = qw| full |;
+} elsif ($re_test_failed) {
+    $filter_str = qw| re-test-failed |;
+} elsif ($re_test_success) {
+    $filter_str = qw| re-test-success |;
+} else {
+    $filter_str = qw| default |;
+}
+
+## load status data once [ memory first, disk fallback ] ##
+my $status_data = <coding.model_status> // {};
+if ( !%$status_data ) {
+    my $saved_ref = <[file.zenka_dir.load]>->('state/model_status.yaml');
+    $status_data
+        = ( defined $saved_ref and length $$saved_ref )
+        ? ( <[format.yaml.load_str]>->($$saved_ref) // {} )
+        : {};
+}
+
+my $metadata     = <coding.model_metadata> // {};
+my $cursor_file  = 'state/model_sweep_cursor.yaml';
+my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+my $cursor_data
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+my @lines;
+
+for my $backend (@backends) {
+    ## refuse if a sweep is already active for this backend ##
+    if ( defined $data{'coding'}{'model_sweep_state'}{$backend} ) {
+        push @lines, sprintf '%s : already in progress', $backend;
+        next;
+    }
+
+    ## refuse if a resumable cursor exists on disk ##
+    my $existing = $cursor_data->{$backend} // {};
+    if ( ref $existing eq qw| HASH |
+        && ( $existing->{'idx'} // 0 )
+        < scalar( @{ $existing->{'candidates'} // [] } ) )
+    {
+        push @lines,
+            sprintf
+            '%s : resumable cursor exists [ idx=%d/%d ], '
+                . 'use model-sweep-status to inspect or clear first',
+            $backend,
+            $existing->{'idx'} // 0,
+            scalar( @{ $existing->{'candidates'} // [] } );
+        next;
+    }
+
+    ## build candidate list for this backend ##
+    my @candidates;
+    for my $cache_name ( sort keys %$metadata ) {
+        next if $cache_name =~ /mmproj/i;
+        my $entry = $metadata->{$cache_name};
+        next if ref $entry ne qw| HASH |;
+        my $checksum = $entry->{'amos'} // '';
+        next if !length $checksum;
+
+        my $current_status = '';
+        my $status_entry   = $status_data->{$checksum}{$backend};
+        if ( ref $status_entry eq qw| HASH | ) {
+            $current_status = $status_entry->{'status'} // '';
+        }
+
+        ## apply filter mode ##
+        my $include = 0;
+        if ( $filter_str eq qw| full | ) {
+            $include = 1;
+        } elsif ( $filter_str eq qw| default | ) {
+            $include = 1 if !length $current_status;
+        } elsif ( $filter_str eq qw| re-test-failed | ) {
+            $include = 1
+                if !length $current_status
+                || $current_status eq qw| startup-failure |
+                || $current_status eq qw| inference-failures |
+                || $current_status eq qw| resource-insufficient |;
+        } elsif ( $filter_str eq qw| re-test-success | ) {
+            $include = 1
+                if !length $current_status
+                || $current_status eq qw| functional |;
+        }
+
+        next if !$include;
+
+        ## pre-filter by resource fit [ do not record status here ] ##
+        my $fit = <[coding.helper.check_resource_fit]>->(
+            { backend => $backend, size_gb => $entry->{'size_gb'} // 0 }
+        );
+        next if !$fit->{'fits'};
+
+        push @candidates, $checksum;
+    }
+
+    my $total = scalar @candidates;
+    if ( !$total ) {
+        push @lines,
+            sprintf '%s : no candidates match filter=%s',
+            $backend, $filter_str;
+        next;
+    }
+
+    ## persist initial cursor ##
+    $cursor_data->{$backend} = {
+        filter     => $filter_str,
+        candidates => \@candidates,
+        idx        => 0,
+        started    => <[base.ntime]>,
+    };
+    my $yaml_str = <[format.yaml.dump_str]>->($cursor_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
+            or <[base.logs]>->(
+            1, '[model_sweep] failed to persist cursor file [ %s ]',
+            $cursor_file
+            );
+    }
+
+    ## initialize in-memory state and start the sweep timer ##
+    $data{'coding'}{'model_sweep_state'}{$backend} = {
+        backend    => $backend,
+        candidates => \@candidates,
+        idx        => 0,
+        filter     => $filter_str,
+        started    => <[base.ntime]>,
+        switch_id  => '',
+        phase      => qw| idle |,
+    };
+
+    <[event.add_timer]>->(
+        {   'interval' => 1,
+            'repeat'   => TRUE,
+            'handler'  => qw| coding.model_sweep.handler.poll_sweep |,
+            'data'     => { backend => $backend },
+            'desc'     => "model-sweep $backend"
+        }
+    );
+
+    push @lines,
+        sprintf '%s : sweep started : %d candidates [filter=%s]',
+        $backend, $total, $filter_str;
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,.,,.,,,,.,,,,.,,.,,,,.,...,,..,,.,,,,.,,,.,..,,...,...,,,.,,,.,,,.,...,,,.,
+#JEBG72OABVGXTREJCQTJUNRSPBPLPUNRWX5ZZTNUI6ADJ5A2O3F4WMB4R2ILFH45HTD4FF6NNLG6U
+#\\\|T3A5BIJH7B25DQJVLDUTISMRWUL2TXCYERBMBQS4NRMO3ECB7BA \ / AMOS7 \ YOURUM ::
+#\[7]7ICYNODIQIE75FFFI3XXIJXPCSHBBIA5WZG3JFSPJU6IDDSJ4QAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
