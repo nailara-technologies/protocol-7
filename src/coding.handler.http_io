@@ -167,10 +167,18 @@ if ( $state->{'headers_parsed'} ) {
     }
 }
 
+## live tps + outer-cap tracking [ task : backend-aware timeout scaling ] : ##
+## fed from the SAME chunk-arrival signal the stall watcher above re-arms   ##
+## on, invoked after the parse loop so chunks_received is already current.  ##
+## lives here and not in http_io_parse_line [ that file is frozen :         ##
+## repetition-detection territory, orthogonal to timing ]                   ##
+<[coding.async.stream_tps]>->( qw| update |, $state )
+    if ( $state->{'chunks_received'} // 0 ) > 0;
+
 return;
 
-#,,.,,...,,,,,,,.,,.,,,.,,,,.,,..,.,.,,,.,..,,.,.,...,...,.,,,.,,,...,.,.,,,,,
-#Z2ETZRA2QX3DL6WDGG2AUCD6UZVYMXWIVUE2TH4S6T6VI55CETXD3ZD3PYSBJD2AFWPJAILT7OH7G
-#\\\|FX6WJCX56VGUNPHCVBKAMRJMUZGP66ARHG4BKNOS6CHGD3JLZJY \ / AMOS7 \ YOURUM ::
-#\[7]BYE47UWPCMZJPA6EZC6GXWAS45EVSKG2H4NYD65YJ6VAHEXOL4AQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,,,,,,,.,,,,,...,,,,,,.,,,,.,.,.,...,..,,..,,..,,.,,,...,.,,,
+#ZJFSHMWQDEHG3TELWTLQYFWDGC27UOIM2QZKTENNGKA4ETOLAXISAJRIOV4ILZD5C4MVLEFJDFSIQ
+#\\\|D7RG2HBCUQMSESSTHVQJ5HQMB2RZ77NTKJAXGWS5PKCLW55LIUZ \ / AMOS7 \ YOURUM ::
+#\[7]RJYGXFVWC3X6XS2JCBUTGBOQK76V4LW24ZA655J4S7KDYN34Q2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

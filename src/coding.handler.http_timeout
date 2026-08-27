@@ -55,44 +55,72 @@ my $task_state
 ## on every chunk ] is the thing that actually detects a hung connection ;  ##
 ## check its own signal directly [ chunks received + recent activity within ##
 ## the stall window ] rather than inferring liveness from whether a task    ##
-## happens to exist for this request                                        ##
-my $now          = <[base.time]>->(3);
-my $stream_alive = ( $state->{'chunks_received'} // 0 ) > 0
-    && ( $now - ( $state->{'last_activity'} // 0 ) )
-    < ( $state->{'stall_timeout_sec'} // 77 );
+## happens to exist for this request [ the check itself now lives in        ##
+## coding.async.stream_tps/is_alive so every layer shares one definition    ##
+## that cannot drift apart ]                                                ##
+my $stream_alive = <[coding.async.stream_tps]>->( qw| is_alive |, $state );
 
-if ( $stream_alive and $ceiling_used < $hard_ceiling ) {
-    if ( defined $task_state ) {
-        ## task-based request : restart THIS round in place, not the     ##
-        ## heavier on_error pipeline [ which assumes a broken connection ##
-        ## and does backend-restart + full task requeue ]                ##
-        <[base.logs]>->(
-            1,
-            "async.http_timeout: soft ceiling [%ds] "
-                . "hit for %s, restarting round with full %ds",
-            $ceiling_used,
-            $task_id,
-            $hard_ceiling
-        );
-        <[coding.async.http_cleanup]>->($state);
-        <[coding.async.round_soft_restart]>->( $task_id, $hard_ceiling );
-        return;
-    }
+## absolute outer cap [ task : backend-aware timeout scaling ] : auto-     ##
+## derived from live tokens/sec [ coding.async.stream_tps ], frozen on     ##
+## stall, static per-backend fallback until enough samples. this is the    ##
+## last-resort backstop bounding the repeating extend below -- generous by ##
+## design, NOT a tight tracker of normal request duration                  ##
+my $outer_cap = <[coding.async.stream_tps]>->( qw| get_cap |, $state );
 
-    ## no task to restart [ eg self-test probes ] : the connection is still ##
-    ## open and actively producing valid output, tearing it down and        ##
-    ## re-sending from scratch would just throw away real progress and      ##
-    ## repeat the same slow generation - extend the deadline on the SAME    ##
-    ## in-flight connection instead                                         ##
+## task-based branch stays ONE-SHOT [ gated on $hard_ceiling, NOT the outer ##
+## cap ] : round_soft_restart re-fires the round's generation from scratch  ##
+## on a fresh connection, so repeating it per trip would discard a slow     ##
+## round's accumulated output on every re-arm and livelock a legitimately   ##
+## slow backend into never finishing. probes [ below ] have no restart      ##
+## machinery, so THEY get the repeating in-place extend instead - the same  ##
+## stuck-vs-slow rule, expressed through the mechanism each request type    ##
+## actually has. task-side dynamic rescaling is deliberate follow-up work,  ##
+## not an oversight                                                         ##
+if ( $stream_alive and defined $task_state and $ceiling_used < $hard_ceiling )
+{
+    ## task-based request : restart THIS round in place, not the heavier ##
+    ## on_error pipeline [ which assumes a broken connection and does    ##
+    ## backend-restart + full task requeue ]                             ##
     <[base.logs]>->(
         1,
-        "async.http_timeout: soft ceiling [%ds] hit but stream "
-            . "is alive [chunks=%d] : extending to full %ds in place",
+        "async.http_timeout: soft ceiling [%ds] "
+            . "hit for %s, restarting round with full %ds",
         $ceiling_used,
-        $state->{'chunks_received'} // 0,
+        $task_id,
         $hard_ceiling
     );
-    $callbacks->{'timeout'}     = $hard_ceiling;
+    <[coding.async.http_cleanup]>->($state);
+    <[coding.async.round_soft_restart]>->( $task_id, $hard_ceiling );
+    return;
+}
+
+## no task to restart [ eg self-test probes ] : the connection is still     ##
+## open and actively producing valid output, tearing it down and re-sending ##
+## from scratch would just throw away real progress and repeat the same     ##
+## slow generation - extend the deadline on the SAME in-flight connection   ##
+## instead. REPEATING since 2026-08-27 [ was one-shot ] : as long as the    ##
+## stream is alive at trip time, push the deadline out by another           ##
+## $hard_ceiling-sized window and re-arm, up to the auto-derived outer cap  ##
+## above. the existing request-completed budget is reused as the re-check   ##
+## interval [ a distinct  coding.cfg.round_liveness_extend_sec knob was     ##
+## considered and rejected : a second constant that must stay in sync with  ##
+## the same tuning, while the interval itself is not load-bearing for       ##
+## correctness - liveness is re-derived from the stall watcher's own signal ##
+## at every trip, and the per-chunk stall watcher remains the only thing    ##
+## that actually kills a hung stream ]                                      ##
+if ( $stream_alive and !defined $task_state and $ceiling_used < $outer_cap ) {
+    my $new_ceiling = $ceiling_used + $hard_ceiling;
+    $new_ceiling = $outer_cap if $new_ceiling > $outer_cap;
+    <[base.logs]>->(
+        1,
+        "async.http_timeout: ceiling [%ds] hit but stream is "
+            . "alive [chunks=%d] : extending to %ds in place [cap=%ds]",
+        $ceiling_used,
+        $state->{'chunks_received'} // 0,
+        $new_ceiling,
+        $outer_cap
+    );
+    $callbacks->{'timeout'}     = $new_ceiling;
     $state->{'timeout_watcher'} = <[event.add_timer]>->(
         {   'after'   => $hard_ceiling,
             'handler' => qw| coding.handler.http_timeout |,
@@ -103,24 +131,25 @@ if ( $stream_alive and $ceiling_used < $hard_ceiling ) {
     return;
 }
 
-## already at the hard ceiling : genuine timeout, existing failure path ##
+## stream stalled/dead, or past the outer cap : genuine timeout ##
 <[base.logs]>->(
     0,
     "async.http_timeout: genuine failure after %d seconds "
-        . '[ceiling=%d, stream_alive=%d]',
+        . '[ceiling=%d, stream_alive=%d, cap=%d]',
     int(<[base.time]>->(3)
             - ( $state->{'request_start'} // $state->{'last_activity'} // 0 )
     ),
     $ceiling_used,
-    $stream_alive ? 1 : 0
+    $stream_alive ? 1 : 0,
+    $outer_cap
 );
 my $error = "Request timeout";
 $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,,,,...,,.,,,,,,.,.,,,.,,,,,..,,,..,,..,.,.,.,.,...,...,...,,,,,.,.,,,.,,,.,
-#G2VESOEHJOLFWGBHUPKOIFK7CIZYO2YHBZ2SWSRTBV4VXX43JRTBMDWPSOYATRDRFB2GBGAKRYPAS
-#\\\|CVZK7XRIYNNP2MWYTUVYPFUZTN7UHFVYIEWLCX3JLSUJQSUYUZO \ / AMOS7 \ YOURUM ::
-#\[7]HHCR57ET3RNGWAEYRBDOUQU7YZ3ZMTDEWQN6YAXYFT2SHK77USDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,,,..,,.,,,.,.,.,,,.,.,...,,,.,.,.,...,...,.,.,,..,,.,,,..,.,,,
+#MTF57NDCWDHR5HTS6LG4L3DLL6QVY32EN7NYDQZLFVDIST3O3XXK3U3CUY7WCZOB4XHZUIUW7FX64
+#\\\|CFAB4LUQXJWOY7I5H44J4SEP6VWOGSZPRLOJSWYFOJSISSLUT6G \ / AMOS7 \ YOURUM ::
+#\[7]333EFPP3KVFNBQ2KCBZRVDCB6VP323DXWBQFN7ETALI32G64HIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
