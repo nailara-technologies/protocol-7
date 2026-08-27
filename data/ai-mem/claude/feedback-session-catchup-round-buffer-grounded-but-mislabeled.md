@@ -85,8 +85,39 @@ each round without any new grounding evidence.
   are the way to check whether input size is genuinely growing from
   live activity or just churning
 
-#,,,,,,.,,,,.,.,,,,,,,,.,,,..,.,.,.,.,.,,,.,,,..,,...,...,...,..,,.,.,.,.,,..,
-#PLRIHYXDRILQRMLODAWRWEKEMNIJCRSGCAHSNR7CDJYSY7JVGE3Q3OFNI64Y6NUQRYU7VOVTWSWBI
-#\\\|EU2XPMRQDIZYGOXYMMEBS3GIFJNXAA37NDFO6UBQ3GYGTLYLQDF \ / AMOS7 \ YOURUM ::
-#\[7]K4E35Q54XEJGWZMC2XPL4ZEE3E55PMOWWWJVKVENEIXYZOOWPYAY 7  DATA SIGNATURE ::
+**2026-08-27, a sharper case -- outright fabrication, not just
+mislabeling**: the `kimi_dispatch`/`kimi_continue` task-completion
+notification's own `auto_summarize` result (same local-9B mechanism,
+different call site than `session_catchup`'s live round-buffer) for a
+dispatch implementing auto-backend-selection fallback claimed a
+"critical syntax error" requiring a specific precedence-parenthesization
+fix, and a "missing closing brace" bug, and that `mmproj_path` got
+"added to both spawn calls" -- none of this appeared in Kimi's own real
+final report (which the user pasted in full separately, unabridged) nor
+in the actual committed diff (independently re-verified: `mmproj_path`
+was never added to the CPU spawn call, only the pre-existing GPU one;
+`bin/dev/ptd -c` passed clean on every file both before and after this
+notification arrived). Unlike the render-duration case above, this
+wasn't a real number/detail from elsewhere in the transcript wearing
+the wrong label -- it was specific, plausible-sounding *technical
+narrative* (a bug class, a fix shape, a file-list detail) invented
+wholesale. The unabridged full report the user pasted directly from
+Kimi's own final output was completely clean and accurate throughout.
+
+**how to apply, additionally**: the notification's `auto_summarize`
+text is not a lightweight version of the real report -- it can
+contain entirely fabricated bug narratives with no basis in the actual
+diff, more severe than a mislabeled-but-real number. Never cite a
+notification's summarized "bug found and fixed" claim as evidence of
+anything (positive OR negative) about code quality without checking
+the actual diff; if the full unabridged dispatch report is available
+(the user pasting it, or fetching it via `kimi_check_status`/
+`session_catchup` with `no_tree`), prefer that over the notification's
+summary every time it's accessible, not just when something looks
+suspicious.
+
+#,,..,,,.,,.,,..,,...,.,.,,,.,,,,,,,.,,.,,,,,,..,,...,...,,..,...,..,,,,.,...,
+#Y4XNAZHWPFDBM3JJBEHC336TXJL27QGUVDUMTD6MGGULUS5NVTHNNKPTETF4RMEIPJC5S63F52UNE
+#\\\|MMXXCXWOJFR2EPUYLDNVQR4BNDQTAKEOUQZUULQU4CYQCHSSKCP \ / AMOS7 \ YOURUM ::
+#\[7]A4F7ADAWZFAUCOEJ4YS2S3WG3GT4HF5DKPQYEMBLRGD7YJYYSEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
