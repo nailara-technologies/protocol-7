@@ -33,26 +33,27 @@ my $reply  = <[coding.cmd.inference-status]>;
 my $yaml   = $reply->{'data'}               // '';
 my $status = eval { YAML::XS::Load($yaml) } // {};
 
-my $gpu_status = $status->{'gpu'}{'status'}   // 'unknown';
-my $gpu_model  = $status->{'gpu'}{'model_id'} // '';
-my $gpu_pid    = $status->{'gpu'}{'pid'}      // 0;
+my $phase   = $state->{'phase'}   // 'switching';
+my $backend = $state->{'backend'} // qw| gpu |;
 
-my $phase = $state->{'phase'} // 'switching';
+my $backend_status = $status->{$backend}{'status'}   // 'unknown';
+my $backend_model  = $status->{$backend}{'model_id'} // '';
+my $backend_pid    = $status->{$backend}{'pid'}      // 0;
 
 my $target_model   = $state->{'target_model'}   // '';
 my $test_model     = $state->{'test_model'}     // $target_model;
 my $original_model = $state->{'original_model'} // '';
 my $prior_pid      = $state->{'prior_pid'}      // 0;
 
-my $is_ready   = $gpu_status eq qw| ready |;
-my $is_crashed = $gpu_status eq qw| crashed |;
+my $is_ready   = $backend_status eq qw| ready |;
+my $is_crashed = $backend_status eq qw| crashed |;
 
 ## the real confirmation a switch landed: a DIFFERENT pid than the one     ##
 ## running before THIS phase started, now reporting ready. model_id is set ##
 ## by switch_model_reply as soon as it starts processing - well before the ##
 ## actual kill+respawn completes - so it can read "correct" while the OLD  ##
 ## process is still the one genuinely serving. confirmed live 2026-06-21.  ##
-my $pid_changed = $gpu_pid && $gpu_pid != $prior_pid;
+my $pid_changed = $backend_pid && $backend_pid != $prior_pid;
 
 ## helper: resolve the deferred reply and clean up ##
 my $finish = sub {
@@ -155,7 +156,8 @@ my $start_restore = sub {
         $target_model, $original_model
     );
     eval {
-        <[coding.cmd.switch-model]>->( { args => $original_model } );
+        <[coding.cmd.switch-model]>->(
+            { args => sprintf '%s backend=%s', $original_model, $backend } );
         1;
     } or do {
         my $err = $@ || 'unknown error';
@@ -165,12 +167,12 @@ my $start_restore = sub {
     };
 
     ## restoring waits for a NEW pid than the one serving right now ##
-    my $live_gpu_pid = ( <coding.inference_servers> // {} )->{'gpu'}{'pid'}
-        // 0;
+    my $live_backend_pid
+        = ( <coding.inference_servers> // {} )->{$backend}{'pid'} // 0;
     $state->{'phase'}        = qw| restoring |;
     $state->{'started'}      = <[base.time]>->(3);
     $state->{'target_model'} = $original_model;     ## now we wait for this ##
-    $state->{'prior_pid'}    = $live_gpu_pid;
+    $state->{'prior_pid'}    = $live_backend_pid;
     return;
 };
 
@@ -182,13 +184,13 @@ if ( $phase eq qw| switching | ) {
     my $target_ready = $is_ready && $pid_changed;
     <[base.logs]>->(
         2, '[poll_switch] switching : pid=%s model_id=%s [expected model=%s]',
-        $gpu_pid, $gpu_model, $target_model
+        $backend_pid, $backend_model, $target_model
     ) if $is_ready;
 
     if ($target_ready) {
         <[base.logs]>->(
             1, '[poll_switch] switch confirmed ready : model %s [pid=%s]',
-            $target_model, $gpu_pid
+            $target_model, $backend_pid
         );
 
         ## run calibration against the target model : ASYNC [ 2026-07-31  ##
@@ -196,8 +198,17 @@ if ( $phase eq qw| switching | ) {
         ## delivers its result to this continuation from the probe state  ##
         ## machine's 'done' phase ; the switch state machine waits in the ##
         ## new 'testing' phase below instead of blocking                  ##
+        my $test_url
+            = $backend eq qw| cpu |
+            ? sprintf( 'http://127.0.0.1:%d',
+            <inference.backend.cpu.port> // 8001 )
+            : ( <inference.backend.http_server_url>
+                // 'http://127.0.0.1:8000' );
+
         my $run_started = <[coding.self_test.run]>->(
             {   model_id => $target_model,
+                backend  => $backend,
+                url      => $test_url,
                 on_done  => sub {
                     my ($result) = @ARG;
 
@@ -254,8 +265,8 @@ if ( $phase eq qw| switching | ) {
 
     ## still waiting for target model to become ready ##
     <[base.logs]>->(
-        2, '[poll_switch] switching : waiting for %s [gpu=%s model=%s]',
-        $target_model, $gpu_status, $gpu_model
+        2, '[poll_switch] switching : waiting for %s [%s=%s model=%s]',
+        $target_model, $backend, $backend_status, $backend_model
     ) if int($elapsed) % 5 == 0;
 
     return TRUE;
@@ -286,7 +297,7 @@ if ( $phase eq qw| testing | ) {
         for my $id ( keys %{$probe_states} ) {
             my $pst = $probe_states->{$id};
             next if ref $pst ne qw| HASH |;
-            next if ( $pst->{'backend'} // qw| gpu | ) ne qw| gpu |;
+            next if ( $pst->{'backend'} // qw| gpu | ) ne $backend;
             my $http_state = $pst->{'http_state'};
             next if !$pst->{'in_flight'} or ref $http_state ne qw| HASH |;
             next
@@ -340,13 +351,13 @@ if ( $phase eq qw| restoring | ) {
     my $original_ready = $is_ready && $pid_changed;
     <[base.logs]>->(
         2, '[poll_switch] restoring : pid=%s model_id=%s [expected model=%s]',
-        $gpu_pid, $gpu_model, $original_model
+        $backend_pid, $backend_model, $original_model
     ) if $is_ready;
 
     if ($original_ready) {
         <[base.logs]>->(
             1, '[poll_switch] restore confirmed ready : model %s [pid=%s]',
-            $original_model, $gpu_pid
+            $original_model, $backend_pid
         );
         if ( my $switch_error = $state->{'error'} ) {
             return $finish->(
@@ -401,8 +412,8 @@ if ( $phase eq qw| restoring | ) {
 
     ## still waiting for original model to come back ##
     <[base.logs]>->(
-        2, '[poll_switch] restoring : waiting for %s [gpu=%s model=%s]',
-        $original_model, $gpu_status, $gpu_model
+        2, '[poll_switch] restoring : waiting for %s [%s=%s model=%s]',
+        $original_model, $backend, $backend_status, $backend_model
     ) if int($elapsed) % 5 == 0;
 
     return TRUE;
@@ -422,8 +433,8 @@ return $finish->(
     }
 );
 
-#,,..,.,,,,..,.,,,,..,,..,,,.,,..,.,,,.,.,,,,,..,,...,...,,,.,,,,,.,.,.,.,,,.,
-#IHY2ZRM6JNWVKDLLRC2VRDWWNN3F5MH7U4MODRIHSKPOZFDU4KM7SZAXL4GEX5CP5MYUU5LCXXJR2
-#\\\|SXS6AMYML2V7YAAED5NUMKVF4RSQV56BISVUVE5UHQC72WFVDCG \ / AMOS7 \ YOURUM ::
-#\[7]CLLNEQHNPQMPXQEIJPWOQW7WYTHFPFOZ7YKZNYTSWNXI6QBM22DQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,,..,,.,,,.,,...,.,,,..,,..,,..,,...,...,.,.,...,..,,,.,,,,.,
+#WGB73BHS7ZT4VZ6DRIOTLUQFNRG2J3OJR345WWSYESKYBCDT54OMDWQ7JOXKPIR3TAJD35FBMEB6W
+#\\\|HZD42W2LC22JGPMXVADIMTV6MJYRE3E6DHHYIHULMFSW7TIBAI3 \ / AMOS7 \ YOURUM ::
+#\[7]XT7VHGCG234OWXNIMX7XIQSRLWZFCYNB2COZA3JFYEZM5D7BLSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
