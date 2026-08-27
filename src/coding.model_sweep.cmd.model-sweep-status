@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = coding.model_sweep.cmd.model-sweep-status
+# descr = show per-backend model sweep status
+# param = [backend]
+
+my $params         = shift // {};
+my $backend_filter = $params->{'args'} // '';
+
+my @backends
+    = length $backend_filter
+    ? ($backend_filter)
+    : qw| gpu cpu |;
+
+## load cursor file once [ memory may have been reset ] ##
+my $cursor_file   = 'state/model_sweep_cursor.yaml';
+my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
+my $cursor_data
+    = ( defined $existing_yaml and length $$existing_yaml )
+    ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+    : {};
+
+my @lines;
+
+for my $backend (@backends) {
+    my $active = $data{'coding'}{'model_sweep_state'}{$backend};
+    my $cursor = $cursor_data->{$backend} // {};
+
+    if ( defined $active && ref $active eq qw| HASH | ) {
+        my $candidates = $active->{'candidates'} // [];
+        my $idx        = $active->{'idx'} // 0;
+        my $total      = scalar @$candidates;
+        my $current    = $idx < $total ? $candidates->[$idx] // '' : '';
+        push @lines,
+            sprintf
+            '%s : in-progress : idx=%d/%d current=%s filter=%s',
+            $backend,
+            $idx,
+            $total,
+            $current,
+            $active->{'filter'} // qw| default |;
+    } elsif ( ref $cursor eq qw| HASH |
+        && @{ $cursor->{'candidates'} // [] } )
+    {
+        my $idx   = $cursor->{'idx'} // 0;
+        my $total = scalar( @{ $cursor->{'candidates'} // [] } );
+        if ( $idx < $total ) {
+            my $current = $cursor->{'candidates'}[$idx] // '';
+            push @lines,
+                sprintf
+                '%s : resumable [ not running ] : idx=%d/%d current=%s filter=%s',
+                $backend,
+                $idx,
+                $total,
+                $current,
+                $cursor->{'filter'} // qw| default |;
+        } else {
+            push @lines, sprintf '%s : idle', $backend;
+        }
+    } else {
+        push @lines, sprintf '%s : idle', $backend;
+    }
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,.,,,..,,..,.,,,.,.,,.,,,,,,..,,.,,,.,.,,.,,..,,...,...,..,,,..,..,,..,,,,,,
+#CSPSYBHM7AJTAEWZLIET3ITGV7X7G6TSHFEDAQEBQKEA2ZFGP26ZQGNT4C3OUTQN63FS3XLGBPQOM
+#\\\|CFMBTS77Q4FW4VBI6QAGPEVXCZFXN6XRXFK4ONIQYLR7YIPKFC5 \ / AMOS7 \ YOURUM ::
+#\[7]LQABIDPCH2IZBULPSHHEQRL52ZLKUDTWNXINHSTE73DGYOIKRABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

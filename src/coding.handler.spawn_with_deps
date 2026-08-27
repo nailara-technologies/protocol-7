@@ -47,71 +47,9 @@ my $matched_entry;
     $model_name, scalar( keys %$metadata )
 );
 
-## Search all entries for match on amos, model_id, or name  Skip mmproj ##
-## (vision projector) files - we want the actual model files            ##
-my $search_term = lc($model_name);
-$search_term =~ s/[-_\s]+//g;    ## Normalize: gemma3glitter4b
-
-foreach my $cache_name ( keys %$metadata ) {
-    my $entry = $metadata->{$cache_name};
-
-    ## Skip vision projector files ##
-    next if $cache_name =~ /mmproj/i;
-
-    my $matched = 0;
-
-    ## Check amos field (primary ID) ##
-    my $entry_amos = $entry->{'amos'} // '';
-    if ( $entry_amos eq $model_name ) {
-        <[base.logs]>->(
-            2,           '[spawn_with_deps] amos match: %s -> %s',
-            $model_name, $cache_name
-        );
-        $matched = 1;
-    }
-    ## Check model_id field ##
-    elsif ( ( $entry->{'model_id'} // '' ) eq $model_name ) {
-        <[base.logs]>->(
-            2, '[spawn_with_deps] model_id match: %s', $cache_name
-        );
-        $matched = 1;
-    }
-    ## Check exact amos key match ##
-    elsif ( $cache_name eq $model_name ) {
-        <[base.logs]>->(
-            2, '[spawn_with_deps] amos key match: %s', $cache_name
-        );
-        $matched = 1;
-    }
-    ## Check exact name field match ##
-    elsif ( ( $entry->{'name'} // '' ) eq $model_name ) {
-        <[base.logs]>->( 2, '[spawn_with_deps] name match: %s', $cache_name );
-        $matched = 1;
-    }
-    ## Check partial normalized match ##
-    else {
-        my $cache_norm = lc($cache_name);
-        $cache_norm =~ s/[-_\s]+//g;
-        my $amos_norm = lc($entry_amos);
-        $amos_norm =~ s/[-_\s]+//g;
-
-        if (   index( $cache_norm, $search_term ) >= 0
-            || index( $search_term, $cache_norm ) >= 0
-            || index( $amos_norm,   $search_term ) >= 0
-            || index( $search_term, $amos_norm ) >= 0 ) {
-            <[base.logs]>->(
-                2,           '[spawn_with_deps] partial match: %s -> %s',
-                $model_name, $cache_name
-            );
-            $matched = 1;
-        }
-    }
-
-    if ($matched) {
-        $matched_entry = $entry;
-        last;
-    }
-}
+my $resolve = <[coding.helper.resolve_model_checksum]>
+    ->( { model_name => $model_name } );
+$matched_entry = $resolve->{'matched_entry'};
 
 unless ( defined $matched_entry ) {
     <[base.logs]>
@@ -189,8 +127,8 @@ my $result = <[coding.spawn_inference_server]>->(
 
 return $result;
 
-#,,,.,,,,,,.,,,..,.,,,...,..,,...,,..,.,,,.,.,.,.,...,...,.,,,...,,,,,.,.,,,,,
-#IWZOOXFUJFZN7JUL2QWLPA4R34PXIZZZDRAX2IIH6FMKLO6EVXSTMMOHQMWOI433CFMUL7HIL3ZM4
-#\\\|UA7N2ODREM4PVXOCZSQW74WCWNRZ6MM6GQ35F74WQUIQ3SWB5T5 \ / AMOS7 \ YOURUM ::
-#\[7]QHLVSY2FEA2J3Y5NFQW4EENNRNVAZARQBZ553ZFXME2X34FJMSCI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,,,.,.,.,,..,.,,,,.,,.,.,.,.,.,.,...,...,,,,,...,...,,,,,,,.,
+#BFIWFPFXKM7CEWCYUEIC7OZ4LSAF6EI6I3G6EDYTJRQ5WBLE2RTCYROWHWFUVJPH7CEPDZARS6NK2
+#\\\|CBUPZ2NS3IQPABXQNYHJGFFBPLPLYD2PHTXBSTINEDF52TFEKWX \ / AMOS7 \ YOURUM ::
+#\[7]FPADGZ6VI7OLQILAMNQGIUGBXMX34OOF7YPXKOKC5PCG5ZAEKEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
