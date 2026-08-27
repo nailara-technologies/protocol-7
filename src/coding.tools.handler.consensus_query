@@ -46,8 +46,10 @@ if ( ref $perspectives eq 'ARRAY' and $perspectives->@* ) {
         = @{ $mode_defaults{$mode} // $mode_defaults{review} };
 }
 
-## resolve inference port ##
-my $use_cpu = <inference.backend.cpu.enabled> // 0;
+## resolve inference port : cpu only when enabled AND actually ready ##
+my $servers   = <coding.inference_servers> // {};
+my $cpu_ready = ( $servers->{'cpu'}{'status'}     // '' ) eq qw| ready |;
+my $use_cpu   = ( <inference.backend.cpu.enabled> // 0 ) && $cpu_ready;
 my $port
     = $use_cpu
     ? ( <inference.backend.cpu.port> // 8001 )
@@ -127,8 +129,8 @@ $output
 
 return $output;
 
-#,,,,,,,.,,..,.,.,,.,,.,,,.,,,...,,,,,...,,,.,..,,...,..,,.,.,...,,,.,...,,,,,
-#IX2BQVTGHI2BCTBSHTP3U6VW5W2VDTHTH3VZ2VW4J3DGQYFPCL7XT24LNJ4EB5WEJ7QLKOE3RPD6Y
-#\\\|5MDIAVXGMMBMAZJXM3OTJK2DHWWG3XK23VPXFQJUB3TG7Y26ZOT \ / AMOS7 \ YOURUM ::
-#\[7]6V7G5NJ7QVTABM4IPZITYD65VVY3SN5IHSMUBNZKZCIMNJ3NRCBY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,,,,,...,,.,,..,,.,.,,,,,.,,,..,,...,...,...,.,.,,,.,,,.,,..,
+#7CI4TZKHURTIIAOYRPZMIE2WQ6JXN7VQZ5CDMYWPT7GBQSK6WRXRZZMWCPCL3W2ZSIRRN6THBE56Y
+#\\\|AN4J5K6ETZGAW6C4GCJPFB6BV4T34KSTIBGPU2AOX4T23LINY6I \ / AMOS7 \ YOURUM ::
+#\[7]TFOWRMRSSW7SM2TCOHKN6AFIDAYHQRZO52DRODJKF3SKFT6JVYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

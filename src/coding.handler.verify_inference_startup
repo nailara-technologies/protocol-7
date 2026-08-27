@@ -203,6 +203,23 @@ if ( $restart_count >= 5 ) {
             }
         );
     }
+
+    ## genuine gpu startup failure : request cpu fallback if cpu may spawn ##
+    if ( $backend eq qw| gpu | ) {
+        my $spawn_params    = <coding.spawn_params> // {};
+        my $cpu_enabled_raw = lc( $spawn_params->{'cpu_enabled'} // 'no' );
+        if (   $cpu_enabled_raw eq 'auto'
+            or $cpu_enabled_raw =~ m{^(yes|true|1)$} ) {
+            <[base.logs]>->(
+                1,
+                '[verify_inference_startup] gpu startup failed '
+                    . 'after max retries : falling back to CPU spawn'
+            );
+            <coding.cpu_fallback_requested> = TRUE;
+            <[coding.async_spawn_inference_servers]>;
+        }
+    }
+
     $server_info->{'status'} = qw| failed |;
     return FALSE;
 }
@@ -222,8 +239,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,..,,..,..,,,.,,..,,.,,,,,.,...,..,,..,,...,..,,...,...,...,.,,,,..,,.,,...,
-#ZQLELAIO35S5J5W2IUNUHKXXRBDG2F52UGU5CIAPQQ6E64CUIPSI4GGIAP3SVZWWCGOTLXGNPCUN6
-#\\\|IXUF4AXD5LY6Z5YCH4OKJYCNZSFAWX7FUFWKMAMANPZ5U6M6DYD \ / AMOS7 \ YOURUM ::
-#\[7]2P5CKWXZIVP5MGAONPKXUX4A4RC5LAHAMR2K7MWY6L6XJCNGWGDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,...,,,.,,,.,...,,..,...,..,,..,,...,...,,..,,..,.,.,...,,..,
+#6N5VWZ3I4PTONLAHIXGOPVPRPN2FNA5G4CDMM3VIDUMF7SUUD73LMNNCFUTRGEDEN7P6VPPTOND2I
+#\\\|CN6G4ZYONJM6MD5ONNZ247S2E7UTMGTCOLNN2RLHAZKLF46S2DP \ / AMOS7 \ YOURUM ::
+#\[7]TRSLL5BO2CQE54LRR3YNSDQO7BO7RNWV3AVBN6LQLBUJ2VOF36CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
