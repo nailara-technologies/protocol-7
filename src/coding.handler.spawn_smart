@@ -191,6 +191,19 @@ if ( $backend eq 'gpu' ) {
                 $free_vram_mb,
                 $required_mb
             );
+            my $checksum = $matched_entry->{'amos'} // '';
+            if ( length $checksum ) {
+                <[coding.model_status.record]>->(
+                    {   checksum => $checksum,
+                        backend  => $backend,
+                        status   => 'resource-insufficient',
+                        detail   => sprintf(
+                            '%d MB free, need %d MB',
+                            $free_vram_mb, $required_mb
+                        ),
+                    }
+                );
+            }
             return FALSE;
         }
         <[base.logs]>->(
@@ -223,6 +236,19 @@ if ( $backend eq 'gpu' ) {
             $mem_available,
             $required_mb
         );
+        my $checksum = $matched_entry->{'amos'} // '';
+        if ( length $checksum ) {
+            <[coding.model_status.record]>->(
+                {   checksum => $checksum,
+                    backend  => $backend,
+                    status   => 'resource-insufficient',
+                    detail   => sprintf(
+                        '%d MB free, need %d MB',
+                        $mem_available, $required_mb
+                    ),
+                }
+            );
+        }
         return FALSE;
     }
     <[base.logs]>->(
@@ -243,7 +269,8 @@ if ( length $model_path && -f $model_path ) {
         {   backend     => $backend,
             model_path  => $model_path,
             mmproj_path => $mmproj_path,
-            port        => $port
+            port        => $port,
+            amos_id     => $amos_id,
         }
     );
 }
@@ -285,15 +312,16 @@ if ( defined $model_path && -f $model_path ) {
         {   backend     => $backend,
             model_path  => $model_path,
             mmproj_path => $mmproj_path,
-            port        => $port
+            port        => $port,
+            amos_id     => $amos_id,
         }
     );
 }
 
 return FALSE;
 
-#,,..,,..,...,.,.,...,...,.,,,,,.,.,.,.,.,,.,,.,.,...,...,,.,,,.,,,..,,..,,..,
-#WE2GOJFE6TIGQOCF6TT37JSL232TP76HZLQ4HJODXV672X6BB5UMKCJA6MPSUJQ6VO45OTMOQNLRW
-#\\\|GNJJ6HHPHKB4SUMIFHIXC3VMHB64NBJOBYR3Y6FSLHFAWYA5JXH \ / AMOS7 \ YOURUM ::
-#\[7]STPRNDMXHTAF5EBXCINKRZHXWRNDH53LPUMQSGGCBOF7GBOZDICQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,.,,,.,.,,,,,..,,,..,,..,,..,.,.,...,...,.,.,,..,.,,,...,..,,
+#OVP2IWPDB4JARMVTOSXRFG2UY3S64D4BN7ZGJK437Z3CPJ25WIWD6LZXBO7EJXNDU3USYPEHO77MO
+#\\\|M4GYSNW4SZYWY32LM2APFN2DNW2PX56USS47DANVEXFSJFONDNH \ / AMOS7 \ YOURUM ::
+#\[7]WYPVXDCJ2S2OHFAZHA3RBAIGTPNY4UJR7PL5JMOKMH2Z4DL3EKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

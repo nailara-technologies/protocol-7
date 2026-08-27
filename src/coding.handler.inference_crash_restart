@@ -51,7 +51,8 @@ $server_info->{'status'} = qw| restarting |;
 my $result = <[coding.handler.restart_server]>->(
     {   'params' => {
             'backend'    => $backend,
-            'model_path' => $model_path
+            'model_path' => $model_path,
+            'amos_id'    => $server_info->{'model'} // ''
         }
     }
 );
@@ -81,8 +82,8 @@ if ($result) {
     return FALSE;
 }
 
-#,,,,,,,.,.,.,,.,,,.,,,.,,.,,,,,,,.,.,,..,,,,,..,,...,..,,,..,.,,,,,.,..,,,,.,
-#FODIYMHLZVYL2CW2XZTZQGLPBLG6V4KQMHVROBKT3W5XGWNBMNKP3IVTDEOJL2V4QANYDBX2WS6NQ
-#\\\|GR6U4EJEBDAKXHYI57BURZZNWXEQQ33JOUNTYSJ7TOX24GGVYUX \ / AMOS7 \ YOURUM ::
-#\[7]DGBQGG7IH2WENMECNUBNGOQCZORZNW7QOUOFNTXWCJL7RGXZJKDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,...,,.,,...,.,.,,.,,,.,,...,..,,...,...,.,,,..,,,,,,.,.,,,.,
+#F3NLOGCRABPY6XEPTPGGGABQQ3SKHSKDAMZ2AZ6OTSVIQ4SHCOXUJXSZQZNDSEZPPRR5EXP65YNFA
+#\\\|YRDWFIDTC7JKEM6J5EQF5BX2SXKESSMVSLBYG6CZ57SE56SYXMC \ / AMOS7 \ YOURUM ::
+#\[7]L5MQ3GFPYXGZHSOZNEC5J4FX6CP5MNARPND4S5VU2SBTH4UPZOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

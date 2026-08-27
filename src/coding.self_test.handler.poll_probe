@@ -564,6 +564,18 @@ if ( $state->{'phase'} eq qw| done | ) {
         data => $summary,
     };
 
+    <[coding.model_status.record]>->(
+        {   checksum => $model_id,
+            backend  => $backend,
+            status   => $state->{'all_passed'}
+            ? 'functional'
+            : 'inference-failures',
+            detail => sprintf( '%d/%d passed',
+                $state->{'pass_count'},
+                $state->{'test_count'} ),
+        }
+    );
+
     my $on_done = $state->{'on_done'};
 
     ## release THIS backend's in-flight guard slot and the probe state      ##
@@ -591,8 +603,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,.,,.,.,.,,,...,,.,,.,.,.,,,.,.,,,.,.,.,.,,,..,,...,...,..,,,.,,,,.,.,,,...,
-#AXZXOSXFPNDQJQHTFWIYC7OGSDTIKYAETWOR2RNQRBNLYORS2NWLXAXCY2NN2WE4X5TXHUI54CGAQ
-#\\\|L2YX4MJINISDJEPIZ3FBZW2KCQRRDLEZOEVHAVDG5MRT46JVGQS \ / AMOS7 \ YOURUM ::
-#\[7]KPHJNVSS7YFBK6YYCLVU56ISEWS2CBIDFZY57E4E7RQT36B3YEAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,,,,..,.,.,...,,,.,,,.,...,,,,,..,,...,..,,...,,,.,,.,,,,.,,..,
+#PBVTY2KQL5FE5ZZOREXHROTNZZMLXGXYFEMAS5PX6T5GXTBGVPU4XVM4VCVADY2ROYIZKXOLXIHNS
+#\\\|3V3GB7H5JRA7ZA52AV5AVLZSSGFVO4ZP3VA33Z4VZ62TWFKJEZB \ / AMOS7 \ YOURUM ::
+#\[7]M2MIQYPQJOEJPIXFLZZLX5B5LSEGYW6YOBUIICCEQQL3GCODRUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

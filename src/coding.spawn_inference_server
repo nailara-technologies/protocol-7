@@ -40,6 +40,7 @@ my $threads     = $params->{'threads'}     // 8;
 my $gpu_layers  = $params->{'gpu_layers'}  // 33;
 my $model_path  = $params->{'model_path'}  // '';
 my $mmproj_path = $params->{'mmproj_path'} // '';
+my $amos_id     = $params->{'amos_id'}     // '';
 
 ## cancel watchers, close fds, and kill old server before spawning new one ##
 my $old = <coding.inference_servers>->{$backend} // {};
@@ -518,7 +519,9 @@ POSIX::setpgid( $pid, $pid );
     'pid'     => $pid,
     'binary'  => $binary,
     'seed'    => $seed,
-    'n_ctx'   => $ctx_size,    ## actual context window passed to server ##
+    ## amos checksum : may be overwritten by ready path ##
+    'model' => $amos_id,
+    'n_ctx' => $ctx_size,    ## actual context window passed to server ##
     'calculated_ctx' => $safe->{'calculated'}, ## VRAM-safe auto-calc value ##
     'status'         => qw| starting |,
     'start_time'     => <[base.ntime]>,
@@ -578,8 +581,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,.,.,,,.,,,.,,..,..,,.,,,..,,.,.,.,,,.,,,..,,...,.,.,,..,,.,,,,,,..,,.,,,
-#7UIX4XPBVN4T6C72MYQEYCOB5SPTPJGBFQM3YFEM4MG46RQTE7JWBPTADQFMPGGUR2Q2KUKAEO4J2
-#\\\|NQWWZWEYAVJNL2QHHO3BH7CZDSJDPOE73JEPLIBEZBX7C5GGFQE \ / AMOS7 \ YOURUM ::
-#\[7]EZ74ZY734HBDP2MSBLRP7F7M5ZAAZGK2YHDG53JRNG23ANSZ4YAI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,,.,,..,,.,,,.,,,,.,,,..,.,,,..,,...,...,.,,,...,,,.,,..,,,.,
+#TTSE6AXLYH5E5XYOJNKNJ7TLUTJ2HPPV6V7SAJOTOWBCXL6CVCQMIRJLNIVMDIZJ7LAVLEN22XLHS
+#\\\|O5LCKFDARDEPW26ZFL4MICWZD4ZY24JF2IORZGHYNBWUMCQK4GP \ / AMOS7 \ YOURUM ::
+#\[7]CXGSRBFT32FC7IAOO754ONYJOBC7EN7O374SXPQZDQMODYFGZYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

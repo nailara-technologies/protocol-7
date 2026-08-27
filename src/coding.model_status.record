@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = coding.model_status.record
+# descr = persist per-(checksum,backend) model status to memory and disk
+
+my $params   = shift                 // {};
+my $checksum = $params->{'checksum'} // '';
+my $backend  = $params->{'backend'}  // '';
+my $status   = $params->{'status'}   // '';
+my $detail   = $params->{'detail'}   // '';
+
+return { mode => qw| false |, data => 'checksum required' }
+    if !length $checksum;
+return { mode => qw| false |, data => 'backend required' }
+    if !length $backend;
+
+my %valid_status = map { $_ => 1 } qw|
+    untested functional inference-failures
+    startup-failure resource-insufficient
+    |;
+return { mode => qw| false |, data => 'unknown status' }
+    if !exists $valid_status{$status};
+
+my $store = <coding.model_status> //= {};
+$store->{$checksum}{$backend} = {
+    status       => $status,
+    detail       => $detail,
+    last_updated => <[base.ntime]>,
+};
+
+## durable cross-restart status : same load-merge-write pattern as         ##
+## coding.self_test.archive, but keyed per (checksum, backend) rather than ##
+## per ntime                                                               ##
+{
+    my $status_file   = 'state/model_status.yaml';
+    my $existing_yaml = <[file.zenka_dir.load]>->($status_file);
+    my $status_data
+        = ( defined $existing_yaml and length $$existing_yaml )
+        ? ( <[format.yaml.load_str]>->($$existing_yaml) // {} )
+        : {};
+
+    my $entry = $status_data->{$checksum}{$backend} //= {};
+    $entry->{'status'}       = $status;
+    $entry->{'detail'}       = $detail;
+    $entry->{'last_updated'} = <[base.ntime]>;
+
+    my $yaml_str = <[format.yaml.dump_str]>->($status_data);
+    if ( length $yaml_str ) {
+        <[file.zenka_dir.write]>->( $status_file, \$yaml_str, qw| > |, 0640 )
+            or <[base.logs]>->(
+            1, '[model_status] failed to persist status file [ %s ]',
+            $status_file
+            );
+    }
+}
+
+return { mode => qw| true |, data => 'recorded' };
+
+#,,,.,..,,...,,,.,.,,,,..,...,...,...,.,.,,,,,..,,...,..,,.,.,,..,,..,.,.,,,.,
+#LRRMYI3XJ3SQ6U344GEMD3MWNTRU3LQ3NNTTMWSR4HXV7UWETXHZMI3RV2LMX2M55X66SC34BSOZU
+#\\\|ORMKD3EHJMWW5RXM577AJORUI6AZRQCQY6UAVGGSNBCTCEMXNEC \ / AMOS7 \ YOURUM ::
+#\[7]QMLQCGBHCITJQ6MFPRVCKVZB7OJY7D5PFRPUZCNGKVU23CAPESBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

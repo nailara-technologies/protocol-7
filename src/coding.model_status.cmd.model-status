@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = coding.model_status.cmd.model-status
+# descr = persisted per-[checksum,backend] model status
+# param = [filter]
+
+my $params         = shift             // {};
+my $backend_filter = $params->{'args'} // '';
+
+my $status_data = <coding.model_status> // {};
+
+## fallback to disk after a restart, before any write has repopulated ##
+## memory                                                             ##
+if ( !%$status_data ) {
+    my $saved_ref = <[file.zenka_dir.load]>->('state/model_status.yaml');
+    $status_data
+        = ( defined $saved_ref and length $$saved_ref )
+        ? ( <[format.yaml.load_str]>->($$saved_ref) // {} )
+        : {};
+}
+
+my @lines;
+for my $checksum ( sort keys %$status_data ) {
+    my $backends = $status_data->{$checksum};
+    next if ref $backends ne qw| HASH |;
+    for my $backend ( sort keys %$backends ) {
+        next if length $backend_filter && $backend ne $backend_filter;
+        my $entry = $backends->{$backend};
+        next if ref $entry ne qw| HASH |;
+        my $status = $entry->{'status'} // 'unknown';
+        my $detail = $entry->{'detail'} // '';
+        my $line   = sprintf '%s : %s : %s', $checksum, $backend, $status;
+        $line .= sprintf ' [%s]', $detail if length $detail;
+        push @lines, $line;
+    }
+}
+
+return {
+    mode => qw| size |,
+    data => "no model-status records yet\n"
+    }
+    if !@lines;
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,,,,,..,,.,,,..,..,,.,.,,,,,.,,,,,.,.,.,...,..,,...,..,,,..,...,,,,,.,.,...,
+#ZEZ36L7GRJEYPT5ASWONH544IVM7HFP6ZRGZ7D3IAYHVLIR57UHPQQNCZ7LF4HXSQI5B5M5JCPJVU
+#\\\|E234KZOVEPARMX4FQ6E2NH6W5MDMNWNOQO2UHIVKFI5G7Y26MVR \ / AMOS7 \ YOURUM ::
+#\[7]TMP7TOIE37TVLVXIHCSHFYC6SVMN4JG5SP74WACRUFKJIMO2WYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
