@@ -269,17 +269,62 @@ if ( $phase eq qw| testing | ) {
     ## state machine forever holding  <coding.self_test_switch_in_progress> ##
     ## TRUE                                                                 ##
     if ($timed_out) {
-        <[base.logs]>->(
-            0,
-            '[poll_switch] testing : self-test probe never '
-                . 'completed within %ds for %s : falling through to restore',
-            $max_wait,
-            $target_model
-        );
-        $state->{'error'} = sprintf 'self-test probe timeout after %ds',
-            $max_wait;
-        $start_restore->();
-        return TRUE;
+        ## liveness gate [ task : backend-aware timeout scaling, item 4 ] : ##
+        ## the probe this phase waits on can now legitimately run far past  ##
+        ## the flat max_wait [ poll_probe defers a live round up to the     ##
+        ## auto-derived outer cap ]. chosen over a larger static default :  ##
+        ## any fixed number either undershoots a slow backend or dilates    ##
+        ## the stuck-probe detection window, while the shared liveness      ##
+        ## signal distinguishes exactly those two cases. while the probe's  ##
+        ## in-flight request is still streaming [ coding.async.stream_tps/  ##
+        ## is_alive ] and under its own outer cap, wait WITH it instead of  ##
+        ## forcing a restore that would switch the model out from under a   ##
+        ## productive self-test. max_wait stays the bound for a probe that  ##
+        ## is stalled or never calls back [ genuinely stuck ]               ##
+        my $skip_timeout = FALSE;
+        my $probe_states = $data{'coding'}{'self_test_probe_state'} // {};
+        for my $id ( keys %{$probe_states} ) {
+            my $pst = $probe_states->{$id};
+            next if ref $pst ne qw| HASH |;
+            next if ( $pst->{'backend'} // qw| gpu | ) ne qw| gpu |;
+            my $http_state = $pst->{'http_state'};
+            next if !$pst->{'in_flight'} or ref $http_state ne qw| HASH |;
+            next
+                if !
+                <[coding.async.stream_tps]>->( qw| is_alive |, $http_state );
+            my $outer_cap
+                = <[coding.async.stream_tps]>->( qw| get_cap |, $http_state );
+            ## mirror poll_probe : probe elapsed vs the SAME outer cap ##
+            next if $now - ( $pst->{'started'} // $now ) >= $outer_cap;
+            $skip_timeout = TRUE;
+            ## throttled : this timer ticks far more often than once a ##
+            ## minute and a long live round defers here repeatedly     ##
+            if ( $now >= ( $state->{'cap_defer_log_at'} // 0 ) ) {
+                $state->{'cap_defer_log_at'} = $now + 60;
+                <[base.logs]>->(
+                    1,
+                    '[poll_switch] testing : probe past %ds but stream '
+                        . 'alive [chunks=%d] : waiting to outer cap %ds',
+                    $max_wait,
+                    $http_state->{'chunks_received'} // 0,
+                    $outer_cap
+                );
+            }
+            last;
+        }
+        if ( !$skip_timeout ) {
+            <[base.logs]>->(
+                0,
+                '[poll_switch] testing : self-test probe never completed '
+                    . 'within %ds for %s : falling through to restore',
+                $max_wait,
+                $target_model
+            );
+            $state->{'error'} = sprintf 'self-test probe timeout after %ds',
+                $max_wait;
+            $start_restore->();
+            return TRUE;
+        }
     }
 
     <[base.logs]>->(
@@ -377,8 +422,8 @@ return $finish->(
     }
 );
 
-#,,.,,,.,,,,.,..,,,.,,,..,.,,,,,.,..,,..,,...,..,,...,..,,.,.,,,.,,,.,...,..,,
-#FVSC2DAHOCSMAOP2QN4PW7CMC3RPZEY5AEW7OIU7EGEMJIMS4SO4YFDKR67CJ7SVTFV2MJBTTZHRS
-#\\\|AOLFEGBEGFADRSASL7VQERHMK4E2QJWLEGDALI2J34ZMHNG3LHF \ / AMOS7 \ YOURUM ::
-#\[7]NQAWLCHX2UOBN2ZVJD2ZIB2EEXCZEKPZJE7IL7GIVBE62OP3REDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,,..,,..,,,.,,..,.,,,.,.,,,,,..,,...,...,,,.,,,,,.,.,.,.,,,.,
+#IHY2ZRM6JNWVKDLLRC2VRDWWNN3F5MH7U4MODRIHSKPOZFDU4KM7SZAXL4GEX5CP5MYUU5LCXXJR2
+#\\\|SXS6AMYML2V7YAAED5NUMKVF4RSQV56BISVUVE5UHQC72WFVDCG \ / AMOS7 \ YOURUM ::
+#\[7]CLLNEQHNPQMPXQEIJPWOQW7WYTHFPFOZ7YKZNYTSWNXI6QBM22DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

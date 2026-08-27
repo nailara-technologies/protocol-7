@@ -85,6 +85,30 @@ if ( not defined $http_started ) {
     my $tools_elapsed
         = defined $tools_started ? $now - $tools_started : undef;
 
+    ## liveness indicator [ task : backend-aware timeout scaling, item 8 ] ##
+    ## : the ceiling is no longer a fixed hard limit - a LIVE stream is    ##
+    ## extended in place by design [ coding.handler.http_timeout ], so a   ##
+    ## percentage of it no longer says much on its own [ a low % can be a  ##
+    ## healthy slow round, a high % can be one extension away from more    ##
+    ## headroom ]. show the stream's own liveness [ the shared             ##
+    ## coding.async.stream_tps signal, reached via the task's http_state ] ##
+    ## alongside elapsed time while the round is in its http phase, and    ##
+    ## only treat a high percentage as warning-worthy when the stream is   ##
+    ## NOT alive - a stalled stream near its ceiling is the real warning.  ##
+    ## no marker in the tools phase : the [ stale, completed ] http_state  ##
+    ## would read as stalled and mislead                                   ##
+    my $alive      = undef;
+    my $live_str   = '';
+    my $http_state = $state->{'http_state'};
+    if ( !defined $tools_started and ref $http_state eq qw| HASH | ) {
+        $alive = <[coding.async.stream_tps]>->( qw| is_alive |, $http_state );
+        my $tps = <[coding.async.stream_tps]>->( qw| get_tps |, $http_state );
+        $live_str
+            = $alive
+            ? ( defined $tps ? sprintf( 'live %.1f t/s', $tps ) : 'live' )
+            : 'STALLED';
+    }
+
     my $tools_str = 'tools: --';
     if ( defined $tools_elapsed ) {
         my $tools_flag
@@ -96,15 +120,20 @@ if ( not defined $http_started ) {
         $tools_str =~ s| +$||;
     }
 
-    ## bar/color reflect http phase [ the one with the timeout ceiling ] ##
-    $color = $http_pct >= 0.9 ? $WARN_color : $TRUE_color;
+    ## bar/color reflect http phase [ the one with the timeout ceiling ] :  ##
+    ## a high percentage only warns when the stream is NOT alive - a live   ##
+    ## stream gets extended in place by design, so its percentage is not an ##
+    ## impending-failure signal                                             ##
+    $color = $WARN_color
+        if $http_pct >= 0.9 and ( !defined $alive or !$alive );
     ## also warn if tool execution has run unreasonably long             ##
     $color = $WARN_color
         if defined $tools_elapsed && $tools_elapsed > $ceiling;
 
-    $right = sprintf "%s | R:%02d | http: %03ds of %03ds [%%%03d] | %s",
+    $right = sprintf "%s | R:%02d | http: %03ds of %03ds [%%%03d]%s | %s",
         $task_id, $round, $http_elapsed, $ceiling,
-        int( $http_pct * 100 ), $tools_str;
+        int( $http_pct * 100 ),
+        ( length $live_str ? " $live_str" : '' ), $tools_str;
 }
 
 my $rw = length $right;
@@ -121,8 +150,8 @@ return {
     'data' => $output_str,
 };
 
-#,,.,,..,,,..,,,.,...,...,...,,..,,..,,,,,,,.,..,,...,...,...,,,,,.,.,,..,..,,
-#C6DXV55QDBZAN5NSXHTY25TKGH74UZPPL44LFWDQ5NZNPNLHP7VZOX7OUBFO73GYY3LGPZPFQ5PYM
-#\\\|U32TJRG6HUY2NGLF4NJ3TPIWKKUPUVHQMQ275IDRPRUJXURUDZ7 \ / AMOS7 \ YOURUM ::
-#\[7]Z7JIXLKTR3SI6IFXD36XWQNHPJXMSZVKAWE6BN34SWESWUQFJSAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,...,...,.,,,,.,,,,,,,..,.,,,..,,...,.,.,..,,,..,,..,,.,,,..,
+#YSFBMWN44RDPHGSNEMRVBUWKK4L5UJZHIWMAGRL6JGALN4ZZHKSWTVITCBBHHBCB2GOLDUPYENMNE
+#\\\|5HDRQ5MWPU2QDKAZD74BANPN63LCCMYNVJA5HBLQP2YJLEON74Q \ / AMOS7 \ YOURUM ::
+#\[7]6OVGNLEOFYG3DXDH2U4KWE7IYI3GZGXGJ7G7AZSO65HS3M64U4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
