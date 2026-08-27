@@ -120,6 +120,33 @@ occasionally-useful production work rather than pure overhead, but needs:
 - `coding.async.stream_tps` + `coding.self_test.archive`'s tps field —
   landed 2026-08-27, real per-model/per-round throughput signal, feeds the
   multi-parameter scoring above directly
+- **`models.decision.*` / `models.statistics.invocation_tracking`, found
+  2026-08-27 and previously missing from this table entirely.** real,
+  shipped code, NOT the same thing as this doc's proposed benchmark
+  harness — it's the *consumer* end: `models.decision.recommendation_base.
+  calculate_composite_score` combines `success_rate`/`latency`/`cost`/
+  `availability` (fixed weights 0.4/0.3/0.2/0.1, confirmed by direct read)
+  from fields that must already exist on a model's registry entry;
+  `models.decision.recommendation_engine.get_model_recommendations`
+  genuinely iterates the full ~87-entry registry (not just models with
+  history), but an untested model just silently defaults toward a
+  near-zero score rather than being flagged unknown. **the producer side
+  is dormant**: `models.statistics.invocation_tracking.record_invocation`
+  is reachable from exactly one place in the entire codebase — its own
+  command entry point (`models.cmd.record_invocation`) — nothing in real
+  task-completion flow calls it automatically, confirmed via full
+  caller-grep. `models.cmd.recommend` is live and callable but its output
+  is only as meaningful as the currently-unpopulated stats feeding it. the
+  ~961-line architecture doc this was built from
+  (`data/asc/what-AI-thinks/markdown-form/protocol7/architecture/
+  models-zenka-complete-architecture.md`) matches the shipped code's shape
+  closely but doesn't mention this dormancy anywhere. **implication for
+  layer 2 / topic 1 below**: don't reuse `models.decision.*` as the
+  benchmark runner, but its composite-score/weighted-dimension pattern is
+  a second real precedent (alongside `iteration.score_result`) worth
+  mirroring, and landing the benchmark harness would REVIVE this cluster
+  by finally giving `record_invocation` real data to feed on, not
+  duplicate it.
 
 ---
 
@@ -211,6 +238,9 @@ these are the minimum viable pieces before consensus-based management is useful.
 | `base.curve.*` | working (used elsewhere) | multi-parameter score fitting |
 | `coding.async.stream_tps` | working, landed 2026-08-27 | live throughput scoring signal |
 | `coding.self_test.multiplier` (ttft_p95) | working | latency scoring signal, same pattern to generalize |
+| `iteration.loop` + `iteration.score_result` | working | criteria-based scoring engine, single-model retry — precedent for topic 1's per-workload scoring |
+| `models.decision.recommendation_base` (composite_score) | working, consumer-side only | weighted multi-dimension scoring precedent — pattern to mirror, not code to reuse directly |
+| `models.statistics.invocation_tracking` | shipped but dormant, found 2026-08-27 | the producer this whole system would finally feed |
 
 ---
 
@@ -230,6 +260,135 @@ these are the minimum viable pieces before consensus-based management is useful.
 
 ---
 
+## subsystem decomposition — candidate design documents (2026-08-27)
+
+this doc has grown into an umbrella covering several genuinely separable
+subsystems, each with its own open design questions that don't need to be
+resolved together. splitting it lets each get a proper design pass and its
+own task file(s) without one giant, permanently-half-finished document.
+six topics, in dependency order — later ones need earlier ones to exist
+first, not necessarily to be *finished*, but to have settled interfaces.
+
+### 1. benchmark harness & multi-parameter scoring
+
+**foundational — nothing else here works without this.** covers: running
+one canonical workload against one model and getting a score back.
+**spun off as its own doc, 2026-08-27**: see
+[`MODEL-BENCHMARK-HARNESS.md`](./MODEL-BENCHMARK-HARNESS.md) — includes
+two real precedents to mirror (`iteration.score_result`'s criteria
+engine, `models.decision.recommendation_base`'s weighted-composite-score
+pattern) found while researching this split, plus the discovery that
+`models.statistics.invocation_tracking` is shipped but entirely dormant
+(reachable from nowhere except its own command). summary below kept for
+the decomposition overview; the linked doc is authoritative. a smaller,
+prerequisite-free companion piece — coarse functional status (untested/
+functional/inference-failures/startup-failure) plus an async sweep
+iterator to populate it — is its own doc:
+[`MODEL-STATUS-TRACKING.md`](./MODEL-STATUS-TRACKING.md). buildable and
+useful before the full benchmark harness lands.
+
+requirements to settle:
+- canonical workload format (the 6 types already listed under layer 2) —
+  concrete yaml schema, not just names
+- the `base.curve.*`-based multi-parameter aggregation itself: which
+  parameters (correctness, ttft, tokens/sec, memory) get which weight, is
+  the weighting per-role (a coordinator cares about latency more than a
+  specialist does) or global, how is a single suitability number derived
+  from the curve fit
+- P7 native-idiom conformance as a `format_comply` sub-dimension: what
+  exactly gets checked (macro syntax use, `base.*` primitive reuse,
+  swap_subs-aware naming) and how it's scored, not just flagged
+- suite-version tagging so score history stays comparable across suite
+  revisions (already noted in `## notes` below — belongs here concretely)
+- the suite-self-improvement loop (optimizing prompts/system messages
+  toward broadest cross-model coverage) — this is the least-specified
+  piece of the whole doc and probably deserves its own sub-document once
+  the rest of the harness exists to run experiments against
+
+### 2. score storage & history
+
+tightly coupled to #1 (the harness needs somewhere to write to) but a
+distinct interface concern: how scores get queried by consensus (#4) and
+lifecycle (#5) later, not just how they get written.
+
+requirements to settle:
+- schema extension to `outcomes.json` (workload_type field, canonical
+  task ids, per-parameter breakdown alongside the aggregate score)
+- rolling-window/retention policy — how much history is kept per
+  model/role/workload before old scores are pruned or down-weighted
+- `models.benchmark.compare`'s actual recommendation algorithm — given
+  two models' score histories for the same role, what decides a winner
+  (not just "higher score," given multi-parameter scoring from #1)
+
+### 3. model discovery & auto-enqueue
+
+**independent of #1/#2** — can be designed and even partially built in
+parallel, converges with the benchmark side only at the "new model →
+enters benchmark queue" trigger point.
+
+requirements to settle:
+- hf api polling cadence and scope (which model families get watched)
+- version-comparison logic: detecting a known repo has a newer file
+  without re-downloading to check
+- dedup against `models.registry.*` — a rediscovered already-known model
+  must not re-enter the queue
+- the actual auto-enqueue trigger and what benchmark-queue entry shape it
+  produces for #1's harness to consume
+
+### 4. consensus / group membership protocol
+
+**depends on #1 + #2 existing** (or at least their interfaces being
+settled) — evidence-based proposals need real scores to cite.
+
+requirements to settle:
+- group composition mechanics: how coordinator/specialist/arbiter roles
+  are assigned, can a model hold multiple roles across groups
+  simultaneously
+- the 4-crossing consent protocol's actual integration point — this doc
+  currently just says it "gates ratification," the real interface between
+  a benchmark-evidence proposal and that protocol needs its own spec
+- threshold configuration: per-workload, per-role, per-group, or some
+  combination — and who sets them (the "human role shifts to setting
+  thresholds" framing in `## core idea` needs a concrete surface for that)
+- self-assessment loop cadence and the anomaly-detection safeguard
+  (sudden score drop → flag before autonomous demotion) — what counts as
+  "sudden," how false-positive-prone this needs to tolerate being
+
+### 5. model lifecycle management
+
+**depends on #3** (discovery feeds the pipeline) **and #4** (consensus
+decisions drive promotion/demotion) — comes last structurally, though the
+raw fetch/zero mechanics could be prototyped independently sooner.
+
+requirements to settle:
+- the present/zeroed/missing/quarantine state machine's actual triggers
+  and transition guards (already sketched in layer 4, needs to become
+  concrete state-transition code, not just a diagram)
+- LRU zeroing policy under disk pressure — what "pressure" threshold,
+  interaction with the permanent `:keep:` flag
+- lan-first fetch: neighbour-node discovery protocol, fallback ordering
+  to hf, and how this interacts with the existing 9p lazy storage design
+
+### 6. shadow evaluation & live-apply pipeline
+
+**depends on #1** (reuses the scoring pipeline) **and #4** (live-apply
+must be gated through consensus quorum, not a silent auto-swap) — a
+later cross-cutting addition, not a prerequisite for anything above.
+
+requirements to settle:
+- task-type safety classification: which queue task types are safe to
+  shadow-run against a candidate model at all (no unrepeatable side
+  effects — file writes, network calls with side effects — without
+  idempotency handling first)
+- parallel-execution/capture infrastructure: running a candidate
+  alongside (or instead of) the production model without disrupting the
+  primary task's own timing/state
+- the concrete apply-vs-discard decision: how "clears the quality AND
+  style-alignment thresholds" from #1 actually gates whether a shadow
+  result becomes the real task's output
+
+---
+
 ## notes
 
 - benchmark suite should be versioned — score comparisons only valid within
@@ -242,8 +401,8 @@ these are the minimum viable pieces before consensus-based management is useful.
 - anomaly detection: sudden score drop on a stable model → flag for review
   before autonomous demotion (could be a benchmark bug, not model regression)
 
-#,,,,,..,,..,,,,,,.,,,,..,,.,,.,.,,,.,..,,..,,..,,...,...,..,,,,.,..,,,,,,,,.,
-#7LAGM7SDDAGISI5L6DSH6L5H7USBBTILBI7FMNPHZHRD7R6V5ZGI5CXGF3CN6RMMYHOMJ3V56AI4E
-#\\\|23KNIVYI3PBYYEATX6E3QQ6KRMG43G4C3KQJQJM3LJYBG2TVCGD \ / AMOS7 \ YOURUM ::
-#\[7]X4GXRR36IZCPHPMHW2GUNZ4ZA4HWVB6RVBW6ZGZCPHZQ3WMRXQDY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,,..,,,,,.,,,,,,,,.,,...,.,,,..,,...,...,.,,,.,,,,.,,.,,,..,,
+#UGHXKF6PRNAT62HBSQFOPZIQC5EEG7XO5FG3PUWMBKBCKWW4HEM53KQLX223SBVOWGVLFHVYB6XQA
+#\\\|XW3ZNZCXHB4JIVMNQZA2U4734FJV2ND6AKONOHP26L7NKB4BAAH \ / AMOS7 \ YOURUM ::
+#\[7]VYHWROGL7IKS2GQ47OUYV33RTLIB3CES2DEHEIKDHGB377VWCCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
