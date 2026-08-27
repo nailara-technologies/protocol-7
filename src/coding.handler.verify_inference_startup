@@ -193,6 +193,16 @@ if ( $restart_count >= 5 ) {
             . 'failed to start after max retries',
         $backend
     );
+    my $checksum = $server_info->{'model'} // '';
+    if ( length $checksum ) {
+        <[coding.model_status.record]>->(
+            {   checksum => $checksum,
+                backend  => $backend,
+                status   => 'startup-failure',
+                detail   => 'restart_count exhausted',
+            }
+        );
+    }
     $server_info->{'status'} = qw| failed |;
     return FALSE;
 }
@@ -212,8 +222,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,..,,,.,.,,,,..,,..,.,.,,.,,.,,,,,,,.,,,,.,,..,,...,...,.,,,,..,,..,...,...,
-#EOIHN2YLTBMVLZUJWJMY3URETCFXH5UP6R26EJMRJRTDL2CFUN7NPIMGQNODBXKXHPT5KRJQBWKEU
-#\\\|WTZAP5IAQED634AOIOXACIANPYY7PSB6ETJDS57XNAPY3O23S7W \ / AMOS7 \ YOURUM ::
-#\[7]STFXG7JGCENVZBO7BF2Q7SFWX7CW234OXMRN5SVHKE6GVXZFWODA 7  DATA SIGNATURE ::
+#,,..,,..,..,,,.,,..,,.,,,,,.,...,..,,..,,...,..,,...,...,...,.,,,,..,,.,,...,
+#ZQLELAIO35S5J5W2IUNUHKXXRBDG2F52UGU5CIAPQQ6E64CUIPSI4GGIAP3SVZWWCGOTLXGNPCUN6
+#\\\|IXUF4AXD5LY6Z5YCH4OKJYCNZSFAWX7FUFWKMAMANPZ5U6M6DYD \ / AMOS7 \ YOURUM ::
+#\[7]2P5CKWXZIVP5MGAONPKXUX4A4RC5LAHAMR2K7MWY6L6XJCNGWGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
