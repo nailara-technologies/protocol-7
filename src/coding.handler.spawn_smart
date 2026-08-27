@@ -75,6 +75,57 @@ unless ( defined $matched_entry ) {
 ## kill existing server before memory check when force=1  ensures freed ##
 ## VRAM / RAM is reflected in the check below                           ##
 if ($force) {
+
+    ## cancel any in-flight self-test on THIS backend before killing its    ##
+    ## server [ task JEG : coding-switch-model-self-test-cancel ] :         ##
+    ## confirmed live -- a model switch previously SIGKILLed the server out ##
+    ## from under a genuinely streaming self-test probe with nothing        ##
+    ## telling the probe's own pipeline, leaving the guard set until it     ##
+    ## eventually cleared on its own [ now potentially a long wait, since   ##
+    ## poll_probe's watchdog is liveness-aware and defers to the            ##
+    ## coding.async.stream_tps outer cap ], and rejecting poll_switch's own ##
+    ## post-switch self-test with "already in progress" the whole time.     ##
+    ## same probe-state scan pattern used in verify_inference_ startup /    ##
+    ## poll_switch / trigger_backend_self_test -- at most one entry can     ##
+    ## match this backend, per the same invariant those rely on             ##
+    if ( <coding.self_test_probe_in_flight>->{$backend} ) {
+        my $probe_states = $data{'coding'}{'self_test_probe_state'} // {};
+        my $cancelled    = FALSE;
+        for my $id ( keys %{$probe_states} ) {
+            my $pst = $probe_states->{$id};
+            next if ref $pst ne qw| HASH |;
+            next if ( $pst->{'backend'} // '' ) ne $backend;
+
+            ## a genuinely in-flight request : cancel it through its own  ##
+            ## pipeline [ same shape poll_probe's own watchdog_abort path ##
+            ## already uses ] rather than deleting state out from under a ##
+            ## live request                                               ##
+            my $http_state = $pst->{'http_state'};
+            if ( $pst->{'in_flight'} and ref $http_state eq qw| HASH | ) {
+                my $cb = $http_state->{'callbacks'} // {};
+                $cb->{'on_error'}->('switch-model cancelled probe')
+                    if ref $cb->{'on_error'} eq qw| CODE |;
+                <[coding.async.http_cleanup]>->($http_state);
+            }
+            delete $probe_states->{$id};
+            <[coding.async.backend_release]>->( $id, $backend );
+            $cancelled = TRUE;
+            last;
+        }
+
+        ## stale guard, no matching probe state [ same case verify_         ##
+        ## inference_startup's stale-guard fallback already handles ] :     ##
+        ## nothing to cancel, clear it defensively - the server is about to ##
+        ## be killed regardless                                             ##
+        <coding.self_test_probe_in_flight>->{$backend} = FALSE;
+        <[base.logs]>->(
+            1,
+            '[spawn_smart] %s : %s in-flight self-test before forced respawn',
+            $backend,
+            $cancelled ? 'cancelled' : 'cleared stale guard for'
+        );
+    }
+
     my $old = ( <coding.inference_servers> // {} )->{$backend};
     if ( defined $old ) {
         for my $w_key (qw| watcher_stdout watcher_stderr |) {
@@ -241,8 +292,8 @@ if ( defined $model_path && -f $model_path ) {
 
 return FALSE;
 
-#,,,,,..,,,,,,.,,,..,,,.,,.,.,,..,.,,,.,,,.,,,.,.,...,...,,..,.,,,,,,,...,.,.,
-#DZAKONMQWZGKKFR4DFSC2C6JHV3CXRPJPOEPQ4TWKPTHTCIG7NC3T6D35WWY7K4MMEPY3SRQ6PANM
-#\\\|2VT2R2M7IHUIXFROR7NEFPDBR4Q4LFJTVCZ2W4XFMPJ6CKYAY24 \ / AMOS7 \ YOURUM ::
-#\[7]AEIZJ3ERFEITP2P5BXZILTSMUWQXP566X3K4ELKISDS442I2NQAY 7  DATA SIGNATURE ::
+#,,..,,..,...,.,.,...,...,.,,,,,.,.,.,.,.,,.,,.,.,...,...,,.,,,.,,,..,,..,,..,
+#WE2GOJFE6TIGQOCF6TT37JSL232TP76HZLQ4HJODXV672X6BB5UMKCJA6MPSUJQ6VO45OTMOQNLRW
+#\\\|GNJJ6HHPHKB4SUMIFHIXC3VMHB64NBJOBYR3Y6FSLHFAWYA5JXH \ / AMOS7 \ YOURUM ::
+#\[7]STPRNDMXHTAF5EBXCINKRZHXWRNDH53LPUMQSGGCBOF7GBOZDICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
