@@ -74,8 +74,28 @@ sequence is still to leave it as the plain 4-line form for a human to
 strip when signing, but no longer assume the sign tool does that
 stripping itself.
 
-#,,.,,...,,,.,...,,..,,..,.,.,..,,...,,,,,..,,..,,...,...,.,.,...,...,.,.,...,
-#DFLHXJHJCLEYYQWNCWYWQ7KPWHUHAXIU3QBFJQCDHK5UY4TPQEYOL4XHUGLUKIA5SGNACQOUW6W3Q
-#\\\|ORFWJGQQEPFN6P4F2HRHZTLLJLFBWGZCVBSZYHJRXBHATLCHJM5 \ / AMOS7 \ YOURUM ::
-#\[7]FZPKFELTVVBD57RNJ2IXR73E2UECJZ6NXAXTJGVY5NZKT5J56ACQ 7  DATA SIGNATURE ::
+**Reversed, 2026-08-27**: the previous correction's practical advice
+(proactively write the plain 4-line placeholder into new
+non-source-tool-generated files, e.g. `data/tasks/*.md` design/task
+docs) was itself wrong and the user corrected it directly: **do not
+add the placeholder footer to new files at all** — it is pure
+redundant work, not a requirement of the signing pipeline. Confirmed
+live same day: two freshly-written `data/tasks/*.md` files that DID
+carry the plain 4-line placeholder were signed for real anyway — the
+sign command appended a genuine AMOS7 signature block after the
+placeholder lines without touching them, leaving the placeholder text
+as orphaned dead cruft that then had to be manually deleted — exactly
+the extra round-trip the user was pointing out as pointless. The
+detection use case above (`grep -l PLACEHOLDER_FOR_AMOS7_SIGNATURE` to
+identify old/stray drafted-not-integrated files) is unaffected and
+still valid — that's about files that already exist. What changes is
+going forward: when *I* am the one authoring a new content file in
+this repo (task write-ups, design docs, etc.), leave it with no
+footer at all and let the real signing pipeline add the genuine
+signature directly — do not draft a placeholder skeleton first.
+
+#,,..,...,,,.,,,,,,.,,.,.,,..,...,...,.,.,..,,..,,...,...,.,.,..,,,.,,.,,,..,,
+#D7ZRFZZMRMGA2TMTNDWNRPPVTERAVDKOAZCAKEDF7S4NXAMCLPBNPFZ4G7Y2REG3UCHXYJNN4AKNG
+#\\\|IOHWY257Z3INL5MM4BCN37DQPBA7LAT5UJBUI2R2A2TD7ZFWP2E \ / AMOS7 \ YOURUM ::
+#\[7]NPPBCRCW644GCJHIIRJI6GRGDH2KMYY2LDC5AHF2OEEOILR6UYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
