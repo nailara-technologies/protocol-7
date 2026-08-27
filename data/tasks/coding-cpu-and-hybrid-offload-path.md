@@ -1,29 +1,52 @@
 ## [:< ##
 
 # name  = task: coding zenka CPU-only spawn path + hybrid/partial GPU offload
-# descr = the current async startup-spawn path only ever spawns the GPU
-#         inference server; CPU-only spawning is an explicit unimplemented
-#         placeholder there. separately, this codebase has no automatic
-#         partial GPU+CPU layer-offload capability [ what lm-studio calls
-#         "hybrid" / partial offload ] even though the underlying binary
-#         flag for it is already wired and used unconditionally today.
+# descr = CPU-only startup spawn landed 2026-08-26/27 (see status note) --
+#         what remains open is hybrid/partial GPU+CPU layer-offload [ what
+#         lm-studio calls "hybrid" / partial offload ], which this
+#         codebase still has no automatic detection or calculation for,
+#         even though the underlying binary flag for it is already
+#         wired and used unconditionally today.
 
-## context
+## status update (2026-08-27) -- scope #1 and #2 below are DONE, don't re-investigate
+
+when this file was written (2026-08-26), `coding.async_spawn_inference_servers`
+had a literal placeholder comment where the CPU spawn block should be:
+`# Note: CPU server spawning can be added here if needed for fallback` /
+`# For now, focus on GPU server`. that's no longer true -- CPU startup
+spawn was implemented the same/next day (commit `24f45740f`, "coding: fix
+CPU inference spawn crash-loop and dead dependency wiring"): the function
+now has a full symmetric CPU spawn block (model path resolution,
+dependency gating via its own `spawn_ready_cpu`/`model_path_cpu` pair,
+spawn call, retry/backoff) -- confirmed by direct read 2026-08-27, not
+assumed.
+
+scope #1's open question ("is spawn_smart's CPU path genuinely real, not
+just plausible-looking config plumbing?") is also answered, with the
+strongest possible evidence -- a live run, same session: parallel
+gpu+cpu self-test (`coding-self-test-true-parallelization` task, landed
+and live-verified 2026-08-27) produced a real CPU backend process
+(`[spawn_inference_server] spawned: backend=cpu pid=985077 port=8001`),
+which then genuinely served a self-test round over HTTP (real port
+8001, real streamed tokens, real ttft numbers, eventually a real 1700s
+watchdog abort on one contention-heavy round -- see
+`coding-backend-aware-timeout-scaling.md`'s live evidence). this is
+exactly the validation bar scope #2 set below ("a live cpu-only startup
+verified end to end (real process, real port, real self-test pass)") --
+met.
+
+what's genuinely still open, unaffected by any of this: scope #3, hybrid
+/ partial GPU+CPU offload. nothing done since this file was written
+touches that at all.
+
+## context (original, 2026-08-26 -- CPU-spawn parts below are now historical)
 
 found 2026-08-26 while fixing the model-path-resolution race in
 `coding.async_spawn_inference_servers` (see commit history same day,
 "coding: consolidate model-path readiness onto the dependency system").
-that function's GPU spawn block is real and working; right below it:
-
-```perl
-# Note: CPU server spawning can be added here if needed for fallback
-# For now, focus on GPU server
-```
-
-so the CURRENT async startup path (the one that runs when the coding zenka
-first boots and needs an inference server) cannot bring up a CPU-only
-backend at all today, regardless of `inference.backend.cpu.*` config
-existing and being read elsewhere.
+that function's GPU spawn block was real and working; CPU spawning was
+not yet implemented at the time -- see status update above for what
+changed since.
 
 ## what already exists (verified, not assumed)
 
@@ -53,33 +76,17 @@ existing and being read elsewhere.
 
 ## scope
 
-### 1. investigate before building: is spawn_smart's CPU path real?
+### 1. investigate before building: is spawn_smart's CPU path real? -- DONE, see status update
 
-`coding.handler.spawn_smart` already has SOME cpu-aware branching (per its
-own references to `inference.backend.cpu.*`). before writing a new
-CPU-startup path from scratch, verify live whether spawn_smart's CPU
-branch actually produces a working llama-server-cpu process today [ eg
-via a manual `coding.cmd.switch-model` to a cpu-backend model while
-watching the resulting process ]. if it works, the startup path should
-likely call the SAME underlying spawn logic spawn_smart uses, rather than
-duplicating a second CPU-spawn implementation that can drift out of sync
-with it.
+resolved 2026-08-27: yes, confirmed live via the parallel self-test run
+cited above, not just plausible-looking config plumbing.
 
-### 2. CPU-only startup spawn
+### 2. CPU-only startup spawn -- DONE, see status update
 
-add the missing branch to `coding.async_spawn_inference_servers`
-(mirroring the GPU block, reusing whatever spawn_smart calls under the
-hood per #1), gated the SAME way GPU now is: via the
-`base.dependency.*` resolve-hook pattern landed 2026-08-26
-(`coding.callback.object.model_path` / `coding.resolve.object.model_path`
-/ `coding.init_dependencies`'s `spawn_ready_gpu` root object). CPU likely
-needs its OWN `model_path_cpu` / `spawn_ready_cpu` pair rather than
-reusing the GPU one -- `inference.backend.cpu.model_id` is a distinct
-config key from the GPU model id, so the resolved file path may genuinely
-differ (different quantization/model entirely, not just a backend label
-on the same file).
+landed via commit `24f45740f`, confirmed live 2026-08-27. no longer open
+work.
 
-### 3. hybrid / partial offload -- bigger, separate investigation
+### 3. hybrid / partial offload -- bigger, separate investigation, still fully open
 
 lm-studio can run a model split across GPU+CPU when VRAM alone isn't
 enough for the full model -- slower than full GPU, but it degrades
@@ -133,6 +140,14 @@ assuming only one backend is ever active. the only reason GPU+CPU don't
 already run in parallel today is that the startup path never calls the
 CPU spawn at all -- not a deeper architectural gap.
 
+**confirmed correct, 2026-08-27**: CPU-only startup landed (see status
+update above), and genuine GPU+CPU concurrent self-testing then landed
+right behind it (`coding-self-test-true-parallelization`), live-verified
+the same day -- exactly the "falls out close to free" prediction made
+here, not a coincidence. the per-backend-keyed state pattern called out
+above is the same substrate that task's per-backend guard hash and
+per-backend watchers used.
+
 genuine multi-MODEL support [ eg two different GPU models loaded at
 once, or more slots than just the two hardcoded `gpu`/`cpu` backend
 names ] is real, separate future work, but has a real head start: the
@@ -161,19 +176,19 @@ raw effort estimate.
 
 ## validation
 
-- #1: live-verified spawn_smart CPU branch behavior, documented findings
-  before writing any new code.
-- #2: standalone test harness in the style of
-  `bin/test-scripts/test-coding-model-path-resolve.pl`, plus a live
-  cpu-only startup verified end to end (real process, real port, real
-  self-test pass).
+- #1: DONE -- live-verified 2026-08-27, see status update above.
+- #2: DONE -- standalone coverage exists via
+  `bin/test-scripts/test-coding-cpu-spawn-path.pl` and the other
+  same-cluster test scripts from the CPU-spawn-crash-loop fix; live
+  cpu-only startup verified end to end 2026-08-27 (real process, real
+  port, real self-test pass) -- see status update above.
 - #3: at minimum, a real reproduction of "model doesn't fit in free VRAM"
   and a demonstrated partial-offload spawn that actually serves inference
   successfully, slower than full-GPU but working -- not just a
   calculation that looks plausible on paper.
 
-#,,..,,,.,.,,,,..,.,,,..,,,..,.,.,,,,,,,,,,,,,..,,...,...,.,,,,.,,...,.,,,.,.,
-#2KDTGXQQJ4DWKISF5B4SGGB7QKIFGBZWTTZUHKABCWK7ID6AGJPSHASVJBKSVTBR22DDSJX2MRKLA
-#\\\|5JKCECO7AUSLK5AVGN5EPQVDY2T6EJPZDPRJTLSAFMHODFWC7U4 \ / AMOS7 \ YOURUM ::
-#\[7]XRSCHGURHUJC7K7WHVL4PCMAI5JSRLFR3QKJAHBUO4V6IAVJHQDI 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,,..,..,,,..,...,,,,,.,,,...,..,,...,...,.,,,,,.,,..,,,.,,,.,
+#YZGYAGHBOLULEGPOIXT5K6BHXQ4SR5ZPAWGC53JHDAEFH25CIW5JCQ7DIHYDUACFUVHI3O6YUVRNC
+#\\\|S3B4KX4LPMC5P7BCVBXUJ6RXFPZSPKUT7YFYPO7DPAB4FYKNUE2 \ / AMOS7 \ YOURUM ::
+#\[7]R6Y32R6SBNBFZZMUEUHKZZJOMWP3XCN2MGDD3CASFT5IZICZFWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

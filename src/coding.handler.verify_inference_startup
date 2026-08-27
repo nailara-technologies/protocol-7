@@ -45,8 +45,12 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
     ## comfortably past it, not tight. self_test_max_total's default is     ##
     ## derived once at coding.init_code from self_test_tier1_extra_rounds - ##
     ## read here, never recomputed, so this ceiling and poll_probe's        ##
-    ## watchdog can never silently drift out of sync with each other        ##
-    if (<coding.self_test_probe_in_flight>) {
+    ## watchdog can never silently drift out of sync with each other. the   ##
+    ## guard is a per-backend hash slot since 2026-08-27 [ task :           ##
+    ## coding-self-test-true-parallelization ] : only THIS backend's own    ##
+    ## in-flight self-test defers its queue resume - a probe running on a   ##
+    ## different backend is irrelevant here                                 ##
+    if ( <coding.self_test_probe_in_flight>->{$backend} ) {
         my $self_test_budget = <coding.cfg.self_test_max_total> // 1200;
         my $defer_ceiling    = int( ( $self_test_budget + 120 ) / 2 );
         my $defer_count = ( $server_info->{'queue_resume_defer_count'} // 0 );
@@ -126,8 +130,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,..,,..,,,,,,..,.,.,,,,,,,,,.,,,,,.,,,,,.,,,..,,...,...,..,,.,,,...,,,.,,,.,
-#MHPFUIMRWLRAW43LD77VD3LOMGUKXBUCRXSWENNUW2ILHQMRDNNV4RACCEPTBLZJPGVUIN65I4HXI
-#\\\|K4BH4T2X3ZIUHOZMSRSBZRMOBD3BXKCSA5ECSRCOG4UCBPC4I5T \ / AMOS7 \ YOURUM ::
-#\[7]VI3XOER3HRAVFXOR4NYXT7FH5BGGUNU7IIUXGILC5MFDSA4VS4DY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,.,,..,,,.,,.,,,,.,,..,.,.,,,,,..,,...,...,...,,.,,,,,,,,.,.,,,
+#JD7JQUAXJVUMVXUOFJQI334KXL4REAAPQWP5E346QVDPJJSMIZ4RFD7QSWARRYJXNXYZQ4MA3FBBG
+#\\\|QNTNPCM5CQIMKYAWTO4M3JUDRLXT5R7QWLTMOOHQCWGVD7FPP2T \ / AMOS7 \ YOURUM ::
+#\[7]DAPO5JRBGEY3I2Z5VGTZJDZ2NPGPOOEV3EY5HVJMWTFDR5B374DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
