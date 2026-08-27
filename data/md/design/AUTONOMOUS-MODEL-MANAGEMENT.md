@@ -53,13 +53,73 @@ format_comply   ## output follows requested format consistently
 - score = pass rate over K runs (accounts for temperature variance)
 - scores stored per model per workload type in outcomes.json (already exists)
 - thresholds per workload type configurable per group
+- **multi-parameter, not pass/fail alone (2026-08-27)**: correctness is one
+  axis among several — latency (ttft), throughput (tokens/sec), memory
+  footprint, and processing speed all feed the same suitability score.
+  `base.curve.*` (`src/base.curve.eval.position`, `src/base.curve.eval`,
+  `src/base.curve.cancel`) is the intended fitting/interpolation primitive
+  for combining them, already flagged as reusable prior art in
+  `data/tasks/coding-backend-aware-timeout-scaling.md`. real per-parameter
+  signal now exists to feed it: `coding.async.stream_tps` (live tokens/sec,
+  landed 2026-08-27) and the `coding.self_test.archive` `tps` field it
+  finally gave a producer to (previously dead, `// 0` always) are working
+  substrate, not aspirational — this layer no longer needs new
+  instrumentation to start from, just the curve-fitting/aggregation on top.
+- **the suite itself should improve, not just the model pool**: later
+  passes can optimize the canonical tasks/prompts and system messages
+  themselves toward broadest success coverage across models, not only
+  score models against a fixed suite. a benchmark suite that never adapts
+  can systematically favor whichever model happens to match its original
+  phrasing — this closes that loop, at the cost of needing suite-version
+  discipline (see notes below) to keep score history comparable across
+  suite revisions.
+- **P7 native-idiom conformance as a first-class dimension of
+  `format_comply`**, not just generic output-format matching: does the
+  model's code/edits use the project's own native routines and structures
+  (`base.*` primitives, swap_subs-aware naming, the P7 macro syntax) rather
+  than reinventing them or importing foreign idiom. same lens the kimi
+  dispatch style guardrails already apply informally at dispatch time
+  (`data/yaml/code-style/CONVENTIONS.yaml`, the kimi-dispatch-workflow
+  context template) — this generalizes it into a scored, structural signal
+  instead of a per-dispatch reminder.
+
+### shadow evaluation against real tasks, with optional live-apply
+
+a benchmark "task" doesn't have to be synthetic. when a real item from the
+task queue is used as the workload — run in parallel/shadow against one or
+more candidate models alongside (or instead of) the production model — the
+same scoring pipeline applies, AND, if the candidate's result clears both
+the quality/correctness threshold and the style-alignment check above, the
+result can be applied as the real task's actual output instead of being
+discarded as pure benchmark exhaust. turns evaluation traffic into
+occasionally-useful production work rather than pure overhead, but needs:
+- a clear boundary on which task types are safe to shadow this way (never
+  anything with side effects that can't be produced twice — file writes,
+  network calls with side effects — without careful idempotency handling)
+- the group's existing quorum/ratification machinery (layer 3) gating the
+  apply decision, not a silent auto-swap
+- this is squarely a layer 2 + layer 3 interaction, not a new layer
 
 ### existing foundation
 
 - `outcomes.json`, `get_statistics`, `check_cache_first` — already tracking
   per-model success rates in coding zenka
 - extend to structured suite: add workload_type field, canonical task ids
-- `llm.service.consensus_vote` — already extracted, untested — drives layer 3
+- `llm.service.consensus_vote` — already extracted, untested — drives
+  layer 3. **2026-08-27**: confirmed still local-only and still hardcoded
+  to three specific small models (Qwen2.5-7B, Mathstral-7B, Aya-23-8B) that
+  don't correspond to anything in the current live model registry (`p7c
+  coding.list coding-models` — ~87 real entries, none matching). this is
+  the concrete trigger for revisiting this doc — todo `Q5D` flagged the
+  README overclaiming remote-API participation in this voting (fixed
+  separately, see README's Multi-Model Consensus bullet), and the natural
+  follow-up question — "just update the hardcoded list" — is exactly what
+  this whole document exists to avoid doing again. the fix for
+  `llm.service.consensus_vote`'s model list is THIS system landing, not
+  another static edit.
+- `coding.async.stream_tps` + `coding.self_test.archive`'s tps field —
+  landed 2026-08-27, real per-model/per-round throughput signal, feeds the
+  multi-parameter scoring above directly
 
 ---
 
@@ -148,6 +208,9 @@ these are the minimum viable pieces before consensus-based management is useful.
 | task zenka state machine | working | benchmark job queue |
 | 4-crossing consent protocol | designed | membership ratification |
 | 9p lazy storage | designed | zero/restore lifecycle |
+| `base.curve.*` | working (used elsewhere) | multi-parameter score fitting |
+| `coding.async.stream_tps` | working, landed 2026-08-27 | live throughput scoring signal |
+| `coding.self_test.multiplier` (ttft_p95) | working | latency scoring signal, same pattern to generalize |
 
 ---
 
@@ -179,8 +242,8 @@ these are the minimum viable pieces before consensus-based management is useful.
 - anomaly detection: sudden score drop on a stable model → flag for review
   before autonomous demotion (could be a benchmark bug, not model regression)
 
-#,,,,,,,.,...,.,,,,,,,...,..,,,,.,,,.,,.,,,,,,..,,...,...,.,,,.,,,.,.,.,,,,,,,
-#FARL65KCM233ISYG5LVWNT5DOC3SOZRWR4NW7KOKOS5PRSMKR5TS6JPKG25N2U5UWID3LIW7YBM66
-#\\\|AQBTEV6DV2S57CH6ZQ7OHODLSLJTSUQEYOXREFKY62LTRNL7QEP \ / AMOS7 \ YOURUM ::
-#\[7]B5TMFWVWQ6ECEEXY6LUQYT4S3G3NU7ZS7LR4JJPJDV7DUFBQKEBI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,.,,,,..,,.,,.,.,,,.,..,,..,,..,,...,...,..,,,,.,..,,,,,,,,.,
+#7LAGM7SDDAGISI5L6DSH6L5H7USBBTILBI7FMNPHZHRD7R6V5ZGI5CXGF3CN6RMMYHOMJ3V56AI4E
+#\\\|23KNIVYI3PBYYEATX6E3QQ6KRMG43G4C3KQJQJM3LJYBG2TVCGD \ / AMOS7 \ YOURUM ::
+#\[7]X4GXRR36IZCPHPMHW2GUNZ4ZA4HWVB6RVBW6ZGZCPHZQ3WMRXQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
