@@ -22,6 +22,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [git-log-before-disk-read](feedback-git-log-before-disk-read.md) — for staleness/"is this done yet" checks, `git log --grep`/`-- <path>` is the first move (cheaper, less context), fall through to reading files only if git log comes up empty
 - [console-command-warning-policy](feedback-console-command-warning-policy.md) — console-facing commands must catch/collect subroutine warns and report one specific reason, never let raw warn() noise stream to the user; check for redundant-rediscovery too (memoize), not just add a quiet flag over correct-but-noisy repetition
 - [combined-grep-conflated-caller-counts](feedback-combined-grep-conflated-caller-counts.md) — grep -rln 'A|B' reports files matching EITHER pattern; reported an inflated 23-caller blast radius (actually 2) in a dispatch prompt because I combined two function names' greps; kimi's own verification caught it, not me
+- [grep-repo-wide-before-listing-all-callers](feedback-grep-repo-wide-before-listing-all-callers.md) — opposite failure: a task file claimed "all 3 callers" of a sub from following one call chain end-to-end, missed 5 of 8 real repo-wide callers (incl. the primary cold-boot spawner); always grep the whole tree before enumerating "all callers" of anything
 - [web-browser-tls-ignore-and-proxy-no-proxy](feedback-web-browser-tls-ignore-and-proxy-no-proxy.md) — ignore_tls_errors toggle (global, opt-in) + NO_PROXY fix (18e79492d); proxy call-order race (proxy_setup ran before open_window assigned web_context) RESOLVED same day by moving the call inside open_window; bare `<[X]>` macro call needs a trailing `;` before a comment+foreach line or ptd -c mis-locates the syntax error
 - [web-browser-js-form-fill-reset-on-submit](feedback-web-browser-js-form-fill-reset-on-submit.md) — synthetic React-input fill via run_js worked fine, but an XPath text-match click likely hit a nearby "Reset" button instead of "Continue"; verify which element a selector actually resolved to before assuming app-level validation is misbehaving
 - [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
@@ -98,8 +99,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 
-#,,.,,,.,,.,.,,,.,,,,,,,,,,.,,,,.,,.,,,..,,,.,..,,...,...,.,,,...,,,,,,,.,,,.,
-#ZU4O7WE3CAUDQT7KI2PDLAL7FLXUYSZECS7PCOVNNTK7SRQUXMKZI7TPDP7SI3NJ3TSO4BJXV37FI
-#\\\|OWQMXTYG6LXTAXOFYK2SPS32Z2LU4P435LCXOQZLHZBFPXJ2MYT \ / AMOS7 \ YOURUM ::
-#\[7]ZWTCJA33IKS33UI7IIU67KP7S76N6EMO5Y3PNOAFJTQZZSDY36BA 7  DATA SIGNATURE ::
+#,,..,.,.,...,..,,..,,...,,..,,..,.,,,,,,,,..,..,,...,...,...,,.,,,..,,.,,...,
+#MHIJB2R6CLZKMQB2Z5OUOC66CGQX2A4WXJ2QZFAP4XF7KNCOKRIPTLYGGJDLISAUREI7K46CEGBMS
+#\\\|2GILU47TABCYXE54OH5T3PC6BBCXAXKV2RNXV4CWAZEDEAKOX5F \ / AMOS7 \ YOURUM ::
+#\[7]LGKQG3WZ3OFM5UHOWPS74JFSY5YDVWC35QHMILSYF2WXZ6KI2OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
