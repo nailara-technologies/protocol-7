@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = keys.console.prune-backups
-# param = [name]|remove <name> <type> <bak> [--yes]
+# param = [name]|remove <name> <type> <bak> [::yes::]
 # descr = dedup backups, or explicitly remove one
 
 my @args = @ARG;
@@ -10,7 +10,7 @@ if ( @args and $args[0] eq qw| remove | ) {
     shift @args;
 
     my $force = FALSE;
-    if ( @args and $args[-1] eq qw| --yes | ) {
+    if ( @args and $args[-1] eq qw| ::yes:: | ) {
         $force = TRUE;
         pop @args;
     }
@@ -22,7 +22,7 @@ if ( @args and $args[0] eq qw| remove | ) {
         or not length( $backup_sel // '' ) ) {
         return
             print "\n  << expected : remove <key_name> "
-            . "<type> <backup_basename> [--yes] >>\n\n";
+            . "<type> <backup_basename> [::yes::] >>\n\n";
     }
 
     my $status = <[keys.backup.remove]>->(
@@ -46,8 +46,8 @@ if ( @args and $args[0] eq qw| remove | ) {
     <[base.exit]>->(qw| 00000 |);
 }
 
-#,,,,,,.,,,,,,,..,..,,,,.,,,,,,,,,,..,.,.,,,,,..,,...,..,,,..,,..,,.,,,,,,...,
-#2B4XGF6LZDL3OKM4UPZWSLJOTRVOKXCNIQ7GTOMLVUBC4I5OVNNB5ROAUO3Y4YHFJB7JEBRNFQ6CO
-#\\\|VW76KQDHXPJ7277GXGWFSIXTB4KRDA3VXUPLUYFO5GQVGYUAR72 \ / AMOS7 \ YOURUM ::
-#\[7]3NJSP5672VBJJIVOCJVN3DVUABP6NKD7SX2JSKSXQMZ5XTKTDQDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,...,,,,,,.,,.,.,.,,,,,,,,..,..,,...,...,...,.,,,,..,...,,,,,
+#YRSAH663SEET6XWRNBM2F7L5ZBDUGZEKTJI7EIDLUD53ALM7BSHDLU5CMP43XRYUQSHBAA6ANKSXI
+#\\\|ADRFAF6GMBQOYO7CTIIUQ6Y56WC5AB2LK3VDX7EBFJDEB3S6SAD \ / AMOS7 \ YOURUM ::
+#\[7]76O3XJAG7FGRPRXO7DYLG2M2VHXAME6KAZY3QTFZCBWXZJIHX2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
