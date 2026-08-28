@@ -20,6 +20,21 @@ my $buffer_length = $arg->{'buffer_length'};
 
 my $re = <regex.base>;
 
+my $call_reply_handler = sub {
+    my ( $handler_name, $handler_args ) = @_;
+    eval {
+        $code{$handler_name}->($handler_args);
+        1;
+    } or do {
+        my $err = $EVAL_ERROR // 'unknown error';
+        ( my $err_str, my $caller ) = <[base.format_error]>->( $err, -1 );
+        <[base.logs]>->(
+            0,   '[%d] reply handler error [%s]: %s',
+            $id, $caller // $handler_name, $err_str
+        );
+    };
+};
+
 if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
     if ( defined $session->{'route'}->{$cmd_id} ) {
@@ -41,7 +56,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     if ( defined $code{ $route->{'reply'}->{'handler'} } ) {
 
                         ##  calling reply handler  ##
-                        $code{ $route->{'reply'}{'handler'} }->(
+                        $call_reply_handler->(
+                            $route->{'reply'}->{'handler'},
                             {   'sid'       => $id,
                                 'cmd'       => $cmd,
                                 'call_args' => $call_args,
@@ -137,7 +153,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                             if ( defined $code{ $route->{reply}->{handler} } )
                             {
                                 ##  calling reply handler  ##
-                                $code{ $route->{'reply'}->{'handler'} }->(
+                                $call_reply_handler->(
+                                    $route->{'reply'}->{'handler'},
                                     {   'sid'       => $id,
                                         'cmd'       => $cmd,
                                         'call_args' => $call_args,
@@ -220,7 +237,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                             if ( defined $code{ $route->{reply}->{handler} } )
                             {
                                 ##  calling reply handler  ##
-                                $code{ $route->{'reply'}->{'handler'} }->(
+                                $call_reply_handler->(
+                                    $route->{'reply'}->{'handler'},
                                     {   'sid'       => $id,
                                         'cmd'       => $cmd,
                                         'call_args' => $call_args,
@@ -295,7 +313,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     if (    defined $route->{'reply'}->{'handler'}
                         and defined $code{ $route->{'reply'}->{'handler'} } )
                     {
-                        $code{ $route->{'reply'}{'handler'} }->(
+                        $call_reply_handler->(
+                            $route->{'reply'}->{'handler'},
                             {   'sid'    => $id,
                                 'cmd'    => qw| STRM |,
                                 'cmd_id' => $cmd_id,
@@ -335,7 +354,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     if (    defined $route->{'reply'}->{'handler'}
                         and defined $code{ $route->{'reply'}->{'handler'} } )
                     {
-                        $code{ $route->{'reply'}{'handler'} }->(
+                        $call_reply_handler->(
+                            $route->{'reply'}->{'handler'},
                             {   'sid'    => $id,
                                 'cmd'    => qw| STRM |,
                                 'cmd_id' => $cmd_id,
@@ -726,7 +746,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                 ## as SIZE                                ##
                                 my $accumulated_data = $stream->{'buffer'};
                                 if ( defined $code{ $stream->{'handler'} } ) {
-                                    $code{ $stream->{'handler'} }->(
+                                    $call_reply_handler->(
+                                        $stream->{'handler'},
                                         {   'sid'       => $id,
                                             'cmd'       => qw| SIZE |,
                                             'call_args' => {
@@ -1008,8 +1029,8 @@ UNKNOWN_TYPE_HANDLED:
 
 return 0;    ##  command complete  ##
 
-#,,..,..,,,.,,,,,,...,.,.,.,,,,..,,.,,..,,.,,,..,,...,...,.,.,..,,..,,.,,,,.,,
-#CU6SFPUFBAE2ZYQRGH3R4WSU63W75W3S4CIU3ZMQTK5XOW3BYAGZL6Z6TGPASWY36LD3HSCXMJEHM
-#\\\|P23TAJPKDMIV5XYU2J26DH7IMHSGPWYAHDDHSV3TTA3VCGOJCX2 \ / AMOS7 \ YOURUM ::
-#\[7]IFCHK3OWXVHP47T3TJOEYZW4DSVZITRFNWUGZXWKI2PAZ5DFOWDQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,,..,.,,,...,,,,,...,,,.,,,,,..,,...,...,...,,.,,,,.,.,.,.,.,
+#O35JCQXCJYT33DNACBYZ47SSGMHE4NPNJ3TACGHB7MK2CDDKE6UMULAQKY7ZYHITEAL4RFBER7PDY
+#\\\|J3PF33C7RIK7GFNJS7DHZUA6MJJQAFW2XA7WH7FTJAYTJFGSAPU \ / AMOS7 \ YOURUM ::
+#\[7]DYZULX6LJVDCO2VM7FH2XLZJ2BTHEDAJ3IPD6CA45UTTZYXHAWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

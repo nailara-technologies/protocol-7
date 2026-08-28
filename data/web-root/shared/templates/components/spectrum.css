@@ -1,0 +1,150 @@
+/* spectrum.css — generic component vocabulary, extracted from var/httpd/skins/spectrum.tmpl
+ * and the interview-cheatsheet document it originated from.
+ *
+ * pure CONTENT-level components, no page chrome (no header/nav/footer grid — that part
+ * stays specific to whatever skin or vhost page hosts these). any static vhost page can
+ * pull this in directly, independent of the template/skin engine.
+ *
+ * requires the --bg-*/--spectrum-*/--glow-*/--text-*/--accent-*/--ok-green/--warn-amber
+ * custom properties (see :root block below) — define them on the host page, or copy this
+ * block as-is if the page has no palette of its own yet.
+ */
+
+:root {
+    --bg-void: #000010;
+    --bg-deep: #08030f;
+    --bg-layer: rgba(5, 2, 20, 0.7);
+    --spectrum-near: #50a0ff;
+    --spectrum-mid: #7070ff;
+    --spectrum-far: #9060ff;
+    --edge-primary: #0060ff;
+    --edge-secondary: #4080ff;
+    --edge-active: #80c0ff;
+    --glow-blue: #4080ff;
+    --glow-violet: #8737c0;
+    --glow-fusion: #8050e0;
+    --text-primary: #90b0e0;
+    --text-secondary: #7098d0;
+    --text-dim: #5070a0;
+    --accent-cutout: #70c0ff;
+    --accent-position: #80c0ff;
+    --ok-green: #60e0a0;
+    --warn-amber: #e0b060;
+}
+
+/* content section wrapper, for pages that opt into card framing */
+.section {
+    margin-bottom: 18px;
+    background: var(--bg-layer);
+    border-radius: 11px;
+    padding: 20px 22px;
+    border: 1px solid rgba(80,128,255,0.15);
+    scroll-margin-top: 90px;
+}
+
+/* quicknav, for pages with in-page anchors */
+nav.quicknav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+nav.quicknav a {
+    color: var(--accent-position); text-decoration: none; font-size: 0.85em;
+    border: 1px solid rgba(80,128,255,0.3); border-radius: 14px; padding: 4px 12px;
+}
+nav.quicknav a:hover { border-color: var(--edge-active); text-shadow: 0 0 6px var(--glow-blue); }
+
+/* highlighted callout block */
+.anchor-cube {
+    background: linear-gradient(135deg, rgba(96,224,160,0.06) 0%, rgba(80,128,255,0.03) 100%);
+    border: 1px solid rgba(96,224,160,0.35);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+}
+.anchor-cube .lead { color: var(--ok-green); font-weight: 600; margin-bottom: 6px; }
+
+/* two-column definition/glossary table — td.term for the defined word, td.gloss for
+ * an italic secondary column (translation, category, whatever the page needs) */
+table.glossary { width: 100%; border-collapse: collapse; margin-top: 6px; }
+table.glossary th, table.glossary td {
+    text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(80,128,255,0.12);
+    vertical-align: top; font-size: 0.92em;
+}
+table.glossary th { color: var(--edge-active); font-weight: 600; font-size: 0.85em; letter-spacing: 0.5px; }
+table.glossary td.term { color: rgba(112, 156, 216, 0.85); font-weight: 600; white-space: nowrap; text-shadow: 0 0 6px rgba(64, 128, 255, 0.3); }
+table.glossary td.gloss { color: var(--text-dim); font-style: italic; white-space: nowrap; }
+table.glossary tr:hover td { background: rgba(80,128,255,0.05); }
+
+/* arrow-marker cue list */
+.cue-list { list-style: none; padding: 0; }
+.cue-list li { position: relative; padding-left: 22px; margin-bottom: 8px; }
+.cue-list li::before { content: '\25B8'; position: absolute; left: 0; color: var(--accent-cutout); }
+.cue-list b { color: var(--text-primary); }
+
+/* pill badges */
+.tag { display: inline-block; background: rgba(80,128,255,0.1); color: var(--text-secondary);
+    padding: 2px 10px; border-radius: 12px; font-size: 0.8em; border: 1px solid rgba(80,128,255,0.3); margin: 2px 4px 2px 0; }
+.tag.primary { border-color: var(--ok-green); color: var(--ok-green); }
+.tag.secondary { border-color: var(--warn-amber); color: var(--warn-amber); opacity: 0.85; }
+
+.flag { font-size: 0.78em; text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+.flag.warn { background: rgba(224,96,96,0.15); color: #e08080; border: 1px solid rgba(224,96,96,0.4); }
+
+/* search-term highlight — pairs with type-to-search.js's highlightTerms() */
+mark.search-hl { background: rgba(80,128,255,0.35); color: var(--edge-active); border-radius: 2px; padding: 0 1px; }
+
+/* abbreviation / definition tooltip */
+.tt {
+    position: relative;
+    border-bottom: 1px dotted var(--accent-cutout);
+    cursor: help;
+    color: rgba(112, 156, 216, 0.85);
+    text-shadow: 0 0 6px rgba(64, 128, 255, 0.3);
+    font-weight: 600;
+}
+.tt::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 50%;
+    bottom: 125%;
+    transform: translateX(-50%) translateY(4px);
+    background: rgba(8, 4, 20, 0.98);
+    color: var(--text-primary);
+    border: 1px solid rgba(112,192,255,0.45);
+    border-radius: 6px;
+    padding: 7px 11px;
+    font-size: 0.8em;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+    width: max-content;
+    max-width: 260px;
+    text-align: left;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.55), 0 0 14px rgba(80,128,255,0.18);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    z-index: 200;
+}
+.tt::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 125%;
+    transform: translateX(-50%) translateY(-3px);
+    border: 5px solid transparent;
+    border-top-color: rgba(112,192,255,0.45);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, visibility 0.15s;
+    z-index: 200;
+}
+.tt:hover::after, .tt:focus::after,
+.tt:hover::before, .tt:focus::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+/* tooltip inside a table cell : keep it from clipping against the row above */
+td .tt::after { bottom: auto; top: 125%; }
+td .tt::before { bottom: auto; top: 125%; transform: translateX(-50%) translateY(3px); border-top-color: transparent; border-bottom-color: rgba(112,192,255,0.45); }
+td .tt:hover::after, td .tt:focus::after,
+td .tt:hover::before, td .tt:focus::before { transform: translateX(-50%) translateY(0); }

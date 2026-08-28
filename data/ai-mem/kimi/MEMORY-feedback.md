@@ -41,3 +41,21 @@ register a new zenka — wait for a network restart instead. single-zenka
 #\\\|YVSHLESUVCQTZHIWUR5XUARBADRROGAFF5DTYZQW4RVVNLS2KC6 \ / AMOS7 \ YOURUM ::
 #\[7]REKI7EUEUJL3KEG5WQVKINMEHM2HQQ6JHFPVA34PPRRCQ5JZPWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## web-browser capture-slideshow var-watcher [ 2026-08-28 ]
+
+The `event.add_var` var-watcher armed by `web-browser.cmd.start-capture-slideshow`
+works correctly once the watched scalar is passed as an explicit
+`\$data{'seg1'}{'seg2'}{'leaf'}` reference. The Glib::Event-backed `web-browser`
+main loop services `Event->var` watchers normally; the earlier failure was the
+escaped `\<web-browser.slideshow.url_index>` form, which the macro translator
+turns into a reference to the literal name string and therefore never fires.
+
+Also fixed: `src/web-browser.cmd.stop_slideshow` line 7 was doing a bare `== 0`
+comparison against `<web-browser.slideshow.running>`, throwing an undef warning
+when called on an already-stopped slideshow. Guarded with `( // 0 )`.
+
+#,,,,,,,.,..,,..,,,,,,.,,,,,.,..,,,,,,,,.,.,,,..,,...,...,,..,.,.,,,,,.,.,.,,,
+#TOVHP2HPH6UPWMSS254LQ4DSVVCGHQJR52WZNTQDLYES33T3QGMTN3STR2IYTSFZQ47QZKRS54W22
+#\\\|J3ILCA5X6AJ2IRBDJS7UNDTASVDH3KXTPGLE3NORMTTWWOCAJUQ \ / AMOS7 \ YOURUM ::
+#\[7]FIV4TYTDEA73SWQLLBW7KX4LACBLCHKBGJS7FPOWUWAE5LHKFGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = X-11.callback.object.xvfb_resource_available
+# descr = dep callback: resolves TRUE when system RAM can fit the requested
+#         Xvfb framebuffer and the requested dimensions are within sane limits
+
+my $obj_id = shift                          // return FALSE;
+my $obj    = <dependency.object>->{$obj_id} // return FALSE;
+
+my $width  = $obj->{'width'}  // 0;
+my $height = $obj->{'height'} // 0;
+my $depth  = $obj->{'depth'}  // 24;
+
+## reject missing or unreasonably large dimensions outright ##
+return FALSE
+    if $width == 0
+    or $height == 0
+    or $width > 4096
+    or $height > 4096;
+
+## Xvfb allocates the full framebuffer up front; 24-bit is padded to 32-bit ##
+my $bytes_per_pixel
+    = $depth <= 8  ? 1
+    : $depth <= 16 ? 2
+    :                4;
+
+my $framebuffer_mb
+    = int( $width * $height * $bytes_per_pixel / ( 1024 * 1024 ) );
+my $required_mb = $framebuffer_mb + 128;    ## small server overhead ##
+
+my $free_mb = 0;
+if ( open my $fh, '<', '/proc/meminfo' ) {
+    while (<$fh>) {
+        if (m|^MemAvailable:\s+(\d+)|) {
+            $free_mb = int( $1 / 1024 );    ## convert KB to MB ##
+            last;
+        }
+    }
+    close $fh;
+}
+
+return $free_mb >= $required_mb ? TRUE : FALSE;
+
+#,,,.,,..,,,.,...,...,..,,,..,...,...,.,,,,,.,..,,...,..,,.,,,...,.,.,,.,,..,,
+#KB2JHERPRNXNESFUA6PRWKA5FSNBGPFU4UNLX32L6L7SVLMKVJEOLV3JSV4PCDUH6GGGSYAPCL4SE
+#\\\|VVOVKAB7EUSPBXK6J7BIQFEASEERN7IJSGNHUF24LJ7BIBU2YZU \ / AMOS7 \ YOURUM ::
+#\[7]CDTSETM5YK4K46FXYRWCU6HBYM4ISL4BUCUF4ZL3GP7NC6ELDSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = web-browser.handler.capture_on_fade
+# descr = fires on every write to <web-browser.slideshow.url_index> [ armed
+#         by web-browser.cmd.start-capture-slideshow ] -- snapshots the
+#         current foreground view [ the page that was just displayed, still
+#         on screen as the next one starts loading in the background ] and
+#         appends a manifest line. reuses the existing
+#         web-browser.handler.snapshot_result completion path [ pending_reply
+#         left undef, which it already treats as a safe no-op reply target ],
+#         no new PNG-saving logic duplicated here
+
+return unless defined <web-browser.capture.manifest_path>;
+
+my $view_index = <web-browser.overlay.index.fg> // 1;
+my $view       = <web-browser.gtk_obj.view>->{$view_index};
+return unless defined $view;
+
+my $uri = $view->get_uri // '';
+return unless length $uri;
+
+my $snap_dir = <web-browser.capture.snapshot_dir>;
+<web-browser.capture.counter>++;
+my $short_id = sprintf( '%04d', <web-browser.capture.counter> );
+my $out_path = sprintf( '%s/capture.%s.%s.png',
+    $snap_dir, $short_id, <[chk-sum.elf.vax-BASE32]>->($uri) );
+
+<web-browser.snapshot.pending_path>  = $out_path;
+<web-browser.snapshot.pending_reply> = undef;      ## no caller to reply to ##
+
+my $region = <web-browser.cfg.snapshot_region> // 'visible';
+
+eval {
+    $view->get_snapshot(
+        $region,
+        'WEBKIT_SNAPSHOT_OPTIONS_NONE',
+        undef,    ## cancellable
+        $code{'web-browser.handler.snapshot_result'},
+        undef     ## user_data
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        0, "capture_on_fade: snapshot request failed: %s",
+        <[base.str.eval_error]>
+    );
+    return;
+}
+
+## manifest line written immediately -- the output path is already fully
+## determined, no need to wait on the async save to complete before recording
+## it
+open( my $fh, '>>', <web-browser.capture.manifest_path> ) or do {
+    <[base.logs]>->(
+        0, "capture_on_fade: " . "cannot open manifest: %s", $OS_ERROR
+    );
+    return;
+};
+print {$fh} "$short_id\t$uri\t$out_path\n";
+close($fh);
+
+#,,,.,.,,,,.,,,,,,.,,,.,,,,.,.,.,,,,.,,,,.,.,,,,.,,,.,,,..,,...,...,,.,,,.,.,,
+
+#,,.,,.,,,.,,,...,.,.,...,..,,,,.,,,.,,,.,,,,,..,,...,...,...,..,,.,,,.,.,...,
+#4Y3SWEK2OA5CZXJSRAAVQDSIEFG5Z45U4HU67TP4VBZHG2HQALIFUZFJDROUTDQTMTZWCVL2IZ6WS
+#\\\|2P4LMASSIR2UPHQX3JZJBDBYX3SYREHCQE32W2IDXCFBP7EJS2V \ / AMOS7 \ YOURUM ::
+#\[7]S5FONM3LLFVR5JYZGZADUSDEDG6QAVG3LMPO7SKVOZWZJA7TAWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

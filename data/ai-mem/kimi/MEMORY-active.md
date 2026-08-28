@@ -210,8 +210,38 @@ screen; the newline is now only emitted when the help block is visible. when the
 scrolls out of view, one empty content row is kept as top padding so fields do not sit
 flush against the terminal top. see [topic-user-edit-vertical-viewport.md](topic-user-edit-vertical-viewport.md)
 
-#,,,.,.,,,,,,,,,.,..,,,,.,..,,,.,,,,,,,.,,,,,,..,,...,...,.,,,,.,,,,.,.,,,,,,,
-#JY6EYJR4OV6Q2BKY4L4RO2PT6FMU3APKJUPYKVDTUDNZ5JNYQE3N6OVAH6P4NRYNDIIKQWEQ4FGC4
-#\\\|ENELGIAFFKF3V4NDFZVIINZC5DFBQPACANUMMC5KGQCS3DB6MDE \ / AMOS7 \ YOURUM ::
-#\[7]CFDQWQJXPDARZKPJBHXZQ556LW7IN6HRB4LF4454RBGFGSFIK2AQ 7  DATA SIGNATURE ::
+## X-11 xvfb-start bug 3 resource guard — implemented (2026-08-28)
+
+New `xvfb_resource_available` dependency callback + pre-queue check in
+`X-11.cmd.xvfb-start`; diagnostic timing logs added for bug 2 stall
+investigation. Details: [topic-x11-xvfb-bug3-resource-guard.md](topic-x11-xvfb-bug3-resource-guard.md)
+
+## content / web-browser undef-type race + segfault hardening (2026-08-28)
+
+Real segfault in `web-browser` traced to an async race: `content.add-entry`
+returns immediately but `content.file_types` is populated later by async
+`content.handler.mimetype_reply`. `content.cmd.get_list_types` (and the
+near-identical `content.cmd.get_list`) read `<content.file_types>->{$file}`
+and emitted malformed `" $url\n"` lines for not-yet-typed entries when called
+before resolution completed. Those malformed replies then crashed
+`web-browser.handler.url_list_reply`.
+
+Fix landed in two layers:
+- `src/content.cmd.get_list_types` and `src/content.cmd.get_list` now skip
+  entries whose type is not yet resolved (`next if not defined $type_str`),
+  so they never emit malformed lines.
+- `src/base.handler.command.process_reply` invoked reply handlers without an
+  `eval` guard, so a Perl exception inside a handler could unwind across the
+  Event.pm / WebKitGTK C callback boundary and segfault the whole process.
+  Added a `$call_reply_handler` wrapper that catches errors, formats them with
+  `base.format_error`, and logs at level 0, then continues. Applied to all
+  reply-handler invocation sites in the module (TRUE/FALSE/WAIT/GET/TERM,
+  SIZE, CHRSIZE, STRM open, STRM-SIZE close).
+
+Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
+
+#,,.,,,,.,.,,,,..,,,.,...,,,,,.,,,,,.,.,.,.,,,..,,...,...,...,.,,,,,.,..,,,..,
+#ZFUTWNOR2YQ7ZXAQFKGFRQXEXW22XISL2J63LMO5JUOOCWTSJFTVIDI6I2PW76BNXK3ESUKZBD3FU
+#\\\|XOGDTFHX2YUX6JMJCFPPDH46BRRG72M5U2AZ3Z6M4LKCQMGUNL7 \ / AMOS7 \ YOURUM ::
+#\[7]5FC6EX5VJBWZNMM4PBJNKU4HM7PNTWUSVNC2SXA7D4BBP25WNUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
