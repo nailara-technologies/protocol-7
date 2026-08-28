@@ -42,6 +42,43 @@ my $xvfb_bin = <X-11.bin_path>->{'Xvfb'};
 return { 'mode' => qw| false |, 'data' => 'Xvfb binary not found' }
     if not defined $xvfb_bin;
 
+## resource guard : self-chain dep per geometry, like ensure_model_pinned   ##
+## start_server queues unconditionally; this pre-check rejects if resources ##
+## do not fit.                                                              ##
+<X-11.xvfb.dep.resource> //= {};
+my $res_key    = sprintf '%dx%dx%d', $width, $height, $depth;
+my $res_dep_id = <X-11.xvfb.dep.resource>->{$res_key};
+
+unless ( defined $res_dep_id ) {
+    $res_dep_id = <[dependency.add_object]>->(
+        {   'type'   => qw| xvfb_resource_available |,
+            'width'  => $width,
+            'height' => $height,
+            'depth'  => $depth,
+        }
+    );
+    <[dependency.add]>->( $res_dep_id, $res_dep_id )
+        ;    ## self-chain : invokes the callback ##
+    <X-11.xvfb.dep.resource>->{$res_key} = $res_dep_id;
+}
+
+my $resource_ok = <[dependency.ok]>->($res_dep_id);
+if ( not $resource_ok ) {
+    <[base.logs]>->(
+        0,
+        '[xvfb-start] resource check failed for %s: dimensions '
+            . '%dx%dx%d exceed limits or insufficient system memory',
+        $display_str,
+        $width,
+        $height,
+        $depth
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'resource limit exceeded (dimensions or memory)'
+    };
+}
+
 ## register server entry and its dependency object ##
 <X-11.servers>->{$display_str} //= {};
 my $server = <X-11.servers>->{$display_str};
@@ -56,11 +93,14 @@ $server->{'dep_id'} = $dep_id;
 
 my $params_str = sprintf '-screen 0 %dx%dx%d', $width, $height, $depth;
 
-## queue start and finalize jobs against this display's own dependency ##
+## start job runs unconditionally [ object_id 0 = no dependency ] -- it's  ##
+## the job that SATISFIES $dep_id by forking Xvfb and polling the socket,  ##
+## so gating it on $dep_id would deadlock : nothing could ever resolve the ##
+## dependency it's waiting on. only finalize waits on $dep_id.,            ##
 <[jobqueue.add_job]>->(
     {   'name'            => "X-11 start server $display_str",
         'job_callback'    => qw| X-11.job.start_server |,
-        'object_id'       => $dep_id,
+        'object_id'       => 0,
         'callback_params' => {
             'display'  => $display_str,
             'mode'     => qw| xvfb |,
@@ -87,8 +127,8 @@ return {
     'data' => $display_str
 };
 
-#,,,.,,,,,,,.,,,.,,,.,,,.,.,,,,,,,.,.,,,.,.,.,..,,...,...,...,,.,,...,,,,,,.,,
-#3GL7NP2PCGJ3D5KZUMYOUZOUUPTVC5FUNXKHFKRBM4YITFHHNF3KC56BR4ISVWIFN7ZODOT2FP3SG
-#\\\|MMTHCMSOG23NH4DCXNCZKKCPB3R2ALDB4XMMUJMHKPKZ66X4HY5 \ / AMOS7 \ YOURUM ::
-#\[7]B2Q6GZRGXWP6UQOF4QMTWLC4DMKK5DCMYML44CLHQHU3MDNKHQBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,..,,...,..,,...,,..,,,,,,,.,...,..,,...,...,,..,.,,,,,,,..,,,.,,
+#DJGNVFVRYL6AFAJ7P5QZIQ7O2Y3CHWOXULTA6JYK4DA72PXYGUZVBFRHXVJJM2C2VAOQLYBPGQ6EI
+#\\\|H6EQR6ZSKGZRA53GXCDRU6OYKZMBHEGFKKOXRDQUPR7H7J25DLD \ / AMOS7 \ YOURUM ::
+#\[7]TTN7JD5FSHE6PQWO54AFUGTFZZ4YTSPT5RAEXB2RAXGEKKTOAIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

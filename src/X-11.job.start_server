@@ -37,7 +37,14 @@ my $cmd_line      = sprintf '%s %s 2>&1 |', $server_bin, $server_params;
     $bin_name_lc, $display_str
 );
 
-my $server_pid = open( my $out_fh, $cmd_line );
+my $spawn_start = <[base.time]>->(4);
+my $server_pid  = open( my $out_fh, $cmd_line );
+my $spawn_ms    = ( <[base.time]>->(4) - $spawn_start ) * 1000;
+<[base.logs]>->(
+    2, ": '%s' server spawn took %.2f ms [ %s ]",
+    $bin_name_lc, $spawn_ms, $display_str
+);
+
 binmode( $out_fh, ':raw' )
     if defined $out_fh;    ## strip :utf8 from pipe-open ##
 
@@ -64,7 +71,14 @@ $server->{'fh'}  = $out_fh;
 
 ### registering server process id ###
 push <system.kill_list>->@*, $server_pid;
+
+my $report_start = <[base.time]>->(4);
 <[base.zenki.report_child_pid]>->($server_pid);
+my $report_ms = ( <[base.time]>->(4) - $report_start ) * 1000;
+<[base.logs]>->(
+    2,          ": report_child_pid took %.2f ms [ pid %s ]",
+    $report_ms, $server_pid
+);
 
 if ( $mode eq qw| xorg | and $EFFECTIVE_USER_ID == 0 ) {
     <[base.change_prio]>->( <X-11.change_priority>, $server_pid );
@@ -100,8 +114,8 @@ $server->{'poll_timer'}   = <[event.add_timer]>->(
     }
 );
 
-#,,,.,,.,,,,.,.,,,,,,,.,,,.,,,...,,.,,,,,,,,.,..,,...,...,.,,,,,,,,,.,...,.,.,
-#HNTXIWLPMK3JPMER5XJCV57TLOCQGY4BXIU3YLQ657COE6QXVGSRIAMYNHADCDRJJJRCU3ZKEGSVK
-#\\\|IW2LBXDXF6V5GMCVPYRQJTRXQH43CQ5W4BTLIADMCPTUCC73AFD \ / AMOS7 \ YOURUM ::
-#\[7]EFTIQZNQEROSMZIQCN6LMUCWEAFISKKVZ2CEFN27PIE2ZHDCS6DI 7  DATA SIGNATURE ::
+#,,.,,...,...,..,,.,.,,.,,.,,,...,,,.,..,,,,,,..,,...,...,...,,,.,..,,,,,,.,,,
+#FLUZ7AR4WZMF2CIWIL5WVEG22UXHXVRB5QJ23SSLYRVHYRQM6ND2GCWNUWBU7O7APQAI6CRD5OWZG
+#\\\|JBD3WZL6EUZXDHOPITZPE5IWCRX6ABDSF72OQIEQOSZGMCQSSOW \ / AMOS7 \ YOURUM ::
+#\[7]KDTOCULA3OHI553LXNJUYSXGJHN5XIF5EH2NZZATH3GLEDDXUSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

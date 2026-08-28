@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><{title}> | Protocol-7</title>
+    <style>
+    :root {
+        --bg-void: #000010;
+        --bg-deep: #08030f;
+        --bg-layer: rgba(5, 2, 20, 0.7);
+        --spectrum-near: #50a0ff;
+        --spectrum-mid: #7070ff;
+        --spectrum-far: #9060ff;
+        --edge-primary: #0060ff;
+        --edge-secondary: #4080ff;
+        --edge-active: #80c0ff;
+        --glow-blue: #4080ff;
+        --glow-violet: #8737c0;
+        --glow-fusion: #8050e0;
+        --text-primary: #90b0e0;
+        --text-secondary: #7098d0;
+        --text-dim: #5070a0;
+        --accent-cutout: #70c0ff;
+        --accent-position: #80c0ff;
+        --ok-green: #60e0a0;
+        --warn-amber: #e0b060;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background-color: var(--bg-void);
+        color: var(--text-secondary);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.55;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image:
+            repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(32,48,128,0.03) 40px, rgba(32,48,128,0.03) 41px),
+            repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(32,48,128,0.03) 40px, rgba(32,48,128,0.03) 41px);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        grid-template-rows: auto 1fr auto;
+        min-height: 100vh;
+        max-width: 1600px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* header : sticky, compacts on scroll via .compact class toggled by inline script */
+    header {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 24px 16px 14px 16px;
+        background: var(--bg-layer);
+        border-bottom: 1px solid rgba(80,128,255,0.2);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(6px);
+        transition: padding 0.25s ease;
+    }
+
+    header.compact { padding-top: 10px; padding-bottom: 10px; }
+
+    .header-title {
+        max-height: 100px;
+        opacity: 1;
+        overflow: hidden;
+        transition: max-height 0.25s ease, opacity 0.2s ease, margin 0.25s ease;
+    }
+
+    header.compact .header-title {
+        max-height: 0;
+        opacity: 0;
+        margin: 0;
+        pointer-events: none;
+    }
+
+    header h1 {
+        font-size: 1.6em;
+        font-weight: 300;
+        letter-spacing: 3px;
+        color: var(--edge-active);
+        text-shadow: 0 0 20px var(--glow-blue), 0 0 40px var(--glow-violet);
+        margin-bottom: 6px;
+    }
+
+    header .subtitle {
+        font-size: 0.9em;
+        color: var(--text-secondary);
+        letter-spacing: 1px;
+    }
+
+    /* sidebar navigation, fed by web.menu_generator's .web-menu-tree markup */
+    nav {
+        background: var(--bg-layer);
+        border-right: 1px solid rgba(80,128,255,0.15);
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    nav h2 {
+        color: var(--spectrum-far);
+        font-size: 0.85em;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .web-menu-tree ul { list-style: none; margin: 0; padding: 0; }
+    .web-menu-tree li { margin: 0; }
+    .web-menu-tree .menu-link {
+        display: block;
+        padding: 8px 12px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 4px;
+        transition: all 0.2s;
+        font-size: 0.9em;
+    }
+    .web-menu-tree .menu-link:hover {
+        background: rgba(80,128,255,0.08);
+        color: var(--edge-active);
+        text-shadow: 0 0 8px var(--glow-blue);
+    }
+    .web-menu-tree .menu-link.active {
+        color: var(--accent-position);
+        background: rgba(80,128,255,0.1);
+    }
+    .web-menu-tree .submenu {
+        margin-left: 20px;
+        border-left: 1px solid rgba(80,128,255,0.15);
+        padding-left: 5px;
+        margin-top: 5px;
+    }
+
+    /* main content area */
+    main { padding: 30px 40px; overflow-y: auto; }
+
+    main h1 { color: var(--spectrum-near); font-size: 1.7em; margin-bottom: 16px; text-shadow: 0 0 15px var(--glow-blue); font-weight: 500; letter-spacing: 1px; }
+    main h2 { color: var(--spectrum-near); font-size: 1.3em; margin: 24px 0 14px 0; text-shadow: 0 0 10px var(--glow-blue); font-weight: 500; letter-spacing: 1px; }
+    main h3 { color: var(--accent-position); font-size: 1.05em; margin: 16px 0 8px 0; }
+    main p { margin-bottom: 12px; color: var(--text-secondary); }
+    main a { color: var(--spectrum-near); text-decoration: none; border-bottom: 1px solid transparent; transition: all 0.2s; }
+    main a:hover { border-bottom-color: var(--spectrum-near); text-shadow: 0 0 8px var(--glow-blue); }
+    main code { background: var(--bg-deep); padding: 2px 6px; border-radius: 3px; color: var(--accent-cutout); font-size: 0.9em; }
+    main pre { background: var(--bg-deep); padding: 15px; border-radius: 5px; border: 1px solid rgba(80,128,255,0.15); overflow-x: auto; margin: 16px 0; }
+    main pre code { background: none; padding: 0; color: var(--text-primary); }
+
+    /* content section wrapper, for pages that opt into card framing */
+    .section {
+        margin-bottom: 18px;
+        background: var(--bg-layer);
+        border-radius: 11px;
+        padding: 20px 22px;
+        border: 1px solid rgba(80,128,255,0.15);
+        scroll-margin-top: 90px;
+    }
+
+    /* quicknav, for pages with in-page anchors */
+    nav.quicknav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    nav.quicknav a {
+        color: var(--accent-position); text-decoration: none; font-size: 0.85em;
+        border: 1px solid rgba(80,128,255,0.3); border-radius: 14px; padding: 4px 12px;
+    }
+    nav.quicknav a:hover { border-color: var(--edge-active); text-shadow: 0 0 6px var(--glow-blue); }
+
+    /* highlighted callout block */
+    .anchor-cube {
+        background: linear-gradient(135deg, rgba(96,224,160,0.06) 0%, rgba(80,128,255,0.03) 100%);
+        border: 1px solid rgba(96,224,160,0.35);
+        border-radius: 8px;
+        padding: 16px 18px;
+        margin-bottom: 10px;
+    }
+    .anchor-cube .lead { color: var(--ok-green); font-weight: 600; margin-bottom: 6px; }
+
+    /* two-column definition/glossary table */
+    table.glossary { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    table.glossary th, table.glossary td {
+        text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(80,128,255,0.12);
+        vertical-align: top; font-size: 0.92em;
+    }
+    table.glossary th { color: var(--edge-active); font-weight: 600; font-size: 0.85em; letter-spacing: 0.5px; }
+    table.glossary td.term { color: rgba(112, 156, 216, 0.85); font-weight: 600; white-space: nowrap; text-shadow: 0 0 6px rgba(64, 128, 255, 0.3); }
+    table.glossary td.gloss { color: var(--text-dim); font-style: italic; white-space: nowrap; }
+    table.glossary tr:hover td { background: rgba(80,128,255,0.05); }
+
+    /* arrow-marker cue list */
+    .cue-list { list-style: none; padding: 0; }
+    .cue-list li { position: relative; padding-left: 22px; margin-bottom: 8px; }
+    .cue-list li::before { content: '\25B8'; position: absolute; left: 0; color: var(--accent-cutout); }
+    .cue-list b { color: var(--text-primary); }
+
+    /* pill badges */
+    .tag { display: inline-block; background: rgba(80,128,255,0.1); color: var(--text-secondary);
+        padding: 2px 10px; border-radius: 12px; font-size: 0.8em; border: 1px solid rgba(80,128,255,0.3); margin: 2px 4px 2px 0; }
+    .tag.primary { border-color: var(--ok-green); color: var(--ok-green); }
+    .tag.secondary { border-color: var(--warn-amber); color: var(--warn-amber); opacity: 0.85; }
+
+    .flag { font-size: 0.78em; text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+    .flag.warn { background: rgba(224,96,96,0.15); color: #e08080; border: 1px solid rgba(224,96,96,0.4); }
+
+    /* directory listings */
+    .dirlist { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .dirlist thead th { background: var(--bg-layer); color: var(--spectrum-far); padding: 12px; text-align: left;
+        border-bottom: 2px solid rgba(80,128,255,0.2); font-weight: normal; text-transform: uppercase; font-size: 0.75em; letter-spacing: 1px; }
+    .dirlist tbody tr { border-bottom: 1px solid rgba(80,128,255,0.1); transition: background 0.2s; }
+    .dirlist tbody tr:hover { background: rgba(80,128,255,0.05); }
+    .dirlist tbody td { padding: 10px 12px; }
+    .dirlist-link { color: var(--spectrum-near); text-decoration: none; }
+    .dirlist-link:hover { color: var(--edge-active); text-shadow: 0 0 8px var(--glow-blue); }
+
+    /* abbreviation / definition tooltip */
+    .tt {
+        position: relative;
+        border-bottom: 1px dotted var(--accent-cutout);
+        cursor: help;
+        color: rgba(112, 156, 216, 0.85);
+        text-shadow: 0 0 6px rgba(64, 128, 255, 0.3);
+        font-weight: 600;
+    }
+    .tt::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 50%;
+        bottom: 125%;
+        transform: translateX(-50%) translateY(4px);
+        background: rgba(8, 4, 20, 0.98);
+        color: var(--text-primary);
+        border: 1px solid rgba(112,192,255,0.45);
+        border-radius: 6px;
+        padding: 7px 11px;
+        font-size: 0.8em;
+        font-weight: 400;
+        line-height: 1.4;
+        white-space: normal;
+        width: max-content;
+        max-width: 260px;
+        text-align: left;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.55), 0 0 14px rgba(80,128,255,0.18);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+        z-index: 200;
+    }
+    .tt::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: 125%;
+        transform: translateX(-50%) translateY(-3px);
+        border: 5px solid transparent;
+        border-top-color: rgba(112,192,255,0.45);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease, visibility 0.15s;
+        z-index: 200;
+    }
+    .tt:hover::after, .tt:focus::after,
+    .tt:hover::before, .tt:focus::before {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+    /* tooltip inside a table cell : keep it from clipping against the row above */
+    td .tt::after { bottom: auto; top: 125%; }
+    td .tt::before { bottom: auto; top: 125%; transform: translateX(-50%) translateY(3px); border-top-color: transparent; border-bottom-color: rgba(112,192,255,0.45); }
+    td .tt:hover::after, td .tt:focus::after,
+    td .tt:hover::before, td .tt:focus::before { transform: translateX(-50%) translateY(0); }
+
+    /* footer */
+    footer {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 16px;
+        border-top: 1px solid rgba(80,128,255,0.15);
+        color: var(--text-dim);
+        font-size: 0.85em;
+    }
+    footer a { color: var(--spectrum-far); text-decoration: none; }
+    footer a:hover { text-shadow: 0 0 8px var(--glow-violet); }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg-layer); }
+    ::-webkit-scrollbar-thumb { background: rgba(80,128,255,0.3); border-radius: 5px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(80,128,255,0.5); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header id="skinHeader">
+            <div class="header-title">
+                <h1>.:[ Protocol-7 ]:.</h1>
+                <div class="subtitle"><{title}></div>
+            </div>
+        </header>
+
+        <nav>
+            <h2>Navigation</h2>
+            <{menu}>
+        </nav>
+
+        <main>
+            <{content}>
+        </main>
+
+        <footer>
+            <a href="https://github.com/nailara-technologies/protocol-7">Protocol-7</a>
+            | Spectrum Skin
+            | <a href="/about">About</a>
+        </footer>
+    </div>
+
+    <script>
+    (function () {
+        var header = document.getElementById('skinHeader');
+        var threshold = 40;
+        function onScroll() {
+            if (window.scrollY > threshold) {
+                header.classList.add('compact');
+            } else {
+                header.classList.remove('compact');
+            }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    })();
+    </script>
+</body>
+</html>

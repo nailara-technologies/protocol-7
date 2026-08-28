@@ -64,6 +64,8 @@ foreach my $file ( @{<content.file_list>} ) {
         = @url_flags ? '#[' . uc( join( '|', sort @url_flags ) ) . ']#' : '';
 
     my $type_str = $type_list->{$file};
+    next if not defined $type_str;
+
     foreach my $req_type ( keys %file_types ) {
         $reply_string .= "$type_str $file$url_flags_str\n"
             if !length($req_type)
@@ -75,8 +77,8 @@ foreach my $file ( @{<content.file_list>} ) {
 
 return { 'mode' => qw| size |, 'data' => $reply_string }
 
-#,,.,,.,,,,,.,,,.,,,,,.,,,,,.,,.,,,.,,,,,,..,,..,,...,...,,..,,,,,,,.,..,,,,.,
-#HVDD4QTJGLH3NDGCWPXVV64DQ7VBUV2VJU2IJLG7VX47WWRU3ROCU6PRZCVM4HNYI6CKOC5UNC7P4
-#\\\|GAGE6BTCROFSVI6XGBOWU3D7CX3RRYLIJCJODBE5QYL6JEZ5VZJ \ / AMOS7 \ YOURUM ::
-#\[7]X7DX2VBW27N3RXLILNT2RRJ5SIBQVZAYJBB4N6X4OE4KU7XQSSDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,,,.,,,,..,,..,,,.,,.,,,.,,...,..,,...,...,...,...,,,,,.,.,,..,
+#VOGDKS4WI7PUJBV55ZVCALOEIVILZYQI47TLZSANKBQNXTZEFO5E6RY6LP5PIMFVMWHB5DIOUTB7C
+#\\\|AC7E4UALTMSVOYMTQWSM5MU6QHEQOOYE245T7KIXHCAXECRSIKR \ / AMOS7 \ YOURUM ::
+#\[7]JOVJF657DMPSJ3PDVXQ45UDJMVU4Y73PYFNZOVUHWGK2Q7ACPIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
