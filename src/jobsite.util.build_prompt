@@ -112,12 +112,25 @@ if (    exists $job->{'salary_estimate_min'}
         . "(jährlich brutto)";
 }
 
-push @prompt_parts, "Branche: $ind\n\n$desc", "Beginne jetzt mit: score:";
+## the source's own industry/category tag is sometimes simply wrong --      ##
+## confirmed 2026-08-28 against a live posting whose page genuinely serves  ##
+## the wrong "Branche" (a real employer-side data-entry error, not a scrape ##
+## bug), which the model then trusted over the actual description text.     ##
+## qualify it explicitly rather than presenting it as authoritative         ##
+## structured metadata.                                                     ##
+my $branche_line
+    = length $ind
+    ? "Branche laut Quelle: $ind (automatisch erfasst, kann fehlerhaft sein "
+    . "-- bei Widerspruch zur Beschreibung der Beschreibung "
+    . "vertrauen)\n\n$desc"
+    : $desc;
+
+push @prompt_parts, $branche_line, "Beginne jetzt mit: score:";
 
 return join( "\n\n", @prompt_parts );
 
-#,,,.,,..,.,,,...,,,.,,,,,..,,...,,.,,...,,.,,.,.,...,...,.,,,,,,,...,,..,,,,,
-#7YJ2S2ZQG2NBTJ5MU2WWVUZ53WGKRRGAZQEJHERPROF2ISELLGFHQJEEI2IHYARKYBFXN7NDKIJZS
-#\\\|A3LW2T56FLWAPBIII33IP55I3UXC5GF4FNX5LBSKMUEXSXSZIFF \ / AMOS7 \ YOURUM ::
-#\[7]OMY77ZEQWQ2QP3IQVUK42WPOK7XEK3VFZFWH3GVZ3LCAG3YQ2ADY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,..,,,.,,...,..,,..,,,..,.,,,.,.,...,...,.,,,.,,,,..,..,,.,,,
+#6SR5PZOWKM3P6IXE5B7GY34AHIQOF6PYII6IXONZDT6FZXHOB3F5VUYYQQ5GUWTIVEIGG4THUXUTU
+#\\\|WQLTTLCLWZYY5V7FFDSXHLQMVP6OHQNAGZDTQJYUDTLTN4BVU4R \ / AMOS7 \ YOURUM ::
+#\[7]F5HQFJOKEPOGHFGI5N6QL7XSB6XS7QGPHRVDNBUKBXQJTUKMZIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
