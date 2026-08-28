@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = web-browser.cmd.stop-capture-slideshow
+# descr = cancel the capture-on-fade watcher armed by
+#         web-browser.cmd.start-capture-slideshow
+
+<web-browser.capture.watcher>->cancel
+    if defined <web-browser.capture.watcher>
+    and <web-browser.capture.watcher>->is_active;
+
+my $count = <web-browser.capture.counter> // 0;
+
+delete <web-browser.capture.watcher>;
+delete <web-browser.capture.manifest_path>;
+
+<[base.log]>->( 1, "capture-slideshow disarmed [ $count captured ]" );
+
+return { 'mode' => qw| true |, 'data' => "disarmed, $count captured" }
+
+#,,,,,.,,.,,,,.,,,.,,.,,,.,,,,.,.,.,,,,.,,,,.,.,,,,.,,,.,,,..,,...,...,,.,,,.,
+
+#,,.,,,..,..,,...,.,,,.,.,..,,,..,..,,,.,,,.,,..,,...,.,.,,.,,,,.,.,,,,,,,.,.,
+#CBGMUJXMMQR7CLCIBZZHFGWEWI372RURRHOMU2KFWBZVN5Y4YO2B42IXQN4UUQEQ32YF36DJDEPKQ
+#\\\|MJZOS4YBBDTMY66ISR26EUVTOGHCONPOESBZA6Q7JHYWOXAOBS3 \ / AMOS7 \ YOURUM ::
+#\[7]VGUXETM7FU5BEJEL6ES6WAOBWYT3KQVUJSEDRLAFRTPDSRS4WKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
