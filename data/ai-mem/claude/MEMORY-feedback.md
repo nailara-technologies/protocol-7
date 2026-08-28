@@ -6,6 +6,8 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [x11-xvfb-blocking-connect-crash](feedback-x11-xvfb-blocking-connect-crash.md) — X-11.cmd.xvfb-start crash-loops X-11 every time it runs; never use alarm()/SIGALRM to bound a call inside an Event.pm zenka's timer callback (clobbers the framework's own alarm state, made it worse); crash-restart can leave TWO live duplicate instances both "online" in v7.list zenki, not just a stale pointer; full detail data/tasks/x11-xvfb-start-async-refactor.md
+- [network-command-omits-cmd-infix](feedback-network-command-omits-cmd-infix.md) — categorical: `src/Zenka.cmd.foo` file → call it as `Zenka.foo` over p7c/routing, no `.cmd.`; a "not known or no permission" error is usually just this, try it before chasing access-control config
 - [update-version-reset-amend-stuck-at-revision-1](bug-update-version-reset-amend-stuck-at-revision-1.md) — RESOLVED 2026-08-21: `reset amend`'s unconditional `$new_minor = 0 if $reset` clobbered the amend-branch's increment before the `.1` fallback re-filled it, so every call landed on `.1` regardless of prior revision; fixed by guarding with `and !$amend`
 - [fake-signature-marks-ai-scratch-content](feedback-fake-signature-marks-ai-scratch-content.md) — a literal `PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_*` footer (not a real AMOS7 checksum) reliably marks unfinished AI-drafted scratch content when found on an EXISTING file; grep for it first when triaging suspicious/misplaced files. REVERSED 2026-08-27: do NOT proactively write this placeholder into new files I author — pure redundant work, the real signer signs new files fine without one and leaves an unstripped placeholder as orphaned cruft
 - [pre-commit-hook-stale-path-refs-fixed](feedback-pre-commit-hook-stale-path-refs-fixed.md) — fixed 2026-08-21 (c465ba265): hook had hardcoded old `modules`/`configuration` path strings breaking its signature-exclusion list; exclude patterns are prefix-match unless ending in `$` (then unescaped regex); if the hook flags a plain doc as "unsigned", check `src/sourcecode.source_path_set_up`'s include list first — add an exclude line, don't sign it
@@ -99,8 +101,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 
-#,,..,,,,,..,,,,,,...,,..,,,.,,.,,,..,.,,,,,,,..,,...,...,.,,,..,,,.,,.,,,..,,
-#335W7LVUXBKMRKIYCOE7U3TMQDJ4WMF3QDJJBTQG5MKMZK7K2DQNVQO6METPJTQJTTG5IMZ3SO6H6
-#\\\|ELCYYRDPR7YF3HLMOTWN42WCWKZLNUTYEYJHBYNZR7ROPBO7KQN \ / AMOS7 \ YOURUM ::
-#\[7]FCN5GZ4MHZHUWSXP4TMMEJOP7GE7BWHXLWGMGWNTJ27XFPAG56DA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,...,...,.,.,.,.,.,.,..,,.,,,..,,...,...,...,,,.,.,,,,,.,,,.,
+#EGEWJ5SLUH5U5QTSSDATU6CRH4WLSUJ3K2ZMHS6RDJ47G5LD2FZ2GIDPMRI2VRRGID5SSWTPM5K6C
+#\\\|O2KBW6LISVUOIL2M7IPWSIB7YTAZJBORBWWWTXYSJRMSNGAW3IL \ / AMOS7 \ YOURUM ::
+#\[7]MNHJZOR6PRZFCWMNTYJAGBBN7KB77M5JML75IFEFJM5RMAGXTMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

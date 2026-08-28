@@ -39,10 +39,40 @@ if ( ++$server->{'poll_retries'} > $max_retries ) {
     return;
 }
 
+## cheap non-blocking pre-check first : a filesystem-namespace socket [ the ##
+## default for Xvfb ] tells us in a stat() call whether X11::Protocol->new  ##
+## even has a chance -- skip attempting the connect at all while it's not   ##
+## there yet. abstract-namespace sockets don't show up here [ fall through  ##
+## to the guarded connect below in that case, same as before ]              ##
+my ($disp_num) = $display_str =~ m|^:(\d+)|;
+if ( defined $disp_num and not -S "/tmp/.X11-unix/X$disp_num" ) {
+    <[base.logs]>->( 2, ": display %s socket not present yet", $display_str )
+        if $server->{'poll_retries'} % 7 == 0;
+    return;
+}
+
 ## attempt X11::Protocol connection [ also matches an abstract-namespace    ##
 ## socket, which never shows up as a /tmp/.X11-unix/X<n> filesystem entry ] ##
+## NOTE : this connect + setup handshake is synchronous, and REVERTED       ##
+## 2026-08-28 an alarm()-based bound around it -- this zenka's event loop   ##
+## almost certainly uses alarm()/SIGALRM internally for its own timers, so  ##
+## a local $SIG{ALRM} override from inside a timer callback clobbered the   ##
+## framework's own alarm state instead of safely bounding just this call,   ##
+## making the crash-loop worse [ cascaded into killing dbus too ]. see      ##
+## feedback-x11-blocking-display-poll-heartbeat-crash before trying again : ##
+## fix needs a signal-free bound [ e.g. non-blocking IO::Socket::UNIX       ##
+## connect + handing the already-open fh to X11::Protocol->new($fh) ], not  ##
+## alarm(). the filesystem pre-check above still stands -- it's signal-free ##
+## and narrows how often this synchronous call is even attempted.,          ##
 my $conn;
+my $connect_start = <[base.time]>->(4);
 eval { $conn = X11::Protocol->new($display_str); };
+my $connect_ms = ( <[base.time]>->(4) - $connect_start ) * 1000;
+
+<[base.logs]>->(
+    2,            ": display %s X11::Protocol->new took %.2f ms",
+    $display_str, $connect_ms
+);
 
 if ( length $EVAL_ERROR or not defined $conn ) {
     <[base.logs]>->(
@@ -65,8 +95,8 @@ $server->{'connected'} = TRUE;
 ## resolve jobs waiting on this display ##
 <[jobqueue.check_dependencies]>;
 
-#,,,.,.,,,.,,,,,,,.,,,.,,,,,.,.,,,.,,,.,,,.,.,..,,...,...,,.,,,,.,,,.,,.,,...,
-#C3FLITAZSIK7YD6RUMMWZ5IESAFGLDXYUPDIURWPVVGQ7FAPXOABAMPJ6FLJ4TWM7PLXWFYLZXXFQ
-#\\\|5LBIDC4OZJLCINZLXXFEXVZ4QDHO62FUJLT32AUCOYDFIEWLCH6 \ / AMOS7 \ YOURUM ::
-#\[7]OZSDMY5MQOLWQQJFEV7JT6RYXF6TXF33BQCVC4XOT3N52PTY5YDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,,,.,,,.,..,,...,..,,,.,,,,.,..,,...,...,..,,,,.,,,,,..,,,.,,
+#E7B6FBSCNSJXPLL7ILNT2V33AX53U5UBHMGTO3KXGPXO72NU2PVAP2SKSV2CCWYWVR2L72CBMZOXQ
+#\\\|NQF63TIH6ZHNJD2M6TIIQIIMX6NDC6D46ZPDQKQXA52YXTUIAJP \ / AMOS7 \ YOURUM ::
+#\[7]73CHUCFE4DDQPHZF3MZAHY3WCBMN2537DZPH36X6DGSG5ICSPMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
