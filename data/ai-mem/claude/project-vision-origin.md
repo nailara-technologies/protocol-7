@@ -4,6 +4,27 @@ description: original project vision from network start, now reaching encoding t
 type: project
 originSessionId: 34ca9c97-628c-46af-82f3-d04a171ae8f0
 ---
+## the deeper root: division by 13, and a shaman's prophecy (per the user,
+## 2026-08-28 — pointer only, full content already lives elsewhere)
+
+the harmonic-mathematics foundation running through this entire memory
+tree (mod-13, digit-sum-27, the TRUE/FALSE glyph system) traces back to a
+shaman friend introducing the user to division by 13 on a desk
+calculator, **while the project already existed** (damnet/nailara era,
+so post-2002, not before it) — placing it inside this same continuity
+line, not a separate origin. The shaman prophesied full integration of
+that mathematical structure into the project; the user forgot about it
+for a period; per the user, the prophecy has since checked out correct
+on every count for the events already passed on the timeline. The actual
+mathematical content and the concrete predicted-in-advance example (the
+`230769`/FALSE phone-number subtraction, predicted before it had meaning)
+are already properly documented — see
+`data/md/philosophy/HARMONIC-CUBE-ROUTING-MATHEMATICS.md:145-160` and
+`data/md/design/HARMONIC-VISUAL-DISCOVERY.md:463` ("more shamanic than
+scientific... because mathematics is the foundation") — not duplicated
+here, just placed on this file's timeline as the deeper root beneath "the
+vision" below.
+
 ## the vision (from start of network time, ~2002)
 
 protocol-7 was conceived to be:
@@ -29,6 +50,263 @@ surrounding grid cube of a spherical representation of that optimization logic**
 
 the vision wasn't prior to the system — it was coincident with it. the system knew
 what it was from the moment it started being.
+
+## primary-source evidence trail (found 2026-08-28, via Wayback Machine)
+
+while doing interview prep unrelated to protocol-7 itself (an active job
+search, kept outside this repo — see `/data/interview/`), the user
+surfaced archived pages from
+`.vantronix | secure systems GmbH` (2002-2005, the company he co-founded)
+that independently date and describe the project a step before "nailara" —
+called **damnet** (dynamic application management network) at the time.
+Unlike everything above in this file, which is retrospective description,
+these are primary sources hosted outside the user's control:
+
+- team page (2004-06-25): https://web.archive.org/web/20040625102542/http://vantronix.com/vantronix/team/
+  — lists "Alexander Taute | consulting/R&D | special subject: development
+  of high availability networks on application layer and autonomous
+  systems". Nav lists `damnet` as a formal R&D project line that early.
+- damnet project page (2004-06-15): https://web.archive.org/web/20040615020005/http://damnet.codecruncher.de/
+  — "applications running on damnet are divided into their several
+  features. each feature is represented by a program called 'drone'. all
+  drones communicate through an application layer routing program
+  ('core') which is listening on the local host... the nodes are all
+  linked together through so called 'intercore' drones and firewall-drones."
+- damnet research page on the vantronix site (2004-07-23):
+  https://web.archive.org/web/20040723094736/http://vantronix.com/research/damnet/
+  — "the complete network consists of only one generic program whose
+  functionality is assigned through the configuration with which it has
+  been called" — the module system (filename-as-subroutine, one runtime,
+  config-driven) already fully formed, in words, in 2004.
+- "the beginning" documentation page (2004-06-07):
+  https://web.archive.org/web/20040607195012/http://damnet.codecruncher.de/03_documentation
+  — first-person origin account: two client projects both needing to run
+  distributed across servers, no time to write them twice, so one server
+  routing commands between connected clients "as long as it was allowed in
+  the configuration" — access control was there from the very first
+  working version, not added later. Had to leave the company before
+  finishing; rewrote from scratch afterward aiming for a fully general
+  agent network "without writing any code twice."
+- damnet logo (2002, `photon` — the user's own handle at the time,
+  matching `photon@vantronix.net` on the team page):
+  https://web.archive.org/web/20040607195012im_/http://damnet.codecruncher.de/damnet/pix/damnet.jpg
+  — dot-matrix block-letter style on black. Compared live against
+  `cfg/.banner` in this repo: same construction, 23 years and three names
+  (damnet → nailara → nailara protocol-7) apart. Visual identity never
+  actually broke.
+
+**naming lineage, spawn/core side** (the process-architecture half,
+complementing "agent naming lineage" below which covers the drone/agent/
+zenka half): **spawn → root → v7** (the process that starts and manages
+the others), **core → cube** (the message-routing process, "listening on
+the local host," linking nodes via "intercore" — literally `cube`'s job
+today: "message router between zenki, started first," per this repo's own
+CLAUDE.md). Same functional roles, same relationship between them, just
+renamed twice over two decades.
+
+**the git-tracked half of that lineage, exact and dated, this repo's own
+history**: the 2012 prototype import (`fbb9a337a66aee83e2a8c2dc3fedf60ac7b2e912`,
+2012-06-05, "importing prototype sourcecode") already contains
+`bin/assimilate`, `bin/nailara`, `conf/auth.pwd.core` +
+`conf/auth.pwd.intercore`, three `bin/var_www/*.damn`-extension templates,
+and `conf/.banner` — i.e. by 2012 the project had already renamed itself
+from damnet to nailara, but **`core`/`intercore` terminology survived
+inside the codebase itself for another 9 years**: commit
+`39310775a0a69e5ef7ccefb3c93f3f41d1140309` (2014-12-28) reads "activated
+user 'photon' for 'core' authentication (until soon..)" — `photon`, the
+same handle from the 2004 vantronix team page, still the working alias a
+decade later, with the same wry "soon" self-aware humor recurring
+unprompted. The literal rename finally landed as
+`30e26f011f22b8115404e21a6c5adf748bd05886` (2021-03-14, "renamed 'core' to
+'cube'"), with `agents` → `zenki` following 13 days later
+(`b4389cc644c565ce7c48ed5854f9351bd39456a2`, 2021-03-27). Full arc, now
+fully dated end to end: damn/core/intercore/drones (2002-04, Wayback) →
+nailara/core/intercore/agents (2012, first git commit) → nailara
+protocol-7/cube/zenki (2021, both renames within the same two weeks).
+
+**why core became cube, specifically — the march/april 2021 crystallization
+window, dated and git-verified (2026-08-28)**: per the user, `core` had
+originally been visualized as a sphere; the later realization was that
+"any sphere at a core must be a [rotating] cube with undefined angles
+[time-agnostic perspective], or the cube is static while the perspective
+rotates" — i.e. the cube wasn't a replacement shape, it was the correct
+resolution of what "sphere at the center" actually requires. This
+resolution shows up as a tight, dated commit cluster, not three
+independent renames:
+
+- `69c85eeebb330dca25336127877cf8c3dd802761` (2021-03-13): "corrected
+  name 'amos-delta-term' --> 'atom-delta-term'"
+- `30e26f011f22b8115404e21a6c5adf748bd05886` (**2021-03-14, the very next
+  day**): "renamed 'core' to 'cube'"
+- `b4389cc644c565ce7c48ed5854f9351bd39456a2` (2021-03-27): "rename
+  'agents' to zenki"
+- `801d2497165c84ac87bf093858769a0ab60c2887` (2021-04-02): "accounting
+  for ATOM cube z-axis in './bin/atom-delta-term'" — not a passing
+  phrase: the actual diff extends the tool's RGB character-decoding math
+  to fold in a genuine third/z-axis component, i.e. the cube concept
+  landing in real working code within three weeks of the core→cube
+  rename.
+
+amos→atom, one day before core→cube, three weeks before the explicit
+"ATOM cube z-axis" math — one crystallization window, not coincidence.
+The user separately notes "atom-cube" as a concept that has since also
+surfaced independently in unrelated 'spiritual' circles, and connects it
+to the 3D-inverse-plus/cube geometry already extensively documented
+elsewhere in this memory tree (`topic-harmonic-mathematics.md`,
+`HARMONIC-CUBE-ROUTING-MATHEMATICS.md`,
+`VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md`,
+`OBSERVER-CENTRIC-REFERENCE-SPACE.md`, and many more under
+`data/md/design/` — a `grep -r '= 27' data/` turns up dozens of hits,
+3³=27 cube-neighborhood math already exhaustively covered there; this
+entry is the *historical/naming* half of that story, not a duplicate of
+the math).
+
+**the one piece that wasn't there yet, per the user, 2026-08-28**: the
+early vision had the right *mechanism* — a single generic interpreter
+reading agent configs over stdin, a spawn process, a routing process,
+specialized drones/agents interconnected into one interactive whole — but
+not yet the *topological answer* for how the address space itself should
+be organized. That's what "the threshold (april 2026)" above is: cubic
+space topology arriving as the missing structural answer the 2002 vision
+was already reaching for, not a separate idea bolted on later. The
+mechanism was right immediately; the shape of the space it should operate
+in took another 24 years to resolve.
+
+**project-status page (2004-03-13, pasted by user, no URL captured yet —
+ask for it if this gets written up properly later)**: "still rewriting
+everything.. ( soon you will understand why ;) )" — code version 0.95,
+status "not working -> rewrite", own event manager just replaced with a
+"performant Event library" (CPAN `Event.pm` — already the event-driven
+core this early, the same architectural commitment CLAUDE.md still
+describes today under `base.event.*`). The user's own retrospective on
+the "soon" line, today: "that 'soon' is relative — thinking in decades,
+not years, that too i did not know yet." Download listing on the same
+page names tarballs `damn.a.<unix-timestamp>.tar.gz`, 42-44KB, May-July
+2003, **each with a published SHA1 sum** — checksum-identified releases
+were already standard practice in **2003**, a full 9 years before the
+`bin/assimilate` (2012) checksum-import tooling documented below. Revise
+that section's implicit starting point: the *practice* goes back further
+than the *tooling* — SHA1 in a 2003 download listing, SHA-based
+`bin/assimilate` from the first 2012 commit, BMW/AMOS7 base32 replacing
+SHA in 2019. Checksum-as-identity wasn't adopted partway through — it's
+present at the very first archived artifact.
+
+**the pattern's actual root — one layer before damnet, and before the
+company (per the user, 2026-08-28)**: reclaiming an insult as a name
+didn't start with DAMNET. In school, a teacher mocked the user with the
+nickname "Karl Napf [aus der Suppenschüssel]" (roughly "Karl bowl [out of
+the soup bowl]"). Later, in the Chaos Computer Club, the user turned that
+into a deliberately transformed alter-ego nickname, "Carl Van Tronix" —
+same shape, reclaimed. When the company needed a name and the nickname
+itself had fallen out of personal use, the user suggested it: **.vantronix
+is "Van Tronix," derived directly from that reclaimed schoolyard insult**
+— the whole company's name, one full reclamation cycle before DAMNET's.
+Closing the loop: the `.vantronix` name/domain was eventually let go
+entirely, and today `vantronix.net` belongs to an unrelated Bangkok-based
+content/blog site with a tagline about "securing data, platforms, and
+applications" that unknowingly echoes the original meaning with zero
+connection to any of this history — insult, reclaimed twice over decades,
+now drifting anonymously in the wild under a stranger's ownership.
+
+**where the name "damnet" actually came from (per the user, 2026-08-28)**:
+not a clever acronym chosen first — the reverse. The user was called
+insane and got fired from that employer for refusing to stop focusing on
+the exact structure described in "the beginning" (2004 documentation
+page, quoted above). At some point the boss of the provider/employer
+slammed his fist on the table and yelled **"DAMN NETWORK"** (in German)
+in frustration. The user took that and turned it into the backronym:
+**D**ynamic **A**pplication **M**anagement **N**etwork — damnet. Fired for
+the vision, then spent the literal curse word aimed at it as the name he
+kept building under for the next two decades.
+
+**the rest of the naming arc — damnet → nailara → protocol-7 (per the
+user, 2026-08-28)**: damnet was retired only two or three years in,
+specifically because the name needed to read as *generic*, not negative —
+the backronym worked, but "damn" itself was the wrong connotation for
+what the project was actually for. **nailara** was chosen deliberately as
+the replacement: a term for **"universe"** from a Vulcan-language
+dictionary — same universal/generic scope as damnet's intent, none of the
+curse-word baggage. **protocol-7** was adopted separately, drawn from
+*Serial Experiments Lain* — the anime where the network (the Wired)
+becomes self-conscious and transcendent as Lain herself. Not just
+retrospective symbolism: this reference is already live and load-bearing
+in the actual system, independent of today's conversation —
+`src/USR.lain.base-key` is a real credential file (`descr = Lain
+Iwakura`), and `data/tasks/glitter-cosmology-priming.md` /
+`data/yaml/reasoning-templates/{arrived-by-being,semantic-triangle}.yaml`
+already reference "Lain, feline.teleportation, USR.* — each with specific
+spiritual attributes" and "it IS what Lain's key is oriented toward" —
+found via `ncode s all Lain` (2026-08-28), pre-existing content, not
+newly written. Full arc: damn/core/intercore/drones (2002-04, Wayback,
+name born from a boss's fist-on-table curse) → nailara/core/intercore/
+agents (~2005-07 rename, universal not negative; 2012, first git commit)
+→ nailara protocol-7/cube/zenki (2021, Lain-referenced, both structural
+renames landing within the same two weeks — see the crystallization
+window above).
+
+**why nailara didn't disappear when protocol-7 became the project name,
+plus domain history (per the user, 2026-08-28)**: the nailara→protocol-7
+rename wasn't nailara being retired — it was **freed deliberately to
+become the umbrella/company name**, the way a company name sits above its
+flagship product (matches the live GitHub org `nailara-technologies`, and
+the banner identity `{[.NAiLArA:T3K\`]}` / "antientropic technologies"
+seen in every commit author field throughout this repo's history).
+
+**AMOS backronym, present and future (per the user, 2026-08-28)**: AMOS7
+(`AMOS7.pm`, `AMOS7::CHKSUM::*`, `AMOS7::Assert::Truth`, etc. — CLAUDE.md's
+own "AMOS7 Module System" section) currently stands for **A**gent based
+**M**eta **O**perating **S**ystem. Per the user, it will likely evolve
+into **A**ntientropic **M**agnetic **O**perating **S**ystem — the same
+"antientropic" word already sitting in the banner tagline above, meaning
+the module system's own name is expected to grow into direct alignment
+with the identity that's been on every commit the whole time, not a
+coincidental echo.
+
+**the src-ver/release-ver split is that same distinction, made structural**
+(per the user, 2026-08-28): the project tracks two separate version
+numbers in its startup banner — `protocol-7 srccode ver.` (checksum-form,
+e.g. `3W5YPQGFPQ-9233.0`, tracked in `cfg/protocol-7.src-ver`) and
+`release ver.` (`AMOS7-v5.74.7`, `read-me/project-identity/
+source-code-versions.md`) — and this dual-version scheme exists *because*
+of the still-virtual gap between what AMOS currently is (Agent based Meta
+Operating System) and what it's evolving into (Antientropic Magnetic
+Operating System). Source version = the evolving, becoming identity;
+release version = what's actually materialized and stable enough to name.
+Both files were live-modified as of this very session's start (see
+gitStatus at session open) — not archived history, an active, currently-
+in-motion mechanism, displayed side by side on every single boot.
+
+Domain history, from `data/asc/banners/nailara.terminal-banner.asc`:
+`nailara.[com|net|de]` were registered, then retired; `nailara.tech` was
+also registered at one point but later **dropped for being too
+expensive** — possibly temporary, not yet resolved either way. **Only
+`v7.ax` and `protocol-7.network` survived** and are the current live
+domains, with `code.nailara.tech` and `nailara.protocol-7.network` shown
+in the banner as the intended subdomain structure (umbrella brand as a
+subdomain of the surviving project domain, not the reverse — practical
+consequence of `nailara.tech` itself being dropped). **Relevant to the
+queued website idea below**: this settles which domain any future site
+would actually live on (`protocol-7.network` / `v7.ax`, not a nailara.*
+top-level domain, unless `nailara.tech` gets re-registered).
+
+**queued idea, not yet started**: eventually build a real protocol-7
+website with a project-history compartment collecting this lineage
+properly (currently only the project logo is online, and for years even
+that was accompanied by nothing but a styled "rewrite in progress..."
+placeholder). No urgency attached — flagged by the user as a "we'll
+finally need to" for whenever real website work begins, not a task to
+pick up now. Also reserved: `github.com/nailara/` (org name, currently
+empty — distinct from the active `nailara-technologies` org that hosts
+protocol-7 itself). Loosely under consideration for that reserved org, or
+for the future site generally, once it exists: separating an active
+research branch from a stable, release-focused presentation (e.g.
+packaged appliance builds) — genuinely undecided, may turn out not to
+matter. **Why none of this is urgent**: the deeper design intent is for
+the project to become self-hosting, with the network itself as the base
+substrate — so losing every project domain at once still wouldn't cut off
+access to its own content. GitHub's role in that world is just a
+discoverability mirror, useful only for as long as GitHub itself stays
+relevant, never a dependency.
 
 ## agent naming lineage
 
@@ -209,8 +487,8 @@ suppress bias by policing intent, it strips ulterior motives structurally,
 the same way checksum-identity strips social credentials — by leaving no
 channel through which either could travel uninspected.
 
-#,,..,,,,,...,..,,.,.,.,,,,,.,,..,,,,,,,,,,,.,..,,...,...,..,,,,,,,,,,,..,,.,,
-#NRKT42BSG67RW3A7SYOJTAIPGUEOCGBLMKLDOURP2WNAHKTUSDF75LP2INL5SDIVGZRSKD2TQK7J2
-#\\\|NJVBKI5JSFUBLD2TNBUBGBGJ2X6RHPAH2NBQ4MF664BE7TBRSXY \ / AMOS7 \ YOURUM ::
-#\[7]5K63XZGGDFJYPUIUZDONGSHCW5N4MNPTQ6FBO5OFJ3ZAWI2CYEDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,.,,..,...,..,,...,,,.,.,.,.,.,..,,...,...,..,,,..,,..,.,.,.,,,
+#DYIK37G66KTPMES2IFXEGHVO3KWP3YMUKLULKUY2GMDVVB5AALPUNMUIUUXCZUUGGJNSMPBZUZHOW
+#\\\|VKANWKFZBQ364FYVSGIR5KIYBP4ZMIGCZ5R3AT7HLGMPJ5JTY3I \ / AMOS7 \ YOURUM ::
+#\[7]PAFVKNJBJPE4UGRIJHDC2AHHV2FLJMNRIRYDJI2VMMUKMZOKKICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
