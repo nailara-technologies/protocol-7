@@ -78,6 +78,47 @@ relevant here; also frameworks/, protocol7/, documentation/, templates/, tools/,
 branding/). Confirmed too large to manually read through this session — this is the
 concrete target for the deferred "scan many documents for style elements" step.
 
+**Correction, later same session — first version of this note overclaimed,
+user caught it**: the batch SPEED fix was `<web-browser.slideshow.
+no_scroll>` — an EXISTING flag, `//= 0` in `web-browser.init_code`,
+already checked in `web-browser.callback.load_finished` to gate whether
+`scroll_start` gets called at all. Set via devmod (`v7.devmod-enable
+web-browser` then `web-browser.set web-browser.slideshow.no_scroll 1`),
+zero new code, ~136s/page down to ~9s/page. Real lesson: check for an
+existing config/flag before reaching for new code, even with a
+plausible-sounding new-command design already in hand.
+
+BUT this is NOT a strict improvement over the old scrolling behavior, and
+does NOT make `set-pos-y`/`set-fg-pos`/`set-bg-pos-y`
+(`data/tasks/web-browser-fast-scroll-position-commands.md`, built by kimi)
+unnecessary — that was the actual over-claim. `no_scroll` freezes every
+capture at the very TOP of the page. The OLD scrolling version never
+supported capturing a deliberately-CHOSEN position either — because
+`capture_on_fade` fires "one iteration behind" (right as the NEXT page
+starts loading), a scrolling-enabled capture happened AFTER that page's
+full auto-scroll-to-bottom had already completed, i.e. it captured the
+BOTTOM of the page, not any targeted position. So the real comparison is
+top-of-page/fast (now) vs. bottom-of-page/slow (before) — a trade, not a
+regression fixed. Neither gives real position-targeted or paginated
+capture. That still needs `set-pos-y` wired into actual paging logic
+(decide how many "pages" a tall document needs given its rendered height
+vs. viewport height, capture at each offset) — genuinely unbuilt, not
+something this flag unlocks by itself. Don't claim this is done until
+that paging layer exists.
+
+**Scope clarification, user, same thread**: top-of-page-only IS still useful
+— "a start for getting an overview" — but systematically misses below-the-
+fold style elements (glossary tables, footers, cue-lists, anything past the
+first viewport), which matters directly for the web-template-EXTRACTION use
+case this whole plan is for, not just general browsing. Resolution: this
+matches the two-pass plan already above, unchanged — the fast top-of-page
+batch is PASS 1 (broad, cheap, palette/layout overview to shortlist ~15-20
+promising candidates from all 227). Pass 2 (actually extracting reusable
+components from the shortlist) needs full-page content, not top-of-page —
+either the old scrolling capture re-run against just the shortlisted files
+(slow is fine at that scale), or the paging system once built. Don't expect
+component extraction to come out of the fast full-corpus batch itself.
+
 **Screenshot-triage plan for that scan, refined 2026-08-28**: don't open 227 images
 individually. Loop `web-browser.cmd.get_snapshot` over the corpus, tile ~9-10 thumbnails
 per collage (→ ~24 collage images total) via an ImageMagick `montage`-style step, caption
@@ -201,8 +242,8 @@ wheel is a natural color-selection UI, and the slider set is a ready-made patter
 tunable-parameter controls generally, not just color. Worth extracting when stage 3/4
 actually starts.
 
-#,,,.,.,,,,.,,,,,,.,,,,.,,,.,,,,,,.,,,,..,,..,..,,...,...,...,..,,...,,,.,,,,,
-#K7TUGSBZHBCWTA5Z6YK6ZOWAJR3WPAJYKJHSAL4EM4QM6CFDGLHJ2HI5VAF6MZ6TXSFJLEA54I47O
-#\\\|7QPRN4JQ3X6ZEGJGSA25UA7B25DNWGMQZXH2DQIXD7U7H5RIYJO \ / AMOS7 \ YOURUM ::
-#\[7]IX74NJG3SFNGZ72ULQ3QCD6CZF2UFZ2EHMRQHBSS7OGVPZBJC6DI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,.,,...,,,.,,.,,,.,,,.,,,..,.,,,..,,...,...,,,,,,.,,,,.,,.,,,,.,
+#WKH4Q2HYOS64U7CEOQ2GFZ6KIKB5HU3PRLUW2UA7PTB7GFXK2WGSXHBXSNZKQ4AT65SXZOOPWV2QM
+#\\\|QYO4D3U25OPFBVMLKD4IPTZXVC5PMGCJ4ZPLNXN5TZBOLFPCQCM \ / AMOS7 \ YOURUM ::
+#\[7]QKCPDX4UOMRANUVNHTEWXIPPRZ6CACIDDZMLUOW34TSBTHMSVMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
