@@ -1,18 +1,14 @@
 ## [:< ##
 
 # name  = web-browser.cmd.start-capture-slideshow
-# descr = arm a capture-on-advance watcher for the slideshow
-#         snapshots the page that was just displayed each time the
-#         slideshow advances to the next url, appending
-#         [ short_id, uri, snapshot_path ] to a manifest file -- no changes
-#         to the slideshow code itself, purely observes an existing
-#         monotonic counter it already increments once a page's full
-#         settle-and-display cycle [ load + fade + scroll + min_delay ]
-#         completes. NOTE : fires as the NEXT page starts loading, so it's
-#         capturing the view that's still on screen [ pre-swap foreground,
-#         confirmed safe by web-browser.swap_views' double-buffer design ],
-#         one iteration behind -- the slideshow needs to wrap one extra
-#         cycle for the last url in the list to get captured too
+# descr = arm a paged multi-position capture loop. once
+#         a page is fully ready (fade complete in non-headless mode, load
+#         finished in headless mode), the loop captures the page at Y
+#         positions 0, viewport_height, 2*viewport_height, ... scroll_max,
+#         appending '<id>\t<uri>\t<position_index>\t<snapshot_path>' lines to
+#         a manifest file. the loop is driven from inside the settled-page
+#         window before the slideshow advances to the next URL, replacing the
+#         previous single-shot capture-on-advance watcher.
 #
 # param = <manifest_path> [snapshot_dir]
 
@@ -22,11 +18,11 @@ return { 'mode' => qw| size |, 'data' => <<'EOT' } if not @call_params;
 
 ::[ web-browser start-capture-slideshow <manifest_path> [snapshot_dir] ]:.
 :
-:: watch <web-browser.slideshow.url_index> and, on every advance, snapshot
-:: the page that was just displayed and append a manifest line -- run
-:: alongside an already-running slideshow ( content.add-entry + web-browser start_slideshow )
+:: arm a paged multi-position capture loop for the slideshow. captures the
+:: page at Y positions 0, viewport_height, 2*viewport_height, ... scroll_max
+:: before advancing to the next URL.
 :
-:: manifest_path ....... file to append '<id>\t<uri>\t<snapshot_path>' lines to
+:: manifest_path ....... file to append '<id>\t<uri>\t<pos>\t<snapshot_path>' lines to
 :: snapshot_dir ......... where to save PNGs [ default: web-browser.cfg.snapshot_dir ]
 .
 
@@ -41,36 +37,20 @@ my $snapshot_dir  = $call_params[1] // <web-browser.cfg.snapshot_dir>
 <web-browser.capture.manifest_path> = $manifest_path;
 <web-browser.capture.snapshot_dir>  = $snapshot_dir;
 <web-browser.capture.counter>       = 0;
+<web-browser.capture.paged.armed>   = 5;                ## TRUE ##
 
 <web-browser.capture.watcher>->cancel
     if defined <web-browser.capture.watcher>
     and <web-browser.capture.watcher>->is_active;
 
-## the watched scalar must EXIST before its reference is taken --
-## autovivifying it later would leave the watcher on a detached scalar [ same
-## precaution as user-edit.setup_stdin_watcher ]
-<web-browser.slideshow.url_index> //= 0;
-
-## explicit $data{..}{..}, NOT '\<web-browser.slideshow.url_index>' -- a
-## leading backslash is the translator's ESCAPE ((?<!\\)<..>), so that form
-## silently watches a reference to the literal name string and never fires [
-## same real bug already caught once in user-edit.setup_stdin_watcher ]
-<web-browser.capture.watcher> = <[event.add_var]>->(
-    {   'var'     => \$data{'web-browser'}{'slideshow'}{'url_index'},
-        'poll'    => qw| w |,
-        'prio'    => 2,
-        'repeat'  => 1,
-        'handler' => qw| web-browser.handler.capture_on_fade |,
-        'desc'    => 'slideshow capture-on-fade watcher'
-    }
-);
+delete <web-browser.capture.watcher>;
 
 <[base.log]>->( 1, "capture-slideshow armed [ manifest: $manifest_path ]" );
 
-return { 'mode' => qw| true |, 'data' => 'capture watcher armed' }
+return { 'mode' => qw| true |, 'data' => 'paged capture watcher armed' }
 
-#,,.,,,.,,,..,,..,..,,,..,,,,,.,,,...,...,.,,,..,,...,..,,.,.,.,,,.,,,,.,,,..,
-#62MRWTFMJGYBVNADPZHJOU2HKSEOZESPGPVMFUDSISOZJWJIMEBWWNHC62GKJVWTJN6CAQ2ZYCG2G
-#\\\|BQQPC4O3ZXKBCDOONPRH6MSAXIVDOYNSVA2QXJMU3VLYM4YE3YO \ / AMOS7 \ YOURUM ::
-#\[7]FYBJGA7FPEKKAOKVJ3SZXRBDIAJF7DZEV6VU7W5GDGWLBJGQKQBI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,.,..,,,,,,,,,,,,.,.,.,...,,..,..,,...,..,,..,,...,.,,,..,,,,.,
+#CXZDUVI7SNDUYUEIHQQEJNREN4S32Y3DLTQH4CSZWX7BO64BJR36RUNCC6E6OP2Z4RCLU5N7V4PNW
+#\\\|5Q2FMSGLZYV4F3IFYMUHV5UPVKSATNJPSQAKZMIL554LO6DXUAF \ / AMOS7 \ YOURUM ::
+#\[7]KUXQ6FMDANGU2MHLNURURWENKGMJTA2BWQ3I4Z7YQDG2RAHTOICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = web-browser.capture_paged.start
+# descr = entry point for the paged multi-position capture loop. called from
+#         web-browser.callback.load_finished when the slideshow is running
+#         and paged capture is armed. queries scroll_max, scroll position and
+#         viewport height in one JS round trip, then hands off to the result
+#         callback to compute the position list.
+
+return unless <web-browser.capture.paged.armed>;
+
+my $fg_index = <web-browser.overlay.index.fg> // 1;
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return unless defined $view;
+
+my $settings = $view->get_settings();
+
+if ( !$settings->get_enable_javascript() ) {
+    <[base.logs]>->(
+        0, "capture_paged.start: javascript disabled, skipping paged capture"
+    );
+    <[web-browser.capture_paged.advance]>;
+    return;
+}
+
+<[web-browser.js_call]>->(
+    'String( document.documentElement.scrollHeight - window.innerHeight '
+        . ') + ":" + window.scrollY + ":" + window.innerHeight',
+    $code{'web-browser.callback.capture_paged_query_result'}, undef
+);
+
+#,,,.,,,.,.,,,..,,,.,,,.,,,..,..,,,,,,,,.,,,.,..,,...,...,.,.,,,,,,,.,,.,,,..,
+#Z2MSBMPBSIYNC4WUCV3WN5OP5FQ3IR4QBNMFY5EXKB467TPZ3WGLLBGNHFSFFGAKOCR74DM7QAWIQ
+#\\\|SXKTKEHSPY2XCV2QC6SHHEKCGTMUWNXTURIBYJVX2PP5SNEJ6GG \ / AMOS7 \ YOURUM ::
+#\[7]LMBE3TIB7ZNPHS5X6G3F3ZNDVNVHBLYAD5O6NVBEXEZPRKHTIUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

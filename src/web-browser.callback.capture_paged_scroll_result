@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = web-browser.callback.capture_paged_scroll_result
+# descr = callback after a paged-capture window.scroll() JS call completes.
+#         records the new scroll position and triggers the snapshot for this
+#         position.
+
+my $js_result = shift // '';
+my $cb_params = shift;
+my $position  = $cb_params->{'position'};
+
+<window.scroll.pos> = $position;
+
+<[base.logs]>->( 2, "capture_paged: scrolled to position %d", $position );
+
+<[web-browser.handler.capture_paged_snapshot]>;
+
+#,,..,,,.,...,,,.,,,.,.,.,,..,,,,,..,,.,,,.,,,..,,...,..,,,,.,..,,.,,,,,.,.,.,
+#IBBMLLG2INRNFA3LHC47NE5LQBE5NMKJVIY342NID2V5LRQJTEWKB5FCNEYQVMCH7N2MUQCQCUFNG
+#\\\|MYQQEGB4SN5GAHYB557XBTHJSACBQVKNCVMTUZJAD3AT436WL3J \ / AMOS7 \ YOURUM ::
+#\[7]VIN7DNEPVULYJA4MAPDKYYPXQ36B6DDDIQWOI3OHPWIWCLB6RGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

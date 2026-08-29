@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = web-browser.handler.capture_paged_step
+# descr = one step of the paged capture loop. looks up the current position,
+#         jumps the foreground view to it via a JS window.scroll() call, and
+#         hands off to the scroll-result callback to snapshot. the first
+#         position (index 0) also scrolls to 0 to ensure a clean header
+#         capture after any previous page state.
+
+my $positions = <web-browser.capture.paged.positions>;
+my $index     = <web-browser.capture.paged.index> // 0;
+
+if ( not defined $positions or $index >= @$positions ) {
+    <[web-browser.capture_paged.advance]>;
+    return;
+}
+
+my $position = $positions->[$index];
+
+my $fg_index = <web-browser.overlay.index.fg> // 1;
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+if ( !defined $view ) {
+    <[base.logs]>->( 0, "capture_paged_step: no foreground view available" );
+    <[web-browser.capture_paged.advance]>;
+    return;
+}
+
+my $settings = $view->get_settings();
+
+if ( !$settings->get_enable_javascript() ) {
+    <[base.logs]>->(
+        0,
+        "capture_paged_step: javascript "
+            . "disabled, aborting paged capture"
+    );
+    <[web-browser.capture_paged.advance]>;
+    return;
+}
+
+<[web-browser.js_call]>->(
+    'window.scroll(0,' . $position . ')',
+    $code{'web-browser.callback.capture_paged_scroll_result'},
+    { 'position' => $position }
+);
+
+#,,.,,,,,,,.,,,,,,,,.,...,,,,,..,,,.,,.,.,,.,,..,,...,.,.,,..,..,,..,,.,,,..,,
+#HDJFNM6LGHVOGOYGSEHGSKXMAC6NICWS24VOTWMCKPODDBVLC5XYPGSMSMPVAPKVWCB2O5JXPFMLW
+#\\\|QIPQGTS5JUAMKHYMFNZ4OCST5FP7LI23JD2V7JYL76VAFN352CU \ / AMOS7 \ YOURUM ::
+#\[7]WMU5YLYCY2FH3P7S6Z4QO3Z4ZUL77DHM72BW7RXJEZ62ULMVTSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
