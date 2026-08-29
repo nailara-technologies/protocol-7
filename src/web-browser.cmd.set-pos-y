@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = web-browser.cmd.set-pos-y
+# descr = jump fg scroll position [ pixel or percent ]
+# param = <pixels> | <percent>%
+
+my $reply_id = $call->{'reply_id'};
+my $args     = $call->{'args'} // '';
+
+my ( $is_pct, $num );
+if ( $args =~ m|^\s*([+-]?\d+(?:\.\d+)?)\s*%\s*$| ) {
+    $is_pct = 1;
+    $num    = 0 + $1;
+} elsif ( $args =~ m|^\s*([+-]?\d+(?:\.\d+)?)\s*$| ) {
+    $is_pct = 0;
+    $num    = 0 + $1;
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => 'usage: set-pos-y <pixels> | <percent>%'
+    };
+}
+
+my $target;
+if ($is_pct) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'scroll max is not known'
+        }
+        if !defined <window.scroll.max>;
+    $target = int( <window.scroll.max> * $num / 100 );
+} else {
+    $target = int($num);
+}
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $settings = $view->get_settings();
+
+return {
+    'mode' => qw| false |,
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+<[web-browser.js_call]>->(
+    'window.scroll(0,' . $target . ')',
+    sub {
+        my ( undef, $cb_params ) = @_;
+        <window.scroll.pos> = $cb_params->{'target'};
+        <[base.callback.cmd_reply]>->(
+            $cb_params->{'reply_id'},
+            {   'mode' => qw| true |,
+                'data' => sprintf( 'scrolled to %d', $cb_params->{'target'} )
+            }
+        ) if defined $cb_params->{'reply_id'};
+    },
+    { 'reply_id' => $reply_id, 'target' => $target }
+);
+
+return { 'mode' => 'deferred' };
+
+#,,,.,.,,,,,.,.,,,,.,,.,,,,.,,,..,,.,,,,.,...,.,.,...,...,..,,,.,,,..,.,.,,,.,
+#OWRFCYD3YWK27ONU2SDJ6P2IH3YKCT6A7CG2WOQ65ZKATYCW4KGS7TSFRIJQRQLIQM4O7N3NTC2P4
+#\\\|AWPDJKVWHRFZU6YIRF3FAMHXOYFNKIF34NFFTKZJPPRQYSDOSE4 \ / AMOS7 \ YOURUM ::
+#\[7]P36M7ZVP7AB3IDJOUVEOMCEIN4UAZEQQIHCPXXNVPIGISX74YQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
