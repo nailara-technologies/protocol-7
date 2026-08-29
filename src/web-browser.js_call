@@ -1,17 +1,25 @@
 ## [:< ##
 
 # name  = web-browser.js_call
-# descr = run fg_view javascipt with callback
+# descr = run javascript on a web-browser view with callback
 
-my $fg_index        = <web-browser.overlay.index>->{'fg'};
-my $view            = <web-browser.gtk_obj.view>->{$fg_index};
-my $settings        = $view->get_settings();
-my $view_uri        = $view->get_uri();
 my $js_string       = shift // '';
 my $result_callback = shift
     // sub { warn "<js_call> invoked empty callback." };
-my $re_cb_params    = shift;           # no params [default] undef
+my $re_cb_params = shift;    # no params [default] undef
+my $target_view  = shift;    # optional explicit view id
+
 my $caller_sub_name = [caller]->[1];
+
+my $fg_index   = <web-browser.overlay.index>->{'fg'};
+my $view_index = defined $target_view ? $target_view : $fg_index;
+my $view       = <web-browser.gtk_obj.view>->{$view_index};
+
+return warn "<js_call> target view $view_index is not available"
+    if !defined $view;
+
+my $settings = $view->get_settings();
+my $view_uri = $view->get_uri();
 
 return warn "<<!>> javascript execution is disabled <<!>>"
     if !$settings->get_enable_javascript();
@@ -56,8 +64,8 @@ $view->evaluate_javascript(
     undef    ## user_data
 );
 
-#,,.,,.,.,,.,,,..,,,,,.,,,.,.,...,,,,,...,...,..,,...,...,.,,,.,,,..,,...,,.,,
-#RU5B7NCFGQ2F2MK2KAPA2BYYAMFIM3YN3CRPW4ONKQF7R44BAK33TC4OIJQGV77TYKV6TH77XEPDI
-#\\\|NWF4EJZQRLKR5NJKCMEOAYD5F252OZOZLPLCZ4T4S76C7HSPMKJ \ / AMOS7 \ YOURUM ::
-#\[7]NKPIJIFR3NK3P2UDHJQG3TSXWWD6J3HTQNS5BZZ6JIXGEBBTSKBA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,,.,,,,.,,.,,,,.,...,..,,.,.,..,,...,...,..,,,,.,..,,...,..,,
+#OSO3MFXR4DPDAZHJDUT2Z6Y5AFNR5PK7RLZ4EQ43JW4GQDGHRA4OY4R5U76FRIXKX7DICRD5JILKW
+#\\\|5JFD4RSJW7DTBQL34RLOYHHWZ4TWEDE3EFFDKELFTM7Z4QVMROV \ / AMOS7 \ YOURUM ::
+#\[7]CJT3HONO4XZMQ3X2YDHHUH4EVFLKGSWKUMASZF3PDCOD2NUYRIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
