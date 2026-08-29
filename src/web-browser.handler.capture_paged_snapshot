@@ -13,11 +13,28 @@ return unless defined $view;
 my $uri = $view->get_uri // '';
 return unless length $uri;
 
+## the view's URI can flip to an error/blank sentinel in the async gap     ##
+## since capture_paged.start's own guard ran (page errored out mid-flight) ##
+## -- never write a sentinel URI into the manifest, treat it the same as a ##
+## timeout                                                                 ##
+if ( $uri =~ m|^\[| or $uri eq qw| [PAUSE] | ) {
+    <[base.logs]>->(
+        1, "capture_paged_snapshot: uri became non-content '%s', skipping",
+        $uri
+    );
+    delete <web-browser.capture.paged.pending_path>;
+    <[web-browser.capture_paged.advance]>;
+    return;
+}
+
+## same naming convention as web-browser.cmd.get_snapshot: content-derived ##
+## amos checksum leads (so identical captures naturally dedup/group by     ##
+## source page), ntime stamp orders them -- no incrementing index          ##
 my $snap_dir = <web-browser.capture.snapshot_dir>;
 <web-browser.capture.counter>++;
-my $short_id = sprintf( '%04d', <web-browser.capture.counter> );
-my $out_path = sprintf( '%s/capture.%s.%s.png',
-    $snap_dir, $short_id, <[chk-sum.elf.vax-BASE32]>->($uri) );
+my $url_chksum = <[chk-sum.amos]>->($uri);
+my $stamp      = <[base.ntime.b32]>->( 5, TRUE );
+my $out_path   = sprintf( '%s/%s.%s.png', $snap_dir, $url_chksum, $stamp );
 
 <web-browser.capture.paged.pending_path> = $out_path;
 
@@ -30,7 +47,7 @@ open( my $fh, '>>', $manifest_path ) or do {
     );
     return;
 };
-print {$fh} "$short_id\t$uri\t$position_index\t$out_path\n";
+print {$fh} "$url_chksum\t$uri\t$position_index\t$out_path\n";
 close($fh);
 
 my $region = <web-browser.cfg.snapshot_region> // 'visible';
@@ -53,8 +70,8 @@ if ($EVAL_ERROR) {
     return;
 }
 
-#,,,,,.,.,..,,,,.,.,.,,,,,.,,,,,,,,..,.,.,.,,,..,,...,...,,..,..,,,,.,...,,..,
-#W3JSH2O2FVXDC7QOPHRGKQBCPZMZ4QTMJ5CNAVRSQFSPOUSTAYA7RLMIDDYBLIHOFIKCO5HMZWUQW
-#\\\|NYZMWBP4JOPPN3N3Y4JFPB5H6AVCGXHVEEDN2PGFU5BWXCBO7HZ \ / AMOS7 \ YOURUM ::
-#\[7]U4KECETJ7GNNQT7FWPOMQIIJBII37VN473ZLLDMOH5GFQHM6LMDQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,.,,,,,.,..,,...,..,,,,.,,,.,..,,...,...,,,.,,,,,,,,,,,,,..,,
+#BXJCQFPAUM3UY4KF3YSKUKKG3RI6NGWVOXKHPLALQW2SZARS7E6TLVXHSMXRZIOGEG5EQQKYOPB3A
+#\\\|E47Q7APLXQU3X365SAKRPLKQJUFIEHN7IECHTVGMNGOOX5437WU \ / AMOS7 \ YOURUM ::
+#\[7]J7RBY5VJUBP627HDCGPENICK3UMJHCCCHYMJG4JG7ZPFOECYU6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
