@@ -1,0 +1,133 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+use Digest::BMW;
+
+####              ####
+##  dedup-files     ##
+###                ####
+
+# find files with identical content [ BMW-256 checksum ] in a directory and
+# delete all but one per group -- 'first' or 'last' by filename, sorted
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $option_list = <<'EOL';
+
+    .: dedup-files command line options :.
+
+    -d <dir>   .......  directory to scan [ required ]
+    -k <mode>  .......  which duplicate to KEEP : 'first' or 'last'
+                         [ by filename, sorted -- default: first ]
+    -r         .......  recurse into subdirectories [ default: off ]
+    -a         .......  actually delete [ default: dry-run, lists only ]
+    -q         .......  quiet [ only print deleted/would-delete paths ]
+
+    dry-run by default -- rerun with -a once the listed groups look right.
+
+EOL
+
+my %opt;
+getopts( 'd:k:raq', \%opt );
+
+if ( not defined $opt{'d'} or !-d $opt{'d'} ) {
+    print $option_list;
+    print "\n:: -d <dir> required and must exist\n\n";
+    exit 1;
+}
+
+my $scan_dir = $opt{'d'};
+my $keep     = $opt{'k'} // qw| first |;
+my $recurse  = $opt{'r'} // 0;
+my $apply    = $opt{'a'} // 0;
+my $quiet    = $opt{'q'} // 0;
+
+if ( $keep ne qw| first | and $keep ne qw| last | ) {
+    print "\n:: -k must be 'first' or 'last', got '$keep'\n\n";
+    exit 1;
+}
+
+##[ COLLECT FILES ]###########################################################
+
+my @files;
+if ($recurse) {
+    require File::Find;
+    File::Find::find( sub { push( @files, $File::Find::name ) if -f $ARG },
+        $scan_dir );
+} else {
+    opendir( my $dh, $scan_dir ) or die "$scan_dir : $OS_ERROR\n";
+    @files = map {"$scan_dir/$ARG"} grep { -f "$scan_dir/$ARG" } readdir($dh);
+    closedir($dh);
+}
+
+print ": scanning " . scalar(@files) . " files in '$scan_dir'..,\n"
+    unless $quiet;
+
+##[ CHECKSUM + GROUP ]########################################################
+
+my %by_chksum;
+foreach my $path ( sort @files ) {
+    open( my $fh, '<:raw', $path ) or do {
+        warn "$path : $OS_ERROR\n";
+        next;
+    };
+    local $INPUT_RECORD_SEPARATOR = undef;    ## slurp ##
+    my $data = <$fh>;
+    close($fh);
+
+    my $chksum = Digest::BMW::bmw_256_hex($data);
+    push( @{ $by_chksum{$chksum} }, $path );
+}
+
+##[ REPORT + DELETE ]#########################################################
+
+my $group_count  = 0;
+my $delete_count = 0;
+
+foreach my $chksum ( sort keys %by_chksum ) {
+    my @group = @{ $by_chksum{$chksum} };
+    next if @group < 2;    ## no duplicates in this group ##
+
+    $group_count++;
+    my @sorted    = sort @group;
+    my $keeper    = $keep eq qw| first | ? $sorted[0] : $sorted[-1];
+    my @to_delete = grep { $ARG ne $keeper } @sorted;
+
+    unless ($quiet) {
+        print "\n:: group [ $chksum ] : " . scalar(@group) . " files\n";
+        print "   keep   : $keeper\n";
+        print "   delete : $ARG\n" for @to_delete;
+    }
+
+    foreach my $path (@to_delete) {
+        $delete_count++;
+        if ($apply) {
+            unlink($path) or warn "$path : $OS_ERROR\n";
+            print "$path\n" if $quiet;
+        } else {
+            print "$path\n" if $quiet;
+        }
+    }
+}
+
+unless ($quiet) {
+    print "\n: $group_count duplicate group"
+        . ( $group_count == 1 ? '' : 's' )
+        . " found, $delete_count file"
+        . ( $delete_count == 1 ? '' : 's' ) . " "
+        . (
+        $apply
+        ? 'deleted'
+        : 'would be deleted [ ' . 'dry-run, use -a to apply ]'
+        ) . ".,\n\n";
+}
+
+#,,,.,,,,,,.,,,..,,,,,...,,,.,,,,,,,.,.,,,.,.,..,,...,,..,,,,,..,,,,,,,,,,.,,,
+#PPJRC3JH527DD2CKWU7UIHMMY3NVYKOMN5GRINEIYLFCUBTOGHVYLA3I4AEDW5LHAULOYADR5D5XA
+#\\\|RFBGQUWUBIARAAKNEA5SS6DIACRERP5ALITZZQSZYXCEAP2O5F6 \ / AMOS7 \ YOURUM ::
+#\[7]OFOHTE53THAAPRRUMUW7QMXRKAYM2H7TFGUQ53B4RGY5JRS7DEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
