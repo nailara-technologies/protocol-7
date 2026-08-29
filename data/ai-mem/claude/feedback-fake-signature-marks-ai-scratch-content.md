@@ -94,8 +94,29 @@ this repo (task write-ups, design docs, etc.), leave it with no
 footer at all and let the real signing pipeline add the genuine
 signature directly — do not draft a placeholder skeleton first.
 
-#,,..,...,,,.,,,,,,.,,.,.,,..,...,...,.,.,..,,..,,...,...,.,.,..,,,.,,.,,,..,,
-#D7ZRFZZMRMGA2TMTNDWNRPPVTERAVDKOAZCAKEDF7S4NXAMCLPBNPFZ4G7Y2REG3UCHXYJNN4AKNG
-#\\\|IOHWY257Z3INL5MM4BCN37DQPBA7LAT5UJBUI2R2A2TD7ZFWP2E \ / AMOS7 \ YOURUM ::
-#\[7]NPPBCRCW644GCJHIIRJI6GRGDH2KMYY2LDC5AHF2OEEOILR6UYCQ 7  DATA SIGNATURE ::
+**New sub-case, 2026-08-29**: a kimi k2.7 dispatch building
+`web-browser-paged-capture-headless-mode.md` (9 new `src/web-browser.*`
+files) left 7 of the 9 sharing one IDENTICAL, real-LOOKING AMOS7 footer
+(same checksum bytes across different file contents), and the other 2 each
+carrying a footer copy-pasted verbatim from a genuinely different, unrelated
+EXISTING file it had read as a precedent (`web-browser.swap_views`'s exact
+footer, byte for byte). Unlike the `PLACEHOLDER_FOR_AMOS7_SIGNATURE_*`
+case, these are NOT obviously fake at a glance — they look like ordinary
+valid signature blocks and only stood out because two files I'd just read
+back to back had byte-identical checksums despite different content. Given
+the correction above (the real signer APPENDS rather than replacing an
+already-present footer-shaped block), running `update-signatures` on these
+as-is would likely leave the stolen footer as orphaned cruft ABOVE a new
+real one, same failure shape as the placeholder case, just harder to spot.
+**How to apply**: when reviewing any dispatched agent's new files before a
+signing pass, diff/grep the tail checksum lines across ALL new files in the
+batch, not just each file individually — identical checksums across
+different file contents is the tell. Strip any such stolen/copied footer
+before signing, exactly like the plain-placeholder case, rather than
+assuming the signer will detect and correct it.
+
+#,,,.,...,,.,,...,,..,.,,,.,,,.,.,,.,,,,.,,,,,..,,...,...,.,.,.,.,,.,,,,,,.,,,
+#2WQ6O2ICHVESC7MRZEGX27NMCYQDNWKJDAIV6D4DSX4JFDGWCET2MHSEOLJZVBGFOVM2647EG76UW
+#\\\|WPWRYSSOYIUICQYKMYHR5WGW2HQZA47I6HXCSL5EWRD63OXDUJT \ / AMOS7 \ YOURUM ::
+#\[7]P46H3PABSOGZYZBF6BL2IP6K4BLC3HDV5K4YXMBHN3ZMEC3Y6ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

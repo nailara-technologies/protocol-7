@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = web-browser.handler.capture_paged_snapshot_result
+# descr = async completion callback for a paged-capture snapshot. saves the
+#         PNG via the shared snapshot_save helper, then either advances to the
+#         next position or resumes the normal slideshow advance flow.
+
+my ( $view, $async_result ) = @_;
+
+my $out_path = delete <web-browser.capture.paged.pending_path>;
+
+my $saved = <[web-browser.util.snapshot_save]>->(
+    $view, $async_result, $out_path, undef
+);
+
+my $positions = <web-browser.capture.paged.positions>;
+my $index     = <web-browser.capture.paged.index> // 0;
+
+if ($saved) {
+    <web-browser.capture.paged.index> = $index + 1;
+    if ( defined $positions
+        and <web-browser.capture.paged.index> < @$positions ) {
+        <[web-browser.handler.capture_paged_step]>;
+        return;
+    }
+}
+
+<[web-browser.capture_paged.advance]>;
+
+#,,,,,,,,,..,,,,.,.,.,,,,,.,,,..,,,,.,,,,,,.,,..,,...,...,.,.,,,,,...,...,.,.,
+#SM6IVKDNGI3SBNO73ZXYOWGPDTXV4OHSI3YR2JCKI7EOEXDB5CFZ5DYTIHDHRKXVMKZYA6E65I5WS
+#\\\|F5VFIJH65FFJPEZUMDMH5FEFVW4HAF64G27GJAM6UALINVUFHBQ \ / AMOS7 \ YOURUM ::
+#\[7]JCQJ2SH3FD5YXEO53X5LRSAJSYYH6OC3MNT3NFCULTSE2T5XIQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
