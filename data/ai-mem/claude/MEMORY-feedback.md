@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [web-browser-stale-gtk-signal-headless-memory-leak](bug-web-browser-stale-gtk-signal-headless-memory-leak.md) — RESOLVED: headless capture mode caused a real OOM (WebKitWebProcess hit 59% RAM, watchdog killed it); a stale swap_views draw-signal never disconnected once headless skipped the code path that normally cleaned it up, driving a runaway clear_bg_view loop; fixed with a defensive disconnect helper + sentinel-URI guards. Generalizable: a signal_connect whose disconnect lives only in the "normal" re-entry path is unsafe once any path can skip that re-entry — audit cleanup responsibility before adding a fast/bypass path. Diagnosis technique (isolate to single input, tight `free -m` poll, hard abort) reusable for any live-GUI-zenka leak
 - [check-completed-tasks-before-vision-seed](feedback-check-completed-tasks-before-vision-seed.md) — search `data/tasks/completed/` for prior art before framing something as "needs to be built" in a vision seed; a user's spoken framing of a felt need describes the problem, not the current implementation state — the infra I proposed inventing for reproducible viz-state capture was already landed weeks earlier
 - [powershell-exec-and-safe-regex-gotchas](feedback-powershell-exec-and-safe-regex-gotchas.md) — two reusable bugs: powershell.exec's open3 exec fails silently on multi-line scripts (WSL-Windows interop, embedded newlines) — always build single-line semicolon-joined; base.eval.comp_regex's Safe-compiled qr// ignores an outer m//i flag — embed (?i) in the pattern text itself, and always pass \$err_str as its 2nd arg
 - [wsl-oom-full-vm-crash-2026-08-29](feedback-wsl-oom-full-vm-crash-2026-08-29.md) — two separate findings from a whole-session teardown: a real OOM-kill of a 6GB llama-server-cuda process, and a SEPARATE systemd-logind session-wide SIGKILL teardown matching a Windows-host-side WSL shutdown, not caused by the OOM kill and not a Linux shutdown/reboot command; don't conflate them
@@ -105,8 +106,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 
-#,,,.,,,.,.,,,.,.,,.,,...,,..,...,..,,.,,,.,,,..,,...,...,...,.,,,,,,,...,..,,
-#22VBYM45PWZ63ZRUGZHQKXV2EZWVSXPTAAIAHFECVX5WNXVHBZITFBKHE4LE5JLRCWENSWVIHPRDG
-#\\\|XWLC6NQFAUPJNAJFZJK5MAW7DVOPRLYGLU5U52G7VIBLV5H5MKT \ / AMOS7 \ YOURUM ::
-#\[7]I7WN3IWHD3SXS6LIDSEM26RVTGWPXXLNMYYU4KYJKPGKAH5X3OCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,.,,,...,,,,,,,.,.,,,,,,,,..,..,,...,.,.,,..,...,,..,.,.,,.,,
+#UQ2H7AA7JZBGU2G6G3BAPNXZRL7AKZ3XMO4EHOGJONPNHVZR5P7T3LH3IRJMF35QJ752ZOK7RHGEW
+#\\\|VNM7QBE2C4I4XX7KNRKOVGD5O2MCY22447RHDMQVFCDZNLDZQZW \ / AMOS7 \ YOURUM ::
+#\[7]XWGYSJJQZLDPIGGMMEQZ73H3W3EAQLK5D6CYDUMKZX6QDSQSGYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
