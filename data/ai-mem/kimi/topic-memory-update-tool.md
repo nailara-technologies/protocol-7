@@ -53,10 +53,8 @@ way as summarizing `MEMORY.md`.
 identity). All `target` paths are kept inside the selected agent's
 `data/ai-mem/<agent>/` directory; paths containing `../` are rejected.
 
-#,,.,,.,.,.,,,.,.,,.,,..,,,,.,,,.,,.,,,.,,,.,,..,,...,.,,,,.,,,..,..,,.,.,...,
-
-#,,,,,,,.,.,.,,,.,...,,..,,,.,...,.,.,.,.,..,,..,,...,...,.,,,,,.,,,.,,.,,,,,,
-#GY74GX4G3454MG63AXV6ONVCV3NPUMSSBIUQCLG6XWRFWRXKWPT4WEDHFIZPKZRUS5DVBVBD3FL64
-#\\\|7G4LHIHK2XD5B3VTBL7V4ZCRN3P4Z5VITNYZ3H6AKWDY2IV64YF \ / AMOS7 \ YOURUM ::
-#\[7]PTNRASOIG2XTLDVTW7HB5N3IOTFXELJ7SUA5OCT6BYYNY7LUJOAI 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,.,,,,,.,,..,,,.,.,,,,,,,...,..,,...,...,.,.,...,..,,.,.,..,,
+#DIYLRNLYUM2BX2QPQHVWDCYZJYN4ELMEQU2F42TUCUDE343JJRIVHJZ5ZMRAOL4426FU3NKY3RKDO
+#\\\|WO2JGBDIHVLHH4LLQUJKZ5BXGPFLA274QWYJNDQ7CNEN2O54P3T \ / AMOS7 \ YOURUM ::
+#\[7]GHXH2UW2XZDYALGCZTOL6R2AO7WN2ATLOKPAJHU7F4MH7NR6YEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

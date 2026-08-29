@@ -288,10 +288,8 @@ declaration but identity by convergence.
 - `bin/dev/gen-div` — operator map, /0.6 and /0.7 reference oracle
 - `src/index.gen_path` — harmonic path generation, convergence in practice
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,,,,,,,,,,,,..,,,..,,,.,,,.,,,.,,.,,..,,.,,,..,,...,...,.,,,,..,.,.,..,,,.,,
-#AJNGJNN2Z5Z7SGMJDUAUWMNORIKN5FWDTRLKP7K5PQR722IDSLEKUYLL2VNJJOWNFL7IGRTN7SS6K
-#\\\|O4KECAGGBLXYZ4F57HRRA3RAD2ZI3CYLBT6PY6LNCPZW2JRYQ4L \ / AMOS7 \ YOURUM ::
-#\[7]JVNFDXNVAZNY4VVUCHRNFAH5BDJCBY655OYGEWYZ2HQ54SONXYCA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,,.,,,,.,,,,,,..,,,.,..,,,..,..,,...,...,,.,,,.,,,.,,,..,,,,,
+#ATPNJCX3KL4FBBR2QINEGFKQ3KFQGNXIG6RNHBM753MWWSDGRUIS4IYARUB7VFF2CYNRRMVCXWY76
+#\\\|FI3MNFZX7P5U7F2X6MKYG2RRFUBKW7T2YXXDWGDRV5FJN4NFHUX \ / AMOS7 \ YOURUM ::
+#\[7]IUCI7ZEO5M25VCR2A76VTU2IBFUY6L4O4XY7O5CY3WS7NH4XQCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

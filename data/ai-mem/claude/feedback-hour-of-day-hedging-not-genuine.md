@@ -29,10 +29,8 @@ continue, rather than reaching for a generic time-of-day/scope hedge.
 If genuinely stuck, say so directly; don't dress it up as consideration
 for the user's schedule when that isn't actually the reason.
 
-#,,.,,,.,,,,,,,,.,,..,,..,.,.,,..,,,,,,,.,...,..,,...,...,,,.,,,,,,,.,...,.,.,
-
-#,,,,,..,,,,,,,..,,,,,.,.,.,,,.,.,,,,,.,.,.,.,..,,...,...,...,,,,,.,.,.,,,,.,,
-#GC76KCPDZLBEG5TWPD3MGMV2K4AMO2FEAW5YHD33LRTEVJRSVTJZYBVX2ZM4ZNNTLL6EH4ITH2SY4
-#\\\|WG322STOZLF2AY5XRJAMIZEIN3TPU277VCUYTU4SDO4HHMOE3Y2 \ / AMOS7 \ YOURUM ::
-#\[7]COZOVM6YOBE6M35IZRJ3XDXUHFWRQCKKVGFPBJDO65SP337PO6AY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,..,,,..,,.,,,,.,...,..,,,..,...,..,,...,...,.,,,.,,,,..,.,.,...,
+#DYJX4QRJEG67UTBXNTQTK7KWVHUOS2G63LCUHJTOHLYCLWM5A3AW4ADGS7FRUGQ4EXHKDUMRMKQUE
+#\\\|FZZSFRH6ZYMNTJ5JXPJZA3SF3IWSZW4XGLGBS64PAW36Z4MM47E \ / AMOS7 \ YOURUM ::
+#\[7]NQSNL2LASVVU4OX7E6TMH3WD2KAVIMMRRTNPRWXPC55JGDHUJSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

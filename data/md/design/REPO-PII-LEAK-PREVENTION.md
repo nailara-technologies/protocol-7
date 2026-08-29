@@ -163,10 +163,8 @@ they should be a runbook, not re-derived each time):
 - whether the periodic audit runs as a standalone `bin/dev/*` script
   (matching `fix-tag-drift`'s shape) or as a zenka command.
 
-#,,,.,.,,,,,,,.,,,,.,,..,,.,.,,,,,.,,,...,.,,,..,,...,...,...,,.,,,.,,.,,,,,.,
-
-#,,,.,...,,,.,...,..,,.,.,,..,.,,,,.,,,,.,,.,,..,,...,...,,,,,.,,,,.,,,..,..,,
-#ZZ2G4PQ5RC47OLZ6TDFQVT5SEPHI66ZFHQI4PID2J3Z4QZCC42LD25MQ6TLT47PDD3JZEBRNXNH6E
-#\\\|JTUTBEKWAKL4JDQLWJCWIMXALQRBGNEHKBWY5IW5PWMIXQNGSLM \ / AMOS7 \ YOURUM ::
-#\[7]75SS6LFNUM6AZZU4KPH32N7RC2A3KGFHMJFWKUSTCSJD2JRFPGBA 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,,,,,,.,,,,,,.,.,.,,,,.,,..,,..,,...,...,.,.,...,,.,,.,,,,..,
+#A6SKJZM3HZCOZ4YXJ4OSWRSDHHMPE5JX5DWOZQAA5IIQXO5OPS5FKS4GIACIXXJ7IHC7LMON4LHCM
+#\\\|MDZF4YRSQNYRYNNZRBVZLRQZQ7MFXRCGFSGI3IIS74DSACJ7M3A \ / AMOS7 \ YOURUM ::
+#\[7]LI2QD5LGCUFMDZVRKOBJC5WPBINAXDWXSALMYSXHOQYN6J4K6GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

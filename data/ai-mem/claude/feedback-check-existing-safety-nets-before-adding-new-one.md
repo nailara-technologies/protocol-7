@@ -38,10 +38,8 @@ code — they will usually say outright whether one already covers the case,
 and derive any new ceiling from the same config knob rather than a fresh
 literal if one is genuinely still needed.
 
-#,,.,,,.,,..,.,,,,,,.,,,.,,..,,,,,.,,,,,,.,.,.,.,,,,,,,,,.,.,,,..,.,,,,.,,,,,.
-
-#,,,.,,,.,..,,,..,...,,,.,.,,,..,,,..,..,,,,.,..,,...,...,,,,,.,,,,,,,,..,...,
-#OJPSWPEYNXTMH25IE3UNHF73D7P5QRNSIV7HXUI6TMI66OZZRPO54EMTPGZCR644N3VJ7ECMBMMTE
-#\\\|7YLQAZ2WQEDV25DNYAVWMMB5QQ6TO7L5ZN2FSWNI3ICPLQZUJIF \ / AMOS7 \ YOURUM ::
-#\[7]J37GFBQIZ7WQCMNFZZGVMSKP6YS6SVJ3EP3NYM2Z75Y3MBBTWIBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,..,..,,...,.,.,,,,,.,,,,,.,..,,...,.,.,...,,.,,...,.,.,..,,
+#WFAHGQXTOHE3SRIBJNGVJMNCIE7ZX3LC4KOZGQJLOJFT5KWEDA4L7AIY4GLVWDZXIEEQD5WNW2KNW
+#\\\|YZZ2XNSVJY6WOORDEL76WHAVKMQUU2WU6S3KYHQAHDUAS3SXI6D \ / AMOS7 \ YOURUM ::
+#\[7]IANAXX7VENL4YFKAPGIJCF3GACM6SVKGMA2SHAGMCFLFAYN2JSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

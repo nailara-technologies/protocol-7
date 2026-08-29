@@ -124,10 +124,8 @@ These need more design, live system testing, or are lower urgency:
 - For multiline: the socat test script is the fastest path to verification
   without needing a full client session
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,,.,..,,.,,,,,,,.,,,..,,,,,,...,,,.,,.,,.,.,..,,...,..,,...,,,,,,,.,.,,,...,
-#TNC63DMWZWTHI5GQSHL2IHWUV55D5GNHAWEQUGZ4Y52MPSDV567SNL55ORT6OJHWX3D2OVUNJT2C6
-#\\\|53MYFEPRPAYUX4HCDNO3Y2ZJCDK4KXQ5PIRCCE2E3CPAKPOLKSQ \ / AMOS7 \ YOURUM ::
-#\[7]F74V5WL3XJH44ZZQEGFLDCKAUBF2IGQJ7K4GA7RFCCNI5NVKLIBY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,.,,,,.,,.,.,.,,,.,.,.,.,..,,..,,...,...,...,.,.,,,,,,,,,..,,
+#K74DPNGWRAIUX6EW6EWR7RGOYJZZELWSWYGANK4VZORAR7K6YHOXLZL3ROOLNC6ZSLLHITIQI5XH6
+#\\\|NKUZX3LLHM25C6JELVVOD6JKOHHFBSG47DASBNZRHAGZY47MWRO \ / AMOS7 \ YOURUM ::
+#\[7]D4WZV7I2KDWJKSLKTJHA4DH7Y6LE5WAUDPYJDAHZ5QPB5YT6BKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,10 +75,8 @@ the fix landed (commit `dd162183b`). After the fix, expect to see the
 `enqueue_round:` line every 5s while paused, and an actual `send_request:
 task=... round=... messages=...` line once unpaused.
 
-#,,,.,,..,,,,,,,.,.,.,..,,,,.,...,.,,,,.,,.,,,..,,...,...,..,,..,,,,,,,.,,..,,
-
-#,,.,,,,,,,,,,,,,,,.,,..,,.,.,,,,,.,,,,,,,...,..,,...,...,..,,,,.,...,.,.,.,,,
-#6DBMMDL7FSGPGLGPMJUIJKBISOXREIDDQ6DGXX4YO4EDXCM2Q4OGSW5OOIRACA3E7XI7HJMOISNKE
-#\\\|7ANPBATEPHDEIOAXS2CYKXOQFIFFBA4CXF65SELFPONBIPD2I7Z \ / AMOS7 \ YOURUM ::
-#\[7]WKF6KMOXFMAJBUKIUERZ5TGMGGFVOASGCK7G2NF7MHUPGJ2NNEBA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,..,..,,,,,,.,.,,,.,.,.,,,,,.,.,..,,...,..,,.,.,,,,,,.,,...,.,,,
+#GDU4OSFJMQZP2G4XLF5CVMDKAV7DHXNB7X7T5ZPSAJZHFF4HYWXDIV7PB3SQTUNORVRIEMPUWJNY6
+#\\\|4KJV4M3MA52PVFS5YO6JOE3YMUMIKAWUF2UAL67A56C2K5EWLC2 \ / AMOS7 \ YOURUM ::
+#\[7]GZ33TW3XNVDYJBZLQVAZYGMXB57DUNOGHW6K5VHASWW75DSKYSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
