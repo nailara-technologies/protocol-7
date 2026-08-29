@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = web-browser.cmd.set-bg-pos-y
+# descr = jump bg scroll position [ pixel or percent ]
+# param = <pixels> | <percent>%
+
+my $reply_id = $call->{'reply_id'};
+my $args     = $call->{'args'} // '';
+
+my ( $is_pct, $num );
+if ( $args =~ m|^\s*([+-]?\d+(?:\.\d+)?)\s*%\s*$| ) {
+    $is_pct = 1;
+    $num    = 0 + $1;
+} elsif ( $args =~ m|^\s*([+-]?\d+(?:\.\d+)?)\s*$| ) {
+    $is_pct = 0;
+    $num    = 0 + $1;
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => 'usage: set-bg-pos-y <pixels> | <percent>%'
+    };
+}
+
+my $bg_index = <web-browser.overlay.index>->{'bg'};
+my $view     = <web-browser.gtk_obj.view>->{$bg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no background view' }
+    unless defined $view;
+
+my $settings = $view->get_settings();
+
+return {
+    'mode' => qw| false |,
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+my $js_string;
+if ($is_pct) {
+    $js_string
+        = 'window.scroll(0, Math.floor((document.body.scrollHeight '
+        . '- window.innerHeight) * '
+        . $num
+        . ' / 100))';
+} else {
+    $js_string = 'window.scroll(0,' . int($num) . ')';
+}
+
+<[web-browser.js_call]>->(
+    $js_string,
+    sub {
+        my ( undef, $cb_params ) = @_;
+        <[base.callback.cmd_reply]>->(
+            $cb_params->{'reply_id'},
+            {   'mode' => qw| true |,
+                'data' => 'background view scrolled'
+            }
+        ) if defined $cb_params->{'reply_id'};
+    },
+    { 'reply_id' => $reply_id },
+    $bg_index
+);
+
+return { 'mode' => 'deferred' };
+
+#,,,.,.,.,,..,...,.,.,,..,.,.,,,.,,,,,,..,.,.,.,.,...,...,..,,.,.,,,.,...,..,,
+#OXPMMZ45AA6TNT4F7EAJLAZSU66NKIGQQR54RAG4IA7GXKDTFYDRSSXZJYV2QTALVJO3IJC3DD6OY
+#\\\|MASEQNCLIROVCUIL5Y5CI2JJ24WKSMWANFM4A7DBWWAYMX7QUYA \ / AMOS7 \ YOURUM ::
+#\[7]U4YIQ333VUKQF6LMEYPJ7BFISE6OPJXNY6OMURTWICGELQU3J4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
