@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [deleted-manually-tuned-captures-without-confirming](feedback-deleted-manually-tuned-captures-without-confirming.md) — 2026-08-28: deleted 117 files from a shared dir based on filename-pattern inference alone ("all named snapshot.*, must be disposable"), no confirmation asked; some were the user's hand-tuned interactive visualization states, unrecoverable (no fs snapshot/trash, plain ext4). NEVER delete anything outside a designated scratchpad without asking first, even when the naming/location looks conclusively like test debris — content value is not inferable from filename pattern or origin command alone
 - [user-screen-brightness-sensitivity](feedback-user-screen-brightness-sensitivity.md) — real physical reaction to bright screens, not aesthetic; default new HTML/UI work to dark violet/blue-toned themes proactively, keep print forced light
 - [rapid-pattern-visual-disruption-risk](feedback-rapid-pattern-visual-disruption-risk.md) — real, lasting adverse effect (temporary inability to read text) from sustained attentive exposure to dense high-entropy ANSI-cycling visuals (bin/atom-delta-term); default any future rapid/psychedelic visual work (incl. vision-orbital-hop-sequence-hyperspace-flight-animation) to conservative, easily-slowed cycling rate, not max intensity
 - [no-personal-data-in-repo-tree](feedback-no-personal-data-in-repo-tree.md) — never hardcode emails/PII, or real hostnames/IPs of live deployments, into any repo-tracked file — src, gitignored, or memory files (`data/ai-mem/claude/*.md` is git-tracked too); use `<[file.zenka_dir.load]>->('cfg-dir:<zenka>/file')`, `/data/<project>-data/` external dirs, or generic phrasing instead
@@ -52,8 +53,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,..,,..,,.,,,..,,..,.,,,..,,.,,,..,,,,,,..,,...,...,,,.,.,.,..,,,..,,,.,
-#PKCKQ4M5HKLQ7FSZXGRARYXKKHC7BLW43G3QZ7NGWFTNEJWALR3HAMBM7MBKDF5QPWRS3PQ5JJJ3S
-#\\\|MMDCXRUDKYY6W43BEV2QQGT6Z3ARFVRDQMNJ3FS25ZCV26BNZLC \ / AMOS7 \ YOURUM ::
-#\[7]BXBNILGDLDPYRON6KFQWK3DBIWZSQZVATQIK2LV5WXOCPZDLOOCI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,,,..,,,,,,..,,...,,..,...,,,,,..,,...,.,.,.,,,..,,,..,,.,,,,,,
+#4DJ7DXBWXUFJ6FYELGRKSW7R2OGOJBZ444TKGBBFVORITKDWIRACC7AUUXLVBAW62KUNMH7GRDOQ6
+#\\\|PSYVSITADOC3OWP3S34E6LL3VO77AXO2VH6LNXEV3XEIHY5RXBN \ / AMOS7 \ YOURUM ::
+#\[7]YFCZNHSYRNKYJU76OWMOHCY7KOWCLYX5M4LCGP2ILTLYXIOFS2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

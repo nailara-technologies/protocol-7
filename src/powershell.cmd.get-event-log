@@ -1,0 +1,142 @@
+## [:< ##
+
+# name  = powershell.cmd.get-event-log
+# descr = query the windows host's event viewer via get-winevent
+# param = <log_name> <minutes_back> [level] [pattern]
+
+my $args = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'log name and ' . 'minutes back required'
+    }
+    if not length $args;
+
+my ( $log_name, $minutes_back, $level, $pattern ) = split( m|\s+|, $args, 4 );
+
+return { 'mode' => qw| false |, 'data' => 'log name required' }
+    if not defined $log_name or not length $log_name;
+
+return { 'mode' => qw| false |, 'data' => 'minutes back required' }
+    if not defined $minutes_back or not length $minutes_back;
+
+return { 'mode' => qw| false |, 'data' => 'specified log name is not valid' }
+    if $log_name !~ m|^\w+$|;
+
+return { 'mode' => qw| false |, 'data' => 'invalid minutes back' }
+    if $minutes_back !~ m|^\d+$| or $minutes_back < 1;
+
+my $level_num;
+if ( defined $level and length $level ) {
+    my $level_key = lc($level);
+
+    if ( $level_key eq qw| any | or $level_key eq '*' ) {
+        $level_num = undef;
+    } else {
+        my %level_map = (
+            'critical'    => 1,
+            'error'       => 2,
+            'err'         => 2,
+            'warning'     => 3,
+            'warn'        => 3,
+            'information' => 4,
+            'info'        => 4,
+            'verbose'     => 5,
+        );
+
+        return { 'mode' => qw| false |, 'data' => 'invalid level' }
+            if not exists $level_map{$level_key};
+
+        $level_num = $level_map{$level_key};
+    }
+}
+
+## LogName is deliberately NOT included here -- the PS script supplies it ##
+## separately as $log.LogName [ the canonical-cased name from -ListLog's  ##
+## own result ], not this raw caller-supplied value, to sidestep any case ##
+## mismatch between -ListLog's matching and -FilterHashtable's            ##
+my $filter_entries
+    = sprintf( "StartTime=(Get-Date).AddMinutes(-%d)", $minutes_back );
+
+$filter_entries .= sprintf( "; Level=%d", $level_num )
+    if defined $level_num;
+
+## single line, semicolon-joined -- NOT a multi-line heredoc. confirmed live,
+## 2026-08-28: a multi-line -Command script (real newlines) reliably fails [
+## exit 1, empty stdout+stderr, no diagnosable error at all ] when passed
+## through open3's array-form exec to powershell.exe -- the WSL-to-Windows
+## interop layer that marshals argv into a single Win32 command line does not
+## survive embedded newlines inside one argument intact. the identical script
+## joined with ';' instead of newlines works correctly. keep this single-line
+## if this file is ever extended.
+##
+## Get-WinEvent -FilterHashtable throws a TERMINATING error liberally --
+## confirmed live, 2026-08-29, for BOTH an unknown log name AND the entirely
+## legitimate "zero matching events in this window" case -- and
+## $ErrorActionPreference='SilentlyContinue' does not suppress either one [
+## same undiagnosable exit-1-empty-output symptom as the newline bug above,
+## different cause each time ]. rather than pre-empting every specific failure
+## shape individually [ tried and kept missing new ones ], catch generically :
+## wrap the whole query in try/catch and surface whatever PowerShell actually
+## says via a 'P7ERR:' sentinel line, parsed generically on the Perl side too,
+## not pattern-matched against specific known message text. -ListLog's result
+## also gives the CANONICAL-cased log name to use in the real filter --
+## Get-WinEvent -ListLog matches case-insensitively, -FilterHashtable's
+## LogName key may not always be as forgiving, so this sidesteps that class of
+## mismatch entirely rather than relying on the caller's input casing.
+my $ps_script = <<'PS1';
+$ErrorActionPreference = 'Stop'; try { $log = Get-WinEvent -ListLog '__LOGNAME__' -ErrorAction Stop; $filter = @{LogName=$log.LogName; __FILTER__}; Get-WinEvent -FilterHashtable $filter | ForEach-Object { $msg = ($_.Message -replace '[\r\n]+', ' '); "$($_.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss'))`t$($_.Id)`t$($_.ProviderName)`t$($_.LevelDisplayName)`t$msg" } } catch { Write-Output ('P7ERR:' + $_.Exception.Message) }
+PS1
+
+$ps_script =~ s|__LOGNAME__|$log_name|;
+$ps_script =~ s|__FILTER__|$filter_entries|;
+$ps_script =~ s|\n\z||;    ## heredoc adds a trailing newline -- strip it, ##
+## keep the script content itself single-line   ##
+
+my $raw_out = <[powershell.exec]>->($ps_script);
+
+return { 'mode' => qw| false |, 'data' => 'powershell.exec failed' }
+    if not defined $raw_out;
+
+return { 'mode' => qw| false |, 'data' => $1 }
+    if $raw_out =~ m|^P7ERR:(.+)|;
+
+my @out_lines = split( m|\n|, $raw_out );
+@out_lines = grep { length $ARG } @out_lines;
+
+return { 'mode' => qw| false |, 'data' => 'no events found' }
+    if not @out_lines;
+
+if ( defined $pattern and length $pattern ) {
+
+    ## a Safe-compartment-compiled qr// [ base.eval.comp_regex uses Safe to
+    ## sandbox the pattern string ] does NOT compose with an outer m//i --
+    ## confirmed live, 2026-08-28: the object stringifies to a normal- looking
+    ## (?^:...) pattern, and a case-EXACT match against it works fine, but the
+    ## 'i' on the enclosing m// is silently ignored once the pattern is a
+    ## Safe::RootN::Regexp rather than a plain Regexp. the fix is embedding
+    ## case-insensitivity in the PATTERN TEXT itself before compilation, not
+    ## relying on the outer match's flag.
+    my $err_str;
+    my $regex_filter
+        = <[base.eval.comp_regex]>->( "(?i)$pattern", \$err_str );
+
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid pattern [ %s ]', $err_str // 'unknown' )
+        }
+        if not defined $regex_filter;
+
+    @out_lines = grep { $ARG =~ m|$regex_filter| } @out_lines;
+
+    return { 'mode' => qw| false |, 'data' => 'no matching events' }
+        if not @out_lines;
+}
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @out_lines ) . "\n" };
+
+#,,.,,,,.,..,,,,.,,..,..,,,.,,...,..,,.,,,.,.,..,,...,..,,.,.,,..,,.,,,,.,...,
+#XDGWQ5LMLWGSJIDB2F2KZSVLD6E3B5FN5O3TRMVKDMJMZ3C3V7DMKJDOJQSP3RXKU6U5BGIZ7DPXE
+#\\\|GIR5Q74CCG4L6ALRQCKBHAPXH7LNBNN3Y5E5F3LUZ6TWAJQAZD2 \ / AMOS7 \ YOURUM ::
+#\[7]3B6XYIVIXAMJC33NP4AVEXAO24E5XDMLK7YORC2CSNQRBFEDEAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

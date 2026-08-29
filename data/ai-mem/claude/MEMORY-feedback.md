@@ -6,6 +6,9 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [powershell-exec-and-safe-regex-gotchas](feedback-powershell-exec-and-safe-regex-gotchas.md) — two reusable bugs: powershell.exec's open3 exec fails silently on multi-line scripts (WSL-Windows interop, embedded newlines) — always build single-line semicolon-joined; base.eval.comp_regex's Safe-compiled qr// ignores an outer m//i flag — embed (?i) in the pattern text itself, and always pass \$err_str as its 2nd arg
+- [wsl-oom-full-vm-crash-2026-08-29](feedback-wsl-oom-full-vm-crash-2026-08-29.md) — two separate findings from a whole-session teardown: a real OOM-kill of a 6GB llama-server-cuda process, and a SEPARATE systemd-logind session-wide SIGKILL teardown matching a Windows-host-side WSL shutdown, not caused by the OOM kill and not a Linux shutdown/reboot command; don't conflate them
+- [deleted-manually-tuned-captures-without-confirming](feedback-deleted-manually-tuned-captures-without-confirming.md) — CRITICAL, promoted to top-level MEMORY.md too: deleted 117 files from a shared snapshot dir based on filename-pattern inference alone ("all named snapshot.*, must be disposable test debris") without asking; some were the user's hand-tuned interactive visualization states, not reproducible from source HTML — no filesystem snapshot/trash existed, unrecoverable
 - [x11-xvfb-blocking-connect-crash](feedback-x11-xvfb-blocking-connect-crash.md) — X-11.cmd.xvfb-start crash-loops X-11 every time it runs; never use alarm()/SIGALRM to bound a call inside an Event.pm zenka's timer callback (clobbers the framework's own alarm state, made it worse); crash-restart can leave TWO live duplicate instances both "online" in v7.list zenki, not just a stale pointer; full detail data/tasks/x11-xvfb-start-async-refactor.md
 - [network-command-omits-cmd-infix](feedback-network-command-omits-cmd-infix.md) — categorical: `src/Zenka.cmd.foo` file → call it as `Zenka.foo` over p7c/routing, no `.cmd.`; a "not known or no permission" error is usually just this, try it before chasing access-control config
 - [update-version-reset-amend-stuck-at-revision-1](bug-update-version-reset-amend-stuck-at-revision-1.md) — RESOLVED 2026-08-21: `reset amend`'s unconditional `$new_minor = 0 if $reset` clobbered the amend-branch's increment before the `.1` fallback re-filled it, so every call landed on `.1` regardless of prior revision; fixed by guarding with `and !$amend`
@@ -101,8 +104,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 
-#,,..,.,,,,.,,.,.,...,...,.,.,.,.,.,.,..,,.,,,..,,...,...,...,,,.,.,,,,,.,,,.,
-#EGEWJ5SLUH5U5QTSSDATU6CRH4WLSUJ3K2ZMHS6RDJ47G5LD2FZ2GIDPMRI2VRRGID5SSWTPM5K6C
-#\\\|O2KBW6LISVUOIL2M7IPWSIB7YTAZJBORBWWWTXYSJRMSNGAW3IL \ / AMOS7 \ YOURUM ::
-#\[7]MNHJZOR6PRZFCWMNTYJAGBBN7KB77M5JML75IFEFJM5RMAGXTMBA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,.,,.,,,,..,,,,,..,,..,,.,.,.,,,..,,...,...,...,.,.,,,,,,,,,,.,,
+#6A5CYAWBV3JJLCHXC5RV4QTCTUUORMITPTVC3OHARFIDJTISEH6TZEQ3KK4EH2XLBR37TYC25T7CA
+#\\\|GUF2V66UUDID6I4RQWZBU3ON33KHAGBK272FBNP73NSK576A2DX \ / AMOS7 \ YOURUM ::
+#\[7]QFU26OQWSTH6SSYNGR4JKRQ7UYVEPE6SX77BYUNOEMVYULOCREAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
