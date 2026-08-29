@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active
+- [screenshot-triage-corpus-2026-08-29](project-screenshot-triage-corpus-2026-08-29.md) — web-browser paged-capture batch status: 190/224 corpus pages captured, 531 deduped images at `data/snapshots/screenshot-triage-2026-08-29/` (gitignored), 38 files (archive/webgl/stubborn) still outstanding, 154 near-dup pairs unreviewed; 4 real production bugs found+fixed getting here, read before resuming
 - [disk-edit-host-edit-zenki-planned](project-disk-edit-host-edit-zenki-planned.md) — user direction 2026-08-14: two more zenki likely emerging soon in the same style as user-edit -- disk-edit and host-edit, no scope yet
 - [keys-zenka-integration-direction](project-keys-zenka-integration-direction.md) — user direction 2026-08-12: integrate keys zenka functionality too; TOFU host pins now live in `.n/remote-keys/known/<host>_<port>.public` (landed 2026-08-23, `f14c524d4`, was `remote-host.*` in user-keys) and keys already carries a credential command (`github-pat`); secret/identity material now spans keys+credentials+cred-mesh+users — reconcile ownership, don't start moving material
 - [credential-types-into-user-edit](project-credential-types-into-user-edit.md) — user direction 2026-08-12: move real credential types (external sites, android app accounts, host passwords) into p7 via user-edit/users as built; makes editor.control's `masked` type load-bearing (currently hard-rejected); `credentials.cmd.add`'s closed type whitelist covers only 1 of 3 named cases; first real target is the uninstalled fanless desktop node whose `taeki` AND `root` accounts both need p7 management Topics
@@ -124,8 +125,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [smtpd-actionable-mail-channels-notify](topic-smtpd-actionable-mail-channels-notify.md) — 2026-08-24: smtpd's notify-on-actionable-mail path hardwired to legacy send.local (fixed, use route-send) + a dbus regex bug (fixed) + notify-osd rendering nothing on this WSLg host even once fully online (worked around, see [[topic-powershell-native-toast-notifications]]); still-open design smell: smtpd should publish to `channels.*` instead of calling a notify target directly. Drafted-not-started task `data/tasks/dunst-notify-zenka.md` covers a parallel non-WSL Linux-desktop backend, deprioritized on this host
 - [coding-cpu-spawn-day-2026-08-26](topic-coding-cpu-spawn-day-2026-08-26.md) — LANDED (4 commits): CPU inference spawning works for the first time (LD_LIBRARY_PATH gpu-only fix, RAM-aware context clamp, dead-code dependency wiring moved to init_code, GPU foreign-process-exclusion fix, self-test var-watcher wake). Two open follow-ups, read before touching this area: `coding-self-test-true-parallelization.md` (full audit done + trustworthy, exact per-backend-watcher fix needed, a broken partial edit was caught+reverted — do not reproduce it) and `coding-backend-aware-timeout-scaling.md` (GPU-tuned timeouts ~9-10x too tight for CPU, live t/s measurement is the planned fix, not a flat multiplier). See also [[feedback-event-add-var-per-key-not-per-hash]]
 
-#,,..,.,,,.,.,..,,,,,,.,.,,..,,,.,...,,,.,.,,,..,,...,...,...,.,,,,,.,,.,,,,,,
-#2NQZP2ZJZRD7AKFZLK6K4XAXP3C26KM7FSSF6QQC5DZTU6LLY3OOJUYVWBJ5XUMGOPODQ7UFN3K5E
-#\\\|KWYW5KYMVYHRDEPBSZNCKT6NAQGZGZ2XI4JOW37AR7NFP5JAI2M \ / AMOS7 \ YOURUM ::
-#\[7]WQOFD5R6MXQRTNVY5TT7NTV75BAW72F3G5IUC263WR2MKVCT66AY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,,,,..,,..,,..,...,..,,,..,...,..,,...,...,,.,,,.,,,,.,.,,,..,,
+#FT7H3EFDXUZEGLSFXJX4Q6S6R4UQEHH2PJZLWB66JSX6WSRVP72HF724E2L4DJEAKVBWEP37GYNLM
+#\\\|5KM3DVGIH2BW3WPFXSAK5HFLR2AKMBLRV7TODXAGHUNGQ46TUQN \ / AMOS7 \ YOURUM ::
+#\[7]6BRIQBYGCKQ7RZIV7BAFSETXWBQHMYRCB46M6MFYKHWUJB54Y6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
