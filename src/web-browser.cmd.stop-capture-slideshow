@@ -1,12 +1,23 @@
 ## [:< ##
 
 # name  = web-browser.cmd.stop-capture-slideshow
-# descr = cancel the paged capture watcher armed by
-#         web-browser.cmd.start-capture-slideshow
+# descr = cancel paged capture watcher, force-clear page
+# note  = watcher was armed by web-browser.cmd.start-capture-slideshow; also
+#         force-clears the currently loaded page so its JS/WebGL execution
+#         actually terminates, not just future advancement
 
 <web-browser.capture.watcher>->cancel
     if defined <web-browser.capture.watcher>
     and <web-browser.capture.watcher>->is_active;
+
+## disarm the per-page watchdog as well ##
+<web-browser.timer.capture_page_timeout>->cancel
+    if defined <web-browser.timer.capture_page_timeout>
+    and <web-browser.timer.capture_page_timeout>->is_active;
+delete <web-browser.timer.capture_page_timeout>;
+
+## terminate whatever page is currently loaded ##
+<[web-browser.util.force_clear_current_view]>;
 
 my $count = <web-browser.capture.counter> // 0;
 
@@ -22,8 +33,8 @@ delete <web-browser.capture.paged.pending_path>;
 
 return { 'mode' => qw| true |, 'data' => "disarmed, $count captured" }
 
-#,,,,,..,,.,.,.,.,..,,,.,,,..,,,.,,..,,.,,,,,,..,,...,...,..,,...,,,,,.,.,,,.,
-#F3TZWMFSD7WPKKM424JVQKTQ27UDVWIWTOG22N3A3I53FYXMWD2BW36UREUFVGDPKQXZ4QWSV4VB2
-#\\\|3PTGE7XUWVPGKANKFCUCAWXPF6CH2BEFLHRF36WD3QEAVSAOG4B \ / AMOS7 \ YOURUM ::
-#\[7]O2IKXBLM4Q26SUHYYMAIEA37ZCRRS4ROU4FENXJYJ22O2OJADEBI 7  DATA SIGNATURE ::
+#,,..,,..,...,.,.,,.,,.,.,,,,,.,.,,.,,,,,,.,.,..,,...,..,,...,.,.,.,,,,..,..,,
+#U5RJHON4MRA2XKXSDCAL6YW7VMVEQIQYH467FS2CT6XQC6YAYMYFFO7VZIGSCXRG5OULK7E6JBPBU
+#\\\|UPVTZXEE5LHQZWLSVKK3J5SIXLID6SSGG7PFZMCNZ67VO7O3OFB \ / AMOS7 \ YOURUM ::
+#\[7]7KSIXS6QFTRP6U6H2OKNBX2GIFXDTZWSQZTNO4MFNIKG6GSJSQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

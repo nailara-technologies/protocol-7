@@ -1,17 +1,28 @@
 ## [:< ##
 
 # name  = web-browser.cmd.stop_slideshow
-# descr = stop the URL slideshow
+# descr = stop the slideshow, force-clear the loaded page
+# note  = also force-clears the currently loaded page so its JS/WebGL
+#         execution actually terminates, not just future advancement
 
 return { 'mode' => qw| false |, 'data' => 'slideshow is already disabled' }
     if ( <web-browser.slideshow.running> // 0 ) == 0;
 
 <web-browser.slideshow.running> = 0;
 
+## disarm the per-page watchdog ##
+<web-browser.timer.capture_page_timeout>->cancel
+    if defined <web-browser.timer.capture_page_timeout>
+    and <web-browser.timer.capture_page_timeout>->is_active;
+delete <web-browser.timer.capture_page_timeout>;
+
+## terminate whatever page is currently loaded ##
+<[web-browser.util.force_clear_current_view]>;
+
 return { 'mode' => qw| true |, 'data' => 'stopping slideshow' }
 
-#,,,.,,,,,,.,,.,.,,,,,,..,...,.,,,.,.,,..,,.,,..,,...,..,,,,,,,,.,.,.,..,,,,,,
-#2T6QA64FP6H36VKCW3KEIO3G4HSGK3HZEXHJNNSCPUC33LXPEH5JDXPFKDZTDSLCDU4MW3VSZKL34
-#\\\|EPOW7JDXIID4FJJOO32SSODMF5RONAMX45JRNGTFFODUGQ6J7DI \ / AMOS7 \ YOURUM ::
-#\[7]RLHWQ6BH5DRRI6U6ATRK6DVJ2OBC7IFUY2LQVBOSKLSDO7VYBYBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,..,..,,.,,,.,,,,.,,,..,,,.,.,,,..,,...,...,...,,..,.,.,,..,..,,
+#FAN2QSBNCF3J2P2WLTLT42RVT7JY3O4BT2NG4DTYCV7GD55WXBFDBI7TSDHUHXVRG7BZFRKQLPN2G
+#\\\|U7NXEJ3WEKK3SYTDFEXPYN5KOLCV2YMSTSJBLGXBKFFV7RN7AQC \ / AMOS7 \ YOURUM ::
+#\[7]ZHAWG62FTCRUXSQROR7UPV2KKSVM2MGUEL77YILGIRVRIOTEW2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

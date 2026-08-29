@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Synthetic blocking runaway page</title>
+<meta charset="utf-8">
+<style>
+body { background: #500; color: #fff; font-family: monospace; padding: 2em; }
+</style>
+</head>
+<body>
+<h1>SYNTHETIC BLOCKING RUNAWAY PAGE</h1>
+<p>This page enters an infinite busy-loop in JavaScript. It should block the
+main thread, prevent the paged-capture JS query from returning, and trigger the
+capture_page_timeout watchdog.</p>
+<script>
+// infinite loop that blocks the JS main thread
+while (true) {
+    var x = Math.random() * Math.random();
+}
+</script>
+</body>
+</html>

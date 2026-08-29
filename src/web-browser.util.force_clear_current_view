@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = web-browser.util.force_clear_current_view
+# descr = force-clear whichever view currently holds the stuck page. in
+#         headless mode the load always goes into the foreground view. in
+#         non-headless mode the load goes into the background view, but if a
+#         swap already occurred the active page may be in the foreground, so
+#         match by URI and fall back to the visible view.
+
+my $stuck_uri = shift // <web-browser.load_uri> // '';
+
+my $headless = <web-browser.cfg.headless>     // 0;
+my $fg_index = <web-browser.overlay.index.fg> // 1;
+my $bg_index = <web-browser.overlay.index.bg> // 0;
+my $fg_view  = <web-browser.gtk_obj.view>->{$fg_index};
+my $bg_view  = <web-browser.gtk_obj.view>->{$bg_index};
+
+my $target_view;
+
+if ($headless) {
+    $target_view = $fg_view;
+} elsif ( length $stuck_uri and defined $bg_view ) {
+    my $bg_uri = $bg_view->get_uri                    // '';
+    my $fg_uri = defined $fg_view ? $fg_view->get_uri // '' : '';
+
+    my $uri_cmp = sub {
+        my $uri = shift // '';
+        $uri =~ s|\#.*$||;
+        $uri =~ s|/$|| if $uri =~ m{^https?://}i;
+        return $uri;
+    };
+
+    my $stuck_cmp = $uri_cmp->($stuck_uri);
+    my $bg_cmp    = $uri_cmp->($bg_uri);
+    my $fg_cmp    = $uri_cmp->($fg_uri);
+
+    if ( $bg_cmp eq $stuck_cmp and length $stuck_cmp ) {
+        $target_view = $bg_view;
+    }
+    elsif ( $fg_cmp eq $stuck_cmp and length $stuck_cmp ) {
+        $target_view = $fg_view;
+    }
+    else { $target_view = $fg_view }
+} else {
+    $target_view = $fg_view;
+}
+
+return if not defined $target_view;
+
+## disconnect the load-changed / load-failed handlers we attached in       ##
+## load_uri so the force-clear blank-page load does not re-enter our state ##
+## machine                                                                 ##
+my $lc_id = delete <web-browser.signal_id.load_changed>;
+$target_view->signal_handler_disconnect($lc_id)
+    if defined $lc_id
+    and $target_view->signal_handler_is_connected($lc_id);
+
+my $lf_id = delete <web-browser.signal_id.load_failed>;
+$target_view->signal_handler_disconnect($lf_id)
+    if defined $lf_id
+    and $target_view->signal_handler_is_connected($lf_id);
+
+<[web-browser.util.force_clear_view]>->($target_view);
+
+<[base.log]>->( 1, "force-cleared view $target_view after timeout/stop" );
+
+#,,..,,,.,...,.,.,,,,,,.,,.,,,,.,,.,,,,,.,,.,,..,,...,...,..,,,.,,.,,,.,,,,.,,
+#PKGNEYSJVUXNVDQ3DTQCDOOSBZ36TUNLZ4JU7BAH62GV5IVQTO4UDXJXMVGOPNTG65WI6JH2YRLV4
+#\\\|RTG7V527SCTQAQV2CPEERH567NZTWK6LGNJGIT4KF2YB645ILSA \ / AMOS7 \ YOURUM ::
+#\[7]WSW3E73TB5FJ4XLA3H5GKGCI42KSQ7TGOKJXPCZKPLMGLAECYICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

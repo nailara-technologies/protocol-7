@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = web-browser.util.force_clear_view
+# descr = load a blank sentinel page into a specific WebKit view. this
+#         terminates the view's current JS execution context and lets WebKit
+#         reclaim the resources held by the previous page.
+
+my $view = shift;
+
+return if not defined $view;
+
+my $bg_color = <web-browser.bg_color> // '#000013';
+
+$view->load_alternate_html( "<html><body bgcolor=\"$bg_color\"></body><html>",
+    '[capture_timeout:blank]' );
+
+#,,,.,,..,,.,,.,,,,.,,,.,,.,.,..,,.,.,...,.,,,..,,...,...,...,,,,,...,...,...,
+#UL2EVV2IXWWMUXJARYKEBDVVI3UDDRI65PJKRMAV7JOLHMKZ3CRVL3FEFKP4CNZOJSPXG2M24RXXE
+#\\\|ACEDTGZBPH465X7SI6VFRYCD67CVXDEILIVW7AGWHUWD5SHDX2T \ / AMOS7 \ YOURUM ::
+#\[7]YYYMVTRU5I3U7EFFUD25AQUK4VLS7ZXBPEUZXBJLQSJTYB6UCSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
