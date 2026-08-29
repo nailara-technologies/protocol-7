@@ -39,6 +39,18 @@ my $view     = <web-browser.gtk_obj.view>->{$fg_index};
 <web-browser.capture.paged.index>     = 0;
 <web-browser.capture.paged.uri> = defined $view ? $view->get_uri // '' : '';
 
+if (   !length <web-browser.capture.paged.uri>
+    or <web-browser.capture.paged.uri> =~ m|^\[|
+    or <web-browser.capture.paged.uri> eq qw| [PAUSE] | ) {
+    <[base.logs]>->(
+        1,
+        "capture_paged_query_result: refusing non-content uri '%s'",
+        <web-browser.capture.paged.uri>
+    );
+    <[web-browser.capture_paged.advance]>;
+    return;
+}
+
 <[base.logs]>->(
     2,
     "capture_paged: %d position%s for uri '%s' [ max=%d vh=%d ]",
@@ -51,8 +63,8 @@ my $view     = <web-browser.gtk_obj.view>->{$fg_index};
 
 <[web-browser.handler.capture_paged_step]>;
 
-#,,..,,..,..,,,.,,,,.,,,,,,.,,,..,..,,,..,,,,,..,,...,..,,..,,,,,,,..,...,,.,,
-#YF3BSMXAYW6ZCNJMF6JFVJMTR27LX6H6O4LST6VJOA6OMKEIHANZ6MCUU6GH2RPZTCAT2FVYHWMDC
-#\\\|TVIO2R3KEMQV7R7OJWHDFBZWV6QKPKYB6D2MYOINE5V7ZVQXR3B \ / AMOS7 \ YOURUM ::
-#\[7]D3OV2NZSA7ZKTDWHUWJGE7XGBWKJYAQ44NUXSKZV5PGNBH6SZIDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,,..,..,,...,.,,,,..,..,,,,,,..,,...,...,...,,..,,,.,,..,.,,,
+#UJNU3KUBOWDX7CUOVWSGAAEAWEQC6DO5L7NSSZI5S52RU2RRB3AZYQLJRA572IC3VWEJWPTRRCB3Q
+#\\\|HRFLBR4FDPBXLU26WKO2U7KRLMMKYGM6YUWRDFNWZ2QRVOACRWL \ / AMOS7 \ YOURUM ::
+#\[7]KWWR5QVKNKJAOQIM4B2RYG5FFQVZLARYJDJCDIGFXIPXVAQ3DCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

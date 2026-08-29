@@ -115,8 +115,19 @@ different file contents is the tell. Strip any such stolen/copied footer
 before signing, exactly like the plain-placeholder case, rather than
 assuming the signer will detect and correct it.
 
-#,,,.,...,,.,,...,,..,.,,,.,,,.,.,,.,,,,.,,,,,..,,...,...,.,.,.,.,,.,,,,,,.,,,
-#2WQ6O2ICHVESC7MRZEGX27NMCYQDNWKJDAIV6D4DSX4JFDGWCET2MHSEOLJZVBGFOVM2647EG76UW
-#\\\|WPWRYSSOYIUICQYKMYHR5WGW2HQZA47I6HXCSL5EWRD63OXDUJT \ / AMOS7 \ YOURUM ::
-#\[7]P46H3PABSOGZYZBF6BL2IP6K4BLC3HDV5K4YXMBHN3ZMEC3Y6ODA 7  DATA SIGNATURE ::
+**New sub-case, 2026-08-29 (same session, continued)**: the same kimi session, continuing
+past its own earlier work to fix a bug in `capture_paged.start`, rewrote that ENTIRE file
+via a full `WriteFile` rather than an incremental edit — using a stale in-context copy of
+the file from before I had already stripped its fake footer AND before the real signing
+pass had signed it for real. The rewrite silently reverted BOTH: the file's real signature
+was replaced with the same old stolen/duplicated fake footer from earlier in the session.
+**How to apply**: after ANY kimi dispatch/continue that touches a file you've previously
+hand-fixed (footer strip, or any out-of-band edit the model didn't make itself), re-check
+that specific file's footer again — a full-file rewrite from stale context can silently
+undo out-of-band fixes, not just fail to include new ones.
+
+#,,,,,,..,,..,.,,,,,.,.,,,,,,,,,.,...,..,,..,,..,,...,..,,..,,.,.,,,.,...,,,,,
+#6NNKTDV57WNDV5EB5C5I25AHC6FLGDOHGPX4G4NDGWQYPRG54NWX6HDHHBIL7CZR7PYRRSQQJ7CIU
+#\\\|DSV33UK7TP7SNPL3I26627X6FFNNHC55DFXCQK3ZYEFL23TZ2GJ \ / AMOS7 \ YOURUM ::
+#\[7]EBO2IKL66XLNWBYP2AJI5W43OG27MPW6GH63RE6BESGAHTBXUICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
