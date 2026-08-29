@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Synthetic moderate stall page</title>
+<meta charset="utf-8">
+<style>
+body { background: #303; color: #fff; font-family: monospace; padding: 2em; }
+</style>
+</head>
+<body>
+<h1>SYNTHETIC MODERATE STALL PAGE</h1>
+<p>Floods the event loop with zero-delay intervals doing ~100 ms of CPU work
+per callback. This delays the paged-capture JS query long enough to trigger
+the watchdog, but the event loop is not permanently blocked so a force-clear
+navigation is still processed.</p>
+<pre id="status">running...</pre>
+<script>
+var count = 0;
+setInterval(function () {
+    var start = Date.now();
+    while (Date.now() - start < 300) {
+        Math.random() * Math.random();
+    }
+    count++;
+    if (count % 30 === 0) {
+        document.getElementById('status').textContent = 'iterations: ' + count;
+    }
+}, 0);
+</script>
+</body>
+</html>

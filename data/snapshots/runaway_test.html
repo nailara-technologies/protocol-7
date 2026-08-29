@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Synthetic runaway page for watchdog timeout test</title>
+<meta charset="utf-8">
+<style>
+body { background: #300; color: #fff; font-family: monospace; padding: 2em; }
+</style>
+</head>
+<body>
+<h1>SYNTHETIC RUNAWAY PAGE</h1>
+<p>This page deliberately allocates an unbounded array in a tight loop to
+simulate a stuck/runaway JS process. It should trigger the capture_page_timeout
+watchdog and be force-cleared.</p>
+<pre id="status">running...</pre>
+<script>
+var garbage = [];
+var count = 0;
+setInterval(function () {
+    for (var i = 0; i < 10000; i++) {
+        garbage.push(new Array(1000).fill(Math.random()));
+    }
+    count++;
+    document.getElementById('status').textContent = 'iterations: ' + count
+        + ' array-size: ' + garbage.length;
+}, 5);
+</script>
+</body>
+</html>

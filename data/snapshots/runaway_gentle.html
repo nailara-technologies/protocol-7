@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Synthetic gentle runaway page</title>
+<meta charset="utf-8">
+<style>
+body { background: #333; color: #fff; font-family: monospace; padding: 2em; }
+</style>
+</head>
+<body>
+<h1>SYNTHETIC GENTLE RUNAWAY PAGE</h1>
+<p>Allocates a modest amount of memory in a recurring interval. Intended to be
+noticeable in CPU/memory monitoring but not cause an immediate emergency, so
+an explicit stop can be tested cleanly.</p>
+<pre id="status">running...</pre>
+<script>
+var garbage = [];
+var count = 0;
+setInterval(function () {
+    for (var i = 0; i < 100; i++) {
+        garbage.push(new Array(10000).fill(Math.random()));
+    }
+    count++;
+    document.getElementById('status').textContent =
+        'iterations: ' + count + ' size: ' + garbage.length;
+}, 100);
+</script>
+</body>
+</html>

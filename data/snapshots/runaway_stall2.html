@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Synthetic stall-page v2</title>
+<meta charset="utf-8">
+<style>
+body { background: #330; color: #fff; font-family: monospace; padding: 2em; }
+</style>
+</head>
+<body>
+<h1>SYNTHETIC STALL PAGE v2</h1>
+<p>Floods the event loop with zero-delay intervals containing a memory-allocating
+busy loop. The paged-capture JS query should never get a chance to return.</p>
+<pre id="status">running...</pre>
+<script>
+var garbage = [];
+var count = 0;
+setInterval(function () {
+    var start = Date.now();
+    while (Date.now() - start < 950) {
+        for (var i = 0; i < 1000; i++) {
+            garbage.push(new Array(1000).fill(Math.random()));
+        }
+    }
+    count++;
+    if (count % 10 === 0) {
+        document.getElementById('status').textContent =
+            'iterations: ' + count + ' array-size: ' + garbage.length;
+    }
+}, 0);
+</script>
+</body>
+</html>

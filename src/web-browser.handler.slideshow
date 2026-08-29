@@ -83,6 +83,14 @@ if ( <web-browser.slideshow.status> eq qw| load | ) {
     <web-browser.slideshow.status> = qw| scrolling |;
 } elsif ( <web-browser.slideshow.status> eq qw| load_finished |
     or <web-browser.slideshow.status> eq qw| scroll_finished | ) {
+
+    ## this page is done -- disarm the watchdog before scheduling the next ##
+    ## URL                                                                 ##
+    <web-browser.timer.capture_page_timeout>->cancel
+        if defined <web-browser.timer.capture_page_timeout>
+        and <web-browser.timer.capture_page_timeout>->is_active;
+    delete <web-browser.timer.capture_page_timeout>;
+
     my $min_delay
         = exists <web-browser.slideshow.temp_delay>
         ? delete <web-browser.slideshow.temp_delay>
@@ -118,8 +126,8 @@ if ( <web-browser.slideshow.status> eq qw| load | ) {
     }
 }
 
-#,,.,,...,,,.,,.,,...,,,,,..,,.,.,,,,,,,.,,,.,..,,...,...,...,.,,,...,,,,,.,.,
-#JYLPZFMWJ2BMJHXH3ZKJ7O6X22MEBDAZBXHCE3H4XJCWC6SY2ZA7IKF67VI2WNCB4Z2C5U4BODASK
-#\\\|DVHYQP6GVZQOBR4TQQT63L2TRXPWD55CCN7S32JMF624QZOLXKE \ / AMOS7 \ YOURUM ::
-#\[7]OUHEETY7IZRLHB647B33BSTT4MDJNJGUD6A7YYI43SOFKBNLHQBI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,,.,,,.,,..,,.,,,...,..,,,..,..,,...,...,.,,,...,.,,,...,,,.,
+#M2MTYLXJF424TYTYBJFFDUA4LISKHDROY7IS6XNG5C3IUHDU7ACHSQCOJDEWYWVEG2GUIWNI24ZOC
+#\\\|3FJWX5XLQCQ7AMTXVZFFUQ2SRZX6G4GNTPE7N3YBQXMYO3LILWJ \ / AMOS7 \ YOURUM ::
+#\[7]5CXPDC5BDKWUTS2NAGYUYHKKL5JTD3EDKXOSKMYAG7RPACXXTUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

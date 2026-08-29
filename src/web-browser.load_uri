@@ -4,6 +4,12 @@
 
 return if defined <web-browser.shutdown> and <web-browser.shutdown>;
 
+## disarm any pending per-page watchdog before (re-)arming ##
+<web-browser.timer.capture_page_timeout>->cancel
+    if defined <web-browser.timer.capture_page_timeout>
+    and <web-browser.timer.capture_page_timeout>->is_active;
+delete <web-browser.timer.capture_page_timeout>;
+
 my $load_uri = shift;
 
 if ( not defined $load_uri or !length($load_uri) ) {
@@ -70,6 +76,16 @@ if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
 <[base.log]>->( 2, ":. loading uri '$load_uri'.," );
 
 <web-browser.time.load_start> = <[base.time]>->(3);
+
+## arm per-page watchdog while automated slideshow is running ##
+if (<web-browser.slideshow.running>) {
+    my $timeout = <web-browser.cfg.capture_page_timeout> // 20;
+    <web-browser.timer.capture_page_timeout> = <[event.add_timer]>->(
+        {   'after'   => $timeout,
+            'handler' => 'web-browser.handler.capture_page_timeout'
+        }
+    );
+}
 
 if ( defined <web-browser.keep_text_zoom_path> ) {
     my $settings     = $load_view->get_settings;
@@ -151,8 +167,8 @@ if ( $load_uri_cmp eq $load_view_uri_cmp and length($load_view_uri_cmp) ) {
 
 return FALSE;
 
-#,,.,,...,..,,,,.,.,,,,..,..,,,..,.,,,...,,..,..,,...,...,...,,,.,.,,,...,..,,
-#T53VVFE4VDFGMIL46S22O3C5UMTNO37VYRF2UZ67CU7IDUSUAJIRSH5BSCR3CISVUXC36TZA7RZ76
-#\\\|B2YZO4ZPJ3COHTVOSQORS22S55ZMSRV5BOS5U7PBPCLQF6ALLXJ \ / AMOS7 \ YOURUM ::
-#\[7]ZAZU7IWDZLBLXF6AYPFLWAHTWXVOUFHKNEBYVG2J2K2FMPHKFADI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,,..,,,.,.,.,...,,,,,...,,..,..,,...,...,...,..,,...,..,,,..,
+#XIIG2A5FQ7XM2UWYOMMJ5ZLTS5N3XP4R4LKXKDIJTIUVFOS2GZQVBNVCHJVERQ53ZWRKHZWEVQ3NU
+#\\\|UCZGD7PQ4AXFWYTND6PVP34RKND7DJ7KJBRBBJRC4KFKVRY3CU4 \ / AMOS7 \ YOURUM ::
+#\[7]RKOR5UBW4ACMGC5IZMG3CHDNHYY4HWCA3XRASBM55J6YVHXGO6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

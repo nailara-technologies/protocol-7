@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = web-browser.handler.capture_page_timeout
+# descr = hard per-page watchdog for the slideshow / paged capture loop. if a
+#         page does not complete its full cycle (load + scroll + capture) within
+#         the configured window, force-clear the view, log the timeout, and
+#         advance to the next URL.
+
+my $timer = delete <web-browser.timer.capture_page_timeout>;
+$timer->cancel if defined $timer and $timer->is_active;
+
+my $uri     = <web-browser.load_uri>        // '';
+my $start   = <web-browser.time.load_start> // <[base.time]>->(3);
+my $elapsed = sprintf( '%.3f', <[base.time]>->(3) - $start );
+
+<[base.log]>->( 0, "WATCHDOG: page timed out after ${elapsed}s [ $uri ]" );
+
+## append to timeout log (derive path from manifest if not already set) ##
+my $timeout_log_path = <web-browser.capture.timeout_log_path>;
+if ( not defined $timeout_log_path or not length $timeout_log_path ) {
+    my $manifest_path = <web-browser.capture.manifest_path>;
+    if ( defined $manifest_path and length $manifest_path ) {
+        $timeout_log_path = $manifest_path;
+        $timeout_log_path =~ s|\.[^.]*$||;
+        $timeout_log_path .= '.timeouts.tsv';
+        <web-browser.capture.timeout_log_path> = $timeout_log_path;
+    }
+}
+
+if ( defined $timeout_log_path and length $timeout_log_path ) {
+    my $line = join( "\t", <[base.time]>->(3), $uri, $elapsed ) . "\n";
+    <[file.append]>->( $timeout_log_path, \$line );
+}
+
+## terminate the stuck page's JS / WebGL execution context ##
+<[web-browser.util.force_clear_current_view]>->($uri);
+
+## drop per-page paged-capture state (keep the armed flag so remaining ##
+## pages in the slideshow are still captured)                          ##
+delete <web-browser.capture.paged.positions>;
+delete <web-browser.capture.paged.index>;
+delete <web-browser.capture.paged.uri>;
+delete <web-browser.capture.paged.pending_path>;
+
+if (<web-browser.capture.paged.armed>) {
+    <[web-browser.capture_paged.advance]>;
+} else {
+    <[web-browser.handler.slideshow]>;
+}
+
+#,,,,,,,.,,,.,,..,.,,,...,..,,,,,,...,,.,,.,.,..,,...,...,,,,,.,,,,,.,..,,,,,,
+#YPFCKC4XHJ7JSBEG6LJDAT5KIVZX34GD4YSS3LZIUKR3TYGZBMEZIIMHDV2W6YOQK3JQP6KJSDSTG
+#\\\|AGUXJF5LZV6X7J7IRYOK3UNO65G34PKURTL4Q77ECGZBKTYVJ24 \ / AMOS7 \ YOURUM ::
+#\[7]RJ3YKM7FI3AOOF54VXAV2URXXH537JBUUZSZ7A4QOSA7J47SVGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
