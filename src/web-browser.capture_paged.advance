@@ -5,6 +5,12 @@
 #         an unrecoverable failure). clears the loop state and resumes the
 #         slideshow's normal advance-to-next-URL flow.
 
+## page completed normally -- disarm the watchdog ##
+<web-browser.timer.capture_page_timeout>->cancel
+    if defined <web-browser.timer.capture_page_timeout>
+    and <web-browser.timer.capture_page_timeout>->is_active;
+delete <web-browser.timer.capture_page_timeout>;
+
 delete <web-browser.capture.paged.positions>;
 delete <web-browser.capture.paged.index>;
 delete <web-browser.capture.paged.uri>;
@@ -15,8 +21,8 @@ if (<web-browser.slideshow.running>) {
     <[web-browser.handler.slideshow]>;
 }
 
-#,,.,,,,.,,.,,,,.,..,,,.,,,.,,,,,,.,,,,.,,...,..,,...,...,.,.,,,.,.,,,,.,,..,,
-#3I7YAB53V62GORTBPTDDVW5YJDNXK53L2BKX7JUWBLMF2VK6S2DG3ZXOCJT3JOMCHQW5Q2VQZCSKK
-#\\\|RNLT6PR7F2OJJFCWUCPW3W2PORE3SXYKLEDJO4G6ARSTJ3YNKDA \ / AMOS7 \ YOURUM ::
-#\[7]D2EGPBWXHF3OF3QRIUBDHRXHXB3HVWZAMNKOE3DUOVZ7PKXCZEDI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,..,,.,,,,..,,,.,,..,,,,,..,,,..,..,,...,...,.,.,,..,..,,.,,,.,.,
+#Z4U6RSD3PIS42FCZODKAXA6O2OBCTCYNSX43BCWS7W5LZCTYAL7RWD6DT5KADQ6SYIHMC5AAZCBS2
+#\\\|3MALOCPF2TCPW5BKISNF4CXOD3JB6INPLE74FVYVOLMIPVCOE6D \ / AMOS7 \ YOURUM ::
+#\[7]5HFKIR6KS4KVWEHJL4OJ7D3VKRLVWUXE66EBDC5UBWXPELA2FWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

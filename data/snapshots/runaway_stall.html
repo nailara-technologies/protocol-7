@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Synthetic stall-page for watchdog timeout test</title>
+<meta charset="utf-8">
+<style>
+body { background: #330; color: #fff; font-family: monospace; padding: 2em; }
+</style>
+</head>
+<body>
+<h1>SYNTHETIC STALL PAGE</h1>
+<p>This page keeps the JavaScript main thread busy for ~900 ms out of every
+second with a memory-allocating busy loop. It should stall the paged-capture
+JS query long enough to trigger the watchdog, while still allowing a later
+force-clear navigation to be processed.</p>
+<pre id="status">running...</pre>
+<script>
+var garbage = [];
+var count = 0;
+function busyChunk() {
+    var start = Date.now();
+    while (Date.now() - start < 900) {
+        for (var i = 0; i < 1000; i++) {
+            garbage.push(new Array(1000).fill(Math.random()));
+        }
+    }
+    count++;
+    document.getElementById('status').textContent =
+        'iterations: ' + count + ' array-size: ' + garbage.length;
+    setTimeout(busyChunk, 50);
+}
+busyChunk();
+</script>
+</body>
+</html>

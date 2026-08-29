@@ -39,6 +39,11 @@ my $snapshot_dir  = $call_params[1] // <web-browser.cfg.snapshot_dir>
 <web-browser.capture.counter>       = 0;
 <web-browser.capture.paged.armed>   = 5;                ## TRUE ##
 
+my $timeout_log_path = $manifest_path;
+$timeout_log_path =~ s|\.[^.]*$||;
+$timeout_log_path .= '.timeouts.tsv';
+<web-browser.capture.timeout_log_path> = $timeout_log_path;
+
 <web-browser.capture.watcher>->cancel
     if defined <web-browser.capture.watcher>
     and <web-browser.capture.watcher>->is_active;
@@ -49,8 +54,8 @@ delete <web-browser.capture.watcher>;
 
 return { 'mode' => qw| true |, 'data' => 'paged capture watcher armed' }
 
-#,,,.,,.,,...,,,.,..,,,,,,,,,,,,.,.,.,...,,..,..,,...,..,,..,,...,.,,,..,,,,.,
-#CXZDUVI7SNDUYUEIHQQEJNREN4S32Y3DLTQH4CSZWX7BO64BJR36RUNCC6E6OP2Z4RCLU5N7V4PNW
-#\\\|5Q2FMSGLZYV4F3IFYMUHV5UPVKSATNJPSQAKZMIL554LO6DXUAF \ / AMOS7 \ YOURUM ::
-#\[7]KUXQ6FMDANGU2MHLNURURWENKGMJTA2BWQ3I4Z7YQDG2RAHTOICY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,,,.,,.,,.,.,...,...,,..,..,,..,,...,...,...,,,.,.,,,,..,.,,,
+#NZBYVDJ3TWK5JIRQTUSLVSZDZWYUIBNGAQCKGDIRL2ADXJGQLS54IYJWWCNROURARL34BXCNPNXPM
+#\\\|BYKTINQN4DQL7AF6UYDXXTNTGS7LGFJKHZQNZHOFUH3XOP3JIE6 \ / AMOS7 \ YOURUM ::
+#\[7]R554ZKFSOGYHW5CFFP24SMMFPORT7DC7TNRRAER4C3UPGJHDBWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
