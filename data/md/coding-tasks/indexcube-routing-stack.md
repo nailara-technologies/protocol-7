@@ -360,10 +360,8 @@ Just the origin marker. This is already useful for:
 
 Everything else can be layered on top of a populated `@INDEXCUBE[0]`.
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,.,,.,,,..,,..,,.,.,...,.,.,..,,,,.,...,...,..,,...,...,...,.,.,.,.,.,,,,,,,
-#TP4JVI4GR6H4KSOF67KSTU4X6JHJ736PSB7UMBBA5EOXFW5CETLY3PITO4JS5L5H457EYQO2ZV6JM
-#\\\|YIFMROSTHLZ3G2XFCXGWN2SJCLINVNO3NUWOL26NVPUQ3I2WVEX \ / AMOS7 \ YOURUM ::
-#\[7]NTOJRXS4YNVZXL6SELAUQTNGN3IVSX3VGTXJTUVD2AMDGGS7N2DY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,,,.,,,...,.,,,,..,,,,,,,.,,,,,..,,...,...,.,.,,,.,.,,,,,,,,,,,
+#KDEE4IYZJGPYURS3MWXGOHPIXV2IZ62WTC6B7HFB762L2WL7NSHESWRFK6UNASLDZAUKP6QJIUIY6
+#\\\|KZ6FBN2J6ITAQFRIDQDHXSFFESP6M4LBFFYKANYCI5TKKMSNWMC \ / AMOS7 \ YOURUM ::
+#\[7]2PSE4KJQCJA6SR3SRNSJW5UVGRPNJJV7EXSX7J6Q6U3XSRD5H2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

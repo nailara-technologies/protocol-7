@@ -48,10 +48,8 @@ no new dispatches, check `jss.load: cycle=%s, pending=%d` in the log right
 after the most recent process start — a nonzero pending under a
 non-assessing cycle at that exact line is the fingerprint.
 
-#,,,,,.,.,,,,,...,..,,...,.,.,..,,,..,...,..,,.,.,...,..,,...,,..,.,,,,..,.,,,
-
-#,,,.,.,.,.,,,,,,,,,.,,..,,..,.,,,..,,,,.,,,,,..,,...,...,...,,..,..,,..,,.,,,
-#FMQAARHC4FFYIOQEDPXNJSOQUHNAXJOQTTFDVEGLUHAN4IIDYU6BL7DVWSFKZHGJIOA3A7P4YSJH4
-#\\\|LHJ23JT5QUWFSW2TJBNMUJI4TFW44C4F27VH5X5DW7FLQV5HXAC \ / AMOS7 \ YOURUM ::
-#\[7]NWLO4AO6GVVZDYXYWEXMS3V6QKKI2Z7YVDQYM74J7MWTE7IAZSDY 7  DATA SIGNATURE ::
+#,,..,...,,,,,...,,,.,.,.,..,,.,.,,..,,,,,,..,..,,...,...,,..,,,.,,,,,.,.,,,.,
+#UTHMYNFSSV5Q4YFYGZXEUXXQ43FACAIS6F22MUI327LQ74RCHQYXBNWDWYTIOFDRHZ5NVHKOFLQRO
+#\\\|VPMEMXTISXXANBKW7H4J3PWHD4GHCPHBYOLOZWI2NUWAWCGCQT2 \ / AMOS7 \ YOURUM ::
+#\[7]BOJBJSXTQGT2IK6XBTAT2MVCTPPCS77QKPS2MO5RN2ADJ6X5TQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

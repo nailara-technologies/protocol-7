@@ -244,10 +244,8 @@ signature:  <sig-of-above-fields>
 7. **FUSE mount integration** — task trees accessible as filesystem paths
    via data zenka, transparent across LAN
 
-#,,..,,.,,,.,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,...,..,,...,..,.,,.,
-
-#,,,,,,,.,..,,.,.,,,,,,.,,.,,,..,,,..,.,,,.,.,..,,...,...,,.,,...,.,.,.,.,...,
-#TK4XXKYSZMEJ5BRAA5WFRF2OLIIXE75RE36BRLNKA5LTGPFDCUB6S4UZ3M2I45K5TILS4NRRLG57U
-#\\\|3HRISLMRAOH22MELHQNYB6B34VHAO6LV3MHUFJMIREHLUKTODMU \ / AMOS7 \ YOURUM ::
-#\[7]UDCQAGT44PJLEZ4XXOWDIO3CQXVRFSKIC2MPXCPCYYSGNRO6PCBA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,..,,.,.,,,.,...,,,.,.,.,.,.,,,,,..,,...,...,..,,,.,,,,.,,..,.,,,
+#PVNKHFQJTTPYSX2KHEJLM7QHFWNPVOMUQ5DSEN46FW456WNIZ4AW6OFIHXDLD2QUOP4MNPZZ4AAWA
+#\\\|5RVDLRUE3KLZFH7PDCMF4Z2WRJGCGWOSKAPWWITVYYCE24N6VOX \ / AMOS7 \ YOURUM ::
+#\[7]U2YLK56XFGQHFWFPS3VQPTJV3SKH4XTTATXVEVCYA2SICMQJLGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

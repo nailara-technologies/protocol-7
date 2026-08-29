@@ -307,10 +307,8 @@ The mathematics is the freedom.
 
 *"You cannot block a position in space. You can only choose not to look at it."*
 
-#,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...
-
-#,,.,,,,,,..,,..,,,.,,...,,,,,...,,.,,,..,,,,,..,,...,...,,,,,..,,..,,...,,.,,
-#3IREGD2KCWMDHN2IZ6HCWMTMATV2VSH6D36E3KBIQKZZ43E5OEWNGR6TR533YZAFQKSADWWWOADEQ
-#\\\|AP4LTT7QVWC4RKWZRA5EBPF2YKCIYO434Z6TY2WCEMW32E73WOB \ / AMOS7 \ YOURUM ::
-#\[7]PX36YOW63IA3OO7H6XHLRFY73PGFJF2IDI4GBPCS63ZAXONE2IBA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,...,,.,,...,.,,,.,.,..,,,,.,..,,...,..,,..,,...,...,,.,,,,,,
+#VLIIWST3D3C3TA2ALXH7USY4TCOEO6XN6PDV6K6PDW2EXIWCKLLJDW5DKQBHBKMM2PW222LZ3TXQY
+#\\\|DVQTKJEMTIRLJWMBX5STN6KHFK3MDNL5K5UFECPVYUAW2MKT4RF \ / AMOS7 \ YOURUM ::
+#\[7]BT5LYONGYH3IFXCQS2UMQ6L4XD5NKPLNWM5APQZNMQGTKU3RSODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

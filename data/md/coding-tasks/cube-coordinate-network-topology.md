@@ -690,10 +690,8 @@ addressed to that coordinate are forwarded as localhost TCP connections.
 nodes zenka gains cube proximity queries; discover announcements include
 cube coordinate; routing decisions use Manhattan distance or CCW geodesic.
 
-#,,,.,..,,,,,.,,,..,,,.,,,,..,.,,,,,,,,,,..,,,...,...,.,.,,,.,..,...,...,..,,
-
-#,,,,,...,..,,,..,,..,...,,,,,...,,,,,,..,..,,..,,...,...,...,..,,,,.,.,.,..,,
-#4GO4CQWBE7MBGO4W524SNYTOA7AFEJPSBSAZNZBWJGU2YUIRHM2MK2MOGV4UKYOS5VN3DOAYR4V36
-#\\\|DLD3USYHQH252DZ5XSCPBOV6ASAFCCW6QBB6WV363ETRKQ7APEY \ / AMOS7 \ YOURUM ::
-#\[7]XLM3EZ6AQ6WKYZHT7V2V5SAF2FFTKFFBANKKTRFJ5XFCUIDDE4CA 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,,..,.,.,.,,,,,,,...,.,.,,,,,..,,...,..,,.,.,,,,,.,,,,,.,,,,,
+#4SDWZLPWZEP2FUOATBNLXEMS2ZUMFBRH7MW7PM2LAQQ3VBBCKASLICF5TAWCK73AAPTI5CFS26W6E
+#\\\|TXHV5QMHGKUVC6K3RDQW7WVHTDS6ERMTHJWTDJ7C4AMUULO4G7G \ / AMOS7 \ YOURUM ::
+#\[7]GMHXRPTVYZWJFQUKNMUQCI22H7F64JZGTNKXM7MGLHHPML4PYIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

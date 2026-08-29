@@ -76,10 +76,8 @@ p7c coding.show-buffer zenka | grep finish_reason | tail -10
 
 Propagation already functional. Integration verified across all active backends.
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,,,,,..,,,,,,.,,,.,,..,,,..,...,.,,,,.,,..,,..,,...,...,..,,,..,..,,.,.,.,.,
-#CJQAQ7VKYM57GGX3TNNLE3FBUICOSO4FO2KEAHXK3ANWCOT7JNSIIZF7HEXKSMMK6LLMMYQKABTEU
-#\\\|RNBONJUGPWMNIIDD2TKD2CSVMOFP36LGVXDT3VKXZAHWRZV7HA3 \ / AMOS7 \ YOURUM ::
-#\[7]XGGQGCN5ATY6DY52DEEEBRDHGYIWCOZWYF4NA4GUNKGZR5XDPEBY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,,.,.,,,.,.,...,,.,,,,.,,,.,..,,...,...,..,,.,.,.,,,,..,.,.,
+#YOCWTI4A3LGHHTHJNBZQYRWUTPTO4XLDSA6QKP25T4COMILZCRMJECTEZP76HG7NGG6GZAVMWZLJU
+#\\\|7VUDZ4IQ5ZDZMRIJWTKESGG67XE44JD3WUU72K5CGI6TCSB77Z7 \ / AMOS7 \ YOURUM ::
+#\[7]ARAJYAHARBXGI2STLO3SE7ZD22DFSX65TPNPCMFUDW6Q2I4HFSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

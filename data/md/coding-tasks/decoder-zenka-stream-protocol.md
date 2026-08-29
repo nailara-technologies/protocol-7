@@ -185,10 +185,8 @@ Pairing logic for base32 + numeric segments sharing a cube coordinate.
 Each decoded packet tagged with current `@INDEXCUBE[-1]` coordinate.
 Routing decisions use cube neighborhood queries for nearest downstream buffer.
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,,,,..,,,.,,.,,,..,,,..,,.,,,.,,,.,,,,,,,,.,..,,...,...,.,.,.,,,,..,.,,,,,.,
-#67VEC7YDDNTL5VZ5RYST34K42TLD6MJDY4AXGY6FYNNCOT57TPEXGIAJJFZGDGWGZG6WUZ5Y6MLYM
-#\\\|N3AAIX4WP6NHSUKMLJRNLYEFYYW4XCPOYGMTF2XBXNIIVW5B2FX \ / AMOS7 \ YOURUM ::
-#\[7]K2GEQ43HOETA3IUHY2TTCEC4EKTD4ALWQHICQX2OUCM3OQTTMECI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,..,,...,,.,,.,.,,..,,,,,,.,,..,,...,...,.,.,,,,,.,.,...,,,,,
+#OJVOTIARASMMR255RIXCPHGX2RZNL32KRWELECDMFHORB2BJWX4YKOIIDH3A7VU5JAFIIN7VWBUVQ
+#\\\|E4W6DALBQU56S22ZUPEL3MX2N5IBQZDQZ2SBPHYXVR34A2GTTLJ \ / AMOS7 \ YOURUM ::
+#\[7]VXISVM3VVSSKNZOJ2PK2UFKHYVUX33KHRHX55AHOHA3HO4J4VGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

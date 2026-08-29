@@ -174,10 +174,8 @@ These are the network's lingua franca — the elements where numerical and
 linguistic layers meet and maintain the same meaning. The ground of the
 shared habitat.
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,,,,...,,.,,..,,,,.,...,,,,,.,.,,,,,.,,,,..,..,,...,...,.,.,,,.,.,.,,.,,,.,,
-#TC65M2BD4HZ5AST3WR5MD476D7R5FWRH6JVEOCVP5PI3IN3ULY3X3UE2OTTKGWY277FTSHOQMFUN2
-#\\\|3MVEA55R6U3L7OW6JWGDODDDQTA6S45NOE4RSFAURRDXFAAWOEV \ / AMOS7 \ YOURUM ::
-#\[7]U6F6ZZG2SW5QH4MGSEQKDKMEYCT7PA2U2SGYOK7UGRPV6QMNIWDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,...,,..,...,,,,,,..,,.,,...,..,,...,...,.,.,.,.,.,,,,..,,,,,
+#BF3NVY37N5HBUOUX6BP5JT7VPBURUHT3EHMZ7LRZPPHSRL6OIIASLNETLNEV6BHKDU7WSXJHJT6IM
+#\\\|V673VMCLAVNAX362Q77WWVCXCACB2UMMEJGI4HX4OGOKHLIW7NV \ / AMOS7 \ YOURUM ::
+#\[7]YD3ODZDJVZ3XWZTPGDC4UGVQ7MMFGAIIRHT2LXRJY5O2V4GR5SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

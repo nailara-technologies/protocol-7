@@ -317,10 +317,8 @@ return sprintf "#%s\n", $visual;
 
     -- -
 
-#,,.,,.,.,,,,,,,.,,..,,,.,,,.,,,.,,,,,,..,...,..,,...,...,.,.,,.,,...,,..,..,,
-
-#,,,.,...,.,,,..,,,..,.,,,,,.,..,,,..,..,,..,,..,,...,...,.,.,..,,.,,,...,.,,,
-#5TYSI776DK6PARJR6TJXDEXGLFGNPLWOJIMQXD6PV5BC6LL23UXDXS3SYDZD5TOL7RZ7DWXG22PNO
-#\\\|UTQ2SMKBEFXWFLNOL3D67E3KOGFO6FQISIVOJY4ZPDZ5T7NESN7 \ / AMOS7 \ YOURUM ::
-#\[7]2RCNY6CGFFL4ZF27UNADFZNJCPNLEIDAA5HLY3DE2ESMQFBZT2BA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,.,.,,,,,,.,,,.,,,..,.,,,.,.,..,,...,..,,,,,,...,.,,,,,,,.,.,
+#HUBP4DWRZGR4UXXOWJWHDEPOIHZY4DC6O2EX5UNAZ2NVXNRCW2VHWLURQ3OO2VC3HYBIRRSVCLNXS
+#\\\|IYIS7AQIXX4CEAQUBHKCPGLTJOYTDQTUGDJNKW4Q5OFDBJZ66ZD \ / AMOS7 \ YOURUM ::
+#\[7]4WUHOIO2GONHTSC2CIDLLTZWR5IK5M3A2RYUJR5E3SI6HEA3MKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

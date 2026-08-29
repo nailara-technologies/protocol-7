@@ -433,8 +433,6 @@ From Taeki's source code comments:
 
 The signature footer encodes harmonic values:
 ```
-#,,,,,.,,,,..,,,.,,..,..,,..,,,,,,,,.,,.,,.,,,..,,...,...,..,,,.,,,..,.,.,,,,,
-
 Parsing as 3-bit chunks (period=0, comma=1):
 ,,,, = 7,7 (double topology)
 ,.,, = 5,6 (TRUE, stable axis)
@@ -1131,8 +1129,8 @@ All Protocol-7 documentation includes holographic signatures:
 
 **End of Document**
 
-#,,..,,,,,,.,,...,..,,,,,,,,.,.,.,.,.,,,.,..,,..,,...,...,.,,,.,.,,..,,.,,.,,,
-#EMJNBFODRNWHFILJM6TJEIYX6A4LDJ6FSZ3U2DUZH55GXQ4AHHVFFUHTLNRZTVMUOCUEQ3WKRZ6F6
-#\\\|M6OO6EPV2OBJQMDL6HXUTIHJQXFXC5JAPH5LB7ZNZJ4SZAFLX2M \ / AMOS7 \ YOURUM ::
-#\[7]Y4FOIFA2XNJCKPSJO2GU3BFIM5NU4JVEVYRFSD4AQT5DAAMUBOCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,...,,..,.,.,...,.,.,,,.,,,.,..,,..,,...,...,.,.,,,.,,..,.,.,.,.,
+#7H2BKSOTYQTAXGNSYYTY2SY4FHTKOF25C3JRCAVCAWATQOAE4TIO52UGQTJ2V23GAQQCDWJISA7OI
+#\\\|W36X2W5HOEQPG5H2UQJNOGXDDRR2WS3YCF2OXL2476XSFJRWMW2 \ / AMOS7 \ YOURUM ::
+#\[7]T3ERAOISVDS4GGSQL72HJX6RNYTV5E4PPZ4ZOIX7A2QA5EBH4QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

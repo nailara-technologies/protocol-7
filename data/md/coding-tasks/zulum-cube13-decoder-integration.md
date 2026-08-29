@@ -182,10 +182,8 @@ Switching streams = pushing a new P7REF onto the decoder's @INDEXCUBE.
 The route log records every stream jump — the traversal proof IS the
 sequence of cycle positions visited.
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,..,.,.,,..,..,,,.,,,,.,,,,,.,.,,,,,,.,,,,,,..,,...,...,.,.,.,.,.,.,...,,,,,
-#6HAWK4ALUGRTY35C6DVC2562HGPHYMOAHVR3G5GJOLY4HOEYSQMEIVOYCOJS7WRSFQOP5EUPXSWFM
-#\\\|J7ZBJMUURNSA7X5CCSMWO5YGNIKAIOZ6SKROLFVZJF3JZEKLLYW \ / AMOS7 \ YOURUM ::
-#\[7]PSPCG33QVKMPBKG625W3ZSHPE3YGHZ2DZTVA6JBREME27JGKRKDI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,..,,.,.,.,,,..,,,..,..,,,,.,..,,...,...,.,.,,,,,...,,..,...,
+#2X6HN5IKSWNVKDDXNMJ4GV2N7I7OYESLHGM5FQDO6WDPXFWPP6WY34SAZVM5DWUQH5T7XWF3RADFO
+#\\\|VMDHTQP7DKWIFXJH6E6CMT4DTDRT7FRVET75PDLGMNBJ27TOWBX \ / AMOS7 \ YOURUM ::
+#\[7]6WRDTMUUDQUUTTRHCTTGKVZGOXABJ2BAGRRXK6DYLFVNC4O7OOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

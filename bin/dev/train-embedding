@@ -17,14 +17,14 @@ use Time::HiRes qw| time |;
 ##  train-embedding  ##                      #:..:..:..:..:..:..:..:..:..:
 ###                 ###
 
-##  fasttext training wrapper for categorical / domain embeddings            ##
-##  default invocation mirrors the security-intel task spec:                 ##
-##    train-embedding --category <name>                                      ##
-##  reads data/training/<name>.txt, writes data/embeddings/<name>.bin+vec     ##
-##                                                                             ##
-##  optional rolling-window mode (--rolling): trains to <output>/next,       ##
-##  compares against current.bin and promotes next->current if drift is      ##
-##  below --drift-threshold.                                                   ##
+##    fasttext training wrapper for categorical / domain embeddings         ##
+##    default invocation mirrors the security-intel task spec:              ##
+##    train-embedding --category <name>  reads data/training/<name>.txt,    ##
+##    writes data/embeddings/<name>.bin+vec                                 ##
+##                                                                          ##
+##    optional rolling-window mode (--rolling): trains to <output>/next,    ##
+##    compares against current.bin and promotes next->current if drift      ##
+##    is below --drift-threshold.                                           ##
 
 #:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
 ##[ LOCAL PM LIB PATH ]#######################################################
@@ -55,8 +55,9 @@ my %opt = (
     qw| dim            | => 300,
     qw| minn           | => 3,
     qw| maxn           | => 6,
-    qw| minCount       | => 1,          ## keep rare IDs (CWE-79 appears 3x) ##
-    qw| thread         | => 0,          ##  0 = fasttext default  ##
+    ## keep rare IDs (CWE-79 appears 3x) ##
+    qw| minCount       | => 1,
+    qw| thread         | => 0,                    ##  0 = fasttext default  ##
     qw| rolling        | => 0,
     qw| drift-threshold| => 0.20,
     qw| nn-top         | => 1000,
@@ -96,7 +97,7 @@ my $train_to = $opt{rolling} ? c_dir( $out_dir, 'next' ) : $basename;
 
 make_path($out_dir) if !-d $out_dir;
 
-die ":: corpus file not found: $opt{corpus}\n"   if !-f $opt{corpus};
+die ":: corpus file not found: $opt{corpus}\n"       if !-f $opt{corpus};
 die ":: fasttext binary not found: $opt{fasttext}\n" if !-x $opt{fasttext};
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
@@ -109,14 +110,10 @@ say sprintf ':: training %s :: %s -> %s', $opt{category}, $opt{corpus},
     if !$opt{quiet};
 
 my @cmd = (
-    $opt{fasttext}, $opt{model},
-    '-input',  $opt{corpus},
-    '-output', $train_to,
-    '-epoch',  $opt{epoch},
-    '-dim',    $opt{dim},
-    '-minn',   $opt{minn},
-    '-maxn',   $opt{maxn},
-    '-minCount', $opt{minCount},
+    $opt{fasttext}, $opt{model}, '-input',    $opt{corpus},
+    '-output',      $train_to,   '-epoch',    $opt{epoch},
+    '-dim',         $opt{dim},   '-minn',     $opt{minn},
+    '-maxn',        $opt{maxn},  '-minCount', $opt{minCount},
 );
 push @cmd, '-thread', $opt{thread} if $opt{thread} > 0;
 
@@ -126,7 +123,7 @@ system(@cmd) == 0
 my $bin_path = "$train_to.bin";
 my $vec_path = "$train_to.vec";
 
-die ":: expected model file missing: $bin_path\n" if !-f $bin_path;
+die ":: expected model file missing: $bin_path\n"  if !-f $bin_path;
 die ":: expected vector file missing: $vec_path\n" if !-f $vec_path;
 
 my $corpus_lines = count_lines( $opt{corpus} );
@@ -140,25 +137,25 @@ if ( $opt{rolling} ) {
         $drift = estimate_drift( $current_bin, $bin_path, $opt{'nn-top'} );
 
         if ( $drift < $opt{'drift-threshold'} ) {
-            move( $current_bin, $prior_bin ) if -f $current_bin;
-            move( "$basename.vec", "$basename.prior.vec" ) if -f "$basename.vec";
-            move( $bin_path,       $current_bin );
-            move( $vec_path,       "$basename.vec" );
+            move( $current_bin,    $prior_bin ) if -f $current_bin;
+            move( "$basename.vec", "$basename.prior.vec" )
+                if -f "$basename.vec";
+            move( $bin_path, $current_bin );
+            move( $vec_path, "$basename.vec" );
             $promoted = 1;
             say sprintf ':: drift %.4f < %.4f :: promoted next -> current',
                 $drift, $opt{'drift-threshold'}
                 if !$opt{quiet};
-        }
-        else {
+        } else {
             my $flag = c_dir( $out_dir, "$opt{category}.drift-flag" );
-            write_file( $flag, drift_flag_text( $drift, $opt{'drift-threshold'} ) );
+            write_file( $flag,
+                drift_flag_text( $drift, $opt{'drift-threshold'} ) );
             say sprintf
                 ':: drift %.4f >= %.4f :: keeping current; flag written',
                 $drift, $opt{'drift-threshold'}
                 if !$opt{quiet};
         }
-    }
-    else {
+    } else {
         move( $bin_path, $current_bin );
         move( $vec_path, "$basename.vec" );
         $promoted = 1;
@@ -178,7 +175,7 @@ write_metadata(
         minn             => $opt{minn},
         maxn             => $opt{maxn},
         minCount         => $opt{minCount},
-        rolling          => $opt{rolling} ? \1 : \0,
+        rolling          => $opt{rolling}  ? \1             : \0,
         drift            => defined $drift ? ( 0 + $drift ) : undef,
         drift_threshold  => $opt{'drift-threshold'},
         promoted         => $opt{rolling} ? ( $promoted ? \1 : \0 ) : undef,
@@ -232,19 +229,19 @@ sub drift_flag_text {
     my ( $drift, $threshold ) = @ARG;
     return join "\n",
         ':: drift flag ::',
-        sprintf( 'drift = %.6f',         $drift ),
-        sprintf( 'threshold = %.6f',     $threshold ),
-        sprintf( 'timestamp = %s',       iso_timestamp() ),
+        sprintf( 'drift = %.6f',     $drift ),
+        sprintf( 'threshold = %.6f', $threshold ),
+        sprintf( 'timestamp = %s',   iso_timestamp() ),
         'action required: review before promoting next -> current',
         '';
 }
 
 sub estimate_drift {
-    ##  lightweight drift estimate: compare the first --nn-top word vectors   ##
-    ##  that appear in both the current and next models. returns 1 - mean     ##
-    ##  cosine similarity (higher == more drift). this is intentionally a     ##
-    ##  cheap, conservative approximation; a future pass can swap in an       ##
-    ##  exact nearest-neighbor overlap metric.                               ##
+    ## lightweight drift estimate: compare the first --nn-top word vectors ##
+    ## that appear in both the current and next models. returns 1 - mean   ##
+    ## cosine similarity (higher == more drift). this is intentionally a   ##
+    ## cheap, conservative approximation; a future pass can swap in an     ##
+    ## exact nearest-neighbor overlap metric.                              ##
     my ( $current_vec, $next_vec, $top_n ) = @ARG;
 
     my $cur = read_word_vectors( $current_vec, $top_n );
@@ -311,10 +308,9 @@ sub cosine_similarity {
 #..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
-#,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
 
-#,,,.,,,,,,,,,.,,,,,,,.,.,,..,.,.,.,.,,,,,,,.,..,,...,...,,..,..,,.,.,..,,,,.,
-#CHNSUNHM36E2MYLBEQ2VG5I5QU6ATR3DJ2FI74VTVSNQJYXI3W7A26CZE54ZRC37FNQHRJJNKBONO
-#\\\|3HYFYOP7IGYH3FDFTV3RGVORPF3RAPACMAT3MLUXOKAVIMTX6VZ \ / AMOS7 \ YOURUM ::
-#\[7]GC7CZQ6Y3AUDRM7A5PLH4PWGWEYJCCTWDA3EKKJQPWTMBPAH46AQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,,,,,.,.,.,,,.,,..,...,.,,,...,...,...,...,..,,.,,,..,,.,,,.,.,
+#73CX6YOR64RY4ACPXE7ICVMVWPO3HA645V2RM6RDBHPYKI7D4DI5CMP5XQOTU4M5D5GQSJERMCMGS
+#\\\|C2DSJUWIAEPX6B3MYDZMV6E7R2WNFI3J2LOZYI72G7D25FM2DOC \ / AMOS7 \ YOURUM ::
+#\[7]MBZ2436625G7T46BVSW73XTDL4TYF7XZBXBZWMM6VGYT2GVFACAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

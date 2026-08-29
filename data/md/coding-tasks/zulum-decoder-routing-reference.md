@@ -403,10 +403,8 @@ for i in 1 2 3 4 5; do echo "zulum.step 1" | p7 zulum; done
 echo "decoder.show-buffer 5" | p7 decoder
 ```
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,.,,.,,,,,,,,..,...,..,,,,,,,.,,..,,.,.,,.,,..,,...,...,,.,,,.,,...,,,.,..,,
-#IT54SZXV62C4MRPVYWNBQ2AIAMFUXR4CORWVFDKIW4ZZBEUSFCJYW5OTM5TVRNR2IJRGUCLKHDMIE
-#\\\|5LMIFP4AHRNFUINBLNRQ5MJA7T6KTANMWPP66TEVLE5PMZCDHUD \ / AMOS7 \ YOURUM ::
-#\[7]VMMMB3QAFFYL5PLQ7JWXDJIO4BHROPH7Z3GGFGNLV5PRCYJU2IBY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,...,..,,.,,,,.,,,..,...,...,..,,...,...,.,.,...,...,,,.,.,,,
+#RLTPDRFTIMF4HKBLX5U45NHAEKIO6LC6QBCQ4JJ2JLHYBI5JJG234IQZEUAQD7P46HW3E33CHZYG2
+#\\\|MFBXB7CSCBMMLNLJZKBAN37Q23L7CSFVSAMIEQ3JCAKKGPCUHAR \ / AMOS7 \ YOURUM ::
+#\[7]OPPPDHC6TKIIM5DLJXEHX7C7PPOSQR6RZXWW3NMMUEIZCX4YGYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

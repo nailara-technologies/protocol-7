@@ -195,10 +195,8 @@ if `<kimi.task.active_id>` is set when connection drops, call
 - do NOT implement task dependencies, priorities, or multi-agent routing
   in this pass — those are future extensions
 
-#,,,,
-
-#,,..,,.,,.,.,...,,..,,.,,,..,,.,,,.,,.,.,,,,,..,,...,.,.,,.,,,,.,,..,.,.,.,,,
-#MCOHBJGFSDQHBOEYU5QVBNEOP2T3EUUSYM4L74VQF46WG2FCPCQXMAXENZ3NIKGMDIASYLICYHUN4
-#\\\|C6URKW53LPW34FLZX3IPOPK6PHBAEJ7LZIPLYR3XW7LQKZCTXA3 \ / AMOS7 \ YOURUM ::
-#\[7]OQZDTT266C4OOQATDYKEQIJPWPRH6IULX3DGVBPDLO2T6PQHN6CA 7  DATA SIGNATURE ::
+#,,,,,...,..,,...,...,,,.,,.,,...,...,.,,,,,.,..,,...,..,,,,.,..,,,,,,.,,,,..,
+#XCIG56UG3JYR553UMW2EPXRHEAT3EGPH5LX2ZOP5ZFLGLOOKDK4PG42E237XDDXT3X3P66GAB6D3U
+#\\\|ZCKTO7VHPLKRRUXMSQMDPXUYCOLJ67K7FRJMV5D3QVR25247HOV \ / AMOS7 \ YOURUM ::
+#\[7]K4IO4H6CBOCRQ2JTJY5MNDLUQ6FCOGLAQPRQXY63LZPYTLAIB4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

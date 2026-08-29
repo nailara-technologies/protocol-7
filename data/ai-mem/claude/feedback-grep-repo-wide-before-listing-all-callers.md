@@ -50,10 +50,8 @@ that INFLATES a count) -- this is the opposite failure: a
 correctly-scoped-looking search that's too NARROW in scope and
 DEFLATES the real count.
 
-#,,.,,,.,,,,,,.,,,,..,,.,.,,,,.,,.,,..,,...,...,,,.,.,.,,,,.,,,.,,,,..,,,,,,,,
-
-#,,..,,,,,,.,,..,,,.,,.,.,.,.,.,,,...,.,.,...,..,,...,...,...,...,.,,,...,,,.,
-#ITHRM7RXMQTJN2W3ACQK576TGODA4RBOWPBD6LX4MCAUPYCW2OT4GUFOJ7GMZYQYQ7GLWXXKMPXMS
-#\\\|RJLSHNXGYFQJI6CAVIBLI3PG5DQMJS5XY76UJ5OCW3QFFT4HTPI \ / AMOS7 \ YOURUM ::
-#\[7]TKNN5HZZNKLM46VCDO772WOM7J6MJIHCO4DSV6OHFAMX57GB6SAI 7  DATA SIGNATURE ::
+#,,,,,...,...,,..,,,,,...,...,,..,,,,,.,.,,,.,..,,...,...,.,,,.,,,,..,,,.,,,.,
+#UU62ZBW7HXOV5IUP5EPT4JBUGYEXVAACV764THDP4KGQCE4C6HIWJILBUPQ7F6OKCIA4IJIDSLGTY
+#\\\|77SVI7GAOLIDR2O7JXCLJMHXQVBYWT2OK7SEUVBLLYANIQTAZJF \ / AMOS7 \ YOURUM ::
+#\[7]OBNOSO2BK6OBOZPNPUZNFWST2IOR4T3OM3JCZBJIU4XXZHXN5SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

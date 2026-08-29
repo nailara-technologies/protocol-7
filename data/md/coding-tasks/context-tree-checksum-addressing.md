@@ -440,10 +440,8 @@ same deduplication principle, applied to **context nodes**.
 
 ---
 
-#,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
-
-#,,,,,.,,,,,.,...,.,.,,.,,,,.,,,,,..,,,,.,...,..,,...,...,..,,.,.,..,,.,,,.,.,
-#YIC472JRXTM2DAQ5ZDB3YRAC5TAQWL2NXB56L5EVDVDZUQPIBQCAF6QTDFANF3RU6OPCLN7A7EDCS
-#\\\|QFGAEKDXGHEV4QSPXAEKT34KXDB7DJPXMMDPG7GUPVLGMRZUIIJ \ / AMOS7 \ YOURUM ::
-#\[7]H7MSD4BXONF4OAZ6R3OQJOST232Z7RPLLD6NAZEMZ523RUPRQQAY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,.,,.,,,..,,..,,,.,...,...,..,,..,,...,...,,.,,.,.,.,,,,..,.,,,
+#JXM2K2DLJFW2WIBT7KX6ORUS4AS6AV5NOGFP7A3ZP5P5DHKNVBY7ZSI7U5CYGDACXIVV33AUMCUA6
+#\\\|YBKJ2HX7JXVLQLBF6SELFOUIYALMOOFCKXENKVSRUH52X56CAB2 \ / AMOS7 \ YOURUM ::
+#\[7]CVY5M2PBBXING7CLUTFOGZNHO6ZKPSASE7NPORS7H5NZRPWQ4QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
