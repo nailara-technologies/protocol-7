@@ -97,10 +97,8 @@ through `c79e87b87` is already committed and signed:
 `1367163cf` (this task file itself), `c79e87b87` (mcp-server-p7 model
 default/warning). Nothing else is staged or in flight.
 
-#,,.,,,..,,..,,..,,,.,,..,,..,,,,,,.,,,.,,.,.,..,,...,...,...,...,.,,,,,.,...,
-
-#,,,.,.,,,,,,,,,.,,.,,,,,,.,.,...,...,.,,,...,..,,...,..,,.,,,,..,...,,.,,.,.,
-#6Q2ELGF5E22BYWHC5AH4CDSJNXSOGNC5BGYGUR3X2WBIYWKYOSDZ6RD62UFLEVYNOA73PJ6HYIK7W
-#\\\|3S7W7OW2QXMQCU6SPQDWWYOSYUSZOG76ZA5RERZHAFORMNNF2UR \ / AMOS7 \ YOURUM ::
-#\[7]CHJLEOXW3J235HLX5VBTRFZSIRPVLUTZZEYNNLQMMJKFNCXMFKBQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,...,...,,,,,...,...,.,,,,..,..,,...,..,,.,.,...,,.,,..,,,,,,
+#ZFPK3HXKAHI2H46UDKHACM3BCJQ6E4VOZ6IWAO45Z53AN73EDNPJ5SEBFT7PNC5K75CBRECLHERCK
+#\\\|B7V3X2IIHKW6QNNX5FCILFW3QP4MBSF4OVHTHOIFPFGXNUGNJ72 \ / AMOS7 \ YOURUM ::
+#\[7]KZIY3CGJDI65VCP442IJIIPW3AUTVGFIMSDWOY6NWTIDZRMWPQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

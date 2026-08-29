@@ -130,10 +130,8 @@ src/models.chat.expand_inline_refs  ## [::file::] expansion
 src/models.chat.export_task         ## /task → coding task .md
 ```
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,..,.,,,,,.,.,,,.,.,,,,,,.,,...,,,,,..,,.,.,..,,...,...,...,.,,,.,.,,,,,,,,,
-#CHDQEFHX2DY5EMDBHVI4YJUJKPSY4PVYEBXZUNA3GLDQXDBKQ4NRUS3M7MUDG3RZQJ53EU2YRNM24
-#\\\|IFLVOJJWWNZ7NRDUH36RL6RQCU4A62SNEYRJNSRB4O2QH4NAP3R \ / AMOS7 \ YOURUM ::
-#\[7]W233UUA4P6HQRJLUUU3I3RBOSA6F5ST3GJFZ5VQUAAK4EGEZFYAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,,.,,,..,,,,,.,.,,,.,...,,.,,..,,...,...,...,..,,...,,,,,.,.,
+#MYXRO5GCE6DUHPDIXZ733AQFT33TDKGTYVGKGRCX6JM7EU52BHV4IWDNTWBJ6LZJG7JFUAX3SCW74
+#\\\|HURUBN5CEAAHRPUUTCBX76PR7RFZZQQAGPXQYBIVAYWGILGMHTM \ / AMOS7 \ YOURUM ::
+#\[7]ZT3VZLM24S5VV6H2PGBQ2P54R2HWQBGKANLKP7BS6CIFQ35IB4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -169,15 +169,13 @@ The `llama-mtmd-cli-cuda-fa` binary (CLI fallback) was not rebuilt in Mar 2026. 
 - [ ] CLI fallback works when server unavailable
 - [ ] No regression in vision analysis accuracy
 
-#,,,.,,,,,,..,.,,,.,,,,,.,,,.,,,.,,,,,.,.,,..,..,,...,...,.,.,,,.,.,,,,..,,.,,
-
 ---
 
 **Integrated Task**: HTTP backend (complete) + CLI fallback (downgrade) + LOVES_IT allocation (new)  
 **Session Target**: Implement Phase 1 & 2  
 
-#,,..,,,,,,,,,,,.,,,,,,..,,,,,.,.,,,,,..,,,,,,.,.,...,...,.,,,..,,.,.,..,,,..,
-#7ELWO4KF2ENIBW7RQYL23GMIWLZWOHTOEET5LVOAS7ICEBAL3WWWN2AWKZU3VL7GRMXTMLJIUK2MM
-#\\\|H5DKBNOZEBIDL2HPPWPZXGVRI25W7IUTOZTXS5XMHGQQJUS6WRJ \ / AMOS7 \ YOURUM ::
-#\[7]UWTQIYYHI75LFI2NKZ2GTGYYQNBQF4ESZQDTO7GNDBKXOY26POCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,.,.,.,.,,,,,,.,,,..,,,,,..,,.,.,...,.,.,..,,,,.,,,.,.,,,.,,,
+#FV4QMGZ53KVKDMGX4OHY4AVBTVTB67UBIO7T2SD5GLAQVXLE43YE2AZSQXWT2ZD66B72GNHBHMFF4
+#\\\|EQNJ255UBJCNOL7OT6RLKDCRL6EDZ5IZHHUA2CHAOX4RIK5Y233 \ / AMOS7 \ YOURUM ::
+#\[7]FJJUD3QO5FJZVYH5VMKEFPYHRTC7HBDGIOZOXSMFKIFXZSOOEUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

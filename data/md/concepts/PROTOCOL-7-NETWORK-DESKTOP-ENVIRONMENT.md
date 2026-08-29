@@ -193,10 +193,8 @@ The result is a desktop environment that exists wherever you need it, scales acr
 
 *"The editor is not an application. It is the membrane between intent and information."*
 
-#,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...
-
-#,,..,..,,,..,,,.,,.,,,..,..,,.,,,...,...,,,,,..,,...,..,,..,,...,,.,,,.,,,.,,
-#SD2MV5ENVBC5BKS34MLC7ZRKEODQO5MEG2ISU6C3O2S7TXBIU6L535YFCCB3PJ4FSRN4GAW7QPPFI
-#\\\|VBRKH2Y5HGGBWOR52PBOSXOBWFLSTSGQJXWSF6BCBU3TCDYF2LJ \ / AMOS7 \ YOURUM ::
-#\[7]UKFGWWGPXYZC76XH5SFM533TTDLIQZQS775B2KBNTC5ONKRUKKAA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,,..,,..,,.,,,,.,,.,,.,.,.,.,..,,...,...,,,.,.,,,.,,,,,,,...,
+#M6IHA4BWT7YXBZYGQUNLT357JRG52Z4NZDSW4R3JNYR7MVNRL7BERKYS6DZVROEM6VHVKDV2KS7ZM
+#\\\|BBBZEG6I3BNGZMVNKJFYLE4K46O4T3G5FELAIS3YP3GWEZ5OLT6 \ / AMOS7 \ YOURUM ::
+#\[7]II4HTYM2ZZDOJU776OAKHFYVJ4PFUYOX4O67ZFKLX3MCLSOOUSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
