@@ -7,43 +7,12 @@ my ( $view, $async_result ) = @_;
 my $out_path = delete <web-browser.snapshot.pending_path>;
 my $reply_id = delete <web-browser.snapshot.pending_reply>;
 
-my $surface = eval { $view->get_snapshot_finish($async_result) };
+<[web-browser.util.snapshot_save]>->(
+    $view, $async_result, $out_path, $reply_id
+);
 
-if ( $@ or not defined $surface ) {
-    <[base.log]>->( 1, "snapshot failed: $@" );
-    <[base.callback.cmd_reply]>->(
-        $reply_id,
-        {   'mode' => qw| false |,
-            'data' => 'snapshot failed'
-        }
-    ) if defined $reply_id;
-    return;
-}
-
-## save to PNG -- webkit2 returns Cairo::ImageSurface, not GdkPixbuf
-my $save_ok = eval { $surface->write_to_png($out_path); 1 };
-
-if ( not $save_ok ) {
-    <[base.log]>->( 1, "snapshot save failed: $@" );
-    <[base.callback.cmd_reply]>->(
-        $reply_id,
-        {   'mode' => qw| false |,
-            'data' => "save failed: $@"
-        }
-    ) if defined $reply_id;
-    return;
-}
-
-<[base.log]>->( 2, "snapshot saved: $out_path" );
-<[base.callback.cmd_reply]>->(
-    $reply_id,
-    {   'mode' => qw| true |,
-        'data' => $out_path
-    }
-) if defined $reply_id;
-
-#,,,,,,.,,,,.,,,,,.,.,,,.,,,,,,,.,,,,,...,.,,,..,,...,...,.,,,,..,,,,,.,,,.,.,
-#TKUURYT5KCATMX6PSIJZSRW6WHKTXQAQATYAXARLPQPXQUBBORZM6WUXHPIA64ZMANX55F3K7BM3I
-#\\\|W4UB5O2YJOPGNPOO5O56QUKHDGEM6XR23T7E6J4INLJY7FD6ZBP \ / AMOS7 \ YOURUM ::
-#\[7]ZBAX4FNTHMEEEWLEJZFGISACK4OBSLO3SAMDQ72Q5CZOLO6LG4DQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,.,,,,,,,...,.,.,..,,,..,,,,,.,.,...,...,..,,..,,...,,,.,...,
+#U3PBTAJK7KE2DUG4WRHSQBXJXSZ74UH2ZYPGRYR3MGKXUPQC5XU7UW5GI3RPMEKHTOM45LYVWT4IM
+#\\\|W6FTJ4XLMPXUBOKEAQ7RSSG5W3GXMLLTWOCWEGMOT457BMI24KH \ / AMOS7 \ YOURUM ::
+#\[7]Q7LYFPZTN7SZZGBWZXTT55ZQ2EKWO6J3RJIDBJN3Q7WM325GTSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

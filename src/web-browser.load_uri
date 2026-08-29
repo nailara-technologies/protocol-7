@@ -21,17 +21,25 @@ if (<window.scrolling>) {
 $load_uri = "file://$load_uri" if $load_uri =~ m|^/|;
 $load_uri = "http://$load_uri" if $load_uri !~ m|^\w+:|;
 
-##[loading on to bg view]###
-my $bg_index = <web-browser.overlay.index.bg>;
-my $bg_view  = <web-browser.gtk_obj.view>->{$bg_index};
-##[progress bar on fg view]###
-my $fg_index = <web-browser.overlay.index.fg>;
-my $fg_view  = <web-browser.gtk_obj.view>->{$fg_index};
+my $headless = <web-browser.cfg.headless> // 0;
 
-my $bg_resource = $bg_view->get_main_resource;
-my $fg_resource = $fg_view->get_main_resource;
+##[loading target view]###
+my $load_index
+    = $headless
+    ? <web-browser.overlay.index.fg>
+    : <web-browser.overlay.index.bg>;
+my $load_view = <web-browser.gtk_obj.view>->{$load_index};
+##[progress bar view]###
+my $prog_index
+    = $headless
+    ? <web-browser.overlay.index.bg>
+    : <web-browser.overlay.index.fg>;
+my $prog_view = <web-browser.gtk_obj.view>->{$prog_index};
 
-<web-browser.current_view> = $bg_view;
+my $load_resource = $load_view->get_main_resource;
+my $prog_resource = $prog_view->get_main_resource;
+
+<web-browser.current_view> = $load_view;
 <web-browser.url_flags>    = {};
 
 if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
@@ -62,31 +70,32 @@ if ( $load_uri =~ s|#\[([A-Z0-9_\.\|=]+)\]#$|| ) {
 <web-browser.time.load_start> = <[base.time]>->(3);
 
 if ( defined <web-browser.keep_text_zoom_path> ) {
-    my $settings     = $bg_view->get_settings;
+    my $settings     = $load_view->get_settings;
     my $skip_pattern = qr{^file://<web-browser.keep_text_zoom_path>};
     if ( $load_uri =~ $skip_pattern ) {
         $settings->set_zoom_text_only(1);
     } else {
         $settings->set_zoom_text_only( <web-browser.zoom_text_only> ? 1 : 0 );
     }
-    $bg_view->set_settings($settings);
+    $load_view->set_settings($settings);
 }
 
 <[web-browser.disconnect_signal.received_data]>;
 
 <web-browser.signal_id.received_data>
-    = $fg_resource->signal_connect( 'received-data',
+    = $prog_resource->signal_connect( 'received-data',
     $code{'web-browser.handler.progress_changed'} )
-    if <web-browser.cfg.show_progress_bar>
-    and defined $fg_resource
+    if !$headless
+    and <web-browser.cfg.show_progress_bar>
+    and defined $prog_resource
     and not defined <web-browser.signal_id.received_data>;
 
 <web-browser.signal_id.load_changed>
-    = $bg_view->signal_connect(
+    = $load_view->signal_connect(
     'load-changed' => sub { $code{'web-browser.handler.load_changed'}->(@_) }
     );
 
-<web-browser.signal_id.load_failed> = $bg_view->signal_connect(
+<web-browser.signal_id.load_failed> = $load_view->signal_connect(
     'load-failed' => sub {
         $code{'web-browser.handler.signal.load_failed'}
             ->(@_)    # <-- reloadable code.
@@ -106,8 +115,8 @@ my $file_content = "current_url : $load_uri\nurl_flags   : "
 #
 
 ##[ bypass WebKit cache when reloading an URI already present in a view ]###
-my $bg_uri = $bg_view->get_uri // '';
-my $fg_uri = $fg_view->get_uri // '';
+my $load_view_uri = $load_view->get_uri // '';
+my $prog_view_uri = $prog_view->get_uri // '';
 
 my $uri_cmp = sub {
     my $uri = shift // '';
@@ -116,30 +125,32 @@ my $uri_cmp = sub {
     return $uri;
 };
 
-my $load_uri_cmp = $uri_cmp->($load_uri);
-my $bg_uri_cmp   = $uri_cmp->($bg_uri);
-my $fg_uri_cmp   = $uri_cmp->($fg_uri);
+my $load_uri_cmp      = $uri_cmp->($load_uri);
+my $load_view_uri_cmp = $uri_cmp->($load_view_uri);
+my $prog_view_uri_cmp = $uri_cmp->($prog_view_uri);
 
-if ( $load_uri_cmp eq $bg_uri_cmp and length($bg_uri_cmp) ) {
+if ( $load_uri_cmp eq $load_view_uri_cmp and length($load_view_uri_cmp) ) {
     <[base.log]>->(
         2,
-        ":. uri '$load_uri' already in bg view, reloading with cache bypass.,"
+        ":. uri '$load_uri' already in load "
+            . "view, reloading with cache bypass.,"
     );
-    $bg_view->reload_bypass_cache();
-} elsif ( $load_uri_cmp eq $fg_uri_cmp and length($fg_uri_cmp) ) {
+    $load_view->reload_bypass_cache();
+} elsif ( $load_uri_cmp eq $prog_view_uri_cmp and length($prog_view_uri_cmp) )
+{
     <[base.log]>->(
-        2, ":. uri '$load_uri' in fg view, clearing cache before bg load.,"
+        2, ":. uri '$load_uri' in progress view, clearing cache before load.,"
     );
     <web-browser.gtk_obj.web_context>->clear_cache();
-    $bg_view->load_uri($load_uri);
+    $load_view->load_uri($load_uri);
 } else {
-    $bg_view->load_uri($load_uri);
+    $load_view->load_uri($load_uri);
 }
 
 return FALSE;
 
-#,,,,,,..,.,.,...,.,,,..,,,,.,,,.,..,,.,.,,.,,..,,...,..,,.,,,..,,..,,.,,,.,,,
-#PBFTOWXVUHLQBUTQTAFS3RBKVDLV6G6X4J5EYZY7MWPA2HD4XJ7PLNNIB6HEO537TNC54M23F7HSU
-#\\\|REHQANW4S2SXEYOP2UWEQ3JR7H6FR6XHK22UU74DPQUCDE5P2Q7 \ / AMOS7 \ YOURUM ::
-#\[7]BAHIP2PVCUDX3BITGO6EI33OVZLLSNBVV6XSJ42SFHYR7SUSVQCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,...,.,,,..,,.,.,...,.,.,.,,,,,.,..,,...,...,...,.,.,...,,..,.,.,
+#DCR3ZZ4HOBAP2BCYXMQW4LMJOT7AX2JZ4YD3GVMX23FZCQJ72YKRN52QBU3YLIO7U67VWJW4KGR3M
+#\\\|3SYTVGFNOVI6RGX3VTNFG7CBPTBTSOFPT57BTQ3CMJZVTFO2BOY \ / AMOS7 \ YOURUM ::
+#\[7]7A5IUQCRMT3DI76UQ4L5G7ZTOUU52JYDYHRKKCPHKURKN3T44UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

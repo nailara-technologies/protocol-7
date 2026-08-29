@@ -2,15 +2,14 @@
 
 # name  = web-browser.handler.capture_on_fade
 # descr = fires on every write to <web-browser.slideshow.url_index> [ armed
-#         by web-browser.cmd.start-capture-slideshow ] -- snapshots the
-#         current foreground view [ the page that was just displayed, still
-#         on screen as the next one starts loading in the background ] and
-#         appends a manifest line. reuses the existing
-#         web-browser.handler.snapshot_result completion path [ pending_reply
-#         left undef, which it already treats as a safe no-op reply target ],
-#         no new PNG-saving logic duplicated here
+#         by web-browser.cmd.start-capture-slideshow ]. DEPRECATED for new
+#         code: start-capture-slideshow now arms the paged multi-position
+#         capture loop instead. this handler is kept as a defensive fallback
+#         for any pre-existing watcher; it is a no-op while paged capture is
+#         armed to avoid duplicate/stale snapshots.
 
 return unless defined <web-browser.capture.manifest_path>;
+return if <web-browser.capture.paged.armed>;
 
 my $view_index = <web-browser.overlay.index.fg> // 1;
 my $view       = <web-browser.gtk_obj.view>->{$view_index};
@@ -60,10 +59,8 @@ open( my $fh, '>>', <web-browser.capture.manifest_path> ) or do {
 print {$fh} "$short_id\t$uri\t$out_path\n";
 close($fh);
 
-#,,,.,.,,,,.,,,,,,.,,,.,,,,.,.,.,,,,.,,,,.,.,,,,.,,,.,,,..,,...,...,,.,,,.,.,,
-
-#,,.,,.,,,.,,,...,.,.,...,..,,,,.,,,.,,,.,,,,,..,,...,...,...,..,,.,,,.,.,...,
-#4Y3SWEK2OA5CZXJSRAAVQDSIEFG5Z45U4HU67TP4VBZHG2HQALIFUZFJDROUTDQTMTZWCVL2IZ6WS
-#\\\|2P4LMASSIR2UPHQX3JZJBDBYX3SYREHCQE32W2IDXCFBP7EJS2V \ / AMOS7 \ YOURUM ::
-#\[7]S5FONM3LLFVR5JYZGZADUSDEDG6QAVG3LMPO7SKVOZWZJA7TAWDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,...,...,.,.,.,,,.,,,,,,,,..,.,.,...,...,.,.,...,,.,,,,,,,.,,
+#YV2FBYJ46CRDMA3ZYCTVP75CVX2GG2FQ55IKLJLXUSODCW55WOM42ZPPNJJ2RZP5ZM5UY6FXVZODU
+#\\\|XTUILTRYHGSO3PZCS5IBUDC3DZOVOV5M7BC2V7E23YRRZWTZRCN \ / AMOS7 \ YOURUM ::
+#\[7]L4DNBLMXGEX6CFSLDSTZ37AOPM5LZJSMJHSC43GMYKBDOKT4TSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

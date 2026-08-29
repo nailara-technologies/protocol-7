@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = web-browser.callback.capture_paged_query_result
+# descr = callback invoked from capture_paged.start's JS query. parses
+#         "scroll_max:scroll_pos:viewport_height", computes the ordered list
+#         of Y positions to capture, stores the loop state, and kicks off the
+#         first position.
+
+my $js_result = shift // '';
+my $cb_params = shift;
+
+warn "capture_paged query result not as expected [$js_result]."
+    if $js_result !~ m|^(\-?\d+):(\d+):(\d+)|;
+
+my $scroll_max      = $1 // 0;
+my $scroll_pos      = $2 // 0;
+my $viewport_height = $3 // 0;
+
+<window.scroll.max> = $scroll_max;
+<window.scroll.pos> = $scroll_pos;
+
+$viewport_height = 1 if $viewport_height < 1;
+
+my @positions;
+my $pos = 0;
+while ( $pos <= $scroll_max ) {
+    push @positions, $pos;
+    last if $pos == $scroll_max;
+    $pos += $viewport_height;
+}
+push @positions, $scroll_max
+    if @positions and $positions[-1] < $scroll_max;
+push @positions, 0 if @positions == 0;
+
+my $fg_index = <web-browser.overlay.index.fg> // 1;
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+<web-browser.capture.paged.positions> = \@positions;
+<web-browser.capture.paged.index>     = 0;
+<web-browser.capture.paged.uri> = defined $view ? $view->get_uri // '' : '';
+
+<[base.logs]>->(
+    2,
+    "capture_paged: %d position%s for uri '%s' [ max=%d vh=%d ]",
+    scalar @positions,
+    <[base.cnt_s]>->( scalar @positions ),
+    <web-browser.capture.paged.uri>,
+    $scroll_max,
+    $viewport_height
+);
+
+<[web-browser.handler.capture_paged_step]>;
+
+#,,..,,..,..,,,.,,,,.,,,,,,.,,,..,..,,,..,,,,,..,,...,..,,..,,,,,,,..,...,,.,,
+#YF3BSMXAYW6ZCNJMF6JFVJMTR27LX6H6O4LST6VJOA6OMKEIHANZ6MCUU6GH2RPZTCAT2FVYHWMDC
+#\\\|TVIO2R3KEMQV7R7OJWHDFBZWV6QKPKYB6D2MYOINE5V7ZVQXR3B \ / AMOS7 \ YOURUM ::
+#\[7]D3OV2NZSA7ZKTDWHUWJGE7XGBWKJYAQ44NUXSKZV5PGNBH6SZIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

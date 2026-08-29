@@ -6,6 +6,12 @@ my $fg_index  = <web-browser.overlay.index.fg>;
 my $call_mode = shift // 'scroll_check';          # [scroll_check|no_scroll]
 
 if (    <web-browser.slideshow.running>
+    and <web-browser.capture.paged.armed> ) {
+
+    <[web-browser.capture_paged.start]>;
+    return;
+
+} elsif ( <web-browser.slideshow.running>
     and !<web-browser.slideshow.no_scroll>
     and !<window.scrolling>
     and $call_mode ne 'no_scroll' ) {
@@ -29,8 +35,8 @@ if (    <web-browser.slideshow.running>
     }
 }
 
-#,,.,,,,,,.,,,.,,,.,,,,,,,,.,,,.,,..,,,,.,,.,,..,,...,...,,.,,,,.,,,.,,..,,,.,
-#TO7RI5YEOZZI62QQP2247I7IAYNSQVSCIC2FQTEZIEJEE55LV2YFTT6ZIN6WIJ5LOCH5CUEFGEV32
-#\\\|B6242SFGFB366UCJ72TXIVTZTQPXKGX2SWFHXRUS7CDY5M6ZUIY \ / AMOS7 \ YOURUM ::
-#\[7]PKRBEKKOWFZR4CGDQYUXS66W3DCBAQDIMEWAA6XS43YSRIQRNWBA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,.,,,,,.,,,.,,,,,,,,,,,...,...,..,,...,...,,.,,,.,,,..,,,,,,.,,
+#GY3JH4GUYHRUHX3JVVZN54AYPZTFCGW656YPHI5P5UBQIHUEJ4T7D24SK4U6G7Q3H7AJ2E53RGRY6
+#\\\|G5YX4XEWUADINMJL3O72LPVQO7GSPIG6Z2EIG4EGDHUTZL426RB \ / AMOS7 \ YOURUM ::
+#\[7]SSV2YJEN5X2Z5G6GQED6IRFNIOHJ3PNTPII7JBFZMRTFEV3Y2WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

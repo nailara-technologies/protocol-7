@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = web-browser.util.snapshot_save
+# descr = shared surface-to-PNG saver used by both the generic snapshot
+#         completion handler and the paged capture loop. finishes a WebKit
+#         snapshot async result, writes the PNG, and optionally replies to a
+#         caller. returns true on success, false on failure.
+
+my ( $view, $async_result, $out_path, $reply_id ) = @_;
+
+my $surface = eval { $view->get_snapshot_finish($async_result) };
+
+if ( $@ or not defined $surface ) {
+    <[base.log]>->( 1, "snapshot failed: $@" );
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'snapshot failed'
+        }
+    ) if defined $reply_id;
+    return 0;
+}
+
+my $save_ok = eval { $surface->write_to_png($out_path); 1 };
+
+if ( not $save_ok ) {
+    <[base.log]>->( 1, "snapshot save failed: $@" );
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => "save failed: $@"
+        }
+    ) if defined $reply_id;
+    return 0;
+}
+
+<[base.log]>->( 2, "snapshot saved: $out_path" );
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => qw| true |,
+        'data' => $out_path
+    }
+) if defined $reply_id;
+
+return 5;    ## TRUE ##
+
+#,,.,,..,,,,.,,..,..,,,..,,,.,...,,.,,..,,,,,,..,,...,...,,.,,...,,.,,,.,,,..,
+#ZOFLR6PEHDVPOH46T55Q74D7DXD4DUIXJNQ377AFWWRX6W24QWVAPKZZURWK7ZELM4J27FUKF233Y
+#\\\|KORAO527HK3KMQ4GMU2KAJQUIJAVW35I6TIJJFMJAHJ6UOYB3XW \ / AMOS7 \ YOURUM ::
+#\[7]YSYCBYRG7LLKY3YSTFDXPLHPDENFTZ7PXKJU3R7J2X4JLJEXVYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = web-browser.cmd.stop-capture-slideshow
-# descr = cancel the capture-on-fade watcher armed by
+# descr = cancel the paged capture watcher armed by
 #         web-browser.cmd.start-capture-slideshow
 
 <web-browser.capture.watcher>->cancel
@@ -12,15 +12,18 @@ my $count = <web-browser.capture.counter> // 0;
 
 delete <web-browser.capture.watcher>;
 delete <web-browser.capture.manifest_path>;
+delete <web-browser.capture.paged.armed>;
+delete <web-browser.capture.paged.positions>;
+delete <web-browser.capture.paged.index>;
+delete <web-browser.capture.paged.uri>;
+delete <web-browser.capture.paged.pending_path>;
 
 <[base.log]>->( 1, "capture-slideshow disarmed [ $count captured ]" );
 
 return { 'mode' => qw| true |, 'data' => "disarmed, $count captured" }
 
-#,,,,,.,,.,,,,.,,,.,,.,,,.,,,,.,.,.,,,,.,,,,.,.,,,,.,,,.,,,..,,...,...,,.,,,.,
-
-#,,.,,,..,..,,...,.,,,.,.,..,,,..,..,,,.,,,.,,..,,...,.,.,,.,,,,.,.,,,,,,,.,.,
-#CBGMUJXMMQR7CLCIBZZHFGWEWI372RURRHOMU2KFWBZVN5Y4YO2B42IXQN4UUQEQ32YF36DJDEPKQ
-#\\\|MJZOS4YBBDTMY66ISR26EUVTOGHCONPOESBZA6Q7JHYWOXAOBS3 \ / AMOS7 \ YOURUM ::
-#\[7]VGUXETM7FU5BEJEL6ES6WAOBWYT3KQVUJSEDRLAFRTPDSRS4WKDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,..,,,.,,,..,,,.,,..,,.,,,,,,..,,...,...,..,,...,,,,,.,.,,,.,
+#F3TZWMFSD7WPKKM424JVQKTQ27UDVWIWTOG22N3A3I53FYXMWD2BW36UREUFVGDPKQXZ4QWSV4VB2
+#\\\|3PTGE7XUWVPGKANKFCUCAWXPF6CH2BEFLHRF36WD3QEAVSAOG4B \ / AMOS7 \ YOURUM ::
+#\[7]O2IKXBLM4Q26SUHYYMAIEA37ZCRRS4ROU4FENXJYJ22O2OJADEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
