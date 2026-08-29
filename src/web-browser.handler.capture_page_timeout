@@ -35,6 +35,17 @@ if ( defined $timeout_log_path and length $timeout_log_path ) {
 ## terminate the stuck page's JS / WebGL execution context ##
 <[web-browser.util.force_clear_current_view]>->($uri);
 
+## the normal fade/swap completion path refreshes <web-browser.time.        ##
+## fade_complete>, which handler.slideshow's inter-page delay math depends  ##
+## on (delay = min_delay - (now - fade_complete)). this timeout path never  ##
+## went through that, so fade_complete goes stale the moment the first      ##
+## timeout happens -- every later delay computes deeply negative, clamps to ##
+## 0, and the slideshow starts firing load attempts as fast as the event    ##
+## loop allows (confirmed live: a watchdog "timed out after 0.494s" and a   ##
+## rapid run of repeated '[capture_timeout:blank]' skips). refresh it here  ##
+## so pacing stays correct after an abandoned page too                      ##
+<web-browser.time.fade_complete> = <[base.time]>->(3);
+
 ## drop per-page paged-capture state (keep the armed flag so remaining ##
 ## pages in the slideshow are still captured)                          ##
 delete <web-browser.capture.paged.positions>;
@@ -48,8 +59,8 @@ if (<web-browser.capture.paged.armed>) {
     <[web-browser.handler.slideshow]>;
 }
 
-#,,,,,,,.,,,.,,..,.,,,...,..,,,,,,...,,.,,.,.,..,,...,...,,,,,.,,,,,.,..,,,,,,
-#YPFCKC4XHJ7JSBEG6LJDAT5KIVZX34GD4YSS3LZIUKR3TYGZBMEZIIMHDV2W6YOQK3JQP6KJSDSTG
-#\\\|AGUXJF5LZV6X7J7IRYOK3UNO65G34PKURTL4Q77ECGZBKTYVJ24 \ / AMOS7 \ YOURUM ::
-#\[7]RJ3YKM7FI3AOOF54VXAV2URXXH537JBUUZSZ7A4QOSA7J47SVGDY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,.,,...,,,,,...,..,,,,,,.,.,.,,,..,,...,...,...,,,.,,,.,,..,,,,,
+#FNKOLXN63QCVP2YAB3DCLOTIRQPWZAPO5GAVJXXTMMT555EBLXFHZTVV5QGJ4WB6ZKSDIEK2O6NSY
+#\\\|4MMKLJLVT3PDXTKIW3EQKPVVF2ZHPNHZ3JBA5YWQ54D35BJCLPX \ / AMOS7 \ YOURUM ::
+#\[7]2LRZ45MU67KGQC3W3EJ3WHRWKZX2RHLBPMJ4FD5OUYLW34O6PGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

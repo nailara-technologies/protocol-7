@@ -215,8 +215,57 @@ Testing (headless=1, timeout lowered to 5s for faster verification):
 The problematic real page `webgl-template-concept.html` and the full corpus were
 NOT touched during testing, per safety rules.
 
-#,,,.,...,.,,,..,,,..,,..,,,.,...,.,.,,,,,,,,,..,,...,...,,..,..,,.,.,.,,,.,,,
-#KRFZBRKGMFE5G635PIZQVUOLX7OGY7C3GI5XT3F37HMHUPAGN5MXRO7O2VNPSW2DOKBFREDGY6X3E
-#\\\|YQXOSXGPLHLYLQAILR4SEF3XJIC3WVYMTPSZ2JDSKMYV5EXGJSS \ / AMOS7 \ YOURUM ::
-#\[7]QU3IWKJFXOHVQAEJUH35EP4T4R5HTNXWRY3KH4RDC6EK5MBG2ACA 7  DATA SIGNATURE ::
+## follow-up bug found + fixed running the real (non-archive) corpus, 2026-08-29
+
+After the watchdog fix landed, a real 224-file batch run (minus the 3 known
+WebGL files) worked cleanly for 180+ pages, then degraded hard: a watchdog
+fired after "0.494s" (not the configured window) followed by 9 rapid
+consecutive `capture_paged.start: skipping non-content uri
+'[capture_timeout:blank]'` log lines in under a second -- a tight
+self-referential loop, exactly as the user suspected much earlier in the
+session ("all timeouting again... maybe that is desyncing it?").
+
+**Root cause**, found via code reading alone (no live queries, to rule out
+interference from diagnostic polling itself -- see the feedback memory on
+that): `handler.slideshow`'s inter-page pacing is `$delay = $min_delay -
+(now - <web-browser.time.fade_complete>)`, clamped to 0 if negative.
+`<web-browser.time.fade_complete>` is refreshed on every NORMAL page
+completion (`swap_views`/`fade_in_view` in non-headless mode,
+`handler.headless_load_finished` in headless mode -- the latter already
+patched during this same task). The NEW timeout/force-clear path
+(`handler.capture_page_timeout` -> `capture_paged.advance` ->
+`handler.slideshow`) never refreshed it. The moment the first timeout fires,
+`fade_complete` freezes at its last real value; every subsequent delay
+calculation computes deeply negative (real elapsed time keeps growing while
+the reference point doesn't move), clamps to 0, and the slideshow fires load
+attempts as fast as the event loop allows -- far faster than a real page can
+load -- producing the observed rapid-fire loop. This also fully explains
+the "works fine for a long stretch after every restart, breaks specifically
+right after the first timeout" pattern seen repeatedly earlier in the
+session.
+
+**Fix**: `handler.capture_page_timeout` now also sets
+`<web-browser.time.fade_complete> = <[base.time]>->(3);` right after the
+force-clear, so an abandoned page paces the same as a normal completion
+(full `min_delay` before the next attempt) instead of collapsing pacing for
+every page from that point forward.
+
+Also confirmed during this investigation: repeatedly querying live zenka
+state via `p7c ... eval-code`/`get` WHILE the batch is actively running
+routes through the SAME single-threaded event loop the batch itself uses,
+and interleaved log evidence suggests it can itself disrupt in-flight
+WebKit operations. Diagnosis for the rest of this task was done via passive
+OS-level monitoring (`free`/`ps`/file reads) and direct source-code reading
+instead, not live process queries -- worth keeping as the default approach
+for any future live debugging of this zenka.
+
+Not yet re-verified live (session paused for a restart to also pick up the
+still-unapplied `cfg.capture_page_timeout` override). Next: restart, apply
+zoom/headless/timeout overrides fresh, then resume/retry from the point
+this batch reached plus a retry list built from `.timeouts.tsv`.
+
+#,,..,,..,,,.,.,.,,..,,..,,.,,,.,,...,,.,,,.,,..,,...,..,,.,,,...,,,.,..,,..,,
+#CBLMPH3Z5YXR2QXTOJVV24AKDWF5KUXVPQTEM5MELOJY6QF5Q3NCDFGNX3DWMWXLNR3HGRLI2HKGM
+#\\\|XDUYOXASTZYETGKGCFDVOZMF3YSA7W3HQG7TLYJZJEUBP2CH2RS \ / AMOS7 \ YOURUM ::
+#\[7]5TJF3BPHARXBLSAK5O6V5M5MG6GR72URCGOLVWST5XPXYBSHBYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
