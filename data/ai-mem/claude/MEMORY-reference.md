@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [powershell-exe-wsl-interop-diagnostics](reference-powershell-exe-wsl-interop-diagnostics.md) — `powershell.exe`/`pwsh.exe` directly callable from WSL bash, no setup; use `Get-WinEvent -FilterHashtable @{LogName=...}` to check Windows Event Viewer when diagnosing anything that might originate on the Windows-host side (VM restarts, sleep/resume) rather than assuming no visibility
 - [p7-local-command-route-and-deferred-reply-mechanics](reference-p7-local-command-route-and-deferred-reply-mechanics.md) — base.route.add's two callers (cube route_to_target vs any zenka's own send.local, self-referential) vs a locally-dispatched .cmd. module (neither, just <base.cmd_reply>); deferred sends nothing over the wire and must be manually cleaned up if never completed; base.session.cancel_route sweeps both sides + synthesizes a FALSE reply unconditionally on session close; v7.zenka.instance.stop's shutdown-flag race-proofing; pause-instance suppresses heartbeat (use devmod.cmd.sleep on mod-test to actually test hang detection)
 - [appliance-sync-point-tags](reference-appliance-sync-point-tags.md) — `git tag -l 'D-*'` marks commercial-appliance release sync points; last is `D-RNTBZAQ` (3115d344d, 2021-04-22) — nothing after this was ever shared with the forked-off appliance codebases
 - [forked-child-lazy-load-and-event-safety](reference-forked-child-lazy-load-and-event-safety.md) — a P7 module name passed as a runtime string (e.g. to event.add_signal) never triggers the on-demand loader, only a literal `<[module.name]>` occurrence does — prime it first; a forked child must NOT use Event.pm (inherits the parent's live watcher/polling state, Event::loop() can return spuriously) — use plain %SIG + POSIX::pause(), matching cred-mesh.key_holder.child
@@ -67,8 +68,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [heartbeat probe/backlog mechanics](reference-heartbeat-probe-backlog-mechanics.md) — `heartbeat.timeout` ≠ idle timeout; v7 sends a fresh `.heart` probe every ~5.7s unconditionally (no pending-probe guard, rejected as a fix — breaks failure detection over lossy transport), only the failsafe kill timer is gated by `heartbeat.timeout`; a long single blocking command handler backlogs probes proportional to block-duration/5.7s regardless of how generous the timeout is — check code for real async before enabling heartbeat, don't just pick a bigger number
 - [bin/todo details CLI bug](reference-bin-todo-details-cli-bug.md) — `details <id> <text>` always drops into the interactive TTY editor regardless of args, ignoring passed text; hand-edit `data/yaml/todo/base.yaml`'s `details:` field directly instead (safe, taeki-owned, git-tracked); `done <id>` is unaffected, fully non-interactive
 
-#,,..,,,,,,.,,..,,...,,..,,,.,,,,,,..,.,.,...,..,,...,..,,..,,.,.,...,.,.,,,.,
-#57344WOP6LHGTRNWG5472WMTIS5SMDCNQJK7UEV2B4XOMQUK6NWZATCDYTUOVRLXHUWIOGCXN5QOU
-#\\\|PF6HZQUNCCGEMKX2SZJJ3U4FNHFLYWPRRHWPNKG6VEVZOCRXBBB \ / AMOS7 \ YOURUM ::
-#\[7]Z2KPIW775EYA24GBETGOEU52KUGCFYT2CFOR7FWYGEZ52KMJMECQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,.,.,,,,,...,.,,,,,.,,..,...,..,,...,...,.,,,,..,...,,..,.,,,
+#GV65OACACBNXNKRCES6PGMAHTL4C6CGKTD2IN6SJS2EKBAYYHZ6OUHE62GSQUOAD6DCXGSHK66WRI
+#\\\|4U2C6O5ZSWNFWXKLVDDCW7WOKFUNNNSREMUK5J6AM5ZJORJWPHW \ / AMOS7 \ YOURUM ::
+#\[7]GGO6ZYQMN43OQ4SYWOHQOGZIPOTAA7AV5RCRAO3DMJX3IJIXAYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,6 +3,23 @@
 > in-flight / recently-landed work entries moved out of `MEMORY.md` to keep the auto-loaded index
 > slim. links remain valid.
 
+## web-browser fast scroll-position commands (2026-08-29)
+
+Added `web-browser.cmd.set-pos-y`, `web-browser.cmd.set-fg-pos`, and
+`web-browser.cmd.set-bg-pos-y`. Implementation notes:
+- `web-browser.js_call` gained an optional fourth argument for an explicit
+  target view id; omitting it keeps the existing foreground-view behavior.
+- Percent values for the foreground commands resolve against
+  `<window.scroll.max>`; the background command resolves percent against the
+  bg view's own `document.body.scrollHeight - window.innerHeight` in the same
+  single JS call.
+- `set-pos-y` updates `<window.scroll.pos>` in the js_call callback, matching
+  how `auto_scroll` keeps state in sync.
+- `bin/dev/ptd -c` passes; `bin/dev/gen-sub-whitelist web-browser` was run.
+  Whitelist/config signature footer was stripped by the generator and needs
+  `bin/Protocol-7 sourcecode update-signatures` before commit.
+
+
 ## MCP coding zenka control tools — landed (2026-08-17)
 
 `bin/mcp-server-p7` gained first-class tools for controlling long-running coding zenka inference:
@@ -240,8 +257,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,.,,,,.,.,,,,..,,,.,...,,,,,.,,,,,.,.,.,.,,,..,,...,...,...,.,,,,,.,..,,,..,
-#ZFUTWNOR2YQ7ZXAQFKGFRQXEXW22XISL2J63LMO5JUOOCWTSJFTVIDI6I2PW76BNXK3ESUKZBD3FU
-#\\\|XOGDTFHX2YUX6JMJCFPPDH46BRRG72M5U2AZ3Z6M4LKCQMGUNL7 \ / AMOS7 \ YOURUM ::
-#\[7]5FC6EX5VJBWZNMM4PBJNKU4HM7PNTWUSVNC2SXA7D4BBP25WNUAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,,,.,,..,..,,,,,,,..,,.,,..,,..,,...,...,..,,.,.,.,,,,.,,,,.,
+#KWDYCNUTZ45QTTD4GJZJLHJ2BJ3UJRTE4B6LKQKIELHC3OAD6A67VDQ5PC256ASBS5V4XX6JUWKWM
+#\\\|2RQ3CJWQKH67VMWPQZGYZ3SFZD66HQB75ZZCYYVQIJEFVXCMQ64 \ / AMOS7 \ YOURUM ::
+#\[7]7YJ7ST7BGWDUMKWUKGGVADXQN4WINPVGJIFZQDJEI4XVKDBDQ6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
