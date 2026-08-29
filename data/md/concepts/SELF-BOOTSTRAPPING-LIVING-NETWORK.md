@@ -207,10 +207,8 @@ Countless processing cycles already flow through its depths.
 
 *"We didn't build a platform. We cultivated a garden. The flowers were already blooming."*
 
-#,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...
-
-#,,,,,..,,.,.,,,.,,.,,.,,,,..,,,.,..,,,,,,...,..,,...,..,,,..,.,.,.,.,.,.,,,.,
-#WJSW2BE2XHWSAA3277LSJRXBXX45AAF47KNTIQOTIRYBDJALVVXBVW73FLPJULHF5AYKCUUXDEBBQ
-#\\\|AP3K5IYF6NMRTDD7ZL655OGCMVG3FYSYHGAHGOWDWHBP2AHA2XT \ / AMOS7 \ YOURUM ::
-#\[7]OHF7KFFP7AELXKAZCRI3G63ERXTIE3ROXGPEKHISZ2BFVPNW3WCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,.,,,.,,,,,,,.,,,...,...,.,,,..,,...,...,,.,,...,,,,,,.,,.,,,
+#M6GDNNUDD6KSSFWQL4VL6MSXGXEOU3KEG5ROFAXTK54AO3W5WXA3JYFQO6FMOKFNNYNGOKUYA4YEW
+#\\\|LMXISW5VKHF2P3W2Z3E2H35QDCHSAMLBO4XZVJD4EODUPCL67Y4 \ / AMOS7 \ YOURUM ::
+#\[7]IC7MYPSUBMAZGKGJSSVKXRY5PPIOFXABHSN7F6IDSDBOAMNYBOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

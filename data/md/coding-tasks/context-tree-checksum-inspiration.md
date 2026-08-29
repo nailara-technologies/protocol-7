@@ -315,10 +315,8 @@ my $report = $validation_result->{'truth_status'};
 
     -- -
 
-#,,.,,...,,.,,.,,,,,,,,,.,.,,,,.,,.,,,,,,,,..,..,,...,...,.,.,,..,.,.,.,,,,..,
-
-#,,..,..,,.,,,,..,,..,.,.,.,.,.,,,,,,,,,.,,.,,..,,...,...,..,,.,,,.,.,,..,...,
-#DAYRKBHV2FMULGG22QY2MG5SCFDXT5TA3FXCPZS4Z6TG3FLFGQOL6EVP5BYUCJSO7OG34ZBVJKQVW
-#\\\|JLXNSEX3N2YDGQR4YMCMMZL27GF2RCXUPRB7NMFGFU4UHUE2BOA \ / AMOS7 \ YOURUM ::
-#\[7]R7JELJ3YZGJOLLBYMMIBIWA3V4YGKVEVWDLVXLHCYPMQZT5UL6DI 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,,,,..,,,.,.,.,..,,..,,,,,,.,,,..,,...,...,...,,..,..,,,,.,.,,,
+#L73G3Q3GX4EVFOEY5KIJ6QVLIGYF4FFAR4JTDRDCGPZGRNNQWRKFFXI4AXDLHIAT6DITWY6VUXMIG
+#\\\|YBO4GJQI4HCEFSZQAFJ46G63U7UKJAD5BSK4WWHFMTT2ZCPDYWT \ / AMOS7 \ YOURUM ::
+#\[7]SJ644W77SYJNYLA5OXPR4XKAKB7RD73EHNB2RRMQ5KUO4ZMLTKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
