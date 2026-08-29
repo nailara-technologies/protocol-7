@@ -214,12 +214,52 @@ file:// corpus. Build-order verification:
    readers of the capture manifest outside the web-browser zenka's own files;
    format changed to `<id>\t<uri>\t<position_index>\t<snapshot_path>`.
 
-All touched `src/*` files pass `bin/dev/ptd -c`. Live-test commands and output
-are recorded in the implementation session log. The web-browser instance was
-left online and capture disarmed; working-tree changes are unstaged for review.
+### critical bug fix (post-implementation)
 
-#,,,.,,,.,,,,,,..,..,,,..,...,,.,,,,.,,.,,,,.,..,,...,...,...,,,.,,,,,,,.,..,,
-#IAE2SZ7G6YB62OUO3H5WELULIZOQRLLIKBJDYTHDQDCRK3N2ZK3X36KTF4AUHARZZ3IR3TRHEBIR2
-#\\\|BA7I2R4BCWGOT5H7AMWEZDPDUER4QZ7WMNFCVFVWG4MZPLVS2A3 \ / AMOS7 \ YOURUM ::
-#\[7]ASFFCVQBVSA4W3IBZYEHMBNG4K5PU4R6TDZMJV3XTO42TK7SEECA 7  DATA SIGNATURE ::
+A stale `swap_views` draw-signal connection was confirmed to keep firing in
+headless mode when the connection had been established by a prior non-headless
+run or by toggling `cfg.headless` mid-session. Because `handler.load_changed`'s
+headless branch never called `swap_views`, the signal was never disconnected;
+`handler.swap_views` → `fade_in_view` → `clear_bg_view` loaded the sentinel
+`[clear_bg:blank]` into the background view on every draw, driving a runaway
+load/capture loop and host memory emergency.
+
+Fix applied:
+- New `web-browser.util.disconnect_swap_views_signal` disconnects the fade
+  draw-signal if connected and resets `<web-browser.status.fade_view>`.
+- Called defensively at the start of every headless `load_uri` and in the
+  headless branch of `handler.load_changed` before scheduling
+  `headless_load_finished`.
+- Paged capture entry points (`capture_paged.start` and
+  `capture_paged_query_result`) now refuse to run against sentinel/non-content
+  URIs (`[clear_bg:blank]`, `[PAUSE]`, any URI starting with `[`).
+
+Verified stable with the exact real page that triggered the emergency
+(`data/asc/what-AI-thinks/html-form/interactive-dashboards/paradigm_cube_interactive.html`):
+- Single-URL loop, `free -m` polled every second, hard abort if used memory rose
+  >500MB above baseline or if any manifest URI differed from the real URL.
+- **Headless=1**: 11 passes, baseline 6481MB, peak ~6917MB, no bogus URIs.
+- **Headless=0**: 11 passes, baseline 6673MB, peak ~6873MB, no bogus URIs.
+- **Toggle test (non-headless → headless mid-run)**: 3 passes non-headless,
+  then 8 passes headless, baseline 6697MB, peak ~6917MB, no bogus URIs.
+
+All touched `src/*` files pass `bin/dev/ptd -c`. The web-browser instance is
+left online and capture disarmed. Note: an automated signing pass committed the
+initial implementation as `22d380fb2`; the bug-fix changes above are currently
+uncommitted working-tree changes.
+
+**Independently re-verified 2026-08-29** (not just kimi's self-report): ran the
+same single-URL headless repro directly, 25s tight `free -m` poll (1s interval),
+8 real-URI manifest lines (4 full passes), zero bogus entries, memory bounded
+6510-6746MB the whole time. Also caught and fixed a regression kimi's own
+bug-fix pass introduced: `capture_paged.start` got its fake/stolen signature
+footer reintroduced (a full-file rewrite from stale in-session context
+clobbered the real signature applied after the first commit) — stripped again,
+see `feedback-fake-signature-marks-ai-scratch-content.md`. Fix confirmed
+working; ready for signing + commit.
+
+#,,.,,,..,,..,,,.,,..,.,,,,,.,...,,,,,..,,...,..,,...,...,...,.,.,.,.,...,,,,,
+#RETPBZYLIX75WBOOHKCFEPXXNV2W67TGVMCRCMSFAHJQXQTSMTAANEOJ2US6R2QTUB6OV4UJCSQTY
+#\\\|Y26RZXZ2ETX32O5WTR7SXQBGPCOD5BRQVSXFZBMVDLMJHWZLJEI \ / AMOS7 \ YOURUM ::
+#\[7]AQH7SD4FIUFKSNXL4PTBUGIJ43XIMD2RVH5ZYGNEPTDVSISF3YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

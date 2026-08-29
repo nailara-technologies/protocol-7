@@ -3,9 +3,11 @@
 # name  = web-browser.capture_paged.start
 # descr = entry point for the paged multi-position capture loop. called from
 #         web-browser.callback.load_finished when the slideshow is running
-#         and paged capture is armed. queries scroll_max, scroll position and
-#         viewport height in one JS round trip, then hands off to the result
-#         callback to compute the position list.
+#         and paged capture is armed. validates the current URI is real
+#         content (not a sentinel like [clear_bg:blank] or [PAUSE]), queries
+#         scroll_max, scroll position and viewport height in one JS round
+#         trip, then hands off to the result callback to compute the position
+#         list.
 
 return unless <web-browser.capture.paged.armed>;
 
@@ -13,6 +15,16 @@ my $fg_index = <web-browser.overlay.index.fg> // 1;
 my $view     = <web-browser.gtk_obj.view>->{$fg_index};
 
 return unless defined $view;
+
+my $uri = $view->get_uri // '';
+
+if ( !length $uri or $uri =~ m|^\[| or $uri eq qw| [PAUSE] | ) {
+    <[base.logs]>->(
+        1, "capture_paged.start: skipping non-content uri '%s'", $uri
+    );
+    <[web-browser.capture_paged.advance]>;
+    return;
+}
 
 my $settings = $view->get_settings();
 
@@ -30,8 +42,8 @@ if ( !$settings->get_enable_javascript() ) {
     $code{'web-browser.callback.capture_paged_query_result'}, undef
 );
 
-#,,,.,,,.,.,,,..,,,.,,,.,,,..,..,,,,,,,,.,,,.,..,,...,...,.,.,,,,,,,.,,.,,,..,
-#Z2MSBMPBSIYNC4WUCV3WN5OP5FQ3IR4QBNMFY5EXKB467TPZ3WGLLBGNHFSFFGAKOCR74DM7QAWIQ
-#\\\|SXKTKEHSPY2XCV2QC6SHHEKCGTMUWNXTURIBYJVX2PP5SNEJ6GG \ / AMOS7 \ YOURUM ::
-#\[7]LMBE3TIB7ZNPHS5X6G3F3ZNDVNVHBLYAD5O6NVBEXEZPRKHTIUAI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,..,,..,,,.,,..,,,,,,,,.,,.,,,.,,.,.,...,...,.,,,...,,..,,,,,,,,,
+#QAY36AHB3ASFLL7XBJHBIPI2SDAWSXA3RBP43MVQ4J2J5LVRUG52WXQUK7BC6NXHX5GO4KRDHOFMK
+#\\\|FIIVXXA4R446GL2FMHCGWOQV2VIENVHD3UMJTHAHZIAD6WHZ56G \ / AMOS7 \ YOURUM ::
+#\[7]WV2RN3KT75OLA4FSBPEURD6BKLGUQSHI5PTNDI7L5NSZ6HHBTYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,6 +23,8 @@ $load_uri = "http://$load_uri" if $load_uri !~ m|^\w+:|;
 
 my $headless = <web-browser.cfg.headless> // 0;
 
+<[web-browser.util.disconnect_swap_views_signal]> if $headless;
+
 ##[loading target view]###
 my $load_index
     = $headless
@@ -149,8 +151,8 @@ if ( $load_uri_cmp eq $load_view_uri_cmp and length($load_view_uri_cmp) ) {
 
 return FALSE;
 
-#,,.,,,,.,,..,...,.,,,..,,.,.,...,.,.,.,,,,,.,..,,...,...,...,.,.,...,,..,.,.,
-#DCR3ZZ4HOBAP2BCYXMQW4LMJOT7AX2JZ4YD3GVMX23FZCQJ72YKRN52QBU3YLIO7U67VWJW4KGR3M
-#\\\|3SYTVGFNOVI6RGX3VTNFG7CBPTBTSOFPT57BTQ3CMJZVTFO2BOY \ / AMOS7 \ YOURUM ::
-#\[7]7A5IUQCRMT3DI76UQ4L5G7ZTOUU52JYDYHRKKCPHKURKN3T44UBY 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,.,.,,,,..,..,,,..,.,,,...,,..,..,,...,...,...,,,.,.,,,...,..,,
+#T53VVFE4VDFGMIL46S22O3C5UMTNO37VYRF2UZ67CU7IDUSUAJIRSH5BSCR3CISVUXC36TZA7RZ76
+#\\\|B2YZO4ZPJ3COHTVOSQORS22S55ZMSRV5BOS5U7PBPCLQF6ALLXJ \ / AMOS7 \ YOURUM ::
+#\[7]ZAZU7IWDZLBLXF6AYPFLWAHTWXVOUFHKNEBYVG2J2K2FMPHKFADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
