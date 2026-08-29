@@ -1,13 +1,13 @@
 ---
 name: vision-reproducible-visualization-state-capture
-description: "SEED: automated position/state-capture infrastructure needed to make hand-tuned interactive visualization captures (sliders, camera angle, scroll position) reproducible instead of manual and fragile — grew out of an unrecoverable data-loss incident, 2026-08-28"
+description: "SEED: apply the ALREADY-LANDED web-browser input record/replay + wait-for-state infra to make hand-tuned interactive visualization captures reproducible instead of manual and fragile — grew out of an unrecoverable data-loss incident, 2026-08-28. Corrected 2026-08-29: this is a retrofit/apply task, not a build-from-scratch task"
 metadata:
   node_type: memory
   type: vision
 ---
 
 Grew directly out of [[feedback-deleted-manually-tuned-captures-without-confirming]]: 117
-files deleted from a shared snapshot directory, including hand-tuned interactive
+files deleted from a shared snapshot directory, some of which were hand-tuned interactive
 visualization captures (cubic-space visualizations with manually-adjusted parameters) the
 user intended to keep for the website. Unrecoverable — no filesystem snapshot/trash existed,
 and the captured STATE (manual slider/camera/scroll adjustments) isn't reproducible from a
@@ -18,33 +18,55 @@ needed sorting/rescuing and postponed it because doing so manually was too much 
 recreate the lost captures "someday" with "better infrastructure to make it reproducible" —
 explicitly: not manually again.
 
-**What "better infrastructure" means, concretely**: the `web-browser.cmd.set-pos-y` /
-`set-fg-pos` / `set-bg-pos-y` commands built the same session (single-JS-call scroll
-positioning, pixel or percent, see `data/tasks/web-browser-fast-scroll-position-commands.md`)
-are a first piece, but only cover vertical SCROLL position. The visualizations that were lost
-have richer interactive state than scroll alone — camera rotation/angle, slider values
-(intensity/aperture/rotation-speed style controls, see the `iris-spectrum.html` color-picker
-example already flagged as a good template candidate), possibly other UI control state. Full
-reproducibility needs a way to:
-1. Capture/record a page's FULL interactive state (not just scroll Y) — likely via a generic
-   JS state-serialization convention these AI-generated visualization pages could adopt or
-   already partially support (many already read URL params or expose global state objects,
-   worth surveying `data/asc/what-AI-thinks/html-form/` for existing patterns before
-   inventing a new one).
-2. Restore that state programmatically on load (so re-capturing = replay a recorded state
-   vector, not manual re-tuning by hand).
-3. Only then is a capture of one of these pages a reproducible artifact rather than a
-   one-off manual snapshot vulnerable to exactly this kind of accidental loss.
+**CORRECTION (2026-08-29, caught by the user)**: the first version of this note proposed
+inventing state-capture/replay infrastructure "someday." That infrastructure already exists
+and is LANDED, not hypothetical — I hadn't checked `data/tasks/completed/` before writing it.
+Two completed tasks built exactly this:
+- `data/tasks/completed/web-browser-param-capture-graphing.md` — `window.debug*` state-vector
+  exposure convention (e.g. `window.debugZoom`, `debugRotX`, `debugRotY` in
+  `data/web-root/vhosts/space.v7.ax/visualization.html`), `web-browser.cmd.graph-params`,
+  `console_capture.*` js-injection/buffer pipeline.
+- `data/tasks/completed/web-browser-input-capture-replay.md` — builds directly on the above.
+  `web-browser.cmd.replay-record start|stop`, `replay-play <buffer|json> [verify=...]`,
+  `replay-synth type=drag|wheel path=linear|bezier ...`, and a standalone
+  `web-browser.cmd.wait-for-state var1 var2 ... [tolerance] [samples] [timeout]` convergence
+  poller. Normalized, device-independent event format (fractional x/y, ms timestamps).
+  Recordings are pinned to their frontend via a BMW checksum of the URL so replay can't
+  silently fire against the wrong page. All six build-order steps landed 2026-07-16 (commits
+  `9c297b9e5`, `803384253`), live-verified including deliberate-mismatch FAIL detection —
+  see `data/ai-mem/kimi/topic-web-browser-replay-verify-synth.md` for exact numeric results
+  and the one known gotcha (`alignRotation()` drifts `rotX`/`rotZ` toward the nearest 90°
+  under follow-mode, so only `rotY`/`zoom` are stable `verify=` targets on that page).
 
-**How to apply**: don't build this speculatively. It's a real, user-confirmed future need,
-but explicitly "someday" — wait for the user to actually pick this up rather than treating it
-as an open task to start unprompted. The scroll-position commands already built are a
-reusable piece regardless of when/whether this gets built further; nothing about them needs
-to be redone. When resumed, start by surveying whether the existing 227-file corpus already
-has any per-page state-serialization convention before designing a new one.
+That task's own "relationship to other work" section already named this exact use case
+("screenshot-driven template generation across the project's visualizations") as a distinct,
+not-yet-started follow-up — this vision note and that follow-up are the same task.
 
-#,,.,,,..,,,.,..,,,..,,..,..,,..,,...,.,,,,..,..,,...,..,,,,,,..,,,.,,,,,,,,.,
-#IUG3EJ57BI3A65A53KJOXLQRFSPWK4W76AVPTNQ6YF6KI4OXUYJFMUTMZKW6LXOZ3OWGRKVEE5GKC
-#\\\|VHD66JVAH7UAFOQMXBUEHD4PZ3TT7CY72PJW42X5TKQFRUPECDH \ / AMOS7 \ YOURUM ::
-#\[7]5RMUI3W3T6LAKX5IDHRCPQKNWQXUMKZAUEH6Q7JA4ZLMZX6VZ2AI 7  DATA SIGNATURE ::
+**What's actually still missing**: not the capture/replay/convergence machinery — that's
+done and reusable as-is. What's missing is per-page wiring: does a given AI-generated
+visualization page (the lost cubic-space ones, and any future one) expose
+`window.__p7ReplayTarget` and a `window.debug*` state vector at all? `visualization.html`
+(the hyperspace/space.v7.ax page) already does — it was the actual implementation fixture
+used to build and verify `replay-record`/`replay-play`/`replay-synth` in the first place
+(user-confirmed, 2026-08-29), so record/replay/verify is directly usable on it right now,
+zero retrofit needed. Any OTHER visualization page (the lost cubic-space captures may or may
+not be this same page — not yet confirmed either way) needs that one-line wiring added first
+— this is a small per-page retrofit, not a new subsystem. The scroll-position commands built
+the same session
+(`web-browser.cmd.set-pos-y`/`set-fg-pos`/`set-bg-pos-y`, see
+`data/tasks/web-browser-fast-scroll-position-commands.md`) remain a useful, separate,
+complementary piece (page-level scroll position, not in-canvas interactive state) — not a
+substitute or a first step toward the above; they solve a different axis of "state."
+
+**How to apply**: don't build this speculatively — the hard part is already built. When
+resumed: (1) check whether the specific visualization page(s) in question already expose the
+`window.debug*`/`__p7ReplayTarget` convention, (2) if not, add the one-line wiring per the
+existing pattern, (3) use `replay-record`/`replay-play`/`replay-synth` + `wait-for-state` +
+`get_snapshot` directly — no new capture format or transport needed. Still explicitly
+"someday" — wait for the user to pick this up rather than starting unprompted.
+
+#,,,,,.,.,.,.,,.,,...,,..,..,,...,,,,,,..,..,,..,,...,..,,...,...,,.,,..,,,..,
+#CCOXXUN2TT6J7PKKYRPGWDQDEAMLAUIAIA66I3J3UKSHQZ3RSKFCTSWTVGHXVDBX3A7W6LKTFK3R6
+#\\\|ZJKI2AH3QPOIKSTWREMLZBCKL4IYL5JQCWMC5VWPPFMUXBU7X7K \ / AMOS7 \ YOURUM ::
+#\[7]SH5LAU7UW2LKS5B2TX25RJEGTUNDHZU7IBY7P4RAFV24LBH3DQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
