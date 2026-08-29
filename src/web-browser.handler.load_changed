@@ -74,11 +74,19 @@ if (    $load_status eq 'finished'
         : 0;
     $swap_delay = 0 if $swap_delay < 0;
 
-    <web-browser.timer.swap_views> = <[event.add_timer]>->(
-        {   'after'   => $swap_delay,
-            'handler' => 'web-browser.swap_views'
-        }
-    );
+    if (<web-browser.cfg.headless>) {
+        <web-browser.timer.load_finished> = <[event.add_timer]>->(
+            {   'after'   => 0,
+                'handler' => 'web-browser.handler.headless_load_finished'
+            }
+        );
+    } else {
+        <web-browser.timer.swap_views> = <[event.add_timer]>->(
+            {   'after'   => $swap_delay,
+                'handler' => 'web-browser.swap_views'
+            }
+        );
+    }
 
 } else {
 
@@ -134,8 +142,8 @@ if (    $load_status eq 'finished'
     Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
 }
 
-#,,,.,...,,,,,.,.,,,,,.,.,.,.,..,,,,.,,,,,.,,,..,,...,...,.,.,,..,.,.,...,,,.,
-#QRODKF2ZNKILYVP4KITYNANBXMMNTLD7V474IWPZXA6L2JVPMVQ4BES7V3DGUAEOLOSYN63GXIX5A
-#\\\|JBWS36IL3WSGVCVR5RWMY5Y5ULRLH7Y7IGMAYRD6QWIO7PMKKRF \ / AMOS7 \ YOURUM ::
-#\[7]WNYZQJLXNI7D5NG5JSHUZDBBOC7X2DQGSZXQ63ZPO26HDXH7QMCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,..,,...,,,,,.,.,,,.,,.,,,,,,..,,...,...,.,,,...,.,.,,.,,,.,,
+#QZYFLM6D4X3RHFWBOLM4OM55GIVFBKEOL335MBCNL7QALO4UWOT26FNIQ6U76TUVTAYF46FSBW6Y4
+#\\\|YPO2TO2MDFXDMJG3TWCVQ53L5VAO3TM7OGOAJV6MFYRPBII77NM \ / AMOS7 \ YOURUM ::
+#\[7]7NOZY2T2FCIALA7EMPUBRCEO2D664YRETSNCQJOERO3HS5W6SGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = web-browser.handler.capture_paged_snapshot
+# descr = requests a WebKit snapshot of the foreground view for the current
+#         paged-capture position. writes the manifest line immediately (the
+#         output path is already known) and hands the async save to
+#         capture_paged_snapshot_result.
+
+my $view_index = <web-browser.overlay.index.fg> // 1;
+my $view       = <web-browser.gtk_obj.view>->{$view_index};
+return unless defined $view;
+
+my $uri = $view->get_uri // '';
+return unless length $uri;
+
+my $snap_dir = <web-browser.capture.snapshot_dir>;
+<web-browser.capture.counter>++;
+my $short_id = sprintf( '%04d', <web-browser.capture.counter> );
+my $out_path = sprintf( '%s/capture.%s.%s.png',
+    $snap_dir, $short_id, <[chk-sum.elf.vax-BASE32]>->($uri) );
+
+<web-browser.capture.paged.pending_path> = $out_path;
+
+my $position_index = <web-browser.capture.paged.index> // 0;
+my $manifest_path  = <web-browser.capture.manifest_path>;
+
+open( my $fh, '>>', $manifest_path ) or do {
+    <[base.logs]>->(
+        0, "capture_paged_snapshot: cannot open manifest: %s", $OS_ERROR
+    );
+    return;
+};
+print {$fh} "$short_id\t$uri\t$position_index\t$out_path\n";
+close($fh);
+
+my $region = <web-browser.cfg.snapshot_region> // 'visible';
+
+eval {
+    $view->get_snapshot(
+        $region,
+        'WEBKIT_SNAPSHOT_OPTIONS_NONE',
+        undef,    ## cancellable
+        $code{'web-browser.handler.capture_paged_snapshot_result'},
+        undef     ## user_data
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        0, "capture_paged_snapshot: snapshot request failed: %s",
+        <[base.str.eval_error]>
+    );
+    return;
+}
+
+#,,,,,.,.,..,,,,.,.,.,,,,,.,,,,,,,,..,.,.,.,,,..,,...,...,,..,..,,,,.,...,,..,
+#W3JSH2O2FVXDC7QOPHRGKQBCPZMZ4QTMJ5CNAVRSQFSPOUSTAYA7RLMIDDYBLIHOFIKCO5HMZWUQW
+#\\\|NYZMWBP4JOPPN3N3Y4JFPB5H6AVCGXHVEEDN2PGFU5BWXCBO7HZ \ / AMOS7 \ YOURUM ::
+#\[7]U4KECETJ7GNNQT7FWPOMQIIJBII37VN473ZLLDMOH5GFQHM6LMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
