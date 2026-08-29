@@ -75,6 +75,7 @@ if (    $load_status eq 'finished'
     $swap_delay = 0 if $swap_delay < 0;
 
     if (<web-browser.cfg.headless>) {
+        <[web-browser.util.disconnect_swap_views_signal]>;
         <web-browser.timer.load_finished> = <[event.add_timer]>->(
             {   'after'   => 0,
                 'handler' => 'web-browser.handler.headless_load_finished'
@@ -142,8 +143,8 @@ if (    $load_status eq 'finished'
     Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
 }
 
-#,,..,.,,,.,,,,..,..,,...,,,,,.,.,,,.,,.,,,,,,..,,...,...,.,,,...,.,.,,.,,,.,,
-#QZYFLM6D4X3RHFWBOLM4OM55GIVFBKEOL335MBCNL7QALO4UWOT26FNIQ6U76TUVTAYF46FSBW6Y4
-#\\\|YPO2TO2MDFXDMJG3TWCVQ53L5VAO3TM7OGOAJV6MFYRPBII77NM \ / AMOS7 \ YOURUM ::
-#\[7]7NOZY2T2FCIALA7EMPUBRCEO2D664YRETSNCQJOERO3HS5W6SGAY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,,,,.,,,,.,.,.,,.,,,..,,.,,,..,..,,...,...,.,,,...,,..,.,,,.,,,
+#VCPRMWNPZ4TF2LTH6FAK34BTCSP5FMFMPOPGLORXTSXZEXTXFIOJMY5DHA63N6XFBSSFPPDE3LCWG
+#\\\|GPAI4SCCJ7GGPABSFARL5AEPKJHC7TEIF72CMRO7AO5QULAGOXT \ / AMOS7 \ YOURUM ::
+#\[7]H7HWNBLI22MITWBJKZ2T7HNJIMULRGKZI6Y5RRMCIEWZHPJSZUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

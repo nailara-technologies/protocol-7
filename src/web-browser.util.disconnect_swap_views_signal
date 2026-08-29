@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = web-browser.util.disconnect_swap_views_signal
+# descr = defensive cleanup for the swap_views fade draw-signal connection.
+#         call whenever entering or operating in headless mode (or any path
+#         that must not run the fade stepper) so a stale connection left over
+#         from a previous non-headless run or a headless-toggle cannot keep
+#         firing and drive spurious clear_bg_view loads.
+
+my $window = <web-browser.gtk_obj.window>;
+
+return if !defined $window;
+
+if ( defined <web-browser.signal_id.swap_views>
+    and
+    $window->signal_handler_is_connected(<web-browser.signal_id.swap_views>) )
+{
+    $window->signal_handler_disconnect(
+        delete <web-browser.signal_id.swap_views> );
+    <[base.logs]>->(
+        2,
+        "disconnect_swap_views_signal: "
+            . "stale fade draw-signal disconnected"
+    );
+} else {
+    delete <web-browser.signal_id.swap_views>
+        if defined <web-browser.signal_id.swap_views>;
+}
+
+<web-browser.status.fade_view> = 0;
+
+#,,.,,,,,,..,,...,.,.,.,.,,..,,..,,,,,,..,...,.,.,...,...,...,..,,.,,,.,.,,,,,
+#3TLLNWEAZBUCTPUNRV7CT7ZHMH3AEAOJHYNTVWEKDU55RJ4DKYCWK5A73DINLFJCW7HKNMOW7EUQO
+#\\\|2UR3AOEFDBTKI53AY3RXVZKP7WD2KPQCF3RE5ECO3P32PIMQ2P7 \ / AMOS7 \ YOURUM ::
+#\[7]5JSTIRRJKVVNAUIUXPLP2CUTBUMMSZKH7SEHZW7A7SQGOXYUJUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
