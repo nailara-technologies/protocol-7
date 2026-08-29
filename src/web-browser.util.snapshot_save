@@ -8,6 +8,14 @@
 
 my ( $view, $async_result, $out_path, $reply_id ) = @_;
 
+if ( not defined $out_path or not length $out_path ) {
+    <[base.log]>->( 1, "snapshot_save: no output path, skipping" );
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => qw| false |, 'data' => 'no output path' }
+    ) if defined $reply_id;
+    return 0;
+}
+
 my $surface = eval { $view->get_snapshot_finish($async_result) };
 
 if ( $@ or not defined $surface ) {
@@ -44,8 +52,8 @@ if ( not $save_ok ) {
 
 return 5;    ## TRUE ##
 
-#,,.,,..,,,,.,,..,..,,,..,,,.,...,,.,,..,,,,,,..,,...,...,,.,,...,,.,,,.,,,..,
-#ZOFLR6PEHDVPOH46T55Q74D7DXD4DUIXJNQ377AFWWRX6W24QWVAPKZZURWK7ZELM4J27FUKF233Y
-#\\\|KORAO527HK3KMQ4GMU2KAJQUIJAVW35I6TIJJFMJAHJ6UOYB3XW \ / AMOS7 \ YOURUM ::
-#\[7]YSYCBYRG7LLKY3YSTFDXPLHPDENFTZ7PXKJU3R7J2X4JLJEXVYAY 7  DATA SIGNATURE ::
+#,,.,,...,...,,.,,,,,,...,,.,,,,,,...,...,..,,..,,...,...,,..,,,,,.,,,.,.,,.,,
+#Y5P6MEOSZAYIHQVPJAIKNBDOJ6KJU3XJ2VMJ5U5KSJL54IHCIG7LSGJ4QHQR72XTUVA23EMC2GJV4
+#\\\|OLGCT5CS35N3YZ6OCLBGTKCOBSORJHVDYZKHU6DXH276EDKMDJH \ / AMOS7 \ YOURUM ::
+#\[7]VFBSL2UHVIX2WUTKCWZLOMXNJZYXBRFSGKZ5UDRJH6OV677234DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

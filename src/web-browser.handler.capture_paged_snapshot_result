@@ -9,6 +9,16 @@ my ( $view, $async_result ) = @_;
 
 my $out_path = delete <web-browser.capture.paged.pending_path>;
 
+## a stale completion from a stopped/superseded run can fire after this     ##
+## slot was already cleared (stop-capture-slideshow) or consumed by a newer ##
+## run -- no-op rather than crash the whole GTK main loop on an undef path  ##
+if ( not defined $out_path ) {
+    <[base.logs]>->(
+        1, "capture_paged_snapshot_result: stale completion, no pending path"
+    );
+    return;
+}
+
 my $saved = <[web-browser.util.snapshot_save]>->(
     $view, $async_result, $out_path, undef
 );
@@ -27,8 +37,8 @@ if ($saved) {
 
 <[web-browser.capture_paged.advance]>;
 
-#,,,,,,,,,..,,,,.,.,.,,,,,.,,,..,,,,.,,,,,,.,,..,,...,...,.,.,,,,,...,...,.,.,
-#SM6IVKDNGI3SBNO73ZXYOWGPDTXV4OHSI3YR2JCKI7EOEXDB5CFZ5DYTIHDHRKXVMKZYA6E65I5WS
-#\\\|F5VFIJH65FFJPEZUMDMH5FEFVW4HAF64G27GJAM6UALINVUFHBQ \ / AMOS7 \ YOURUM ::
-#\[7]JCQJ2SH3FD5YXEO53X5LRSAJSYYH6OC3MNT3NFCULTSE2T5XIQBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,..,,,.,,...,..,,.,.,,,,,...,..,,...,...,...,,.,,.,,,,.,,,..,
+#64OQQMJ5AB76R7JLLCKBFD7O6KKW2BHYQTLBGPPJGU7DWLMLGXGJPCXBR5Z6CPA6KRGSXRALTZ6YK
+#\\\|VRZFXNVNRIQTDBVGFTVGMY2VQCDWXPIMWWBL5XPSJXTUKUHIUXX \ / AMOS7 \ YOURUM ::
+#\[7]NVPGAPPHCUYXKTQ6CGDHRW7GQT5Y4CWZDW2LPMN2YQA2DB67SSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
