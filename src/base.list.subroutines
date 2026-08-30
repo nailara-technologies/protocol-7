@@ -1977,6 +1977,7 @@ return [ qw[
         source.target_namespace
         source.extract_sig_body
         site-yaml.stepstone.job
+        site-yaml.import.finish
         site-yaml.fetch.backoff
         signal.cancel.init_code
         set-up.json.import_file
@@ -2763,6 +2764,7 @@ return [ qw[
         sourcecode.console.modules
         source.cmd.get-code-signed
         site-yaml.stepstone.search
+        site-yaml.handler.fetch_io
         set-up.json.cmd.get-config
         set-up.handler.zenka_reply
         set-up.cmd.list-exportable
@@ -3026,6 +3028,8 @@ return [ qw[
         source.fill_source_template
         source.cmd.update-src-links
         source.AMOS-center-bit.desc
+        site-yaml.import.fetch_page
+        site-yaml.async_fetch.spawn
         set-up.handler.export_reply
         screen.setup.handler.motion
         screen.setup.ensure-display
@@ -3773,6 +3777,7 @@ return [ qw[
         ssh.handler.heartbeat_response
         smtpd.internal.message_id_hash
         site-yaml.cmd.export-stray-job
+        site-yaml.async_fetch.finalize
         select.region.update_x11_state
         select.region.set_hover_cursor
         screenshot.cmd.capture-to-disk
@@ -3981,6 +3986,7 @@ return [ qw[
         ticker.callback.request_updates
         system.handler.mod_reload_reply
         storage.amos_chksum.open_socket
+        site-yaml.handler.fetch_timeout
         signal.cancel.cmd.scan-baseline
         select.region.handler.key_press
         select.region.cursor_for_region
@@ -4344,6 +4350,7 @@ return [ qw[
         tile.gpu_alerts.enable_auto_speed
         system.process.callback.send_kill
         start-anim.callback.report_online
+        site-yaml.stepstone.job_from_html
         select.region.cmd.screenshot-rect
         screen.setup.handler.button_press
         rss.ticker.handler.get_list_reply
@@ -4488,6 +4495,7 @@ return [ qw[
         sourcecode.console.update-sub-list
         sourcecode.console.subroutine-list
         source.harmonize_payload_line_feed
+        site-yaml.handler.import_next_page
         signal.cancel.cmd.baseline-capture
         select.region.handler.poll_pointer
         select.region.handler.button_press
@@ -4754,6 +4762,7 @@ return [ qw[
         base.chk-sum.profile.harmonic-slide
         base.chk-sum.bmw.truth_template_L13
         base.callback.reset_strm_size_timer
+        base.callback.report_children_reply
         base.X-11.handler.coordinates_reply
         X-11.reconnect.replay_registrations
         window.place.build_corner_candidates
@@ -4779,6 +4788,7 @@ return [ qw[
         space.search.util.fallback_resonance
         sourcecode.console.update-signatures
         source.restore_payload_endline_state
+        site-yaml.stepstone.search_from_html
         select.region.handler.scr_rect_reply
         select.region.handler.button_release
         select.region.cmd.last-window-coords
@@ -5412,8 +5422,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,.,,,.,,,,.,...,,.,,...,,,,,...,,,,,.,.,.,.,...,...,.,.,,,,,.,.,,..,.,,,
-#V2SS7MW7ZR6LRV474XRVLAHPMYES2GODLGQYAHXNJATMPMN6BOQKL3B7OGBZAHAY6FR2XEOJ3OQPC
-#\\\|CFOAAWW7I7WPPL7NISQ4IK2BI5TVFUSIFYPZUENRFYRIW4TRAAP \ / AMOS7 \ YOURUM ::
-#\[7]47XOOX42S2F3ACQ4HREPTLAZSDPTPQAXYAYJWZA2XJHRNJMEG6BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,.,.,,,.,,.,,.,.,,..,..,,.,.,.,.,...,...,.,.,,,.,...,.,.,...,
+#HVRASW52OV5DPKQV6PEZNW7NRWKQB3RDVU3A4FK46R7G5BWHDR5YEBSOPX2SH5D7ABIMU5SGJKDUE
+#\\\|NC7X3WT3JK5RIY2FXJXZ2Y2PXOKUR5BGMGQCFMUUQV7A3V6OAPM \ / AMOS7 \ YOURUM ::
+#\[7]OO6GG4AMRA5A2ZDGP3SBYVO3KMASVVZTRLM4J2NZ5EXYDLMMMQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
