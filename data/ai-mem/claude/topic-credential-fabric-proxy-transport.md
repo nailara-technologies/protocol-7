@@ -330,8 +330,18 @@ scenario 2: 5/5; scenario 3: 2/2. Remaining OOS items: credential_fabric
 no v7 always-on/on-demand registration; on-demand auth 407/pending/approve
 end-to-end not verified.
 
-#,,.,,.,.,,,,,.,.,,.,,,,.,...,...,.,.,,,,,.,,,..,,...,.,.,.,,,,,,,.,,,..,,,.,,
-#EBJMBXSEEX2UKGGBQGBQVI7KOSNSEMGYMXJPEWMLSCLSOCNMUOERVCFZXC4S4QKF5GU3YFRM4BPWO
-#\\\|33KXMSJPR7SYOFNLNQLSRS53HBCCNBDO32ALXSCHRRXFMD5TGFB \ / AMOS7 \ YOURUM ::
-#\[7]UZIR4GLED5WXJIV3S2WVPSCRSUPQXJL3BXUUG6BYRCZPGE4KQUDA 7  DATA SIGNATURE ::
+**CORRECTION 2026-08-30:** the F13 note above ("cred-mesh's modules.load
+includes proxy... but NOT clients.http/clients.https") is stale. Checked
+directly: `cfg/zenki/cred-mesh/subroutines.load-early` already had
+`clients.https.handler.handshake` present (confirmed via `git diff` showing
+it as unchanged context, not something newly added) before today's HTTP/2
+work touched that file at all. Something between 2026-06-15 and now made
+cred-mesh a legitimate `clients.https` consumer — don't rely on the F13
+framing if this area comes up again; verify current `subroutines.load-early`
+contents directly rather than trusting this note's old claim.
+
+#,,..,,.,,...,,,,,..,,,,,,,..,..,,,,.,,..,,..,..,,...,...,...,..,,.,,,,.,,.,.,
+#ZDCCRDVVQT27XLPRPSW45XHCWZHYL2MLOK4OZGCNKTT3MET6AFLLAVTNRK6TH3QMYOJ6KXXSJCVHY
+#\\\|LCP4UUS2JLQZDW544IRLODC2D2T5KVW4Y7HYLT7RKFZTI37I4WE \ / AMOS7 \ YOURUM ::
+#\[7]MB7SC4BA67GVM4PJTMJY7IBGBFI64APXOXNSVT6BS625UF3UQIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
