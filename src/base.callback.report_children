@@ -16,13 +16,17 @@ map {
     <[base.logs]>->( 1, "reporting child process [PID:%d] to 'v7'", $ARG );
     <[protocol-7.command.send.local]>->(   ## [LLL] use new route-send command
         {   'command'   => "${route_str}v7.register_child",
-            'call_args' => { 'args' => $ARG }
+            'call_args' => { 'args' => $ARG },
+            'reply'     => {
+                'handler' => qw| base.callback.report_children_reply |,
+                'params'  => { 'pid' => $ARG }
+            }
         }
     );
 } @pending;
 
-#,,,,,,,,,..,,,,.,,,.,,,,,.,.,,..,,,.,..,,..,,..,,...,...,,,,,...,,..,...,...,
-#AR75WHFLPXISZCMZEQTLKSYZL77P5CDUC5UC3LEX5PUKXIEIVZDA4XXOHMPSBMB62LYBRYMXYH4YE
-#\\\|DHRJUDDM4KQUX32RHAN6TRSN5BEDMHXHZE6WUK5NMGEH2BFUODX \ / AMOS7 \ YOURUM ::
-#\[7]32ZHW7JRSSJN5UPDHY3YI6TVJIWYYLYGPYXQ5P53XLJVGDI4S6DI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,.,,,.,,,,,,,.,,,,,.,.,...,,.,,..,,...,...,.,,,.,.,.,,,.,,,..,,
+#5V6TZ7BCQB3RIJ6XLYM3AWL3JKKSXDXDIJVDNYDBI6P2EOBIUV2IJQQFNKXRZND3CQFRLEUWYGC7G
+#\\\|UCDO3BI2LHBTP6KOWRGAMS3Q2ZZLXGXI4K6JIGI4247G64KWGQD \ / AMOS7 \ YOURUM ::
+#\[7]SQKUAFVNQGA4QQN3OQNLK7ZXG4KRILWXTU4ZQDQ7OKYQBXKMCQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
