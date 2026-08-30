@@ -37,10 +37,24 @@ if ( not defined $host ) {
 $port //= 443;
 $path = '/' unless defined $path and length $path;
 
-## tcp connect ##
+## proxy setup [ optional caller-supplied http connect proxy ] ##
+my $proxy = $p->{'proxy'} // '';
+my ( $connect_host, $connect_port ) = ( $host, $port );
+if ( length $proxy ) {
+    my ( $proxy_host, $proxy_port ) = $proxy =~ m{^https?://([^/:]+):(\d+)}
+        or do {
+        <[base.logs]>->(
+            0, 'clients.https.request: cannot parse proxy url: %s', $proxy
+        );
+        return undef;
+        };
+    ( $connect_host, $connect_port ) = ( $proxy_host, $proxy_port );
+}
+
+## tcp connect [ to proxy if set, else straight to origin ] ##
 my $tcp_sock = IO::Socket::IP->new(
-    PeerHost => $host,
-    PeerPort => $port,
+    PeerHost => $connect_host,
+    PeerPort => $connect_port,
     Type     => SOCK_STREAM(),
     Timeout  => 7,
 );
@@ -48,7 +62,7 @@ my $tcp_sock = IO::Socket::IP->new(
 if ( not $tcp_sock ) {
     <[base.logs]>->(
         0, 'clients.https.request: tcp connect %s:%d failed: %s',
-        $host, $port, $OS_ERROR
+        $connect_host, $connect_port, $OS_ERROR
     );
     <[event.add_idle]>->(
         {   'handler' => $on_done,
@@ -60,6 +74,62 @@ if ( not $tcp_sock ) {
         }
     );
     return undef;
+}
+
+## proxy connect handshake [ bounded blocking, socket restored to ##
+## non-blocking below ]                                           ##
+if ( length $proxy ) {
+    $tcp_sock->blocking(1);
+
+    my $connect_req
+        = "CONNECT $host:$port " . "HTTP/1.1\r\nHost: $host:$port\r\n\r\n";
+    my $req_total   = length($connect_req);
+    my $req_written = 0;
+    while ( $req_written < $req_total ) {
+        my $n = syswrite( $tcp_sock, $connect_req,
+            $req_total - $req_written, $req_written );
+        if ( not defined $n ) {
+            <[base.logs]>->(
+                0, 'clients.https.request: proxy CONNECT write failed: %s',
+                $OS_ERROR
+            );
+            $tcp_sock->close;
+            <[event.add_idle]>->(
+                {   'handler' => $on_done,
+                    'params'  => {
+                        'ok'     => FALSE,
+                        'error'  => "proxy connect write failed: $OS_ERROR",
+                        'params' => $params
+                    },
+                }
+            );
+            return undef;
+        }
+        $req_written += $n;
+    }
+
+    my $resp = '';
+    $tcp_sock->timeout(7);
+    while ( my $line = <$tcp_sock> ) {
+        $resp .= $line;
+        last if $line eq "\r\n" or $line eq "\n";
+    }
+    if ( $resp !~ m{^HTTP/1\.[01]\s+200} ) {
+        <[base.logs]>->(
+            0, 'clients.https.request: proxy CONNECT failed: %s', $resp
+        );
+        $tcp_sock->close;
+        <[event.add_idle]>->(
+            {   'handler' => $on_done,
+                'params'  => {
+                    'ok'     => FALSE,
+                    'error'  => "proxy connect failed: $resp",
+                    'params' => $params
+                },
+            }
+        );
+        return undef;
+    }
 }
 
 $tcp_sock->blocking(0);
@@ -143,8 +213,8 @@ $state->{'timeout_watcher'} = $timeout_watcher;
 
 return $state;
 
-#,,.,,..,,,,,,,,.,..,,...,...,,..,,.,,,..,,..,..,,...,..,,.,,,,..,.,,,...,.,,,
-#J63JEVS76YUOQWZZJGFRWRYEFM6LROOKLDJLMMJJUYF2RYFL77QEVJFLGCVHV3RHLQTTLBDPBAM22
-#\\\|APEFCXR3PDK2BZRK625SGGURUBQ7I2ACDNHR3ONE7SIA3DXALFJ \ / AMOS7 \ YOURUM ::
-#\[7]3YI3JFTO6LJ26KYWAC4NSTJXNGMYMH3J2LKKIJJUZWLL6I4MPQAQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,..,,,,.,,..,,..,,..,.,,,.,.,..,,...,..,,,,.,.,.,,..,.,.,,,.,
+#7OTRGEAKOZJOCLZRX72XXM6U3OFPUPZGDJE33657GQBHYBCCYI2ZWNYJLBCFRYKBLZZ7YAM45EEGI
+#\\\|SY2J2BKQLLRSH7JV75RMIF77336VV6XDN36GBED6SGHU43KDJY5 \ / AMOS7 \ YOURUM ::
+#\[7]BURJOM6DA73GQ3HGAT43UO4DWEKMN3QJMRIV6O74JHXMSYO2JQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
