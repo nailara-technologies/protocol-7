@@ -72,6 +72,7 @@ my $ssl_sock = eval {
         SSL_server         => 0,
         SSL_startHandshake => 0,
         SSL_hostname       => $host,
+        SSL_alpn_protocols => [ 'h2', 'http/1.1' ],
         SSL_verify_mode    => $ssl_verify
         ? IO::Socket::SSL::SSL_VERIFY_PEER()
         : IO::Socket::SSL::SSL_VERIFY_NONE(),
@@ -107,6 +108,13 @@ my $state = {
     'request' => $request,
     'on_done' => $on_done,
     'params'  => $params,
+    ## kept for the http/2 branch [ taken when alpn negotiates 'h2' ] ##
+    'method'  => $method,
+    'host'    => $host,
+    'port'    => $port,
+    'path'    => $path,
+    'body'    => $body,
+    'headers' => $extra_headers,
 };
 
 ## poll='rw' : ssl handshake may need either direction ##
@@ -135,8 +143,8 @@ $state->{'timeout_watcher'} = $timeout_watcher;
 
 return $state;
 
-#,,.,,.,,,,.,,...,.,,,,..,,.,,,..,.,.,...,...,..,,...,..,,...,,,.,,,,,...,,.,,
-#2JLJQYHMOJLHWVKNO3KFOSEXR7GQDWVXVCY4CFRL3MW34H44G5VLHRT66B5NOTKKQSC4XDXPD3EF6
-#\\\|DKCAM6UK4VPOTRCNCUS5FGKLL3LGQEO4GKYDWP55O3APSYADLTM \ / AMOS7 \ YOURUM ::
-#\[7]YDFQH57J7QA7H4HYQZ2TKGRSJHXCP7WRDFNE5A7TNBXWWIQUA2DA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,..,,...,...,,..,,.,,,..,,..,..,,...,..,,.,,,,..,.,,,...,.,,,
+#J63JEVS76YUOQWZZJGFRWRYEFM6LROOKLDJLMMJJUYF2RYFL77QEVJFLGCVHV3RHLQTTLBDPBAM22
+#\\\|APEFCXR3PDK2BZRK625SGGURUBQ7I2ACDNHR3ONE7SIA3DXALFJ \ / AMOS7 \ YOURUM ::
+#\[7]3YI3JFTO6LJ26KYWAC4NSTJXNGMYMH3J2LKKIJJUZWLL6I4MPQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

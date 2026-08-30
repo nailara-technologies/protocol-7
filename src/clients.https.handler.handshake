@@ -39,6 +39,18 @@ delete $state->{'io_watcher'};
 
 <[base.logs]>->( 2, 'clients.https.handler.handshake: complete' );
 
+## branch on alpn : 'h2' hands off to the http/2 request path ##
+my $alpn = eval { $sock->alpn_selected() } // '';
+if ( $alpn eq qw| h2 | ) {
+    <[base.logs]>->(
+        2, 'clients.https.handler.handshake: alpn negotiated [ h2 ]'
+    );
+    delete $state->{'request'};    ## plain-text request unused for h2 ##
+    return <[clients.https.h2.send_request]>->($state);
+}
+
+## alpn 'http/1.1' or none : existing path continues unchanged below ##
+
 ## write request synchronously (small payload fits in ssl send buffer) ##
 my $request = delete $state->{'request'};
 my $total   = length($request);
@@ -77,8 +89,8 @@ my $io_watcher = <[event.add_io]>->(
 
 $state->{'io_watcher'} = $io_watcher;
 
-#,,..,...,..,,,..,,.,,..,,...,.,.,,..,.,,,,,.,..,,...,...,..,,,..,.,,,,,,,,.,,
-#RQ2NJHHXN3FSWMTBSSHVLX3QIXOXOHS6OH36MFAHRH2FHJVYTW7RLQHJ62CU2YCICSDVHCRKOLDZC
-#\\\|JUPWGE2M2HLBWPCN7OJRMXQ72IU7ZK5CNZFCVQS6VMTJCPAKF2K \ / AMOS7 \ YOURUM ::
-#\[7]66CWGPHFDWMWQDAN4KFJ4FOKKH6MIRGY7F6NJHGEFWVQ7XG4B4DA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,,,.,.,,,...,...,.,.,..,,,..,..,,...,...,,..,,.,,.,,,..,,,,,,
+#6R743OKY6DS6GV3HHLU44KU4JUR52HXCJTQLUYJ3ZHZDCOX7WJGGOPN2KTUAX47GMS75F3M7BX7A4
+#\\\|VKVAT3WTPL65VV7LE4MHP4SOFBIPOOWAXLCPRAVLPEWWFC2P4ZK \ / AMOS7 \ YOURUM ::
+#\[7]DXTLAPC5BC2GVTT2LH5HI4H6GNCEW5TVZZOHUCDX5HKXQBK4WEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
