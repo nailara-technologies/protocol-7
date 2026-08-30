@@ -37,25 +37,47 @@ my $on_response = sub {
         $resp_headers{ lc $k } = $v;
     }
     my $status = ( $resp_headers{':status'} // 0 ) + 0;
-    my $ok = ( $status >= 200 and $status < 300 ) ? TRUE : FALSE;
+    my $ok     = ( $status >= 200 and $status < 300 ) ? TRUE : FALSE;
 
     my $body = $data // '';
 
-    ## decompress when content-encoding set [ gzip, deflate, zstd ] ##
-    ## [ br is deliberately never offered, so never decoded here ]  ##
+    ## decompress when content-encoding set [ gzip, deflate, zstd ] [ br is ##
+    ## deliberately never offered, so never decoded here ]                  ##
     my $encoding = lc( $resp_headers{'content-encoding'} // '' );
-    if ( length $encoding and $encoding ne qw| identity | and length $body )
-    {
+    if ( length $encoding and $encoding ne qw| identity | and length $body ) {
         my $plain = '';
         if ( IO::Uncompress::AnyUncompress::anyuncompress( \$body, \$plain ) )
         {
             $body = $plain;
         } else {
             <[base.logs]>->(
-                1,
-                'clients.https.h2: cannot decode %s body : %s',
+                1, 'clients.https.h2: cannot decode %s body : %s',
                 $encoding,
                 $IO::Uncompress::AnyUncompress::AnyUncompressError // ''
+            );
+        }
+    }
+
+    ## character-decode : decompression above only ever touches bytes --    ##
+    ## $body is still raw wire bytes here, not a decoded perl string. left  ##
+    ## alone, downstream code that treats it as already-decoded text        ##
+    ## double-encodes it the moment it's serialized [ 'für' -> 'fÃ¼r',      ##
+    ## confirmed live 2026-08-30 ]. use the response's own declared charset ##
+    ## when present, default utf-8 otherwise [ the overwhelming common case ##
+    ## for real-world html ]                                                ##
+    if ( length $body ) {
+        my ($charset)
+            = ( $resp_headers{'content-type'} // '' ) =~ m{charset=([\w-]+)}i;
+        $charset //= 'UTF-8';
+        my $decoded = eval {
+            Encode::decode( $charset, $body, Encode::FB_DEFAULT() );
+        };
+        if ( defined $decoded ) {
+            $body = $decoded;
+        } else {
+            <[base.logs]>->(
+                1,        'clients.https.h2: cannot decode body as %s : %s',
+                $charset, scalar <[base.str.eval_error]>
             );
         }
     }
@@ -77,23 +99,28 @@ my $h2 = eval {
         'on_error' => sub {
             my $code = shift;
             $fail->(
-                sprintf 'http/2 protocol error [ code %d ]', $code // -1
+                sprintf 'http/2 protocol error [ code %d ]',
+                $code // -1
             );
         },
     );
 };
 
 if ( length $EVAL_ERROR or not $h2 ) {
-    $fail->( sprintf 'http/2 client init failed: %s', $EVAL_ERROR // '' );
+    $fail->(
+        sprintf 'http/2 client ' . 'init failed: %s',
+        scalar <[base.str.eval_error]>
+    );
     return undef;
 }
 
 $state->{'h2'} = $h2;
 
-## request headers : caller-supplied only, lowercased [ h2 requirement ] ##
-## h1 connection-specific headers are invalid in http/2 : skipped       ##
+## request headers : caller-supplied only, lowercased [ h2 requirement ] h1 ##
+## connection-specific headers are invalid in http/2 : skipped              ##
 my %skip_h1
-    = map { $_ => TRUE } qw| host connection keep-alive transfer-encoding upgrade |;
+    = map { $_ => TRUE }
+    qw| host connection keep-alive transfer-encoding upgrade |;
 my @h2_headers;
 for my $k ( keys %{ $state->{'headers'} // {} } ) {
     my $lk = lc $k;
@@ -107,9 +134,9 @@ if ( length( $state->{'body'} // '' ) ) {
 my $authority = $state->{'host'};
 $authority .= ':' . $state->{'port'} if $state->{'port'} != 443;
 
-## per-request on_error is required inside the request hash : without it ##
-## a stream reset [ RST_STREAM ] is silently routed to on_done as an     ##
-## empty response, indistinguishable from a real-but-empty one          ##
+## per-request on_error is required inside the request hash : without it a ##
+## stream reset [ RST_STREAM ] is silently routed to on_done as an empty   ##
+## response, indistinguishable from a real-but-empty one                   ##
 eval {
     $h2->request(
         ':scheme'    => 'https',
@@ -125,19 +152,23 @@ eval {
         'on_error' => sub {
             my $code = shift;
             $fail->(
-                sprintf 'http/2 stream reset [ error code %d ]', $code // -1
+                sprintf 'http/2 stream reset [ error code %d ]',
+                $code // -1
             );
         },
     );
 };
 
 if ( length $EVAL_ERROR ) {
-    $fail->( sprintf 'http/2 request build failed: %s', $EVAL_ERROR );
+    $fail->(
+        sprintf 'http/2 request ' . 'build failed: %s',
+        scalar <[base.str.eval_error]>
+    );
     return undef;
 }
 
 ## drain queued frames [ preface, settings, headers ] : next_frame can ##
-## produce more than one frame per call site, loop until exhausted    ##
+## produce more than one frame per call site, loop until exhausted     ##
 while ( my $frame = $h2->next_frame ) {
     my $total   = length($frame);
     my $written = 0;
@@ -147,9 +178,10 @@ while ( my $frame = $h2->next_frame ) {
             $written += $n;
         } elsif ( $OS_ERROR{EAGAIN}
             or $OS_ERROR{EWOULDBLOCK}
-            or $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_WRITE()
-            or $IO::Socket::SSL::SSL_ERROR == IO::Socket::SSL::SSL_WANT_READ() )
-        {
+            or $IO::Socket::SSL::SSL_ERROR
+            == IO::Socket::SSL::SSL_WANT_WRITE()
+            or $IO::Socket::SSL::SSL_ERROR
+            == IO::Socket::SSL::SSL_WANT_READ() ) {
             select( undef, undef, undef, 0.001 );
         } else {
             $fail->("ssl write failed: $OS_ERROR");
@@ -176,8 +208,8 @@ $state->{'io_watcher'} = $io_watcher;
 
 return $state;
 
-#,,.,,.,,,..,,.,,,..,,.,,,,,,,.,.,.,.,,,.,,,.,..,,...,...,...,..,,,,,,.,.,.,.,
-#ATSB5AXERTMXN23JJWSF2LWCNRV5BYPVCKT5GGPCQD4F5OOMESCAXLKEMO3NVUE2IRPEV2HI4C4CW
-#\\\|OCQCH66XTTT5RHCTJT4WA6Q5DCFEH45WYCYA3PJ4IDJJDTDJVNM \ / AMOS7 \ YOURUM ::
-#\[7]E7ZLR67NQCUIOR33LZZNZQCM3GRGM5ILJ4GSZ77KUQ3CSWGWSSDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,,,,,.,.,,.,,,..,,,.,.,.,,.,,..,,...,...,,..,...,,..,,.,,.,,,
+#EB6EM3RCDCWRNIEE4HYKWMTTQZMJFHTIO42C5A73YUB33PB7JIWHCXTNDR7ACUDFUG673GRGQS32C
+#\\\|JMSUAWPYGRG7E6YOU3PBDAW63PCP5WJ4LBOYYFRPB5FYY24F72C \ / AMOS7 \ YOURUM ::
+#\[7]A2PI7XVCSH4UQFUKR354UXYJBKIEE2ULJQRLFUDAM2MW3BQTQSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
