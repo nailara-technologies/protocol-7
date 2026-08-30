@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = site-yaml.stepstone.search_from_html
+# descr = extract job link list from stepstone search result html
+
+my ( $url, $html ) = @ARG;
+
+## extract all job page hrefs from the result listing
+my @hrefs = ( $html =~ m{href="(/stellenangebote--[^"]+inline\.html)"}g );
+
+my @jobs;
+my %seen;
+for my $href (@hrefs) {
+    next if $seen{$href}++;
+    my ($job_id) = ( $href =~ m{--(\d+)-inline\.html} );
+    next if not $job_id;
+
+    ## reconstruct full url
+    my $job_url = "https://www.stepstone.de$href";
+
+    ## extract human-readable slug: everything between -- delimiters
+    my ($slug) = ( $href =~ m{/stellenangebote--(.+)--\d+-inline} );
+    my $title_hint = defined $slug
+        ? do {
+        ( my $t = $slug ) =~ s{-}{ }g;
+        $t;
+        }
+        : '';
+
+    push @jobs,
+        {
+        'id'         => $job_id,
+        'url'        => $job_url,
+        'title_hint' => $title_hint,
+        };
+}
+
+return \@jobs;
+
+#,,..,,,.,,,.,..,,.,,,.,.,,..,,,,,.,,,,,,,,,,,..,,...,...,..,,.,,,.,,,,,.,..,,
+#4G4RLSSHDBTIOKUXFYHC7EDIC3YHBBYJL6GUHKZZXSEIJTP7ORSY44NXXWWXBNM3EBUOOQCLQNG3E
+#\\\|YWW56COCXSH526EJR7UG4DQ42PMVHTR26HWUGKPYSKBKABTU2J5 \ / AMOS7 \ YOURUM ::
+#\[7]XZGRVP37BHYRMTV7622TEEWDSQDQFO6QNHEL5JB6THNPEXJ2RKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

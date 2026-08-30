@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = site-yaml.handler.fetch_timeout
+# descr = abort stalled async fetch worker
+
+my $event = shift;
+
+my $wdata = eval { $event->w->data } // {};
+my $id    = $wdata->{'id'}           // '';
+
+my $state = <site-yaml.fetch_worker>->{$id} or return;
+
+<[base.logs]>->(
+    0,   'site-yaml.fetch: timeout [ %s ] pid=%d url=%s',
+    $id, $state->{'pid'}, $state->{'url'}
+);
+
+## timed_out makes async_fetch.finalize report failure rather than use ##
+## whatever partial buffer the worker managed to write before the kill ##
+$state->{'timed_out'} = TRUE;
+
+kill( 9, -( $state->{'pid'} ) ) if $state->{'pid'};
+
+<[site-yaml.async_fetch.finalize]>->($id);
+
+return;
+
+#,,,,,.,.,.,.,...,..,,..,,,..,,,,,.,,,,.,,,,.,..,,...,...,...,,,,,.,,,..,,.,.,
+#GPHJYM6QLTO6HYB6HFU54NU6V4YVTOUMTGLOOHHZG577TQC2MTNKRAMWCABMJ2DDZJ4XIIUYSHL5M
+#\\\|RVJTUNX34JZ3RZUMZVMN7XJFJ4TUFG6CER5QZOO4VU5JHLOUPWI \ / AMOS7 \ YOURUM ::
+#\[7]DH547SILKE6P5WBZTN23REQ2ES3U5SSOPOTBB3LR5EQAQLEP2SAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

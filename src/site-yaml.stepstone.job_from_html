@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = site-yaml.stepstone.job_from_html
+# descr = extract job record from stepstone job page html via json-ld
+
+my ( $url, $html ) = @ARG;
+
+## extract JSON-LD JobPosting block
+my ($raw)
+    = ( $html
+        =~ m{<script[^>]*type=["']application/ld\+json["'][^>]*>(.*?)</script>}is
+    );
+return "no json-ld block found: $url" if not defined $raw;
+
+my $d;
+eval { $d = JSON::decode_json( Encode::encode( 'UTF-8', $raw ) ) };
+return "json parse error: $@" if $@;
+
+return "unexpected type: $d->{'@type'}"
+    if ( $d->{'@type'} // '' ) ne 'JobPosting';
+
+## extract numeric job id from url slug
+my ($job_id) = ( $url =~ m{--(\d+)-inline\.html} );
+
+## strip HTML from description, decode entities
+my $desc = $d->{'description'} // '';
+$desc =~ s{<[^>]+>}{ }g;
+$desc = HTML::Entities::decode_entities($desc);
+$desc =~ s{\s+}{ }g;
+$desc =~ s{^\s+|\s+$}{}g;
+
+my $loc = $d->{'jobLocation'}{'address'} // {};
+my $org = $d->{'hiringOrganization'}     // {};
+
+## extract Stepstone's own salary estimate (when present)
+my ($salary_json)
+    = ( $html =~ m|(?:[\"']?)CESalary\b(?:[\"']?)\s*:\s*(\{[^\}]*\})|is );
+
+my $salary;
+if ( defined $salary_json ) {
+    eval {
+        $salary
+            = JSON::decode_json( Encode::encode( 'UTF-8', $salary_json ) );
+    };
+}
+
+my %job = (
+    'id'              => $job_id // '',
+    'url'             => $url,
+    'title'           => $d->{'title'}             // '',
+    'company'         => $org->{'name'}            // '',
+    'company_url'     => $org->{'url'}             // '',
+    'city'            => $loc->{'addressLocality'} // '',
+    'postal_code'     => $loc->{'postalCode'}      // '',
+    'country'         => $loc->{'addressCountry'}  // 'DE',
+    'employment_type' => $d->{'employmentType'}    // '',
+    'industry'        => $d->{'industry'}          // '',
+    'date_posted'     => $d->{'datePosted'}        // '',
+    'valid_through'   => $d->{'validThrough'}      // '',
+    'direct_apply'    => $d->{'directApply'} ? 'true' : 'false',
+    'description'     => $desc,
+);
+
+if (    ref $salary eq qw| HASH |
+    and $salary->{'isPredicted'}
+    and $salary->{'min'} =~ m{^\d+$}
+    and $salary->{'max'} =~ m{^\d+$} ) {
+    $job{'salary_estimate_min'} = 0 + $salary->{'min'};
+    $job{'salary_estimate_max'} = 0 + $salary->{'max'};
+}
+
+return \%job;
+
+#,,..,..,,,,,,,..,,.,,.,.,.,.,.,,,..,,...,.,,,..,,...,.,.,.,,,,..,.,.,.,.,,.,,
+#SUV5TM3US75NDASCUL2PDKVCX6RCWLSE53TGNANQTEDLGC4TIR7BLE7NDQD2Q5ATKTTJRKR2XWTIS
+#\\\|YIYZFWEABWZ5KL525EF4BCS7GEDHJNYR26LRJJBIKVSMEYUMQPX \ / AMOS7 \ YOURUM ::
+#\[7]YEILC2CJIMMEOEGOA2PUF5XTWU2WV75Q56EM2CJRL4SWZJITAGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
