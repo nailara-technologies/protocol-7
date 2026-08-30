@@ -12,13 +12,16 @@ for my $key (qw| timeout_watcher io_watcher |) {
     }
 }
 
+## break state <-> http/2 codec reference cycle, if any ##
+delete $state->{'h2'} if defined $state->{'h2'};
+
 if ( defined $state->{'sock'} ) {
     eval { $state->{'sock'}->close( SSL_no_shutdown => 1 ) };
     delete $state->{'sock'};
 }
 
-#,,,.,..,,.,.,..,,,,,,,,,,,..,...,...,.,,,,..,..,,...,...,...,,..,,.,,.,,,.,.,
-#VG2YJNKJW6K4YWJLLDHD436FXLZFFGUBH7QZDXHNAFEZ56OVX4GCKOEP5HUSMHHOYRD7IDQGZX6DS
-#\\\|U35CVJBN4FPQSVP6JJOT4NSS4WWTMIMOHCI75CDJNOPG2DN65NI \ / AMOS7 \ YOURUM ::
-#\[7]V76I2LDPKOUMHANF535YK7MWTDF5VMOUKFJ3CE4MU2A3PR2UZMAA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,,.,,,.,,,,,,,..,,..,..,,,..,..,,...,..,,..,,,.,,,,,,,,,,...,
+#INPAKVLKTP4W2MOFZKEAGOM5BL7P7VX4IAQOHG2W2NXIFWBOJGJWZHZP7VPNX3JLUAHA2PZOH5ZQC
+#\\\|XIQG7FCIEP4EQXLUQRUAH76NMMG6GFACQHFGQIRE7KU7J3XB3DZ \ / AMOS7 \ YOURUM ::
+#\[7]4Y5JUMPSTSEZVCZ7LEWVLQUM7SPFY2PK7FAEGDXR4IE5B23CI6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
