@@ -4,7 +4,7 @@
 # descr = initialize site-yaml zenka, load http client
 
 map { <[base.perlmod.autoload]>->($ARG) }
-    qw| LWP::UserAgent HTTP::Request JSON YAML::XS HTML::Entities |;
+    qw| LWP::UserAgent HTTP::Request JSON YAML::XS HTML::Entities Socket Fcntl POSIX Errno |;
 
 ## http user agent : reused across requests
 $data{'site-yaml'}{'ua'} = LWP::UserAgent->new(
@@ -25,6 +25,10 @@ $data{'site-yaml'}{'ua'}->env_proxy;
 if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
     $data{'site-yaml'}{'ua'}->no_proxy(qw| stepstone.de www.stepstone.de |);
 }
+
+## async fetch worker defaults ##
+<site-yaml.cfg.fetch_worker_timeout> //= 45;    ## per-fetch kill deadline ##
+<site-yaml.fetch_worker>             //= {};
 
 ## init fetch queue state ##
 <[site-yaml.fetch.state]>->('load');
@@ -48,8 +52,8 @@ if ( @{$queue} ) {
 
 <[base.logs]>->( 1, 'site-yaml ready' );
 
-#,,.,,.,,,,,.,.,,,.,.,...,.,,,.,.,,..,..,,,,.,..,,...,...,.,,,,..,..,,.,.,,..,
-#JETGUL5ENY3BNUGBDJ43GXIDVFRHDIEBRKCXV2SVI6STAJFSVKRTQ435J5UM6IOP33ZQ2IRF4PXVI
-#\\\|YYXV6REGO5I6PTHJFCGJOUCRIWWQKVI7U3TJMVNOYJYB26N7KSD \ / AMOS7 \ YOURUM ::
-#\[7]723TQZDXOHSYFESQQFJ7PO6G5LODQ46BSSAB54XNVV5W7G5H3WDY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,.,,,.,,,,.,,,,,,..,,.,,,,..,.,.,...,...,,.,,...,..,,,,.,,..,
+#LHH34J7TMMZ4YKDEJC6ENFTIXLNLY2CA2KUHRVPTIF46F54SRDT2EEKNDC4EXGHHEHMJR23EP3W2O
+#\\\|7NGFKX7BT5LM4OIUQZXAMP6FRO6DHNUGX2VGZ4P4J7MEOQSBKWL \ / AMOS7 \ YOURUM ::
+#\[7]JUDHERAL722CZSKEHVMLA53TRHYRE77XHZJITM475XYSLHHHDYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

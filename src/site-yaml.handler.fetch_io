@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = site-yaml.handler.fetch_io
+# descr = drain one async fetch worker's pipe; finalize at eof
+
+my $event = shift;
+
+my $watcher = eval { $event->w };
+my $fh      = eval { $watcher->fd };
+return unless defined $fh;
+
+my $wdata = eval { $watcher->data } // {};
+my $id    = $wdata->{'id'}          // '';
+
+my $state = <site-yaml.fetch_worker>->{$id};
+if ( not defined $state ) {
+    $watcher->cancel if defined $watcher;
+    return;
+}
+
+## precheck: avoid perl warning on closed filehandle ##
+unless ( defined fileno($fh) ) {
+    $watcher->cancel if defined $watcher;
+    return;
+}
+
+## single read per watcher invocation : yields to event loop, the watcher ##
+## fires again automatically if more data arrives                         ##
+my $buf = '';
+my $n   = sysread( $fh, $buf, 65536 );
+
+if ( not defined $n ) {
+    ## EBADF/EINVAL: fd closed between precheck and read ##
+    if ( $OS_ERROR == 9 or $OS_ERROR == 22 ) {
+        $watcher->cancel if defined $watcher;
+    }
+    ## EAGAIN and other transient errors: return without cancelling, the ##
+    ## watcher stays alive and fires again when readable                 ##
+    return;
+}
+
+if ( $n > 0 ) {
+    ## 4MB hard cap ##
+    $state->{'buf'} .= $buf if length( $state->{'buf'} ) < 4_194_304;
+    return;
+}
+
+## eof ##
+$watcher->cancel if defined $watcher;
+<[site-yaml.async_fetch.finalize]>->($id);
+
+return;
+
+#,,,,,,,,,,.,,,..,.,,,,,,,,..,,.,,.,.,,..,...,..,,...,...,.,,,..,,,..,,..,,..,
+#B22X6KBIJPPKOJBI77ZJWM4M3F3QCQJ6ADVPHS2PQWXAWPWI6R5MPZF53AV6JMOO7NXE7DUPOE54S
+#\\\|ZFJTUX7JW5TNL6SFC26Q72SDTA3D7CMGIOCWNHP7PTCNKWLOLAG \ / AMOS7 \ YOURUM ::
+#\[7]W5RZUPR63MCHCPJBOOFEDEFCSQSPBLIRXSZGMWQHSQ77LHWIRUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,80 +17,93 @@ my $reply_handler = $item->{'reply_handler'} // '';
 
 return unless length $url;
 
-## fetch job detail ##
-my $job = <[site-yaml.stepstone.job]>->($url);
+<[site-yaml.async_fetch.spawn]>->(
+    $id, $url,
+    sub {
+        my $raw_result = shift;    ## content string, or numeric http code ##
 
-my $ql = scalar @{$queue} + 1;    ## including current item ##
+        my $job
+            = ( $raw_result =~ m{\A\d+\z} )
+            ? $raw_result
+            : <[site-yaml.stepstone.job_from_html]>->( $url, $raw_result );
 
-if ( ref $job ne 'HASH' ) {
-    my $code    = $job // 0;
-    my $is_gone = $code =~ m{^4(10|04)$};    ## 410 Gone, 404 Not Found ##
-    my $is_ratelimit
-        = $code =~ m{403|429} || ( $code // '' ) =~ m{rate.?limit|too.?many}i;
-    my $tag = $is_gone ? 'gone' : $is_ratelimit ? '403' : 'err';
+        my $ql = scalar @{$queue} + 1;    ## including current item ##
 
-    if ($is_gone) {
-        ## permanent : drop immediately, no retry ##
-    } elsif ($is_ratelimit) {
-        $item->{'retry_count'} //= 0;
-        $item->{'retry_count'}++;
-        if ( $item->{'retry_count'} <= 5 ) {
-            push @{$queue}, $item;  ## back of queue : allow others through ##
-            $tag .= ' retry=' . $item->{'retry_count'};
-            <[site-yaml.fetch.backoff]>->('error');
-        } else {
-            $tag = 'drop';          ## give up after 5 ratelimit retries ##
-        }
-    } else {
-        $item->{'retry_count'} //= 0;
-        $item->{'retry_count'}++;
-        if ( $item->{'retry_count'} <= 2 ) {
-            push @{$queue}, $item;
-            $tag .= ' retry=' . $item->{'retry_count'};
-        } else {
-            $tag = 'drop';
-        }
-    }
+        if ( ref $job ne 'HASH' ) {
+            my $code = $job // 0;
+            ## 410 Gone, 404 Not Found ##
+            my $is_gone      = $code =~ m{^4(10|04)$};
+            my $is_ratelimit = $code =~ m{403|429}
+                || ( $code // '' ) =~ m{rate.?limit|too.?many}i;
+            my $tag = $is_gone ? 'gone' : $is_ratelimit ? '403' : 'err';
 
-    my $is_retry  = $tag =~ m{retry=};
-    my $log_level = $is_gone ? 2 : ( $is_ratelimit || $is_retry ) ? 2 : 1;
-    <[base.logs]>->(
-        $log_level, 'fetch: %s [%s] q=%d',
-        $id, $tag, scalar @{$queue}
-    );
-    <[site-yaml.fetch.state]>->('save');
-    <[site-yaml.fetch.schedule]>;
-    return;
-}
-
-## success : route the fetched record to the configured handler ##
-if ( length $reply_handler ) {
-    <[base.logs]>->( 1, 'fetch: %s [route] q=%d', $id, $ql - 1 );
-    my $payload = eval { JSON::encode_json($job) };
-    if ( not defined $payload or $@ ) {
-        <[base.logs]>->(
-            0,   'fetch: %s json encode error: %s',
-            $id, $@ // '?'
-        );
-    } else {
-        <[protocol-7.route-send]>->(
-            {   'command'   => $reply_handler,
-                'call_args' => { 'args' => $payload },
+            if ($is_gone) {
+                ## permanent : drop immediately, no retry ##
+            } elsif ($is_ratelimit) {
+                $item->{'retry_count'} //= 0;
+                $item->{'retry_count'}++;
+                if ( $item->{'retry_count'} <= 5 ) {
+                    ## back of queue : allow others through ##
+                    push @{$queue}, $item;
+                    $tag .= ' retry=' . $item->{'retry_count'};
+                    <[site-yaml.fetch.backoff]>->('error');
+                } else {
+                    ## give up after 5 ratelimit retries ##
+                    $tag = 'drop';
+                }
+            } else {
+                $item->{'retry_count'} //= 0;
+                $item->{'retry_count'}++;
+                if ( $item->{'retry_count'} <= 2 ) {
+                    push @{$queue}, $item;
+                    $tag .= ' retry=' . $item->{'retry_count'};
+                } else {
+                    $tag = 'drop';
+                }
             }
-        );
-    }
-} else {
-    <[base.logs]>->( 1, 'fetch: %s [drop] q=%d', $id, $ql - 1 );
-}
 
-<[site-yaml.fetch.backoff]>->('success');
-<[site-yaml.fetch.state]>->('save');
-<[site-yaml.fetch.schedule]>;
+            my $is_retry = $tag =~ m{retry=};
+            my $log_level
+                = $is_gone ? 2 : ( $is_ratelimit || $is_retry ) ? 2 : 1;
+            <[base.logs]>->(
+                $log_level, 'fetch: %s [%s] q=%d',
+                $id, $tag, scalar @{$queue}
+            );
+            <[site-yaml.fetch.state]>->('save');
+            <[site-yaml.fetch.schedule]>;
+            return;
+        }
+
+        ## success : route the fetched record to the configured handler ##
+        if ( length $reply_handler ) {
+            <[base.logs]>->( 1, 'fetch: %s [route] q=%d', $id, $ql - 1 );
+            my $payload = eval { JSON::encode_json($job) };
+            if ( not defined $payload or $@ ) {
+                <[base.logs]>->(
+                    0,   'fetch: %s json encode error: %s',
+                    $id, $@ // '?'
+                );
+            } else {
+                <[protocol-7.route-send]>->(
+                    {   'command'   => $reply_handler,
+                        'call_args' => { 'args' => $payload },
+                    }
+                );
+            }
+        } else {
+            <[base.logs]>->( 1, 'fetch: %s [drop] q=%d', $id, $ql - 1 );
+        }
+
+        <[site-yaml.fetch.backoff]>->('success');
+        <[site-yaml.fetch.state]>->('save');
+        <[site-yaml.fetch.schedule]>;
+    }
+);
 
 return;
 
-#,,,,,..,,,,,,...,,..,,..,.,,,,,.,..,,.,,,..,,.,.,...,...,,.,,.,.,,,.,,,,,,,.,
-#FMHFXE7RWHRPJIRQSLZ7HYKAKZKAOTFMGANM5PWVFQDLDAKO76SLWFFW67QW7INC75Z2BUP32EQUW
-#\\\|YTZBF373JLDDHQ2QUXGC3AINIV56ZPH5DHO75GQHFDAJYUJ6J6Q \ / AMOS7 \ YOURUM ::
-#\[7]F6F3KMTYQITJY4TS444EOQGBQTV7M4NLUQY4HPJU6GIKVIPEJICY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,..,,.,,,..,,,,.,.,,,...,,,.,.,.,...,...,..,,,,.,,,,,..,,...,
+#3UZTKGDB6FVJAK52U7FBNLHC3LWAXQGRHBRIPGOSPNPRW36T3YLOFHIMVBIPS4WB2TWDGYRS5R6BW
+#\\\|W6RLN7FQ2R2VST4YZDGDBWFQQ7AMST7TEHYJBPDCAM2U5C6WUBZ \ / AMOS7 \ YOURUM ::
+#\[7]R3G5MQYBNINSKAER2G32RSYJCBL2RROEONEOXDFKE4ZMO4XYMEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

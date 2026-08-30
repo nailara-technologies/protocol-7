@@ -102,100 +102,31 @@ $max_pages = 5 if $max_pages > 5;    ## safety cap
 
 my $delay_search = <site-yaml.import_delay_search> // 1.5;
 
-my ( $queued_count, $skip_count, $err_count ) = ( 0, 0, 0 );
+my $import_id
+    = <[base.gen_id]>->( $data{'site-yaml'}{'import_state'} //= {} );
 
-for my $page ( 1 .. $max_pages ) {
-    my $page_url = $url;
-    if ( $page > 1 ) {
-        $page_url .= ( $url =~ m{\?} ) ? '&' : '?';
-        $page_url .= "page=$page";
-    }
+$data{'site-yaml'}{'import_state'}{$import_id} = {
+    'reply_id'          => $call->{'reply_id'},
+    'url'               => $url,
+    'reply_handler'     => $reply_handler,
+    'skip'              => \%skip,
+    'block'             => \%block,
+    'full_mode'         => $full_mode,
+    'allow_early_break' => $allow_early_break,
+    'max_pages'         => $max_pages,
+    'delay_search'      => $delay_search,
+    'page'              => 1,
+    'queued_count'      => 0,
+    'skip_count'        => 0,
+    'err_count'         => 0,
+};
 
-    <[base.logs]>->(
-        1, '<import> fetching page %d of %d [break:%d]',
-        $page, $max_pages, $allow_early_break
-    ) if $max_pages > 1;
+<[site-yaml.import.fetch_page]>->($import_id);
 
-    my $links = <[site-yaml.stepstone.search]>->($page_url);
-    if ( ref $links ne 'ARRAY' ) {
-        <[base.logs]>->(
-            0,     'import: page %d search failed : %s',
-            $page, $links
-        );
-        last;
-    }
+return { 'mode' => qw| deferred | };
 
-    ## stop if empty page [end of results]
-    last if not @{$links};
-
-    my $page_new = 0;
-    for my $link ( @{$links} ) {
-        my $id = $link->{'id'};
-
-        ## skip ids supplied by the caller [e.g. already-known jobs]
-        if ( length $id and $skip{$id} ) {
-            $skip_count++;
-            next;
-        }
-
-        ## optional pre-fetch field blocking ##
-        if ( length $block_file ) {
-            my $blocked = 0;
-            for my $field (qw| id url company city |) {
-                my $value = $link->{$field} // '';
-                next if not length $value;
-                my $sum = <[site-yaml.util.field-checksum]>->($value);
-                next if not length $sum;
-                if ( $block{"$field:$sum"} ) {
-                    $blocked = 1;
-                    last;
-                }
-            }
-            if ($blocked) {
-                $skip_count++;
-                next;
-            }
-        }
-
-        ## queue for async fetch with adaptive backoff ##
-        push @{ $data{'site-yaml'}{'fetch_queue'} },
-            {
-            'id'            => $id,
-            'url'           => $link->{'url'},
-            'reply_handler' => $reply_handler,
-            };
-        $queued_count++;
-        $page_new++;
-    }
-
-    ## early break when every listing on this page is skipped
-    if ( $allow_early_break and $page_new == 0 ) {
-        <[base.logs]>->(
-            1, 'import: page %d all duplicates : stopping early', $page
-        );
-        last;
-    }
-
-    ## delay between search pages
-    select( undef, undef, undef, $delay_search )
-        if $page < $max_pages;
-}
-
-## start async fetch timer if queue has items and timer not running ##
-if ( $queued_count and not defined $data{'site-yaml'}{'fetch_timer'} ) {
-    <[site-yaml.fetch.schedule]>;
-}
-
-<[site-yaml.fetch.state]>->('save');
-
-my $summary = sprintf 'import queued: %d new, %d skipped, %d errors',
-    $queued_count, $skip_count, $err_count;
-<[base.logs]>->( 1, 'site-yaml.import : %s', $summary );
-
-return { 'mode' => 'size', 'data' => $summary };
-
-#,,,,,,.,,.,,,.,.,.,.,...,..,,,,,,,..,.,.,..,,.,.,...,...,.,.,...,...,..,,,,.,
-#7JLVYYEGY5WKAM73M7AHQIRMKFM42WHKYVEC2PU2NDLJ77AYL2SXNSGVO5IXCNVKVVXCFSUB4ZEPG
-#\\\|LG67V52AXTMPHU6PC5UR2JNGT4EYEUQVC72HY2UARVUGRA777MK \ / AMOS7 \ YOURUM ::
-#\[7]E6HH26XXAF6XQ3LM6OFLIADHNJ7A22GVKQQ5PW7WUSRGS2D2GQCQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,..,,,.,,,,,,,,.,,.,,.,.,,,,,,..,.,.,...,...,,.,,,.,,...,,,.,.,.,
+#G6RQJ6JFVLXV7BP74HXR6XBWJMOQ5RMTHPG54W5MEV5OXTBXGQ4GEGCQCJ7AXSZET4LWOEZNGEKB4
+#\\\|2SFHITFT3H2J5YBJLY55LGKHQC4YDJUWZ6K2IWTWY5IDABRKGGM \ / AMOS7 \ YOURUM ::
+#\[7]3CJMM2ERN2DGFS2FLQBB42Y4WUHKMPZQDUQIOAKX7CYYDCWHDMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
