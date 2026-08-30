@@ -111,10 +111,35 @@ if (    $gpu_enabled_str eq 'yes'
         $spawn_ok = FALSE;
     } else {
 
-        ## live resource check before committing to a gpu spawn attempt ##
+        ## live resource check before committing to a gpu spawn attempt --  ##
+        ## SKIPPED when a previously-tracked gpu pid still exists : that    ##
+        ## means this is a respawn [ seed-retry / crash-restart ], not a    ##
+        ## cold start, and coding.spawn_inference_server already kills +    ##
+        ## bounded-reaps that old process and runs its OWN vram sanity      ##
+        ## check strictly AFTER the kill completes [ see its comment at the ##
+        ## kill site ]. running nvidia-smi here, before that kill has ever  ##
+        ## happened, sees the still-alive old process's vram as unavailable ##
+        ## and produces a false "doesn't fit" -- confirmed live 2026-08-30: ##
+        ## a self-test seed-retry respawn hit exactly this, silently        ##
+        ## falling back to cpu with a perfectly healthy gpu available       ##
+        ## underneath. only run this pre-check for a genuine cold start [   ##
+        ## no prior tracked pid at all ], which is what it was actually     ##
+        ## built for [ deciding gpu-vs-cpu on a gpu-poor/absent host ]      ##
+        my $gpu_respawn
+            = ( <coding.inference_servers>->{'gpu'}{'pid'} // 0 )
+            ? TRUE
+            : FALSE;
+
         my $gpu_size_gb = $gpu_resolve->{'matched_entry'}{'size_gb'} // 0;
         my $gpu_fits    = TRUE;
-        if ( $gpu_size_gb > 0 ) {
+        if ($gpu_respawn) {
+            <[base.logs]>->(
+                2,
+                ': GPU respawn of previously-tracked pid %d - deferring '
+                    . 'vram check to spawn_inference_server\'s kill+recheck',
+                <coding.inference_servers>->{'gpu'}{'pid'}
+            );
+        } elsif ( $gpu_size_gb > 0 ) {
             my $fit = <[coding.helper.check_resource_fit]>
                 ->( { backend => 'gpu', size_gb => $gpu_size_gb } );
             $gpu_fits = $fit->{'fits'};
@@ -193,9 +218,17 @@ if (    $gpu_enabled_str eq 'yes'
 }
 
 ## cpu spawns unconditionally when enabled=yes, or as a gpu fallback when
-## enabled=auto. enabled=no blocks both cases.
+## enabled=auto. enabled=no blocks both cases. checks both the local [ a
+## fallback request from a PRIOR call, eg. verify_inference_startup's retry-
+## exhaustion trigger, consumed above ] and the live global [ the gpu block
+## just above MAY have set this fresh, in this same call, on a fit-check
+## failure -- the local snapshot captured at function entry predates that
+## write and would silently miss it, which is exactly what happened : gpu fit
+## failed, cpu fallback was requested and logged, but the cpu block's own
+## spawn attempt never ran because $spawn_cpu still saw the stale FALSE ]
 my $spawn_cpu = ( $cpu_enabled_str eq 'yes' )
-    || ( $cpu_enabled_str eq 'auto' and $cpu_fallback_requested );
+    || ( $cpu_enabled_str eq 'auto'
+    and ( $cpu_fallback_requested or <coding.cpu_fallback_requested> ) );
 
 # Spawn CPU server if enabled and not already running [ mirrors the GPU
 # block above, minus gpu_layers/mmproj_path which are gpu-only params ]
@@ -315,8 +348,8 @@ if ($spawn_ok) {
 
 return FALSE;
 
-#,,,,,.,.,,..,,,,,,,.,,,.,,..,...,,,,,,.,,...,..,,...,...,..,,...,.,,,..,,..,,
-#DD2GHRU77QAACF22PQB244F3Z6YZEJ7SPMXQ2SABYU7ACRGIGLFYUBER4C4EMLI6FKTBFE5LZLR34
-#\\\|IBLUTPFHZMNISN2KT22G225N3N5M2C2UPPRRMTBI4TXRHZDUROY \ / AMOS7 \ YOURUM ::
-#\[7]DGPFEZJV4VKO7BE52DYNFSBRM2OJ2V2TUHAM4RHMNGLMOYFQ54CA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,.,,,,.,.,,,,.,,,..,,,.,.,.,..,,...,...,..,,,..,,.,,...,...,
+#TLLO5BQLNBEGP76LTOLJHNNUFI7PAJWWGUHUQZRILDXTGHQDFFPRPVDTMO66W7ZZ2TH7WXQ2OFJY4
+#\\\|UEDKIUTP7LE3RKQKLMPQRCRWFYAQTLOZBOWRTIT5RSYKXFNUO6O \ / AMOS7 \ YOURUM ::
+#\[7]BFBP7LAZACYXNXBRZLD4A6FHO3RFGJD75YHCQKAIYYH7E6SHDIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
