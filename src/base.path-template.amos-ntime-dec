@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.path-template.amos-ntime-dec
+# descr = <amos-chksum>.0<ntime-dec>
+# param = entropy_str[, sprintf_template[, ntime_dec]
+
+my $wntropy_str = shift;
+return warn 'entropy string is undefined <{C1}>' if not defined $entropy_str;
+my $template_str = shift // qw| %s |;
+return warn "expected '%s' in " . "template string <{C1}>"
+    if $template_str !~ m|%s|;
+return warn 'ntime param expected to be numeric <{C1}>'
+    if defined $ARG[2]
+    and $ARG[2] !~ m|^\d+$|;
+my $ntime_dec_str = sprintf qw| %014d |, shift // <[base.ntime]>;
+
+my $result_payload = sprintf qw| %s.%s |, <[chk-sum.amos]>->($entropy_str),
+    $ntime_dec_str;
+
+return sprintf $template_str, $result_payload;
+
+#,,,,,,,,,,..,,,.,,,.,,.,,,,.,,.,,.,.,,,.,.,,,..,,...,...,,.,,...,.,.,,,,,..,,
+#CN65AUWTDXJXTZLF5N24GLGAZJUE7FED4STN67UN3ZMQE3OMZQK3Q4SRE4QQTS67KHL5VEN2TSZY4
+#\\\|3OHYPRR5X5PS73BU47UDD32JL7UFQOO3BUVLPE5G255IRV7OPPR \ / AMOS7 \ YOURUM ::
+#\[7]632VFXNKMUKAFCNN3PL2SZDMGR7M22FWLK4WRLDJJQ63ASIGSODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
