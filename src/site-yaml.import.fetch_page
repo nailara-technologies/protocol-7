@@ -1,0 +1,116 @@
+## [:< ##
+
+# name  = site-yaml.import.fetch_page
+# descr = fetch one search-result page async, process it, continue or finish
+
+my $import_id = shift;
+my $st        = $data{'site-yaml'}{'import_state'}{$import_id};
+return unless defined $st;
+
+my $page_url = $st->{'url'};
+if ( $st->{'page'} > 1 ) {
+    $page_url .= ( $st->{'url'} =~ m{\?} ) ? '&' : '?';
+    $page_url .= "page=$st->{'page'}";
+}
+
+<[base.logs]>->(
+    1, '<import> fetching page %d of %d [break:%d]',
+    $st->{'page'}, $st->{'max_pages'}, $st->{'allow_early_break'}
+) if $st->{'max_pages'} > 1;
+
+<[site-yaml.async_fetch.spawn]>->(
+    "import:$import_id:page$st->{'page'}",
+    $page_url,
+    sub {
+        my $raw_result = shift;
+
+        my $links
+            = ( $raw_result =~ m{\A\d+\z} )
+            ? "fetch failed: $page_url"
+            : <[site-yaml.stepstone.search_from_html]>->(
+            $page_url, $raw_result
+            );
+
+        if ( ref $links ne qw| ARRAY | ) {
+            <[base.logs]>->(
+                0,             'import: page %d search failed : %s',
+                $st->{'page'}, $links
+            );
+            ## note : today's code does not increment err_count here either ##
+            ## -- preserve that exactly, this task is transport-only        ##
+            return <[site-yaml.import.finish]>->($import_id);
+        }
+
+        if ( not @{$links} ) {
+            return <[site-yaml.import.finish]>->($import_id);
+        }
+
+        my $page_new = 0;
+        for my $link ( @{$links} ) {
+            my $id = $link->{'id'};
+
+            if ( length $id and $st->{'skip'}{$id} ) {
+                $st->{'skip_count'}++;
+                next;
+            }
+
+            if ( %{ $st->{'block'} } ) {
+                my $blocked = 0;
+                for my $field (qw| id url company city |) {
+                    my $value = $link->{$field} // '';
+                    next if not length $value;
+                    my $sum = <[site-yaml.util.field-checksum]>->($value);
+                    next if not length $sum;
+                    if ( $st->{'block'}{"$field:$sum"} ) {
+                        $blocked = 1;
+                        last;
+                    }
+                }
+                if ($blocked) {
+                    $st->{'skip_count'}++;
+                    next;
+                }
+            }
+
+            push @{ $data{'site-yaml'}{'fetch_queue'} },
+                {
+                'id'            => $id,
+                'url'           => $link->{'url'},
+                'reply_handler' => $st->{'reply_handler'},
+                };
+            $st->{'queued_count'}++;
+            $page_new++;
+        }
+
+        if ( $st->{'allow_early_break'} and $page_new == 0 ) {
+            <[base.logs]>->(
+                1, 'import: page %d all duplicates : stopping early',
+                $st->{'page'}
+            );
+            return <[site-yaml.import.finish]>->($import_id);
+        }
+
+        if ( $st->{'page'} >= $st->{'max_pages'} ) {
+            return <[site-yaml.import.finish]>->($import_id);
+        }
+
+        ## next page, after the same inter-page delay -- was a blocking ##
+        ## select() sleep, now a one-shot timer                         ##
+        $st->{'page'}++;
+        <[event.add_timer]>->(
+            {   'after'   => $st->{'delay_search'},
+                'repeat'  => FALSE,
+                'handler' => qw| site-yaml.handler.import_next_page |,
+                'data'    => { 'import_id' => $import_id },
+            }
+        );
+    }
+);
+
+return;
+
+#,,,.,.,,,,,,,,.,,..,,.,.,..,,..,,..,,..,,.,.,..,,...,...,.,.,.,,,..,,..,,...,
+#WY63DNTLPWRH32COPLOG66GM5TRPDLDTDK5YCGHF547KO7KNKB52NRFUOAQCJF5D5547CK6ZQREXE
+#\\\|3QKJ74XBBP7IP7SI5H46LYLKVZ2MJN5LFDYN6DEPRPEWG4QLWCG \ / AMOS7 \ YOURUM ::
+#\[7]JNQMXQMUW2PHHFGJLJL5AJI3Z3DIHY533PJHDJD2WWODQF7XY2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
