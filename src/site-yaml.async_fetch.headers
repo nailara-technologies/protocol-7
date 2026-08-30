@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = site-yaml.async_fetch.headers
+# descr = browser-realistic request header set for async fetches
+# note  = live-verified against stepstone.de through akamai : a minimal
+#         header set gets RST_STREAM -- keep this exact [ never offer br ]
+
+return {
+    'user-agent' => 'Mozilla/5.0 (X11; Linux x86_64; '
+        . 'rv:124.0) Gecko/20100101 Firefox/124.0',
+    'accept' =>
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'accept-language' => 'de-DE,de;q=0.9,en;q=0.8',
+    ## never br, see http2 task ##
+    'accept-encoding'           => 'gzip, deflate, zstd',
+    'upgrade-insecure-requests' => '1',
+    'sec-fetch-dest'            => 'document',
+    'sec-fetch-mode'            => 'navigate',
+    'sec-fetch-site'            => 'none',
+    'sec-fetch-user'            => '?1',
+};
+
+#,,.,,,,,,..,,,,.,.,.,,.,,...,,.,,...,.,.,,.,,..,,...,.,.,.,,,.,.,,,,,,,.,,..,
+#44TH62LJ7G4ILAVTYN67PV7XVB47G7EUO7D67X7KR3ND4MLRE64K6HRCLGLDITYCWW6VQAW4M7YSQ
+#\\\|KGNQYBAPLX4YNIAAHOCHEY67XBYFMV3IL3OVOJXO2OOYM6VGCE7 \ / AMOS7 \ YOURUM ::
+#\[7]Y4U6P4HSDSXD2YVDPI435FVFWA6DEXJUQDHQGUG2BWUUITEKBMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

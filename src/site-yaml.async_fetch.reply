@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = site-yaml.async_fetch.reply
+# descr = named on_done handler for clients.https.get : registry lookup,
+#         result-shape translation, invoke the stored closure
+
+my $result  = shift // {};
+my $pending = $data{'site-yaml'}{'async_fetch_pending'} //= {};
+
+my $req_key = $result->{'params'}{'req_key'} // '';
+my $state   = delete $pending->{$req_key};         ## delete : no slow leak ##
+return unless defined $state;
+
+## translate clients.https.get's { ok, status, body, error, params } back   ##
+## into site-yaml.http.get's contract : content string on success or a      ##
+## numeric code on failure [ a genuinely positive integer, never 0 or '' -- ##
+## the caller closures match m{\A\d+\z} for failure ]                       ##
+my $reply;
+my $log_tail;
+if ( $result->{'ok'} and defined $result->{'body'} ) {
+    $reply    = $result->{'body'};   ## already decompressed on the h2 path ##
+    $log_tail = sprintf 'ok %dB', length $reply;
+} else {
+    my $status = $result->{'status'} // 0;
+    ## real http status if there is one, else 599 [ same value the old fork ##
+    ## worker's finalize used for "no usable reply" ]                       ##
+    $reply    = $status ? 0 + $status : 599;
+    $log_tail = sprintf 'err %d', $reply;
+    $log_tail .= sprintf ' [ %s ]', $result->{'error'}
+        if length( $result->{'error'} // '' );
+}
+
+<[base.logs]>->(
+    2, 'site-yaml.fetch: done [ %s ] %.2fs %s',
+    $state->{'id'}, time - $state->{'started'}, $log_tail
+);
+
+$state->{'on_done'}->($reply);
+return;
+
+#,,..,,,.,...,.,,,,,,,...,.,.,.,.,,.,,..,,,..,..,,...,...,...,,..,..,,..,,,.,,
+#WMIE6WFPIHSH2QSIE6GPSOX7TT7ID4U2WNHRT33DNNWTVU7AZWJWH723TCGQNVIEOW4ZCNMNV6RLI
+#\\\|4QIWPRPXYBPZUECFLTU3OMDNCERDXUM3L7J5R7I263TK4ZT75E2 \ / AMOS7 \ YOURUM ::
+#\[7]TY25IX3TUJ3IKDX6SUU5DNUHYGJIBX2NIJRW4WFU2Y27H625AGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
