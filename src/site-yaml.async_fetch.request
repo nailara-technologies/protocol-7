@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = site-yaml.async_fetch.request
+# descr = fetch $url non-blocking via clients.https.get [ no forking ]
+# note  = replaces the retired fork-per-request worker [ async_fetch.spawn ]
+
+my ( $id, $url, $on_done ) = @ARG;
+
+## registry key must stay unique across fetch_tick's and              ##
+## import.fetch_page's independent queues : $id is a job/page id, not ##
+## guaranteed unique -- issue a fresh key per request instead         ##
+my $pending = $data{'site-yaml'}{'async_fetch_pending'} //= {};
+my $req_key = <[base.gen_id]>->($pending);
+
+$pending->{$req_key} = {
+    'id'      => $id,
+    'url'     => $url,
+    'on_done' => $on_done,
+    'started' => time,
+};
+
+my %request = (
+    'url'     => $url,
+    'headers' => <[site-yaml.async_fetch.headers]>->(),
+    'timeout' => <site-yaml.cfg.fetch_worker_timeout> // 45,
+    'on_done' => qw| site-yaml.async_fetch.reply |,
+    'params'  => { 'req_key' => $req_key },
+);
+
+## proxy is a caller decision here : bypass_proxy = direct connection [    ##
+## matching what no_proxy does for the lwp path ], otherwise the proxy env ##
+## vars, same as the ua path's env_proxy                                   ##
+if ( not <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
+    $request{'proxy'} = $ENV{'https_proxy'} // $ENV{'http_proxy'} // '';
+}
+
+<[base.logs]>->( 2, 'site-yaml.fetch: request [ %s ] url=%s', $id, $url );
+
+my $state = <[clients.https.get]>->( \%request );
+
+## request never started [ unparsable url etc. ] : clean up and report a ##
+## numeric failure code, never 0 or '' [ callers match m{\A\d+\z} ]      ##
+if ( not defined $state ) {
+    delete $pending->{$req_key};
+    <[base.logs]>->( 0, 'site-yaml.fetch: request failed [ %s ]', $id );
+    $on_done->(599);
+    return undef;
+}
+
+return $state;
+
+#,,..,,,.,.,.,...,,.,,,,,,,..,...,.,.,..,,,,.,..,,...,...,..,,...,.,.,,.,,...,
+#65XQ2YAEEW7ON372KCJKUVOLXKKQ6OWV4ZWFXRKJFODOAML22UBHUUHFC6KXOY3ITDXLJLECPGGWE
+#\\\|RBKUO3YJ4VYA77C3CGYCX27JTZO3T2CXZRSPHGDCW6OVPIZXNU6 \ / AMOS7 \ YOURUM ::
+#\[7]TPBQJ4QPF4XAJGR475FMB4Q2NH7YIZBSDZDFY6LH5V3VKIUKVWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
