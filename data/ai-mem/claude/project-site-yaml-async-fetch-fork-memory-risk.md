@@ -1,8 +1,41 @@
 ---
 name: site-yaml-async-fetch-fork-memory-risk
-description: site-yaml's async HTTP fetch forks a worker per request — real OOM risk on 1GB-RAM hosts like atom. current recommendation: extend clients.https.request (already has correct non-blocking TLS) with proxy CONNECT support, no fork/exec needed; chmod_child-exec is the fallback if that hits an obstacle
+description: RESOLVED 2026-08-30 — fork-per-request retired entirely (was a real OOM risk on 1GB-RAM hosts like atom); site-yaml now calls clients.https.get directly, no fork/exec at all. Kept for the reasoning trail and the still-open cmd.fetch/LWP loose end
 metadata:
   type: project
+---
+
+## RESOLVED 2026-08-30 — fork retired entirely, not just made lighter
+
+Everything below this point is the historical trail of how the decision
+got made; kept for the reasoning, not because it's still the current
+state. **The fork-per-request design this file worries about no longer
+exists.** `site-yaml.async_fetch.spawn` was retired outright (not
+replaced with the `chmod_child`-exec middle-ground discussed below —
+that idea turned out unnecessary) and replaced with
+`site-yaml.async_fetch.request`, which calls `clients.https.get`
+directly: zero forking, zero exec'ing, true single-process non-blocking
+I/O, exactly the "CURRENT RECOMMENDATION" section below predicted.
+
+Getting there took one more step this file didn't anticipate: the
+underlying LWP-based fetch was *also* silently failing the entire time
+regardless of forking, because of Akamai ALPN-based bot mitigation —
+see [[reference-akamai-alpn-h2-bot-mitigation]] for that finding on its
+own (it's generalizable, not site-yaml-specific). `clients.https.request`
+gained real HTTP/2 support and proxy `CONNECT` tunneling to fix that
+before site-yaml could be safely switched over.
+
+Live-verified for real, not just unit-tested: site-yaml restarted, all
+9 job categories fetched successfully through the actual proxy (74 new
+jobs queued, 0 errors), no more fork, no more `fetch failed`.
+
+**Still open, not part of what landed**: `site-yaml.stepstone.job`/
+`.search` (used by the synchronous `cmd.fetch` command) still use the
+old `LWP::UserAgent` directly — deliberately out of scope in every
+dispatch this day, so `site-yaml.init_code`'s LWP setup is still there
+and still needed. Migrating `cmd.fetch` too would let LWP be dropped
+from the parent entirely; nobody has asked for that yet.
+
 ---
 
 `site-yaml.async_fetch.spawn` (landed via `data/tasks/site-yaml-async-fetch.md`
@@ -163,8 +196,8 @@ note above) and not at a fresh chmod_child-exec build (fallback only).
 
 see [[topic-site-yaml-zenka]] for the broader site-yaml design context.
 
-#,,,,,.,.,.,,,,,.,.,,,,,.,...,...,.,.,.,,,,,,,.,.,...,...,.,,,.,,,..,,,.,,,..,
-#EI5A2I2V35QISBTCTUMHUNIW37JLN35CP4BGAYI26AFC3AED64HVIOK334L6MPJAZDP56ZWHADBKG
-#\\\|F3X5HK5ELN4FXMLDJTXAL2VKOTB7VJGE52TEHGPDOVPKY4OLSKW \ / AMOS7 \ YOURUM ::
-#\[7]KRWLLDC6QO3AQ36IZPSNIQL6KTGH65FBHUGQ2IKRPFBX6TRWZWAA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,.,,,,,,,,,,,,.,,..,,..,,..,,.,.,...,..,,,,.,,.,,.,,,.,.,.,,,
+#F63XBQLY5MPTUVESV4NG7TOHQ2QM3SYD3C4QCB2IDHQNDKYQCYW3Z4Q7NA47J2D7GBFFUCTSVOJDE
+#\\\|BARIED2LY6LTXYC62NK5PYAHGJVFUWSQ2TAYCHQCJYJWUTTZFBI \ / AMOS7 \ YOURUM ::
+#\[7]NUOMMWTZRL636O5QOGF4V4HX3QIRDK3GYMJH75O4CBJ5JK6THGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
