@@ -125,6 +125,17 @@ this dual-version split (both referenced together in
 `sourcecode.console.regen-checksum-symlinks`), not just a speculative
 design choice made in the abstract.
 
+**Dated precisely**: the release-version calculation script landed
+commit `3db12a2ec` (Mon Oct 30 2017), genuinely ~9 years old — predating
+the current `ntime` network-time system entirely. Per user, "the source
+version did not even have network time yet" back then; a same-day
+earlier commit (`e8ca019bb`) shows the version string's own float-year
+component still switching from localtime to UTC at that point, well
+before `ntime`'s epoch-since-2002-06-05-scaled-by-4200 scheme existed.
+So the src-ver/rel-ver split predates and is independent of `ntime` —
+worth knowing if either ever needs reconciling with the network-time
+system, they didn't originally share a foundation.
+
 **How this applies to tree-storage flatten/expand**: don't copy the
 full-snapshot-per-version shape directly — if the eventual tree-storage
 mechanism needs to preserve history/reversibility the way regen/undo
@@ -141,8 +152,8 @@ Don't start designing the flatten/expand mechanism or the tree-storage
 layout unprompted; this was explicitly still being thought through, not
 handed over as a task.
 
-#,,.,,,,,,.,,,,,,,,,.,..,,..,,.,.,,.,,..,,,.,,..,,...,...,.,,,.,.,.,,,.,,,,,,,
-#XCPKSXFRXYFCZAQDOB4OAHFRIVJ33UY44ENJBT6JRACGBAHHV74RZMVCZ7BPDCLSYMLMNIPLWDXCU
-#\\\|3LREFLEFP7SIH2RNV7NKRS4IKNQI4TKGYCFM3EFVCCNU445PZOF \ / AMOS7 \ YOURUM ::
-#\[7]ZIHLZG6X46IQO7PYZNA3CFMMQFJCF3HUXWAYSJ6UOIFVLJQE44BY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,.,,,.,,,,..,,,,,..,,,,.,,,,,..,,...,..,,...,,,,,..,,,,.,,,.,
+#5KACRY6BLXZTG6NX52LWPNT766VD4RJM4VLZHMPR2KJMQA4GEKXA5YPKKC5FSFLR23CFOEN2DKBIC
+#\\\|2MEGLSCCT4BVU2IRJAE7RAPI67HT7N37QQZUFHAO27O7SA67O2S \ / AMOS7 \ YOURUM ::
+#\[7]ZPB7HXVGMEQRUZMLH5M7COCP4AWOINBCOP4RTTTWWUBTXZNNOUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
