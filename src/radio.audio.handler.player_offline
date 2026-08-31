@@ -18,6 +18,13 @@ if ( $reply->{'cmd'} ne 'TRUE' ) {
 
 <radio.audio.active> = 0;
 
+##  stop playback-health watchdog  ##
+if ( defined <radio.audio.watchdog.watcher> ) {
+    <radio.audio.watchdog.watcher>->cancel;
+    delete <radio.audio.watchdog.watcher>;
+}
+<radio.audio.watchdog.idle_count> = 0;
+
 ##  guard: do not double-schedule re-init  ##
 return if defined <radio.audio.reinit_watcher>;
 
@@ -29,8 +36,8 @@ return if defined <radio.audio.reinit_watcher>;
 
 0;
 
-#,,,.,.,,,.,.,.,,,,,,,..,,,..,,,.,,.,,,..,,,.,..,,...,...,..,,.,.,,,,,..,,..,,
-#UNHJU3QXOJOJM4BKCF54PVEJ4I6X7HYR6AU6CPC3774FDOCXFM6G2AL5CIJ25MBX7NRDDNTQRIGSK
-#\\\|XNFAICW2TLVLOJHBUYVZOYKBLBHP3ARA7GQIZ6VQ5C27AWF2TXE \ / AMOS7 \ YOURUM ::
-#\[7]XOZLUQAKMFTTJP23O4YSECHQLBFV4D4WATP4REE7RW5M3OG6YMBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,,,,,,,.,,,.,,.,,,..,,,.,..,,..,,...,...,.,,,.,.,.,.,.,,,...,
+#H4KLKXC5KIUVGTCL2IFDAL3JPCMBNOM4JT6OKT4X2W4FKN3Q7TQDUJFC7DLO54ZTRACVIIAQ2IQUK
+#\\\|KLEZPKT4ZMMW5R2EF362E5OJTQSSDRDWOWG74AD3P7MCT6H5PW3 \ / AMOS7 \ YOURUM ::
+#\[7]XS33J7HHTTZOB2AW5BPCCWX3Z26LK4E7PGI7FZMMPDMYMSF4WIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

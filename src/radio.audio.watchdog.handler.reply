@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = radio.audio.watchdog.handler.reply
+# descr = handle mpv[audio-0].is-idle reply for playback stall watchdog
+
+my $reply = shift;
+
+##  player went offline for real while request was in flight  ##
+return if not <radio.audio.active>;
+
+my $mode = $reply->{'mode'} // qw| unknown |;
+my $data = $reply->{'data'} // '';
+
+##  not idle [ or unreadable reply ] : reset streak and wait  ##
+if ( $mode ne qw| true | or $data ne qw| yes | ) {
+    <radio.audio.watchdog.idle_count> = 0;
+    return;
+}
+
+##  mpv reports idle : count consecutive ticks  ##
+<radio.audio.watchdog.idle_count>++;
+
+return if <radio.audio.watchdog.idle_count> < 2;
+
+##  sustained idle : force a playback restart  ##
+my $idle_seconds = 20 * <radio.audio.watchdog.idle_count>;
+
+<[base.logs]>->(
+    0, '[radio.audio] playback stalled [ mpv idle %ds ], re-issuing play',
+    $idle_seconds
+);
+
+<radio.audio.watchdog.idle_count> = 0;
+
+my $instance = $reply->{'params'}{'instance'} // 'mpv[audio-0]';
+my $url      = <radio.audio.stream_url> // 'http://127.0.0.1/radio/stream';
+
+##  mirror radio.audio.handler.player_online startup sequence  ##
+<[protocol-7.route-send]>->(
+    {   'command'   => "$instance.play",
+        'call_args' => { 'args' => $url },
+    }
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => "$instance.set-volume",
+        'call_args' => { 'args' => '0' },
+    }
+);
+
+my $vol = <radio.audio.start_volume> // 70;
+<[protocol-7.route-send]>->(
+    {   'command'   => "$instance.fade",
+        'call_args' => { 'args' => $vol },
+    }
+);
+
+0;
+
+#,,..,.,.,,,,,..,,,,,,,.,,.,.,,..,...,,,,,,,,,..,,...,...,,,.,..,,...,.,,,.,,,
+#LJ2SWS5OXGOY5GD7SIJTA5RCVCCFBTMXTX3NKAHBXFUB7WAIJW77GVPYRARNIV7BL43A4VYRY4LMY
+#\\\|UQEKX26CPY2SJV5IHGWEKYOOMK2XYVBQ6V4BCUTVCGBFFRYMXWG \ / AMOS7 \ YOURUM ::
+#\[7]3HRG46VUX46DCR5DNFLIY5MFGL5A7FIBKFPJGCPFONILLTU7TYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
