@@ -1128,7 +1128,8 @@ function renderCard(j) {
         badges.push('<span class="assert-badge assert-archive">archiv</span>');
     }
     if (j.repair_applied)      badges.push('<span class="repair-badge">repariert</span>');
-    if (j.repair_failed == 5 || j.repair_failed === true) badges.push('<span class="repair-badge repair-fail">fehler</span>');
+    if (j.repair_failed == 5 || j.repair_failed === true
+        || j.desc_check_failed == 5 || j.desc_check_failed === true) badges.push('<span class="repair-badge repair-fail">fehler</span>');
 
     /* dimension breakdown */
     const dims = _dims;
@@ -1219,6 +1220,11 @@ function renderCard(j) {
       ${j.stage === 'skipped' ? `
       <div class="card-quick-actions end no-print">
         <button class="badge-apply badge-subtle" type="button" data-action="archived">📦 archivieren</button>
+        <button class="badge-apply badge-delete" type="button" data-action="delete">🗑 löschen</button>
+      </div>` : ''}
+      ${!j.stage || j.stage === 'new' ? `
+      <div class="card-quick-actions end no-print">
+        <button class="badge-apply badge-subtle" type="button" data-action="review">→ review</button>
         <button class="badge-apply badge-delete" type="button" data-action="delete">🗑 löschen</button>
       </div>` : ''}
     `;
@@ -1552,7 +1558,8 @@ function render() {
                 && !USER_OWNED_STAGES.has(j.stage);
         }
         if (filterMode === 'error') {
-            return (j.repair_failed == 5 || j.repair_failed === true);
+            return (j.repair_failed == 5 || j.repair_failed === true
+                || j.desc_check_failed == 5 || j.desc_check_failed === true);
         }
         if (filterMode !== 'all' && j.stage !== filterMode) return false;
         /* min score filter — only for stages where score is relevant */
@@ -1656,7 +1663,8 @@ function updateStats(all) {
     const btnShowArchive = document.getElementById('btn-show-archive');
     btnShowArchive.textContent = archivedCount ? `archiv (${archivedCount})` : 'archiv';
     document.getElementById('stat-delete').textContent = del + ' löschen';
-    document.getElementById('stat-error').textContent  = all.filter(j => j.repair_failed == 5 || j.repair_failed === true).length + ' err';
+    document.getElementById('stat-error').textContent  = all.filter(j => j.repair_failed == 5 || j.repair_failed === true
+        || j.desc_check_failed == 5 || j.desc_check_failed === true).length + ' err';
 }
 
 const ALL_EXPORT_STAGES = [

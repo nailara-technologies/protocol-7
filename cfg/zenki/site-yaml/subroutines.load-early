@@ -113,6 +113,7 @@ ascii.frame.load
 site-yaml.extract
 plugin.auth.zenka
 net.read_bytewise
+clients.https.get
 base.stream.close
 base.session.user
 base.session.init
@@ -135,6 +136,7 @@ ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
 site-yaml.http.get
+clients.https.post
 base.reload_values
 base.reload_config
 base.parser.config
@@ -174,6 +176,7 @@ base.file.init_code
 base.file.all_files
 base.extract_values
 base.event.pre_init
+base.event.add_idle
 base.diff.hash_keys
 base.calc_unix_path
 site-yaml.cmd.search
@@ -206,6 +209,9 @@ site-yaml.fetch.state
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
+clients.https.request
+clients.https.cleanup
+clients.http.pre_init
 base.session.shutdown
 base.reload_whitelist
 base.register_pm_deps
@@ -222,6 +228,8 @@ base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
 crypt.C25519.sign_data
+clients.https.pre_init
+clients.http.init_code
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -240,6 +248,7 @@ io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
 crypt.C25519.key_exists
+clients.https.init_code
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -270,6 +279,7 @@ io.unix.socket.init_code
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
+clients.https.handler.io
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -287,6 +297,7 @@ ui.render.tree.invalidate
 site-yaml.cmd.queue-depth
 io.unix.socket.input.open
 crypt.C25519.load_keypair
+clients.https.decode_body
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -326,7 +337,8 @@ net.read_linewise_estimated
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
-base.zenki.report_child_pid
+clients.https.h2.handler.io
+clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -357,10 +369,14 @@ base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 site-yaml.util.field-checksum
 site-yaml.cmd.list-stray-jobs
+site-yaml.async_fetch.request
+site-yaml.async_fetch.headers
 protocol.protocol-7.init_code
 crypt.C25519.key_name_to_skey
 crypt.C25519.get_usr_keys_dir
 crypt.C25519.chksum_cache.add
+clients.https.handler.timeout
+clients.https.h2.send_request
 base.validate.data_key_syntax
 base.source.collect_file_list
 base.handler.ondemand_timeout
@@ -374,7 +390,6 @@ base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
-base.callback.report_children
 auth.client.unix.authenticate
 ascii.frame.parse.border_line
 site-yaml.cmd.export-stray-job
@@ -390,9 +405,8 @@ base.chk-sum.bmw.harmonize_L13
 base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
-site-yaml.async_fetch.headers
-site-yaml.async_fetch.request
 crypt.C25519.decrypt_secret_key
+clients.https.handler.handshake
 base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
@@ -493,8 +507,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,,,,,..,,..,.,.,...,,..,.,.,.,.,,.,,,..,..,,...,...,.,,,,..,,..,.,.,.,.,
-#AMTLXIWRV6565KVKGNU4CPJ6Q53G5RNN5F74KG6PWXKE43T3XU3ATHML2AYXKNSWLMNQTS4X2YQZI
-#\\\|VC6IJDCZXBJCINLRVW6BHU6FQAJAGJWOYGBPVN7NUPEMYK62KGO \ / AMOS7 \ YOURUM ::
-#\[7]SLHQ5F2GG4UMSGEISBC2SRMCWYTK3NFM7K2IR4AJT75AEUXRQWBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,..,,,,.,..,,.,,,,.,,.,,,.,,,..,,...,...,.,,,.,,,..,,,.,,.,.,
+#TF7NJEGPFMWE5NEWHV3BOSDLEFGQGTAYVY63MZCUAB4PY3N3IA5GQYCEMZV2ZURZRODBTITWTIWJI
+#\\\|YXPRU3A7FNKCD2FNRYNT7TJ6GNCZHBQP4PF5D3JECTK2F6GK2VC \ / AMOS7 \ YOURUM ::
+#\[7]XRW2REAQCBHNDVT6DWGMB475XJ22CM74GEOV5MDGGOKHUVHW6KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

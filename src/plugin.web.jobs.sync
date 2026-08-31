@@ -52,7 +52,8 @@ if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
 ## that is still in flight, permanently hiding it from future deltas        ##
 my @pipeline_fields = qw| title company url score score_reason score_summary
     fetched_at status stage description blocked_epoch checksum_hit
-    assertions city industry country postal_code repair_attempted repair_failed |;
+    assertions city industry country postal_code repair_attempted repair_failed
+    desc_check_failed desc_check_reason |;
 my @browser_fields
     = qw| stage notes date_applied exported_stage exported_at stage_changed_at |;
 
@@ -319,8 +320,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,..,,,.,,,..,.,.,,,.,.,,,,,.,...,.,.,,,,,..,,...,...,,,,,,,.,..,,,,,,..,,
-#I4AHRSDVCWDLT5PJX4SAHS3PH46PMBVFBS7GUTZDTT4HX2CPV6U6KWIZFQXDBPYBOMF4T6OMRHSK4
-#\\\|67GYGBT6QMQ7UKTWYOLKK63LVZKLUP7YDNDNEPVF2SNLNWAADT4 \ / AMOS7 \ YOURUM ::
-#\[7]SHYVZ7I4HKKONP6DCNHVMCVLHIR7PEPCU3IHRSU4TDL3FLFSIAAY 7  DATA SIGNATURE ::
+#,,,.,...,,..,..,,.,,,.,.,,,,,,..,.,,,.,,,,,,,..,,...,...,,.,,.,,,,,.,,..,,,,,
+#K4VY2FM4BQPB3N5DWLFALSZYK256JMMADKCTFHICK47HGWR6BWHTMKPKBAOCQP5XY6PKBQT7BQ26K
+#\\\|UDKCN5HUYQ725NFKUAQR4ESESAKLEUHL2JX6N6NUM2GAYRGWUJ4 \ / AMOS7 \ YOURUM ::
+#\[7]A6PHQX4EYAWWN2IQJ4BWRIKM3KZJLADTCTXM7HTVP7HORRLE6WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

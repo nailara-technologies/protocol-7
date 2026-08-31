@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = jobsite.handler.desc-refetch-queued
+# descr = handle the site-yaml.import-url ack for a description-quality-triggered refetch
+# note  = mirrors jobsite.handler.reassess-refetch-queued -- only handles the "can't
+#         refetch at all" case [ unsupported source url ], so a job never gets
+#         stranded waiting for a refetch that will never come. a genuine in-flight
+#         duplicate [ same url already queued by something else ] is left alone :
+#         that fetch still lands on job-upsert's normal path and job-upsert's own
+#         awaiting_desc_refetch check re-triggers dispatch.assessments once it does
+
+my $call = shift // {};
+
+my $mode     = lc( $call->{'mode'} // '' );
+my $raw      = $call->{'data'} // '';
+my $data_str = ref $raw ? $raw->$* : $raw;
+my $job_id   = $call->{'params'}{'job_id'} // '';
+
+return if $mode ne qw| false |;
+return if $data_str =~ m{already queued}i;
+
+my $rec = <jobsite.tasks>->{$job_id} // {};
+return if not $rec->{'awaiting_desc_refetch'};
+delete <jobsite.tasks>->{$job_id}{'awaiting_desc_refetch'};
+
+my $job = <[jobsite.job.read]>->($job_id);
+return if ref $job ne 'HASH';
+
+## refetch flat-out impossible : mark terminal now rather than leave the ##
+## job waiting on a resume that will never come. 'review' status only,   ##
+## stage left untouched -- see jobsite.dispatch.assessments' matching    ##
+## branch for the full reasoning on both                                 ##
+$job->{'desc_check_failed'} = TRUE;
+$job->{'desc_check_reason'} = "refetch unavailable [ $data_str ]";
+$job->{'status'}            = qw| review |;
+<[jobsite.job.write]>->( $job_id, $job );
+
+## patch the persistent store too, not just disk -- job-upsert's          ##
+## preserve-on-reupsert whitelist reads $data{'jobs'}{'store'}, which a   ##
+## bare job.write never touches ; see dispatch.assessments' matching note ##
+$data{'jobs'}{'store'}{$job_id} = $job
+    if ref $data{'jobs'}{'store'} eq 'HASH';
+
+<[base.logs]>->(
+    0,
+    'jobsite.desc-refetch [%s]: refetch unavailable (%s), routing to review',
+    $job_id,
+    $data_str
+);
+
+return;
+
+#,,.,,...,...,.,.,,..,.,,,...,,.,,..,,,..,..,,..,,...,...,,..,,.,,.,,,..,,,,,,
+#IYUVU66X5RRDOQTRGQ5T4BLN7FMP63XCGWGOWFUHKGQ63GRTUB476JFCQX6YE6N4W3KMIIX7SJUWA
+#\\\|5ZKTYFJJT7DAMHDII7RQBNJ2FALTEPEXHIODXKJ35PFEIGOPFN5 \ / AMOS7 \ YOURUM ::
+#\[7]TF5XEH25D3S7N2VZJNOD3PULLIH6RL6Z5UMTDL4WQEVAHRAIWMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

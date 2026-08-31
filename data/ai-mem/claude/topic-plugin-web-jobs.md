@@ -7,6 +7,52 @@ metadata:
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
 ---
 
+## 2026-08-31: two non-obvious desync gotchas found adding jobsite.util.description_ok
+
+Building a new "gate bad job descriptions before llm assessment" feature (empty/
+FFFD-laced/binary-looking description → refetch once, then terminal `status:
+review` + `desc_check_failed` flag) surfaced two subtle cross-file traps, both
+caught by advisor review rather than obvious from reading either file alone:
+
+**Dual job-store desync**: `$data{'jobs'}{'store'}` is populated ONCE, in
+`jobsite.init_code`, and never reassigned again anywhere in the codebase.
+`jobsite.cmd.job-upsert`'s preserve-on-reupsert whitelist reads `$existing` from
+THIS global. Meanwhile `jobsite.dispatch.assessments` (and any other caller) gets
+its own `$store` from a **fresh** `<[jobsite.job.load_all]>` call each time —
+a completely separate hash tree. A plain `<[jobsite.job.write]>->($id, $job)`
+call updates disk but NOT `$data{'jobs'}{'store'}`. Net effect: any new
+custom field written this way, from anywhere other than job-upsert itself,
+gets silently dropped the next time that job is re-upserted (job-upsert's
+`$job->{$key} = $existing->{$key} if defined $existing->{$key}` sees undef
+from the stale global and never copies it forward) — even though the file on
+disk has it right now. For `desc_refetch_attempted` this would have meant an
+infinite refetch loop, exactly the failure the flag exists to prevent.
+**Fix pattern**: after any `job.write()` call outside job-upsert that sets a
+field meant to survive a future re-upsert, also do
+`$data{'jobs'}{'store'}{$job_id} = $written_job if ref $data{'jobs'}{'store'} eq 'HASH';`
+directly.
+
+**Stage is derived from status, not merely defaulted**: `plugin.web.jobs.sync`
+(lines ~180-193) *always* overwrites a job's cached `stage` from its `status`
+(via `%status_to_stage`, falling through to the literal status string when
+unmapped) whenever the current stage isn't in `%user_owned_stage`. This means
+deliberately leaving `stage` unset on a jobsite-side write to keep a job out of
+a specific UI tab (e.g. avoiding the default-active `review` tab) **does not
+work** — the sync step derives and assigns a stage anyway, based purely on
+`status`. `status: 'new'` → derived `stage: 'new'` (not empty!); `status:
+'review'` → derived `stage: 'review'`. The only real UI-visibility lever here
+is which `status` value you pick (or reaching for `%user_owned_stage`), not
+whether `stage` is included in a given write. Also relevant to any future
+front-end conditional keyed on `j.stage`: a "no stage yet" job in the browser
+never actually has an empty/falsy `stage` — check the *literal derived value*
+(e.g. `j.stage === 'new'`) instead of `!j.stage`.
+
+See [[topic-jobsite-assessment-accuracy]] for the assessment-content-quality half of
+this session's work (the actual reason the gate was built: an empty
+description let the LLM hallucinate a full plausible-looking assessment from
+just the candidate profile, describing an "ideal job" that was really its own
+profile reflected back).
+
 ## Status update 2026-07-11: both pending_count/cycle-stuck bugs below are landed
 
 Both confirmed COMMITTED, checked against git log (memory had gone stale, said
@@ -391,8 +437,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,..,,.,,...,.,.,.,.,...,...,,,,,,,.,.,.,,..,..,,...,...,,,,,,.,,,.,,,,,,.,.,
-#CZTKN4YVGXHGWEFN57H5PIUABTOQ6WAJLRQEONSHNIYCGUKBQYH3TSGGT6ALJEULLEW7JVG2J6I26
-#\\\|YTVOWHDWVD7BNVHYLPUU23QHD6SWHVQ2TSAPN2I4MYPNMG677GK \ / AMOS7 \ YOURUM ::
-#\[7]DOLUM5Q75T3XSSSDFOI4G6DQT4CO54R7XISO33HOOTRYBV6EAEDA 7  DATA SIGNATURE ::
+#,,,,,...,...,...,,,,,.,,,..,,,,,,.,,,...,,.,,..,,...,...,...,,,.,...,.,,,...,
+#FWYEVQW5RDQC5RFQ44CA6TUMMOFX5WVFDWGXCLFUCNQNNOAFM2XB6JCHJYH2NHD6WZUZBTYTWHIFK
+#\\\|3BX72IZEBLAJZM346GY7RRULUCDEYZCUV2IPSITJIZYBT44UUMF \ / AMOS7 \ YOURUM ::
+#\[7]YUP6P6HXWZPPJ2Y63JI37ZPA6M7GAKZ36TC2YQYZDDV7N3YBM6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

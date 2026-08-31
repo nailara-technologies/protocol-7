@@ -41,46 +41,9 @@ my $on_response = sub {
 
     my $body = $data // '';
 
-    ## decompress when content-encoding set [ gzip, deflate, zstd ] [ br is ##
-    ## deliberately never offered, so never decoded here ]                  ##
-    my $encoding = lc( $resp_headers{'content-encoding'} // '' );
-    if ( length $encoding and $encoding ne qw| identity | and length $body ) {
-        my $plain = '';
-        if ( IO::Uncompress::AnyUncompress::anyuncompress( \$body, \$plain ) )
-        {
-            $body = $plain;
-        } else {
-            <[base.logs]>->(
-                1, 'clients.https.h2: cannot decode %s body : %s',
-                $encoding,
-                $IO::Uncompress::AnyUncompress::AnyUncompressError // ''
-            );
-        }
-    }
-
-    ## character-decode : decompression above only ever touches bytes --    ##
-    ## $body is still raw wire bytes here, not a decoded perl string. left  ##
-    ## alone, downstream code that treats it as already-decoded text        ##
-    ## double-encodes it the moment it's serialized [ 'für' -> 'fÃ¼r',      ##
-    ## confirmed live 2026-08-30 ]. use the response's own declared charset ##
-    ## when present, default utf-8 otherwise [ the overwhelming common case ##
-    ## for real-world html ]                                                ##
-    if ( length $body ) {
-        my ($charset)
-            = ( $resp_headers{'content-type'} // '' ) =~ m{charset=([\w-]+)}i;
-        $charset //= 'UTF-8';
-        my $decoded = eval {
-            Encode::decode( $charset, $body, Encode::FB_DEFAULT() );
-        };
-        if ( defined $decoded ) {
-            $body = $decoded;
-        } else {
-            <[base.logs]>->(
-                1,        'clients.https.h2: cannot decode body as %s : %s',
-                $charset, scalar <[base.str.eval_error]>
-            );
-        }
-    }
+    $body = <[clients.https.decode_body]>->(
+        $body, \%resp_headers, qw| clients.https.h2 |
+    );
 
     <[clients.https.cleanup]>->($state);
     $code{ $state->{'on_done'} }->(
@@ -208,8 +171,8 @@ $state->{'io_watcher'} = $io_watcher;
 
 return $state;
 
-#,,.,,,,,,.,.,,,.,,,,,.,.,,.,,,..,,,.,.,.,,.,,..,,...,...,,..,...,,..,,.,,.,,,
-#EB6EM3RCDCWRNIEE4HYKWMTTQZMJFHTIO42C5A73YUB33PB7JIWHCXTNDR7ACUDFUG673GRGQS32C
-#\\\|JMSUAWPYGRG7E6YOU3PBDAW63PCP5WJ4LBOYYFRPB5FYY24F72C \ / AMOS7 \ YOURUM ::
-#\[7]A2PI7XVCSH4UQFUKR354UXYJBKIEE2ULJQRLFUDAM2MW3BQTQSBI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,...,...,...,.,,,..,,.,,,.,,,..,,...,...,.,,,.,.,...,,..,,,.,
+#E7S2AX2IDPAFHEBI4NXZCYOD4BXHDFVC62RUYLHX3E5AZQLVEEYBZK53R6DDX6SZXEERYMHDPALBW
+#\\\|4HCUQIVS5Y4FBQQHOMQKCNT6JH5ZGJ35TETMKWGDDVXETWC776M \ / AMOS7 \ YOURUM ::
+#\[7]C7MJD4YE7UC4VQSH2A6MUAHBVFUPA4ZKEPR3IJ6FSYHZQYQQXODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
