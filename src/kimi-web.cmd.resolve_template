@@ -7,6 +7,13 @@
 # param = budget   - token budget (default 8000)
 
 my $args = $call->{'args'} // {};
+if ( not ref $args ) {
+    my $args_str = $args;
+    $args = {};
+    for my $token ( split /\s+/, $args_str ) {
+        $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
+    }
+}
 
 my $template = $args->{'template'} // '';
 my $vars     = $args->{'vars'}     // {};
@@ -27,25 +34,28 @@ my $resolved = <[context.template.resolve]>->(
     }
 );
 
-if ( not defined $resolved ) {
+if ( not defined $resolved or length( $resolved->{'error'} // '' ) ) {
     return {
         'mode' => qw| false |,
         'data' => "template '$template' not found or resolution failed"
+            . ( defined $resolved ? " [ $resolved->{'error'} ]" : '' )
     };
 }
 
+my $content = $resolved->{'content'} // '';
+
 return {
     'mode' => qw| true |,
-    'data' => $resolved,
+    'data' => $content,
     'meta' => {
         'template'     => $template,
-        'budget_used'  => length($resolved),
+        'budget_used'  => length($content),
         'budget_total' => $budget,
     }
 };
 
-#,,.,,,.,,,.,,,.,,.,.,.,,,.,.,,,.,,,,,,,.,,.,,.,.,...,...,.,.,..,,,.,,,,.,.,,,
-#BDQV6KM77YNSFEKW7LXXAGUUTI7VMWIQB5KCQKBNHMWMABNJJY7727I2DL7ECZXUFM5H7SFTBXSLY
-#\\\|BZPI6OTOR5AMH55UOUOYZVA6TFMAVCHXZISAM642YXNZC6L3IWI \ / AMOS7 \ YOURUM ::
-#\[7]UPJ7DOD4KCCMBXOM6GZHWUMQZLPBY2KDXCURJ7KRGSW5PGUSY6CI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,...,.,.,.,.,.,.,.,.,..,,.,,,.,.,...,...,..,,,,,,.,,,,,.,,.,,
+#R5RCGYQSLPE5NUOHOKITS2UIOLFKBHIUESQOQT457UOGP47BTCPZORD7MR34EJCFYLCFH47GDLZWS
+#\\\|2EGDPHMPZNWT4NF2MY77ETAQRCOUXOA5NWYIWUCO7RFCS7Q3NUT \ / AMOS7 \ YOURUM ::
+#\[7]4ZRKRYKXYXOKRFJL3RQGWFE6PZ3VGJVLHY6ZSNJZR2W2Z6SLSSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

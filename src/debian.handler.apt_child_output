@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = debian.handler.apt_child_output
+# descr = event I/O handler : accumulate apt child output per-line, complete
+#         the current install job on the terminating '< <exit_code>' line
+
+my $event        = shift->w;
+my $handler_data = $event->data;
+my $job_id       = $handler_data->{'job_id'};
+
+my $current = <debian.apt_child.current_job>;
+
+## stale watcher guard : cancel if the job was replaced or cleared ##
+if ( not defined $current or ( $current->{'job_id'} // 0 ) != $job_id ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+
+## read available output [ non-blocking ] ##
+my $bytes = <[base.s_read]>->( $event->fd, \$handler_data->{'buffer'}, 4096 );
+
+## process complete lines : '> ..' is apt-get output, '< N' terminates the ##
+## job - keep listening across multiple '>' lines of one install           ##
+my $exit_code;
+while ( $handler_data->{'buffer'} =~ s|^([^\n]*)\n|| ) {
+    my $line = ${^CAPTURE}[0];
+    if ( $line =~ m|^< (\d+)$| ) {
+        $exit_code = ${^CAPTURE}[0] + 0;
+        last;
+    }
+    $line =~ s|^> ||;
+    <[base.logs]>->( 1, 'apt: %s', $line ) if length $line;
+}
+
+## EOF without exit line : child died mid-job [ kill 0 guard against        ##
+## spurious 0-byte reads on live pipes, same as monitor_inference_startup ] ##
+if ( not defined $exit_code and $bytes <= 0 ) {
+    my $child_pid = <debian.apt_child.pid> // 0;
+    return if $child_pid and kill( 0, $child_pid );    ## alive : stay ##
+    <[base.logs]>->(
+        0, 'apt_child_output: ' . 'child exited mid-job %d', $job_id
+    );
+    $exit_code = 255;
+}
+
+return if not defined $exit_code;    ## not done yet : watcher stays armed ##
+
+##[ job completion ]##########################################################
+
+my $packages = $current->{'packages'} // [];
+my $reply_id = $current->{'reply_id'};
+
+if ( $exit_code == 0 ) {
+    <[base.logs]>->( 1, ':. successfully installed.' );
+    <[jobqueue.move_job]>->( $job_id, qw| completed | );
+} elsif ( $exit_code == 100 ) {
+    <[base.logs]>->( 0, '  ✗ package not found : cannot continue' );
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+} else {
+    <[base.logs]>->( 0, '  ✗ apt-get exited with code %d', $exit_code );
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+}
+
+## resolve deferred caller [ cross-zenka replies flow back through the ##
+## existing cube route - no separate reply command or grant needed ]   ##
+if ( defined $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        $exit_code == 0
+        ? { 'mode' => qw| true |,
+            'data' => sprintf( 'installed : %s', join( ' ', @$packages ) )
+            }
+        : { 'mode' => qw| false |,
+            'data' => sprintf(
+                'install failed [ exit %d ] : %s',
+                $exit_code, join( ' ', @$packages )
+            )
+        }
+    );
+}
+
+## genuinely done with this job : cancel watcher, release the serialization ##
+## slot, then advance the queue [ writes the next job's 'install ..' line ] ##
+$event->cancel if $event->is_active;
+<debian.apt_child.current_job> = undef;
+
+<[debian.apt_pump]>;
+
+return;
+
+#,,.,,..,,..,,.,.,,.,,.,.,.,.,...,.,.,...,,.,,..,,...,.,.,,,,,..,,,,.,,.,,,,,,
+#QMD2EB77RDTFXQ5K6SOZQIZTLM6VL4OP2O4QPOVV4SCLSRLDYLOQ7PJC6MBHRQOMHIK6CTVYF54VE
+#\\\|PKO2DCEJPFGYUUKY35XEBJXPWMS5RRIFKJ3ZGAT7S32EXJWKMIM \ / AMOS7 \ YOURUM ::
+#\[7]3QCKCCWTXC26KWRPTFRCBFWZQ6YVOPXJF7EO2VWE6WFDEMWJ3YDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

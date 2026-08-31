@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = sys-deps.cmd.install
-# descr = install missing deps via AMOS7::deps::* library
+# descr = install missing debian deps via debian zenka bridge
 # param = [zenka=<name>]
 
 my $param = shift;
@@ -12,13 +12,9 @@ if ( $args =~ m|zenka=(\S+)| ) {
     $zenka_filter = $1;
 }
 
-if ( $EUID != 0 ) {
-    return {
-        'mode' => qw| false |,
-        'data' => 'install requires root [ sys-deps runs unprivileged ] '
-            . '- use bin/os-pkg or v7.cfg.auto_install_deps instead'
-    };
-}
+## no privilege check here : sys-deps always runs unprivileged [ root      ##
+## dropped right after init ] - the actual install is routed to the debian ##
+## zenka's privileged apt_child bridge further below                       ##
 
 my $pm_deps = <sys-deps.pm_deps>;
 my $os_deps = <sys-deps.os_deps>;
@@ -61,56 +57,39 @@ unless (@to_install) {
 }
 
 <[base.logs]>->(
-    1,                   'sys-deps: installing %d package%s ..',
+    1,                   'sys-deps: requesting %d package%s from debian ..',
     scalar(@to_install), @to_install == 1 ? '' : 's'
 );
 
-my $result = AMOS7::deps::debp::install_apt(@to_install);
-
-## Track successful installs ##
-if ( @{ $result->{'ok'} } ) {
-    my $track_dir  = <system.root_path> . '/var/sys-deps';
-    my $track_file = $track_dir . '/tracked.yaml';
-    if ( !-d $track_dir ) {
-        eval {
-            require File::Path;
-            File::Path::make_path($track_dir);
-        };
+## route the privileged install through debian zenka's apt_child bridge : a ##
+## direct AMOS7::deps::debp::install_apt call here can never succeed [      ##
+## install_apt hard-fails when $EUID != 0, and sys-deps has already dropped ##
+## root before any command runs ]. the reply arrives async via              ##
+## sys-deps.handler.install_reply, which completes this command's reply     ##
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| debian.install-packages |,
+        'call_args' => { 'args' => join( ' ', @to_install ) },
+        'reply'     => {
+            'handler' => qw| sys-deps.handler.install_reply |,
+            'params'  => {
+                'packages' => \@to_install,
+                'zenka'    => $zenka_filter,
+                'reply_id' => $param->{'reply_id'}
+            }
+        }
     }
-    my $tracked = { tracked => <sys-deps.tracked> // [] };
-    for my $pkg ( @{ $result->{'ok'} } ) {
-        push @{ $tracked->{'tracked'} },
-            {
-            pkg          => $pkg,
-            type         => 'debian',
-            installed_at => <[base.ntime.b32]> // '',
-            source       => 'sys-deps',
-            zenka        => $zenka_filter,
-            declared     => 0
-            };
-    }
-    eval {
-        require YAML::Tiny;
-        my $yaml = YAML::Tiny->new($tracked);
-        $yaml->write($track_file);
-    };
-    chmod( 0664, $track_file ) if -f $track_file and -o $track_file;
-    <sys-deps.tracked> = $tracked->{'tracked'};
-}
-
-my @output;
-push @output, ":", "::[ sys-deps install ]", ":";
-push @output, map {":  installed : $ARG"} @{ $result->{'ok'} };
-push @output, map {":  failed    : $ARG"} @{ $result->{'failed'} };
-push @output, ":";
+);
 
 return {
-    'mode' => qw| size |,
-    'data' => "\n" . join( "\n", @output ) . "\n"
-};
+    'mode' => qw| false |,
+    'data' => 'could not reach debian zenka [ route-send failed ]'
+    }
+    if not $sent;
 
-#,,..,.,.,,,.,.,.,.,.,,,,,.,.,,..,.,.,,.,,.,,,..,,...,...,.,.,,,,,,..,...,.,.,
-#EN5MRJTKU5DZHRREB3CBNMW5UZ5N6PDVIPSU2WS4NQCOTOZIERSKDOOCGDXGYZWR7R4ZUJPUBD7EQ
-#\\\|RJN6NETY2VEYVURAWERL4M3UCEWNAR6DULE7WZXSLTDDTI64XLL \ / AMOS7 \ YOURUM ::
-#\[7]XDP635ZSZLRUBIYBDJUKVUBI2EHRCW3MSDEKZDFZQQSPWVKYI6DI 7  DATA SIGNATURE ::
+return { 'mode' => qw| deferred | };
+
+#,,.,,.,.,...,,.,,...,,,,,,..,,..,.,,,,..,,,,,..,,...,...,.,,,.,.,,,,,,,.,...,
+#J4IX3ARNGYTJULMHDTBDYDV5W55NNRG5V2QDY56D2IZ2G5IEDUCUAFHCLTQMCCXLJGNRGHUYJML3G
+#\\\|LFS5DE7QMIYAIS7NZO62LHGN2E6R4OYEIANYQJESWA7PCGRUDZJ \ / AMOS7 \ YOURUM ::
+#\[7]ISH23S6LIWRA6C74VP5VTBXWRGKCBXZ7GI5PKVFJ6ZUP6ET35GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

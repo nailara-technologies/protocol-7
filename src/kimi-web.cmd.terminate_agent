@@ -7,6 +7,13 @@
 # param = force             - kill immediately (default false)
 
 my $args = $call->{'args'} // {};
+if ( not ref $args ) {
+    my $args_str = $args;
+    $args = {};
+    for my $token ( split /\s+/, $args_str ) {
+        $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
+    }
+}
 
 my $agent_id         = $args->{'agent_id'}         // '';
 my $preserve_context = $args->{'preserve_context'} // 1;
@@ -106,8 +113,8 @@ return {
     'data' => "agent $agent_id terminated"
 };
 
-#,,..,,.,,.,,,.,.,.,,,.,.,...,...,.,.,,.,,.,.,.,.,...,...,.,,,..,,...,,,,,.,.,
-#ID2HNL7TXBGLQCLZAS4XSMTAIF5BZ77IHNE7TH4ZMFHJNNYC76FX327NAKYTLCYACSSP4DKICCLUE
-#\\\|W6LL2UDDSO5QNVS64QECOYKL4IT4LX25YQFOTBXRO4J5NUX3BH6 \ / AMOS7 \ YOURUM ::
-#\[7]YE7JN36IS37PJ4RPUGJZ7QF5IQ2GLPULTYDIA6OX7J5YDVQ5MCAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,.,.,.,.,..,,.,,,,,,,,,,,,..,.,.,...,...,...,.,.,.,,,,.,,.,,,
+#K4S3D2T5Y353FO6J6F5WQLVS2SIWZRI3WXULOPUNQMCKZTRKV3DGDIASSPQEVYT5PCNKYEQWLCKMG
+#\\\|LFGRQTIMTXR7WX4NG7HPWCWK37G7EWHAKKED7L7N6NNWBBYVQE7 \ / AMOS7 \ YOURUM ::
+#\[7]QYZHORDNPDEOIZABBBII7ONTKF356PLE6PBDONO4AQZNYBKL5QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

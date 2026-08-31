@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = debian.apt_enqueue_install
+# descr = enqueue apt-get install job for serialized apt_child execution
+# param = $params [ { packages => aref, reply_id, source, priority } ]
+
+my $params   = shift                 // {};
+my $packages = $params->{'packages'} // [];
+
+return undef if not @$packages;
+
+if ( not defined <debian.apt_child.w_fh> ) {
+    <[base.logs]>->( 0, 'apt_enqueue: apt child not available [ no w_fh ]' );
+    return undef;
+}
+
+## lazily create dedicated queue : jobqueue's counter watcher only          ##
+## auto-drains the 'queued' queue [ draining apt jobs from there would exec ##
+## concurrent installs and interleave commands on the child's stdin,        ##
+## corrupting the line protocol ] - this queue is pumped manually by        ##
+## debian.apt_pump, one install in flight at a time                         ##
+if ( not exists <jobqueue.joblist> {'apt-install'} ) {
+    <jobqueue.joblist>       {'apt-install'} = <[jobqueue.queue_template]>;
+    <jobqueue.joblist.count> {'apt-install'} = 0;
+}
+
+my $job_id = <[jobqueue.add_job]>->(
+    {   'name'      => sprintf( 'apt install : %s', join( ' ', @$packages ) ),
+        'object_id' => 0,
+        'priority'  => $params->{'priority'} // 0,
+        'target_queue'    => qw| apt-install |,
+        'job_callback'    => qw| debian.job.apt_install |,
+        'callback_params' => {
+            'packages' => [@$packages],
+            'reply_id' => $params->{'reply_id'},
+            'source'   => $params->{'source'} // qw| local |
+        },
+    }
+);
+
+<[base.logs]>->(
+    1,       'apt_enqueue: queued job %d : %s',
+    $job_id, join( ' ', @$packages )
+);
+
+## start immediately if no install is in flight [ else waits for the ##
+## completion handler to advance the queue ]                         ##
+<[debian.apt_pump]>;
+
+return $job_id;
+
+#,,,.,.,,,...,,..,,.,,,,,,.,.,,,.,..,,.,.,.,,,..,,...,...,...,...,,,,,,.,,,.,,
+#MUFBZCJX7QO7VPEH2WNK2IKQLZVTUIGPTGKQPXWJLSPJPHM7KM2EWHMOYBYNWXLRY2WTSCGCNCV56
+#\\\|B7XNYOS5TSESEM6A2E6L6ZTGERN3QNT5NSDXQPGLVPCZYLDOJYP \ / AMOS7 \ YOURUM ::
+#\[7]7OSBAHGZWGYMTVAZ66DUGECCNE4SZJ2Y5NIJHSNATJ3RB4LENSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
