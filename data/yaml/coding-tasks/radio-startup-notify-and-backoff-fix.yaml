@@ -1,0 +1,167 @@
+task_id: radio-startup-notify-and-backoff-fix
+title: radio zenka — fix dropped httpd.radio_online notification + reconnect backoff defeated by flapping
+priority: high
+estimated_rounds: 12
+
+context: |
+  Two independent bugs found by reading LIVE production log evidence from the
+  user's own running radio zenka (branch base), both real, both confirmed
+  against current src/radio.* code — not speculative. Unrelated to the
+  sibling task data/yaml/coding-tasks/radio-playback-resilience-phase2.yaml
+  (different files, safe to implement independently/in parallel; do not
+  duplicate anything from that file).
+
+issues_to_fix:
+
+  1_radio_online_notification_dropped:
+    description: |
+      live log evidence (from this zenka's own real log, not a guess):
+
+        send.local: no clients in session, dropping 'httpd.radio_online'
+                  : [radio.post_init:...]
+
+      src/radio.post_init currently defers its httpd.radio_online
+      notification through <system.init_reports> (base.session.
+      send_init_reports), with an inline comment claiming this is correct
+      because post_init runs before this zenka's own cube session exists.
+      That reasoning is right about WHY a direct send.local would fail, but
+      wrong about the fix: <system.init_reports> is a ONE-SHOT queue that
+      flushes exactly once, timed around this zenka's OWN initial cube
+      connect event (base.session.send_init_reports self-reschedules every
+      0.777s until <system.zenka.initialized> is true, flushes once, then
+      never runs again). src/radio.init_code schedules radio.post_init on a
+      1.0s timer, while [base.net.connect:'unix'] (the initial connect) runs
+      synchronously right after init_code returns, essentially at t≈0. If
+      this zenka's own <system.zenka.initialized> flips true and the one-shot
+      flush drains (finding the queue still empty) before radio.post_init's
+      1.0s timer even fires and pushes its item, the item either never gets
+      picked up at all, or gets picked up and sent while the zenka's own
+      session/routing still isn't fully ready — either way it's dropped, as
+      the live log confirms is actually happening in production right now.
+
+      practical effect: httpd never learns /radio/stream is available (or
+      loses that knowledge after any httpd restart, since radio only sends
+      this once at its own startup) — this is a plausible independent cause
+      of "mpv can't play the stream" that has nothing to do with the
+      jingle-state bug in the sibling task.
+
+    fix: |
+      switch src/radio.post_init from <system.init_reports> to
+      <system.callbacks.initialized> — this is this project's own
+      already-established fix for exactly this failure class. Read
+      src/lm-vision.init_code lines ~140-159 for the exact precedent and
+      its own inline reasoning (it hit and fixed the identical bug
+      pattern already, with a route-send + reply handler through the
+      callback). Mirror its shape:
+
+        push @{ <system.callbacks.initialized> //= [] }, sub {
+            <[protocol-7.route-send]>->(
+                {   'command'   => qw| httpd.radio_online |,
+                    'call_args' => { 'args' => <radio.stream.path> // '/radio/stream' },
+                }
+            );
+        };
+
+      (radio.post_init's current call has no reply handler — a plain
+      fire-and-forget notification — so the callback body only needs the
+      route-send, no reply-handler wiring like lm-vision's example needs;
+      keep it that simple, don't add a reply handler that wasn't there
+      before)
+
+      remove the old <system.init_reports> push entirely — do not leave
+      both mechanisms active side by side.
+
+    modules_to_modify:
+      - radio.post_init
+
+  2_reconnect_backoff_defeated_by_flapping:
+    description: |
+      more live log evidence from the same session, a tight repeating
+      cycle (timestamps close together, not the expected 5s/10s/20s/38s/77s
+      exponential spacing):
+
+        [radio] stream disconnected
+        [radio] reconnecting in 5s
+        [radio] stream disconnected
+        [radio] reconnecting in 5s
+        [radio] stream disconnected
+        [radio] reconnecting in 5s
+        [radio] stream disconnected
+        [radio] reconnecting in 5s
+
+      root cause: src/radio.connect resets <radio.stream.reconnect_delay> = 5
+      immediately after the raw TCP/TLS socket connects and the HTTP GET is
+      written — i.e. as soon as a connection is merely ACCEPTED, regardless
+      of whether the ICY stream actually stays up afterward. If the upstream
+      server accepts the connection but then closes it again quickly
+      (flapping, transient server-side issue), every single reconnect
+      attempt resets the backoff to 5s right before failing again — the
+      exponential backoff in src/radio.handler.reconnect (5→10→20→38.5→77,
+      capped at 77s) never actually accumulates, and radio hammers the
+      upstream server every 5s indefinitely instead of backing off.
+
+    fix: |
+      move the reconnect_delay reset from "raw connect succeeded" to
+      "stream data actually confirmed" — specifically, once ICY headers
+      finish parsing (a real signal the connection is genuinely serving the
+      stream, not just accepting TCP):
+
+      - in src/radio.connect: DELETE the line
+        `<radio.stream.reconnect_delay> = 5;` (currently placed right after
+        the io_watcher is set up, near the end of the file)
+
+      - in src/radio.handler.stream-chunk: ADD
+        `<radio.stream.reconnect_delay> = 5;` inside the header-parse-done
+        branch, right after `$icy->{'headers_done'} = 1;` is set (same
+        block that already logs '[radio] connected, metaint=%d') — add a
+        short inline comment explaining why the reset lives here now: only
+        reset backoff once the stream is confirmed actually serving data,
+        not merely on TCP/TLS accept, so a flapping upstream server can't
+        defeat the exponential backoff
+
+    modules_to_modify:
+      - radio.connect               (remove the premature reset)
+      - radio.handler.stream-chunk  (add the reset at the correct point)
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md before
+    starting
+  - all comments lowercase
+  - annotations use [ word ] not ( word )
+  - log format: '[radio] description :. value'
+  - module invocation: <[module.name]>->($args)  — closing ]> BEFORE ->
+  - do not add the stub signature line — signing system adds the real footer
+
+explicitly_out_of_scope: |
+  - do not touch anything in radio.audio.*, radio.gap_fill.*, radio.filter.jingle,
+    or radio.cmd.status — those belong to the sibling
+    radio-playback-resilience-phase2.yaml task, not this one
+  - do not change plugin.httpd.radio.* on the httpd side — the receiving end
+    already has its own guard against duplicate subscriptions (fixed
+    previously), this task only fixes the SENDING side reliably arriving at
+    all
+  - do not change the exponential backoff shape/cap itself in
+    radio.handler.reconnect (5s base, doubling, 77s cap) — that logic is
+    correct, it just currently never gets a chance to run because the delay
+    var keeps getting reset out from under it
+
+verification: |
+  static/read-only verification only (no live network execution required —
+  the user will live-test on their own running instance afterward):
+  1. trace radio.post_init's new callback registration by hand: confirm it
+     fires exactly once, after this zenka's own session is genuinely up,
+     and confirm the old <system.init_reports> push is fully gone (not left
+     in alongside the new code)
+  2. trace radio.connect and radio.handler.stream-chunk by hand: confirm
+     reconnect_delay is no longer touched in radio.connect at all, and is
+     reset to 5 exactly once headers_done flips to 1 in stream-chunk —
+     confirm a connect-then-immediate-drop (headers never finish parsing)
+     now correctly leaves the PRIOR reconnect_delay value in place for
+     radio.handler.reconnect's next doubling, instead of resetting it
+  3. bin/dev/ptd -c (or equivalent syntax check) on both changed files
+
+#,,,.,...,,.,,.,.,,..,...,,.,,...,...,.,,,,,,,..,,...,..,,...,...,,,.,,,,,.,,,
+#JFQJHH2OHKBULUKBHRJ7OLCHRLQR3VFR624NLLZW2HGS5ZRX5VTVEGDQU2QJQKXH66LYVEAIPUMR6
+#\\\|JMNP5ASUBRWZSTCT63XTQK77Y3IC2ETA5FWJ5NJMZKXPJ7XKM46 \ / AMOS7 \ YOURUM ::
+#\[7]3COJAP37KMPND4ORJ2UC6H5ZMF6OVHTIPFQ5CA3PVWMTRLXLLMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

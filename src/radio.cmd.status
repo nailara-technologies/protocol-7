@@ -28,19 +28,26 @@ if ( -d $lib_dir ) {
         @files == 1 ? '' : 's';
 }
 
+my $idle_streak_str = '';
+if (<radio.audio.active>) {
+    $idle_streak_str = sprintf "\nmpv idle streak: %d",
+        <radio.audio.watchdog.idle_count> // 0;
+}
+
 return {
     'mode' => qw| true |,
     'data' => sprintf(
         "current track: %s\nlisteners: %d\nconnected: "
-            . "%s\njingle: %s\ngap filler: %s%s%s",
-        length $current_title ? $current_title : '(none)',
-        $listeners,      $connected,    $jingle_state,
-        $gap_fill_state, $duration_str, $library_str
+            . "%s\njingle: %s\ngap filler: %s%s%s%s",
+        length $current_title ? $current_title : '(none)', $listeners,
+        $connected,                                        $jingle_state,
+        $gap_fill_state,                                   $duration_str,
+        $library_str,                                      $idle_streak_str
     )
 };
 
-#,,,.,.,.,,,.,,,.,,..,,,,,,..,.,.,,,,,,,.,.,.,..,,...,.,.,,,.,,,,,.,.,,.,,..,,
-#GK3JQJO25UOOBO6FUUU6ESSTXC3EEWXIVPUOWRMARSCDTJCR63VCNHQ3Q5J244NUGZFYOKAX53QJY
-#\\\|PA6WIHTJOBBLBPSS4MH65WDR5MBEFQLIER6BLZYR6L2DWI2ERKG \ / AMOS7 \ YOURUM ::
-#\[7]R2JTFBS2UW4QG3IWQGP7YFMAKEJOE6WMSCRNAB5KNSDRWODJFKAA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,.,,,,,,..,,.,,.,.,,,,,...,,..,..,,...,...,..,,.,,,,,,,,,,,,,.,
+#36SOFB5ZUWB7OVESFUMUKNEY67ZMAVCCOAJN7MBN6LURVBJX5VICSKCZBOPVZURIOTN7ZZEB3ZWOU
+#\\\|XMVRVFK44VQ67PFFQHW5Z6HVJSU4OM7ICBYRZ4WGPPXK3T4OKM3 \ / AMOS7 \ YOURUM ::
+#\[7]TSYUMV7YAXWBEFQOSMJ3FHGNNXYSOMM6MX3Z7PHOTYOYW2WPQIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
