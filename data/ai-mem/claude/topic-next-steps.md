@@ -767,3 +767,47 @@ closing the very evidence it needs.
 #\\\|L5CMNXT4KQ4D7D57JXYNQPCS6LIF2APBQG2HADPYHRJBOTBTFSZ \ / AMOS7 \ YOURUM ::
 #\[7]I6ZFES2YI7ES3QPFQJ7V3HC6YBL5DEHCUOJCYXH5AUGFB47O4OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## queued idea (2026-08-31) — re-check auto-install wiring once debian/os-pkg zenki mature
+
+Follow-on from this session's debian/sys-deps async apt-install pipeline
+fix ([[project-sys-deps-wiring-completion]] context, `base.debian.
+install_package` now jobqueue-backed + event-driven). User flagged two
+distinct auto-install wiring cases still worth re-checking/re-trying once
+`debian` and/or `os-pkg` zenki are more mature:
+
+1. **backend cleanly running** — the easier case: a zenka already has its
+   event loop up (Event.pm loaded, jobqueue etc. available) and discovers
+   a missing dependency mid-operation. This is exactly what today's fix
+   already covers for the debian-zenka-self-install path.
+2. **minimal startup case** — harder: a zenka doesn't even have Event.pm
+   loaded yet (very early boot, before any event-loop machinery exists),
+   and needs to resolve a missing dependency before it can proceed at
+   all. None of today's jobqueue/event.add_io infra is usable here.
+
+For case 2, user's first thought was shelling out to `bin/p7-deps` (works
+standalone, no Event.pm needed) — but flagged it as "not integrated
+enough for long-term." Better fit floated: **integrate directly into the
+`AMOS7` module** — `AMOS7::deps::*` (module.pm/debp.pm/os_package.pm)
+already works standalone with no zenka/event-loop dependency (used by
+both `bin/p7-deps` and `bin/os-pkg` today), so extending/exposing a
+bootstrap-safe dependency-check-and-install call at the AMOS7 level
+(rather than shelling out to a separate `bin/p7-deps` process) is the
+natural fit for "before Event.pm is even loaded."
+
+Connects to [[vision-inline-filesystem-self-contained-protocol-7]] — the
+minimal-startup case is exactly where a fully self-contained P7 process
+(no external file/module dependencies at all) would matter most.
+
+## status
+
+Pure follow-up idea, not started. Revisit once debian/os-pkg zenki have
+had more real-world exercise (today's fix covers case 1's underlying
+mechanism but hasn't been stress-tested; case 2 has no design yet beyond
+"probably AMOS7-level, not a bin/ shellout").
+
+#,,,.,.,,,.,,,.,.,,..,.,,,.,,,,.,,,,.,,.,,...,..,,...,..,,,.,,.,.,..,,,,.,..,,
+#NSLTLJPIEPVXUVFEBZ3REYI2FRDAORLCH2OTI6F46MHJJEU427UM4NGMZCLNSI4DUI5HXE4S3CMWK
+#\\\|S36ET5TJVGMPQG67HQEGFXEW6YKBUAIN4N5LQRCH6YGPL37OHXZ \ / AMOS7 \ YOURUM ::
+#\[7]IUSOSYO7JCJNVPCBHUFVALDYKGPC4HF7EFKYS43DSXB5NM6FNMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

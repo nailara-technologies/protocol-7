@@ -73,10 +73,25 @@ each took real live-debugging effort to find. Don't re-attempt the 38
 outstanding files without treating them as individually suspect, not just
 "forgot to run them."
 
+**Update, 2026-08-31**: the `<ntime>` half of the `<chksum>.<ntime>.png`
+naming (fixed by `4dfd2425d`, above) is itself still base32-encoded —
+alphabetical listing of two independent base32 fields doesn't sort
+chronologically, introducing jitter that matters for anything relying on
+capture order (e.g. animations built from a sequence of frames). User
+created `src/base.path-template.amos-ntime-dec` (`<[path-template.*]>`
+namespace, already committed `c5dd834f9`) to render ntime as a sortable
+decimal string instead. **Not yet done**: wiring this into
+`handler.capture_paged_snapshot`'s naming, and — once wired — renaming
+the existing 531 capture files (plus whatever's been added since) to the
+new decimal-ntime scheme so the whole corpus becomes cleanly
+time-sortable. Don't rename the files before the capture code itself is
+switched over, or new captures will immediately reintroduce the mixed
+naming this is meant to fix.
+
 #,,.,,,..,,,.,..,,,..,,..,..,,..,,...,.,,,,..,..,,...,..,,,,,,..,,,.,,,,,,,,.,
 
-#,,,,,,..,,..,...,,.,,,,,,,,.,.,.,.,.,...,,,,,..,,...,.,.,.,,,,,,,,.,,,.,,...,
-#QOVSIZDNPVAKM2G3Y43K7MDX7S4JM7U254R4667KPBHIP4HPR4BH3KUURPDJDKGRPBYLLPK7ZM6L2
-#\\\|FNCYTTKTCKCZ65QHGH7QWS4KQ3DFQAA7VYZITHPBXORQYWKR6LT \ / AMOS7 \ YOURUM ::
-#\[7]US2F7ZQWC76WZVWGOEMPUBQ6NDQ4DNO6IZZOLNHGGPXAPLNWQIBI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,.,.,,..,.,,,,..,,,.,...,,.,,..,,...,...,..,,,.,,.,,,,,,,.,,,
+#ESJZ2IPW6NMF2AMEL3CASVQBFS4PG4SB25CMADUI574MWBZOZZOHPP4IIBFMTSRJRCKKL64NL5QOS
+#\\\|DQEEB3DQFDVCHGPLG5GTBFJD6FZ27PBJBIMSGOCBY4SAIXOZ2IK \ / AMOS7 \ YOURUM ::
+#\[7]LF2QWBDN4FUXACYNQB2MT6FZHEZH2DF5LSHISZNBUF3FJAYZCYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
