@@ -1,0 +1,190 @@
+task_id: format-code-spaceless-split-and-data-key-sugar
+title: format-code — fix spaceless long-string split fallback, add opt-in $data{}{} -> <key0.key1> sugar compaction
+priority: normal
+estimated_rounds: 18
+
+context: |
+  Two independent, well-scoped fixes to bin/format-code (the PPI-based
+  preprocessing pipeline that runs before perltidy — see
+  data/ai-mem/claude/topic-format-code-bugs-fixed.md for its full history:
+  step0-step5 pipeline, 19 bugs already fixed there via real-file
+  dogfooding, never synthetic tests). Both are todo items the user wants
+  processed together (todo ids 7XX and RLL, tag format-code).
+
+  ## Fix 1 (todo 7XX) — spaceless long string falls through to an awkward
+  ## split instead of being handled by step1
+
+  bin/format-code:986 `step1_split_long_string` is supposed to split an
+  over-budget line at a long quoted-string token. Line ~1001:
+
+      next if $inner !~ m{\s};
+
+  skips any string token that contains NO whitespace at all — e.g. a
+  comma/semicolon-only value like
+  'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'.
+  Since every candidate token gets skipped this way, step1 returns undef
+  for the whole line and gives up. Whatever comes after in the pipeline
+  (perltidy itself) then falls back to splitting it awkwardly MID-WORD
+  into two concatenated string literals (e.g. 'http/2 codec ' . 'error:
+  %s' — a real example already in the codebase, functionally fine but
+  visually not what a human would write).
+
+  Found in src/site-yaml.async_fetch.headers and
+  src/clients.https.h2.send_request / src/clients.https.h2.handler.io —
+  read these three files first and find the actual long spaceless string
+  literals in them (the Accept/Accept-Language-style HTTP header value
+  strings are the ones that triggered this).
+
+  Fix: give step1 (and its helper `find_split_positions`, bin/format-code:1032,
+  which currently only knows how to keep string-interpolation regions
+  intact when splitting on whitespace) a fallback split strategy for the
+  no-whitespace case: split after a comma or semicolon instead, same
+  general shape as the existing whitespace-based split (each fragment
+  becomes its own quoted-string-and-concat-operator line, indented to
+  line up under the opening quote, same as the existing 2+-way split
+  logic in `split_into_lines`, bin/format-code:824). Keep respecting
+  interpolation boundaries the same way the existing code does — don't
+  split inside a `${...}`/`$var`/`@arr` interpolation region even if it
+  contains a comma. If a token has neither whitespace nor comma/semicolon
+  to split on, it's fine to keep skipping it (leave as one long line) —
+  don't invent a third fallback beyond these two.
+
+  ## Fix 2 (todo RLL) — new opt-in step: compact nested %data hash chains
+  ## into Protocol-7's <key0.key1[.keyN]> sugar form
+
+  Protocol-7 has TWO separate, unrelated pieces of "sugar" syntax that get
+  parsed to plain Perl before compilation. Don't confuse them:
+
+  - `<[module.name]>` (square brackets inside the angle brackets) is
+    subroutine-call sugar for `$code{'module.name'}->()`. This one is
+    already documented in CLAUDE.md. NOT what this task is about.
+  - `<key0.key1[.keyN]>` (NO square brackets) is sugar for a literal
+    nested %data hash-chain access of depth >= 2: `$data{'key0'}{'key1'}`
+    and deeper. THIS is what this task adds compaction support for. See
+    data/ai-mem/claude/reference-nested-data-key-sugar.md for the full
+    rule and worked examples, e.g.
+    `$data{'watcher'}{'io'}{'transfer'}->start` reads as
+    `<watcher.io.transfer>->start`, and
+    `delete $data{'base'}{'ondemand'}{'saved_timeout'}` reads as
+    `delete <base.ondemand.saved_timeout>`. The sugar also composes
+    partially — a trailing dynamic key stays literal:
+    `$data{'watcher'}{'io'}->{$name}` reads as `<watcher.io>->{$name}`.
+
+  Heuristic (user-specified, exact wording): safe to compact any run of
+  >= 2 consecutive `{'key'}` segments immediately following
+  `$data{'key0'}`, stopping at the first character that isn't a literal
+  `{` opening another key segment — i.e. stop at a dynamic index
+  (`{$var}`), a method call, an array subscript, or any other trailing
+  expression. A single `$data{'key0'}` alone (only one key, no second
+  `{...}` segment) is NOT compacted — the sugar only applies at depth 2+.
+  Applies equally whether the chain is being read, assigned to, or passed
+  to `delete`/`defined`/etc. — it's a pure lexical rewrite, the
+  surrounding context doesn't matter.
+
+  Implement this as a NEW, OPT-IN step in bin/format-code's pipeline
+  (i.e. gated behind a new command-line flag — pick a name and wire it
+  through the same option-parsing bin/format-code already uses for its
+  existing flags like -n/-c; do not make it run by default alongside the
+  existing always-on steps). This is a new kind of rewrite (not a bug fix
+  to existing behavior like Fix 1), so keep it conservative: only rewrite
+  a chain when every key segment is a literal single- or double-quoted
+  bareword-shaped string (`^\w[\w\-]*$` after unquoting, matching how
+  existing P7 dotted-namespace identifiers look) — if a key contains
+  characters that wouldn't survive being written as a dotted segment (a
+  space, a literal `.`, a `$` interpolation inside the quotes, etc.),
+  leave that chain untouched rather than guessing.
+
+issues_to_fix:
+  - id: spaceless-string-split
+    description: |
+      step1_split_long_string / find_split_positions skip any quoted
+      string with no whitespace, so a long comma/semicolon-only string
+      never gets split cleanly and falls through to perltidy's awkward
+      mid-word-concat fallback. Add a comma/semicolon fallback split
+      path, respecting existing interpolation-boundary logic.
+    files:
+      - bin/format-code (step1_split_long_string, find_split_positions,
+        split_into_lines — read all three before changing anything,
+        they're tightly coupled)
+    precedent: |
+      the existing whitespace-based split path in the same functions is
+      the model to follow structurally — same continuation-indent
+      handling, same N-way generalization already used for the
+      whitespace case (bin/format-code:1017-1022's comment explains why
+      it's N-way not just 2-way)
+  - id: data-key-sugar-compaction
+    description: |
+      new opt-in format-code step that rewrites $data{'a'}{'b'}[...]
+      chains (depth >= 2, all-literal bareword-shaped keys) into
+      <a.b...> sugar form. Gated behind a new flag, off by default.
+    files:
+      - bin/format-code (new step function + option-parsing wiring)
+    precedent: |
+      data/ai-mem/claude/reference-nested-data-key-sugar.md has the full
+      rule + worked examples; src/base.zenki.pause_ondemand_timeout and
+      src/base.zenki.resume_ondemand_timeout (this session's new files)
+      already use the sugar form by hand in new code — good reference
+      for what correct output should look like, though note
+      resume_ondemand_timeout's own `$data{'watcher'}{'io'}{'transfer'}`
+      lines were flagged by the user as exactly what this new step
+      should have caught and didn't need to be written by hand
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md
+    before starting
+  - all comments lowercase, `[ word ]` not `( word )` for annotations
+  - do not add a signature footer stub — the repo's signing system adds
+    the real one on commit
+  - bin/format-code already has a PPI-based token-classification layer
+    (`is_quote_token`, the `$quotes_by_line` structure) — reuse it for
+    Fix 1 rather than re-parsing quote boundaries by hand; for Fix 2,
+    PPI can also identify `$data{'literal'}` subscript chains cleanly
+    (PPI::Token::Structure / PPI::Structure::Subscript) rather than
+    regex-matching raw text, which is safer against false positives
+    inside comments or other quoted strings
+
+explicitly_out_of_scope: |
+  - do not run the new data-key-sugar step across src/ in this task —
+    implement it, demonstrate it correctly on a small number of real
+    files (dry-run / diff review only), and stop there. Applying it
+    repo-wide is a separate, deliberate step the user runs themselves
+    later after reviewing the tool's behavior.
+  - do not touch bin/dev/ptd — it deliberately has no PPI-based reflow
+    pipeline at all (see
+    data/ai-mem/claude/feedback-ptd-vs-format-code-two-reasons-to-keep.md
+    for why that's intentional, not a gap to fix)
+  - do not modify perltidy's own configuration/behavior — both fixes are
+    about format-code's PRE-processing pass, before perltidy ever runs
+  - do not touch the <[module.name]> subroutine-call sugar or its
+    existing parser/compiler support — unrelated to this task, see the
+    explicit distinction drawn in the context section above
+
+verification: |
+  1. Fix 1: run `bin/format-code -n` (dry-run) against
+     src/site-yaml.async_fetch.headers and
+     src/clients.https.h2.send_request / .handler.io before and after the
+     change, diff the output. Confirm the previously-awkward mid-word
+     concatenation is gone and the long spaceless string now splits
+     cleanly at comma/semicolon boundaries with correct continuation
+     indentation. Confirm `bin/dev/ptd -c` (or `format-code -c`) still
+     reports syntax ok on the modified files.
+  2. Fix 1: construct at least one small synthetic test case with a long
+     string containing BOTH whitespace and commas, to confirm the
+     existing whitespace-based path still takes priority and nothing
+     regresses for the already-working case.
+  3. Fix 2: grep src/ for a few real, clear-cut `$data{'a'}{'b'}` (or
+     deeper) chains with all-literal keys, run the new flag in dry-run
+     mode against 2-3 of those files, diff review each rewrite by hand
+     for correctness (especially the stop condition at the first
+     non-literal-key segment, and the partial-path case like
+     `$data{'a'}{'b'}->{$var}`). Confirm `bin/dev/ptd -c` reports syntax
+     ok on every rewritten file.
+  4. Fix 2: confirm the new flag is genuinely opt-in — running
+     `bin/format-code -n` WITHOUT the new flag on the same files produces
+     no data-key-sugar changes at all.
+
+#,,.,,.,,,,,,,...,,,.,,,.,,,,,.,,,...,.,.,,..,..,,...,..,,...,...,...,,,.,,..,
+#K2CKKBVQV7WGFQLATC7FW23KDL6XH4HJIHCYAYENGI4JQHF27OTIURQOKEV6D5N3RNNA4GFKSKYJA
+#\\\|XBBK4PWVCXODAIARRNQHMH4HYRLPKKFLVS2TILKQCN7ANKWZHOY \ / AMOS7 \ YOURUM ::
+#\[7]QFBW5QDIWO2TUEMID6PQBPQT7DAOVH6IJW5EK7OAH4XLIJFMBMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
