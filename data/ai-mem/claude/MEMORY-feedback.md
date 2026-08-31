@@ -58,7 +58,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md)
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
-- [narrow-scoped-kimi-task-file-pattern](feedback-narrow-scoped-kimi-task-file-pattern.md) — one design-doc section + named precedent file + explicit out-of-scope + execution-free verification got 4/4 K2.7 dispatches right; still review the diff, caught 2 real bugs syntax-check missed
+- [narrow-scoped-kimi-task-file-pattern](feedback-narrow-scoped-kimi-task-file-pattern.md) — one design-doc section + named precedent file + explicit out-of-scope + execution-free verification got 4/4 K2.7 dispatches right; still review the diff, caught 2 real bugs syntax-check missed; 2026-08-31: a NEW cross-zenka command call also needs a live-tested access.zenki grant, invisible to both static verification and diff review
+- [verify-symptom-shape-before-hypothesis](feedback-verify-symptom-shape-before-hypothesis.md) — "off overnight"/"stops working" is ambiguous between process-death and stuck-alive-state; check ps/status before investing in a process-supervision hypothesis just because it's the memory-documented failure class at hand
 - [stream-repetition-homogeneous-false-positive](feedback-stream-repetition-homogeneous-false-positive.md) — coding.detect_stream_repetition flagged legit homogeneous char runs (ascii.frame borders, AMOS7 sig footers) as degenerate model output; fixed c39873f93, homogeneous units now need 200+ char runs
 - [kimi-k2.7-vs-k3-tier-economics](project-kimi-k2.7-vs-k3-tier-economics.md) — K3 categorically stronger reasoning, not just steering; ~3.75x price reflects it, use for higher-impact tasks
 - [model-routing-opus-cubic-viz-k3-design](feedback-model-routing-opus-cubic-viz-k3-design.md) — Opus: standout on cube/voxel-viz perf refactors (one-pass, error-free); K3: matched Opus's "catches real errors" bar immediately on first design-corpus dispatch
@@ -108,8 +109,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 
-#,,,,,..,,.,,,,.,,,..,...,,,.,.,.,..,,,,,,,,,,..,,...,...,...,.,.,,..,...,.,,,
-#654EZTROCO6YKCUAAXUJ6C7JVOIDKABI4XDEAJ4EBBSEVJMUPPR2G6T4UHGEVUXGRKB4PGOUHSIUG
-#\\\|AIHVYKMTCTCUR4LNTQY322OOI2P56G73AP4LSM43OQ2GT53Q7N3 \ / AMOS7 \ YOURUM ::
-#\[7]I2BSHRXNOFP4DRK5IFFQBRAYFOTUBT5MQPW25ZZY3LX5BKWBY2BY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,..,,.,.,..,,,,.,..,,,..,.,.,,..,..,,...,..,,..,,,.,,,,.,.,,,,,,,
+#CVTKWCMBSKALDU3IACVXWKHSM2MCM5I7XAV43H42RMKYDWGLZ6QM7Z7TGX723XANHOF74HFSH3WM2
+#\\\|D7TZR5UVDHUXETRA2XWDBG6OE5LK2DF36KXMXOLYMQDKDMZPIVM \ / AMOS7 \ YOURUM ::
+#\[7]J7B7X3KTEFKUXRYIRT66BHGFTSSCFGJCDGQAY6PGPFXXVOYHGMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

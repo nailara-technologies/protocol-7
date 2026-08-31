@@ -153,8 +153,70 @@ crossfade above — the fade primitive it reuses (`$instance.fade` via
 `protocol-7.route-send`) is exactly what twin-instance crossfading would
 need for both instances, just not yet orchestrated between two of them.
 
-#,,,,,,,.,...,,,.,,.,,,,,,..,,...,..,,,..,..,,..,,...,.,.,.,.,...,,,,,,,,,,.,,
-#5GAZPPI26L3FLT5HHQPC5ZG2VV463TE3LMAMFE6B3IHKNHVVQ35SWPSQ5MQJU4NA7BJ2IZLVVZ3KY
-#\\\|DWQCHG4FHMFRR7DCA5CVEARIPKU7YNR6FK4TTH56N3JSJBBVS52 \ / AMOS7 \ YOURUM ::
-#\[7]7NLTAOPPCU7ZTIIWX3IWVPMHLXXR4JFWVRAKB6W4GPFE65STJYDY 7  DATA SIGNATURE ::
+### playback resilience phase 2 — landed (2026-08-31, commit `814d0f963`)
+
+Reported symptom: "off when I wake up" — **turned out NOT to be the zenka
+or mpv[audio-0] process dying** (user corrected this mid-session after I'd
+spent real effort chasing v7 process-supervision/crash-restart forensics
+first — see [[feedback-verify-symptom-shape-before-hypothesis]]). The real
+symptom was playback silently stalling while both processes stayed online.
+Four independent real bugs found and fixed, two dispatched to kimi k2.7
+against `data/yaml/coding-tasks/radio-playback-resilience-phase2.yaml` and
+`radio-startup-notify-and-backoff-fix.yaml` (kept in-repo as reference):
+
+1. **jingle suppression could get stuck true forever**: `is_jingle` was
+   only ever re-evaluated inside the "ICY StreamTitle changed" branch of
+   `radio.handler.stream-chunk` — if upstream metadata stalls or repeats,
+   nothing ever clears it. While stuck true: real stream relay stays fully
+   gated off, mpv stays faded to 0, and if the keep-library was empty,
+   `radio.gap_fill.start` silently no-ops with no timer left running to
+   ever revisit the flag — total, permanent silence with no self-heal.
+   Fixed with a timeout keyed off `track_started`:
+   `radio.jingle.max_duration_seconds` (default 45s), checked
+   unconditionally on every `stream-chunk` invocation (not gated on
+   gap_fill/headers_done state — that was the whole point).
+2. **mpv playback health was never tracked, only process presence**:
+   `radio.audio.active` only ever reflected v7's `notify_online`/
+   `notify_offline` (process up/down) — a silent `end-file` or buffer
+   stall while the process stayed alive left it stuck active with zero
+   retry. New `radio.audio.watchdog.tick` / `.handler.reply` poll mpv's
+   already-observed `core-idle` property (via the pre-existing
+   `mpv.cmd.is-idle` command) every 20s, re-issue play after 40s sustained
+   idle. **Needed a live cube `access.zenki` grant for
+   `mpv[audio-0].is-idle`** under `access.cmd.usr.radio` — this was not
+   caught by kimi's static verification (ptd -c) or by my own diff review,
+   only by actually running it; see
+   [[feedback-narrow-scoped-kimi-task-file-pattern]]'s cross-zenka-access
+   addendum.
+3. **`httpd.radio_online` silently dropped at startup**: `radio.post_init`
+   deferred through `<system.init_reports>`, believed correct (that
+   memory file itself listed `radio.post_init` as the canonical
+   fire-and-forget example) — but live logs showed "no clients in
+   session, dropping 'httpd.radio_online'" happening in production. Root
+   cause: `radio.post_init` fires on a 1.0s timer, while
+   `<system.init_reports>`'s one-shot flush is timed around the initial
+   connect (~t≈0) — the flush can drain an empty queue before post_init's
+   item ever gets pushed. Fixed by switching to
+   `<system.callbacks.initialized>`, mirroring `lm-vision.init_code`'s
+   existing fix for the identical failure class. **Correction to
+   [[feedback-init-reports-one-shot-flush]]**: that file's own worked
+   example was itself later proven wrong by live log evidence — don't
+   trust "this looks like the fire-and-forget case" without checking
+   actual delay-vs-flush-timing race potential.
+4. **reconnect exponential backoff defeated by a flapping connection**:
+   `radio.connect` reset `reconnect_delay` to 5s immediately on raw
+   TCP/TLS accept, before the stream was confirmed to actually be serving
+   data — so a server that accepts-then-immediately-drops never let the
+   backoff accumulate (5→10→20→38→77), hammering the upstream every 5s
+   instead. Moved the reset to fire only once ICY headers finish parsing
+   in `radio.handler.stream-chunk` (`headers_done=1`), a real signal the
+   connection is genuinely serving stream data.
+
+Live-verified stable afterward (user's own words: "playback is working in
+the background, no errors").
+
+#,,..,,,,,,.,,,.,,.,.,.,.,,,,,,.,,.,.,,,.,,,,,..,,...,...,...,,,.,,.,,...,,,,,
+#7BKGLPFZ2NDWFNIZ4TSJ7WEM2CICOVHNSDXDEBXQJR4EEJNQY4RBNHLDL5ZCROLDTZRYMM2LZW2AS
+#\\\|UDMUR3SX7AZUXABNNDAVFCN74WOLXTCDBKRE3SHRF44ZB2XVOTX \ / AMOS7 \ YOURUM ::
+#\[7]BSQUROXPDOFFWQCVQ7DWUHUSO63C2EDFS4DGN6N26XOJOCN43IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

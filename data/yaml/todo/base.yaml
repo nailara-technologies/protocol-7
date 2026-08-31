@@ -389,10 +389,10 @@ items:
   text: replace style-offending --yes parameter occurence
 - added: 3W7NRFWPJ4
   details: ''
-  done_at: null
+  done_at: 3XAOP2OVBA
   id: 6KK
   priority: high
-  status: open
+  status: done
   tags:
   - bin/ncpan
   text: fix moved package details location
@@ -414,9 +414,24 @@ items:
   tags:
   - bin/todo
   text: add no-TTY input method for details command
+- added: 3XAORDFQDM
+  details: |-
+    swap IO::Socket::IP for IO::Socket::SSL in open_cpan_file (port 443),
+    keep the existing manual HTTP/1.1 header-parsing loop as-is.
 
-#,,..,,,,,...,,,.,..,,,..,,,,,,,,,.,,,,.,,..,,..,,...,...,..,,...,,..,,,.,.,.,
-#LXJWNGABHTFEB3TC2GM6UDLNSSTVQV5U6PO2X5BJKH4JZU56BWNSVE3GDHEWHO3N3OKAK4IZI5RMU
-#\\\|GVDXSBDB735EAAYFANAP5SZC4XUZ2WK3ZDBCX6CGRPWYJIWWOH5 \ / AMOS7 \ YOURUM ::
-#\[7]SJEZXXYBGUPJPL5I7Z35EOOQDF3W4LE4YNMPT4QBYVTAZLR32QBY 7  DATA SIGNATURE ::
+    do not port src/clients.https.* -- that module set is coupled to the
+    zenka async event loop (init_code/pre_init/handler.io/handler.timeout),
+    not usable from a standalone blocking script like bin/ncpan.
+  done_at: null
+  id: WPM
+  priority: normal
+  status: open
+  tags:
+  - bin/ncpan
+  text: upgrade ncpan to HTTPS
+
+#,,,.,,,.,..,,,.,,,,.,.,.,...,,,,,..,,,,,,.,,,..,,...,...,...,,,.,,,.,...,,.,,
+#3BZJJHPYZZEL2LMQJXUNKF7LZYVF5T2KGF67TE76UGY5QHEE6LWO4TUWOKHTTOTGIIFV6UD7SCI56
+#\\\|ICI3Y6QEJG6TLFI2X6CTQQQ2CX5TE7M5F26HS6KJYZ6WEGXFWS4 \ / AMOS7 \ YOURUM ::
+#\[7]YDA6CDNCELFWD3VALFF77UTGQLPJQZ4HD6FCMK25QO764KO4ZWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
