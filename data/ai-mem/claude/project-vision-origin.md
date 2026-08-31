@@ -219,6 +219,18 @@ in frustration. The user took that and turned it into the backronym:
 the vision, then spent the literal curse word aimed at it as the name he
 kept building under for the next two decades.
 
+**why `ntime`'s epoch is 2002-06-05, per the user, 2026-08-31**: the
+network-time epoch (`NTIME_START => 1023228000`, math properties
+documented in `topic-harmonic-mathematics.md`) is a deliberately chosen
+**virtual starting point marking the project's official start**, not an
+arbitrary technical choice. Per the user, it may have been set somewhat
+conservatively/cautiously with respect to the employment-termination
+date from the damnet-era ISP story above — landing the epoch date so
+that `ntime=0` doesn't predate the project itself, while still being
+early enough to legitimately refer back to early project components or
+states that existed before git tracking began. A deliberate boundary,
+not a coincidence of when someone happened to write the constant.
+
 **the rest of the naming arc — damnet → nailara → protocol-7 (per the
 user, 2026-08-28)**: damnet was retired only two or three years in,
 specifically because the name needed to read as *generic*, not negative —
@@ -487,8 +499,8 @@ suppress bias by policing intent, it strips ulterior motives structurally,
 the same way checksum-identity strips social credentials — by leaving no
 channel through which either could travel uninspected.
 
-#,,..,,,,,,,.,.,.,,..,...,..,,...,,,.,.,.,.,.,..,,...,...,..,,,..,,..,.,.,.,,,
-#DYIK37G66KTPMES2IFXEGHVO3KWP3YMUKLULKUY2GMDVVB5AALPUNMUIUUXCZUUGGJNSMPBZUZHOW
-#\\\|VKANWKFZBQ364FYVSGIR5KIYBP4ZMIGCZ5R3AT7HLGMPJ5JTY3I \ / AMOS7 \ YOURUM ::
-#\[7]PAFVKNJBJPE4UGRIJHDC2AHHV2FLJMNRIRYDJI2VMMUKMZOKKICY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,...,,.,,,,,,..,,..,,..,,..,,,,.,..,,...,...,,,.,,..,.,.,,.,,,,,,
+#TNLQKBJHUPP5ZEOACYPSDCPWHSEH6E53DZBQYPOQERHXEMN67P2NTNBO7Z3DMAXTKBS4IMRW42TYS
+#\\\|BSNNSNJ6HIAFW3Z73HX5TYLXHTRS24UF5QAJ4ZZTLZEXRC3JJUL \ / AMOS7 \ YOURUM ::
+#\[7]LPNT5N2MB5S4WTRZMSYEUTQ5OVKXMVWALODXN7HPNUPAOIEF5KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
