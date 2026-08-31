@@ -82,6 +82,82 @@ for my $job_id ( keys %{$store} ) {
         next;
     }
 
+    ## description quality gate : catches a scrape/decode failure before it ##
+    ## ever reaches the llm as a content-free prompt [ confirmed live -- an ##
+    ## empty description let the model hallucinate a full assessment purely ##
+    ## from the candidate profile it still had, describing an "ideal" job   ##
+    ## that was really just its own profile reflected back ]. one refetch   ##
+    ## is given the benefit of the doubt [ desc_refetch_attempted ], a      ##
+    ## second failure is terminal -- otherwise a permanently-broken source  ##
+    ## (layout change, dead listing) would retry forever on every dispatch  ##
+    ## cycle                                                                ##
+    my $quality = <[jobsite.util.description_ok]>->($job);
+    if ( not $quality->{'ok'} ) {
+        if ( $job->{'desc_refetch_attempted'} ) {
+            <[base.logs]>->(
+                0,
+                'job %s description still bad after '
+                    . 'refetch (%s), routing to review',
+                $job_id,
+                $quality->{'reason'}
+            );
+            ## 'review' [ not a dedicated 'error' status, and stage left   ##
+            ## untouched ] : job.load_all's @active_statuses is a fixed    ##
+            ## list that does not include an 'error' bucket -- a job filed ##
+            ## there would vanish from the store [ and every downstream    ##
+            ## view ] entirely. 'review' is already in that list and is    ##
+            ## what jobsite.handler.repair-done routes its own terminal    ##
+            ## failures to. stage is deliberately NOT set to 'review' here ##
+            ## : that's the tab that's active by default, and seeding it   ##
+            ## with a score-less, reason-less card is exactly the kind of  ##
+            ## clutter this whole feature exists to prevent -- the         ##
+            ## desc_check_failed flag [ see plugin.web.jobs.sync's         ##
+            ## @pipeline_fields and the ui's 'fehler' tab filter, which    ##
+            ## bypasses stage entirely ] is what actually surfaces it,     ##
+            ## without touching the primary view                           ##
+            my $failed_job = {
+                %{$job},
+                'desc_check_failed' => TRUE,
+                'desc_check_reason' => $quality->{'reason'},
+                'status'            => qw| review |,
+            };
+            <[jobsite.job.write]>->( $job_id, $failed_job );
+
+            ## also patch the persistent store, not just disk :           ##
+            ## job-upsert's preserve-on-reupsert whitelist reads          ##
+            ## $data{'jobs'}{'store'} [ set once at init, never refreshed ##
+            ## from a re-load ], NOT the fresh-from-disk $store local to  ##
+            ## this loop -- a write that only hits job.write leaves that  ##
+            ## global stale, so a future re-scrape of this same job would ##
+            ## silently lose the flag                                     ##
+            $data{'jobs'}{'store'}{$job_id} = $failed_job
+                if ref $data{'jobs'}{'store'} eq 'HASH';
+            next;
+        }
+
+        <[base.logs]>->(
+            1,       'job %s description looks bad (%s), refetching once',
+            $job_id, $quality->{'reason'}
+        );
+        my $marked_job = { %{$job}, 'desc_refetch_attempted' => TRUE };
+        <[jobsite.job.write]>->( $job_id, $marked_job );
+        ## see the persistent-store note above -- same reason, same fix ##
+        $data{'jobs'}{'store'}{$job_id} = $marked_job
+            if ref $data{'jobs'}{'store'} eq 'HASH';
+
+        <jobsite.tasks>->{$job_id}{'awaiting_desc_refetch'} = TRUE;
+        <[protocol-7.route-send]>->(
+            {   'command'   => qw| site-yaml.import-url |,
+                'call_args' => { 'args' => 'url=' . ( $job->{'url'} // '' ) },
+                'reply'     => {
+                    'handler' => qw| jobsite.handler.desc-refetch-queued |,
+                    'params'  => { 'job_id' => $job_id },
+                },
+            }
+        );
+        next;
+    }
+
     push @to_assess, $job_id;
 }
 
@@ -146,8 +222,8 @@ push @{<jobsite.assess_queue>}, @queue;
 
 return;
 
-#,,.,,,.,,,,,,..,,,.,,.,,,..,,.,.,...,.,,,.,.,..,,...,...,..,,.,,,.,,,..,,,..,
-#YWOSEU3YBYCWDTLFOT3I6ALQMJIPRDZW67KA3BVP2DUMGE32RJS65QVQIY4WLL73DC7YOR3II55ZW
-#\\\|WEO4OEIDU53NLSLON7O4BOXVAZLTG2IFMBSVJBEEVB3OFT3ULWX \ / AMOS7 \ YOURUM ::
-#\[7]BNFO4OPI52MDJUFRYGXAFEG5GVZ7KHCSILZCQDMTJWOW6P52VOCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,...,.,.,.,,,...,,,.,.,,,..,,..,,...,...,..,,,,,,.,.,,..,,,,,
+#QUN22G2POCLGSWC5VUYCFX3LWECLJEUZ6PA6O3LMDMNHKTBX2NJWZVXBVBK4D3RDVWDGJAVAJAWTO
+#\\\|GOZHX3W2VOA4JJGNOTFGRDO2F6QB7M3Q6ZAMAPOMIBBFSX7XRRY \ / AMOS7 \ YOURUM ::
+#\[7]TGZGM5JNRQNLMWB5RQYECQ63HJAAIZL7SQVJVMNMJW3PG4ZZ7UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

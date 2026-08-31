@@ -88,7 +88,8 @@ if ( exists $store->{$id} ) {
     for my $key (
         qw| status score score_reason score_summary applied_at
         stage stage_changed_at assertions notes date_applied
-        repair_attempted repair_failed repair_applied |
+        repair_attempted repair_failed repair_applied
+        desc_refetch_attempted desc_check_failed desc_check_reason |
     ) {
         $job->{$key} = $existing->{$key} if defined $existing->{$key};
     }
@@ -117,6 +118,17 @@ if ( not $is_new ) {
     if ( defined $awaiting and $awaiting == ( $rec->{'queue_gen'} // -1 ) ) {
         delete <jobsite.tasks>->{$id}{'awaiting_refetch'};
         <[jobsite.dispatch.reassess_now]>->( $id, $awaiting );
+    }
+
+    ## description-quality refetch landed [ jobsite.dispatch.assessments ]  ##
+    ## : the job stays status 'new' throughout, so nothing else naturally   ##
+    ## re-triggers a dispatch cycle for a re-upsert of an already-known job ##
+    ## [ the settle-timer below only fires for $is_new ] -- kick it         ##
+    ## directly so the retried description gets re-checked instead of       ##
+    ## stalling until an unrelated new arrival happens to trigger the next  ##
+    ## cycle                                                                ##
+    if ( delete <jobsite.tasks>->{$id}{'awaiting_desc_refetch'} ) {
+        <[jobsite.dispatch.assessments]>;
     }
 }
 
@@ -151,8 +163,8 @@ return {
     'data' => $is_new ? qw| new | : qw| updated |
 };
 
-#,,.,,.,.,.,,,,,.,,..,..,,,,,,.,.,,.,,.,,,...,.,.,...,...,,.,,,.,,,.,,,..,..,,
-#L2APJP6PVVGV4CLYADVHNEFK6TQ7D3NDXWFPOWDWPDBEIG37DHP3JXXXDTDSZAYDMLCX3EVZLR4TI
-#\\\|5HNBZGTYMVHN37G3C5JHHB4KP3GBI45IZVTHLK7QJZXCCSHDK7D \ / AMOS7 \ YOURUM ::
-#\[7]BEBK2WHSUAEDBG63UUI4TYFGSZ6WYCV3AISFCJD4TYXF2RHXE2CY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,,.,,,,,,,,.,,,,,,,.,...,,..,.,.,...,...,.,,,...,,,.,..,,.,,,
+#ZOI3RCVJPGU5LVD4SAWK2VVVOU5PRJW6U65D447MZ5VOBJ5AJ5BC3ZMDDPWH45WAH62LZOL52OKEW
+#\\\|SJUQVKZVULHZ3Z2CIGTM6VLMSM4YWEB3EQ6NHDVC4IS73LQXX2X \ / AMOS7 \ YOURUM ::
+#\[7]V76CA2KZBFNIWNYNY5OECOQIENZAVZZTAQTTKKUUTI3F46425ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,6 +7,27 @@ metadata:
   originSessionId: ffb857e0-c3c9-47c6-bcaf-15130d5aab0e
 ---
 
+## 2026-08-31: different failure mode — content-free hallucination, gate added
+
+Distinct from the soft-fact-dropping issue below: this is the pipeline sending a
+job to assessment with an **empty description** (root cause: `clients.https`'s
+http/1.1 fallback path never decoded/decompressed response bodies — only the h2
+path got fixed the day before, see [[topic-clients-http]]). With no real job
+content, the model's only rich material was the candidate profile block still in
+the prompt, so it produced a full, confident, plausible-looking assessment that
+was really just the profile reflected back as an "ideal" job — live-observed:
+score 9/10, described the candidate's own unpaid research project as the
+posting's "Besonderheit", never mentioned pay.
+
+Fix: `jobsite.util.description_ok` gates every job before `build_prompt` ever
+runs — checks minimum length (120 chars), a replacement-char (U+FFFD) cluster
+cap, and a non-printable-byte ratio cap. First failure triggers one refetch;
+still-bad on the second pass routes to `status: review` + `desc_check_failed`
+flag (surfaced in the UI's own "fehler" badge/tab) instead of ever reaching the
+LLM. See [[topic-plugin-web-jobs]] for the two desync gotchas hit implementing
+this (dual job-store staleness, stage-derived-from-status overriding an
+intentionally-blank stage).
+
 Observed 2026-07-02: the jobsite assessment pipeline (single LLM inference pass per
 job, see [[topic-plugin-web-jobs]]) sometimes gets soft/detail-dense profile facts
 wrong — inverted or dropped an optional "prefers Stuttgart due to family" preference,
@@ -34,8 +55,8 @@ to gain efficient abort-inference capability first — this is blocked on
 [[coding-zenka-improvement-pipeline]], not a jobsite-side fix. Don't attempt a
 jobsite-side cancellation hack before that infra exists.
 
-#,,,.,,,.,..,,.,.,..,,,.,,...,...,,,.,,,.,,,.,..,,...,...,,,.,,,,,,..,.,.,,,.,
-#EKPQIX6WZ3QGMJRV6T7PERLTBKJLZJ5GDWC62NLZXWZDDZPMQRSWVUCH7F4YQVCXSGNJQW2VPZE2I
-#\\\|2ZFHS4DPE4LSMDXC67EI22UR3I7FMDOPZMYFPVBSNW44ELW3GWX \ / AMOS7 \ YOURUM ::
-#\[7]MUI2M35ODAWUPIJTZ74RDBY3K3FYEK33M4RIICKHGVW4A7UD5KBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,,..,...,..,,,,.,,,,,,.,,,,.,..,,...,...,.,.,,,.,.,,,..,,,.,,
+#KGXQFYXMZ7DSZWBXSIG3MPW7NRQOFPRKLF3RXPMXRRHM3NV6XVTGKOQB5GG2LPT5CXX6JSI7GKQPG
+#\\\|T64UIV62IZXLJAJX2YTQXOLVPWSP7H2MBFGXAFYZTPWZD4VKXRR \ / AMOS7 \ YOURUM ::
+#\[7]CK2NEDI6FTLBIH5LHEMA2F3OE3CRWH6GCZSV3TEJFWSIMAEL7ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = jobsite.util.description_ok
+# descr = sanity-check a scraped job description before it's sent for llm assessment
+# note  = catches the fetch-layer failure modes clients.https.decode_body guards
+#         against at the source [ empty extraction, still-compressed bytes
+#         surviving decode as FFFD-laced garbage ] before they reach the model --
+#         see jobsite.dispatch.assessments for what happens on a failing check
+
+my $job = shift // {};
+
+## minimum length : real stepstone postings run to hundreds of chars   ##
+## minimum ; a scrape/extraction failure [ blocked interstitial, empty ##
+## body, ... ] tends toward zero, not merely short                     ##
+my $MIN_LEN = 120;
+
+## replacement-char cluster : the direct scar left by a failed charset      ##
+## decode [ Encode::decode's FB_DEFAULT substitutes U+FFFD per invalid byte ##
+## rather than failing outright -- a handful can be real [ one stray        ##
+## mis-encoded byte on the source's own end ], a cluster means the whole    ##
+## body is garbage                                                          ##
+my $MAX_FFFD = 2;
+
+## non-printable ratio : catches raw/binary bytes that happened to survive ##
+## charset-decode without erroring or producing FFFD [ e.g.                ##
+## still-compressed content that just happens to decode as                 ##
+## valid-but-meaningless codepoints ]                                      ##
+my $MAX_NONPRINT_RATIO = 0.05;
+
+my $desc = $job->{'description'} // '';
+$desc =~ s{^\s+|\s+$}{}g;
+
+return { 'ok' => FALSE, 'reason' => 'empty description' }
+    if not length $desc;
+
+return {
+    'ok'     => FALSE,
+    'reason' =>
+        sprintf( 'too short [ %d chars, min %d ]', length $desc, $MIN_LEN )
+    }
+    if length $desc < $MIN_LEN;
+
+my $fffd_count = () = $desc =~ /\x{FFFD}/g;
+return {
+    'ok'     => FALSE,
+    'reason' =>
+        sprintf( '%d replacement chars [ max %d ]', $fffd_count, $MAX_FFFD )
+    }
+    if $fffd_count > $MAX_FFFD;
+
+## c0/c1 control ranges minus normal whitespace [ tab, lf, cr ] ##
+my $non_printable = () = $desc =~ /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g;
+my $ratio         = $non_printable / length($desc);
+return {
+    'ok'     => FALSE,
+    'reason' => sprintf(
+        'binary-looking [ %.0f%% non-printable, max %.0f%% ]',
+        $ratio * 100,
+        $MAX_NONPRINT_RATIO * 100
+    )
+    }
+    if $ratio > $MAX_NONPRINT_RATIO;
+
+return { 'ok' => TRUE };
+
+#,,,,,.,.,..,,..,,,,,,..,,.,,,.,.,.,.,.,.,,,.,..,,...,...,...,,,.,,.,,.,.,,,,,
+#MEKBFBTCHRBEUIIR46WPFDE3OD5CL2QHQCVUI3MKLE3V3CB6FQFPDSGKZ467KWDWSIINJHDHNMJCU
+#\\\|NUWSJOC6GHUT5LOS4S7NVMHYFI3Q2Q375HDIRDMMYDIIOGAYBKT \ / AMOS7 \ YOURUM ::
+#\[7]AUIGZAFQVMLQUJQQAMDH4V5JHVH2FXHHKZ7C3XQ5K7Y7QRIOCABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
