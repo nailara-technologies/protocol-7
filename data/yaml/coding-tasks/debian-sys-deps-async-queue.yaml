@@ -1,0 +1,225 @@
+task_id: debian-sys-deps-async-queue
+title: debian zenka apt_child — non-blocking I/O + jobqueue serialization, wire sys-deps to it
+priority: normal
+estimated_rounds: 24
+
+context: |
+  Two confirmed, live-verified bugs in the current apt-install pipeline
+  (found this session by tracing the code, not speculative):
+
+  1. src/base.debian.install_package (called from v7.check_zenka_deps's
+     pre-start dependency hook) talks to a persistent root child forked by
+     src/debian.start.apt_child (before debian zenka drops privs) over a
+     line-based protocol via IPC::Open2. The PARENT side blocks the entire
+     zenka event loop in a plain `while (my $line = readline($r_fh)) {...}`
+     loop while apt-get runs in the child — the zenka cannot process
+     anything else (heartbeats, other commands) until the install finishes.
+     Child protocol (unchanged, already correct, do not touch
+     debian.start.apt_child itself): parent writes `install pkg1 pkg2\n`,
+     child replies with zero or more `> <apt-get output line>\n`, then
+     exactly one `< <exit_code>\n`. Single persistent child, one command
+     in flight at a time — if two callers ever wrote to `$w_fh`
+     concurrently without serializing, their commands would interleave on
+     the child's stdin and corrupt the protocol. There is currently no
+     such serialization.
+
+  2. src/sys-deps.cmd.install (cfg/zenki/sys-deps/zenka.v7 does
+     `[root.drop_privs:<system.amos-zenka-user>]` unconditionally right
+     after init_modules, no pre-drop-privs child fork like debian zenka
+     has) calls `AMOS7::deps::debp::install_apt(@to_install)` directly,
+     which itself does `return { ok=>[], failed=>[@pkgs] } if $EUID != 0`.
+     Since sys-deps has ALREADY dropped root by the time any command runs,
+     this check can never pass — sys-deps.cmd.install is currently 100%
+     dead functionality regardless of who calls it or with what
+     privileges. It needs to route the actual privileged install through
+     debian zenka's already-working (once fixed by this task) apt_child
+     bridge instead of trying to escalate privilege itself.
+
+  Also fixed this session, unrelated but adjacent: data/lib-path/pm/AMOS7/
+  deps/module.pm's load_known_deps() was reading from a stale
+  `$p7_root/modules/...` path left over from the modules/ -> src/ rename
+  (commit 5255a50a3) — already fixed to `$p7_root/src/...` and verified
+  (resolve_install('Event', ...) now correctly returns
+  {method=>'debian', pkg=>'libevent-perl'} instead of always falling back
+  to cpan). Not part of this task, just context for why
+  AMOS7::deps::module::resolve_install now actually works.
+
+  precedents to read before starting:
+
+  - non-blocking I/O watcher pattern: src/coding.spawn_inference_server
+    (~line 541: registers `<[event.add_io]>->({fd=>.., handler=>..,
+    data=>.., poll=>'re'})` on a child's output filehandle right after
+    spawning it) paired with src/coding.handler.monitor_inference_startup
+    (the handler itself: non-blocking read via `<[base.s_read]>`,
+    accumulates into a per-watcher data hash, checks accumulated output
+    for a completion signal, cancels itself when done via
+    `$event->cancel`). Mirror this shape for reading apt_child's output —
+    don't invent a different async pattern.
+
+  - reusable queue: src/jobqueue.* (already loaded by six different
+    zenki's modules.load: coding, models, mpv, v7, vision-batch, X-11 —
+    this is genuinely shared infrastructure, not zenka-specific code to
+    copy). Read jobqueue.add_job, jobqueue.get_next_job,
+    jobqueue.exec_job, jobqueue.event.register_job_queues, and
+    jobqueue.init_code in full before designing how debian zenka enqueues
+    apt-install jobs into it — this replaces hand-rolling a new queue.
+
+  - deferred/async reply precedent: src/coding.handler.deferred_reply
+    (referenced from src/coding.async.complete ~line 474) — read this for
+    how a zenka replies to a caller asynchronously once a long-running
+    operation actually finishes, instead of blocking the command handler
+    until completion. sys-deps.cmd.install needs this shape once its
+    install call becomes async.
+
+  explicitly ruled out, don't attempt: replacing the `apt-get` shell-out
+  itself with a native Perl library call. Checked this session:
+  libapt-pkg-perl (AptPkg::*, already used for read-side cache/policy
+  probing in AMOS7::deps::debp) has NO Perl bindings for apt's
+  acquire/install machinery on this system — only Cache/Config/
+  PkgRecords/Policy/Source/System/Version (all query-side). The install
+  step has to keep shelling out to apt-get; don't spend time looking for
+  an alternative.
+
+issues_to_fix:
+
+  1_non_blocking_apt_child_io:
+    description: |
+      base.debian.install_package's parent-side read loop blocks the
+      whole debian zenka event loop for the duration of every apt-get
+      invocation.
+    fix: |
+      replace the blocking `while (my $line = readline($r_fh))` loop in
+      base.debian.install_package with an event.add_io watcher on
+      <debian.apt_child.r_fh>, registered the same way
+      coding.spawn_inference_server registers its watchers (poll=>'re',
+      a handler module, a data hash carried through). The new handler
+      (name it debian.handler.apt_child_output or similar) reads
+      available output non-blockingly via <[base.s_read]>, accumulates
+      per-line, and on seeing a `< <exit_code>` line: resolves whatever
+      is waiting on that result (see task 2 for how that hookup works via
+      jobqueue) and cancels itself. `install pkg1 pkg2\n` still gets
+      WRITTEN to <debian.apt_child.w_fh> synchronously (that write itself
+      is not the blocking part — writes to a pipe don't block here,
+      reading the response synchronously is what currently blocks) —
+      only the response-reading loop needs to become event-driven.
+    modules_to_modify:
+      - base.debian.install_package
+      - (new) debian.handler.apt_child_output
+
+  2_jobqueue_serialization:
+    description: |
+      Nothing currently prevents two overlapping install requests from
+      writing to the single apt_child pipe concurrently, which would
+      interleave commands on the child's stdin and corrupt the line
+      protocol (the child reads one line, expects it to be one complete
+      `install ...` command).
+    fix: |
+      wire debian zenka to jobqueue (add `jobqueue` to modules.load in
+      cfg/zenki/debian/zenka.v7). All install requests — including the
+      existing v7.check_zenka_deps call path AND the new sys-deps path
+      from task 3 — enqueue via jobqueue.add_job instead of writing to
+      <debian.apt_child.w_fh> directly. debian zenka processes jobs one
+      at a time: only writes the next queued job's `install ...` command
+      to the child once the PREVIOUS job's `< <exit_code>` has been seen
+      by task 1's new I/O handler. This is the natural place the
+      serialization belongs — jobqueue already does priority + ordering,
+      don't hand-roll a second queue alongside it.
+    modules_to_modify:
+      - cfg/zenki/debian/zenka.v7 (add jobqueue to modules.load)
+      - base.debian.install_package (enqueue instead of direct write)
+      - debian.handler.apt_child_output (advance to next queued job on
+        completion)
+
+  3_fix_sys_deps_routing:
+    description: |
+      sys-deps.cmd.install's direct `AMOS7::deps::debp::install_apt(...)`
+      call can never succeed (see context above — sys-deps always runs
+      unprivileged, no bridge). It needs to reach debian zenka's
+      apt_child bridge instead, the same way v7.check_zenka_deps already
+      does via base.debian.install_package, just routed cross-zenka
+      through cube since sys-deps and debian are separate zenki.
+    fix: |
+      change sys-deps.cmd.install to route its install request to debian
+      zenka via <[protocol-7.route-send]> instead of calling
+      AMOS7::deps::debp::install_apt directly. This will need a new
+      debian-side command (e.g. debian.cmd.install-packages) that accepts
+      a package list and enqueues it via jobqueue.add_job (task 2), then
+      replies once the job completes using the deferred_reply pattern
+      (see precedent above) rather than blocking sys-deps.cmd.install's
+      own handler until apt-get finishes.
+
+      access.zenki grant: sys-deps will need a NEW grant to call
+      debian.install-packages (or whatever this command is named) —
+      check cfg/zenki/cube/access.zenki for the existing
+      access.cmd.usr.sys-deps and access.cmd.usr.debian entries and add
+      what's needed for this new cross-zenka call in BOTH directions
+      (the request, and the reply routing back to sys-deps). Flag this
+      grant explicitly in your final report — per this project's own
+      recorded experience, a new cross-zenka command call needs a
+      LIVE-TESTED access.zenki grant that neither static syntax-checking
+      nor diff review can catch; the user will live-test this after your
+      static verification, don't claim it works end-to-end yourself.
+    modules_to_modify:
+      - sys-deps.cmd.install
+      - (new) debian.cmd.install-packages
+      - cfg/zenki/cube/access.zenki
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md
+    before starting
+  - all comments lowercase, `[ word ]` not `( word )` for annotations
+  - module invocation: <[module.name]>->($args) — closing ]> BEFORE ->
+  - do not add a signature footer stub — the repo's signing system adds
+    the real one on commit
+
+explicitly_out_of_scope: |
+  - do not touch debian.start.apt_child's child protocol itself (the
+    heredoc perl running inside the forked child) — it's correct as-is,
+    only the PARENT side's read handling and request queueing change
+  - do not attempt to replace apt-get with a native Perl library call —
+    see "explicitly ruled out" in context above, already investigated
+    and confirmed not feasible on this system
+  - do not touch AMOS7::deps::debp's probe/query functions (probe_apt,
+    AptPkg::Cache usage) — those work correctly today, read-only, not
+    part of this task
+  - do not re-touch data/lib-path/pm/AMOS7/deps/module.pm's
+    load_known_deps path (already fixed this session, see context)
+  - do not modify any of the 26 already-retired debian.* files listed in
+    data/tasks/completed/sys-deps-zenka-audit.md — only
+    base.debian.install_package, debian.start.apt_child (read-only
+    reference), and the explicitly named new/modified modules above
+  - do NOT run a real apt-get install against this host, even as a test —
+    see verification below, this is static/read-only work only
+
+verification: |
+  static/read-only verification only — no live apt-get execution, no
+  live zenka restart-and-test. This involves root package installation on
+  a real host; live-testing that safely (right test packages, confirming
+  the queue doesn't deadlock, confirming the access.zenki grant actually
+  works over a live cube connection) is being kept local/manual by the
+  user after this task lands, not run autonomously.
+
+  1. trace the full request path by hand for both callers:
+     v7.check_zenka_deps -> base.debian.install_package -> jobqueue ->
+     apt_child, and sys-deps.cmd.install -> route-send ->
+     debian.cmd.install-packages -> jobqueue -> apt_child. Confirm both
+     end up serialized through the same queue, neither can write to
+     <debian.apt_child.w_fh> while a job is already in flight.
+  2. confirm the new I/O watcher correctly distinguishes `> ...` output
+     lines from the terminating `< <exit_code>` line, and that it
+     correctly triggers the next queued job's write rather than leaving
+     the queue stalled after one job completes.
+  3. confirm debian.handler.apt_child_output cancels itself only once
+     genuinely done with the current job, not after every `>` line (it
+     must keep listening across multiple output lines from one install).
+  4. bin/dev/ptd -c (or equivalent syntax check) on every changed/new
+     module.
+  5. list every access.zenki line you added or changed, with the exact
+     grant text, in your final report — the user needs to review and
+     live-test these specifically.
+
+#,,,.,.,,,,..,,,.,,,.,,..,.,,,,,,,,,.,,,.,,..,..,,...,...,..,,.,.,...,,..,...,
+#2M3PHSE3UJ7S4S6IT4SLFXFQ4EJ4D7MJYNTCUUAQGA73R5JE3Z3BGVDOAKJ6QKF34CTVW44KTPLJU
+#\\\|VK5UXKFESSDB24JZKZDTANIUNPYRG6VTAJLBN7NITTQQBCHWKX5 \ / AMOS7 \ YOURUM ::
+#\[7]UUIOC7PZWF662ZQPACPQXIFPHOGDIMXONW3QRUQ6UPTAOUAHZ2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

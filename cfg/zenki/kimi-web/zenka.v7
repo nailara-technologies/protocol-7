@@ -22,7 +22,11 @@ kimi-web.agent.base_port   = 16000
 kimi-web.agent.max_agents  = 8
 
 ## session cache configuration
-kimi-web.cfg.sessions_dir = ~/.kimi/sessions
+## kimi-legacy itself always runs as the interactive admin user, not this
+## zenka's dropped-privs service account -- $ENV{'HOME'} inside the zenka
+## process points at the wrong home dir, so this must be set explicitly
+## via <system.admin-user> rather than left to the code's own ENV fallback
+kimi-web.cfg.sessions_dir = /home/<system.admin-user>/.kimi/sessions
 kimi-web.cfg.context_file = context.jsonl
 kimi-web.cfg.state_file   = state.json
 kimi-web.cfg.wire_file    = wire.jsonl
@@ -33,12 +37,17 @@ kimi-web.template.budget = 8000
 crypt.C25519.autocreate-user-key = yes
 
 modules.load = auth.client net protocol io.unix ui crypt.C25519 \
-               format.json format.yaml clients.http devmod
+               format.json format.yaml clients.http devmod context kimi-web
 
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
+## kimi-web bridges to kimi-legacy sessions the interactive user runs
+## directly (~/.kimi/sessions) -- drops to the interactive user like the
+## desktop-integrated zenki (mpv, notify-osd, openbox, ...) do via
+## AMOS-user, not the isolated amos-zenka-user service account everything
+## else uses
+[root.drop_privs:<system.admin-user>]
 
 [base.net.connect:'unix']
 
@@ -46,8 +55,8 @@ modules.load = auth.client net protocol io.unix ui crypt.C25519 \
 
 [zenka.loop]
 
-#,,.,,,.,,,..,,..,.,.,...,.,.,.,.,.,.,..,,,,,,..,,...,..,,.,.,.,.,.,,,,,.,.,,,
-#BN4K4YBN4GEFZADPGCPPQCBHLSJH2FEXLHBE36HJSSJHENUW6M7BGWDTQFUJ2RB5MKDFIAEWOKUR2
-#\\\|IZJO32DY37ULHIGMOVUXRYJLFH4XBZ6JTE3IDA25PXKJI43Z7T7 \ / AMOS7 \ YOURUM ::
-#\[7]3ENQRLO563BX6GYN2VBJYWYIKIOIGZLFODGXZ5G3RA5P77TPRSCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,.,,,..,,,.,.,,,,.,,..,,..,,..,,..,,...,..,,...,,,,,..,,...,.,.,
+#P6OUW3VDKDCNGULT67GR3JNJMYYPEDNPGWW3A3JDGGWNGJF55WCHYIXKFZ2T64HYHVQDLMTE7ZE54
+#\\\|N4QWPXUFLB476GCL5EIBCIOSRY2FYG6YXHZYUX6WZ6JQA2YSKCX \ / AMOS7 \ YOURUM ::
+#\[7]5FTLMV6EVIY5U52NK5R3MX3LINH2ZTSC55XVGZ7UVVBG6QEIWKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

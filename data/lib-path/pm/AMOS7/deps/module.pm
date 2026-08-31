@@ -19,7 +19,7 @@ our @EXPORT_OK = qw|
 sub load_known_deps {
     my ($p7_root) = @_;
 
-    my $known_file = "$p7_root/modules/base.known_dependencies";
+    my $known_file = "$p7_root/src/base.known_dependencies";
 
     return {} unless -f $known_file;
 
@@ -129,8 +129,8 @@ sub resolve_install {
 
 1;
 
-#,,,.,..,,..,,,,.,,,.,...,,..,,,,,...,,,,,,..,..,,...,...,,..,.,,,.,,,.,,,..,,
-#TEJJ2NCI37JOT246UEYEPM3GHUC6XZWKRONJAMZIYFXFYNGXSLG2PDSGZ2NUODTBRVRB55TFYTZIY
-#\\\|DMP53R7Y75YO6NNDRNAX3CBY5K32CFWUZVYCFJHENCC5V2UYM4Q \ / AMOS7 \ YOURUM ::
-#\[7]CF46GHOKKZXBQDWUJR6A54Y2GNF5NKKWLMKW7LHVTGLFXMYSPABI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,...,.,,,,..,,.,,,,,,.,.,,,.,..,,..,,...,.,.,,..,.,,,..,,,,,,,.,,
+#HVRVHQYGCFVXIOYPYNCGFW5FCO7RGW3AE2IMMEPSJFJERQPOBLZFXU5XXIPMNPSW7NNBQ7OXRMOLO
+#\\\|OP24B62R4YC6CQAJVD7V6PA7XU2LB3YCFFJFZQTEE3XPDOMT36X \ / AMOS7 \ YOURUM ::
+#\[7]DQ5J7RK4AE24CIFILHOCOVI5KHHK3G66BXAN6K3RDOEJXDOX5SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

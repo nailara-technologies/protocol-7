@@ -5,6 +5,13 @@
 # param = { agent_id, prompt, timeout, fresh }
 
 my $args = $call->{'args'} // {};
+if ( not ref $args ) {
+    my $args_str = $args;
+    $args = {};
+    for my $token ( split /\s+/, $args_str ) {
+        $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
+    }
+}
 
 my $agent_id = $args->{'agent_id'} // '';
 my $prompt   = $args->{'prompt'}   // '';
@@ -112,8 +119,8 @@ if ( not defined $post_state ) {
 ## return deferred : STRM delivers events as they arrive ##
 return { 'mode' => qw| deferred | };
 
-#,,..,,,,,,..,,..,...,,,.,.,.,,,.,.,,,.,,,..,,.,.,...,...,...,.,,,,..,.,.,...,
-#DRSEE73RFDKPYTKPWDC4Q763PD2PAAE6557AIZ5UCS3JEMET7SSNEFTTG4W225HBIDRFMCS4NEW32
-#\\\|O5VFGCWO6H4BN3SCMHTTZTVXSEIZDYMFX22L6VBNFRBGCTWAPJL \ / AMOS7 \ YOURUM ::
-#\[7]7NEQFSLOPGDTFTFE62F6GGBN3JR4NFKZT6CCCVH6DXMMXMPG7WCY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,..,,..,,,.,,...,,,,,,,,,.,,,,,.,.,.,...,...,,,,,..,,,,.,.,,,.,.,
+#DND7347OFGGKVYL4V2JWX3WJ75MRIZREN6MHOEHL24WU73GJRSO3HNF4TFZWR2R2OP7N7AAW3UCFK
+#\\\|XVX6KCBGU3HFMUZEBRINENXJZPPZF6RFNQXJ4SDLRGSESBT6IJ2 \ / AMOS7 \ YOURUM ::
+#\[7]32MODW7SZ3PDZKVI2BKIEMCUDSB6FSJVEVNWLN565PW3CGLIOKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

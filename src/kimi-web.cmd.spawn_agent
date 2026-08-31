@@ -8,6 +8,13 @@
 # param = template       - optional context template to preload
 
 my $args = $call->{'args'} // {};
+if ( not ref $args ) {
+    my $args_str = $args;
+    $args = {};
+    for my $token ( split /\s+/, $args_str ) {
+        $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
+    }
+}
 
 ## parse arguments ##
 my $context_slice = $args->{'context_slice'} // '';
@@ -148,8 +155,8 @@ return {
     'data' => $agent_id
 };
 
-#,,,,,...,,..,...,.,,,.,.,,,,,,,.,..,,..,,.,.,.,.,...,...,,.,,,,,,.,.,,.,,.,.,
-#DFOXB3Q6VH6Y6Z5SRWGCYFWSITSO3E7EBLGRR64MVTTMKJDAUV2PHZS4363HDGJOMRTWFRCKSY7RQ
-#\\\|SNLSR6F6ZBR755PHGM5VG5MVYZI2IGBGLG7XTPOTD367V4O4AIA \ / AMOS7 \ YOURUM ::
-#\[7]QRWMALJK3KWTPRGYMTXFZPDFSNY4X53VBKYUCUGI5ACF3HUUIWCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,..,..,,,,,,.,,,..,,,..,,..,.,.,.,.,...,..,,...,,,.,,,,,,,.,,,.,
+#XGFPF4L2OPJNVDRMR3JUJIIQCIQTBXH7OTQK2I6BH3IL7UWDUNSZGZ3GEN4HQ6ZZVMW4Q4A2ZG6X6
+#\\\|RXHCNTW6YCCXULY4D24PSVUC3JJQEHCCT7H3T55SUVXU32FY7NK \ / AMOS7 \ YOURUM ::
+#\[7]RPYKG2XFWXGAQ7UBKFMG2JVJV22G2J2M2MOB2PUDAPJGNIJHREAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

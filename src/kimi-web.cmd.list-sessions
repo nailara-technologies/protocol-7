@@ -87,13 +87,13 @@ my @lines;
 for my $s (@sessions) {
     my @tm = localtime( $s->{'mtime'} );
     my $ts = sprintf(
-        qw| %04d-%02d-%02d %02d:%02d |,
+        '%04d-%02d-%02d %02d:%02d',
         $tm[5] + 1900,
         $tm[4] + 1,
-        @tm[ 3, 2 ]
+        @tm[ 3, 2, 1 ]
     );
     push @lines,
-        sprintf( qw| %-36s  %s  %6s  %s  %d |,
+        sprintf( '%-36s  %s  %6s  %s  %d',
         $s->{'uuid'}, $ts, $s->{'size_mb'}, $s->{'model'},
         $s->{'line_count'} );
 }
@@ -106,8 +106,8 @@ return {
     'data' => $output
 };
 
-#,,,,,,,,,.,.,,.,,,,,,,.,,..,,.,,,,..,,,,,.,.,.,.,...,...,.,,,,,,,..,,,,,,,.,,
-#NQ4IWH24ULGWZ3NXOUGRRBBZVL4HCR46E3XKMZY2435DA5UXOPSV2P5G53AUSYVJM5SQOXBNEJGUU
-#\\\|D4LVNTZYYENJ3ER6HMQRRF6RNIKN4TX3Z3YJ6NR3ZB4G4CXOTO7 \ / AMOS7 \ YOURUM ::
-#\[7]2IEV4RJ2A3PEGQ2UBOXTYO56OQNIBG7ABSF577VBB2S7RV4NNGBQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,...,.,,,,..,...,,,.,,,,,,.,,,,,,.,.,...,...,...,...,,.,,,..,,.,,
+#JRLXRYGFPIPB6GFWDTKEYID46U5W5EWDYQCOQWX67DPLBKXRRXXI2FBBL65MWBAKICF57QSLCKGOG
+#\\\|UX6ZETAT2QAXXQCQNL6NPVZCDCALGLT77GUSFDTVEHIHUJ5OLZB \ / AMOS7 \ YOURUM ::
+#\[7]SJPB2LDIDDQXF2LOEF6HYVCXEGSVRL2VYZ3F3LODMF46KPVEH2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
