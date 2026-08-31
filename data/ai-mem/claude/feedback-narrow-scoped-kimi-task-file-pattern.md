@@ -78,8 +78,30 @@ addendum), not a logic bug. Confirms the pattern scales down to genuinely
 small budget cost for well-bounded feature work, making it a good default
 for weekly k2.7/k3 budget balancing, not just a quality-of-output win.
 
-#,,,.,.,.,.,,,.,,,..,,,..,,,,,.,.,,.,,.,,,.,.,..,,...,...,...,,.,,,,,,,.,,...,
-#K4MI23H6KYMR5PEPKIVH4VYXLLTSE4DTSMBPD2CAHHXPQGCYHKV2ODEX6GMH6SWPYGHX6PGXRL2RS
-#\\\|RP4BTU2R5HXUMG5D4DUOWNSS2IDNB75UEEBJM3VMZCE6NUT6ZLZ \ / AMOS7 \ YOURUM ::
-#\[7]W4GSWFOHPCPNDRDEBSLQPD6ICV43WWYPGRFZOIJGYFNBDQZGJ2BY 7  DATA SIGNATURE ::
+**Cross-zenka access-control gap, invisible to both static verification AND
+diff review (2026-08-31)**: a k2.7 dispatch (radio's mpv-playback-stall
+watchdog, [[topic-radio-relay-zenka]]) added a new outbound command call
+(`mpv[audio-0].is-idle` via `protocol-7.route-send`) that was logically
+correct, syntax-checked clean, and matched its own diff review perfectly —
+but cube rejected it live with `no perm. [ src 'radio' cmd|usr
+'mpv[audio-0].is-idle' ]`, because `cfg/zenki/cube/access.zenki`'s
+`access.cmd.usr.radio` allowlist hadn't been extended to include the new
+command. Neither `bin/dev/ptd -c` nor careful manual diff review catches
+this class of bug — the missing grant lives in a completely different file
+family (`cfg/zenki/cube/access.zenki`, cube's own routing-permission config)
+that the task file never asked kimi to touch (correctly — access-control
+changes are a human/security-relevant call, not something to hand to a
+dispatch) and that a `src/*` diff review has no reason to even look at.
+**How to apply**: whenever a task (kimi-dispatched or self-implemented)
+adds a *new* cross-zenka command call that didn't exist before (as opposed
+to reusing an already-working call from elsewhere in the same file), expect
+to also need a live-tested `access.zenki` grant on the calling zenka's
+`access.cmd.usr.<name>` line — treat "it compiles and the diff looks right"
+as necessary, not sufficient, for that specific class of change, and budget
+one live-test pass for it before considering the work done.
+
+#,,..,,.,,..,,,..,,..,..,,,.,,.,,,,,,,,..,...,..,,...,..,,.,.,,.,,..,,..,,..,,
+#HX5PYBH33SAUY7MEUASEBIXMRXBLHVFVHTBIGJSMZLP74XB5WGN3LUFR6DZBTE4KTHYYSTNWC6WDY
+#\\\|7QE7KBHWLF2CF6F23QKHHTM3NOEP2QI4ESYXIF6AEB5GOFQTZFV \ / AMOS7 \ YOURUM ::
+#\[7]IYQIBJIQZJJM2HTY4J63V6B6LPIMXL7SQAEISGNACTAX5G23AGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
