@@ -104,8 +104,57 @@ already written into the task file, one named precedent each) — both
 landed clean, no fixes needed on either, consistent with
 [[narrow-scoped-kimi-task-file-pattern]]'s track record.
 
-#,,.,,,,.,,.,,,..,.,.,,,.,,,,,.,,,,.,,...,..,,..,,...,...,,,.,...,..,,.,,,,.,,
-#JCOPPVYBQIMVXWHGCEVDSFFUBJEJEQGMSM7IRXK4ISX7ISWQUPECHGRVVLTMDMQ6ZFYNYHQLPASMC
-#\\\|WDL77D26UVJT4EKSBW47EWGGB7YCYP5SAHZW35XIEGJ7O4OBPHD \ / AMOS7 \ YOURUM ::
-#\[7]JWIZMSWTWSDLOAIIGA5RKXGDTSXMJJDONRA6WMAP76MFIZLLOGCA 7  DATA SIGNATURE ::
+**Default-ordering policy correction, 2026-08-31**: I had been
+pre-judging model choice upfront based on whether a task "looked"
+foundational/complex (picked K3 for two dispatches same session purely
+on that read, before trying K2.7 first). Per the user: **default to
+K2.7 even right after a weekly reset with 0% utilized** — not just for
+tasks that already look narrow. K2.7's quality is good enough that it
+becomes *obvious during scoping/execution* when a task actually needs
+K3, and that's the right moment to escalate — not a pre-emptive guess
+made from the task's surface shape alone. This matters even when budget
+is abundant: it's not purely a cost-conservation habit, the user framed
+it as a genuinely better default regardless of how much budget is left,
+because starting with K2.7 is how you *find out* whether K3 is actually
+needed, rather than assuming it from task type. Concrete trigger for
+this correction: two same-session K3 dispatches (both real,
+foundational-bootstrap-code tasks touching every zenka's startup/dep-
+check path) that may have been able to start on K2.7 first, with K3
+reserved for if/when K2.7 actually proved insufficient.
+
+**Mechanism, corrected after verifying against actual code (not the tool
+schema's description text)**: I first claimed the omitted-`model`
+default was full K3, sourced only from `kimi_dispatch`'s own tool-schema
+description string ("model: k3 (default, best reasoning, large
+context)"). The user pushed back ("or is it? we should verify that")
+and grepping `bin/mcp-server-p7` directly found the real implementation
+(~line 3740): `$args->{'model'} //= 'k3-256k';`, with an inline comment
+dated 2026-08-16 explaining this was **already a deliberate
+cost-conscious choice**: "default is k3-256k, NOT full k3 ... same
+reasoning quality at roughly half the quota cost ... so any dispatch
+that omits 'model' lands on the cheaper option rather than the most
+expensive one." So the tool's *description text* is stale/inaccurate
+relative to its actual code (says "k3", code says "k3-256k") — a real
+but separate discrepancy, not something to silently "fix" without being
+asked, just worth knowing the description can't be trusted as the
+source of truth for this tool's actual default behavior.
+
+**What this changes**: the omit-`model` default was never as bad as "no
+deliberate reason, full price" — it already defaults to the cheaper
+256k tier. The user's actual policy guidance from earlier in this same
+exchange still stands on its own terms though (default to K2.7 even
+with a fresh full budget, escalate only once K3 becomes obviously
+needed) — that's a preference about which tier to reach for by default,
+independent of what the tool's own fallback happens to be. Still worth
+passing `model` explicitly rather than relying on the omitted-parameter
+fallback, both for that reason and because a schema/code mismatch like
+this one means the omitted behavior isn't reliably self-documenting
+from the tool description alone — verify against the actual source
+before trusting a claim about a tool's default, including a claim
+written into this memory file.
+
+#,,,,,..,,,..,,,,,,,,,.,.,,,,,,,,,,,.,,,.,,,.,..,,...,...,..,,,.,,,..,...,..,,
+#VB3RLF3JN7KIPMEIN2Z4BYEJMZX7XDLTPWSDRRMDLD5TWCXHETEV2NIIYODNCK6EUIJQUWLCERYMC
+#\\\|RIGKFH3EYAQGMCQS3EYNLZLQ2W3M7SDIYK57HFYSGS4VIRJ7FS4 \ / AMOS7 \ YOURUM ::
+#\[7]3D7RTFSAFAN3UXWJKKS37QET2VTF6P62IBQKKBCUC3UC5B5KFWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

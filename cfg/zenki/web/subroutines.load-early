@@ -107,6 +107,7 @@ base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
 jobsite.job.read
+jobqueue.add_job
 devmod.post_init
 devmod.init_code
 base.stream.push
@@ -142,6 +143,8 @@ net.read_bytewise
 jobsite.sync.push
 jobsite.job.write
 jobsite.init_code
+jobqueue.move_job
+jobqueue.exec_job
 clients.http.post
 base.stream.close
 base.session.user
@@ -266,6 +269,8 @@ plugin.web.jobs.stats
 jobsite.state.persist
 jobsite.index.rebuild
 jobsite.dispatch.next
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -315,6 +320,7 @@ jobsite.util.block-line
 jobsite.sync.push_chunk
 jobsite.job.index.build
 jobsite.dispatch.repair
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -328,7 +334,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -342,6 +347,7 @@ base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
+base.callback.cmd_reply
 base.auth.set_zenka_key
 web.process_template_ipc
 web.process-template-ipc
@@ -380,6 +386,7 @@ jobsite.util.fix_encoding
 jobsite.util.build_prompt
 jobsite.removed_log.prune
 jobsite.cmd.blacklist-add
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -437,6 +444,7 @@ plugin.web.jobs.cache.write
 plugin.web.attention.states
 net.read_linewise_estimated
 jobsite.validate.assessment
+jobsite.util.description_ok
 jobsite.handler.repair-done
 jobsite.handler.assess-done
 io.unix.socket.output.close
@@ -599,6 +607,7 @@ protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 plugin.web.content.util.format_size
+jobsite.handler.desc-refetch-queued
 base.perlmod.register_loaded_module
 base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
@@ -678,8 +687,8 @@ plugin.web.space.orbital.handler.gm_state_strm_open
 plugin.web.space.orbital.handler.external_strm_open
 plugin.web.space.orbital.handler.discover_strm_open
 
-#,,.,,,..,,.,,.,,,,,.,,,.,...,.,.,,.,,,..,.,.,..,,...,...,...,,.,,,..,,..,.,.,
-#F6CISXLFAXUQBOZLAJTREZQB2KICU6N2TTOIYORDJKAUACZJ2Y4QYG6BIK4NAFV7LP2MJ5WNZOWQA
-#\\\|POUYOAODP77NJRFBLNC37HVQM3GCNGY2QCIIHBIDAZ6HMI34A6I \ / AMOS7 \ YOURUM ::
-#\[7]Q27Y2EPQ2EWJFJFWRWMR2IML6XSYCXYBXY7SXQRKE6Y3BH4AA4BQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,..,.,.,,.,,.,,,,..,...,,..,..,,..,,...,...,.,,,,,,,..,,.,,,...,
+#CUVV4N33QDSBNUZSACEGUFVJPKVUIOFQVQFUGZOC6Y4WYE22BPUOBS6EKEVPLXYJF3VX6TWF26JFW
+#\\\|MOV7X6C4F7TU33JO67KK62FPYGZDLC2C2WH53ABKF64K64XUPZH \ / AMOS7 \ YOURUM ::
+#\[7]DZA3RQNA54VNBZ6DAOLFFSZTZUY7CHO4ZVXA4ZCNWFWEK6AHPQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

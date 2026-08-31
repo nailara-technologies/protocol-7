@@ -95,6 +95,7 @@ base.calc_gauss
 ui.estimate.cost
 povray.init_code
 plugin.auth.unix
+jobqueue.add_job
 devmod.post_init
 devmod.init_code
 base.stream.push
@@ -126,6 +127,8 @@ povray.cmd.status
 povray.cmd.render
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -218,6 +221,8 @@ base.cmd.amos-chksum
 base.buffer.add_line
 base.base32.pre_init
 ascii.frame.validate
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -256,6 +261,7 @@ base.cmd.cancel-stream
 base.cfg.profile.apply
 protocol.sftp.init_code
 povray.template.resolve
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -268,7 +274,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.file.write_encoded
@@ -304,6 +309,7 @@ base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ui.render.tree.invalidate
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -456,6 +462,7 @@ base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
 base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
+base.callback.report_children_reply
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 graphics-3d.calc.cursor-translucency
@@ -502,8 +509,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,..,.,.,...,,.,,...,,..,.,.,,..,.,,,.,,,..,,...,...,,,.,,.,,,.,,,,,,,.,,
-#IQETU3NQC44JEJVAXBO6MXSPMOXRMOUC4JUDFWL6ZJTVYGVPC6CLFWJ3ITHBSCHO3JLT44BIVZUYY
-#\\\|425RSYSMX2CGPEOACBRHR5PS7ICVJ2MQ5CNDWBREP4U4P6YOFW5 \ / AMOS7 \ YOURUM ::
-#\[7]RAB2BTT47AOPFEMCWB65PLDIN4HJBF5TJTA4CABLZSGYSPOVQCAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,,.,.,,,.,,,,,.,,,,,,..,..,,..,,...,...,...,.,,,,..,.,.,,.,,
+#UHWRHI54C5LLC4BOSAWSDSEWZWB6U2VZOIPVCFI4ZOSIEB5DKO4K5HSNY56HEJDJRVFI25D3NSNN4
+#\\\|BHLCLLTDJPHV2BMEBAV5ABRLSY4LC7BNF4FFDFBJQXELHMFDZML \ / AMOS7 \ YOURUM ::
+#\[7]R47RTN7BNOXOLSVAQDH5ZSESV5DIKQQ5MBSLX3XQ4HZZCEY36YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
