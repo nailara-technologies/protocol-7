@@ -446,7 +446,7 @@ my $option_list = <<'EOL';
     done <id> [<id>..] .............  mark item[s] as done
     del <id> .......................  remove an item
     edit <id> <text> ...............  replace item text
-    details <id> [<text>] ..........  edit item details [ tty ]
+    details <id> [<text>] ..........  edit item details [ tty|argv|stdin ]
     show <id> ......................  show item with details
     pri <id> <high|normal|low> .....  change item priority
     tag <id> <tag> .................  add a tag to an item
@@ -1290,10 +1290,15 @@ sub cmd_details {
     my $new_details;
     if (@_) {
         ## non-interactive : set details from command line ##
-        $new_details = edit_details_interactive($item);
+        $new_details = join ' ', @_;
 
-        ## interactive editor returns undef when aborted without saving ##
-        return if not defined $new_details;
+    } elsif ( not -t STDIN ) {
+        ## non-interactive : read details from piped stdin ##
+        local $/;
+        my $piped = <STDIN>;
+        $piped = '' if not defined $piped;
+        $piped =~ s|\n+\z||;
+        $new_details = $piped;
 
     } else {
         die "interactive details editor requires a tty\n"
@@ -1484,8 +1489,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,..,.,.,,.,,,.,,,,,,,,,,.,.,..,,.,.,..,,,..,..,,...,...,.,,,.,.,.,,,,,.,..,,
-#MIIRRQHODDWZVHF5YASA5IFVXRIHNNKNYD4M2HU4EH6FDWA6IM576MRTVMB5ONDYKWTROAB2P3XVU
-#\\\|OI5PVK76Q4PTKBF2P7XSD7EO7EHNFGJUMK6OFL44FVS77KQJ7PJ \ / AMOS7 \ YOURUM ::
-#\[7]64DEYGLX4OIDJXAOCR5XFW2AQCVGOYO2QVBVE6RV5FWUQUNN56BY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,..,,..,,.,,,.,,.,.,...,,..,..,,...,...,..,,.,.,..,,.,,,,,.,
+#V4OA22UCUCLUZKH5P4PQNEP2P666T2DY3GTYN657G7EUSZXPU5XGVPCIN6RX5LQVXPOB5QMTJ6G7Q
+#\\\|LDF4DNFKRZPD74BO5XIM72L4NVN7PDSHGVZDYYEU4QOVPRAUN2B \ / AMOS7 \ YOURUM ::
+#\[7]2FG4G64T2KZMIUBDAHOOP5YSGYBON2GBI5UH5JTCP2IR5AJWNABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
