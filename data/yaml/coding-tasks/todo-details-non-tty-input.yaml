@@ -1,0 +1,118 @@
+task_id: todo-details-non-tty-input
+title: bin/todo — add non-tty input methods to the 'details' command
+priority: normal
+estimated_rounds: 6
+
+context: |
+  bin/todo is a standalone perl CLI (not a zenka module — no src/*, no <[...]>
+  invocation, just a plain script). It stores a yaml todo list per -list name
+  (default 'base') at data/yaml/todo/<name>.yaml, each item optionally
+  carrying a free-text `details` field alongside its one-line `text` summary.
+
+  cmd_details (bin/todo ~line 1283) is supposed to have two ways to set an
+  item's details: interactively (a raw-terminal ReadKey text editor,
+  edit_details_interactive at ~line 909), or non-interactively by passing the
+  text on the command line. Only the interactive path actually works right
+  now — see issue below. This was found live: `./bin/todo details <id> "<long
+  text>"` silently ignored the text argument and dropped into the interactive
+  editor instead.
+
+  precedent for the CLI-arg pattern already exists in the same file:
+  cmd_edit (bin/todo ~line 799) does `my $text = join ' ', @_;` to build a
+  single string from trailing argv. Mirror that shape for the details
+  command's argv path.
+
+issue_to_fix:
+  description: |
+    cmd_details's "if (@_)" branch is dead code with a misleading comment:
+
+      my $new_details;
+      if (@_) {
+          ## non-interactive : set details from command line ##
+          $new_details = edit_details_interactive($item);
+          ...
+
+    it's labeled non-interactive but calls the exact same interactive,
+    tty-requiring editor as the no-args branch, completely ignoring @_ (the
+    text passed on the command line). There is also no way to pipe multi-line
+    details in via stdin — `echo "some details" | ./bin/todo details <id>`
+    currently just dies with "interactive details editor requires a tty"
+    (because STDIN gets consumed/blocked by the raw-terminal ReadKey setup,
+    not read as piped content).
+
+  fix: |
+    replace the `if (@_) { ... }` branch's body so it actually uses the
+    passed text instead of the interactive editor, and add a second
+    non-interactive path that reads from a piped stdin when no argv text was
+    given. leave the existing interactive (tty, no args, stdin also a tty)
+    path untouched other than re-nesting it as the final else branch.
+
+    the three paths, in priority order:
+      1. argv text given (`@_` non-empty): join it into one string with
+         `join ' ', @_` (exactly cmd_edit's existing pattern) — no newlines
+         possible from argv, that's fine, matches cmd_edit's behavior for
+         `text`.
+      2. no argv text, but STDIN is NOT a tty (`! -t STDIN`): slurp all of
+         STDIN (`local $/; my $piped = <STDIN>;`), defaulting to '' if
+         undef, then strip only trailing newline(s) (`s/\n+\z//`) — preserve
+         any newlines WITHIN the piped content, this is the multi-line input
+         path.
+      3. otherwise (no argv text, STDIN is a tty): keep the current
+         behavior exactly as-is — `die "interactive details editor requires
+         a tty\n" if not $TTY;` then call `edit_details_interactive($item)`,
+         `return if not defined $new_details;`, then the `say "\e[0K";
+         say "  ::: SIGINT ::: terminated..";` lines, unchanged.
+
+    everything after computing $new_details (the $details_changed diff,
+    save_data, and the `if ($TTY) { ... }` visual-feedback block at the end
+    of the sub) stays exactly as-is — do not touch it, all three paths must
+    still fall through to that same shared tail.
+
+  modules_to_modify:
+    - bin/todo (cmd_details sub only)
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md
+    before starting
+  - all comments lowercase, use `[ word ]` not `( word )` for annotations —
+    same convention already used throughout bin/todo (see the `## ... ##`
+    comments right above the code you're editing)
+  - this is a standalone perl script, not a src/*.module file — no
+    <[module.name]> syntax applies here, plain perl subs only
+  - do not add a signature footer stub — the repo's signing system appends
+    the real one on commit
+
+explicitly_out_of_scope: |
+  - do not touch edit_details_interactive itself (~line 909) or any of its
+    ReadKey/terminal-drawing internals (detail_editor_draw_line,
+    editor_normalize_details, draw_item_details, etc.) — the interactive
+    editor is working correctly today, this task only adds two new
+    non-interactive entry paths ahead of it
+  - do not change any other cmd_* sub (cmd_edit, cmd_add, cmd_show, etc.)
+  - do not change the -options help text's `details <id> [<text>] .... edit
+    item details [ tty ]` line — that is a separate, already-tracked todo
+    item (bin/todo task id 4D2 covers this same fix; leave the help text
+    line alone, out of scope for this task file)
+  - do not add a new top-level `-stdin` / `-pipe` flag or similar — stdin
+    piping should be automatic (detected via `-t STDIN`), no new flag needed
+
+verification: |
+  static/read-only verification only (no interactive terminal session
+  available to actually drive the ReadKey editor path):
+  1. trace cmd_details by hand for all three paths and confirm exactly one
+     of them executes per invocation, and all three still reach the shared
+     $details_changed / save_data / $TTY-feedback tail unmodified
+  2. confirm the argv path still handles the case where the joined text is
+     identical to the existing details (details_changed correctly false,
+     no save_data call)
+  3. confirm the stdin path strips ONLY trailing newlines, not leading ones
+     or ones in the middle of the content
+  4. bin/dev/ptd -c (or equivalent syntax check) on bin/todo
+  5. leave a note in the task's final report showing the exact diff for
+     cmd_details, since this can't be live-tested end-to-end by kimi itself
+
+#,,.,,,.,,,,.,..,,,.,,...,.,.,.,,,.,.,,,.,,,.,..,,...,...,..,,,..,..,,,,,,,.,,
+#G42P2YK7OV5XYJ3REVRM3IIOAFGD4DDLGSKQ4T7GXHNWJ47I37K52IZPX6YTJEIXD23LF7XSDHLXU
+#\\\|7LRPWAXP5YB642XZHKVU6YUA4V5LXUHAP6K2JCJH77FMJDL5WR2 \ / AMOS7 \ YOURUM ::
+#\[7]GD6YOEGKTHFKTHVIUJL7N6S7BPXOJZDGSXJGNL3POZOO5K6DNWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
