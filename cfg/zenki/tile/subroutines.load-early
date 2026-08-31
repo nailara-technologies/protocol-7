@@ -98,6 +98,7 @@ ui.estimate.cost
 tile.sort_layers
 set-up.init_code
 plugin.auth.unix
+jobqueue.add_job
 devmod.post_init
 devmod.init_code
 base.stream.push
@@ -127,6 +128,8 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -233,6 +236,8 @@ tile.handler.sig_term
 tile.cmd.switch-group
 tile.cmd.get_geometry
 set-up.json.init_code
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -282,6 +287,7 @@ tile.cmd.gpu_load_alert
 tile.cmd.get-tile-color
 set-up.json.import_file
 protocol.sftp.init_code
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -294,7 +300,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -335,6 +340,7 @@ base.chk-sum.bmw.filesum
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ui.render.tree.invalidate
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -548,8 +554,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,..,..,,,..,.,,,,,,,,..,,.,,,,.,,.,,.,,,..,,...,...,..,,,..,,,,,.,,,,,,,
-#B73NFSWXEGQCHUSDXIY3QNVL3AD42S7JCAJGBIKUUDAGMKO76ZOFQI7RAX7NUEJ3KKVHMXG25QLZM
-#\\\|GRZHJXFS77QJTK7MJVUUJHA2434AN7PW5XGAWPBGTBRESVCJMUG \ / AMOS7 \ YOURUM ::
-#\[7]EWVDWVAR4BN73EWTXJINQZ6Q3CKNNSEG6A7VHXQSS6ONQ6JISGBA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,..,,.,.,.,.,.,,,.,,,,,,,,,.,..,,...,...,...,.,,,.,.,,..,..,,
+#AKT2D3RNXWLQ7I5PBOHAFMQG3ILPMGPDXRIWZIAMN4GQWWMPHN4XMBZXM75VK2CH4FNJJXYE4IGPO
+#\\\|ZIDKNCVS4TKK6Q7JYLSA3PKW62JJGTKLVBCJA7SXSNBVIBQJZG4 \ / AMOS7 \ YOURUM ::
+#\[7]H7JOCUE6MNKLNGEMA4S37GDRYCOF5G5QZMGNZJMY3YG2DQH5ESBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

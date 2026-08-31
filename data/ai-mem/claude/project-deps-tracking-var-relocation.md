@@ -75,6 +75,17 @@ direction:**
   fixed this session (stale `modules/` path, see
   [[topic-sys-deps-debian]]'s 2026-08-31 addendum) — this is the
   deeper reason it should go away entirely, not just get patched again.
+  **Update, 2026-09-01**: the ACCESS-MECHANISM half of this is now fixed
+  (K3 dispatch, task `v7-check-zenka-deps-jobqueue-and-binary-gap.yaml`,
+  reviewed and verified) — `AMOS7::deps::module::load_known_deps` is now
+  the single canonical accessor (confirmed zero remaining
+  `<[base.known_dependencies]>` invocations anywhere in `src/`, including
+  a second holder found beyond the original `v7.check_zenka_deps` case,
+  `base.perlmod.install`), and it also gained a `binary` section (16
+  binary-name -> debian-package mappings, closing the "detected but never
+  installed" gap for `v7.check_zenka_deps`'s `@missing_bin`). The
+  STALENESS concern above is still real and separate — fixing who reads
+  the file doesn't fix whether its content stays current.
 - `src/base.list.subroutines` — **correction, 2026-08-31**: this is NOT
   static/unmaintained — it's actively updated by
   `src/sourcecode.console.update-sub-list` (confirmed: real file, real
@@ -93,6 +104,26 @@ direction:**
   AMOS7 signature footer without breaking syntax) — but that's a distinct,
   larger thread, not a reason this file is already dead today.
 
+**`.deps/profiles.yaml` needs reorganizing, 2026-09-01**: separate file,
+`bin/p7-deps`'s own data (deployment-scale profiles: `minimal`,
+`runtime`, `network`, `cryptography`, `tools`, `zenka-common`,
+`graphics-matrix`, `opencv`, `basic-remote-server`, `ai-models`) — not
+the same thing as `base.known_dependencies` or the per-zenka
+`cfg/zenki/*/deps/` declarations, but related enough to note here.
+Surfaced while checking whether the 16 new binary->package mappings
+(above) should also be transferred into this file: they shouldn't be —
+all existing profiles here are Perl-module/library focused (apt+cpan
+package lists), none are a natural fit for general utility binaries
+(`ffmpeg`, `pciutils`, `kmod`, X11 nested-display tools, etc.), and
+those are correctly zenka-specific — belong in the per-zenka declarative
+system, not a "every fresh install gets this" baseline profile. Only
+`cpanminus` looked like a plausible universal-baseline candidate (not
+zenka-specific, though `base.perlmod.install_cpanm` already has its own
+apt-or-manual-bootstrap fallback, so it may not strictly need to be
+here either — undecided). Per user: the profile set itself is "still
+slightly chaotic" and likely needs reorganizing — no concrete direction
+yet, just confirmed as a known, real gap, not urgent.
+
 ## status
 
 Fully traced, not implemented. Same treatment as the debian/sys-deps
@@ -104,8 +135,8 @@ retirement can follow once the `var/` relocation lands and (for
 list.subroutines specifically) once the BMW-for-all-files checksum
 system exists — don't retire either prematurely on its own.
 
-#,,,.,,.,,..,,,..,,,,,.,.,..,,,,.,.,.,.,,,,,.,..,,...,...,.,.,,..,,,.,.,.,,,.,
-#7L5Y6G37LGOKCXT7SYDVFXIROCKJTO53LZHVVFLZNDEZDCUKMKVYBP5ZIXQD2TEHVHXSXRMBH2PQM
-#\\\|NK2EUE6AEUAOTZLIGJ3RMVVGBGHUTQNTVESKEGBJTNX25THERNU \ / AMOS7 \ YOURUM ::
-#\[7]RK2G3FQH6PT2H23F4UT7MHKNNF67I4LSF4AUMJYF62XO35LO4AAI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,,..,..,,,.,,,.,,,.,,.,.,,.,,..,,...,...,..,,..,,,,,,,..,,,.,
+#HNCIH6MTVWQ6Z4LEK4DNRO6F7OP2RHUTY4KYZ3U6SZZNJUE5EBNTH3MT64L4JOFSFJ65E4MSMS7D6
+#\\\|SOF4MZK7S5CMAJ2SVRTTRFNV3ACIECK53RFYF7TWCDXTQONBK7T \ / AMOS7 \ YOURUM ::
+#\[7]YSCGR5WFHCJSUBZBH53YPT3HDGG3RNESVJUXIUMCDB5SZBKF4QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

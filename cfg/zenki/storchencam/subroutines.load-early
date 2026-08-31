@@ -82,6 +82,7 @@ base.event.once
 base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
+jobqueue.add_job
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -102,6 +103,8 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -139,6 +142,7 @@ base.event.add_var
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 ascii.frame.render
 window.profile.save
 window.profile.load
@@ -183,9 +187,12 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.buffer.add_line
+base.base32.pre_init
 ascii.frame.validate
 window.profile.delete
 storchencam.init_code
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -216,6 +223,7 @@ base.comp-int.is_valid
 base.cfg.profile.apply
 window.geometry.resolve
 protocol.sftp.init_code
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -228,7 +236,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -238,6 +245,7 @@ base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
 base.chk-sum.elf.inline
+base.callback.cmd_reply
 base.auth.set_zenka_key
 base.X-11.assign_window
 window.profile.color.get
@@ -268,6 +276,7 @@ window.profile.color.load
 window.profile.color.list
 ui.render.tree.invalidate
 storchencam.screen-change
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -475,8 +484,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,,,,.,,,...,.,.,,,,,..,,,.,,,,.,..,,.,.,..,,...,...,..,,.,,,..,,..,,..,,
-#CQVJQAE3FH4VPN5SBTRCXKIGK74EX2ZGBT6F4DZ6L3KBL6LKQ5JNUVK3UAJ5TC4CE4IF4NDO2YH2I
-#\\\|VS6P4OANZOXC2FOUOYYZHQAXDESYVWBQBJSTSDEGGMURCE5DHNG \ / AMOS7 \ YOURUM ::
-#\[7]FHRMZJAKPS4VIEUIUXHIIQCZWKHGRL7OZMELGNXTGNWZBWAPC2CY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,.,.,,,,,,..,,..,..,,.,,,.,,,..,,...,...,..,,..,,..,,...,...,
+#ACLLV6CZLFXZ5KHEYYGYCV7W6NOLDH4ATUA3T2ESBUIBQEPTO3UBWEO4J6VZURQ5UYD3UVED55E4W
+#\\\|U5KNYFAQWW5SVNDHZW5FPISMWHXVOHY4ZU5T54UATDPZBIBWZNH \ / AMOS7 \ YOURUM ::
+#\[7]Z5H5QD7PTO27G2EYBVDPBTQD2NFC5QCLWIIV3Q4V7AP3D5XUH2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

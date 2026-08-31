@@ -94,6 +94,7 @@ ui.estimate.cost
 smtpd.parse_mail
 smtpd.cmd.inject
 plugin.auth.unix
+jobqueue.add_job
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -115,6 +116,8 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -152,6 +155,7 @@ base.event.add_var
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 ascii.frame.render
 smtpd.cmd.set_route
 plugin.auth.twofish
@@ -196,9 +200,12 @@ base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
 base.buffer.add_line
+base.base32.pre_init
 ascii.frame.validate
 smtpd.parse_mail.mime
 smtpd.archive.encrypt
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -229,6 +236,7 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.cfg.profile.apply
 protocol.sftp.init_code
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -241,7 +249,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -251,6 +258,7 @@ base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
 base.chk-sum.elf.inline
+base.callback.cmd_reply
 base.auth.set_zenka_key
 ui.caller.security-level
 protocol.https.init_code
@@ -273,6 +281,7 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ui.render.tree.invalidate
 smtpd.parse_mail.fallback
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -471,8 +480,8 @@ base.log.send-buffer.reply-handler.notify-online
 llm.service.subprocess_wrapper.extract_completion
 llm.service.subprocess_wrapper.estimate_confidence
 
-#,,,,,.,,,,,.,..,,.,,,,..,,,,,.,,,..,,.,.,,,,,..,,...,...,.,,,,,.,.,.,.,.,,.,,
-#BPJL6AS6PLTFQVDK6GMUHXAF2XYP4JNKAVJEULX3X6DI5MAGJUEMKF6J5F47Q7HXXI43C4ZSUU3JI
-#\\\|BI5PVTWTU2I7THDRQRJF7DF7BTIJO4FEA4GHJMW4PCLHI74WTEC \ / AMOS7 \ YOURUM ::
-#\[7]D3L5TOTEB5QJ4ID2WJHJEUWSPAD43V4PIR7NJDHAPZ4AUHU42ECA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,..,,...,.,,,.,.,,.,,,,,,,.,,,..,..,,...,..,,..,,,,.,,,.,,.,,..,,
+#5IQO3U7YCMEROO6MF63BW3KB3755PCU756LYQKZQEQ3DAPBYJ66HTDRJZYZINVFEB6KFAZRBE525K
+#\\\|EILRX4RY3PSHTYOHOYTPY5TU5KNHUFKHU4KGRBV34TQLR7WFRXK \ / AMOS7 \ YOURUM ::
+#\[7]7A63CBTR7V5CFJMMXKF556E2PGQJTOPE4XVBLXEFYBK7LF7T3WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,6 +16,7 @@ base.regex
 base.cnt_s
 devmod.dump
 base.s_warn
+base.s_read
 base.minmax
 base.gen_id
 base.waitpid
@@ -68,6 +69,7 @@ base.file.which
 base.file.slurp
 base.event.once
 keys.backup.list
+jobqueue.add_job
 devmod.post_init
 devmod.init_code
 devmod.cmd.sleep
@@ -84,6 +86,8 @@ keys.get_keyfiles
 keys.console.path
 keys.console.list
 keys.backup.prune
+jobqueue.move_job
+jobqueue.exec_job
 base.reverse-sort
 base.resolve_hash
 base.perlmod.load
@@ -93,6 +97,7 @@ base.init_modules
 base.get_warnings
 base.file.put_bin
 base.file.content
+base.event.add_io
 base.context.list
 base.chk-sum.amos
 keys.checksum_href
@@ -115,6 +120,7 @@ base.file.basename
 base.event.add_var
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 keys.console.rename
 keys.console.remove
 keys.console.create
@@ -159,16 +165,20 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.buffer.add_line
+base.base32.pre_init
 keys.read_key_archive
 keys.list_remote_keys
 keys.console.sign-key
 keys.console.incoming
+jobqueue.get_next_job
+jobqueue.get_job_data
 crypt.C25519.pre_init
 crypt.C25519.keyfiles
 crypt.C25519.key_vars
 crypt.C25519.key_type
 crypt.C25519.gen_keys
 base.vec.offset_write
+base.session.shutdown
 base.register_pm_deps
 base.perlmod.pre_init
 base.perlmod.autoload
@@ -198,6 +208,7 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 keys.list_incoming_keys
 keys.console.github-pat
+jobqueue.queue_template
 devmod.cmd.deparse-code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -206,7 +217,6 @@ crypt.C25519.key_exists
 base.strip_chksum_lines
 base.perlmods.init_code
 base.parser.access_conf
-base.known_dependencies
 base.get_path.zenka_cfg
 base.execute_zenka_code
 base.dump.data_key_list
@@ -214,6 +224,7 @@ base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
 base.chk-sum.elf.inline
+base.callback.cmd_reply
 keys.select_archive_path
 keys.console.remove-type
 devmod.cmd.unload-unsafe
@@ -234,6 +245,7 @@ base.file.strip_path_str
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 keys.console.list-backups
+jobqueue.priorities_table
 devmod.cmd.test-strm-size
 crypt.C25519.load_keypair
 base.sourcecode.init_code
@@ -398,8 +410,8 @@ base.agent_code.handler.sig_warn.end_proc
 base.log.send-buffer.reply-handler.send-reply
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,.,.,,,.,,.,,.,.,,.,,.,,,,,,,...,,..,,.,,..,,...,...,...,.,,,.,.,.,.,.,,,
-#73AU7FQ7B3JIST6PZMOAXECGH236YRIF5T6O4EQVZHCPPVGICD4DOZUTBUF6O3JXNZGDKITM2W6Z4
-#\\\|LVIPUYMPLJ24L43G3DP2OPZCOHBFJO4OL7HSCRD4YF7AZLTOFFV \ / AMOS7 \ YOURUM ::
-#\[7]P6TGDTAAGZCC2FV2ZEZPA5ZELHTVGQMNR2U7FKTZ2IF236CDW2CY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,,,..,,,,.,,,.,..,,.,,,,,.,,..,..,,...,..,,..,,.,.,.,,,..,,...,
+#BYCP7IODYJWWW2WKTLVELHAMNVMGO2DMTLNOYPUKHR6REFW5XLHSHZMUKQGZOQCDATTLOEQPN5GNC
+#\\\|BE77VPHQUXXNAGDKNVIHF335YC65CATIDLRLY7SAPBXBYR4KPDE \ / AMOS7 \ YOURUM ::
+#\[7]GJ4EVMWMP5EAS4QWZ6BGURXQ43S23OAQDU7DWSVSNCFTYM3TOOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

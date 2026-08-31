@@ -99,6 +99,7 @@ base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
+jobqueue.add_job
 devmod.post_init
 devmod.init_code
 devmod.cmd.sleep
@@ -130,6 +131,8 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -176,6 +179,7 @@ base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 ascii.frame.render
 plugin.auth.twofish
 io.ip.tcp.init_code
@@ -229,7 +233,10 @@ base.cmd.show-buffer
 base.cmd.show-access
 base.cmd.amos-chksum
 base.buffer.add_line
+base.base32.pre_init
 ascii.frame.validate
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -266,6 +273,7 @@ base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
 protocol.sftp.init_code
+jobqueue.queue_template
 io.unix.socket.end_code
 devmod.cmd.deparse-code
 crypt.C25519.write_keys
@@ -279,7 +287,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -292,6 +299,7 @@ base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
+base.callback.cmd_reply
 ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
@@ -317,6 +325,7 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ui.render.tree.invalidate
 notify-loves.send_message
+jobqueue.priorities_table
 io.unix.socket.input.open
 devmod.cmd.test-strm-size
 crypt.C25519.load_keypair
@@ -517,8 +526,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,,,..,,...,,..,.,.,.,,,...,,.,,..,,..,,..,,...,...,.,,,,.,,.,.,,,.,,.,,
-#Z3GUFYCNTARKXOJARTW27EA6ZLLOB3HVMFHC6WXBKI3QQ5S3GFRDYAXX2GQXZOO2AVGIRA6QF5NFQ
-#\\\|GOMAIXZ5XHFM7ILTJ2Y7UNRAZEDWNJCOENQQMLAZH2E7ZUCAK4E \ / AMOS7 \ YOURUM ::
-#\[7]2KSNBGWNGF3SB73JRDE4Y6YNCKPTNVALXKIFG3UDOS3XA4UMXMAA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,,,,,.,,.,,,,,,.,,,,.,,,,.,,..,..,,...,...,,,.,,..,,.,,.,.,,.,,
+#SXZUCHYB6RUBFVQYBDJ4LPWST4PJKPSI6JHWJGCLNSLL3E3WOV4H3GTVWMCSDQACFREHSXLQ4Q5BC
+#\\\|V2GDJ2P2RQAWI5ZMGYTBJYUULJFQ7ZJ35INXDHM7XDAF2NCSJUK \ / AMOS7 \ YOURUM ::
+#\[7]M3O5JYZ6YNEMVD7XG6IUFZM2LKEIMYYIIAMGNFWD4ZQJG2V74SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -93,6 +93,7 @@ ui.estimate.cost
 plugin.auth.unix
 jobsite.job.read
 jobsite.cmd.scan
+jobqueue.add_job
 clients.http.get
 base.stream.push
 base.stream.open
@@ -121,6 +122,8 @@ jobsite.sync.push
 jobsite.job.write
 jobsite.init_code
 jobsite.cmd.reset
+jobqueue.move_job
+jobqueue.exec_job
 clients.http.post
 base.stream.close
 base.session.user
@@ -230,6 +233,8 @@ jobsite.dispatch.next
 jobsite.cmd.set-prefs
 jobsite.cmd.list-jobs
 jobsite.cmd.get-prefs
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -277,6 +282,7 @@ jobsite.cmd.show-prompt
 jobsite.cmd.rescue-http
 jobsite.cmd.manual-sync
 jobsite.cmd.clear-tasks
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -290,7 +296,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -301,6 +306,7 @@ base.code.call_optional
 base.code.call_expected
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
+base.callback.cmd_reply
 base.auth.set_zenka_key
 ui.caller.security-level
 protocol.https.init_code
@@ -337,6 +343,7 @@ jobsite.cmd.mail_received
 jobsite.cmd.dossier-build
 jobsite.cmd.blacklist-add
 jobsite.client_prefs.read
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -582,8 +589,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,.,,,,.,,,,,...,.,.,,..,.,.,,..,,,,,...,..,,...,..,,...,.,,,,.,,,..,,..,
-#7WTXR3HOLCU3B5ZLOWGKAN6AOXOKG6ZFYTSPO2FBVLE6X5HOATJRCBBVH5URYNT7WHGKZCN6XKOBS
-#\\\|PLB7T47KR4IC6OD4AR6IGZTIHPJBTW6JJT2YGMWESXVY2WR4WE3 \ / AMOS7 \ YOURUM ::
-#\[7]I7L6XAE7AEX3ZEC5AQIOQEQKO4VKHEHMHORLCFXKTDE2ZULCNYAA 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,,..,...,..,,.,,,...,,,,,,..,..,,...,...,.,,,,..,.,,,.,.,,.,,
+#3YQZWUAPNWNCNEH5WGQKP24KUJSQIHEQKUSFS62GWHQXBIQAJRW5P3A3YMQMFF3V55MQ7AVIQUPJI
+#\\\|LY7VSZKQYU25N3CBBFZXHXGJOY7FBDS5LU2NRHERHC7UBXZCLIW \ / AMOS7 \ YOURUM ::
+#\[7]Z4ZPEV7HESD52QLT3EK24SQHLTAXHCQLT4RPRLY6656ZU3TMSGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

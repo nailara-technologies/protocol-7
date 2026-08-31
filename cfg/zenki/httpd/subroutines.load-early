@@ -111,6 +111,7 @@ base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
 jobsite.job.read
+jobqueue.add_job
 httpd.serve_file
 httpd.new_header
 httpd.cmd.vhosts
@@ -146,6 +147,8 @@ net.read_bytewise
 jobsite.sync.push
 jobsite.job.write
 jobsite.init_code
+jobqueue.move_job
+jobqueue.exec_job
 httpd.json.encode
 httpd.json.decode
 clients.http.post
@@ -282,6 +285,8 @@ ascii.frame.validate
 jobsite.state.persist
 jobsite.index.rebuild
 jobsite.dispatch.next
+jobqueue.get_next_job
+jobqueue.get_job_data
 io.ip.tcp.output.open
 io.ip.tcp.input.close
 httpd.vhost.init_code
@@ -346,6 +351,7 @@ jobsite.util.block-line
 jobsite.sync.push_chunk
 jobsite.job.index.build
 jobsite.dispatch.repair
+jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 httpd.system.network_io
@@ -364,7 +370,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.file.write_encoded
@@ -379,6 +384,7 @@ base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
+base.callback.cmd_reply
 base.auth.set_zenka_key
 ui.caller.security-level
 route.bmw384.index.stats
@@ -418,6 +424,7 @@ jobsite.util.fix_encoding
 jobsite.util.build_prompt
 jobsite.removed_log.prune
 jobsite.cmd.blacklist-add
+jobqueue.priorities_table
 io.unix.socket.input.open
 httpd.system.memory_stats
 httpd.base.size.normalize
@@ -471,6 +478,7 @@ route.bmw384.cmd.index-path
 route.bmw384.cmd.find-route
 net.read_linewise_estimated
 jobsite.validate.assessment
+jobsite.util.description_ok
 jobsite.handler.repair-done
 jobsite.handler.assess-done
 io.unix.socket.output.close
@@ -671,6 +679,7 @@ protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 plugin.storage.checksum.cluster.add
 plugin.httpd.radio.cmd.radio_online
+jobsite.handler.desc-refetch-queued
 httpd.benchmark.sample_memory_usage
 base.perlmod.register_loaded_module
 base.handler.strm_size_idle_timeout
@@ -742,8 +751,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,..,,...,,.,,,.,,,,.,.,,,.,.,..,,,,.,,..,..,,...,..,,...,,..,,,.,,,,,,.,,
-#UK3EI5ZPR4IV25P244RYTJTSFEKG7G5WAHK6V527WZTT24LK5T6ZHUWPSYMR5F3GL5EU2SV6Y4CNM
-#\\\|CZ7BRYUGVHAPKLYWD5WFFDC6TO37TVWTUDKOVU5NBVB6DNGF2GN \ / AMOS7 \ YOURUM ::
-#\[7]Y2IDTUG2RPOQW6XSRGB46M35LDRB5NALDI6YNXP6K7Z52J2PTWCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,...,...,,,.,,..,,.,,...,.,,,.,,,..,,...,...,.,.,,.,,,..,..,,..,,
+#IV6B4SOTZJH3Z2XZI2FC2HDZT33PMHULJDL4DYTAFN7JYMK4BTFFQCG6PYHE6JHQCL7EWVIJVNQ5U
+#\\\|T2MOT7OG46Y2E7MC3EV7MUJAWJYNBHSVTQ3MYQ354P3IERTQGGB \ / AMOS7 \ YOURUM ::
+#\[7]J5RSOILCK4BYPUD2GKSCKRH5USRU7I273TAP7ONDR756DYNSSWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

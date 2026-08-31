@@ -90,6 +90,7 @@ base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
+jobqueue.add_job
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -115,6 +116,8 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -151,6 +154,7 @@ base.event.add_var
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 ascii.frame.render
 plugin.auth.twofish
 io.ip.tcp.init_code
@@ -194,7 +198,10 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.cmd.show-access
 base.buffer.add_line
+base.base32.pre_init
 ascii.frame.validate
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -227,6 +234,7 @@ base.cfg.profile.apply
 zulum.cmd.stream-status
 zulum.cmd.stream-attach
 protocol.sftp.init_code
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -239,7 +247,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -249,6 +256,7 @@ base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
 base.chk-sum.elf.inline
+base.callback.cmd_reply
 base.auth.set_zenka_key
 ui.caller.security-level
 protocol.https.init_code
@@ -270,6 +278,7 @@ base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ui.render.tree.invalidate
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -462,8 +471,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,..,,,.,,,,.,,,.,.,,,,..,,,,,,.,,,,.,.,.,..,,...,...,..,,,,.,,,,,,.,,,,,,
-#IHDVSISPWZXMEM2SL4BVZTOI7N2PQHB5JI4Q6VH4CJVOF7SR7IYLBCWAOIHWVHV4O2UO422BURBY4
-#\\\|OB7FANTWIOBH4WKOOVPKFFYUFZBIHGU65ITA7AWKA323FLFMW7Z \ / AMOS7 \ YOURUM ::
-#\[7]AWIZI3XP7UGXPSSE23HLFL5MDATDRNHBRFHK6YGYKH46RSB47MCY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,,,.,,..,..,,,,.,,,.,...,,..,..,,...,.,.,..,,..,,,,.,,..,,,.,
+#RBYA6SPNGBU35SN7ZU5US4TLXX2YU4OC2LTD4LEJDQEF4GYQL7XOUZCLOBZEDB7SD4MHLE7GHOJJW
+#\\\|2VF7SD75ODZ22GBIS76YWQC7KD7KGD5YT2VBOQWCJLVTUMDG45M \ / AMOS7 \ YOURUM ::
+#\[7]TVP4X7DMK2NIKLAFAEFFWBPBX6UML3IPFIGTSZDP7V4Q4KZJZUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

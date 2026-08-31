@@ -5,7 +5,13 @@
 
 my $module_name = shift;
 my $cpanm_path  = <system.bin_path.cpanm>;
-my $known_deps  = <[base.known_dependencies]>->{'perlmod'}->{$module_name}
+
+## canonical accessor for src/base.known_dependencies data [ reachable from ##
+## zenka and standalone-script contexts alike ]                             ##
+<[base.perlmod.load]>->('AMOS7::deps::module')
+    if not <[base.perlmod.loaded]>->('AMOS7::deps::module');
+my $known_deps
+    = AMOS7::deps::module::load_known_deps(<system.root_path>)->{$module_name}
     // {};
 
 $module_name = $known_deps->{'cpan'}
@@ -140,8 +146,8 @@ if ( !@{ $result->{failed_deb} } and !@{ $result->{failed_cpan} } ) {
 
 return $result;
 
-#,,.,,,,.,...,,.,,,,.,.,.,.,,,.,.,,,.,,.,,.,.,..,,...,...,...,.,,,,.,,.,.,,..,
-#BNCU7D2VNJDRXAOUJOCMHZ4YAFDGFN2VTK456BWUHQRXONNTED5FQ46UG76F4HDCBXULIGMP7RGHS
-#\\\|MRXKEHE7UVIGYAEJBADJZB24LZNGWWQCQQKKMFCSR5KEULWM437 \ / AMOS7 \ YOURUM ::
-#\[7]HVEHMU4OMSLVCYSPGRDHNITH37VFOYMNHOFR5G5O7OHFS2EMEUBA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,.,,,,,.,.,.,.,.,,,.,,..,.,,,.,.,...,..,,..,,..,,...,...,,..,
+#CBZZCVOHQZZMOWVLKCZS37JDAJC62VGVBGQ252MVMWXOL33UAWRNDUXJPYV7PBXSU7RFYG34HNT2U
+#\\\|5SBRBZPBXMDJGDIOU3FQSRCGUMZI2EFLSGBDSAZ5SRZRYCHBKAT \ / AMOS7 \ YOURUM ::
+#\[7]O2JMEQWCC4STA6Y53O4V2CFTHPVOYXV3433LX3PM3X3PWGZIXIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

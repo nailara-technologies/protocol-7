@@ -90,6 +90,7 @@ base.event.loop
 base.cmd.reload
 ui.estimate.cost
 plugin.auth.unix
+jobqueue.add_job
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -112,6 +113,8 @@ ascii.frame.load
 powershell.notify
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -148,6 +151,7 @@ base.event.add_var
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 ascii.frame.render
 plugin.auth.twofish
 base.utf8.clean_str
@@ -189,7 +193,10 @@ base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
 base.buffer.add_line
+base.base32.pre_init
 ascii.frame.validate
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.pre_init
 crypt.C25519.keyfiles
@@ -226,6 +233,7 @@ base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
 base.cfg.profile.apply
+jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
 crypt.C25519.unload_key
@@ -239,7 +247,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.execute_zenka_code
@@ -248,6 +255,7 @@ base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
 base.chk-sum.elf.inline
+base.callback.cmd_reply
 base.auth.set_zenka_key
 ui.caller.security-level
 plugin.auth.auth-keypair
@@ -273,6 +281,7 @@ base.check_cfg_cmd_alias
 ui.render.tree.invalidate
 powershell.pointer-stream
 powershell.cmd.notify-msg
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -437,6 +446,7 @@ base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
 base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
+base.callback.report_children_reply
 powershell.cmd.display-switch-toggle
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
@@ -482,8 +492,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,,.,,..,,,.,.,,,...,,,.,,.,,..,,,..,,.,,..,,...,...,...,...,,..,...,..,,
-#XEB2L42CE65J7NNN5XH7OPWZ67NNAX763KD33WFBIDPA7RT4JDS6L2RCNGO3VGZZHCCC3C73EKAEM
-#\\\|6RWVKOLV3NH6QGVZ75CTUCCM3XGJB6AT2FSARC3BVSHXN7VOZL7 \ / AMOS7 \ YOURUM ::
-#\[7]NOPKZBHRUNQ7NNBXKHK4MSSANB5RHTRANICZEH5XLOWM5BBNPGBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,.,,.,,,,,,..,,..,,.,.,,.,,,,,,..,,...,...,.,.,,,.,,,.,,.,,.,.,
+#5OJSOT2ABXAQTVPEO2LSOCLSMNYXZTFLV2XLXHGC3OAZ2FQTS2E3GXF3DG5K23AXDEE7U4TTMPBV6
+#\\\|IAEJKHPWO765HMRIBC6HGISKFH4MHIIQ6DIOSNIFPIJRDG2WDP2 \ / AMOS7 \ YOURUM ::
+#\[7]GZ5HGKGV4CJJIGLCXCVIAEIEE3CWTWCP5UAXRFGVTOGJOB6QFWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

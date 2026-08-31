@@ -12,8 +12,6 @@ return unless defined $zenka_name;
     if not <[base.perlmod.loaded]>->('AMOS7::deps::module');
 <[base.perlmod.load]>->('AMOS7::deps::os_package')
     if not <[base.perlmod.loaded]>->('AMOS7::deps::os_package');
-<[base.perlmod.load]>->('AMOS7::deps::debp')
-    if not <[base.perlmod.loaded]>->('AMOS7::deps::debp');
 
 my $zenki_base = <system.conf_path> . '/zenki';
 my $pm_deps    = AMOS7::deps::module::scan_zenki_pm_deps($zenki_base);
@@ -25,7 +23,7 @@ my @missing_bin;
 
 ## Check pm deps for this zenka ##
 for my $module ( keys %$pm_deps ) {
-    next unless grep { $_ eq $zenka_name } @{ $pm_deps->{$module} };
+    next unless grep { $ARG eq $zenka_name } @{ $pm_deps->{$module} };
     push @missing_pm, $module
         unless AMOS7::deps::module::probe_module($module);
 }
@@ -35,7 +33,7 @@ for my $type ( keys %$os_deps ) {
     if ( $type eq 'binary' ) {
         for my $bin ( keys %{ $os_deps->{$type} } ) {
             next
-                unless grep { $_ eq $zenka_name }
+                unless grep { $ARG eq $zenka_name }
                 @{ $os_deps->{$type}{$bin} };
             push @missing_bin, $bin
                 unless AMOS7::deps::os_package::probe_binary($bin);
@@ -43,7 +41,7 @@ for my $type ( keys %$os_deps ) {
     } else {
         for my $pkg ( keys %{ $os_deps->{$type} } ) {
             next
-                unless grep { $_ eq $zenka_name }
+                unless grep { $ARG eq $zenka_name }
                 @{ $os_deps->{$type}{$pkg} };
             push @missing_os, $pkg
                 unless AMOS7::deps::os_package::probe_os_pkg( $pkg, $type );
@@ -61,12 +59,21 @@ if ( $auto_install && $has_root ) {
 
     my @to_install_apt;
     my @to_install_cpan;
+    my %pm_via_apt;
+
+    ## canonical accessor for src/base.known_dependencies data : reachable ##
+    ## from both zenka and standalone-script contexts [ unlike the         ##
+    ## <[base.known_dependencies]> invocation route ] -- 'perlmod' is the  ##
+    ## default section                                                     ##
+    my $known_pm_deps
+        = AMOS7::deps::module::load_known_deps(<system.root_path>) // {};
 
     for my $module (@missing_pm) {
-        my $resolved = AMOS7::deps::module::resolve_install( $module,
-            <[base.known_dependencies]>->{perlmod} // {} );
+        my $resolved
+            = AMOS7::deps::module::resolve_install( $module, $known_pm_deps );
         if ( $resolved->{method} eq 'debian' ) {
             push @to_install_apt, $resolved->{pkg};
+            $pm_via_apt{$module} = 1;
         } else {
             push @to_install_cpan, $resolved->{pkg};
         }
@@ -74,17 +81,28 @@ if ( $auto_install && $has_root ) {
 
     push @to_install_apt, @missing_os;
 
-    my @installed;
-
-    if (@to_install_apt) {
-        my $result = AMOS7::deps::debp::install_apt(@to_install_apt);
-        push @installed, @{ $result->{ok} };
+    ## resolve missing binaries to their providing debian packages [ the    ##
+    ## declared name is the binary, not always the package : cpanm lives in ##
+    ## cpanminus, ffprobe in ffmpeg, .. ] -- fallback is the name itself [  ##
+    ## correct for git, mpv, openbox, .. ]                                  ##
+    if (@missing_bin) {
+        my $known_bin_deps
+            = AMOS7::deps::module::load_known_deps( <system.root_path>,
+            qw| binary | ) // {};
+        push @to_install_apt,
+            map { $known_bin_deps->{$ARG} // $ARG } @missing_bin;
     }
+
+    my %seen;
+    @to_install_apt = grep { !$seen{$ARG}++ } @to_install_apt;
+
+    ## cpan installs stay local + synchronous for now ##
+    my @installed;
 
     if (@to_install_cpan) {
         for my $module (@to_install_cpan) {
-            my $exit = system( 'cpanm', '--quiet', '--notest', $module );
-            push @installed, $module if $exit == 0;
+            my $exit = <[base.perlmod.install_cpan_module]>->($module);
+            push @installed, $module if defined $exit and $exit == 0;
         }
     }
 
@@ -131,11 +149,51 @@ if ( $auto_install && $has_root ) {
         }
     }
 
-    ## Re-check ##
-    @missing_pm = grep { !AMOS7::deps::module::probe_module($_) } @missing_pm;
-    @missing_os
-        = grep { !AMOS7::deps::os_package::probe_os_pkg( $_, 'debian' ) }
-        @missing_os;
+    ## route apt installs through the debian zenka's jobqueue-serialized    ##
+    ## bridge [ same shape as sys-deps.cmd.install ] : one install in       ##
+    ## flight across all zenki, instead of every starting zenka calling     ##
+    ## install_apt concurrently. result, tracking + re-check arrive async   ##
+    ## in v7.handler.deps_install_reply -- the only caller of this module [ ##
+    ## v7.autostart_zenki ] discards the return value and proceeds to       ##
+    ## jobqueue.add_job unconditionally, so pure async is sufficient here   ##
+    my $apt_pending = 0;
+    if (@to_install_apt) {
+        my $sent = <[protocol-7.route-send]>->(
+            {   'command'   => qw| debian.install-packages |,
+                'call_args' => { 'args' => join( ' ', @to_install_apt ) },
+                'reply'     => {
+                    'handler' => qw| v7.handler.deps_install_reply |,
+                    'params'  => {
+                        'packages'    => \@to_install_apt,
+                        'zenka'       => $zenka_name,
+                        'missing_pm'  => [ sort keys %pm_via_apt ],
+                        'missing_os'  => [@missing_os],
+                        'missing_bin' => [@missing_bin]
+                    }
+                }
+            }
+        );
+        if ( not $sent ) {
+            <[base.logs]>->(
+                0,
+                'check_zenka_deps: cannot reach '
+                    . 'debian zenka [ route-send failed ]'
+            );
+        } else {
+            $apt_pending = 1;
+        }
+    }
+
+    ## Re-check [ synchronous portion only ] : cpan-installed modules are  ##
+    ## re-probed here ; apt-routed packages [ incl. perl modules resolved  ##
+    ## to debian packages ] + binaries are re-checked by the reply handler ##
+    ## once the install actually finished                                  ##
+    @missing_pm = grep { !AMOS7::deps::module::probe_module($ARG) }
+        grep { !$pm_via_apt{$ARG} } @missing_pm;
+    if ($apt_pending) {
+        @missing_os  = ();
+        @missing_bin = ();
+    }
 }
 
 if ( @missing_pm || @missing_os || @missing_bin ) {
@@ -148,8 +206,8 @@ if ( @missing_pm || @missing_os || @missing_bin ) {
 
 0;
 
-#,,,.,.,,,...,.,.,,,.,..,,,.,,,..,.,.,.,,,,,,,..,,...,...,...,.,,,.,.,,,.,...,
-#I7IJCSIUCWSPTOFJ75AREY5Z3XAGRQJUBASAQMXCUAR3I6LAVBUCVA33WA4PHRID6QCVD6HFVJU26
-#\\\|XGBKVNUBLEPQOFLY4WC2WFQ2MHLVKD63LIPWD6FIWFKKZ7CXVUP \ / AMOS7 \ YOURUM ::
-#\[7]MHUMDBJCVLENJ3RQEUTE53DUMZJI5DHCUMKWGCZHTVTF7RRAMSBY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,..,,,,.,,,,,,,,,,..,,..,,,,,..,,...,...,.,,,..,,,..,.,.,...,
+#PSKIZIA2EHJFN7LPEYPVEU7C76KXC2WII6ALJDDHXXYCD557NSC4OJLIKUKLVQYDVFB2UPORA7SYW
+#\\\|3VASZ3OV2G7F3DJ3E2BDTKKIBLLG2MYXMSKFJPTEKVVQZHCIUW3 \ / AMOS7 \ YOURUM ::
+#\[7]DQH6R74I7UYIUGHOXVLO3BSD63SSPXCQHFAYD55TVSHY5ABOU4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
