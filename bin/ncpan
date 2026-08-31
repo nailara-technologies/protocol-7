@@ -19,6 +19,10 @@ my $CPAN_local_modlist_tgz    = $CPAN_tmp_dir . '/CPAN_modules.tgz';
 my $CPAN_local_modlist        = $CPAN_tmp_dir . '/CPAN_modules.asc';
 my $CPAN_modlist_max_age_days = 1;
 
+## tracks module names currently being installed in this run's recursive
+## dependency chain [ guards against a circular dependency looping forever ]
+my %install_in_progress;
+
 print "\n :\n";
 
 if    ( !@ARGV )                           {&show_commands}
@@ -58,7 +62,8 @@ sub update {
 
     my $bytes_read = 0;
     while ( $bytes_read < $file_size
-        and $bytes_read += sysread( $file_handle, $buffer, 16384 ) ) {
+        and $bytes_read += read_with_timeout( $file_handle, $buffer, 16384 ) )
+    {
         syswrite( TGZ_file, $buffer );
     }
     close($file_handle);
@@ -113,7 +118,7 @@ sub search {
         if ( $mod_line =~ /^([^\s]+)\s+([^\s]+)\s+([^\s]+)$/ ) {
             my ( $mod_name, $mod_version, $mod_url ) = ( $1, $2, $3 );
             if ( $mod_name =~ /$keyword/i ) {
-                $mod_url = "https://$CPAN_server/authors/id/$mod_url";
+                $mod_url = "https://$CPAN_server$CPAN_module_dir$mod_url";
 
                 $mod_version_len = 5 if $mod_version_len > 5;
                 if ( length($mod_version) > $mod_version_len ) {
@@ -155,6 +160,14 @@ sub install {
     my $force_install    = $_[1] || 0;
     my $mod_name_len     = 33;
     my $mod_version_len  = 5;
+
+    if ( $install_in_progress{ lc $install_mod_name } ) {
+        print " :: skipping '$install_mod_name' -- already being "
+            . "installed (circular or duplicate dependency)\n";
+        return;
+    }
+    local $install_in_progress{ lc $install_mod_name } = 1;
+
     ensure_modlist_fresh();
     print " :: installation results for module '$install_mod_name':\n :\n";
     open( MOD_list, $CPAN_local_modlist )
@@ -172,7 +185,7 @@ sub install {
                 my $mod_file_name = $mod_url;
                 $mod_file_name =~ s/^.+\/([^\/]+)$/$1/g;
                 $found = 1;
-                my $mod_uri = "/authors/id/$mod_url";
+                my $mod_uri = "$CPAN_module_dir$mod_url";
                 $mod_version_len = 5 if $mod_version_len > 5;
                 if ( length($mod_version) > $mod_version_len ) {
                     $mod_version_len = length($mod_version) - 1;
@@ -199,10 +212,10 @@ sub install {
 
                     my $bytes_read = 0;
                     while (
-                            $bytes_read < $MOD_size
-                        and $bytes_read += sysread $MOD_handle,
-                        $buffer,
-                        $MOD_size - $bytes_read
+                        $bytes_read < $MOD_size
+                        and $bytes_read += read_with_timeout(
+                            $MOD_handle, $buffer, $MOD_size - $bytes_read
+                        )
                     ) {
                         syswrite( $file_handle, $buffer );
                     }
@@ -246,66 +259,88 @@ sub install {
 
                             my $makefile_pl = "$ext_mod_dir/Makefile.PL";
                             my $makefile    = "$ext_mod_dir/Makefile";
+                            my $build_pl    = "$ext_mod_dir/Build.PL";
 
-                            print " : writing makefile ..\n.:\n\n";
                             chdir($ext_mod_dir) or die lcfirst($OS_ERROR);
-                            if ( !system( 'perl', $makefile_pl ) ) {
-                                print "..\n";
-                                if ( -f $makefile ) {
-                                    die " :\n :: [error] "
-                                        . "'make' not found!\n\n"
-                                        if qx(make -h) !~ /Usage/;
-                                    print " : running 'make' ...\n.:\n\n";
-                                    if ( !system('make') ) {
-                                        print "..\n : running 'make "
-                                            . "test' ..\n.:\n\n"
-                                            if !$force_install;
-                                        if ( $force_install
-                                            or !system( 'make', 'test' ) ) {
-                                            if (   $force_install
-                                                or $EUID == 0 ) {
-                                                print "..\n : running 'make "
-                                                    . "install' "
-                                                    . "..\n.:\n\n";
-                                                if ( !system('make install') )
-                                                {
-                                                    print "..\n";
-                                                }
+
+                            if ( -f $makefile_pl ) {
+                                print " : writing makefile ..\n.:\n\n";
+                                if ( !system( 'perl', $makefile_pl ) ) {
+                                    print "..\n";
+                                    if ( -f $makefile ) {
+                                        die " :\n :: [error] "
+                                            . "'make' not found!\n\n"
+                                            if qx(make -h) !~ /Usage/;
+                                        print " : running 'make' ...\n.:\n\n";
+                                        if ( !system('make') ) {
+                                            print "..\n : running 'make "
+                                                . "test' ..\n.:\n\n"
+                                                if !$force_install;
+                                            if ( $force_install
+                                                or !system( 'make', 'test' ) )
+                                            {
+                                                run_privileged_install(
+                                                    [ 'make', 'install' ],
+                                                    $force_install );
                                             } else {
-                                                print "..\n : need root "
-                                                    . "priviledges to "
-                                                    . "'make "
-                                                    . "install'\n";
-                                                print " : running 'su root "
-                                                    . "-c make "
-                                                    . "install' "
-                                                    . "..\n.:\n\n";
-                                                if (!system( 'su', 'root',
-                                                        '-c', 'make install' )
-                                                ) {
-                                                    print "..\n";
-                                                } else {
-                                                    die "..\n :: [error] no "
-                                                        . "clean exit "
-                                                        . "from 'su root "
-                                                        . "-c make "
-                                                        . "install'\n "
-                                                        . ":\n\n";
-                                                }
+                                                die "..\n :: [error] 'make "
+                                                    . "test' failed !\n "
+                                                    . ":\n\n";
                                             }
                                         } else {
-                                            die "..\n :: [error] 'make test' "
-                                                . "failed !\n :\n\n";
+                                            die "..\n :: [error] no clean "
+                                                . "exit from 'make'\n "
+                                                . ":\n\n";
+                                        }
+                                    }
+                                } else {
+                                    die " :: [error] cannot execute "
+                                        . "'$makefile_pl'. [ \l$OS_ERROR "
+                                        . "]\n :\n\n";
+                                }
+                            } elsif ( -f $build_pl ) {
+                                print " : running Build.PL ..\n.:\n\n";
+                                if ( !system( 'perl', $build_pl ) ) {
+                                    print "..\n";
+                                    if ( -f 'Build' ) {
+                                        print " : running "
+                                            . "'./Build' ...\n.:\n\n";
+                                        if ( !system('./Build') ) {
+                                            print "..\n : running './Build "
+                                                . "test' ..\n.:\n\n"
+                                                if !$force_install;
+                                            if ( $force_install
+                                                or !
+                                                system( './Build', 'test' ) )
+                                            {
+                                                run_privileged_install(
+                                                    [ './Build', 'install' ],
+                                                    $force_install
+                                                );
+                                            } else {
+                                                die "..\n :: [error] "
+                                                    . "'./Build test' "
+                                                    . "failed !\n :\n\n";
+                                            }
+                                        } else {
+                                            die "..\n :: [error] no clean "
+                                                . "exit from './Build'\n "
+                                                . ":\n\n";
                                         }
                                     } else {
-                                        die "..\n :: [error] no clean "
-                                            . "exit from 'make'\n :\n\n";
+                                        die " :: [error] Build.PL did not "
+                                            . "produce a 'Build' "
+                                            . "script\n :\n\n";
                                     }
+                                } else {
+                                    die " :: [error] cannot execute "
+                                        . "'$build_pl'. [ \l$OS_ERROR "
+                                        . "]\n :\n\n";
                                 }
-
                             } else {
-                                die " :: [error] cannot execute "
-                                    . "'$makefile_pl'. [ \l$OS_ERROR ]\n "
+                                die " :: [error] no Makefile.PL or Build.PL "
+                                    . "found in '$ext_mod_dir' -- don't "
+                                    . "know how to build this module\n "
                                     . ":\n\n";
                             }
 
@@ -329,6 +364,32 @@ sub install {
 
 }
 
+## run_privileged_install : run the final install command [ make install or ##
+## ./Build install, both share the same root-or-su fallback ]               ##
+
+sub run_privileged_install {
+    my ( $cmd, $force_install ) = @_;
+    my $cmd_str = join ' ', @$cmd;
+
+    if ( $force_install or $EUID == 0 ) {
+        print "..\n : running '$cmd_str' ..\n.:\n\n";
+        if ( !system(@$cmd) ) {
+            print "..\n";
+        } else {
+            die "..\n :: [error] no clean exit from '$cmd_str'\n :\n\n";
+        }
+    } else {
+        print "..\n : need root priviledges to '$cmd_str'\n";
+        print " : running 'su root -c \"$cmd_str\"' ..\n.:\n\n";
+        if ( !system( 'su', 'root', '-c', $cmd_str ) ) {
+            print "..\n";
+        } else {
+            die "..\n :: [error] no clean exit from "
+                . "'su root -c \"$cmd_str\"'\n :\n\n";
+        }
+    }
+}
+
 sub show_readme {
     my $readme_mod_name = $_[0];
     print " ::[ \"$readme_mod_name\" ]:.\n :\n";
@@ -345,7 +406,7 @@ sub show_readme {
                 my $readme_file_name = $mod_url;
                 $readme_file_name =~ s/^(.+)\.tar\.gz$/$1.readme/g;
                 $found = 1;
-                my $mod_uri = "/authors/id/$readme_file_name";
+                my $mod_uri = "$CPAN_module_dir$readme_file_name";
                 $mod_version_len = 5 if $mod_version_len > 5;
                 if ( length($mod_version) > $mod_version_len ) {
                     $mod_version_len = length($mod_version) - 1;
@@ -393,6 +454,12 @@ sub return_dependencies {
     my $mod_dir   = $_[0];
     my $make_file = "$mod_dir/Makefile.PL";
     my @dependencies;
+
+    ## Build.PL-only modules [ no Makefile.PL ] have no PREREQ_PM to parse ##
+    ## here -- their build step below still surfaces any real missing      ##
+    ## prereq itself, this just skips the pre-fetch pass for that case     ##
+    return @dependencies unless -f $make_file;
+
     print " : checking dependencies ..\n";
     open( my $make_file_handle, " < $make_file " )
         or die " :: [error] cannot open makefile "
@@ -452,6 +519,27 @@ sub clean {
     print " :: done.\n :\n\n";
 }
 
+## read_with_timeout : sysread wrapper with a per-chunk stall timeout ##
+##
+## the initial GET's header wait already has its own alarm-based timeout in
+## open_cpan_file [ disarmed once headers finish, since the socket is handed
+## back to the caller for the body transfer ] -- this covers that body
+## transfer, so a connection that stalls mid-download (not just at connect)
+## still dies with a clear error instead of hanging forever. $_[1] is aliased
+## through @_ to the caller's buffer, same as sysread itself.
+
+sub read_with_timeout {
+    my ( $handle, undef, $len ) = @_;
+    local $SIG{'ALRM'} = sub {
+        die " :: [error] network read stalled "
+            . "(no data for ${CPAN_http_timeout}s)\n";
+    };
+    alarm($CPAN_http_timeout);
+    my $bytes_read = sysread( $handle, $_[1], $len );
+    alarm(0);
+    return $bytes_read;
+}
+
 # sub download_cpan_file
 # {}
 
@@ -467,6 +555,7 @@ sub open_cpan_file {
     ) {
         my $url = "https://$CPAN_server$file";
         my ( $buffer, $ok ) = ( '', 0 );
+        my $status_line;    ## real status line, for a useful error below ##
         $SIG{'ALRM'} = sub {
             die " :: [error] HTTP timeout( file: '$url' )\n";
         };
@@ -483,6 +572,7 @@ sub open_cpan_file {
             }
             $header_read = 1 if $buffer eq "\r\n";
             $buffer =~ s/\r?\n$//;
+            $status_line //= $buffer;
             if ( !$ok and $buffer eq 'HTTP/1.1 200 OK' ) {
                 $ok     = 1;
                 $buffer = '';
@@ -497,8 +587,8 @@ sub open_cpan_file {
                 if ( $buffer =~ /^Content-Length: (\d+)$/ ) { $size = $1 }
                 $buffer = undef;
             } else {
-                die " :: [ERR] failed to GET: "
-                    . "'https://$CPAN_server$file'\n\n";
+                die " :: [ERR] failed to GET '$url' -- "
+                    . "server responded '$status_line'\n\n";
                 return undef;
             }
         }
@@ -521,8 +611,8 @@ sub show_commands {
         . "sources ]\n :\n";
 }
 
-#,,..,,,,,.,.,..,,.,.,,..,..,,,,,,.,,,,..,..,,..,,...,...,.,,,,,.,,,,,,,.,,,.,
-#4RFMSAN6OC4REGEZ2MYTJOFYZZ4TM4GE5UBAUKVAWCHPZLBK3Q4MDNHWLJ5F3C7Z5K6OJBIA6DC6A
-#\\\|QNZDB4U425QLM2RNQ7KVGQGRYTJLEJ7HOBNK2HMCM7FF2U2XTBY \ / AMOS7 \ YOURUM ::
-#\[7]OCXSHGJ4V6CP7YNMBM4LSOSV72RE4RKELLXMKHTTRSCRMZ4O36DA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,..,,..,,,.,...,.,,,,.,,,.,,,,.,..,,...,...,...,...,,..,...,...,
+#S3XOFIMAEWESFVS35CALHVAL6Z6LSKTSAYEKSWODLLFNWNKXIPRQOXNJEMVZRGKZMCK7IOQR5DSGG
+#\\\|ZCRLWWS2PPMKT7HZHBUQMQDJKF4FNMVN7OR74OJZQA4PXQP3GOV \ / AMOS7 \ YOURUM ::
+#\[7]MHQ5O23EKP4PVQSG7CQFPZO2OPP56ESIGGJCPHJF4MQOXC6B5ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
