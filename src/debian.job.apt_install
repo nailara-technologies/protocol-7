@@ -76,6 +76,10 @@ my $watcher = <[event.add_io]>->(
 $current->{'watcher'} = $watcher;
 $current->{'started'} = <[base.ntime]>;
 
+## protect against idle-shutdown for however long the install itself takes ##
+## -- resumed in debian.handler.apt_child_output on completion             ##
+<[base.zenki.pause_ondemand_timeout]>;
+
 <[base.logs]>->(
     1,       'apt_install: job %d started : %s',
     $job_id, join( ' ', @$packages )
@@ -83,8 +87,8 @@ $current->{'started'} = <[base.ntime]>;
 
 return TRUE;
 
-#,,.,,,..,.,.,.,.,,..,,..,.,.,.,.,,..,.,,,..,,..,,...,...,...,.,,,...,.,,,,..,
-#RTHKGDJZ5XHDKN5JHJ2CTLSAWA2K6V5STFFE3A23UOIAUEVATAEWF5K7PEWDG5CWWZF4CBVB5FRRO
-#\\\|YGR4QMCIEVSQ2742PWE3Y3GI6SY5UHXYD6USLIP474SRE7AH6U7 \ / AMOS7 \ YOURUM ::
-#\[7]V5LCTPV6OYXCFAFIIQ2O56AO2XIE7TE554N3QIUZ4BNT33OHWUCY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,,..,..,,,,,,...,,,.,,,,,,..,..,,...,...,...,...,,,.,.,.,,,.,
+#FQ2IF4ON2NBYX2IRY36GDWXOQ7D5PGHCUY42JJFAEIRHUJHLL4VTUD7BMTLKOAMLZRX4GMPYPOUK2
+#\\\|SMQHX4VAOSWIDG5N5DDCQ43J7TL26KPSB5BWAJYYNS4H2XULZIG \ / AMOS7 \ YOURUM ::
+#\[7]LITKTVEHRK2SJNSBN4H7TRXMGAUMU5X7Y4OCFZZUMNQDHEPB7ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
