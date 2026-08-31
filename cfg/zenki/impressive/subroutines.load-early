@@ -87,6 +87,7 @@ base.event.loop
 base.cmd.reload
 ui.estimate.cost
 plugin.auth.unix
+jobqueue.add_job
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -110,6 +111,8 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -148,6 +151,7 @@ base.event.add_var
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 ascii.frame.render
 window.profile.save
 window.profile.load
@@ -194,8 +198,11 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.chk-sum.bmw.ctx
 base.buffer.add_line
+base.base32.pre_init
 ascii.frame.validate
 window.profile.delete
+jobqueue.get_next_job
+jobqueue.get_job_data
 impressive.cmd.status
 impressive.cmd.resume
 format.yaml.load_file
@@ -230,6 +237,7 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.cfg.profile.apply
 base.X-11.get_geometry
+jobqueue.queue_template
 io.unix.socket.end_code
 impressive.get_playlist
 crypt.C25519.write_keys
@@ -243,7 +251,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.execute_zenka_code
@@ -252,6 +259,7 @@ base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
 base.chk-sum.elf.inline
+base.callback.cmd_reply
 base.auth.set_zenka_key
 base.X-11.assign_window
 window.profile.color.get
@@ -284,6 +292,7 @@ window.profile.color.save
 window.profile.color.load
 window.profile.color.list
 ui.render.tree.invalidate
+jobqueue.priorities_table
 io.unix.socket.input.open
 impressive.process_subcfg
 impressive.cmd.reposition
@@ -432,6 +441,7 @@ base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
 base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
+base.callback.report_children_reply
 base.zenki.resolve_primary_sid.reply
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
@@ -473,8 +483,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,..,.,,,,,,,.,.,,,,,...,,..,,.,,,,,,.,.,..,,...,...,..,,.,.,...,.,.,,..,
-#GWIXBP3DWFZCWQ4VP2JN3X6QIHCQX37DK6XWO35DRZRGNLY23VUJTODQGLIP5OVGUFLTP3BX66MTE
-#\\\|YV7YCESRPJ4MY7WPV4ILGNJPPMQLG3TDXLV6GFLRR7FN7HX5DE6 \ / AMOS7 \ YOURUM ::
-#\[7]MKVTG77D64VC6B7Y55MHBGWAJWLBKAHJQO7XJ3O7YGPXEZXXCMCA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,.,.,.,,,,..,,..,,,,,,..,,.,,..,,...,...,,..,.,.,,.,,..,,,,.,
+#7JARSLBSRWHF2O6EM7PZY3B5GESDR24R3DLRI7IFZJMQ57IMS5QIC6EP2HH5BTNC5ITGVAPLCJHSY
+#\\\|JRIJHE72VSQXH2H5COP3PECOV7B6KU3P5JIY4WVEL6GKY4TRFKX \ / AMOS7 \ YOURUM ::
+#\[7]GBSJS46KG45FJAYFW63V4G5XN5XDSEMEGH4KYXNU5PPXG7BB3MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

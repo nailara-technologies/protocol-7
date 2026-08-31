@@ -98,6 +98,7 @@ base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
+jobqueue.add_job
 devmod.post_init
 devmod.init_code
 base.stream.push
@@ -127,6 +128,8 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 data.list_entries
 data.hooks.notify
 data.get_ref_type
@@ -177,6 +180,7 @@ base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 ascii.frame.render
 plugin.auth.twofish
 plan-9.client.clunk
@@ -237,10 +241,13 @@ base.cmd.show-buffer
 base.cmd.show-access
 base.cmd.amos-chksum
 base.buffer.add_line
+base.base32.pre_init
 ascii.frame.validate
 plan-9.protocol.error
 plan-9.protocol.codec
 plan-9.client.version
+jobqueue.get_next_job
+jobqueue.get_job_data
 format.yaml.load_file
 data.mount.shm.unlink
 data.mount.shm.remove
@@ -305,6 +312,7 @@ amos-term.buffer-write
 amos-term.buffer-clear
 protocol.sftp.init_code
 plan-9.client.read-file
+jobqueue.queue_template
 io.unix.socket.end_code
 data.mount.fuse.release
 data.mount.fuse.readdir
@@ -324,7 +332,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -337,6 +344,7 @@ base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
+base.callback.cmd_reply
 base.auth.set_zenka_key
 amos-term.window-resize
 amos-term.window-create
@@ -378,6 +386,7 @@ ui.render.tree.invalidate
 plan-9.server.handle_walk
 plan-9.server.client.data
 plan-9.server.buffer-stat
+jobqueue.priorities_table
 io.unix.socket.input.open
 data.mount.shm.test.basic
 data.mount.shm.page.write
@@ -752,8 +761,8 @@ data.topology.interference.map.calculate_metadata_distance
 data.topology.interference.map.calculate_fluorescent_drift
 data.topology.interference.map.calculate_constructive_zone
 
-#,,,,,...,...,.,,,,..,.,,,,,.,,,,,,,.,.,.,.,,,..,,...,...,..,,,,.,.,.,,,,,,,,,
-#ECE5BDIEXYF4YXEL6SXP3QQRAECQKO7CHIGEOZBWDDRNIXDDITUEZT2ISOSJKNSF3ZA66CJI3GU6K
-#\\\|NBREA6XDER2FJ3NHYVLUZXQ7PO2UF7E7CGILSTYASAUAR2EFGMT \ / AMOS7 \ YOURUM ::
-#\[7]NABIHLEHHFNM776GDEABAHAPZ4RUPDM2TQIEFNQKS52UWOK7KGCI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,...,..,,,..,.,,,,,.,.,,,.,.,,,.,..,,...,...,,.,,.,.,,,,,..,,,,.,
+#FWYE2F65HMZQJJL5RURQOPCBD5AT6YET56QXMLPG5PYXISF4NVLU2NZEGSAOSDNWTR6THVNWF2TVW
+#\\\|G4WULAXZZDTZ3NP5J52TFOZM5EXLSRPPRUTN2STWGCTXP2TXBDN \ / AMOS7 \ YOURUM ::
+#\[7]MM2IXE7GMAGH4O3ASJ54XSVLZJSEQEVHN3BOGEDIXSNCY7WV2YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
