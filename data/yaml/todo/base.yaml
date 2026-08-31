@@ -477,11 +477,39 @@ items:
   priority: normal
   status: open
   tags:
-  - bin/dev/git-hooks/pre-commit
-  text: pre-commit signature check should scope to staged files, not verify everything
+  - git-hooks
+  text: scope pre-commit signature check to staged files
+- added: 3XAZXFFIJU
+  details: |-
+    perltidy/format-code doesn't currently rewrite nested %data hash-chain
+    accesses into Protocol-7's <key0.key1[.keyN]> sugar form -- code is full
+    of literal $data{'a'}{'b'}{'c'} chains that could read as <a.b.c>
+    instead (see reference-nested-data-key-sugar.md memory for the syntax
+    rule and worked examples, e.g. $data{'watcher'}{'io'}{'transfer'} ->
+    <watcher.io.transfer>, and the partial-path form <watcher.io>->{$name}
+    for a trailing dynamic key).
 
-#,,,,,,..,,.,,,,.,,,,,,,,,.,.,...,,,.,,..,.,.,..,,...,...,...,...,.,,,.,,,,.,,
-#4PLGIYZXM6FYTFRZRAHFDE6IGZZUMDRHBOEINHHPQQHMLDXMHAV5BCMGJGU3W5G7SH6CTWZ7OZ7OS
-#\\\|4G5VV6QDX3X6TYS6UHHPLX25D2GCDMPFDLM3O7BPTGISPNPTLVX \ / AMOS7 \ YOURUM ::
-#\[7]RUZTGURX26EHWVD2X46LK443EC7YRKQPPUHD6GDHGD5XGDAG6IAA 7  DATA SIGNATURE ::
+    Heuristic (user-specified, 2026-09-01): safe to compact any run of >= 2
+    consecutive {'key'} segments immediately following $data{'key0'},
+    stopping at the first character that isn't a literal '{' opening
+    another key segment -- i.e. stop at a dynamic index ({$var}), a method
+    call, or any other trailing expression. Applies equally to reads,
+    writes, and delete.
+
+    Related: 7XX (perltidy's own string-literal-splitting bug) is a sibling
+    format-code gap found in the same general area -- worth processing
+    together in one format-code pass/dispatch rather than two separate
+    ones.
+  done_at: null
+  id: RLL
+  priority: normal
+  status: open
+  tags:
+  - format-code
+  text: compact nested $data{} chains into <key0.key1..> sugar
+
+#,,,.,.,,,.,.,,.,,...,,,.,...,.,,,,..,.,,,,..,..,,...,...,...,,,.,...,.,.,...,
+#3VQKAXMWZK7PE2LVGFIWD7IRMDEBDMPGMY34MTHLL7FGLRYBQDXIFFMOW23TWKI4O7Z455SYOL3XM
+#\\\|3AUVQRZORRX4ANFU5EARB3WBI3W5GNNVNKTWMBM7426P7XHAKTE \ / AMOS7 \ YOURUM ::
+#\[7]RUBDOZ3LKBT5GJF4KHJM4IXZAFPRKVJASLFUQO5O6MURWKL5Y2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

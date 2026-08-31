@@ -84,12 +84,17 @@ if ( defined $reply_id ) {
 $event->cancel if $event->is_active;
 <debian.apt_child.current_job> = undef;
 
+## restore idle-shutdown tracking [ paired with debian.job.apt_install's  ##
+## pause ] -- if apt_pump immediately starts another queued job, that job ##
+## re-pauses on its own, so this is always safe to run first              ##
+<[base.zenki.resume_ondemand_timeout]>;
+
 <[debian.apt_pump]>;
 
 return;
 
-#,,.,,..,,..,,.,.,,.,,.,.,.,.,...,.,.,...,,.,,..,,...,.,.,,,,,..,,,,.,,.,,,,,,
-#QMD2EB77RDTFXQ5K6SOZQIZTLM6VL4OP2O4QPOVV4SCLSRLDYLOQ7PJC6MBHRQOMHIK6CTVYF54VE
-#\\\|PKO2DCEJPFGYUUKY35XEBJXPWMS5RRIFKJ3ZGAT7S32EXJWKMIM \ / AMOS7 \ YOURUM ::
-#\[7]3QCKCCWTXC26KWRPTFRCBFWZQ6YVOPXJF7EO2VWE6WFDEMWJ3YDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,.,,,.,.,,..,.,,,,.,,,.,,.,,,..,,...,..,,...,...,,,,,,,,,,,.,
+#MSWPCVGFWKSBLR4M2JKN6ZXZTEDKPF6XA36DNQZQTPDQYOA3X4YW5QGF6NXCVUNGJTJ4LH3EAONTC
+#\\\|T2Q7DSVF6IZESLGLG2LVHWB3ZH4WUO2GA6UFOWPCZ2GUCKPDZCT \ / AMOS7 \ YOURUM ::
+#\[7]GT5RFSFQ477N25KOT7AQO632BWWWTBETITZ2Q2H3KGSL7CBH74BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
