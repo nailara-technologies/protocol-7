@@ -15,8 +15,9 @@ my $CPAN_tmp_dir
     = ( $ENV{'XDG_CACHE_HOME'}
         // ( ( $ENV{'HOME'} // '/var/tmp' ) . '/.cache' ) )
     . '/protocol-7/cpan';
-my $CPAN_local_modlist_tgz = $CPAN_tmp_dir . '/CPAN_modules.tgz';
-my $CPAN_local_modlist     = $CPAN_tmp_dir . '/CPAN_modules.asc';
+my $CPAN_local_modlist_tgz    = $CPAN_tmp_dir . '/CPAN_modules.tgz';
+my $CPAN_local_modlist        = $CPAN_tmp_dir . '/CPAN_modules.asc';
+my $CPAN_modlist_max_age_days = 1;
 
 print "\n :\n";
 
@@ -78,8 +79,21 @@ sub update {
     }
     close($file_handle);
     close(ZCAT);
-    print " :: deleting file '$CPAN_local_modlist_tgz'\n";
+    print " :: deleting file '$CPAN_local_modlist_tgz'.,\n :\n";
+    print " : :: module list updated ::\n\n";
     unlink($CPAN_local_modlist_tgz);
+}
+
+sub ensure_modlist_fresh {
+    if ( !-f $CPAN_local_modlist ) {
+        print " :: no module list found, fetching one first ..\n :\n";
+        update();
+    } elsif ( -M $CPAN_local_modlist > $CPAN_modlist_max_age_days ) {
+        print " :: module list is over $CPAN_modlist_max_age_days day"
+            . ( $CPAN_modlist_max_age_days == 1 ? '' : 's' )
+            . " old, refreshing ..\n :\n";
+        update();
+    }
 }
 
 sub search {
@@ -88,6 +102,7 @@ sub search {
         print " :: usage: ncpan search <keyword>\n :\n";
         exit;
     }
+    ensure_modlist_fresh();
     my $mod_name_len    = 33;
     my $mod_version_len = 3;
     print " ::[ search results for '$keyword' ]:.\n :\n";
@@ -140,6 +155,7 @@ sub install {
     my $force_install    = $_[1] || 0;
     my $mod_name_len     = 33;
     my $mod_version_len  = 5;
+    ensure_modlist_fresh();
     print " :: installation results for module '$install_mod_name':\n :\n";
     open( MOD_list, $CPAN_local_modlist )
         or die " :: [error] cannot open module list file "
@@ -505,8 +521,8 @@ sub show_commands {
         . "sources ]\n :\n";
 }
 
-#,,,,,.,.,..,,...,...,..,,,,.,,,,,,.,,.,,,,..,..,,...,...,..,,,,,,,,.,,,,,.,,,
-#XALXTNBJL7EAR3V5M2XH5OES6JAF5PHBBOPLIL7IMIROKWSUPXGMVHZGSE4BK3OWR27BSO23TOY54
-#\\\|UX62BPNX2FQ57PSR7LL5MKGBOMQR6BLKILBMQYMOIR2RIOZDHOS \ / AMOS7 \ YOURUM ::
-#\[7]NE5ZUACBGUU4G7HG3QKCF3WRRFPAXDP6D6KBEXX2SVENLH2NVEBY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,.,.,,..,..,,,,,,.,,,,..,..,,..,,...,...,.,,,,,.,,,,,,,.,,,.,
+#4RFMSAN6OC4REGEZ2MYTJOFYZZ4TM4GE5UBAUKVAWCHPZLBK3Q4MDNHWLJ5F3C7Z5K6OJBIA6DC6A
+#\\\|QNZDB4U425QLM2RNQ7KVGQGRYTJLEJ7HOBNK2HMCM7FF2U2XTBY \ / AMOS7 \ YOURUM ::
+#\[7]OCXSHGJ4V6CP7YNMBM4LSOSV72RE4RKELLXMKHTTRSCRMZ4O36DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
