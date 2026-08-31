@@ -3,17 +3,20 @@
 use strict;
 use warnings;
 use English;
+use File::Path qw| make_path remove_tree |;
 
-my $pager_cmd              = $ENV{'PAGER'} // 'less -XE';
-my $CPAN_server            = 'www.cpan.org';
-my $CPAN_http_port         = 80;
-my $CPAN_file_list         = '/modules/02packages.details.txt.gz';
-my $CPAN_module_dir        = '/authors/id/';
-my $CPAN_http_timeout      = 10;
-my $CPAN_tmp_dir           = $ENV{'HOME'} // '/var/tmp';
+my $pager_cmd         = $ENV{'PAGER'} // 'less -XE';
+my $CPAN_server       = 'www.cpan.org';
+my $CPAN_https_port   = 443;
+my $CPAN_file_list    = '/modules/02packages.details.txt.gz';
+my $CPAN_module_dir   = '/authors/id/';
+my $CPAN_http_timeout = 10;
+my $CPAN_tmp_dir
+    = ( $ENV{'XDG_CACHE_HOME'}
+        // ( ( $ENV{'HOME'} // '/var/tmp' ) . '/.cache' ) )
+    . '/protocol-7/cpan';
 my $CPAN_local_modlist_tgz = $CPAN_tmp_dir . '/CPAN_modules.tgz';
 my $CPAN_local_modlist     = $CPAN_tmp_dir . '/CPAN_modules.asc';
-$CPAN_tmp_dir .= '/.n.cpan';
 
 print "\n :\n";
 
@@ -29,6 +32,8 @@ elsif ( $ARGV[0] eq 'search' ) {
     &install( $ARGV[1] );
 } elsif ( $ARGV[0] eq 'force-install' ) {
     &install( $ARGV[1], 1 );
+} elsif ( $ARGV[0] eq 'clean' ) {
+    &clean;
 }
 
 print " :: done\n :\n" if @ARGV and $ARGV[0] =~ /^(force-)?install$/;
@@ -37,15 +42,9 @@ print "\n";
 exit;
 
 sub update {
-    if ( !-d $CPAN_tmp_dir ) {
-        print " :: creating dir '$CPAN_tmp_dir'\n";
-        mkdir($CPAN_tmp_dir)
-            or die " :: [error] cannot create tmp dir '$CPAN_tmp_dir'\n";
-    }
-
     if ( !-d $CPAN_tmp_dir . '/src' ) {
         print " :: creating dir '$CPAN_tmp_dir/src'\n";
-        mkdir( $CPAN_tmp_dir . '/src' )
+        make_path( $CPAN_tmp_dir . '/src' )
             or die " :: [error] cannot create tmp dir '$CPAN_tmp_dir/src'\n";
     }
     my $buffer = '';
@@ -99,7 +98,7 @@ sub search {
         if ( $mod_line =~ /^([^\s]+)\s+([^\s]+)\s+([^\s]+)$/ ) {
             my ( $mod_name, $mod_version, $mod_url ) = ( $1, $2, $3 );
             if ( $mod_name =~ /$keyword/i ) {
-                $mod_url = "http://$CPAN_server/authors/id/$mod_url";
+                $mod_url = "https://$CPAN_server/authors/id/$mod_url";
 
                 $mod_version_len = 5 if $mod_version_len > 5;
                 if ( length($mod_version) > $mod_version_len ) {
@@ -415,14 +414,24 @@ sub return_dependencies {
 }
 
 sub clean {
-    print " :: deleting module list\n";
-    unlink($CPAN_local_modlist)
-        or die " :: [error] cannot module list "
-        . "'$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
-    print " :: deleting tmp dir\n";
-    rmdir($CPAN_tmp_dir)
-        or die
-        " :: [error] cannot delete tmp dir '$CPAN_tmp_dir' [ \l$OS_ERROR ]\n";
+    if ( -f $CPAN_local_modlist ) {
+        print " :: deleting module list\n";
+        unlink($CPAN_local_modlist)
+            or die " :: [error] cannot delete module list "
+            . "'$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
+    }
+
+    if ( -d $CPAN_tmp_dir ) {
+        print " :: deleting cache dir '$CPAN_tmp_dir'\n";
+        remove_tree( $CPAN_tmp_dir, { error => \my $errs } );
+        if (@$errs) {
+            for my $err (@$errs) {
+                my ( $file, $msg ) = %$err;
+                print STDERR " :: [error] $file: $msg\n";
+            }
+            die " :: [error] cannot fully delete cache dir '$CPAN_tmp_dir'\n";
+        }
+    }
 
     print " :: done.\n :\n\n";
 }
@@ -431,16 +440,16 @@ sub clean {
 # {}
 
 sub open_cpan_file {
-    use IO::Socket::IP;
+    use IO::Socket::SSL;
     my $file = $_[0];
-    if (my $sock = IO::Socket::IP->new(
+    if (my $sock = IO::Socket::SSL->new(
             PeerAddr => $CPAN_server,
-            PeerPort => $CPAN_http_port,
+            PeerPort => $CPAN_https_port,
             Proto    => 'tcp',
             Blocking => 1
         )
     ) {
-        my $url = "http://$CPAN_server$file";
+        my $url = "https://$CPAN_server$file";
         my ( $buffer, $ok ) = ( '', 0 );
         $SIG{'ALRM'} = sub {
             die " :: [error] HTTP timeout( file: '$url' )\n";
@@ -472,13 +481,14 @@ sub open_cpan_file {
                 if ( $buffer =~ /^Content-Length: (\d+)$/ ) { $size = $1 }
                 $buffer = undef;
             } else {
-                die " :: [ERR] failed to GET: 'http://$CPAN_server$file'\n\n";
+                die " :: [ERR] failed to GET: "
+                    . "'https://$CPAN_server$file'\n\n";
                 return undef;
             }
         }
     } else {
         die " :: cannot connect to CPAN server at "
-            . "'$CPAN_server:$CPAN_http_port' [ \l$OS_ERROR ]\n";
+            . "'$CPAN_server:$CPAN_https_port' [ \l$OS_ERROR ]\n";
     }
 
 }
@@ -490,11 +500,13 @@ sub show_commands {
         . "show readme file for <module> [ if available.. ]\n : "
         . "install <module>       :. download and install <module> [ + "
         . "dependencies ]\n : force-install <module> :. download and "
-        . "install <module> [ no 'make test' ]\n :\n";
+        . "install <module> [ no 'make test' ]\n : clean               "
+        . "   :. delete module list and cache dir [ incl. extracted "
+        . "sources ]\n :\n";
 }
 
-#,,,,,,..,,,,,,.,,,..,,.,,,,.,...,..,,,,,,,..,..,,...,...,..,,,..,..,,..,,.,,,
-#ISB66FJ5B2SZ5QFCY2NXPMWKO72K3SJVH772MQIB4VZ3CTH2YYBVB7HPMS6MBZ2ZGCGAFSEEERSLC
-#\\\|YRFVO36IV7LBF3GTPTISEA4Y46IVTT6YINUKLSH47ES6ZOGDMYH \ / AMOS7 \ YOURUM ::
-#\[7]IHZOA5RKTYWJSJFGTLUXEY3KZCERCJLT2Y2NVC3EWSHC3TQBNGBI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,...,..,,,,.,,,,,,.,,.,,,,..,..,,...,...,..,,,,,,,,.,,,,,.,,,
+#XALXTNBJL7EAR3V5M2XH5OES6JAF5PHBBOPLIL7IMIROKWSUPXGMVHZGSE4BK3OWR27BSO23TOY54
+#\\\|UX62BPNX2FQ57PSR7LL5MKGBOMQR6BLKILBMQYMOIR2RIOZDHOS \ / AMOS7 \ YOURUM ::
+#\[7]NE5ZUACBGUU4G7HG3QKCF3WRRFPAXDP6D6KBEXX2SVENLH2NVEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
