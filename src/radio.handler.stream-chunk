@@ -9,6 +9,37 @@ my $read_fh = $event->fd;
 
 my $icy = <radio.stream.icy>;
 
+## jingle suppression self-heal timeout [ independent of metadata changes ] ##
+if (    $icy->{'is_jingle'}
+    and defined $icy->{'track_started'}
+    and ( <[base.time]>->(3) - $icy->{'track_started'} )
+    > ( <radio.jingle.max_duration_seconds> // 45 ) ) {
+    <[base.logs]>->(
+        1,
+        '[radio] jingle suppression exceeded %ds, '
+            . 'forcing resume [ metadata stalled or repeated ]',
+        <radio.jingle.max_duration_seconds> // 45
+    );
+    <[base.buffer.add_line]>->(
+        qw| radio-jingle |,
+        join( ' ',
+            <[base.anum_log_time]>->( 5, TRUE ),
+            1,
+            'verdict :. forced resume [ jingle timeout ]' ),
+        1
+    );
+    $icy->{'is_jingle'} = 0;
+    if (<radio.audio.active>) {
+        my $vol = <radio.audio.current_vol> // <radio.audio.start_volume>
+            // 70;
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'mpv[audio-0].fade',
+                'call_args' => { 'args' => $vol },
+            }
+        );
+    }
+}
+
 my $read_buf = '';
 my $read_len = sysread( $read_fh, $read_buf, 65536 );
 
@@ -88,6 +119,10 @@ if ( not $icy->{'headers_done'} ) {
         $icy->{'metaint'}       = $metaint;
         $icy->{'bytes_to_meta'} = $metaint;
         $icy->{'headers_done'}  = 1;
+
+        ## only reset backoff once the stream is genuinely serving data,   ##
+        ## not merely on tcp/tls accept, so flapping cannot defeat backoff ##
+        <radio.stream.reconnect_delay> = 5;
 
         <[base.logs]>->( 2, '[radio] connected, metaint=%d', $metaint );
 
@@ -327,8 +362,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,,,,.,.,,..,,.,,,..,..,,.,.,..,,.,,,.,.,..,,..,,...,...,...,.,.,..,,.,.,.,.,
-#NLPLQRMPPSJPLLJYIBBURLKKEVXC2A4G7E5MC46UPFRJW4S65MCYGM2LBBOHFCCQT4J4DUBGHWRGS
-#\\\|TCYE4WQWC4FARVMDO4TZWEITW4CL3B42WGZKYNSOAAM64XUIHE2 \ / AMOS7 \ YOURUM ::
-#\[7]UU6IBNYTCNQPSIJZQQMATASXVCNURHZLLDLMN7H6RC7T2BALA4DY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,..,,,,.,.,.,,,,,..,,...,...,..,,...,...,...,.,.,.,,,,..,,,.,
+#YVDAVFCETMNA4Q3ZZXBWS3XE6SBOIPVYKEAXCDJBKFQSB76NFMJPQVWZEF4RITZD2BYKENL56EB7K
+#\\\|D5NXQNQO7ETP2NWI2HWVZGRDQSIDDE4DGSNUELZCWFTIMFXRGWG \ / AMOS7 \ YOURUM ::
+#\[7]JJT2UYN7OHJ7EBOPJH4OEPEXSKD5JSL7XILET5SFYCM4KLDDRAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

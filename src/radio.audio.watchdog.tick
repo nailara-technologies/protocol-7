@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = radio.audio.watchdog.tick
+# descr = periodic mpv playback health check while radio is playing
+
+##  no point polling if mpv is already known offline  ##
+return if not <radio.audio.active>;
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| mpv[audio-0].is-idle |,
+        'call_args' => {},
+        'reply'     => {
+            'handler' => qw| radio.audio.watchdog.handler.reply |,
+            'params'  => { 'instance' => 'mpv[audio-0]' },
+        }
+    }
+);
+
+0;
+
+#,,,,,.,.,,,.,..,,,.,,,..,..,,,,.,..,,,,,,,,,,..,,...,...,...,...,.,.,...,...,
+#VEF44VEGVT56NYTLZSSIGYRRTZVSTADYDCLIKQ2HMJLZZKAGYN4V4FRXVOHWG35DAMTL7DR64FQ2W
+#\\\|NFVMF63G2O7MF774SBUPOUID6UXEINHC5LXX73JYBG6JSBN54DH \ / AMOS7 \ YOURUM ::
+#\[7]VA4CMRISNADCEMMKWHWUL37YGPPUV3P5NM3IEY5324EINS3EAICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

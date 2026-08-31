@@ -1,0 +1,258 @@
+task_id: radio-playback-resilience-phase2
+title: radio zenka — playback resilience phase 2 (jingle-stuck-forever + mpv stall watchdog)
+priority: high
+estimated_rounds: 20
+
+context: |
+  Sibling task to data/yaml/archive/completed-coding-tasks/radio-resilience.yaml
+  (already landed, commit a4154a294) — read that file first, it defines the full
+  architecture summary, key data vars, and config that this task builds on. Do NOT
+  re-implement anything from that file; it is done.
+
+  Symptom driving this task (reported directly by the user, confirmed NOT a zenka
+  crash — the radio zenka process and mpv[audio-0] process both stay alive and
+  online): playback silently stops or gets stuck for long stretches. Two
+  independent, previously-unaddressed causes have been identified by reading the
+  current code (both in src/radio.* / src/mpv.* on branch base):
+
+  architecture reminder:
+    radio.connect → IO::Socket::SSL → radio.handler.stream-chunk (Event->io)
+      → ICY parser → radio.filter.jingle
+        → gap filler (radio.gap_fill.start / radio.gap_fill.tick)
+        → STRM relay → radio.listeners array → cube → httpd → mpv/curl
+    radio.audio.handler.player_online / player_offline own mpv[audio-0]'s
+    play/fade lifecycle, reacting to v7.notify_online / v7.notify_offline
+    (ZENKA-LEVEL presence only — process up/down, not playback health).
+
+issues_to_fix:
+
+  1_jingle_suppression_stuck_forever:
+    description: |
+      root cause, most likely primary cause of the reported symptom:
+      src/radio.handler.stream-chunk only re-evaluates $icy->{'is_jingle'} inside
+      the "StreamTitle metadata changed" branch (`if ( $new_title ne
+      $icy->{'current_title'} )`). If the upstream ICY server stops sending
+      metadata updates, repeats the same title, or the last title before a
+      metadata glitch happened to match a jingle pattern, $icy->{'is_jingle'}
+      is left TRUE indefinitely — nothing else ever clears it.
+
+      concrete effect while is_jingle is stuck true:
+        - real stream audio relay is fully gated off: `if ( not
+          $icy->{'is_jingle'} ) { ...push to <radio.listeners>... }` in
+          radio.handler.stream-chunk never fires
+        - mpv[audio-0] was faded to volume 0 when is_jingle first went true
+          (radio.handler.stream-chunk's jingle branch), and nothing ever
+          fades it back up, since that only happens in the title-changed
+          "music" branch
+        - radio.gap_fill.start was called when is_jingle first went true, but
+          IF <radio.keep_library.path> has no *.mp3 files yet (empty/fresh
+          library), radio.gap_fill.start logs 'no keep-library files' and
+          returns WITHOUT starting radio.gap_fill.watcher — so there may be
+          no timer of any kind left running to ever revisit is_jingle. Even
+          when gap_fill.watcher IS running, radio.gap_fill.tick only turns
+          gap_fill off when a title change flips is_jingle false first — it
+          has no independent timeout of its own either.
+        - net result: silence (or a stuck gap-fill loop of old keep-library
+          tracks) that never self-corrects, matching the reported symptom.
+
+    fix: |
+      add a self-healing timeout, independent of gap_fill/keep-library state,
+      that forces is_jingle back to false if it has been true for longer than
+      a jingle plausibly lasts:
+
+      - new config var: radio.jingle.max_duration_seconds, default 45
+        (jingles/station IDs are always short; 45s is generous headroom
+        above any real jingle while being well under
+        radio.jingle.min_track_seconds's 90s used for the OPPOSITE
+        heuristic — do not confuse the two, they bound different things)
+
+      - in radio.handler.stream-chunk: near the top of the sub, right after
+        `my $icy = <radio.stream.icy>;` (runs on every read — i.e. every
+        time data actually arrives from the upstream socket, independent of
+        whether ICY metadata/title has changed, so this self-heals within
+        one read cycle once the threshold elapses, with no new timer):
+
+          if $icy->{'is_jingle'} is true, and $icy->{'track_started'} is
+          defined, and ( current time - track_started ) exceeds
+          radio.jingle.max_duration_seconds:
+            - log at level 1: '[radio] jingle suppression exceeded %ds, '
+              . 'forcing resume [ metadata stalled or repeated ]'
+              (use <[base.logs]>, same convention as the rest of the file)
+            - add a line to the radio-jingle buffer (same
+              <[base.buffer.add_line]> qw| radio-jingle | convention used
+              throughout this file for verdict lines), level 1:
+              'verdict :. forced resume [ jingle timeout ]'
+            - set $icy->{'is_jingle'} = 0
+            - if <radio.audio.active> is true: fade mpv[audio-0] back up to
+              <radio.audio.current_vol> // <radio.audio.start_volume> // 70,
+              via the SAME route-send 'mpv[audio-0].fade' call already used
+              a few lines below in this same file's "now playing" / music
+              branch — mirror that exact call shape, do not invent a new one
+            - do NOT explicitly touch radio.gap_fill.* here: gap_fill.tick's
+              existing top-of-function check (`if not
+              $icy->{'is_jingle'}: ...stop gap filler...`) already handles
+              turning gap_fill off cleanly on its own next 1s tick once
+              is_jingle is false — this fix only needs to flip the flag,
+              not duplicate that shutdown logic
+
+      - place this check so it runs unconditionally on every invocation of
+        radio.handler.stream-chunk (not only when headers_done, not gated on
+        gap_fill.active or keep_library state) — this is the whole point,
+        it must self-heal even when gap_fill never started
+
+    modules_to_modify:
+      - radio.handler.stream-chunk   (add the staleness/self-heal check)
+
+    new_config:
+      - radio.jingle.max_duration_seconds = 45   (add to
+        cfg/zenki/radio/start.cfg, alongside the existing
+        radio.jingle.min_track_seconds = 90 line)
+
+  2_mpv_playback_stall_watchdog:
+    description: |
+      radio.audio.active is only ever cleared by radio.audio.handler.
+      player_offline, which fires on a v7.notify_offline REPLY — i.e. only
+      when the mpv[audio-0] PROCESS itself goes offline (crash/restart).
+      There is no check of actual playback health: if mpv[audio-0] hits an
+      'end-file'/reason:error (see src/mpv.handler.event.end-file — already
+      logs 'playback failed [ audio-only ]' at level 0 for exactly this
+      instance, but takes zero recovery action) or otherwise goes idle
+      (buffer underrun, a stalled local /radio/stream relay, the WSLg
+      PulseAudio bridge dropping — see
+      data/ai-mem/claude/reference-wslg-pulseaudio-bridge-check-before-mpv-debug.md
+      for a real precedent of this exact failure mode) WHILE the mpv[audio-0]
+      process and radio zenka both stay online, radio.audio.active stays
+      stuck at 1 forever and nothing ever retries playback.
+
+      mpv already tracks this: 'core-idle' is an observed/cached property
+      (src/mpv.initialize.observe_properties, src/mpv.handler.event.
+      property-change.core-idle) and src/mpv.cmd.is-idle already exposes it
+      as a queryable command (get_property_string core-idle, replies via
+      mpv.handler.pipe.single_line) — reuse this existing command, do not
+      add new mpv-side plumbing.
+
+    fix: |
+      add a radio-side watchdog timer that polls mpv[audio-0]'s actual
+      playback state while radio believes it should be playing:
+
+      - new data vars: radio.audio.watchdog.watcher (timer handle),
+        radio.audio.watchdog.idle_count (consecutive-idle counter, reset to
+        0 whenever mpv reports not-idle or on a fresh player_online cycle)
+
+      - start a repeating timer (interval 20s) in radio.audio.handler.
+        player_online, guarded so it is only started once per active period
+        (do not double-schedule on repeated player_online replies — mirror
+        the existing 'guard: already active' pattern in that same file)
+
+      - new module: radio.audio.watchdog.tick
+        each tick: route-send 'mpv[audio-0].is-idle', with a reply handler.
+        READ src/mpv.cmd.is-idle and a command that already consumes its
+        reply shape (grep for callers of mpv.cmd.is-idle, or trace
+        mpv.handler.pipe.single_line's reply format) to get the exact
+        reply parsing right — do not guess the shape.
+
+      - new module: radio.audio.watchdog.handler.reply
+        - if radio.audio.active is no longer true (mpv went offline for a
+          real reason in the meantime), just return — player_offline's own
+          path already owns recovery in that case
+        - if mpv reports NOT idle: reset idle_count to 0, return
+        - if mpv reports idle: increment idle_count. If idle_count reaches
+          2 (i.e. idle sustained across two consecutive 20s ticks, ~40s —
+          this avoids false positives from the brief idle blip that
+          normally happens for a moment between file loads/seeks):
+            - log at level 0: '[radio.audio] playback stalled '
+              . '[ mpv idle %ds ], re-issuing play'
+            - reset idle_count to 0
+            - re-issue the exact same play/volume/fade command sequence
+              radio.audio.handler.player_online already sends (play <url>,
+              set-volume 0, fade <vol>) — mirror that file's call shape
+              exactly rather than writing a new one
+            - do NOT stop or re-schedule the watchdog timer itself here —
+              it keeps ticking at the same 20s interval; if the underlying
+              cause is persistent (e.g. the PulseAudio bridge is actually
+              down) this will keep retrying every ~40s rather than giving
+              up, which is the desired behavior — no exponential backoff
+              needed here since the tick interval itself is already the
+              rate limit
+
+      - stop the watchdog timer (cancel + delete
+        radio.audio.watchdog.watcher) in radio.audio.handler.player_offline,
+        alongside the existing 'radio.audio.active = 0' line — no point
+        polling is-idle on an instance that is not even online
+
+    modules_to_modify:
+      - radio.audio.handler.player_online    (start watchdog timer, guarded)
+      - radio.audio.handler.player_offline   (stop watchdog timer)
+    new_modules:
+      - radio.audio.watchdog.tick
+      - radio.audio.watchdog.handler.reply
+
+  3_status_visibility:
+    description: |
+      radio.cmd.status currently shows connected/jingle/gap-filler state but
+      nothing about mpv playback health — makes this whole class of bug
+      invisible until someone notices the silence.
+
+    fix: |
+      add one more line to radio.cmd.status's existing sprintf output (same
+      pattern as the existing gap_fill_state / library_str lines): show
+      current radio.audio.watchdog.idle_count, e.g.
+      "\nmpv idle streak: %d" — only append it when
+      <radio.audio.active> is true (mirror the existing $library_str
+      conditional-append style in this file).
+
+    modules_to_modify:
+      - radio.cmd.status
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md before
+    starting
+  - all comments lowercase
+  - annotations use [ word ] not ( word )
+  - log format: '[radio] description :. value' or '[radio.audio] ...'
+  - use <[base.logs]>->( level, 'format', args ) for all logging
+  - log levels: 0=error, 1=important, 2=info, 3=debug
+  - module invocation: <[module.name]>->($args)  — closing ]> BEFORE ->
+  - do not add the stub signature line — signing system adds the real footer
+  - use event.add_timer, repeating timers need BOTH interval=>N AND
+    repeat=>TRUE (see radio.gap_fill.start for the exact precedent shape)
+  - base.time / base.anum_log_time usage: copy the exact call shape already
+    used throughout radio.handler.stream-chunk, do not invent a new one
+
+explicitly_out_of_scope: |
+  - do not touch radio.handler.reconnect, radio.connect, radio.gap_fill.start,
+    radio.gap_fill.tick, or radio.filter.jingle's pattern list — all already
+    correct/complete from the phase-1 resilience task
+  - do not attempt to improve jingle DETECTION accuracy (pattern matching,
+    audio fingerprinting, silence detection) — that is a distinct, much
+    larger, separate future task and is explicitly not this task's job. this
+    task only fixes jingle-state and playback-state getting stuck, not
+    whether jingle detection itself is accurate
+  - do not touch mpv.handler.event.end-file or any other src/mpv.* file —
+    the fix lives entirely on the radio side, polling the existing
+    mpv.cmd.is-idle command
+  - no v7/process-supervision changes of any kind
+
+verification: |
+  static/read-only verification only (no live network execution required
+  from you — the user will live-test on their own running instance
+  afterward):
+  1. trace radio.handler.stream-chunk by hand: confirm the new staleness
+     check is reached on every read regardless of headers_done/gap_fill
+     state, and confirm it correctly reads track_started (already set
+     elsewhere in this same file) rather than a new/wrong var
+  2. trace the mpv[audio-0].fade call added in issue 1 against the existing
+     one a few lines below in the same file — same command name, same
+     call_args shape
+  3. trace radio.audio.watchdog.tick → mpv.cmd.is-idle → reply → radio.
+     audio.watchdog.handler.reply end to end by hand, confirm the reply
+     parsing matches mpv.cmd.is-idle's real reply shape (not a guess)
+  4. confirm radio.audio.handler.player_offline actually cancels the
+     watchdog timer (no leaked timer after mpv goes offline)
+  5. bin/dev/ptd -c (or equivalent syntax check) on every new/changed file
+
+#,,..,...,..,,,,.,.,.,.,,,.,,,,.,,,.,,,,,,...,..,,...,...,,.,,,..,.,.,.,,,,,.,
+#WSEKVMY6P7XI53XJVZILNLHFZFKHST5EWH6X7IT3YUG22YVEFBSQXFXH5777PRARBGLQ5SQN5VHZK
+#\\\|QKFLQOW2SNJH52MUCZJRTIKSJSJXZJT7C7GJD6MT7WQTT5AKO7G \ / AMOS7 \ YOURUM ::
+#\[7]2T2KHHFJR5FY4ADT3UOGQU257GFSUR4OSAC4WBDZKCPDPIQ56WDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

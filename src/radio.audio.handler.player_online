@@ -51,13 +51,24 @@ my $vol = <radio.audio.start_volume> // 70;
 <radio.audio.active>      = 1;
 <radio.audio.current_vol> = $vol;
 
+##  start playback-health watchdog [ once per active period ]  ##
+if ( not defined <radio.audio.watchdog.watcher> ) {
+    <radio.audio.watchdog.idle_count> = 0;
+    <radio.audio.watchdog.watcher>    = <[event.add_timer]>->(
+        {   interval => 20.0,
+            repeat   => TRUE,
+            handler  => qw| radio.audio.watchdog.tick |,
+        }
+    );
+}
+
 <[base.logs]>->(
     2,         '[radio.audio] [%s] stream loaded, fading to %d%%',
     $instance, $vol
 );
 
-#,,,.,.,,,,,,,,..,.,.,.,,,,,,,,,.,.,.,,,,,.,.,.,.,...,...,..,,.,,,...,.,.,...,
-#FAAACCZBHEZG54UZ35W7DW3PHNTILRMA43OFJYKHLNYFJM3OOWAXK7U5TIPJUMA6PBDRM574OS23K
-#\\\|B2WJO74XRB2ZMR7Q37ZSTINZ5D4TGXAR7OWY7OOAIHVFSQJPTFI \ / AMOS7 \ YOURUM ::
-#\[7]E6YKFGQ2YMAV4ML6KR5DQFRS4F4EPS6DSNSAR5CSWQM3VAPECACI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,,.,,...,,,.,..,,.,.,.,.,,.,,.,.,...,...,..,,.,.,,..,,,.,,,.,
+#X5BD6VDCYN53XE66GFODC3ZH3D6TN2Q7KFXLFHPC62R6SRAQDWKYWXRM4ELVEACIIIJRGVNCOCNWC
+#\\\|32AM5U7JHOYFHX4A4ZJ6NHVFL73TZCOCEUX4KNSJ5CZDTJXIVL7 \ / AMOS7 \ YOURUM ::
+#\[7]BZH4ROIKMKSENTL2QFB4QWX3JTDKWSVWZM3IZW7V67O3NAXEP6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
