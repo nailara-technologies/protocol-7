@@ -60,13 +60,19 @@ $OUTPUT_AUTOFLUSH = TRUE;
 my $check_only = FALSE;
 my $no_ptd     = FALSE;
 my $no_utf8    = FALSE;
+my $data_sugar = FALSE;    ##  opt-in $data{'k0'}{'k1'} -> <k0.k1> rewrite  ##
 
 while ( @ARGV and defined $ARGV[0] and $ARGV[0] =~ m|^-| ) {
     my $opt = $ARGV[0];
     if    ( $opt eq qw| -c | )       { $check_only = TRUE; shift @ARGV; }
-    elsif ( $opt eq qw| -n | )       { $no_ptd = TRUE; shift @ARGV; }
-    elsif ( $opt eq qw| :noutf8: | ) { $no_utf8 = TRUE; shift @ARGV; }
-    else                             { last; }
+    elsif ( $opt eq qw| -n | )       { $no_ptd     = TRUE; shift @ARGV; }
+    elsif ( $opt eq qw| :noutf8: | ) { $no_utf8    = TRUE; shift @ARGV; }
+    elsif ( $opt eq qw| -d | or $opt eq qw| --data-sugar | ) {
+        $data_sugar = TRUE;
+        shift @ARGV;
+    } else {
+        last;
+    }
 }
 
 ##[ exclusion pattern [ same as ptd ] ]##
@@ -286,6 +292,19 @@ while ( my $file_path = shift @files ) {
 say "\n$blacklight:$reset";
 exit 0;
 
+##[ is this a P7 module [ i.e. one the <[...]>/<...> sugar actually gets   ]##
+##[ expanded for ] , not a plain standalone script/library that merely    ]##
+##[ happens to use %code/%data internally [ bin/Protocol-7 , AMOS7::*.pm ] ]##
+sub is_p7_module_text {
+    my $text = shift;
+
+    ## is_perl_code already scans past leading blank/use/my/our lines to ##
+    ## find this same marker, but every real P7 module has it as the     ##
+    ## literal first line with nothing before it -- no need to duplicate ##
+    ## that scan here                                                    ##
+    return $text =~ m{^## \[:< ##};
+}
+
 ##[ preprocessing pipeline ]##
 sub preprocess_source {
     my $text = shift;
@@ -424,7 +443,18 @@ sub preprocess_source {
         $lnum++;
     }
 
-    return join( '', @out );
+    my $result = join( '', @out );
+    ## gate on the P7 module header, not just the location of the file --   ##
+    ## bin/Protocol-7 and AMOS7::*.pm use %data/%code themselves but have   ##
+    ## no sugar-expanding pre-parser of their own ; the explicit .pm        ##
+    ## exclusion is a cheap belt-and-suspenders check on top of the header  ##
+    ## check, which .pm files fail anyway [ package ...; not '## [:< ##' as ##
+    ## their first real line ]                                              ##
+    $result = step6_compact_data_sugar($result)
+        if $data_sugar
+        and $path !~ m{\.pm$}
+        and is_p7_module_text($text);
+    return $result;
 }
 
 ##[ shared : does line $lnum start/continue a '##  text  ##' comment block ]##
@@ -982,15 +1012,17 @@ sub step0_rejoin_concat_chain {
         $continuation_indent );
 }
 
-##[ step 1 : split a long-line quoted string at whitespace boundary ]##
+##[ step 1 : split a long-line quoted string at whitespace , or at  ]##
+##  comma/semicolon when the value is spaceless                       ]##
 sub step1_split_long_string {
     my $line   = shift;
     my $quotes = shift;
     return undef if length_no_nl($line) <= LINE_MAX;
     return undef if not $quotes or not @$quotes;
 
-    ## pick longest quote token on the line that contains a splittable ##
-    ## whitespace position and whose split fits within LINE_MAX        ##
+    ## pick longest quote token on the line whose split fits within ##
+    ## LINE_MAX ; whitespace split positions take priority , with a ##
+    ## comma/semicolon fallback for spaceless values                ##
     my @candidates = sort { $b->{length} <=> $a->{length} } @$quotes;
     for my $tok (@candidates) {
         my $col      = $tok->{col};
@@ -998,7 +1030,6 @@ sub step1_split_long_string {
         my $quote_ch = substr( $content, 0, 1 );
         next if $quote_ch ne q|'| and $quote_ch ne q|"|;
         my $inner = substr( $content, 1, -1 );
-        next if $inner !~ m{\s};
 
         my $prefix_len = $col - 1;    ## 0-based column of first char ##
 
@@ -1125,6 +1156,19 @@ sub find_split_positions {
         next if $in_interp[$p];
         push @positions, $p;
     }
+
+    ## spaceless value fallback : split after a comma or semicolon , same ##
+    ## interpolation-boundary respect. only used when no whitespace split ##
+    ## exists , so the existing whitespace path keeps priority            ##
+    if ( not @positions ) {
+        for ( my $p = 1; $p < $len; $p++ ) {
+            my $prev = substr( $inner, $p - 1, 1 );
+            next if $prev !~ m{[,;]};
+            next if $in_interp[ $p - 1 ];
+            next if $in_interp[$p];
+            push @positions, $p;
+        }
+    }
     return @positions;
 }
 
@@ -1188,6 +1232,128 @@ sub step2_reflow_comment {
         push @out, "$indent$prefix$part$suffix$nl";
     }
     return \@out;
+}
+
+##[ step 6 : opt-in rewrite of $data{'k0'}{'k1'}{...} to <k0.k1...> sugar ]##
+## only literal single/double-quoted bareword-shaped keys are rewritten ; ##
+## dynamic segments , method calls , array subscripts and anything else   ##
+## terminate the chain and stay untouched                                 ##
+sub step6_compact_data_sugar {
+    my $text = shift;
+
+    my $doc = PPI::Document->new( \$text );
+    return $text if not defined $doc;
+
+    my @lines = split m{(?<=\n)}, $text;
+
+    my @chains;
+    my @tokens = $doc->tokens;
+    my $i      = 0;
+    while ( $i < @tokens ) {
+        my $t = $tokens[$i];
+        if (    $t->isa('PPI::Token::Symbol')
+            and $t->content eq qw| $data | ) {
+            my $j = $i + 1;
+
+            my @keys;
+            my $end_tok;
+            while (1) {
+                ## skip whitespace before the opening brace ##
+                $j++
+                    while $j < @tokens
+                    and $tokens[$j]->isa('PPI::Token::Whitespace');
+                last if $j >= @tokens;
+
+                my $open = $tokens[$j];
+                last
+                    if not $open->isa('PPI::Token::Structure')
+                    or $open->content ne '{';
+                $j++;
+
+                ## collect non-whitespace children inside the brace pair ##
+                my @inside;
+                while ( $j < @tokens and $tokens[$j]->content ne '}' ) {
+                    push @inside, $tokens[$j]
+                        if not $tokens[$j]->isa('PPI::Token::Whitespace');
+                    $j++;
+                }
+                last if $j >= @tokens;
+                last if $tokens[$j]->content ne '}';
+                my $close = $tokens[$j];
+                $j++;
+
+                last if @inside != 1;
+                my $key_tok = $inside[0];
+                last if not is_quote_token($key_tok);
+
+                my $quote_ch = substr( $key_tok->content, 0,  1 );
+                my $key      = substr( $key_tok->content, 1, -1 );
+
+                ## double-quoted key must not contain interpolation ##
+                last if $quote_ch eq q|"| and $key =~ m{[\$\@]};
+
+                ## key must be bareword-shaped to survive as a dotted ##
+                ## segment                                            ##
+                last if $key !~ m{^\w[\w\-]*$};
+
+                push @keys, $key;
+                $end_tok = $close;
+            }
+
+            if ( @keys >= 2 ) {
+                push @chains,
+                    {
+                    start_tok => $t,
+                    end_tok   => $end_tok,
+                    keys      => \@keys,
+                    };
+                $i = $j;
+                next;
+            }
+        }
+        $i++;
+    }
+
+    return $text if not @chains;
+
+    ## replace from the end backward so earlier positions stay valid ##
+    @chains = sort {
+        my $la = $a->{start_tok}->location->[0];
+        my $lb = $b->{start_tok}->location->[0];
+        $la == $lb
+            ? $b->{start_tok}->location->[1]
+            <=> $a->{start_tok}->location->[1]
+            : $lb <=> $la;
+    } @chains;
+
+    for my $chain (@chains) {
+        my $start_loc  = $chain->{start_tok}->location;
+        my $end_loc    = $chain->{end_tok}->location;
+        my $start_line = $start_loc->[0];
+        my $end_line   = $end_loc->[0];
+
+        ## only handle single-line chains : multi-line rewrites risk moving ##
+        ## other content around and complicate the line-based pipeline      ##
+        next if $start_line != $end_line;
+
+        my $line_idx = $start_line - 1;
+        next if $line_idx < 0 or $line_idx > $#lines;
+
+        my $line      = $lines[$line_idx];
+        my $start_col = $start_loc->[1] - 1;    ## 0-based ##
+        my $end_col
+            = $end_loc->[1] - 1 + length( $chain->{end_tok}->content );
+
+        next if $start_col < 0 or $end_col > length($line);
+
+        my $replacement = '<' . join( qw| . |, @{ $chain->{keys} } ) . '>';
+        $lines[$line_idx]
+            = substr( $line, 0, $start_col )
+            . $replacement
+            . substr( $line, $end_col );
+    }
+
+    return join( '', @lines );
 }
 
 ##[ utilities ]##
@@ -1532,8 +1698,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,.,,,..,,,,,,.,,,,,.,,,,,,..,...,,..,.,,,..,,...,...,..,,.,,,...,.,.,.,.,
-#EALWEZBX4Y3DNEK577XQNDGKWEIYN6LTQXSVJ223FZJHYFPOBRTSDYQSNYWOPICX4OY7HFACUMGCI
-#\\\|SGNIBE5H2N5CLMJMZ6XDTV74JPRXGLEHDCRUDSM222FEA25BRHL \ / AMOS7 \ YOURUM ::
-#\[7]6NYEA23CCZ2CI5B57OBILTXA5DSVVRP34VDAJ4KE3F2BLE6S2QCI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,,,,,.,,,,,.,.,,,,,.,.,.,..,,..,,...,...,...,.,,,...,.,.,...,
+#OXM3GC5VMGPZV7JS47RVWMRKUVLWK4IPTFV6LJRPFD7QIVPMWRHMCBR43ZXZATRDHE5FELXJCPLYE
+#\\\|NJ5FT2TBFBUODXGL4AUURWTJQO6DACXGZRSXIAJMYDGQY6RYWIL \ / AMOS7 \ YOURUM ::
+#\[7]DANIU4XCX7EFQXTKHFVWZ4NR2YNLXDT2HKGMQFYJJQVFPNYWEIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
