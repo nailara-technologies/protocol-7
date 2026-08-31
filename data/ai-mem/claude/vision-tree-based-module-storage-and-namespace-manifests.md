@@ -111,6 +111,20 @@ lost. This configurability (choose how much history, or none) is a real
 design win over git specifically, not just a workaround for the
 git-diff-bloat problem the symlink experiment hit.
 
+**Origin, not speculative — this is a proven pattern from real
+production use.** Per user: at a prior employer using Protocol-7 for
+display appliances, their release scripts squashed the entire dev
+history between appliance versions, so the proprietary production
+branch ended up with exactly as many commits as actually-deployed
+release versions — squashing as an extreme, working instance of
+"choose your retention depth." That real-world experience is what
+directly inspired implementing `protocol-7.rel-ver` as a generic
+release-version concept alongside `protocol-7.src-ver` (the raw
+commit-by-commit source version) — explaining *why* P7 already carries
+this dual-version split (both referenced together in
+`sourcecode.console.regen-checksum-symlinks`), not just a speculative
+design choice made in the abstract.
+
 **How this applies to tree-storage flatten/expand**: don't copy the
 full-snapshot-per-version shape directly — if the eventual tree-storage
 mechanism needs to preserve history/reversibility the way regen/undo
@@ -127,8 +141,8 @@ Don't start designing the flatten/expand mechanism or the tree-storage
 layout unprompted; this was explicitly still being thought through, not
 handed over as a task.
 
-#,,..,.,,,.,.,,,,,.,,,,,,,,.,,,,.,,..,,..,,.,,..,,...,..,,..,,.,.,..,,.,,,.,,,
-#M533VOWA3JLWRRIKF4Q6XBNCQHKDPTKB7J66YZDEW3QYWD4UV2X7WSFHC3XJAMZUOKWSUYSXI2ZXY
-#\\\|AV5AGZEXKPLPN7KH3J7RDFDNGIFFR7GUPTQDZJP664UPYFDNK4E \ / AMOS7 \ YOURUM ::
-#\[7]RY4ZUUGJRKQYGZZM6BMGDNR3MW5GLDB6LENBAEZNBVQMSFKV36AY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,,,.,..,,..,,.,.,,.,,..,,,.,,..,,...,...,.,,,.,.,.,,,.,,,,,,,
+#XCPKSXFRXYFCZAQDOB4OAHFRIVJ33UY44ENJBT6JRACGBAHHV74RZMVCZ7BPDCLSYMLMNIPLWDXCU
+#\\\|3LREFLEFP7SIH2RNV7NKRS4IKNQI4TKGYCFM3EFVCCNU445PZOF \ / AMOS7 \ YOURUM ::
+#\[7]ZIHLZG6X46IQO7PYZNA3CFMMQFJCF3HUXWAYSJ6UOIFVLJQE44BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
