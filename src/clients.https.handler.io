@@ -45,16 +45,25 @@ my $parsed = <[clients.http.parse_response]>->( $state->{'buffer'} );
 my $status = $parsed->{'status'} // 0;
 my $ok     = ( $status >= 200 and $status < 300 ) ? TRUE : FALSE;
 
+## decompress + character-decode : same treatment as the h2 path, see     ##
+## clients.https.decode_body -- this http/1.1 fallback used to hand the   ##
+## body downstream as still-raw wire bytes [ mojibake on write, and worse ##
+## still-compressed garbage whenever a server actually honoured the       ##
+## gzip/deflate/zstd accept-encoding this client always sends ]           ##
+my $body = <[clients.https.decode_body]>->(
+    $parsed->{'body'}, $parsed->{'headers'}, qw| clients.https |
+);
+
 $code{ $state->{'on_done'} }->(
     {   'ok'     => $ok,
         'status' => $status,
-        'body'   => $parsed->{'body'},
+        'body'   => $body,
         'params' => $state->{'params'},
     }
 );
 
-#,,.,,,,.,,,.,...,...,,,.,..,,..,,.,.,,.,,,..,..,,...,...,.,,,.,,,,,,,,..,.,.,
-#JURC6BRIIVTAVPW2IQA2IXEERIILDZHPWOPJAM4PNACM6UFSNFOIPVTWD2DUNAE5G5TZ7B26H2YIY
-#\\\|EF6EIJS3B4AYL2SDHIDF7F2WT4TS4SWM3PA3DOZEENSAL5UUULG \ / AMOS7 \ YOURUM ::
-#\[7]B2ZTM7WFXCDHQQL77S4SOWZOBF4SNMMBIFQESCWSXKHKNYS2VSBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,,..,.,,,.,,,.,.,,,.,..,,,..,..,,...,...,...,,.,,..,,,,.,,.,,
+#FUEDLYVUSMBW7QNO4ZZXHKAIA77VUR4QSG5V3K67GKUTITCPQVZ4BXFQMHQKSYI7ZEPNIQFQ6CP3C
+#\\\|QKFXBIHEBQLQNTZAOHHIBTLKKL6MQDKAN7ARBPKTYXSKARG3LF4 \ / AMOS7 \ YOURUM ::
+#\[7]D4WMRVPQLDOQWEGUMPODY4OHY6KZ6W5Y25H6XGA4Y5O3J3WJO6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
