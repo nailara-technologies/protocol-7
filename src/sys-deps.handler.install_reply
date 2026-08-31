@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = sys-deps.handler.install_reply
+# descr = handle deferred debian.install-packages reply, complete caller reply
+
+my $reply = shift;
+
+my $mode     = $reply->{'mode'}      // qw| unknown |;
+my $params   = $reply->{'params'}    // {};
+my $packages = $params->{'packages'} // [];
+my $zenka    = $params->{'zenka'};
+my $reply_id = $params->{'reply_id'};
+
+my ( @ok, @failed );
+if ( $mode eq qw| true | ) {
+    @ok = @$packages;
+} else {
+    @failed = @$packages;
+    <[base.logs]>->(
+        0,
+        'sys-deps: install via debian zenka failed : %s',
+        $reply->{'data'} // qw| unknown error |
+    );
+}
+
+## Track successful installs [ moved from sys-deps.cmd.install : the actual ##
+## install now completes asynchronously in the debian zenka ]               ##
+if (@ok) {
+    my $track_dir  = <system.root_path> . '/var/sys-deps';
+    my $track_file = $track_dir . '/tracked.yaml';
+    if ( !-d $track_dir ) {
+        eval {
+            require File::Path;
+            File::Path::make_path($track_dir);
+        };
+    }
+    my $tracked = { tracked => <sys-deps.tracked> // [] };
+    for my $pkg (@ok) {
+        push @{ $tracked->{'tracked'} },
+            {
+            pkg          => $pkg,
+            type         => 'debian',
+            installed_at => <[base.ntime.b32]> // '',
+            source       => 'sys-deps',
+            zenka        => $zenka,
+            declared     => 0
+            };
+    }
+    eval {
+        require YAML::Tiny;
+        my $yaml = YAML::Tiny->new($tracked);
+        $yaml->write($track_file);
+    };
+    chmod( 0664, $track_file ) if -f $track_file and -o $track_file;
+    <sys-deps.tracked> = $tracked->{'tracked'};
+}
+
+my @output;
+push @output, ":", "::[ sys-deps install ]", ":";
+push @output, map {":  installed : $ARG"} @ok;
+push @output, map {":  failed    : $ARG"} @failed;
+push @output, ":";
+
+## complete the original caller's deferred reply ##
+if ( defined $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| size |,
+            'data' => "\n" . join( "\n", @output ) . "\n"
+        }
+    );
+}
+
+return;
+
+#,,,.,,.,,..,,,.,,..,,.,.,,,,,.,,,,,,,,..,,,.,..,,...,..,,.,,,,.,,.,,,,..,,.,,
+#J275PPE3L3JTV26TLOVHGE5NGEZUUKSKA4G6BMOZDFQ6Y6GLE22I6RLW2UTYCLRE5IDKT7PWJ72OQ
+#\\\|Z7YV5Q6X3D3SAV3WBOTI7RB5P3OFVU4A24JFNUT3ZCTTO2XB6TB \ / AMOS7 \ YOURUM ::
+#\[7]GGIQR3R7KGIUBZFTK4QOMZRAAKYTDDVRV6Z4IYROEWEO2W47AGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

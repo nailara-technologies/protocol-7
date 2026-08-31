@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = debian.job.apt_install
+# descr = jobqueue callback : write install command to apt child, arm watcher
+
+my $arg      = shift // {};
+my $job_id   = $arg->{'job_id'};
+my $params   = $arg->{'params'}      // {};
+my $packages = $params->{'packages'} // [];
+
+my $fail_job = sub {
+    my $reason = shift;
+    <[base.logs]>->( 0, 'apt_install: job %d failed : %s', $job_id, $reason );
+    <[jobqueue.move_job]>->( $job_id, qw| error | );
+    if ( defined $params->{'reply_id'} ) {
+        <[base.callback.cmd_reply]>->(
+            $params->{'reply_id'},
+            { 'mode' => qw| false |, 'data' => $reason }
+        );
+    }
+    <debian.apt_child.current_job> = undef;
+    return;
+};
+
+my $current = <debian.apt_child.current_job>;
+if ( not defined $current or ( $current->{'job_id'} // 0 ) != $job_id ) {
+    <[base.logs]>->(
+        0, 'apt_install: job %d ' . 'exec without pump slot', $job_id
+    );
+    return;
+}
+
+## sanitize package names : single choke point before the child shells out ##
+## to apt-get with the names interpolated into a shell string              ##
+for my $pkg (@$packages) {
+    if ( $pkg !~ m|^[a-z0-9][a-z0-9.+\-~]*$| ) {
+        $fail_job->( sprintf( 'invalid package name : %s', $pkg ) );
+        return;
+    }
+}
+if ( not @$packages ) {
+    $fail_job->('no packages specified');
+    return;
+}
+
+my $w_fh = <debian.apt_child.w_fh>;
+my $r_fh = <debian.apt_child.r_fh>;
+my $pid  = <debian.apt_child.pid> // 0;
+
+if ( not defined $w_fh or not defined $r_fh or not kill( 0, $pid ) ) {
+    $fail_job->('apt child not available');
+    return;
+}
+
+## set read pipe non-blocking : event-driven reads must never stall the ##
+## event loop [ same fcntl dance as coding.spawn_inference_server ]     ##
+<[base.perlmod.load]>->('Fcntl')
+    if not <[base.perlmod.loaded]>->('Fcntl');
+my $flags = fcntl( $r_fh, Fcntl::F_GETFL(), 0 );
+fcntl( $r_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+    if defined $flags;
+
+## the write itself is synchronous [ pipe writes don't block here ] - only ##
+## the response reading is event-driven                                    ##
+printf {$w_fh} "install %s\n", join( ' ', @$packages );
+
+## arm output watcher [ mirror : coding.spawn_inference_server ] ##
+my $watcher = <[event.add_io]>->(
+    {   'fd'      => $r_fh,
+        'handler' => qw| debian.handler.apt_child_output |,
+        'data'    => { 'job_id' => $job_id, 'buffer' => '' },
+        'poll'    => qw| re |
+    }
+);
+
+$current->{'watcher'} = $watcher;
+$current->{'started'} = <[base.ntime]>;
+
+<[base.logs]>->(
+    1,       'apt_install: job %d started : %s',
+    $job_id, join( ' ', @$packages )
+);
+
+return TRUE;
+
+#,,.,,,..,.,.,.,.,,..,,..,.,.,.,.,,..,.,,,..,,..,,...,...,...,.,,,...,.,,,,..,
+#RTHKGDJZ5XHDKN5JHJ2CTLSAWA2K6V5STFFE3A23UOIAUEVATAEWF5K7PEWDG5CWWZF4CBVB5FRRO
+#\\\|YGR4QMCIEVSQ2742PWE3Y3GI6SY5UHXYD6USLIP474SRE7AH6U7 \ / AMOS7 \ YOURUM ::
+#\[7]V5LCTPV6OYXCFAFIIQ2O56AO2XIE7TE554N3QIUZ4BNT33OHWUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
