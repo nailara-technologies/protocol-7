@@ -3,22 +3,25 @@
 # name  = radio.post_init
 # descr = notify httpd that radio stream endpoint is available
 
-## deferred via <system.init_reports> -- post_init runs before this zenka's ##
-## own cube connection exists, so a direct route-send here reliably hits    ##
-## send.local's "no clients in session" drop                                ##
-<system.init_reports> //= [];
-push(
-    <system.init_reports>->@*,
-    {   'target_command' => qw| httpd.radio_online |,
-        'param'          => <radio.stream.path> // '/radio/stream',
-        'descr'          => 'notifying httpd: radio_online',
-    }
-);
+## deferred via <system.callbacks.initialized> -- post_init runs before    ##
+## this zenka's own cube connection exists, so a direct route-send here    ##
+## reliably hits send.local's "no clients in session" drop.                ##
+## <system.init_reports> flushes once around the initial connect and may   ##
+## miss a deferred item; this callback fires once this zenka's own session ##
+## is genuinely up.                                                        ##
+push @{ <system.callbacks.initialized> //= [] }, sub {
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| httpd.radio_online |,
+            'call_args' =>
+                { 'args' => <radio.stream.path> // '/radio/stream' },
+        }
+    );
+};
 
 0;
 
-#,,.,,..,,...,...,...,.,.,..,,.,,,.,,,.,,,...,.,.,...,...,...,,,.,,.,,.,,,,..,
-#IXHBDKRKA23FGHITYWLWSE76B6BPCQJSRHK3V3ITWHIMQVCJLQEOAS6Z3WFMEKJ556ZVC6Z5RGYKG
-#\\\|KVOEQBGMXJWDZLZ6F6LGKYPC6O55MAI5WVKK5F26UOBGG3TNYBL \ / AMOS7 \ YOURUM ::
-#\[7]CD3UCLLI24GTOZNXTDPBHWJZJWKZMG63DHTEXV5MOXGV4QWI4UAY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,,,.,.,.,,,.,,,,,,.,,,..,...,.,.,...,..,,.,,,...,.,.,,..,..,,
+#AXEP77ZILRTK3ZYDJEGOC5ZEMJVKIMIB6VV7VO6ICZ42PQYFSFGN4TW6563NYOTYRYYNMKWHAKG6I
+#\\\|ATRN2FFBE5ASQQU65BJAW4NCPH2TGMRRPWXUO3UFYQLDEVA6UMC \ / AMOS7 \ YOURUM ::
+#\[7]GFCCYKD3S75CNHZHZYR62H24DF2IIQQJRNHHJZ67S5MJPP6U7WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
