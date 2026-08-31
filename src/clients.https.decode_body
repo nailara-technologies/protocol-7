@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = clients.https.decode_body
+# descr = decompress [ content-encoding ] + character-decode [ content-type charset ] a raw response body
+# note  = shared by both the h2 and http/1.1 response paths -- previously only h2 did this, so any fetch
+#         that fell back to http/1.1 [ no h2 alpn ] stayed raw wire bytes, mojibake on write [ 'für' ->
+#         'fÃ¼r' ], confirmed live in site-yaml jobsite results 2026-08-31
+
+my ( $body, $headers, $log_tag ) = @ARG;
+$body    //= '';
+$headers //= {};
+$log_tag //= 'clients.https';
+
+return $body if not length $body;
+
+## decompress when content-encoding set [ gzip, deflate, zstd ] [ br is ##
+## deliberately never offered, so never decoded here ]                  ##
+my $encoding = lc( $headers->{'content-encoding'} // '' );
+if ( length $encoding and $encoding ne qw| identity | ) {
+    my $plain = '';
+    if ( IO::Uncompress::AnyUncompress::anyuncompress( \$body, \$plain ) ) {
+        $body = $plain;
+    } else {
+        <[base.logs]>->(
+            1,        '%s: cannot decode %s body : %s',
+            $log_tag, $encoding,
+            $IO::Uncompress::AnyUncompress::AnyUncompressError // ''
+        );
+    }
+}
+
+return $body if not length $body;
+
+## character-decode : decompression above only ever touches bytes -- $body ##
+## is still raw wire bytes here, not a decoded perl string. use the        ##
+## response's own declared charset when present, default utf-8 otherwise [ ##
+## the overwhelming common case for real-world html ]                      ##
+my ($charset) = ( $headers->{'content-type'} // '' ) =~ m{charset=([\w-]+)}i;
+$charset //= 'UTF-8';
+my $decoded
+    = eval { Encode::decode( $charset, $body, Encode::FB_DEFAULT() ) };
+if ( defined $decoded ) {
+    $body = $decoded;
+} else {
+    <[base.logs]>->(
+        1, '%s: cannot decode body as %s : %s',
+        $log_tag, $charset, scalar <[base.str.eval_error]>
+    );
+}
+
+return $body;
+
+#,,,,,...,,..,.,,,,,,,,,,,.,,,.,,,..,,.,.,,,.,..,,...,...,.,,,,.,,,,.,,.,,.,.,
+#6POMSXALWKREDM3BI7OSE7LF6OJPR2ICWCL2G2XCX2IGC6RRWFY2LY6M6TFUVVMOME5UDCPTYIWJQ
+#\\\|KGJPOINVRHEUBXI253ZTBCQIUGRS7FD6PA6I6ZY7CRTPZINDABX \ / AMOS7 \ YOURUM ::
+#\[7]TIEUBWIWSNJW5FKAO7R267QEV2WPFSMNFBCLGKQ5K2XKMYWWDQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
