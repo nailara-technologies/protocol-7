@@ -86,6 +86,65 @@ direction:**
   installed" gap for `v7.check_zenka_deps`'s `@missing_bin`). The
   STALENESS concern above is still real and separate — fixing who reads
   the file doesn't fix whether its content stays current.
+
+  **Bootstrap-ordering check, closed 2026-09-01**: `v7.check_zenka_deps`
+  now routes apt installs to `debian.install-packages` via
+  `<[protocol-7.route-send]>`, which only delivers to an already-connected
+  session (`base.protocol-7.command.send.local`) — raised as a real open
+  question whether this could deadlock for `cube` itself (the first zenka
+  `v7.autostart_zenki` starts, before `debian`'s own `dependencies = cube`
+  could be satisfied). Checked all 66 on-demand zenki's `start.cfg`:
+  `dependencies = cube` is the near-universal pattern (61/66), and
+  crucially **`sys-deps` itself declares only `dependencies = cube`** (no
+  explicit `debian` dependency) yet its `sys-deps.cmd.install` already
+  routes to `debian.install-packages` the identical way, in production,
+  since earlier this session — direct proof that reaching an on-demand
+  zenka by bare name via `route-send` needs only `cube` up, not a
+  pre-declared dependency on the target itself. (`session`'s
+  `dependencies = debian` is a second confirmation that depending on
+  `debian` directly is itself a normal pattern.) So the only real edge
+  case is `cube`'s own bootstrap, which is out of scope for this
+  mechanism by design — that's `bin/p7-deps`'s pre-flight job, not
+  something `v7`/`debian` are meant to self-resolve at runtime. Not a gap
+  in the K3 dispatch above; closed, no action needed.
+
+  **False alarm on ondemand-timeout-vs-long-install, closed 2026-09-01**:
+  I initially suspected a real gap — `debian`'s `set_ondemand_timeout:420`
+  (`sys-deps`'s is `:64`) looked too short for a genuinely slow apt
+  install, and the idle-shutdown arm guard in
+  `base.event.callback.io-idle-restart` (lines 33-71) only checks
+  outstanding `$data{'route'}` entries and open producer streams —
+  neither of which reflects a running `jobqueue` job. **Corrected by the
+  user**: this is already solved structurally, not by a manual guard.
+  `$data{'watcher'}{'io'}{'transfer'}` (`base.event.init_code:14`) is a
+  real `Event->idle(...)` watcher — it only gets a chance to fire (and
+  thus only re-arms the ondemand-shutdown timer) when the event loop has
+  nothing else pending. A live `event.add_io` watcher on the apt child's
+  stdout/stderr (the established pattern `debian.handler.apt_child_output`
+  already uses) inherently keeps the loop non-idle for the whole
+  subprocess lifetime — no jobqueue-specific check needed. The explicit
+  `->start if not ->is_active` "nudge" calls in `base.handler.write`,
+  `base.handler.input`, and `base.stream.close` exist only for the
+  narrower edge case of state changing without going through the normal
+  I/O path (e.g. a synthetic buffer write) — not a workaround for a
+  missing background-job check. No action needed; don't re-raise this.
+
+  Fuller picture from [[ondemand-heartbeat-upgrade]] (2026-08-24 rollout,
+  already landed): `debian` was deliberately left **heartbeat-disabled**
+  in that rollout, explicitly for "package-install duration uncertainty"
+  (same bucket as `ext-pkg`/`ffmpeg`/`fs`/`melt`) — so there's no
+  heartbeat-timeout exposure on it at all, by design. The other half of
+  that same landed work is what makes the `Event->idle` mechanism above
+  safe generally: `heart` probes are explicitly excluded from resetting
+  `<base.ondemand.last_activity>`, and the idle timer arms with the
+  *remaining* time since last real activity rather than the full window —
+  so heartbeats can't artificially keep a zenka alive forever, while
+  genuine subprocess I/O (not a heartbeat) correctly keeps it alive via
+  `Event->idle` simply not firing during real work. `sys-deps` itself is
+  heartbeat-*enabled* (17s default, in that rollout's "zero blocking
+  code found" group) — consistent, since `sys-deps.cmd.install` returns
+  `'deferred'` immediately rather than blocking on debian's reply.
+  the file doesn't fix whether its content stays current.
 - `src/base.list.subroutines` — **correction, 2026-08-31**: this is NOT
   static/unmaintained — it's actively updated by
   `src/sourcecode.console.update-sub-list` (confirmed: real file, real
@@ -135,8 +194,8 @@ retirement can follow once the `var/` relocation lands and (for
 list.subroutines specifically) once the BMW-for-all-files checksum
 system exists — don't retire either prematurely on its own.
 
-#,,,,,,.,,...,,,.,,..,..,,,.,,,.,,,.,,.,.,,.,,..,,...,...,..,,..,,,,,,,..,,,.,
-#HNCIH6MTVWQ6Z4LEK4DNRO6F7OP2RHUTY4KYZ3U6SZZNJUE5EBNTH3MT64L4JOFSFJ65E4MSMS7D6
-#\\\|SOF4MZK7S5CMAJ2SVRTTRFNV3ACIECK53RFYF7TWCDXTQONBK7T \ / AMOS7 \ YOURUM ::
-#\[7]YSCGR5WFHCJSUBZBH53YPT3HDGG3RNESVJUXIUMCDB5SZBKF4QBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,.,.,..,,,,,,.,,,,,,,.,.,,..,..,,...,...,.,,,...,..,,,..,,..,
+#5HUATYRLJMS3GDH7NLOWM6GHXIZDVKEXL3WOKLJXDNJNJULWHHSIK2A2ZIRES6IMHU3FOHDLTG4RY
+#\\\|QXMG35LIGMCFHDPS6OQ3WZKHNSMYRJJ7AFRQACC54WPOQKSPONO \ / AMOS7 \ YOURUM ::
+#\[7]PXJ6S24Z7OLUPDR5XLIFWUNEVK6YE2ZLQVK6ALFLY2WSZWVC4QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
