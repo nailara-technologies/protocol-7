@@ -1,0 +1,247 @@
+task_id: v7-check-zenka-deps-jobqueue-and-binary-gap
+title: v7.check_zenka_deps -- route through jobqueue bridge, fix binary-dep gap, dedup known_dependencies access
+priority: normal
+estimated_rounds: 22
+
+context: |
+  Follow-on to this session's debian/sys-deps async apt-install pipeline
+  work (commit 7030fb250: base.debian.install_package's apt_child branch
+  is now jobqueue-serialized via debian.apt_enqueue_install/apt_pump/
+  job.apt_install/handler.apt_child_output, one install in flight at a
+  time, package names sanitized before shell interpolation; sys-deps.cmd.
+  install now routes through debian.cmd.install-packages + a deferred
+  reply instead of its own broken direct-root call). Found this session,
+  not part of that fix: src/v7.check_zenka_deps is a THIRD, independent
+  auto-install call chain that bypasses all of that infrastructure
+  entirely.
+
+  live-confirmed real failure mode (not speculative): v7.check_zenka_deps
+  calls `AMOS7::deps::debp::install_apt(@to_install_apt)` DIRECTLY
+  (src/v7.check_zenka_deps line 80) -- no jobqueue, no serialization, no
+  relationship to debian zenka's apt_child bridge at all. If v7 starts
+  multiple zenki close together (a real, ordinary startup scenario, not
+  edge-case), each zenka's own check_zenka_deps call can independently
+  invoke apt-get concurrently. AMOS7::deps::debp::install_apt has its own
+  internal dpkg-lock wait+retry (lslocks|grep ^dpkg, max 5 attempts) as a
+  low-level safety net, but that is NOT real serialization the way
+  today's jobqueue work provides -- if one zenka's install genuinely
+  fails while another's succeeds (lock contention exhausting the retry
+  budget, or two concurrent apt-get invocations for different package
+  sets), there is currently no queue, no retry, nothing that revisits the
+  failed install later. The zenka just proceeds with the dependency still
+  missing.
+
+  precedents to read before starting (this task deliberately points at
+  today's already-shipped pattern to extend, not invent a new one):
+
+  - src/debian.apt_enqueue_install, src/debian.apt_pump,
+    src/debian.job.apt_install, src/debian.handler.apt_child_output,
+    src/debian.cmd.install-packages -- the full jobqueue-serialized
+    pipeline landed this session. Read ALL of these in full before
+    designing how v7.check_zenka_deps should route through the same
+    mechanism.
+  - src/sys-deps.cmd.install + src/sys-deps.handler.install_reply --
+    the existing precedent for a caller routing an install request
+    cross-zenka to debian.cmd.install-packages via
+    <[protocol-7.route-send]> with a deferred reply, exactly the shape
+    v7.check_zenka_deps's cpan+apt install block needs to move to.
+
+  explicitly ruled out, don't attempt: do not touch
+  debian.start.apt_child's child protocol, do not attempt to replace
+  apt-get with a native Perl library (checked in the earlier session,
+  no install-side libapt-pkg-perl bindings exist on this system), do not
+  touch AMOS7::deps::debp's probe functions (probe_apt, probe_os_pkg,
+  probe_binary -- all read-only, work correctly today).
+
+issues_to_fix:
+
+  1_route_through_jobqueue_bridge:
+    description: |
+      v7.check_zenka_deps's auto-install block (lines 59-139) calls
+      AMOS7::deps::debp::install_apt() directly for apt packages, and
+      shells out to `system('cpanm', ...)` directly for cpan modules --
+      neither goes through the jobqueue-serialized debian.cmd.
+      install-packages bridge landed this session.
+    fix: |
+      change the apt-install portion (line 80:
+      `AMOS7::deps::debp::install_apt(@to_install_apt)`) to instead route
+      through <[protocol-7.route-send]> to debian.cmd.install-packages,
+      following sys-deps.cmd.install's exact pattern (reply_id +
+      deferred-reply handler, see sys-deps.handler.install_reply for the
+      shape).
+
+      ALREADY TRACED, don't re-derive: v7.check_zenka_deps's only caller
+      is src/v7.autostart_zenki line 9 --
+      `<[v7.check_zenka_deps]>->($zenka_name);` -- the return value is
+      discarded, and the code immediately proceeds to
+      `<[jobqueue.add_job]>->(...)` to queue the zenka's actual startup
+      regardless of what check_zenka_deps did. It is ALREADY effectively
+      fire-and-forget from the caller's side. This means pure async
+      (return a "queued/deferred" indicator and let the reply resolve
+      later, exactly like sys-deps.cmd.install already does) is the
+      correct and simpler choice here -- do NOT add a local
+      event-loop-pump (unlike base.debian.install_package, which needed
+      one this session specifically because ITS callers,
+      base.perlmod.install/install_cpanm, do check the return value
+      synchronously). v7.check_zenka_deps has no such synchronous
+      consumer. Keep the fix simple: match sys-deps.cmd.install's shape,
+      nothing more elaborate.
+
+      the cpan-install portion (line 86: `system('cpanm', '--quiet',
+      '--notest', $module)`) is a separate concern, lower priority --
+      leave as direct system() calls for now unless it's trivial to also
+      route through base.perlmod.install_cpan_module (read that file
+      first; only fold it in if doing so doesn't complicate the primary
+      apt-routing fix).
+    modules_to_modify:
+      - v7.check_zenka_deps
+
+  2_binary_dependency_gap:
+    description: |
+      v7.check_zenka_deps detects missing binary dependencies
+      (@missing_bin, populated at line 40 via
+      AMOS7::deps::os_package::probe_binary) but NEVER installs them
+      anywhere in the function -- only logs them as still-missing in the
+      final warning (line 141-147). No auto-install path for binary
+      deps exists in ANY of the three install call chains in this
+      codebase (v7.check_zenka_deps, sys-deps.cmd.install,
+      base.perlmod.install/install_cpanm) -- confirmed by grep this
+      session, not assumed.
+    fix: |
+      trace AMOS7::deps::os_package::scan_zenki_os_deps and
+      probe_binary first to understand exactly what "binary dependency"
+      means in this system (a declared zenki/*/deps/os/bin/ entry,
+      presumably a package that provides a binary, not the binary name
+      itself as an apt package name -- confirm this mapping exists
+      before designing the fix, since binary names and their providing
+      debian package names are not always the same string). Once
+      understood: extend the same jobqueue-routed install path from
+      issue 1 to also cover @missing_bin (likely: resolve each missing
+      binary to its providing debian package, same install_apt/
+      debian.cmd.install-packages path, no separate mechanism needed).
+    modules_to_modify:
+      - v7.check_zenka_deps
+      - (read only, to understand mapping) AMOS7::deps::os_package
+        (data/lib-path/pm/AMOS7/deps/os_package.pm)
+
+  3_single_source_of_truth_for_known_dependencies:
+    description: |
+      Two different mechanisms read the same underlying
+      src/base.known_dependencies content: v7.check_zenka_deps uses the
+      P7 module invocation <[base.known_dependencies]> (line 67);
+      AMOS7::deps::module::load_known_deps
+      (data/lib-path/pm/AMOS7/deps/module.pm) instead hand-parses the
+      raw file itself (strips the P7 header/signature footer, then
+      `eval`s the body) using a hardcoded path -- this custom parsing is
+      exactly what had the stale modules/->src/ path bug fixed earlier
+      this session (commit 7030fb250's predecessor fix). Per user: this
+      should collapse to ONE canonical accessor everything routes
+      through, specifically so the underlying data source can be
+      flexibly upgraded or re-routed later (e.g. if base.
+      known_dependencies's staleness problem eventually gets solved by
+      moving to a different/dynamic source) without hunting down every
+      caller.
+    fix: |
+      AMOS7::deps::module::load_known_deps should be that one canonical
+      accessor, not <[base.known_dependencies]> -- because
+      AMOS7::deps::module is reachable from BOTH contexts that need this
+      data (standalone scripts: bin/p7-deps, bin/os-pkg, per the
+      module's own header; AND zenka contexts), while <[base.
+      known_dependencies]>'s P7-module-invocation syntax only works
+      from inside a running zenka's %code context, never standalone.
+      v7.check_zenka_deps already proves zenka-context reachability
+      itself: it does `<[base.perlmod.load]>->('AMOS7::deps::module')`
+      at its own top (line 11) -- it already has direct access to
+      AMOS7::deps::module::load_known_deps and should call that
+      directly instead of separately invoking <[base.
+      known_dependencies]> for this one piece of data.
+
+      concretely: (a) fix load_known_deps's own hardcoded-path bug by
+      resolving the path via whatever root-path parameter/mechanism it
+      already accepts (it takes a $p7_root argument per its current
+      signature -- confirm callers pass the right value, don't
+      hardcode); (b) change v7.check_zenka_deps line 67 to call
+      AMOS7::deps::module::load_known_deps(<system.root_path>) instead
+      of <[base.known_dependencies]>->{perlmod}; (c) leave the
+      src/base.known_dependencies P7 module file itself alone (it's
+      still the actual data file location) -- this is about which CODE
+      PATH reads it, not moving the data. Grep for any other caller of
+      <[base.known_dependencies]> across src/ before finishing, to
+      confirm v7.check_zenka_deps was the only zenka-context holdout.
+
+      note: this fix is scoped to the ACCESS MECHANISM only. It does NOT
+      address whether base.known_dependencies's DATA is itself
+      stale/incomplete -- per the user, that's a separate, already-known,
+      already-tracked concern (static content, no automatic maintenance,
+      can't cover a user-installed or user-written zenka's own
+      dependencies -- see "Also to retire" in data/ai-mem/claude/
+      project-deps-tracking-var-relocation.md). Don't try to fix
+      staleness as part of this task; that needs its own, separate
+      design (retiring the file, or a real auto-maintenance mechanism)
+      which hasn't been decided yet. Having ONE canonical accessor is
+      exactly what makes that future redesign tractable later, though --
+      that's the point of doing this now.
+    modules_to_modify:
+      - data/lib-path/pm/AMOS7/deps/module.pm (load_known_deps)
+      - v7.check_zenka_deps (switch its accessor)
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md
+    before starting
+  - all comments lowercase, `[ word ]` not `( word )` for annotations
+  - module invocation: <[module.name]>->($args) — closing ]> BEFORE ->
+  - do not add a signature footer stub — the repo's signing system adds
+    the real one on commit
+  - this touches v7's own pre-start zenka-lifecycle code -- read
+    v7.zenka.start and whatever calls v7.check_zenka_deps FIRST to
+    understand the actual call context before changing its return
+    contract; this is foundational, not a leaf module
+
+explicitly_out_of_scope: |
+  - do not touch debian.start.apt_child's child protocol
+  - do not attempt to replace apt-get with a native Perl library call
+  - do not touch AMOS7::deps::debp's or AMOS7::deps::os_package's
+    probe/query functions (probe_apt, probe_os_pkg, probe_binary,
+    scan_zenki_os_deps) -- read-only, work correctly today
+  - do not touch base.register_pm_deps, base.check_dependency_dirs,
+    base.perlmod.all_registered, or AMOS7::deps::module::
+    scan_zenki_pm_deps's cfg/zenki/*/deps/ read/write paths -- that is a
+    SEPARATE traced issue (see data/ai-mem/claude/
+    project-deps-tracking-var-relocation.md), a different task, not
+    this one
+  - do not touch the cpan-install portion of v7.check_zenka_deps unless
+    it's a trivial fold-in per issue 1's fix description -- if it adds
+    real complexity, leave it as direct system() calls for a later pass
+
+verification: |
+  static/read-only verification only -- no live root apt-get install,
+  same constraint as the earlier session's debian/sys-deps task. This
+  touches v7's own pre-start sequence for every zenka; a live test here
+  needs the user's own judgment about which zenka/host to test against,
+  not something to run autonomously.
+  1. confirm the already-traced call site (src/v7.autostart_zenki line 9)
+     still discards check_zenka_deps's return value and still proceeds
+     unconditionally to jobqueue.add_job right after -- this is the
+     basis for using pure async (no event-loop-pump) in issue 1; if
+     something has changed since this was traced, say so explicitly in
+     the final report instead of silently picking a different approach
+  2. trace the full binary-dependency path by hand: scan_zenki_os_deps
+     -> probe_binary -> the new install path -> confirm the
+     binary-name-to-debian-package-name resolution is actually correct,
+     not just assumed
+  3. confirm AMOS7::deps::module::load_known_deps still returns the
+     identical data shape after the change, for both a zenka-context
+     caller and (if applicable) a standalone-script caller
+  4. bin/dev/ptd -c (or equivalent syntax check) on every changed file
+  5. list any access.zenki changes needed for this cross-zenka call (if
+     v7 itself needs a grant to reach debian.cmd.install-packages) with
+     the exact grant text in the final report -- per this project's own
+     recorded experience, a new cross-zenka call needs a live-tested
+     access.zenki grant that neither static syntax-checking nor diff
+     review can catch
+
+#,,.,,...,,,,,.,.,.,.,,.,,..,,,,.,.,,,,.,,,.,,..,,...,...,.,,,..,,,.,,,,.,,,.,
+#LXZKIMMMZQ5K7W5EF3UA2B53HTS5F3FZZKZE7PHULVMLNMFYMTTDXRT7OPGYJ2R4QEG5CGBK24JGA
+#\\\|VLRRFBJXNY44ZY2HVWOXAWDVI2XZQXGT6HQEDR2JIQRJJOS7AOP \ / AMOS7 \ YOURUM ::
+#\[7]EQO2N3EQ6PGCGWW3VVTR7QCE5JPVR5QZ4D5GUBANDHS5CYTN7WBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
