@@ -4,10 +4,10 @@
 # descr = IO read handler for TCP stream : parse ICY headers, extract audio
 #         and metadata, relay audio to registered listeners
 
-my $event   = shift->w;
-my $read_fh = $event->fd;
-
-my $icy = <radio.stream.icy>;
+my $event           = shift->w;
+my $read_fh         = $event->fd;
+my $chunk_log_level = 3; #  was 2, but washes out all other buffer messages  #
+my $icy             = <radio.stream.icy>;
 
 ## jingle suppression self-heal timeout [ independent of metadata changes ] ##
 if (    $icy->{'is_jingle'}
@@ -44,7 +44,7 @@ my $read_buf = '';
 my $read_len = sysread( $read_fh, $read_buf, 65536 );
 
 <[base.logs]>->(
-    2,
+    $chunk_log_level,
     '[radio] chunk: read=%s listeners=%d headers_done=%d',
     defined $read_len ? $read_len : 'undef',
     scalar <radio.listeners>->@*,
@@ -362,8 +362,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,,,,...,.,,,,,,,..,,,,.,.,.,,,,,..,,...,...,..,,...,...,...,.,.,.,,,,..,,,.,
-#YVDAVFCETMNA4Q3ZZXBWS3XE6SBOIPVYKEAXCDJBKFQSB76NFMJPQVWZEF4RITZD2BYKENL56EB7K
-#\\\|D5NXQNQO7ETP2NWI2HWVZGRDQSIDDE4DGSNUELZCWFTIMFXRGWG \ / AMOS7 \ YOURUM ::
-#\[7]JJT2UYN7OHJ7EBOPJH4OEPEXSKD5JSL7XILET5SFYCM4KLDDRAAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,,,.,,.,,.,,,...,...,,..,,,,,..,,...,...,..,,..,,.,.,,,,,,,,,
+#Y62JG6AM6O5YN7KHJQOS56NWHSYSZV7ZHFIRNEABNHMKVIPXJBAKEGE2E2FI6E6IMUIP3XPQ7DP5C
+#\\\|FPTHTJCVOOOYCWFILFMQ7WBPG6XWGYQQR7V2F7K6K4IR6ISKZ7F \ / AMOS7 \ YOURUM ::
+#\[7]M6QXAJEWX2UH7QDCUC63IZQFS2P72JMOEGIU6ASTWBFPJFTP2CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

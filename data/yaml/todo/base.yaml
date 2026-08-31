@@ -398,10 +398,10 @@ items:
   text: fix moved package details location
 - added: 3W7OVCV7JU
   details: "perltidy/format-code doesn't split a long single-quoted string literal when it has no spaces to break on (e.g. a comma/semicolon-only value like 'text/html,application/xhtml+xml,application/xml;q=0.9,...'). Instead of leaving it as one long line, it falls back to splitting it awkwardly mid-word into two concatenated string literals (e.g. 'http/2 codec ' . 'error: %s'), which is functionally fine but visually odd and not what a human would write. Found in src/site-yaml.async_fetch.headers and src/clients.https.h2.send_request/.handler.io, 2026-08-30."
-  done_at: null
+  done_at: 3XAZ376AMQ
   id: 7XX
   priority: normal
-  status: open
+  status: done
   tags:
   - format-code
   text: perltidy fails to split long spaceless string literals
@@ -500,16 +500,35 @@ items:
     format-code gap found in the same general area -- worth processing
     together in one format-code pass/dispatch rather than two separate
     ones.
-  done_at: null
+  done_at: 3XAZ376BDQ
   id: RLL
   priority: normal
-  status: open
+  status: done
   tags:
   - format-code
   text: compact nested $data{} chains into <key0.key1..> sugar
+- added: 3XAZZVOTPI
+  details: |-
+    Reported by the user 2026-09-01 after live-testing 814d0f963's radio fixes
+    (radio-playback-resilience-phase2.yaml + radio-startup-notify-and-backoff-fix.yaml,
+    both since archived to data/yaml/archive/completed-coding-tasks/ as tested and
+    working overall). A minor glitch still occurs in jingle detection during
+    background playback, but playback is otherwise stable now and the glitch is
+    "nothing like before" -- not a regression, just a residual rough edge worth
+    tracking separately rather than reopening the archived task. No repro details
+    captured yet -- ask the user for specifics (what "glitch" looked like: a
+    skipped jingle, a duplicate one, a log warning, a brief stutter) before
+    attempting a fix.
+  done_at: null
+  id: FHO
+  priority: normal
+  status: open
+  tags:
+  - radio
+  text: 'jingle detection: minor glitch still occurs during background playback'
 
-#,,,.,.,,,.,.,,.,,...,,,.,...,.,,,,..,.,,,,..,..,,...,...,...,,,.,...,.,.,...,
-#3VQKAXMWZK7PE2LVGFIWD7IRMDEBDMPGMY34MTHLL7FGLRYBQDXIFFMOW23TWKI4O7Z455SYOL3XM
-#\\\|3AUVQRZORRX4ANFU5EARB3WBI3W5GNNVNKTWMBM7426P7XHAKTE \ / AMOS7 \ YOURUM ::
-#\[7]RUBDOZ3LKBT5GJF4KHJM4IXZAFPRKVJASLFUQO5O6MURWKL5Y2BQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,,,.,...,,,.,,,.,,..,,,,,,,.,..,,...,..,,,,.,,,,,.,,,.,.,.,.,
+#5Q3UOB5G6TWJICLUAUL576226LWISNOPBLTSURMY3CADPWSSWRAAUNP3KSEMXBTL27FF3FFQ4Q5XA
+#\\\|KREALCX6SFE7FIMQFL6VN7EFACZELRRLEPEWRFQOZBQLCAZ4ZZI \ / AMOS7 \ YOURUM ::
+#\[7]SM4RT3FKHULQG66ZMKXARAMDX2XJWBXNOKOKSGRKMS6IN553TICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
