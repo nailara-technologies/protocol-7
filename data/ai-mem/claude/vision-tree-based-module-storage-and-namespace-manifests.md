@@ -97,6 +97,20 @@ for the history-access path specifically — the common case (just using
 the current clean version) stays simple, and the complexity cost is
 isolated to the feature that actually needs it, not paid unconditionally.
 
+**Follow-up refinement, same session, real advantage over git's model**:
+because each backward step is its own independently addressable diff
+(not an interdependent forward-chained DAG the way git commits are),
+retention depth becomes a **choice**, not all-or-nothing — keep the
+last N steps and simply delete older ones, no history-rewriting surgery
+needed the way truncating git history requires (filter-branch, shallow
+clone, squashing). And at the limit, **when the current state is already
+the clean canonical one, the entire diff-history mechanism can be safely
+deleted outright** — direct parallel to deleting `.git/`: the working
+files stay completely intact, only the ability to look backward is
+lost. This configurability (choose how much history, or none) is a real
+design win over git specifically, not just a workaround for the
+git-diff-bloat problem the symlink experiment hit.
+
 **How this applies to tree-storage flatten/expand**: don't copy the
 full-snapshot-per-version shape directly — if the eventual tree-storage
 mechanism needs to preserve history/reversibility the way regen/undo
@@ -113,8 +127,8 @@ Don't start designing the flatten/expand mechanism or the tree-storage
 layout unprompted; this was explicitly still being thought through, not
 handed over as a task.
 
-#,,,,,,..,..,,,..,,,,,...,.,.,..,,,,,,.,,,...,..,,...,.,.,,..,,.,,..,,.,.,,,,,
-#SVKELOL57PN3HGOC33KXIA3QK4NXFAHOKHIEHG3FDBSUDIDJFGKQRQFBQ5DEFFIOU3RNPDBJ3XGQY
-#\\\|YNBNO3KQ4QZS4I6KT7JLIPT2GNTRNYGER6S7Y5LD4KGS6ZAVASD \ / AMOS7 \ YOURUM ::
-#\[7]V5UH6JQ2HORY4WVSW7RV474M7TPZOZSSQ4LOFVLCSRM2XNMJO2AI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,.,,,,,,,,.,,,,.,,..,,..,,.,,..,,...,..,,..,,.,.,..,,.,,,.,,,
+#M533VOWA3JLWRRIKF4Q6XBNCQHKDPTKB7J66YZDEW3QYWD4UV2X7WSFHC3XJAMZUOKWSUYSXI2ZXY
+#\\\|AV5AGZEXKPLPN7KH3J7RDFDNGIFFR7GUPTQDZJP664UPYFDNK4E \ / AMOS7 \ YOURUM ::
+#\[7]RY4ZUUGJRKQYGZZM6BMGDNR3MW5GLDB6LENBAEZNBVQMSFKV36AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
