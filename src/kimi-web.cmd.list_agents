@@ -4,7 +4,14 @@
 # descr = list active kimi-web sub-agents with status and metrics
 # param = status - filter by status (optional)
 
-my $args   = $call->{'args'}   // {};
+my $args = $call->{'args'} // {};
+if ( not ref $args ) {
+    my $args_str = $args;
+    $args = {};
+    for my $token ( split /\s+/, $args_str ) {
+        $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
+    }
+}
 my $filter = $args->{'status'} // '';
 
 my $registry = <kimi-web.agent.registry> // {};
@@ -35,8 +42,8 @@ return {
     'data' => { 'agents' => \@agents, 'count' => scalar @agents }
 };
 
-#,,,,,,,,,.,.,,,.,,.,,..,,...,,,.,,..,,,,,..,,.,.,...,...,,..,,,.,,.,,,,.,.,.,
-#3FJA3RAAYS2A4MQHXX337H4LHIZJAKAZLVIPWMWWH2BRTTWFBHUSD3DITTDUGUVS3A6LSWW4DS7WQ
-#\\\|J3DOSKEYJ5R4S7HHNNJ3JBZMLNBNM6A3FCAMMOWA4XFJRPUVR2Q \ / AMOS7 \ YOURUM ::
-#\[7]V2CKADMEFKVADGLZFV3N6DUAYT4SYUF2KYT7VC6HGIN4OLFKFAAA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,...,.,.,..,,..,,.,,,.,.,,..,.,.,...,...,.,,,,,.,..,,.,.,,.,,
+#N5B7OBTZZ4VOAE2HTPTJRLDDNJXR7TVPA3KWSXCZ57YTIQWVZ3CLOX3HYAUBWC2FXIWDULDDT4MYM
+#\\\|M6AHTQXX4SBWJJB6Q2XGVWVOUUFUJY7CGY2ZHXSJZZHM5BKPI3V \ / AMOS7 \ YOURUM ::
+#\[7]3AKZGPY65VGSJGQ7PPVZEARDTST4MX3K3DLV6BZLDLHQZKA2OACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

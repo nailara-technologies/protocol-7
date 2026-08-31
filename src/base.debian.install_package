@@ -8,38 +8,54 @@ return FALSE if !@deb_list;
 
 ## use root apt child if available (zenka has dropped privs) ##
 if ( defined <debian.apt_child.w_fh> ) {
-    my $w_fh = <debian.apt_child.w_fh>;
-    my $r_fh = <debian.apt_child.r_fh>;
 
     my $s = @deb_list > 1 ? 's' : '';
     <[base.logs]>->(
-        1,  "auto_install: debian package%s: %s",
+        1,  "auto_install: queueing debian package%s: %s",
         $s, join( ', ', @deb_list )
     );
 
-    printf {$w_fh} "install %s\n", join( ' ', @deb_list );
-
-    my $exit_code = 1;
-    while ( my $line = readline($r_fh) ) {
-        chomp $line;
-        if ( $line =~ m|^< (\d+)$| ) {
-            $exit_code = $1;
-            last;
+    ## enqueue into jobqueue [ serialized through the 'apt-install' queue,  ##
+    ## one install in flight at a time ] - the 'install ..' line is written ##
+    ## to <debian.apt_child.w_fh> by the job callback and completion is     ##
+    ## event-driven via debian.handler.apt_child_output, instead of a       ##
+    ## blocking readline loop on r_fh that stalled the entire zenka event   ##
+    ## loop for every apt-get run                                           ##
+    my $job_id = <[debian.apt_enqueue_install]>->(
+        {   'packages' => [@deb_list],
+            'source'   => qw| base.debian.install_package |
         }
-        ## forward apt-get output through log system ##
-        <[base.logs]>->( 1, "apt: %s", $line ) if length $line;
+    );
+
+    return 1 if not defined $job_id;
+
+    ## this function's own callers [ base.perlmod.install/install_cpanm ]   ##
+    ## still expect an immediate, synchronous real result -- pump the event ##
+    ## loop locally until THIS job resolves, instead of blocking on a raw   ##
+    ## readline. other timers/I-O still run interleaved via                 ##
+    ## base.event.once, so this doesn't reintroduce the original stall --   ##
+    ## it just waits for one specific outcome without freezing everything   ##
+    ## else in the zenka                                                    ##
+    ## seconds - matches apt-get's own realistic upper bound ##
+    my $max_wait  = 300;
+    my $waited    = 0;
+    my $poll_step = 0.1;
+    while ( $waited < $max_wait ) {
+        my $job_data = <jobqueue.joblist.by_id>->{$job_id};
+        last if not defined $job_data;
+        last if $job_data->{'status'} eq qw| completed |;
+        last if $job_data->{'status'} eq qw| error |;
+        <[base.event.once]>->($poll_step);
+        $waited += $poll_step;
     }
 
-    if ( $exit_code == 0 ) {
-        <[base.logs]>->( 1, ":. successfully installed." );
-        return 0;
-    } elsif ( $exit_code == 100 ) {
-        <[base.logs]>->( 0, "  ✗ package not found : cannot continue" );
-        return 1;
-    } else {
-        <[base.logs]>->( 0, "  ✗ apt-get exited with code %d", $exit_code );
-        return 1;
-    }
+    my $final_status = <jobqueue.joblist.by_id>->{$job_id}->{'status'} // '';
+    return 0 if $final_status eq qw| completed |;
+    <[base.logs]>->(
+        0, "auto_install: job %d did not complete cleanly [ status: %s ]",
+        $job_id, length($final_status) ? $final_status : 'timeout'
+    );
+    return 1;
 }
 
 ## direct install : only works when running as root ##
@@ -107,8 +123,8 @@ while ( !$ok and $max_fail-- ) {
 
 return $errors;
 
-#,,..,,..,.,.,...,...,.,.,.,.,..,,,.,,,,.,,.,,..,,...,...,...,...,,,,,,,.,...,
-#SGHG6SV3O4RHBJGJB32UC4Z4QJZRAANX34ZNXEJR5M6B2RZRFFX47IRFR4AGIU7VEX6HLHDGZ45AG
-#\\\|SADTD6WPCOC5F2BN34PBQTUGKMBS3WL3QTLMCDQRQHGLRJNXKLD \ / AMOS7 \ YOURUM ::
-#\[7]27R3SSK4D4YSLFNU2CITB3MOF4AHAU3MRZLIPRGJB2SBHXEYHMAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,..,,.,,,..,,,,.,,.,,,..,.,.,,.,,..,,...,...,..,,,,.,,.,,,,.,..,,
+#2D2IDW7NVDVXVNKCTBVBJKOH2FJTFCQYLPILU5ACXWZ2D6GTI2ELPMSZEOCROZ63SVPTFUUB4VS5W
+#\\\|ZUFA2Y72OJC6QOX4C55ZOG63A3JCGVATYWRBJG23PEFUKBYMBIL \ / AMOS7 \ YOURUM ::
+#\[7]NKIPWSE5YJ7DYOWMHGQLMS7ZGRFD45EK4U5SOYECTIQBFMRPHYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

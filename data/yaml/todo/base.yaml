@@ -429,9 +429,35 @@ items:
   tags:
   - bin/ncpan
   text: upgrade ncpan to HTTPS
+- added: 3XAPPQ4YJU
+  details: |-
+    bin/dev/git-hooks/pre-commit:304 runs `bin/Protocol-7 sourcecode
+    verify-p7-signatures`, which currently re-verifies signatures broadly
+    rather than scoping to just the staged file set -- so `update-signatures`
+    has to sign everything each commit, not just what actually changed. This
+    gets painful fast on a multi-file session (e.g. a whole zenka's worth of
+    edits): every commit round-trips through a full re-sign even for a
+    one-line follow-up fix.
 
-#,,,,,,.,,..,,,..,,..,..,,...,,,,,.,,,,..,,..,..,,...,...,...,,..,..,,,,.,,..,
-#BEJUBJYB3N6OIJQFUUC437MTYBDFG7VLGOO6AQTYFJZLMJSK23GBJ5A2H7HPWJMGY6NYKJIQ4XUHQ
-#\\\|VM3VYKNMHNVZDJ4EZX4B5AJ5BF25XR7ZEJMBMVXSSLBX5T7KGH5 \ / AMOS7 \ YOURUM ::
-#\[7]C3NOOYDGK64BD7C7X6NMVPCK6ZBSCJTA3SZ4YEAJQQ3L3AIAVWDI 7  DATA SIGNATURE ::
+    Idea: scope both the verify step (line 304) and the signing pass itself
+    to `git diff --cached --name-only` (the hook already computes this list
+    earlier for the descr/param-length check, around line 84) rather than
+    whatever broader set verify-p7-signatures currently walks. Would speed up
+    commits significantly on multi-file work.
+
+    Needs: reading verify-p7-signatures' and update-signatures' actual
+    current scoping logic first to see whether they already accept a file-list
+    argument or would need one added.
+  done_at: null
+  id: ADR
+  priority: normal
+  status: open
+  tags:
+  - bin/dev/git-hooks/pre-commit
+  text: pre-commit signature check should scope to staged files, not verify everything
+
+#,,..,,,,,,.,,,.,,,,.,,,.,.,,,.,,,,..,.,,,,,.,..,,...,...,..,,,,.,,.,,,,,,...,
+#OXYC34I27E6UUBOEGCPBUN6VYXIZG7HXJHVOOTO27PV7NX6WZV5IQXMYPJ4YI76YFB7COU43U7EWU
+#\\\|FJIWQREM5L47WODRQHTWQQASWOSZVEPRUWIZHRTNIS5MNECMC3T \ / AMOS7 \ YOURUM ::
+#\[7]TPD7YHUDX6W4LH2CQ7FCES4GQVHDSZSZE3BFZICYANNM5K2FO4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

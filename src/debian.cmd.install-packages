@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = debian.cmd.install-packages
+# descr = enqueue debian package install [ serialized ]
+# param = <pkg> [ <pkg> .. ]
+
+my $param = shift;
+my $args  = $param->{'args'} // '';
+
+my @packages = grep {length} split m|\s+|, $args;
+
+return { 'mode' => qw| false |, 'data' => 'no packages specified' }
+    if not @packages;
+
+my $job_id = <[debian.apt_enqueue_install]>->(
+    {   'packages' => \@packages,
+        'reply_id' => $param->{'reply_id'},
+        'source'   => qw| cmd.install-packages |
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'apt install queue unavailable' }
+    if not defined $job_id;
+
+## the reply is delivered asynchronously by debian.handler.apt_child_output ##
+## once apt-get actually finishes [ deferred_reply pattern ]                ##
+return { 'mode' => qw| deferred | };
+
+#,,,,,.,.,,..,.,.,,,.,,,.,..,,,,.,.,.,.,,,,.,,..,,...,...,..,,,,,,.,,,,..,.,.,
+#FV3N56JRFN7P7C72RBGSAO7HEGOEIHROUUNA2T72K5CCNF2FCACT475VRL2CSWHOFGCDT7MMORKVG
+#\\\|Q32HMA3FFUXRILH7RV22MYT7HD6AHVWI3W6NKENRHLZOFG365RV \ / AMOS7 \ YOURUM ::
+#\[7]FFRZS5UQZEHXKQYX2RISV4HDCJPPJFSBV5H7SJTBZ576ITRBX6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

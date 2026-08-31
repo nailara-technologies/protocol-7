@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = debian.apt_pump
+# descr = start next queued apt install if no install is in flight
+
+## serialization guard : the persistent apt child reads one complete      ##
+## 'install ..' line per command - only one job may be in flight, else    ##
+## concurrent writes interleave on the child's stdin and corrupt the line ##
+## protocol                                                               ##
+while ( not defined <debian.apt_child.current_job> ) {
+
+    return if not defined <debian.apt_child.w_fh>;
+
+    return if not exists <jobqueue.joblist> {'apt-install'};
+
+    my ( $job_id, $job_data )
+        = <[jobqueue.get_next_job]>->(qw| apt-install |);
+    return if not defined $job_id;
+
+    <[jobqueue.move_job]>->( $job_id, qw| running | );
+
+    <debian.apt_child.current_job> = {
+        'job_id'   => $job_id,
+        'reply_id' => $job_data->{'callback_params'}->{'reply_id'},
+        'packages' => $job_data->{'callback_params'}->{'packages'} // [],
+    };
+
+    ## exec callback writes 'install ..' to the child and arms the I/O    ##
+    ## watcher ; on immediate failure it clears current_job, so this loop ##
+    ## then advances to the next queued job instead of stalling the queue ##
+    <[jobqueue.exec_job]>->($job_id);
+}
+
+return;
+
+#,,,.,,..,,..,,..,.,,,..,,..,,,..,.,,,,,.,,.,,..,,...,.,,,,..,.,.,...,,,.,.,,,
+#75OWS5QLIGS6G75NVMLZ6SFSGU6GQENTLDKCIRAB3F7YSO5SDMNSNKRP7AOIOUWJWFFKZXDBCUGEG
+#\\\|RXE6PP7NGPJTPAL5D5USUU7YPT47J5HXQ35FRHNFZBXMR6SRVXD \ / AMOS7 \ YOURUM ::
+#\[7]PNPY7DE4XP2VMXIVD6H3UGRWIOGT5XJZASSK32ZI5TM7CF6RMWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

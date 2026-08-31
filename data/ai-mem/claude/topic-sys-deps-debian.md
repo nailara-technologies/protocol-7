@@ -89,8 +89,20 @@ needs: cpanm install (not in apt repos) + pmindex apt source + `apt-pm update`.
 fix: added `reasoning.branch` to `modules.load` in `cfg/zenki/task/zenka.v7`.
 also added `cfg/zenki/task/source/reasoning.branch` empty source marker.
 
-#,,..,.,,,,,,,,,,,,,.,..,,,,.,.,,,,..,,.,,,,.,..,,...,...,,..,.,,,...,,.,,...,
-#IRFRMLAYPK27E26J3MUVNGSAOM6CIIQUBAFYMZLAWIFDUQ6TJCUTHAZWBEQVN7ILC5PEZB6RQKHRQ
-#\\\|IWQ7VAOAR3E7RTVDEF2NNYES247ZLMSZ7T6T5JMUFZEYGUS4WLK \ / AMOS7 \ YOURUM ::
-#\[7]FC6N7GOZNZE2F3HHKDLQ4NCITN52UUQ6JQ42PQZWAPLXLDODLSAI 7  DATA SIGNATURE ::
+### boundary: bin/ncpan intentionally has no apt/debian awareness (2026-08-31)
+
+confirmed live: user installing `Finance::CoinbasePro::API::CLI` via `ncpan` hit 4 missing
+prereqs (`Config::INI`, `Dist::Zilla`, `Finance::GDAX::API`, `Pod::Autopod`) that ncpan's own
+CPAN-source dependency chain didn't resolve — user apt-installed them manually instead, since
+some CPAN deps (Dist::Zilla especially) are slow/heavy to build from source via plain cpan.
+This is correct, not a gap to fix in `ncpan`: Debian-package-first dependency resolution is
+`sys-deps`/`debian` zenka's job (`AptPkg::Cache` probe → apt install → cpanm root-only
+fallback, see above), not something to duplicate into the standalone `bin/ncpan` script.
+`ncpan` stays a simple CPAN-source client; don't bolt apt-checking onto it later without a
+reason `sys-deps` itself can't cover.
+
+#,,,,,,.,,,..,...,,..,,..,.,.,,,.,.,,,,.,,,,,,..,,...,..,,..,,.,,,...,,,.,.,,,
+#2OZI7RWSTWQD7GCOWEMBCSBXWQYAO47LCTOKD2EDKPZ5MHX5VDIEVJGV3FND2GM5T743HYVXEAWU6
+#\\\|BZN6K27S6HWU7P25SV4RXLLYXRLOPWPAOBBCOLSXBLZREOZDOO6 \ / AMOS7 \ YOURUM ::
+#\[7]3CTADDV6UVBXAMRPVDBUYMQ7IC7BY7TYOLUYC3URZFJ3KJMMMEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

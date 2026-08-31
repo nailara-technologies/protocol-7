@@ -8,6 +8,13 @@
 # param = stream   - stream partial results (default false)
 
 my $args = $call->{'args'} // {};
+if ( not ref $args ) {
+    my $args_str = $args;
+    $args = {};
+    for my $token ( split /\s+/, $args_str ) {
+        $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
+    }
+}
 
 my $agent_id = $args->{'agent_id'} // '';
 my $prompt   = $args->{'prompt'}   // '';
@@ -97,8 +104,8 @@ if ($stream) {
     };
 }
 
-#,,,.,...,,,,,...,,.,,...,.,.,,..,,.,,..,,,,,,.,.,...,...,,,,,,..,.,,,,..,..,,
-#SQDBL76RL36C7U4C3ZK6E6GJTFOMGJY45JXH4TANQW7WSUKDB3XZFFM5FRQCJ54NK2IOZ36UALYFS
-#\\\|X4AJKW6ZAPRUHY76Z3WMMFEVL2IZPDJPYLJ2CMVZMGHLDVLMXWY \ / AMOS7 \ YOURUM ::
-#\[7]HNOXK3ODF4ZBXT2OURM7LPONAGILKV2MWYAK47TTD7J4UV4KX4BY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,.,,,,,,,...,...,,.,,..,,...,.,.,...,..,,.,,,.,,,,.,,,.,,.,,,
+#JV2EEAUHQUNS5GMJRL5HJ5XK3ZA3HEFAHYMAIL57FBRLM7DFOZ2C6HRWJ7HIZRRBLNQUFJGT4WYPE
+#\\\|ESL5XXXPSB3UGIHFGMLSBVOM2RW7MHZM2OSAWRRNTPK45QMTXAY \ / AMOS7 \ YOURUM ::
+#\[7]VJ5DTFPU5BRGDLN4V6O46D77LYYTKPVLGDKLMVKYAA3CZTFCW4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

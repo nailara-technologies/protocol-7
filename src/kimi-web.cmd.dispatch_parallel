@@ -8,6 +8,16 @@
 # param = timeout     - timeout in seconds (default 300)
 
 my $args = $call->{'args'} // {};
+if ( not ref $args ) {
+    my $args_str = $args;
+    $args = {};
+    for my $token ( split /\s+/, $args_str ) {
+        $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
+    }
+    ## agent_ids= arrives comma-separated over the string-args path ##
+    $args->{'agent_ids'} = [ split /,/, $args->{'agent_ids'} ]
+        if defined $args->{'agent_ids'};
+}
 
 my $agent_ids   = $args->{'agent_ids'}   // [];
 my $prompt      = $args->{'prompt'}      // '';
@@ -102,8 +112,8 @@ for my $agent_id (@ready_agents) {
 
 return { 'mode' => qw| deferred | };
 
-#,,..,..,,,,.,..,,,.,,..,,,..,...,.,.,...,,.,,.,.,...,..,,...,.,,,,,,,,.,,,,,,
-#MDAQDWPBWL3HHEW3XTQPM2KV3PAWOVPJRTDH5IKUTKNRXYHTDZLVCPVVU5FN3FPU4FPH2UGWI3Y6G
-#\\\|4SA22FW5DFKOT3KEBENVXMQLTZ6R52WLEEED3F736CT4K5RUW22 \ / AMOS7 \ YOURUM ::
-#\[7]DCDJSQL2DL3UPIZ64SNUTLWCEABIVBDDLZ5UKGIZ4DKBRVB5PICI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,.,,,,,,,.,..,,,.,,.,,,,.,,.,.,.,.,...,...,.,.,..,,,,,,...,.,.,
+#VALCGLB2Z4TGTD4PMVSKSI4DNYAHUND5WSWYZLGY4PIPPNKD5ZWASLNN4ZHZ5DJI3CJGHG6IKM3AS
+#\\\|AMCT7EAOXYW5KSIZAR57QA7S4LDGYZMIDO2CMOXOXNSDJYSJMPA \ / AMOS7 \ YOURUM ::
+#\[7]KU5ABXR3JVOFIHG3G3PEUQVO2E5BL7DXCSR27HJWD72U5BBYWQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
