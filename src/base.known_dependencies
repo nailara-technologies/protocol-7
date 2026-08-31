@@ -104,7 +104,7 @@ return {
             'cpan_fallback' => 'FFI::Platypus'
         },
         'Git::Native' => {
-            'debian' => [ 'libgit2-1.9', 'cpan:Git::Native' ],
+            'debian'        => [ 'libgit2-1.9', 'cpan:Git::Native' ],
             'cpan_fallback' => 'Git::Native'
         },
         'JSON::XS' => {
@@ -378,11 +378,33 @@ return {
             'debian'        => ['libyaml-tiny-perl'],
             'cpan_fallback' => 'YAML::Tiny'
         }
+    },
+
+    ## binary name => providing debian package [ only listed where the     ##
+    ## names differ ; unmapped binaries fall back to their own name as the ##
+    ## package name ]                                                      ##
+    'binary' => {
+        'cpanm'               => 'cpanminus',
+        'docker'              => 'docker.io',
+        'ffprobe'             => 'ffmpeg',
+        'intel_gpu_frequency' => 'intel-gpu-tools',
+        'intel_gpu_top'       => 'intel-gpu-tools',
+        'lspci'               => 'pciutils',
+        'modprobe'            => 'kmod',
+        'notify-send'         => 'libnotify-bin',
+        'rmmod'               => 'kmod',
+        'shred'               => 'coreutils',
+        'udevadm'             => 'udev',
+        'unbuffer'            => 'expect',
+        'Xephyr'              => 'xserver-xephyr',
+        'Xnest'               => 'xnest',
+        'Xorg'                => 'xserver-xorg',
+        'Xvfb'                => 'xvfb'
     }
 };
 
-#,,..,,.,,.,,,,..,.,.,,,.,,,.,,.,,.,,,,.,,...,..,,...,...,..,,..,,,.,,,,.,.,,,
-#74KAF3SXGQ4TKPDV56YNBGGAI5TKF7YEYJ3B5ZTEMWXV7C2LWL36TL2GBNOL2HKRZR556LXMLFHTI
-#\\\|QHLH2GE7FQU77N4HRR3JNWNQ2RRA3UDD62K446ZUH44UJ4Y6SEK \ / AMOS7 \ YOURUM ::
-#\[7]HUY6QD7NVFVVM3JFTMW2UBST5V44CCL5J3YBEPBSH57EXMBP3GAA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,,,...,.,.,,..,.,.,,,.,,,.,,.,,.,.,...,...,...,,..,,,,,,..,,,.,
+#HOZ2TSH5DZK75PUI6JJBXG5WUIR7ETYUAADTX7QENBWM7UCDLLQ4ZN4FELRAUZS462LDTOZCT2GEA
+#\\\|7JBCN67DPWSBIETUSZV6CSFGZK7BVPJ7KFFSTHZT6EONUGN33HC \ / AMOS7 \ YOURUM ::
+#\[7]CXW46XQNH74LFMM7UD7VG3DPWUS2R65ZLMDZPG4DNVH7JTVJQUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

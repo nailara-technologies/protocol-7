@@ -16,8 +16,19 @@ our @EXPORT_OK = qw|
 
 ##[ load_known_deps ]#########################################################
 
+## single canonical accessor for src/base.known_dependencies data :        ##
+## reachable from both zenka and standalone-script contexts, so callers    ##
+## never need the <[base.known_dependencies]> P7-module-invocation route [ ##
+## zenka-context only ] for this data. $section selects the data section [ ##
+## default 'perlmod' ] ; the underlying file can be re-routed or upgraded  ##
+## later without hunting down every caller                                 ##
+
 sub load_known_deps {
-    my ($p7_root) = @_;
+    my ( $p7_root, $section ) = @_;
+
+    $section //= 'perlmod';
+
+    return {} unless defined $p7_root and length $p7_root;
 
     my $known_file = "$p7_root/src/base.known_dependencies";
 
@@ -50,7 +61,7 @@ sub load_known_deps {
         return {};
     }
 
-    return $known->{perlmod} // {};
+    return $known->{$section} // {};
 }
 
 ##[ scan_zenki_pm_deps ]######################################################
@@ -129,8 +140,8 @@ sub resolve_install {
 
 1;
 
-#,,.,,.,.,,,,,...,.,,,,..,,.,,,,,,.,.,,,.,..,,..,,...,.,.,,..,.,,,..,,,,,,,.,,
-#HVRVHQYGCFVXIOYPYNCGFW5FCO7RGW3AE2IMMEPSJFJERQPOBLZFXU5XXIPMNPSW7NNBQ7OXRMOLO
-#\\\|OP24B62R4YC6CQAJVD7V6PA7XU2LB3YCFFJFZQTEE3XPDOMT36X \ / AMOS7 \ YOURUM ::
-#\[7]DQ5J7RK4AE24CIFILHOCOVI5KHHK3G66BXAN6K3RDOEJXDOX5SBY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,,,,,.,,,.,.,,,.,,,,..,.,.,,.,,.,.,...,...,...,,,,,...,,..,.,.,
+#SMNBEWUXOLB4ZBHULV6R4LTXZXJU4BDJEODLIZHLM7QZ5DRMORW2M3IB2FQJLNYBX4F2H3PSLIRVG
+#\\\|RGKFXI3LKEED67WJ2KGOSJP67TXTS6F5OUVGZLMQOLHSRYRUHMZ \ / AMOS7 \ YOURUM ::
+#\[7]S3GV72JYFAWNRY33IXRVS6CIGTDCIMHTJDNH6XZHIBF4ATHUJUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

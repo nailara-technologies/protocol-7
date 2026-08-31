@@ -439,15 +439,39 @@ items:
     edits): every commit round-trips through a full re-sign even for a
     one-line follow-up fix.
 
-    Idea: scope both the verify step (line 304) and the signing pass itself
-    to `git diff --cached --name-only` (the hook already computes this list
-    earlier for the descr/param-length check, around line 84) rather than
-    whatever broader set verify-p7-signatures currently walks. Would speed up
-    commits significantly on multi-file work.
+    Idea 1 (original): scope both the verify step (line 304) and the signing
+    pass itself to `git diff --cached --name-only` (the hook already
+    computes this list earlier for the descr/param-length check, around
+    line 84) rather than whatever broader set verify-p7-signatures currently
+    walks. Would speed up commits significantly on multi-file work.
+
+    Idea 2 (2026-08-31/09-01, background pre-computation, bigger win):
+    watch the repo root with Linux::Inotify2 for file changes; after a short
+    no-further-changes timeout on a given file, run the expensive
+    proof-of-work-like truth-template signature search for it IN THE
+    BACKGROUND, speculatively, before anyone actually asks to commit --
+    but do NOT write the footer to the file yet. Store the precomputed
+    signature either in memory only, or encrypted with Twofish such that
+    only the user's own C25519 key can decrypt it.
+
+    Key property: this keeps "actually signing a file" a protected, deliberate
+    decision -- the background watcher only computes candidate signatures on
+    file-change detection, it has no say in whether they get applied. Only
+    the user's own key can decrypt a precomputed value to actually append/
+    replace the footer. But because the expensive search already happened
+    ahead of time in the background, the commit-time signing step becomes
+    just "decrypt precomputed value (fast) + write it" instead of "search
+    for a valid signature from scratch (the current proof-of-work-like cost
+    update-signatures pays synchronously today, matching all truth
+    templates). Extremely accelerated for the actual commit-time path,
+    without weakening who gets to decide a file is actually signed.
 
     Needs: reading verify-p7-signatures' and update-signatures' actual
-    current scoping logic first to see whether they already accept a file-list
-    argument or would need one added.
+    current scoping logic first (idea 1) to see whether they already accept
+    a file-list argument or would need one added; for idea 2, needs its own
+    design pass (inotify watcher process lifecycle, where precomputed
+    values live pending decryption, cache invalidation when a watched file
+    changes again before its precomputed signature is ever applied).
   done_at: null
   id: ADR
   priority: normal
@@ -456,8 +480,8 @@ items:
   - bin/dev/git-hooks/pre-commit
   text: pre-commit signature check should scope to staged files, not verify everything
 
-#,,..,,,,,,.,,,.,,,,.,,,.,.,,,.,,,,..,.,,,,,.,..,,...,...,..,,,,.,,.,,,,,,...,
-#OXYC34I27E6UUBOEGCPBUN6VYXIZG7HXJHVOOTO27PV7NX6WZV5IQXMYPJ4YI76YFB7COU43U7EWU
-#\\\|FJIWQREM5L47WODRQHTWQQASWOSZVEPRUWIZHRTNIS5MNECMC3T \ / AMOS7 \ YOURUM ::
-#\[7]TPD7YHUDX6W4LH2CQ7FCES4GQVHDSZSZE3BFZICYANNM5K2FO4DY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,.,,,,,,,,,.,.,...,,,.,,..,.,.,..,,...,...,...,...,.,,,.,,,,.,,
+#4PLGIYZXM6FYTFRZRAHFDE6IGZZUMDRHBOEINHHPQQHMLDXMHAV5BCMGJGU3W5G7SH6CTWZ7OZ7OS
+#\\\|4G5VV6QDX3X6TYS6UHHPLX25D2GCDMPFDLM3O7BPTGISPNPTLVX \ / AMOS7 \ YOURUM ::
+#\[7]RUZTGURX26EHWVD2X46LK443EC7YRKQPPUHD6GDHGD5XGDAG6IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -104,6 +104,7 @@ radio.cmd.status
 radio.cmd.listen
 radio.audio.init
 plugin.auth.unix
+jobqueue.add_job
 devmod.post_init
 devmod.init_code
 base.stream.push
@@ -134,6 +135,8 @@ ascii.frame.load
 radio.cmd.library
 plugin.auth.zenka
 net.read_bytewise
+jobqueue.move_job
+jobqueue.exec_job
 base.stream.close
 base.session.user
 base.session.init
@@ -227,6 +230,8 @@ base.cmd.amos-chksum
 base.buffer.add_line
 base.base32.pre_init
 ascii.frame.validate
+jobqueue.get_next_job
+jobqueue.get_job_data
 io.ip.tcp.output.open
 io.ip.tcp.input.close
 format.yaml.load_file
@@ -267,6 +272,7 @@ base.cmd.cancel-stream
 base.cfg.profile.apply
 radio.handler.reconnect
 protocol.sftp.init_code
+jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 crypt.C25519.write_keys
@@ -280,7 +286,6 @@ base.perlmods.init_code
 base.parser.access_conf
 base.net.send_to_socket
 base.log.forced_console
-base.known_dependencies
 base.get_path.zenka_cfg
 base.get_path.perl_exec
 base.exists.sub-process
@@ -316,6 +321,7 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ui.render.tree.invalidate
 radio.audio.watchdog.tick
+jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -510,8 +516,8 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,,,,,.,.,,,,.,,...,.,,,,.,,...,,,,,.,.,..,,...,...,.,,,,..,...,.,,,,..,
-#43AJTXZLWXRY4RLF5FLWOOQQ72UZEWCXJOUVXOZRC5LAYGIHEYLFFOYDD6DBE4FWTVZH5TVR3ZWSW
-#\\\|6VIYDXC6HULAZQEMAUELDHYF5R6CBE2JLOXJYF5C5RAXHU224HE \ / AMOS7 \ YOURUM ::
-#\[7]ZVEH5NYB6RLPQO2HVHWKK3Y6XEN3PD2CK3BRP3WRVRJIUYRY6KBY 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,...,,,.,.,.,.,.,.,,,.,.,,,,,..,,...,...,...,...,.,,,...,,..,
+#PZVWKIQS3FKFKZ7VBIHTSMVPIBIYCWIWZQYW655M7JL6YYX75MAC5YECQDIBAHJQKONOLQQE3ZQU4
+#\\\|5XVOXUI42HCGLP7OEEBNKVJV44LJYAQKPUPLHPNYOIU4566MOAS \ / AMOS7 \ YOURUM ::
+#\[7]H27B63WQOMTCQR2MRRF47ETSXKFKGWYTQKYXOFXLRCHHXG2AHQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
