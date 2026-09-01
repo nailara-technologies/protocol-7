@@ -534,12 +534,61 @@ re-indent), verified content-preserving. Correctly declined to run
 `format-code` on itself (a different, already-known open bug — #18 in
 its own doc comment — would corrupt that pass).
 
+## 2026-09-01 additions: sugar-compaction steps + used-once quieting
+
+Three more landed this session, all opt-in / additive, none touching the
+existing step0-step5 pipeline:
+
+- `-d` (`step6_compact_data_sugar`, commit 5cd3d50e4): rewrites literal
+  `$data{'a'}{'b'}...` chains (depth >= 2, all-literal bareword-shaped
+  keys) into `<a.b...>` sugar.
+- `-m` (`step7_compact_module_call_sugar`, commit 5d4972cb7): rewrites
+  literal `$code{'a.b'}->(...)` into `<[a.b]>->(...)`, always keeping
+  `->(...)` verbatim rather than also eliding it for the zero-arg case.
+- Both gated on a new `is_p7_module_text($text)` check (the literal
+  `## [:< ##` header as the file's first line) plus an explicit `.pm`
+  path exclusion -- **critical**, found only after almost shipping
+  without it: `bin/Protocol-7` and `AMOS7::*.pm` also use `%data`/`%code`
+  internally but have no sugar-expanding pre-parser of their own, so
+  compacting there would produce broken code. Path alone (`src/` prefix)
+  isn't the right signal, the header content is.
+- Also fixed a `--`-vs-`-` flag-style violation kimi introduced
+  (`--data-sugar`/`--module-sugar`) -- this project categorically avoids
+  `--` long-form flags, single-dash only (`-data-sugar`, `-module-sugar`).
+- `used only once: possible typo` on any `main::` symbol, commit
+  b32a57834: `real_syntax_errors`'s `-c` check only ever sees ONE file at
+  a time, but `main::` symbols in this codebase routinely get
+  installed/referenced from elsewhere at runtime (devmod, `-vvv`-gated
+  features, a glob-assigned canary like `base.init_code`'s own
+  `*main::dump_var = sub {...}`) -- structurally almost always a false
+  positive for a per-file check, not the real typo risk the warning
+  targets elsewhere. First attempt scoped this to an English.pm-name
+  allowlist only; user corrected it to cover ANY `main::` name (the
+  `dump_var` canary case is exactly the motivating example, not an edge
+  case to exclude). Also went through two display-format iterations
+  before landing: full `color_msg` box in a muted color read as MORE
+  visually excessive (two boxes instead of one), not less -- the actual
+  fix was dropping the box/wrap treatment entirely for a terse two-line
+  form (`:: used once : 'name'` / `:` separator), both lines sharing one
+  consistent non-alarming color (`$TRUE_color`, previously unused in the
+  file) rather than default/grey, which itself read as an inconsistent
+  outlier against the tool's otherwise fully-colored output.
+- Per the user, explicitly a heuristic simplification, not a provable
+  fact: true certainty about whether a `main::` symbol is genuinely
+  unused elsewhere would need whole-namespace/runtime visibility
+  (including `bin/Protocol-7`'s own dynamic loading) that a per-file
+  `perl -c` check can never have. format-code is a developer tool, not a
+  last line of defense -- a more context-aware syntax check (compiling
+  across the whole namespace, or querying live subroutine registration)
+  would need the `sourcecode` zenka or an AMOS7 module instead, flagged
+  as a future direction, not started.
+
 ## related
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,.,,.,.,,..,,.,,.,.,.,,,,.,,,,.,...,.,,,,,,,..,,...,...,,.,,,,,,...,..,,,,.,
-#4STANZ42H2BRSEP3MHB5LO74M44CBH2J7YSFKEZDPQ3LDUGAEIZRQ74EUDPYVPPYWIUJCO6WYEEEQ
-#\\\|ILQ3YNCEWNUYZ5RZ2B4VBPDLIXNDT4QCUK7OD5LHIODXR4RBAN4 \ / AMOS7 \ YOURUM ::
-#\[7]6CPCHERJ2EL75OFOBAMEO26FNC2K64SNQLC7PUUWLFMPJSUOXSAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,...,..,,,..,...,,..,,,,,.,.,..,,...,...,...,..,,.,,,,,,,,..,
+#CY6SCPSSJORGJP4R2NM3LHX2LUZCMTLUXDIFPTMGKHBGQIR3LMOMSWRZ63NYQT35OJNJHUMXLYTNG
+#\\\|UPX3HEX2IZBJMX5ZOIRTLEYBNZVN4LWU7YBRVUUMWQFY6QYKD4Q \ / AMOS7 \ YOURUM ::
+#\[7]JYM2TF4H3VPVAQLIKA5FLQIEVICMDLQQL2J4ZGLWKYZ26EY6CYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
