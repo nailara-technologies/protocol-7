@@ -4,7 +4,7 @@
 # param = <image-path> [job_id]
 # descr = Analyze a single image and return quality metrics
 
-my ( $image_path, $job_id ) = split( / +/, $call->{'args'}, 2 );
+my ( $image_path, $job_id ) = split( m| +|, $call->{'args'}, 2 );
 
 <[base.log]>->(
     2, "child.cmd.analyze_image: received command for job_id=$job_id"
@@ -80,8 +80,8 @@ return {
     'data' => freeze($response) . "\n"
     }
 
-#,,.,,.,.,,,,,.,.,,.,,,,,,.,.,..,,,,.,,..,.,,,..,,...,...,,.,,.,.,,..,,.,,,..,
-#INB2CX6YD5QYVR62G6IB4ZR2CWDHC5DX5SBXHCYGN2CK2RCQPXHODZWCAL5R2EQGYTEK2TY24H3BO
-#\\\|XSKYVA4KUQXLASF4FPI35XSLEHKUFGAF4JDPBJSCVGRVCNZFKAM \ / AMOS7 \ YOURUM ::
-#\[7]2ZP5HWAHUR4H4BOH774ADW52Z2YKEZR67FERX6IKLKPUU3TMBAAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,.,,,,,,,,,.,.,,,,..,,.,,...,..,,...,...,...,...,,..,,..,...,
+#VSOOBEEUCJ5MAZFDJPVZC4N2OOBAWFSRAVIJDYOEUE2GTWKCRT4HS6IKOLPBMSS2AP6CX2HTLMHB4
+#\\\|BPNKHR3A6TAF432TDILDWWPG2OYLPHNVPVXOUDIJI3D5XVLVZND \ / AMOS7 \ YOURUM ::
+#\[7]DOQBDDU2XC54IDS4A62EA2QSALKCLBQ5VXJ55ZUUUVOSXY5MFEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

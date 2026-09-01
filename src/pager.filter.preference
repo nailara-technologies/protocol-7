@@ -43,7 +43,7 @@ for my $item (@$items) {
 
     # Name pattern match
     if ( $name_weight > 0 && $pattern && $item->{'name'} ) {
-        my $name_score = ( $item->{'name'} =~ /$pattern/i ) ? 1.0 : 0.0;
+        my $name_score = ( $item->{'name'} =~ m|$pattern|i ) ? 1.0 : 0.0;
         $score += $name_weight * $name_score;
     }
 
@@ -70,8 +70,8 @@ for my $i ( 0 .. $#result ) {
 
 return \@result;
 
-#,,,.,,.,,..,,,,.,.,,,.,.,,,,,.,.,...,.,.,,.,,..,,...,...,..,,.,.,.,.,...,,..,
-#KNYGLOJCSO3JJ7LP3TDO3CFI4UEJDSX5CAYNTFEYIDPESLIFAYCMDQIGT4VH6RLYS2SN7SJZWXHOE
-#\\\|AHJYBB4VJNMOOANMCC2CSKJMRCQHBP7ZLHY4HZDSJX4FBLCMMX4 \ / AMOS7 \ YOURUM ::
-#\[7]X4W5VXJESNFPE3LHYRAPVS7C56PWHOGWD7L57WUXXQTR4S64ZKDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,,,.,.,,,,,.,..,,.,,,..,,,.,,..,,...,...,,..,..,,,,.,.,,,,..,
+#E44CB3HM3JRUGMP3I564RCNFTSVLBJJWR7NYUCJQ3WZI2HDCCQIYNBSTV74JYE7JUHGYW73WRKVIS
+#\\\|VENFD4TNH324MAU2BYBTA6SE2Z66LKGMCOCLAALUNMASYDNIFV2 \ / AMOS7 \ YOURUM ::
+#\[7]TXG26JMEZNJLLX3Z3LFJATW32HDQSILVMDE3HT46L4E45DRBC2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

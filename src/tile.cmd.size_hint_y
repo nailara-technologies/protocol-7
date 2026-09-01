@@ -6,7 +6,7 @@
 
 return { 'mode' => qw| false |, 'data' => "expected valid zenka name" }
     if not defined $call->{'args'}
-    or $call->{'args'} !~ /^(\S+)( +(\d+:\d+))?$/;
+    or $call->{'args'} !~ m|^(\S+)( +(\d+:\d+))?$|;
 
 my ( $zenka_name, $ratio_str ) = ( $1, $3 // '16:9' );    # <-- default ratio!
 
@@ -14,20 +14,20 @@ my $coords_reply = <[tile.cmd.get_coordinates]>->($zenka_name);
 
 return $coords_reply if $coords_reply->{'mode'} ne qw| true |;
 
-my @coords = split( / /, $coords_reply->{'data'} );
+my @coords = split( m| |, $coords_reply->{'data'} );
 
 my ( $width, $height ) = ( $coords[2] - $coords[0], $coords[3] - $coords[1] );
 
 my %underscan;
 map {
     $underscan{$1} = <tile.setup.screen>->{$ARG}
-        if $ARG =~ /^underscan\.(\w+)/
+        if $ARG =~ m|^underscan\.(\w+)|
 } keys <tile.setup.screen>->%*;
 
 my $x_total = <x11.screen.width> - $underscan{'left'} - $underscan{'right'};
 my $y_total = <x11.screen.height> - $underscan{'top'} - $underscan{'bottom'};
 
-my ( $ratio_x, $ratio_y ) = split( /:/, $ratio_str );
+my ( $ratio_x, $ratio_y ) = split( m|:|, $ratio_str );
 
 my $new_height = sprintf( '%.02f', ( $width / $ratio_x ) * $ratio_y );
 
@@ -39,8 +39,8 @@ return {
     'data' => "[$ratio_str] Y = $old_percent% --> $new_percent%"
     }
 
-#,,.,,...,,,,,.,,,,..,,.,,.,,,..,,.,,,.,.,...,..,,...,...,,,.,.,,,.,.,,,.,,,.,
-#4HKPKD54VA3YDCVU5I5PHYHATDMQ2CDNKJAAD4FH6QUQVNGUSGV22HJFRSLNDESQSGQBXKHT2VRS4
-#\\\|P3ORS46E5JP3NQAJSV5W3ZGW5HK5YJNECYDB7I7I4PDZQ7MSJHK \ / AMOS7 \ YOURUM ::
-#\[7]36TOMYSG7OY4UXUQYW5NCNFUU2TDEC4D2DPUZIWFIBM7AMJK7KBI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,...,,,,,.,,,,,.,,.,,,.,,.,.,,.,,..,,...,...,,,.,.,.,,.,,,..,,,,,
+#V4WWYKP3TFTSKAD3BNJCUVIUFQHBUZO6Z5266A2AQYJMSSHB3QQRI4BFH4HNDPGK73F6EXWTVZHIU
+#\\\|ZICXGTO6ZY7BUARKNNGM32A66MUMG3GEOIWAZ7PJRYHTOBZA52P \ / AMOS7 \ YOURUM ::
+#\[7]LKFYW5LN2O2RRTRIU34VBYAC5XQIK6GN3ZVS5YUXNDG52SGJZCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

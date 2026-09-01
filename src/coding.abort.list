@@ -10,14 +10,14 @@ my $store_dir
 
 my @ids;
 if ( opendir my $dh, $store_dir ) {
-    @ids = sort grep { !/^\./ && -f catfile( $store_dir, $_ ) } readdir $dh;
+    @ids = sort grep { !m|^\.| && -f catfile( $store_dir, $_ ) } readdir $dh;
     closedir $dh;
 }
 
 return \@ids;
 
-#,,.,,...,..,,,,.,..,,.,.,,..,,,.,,,.,...,,,,,..,,...,...,,..,...,..,,...,.,.,
-#ENGQY7GZMYGMRT5PL7L2D2KGR7ZJXX3J5IXWAKTUABWMFEOAWKRIIM7MDC5OEA3ZY75UXPLZGR4MG
-#\\\|WB7EOW2INXGJ5W5KYKVU2RI7CLFL64QY65QWZAL3652XSBPZBUK \ / AMOS7 \ YOURUM ::
-#\[7]HJLGGXCTJS42S3AOAT3UHYGMUXANUBR3FRYRP2F4Z3OAGVHYNYBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,...,...,.,.,,.,,...,,,.,.,.,..,,...,...,.,,,,,,,..,,...,..,,
+#F7NHBRBNZU2VQAQGZMEMTRDLIMLFT5CJZHHVVNGVSNQO25DZYAESTHV2F4F65P4MQJHKYANIFXCEU
+#\\\|5JX4IMAEFKELQUDKGZFIYSBJGGIMECTPQ6ATP3QJ7ZUHLRAQTYO \ / AMOS7 \ YOURUM ::
+#\[7]HXKOAAZDIHYRVHJUP3F2FOH774DPJG3YQJAXIPAUYO2WQDL3POCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

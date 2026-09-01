@@ -6,12 +6,12 @@
 # todo  = LLL check / enforce screen boundaries
 
 my $log_sid = $call->{'session_id'};
-my @params  = split( / +/, $call->{'args'} );
+my @params  = split( m| +|, $call->{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
     return { 'mode' => qw| false |, 'data' => "expected $ARG parameter" }
         if not defined $coords{$ARG}
-        or $coords{$ARG} !~ /^\d+$/
+        or $coords{$ARG} !~ m|^\d+$|
 } ( 'x', 'y' );
 
 <[base.log]>->(
@@ -40,8 +40,8 @@ my %p_old = <X-11.obj>->QueryPointer( <X-11.obj>->root );
 
 return { 'mode' => qw| true |, 'data' => "hovered over specified position" }
 
-#,,.,,.,,,,,.,,.,,.,.,.,.,.,.,,.,,..,,...,,,,,..,,...,..,,..,,,..,,,,,,.,,.,.,
-#XHSTR52VHLTHP2AGVMWJYHRZPHLQHIZYRYH5B6VGJVBEO43A4JXE34ECDZS2MU3OMHUAXUWWOCQFI
-#\\\|SDUDXDL7IKFPLVHLEHDXEZHMK2WA7YZ7AN6NOWJKIPUJGQUT2UC \ / AMOS7 \ YOURUM ::
-#\[7]5TUYNBNFKY67G22ZM7ALJ2V3N6ANY6FIVVCC7F3AW6F5HZFBZCCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,,..,.,,,,.,,,,.,.,,,.,.,,.,,..,,...,...,,,,,,,.,,..,.,.,,..,
+#3YD2TWEVA7S7JCBYZDVIG3PIPAXAKU6LWJDCURPHGJXIKHZH2CEGWZDVL5SLKX2OI7HX2RIOPPPGW
+#\\\|OSKRPKDZFNTNO34UYYKRFIW2QYZPD5SO2RM2TCYAQ54UDOFUP4T \ / AMOS7 \ YOURUM ::
+#\[7]T3ZGPE2V45AQ4S3Y7LL4S2GLFUZLCNFQQ5VNZLFSRA5F2HBBL6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

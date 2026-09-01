@@ -10,10 +10,10 @@ my $input      = '';
 
 if ( defined $call_args->{'args'} ) {
     my $args_str = $call_args->{'args'};
-    $args_str =~ s/^\s+|\s+$//g;
+    $args_str =~ s{^\s+|\s+$}{}g;
 
     ## extract session_id= suffix if present ##
-    if ( $args_str =~ s/\s+session_id=(\d{3,17})$// ) {
+    if ( $args_str =~ s|\s+session_id=(\d{3,17})$|| ) {
         $session_id = $1;
     }
 
@@ -130,8 +130,8 @@ $focus->{'pending_slot'}   = undef;
 $focus->{'pending_req_id'} = undef;
 return <[cred-mesh.ui.interactive.refresh]>->($call_args);
 
-#,,.,,.,,,.,,,,,,,,,,,...,.,.,.,,,,,.,,,.,..,,.,.,...,...,..,,,.,,,,.,.,,,...,
-#6A7MZDQPHTKNKKE66NQXEH2NMGVCFKXSEOBNVIG2C4L5IYDEVBPWRGOZU3HBQE7TKAHZZORYQXGQE
-#\\\|NB5H5C2SVTS44EWJQUH6AYT255HGV44G7XNH6COLIZVK35L4GYY \ / AMOS7 \ YOURUM ::
-#\[7]WGGQ44D6KBDVM3VDQ7H7LRZ2GHHX4URT7DMTBNTHRP4ABBBOBMCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,,.,,,.,,..,,,.,,.,.,,,.,..,,.,.,...,...,.,,,,..,,..,...,..,,
+#RVV2GANCZTL2LVMI44UZXEGDOHHY37SW6PQZU7Q2ZVB4MYMJL56HBJHEMCG74U4O3SS3WZPW6JQ64
+#\\\|SEOQAGWX3EIGUD6JQS5UFECPNIYXT4CVHFM3MKMST2UZUOGVGQ6 \ / AMOS7 \ YOURUM ::
+#\[7]HUIBSAI44A7RJEN5BIIXSYQS4LAUKWQONE24LYOGZCFEIFNMGGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

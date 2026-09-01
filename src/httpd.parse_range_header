@@ -11,7 +11,7 @@ return undef
     if !defined $range_header || !defined $file_size || $file_size <= 0;
 
 # Parse the range header (format: "bytes=0-499" or "bytes=500-999" or "bytes=500-")
-if ( $range_header =~ /^bytes=(\d*)-(\d*)$/ ) {
+if ( $range_header =~ m|^bytes=(\d*)-(\d*)$| ) {
     my $start = $1;
     my $end   = $2;
 
@@ -44,7 +44,7 @@ if ( $range_header =~ /^bytes=(\d*)-(\d*)$/ ) {
 
     # Return the range
     return [ { 'start' => $start, 'end' => $end } ];
-} elsif ( $range_header =~ /^bytes=(.+)$/ ) {
+} elsif ( $range_header =~ m|^bytes=(.+)$| ) {
 
     # Multiple ranges (e.g., "bytes=0-499,500-999")
     my $ranges_str = $1;
@@ -52,7 +52,7 @@ if ( $range_header =~ /^bytes=(\d*)-(\d*)$/ ) {
     my @result     = ();
 
     foreach my $range (@ranges) {
-        if ( $range =~ /^(\d*)-(\d*)$/ ) {
+        if ( $range =~ m|^(\d*)-(\d*)$| ) {
             my $start = $1;
             my $end   = $2;
 
@@ -94,8 +94,8 @@ if ( $range_header =~ /^bytes=(\d*)-(\d*)$/ ) {
 # Invalid range format
 return undef;
 
-#,,,.,,,.,,,,,.,.,.,.,.,,,,,.,,,,,..,,.,,,...,..,,...,...,..,,.,.,,..,,,.,,,,,
-#TZXV3Y5OWFYWHKDTY3VZ6C2Q7CN57QL7VZIZZJF7MAY6PYVDZQ6OZP7ITNWQTSZPYJTD5DQB6FRXC
-#\\\|2HT43OWKYTYX4ZURFMUJFF7PFTP3P2VY34F73KCJY4W5ACM3H6U \ / AMOS7 \ YOURUM ::
-#\[7]EJCQU7K4CMFDYIKFPD7VWUERSFOS3UXYX4MKXHTF7T4WTZODACCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,...,..,,...,..,,,..,..,,.,,,..,,...,...,..,,..,,,.,,,,.,.,.,
+#L4IXKOFZ52ATCV3JTSJ2P45NHFJPMBVBDBJC366JJM3PMLOZTCXLQVPY5BQGLT4YF6PN7GRDWLURA
+#\\\|4WX3DLSKHRAREIRG5WBGZXF6YSZTGRJUVW4XL7PKGFAVXUU4455 \ / AMOS7 \ YOURUM ::
+#\[7]YN3FB6DRAKEELW4G3653L5PJVI3DTQCQB4Q2VZCGUZW2WQ4VOOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

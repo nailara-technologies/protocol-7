@@ -14,7 +14,7 @@ my $target_index  = -1;
 my $entry         = $AMOS7::TERM::history_entries[$start_index];
 my $prev_time_raw = $entry->[0];
 my $prev_time     = $prev_time_raw;
-$prev_time =~ s/:[\d]+$//;    ## Strip :count suffix
+$prev_time =~ s|:[\d]+$||;    ## Strip :count suffix
 
 if ( $direction == -1 ) {
     ## Backward search (Page Down - looking for older sessions) History
@@ -28,7 +28,7 @@ if ( $direction == -1 ) {
         my $entry          = $AMOS7::TERM::history_entries[$i];
         my $entry_time_raw = $entry->[0];
         my $entry_time     = $entry_time_raw;
-        $entry_time =~ s/:[\d]+$//;    ## Strip :count suffix
+        $entry_time =~ s|:[\d]+$||;    ## Strip :count suffix
 
         ## Calculate time difference
         my $time_diff
@@ -50,7 +50,7 @@ if ( $direction == -1 ) {
         my $entry          = $AMOS7::TERM::history_entries[$i];
         my $entry_time_raw = $entry->[0];
         my $entry_time     = $entry_time_raw;
-        $entry_time =~ s/:[\d]+$//;    ## Strip :count suffix
+        $entry_time =~ s|:[\d]+$||;    ## Strip :count suffix
 
         ## Calculate time difference (going backward in time, so times get
         ## older)
@@ -69,8 +69,8 @@ if ( $direction == -1 ) {
 
 return $target_index;
 
-#,,,,,,,,,,,,,,,,,.,,,...,,..,..,,,.,,,,,,,,,,.,.,...,...,...,,..,,..,,..,,.,,
-#DJBJT3NNW6PVK3IXP4XP3C37PZISFOHED7HT2XT65TDMX6LY6QBRDI4XHZUZQY2C46IWEGRXWXB6C
-#\\\|LD5CXT4JDJORHZ5M4SG4FKGL6K6B2B5LEBEDJP3F2YVTD2AYMML \ / AMOS7 \ YOURUM ::
-#\[7]2BUYDDOV3KINVACCZ7E6ZHCLHA5KRHUU47ECQ5YAZ2YCQMOJDMAA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,.,.,,,,,,,.,.,.,.,.,,,,,..,,.,.,...,..,,,.,,,..,...,,..,...,
+#W3TODHZEQR3RB6QIZLLS2SURK6Y7QGDNUBSJEYU72U74HLWXXC2JCSVPWW7QZP3PU2F5ZEDTQ5Z2A
+#\\\|QT7J4SC3BEV44SP3XXDI6WPACPHDVVJ2W6TQFGEL4TZH47BUHFI \ / AMOS7 \ YOURUM ::
+#\[7]FAKQV2DNC7WRSAWXYQEX7N7BZ3TMMZGMJG6T25H6QECNWT3ZQEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

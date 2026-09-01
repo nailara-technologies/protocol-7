@@ -287,7 +287,7 @@ elsif ( $action eq 'transition' ) {
                         = eval { JSON::PP->new->utf8(0)->decode($args) };
                     ## handle concatenated json objects [ model error ] ##
                     if ( !defined $parsed
-                        && $args =~ m/^\s*(\{.*?\})\s*\{/s ) {
+                        && $args =~ m|^\s*(\{.*?\})\s*\{|s ) {
                         $parsed
                             = eval { JSON::PP->new->utf8(0)->decode($1) };
                     }
@@ -607,8 +607,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,..,,,.,,,.,,.,,...,.,.,..,,,.,,,..,,..,.,.,.,.,...,...,.,,,.,.,..,,.,.,,.,,
-#2XN4H3S3MMNIV7TAXZB42YXW4VNSLFPA5OB6MKX23NYFJGZCZOUETZSV6ROAPXTN7VUX3A3CIUXC4
-#\\\|PNLMJ45H2Y6LPAGJCU3LLIZOA3J5OJHSHYOKWN3HF5NEYQ6NTOU \ / AMOS7 \ YOURUM ::
-#\[7]3RF2MWW6MMW3ETOXAIDORD5TCPXZFLX4DFPICKZ2AMNRXNBEGOCY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,.,,,,,,..,,,,,..,,.,,,,..,...,.,.,...,...,.,,,.,,,...,..,,.,,,
+#HJ73Q3TUFD3JKXLJ4DUYZQCV3XDIRIBFFTOM2J3QXYE3NDOCCBGFCJCO7YFWG63IPDDMCUR2CHBK6
+#\\\|AB66M5YEQUXFJE7LM6VEZWK6TU5BKPS3K4VKOBOXHRS7LYZZE25 \ / AMOS7 \ YOURUM ::
+#\[7]E2L657DMSWITXP2WVCFEHIPBIAC2NCMHKQU4DPALXPL43HC2XIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

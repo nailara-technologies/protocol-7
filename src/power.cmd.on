@@ -5,11 +5,11 @@
 # param = <id> <s-num>
 
 <power.cfg.devices> //= {};
-my ( $device_id, $sock_num ) = split( / +/, $call->{'args'} );
+my ( $device_id, $sock_num ) = split( m| +|, $call->{'args'} );
 
 return { 'mode' => qw| false |, 'data' => 'numerical device id expected' }
     if !length($device_id)
-    or $device_id !~ /\d+/;
+    or $device_id !~ m|\d+|;
 
 return {
     'mode' => qw| false |,
@@ -21,7 +21,7 @@ return {
     'mode' => qw| false |,
     'data' => 'power socket number expected [1..4]'
     }
-    if not defined $sock_num or $sock_num !~ /^[1234]$/;
+    if not defined $sock_num or $sock_num !~ m|^[1234]$|;
 
 my @set_states = ( undef, undef, undef, undef );
 my $index      = $sock_num - 1;
@@ -55,8 +55,8 @@ if ( $new_state ne '1' ) {
 
 return { 'mode' => qw| TRUE |, 'data' => "socket $sock_num switched ON" }
 
-#,,,.,,,,,..,,,..,..,,,..,,..,,,,,.,,,...,,,,,..,,...,...,,..,..,,,..,...,,,.,
-#IG6E2SCRNS3TRACQSH3AY4T5B2UQXTLNMJWLBQUD3ZSTJOIZVNYEMHHS75ANWAJZVJX4SD5FO33XI
-#\\\|AEIGAZMPMDJJA7TIQUGANQ44CP6IBNYIVZ7HGC7DTNTW7B3STTK \ / AMOS7 \ YOURUM ::
-#\[7]YWV7JSF54ENHDSI6FNGZDIP5FGNU2PJOQOS6FKQ42755SX46XYCY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,.,,.,,,,.,..,,,,,,,.,,.,,,,.,,..,,...,...,,.,,,..,,,.,...,,,.,
+#L546NNBHPFI55EJFMYLZNFHSFI54XOFBTUIK3KVPAZIFXLJ4YG4NTROKYXNIEYAXBQQZREG4CVBME
+#\\\|JDFZG47FDRQ2E7D7J2UYUCV24ITCIKRCUFAZYYLGRVZFDBZZWTZ \ / AMOS7 \ YOURUM ::
+#\[7]WHR37O5L7O666JCFGX2W7FDQSZNKODDHREKZCGF26IOF2Q2UEQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -176,7 +176,7 @@ my %verdicts
 ## --- collect investigation records of the period ------------------------ ##
 
 my @record_files = sort grep {
-    my ($file_date) = m{^.*/(\d{4}-\d{2}-\d{2})_[^/]+\.yaml$};
+    my ($file_date) = m|^.*/(\d{4}-\d{2}-\d{2})_[^/]+\.yaml$|;
     defined $file_date and $file_date ge $from and $file_date le $to;
 } glob( sprintf qw| %s/????-??-??_*.yaml |, $investigate_dir );
 
@@ -300,8 +300,8 @@ return {
     'count'       => scalar @entries,
 };
 
-#,,,.,,.,,...,,..,.,.,,,.,...,,..,,.,,,,.,.,,,..,,...,...,...,.,,,,,.,,..,,.,,
-#G6EMCG52C2ZMUKHQML5BHJAIWUEU3EJBY6MCGAEOZCRNY4W3HVAOOSPZOWRLSA37PA6PCPBFHX5KW
-#\\\|KLWMYJNOXPLKLSADKH5FYP56S275CDZJ76IJOIT4CYKUPOOH4WZ \ / AMOS7 \ YOURUM ::
-#\[7]NT6PUPFFCQ4QXEGGCJCY2OC7BK5NOBVKLGCKRIYUPV3UXWHOJOCA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,...,..,,.,,,,.,,,..,.,,,.,.,..,,...,...,...,,..,,.,,,.,,,..,
+#73RZIPUT6BYRRLY6PQZ5MHJJZO6J7AHGPFHLGB26HOZMALLM6NBAR6YHDTKHKDWNHCJZZRMTWRECU
+#\\\|L4SJJUWHIXPIVG5DIJZ5OT5CNGNYH6SZWNZYSLOTM6JAEM26NZO \ / AMOS7 \ YOURUM ::
+#\[7]RGNIXNNTIGDGSQFSJ7TIVGNFGKLFDRKLGXO6WQYTI5ISNCXBAQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

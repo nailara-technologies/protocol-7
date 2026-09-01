@@ -7,7 +7,7 @@ my $args_str = $call->{'args'} // '';
 my $reply_id = $call->{'reply_id'};
 
 ## parse args: domain [port] [ttl]
-my ( $domain, $port, $ttl ) = split /\s+/, $args_str, 3;
+my ( $domain, $port, $ttl ) = split m|\s+|, $args_str, 3;
 
 $domain //= '';
 $port   //= 7777;
@@ -65,8 +65,8 @@ return {
     'data' => sprintf( qq| publish initiated for %s |, $domain )
 };
 
-#,,..,,..,,..,...,,,,,,.,,..,,.,.,,.,,,..,.,,,..,,...,...,,..,...,,,,,,.,,...,
-#KRANNRPLE4WJBN7N5DDF6FECL5254I4HAV7HQTYYX5JCDIMCKPJXXAYBT3AJ5XKFYRVVVZ7ESGJIO
-#\\\|O33RP7JIKXUP7KTEWDLO2UOOEQHRMNFOXLJXZ4P3J77VN2BY2D3 \ / AMOS7 \ YOURUM ::
-#\[7]PUVPNUQ365I56VF5ACY7LHFQWQIYUE7F6FIOIEQWCIR4B6XTBUDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,,,,,,..,.,.,...,,.,,,,.,.,.,..,,...,...,...,...,.,.,,,,,.,,,
+#MNBFBCGDLXJ3SN6BF2L5HT5THURYUGY2U4UTFBZSB3AIGEOVIES3P5XCK2DCEH6LBOGS3CWZBZ6NK
+#\\\|A3P2YK7GVUV2VNSRK55DJB42LUMZMBJKWHJRNQ7WAHMQXT7SK4M \ / AMOS7 \ YOURUM ::
+#\[7]EBDWIG6MWU62SHPC2HTUTGEROL3FIUS4YKZ4BQHZLI3XNF7MRKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,21 +29,21 @@ if ($EVAL_ERROR) {
     my $overall_grade     = 'C';
 
     # Try to extract numeric scores from response text
-    if ( $vision_response =~ /composition[:\s]+([0-9.]+)/i ) {
+    if ( $vision_response =~ m|composition[:\s]+([0-9.]+)|i ) {
         $composition_score = $1 + 0;    # Force numeric context
     }
-    if ( $vision_response =~ /lighting[:\s]+([0-9.]+)/i ) {
+    if ( $vision_response =~ m|lighting[:\s]+([0-9.]+)|i ) {
         $lighting_score = $1 + 0;
     }
-    if ( $vision_response =~ /technical[:\s]+([0-9.]+)/i ) {
+    if ( $vision_response =~ m|technical[:\s]+([0-9.]+)|i ) {
         $technical_score = $1 + 0;
     }
-    if ( $vision_response =~ /relevance[:\s]+([0-9.]+)/i ) {
+    if ( $vision_response =~ m|relevance[:\s]+([0-9.]+)|i ) {
         $relevance_score = $1 + 0;
     }
 
     # Extract letter grade
-    if ( $vision_response =~ /grade[:\s]+([A-Fa-f][+\-]?)/i ) {
+    if ( $vision_response =~ m|grade[:\s]+([A-Fa-f][+-]?)|i ) {
         $overall_grade = uc($1);
     }
 
@@ -153,8 +153,8 @@ return {
     raw_response  => $vision_response
 };
 
-#,,..,...,,.,,,,,,.,,,...,,,.,,.,,,,,,.,.,.,,,..,,...,..,,,..,..,,.,.,...,..,,
-#YUCRSQLGK7OCZHNMFVKSZ3HG3FZGVNA2WO5BLY5DOT7VQUQB2SGZIUM3DZQYIXA7BMSJAROUINKI4
-#\\\|CQZLXO2N3SBQ3INI23RZASOO2MGX2HYSXBZRZNSP752TEG24PGI \ / AMOS7 \ YOURUM ::
-#\[7]TJRH4CCGBCDASNQH22MAY6RN65BC62RQR53DIKGDL2RAKFIG6QAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,.,.,,,,.,,,.,,,.,,..,,,..,,,,,..,,...,.,.,.,,,.,,,,,.,.,,,,,,,
+#4MEJFWIBGOOLZB3MY4BLZYHF4RU7PRN7EFRYOVUVTMBODDZUTV5PLERFGIWXL3KFW7Q3ZJVWRF6JM
+#\\\|7NMIB7R5WVDE4TMU2X5V3SIK5FSBVZCBXCOJNZLMUUD7UDO2I36 \ / AMOS7 \ YOURUM ::
+#\[7]VGC76KUYNVTIDKWAK7QD436MA537223RSPC64PCARRITSYJZAEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

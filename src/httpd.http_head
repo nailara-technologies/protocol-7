@@ -98,7 +98,7 @@ if ( defined $http_host and defined $base_dir ) {
         };
 
         my $content_type = $meta->{$path_etag}->{'content_type'};
-        $content_type //= 'text/html' if $file_path =~ /\.tmpl$/;
+        $content_type //= 'text/html' if $file_path =~ m|\.tmpl$|;
 
         if ( defined $request->{'headers'}->{'if-none-match'}
             and $request->{'headers'}->{'if-none-match'} eq
@@ -138,8 +138,8 @@ if ( defined $http_host and defined $base_dir ) {
 return <[httpd.send_error_page]>->( $id, 404 )         ## 'Not Found'
     if not defined $file_path or !-f $file_path;
 
-#,,..,,.,,.,.,,,,,,.,,,..,,..,,..,...,,,,,..,,..,,...,...,,,,,,..,.,,,,,.,,,,,
-#GZ6KZEWCO677EDOOOYCLWCWE3LE2UWNZAQAOSP4YBZEQG6TN3QSOSRNM7MQUVWHTTE43HBHWYVG2I
-#\\\|UMAZHSRWKQJVPFQW6XSGPO6M7PLJFHLOWK3DJJGSITQ3TLPBPCJ \ / AMOS7 \ YOURUM ::
-#\[7]R4PJ3IPPDPZUXKTR6MK3HLF5FUMEVSPKJVRGI4XUBFDP4NYSYAAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,.,,,.,.,.,.,,.,,,.,,...,,,,,..,,...,...,,,.,,.,,.,,,.,.,...,
+#WXE6AVCLPPKUYNXNTKYRUFMSLY34MKI7QSAADML2OGYNXJGUVBTH7GRUA6BZQBYRKDA5UZUONY64Y
+#\\\|UI45QMVIDXBT4ULMK3D6Z7I2SLZG7VUZ5RNVL5BEBSIXGA33J5L \ / AMOS7 \ YOURUM ::
+#\[7]HLUIN5CRAKRQOSQQXNIFGD5IQSIVQ36IZF3LFBGK6VC5QPR2KEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

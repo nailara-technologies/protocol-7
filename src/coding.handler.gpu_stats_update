@@ -40,9 +40,9 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
             my $data = $lc->{'buf'};
             $lc->{'buf'} = '';
 
-            for my $line ( split /\n/, $data ) {
+            for my $line ( split m|\n|, $data ) {
                 next if not length $line;
-                my ( $load_1s, $avg_5s ) = split / +/, $line;
+                my ( $load_1s, $avg_5s ) = split m| +|, $line;
 
                 <coding.stats.gpu.load_1s> = 0 + $load_1s;
                 <coding.stats.gpu.load_5s>
@@ -70,8 +70,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
     2, 'gpu stats STRM consumer registered [cmd_id=%d]', $cmd_id
 );
 
-#,,..,..,,,.,,,,,,,..,,,,,,,.,.,.,...,,.,,..,,..,,...,...,.,,,...,,,.,.,.,,.,,
-#4CWDOHFPKZR7C2YMR2UHCF73LWPVZFA623YUAYKKZ3HHOSW2AQEHRBJAJ6Z2OEM4AOY3LPR3VDVE6
-#\\\|NEGN6SD7WWHQMKL4NHE2NBB7QPKTP244WT2E543EG6BLH6FLDVH \ / AMOS7 \ YOURUM ::
-#\[7]HSRAEDTUYAHJWXPL4NFDNR3IENG3DRNCYD4R3AGPHW6SVLRUW4DA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,.,..,,..,,.,.,,..,,.,,,,.,...,..,,...,...,,..,,,.,,,.,.,,,.,,,
+#CACS2VZWKN77Q6I6HPCGIPXEA33TWFQ56CYYP2QZB6PVX43NWDZSX5ZTFLMWEHMWWCY3G2JZ2IEMI
+#\\\|IIXMZZIP6WOYCGWGXXMDBHF4UA5W2GHH3LST7FBFJKCDXUZHJRF \ / AMOS7 \ YOURUM ::
+#\[7]QTKGBDAJQAFHPNYHUJL6K4UTDCI5BEDU3YQJAYCGW233V2GKVMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

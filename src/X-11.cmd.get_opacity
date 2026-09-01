@@ -10,7 +10,7 @@ my $window_id = $call->{'args'};
 return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
 return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
-    if $window_id !~ /^\d+$/;
+    if $window_id !~ m|^\d+$|;
 
 my $xtops = <X-11.WM>;
 <[X-11.update_X11_WM]>;
@@ -38,8 +38,8 @@ if ( not defined $result ) {
 
 return { 'mode' => qw| true |, 'data' => sprintf( '%.3f%%', $result * 100 ) };
 
-#,,,.,..,,...,.,,,.,,,,,,,..,,,,,,...,...,,,,,..,,...,...,.,.,,.,,.,,,.,.,.,.,
-#ZNV37G6GJJVPFNNPP24IXAIHWPQIY3BFJ2J7ZJLI2O57YTZFZA46GVCDWPO7ST7CXE56TQGB6BUT2
-#\\\|L6K5QXXFPLQGED5DPERQJ4LFSVXSAFA7UYS7SNDKF6QAWRRDXO3 \ / AMOS7 \ YOURUM ::
-#\[7]47OUAPPRTCC2PONINGWL7FW4UEHVNJSODRH4L5WJTKDDUKESX6BY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,.,,,,,.,.,.,,,.,,.,,,.,,...,..,,...,...,,..,.,,,,..,,,.,,.,,
+#VSCCLZIFQRHRCZ2IQ7H4KEC6OWG2ZXULUDCO4UDJ7TYIRKKBJIVG345ZNR4WU7EXNPAEEEWPO33HC
+#\\\|BNBLQRVOPCE55PZKQXPZS2IU64VWSG2F3K5OEG7K24YTVHLV6ZJ \ / AMOS7 \ YOURUM ::
+#\[7]FTCLQW2XHKVKAVO7PXEVTBYB7QWMWLFBMHJISML2K7RIFHGEUOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

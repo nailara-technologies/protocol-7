@@ -20,7 +20,7 @@ unless ($version) {
 $version =~ s|^AMOS7-v||;            ## Remove prefix if present
 $version =~ s|^v||;                  ## Remove v prefix if present
 
-unless ( $version =~ /^\d+\.\d+\.\d+$/ ) {
+unless ( $version =~ m|^\d+\.\d+\.\d+$| ) {
     return {
         success => FALSE,
         error   => "invalid version format: $version (expected X.Y.Z)"
@@ -37,7 +37,7 @@ my $repo    = <git.cfg.repository_path>;
 
 my $existing_tags = `cd $repo && $git_bin tag -l '$tag_name' 2>&1`;
 
-if ( $existing_tags =~ /\Q$tag_name\E/ ) {
+if ( $existing_tags =~ m|\Q$tag_name\E| ) {
     return {
         success => FALSE,
         error   => "version $tag_name already exists as git tag"
@@ -86,8 +86,8 @@ return {
 
 0;
 
-#,,,,,,,,,...,,.,,..,,,..,..,,,,.,.,.,,,,,,,,,..,,...,...,.,,,...,.,,,,..,,,.,
-#P4BW5UAY7TPJ5QAXBMWNKF7ZEWNELPJWB4XMXGG3FPG7YSFJNNVXB3QLTMWR5TWRFYUOIVMWNHQI2
-#\\\|YJGUOAW7RWI75ICTDI2UP6XOTPR6IYZLK6JRTTZ3D7VXB3ANRPJ \ / AMOS7 \ YOURUM ::
-#\[7]K3ZMU6VAP6UJ2TD4ZZUZ2JTUPRXXANWKFPA37LFR2BDHILYI7MDY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,.,,..,,..,.,,,..,,.,.,...,.,.,..,,...,...,,,.,,,.,,.,,,,,,...,
+#ZB4IZE6O5HM6Y4TWJA7AB6D2LKOML7ULDEXWEBJCEINAAB7QQ3DQQ5BKXMS7T6DHEHWOOVRWJW45S
+#\\\|OS5PVGN6DQT3KRZ32B6D7YQ4MJMYHXKUENX65V3WXLEARR3VEP5 \ / AMOS7 \ YOURUM ::
+#\[7]EEN7C5RPDF7VH2NN3X2JQNIWRTSLY547LH5SM6D7MAP7CNO5UYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

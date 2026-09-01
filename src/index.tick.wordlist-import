@@ -59,14 +59,14 @@ if ( !-l $link_path ) {
     if ( !<index.cluster_reported>->{$abs_path} ) {
         my $dh;
         if ( opendir( $dh, $abs_path ) ) {
-            my $count = scalar grep { !/^\.{1,2}$/ } readdir($dh);
+            my $count = scalar grep { !m|^\.{1,2}$| } readdir($dh);
             closedir($dh);
             if ( $count >= $threshold ) {
                 <index.cluster_reported>->{$abs_path} = 1;
 
                 my $dh2;
                 opendir( $dh2, $abs_path );
-                my @members = grep { !/^\.{1,2}$/ } readdir($dh2);
+                my @members = grep { !m|^\.{1,2}$| } readdir($dh2);
                 closedir($dh2);
 
                 <[protocol-7.route-send]>->(
@@ -93,8 +93,8 @@ if ( ++$index_job->{'iterations'} == $file_entries ) {
     );
 }
 
-#,,,,,..,,,,.,,,.,..,,.,,,..,,...,,,,,.,.,,..,..,,...,...,...,,.,,,.,,.,,,,..,
-#WGFYLUUPGLKI75KBMM3WMOUK6OKYG4FUE4ELWOA4YODCBLBGDMUT22HDVODQX6HAN6PAFBWVPMR76
-#\\\|THXPDVMWY6HPW6YKLAXBS7E3OAR65IPSM63XVEY7AUKRRXD6PGO \ / AMOS7 \ YOURUM ::
-#\[7]4CVCRZHMDP3NXTLZKHU5BTSL3XG5ZTD6GQWNTP5F3GHMLHMZYCAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,..,,,..,,,.,,,.,.,.,...,,..,..,,...,...,...,,.,,,.,,...,,.,,
+#4LQRF6S7AWQX6JASQWBYDQ5CASRX35WA4FRY4GITO5QYEBYSPH3UN65AWJQFISHUXAKZHCESSBRIA
+#\\\|TNZWRYRHMEWDHKAV32EV3LKOEU2ODNT5LVX7XLZO43XCWLBGLQM \ / AMOS7 \ YOURUM ::
+#\[7]A2OV4CIBTQ47ZYHSYUZCA2GYJV4VTCKZ3LKAJSYTH4IHQ3JISYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

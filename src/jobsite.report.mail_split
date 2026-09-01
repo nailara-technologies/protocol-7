@@ -11,7 +11,7 @@ return [] if not -f $path;
 my $content_ref = <[file.slurp]>->($path);
 return [] if not defined $content_ref;
 
-my @lines = split /\r?\n/, $$content_ref;
+my @lines = split m|\r?\n|, $$content_ref;
 
 my @messages;
 my @current;
@@ -29,8 +29,8 @@ push @messages, join( "\n", @current ) if @current;
 
 return \@messages;
 
-#,,,,,,.,,,.,,,.,,...,.,,,.,,,..,,,,.,,,,,.,.,.,.,...,...,...,,..,,.,,..,,..,,
-#EKBJONGPQQEJAQY6T4UUX7KRZVP5PNYHB6HZ6HU2TAMAWMUJTCCQYXQUWKFLIB3K3LSHN3UT7Z6IA
-#\\\|YZROHM27YS6Y2KWTS4Z2FLR43TWZGC5JU4MRGOEX45KN4WV3KB6 \ / AMOS7 \ YOURUM ::
-#\[7]4S2PNVCQRIBVJVMPNIWSXDBY6XBYLPHPHPXDM7IXNYU7SDPP2EDI 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,.,.,.,,,,,,,,,.,.,.,..,,...,.,.,...,...,...,...,,.,,,.,,...,
+#UP4LI2AMAE4P4I4PPMDDFVVGI3QDLHCL7BAMXHVBLM6WAJPQ4AUGWW43M6ELOBJRKO7VGXVBRN5U4
+#\\\|YQM6ZPYN4WUE3BFMQFTDRVSV7ZZ5ILWRK3HFKC65YDCTQTGO7FJ \ / AMOS7 \ YOURUM ::
+#\[7]Q4TEF246UQEMCHU5OQBV4KNTRQACOPE3EM2AVCP5Y4U3UP4RJQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

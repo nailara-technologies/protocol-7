@@ -6,7 +6,7 @@
 my $args = defined $call->{'args'} ? $call->{'args'} : '';
 $args =~ s{^\s+|\s+$}{}g;
 
-my @parts = split( /\s+/, $args, 3 );
+my @parts = split( m|\s+|, $args, 3 );
 
 unless ( @parts >= 3 ) {
     return {
@@ -41,7 +41,7 @@ unless ( $valid_fields{$field} ) {
 
 # Handle enabled field specially
 if ( $field eq 'enabled' ) {
-    $value = ( $value =~ /^(1|true|yes|on)$/i ) ? 1 : 0;
+    $value = ( $value =~ m{^(1|true|yes|on)$}i ) ? 1 : 0;
 }
 
 # Update mapping
@@ -58,8 +58,8 @@ return {
     'data' => 'Updated ' . $mapping_id . ' - ' . $field . ': ' . $value
 };
 
-#,,,,,,,,,,,.,,..,,.,,,..,.,,,,..,.,,,.,,,.,,,..,,...,..,,...,,,.,..,,,,,,.,,,
-#DC76ITSYEJ52YI52VSKRMOJSVC27IDRKFF72DA5GXKL5BZZCIVQCW6QW4TQP2HRHIM6XZ34C7O3VC
-#\\\|42INIT3J3M7F6PM2AJLVYKBJBBMXB23FRIIEUDA6X3KWKO7KT7K \ / AMOS7 \ YOURUM ::
-#\[7]226VZYZXD7YUAFBFOM6XLB4PVQA2TZZDS7BECXBDFVIRI2VOW2DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,,,,,.,.,,,,,,,.,,..,,..,.,,,..,,...,...,.,,,..,,..,,...,.,.,
+#LP3K2XHRVWHJTCRWVUMUMS6DV5H3YXU27I25DWVIFOWEZQ2BSWUOUOOS7SKP3J35YDVVIMKV4F27W
+#\\\|465RQA3XNV3GVIM5FO3RAAPQBPFJO3Z6EIVH4VQVPOZO37UFDYV \ / AMOS7 \ YOURUM ::
+#\[7]4J6JWXHTUQYVSBLE7LCT5TTVCZ5ZCDKI72PO6BMXHI3XDVAP3ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

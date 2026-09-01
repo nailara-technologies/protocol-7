@@ -6,13 +6,13 @@
 my @values;
 map {
     push( @values, sprintf( '%s:%s', $1, <tile.setup.screen>->{$ARG} ) )
-        if $ARG =~ /^underscan\.(\w+)/
+        if $ARG =~ m|^underscan\.(\w+)|
 } reverse sort { $a cmp $b } keys <tile.setup.screen>->%*;
 
 return { 'mode' => qw| true |, 'data' => join( ' ', @values ) }
 
-#,,,,,,.,,,..,.,.,.,,,,..,,,,,.,.,.,,,..,,,..,..,,...,...,...,,..,...,...,..,,
-#SUAFDLPLH6DT24T2YP6YJQQEZREKZ2LWFONRVBMALYZVBMXZNJEYHNOWURKGK225HVVCZZC2IDBEY
-#\\\|LPJ2TZTPPVHMMRQ7EOICQAFURM3MLWW64KDXB74JMRJPRI2MSEX \ / AMOS7 \ YOURUM ::
-#\[7]JOJP7PMNTUFBEO7XZWLNPLPF47HXDKPI474U5CANFUS3H3UCX6BA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,,,.,,,,,.,.,.,.,,..,,,,,,.,,..,,...,...,.,.,...,,,.,.,.,,,,,
+#4NKJZRPIVJ4VHNNEEVQ43MXVA2ODW33M76EKTPTALVZH5QML6A6IQCL5M6GRBTGI5W637HMXABTPM
+#\\\|YP646VD5OMPGLYTM2FL56ZUZFHZTEWZYIGN533RA75AQJYKW3CM \ / AMOS7 \ YOURUM ::
+#\[7]NRTUPDI2SQNQ7OPN3MGS3WWW7LXFXE4XOGFXDF53AZCX7AMRHIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

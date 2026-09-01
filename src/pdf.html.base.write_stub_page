@@ -19,7 +19,7 @@ die "unable to load html template '$html_template'" if not defined $html_ref;
 
 $$html_ref =~ s|\[MSG_STRING\]|$stub_text|g;
 
-if (    $percentage =~ /^\d+(\.\d{1,2})?$/
+if (    $percentage =~ m|^\d+(\.\d{1,2})?$|
     and $percentage >= 0
     and $percentage <= 100 ) {
     $$html_ref =~ s|\[COMPLETED_PERCENT\]|$percentage|g;
@@ -34,8 +34,8 @@ close($html_fh);
 rename( $temp_file, $target_file )
     or die "$temp_file --> $target_file : \l$OS_ERROR";
 
-#,,..,,,.,...,.,.,,..,,..,...,..,,...,,,.,,.,,..,,...,...,.,,,.,.,..,,.,,,,..,
-#K62QONXRPXBIMAAABGJUCEW4OZBGT6YEG5GOV3AZATSB2KODDLWU3IXPOQ2G5FVRCPWZ2IO2SOOC4
-#\\\|N7JJI7DPXLSZIPOQNBLSNZY3HTHUF7ETEKTTWGXMDBLPUABHYIK \ / AMOS7 \ YOURUM ::
-#\[7]EWBNSKVAE5XZDBVM4GBU7ZCRYIN6U56MEMIRQ7RR7NL6MH4CWMBA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,,,.,...,,,.,...,...,..,,,,.,..,,...,..,,,.,,.,.,.,.,,,.,,,,,
+#SAPOEHZYZGGYJFWKMMSL62UETJOVMRBX23W3BILTNY7VGVTEJ2G3THZBWLEO6FMWJB2IGV3T2FFDG
+#\\\|GKP6ONZPBVG2BFOHU4MBINBA7TNYJGHVIMYSBBX67U7ILK7QGJU \ / AMOS7 \ YOURUM ::
+#\[7]KUD7PFYAR6OFCJDL2WBQEUFP2MOKAZL6TVCVCDXCRSMNOYQZRAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

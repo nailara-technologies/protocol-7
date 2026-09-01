@@ -4,7 +4,7 @@
 
 my $timeout = shift;
 die "expected timeout parameter"
-    if not defined $timeout or $timeout !~ /^\d+$/;
+    if not defined $timeout or $timeout !~ m|^\d+$|;
 
 <[base.log]>->( 1, "setting on-demand timeout to $timeout seconds" );
 
@@ -13,8 +13,8 @@ die "expected timeout parameter"
 ##  last-activity defaults to startup [ first idle window not shortened ] ##
 <base.ondemand.last_activity> //= <[base.ntime]>;
 
-#,,,,,,.,,..,,,..,,,.,,,.,...,,,.,,..,.,.,.,.,..,,...,...,,..,.,.,,,,,.,.,.,.,
-#6DMPXBF2DHTGP4CXHW5O2TUP74SHFYRCUMUBFPH5C6OSRHG5DCJZAHHIW5B4JMJZUQXHD44NQTT64
-#\\\|XYVRN6KKLMVUESBJ3JR3PCJJFEZVFNUSPLZ2MK4OBDWMZYVZHUP \ / AMOS7 \ YOURUM ::
-#\[7]IEVI4MIXFZB4F44XOVVHEZRSSN3B7S2ZAISSBJUTIZJW2SWEWYCQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,,..,,,.,...,...,,..,,,,,.,.,..,,...,...,,..,.,.,.,,,,.,,,..,
+#NQZ65JBFQYPHZZ2CBYRMYB7SAHEWPDF2OG6L37SJK6IEQE3QWIQ7ERFTLCRV327454R52PGYDYZCM
+#\\\|B2IJKWINL4CSEOKNJ3BPX6YX524GPQZ2ENLXAVTLSBS23O3G7HY \ / AMOS7 \ YOURUM ::
+#\[7]SDPFFO2XQ77MCPHS7WQH7256JC4HJHTKI6FT4CFE43MB6KOTEYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

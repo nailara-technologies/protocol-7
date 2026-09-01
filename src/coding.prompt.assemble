@@ -38,7 +38,7 @@ if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
 ## :model:AMOS:ID: keyword : task-level model override, stripped from ##
 ## prompt allows task files to be self-describing:                    ##
 ## ":model:WZIZD6Y:2BIZKWY:"                                          ##
-if ( $parsed->{'query'} =~ s{:model:([A-Z2-7]{7}:[A-Z2-7]{7}):}{}i ) {
+if ( $parsed->{'query'} =~ s|:model:([A-Z2-7]{7}:[A-Z2-7]{7}):||i ) {
     $parsed->{'model'} //= $1;  ## don't override an explicit GPU:M: prefix ##
     $parsed->{'query'} =~ s{^\s+}{};
     <[base.logs]>->(
@@ -308,8 +308,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,.,,.,,..,,..,,..,,.,.,.,.,,,.,,.,,...,,.,,..,,...,...,...,..,,,,.,,..,,..,
-#4RIE3PJBFE3DKWQYM2LDS6Y37DFDHR4OFKZYJBFUCFV2PERV2TCPDE4RKB36AER6R75TUKNOAKF6Q
-#\\\|EUSAYEMFU72RK6SOMIETJMQCCVR3UUC6QDLHWEM5YPVDACCGLB7 \ / AMOS7 \ YOURUM ::
-#\[7]ZRJP7EBFYCW747T4QYVOYKJRHEZFVBRQE2LI73KCXLQF633MNSBQ 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,.,.,.,...,,,.,,,.,,,,,.,.,..,,..,,...,...,,..,.,.,...,.,.,..,,
+#BR7MKKSCRA7KA7H5M5YZBEY55JZ5ZZ4OFQXIPUIWUUCJX3Z7BQ6Y6MTSAIXQS2O2VIASIG7HFURJW
+#\\\|UEB7YKHMLTEOGTAMRI7ISSLY6MPB3F26XQNAREYDFPQ5BIYF7JQ \ / AMOS7 \ YOURUM ::
+#\[7]L54SGEARN7MPDI2HWBHZIH2ON7WZF376Z7YUT56EU6F2JPXLHGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

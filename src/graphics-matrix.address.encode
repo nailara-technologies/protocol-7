@@ -47,7 +47,7 @@ if ( $scheme eq qw| decimal | ) {
 } elsif ( $scheme eq qw| base32 | ) {
     my $packed = pack( 'CCC', $selX, $selY, $selZ );
     my $b32    = Crypt::Misc::encode_b32r($packed);
-    $b32 =~ s/=+$//;
+    $b32 =~ s|=+$||;
     return sprintf "b32:%s", $b32;
 
 } else {
@@ -57,8 +57,8 @@ if ( $scheme eq qw| decimal | ) {
     };
 }
 
-#,,,.,.,.,,.,,..,,,..,,,,,,.,,,.,,,.,,..,,.,,,..,,...,...,.,,,,.,,,..,..,,..,,
-#CVL4S3AQBEVWGUJDBPZZG5JSTDAAX2AVUIPL4M4KPJXGDKXHN3U2XOINTV2HADBTX5MPM7HARF3IK
-#\\\|JWSCMFWI6MSOJZOLHN3QMJOQ4FRQ546I4MLZRBETJCJVPV7XSOR \ / AMOS7 \ YOURUM ::
-#\[7]4W3RDDTSEZZ2PCWLCMPLLOWBAPUEFKLMO4FBOAI5AH5HVVDEFUAI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,,..,.,.,,,,,,,,,,..,.,,,..,,..,,...,...,.,,,,,.,..,,,.,,.,,,
+#5HZUY5EQN7NECAGSWFFIFJ76V6OO5KJ5P7EBYM4VTU7EGP5XOPI7QVGSF7EJ6V7NFIEYPRMJRRKZU
+#\\\|UU64BMGVOTWRUBJ5XYRDGSGH73DTRFS2JM4Y4GIRKMRREBII7EF \ / AMOS7 \ YOURUM ::
+#\[7]K4ZPDRJPVK3WGLXMJNXYMHP5UC7KJYU44R3OHT6E5RBXMCVVLCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

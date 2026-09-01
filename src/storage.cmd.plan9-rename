@@ -3,7 +3,7 @@
 # descr = Rename a file or directory over 9P
 
 my $args = $call->{'args'} // '';
-my ( $name, $path, $new_name ) = split /\s+/, $args, 3;
+my ( $name, $path, $new_name ) = split m|\s+|, $args, 3;
 
 if (   not length( $name // '' )
     or not length( $path     // '' )
@@ -25,8 +25,8 @@ return {
     'data' => "renamed $path to $new_name"
 };
 
-#,,,,,.,.,.,,,,,.,..,,..,,,,,,,,,,,.,,.,.,..,,..,,...,...,,,.,...,.,.,,,.,...,
-#RBZEKG7C52BKA32SUP6ZQXHTR2KPZ2GV4RKXBMQNDAFHOW5NA22Q6OYYBOG47WZY3RXLHS46JK662
-#\\\|E4OPFRZO6IPBPVMFBBEQ4DWGX7OOEWRGTWOPP4P6Z6N6AB3O6NT \ / AMOS7 \ YOURUM ::
-#\[7]356ILL4CLXC2QYF3NWG7QVZWAZKZTJ6DOCAZXF2O7FXVFVXVG6CY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,..,...,,,,,,..,,.,,,,,,,,.,..,,..,,...,...,.,,,,,.,,.,,.,,,.,.,
+#P37KYWUALC6PQZCY4ZTJUIQIABZAFGSNO5HQYQLVWW3SNI5JHBZDMR56BD2RHIGDVTFRXY4OOSHHA
+#\\\|LCG7Y6R32O2SVH2IM75TDHHZUSJ74WXIJBF2DSU7DB55QMPQV2T \ / AMOS7 \ YOURUM ::
+#\[7]UJ6DR5NMBSC43JMIDXUBBUC6IMVVW3KCKCQZPIBAFBA4VB5ZBCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

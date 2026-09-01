@@ -69,7 +69,7 @@ my $parsed_content = <[base.parser.pattern_split]>->(
             result => undef,
             status => qw| pending |,
             depth  => $depth + 1,
-            nested => ( $cmd_str =~ /<\[/ ? 1 : 0 ),
+            nested => ( $cmd_str =~ m|<\[| ? 1 : 0 ),
             };
 
         ## Return placeholder that will be replaced with command result ##
@@ -166,7 +166,7 @@ foreach my $cmd (@commands) {
 
 ## Step 6: Check if further recursion is needed  If the result contains new ##
 ## commands, recurse again                                                  ##
-if ( $parsed_content =~ /<\[/ and $depth < $max_depth - 1 ) {
+if ( $parsed_content =~ m|<\[| and $depth < $max_depth - 1 ) {
     <[base.log]>->(
         3,
         "[$session_id] template still contains "
@@ -191,8 +191,8 @@ return {
     depth   => $depth,
 };
 
-#,,,,,,,.,...,,.,,,,.,,,,,..,,.,,,..,,,,.,.,.,..,,...,...,...,.,,,.,,,,..,,..,
-#DGLEEGZDE3J4RQZNU2HGYYXY62PCUPXK7DXFBZ4X4YDVFJPBKIAQSJN4HUDQDDITF3IAEYVFDHXJY
-#\\\|ZKLUZZKEAZDADM44H5KIY2K2DTKQHYLDZMXXQ7UWYUFFCWYIROI \ / AMOS7 \ YOURUM ::
-#\[7]AP473GNJVYAWKEK5BFTPNYQCGVPVULXLKLULYHCGPLAJ7C7P2GDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,..,,,.,,,,,,,,,,,,.,,,,,,,,,..,,...,..,,...,,,,,...,.,.,.,,,
+#6W6MFQTFU2MDBZ5SO2WR4SXSZYDNEYW2W5STIK7GMKOH7H63G2QLDS5XDAMCIM4YMYLD44JKFIE7S
+#\\\|JGH7CLDK45TOUXLIJOVPR434A4TKD4FG2DX2I4HXGYOJVMALVOU \ / AMOS7 \ YOURUM ::
+#\[7]EP2CJBX7Q7VICEER7DBENTZGS2MAVP2RTQG45DFIBPNIED2LYOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

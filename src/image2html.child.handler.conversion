@@ -62,7 +62,7 @@ my $image = Graphics::Magick->new();
 
 ( my $status = $image->Read($image_location) ) =~ s|^Exception \d+: ||;
 if ( length($status)
-    and $status !~ /^\d+$/ ) {
+    and $status !~ m|^\d+$| ) {
     $error_msg = $status;
     goto error;
 }
@@ -76,7 +76,7 @@ if (<image2html.exif.auto_compensate_rotation>) {
         goto error;
     }
 
-    if ( $source_format =~ / ^ Joint Photographic Experts Group / ) {   # JPEG
+    if ( $source_format =~ m| ^ Joint Photographic Experts Group | ) {  # JPEG
         my $exif = Image::EXIF->new;
         $exif->file_name($image_location);
         my $image_info = $exif->get_image_info();
@@ -86,25 +86,25 @@ if (<image2html.exif.auto_compensate_rotation>) {
             my $orientation = lc( $image_info->{'Image Orientation'} );
             <[base.log]>->(
                 2, "compensating for EXIF orientation '$orientation'"
-            ) if $orientation !~ / top . +left /;
+            ) if $orientation !~ m| top . +left |;
 
-            if ( $orientation =~ / top . +left / ) {    # default - do nothing
+            if ( $orientation =~ m| top . +left | ) {   # default - do nothing
 
-            } elsif ( $orientation =~ / top . +right / ) {   # flip horizontal
+            } elsif ( $orientation =~ m| top . +right | ) {  # flip horizontal
                 $image->Flop();
-            } elsif ( $orientation =~ / bottom . +right / ) {    # rotate 180
+            } elsif ( $orientation =~ m| bottom . +right | ) {    # rotate 180
                 $image->Rotate( 'degrees' => 180 );
-            } elsif ( $orientation =~ / bottom . +left / ) {   # flip vertical
+            } elsif ( $orientation =~ m| bottom . +left | ) {  # flip vertical
                 $image->Flip();
-            } elsif ( $orientation =~ /left . +top / ) {       # transpose
+            } elsif ( $orientation =~ m|left . +top | ) {      # transpose
                 $image->Rotate( 'degrees' => 90 );
                 $image->Flop();
-            } elsif ( $orientation =~ / right . +top / ) {     # rotate 90
+            } elsif ( $orientation =~ m| right . +top | ) {    # rotate 90
                 $image->Rotate( 'degrees' => 90 );
-            } elsif ( $orientation =~ / right . +bottom / ) {    # transverse
+            } elsif ( $orientation =~ m| right . +bottom | ) {    # transverse
                 $image->Rotate( 'degrees' => 270 );
                 $image->Flip();
-            } elsif ( $orientation =~ /left . +bottom / ) {      # rotate 270
+            } elsif ( $orientation =~ m|left . +bottom | ) {      # rotate 270
                 $image->Rotate( 'degrees' => -270 );
             } elsif ( $orientation ne 'unknown' ) {
                 <[base.log]>->(
@@ -244,8 +244,8 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     delete <image2html.conversions>->{$current_key};
 }
 
-#,,..,,,.,..,,.,,,,,,,...,.,,,.,,,..,,,,,,.,,,..,,...,...,.,,,,.,,,,.,.,.,.,,,
-#KLDZY7VGX74S35N3CO2F7ZT7JRLZWDYQHUE6E3D3W7T356NVDYEA2ITM5MWGQEQUQ55JKUMS2K3TQ
-#\\\|67XAHAJL3XY5HQCPR5PEOV6YFNDSJ2OMXY4EWM5A6KH6W5QCZEC \ / AMOS7 \ YOURUM ::
-#\[7]NUS36FPGGB3TONT42VBSPU6ZQD6NRHQCX7PWKT5TCQXN7ALXHSCY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,.,,,,,,,..,,.,.,,,,,,.,,,..,..,,...,..,,,.,,...,,..,...,..,,
+#2GMNYCAAZVDRBRWQXBC26K5RAGHNRLAYSTYLEHV4U7Z3RVKYAHUJQBQKX3UWMLLOSYAJIZDZ2NVVU
+#\\\|VTYX3E7JC27LIHIRFGZYTCHCVYDQ4OGYTCDRNDDCGFVDY33UVGU \ / AMOS7 \ YOURUM ::
+#\[7]36LBHW7E2BEHOPLJ2XNEAHMTQ2Y2O42QY44BXBV4DCVGYSLDQ2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -62,7 +62,7 @@ if ( <git.cfg.use_wrapper> && exists $code{'git.parent.execute_wrapper'} ) {
 
     if ( $result->{success} ) {
         foreach my $line ( @{ $result->{output} } ) {
-            my ( $hash, $author, $email, $timestamp, $subject ) = split /\|/,
+            my ( $hash, $author, $email, $timestamp, $subject ) = split m{\|},
                 $line, 5;
 
             push @commits,
@@ -84,10 +84,10 @@ if ( <git.cfg.use_wrapper> && exists $code{'git.parent.execute_wrapper'} ) {
     my $output
         = `cd $repo && $git_bin log $scope_arg_str --format='%H|%an|%ae|%at|%s' 2>&1`;
 
-    foreach my $line ( split /\n/, $output ) {
-        next unless $line =~ m/\|/;
+    foreach my $line ( split m|\n|, $output ) {
+        next unless $line =~ m{\|};
 
-        my ( $hash, $author, $email, $timestamp, $subject ) = split /\|/,
+        my ( $hash, $author, $email, $timestamp, $subject ) = split m{\|},
             $line, 5;
 
         push @commits,
@@ -119,8 +119,8 @@ return {
 
 0;
 
-#,,..,,..,.,,,,..,.,.,,..,..,,,.,,,.,,..,,,..,..,,...,...,...,...,.,.,..,,...,
-#NEZJLP5YEFFKXEFDLZZII2YBBKRQ4TGMONJJO5H3RPBFJ7ZPOYZTJGTDSBWUQBUK26NTZKCR6MTV2
-#\\\|7YPAY6RKLQ3UXJEVKEJOZFZ3VWWR3TUYBA7IYYBJGZYEL6B2LNK \ / AMOS7 \ YOURUM ::
-#\[7]3XUSRC73SAKH2U4ZZW5LGOR2LYRUXOXEOT46J6GAPHBESCOBWMDY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,.,,.,.,,,.,.,,,.,.,,..,,..,..,,...,...,..,,.,.,,,.,..,,...,
+#BEFD7T7JJJRCGFU4EEDTIICFLZ52PPVXCPJM6LEQ5ZYVH6FZK5NVQLSI7SMWN2RH3JBZCYJVX3YAU
+#\\\|KVFIPSMQMMAJYMGPVDNF5CFVGAWWENGTS52G7HIZTHQ7OBGH5FT \ / AMOS7 \ YOURUM ::
+#\[7]TXQFIIJI7IGIXW622HPTRGT6KGFKV4KLTQHILAAP3DE2QKF3LYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

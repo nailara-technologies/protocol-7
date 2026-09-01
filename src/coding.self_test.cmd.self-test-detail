@@ -97,7 +97,7 @@ for my $prompt_id ( sort { $a <=> $b } keys %$prompts ) {
     ## status code alone gives no clue why it 500'd                         ##
     if ( length( $p->{'server_tail'} // '' ) ) {
         push @lines, "  server output at failure time :";
-        push @lines, "    $_" for split /\n/, $p->{'server_tail'};
+        push @lines, "    $_" for split m|\n|, $p->{'server_tail'};
     }
 
     push @lines, sprintf "  tier     : %s", $p->{'tier'} || '-';
@@ -143,8 +143,8 @@ for my $prompt_id ( sort { $a <=> $b } keys %$prompts ) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,,.,,.,.,,.,,.,.,,.,,,,,,.,,,,,,,,..,.,.,.,.,...,...,,..,,..,,..,.,,,,.,,
-#GQWAJEAMR7MV45C4O3UCUZ2RKKOQE7YPWIESJMWKEF6WQCLB4EOBWRYJ4ZUOR37NYD5C37XKCNG62
-#\\\|C3FO7KUFOB4RXRHFTSWFNMHJ2CTB5VNUEIB6PFFMORSVRJRDVAI \ / AMOS7 \ YOURUM ::
-#\[7]XKT24RA4URD6LG3SQNA43IQIMRMFE2VJIOOLLVTXLCD57JLFFEBI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,,,.,.,.,.,,,,,,,...,.,,,,..,.,.,...,...,..,,,..,.,.,,..,,..,
+#LHKKEGGBIQMXEJNNABKUGLVMUGATETCQ2SLSVCSKTO2EY4NJ2CTQ25WC4QIXLTDJ7F67KHOY7WXOS
+#\\\|7UJEJ6HOB6MOFHSQHHQ2B7LWFYCGSGUKTQX55ZE7WEYP4LZSSEO \ / AMOS7 \ YOURUM ::
+#\[7]JYX6WCEPXSICRA2X5P4ZNAAFCJ3O3BYPJIPXVCGWRXUPT7GF32DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,24 +19,24 @@ return undef unless length $block;
 
 ## parse backend field ##
 my $backend = '';
-if ( $block =~ m/^backend:\s*(\S+)/m ) {
+if ( $block =~ m|^backend:\s*(\S+)|m ) {
     $backend = lc($1);
     $backend =~ s|\s+$||;
 }
 
 ## parse optional max_context ##
 my $max_context = undef;
-if ( $block =~ m/^max_context:\s*(\d+)/m ) {
+if ( $block =~ m|^max_context:\s*(\d+)|m ) {
     $max_context = $1;
 }
 
 ## parse reason field [ literal or folded ] ##
 my $reason = '';
-if ( $block =~ m/^reason:\s*\|\s*\n(.*?)(?:\n\w+:|\z)/s ) {
+if ( $block =~ m{^reason:\s*\|\s*\n(.*?)(?:\n\w+:|\z)}s ) {
     $reason = $1;
     $reason =~ s|^\s+||;
     $reason =~ s|\s+$||;
-} elsif ( $block =~ m/^reason:\s*(.+)/m ) {
+} elsif ( $block =~ m|^reason:\s*(.+)|m ) {
     $reason = $1;
     $reason =~ s|^\s+||;
     $reason =~ s|\s+$||;
@@ -50,8 +50,8 @@ return {
     reason      => $reason,
 };
 
-#,,,,,,.,,.,,,,.,,,,,,...,..,,,.,,.,,,.,,,,,,,.,.,...,...,.,,,.,,,,,.,,.,,,.,,
-#7NL3KVIDK2P7COODWLO76TSOX4JXAG5DVH7R75LMXNXQHRPBO4VCMCVO3M7EHMQQFDKK4CLGAJ3HO
-#\\\|YKCU4WSJKJAESPNPMOUWBCBY2YV4PCNUGK7DDUFDFU3FFZWHPBI \ / AMOS7 \ YOURUM ::
-#\[7]ZZC6HEBAB5FFCXUOLOTC3QM2LNVQIFGKPXPXYJKNQJ7MUG6UR4DI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,,..,,.,,...,,,.,,.,,,.,,,,,,.,.,...,...,..,,,,.,...,..,,...,
+#5ZG2HYWV35RTPQZBZQ4AKRS5A2N3JCA6O5XMZOT4IWHMOWLDLSVDDSRLKA7PYULGFJX2BFS3WA53M
+#\\\|M6NYCWJT7JA6RLLCPXYSKFUOBGYKS5RYN7VUVPJ5PLK44O7X7NW \ / AMOS7 \ YOURUM ::
+#\[7]2ZEYFVJZWAL7U3Y2YLW44QJNDNWUXA3DN3Z4RHLVOPWI4UDR6CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

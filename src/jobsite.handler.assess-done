@@ -127,7 +127,7 @@ $yaml_src = substr( $yaml_src, $-[0] ) if $has_yaml;
 ## strip trailing markdown code fence if model wrapped output ##
 $yaml_src =~ s{\n*```\s*$}{}s;
 ## strip yaml-forbidden control chars : C0 (except tab/LF/CR), DEL, C1 ##
-$yaml_src =~ s/[^\x09\x0A\x0D\x20-\x7E\xA0-\x{FFFD}]//g;
+$yaml_src =~ s|[^\x09\x0A\x0D\x20-\x7E\xA0-\x{FFFD}]||g;
 ## YAML::XS::Load needs utf-8 bytes without the perl utf8 flag ##
 my $yaml_bytes = $yaml_src;
 utf8::encode($yaml_bytes) if utf8::is_utf8($yaml_bytes);
@@ -139,7 +139,7 @@ $yaml_err = $@;
 if ($yaml_err) {
     <[base.logs]>->(
         0,         ':assess-done: YAML parse error: %s | src=[%s]',
-        $yaml_err, substr( $yaml_src, 0, 80 ) =~ s/\n/\\n/gr
+        $yaml_err, substr( $yaml_src, 0, 80 ) =~ s|\n|\\n|gr
     );
 }
 if ( ref $parsed eq 'HASH' ) {
@@ -155,7 +155,7 @@ if ( ref $parsed eq 'HASH' ) {
     ($reason) //= do {
         my ($arr) = ( $result =~ m{"reasons"\s*:\s*\[([^\]]+)\]} );
         $arr
-            ? ( split /,/, $arr )[0] =~ s/^\s*"?|"?\s*$//gr
+            ? ( split m|,|, $arr )[0] =~ s{^\s*"?|"?\s*$}{}gr
             : undef;
     };
     ($summary) = ( $result =~ m{"summary"\s*:\s*"([^"]+)"} );
@@ -376,8 +376,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,.,,,,.,...,.,.,,.,,..,,,..,,..,,..,..,,,.,,..,,...,..,,,..,.,,,..,,,,,,.,.,
-#FTBUQ2DWPCKVREMJMOTGQG4S7CQX6XQMTIM6GHVRS25CLIZCV5U6M6N3T24ZKMEP4NRVVN7YDOSZ6
-#\\\|DBNML7YPCIRAUPDJHM2SZTJORQWGZOEXV3EVGFJRLS35PZVLN3Z \ / AMOS7 \ YOURUM ::
-#\[7]5IMNBBFJXO24KPFPDXPDD6UNJ2AZC5TZZYBVOXWLB66IWLYHDKDY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,,,.,...,,.,,,,,,.,.,,,,,,.,,..,,...,...,...,...,,..,,,,,,.,,
+#W7C4IQDAFKYELDXXJ2WXPB6N2PDHRUIHCNVVPI6CAG3PNREL56MHY4TBQIKBCWFMZUMAZMVAEXMP2
+#\\\|ZLMORM3EAX3CO3WWYMIXQ3QUCDTKXIFV34QFPL4NQP445GNJ6LW \ / AMOS7 \ YOURUM ::
+#\[7]AIBWFIYGIKAPUWRKQIBVT3P4DEZK3TSW2UOP4VTVSJ22RLQXE4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

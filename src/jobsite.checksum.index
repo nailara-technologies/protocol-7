@@ -138,19 +138,19 @@ if ( $action eq 'blacklist_company' ) {
 if ( $action eq 'stats' ) {
     my $co_count = 0;
     if ( opendir my $dh, "$store_root/companies/blacklisted" ) {
-        $co_count = scalar grep { !/^\./ } readdir $dh;
+        $co_count = scalar grep { !m|^\.| } readdir $dh;
         closedir $dh;
     }
     my $ti_count = 0;
     if ( opendir my $dh, "$store_root/titles" ) {
-        $ti_count = scalar grep { !/^\./ } readdir $dh;
+        $ti_count = scalar grep { !m|^\.| } readdir $dh;
         closedir $dh;
     }
     my $url_count = 0;
     if ( opendir my $dh, "$store_root/urls" ) {
-        for my $ep ( grep { !/^\./ } readdir $dh ) {
+        for my $ep ( grep { !m|^\.| } readdir $dh ) {
             opendir( my $edh, "$store_root/urls/$ep" ) or next;
-            $url_count += scalar( grep { !/^\./ } readdir $edh );
+            $url_count += scalar( grep { !m|^\.| } readdir $edh );
         }
     }
     return {
@@ -166,8 +166,8 @@ if ( $action eq 'prune' ) {
     my $removed           = 0;
     my $url_root          = "$store_root/urls";
     if ( opendir my $dh, $url_root ) {
-        for my $ep_dir ( grep { !/^\./ } readdir $dh ) {
-            next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        for my $ep_dir ( grep { !m|^\.| } readdir $dh ) {
+            next unless $ep_dir =~ m|^V7[A-Z2-7]{5}$|i;
             ## decode epoch dir name to integer for comparison ##
             my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
             next unless defined $ep_num and $ep_num =~ m{^\d+$};
@@ -190,8 +190,8 @@ if ( $action eq 'persist' ) { return TRUE; }
 
 return { 'mode' => 'false', 'data' => "unknown action: $action" };
 
-#,,..,,..,...,..,,,..,,..,...,,..,,.,,.,,,...,..,,...,..,,,,,,...,,,.,,,,,,,,,
-#IRSTHD7UDLKHSBUIOVKEVGRDP4VWAB6SOY6JV4PQ746NP3HZJAZK23DNQLFNAEFOSSQXQ2BWJNMGA
-#\\\|LZCM5ZP4ZWFHXZSMGHCLHYKIZAJMWNEMRJBSJUVQXYWX2T4WFQC \ / AMOS7 \ YOURUM ::
-#\[7]NLBTTH6U4QAHS3BL3QBL6UXPCKKVXNZRMTXMDOQFY2YIIYSWMADA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,,,,...,,.,,,..,...,,,.,..,,..,,...,...,,..,..,,..,,...,...,
+#2Z2IN2UHB672LAMILTDQ2WLITTDYTLCLEVNZE26RJBAXC5ULATFZUUKPZVCOKO4WKM6I76FUUD3YE
+#\\\|CJ6RLE7BSL3GGKCLSBRXZUR46IHE4PYP3P62VENF4TR2OYAIN75 \ / AMOS7 \ YOURUM ::
+#\[7]ZDYFYBCT7IO5WVPJIJJ5NOZQEG7NB5PTJZESWQ4TY2EUFP7V32AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

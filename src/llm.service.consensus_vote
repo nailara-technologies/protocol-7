@@ -54,7 +54,7 @@ my $query_single_model = sub {
     if ( !$llm_result->{success} ) {
 
         # Fallback: check if llama-cli is installed
-        if ( $llm_result->{error} =~ /not found/ ) {
+        if ( $llm_result->{error} =~ m|not found| ) {
             return {
                 success => FALSE,
                 error   => "llama-cli not available. Install ik_llama.cpp: "
@@ -303,8 +303,8 @@ if ( $cmd eq 'vote' ) {
     };
 }
 
-#,,,,,,..,,,,,,.,,,,,,,,,,..,,.,,,.,,,.,,,,,.,..,,...,...,,..,,,.,,..,,..,,,,,
-#SNCS7UA6LKDJ5GTT7PH4LVRP7KTWFNA4ON7FTRDZGWSI2SFN7AWBMHO5TUB2WDOFZM75NS427MMHC
-#\\\|Q2IPA74S6ZIS2IYPBV2ALIB6Z6AB6RCWQNWSOTH6Y6Z6XKHNJAX \ / AMOS7 \ YOURUM ::
-#\[7]Y36JYPHF6YCWHOLKMATIXZEEYBPIELMUA2COGTZ2SEIHALSBHKAI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,..,,,,,,,,,,...,,.,,,,.,.,,,..,,...,...,...,...,,..,..,,,..,
+#DK2OA3DVN45J3LABEKZOAC55SF6JGGVQ4Q5HQIZK3XNUR6YXUGLXWHVNTDAW7PTOI5QAU3LYESBE2
+#\\\|BSP6VS2QEQ3MMU6KBZNOV45CYFFXVSN6UPFBD36ZQA2ESEAP74B \ / AMOS7 \ YOURUM ::
+#\[7]7DVLBCWKDRKJFLZ3IJQMZNNVRVZ4FZZWIRNAY73UOWGN2KQQWYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

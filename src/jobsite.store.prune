@@ -15,11 +15,11 @@ my ( $trash_moved, $blocked_moved, $deleted_pruned ) = ( 0, 0, 0 );
 my $trash_root = "$jobs_root/trash";
 if ( -d $trash_root ) {
     opendir my $dh, $trash_root or goto PHASE1;
-    my @epoch_dirs = grep { !/^\./ && -d "$trash_root/$_" } readdir($dh);
+    my @epoch_dirs = grep { !m|^\.| && -d "$trash_root/$_" } readdir($dh);
     closedir $dh;
 
     for my $ep_dir (@epoch_dirs) {
-        next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        next unless $ep_dir =~ m|^V7[A-Z2-7]{5}$|i;
         my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
         next unless defined $ep_num and $ep_num =~ m{^\d+$};
         my $distance = $current_epoch - $ep_num;
@@ -34,7 +34,7 @@ if ( -d $trash_root ) {
         }
 
         opendir my $edh, $src_dir or next;
-        my @stubs = grep { /\.yxz\.B32$/ && !/^\./ } readdir($edh);
+        my @stubs = grep { m|\.yxz\.B32$| && !m|^\.| } readdir($edh);
         closedir $edh;
 
         for my $stub_fn (@stubs) {
@@ -67,7 +67,7 @@ if ( -d $trash_root ) {
             next unless ref $job eq 'HASH';
 
             my $enc_id = $stub_fn;
-            $enc_id =~ s/\.yxz\.B32$//;
+            $enc_id =~ s|\.yxz\.B32$||;
             my $job_id = <[base.vax-int.decode]>->($enc_id);
 
             $job->{'status'} = 'deleted';
@@ -106,11 +106,11 @@ PHASE1:
 my $blocked_root = "$jobs_root/blocked";
 if ( -d $blocked_root ) {
     opendir my $dh, $blocked_root or goto PHASE2;
-    my @epoch_dirs = grep { !/^\./ && -d "$blocked_root/$_" } readdir($dh);
+    my @epoch_dirs = grep { !m|^\.| && -d "$blocked_root/$_" } readdir($dh);
     closedir $dh;
 
     for my $ep_dir (@epoch_dirs) {
-        next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        next unless $ep_dir =~ m|^V7[A-Z2-7]{5}$|i;
         my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
         next unless defined $ep_num and $ep_num =~ m{^\d+$};
         my $distance = $current_epoch - $ep_num;
@@ -125,7 +125,7 @@ if ( -d $blocked_root ) {
         }
 
         opendir my $edh, $src_dir or next;
-        my @stubs = grep { /\.yaml$/ && !/^\./ } readdir($edh);
+        my @stubs = grep { m|\.yaml$| && !m|^\.| } readdir($edh);
         closedir $edh;
 
         for my $stub_fn (@stubs) {
@@ -142,7 +142,7 @@ if ( -d $blocked_root ) {
                 my $t_sum   = $1;
                 my $t_found = 0;
                 if ( opendir my $tdh, "$store_root/titles" ) {
-                    for my $st ( grep { !/^\./ } readdir($tdh) ) {
+                    for my $st ( grep { !m|^\.| } readdir($tdh) ) {
                         if ( -e "$store_root/titles/$st/$t_sum" ) {
                             $t_found = 1;
                             last;
@@ -194,11 +194,11 @@ PHASE2:
 my $deleted_root = "$jobs_root/deleted";
 if ( -d $deleted_root ) {
     opendir my $dh, $deleted_root or goto DONE;
-    my @epoch_dirs = grep { !/^\./ && -d "$deleted_root/$_" } readdir($dh);
+    my @epoch_dirs = grep { !m|^\.| && -d "$deleted_root/$_" } readdir($dh);
     closedir $dh;
 
     for my $ep_dir (@epoch_dirs) {
-        next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        next unless $ep_dir =~ m|^V7[A-Z2-7]{5}$|i;
         my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
         next unless defined $ep_num and $ep_num =~ m{^\d+$};
         my $distance = $current_epoch - $ep_num;
@@ -206,10 +206,10 @@ if ( -d $deleted_root ) {
 
         my $dir = "$deleted_root/$ep_dir";
         opendir my $edh, $dir or next;
-        for my $fn ( grep { !/^\./ } readdir($edh) ) {
+        for my $fn ( grep { !m|^\.| } readdir($edh) ) {
             my $full   = "$dir/$fn";
             my $enc_id = $fn;
-            $enc_id =~ s/\.(yaml|yxz\.B32)$//;
+            $enc_id =~ s{\.(yaml|yxz\.B32)$}{};
             my $job_id = <[base.vax-int.decode]>->($enc_id);
             unlink $full;
             delete <jobsite.job.index>->{$job_id}
@@ -235,8 +235,8 @@ return {
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,,,,.,,,...,.,.,..,,,,,,...,...,,..,,.,,..,,..,,...,.,.,.,.,,..,...,,.,,,,,,
-#O3O6MIA4SN6Q4SM64Q5ZYSNSNOX3L4CTHRTDTXGTTE67WLTO26BLHPBBGCLQGWH4LXA5TT2R44QSE
-#\\\|LZ66MP7VWBKJ7JZ3YJ7K6DDPMA4T6ZGT6AEP7Z5K5ORHJM7WFGH \ / AMOS7 \ YOURUM ::
-#\[7]6PAJLGPDNMNZ66656PEY24GGJDU37N5QTWP2RBDQOLET46ZIMIBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,..,,,,,..,,..,,,,,,..,,...,,,.,..,,...,...,...,,,.,,,,,,,,,,..,
+#SVNVE6FTCUZ4Z6QP2CLG2MJWYUBAZM2M3HUJUVCIFUNUWU2OY3ZRVJGVXMZ4VAETR6ATWSVL2QSRA
+#\\\|ILQZPDVPHTG7T727G3UGRUKP5JE2OMYRSYPGZSCOM4JJ3SXBOGN \ / AMOS7 \ YOURUM ::
+#\[7]7M27JPDSQWRTDOATVMV2G32WIZQ7CDABXXNID4CM2FN35ANN66DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

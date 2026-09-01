@@ -36,17 +36,17 @@ chomp $branch if defined $branch;
 $branch //= '(unknown)';
 
 my $git_status     = `git status --short 2>/dev/null`;
-my @modified_files = $git_status ? split( /\n/, $git_status ) : ();
+my @modified_files = $git_status ? split( m|\n|, $git_status ) : ();
 
 my $git_log        = `git log --oneline -5 2>/dev/null`;
-my @recent_commits = $git_log ? split( /\n/, $git_log ) : ();
+my @recent_commits = $git_log ? split( m|\n|, $git_log ) : ();
 
 my $remotes_output = `git remote -v 2>/dev/null`;
 my @remotes        = ();
 if ($remotes_output) {
     my %seen;
-    foreach my $line ( split /\n/, $remotes_output ) {
-        if ( $line =~ /^(\S+)\s+/ ) {
+    foreach my $line ( split m|\n|, $remotes_output ) {
+        if ( $line =~ m|^(\S+)\s+| ) {
             push @remotes, $1 unless $seen{$1}++;
         }
     }
@@ -79,7 +79,7 @@ say "${blacklight}│$reset";
 
 if (@recent_commits) {
     foreach my $commit (@recent_commits) {
-        my ( $hash, $msg ) = $commit =~ /^(\S+)\s+(.*)$/;
+        my ( $hash, $msg ) = $commit =~ m|^(\S+)\s+(.*)$|;
         say "${blacklight}│$reset  ${dim_blue}$hash$reset $msg";
     }
 } else {
@@ -159,15 +159,15 @@ if (@modified_files) {
     foreach my $file (@modified_files) {
         last if $shown >= 10;    ## limit to 10 files
         $file =~ s|^\s+||;
-        my ( $status, $path ) = $file =~ /^(\S+)\s+(.+)$/;
+        my ( $status, $path ) = $file =~ m|^(\S+)\s+(.+)$|;
         $status //= '??';
         $path   //= $file;
 
         my $status_color
-            = $status =~ /^M/ ? $neon_orange
-            : $status =~ /^A/ ? $neon_green
-            : $status =~ /^D/ ? $neon_red
-            :                   $dim_blue;
+            = $status =~ m|^M| ? $neon_orange
+            : $status =~ m|^A| ? $neon_green
+            : $status =~ m|^D| ? $neon_red
+            :                    $dim_blue;
 
         say "${blacklight}│$reset  ${status_color}$status$reset $path";
         $shown++;
@@ -211,7 +211,7 @@ foreach my $sugg (@$suggestions) {
     ## Colorize command patterns ##
     $text =~ s|(workflow\s+[\w-]+)|§ORANGE§$1§RESET§|g;
     $text =~ s|(git\s+\w+)|§ORANGE§$1§RESET§|g;
-    $text =~ s/(edit\s+[\w\/\.\*-]+)/§ORANGE§$1§RESET§/g;
+    $text =~ s|(edit\s+[\w/\.\*-]+)|§ORANGE§$1§RESET§|g;
     $text =~ s|(cpanm\s+[\w:]+)|§ORANGE§$1§RESET§|g;
 
     ## Replace color placeholders ##
@@ -231,7 +231,7 @@ foreach my $sugg (@$suggestions) {
 if (@formatted_suggestions) {
     my $idx = 1;
     foreach my $suggestion (@formatted_suggestions) {
-        if ( $suggestion =~ /^\d+\./ ) {
+        if ( $suggestion =~ m|^\d+\.| ) {
             ## Already has priority prefix ##
             say "  $suggestion";
         } else {
@@ -257,8 +257,8 @@ say '';
 
 return FALSE;
 
-#,,,,,,,.,.,.,,,,,..,,,,,,..,,,,.,.,.,.,,,.,.,..,,...,...,...,.,,,,,.,,.,,,.,,
-#37X4MS3GJSDC3CFBJD2GRHW36GZMJE533MEKKL422LEW4YU4VCUTQHEV7IAVA4BLIU3CL667DZ62M
-#\\\|PBNSXKQKXJF53AMNZLYRQ2FYKGCBUE665OA5PRFEOOACROQLJ4M \ / AMOS7 \ YOURUM ::
-#\[7]4IATG5SW36VGQHOAU56TEDOLE3VZHMLZTDC2S7QCG6SFTORGGEAI 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,,,.,.,.,,,,,,,,,.,.,.,,,.,,,..,,...,..,,.,,,,,,,,,.,,.,,...,
+#7CTJVI6I5GU2N5EKRSZLQ4BAPP4H4WDVGGVEIPPXL5WXTWHGTNPEJOW6SHQXQOEAIOBRKXJ2HYMPG
+#\\\|DY7AWPFE7DN4UKEPLHCMKF7XJWMKABCNHL7ZWZHIY5MLJIUBV55 \ / AMOS7 \ YOURUM ::
+#\[7]MGIZLSJZ5W7M75KGOS3QW6E47XB2WGZEEFPRRMK5YXL7K7GIJKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

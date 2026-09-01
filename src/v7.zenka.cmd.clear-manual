@@ -26,10 +26,10 @@ if ( !length($clear_zenki) ) {
                 "no 'manually stopped' status exits for '$ARG', aborted!"
             }
             if not exists <v7.zenka.manually_stopped>->{$ARG}
-    } split / +/, $clear_zenki;
+    } split m| +|, $clear_zenki;
 
     map { $cleared_count++ if delete <v7.zenka.manually_stopped>->{$ARG} }
-        split / +/, $clear_zenki;
+        split m| +|, $clear_zenki;
 }
 
 my $s = $cleared_count > 1 ? qw| i | : qw| a |;
@@ -39,8 +39,8 @@ return {
     'data' => "'manually stopped' status cleared ( $cleared_count zenk$s )"
     }
 
-#,,,,,.,.,..,,,,.,,..,...,,.,,..,,,.,,,,.,...,..,,...,...,...,.,.,.,.,..,,,.,,
-#HNKMKAF3LJ7UH5NRSXCZ36TJETUQDLY6CQ6Q6TOD7H5K7NXCOQDXWQY3UCK2SUYAQJL3LUFKWDHPO
-#\\\|HLPOWDS7L4VC4EDTUTXZMAUHZ7FUZYR3KVCXFU4BCB7PNW4A3LW \ / AMOS7 \ YOURUM ::
-#\[7]AFWVKRDQOT2HJ5J6MKDJYLEXWG3Q6WTNRWTTCV7S4SIVHWVGNMAQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,,,.,.,,.,,,,.,.,,,.,.,..,,...,..,,...,...,...,.,,,.,,,.,.,.,,,
+#VZVQP65S64ZAMJZYRODJ7HLVFNY44E2HQR2NAJ4YIDRA5OJ26GL4TLVHPRMB7OC42T5RVGQHUBRGW
+#\\\|24GKAIW2HMR3GWJR5Y4G7FZCRQNIQMB6VLNPBEPXJJI2J44VQ4U \ / AMOS7 \ YOURUM ::
+#\[7]SLAKE6ICNIB7QALMDNGH77A6S3T73ZLOUGKJZJROYVXBHHCORKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

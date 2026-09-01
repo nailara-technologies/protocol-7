@@ -29,7 +29,7 @@ my $meta_count = scalar keys %$metadata;
 return FALSE unless $meta_count;
 
 my $search_term = lc($model_name);
-$search_term =~ s/[-_\s]+//g;    ## Normalize
+$search_term =~ s|[-_\s]+||g;    ## Normalize
 
 foreach my $cache_name ( keys %$metadata ) {
     my $entry = $metadata->{$cache_name};
@@ -61,9 +61,9 @@ foreach my $cache_name ( keys %$metadata ) {
 
     ## Partial normalized match ##
     my $cache_norm = lc($cache_name);
-    $cache_norm =~ s/[-_\s]+//g;
+    $cache_norm =~ s|[-_\s]+||g;
     my $amos_norm = lc($entry_amos);
-    $amos_norm =~ s/[-_\s]+//g;
+    $amos_norm =~ s|[-_\s]+||g;
 
     if (   index( $cache_norm, $search_term ) >= 0
         || index( $search_term, $cache_norm ) >= 0
@@ -81,8 +81,8 @@ foreach my $cache_name ( keys %$metadata ) {
 );
 return FALSE;
 
-#,,.,,,..,.,.,..,,,,,,,,.,,,.,...,,..,.,,,...,.,.,...,...,,.,,,.,,,.,,.,.,,,,,
-#KQ3O2X6VQKVWQJR6MW3GZCQ6CKLTN3QKJS4XZ7SUOCLQJ743KWKLWYA554GV3RD2UHEPD25GLG2DO
-#\\\|JFZ4KGFFXF5SI3PP7LZZZKYUAIXIZJFFFAXC75SYNLYEXMWG4QV \ / AMOS7 \ YOURUM ::
-#\[7]JGFNV45XOV7PSKSQZFTSVFFY2J5PYUGBQZRT47BF7NVJJDDWNYCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,,.,,,..,,,,,..,,...,,.,,,.,,.,.,...,...,,.,,.,.,..,,.,,,..,,
+#EDZIULR56OGFW7TFLMQGKQEJKHYIHC4RVS36N35ADTABVLDUQMXI4V3RF5MA7WVDRDZ2M3V2RN2XK
+#\\\|ZMKBTUNMZG22DFHSZL4ESUQKBYITNRPTDVCYPHXPHG44STD5FEH \ / AMOS7 \ YOURUM ::
+#\[7]UGAJWD2PYF2LGLEVB775Y5OFREWDT7JC3B5XOL6ZJLIZCDPS7MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

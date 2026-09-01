@@ -9,7 +9,7 @@ if (    defined $logo_url
     and -d <osd-logo.default_dir> ) {
     my $default_dir = <osd-logo.default_dir>;
     $logo_url = join( '/', $default_dir, $logo_url )
-        if $logo_url !~ /^\// and -f $default_dir . '/' . $logo_url;
+        if $logo_url !~ m|^/| and -f $default_dir . '/' . $logo_url;
 }
 
 <[base.log]>->( 1, "<downloading> $logo_url ..," ) if !-f $logo_url;
@@ -21,8 +21,8 @@ if (    defined $logo_url
     }
 );
 
-#,,.,,.,.,..,,.,,,..,,...,...,..,,...,,,,,...,..,,...,...,...,,.,,,..,,,,,,..,
-#LSYAQ6GMV624OGBWKZ7RRPQJUXT7SZKH6UFGQ7DGCRIAGCZ56L43HIG35DGCHLNJM5OTCVLK77UTE
-#\\\|DHAVPIFWYTO56KNYFJRO7XA4GDKYL5PV6LMUU2CGVWB3EMNL5ID \ / AMOS7 \ YOURUM ::
-#\[7]2ECTR4N6GPTRVHRBV76LMURHVAHK6RSD2JLPOQ4HSWHLCTYXIEDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,.,,,.,,,,.,,...,,.,,,,.,,..,..,,...,...,.,,,.,.,.,,,.,.,,,,,
+#2JW5IK3BS434LTAOKNGTYR4BK2TWLPZUYBQHYA2SWOC32E5NTRSPEGDVU2JYQXBNHTUZVHOB5C6QQ
+#\\\|P4ZTZWS2V6LHR24IT654HYDWNAIAIGBAVANBLQCDAZ47K6FER37 \ / AMOS7 \ YOURUM ::
+#\[7]BJLBTUHISVUWTDP4HXR4S7MMJW34O5K3ITJB4TW7LUG6FYYRG2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

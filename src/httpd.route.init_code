@@ -29,7 +29,7 @@ while ( my $line = <$fh> ) {
     $line =~ s|^\s+||;
     next if !length($line) or $line =~ m|^#|;
 
-    my ( $method, $path, $sub_name, $arg_str ) = split /\s+/, $line, 4;
+    my ( $method, $path, $sub_name, $arg_str ) = split m|\s+|, $line, 4;
     next unless defined $method and defined $path and defined $sub_name;
 
     $method = uc $method;
@@ -42,14 +42,14 @@ while ( my $line = <$fh> ) {
         my $inner = $arg_str;
         $inner =~ s|^\[||;
         $inner =~ s|\]$||;
-        my @pairs = split /,/, $inner;
+        my @pairs = split m|,|, $inner;
         my $first = shift @pairs;
         if ( defined $first and length $first ) {
-            my ( $key, $val ) = split /:/, $first, 2;
+            my ( $key, $val ) = split m|:|, $first, 2;
             $handler_args->{$key} = $val if defined $key and defined $val;
         }
         for my $pair (@pairs) {
-            my ( $key, $val ) = split /=/, $pair, 2;
+            my ( $key, $val ) = split m|=|, $pair, 2;
             next unless defined $key and defined $val and length $key;
             $handler_args->{$key} = $val;
         }
@@ -77,8 +77,8 @@ close $fh;
 
 0;
 
-#,,.,,,,.,...,,..,,.,,,,.,.,,,,,.,...,,,,,.,.,..,,...,...,.,.,,,,,...,..,,.,.,
-#XCWGKNQ6SD2CEEGDSNYN3PD2APJUTTTW4CGMUPXF4N3R2VICMBUA3V45D54WZC3RIQHVLGXZQRTS2
-#\\\|EFMSIT75PYXIFQZ3X3B77UAY25GZYJ2WVV2DOT2DNINNY7FWRUL \ / AMOS7 \ YOURUM ::
-#\[7]ENQM7UXTUXVXFZQKEDXFBN67FMJM4D5UBAUWBBVMDWYKMUKZDIDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,.,,,,..,...,,.,,.,.,,,,,,..,..,,...,..,,,.,,.,,,..,,,,.,,.,,
+#IUSCE76LPUNL66TJ5LYYLJOU6IO2ZWADZWIDYSVNVGNSO647ZY72EHVV4QR2N46XOMOHZHOZPG5ZK
+#\\\|GEEHPU3UCHLM3DKXMKS5PT2EL5KX3VYGMMMEGBISMSEK2DJFZNY \ / AMOS7 \ YOURUM ::
+#\[7]AXZT5KASOWYU42FIRPHFBBT5VUGNQUS65UFPDKDLWULQ7HKGEWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

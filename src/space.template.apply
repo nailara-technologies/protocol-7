@@ -18,7 +18,7 @@ my $params = $call_params->{'params'} // {};
 return { 'mode' => qw| false |, 'data' => 'params required' }
     unless ref $params eq qw| HASH |;
 
-my @fields = split /:/, $template->{'chain_format'};
+my @fields = split m|:|, $template->{'chain_format'};
 my @values;
 for my $field (@fields) {
     push @values, $params->{$field} // '';
@@ -36,8 +36,8 @@ return {
     'chain_string' => $chain_string,
 };
 
-#,,.,,,.,,,,,,,,.,,,.,,..,,..,,.,,.,,,,,,,,..,.,.,...,...,...,...,,,.,.,,,.,,,
-#VOZNXWH7DURT7A5M7J4W3BXMBML64DZ6X4HLMWDOWWHDKYHB2JS6ZZGAGCF2ODRRKUPYXTW2XOP22
-#\\\|MQ4ISNFDGT36PSLEJLFCN7PP62IQSTL3FRZSAZJLWLL5TLYNWYT \ / AMOS7 \ YOURUM ::
-#\[7]WHEGBQFMOZBCQYGPDCIPF7SBI2CTJ3XROYEI6U6UTDCMA3SFREDQ 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,,..,..,,...,...,..,,,,.,,..,.,.,...,...,,,.,,,.,,..,...,..,,
+#IB77COJGW22WMN4GLQSWDRWBFZF3FZ7DINTCU55LU32KPDO2HSZDFUWRNVSAK5VBHOGGH76N5544M
+#\\\|ZKDT5QPTHNDCRLX3TQWUIFPIH6WNI7YXC4BCCER3NWWKA7R6IRP \ / AMOS7 \ YOURUM ::
+#\[7]JACVMRS5FRH3TAMEXVU6IXMYEZSUFNM3LDFVCZBJRMXPMHL3T4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

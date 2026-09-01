@@ -8,12 +8,12 @@ my $args_str = $call->{'args'} // '';
 ## parse args: name=<name> [type=<type>]
 ## or positional: <name> [type]
 my %args;
-if ( $args_str =~ /=/ ) {
-    while ( $args_str =~ /(\w+)=(\S+)/g ) {
+if ( $args_str =~ m|=| ) {
+    while ( $args_str =~ m|(\w+)=(\S+)|g ) {
         $args{$1} = $2;
     }
 } else {
-    my @parts = split /\s+/, $args_str;
+    my @parts = split m|\s+|, $args_str;
     $args{'name'} = $parts[0] if @parts;
     $args{'type'} = $parts[1] if @parts > 1;
 }
@@ -49,8 +49,8 @@ if ( not @matches ) {
 my $data_str = "records found:\n  " . join( "\n  ", @matches );
 return { mode => 'size', data => $data_str };
 
-#,,,,,.,,,.,,,,.,,.,.,..,,,..,,.,,.,,,.,,,...,..,,...,...,.,,,...,.,,,.,.,,,.,
-#K2ZVGO4ZZPAEAFFHCRO3OO6EZ3BVKN4GJO4SL624WDK5NA6B4FQHLWQYASBLZEDWKNGWU4WNUZFRO
-#\\\|LG63WKI5HPOH3FBB6B2MAGDBOGB4FE4IQADT6MW6KC4FI3BDQKB \ / AMOS7 \ YOURUM ::
-#\[7]ZOPKBW4MLCIXV7HBKLL7DK2W6PJUFDSMD56HFDUIEB64ZS26YIBI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,.,,,.,,,..,.,,,,,.,,.,,,.,,,.,,..,,...,...,.,,,...,,..,,..,.,,,
+#NWLZKWJD6GWM3CQRHQCGSM7TRNJTUSSVSNYFV6HOK7KGMZVJHBV37FPB6WY5PBCPWL2HGZ4AF2K5Y
+#\\\|7GAHL7ZCJYC5UKJY3ELYYKV3AU7ZINPQGSYVWEXTS3VWDFG4E2M \ / AMOS7 \ YOURUM ::
+#\[7]N6GPSSAIIFMLKRZYNPPBLQICVD5CCFVEXYRHPWQTPHDWM52CHUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

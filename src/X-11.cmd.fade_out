@@ -5,15 +5,15 @@
 # descr = fade out specified window(s) and reply
 
 my $X = <X-11.obj>;
-my ( $duration, @window_ids ) = split( / +/, $call->{'args'} );
+my ( $duration, @window_ids ) = split( m| +|, $call->{'args'} );
 
-( $duration, my $fade_limit ) = split( /:/, $duration );
+( $duration, my $fade_limit ) = split( m|:|, $duration );
 
 return {
     'mode' => qw| false |,
     'data' => 'fade out duration in seconds expected'
     }
-    if not defined $duration or $duration !~ /^\d+(\.\d+)?$/;
+    if not defined $duration or $duration !~ m|^\d+(\.\d+)?$|;
 return { 'mode' => qw| false |, 'data' => 'window <id(s)> required' }
     if !@window_ids;
 map {
@@ -21,7 +21,7 @@ map {
         'mode' => qw| false |,
         'data' => 'invalid window id syntax [ not numerical ]'
         }
-        if $ARG !~ /^\d+$/
+        if $ARG !~ m|^\d+$|
 } @window_ids;
 
 my $reply_id     = $call->{'reply_id'};
@@ -68,8 +68,8 @@ my $fade_interval = sprintf( '%.4f', 1 / $fade_fps );
 
 return { 'mode' => 'deferred' };
 
-#,,,,,...,..,,...,,..,...,.,,,,,.,.,.,...,,..,..,,...,...,...,.,,,..,,,,.,,,.,
-#7KBKNMXDICNWZM7NM7N73CZJFGWBEGYVYOCQSQ7XZGVGHRMXHPO5IILQCBGIH33YIRM4H2OBPXKKY
-#\\\|XDYLMTX5YBIEO3N6USDKAUDGL7COXZUK2XBQITCWAT3UA2XGSMK \ / AMOS7 \ YOURUM ::
-#\[7]6CPV4ET2COOEXA7AHCFTSCVMIRP3V3O5U36O35IJZINK2ASWS2CQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,,,.,,,.,,..,..,,..,,,,.,,,.,..,,...,...,...,.,,,.,.,.,,,.,.,
+#GSQJQSKXBWUJAJO6SEQ73ZXNA4VHAUJLSJL4NZE7JKPSLOZETPEENVAAIE3QAMJ5RFOTGIBKN55DM
+#\\\|7IJEIEUF6OQSCID52XCOQ47DFMK5NOSMY6TUXML3GU7AFVWC5WW \ / AMOS7 \ YOURUM ::
+#\[7]WC5KLVU3AI55VWTPTDXHYNYUB54BLOTY26T7BNAPEEXH3H4G4WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

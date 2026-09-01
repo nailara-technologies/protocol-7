@@ -4,9 +4,9 @@
 # descr = group jobs by bmw384 color proximity on a dimension
 
 my $args = $call->{'args'} // '';
-$args =~ s/^\s+|\s+$//g;
+$args =~ s{^\s+|\s+$}{}g;
 
-my ( $dimension, $job_id_in, $radius ) = split /\s+/, $args, 3;
+my ( $dimension, $job_id_in, $radius ) = split m|\s+|, $args, 3;
 my $job_id = <[base.vax-int.decode]>->( $job_id_in // '' );
 
 my @valid_dims = qw|
@@ -33,7 +33,7 @@ if ( not length( $job_id // '' ) ) {
 }
 
 $radius //= 500000;
-if ( $radius !~ m/^\d+$/ ) {
+if ( $radius !~ m|^\d+$| ) {
     return {
         'mode' => 'false',
         'data' => 'radius must be a positive integer'
@@ -71,8 +71,8 @@ for my $rec ( @{$group} ) {
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,.,,.,.,.,,,.,.,,.,,.,.,.,.,,,.,.,.,,,.,,,.,..,,...,...,..,,,,,,.,.,...,,,.,
-#7476Y4DPKUKSAVC2ALTXHTQDSYQIZXTEO7HYL46OTS6D37345EULBY3QQHNLOHTILRY654Q2TVSG2
-#\\\|6RGIH7IZ2FIVPOEMVVWKO4H4DVPGK5EHFO3HXVIOGOQA2MXDYPV \ / AMOS7 \ YOURUM ::
-#\[7]EZULK7RTUHGA557ZBBJJWIMSPA3GPMFIB3OPFIF6DE7VSUAZDQCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,.,,,..,..,,,..,.,.,.,.,...,..,,...,...,..,,.,.,,,.,,,.,,,,,
+#MWNSYFYXDTSI5IUNQVXXNW3RDATHVK3HO6VLVUWPQ33EGPKJCOVY6XZUKAGA34GXH4AFICHRNP23C
+#\\\|DXXVDP4IINXLZ2TF7KAPTCOFODRVRYKMX2MTGMJDMOC62H5C5JR \ / AMOS7 \ YOURUM ::
+#\[7]HOF5P3EOVAXZSNRMNH64YF63QS2ZC2DAEQLRJFGNV3ZZTFEUCIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

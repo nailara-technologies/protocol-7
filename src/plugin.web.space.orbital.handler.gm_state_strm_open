@@ -39,7 +39,7 @@ my $cache = <web.space.orbital.cache>;
             my $data = $lc->{'buf'};
             $lc->{'buf'} = '';
 
-            for my $line ( split /\n/, $data ) {
+            for my $line ( split m|\n|, $data ) {
                 next if not length $line;
                 my $decoded = eval { JSON::XS::decode_json($line) };
                 next if ref $decoded ne qw| HASH |;
@@ -56,8 +56,8 @@ my $cache = <web.space.orbital.cache>;
 
 return;
 
-#,,.,,.,.,.,,,,,.,..,,,.,,...,.,.,,.,,,.,,...,..,,...,.,.,,,.,,..,.,,,,,.,,.,,
-#7WQAEN3VTLPDJWNHBZZHHFMW4D2MICYA5H445J27UDJ62NCV7UOIIKLNVWNOLNOYDZAYS67OMFJFK
-#\\\|YR4COVAKS4M5AU6ZIC7UFEZ4WYCJDM3RJOFKHOHTXJETORXQKN4 \ / AMOS7 \ YOURUM ::
-#\[7]E4XYCY553E4CYKBJ6XCDCEZSGQDG6EG3WREQSMN3GC6G7TWWDSBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,.,...,...,..,,,,.,...,...,,,,,..,,...,...,...,,.,,..,,.,,,,..,
+#XIZQYD3PPKFOVB6AD4YXDUSF5MTVIDMFJRMPCUW67ZDPQCLBPAW47W2MP5SATXSOMI7QLD2KQAGLM
+#\\\|LEQUNPJSZ4SF44X2UCDPAT7567JLDYILV747PLYMBBKEZXTLCCO \ / AMOS7 \ YOURUM ::
+#\[7]3LIP6A7AYHELDRHJB2ALXJQX7MUA5MRZ7ZUL63IBF2LH5V466WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ my $args = $call->{'args'} // {};
 if ( not ref $args ) {
     my $args_str = $args;
     $args = {};
-    for my $token ( split /\s+/, $args_str ) {
+    for my $token ( split m|\s+|, $args_str ) {
         $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
     }
 }
@@ -54,8 +54,8 @@ return {
     }
 };
 
-#,,.,,,,.,...,,,,,...,.,.,.,.,.,.,.,.,..,,.,,,.,.,...,...,..,,,,,,.,,,,,.,,.,,
-#R5RCGYQSLPE5NUOHOKITS2UIOLFKBHIUESQOQT457UOGP47BTCPZORD7MR34EJCFYLCFH47GDLZWS
-#\\\|2EGDPHMPZNWT4NF2MY77ETAQRCOUXOA5NWYIWUCO7RFCS7Q3NUT \ / AMOS7 \ YOURUM ::
-#\[7]4ZRKRYKXYXOKRFJL3RQGWFE6PZ3VGJVLHY6ZSNJZR2W2Z6SLSSAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,,,.,,,...,,,.,.,.,.,,,..,,...,.,.,...,...,.,.,.,,,...,,,,,,,,,
+#G35SSC5TQOHTXVO53XAYWP4YULHF6IYGXVOXE6GL4LPRRJJW5ZXQAWGSTEVKO7FRFB55EYOO2XYSE
+#\\\|SR22RSXHITGMKDS5TK63B65HWKHZ4PZ4VKTPRLKGQ37KPFUVD5U \ / AMOS7 \ YOURUM ::
+#\[7]JZKUM2LG5O44MBTLF2QQVHKBQYW5W7IZYLGH6BAHZM5SGUQIVWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

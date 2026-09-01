@@ -18,7 +18,7 @@ my $file_extension = <mpv.rescaled_extension>;
 
 foreach my $check_file (
     @{ <[file.all_files]>->( <mpv.rescale_path>, 'recursive' ) } ) {
-    next if $check_file !~ /\.last_seen$/;
+    next if $check_file !~ m|\.last_seen$|;
     ( my $video_file = $check_file ) =~ s|\.last_seen$|.$file_extension|;
     if ( !-f $video_file ) {
         <[base.log]>->(
@@ -30,7 +30,7 @@ foreach my $check_file (
     my $file_size = File::stat::stat($check_file)->size;
     next if $file_size < 11 or $file_size > 17;
     chomp( my $tstamp = ${ <[file.slurp]>->($check_file) } );
-    next if $tstamp !~ /^\d+$/;
+    next if $tstamp !~ m|^\d+$|;
     my $age_days = sprintf( '%.2f', ( ( time - $tstamp ) / 86400 ) );
     if ( $age_days >= $max_days ) {
 
@@ -54,8 +54,8 @@ foreach my $check_file (
 
 <[mpv.callback.check_parent_dirs]>->(<mpv.rescale_path>);
 
-#,,.,,,..,..,,,..,.,,,,.,,,..,.,,,.,.,.,,,..,,..,,...,..,,..,,.,,,,..,,..,,.,,
-#TECZKTVWKETGL7E5D2MYVKORWY4CQURYPVO7AGH6GIV4F4JNMAVSHRF6OQGHMLQA752B7NPMLXFBM
-#\\\|2NPTATIFB434DLLIIWXAIUS2IU2TGZFNN7NKXLPNGISTA4LPTLD \ / AMOS7 \ YOURUM ::
-#\[7]RQYYHU5FE5C6XTPA53A4UKUNKBZMPROKSL44TFZEO5UPGQ63ZQBY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,,,.,,,...,.,.,..,,,,,,.,.,.,,,..,,...,...,..,,,.,,...,,,,,.,.,
+#MVZ4FEJAMTNJA5AROGEZKGPINVPAWSDYOEFSRIHTHQPPZNQAPMIS4ELWQUONOJSDAFGXOJE2CQBXQ
+#\\\|ZUBIALNVQNVUKHYKS3EJWFREEGSXZFY3XYHK4TIZGW3PVSM3N5X \ / AMOS7 \ YOURUM ::
+#\[7]F3BA6VVQ7SM2XM6BEKG7O7GJ6ENYEEHNQI2YDA4XL2M6AAMZVKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

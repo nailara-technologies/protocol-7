@@ -17,7 +17,7 @@ my $content_ref = <[file.slurp]>->($file);
 return [ 0, 0, 'Cannot read: ' . $file ] unless defined $content_ref;
 
 ## count and remove trailing whitespace ##
-my @lines = split /\n/, $content_ref->$*, -1;
+my @lines = split m|\n|, $content_ref->$*, -1;
 
 my $trailing_count = 0;
 my $changed        = 0;
@@ -54,8 +54,8 @@ if ( $changed && !$check_only ) {
 
 return [ $trailing_count, $changed, '' ];
 
-#,,..,..,,,..,,..,..,,.,.,,..,.,,,.,,,.,.,,.,,.,.,...,...,,.,,.,.,,.,,,,,,...,
-#JGWO23LAFNNPR2BMZVNEEWADB4FGR5LZ4DAVYOYOBCAR5V4G5LBI3ASSJWUXZM7WPOYPQUJXFHW2K
-#\\\|RJVR7ZD2JFDW4DPLELGOYOJCKWXLUBMTGZO4GEWN44CTHKKY245 \ / AMOS7 \ YOURUM ::
-#\[7]QZCQOQJYUEYS6PE3XJNEVHGMHKUSAPS3H2Q22NTXPJRSAADD6UCA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,...,..,,...,,,.,...,,,,,...,.,.,...,.,,,,.,,...,.,.,...,..,,
+#ND6VXKSCW7D3UVVV7KQONRQ3D7MY3IUEWFN6GXSBJNOWFAALK3ER4PBYPNCNDQSFC5K57NYQBME5K
+#\\\|NCB22MKK4MJP5E5AUZXAGKXA4THAA5PFFUF4LDFWKIU5M34OKL4 \ / AMOS7 \ YOURUM ::
+#\[7]DICKJJLWUAZPYSYX4TUKUIGZVORLONKDZKN2BCNWODKR5Q452QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

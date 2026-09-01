@@ -64,7 +64,7 @@ for my $entry ( @{ $ctx->{'compiled'} // [] } ) {
     my $re = $entry->{'re'};
     next unless defined $re;
 
-    if ( $accumulated =~ /$re/ ) {
+    if ( $accumulated =~ m|$re| ) {
         my $matched = $& // '';
         my $context = '';
         if ( length $matched ) {
@@ -90,8 +90,8 @@ for my $entry ( @{ $ctx->{'compiled'} // [] } ) {
 
 return undef;
 
-#,,.,,.,,,,,,,,..,,..,.,,,,,.,,,,,...,,.,,...,..,,...,...,.,,,...,.,.,,.,,,.,,
-#OU2CZ5LDPBSAV6I44K2WVT5CNRAQ6MVX4CFA6ENMQ44HCB6HA6CL5L3HAOI26ZBT7E2C7ALRDQARE
-#\\\|SRIZF3EZDFF6M2XTSLP7UYYGSZDERMV6T5Q27EOHWPFXQEV4VUF \ / AMOS7 \ YOURUM ::
-#\[7]4PCSUWISXVA2SXESWXAZVJCFBRXFI35MN7HP5VUY5VMBMV2726DA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,...,.,.,,,.,,,,,,,,,.,,,,,,,..,,...,...,.,.,,,.,,,,,,.,,,.,,
+#2I72P7WKQYICI67HBNXUOGFB6YD5XCYFG2IFOGDFS427GQHCBBKFAOWDRWY4DHG32CMYHICLIYQDA
+#\\\|HQIXH5D6WQTVVGGEY7CHGTTGTCLXZUOQ4LDSM4UXKZ5YNI5AS6J \ / AMOS7 \ YOURUM ::
+#\[7]2XQAEIIOSAEU6GLXGVZJEYHSIOYVJK6EGQ5JLDFG24O4BFMHZYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

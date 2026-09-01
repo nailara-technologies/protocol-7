@@ -20,7 +20,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
         // $call->{'param'}->{'description'} // '';
 
    # Auto-detect and decode BASE32-encoded parameters (pattern: ^[2-7A-Z]+=*$)
-    if ( $request_str =~ /^[2-7A-Z]+=*$/ ) {
+    if ( $request_str =~ m|^[2-7A-Z]+=*$| ) {
         my $decoded = decode_b32r($request_str);
         if ( defined $decoded && length $decoded ) {
             $request_str = $decoded;
@@ -28,14 +28,14 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
     }
 
     # Unescape literal \n in parameters
-    $request_str =~ s/\\n/\n/g;
+    $request_str =~ s|\\n|\n|g;
 
     # If we have body data, append it to the request
     if ( defined $call->{'data'} && length $call->{'data'} ) {
 
         # Auto-detect and decode BASE32-encoded body data
         my $body = $call->{'data'};
-        if ( $body =~ /^[2-7A-Z]+=*$/ ) {
+        if ( $body =~ m|^[2-7A-Z]+=*$| ) {
             my $decoded = decode_b32r($body);
             if ( defined $decoded && length $decoded ) {
                 $body = $decoded;
@@ -43,7 +43,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
         }
 
         # Unescape literal \n in body data
-        $body =~ s/\\n/\n/g;
+        $body =~ s|\\n|\n|g;
         $request_str .= "\nContext:\n" . $body;
     }
 } else {
@@ -52,7 +52,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
     $request_str = $call->{'args'} // '';
 
     # Handle B32: prefix for base32-encoded single-line requests
-    if ( $request_str =~ s/^B32:// ) {
+    if ( $request_str =~ s|^B32:|| ) {
         my $decoded = eval { decode_b32r($request_str) };
         if ( defined $decoded && length $decoded ) {
             $request_str = $decoded;
@@ -143,8 +143,8 @@ return {
     'data' => $response
 };
 
-#,,,,,,.,,..,,.,.,,..,,..,,,.,,,,,..,,.,,,...,..,,...,..,,.,.,...,,,.,,,.,..,,
-#NHBT3RZEITNGO7RX6XRXJ54DHEOBJQHH5UIRIR2GGMH4UBZTNPSCA6QOTPZUBBSZNMKO5BJ5YDSRU
-#\\\|ZSQ22RDTTA6Z6AZMZVJRRRZSHZVWWA4FB2BJQ7NXXPRTCIIPBYH \ / AMOS7 \ YOURUM ::
-#\[7]PIWNOK2UCVM543DXQCKQ3JJAHUCU62IRVDATTGEHP75STSOLZ2DY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,...,,..,,,.,,..,.,.,,,,,.,.,,,,,..,,...,...,.,,,...,.,,,,,.,..,,
+#5INFYEYVH3JO4BJXMCO7JC4II5EGI3DX5TOW4YS7N45SIMKF4CYTQYERRM752MUBHDDITY753KOXM
+#\\\|ZONW6JYSY6RTMHW5WR3BOD442SSL5XBOSNMHK2VO6CQF5OEHUV5 \ / AMOS7 \ YOURUM ::
+#\[7]6XWQJ7ORDWNRFYCWVCNMOVJHY43UYGPWBTH2SKMAZ7QGOZMEFOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

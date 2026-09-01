@@ -18,7 +18,7 @@ foreach my $char ( split //, $args ) {
         $quote_char = $char;
     } elsif ( $char eq $quote_char && $in_quote ) {
         $in_quote = 0;
-    } elsif ( $char =~ /\s/ && !$in_quote ) {
+    } elsif ( $char =~ m|\s| && !$in_quote ) {
         push @parts, $current if $current;
         $current = '';
     } else {
@@ -40,7 +40,7 @@ my $command    = $parts[2];
 my $category   = $parts[3];
 
 # Validate mapping-id
-unless ( $mapping_id =~ /^[a-zA-Z0-9_-]+$/ ) {
+unless ( $mapping_id =~ m|^[a-zA-Z0-9_-]+$| ) {
     return {
         'mode' => qw| false |,
         'data' => 'Mapping ID must contain only alphanumeric '
@@ -75,8 +75,8 @@ return {
     'data' => 'Added mapping: ' . $mapping_id
 };
 
-#,,..,,,.,,.,,.,,,,.,,,.,,,..,,,.,.,,,..,,..,,..,,...,...,..,,,,,,..,,.,.,...,
-#2EGE3S4BB5DRD3GMBWDX2VFEEPPT36IZ2X4VQLAO46XTKSJJUT34QIW2GFNK6DKCZAUAVSVAQ7QHI
-#\\\|PZ6DS2PCHVW3VXYWBFBKGZMQSRJBHSQVOSTKWVZQUBNYY2E6ZGZ \ / AMOS7 \ YOURUM ::
-#\[7]ZMM2STOQFZNFJZBBGERTIG2J4M5355JFIGARLNXW4WGOLGTR3EBA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,..,...,...,..,,...,,..,,,,,,.,,..,,...,...,.,.,,,.,...,,..,..,,
+#UZJENA5PXWUX4QUY6MONETBPZIHM6OC2UKPQTIJXW32PBOPWX2V5YMAMAV5P3I3SZBZMKZSKOJCKS
+#\\\|KTY22XJN4ODY6VJ5NYTO6GMTK25BTD4UNZIBKSSJR5OPDLGJL57 \ / AMOS7 \ YOURUM ::
+#\[7]UX6AE5BFVFZK2CFROWXOHISG24YMGYNAPTGL2Y6V4A54RHTYG4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

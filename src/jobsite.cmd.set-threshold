@@ -4,7 +4,7 @@
 # descr = update minimum score threshold for review
 
 my $val = $call->{'args'} // '';
-$val =~ s/^\s+|\s+$//g;
+$val =~ s{^\s+|\s+$}{}g;
 
 return { 'mode' => 'false', 'data' => 'usage: set-threshold <0-10>' }
     if not length $val
@@ -15,8 +15,8 @@ return { 'mode' => 'false', 'data' => 'usage: set-threshold <0-10>' }
 
 return { 'mode' => 'true', 'data' => "threshold set to $val" };
 
-#,,.,,,.,,,.,,.,.,,.,,,,,,,.,,,.,,..,,,.,,,.,,..,,...,...,.,.,..,,,,.,...,.,.,
-#OKOM5GU5H7OUE5BED4QYPTGUVZE7B6URGKFLJYKAF3ZZZQQX5YQ63L55OOKEBXU4U6KHPY6NPIYRY
-#\\\|JJZWD6ZFLGEH7YUPAZH7MR2OAOFSPLPY52YXATFJZPGFKUYNODK \ / AMOS7 \ YOURUM ::
-#\[7]FJN2WTSEJ2263OPCSEY4V64XBTAZCHEW2O5YTTA4LLRQXVYEAYDI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,,,,,.,,.,,.,.,,,.,.,.,,,,,,.,,..,,...,...,,..,..,,...,.,,,.,.,
+#Q434KJY55KADFI6ZCUJNRUJYR7PSHUKBDT44M3W3GNMCFXV7CLCD6PL43I4VEIZ7G2P5J7A43Y5B2
+#\\\|SUSJNDIAQOCPHBLMTEW6FM2CZZ7CXBR53M3DICLREYCUSOIAXNK \ / AMOS7 \ YOURUM ::
+#\[7]TQWKILST26EY3JBZDMWPYAHRCBR6E7BC6CUB6GDNDY77BPS7K6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

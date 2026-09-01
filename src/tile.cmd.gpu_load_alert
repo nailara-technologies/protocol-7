@@ -12,7 +12,7 @@ return {
     if not defined $call->{'args'}
     or $call->{'args'} !~ m|^\d+ +\d+(\.\d+)?$|;
 
-my ( $sec, $percent ) = split( / +/, $call->{'args'}, 2 );
+my ( $sec, $percent ) = split( m| +|, $call->{'args'}, 2 );
 my $perc_str = sprintf( '%.2f', $percent );
 <[base.log]>
     ->( 1, "<< received GPU load alert [ ${sec}s at $perc_str% ] >>" );
@@ -40,8 +40,8 @@ if ( !<tile.counter.gpu_alerts> ) {
 
 return { 'mode' => qw| true |, 'data' => 'countermeasures activated' }
 
-#,,.,,,,,,,.,,.,,,..,,,,.,.,,,.,.,,.,,...,,,.,..,,...,...,.,.,...,,.,,..,,,..,
-#6DT4MCP6KHCGG6SY4SOCL4BYZKFXPJ53ANEL7U7AR6X4OZI42Z2GHAYK2KZVPGYH66BXGUC7YTXXE
-#\\\|WTGVBGR3HZRQ6NHHG5SBGDRCHUHHRAURAIAPJ4BI6NMCMIZLMEH \ / AMOS7 \ YOURUM ::
-#\[7]3FHXLN2M3B523PXHITWKAHUSO5LYLCXQQV3HBWEEYS4Z36K53EBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,.,.,.,.,.,,,,.,,,..,,..,...,..,,...,...,.,,,...,,..,,,,,..,,
+#4OCWI3HKHAFK2HAX3YFD2ZJQW6HLPQHVVBRFP52EXO4HADWJ344ZJMULFWKRRNTWPIE5WLGRI4DPC
+#\\\|63XNJRVL54WS26VM65YUXFQJ6PH7FJUXCJHCB5M2G7AFP7U6T4M \ / AMOS7 \ YOURUM ::
+#\[7]2JANIG5RZQ2PXIT2HXRGXHL2KBGQUE5LFHBTVIOVP2TKV35GOUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

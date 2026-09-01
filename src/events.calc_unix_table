@@ -30,7 +30,7 @@ foreach my $ev_id ( keys( <events.timetable>->%* ) ) {
         if ( defined <events.timetable>->{$ev_id}->{$ARG} ) {
             $time_str{$ARG} = <events.timetable>->{$ev_id}->{$ARG};
             $hour_or_day = 3600
-                if $time_str{$ARG} =~ /HH/;    # <-- special 'hourly' case
+                if $time_str{$ARG} =~ m|HH|;    # <-- special 'hourly' case
         }
     } ( 'start', 'end', 'at' );
 
@@ -39,7 +39,7 @@ foreach my $ev_id ( keys( <events.timetable>->%* ) ) {
     map { $time_str{$ARG} =~ s|HH|$current_hour| } keys %time_str;
 
     my $time_now = <[base.time]>->(5);
-    $time_now++ if $time_now !~ /\./;
+    $time_now++ if $time_now !~ m|\.|;
 
     if ( defined $time_str{'at'} ) {  # 'oneshot' event [ has only "at" time ]
 
@@ -116,8 +116,8 @@ foreach my $ev_id ( keys( <events.timetable>->%* ) ) {
 }
 <[base.log]>->( 2, ": nothing to do.." ) if !$new_events;
 
-#,,,.,.,,,.,.,,.,,.,,,,..,.,.,..,,..,,.,,,.,.,..,,...,...,...,,,,,.,,,..,,.,.,
-#DTDGYUERHCKLZGJCBT33CN6EH3NSH2GY2AWQKIVBU3NZT45H3FK54ZFTTAUECAXM3QDZP5YFVHYIC
-#\\\|7IIOCV7K5T43VCT6GEG2K4JSM7DEXPU6MP3QXURPBSRSZSOGV6J \ / AMOS7 \ YOURUM ::
-#\[7]HUXYFNZV4FMMCUQDI6POFODF774T3TB47UTB6Q5EJJJGRNBUL2AI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,,,.,,,,,,.,,...,...,..,,..,,..,,...,..,,,.,,,.,,,..,,,,,,,,,
+#24ICXN2DOJBP3WSKRSOIH54LIP7A55EREODJ2DAMFVNF2YINVMJ4OIKGUHITJGHVPSSDEKELKWBWM
+#\\\|POCELNXDOCOHKSZWYGKJTTNGBHARQWOBIHAFZSU4GMVPWPDHCCW \ / AMOS7 \ YOURUM ::
+#\[7]OHMA4WCEG3RGIAKJMA73EWNVDGIOAJZYHP2NZCNMLBMQBOZ62QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

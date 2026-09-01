@@ -18,7 +18,7 @@ $short_address =~ s|^.+\.||;
 ## derive kind if not supplied
 if ( not defined $kind ) {
     $kind = qw| node |;
-    my ($head)   = split /\./, $address, 2;
+    my ($head)   = split m|\.|, $address, 2;
     my %kind_map = (
         'zenka'  => qw| zenka |,
         'slot'   => qw| slot |,
@@ -48,8 +48,8 @@ my $line = $template . $summary . $suffix;
 
 return { 'mode' => qw| true |, 'data' => $line };
 
-#,,..,,,.,.,,,..,,..,,.,.,,..,,..,...,,,,,...,..,,...,...,..,,...,,,,,,..,,..,
-#3AFY4U6K4XFFJED4Y2H64XCLQQHITTYTH7JTMUHBEYGQNUTQR64FPEWWREH4ZQNQLCOEBEOBQQDZM
-#\\\|RJED5UOYALDT5IWUJFUZPB6EPUDLICY66ZZ6N5QSKPYO2SBF55P \ / AMOS7 \ YOURUM ::
-#\[7]UY4NNMYJHBHQYZ4IFH5USSO4D6ALWFUBJZKMX2G6UGHCPHDGVUBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,,,.,.,..,,,,,,,,,,.,,,,,,,...,..,,...,...,...,.,.,..,,,,.,.,.,
+#36CWCBAP7Q2OZHUF22J5JNUD7R76YIHT7UBJLO4NFWMIN4OEIM7U3YJFF4AEKZO63DXTYJPZQHI2I
+#\\\|2LDFKZREMJGM55NWFUFTGIV5MNGAOBGOQRH4JNSZ6MCFKEMS3G6 \ / AMOS7 \ YOURUM ::
+#\[7]JYID47VKH5RVFYOL5KJOQ353H4JZSYBIQLH43EU6REDGQSBFJUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

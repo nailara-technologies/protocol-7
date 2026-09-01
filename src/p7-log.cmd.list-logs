@@ -33,7 +33,7 @@ map {    ## improve [ simplify ] regex ##                              [ LLL ]
     $ARG =~ s,^.*/$system_name\.|\.log$,,g;
     $ARG =~ s|\.| <|;
     $ARG .= '>';
-    $ARG =~ s{^(.*) \<(\S+)\>$}{ sprintf ":%${max_len}s    :    %s",$2, $1 }e;
+    $ARG =~ s|^(.*) <(\S+)>$| sprintf ":%${max_len}s    :    %s",$2, $1 |e;
 } @result_names;
 
 my $header = sprintf "\n.:%${max_len}s  .:.  %s   :.\n\n",
@@ -46,8 +46,8 @@ $reply_str .= "\n" if scalar @result_names;
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,.,,.,,,..,,.,.,,,,,...,,..,,..,..,,.,,,,..,..,,...,...,.,.,...,..,,..,,..,,
-#6I7PQ6GWMDDZGDWIFNRPRI62R33UP4GVIVVQDW4NXDOEMEIRETEW65YYCHMBAZE2B64FPZPAZITQQ
-#\\\|SGSCJUHICUL2M26CHF25MABZWIJLQTAOZQ4XO2T2LGC732AKIJZ \ / AMOS7 \ YOURUM ::
-#\[7]Y5PQJK3TJ6WVHXWIDEWLK4SGZ3NI7N2RGUUAPTQNFUEYWB2BAYAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,.,.,.,.,.,,,...,.,.,,..,...,..,,...,...,..,,,,.,,,.,,,.,...,
+#4FJVYTVLF5H7RKWUWSBHRD6ZBI47DPJZGZBTB5MQLHDOQM5BG4NB5XR3GZ2PIXPB4UP7AZOBR55ZA
+#\\\|7XKHPGTF2ZZERFFSTIUAPRXJ24KDBKYFTLX2XW3A5EIBCT6P6FX \ / AMOS7 \ YOURUM ::
+#\[7]ZMFL4K5IHYUYQKB6XUOL7GZBFNSTLM57M65JQHL4QS4WDUREYSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
