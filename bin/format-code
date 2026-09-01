@@ -1288,10 +1288,22 @@ sub step6_compact_data_sugar {
             my @keys;
             my $end_tok;
             while (1) {
-                ## skip whitespace before the opening brace ##
+                ## skip whitespace, and one optional '->' , before the    ##
+                ## opening brace -- $data{'a'}->{'b'} and $data{'a'}{'b'} ##
+                ## are equivalent in real perl, so an inner arrow between ##
+                ## literal-key segments collapses the same way a bareword ##
+                ## chain would, absorbed into the sugar rather than kept  ##
                 $j++
                     while $j < @tokens
                     and $tokens[$j]->isa('PPI::Token::Whitespace');
+                if (    $j < @tokens
+                    and $tokens[$j]->isa('PPI::Token::Operator')
+                    and $tokens[$j]->content eq '->' ) {
+                    $j++;
+                    $j++
+                        while $j < @tokens
+                        and $tokens[$j]->isa('PPI::Token::Whitespace');
+                }
                 last if $j >= @tokens;
 
                 my $open = $tokens[$j];
@@ -1376,7 +1388,17 @@ sub step6_compact_data_sugar {
 
         next if $start_col < 0 or $end_col > length($line);
 
-        my $replacement = '<' . join( qw| . |, @{ $chain->{keys} } ) . '>';
+        ## a trailing dynamic subscript [ {$var}, [$i], not a literal key   ##
+        ## the walk above already stopped at ] needs an explicit -> after   ##
+        ## the sugar closes -- <key0.key1> isn't itself a hashref the way a ##
+        ## raw $data{...} chain implicitly continues into the next {}       ##
+        my $after       = substr( $line, $end_col );
+        my $needs_arrow = $after =~ m{^\s*[\{\[]};
+
+        my $replacement
+            = '<'
+            . join( qw| . |, @{ $chain->{keys} } ) . '>'
+            . ( $needs_arrow ? '->' : '' );
         $lines[$line_idx]
             = substr( $line, 0, $start_col )
             . $replacement
@@ -1927,8 +1949,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,...,.,.,...,,,.,.,,,,,.,.,,,,,,,,..,,..,..,,...,...,.,.,,,,,,.,,,,.,,,.,
-#ZUXHM3PMPAKBYCQZ36NKNXWCWJ3KBJP2EIY7YD33LLUTMAHOGOZKYONJ4F4FL4HQYMCVW3SISA3RQ
-#\\\|GUPLB3Z2IFNGVV6XTJJQIJDDJUWIEZ5Y7LWXXZ24F76NLGV2A22 \ / AMOS7 \ YOURUM ::
-#\[7]UOTX22Z5PJJXA7OBJIIZ367XFEGWD445D5LEDAS6ICKC2WGYS2DA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,,,.,...,..,,,.,,.,,,...,.,.,..,,...,...,.,,,...,.,.,...,,,,,
+#6CDXUPGAAIDCAYT52HNE5Y3UVZYVFG3QY4PQ3NJ4UVQJALUZ6WG3XMENPO56TRLZDGZXOOLK3WKCI
+#\\\|UQPBNKUWF4FDXQDRTLEWKEY6MZKQ4UQ7HJXODBVTN2GYKUTBOM3 \ / AMOS7 \ YOURUM ::
+#\[7]XSL5ASWLEOUNZJ42HMTXIFFCLJUOZUB2OBSVDQPKPASJVUAYQYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
