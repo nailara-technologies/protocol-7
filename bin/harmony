@@ -181,8 +181,8 @@ foreach my $elf_checksum ( reverse sort @elf_checksums ) {
 
     if ( $calc_str =~ m|($true(*nla:\d+\.))| or $calc_str =~ m|0000+$| ) {
         $result
-            = "$col{fT}\[:< $col{b} "
-            . "[ $col{fT}TRUE $col{b}\[:<$col{r}$col{b} ]";
+            = "$col{fT}\[:< $col{b} [ $col{fT}TRUE "
+            . "$col{b}\[:<$col{r}$col{b} ]";
     } elsif ( $calc_str =~ m|$false| ) {
         $result      = "$col{fg}>:| $col{b} [ $col{'n'}FALSE$col{b} ]";
         $return_code = $FXI;    ## code for FALSE ##
@@ -204,9 +204,8 @@ foreach my $elf_checksum ( reverse sort @elf_checksums ) {
 
 ## display header once after all checksums — reflects worst-case result ##
 if ( not $option{'q'} and not $option{'N'} and defined $header_result ) {
-    say sprintf "\n$space_0$q$header_col_str$check_string"
-        . "$col{'r'}%s $col{fg} === $col{r}"
-        . " $header_result\n", $q;
+    say sprintf "\n$space_0$q$header_col_str$check_string$col{'r'}%s "
+        . "$col{fg} === $col{r} $header_result\n", $q;
 }
 
 print "$col{r}\n  " if not $option{'q'} and not $option{'N'};
@@ -325,8 +324,8 @@ sub display_result {
 
 sub int_exit { print $reset; exit(4) }
 
-#,,,,,.,,,...,.,,,,..,,..,.,,,...,.,,,,..,..,,..,,...,...,.,.,,..,.,.,.,,,...,
-#4NEDZOORRC4UPRFFLIVRU2T2TTNCX7MRX45FOZ66PKTXPJUGGXVZTPYRWKHDOR64ZMDIRGYPOWXXI
-#\\\|2XQFA2N45U2YSXMF5B6GZCPYNUBGR3OTWML66P2DQXVMT7OF5S4 \ / AMOS7 \ YOURUM ::
-#\[7]R4IBK7R74LPTXRXAZE5OWQ3IH3CHVFTSRWOWWOLQ2UQF43ZKEIAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,...,.,.,.,,,,.,,,,,,..,,.,.,,.,,..,,...,...,...,.,,,.,.,..,,,,,,
+#TXZSHGW2DS7EQWUJS7K7XQI3R552X5T3XRKLRT3D44SIFDI26E7NSDVDYCX34Z2A4N2B73FJYC34A
+#\\\|5BM5RUODXY3D2P5CX5X4XPCJCZ5EYBRCZ7J2RUBBON2G6XT5B27 \ / AMOS7 \ YOURUM ::
+#\[7]7UPDYD6VWE3P6XG4NDKS6HJJKHQO6FXBAVHCWWOHTRUK7S3BYAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

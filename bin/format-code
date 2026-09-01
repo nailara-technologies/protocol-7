@@ -2384,7 +2384,17 @@ sub real_syntax_errors {
         or die ":\n:: \l$OS_ERROR :: $file_path\n:\n";
     my $src = do { local $RS = undef; <$src_fh> };
     close $src_fh;
-    my $translated = p7_syntax__translate($src);
+
+    ## only a real P7 module [ is_p7_module_text -- the '## [:< ##' header ##
+    ## ] actually uses this sugar ; the translator is a blind text         ##
+    ## substitute with no awareness of strings/comments/regex bodies, so   ##
+    ## running it on a plain standalone script corrupts anything that      ##
+    ## merely LOOKS like the sugar -- e.g. a CLI usage placeholder         ##
+    ## '<duck.ai_chat_file>' or a git-log replacement string '<[$1]>' both ##
+    ## false-positive as real sugar and get rewritten into undeclared      ##
+    ## %data/%code references                                              ##
+    my $translated
+        = is_p7_module_text($src) ? p7_syntax__translate($src) : $src;
 
     ## neutralize a leading '#!...perl...' shebang line [ e.g. bin/nshell's ##
     ## '#!/usr/bin/env -S perl -C31' ] in the copy being checked -- perl's  ##
@@ -2637,8 +2647,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,.,,,,,,,,.,,,,.,..,,...,,,,,,,,,.,.,,.,,..,,...,...,...,..,,.,.,.,,,..,,
-#EA6V3HMEEAW5WIK6LDMMMOBD3FMJ3EPLZNF4WVVNOQETMK6L3JUHO46XW2ELZSN4H53AHQHSVTU6K
-#\\\|HKWQQGKVWIMS3L6M2V2LGAMVEOVLPW6PYYHXQEPKSAF7SGZSWTG \ / AMOS7 \ YOURUM ::
-#\[7]FVSVIDWRNN4Q7DQJKSVXHC5LBOL2WBU3IAAEUP22ZPUUSQZJLICY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,,..,.,,,..,,,.,,,.,,..,,.,.,..,,...,...,.,,,.,.,,,,,.,,,,..,
+#MVYFF45OCIXXIHAQX6E73W6BATPFK2C7SJFEZGOCUU6JPFMVMMECNDJSIYJ4IHS42JNW53MG2K6YG
+#\\\|M7I42KE2N33DQX2RUPYNPVUF34J4NNWVWDLCKSWSJQQZFE2HJVQ \ / AMOS7 \ YOURUM ::
+#\[7]T4M4G6DKI6FOETYIH7HMUM3U2QSNUUYBHA5BM7EK7XYSBXSVFUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
