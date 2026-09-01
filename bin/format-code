@@ -14,15 +14,22 @@ use PPI;
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
+## kept at file scope [ not just inside BEGIN ] so real_syntax_errors can ##
+## also pass it to the standalone perl -c subprocess below via -I -- that ##
+## child has none of THIS process's own @INC, it needs the path handed to ##
+## it explicitly or any 'use AMOS7::...' in the checked file fails to     ##
+## locate its module                                                      ##
+my $local_lib_path;
+
 BEGIN {
     use English;
     use File::Spec;
     use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
-    my $up_dir         = File::Spec->updir;
-    my $data_pm_path   = qw| data/lib-path/pm |;
-    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, $up_dir ) ) );
-    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    my $up_dir       = File::Spec->updir;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path    = abs_path( r2_abs( c_dir( $RealBin, $up_dir ) ) );
+    $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
     $local_lib_path //= $data_pm_path;
     die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
     unshift( @INC, $local_lib_path )               if -d $local_lib_path;
@@ -1720,17 +1727,58 @@ sub real_syntax_errors {
     close $src_fh;
     my $translated = p7_syntax__translate($src);
     my ( $tmp_fh, $tmp_path ) = tempfile( SUFFIX => qw| .p7chk.pl | );
-    print {$tmp_fh} $translated;
+
+    ## the real loader (bin/Protocol-7) provides all of this globally      ##
+    ## before eval-compiling any module's own source -- a standalone       ##
+    ## per-file perl -c has none of it, causing false positives on         ##
+    ## otherwise-correct code : %code/%data/etc + TRUE/FALSE/UNKNOWN are   ##
+    ## 'our'-declared / use constant'd once at bin/Protocol-7's top level  ##
+    ## (still in scope for every module it evals, even one with its own    ##
+    ## 'use strict' -- see bin/Protocol-7:6-31), List::Util's              ##
+    ## uniq/max/min/reduce and Crypt::Misc's [en|de]code_b32r are imported ##
+    ## centrally (bin/Protocol-7:277 and :2966 respectively), Const::Fast, ##
+    ## strftime, declared_refs, and the string-bitwise operators [ |.= in  ##
+    ## AMOS7::13's entropy mixing ] are used in real modules relying on    ##
+    ## another already-loaded module or a newer feature the fixed :5.24    ##
+    ## bundle predates. kept on ONE line + a '#line' reset right after so  ##
+    ## real error line numbers still match the original file exactly, no   ##
+    ## manual offset math needed                                           ##
+    my $preamble
+        = qq{use English; use List::Util qw| min max uniq reduce |; }
+        . qq{use POSIX qw| strftime |; use Const::Fast; }
+        . qq{use constant TRUE => 5; use constant FALSE => 0; }
+        . qq{use constant UNKNOWN => 2; }
+        . qq{use feature qw| declared_refs bitwise |; }
+        . qq{no warnings qw| experimental::declared_refs }
+        . qq{experimental::bitwise |; }
+        . qq{eval { use Crypt::Misc qw| decode_b32r encode_b32r | }; }
+        . qq{our ( \%code, \%data, \%keys, \%colors, \@INDEXCUBE, }
+        . qq{\$p7_devmod_sub_tracing, \%signatures, \%p7_subroutines, }
+        . qq{\%fh_encoding );\n}
+        . qq{#line 1 "$file_path"\n};
+
+    print {$tmp_fh} $preamble . $translated;
     close $tmp_fh;
 
-    ## -Mfeature=:5.24 : P7 modules have no 'use v5.10'/'use feature' of   ##
-    ## their own [ no standard 'use' header, custom [:< format instead ],  ##
-    ## so a bare 'perl -c' doesn't recognize 'state'/'say'/etc and         ##
-    ## misparses everything after the first use -- the colon-prefixed      ##
-    ## version bundle enables the full modern feature set WITHOUT the side ##
-    ## effect plain '-Mv5.24'/'use v5.24' has of also turning on strict,   ##
-    ## which these files were never written to pass                        ##
-    my @perl_c_output = qx{ perl -Mfeature=:5.24 -c "$tmp_path" 2>&1 };
+    ## -Mfeature=:5.24 : P7 modules have no 'use v5.10'/'use feature' of    ##
+    ## their own [ no standard 'use' header, custom [:< format instead ],   ##
+    ## so a bare 'perl -c' doesn't recognize 'state'/'say'/etc and          ##
+    ## misparses everything after the first use -- the colon-prefixed       ##
+    ## version bundle enables the full modern feature set WITHOUT the side  ##
+    ## effect plain '-Mv5.24'/'use v5.24' has of also turning on strict,    ##
+    ## which these files were never written to pass                         ##
+    ## -Mutf8 : P7 modules are UTF-8 by default and the real loader         ##
+    ## (bin/Protocol-7) both 'use utf8;' and opens source with              ##
+    ## :encoding(UTF-8) -- literal Unicode identifiers are legitimate (e.g. ##
+    ## base.curve.eval / base.calc_gauss's own 'τ'). without this, perl -c  ##
+    ## has no idea the bytes it's reading are UTF-8 and chokes with         ##
+    ## "Unrecognized character \xCF" on the first multi-byte char -- a      ##
+    ## false positive in the checker itself, not a real syntax error        ##
+    ## -I data/lib-path/pm : the checker subprocess has none of THIS        ##
+    ## process's own @INC [ set up in the BEGIN block above ] -- without it ##
+    ## a real 'use AMOS7::...;' can't locate its module at all              ##
+    my @perl_c_output
+        = qx{ perl -I "$local_lib_path" -Mfeature=:5.24 -Mutf8 -c "$tmp_path" 2>&1 };
     unlink $tmp_path;
     ## errors report the temp path -- swap in the real one for display ##
     s{\Q$tmp_path\E}{$file_path}g for @perl_c_output;
@@ -1856,8 +1904,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,..,...,,..,...,,.,,,,,,..,,,..,,,.,,..,..,,...,...,.,,,.,,,,.,,,.,,...,
-#MCFOFU3VP5PCRI3LBMR7EKPNC5HHQ2R6SN672OI4Q3PCXQVSSWKGRIZUZA47UCLZTPC2ES3KACX56
-#\\\|L4DDPQHMW6T2ZFBTKBU3NZGAP4LT3KNTMK2VUEKECPEVFCFO55Q \ / AMOS7 \ YOURUM ::
-#\[7]7UBTC67XLJBWUH3LOIGPJ4AEYMFXE4A2BQ4DJAULVTTUCOCPGMDI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,,..,..,,..,,,,,,.,.,...,,,.,..,,...,...,.,.,,..,,..,,,.,.,,,
+#QL5SQLBQSPMGSG2BSJLA4RNLKJ3MPKTYEEORBWO7LCLEJGTV2Q327BLLAL43RN2GY6LEY33BZLX7W
+#\\\|UZRENT4NZXWX5FQBX7IF2MAD2OPYOOQOCNBNUIXVBOE5MXI3ZUB \ / AMOS7 \ YOURUM ::
+#\[7]RPUUUYUIV5SEEXWHQDKSKHPDPTHYAOBZJH7XT5WFTM7OSS43PODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
