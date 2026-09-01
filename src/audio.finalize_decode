@@ -127,7 +127,7 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
         and $format_hint eq qw| wide |
         and exists $code{'audio.post_process.crop_wide.v1'} ) {
         my ( $cw_ok, $cw_result )
-            = $code{'audio.post_process.crop_wide.v1'}->($result);
+            = <[audio.post_process.crop_wide.v1]>->($result);
         <[base.logs]>->( 0, 'auto-crop failed : %s', $cw_result )
             if not $cw_ok;
     }
@@ -155,8 +155,8 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
 
 return TRUE;
 
-#,,..,..,,...,.,,,.,.,..,,.,.,.,.,.,,,..,,,,,,..,,...,...,.,.,...,.,,,.,.,,,,,
-#ZZEQQ3ZYD66K5ZUQSWAP2MLW6RVE5BZ3INTHW7ZFAKP4CGWERJWU66FERNLL7E66KBX6EBAQZTHYK
-#\\\|6Y66Z5GLYA6O3ZL6WE3VWNWGJ76A4RBYBGYYSI2CSZU2FSE5FQU \ / AMOS7 \ YOURUM ::
-#\[7]3BW4WYB4QIGMTDASAYZ7G3LEDJ3EFC3QM5N6NYGGRB6ODVPONEAY 7  DATA SIGNATURE ::
+#,,.,,...,...,...,,..,.,.,,,.,,,.,.,.,.,.,,.,,..,,...,...,,.,,,.,,,.,,.,,,...,
+#76MZJJUYIZTIUIKL326UKMMN7GG5KVDQBIHVEBVTQ363H2FNFDA2MBTM7AF3M6A4YWA76GSXS65YC
+#\\\|DAFU2VEHSLAKV6GUCRGVQ6H26LQKARJZZVIDVZ4NA6GARMPONFK \ / AMOS7 \ YOURUM ::
+#\[7]ZPJYP5FTFEWXGVY7ALBFCHHOMAFZVIEKYW2J36J6H36YLJ6NXCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

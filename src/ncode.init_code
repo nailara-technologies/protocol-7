@@ -47,7 +47,7 @@ if ( $pattern_dir !~ m|^/| and defined <system.root_path> ) {
 if ( -d $pattern_dir ) {
     my @files = glob "$pattern_dir/*.yaml";
     foreach my $file (@files) {
-        my $result = $code{'ncode.regex.load'}->( { 'file' => $file } );
+        my $result = <[ncode.regex.load]>->( { 'file' => $file } );
         if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
             my $loaded = $result->{'data'}->{'loaded'} // 0;
             <[base.logs]>->(
@@ -126,8 +126,8 @@ if ( <system.zenka.name> eq qw| ncode | ) {
 
 return TRUE;
 
-#,,.,,.,,,.,.,..,,,.,,,..,,,.,..,,,.,,,,.,..,,.,.,...,...,..,,..,,...,.,,,,.,,
-#BFR2QC4CAHD3QU5GYRBLOYY2FYNBMGMOFFH7HKWUV6GYTBH4MA6NAZD2HNSU5FU2HNDUEGII3JHVG
-#\\\|AKBRE77MQLK7QZVFQLGQZXHLQJ7ABNUXT7CRLTANWIV5LMQAMSM \ / AMOS7 \ YOURUM ::
-#\[7]IOQJRFS5DJFRJOB35I4GWCS4EPJ65VUAKA3J7CVD7BOFNJ6EIACI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,..,..,,...,..,,...,,.,,,..,.,.,.,.,...,..,,,,,,,,,,.,.,,..,..,,
+#IYH2KNEL7KH7P7XPDT2FAGZIER53P6SHRJCDO55FF3JQN2EQVR24V7YL44QDI26EVWAOSVMBY7KMO
+#\\\|7332COKAMLLI6VTNPGF2NGMZWGITW7Q37N5E4YDPBO3PZJJKPWY \ / AMOS7 \ YOURUM ::
+#\[7]RN3EFQZSIGX7XM5RVOKYEYKFICGG7PULMXAPTLXPU2BLATEQMEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -220,7 +220,7 @@ my %dispatch = (
             return 'error: namespace or module required';
         }
 
-        my $result = $code{'context.module.dep_graph'}->( \%params );
+        my $result = <[context.module.dep_graph]>->( \%params );
         return 'no graph data'
             unless ref $result eq qw| HASH |
             and $result->{'mode'} eq qw| true |;
@@ -338,7 +338,7 @@ my %dispatch = (
             && $context > 0
             ? "$target -C $context $pattern"
             : "$target $pattern";
-        my $result = $code{'ncode.cmd.search'}->( { 'args' => $arg_str } );
+        my $result = <[ncode.cmd.search]>->( { 'args' => $arg_str } );
         return
             ref($result) eq 'HASH'
             ? ( $result->{'data'} // $result->{'content'} // 'no output' )
@@ -614,24 +614,24 @@ my %dispatch = (
     'record_question' => sub {
         return unless exists $code{'coding.tools.handler.record_observation'};
         $args->{'type'} = 'question';
-        return $code{'coding.tools.handler.record_observation'}->($args);
+        return <[coding.tools.handler.record_observation]>->($args);
     },
 
     'record_suggestion' => sub {
         return unless exists $code{'coding.tools.handler.record_observation'};
         $args->{'type'} = 'suggestion';
-        return $code{'coding.tools.handler.record_observation'}->($args);
+        return <[coding.tools.handler.record_observation]>->($args);
     },
 
     'git_restore_file' => sub {
         return unless exists $code{'coding.tools.handler.git_restore_file'};
-        return $code{'coding.tools.handler.git_restore_file'}->($args);
+        return <[coding.tools.handler.git_restore_file]>->($args);
     },
 
     'strip_trailing_spaces' => sub {
         return
             unless exists $code{'coding.tools.handler.strip_trailing_spaces'};
-        return $code{'coding.tools.handler.strip_trailing_spaces'}->($args);
+        return <[coding.tools.handler.strip_trailing_spaces]>->($args);
     },
 
 );
@@ -723,8 +723,8 @@ return {
     'content' => $content,
 };
 
-#,,,.,,.,,,..,,..,,.,,,,,,...,,.,,,..,.,.,..,,..,,...,.,.,,,.,,,.,,..,.,,,,..,
-#AVK2UOZHU4NWBVFUHW57DTWNUORQ3UUWS4EH22LJV3246RICGT6GFG4PPWROW6VKNBRK4AMNEFQTY
-#\\\|5V2U2HCXBNEJWE2F57DX2H72SRLSAN3FCXKVGT337QO6FIR54PN \ / AMOS7 \ YOURUM ::
-#\[7]ILYCUR5F3B5FFBBPA2VB4Z2HSRM63HEDZYIHIKMDS2YAEDLY24DY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,.,.,,,..,,,,,,.,,,..,,.,.,,..,..,,...,..,,..,,,,,,..,,,,.,,,.,
+#EWOQ3Y5SVZ7UDZEAZ3K7ETSBBLQ2BDTVL2R52D2G3AGOROU42H3TCMJ6J4D4OGZ5MM7EZV67Y5FKA
+#\\\|5R25MTFOECTYXN4BPIY2RAE4NKUFVWSJMOKLKDU2WECUTAUC6SW \ / AMOS7 \ YOURUM ::
+#\[7]LICARJVCKTRK5TELSTRLJOPBCYN7LC3I4UC6TLNINS65EKDBKMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
