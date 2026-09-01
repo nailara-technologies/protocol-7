@@ -34,9 +34,9 @@ return { mode => qw| false |, 'data' => "'wall' binary not found" }
 <[base.log]>->( 1, ":.. sending 'wall' message [ host reboot warning ]" );
 
 if (system( $wall_bin_path,
-              "\n\n  <<< REBOOTING SYSTEM IN $warn_seconds SECONDS "
-            . "[ $reboot_reason ] >>>\n\n\n\r   < [ TO ABORT REBOOT "
-            . "RUN 'p7 system.abort-reboot' ] >\n\n" ) != 0
+              "\n\n  <<< REBOOTING SYSTEM IN $warn_seconds SECONDS [ "
+            . "$reboot_reason ] >>>\n\n\n\r   < [ TO ABORT REBOOT RUN "
+            . "'p7 system.abort-reboot' ] >\n\n" ) != 0
 ) {
     my $err_msg = lcfirst($OS_ERROR);
     warn "$err_msg [ $wall_bin_path ]";
@@ -47,8 +47,8 @@ if (system( $wall_bin_path,
 }
 return { mode => qw| true |, 'data' => 'message sent to all terminals.' };
 
-#,,,.,..,,..,,,,.,,..,,,.,...,,,.,..,,,.,,,,.,..,,...,...,,,.,..,,...,,,,,,,.,
-#MGXL2A3Y4KEI7TICY6BZUAIKA2RU7LWDV3LYWWCAPLOCGIAVUEVIH7XV4U6MV5HT5KFAOICD4KHFS
-#\\\|XHXIEB6U35W7XS4YCFYJ2KY5JVE2PJC4ZFARDIRE5TK6LW3SNXD \ / AMOS7 \ YOURUM ::
-#\[7]QJ7VISWWA2J32VX2Z62VY2TCFPPAZLOPMAWWNKGVIIKGKQTCFKAY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,,,,,.,,..,,,.,..,,.,.,,,.,,..,..,,...,...,,..,.,,,,,,,...,.,,,
+#VJ55NSPKLRZVTFGJDL6UZLWCHTLAVXBG3AJ2ICPTIXBWYCRV2PHP23W4RFEKZ46DIFYHVLMBYG7NS
+#\\\|HGXZN6TIG22BRPTBZN5IMKS6RBEMGUKAU23LGTADUXFNBDAB4A5 \ / AMOS7 \ YOURUM ::
+#\[7]ZON4HQHQB3YQTWPTBM7JBCJNPKKXNE2I6WMFFXLWXLJEGULLUAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

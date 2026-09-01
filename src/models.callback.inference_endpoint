@@ -32,9 +32,8 @@ eval {
     ) or die "Cannot connect to $host:$port: $!";
 
     ## Send HTTP GET request to verify endpoint
-    print $socket "GET /v1/models "
-        . "HTTP/1.0\r\nHost: $host:$port\r\nConnection: "
-        . "close\r\n\r\n";
+    print $socket "GET /v1/models HTTP/1.0\r\nHost: "
+        . "$host:$port\r\nConnection: close\r\n\r\n";
     my $response = <$socket>;
     if ( $response && $response =~ m|200| ) {
         $is_alive = 1;
@@ -65,8 +64,8 @@ return {
     'endpoint_error'  => $endpoint_error,
 };
 
-#,,,,,,..,.,.,,.,,,,.,,.,,,..,,.,,,,.,.,.,..,,.,.,...,...,.,.,...,...,,..,...,
-#7RJ2PMFNJHDN53RDEHU56MFMRTHL7Y4JTPVTLVQ6WLKDELORK4ZF75ZAHRKHLRG2EAHYZ4XKIUJPC
-#\\\|TFW6MTOYAIBOB3W726F6ZSDWNXZAAQJQSTYKQ2ZFFBEOHALC2VG \ / AMOS7 \ YOURUM ::
-#\[7]XHILVSJSZXHDPNLDRKNOYR4YIY5DWVMT2ALOQVU65Q3J67GJEODY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,...,..,,...,,..,.,.,...,.,.,.,.,...,..,,..,,..,,.,.,,.,,..,,
+#QWHENQHOKYIFNXS6G34T3IBC3CRE33L6VJYX6N4YH7BXMWDX4W7FPBXP7HU77NHNA73MUZDTCAEN6
+#\\\|OLOHCMQ4JD5EL2NW54RMNNWHXHYW3LSAXFDJAVX2H7SQZ7BZ52Q \ / AMOS7 \ YOURUM ::
+#\[7]Z3T7SOY2BVTXYGJIJL7HXH7W44WMBQDQ5OC3PAYLJ5JAS46VS6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
