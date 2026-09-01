@@ -6,22 +6,22 @@
 my $delay = shift;
 
 ## cancel existing timer ##
-my $timer = $data{'site-yaml'}{'fetch_timer'};
+my $timer = <site-yaml.fetch_timer>;
 if ( defined $timer and eval { $timer->is_active } ) {
     $timer->cancel;
 }
 
 ## if no delay given, use current delay ##
-$delay //= $data{'site-yaml'}{'fetch_delay'} // 1.5;
+$delay //= <site-yaml.fetch_delay> // 1.5;
 
 ## if queue empty, stop and fire drain callback ##
-my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+my $queue = <site-yaml.fetch_queue> // [];
 if ( not @{$queue} ) {
-    $data{'site-yaml'}{'fetch_timer'} = undef;
+    <site-yaml.fetch_timer> = undef;
 
-    my $cb = $data{'site-yaml'}{'fetch_drain_cb'} // '';
+    my $cb = <site-yaml.fetch_drain_cb> // '';
     if ( length $cb ) {
-        $data{'site-yaml'}{'fetch_drain_cb'} = '';
+        <site-yaml.fetch_drain_cb> = '';
         <[base.logs]>->( 1, 'fetch: drained → %s', $cb );
         if ( $cb =~ m{\.} ) {
             <[protocol-7.route-send]>->( { 'command' => $cb } );
@@ -35,7 +35,7 @@ if ( not @{$queue} ) {
 }
 
 ## schedule next tick ##
-$data{'site-yaml'}{'fetch_timer'} = <[event.add_timer]>->(
+<site-yaml.fetch_timer> = <[event.add_timer]>->(
     {   after   => $delay,
         repeat  => FALSE,
         handler => 'site-yaml.handler.fetch_tick',
@@ -44,8 +44,8 @@ $data{'site-yaml'}{'fetch_timer'} = <[event.add_timer]>->(
 
 return;
 
-#,,,.,,.,,..,,.,.,...,,,.,,..,..,,,,.,.,.,,..,.,.,...,...,.,,,...,,.,,..,,,.,,
-#JRDOQWTWHSUGYTPGFK5EXB5GJLTSO4ECNHF5IOFQZTOY6ME6HPQ6TOCGMJLFR44TKZJXJUXTZ52F2
-#\\\|5SYDQSAAV2MRLDDPHHEQEE5XT56DQ3WKTMY76SD2IHMSXEX4G5I \ / AMOS7 \ YOURUM ::
-#\[7]IXPPSMI3CTBWXRGD6UKXBWFJP5JXEBVOCYY3D6XK2G2KTTLBCYBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,,.,,.,.,,,.,,,.,,,,,,..,,..,.,.,...,...,,.,,..,,.,.,,.,,,,,,
+#JEDGDTJICC47WPXU4VBU6TQRW447A3NJSYW5733WTENIBEMZLDVLKD74Y2LADDLXUZJUG5W23Y7N6
+#\\\|P2EZE3TNVCZMVTE5HXGD2QU5WIDFPFKPYQW5WPFKH4SDT3KFCKU \ / AMOS7 \ YOURUM ::
+#\[7]MXYRHARZDQZGSUUMCQTVOGCT4D2KF4WHSYK57RPER5TJBDFHS2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

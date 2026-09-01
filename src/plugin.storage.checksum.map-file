@@ -8,7 +8,7 @@ my $path = $args->{path}
     or return { 'mode' => 'false', 'data' => 'path required' };
 my $algorithm = $args->{algorithm} // 'bmw';
 
-my $registry = $data{'storage'}{'mapping'}{'checksum'};
+my $registry = <storage.mapping.checksum>;
 
 # Validate algorithm
 my $algo_info = $registry->{'algorithms'}{$algorithm};
@@ -103,8 +103,8 @@ return {
     }
 };
 
-#,,.,,,,,,...,...,..,,..,,,,.,,,.,,,,,...,.,,,.,.,...,...,,..,.,,,,,.,.,,,,,,,
-#RTVKDBU5WCCZHN7UVRBSHCHJDAI2DJHKI3DJ6GKTLJE5EWCYEQM6G7IGEFWFPZQGKPGD3IDEKWS2U
-#\\\|NBBQ224PCFZJYBF6CTNG4YY3WFQERNEMYNFHEW35CVHT2EWOFA6 \ / AMOS7 \ YOURUM ::
-#\[7]ADAHPUHL6EJ36HYO6AB27UKM4FF6PH5ND5472B7B4PRYLGQEVMBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,.,.,,,.,,,.,,..,...,...,,.,,.,.,...,...,,,,,...,,.,,...,.,.,
+#EY6SVFSAGOHFTJXQ7J6OGSPTPOERLPTS5UMUTDVYNS26Z3PP6IXYVJVJBEIHK5JDT27HCDGOVVQBG
+#\\\|AZN5LVYEKVZP5TCPBWXGOGC4TKCTY24UWTHJJAA2XEJMN3N3U2O \ / AMOS7 \ YOURUM ::
+#\[7]VB7JRRCTREBSR4REOJZIINKRMU5O3BTRTXBMV32OSO3EBS4TGEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

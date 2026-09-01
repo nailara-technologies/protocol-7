@@ -88,8 +88,8 @@ my $chk_input = "$focus\x00$content";
 ## 7-char amos chksum cap                                                   ##
 my $chk = <[chk-sum.bmw.L13-str]>->($chk_input);
 
-$data{'coding'}{'tree_query_pending'} //= {};
-my $query_id = <[base.gen_id]>->( $data{'coding'}{'tree_query_pending'} );
+<coding.tree_query_pending> //= {};
+my $query_id = <[base.gen_id]>->(<coding.tree_query_pending>);
 
 my $pending = {
     'query_id'    => $query_id,
@@ -115,7 +115,7 @@ $pending->{'timeout_timer'} = <[event.add_timer]>->(
     }
 );
 
-$data{'coding'}{'tree_query_pending'}->{$query_id} = $pending;
+<coding.tree_query_pending>->{$query_id} = $pending;
 
 my $sent = <[protocol-7.route-send]>->(
     {   'command'   => 'task.summary-tree-query',
@@ -128,7 +128,7 @@ unless ($sent) {
     if ( eval { $pending->{'timeout_timer'}->is_active } ) {
         $pending->{'timeout_timer'}->cancel;
     }
-    delete $data{'coding'}{'tree_query_pending'}->{$query_id};
+    delete <coding.tree_query_pending>->{$query_id};
     return <[coding.tools.handler.summarize_enqueue]>->(
         {   content     => $content,
             focus       => $focus,
@@ -143,8 +143,8 @@ unless ($sent) {
 
 return { mode => qw| deferred | };
 
-#,,,,,,.,,...,.,.,.,.,.,.,,.,,...,..,,.,,,,..,..,,...,...,..,,..,,,.,,,,,,,..,
-#SJLSPSO7ZOHSP2MIRHRTC4R63WINMBTJSOVQSYKY7LGENO7JVAOVYHURHQ3NIE2FILLVJVLIBTW54
-#\\\|N3T6KG2CJ425IACDTM7DVG6JBFYTY67Y4RL25JKLIWZ5OX3LOK5 \ / AMOS7 \ YOURUM ::
-#\[7]YM5ICCCI4VEUW52BMZL23M7Z5CLMY5VR4HY4AUUIOEH4FZ34SWCA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,.,...,.,.,.,.,,..,,,,,.,.,.,.,..,,...,...,,..,,..,,,.,,,.,,.,,
+#72PJVNHPJWBBUXOHJ6XNSVUAOLKL6UTTFUWC5COTAERL4KD7HPNG47DQ7EMRWY5OJZG6XC4BWUHW6
+#\\\|7D4P7S23Q4MGUTB7KHWQGOQT64EZU7SYJMM6FIG4NQWIUACWYGY \ / AMOS7 \ YOURUM ::
+#\[7]HL4MYANLNHQNV3F3C2CC264NYVDXFNG7P37DHVESXUK6CCJXEMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

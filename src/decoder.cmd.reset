@@ -30,8 +30,8 @@ if ( defined $stream_id and length $stream_id ) {
     my $l5_count = scalar keys %{ <decoder.level5> // {} };
     my $l6_count = scalar keys %{ <decoder.level6> // {} };
 
-    $data{'decoder'}{'level5'} = {};
-    $data{'decoder'}{'level6'} = {};
+    <decoder.level5> = {};
+    <decoder.level6> = {};
 
     push @cleared,
         sprintf( "all streams : L5=%d cleared, L6=%d cleared",
@@ -39,8 +39,8 @@ if ( defined $stream_id and length $stream_id ) {
 }
 
 ## vterm is shared across all streams : cleared on any reset ##
-if ( defined $data{'decoder'}{'vterm'} ) {
-    $data{'decoder'}{'vterm'}->input_write("\033[2J");
+if ( defined <decoder.vterm> ) {
+    <decoder.vterm>->input_write("\033[2J");
     push @cleared, "vterm : screen cleared";
 }
 
@@ -49,8 +49,8 @@ return {
     'data' => join( "\n", @cleared )
 };
 
-#,,,.,.,,,.,.,.,.,.,.,.,,,,.,,..,,...,.,.,.,.,.,.,...,...,...,,..,.,,,,..,...,
-#JBUPKTA3XIWGHJL4QVUTNAHZVPVUKGE6SJCURL37CDPH376HNQSIZHLE3MU4UUYULJ3EKEAPXA52A
-#\\\|IPLX4RJ2T3P6NTGATZKGZI2SQF2NF74HKJQ6P4NCOKKBS46VFUT \ / AMOS7 \ YOURUM ::
-#\[7]3YE3MNVS2424MXQ36UUE2ASWAEFJ3I773NZBUL3EMK325OW7LGCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,,,...,...,,,.,.,.,..,,..,,.,,,.,.,...,...,..,,.,.,...,.,.,,.,,
+#SCZ4TXTWAPEP2DRQPHFLJ4X7PTCUOLSR56RCVB7AH3OBKOFLOZELXMHW4LS43MOEICAB4K76VWXX2
+#\\\|4H5TWSVSOMMOIAIZOQYGLFJZEGVNE7GXI5CRQNJLLEL6AAGGYCP \ / AMOS7 \ YOURUM ::
+#\[7]NXK7CT23XVEDSEOW7DDS2TUSLIUPCLZUQD6TXAFSVSZ7G4DPHSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

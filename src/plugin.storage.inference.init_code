@@ -15,7 +15,7 @@ my $zenka_name = <system.zenka.name>;
 my $root_path  = catfile( $var_base, $zenka_name, qw| results | );
 
 ## inference cache registry ##
-$data{'storage'}{'mapping'}{'inference'} = {
+<storage.mapping.inference> = {
     'enabled'    => 1,
     'version'    => '0.3',
     'root_path'  => $root_path,
@@ -45,8 +45,8 @@ $data{'storage'}{'mapping'}{'inference'} = {
 };
 
 ## register with p7ref system if available ##
-if ( exists $data{'storage'}{'mapping'}{'p7ref'} ) {
-    $data{'storage'}{'mapping'}{'p7ref'}{'types'}{'inference'} = {
+if ( exists <storage.mapping.p7ref> ) {
+    <storage.mapping.p7ref.types.inference> = {
         'handler'  => 'plugin.storage.inference',
         'priority' => 7,
     };
@@ -58,8 +58,8 @@ if ( exists $data{'storage'}{'mapping'}{'p7ref'} ) {
 
 0;
 
-#,,,,,...,,..,...,,.,,,,,,,,,,.,,,..,,.,.,,.,,..,,...,...,...,...,,.,,,,,,...,
-#OUJMAAYWYOC5NKF7CGTNW3QNDOPIHRQ23QE22KAH32WHPWRIAEIKGU3WBRRWHVLP5N5GJUBVNGMZS
-#\\\|6TQX4J5SBWQKY4IDWPVHPIB4IURXIZ5LLHJ77MSOCHHU7HFBW4Y \ / AMOS7 \ YOURUM ::
-#\[7]KSVLP75JTCUJKCABUJYINWUMD4U5VRNP23NHYI2S5BIQBZ2QQKCI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,.,,,.,,,,,,,,.,.,,,,.,,.,.,..,,..,,...,..,,...,,.,,,.,,,..,.,.,
+#45N754UIRQOVS52MWVSMVT3RXYQNKZNLWYK52DM3MYCZY4QOICYI3U7IFRQRSUWEVOFJXYC73LTSC
+#\\\|FKWEESPAPQNIBY5TT4GKJD7SDJW27S5HEUDAE4XQWED3Y7AUJLW \ / AMOS7 \ YOURUM ::
+#\[7]JUTEHGN4NE7ZZJHEJYZXY6FJB7VK5IXMZBBMFCO3PGRN22RU6KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,11 +4,10 @@
 # descr = import page loop is done : queue fetch timer, reply, clean up
 
 my $import_id = shift;
-my $st        = delete $data{'site-yaml'}{'import_state'}{$import_id};
+my $st        = delete <site-yaml.import_state>->{$import_id};
 return unless defined $st;
 
-if ( $st->{'queued_count'} and not defined $data{'site-yaml'}{'fetch_timer'} )
-{
+if ( $st->{'queued_count'} and not defined <site-yaml.fetch_timer> ) {
     <[site-yaml.fetch.schedule]>;
 }
 
@@ -24,8 +23,8 @@ my $summary = sprintf 'import queued: %d new, %d skipped, %d errors',
 
 return;
 
-#,,..,,,.,.,.,,..,,,,,,,.,,..,,,.,..,,.,,,.,.,..,,...,...,.,,,...,...,.,.,.,,,
-#CL5D77UUCJ4MQHXCBLXZB3WHT6MNYMPWDPX73JEGL3PSVIGVQRDT4NAXZRO2JVBAKIKOAI2EO2ENS
-#\\\|7BAEQYNUWJM66DGDWPJLWHR72LORUXFM23LPMILURV7UCXQZ47Z \ / AMOS7 \ YOURUM ::
-#\[7]ACX62T4HK7CSI5MVSZ4E3G4G6TMXGVJA7GC26SY6CE4B4VVS74CA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,..,,.,,,.,,,.,.,,,,,,.,,...,..,,...,...,...,..,,,,.,,,.,.,,,
+#76OQRURSEJX7TLZWSVXMA74PTDDOPPH6LDWIY7LQODH2I2BFJJZVE4X5CMDI6OHEFJ336VOZFVJXI
+#\\\|QKUJB53VLBRBZRBH7QLWDKUT3NMRLWAKWRIPOMI5MY7LYU3ZQDO \ / AMOS7 \ YOURUM ::
+#\[7]PR7P7HCDLBFRBZKI3LOPQWYMW5AHUXDDIWIKR3TC753SYWLRQCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

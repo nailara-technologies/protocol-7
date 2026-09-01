@@ -40,7 +40,7 @@ my @remaining_files = <[base.sort]>->(<base.subroutines.referenced>);
 if ( @remaining_files == 0 ) {
     <[base.log]>->( $log_level, ': : done. no remaining subroutine names.' );
     <[base.clean_hashref]>->(<base.subroutines>);
-    delete $data{'base'}{'subroutines'}
+    delete <base.subroutines>
         if not keys <base.subroutines>->%*;
     goto SKIP_TO_RETURN;    ## return number or cleared entries ##
 } else {
@@ -107,7 +107,7 @@ foreach my $file ( <[file.match_files]>->( $source_dir, @remaining_files ) ) {
 if ( @remaining_files == 0 ) {
     <[base.log]>->( $log_level, ': : done. no remaining subroutine names.' );
     <[base.clean_hashref]>->(<base.subroutines>);
-    delete $data{'base'}{'subroutines'}
+    delete <base.subroutines>
         if not keys <base.subroutines>->%*;
     return $removed;    ## return number or cleared entries ##
 } else {
@@ -188,7 +188,7 @@ if ($clean_found) {
 SKIP_TO_RETURN:    ## early return + set up clean-up timer ##
 
 ## prepare aut0-clean-up of $data{'source'}{*}{'status'} = no-error
-if ( not exists $data{'buffer'}->{'compile-errors'} ) {
+if ( not exists <buffer.compile-errors> ) {
     my $strt_delay = 17;
     my $rnd_offset = 13;
     $rnd_offset    ## randomize timer delay ##
@@ -204,8 +204,8 @@ if ( not exists $data{'buffer'}->{'compile-errors'} ) {
 
 return $removed;    ## return number or cleared entries ##
 
-#,,.,,.,,,..,,,..,,.,,,..,..,,,.,,...,,..,,,,,..,,...,...,.,,,...,,,.,...,..,,
-#IT4FN7MK4CG2BHAVW32SXKUHDJMX6NNC6L37WTVPHYBQQAVVRHTLUFFJOMETN6IWVGFXLZIJWGASG
-#\\\|7INLSCS36URCIEYZVIEYBF5E7E7ECPJUBXTZMAB3EMOHISCG6JK \ / AMOS7 \ YOURUM ::
-#\[7]M5HOFLMDRMVVUSN32OENF3QSHFYYXDEYBWMESUAOH3Y674YO7GAI 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,.,,,,,,,...,,,.,,..,.,.,,..,..,,...,..,,,..,.,.,.,,,,..,.,.,
+#R2SSKXR7AS6V5RZSD7R77TPDBGOLCIBMGMFUFS2ENGSS2TTHABUBRIOECQZS5WMXZZWPPVYPKDVQM
+#\\\|7ZNLQ4XK2OTIWPWJEUDVKHOSAO6WGIDUQGDSCZUHI3UUPQC4YFD \ / AMOS7 \ YOURUM ::
+#\[7]LWKXSXFS7WFHOMC33U3SWBMN43WNU6X76F76NGBEMBMKJYQBCIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

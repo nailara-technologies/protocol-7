@@ -3,7 +3,7 @@
 # name  = decoder.cmd.show-indexcube
 # descr = show INDEXCUBE traversal log entries
 
-my $cube = $data{'decoder'}{'INDEXCUBE'} // [];
+my $cube = <decoder.INDEXCUBE> // [];
 
 return { 'mode' => qw| false |, 'data' => 'INDEXCUBE empty' }
     unless @{$cube};
@@ -25,8 +25,8 @@ for my $entry ( @{$cube} ) {
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) };
 
-#,,,,,,.,,.,,,,..,,,.,,..,.,.,.,,,,,.,,,,,,,.,..,,...,...,.,,,...,..,,.,.,,..,
-#7ZXHYXFPY6DDQSUE6NOGCXWRJLFGTZAP2MGDVQSSDCHE3FK6HMILOZ5EXEA5SNBU3VF2L57CKKIRG
-#\\\|ZWHPHEGP7DYUL7ZZZYMNJBPDRICSAXQVWP6DNAXS6J3IUDOOCXO \ / AMOS7 \ YOURUM ::
-#\[7]2GLWYYJXBAGLBAXE26SUKSROHOT4KDTRLUBEWXXZYV3SVSTQXMCI 7  DATA SIGNATURE ::
+#,,..,,..,...,,.,,,..,,,,,..,,.,,,,,.,,,.,,.,,..,,...,...,,.,,,..,..,,,..,,,,,
+#F6TLMFC7FFTSMKSFIWMEG6ZJXDEBU52XBRBQBVTITAGLABRYLO4UE6P2ZB3W6GFZONIJMOL6N57VY
+#\\\|BGVK25LS7KJXE5KEPFGA5GYKGPIYZBMGHSB66AT3EVJAANX4AZ5 \ / AMOS7 \ YOURUM ::
+#\[7]LJHWH4AKXQZGPYQXLI76WGZHEQKNGAYIY7RFKXC4JWHZSTGRVUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

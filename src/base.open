@@ -4,23 +4,21 @@
 
 my ( $type, $mode, @params ) = @ARG;
 
-if ( not defined $data{'io'}{'type'}{$type} ) {
+if ( not defined <io.type>->{$type} ) {
     <[base.logs]>->(
         0, "base.open: io type '%s' not defined [ module loaded ? ]", $type
     );
     return undef;
-} elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
+} elsif ( not defined <io.type>->{$type}{'handler'}{$mode} ) {
     <[base.logs]>->(
         0,     "base.open: unknown io mode '%s' for type '%s'",
         $mode, $type
     );
     return undef;
-} elsif (
-    not defined $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} }
-    or ref $code{
-        $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} ne qw| CODE |
-    }
-) {
+} elsif ( not defined $code{ <io.type>->{$type}{'handler'}{$mode}{'open'} }
+    or
+    ref $code{ <io.type>->{$type}{'handler'}{$mode}{'open'} ne qw| CODE | } )
+{
     <[base.logs]>->(
         0,     "base.open: '%s'-handler for mode '%s' not defined",
         $type, $mode
@@ -28,11 +26,10 @@ if ( not defined $data{'io'}{'type'}{$type} ) {
     return undef;
 }
 
-return $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} }
-    ->(@params);
+return $code{ <io.type>->{$type}{'handler'}{$mode}{'open'} }->(@params);
 
-#,,..,...,,..,...,,,,,,.,,,..,,,.,,.,,.,.,,..,..,,...,...,..,,.,.,,,.,,.,,,,.,
-#EMQKA6VPZQITT64RJFREC74HLGSAZZR7EYHK6NNU7DGZWHMED3UWOZJQUDQOGSSGU2R4HXJT6SF3K
-#\\\|57WJNRIS2E2WBOBCI3XPQLHZ7VRO6ZVFUW6PXWMESTENSDMS43T \ / AMOS7 \ YOURUM ::
-#\[7]EMYZ32CCWFP54N5QR5IW7JUA7LMRF5JBUITTKLIJDJVE3CFTC2DI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,.,,,...,,,,,..,,...,,,.,,..,..,,...,...,..,,,.,,,.,,.,,,.,,,
+#AJPF4HKZ6J6YCUWSAHNIQMHTNE4CGMXXYVTW2BCJAJTMK5USU2BI6AVVTVR47QN6KOEGGITS2DM5K
+#\\\|VPOF56DCGYNH4MQK653LWVGDJAQWQU2BHQI3TWYSJJQK2QBBNI2 \ / AMOS7 \ YOURUM ::
+#\[7]OKNLS42OPAC6U22TVYEETYKWWK2BM7BX5P3GMW2U4IQJMVV524BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

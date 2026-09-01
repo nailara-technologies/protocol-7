@@ -6,7 +6,7 @@
 
 ##[ COMMAND NAME ANOMALY SCAN ]###############################################
 
-$data{'diag'}{'cmd_anomalies'} //= {};
+<diag.cmd_anomalies> //= {};
 
 my $valid_cmd_re = qr|^[^.]+\.cmd\.[^.]+$|;
 
@@ -14,23 +14,23 @@ foreach my $name ( keys %code ) {
     next if index( $name, qw| .cmd. | ) < 0;
 
     if ( $name !~ $valid_cmd_re ) {
-        $data{'diag'}{'cmd_anomalies'}{$name} = 'extra dots after .cmd.';
-    } elsif ( not defined $data{'base'}{'cmd'}{$name} ) {
-        $data{'diag'}{'cmd_anomalies'}{$name}
+        <diag.cmd_anomalies>->{$name} = 'extra dots after .cmd.';
+    } elsif ( not defined <base.cmd>->{$name} ) {
+        <diag.cmd_anomalies>->{$name}
             = 'internal subroutine, not whitelisted command';
     }
 }
 
-foreach my $name ( keys %{ $data{'base'}{'cmd'} // {} } ) {
+foreach my $name ( keys %{ <base.cmd> // {} } ) {
     next if index( $name, qw| .cmd. | ) < 0;
-    $data{'diag'}{'cmd_anomalies'}{$name} = 'extra dots after .cmd.'
+    <diag.cmd_anomalies>->{$name} = 'extra dots after .cmd.'
         if $name !~ $valid_cmd_re;
 }
 
 return FALSE;
 
-#,,,,,,,.,.,.,,..,...,,..,,,.,,,.,...,,..,,.,,..,,...,...,.,,,.,.,.,,,,..,.,,,
-#45ZVG7KFSPWGJXCBQORORCSAVQITHKNDE7BZ35LXNXP26R3T452NWPW2RIXXKIVMNKVIPJNF6Z4YG
-#\\\|M4VSGXP5ENDRXROMTP4FWQNKQHJK3H3WX4P6NNL65UZE6N7IKX2 \ / AMOS7 \ YOURUM ::
-#\[7]XYMJHQ32AKE53KGKNZPWTQSFCPJFSKIV3ALKVQENYQVVUNG7ZKDI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,.,,,,.,,...,..,,,,,,..,,..,,..,,...,...,.,.,...,,,,,,..,,.,,
+#WA53NJWBFLUNUTOV5NM6EEESAUF3MZ4OUXBT3FXE2MNYCDH5X7QSVPQLSLEOY4OHUQDD4X7Q4EADQ
+#\\\|4K32IHW6PY3FLCN5JHKCFD7LHU3AQ2COX5WFFMPEEQO3JNJV7V7 \ / AMOS7 \ YOURUM ::
+#\[7]ZSWZM3JFJGLAPBWBRQW6ZZEWUZER5DMY4JPW2R5OWO2RGHDPJKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

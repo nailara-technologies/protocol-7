@@ -33,7 +33,7 @@ foreach my $n (@$known_all) {
 ## level 1: try to build zenki list from local running registry ##
 my @sub_known;
 
-my $zenki_running = $data{'zenki'}{'running'} // {};
+my $zenki_running = <zenki.running> // {};
 if ( ref $zenki_running eq qw| HASH | ) {
     my @zenki_names;
 
@@ -51,7 +51,7 @@ if ( ref $zenki_running eq qw| HASH | ) {
         and exists $zenki_running->{'v7'}{'status'};
 
     ## also try v7 zenka instance registry if available ##
-    my $v7_instances = $data{'v7'}{'zenka'}{'instance'} // {};
+    my $v7_instances = <v7.zenka.instance> // {};
     if ( ref $v7_instances eq qw| HASH | and keys %$v7_instances ) {
         my %seen = map { $_ => 1 } @zenki_names;
         foreach my $inst_id ( keys %$v7_instances ) {
@@ -107,8 +107,8 @@ my $payload = {
 
 return eval { JSON::XS::encode_json($payload) } // '{}';
 
-#,,,.,,,.,...,.,,,,,.,...,..,,,,.,..,,.,.,,..,..,,...,...,.,,,.,,,,..,,..,.,,,
-#PIE56MSSG2WN6ZZBLLQIVTMRQKIJADKAGNRUIXTFKY73F3QD7NJTQCCFF53NRIXVCPUHBC4TL5KK6
-#\\\|NKRZGDTDBYAGCASAIBOFDSF3LUAR3ZN6K6RPNDD6X7D7TCF3CK3 \ / AMOS7 \ YOURUM ::
-#\[7]4QCQTT5F3K4X6L34X5FHDQRF4ZVBJAGNZZYWVT3XT5ETQDKEJEBQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,.,.,,..,,,.,,,,,,.,,..,,.,.,..,,...,...,...,.,,,,.,,..,,.,,,
+#A5GUDYQRLDUPVKV4K4QRIB3RXPTMBOCQ5R5HUSYNC45T7Z75UDHFUXDXUYDOSWFOHZGBPE27OAYU6
+#\\\|YNC2QYSNIKTD7XYIRE6Q7ZZPAAYJC3ZZGUWUJUBIIJFHUIKWOSJ \ / AMOS7 \ YOURUM ::
+#\[7]BLEIQ27G5B6DTRTX7YWFXJJTIIW3OQTM22VXQIKJJVEHQQUYFSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@
 #         calls proxy.handler.post_auth when done (via reply or cache hit).
 
 my $client_id = shift;
-my $client    = $data{'proxy'}{'clients'}{$client_id};
+my $client    = <proxy.clients>->{$client_id};
 return if not defined $client;
 
 my $context = $client->{'context'};
@@ -20,8 +20,8 @@ if ( not length $domain ) {
 }
 
 ## cache hit ##
-if ( exists $data{'proxy'}{'auth_cache'}{$domain} ) {
-    $context->{'auth'} = $data{'proxy'}{'auth_cache'}{$domain};
+if ( exists <proxy.auth_cache>->{$domain} ) {
+    $context->{'auth'} = <proxy.auth_cache>->{$domain};
     $client->{'state'} = 'processing';
     <[proxy.handler.post_auth]>->($client_id);
     return;
@@ -41,8 +41,8 @@ my $slot = 'session.' . $domain;
 
 return;
 
-#,,,,,,..,,.,,,.,,,,,,,.,,..,,,.,,,..,...,,.,,..,,...,...,..,,,,.,,,.,,..,...,
-#3UE6GJTUNRHTXLXR4OMRR2EILBQYYECT3CQTQ7N2LPPV5EMRXY3K3BI6XJQ5VXRR3JNEU2BRYVQRY
-#\\\|7QMODKJZ6OA3GJD4L37HHE2KU56ZBX7QQTDIZMELCDWVNVNWA5L \ / AMOS7 \ YOURUM ::
-#\[7]JVZM6FVQ4CGBNCN4Z2CIFGTN5ZGOD7S7CGD6MXO6UQ62A4XJJADQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,,,,,..,,,,,,..,,..,,...,,..,..,,...,..,,..,,,,.,.,,,.,,,,..,
+#37SIFEOI4DKDEHREIXDNDSMHBNXIXDYBQEKM2S4RAWH5WCO4JR5VZYKMGERSUTIQI5AQS3XFEKOBQ
+#\\\|T5P4NMNOS3QQAMMPSOFL53WBX6ISB2ZBEAD3BCDPFV34SG7CHGB \ / AMOS7 \ YOURUM ::
+#\[7]HOGTG2MHDZITTWF7ZDTUSJQHS4MOTCV7GXX2YWIDHSVH4Z2SRYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

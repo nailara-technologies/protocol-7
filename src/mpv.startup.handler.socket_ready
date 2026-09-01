@@ -10,11 +10,11 @@ return if defined <mpv.socket>;
 
 if ( defined <mpv.startup.socket_deadline_timer> ) {
     <mpv.startup.socket_deadline_timer>->cancel;
-    delete $data{'mpv'}{'startup'}{'socket_deadline_timer'};
+    delete <mpv.startup.socket_deadline_timer>;
 }
 if ( defined <mpv.startup.socket_watch> ) {
     <mpv.startup.socket_watch>->cancel;
-    delete $data{'mpv'}{'startup'}{'socket_watch'};
+    delete <mpv.startup.socket_watch>;
 }
 
 my $socket_path = <mpv.path.ipc_socket> // '';
@@ -64,8 +64,8 @@ if ( <mpv.pending_commands> and <mpv.pending_commands>->@* ) {
 ## release finalize job — observe_properties + get_playlist run from there ##
 <[jobqueue.check_dependencies]>;
 
-#,,..,,..,.,.,.,,,,.,,.,.,.,.,.,,,.,.,.,,,.,.,.,.,...,...,...,..,,.,,,.,.,..,,
-#7NMNGIXEQZTAJUGEQ3VRTWZROEUFOEX5QRDX2DMACPJYUBVLZBC6SIFMKY7D6LHM7SOGLQ4MXRBVE
-#\\\|ZYHWX2FBSK5V7EVJLMA4OM6BZKL3AQEQDWDIJDZQJ2F5JNS4RED \ / AMOS7 \ YOURUM ::
-#\[7]NU3ZPLPINSFHMDX2XJW7TEL5Q54BBET5ONGYXNUGCE2ZET2PK6AQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,...,,,,,,.,,.,,,,,,,...,..,,.,.,...,...,..,,..,,,,.,.,,,.,,,
+#UQQR5YKWHZD5KFJVPTH4XDQMERC3N64FWXZ4JGPYGGJ2XCYYHEB6YABARH2I6RZYCSWG4AWK6BGR2
+#\\\|UROVFYMEUWPD4WNKHADR47TBWF3GSK5RAAPL5FQT3ONQ45PGBNB \ / AMOS7 \ YOURUM ::
+#\[7]RHRB64PJLDBI3VRRXFGATT52LRTQ5BBHXVLSCBW2BBIHFW7H4MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

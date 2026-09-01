@@ -3,7 +3,7 @@
 # name  = invoke-web.cmd.stop
 # descr = stop the invoke.ai web server process
 
-my $pid = $data{'invoke-web'}{'pid'};
+my $pid = <invoke-web.pid>;
 
 unless ( defined $pid and kill( 0, $pid ) ) {
     return { mode => qw| size |, data => "invoke.ai is not running\n" };
@@ -23,7 +23,7 @@ for my $key (qw| io_stdout io_stderr |) {
 
 ## send SIGTERM first
 kill( 'TERM', $pid );
-$data{'invoke-web'}{'status'} = 'stopping';
+<invoke-web.status> = 'stopping';
 
 <[base.logs]>->( 1, 'sent SIGTERM to invoke.ai [pid:%d]', $pid );
 
@@ -36,16 +36,16 @@ $data{'invoke-web'}{'status'} = 'stopping';
 
 ## clean up state
 <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
-$data{'invoke-web'}{'pid'}    = undef;
-$data{'invoke-web'}{'status'} = 'idle';
+<invoke-web.pid>    = undef;
+<invoke-web.status> = 'idle';
 
 return {
     mode => qw| size |,
     data => sprintf( "invoke.ai stopping [pid:%d sent SIGTERM]\n", $pid )
 };
 
-#,,..,,.,,,,.,,,.,..,,.,,,..,,,.,,.,.,,,,,,,.,..,,...,...,,,.,,.,,...,,.,,,.,,
-#OPXGI4D7S6D7VXCSXY4TNNHUCYYAO4ZBPSN5K7URBQIUCOJWKC7KTHM2BIEZAEWGJPBXPXLPD3HRK
-#\\\|OI47BMKUZY4CBBNHP2L6K6BG33GH7HYMQDJRUC2GUS3XVV2Q2SJ \ / AMOS7 \ YOURUM ::
-#\[7]7V7SRS4J4CYUG5CPLF6OB7PTZ4UVYA7LFGDYCUYJIURLLDWLQ4CI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,,..,.,,,,,,,,,.,,,.,..,,,.,,..,,...,...,.,.,,,,,,.,,,.,,..,,
+#ENPS26LPBVDT5HNACF5S4G6SKZC4YDY4NF7O4IIFMXHMNQEBPXR64N4C66DIOX4MGZCHCWOBF5FWA
+#\\\|FLVDOCH7JG32OI4YSL6EGL3LO3RVTTSM3ASG3ALLM5FPMN2EV5T \ / AMOS7 \ YOURUM ::
+#\[7]IPJGIJKBSJMM4VZFLRS43V3RUEEUITWV7ZJ6XD6ZLYGYRDIWSQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

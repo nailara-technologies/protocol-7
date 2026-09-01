@@ -16,8 +16,8 @@ unless ($force_refresh) {
     my $cache_key = "log_$branch_scope";
     my $time_key  = "log_time_$branch_scope";
 
-    my $cache_age  = time() - ( $data{'git'}{'cache'}{$time_key} // 0 );
-    my $cached_log = $data{'git'}{'cache'}{$cache_key} // [];
+    my $cache_age  = time() - ( <git.cache>->{$time_key} // 0 );
+    my $cached_log = <git.cache>->{$cache_key} // [];
 
     if ( <git.cfg.cache_log> && $cache_age < 300 && @$cached_log ) {
         <[base.log]>->(
@@ -25,7 +25,7 @@ unless ($force_refresh) {
             "git.log: using cached log for "
                 . "'$branch_scope' (age: ${cache_age}s)"
         );
-        $data{'git'}{'stats'}{'cache_hits'}++;
+        <git.stats.cache_hits>++;
 
         return {
             success => TRUE,
@@ -37,7 +37,7 @@ unless ($force_refresh) {
 }
 
 <[base.log]>->( 2, "git.log: fetching from git..." );
-$data{'git'}{'stats'}{'cache_misses'}++;
+<git.stats.cache_misses>++;
 
 ## Get git log via wrapper or direct command
 my @commits;
@@ -108,8 +108,8 @@ if ( <git.cfg.use_wrapper> && exists $code{'git.parent.execute_wrapper'} ) {
 ## Update cache (keyed by branch scope)
 my $cache_key = "log_$branch_scope";
 my $time_key  = "log_time_$branch_scope";
-$data{'git'}{'cache'}{$cache_key} = [@commits];
-$data{'git'}{'cache'}{$time_key}  = time();
+<git.cache>->{$cache_key} = [@commits];
+<git.cache>->{$time_key}  = time();
 
 return {
     success => TRUE,
@@ -119,8 +119,8 @@ return {
 
 0;
 
-#,,,.,.,.,,,.,.,.,.,,,,..,,,,,,.,,,.,,,,.,,..,..,,...,...,.,,,.,,,...,...,.,.,
-#WC3XNZRFM7MGMXHYYE4EDSMXHXRLE3U3NW5ZK6HHI5W6FV5EHFTGNPTASTI7WQ3YH2HHTX2IH2W5M
-#\\\|RD7LACDG5CWNZTLEGAUXXGZMODNOHV3BQIZ25SUVNN4BUN4F6BI \ / AMOS7 \ YOURUM ::
-#\[7]W63HAFVKFAPWJ3ZG5F7KINPGGC5QZ7QMD6Q3KONJUNHITDUFFUAA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,.,.,,..,..,,,.,,,.,,..,,,..,..,,...,...,...,...,.,.,..,,...,
+#NEZJLP5YEFFKXEFDLZZII2YBBKRQ4TGMONJJO5H3RPBFJ7ZPOYZTJGTDSBWUQBUK26NTZKCR6MTV2
+#\\\|7YPAY6RKLQ3UXJEVKEJOZFZ3VWWR3TUYBA7IYYBJGZYEL6B2LNK \ / AMOS7 \ YOURUM ::
+#\[7]3XUSRC73SAKH2U4ZZW5LGOR2LYRUXOXEOT46J6GAPHBESCOBWMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,18 +3,18 @@
 # name  = invoke-web.handler.check_health
 # descr = periodic timer handler: verify invoke.ai process is still alive
 
-my $pid = $data{'invoke-web'}{'pid'};
+my $pid = <invoke-web.pid>;
 return unless defined $pid;
 
 unless ( kill( 0, $pid ) ) {
     <[base.logs]>->( 0, 'invoke.ai process [pid:%d] disappeared', $pid );
-    $data{'invoke-web'}{'status'} = 'crashed';
-    $data{'invoke-web'}{'pid'}    = undef;
+    <invoke-web.status> = 'crashed';
+    <invoke-web.pid>    = undef;
     <[file.zenka_dir.unlink_file]>->( 'state/invokeai.pid', TRUE );
 }
 
-#,,..,,.,,.,.,...,...,.,,,...,,.,,...,,..,.,.,..,,...,..,,,.,,...,.,.,...,.,.,
-#4IHMCB2XHKECFYXXEDE3RIV5EAQ633UBFAEEIV35VHKEKJWEBWNIXGV54MX2UFPF3WZOOLE2LV63U
-#\\\|3GFOOZCYQV5SSGNNRN2SFRY4B47SPDW56U7OL3MYBITAK2NWSGE \ / AMOS7 \ YOURUM ::
-#\[7]VABRV5SFOLV7BJDVYGEDKTSBRPYMIEI3632FNGYA674E6GRGUQCY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,,,.,.,,,..,,,,,,...,.,.,,.,,..,,...,...,.,.,,,,,.,.,.,.,,,.,
+#GSFJ457KUPCAJGIYIL6FW4ENSX2LFXES6GD7TTRVIV3MN74TCCNZZA5H734MHEYCRLGVZNACYWEN2
+#\\\|ILDGSZB2RPZOZYE3C72HGV3NPN3ZWUZZOARPX6BNWUZX4GKWDVN \ / AMOS7 \ YOURUM ::
+#\[7]HUWPFTPDO265ZP6I4PXKC7LEHKVTBGHDDIWDHCZJEV3VON45COBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

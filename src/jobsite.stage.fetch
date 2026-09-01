@@ -22,7 +22,7 @@ if ( not @cats ) {
 
 my %cat_urls;
 for my $cat (@cats) {
-    my $url = $data{'jobsite'}{'cfg'}{'url'}{$cat} // '';
+    my $url = <jobsite.cfg.url>->{$cat} // '';
     if ( not length $url ) {
         <[base.logs]>->( 0, '[fetch] no url for category %s', $cat );
         next;
@@ -103,9 +103,9 @@ my $skip_ids = join( ' ', sort @skip_source_ids );
 <jobsite.fetch_saw_queue>    = FALSE;
 
 ## cancel any leftover poll timer from a previous scan ##
-if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
-    $data{'jobsite'}{'queue_poll_timer'}->cancel;
-    $data{'jobsite'}{'queue_poll_timer'} = undef;
+if ( defined <jobsite.queue_poll_timer> ) {
+    <jobsite.queue_poll_timer>->cancel;
+    <jobsite.queue_poll_timer> = undef;
 }
 
 for my $cat ( sort keys %cat_urls ) {
@@ -131,8 +131,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <jobsite.fetch_pending> = scalar keys %cat_urls;
 
-#,,..,.,,,,..,..,,,,,,.,.,...,.,.,...,..,,,,,,..,,...,...,..,,,.,,.,,,...,,..,
-#M2XM5IXM6MOD6MAKT5DLOL2B2CIO4EJD4O7HKCAGMDZY4DJ5MMMXJKVLTPCNVAMZ26GDNJFCEZVQM
-#\\\|DWDKY7FNB5LS5FOPZFWMVTVZ4LMK6SXQZTOMLVYB6UKZ7W7YFW4 \ / AMOS7 \ YOURUM ::
-#\[7]AJJBOTWUTL5PIA7T6LA5VCWVYSFPDQVKVSQ3I6TYGVJVOZRNJIAI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,,..,.,.,.,,,...,,.,,.,,,,,,,..,,...,...,.,,,...,,..,,.,,..,,
+#LQ76CFE7RHDILF3NMMNETQ4KGAEAL4HEKYTXZIAJRNN5F73WYSJP2WKOYXQ4KXRFZ64XMDWYXCASQ
+#\\\|4A4CMKK7QL3OCMFN25N6PNVNI3U6AF2ENSWTOYV7KFZP5JZDIKO \ / AMOS7 \ YOURUM ::
+#\[7]JNPLNSDOGUDKO4ZY7QPFXNCSUVNGBSAHHXCPE35VL7MBPBBNCMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

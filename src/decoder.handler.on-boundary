@@ -10,8 +10,8 @@ my ( $stream_id, $boundary_value ) = split m| +|, $args_str, 2;
 $stream_id      //= 'unknown';
 $boundary_value //= 769230;
 
-$data{'decoder'}{'boundary_count'}++;
-my $boundary_n = $data{'decoder'}{'boundary_count'};
+<decoder.boundary_count>++;
+my $boundary_n = <decoder.boundary_count>;
 
 ## close all level buffers for this stream ##
 for my $level_name (qw| level-5-B32 level-6-D3 |) {
@@ -44,28 +44,28 @@ if ( $stream_status->{'mode'} eq 'size' ) {
 }
 
 ## push stream coordinate onto INDEXCUBE traversal log ##
-$data{'decoder'}{'INDEXCUBE'} //= [];
-push @{ $data{'decoder'}{'INDEXCUBE'} },
+<decoder.INDEXCUBE> //= [];
+push @{<decoder.INDEXCUBE>},
     {
     'stream_id'      => $stream_id,
     'boundary_value' => $boundary_value + 0,
     'boundary_n'     => $boundary_n,
     'p7ref'          => $p7ref,
     'timestamp'      => <[base.ntime]>,
-    'depth'          => scalar @{ $data{'decoder'}{'INDEXCUBE'} },
+    'depth'          => scalar @{<decoder.INDEXCUBE>},
     };
 
 <[base.logs]>->(
     2,
     "INDEXCUBE depth %d : stream %s [%s] traversal recorded",
-    scalar( @{ $data{'decoder'}{'INDEXCUBE'} } ),
+    scalar( @{<decoder.INDEXCUBE>} ),
     $stream_id, $p7ref
 );
 
 return { 'mode' => qw| true |, 'data' => "boundary $boundary_n recorded" };
 
-#,,.,,,,.,,.,,,,.,..,,,,.,.,,,.,.,,,.,,,,,,.,,..,,...,...,...,,..,,,,,.,.,,,.,
-#LLIMIZBLZ4RMPN3X6BGHKDOMBUINDBWGBTDXWYBBHG5YFWJC3UROYARZIMDY6OFFGZI4FBKT5CWYC
-#\\\|QNK2OJL3OBYYKF56X3H3CFOXOGFEDOAEV3H5I2RI2PWUZ5G46HE \ / AMOS7 \ YOURUM ::
-#\[7]ABYYGZPPM2WSOXMINPGNJRT3WQ2FFOT4RLO7U5QN3JIQDX4XWSAA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,...,,..,,..,..,,,,,,,.,,..,,,,,,..,,...,...,,,,,.,,,,,,,.,.,,,,,
+#MQNAO46ZCNQVSIAWRCHW7HX4YJVERXT724ETWEODFURBRIMLAAF6GWEPXSVGOH65MGWSQRS4ADTAQ
+#\\\|U2DEQSQYYO33I3IO3TMH2PGQT44KXARWGSDL7VFJQYGZKZ7WBLT \ / AMOS7 \ YOURUM ::
+#\[7]YA272LBQLXOFNNXNRCES7FSAUWB4IUVAYK5AUTWZBIMT2WSF7CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

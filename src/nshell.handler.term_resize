@@ -10,11 +10,11 @@ my $new_cols = $size[0] // 80;
 my $new_rows = $size[1] // 24;
 
 ## cache new terminal dimensions for render.viewport and other consumers
-$data{'nshell'}{'cfg'}{'term_cols'} = $new_cols;
-$data{'nshell'}{'cfg'}{'term_rows'} = $new_rows;
+<nshell.cfg.term_cols> = $new_cols;
+<nshell.cfg.term_rows> = $new_rows;
 
 ## [ redraw current input line at new width (if editor is active) ]
-my $state_ref = $data{'nshell'}{'state'} // {};
+my $state_ref = <nshell.state> // {};
 if ( defined $state_ref->{'editor'} ) {
 
     ##[ reset view_offset so viewport recalculates from scratch at new width ]
@@ -26,8 +26,8 @@ if ( defined $state_ref->{'editor'} ) {
     <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
 }
 
-#,,,,,.,,,...,.,,,.,,,,,,,,,,,.,.,.,,,.,.,..,,..,,...,...,.,.,,.,,,,.,,..,.,.,
-#GNYEMEINCOPG3WGLMG4H4XHCD4FMBYIHHFI4VYY5DVPANZY2N3HEEKNDXXR5XBLINH4B6R6TBHZQQ
-#\\\|ERGZJ2BBVGTLNZERHIIFSQCZYVFM6TN5GPCYA7LJMRMXJ5JNSD5 \ / AMOS7 \ YOURUM ::
-#\[7]EYCM55Y45DL7K5YQ62AHBAAO6SE5YD6H3LKFV4RSWZDSETZLIWAQ 7  DATA SIGNATURE ::
+#,,..,...,,..,.,.,.,.,,,.,.,.,,,,,.,,,.,.,.,.,..,,...,...,...,,,,,..,,..,,...,
+#7A4LJHF5LOYPDKU2SWRZBXBA2MUEYG73HJFMR7TNTUNTCU6ZL3TU4CUVFZKAAZ2WD4QUCOULSZXJS
+#\\\|J64YD2GC2MK33EP7XIJF6KMQCUWOOEQ5AW2SKXO2UOPFTYSLXHX \ / AMOS7 \ YOURUM ::
+#\[7]PSN4YSAOE5EHKOV6FIJ4XZEB7OGBWDFYESQPZQC4L4BU3VVXI4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

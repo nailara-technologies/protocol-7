@@ -11,7 +11,7 @@ my $query_id = $data->{'query_id'} // '';
 return unless length $query_id;
 
 ## remove pending entry so a late reply finds nothing and is ignored ##
-my $pending = delete $data{'coding'}{'tree_query_pending'}->{$query_id};
+my $pending = delete <coding.tree_query_pending>->{$query_id};
 return unless defined $pending;
 
 <[base.logs]>->(
@@ -33,8 +33,8 @@ return unless defined $pending;
 
 return;
 
-#,,.,,...,.,.,,..,.,.,.,.,,.,,..,,,,,,.,.,..,,..,,...,...,..,,,,.,,.,,,,.,.,.,
-#7NZSQYCHIEW5MQM6GBXHZJUQGGYUAKCKC6JV45VBGFN3H2IJ5ZGG2YVQSM7UZWHSCNQULBTGMDVB2
-#\\\|FND5WNF3U7FMPG5W4HGAT2C5UPJ2IA7U5PHSLTXF4LN6BJTUMDS \ / AMOS7 \ YOURUM ::
-#\[7]IBWAIHCTOVFPVNPFFQVU7W664LFPRUKQVX2TW6WMR4CTMWAJMWAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,...,.,,,...,,,,,..,,..,,,.,,..,,...,...,..,,,.,,,,,,,.,,.,,,
+#US7VN77KWNI2RJZ2X2DIVVL3KSJM4PW4ITYLG3E6TXKW2ZISDVEZFDN5R3PFTZAEWIWEIMPQY3FJY
+#\\\|TU2SGDSMQ53SKCRSKWUFYZPSZDWSVFZPFMFSRBTRUZYHYJEBEM5 \ / AMOS7 \ YOURUM ::
+#\[7]KH5KLZWMXOAAF7M4Z3HSCHO2HEY5FKUHNSTOPUH5K2ZNIAAATSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

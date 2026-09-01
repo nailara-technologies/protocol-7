@@ -4,7 +4,7 @@
 
 my ( $fd, $data ) = @ARG;
 
-my $client = $data{'plan-9'}{'server'}{'clients'}{$fd};
+my $client = <plan-9.server.clients>->{$fd};
 return unless $client;
 
 $client->{'buffer'} .= $data;
@@ -31,8 +31,8 @@ while ( length( $client->{'buffer'} ) >= 4 ) {
     }
 }
 
-#,,.,,,,.,,,,,.,,,,..,,.,,,,.,,.,,...,,,.,..,,.,.,...,...,,,,,,.,,...,,..,.,,,
-#MOLVDE4W3FZYB6ZIBP76QK3PKE4MFP6XTPJL26A2SSVP777GWHOJO4Q2LD3FD6MWQBGDWBRRPEHRQ
-#\\\|NT2YUE2CZUU7PPLIUFZP55Q2WEKVWFREDQ3WAXYHMXXXMQNZNDG \ / AMOS7 \ YOURUM ::
-#\[7]MUHIHQDPQIM4CZO2HXW7ZLHFRNHCLDM6RP7M2NWPGRK2PDY2HKAI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,.,,,.,...,,..,.,,,..,,.,,,.,,,.,.,...,...,...,,..,.,.,..,,...,
+#FSKSR22R6LSYEL7GAGVF647A5B5BBQFCRRNRMAP2CWGVBW3Z7JGMZV7PPI62TZ6L5VDT5BCAZXX7M
+#\\\|ASJCPF3A7RX6P3HKGWMASCFP4VCIV7C7QD4QOVRDALORFHO7RBE \ / AMOS7 \ YOURUM ::
+#\[7]NJ7F5YE2EMVGKN26OFCJ3ED42HJPOHMYXU35CU7NNKTI7UQAHUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

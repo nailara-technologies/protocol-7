@@ -9,7 +9,7 @@ my $connection;
 my $profile_name;
 if ( @ARG == 1 and $ARG[0] =~ m|^\d+$| ) {
     $con_id       = shift;
-    $connection   = $data{'ssh'}{'connections'}->{$con_id};
+    $connection   = <ssh.connections>->{$con_id};
     $link_name    = $connection->{'name'};
     $profile_name = $connection->{'profile'};
 } else {
@@ -37,18 +37,18 @@ my $ssh_port = $link_setup->{'ssh.port'};
 );
 
 if ( not defined $con_id ) {
-    $con_id = <[base.gen_id]>->( $data{'ssh'}{'connections'} );
-    $data{'ssh'}{'connections'}->{$con_id} //= {};
-    $connection = $data{'ssh'}{'connections'}->{$con_id};
+    $con_id = <[base.gen_id]>->(<ssh.connections>);
+    <ssh.connections>->{$con_id} //= {};
+    $connection = <ssh.connections>->{$con_id};
 
     $connection->{'name'}        = $link_name;
     $connection->{'profile'}     = $profile_name;
     $connection->{'target_host'} = $ssh_addr;
     $connection->{'target_port'} = $ssh_port;
 
-    $data{'ssh'}{'profiles'}->{$profile_name}->{$link_name} //= [];
+    <ssh.profiles>->{$profile_name}->{$link_name} //= [];
     push
-        $data{'ssh'}{'profiles'}->{$profile_name}->{$link_name}->@*,
+        <ssh.profiles>->{$profile_name}->{$link_name}->@*,
         $con_id;
 
     <ssh.status.connections>->{$con_id} = qw| offline |;
@@ -229,8 +229,8 @@ $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
 
 return 0;
 
-#,,,,,.,,,..,,.,.,,..,.,,,.,,,,.,,.,,,,,.,.,.,..,,...,..,,,.,,.,.,...,..,,...,
-#DYBNADWBL674VHSWBBIX4IBOD4QZB2VQQRXVRNZGGLSJDXJZ6VTYPKENZVNEGSBKPCH443FM7YYWQ
-#\\\|W2PCGEFBVGSRZJ5WQQYFYCJT7PV2GAQQJKM6KS7PPSKMGUMXUAJ \ / AMOS7 \ YOURUM ::
-#\[7]A6KB77UAYIQ46HNOQYXVHY6YM2HEHB5S5RDEIWO2SY753K5OHUCI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,,,,..,.,.,...,,.,,,.,,.,.,..,,..,,...,...,.,,,..,,,,,,,,,,,,.,
+#6XBEWISYVBWI2BP4TKS326A5V6BNSP7MVGSPAONEFZTMSFDPYIIRDET3BIB6TNPP5PFIGHJSDIX4E
+#\\\|AMIGIZEYMLJ5EO62I6MXYZSSGZV4AM2C447GLJKNKTHYFM2I6JR \ / AMOS7 \ YOURUM ::
+#\[7]7TY7BDNIUJUAFJ3OQSVEYPXOPDW3MK3YLZ57DN4KIRLYOIXRS2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

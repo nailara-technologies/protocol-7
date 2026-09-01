@@ -83,14 +83,14 @@ if ( not defined $pid or $EVAL_ERROR ) {
 <[base.zenki.report_child_pid]>->($pid);
 
 ## disable idle shutdown for the lifetime of the pointer stream
-if ( defined $data{'system'}{'ondemand_timeout'} ) {
-    <powershell.pointer.saved_timeout> = $data{'system'}{'ondemand_timeout'};
-    delete $data{'system'}{'ondemand_timeout'};
+if ( defined <system.ondemand_timeout> ) {
+    <powershell.pointer.saved_timeout> = <system.ondemand_timeout>;
+    delete <system.ondemand_timeout>;
 }
 if ( defined <base.timer.ondemand_timeout>
     and <base.timer.ondemand_timeout>->is_active ) {
     <base.timer.ondemand_timeout>->cancel;
-    delete $data{'base'}{'timer'}{'ondemand_timeout'};
+    delete <base.timer.ondemand_timeout>;
 }
 
 <[event.add_io]>->(
@@ -111,8 +111,8 @@ return TRUE;
 
 #
 
-#,,.,,,,.,...,.,,,,.,,..,,,..,.,.,,,,,.,.,,,.,..,,...,...,,,.,,..,.,.,.,.,.,,,
-#5VX5LOOFFHUYKL4XFWFT3S7ANI2GYVVUMPN6IPLINJXLUGQELOLDFZVLW7GJ643CBZ5N5UD6AAJ3U
-#\\\|BLKZ5DIDTNJZQXQGCSX3BT7ATOE26TEAEPIVJCHFVXQD5FP3ULI \ / AMOS7 \ YOURUM ::
-#\[7]FQJEIQ2WHPUBVU6QQGB7KCGC2GG5RQ4UZ3ONNJTPYMVUSY4OPOCY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,,,.,.,,.,,...,,.,,...,,,,,,..,..,,...,..,,,.,,..,,.,.,,,,,.,,,
+#IM3LGKRX4H5QBCKRWOMGATUY4ZEDVDGXOXPYWG53UYZP7SFBS37454FB5JERIWV6VFV4R2AOZSZVE
+#\\\|MGKVFQGZUE36VLS5WQL2BNZPGRNLAOFSOPPYJHCFW4WI4XD3MBA \ / AMOS7 \ YOURUM ::
+#\[7]XWNDRK7MW2IP23VNI4NKWKB5B2OW47SG7JR2QYJO3OHIRJMWHUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

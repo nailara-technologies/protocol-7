@@ -28,7 +28,7 @@ if ( defined $call->{'args'} and $call->{'args'} eq qw| subscribe | ) {
     );
 
     ## push the current snapshot immediately ##
-    my $conn_ref = $data{'external'}{'connections'} // {};
+    my $conn_ref = <external.connections> // {};
     for my $name ( <[base.sort]>->($conn_ref) ) {
         my $c       = $conn_ref->{$name};
         my $payload = sprintf "%s %s %s %s %s\n",
@@ -43,7 +43,7 @@ if ( defined $call->{'args'} and $call->{'args'} eq qw| subscribe | ) {
     return { 'mode' => qw| deferred | };
 }
 
-my $conn_ref = $data{'external'}{'connections'} // {};
+my $conn_ref = <external.connections> // {};
 my @names    = <[base.sort]>->($conn_ref);
 
 return { 'mode' => qw| true |, 'data' => 'no connections' }
@@ -66,8 +66,8 @@ foreach my $name (@names) {
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,..,,..,,...,,.,,...,.,.,...,..,,...,...,..,,...,..,,,.,,...,...,..,,,,,,
-#3DXFANFPHHWXWILI5HBE4IPQTKJTEVG6HZVHQCEDLAYM6K4NWX236CMCBQSGTBMWJVLLRD4ZB4EXO
-#\\\|WWCHUW3GKY5FECUVFHBYQJR2I4B3ZYYZRNSVU547IPKCIZ4JTS7 \ / AMOS7 \ YOURUM ::
-#\[7]T3IXNN25YAQI77RZVRTIYZAHJER22AL3US7Q5YFCTB3M6GLQ34DY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,,,.,.,,,..,,.,,,,.,,.,,,...,..,,...,...,...,...,,..,.,.,.,,,
+#DUS7XLVSBDP55L7HQLM6X3ZS5455B2WQ5JNUH74YN53FEBPFLH3YPWR6IVIXSRPGTTKJ53OJEIW44
+#\\\|3KLVHDFZCGMCUU3ORWP2ZNDUQINDCPSAURWBEU2GKSF2F5CLFL2 \ / AMOS7 \ YOURUM ::
+#\[7]QMWBWUQEOIWXIN2VK3O25KAM3NY5FP27HDFFSYGLS46GOOFMCEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

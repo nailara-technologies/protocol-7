@@ -17,11 +17,10 @@ if ( $v7_check->{running} ) {
     );
 
     ## Update registry
-    $data{'zenki'}{'running'}{'v7'} = {
+    <zenki.running.v7> = {
         pid     => $v7_check->{pid},
-        started => $data{'zenki'}{'running'}{'v7'}{'started'}
-            || <[base.ntime]>,
-        status => qw| running |
+        started => <zenki.running.v7.started> || <[base.ntime]>,
+        status  => qw| running |
     };
 
     return {
@@ -86,13 +85,13 @@ while ( time() - $start_time < $timeout ) {
         <[base.log]>->( 2, "  ✓ v7 started successfully" );
 
         ## Update registry and statistics
-        $data{'zenki'}{'running'}{'v7'} = {
+        <zenki.running.v7> = {
             pid     => $check->{pid},
             started => <[base.ntime]>,
             status  => qw| running |
         };
 
-        $data{'zenki'}{'stats'}{'v7_starts'}++;
+        <zenki.stats.v7_starts>++;
 
         return {
             success => TRUE,
@@ -111,8 +110,8 @@ return {
 
 0;
 
-#,,,,,,,.,,..,.,,,,,,,,..,,..,,,,,,,,,,..,.,,,..,,...,...,...,,.,,...,,,,,,..,
-#7XK74LRWGGEPKV4PMFWODKKVAGLJ45DDNFDJFFPPGU6MT6MYLHXB7ZQADLBTZT3PPUQMGXQIYGXIO
-#\\\|FJAKU7IDTD2GXYPUGPP3E5E26C5J2X7OO3YXGH6VS2Z5GVHFHBX \ / AMOS7 \ YOURUM ::
-#\[7]4SN2WIHKRVV7DSWWWASJFLMAO4PWQGED3PK22ZWQT3U5OPLQIQBI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,,,,,.,,,,,..,,...,.,.,,..,,..,..,,...,...,..,,...,...,,..,..,,
+#F5N6QF4UEY3EID72VIYIPRQE3WBYGDOBTG5GRJNRFYVBZDXSBMUOKGKPADTEAU7UB2S6LYXNLKGXK
+#\\\|W25VLIMXCMW6FHDDFYZMGB65CCQO5LTYZKPDDHM34IZ2N3FXMKJ \ / AMOS7 \ YOURUM ::
+#\[7]7MKGN6D5JUF56RD72ZDU3VANECRJ27E2W2KAKBJ34BGTIGCPVMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ my $page_num  = $args->{'page_num'};
 my $direction = $args->{'direction'} // 'forward';
 my $depth     = $args->{'depth'}     // 2;
 
-my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+my $buf = <pager.buffers>->{$buffer_id};
 return unless $buf;
 
 # Don't prefetch if cache is near full
@@ -54,8 +54,8 @@ for my $prefetch_page (@to_fetch) {
 
 return scalar(@to_fetch);
 
-#,,,.,..,,,..,,,,,.,,,,,,,,..,,.,,,..,...,...,..,,...,..,,,.,,,,,,.,,,.,.,...,
-#7IIGCLB6CEPX6O7LGD5PNTPW5EXM5V24YBVGTYVVCUE5FLIBXTLR6DYGSS7XYGDTAYWPTZCIANOL6
-#\\\|CRLQJIU7SV5UOH5PGHAH5GSGYCS55ERJCGSXZ3YSQ3BPYQ3YQCQ \ / AMOS7 \ YOURUM ::
-#\[7]TNH5J2V72L3Q7GO42PMANRU4T5YR2ZGL27L5ZJQN2FIUYAAXE4DY 7  DATA SIGNATURE ::
+#,,..,,,.,...,,.,,,,.,...,.,,,..,,,,.,,,,,.,.,..,,...,...,,,,,..,,.,,,,,,,,,,,
+#LXQKYEUYRM7QGKWYUION2AL7SH6YU6YI4RRBNLHCPEKWC4G63UW5GDYDKQQUUUXHUWIC3LSFXZ2MW
+#\\\|QQYB2LGNJIG56NTSA3P6F5NGMFLF3YMXW26SQWT6ZUP2U5TUZP4 \ / AMOS7 \ YOURUM ::
+#\[7]M7I5TWK54IOWBMGU5TGGBTHKKRIW4HQBKPKZ7E6VHIYBUQKC2KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

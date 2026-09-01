@@ -8,7 +8,7 @@ use constant RING_HEADER_SIZE => 16;
 
 my ($channel_id) = @ARG;
 
-my $channel = $data{'channel'}{'shm'}{'registry'}{$channel_id};
+my $channel = <channel.shm.registry>->{$channel_id};
 return undef unless defined $channel;
 
 my $shm      = $channel->{'shm'};
@@ -27,8 +27,8 @@ return {
     'msg_count' => $channel->{'msg_count'},
 };
 
-#,,.,,.,.,.,.,,,,,.,,,,,,,,,,,,,.,...,,..,.,,,..,,...,.,.,..,,..,,...,,,.,,,.,
-#2SMZT4Z23WRSEG2ODMKZCQAYZ4L7L3GR67GRHECG5RJX6FKTVYZ3VPMNCQCNIBWUQX7MSNQDFDURE
-#\\\|AH6QEZQ524BKUMLP5I7N4PZFG7WCOWYDIMB7RZ2XG22QFHMA2XW \ / AMOS7 \ YOURUM ::
-#\[7]TZ266IR6LBYVPU5KM3XQTLFD6RZDCLJMO4AWMX2O6QSSI255KMDY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,,,.,,,,,,.,,...,,,,,,,,,..,,..,,...,.,.,,..,,,.,,,.,.,,,,,.,
+#5R6LUB2QDH2QVLTD7BYI4OHAEUPRC4ODXD4LHG73MTKMXM4OBGIXMZACZXSL663CWTXNRM46A55HM
+#\\\|X2PYPVBPFIJXLTOF22CBUV3AGMPZQ3DTDJYTSKMD5CA6OPCCFOT \ / AMOS7 \ YOURUM ::
+#\[7]KE3ZRKRSNUNWGWLRVJZTMSPUK7LYONUVLI7EDGGCAI7E2PUWD4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

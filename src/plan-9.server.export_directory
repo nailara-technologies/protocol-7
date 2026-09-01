@@ -34,13 +34,13 @@ my $root = Cwd::abs_path($real_path) // $real_path;
 
 my $writable_flag = $writable ? 1 : 0;
 
-$data{'plan-9'}{'server'}{'buffers'}{$name} = {
+<plan-9.server.buffers>->{$name} = {
     'kind'           => 'directory',
     'realpath'       => $real_path,
     'root'           => $root,
     'writable'       => $writable_flag,
     'symlink_policy' => $symlink_policy,
-    'qid_path'       => $data{'plan-9'}{'server'}{'next_qid'}++,
+    'qid_path'       => <plan-9.server.next_qid>++,
     'qid_version'    => 0,
     'exported_at'    => <[base.ntime]>,
 };
@@ -50,8 +50,8 @@ $data{'plan-9'}{'server'}{'buffers'}{$name} = {
 
 return 1;
 
-#,,,.,...,,,.,.,,,,.,,..,,.,.,,,.,,..,.,.,.,.,..,,...,...,...,..,,,,.,..,,,.,,
-#OW63ZOGRUKVKRNXLOLEHAJYIEADTAMLFK5K6K353TLG5U2Q2HW4WYTLNPVNZNOQ7NSOH3U5DPWWF6
-#\\\|YKQVDJTVBAMUDWZEY4LL5SFMDK3UMYV7BLBAHJTAG5C7UB3CPZP \ / AMOS7 \ YOURUM ::
-#\[7]RUZN54SGLKFDWHVZJSYSIKF63C2TH67JZPS7NPXDK7GD4NPCQOCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,.,.,,,,,,.,,,..,,..,,,.,,,.,..,,...,...,,,.,..,,...,,,.,...,
+#I4NBSI3I5RYVFRNBZGM4VWSAUSW2Q6XLXSOSM6NMBVLMY24OL75NMJY5IWLNVLPBWV5ZFY4GZOXPO
+#\\\|54N7J6CRW7WS3MDOV5JI2MD6JKOZCXW2XWPEXDMWG662UGNVJXZ \ / AMOS7 \ YOURUM ::
+#\[7]5AA4DW46325R6WUD45LDKJARYMO7X5GFX7XQXKEO5LX7E264C4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

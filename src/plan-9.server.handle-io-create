@@ -40,8 +40,7 @@ if ($is_dir) {
     close($fh);
 }
 
-$data{'plan-9'}{'server'}{'realpath_qids'}{$child}
-    //= $data{'plan-9'}{'server'}{'next_qid'}++;
+<plan-9.server.realpath_qids>->{$child} //= <plan-9.server.next_qid>++;
 
 my $qid_type
     = $is_dir
@@ -57,14 +56,14 @@ $client->{fids}{$fid} = {
     qid            => {
         type    => $qid_type,
         version => 0,
-        path    => $data{'plan-9'}{'server'}{'realpath_qids'}{$child},
+        path    => <plan-9.server.realpath_qids>->{$child},
     },
     open  => 1,
     omode => $mode,
 };
 
 my $resp = <[plan-9.protocol.codec.encode-qid]>->(
-    $qid_type, 0, $data{'plan-9'}{'server'}{'realpath_qids'}{$child}
+    $qid_type, 0, <plan-9.server.realpath_qids>->{$child}
 ) . <[plan-9.protocol.codec.encode-uint32]>->( $client->{msize} // 8192 );
 
 return <[plan-9.protocol.codec.encode-message]>->(
@@ -72,8 +71,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, $resp
 );
 
-#,,,.,,..,.,,,,,,,.,,,,,,,.,.,..,,,,,,..,,..,,.,.,...,..,,...,..,,..,,..,,,..,
-#NGUABSR3Z5XEDCG6VVCWVCY47MRRVV3Z2V77RTNIKNITZBSEGF7PC2TQN4ZWP3QQSJ77NYRFYGG6S
-#\\\|MDOGSSZYXLN5QTZI4Y6SEG5LE2XXUF7SJVWPHYKUYWEV4YY7ZIL \ / AMOS7 \ YOURUM ::
-#\[7]CH3JVEJ53FGODW4IEOS4JDZOEZ2GRVJYUNHI74JVUXJVCBEBTCDA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,.,,,,.,...,,,,,.,,,,,,,.,.,...,.,.,...,...,..,,.,.,.,,,,..,,..,
+#2TWXUDPMD6MTAW2EVDZ53KKYB7YFE6EFLC2TZGNGLTQ4RVJREZ6QKPR2ACV4MGXAENZSBYYEGFGVO
+#\\\|ECGMUB47KHZYFQINUILTOSPEL2OBLAODDOFI7XAT3J6RMYULCG7 \ / AMOS7 \ YOURUM ::
+#\[7]VHHPDKRYBMJW2WPX35AHE3NCQVEIJYCPGUP654IYJW7LHIESEQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

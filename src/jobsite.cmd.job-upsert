@@ -38,7 +38,7 @@ if ( $idx_status =~ m{^(blocked|deleted|trash)(:|$)} ) {
     return { 'mode' => 'true', 'data' => 'exists' };
 }
 
-my $store = $data{'jobs'}{'store'} // <[jobsite.job.load_all]>;
+my $store = <jobs.store> // <[jobsite.job.load_all]>;
 
 ## hard-block student-only positions [ thesis / internship / apprenticeship ##
 ## ] -- candidate is a 25+ year full-time professional, not enrolled in any ##
@@ -148,10 +148,10 @@ if ( not $is_new ) {
 ## every new arrival so assessments get dispatched once arrivals actually   ##
 ## stop, instead of trusting site-yaml's queue-depth alone                  ##
 if ($is_new) {
-    if ( defined $data{'jobsite'}{'new_job_settle_timer'} ) {
-        $data{'jobsite'}{'new_job_settle_timer'}->cancel;
+    if ( defined <jobsite.new_job_settle_timer> ) {
+        <jobsite.new_job_settle_timer>->cancel;
     }
-    $data{'jobsite'}{'new_job_settle_timer'} = <[event.add_timer]>->(
+    <jobsite.new_job_settle_timer> = <[event.add_timer]>->(
         {   after   => 2,
             handler => qw| jobsite.handler.new-job-settle |,
         }
@@ -163,8 +163,8 @@ return {
     'data' => $is_new ? qw| new | : qw| updated |
 };
 
-#,,,,,,,.,,,,,,..,,.,,,,,,,,.,,,,,,,.,...,,..,.,.,...,...,.,,,...,,,.,..,,.,,,
-#ZOI3RCVJPGU5LVD4SAWK2VVVOU5PRJW6U65D447MZ5VOBJ5AJ5BC3ZMDDPWH45WAH62LZOL52OKEW
-#\\\|SJUQVKZVULHZ3Z2CIGTM6VLMSM4YWEB3EQ6NHDVC4IS73LQXX2X \ / AMOS7 \ YOURUM ::
-#\[7]V76CA2KZBFNIWNYNY5OECOQIENZAVZZTAQTTKKUUTI3F46425ACQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,.,,.,,,.,.,,..,,..,.,,,.,.,.,,,.,.,...,...,,,,,,,.,.,.,.,,,.,,,
+#ZFMB5SDIKKEU57YSOIDICO5IGK3NG6GG6CYDW5M3XPHEUXSFC5VWXW4DQHTY2XNHAFJ6W4Y6GXDLM
+#\\\|GT5FAOGYJVWQ3BRAL63OTPRVLNNDHNRECXU4TSWGD27WVNWZUUE \ / AMOS7 \ YOURUM ::
+#\[7]OUSFWZOAK4T6NJJLQTAG65OLXGEE5S25WSVL4MCQCX5SYXST7MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,18 +9,18 @@
 return if not defined <base.ondemand.saved_timeout>;
 
 <system.ondemand_timeout> = <base.ondemand.saved_timeout>;
-delete $data{'base'}{'ondemand'}{'saved_timeout'};
+delete <base.ondemand.saved_timeout>;
 
 <base.ondemand.last_activity> = <[base.ntime]>;
 
 ## give the idle watcher a prompt chance to re-check instead of waiting on ##
 ## the next unrelated I/O event [ same nudge as base.stream.close ]        ##
-$data{'watcher'}{'io'}{'transfer'}->start
-    if defined $data{'watcher'}{'io'}{'transfer'}
-    and not $data{'watcher'}{'io'}{'transfer'}->is_active;
+<watcher.io.transfer>->start
+    if defined <watcher.io.transfer>
+    and not <watcher.io.transfer>->is_active;
 
-#,,.,,,..,,.,,,,.,...,,.,,,.,,.,,,,.,,,,,,...,..,,...,...,.,,,...,...,,..,,..,
-#C6VRJ4IGHDYG3ZGWS6ELNO4IETPCBLAZSPRBHELIUQVCWOYRFGQO35PNGYE6SS36XTRY32NY3ZHKO
-#\\\|QNUOFA6GJED7QNWEWQWXFGTV4ZMB4KLYAAI2WGYYUNM7P3MKFO5 \ / AMOS7 \ YOURUM ::
-#\[7]SHWRAFMVEOP53ZVS5IJP2GPWVDWUNMO3KYGDMFZEL2MOVT7PDGDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,,,,,...,.,,,..,,...,.,,,,,.,..,,...,...,...,...,,.,,,,.,,.,,
+#UW3OT3PXW4QX6T3S5C2QIT64S3O5WCZKSM6GJWR3H4FP7PIVRZZOASQWGSMXAKRZJD5MJVMPFQVY2
+#\\\|6LGVD7VQZRRXBVDJOKKDL6WV73ZDFDDPMAMDZM2EAVF5SXI262H \ / AMOS7 \ YOURUM ::
+#\[7]AXGOUH7LFEYU7HAFICL6BEIBV26ZHANHQEJQJBROMZ7Q7Z3IV6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

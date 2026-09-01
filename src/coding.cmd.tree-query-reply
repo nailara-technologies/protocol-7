@@ -18,7 +18,7 @@ $args_str =~ s{^\s+|\s+$}{}g;
 return { 'mode' => 'false', 'data' => 'query_id required' }
     unless length $query_id;
 
-my $pending = delete $data{'coding'}{'tree_query_pending'}->{$query_id};
+my $pending = delete <coding.tree_query_pending>->{$query_id};
 
 ## already resolved by the timeout fallback : ignore this late reply ##
 return { 'mode' => 'true', 'data' => 'no longer pending' }
@@ -86,8 +86,8 @@ if ($hit) {
 
 return { 'mode' => 'true', 'data' => 'miss : enqueued' };
 
-#,,..,,.,,,.,,..,,.,,,,.,,..,,..,,,..,,.,,,..,..,,...,...,,,.,,,,,,..,.,.,,,.,
-#7POB2NOBZ4WR3XSMFHYJU77HGKOVL7M7I2U5DY5CNTMYJBXFGGKQG4ZGPKCND7RC5Z2Q2VODA6SXO
-#\\\|XAQ6XGYE5O5VWVLMET2QVGRSAGUAFTUZMMZASGIR2HAZ5K3TAUJ \ / AMOS7 \ YOURUM ::
-#\[7]S2AXL3TDLRKAVEDKDHR2U77W5GCJQ5Z3I42HYKGONJOTXNJNG4AI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,..,,..,,.,,,,.,,.,,,...,.,,,..,,...,...,.,,,...,..,,.,.,...,
+#2I25YZ3VQENKY2YB2WHJMATIC6JP4EE5IWH26E2CLUSIBTUPZW6CSHRP764RWUA23YGXOIJY2ZCDY
+#\\\|YMWMLOWHCT4X7XQIMOIW6MTGPC6AI7MDW3EVVQJXKC5KNPNUZYS \ / AMOS7 \ YOURUM ::
+#\[7]QMFIBUEKO7A34SQ2WTHEGNAEZO5XLOFENIIRDVR4PJB4BB7UP2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@
 <[base.log]>->( 2, ': initializing SHM channel transport..,' );
 
 # Register SHM as a channel transport type
-$data{'channel'}{'transport'}{'shm'} = {
+<channel.transport.shm> = {
     'create' => 'data.channel.shm.create',
     'read'   => 'data.channel.shm.read',
     'write'  => 'data.channel.shm.write',
@@ -15,12 +15,12 @@ $data{'channel'}{'transport'}{'shm'} = {
 };
 
 # SHM channel registry - tracks active SHM-backed channels
-$data{'channel'}{'shm'}{'registry'} //= {};
+<channel.shm.registry> //= {};
 
 return TRUE;    ## [success] ##
 
-#,,,,,.,,,.,.,,,.,.,.,,.,,,.,,,,.,.,,,,,.,...,..,,...,...,.,.,..,,,,.,.,,,,,.,
-#D2EF5QCUSJ67YJGFLGU3S42YEKVHXDDF7ZR5MUCTMPK5XMLIUN7ZKVARAISK3JDVZAWF2GOLB35BK
-#\\\|DGCQPFN3H2FDFDCFWSQAM42GBZNNKQP7WGJSTCIKN2JQ3SQE4UW \ / AMOS7 \ YOURUM ::
-#\[7]PGRWGGIAUSV7AFVGWORFGC7I7TCP7KISN6AOWR26YQT4TRDI7IAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,..,,...,.,,,.,.,,..,,..,...,..,,...,...,..,,...,..,,.,.,,,.,
+#I2JWKVVCDKMY2B4XTXYA44A6F7O56M5U5ZK5WMVKDHP6TNZ5Q23326HNW4OXLWNEMT7SYPCJANWI4
+#\\\|ETVRUVW53TZ2JO3PP64A5UYOGVR3ZIT43KDAS3V6UKZZH5VHTNV \ / AMOS7 \ YOURUM ::
+#\[7]GYNDZCPBNFDBOGJ2LH5C2QAYGG5CISNIWN5ME6TKMSF44XTD6OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

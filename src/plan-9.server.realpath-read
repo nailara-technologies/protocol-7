@@ -16,8 +16,8 @@ if ( -d $real_path ) {
         my $child  = "$real_path/$entry";
         my $is_dir = -d $child;
 
-        $data{'plan-9'}{'server'}{'realpath_qids'}{$child}
-            //= $data{'plan-9'}{'server'}{'next_qid'}++;
+        <plan-9.server.realpath_qids>->{$child}
+            //= <plan-9.server.next_qid>++;
 
         ## bin/Protocol-7 does 'use File::stat' globally : shadows the ##
         ## builtin ; use the OO form like the rest of P7 does          ##
@@ -28,7 +28,7 @@ if ( -d $real_path ) {
             qid_type => $is_dir ? <plan-9.protocol.constants.QTDIR>
             : <plan-9.protocol.constants.QTFILE>,
             qid_version => 0,
-            qid_path    => $data{'plan-9'}{'server'}{'realpath_qids'}{$child},
+            qid_path    => <plan-9.server.realpath_qids>->{$child},
             mode => $is_dir ? ( 0755 | <plan-9.protocol.constants.DMDIR> )
             : 0644,
             atime  => $st     ? $st->atime : time,
@@ -53,8 +53,8 @@ if ( -d $real_path ) {
     return $buf;
 }
 
-#,,.,,...,.,,,,..,,..,,.,,,..,..,,.,.,,,,,,..,..,,...,...,,,.,,..,,..,.,.,,,.,
-#B24TYOUGOQC6EGC4E23J4OVNQ4KAJAAWP63Q3SHGIUXPXH3CVLEDYTI266MMWNLMUOSNDUSLA4E26
-#\\\|FALA6MWTLD56HO7S6DJZVI3CFTHQUCFGCO2ZJWGWIPKU5E4K2OE \ / AMOS7 \ YOURUM ::
-#\[7]PMK6KH77UR4HRQ4XRZVIW2S7UFJU7LL6E7U7SCGCZTPIV4EWOKDY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,..,.,,,,..,,.,,...,.,.,,,.,..,,...,...,..,,,,,,...,,.,,,,,,
+#W5V6G2NSM5L6JFYYJU6QXT3UPUDFVQTCALBPFUR7IHYRYXO7MI3GOXPTAH2NV3FE4P65FK5VRB65O
+#\\\|XNGVVDPADHAS3QKYKD5VCBSOP7KOXLFCD2MB57FOPUTQ7NNCH3Q \ / AMOS7 \ YOURUM ::
+#\[7]KADX7VWFYQL5KLEGYN32RRRWR65GLOF64SYUP5WUJMF5GL2A6QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

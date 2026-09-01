@@ -83,8 +83,8 @@ $final_result->{'response'} = $data->{'choices'}[0]{'message'}{'content'}
 $final_result->{'finish_reason'} = $data->{'choices'}[0]{'finish_reason'}
     // $data->{'stop_reason'} // 'stop';
 
-$final_result->{'tokens_used'} = $data->{'usage'}{'total_tokens'}
-    // $data->{'usage'}{'completion_tokens'} // 0;
+$final_result->{'tokens_used'} = <usage.total_tokens>
+    // <usage.completion_tokens> // 0;
 
 <[base.log]>->(
     2,
@@ -100,8 +100,8 @@ $final_result->{'tokens_used'} = $data->{'usage'}{'total_tokens'}
 
 return $final_result;
 
-#,,,,,,,,,..,,,..,,.,,..,,,.,,,.,,,..,,..,,.,,.,.,...,..,,,,.,,..,...,.,,,,..,
-#4KJGSKEN2KBWJ4X4LBZRK7EDZWDCPEY26PFC2CBZPB3UXTWVKBUOSG2V2VDWKDZOJMTCZ2NHXDJ7E
-#\\\|TYHVODABUB43QBXVCSCVDV53MFNC4X365NQCMCFGOTSPRQTIEMJ \ / AMOS7 \ YOURUM ::
-#\[7]N3QWSSSAW6GNOAL3RQ5TWUM2C3SFBDSAPVGZUFGQJEWEKTF2YWDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,.,,,.,.,,,.,..,,..,,,.,,.,,,.,.,...,...,,,.,...,,..,.,.,,..,
+#QCAVNF55MC3ZFQGXQVI52CJFEHENNJDUZCRVTHG3OSSD7LYZBIJ7KDQRFY6EVONRDKXXKGOCJRY4I
+#\\\|SMR5YVICQNTGYLPA4DEGC2FW2HLQ777Q2C6WKOBTXM3XMP23YJU \ / AMOS7 \ YOURUM ::
+#\[7]KZQNIPAWCPQRV24P34VMR5UEAMBWAPLINIIANNDDDZKLVM6N4GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

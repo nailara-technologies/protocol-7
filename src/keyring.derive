@@ -11,17 +11,17 @@ my $dot_path = shift // '';
 return undef if not length $dot_path;
 
 ## return cached key if already derived ##
-return $data{'keyring'}{'namespace'}{$dot_path}{'key'}
-    if defined $data{'keyring'}{'namespace'}{$dot_path}{'key'};
+return <keyring.namespace>->{$dot_path}{'key'}
+    if defined <keyring.namespace>->{$dot_path}{'key'};
 
 ## ensure root is loaded ##
-if ( not $data{'keyring'}{'root'}{'loaded'} // FALSE ) {
+if ( not <keyring.root.loaded> // FALSE ) {
     <[base.logs]>->( 0, 'keyring.derive: root key not loaded' );
     return undef;
 }
 
 my @components = split /\./, $dot_path;
-my $current    = $data{'keyring'}{'root'}{'key'};
+my $current    = <keyring.root.key>;
 my $partial    = '';
 
 for my $component (@components) {
@@ -32,16 +32,16 @@ for my $component (@components) {
     ## cache each intermediate path [ avoid redundant derivation chains ] ##
     $partial = length($partial) ? $partial . '.' . $component : $component;
     my $depth = scalar split /\./, $partial;
-    $data{'keyring'}{'namespace'}{$partial}               //= {};
-    $data{'keyring'}{'namespace'}{$partial}{'key'}        //= $current;
-    $data{'keyring'}{'namespace'}{$partial}{'depth'}      //= $depth;
-    $data{'keyring'}{'namespace'}{$partial}{'derived_at'} //= <[base.ntime]>;
+    <keyring.namespace>->{$partial}               //= {};
+    <keyring.namespace>->{$partial}{'key'}        //= $current;
+    <keyring.namespace>->{$partial}{'depth'}      //= $depth;
+    <keyring.namespace>->{$partial}{'derived_at'} //= <[base.ntime]>;
 }
 
 return $current;
 
-#,,,,,...,...,...,,,.,,..,,,,,,.,,.,,,,.,,,.,,..,,...,...,.,.,,.,,..,,...,..,,
-#PDIZAQIVOB73IXZNQCYMNC3GQZG2UQTP5KOATMDFNUBKWPB6RJ23YJZPK76OGX5XXGF2US2S2BQ5G
-#\\\|3CJLEOOAH2ONFTVR3S64VWNZNS5HW5UBDJCXH72HDP53EVITABJ \ / AMOS7 \ YOURUM ::
-#\[7]IBASHLFO65ILQGQJXW7WZ6S52FLIFIE6TCMBJEFFMWIE5AEJPMCI 7  DATA SIGNATURE ::
+#,,..,...,,,,,,..,,.,,,,,,,..,...,,..,.,,,.,,,..,,...,...,...,,.,,,..,.,.,..,,
+#WW3RUDHWYECHJT7REJOQA2DCH6HRTGITCDMOVVXJD4DONWWN4ZMWK3AWBQV7JJHIYNW2PHARPQAT4
+#\\\|6SWL5YZABLLTA3IIBTG26N73IQVXPIKJZFMHKF4MK6ASWLNXC32 \ / AMOS7 \ YOURUM ::
+#\[7]DG2AHAWKXN5IRRA5KWDIULOA3SGS7RJ26TKUD56II64TPO53B6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

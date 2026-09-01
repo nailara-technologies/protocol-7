@@ -7,7 +7,7 @@ my $client_id = shift;
 my $context   = shift;
 my $template  = shift;
 
-my $client = $data{'proxy'}{'clients'}{$client_id};
+my $client = <proxy.clients>->{$client_id};
 return if not defined $client;
 
 if ( $template =~ m{\.(passthrough)$} ) {
@@ -25,8 +25,8 @@ if ( $template =~ m{\.(passthrough)$} ) {
     return <[proxy.template.generic]>->( $client_id, $context );
 }
 
-#,,,.,...,,.,,.,,,,.,,.,.,,,,,...,,,.,.,,,,..,..,,...,...,.,,,,..,,.,,.,.,,..,
-#5QQJPMCMNCABMXAMMBFOLGIGJTEMJ52XFBDDLX4BAIK3SDR5GG2VSG5MT3YJTAZPZJLUR34AU2ETW
-#\\\|VS7MCCZP4J6BZGCEJXPKYZ2ZU537KYT7GCO4L5NGX6JYIAKD5ZI \ / AMOS7 \ YOURUM ::
-#\[7]5RR5KJ6SR4PMNU3P4ODXWFYEB767UGPV2RICT22LWIW3NC2SWKBI 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,,,.,.,,,,.,,,,.,.,,,.,.,,,,,..,,...,...,...,.,.,,,,,.,.,...,
+#ZCBHIPUZPPI7EXNYSN3JWOU7PC3WBZBS2Y4CA57XO3AHHHWKSYX7EYSA5LD5XROISCSG2NUEYFWME
+#\\\|2EJ5VFWGYS6FP3K6AXAGAIRI7VVW2QOTQXUDW2AGQTZLRCPRB4K \ / AMOS7 \ YOURUM ::
+#\[7]TEC2T5VR7NLWQSZMHT4B745SKNQZM6TW7TQ3X7M55QYXQWFF2SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

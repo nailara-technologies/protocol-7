@@ -4,7 +4,7 @@
 
 my ( $amos_id, $z, $offset, $content ) = @ARG;
 
-my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+my $buf = <plan-9.server.buffers>->{$amos_id};
 return 0 unless $buf;
 
 my $window = $buf->{window};
@@ -22,8 +22,8 @@ substr( $window->{buffer}{layers}[$z], $offset, length($content) )
 
 return length($content);
 
-#,,,,,.,.,,,.,...,,,.,.,.,,.,,,.,,,,,,..,,,,.,.,.,...,...,..,,,..,,,,,.,,,,.,,
-#SG6GG2YBBX2H3KLKN7PGKRUHVK3MMFB4BV6LLKZAMDBYMJYS24MZCNTUH4YGQNQ2KNN5XC2YN4BD2
-#\\\|WZ4KETJFUMFOO73FDWXTRNSQSL3554VHHAURTI3L6UETGM3KHVQ \ / AMOS7 \ YOURUM ::
-#\[7]HQGWWJARYBAHBB2WC2GKSOM3FHHFJLLQX6FQPLGIDFFZG5ZU7YCQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,,.,,,,.,,.,,...,,,.,,,,,,..,.,.,...,...,..,,.,,,,,.,.,.,...,
+#XV6JD3FTMLEY5FD3PCQK75NES3552XK7AMANTDWEZPJRCGAFT6LYJETJ5TGQM3VVKXKSMMWYX27AM
+#\\\|P5OUQDTWKYZ2K5ATINXANWRKIMTZO57NQDWLRT4BHUCGX3RXK7R \ / AMOS7 \ YOURUM ::
+#\[7]B6PKO3LS5U32G2VN2TY6LKQGL6BFQYGOQGUBMDELLWDOYXESCWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

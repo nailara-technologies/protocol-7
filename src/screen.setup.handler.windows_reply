@@ -7,9 +7,9 @@ my $reply = shift                    // {};
 my $id    = $reply->{'params'}{'id'} // '';
 
 return if not length $id;
-return if not exists $data{'screen-setup'}{'instances'}{$id};
+return if not exists <screen-setup.instances>->{$id};
 
-my $inst = $data{'screen-setup'}{'instances'}{$id};
+my $inst = <screen-setup.instances>->{$id};
 
 my $mode = lc( $reply->{'cmd'} // '' );
 if ( $mode ne qw| true | and $mode ne qw| size | ) {
@@ -83,8 +83,8 @@ for my $e (@new_entries) {
 <[event.add_timer]>->(
     {   'after' => 2,
         'cb'    => sub {
-            return if not exists $data{'screen-setup'}{'instances'}{$id};
-            my $live_inst = $data{'screen-setup'}{'instances'}{$id};
+            return if not exists <screen-setup.instances>->{$id};
+            my $live_inst = <screen-setup.instances>->{$id};
             return if ( $live_inst->{'window_pending'} // 0 ) <= 0;
             <[base.logs]>->(
                 1,
@@ -102,8 +102,8 @@ for my $e (@new_entries) {
 
 #
 
-#,,..,...,...,,..,.,,,,,.,.,,,,..,.,.,,,,,.,,,.,.,...,...,...,...,,,,,..,,.,.,
-#MJMTJMXCMFZHIKW5NU7OGD6SJPEBJWDVBYP2GCBS5JZIB2TNAE3OT3KLUEKHYD6BB7FSVXY6O7QBG
-#\\\|GLPI7FJWUIW6T63JQ637AIMPQ5AM3EPCQRACSUK3KUEB7LDVWCU \ / AMOS7 \ YOURUM ::
-#\[7]E6L7TYZSIGPXRA3MAM44NZXBLPXIMUSNBSAYY7JOX5G5C7II3SCI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,.,,,,.,,..,..,,...,...,...,.,,,.,.,...,...,,.,,...,...,,,,,,.,,
+#ASLKJYWUH3A6XTXG4PJFFRHSKLSUQTXXILAIEQAAV4U2QN2XUXWKSP2SN7INPWVLV5ELG63B3J7E2
+#\\\|F735S4F7SRJ2VRDOKVDEX7HE3EQYPLRQ5OQPOZR4S5SSMMYVHLV \ / AMOS7 \ YOURUM ::
+#\[7]5C33ZECCLRCO4JOQFYOVL32PF767DZO54HSTXGM6CYVBWV3VGWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

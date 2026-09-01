@@ -23,8 +23,8 @@ if ( not defined $session->{'bytes-to-read'} ) {
 
 my $return_code = 2;    ##  set to disconnecting  ##
 
-my $size_left = $data{'size'}->{'buffer'}->{'input'}
-    - bytes::length $session->{'buffer'}->{'input'};
+my $size_left
+    = <size.buffer.input> - bytes::length $session->{'buffer'}->{'input'};
 
 if ( $size_left <= 0 ) {    ##  no space left in buffer  ##
     $handle_href->{'paused'} = TRUE;
@@ -50,8 +50,8 @@ if ( $bytecount > 0 ) {
 
 return $return_code;
 
-#,,..,,.,,..,,.,,,.,.,,.,,..,,,..,..,,,,.,,,,,..,,...,...,.,.,,.,,.,.,.,,,..,,
-#77SMPCHBOJRUTZOIBTA7NGRAXJHKKR2YGX4RCQTLR43SKS7BSGXYXNR6UPBFSRH3JETB3HCISEAMY
-#\\\|NXG6EFHXB357254QJ3LMNBEWJE73UUYMRKF4Q6VLW2PLTKTIR35 \ / AMOS7 \ YOURUM ::
-#\[7]632EM4UAXSUGBRSVW6KRRXIUYJH2QJHOG5FKM2N6A4UW6CYM7GDA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,,,...,.,,,,,.,.,.,...,,,,,,..,..,,...,...,...,.,,,...,.,,,.,,,
+#6DASQXTADNQIRM56FAJYMWQWSBTPURIHI5LM6GSTX2NJP7V5GKGW5H3B4FNKMW6TB3XJIOBLMKYEM
+#\\\|OOWKZEGOTLULQZFQ24SZMZBQRXEYDBVLP5K2E3PVBDHRHVOUIFX \ / AMOS7 \ YOURUM ::
+#\[7]IEFYUO3ZVNTC6MABYESXM2VEBSCXXAVSVFH6H57YKIFH5COHY6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

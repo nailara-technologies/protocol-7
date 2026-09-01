@@ -26,26 +26,26 @@ if ( not defined $key_ref or ref($$key_ref) ne qw| HASH | ) {
         'base.list.element.add: val_ref is no reference to a hash reference'
     );
     return undef;
-} elsif ( not defined $data{'base'}{'element'}{$key_ref}
-    or not defined $data{'base'}{'element'}{$key_ref}{'max_count'}
-    or $data{'base'}{'element'}{$key_ref}{'max_count'} < 1 ) {
+} elsif ( not defined <base.element>->{$key_ref}
+    or not defined <base.element>->{$key_ref}{'max_count'}
+    or <base.element>->{$key_ref}{'max_count'} < 1 ) {
     <[base.log]>->( 0, 'base.list.element.add: max_count not set or zero' );
     return undef;
 }
 
 my $id = <[base.gen_id]>->(
-    $$key_ref, $data{'base'}{'element'}{$key_ref}{'max_count'},
+    $$key_ref, <base.element>->{$key_ref}{'max_count'},
     undef,     $want_harmony
 );
 
 ${$$key_ref}{$id} = $$val_ref;
 
-$data{'base'}{'element'}{$key_ref}{'count'} = scalar keys %{$$key_ref};
+<base.element>->{$key_ref}{'count'} = scalar keys %{$$key_ref};
 
 return $id;
 
-#,,,.,,..,.,,,,..,.,,,,,.,.,.,,.,,...,.,.,,.,,..,,...,...,.,.,,.,,...,.,,,,,,,
-#SAJQTSGTCYI63PR3OJ7AX45PXXXFCIT46AIOEVHDIEPCI6GGUWC55FW24NPPCXIKNT2BPOAEPU6HO
-#\\\|BTBUZWKR2XRQBULR6435KCARTWGNCB5D4H4J4MX42XDBB2UN7JP \ / AMOS7 \ YOURUM ::
-#\[7]2LVYJC4UKEBQ4NPCKVISMW5ZWLWP64C2IJJTTIBSGMX7L7YAOWBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,..,,,..,,,,,,,,,..,,,,,,,,.,..,,...,...,.,,,,,,,,..,,.,,..,,
+#PTT2R47P6NH7KF7D6DBN654QW3UNR2SMWYVOYGFC7ZZGPOQOOVO4UXE3I4OVQVNZEQ2FBLWZDZEJQ
+#\\\|J43CXHOITKM4PN3GM3A2EHI3TDOPHHMCVX62UV5C7EHWS6WHKZW \ / AMOS7 \ YOURUM ::
+#\[7]DWBSSUY7LVSJ5EBJGRHEK3PFDW7CW5TOVABOK526RZMD2E7M5MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

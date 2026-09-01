@@ -11,9 +11,9 @@
 my $path   = shift // return undef;
 my $method = shift // '';    ##  reserved for future method-aware patterns  ##
 
-return undef if not exists $data{'httpd'}{'classify'};
+return undef if not exists <httpd.classify>;
 
-my $library = $data{'httpd'}{'classify'}{'library'} // return undef;
+my $library = <httpd.classify.library> // return undef;
 
 foreach my $family ( sort keys %{$library} ) {
     foreach my $pattern ( @{ $library->{$family}{'patterns'} // [] } ) {
@@ -29,8 +29,8 @@ foreach my $family ( sort keys %{$library} ) {
 
 return undef;
 
-#,,,,,...,.,,,,,,,,.,,..,,.,,,,..,,,.,,,,,,,.,..,,...,...,.,.,...,,,,,,,.,...,
-#PYQZ732OC5UYJMWEOBDYFIZOSZZ7MNWKEKVLU2QODVFHIOH4O5ZCLYK7JFGVCB7CMYP45B67YFXXW
-#\\\|YZLHNL7Q2X7P57QGTSFBHIYQYEITHKX4XEYGHZ46M6ZQ7RAHUVL \ / AMOS7 \ YOURUM ::
-#\[7]O6AHS7QWJPBSCHVNWRGZ4PVVJSTMTD673HVJLFGTNCI6D3UQQKCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,...,..,,.,.,,..,...,,,.,...,..,,...,..,,,,.,,,,,.,.,,,.,...,
+#D443CK2ZP4CMI6QVSXRDXFYLUL4FY3JJFFYA4UO7IBOB5UO55E4PTBQF2MY3CQWHM2WF5CGLFE5AO
+#\\\|OEIIB7WQBXS2UI23JBAYVMSRXRZPBJ32VCHFZOSLF5BAXQECTEG \ / AMOS7 \ YOURUM ::
+#\[7]Z2GPB3VQMDXRUNEI2MXW3EIKYZHI6QCEXCIPFWV6CIDZ6SMH3EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

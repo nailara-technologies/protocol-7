@@ -44,8 +44,8 @@ if ( defined $moved_target ) {
         }
     }
 
-    my $wl_state = $data{'base'}{'loader'}{'sub_whitelist_enabled'};
-    $data{'base'}{'loader'}{'sub_whitelist_enabled'} = FALSE;
+    my $wl_state = <base.loader.sub_whitelist_enabled>;
+    <base.loader.sub_whitelist_enabled> = FALSE;
 
     eval {
         if ( index( $load_target, '.' ) > 0 ) {
@@ -55,7 +55,7 @@ if ( defined $moved_target ) {
         }
     };
 
-    $data{'base'}{'loader'}{'sub_whitelist_enabled'} = $wl_state;
+    <base.loader.sub_whitelist_enabled> = $wl_state;
 
     if ( defined $code{$missing_sub} ) {
         <[base.logs]>->( 2, ': self-heal MOV loaded : %s', $missing_sub );
@@ -170,10 +170,10 @@ foreach my $sub_name (@dg_subs) {
         if ( $policy eq qw| heal | ) {
             <[base.logs]>->( 2, ': self-heal loading : %s', $sub_name );
 
-            my $wl_state = $data{'base'}{'loader'}{'sub_whitelist_enabled'};
-            $data{'base'}{'loader'}{'sub_whitelist_enabled'} = FALSE;
+            my $wl_state = <base.loader.sub_whitelist_enabled>;
+            <base.loader.sub_whitelist_enabled> = FALSE;
             eval { <[base.load_code]>->($sub_name) };
-            $data{'base'}{'loader'}{'sub_whitelist_enabled'} = $wl_state;
+            <base.loader.sub_whitelist_enabled> = $wl_state;
 
             ## a single healed sub is not a loaded namespace --          ##
             ## base.load_code stamps it into the registry regardless, so ##
@@ -215,8 +215,8 @@ if ( not $found_in_depgraph and not defined $moved_target ) {
 
 return $healed;
 
-#,,..,.,.,.,,,,..,.,,,.,.,,,,,.,.,.,.,..,,,.,,..,,...,...,.,,,,,,,,,.,,,,,,..,
-#CIY2KVI2SETAT3E3XTP3JYSJKIBTH754HREZJNTSNHXEJ4PJ6WKNRVGIFGQLDLKZLHKQ4K2FZNERE
-#\\\|3CJJ4HMSRKVSR4EPSD342PBFHLUNR75BYVYBSGQ2GBZQVPSVURD \ / AMOS7 \ YOURUM ::
-#\[7]FCHT6CWBRKR4NWZNYJW5ORFLWEMQKLLS55MIRL3N3VX5XOLO5YDA 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,...,.,.,,.,,.,,,,,.,,,,,,.,,..,,...,...,.,.,...,.,,,,,,,,..,
+#WP43YRZBCHQG2VE47RGDDWQYGVH6BPBEAAKO4TAN3QQYRXHLDHWLI64HMBC5HYV53DY73S4IDGE4U
+#\\\|F24J7LINJVM6A4BM6VISWAKRGGE64MU3JQ22UHZE5CAP26VGCJH \ / AMOS7 \ YOURUM ::
+#\[7]WG3VYAOBBX7UZXABZ7Q3CHMYCRMLHCLDU5SCPCCMBALEIUZZKGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

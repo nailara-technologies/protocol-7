@@ -11,7 +11,7 @@ my $resolve_p7ref = $args->{'resolve_p7ref'}
 
 return undef unless $checksum;
 
-my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+my $registry = <storage.mapping.checksum-cluster>;
 $checksum = <[plugin.storage.util.normalize_checksum]>->($checksum);
 $registry->{'stats'}{'lookups'}++;
 
@@ -72,8 +72,8 @@ if ( $registry->{'config'}{'index_reverse'}
 # Not found
 return undef;
 
-#,,,.,...,,..,..,,,,.,,,.,,,.,.,.,...,.,,,.,,,.,.,...,...,.,,,.,.,,..,,,.,..,,
-#DTDTYWAP3UXBMXPNOXZ6QCBNCU3MX5K2A3PYTDXJVMXSEWAUGYQT3X34COBSAWMX2MSA3M5YDORRK
-#\\\|HJH62AR4YMVXV7HMCX7Q2GQYOWKZVQGKKO527WCW4B5A5FPBTPC \ / AMOS7 \ YOURUM ::
-#\[7]5M62EKPMXUO3G7NCFQOMVQESTKUXU7SKBMYPEX5VHFYHVEASCIBQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,..,,,,.,,..,.,,,.,,,..,,,,.,,,,,.,.,...,..,,.,.,,..,,,,,,.,,.,,,
+#XKJJ36S4G4RCEX5NRACOWR6ZKD6Y4Y2D4MVF326H4VT4KH2EBKLTR6DXSYLH5RBF664QBELSDT3UQ
+#\\\|IDDPOVZKBTF4MUOETKZQKFGCELFS5A23FN5QDKLT4WITZJLPVIO \ / AMOS7 \ YOURUM ::
+#\[7]3BCHFYJXXNJKIMJWDSKQNBBT3RCIGFNTDXJZKPPELVEIIQZV2YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

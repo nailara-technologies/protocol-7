@@ -4,7 +4,7 @@
 
 my ($fd) = @ARG;
 
-my $client = delete $data{'plan-9'}{'server'}{'clients'}{$fd};
+my $client = delete <plan-9.server.clients>->{$fd};
 return unless $client;
 
 ## cancel the read watcher before closing the socket -- mirrors ##
@@ -16,8 +16,8 @@ $client->{'sock'}->close if defined $client->{'sock'};
 
 <[base.logs]>->("9P client disconnected (fd=$fd)");
 
-#,,.,,,.,,,.,,.,,,..,,.,.,.,,,,.,,...,...,,.,,.,.,...,...,.,,,,,.,,,.,.,,,,..,
-#ON46CWHGAP7Q44UWITD4HTPOEYNERMUQSBINLAPVHHXT4FXVFVMPTPMNAAWXUDXT4WAVBIB35VOCI
-#\\\|F2YEA7ZAP6WE4C5ENLJV2K2CDTPL2SHJVD5UQY2DPAZ6UACX4JY \ / AMOS7 \ YOURUM ::
-#\[7]PLGEKSV3RCDTX572CBLG2WTLTXD2C2IQ2TB6ZAA54AQO7LTIVCDY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,,,,,,,,,,..,...,,..,...,..,,.,.,...,...,.,,,,,,,,..,,,.,...,
+#JEI5JB6GFVBQ2HWFIXV6QA7FBA2NQMJWUE6JPEOSZ76PNK5DWHF2TA7M4EJGLFPHO72B3ZIKYNBFK
+#\\\|36G2AELQEEXBJXIDKUNTDOOC2WIG2YPQFTTXBQ2MDKXU3YKSMQR \ / AMOS7 \ YOURUM ::
+#\[7]3NSLBVJUBFAO73X6J4NZ33DHFUQWSRYB3HMC4WNHXF47XWEIXEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

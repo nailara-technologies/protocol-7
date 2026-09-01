@@ -8,7 +8,7 @@ use constant RING_HEADER_SIZE => 16;
 
 my ( $channel_id, $message ) = @ARG;
 
-my $channel = $data{'channel'}{'shm'}{'registry'}{$channel_id};
+my $channel = <channel.shm.registry>->{$channel_id};
 return undef unless defined $channel;
 
 my $shm      = $channel->{'shm'};
@@ -60,8 +60,8 @@ $channel->{'bytes_written'} += $msg_len;
 
 return length($message);
 
-#,,.,,,,.,,,.,,,.,.,.,...,,..,,..,,..,,,,,.,.,..,,...,...,.,.,.,,,.,,,.,.,..,,
-#VSF6QQCUHSBXVODS3L7DZIYSLNDG4FQQCLGSZPUKZEYPRDSZR5ICWWCBICZYRKLYSPONQVLRLFOYS
-#\\\|M6BJ2U4QZHBOLYW7FZ7QEIKDOKJFPA4W7SQYGTBFQ7J6IPWG6BL \ / AMOS7 \ YOURUM ::
-#\[7]TNXCL7COH3AEVSYDMIUVRXHZBQ37GGHU43DBDQT4G7KLORQ5IGDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,...,,,,,.,,,,.,,..,,.,.,,.,,,,,,..,,...,...,.,,,..,,,.,,.,,,...,
+#37QMFYM67L5EZ6YCI6NNWKGAEQHUMEQXEE7RC2DQGCJDITYVOFHQ37BK22BZRCVN5U7FDAEUDBPYO
+#\\\|FPRJWQCGP2KBNPCZHL6LE5IAULJUZMIHZCRJPRRHRLK7OXMV3YG \ / AMOS7 \ YOURUM ::
+#\[7]IVS66BMEE3QXQJ5PUUGQR6XYWA47SSUZOPLSH5QMWIWISLVEFOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

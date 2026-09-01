@@ -8,7 +8,7 @@ my ( $name, $value ) = @ARG;
 
 my $conn_handle = <base.stdio_multiplex.conn> // undef;
 return if not defined $conn_handle;
-return if not defined $data{'stdio_transport'}{'connections'}{$conn_handle};
+return if not defined <stdio_transport.connections>->{$conn_handle};
 
 return if not defined $name or not length $name;
 
@@ -18,8 +18,8 @@ return <[base.stdio.transport.emit]>->(
     { name => $name }
 );
 
-#,,.,,,.,,,..,,,.,.,.,..,,...,,.,,,,.,,,,,,..,..,,...,...,.,,,,,,,,..,,.,,,,.,
-#TDF6OPNFB3Y22IVWCDZFLZV5F6XJ7ZMJBKID22WEFCKT2CPJAL7CCJSUHKWSWEJ6KEHPEIGBYJOK2
-#\\\|KNVCCDFFFAYV6DJFOM3TX7SWFP5236ZUCAA3UEWDTK4LN64HQFG \ / AMOS7 \ YOURUM ::
-#\[7]IT2SGD6PZEZX4BDJHCOLYO4CKIVVJOJMWDUS7JDP774VIYW6ZACY 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,,,,,.,,,...,.,.,,.,,,.,,.,,,..,,...,...,...,,,.,.,,,,.,,,,.,
+#YLZSEMCIYORZIJNWLNILOA5WGGVJZUHTFK5AHWZBU4HG5YSTLA645R35WTG3AO2S2MO2F3WJT4MZ6
+#\\\|VYCNKGW67E6FM362CH5HX7PBNJFLG73HMKNHR7PTJJRM23J5UVF \ / AMOS7 \ YOURUM ::
+#\[7]4QVBSNTEQ2I4K4R2VTGAQKSKK44R5KKDKUG4OKXLNCQO5WDVTYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
