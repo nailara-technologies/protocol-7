@@ -1438,8 +1438,17 @@ sub step6_compact_data_sugar {
         ## the walk above already stopped at ] needs an explicit -> after   ##
         ## the sugar closes -- <key0.key1> isn't itself a hashref the way a ##
         ## raw $data{...} chain implicitly continues into the next {}       ##
+        ## when the original wrapped that subscript onto the NEXT line     ##
+        ## [ e.g. a long $data{'a'}{'b'}\n    {$c} ], the rest of THIS      ##
+        ## line is empty -- peek at the next line too, or the arrow never   ##
+        ## gets added at all                                                ##
         my $after       = substr( $line, $end_col );
         my $needs_arrow = $after =~ m{^\s*[\{\[]};
+        if ( not $needs_arrow and $after =~ m{^\s*$} ) {
+            my $next_line = $lines[ $line_idx + 1 ];
+            $needs_arrow = 1
+                if defined $next_line and $next_line =~ m{^\s*[\{\[]};
+        }
 
         my $replacement
             = '<'
@@ -2461,8 +2470,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,.,.,...,...,.,,,.,.,...,,,,,,,.,..,,..,,..,,...,...,,,.,..,,,,,,,,.,,,,,
-#XDTXJBX444W2LY5X4P5VXCBQANPUKPI7JP43I2XBB5CFLCK3KI77CA6PRYB4JBST6RJUY4SNRH5B6
-#\\\|PNLDNISJIS54Q57TAU4MXCQIIUTAMO3SUG2MWUGFTPQQJTUP2PR \ / AMOS7 \ YOURUM ::
-#\[7]PNZ3K3T526YBMOQ6TWVFEJIV3NRRJLYZ6NCT25EQLJ6TBA3AEYDI 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,..,,...,,,.,,,,,...,..,,,..,..,,...,...,..,,,,.,,..,,,,,,..,
+#GTZZYSPSSSE6CENCKSW5D4NIGZMS6BKIAY6EOGO6BATDVMKLFAK6OCGT5QCXRQVT3MXA4IXBTGSF2
+#\\\|A3IJBMFGTMEVV3HKTUP5BWYZGWCNK2CTGOX7ZGK666CRUJJIT3Y \ / AMOS7 \ YOURUM ::
+#\[7]MMOMHFM2XPM2AL46LH3K7FAMR7FMCY4KTRKXDWUGHU7DDGOE7OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
