@@ -13,7 +13,7 @@ $next_status = 'restart'
 
 my @remaining_pids;
 my $child_count = 0;
-foreach my $pid ( reverse sort keys %{<v7.child>} ) {
+foreach my $pid ( reverse sort keys <v7.child>->%* ) {
     next if <v7.child>->{$pid}->{'instance_id'} != $instance_id;
     if ( <[base.exists.sub-process]>->($pid) ) {
         push( @remaining_pids, $pid );
@@ -43,8 +43,8 @@ if ( !$child_count ) {    ## done waiting ##
         ->( 2, ": status : $curr_status next_status: '$next_status'" );
 }
 
-#,,,,,,.,,...,,.,,,..,,..,,,.,,,.,...,.,.,.,.,..,,...,...,,,,,.,,,,,.,,..,,..,
-#O67HM5VE7R2PQ3YBUWQ5KXXSRVALCVXPJZYENKQ7HUBUGGNFABYJOKSSIHBJ2HZQH2YPLZZQJRJY4
-#\\\|HY5NWGK76HERF2IF7TC5KBED5T4YKJJHF5WJSGRLY3RJYFPJF6B \ / AMOS7 \ YOURUM ::
-#\[7]6OGPOEAWZGO47OMYZU3W5ZXUUDWKLCLHCN2PT3X6T7BXX3BE2WCY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,,.,,,,,,...,,,.,.,,,.,,,,.,,..,,...,...,,.,,,,.,.,.,.,.,.,.,
+#UHLSGPUPHM6R5NQ77FXTU3XBYM4AIR2DQG6W2L3VQAP5BYDLJPF4AYK6GVIKUTT46VNH5RICBW4A4
+#\\\|E7HLTEG4P4OGTIU23XZVD7G43BLK7AV4IFPCVRYPVKTAQGC7JDC \ / AMOS7 \ YOURUM ::
+#\[7]ZH3M2237VRVOVFKOAUWU5JCJZK7WAF4DDFDMFZZJ2NFB3LF63GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

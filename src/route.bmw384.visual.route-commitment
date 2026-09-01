@@ -5,7 +5,7 @@
 
 return ''
     unless defined <bmw384.route.curves>
-    and scalar keys %{<bmw384.route.curves>};
+    and scalar keys <bmw384.route.curves>->%*;
 
 my $PI            = 3.14159265358979;
 my $segment_deg   = 360 / 26;
@@ -13,7 +13,7 @@ my $segment_width = 16777216 / 26;
 
 my $svg = '';
 
-for my $cid ( sort keys %{<bmw384.route.curves>} ) {
+for my $cid ( sort keys <bmw384.route.curves>->%* ) {
     my $curve   = <bmw384.route.curves>->{$cid};
     my $hops    = $curve->{'hops'}    // [];
     my $current = $curve->{'current'} // 0;
@@ -79,8 +79,8 @@ for my $cid ( sort keys %{<bmw384.route.curves>} ) {
 
 return $svg;
 
-#,,,.,,..,...,..,,,.,,.,,,,..,..,,...,..,,,..,..,,...,...,...,,..,,.,,.,,,.,.,
-#XXESVZIRDF2WF4ZORO4AMFXJ24NLN6YQAGARXFMEYWF75Q5JJBMDDSKWOQR637NNHDVJAAP35JCUA
-#\\\|IRRIQ4R5AZUL4GZCFEK2QHBDQMIIGE5REAZVWEAXJG7FEKOQXUQ \ / AMOS7 \ YOURUM ::
-#\[7]BSK3VSQEIFV3LO73I2LUH2CHR4TVCEQ47NBQBNNCUBCVZM3D7ODQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,.,.,,..,,..,,.,,,.,,,,.,.,.,..,,...,...,,.,,,,,,,.,,,.,,...,
+#FS4EUPTIBMEWT2LUHO5Q3SK67NNGYZ622TL7FS3RXIMQI7WR3HZQYNJYYY7B676I2XU3OPUYLJLIC
+#\\\|6U3XOKANIHSQLQT4A65E2XHSRMH7FBZ5LEUE36TQUNQQRZU345F \ / AMOS7 \ YOURUM ::
+#\[7]QCTSVNHDIAFAR3NZVUXUOWCW6YMUP7ZRXQJ6R6ZW4R3Q2UPSFCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

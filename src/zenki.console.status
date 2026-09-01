@@ -13,7 +13,7 @@ my @zenki_to_check = $filter ? ($filter) : qw| v7 cube |;
 
 ## Add other zenki from running registry
 if ( !$filter && <zenki.running.zenki> ) {
-    push @zenki_to_check, keys %{<zenki.running.zenki>};
+    push @zenki_to_check, keys <zenki.running.zenki>->%*;
 }
 
 my @output;
@@ -47,8 +47,8 @@ push @output, "::";
 
 return say join( "\n", @output );
 
-#,,,,,.,.,,.,,,,.,.,.,,,,,.,,,..,,,..,,.,,,.,,..,,...,...,.,,,,.,,,.,,,,.,.,.,
-#BFFOD4Q36H5K5ZET3YOZM4AF4IQKC3DRTLH3GSAVJ2ONWOLC4B2BYLHYCLX7UMUQNCE34GKZ424GI
-#\\\|I54LHMQHHF3MBXDF7NAM4MG3B4QWRZF6X5XAT6TYXT4W2TQFEFT \ / AMOS7 \ YOURUM ::
-#\[7]D7VTSI45X53GYKZXZHCM3H3FJC5XHY4ND2FU7PFOFDYCTJGMVGAI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,.,...,,,,,...,..,,,,.,..,,.,,,..,,...,..,,,,.,.,,,..,,,,.,...,
+#YUPCBUFG2WFRGOUQ274LZDN543TMRVBONBNAWZOJT5NNGRYJ6E3QT4RVYR3XFPFKV3NYXXU4MSSC6
+#\\\|WZGVKAMSOY2B75R5FAGFN5IIRHF6Y424ZFXZ7JJIQPZ5KHX7GON \ / AMOS7 \ YOURUM ::
+#\[7]O7AIWKI5ERQT4QFOAMLSLK4CFLFUXLZ34DLFSJ2HKHM6KEGRWMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

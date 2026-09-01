@@ -24,7 +24,7 @@ if ( $ok and ref $reply eq 'HASH' and $body_ok ) {
     ## server ntime stored for reference; local cycle ntime used as filter ##
     ## watermark                                                           ##
     <jobsite.sync.last_remote_ntime> = $ntime if length $ntime;
-    push @{<jobsite.sync.push_reverse>}, @{$reverse};
+    push <jobsite.sync.push_reverse>->@*, @{$reverse};
     <[base.logs]>->(
         2,           'jobsite: chunk done (%d jobs), reverse=%d',
         $chunk_size, scalar @{$reverse}
@@ -51,8 +51,8 @@ if ( $ok and ref $reply eq 'HASH' and $body_ok ) {
 ## blocks the rest of the queue from being attempted this cycle         ##
 <[jobsite.sync.push_chunk]>;
 
-#,,..,.,,,,,.,.,.,...,,,,,.,,,,,.,..,,...,.,,,..,,...,..,,...,,..,.,.,.,.,,.,,
-#S5FT3NRFH7USOBZS7Y4AL7EOEFJCT7ACI375TOEPGILUMVD6DWHE2KT6REXQW7U2Z6YCYLRF2R7NU
-#\\\|KBJJH6UWKMW7Z3AOSGZQCLMSMKJPKWJH7EOUNFBN4HPW4FC57J3 \ / AMOS7 \ YOURUM ::
-#\[7]LEHRHVN27AYGL3IL76VX2BID47J6TEGSDZCTLUUYZEUC3XQTEWCY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,,.,,.,,,.,.,,..,.,.,,..,,,,,..,,...,...,.,.,,,,,..,,.,,,,..,
+#O6W7CEAKXD5OYSSF2U25XTZ5M4ZYBDF2URLVTBITZIC3LQPKGVB6L6ALNKNAD42JHDRP6QVEEJBT2
+#\\\|XRESD22L7EZB3C7UECBTLYHEJMXKIMJO7MHSLBXT3AGYMUVHEC2 \ / AMOS7 \ YOURUM ::
+#\[7]4BJMCW4MLGQUL7ITS5SDPRF7S6TXW4OUKJK2LKAILEZOWMXN7YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

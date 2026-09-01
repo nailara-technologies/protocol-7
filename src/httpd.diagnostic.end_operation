@@ -57,7 +57,7 @@ if ( $elapsed > $threshold ) {
 delete <httpd.diagnostic.operations>->{$op_id};
 
 # Clean up old completed operations (keep last 1000)
-my @op_ids = keys %{<httpd.diagnostic.completed_operations>};
+my @op_ids = keys <httpd.diagnostic.completed_operations>->%*;
 if ( scalar @op_ids > 1000 ) {
     my @sorted = sort {
         <httpd.diagnostic.completed_operations>->{$a}{'start_time'} <=>
@@ -71,8 +71,8 @@ if ( scalar @op_ids > 1000 ) {
 
 return TRUE;
 
-#,,.,,,..,.,,,,,.,,,,,.,,,..,,.,,,,,.,...,.,.,..,,...,...,...,,,.,.,,,,..,,,.,
-#5AGY4LB25BCW2MGGNLOWDWV54V6E4BXLDCLQQNTVWB4347REMDPLNYQR2VFI3TWGKGAI5FACURTZU
-#\\\|X6IFI73YFZDGXWLR5GU6YMFDQJSCVSHK7A6D7DZNB6ICH6HSQEH \ / AMOS7 \ YOURUM ::
-#\[7]33DWDL7L7L7RBJSR53RR25EZJNOBRHN7WGBXYHEJM6SSC5PRPYCY 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,.,.,...,.,.,,..,,..,,.,,,.,,..,,...,...,.,,,,,.,,.,,...,.,.,
+#76HGTYRIWVDUJ22TTIUUHFTY6R555YYAU5TNQS5YXVWIZRDNNYMSD4XSOST2R3455BYN5NHBFX2WM
+#\\\|72L5XMN74ABBAVPSOBE6NGN6JXDLV22XD7FY7FE3E2P4F2FX4TE \ / AMOS7 \ YOURUM ::
+#\[7]EZFXKDW5ELLB3I22NTM5UDNUZFOEOLIQZRDXPWJI2GNJOGKCHKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

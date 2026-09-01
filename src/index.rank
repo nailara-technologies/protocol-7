@@ -12,7 +12,7 @@ my $total_seqs = scalar( keys %{ <index.freq> // {} } );
 <index.trie>        = {};
 
 ## ring 0 : single characters ##
-my %char_freq = %{<index.freq>};
+my %char_freq = <index.freq>->%*;
 my @char_ranked
     = sort { $char_freq{$b} <=> $char_freq{$a} || $a cmp $b } keys %char_freq;
 
@@ -26,7 +26,7 @@ for my $char (@char_ranked) {
 ## per-ring sequence ranking ##
 my %seq_by_win;
 
-for my $win ( sort { $a <=> $b } keys %{<index.level>} ) {
+for my $win ( sort { $a <=> $b } keys <index.level>->%* ) {
     next if $win == 0;
     my %freq   = %{ <index.level>->{$win} };
     my @ranked = sort { $freq{$b} <=> $freq{$a} || $a cmp $b } keys %freq;
@@ -53,7 +53,7 @@ if ( exists <index.level>->{2} ) {
 }
 
 ## higher rings ##
-for my $win ( sort { $a <=> $b } keys %{<index.level>} ) {
+for my $win ( sort { $a <=> $b } keys <index.level>->%* ) {
     next if $win == 0;
     my $next_win = $win + 1;
     next if not exists <index.level>->{$next_win};
@@ -79,7 +79,7 @@ for my $r ( 0 .. $#char_ranked ) {
 <index.trie>->{0} = \@ring0_nodes if @ring0_nodes;
 
 ## build sequence ring trie nodes ##
-for my $win ( sort { $a <=> $b } keys %{<index.level>} ) {
+for my $win ( sort { $a <=> $b } keys <index.level>->%* ) {
     next if $win == 0;
     my $depth      = $win - 1;
     my $next_win   = $win + 1;
@@ -101,8 +101,8 @@ for my $win ( sort { $a <=> $b } keys %{<index.level>} ) {
 
 0;
 
-#,,..,,..,.,,,,.,,,,.,,,.,,,,,.,.,.,.,,..,...,..,,...,...,.,.,..,,...,.,.,,.,,
-#KOCKCVGRDR6KP36BCNCFCFG7ZTX5EU3CP2DOSRKBNPWRJHFV7DK34BQRWSEET3MEZGYKK5Z6TYHZS
-#\\\|HCWPHKZ4UTPMQRKWV2TJ7N7VIHX4K57ZH7K3K6RO66OAG4NAA7W \ / AMOS7 \ YOURUM ::
-#\[7]UFF3L6EMVZS3QN7SRUJC6HK5LRP2NUAHBI56ENI7CIXC7L3FLUDA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,,.,,,,,,,.,...,,,,,..,,.,.,..,,...,...,.,.,,,.,.,,,,,.,.,,,
+#WQXLODXIDEWCS3E657OXC5LVQBDM2FZ3TBIFXLKSZ33JE5ARRROL7PRFFK6O35ZGEWXGUGJIASFUI
+#\\\|LXMQHUFYGTQVK4MMBRZQ362Q77G6EU523KSBCDTITNUBDJGEEPD \ / AMOS7 \ YOURUM ::
+#\[7]UPIUBSVXTRB6HE3SG7K4K547QPDC7XE6LVQEA76WQ7EQ5VABN2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

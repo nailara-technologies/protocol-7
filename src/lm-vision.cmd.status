@@ -8,13 +8,13 @@ my $job_id = $call->{'args'};
 if ( !defined $job_id || !length $job_id ) {
 
     # Return overall status with job IDs
-    my $job_count = scalar keys %{<lm-vision.jobs>};
+    my $job_count = scalar keys <lm-vision.jobs>->%*;
     my $active    = 0;
     my $completed = 0;
     my $failed    = 0;
     my @job_ids   = ();
 
-    foreach my $jid ( sort keys %{<lm-vision.jobs>} ) {
+    foreach my $jid ( sort keys <lm-vision.jobs>->%* ) {
         my $job = <lm-vision.jobs>->{$jid};
         $active++    if $job->{'status'} eq 'running';
         $completed++ if $job->{'status'} eq 'completed';
@@ -64,8 +64,8 @@ return {
     'data' => $status_str
 };
 
-#,,,.,,,,,.,.,,.,,,..,..,,.,.,.,.,.,.,,,.,.,,,..,,...,...,.,,,...,.,,,.,,,.,.,
-#OU3AMTMTUJOGYRSMRBV2TL3IDMGYTZWNUB2KXR2LRVARNFVC3FR5OGGK4S5B73BEEZFDUE33J3QWQ
-#\\\|WQDNR3JFPTELNF7RMSCUXTT4UGSGIIUQKO32LLOCOEUZQJITTHE \ / AMOS7 \ YOURUM ::
-#\[7]T47LDE2G2LNY7ZGXROPFIVDUOS6GWJNGW4IDGLJEBYCILVNBBMAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,.,,,,,.,,,,,...,.,,,.,,,.,.,..,,...,...,,,.,,,,,.,.,..,,,..,
+#OJHEUE2IL4IZ5DU45ET7G4ZDPJ6S3MALYV2K3ZAVRIZQAIMQUTYY5BW7J3SJKWXUVJLZVU7LZZ5YI
+#\\\|BAO4ADQJ3XOUA5ZFQR3I2GFSLC3WPN3GPP4MQDLO6Q2HU5VBR3Q \ / AMOS7 \ YOURUM ::
+#\[7]GT6AWBQ4P66HTSPPULLB2CX2JXRZ2DUWWT6CQUCAVPO2ANSYKYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

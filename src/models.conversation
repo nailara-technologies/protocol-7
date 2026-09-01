@@ -19,7 +19,7 @@ if ( $cmd eq 'create' ) {
 
 } elsif ( $cmd eq 'list' ) {
     <models.conversations> //= {};
-    my @job_ids = sort keys %{<models.conversations>};
+    my @job_ids = sort keys <models.conversations>->%*;
     return {
         'success'            => TRUE,
         'conversation_count' => scalar(@job_ids),
@@ -38,7 +38,7 @@ if ( $cmd eq 'create' ) {
         'completed'   => $completed,
         'total'       => $active + $completed,
         'compactions' => $compactions,
-        'registry'    => scalar( keys %{<models.conversations>} )
+        'registry'    => scalar( keys <models.conversations>->%* )
     };
 
 } elsif ( $cmd eq 'clear' ) {
@@ -71,8 +71,8 @@ if ( $cmd eq 'create' ) {
     };
 }
 
-#,,,,,.,.,,..,,,,,,.,,.,.,..,,.,,,,.,,,,.,.,,,.,.,...,..,,.,.,..,,..,,,,,,,..,
-#XEJDYBWBNCFGPF4VPWO5ODO2IJ4WKOB7XEQCXLFJVQ5AUYIK6Z2EBTOS4GCGF34BL6B5UVHGQJD6A
-#\\\|ERHF7ENJKKI75IL32CAAPB7DKGBZ445YVHZTCLDG2EQ65GPYEE3 \ / AMOS7 \ YOURUM ::
-#\[7]46RWMYLHEUR5WZITFKF52THADQ2DK5JZNQ2WU5T6T36Y3UNVRADA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,..,,...,...,,,.,,,.,..,,,,,,.,.,...,...,,,.,,..,...,..,,,.,,
+#BSHZRAOPYNBR4NV47MOQ2X646GMJM7U5JA7HMCHQBKAYZEJD7CACEDZNNLQ2E2KJUWKCAREB5U5ZG
+#\\\|SAXA57IY5XU7RBVRBD7N42MQXRHOCSPKGD3XNDF573U7XPQHH2B \ / AMOS7 \ YOURUM ::
+#\[7]UIEGVKVPM5YTYJHYJGOMQU45WNWHYBW4FGNMRPLS3VWUZS52KMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

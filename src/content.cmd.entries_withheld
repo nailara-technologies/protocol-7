@@ -12,7 +12,7 @@ my $subname   = length($param) ? $param : undef;
 my $entries_withheld = 0;
 
 my $index = -1;
-foreach my $file ( @{<content.file_list>} ) {
+foreach my $file ( <content.file_list>->@* ) {
     $index++;
     next
         if defined $subname
@@ -24,8 +24,8 @@ foreach my $file ( @{<content.file_list>} ) {
 
 return { 'mode' => qw| true |, 'data' => $entries_withheld }
 
-#,,..,.,.,.,,,.,.,..,,,.,,,.,,.,.,,,.,.,,,.,,,..,,...,..,,.,.,,,.,.,,,.,,,.,.,
-#CRVK77E347GHK5XTPIYZGLUB4P4LNKIEEGNQFSEGMSLWA3MPYNCLPAUT62XA2QVZ4YOZA4KVBUUXY
-#\\\|6IPTRXXSQ62HQTOPSE3WEV55OWPVDCTDH5VCQOURDOLBTOABUO3 \ / AMOS7 \ YOURUM ::
-#\[7]JLEXV4PJRL5CRRK2ZHSVEZKMBIYADYH2C4YHR2DVXRWEKXGTQ4CQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,,..,,..,.,.,,,.,.,.,...,..,,..,,...,...,...,...,,..,,.,,..,,
+#AK6QWWBTFXSM24I3BN5WPVEZBY3IGWBBAVD4BYNFPUIFPKSQ4S3IELQPZRAMEG3PA43OV6HVTBNJI
+#\\\|ZTIP4HCAVJRG2GVMGQSY7TKZ7JWS4GILOE7J3LX7GCB47SXU4XP \ / AMOS7 \ YOURUM ::
+#\[7]S5RARPV7W4N44CJPGA4YPHCQV6AT4ACZYLCANXEASMJT5QQIC2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

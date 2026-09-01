@@ -16,7 +16,7 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <mpv.playlist_bmw> = '';
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
-    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    push( <mpv.command.reply>->@*, { 'handler' => 'dev.null' } );
     <mpv.playlist_was_empty> = 1;
     <mpv.file_map.rescaled>  = {};
     <[mpv.send_command]>->('stop');
@@ -62,7 +62,7 @@ return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
     if $playlist_bmw eq <mpv.playlist_bmw> and !$playlist_changed;
 <mpv.playlist_bmw> = $playlist_bmw;
 
-push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+push( <mpv.command.reply>->@*, { 'handler' => 'dev.null' } );
 <[mpv.send_command]>->('playlist_clear');
 
 my $current_path = <mpv.current.path> // '';
@@ -79,12 +79,12 @@ foreach my $check_path (@update_files) {
 }
 
 if ( !$keep_file ) {
-    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    push( <mpv.command.reply>->@*, { 'handler' => 'dev.null' } );
     <[mpv.send_command]>->('stop');
 }
 
 map {
-    push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+    push( <mpv.command.reply>->@*, { 'handler' => 'dev.null' } );
     <[mpv.send_command]>->( 'loadfile', $ARG, 'append-play' );
 } @append_files;
 
@@ -94,7 +94,7 @@ if ( <system.zenka.mode> eq 'universal-child' ) {
     if ( <mpv.startup.child_init> or <mpv.playlist_was_empty> ) {
         <mpv.playlist_was_empty> = 0;
         <mpv.startup.child_init> = 0;
-        push( @{<mpv.reply_ids>}, 'silent' );
+        push( <mpv.reply_ids>->@*, 'silent' );
         <mpv.success_reply_str> = '[PAUSE]d';
         <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
     }
@@ -103,8 +103,8 @@ if ( <system.zenka.mode> eq 'universal-child' ) {
         @update_files;
 }
 
-#,,,.,,,.,...,...,,..,..,,.,,,,,,,,,.,..,,,,,,..,,...,..,,,,.,,.,,,.,,,..,.,,,
-#CINTGED2BNGXRM255PKZOZI6D6XBOOOALH64MUVWQ6LX2SL5BDNRXGLKQTTADDSRM3WEESHLB2J64
-#\\\|OMOGB7FEZSWVFM3ZCZLXBVH4D73VPS7KJUK3L76WV7GZK2IYZKX \ / AMOS7 \ YOURUM ::
-#\[7]U5SIEJ7ZPKQFZTI7AESBIESFF4ZTGAEEBTA4GL2ZB2H5GM7BQEDA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,...,,,.,...,.,,,,,,,..,,,..,..,,...,...,..,,..,,,,.,...,.,.,
+#NK3GUDNSUDDHFA4EOGFPRR56LGHQXDZ42DEE6XERA7BQE47IM6YALKTERSW5KXVGKXBZKLSF2KSGW
+#\\\|K6WHAU4C7XECA327DDUYDQ46GMNHLT6FJFPLR6IG2VSAA3CG2QY \ / AMOS7 \ YOURUM ::
+#\[7]YCSPQAGFHROUZPYL5XB6DCXLILUI5WNGLUOVD54QB4GKIFYKHYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

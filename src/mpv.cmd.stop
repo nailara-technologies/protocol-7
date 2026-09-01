@@ -3,7 +3,7 @@
 # name  = mpv.cmd.stop
 # descr = stop playback [clears playlist]
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 <mpv.success_reply_str> = 'playback stopped';
 
 <[mpv.send_command]>->('stop');
@@ -20,8 +20,8 @@ push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,.,.,,,.,,,,,,.,,,.,,...,,,.,.,,,.,.,...,..,,...,...,,..,,,.,,,.,,,,,..,,
-#B2DHEDQ6UY6X2Q73JCEMRPNNP4IQG4AW7UWAD47XBAFXCXIW7MFUSAEPSWOTE6EXQMQOZP5YBT7WM
-#\\\|BHF4ZBP6IDBWKNWWXKGLJIQZ6AQS2K4MRYLVDVE6VX5663ZTZJ5 \ / AMOS7 \ YOURUM ::
-#\[7]GNVS363TMK7QBKV2XRQ5GZWELQSJZTKBUNMHPIFKURD6XUSROUDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,,..,,.,,...,.,,,,,.,,,,,...,..,,...,...,.,,,..,,,,,,,,,,...,
+#FJ6WY3YY7BHXVKSUJ4NANSQVMMWTW65YD55M3S6EJDJO2DPQ5SMQ3YCGHY6FHLPCQCMZER73CQXZU
+#\\\|QSH3JLEDJN4W4I7QDPVEVARAIJTUG3WMAL2ZPIQLDYEUMBYBUUN \ / AMOS7 \ YOURUM ::
+#\[7]ICPC4T7CEYIIKW5IUUO6SLTVXYCNJU5T6U47HI5A4XEG4KULY4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

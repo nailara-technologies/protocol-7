@@ -7,7 +7,7 @@ return if <universal.zenki_started>;
 <[base.log]>->( 1, "starting display [sub]zenki..," );
 
 my %display_zenki;
-map { $display_zenki{$ARG} = 1 } values %{<universal.content.zenka_map>};
+map { $display_zenki{$ARG} = 1 } values <universal.content.zenka_map>->%*;
 foreach my $zenka_name ( keys(%display_zenki) ) {
     <auth.setup.usr>->{$zenka_name} //= ':unix:' . <system.amos-zenka-user>;
     <universal.child>->{$zenka_name}->{'status'} = 'starting';
@@ -25,8 +25,8 @@ if ( !<universal.declared_online> ) {
     <[base.async.get_session_id]>;    # 'universal' zenka status --> 'online'
 }
 
-#,,..,,.,,,,,,...,,,.,,,,,,,.,.,.,.,,,,..,.,,,..,,...,..,,...,..,,..,,,.,,,,.,
-#XSZOE6RSKQB5BFT2ZZSRAYOTL52HTG3MAL6CHVBNQBJU5B2NE77ST5W5S5ZBSHLEKUZCCIA2LNXRA
-#\\\|DZAFIECHS57SD7DE4VXGLN3JV5BSJ4LYNVYXS4LDLOTZZNZ7HDL \ / AMOS7 \ YOURUM ::
-#\[7]R5W4C2ZIA6S2NK2AIEYINF6FUFYCTPYEPMO6XTZSEIO54Q2OVOCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,...,,,.,..,,...,.,,,,,,,.,,,,,,,..,,...,...,,,.,..,,,,,,..,,,.,,
+#IRTM44DEXSIKLP3XPP2E5IWYJGSGUW765DXPRGYNQT7WM335DU6Z3IWXABN6AVMFOH5WXHMSAQYNS
+#\\\|XZPJDRD4ALKCDOE5DVX3YPTIBU7T5UF4CAXNRYGIACJ4KQA53SR \ / AMOS7 \ YOURUM ::
+#\[7]4XJQDCLGNI73EO6IQ62SHJZYDPEVH6FGYHMV5MPC3SVCXYOM2CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ my $pkey = shift @params;
 
 $err_msg = 'not a valid node name' if $name !~ <regex.base.usr>;
 
-foreach my $id ( keys %{<nodes.trunc>} ) {
+foreach my $id ( keys <nodes.trunc>->%* ) {
     last if defined $err_msg;
     $err_msg = "link '$name' already exists"
         if <nodes.trunc>->{$id}->{'name'} eq $name;
@@ -60,8 +60,8 @@ return {
     'data' => "node '$name' added"
 };
 
-#,,..,,,,,.,,,..,,.,,,.,,,..,,,..,,,.,,..,..,,..,,...,...,,..,,,.,..,,,..,,.,,
-#SH7OGGAPODXKGAFQWDQSOLHJWWY7TM4XLNMBVCWLANDG6WGVW6AC3227E5WQYP3V44QU2OVTGNQB4
-#\\\|RUYGIPTHTDXGZ7GXEGGWHVQZ4X6ULW26ENEAHG5FBC2VSQNSVXH \ / AMOS7 \ YOURUM ::
-#\[7]5KY2IWTL5BT3TRJVZEQT227N4DF2WWGHN6E75KEWOPX5QYYIKICA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,.,.,.,,,,,..,,,,,,.,.,..,,,..,..,,...,..,,..,,..,,.,.,...,.,,,
+#GSNBNDULYIOA624IF4IO52XHJI6QVAGR3L2522WF7KL7CKKBGBXJS7JTQROEC4OB5VW7C4O52V2YQ
+#\\\|LXUJZU2EZ3W7RSS6NMOMMTBLMOD3PF6HY6AWXCKK2NRMMKAZQ7Q \ / AMOS7 \ YOURUM ::
+#\[7]EMPIGEIFDYQ2VPYUFVYTUCOIUXTXNDDIYAMCKIREFISG5AFOPKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

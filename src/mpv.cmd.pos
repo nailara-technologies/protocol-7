@@ -4,18 +4,18 @@
 # descr = return current playback position
 # todo  = add time parameter
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 
 push(
-    @{<mpv.command.reply>},
+    <mpv.command.reply>->@*,
     { 'handler' => 'mpv.handler.pipe.val_percent' }
 );
 <[mpv.send_command]>->( 'get_property_string', 'percent-pos' );
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,,,,,,.,..,,..,,..,,,.,,.,.,,,.,.,,,.,,,..,,...,...,.,,,.,.,,,.,,,.,,..,
-#SK24IUXHK2P5IGOLHOH4LLGRLZBMTHP3CC5VFBSRX4J3N4FQ4MUWXIW44WO5WV5XEXWCMT3POYWOU
-#\\\|BKOBRZOL7SJC5GHSLFNGN2AKLEVDVRN6WR2MNGH5DOBOX3Y4ZEM \ / AMOS7 \ YOURUM ::
-#\[7]OJBTIL3ZD3LKFIQOTDYJZAKLZYEYXXQ3X32VJI2CJ2NVN5GMAYBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,..,,.,.,..,,,,,,,,,,..,,..,,..,,..,,...,..,,...,,..,.,.,,.,,.,.,
+#QRYLXTQPPI3TAMAE5ET2FHCRZYQK25L4BS2R2PFOIT26LQCYABIO2OVHFACLLBGJR4DYWPAWKD5DI
+#\\\|WOMACRMQF2NYV5UZ7MFTOU4PVABMCGOE7SP3HGSWDYHPW5OCG76 \ / AMOS7 \ YOURUM ::
+#\[7]ABQVEVP7LIGJK6JW4AI5W2AFQ7W2W3LAQQ4E2FKEP6OU2QJK4EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

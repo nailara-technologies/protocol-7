@@ -22,7 +22,7 @@ if ( defined $call->{'args'} and $call->{'args'} eq qw| subscribe | ) {
         if not defined $h;
 
     <nodes.orbital.listeners> //= [];
-    push @{<nodes.orbital.listeners>}, $h;
+    push <nodes.orbital.listeners>->@*, $h;
     <[base.logs]>->(
         2, 'orbital position listener added [sid=%d]',
         $call->{'session_id'}
@@ -57,8 +57,8 @@ for my $key (@keys) {
 
 return { qw| mode | => qw| size |, qw| data | => $out };
 
-#,,.,,.,.,..,,,.,,,,.,,,.,,,,,,..,,.,,.,,,,..,..,,...,.,.,.,,,.,.,.,.,,.,,.,,,
-#BM4WHWFRYCFODM4A7QDNOCM3OJEIFA2QKFDOXFOYOZNXSDM6MXIWF5VS4HNFSGBGHJUNOVRSP6FTG
-#\\\|AKQZ67P6NEAZ5YFW2MLDSPDOYB2SG5CVHE2ZUPW6ZI53POKVLVZ \ / AMOS7 \ YOURUM ::
-#\[7]LDA2TB4ZQVC6CSEEVK2LEVJPUHNZZ3B2OP76XPRHRNYURWI6C6BI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,..,,..,,,,,..,,.,.,,.,,,,.,.,.,..,,...,...,,.,,.,.,.,,,,,.,,,.,
+#ZQNRO4U4PGK6OWXEGVPMOQHG3SU2TDCFPEQT5JJBMSH6QPT2JS6QWS5467RYU24QLEGKEAG47UDVE
+#\\\|NCVRTVPNGV6WL5X7VW5C6IIABDKZPQSYJIULEBHGM6BBDV77DHQ \ / AMOS7 \ YOURUM ::
+#\[7]5FCKY3X45SAZZ4YY3HJN77EUNJCM7PEJNRWUKYGZOK7QSN7I4ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

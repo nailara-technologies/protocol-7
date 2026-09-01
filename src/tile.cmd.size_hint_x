@@ -22,7 +22,7 @@ my %underscan;
 map {
     $underscan{$1} = <tile.setup.screen>->{$ARG}
         if $ARG =~ /^underscan\.(\w+)/
-} keys %{<tile.setup.screen>};
+} keys <tile.setup.screen>->%*;
 
 my $x_total = <x11.screen.width> - $underscan{'left'} - $underscan{'right'};
 my $y_total = <x11.screen.height> - $underscan{'top'} - $underscan{'bottom'};
@@ -39,8 +39,8 @@ return {
     'data' => "[$ratio_str] X = $old_percent% --> $new_percent%"
     }
 
-#,,,,,.,,,,,.,,..,,.,,..,,...,,,.,.,,,...,.,,,..,,...,...,...,.,,,...,,,,,,..,
-#GK3MM2G3FRTM64UKFVGAUYWPFJ7YM5DERE5Z3DAKABVMKW4CTA5ZHGY5OS6IKZPSUYISWVUG6T5KC
-#\\\|ZD3H3NPD55EDRGU37RKNHEVNGSUPGBOVOEQKBIXF4BHC5MBU7W6 \ / AMOS7 \ YOURUM ::
-#\[7]WXGWMLJLOG5HJG54QTXV5M466STGQ62WWSRE33HVPLQD4MWP6AAY 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,,,.,,,..,,,..,..,,,.,,,.,,,..,..,,...,..,,.,,,,,.,,..,..,,.,.,
+#GCYQ23XWFBRJ6KZHYSD4NA5KJH674WQXIDNRGG6ME2C4KF7XUBJF4GQDRHRH6RSUCEUCAP6EFP5JU
+#\\\|HKP7OMRMG5SGTVTU56GGFP2WIVALDAZMY7FWTYKLWJV34KT7ROO \ / AMOS7 \ YOURUM ::
+#\[7]SYBFK5ETLAGN7GW46FOOIXYXYYHBN64ADGCVEFNCNGRLIIXN5SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

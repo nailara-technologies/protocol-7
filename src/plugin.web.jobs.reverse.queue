@@ -10,7 +10,7 @@ return FALSE if ref $entry ne 'HASH' or not length( $entry->{'id'} // '' );
 $entry->{'ntime'} = <[base.ntime.b32]>;
 
 <plugin.web.jobs.reverse> //= [];
-push @{<plugin.web.jobs.reverse>}, $entry;
+push <plugin.web.jobs.reverse>->@*, $entry;
 
 ## persist so reverse actions survive a web-zenka restart ##
 my $cache_dir    = <[plugin.web.jobs.cache.path]>;
@@ -19,8 +19,8 @@ eval { YAML::XS::DumpFile( $reverse_file, <plugin.web.jobs.reverse> ) };
 
 return TRUE;
 
-#,,.,,,.,,,.,,,,.,,,.,,,.,.,,,,,,,..,,.,.,...,..,,...,.,.,...,,..,..,,..,,...,
-#ERWZDCDFAGJYQVSISFBCB72L74J5GH33JTSNI7JMFJ6B3FTQVXQPLIRTYVWMGCUKCDZOXR5WSZENA
-#\\\|FUKWQQ76556LYGFHEACN2OFPWAUXNUKFLDMVK4BDL6G4SB6CT2P \ / AMOS7 \ YOURUM ::
-#\[7]MSC3ADCY5GLU7VF7CC5FSDHL3Y6ROAQMAUZLV7FMG6TEQT6DICDI 7  DATA SIGNATURE ::
+#,,..,,,,,...,..,,,,.,,..,,,,,,,,,,,.,,.,,.,,,..,,...,...,..,,,.,,,.,,,..,,..,
+#75CIT2GIPANLVLFR6SRB2BQ4CEI4PKJP2EIC2OEKDZKTUO55WTSKVF634UVHGP57KUE24WWB2S3TC
+#\\\|QLS2LIX52FZEZYDTOJVPMBBVFLTBEIGBE2AARAIO33VYQICFP2C \ / AMOS7 \ YOURUM ::
+#\[7]RHRH2ROTYVW53QRZKOMUVQHBVZABG5DLUF7A6LE6NSUMDBOGQGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

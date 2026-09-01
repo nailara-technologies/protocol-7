@@ -3,15 +3,15 @@
 # name  = mpv.cmd.shuffle-playlist
 # descr = randomize the current playlist item order
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 <mpv.success_reply_str> = 'playlist randomized';
 
 <[mpv.send_command]>->('playlist-shuffle');
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,..,,,,,.,,,..,,,..,..,,...,.,,,,,,,,,.,..,,...,...,,,.,.,,,...,..,,,,,,
-#HYWP4KN7ADECZPQG75H5UYATIY44TTGRI45G54RXBY4LFPP656CIK7KZ2ZC5I5YUKSMJYYT4AYAPS
-#\\\|7CQNELDR2Z4EQ2FBALENI74Z2PRVILOF2IZSCDZ5E5ECDRYPO5I \ / AMOS7 \ YOURUM ::
-#\[7]JYSEB5PHJ56OKX3FFILGXGZ5L5J4C533AEYZRBIS7M3KL2A4BIAI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,,..,,,,,...,.,,,,.,,.,.,..,,..,,...,...,,.,,,..,,,.,.,,,..,,
+#5PT2J5WLQPWBB24K3H5DXY5IVONHVK6NHCPW7YHB4RZEXLY2DABIIAW2I26MCS646P736U4S5QZDE
+#\\\|MRSOX7FD7PIJGJJ3JUORYCLBL27TGJVQCTUIMLBJFYJYT2PCK2Z \ / AMOS7 \ YOURUM ::
+#\[7]GNHWC5KT6KC5FVL2G7VO4WDGIBXZLHH2QFZ6JJQV3UHC5CIFH6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

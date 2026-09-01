@@ -20,7 +20,7 @@ return { 'mode' => qw| false |, 'data' => 'minimum value 0.01' }
 return { 'mode' => qw| false |, 'data' => 'maximum speed value is 100' }
     if $speed_val > 100;
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 <mpv.success_reply_str> = "playback speed now $speed_val";
 <mpv.success_reply_str> =~ s|\.?0+$|x|;
 <mpv.success_reply_str> =~ s|now 1x$|reset|;
@@ -29,8 +29,8 @@ push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,.,,,.,,,..,,,,.,.,.,,,,,,.,,...,,..,.,,,..,,...,...,,..,...,,.,,...,...,
-#GHCG3MQH5M2HB2S25FGU4CLC6WEZVF5IDFJ2HVAGQZFDGFT24ETYFZUNQZW7OUMWCCIWXNGMPMNUM
-#\\\|R3YP5TBKU2SMRVFL6L7TOKNHYRSZ5LGCAESR57U5WOKHGXRFTEK \ / AMOS7 \ YOURUM ::
-#\[7]MHAW2QKO5YFVIOR446SLBJZA4Q4NWHI7UUVW6CNYBIQ75FWPS4CY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,..,,...,..,,.,.,,.,,...,..,,..,,...,...,...,,,.,,,.,.,.,,.,,
+#UD6H3PM7DNAZ2UJZABLRJMWMNUM5I6IL5PYDQHOXBPXF24JNZEUF2DYA5GGDHMQKFBFSMQY5CORUM
+#\\\|LW3ULULPKIXTPOPKQ7UIXG5S24Q4FSZ7L67RJOIJ64OM5QQSSWF \ / AMOS7 \ YOURUM ::
+#\[7]I3PYX6Z6RJCTOZKQNGKXVIDLW4CEEIN6E5J4IYWOUZKM7NWLNKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,7 +43,7 @@ if ( length $task_id ) {    ## single task handover ##
     my @recent_done     = ();
 
     ## collect tasks by status ##
-    for my $task_id ( @{<task.queue.order>} ) {
+    for my $task_id ( <task.queue.order>->@* ) {
         my $task = <task.queue>->{$task_id};
         next unless defined $task;
 
@@ -77,7 +77,7 @@ if ( length $task_id ) {    ## single task handover ##
     ## next executable section [ top 3 pending by valued.resolve priority ] ##
     my @pending_by_priority = ();
 
-    for my $task_id ( @{<task.queue.order>} ) {
+    for my $task_id ( <task.queue.order>->@* ) {
         my $task = <task.queue>->{$task_id};
         next unless defined $task;
         next if $task->{'status'} ne 'pending';
@@ -171,8 +171,8 @@ if ( !length $handover ) {
 
 return { 'mode' => 'true', 'data' => $handover };
 
-#,,..,,..,..,,,..,.,.,.,.,.,,,.,,,,,,,,.,,...,..,,...,...,.,.,...,,,,,,,.,,..,
-#BI7WNJB4KZ6SM6F2RR364AU2QFQCRBGC5W7B4POHQLUZ56O6VSFCQMS53S4IQVNQFDTCAWNDHBE2M
-#\\\|KW5YI5FBUG6IKF7AF74MKZSJY6XLZVICYSJWLUDRW22UNH37M6L \ / AMOS7 \ YOURUM ::
-#\[7]EJVPGT6JTSGR2ECQWJO2DIRSSGPR7WGEXSDW5FZ5HL3O5Y4AMAAY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,...,...,,,.,,,,,,.,,,..,.,.,..,,...,...,...,...,..,,,.,,,,.,
+#OA5O26QBPUNZ46O2ZQBANIUCK66K3M7MKWUINF3ZFQUHPNGLYVFLK7QPPPFT7LWVAUOMHBTB6C4A2
+#\\\|4XQMIHTR46PJIVOY3W2NPRHBTALTO4UZIIBHIIGZL7I26I6T5PK \ / AMOS7 \ YOURUM ::
+#\[7]MDCQGWMFSFTVWO4EW7BTPXDSQCUTXJEDQ5I74DRHRJMPWP225AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 # name  = mpv.cmd.drop-buffers
 # descr = clear audio/video/demuxer buffers
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 
 <mpv.success_reply_str> = 'buffers cleared';
 
@@ -11,8 +11,8 @@ push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,,,,.,,,.,,.,.,,..,...,,.,,,..,.,,,,..,..,,...,...,...,.,,,.,.,,.,,.,,,
-#O4VN3WW6QXF7EWAOFYP45HZSAEQAONKJWPTU3XLWTZ6UWNJOGY6UY6WXUEDT2FTBHHPIPSKJR4PIG
-#\\\|4TYJPLMK2P6OQETMCU6OA27VPHBHNNWEZQWAMPWZPOK4TZKG6HH \ / AMOS7 \ YOURUM ::
-#\[7]RPEPIUAAHNW7KKRKJHRO4XL2UYSOUWZWTWTEFCATUTTEABGDOADA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,.,.,.,,,,,,,,,,,,..,.,.,,.,,..,,...,...,..,,.,,,.,.,,,.,,..,
+#HQO6YM26D5XIJNX47VIG4Y32TGSNHMCQKUHYAPKZ2SPVLW5HK6KSYFKVME6DCUHQD4WNVLDUBXGE4
+#\\\|WPALYU3BAFQ2GY4OHCGLRKHH3G57AYOT46AIHXWZKWUBPX7NWS6 \ / AMOS7 \ YOURUM ::
+#\[7]WO65W7PRODYUHEXBWSGW2O267YMCCROJG3BNDKO7ZPOB47FP7UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

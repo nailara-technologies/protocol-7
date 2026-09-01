@@ -99,8 +99,8 @@ if ( defined $incoming_file ) {
             <plugin.auth.auth-keypair.tofu-client-authorized.callbacks> eq
             'ARRAY' ) {
             foreach my $callback (
-                @{<plugin.auth.auth-keypair.tofu-client-authorized.callbacks>}
-            ) {
+                <plugin.auth.auth-keypair.tofu-client-authorized.callbacks>
+                ->@* ) {
                 eval { $callback->( $username, $peerhost, $peerport ) };
                 if ( length $EVAL_ERROR ) {
                     <[base.logs]>->(
@@ -178,8 +178,8 @@ if ( defined $incoming_file ) {
 
 1;
 
-#,,..,.,,,,..,,.,,.,.,,,,,,,.,,,,,..,,,,,,,,.,.,.,...,...,.,.,.,.,.,,,..,,,,,,
-#VP34KZPJQZSN2QFCCFOH4SKCMDT5V6T4776CJ7HZSSWXRDWP72PS66D5OG534UZDSTXCQ3A3GDVF2
-#\\\|U75AMUO3EAHEYQHNNU5QAEIMAZF7EBJH3RZGSP3BMCF67UOPV6K \ / AMOS7 \ YOURUM ::
-#\[7]ZRQOPPOWKB5ABOTEZ2EBTRFRJ6RT5YNPB3FU3VKXR3M7YJMMTWBA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,..,,,,.,,..,,,,,,..,,,.,,,,,.,.,...,...,.,.,.,,,.,.,,,,,,,.,
+#DUQHDOCQI76WAUAV3FLSRNVEO4LBG3PAFGSMVL2KF6DTSIYJYDKWB4I4TIFIDNBIOQQ4DGUVTZDOU
+#\\\|J3AVRKOVPHLB5QESOSRVTECHXLNBD5W4BBGJVO53B6XTGLTZU6D \ / AMOS7 \ YOURUM ::
+#\[7]KCW5GE3KJBQYAAEVMXYZF5OY6J4XEEWMBDA4EJF2JPQHRRN76GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

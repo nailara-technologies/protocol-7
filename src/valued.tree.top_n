@@ -10,7 +10,7 @@ my $type   = $params->{'type'}   // '';
 
 ## collect and filter nodes ##
 my @candidates;
-foreach my $id ( keys %{<valued.index>} ) {
+foreach my $id ( keys <valued.index>->%* ) {
     my $node = <valued.index>->{$id};
     next unless defined $node;
 
@@ -50,8 +50,8 @@ my $output = join "\n", map {
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,,,,..,,,..,...,,.,,,,.,...,,.,,,..,,,.,.,.,..,,...,...,.,.,,.,,,,,,,,.,.,,,
-#XOD6ONRWXKCJZX5AKZNGGW7ECOREO4P7R5NQ4O4XK4X2N2ZG776KA65PUD243GWNPVAO5H4B6425Q
-#\\\|RA7MEML7JAUAUZ4W546WHGZLS3TKN3QNFLDAKASLV4J5I63FNNH \ / AMOS7 \ YOURUM ::
-#\[7]GEPVT5VXCYR7ZDUH5DZZ42FCLDKXTABXZRY3ZV77HZ2ANU2YT2DQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,.,,.,.,,.,,.,.,..,,.,.,,,,,.,,,..,,...,..,,.,.,,,.,.,.,,,,,.,,,
+#ITCJ4H7WVROI4JGPTCCIXZT7IFCJWGRSQIWTTPORRREEPIBHOJGVBNA6DSFHAOG5T33SKODPFHMJY
+#\\\|RTCQRJIC7PDFJBEQ6RM5S2ASQ4KL6DNC4XOXJ7GGT5KGDPF3D3S \ / AMOS7 \ YOURUM ::
+#\[7]CXTM7Z7Q6N2YXJYJOZCLL27VIDK6RXW6QLFCYLAT5HTE7PXUHOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

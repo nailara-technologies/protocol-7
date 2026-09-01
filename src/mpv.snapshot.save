@@ -47,7 +47,7 @@ if ( not defined <mpv.socket> ) {
 ## fetch precise position + playlist async, then write [ see .write ] ##
 <mpv.snapshot.pending.stage> = qw| pos |;
 push(
-    @{<mpv.command.reply>},
+    <mpv.command.reply>->@*,
     {   'handler'  => qw| mpv.handler.snapshot_collect_pos |,
         'callback' => qw| mpv.handler.snapshot_collect_error |,
     }
@@ -56,8 +56,8 @@ push(
 
 return;
 
-#,,.,,...,.,.,...,,,.,,,.,.,.,,,,,.,.,.,.,,,,,..,,...,...,.,,,,..,,,,,,..,,,.,
-#MAENVPQ3S24DG2HWR64MUTQTCWNOK6DHBPF3XXZ5QZR6HAJPGMQSDTZ5P6KBUVDWQ5BHYL75XORYE
-#\\\|26FVSNQ2YYE7OYYZOKV35IRIS2GLDDS22JYQ23A35PSSLZD7IKQ \ / AMOS7 \ YOURUM ::
-#\[7]E6AIZLNJJXSZNITOER3OPNUKNJTSB4KN56IL3XO7WN4HJ3QHQUAQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,.,.,.,.,,,..,,,..,..,,..,,,..,..,,...,...,.,.,,.,,..,,,,,,.,.,
+#UYBXZU2D7I35MCVOLBEGNA4P44VTI3L4VNHF7WET7ASSAFF2TXY623WE62CAVP5WZGK3NXSAVPYQG
+#\\\|5REM4VS362F3H3K5PYYU4WWZNFDR3FBFSPK337XUD37QH2A6GS6 \ / AMOS7 \ YOURUM ::
+#\[7]4YNWEZPHZJKJXIGHDNZU2RNGS7EU2X4JNDM5XJRH6H5P43PTDOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

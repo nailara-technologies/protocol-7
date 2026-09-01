@@ -28,7 +28,7 @@ if ( exists <content.mime_type.retry_timer> ) {
     map {
         <content.mime_type.retry_timer>->{$ARG}->cancel
             if <content.mime_type.retry_timer>->{$ARG}->is_active
-    } keys %{<content.mime_type.retry_timer>};
+    } keys <content.mime_type.retry_timer>->%*;
     delete <content.mime_type.retry_timer>;
 }
 
@@ -206,7 +206,7 @@ foreach my $file (@file_names) {
         next;
     }
 
-    push( @{<content.file_list>}, $file );
+    push( <content.file_list>->@*, $file );
 
     delete <content.file_error_logged>->{$file}
         if exists <content.file_error_logged>->{$file};
@@ -246,8 +246,8 @@ if ( <content.had_network_errors> and !<content.network_errors> ) {
 <[content.update.send_notifications]>
     ;    ##  <-- check if required [yet].., [LLL]
 
-#,,,.,...,.,.,,..,..,,,..,.,.,,,.,,.,,.,,,,.,,..,,...,...,.,.,,,.,,..,..,,.,,,
-#NQEZMG4OOWYXKXDKZ474VD3D5Z6VUQRALD2MPCHFUFI5COMTGUEF4UNCLXSROGVBOZA5KPPUGVDIA
-#\\\|7Y6WWETAJRBTARACQVEPXPTEEFN3H2MSV23HAOVLNMMHITTYDEA \ / AMOS7 \ YOURUM ::
-#\[7]QAU6PZIMTJBSALWD7PQSX5DZCEW45LRPZZFZV6HL6CCI4B5CLACI 7  DATA SIGNATURE ::
+#,,.,,,..,...,...,...,.,,,...,,,.,..,,,..,.,.,..,,...,...,,,.,..,,,..,,,,,,.,,
+#IKNPZQGZ3CQS53WBNBVW4EIWCZWOOQA5NOBN4SD5WHWJNBLOXOD5MMYZX5VI4BUBHCNA3LCKXLD4I
+#\\\|DIRH2Z3G6NJGI27B4T3H3AR7ZADFWA3OZ4HDAFAINRBHO7P7FFI \ / AMOS7 \ YOURUM ::
+#\[7]M3MRFGGQQ2ZL3MVWNYKIF53BMQH4HST4T7PF7U7MYMP6FU7Y7GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

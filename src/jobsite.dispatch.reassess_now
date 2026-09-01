@@ -20,7 +20,7 @@ my $prompt = <[jobsite.util.build_prompt]>->($job);
 my $entry  = { 'job_id' => $id, 'desc' => $prompt, 'gen' => $gen };
 
 <jobsite.assess_queue> //= [];
-unshift @{<jobsite.assess_queue>}, $entry;    ## front of queue ##
+unshift <jobsite.assess_queue>->@*, $entry;    ## front of queue ##
 
 ## dispatch now only if nothing else is in flight -- an in-flight chain's   ##
 ## own assess-done -> dispatch.next will pick up this entry otherwise, same ##
@@ -36,8 +36,8 @@ my $was_idle = ( <jobsite.cycle> // 'idle' ) ne 'assessing';
     $id, $gen
 );
 
-#,,..,,..,,,,,.,.,..,,,.,,...,..,,..,,,,.,,..,..,,...,...,.,.,,,.,.,.,,,,,.,.,
-#XUB7IOQR2AAIZYFI5SKR4CC7EEN5Z7MVZGB5XKS3GT222HVEWAZ3PM23PXKXYAOOHLB3KUQQSQSJM
-#\\\|YMTX5QZ3WGLJUURSI56CVR57J6VVL5BZIVXHJJZAAXBXOQMZIRT \ / AMOS7 \ YOURUM ::
-#\[7]L3OZZ62DCQH2K4FX6ITICOQYRSVK2BHD2VJC4GTKAIBPKTBI5GCA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,,.,,,.,,.,.,..,,..,,...,,,.,..,,...,..,,,.,,,,.,,,,,,,,,..,,
+#3UQQENECWD2SUUB6EQMHIMEC2RO4G32TNHS7RUOHKSRN7FUAPLWQ4OCXVV6SWV7FCXB7ZBNZHFYXO
+#\\\|AYQHBJAHIMLK76LRHROUOBNOBSJC4B4DRVJ6NHDNAYUW2FLHJIO \ / AMOS7 \ YOURUM ::
+#\[7]MKUHUOC3QRSEK5MYP3UK3EVPTLVP6EFHGJSXRFLFAL7KBA4PAWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

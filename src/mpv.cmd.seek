@@ -28,15 +28,15 @@ return {
     }
     if $seek_mode eq 'absolute-percent' and $seek_value > 100;
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 <mpv.success_reply_str> = 'changing playback position';
 
 <[mpv.send_command]>->( 'seek', $seek_value, $seek_mode, 'exact' );
 
 return { 'mode' => qw| deferred | }
 
-#,,..,,.,,..,,.,,,,..,,,.,.,,,,.,,,..,,,.,...,..,,...,..,,..,,...,,..,,,.,..,,
-#U5RL6R7GTH5GBLXALU5KJQLH2MQLG7UUVT32EFKUVF2T6GCK2FSVRE6EKD7GTJ7S7LFSNSZT6C7DS
-#\\\|JIC72DS2U77WPGAUHAKMK4NCHFPMDJP4VWCNTZSSVTG6VAXMT54 \ / AMOS7 \ YOURUM ::
-#\[7]OAUAIG4WE7XPTGN7PVGBY3MSQZ43N7EXCOJYFVRW36REX672A6CQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,.,..,,,,.,,..,..,,,,.,,..,.,.,..,,...,...,..,,,.,,.,,,,,,,.,.,
+#5DV4MYYAJHZ5YLG54QF4PHCKUQ3DZ3SM63QRBZOXCEIQRJZY3CQQJFQSZAND4H3X2FM3FB77C5FHQ
+#\\\|4NK7ZFZYW2BEGYWBHTESMJVUQDSRXSY3NMQBCSJTHPGQOY2WBOC \ / AMOS7 \ YOURUM ::
+#\[7]GKGKIFBO7XIYOWREP4AXMEURKBFA6E56SJELWNBUTGKZMDDDWGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
