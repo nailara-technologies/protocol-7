@@ -220,7 +220,10 @@ while ( my $file_path = shift @files ) {
         print $chk_fh( $no_utf8 ? $new_text : encode_utf8($new_text) );
         close $chk_fh;
 
-        my @real_errors = real_syntax_errors($chk_file);
+        my ( $real_errors_ref, $benign_once_ref )
+            = real_syntax_errors($chk_file);
+        my @real_errors = @$real_errors_ref;
+        my @benign_once = @$benign_once_ref;
 
         ## perltidy itself failing is often just a symptom of a real syntax ##
         ## error -- prefer the perl -c detail over a generic status message ##
@@ -254,6 +257,15 @@ while ( my $file_path = shift @files ) {
                 $file_path );
         } else {
             print color_msg( 'syntax valid', $file_path, $NEON_green_yellow );
+        }
+
+        ## known-benign [ an English.pm variable referenced once, e.g. in a ##
+        ## short init file ] -- terse, uncolored, no [file:line] tag or box ##
+        ## : worth knowing about, not worth looking anything like a real    ##
+        ## error                                                            ##
+        for my $line (@benign_once) {
+            next if $line !~ m{Name "([^"]+)" used only once};
+            print "${TRUE_color}:: used once : '$1'\n:$reset\n";
         }
 
         unlink $chk_file;
@@ -1722,7 +1734,7 @@ sub real_syntax_errors {
     unlink $tmp_path;
     ## errors report the temp path -- swap in the real one for display ##
     s{\Q$tmp_path\E}{$file_path}g for @perl_c_output;
-    my @real_errors;
+    my ( @real_errors, @benign_once );
     for my $line (@perl_c_output) {
         ## p7 data/module macro syntax [ <data.key>, <[module.name]> ]      ##
         ## triggers glob-modification false positives under perl -c --      ##
@@ -1736,6 +1748,22 @@ sub real_syntax_errors {
         next if $line =~ m{BEGIN not safe after errors};
         next if $line =~ m{syntax OK\s*$};
         next if $line =~ m{^\s*$};
+
+        ## known-benign : any main:: symbol used only once. this check only ##
+        ## ever sees ONE file at a time [ a standalone temp-file perl -c ], ##
+        ## but main:: symbols in this codebase routinely get installed from ##
+        ## ELSEWHERE at runtime [ devmod, -vvv-gated features, a            ##
+        ## glob-assigned canary like base.init_code's own *main::dump_var = ##
+        ## sub {...} ] and referenced across other files/zenki this check   ##
+        ## has no visibility into -- so "used only once" on a main:: name   ##
+        ## is structurally almost always a false positive here, not the     ##
+        ## real per-file typo risk this warning targets elsewhere --        ##
+        ## terse-format all of them rather than alarm on them               ##
+        if ( $line =~ m{Name "main::\w+" used only once: possible typo} ) {
+            push @benign_once, $line;
+            next;
+        }
+
         push @real_errors, $line;
     }
 
@@ -1746,7 +1774,7 @@ sub real_syntax_errors {
         if @real_errors
         and $real_errors[-1] =~ m{had compilation errors\.?$};
 
-    return @real_errors;
+    return ( \@real_errors, \@benign_once );
 }
 
 sub color_msg {
@@ -1828,8 +1856,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,.,,..,,,,,,,..,,.,,,.,,,,.,,..,,.,,,..,..,,...,...,.,,,..,,,,,,..,,...,
-#H5DAGDBESLFRUZ6OMWORUQLC6XAS4YEIGW4GTAN2PSVU3V6TGQPGWAVAJVABPCP34E3W5RDUKRATS
-#\\\|2IIQ67YMU2Q6YO3OCUZPUZQLIOJNOC2NECQ2RBVEOS7X2BHZBEN \ / AMOS7 \ YOURUM ::
-#\[7]AHSXHDDMZZY6AIGVDYALT7DT6RL7ROHN5W3ZSI64HERSJM6PZEBA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,...,,.,,,,,,..,,,..,,,.,,..,..,,...,...,.,,,.,,,,.,,,.,,...,
+#MCFOFU3VP5PCRI3LBMR7EKPNC5HHQ2R6SN672OI4Q3PCXQVSSWKGRIZUZA47UCLZTPC2ES3KACX56
+#\\\|L4DDPQHMW6T2ZFBTKBU3NZGAP4LT3KNTMK2VUEKECPEVFCFO55Q \ / AMOS7 \ YOURUM ::
+#\[7]7UBTC67XLJBWUH3LOIGPJ4AEYMFXE4A2BQ4DJAULVTTUCOCPGMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
