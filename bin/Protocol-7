@@ -2193,7 +2193,7 @@ sub p7_load_code {
             $data{'base'}{'modules'}{'load_errors'}++;
             $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
             my @wrapped_error
-                = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
+                = map { split "\n", $t_wrap->($ARG) } @compile_errors;
             $code{'log.error'}->(@wrapped_error);
 
             if ( exists $code{'base.buffer.add_line'} ) {
@@ -2219,7 +2219,7 @@ sub p7_load_code {
         if ( $compilation_success and $warn_count ) {
             $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
             my @wrapped_error
-                = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
+                = map { split "\n", $t_wrap->($ARG) } @compile_errors;
             $code{'log.error'}->(@wrapped_error);
 
             if ( exists $code{'base.buffer.add_line'} ) {
@@ -4933,7 +4933,7 @@ sub p7_export_inline_subroutines {
             my $export_name = $_;
             $export_name =~ s|^p7__||g;
             $export_name =~ s|__|\.|g;
-            $export_name =~ /$pattern_filter/;
+            $export_name =~ m|$pattern_filter|;
         } keys %$inline_subs;
     } else {
         @subs_to_export = keys %$inline_subs;
@@ -4989,7 +4989,7 @@ sub p7_export_inline_subroutines {
             } else {
 
                 # Print source code in decoded form
-                foreach my $line ( split /\n/, $source_code ) {
+                foreach my $line ( split "\n", $source_code ) {
                     print "$line\n";
                 }
             }
@@ -5116,7 +5116,7 @@ sub p7_export_subroutine {
             } else {
 
                 # Add source code in decoded form
-                foreach my $line ( split /\n/, $source_code ) {
+                foreach my $line ( split "\n", $source_code ) {
                     $output .= "$line\n";
                 }
             }
@@ -5127,7 +5127,7 @@ sub p7_export_subroutine {
             $output .= "# Exported from: $sub_name (without validation)\n";
 
             # Add source code anyway
-            foreach my $line ( split /\n/, $source_code ) {
+            foreach my $line ( split "\n", $source_code ) {
                 $output .= "$line\n";
             }
         }
@@ -5406,12 +5406,12 @@ sub p7_detect_exact_data_block_format {
             = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
 
         # Look for compression prefixes in the encoded data
-        if ( $encoded =~ /^7U3XU/ ) {
+        if ( $encoded =~ m|^7U3XU| ) {
             $result->{data_format} = 'encoded-xz';
             $result->{compression} = 'xz';
             $result->{prefix}      = '7U3XU';
             $result->{is_encoded}  = 1;
-        } elsif ( $encoded =~ /^D6FQQ/ ) {
+        } elsif ( $encoded =~ m|^D6FQQ| ) {
             $result->{data_format} = 'encoded-gzip';
             $result->{compression} = 'gzip';
             $result->{prefix}      = 'D6FQQ';
@@ -5460,7 +5460,7 @@ sub p7_detect_exact_data_block_format {
         chomp $line;
 
         # Check for start of our target subroutine
-        if ( $line =~ /^$sub_marker$/ || $line =~ /^$sub_marker\s+\(/ ) {
+        if ( $line =~ m|^$sub_marker$| || $line =~ m|^$sub_marker\s+\(| ) {
             $in_target_sub = 1;
             next;
         }
@@ -5473,7 +5473,7 @@ sub p7_detect_exact_data_block_format {
             $end_sub_name =~ s|^p7__||g;    # Remove prefix if present
             $end_sub_name =~ s|__|.|g;      # Convert double underscore to dot
 
-            if ( $line =~ /^### End of $end_sub_name ###$/ ) {
+            if ( $line =~ m|^### End of $end_sub_name ###$| ) {
                 last;
             }
         }
@@ -5484,13 +5484,13 @@ sub p7_detect_exact_data_block_format {
             $line_count++;
 
             # Detect metadata line (usually starts with ": <")
-            if ( $line =~ /^:\s+<.+>$/ ) {
+            if ( $line =~ m|^:\s+<.+>$| ) {
                 $metadata_line = $line;
                 $has_metadata  = 1;
             }
 
          # Detect if this is encoded data (starts with ": 7U3XU" or ": D6FQQ")
-            elsif ( $line =~ /^:\s+(7U3XU|D6FQQ)/ ) {
+            elsif ( $line =~ m{^:\s+(7U3XU|D6FQQ)} ) {
                 $first_code_line = $line;
                 $line_prefix     = ': ';
 
@@ -5504,7 +5504,7 @@ sub p7_detect_exact_data_block_format {
             }
 
             # Detect if this is the first line of decoded source
-            elsif ( $line_count == 1 && !$has_metadata && $line =~ /^\{/ ) {
+            elsif ( $line_count == 1 && !$has_metadata && $line =~ m|^\{| ) {
                 $first_code_line = $line;
                 $code_prefix     = '';
 
@@ -5513,12 +5513,12 @@ sub p7_detect_exact_data_block_format {
             }
 
             # Detect if code lines have a prefix (": ")
-            elsif ( !$has_metadata && $line =~ /^:\s+(.+)$/ ) {
+            elsif ( !$has_metadata && $line =~ m|^:\s+(.+)$| ) {
                 $code_prefix = ': ';
             }
 
             # If we find metadata after we've seen code, note it
-            elsif ( $line =~ /^:\s+<.+>$/
+            elsif ( $line =~ m|^:\s+<.+>$|
                 && defined($first_code_line)
                 && length($first_code_line) ) {
                 $metadata_line               = $line;
@@ -5527,7 +5527,7 @@ sub p7_detect_exact_data_block_format {
             }
 
             # Detect end-of-code marker for colon style
-            elsif ( $line =~ /^:.$/ ) {
+            elsif ( $line =~ m|^:.$| ) {
                 $code_suffix = ':.';
             }
         }
@@ -5695,7 +5695,7 @@ sub p7_export_inline_subroutines_with_exact_style {
             my $export_name = $_;
             $export_name =~ s|^p7__||g;
             $export_name =~ s|__|\.|g;
-            $export_name =~ /$pattern_filter/;
+            $export_name =~ m|$pattern_filter|;
         } keys %$inline_subs;
     } else {
         @subs_to_export = keys %$inline_subs;
@@ -5741,7 +5741,7 @@ sub p7_export_inline_subroutines_with_exact_style {
                     (      $data_format->{data_format} eq 'decoded'
                         && $content_format eq 'encoded'
                     )
-                    || (   $data_format->{data_format} =~ /^encoded/
+                    || (   $data_format->{data_format} =~ m|^encoded|
                         && $content_format eq 'decoded' )
                 )
                 );
@@ -5762,7 +5762,7 @@ sub p7_export_inline_subroutines_with_exact_style {
                         (      $data_format->{data_format} eq 'decoded'
                             && $content_format eq 'encoded'
                         )
-                        || (   $data_format->{data_format} =~ /^encoded/
+                        || (   $data_format->{data_format} =~ m|^encoded|
                             && $content_format eq 'decoded' )
                     )
                 ) {
@@ -5827,7 +5827,7 @@ sub p7_export_inline_subroutines_with_exact_style {
                     if ( $data_format->{code_style} eq 'colon_prefixed' ) {
 
                         # Use colon-prefixed style
-                        foreach my $line ( split /\n/, $source_code ) {
+                        foreach my $line ( split "\n", $source_code ) {
                             print ": $line\n";
                         }
                     } else {
@@ -5857,7 +5857,7 @@ sub p7_export_inline_subroutines_with_exact_style {
                     if ( $data_format->{code_style} eq 'colon_prefixed' ) {
 
                         # Use colon-prefixed style
-                        foreach my $line ( split /\n/, $source_code ) {
+                        foreach my $line ( split "\n", $source_code ) {
                             print ": $line\n";
                         }
                     } else {
@@ -5991,8 +5991,8 @@ __DATA__
 :
 :.
 
-#,,,,,,.,,,,.,,.,,...,,,,,...,,,.,...,,,.,.,,,..,,...,...,,.,,,,.,..,,,.,,.,.,
-#DXCX5SERMDMJKDCNE35ESGIEKJ2TKSJ46SCQMNY5V3ESQQPAJHMEAHR7XAENOVP7PHZGAGQAIW4EE
-#\\\|XYEJUKTZC25ROJY4WF2XUJRGZURXAYYLH7T6M3P33ZRGM2JQQCL \ / AMOS7 \ YOURUM ::
-#\[7]D6ZZY7GB6BI7NYDB4KXSN5CSIQ3T4LASL4H2XVFET77AW37N7OBI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,,..,...,.,.,,..,,..,..,,,,.,..,,...,...,...,..,,,,.,..,,...,
+#BZS5H3TPYJJA4CMQ7CUZY3UL5DAMQVW3LLRSNMKMYOQTZTORGDPZJJVTOPSWL4OSHDRMHSPNNFUJ6
+#\\\|GOMIJS3VYOGCV4X2TBMOEGUHDLKBJAQQQIG5L7G24SLYZXKY3KP \ / AMOS7 \ YOURUM ::
+#\[7]MNYKY47FGMU4EPSSPIKWBDLGCFIGS6X7ZMHOEJGFGIMPDTG6ACBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
