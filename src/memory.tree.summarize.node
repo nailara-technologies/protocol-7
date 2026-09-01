@@ -11,9 +11,9 @@ return FALSE if not defined $branch;
 return FALSE if not scalar @$cluster;
 
 ## [ stampede guard ]##
-return FALSE if <memory.summarize_lock> { $branch->{'id'} };
+return FALSE if <memory.summarize_lock>->{ $branch->{'id'} };
 
-<memory.summarize_lock> { $branch->{'id'} } = TRUE;
+<memory.summarize_lock>->{ $branch->{'id'} } = TRUE;
 
 my @parts;
 my @replace_ids;
@@ -45,14 +45,14 @@ my $sent = <[protocol-7.command.send.local]>->(
 if ( not defined $sent or $sent <= 0 ) {
     <memory.summarize_queue_depth>--
         if ( <memory.summarize_queue_depth> // 0 ) > 0;
-    delete <memory.summarize_lock> { $branch->{'id'} };
+    delete <memory.summarize_lock>->{ $branch->{'id'} };
     return FALSE;
 }
 
 return TRUE;
 
-#,,..,,,,,.,.,.,.,...,.,,,,,,,..,,.,,,.,.,...,.,.,...,...,.,.,,.,,..,,,.,,,,,,
-#ITLHNWYS27KFWGN4ZT22V5ZTIYGNVUN22SQVWSYKSYI6YYBXYGXVIEGJHQ3Y2VHEX5LG6VQXJ3SK2
-#\\\|OZ5TTZ426UC45AKS3GXJK365EMDIM2GDF6BFPCPIARFXSPZXZ4S \ / AMOS7 \ YOURUM ::
-#\[7]ERPVPTP6CAWFIZPS27TSZOPLPZSR5IKUD6QTIVCGJ7MPZY5JXGCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,...,,,.,,,.,..,,.,,,..,,,..,,,,,.,.,...,...,..,,...,,,.,.,.,,,.,
+#H4O4J4C3HK47KKIEBYCBYGYA7GNRPCLZSK2HCIW3ZYJJEXVK6MU3GTGDY3X7TU2A2EK6ZZG4ZOX5U
+#\\\|OHVYUAQKFHVWDV2T5JJSS2Y54ITHPF5DNWSGKETC65OETF33UTI \ / AMOS7 \ YOURUM ::
+#\[7]L66B5JTKZOICF4JXHX2ANMUNECE7CAUPGU26YB4VGHGKDPOFEYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

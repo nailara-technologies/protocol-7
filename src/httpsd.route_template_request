@@ -76,8 +76,8 @@ $path =~ s|/+$|| unless $path eq qw| / |;
 my $cache_key = "$method:$path:$vhost";
 
 # Check cache for route decision
-if ( exists <httpsd.route_cache> {$cache_key} ) {
-    my $cached_route = <httpsd.route_cache> {$cache_key};
+if ( exists <httpsd.route_cache>->{$cache_key} ) {
+    my $cached_route = <httpsd.route_cache>->{$cache_key};
     <[base.logs]>->( 2, "[%s] :. using cached route decision", $session_id );
     return { %$cached_route, cached => 1 };
 }
@@ -153,7 +153,7 @@ if ( defined $vhost ) {
         };
 
         # Cache the route decision
-        <httpsd.route_cache> {$cache_key} = $route;
+        <httpsd.route_cache>->{$cache_key} = $route;
         return { %$route, cached => 0 };
     }
 }
@@ -175,11 +175,11 @@ my $route = {
 };
 
 # Cache the route decision
-<httpsd.route_cache> {$cache_key} = $route;
+<httpsd.route_cache>->{$cache_key} = $route;
 return { %$route, cached => 0 };
 
-#,,,,,.,,,..,,.,.,,..,,,,,..,,,..,.,.,...,..,,..,,...,...,,,.,.,,,.,,,...,,,.,
-#Q6VG5ALMETR24YCIYE5PB62PBXDKNZ55LLRYEHGSZ76J7PHFUPJR4UNB6MNBC225XIPFM7ORZQQ3K
-#\\\|CRUVHB6EQEXQUFPAMPG6UWBSXAZNOPNMWS4RDCOQCE2JENXSEMS \ / AMOS7 \ YOURUM ::
-#\[7]Q4TAINRL3KSLRKMGZJQGFWNMRSBE3OYKW2H2BWEZJYPCCKF3NUDI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,.,,,,.,,,.,.,,,,,.,.,,,.,.,,.,,..,,...,.,,,.,.,...,,,,,,.,,...,
+#7ASQ4NQJVYQXA7I27WBS7SDUECOWF2OTWFCFSZXPWWIRFWIVEJL6DRVYRLCJVZOW3OFPQ2O5DC4UM
+#\\\|ZH34AJCFK7KJFRS7KZVE2NXCKK6JLXJA7LCYD7QZ7ANQSTPEGAK \ / AMOS7 \ YOURUM ::
+#\[7]FAP4SY7EVU6BRI6YL7HC6U2A2D4MHYKVUXCGCBKNHKWNOJBDOYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
