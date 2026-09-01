@@ -215,11 +215,24 @@ sub compile_inline_source {
         ## install to target namespace ##
         eval "*$target_subname = \\&$current_sub_name";
 
-        ## clean-up temporary namespace ##
-        map { eval "undef &${compilation_target}::$ARG" }
-            ( $current_sub_name, qw| dl_load_flags | );
-        ## entire package ##
-        undef *COMPILE;
+        ## clean-up temporary namespace : delete the WHOLE per-iteration    ##
+        ## stash [ 'COMPILE::NNN::' , where a package name not nested       ##
+        ## inside an open 'package' block actually lives, as a child of     ##
+        ## %main:: ] in one shot -- it holds the just-compiled sub,         ##
+        ## dl_load_flags, and any other DynaLoader/XS glue Inline installed ##
+        ## under it, none of which need to survive past this point now that ##
+        ## the real sub is installed at its target above. the previous      ##
+        ## 'undef &${compilation_target}::$ARG' / 'undef *COMPILE' pair     ##
+        ## never matched anything real -- $compilation_target already ends  ##
+        ## in '::$current_sub_name', so appending '::$ARG' targeted a       ##
+        ## namespace one level too deep, and '*COMPILE' [ this package's    ##
+        ## own AMOS7::INLINE::COMPILE glob, never assigned to ] has nothing ##
+        ## to do with the dynamically numbered 'COMPILE::NNN::..' namespace ##
+        ## actually created above -- both were silent no-ops, leaking one   ##
+        ## full package stash [ sub + XS/DynaLoader glue ] on every compile ##
+        my ($iteration_key) = $compilation_namespace =~ m|^COMPILE::(\d+::)|;
+        delete $main::{'COMPILE::'}{$iteration_key}
+            if defined $iteration_key;
 
         #######################################################
 
@@ -349,8 +362,8 @@ sub encoded_bmw_chksum {
 
 return TRUE ##################################################################
 
-#,,,,,.,.,,,.,..,,,,.,,..,,,,,,,.,,.,,,.,,.,,,..,,...,..,,.,,,.,,,.,,,,,.,.,.,
-#E6U4G6OJR75THKQF3MF2FDDEKZNIYXVWCDTN4BLJM5HWDSWE77GPTDKRXYCTTX5SCHQPPSG2DLYCM
-#\\\|NVSIFQWODC42XREHUVPZIGUWNHOYERFADHKVRSUVNCUPZDXEOUC \ / AMOS7 \ YOURUM ::
-#\[7]RY6NSC2O4E7BOY4PMXIQTN7VDC2HCZUF7N3YFAG43DQ67FI7CADA 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,.,,,,.,,,,,,.,.,,..,.,.,,..,..,,...,...,.,,,.,,,,..,,.,,...,
+#SIHNIGSSD43UH7H5RT5DFW32AODWFNEED4C6I6FRSXP4WZHHR657KFUSYUEPTWT4HFLFQF4K374G6
+#\\\|273XPJCCGAIT627CLC734TGDUO4LYHVW322FFOY6RQRIYTYPN7Q \ / AMOS7 \ YOURUM ::
+#\[7]5WKKTBABNTDMCAMUI6HINYVNJK45YAQO4UR5DKUR5UAH6VYZ6MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

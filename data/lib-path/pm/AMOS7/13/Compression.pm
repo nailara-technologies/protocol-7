@@ -53,7 +53,7 @@ sub extract {
 
     return warn 'expected compression tree reference parameter'
         if not defined $tree_ref
-        or ref $data_ref ne qw| ARRAY |;
+        or ref $tree_ref ne qw| ARRAY |;
 
 }
 
@@ -68,14 +68,14 @@ sub cache_check {
         or ref $input_ref ne qw| SCALAR |;
     return warn 'expected compression tree reference parameter'
         if not defined $tree_ref
-        or ref $data_ref ne qw| ARRAY |;
+        or ref $tree_ref ne qw| ARRAY |;
 
 }
 
 return 1;  ###################################################################
 
-#,,..,,,.,,.,,..,,,..,..,,,,.,.,.,...,,..,.,.,..,,...,...,..,,..,,.,,,..,,...,
-#PSFBPQSEAWAJYEHKW2J3I2BDTPQBFRF35QN5GWLU4F3YRYK3LYPMJJO6272DLVCCK4BNZCUO7TB5W
-#\\\|TUUX42RXAGUXSEZO3GMBKTT3OY6EBZCDVLA7FOXYQJNRHJ2NJZN \ / AMOS7 \ YOURUM ::
-#\[7]DUW344GR6ZRNVV6VWYAWFPW434TLBAT6G5PPZ5W652CB4H6MBGDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,,.,,..,...,,..,.,.,..,,,.,,..,,...,...,..,,,..,..,,.,.,.,.,
+#DAUMWWAPH62OQNSBJ7QGJXIQRRGE474ASGN335MU6GA3S2ZF3ONGBLYP75UILCVRAI76MHHTM4GFO
+#\\\|B6OSZGLTWUFODPXG6MI4V46WRU5G37VX7KZ6QCYWPF3JJ5VK3G5 \ / AMOS7 \ YOURUM ::
+#\[7]M25RRI23BR7NYTOO7PE2FEUZMWY3YPVMQSGSLK7MHFUMP3U744BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

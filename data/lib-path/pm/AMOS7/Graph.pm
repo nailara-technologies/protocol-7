@@ -102,10 +102,10 @@ sub _sort_nodes {
     return sort { length $a <=> length $b || $b cmp $a } @ARG;
 }
 
-5;    ##  truth  ##
+return TRUE;    ##  truth  ##
 
-#,,.,,.,.,..,,..,,,,.,,.,,.,,,,.,,...,,,.,,,,,.,.,...,...,,..,,,.,,,.,,..,,,.,
-#ZEPSFIJXMIVXD52V52HUOXEIRN3BITXVI5JVEZUVG453GUO72C3O4WJSSKUVSWCMQ5JKJJOPLOHHW
-#\\\|XOIQQB4I2KDWVOFC3PCLXOR3HCSOTX7LS3I6ZMPE5HK5ADWBPUN \ / AMOS7 \ YOURUM ::
-#\[7]YXIG5V5KF42DIZZBXPEVUB5I6MYXIOTY24UINVN2J77IHJYJ32DA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,,.,,..,,,..,,,.,,,.,..,,...,.,.,...,...,.,,,.,,,,..,,..,..,,
+#CHZYJIQTME5Y4U7NCDNRFSGR7D5I4C2B6KVW5YJXWHYICQS44FOBZIRZRQL4NELX6EUKCCUKARPQC
+#\\\|DHBEIRN5IRNV5R6XV2FTR2SISZ7TD45NEDIP5IN4AXVTUPBUPML \ / AMOS7 \ YOURUM ::
+#\[7]P7D4OBWKWAX7KA45BMGXPA3XWPJCODCULDFEAFJCXDAHVXZ6ZKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
