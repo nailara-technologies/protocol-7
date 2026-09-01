@@ -40,17 +40,17 @@ eval {
         version  => '4.1',
         package  => 'Gtk3::WebKit2'
     ) if $class_str =~ /^Gtk3::WebKit2/;
-} if $class_str =~ /^Gtk3/;
+} if $class_str =~ m|^Gtk3|;
 
 my $skip_load_re
     = qr/^(IPC::Open2|Data::Dumper|Class::Inspector|Gtk3|Gtk3::WebKit2)$/;
 
-eval "use $class_str" if not $class_str =~ /$skip_load_re/;
+eval "use $class_str" if not $class_str =~ m|$skip_load_re|;
 my $header_str = "\n   ###  perl module/class : $class_str  ###";
-if ( $@ and $class_str =~ /::/ ) {
+if ( $@ and $class_str =~ m|::| ) {
     my $load_name = $class_str;
-    while ( $@ and $load_name =~ s/::[^:]+$// ) {
-        eval "use $load_name" if not $load_name =~ /$skip_load_re/;
+    while ( $@ and $load_name =~ s|::[^:]+$|| ) {
+        eval "use $load_name" if not $load_name =~ m|$skip_load_re|;
         $header_str = "\n   ###  perl module : $load_name  ###";
     }
 }
@@ -68,11 +68,11 @@ if ( length($perltidy_path) ) {
         if length($tidy) > 2;    ## fall back if perltidy can't parse it
 }
 
-my @lines = split( /\n/, $dump_str );
+my @lines = split( m|\n|, $dump_str );
 shift(@lines);
 pop(@lines);
 
-( $dump_str = join( "\n", @lines ) . "\n" ) =~ s/,$//mg;
+( $dump_str = join( "\n", @lines ) . "\n" ) =~ s|,$||gm;
 $dump_str =~ s/=>\s([^\s]+)$/
   my $glob_str = $1;
   if (eval "defined \&{$glob_str}") {
@@ -90,8 +90,8 @@ die "\n   [ module or class '$class_str' not found ]\n\n"
 
 print "$header_str\n\n$dump_str\n";
 
-#,,.,,,.,,.,,,,..,..,,.,,,,,,,,.,,,.,,,..,..,,..,,...,...,,,.,..,,..,,.,,,.,,,
-#ZQC6GSI5QC77WJFY3I2SLUDMSX7IDLZNJQVJ4OUZ33D4FVIO6WFMC7VXCVKP4HUCIOOGGKMABWCEE
-#\\\|OKMEHWROYXCSBTR2IR2ZBXSRY3OO4OJYDEHYHE2VOVPKEG3WWVP \ / AMOS7 \ YOURUM ::
-#\[7]MV5UVBR4DVQYVFU6HEZXHD6ZSDIJP6LNZCTY6APNXWO6GBT3YWAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,.,,,..,,,,.,,,,,.,,,,,.,..,,..,,...,...,,.,,,.,,.,.,,.,,.,,,
+#INYGQ6DCQY42IXR4MZPWOM24RBMUAPSHH72HGKGUVRP62CXJDV6JVJZVWS7UTBZ2UGU2YKPHVVKHE
+#\\\|KYACU3SLDVAQ2NBGLVQX4WUFARGLL52I7RABUP2Q7EKOZD65DDZ \ / AMOS7 \ YOURUM ::
+#\[7]X2DY7PHNAE2ORYQ7LRPDVLRKN6JWZVKSGLXVAAFWKS3PP2HGBOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

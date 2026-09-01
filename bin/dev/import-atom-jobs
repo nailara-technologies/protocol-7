@@ -1,33 +1,33 @@
 #!/usr/bin/env perl
 ## [:< ##
 ##
-## import-atom-jobs — merge atom node's flat job YAMLs into local status-dir store
+## import-atom-jobs — merge atom node's flat job YAMLs into local status-dir
+## store
 ##
-## usage:
-##   bin/dev/import-atom-jobs <atom-jobs-dir>
-##   bin/dev/import-atom-jobs /path/to/atom/jobs/flat/*.yaml
+## usage:  bin/dev/import-atom-jobs <atom-jobs-dir>  bin/dev/import-atom-jobs
+## /path/to/atom/jobs/flat/*.yaml
 ##
-## atom has a flat layout: /var/protocol-7/jobsite/jobs/<id>.yaml
-## local has status-dir layout: jobs/<status>/<id>.yaml
+## atom has a flat layout: /var/protocol-7/jobsite/jobs/<id>.yaml local has
+## status-dir layout: jobs/<status>/<id>.yaml
 ##
 ## merge rule (highest priority status wins, newest last_modified tiebreaker):
-##   applied > interviewed > apply > review > assessed > new > rejected > blocked
+## applied > interviewed > apply > review > assessed > new > rejected >
+## blocked
 ##
-## fields merged from atom record when atom wins:
-##   status, stage, score, score_reason, score_summary, assertions,
-##   notes, date_applied, last_modified
+## fields merged from atom record when atom wins:  status, stage, score,
+## score_reason, score_summary, assertions, notes, date_applied, last_modified
 ##
-## usage example:
-##   ssh atom "tar czf - /var/protocol-7/jobsite/jobs/" | tar xzf - -C /tmp/atom-jobs/
-##   bin/dev/import-atom-jobs /tmp/atom-jobs/var/protocol-7/jobsite/jobs/
+## usage example:  ssh atom "tar czf - /var/protocol-7/jobsite/jobs/" | tar
+## xzf - -C /tmp/atom-jobs/ bin/dev/import-atom-jobs
+## /tmp/atom-jobs/var/protocol-7/jobsite/jobs/
 
 use v5.24;
 use strict;
 use warnings;
-use YAML::XS qw| LoadFile DumpFile |;
+use YAML::XS       qw| LoadFile DumpFile |;
 use File::Basename qw| basename |;
-use File::Find qw| find |;
-use Cwd qw| abs_path |;
+use File::Find     qw| find |;
+use Cwd            qw| abs_path |;
 
 my %PRIORITY = (
     applied     => 8,
@@ -44,26 +44,26 @@ my %PRIORITY = (
 my $local_jobs = '/var/protocol-7/jobsite/jobs';
 
 die "usage: $0 <atom-jobs-dir>\n" unless @ARGV;
-my $atom_dir = abs_path($ARGV[0]) or die "cannot resolve path: $ARGV[0]\n";
+my $atom_dir = abs_path( $ARGV[0] ) or die "cannot resolve path: $ARGV[0]\n";
 die "directory not found: $atom_dir\n" unless -d $atom_dir;
 
 ## find all yaml files in atom dir (flat or nested) ##
 my @atom_files;
-find( sub { push @atom_files, $File::Find::name if /\.yaml$/ }, $atom_dir );
+find( sub { push @atom_files, $File::Find::name if m|\.yaml$| }, $atom_dir );
 printf "found %d atom job files in %s\n", scalar @atom_files, $atom_dir;
 
 my ( $merged, $skipped, $new_imported ) = (0) x 3;
 
 for my $atom_file ( sort @atom_files ) {
-    my $id = basename($atom_file, '.yaml');
-    next unless $id =~ /^\d+$/;
+    my $id = basename( $atom_file, '.yaml' );
+    next unless $id =~ m|^\d+$|;
 
     my $atom_job = eval { LoadFile($atom_file) };
     if ($@) { warn "parse error $atom_file: $@\n"; next; }
     next if ref $atom_job ne 'HASH';
 
     $atom_job->{'id'} //= $id;
-    my $atom_status = $atom_job->{'status'} // 'new';
+    my $atom_status = $atom_job->{'status'}   // 'new';
     my $atom_pri    = $PRIORITY{$atom_status} // 0;
 
     ## find local job across all status dirs ##
@@ -92,7 +92,7 @@ for my $atom_file ( sort @atom_files ) {
         my $target_dir = "$local_jobs/$atom_status";
         mkdir $target_dir unless -d $target_dir;
         my $target = "$target_dir/$id.yaml";
-        eval { DumpFile($target, $atom_job) };
+        eval { DumpFile( $target, $atom_job ) };
         if ($@) { warn "write error $target: $@\n"; next; }
         printf "  imported  %s  [%s]\n", $id, $atom_status;
         $new_imported++;
@@ -127,7 +127,7 @@ for my $atom_file ( sort @atom_files ) {
     my @merge_fields = qw|
         status stage score score_reason score_summary assertions
         notes date_applied last_modified
-    |;
+        |;
     for my $f (@merge_fields) {
         $local_job->{$f} = $atom_job->{$f} if exists $atom_job->{$f};
     }
@@ -138,7 +138,7 @@ for my $atom_file ( sort @atom_files ) {
     mkdir $target_dir unless -d $target_dir;
     my $target = "$target_dir/$id.yaml";
 
-    eval { DumpFile($target, $local_job) };
+    eval { DumpFile( $target, $local_job ) };
     if ($@) { warn "write error $target: $@\n"; next; }
 
     ## remove old file if status changed ##
@@ -155,8 +155,8 @@ printf "\ndone: %d imported, %d merged (atom won), %d skipped (local wins)\n",
     $new_imported, $merged, $skipped;
 printf "run 'p7c jobsite.reload' to rebuild the in-memory index\n";
 
-#,,..,..,,,..,,,,,,.,,..,,,..,,,,,..,,.,,,...,..,,...,..,,.,,,.,,,.,,,,,.,,.,,
-#CSRK7JSPYFNFXT4NV3UJAYCFM2T3EXOK6WKKMCVUTF3PY6CNH42NWV44V3E3VUYLNJPPFCIL2OPJC
-#\\\|3DHYTHLFTY36KF7OA4SMYRL7OCTELEUGI4FLH6TTZRGP4YUWUT5 \ / AMOS7 \ YOURUM ::
-#\[7]Z647TWKKBRR3CRZK355AJD25VPEZBIO75A373P6MYW3DH5ZFGUBY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,,..,,..,,,.,,.,,,..,.,,,..,,..,,...,...,...,.,.,.,,,,,,,..,,
+#N6EOX53KOLLGJVWDVWFMAVK5X34OFRFO4GVPHT2DWWSTM2JEIVYMGR7GQR5CFXMW7N3GJ2HY5IHZU
+#\\\|XLVBUDQQQB4DJTR2VYISFWQVLVDXFESFUX5TPFOU4ORUOJSSX25 \ / AMOS7 \ YOURUM ::
+#\[7]ESPSYIC65L4I7VTOWY7AARTAK6G7C5NPRMFPHWVMHUM7KPVHSMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

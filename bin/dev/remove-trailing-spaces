@@ -18,24 +18,24 @@ sub process_file {
     return unless -f $filename && -r $filename && -w $filename;
 
     # Read the file
-    open(my $in, '<', $filename) or die ":: cannot read $filename: $!\n";
+    open( my $in, '<', $filename ) or die ":: cannot read $filename: $!\n";
     my @lines = <$in>;
     close $in;
 
     # Remove trailing whitespaces
     chomp @lines;
-    @lines = map { $_ =~ s/\s+$//r } @lines;
+    @lines = map { $_ =~ s|\s+$||r } @lines;
 
     # Write back to the file
-    open(my $out, '>', $filename) or die " :: cannot write $filename: $!\n";
-    print $out join("\n", @lines), "\n";
+    open( my $out, '>', $filename ) or die " :: cannot write $filename: $!\n";
+    print $out join( "\n", @lines ), "\n";
     close $out;
 
     print ": processed : $filename\n";
 }
 
 # If first argument is a directory or '.'
-if (@ARGV == 1 && (-d $ARGV[0] || $ARGV[0] eq '.')) {
+if ( @ARGV == 1 && ( -d $ARGV[0] || $ARGV[0] eq '.' ) ) {
     my $dir = $ARGV[0];
 
     # Use File::Find to recursively process files
@@ -50,9 +50,11 @@ if (@ARGV == 1 && (-d $ARGV[0] || $ARGV[0] eq '.')) {
         $dir
     );
 }
+
 # If arguments are specific files
 else {
     foreach my $file (@ARGV) {
+
         # Validate file existence
         die ":: file $file does not exist\n" unless -e $file;
 
@@ -62,8 +64,8 @@ else {
 
 print ":\n:. trailing spaces removed. =)\n";
 
-#,,.,,..,,...,,..,,,,,.,,,.,,,.,,,,,,,,,.,.,,,..,,...,...,,..,.,.,,,.,...,,.,,
-#AKGIJ7CKSBO2MYU43TSDYARLO7TMQFCJCLJ6RHXA5QHBE4BPURRDNOBAW2ANDSGSKNMQEQTBLQ4EE
-#\\\|65BLOUD6QWHI4EBHOMFHSDYI2DV7CBXBGI3GKKMI45HN2UKMGZE \ / AMOS7 \ YOURUM ::
-#\[7]TMNEQQBOBUOXSAPTH2AKWJZGLT46B2FJARYLCGWMA44WUARKVGCY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,..,,.,.,,..,,,.,...,,,.,,..,..,,...,...,..,,.,,,,,,,,,.,.,.,
+#YQ7U22NQTJCKK5HRRMKYKBTOP53ZF2NJRBPOM4XQ3XMKLKMNHVFNSXQSBGOFCEWG53JSGEMQAXDFI
+#\\\|5HEEK6O3UI2UE6TYDH3YMBMW3LICVLL2LE3FFRBAGUTMFKED57K \ / AMOS7 \ YOURUM ::
+#\[7]GYB4R6GZBL6YKIVAFCLFCT7ZGFFNWGWRMF5SKJ7RMGW2X2CUWKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
