@@ -1448,7 +1448,12 @@ sub step7_compact_module_call_sugar {
         }
     }
 
-    return $text if not @calls;
+    ## no early return when @calls is empty -- the second pass below still ##
+    ## needs to run over $text even when THIS file has no fresh            ##
+    ## $code{...}->(...) left to convert [ e.g. every occurrence in it is  ##
+    ## already <[name]>->() from an earlier run, so the PPI walk above     ##
+    ## naturally found nothing here, but a stray ->() might still need     ##
+    ## stripping ]                                                         ##
 
     ## replace from the end backward so earlier positions stay valid ##
     @calls = sort {
@@ -1488,11 +1493,20 @@ sub step7_compact_module_call_sugar {
         my $line = $lines[$line_idx];
         next if $start_col < 0 or $end_col > length($line);
 
+        ## an empty arg list drops ->(...) entirely -- <[name]> alone      ##
+        ## already means "call with no args" per the sugar's own implicit- ##
+        ## call rule, matching how this is already hand-written elsewhere  ##
+        my $list_content = $call->{list}->content;
+        ( my $inner = $list_content ) =~ s{^\(|\)\z}{}g;
+        $inner =~ s{^\s+|\s+$}{}g;
+
         my $replacement
-            = '<['
+            = $inner ne ''
+            ? '<['
             . $call->{key} . ']>'
             . $call->{arrow}->content
-            . $call->{list}->content;
+            . $list_content
+            : '<[' . $call->{key} . ']>';
 
         $lines[$line_idx]
             = substr( $line, 0, $start_col )
@@ -1502,7 +1516,16 @@ sub step7_compact_module_call_sugar {
         $last_start_for_line{$line_idx} = $start_col;
     }
 
-    return join( '', @lines );
+    my $rewritten = join( '', @lines );
+
+    ## second pass, plain text not PPI : strips ->() left over from a file ##
+    ## already converted by an EARLIER run of this step [ before this      ##
+    ## empty-arg-list stripping existed ] -- once a call is already        ##
+    ## <[name]>->(), it's no longer $code{'name'}->(...) for the PPI walk  ##
+    ## above to find at all, so that walk alone can never re-visit it      ##
+    $rewritten =~ s{(<\[[\w\-]+(?:\.[\w\-]+)*\]>)\s*->\s*\(\s*\)}{$1}g;
+
+    return $rewritten;
 }
 
 ##[ utilities ]##
@@ -1904,8 +1927,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,.,,..,,,..,,..,..,,..,,,,,,.,.,...,,,.,..,,...,...,.,.,,..,,..,,,.,.,,,
-#QL5SQLBQSPMGSG2BSJLA4RNLKJ3MPKTYEEORBWO7LCLEJGTV2Q327BLLAL43RN2GY6LEY33BZLX7W
-#\\\|UZRENT4NZXWX5FQBX7IF2MAD2OPYOOQOCNBNUIXVBOE5MXI3ZUB \ / AMOS7 \ YOURUM ::
-#\[7]RPUUUYUIV5SEEXWHQDKSKHPDPTHYAOBZJH7XT5WFTM7OSS43PODA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,,,.,.,,,,,.,.,,,,,,,,..,,..,..,,...,...,.,.,,,,,,.,,,,.,,,.,
+#ZUXHM3PMPAKBYCQZ36NKNXWCWJ3KBJP2EIY7YD33LLUTMAHOGOZKYONJ4F4FL4HQYMCVW3SISA3RQ
+#\\\|GUPLB3Z2IFNGVV6XTJJQIJDDJUWIEZ5Y7LWXXZ24F76NLGV2A22 \ / AMOS7 \ YOURUM ::
+#\[7]UOTX22Z5PJJXA7OBJIIZ367XFEGWD445D5LEDAS6ICKC2WGYS2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
