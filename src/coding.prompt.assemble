@@ -109,7 +109,7 @@ if (exists $code{'coding.context.read_module'}
 ## collect tool definitions early [ needed for template context ] ##
 my $tools;
 if ( exists $code{'coding.tools.definitions'} ) {
-    $tools = $code{'coding.tools.definitions'}->();
+    $tools = <[coding.tools.definitions]>;
     if ( ref $tools eq qw| ARRAY | and $tools->@* ) {
         <[base.logs]>->(
             2,
@@ -281,7 +281,7 @@ if ( !@messages && exists $code{'context.template.resolve'} ) {
 
 ## fallback to hardcoded system prompt ##
 if ( !@messages and exists $code{'coding.system_prompt'} ) {
-    my $sys_prompt = $code{'coding.system_prompt'}->();
+    my $sys_prompt = <[coding.system_prompt]>;
     if ( defined $sys_prompt and length $sys_prompt ) {
         push @messages, { 'role' => 'system', 'content' => $sys_prompt };
         <[base.logs]>->(
@@ -308,8 +308,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,.,,.,,,,.,,,,.,.,.,,,,,,,,,,..,,,,,..,,...,..,,...,...,,,,,.,,,.,.,..,,..,,
-#735QMXX2HKAVNDWFO35JQ2VF7QSG35GW2VYOKJSO7UOE5M55GXTFE3KEX7YDYU2ZEY3RBF2IWJXIG
-#\\\|ZVKCYSAD2WEW55BFMULYCCC2Z36I2FKBM66BWA5TX42ZCLH7WDS \ / AMOS7 \ YOURUM ::
-#\[7]LHSUQDY3MA7NRQYJJVCLA7PV7BNXH6XT2SQJUREHMC6VCPXXAOBY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,..,,.,.,.,.,,,.,,.,,...,,.,,..,,...,...,...,..,,,,.,,..,,..,
+#4RIE3PJBFE3DKWQYM2LDS6Y37DFDHR4OFKZYJBFUCFV2PERV2TCPDE4RKB36AER6R75TUKNOAKF6Q
+#\\\|EUSAYEMFU72RK6SOMIETJMQCCVR3UUC6QDLHWEM5YPVDACCGLB7 \ / AMOS7 \ YOURUM ::
+#\[7]ZRJP7EBFYCW747T4QYVOYKJRHEZFVBRQE2LI73KCXLQF633MNSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

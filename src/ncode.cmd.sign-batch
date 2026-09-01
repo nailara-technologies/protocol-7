@@ -18,7 +18,7 @@ return {
 
 ## collect modified tracked files ##
 my @cmd        = (qw| git status --porcelain |);
-my $git_output = $code{'ncode.util.run_cmd'}->(@cmd);
+my $git_output = <[ncode.util.run_cmd]>->(@cmd);
 
 my @files;
 for my $line ( split m|\n|, $git_output ) {
@@ -54,12 +54,12 @@ if ( not @files ) {
 
 my @sign_cmd = ( $protocol7_bin, qw| sourcecode update-signatures |, @files );
 
-my $output = $code{'ncode.util.run_cmd'}->(@sign_cmd);
+my $output = <[ncode.util.run_cmd]>->(@sign_cmd);
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,..,,..,..,,,..,.,.,,..,.,.,.,,,.,.,,.,,,,,,.,.,...,..,,,.,,.,.,...,.,.,,..,
-#RVI5WD3I53DIUATCHGHOEHONJM5O6SAID23QSCANLFCWIGZWTOCJOMR2BWMOTWM3I6GXHEGOJZHIA
-#\\\|25LXOVOF4HDUTDH3PPXVXRAODPTVS43WYYEPN4VESI7CJZ6CO6J \ / AMOS7 \ YOURUM ::
-#\[7]VEH2X4CICRTQN7DCTOVBHKPILPXDYMA7AWEPFATTSZMSENJFGYCI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,.,,,...,,.,,..,,.,,,,.,,.,.,.,.,...,...,,.,,..,,..,,,.,,,.,,
+#36462JY2Y5E7TZ6LCB4TZOOR2QKXIQG6YF5VRBR5KE64IIHCTREXXYFAQVA67FJVPZNCLK7BDH436
+#\\\|TSNIWNGUY44EX674M4KL7ANACXTFNPOMIBN7RN2EYVJ4YKSX6AN \ / AMOS7 \ YOURUM ::
+#\[7]VS47EON4VQPI5GNBSNQBLVL34JYKXSPWFJAH5PXKCCCAXWA4J4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

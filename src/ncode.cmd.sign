@@ -21,7 +21,7 @@ return {
 
 my @cmd = ( $protocol7_bin, qw| sourcecode sign |, $file );
 
-my $output = $code{'ncode.util.run_cmd'}->(@cmd);
+my $output = <[ncode.util.run_cmd]>->(@cmd);
 
 if ( $output =~ m|success|i or $output =~ m|signature|i or $? == 0 ) {
     return { 'mode' => qw| true |, 'data' => $output };
@@ -29,8 +29,8 @@ if ( $output =~ m|success|i or $output =~ m|signature|i or $? == 0 ) {
     return { 'mode' => qw| false |, 'data' => $output };
 }
 
-#,,..,.,,,...,,,,,...,...,,,.,,.,,...,,,,,...,.,.,...,...,,..,.,,,.,,,...,.,.,
-#IWNPZ4TFWPWS43SAWVUMPP62ULB6D3ELSD3ZXLZTITPI2AB37UOORTTOQRZA4MM4RYYZ5LPFDLW62
-#\\\|A5V2TNN7UMXHTLSLO4H2TA5QYHDS4EEQLQCSM5VX4E5CJ6UVODA \ / AMOS7 \ YOURUM ::
-#\[7]J66XD55ASMGLSALFONH6WKV6UJM4IT3A3Q6U3WHJOQGNB6IT7UBY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,,..,..,,,..,,..,,.,,,,,,.,.,.,.,...,...,..,,,,.,..,,...,,..,
+#676XTZTCOBAWLCMF6TIMZZW27DTTRAV2CFQO5Y3HMR5A7FIYGSH4ZDUMXJ5TEWGB2YAWRKPS4VHNM
+#\\\|ORJY3XTHHKPMPJYRHKSE2J5AIBFSCSSFH4QF3IR55H5DOT47KVC \ / AMOS7 \ YOURUM ::
+#\[7]TMZV6P43TLP7LS2QNR7M2IK32KM6DREGDSX4P462SIZA3PDKWOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

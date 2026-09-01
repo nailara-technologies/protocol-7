@@ -48,8 +48,7 @@ if ( $pattern_dir !~ m|^/| and defined <system.root_path> ) {
 }
 if ( -d $pattern_dir ) {
     foreach my $file ( glob "$pattern_dir/smtpd-*.yaml" ) {
-        my $result
-            = $code{'base.pattern-registry.load'}->( { 'file' => $file } );
+        my $result = <[base.pattern-registry.load]>->( { 'file' => $file } );
         if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
             <[base.logs]>->(
                 2,
@@ -62,8 +61,8 @@ if ( -d $pattern_dir ) {
 
 <[base.logs]>->( 1, 'smtpd: ready, store=%s', $store_dir );
 
-#,,.,,,,,,,..,..,,.,.,..,,,..,,,.,..,,,..,..,,.,.,...,..,,,,.,,..,.,,,,..,,,.,
-#THYE7QFYXHEM6HWSOS7O7UDGUFYXGOSVMUFR6S5PEXKYR3WP2Y2BXJPXKGM6HCACU3OCWY5VKXDSO
-#\\\|PDX6OTSJZFRJPU5OIRN2XWJMATQL6BUUHX4E5S4JEFNDB6MPZSE \ / AMOS7 \ YOURUM ::
-#\[7]GK5HB5CSSQNQUP53D55CO6GHKQ7HMSBB5JMHUVATFBANFJB37YBY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,.,.,.,,,...,...,,,.,,..,..,,.,.,...,.,.,...,.,,,.,,,.,,,..,,
+#ITPLLZ3X4XNJ22ZM77G2WOVADXJDIW7MM35TIUZJCN62NW7MPRWAXTJAXU2VF6M6RGQKEPFJW7SI6
+#\\\|KNWEUBZ7O5O4OGZJB2WIFPNMUVGML2D3YWIWEG6UHW24OFPBFYN \ / AMOS7 \ YOURUM ::
+#\[7]FTPMOSISU6DHHXN5QO4NVI35EJGDMO6JIGLX4TIEJABJ2L5Y3MCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
