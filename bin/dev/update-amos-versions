@@ -31,9 +31,9 @@ my $new_versions = {
 };
 
 ( undef, my $o_mlen )
-    = minmax { length $old_versions->{$ARG} } keys $old_versions->%*;
+    = minmax( map { length $old_versions->{$ARG} } keys $old_versions->%* );
 ( undef, my $n_mlen )
-    = minmax { length $new_versions->{$ARG} } keys $old_versions->%*;
+    = minmax( map { length $new_versions->{$ARG} } keys $old_versions->%* );
 
 my $bg  = "\e[48;2;9;5;42m";
 my $fg0 = "\e[38;2;38;46;153m";
@@ -62,8 +62,8 @@ foreach my $module ( sort keys $old_versions->%* ) {
 }
 say "$bg$CT:.,$rst";
 
-#,,,,,,.,,,..,,..,,..,,.,,.,,,..,,.,,,,.,,.,,,..,,...,...,.,,,..,,,,,,,,,,...,
-#YWM35PBFQ7CKHAYFP7YJL2ORQCQN7QZJTFXUEBJWYQ7ZJLHMFOTG54JYVAPKNGIKJRH4VEPSHA536
-#\\\|L573Z2QTDYQRA4NZGYGN73S2HE33S3HVUGH5XKNIQWC6BAGD2XH \ / AMOS7 \ YOURUM ::
-#\[7]YMQS24PJ57JH7FODORVZQXM4ZPWNUA2TFKCL5RH4EXBJHAPWTYDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,...,...,.,,,...,,,.,,.,,,,,,,..,..,,...,...,,,,,,.,,...,,,.,.,,,
+#YSWK3KYI25CZ44SX6FB4ADQIHIY65PNWIGXA4XYHNPPPRR7EYZE2RJBXDY3LHY62Z7MQFWOVI5FYS
+#\\\|FK3DCWIGZCF4SOO5ZFDM55L6MGJLQTRDXNLFCX6MZ5J35RQAR2T \ / AMOS7 \ YOURUM ::
+#\[7]JNGSHSHBQD3KFKBHPLWQX6JHLCHQMVGCIMF6ATE3PB7RFGD4XMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
