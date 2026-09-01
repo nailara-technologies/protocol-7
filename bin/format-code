@@ -2151,8 +2151,9 @@ sub transform_regex_body {
         $force_escape{$ARG} = 1 for @stack;
     }
 
-    my $out = '';
-    my $len = length $body;
+    my $out        = '';
+    my $len        = length $body;
+    my $in_bracket = 0;
     for ( my $i = 0; $i < $len; $i++ ) {
         my $c = substr( $body, $i, 1 );
         if ( $c eq qw| \\ | and $i + 1 < $len ) {
@@ -2163,11 +2164,38 @@ sub transform_regex_body {
                 ## alphanumeric escapes [ \n , \d , \Q .. ] are regex ##
                 ## escapes in their own right , keep them as-is       ##
                 $out .= '\\' . $next;
+            } elsif ( $in_bracket and $next eq '-' ) {
+                ## '-' inside a [...] class is the range operator ; an      ##
+                ## escape here disambiguates a literal hyphen from a range  ##
+                ## and has nothing to do with the old delimiter --          ##
+                ## stripping it [ as the delimiter-only branch below does ] ##
+                ## turns eg '[\w\-_.]' into '[\w-_.]', which perl then      ##
+                ## warns is a bogus range from '\w' to '_'                  ##
+                $out .= '\\' . $next;
             } else {
                 ##  the escape only existed for the old delimiter's sake    ##
                 $out .= $next;
             }
             $i++;
+        } elsif ( not $in_bracket and $c eq '[' ) {
+            $in_bracket = 1;
+            $out .= $c;
+            ## a leading '^' negation and/or a ']' right after '[' [ or    ##
+            ## '[^' ] are literal class members, not the terminator , same ##
+            ## as body_contains_pipe's bracket-scan does                   ##
+            my $j = $i + 1;
+            if ( $j < $len and substr( $body, $j, 1 ) eq '^' ) {
+                $out .= '^';
+                $i = $j;
+                $j++;
+            }
+            if ( $j < $len and substr( $body, $j, 1 ) eq ']' ) {
+                $out .= ']';
+                $i = $j;
+            }
+        } elsif ( $in_bracket and $c eq ']' ) {
+            $in_bracket = 0;
+            $out .= $c;
         } elsif ( $new_delim{$c} and ( not $paired or $force_escape{$i} ) ) {
             ## a raw occurrence of the new delimiter char must be escaped ##
             ## -- it was never escaped under the old delimiter [ e.g. a   ##
@@ -2722,8 +2750,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,..,,.,.,,..,.,,,,..,...,.,.,...,,,,,,,,,..,,...,...,..,,.,,,,..,,,,,..,,
-#IAFILCGPK7P3WVXLTXSDZUXSSDK4AOCFNLJZVNM5KM62ZMQX7AUXQUX6IXR7VNIITJFAAYGO56PUO
-#\\\|B2LIDPGDIBTCH75Q7B6T4ZUWFD6TSKRPVYQR36AJQ7UHMDHYCO5 \ / AMOS7 \ YOURUM ::
-#\[7]UFJZKRLMEN7TMIZDSNJ2DXLTIM2G7F3PWFORFKG4SNXKRHU6XQAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,..,...,...,.,.,,..,...,,,,,..,,..,,...,...,...,,,.,,,.,..,,,..,
+#6UAYUWCP2ESEGZS7VPG4N3RZ2LM4NJ6VTZOCZIH7HCVO7MZKRHEACRQDXDQS2BZHNWVQIXF7ZBIZM
+#\\\|SFGDULJTYOHBXPJOXRZN2NJUKGDX5TLOUEE2I4MR5WCCYDAYGDR \ / AMOS7 \ YOURUM ::
+#\[7]6EHTXCJEO73R4JVUM57TVLIOCHQ6HN6YRHCMN2HONQW6BYSXH2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
