@@ -26,7 +26,7 @@ if ( !defined $state ) {
 }
 
 my $candidates = $state->{'candidates'} // [];
-my $idx        = $state->{'idx'} // 0;
+my $idx        = $state->{'idx'}        // 0;
 my $total      = scalar @$candidates;
 
 my $cursor_file = 'state/model_sweep_cursor.yaml';
@@ -42,10 +42,10 @@ my $load_cursor = sub {
 ## helper : persist cursor for a given idx ##
 my $persist_cursor = sub {
     my ($cursor_idx) = @_;
-    my $cursor_data  = $load_cursor->();
+    my $cursor_data = $load_cursor->();
 
     $cursor_data->{$backend} = {
-        filter     => $state->{'filter'}  // qw| default |,
+        filter     => $state->{'filter'} // qw| default |,
         candidates => $candidates,
         idx        => $cursor_idx,
         started    => $state->{'started'} // <[base.ntime]>,
@@ -70,7 +70,8 @@ my $clear_cursor = sub {
     if ( length $yaml_str ) {
         <[file.zenka_dir.write]>->( $cursor_file, \$yaml_str, qw| > |, 0640 )
             or <[base.logs]>->(
-            1, '[model_sweep] failed to clear cursor file [ %s ]', $cursor_file
+            1, '[model_sweep] failed to ' . 'clear cursor file [ %s ]',
+            $cursor_file
             );
     }
 };
@@ -126,13 +127,14 @@ my $start_candidate = sub {
         = $backend eq qw| gpu |
         ? ( <inference.backend.gpu.model_id> // '' )
         : ( <inference.backend.cpu.model_id> // '' );
-    $original_model = <inference.model.amos_id> // '' if !length $original_model;
+    $original_model = <inference.model.amos_id> // ''
+        if !length $original_model;
 
     if ( !length $original_model ) {
         <[base.logs]>->(
             0,
-            '[model_sweep] %s : no current model to restore to, '
-                . 'aborting sweep at candidate %s',
+            '[model_sweep] %s : no current model to '
+                . 'restore to, aborting sweep at candidate %s',
             $backend,
             $checksum
         );
@@ -176,14 +178,13 @@ my $start_candidate = sub {
 
     ## issue the actual switch-model command ##
     eval {
-        <[coding.cmd.switch-model]>->(
-            { args => sprintf '%s backend=%s', $checksum, $backend }
-        );
+        <[coding.cmd.switch-model]>
+            ->( { args => sprintf '%s backend=%s', $checksum, $backend } );
         1;
     } or do {
         my $err = $@ || 'unknown error';
         <[base.logs]>->(
-            0, '[model_sweep] %s : switch-model call failed : %s',
+            0,        '[model_sweep] %s : switch-model call failed : %s',
             $backend, $err
         );
     };
@@ -192,13 +193,8 @@ my $start_candidate = sub {
     $state->{'phase'}     = qw| waiting |;
 
     <[base.logs]>->(
-        1,
-        '[model_sweep] %s : started candidate %d/%d : %s [switch_id=%s]',
-        $backend,
-        $idx + 1,
-        $total,
-        $checksum,
-        $switch_id
+        1, '[model_sweep] %s : started candidate %d/%d : %s [switch_id=%s]',
+        $backend, $idx + 1, $total, $checksum, $switch_id
     );
 };
 
@@ -211,19 +207,17 @@ if ( $phase eq qw| idle | ) {
 }
 
 if ( $phase eq qw| waiting | ) {
-    my $switch_id    = $state->{'switch_id'} // '';
-    my $switch_state = defined $switch_id
+    my $switch_id = $state->{'switch_id'} // '';
+    my $switch_state
+        = defined $switch_id
         ? $data{'coding'}{'self_test_switch_state'}{$switch_id}
         : undef;
 
     if ( !defined $switch_state ) {
         ## terminal phase reached : advance cursor ##
         <[base.logs]>->(
-            1,
-            '[model_sweep] %s : candidate %d/%d finished, advancing',
-            $backend,
-            $idx + 1,
-            $total
+            1, '[model_sweep] %s : candidate %d/%d finished, advancing',
+            $backend, $idx + 1, $total
         );
         $idx++;
         $state->{'idx'}       = $idx;
@@ -236,12 +230,8 @@ if ( $phase eq qw| waiting | ) {
 
     ## still waiting on the current switch cycle ##
     <[base.logs]>->(
-        2,
-        '[model_sweep] %s : waiting on candidate %d/%d [switch_id=%s]',
-        $backend,
-        $idx + 1,
-        $total,
-        $switch_id
+        2, '[model_sweep] %s : waiting on candidate %d/%d [switch_id=%s]',
+        $backend, $idx + 1, $total, $switch_id
     ) if int( <[base.time]>->(3) ) % 5 == 0;
 
     return TRUE;
@@ -249,14 +239,14 @@ if ( $phase eq qw| waiting | ) {
 
 ## unknown phase : defensive cleanup ##
 <[base.logs]>->(
-    0, '[model_sweep] %s : unknown phase %s, aborting sweep',
+    0,        '[model_sweep] %s : unknown phase %s, aborting sweep',
     $backend, $phase
 );
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,..,...,,,.,..,,.,,,,,.,,..,.,.,...,..,,.,.,..,,...,...,,,,,,.,,,..,.,.,.,,,
-#URYE7MC2F6TM63X3362DACVPPGAWBCZIHRPMHXOLKQRKLCZFIR36OWCA2ZBJM7GIQLYNCYXRCF6DQ
-#\\\|YCINRGEVMAIPWIASWYCC35CG5YYJRONXGF7RHN5GEJVCV2QYU7Q \ / AMOS7 \ YOURUM ::
-#\[7]L2GZHLQ7Z7JVERMQJZUZAJSZQR4PXCSM75LCMYTLJQV3ER4OICAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,...,.,.,.,.,..,,,..,,,.,...,..,,...,...,.,.,,.,,...,,.,,,..,
+#M54X2IRS6O6R3X2WBFAL47DFFPI7HGMAFJFZFZHAPWV4MQHNPQSS6WEI6J4TRM4CLL6IOM27GSOQO
+#\\\|EXKRMSVWZ5RS6AQQX2UZ4WEFDW6HTC5MOXSOBO5J2RKDG4WX67P \ / AMOS7 \ YOURUM ::
+#\[7]CY52AXDJHYL7WUDFAOHDFJ6C7QWSO2LNUIJOLRRV3UXB6IA6YAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

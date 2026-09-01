@@ -8,15 +8,13 @@ die 'expected positive integer argument'
     if $length !~ m|^\d+$| or $length < 1;
 
 my $seed_string
-    = '01234577790'
-    . 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    . 'abcdefghijklmnopqrstuvwxyz'
-    . '!.,-[`"<\'|?)]{}:;';
+    = '01234577790ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!.,'
+    . '-[`"<\'|?)]{}:;';
 
 return <base.prng.fortuna>->string_from( $seed_string, $length );
 
-#,,.,,,.,,,..,...,.,.,,..,,.,,,,.,,..,,,.,,,,,..,,...,..,,..,,...,...,..,,...,
-#RX5NMIXWWTF5A3INEGKONPZLZYMTVRL62XESFI4M6D5VKSAKBC3SQSRPT6WBJRB7AYXVIZOETDQH6
-#\\\|PAP5GNJPSTHUDAKAPJ7OWFH5GHDC6O5332ZRNS2VNKY26VSOTV3 \ / AMOS7 \ YOURUM ::
-#\[7]ZUAM46SKTXCYSFN27Z6PJSEJ5IO47UJRIULS44OEVMT424MENSAY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,.,.,.,,,..,,..,,..,,,,,,,,.,..,,...,...,.,.,,,.,,..,.,.,,,.,
+#IYBG774WOQA2F7WD4XKYYGG63LS2EN4TW3EX2GJILETH3IYKITJIEHMQ57BEOODTQHYZXR6S7J4JG
+#\\\|MS3LV6DQYS3RXIPHBDHG3J633VT5XMY5I2PZL3RGJZZYBH4YQJP \ / AMOS7 \ YOURUM ::
+#\[7]NZICIYMVW5DTPRYOQRYDVZQBUAOH6CK6JD2APNF5BUGZ7ZKIKQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

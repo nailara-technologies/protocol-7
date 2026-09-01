@@ -4,7 +4,7 @@
 # descr = show per-backend model sweep status
 # param = [backend]
 
-my $params         = shift // {};
+my $params         = shift             // {};
 my $backend_filter = $params->{'args'} // '';
 
 my @backends
@@ -28,27 +28,25 @@ for my $backend (@backends) {
 
     if ( defined $active && ref $active eq qw| HASH | ) {
         my $candidates = $active->{'candidates'} // [];
-        my $idx        = $active->{'idx'} // 0;
+        my $idx        = $active->{'idx'}        // 0;
         my $total      = scalar @$candidates;
         my $current    = $idx < $total ? $candidates->[$idx] // '' : '';
         push @lines,
-            sprintf
-            '%s : in-progress : idx=%d/%d current=%s filter=%s',
+            sprintf '%s : in-progress : idx=%d/%d current=%s filter=%s',
             $backend,
             $idx,
             $total,
             $current,
             $active->{'filter'} // qw| default |;
     } elsif ( ref $cursor eq qw| HASH |
-        && @{ $cursor->{'candidates'} // [] } )
-    {
+        && @{ $cursor->{'candidates'} // [] } ) {
         my $idx   = $cursor->{'idx'} // 0;
         my $total = scalar( @{ $cursor->{'candidates'} // [] } );
         if ( $idx < $total ) {
             my $current = $cursor->{'candidates'}[$idx] // '';
             push @lines,
-                sprintf
-                '%s : resumable [ not running ] : idx=%d/%d current=%s filter=%s',
+                sprintf '%s : resumable [ not running ] '
+                . ': idx=%d/%d current=%s filter=%s',
                 $backend,
                 $idx,
                 $total,
@@ -64,8 +62,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,,..,,..,.,,,.,.,,.,,,,,,..,,.,,,.,.,,.,,..,,...,...,..,,,..,..,,..,,,,,,
-#CSPSYBHM7AJTAEWZLIET3ITGV7X7G6TSHFEDAQEBQKEA2ZFGP26ZQGNT4C3OUTQN63FS3XLGBPQOM
-#\\\|CFMBTS77Q4FW4VBI6QAGPEVXCZFXN6XRXFK4ONIQYLR7YIPKFC5 \ / AMOS7 \ YOURUM ::
-#\[7]LQABIDPCH2IZBULPSHHEQRL52ZLKUDTWNXINHSTE73DGYOIKRABQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,,,.,...,.,,,,.,,.,.,.,.,.,,,..,,...,...,,..,,,.,,.,,..,,,.,,
+#UA2YSIDNDIDWEKMM64PU2JEJPGM3I5PD35X7N64M4JTLWFWOQOIRQMEZKKGGWGUCVFYHEQPDMWRLO
+#\\\|G4VQSTOD74E2LST6XLGDBAHQ3ZK25MW5GGPKX2ZKQDYOXZHYEGT \ / AMOS7 \ YOURUM ::
+#\[7]RT5AKZHNCHVYEU5T4EHMQZ5K2NS4JFVDT62FLPDCWLFB5QJSGMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # descr = start a per-backend model sweep
 # param = [backend] [:re-test-failed:] [:re-test-success:]
 
-my $params = shift // {};
+my $params = shift             // {};
 my $args   = $params->{'args'} // '';
 
 ## extract filter tokens using substitutive extraction, order-independent ##
@@ -22,8 +22,7 @@ unless ( $backend_arg =~ m{^(gpu|cpu|both)$} ) {
     };
 }
 
-my @backends
-    = $backend_arg eq qw| both | ? qw| gpu cpu | : ($backend_arg);
+my @backends = $backend_arg eq qw| both | ? qw| gpu cpu | : ($backend_arg);
 
 ## determine filter label for the cursor file ##
 my $filter_str;
@@ -47,8 +46,8 @@ if ( !%$status_data ) {
         : {};
 }
 
-my $metadata     = <coding.model_metadata> // {};
-my $cursor_file  = 'state/model_sweep_cursor.yaml';
+my $metadata      = <coding.model_metadata> // {};
+my $cursor_file   = 'state/model_sweep_cursor.yaml';
 my $existing_yaml = <[file.zenka_dir.load]>->($cursor_file);
 my $cursor_data
     = ( defined $existing_yaml and length $$existing_yaml )
@@ -68,12 +67,10 @@ for my $backend (@backends) {
     my $existing = $cursor_data->{$backend} // {};
     if ( ref $existing eq qw| HASH |
         && ( $existing->{'idx'} // 0 )
-        < scalar( @{ $existing->{'candidates'} // [] } ) )
-    {
+        < scalar( @{ $existing->{'candidates'} // [] } ) ) {
         push @lines,
-            sprintf
-            '%s : resumable cursor exists [ idx=%d/%d ], '
-                . 'use model-sweep-status to inspect or clear first',
+            sprintf '%s : resumable cursor exists [ idx=%d/%d ], '
+            . 'use model-sweep-status to inspect or clear first',
             $backend,
             $existing->{'idx'} // 0,
             scalar( @{ $existing->{'candidates'} // [] } );
@@ -117,8 +114,7 @@ for my $backend (@backends) {
 
         ## pre-filter by resource fit [ do not record status here ] ##
         my $fit = <[coding.helper.check_resource_fit]>->(
-            { backend => $backend, size_gb => $entry->{'size_gb'} // 0 }
-        );
+            { backend => $backend, size_gb => $entry->{'size_gb'} // 0 } );
         next if !$fit->{'fits'};
 
         push @candidates, $checksum;
@@ -175,8 +171,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,.,,,,.,,,,.,,.,,,,.,...,,..,,.,,,,.,,,.,..,,...,...,,,.,,,.,,,.,...,,,.,
-#JEBG72OABVGXTREJCQTJUNRSPBPLPUNRWX5ZZTNUI6ADJ5A2O3F4WMB4R2ILFH45HTD4FF6NNLG6U
-#\\\|T3A5BIJH7B25DQJVLDUTISMRWUL2TXCYERBMBQS4NRMO3ECB7BA \ / AMOS7 \ YOURUM ::
-#\[7]7ICYNODIQIE75FFFI3XXIJXPCSHBBIA5WZG3JFSPJU6IDDSJ4QAI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,...,...,..,,...,,,.,,,.,,,,,..,,...,...,..,,.,.,,,.,,.,,,.,,
+#CEPFMXKM7XVQSEXN6RVWNMKDWCFVW6QMCWYVBHDK6GN6WV2MSTRT3KJKACJVH6R24SMMHFZ5KMIX6
+#\\\|Z6JEA3IANSEK6GSUERY4ZGVS24TD5Z3V2PYPN7XBC6LMVPOGAJV \ / AMOS7 \ YOURUM ::
+#\[7]JSILGTXYVUT44JCROROKY2LELP7CXRB3TSEYTUVPSDXVAKVDESAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
