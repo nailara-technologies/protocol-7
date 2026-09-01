@@ -1,69 +1,120 @@
-# Session Handover — 2026-05-08 (session 14)
+# Session Handover — 2026-09-01
 
 ## Completed This Session
 
-### Task pipeline — fully functional end-to-end
-- `models.handler.task-poll-step` — fires `task.start` after claim (in_progress transition)
-- `cube/access.zenki` — added `task.start`, `task.wait-done` to models access list
-- `task.cmd.complete` + `task.cmd.fail` — accept `in_progress` status (not just `claimed`)
-- `task.cmd.show` — displays `iteration`, `acceptance_criteria`, `max_attempts` fields
-- `task.cmd.start` — already written last session, now wired and working
+### ncpan — CPAN mirror + reliability fixes
+Mirror index moved `/src/` → `/modules/`; added HTTPS, XDG cache dir, working
+`clean`, auto-refresh on stale/missing list, stall-safe downloads, real HTTP
+error text, Build.PL support, dependency-cycle guard.
+Commits: `a1aeb2136`, `6138432d6`, `34db56b9b`, `b0d74e884`.
 
-### Valued tree — fully loading and operational
-- `valued.tree.load` — `format.yaml.pre_init` added; `<system.root_path> // '.'` fix
-- `valued.tree.load` — skips nodes already restored from persist (no duplicate warnings)
-- `valued.tree.restore` — `file.zenka_dir.read` → `file.zenka_dir.load` fix
-- `valued.tree.persist` — `utf8::encode` before `:raw` write (wide char fix)
-- `task.end_code` + `task.persist.save` — same `utf8::encode` fix
-- YAML seed files — stripped `## [:< ##` P7 headers (YAML::XS was choking)
+### kimi-web zenka — was essentially non-functional, now fixed
+Missing from its own `modules.load`; all 8 `.cmd.` files assumed `$call->{args}`
+was a hashref (it's a raw string for real cube-routed calls); sprintf/session
+bugs. `data/ai-mem/claude/topic-kimi-web-*.md` if it exists, else see commit
+`7030fb250`.
 
-### Valued commands wired into task zenka
-- `task/start` — added `valued` to `modules.load`, added `valued-list/query/stats` to access
-- `valued.cmd.valued-list/query/stats` — new cmd modules (hyphenated, no sub-routing clash)
-- `valued.cmd.query` (and valued-query) — returned raw hashref; fixed to pass through `top_n` result directly
-- Accessible as `p7c task.valued-list`, `p7c task.valued-query`, `p7c task.valued-stats`
+### debian/sys-deps — async apt-install pipeline
+Was blocking the whole zenka event loop; now non-blocking I/O + jobqueue-
+serialized. `v7.check_zenka_deps` rewritten to route through it too, plus a
+binary-dependency gap fix and `known_dependencies` access consolidated to one
+canonical accessor (`AMOS7::deps::module::load_known_deps`).
+Commits: `7030fb250`, `34c2cd2bc`. Full trace in
+`data/ai-mem/claude/project-deps-tracking-var-relocation.md`.
 
-### task.cmd.wait-done — deferred reply pattern
-- Returns `{ mode => 'deferred' }` immediately, stores `reply_id` in `<task.wait.pending>`
-- `task.cmd.complete` fires `base.callback.cmd_reply` to resolve the waiter
-- `task.cmd.fail` same — sends false reply to waiter
-- `task.init_code` — initializes `<task.wait.pending>` and `<task.wait.timeout>`
-- **Verified working**: `p7c task.wait-done TASKID` blocks and returns result when done
+### base.zenki.pause_ondemand_timeout / resume_ondemand_timeout
+New reusable pair to protect a zenka from ondemand idle-shutdown during real
+background work, without relying on the implicit `Event->idle` timing alone.
+Wired into `debian`'s apt-install job lifecycle; `debian` heartbeat also
+re-enabled (the pipeline is fully async now, the old "duration uncertainty"
+justification for disabling it no longer applies).
+Commit `5cd3d50e4` (bundled with format-code work, see below).
 
-### bin/task-wait
-- External polling script for cases where deferred reply isn't suitable
-- `bin/task-wait <task_id>` or `bin/task-wait -create "desc"` with `-timeout N`
+### format-code — major expansion, four new opt-in steps
+This was the bulk of the session. `bin/format-code` gained:
+- `-d` / `-data-sugar`: `$data{'a'}{'b'}` → `<a.b>` sugar (451 real
+  occurrences landed, commit `87b91fd5f`)
+- `-m` / `-module-sugar`: `$code{'a.b'}->()` → `<[a.b]>->()`, empty-arg
+  calls further compact to bare `<[a.b]>` (42 occurrences, `f43041e5a`)
+- `-p` / `-postfix-deref`: `${<a.b>}`/`%{<a.b>}`/`@{<a.b>}` → postfix deref
+  (271 occurrences, `82fdb008d`)
+- `-r` / `-regex-style`: `m//`/`s///` → `m||`/`s|||` (541 occurrences,
+  `d12228697`) — **found and fixed a severe bug before this ran repo-wide**:
+  PPI misparsed `<sugar> // 'default'` as an empty regex match, would have
+  broken 1354 files (`e4bb1a14e`)
 
-### record_outcome guard
-- `task.cmd.complete` + `task.cmd.fail` — only call `valued.tree.record_outcome` when `node_id` is set
+Also hardened the `-c` syntax-check path itself: added `-Mutf8`, `-I` for
+`AMOS7::*` lib-path, and a preamble providing everything `bin/Protocol-7`
+sets up globally (List::Util, POSIX, Const::Fast, TRUE/FALSE/UNKNOWN,
+declared_refs/bitwise features, Crypt::Misc, `our`-declared globals) so the
+checker stops false-positiving on legitimate code (`a12b03f0f`). Quieted
+`used only once` false positives on `main::` symbols (`b32a57834`). Added
+signal-handling temp-file cleanup for INT/TERM/QUIT/HUP/PIPE (`e2b6ea1ef`).
 
-## Verified Working
-- `p7c task.create ":local: ..."` → claimed → in_progress → done
-- `p7c task.wait-done TASKID` returns result via deferred callback
-- `p7c task.valued-stats` → `nodes: 18 avg: 0.32 highest: ROOT [1.00]`
-- `p7c task.show TASKID` shows iteration fields when present
-- Clean task zenka startup: 18 nodes, 0 errors, no duplicate warnings
+Two rounds of stale-content cleanup followed (pre-fix tool output that had
+ridden into earlier commits unnoticed): 42 files with a missing `->`
+(`9b8eebca7`), one genuine remaining multi-line-wrap gap in that same fix
+(`e2ac806fc`), two files restored after accidental deletion during an
+interrupted kimi batch-test.
 
-## Known Issues / Next Steps
+Full arc + all the individual bugs found dogfooding: `data/ai-mem/claude/topic-format-code-bugs-fixed.md`.
 
-### 1. task.cmd.wait-done — no internal timeout
-Timeout is left to the caller (`p7c` default or `bin/task-wait -timeout N`).
-Internal timer needs a registered handler module (`task.cmd.wait-timeout`) — deferred.
+### cube — wrong !TRM! reply type
+Orphaned-route cleanup was sending the stream-control `!TRM!` signal for
+atomic `SIZE`/`CHRSIZE` replies too, not just `STRM`/`STRM-SIZE` — those two
+are one-shot and already clean up their own route, there's no stream to
+terminate. Fixed in `src/base.handler.command.process_reply`, commit
+`4ada57380`.
 
-### 2. meta-session-summary → task.cmd.handover wiring
-Task tree has `meta.session-summary` node. Wire so session end triggers handover doc.
+### Misc
+- `bench.key-32-iterations`: fixed a double-escaped backslash that would
+  interpolate `\$shared_secret`/`\$session_id` as real (undeclared)
+  variables instead of printing literally.
+- `invoke.init_code` / `invoke-web.init_code`: fixed a real config-key bug —
+  both were reading `$data{'invoke'}{'external.models.invokeai.url'}`
+  (wrong key entirely; no `invoke` prefix exists, and the dotted config key
+  nests into real sub-hashes, not one literal-dotted key), silently falling
+  back to a hardcoded default the whole time. Fixed to
+  `<external.models.invokeai.url>`.
 
-### 3. model evaluation workflow
-First automated comparison run between models — iteration loop ready but untested with real task.
+## Known Infra Gotchas Found This Session
 
-### 4. task.cmd.next — test gradient sorting with real tasks
-Now that valued tree loads, `task.next` should return gradient-sorted pending tasks.
-Needs real tasks with `node_id` set to see the gradient in action.
+- **Never run `kimi_dispatch`/`kimi_continue` in parallel** — reproducible
+  session collision, garbled results, early termination with budget to
+  spare. Always sequential. `data/ai-mem/claude/feedback-kimi-dispatch-never-parallel.md`.
+- **Stale tool output can silently ride into a later, unrelated commit** —
+  this repo's pre-commit hook broadly re-stages everything modified, not
+  just what you explicitly `git add`ed. Check `git status --short` on the
+  whole tree before committing, not just the diff you intended.
+  `data/ai-mem/claude/feedback-stale-tool-output-rides-into-later-commits.md`.
 
-### 5. `## [:< ##` in new YAML data files
-Strip before adding any P7 headers to data/yaml/ files — YAML::XS chokes on them.
-(The signing system should not sign data files, only module files.)
+## Paced / Deferred — Not Started This Session
 
-## Model Config
-- Default: Qwen3.5-9B sushi coder, reasoning=high, context=87777
-- SLERP 4B: low reasoning only, good for style/format tasks
+These were traced/discussed earlier in the session but deliberately not
+started, per "step by step" pacing — pick up when asked, not proactively:
+
+1. **`base.register_pm_deps` var/ relocation** — real, live-reproduced bug
+   (read-only-install failures, dev-repo ownership hijacking via the
+   `$EUID==0` chown-fixup path). Fully traced, task-file-ready, not
+   dispatched. `data/ai-mem/claude/project-deps-tracking-var-relocation.md`.
+2. **`.deps/profiles.yaml` reorganization** — acknowledged "still slightly
+   chaotic" by the user, no concrete plan yet.
+3. **BMW checksum JS port + composite AMOS chksum** — blocked on the BMW
+   piece, not started (ELF-7 checksum JS port already landed, see
+   `data/web-root/shared/templates/components/elf-checksum.js`).
+4. **Background signing-acceleration idea** (Linux::Inotify2 watcher +
+   Twofish-encrypted speculative signature precompute) — captured as an
+   idea on todo item `ADR` only, no design pass done.
+5. **Tree-based module storage / namespace manifest redesign** —
+   vision-level, `data/ai-mem/claude/vision-tree-based-module-storage-and-namespace-manifests.md`.
+6. **Inline-filesystem self-contained Protocol-7** — vision-level,
+   `data/ai-mem/claude/vision-inline-filesystem-self-contained-protocol-7.md`.
+7. **User-data-derived zenka config generation** (e.g. smtpd config from
+   already-collected contact emails) — vision-level, not started.
+8. **Config/installer zenka landscape** (set-up/settings/configure zenki,
+   eventual installer zenka, user-edit CLI+web-UI) — vision-level.
+
+## Verified Live
+
+Coding, cube, and v7 zenki all confirmed reloading clean after the full
+format-code batch landed. All commits pushed.
