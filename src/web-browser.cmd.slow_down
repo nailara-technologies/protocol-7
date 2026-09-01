@@ -7,7 +7,7 @@
 my $percent = $call->{'args'};
 $percent =~ s|%$|| if defined $percent;
 return { 'mode' => qw| false |, 'data' => 'expected percent value [0..100]' }
-    if defined $percent and ( $percent !~ /^\d+$/ or $percent > 100 );
+    if defined $percent and ( $percent !~ m|^\d+$| or $percent > 100 );
 
 if ( defined $percent ) {
     if ( exists <web-browser.timer.auto_slowdown> ) {
@@ -29,8 +29,8 @@ if ( defined $percent ) {
     };
 }
 
-#,,,,,,,,,.,.,...,.,,,.,.,..,,.,.,,,.,,.,,..,,..,,...,...,.,.,,,.,..,,,,,,.,,,
-#JHFJXLBYR7AMCDV6VXMRTAC7MTRKSAC554OI7BSPTBKLQE2PXBC3ESAFCQ7324X54N3LXBNERKVVU
-#\\\|7QP4PN5IFX5Y6B7ZRG4ZKABSKB3H52Q6TG426MBXXTU2NFW4R55 \ / AMOS7 \ YOURUM ::
-#\[7]TSNAGVVPO5RRCSUTPBNTRFBN5IHZAET3IXGX6O2F74VJ4MFJREBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,...,..,,,.,,,..,,..,.,.,,.,,.,,,..,,...,..,,.,.,,.,,..,,..,,,,.,
+#ICLDYOT7RL3TA3SJILSN4JFKCUP3M76VXJ2K5DVKWAJWKNUNFLLSYWLX3654LYDCRYADKT3YHCIQY
+#\\\|GTNN4ACIHOU6NSMS32LNPM4NQQS2YTX2XSGXBUUQC2C3Z6QFYE2 \ / AMOS7 \ YOURUM ::
+#\[7]KA7RWWDHD6U74WPE6TFSLERJDZZPMCR6VK2EMDKOTO3EPJOSQIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

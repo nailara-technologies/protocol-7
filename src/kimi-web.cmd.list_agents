@@ -8,7 +8,7 @@ my $args = $call->{'args'} // {};
 if ( not ref $args ) {
     my $args_str = $args;
     $args = {};
-    for my $token ( split /\s+/, $args_str ) {
+    for my $token ( split m|\s+|, $args_str ) {
         $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
     }
 }
@@ -42,8 +42,8 @@ return {
     'data' => { 'agents' => \@agents, 'count' => scalar @agents }
 };
 
-#,,.,,..,,..,,,..,...,.,.,..,,..,,.,,,.,.,,..,.,.,...,...,.,,,,,.,..,,.,.,,.,,
-#N5B7OBTZZ4VOAE2HTPTJRLDDNJXR7TVPA3KWSXCZ57YTIQWVZ3CLOX3HYAUBWC2FXIWDULDDT4MYM
-#\\\|M6AHTQXX4SBWJJB6Q2XGVWVOUUFUJY7CGY2ZHXSJZZHM5BKPI3V \ / AMOS7 \ YOURUM ::
-#\[7]3AKZGPY65VGSJGQ7PPVZEARDTST4MX3K3DLV6BZLDLHQZKA2OACA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,,,,,..,,...,,.,,,..,...,,.,,.,.,...,...,...,,,,,.,,,...,,..,
+#2ICDPSLVTYJD2TYIXOSZ5Q6LGMYL6WJ7SSG5XL4MRBLOMXQBGYLWGW4RUING7TWR5DEP3NGEGCUH6
+#\\\|QCVT5ZDMAVMRR73BH2GG2TYCBOA37HWITLSFSHJJDRALC5KU6G3 \ / AMOS7 \ YOURUM ::
+#\[7]GYFY7X5IFU6QJEU46GIF6CJBET3PIPZGSWN3S7WW4SSMI75Q6SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

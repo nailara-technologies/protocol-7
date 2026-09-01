@@ -27,7 +27,7 @@ $loglevel++ if $warned >= 2 && $warned < 5;
 
 ## Basic validation - name matches usr_str pattern
 my $re = <regex.base>;
-if ( $name !~ m{^$re->{'usr_str'}$} ) {
+if ( $name !~ m|^$re->{'usr_str'}$| ) {
     return {
         valid => 0,
         error => "invalid username format: '$name' "
@@ -118,8 +118,8 @@ $result{warning_count} = $warned + 1 if @warnings;
 
 return \%result;
 
-#,,..,,..,..,,,..,,.,,..,,,,.,..,,,,.,.,.,..,,..,,...,...,.,.,..,,,,.,,,,,.,.,
-#AKBLSHSM64FYVHRXB47HWPYE4MRWSW7PLSQI63X4V4H2QQUG2Q5EJH3A3ZABXVNKEATVJ34TETBEY
-#\\\|36QJPQ6RZLXDOXUI7J5FRJQETWSGEPL3D3LBV4RBS6UUQVG23CN \ / AMOS7 \ YOURUM ::
-#\[7]SBVLUSPI67DNMWVJBDINO4MEX53FZ7E6BUKEJYLR4QDWSXZBM2AI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,..,,,,,,.,.,.,.,,.,,,.,,,,,,.,,,..,,...,...,..,,.,,,,.,,..,,.,,,
+#HGTLQKQ7GGC5LRLCCKEGKBKG47M3SRXIK266BOWJ3OI6XM6NR5LVOKTSC3K4UGFAFKVL4KMX3NKDI
+#\\\|PUZ5DJVSRADQM4WSXOWH3HGYWHWVITJTFR5K53O3RD5UDRRT3CQ \ / AMOS7 \ YOURUM ::
+#\[7]MZG6PXQPX7CDHXCPHJEGNH322IBUK4VB4VZFO6RV4L333BJM6ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

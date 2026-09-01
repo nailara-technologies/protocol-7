@@ -28,9 +28,9 @@ my $min_free_mb = $object->{'min_free_mb'} // 4096;
 my ( $mem_total, $mem_available );
 if ( open my $fh, '<', '/proc/meminfo' ) {
     while (<$fh>) {
-        if (/^MemTotal:\s+(\d+)/) {
+        if (m|^MemTotal:\s+(\d+)|) {
             $mem_total = $1;
-        } elsif (/^MemAvailable:\s+(\d+)/) {
+        } elsif (m|^MemAvailable:\s+(\d+)|) {
             $mem_available = $1;
             last;    ## MemAvailable comes after MemTotal ##
         }
@@ -62,8 +62,8 @@ if ( $free_mb >= $min_free_mb ) {
     return FALSE;
 }
 
-#,,.,,,.,,..,,,,,,.,,,..,,,.,,...,,..,...,,,,,.,.,...,...,,,,,...,,,.,.,,,...,
-#KQX2PKQ2KHR37MN43LBED7TZDV6QXC5RFNIRSL3A463JYB3GMQFYBWYRNVMK64AYX2MEPWOF2QSFA
-#\\\|R6G4EUH4ZXSITIJKOTYGQHJYOPWH3P6JER2E7HGVL3LE4GQ23FG \ / AMOS7 \ YOURUM ::
-#\[7]BJODSFK2I5LZVBOIQQMNJLUONRSSKQC5BBII6XR7AXIV7JQQUSBQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,...,,,.,,,,,..,,,.,,.,,,.,.,.,.,...,.,.,..,,,,,,..,,.,,,..,,
+#MSVKNZJTS6CSD2ZJ6LIA52BHXBQFMJJG7XC3WYCMXZAHT7JVIZU7YL7SMMWVWUVQZ46MGJS4VH7KI
+#\\\|LDFSISZOFQPDLJMDYPV3AEJIB254S76ECJYS2UJ3C6TBXZZFJSN \ / AMOS7 \ YOURUM ::
+#\[7]5YSRYYUCM4TOBRFYS2PY44RGQSQGTFSGEAKGOHIQA4VTAENT5CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

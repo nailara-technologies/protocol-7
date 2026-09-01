@@ -34,13 +34,13 @@ if ( not defined $github_token or length($github_token) < 10 ) {
 }
 
 # Validate token format (should start with ghp_ or github_pat_)
-if ( $github_token !~ m/^(?:ghp_|github_pat_)/ ) {
+if ( $github_token !~ m{^(?:ghp_|github_pat_)} ) {
     say '';
     say '⚠ Warning: Token doesn\'t match expected GitHub PAT format.';
     print 'Continue anyway? [y/N] ';
     my $response = <STDIN>;
     chomp $response;
-    <[base.exit]>->(qw| 0110 |) unless $response =~ /^y/i;
+    <[base.exit]>->(qw| 0110 |) unless $response =~ m|^y|i;
 }
 
 # Get GitHub username
@@ -148,8 +148,8 @@ if ( $test_result == 0 ) {
     say '';
 }
 
-#,,,,,,,.,,..,,,,,.,,,,,.,.,,,,,,,,,,,,,.,..,,..,,...,...,...,,,,,...,.,,,...,
-#623RC62WVQJVA5GSGDULREL3EKLE2CGN27ATDYS6B6PY2KGUPV3ISANQKN5BMZCZBL4IYRD5VVFJM
-#\\\|TO6DCMS3K54Z2F6WLHKMLHA2SGYMHB4FJESXX6DGD3DUU2WXGFA \ / AMOS7 \ YOURUM ::
-#\[7]LJAFOGEMIVEQ27LTY6DIJD7QL7NJ4LEPOOEEJG3KUHDUYMLIKKCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,..,,,.,,,..,,,,,,,,,,,,,,..,..,,...,...,,,.,.,.,,,,,,,,,,,,,
+#II3FQ6K7SG5FUIEE7RF74ZYHVMJ3IDT6ZGP22CTMERTTUKJ7WMN6RMLX5XERALATUHWE7TNCRFYMU
+#\\\|IVXIUSNEXEAU42QAT2LBAL2P4B55GAWKUBBU27S6R5J3C3LT2PJ \ / AMOS7 \ YOURUM ::
+#\[7]2NQ4BMHJK5T6THKNTDSZ3LRPL4LLWALOFB2B36TCUEI3ESHKSCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

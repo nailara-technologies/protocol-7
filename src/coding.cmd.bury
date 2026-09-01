@@ -6,7 +6,7 @@
 my $args = $call->{'args'} // '';
 
 ## parse task_id and optional reason ##
-my ( $task_id, $reason ) = split /\s+/, $args, 2;
+my ( $task_id, $reason ) = split m|\s+|, $args, 2;
 
 return { 'mode' => qw| false |, 'data' => 'task_id required' }
     unless length $task_id;
@@ -29,8 +29,8 @@ if ( $result->{'mode'} eq qw| true | ) {
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,..,,,.,,.,,,.,,,,.,.,,,,.,,...,,,.,,..,.,,,.,.,...,..,,..,,.,.,.,,,.,,,,.,,
-#FXMOJF5QGFD7WDGQDI4HYQYMU2NMPA4VNH2MFYFFDSKLOVBOFXU5NAGL6ZCYWOORGMQZ7WPZSEKXA
-#\\\|VT2KY2LBU2GY6STITSY74BHL5WRFX3T6FIPVLHLMOXQNPGFWKYR \ / AMOS7 \ YOURUM ::
-#\[7]Z5XEY6X4BTYZLCFQRCL2WKNQRQJ67MSWQS4PBELTWJZGPET2F2DY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,.,,.,.,,,.,,,.,...,,,,,,,,,,.,,.,.,...,..,,..,,.,,,.,.,..,,,.,,
+#FAULZMTVO324F4LYKGP5NFJ2BIBBC4VPMA4WZ35OGIFKUQJMNWWZYBMNWGGATNDYNR24B7WEKFY3E
+#\\\|SHZB5FSPOMJQJJU4ELLT3L2JPAXP4NLTFLJ2QIXWKRZTA3S35R6 \ / AMOS7 \ YOURUM ::
+#\[7]LBB6W6LRDWLQSTRXF37LJH6DFSFGQH2SSP44TSVSSCHOLSYDTYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

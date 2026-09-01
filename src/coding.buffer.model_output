@@ -20,7 +20,7 @@ my @lines;
 if ( $tool eq 'stream_chunk' ) {
     ##  stream chunks: clean output, no prefixes  ##
     $content =~ s|\r||g;
-    @lines = split( /\n/, $content );
+    @lines = split( m|\n|, $content );
 } elsif ( $tool eq 'input' ) {
     ##  user input: highlighted header  ##
     my $header = sprintf(
@@ -30,7 +30,7 @@ if ( $tool eq 'stream_chunk' ) {
     );
     push @lines, $header;
     $content =~ s|\r||g;
-    my @content_lines = split( /\n/, $content );
+    my @content_lines = split( m|\n|, $content );
     foreach my $line (@content_lines) {
         push @lines, "│ $line";
     }
@@ -44,7 +44,7 @@ if ( $tool eq 'stream_chunk' ) {
     );
     push @lines, $header;
     $content =~ s|\r||g;
-    my @content_lines = split( /\n/, $content );
+    my @content_lines = split( m|\n|, $content );
     foreach my $line (@content_lines) {
         push @lines, "│ $line";
     }
@@ -53,7 +53,7 @@ if ( $tool eq 'stream_chunk' ) {
     ##  other tools: simple prefix  ##
     my $prefix = sprintf( '[%s|%s]', $round, $tool );
     $content =~ s|\r||g;
-    my @content_lines = split( /\n/, $content );
+    my @content_lines = split( m|\n|, $content );
     foreach my $line (@content_lines) {
         push @lines, "$prefix $line";
     }
@@ -74,8 +74,8 @@ foreach my $line (@lines) {
 
 return TRUE;
 
-#,,.,,,.,,.,,,,.,,...,..,,,,,,..,,...,.,,,,,,,..,,...,...,.,,,,.,,.,.,...,..,,
-#Y266BADMOEHDXAB2AWFNEWHOQU5KAOB6PXM3XQXBTAIYLMRGGOENM356LXCYYOM3TSNFJ6PK2V3SU
-#\\\|3AAF3EOQP3HZTLJ6IJN5ERPZXNNAW2HCSLHP3JHOUJY6UWU53XL \ / AMOS7 \ YOURUM ::
-#\[7]U6OOSISYXAT4T326JPVJGCATQHMYQU3SGBFM5HH6KZGHLOULF2AI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,,..,...,,.,,,,,,...,,..,..,,..,,...,...,,,.,,..,,.,,..,,.,,,
+#RIBRV77BLNF5MSSUK2UCOIEZE534N65T2Z34JDIW66ODK256QIYHJ7AA6PZNFLGO62ZKFXEFJ4VT6
+#\\\|HF5GLN6QI5SRJVNWTH5HPAPO5AGRYA6FZOCEQTHTHT6ZL5YOFPJ \ / AMOS7 \ YOURUM ::
+#\[7]5X2ABWQVM2LDAJLSYWCL6HTSXJHXJLNNJ4FONXSN7NXJD73UKACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

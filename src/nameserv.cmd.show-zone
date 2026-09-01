@@ -8,12 +8,12 @@ my $args_str = $call->{'args'} // '';
 ## parse args: zone=<zone>
 ## or positional: <zone>
 my %args;
-if ( $args_str =~ /=/ ) {
-    while ( $args_str =~ /(\w+)=(\S+)/g ) {
+if ( $args_str =~ m|=| ) {
+    while ( $args_str =~ m|(\w+)=(\S+)|g ) {
         $args{$1} = $2;
     }
 } else {
-    my @parts = split /\s+/, $args_str;
+    my @parts = split m|\s+|, $args_str;
     $args{'zone'} = $parts[0] if @parts;
 }
 
@@ -45,8 +45,8 @@ for my $rec ( @{ $zone->{'records'} } ) {
 
 return { mode => 'size', data => join( "\n", @lines ) };
 
-#,,..,,,.,..,,,,,,,,,,.,.,.,,,...,.,.,.,,,,.,,..,,...,...,.,.,,.,,,,,,.,,,,,.,
-#RE6TR2PNYNHMN5REDQIFDNLBFX6RWEWIIL4IUVZMASOS7EJPLHZ767WH6FDWJO4LHNZUNWVOWWA6Y
-#\\\|SC6AF47USJCCLUC4NFKEG4PUN2AHUI2F2KZXGGECGQP4A3MPFPB \ / AMOS7 \ YOURUM ::
-#\[7]YPH3EHR3QQ3WYAK2MKVOAMXTK6PBYDT72D4OAEY2PTCJJZM2YABQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,,..,...,,.,,,,.,,.,,,..,..,,..,,...,...,...,..,,.,.,,,,,,,.,
+#2FOVS3RJ3NUI5CRWSVWQUAJIFRLFOW65VQ3FOG2ZYDG3RL5WTWEYAYOOLXSR4LCAFRAUEU2JKBMS2
+#\\\|CSTZHNPZBMCHKYFR23WE6I7LXQDNE22SG74OF4DS4J7CDA54T7K \ / AMOS7 \ YOURUM ::
+#\[7]2BWEHUKADTLJFER5R4DR4KVWP4RVU6EUKSDRAVXWPKL4B2M5HUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

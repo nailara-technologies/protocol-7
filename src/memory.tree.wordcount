@@ -27,7 +27,7 @@ while (@stack) {
         my $text = join ' ',
             grep {defined} ( $n->{'body'} // '', $n->{'title'} // '' );
         my %terms_in_leaf;
-        for my $raw ( split /\W+/, $text ) {
+        for my $raw ( split m|\W+|, $text ) {
             my $t = lc($raw);
             next if length $t < 2;
             next if exists $stop{$t};
@@ -41,8 +41,8 @@ while (@stack) {
 
 return { 'wordcount' => \%wc, 'total_leaves' => $total_leaves };
 
-#,,.,,,,.,..,,,.,,,..,,..,,,,,.,,,,..,,.,,.,,,..,,...,...,..,,.,.,,..,,,,,,,.,
-#XKQPSS7FYXABZGSSMRIVLJVO74BKTYFXMJ7IG5J3HRVPREYQNYEYIIOQYT3HRLND7TUIYYTGGXC6O
-#\\\|W5FCCD7PENOS7USM6I76K5LWEGSEWMR3MU7LHTVPI277B4G6ZVQ \ / AMOS7 \ YOURUM ::
-#\[7]RFBUHQV6V62XZK2LREILG6T7RBGIEKCG4JBNWY5BJSVKF4ZF52CA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,,.,,,..,,..,...,.,.,,,,,,..,..,,...,...,,..,,..,,.,,...,,,,,
+#OYFL6VDMKG6ESR3SWXGG7DHOECROLCWGGMIEOWGZP7G4GRCCAA64AKQROEZ24PKEGG3GKAN7HYCOC
+#\\\|OBYOXZILFIVCAIK77YL4BDAGJR2THLS5XGQPLYZLAMG2HCVAXJM \ / AMOS7 \ YOURUM ::
+#\[7]KMZYYVJ4334IB7OR7D6K4SXFB7FJIS7YMLLX7DA5JU4IA6F4SMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

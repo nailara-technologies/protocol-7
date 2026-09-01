@@ -105,7 +105,7 @@ if ( $variant eq 'compact' ) {
         return undef;
     }
     my $mockup = $yaml->{'mockup'} // '';
-    $mockup =~ s{\{\{(\w+)\}\}}{ $values{$1} // '' }ge;
+    $mockup =~ s|\{\{(\w+)\}\}| $values{$1} // '' |eg;
     return $mockup;
 }
 
@@ -158,8 +158,8 @@ if ( ( $frame->{'border_style'} // 'single' ) eq 'double' ) {
 
 return $rendered;
 
-#,,..,,..,,.,,,.,,,,.,,,.,..,,.,,,.,,,...,..,,..,,...,...,..,,..,,,.,,,..,...,
-#6OGWKRUOHKX3ILKYXK2UBFQXLRI47ZMG5GBY2KVEXARHW3UPXHATD3CEBDPONIKECX7H5PO4OJNMW
-#\\\|K2QEP67VHKFD4263FGJH3QKMJEGW36ONCPODOU5YIRQSAUGLRD3 \ / AMOS7 \ YOURUM ::
-#\[7]TVFRMP3M5ZJHF5HWKHUV2BCTZNANRBSW3HGADT6UCZQGL3RPYYAA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,..,,,,.,,,.,,,.,,,.,..,,.,.,..,,...,...,,..,,..,.,.,,,.,.,,,
+#63ZFHS4J2QF5J5KZW7UWM5QVY6UNGHWXTURVWETXSA7OPMP3TBA6PNQHECO4FY3FM2T3ZYP7MPS3Y
+#\\\|2Q6P7EAKPRJXHOFCGMVULB3TF2KMGJRYJT4DH4YSXA2T7G5OV26 \ / AMOS7 \ YOURUM ::
+#\[7]6VB2X2OF2C6GPG4SW7XU5UNI7RI42FBSSH2O4YQRP2JWSHMRACCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

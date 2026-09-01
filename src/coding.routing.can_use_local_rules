@@ -9,7 +9,7 @@ my ($task) = @ARG;
 my $desc = lc( $task->{request}->{description} // '' );
 
 # Examples of tasks that don't need LLM
-if ( $desc =~ /^(format|convert|validate|check|list|count)/i ) {
+if ( $desc =~ m{^(format|convert|validate|check|list|count)}i ) {
     return {
         applicable => 1,
         rule       => 'simple-transformation',
@@ -25,8 +25,8 @@ if ( $type eq 'transcription' ) {
 
 return { applicable => 0 };
 
-#,,..,,,,,.,.,,.,,.,.,.,,,.,.,.,.,,.,,,.,,,,.,..,,...,...,,.,,,.,,,..,.,,,,,,,
-#Q2TRMZ2DYBLBMFJSFHE7DJCA25J2G5KO3224T3HT2CHO3JQNTQ5DZEO5LQBNBBQOVS5BQAC4TUKXS
-#\\\|D5E7T32NOTSEME5M4BPZJGTPEGAD2JRQJCF5SZ6YBZMEBPXSX4E \ / AMOS7 \ YOURUM ::
-#\[7]4JMUOBM4JVCTNMEFLR5XO4B4ZPRVSJPDJD6AXK2PC6T5M4BNWOCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,.,,,.,.,,..,.,,,,.,,.,.,,..,,..,..,,...,...,,,,,,,.,...,.,.,,.,,
+#JDIY5YSO4PJSU6LQKSVBAY2IQTMXWE5LIMH5HMYFZCJM6MNWY4PC4COVPKFXYOJCGQXJBXUVWKXQE
+#\\\|KESGD4NLD4ZAKPEIU5IEVYNJHN723VJ6N7GNDYCN42W7H5P33XG \ / AMOS7 \ YOURUM ::
+#\[7]Q7IEMO57KDXCOTI2AJGM37VYVDZU34NQ4JDZXSID7GORZIR5KWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

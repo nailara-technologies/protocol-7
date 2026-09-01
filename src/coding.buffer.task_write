@@ -30,7 +30,7 @@ my $size  = $opts->{'size'}  // 0;     ## result size for tool_result ##
 
 ## task_id already contains 'task-' prefix : strip for buffer name buffer ##
 ## names: max 24 chars, only [\w\-_] allowed                              ##
-( my $short_id = $task_id ) =~ s/^task-//i;
+( my $short_id = $task_id ) =~ s|^task-||i;
 my $buf_compact  = "T-$short_id";
 my $buf_thinking = "T-${short_id}-T";
 my $buf_full     = "T-${short_id}-F";
@@ -59,7 +59,7 @@ my $box = sub {
     my $header = sprintf '┌──[ %s | round %s%s ]%s',
         $label, $round, $pct_str // '', '─' x 30;
     my @lines = ($header);
-    push @lines, "│ $_" for split /\n/, $body;
+    push @lines, "│ $_" for split m|\n|, $body;
     push @lines, '└' . '─' x 50;
     return @lines;
 };
@@ -108,7 +108,7 @@ if ( $type eq 'assistant' ) {
     $append->(
         $buf_full,
         sprintf( '  → %s(', $name ),
-        split( /\n/, $args_str ), '  )'
+        split( m|\n|, $args_str ), '  )'
     );
 
 } elsif ( $type eq 'tool_result' ) {
@@ -130,8 +130,8 @@ if ( $type eq 'assistant' ) {
 
 return TRUE;
 
-#,,,.,...,...,,.,,,.,,...,,,.,...,,.,,.,.,,.,,..,,...,...,,,.,.,,,,.,,...,,..,
-#IKGIQ3YQJPUE35QBCX2JVQ2DECNK3UHEY2RW2FCQOKEW273B7RDUHPYK4R4KHGQNBBHAEX22WL6VA
-#\\\|OYZHSZ5QVGRLV6HIZAIIAK5ZWGU7E4ZC3KPRQFQTRUCY6YT4F77 \ / AMOS7 \ YOURUM ::
-#\[7]IKJORMAHIJTRPKX2KJPDQUXAYRZLAXHGQEQK5MNQZJ7SMLP3W6DY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,.,,,...,,,.,,,,,,.,,,.,,,..,..,,...,...,..,,,..,.,,,,,,,,.,,
+#FH4J7KFKHXIAZIMBW2CQ5CW3VE5SYG65NR7MKNBHEQSP4EGWH7XXNNEQLFFJKNMCWM6W4I62QBI5U
+#\\\|VNY3EBQ43PV6B6BWOCCWYKCWVKOCEXZR3YH3ZNMCOZO3TNZ7H7A \ / AMOS7 \ YOURUM ::
+#\[7]DALOVUDVXTGJROKKVWBIB7L7SVDXSSNPH4LSD33GFJCECE2DZCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

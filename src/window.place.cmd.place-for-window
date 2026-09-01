@@ -6,7 +6,7 @@
 my $args = $call->{'args'} // '';
 
 my ( $caller, $winid );
-foreach my $token ( split /\s+/, $args ) {
+foreach my $token ( split m|\s+|, $args ) {
     if    ( $token =~ m|^caller=(.+)$| ) { $caller = $1 }
     elsif ( $token =~ m|^winid=(\d+)$| ) { $winid  = $1 }
     elsif ( not defined $caller )        { $caller = $token }
@@ -20,7 +20,7 @@ if ( not length $caller ) {
     <[base.log]>->( 0, '[place-for-window] caller required' );
     return { 'mode' => 'false', 'data' => 'caller required' };
 }
-if ( not length $winid or $winid !~ /^\d+$/ ) {
+if ( not length $winid or $winid !~ m|^\d+$| ) {
     <[base.log]>->( 0, '[place-for-window] numeric winid required' );
     return { 'mode' => 'false', 'data' => 'numeric winid required' };
 }
@@ -88,8 +88,8 @@ $data{window}{place}{instances}{$id} = {
 
 return { 'mode' => 'deferred' };
 
-#,,..,,,.,,,.,.,.,...,.,,,,,.,,.,,,.,,...,...,..,,...,...,,,,,..,,,..,,.,,,,,,
-#STA27BHP5DUQN5I4JPI6YX6QQNBTOV3THIK3Q4UVTZTYGDKM5AVRX2OGO5AI2CXL4FEQ4X7O4FAG4
-#\\\|OCMJY7EIR7GT2GW4PPRKYE3XPC4M3OMNH4NGN2ENBB2W3XK3A2N \ / AMOS7 \ YOURUM ::
-#\[7]NHNSD7IXG5HSO2HULXYUVDPRFGWUNSLC5LVBBO4FCV23Z2VOOYAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,..,,,,,,.,,,.,,..,,,,.,..,,..,,..,,...,..,,...,..,,.,.,.,,,.,,,
+#26HBV4RQGCRZEKMXVUW2PCB2FHNRJQEEBTDMFZN73HUKUM6BVTVA33YGRUHB4Q52HY2PVJMZ57PMG
+#\\\|YOSFGBRVJMZ5VLC5P6O4WKPMQIGJFNMXWYLYLC6PFLH2NN67D2F \ / AMOS7 \ YOURUM ::
+#\[7]YC43BQUUN6G5WMD26JG5IRYHLZX2ZKQ746HZ73JN4TBZTEUNNGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

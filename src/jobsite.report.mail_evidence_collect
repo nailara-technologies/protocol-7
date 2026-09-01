@@ -45,7 +45,7 @@ my $own_address_ref
 
 if ( defined $own_address_ref and length $$own_address_ref ) {
     my @addrs = grep {length}
-        map { s/^\s+|\s+$//g; $_ } split /\n/, $$own_address_ref;
+        map { s{^\s+|\s+$}{}g; $_ } split m|\n|, $$own_address_ref;
     $own_address_re = join( '|', map {quotemeta} @addrs ) if @addrs;
 }
 
@@ -158,7 +158,7 @@ my %month_num = (
 my $date_sort_key = sub {
     my $date_str = shift // '';
     if ( $date_str
-        =~ /(\d{1,2})\s+(\w{3})\w*\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/ ) {
+        =~ m|(\d{1,2})\s+(\w{3})\w*\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})| ) {
         my ( $day, $mon_str, $year, $h, $m, $s ) = ( $1, $2, $3, $4, $5, $6 );
         my $mon = $month_num{ lc $mon_str } // 0;
         return sprintf '%04d%02d%02d%02d%02d%02d', $year, $mon, $day, $h, $m,
@@ -173,7 +173,7 @@ for my $mbox_path (@mbox_files) {
     ## message layout ] IS a single message already -- only genuine mbox ##
     ## files [ concatenated messages ] need splitting                    ##
     my $messages;
-    if ( $mbox_path =~ /\.eml$/i ) {
+    if ( $mbox_path =~ m|\.eml$|i ) {
         my $content_ref = <[file.slurp]>->($mbox_path);
         $messages = defined $content_ref ? [$$content_ref] : [];
     } else {
@@ -185,16 +185,16 @@ for my $mbox_path (@mbox_files) {
         ## lose \r [ its own splitting is \r?\n-based ], but a lone .eml ##
         ## file read as-is keeps CRLF -- a bare "(.*)$/m" header capture ##
         ## would otherwise include a trailing \r on every header value   ##
-        $raw =~ s/\r\n/\n/g;
+        $raw =~ s|\r\n|\n|g;
 
         ## header block = everything before first blank line ##
-        my ($header_block) = split /\r?\n\r?\n/, $raw, 2;
+        my ($header_block) = split m|\r?\n\r?\n|, $raw, 2;
         $header_block //= '';
         ## unfold continuation lines before extracting header values ##
-        ( my $unfolded = $header_block ) =~ s/\r?\n[ \t]+/ /g;
+        ( my $unfolded = $header_block ) =~ s|\r?\n[ \t]+| |g;
 
         my %headers;
-        while ( $unfolded =~ /$header_re/g ) {
+        while ( $unfolded =~ m|$header_re|g ) {
             $headers{ lc $1 } = $2;
         }
 
@@ -213,7 +213,7 @@ for my $mbox_path (@mbox_files) {
         next
             if "$from_addr $to_addr $subject" =~ $exclude_re;
         next if $subject                               =~ $noise_subject_re;
-        next if defined $own_address_re and $from_addr =~ /$own_address_re/i;
+        next if defined $own_address_re and $from_addr =~ m|$own_address_re|i;
 
         ## quick pre-filter : recipient alias, or subject mentioning an ##
         ## application via the 'bewerbung' keyword or a known position  ##
@@ -242,9 +242,9 @@ for my $mbox_path (@mbox_files) {
         next if not $is_candidate;
 
         my $decoded_body = <[jobsite.report.mime_decode_body]>->($raw);
-        my @body_lines   = split /\r?\n/, $decoded_body;
+        my @body_lines   = split m|\r?\n|, $decoded_body;
         ## drop leading blank lines from the decoded text ##
-        shift @body_lines while @body_lines and $body_lines[0] !~ /\S/;
+        shift @body_lines while @body_lines and $body_lines[0] !~ m|\S|;
         ## keep the full body, not just an excerpt : the sender's contact  ##
         ## block [ name, direct phone/email, company registration ] -- the ##
         ## part a caseworker would actually use to verify this mail is     ##
@@ -334,8 +334,8 @@ my @result = ( values %latest_by_nr, @unmatched );
 
 return \@result;
 
-#,,..,.,.,,.,,.,,,,.,,,,.,,..,,,.,.,,,,.,,.,,,.,.,...,...,,..,,,,,,,,,...,..,,
-#I4L6YPFJSMINRH6STTB6ZFKSVGQGMXWPXTGUCNLMRMJQ3NUUOG3GEEQKSHJTGLSLHRLE7BGIOLV3W
-#\\\|JKPXYM52536CSUHGOMRUT3RLX4IO33P56LG6GY4QCSAXYMCEOJF \ / AMOS7 \ YOURUM ::
-#\[7]FYXKEILALAYSNQHTFDNJV3P342HMMAQI7NHRM7P6FTVC2QG4ZSDY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,.,,,,.,,..,,.,,,...,,.,,,,,,.,.,...,..,,,,.,,..,,,,,,,,,,,,,
+#VOCQF6I2R5XLPUUILM24LN4HNVHM4V2WMA3AOP3ZZOAO65MLNP6ARXSF4ITFJ36PQKVQUBZEYZS3S
+#\\\|FK63PQ52EBDVEDL5NM4IRQRCRXFUIEQIAYMVZVDH6D2W4T2FMID \ / AMOS7 \ YOURUM ::
+#\[7]NA5AL5ET5H4LHXBWADYZWVKO437KIFA3TGD2XQGP32ARETBIP2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

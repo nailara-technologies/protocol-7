@@ -10,7 +10,7 @@ my $window_id = $call->{'args'};
 return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
 return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
-    if $window_id !~ /^\d+$/;
+    if $window_id !~ m|^\d+$|;
 
 return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
@@ -30,8 +30,8 @@ return {
     if $EVAL_ERROR;
 return { 'mode' => qw| true |, 'data' => "set window state 'below'" };
 
-#,,..,...,..,,.,.,,,.,.,.,.,,,,.,,.,.,.,.,,.,,..,,...,...,...,..,,,..,,,.,,,,,
-#CUQYM65OO7WZIQRS4LZU5HVXSMAEUHCIJFIHCM75AUGIEXXOBKREIGKQNSU5IK376ZDYJNFDMZXZU
-#\\\|JWAZRJBZXYDJNYN4I7XKXXFOCNI3NATHNDMXBVOI2MG25DV2RXH \ / AMOS7 \ YOURUM ::
-#\[7]VMR74MXAFY54HQLPV6AY6MCPQZAQ6YT7S224MOUEDNPRHQBQK4BY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,..,,,.,.,.,...,..,,.,.,...,...,..,,...,...,,,.,...,,,.,...,.,,,
+#EIHJO7S3RYYT63JUM6ANJNW4UDY356JEJOLESEDTD3453VHMVBGUVDVRW6BI6DMGR7QYUV7R6RZ4S
+#\\\|ZM6MLC6P2CNLCV7ZKU4M7ADYMT6WRUE3YY7XIIDVV3QQGZR6CHI \ / AMOS7 \ YOURUM ::
+#\[7]LRIR7ODRCCCYZ7TPYNGNVDBY2Q6PTR3YCSQUSAUQWNQQQHJNVIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

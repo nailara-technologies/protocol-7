@@ -49,8 +49,8 @@ if ( ref($tls_version) eq 'ARRAY' ) {
 
 ## convert colon-separated TLS versions to IO::Socket::SSL compatible
 ## IO::Socket::SSL does NOT accept "TLSv1_3:TLSv1_2" format
-if ( $tls_version =~ m/:/ ) {
-    my @versions = split( /:/, $tls_version );
+if ( $tls_version =~ m|:| ) {
+    my @versions = split( m|:|, $tls_version );
     <[base.logs]>->(
         2,
         '  note: TLS has multiple protocols, using highest: %s',
@@ -247,8 +247,8 @@ return $ssl_socket;
 
 0;
 
-#,,.,,.,.,,,.,..,,,..,...,..,,,,,,.,.,,,,,,.,,..,,...,...,,,.,...,,,,,,..,..,,
-#2WSVWJPHNJLNANOUR6ZNP7S23GZHCQUXRP6EQXIF5JEFCAVER2SZ5HIXGSADZMP5GXI5L4LI42674
-#\\\|U3YMCAEIHIUSBWNXK74WCGX3VWXHM5NXFD2H76AXGCVHWNVKUYC \ / AMOS7 \ YOURUM ::
-#\[7]X5U3FVK6IAHEDN3SBNGJR77QA5II2JYV6HEBZ6OMWQEQAGX7EOCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,...,..,,.,,,.,.,,..,.,,,,.,,,..,..,,...,...,..,,,,,,,,,,.,,,,..,
+#GEXB4EU3JXDKYEWBW5O2U3F7VZ7OURG54XYU77FIJH47J53JFGFHKANDSZL2J2UEHTQA64YG7MYD2
+#\\\|MF3QQ4N6YSEBOMIMFFVE5EJFAFW6KRW4FCOZKMINC2REP22YV54 \ / AMOS7 \ YOURUM ::
+#\[7]XO5JC2SHF3Z2VOCAQ2EBMLR7N77BLTHWRAMMGTSKYKRR4WZNAECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

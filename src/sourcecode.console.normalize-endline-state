@@ -102,7 +102,7 @@ foreach my $path_rel (@source_paths) {
             my $footer_pos     = index( $src_str, $footer_first_line );
             my $content_before = substr( $src_str, 0, $footer_pos );
 
-            my ($trailing) = $content_before =~ /(\n+)$/;
+            my ($trailing) = $content_before =~ m|(\n+)$|;
             my $trailing_count = defined $trailing ? length($trailing) : 0;
 
             if ( $state == 6 or ( $state == 5 and $trailing_count == 1 ) ) {
@@ -225,8 +225,8 @@ foreach my $path_rel (@source_paths) {
 
 return FALSE;
 
-#,,,.,.,.,,,,,..,,.,,,.,.,.,,,..,,,,.,..,,,.,,..,,...,..,,,..,,.,,...,.,.,,,,,
-#EGLJAIS37OL7B2RYZ2OVBX4JKERYRXDNMK3KS3RY7G6GIQRMXJTOLTYCOKYCK6OQWIERKSCYHDMZY
-#\\\|7Z5WEXGVA2AZPO7CRFEIPNFUX6PG32UKJUT343KUDRSXZ3KQNK4 \ / AMOS7 \ YOURUM ::
-#\[7]GYGUKQNKNZRU3XSIPK254CPECX7YASO6RUI6KFIPDWIQ44I6F6DQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,,.,,,,.,.,.,..,,..,,..,,...,..,,...,...,...,..,,.,,,,,,,.,,,
+#6ABPKOG2V5PO3LNL3BAX37UGCOEAHWKYA2A6VIOF4SHWUUR4YTCDD5CJOADFG5VCOFF2S5FL3WLDI
+#\\\|QXGH2AA4LK5AFDHOJPIJDJBX7S4FQ62VPSZOANKWHI3LLQH2JQH \ / AMOS7 \ YOURUM ::
+#\[7]K5WPKILHMT5HKBSLOLMPOSV3R7B7CHTY43KDTD7SPG7WGBAKQEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

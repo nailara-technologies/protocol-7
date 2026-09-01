@@ -13,7 +13,7 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
 my $city    = $reply->{'params'}->{'city'};
 my $subname = $reply->{'params'}->{'subname'};
 $reply->{'data'} =~ s|\n$||;
-my @weather_urls = split( /\n/, $reply->{'data'} );
+my @weather_urls = split( m|\n|, $reply->{'data'} );
 map { $ARG =~ s|^file://|| } @weather_urls;
 
 my $changes = 0;
@@ -23,7 +23,7 @@ my $file_index = 0;
 foreach my $list_item ( <content.file_list>->@* ) {
     my $type = <content.file_types>->{$list_item};
     next if not defined $type;
-    if ( $type eq ':waiting:' and $list_item =~ /^\[weather:$city\]$/ ) {
+    if ( $type eq ':waiting:' and $list_item =~ m|^\[weather:$city\]$| ) {
         <[base.log]>->( 1, "received weather urls for '$city'.." );
         delete <content.file_types>->{$list_item};
         delete <content.zenka_subnames>->{$file_index}
@@ -69,14 +69,14 @@ if ($changes) {
         <[protocol-7.command.send.local]>
             ->( { 'command' => "cube.$ARG.$update_cmd" } );
         $count++;
-    } split( / +/, <update.notify_zenki> );
+    } split( m| +|, <update.notify_zenki> );
     my $s          = $count == 1 ? ''                          : 's';
     my $notify_str = $count      ? ", $count zenka$s notified" : '';
     <[base.log]>->( 1, 'playlist updated' . $notify_str );
 }
 
-#,,,.,,.,,.,,,,.,,.,,,,.,,..,,.,.,,..,,.,,.,,,..,,...,...,,..,...,,,.,..,,.,,,
-#BPFIDMXT5RFPY3NM542LRZOD2FLJ5VIDGWQMOEBF6U33GCXBRNIFX6GWJATUKZ7ZPHPPN4LEWELD6
-#\\\|PGEZBOBEDIVUF53MAIXKLAYM7CIUUCQKOFPXU3KMJLPKXQDMSBQ \ / AMOS7 \ YOURUM ::
-#\[7]N7XLBPX4VGLIJ37IGPE2LNWMNMSR5DKCXTE7P6VTX26IYDPME2AI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,,,,,..,,,,.,..,,,,.,,.,,..,,..,,...,...,.,.,,,,,..,,.,.,.,.,
+#2VWFKUIAZEKI5QZLWE7QOJ6VWYP3GNY3ICC4JT54IGTCHKWLEO2ITUOYFXMNLAF772GJEO5MS656A
+#\\\|ETXGGXANKFNWZONZKDAKV7O6COH42L5AZXTU2USKDVFSVRGFKUM \ / AMOS7 \ YOURUM ::
+#\[7]KGWI4IXJORM2EPLUIPRP4VITFXW7NQFUZZ4OO46G2VCTGRLNNCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

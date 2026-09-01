@@ -26,11 +26,11 @@ for my $status ( keys %epoch_statuses ) {
     next if not -d $dir;
     my $file_re = $epoch_statuses{$status};
     opendir my $dh, $dir or next;
-    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+    for my $epoch_dir ( grep { !m|^\.| && -d "$dir/$_" } readdir($dh) ) {
         opendir my $edh, "$dir/$epoch_dir" or next;
-        for my $fn ( grep { $ARG =~ $file_re && !/^\./ } readdir($edh) ) {
+        for my $fn ( grep { $ARG =~ $file_re && !m|^\.| } readdir($edh) ) {
             my $enc_id = $fn;
-            $enc_id =~ s/$file_re//;
+            $enc_id =~ s|$file_re||;
             my $id = <[base.vax-int.decode]>->($enc_id);
             $index->{$id} = "$status:$epoch_dir";
         }
@@ -44,9 +44,9 @@ for my $status (@active_statuses) {
     my $dir = "$jobs_root/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
-    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+    for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($dh) ) {
         my $enc_id = $fn;
-        $enc_id =~ s/\.yaml$//;
+        $enc_id =~ s|\.yaml$||;
         my $id = <[base.vax-int.decode]>->($enc_id);
         $index->{$id} = $status;
     }
@@ -63,8 +63,8 @@ for my $status (@active_statuses) {
 
 return $index;
 
-#,,.,,...,,,.,...,.,,,,,.,,.,,.,.,..,,.,,,,..,..,,...,...,,.,,,,.,,..,,..,.,,,
-#6ICSITYIDLJPBZUKWFRPTFLBPJ5LKNXA4HM26OKUWIS2JH7ZDVTABPJT7GT7EQ5DGKKULZ36VJK5S
-#\\\|CLK6XLUJD7M6SP3QBJVQO36AXDHGVQ7AEBULZVEC5NBK6DXHTH3 \ / AMOS7 \ YOURUM ::
-#\[7]Q2SXCA4FNHPW6SZDEKFB4OGK7PAZMWBEFMS2BVWNJGQ5L5DT6MCY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,,,.,..,,,.,,..,,...,.,,,,,,,..,,...,...,,,.,..,,.,.,.,.,,,.,
+#D7YMEXP7AK2CJSRJ23TAKNZ4YQZKIBHUTO4R6JBHNRSQQF4KMJHX2LCY62THJB2OHLFOVRG3LYTSI
+#\\\|IJOMGNRBCI3IZ4JJ3EIWFPYEY4PRORHA63KROVGNE7RA3ISVQJA \ / AMOS7 \ YOURUM ::
+#\[7]MMA6LEUFZZMARCDD3PUUS2DGTICQ42PFLXPADKERK2SH2MZK3OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

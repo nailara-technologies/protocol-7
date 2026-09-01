@@ -64,7 +64,7 @@ my $routed_to = $parent_task->{'analysis'}->{'routed_to'} // 'gpu';
 ## apply caller-pinned backend if provided with reason ##
 if ( length $preferred_model ) {
     ## validate reason [ min 20 words, not vague ] ##
-    my @words        = split /\s+/, $reason;
+    my @words        = split m|\s+|, $reason;
     my $valid_reason = scalar(@words) >= 20
         && $reason
         !~ m{^(?:this\s+is\s+(?:a\s+)?complex|i\s+need\s+.+\s+because)}i;
@@ -208,8 +208,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,..,..,,..,,.,.,.,.,.,.,,,,,,..,..,,.,.,...,..,,...,...,,..,,..,...,,.,,.,,,
-#YGH444X5CTHEZPIZQZXXVQMJDBQZOOZHM2Z5RAXKBGEJAGWIJ2J4WSMWMLJ4O5ML5PF3YCCBT724M
-#\\\|TJ7HU572BKTLL4I6E6JEDPFKX36U4OTGOUPDZWBS4MPO7IFO7DO \ / AMOS7 \ YOURUM ::
-#\[7]KOGKSQ4PBAD4URIDHORN5QNHSRKRXDI5SRPSOY57CDNREJPUWYCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,..,,,.,,,,,,..,,,.,,,,,,.,.,..,,...,...,.,,,.,,,,,.,,..,,.,,
+#XTGMHXIO6XGCDMQLLL374YB44ZDRQEROMM5ALNUW7ZFYCOQCHU6VNUKEVAM7SFVYA4OIK67QG2GOQ
+#\\\|YDCH6DBPISVDTAYUJNEAV5XZBJAEBFMJZ6AFJYX5UQPVA7526UI \ / AMOS7 \ YOURUM ::
+#\[7]7SN5W52CWMTSPLZY4GTRJMAHWRGSJDCDHJRXMT2G2QNCOUBRTECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

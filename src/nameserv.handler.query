@@ -45,7 +45,7 @@ my $zone_match = undef;
 for my $zone_name ( keys %$zones ) {
     my $zone = $zones->{$zone_name};
     ## match exact zone or subdomain
-    if ( $qname eq $zone_name or $qname =~ /\.$zone_name$/i ) {
+    if ( $qname eq $zone_name or $qname =~ m|\.$zone_name$|i ) {
         $zone_match = $zone;
         last;
     }
@@ -57,7 +57,7 @@ if ($zone_match) {
     my $ttl = $zone_match->{'ttl'};
 
     ## search records for match
-    if ( $qname =~ /^_protocol7\._tcp\./ ) {
+    if ( $qname =~ m|^_protocol7\._tcp\.| ) {
         $found_answer = <[nameserv.handler.p7ref_lookup]>->(
             {   reply      => $reply,
                 qname      => $qname,
@@ -111,8 +111,8 @@ if ( defined $reply_data and length $reply_data ) {
 
 0;
 
-#,,..,,..,,,,,.,.,...,...,,,,,,,.,.,.,.,.,,..,..,,...,...,,,.,,.,,.,,,.,.,..,,
-#VZ6GZTWKVUPKKHPNUAXBIW3C2RYOTG2SPV2O4VLQY27TOEIOSWE4ETBQ6UY6NGIEDDB6UTDCAO6VW
-#\\\|WYN2EZBQYCZ6PYT5OIP3ZWWPJW74IWEDCS3TZEFNQ7OCUBSOVN6 \ / AMOS7 \ YOURUM ::
-#\[7]OMHUGREKV2BHDRNHE2XZC2RLDY37RHYKVP233QJV47PJGNNZ3CBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,.,.,...,,,.,,,,,..,,..,,,.,,..,,...,..,,.,.,..,,...,,,,,.,,,
+#Z7ENIX6OB56DGUXOX3KPD5PAIBQHHB4A6R76FQ7LJVZF6EYUVNIHTPFV5ULQT4MBTEO43SFNJINNK
+#\\\|7CNIFLN5TMB2AHGPCYJOJTDRDQW5VUU7AWT2GI53KEFM3ZK3QEF \ / AMOS7 \ YOURUM ::
+#\[7]BSA6YBIIX5TLFEIUGNIAOHEE4GTQHDDD67B5BW4HQH2J7BBSNOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

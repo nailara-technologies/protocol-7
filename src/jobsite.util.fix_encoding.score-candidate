@@ -9,12 +9,12 @@ return $score unless defined $bigrams->{$candidate};
 my $lc_candidate = lc($candidate);
 my $spec         = $bigrams->{$lc_candidate} // $bigrams->{$candidate};
 return $score unless $spec;
-$score++ if defined $prev and $spec->{'prev'} =~ /\Q$prev\E/i;
-$score++ if defined $next and $spec->{'next'} =~ /\Q$next\E/i;
+$score++ if defined $prev and $spec->{'prev'} =~ m|\Q$prev\E|i;
+$score++ if defined $next and $spec->{'next'} =~ m|\Q$next\E|i;
 return $score;
 
-#,,..,,,,,.,.,,,.,,.,,.,,,,.,,,,,,.,,,,,.,,.,,..,,...,...,,,.,.,,,,.,,,..,..,,
-#GNOX37G4RMNML2Q3OQGK4AWTAON554L4WR67ZCWT5E6IDDXLJSIWQVY2P6PJ3K323IEJ4QKQHWKBA
-#\\\|SHWBQ673RKWQQ4BEBOPSLBTCJIEOM5HQUMPTIZHYUBEP5Y6OFJ2 \ / AMOS7 \ YOURUM ::
-#\[7]5FKGMXR6D56J4GGRD3RYDNMQDF537UXHMBOR5AZXNWWX3K5U6SBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,..,,,,.,,,.,,..,..,,,.,,.,.,...,..,,...,...,,..,,,,,,.,,.,,,,..,
+#7WZX5R5LU7EMR6N7YI64G4UDY4MAMIEMS5W7JH6CC3PPROF7EZN3D2NSK7YDMNQCKPWJADZOLEA7O
+#\\\|BXBG5G7UDRJNOAKCKS2KJJI7DPIB2SRI5ZVWLXQT45TIL3FMQSV \ / AMOS7 \ YOURUM ::
+#\[7]NYGCAM66L3TFTPICERGJS3LW3Z25NPPVNYNHZ2JNZWHGVVGEVOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

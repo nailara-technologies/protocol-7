@@ -38,10 +38,10 @@ if ( $query_type eq 'algo' ) {
         return $keypair->{'type'} if defined $keypair->{'type'};
 
         ## Fallback: infer from key name
-        return 'Ed25519' if $key_identifier =~ m/:Ed25519$/;
+        return 'Ed25519' if $key_identifier =~ m|:Ed25519$|;
         return 'Curve25519'
-            if $key_identifier =~ m/:Curve25519$/
-            or $key_identifier =~ m/link-upgrade/;
+            if $key_identifier =~ m|:Curve25519$|
+            or $key_identifier =~ m|link-upgrade|;
     }
 
     return undef;
@@ -60,8 +60,8 @@ foreach my $type ( keys <crypt.C25519.regex.key_file>->%* ) {
 
 return undef;
 
-#,,,,,,,.,...,,.,,.,.,,..,..,,.,.,.,,,,,.,.,.,..,,...,...,.,.,,.,,,..,,.,,..,,
-#RROVEZGB37CGLHKJGGM54IPJX3IIAHXXVGQ33NFJG3JF6HA2E5S4GL5YUWGGFJ5OUUCXAMRK5B4UW
-#\\\|W7G4D3I43TUGBLX4RQSYLF2WXI2JETZGT5XBLGB2AREJYYCGV3X \ / AMOS7 \ YOURUM ::
-#\[7]D3ATROG6D4H466QF7IMMWZMWQGREFOKWECH2VV2YGIHZDB4SQ6CQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,.,,...,,..,..,,.,.,,,.,.,.,.,.,..,,...,...,.,.,...,.,.,.,,,...,
+#MAW2DIBLYVI4HUYKSWMBJ2MCNWIHEOY4EMGGXLLBAX67VTARUZZA5YFG57RQJOZEH2CCB2NTQ25SK
+#\\\|AENKTLIOHMJAM36PB2VRTVCG7LIUYV5MODMLH54EQXM72YYUMEW \ / AMOS7 \ YOURUM ::
+#\[7]TJHA3HRVBPHAF7R54HFUVMDBZ23BJRT42NQ5A343K5NSLTZBYKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

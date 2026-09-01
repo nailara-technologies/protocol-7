@@ -9,7 +9,7 @@ my $base_dir       = shift // '/data/web';
 my $show_checksums = shift // 0;
 
 ## Clean up path ##
-$directory_path =~ s/^\/+|\/+$//g;
+$directory_path =~ s{^/+|/+$}{}g;
 $directory_path =~ s|\.\.+|.|g;
 
 <[base.log]>->(
@@ -102,7 +102,7 @@ foreach my $item (@items) {
     if ( $type eq 'dir' ) {
         push @html,
             qq|    <td class="dirlist-name"><a href="/$path/" class="dirlist-link dir-link">📁 $name</a></td>|;
-    } elsif ( $content_type =~ /^(txt|md|html?)$/ ) {
+    } elsif ( $content_type =~ m{^(txt|md|html?)$} ) {
         push @html,
             qq|    <td class="dirlist-name"><a href="/$path" class="dirlist-link file-link">📄 $name</a></td>|;
     } else {
@@ -148,8 +148,8 @@ my $listing_html = join( "\n", @html );
 
 return $listing_html;
 
-#,,,,,...,,,.,.,.,.,.,,.,,,.,,...,,.,,...,,,,,..,,...,..,,,,,,...,...,,,,,...,
-#2R7YEJYNUJI76D6MTOBDEY5QVJ65NGNTBVAGZ6BUJXV7FP3QNM55C2DDBJ7ELAKJFKCZ7LMUHW2CS
-#\\\|EUAJYYUWZFQNTXC2EZPHJ3YBUBX2XBDKPRHNFJ2N7BTNMBAUL5Y \ / AMOS7 \ YOURUM ::
-#\[7]RB2DRYUPWYVEDEBWCSHEN6HTAXKCAOEBL7XZBFUQTQV4LGX6S6AA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,,,,,,,.,,,.,,.,,,.,,,.,,.,.,..,,...,...,..,,,..,..,,.,.,,,.,
+#AURSQB7QTQPTV5C2PDBJ5FZXWMVATVLFIRILG22CJMWFZKMCSGWPO2KC4DH5QENEZPJC2PGSW3F3S
+#\\\|ZBLLPA2NDYSC7RHMHE7MQG4XPXIHNYAPN3SCXZEM447FNKYHCNM \ / AMOS7 \ YOURUM ::
+#\[7]ESQF4HJG77PIBY5QNZMCUVUZZS5KSXZ4CNYNZYOXXINOQTLAIWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

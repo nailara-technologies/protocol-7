@@ -12,10 +12,10 @@
 # fetched records to arbitrary or destructive subroutines.
 
 my $args_str = $call->{'args'} // '';
-$args_str =~ s/^\s+|\s+$//g;
+$args_str =~ s{^\s+|\s+$}{}g;
 
 ## parse key=value pairs; values are non-whitespace ##
-my %param = ( $args_str =~ m/(\w+)=([^\s]+)/g );
+my %param = ( $args_str =~ m|(\w+)=([^\s]+)|g );
 
 my $url = $param{'url'} // $param{'search_url'} // '';
 if ( not length $url ) {
@@ -124,8 +124,8 @@ my $import_id = <[base.gen_id]>->( <site-yaml.import_state> //= {} );
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,...,,.,,.,.,..,,,,.,,,.,.,.,,..,.,.,,..,.,.,...,...,,.,,..,,...,,,.,...,
-#5UYVNDX6RMLYHMRARQRRYVU55DTK6KPSN6NO7SDK4EVBUKUT6T2CAYJEZ35UNAPFWSVYCIXLNI6KU
-#\\\|WINOWFAYSRWU6NNASVYYJBOS2R3NAJ2J5LTVJ7DUBTRQGL54DGV \ / AMOS7 \ YOURUM ::
-#\[7]XOQLWX3KFQ6X6ELEOQB4WYNNHPN3GHMYQMFNBD4HYQ42T6AXXSAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,...,.,,,,,.,,..,...,.,.,..,,.,.,...,..,,.,,,,..,,,.,,,,,...,
+#C3DAUYJ4HMJX4D6CTZOWA7CQYAF7ED66JIBSGXS6T42GCY7DYIBNDSI3SDPVJ7OKUX4LLUUBJLPE4
+#\\\|3PCLFPE4G2HD47LNRG6SMWZLMJGEIFHB5UFMEP2ZA4EVS3KAWEV \ / AMOS7 \ YOURUM ::
+#\[7]BB22RKUAZT4D4JW7OR4XVE4AB7ULRFKMI6L5LLTPETOLE62F7EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -161,7 +161,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
         <[base.logs]>->( 3, ': attempting complete signature extraction' );
 
         # Use match-only first to capture groups correctly
-        if ( $$src_ref =~ m/$pattern/ ) {
+        if ( $$src_ref =~ m|$pattern| ) {
 
             # Capture groups immediately while they're valid
             my $capture_separator = $1 // '';
@@ -169,7 +169,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             my $capture_body      = $3 // '';
 
  # Skip PLACEHOLDER stub footers BEFORE matching - they're not real signatures
-            if ( $capture_body =~ /PLACEHOLDER/ ) {
+            if ( $capture_body =~ m|PLACEHOLDER| ) {
                 next;    # Try next pattern without modifying file
             }
 
@@ -275,7 +275,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             );
 
             foreach my $pattern (@extraction_patterns) {
-                if ( $content_copy =~ m/$pattern/ ) {
+                if ( $content_copy =~ m|$pattern| ) {
                     my $content_part = $1;
                     my $sig_part     = $2;
 
@@ -321,12 +321,12 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
 
             # Debug output at verbosity level 3 only (use -vvv to see)
             my $content_len = length($content_copy);
-            my $has_amos7   = ( $content_copy =~ /AMOS7/ ) ? 'YES' : 'NO';
+            my $has_amos7   = ( $content_copy =~ m|AMOS7| ) ? 'YES' : 'NO';
             my $has_signature
-                = ( $content_copy =~ /SIGNATURE/ ) ? 'YES' : 'NO';
-            my $has_yourum = ( $content_copy =~ /YOURUM/ ) ? 'YES' : 'NO';
+                = ( $content_copy =~ m|SIGNATURE| ) ? 'YES' : 'NO';
+            my $has_yourum = ( $content_copy =~ m|YOURUM| ) ? 'YES' : 'NO';
             my $has_data_sig
-                = ( $content_copy =~ /DATA[-\s]SIGNATURE/ ) ? 'YES' : 'NO';
+                = ( $content_copy =~ m|DATA[-\s]SIGNATURE| ) ? 'YES' : 'NO';
             my $last_200_chars = substr( $content_copy, -200 );
 
             <[base.logs]>->( 3, ': flexible extraction failure details:' );
@@ -342,7 +342,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             );
             <[base.logs]>->( 3, ':   Last 200 chars:' );
 
-            foreach my $line ( split /\n/, $last_200_chars ) {
+            foreach my $line ( split m|\n|, $last_200_chars ) {
                 <[base.logs]>->( 3, ':     | %s', $line );
             }
 
@@ -405,7 +405,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             3, ': non-strip attempting complete signature detection'
         );
 
-        if ( $$src_ref =~ m/$pattern/ ) {
+        if ( $$src_ref =~ m|$pattern| ) {
 
             # Capture groups immediately while they're valid
             $capture_separator = $1 // '';    # Separator endline (optional)
@@ -454,7 +454,7 @@ if ( not defined $footer_start ) {
     # markers This check must happen REGARDLESS OF MODE to correctly detect
     # existing signatures
     my $content_has_markers
-        = $$src_ref =~ /SIGNATURE|YOURUM|AMOS7|DATA[-\s]SIGNATURE/;
+        = $$src_ref =~ m{SIGNATURE|YOURUM|AMOS7|DATA[-\s]SIGNATURE};
 
     if ($content_has_markers) {
 
@@ -462,8 +462,8 @@ if ( not defined $footer_start ) {
         # before it This happens when signature exists but is directly at
         # end without blank line
         my $has_separator_issue
-            = (    $$src_ref =~ /#[\.,]{70,}\n(?:#[^\n]+\n)+#[:]{70,}/
-                && $$src_ref !~ /\n#[\.,]{70,}\n/ );
+            = (    $$src_ref =~ m|#[\.,]{70,}\n(?:#[^\n]+\n)+#[:]{70,}|
+                && $$src_ref !~ m|\n#[\.,]{70,}\n| );
 
         if ($has_separator_issue) {
 
@@ -517,7 +517,7 @@ if ( $mode eq 'strict' && $footer_length != length <source.sign_template> )
 {    ## [ ERR: length ]
      # YOURUM-format fake signature stubs: size mismatch but structurally
      # valid. Mark as fake and return so callers can handle mode-awarely.
-    if ( $footer_body =~ /YOURUM/ ) {
+    if ( $footer_body =~ m|YOURUM| ) {
         $footer_data->{'yourum-fake-signature'} = TRUE;
         <[base.logs]>->(
             2, ': YOURUM footer size mismatch detected, marking as fake'
@@ -614,12 +614,12 @@ if ( $need_repair && $mode ne 'strict' ) {
     );
 
     # Look for the patterns typical in signatures
-    if ( $emptied_footer =~ m/#\\\\\\\\([A-Z0-9]+)/ ) {
+    if ( $emptied_footer =~ m|#\\\\\\\\([A-Z0-9]+)| ) {
         $signed_chksum = $1;
         <[base.logs]>->( 3, ': found checksum: %s', $signed_chksum );
     }
 
-    if ( $emptied_footer =~ m/#\\\\\[7\]([A-Z0-9]+)/ ) {
+    if ( $emptied_footer =~ m|#\\\\\[7\]([A-Z0-9]+)| ) {
         $signature_B32 = $1;
         <[base.logs]>->( 3, ': found signature: %s', $signature_B32 );
     }
@@ -679,7 +679,7 @@ if ($seperator_endline_absent) {
     $footer_data->{'needs_separator_endline'} = TRUE;
 
     # Check if the last line is also incomplete
-    my $last_line_incomplete = ( $$src_ref !~ m/\n$/ );
+    my $last_line_incomplete = ( $$src_ref !~ m|\n$| );
     $footer_data->{'last_line_incomplete'} = $last_line_incomplete;
 
     # Issue warning
@@ -827,8 +827,8 @@ if ( $mode eq qw| repair | ) {
 
 return $footer_data;
 
-#,,,.,,.,,,,.,,,.,,..,.,,,,.,,.,.,,..,.,,,.,,,..,,...,...,,..,.,,,.,.,,,.,.,,,
-#O4R2D2TYAEDVZ6FVLNT7C77HXWYKJG5TUQYLRYJQJYCSABZXEGLO5GMDBDPCWQH4CLFUQLRJJSV4G
-#\\\|D55NZLIAYODKPANMCWX2BSATNV6RE6EVX724TTZVL2IHN5VAWHL \ / AMOS7 \ YOURUM ::
-#\[7]NZUP5MXWV74CJZA3AZYVPIGN3LXASTZFGUC3YLXYEWPYS3ZHCYCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,..,,,..,.,.,,,,,,,.,,.,,...,.,,,..,,...,...,..,,.,.,...,.,.,,,.,
+#JT56HT5BOO5TPO2354RGAUL74KF34IOY6AQRHIA3W5XONH6YC2OTZYKDEI7X7HWGQSCKVHCZWWOWS
+#\\\|66WUFRLXCKNCDRHYS4N2V7AOUPOHRBLK7YGEBMMAUWPHJD4FM7O \ / AMOS7 \ YOURUM ::
+#\[7]2DOK476DXWUO43OF2GLUKBPFXEQTJVPKWAMKNPY4OKCMFRYCYQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,8 +31,8 @@ for my $depth ( sort { $a <=> $b } keys <index.trie>->%* ) {
             push @child_seqs, $child_seq;
         }
         my $node_str = join ', ', map {
-            ( my $s = $_ ) =~ s/\\\\/\\\\/g;
-            $s =~ s/"/\\"/g;
+            ( my $s = $_ ) =~ s|\\\\|\\\\|g;
+            $s =~ s|"|\\"|g;
             qq{"$s"};
         } ( $terminates ? '.' : (), @child_seqs );
         push @yaml_lines, "        - [$node_str]";
@@ -48,8 +48,8 @@ if ( defined $out_path and length $out_path ) {
     return $yaml_str;
 }
 
-#,,..,,..,,.,,...,,.,,.,,,.,.,,,.,,.,,..,,.,.,.,.,...,...,...,.,.,,,.,,.,,.,.,
-#4DDIHOTD5W2LYPDS4DT4CSEIOSLTEU3H6X4IT36YWNR4B7K4C2GUUOSL5MVRCAUAV5VOXY32ZEMAC
-#\\\|SJ67ODIYQHSPW6GGGOH6HT4SIUXQ5LQBI7WYL44ASMQ23XQF46P \ / AMOS7 \ YOURUM ::
-#\[7]XDEBV775XD6RW65WPOO2267H6UWNDE72T4ZXYV4CEM7L4GPILYCI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,,,,..,,.,.,..,,.,,,.,,,,..,.,.,...,..,,,..,.,.,..,,,..,..,,
+#AH673OCXFU367VOCW7533S2WIR3SUCBL4PZOVEVMT2FGPPW2NXIRP2AAD4RIAGYAVMT2DMJMBZC2A
+#\\\|OPNJDTVFBLYTOPDGXBZOGVYDWWYEXTQIQMALMQM7YMBPPGGYECA \ / AMOS7 \ YOURUM ::
+#\[7]Y6CEUK3AIEACQETKUFNKPQPSHKKARLNNJPJPO7NJNEWL2D4ADCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

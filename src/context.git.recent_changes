@@ -50,7 +50,7 @@ unless ( length $stat_output ) {
 }
 
 ## parse and truncate to budget ##
-my @lines        = split( /\n/, $stat_output );
+my @lines        = split( m|\n|, $stat_output );
 my $header       = "## recent changes ##\n";
 my $used         = length($header);
 my @output_lines = ($header);
@@ -70,7 +70,7 @@ foreach my $line (@lines) {
 
     push @output_lines, $line;
     $used += $line_len;
-    $file_count++ if $line =~ /\|/;      ## count files (lines with |)
+    $file_count++ if $line =~ m{\|};     ## count files (lines with |)
 }
 
 $output = join( "\n", @output_lines );
@@ -85,8 +85,8 @@ if ( $file_count >= $max_files ) {
 
 return $output;
 
-#,,..,.,.,...,,.,,,.,,,,.,,,,,,..,,.,,.,.,..,,..,,...,...,.,.,,..,..,,.,.,...,
-#JHFGF42BNFCL7JJV6QYBZPX7BBS75BU3JE2TZTOUDPOC37O2LBQ7DF32T6VACSKZ2KZSZI637ZRFA
-#\\\|NGN33V37QAK4CEN3WM2V43LUA5WLTXEBE3SX54Q5SKROUB5WNCZ \ / AMOS7 \ YOURUM ::
-#\[7]FEXYBQ7BJSVNIWI5N25I5CHUKPXFDNGICVPTP7I2MF2V2ICAG2AY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,.,,,.,.,,,,,,,...,...,...,,,,,..,,...,...,...,...,...,,..,,..,
+#IQQM6R5VHQ55EVWL3NSTCECHDLZ3N6TLHLPJZICVKG2HUACPYQ7J2ENKLDCOTVZ3B6QPABS4X73K6
+#\\\|425XM57NIH2QISODNX2OSUCV7CYJIIQA5T3MSXMNBX46OMHIOBK \ / AMOS7 \ YOURUM ::
+#\[7]MEDDDSPHVBP4AZX2RHRSNQDBVM6OVM2KJCBXV6VY4WT5NMMUJOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

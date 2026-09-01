@@ -21,8 +21,8 @@ return { 'mode' => qw| false |, 'data' => 'provider name required' }
 
 ## Strip surrounding quotes if present (from command-line args)
 if ( defined $update_data ) {
-    $update_data =~ s/^['"]//;
-    $update_data =~ s/['"]$//;
+    $update_data =~ s|^['"]||;
+    $update_data =~ s|['"]$||;
 }
 
 <[base.logs]>->(
@@ -49,7 +49,7 @@ if ( defined $update_data ) {
     my $provider_data;
 
     ## Try JSON first (backward compatibility)
-    if ( $update_data =~ m/^\{/ ) {
+    if ( $update_data =~ m|^\{| ) {
         eval { $provider_data = JSON::decode_json($update_data); };
         if ( length $EVAL_ERROR ) {
             return {
@@ -126,8 +126,8 @@ return {
     'data' => "menu updated for provider $provider"
 };
 
-#,,,,,,,.,,..,.,.,,..,..,,.,.,,.,,...,.,,,.,,,..,,...,...,...,.,.,..,,..,,.,.,
-#3WOQTG2BRPYYXSJUWRYJOJSKAIY6EK7G3UWMC3FQPUEP3YBZM2CGDCFTB7SGCR7M4ZJXVZGF2WON2
-#\\\|OOOXX5HPURTCBGJUFQCYCS5YLOMOZ2VNXXVWYNJGSCRGX2MKWUZ \ / AMOS7 \ YOURUM ::
-#\[7]D5HHUXAZFJAVKCAXJSHHE6WEJNW2CERTVRVVKKC55CN2T6CEYYBI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,...,.,,,.,.,,..,,.,,..,,,,,,..,,...,...,,,.,...,,,,,,,,,..,,
+#3TW3O42EKTNRG3YGZWSFGYOSZJWPS3AN4XERKC2CB6DUCMXQYU5AZVPGFEZOPT425MOAQG7ZZTIRO
+#\\\|LJKO3EDXGQOHD6TFDOF67KVXICRLYNGXGDRSWWNPPDQBAUEZDRD \ / AMOS7 \ YOURUM ::
+#\[7]HR4FNA3BOO6TMCSDUBPMFR4UD3C27BGH6XSI6RILCIHAFXOUZAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

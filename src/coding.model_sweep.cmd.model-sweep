@@ -80,7 +80,7 @@ for my $backend (@backends) {
     ## build candidate list for this backend ##
     my @candidates;
     for my $cache_name ( sort keys %$metadata ) {
-        next if $cache_name =~ /mmproj/i;
+        next if $cache_name =~ m|mmproj|i;
         my $entry = $metadata->{$cache_name};
         next if ref $entry ne qw| HASH |;
         my $checksum = $entry->{'amos'} // '';
@@ -171,8 +171,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,,,,.,.,..,,.,.,.,.,,.,,.,.,,.,,..,,,.,,.,,,..,,...,...,.,,,,.,,.,.,,,.,.,.,
-#BOIFXD4XBEURQQVPC66CW7PK6L565YFCBSLUTY56P5BRML2EDN2D7ZQX2FK2A6CD6TJD7TTSJKE3U
-#\\\|DGL3NAXPYUPZ64CYK6ZHKVMKW3TFP6NB6R3W67P7JG3JX55CMCL \ / AMOS7 \ YOURUM ::
-#\[7]TVK2FFLHJORUUIY7O4UDPUJPRLRZZ55Z53QPH6U7EXE4LTKPPQBA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,.,,,,,,.,,,..,...,,.,,..,,,,,,..,,...,..,,,..,..,,,..,.,.,,,.,
+#3KYL56AXLUY6IO3AAKDY3JNOUCLMTJSMAUGI3EE5CG4KP5WR5XK2V326GM2E67NJUPAPS52LSQ2GI
+#\\\|AVKZKX2HSTRQWBGXEX6NYRIPWWWEMW5LCO3Q3ZM5CCQFYAXZIP7 \ / AMOS7 \ YOURUM ::
+#\[7]7LMBRBKFHIOE2PMVP7DGXX4IKMMBXLWIOZVSJGJTJZIOVZFDOOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

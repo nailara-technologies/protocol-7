@@ -12,7 +12,7 @@
 #         different host entirely
 
 my $args = $call->{'args'} // '';
-$args =~ s/^\s+|\s+$//g;
+$args =~ s{^\s+|\s+$}{}g;
 
 return {
     'mode' => 'false',
@@ -20,7 +20,7 @@ return {
     }
     if not length $args;
 
-my ( $id_in, $stage_in, $ts_in ) = split /\s+/, $args, 3;
+my ( $id_in, $stage_in, $ts_in ) = split m|\s+|, $args, 3;
 
 my $job_id = <[base.vax-int.decode]>->($id_in);
 return { 'mode' => 'false', 'data' => "could not decode id: $id_in" }
@@ -42,14 +42,14 @@ if ( not length( $ts_in // '' ) ) {
     $epoch = time;
 } elsif ( $ts_in =~ m{^\d+$} ) {
     $epoch = $ts_in + 0;
-} elsif ( $ts_in =~ m{^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?$} ) {
+} elsif ( $ts_in =~ m|^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?$| ) {
     my ( $y, $mo, $d, $h, $mi ) = ( $1, $2, $3, $4 // 0, $5 // 0 );
     $epoch = eval { Time::Local::timelocal( 0, $mi, $h, $d, $mo - 1, $y ) };
 }
 return { 'mode' => 'false', 'data' => "could not parse timestamp: $ts_in" }
     if not defined $epoch;
 
-my @urls = split /\s+/,
+my @urls = split m|\s+|,
     ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
 return { 'mode' => 'false', 'data' => 'no sync_url configured' }
     if not @urls;
@@ -84,8 +84,8 @@ return {
         . join( ', ', @urls ),
 };
 
-#,,.,,.,.,...,.,.,,..,.,,,,,,,.,.,..,,,,.,,.,,..,,...,...,,..,,,,,..,,,..,,,.,
-#S6AEQLNRUNZE5SY5NTZLWCWZNZ2YOWQ2RUXFBHDBU4XDIHWEMILHO5STFCU4OQ4CAOVJGKWIGCMJA
-#\\\|D6SHKPINM2VTK4GXIPBMEAOPEUKUJIE3W5GCCC5CM4NSU4RZIYZ \ / AMOS7 \ YOURUM ::
-#\[7]QDUZJRZVTJA4AMVNKCELAOLJHTHJ74YKAKTH2MU5TN2NNGCEDGDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,,,.,.,..,,,,.,..,,,.,,.,,,..,,..,,...,...,...,,.,,,..,.,.,,,.,
+#Q2CV3T3AXGVIXRH3WVHVO7HEPUSOGBRZOU5ZPTTL2AODMFOG5UFLQJNK7QYWFSS6TIVG32DSBVW7K
+#\\\|FJV6KQIWZLKM6GJALMV7HFF7ZVUMN2DUKHYCN6KPZ6WWPULIGYO \ / AMOS7 \ YOURUM ::
+#\[7]XR36JOG4PZREQBU7GK6VR7O7WKSSBT2APGHJKFSAW5L3Y7PUGOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

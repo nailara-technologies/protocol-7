@@ -50,7 +50,7 @@ unless ($mode) {
 my @vhosts;
 if ( $mode eq 'SIZE' || $mode eq 'TRUE' ) {
     ## Both SIZE and TRUE modes return multi-line vhost names
-    @vhosts = grep { length($_) > 0 } split( /\n/, $data );
+    @vhosts = grep { length($_) > 0 } split( m|\n|, $data );
 } else {
     <[base.log]>->( 1, "error : unexpected reply mode from httpd : $mode" );
 
@@ -101,8 +101,8 @@ foreach my $vh (@vhosts) {
 
 return TRUE;
 
-#,,.,,.,,,.,,,,..,,,.,.,,,,.,,.,,,,.,,...,.,.,..,,...,..,,...,,,,,.,,,.,,,,,,,
-#QVOBDYVZG7ACJ7F6ENW56HIJ6ZRN2CXKEG72QH2DTYQW5SQHKYV7JXTSQJ7WCVEKUOHM3RDIVQIZO
-#\\\|HFO67E5HECPDT6BUB3QEZZ7ISELE7U4ZVVSS6UXIZHF7HET3CSC \ / AMOS7 \ YOURUM ::
-#\[7]KW4KPZNIJAV7S57E5UUC4CRJWQD3D4ZEKXWZT2SH4B3HJDPNGQAI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,...,,,.,,,,,..,,,,,,...,..,,,..,..,,...,...,...,.,,,,,,,,,,,...,
+#XYMFKSTAFZCW5NZE27OB6DYMZ4SGJBQC2HNGNZV43274UBMU4F3EUIHQIULDMBYL7YIK3UFY6UTJO
+#\\\|3NPA6W5LSAJNL3CFQVL7XECI55IUO26ACL4NT3TS62ZMBD24CLJ \ / AMOS7 \ YOURUM ::
+#\[7]XNPOACHUT6NOOGGRNLVF4SNJOO727XZFXTQVS7NFAQCL3JS6MMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

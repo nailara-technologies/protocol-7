@@ -107,7 +107,7 @@ if ( exists $code{'crypt.C25519.sign_data'} ) {
         my $ntime    = <[base.ntime.b32]>->( 3, TRUE );
         my $b32_hash = <[base.chk-sum.bmw.strsum]>->( $body, 384 );
         my $bytes    = length($body);
-        my $lines    = () = $body =~ /\n/g;
+        my $lines    = () = $body =~ m|\n|g;
         my $header   = join ':', $ntime, $bytes, $lines, $b32_hash;
         my $sig_bin  = <[crypt.C25519.sign_data]>->( \$header );
         if ( defined $sig_bin ) {
@@ -144,8 +144,8 @@ if ( exists $code{'crypt.C25519.sign_data'} ) {
     }
 );
 
-#,,,,,,,,,...,,,,,,..,.,,,,..,.,,,,,,,.,,,,,,,..,,...,...,..,,...,.,,,...,,,.,
-#FPVDZNL3O5KNAVAF63HXLG5EJZZWA73NPZ6PDMZKSRKJKEXVZNBJBHFDAWRUYMUTNUF4F7J4GFWKG
-#\\\|W5WBZPPPJZZ2V33QNGNOL6KIPWTRT3WDFXSTQ5AFNKUCLMOI6TE \ / AMOS7 \ YOURUM ::
-#\[7]LKKHQ7LUSHJBEDNVEM7MXLWWZRKZJIFUHJO57VTGLQ3H6443OGDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,...,.,.,,,.,..,,,..,,,.,.,.,..,,...,...,,..,.,,,,,,,.,,,,,,,
+#COVSDPSZNGDJORTD7T6HQX3ZEHPRKPWKRTYQW7TNO2EV45DW4ST3R7HSLWH2YMF5U7SVLKE66CHRM
+#\\\|62R2Y3LCZ5AAJZTB6BXER6MA63MYDHKCHTAO5JJ4HJYVKGYOJO4 \ / AMOS7 \ YOURUM ::
+#\[7]LNV2DP5GYW6AXIDU2T4IILTDBQ5JK42GRTBDL62K5PCU62KACAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

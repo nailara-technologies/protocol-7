@@ -6,7 +6,7 @@ my $speed = shift;
 my $units = <weather.cfg.units>;
 
 die "expected numerical wind speed parameter"
-    if not defined $speed or $speed !~ /^\d+(\.\d+)?$/;
+    if not defined $speed or $speed !~ m|^\d+(\.\d+)?$|;
 
 my $beaufort;
 
@@ -47,8 +47,8 @@ return $beaufort;
 #     11 	56 - <64 	28,5 - <32,7 	103 - 117 	64,4 - <73,6
 #     12 	>= 64           >= 32,7 	>= 117 	        >= 73,6
 
-#,,.,,.,,,...,,..,.,,,,..,..,,.,.,,,.,,.,,.,.,..,,...,...,,.,,.,,,...,.,,,...,
-#CER2UNBRDA4FGPZ663GEYQZLX2YKMVEEBL5UZ3KF3KYVHGVZQQGY7FHVUKIJ7YTO3Z2C6DRAWHXF4
-#\\\|5RSGYFJALYJXEHUC63FLYTBYSFODHADTMJE23WRTHIZNFDSGMBB \ / AMOS7 \ YOURUM ::
-#\[7]VM2HPZONSTCF4PTHFVSITMO2ZAJOW53DGBBXUF7A2UNU4DAUVSDY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,...,...,,.,,,..,...,..,,,,,,..,,...,...,,,,,,..,,,,,,,,,,,.,
+#GZURKQVW66CJIMCA2ORMQC3BVWFV6NOTCTOAPX3QUCWCNXKJ5GBM74EET52M2XT772WNURUX7JPBY
+#\\\|YOFE6VDZU3XZXDWWB6FH4WF5LPNA3UBTMZ5XQNH7F73RJ63KTK6 \ / AMOS7 \ YOURUM ::
+#\[7]FNI5FEQZYCSHR4AZHTRDUVIFPZ5YVVAZUJWRW545GUUXRGAKW2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

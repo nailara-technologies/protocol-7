@@ -12,7 +12,7 @@
 #         call into 'web'
 
 my $id_in = $call->{'args'} // '';
-$id_in =~ s/^\s+|\s+$//g;
+$id_in =~ s{^\s+|\s+$}{}g;
 
 return { 'mode' => 'false', 'data' => 'usage: unmark-exported <id>' }
     if not length $id_in;
@@ -21,7 +21,7 @@ my $job_id = <[base.vax-int.decode]>->($id_in);
 return { 'mode' => 'false', 'data' => "could not decode id: $id_in" }
     if not length $job_id;
 
-my @urls = split /\s+/,
+my @urls = split m|\s+|,
     ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
 return { 'mode' => 'false', 'data' => 'no sync_url configured' }
     if not @urls;
@@ -56,8 +56,8 @@ return {
         . join( ', ', @urls ),
 };
 
-#,,..,,,.,,..,,..,...,,..,...,.,,,,,,,.,.,.,,,..,,...,...,,,.,...,,,,,..,,,..,
-#R7H2NWCNF3R3DGMPBGOZLVXR3BJOIP2CJ6SL3LLXVQWN7VGZWGL4DPRBMRZD3ZWLSOTVJLTXJWFCY
-#\\\|AZRCXILMKNZURRRH4ZVEFJYDMOHACI5PEYU3COGSVPGBIKD7PPU \ / AMOS7 \ YOURUM ::
-#\[7]P7GRREFARLTN5FUCPCKAB3RFAVLK3WAPWRIU3IA4MG7UR7R6GOBQ 7  DATA SIGNATURE ::
+#,,..,,..,...,,.,,,..,,,.,,.,,,..,.,.,,,,,,.,,..,,...,.,.,.,.,,.,,.,.,..,,...,
+#LBO3CQ55BBSFL66TACRWMDRHV4UKFQCEZYSPIGD2SVHLGT3GK4MHTCMCY62WWHDYU27Y2JALSLIX2
+#\\\|B5CZ3ASCKMIPLGLX45HCXN6JP5KSYBK6TABY7CFSS6UOGCXMH5W \ / AMOS7 \ YOURUM ::
+#\[7]PX2PMI5MCPHDEURBTIZLCWZIT4R5TXL3P6F3BNLT2XEPTW3LXQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

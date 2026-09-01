@@ -25,7 +25,7 @@ my $current_ref = $p7ref;
 
 # First resolve the base reference
 my $base_ref = $parsed->{'original'};
-$base_ref =~ s/\[[^\]]+\]//g;    # Remove nested parts for base
+$base_ref =~ s|\[[^\]]+\]||g;    # Remove nested parts for base
 
 my $base_res = <[plugin.storage.p7ref.resolve]>->(
     {   'p7ref' => $base_ref,
@@ -45,7 +45,7 @@ for my $i ( 0 .. $#nested ) {
     my $nested_ref = $nested[$i];
 
     # Add p7:// prefix if missing
-    $nested_ref = "p7://$nested_ref" unless $nested_ref =~ /^p7:/i;
+    $nested_ref = "p7://$nested_ref" unless $nested_ref =~ m|^p7:|i;
 
     my $nested_res = <[plugin.storage.p7ref.resolve]>->(
         {   'p7ref' => $nested_ref,
@@ -70,8 +70,8 @@ return {
     }
 };
 
-#,,,.,,..,,,.,...,,,,,...,,,.,.,.,,,,,,,.,.,.,.,.,...,...,.,.,,,,,.,,,,,,,,,,,
-#IBIWQHDUGRKZM6T7PKQVGX5TWA6HR4NGNNKHH5KCEINTY7QBKMIO5B25FH2LC4NZWVPHCXXVJN5O4
-#\\\|XW7TCIOCY44QK5AUVTCPJQBNC6NOPTPUGAZKACX3MH5DAJKIKMQ \ / AMOS7 \ YOURUM ::
-#\[7]NUTHUHJARYIQKZD2RB7LKLPY74X4ORS3PVJIYP26RZZ4UY4FJ2DA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,,,.,,.,,.,,,,..,..,,,,.,,.,,.,.,...,...,,,,,...,.,,,..,,.,.,
+#EHRU2V2MDFIGUXQYIFLPZMZ2LN723FXIKLEIS4BQXCCVJE4E2TQZNXMUMLHEP63VS3PULNRSTZU2K
+#\\\|JLM6CMDPUPZ7MAK5WLP33YT27R26NFM4D6LW4VFL77YKHMYWR4W \ / AMOS7 \ YOURUM ::
+#\[7]545SRM3TQ2NSZTLMZE6WJ47VVZRWHO5F7COBVCNIY6I7KANW2YBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

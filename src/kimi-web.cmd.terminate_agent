@@ -10,7 +10,7 @@ my $args = $call->{'args'} // {};
 if ( not ref $args ) {
     my $args_str = $args;
     $args = {};
-    for my $token ( split /\s+/, $args_str ) {
+    for my $token ( split m|\s+|, $args_str ) {
         $args->{ lc $1 } = $2 if $token =~ m{^([\w\-]+)=(.*)$};
     }
 }
@@ -113,8 +113,8 @@ return {
     'data' => "agent $agent_id terminated"
 };
 
-#,,,.,.,,,...,,..,.,.,.,.,..,,.,,,,,,,,,,,,..,.,.,...,...,...,.,.,.,,,,.,,.,,,
-#K4S3D2T5Y353FO6J6F5WQLVS2SIWZRI3WXULOPUNQMCKZTRKV3DGDIASSPQEVYT5PCNKYEQWLCKMG
-#\\\|LFGRQTIMTXR7WX4NG7HPWCWK37G7EWHAKKED7L7N6NNWBBYVQE7 \ / AMOS7 \ YOURUM ::
-#\[7]QYZHORDNPDEOIZABBBII7ONTKF356PLE6PBDONO4AQZNYBKL5QAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,.,.,.,.,.,...,..,,...,,,.,,.,,.,.,...,..,,.,.,,.,,...,,..,,..,
+#DK5PY54FW2YUPDS5TLAAZBBDO4XDVHAFN7QLJIMMSHPPIQMDDDWDZK677QGU2G5SLSUOH76CZDGIU
+#\\\|H5YPJ44QVLPP5BTROTVZIURMGWEUJZZTZSA4ABRSOQMSCJOKGXR \ / AMOS7 \ YOURUM ::
+#\[7]XNFUMZSUAA76HHXDW5T77V6UQ5347NEXEAFOUXVELWO7TTHO6GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

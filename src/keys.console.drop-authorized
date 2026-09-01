@@ -46,15 +46,15 @@ unlink($auth_link)
 
 ## clean up the zenka directory if this was its last authorized entry ##
 if ( opendir( my $dh, $zenka_dir ) ) {
-    my @entries = grep { !/^\./ } readdir($dh);
+    my @entries = grep { !m|^\.| } readdir($dh);
     closedir($dh);
     rmdir($zenka_dir) if not @entries;
 }
 
 printf( "\n  :: revoked '%s' from '%s' ::\n\n", $username, $zenka );
 
-#,,,,,.,.,,,,,,..,...,,,,,,..,...,...,.,,,,,,,..,,...,..,,.,.,,..,,..,,.,,,,.,
-#2HZREU7ZH3FZXOPHLLPOY7IB4TRG4X2MTF2ABOEIJP3SV5ZV56OWE62SV6QGEL2O6FKJ5ADPN2OXY
-#\\\|A5HE6RJTIH2WEBRCZZMAUAAC2QOEWDDQEO5LTEEVAOOITMXFJO4 \ / AMOS7 \ YOURUM ::
-#\[7]U36N6QXG2BEQEOXHZLSOXAVEPJWFFFY6E4B7H5EK2H36TXJ62ECQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,.,.,..,,...,,..,,.,,,,.,,.,,..,,...,...,,,,,...,,.,,.,,,,,,,
+#UMOADC2MXR4TYTOVNYIYH6Z2632XSGA47BF7SYIDNNJ7HVZJGL6YALIF3IQHRDGBNZYF4LFRIP2EG
+#\\\|EPBFKMUCZ7GLWSRGHMFDZAB7K7KPFHUX6LAWJGANVHOM45CFR3V \ / AMOS7 \ YOURUM ::
+#\[7]Y2EZDGJTMQWHZHVWE2YBKMGGBU2U55VYWQJV6Q3RC5H7NOIQ32DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

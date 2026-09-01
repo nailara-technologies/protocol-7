@@ -29,7 +29,7 @@ $tokens += int( $desc_len / 4 );
 # Consensus voting costs 3x (3 models)
 my $constraints = $task->{request}->{constraints} // [];
 foreach my $constraint (@$constraints) {
-    if ( lc($constraint) =~ /consensus|vote/ ) {
+    if ( lc($constraint) =~ m{consensus|vote} ) {
         $tokens *= 3;
     }
 }
@@ -41,12 +41,12 @@ return {
         description_tokens => int( $desc_len / 4 ),
         type               => $type_key,
         requires_consensus =>
-            ( grep { lc($_) =~ /consensus|vote/ } @$constraints ) ? 1 : 0
+            ( grep { lc($_) =~ m{consensus|vote} } @$constraints ) ? 1 : 0
     }
 };
 
-#,,,,,,..,,..,,,.,,,.,,.,,.,.,.,.,.,,,,,.,,..,..,,...,...,,.,,,,,,,,,,..,,,..,
-#RRU7C6UERXHPVL6M2KUOYB723RURGYXUXKXTSQ3USP6JIETW3YLVWWIW7YW72NMSY5V2YJLX2QBWO
-#\\\|KXWOE4ZQSJRSHOXGK6BSUEFF74FIOAA6IGLCSY3DKOZTNR4TYJA \ / AMOS7 \ YOURUM ::
-#\[7]ENW6ELSLR3TJJLMZGY5OIE7YFE5KQCPYPIS75ZQP3Y5PLXE2UAAQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,,,,.,.,,.,,,..,..,,,.,,,..,..,,...,...,,.,,,.,,...,,,,,...,
+#R5EA4BJJLCDLSUBB66UXUR6CC5NRTKHOXCIBNLXPGQIM37RBUYD6E266ZDW2AL3S2XJ3DYVQJ4T5A
+#\\\|RAND3BC7YI644HN5GD7O5WG3QNH3NUHNINARVFYQJMJMAAQISVW \ / AMOS7 \ YOURUM ::
+#\[7]YJSEEV4JOSSITVS4DEDXKQQEXGI734KIVSXBHIOXC3B56KJUOOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

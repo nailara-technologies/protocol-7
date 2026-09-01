@@ -19,13 +19,13 @@ if ( !defined $task ) {
     if ( defined $result_sref ) {
         my $result   = $result_sref->$* // '';
         my $stripped = $result;
-        $stripped =~ s/\n$//;
+        $stripped =~ s|\n$||;
         my $newlines = ( $stripped =~ tr/\n// );
         if ( $newlines == 0 ) {
-            $result =~ s/\n$//;
+            $result =~ s|\n$||;
             return { 'mode' => qw| true |, 'data' => $result };
         } else {
-            $result .= "\n" if $result !~ /\n$/;
+            $result .= "\n" if $result !~ m|\n$|;
             return { 'mode' => qw| size |, 'data' => $result };
         }
     }
@@ -47,14 +47,14 @@ if ( $status eq 'completed' ) {
 
     # Determine reply mode based on internal newlines
     my $stripped = $result;
-    $stripped =~ s/\n$//;
+    $stripped =~ s|\n$||;
     my $newlines = ( $stripped =~ tr/\n// );
 
     if ( $newlines == 0 ) {
-        $result =~ s/\n$//;
+        $result =~ s|\n$||;
         return { 'mode' => qw| true |, 'data' => $result };
     } else {
-        $result .= "\n" if $result !~ /\n$/;
+        $result .= "\n" if $result !~ m|\n$|;
         return { 'mode' => qw| size |, 'data' => $result };
     }
 } elsif ( $status eq 'failed' || $status eq 'error' ) {
@@ -72,8 +72,8 @@ if ( $status eq 'completed' ) {
     };
 }
 
-#,,..,.,,,,,,,,.,,..,,.,,,.,.,,.,,,,,,,.,,,,,,.,.,...,...,,,,,.,,,.,,,.,,,,..,
-#AFQKHVK5QYEIFNIISYZR6G62QUAYMW5IT7ZCBGNPNZNEM6JMYIU2LYKL2EZVXC7G2PTPQNITNLLVW
-#\\\|TEQQ65DR5QGLM7MJ63QQ4NUJXEPVWMG2H3XVFX7YHKT3EWAVM2J \ / AMOS7 \ YOURUM ::
-#\[7]AV6JJFZ6S4OXI3FL6MGKCZCSUMJMFF5PD6SGZG5VHSVBQB3ZEMCA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,.,,,,,.,.,...,.,.,,,,,,,.,,,.,.,.,...,...,,,.,.,,,,,,,,.,,..,,
+#QTGICBUP7F5GGASFDEREYCUGGL6ZQQZYI4FG4TBTNLEM6TIXI53NWIDTO5ZJYW5AOJFPSJOJR7CHI
+#\\\|KOK334RJKTKO3QAWHGGFKEXVTS4A2FSIZPI2VA3JOAVES2IDUOM \ / AMOS7 \ YOURUM ::
+#\[7]XLNYFCMDP5BFEGFSEFAE6S2JNFQ2IYFI2RNF3VLZNWKRWLIDB6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

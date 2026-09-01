@@ -5,7 +5,7 @@
 my $cmd_reply_str = shift // '';
 my $reply_id      = shift // '';
 
-if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
+if ( length($cmd_reply_str) and $cmd_reply_str !~ m|\n| ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
         {   'mode' => qw| true |,
@@ -22,8 +22,8 @@ if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
     );
 }
 
-#,,.,,,,,,,..,...,,.,,.,.,.,.,...,...,,.,,.,.,..,,...,...,,..,,.,,,.,,,,.,,.,,
-#MPK2IPNNZP546DYYY4OL44EKJGLXL4EVZK5DNLXUEXXY63I4FZMLIJJOAERBUO7PV4PEPJFVKJ5VG
-#\\\|ERTIOR2VQZLI7WXEX3EQPUS5ZFTPIP7OYYNJTWLK657WD36PCB6 \ / AMOS7 \ YOURUM ::
-#\[7]GJL3AJJ5QNXFBXJVSJ3O7OXWR6FLSDCA5K7TIYSB7HP4G4YFPCDQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,..,,,,,,..,,,,,...,,.,,.,.,..,,...,...,...,,,.,,,.,,,.,,..,
+#45FW76QHWW4AL3JNU57MZU7GU5SOAZCJYAOONTDGLV3AHGGDGJRFZNNI5TM3PWPOQQO3MOWQV2L4S
+#\\\|CHTWFPI6A44KFNYYQW7NNSMXVQSOBTIMDN3U7QAWEZEJNIVGFIJ \ / AMOS7 \ YOURUM ::
+#\[7]C52XD6JNRD4FWK7RAORYQJEUKN56JYPCNFYJHJGQFDM6A6QRTEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@ if ( $path =~ m|\.pdf$|i ) {
     ## ^-anchored regex on that line silently fails to match [ ^ anchors   ##
     ## right after the preceding \n, landing on the form-feed byte itself, ##
     ## which isn't in any of the character classes those regexes expect ]  ##
-    $text =~ s/\x0C//g;
+    $text =~ s|\x0C||g;
 
     ## a document's title page/letterhead area often has real, deliberate   ##
     ## vertical whitespace [ several blank lines before a centered title ]  ##
@@ -31,7 +31,7 @@ if ( $path =~ m|\.pdf$|i ) {
     ## reads as an oddly large empty gap once embedded as running text in a ##
     ## report. collapse any run of 2+ blank lines down to exactly one       ##
     ## everywhere, early, before any of the more targeted fixes below       ##
-    $text =~ s/\n{3,}/\n\n/g;
+    $text =~ s|\n{3,}|\n\n|g;
 
     ## a decoratively letter-spaced all-caps name/title line [ single       ##
     ## letters spaced apart as a design choice, e.g. a cv's own name header ##
@@ -76,22 +76,22 @@ if ( $path =~ m|\.pdf$|i ) {
     ## is itself short and just a couple of words, a strong signal it's an  ##
     ## orphaned tail fragment rather than a new line of prose               ##
     {
-        my @hlines = split /\n/, $text, -1;
+        my @hlines = split m|\n|, $text, -1;
         my $limit  = $#hlines < 10 ? $#hlines : 10;
         my @merged;
         my $i = 0;
         while ( $i <= $#hlines ) {
-            ( my $next_trimmed = $hlines[ $i + 1 ] // '' ) =~ s/^\s+|\s+$//g;
+            ( my $next_trimmed = $hlines[ $i + 1 ] // '' ) =~ s{^\s+|\s+$}{}g;
             if (    $i < $limit
-                and $hlines[$i] =~ /\S/
-                and $hlines[$i] !~ /[.:;!?-]\s*$/
+                and $hlines[$i] =~ m|\S|
+                and $hlines[$i] !~ m|[.:;!?-]\s*$|
                 and length( $hlines[$i] ) <= 80
                 and defined $hlines[ $i + 1 ]
                 ## check the TRIMMED next line, not the raw one -- a short ##
                 ## word can carry 40+ leading spaces of layout-derived     ##
                 ## centering indent, which would otherwise fail the length ##
                 ## check even though the actual content is tiny            ##
-                and $next_trimmed =~ /^\S+(?:\s+\S+){0,2}$/
+                and $next_trimmed =~ m|^\S+(?:\s+\S+){0,2}$|
                 and length($next_trimmed) <= 30
             ) {
                 push @merged, $hlines[$i] . ' ' . $next_trimmed;
@@ -116,10 +116,10 @@ if ( $path =~ m|\.pdf$|i ) {
     ## wrap it in \x01 sentinel markers so render_dossier's $esc converts  ##
     ## it to a real, properly-centered html block instead of dead spacing  ##
     {
-        my @hlines2 = split /\n/, $text, -1;
+        my @hlines2 = split m|\n|, $text, -1;
         my $limit2  = $#hlines2 < 10 ? $#hlines2 : 10;
         for my $i ( 0 .. $limit2 ) {
-            next if $hlines2[$i] !~ /^[ \t]{3,}(\S.*\S|\S)[ \t]*$/;
+            next if $hlines2[$i] !~ m{^[ \t]{3,}(\S.*\S|\S)[ \t]*$};
             $hlines2[$i] = "\x01CENTER\x01$1\x01ENDCENTER\x01";
         }
         $text = join "\n", @hlines2;
@@ -146,7 +146,7 @@ if ( $path =~ m|\.pdf$|i ) {
     ## use area codepoint -- with no symbol font available it renders as a ##
     ## missing-glyph box/blank instead of a bullet. swap any private-use   ##
     ## area char for a normal, universally renderable bullet               ##
-    $text =~ s/[\x{E000}-\x{F8FF}]/•/g;
+    $text =~ s|[\x{E000}-\x{F8FF}]|•|g;
 
     ## pdftotext -layout re-derives each bullet's column position from the ##
     ## pdf's absolute coordinates independently per page -- a source doc   ##
@@ -155,7 +155,7 @@ if ( $path =~ m|\.pdf$|i ) {
     ## leading spaces before the bullet on either side of a page break.    ##
     ## normalize every bullet line to the same fixed indent so page breaks ##
     ## don't read as a formatting change                                   ##
-    $text =~ s/^[ \t]*•[ \t]*/  • /mg;
+    $text =~ s|^[ \t]*•[ \t]*|  • |gm;
 
     ## normalizing the bullet marker itself only fixes half the picture :   ##
     ## each item's WRAPPED continuation lines keep whatever indent          ##
@@ -172,12 +172,12 @@ if ( $path =~ m|\.pdf$|i ) {
     ## of the same list line up under the same column regardless of what    ##
     ## indent pdftotext originally derived for that page                    ##
     my $in_bullet = 0;
-    my @lines     = split /\n/, $text, -1;
+    my @lines     = split m|\n|, $text, -1;
     for my $i ( 0 .. $#lines ) {
-        if ( $lines[$i] =~ /^  • / ) {
+        if ( $lines[$i] =~ m|^  • | ) {
             $in_bullet = 1;
-        } elsif ( $in_bullet and $lines[$i] =~ /\S/ ) {
-            ( my $trimmed = $lines[$i] ) =~ s/^\s+//;
+        } elsif ( $in_bullet and $lines[$i] =~ m|\S| ) {
+            ( my $trimmed = $lines[$i] ) =~ s|^\s+||;
             $lines[$i] = '    ' . $trimmed;
         } else {
             $in_bullet = 0;
@@ -199,11 +199,11 @@ if ( $path =~ m|\.pdf$|i ) {
     ## uniform spacing between every item regardless of page-break origin   ##
     {
         my $is_list_line
-            = sub { defined $_[0] and $_[0] =~ /^(?:  • |    \S)/ };
+            = sub { defined $_[0] and $_[0] =~ m{^(?:  • |    \S)} };
         my @stripped;
         for my $i ( 0 .. $#lines ) {
             next
-                if $lines[$i] !~ /\S/
+                if $lines[$i] !~ m|\S|
                 and $i > 0
                 and $is_list_line->( $lines[ $i - 1 ] )
                 and $is_list_line->( $lines[ $i + 1 ] );
@@ -211,7 +211,7 @@ if ( $path =~ m|\.pdf$|i ) {
         }
         my @out;
         for my $line (@stripped) {
-            push @out, '' if $line =~ /^  • / and @out and $out[-1] =~ /\S/;
+            push @out, '' if $line =~ m|^  • | and @out and $out[-1] =~ m|\S|;
             push @out, $line;
         }
         $text = join "\n", @out;
@@ -256,8 +256,8 @@ if ( $path =~ m|\.html?$|i ) {
 
 return '';
 
-#,,..,,,,,,..,..,,,,.,,..,.,.,,..,.,.,...,.,,,.,.,...,...,,,.,.,,,.,,,..,,..,,
-#5QKW7JJZF2FEYE5PK4D2ZOIFGTNVJGF7NRZUVDNYXQJIUTWUYUC5NDUFMCZ2WCOBG5WRGCSZ23ETU
-#\\\|L7D6F4P7S2ICEFY7K53FIR6WPUMMXPSMNEKG5UP6ZRYOMNBUOBZ \ / AMOS7 \ YOURUM ::
-#\[7]JXU7HTGGVAHLAQYEYM7CA3RGOARVPSFQCTG52OR75JAKSFRJLSBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,.,,,.,..,,.,,,.,,,.,.,...,...,.,.,...,...,.,.,.,.,,,,,.,,,,,.,
+#WS4QDK7HP5SMFQ4CUC744MB3VR7CGVNOC5WIIFB76OKMAHNHCUF62ICALSU4CUGN6QVLMLBHMRWGE
+#\\\|NJFSFXYKCETY6KNG2XEMPE2PIVNWG67AFSBEZGBSDY2QZMRQTC5 \ / AMOS7 \ YOURUM ::
+#\[7]C33WR3DEJXHDHHQZ3RFULCG3KMTAMOGIHNYPT5ROFIA3RJ6PIYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,13 +20,13 @@ opendir my $dh, $zone_dir or do {
     <[base.logs]>->( 0, "cannot open zone dir: %s", <[base.str.os_err]> );
     return;
 };
-@zone_files = grep {/\.(zone|yaml)$/} readdir $dh;
+@zone_files = grep {m{\.(zone|yaml)$}} readdir $dh;
 closedir $dh;
 
 for my $filename ( sort @zone_files ) {
     my $filepath  = "$zone_dir/$filename";
     my $zone_name = $filename;
-    $zone_name =~ s/\.(zone|yaml)$//;
+    $zone_name =~ s{\.(zone|yaml)$}{};
 
     my $content_ref = <[file.slurp]>->($filepath);
     if ( not defined $content_ref ) {
@@ -73,8 +73,8 @@ my $total_zones = scalar keys %$zones;
 
 0;
 
-#,,..,...,.,,,...,.,,,,,.,...,,,.,,.,,,..,,.,,..,,...,...,,..,,,,,..,,.,,,.,.,
-#AALV3RVG6L5GAAEU4BHFOEL67QTNRQIQ7VLPD7Q7NGAPHVNK2RGIS3WXLS322V25XETLFLRDLAU4K
-#\\\|5TXAI3436VEOFI742WBQBGOLZLP5B27DW7PF3IA4CNG7GLSYQQB \ / AMOS7 \ YOURUM ::
-#\[7]BDPOWMFI6AHEMW26V4422WA6IQJLJ4RT7NC72I6TQJG3PAXWNMCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,..,,.,.,.,,,.,.,.,.,,,,,..,,..,,...,...,,,.,,,.,.,,,...,..,,
+#U6J2XADYWK5PBIIVVSH77YITFJAGX4FS2B3LY372EWQHGDX467MKM7QWK3MAUOR5NBFPAZ2RRCINW
+#\\\|3G3OBQ7NNJBHW72LI65XX6USUBKOV3SI6M5YU6PMFE3VGKMWNYM \ / AMOS7 \ YOURUM ::
+#\[7]GQJ25NJPGBGS6DGC5N7SLLF4YM4TGJL4Q3UTV4AJSQRNA6WUZKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

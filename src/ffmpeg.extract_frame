@@ -5,7 +5,7 @@
 my ( $frame_index, $video_path, $target_path ) = @_;
 
 die "expected frame index parameter"
-    if not defined $frame_index or $frame_index !~ /^\d+$/;
+    if not defined $frame_index or $frame_index !~ m|^\d+$|;
 die "expected (existing) video path parameter"
     if not defined $video_path or !-f $video_path;
 die "expected (absolute) target path parameter"
@@ -46,8 +46,8 @@ if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
 
 return undef;
 
-#,,,,,,.,,...,.,.,...,,.,,.,.,,,,,.,,,.,.,..,,..,,...,...,.,,,,,.,,,,,.,,,..,,
-#LHLJKVOJ4WPJB3LPCFFVVU5AG3PSFOWLXWYZVDRJFDS6FETRCRKNJABRKBPHSQM66JND426X2WVG6
-#\\\|EQ4VX45BGIWGW5DTFTV6Z6ZGIAC3F643YBHAX4JDBCN7MRS7ACP \ / AMOS7 \ YOURUM ::
-#\[7]OJYUEGOVNA7MMCDBR5QVCE6HE3ZCK24JURSAVDA5QXU6YYSD4CAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,.,,.,.,.,,,...,..,,...,,,.,.,,,..,,...,...,.,.,,..,.,.,,,.,,..,
+#64QTHFJ37XTNVUFBXQLW2YNIQGVLDOVHYVY7T44EXHGSCTWSAIVBITKVNPF2DP4XX437UXKQMVGJG
+#\\\|UJMQKIZP2RZ7UDAPTZKFLP4LBRGCIKAIGBCWLLVQC5YIDXW5T5V \ / AMOS7 \ YOURUM ::
+#\[7]2MFG64UKH2Z4NC4M7W6PYLRCKXBEBKSASOCSJNY75F3QO4JO5MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,7 +37,7 @@ if ( $payload_sref->$* =~ m|\n{2,}$|s ) {
     ## Too many trailing newlines - reduce to exactly 2 (canonical       ##
     ## separator) This removes trailing newlines and adds back exactly 2 ##
     ## for canonical form                                                ##
-    $payload_sref->$* =~ s/\n+$/\n\n/s;
+    $payload_sref->$* =~ s|\n+$|\n\n|s;
 
 } else {
 
@@ -67,8 +67,8 @@ if ( $payload_sref->$* =~ m|\n\n$|s ) {
 
 return $endline_state_oct;
 
-#,,.,,,,.,.,,,,..,,,,,.,,,,,.,..,,,,,,,,.,,..,..,,...,...,..,,,..,,,.,,,,,...,
-#BIKY6LI5D7VVN64H6BFEYTZRN3QTJFXK3MAZEC3L6XC7LSQDVHTSOAXY4U2ELAEPDDXWIDU7LTSBA
-#\\\|U2FRUT2YEW7JREXUQH66NXHK5YLW5N3O5YN3LBHVUNGI47Z7ALF \ / AMOS7 \ YOURUM ::
-#\[7]WUQ3G2V5DK65DE4XIRJTM3CCICT2SUVWCLWHU5RJVZENJXKA54AQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,,..,,,.,..,,,,,,..,,,,,,,,.,..,,...,...,..,,,..,,,.,,.,,,..,
+#SX5BZ64H7DADPVJVFQ4N4PL3G5IVOSXEHCFNSGUXCNYVZ4GS6ZPGFK7WVVQ4346SQNVJ4GQFO7TVI
+#\\\|QYGTWPORSLWYBN7JSKCLU4PMIUK5SQ4VVSSQX24HVXQONE4GPC5 \ / AMOS7 \ YOURUM ::
+#\[7]Q246TORU5GN2SKG6JO7RG7KGXMKZVZJ6WWKXOW7EVE3EOUDCBUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

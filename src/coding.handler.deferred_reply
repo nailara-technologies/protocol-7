@@ -42,7 +42,7 @@ unless ( defined $task ) {
     if ( $status eq 'completed' ) {
         my $result   = $task->{'execution'}->{'result'} // '';
         my $stripped = $result;
-        $stripped =~ s/\n$//;
+        $stripped =~ s|\n$||;
         $result_mode = ( $stripped =~ tr/\n// ) ? 'size' : 'true';
         $result_data = $result || '[ no reply message ]';
     } elsif ( $status eq 'failed' or $status eq 'error' ) {
@@ -115,8 +115,8 @@ if ( not $is_error and length $chk ) {
 $deferred->{'status'} = $is_error ? 'error' : 'complete';
 delete <coding.deferred_replies>->{$deferred_id};
 
-#,,,.,...,,.,,...,.,.,,,,,.,,,..,,,,,,.,.,,,,,.,.,...,...,,..,.,,,,..,,,.,,,,,
-#QCHQYMAEP5B4ECCWROTGUM5QVJ67G2ACN73BAZ4VHNRRFZ4GU7KYPQB7FDD3APSBYDX7V275RVOBI
-#\\\|FWAXP66HFKZTTF46WACPP2MAATTKUZB54DGVFJAAPYJMUCUSWFF \ / AMOS7 \ YOURUM ::
-#\[7]3C3LWMYLNOXC5MYBHO4N2HDVLQMQMJO3DPMN2VJGVX63YVLZBODA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,...,,..,...,,,,,,.,,,,,,.,.,.,.,...,...,...,.,,,.,.,.,,,,.,,
+#33LSTRBDYMWA7ENF4Z2ISEKE46KMEAKDAEAEMELAGVKJJUXNRBMW27XVP33WG4H6PTHDHUVXWUOYE
+#\\\|DA6X2F3YEWYIOEGBZRAQIWEEUSLL5MGXMWC5NQYVBII4MLR2QD6 \ / AMOS7 \ YOURUM ::
+#\[7]BO6JEGCRVFJJNZZ4GJU5ELWPBAKI7UNOTNKLFXE4D2SAMYMGNUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

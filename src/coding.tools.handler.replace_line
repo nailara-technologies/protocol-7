@@ -9,7 +9,7 @@ my $line    = $args->{'line'}     // return 'error : line number required';
 my $content = $args->{'content'}  // return 'error : content required';
 my $apply   = $args->{'apply'}    // TRUE;
 my $raw_enc = $args->{'encoding'} // 'UTF-8';
-my $norm_encoding = $raw_enc =~ /^:/ ? $raw_enc : ":encoding($raw_enc)";
+my $norm_encoding = $raw_enc =~ m|^:| ? $raw_enc : ":encoding($raw_enc)";
 
 ## resolve and sanitize path : no Cwd, use string check ##
 return 'error: path traversal not allowed' if $path =~ m{\.\.};
@@ -20,7 +20,7 @@ return 'error: file not found' unless -f $abs_path;
 ## read file into lines ##
 my $file_content = <[file.read]>->( $abs_path, $norm_encoding );
 return 'error: cannot read file' unless defined $file_content;
-my @lines = split /^/m, $file_content;
+my @lines = split m|^|m, $file_content;
 
 ## validate line number ##
 my $line_num = int($line);
@@ -73,8 +73,8 @@ if ($apply) {
 return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
     $content;
 
-#,,.,,.,,,...,.,.,,,,,..,,.,.,,,.,.,,,,.,,,..,..,,...,...,.,.,.,,,,.,,,..,.,.,
-#3IZ6ND7J6TSLJAHPP7KWFHVECSVP3PBXXU742D5CVPLZED64MCHE6RWFAK7JSK3WBRPWDPSU3CP2I
-#\\\|6QL47UUYXVU7K46ATSFQIAYXCQ62TUQKLXCPJVEZH7VLR7RMQ72 \ / AMOS7 \ YOURUM ::
-#\[7]QAJ6PAFUISHKI5NYE6CHJI7GE5KWJGFRU2UTXWPJS2MCBVXTMSDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,..,,..,,,,,,.,,,,.,,.,.,,.,,..,,...,...,..,,,.,,.,.,,..,,.,,
+#3MJMPAZHCBW37EZ6IRH7BKOUIUXOTBIGSYBTZJU7OOHJ2GNBRMEPRLCEI4TMHEX23WF5IIQK67CC2
+#\\\|3CCG55MPQLME4B77CK4LR7VRIKVLSRRNW2H6AM43F6GKTH55WWS \ / AMOS7 \ YOURUM ::
+#\[7]FLDUZO6ZMOVRA6F7H5XWWFYK4YZFLTXTGPLTA3457Y6QUYBY5UBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

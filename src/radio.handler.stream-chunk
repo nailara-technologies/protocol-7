@@ -107,12 +107,12 @@ if ( not $icy->{'headers_done'} ) {
 
     $icy->{'header_buf'} .= $buf;
 
-    if ( $icy->{'header_buf'} =~ s/^(.*?)(?:\r\n\r\n|\n\n)//s ) {
+    if ( $icy->{'header_buf'} =~ s{^(.*?)(?:\r\n\r\n|\n\n)}{}s ) {
 
         my $headers = $1;
         my $metaint = 8192;
 
-        if ( $headers =~ /icy-metaint:\s*(\d+)/i ) {
+        if ( $headers =~ m|icy-metaint:\s*(\d+)|i ) {
             $metaint = 0 + $1;
         }
 
@@ -153,9 +153,9 @@ while ( $offset < $buf_len ) {
         if ( length( $icy->{'meta_buf'} ) >= $icy->{'meta_expected'} ) {
 
             my $meta_str = $icy->{'meta_buf'};
-            $meta_str =~ s/\0+$//;
+            $meta_str =~ s|\0+$||;
 
-            if ( $meta_str =~ /StreamTitle='([^']*)'/ ) {
+            if ( $meta_str =~ m|StreamTitle='([^']*)'| ) {
                 my $new_title = $1;
                 if ( $new_title ne $icy->{'current_title'} ) {
 
@@ -362,8 +362,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,,.,,,,,,..,,.,,,,.,,.,,.,,,...,...,,..,,,,,..,,...,...,..,,..,,.,.,,,,,,,,,
-#Y62JG6AM6O5YN7KHJQOS56NWHSYSZV7ZHFIRNEABNHMKVIPXJBAKEGE2E2FI6E6IMUIP3XPQ7DP5C
-#\\\|FPTHTJCVOOOYCWFILFMQ7WBPG6XWGYQQR7V2F7K6K4IR6ISKZ7F \ / AMOS7 \ YOURUM ::
-#\[7]M6QXAJEWX2UH7QDCUC63IZQFS2P72JMOEGIU6ASTWBFPJFTP2CDI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,.,.,,,,,...,,.,,,,,,.,.,,,,,..,,...,...,...,...,..,,.,,,,..,
+#KL5SLWQVNTX6VLAJXQLSC5NAMV46FR3OVAR2AUZ7PODC652KRCW23P2LOL3ILWXKVUWT7HDSMP7VK
+#\\\|DXHF6VQ24UBJHZB5HKQYYYKDM66IY64GYR4QYLVRSCKWDORGDSV \ / AMOS7 \ YOURUM ::
+#\[7]KH2WCEJO4DXADYCCI24QRS6M2JOWMRYNVSRJNT6HCPSA24AFK6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

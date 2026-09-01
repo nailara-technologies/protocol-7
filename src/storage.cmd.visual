@@ -6,7 +6,7 @@
 my $args = $call->{'args'} // '';
 
 # Parse: <subcommand> <args...>
-my ( $cmd, @rest ) = split /\s+/, $args, 2;
+my ( $cmd, @rest ) = split m|\s+|, $args, 2;
 $cmd //= '';
 
 if ( not length $cmd ) {
@@ -30,8 +30,8 @@ if ( $cmd eq 'extract' ) {
     return { 'mode' => 'false', 'data' => "Unknown command: $cmd" };
 }
 
-#,,.,,,..,,,.,,,.,.,.,,..,,.,,..,,.,,,..,,,.,,..,,...,...,,..,...,,,,,,..,,.,,
-#FS4IDF3HSXSDMI35T5PZ2CKT2QX6XVFGGYGHCYASBGXHZ2365FEDM2XMYH3ELIB76VEOIVDOCPJ66
-#\\\|ZHGZJ5BO23KR4UUD4G5RV5CNDCIBA26OJ6PLSGRCOS2E56V3NNT \ / AMOS7 \ YOURUM ::
-#\[7]XEQQOFRMAMQ6DILRMBCKKM5MRSZSISWDUZWF2JH5RIVNWXMXZQBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,,..,,..,,..,,..,,,.,,,,,...,..,,...,..,,.,.,.,.,,,.,,,.,.,.,
+#RN2J3C3WQDAL57HP2SXEEVXWZMJSVLRAPYHSLB5ZIRNFJEPRP5DDFSHON2SEM5UJFA7VX2A7NUUKE
+#\\\|ZT5CJWQ7CQFXVJPVQ2YX5NEXSKB22CLMP42OVEN42JVZGJ7HDCV \ / AMOS7 \ YOURUM ::
+#\[7]OKNPZTFESHTEAP7TUXXOD4DINP6VEUIFZXJUIO54IR4R7O4BPIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

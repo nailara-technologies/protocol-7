@@ -21,7 +21,7 @@ if ( !-f $file_path ) {
 my $content_ref = <[file.slurp]>->($file_path);
 
 my ( $timestamp, $station_id );
-if ( $$content_ref =~ /^(\d+) ([\w\d]+)$/ ) {
+if ( $$content_ref =~ m|^(\d+) ([\w\d]+)$| ) {
     ( $timestamp, $station_id ) = ( $1, $2 );
 } else {
     <[base.log]>->( 0, "syntax error in cache file '$file_path'" );
@@ -40,8 +40,8 @@ if ( $data_age >= $max_age ) {
     return $station_id;
 }
 
-#,,.,,..,,,.,,,,.,,,,,,..,,,.,.,,,,,.,,,,,,.,,..,,...,...,...,,,,,...,,..,.,,,
-#BPKJTFTZ42KOYRHTVMS3EEVY7THFYN3ROWVC6RO4FJA7FMPJYI2TBSWN3DMLNPMMJCQDADME2PHCI
-#\\\|RQZPIQ5JO7CRGZWDW72OHXYSNSKROAFLGZ5OSVHVZSHK3A2KO6Z \ / AMOS7 \ YOURUM ::
-#\[7]STWUKAI4DIPPI3JHGUPGDAIW4SROLBJ3VZDNIBD7MBCHEW2TUKBY 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,.,,,,..,,,,,.,.,.,,,,..,...,..,,...,...,...,...,,,,,,.,,,,.,
+#QAJKLQ2NG4EPCUH4374GEUWLEFEMOVA5PP5XURZITN5M75NKQTZ2Z6BEUYSLUQHC3BSISMPMDAVYQ
+#\\\|AJOWMW7ZLXJ7QAX4KMRGZQRLTWV7RRS3YLWDXCAL4GYFRNRNBEO \ / AMOS7 \ YOURUM ::
+#\[7]HA4X4D4M64JUIKB7MXLIZKCBDC6Q53AZZYGVEQALVYJRGYEWYYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

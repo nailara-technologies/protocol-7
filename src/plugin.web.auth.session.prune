@@ -15,12 +15,13 @@ my $cutoff    = $now_epoch - ( $prune_after * 86400 );
 my $pruned    = 0;
 
 opendir my $dh, $expired_base or return 0;
-for my $epoch_dir ( grep { /^\d+$/ && -d "$expired_base/$_" } readdir($dh) ) {
+for my $epoch_dir ( grep { m|^\d+$| && -d "$expired_base/$_" } readdir($dh) )
+{
     next if $epoch_dir > $cutoff;
 
     my $dir = "$expired_base/$epoch_dir";
     opendir my $edh, $dir or next;
-    for my $fn ( grep {/\.yaml$/} readdir($edh) ) {
+    for my $fn ( grep {m|\.yaml$|} readdir($edh) ) {
         my $path = "$dir/$fn";
         next if not -f $path;
         if ( unlink($path) ) {
@@ -45,8 +46,8 @@ closedir $dh;
 
 return $pruned;
 
-#,,,.,.,,,...,,..,.,.,...,..,,,.,,,,.,..,,.,,,..,,...,..,,...,,,,,.,,,,,,,,,.,
-#G3247Q3CVZJF5HG2UKPPSOW3LSBBT6NEVCUPNHHPGJGCO4KJMQ44GVOQAJSP37GBIAMU4TFIB2V2C
-#\\\|G3LOHDUFGZUF5LWJFZ375JGJNLYOWWIGPZQF6TYUMNYZOGOPJJQ \ / AMOS7 \ YOURUM ::
-#\[7]TEYLO33H5SME2B2MVL52JAQH2LOYDHDEPHM5CBWEOQHCJSPB5WBI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,..,,...,,,.,...,,..,,.,,.,,,..,,...,...,.,.,,,,,,,,,.,.,,,.,
+#47R7TGLQOGULGWCTUCTPQZKXTITLQFI4IDOJWOGGPBPJ4MNLHYQOJTOZFUO5Z6X3VOSGJFVCRTV2O
+#\\\|XEFY6QLOKUVI36LR26OBU7UCRELA3DGT5AVDNCTYUR3IUFIW45Z \ / AMOS7 \ YOURUM ::
+#\[7]23USHPIOTZ2QHDOS3GWN2ICKRSIJPXAJCE76TZQRAS34SYAEUOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

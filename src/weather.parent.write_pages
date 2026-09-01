@@ -65,7 +65,7 @@ closedir($dir_fh);
 foreach my $page_name (@page_list) {
     my $content_str = '';
     next if $page_name !~ m{^current\.(.+)$};
-    foreach my $sname ( split( /\./, $1 ) ) {
+    foreach my $sname ( split( m|\.|, $1 ) ) {
         if ( not exists $template_names{$sname} ) {
             <[base.log]>->(
                 0, "[ write_pages ] html template '$sname' not defined."
@@ -147,7 +147,7 @@ foreach my $page_name (@page_list) {
     my @timestamps
         = sort { $a <=> $b } keys %{ $data_ref->{'forecast'}->{'hours'} };
 
-    foreach my $sname ( split( /\./, $1 ) ) {
+    foreach my $sname ( split( m|\.|, $1 ) ) {
         my $template_index;
         $template_index = $1 if $sname =~ s|_(\d+)$|| and $1 > 0;
         if ( not exists $template_names{$sname} ) {
@@ -231,7 +231,7 @@ foreach my $page_name (@page_list) {
     my @timestamps
         = sort { $a <=> $b } keys %{ $data_ref->{'forecast'}->{'days'} };
 
-    foreach my $sname ( split( /\./, $1 ) ) {
+    foreach my $sname ( split( m|\.|, $1 ) ) {
         my $template_index;
         $template_index = $1 if $sname =~ s|_(\d+)$|| and $1 > 0;
         if ( not exists $template_names{$sname} ) {
@@ -305,8 +305,8 @@ foreach my $page_name (@page_list) {
     <[weather.parent.html_put]>->( $html_dir, $page_name, \$html_str );
 }
 
-#,,.,,,.,,..,,.,,,,,,,,,,,.,.,,.,,,..,,,,,..,,..,,...,...,,,,,...,.,.,.,,,...,
-#QCSRFN2IBAK6ZBC6HA7ALCO3LYI4CMM4BMK633NSDRDX67LMHCDS4BQJROBNVJ36IJWMXJLHPHSOC
-#\\\|OJEUEBNQLEEZ4X73HMJDNWSGFZCQWLAAEKV4KOU7ABZJ4JQBVAH \ / AMOS7 \ YOURUM ::
-#\[7]V5LAIGCQ22UIUGP5XXR4D7MAQZJCRARBDNW4NIZU6YSURKOKQQAQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,.,,,..,,,,,.,.,,.,,,,.,,,,,,,,,..,,...,...,..,,.,.,..,,,,.,,,,,
+#RF4Q4GYEG53AU2KN2JXWDVFYAHB5I5KW7GG5AYMSLQWFUFM4L5XEFASAIBC76LNHL2734OIJBGWGE
+#\\\|4NYOQXXXQGBK3C26NTHCY3M3ZCSU5E2QPIAWQAHCDHG7B7VQEJU \ / AMOS7 \ YOURUM ::
+#\[7]JCMHR7CPLI5Z73JPDWMGLANJZHRYGTHBAFKKD22J7KLDGYGFCMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

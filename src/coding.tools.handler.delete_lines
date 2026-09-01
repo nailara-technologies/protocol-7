@@ -9,7 +9,7 @@ my $from    = $args->{'from'}     // return 'error : from line required';
 my $to      = $args->{'to'}       // $from;
 my $apply   = $args->{'apply'}    // TRUE;
 my $raw_enc = $args->{'encoding'} // 'UTF-8';
-my $norm_encoding = $raw_enc =~ /^:/ ? $raw_enc : ":encoding($raw_enc)";
+my $norm_encoding = $raw_enc =~ m|^:| ? $raw_enc : ":encoding($raw_enc)";
 
 ## resolve and sanitize path : no Cwd, use string check ##
 return 'error: path traversal not allowed' if $path =~ m{\.\.};
@@ -25,7 +25,7 @@ return 'error: to must be >= from' if $to_n < $from_n;
 ## read file into lines ##
 my $content = <[file.read]>->( $abs_path, $norm_encoding );
 return 'error: cannot read file' unless defined $content;
-my @lines = split /^/m, $content;
+my @lines = split m|^|m, $content;
 
 return sprintf 'error: from %d out of range [1..%d]', $from_n, scalar @lines
     if $from_n > scalar @lines;
@@ -75,8 +75,8 @@ if ($apply) {
 return sprintf "preview: would delete %d line%s [ %d..%d ]",
     $count, $count == 1 ? '' : 's', $from_n, $to_n;
 
-#,,..,..,,,,.,,..,,,,,...,..,,.,.,...,.,,,...,..,,...,...,,,.,,.,,,,.,,,,,.,,,
-#LOS4MYAXQRB7WFL43HMON2G6ADUHOXFYQLKNZI666OEXBZ6324AOKH3RGRFWUMZBCU7YDU5ZMZVVI
-#\\\|FSLQCONLUWYIRC7KRASSJJM37KH33HH3YUZXWBWAOVOQDPEAJBF \ / AMOS7 \ YOURUM ::
-#\[7]35XW4AKIU4YVEAFQ2BFEE6R7KWVNB3O5DOQYKDYV6UQXQU26R6BI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,..,,,.,,...,.,.,,..,,,.,,.,,.,,,..,,...,...,...,,.,,,.,,,,,,,..,
+#BTMFVTRSU35ASVS6BQH3HZXFEOYSTUYGH7LSYCZIT23LLUMDHHKKJ6UMZAFEYENPVDOHQJ7MS6MLS
+#\\\|CAYO5S7JM5HLBOCWEIDBSMWNN4DPPJSYWBIBV3E3WLQNBE7LZWM \ / AMOS7 \ YOURUM ::
+#\[7]BMX5FJUFN2KOZZE4RGFN7CKURXYBFMBNMB6IZFG2L7FSATOEMGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

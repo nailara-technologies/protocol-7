@@ -13,7 +13,7 @@ return "error: module not found [ $module ]" unless -f $abs_path;
 
 my $content_ref = <[file.slurp]>->($abs_path);
 return 'error: cannot read module' unless defined $content_ref;
-my @lines = split /\n/, $content_ref->$*;
+my @lines = split m|\n|, $content_ref->$*;
 
 my @subs;
 for my $i ( 0 .. $#lines ) {
@@ -44,8 +44,8 @@ if ( not @subs ) {
 return sprintf "%d inline subs in %s:\n%s",
     scalar @subs, $module, join( "\n", map {"- $ARG"} @subs );
 
-#,,,.,...,.,.,,,,,,,,,,.,,,.,,..,,.,.,...,.,,,.,.,...,...,...,...,.,,,,,.,..,,
-#RJ4DXETNJWYAIAAIZ7P62FXXDARVSE64KUETLETPXFRXMJRUZQVAW273QUL6W3PCYVMHHQAMTAYZE
-#\\\|B35MXT35DG5WHKJFS2LY22GEFMRMBCDGZ3YIVZEFZ6D75JRIAIV \ / AMOS7 \ YOURUM ::
-#\[7]VZBFJY5CUUFCNSFQ6V7QNFFYT36T72Q2524SFPOQHLV47RTXBSBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,,..,..,,.,,,...,..,,..,,,..,.,.,...,.,.,..,,,..,,,.,,,.,.,,,
+#O7WO5GNXFYSBJQEPGYI6E5ZNAV7232BC7INQK4NXLGTDTTSYWVTP52TIHFFOEUWLYXRXEBRYD7BGY
+#\\\|EQMKFUECXSPYQ5U43UAPPVF6TPOG6CLN4ZHVWFGMCUXLXJZP4S2 \ / AMOS7 \ YOURUM ::
+#\[7]CO5Z7N3WE6YC3264TBUFILQPOMAAN3PUNLIL44CTRV7N3EREMIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

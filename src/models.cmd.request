@@ -9,7 +9,7 @@ my $param    = shift;
 my $checksum = $param->{'args'} // '';
 
 ## validate checksum format [base32r AMOS]
-unless ( $checksum =~ m{^[A-Z0-9]{9}$} ) {
+unless ( $checksum =~ m|^[A-Z0-9]{9}$| ) {
     return {
         mode => qw| false |,
         data => 'usage: models.request <checksum>'
@@ -46,8 +46,8 @@ return { mode => qw| size |, data => $content };
 
 0;
 
-#,,,,,,,,,..,,..,,...,..,,,..,,,.,,.,,..,,..,,..,,...,...,..,,..,,.,.,,,,,...,
-#SM3Q6X4TWHKELFLATOILVY5NFRSSNQGDRL4XWGGAWAKCRU2LEYNJF23RLTJ7HTHPKGXVFUAXZFJ7A
-#\\\|M4IDUUHV76AJJPNRGMASSZ7JSY6XV6EITAHSOXGY5B6EX54TSIP \ / AMOS7 \ YOURUM ::
-#\[7]SBVJMEONHFTT4VM2WTRYU3OMWBGEZFOKBEIRDQTHESRFEFPRWACA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,..,,.,,...,,,.,..,,,,,,,,,,,.,,..,,...,..,,,..,,.,,,.,,.,,,.,.,
+#Q7ZPFPWZ7F4EK7ZTUN2VLODMXUNVWGJSBPDAZK5AH6WOUBBCOXAY73PCJVC5OKHPEQRJASXIH24RO
+#\\\|7NLG6FGAPWK2Z5BZX3K7VFD2PDXXHTYTTIIET5FB7WBUBHOKXDG \ / AMOS7 \ YOURUM ::
+#\[7]7UBRJKEJEG7G5CWTZZOW64Q5NMHBBBRXLDVNYRX7LHCEEBVL7MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

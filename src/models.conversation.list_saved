@@ -26,7 +26,7 @@ my $start_time = <[base.time]>->(4);
 ## Scan for YAML files
 my @saved = ();
 if ( opendir my $dh, $save_dir ) {
-    my @files = grep {/\.yaml$/} readdir $dh;
+    my @files = grep {m|\.yaml$|} readdir $dh;
     closedir $dh;
 
     foreach my $file ( sort @files ) {
@@ -68,8 +68,8 @@ return {
     'elapsed_ms'      => $elapsed_ms
 };
 
-#,,..,..,,,,.,...,.,,,,.,,,,,,,.,,...,,,.,,.,,..,,...,...,,,,,..,,.,,,..,,,,,,
-#EYUJ6XHMMENB5YSOS7JTFK3OCKLVNEUKUQQJ4DN6OOGDIJ7TYUHAIE4QAG3LKEOPLYMIJJGCUPZWI
-#\\\|TJMYYZIB2WIVCUOMILPZNDOWKRMSVWS42JBRZIHFH2OZWOBK5L3 \ / AMOS7 \ YOURUM ::
-#\[7]ZSOXDXDKKBK2IFDRQCMO77TIJKFB2ELK5GTMUV6FNIYQJZOXRYDY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,.,,.,.,,,,,.,,,,,.,.,.,,.,,..,,...,..,,..,,..,,,..,,,,,,.,,
+#W52MUL3UCT33KOHBM65UKVLWOFFFGL4IX62VGE2DDPYA2U4BO3BTQOZDEWQMXWLXG2XMKZ26B23NS
+#\\\|QAA3N5P3EAWSQT66WTSA2LHVB3Z7K3MF5VMJCISWZIGP7OWFGPP \ / AMOS7 \ YOURUM ::
+#\[7]UEQASXTDDBPSXHBTPW5DGICFRDZC3FXZL7QZKZGDTIGYSBJVKGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ my $fallback = <proxy.selector.fallback> // 'generic.proxy';
 ## helper to traverse dotted context keys ##
 my $get_ctx_value = sub {
     my ( $ctx, $key ) = @_;
-    my @parts = split /\./, $key;
+    my @parts = split m|\.|, $key;
     my $val   = $ctx;
     for my $part (@parts) {
         return undef if not defined $val or ref $val ne 'HASH';
@@ -83,8 +83,8 @@ for my $rule (@$rules) {
 
 return $fallback;
 
-#,,,,,,,,,..,,,,,,,,.,.,.,,..,.,.,,,.,...,,.,,..,,...,...,,..,...,.,,,,,.,,,,,
-#CHP5ZTIRS4T734SZT3GS6O63JB7WVIIOEPYDAOCC2JWAT2DVWCMTYW75DWVFQXLI5ELS45BCFDYHK
-#\\\|5CD477QWBGSXZMST35N4GQAOHTM2Z2VQCZX6G4KCOSCHJPR6RTI \ / AMOS7 \ YOURUM ::
-#\[7]S4XHJGIMK54XQ25OJTQB3Z6OIO32VSODB5JPW524NB2IDA64OKDA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,,.,,.,,,,,.,,,.,...,,.,,..,,..,,...,...,...,..,,.,.,,,,,,..,
+#BORPHJU26Q5FZ5PP3CS64KKC753ALWYH35CEW76HVPHRCRJTE7ESQE3IIQTLKZAPF37TKXON3ETB2
+#\\\|34AMSXQL3HIJSYJWQ2SPRZZKOQKSN42CSBD2MEZLIBS2IJAWDF3 \ / AMOS7 \ YOURUM ::
+#\[7]IWJ63VHEGEGLOZ24WY3SJHZZLE6HB75ZAY5XGE4H7HS34JSLYUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

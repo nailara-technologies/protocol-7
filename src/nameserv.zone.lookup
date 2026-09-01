@@ -18,7 +18,7 @@ for my $zone_name ( keys %$zones ) {
     my $zlen = length $zone_name;
 
     ## match exact zone or subdomain
-    if ( $qname eq $zone_name or $qname =~ /\.$zone_name$/i ) {
+    if ( $qname eq $zone_name or $qname =~ m|\.$zone_name$|i ) {
         if ( $zlen > $best_len ) {
             $best_match = $zone;
             $best_len   = $zlen;
@@ -28,8 +28,8 @@ for my $zone_name ( keys %$zones ) {
 
 return $best_match;
 
-#,,..,,..,.,,,...,,.,,,..,...,.,,,..,,...,,.,,..,,...,...,.,.,,,.,.,.,,.,,,,.,
-#5LQ5F5FCRJKKF65XRIEJO22CX3A7WRSRKEYCKHGOSUM7U42YVPBQUNWS6SEP7N7Q2DV6CZI7LE5UW
-#\\\|WBWGMZBTXWXJVLTMSEZ4NRCXQDVMXHUNQUUHQSQ2WXIKXWT5ZWB \ / AMOS7 \ YOURUM ::
-#\[7]ITW744PIH7MCTCQHFUIEFA7DD6YN7OWXYKDAHQ3NGOKCPQ532WDA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,...,,,.,.,.,.,,,...,..,,,.,,..,,...,...,,,,,,..,,,,,,.,,...,
+#4FVEPKGKMI7BDV3VPJNSP6UF2NX3JBH3A6TB67T645N2ICX6EN3ZF3WEV6CFL2C5ZJJ6WZOO3HNGQ
+#\\\|2MNOS6FEPDFJDCO65DPCAOHB5MLREVE2AEFICTUWIGHUWFDWOF2 \ / AMOS7 \ YOURUM ::
+#\[7]GG43MO3WROOYHYOY7CVWTKVNO52XJA7SDHRNGSKZ3O4TYMS7TODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

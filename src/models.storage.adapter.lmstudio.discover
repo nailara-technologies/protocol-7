@@ -30,7 +30,7 @@ if ( opendir my $dh, $root ) {
 
                 if ( opendir my $file_dh, $model_path ) {
                     while ( my $file = readdir $file_dh ) {
-                        next unless $file =~ /\.gguf$/i;
+                        next unless $file =~ m|\.gguf$|i;
                         push @gguf_files,
                             {
                             path   => "$model_path/$file",
@@ -95,8 +95,8 @@ for my $info (@gguf_files) {
 
 return \@records;
 
-#,,.,,.,,,,..,,.,,,,,,.,,,,,,,.,.,,.,,,,.,,..,..,,...,..,,,..,,,.,.,.,,..,,.,,
-#SFSYYZ3FI5336YMAVZ75LU7T6Y66B46KJYWMRXINERRJL7ILZADDH75ZD4RGKG3OAYC3A5RN2QYDM
-#\\\|GLIZYLW2ZUFHQZANVPTR32F7PR2CMXOOOHVWPRRHIUWL2XAUCXE \ / AMOS7 \ YOURUM ::
-#\[7]GE3BSZNMD5E4IETW7UZTVDREE72SSPACSVVOKXPZK5QNOY5ODIAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,.,.,,.,,..,,.,.,.,,,..,,.,.,..,,...,...,...,,,.,,..,...,...,
+#TDDRTD35FTL7LUXXVGU7SDNIGHGZRF65DKACS24EB3ENNRF54NIIXIAS4YNGYZFV5FB5D4CRQ3SQK
+#\\\|VDVHW4XHNEZ2MR7H32CYECB6MGAAVU2PFBYIRV2GVFJ4WL2ANGX \ / AMOS7 \ YOURUM ::
+#\[7]2NMBEQNF6F6ZXBT7O56XJJMUUPIS7FXV5DJQRJYMNXDAU6ZLIEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

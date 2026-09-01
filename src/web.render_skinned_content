@@ -15,7 +15,7 @@ my $base_dir     = $params->{base_dir} // '/data/web';
 my $skin_dir     = $params->{skin_dir} // '/var/httpd';
 
 ## Clean up paths ##
-$content_path =~ s/^\/+|\/+$//g;
+$content_path =~ s{^/+|/+$}{}g;
 $content_path =~ s|\.\.+|.|g;
 
 <[base.log]>->(
@@ -96,11 +96,11 @@ unless ( defined $content ) {
 
 ## Determine content type from file extension ##
 my $content_type = 'text/plain';
-if ( $content_file =~ /\.html?$/ ) {
+if ( $content_file =~ m|\.html?$| ) {
     $content_type = 'text/html';
-} elsif ( $content_file =~ /\.md$/ ) {
+} elsif ( $content_file =~ m|\.md$| ) {
     $content_type = 'text/markdown';
-} elsif ( $content_file =~ /\.txt$/ ) {
+} elsif ( $content_file =~ m|\.txt$| ) {
     $content_type = 'text/plain';
 }
 
@@ -201,7 +201,7 @@ $meta_vars->{content} = $rendered_content;
 
 ## Extract title from content (look for first <h1> or <h2> tag) ##
 my $title = 'Untitled';
-if ( $rendered_content =~ /<h[12][^>]*>([^<]+)<\/h[12]>/i ) {
+if ( $rendered_content =~ m|<h[12][^>]*>([^<]+)</h[12]>|i ) {
     $title = $1;
 } elsif ( $content_path =~ m|([^/]+)$| ) {
     $title = $1;
@@ -261,8 +261,8 @@ return {
     title        => $title,
 };
 
-#,,.,,..,,.,,,.,,,...,.,,,,,,,..,,,,.,...,,,,,..,,...,..,,..,,...,,,,,.,,,.,,,
-#LGCDCQP5DSTDIEGIFFSJQN7K2EAKD3OSANIGGNUEJXLDEWASRCI5CIVVPIVFGEEKMSUXSXHIEBA44
-#\\\|NRP37B3PGTPILYCZCU45BAHNSLBSPNOTFDQNH6M26PYZIHE45YD \ / AMOS7 \ YOURUM ::
-#\[7]EVHVS3LTW3B6I3J4375DUTAETH4RJT4VIXUZTABTODKSJZZ46ABI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,,..,.,.,,.,,,..,.,,,,,.,.,,,..,,...,...,..,,.,.,.,.,,.,,,,.,
+#CGE7KKCMCOSC2V3Q7FQKV2PXPSCZOEOSHNI3HKO76NBOGGEWOWLV4NA4PEZG2ZOG4HENFW77MP3DE
+#\\\|ENP5SKRRWFXMTZVFNXJEWT7QJC4S3QH3RMWTWNRGILMYKWFR3NZ \ / AMOS7 \ YOURUM ::
+#\[7]IVP2G4ZVUKXKV3IRAOEKQV3XTPR6KN74NTU6N4MHELXCNOADPMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,7 @@ foreach my $repo (@$repos) {
 
     open my $fh, '<', $absolute_todo_file or next;
     while (<$fh>) {
-        if (/^- \[ \](.*)/) {
+        if (m|^- \[ \](.*)|) {
             my $desc = $1;
             $desc =~ s|^\s+||;
 
@@ -35,8 +35,8 @@ foreach my $repo (@$repos) {
 
 return \@todos;
 
-#,,..,,..,..,,,,,,,,.,,..,,.,,,,.,,,.,,..,.,.,..,,...,...,...,,.,,,,,,,,,,,.,,
-#6CBKVYQGX6UKKKHQYVFL2JLZW43AZRDX3WTV2YFSXUL6FD3FQ76RRHG3KMTBST4KLKG4BN2OOEHPY
-#\\\|A7X6O52NAT6EP57OTAI4KJOJFH6SL7GXSHRGRLMXTRP7EO3LDMV \ / AMOS7 \ YOURUM ::
-#\[7]RLFSIK7B674ZJPNBLE3LSUQWQ3F55DE4Q6YGB2HHNUBFTNGRQGCQ 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,,,,..,.,.,..,,,..,...,...,...,..,,...,...,,.,,,..,,..,,,,,,.,,
+#6BPTUMEW22PAA2ENEL5ODAF2HPHSLEQYJK6EMCNYDTU4WSN6RMFCOAJCCQXDBKK5GAHGG7IBLLXLM
+#\\\|HMBEYFEVG7TR2XKTP7P4YBKFI6SFCVND2PMGBXTURXBY7PYCMTZ \ / AMOS7 \ YOURUM ::
+#\[7]BGNEFPX5F2F6DO7AYTLYWKYULLPUPTITLV6GB3Q4N2TA5FCWFKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

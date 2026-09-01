@@ -70,18 +70,18 @@ if ( $current_job->{'appears_complete'} ) {
     ## Determine reply mode based on internal newlines [ excluding trailing ]
     my $final_data    = $meta_job->{'accumulated'};
     my $stripped_data = $final_data;
-    $stripped_data =~ s/\n$//;    ## remove trailing newline for counting
+    $stripped_data =~ s|\n$||;    ## remove trailing newline for counting
     my $internal_newlines = ( $stripped_data =~ tr/\n// );
 
     ## Single-line [ 0 newlines ]: strip trailing newline, use 'true' mode
     ## Multi-line [ 1+ newlines ]: ensure trailing newline, use 'size' mode
     my $reply_mode;
     if ( $internal_newlines == 0 ) {
-        $final_data =~ s/\n$//;    ## strip trailing newline
+        $final_data =~ s|\n$||;    ## strip trailing newline
         $reply_mode = 'true';
     } else {
         $final_data .= "\n"
-            if $final_data !~ /\n$/;    ## ensure trailing newline
+            if $final_data !~ m|\n$|;    ## ensure trailing newline
         $reply_mode = 'size';
     }
 
@@ -108,18 +108,18 @@ if ( $meta_job->{'resume_count'} >= $meta_job->{'max_resumes'} ) {
     ## Determine reply mode based on internal newlines [ excluding trailing ]
     my $capped_data     = $meta_job->{'accumulated'};
     my $stripped_capped = $capped_data;
-    $stripped_capped =~ s/\n$//;    ## remove trailing newline for counting
+    $stripped_capped =~ s|\n$||;    ## remove trailing newline for counting
     my $capped_internal_newlines = ( $stripped_capped =~ tr/\n// );
 
     ## Single-line [ 0 newlines ]: strip trailing newline, use 'true' mode
     ## Multi-line [ 1+ newlines ]: ensure trailing newline, use 'size' mode
     my $capped_reply_mode;
     if ( $capped_internal_newlines == 0 ) {
-        $capped_data =~ s/\n$//;    ## strip trailing newline
+        $capped_data =~ s|\n$||;    ## strip trailing newline
         $capped_reply_mode = 'true';
     } else {
         $capped_data .= "\n"
-            if $capped_data !~ /\n$/;    ## ensure trailing newline
+            if $capped_data !~ m|\n$|;    ## ensure trailing newline
         $capped_reply_mode = 'size';
     }
 
@@ -313,8 +313,8 @@ $continuation_job->{'err_io'} = <[event.add_io]>->(
     }
 );
 
-#,,,.,,.,,...,.,.,,.,,...,.,.,..,,..,,.,,,,.,,..,,...,...,,,,,...,..,,,,,,,,,,
-#5AG5SXKI3RYFVSAF4KCTS5HNPCXLJCYQB32P3LMILSSTD7K7UPK52KAVMZWIGSGI77QAJNS4MPCUC
-#\\\|INMD3HQKKJF4WHKQ57QCU732JAFA6KJYOTZFAXBYPZB5JNVK67W \ / AMOS7 \ YOURUM ::
-#\[7]566I5I5RV36JJSFSQURA2AORRSOU3DFGAOW4YZ2YXAZGJBTABCCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,..,,...,,,.,...,,,.,.,.,..,,..,,...,...,.,.,,,.,,,.,.,,,.,,,
+#DKWFBRUIYHWZKLSEEOEH62AYPFKCTDCUS2ZKCG433NZTQJF4WPMDLI7YEDK7ZUUFMM4PTVPGGQP7G
+#\\\|GBN6FR3ZHX2EVYIFKVXHBSSKUFUXYYFQUDWTNOJRG7HOTNFAVC5 \ / AMOS7 \ YOURUM ::
+#\[7]5RA4TZOUFKPVTKO3VMB45JLU3RLPQDCY73EN63K7IUILGZ4FJQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

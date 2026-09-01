@@ -5,7 +5,7 @@
 # param = <plaintext>
 
 my $plaintext = $call->{'args'} // '';
-$plaintext =~ s/^\s+|\s+$//g;
+$plaintext =~ s{^\s+|\s+$}{}g;
 
 my $blob = <[sessions.holder.parent]>->( qw| SIGN |, $plaintext );
 
@@ -31,8 +31,8 @@ return { 'mode' => qw| size |, 'data' => $out };
 #\[7]PLACEHOLDER-UNSIGNED-RUN-sourcecode-console-sign-on-this-file 7  SIG ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,..,,,..,...,,,.,,.,,,,,,..,,.,,,,,.,,,.,..,,...,...,,..,..,,,.,,,,,,,.,,
-#AVZDCMLUXT57YRGRRYBGKSZQWPDMS6ZJXUE6SCRLQXJZL34DBWMUJBJRANKPEJIRGW5BZG5CNE5UA
-#\\\|AWCMBOPT57V3KRV54CEI67WXESFTXLQQJR4MD4ABIAGQP242VVZ \ / AMOS7 \ YOURUM ::
-#\[7]PEOHU557GFVIHCR7ECXUWFLDIQJAAP4HJKOBP6BSPYRXDOPBJACY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,,,.,,.,,,,,,..,,,.,,,..,,,.,..,,...,...,...,..,,..,,,..,,,,,
+#GAGGQZJS5NKB7DCEBGJYUTHTT6EUK3EPG4GQF3T32YGQQ5KLL2OXW4YQ5BO6ABR4D6UZRUSC6BWB4
+#\\\|TXKU2VS6NLNSXZRQ5BWPHMKV5JSA5ACUT36XCWEO7HSJIHDTUDY \ / AMOS7 \ YOURUM ::
+#\[7]B4OQAXKWXJ5FACRBXUML5VRFBOIQ4P453VCJHB2Z63Q2UJUAWODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

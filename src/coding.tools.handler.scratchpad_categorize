@@ -9,7 +9,7 @@ my $session = $args->{'session'} // return 'session required [ uuid ]';
 my $max_len = $args->{'max_len'} // 400;
 
 return 'error: invalid session uuid'
-    if $session !~ m{^[0-9a-f\-]{36}$};
+    if $session !~ m|^[0-9a-f-]{36}$|;
 
 my ($scr) = grep {-d} glob("/tmp/claude-*/*/$session/scratchpad");
 return "no scratchpad dir found for $session" if not defined $scr;
@@ -126,8 +126,8 @@ $verdict //= 'needs-human-review';
 
 return sprintf "verdict: %s\n%s", $verdict, $reply;
 
-#,,,,,.,.,...,,..,...,..,,,,.,...,..,,..,,...,..,,...,...,.,.,..,,,,,,.,.,.,,,
-#GXPN4OPGJIK7VF3BZVVVNKRJW2MUTIUAGE627MGHD7Z3JVQH2GIF5HPPGR4QINHU2I2MPCAFBJWVC
-#\\\|DYO2WCTT76ABGRTHCXUX6VYFIYZ6TT3WUQMTSWBBOXVOGCTAB2I \ / AMOS7 \ YOURUM ::
-#\[7]E6YPKAPLKDE36R53YUVDVLWS4CSREDWY3YLW2NIDNV2FMJELRKBY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,,,.,,,,.,,..,,...,.,,,.,.,,.,,..,,...,..,,..,,..,,..,,,..,.,,,
+#3EQUFQWA6FQPJZ3H2AJVD2R6EPOEEGTH3G2AXU3U62L7RA73NFIAXLZDSZK73ATD6GVLFY4KZY3SQ
+#\\\|DAF2D3NUIR7R2BPC64EIWKL4IILS6YOCGQEAOAKU6ASXBSCI544 \ / AMOS7 \ YOURUM ::
+#\[7]JP5V6XGWJ2YPLFJP523GJGTOB5IWT6SPCT6VFCSAHRP642HZS4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

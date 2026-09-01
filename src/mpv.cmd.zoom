@@ -7,7 +7,7 @@
 my $zoom_level = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'invalid zoom value! [-10..20]' }
-    if $zoom_level !~ /^\-?\d+(\.\d+)?$/
+    if $zoom_level !~ m|^-?\d+(\.\d+)?$|
     or $zoom_level < -10
     or $zoom_level > 20;
 
@@ -23,8 +23,8 @@ if ( $zoom_level == 0 ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,...,,,,,,..,,,,,,,,,,,,,...,.,,,,,,,.,,,..,,...,...,.,,,...,...,,,.,,.,,
-#5M3DXEDA7GTVN2ZCZ2HISG4TEKPDI6XHQSUU7SQRZVUN6TVLSW3V3BDATD7Z5XHJVKUS5XN55UBRQ
-#\\\|ANW6NS2DE5YPXRXYRGXKX4MUEXS2J7BKDUS7ZNRIGX4DQNQELWS \ / AMOS7 \ YOURUM ::
-#\[7]X5S52ISWRQUJVCX3OZZZLS2ZP5UMYOT3RSLY4XVYV4H3KRXJ5EBY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,.,,,,,,..,,,.,...,.,,,,..,.,,,..,,...,..,,...,...,.,,,,,.,,,,,
+#DLLOLQLOKESWQ2ZFHBARZR7H7KLKRKF6UBSN2QYZONEYON632YYW3WJL62LI6CD4RVESHQURHSU6U
+#\\\|6OGBF6EDMWCNBMA3EDSZ353RXTB3EHXLBWDW7N5RUQB2A5RQGPO \ / AMOS7 \ YOURUM ::
+#\[7]WFTNGHCQ6Y3YR6N35BI7HJQSS3MXYDUFHDBTXDLKLPKXNQGGVKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

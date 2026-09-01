@@ -9,9 +9,9 @@
 #         path. POST body, plain text, same format as the console command
 
 my $args = $call->{'args'} // '';
-$args =~ s/^\s+|\s+$//g;
+$args =~ s{^\s+|\s+$}{}g;
 
-my ( $id_in, $target_stage ) = split /\s+/, $args, 2;
+my ( $id_in, $target_stage ) = split m|\s+|, $args, 2;
 $target_stage //= 'review';
 
 my $result = <[jobsite.job.rescue]>->( $id_in, $target_stage );
@@ -30,8 +30,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,,,.,.,,,,.,,...,...,...,..,,,..,...,,.,,..,,...,...,.,.,,..,.,.,.,.,..,,
-#S4CCUPI6HBEB3KVTML2G5KDGTE2PGUMXURBXCD3O7HS6JHZN66KIJYYE4U2JVEG7ERUE7KYYWBBJU
-#\\\|5X75OYANMBWKY4DYDDBFQICT7B4PBO7P4PAKGTVB5Q7DHQTXXVV \ / AMOS7 \ YOURUM ::
-#\[7]GM3HLW6M5MBYEQLJE5JZX4Y7T4QZPFWEKUO2WZO7HCXCJ2Q5HECA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,.,..,,...,.,.,..,,...,..,,..,,..,,...,...,.,.,,,,,...,..,,,..,
+#2ET4HQMZCEH6Q5UIAZWHNVJ7QFYWZBPIAPZFQEY5G62M34S7K2FYI6DUYXG7S2OAWQD7IQNTGZFGG
+#\\\|WXGIDZNAWNKWVIJJK6RLDEVACHKRLP5VVWF7MNT2BMQTBEUFU5Q \ / AMOS7 \ YOURUM ::
+#\[7]YROB4GMNBIZ4RRVVBABR6TRHIWFJOWZZNXT2BNKSAWAXY76NHYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

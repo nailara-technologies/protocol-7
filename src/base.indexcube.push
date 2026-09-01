@@ -14,7 +14,7 @@ return {
     unless length($p7ref) && $p7ref =~ m{^\w+:\w+:\w+$};
 
 ## Validate P7REF format ##
-my ( $type, $chksum7, $addr_b32 ) = split( /:/, $p7ref, 3 );
+my ( $type, $chksum7, $addr_b32 ) = split( m|:|, $p7ref, 3 );
 return {
     'mode' => qw| false |,
     'data' => 'invalid P7REF format'
@@ -49,8 +49,8 @@ return {
     }
 };
 
-#,,,,,.,.,..,,.,.,,..,,,.,...,,.,,..,,,,.,,,.,.,.,...,...,..,,...,,..,...,..,,
-#LFMUG5DHBH6IQDL624AALCGAEMCCKV5IZT6OHF3AMZALYP6L5WXRAEOX4HSHHLQFPF7D6PX3V7ZRG
-#\\\|WU4LTLSQQ2HOIFS5TXYWJQ7Q5WNZCIWARGJWL5M45G626DUABWO \ / AMOS7 \ YOURUM ::
-#\[7]63IKDR6P4EHKEPQQZ3NWCLTXKRL7LU2ABK3NUOZJT723UDSMWSCI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,,,,,..,,,.,..,,..,,,,.,,.,,.,.,...,..,,..,,.,.,,,.,...,,,,,
+#7LTU3RJSVUI6NB52BD7NEJA32KSOR32MV2EGSGYU7WGIXVTHPMPR6DN7PE2E4FA5GMFTNIJWL2JLG
+#\\\|QS5R3XOU22H3HIVQ5D7APCV43FEE3PGPLLL62U4ZKCHI3I4XW2B \ / AMOS7 \ YOURUM ::
+#\[7]CGBIY3I47PRRV77H647EYA65THCHD5VJ2GPVTIHSEODI3NP7P6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

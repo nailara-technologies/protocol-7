@@ -19,13 +19,13 @@ my $ps_output = `ps aux 2>/dev/null`;
 ## Pattern: Protocol-7 zenka_name OR bin/Protocol-7 zenka_name
 my $pattern = qr/Protocol-7\s+$zenka_name(?:\s|$)/;
 
-foreach my $line ( split /\n/, $ps_output ) {
+foreach my $line ( split m|\n|, $ps_output ) {
     if ( $line =~ $pattern ) {
         ## Extract PID (second column in ps aux output)
-        my @fields = split /\s+/, $line;
+        my @fields = split m|\s+|, $line;
         my $pid    = $fields[1];
 
-        if ( $pid && $pid =~ /^\d+$/ ) {
+        if ( $pid && $pid =~ m|^\d+$| ) {
             ## Verify process still exists
             if ( kill 0, $pid ) {
                 return {
@@ -46,8 +46,8 @@ return {
 
 0;
 
-#,,..,,,.,,,,,..,,,,.,.,,,.,.,,,.,,,,,,.,,.,.,..,,...,.,.,,,.,...,,.,,..,,,..,
-#JTWYZHWQGNW6U6V2PPSCUK53TRVCYBUYS3ISOIEXTQ7ELVV5VDQQSJDLDAAQJXYF42QLIW2SVZWVA
-#\\\|2SC4WFDYJGKGWWU2X6GZCKCE4W2KMZETUXFONKHGIK4DZDFLNBJ \ / AMOS7 \ YOURUM ::
-#\[7]CWI64PVE4ILOYSOVSIOWDG65NGHJAYZ5GHIHCYZLNOR5N6HMD6AA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,..,,,.,,,.,,,.,,,,.,,,,,.,.,..,,...,...,..,,,.,,..,,,,,,,,.,
+#KTQZVK2IRNO3QA2QP2HU57X32HPIB2Y75PUPEHRZ33DIG4EO3OTGK45ZYUFPR5IFI4537XIKXR454
+#\\\|RWP5DJEKS2J3MH4J4H3LAZ2DLUVT4X45JZJ4DYI7J7YNKI5LU4O \ / AMOS7 \ YOURUM ::
+#\[7]Q52YETYV5WJCI6GBL2MHMP5RYNR5D3VBZNPEMI44XHXFNOO4R2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@ my $task_id = shift // '';
 
 return FALSE unless length $task_id;
 
-( my $short_id = $task_id ) =~ s/^task-//i;
+( my $short_id = $task_id ) =~ s|^task-||i;
 
 my %variants = (
     'compact'  => "T-$short_id",
@@ -78,8 +78,8 @@ for my $variant ( sort keys %variants ) {
 
 return $saved > 0 ? TRUE : FALSE;
 
-#,,,.,...,,,,,,.,,,.,,...,.,,,...,.,,,,..,..,,..,,...,...,,..,...,.,.,...,.,.,
-#I34H56R7FE3WNR3QBEAGVTMJAYYVFWODUX72WSMQODNL7NWJBM54XOMLJLAXLHQKQ7PNY4IYY2YAU
-#\\\|ZL3Q7FOAMOMWR7TBDKATGR7WF45WOUWDS4TB4DYB37J7BBXGMS6 \ / AMOS7 \ YOURUM ::
-#\[7]X2IAPXTCA7GM5XJDRG53O7TMQRJSTJ6DBE2WCM4FZJ2RHUFEGIBY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,,,,,,.,,,,,,..,,,..,...,.,.,..,,...,...,...,.,.,...,.,.,.,.,
+#76EUOKQEICPPJ56RI3DUORZWQJ3EG5D5RVEDEVPQXZE7BVY3NPB6YZOLUFDHY4V3ITRPW3QDVJHVE
+#\\\|4SUCWMRRNW6PZBL3FR7Q5IEYLOHC4M6ESTTO67O5L32J3YUPJCO \ / AMOS7 \ YOURUM ::
+#\[7]SOR4O5MVB527ASMR42U5ET6K2JFBJSRD4HOCV7GXMLRGTAVZU4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

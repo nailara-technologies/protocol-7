@@ -12,7 +12,7 @@ return $code{$hook}->( $ARG[0] ) if defined $code{$hook};
 
 ## resolve address in data space
 my $value_ref = \%data;
-my @segments  = split /\./, $address;
+my @segments  = split m|\.|, $address;
 my $resolved  = TRUE;
 
 for my $segment (@segments) {
@@ -56,8 +56,8 @@ if ( $resolved
 ## [ fallback ] — matches fold handle cost
 return { 'rows' => 1, 'cols' => 40 };
 
-#,,..,.,,,,,,,...,..,,.,.,,,,,..,,,,.,...,...,..,,...,...,.,,,.,.,,.,,.,.,,.,,
-#HJIYDROZ67TYW3KDDRFVG5X6U2WP3ZPNVSRQ7RN5YLOYHMBUJU2SAGHXEAIPU5XOZVPJDBNPSOFIM
-#\\\|SRGIJUKKMPXLAK3TI6P5NLU25USZLXD3JYP6AFQ5DR2FXO7GCBE \ / AMOS7 \ YOURUM ::
-#\[7]HRWUQ3JTHJIOPCI3NLOSGSVYDVLBE5MI65EDIFJ2H2XG2P5YWSCI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,.,,..,,,..,,.,,.,.,.,,,,,,,.,.,..,,...,..,,.,.,..,,,,.,...,...,
+#BT6B6WCK4EHH3HSCHKX4B4OT6GZXOBWQTS5VNSC2JPJM6PDHSQBWTSJK76KAJPLM2LRKJZEZFDYAC
+#\\\|JYMC5RWMRGIWWXAH4IOGM5AISJRVU7VJK42EX36QIHCJB3RTIKM \ / AMOS7 \ YOURUM ::
+#\[7]5SCKIPVDNH3E3NPJPUMTZOJ7JITKZYQTNBWHHP2SSKVHF7INSADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

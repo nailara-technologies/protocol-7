@@ -44,9 +44,9 @@ if ( keys %by_repo == 0 ) {
 
             # Status indicator
             my $status_icon
-                = $bug->{status} =~ /fixed/i ? "${neon_green}✓$reset"
-                : $bug->{status} =~ /open/i  ? "${neon_red}●$reset"
-                :                              "${TRUE_blue}?$reset";
+                = $bug->{status} =~ m|fixed|i ? "${neon_green}✓$reset"
+                : $bug->{status} =~ m|open|i  ? "${neon_red}●$reset"
+                :                               "${TRUE_blue}?$reset";
 
             say sprintf "  %s ${neon_red}[BUG-%s]$reset %s",
                 $status_icon, $bug->{bug_id}, $bug->{title};
@@ -72,8 +72,8 @@ say sprintf "$neon_red●$reset ${TRUE_blue}Total:$reset ${neon_red}%d "
 say "$blacklight" . "=" x 70 . "$reset";
 say "";
 
-#,,..,...,..,,.,,,,..,,,,,...,,,,,,..,,..,..,,..,,...,...,..,,..,,,..,,.,,..,,
-#OMMS2JBSVDXTZKVF2N2BCMVCECUMXNF4SJUWT6OXMEFVTB6CL64L5N4AHYMZKVWRAEOI2FBX2AY2U
-#\\\|5TJPHEWQNQFBHQYK3E3QZX5EW3F34VT4RAMUCKCTLI54FS4SXYI \ / AMOS7 \ YOURUM ::
-#\[7]OND36RLANGSV4W6QNNDT72NTO2CYPAZEG3NINTLGJUGLECHN3SBY 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,..,,..,,.,,,,.,,..,,...,,,.,..,,...,..,,..,,,,.,...,...,,..,
+#VXCUPALULE5QXLPC5JCONE4H4DVQ3FC5T6SHAPF3ARG3VENTSZF2HTIN2U2AGDGA3CSAGET47IIOU
+#\\\|TGWEV6BU5MCDCHEKJCB3LOFSNC25XYEQTZBY5BY7WVONX4QAQUF \ / AMOS7 \ YOURUM ::
+#\[7]FQQ5XUOW6PVE5GEVDUO6VXUK2RGLVRQIMYKRYMT65AFOJ7O6A2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

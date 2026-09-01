@@ -11,7 +11,7 @@ unless ( length($args_str) ) {
 }
 
 my ( $template_id, $template_b32r, $meta_b32r, $session_id )
-    = split( /:/, $args_str, 4 );
+    = split( m|:|, $args_str, 4 );
 
 unless ( defined $template_id and defined $template_b32r ) {
     return ( 0, qq| missing required parameters | );
@@ -115,8 +115,8 @@ if ( $result->{status} eq qw| success | ) {
     return ( 0, qq| template processing failed: | . $result->{message} );
 }
 
-#,,.,,.,,,.,,,.,.,..,,,,,,..,,,..,,,.,.,,,..,,..,,...,...,..,,,,.,,,.,.,.,,.,,
-#CHRKGGJIIFNZO7YZ3NPPNVBAKVD5DBBOQ4CN6XLDX7RCFJ3X6EGMMDBIPSOGLJ4KUGBY7EZKYCSLM
-#\\\|WJB2SDWKN4LTL6CSLYJJPQKZCEILPFDFZMJ5D2R5OP6BWCSOW62 \ / AMOS7 \ YOURUM ::
-#\[7]JRZAZ6LGRR23C3OFM6QUMUGQ3MCWLLFKVAETT3XGKGQRR4GZFSDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,...,,..,.,.,.,,,.,,,.,.,.,,,,..,..,,...,...,.,,,,,,,,.,,,.,,.,.,
+#JEBRFXE4K4DM7JYEPXOZR7ZVPGHOLQMQ227MHDCMYMESPOFEO5VBNWZPY3NIPNS6BBHRMTLGITK36
+#\\\|MTPL6TIX34ILXNLK5OND5P3TEZZMWSPQH7R57QFLBJCUK7S3D5N \ / AMOS7 \ YOURUM ::
+#\[7]XEU3U6TPYNQ3QVUHVWWKEXWN53AMEQGJZ4RKRQ2BIP5NEAY4BEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ my $id = shift;
 my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.'                   if length($cmd_path);
-die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 <[base.log]>->( 2, "setting window '$id' to state 'below'.." );
@@ -30,15 +30,15 @@ while ( !$matched_reply ) {
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
+if ( $reply_string =~ m|^\($cmd_id\)FALSE (.+)$| ) {
     <[base.log]>->( 0, "keep_below command failed with '$1'.." );
     return FALSE;
 } else {
     return TRUE;
 }
 
-#,,..,...,..,,...,...,,.,,,,.,,.,,.,,,,,.,...,..,,...,...,,.,,,,.,...,,.,,...,
-#I3P2ELWQRWQNAORM5WG6YEQW5FM3N524YCYYPY3N67LGNORQRZETBDXDERRDA7F4RMMFPUXQINLMA
-#\\\|VR55C7RL7R55PX24UTKYUITFOCPW2LPHQOZPANVBJAFZE2K6WQB \ / AMOS7 \ YOURUM ::
-#\[7]CJU4WNX6X23H3BKV6QGXARSDPV5JPWLH2IXLVUDP2Z3L6JQMZABY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,,..,.,,,,..,,.,,.,.,,,.,,,,,..,,...,...,...,,,,,,..,..,,...,
+#6NGPRBRNBHB6OXUS53TRJAOC7ECGADG7MF4ZT3BTQPT4GMYBMO3LENRWX3GAFT2575NKEC6KTOFTI
+#\\\|SCIJ5N6DAQ53XFH6IKJ2MCHO554CUDALMQDM27IC2WU2JC3HMSN \ / AMOS7 \ YOURUM ::
+#\[7]44VTXKCMJWZUDDZU6O52JBMTBYWRYGTU2WGILJ3WXUDH66BNCWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

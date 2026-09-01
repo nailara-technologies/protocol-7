@@ -4,15 +4,15 @@
 # descr = Command to attach nshell or other clients to 3D buffer
 
 my $args = $call->{'args'} // '';
-my ( $buffer_id, $client_type, $options ) = split /\s+/, $args;
-$buffer_id =~ s/^\s+|\s+$//g if defined $buffer_id;
+my ( $buffer_id, $client_type, $options ) = split m|\s+|, $args;
+$buffer_id =~ s{^\s+|\s+$}{}g if defined $buffer_id;
 
 $client_type //= qw| nshell |;
 $options     //= {};
 
 ## === resolve buffer === ##
 my $window;
-if ( $buffer_id =~ m{^amos:([A-Z0-9]{10})$}i ) {
+if ( $buffer_id =~ m|^amos:([A-Z0-9]{10})$|i ) {
     my $amos_id = uc($1);
     my $sid     = <amos-term.windows.by_amos>->{$amos_id};
     return { 'mode' => 'false', 'data' => 'buffer not found' }
@@ -66,8 +66,8 @@ return {
     )
 };
 
-#,,,,,,,.,,..,.,,,..,,,.,,.,,,..,,...,...,.,,,.,.,...,..,,..,,,.,,.,,,,..,...,
-#4JWCOPL2GXW4TCVEOHLVISA5N3TH4TTGSKPBZGNC53ZDIHXDMJIVLPNTSVQCXCGGBOOZCPRP756GU
-#\\\|L5KWJHQT7TVZOHNMMF64VRSLRLPGZYIZWOD6ZU4VBTHJGFPCSCH \ / AMOS7 \ YOURUM ::
-#\[7]YDVHDUCOTJW4WFHGQFT6LZRVMDLBIF4AMDVTISUDSRYHKIPCPYCI 7  DATA SIGNATURE ::
+#,,..,,..,...,...,...,,..,.,,,..,,.,,,,,.,..,,.,.,...,...,...,,.,,.,,,...,,,,,
+#525LBXGEXZWAF7AMV5DBK4VTVO4AG5L4H6M3XY4MD6PKQGZYIWCLOY7OEY3X7IAHGZSOYBHCMKU4E
+#\\\|GELE766LCVES55FWZBMUOGWQ77RH352HTNZ7RIFTA5CJ5PIK4IC \ / AMOS7 \ YOURUM ::
+#\[7]4RD6KNCT4S4XDYVTF45AGWSBKS6VIP4N4LVIUN5TS3Q7ON24KYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

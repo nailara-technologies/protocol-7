@@ -242,7 +242,7 @@ if ( $state->{'phase'} eq qw| probe | ) {
     my $ttft = ( $state->{'probe_arrived'} // <[base.time]>->(9) )
         - ( $state->{'prompt_start'} // <[base.time]>->(9) );
     my $answer = $result->{'data'} // '';
-    $answer =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
+    $answer =~ s|[\x00-\x08\x0b\x0c\x0e-\x1f]||g;
 
     $state->{'cur'} = {
         answer        => $answer,
@@ -603,8 +603,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,,,,,,,,,,.,,,.,,.,,,..,.,.,,,.,..,,,,.,...,..,,...,...,,.,,...,,,.,...,...,
-#KVFKFMZYNHD5KKKB22AYLJ4X6IETFQRE2ZN3PGIMK32JRITM2TMTBD36KYR5XRY4QYGKIKGNJY3BK
-#\\\|N6KFALJ5ZXLAAXSCQZYN6NWYYI7OYZRLZAVJ7LHDEAQJAHAJIDP \ / AMOS7 \ YOURUM ::
-#\[7]OI3ENRSEYHRUJZIOCASHGAOWECRGUHKTWGDS3YLR6WCLX2RDP2DQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,...,,,,,,,,,,.,,.,,,,,.,,,,,,..,..,,...,..,,.,.,,,.,,,,,...,..,,
+#OGW4UTJGVZMP5PTOU2YWO6G6WBV5NQGI656TUO6LFIC2UX7V4GHOFX5AENFV34KWJNSNAGRQC3JQA
+#\\\|RRFB55BT4OYUEEQBKKD6EJQPACVS7QUWC3LILYRJZBY6V5A5JCK \ / AMOS7 \ YOURUM ::
+#\[7]VRQDCICO5PLD47HCWSMLN7T4WJIHN6XBVMT47XMGZRZLI35YCAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

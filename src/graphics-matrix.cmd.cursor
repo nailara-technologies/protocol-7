@@ -6,7 +6,7 @@
 my $args = $call->{'args'} // '';
 
 ## parse command ##
-my @tokens = split( / +/, $args );
+my @tokens = split( m| +|, $args );
 my $cmd    = $tokens[0] // '';
 
 my $cursor;
@@ -29,11 +29,11 @@ if ( $cmd eq '' ) {
 
     ## validate integers ##
     return { qw| mode | => qw| false |, qw| data | => 'dx must be integer' }
-        if $dx !~ m/^-?\d+$/;
+        if $dx !~ m|^-?\d+$|;
     return { qw| mode | => qw| false |, qw| data | => 'dy must be integer' }
-        if $dy !~ m/^-?\d+$/;
+        if $dy !~ m|^-?\d+$|;
     return { qw| mode | => qw| false |, qw| data | => 'dz must be integer' }
-        if $dz !~ m/^-?\d+$/;
+        if $dz !~ m|^-?\d+$|;
 
     $cursor = <[graphics-matrix.cursor.move]>->(
         {   qw| dx | => int($dx),
@@ -60,11 +60,11 @@ if ( $cmd eq '' ) {
 
     ## validate integers ##
     return { qw| mode | => qw| false |, qw| data | => 'x must be integer' }
-        if $x !~ m/^-?\d+$/;
+        if $x !~ m|^-?\d+$|;
     return { qw| mode | => qw| false |, qw| data | => 'y must be integer' }
-        if $y !~ m/^-?\d+$/;
+        if $y !~ m|^-?\d+$|;
     return { qw| mode | => qw| false |, qw| data | => 'z must be integer' }
-        if $z !~ m/^-?\d+$/;
+        if $z !~ m|^-?\d+$|;
 
     $cursor = <[graphics-matrix.cursor.set]>->(
         {   qw| selX | => int($x),
@@ -88,7 +88,7 @@ if ( $cmd eq '' ) {
         qw| mode | => qw| false |,
         qw| data | => 'zoom must be positive number'
         }
-        if $level !~ m/^\d+(?:\.\d+)?$/;
+        if $level !~ m|^\d+(?:\.\d+)?$|;
 
     $cursor
         = <[graphics-matrix.cursor.set]>->( { qw| zoom | => $level + 0 } );
@@ -108,7 +108,7 @@ if ( $cmd eq '' ) {
         qw| mode | => qw| false |,
         qw| data | => 'radius must be non-negative integer'
         }
-        if $n !~ m/^\d+$/;
+        if $n !~ m|^\d+$|;
 
     $cursor = <[graphics-matrix.cursor.set]>->( { qw| radius | => int($n) } );
 
@@ -134,8 +134,8 @@ my $out = sprintf "cursor [%d,%d,%d] zoom=%.2f radius=%d chk=%s",
 
 return { qw| mode | => qw| size |, qw| data | => $out };
 
-#,,.,,,,.,,,,,,..,.,,,,,,,,.,,...,.,.,..,,,.,,.,.,...,.,,,,,.,.,,,...,...,..,,
-#HXJZD6V5OC7Y37KVOEWA4CAIII74USLLT72VJUP42GDV6S46NXO6PGHFXO4MRFUDD2IMWQ5U7W346
-#\\\|23MLZBUI53LVZJ4ZF3OJ2DABJLOUN3SSRLOMK3ZEFTGFVPBSTWS \ / AMOS7 \ YOURUM ::
-#\[7]X4P7UYRRP4TN372YH52OKDB2XUWGMQU4NWUQZQY4XN2UQ2Z5TGAA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,,.,,...,...,.,,,,,.,.,.,.,,,.,.,...,...,,..,...,,,,,,..,.,.,
+#MCVNF7LNHN54LNRN5VGLYSFS7IP3P3TVOK4XH2RK46OLGDU3MBPH22URXND7W2WZUXQ2W3MFIT7CG
+#\\\|H5ADKYAHOXJLJH4HKR2OZMIIAGCHTMMMTVJI36OP2TVOOIZTMTQ \ / AMOS7 \ YOURUM ::
+#\[7]WPO3F5CZC6L4ABXFGEC5HHFE2P3L762SU3DOHEUUVORQZMR5WICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

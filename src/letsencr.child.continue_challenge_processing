@@ -50,7 +50,7 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
     }
 
     ## select challenge type: DNS for wildcard, HTTP for regular
-    my $is_wildcard    = ( $domain =~ /^\*\./ ) || $auth->{wildcard};
+    my $is_wildcard    = ( $domain =~ m|^\*\.| ) || $auth->{wildcard};
     my $challenge_type = $is_wildcard ? qw| dns-01 |   : qw| http-01 |;
     my $challenge_data = $is_wildcard ? $auth->{dns01} : $auth->{http01};
 
@@ -351,8 +351,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,..,,.,,...,...,..,,,..,...,.,.,.,,,,,,,,..,..,,...,..,,,.,,.,,,,,,,,.,,,.,,
-#KPEV5JPPQXAWP63MV62EJF5FECNDDPARBXIQ5REVQTCIIDG6CLSWEFV3P5VAOXOP3UDTUQA3YTEH2
-#\\\|7FB52YVZDZXSOLOT6AZR6TRHJHDLOUIFX6NSIAQXEWGII3Q4CID \ / AMOS7 \ YOURUM ::
-#\[7]PASWA6FAE24SRQPURGJKKY3FVW2GNUEPRWRM4NAM5RQXP35IKCAA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,,.,,...,,,.,...,,.,,.,.,.,.,..,,...,...,,..,,.,,,..,,,,,,.,,
+#MLKXNE67MLBXQNVV3DVNQXZV7YK3LNKCMJWIS3DRTZJHNV5IQQW7ZCZN2JR27LGURNGS3JIWSZZ5S
+#\\\|NUWOF7E3TXEDHXQ5A7KTQOJVV2ZMYJK5I2LGYLCSTOMYIGUOJUX \ / AMOS7 \ YOURUM ::
+#\[7]HXWQEWR4LTVK3T67RBZOJJP2RSJNDBKREDVMIUIFQPA4NO2S5GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

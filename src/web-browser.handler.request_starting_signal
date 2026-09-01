@@ -27,7 +27,7 @@ return FALSE if $uri !~ m{^https?://}i;
 ## allowed ##
 
 return FALSE
-    if $uri =~ /:blank\]?$/
+    if $uri =~ m|:blank\]?$|
     or $uri =~ m{^https?://([^/]+\.)?\Q$allowed\E}i;
 
 ## blocked ##
@@ -39,8 +39,8 @@ $decision->ignore;
 
 return TRUE;    ## TRUE = handled (blocks default action)
 
-#,,.,,...,,.,,,,,,.,.,...,,,.,.,,,,..,...,,,.,..,,...,...,...,,,.,,.,,...,...,
-#CIGHC4L7ZWQRMJNLYTMRR6FPENR624VDQZMEJDCBD2JE5U7R4ETNW3RBW36CVFM3JOY5P7JLKZ7FA
-#\\\|6NC5LRD5IS2ZGLLW3MVFIA73DEUJUMPIQVBITDVUETGR6P3JHUE \ / AMOS7 \ YOURUM ::
-#\[7]PHUA4XQJN6KSUIGXLMSYOLSGGRXSLU7F6EI7FTHJL5XICUE4N6DA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,.,.,.,...,,,,,,.,,..,,.,,,,,,,..,,...,...,...,,,.,.,.,,,.,,..,
+#7UM3CPIQNXJP22O3O6UO3VIJ7RMGFSQB6PHQABEA3OEVT5YPBFLUSC6AAUD5ILTVHUUOBT526QQME
+#\\\|CZ2HIHNHMC3VQKKW74OS2EPE7DHGNY5UP66C3M44R2QRFXJ45MJ \ / AMOS7 \ YOURUM ::
+#\[7]7TKULDXNU7E7SM4UJG43DQYYFK25HCEH6NF3CFZCCLRUWHJV7QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

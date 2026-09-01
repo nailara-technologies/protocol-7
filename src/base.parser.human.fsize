@@ -4,7 +4,7 @@
 
 my $size_str = shift;
 
-return 'n/a' if not defined $size_str or $size_str !~ /^\d+$/;
+return 'n/a' if not defined $size_str or $size_str !~ m|^\d+$|;
 
 my %size_suffix = (
     1024**4 => 'T',
@@ -24,8 +24,8 @@ for my $grade ( sort { $b <=> $a } keys %size_suffix ) {
 
 return $size_str;
 
-#,,,.,...,..,,.,.,,,.,.,.,...,...,..,,,,,,..,,..,,...,...,.,.,.,.,.,,,...,,.,,
-#O7I4LHWNY3ZAYQBAWZZ4F6YON2H56UR5EGFPKE2EIFGITXTGI5B7UCVSONUWYFYCGRXR4VOVWFU36
-#\\\|53GE5BH2R7A3YG5ZJRITFZEJLZEJQNVWVZ2RCALZMIZIERZSFER \ / AMOS7 \ YOURUM ::
-#\[7]VPDS5KJJZTTASILQKN53QUGFTFP3QRJSRQX4TVYPJIZ2A5C5QSDI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,,,.,,,.,..,,.,.,,..,,.,,,,,,..,,...,...,.,,,,,,,...,,.,,...,
+#4TEJ6PHCHYMQO3TCGYMAIAFSFDMBCY3DSLAQ7WNOB2GYOQTDR6KRBO7Y2O47EEAXPXT6TRLAY2QAC
+#\\\|RIGVZPQZJW5TH5N26CMRBBDZXHCDEOR62Q5Z6YMBLI2WNAOO3GX \ / AMOS7 \ YOURUM ::
+#\[7]HPI2IAG3GFJUCI226LMXBMLRWGPCS5RI3BY3GJTPIUQ3YDOYDYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

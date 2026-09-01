@@ -7,7 +7,7 @@ my $id = shift;
 my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.'                   if length($cmd_path);
-die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
@@ -23,25 +23,25 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
     die "cube handle had an exception!" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(TRUE|FALSE) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)TRUE (.+)$/ ) {
+if ( $reply_string =~ m|^\($cmd_id\)TRUE (.+)$| ) {
     my $data = $1;
-    $data =~ s/\s+$//;
+    $data =~ s|\s+$||;
     ## X-11.get_geometry returns "w h x y" ##
-    my ( $w, $h, $x, $y ) = split /\s+/, $data;
+    my ( $w, $h, $x, $y ) = split m|\s+|, $data;
     return { 'x' => $x, 'y' => $y, 'width' => $w, 'height' => $h };
 } else {
     <[base.log]>->( 0, "get_window_geometry failed with '$reply_string'.." );
     return undef;
 }
 
-#,,,.,,,,,...,,..,,,,,.,,,,,,,..,,.,,,...,..,,..,,...,...,...,,.,,,,.,.,,,.,,,
-#3J4WLLNFGB3AGA5JI2CGFARLDYJUNXJ3Y6OUYXAGGC5EPDXPC4QNQBK4UXPWBAG7JCYQV7OEZQXYW
-#\\\|4LEOOGM37XLFXLNICDIKFUVEA62S5GTORGHAEZLERK3KEJDHIID \ / AMOS7 \ YOURUM ::
-#\[7]MHTVF4P7YSDL2HWZ5WRQXD7UBQUASV66TSWO7TYRIFK7VRVY52BA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,..,,...,,..,,.,,..,,..,,.,,,..,,...,...,,,.,,,.,,,.,,.,,,,,,
+#65RJVZ6II7KADDBD5AE7E6V7YJTQFLK75R7ZENEIDCWGJGBCDW32SERONX22NACVZYCEDSWVKPFBA
+#\\\|R46F6WA25D7BUDKTGTSJBN6UDGDBRUWK7TEIYVQKUZUI6WHCBVQ \ / AMOS7 \ YOURUM ::
+#\[7]VH74POTQ47LFTLAYV2SSNNND3I5CNO7QZVQRIBQDAXSX7WRGB6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

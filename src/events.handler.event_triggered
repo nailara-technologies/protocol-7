@@ -69,7 +69,7 @@ if ( $action_type eq qw| zenka-present | ) {
         if not defined $action->{'command'};
 
     ( my $target_route, my $args_str )
-        = split( / +/, $action->{'command'}, 2 );
+        = split( m| +|, $action->{'command'}, 2 );
     my $args_ref = defined $args_str ? { 'args' => $args_str } : {};
 
     my $args_lstr = defined $args_str ? " [ $args_str ]" : '';
@@ -216,8 +216,8 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
         if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
 
-#,,,.,,,,,.,.,.,.,.,.,.,,,,,,,,..,,..,.,,,.,,,..,,...,...,.,,,...,,,.,...,,.,,
-#F6OHGUAZGI2YVNCPQLLB3F3A5762IDQFKK6WOY3OBQNM77GNZKDMTFAFAPOE5FMQBQDXWNJO6SVIG
-#\\\|JLIDUCIAOTVGTCD27LACNVQNYAESWKDKMDWBAT755KQRQXTHVZZ \ / AMOS7 \ YOURUM ::
-#\[7]RUEPDUEQFYM64EFKRJRLIEWMEKQCPQGMVR36FEEQI3UQ5ZNUP2BY 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,.,,,.,,...,.,.,,,,,,.,,,,.,..,,...,...,...,,,,,,,.,.,.,..,,
+#SHBSQRE4CU2KGO4UELRR5XISJDKNXV4CGRKY5RAHWNRKGW2D563YBSQHIEQS5PNEJTOTFGOSOPSFU
+#\\\|4J6ZGTNOCKZOZLFX2VRGXO52BCZ5AXY4H2HZZWPA2MAJRFZMVPX \ / AMOS7 \ YOURUM ::
+#\[7]JRGTVYNA4WE2PPZWAUQCOEVTP5XBDVJKRB6GAUSRQYEUWKT25YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

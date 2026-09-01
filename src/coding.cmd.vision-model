@@ -51,7 +51,7 @@ $rest =~ s|^:switch:||;
 my ( $checksum, $timeout );
 for my $token ( split m|\s+|, $rest ) {
     next if !length $token;
-    if ( $token =~ m{^([A-Z2-7]{7}:[A-Z2-7]{7})$}i ) {
+    if ( $token =~ m|^([A-Z2-7]{7}:[A-Z2-7]{7})$|i ) {
         $checksum = uc $1;
     } elsif ( $token =~ m{^(\d+)$} ) {
         $timeout = $1 + 0;
@@ -101,7 +101,7 @@ if ( !defined $checksum ) {
         ## metadata amos values can be yaml names with spaces - only a ##
         ## composite checksum passes switch-model's own validation     ##
         my $candidate = uc( $entry->{'amos'} // '' );
-        next if $candidate !~ m{^[A-Z2-7]{7}:[A-Z2-7]{7}$};
+        next if $candidate !~ m|^[A-Z2-7]{7}:[A-Z2-7]{7}$|;
 
         $checksum = $candidate;
         last;
@@ -147,8 +147,8 @@ my $switch_id = <[base.gen_id]>->(<coding.vision_switch_state>);
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,.,,,,.,,..,,..,.,,,,,.,..,,,,.,.,,,,..,..,,...,...,..,,...,,,.,,,.,.,,,
-#OLQ7INPQM24L7ZQBL7MGQJ74I4BZUWE2R5RIQ2ZZ552WHH36LT3V6FIHRDGNEPWJ57LP4CBNIHQNS
-#\\\|6MLYQKCTTUPONF2FMITV4F3BUJ2RJMUSW7DI2ELAZRKOWTO4LYU \ / AMOS7 \ YOURUM ::
-#\[7]3FBX7GGCWFTVPKHXX232WBQ7MIXQHBAYIENDT4Y3E74JUX7SEICY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,.,.,,.,,.,,,,,.,,..,,..,.,,,..,,...,...,,,.,,..,,,.,.,,,..,,
+#T2ZV765BHT62PD22ZVXHJB6BHP3YW6PT4Y5JKANZMMIWA4VL23ZCXUHB34Q7UQDSGJI23HK5D4JEE
+#\\\|XM2YIMKHRKNMMZ5F6T4SHWZXWOCO7BFKVB4WEQLKADKGPZVER26 \ / AMOS7 \ YOURUM ::
+#\[7]ECPGTIVJVBTXKTZGMP4FU7SSPSRFUT7E2QRM54ARNYGZUHZWKADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

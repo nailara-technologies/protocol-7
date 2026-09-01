@@ -13,13 +13,13 @@ my $path = $ARG->{'path'} // return undef;
 
 ## bare uuid -> diffusers directory ##
 if ( $path
-    =~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i ) {
+    =~ m|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$|i ) {
     return -d "$root/$path" ? "$root/$path" : undef;
 }
 
 ## uuid/filename -> single file, try decoded and raw variants ##
 if ( $path
-    =~ m{^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(.+)$}i
+    =~ m|^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/(.+)$|i
 ) {
     my ( $uuid, $filename_raw ) = ( $1, $2 );
 
@@ -35,8 +35,8 @@ if ( $path
 
 return undef;
 
-#,,,,,.,,,...,.,,,,..,,,,,...,,..,,..,,,.,,,.,.,.,...,...,..,,,.,,.,,,,..,,,,,
-#NGA3CZHV46FW2HTNFMGF6BP3Z6AAI2JFZEVJ2XAFLIJ4OLXJ74CWRGA4R2YVHVDN77YLKWN3MX744
-#\\\|533UDMNQHZ4O4MFZQR5DUQTY2YQL3AK6Q6FXAFRNLXAE6FDMLEA \ / AMOS7 \ YOURUM ::
-#\[7]FKY4A6S4EWI6QOTDZTQ4CDHGCH2GXJYIV6F5K457ZCNUCIIKCSBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,.,,..,,.,,..,,.,,,...,.,,,,.,,.,.,...,...,...,...,.,,,,.,,.,,,
+#OJLZNAOTRW3BF4PIJ3HR72V2JTHH5WQJJIP24TXVFHYYRXWMGRZMANCQRWB6QYZEXQQHXP6CGBMC4
+#\\\|S3GFQISX27IGY3IFGWCUBPIWLO2NASFXW5THE7VAIOUKTYP3MZH \ / AMOS7 \ YOURUM ::
+#\[7]WWLRRWBZA52DBY6QTQI7CZHKSCEPNSMNHRQ3BP3H2PD3IHDK7SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

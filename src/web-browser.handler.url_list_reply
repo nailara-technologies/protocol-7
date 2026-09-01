@@ -45,12 +45,12 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 }
 
 my ( $width, $height ) = ( $1, $2 )
-    if <x11.geometry> =~ /^(\d+)x(\d+)/;
+    if <x11.geometry> =~ m|^(\d+)x(\d+)|;
 
 my @url_list;
 my %type_list;
 foreach my $reply_line ( split( "\n", $reply->{'data'} ) ) {
-    push( @url_list, $2 ) if $reply_line =~ /^([^\s]+) +(.+)$/;
+    push( @url_list, $2 ) if $reply_line =~ m|^([^\s]+) +(.+)$|;
     $type_list{$2} = $1;
 }
 
@@ -132,8 +132,8 @@ if (<web-browser.url.list>->@*
     <[web-browser.start_slideshow]>;
 }
 
-#,,,.,...,,,,,,,.,.,,,.,.,.,,,..,,,.,,.,.,...,..,,...,..,,,.,,,..,..,,..,,..,,
-#NGUYIFPKD7IEBKTGNSG7INOJC6QLNBOEYK32XOE5FJK3HZ6ZVL43AJJ5EUEDFLMLT5M4S7D2XU2DA
-#\\\|OWOK2VVU5ZECPWIX5YVAQJVOAW5YF6R4FF2FLQQH65QTJAF7XHU \ / AMOS7 \ YOURUM ::
-#\[7]POEZBAPCHYARIXICRNGZBRF23B4PEGVZ6LFD2XQWF64DOYCKLIBQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,,,,,.,.,,,.,...,,..,,,.,..,,..,,...,...,..,,.,,,..,,...,.,,,
+#HP4ZGLECUYRUHI2CPAVNDYY5JFMZU67QZICOMYB5ETURC75ALR577XG3YVWBYKYGYQXM53U3IGX4S
+#\\\|HS7EQGDZXPZJ5IX2EH47HJYOKYT46SI2SQ7HSMUVXLYK6RHFJTG \ / AMOS7 \ YOURUM ::
+#\[7]CB6CZAAVF75OL6OQREJW2JKPG32HEYUFDYRGSHLKNPIEUV3HAABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

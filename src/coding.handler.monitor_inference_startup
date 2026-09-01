@@ -212,7 +212,7 @@ if ( $bytes <= 0 ) {
         ## log last output lines to help diagnose the crash ##
         my $crash_out = $server->{'output'} // '';
         if ( length $crash_out ) {
-            my @lines = grep {length} split /\n/, $crash_out;
+            my @lines = grep {length} split m|\n|, $crash_out;
             my @tail  = @lines > 3 ? @lines[ -3 .. -1 ] : @lines;
             for my $line (@tail) {
                 <[base.logs]>->( 0, "[monitor_startup] :. %s", $line );
@@ -244,8 +244,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,.,,.,,,.,,,...,...,.,,,.,,,.,.,,,,,.,,,...,..,,...,...,..,,.,.,,,.,..,,...,
-#QUHP7FN7UBJMGPIHI3BUJGDRJU5P3N35QRDY2FJH7ZUM63IJMWKYEILYFGG6VNWOKMJWX4LOE7QV2
-#\\\|UQO3SLMGD3VJKFBGGV2DFL47SFIJ7535MQAGT7CGFGHRJFVYA7N \ / AMOS7 \ YOURUM ::
-#\[7]JBXXXKXUFGVYSXVSJS7ZDVQUNHKCW47BGOVJYIZIJQUVAAE27IAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,...,..,,,.,,.,,,,.,,,,,,,,,,..,,...,...,..,,,,,,,,,,...,.,.,
+#EPB6FMFJLRFKMGTUUAYGM6AUULTUT6T7LODXW73GTQIQDYJ5OJHCETDDPP2PPRN3M77WKNBTWKYZC
+#\\\|DQBICJIAAE7OZAFLZDRPX5JWQWZKMQYUKO3BPV5VYENMKFZKMR3 \ / AMOS7 \ YOURUM ::
+#\[7]KSRCEFQPZBPFK7QNN6MYHAARMKFHTC7M3M23ILCB7RLEHXQRRGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

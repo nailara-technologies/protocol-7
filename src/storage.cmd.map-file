@@ -5,7 +5,7 @@
 my $args = $call->{'args'} // '';
 
 # Parse: <mapping-type> <path> [:option: value ...]
-my ( $type, $path, @opts ) = split /\s+/, $args;
+my ( $type, $path, @opts ) = split m|\s+|, $args;
 
 $type //= '';
 $path //= '';
@@ -23,8 +23,8 @@ my $options = {};
 for ( my $i = 0; $i < @opts; $i += 2 ) {
     my $opt = $opts[$i];
     my $val = $opts[ $i + 1 ] // '';
-    $opt =~ s/^://;
-    $opt =~ s/:$//;
+    $opt =~ s|^:||;
+    $opt =~ s|:$||;
     $options->{$opt} = $val;
 }
 
@@ -59,8 +59,8 @@ if ( $result->{'mode'} eq 'true' ) {
     return $result;
 }
 
-#,,,,,...,,,,,..,,.,,,,,,,,,.,.,,,,,,,..,,,..,.,.,...,...,.,,,.,.,.,,,,.,,,,,,
-#QIKD6SSA7CXU6TXPXYCDEXFZTYNOWREUR7KJHWG6Z3IFZJFNRZ6TDSLEKDFGE7J7VYUVQ3V3UEWD4
-#\\\|ABFYWTO3CKOLCWXUNQD4SURPQDEHYOPEIWTPWJ74STVDHHMUXS2 \ / AMOS7 \ YOURUM ::
-#\[7]27IGWTIBDHTXIDFTVTLNPGPIXAKY2UTLKZTMK6LMEEVTOPCZMQDY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,..,,,,.,.,.,,,,,.,.,...,.,,,.,,,.,.,...,...,.,.,...,.,,,,,,,,,,,
+#K5XCYZHRX6EKYGWCKEAO47SZ2KUWSWB7CODDNL3ER4PWBPIKBCNPFRSJE5SQR6MP6HCNW6NRLFIGG
+#\\\|BG5DNVLLKWJ7G4QG5ZZETZQXJD2O7BPB4NJ4FKMPOROXY7ZYR52 \ / AMOS7 \ YOURUM ::
+#\[7]TK7VCGLVQWEYIYD4BAULR34KH3QQRPOSRKYSZFW3A7N36NZ57UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

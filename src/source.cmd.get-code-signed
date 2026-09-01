@@ -128,7 +128,7 @@ if ( $is_valid and not $footer_data->{'needs_separator_endline'} ) {
                     and $report_ref->{$type}->{$mode};
 
                 # Format numeric modes as ELF-N for clarity
-                my $mode_display = $mode =~ /^\d+$/ ? "ELF-$mode" : $mode;
+                my $mode_display = $mode =~ m|^\d+$| ? "ELF-$mode" : $mode;
                 <[base.logs]>->(
                     2,     ': :. %22s [%s] : %s',
                     $type, $mode_display,
@@ -144,7 +144,7 @@ if ( $is_valid and not $footer_data->{'needs_separator_endline'} ) {
     if ( ref $normalize_paths eq qw| ARRAY | and @$normalize_paths ) {
         foreach my $prefix (@$normalize_paths) {
             if ( index( $code_name, "$prefix/" ) == 0 ) {
-                my ($trailing) = $src_str =~ /(\n+)$/;
+                my ($trailing) = $src_str =~ m|(\n+)$|;
                 my $trailing_count
                     = defined $trailing ? length($trailing) : 0;
                 if ( $trailing_count <= 1 ) {
@@ -277,8 +277,8 @@ return {
     'body-length' => $body_only_length
     }
 
-#,,.,,,.,,.,,,,,,,,,,,,,,,..,,...,...,.,,,,,,,..,,...,...,...,...,,,.,.,.,,.,,
-#YW4NKOBIRHOIBV3BRUY2LSJ34HKNKBC3SRI5OJADPXFADS6AV6U74BHULSDOTC2I2TMPVWEAEXVTG
-#\\\|52QPSRM7M4F55ZOCJFREFKFHQEXRKFBYGOJMRS75MB7SQXTZS4M \ / AMOS7 \ YOURUM ::
-#\[7]4BTT4VQ6DD3BQJDZTRQ3HE6ORX64662SOPBUMIHYOIR55VRFEIBY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,...,...,.,,,..,,,.,,,,,,.,,,...,..,,...,...,...,,.,,,,,,.,.,,,,,
+#7ES234ZI3E3UGUPB5CZLGQ3Q7UHAUKVZLCQCH2WDET25YVUSHNTMS3PGETTGJF6RYH5U3OXJOL5JO
+#\\\|O64UCNMTB7GMVA7IRTRLEMCTAR2QPKL46JEWZND43RQ4OFUEVAS \ / AMOS7 \ YOURUM ::
+#\[7]AGD26DXSYSYPXZBRITRVEKOGDD3RIOFAXKWTDIK3KVOEGYJKY6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

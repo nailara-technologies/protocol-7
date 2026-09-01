@@ -4,7 +4,7 @@
 # param = <position> <video_path>
 # descr = extract specified video frame, start=0
 
-my ( $frame_num, $video_path ) = split( / +/, $call->{'args'} // '', 2 );
+my ( $frame_num, $video_path ) = split( m| +|, $call->{'args'} // '', 2 );
 
 <[melt.trigger.auto_cleanup]>;
 
@@ -13,7 +13,7 @@ return {
     'data' => 'expected frame number and video path parameters!'
     }
     if not defined $frame_num
-    or $frame_num !~ /^\-?\d+$/
+    or $frame_num !~ m|^-?\d+$|
     or not defined $video_path
     or !length($video_path);
 
@@ -38,8 +38,8 @@ if ( !-r $video_path ) {
 
 return { 'mode' => 'deferred' };
 
-#,,..,..,,..,,,.,,,.,,...,,,,,,,.,,.,,,,,,.,,,..,,...,..,,...,..,,,,,,,.,,,,.,
-#5MOEYT6VKQKW5KTCQRLBL7IW2NDKMZZASU7AMMVF42XDLJATZXD2CRJB3BPH56PMBKXA5FNAA2UZO
-#\\\|XSJD2VG5TK7ZZHJVME2T2YCDKQB7ET7SZ2NYS66NUSD7CWATQWO \ / AMOS7 \ YOURUM ::
-#\[7]QV7DFL2M5FJA7TZF7SHXCGMEV76CEIRMFCXTBP77WXVGWOVWP2DI 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,.,,,.,.,.,.,.,,,,,.,...,..,,..,,...,...,...,,,,,.,.,...,,..,
+#XDWH5EQD7LMUDH4DKZK72HY3D6X6RLI27AL2D7V23EEM4ZIPSESUGJGOG25OGMH4WPR3MAUQQGLSU
+#\\\|VHN2QWLY3GWNRVVTL5FVBK3HZBJSEDXOFKMPBFLX42X2DQVVQKU \ / AMOS7 \ YOURUM ::
+#\[7]4LPFMB43NZQWLGUT3UKVTGRMQ37FMFE2ZBKQ2QAHCKRPJNGAVSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

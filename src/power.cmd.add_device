@@ -11,7 +11,7 @@ my $params_str = $call->{'args'} // '';
 return { 'mode' => qw| false |, 'data' => 'hostname or ip address expected' }
     if !length($params_str);
 
-my ( $host, $port, $pass ) = split( / +/, $params_str, 3 );
+my ( $host, $port, $pass ) = split( m| +|, $params_str, 3 );
 
 <[base.log]>->( 2, "checking if $host is reachable.." );
 
@@ -32,7 +32,7 @@ map {
 } keys <power.cfg.devices>->%*;
 
 return { 'mode' => qw| false |, 'data' => 'invalid port parameter' }
-    if defined $port and $port !~ /\d+/;
+    if defined $port and $port !~ m|\d+|;
 
 <[base.log]>->( 2, "resolving mac address for $ip_addr.." );
 
@@ -62,8 +62,8 @@ my $dev_id = <[base.gen_id]>->(<power.cfg.devices>);
 
 return { 'mode' => qw| true |, 'data' => "device added [id=$dev_id]" }
 
-#,,,,,,,.,..,,,,,,,.,,,..,,.,,,,,,,,,,,,.,..,,..,,...,...,.,.,...,...,.,.,,.,,
-#APSMGUDVCMW6N6XZUQOCXW3XYZ7L4LO5WZ7MAXOIKSZXFMSTF7QUF5ACOF4VJMIFVDRMNGMJQ57S2
-#\\\|7DYCARGN52PWFD4KLNHVK3WHOO7XWD43254GDWNGU7TWKC5B57K \ / AMOS7 \ YOURUM ::
-#\[7]AXEJ6KAGXGT23EJTDRALYPKPITTUKBN52C5PFPPMJHLWI4XPSYDQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,.,.,,,.,...,.,,,,..,...,,..,..,,...,...,..,,,,,,,..,...,..,,
+#VH3QXOJPACD3DFX2E4YB4NC3TBR3AESNIC6QS5BNRTSLUQMI5RKASGW26HTSJ5RIHZLNHTRGO4N7W
+#\\\|LNTWQQSK264YFREDCGGVWCIL546NODRAPB5EQD5NXUYP3KXLRCF \ / AMOS7 \ YOURUM ::
+#\[7]E3J5WEKQFONPRFASLLYTG2DZ7BZISRG7D7TOYNZZGWYATDR7KSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

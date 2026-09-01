@@ -12,7 +12,7 @@ foreach my $repo (@$repos) {
 
     open my $fh, '<', $bug_file or next;
     while (<$fh>) {
-        if (/^- \[ \].*\[BUG-(\d+)\]\*?\*?(.*)/) {
+        if (m|^- \[ \].*\[BUG-(\d+)\]\*?\*?(.*)|) {
             my $bug_id = $1;
             my $desc   = $2;
             $desc =~ s|^\s+||;
@@ -35,8 +35,8 @@ foreach my $repo (@$repos) {
 
 return \@bugs;
 
-#,,,,,...,,,,,,,.,...,.,,,.,.,,,.,,,,,,..,.,.,..,,...,...,.,.,,..,,,.,...,..,,
-#SRR3SURWWJHJLO6I3W4JVBHN6RH56NSYGOYDXK7DL7KSIKNXKGTP2GJKKCLOKABFXLZQ7ROBMBWTA
-#\\\|NAHOZMEK4VVKPJTV3ACXIGVC3OXKEJT5PWUPIWUFORWYSL6LEYE \ / AMOS7 \ YOURUM ::
-#\[7]QOQXAF6B4RGSRTMAWNAML2S7C7RYXCHKJQCV7PFSWSW7DGQTKICA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,..,,.,.,,,.,,.,,.,,,,,,,...,,..,..,,...,..,,.,.,...,,,.,..,,,,.,
+#RBYIKTT5EFP5HFIREZTH4OVPWWWTRWVTXFDN4DFAU22FDIOZRXV7SCTBER23IUBWT7VRKUI6EZ62Q
+#\\\|XU3A7PSKDMAXPXMPQSZ6H77AV4TN5ATJSE33YAR4NNVTR7FQD7V \ / AMOS7 \ YOURUM ::
+#\[7]CA3KFKYS5ESM3BS5DQFFKZHV3JL7V4TLJZTSR25ZBEA6WT6PBKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

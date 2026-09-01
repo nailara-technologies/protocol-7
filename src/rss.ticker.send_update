@@ -4,10 +4,10 @@
 
 my $update_commands = shift // <rss.ticker.update_commands>;
 
-my $s = ( $update_commands =~ / / ) ? 's' : '';
+my $s = ( $update_commands =~ m| | ) ? 's' : '';
 <[base.log]>->( 2, "sending update command$s ..." );
 
-foreach my $cmd_str ( split( / +/, $update_commands ) ) {
+foreach my $cmd_str ( split( m| +|, $update_commands ) ) {
     <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.$cmd_str",
             'call_args' => { 'args' => <rss.ticker.txt_data_path> }
@@ -15,8 +15,8 @@ foreach my $cmd_str ( split( / +/, $update_commands ) ) {
     );
 }
 
-#,,,,,..,,..,,.,.,.,.,,..,,.,,.,.,,,.,.,.,,,,,..,,...,...,...,,..,.,,,,,.,.,.,
-#CHKKWBM737SEAF5PVEVTTOYVXSZGXL6T6YQWH6EABPS3XJMOQJLNKNXPW3SWTLS52TJ6FKIXEMFYK
-#\\\|PADUFULSQK4PPE5E6NYMPJDHLAHBSFKLHL7REHNL7H6JVCT3XLU \ / AMOS7 \ YOURUM ::
-#\[7]CWOP2Y6FD5YH6VFWYKW5FBZOQGSBOTGKO6UWFO5WMWLDNY4YAIBI 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,,,,,..,,,.,,.,,,,..,,,,,,..,..,,...,...,..,,..,,,.,,,,,,,,.,
+#PPGXLHIHKSVUC7ULXWALT5F5ACB3HAXBH7SHB267LHTVWDTBLM7JTEMOW3IZTJCDEHFYAMEV47CZY
+#\\\|FC74QLM2KNECX6LVFQTNEJ3REKMFIR3SMWRJ5UOS2HVDAZJM6UD \ / AMOS7 \ YOURUM ::
+#\[7]EI452JA7PFQRF26VFLF6QBHFJEQ75SFCPRS6YFO34KXI7BFUDEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

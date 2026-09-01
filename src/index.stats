@@ -30,11 +30,11 @@ my $top_n = 13;
 
 push @lines, sprintf "  inner ring [ top %d ] :", scalar @inner;
 for my $entry (@inner) {
-    ( my $disp = $entry->[0] ) =~ s/\\/\\\\/g;
-    $disp                      =~ s/\n/\\n/g;
-    $disp                      =~ s/\r/\\r/g;
-    $disp                      =~ s/\t/\\t/g;
-    $disp                      =~ s/\v/\\v/g;
+    ( my $disp = $entry->[0] ) =~ s|\\|\\\\|g;
+    $disp                      =~ s|\n|\\n|g;
+    $disp                      =~ s|\r|\\r|g;
+    $disp                      =~ s|\t|\\t|g;
+    $disp                      =~ s|\v|\\v|g;
     push @lines, sprintf "    %4d  %s  [ freq %d ]",
         $entry->[1], $disp, $entry->[2];
 }
@@ -43,8 +43,8 @@ my $result = join( "\n", @lines ) . "\n";
 
 return { mode => 'size', data => $result };
 
-#,,.,,..,,...,,..,,..,,,,,,.,,,.,,..,,...,,,.,.,.,...,...,,..,,..,,,,,,,.,...,
-#DOJ3I6KL4WO5JMMPXKQDR5Y7BPCEUPJ7SRUITCGOBHLSPHEUA2XYUDBBTW7FV2FV447XRP7OAASI2
-#\\\|EQD5NF33VGICY6KE4ZTZ5YVOLWAACETOYHTLJ5ZVIVPVK2A6PSL \ / AMOS7 \ YOURUM ::
-#\[7]MFNNBC22HE6KRJAITMVGH7N6BSPWRKPNMF25ZYRGXMVHGMEDDEBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,.,,,.,,,.,.,..,,,,,,.,,,,,,,.,.,...,...,..,,,.,,,,.,,,.,,,,,
+#5IV7IVATJKQIVARKVWNUELVZS6HA3OO5TL6TCRIJIXRL3IYT3CBNUNE3WYLV4WS2UO47HLNLTZNQK
+#\\\|7HXCNCIT7NHRQE3RURX35F3ZSHFLNDIPRLPAHI73B6N2G2RS55C \ / AMOS7 \ YOURUM ::
+#\[7]TQAAEY5OAON5JH5S54JSYNKMUUG4DZACEFOJULEDBWTIF63TEUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

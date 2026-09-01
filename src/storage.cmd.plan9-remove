@@ -3,7 +3,7 @@
 # descr = Remove a path over 9P
 
 my $args = $call->{'args'} // '';
-my ( $name, $path ) = split /\s+/, $args, 2;
+my ( $name, $path ) = split m|\s+|, $args, 2;
 
 if ( not length( $name // '' ) or not length( $path // '' ) ) {
     return {
@@ -23,8 +23,8 @@ return {
     'data' => "removed $path"
 };
 
-#,,,.,,..,,.,,.,,,..,,,,,,,,,,..,,,,,,..,,.,.,.,.,...,...,,..,..,,,..,,,.,.,,,
-#NDVC5VVUL6SX4MH3SUNXSDMX3DQG5MIRI7ZPI7QLVWL6QXRN5BDA3FVPK2VBISBLFO3YEKPW75B3I
-#\\\|5OXOS7PQRXZM25PNJEPYMJ6NP562FY2RY25APTPGAXL2ZWT42ET \ / AMOS7 \ YOURUM ::
-#\[7]U4JSABJWVLQNAZJ35SNEKHLH6RNH6SZLRQ4XHJXMW2GDCEDH74BI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,...,,.,,,,,,,..,..,,...,..,,,..,.,.,...,...,,.,,...,,,.,,,,,.,,,
+#Q3GPKMUFQOUGBFJAW3EJKV47WKUKMYCJMYWTIJJRXZODDJIJI76TAYLEAZY5GKU2MXBE5H33S4XBU
+#\\\|57PMPJFVMOWK5YSTMOQEHUQETPVAQDCFWRYB7AJ66B57I3YQGMS \ / AMOS7 \ YOURUM ::
+#\[7]5L4BSBITH22ZZA2UE4X325LHLGAX2LUKHBM7CXGEAL7LN3KAHIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

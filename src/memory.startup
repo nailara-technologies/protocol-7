@@ -19,7 +19,7 @@ my $leaves = <[memory.source.file]>->( { dir => $dir } ) // [];
 
 for my $leaf (@$leaves) {
     my $ref    = $leaf->{'source_ref'} // '';
-    my ($file) = split /#/, $ref, 2;
+    my ($file) = split m|#|, $ref, 2;
     $file //= '';
     $file =~ s{^.*/}{};
     $file =~ s{\.(md|txt|log)$}{}i;
@@ -68,8 +68,8 @@ eval { <[memory.render.context]>; };
 
 return TRUE;
 
-#,,,,,,,.,,.,,..,,.,.,..,,,..,.,,,..,,,..,,,.,..,,...,...,,.,,,..,...,,..,..,,
-#FTH7QN5UUFIYHDUCLKGEFUKOGCKLTWNOIGRSHFMEPKMMLEUISAR667KKHS5GPRJAJ22GYHQKB5RZK
-#\\\|KV7VOGNZROJG5HMT6MMIIW4MZ7YZU7AZ3ZLYIZOWIGMV2KGWDCP \ / AMOS7 \ YOURUM ::
-#\[7]GNN4GCVJQUDYJTQXM66L24V6EUORHOPHS4N6O4LFJ6SVV5BPI2DI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,.,.,.,.,.,.,,,.,.,,,,,,,,,..,,..,,...,..,,,.,,..,,,..,,,.,,..,
+#OHWPHMBBAD4MHUPWMG6KZY4K6CSZTHHOSVUWEUNS2O5NCMPOMM3Q3CUQOPVUVH4GFZ2JRJLRFNIYM
+#\\\|BNHEXBHN45ELC7JK2MLUH66OYVY65M544M473XXNBZ65KQY56MF \ / AMOS7 \ YOURUM ::
+#\[7]JSLPWBJEHFFNVHKSJA4AT4B6O4C5W3U4XZIFUXNJ2EMRYTBK7QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

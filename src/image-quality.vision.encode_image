@@ -31,19 +31,19 @@ return { success => FALSE, error => 'File read failed' }
 
 # Detect MIME type from magic bytes
 my $mime_type = 'application/octet-stream';
-if ( $image_data =~ /^\x89PNG/ ) {
+if ( $image_data =~ m|^\x89PNG| ) {
     $mime_type = 'image/png';
-} elsif ( $image_data =~ /^\xFF\xD8\xFF/ ) {
+} elsif ( $image_data =~ m|^\xFF\xD8\xFF| ) {
     $mime_type = 'image/jpeg';
-} elsif ( $image_data =~ /^GIF8[79]a/ ) {
+} elsif ( $image_data =~ m|^GIF8[79]a| ) {
     $mime_type = 'image/gif';
-} elsif ( $image_data =~ /^RIFF.*WEBP/s ) {
+} elsif ( $image_data =~ m|^RIFF.*WEBP|s ) {
     $mime_type = 'image/webp';
-} elsif ( $image_data =~ /^BM/ ) {
+} elsif ( $image_data =~ m|^BM| ) {
     $mime_type = 'image/bmp';
-} elsif ( $image_data =~ /^\x00\x00\x01\x00/ ) {
+} elsif ( $image_data =~ m|^\x00\x00\x01\x00| ) {
     $mime_type = 'image/x-icon';
-} elsif ( $image_data =~ /^MM\x00\x2a|II\x2a\x00/ ) {
+} elsif ( $image_data =~ m{^MM\x00\x2a|II\x2a\x00} ) {
     $mime_type = 'image/tiff';
 }
 
@@ -58,8 +58,8 @@ return {
     file_path  => $image_path
 };
 
-#,,,,,.,.,...,...,...,...,..,,..,,.,.,,..,,,.,..,,...,...,,.,,..,,.,.,..,,.,,,
-#L6SYZO7UXP6SN3VRXIQO2BS6D23L64DHZTQWM36RLV3YXWMCE7WCM6ODO5RGEKYVGYSXHDUE5QGBK
-#\\\|WBLEZRDIPCPBJE7UDGE73CUTSXFTSE53SJOOU2VXTPNKE26B63Y \ / AMOS7 \ YOURUM ::
-#\[7]NISOAOMFWESYCDXE46DVM23EHUK3EGIG4TN3N5I2BA2TVNNUPUDA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,,,.,,,,,,..,.,.,...,...,..,,..,,...,...,...,,,.,,..,.,.,.,,,
+#C52HT6L4N7NOHUPOS7437NZEMWG3SLL4RWULIWEXMBGFNMXQDS4Z5NYCUBX7O64ZMAPVBX5U2V5SY
+#\\\|GDVYGPAPY6FFPTMH3LIX5VGESBDZOYGQCRXLFNTWBYQW7RTIYHJ \ / AMOS7 \ YOURUM ::
+#\[7]DZPMYK7BNXQIONAOX2JUQTBHR6XRVCU6JA3XZC2XWCKVKUQTE2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,11 +20,11 @@ $memory->{'process'} = {};
 # Read /proc/[pid]/status for memory information
 if ( open( my $fh, '<', "/proc/$pid/status" ) ) {
     while ( my $line = <$fh> ) {
-        if ( $line =~ /^VmRSS:\s+(\d+) kB/ ) {
+        if ( $line =~ m|^VmRSS:\s+(\d+) kB| ) {
             $memory->{'process'}{'rss'} = $1 * 1024;    # convert KB to bytes
-        } elsif ( $line =~ /^VmSize:\s+(\d+) kB/ ) {
+        } elsif ( $line =~ m|^VmSize:\s+(\d+) kB| ) {
             $memory->{'process'}{'size'} = $1 * 1024;
-        } elsif ( $line =~ /^VmSwap:\s+(\d+) kB/ ) {
+        } elsif ( $line =~ m|^VmSwap:\s+(\d+) kB| ) {
             $memory->{'process'}{'swap'} = $1 * 1024;
         }
     }
@@ -73,8 +73,8 @@ if ($log_results) {
 
 return $memory->{'process'}{'rss'};
 
-#,,,.,,..,...,..,,.,.,..,,...,,.,,,,.,.,,,...,..,,...,...,.,,,.,,,.,,,..,,...,
-#FJWLQA6MNO2CGKEWEJHD6DQ6H66VMW4PER77DOYFIQHYYHM6LABPNAHEXMKNH2OUXCOB5ZMXUW3DC
-#\\\|NWY7AOGZGTBUTNSXTGNNB3S2QFFEANG3HNPYURC6SBCO4DMEBML \ / AMOS7 \ YOURUM ::
-#\[7]HKI2OFNZPCH3OYAWLZ2LBCTMQTHVCJOSZBRKZXI66XCKXI4YVGAA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,..,,,.,,,,.,.,,,,,,,.,.,...,..,,..,,...,...,.,,,,,.,,..,.,,,,,.,
+#5MD2VREBZPHBBETCH26DJ3WSAYYSO3IGPFOKVOJVMTSLDAXZQMUJXOC3DCOFERBCE3TUWIYMNYXB2
+#\\\|N5OB7KLBHUKL52VMCNWQHKWA7ASMPVQOUPGPXBZFLWROOWOTR3K \ / AMOS7 \ YOURUM ::
+#\[7]K3KOIRB3E6SIM5AE57VTHYSYNRSFL3QQ4FHXZWYISGGWRJCCI6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

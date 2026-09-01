@@ -7,11 +7,11 @@
 
 my $surface    = shift;
 my $s_y_offset = shift // 0;
-my @mask_areas = split( / +/, <storchencam.mask_areas> );
+my @mask_areas = split( m| +|, <storchencam.mask_areas> );
 my $pix_format = $surface->format();
 
 foreach my $mask_coord (@mask_areas) {
-    my ( $x_1, $y_1, $x_2, $y_2 ) = split( /,/, $mask_coord );
+    my ( $x_1, $y_1, $x_2, $y_2 ) = split( m|,|, $mask_coord );
 
     my %cols;
     my $rnd_col;
@@ -49,8 +49,8 @@ foreach my $mask_coord (@mask_areas) {
     }
 }
 
-#,,,,,.,.,...,,.,,,.,,...,...,,,,,.,.,,,.,,,.,..,,...,...,...,.,.,.,.,,,,,,,,,
-#IEHNX5KF3OET2J5OLHWWZQDN5VJWURL4JI5VNAS2L7DPTF3SSD2KPYBSLSDT2MS4QJ34BKGBRXXH6
-#\\\|XMKSEAXU2AH4NRL4SIEXBMXPFSEPUQLB25AIOGK632O4QD7WD3J \ / AMOS7 \ YOURUM ::
-#\[7]CWX6BAZSVPHOAXCUHBI626HIIFDS2UJMN3ZIX7NF4FDFUFR53CAQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,.,.,,..,...,,,.,,,,,,,,,,,.,..,,...,...,..,,.,.,..,,,,.,,,,,
+#SR2OIK2KXCTNWMF5JBQ6FS4D3OU3L2DIX3UNDDQYMM5HYSXKKL3GBDAH2JYH5F7L4F4YNKYO6AFYK
+#\\\|23QICOPFQ645Y2WKDYFJEAVIQXNXVIB2QORO2PXZOKLHWQ7OGFD \ / AMOS7 \ YOURUM ::
+#\[7]RZ2S7QDBUDEZMTGMNEGHBMK4TJNEDQLB2HJVAB5XN5PUVFVKXMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

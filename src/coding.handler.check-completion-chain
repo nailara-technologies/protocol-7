@@ -36,7 +36,7 @@ $meta_job->{'handler_call_count'}++;
 );
 
 # Guard: Don't process if we've already sent a reply
-if ( $meta_job->{'status'} =~ /^(complete|error|failed)$/ ) {
+if ( $meta_job->{'status'} =~ m{^(complete|error|failed)$} ) {
     <[base.logs]>->(
         2, "[check-completion-chain] already processed (status=%s), ignoring",
         $meta_job->{'status'}
@@ -111,17 +111,18 @@ if ($appears_complete) {
     # Determine reply mode based on internal newlines (excluding trailing)
     my $final_data    = $meta_job->{'accumulated'};
     my $stripped_data = $final_data;
-    $stripped_data =~ s/\n$//;    # Remove trailing newline for counting
+    $stripped_data =~ s|\n$||;    # Remove trailing newline for counting
     my $internal_newlines = ( $stripped_data =~ tr/\n// );
 
  # Single-line (0 internal newlines): strip trailing newline, use 'true' mode
  # Multi-line (1+ internal newlines): ensure trailing newline, use 'size' mode
     my $reply_mode;
     if ( $internal_newlines == 0 ) {
-        $final_data =~ s/\n$//;    # Strip trailing newline
+        $final_data =~ s|\n$||;    # Strip trailing newline
         $reply_mode = 'true';
     } else {
-        $final_data .= "\n" if $final_data !~ /\n$/; # Ensure trailing newline
+        $final_data .= "\n"
+            if $final_data !~ m|\n$|;    # Ensure trailing newline
         $reply_mode = 'size';
     }
 
@@ -148,15 +149,15 @@ if ( $meta_job->{'resume_count'} >= $meta_job->{'max_resumes'} ) {
     # Send accumulated result with size mode (still successful, just capped)
     my $capped_data     = $meta_job->{'accumulated'};
     my $stripped_capped = $capped_data;
-    $stripped_capped =~ s/\n$//;
+    $stripped_capped =~ s|\n$||;
     my $capped_internal_newlines = ( $stripped_capped =~ tr/\n// );
 
     my $capped_reply_mode;
     if ( $capped_internal_newlines == 0 ) {
-        $capped_data =~ s/\n$//;
+        $capped_data =~ s|\n$||;
         $capped_reply_mode = 'true';
     } else {
-        $capped_data .= "\n" if $capped_data !~ /\n$/;
+        $capped_data .= "\n" if $capped_data !~ m|\n$|;
         $capped_reply_mode = 'size';
     }
 
@@ -271,8 +272,8 @@ $meta_job->{'task'}    = $cont_routed;
     $cont_routed->{id}
 );
 
-#,,,.,,..,..,,.,.,,,.,,,,,.,.,.,,,...,,.,,,.,,..,,...,...,.,,,...,.,.,,..,..,,
-#K56PEGCKQHEQ5P3RDBYJAFTGNXNJJMBFPGQDPBD4AW6IMHEJ3M3F6467UXJGMUE5VYX2ZYBICGHPS
-#\\\|7LHYRYQTEI66VUP3GPFDK5ECPXDKWP3ODFQSVKX6WAI424IBJX3 \ / AMOS7 \ YOURUM ::
-#\[7]XA5RVLFV2T3NPQOQGFXVNYCR6YDFIB3HKSF636CQDV6PRRSL6OCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,...,,,,,..,,.,,,...,.,.,.,,,..,,...,..,,.,.,...,,..,...,..,,
+#EM4UBGSTEXH6NSFENIMOJSJSRVQWGQS75DVMQO7Y6XWJRNIIJBZI7FKK2F3VEF2QLA7KK5A34N73G
+#\\\|KT2BARPOQY3FRERKYIG5QPAEQGLVXQ4AWTMEMGRZENSF77H5O2P \ / AMOS7 \ YOURUM ::
+#\[7]AF7DQVPYJMR6ZQNQIKEZN4QQNQHAO44GJ2BFK4PSJYYFVZ3GMUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

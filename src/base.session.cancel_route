@@ -3,7 +3,7 @@
 # name = base.session.cancel_route
 
 ( my $sid, my $msg, my @route_cids ) = @_;
-return warn "expected session id" if not defined $sid or $sid !~ /^\d+$/;
+return warn "expected session id" if not defined $sid or $sid !~ m|^\d+$|;
 return warn "[cancel_route] expected termination message"
     if !length $msg // '';
 
@@ -73,8 +73,8 @@ foreach my $s_cid (@route_cids) {
     delete $data{'route'}{$route_id};
 }
 
-#,,,.,.,.,,,.,,..,,,,,,,.,.,.,,.,,,,,,...,.,,,..,,...,...,.,,,...,.,.,,.,,.,,,
-#WDSSGYX2R2RKXVOJBXY5BF3MU2SOOXPHDEQMJI3YEIB6FG5GVMRYNHJOI2RMECHKLTSPU54EZHNZQ
-#\\\|HV3FGIOHHUALHCZUXH6QTOAUIF5CI6MOI232SBVXVAEWGJNWSCP \ / AMOS7 \ YOURUM ::
-#\[7]UP5OIJNTPWAQNZXWE2S2G422KORQRXEUQJMKCBM2RGNIHRJE5UDI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,,..,.,.,.,,,,.,,,..,,,,,,.,,..,,...,...,,,,,.,,,,..,,,.,.,.,
+#4E3DJAGVZSICRNXGHNVRXEPOHDEHGPRIPIZEJP6FHPGBG7DYLDMHTYSF6ZF4XSMOFAYHGCOQX5JHS
+#\\\|JFXIYN4CBOTY5MBCU45PA6EBANGDQYIKN4LB4EAJY6GBGBMWWMD \ / AMOS7 \ YOURUM ::
+#\[7]YIBU6KBOZWAPSSEJQBDTFHM52N6JQAJGL52NSECMYJCPL2XGPGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

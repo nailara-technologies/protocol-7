@@ -100,9 +100,9 @@ for my $status (
     my $dir = "$jobsite_root/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
-    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+    for my $fn ( grep { m|\.yaml$| && !m|^\.| } readdir($dh) ) {
         my $enc_id = $fn;
-        $enc_id =~ s/\.yaml$//;
+        $enc_id =~ s|\.yaml$||;
         my $id = <[base.vax-int.decode]>->($enc_id);
         $active_id{$id} = $status if length $id;
     }
@@ -176,7 +176,7 @@ for my $id ( keys %active_id ) {
         my $date_added  = '';
         my $date_posted = $js_job->{'date_posted'} // '';
         if ( length $date_posted
-            and $date_posted =~ m{^(\d{4})-(\d{2})-(\d{2})} ) {
+            and $date_posted =~ m|^(\d{4})-(\d{2})-(\d{2})| ) {
             $date_added = "$1-$2-$3";
         } else {
             my $fetched_at = $js_job->{'fetched_at'} // '';
@@ -221,7 +221,7 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
                 $removed++;
             } elsif ( -d $path ) {
                 opendir my $sdh, $path or next;
-                for my $sfn ( grep { !/^\./ } readdir($sdh) ) {
+                for my $sfn ( grep { !m|^\.| } readdir($sdh) ) {
                     unlink "$path/$sfn" if -f "$path/$sfn";
                 }
                 closedir $sdh;
@@ -239,8 +239,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,.,,,.,,.,.,,..,..,,.,.,..,,,.,,...,,,.,,,,,..,,...,...,...,,..,,.,,.,,,,..,
-#LO2OFBN23LDVODUOLWAF57KL5JIBKQDBD6EWU7I57UR3DD46FQ6RJRDCO2ISC54CUOP5P4E6XXZUW
-#\\\|LFQ3UG7P4QOJUWVQMO2TRHPMFDL6I2PXB5IC3ZBS3MO3CJNTNNG \ / AMOS7 \ YOURUM ::
-#\[7]OSRYNMDMXYSDWVP2W7TJCLGMMMN6M5PHVR6LXFH2HIOLZGOL7SCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,,.,,.,,,..,,.,,,,,.,.,,,,..,..,,...,...,.,,,,..,.,,,..,,...,
+#K6MSY2EQIPLLSXPA5MDZVGAW6LVBQ25KJEBYLNIOEOLMVNKCXJLUPKLFF53WWMS7CX7YMMC2NWMFO
+#\\\|XHMCA6KV5WP55OWXW2RHYDYJW6ZTBCEJB46K5IQADRUHOTG7O4H \ / AMOS7 \ YOURUM ::
+#\[7]I2XOZMNQLYVMQMUOFAFKOJFB2CGPNLNTUV4G6PLD5RDMEC2ALODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

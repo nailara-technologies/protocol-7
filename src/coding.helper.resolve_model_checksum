@@ -13,13 +13,13 @@ my $metadata = <coding.model_metadata> // {};
 my $matched_entry;
 
 my $search_term = lc($model_name);
-$search_term =~ s/[-_\s]+//g;    ## Normalize: gemma3glitter4b ##
+$search_term =~ s|[-_\s]+||g;    ## Normalize: gemma3glitter4b ##
 
 foreach my $cache_name ( keys %$metadata ) {
     my $entry = $metadata->{$cache_name};
 
     ## Skip vision projector files ##
-    next if $cache_name =~ /mmproj/i;
+    next if $cache_name =~ m|mmproj|i;
 
     ## Check amos field (primary ID) ##
     my $entry_amos = $entry->{'amos'} // '';
@@ -49,9 +49,9 @@ foreach my $cache_name ( keys %$metadata ) {
     ## Check partial normalized match ##
     else {
         my $cache_norm = lc($cache_name);
-        $cache_norm =~ s/[-_\s]+//g;
+        $cache_norm =~ s|[-_\s]+||g;
         my $amos_norm = lc($entry_amos);
-        $amos_norm =~ s/[-_\s]+//g;
+        $amos_norm =~ s|[-_\s]+||g;
 
         if (   index( $cache_norm, $search_term ) >= 0
             || index( $search_term, $cache_norm ) >= 0
@@ -68,8 +68,8 @@ return {
     matched_entry => $matched_entry
 };
 
-#,,..,,..,,,,,,.,,,,.,,,.,.,.,..,,.,.,...,,,.,..,,...,...,..,,.,.,.,,,...,,,.,
-#YKTTTI5LXHREWSNNJ5XNNSOYZQQTTKBQOXTRJGNKDFALMKLNOVROD5YH3MQXWOZLMFR4KVBZYUC5U
-#\\\|EQKJVJXH6C23AKLLJJZBIBM2GU5ZDFYLVTJMELYTYI5RMGLJ2OK \ / AMOS7 \ YOURUM ::
-#\[7]H4WUD4EEIYMDH4E2WLEWJ3RJ2VUMRYI7HLPL54N5YHS5DMMFQYAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,,,.,,..,..,,,..,,..,,..,.,.,..,,...,...,,,,,...,,,.,,.,,,,,,
+#VG633HMFH7TKKXDALZQWVRBUQB6D3CZUPIZXYC4BACYKFKSSTSS4PX527KQLEAN57MSMHOZMD6WZ2
+#\\\|OO5CD2ZMG23HWFPKECAHVNQMQBNLNMWHZPJRVO6ETUP4B7LGUND \ / AMOS7 \ YOURUM ::
+#\[7]V7CLRMF4BTUCENBQMREK6OUQA4URSDMRNHLGCHYUYQOYKNDEMIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

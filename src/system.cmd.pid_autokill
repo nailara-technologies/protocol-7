@@ -7,7 +7,7 @@
 my $request_str = $call->{'args'} // '';
 my $hostname    = <system.host.hostname>;
 ( my $log_usr, my $process_id, my $log_message )
-    = split( / +/, $request_str );
+    = split( m| +|, $request_str );
 $log_usr =~ s|^$hostname.||;
 
 return {
@@ -35,8 +35,8 @@ return {
     'data' => "terminating pid $process_id .., [ if present ]"
     }
 
-#,,,.,,,.,,,,,,,.,,..,...,,,,,,,.,,,,,.,.,...,..,,...,...,...,,..,..,,,..,,,.,
-#IH5HY6BJH4CB7HETN2LS6675OGCNU4KMY4BXQJWAEPNDW4WYSYDCWA6DVNBBTJC3VGBDLMJIHQG66
-#\\\|FR4ORRXPQ7JIYVZ63HGAFU7UGLTMYGLBKUPSCQNKPLLN24CBXYH \ / AMOS7 \ YOURUM ::
-#\[7]FNFW3XVDKU3QYBQV5UAS2TE2FRIGDZSWYMMZ5YWV2DBRROZM5YCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,...,.,.,,,.,,,,,...,,,.,,,.,..,,...,...,,.,,...,.,.,,,.,.,.,
+#EATNWXI6KOAEOPXMV5DXESBEAOVIZGL5NPF2GZROGCIQL2JUYKEIM4AOBD2OQQBR4PIKYL42JNY7K
+#\\\|THT2FJQYZLTAVE2WWLHO5EJCF54AK6Q6GSAA5QOVOTQFR3HA7HJ \ / AMOS7 \ YOURUM ::
+#\[7]TAERWHFSNPCYBO244RNR7XZKTUX7ND2I242HL3Y5UJVDYSC7GCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

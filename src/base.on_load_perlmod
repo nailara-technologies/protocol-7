@@ -6,7 +6,7 @@ my $perl_module = shift;
 my $code_name   = shift;
 my @params      = @_;
 
-if ( $perl_module !~ /^(\w+|::)+$/ ) {
+if ( $perl_module !~ m{^(\w+|::)+$} ) {
     <[base.log]>->( 0, "invalid module name '$perl_module'" );
     return 3;
 }
@@ -30,8 +30,8 @@ if ( eval "use $perl_module" or $EVAL_ERROR or length($OS_ERROR) ) {
     return $code{$code_name}->(@params);
 }
 
-#,,,.,.,.,,.,,.,.,,.,,.,.,,,.,.,.,...,,,.,,,.,..,,...,...,...,,..,..,,,,,,,.,,
-#BA6GEUZ4F43VPSCLVOCTMIBTEJ2QBGLVOIUGRVFYPUKVCZVNQM5V2VV5LCOAF4TY3EZDDUJ5JMNSM
-#\\\|S2FQYY34HIXEB55E3AZ3RQXWLTMTA4DMKQW4267VWLEJHUAJLLI \ / AMOS7 \ YOURUM ::
-#\[7]LPNIBWAOIS6ULL5ANUHSNV5XRFSIMFPPJM33PEYX3KSL2ESJFKDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,..,,..,,..,,..,,.,.,..,,,,.,..,,...,...,...,...,.,,,,.,,,..,
+#6OO5NVKILNYNTIY6CDTLRBDHHP7CTJEEHZIFYLKA7AOWLIV26M5MPDP7RWT62QBE2M7VVRS2WXPPA
+#\\\|FXJ343OLPAQTUQV5I2HJQW3FESBWQUDNR3FS7HWOECDGRYSA7LZ \ / AMOS7 \ YOURUM ::
+#\[7]G6VOFPLOLE6TRIOCU57ULTPRONCATFMABTQO4NQJIKGCVZJR7GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

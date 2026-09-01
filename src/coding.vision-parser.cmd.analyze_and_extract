@@ -19,7 +19,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
 
     # Single-line mode - parse space-separated arguments
-    my @args = split( /\s+/, $call->{'args'}, 3 );
+    my @args = split( m|\s+|, $call->{'args'}, 3 );
     $image_path        = $args[0];
     $vision_prompt     = $args[1] // $vision_prompt;
     $extraction_prompt = $args[2] // $extraction_prompt;
@@ -116,8 +116,8 @@ my $queue_result = <[protocol-7.command.send.local]>->(
 # Return deferred response - actual result will come via reply handler
 return { 'mode' => 'deferred', 'data' => "Vision analysis queued\n" };
 
-#,,,.,..,,,,.,.,,,,,,,,,.,,,,,,.,,.,.,,,.,...,..,,...,...,,..,...,,..,.,.,,,,,
-#FQIMRVWG4VU5FHUHMZQ2QV63742LQCYKZGUF2CJMTUTK7YWJV5JSBPL3EFQ4ECPPL3VSSKCHOQQJC
-#\\\|UAKPWSE32QJJ2DPIU5QECC4N445WHDYGOCARJ5VOFGKL5BV7CE2 \ / AMOS7 \ YOURUM ::
-#\[7]WQWUVVGF42OYYFQK573KAMFI57A5E2GGPCJAP5SHWUVQCFHEO2DY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,.,.,.,..,,.,.,,,.,,..,.,.,,..,..,,...,...,...,...,,,,,,..,.,.,
+#V3QSL4B336K6AO5QHEM7KJ47LSZGVFS3LDN7GAXEEPOCBYZ5EOGK4VDMN7OJ6RI74ALKJJ6KY2XUC
+#\\\|QDVN3XP73SB6P6V6W2BQJ3SLNILH7I7LGUIHBHJQFQLLU75YOCA \ / AMOS7 \ YOURUM ::
+#\[7]T3FKSVX7AXMKDQ64IJSP23DUUJ43XI2UBYK4R3OZQZBKZBU6JSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

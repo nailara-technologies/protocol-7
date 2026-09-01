@@ -19,7 +19,7 @@ my $ffmpeg_cmd_line
     . "default=nokey=1:noprint_wrappers=1 $video_path 2>/dev/null";
 
 chomp( my $output_str = qx($ffmpeg_cmd_line) );
-my $frame_count = $output_str =~ /^(\d+)$/m ? $1 : undef;
+my $frame_count = $output_str =~ m|^(\d+)$|m ? $1 : undef;
 
 if ( defined $frame_count ) {
     <[base.log]>->( 2, ": file '$file_name' has $frame_count video frames." );
@@ -31,8 +31,8 @@ if ( defined $frame_count ) {
 
 return $frame_count;
 
-#,,..,.,.,.,,,.,.,,..,.,,,,,,,,,,,,,.,..,,..,,..,,...,...,.,.,,..,...,,..,...,
-#PVKMNLATXVKJNFMXD3VBLDKCSA2LYU2Q6SNPW7DL63WJ5UOWLIMAUGPUQADMRX37POOKJ5UASI4YY
-#\\\|M6SQTLQVSKZKM4354GZ4KF2QQUGNOL5B2UTLRDNZRZKBYU55IAJ \ / AMOS7 \ YOURUM ::
-#\[7]XW6RLLFBY5I2B5GFYIR3WPZ7YXBWD2W4RRQUR3WYVK7WM4DSG2DA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,.,.,,,,,,,.,...,,..,,,,,..,,..,,...,...,.,.,.,,,..,,..,,,.,,
+#BTHBCAXVQTWVSI43O7GOLS4RCJM7LS6HDXNBM4PV6S3WOTJVWJUAUHZXLSHUXWXATXH6XLM7VG7BQ
+#\\\|BK33KWMSQMQWSIIJWOEHI7T4MV3XRK53KMPGOSBBBYEJ2XVZI4S \ / AMOS7 \ YOURUM ::
+#\[7]3JUYFEH3GEB7NZCIIA6DKZWVHPTS5GXZQIZSETDMHY7O5WSGLGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

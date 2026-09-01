@@ -20,7 +20,7 @@ my $notes_base = <[file.zenka_dir.data_path]> . '/notes';
 
 ## parse source specs: comma-separated "section" or "task_id:section" ##
 my @sources;
-for my $spec ( split /\s*,\s*/, $source_specs ) {
+for my $spec ( split m|\s*,\s*|, $source_specs ) {
     next unless length $spec;
     if ( $spec =~ m|^([^:]+):(.+)$| ) {
         push @sources, { 'task_id' => $1, 'section' => $2 };
@@ -108,8 +108,8 @@ return {
     ),
 };
 
-#,,,,,,..,,,.,.,,,...,,..,..,,,..,.,,,,.,,.,,,.,.,...,..,,.,,,.,.,,,,,...,.,,,
-#4LIBODLOALGMN5TZZMOSEA2LSC6RIPXJYOEMDILEU5IRDCK6IB5LVOWOD6FQSWQB64OAQEAE4UOUK
-#\\\|F44EHKA3PPYQWKKLMRSIQIISD7M3WXSM5IWVEQGLT375UQD25RT \ / AMOS7 \ YOURUM ::
-#\[7]LUIO5FUUCUXS6EHN5PUNNFQQ5UUMDQKSKOLKAF4IEROBGLXFSCAA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,,,,..,,.,,..,,,,,,.,.,.,.,.,.,.,.,...,...,..,,,,,,.,.,,,.,.,,,
+#GW4PBPEH2YFJBQH6AHUJZGEO7SCATMRFFPW7TQQC2RYWFHQ5M2GLQEMZXWQLNIJBKF4YWHCG3MQIA
+#\\\|LMIY2RVDFO2S7A7CLGM4LCHIVYTDLD7I7NPWAXKPKQ24O2D5DQ3 \ / AMOS7 \ YOURUM ::
+#\[7]POZHFQN3BYZSLOLF2WXLVEHAYMLFNHZNL7H2RT3MH6ZJ63SW2UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

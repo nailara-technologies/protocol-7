@@ -4,7 +4,7 @@
 #         <path> <name> [:rw:] [:symlinks: reject|contained|allow]
 
 my $args = $call->{'args'} // '';
-my @tok  = split /\s+/, $args;
+my @tok  = split m|\s+|, $args;
 
 my $real_path = shift @tok;
 
@@ -17,7 +17,7 @@ if ( not defined $real_path or not length $real_path ) {
 }
 
 my $name;
-if ( @tok and $tok[0] !~ /^:/ ) {
+if ( @tok and $tok[0] !~ m|^:| ) {
     $name = shift @tok;
 }
 $name //= '';
@@ -33,7 +33,7 @@ for ( my $i = 0; $i < @tok; $i++ ) {
         $writable = 1;
     } elsif ( $tok[$i] eq ':symlinks:' and $i + 1 < @tok ) {
         my $val = $tok[ ++$i ];
-        $symlink_policy = $val if $val =~ /^(?:reject|contained|allow)$/;
+        $symlink_policy = $val if $val =~ m{^(?:reject|contained|allow)$};
     }
 }
 
@@ -56,8 +56,8 @@ if ($ok) {
     };
 }
 
-#,,..,,..,,,,,.,.,..,,,,,,,.,,..,,.,,,,.,,,,.,..,,...,...,.,.,,..,...,.,.,,,,,
-#D52XXZNFS2NIMN5ZBZ5I25NXORJBCRE6H3VP4DXSKNWRVZ7S6EDJTVXPQQG6QHVCFS5DUYTCGZRLA
-#\\\|JIWYAIKA6M6AQFAJXG3F4AD57QLYYTEP2ZW45GHEGYZCWWE63EN \ / AMOS7 \ YOURUM ::
-#\[7]O4YUMRKTS646X2UH6FR7OOZQSUWDYBGNENE7T3DI67M7MTSPWSCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,.,,,,,,,,.,,..,,,,,,,,,,,,.,..,,...,...,.,.,,.,,.,.,,,,,..,,
+#XQUTFIUGUYKXC7OKXBFO5ZCKKBDZS2C4QBXZAQYBWZRJK6DYF5SWOMNFT2MPN4ZGSV7FUBDYAEB4Q
+#\\\|UR2KI6G57LWUIXV7W75LSJGLNWGKE3X22MI7DADJUNQNZDIZMKM \ / AMOS7 \ YOURUM ::
+#\[7]V2WS623XZ5IWNXBW6E6ESBVMJQNVSX27QBLDLK23JQI5T5BVG6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

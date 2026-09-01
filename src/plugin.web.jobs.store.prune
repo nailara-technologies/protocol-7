@@ -11,11 +11,11 @@ my ( $blocked_moved, $deleted_pruned ) = ( 0, 0 );
 my $blocked_root = "$cache_dir/blocked";
 if ( -d $blocked_root ) {
     opendir my $dh, $blocked_root or goto PHASE2;
-    my @epoch_dirs = grep { !/^\./ && -d "$blocked_root/$_" } readdir($dh);
+    my @epoch_dirs = grep { !m|^\.| && -d "$blocked_root/$_" } readdir($dh);
     closedir $dh;
 
     for my $ep_dir (@epoch_dirs) {
-        next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        next unless $ep_dir =~ m|^V7[A-Z2-7]{5}$|i;
         my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
         next unless defined $ep_num and $ep_num =~ m{^\d+$};
         my $distance = $current_epoch - $ep_num;
@@ -33,7 +33,7 @@ if ( -d $blocked_root ) {
         }
 
         opendir my $edh, $src_dir or next;
-        my @stubs = grep { /\.yaml$/ && !/^\./ } readdir($edh);
+        my @stubs = grep { m|\.yaml$| && !m|^\.| } readdir($edh);
         closedir $edh;
 
         for my $stub_fn (@stubs) {
@@ -62,11 +62,11 @@ PHASE2:
 my $deleted_root = "$cache_dir/deleted";
 if ( -d $deleted_root ) {
     opendir my $dh, $deleted_root or goto DONE;
-    my @epoch_dirs = grep { !/^\./ && -d "$deleted_root/$_" } readdir($dh);
+    my @epoch_dirs = grep { !m|^\.| && -d "$deleted_root/$_" } readdir($dh);
     closedir $dh;
 
     for my $ep_dir (@epoch_dirs) {
-        next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        next unless $ep_dir =~ m|^V7[A-Z2-7]{5}$|i;
         my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
         next unless defined $ep_num and $ep_num =~ m{^\d+$};
         my $distance = $current_epoch - $ep_num;
@@ -95,8 +95,8 @@ return {
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,.,,,..,,,,,..,,,..,,,.,,,,,.,,,...,,,.,..,,..,,...,...,.,.,.,.,,,,,.,,,...,
-#UH3OXPOW6DB4BMNACX32DLNYKMIQ75FYK7PGWV5TEXNPE2H7EAAPFEAGVPMGTDUNXIORSAIG5OXMI
-#\\\|PJX3KUFC7EHUZZCECTFTK4K56GKLF4CAK2MWLEO7MT7WHZXHWWM \ / AMOS7 \ YOURUM ::
-#\[7]54GFYOLLVFK6UKJ4PHX26RCHZOCT7O7YN7NVVN3DX4X37TYFHQBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,...,.,.,.,.,.,.,,.,,,,.,.,,,..,,...,...,,,.,.,.,,,.,...,,.,,
+#5QUH6IXSTRO5L22GQQ7PVQ4NXESIONTBOLCEEO5R4CMO2NOK3W6GDNZL37BEE5XTZHQPVS7XS2PIU
+#\\\|UQLTUPWVZJBUIWOCTYMIGY5TK7A7UPCHHI2TDOH3TINV6SYIHHX \ / AMOS7 \ YOURUM ::
+#\[7]QX5B32POYTULDUFCTMPTWYYR4RKWULXDOL7HKX37DLQOL2JNI6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,7 +47,7 @@ if ( $strategy eq qw| concat | ) {
 
     for my $content (@contents) {
         ## split into sentences/paragraphs ##
-        my @parts = split /\n\n+/, $content;
+        my @parts = split m|\n\n+|, $content;
         for my $part (@parts) {
             ## normalize for dedup ##
             ( my $key = $part ) =~ s{\s+}{ }g;
@@ -75,7 +75,7 @@ if ( $strategy eq qw| concat | ) {
         $score *= 0.5 if $results->{$agent_id}{'is_error'};
 
         ## bonus for structured output ##
-        $score += 100 if $content =~ m{^#{2,3}\s+\w}m;
+        $score += 100 if $content =~ m|^#{2,3}\s+\w|m;
         $score += 50  if $content =~ m{\*\s+\w}m;
 
         if ( $score > $best_score ) {
@@ -99,8 +99,8 @@ for my $agent_id ( sort @agent_ids ) {
 }
 return { 'output' => $output, 'strategy' => 'concat (fallback)' };
 
-#,,,.,,,,,...,,..,.,,,,,.,.,.,.,.,.,.,.,,,,..,.,.,...,...,.,.,...,,..,.,.,,..,
-#AQYCLWIQ45YPCSSCKEJ4IV2F73RUTHLENY6S75UG6QNZKJ3WYNAQ3URIMBR26B4E5VXRJLGATJGIE
-#\\\|XN7JMT4HGGSZRBV6W5USQRZAV2IMLDLI3XX3F45D3ZZVQPXLQ7Y \ / AMOS7 \ YOURUM ::
-#\[7]LLD6YMYQJEJHRSVBGG4DLNKKMOVJDPHDJN22NI2KI22W54E3TYAY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,..,,,,.,,,.,,,,,,,,,.,.,...,.,.,...,...,...,...,.,.,,..,,.,,
+#NWB5NWBOXO4M2AX6CZ5TLIVA3SPGGCUCKROPMUTMWZ6KPI3VMZP65C2DTBRFI6Y742BCP2HP7SJDM
+#\\\|E4LRVYV32Z2SJACZHWS5ODIEJSDNDJBCPC6CTXW4U65OO6Z5T75 \ / AMOS7 \ YOURUM ::
+#\[7]SYQSUIP66ODFAZZRU2ACC27L2O2KQPT5CSDCPCCDBWO4KXD3KGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

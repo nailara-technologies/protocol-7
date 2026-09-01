@@ -5,7 +5,7 @@
 my ( $station_id, $weather_data ) = @_;
 
 die "expected (valid) station id parameter"
-    if not defined $station_id or $station_id !~ /^\d+$/;
+    if not defined $station_id or $station_id !~ m|^\d+$|;
 die "expected 'current' weather data"
     if not defined $weather_data
     or ref($weather_data) ne qw| HASH |;
@@ -69,8 +69,8 @@ foreach my $key ( 'clouds', 'humidity' ) {
 <[base.log]>->( 2, "writing html pages.. [ got new 'current' data ]" );
 <[weather.parent.write_pages]>->($station_id);
 
-#,,,,,,,.,,.,,,,.,.,,,.,.,,,.,,..,.,.,.,.,.,,,..,,...,...,..,,,,,,,.,,,,,,...,
-#TZCAWF2SUHLU76TEF4UNCUJWQL6C3FG6JOSNQRTBYPJM6JFDH36N33JNU66PU6FX27JWOGNHJJDJ2
-#\\\|L2YEY5DBOSYNNOIPHHBN56LUF3YX534Y5LYT47CJCH7RUMRH5JY \ / AMOS7 \ YOURUM ::
-#\[7]57LTDS4GTRGQLZZGHCW7KKCFNLTPDPHUXDNN7TIMHMV2WIZYYOBQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,.,,,.,,.,,...,,,.,,.,,.,,,,.,,..,,...,..,,.,,,,,.,.,.,,..,.,,,
+#KTFJGRHF2PINR57ZFEFVTEJXI4AUY2SIINGWB5ZSWJNS3RCRGNR7HJMC75MFX4NUBXJK2ADBY2OU6
+#\\\|A4TMAN56KKCE24DD7FQ4XIJW4JKQKXUORGSIVUDGKUU6CRJNLMS \ / AMOS7 \ YOURUM ::
+#\[7]N5VBHUKKCWUUICJHVYEOYLFZD3EBZ3CM43RMDJOSCKQ2DPHXEUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

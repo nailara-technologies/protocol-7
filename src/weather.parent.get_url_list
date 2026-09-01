@@ -4,7 +4,7 @@
 
 my $station_id = shift;
 die "expected (valid) station id parameter"
-    if not defined $station_id or $station_id !~ /^\d+$/;
+    if not defined $station_id or $station_id !~ m|^\d+$|;
 
 my $cache_dir = <weather.cache_dir>;
 die "cache_dir not set"                           if not defined $cache_dir;
@@ -27,12 +27,12 @@ unshift( @url_list, $url_list[0] . '#[DELAY=0.42]#' );
 $url_list[1] .= '#[DELAY=' . <weather.current_cond_delay> . ']#'
     if <weather.tile.count> == 3
     and defined <weather.current_cond_delay>
-    and <weather.current_cond_delay> =~ /^\d+(\.\d+)?$/;
+    and <weather.current_cond_delay> =~ m|^\d+(\.\d+)?$|;
 
 return @url_list;
 
-#,,,.,.,.,.,.,,,.,.,,,..,,...,.,,,.,.,,.,,...,..,,...,...,,,.,.,.,,..,,,.,.,.,
-#HOXMBDAMO74ZU7QSEOAQGJKSKF5PJZX3NJHMEI3OKTI5GGKOBRBEI6VNCYHTR4ITGK57OXW6AIFU4
-#\\\|TITZYNCPHQJYOPNSSJOXNTTQ6MND6QEOJAJB3PPBSIOP3RSIVOT \ / AMOS7 \ YOURUM ::
-#\[7]HOZBLIA6BGQH2EEC44ZSRH4MTN5A2PGNQWBTM5ASXDT7XAV3WCCI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,,,.,,,.,,.,,,,,,..,,,..,,..,..,,...,...,.,.,,.,,,,.,..,,,,.,
+#53N57ODOO5GSI73DRDPVLLBOBKRXZWWHSJV4R744G3Y7ABTNEXMZFY3UEOG7VBE752YDKICRCA77Q
+#\\\|42GNJCNIKNQC7QVJ5AQHV5CV5OJME4DOLRTRZI4UKJBDETAWY3H \ / AMOS7 \ YOURUM ::
+#\[7]KPLWGGFHRTL3NCY73CUHNGTK342NWZT3CCFU7G2TXB7TSGZBICAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

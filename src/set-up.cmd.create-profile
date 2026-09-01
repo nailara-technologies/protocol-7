@@ -8,7 +8,7 @@ my $profile_name = $call->{'args'} // '';
 return { 'mode' => qw| false |, 'data' => 'expected config name parameter' }
     if !length($profile_name);
 return { 'mode' => qw| false |, 'data' => 'invalid profile name!' }
-    if $profile_name !~ /^[\w\-_\.]+$/;
+    if $profile_name !~ m|^[\w-_\.]+$|;
 
 <[set-up.chk_profile_dir]>;
 
@@ -23,7 +23,7 @@ if ( !opendir( $dir_fh, $import_dir ) ) {
     <[base.log]>->( 0, $err_msg );
     return { 'mode' => qw| false |, 'data' => $err_msg };
 }
-my @import_files = grep {/\.json$/} readdir($dir_fh);
+my @import_files = grep {m|\.json$|} readdir($dir_fh);
 closedir($dir_fh);
 
 my $import_data;
@@ -75,8 +75,8 @@ return {
     'data' => "profile_file '$profile_json' written ($bytes bytes)"
 };
 
-#,,,,,,..,.,.,.,.,,,,,...,.,.,...,...,.,.,.,.,..,,...,..,,...,.,.,,,.,,,,,...,
-#IHPBWV4XUN534UZ2YHYLZEAN6GR4KNWH34BUROFV5ONWVSOXPCEHHU5E5UD5AZXVDXPAEWEFCSCRI
-#\\\|CXO2O6RSAYP7IFTWOB6JNR25E5BALO44CX4LCVQ3XGIJK4MQD2Y \ / AMOS7 \ YOURUM ::
-#\[7]MFHQJGKWKP7EVTQIPC6HX3YULERJDJLY2TJZHPLI2LXNEAFIQABY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,,,,,.,,,..,,,,,,..,,...,,..,..,,...,...,...,...,...,.,,,,.,,
+#4VOQWU24NMIFJ3FKAKWDDBTLGDFI7I52H67E7K4SJFRRYB2NC6J4BYX6HMB737ODFEU3ORUDZXUEK
+#\\\|BRWSWCMPZE4XCONZ6IJGMBKM6N6KWM3ZFI4CZMF5AS5TVZONOQ3 \ / AMOS7 \ YOURUM ::
+#\[7]FFRJELTHOMUOLRVRSGJI4Y4I2M4BNKWPWPULZRZRK4TW56NNBMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

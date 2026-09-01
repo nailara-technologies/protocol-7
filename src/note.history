@@ -29,7 +29,7 @@ my $content = <[file.read]>->($note_file);
 ## split on --- separator ##
 my @entries;
 my $current_entry = '';
-my @lines         = split /\n/, $content;
+my @lines         = split m|\n|, $content;
 
 for my $line (@lines) {
     if ( $line =~ m|^---$| && length $current_entry ) {
@@ -95,8 +95,8 @@ return {
     'data' => length $result_str ? $result_str : 'no history entries found',
 };
 
-#,,..,.,.,,,,,,..,..,,.,,,,.,,,,,,...,,.,,.,,,.,.,...,...,.,,,..,,.,,,.,,,..,,
-#VP7RLUBX5R2M2U3QURLF7IWJOVA4GW6WVIPXIHK7OW3JGXMXQVYA7WJDAI426LZFRE6SDPLB26M3K
-#\\\|3BF7NNHMGJ3RE76ZOTVQKCBXIS2R6VRW5FU52WIUXUB65DFEBVF \ / AMOS7 \ YOURUM ::
-#\[7]2OQMGJ47ZWS7OF3CSY6YYVTUE5VSLCS75WHS3Z6ZPGICOK2ZTAAI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,,.,,..,,...,,..,.,.,.,,,,..,.,.,...,...,..,,.,,,.,.,.,,,,.,,
+#C5MOZYC75JF6CJOSZEVAUASD7SW7Q3OD7WZCFPSA2IV752VUKD33MLWIFS75MXIKJOWTCJSISDCYY
+#\\\|FRYUNI5HCOXSTXYXGYJX5TQETFT5XCABE3P3DLHTRLP7IOBTJX7 \ / AMOS7 \ YOURUM ::
+#\[7]JUL2SLVLVEPBQXNMCAA3CI645H5XA4OSVKTEQDAHZBB5SM3QGEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

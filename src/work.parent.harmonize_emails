@@ -54,7 +54,7 @@ my $main_developer   = $sorted_pairs[0];
 my $main_dev_commits = $author_email_pairs{$main_developer};
 
 ## Parse main developer into author and email
-my ( $main_author, $main_email ) = $main_developer =~ /^(.+?)\s+<(.+)>$/;
+my ( $main_author, $main_email ) = $main_developer =~ m|^(.+?)\s+<(.+)>$|;
 
 <[base.log]>->(
     2,
@@ -119,7 +119,7 @@ if ( $harmonize_outliers && @outliers ) {
 
         my $outlier_pair = $outlier->{pair};
         my ( $outlier_author, $outlier_email )
-            = $outlier_pair =~ /^(.+?)\s+<(.+)>$/;
+            = $outlier_pair =~ m|^(.+?)\s+<(.+)>$|;
 
         ## Apply key_phrase filter if provided
         if ( length $key_phrase ) {
@@ -128,9 +128,9 @@ if ( $harmonize_outliers && @outliers ) {
                 my $commit = $_;
                 $commit->{author} eq $outlier_author
                     && $commit->{email} eq $outlier_email
-                    && ( $commit->{subject} =~ m/\Q$key_phrase\E/i
-                    || $commit->{author} =~ m/\Q$key_phrase\E/i
-                    || $commit->{email}  =~ m/\Q$key_phrase\E/i )
+                    && ( $commit->{subject} =~ m|\Q$key_phrase\E|i
+                    || $commit->{author} =~ m|\Q$key_phrase\E|i
+                    || $commit->{email}  =~ m|\Q$key_phrase\E|i )
             } @{ $log_result->{commits} };
 
             ## Only harmonize if pattern matches
@@ -151,11 +151,11 @@ foreach my $email ( keys %emails_seen ) {
     next if exists $canonical_email_map{$email};    ## Already mapped
 
     ## Extract base email (before @)
-    if ( $email =~ /^([^@]+)@(.+)$/ ) {
+    if ( $email =~ m|^([^@]+)@(.+)$| ) {
         my ( $user, $domain ) = ( $1, $2 );
 
         ## If we have other variants of this user@domain, map to most common
-        my @variants = grep {/^\Q$user\E@/i} keys %emails_seen;
+        my @variants = grep {m|^\Q$user\E@|i} keys %emails_seen;
 
         if ( @variants > 1 ) {
             ## Find most common variant
@@ -336,7 +336,7 @@ if ($dry_run) {
             1, "    workflow harmonize-emails harmonize-outliers"
         );
         if ( @outliers == 1 ) {
-            my ($outlier_author) = $outliers[0]->{pair} =~ /^(.+?)\s+</;
+            my ($outlier_author) = $outliers[0]->{pair} =~ m|^(.+?)\s+<|;
             <[base.log]>->(
                 1,
                 sprintf(
@@ -498,8 +498,8 @@ return {
 
 0;
 
-#,,.,,,.,,.,,,,..,.,,,,,,,,..,,.,,,.,,...,,,.,..,,...,...,.,,,.,.,..,,.,.,,.,,
-#PKUNMP5OCS7KCIAGBMTMBWXPKXV7AEPZSN4YQSUJ7JCV62SBMN7EYV45TH5526R4XKAV2BHUZUIOE
-#\\\|YZINNRKO63EPPCFZNKA4RT5ZP6J4CZZL4KDGZK5BW6MGWD6BK2V \ / AMOS7 \ YOURUM ::
-#\[7]TDHDXABHK2UOVMYEWWIUYT4Y2E6XSXY4ZRQ5DCRP6P2LI65XGKBI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,,..,,,.,.,,,,.,,.,.,,,,,..,,..,,...,...,..,,,,,,..,,...,,,.,
+#QCZYK3FFLXUFEGF6DCLXVAZJB3EXIP6CMCNEG4QWORQE5UZWW6MONDGWMB6OSWFYR5PR3FGZJ3JWW
+#\\\|KZ6H3MSX3BXYF34BD7PFO3MUN6BBQCACCCW3B3YNGW5Z7M6PDV7 \ / AMOS7 \ YOURUM ::
+#\[7]EGT6DKEI76C2TVWULIBZRD2ZQ5S7SYSVR7NEUSHLH6QSZK7FNIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

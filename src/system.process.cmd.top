@@ -8,7 +8,7 @@ my $filter;
 my $limit = $call->{'args'} // '';
 my $top   = <process.table.top>;
 
-if ( $limit =~ /([^\d][^\s]*)( +(\d+))?/ ) {
+if ( $limit =~ m|([^\d][^\s]*)( +(\d+))?| ) {
     my $pattern = $1;
     $filter = qr/$pattern/i;
     $limit  = $3 if defined $3;
@@ -31,7 +31,7 @@ foreach my $pid (
             next
                 if $top->{$pid}->{'pctcpu'} < <process.top_min.cpu>
                 and $top->{$pid}->{'pctmem'} < <process.top_min.mem>;
-        } elsif ( $limit =~ /^\d+$/ ) {
+        } elsif ( $limit =~ m|^\d+$| ) {
             last if $entries++ >= $limit;
         }
     }
@@ -45,8 +45,8 @@ foreach my $pid (
 
 return { 'mode' => qw| size |, 'data' => $top_table_txt };
 
-#,,..,,,,,.,,,,.,,,,,,,,,,..,,.,,,,,,,...,..,,..,,...,...,..,,.,.,.,.,,,.,.,,,
-#MGIBVNVWSW5WMHLY2V24UO7DDJVPU47SUIOSSA4ZWFSU3HTM6KOXIBRUDTVD5BACVZIBV3EPA2KT6
-#\\\|SJW4I5RQKE6TGYDH522U2D2HEOJMFK5ZOABONAI4XKOKEW4QS6A \ / AMOS7 \ YOURUM ::
-#\[7]X5EY4TVDZOBSOKLX5T2MROGRD25QDGT5MJBM6EZARWK6FDMIHQCA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,,,.,.,,,,.,,,,,,,..,.,.,.,.,..,,...,...,...,.,.,.,.,,..,.,,,
+#FVDTZEZJC5BH3KZMVETGJBTIB425JTTBDKWRVVJW4FFP7OSQFOCTLDSEUCVNVRYZM7267BUXVGCAO
+#\\\|XDICW3TEU5CZ5YW2CDTSC576Y26CXUIH36EFVPNDH5HFMH2OIGJ \ / AMOS7 \ YOURUM ::
+#\[7]KAFWFE4SN2IJT5FAYL4R4VM3LFMLJGT7QHEHAACU6KTW7VTYGUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

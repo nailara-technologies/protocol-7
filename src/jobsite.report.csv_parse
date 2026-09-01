@@ -24,13 +24,13 @@ $text =~ s|^\x{FEFF}||;              ## utf-8 bom, decoded form  ##
 ## -- losing it causes the same job to be treated as two different entries ##
 ## across snapshots and show up twice ]. rejoin physical lines back into   ##
 ## one logical row while an odd number of quotes is open                   ##
-my @raw_lines = split /\r?\n/, $text;
+my @raw_lines = split m|\r?\n|, $text;
 my @lines;
 my $pending;
 
 for my $raw_line (@raw_lines) {
     $pending = defined $pending ? "$pending\n$raw_line" : $raw_line;
-    my $quote_count = () = $pending =~ /"/g;
+    my $quote_count = () = $pending =~ m|"|g;
     if ( $quote_count % 2 == 0 ) {
         push @lines, $pending;
         undef $pending;
@@ -45,7 +45,7 @@ my @entries;
 
 ## columns per row, quotes stripped ##
 my $split_row = sub {
-    my @cols = split /;/, shift;
+    my @cols = split m|;|, shift;
     for (@cols) { s|^"||; s|"$||; s|^\s+||; s|\s+$||; }
     return @cols;
 };
@@ -99,8 +99,8 @@ if ( $header =~ m|Checksum_H|i ) {
 
 return \@entries;
 
-#,,..,,.,,.,,,,.,,...,.,.,,,.,,..,,,.,,.,,,,,,.,.,...,...,..,,.,.,.,.,...,.,.,
-#HYQAJ3DIRO2CLT5RQCC63A6GPKEIYLV3E7BEBJVLFSYDWMVZ4WWD2MO7QKYHXOQCS3AM7KZ7KAYL2
-#\\\|ZNGFODUYZVFXTO576ZCGTB4SUANQK544OF6DGNF36XSWPBGXVDC \ / AMOS7 \ YOURUM ::
-#\[7]JJEFHHOFZLOIY4V62T7WP7BVHSNXWAEVGVYJUDX6QOP733DYOADI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,,.,,,..,...,..,,,,,,..,,,..,.,.,...,...,...,...,,.,,.,.,,,.,
+#7NVGILC2CLKBGXCL4H6N3FZERGCDFA4NDZ2Z4EG4XH5LZK6I3J3EXFL5MHIFC6AJCVLSUEMUYNJMQ
+#\\\|YKEKSOU53MTWSQ3BXUPCI4DIDP4HTZIYCB2K3ULHR6HT5SPODMX \ / AMOS7 \ YOURUM ::
+#\[7]3W5IGFSOM5AFQLS7SB6QM2B2CFB6U2ODLTLIEOEV3YWOSC4DUSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
