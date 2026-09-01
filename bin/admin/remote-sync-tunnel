@@ -4,41 +4,53 @@ use warnings;
 use Net::Ping;
 use File::Spec;
 use Sys::Syslog qw(:standard :macros);
-use POSIX qw(EXIT_SUCCESS EXIT_FAILURE);
+use POSIX       qw(EXIT_SUCCESS EXIT_FAILURE);
 
-## remote-sync-tunnel: manage mounted remote code/content with auto-ssh tunneling
-## sets up persistent SSH tunnels and mounts for remote protocol-7 systems
-## automatically detects server recovery and remounts after crashes
+## remote-sync-tunnel: manage mounted remote code/content with auto-ssh
+## tunneling sets up persistent SSH tunnels and mounts for remote protocol-7
+## systems automatically detects server recovery and remounts after crashes
 
-my $REMOTE_HOST   = $ENV{'REMOTE_P7_HOST'} // 'atom.local';
-my $REMOTE_USER   = $ENV{'REMOTE_P7_USER'} // 'taeki';
+my $REMOTE_HOST      = $ENV{'REMOTE_P7_HOST'} // 'atom.local';
+my $REMOTE_USER      = $ENV{'REMOTE_P7_USER'} // 'taeki';
 my $LOCAL_MOUNT_BASE = '/mnt/remote-protocol-7';
 
 my %MOUNTS = (
-    'code'  => { local => '/usr/local/protocol-7', remote => '/data/projects/protocol-7' },
+    'code' => {
+        local  => '/usr/local/protocol-7',
+        remote => '/data/projects/protocol-7'
+    },
     'content' => { local => '/var/httpd', remote => '/var/www' },
-    'logs'  => { local => '/var/log/protocol-7', remote => '/var/log/protocol-7' },
+    'logs'    =>
+        { local => '/var/log/protocol-7', remote => '/var/log/protocol-7' },
 );
 
 my %TUNNELS = (
-    'p7c'   => { local_port => 7777, remote_host => '127.0.0.1', remote_port => 7777 },
-    'p7r'   => { local_port => 7778, remote_host => '127.0.0.1', remote_port => 7778 },
+    'p7c' => {
+        local_port  => 7777,
+        remote_host => '127.0.0.1',
+        remote_port => 7777
+    },
+    'p7r' => {
+        local_port  => 7778,
+        remote_host => '127.0.0.1',
+        remote_port => 7778
+    },
 );
 
-my $ACTION = shift // 'start';
-my $AUTOSSH_PID_FILE = "/var/run/autossh-${REMOTE_HOST}.pid";
+my $ACTION            = shift // 'start';
+my $AUTOSSH_PID_FILE  = "/var/run/autossh-${REMOTE_HOST}.pid";
 my $MOUNT_STATUS_FILE = "/var/run/p7-mount-${REMOTE_HOST}.status";
 
-openlog('remote-sync-tunnel', LOG_PID, LOG_USER);
+openlog( 'remote-sync-tunnel', LOG_PID, LOG_USER );
 
 sub log_msg {
-    my ($level, $msg) = @_;
-    syslog($level, $msg);
+    my ( $level, $msg ) = @_;
+    syslog( $level, $msg );
     print STDERR "[$level] $msg\n";
 }
 
 sub check_server_alive {
-    my $p = Net::Ping->new('tcp', 2);
+    my $p = Net::Ping->new( 'tcp', 2 );
     $p->port_number(22);    ## check SSH port
     my $result = $p->ping($REMOTE_HOST);
     $p->close;
@@ -46,11 +58,11 @@ sub check_server_alive {
 }
 
 sub create_mount_dirs {
-    foreach my $mount (values %MOUNTS) {
+    foreach my $mount ( values %MOUNTS ) {
         my $dir = $mount->{'local'};
         next if -d $dir;
         system("mkdir -p '$dir'") == 0 or do {
-            log_msg(LOG_ERR, "failed to create mount directory: $dir");
+            log_msg( LOG_ERR, "failed to create mount directory: $dir" );
             return 0;
         };
     }
@@ -59,50 +71,50 @@ sub create_mount_dirs {
 
 sub is_mounted {
     my ($mount_point) = @_;
-    open(my $fh, '<', '/proc/mounts') or return 0;
+    open( my $fh, '<', '/proc/mounts' ) or return 0;
     while (<$fh>) {
-        return 1 if /$mount_point/;
+        return 1 if m|$mount_point|;
     }
     close($fh);
     return 0;
 }
 
 sub mount_remote {
-    my ($name, $config) = @_;
-    my $local = $config->{'local'};
+    my ( $name, $config ) = @_;
+    my $local  = $config->{'local'};
     my $remote = $config->{'remote'};
 
     return 1 if is_mounted($local);
 
     ## use sshfs for remote mounting
-    my $cmd = "sshfs -o reconnect,ServerAliveInterval=60 " .
-              "'${REMOTE_USER}\@${REMOTE_HOST}:${remote}' '$local'";
+    my $cmd = "sshfs -o reconnect,ServerAliveInterval=60 "
+        . "'${REMOTE_USER}\@${REMOTE_HOST}:${remote}' '$local'";
 
-    if (system($cmd) == 0) {
-        log_msg(LOG_INFO, "mounted $name: $local");
+    if ( system($cmd) == 0 ) {
+        log_msg( LOG_INFO, "mounted $name: $local" );
         return 1;
     } else {
-        log_msg(LOG_ERR, "failed to mount $name: $local");
+        log_msg( LOG_ERR, "failed to mount $name: $local" );
         return 0;
     }
 }
 
 sub unmount_remote {
-    my ($name, $config) = @_;
+    my ( $name, $config ) = @_;
     my $local = $config->{'local'};
 
     return 1 unless is_mounted($local);
 
     ## gracefully unmount with retries
-    for my $attempt (1..3) {
-        if (system("fusermount -u '$local'") == 0) {
-            log_msg(LOG_INFO, "unmounted $name: $local");
+    for my $attempt ( 1 .. 3 ) {
+        if ( system("fusermount -u '$local'") == 0 ) {
+            log_msg( LOG_INFO, "unmounted $name: $local" );
             return 1;
         }
         sleep(1) if $attempt < 3;
     }
 
-    log_msg(LOG_WARNING, "forced unmount of $name: $local");
+    log_msg( LOG_WARNING, "forced unmount of $name: $local" );
     system("fusermount -uz '$local'");
     return 1;
 }
@@ -111,15 +123,17 @@ sub setup_tunnels {
     my $ssh_opts = '-N -T -o ServerAliveInterval=60 -o ServerAliveCountMax=3';
     my @tunnel_args;
 
-    foreach my $name (keys %TUNNELS) {
+    foreach my $name ( keys %TUNNELS ) {
         my $t = $TUNNELS{$name};
-        push @tunnel_args, "-L $t->{'local_port'}:$t->{'remote_host'}:$t->{'remote_port'}";
+        push @tunnel_args,
+            "-L $t->{'local_port'}:$t->{'remote_host'}:$t->{'remote_port'}";
     }
 
-    my $tunnel_str = join(' ', @tunnel_args);
-    my $cmd = "autossh -M 0 $ssh_opts $tunnel_str ${REMOTE_USER}\@${REMOTE_HOST}";
+    my $tunnel_str = join( ' ', @tunnel_args );
+    my $cmd        = "autossh -M 0 $ssh_opts $tunnel_str "
+        . "${REMOTE_USER}\@${REMOTE_HOST}";
 
-    log_msg(LOG_INFO, "starting autossh tunnel to $REMOTE_HOST");
+    log_msg( LOG_INFO, "starting autossh tunnel to $REMOTE_HOST" );
     system("nohup $cmd > /var/log/autossh-${REMOTE_HOST}.log 2>&1 &");
 
     return 1;
@@ -127,80 +141,81 @@ sub setup_tunnels {
 
 sub stop_tunnels {
     system("pkill -f 'autossh.*$REMOTE_HOST'");
-    log_msg(LOG_INFO, "stopped autossh tunnels");
+    log_msg( LOG_INFO, "stopped autossh tunnels" );
     return 1;
 }
 
 sub start_service {
-    log_msg(LOG_INFO, "starting remote-sync-tunnel for $REMOTE_HOST");
+    log_msg( LOG_INFO, "starting remote-sync-tunnel for $REMOTE_HOST" );
 
     ## check server is reachable
-    unless (check_server_alive()) {
-        log_msg(LOG_ERR, "server $REMOTE_HOST is not reachable");
+    unless ( check_server_alive() ) {
+        log_msg( LOG_ERR, "server $REMOTE_HOST is not reachable" );
         return EXIT_FAILURE;
     }
 
     create_mount_dirs() or return EXIT_FAILURE;
-    setup_tunnels() or return EXIT_FAILURE;
+    setup_tunnels()     or return EXIT_FAILURE;
 
     ## mount all directories
     my $all_ok = 1;
-    foreach my $name (keys %MOUNTS) {
-        mount_remote($name, $MOUNTS{$name}) or $all_ok = 0;
+    foreach my $name ( keys %MOUNTS ) {
+        mount_remote( $name, $MOUNTS{$name} ) or $all_ok = 0;
     }
 
     if ($all_ok) {
-        open(my $fh, '>', $MOUNT_STATUS_FILE);
+        open( my $fh, '>', $MOUNT_STATUS_FILE );
         print $fh "mounted\n";
         close($fh);
-        log_msg(LOG_INFO, "all mounts established successfully");
+        log_msg( LOG_INFO, "all mounts established successfully" );
         return EXIT_SUCCESS;
     } else {
-        log_msg(LOG_WARNING, "some mounts failed, but tunnels are active");
+        log_msg( LOG_WARNING, "some mounts failed, but tunnels are active" );
         return EXIT_FAILURE;
     }
 }
 
 sub stop_service {
-    log_msg(LOG_INFO, "stopping remote-sync-tunnel");
+    log_msg( LOG_INFO, "stopping remote-sync-tunnel" );
 
     ## unmount all directories
-    foreach my $name (keys %MOUNTS) {
-        unmount_remote($name, $MOUNTS{$name});
+    foreach my $name ( keys %MOUNTS ) {
+        unmount_remote( $name, $MOUNTS{$name} );
     }
 
     stop_tunnels();
     unlink($MOUNT_STATUS_FILE) if -f $MOUNT_STATUS_FILE;
 
-    log_msg(LOG_INFO, "remote-sync-tunnel stopped");
+    log_msg( LOG_INFO, "remote-sync-tunnel stopped" );
     return EXIT_SUCCESS;
 }
 
 sub monitor_and_recover {
     ## continuous monitoring with auto-recovery on server return
-    log_msg(LOG_INFO, "entering monitor mode for $REMOTE_HOST");
+    log_msg( LOG_INFO, "entering monitor mode for $REMOTE_HOST" );
 
-    my $was_mounted = 1;
+    my $was_mounted    = 1;
     my $check_interval = 30;    ## seconds
 
     while (1) {
         sleep($check_interval);
 
         my $alive = check_server_alive();
-        my $currently_mounted = -f $MOUNT_STATUS_FILE && -e $MOUNT_STATUS_FILE;
+        my $currently_mounted
+            = -f $MOUNT_STATUS_FILE && -e $MOUNT_STATUS_FILE;
 
-        if ($alive && !$currently_mounted) {
-            log_msg(LOG_INFO, "server recovered, attempting remount");
+        if ( $alive && !$currently_mounted ) {
+            log_msg( LOG_INFO, "server recovered, attempting remount" );
             start_service();
-        } elsif (!$alive && $currently_mounted) {
-            log_msg(LOG_WARNING, "server went offline, unmounting");
+        } elsif ( !$alive && $currently_mounted ) {
+            log_msg( LOG_WARNING, "server went offline, unmounting" );
             stop_service();
         }
     }
 }
 
 sub usage {
-    print STDERR << "EOF";
+    print STDERR <<"EOF";
 Usage: $0 [start|stop|restart|monitor|status]
 
 Commands:
@@ -219,20 +234,21 @@ EOF
 }
 
 ## main dispatch
-if ($ACTION eq 'start') {
+if ( $ACTION eq 'start' ) {
     exit start_service();
-} elsif ($ACTION eq 'stop') {
+} elsif ( $ACTION eq 'stop' ) {
     exit stop_service();
-} elsif ($ACTION eq 'restart') {
+} elsif ( $ACTION eq 'restart' ) {
     stop_service();
     exit start_service();
-} elsif ($ACTION eq 'monitor') {
+} elsif ( $ACTION eq 'monitor' ) {
     monitor_and_recover();
-} elsif ($ACTION eq 'status') {
-    print "Server reachable: ", (check_server_alive() ? "yes" : "no"), "\n";
-    foreach my $name (keys %MOUNTS) {
+} elsif ( $ACTION eq 'status' ) {
+    print "Server reachable: ", ( check_server_alive() ? "yes" : "no" ), "\n";
+    foreach my $name ( keys %MOUNTS ) {
         my $local = $MOUNTS{$name}->{'local'};
-        print "  $name: ", (is_mounted($local) ? "mounted" : "unmounted"), "\n";
+        print "  $name: ", ( is_mounted($local) ? "mounted" : "unmounted" ),
+            "\n";
     }
     exit EXIT_SUCCESS;
 } else {
@@ -241,8 +257,8 @@ if ($ACTION eq 'start') {
 
 closelog();
 
-#,,,,,..,,,..,...,.,,,,..,,,.,,,,,,,,,.,,,.,,,..,,...,...,...,..,,,.,,,.,,..,,
-#DKAPPWMSFHCOKWSYETKNRACT2EWVKHXYHZWFRFXCG6ECNSSCXFMVXBHVP7QZZTZAZHLK5EG63SHD4
-#\\\|P4XWN5IYANORFZADLPQFPDYUIM2KUKOPF7HWG6GNYJGZS6DQIQQ \ / AMOS7 \ YOURUM ::
-#\[7]XR6KTTKQMAMNLU2VSVC7WPDFR5W6RVD4CWFHB6PYW7BI5R374GDQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,,,,,,,,.,,.,,,,,.,,,,,...,,,,,..,,...,...,..,,,,.,..,,..,,,,,,
+#T6IWNL655UDMHD2UOAFPGQU5FYJIN5N3SV5MAD6UY4W736AL6DTGJEENWUF57JA2XCP3DE3ULXP6I
+#\\\|CZEOS6MG5U23YYSHX67KEM55WXARRIY2PEN7CKTDRM27GFSCKAC \ / AMOS7 \ YOURUM ::
+#\[7]LTT734ZDVR3GFQZNXVMHSXCRGZNKNP2ATN7PCQT6ASAFIE27G4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
