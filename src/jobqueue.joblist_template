@@ -3,7 +3,7 @@
 # name  = jobqueue.joblist_template
 # descr = returns job list template for initialization
 
-@{<joblist.queue_types>} = qw(
+<joblist.queue_types>->@* = qw(
     queued
     depending
     running
@@ -15,12 +15,12 @@
 
 return {
     'by_id' => {},
-    ( map { $ARG => <[jobqueue.queue_template]> } @{<joblist.queue_types>} ),
-    'count' => { ( map { $ARG => 0 } @{<joblist.queue_types>} ) }
+    ( map { $ARG => <[jobqueue.queue_template]> } <joblist.queue_types>->@* ),
+    'count' => { ( map { $ARG => 0 } <joblist.queue_types>->@* ) }
 };
 
-#,,,,,.,.,.,.,.,,,,.,,...,,..,,,.,.,,,..,,,..,..,,...,...,...,.,,,...,,..,..,,
-#3TKEMD25HX4VRMH2Z5RZSVUDTPXUBI4B72F5MHPZTZW7NSBQYLIUR6BAZGLXC55DCZLYPW53XPNOW
-#\\\|DM76XLNEDQU4B7N4KI5DCGLG5DU4XJTACC24FXGHZ5CXLOEK7NS \ / AMOS7 \ YOURUM ::
-#\[7]R2CRO5DUKCMKQ6J7QC5YGBSY6QXNEK7ABVBLQBPYBZX75MXNDKAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,.,.,,.,,.,.,,.,,,..,,.,,,,,,..,,...,...,,.,,,,,,..,,,.,,..,,
+#XHAAXS6LCCL56X46RBJSEEDQHRFIHVFDS3SR35GJRIGH3MUO6DSUL7BUWZNST2A32W7VEVROH55RE
+#\\\|2Z565RKUG2R5AOGNZOL5PAHQ3UD6QJUN4KAHAECXVCIPK6TGVND \ / AMOS7 \ YOURUM ::
+#\[7]4C7XUYRUL3YY42IT6YVLXYKWMZHM7OUKRJ4M7OXQB6I6RCNI6YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

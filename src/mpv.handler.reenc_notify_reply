@@ -31,7 +31,7 @@ if (   defined $err_reason
 <[base.log]>->( 2, "received reenc-msg zenka sid $reenc_msg_sid" );
 
 <[mpv.callback.reenc_finished]>
-    if !keys %{<mpv.converting>};    # already aborted
+    if !keys <mpv.converting>->%*;    # already aborted
 
 <mpv.timer.reenc_refresh>->cancel
     if exists <reenc-msg.timer.reenc_refresh>;
@@ -44,8 +44,8 @@ if (   defined $err_reason
     }
 );
 
-#,,,.,.,,,.,.,...,,,.,.,.,,..,..,,,.,,.,.,,,.,..,,...,...,,..,.,.,,.,,.,,,...,
-#ZUMJ7DFO76J357MGWRK63S4ZWJOYBVGZJ6GCTBSQ7JZ2K7CJBIK75C5VB53BCNRDZG42E7ZMA2Q26
-#\\\|QF7D3U2ST6C4VMDKVTBFWIHA7UFJIX7QFQYSISO5CKGZG3LF75H \ / AMOS7 \ YOURUM ::
-#\[7]3A42AUWGRR4D7QMBYSJUPXBVOXSALI3QP7HQ4OIUXCTTBGVDBYDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,,.,,...,.,.,.,.,,.,,,..,..,,..,,...,...,,,.,..,,...,,..,...,
+#3L6EWSYHSFUBDWZWUKEXE4PG3K732KH234TVFNBOVCSAT6IBVMZZJG3GVIIXSPPTR5NYT5I6GCN7W
+#\\\|XI3REOSTWTQHSFOZVTNV444JGR3FCIXJVZ7N2FN7GPDYWCGNPRI \ / AMOS7 \ YOURUM ::
+#\[7]DVUFEJX6ML7QIHJHWQOQLGG72LVC4OD5FMCHLQEIRAFUKV4RSIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

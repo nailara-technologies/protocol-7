@@ -4,7 +4,7 @@
 # descr = return loaded audio output driver [if available]
 
 my $reply_id = $call->{'reply_id'};
-push( @{<mpv.reply_ids>}, $reply_id );
+push( <mpv.reply_ids>->@*, $reply_id );
 
 my $mpv_property = 'current-ao';
 
@@ -12,7 +12,7 @@ my $mpv_property = 'current-ao';
     = $mpv_property;    # <-- stored for err. msgs
 
 push(
-    @{<mpv.command.reply>},
+    <mpv.command.reply>->@*,
     { 'handler' => 'mpv.handler.pipe.single_line' }
 );
 
@@ -20,8 +20,8 @@ push(
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,..,,..,,,..,...,,.,,,,,,,.,,.,.,.,.,,,.,..,,...,.,.,,,.,,..,...,.,.,,..,
-#264QZUH3EANLNAH6L5KSUMW4ZN4PWWQZWCOUZ3U4JYXNJV5LSMRUDKEPZYYNMHURM22ORB5DCE36O
-#\\\|KRJTF66CHDMOSCNLVWZMJ3DJXLPMHYMSVK7EFC45E2IRL4U3SKP \ / AMOS7 \ YOURUM ::
-#\[7]GBMR3ZRWSPSPPJ34Z3WJDC3HKFINB3W62PCSM3E3LYEF7V35OYBQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,.,,.,,,.,,,,.,,.,.,,..,,,,,,,,,..,,...,...,...,.,.,,,,,..,,,,.,
+#YDFG7N35PUKTBETEPKVFK4HUQHJFGSBB6EVCJ63MFYFNRKN6F4FU6VOH5HCRDIZRYC6KBZYPG34CK
+#\\\|TPOQZAKAQN4FWIQCMFZLY3OM4UXPO7ENTZGXWDEUDPW4PBPSXX5 \ / AMOS7 \ YOURUM ::
+#\[7]IOB5J475LEAGUCMO52TZVLSYKGN3DR6MZ6ACJA4IBTD2N4BJTUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

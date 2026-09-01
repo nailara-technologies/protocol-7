@@ -11,12 +11,12 @@ return
     unless <[base.cfg_bool]>->(<graphics-matrix.cfg.orbital_push_enabled>);
 return
     unless defined <graphics-matrix.orbital.listeners>
-    and @{<graphics-matrix.orbital.listeners>};
+    and <graphics-matrix.orbital.listeners>->@*;
 
 my $payload = <[graphics-matrix.orbital.build_summary]> . "\n";
 
 my @keep;
-for my $h ( @{<graphics-matrix.orbital.listeners>} ) {
+for my $h ( <graphics-matrix.orbital.listeners>->@* ) {
     if ( <[base.stream.push]>->( $h, \$payload ) ) {
         push @keep, $h;
     } else {
@@ -27,8 +27,8 @@ for my $h ( @{<graphics-matrix.orbital.listeners>} ) {
 
 return TRUE;
 
-#,,,.,,.,,,,.,,,,,.,.,..,,,,,,..,,..,,.,,,...,..,,...,...,...,,.,,,,.,,.,,,.,,
-#6DV6UUE2A52KBXEDK2QHOQHLP6I5R7AODK4SUSYUZSQTKJKEQNPHRS33ZQMZRFAB2JIGXWYLDX6AQ
-#\\\|ERMWSGOVAKLSFB3PKDGS4NNZPBHEJQI3FTLF5EBZ7TFSG72YZYG \ / AMOS7 \ YOURUM ::
-#\[7]GC32AW322PEBIVNOS2FOB2CKEYNE2FCPIJQ2B6FIS6CUPHNRIMAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,..,,.,,,,.,,..,,..,,...,,,.,,,.,..,,...,...,..,,.,.,,.,,.,.,..,,
+#6IEU6ZAUZHLDUFNJXVOEHO43LKR6DL7KGLSNR6XQFR6GVTGXZDSIOJFTQSLCYHTX5KNRCNMT5QVIU
+#\\\|TRQ336VV46ZC2ASKXRQWBZSBQMFUCC5GQJT27KIPLZX4GZVNPTY \ / AMOS7 \ YOURUM ::
+#\[7]DMT7YPZTZYDXS5Y5CKKIVSO7MTHL4RYPSAY5LHLQ4PIPW442ZWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ my $zoom;
 my $tile_zoom;
 my $tile_width;
 my $tile_height;
-my $reply_id       = shift @{<weather.get-urls.reply_ids>};
+my $reply_id       = shift <weather.get-urls.reply_ids>->@*;
 my $city           = $reply->{'params'}->{'city'};
 my $tile_name      = $reply->{'params'}->{'tile_name'};
 my $cache_dir      = <weather.cache_dir>;
@@ -105,13 +105,13 @@ if ( defined $station_id ) {
         }
     );
 } else {
-    push( @{<weather.get-urls.reply_ids>}, $reply_id );
+    push( <weather.get-urls.reply_ids>->@*, $reply_id );
     <[weather.parent.set_city]>->($city);
     return { 'mode' => 'deferred' };
 }
 
-#,,.,,...,,,.,,.,,.,,,,..,,.,,.,,,...,,.,,,,.,..,,...,.,.,,..,...,,,.,...,...,
-#3X56672XOOZ4J7VY7X3SXDDZA33P64KGJNA7DN6GTIYNNHPJUPS7VOYVOKFEI3CSBRG545GI3RVO2
-#\\\|QOTIPIVJURKOWELYMN7CEAJXT5U4OFZUII2U32EIIPSED2RCMBP \ / AMOS7 \ YOURUM ::
-#\[7]KFU2ZKSVJYIOQWKXAINMMPCWEGA2TN56UNX4CMQPHT67P3LF7UCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,..,,,.,,,..,,..,,.,,.,,,,..,,..,..,,...,..,,,..,,.,,,,.,..,,..,,
+#4OXUDGTDPFOXXY7FC23YU74IKVENYJHNYH5JEJXAHFSQ2L3P5VUXJWIKNZBN577OJBLP2H5HK3JIM
+#\\\|735YA74CRCMC6LA27WCAGKGIWB7LQRASF3HRD2CEJ2MFVLOEFA6 \ / AMOS7 \ YOURUM ::
+#\[7]QVJ4G2XRW6URYPTFCP4OOWFMTK4GUTCQPENAEJJYWMZ6I7VATSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

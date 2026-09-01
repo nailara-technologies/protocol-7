@@ -45,27 +45,27 @@ if ( $stream_status->{'mode'} eq 'size' ) {
 
 ## push stream coordinate onto INDEXCUBE traversal log ##
 <decoder.INDEXCUBE> //= [];
-push @{<decoder.INDEXCUBE>},
+push <decoder.INDEXCUBE>->@*,
     {
     'stream_id'      => $stream_id,
     'boundary_value' => $boundary_value + 0,
     'boundary_n'     => $boundary_n,
     'p7ref'          => $p7ref,
     'timestamp'      => <[base.ntime]>,
-    'depth'          => scalar @{<decoder.INDEXCUBE>},
+    'depth'          => scalar <decoder.INDEXCUBE>->@*,
     };
 
 <[base.logs]>->(
     2,
     "INDEXCUBE depth %d : stream %s [%s] traversal recorded",
-    scalar( @{<decoder.INDEXCUBE>} ),
+    scalar( <decoder.INDEXCUBE>->@* ),
     $stream_id, $p7ref
 );
 
 return { 'mode' => qw| true |, 'data' => "boundary $boundary_n recorded" };
 
-#,,..,,,.,,.,,...,,..,,..,..,,,,,,,.,,..,,,,,,..,,...,...,,,,,.,,,,,,,.,.,,,,,
-#MQNAO46ZCNQVSIAWRCHW7HX4YJVERXT724ETWEODFURBRIMLAAF6GWEPXSVGOH65MGWSQRS4ADTAQ
-#\\\|U2DEQSQYYO33I3IO3TMH2PGQT44KXARWGSDL7VFJQYGZKZ7WBLT \ / AMOS7 \ YOURUM ::
-#\[7]YA272LBQLXOFNNXNRCES7FSAUWB4IUVAYK5AUTWZBIMT2WSF7CAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,.,,,,,,,,..,,,,,.,.,.,.,.,,,..,,...,..,,..,,,.,,..,,,,.,..,,
+#I3W2UHXTL4523BX4QYSQXMS6YYEHVCHNXVB3XALNJNSF3SKQABPMVDPIJFGW6UJZL5C6GRWYE3XQU
+#\\\|NVSXOTT6QDHR44H32FHRZ7ULAIAJATF22PKC2GCHMWXSO5BJ5ZQ \ / AMOS7 \ YOURUM ::
+#\[7]AIDU3U2ES6QHJJWV5ANBB65MUKPKHFE3UOMGUKOD73PCEOAR3ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -59,13 +59,13 @@ if ( not defined $sent or $sent == 0 ) {
 <kimi.approval.responded>->{$request_id} = 1;
 
 ## persist responded set for session resume across restarts
-my $responded_str = join( "\n", keys %{<kimi.approval.responded>} ) . "\n";
+my $responded_str = join( "\n", keys <kimi.approval.responded>->%* ) . "\n";
 <[file.zenka_dir.write]>->( 'approval_responded', \$responded_str );
 
 return $sent;
 
-#,,,.,...,.,.,,..,,..,,..,..,,,,.,,,.,..,,.,,,.,.,...,...,..,,.,,,.,,,..,,,..,
-#6ABLBV56MVP4OETCJGAHH6IADBFEXISP3H5UEQIZBCLHKRCENCELXD6QEVXUW7JDM2JOMYGRGJJPW
-#\\\|VA4EX2GV3JSPMWNUICTD6RWF4YTX7ZLUEI4LA6X6N6ZGRX72EOT \ / AMOS7 \ YOURUM ::
-#\[7]N2O6RD53QEEQEK3JILSGXIV6NEUMKTZGYV4F2TX5MRBV3GNQCEAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,,.,,.,,,.,.,..,,...,..,,,..,.,.,...,...,,..,...,...,.,,,,,.,
+#2WSP3PCU44YFTTCX3U2RRNMFMFMRG2QHZ7JNQYHXR3BQOJM5XPPNR3N62ZOH3VMB67WETGZPXJHPS
+#\\\|VR65T5VHUCAAHVGZLKBDNABZPHPYCF6WLAVCCF7EGP6OGEMYFGX \ / AMOS7 \ YOURUM ::
+#\[7]H7Z2EAVUYE6554H3XPSTEVUB3SYPIJ2XWA5ZFSLLWA5EFWNJL2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

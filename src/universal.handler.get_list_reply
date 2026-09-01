@@ -81,8 +81,8 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 
         <universal.playlist.files> = [];
         map { <universal.playlist.zenka>->{$ARG} = [] }
-            @{<universal.display_zenki>};
-        foreach my $hide_zenka ( keys %{<universal.child>} ) {
+            <universal.display_zenki>->@*;
+        foreach my $hide_zenka ( keys <universal.child>->%* ) {
             my $hide_wid = <universal.child>->{$hide_zenka}->{'window_id'};
             next if not defined $hide_wid;
             <[base.log]>->( 2, ": hiding '$hide_zenka' [$hide_wid]" );
@@ -98,7 +98,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         map {
             <[protocol-7.command.send.local]>
                 ->( { 'command' => "$ARG.playlist-update" } )
-        } @{<universal.display_zenki>};
+        } <universal.display_zenki>->@*;
     }
     return;
 }
@@ -108,14 +108,14 @@ return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
 <universal.playlist_bmw> = $playlist_bmw;
 
 my $last_type
-    = @{<universal.playlist.files>}
+    = <universal.playlist.files>->@*
     ? <universal.playlist.types>->{ <universal.playlist.files>->[0] }
     : '';
 
 <universal.playlist.files> = \@file_list;
 <universal.playlist.types> = \%file_types;
 <universal.playlist.zenka>
-    = { map { $ARG => [] } @{<universal.display_zenki>} };
+    = { map { $ARG => [] } <universal.display_zenki>->@* };
 <universal.sequence.position>     = 0;
 <universal.sequence.switch_order> = [];
 
@@ -146,7 +146,7 @@ foreach my $file (@file_list) {
             my $_zenka = <universal.content.zenka_map>->{$_type};
             $switch_zenka = $_zenka;
         }
-        push( @{<universal.sequence.switch_order>}, "$switch_zenka" )
+        push( <universal.sequence.switch_order>->@*, "$switch_zenka" )
             if not defined $last_zenka
             or $zenka ne $last_zenka
             and (
@@ -188,15 +188,15 @@ if ( @file_list and <universal.playlist_was_empty> ) {
     map {
         <[protocol-7.command.send.local]>
             ->( { 'command' => "$ARG.playlist-update" } )
-    } @{<universal.display_zenki>};
+    } <universal.display_zenki>->@*;
 } elsif ( !<universal.cfg.fade_on_switch> ) {
     <[universal.startup_sub_zenki]>;
 } else {
     <[universal.collect_video_frames]>; # need to extract video frames first.,
 }
 
-#,,..,,,.,.,.,..,,...,,.,,,.,,,..,,,,,,.,,,..,..,,...,...,,.,,..,,..,,,,.,.,,,
-#EX3TSK4VELQNEDSJSBZU2JENOMOD5FXVAYNAWGN46SFGGMYS67URELZTX3ZC3OZAWUMXHQ4HTHW5W
-#\\\|LZF4GH3PECOSOMAFPQVZBNASECKMQZZN2XVOZ7VZSTVG7YOQSEN \ / AMOS7 \ YOURUM ::
-#\[7]TFE22PSLIKYER2GMSJ5H3KN7UE62EAL6VLU7ICPZKFZVUEMHTKCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,,,,..,...,..,,.,.,...,,,.,,.,,..,,...,...,,,.,,,.,,..,..,,,,.,
+#NQHXSJYPX6HOMP3E4Q67WYNKK2APE3YX7QZKS4ZC6L4BAU4YZD7DKCXSFIE25F2SJ75UI6K37TBPW
+#\\\|GEHK5SCVPAVE3KL5FKQSJPOA5MKM6PARKEBUHVCQTMRZCMLTP5H \ / AMOS7 \ YOURUM ::
+#\[7]BMZFY4K2FBH3XYNGQSNTVNRJH3LFH4KTBIXTVPWUAGE7DTL7QEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

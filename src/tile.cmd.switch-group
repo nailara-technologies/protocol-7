@@ -21,7 +21,7 @@ return {
     if not exists <tile.setup.tile>->{$tile_group_name};
 
 if (<tile.transition_in_progress>) {
-    push( @{<tile.transition_queue>}, $tile_group_name );
+    push( <tile.transition_queue>->@*, $tile_group_name );
     return {
         'mode' => qw| true |,
         'data' => 'transition queued..,'
@@ -43,8 +43,8 @@ return {
     'data' => "switching to tile group '$tile_group_name'"
 };
 
-#,,,,,,.,,,,,,,,.,.,.,.,.,..,,.,.,,,.,,.,,.,,,..,,...,..,,..,,.,,,.,,,...,,.,,
-#KWDU7SVU4A74MUN6CAJ3ANF7EDO37IWKV3Q7PVHLYPJNWNBB6G3A7VH6Y52LPFVNHTQMQXVJ3WVNM
-#\\\|R62LOCOFMGS254R7BLHVNV2BHUKOARF3NJU326USLQUOERX7W6V \ / AMOS7 \ YOURUM ::
-#\[7]A7YNJGUHM2GXRP27WJIMRQIYXZENFTBYJRFRBJVZHCPU2LS5BGCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,.,.,.,.,,,.,.,.,,..,,.,,,.,,..,,...,...,...,.,,,,,.,,.,,,.,,
+#VWTS3HNT7IYSCT6O42S4U5QQZR5RHKJIESJPKNNBEACRFENIAAVJLNLASMZZZH23C7PANTWB6DZVC
+#\\\|CIVUOBJNS2XBZFGGGZFXUA526BISRUYJXTFSAJLYUR2AGHXPTTL \ / AMOS7 \ YOURUM ::
+#\[7]PASVFZJHT2FN2GA6VL3FMFRH57KFOLTAFM2XVOJPM7VDBKDBGGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

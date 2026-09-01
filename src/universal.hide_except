@@ -5,7 +5,7 @@
 my $zenka_name = shift;
 die "zenka name expected" if not defined $zenka_name;
 
-foreach my $hide_zenka ( keys %{<universal.child>} ) {
+foreach my $hide_zenka ( keys <universal.child>->%* ) {
     next if $hide_zenka eq $zenka_name;
     my $hide_wid = <universal.child>->{$hide_zenka}->{'window_id'};
     <[base.log]>->( 2, ": hiding '$hide_zenka' ($hide_wid)" );
@@ -17,8 +17,8 @@ foreach my $hide_zenka ( keys %{<universal.child>} ) {
     <universal.child>->{$hide_zenka}->{'visible'} = 0;
 }
 
-#,,..,.,,,,,,,,,.,,,.,...,..,,...,...,.,.,..,,..,,...,...,..,,...,,,.,,..,,.,,
-#YA2KUU34UKDW5VBM6C7KSTLYIDPZIJF5UDLY3GC5KZ227KTZFOGIYUUXU22PXEI4T7FRJKQZRPF52
-#\\\|OXYP4QBQO24YFVHHGZM3JYS6ZIMDRW3MGRHW3KYWYCOGKD3HYZF \ / AMOS7 \ YOURUM ::
-#\[7]GE2OOUYQ5IHD3PDLCBXPGMCONBHHVMMFIVEYQW6GGFUBI52HQWAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,.,,,.,,,,.,,,,.,.,,,,..,.,.,..,,...,...,..,,.,.,.,.,,,.,,,,,
+#OLFIY27ZBP2WCYMWX2NZZQ3OUV75F5MBCZVIRCZMD4NN5DBFHWMMSWGJLZ22U2T46G7GLUQLY5YD4
+#\\\|NKHYQDQS54O5SXKSI5A3N4OPT6H4HPPOBLZ6TPJEDGVTOVSFWQC \ / AMOS7 \ YOURUM ::
+#\[7]DFQFJS3LVRPHARK7VAA3CLZ5WAPWSHQZ4WT2UD7CNM4IO77ECKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

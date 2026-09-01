@@ -18,7 +18,7 @@ if ( not defined $queue_sref ) {
         <[base.logs]>->(
             2,
             ': task queue loaded [ %d tasks ]',
-            scalar( @{<task.queue.order>} )
+            scalar( <task.queue.order>->@* )
         );
     }
 }
@@ -35,15 +35,15 @@ if ( defined $hist_sref ) {
         <[base.logs]>->(
             2,
             ': task history loaded [ %d tasks ]',
-            scalar( keys %{<task.history>} )
+            scalar( keys <task.history>->%* )
         );
     }
 }
 
 return TRUE;
 
-#,,..,,,.,,.,,..,,,,,,,..,,,,,...,.,.,.,,,...,.,.,...,...,...,,..,.,.,..,,,..,
-#LMC4GZN64MYGWTSX7C6N27HS2BYKUZB4NXWQUCO5EK6EVFSYA5JI6PZBI3HG5BQAJSICWZBVDWS22
-#\\\|LICDTA7HD4OESIOY7WDPZLXXXBNZW5NPJNQPF6POKCNNYDDFE2H \ / AMOS7 \ YOURUM ::
-#\[7]TNSQKJBNDNOSMHHU325NQ4REDDMMYPG3C473RI4GS3MAC4JZPUDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,...,..,,,.,,...,.,.,.,,,.,,,,..,.,.,...,..,,.,.,.,.,,.,,,,,,,,.,
+#HXC6BECUTP5ACNCNL6RQ5E53QXWOGE6HL7DL6MQ3SJTHAGAFF4RGQXH2U7SWGJKCNL6PGS3GKH6QI
+#\\\|KEJXAARFGFTH22Q6G5VVHNAHJFJZRYEYEOMMWXROTYLJDAS3XUA \ / AMOS7 \ YOURUM ::
+#\[7]XHGLNUKM5VIAXHPJBDD2MPF5LMB2YHXEZFVJPO3SXBW5H3H7T4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

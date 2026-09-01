@@ -48,7 +48,7 @@ for my $item ( @{$queue} ) {
 }
 
 ## queue for async fetch with adaptive backoff [ handled by fetch_tick ] ##
-push @{<site-yaml.fetch_queue>},
+push <site-yaml.fetch_queue>->@*,
     {
     'id'            => $job_id,
     'url'           => $url,
@@ -67,8 +67,8 @@ my $summary = sprintf 'import-url queued: %s [%s]', $job_id, $url;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,.,,,...,..,,,,,,,..,,..,.,.,,..,.,.,..,,.,.,...,..,,..,,,.,,...,,.,,.,,,
-#AMISPARGI6JKZO5L62SHSNDO7G3T53JMWBKW6JJHNBCOI6RRYB7GQBQK44N5S7VBPOV2MMXLRFGSS
-#\\\|DZRNZ7GIYI3XM3MECLGG3NTILPKMNRXPWZOYQYWCZ5RJKM6ZTT2 \ / AMOS7 \ YOURUM ::
-#\[7]WSJXRAQZVQKJBNNCDNCEXO2HL7Q7I7RQZJQ6TGJRA6XPJCDGSOCY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,.,,..,,..,.,,,..,,.,.,,..,.,.,...,..,,.,,,...,...,..,,...,
+#5IOTFA24MKPEIDPMZC223CLDXMJMUANWBBGAKKLFI7ZD3MZJNEUHMFWT7SFQPLNXDSIPVX3LO74TM
+#\\\|3UWWZRWKWBP62AYR3H66DOZK2OQDIZJIS4XTTRJFI7PUFQIT7P7 \ / AMOS7 \ YOURUM ::
+#\[7]E2S6B5DRNZTL2EJVTMNLCAYGEDG4MAQNBE7UGE46VOXW6POHJ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,7 +54,7 @@ if ( $data->{stats} ) {
 if ( $data->{assets} ) {
     <web.assets.registry> = $data->{assets};
 
-    my $count = scalar( keys %{<web.assets.registry>} );
+    my $count = scalar( keys <web.assets.registry>->%* );
     <[base.log]>->(
         2, "web.assets.load_registry: loaded $count asset entries"
     );
@@ -66,7 +66,7 @@ if ( $data->{assets} ) {
     <web.assets.stats>->{assets_copied}  = 0;
 
     ## Count by status ##
-    foreach my $path ( keys %{<web.assets.registry>} ) {
+    foreach my $path ( keys <web.assets.registry>->%* ) {
         my $status = <web.assets.registry>->{$path}{status};
 
         if ( $status eq 'present' ) {
@@ -83,8 +83,8 @@ if ( $data->{assets} ) {
 
 return TRUE;
 
-#,,,.,,,.,,.,,,,.,,,,,...,,,.,.,.,...,..,,..,,..,,...,...,.,,,,.,,.,.,.,.,...,
-#E4ZMXEGKOGQEDBEVPVHDROA5FOUJBDA4OMPETJ533UE7JNSNISHIEYDNUWCULS3RBNY7KYYMDBPUE
-#\\\|QOITUI3QPCAPYS3AQYES6QUT3F2CPBOQZTVLY7XGI4EQNLUD3RZ \ / AMOS7 \ YOURUM ::
-#\[7]5CKQDU7Z3ZJO4ATOGRCNFIKBFM6IFUJNJEDZMRJNL6R3TFJ7ZEAI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,,,.,.,.,.,.,..,,...,..,,.,,,..,,...,...,.,.,...,.,,,,.,,,..,
+#7IMPL457BQEHXZGB7WEBHOWGSQUXGA57LZ7NLFIRJEIB5NBUFSJ5MS2ER6NXL4NZHDWCO63DWVBLW
+#\\\|Q6YI47YZ2CETJCDNV6RIMKDO2Y2ZPBWOKL5ZPUO5TLH5N6ZBVFB \ / AMOS7 \ YOURUM ::
+#\[7]US4RNUFPUXUTSMERXVC23UGBSS6H2YQJDTJKFQXN6XWM5THROCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

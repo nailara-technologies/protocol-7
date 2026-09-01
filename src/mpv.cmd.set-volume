@@ -10,7 +10,7 @@ return { 'mode' => qw| false |, 'data' => 'expected volume in percent' }
     if !length($volume)
     or $volume !~ /^\d+(\.\d+)?%?$/;
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 <mpv.success_reply_str> = sprintf( 'volume now %0.1f', $volume ) . '%';
 <mpv.success_reply_str> =~ s|\.0||;
 
@@ -23,8 +23,8 @@ push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,,,,,,.,.,.,,.,,,.,,..,,,,,,,,.,,.,,...,..,,...,...,,..,,,,,,,.,,..,,..,
-#KCBUM36CV6S3R5XXYA2BTXUYGCWS4THLOLE34HO33XS4PRK6OGSXXAIT7B2MYF4HSCBBI6FSRK2IC
-#\\\|HNIAV7A6IXDTPHZTLDU7CTRVI3OQNXGCFU2GGB5NYOR27BBQIV4 \ / AMOS7 \ YOURUM ::
-#\[7]7JVQ6LEAWVLC46OLVDI3GVPGM4P5YZ3X7UQKZQZ2GBPGNXWBZSDA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,.,,...,...,..,,,,,,.,,,,,,,,..,..,,...,...,,.,,.,,,,..,,,.,,.,,
+#57D42W2OFJXTDZTLRVVJHIBS4CQNPGV2JZ6HCMU4YDCRCBB32S2DKAC2T4RKQTJMUVAZ366KWFPII
+#\\\|XUISLRDTR35BIS6KPEWTHTABPXWGLCXAH7P2REA5BTL54AYUFED \ / AMOS7 \ YOURUM ::
+#\[7]TMZG76QB24N5WWZ46ISJ3OITMAFWZYGNKASFIOSUSHGISQJKBUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

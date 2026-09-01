@@ -27,7 +27,7 @@ my %freq_before = %{ <index.freq> // {} };
 <[index.ingest]>->($content);
 
 my %freq_delta;
-for my $k ( keys %{<index.freq>} ) {
+for my $k ( keys <index.freq>->%* ) {
     my $delta = <index.freq>->{$k} - ( $freq_before{$k} // 0 );
     $freq_delta{$k} = $delta if $delta;
 }
@@ -50,8 +50,8 @@ my %level_delta;
 
 return TRUE;
 
-#,,.,,...,...,,,.,.,,,,.,,..,,,..,.,,,...,.,.,..,,...,...,..,,.,.,,,,,,,.,..,,
-#KZM6R65BXTBY6W3UGRQBAH4KUMUOWRQBZ5DGE5VVPKABA233MMDZQI2CEDLT6UKOAWR3E6RFBGMKG
-#\\\|K4JJ6JKCNN3AWKTUZG2G7SZNGEA4227WO7TKWXXGLFTF5CNGIMQ \ / AMOS7 \ YOURUM ::
-#\[7]6PTOT2W5CUBWXVYFAIEJRWGQJ4KAP7YMC2AFN3FWULDYAECBCIBY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,..,,.,,,.,,,...,,,.,,,,,.,,,..,,...,...,,,.,,,,,.,,,,..,,.,,
+#LGBJTER6UD45B4ZO52KX4R6CBKQHHC72GDAYINBPXKDOQSJ44UHI2GHD4J4JA5DMCBLJ2JZLPHHWE
+#\\\|XFM2QDPAO6NQUMAGLV7L7V5K6MBK5XZPPNA3DV5HXGSXQ4B4QNC \ / AMOS7 \ YOURUM ::
+#\[7]52HTQ32UV4OH5IHCYT7QWQ5MSXWGO7FUCDG2W7STSFZQ6DOXLIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

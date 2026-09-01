@@ -19,7 +19,7 @@ if ( not defined $call->{'args'} or $call->{'args'} eq qw| subscribe | ) {
     ) if not defined $h;
 
     <X-11.screen_change_listeners> //= [];
-    push @{<X-11.screen_change_listeners>}, $h;
+    push <X-11.screen_change_listeners>->@*, $h;
     <[base.logs]>->(
         2, 'screen-change listener added [sid=%d]',
         $call->{'session_id'}
@@ -29,8 +29,8 @@ if ( not defined $call->{'args'} or $call->{'args'} eq qw| subscribe | ) {
 
 return { 'mode' => qw| false |, 'data' => 'expected args = subscribe' };
 
-#,,..,,,,,.,,,,.,,.,.,,,.,,,.,,..,,.,,..,,,.,,..,,...,...,,.,,.,.,,.,,,..,...,
-#4ZBN4OSMXQ34PLHW6D5K4HPYSGVQ6BFRWRFW4726TJE6UVW4FQKBJOIJCTPJNNI7AB6NFZ6W6HF2K
-#\\\|KN3YX673XUKKNJOAV4DB3VRFF4IUQPLOKJX2NRRSZAKXAIQY4DQ \ / AMOS7 \ YOURUM ::
-#\[7]3TVHYU5F27JF6RBSQJCHCWZ7JG3VVJHB7GWWD6XR5SPZKQWYKSBA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,.,,,,,,,..,,.,,,.,.,,.,,,,.,..,,...,...,...,,..,,,,,,..,..,,
+#77COTKLIZZ64L4BZAIQGU3WQXF6P5WUDR36K47ODNT5AEUZSZKFYNORJVQZLOBVUN67ATVNC6SUCY
+#\\\|YMOAVTUK4B3RWZD3LMOX3JTWXCNTSRPIUC27YYWEHPDFGAKX23Y \ / AMOS7 \ YOURUM ::
+#\[7]FRML6EJ56GRKXA7PQYM3NGHZBMBDHKOUQL5OYR5275NUV2QESSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

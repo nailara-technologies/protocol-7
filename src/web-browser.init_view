@@ -13,7 +13,7 @@ my $filter_events = 1;
 ## desired                                                           ##
 ################################################################################
 
-%{<web-browser.blocked_signal_types>} = map { $ARG => 1 } qw(
+<web-browser.blocked_signal_types>->%* = map { $ARG => 1 } qw(
     close
     print
     run-as-modal
@@ -32,7 +32,7 @@ my $filter_events = 1;
 ##
 #
 
-%{<web-browser.blocked_event_types>} = map { $ARG => 1 } qw(
+<web-browser.blocked_event_types>->%* = map { $ARG => 1 } qw(
     scroll
     key-press
     key-release
@@ -85,7 +85,7 @@ $view->load_alternate_html( "<html><body bgcolor=\"$bg_color\"></body><html>",
 
 map {    # filtering blocked signal types
     $view->signal_connect( $ARG, sub { return 1 } )
-} keys %{<web-browser.blocked_signal_types>};
+} keys <web-browser.blocked_signal_types>->%*;
 
 $view->signal_connect(
     'decide-policy' => $code{'web-browser.handler.request_starting_signal'} );
@@ -238,8 +238,8 @@ $overlay->add_overlay($scrolled_window);
 <web-browser.gtk_obj.scrolled_window>->{$id} = $scrolled_window;
 <web-browser.gtk_obj.view>->{$id}            = $view;
 
-#,,.,,.,.,.,,,,..,,,,,,..,,,.,.,.,,..,.,.,..,,..,,...,...,...,...,,,.,,..,,,,,
-#EORDYXPOOMLLAUSWZR63MAEBNDEA4S2GU4AIMUQ73XPD33Z2PHM2ZOY5UMIKGSLC4EYYHJNE7YPV4
-#\\\|J7YJ6FPS2EWKBDNWBXAPTWVYBZKM2XT5UG4J7EGWCQCBAXP2AJC \ / AMOS7 \ YOURUM ::
-#\[7]K4YI2JFQ6RZNBPFWK4R4A4V3VJW3PDAHM6WZP4VKQJSZKBFOGODY 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,,..,,.,,,,.,.,.,..,,..,,...,..,,...,...,..,,.,.,.,.,,.,,,..,
+#NDTNBOOPYU5SWUNYAR3UW2JYRRTKPCLJB6COGOBBA4CURX6PGK3UAXBMI6X4OQ2Z7SSKHLN7WHLZG
+#\\\|LZQR3LIY2ENQROV675QSICJACA5ASEP45TTPZOSY35RVK3HE56G \ / AMOS7 \ YOURUM ::
+#\[7]4VYDUW5VP4G6JSJRP7VHTLER23IWLXOSOJKZRLCCXGIGX3U2NOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

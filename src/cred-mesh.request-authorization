@@ -28,7 +28,7 @@ my $req_id = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
 ## persist the new pending entry -- relay_pending.yaml otherwise only ever ##
 ## gets written on approval-completion cleanup, never on creation          ##
 my $pending_yaml
-    = eval { YAML::XS::Dump( %{<cred-mesh.auth_relay_pending>} ); };
+    = eval { YAML::XS::Dump( <cred-mesh.auth_relay_pending>->%* ); };
 <[file.zenka_dir.write]>->( 'relay_pending.yaml', \$pending_yaml, '>', 0600 )
     if defined $pending_yaml;
 
@@ -66,8 +66,8 @@ return {
     'req_id' => $req_id,
 };
 
-#,,.,,..,,,,.,,,,,..,,,,,,,.,,..,,,.,,.,.,..,,..,,...,..,,...,,,.,,,,,,,.,.,,,
-#AS7SBI5UMQSC4RLVM4WO6VVWMFKHOATBWIJPBMNTIGE6FL6SW3734P77GVOAZTJYDHSVDBWXGHJZK
-#\\\|LXJCMGVDCB5XTBFQXA7G2673FZVWWXKNDHUVLCW5BZ35P5Y2FOO \ / AMOS7 \ YOURUM ::
-#\[7]AMUJJASSWNUGGJFMSUXOZJAMMAI2INTYFNRCT77S3ZKNIRF4PKAQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,,,,,.,,..,.,,,,,.,...,.,.,...,..,,...,...,.,,,..,,..,,.,.,,..,
+#ILKDCB52TL2SLWKB5AEKYBDIQ2YNWP2YWVWI4CPRVLBY2GLKG4SIOQGHKX6ALUHOLUEWXJ5UGCQ56
+#\\\|ZMR3NY6I6L5HQCXMXJITLREJBLRYJJYIX4PXLT5W5LHQM7SNRVP \ / AMOS7 \ YOURUM ::
+#\[7]VBTYZUOS5TUSLTY2TLRSKBEJALVGVAFD6CZW2AADFZ5E4TFT6CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

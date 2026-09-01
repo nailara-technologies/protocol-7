@@ -108,7 +108,7 @@ chown( $uid, $gid, <tile.chksum_file> )
 <[base.log]>->( 0, '<< tile loading not successful [ empty tile ] >>' )
     if keys <tile.setup>->%*
     and defined <tile.setup.tile>
-    and not keys %{<tile.setup.tile>};
+    and not keys <tile.setup.tile>->%*;
 
 # use Data::Dumper 'Dumper'; print Dumper(<tile.setup>);
 
@@ -217,7 +217,7 @@ if ( defined $tile_group_name
         unlink($current_cfg_path)
             or warn "unlink($current_cfg_path) : \l$OS_ERROR";
     }
-    ($tile_group_name) = sort keys %{<tile.setup.tile>};
+    ($tile_group_name) = sort keys <tile.setup.tile>->%*;
     $default_str = ' _fallback_ ';
     $log_level   = 0;
 
@@ -269,8 +269,8 @@ push @{ <system.callbacks.initialized> //= [] },
 
 0;
 
-#,,..,.,.,,,.,,,,,,,,,,.,,..,,.,,,..,,.,.,,,.,..,,...,..,,.,,,..,,,..,,..,..,,
-#NBAWMSGDN7BT2YVAXNCKC2KO3ZAFVWOERZJB63A25JG7YQKJ7DSOCDBJGNFIWFFUBI62BKV7BME6K
-#\\\|IGD3KNDGOQLRSOFCOFBUQICLQJZUMT3YZG3AS2B7WEIME4MDBXD \ / AMOS7 \ YOURUM ::
-#\[7]RMWDILOZYP4S564JEV5DHYDM5JFVRGN7RG4V3ANGAA4J2JXBMACQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,,.,,.,.,,..,,..,,..,.,,,,,,,..,,...,...,..,,.,.,,,,,...,..,,
+#LYJY3LYB5T7P3AHRI3AL6F23PN35UY3OPJFW5C6ACW7CDIV6IO4P3V7T5T6LLU4J3MD6DVBX4JUDC
+#\\\|PDM6JHR6ZMVTUR27DDBESJ67ML57LOAQ7TSHXNW5J3AYI4R5UYQ \ / AMOS7 \ YOURUM ::
+#\[7]FCSN5SNFGBJH2SDQD5QXS4MGHFSRMYHHAIOEH6CISSED7E5BE2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

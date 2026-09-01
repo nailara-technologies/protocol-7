@@ -44,12 +44,12 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
             $bl_match = 1;
             <system.process.blacklist_match>->{$p_name} //= $ARG;
         }
-    } @{<system.blacklist.autokill>};
+    } <system.blacklist.autokill>->@*;
     next if $bl_match;
 
     ## custom process limits ## [ currently 'max_mem' and 'max_cpu' in percent
     ## ]
-    foreach my $lp_name ( keys %{<process.limits>} ) {
+    foreach my $lp_name ( keys <process.limits>->%* ) {
         next
             if $p->fname !~ /\Q$lp_name\E/
             and ( not defined $p->cmndline
@@ -151,7 +151,7 @@ if ( $mem_limit_reached and <mem.autokill> )
         sort {
             <process.table.top>->{$b}->{'pctmem'} <=>
                 <process.table.top>->{$a}->{'pctmem'}
-        } keys( %{<process.table.top>} )
+        } keys( <process.table.top>->%* )
     ) {
         my $process = <process.table.top>->{$pid};
         next
@@ -169,8 +169,8 @@ if ( $mem_limit_reached and <mem.autokill> )
     }
 }
 
-#,,..,,,.,,.,,.,,,.,,,,,.,,.,,,.,,,,.,...,,,.,..,,...,...,,.,,.,,,..,,...,...,
-#7XJT2ZF5NOGXRU753J47AODHHMHSG6PH6XS3KYOLXYVWXUBO6ZAW5OFKNS2WHVFCZNKH4HJ4YAOCI
-#\\\|YXRUA6VAB47EFGFSCXUNAFZQWCIOGMEMVSVLEUN5NEC7PYFXFZP \ / AMOS7 \ YOURUM ::
-#\[7]HBGVT7LSXCWXEA7RT3LP5IDQTBU2UNGVLZKOQQWZ4AL4PXXL5CCI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,..,,...,,,.,.,,,..,,,.,,,.,,..,,...,...,.,.,,,.,,.,,,..,,.,,
+#MF2XPSCMJIXVPHRKHAEK7Q7LYYG2PJHCYKT6QBPWBRTMDDHV26JTS7RPCOS6WQIU3KO4CXZTNYAHG
+#\\\|W2UR7Y4LJESNWZ5NBZ6UAFMDXRDMBOXX43W54IAF3POU5HSZL4K \ / AMOS7 \ YOURUM ::
+#\[7]GRZ3V22RLB4KBCNWRZ37JHBVWFC4OB2PBVSMCBRR5IVNVWTO26DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

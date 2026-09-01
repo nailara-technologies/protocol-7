@@ -20,7 +20,7 @@ if ( not defined $text ) {
     ## check for active prompt entries : preserve them across reconnect so
     ## TurnEnd can still deliver the result after kimi-web finishes
     my $has_active_prompt = FALSE;
-    foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
+    foreach my $pend_id ( keys <kimi.wire.pending>->%* ) {
         my $pend = <kimi.wire.pending>->{$pend_id};
         if ( ( $pend->{'type'} // '' ) eq qw| prompt | ) {
             $has_active_prompt = TRUE;
@@ -155,7 +155,7 @@ if ( $method eq qw| event | ) {
         ## find the pending prompt entry and fire deferred reply
         my ($pend_id) = grep {
             ( <kimi.wire.pending>->{$ARG}->{'type'} // '' ) eq qw| prompt |
-        } keys %{<kimi.wire.pending>};
+        } keys <kimi.wire.pending>->%*;
 
         if ( defined $pend_id ) {
             my $pend     = delete <kimi.wire.pending>->{$pend_id};
@@ -379,8 +379,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,,,...,.,.,,,,,.,.,,,.,.,.,,.,,...,...,,.,,.,.,...,...,...,..,,,.,,,..,,,,,
-#KEVXG7DGFTQ3LII6VKKKBCX656DOGAPYRWCHZ3LTSDWMDRF6YO42UCQMP2EGSA56WAIKM7TN7R54W
-#\\\|XZFLVETQJFD2XDUZ525FYBRE6ESPFS4XIGLGOBXPYWT3DQGQYUI \ / AMOS7 \ YOURUM ::
-#\[7]J7MNNZOL533SGGE7B46ZOCVEI45G4DVH7OUYGUTF4BHJPHUF7MBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,..,,,,,,.,.,,.,,..,,,,.,,,.,,..,.,.,...,...,,,.,...,,..,.,,,..,,
+#YSGJFPBV4KH4NKE5I2TJ4BORUNA44JME5CQL7G5OJGYHYCSF7OA7YTXBXONOVAOP2RBKHWY6HJNMU
+#\\\|B77BUXOGHTURI23C7JRHDKTUSCMQXE3BHCHFYT2TVGAATQLX3SI \ / AMOS7 \ YOURUM ::
+#\[7]XLELYMO2HNDB4TB2UNYXPEWKTOAUT23FVOOP3NGJAPQG6AOYKSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

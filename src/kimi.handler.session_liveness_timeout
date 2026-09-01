@@ -11,7 +11,7 @@ return
 ## don't clear session if we have active prompts : session is alive but busy
 ## with our work [ init fails because agent turn is in progress ]
 my $has_pending_prompt = FALSE;
-foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
+foreach my $pend_id ( keys <kimi.wire.pending>->%* ) {
     if ( ( <kimi.wire.pending>->{$pend_id}->{'type'} // '' ) eq qw| prompt | )
     {
         $has_pending_prompt = TRUE;
@@ -65,8 +65,8 @@ if ( <kimi.session.was_ready> // FALSE ) {
 <kimi.ws.status> = qw| disconnected |;
 <[kimi.connect.schedule_retry]>;
 
-#,,..,...,,..,...,,..,,,.,...,,,.,...,,,.,,..,.,.,...,...,,,.,.,.,.,,,.,.,..,,
-#PCL4NOG7ZWWMI7XXQ26VQ7RNHM2JAEE6WK4NOCK2YOTQ2BVDFN66WNG6DFMR6KTBTUDP5YXLBJO2C
-#\\\|DGRQDIM47YMGTDTKGIMXPY7ZREU3BPCAEF5QWLVEYRN2ZIF6W64 \ / AMOS7 \ YOURUM ::
-#\[7]QG3XMNV5K6LI4AJVJHIVB5KLXUVLPQ6OZEMK6XMFYXCEQQNRESDQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,,.,,.,.,...,,.,,.,.,,..,..,,.,.,...,.,.,..,,,.,,,,,,,.,,,,,,
+#MI3LCIN5LNP4IAQIAQJHXIDGFQZHIRKE3FJFF6EUWS6B5Z2HZNQMB3QNTV263KKXYEL53JVRMTWUS
+#\\\|Y34VFXCQPZM3VOXS2OBS6EJV5SODSQWW4IB5OOIJMFSXIFINCKZ \ / AMOS7 \ YOURUM ::
+#\[7]6ZHTYONWPUZO3UPQ3AFYKQQ7Q3O4EF42NOSW4R7JFQ5GY5OBP6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
