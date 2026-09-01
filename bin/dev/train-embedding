@@ -264,21 +264,21 @@ sub read_word_vectors {
     my ( $vec_path, $max ) = @ARG;
 
     ##  use .vec sibling if we were handed a .bin path  ##
-    $vec_path =~ s/\.bin$/.vec/;
+    $vec_path =~ s|\.bin$|.vec|;
 
     open my $fh, qw| < |, $vec_path
         or die ":: cannot read vector file $vec_path: $OS_ERROR\n";
 
     my $header = <$fh>;
     chomp $header;
-    my ( $words, $dim ) = split /\s+/, $header;
+    my ( $words, $dim ) = split m|\s+|, $header;
 
     my %vectors;
     my $read = 0;
     while ( my $line = <$fh> ) {
         last if $read >= $max;
         chomp $line;
-        my ( $word, @values ) = split /\s+/, $line;
+        my ( $word, @values ) = split m|\s+|, $line;
         next if !defined $word;
         $vectors{$word} = \@values;
         $read++;
@@ -309,8 +309,8 @@ sub cosine_similarity {
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 
-#,,,.,...,..,,,,,,,,.,.,.,,,.,,..,...,.,,,...,...,...,...,..,,.,,,..,,.,,,.,.,
-#73CX6YOR64RY4ACPXE7ICVMVWPO3HA645V2RM6RDBHPYKI7D4DI5CMP5XQOTU4M5D5GQSJERMCMGS
-#\\\|C2DSJUWIAEPX6B3MYDZMV6E7R2WNFI3J2LOZYI72G7D25FM2DOC \ / AMOS7 \ YOURUM ::
-#\[7]MBZ2436625G7T46BVSW73XTDL4TYF7XZBXBZWMM6VGYT2GVFACAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,..,,.,.,,.,,..,,.,,,..,,,,,,.,,,...,...,...,..,,,,,,,,.,,.,,,.,,
+#Y5LUDZFOPQVDWOJ2NPQ3HLWFDQBHPPUNA4WNTHBLAH362FDVNA2ENO7O6VNXQ32A3C5HKVJFEZMZK
+#\\\|7P4CRIYTZNHD2TJR225UNDJXEPTBSDC3TXVQZWFC3WR2RLCOLL2 \ / AMOS7 \ YOURUM ::
+#\[7]QQCFV67ZWYQI5TKYC3YXCOFW7VSBVYOQK27ZDXSPN57X5BS2C4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,16 +13,16 @@ use Getopt::Std;
 ###              ####
 
 ##                    [usage example]  bin-elf-table -m 2 -R 400..680 -M 01 -T
-##                                     bin-elf-table -m 10:3 -R 777 -F -M01
-##                                     bin-elf-table -m 10:3 -R 777 -T -M01
-##                                     bin-elf-table -m 10:3 -R 777 -T -M7
+#                                      bin-elf-table -m 10:3 -R 777 -F -M01
+#                                      bin-elf-table -m 10:3 -R 777 -T -M01
+#                                      bin-elf-table -m 10:3 -R 777 -T -M7
 
 #:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:
 ##[ LOCAL PM LIB PATH ]#######################################################
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
@@ -66,11 +66,11 @@ $SIG{'__WARN__'} = sub {
 ##[ RUNTIME OPTIONS ]#########################################################
 
 ##
-##  -F  ## filter FALSE ##
-##  -T  ## filter for TRUE ##
-##  -M <char[s]> ## match filter elf-sum characters ##
-##  -N <char[s]> ## negated match for elf-sum characters ##
-##  -R [<lower>..<upper>] | [<total>] ## supply ascii range
+## -F  ## filter FALSE                                     ##
+## -T  ## filter for TRUE                                  ##
+## -M <char[s]> ## match filter elf-sum characters         ##
+## -N <char[s]> ## negated match for elf-sum characters    ##
+## -R [<lower>..<upper>] | [<total>] ## supply ascii range ##
 ##
 
 getopts( qw| FTR:M:N:m: |, \my %option );
@@ -140,8 +140,8 @@ foreach my $num (@range) {
     ###
 
     printf(
-        "  %s  %03d  %s  %03d  %s%d   %07s   %9s $C{0}: %s"
-            . " %c  %c %c %c  $C{b}$C{0}:$C{T} %c $C{0}:%s\n",
+        "  %s  %03d  %s  %03d  %s%d   %07s   %9s $C{0}: "
+            . "%s %c  %c %c %c  $C{b}$C{0}:$C{T} %c $C{0}:%s\n",
         ( $T and ++$true )
         ? $C{'T'} . $C{'b'}
         : $C{0}, $num,
@@ -186,8 +186,8 @@ exit(0000000);
 #.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.:::.
 #:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:...:
 
-#,,..,.,.,,..,..,,,,.,...,.,,,,.,,,,.,...,..,,..,,...,...,,..,..,,.,,,.,,,,..,
-#7BGOPVXS7DTCEMXS2BNPBL4KYCSLJNVXCUVEJZPUFVFSRFDBKG63R6AC3IYGHSYLUVGXANDGYS4OK
-#\\\|TYVM655PM7FMWNAZE7BQILZ6B6BLYGBXT5GYYRKA6MAEAHPRNYP \ / AMOS7 \ YOURUM ::
-#\[7]P2BWJZK42PJX6J4UDGMHYF4MKQNAY5YFUHDAJMPZFSV4EVDSBGCY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,..,,.,.,.,,,,,.,,,.,..,,,.,,.,,,..,,...,...,..,,.,,,..,,,.,,,..,
+#COO55X7U244T6RMUCBIA3HTQAHFO3KCEORMQHYYFSG4BAB5WYPLYCMCNX2CQYZYRTILYTO4XDYF7S
+#\\\|DMMLWJWIASJ4DHGXTU7T2QYFSFQ5MUMLCY2BNSXLQKMGWVKJLTX \ / AMOS7 \ YOURUM ::
+#\[7]424JLRAFRGH4VDXPZ4RLJIXUER3OTVWZDA4FR72DPFPTU2VXXMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

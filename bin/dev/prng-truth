@@ -11,8 +11,8 @@ use Time::HiRes qw| time |;
 ##  prng-truth  ##
 ###             ####
 
-##  statistical harmonic truth assertion analysis of PRNG output  ##
-##  measures true/false distribution against mod-13 theoretical baseline  ##
+## statistical harmonic truth assertion analysis of PRNG output measures ##
+## true/false distribution against mod-13 theoretical baseline           ##
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -32,12 +32,12 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
-##[ MODULES ]##################################################################
+##[ MODULES ]#################################################################
 
 use AMOS7::Assert::Truth;
 use Crypt::PRNG::Fortuna;
 
-##[ OPTIONS ]##################################################################
+##[ OPTIONS ]#################################################################
 
 getopts( 'n:s:vqF', \my %opt );
 
@@ -52,7 +52,7 @@ die ":\n:: -n <iterations> must be a positive integer\n:\n"
 
 my $seed_str = $opt{'s'};   ##  optional seed [ -s ] for reproducible runs  ##
 
-##[ COLOR SCHEME ]#############################################################
+##[ COLOR SCHEME ]############################################################
 
 my $blacklight  = "\e[38;2;68;39;172m";
 my $nailara_bg  = "\e[48;2;9;5;42m";
@@ -63,12 +63,12 @@ my $neon_green  = "\e[38;2;71;195;6m";
 my $bold        = "\e[1m";
 my $reset       = "\e[0m";
 
-##[ SEED — HARMONY-FILTERED HIGH PRECISION TIME ]##############################
+##[ SEED — HARMONY-FILTERED HIGH PRECISION TIME ]#############################
 
-##  default: walk forward from current microsecond timestamp until the  ##
-##  value passes harmonic truth assertion [ nearest TRUE value ]         ##
-##  -F flag: walk to nearest FALSE value instead — for comparison runs   ##
-##  seed is printed so results are reproducible with  -s <seed>          ##
+## default: walk forward from current microsecond timestamp until the value ##
+## passes harmonic truth assertion [ nearest TRUE value ]                   ##
+## -F flag: walk to nearest FALSE value instead — for comparison runs seed  ##
+## is printed so results are reproducible with  -s <seed>                   ##
 
 my $seed_display;
 my $seed_state;    ##  TRUE | FALSE | manual  ##
@@ -91,20 +91,23 @@ if ( not defined $seed_str ) {
     $seed_state = is_true( $seed_str, 2, 1 ) ? 'TRUE' : 'FALSE';
 }
 
-##[ PRNG SETUP ]###############################################################
+##[ PRNG SETUP ]##############################################################
 
 my $prng = Crypt::PRNG->new( qw| Fortuna |, $seed_str );
 
-##[ THEORETICAL BASELINE ]#####################################################
+##[ THEORETICAL BASELINE ]####################################################
 
-##  all 13 mod-13 remainders map to TRUE or FALSE [ no neither ] :  ##
-##  TRUE  : remainders 0 2 5 6 7 8 11  [ 7 of 13 ] == 461538 rotations  ##
-##  FALSE : remainders 1 3 4 9 10 12   [ 6 of 13 ] == 230769 rotations  ##
+## all 13 mod-13 remainders map to TRUE or FALSE [ no neither ] :
+#
+## TRUE  : remainders 0 2 5 6 7 8 11  [ 7 of 13 ] == 461538 rotations
+#
+## FALSE : remainders 1 3 4 9 10 12   [ 6 of 13 ] == 230769 rotations
+#
 
 my $theory_true  = 7 / 13;    ##  ≈ 0.538461..  ##
 my $theory_false = 6 / 13;    ##  ≈ 0.461538..  ##
 
-##[ MAIN LOOP ]################################################################
+##[ MAIN LOOP ]###############################################################
 
 my %count = ( 'true' => 0, 'false' => 0 );
 
@@ -141,8 +144,8 @@ for my $i ( 1 .. $iterations ) {
             :                                             $neon_orange;
 
         printf(
-            "\r%s:::[%s%s%-${chars_max}s%s%s]: %s%s%.4f%s  "
-                . "T:%s%d%s F:%s%d%s  %s",
+            "\r%s:::[%s%s%-${chars_max}s%s%s]: "
+                . "%s%s%.4f%s  T:%s%d%s F:%s%d%s  %s",
             $blacklight,  $nailara_bg,  $true_color,
             $bar,         $reset,       $blacklight,
             $ratio_color, $bold,        $ratio_true,
@@ -153,7 +156,7 @@ for my $i ( 1 .. $iterations ) {
     }
 }
 
-##[ FINAL REPORT ]#############################################################
+##[ FINAL REPORT ]############################################################
 
 my $total            = $count{'true'} + $count{'false'};
 my $ratio_true       = $count{'true'} / $total;
@@ -184,8 +187,8 @@ printf "%s:%s %${lw}s  %s%s%s%s  %s[ %s ]%s\n",
     $nailara_fg,  $bold,       $seed_str, $reset,
     $state_color, $seed_state, $reset;
 
-printf "%s:%s %${lw}s  %s%s%d%s  %s(%.4f)%s  "
-    . "theory %s%.13f%s  dev %s%+.6f%s\n",
+printf "%s:%s %${lw}s  %s%s%d%s  %s(%.4f)%s "
+    . " theory %s%.13f%s  dev %s%+.6f%s\n",
     $blacklight, $reset,
     'TRUE',
     $true_color, $bold,        $count{'true'}, $reset,
@@ -193,8 +196,8 @@ printf "%s:%s %${lw}s  %s%s%d%s  %s(%.4f)%s  "
     $nailara_fg, $theory_true, $reset,
     $dev_color,  $dev_true,    $reset;
 
-printf "%s:%s %${lw}s  %s%s%d%s  %s(%.4f)%s  "
-    . "theory %s%.13f%s  dev %s%+.6f%s\n",
+printf "%s:%s %${lw}s  %s%s%d%s  %s(%.4f)%s "
+    . " theory %s%.13f%s  dev %s%+.6f%s\n",
     $blacklight, $reset,
     'FALSE',
     $neon_orange, $bold,         $count{'false'}, $reset,
@@ -202,8 +205,7 @@ printf "%s:%s %${lw}s  %s%s%d%s  %s(%.4f)%s  "
     $nailara_fg,  $theory_false, $reset,
     $dev_color,   $dev_false,    $reset;
 
-printf "%s:%s %${lw}s  %s%s%.6f%s  "
-    . "theory %s%.13f%s\n",
+printf "%s:%s %${lw}s  %s%s%.6f%s  theory %s%.13f%s\n",
     $blacklight, $reset,
     'TRUE / FALSE ratio',
     $dev_color, $bold, $true_false_ratio, $reset,
@@ -211,8 +213,8 @@ printf "%s:%s %${lw}s  %s%s%.6f%s  "
 
 say $blacklight, ':', $reset;
 
-#,,,.,.,.,,.,,..,,.,.,,..,.,.,,..,..,,,,.,,..,.,.,...,...,,..,..,,..,,..,,.,.,
-#CXZJFJYLREHVFU6TOSBAPG65NSSUKF4BYJ62PIBWHNWTKKFSYMGBODZTNTQXPE7UGUKZSN5523DOQ
-#\\\|CKT3SRAGFZSBGIIKA6I6XO6SJOTVSVNIMQUHB5YULHNLPO3LVZG \ / AMOS7 \ YOURUM ::
-#\[7]5IMPZAJAR4VOA6TCMPH5SZCJKGXENFDT3VIGDA7LUXITBSEXDSBA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,...,,,.,,..,,,.,.,,,...,,,.,.,.,...,..,,.,,,,..,.,.,,..,,,,,
+#L6IKUXURRM6XWHQQAPSUV3NST2XVZH7RGX2IYIHNRDDV6WTTGNNTRKMTMHCSGV6KSMGZ246E2FLOM
+#\\\|GNYMJNP467KS6VJC5UZVZPI3G4JJKTXJHIIOBOGL7PW67KU42RU \ / AMOS7 \ YOURUM ::
+#\[7]6YJTSJSTIDRLY4FMZDNY7N5A5KX6OZYXHVCNVFJGTH4AUKVNKSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

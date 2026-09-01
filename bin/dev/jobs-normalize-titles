@@ -29,7 +29,7 @@ my @patterns = (
 sub normalize_title {
     my $title = shift;
     return $title unless defined $title and length $title;
-    for my $p (@patterns) { $title =~ s/$p->{re}//g; }
+    for my $p (@patterns) { $title =~ s|$p->{re}||g; }
     $title =~ s{\s+$}{};
     return $title;
 }
@@ -73,8 +73,8 @@ find(
 
 print "\n$changed title(s) normalized.\n";
 
-#,,,.,,..,.,,,,..,,,,,,..,..,,.,.,.,,,,,.,.,.,..,,...,..,,..,,,,.,,,.,.,,,.,.,
-#FK4ZX2QFU3NJI6AHGC7FIIQYBRKQA4VO735YGL5NH64YEYSZO77T77SQVYQ4OAFDW4UYS6VDSVO3C
-#\\\|MFCHVOY36MZX2TF6ETUOZTVY5VAD56LMMPJE52HPAUQM52LQLBX \ / AMOS7 \ YOURUM ::
-#\[7]XQBFVECVUOHAR5VPZ2AQWJ45XWQHTGQJV3SMO3ALZ356NOR76UCA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,...,,,,,...,...,,,.,..,,,..,..,,...,...,..,,..,,,,,,...,.,.,
+#44IUUZO3SYLNP7CXF2IP4TZO6HEGVGQ4HHT65B43VR4VE5S3JPJZ3DY32AT4O4MG3R7N3C4BKYWMM
+#\\\|MJWTWAE2N5NVROCIA4U2WSBMI5OSVLPD4RAUXA5ODMGKHIK55DV \ / AMOS7 \ YOURUM ::
+#\[7]7PCWRVCPCPE3TMRSMG3IL3J7SGXWM2GFHQHT3EV2CQ72PYZUQICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

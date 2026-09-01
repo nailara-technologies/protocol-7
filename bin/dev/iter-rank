@@ -10,8 +10,8 @@ use Getopt::Std;
 ##  iter-rank  ##
 ###            ####
 
-##  sort AMOS7-signed files by footer harmonization iteration count  ##
-##  lower remaining = more iterations taken = higher harmonic density  ##
+## sort AMOS7-signed files by footer harmonization iteration count lower ##
+## remaining = more iterations taken = higher harmonic density           ##
 
 my $max_remaining
     = 07777777;    ##  octal limit from source.create_harmonic_footer  ##
@@ -19,13 +19,11 @@ my $max_remaining
 getopts( 'rq0n', \my %opt );
 
 my $usage
-    = ":\n:: usage: iter-rank [-r] [-q] [-0] [-n] <files|globs>\n"
-    . "::\n"
-    . "::   -r  .....  reverse sort [ highest iter count last ]\n"
-    . "::   -q  .....  quiet [ filenames only, no counts ]\n"
-    . "::   -0  .....  null-separated output [ for xargs -0 ]\n"
-    . "::   -n  .....  show raw remaining value instead of iterations taken\n"
-    . ":\n";
+    = ":\n:: usage: iter-rank [-r] [-q] [-0] [-n] <files|globs>\n::\n::   -r "
+    . " .....  reverse sort [ highest iter count last ]\n::   -q  "
+    . ".....  quiet [ filenames only, no counts ]\n::   -0  .....  "
+    . "null-separated output [ for xargs -0 ]\n::   -n  .....  show "
+    . "raw remaining value instead of iterations taken\n:\n";
 
 die $usage if not @ARGV;
 
@@ -68,7 +66,7 @@ sub extract_iter_remaining {
     return undef if not defined $buf or not length $buf;
 
     ##  scan lines for first footer line pattern  ##
-    foreach my $line ( split /\n/, $buf ) {
+    foreach my $line ( split m|\n|, $buf ) {
         next unless length $line;
 
         ##  match: # + leading-sep(,) + 19 groups of [,.]3 + ,  ##
@@ -113,8 +111,8 @@ if ( not @ranked ) {
     exit(1);
 }
 
-##  sort ascending by remaining [ low remaining = many iterations = dense ]  ##
-##  -r reverses: high remaining first [ fewest iterations = most immediate ] ##
+## sort ascending by remaining [ low remaining = many iterations = dense ]  ##
+## -r reverses: high remaining first [ fewest iterations = most immediate ] ##
 my @sorted
     = $opt{'r'}
     ? sort { $b->[0] <=> $a->[0] } @ranked
@@ -150,8 +148,8 @@ foreach my $entry (@sorted) {
 
 print $blacklight, ":\n", $reset;
 
-#,,.,,...,,.,,.,,,,..,...,.,.,.,.,.,,,..,,...,.,.,...,...,,..,,.,,...,,.,,,.,,
-#AJF5M3BOE6D5PDY7LUKB7LUCSD2OI6JZ4VV3TFUKVUXIEWLDAAHK7GGMEVJCOPPRTI6KAI2QJKVCY
-#\\\|3TEH3RLIYRQ3R66PSVKYTBZ6G4HCVPBPD64XKVLBHP2IU2VFZ75 \ / AMOS7 \ YOURUM ::
-#\[7]GDDMBWTODSPCANHHVXBRNX44OKGST2GOSULBAXJH5G4GPVGCLQCI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,...,..,,,,,,,..,,..,,,.,..,,..,,.,.,...,..,,,,,,..,,,.,,..,,,..,
+#6GPHUIEMOZENHNU3D7QQRPN7T5U6RENVAUXWVFR3ZH2UPXW7K7CQMGGAOLYKSGV6DFP4XW23XU5P2
+#\\\|EKMXZDV5IG2FWAJOHSLZMJXZ4LIFBMOPKTM2EEHYJBIQADOWIXG \ / AMOS7 \ YOURUM ::
+#\[7]D7SWGPMRQKRRAPB3L72WHEY5WW6EBD3MILM7F5IBBBD2JNGFNADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

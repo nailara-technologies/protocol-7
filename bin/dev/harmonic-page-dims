@@ -9,10 +9,11 @@ use warnings;
 
 BEGIN {
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
-    my $root = abs_path( File::Spec->catdir( $RealBin, (File::Spec->updir) x 2 ) );
-    my $lib  = File::Spec->catdir( $root, qw| data lib-path pm | );
+    my $root = abs_path(
+        File::Spec->catdir( $RealBin, ( File::Spec->updir ) x 2 ) );
+    my $lib = File::Spec->catdir( $root, qw| data lib-path pm | );
     unshift @INC, $lib if -d $lib;
 }
 
@@ -40,8 +41,8 @@ sub terminates_base10 {
 my %formats = (
     'DIN A4'    => { mm => [ 210, 297 ] },
     'DIN A3'    => { mm => [ 297, 420 ] },
-    'US Letter' => { in => [ 8.5, 11  ] },
-    'US Legal'  => { in => [ 8.5, 14  ] },
+    'US Letter' => { in => [ 8.5, 11 ] },
+    'US Legal'  => { in => [ 8.5, 14 ] },
 );
 
 my @dpis = ( 150, 300, 600 );
@@ -121,13 +122,14 @@ for my $name ( sort keys %formats ) {
         for my $W ( ( $w - 200 ) .. ( $w + 800 ) ) {
             next if $W <= 0;
             my ( $score, $pass ) = score_dimension( $W, $w, $h );
-            push @w_cand, {
-                val  => $W,
-                d    => $W - $w,
-                half => int( $W / 2 ),
+            push @w_cand,
+                {
+                val   => $W,
+                d     => $W - $w,
+                half  => int( $W / 2 ),
                 score => $score,
-                pass => $pass,
-            };
+                pass  => $pass,
+                };
         }
         @w_cand = sort {
             $b->{score} <=> $a->{score}
@@ -139,13 +141,14 @@ for my $name ( sort keys %formats ) {
         for my $H ( ( $h - 200 ) .. ( $h + 800 ) ) {
             next if $H <= 0;
             my ( $score, $pass ) = score_dimension( $H, $h, $w );
-            push @h_cand, {
-                val  => $H,
-                d    => $H - $h,
-                half => int( $H / 2 ),
+            push @h_cand,
+                {
+                val   => $H,
+                d     => $H - $h,
+                half  => int( $H / 2 ),
                 score => $score,
-                pass => $pass,
-            };
+                pass  => $pass,
+                };
         }
         @h_cand = sort {
             $b->{score} <=> $a->{score}
@@ -184,12 +187,22 @@ for my $name ( sort keys %formats ) {
         for my $c (@w_cand) { push @{ $w_by_score{ $c->{score} } }, $c; }
         for my $c (@h_cand) { push @{ $h_by_score{ $c->{score} } }, $c; }
 
-        my @w_pool = ( @{ $w_by_score{10} // [] }, @{ $w_by_score{9} // [] },
-                       @{ $w_by_score{8} // [] }, @{ $w_by_score{7} // [] },
-                       @{ $w_by_score{6} // [] }, @{ $w_by_score{5} // [] } );
-        my @h_pool = ( @{ $h_by_score{10} // [] }, @{ $h_by_score{9} // [] },
-                       @{ $h_by_score{8} // [] }, @{ $h_by_score{7} // [] },
-                       @{ $h_by_score{6} // [] }, @{ $h_by_score{5} // [] } );
+        my @w_pool = (
+            @{ $w_by_score{10} // [] },
+            @{ $w_by_score{9}  // [] },
+            @{ $w_by_score{8}  // [] },
+            @{ $w_by_score{7}  // [] },
+            @{ $w_by_score{6}  // [] },
+            @{ $w_by_score{5}  // [] }
+        );
+        my @h_pool = (
+            @{ $h_by_score{10} // [] },
+            @{ $h_by_score{9}  // [] },
+            @{ $h_by_score{8}  // [] },
+            @{ $h_by_score{7}  // [] },
+            @{ $h_by_score{6}  // [] },
+            @{ $h_by_score{5}  // [] }
+        );
 
         my @pairs;
         for my $wc (@w_pool) {
@@ -197,8 +210,8 @@ for my $name ( sort keys %formats ) {
                 next if $wc->{score} < 5 || $hc->{score} < 5;
 
                 my $pair_score = $wc->{score} + $hc->{score};
-                my $wxh_pass = 0;
-                my $hxw_pass = 0;
+                my $wxh_pass   = 0;
+                my $hxw_pass   = 0;
 
                 my $s_wxh = $wc->{val} . 'x' . $hc->{val};
                 $wxh_pass = 1 if is_true( \$s_wxh, 2, 1 );
@@ -211,7 +224,8 @@ for my $name ( sort keys %formats ) {
                 my $margin_w = abs( $wc->{d} ) / 2;
                 my $margin_h = abs( $hc->{d} ) / 2;
 
-                push @pairs, {
+                push @pairs,
+                    {
                     W        => $wc->{val},
                     H        => $hc->{val},
                     dW       => $wc->{d},
@@ -225,24 +239,30 @@ for my $name ( sort keys %formats ) {
                     margin_h => $margin_h,
                     w_pass   => fmt_constraints( $wc->{pass} ),
                     h_pass   => fmt_constraints( $hc->{pass} ),
-                };
+                    };
             }
         }
 
         @pairs = sort {
             $b->{pair} <=> $a->{pair}
-                || abs( $a->{dW} ) + abs( $a->{dH} ) <=> abs( $b->{dW} ) + abs( $b->{dH} )
+                || abs( $a->{dW} )
+                + abs( $a->{dH} ) <=> abs( $b->{dW} )
+                + abs( $b->{dH} )
         } @pairs;
 
         print "\n";
         printf "%s  %d DPI  (standard: %d x %d)  [paired scan]\n",
             $name, $dpi, $w, $h;
-        printf "  pair   W      H      dW   dH   margin      W-constr  H-constr  WxH HxW\n";
-        printf "  -----  -----  -----  ---- ----  ----------  --------  --------  --- ---\n";
+        printf "  pair   W      H      dW   dH   margin "
+            . "     W-constr  H-constr  WxH HxW\n";
+        printf "  -----  -----  -----  ---- ----  "
+            . "----------  --------  --------  --- ---\n";
         for my $p ( @pairs[ 0 .. 2 ] ) {
             last if not defined $p;
-            my $margin = sprintf "%.1f x %.1f", $p->{margin_w}, $p->{margin_h};
-            printf "    %d    %5d  %5d  %+4d %+4d  %10s  %8s  %8s   %s   %s\n",
+            my $margin = sprintf "%.1f x " . "%.1f", $p->{margin_w},
+                $p->{margin_h};
+            printf "    %d    %5d  %5d  %+4d %+4d "
+                . " %10s  %8s  %8s   %s   %s\n",
                 $p->{pair}, $p->{W}, $p->{H}, $p->{dW}, $p->{dH},
                 $margin, $p->{w_pass}, $p->{h_pass},
                 $p->{wxh} ? 'Y' : 'N', $p->{hxw} ? 'Y' : 'N';
@@ -250,58 +270,68 @@ for my $name ( sort keys %formats ) {
 
         ## coupled joint (W,H) scan ##
         my $threshold = 6;
-        my @w_joint = grep { $ARG->{score} >= $threshold } @w_cand;
-        my @h_joint = grep { $ARG->{score} >= $threshold } @h_cand;
+        my @w_joint   = grep { $ARG->{score} >= $threshold } @w_cand;
+        my @h_joint   = grep { $ARG->{score} >= $threshold } @h_cand;
         @w_joint = grep { $ARG->{score} >= 5 } @w_cand if @w_joint == 0;
         @h_joint = grep { $ARG->{score} >= 5 } @h_cand if @h_joint == 0;
 
         my @joint;
         for my $wc (@w_joint) {
             for my $hc (@h_joint) {
-                my $ratio_terminates = terminates_base10( $wc->{val}, $hc->{val} ) ? 1 : 0;
-                my $inv_terminates   = terminates_base10( $hc->{val}, $wc->{val} ) ? 1 : 0;
+                my $ratio_terminates
+                    = terminates_base10( $wc->{val}, $hc->{val} ) ? 1 : 0;
+                my $inv_terminates
+                    = terminates_base10( $hc->{val}, $wc->{val} ) ? 1 : 0;
 
-                my $ratio_str = sprintf "%.14g", $wc->{val} / $hc->{val};
+                my $ratio_str    = sprintf "%.14g", $wc->{val} / $hc->{val};
                 my ($ratio_true) = is_true( \$ratio_str, 2, 1 ) ? 1 : 0;
 
-                my $inv_str = sprintf "%.14g", $hc->{val} / $wc->{val};
+                my $inv_str    = sprintf "%.14g", $hc->{val} / $wc->{val};
                 my ($inv_true) = is_true( \$inv_str, 2, 1 ) ? 1 : 0;
 
                 my $wxh_bonus = 0;
-                my $s_wxh = $wc->{val} . 'x' . $hc->{val};
+                my $s_wxh     = $wc->{val} . 'x' . $hc->{val};
                 $wxh_bonus = 1 if is_true( \$s_wxh, 2, 1 );
 
                 my $hxw_bonus = 0;
-                my $s_hxw = $hc->{val} . 'x' . $wc->{val};
+                my $s_hxw     = $hc->{val} . 'x' . $wc->{val};
                 $hxw_bonus = 1 if is_true( \$s_hxw, 2, 1 );
 
-                my $joint_score = $wc->{score} + $hc->{score}
-                    + $ratio_terminates + $inv_terminates
-                    + $ratio_true + $inv_true
-                    + $wxh_bonus + $hxw_bonus;
+                my $joint_score
+                    = $wc->{score}
+                    + $hc->{score}
+                    + $ratio_terminates
+                    + $inv_terminates
+                    + $ratio_true
+                    + $inv_true
+                    + $wxh_bonus
+                    + $hxw_bonus;
 
-                push @joint, {
-                    W              => $wc->{val},
-                    H              => $hc->{val},
-                    dW             => $wc->{d},
-                    dH             => $hc->{d},
-                    ratio          => sprintf( "%.5f", $wc->{val} / $hc->{val} ),
-                    sW             => $wc->{score},
-                    sH             => $hc->{score},
-                    joint          => $joint_score,
-                    ratio_t        => $ratio_terminates,
-                    inv_t          => $inv_terminates,
-                    ratio_true     => $ratio_true,
-                    inv_true       => $inv_true,
-                    wxh            => $wxh_bonus,
-                    hxw            => $hxw_bonus,
-                };
+                push @joint,
+                    {
+                    W          => $wc->{val},
+                    H          => $hc->{val},
+                    dW         => $wc->{d},
+                    dH         => $hc->{d},
+                    ratio      => sprintf( "%.5f", $wc->{val} / $hc->{val} ),
+                    sW         => $wc->{score},
+                    sH         => $hc->{score},
+                    joint      => $joint_score,
+                    ratio_t    => $ratio_terminates,
+                    inv_t      => $inv_terminates,
+                    ratio_true => $ratio_true,
+                    inv_true   => $inv_true,
+                    wxh        => $wxh_bonus,
+                    hxw        => $hxw_bonus,
+                    };
             }
         }
 
         @joint = sort {
             $b->{joint} <=> $a->{joint}
-                || abs( $a->{dW} ) + abs( $a->{dH} ) <=> abs( $b->{dW} ) + abs( $b->{dH} )
+                || abs( $a->{dW} )
+                + abs( $a->{dH} ) <=> abs( $b->{dW} )
+                + abs( $b->{dH} )
         } @joint;
 
         print "\n";
@@ -313,20 +343,20 @@ for my $name ( sort keys %formats ) {
         printf "----  ----  ------- -----  ------ --------  --- ---\n";
         for my $j ( @joint[ 0 .. 4 ] ) {
             last if not defined $j;
-            printf "    %d    %5d  %5d  %+4d  %+4d  %s  "
-                . "%4d  %4d  %s       %s      %s      %s         %s   %s\n",
+            printf "    %d    %5d  %5d  %+4d  %+4d  %s  %4d  %4d "
+                . " %s       %s      %s      %s         %s   %s\n",
                 $j->{joint}, $j->{W}, $j->{H}, $j->{dW}, $j->{dH},
                 $j->{ratio},
                 $j->{sW}, $j->{sH},
-                $j->{ratio_t} ? 'Y' : 'N', $j->{inv_t} ? 'Y' : 'N',
+                $j->{ratio_t}    ? 'Y' : 'N', $j->{inv_t}    ? 'Y' : 'N',
                 $j->{ratio_true} ? 'Y' : 'N', $j->{inv_true} ? 'Y' : 'N',
-                $j->{wxh} ? 'Y' : 'N', $j->{hxw} ? 'Y' : 'N';
+                $j->{wxh}        ? 'Y' : 'N', $j->{hxw}      ? 'Y' : 'N';
         }
     }
 }
 
-#,,..,,,,,.,,,,,.,...,,,.,..,,,.,,..,,,.,,..,,..,,...,..,,.,.,.,,,.,,,,.,,.,.,
-#JLWODLWFQZSCTH3BP2VFX3TWX7KB6LHT4WUAU3FH5GB5VVCRSAR6JTUE6NWOFOFA3S6DBDTJFPTKE
-#\\\|ASHMV4DOEG5646S5YJYXGM4NIQTDGHWAJIDRKQN2VG3TUSLRSX2 \ / AMOS7 \ YOURUM ::
-#\[7]X2NCQY666O3ZC3IOPBFZS7C2LBHCOQTEDABASUE6UEOCSV3ICOCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,..,,.,,,,,,,.,.,..,,..,,...,,..,..,,...,...,.,,,,.,,,,,,.,,,...,
+#DEGVG7XYYGN7ZN6V2SWTXK4DJ6IMTFKF2KJOGZAIDWCGPGOTPUSSEXKVKB2EDXBEBH3FR4SLUHZQI
+#\\\|5IRKMSFXJY5JB6L4VRF3H4AHW666MVLL6ZXGT7QENPI7P2QAO2E \ / AMOS7 \ YOURUM ::
+#\[7]OTIKTYMEY4TPXMUUZGGXNAEO2QVATBCJD2AJPRJXVM6D54T5F6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,11 +11,12 @@ use warnings;
 use IO::Socket::INET;
 use JSON::XS;
 use Digest::SHA qw(sha256);
-use MIME::Base64 qw(encode_base64 decode_base64 encode_base64url decode_base64url);
+use MIME::Base64
+    qw(encode_base64 decode_base64 encode_base64url decode_base64url);
 use Digest::MD5 qw(md5_hex);
 use Time::HiRes qw(time);
 
-our $PORT = 8555;
+our $PORT     = 8555;
 our $BASE_URL = "http://localhost:$PORT";
 
 ## In-memory state
@@ -28,7 +29,7 @@ our $NONCE_COUNTER = 0;
 our %NONCES;
 
 our $LOG_FILE = '/tmp/acme-mock-server.log';
-our $JSON = JSON::XS->new->canonical(1)->pretty(0);
+our $JSON     = JSON::XS->new->canonical(1)->pretty(0);
 
 ## Create listening socket
 my $socket = IO::Socket::INET->new(
@@ -65,22 +66,22 @@ sub handle_connection {
     return unless defined $request_line;
 
     chomp($request_line);
-    my ( $method, $path, $protocol ) = split( /\s+/, $request_line );
+    my ( $method, $path, $protocol ) = split( m|\s+|, $request_line );
     $method //= 'GET';
     $path   //= '/';
 
     # Read headers
     my $content_length = 0;
-    my $header_count = 0;
+    my $header_count   = 0;
     while ( my $header = <$client> ) {
         chomp($header);
-        $header =~ s/\r$//;  # Remove carriage return if present
+        $header =~ s|\r$||;    # Remove carriage return if present
         last if $header eq '';
-        if ( $header =~ /^Content-Length:\s*(\d+)/i ) {
+        if ( $header =~ m|^Content-Length:\s*(\d+)|i ) {
             $content_length = $1;
         }
         $header_count++;
-        last if $header_count > 100;  # Safety limit
+        last if $header_count > 100;    # Safety limit
     }
 
     # Read body if present
@@ -104,21 +105,21 @@ sub handle_connection {
     } elsif ( $path eq '/new-account' ) {
         my $result = handle_new_account( $method, $content );
         if ( ref($result) eq 'HASH' ) {
-            $response = $result->{json};
+            $response        = $result->{json};
             $location_header = $result->{location};
         } else {
             $response = $result;
         }
-        $status = '201 Created' if $response !~ /error/;
+        $status = '201 Created' if $response !~ m|error|;
     } elsif ( $path eq '/new-order' ) {
         my $result = handle_new_order( $method, $content );
         if ( ref($result) eq 'HASH' ) {
-            $response = $result->{json};
+            $response        = $result->{json};
             $location_header = $result->{location};
         } else {
             $response = $result;
         }
-        $status = '201 Created' if $response !~ /error/;
+        $status = '201 Created' if $response !~ m|error|;
     } elsif ( $path =~ m{^/authz/([^/]+)$} ) {
         $response = handle_authz($1);
     } elsif ( $path =~ m{^/challenge/([^/]+)$} ) {
@@ -129,10 +130,11 @@ sub handle_connection {
         $response = handle_finalize( $method, $1, $content );
     } elsif ( $path =~ m{^/cert/([^/]+)$} ) {
         $response = handle_cert($1);
-        $type = 'application/pem-certificate-chain';
+        $type     = 'application/pem-certificate-chain';
     } else {
         $status   = '404 Not Found';
-        $response = $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Not found' } );
+        $response = $JSON->encode(
+            { type => 'urn:acme:error:malformed', detail => 'Not found' } );
     }
 
     log_response( $status, $response );
@@ -159,9 +161,10 @@ sub handle_directory {
             'revokeCert' => "$BASE_URL/revoke-cert",
             'keyChange'  => "$BASE_URL/key-change",
             'meta'       => {
-                'termsOfService'      => 'https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf',
-                'website'             => 'https://letsencrypt.org',
-                'caaIdentities'       => ['letsencrypt.org'],
+                'termsOfService' => 'https://letsencrypt.org/document'
+                    . 's/LE-SA-v1.2-November-15-2017.pdf',
+                'website'                 => 'https://letsencrypt.org',
+                'caaIdentities'           => ['letsencrypt.org'],
                 'externalAccountRequired' => JSON::XS::false,
             }
         }
@@ -174,7 +177,7 @@ sub handle_nonce {
 }
 
 sub create_nonce {
-    my $nonce = sprintf( '%s-%d', md5_hex(time()), $NONCE_COUNTER++ );
+    my $nonce = sprintf( '%s-%d', md5_hex( time() ), $NONCE_COUNTER++ );
     $NONCES{$nonce} = { created_at => time(), used => 0 };
     return $nonce;
 }
@@ -182,16 +185,21 @@ sub create_nonce {
 sub handle_new_account {
     my ( $method, $content ) = @_;
 
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'POST required' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'POST required' } )
         if $method ne 'POST';
 
     my $jws = parse_jws($content);
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Invalid JWS' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'Invalid JWS' } )
         unless $jws;
 
     my $payload = $jws->{payload};
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'TOS must be agreed' } )
-        unless $payload->{termsOfServiceAgreed};
+    return $JSON->encode(
+        {   type   => 'urn:acme:error:malformed',
+            detail => 'TOS must be agreed'
+        }
+    ) unless $payload->{termsOfServiceAgreed};
 
     my $account_id = sprintf( 'acct-%d', int( rand(999999) ) );
     $ACCOUNTS{$account_id} = {
@@ -205,7 +213,7 @@ sub handle_new_account {
     log_line("Created account: $account_id");
 
     my $account_url = "$BASE_URL/account/$account_id";
-    my $json = $JSON->encode(
+    my $json        = $JSON->encode(
         {   status               => 'valid',
             contact              => $payload->{contact} || [],
             termsOfServiceAgreed => JSON::XS::true,
@@ -222,17 +230,20 @@ sub handle_new_account {
 sub handle_new_order {
     my ( $method, $content ) = @_;
 
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'POST required' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'POST required' } )
         if $method ne 'POST';
 
     my $jws = parse_jws($content);
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Invalid JWS' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'Invalid JWS' } )
         unless $jws;
 
     my $payload     = $jws->{payload};
     my @identifiers = @{ $payload->{identifiers} || [] };
 
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'No identifiers' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'No identifiers' } )
         unless @identifiers;
 
     my $order_id = sprintf( 'order-%d', int( rand(999999) ) );
@@ -290,10 +301,11 @@ sub handle_new_order {
         created_at     => time(),
     };
 
-    log_line( "Created order: $order_id for domains: " . join( ', ', @domains ) );
+    log_line(
+        "Created order: $order_id for domains: " . join( ', ', @domains ) );
 
     my $order_url = "$BASE_URL/order/$order_id";
-    my $json = $JSON->encode(
+    my $json      = $JSON->encode(
         {   status         => 'pending',
             expires        => time() + ( 30 * 24 * 3600 ),
             identifiers    => \@identifiers,
@@ -314,7 +326,8 @@ sub handle_authz {
     my ($authz_id) = @_;
 
     my $authz = $AUTHORIZATIONS{$authz_id};
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Authz not found' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'Authz not found' } )
         unless $authz;
 
     return $JSON->encode(
@@ -329,7 +342,9 @@ sub handle_authz {
                         url       => "$BASE_URL/challenge/$chal_id",
                         status    => $chal->{status},
                         token     => $chal->{token},
-                        validated => $chal->{validated_at} ? JSON::XS::true : JSON::XS::false,
+                        validated => $chal->{validated_at}
+                        ? JSON::XS::true
+                        : JSON::XS::false,
                     };
                 } @{ $authz->{challenges} }
             ],
@@ -341,15 +356,20 @@ sub handle_challenge {
     my ( $method, $challenge_id, $content ) = @_;
 
     my $challenge = $CHALLENGES{$challenge_id};
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Challenge not found' } )
-        unless $challenge;
+    return $JSON->encode(
+        {   type   => 'urn:acme:error:malformed',
+            detail => 'Challenge not found'
+        }
+    ) unless $challenge;
 
     if ( $method eq 'POST' ) {
         my $jws = parse_jws($content);
-        return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Invalid JWS' } )
+        return $JSON->encode(
+            { type => 'urn:acme:error:malformed', detail => 'Invalid JWS' } )
             unless $jws;
 
-        log_line( "Challenge $challenge_id validation initiated (type: $challenge->{type})" );
+        log_line( "Challenge $challenge_id validation "
+                . "initiated (type: $challenge->{type})" );
 
         sleep(1);
 
@@ -366,7 +386,8 @@ sub handle_challenge {
         }
 
         $authz->{status} = 'valid';
-        log_line("Authorization $challenge->{authz_id} is now valid (all challenges marked valid)");
+        log_line( "Authorization $challenge->{authz_id} is "
+                . "now valid (all challenges marked valid)" );
         log_line("Challenge $challenge_id is now valid");
     }
 
@@ -375,7 +396,9 @@ sub handle_challenge {
             url       => "$BASE_URL/challenge/$challenge_id",
             status    => $challenge->{status},
             token     => $challenge->{token},
-            validated => $challenge->{validated_at} ? JSON::XS::true : JSON::XS::false,
+            validated => $challenge->{validated_at}
+            ? JSON::XS::true
+            : JSON::XS::false,
         }
     );
 }
@@ -386,8 +409,12 @@ sub handle_order {
     my $order = $ORDERS{$order_id};
     unless ($order) {
         log_line("ERROR: Order $order_id not found in ORDERS hash");
-        log_line("Available orders: " . join(", ", keys %ORDERS));
-        return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Order not found' } );
+        log_line( "Available orders: " . join( ", ", keys %ORDERS ) );
+        return $JSON->encode(
+            {   type   => 'urn:acme:error:malformed',
+                detail => 'Order not found'
+            }
+        );
     }
 
     log_line("Handling order $order_id, current status: $order->{status}");
@@ -396,7 +423,8 @@ sub handle_order {
     foreach my $authz_id ( @{ $order->{authorizations} } ) {
         if ( $AUTHORIZATIONS{$authz_id}->{status} ne 'valid' ) {
             $all_valid = 0;
-            log_line("  Authorization $authz_id not valid yet (status: $AUTHORIZATIONS{$authz_id}->{status})");
+            log_line( "  Authorization $authz_id not valid yet (status: "
+                    . "$AUTHORIZATIONS{$authz_id}->{status})" );
             last;
         }
     }
@@ -404,22 +432,25 @@ sub handle_order {
     if ( $all_valid && $order->{status} eq 'pending' ) {
         $order->{status} = 'ready';
         log_line("Order $order_id is now ready for finalization");
-    } elsif ( $all_valid ) {
-        log_line("Order $order_id: all authorizations valid, but status is already '$order->{status}'");
+    } elsif ($all_valid) {
+        log_line( "Order $order_id: all authorizations valid, "
+                . "but status is already '$order->{status}'" );
     }
 
     my $response_data = {
         status         => $order->{status},
         expires        => $order->{created_at} + ( 30 * 24 * 3600 ),
         identifiers    => $order->{identifiers},
-        authorizations => [ map {"$BASE_URL/authz/$_"} @{ $order->{authorizations} } ],
-        finalize       => "$BASE_URL/finalize/$order_id",
-        notBefore      => $order->{not_before},
-        notAfter       => $order->{not_after},
+        authorizations =>
+            [ map {"$BASE_URL/authz/$_"} @{ $order->{authorizations} } ],
+        finalize  => "$BASE_URL/finalize/$order_id",
+        notBefore => $order->{not_before},
+        notAfter  => $order->{not_after},
     };
 
     # Only include certificate if it's been issued
-    $response_data->{certificate} = $order->{certificate_url} if $order->{certificate_url};
+    $response_data->{certificate} = $order->{certificate_url}
+        if $order->{certificate_url};
 
     log_line("Returning order status: $response_data->{status}");
     return $JSON->encode($response_data);
@@ -432,25 +463,37 @@ sub handle_finalize {
 
     my $order = $ORDERS{$order_id};
     unless ($order) {
-        log_line("ERROR: Finalize order $order_id not found. Available orders: " . join(", ", keys %ORDERS));
-        return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Order not found' } );
+        log_line( "ERROR: Finalize order $order_id "
+                . "not found. Available orders: "
+                . join( ", ", keys %ORDERS ) );
+        return $JSON->encode(
+            {   type   => 'urn:acme:error:malformed',
+                detail => 'Order not found'
+            }
+        );
     }
 
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'POST required' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'POST required' } )
         if $method ne 'POST';
 
     my $jws = parse_jws($content);
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'Invalid JWS' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'Invalid JWS' } )
         unless $jws;
 
     my $payload = $jws->{payload};
     my $csr     = $payload->{csr};
 
-    return $JSON->encode( { type => 'urn:acme:error:malformed', detail => 'CSR required' } )
+    return $JSON->encode(
+        { type => 'urn:acme:error:malformed', detail => 'CSR required' } )
         unless $csr;
 
-    return $JSON->encode( { type => 'urn:acme:error:orderNotReady', detail => 'Order not ready' } )
-        if $order->{status} ne 'ready';
+    return $JSON->encode(
+        {   type   => 'urn:acme:error:orderNotReady',
+            detail => 'Order not ready'
+        }
+    ) if $order->{status} ne 'ready';
 
     my $cert_id  = sprintf( 'cert-%d', int( rand(999999) ) );
     my $cert_pem = generate_certificate( $order, $csr );
@@ -471,11 +514,12 @@ sub handle_finalize {
         {   status         => 'valid',
             expires        => $order->{created_at} + ( 30 * 24 * 3600 ),
             identifiers    => $order->{identifiers},
-            authorizations => [ map {"$BASE_URL/authz/$_"} @{ $order->{authorizations} } ],
-            finalize       => "$BASE_URL/finalize/$order_id",
-            notBefore      => $order->{not_before},
-            notAfter       => $order->{not_after},
-            certificate    => "$BASE_URL/cert/$cert_id",
+            authorizations =>
+                [ map {"$BASE_URL/authz/$_"} @{ $order->{authorizations} } ],
+            finalize    => "$BASE_URL/finalize/$order_id",
+            notBefore   => $order->{not_before},
+            notAfter    => $order->{not_after},
+            certificate => "$BASE_URL/cert/$cert_id",
         }
     );
 }
@@ -514,8 +558,12 @@ sub parse_jws {
     my $jws_obj = eval { $JSON->decode($content) };
     return undef unless $jws_obj;
 
-    my $header = eval { $JSON->decode( decode_base64url( $jws_obj->{protected} || '' ) ) };
-    my $payload = eval { $JSON->decode( decode_base64url( $jws_obj->{payload} || '' ) ) };
+    my $header = eval {
+        $JSON->decode( decode_base64url( $jws_obj->{protected} || '' ) );
+    };
+    my $payload = eval {
+        $JSON->decode( decode_base64url( $jws_obj->{payload} || '' ) );
+    };
 
     return undef unless $header && $payload;
 
@@ -538,14 +586,16 @@ sub random_token {
 sub log_request {
     my ( $method, $path, $content ) = @_;
     my $msg = "$method $path";
-    $msg .= " (body: " . length($content) . " bytes)" if $content && length($content) > 0;
+    $msg .= " (body: " . length($content) . " bytes)"
+        if $content && length($content) > 0;
     log_line($msg);
 }
 
 sub log_response {
     my ( $status, $response ) = @_;
     my $msg = "Response: $status";
-    $msg .= " (body: " . length($response) . " bytes)" if $response && length($response) > 0;
+    $msg .= " (body: " . length($response) . " bytes)"
+        if $response && length($response) > 0;
     log_line($msg);
 }
 
@@ -560,8 +610,8 @@ sub log_line {
     }
 }
 
-#,,.,,..,,,.,,,,.,,.,,.,.,.,.,...,.,,,,.,,..,,.,.,...,...,,,,,.,.,.,.,,,,,,..,
-#GOMQEPMH3PL4PWLKBG6MJHE5A3K4LSPEIKJMMG5ORIN7R435VCP5QWXSTUJCHNSUE7HT75SGDDK2S
-#\\\|E72FBBPXTN4VR2ER6EJACC3TPRKXTS3JMRQTXUXDN2IB27EQNMQ \ / AMOS7 \ YOURUM ::
-#\[7]EKZBW5ZDTSYQC4N2WVOID7XEXHPRIWGXWS4P6SEZ7E4VP7RUICBY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,..,,..,,.,,,,..,,..,...,.,.,.,.,...,...,...,.,,,,..,,,.,.,,,
+#7TYQPCW2ZXCV2573IJWZLYADFZH3PI3Z3FZ5S5J7GMX3ARPW4HRYZGKO53LBFNF3LQFRD5ZNSCMB2
+#\\\|TF3KDF2R5YMM3NDB57XUGXCEVJZBQIRQNBHT3NY5VHRPGZ3G6VL \ / AMOS7 \ YOURUM ::
+#\[7]XNBB6T57AYHJJENH52MZ4K7K4Q6IUAWDYP5L6QM4IQOAY3752ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

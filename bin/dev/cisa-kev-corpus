@@ -16,9 +16,8 @@ use JSON::PP;
 ##  fetches the CISA known-exploited-vulnerabilities catalog [ single       ##
 ##  bounded json file ] and normalizes it into one file per entry under     ##
 ##  data/protocols/cisa/<cve-id> — also emits a fasttext skipgram training  ##
-##  file                                                                    ##
-##  at data/training/cisa.txt : one line per entry with id + name + first   ##
-##  ~10 description tokens, id repeated 3x for weighting                    ##
+##  file  at data/training/cisa.txt : one line per entry with id + name +   ##
+##  first ~10 description tokens, id repeated 3x for weighting              ##
 ##                                                                          ##
 ##  http fetch is deliberately respectful : single request, no polling      ##
 ##  loop, non-200 responses are reported, never retried indefinitely        ##
@@ -233,8 +232,8 @@ sub write_file {
     close $fh;
 }
 
-#,,,.,,.,,,,,,...,,,,,,,.,,..,.,.,.,.,..,,,,.,.,.,...,...,...,..,,.,.,,..,,.,,
-#Q54D7MHMC6UQH3P35IHSGY6I4XMWK2NIGSTS2JYTNVIUGSJBVYHNM3J25OEHBBGHZ47QU4BZNIESO
-#\\\|SHPMS7LDJGP6KKWLERY3X4P7IEXEMPAGVW4XEQ3WR5QM245EO4Q \ / AMOS7 \ YOURUM ::
-#\[7]37ZLMJ2UKRB65WNM4WBQUSB5ZLYQS5QQGAMWIRT2WPRTV7ILKCBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,..,,.,,.,.,.,.,,..,...,..,,,,.,.,.,...,.,.,,..,,..,,.,,..,,..,,
+#HAHFCN52WLGWOPKVLCCE5IAS5MPFDPOQAJE5GKJJW4ZCOMG7HSGYVEYCP6RA5XPTEPXQWBCONGHME
+#\\\|GTIXJL7UP4HBZMXRSHHLZ3VWEZIWOEMRYQ4SDNWEDZGKMCKU7KP \ / AMOS7 \ YOURUM ::
+#\[7]E5JXOZKRKPHS5P5W45Z5ZB6WVOD2AYOAC5QZTSU3P7IVJ4RWWCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

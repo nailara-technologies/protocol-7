@@ -5,8 +5,8 @@ package App::ccdiff;
 use v5.24;
 use English;
 use warnings;
-use charnames ();
-use Getopt::Long qw| :config bundling |;
+use charnames       ();
+use Getopt::Long    qw| :config bundling |;
 use List::MoreUtils qw| minmax firstval |;
 use Term::ANSIColor qw| :constants color |;
 
@@ -50,11 +50,11 @@ sub usage {
     say "   -I    --index                 Add indices to the change chunks";
     say "   -I n  --index=4               Only show chunk n";
     say "   -w    --ignore-all-space      Ignore all whitespace";
-    say
-        "   -b    --ignore-space-change   Ignore horizontal whitespace changes";
+    say "   -b    --ignore-space-change   "
+        . "Ignore horizontal whitespace changes";
     say "   -Z    --ignore-trailing-space Ignore whitespace at line ending";
-    say
-        "   -B    --ignore-blank-lines    Ignore changes where lines are all blank";
+    say "   -B    --ignore-blank-lines    "
+        . "Ignore changes where lines are all blank";
     say "   -i    --ignore-case           Ignore case changes";
     say "  Other options:";
     say "   -t n  --threshold=2  Horizontal line diff threshold";
@@ -213,8 +213,8 @@ sub pod_nroff {
 
 # Color initialization
 for ( $old_color, $new_color, $rev_color ) {
-    s/^(.*)[ _]bold$/bold $1/i;
-    s/^bold_/bold /i;
+    s|^(.*)[ _]bold$|bold $1|i;
+    s|^bold_|bold |i;
 }
 my %clr = map {
     $_ => colors( s{^(.*)[ _]bold$}{bold $1}ir =~ s{^bold[ _]}{bold }ir )
@@ -250,8 +250,7 @@ sub set_options {
         my ( $c, $def ) = @$_;
         $$c && exists $clr{$$c} and next;
         warn "color ", $$c // "[undefined]",
-              " is unknown, using $def instead :"
-            . ": caller line : "
+            " is unknown, using $def instead :: caller line : "
             . [caller]->[2] . " ::\n";
         $$c = $def;
     }
@@ -455,7 +454,7 @@ sub ccdiff {
         my @do  = @{ $d[0] };
         my @dn  = @{ $d[1] };
 
-        if ( $opt_B and "@do" !~ m/\S/ && "@dn" !~ m/\S/ ) {
+        if ( $opt_B and "@do" !~ m|\S| && "@dn" !~ m|\S| ) {
 
             # Modify @s for -u?
             next;
@@ -509,7 +508,7 @@ sub subdiff {
     my ( $old, $new, $heu ) = @_;
     my $d = $diff_class->new(
         map {
-            [ map { split m// } @$_ ]
+            [ map { split m|| } @$_ ]
         } $old,
         $new
     );
@@ -527,14 +526,14 @@ sub subdiff {
             my $c = join "" => @co;
             if ($opt_e) {
                 my $join = "";
-                foreach my $sc ( split m/\n/ => $c ) {
+                foreach my $sc ( split m|\n| => $c ) {
                     $_ .= $join for $d1, $d2, $x1, $x2;
                     $join = "\n";
                     my $l  = length $sc;    # The length of this "same" chunck
                     my $le = $l
                         - 2 * $opt_e
                         ;    # The length of the text replaces with ellipsis
-                    my $ee = $opt_v <= 1 ? $e : $e =~ s/^.\K(?=.$)/$le/r;
+                    my $ee = $opt_v <= 1 ? $e : $e =~ s|^.\K(?=.$)|$le|r;
                     if ( $le > length $ee ) {
                         my $lsc = substr $sc, 0, $opt_e;
                         $d1 .= $lsc;
@@ -569,9 +568,9 @@ sub subdiff {
         if (@co) {
             $heu->{old} += scalar @co;
             $d1 .= $cml . $clr_old;
-            $d1 .= s/\n/$reset\n$clr_old/gr for @co;
+            $d1 .= s|\n|$reset\n$clr_old|gr for @co;
             $d1 .= $reset . $cmr;
-            $x1 .= $_ for map {s/[^\t\r\n]/$cmd/gr} @co;
+            $x1 .= $_ for map {s|[^\t\r\n]|$cmd|gr} @co;
             $opt_v
                 and push @h1,
                 map { $opt_U ? charnames::viacode(ord) : unpack "H*"; } @co;
@@ -579,20 +578,20 @@ sub subdiff {
         if (@cn) {
             $heu->{new} += scalar @cn;
             $d2 .= $cml . $clr_new;
-            $d2 .= s/\n/$reset\n$clr_new/gr for @cn;
+            $d2 .= s|\n|$reset\n$clr_new|gr for @cn;
             $d2 .= $reset . $cmr;
-            $x2 .= $_ for map {s/[^\t\r\n]/$cma/gr} @cn;
+            $x2 .= $_ for map {s|[^\t\r\n]|$cma|gr} @cn;
             $opt_v
                 and push @h2,
                 map { $opt_U ? charnames::viacode(ord) : unpack "H*"; } @cn;
         }
     }
     $heu->{pct} = ( $heu->{old} + $heu->{new} ) / ( 2 * $heu->{same} );
-    my @d = map { [ split m/(?<=\n)/ => s/\n*\z/\n/r ] } $d1, $d2;
+    my @d = map { [ split m|(?<=\n)| => s|\n*\z|\n|r ] } $d1, $d2;
     if ($opt_m) {
-        $opt_v > 1 and s/(\S+)/ $1 /g for $x1, $x2;
-        s/[ \t]*\n*\z/\n/             for $x1, $x2;
-        my @x = map { /\S/ ? [ split m/(?<=\n)/ ] : [] } $x1, $x2;
+        $opt_v > 1 and s|(\S+)| $1 |g for $x1, $x2;
+        s|[ \t]*\n*\z|\n|             for $x1, $x2;
+        my @x = map { m|\S| ? [ split m|(?<=\n)| ] : [] } $x1, $x2;
         foreach my $n ( 0, 1 ) {
             @{ $x[$n] }
                 and $d[$n]
@@ -622,10 +621,10 @@ sub read_rc {
         ( stat $rcf )[2] & 022 and next;
         open my $fh, "<", $rcf or next;
         while (<$fh>) {
-            my ( $k, $v ) = (m/^\s*([-\w]+)\s*[:=]\s*(.*\S)/) or next;
+            my ( $k, $v ) = (m|^\s*([-\w]+)\s*[:=]\s*(.*\S)|) or next;
             $rc{ lc $k =~ s{[-_]colou?r$}{}ir =~ s{background}{bg}ir
                     =~ s{^(?:unicode|utf-?8?)$}{utf8}ir }
-                = $v =~ s{U\+?([0-9A-Fa-f]{2,7})}{chr hex $1}ger
+                = $v =~ s|U\+?([0-9A-Fa-f]{2,7})|chr hex $1|egr
                 =~ s{^(?:no|false)$}{0}ir
                 =~ s{^(?:yes|true)$}{-1}ir;    # -1 is still true
         }
@@ -666,9 +665,9 @@ sub tac_colors {
         ( map { ( "GREY$_", "ON_GREY$_" ) } 0 .. 23 );
 
     my $ACV = $Term::ANSIColor::VERSION;
-    $ACV < 3.02 and delete @c256{ grep m/italic/   => keys %c256 };
-    $ACV < 4.00 and delete @c256{ grep m/rgb|grey/ => keys %c256 };
-    $ACV < 4.06 and delete @c256{ grep m/ansi/     => keys %c256 };
+    $ACV < 3.02 and delete @c256{ grep m|italic|   => keys %c256 };
+    $ACV < 4.00 and delete @c256{ grep m{rgb|grey} => keys %c256 };
+    $ACV < 4.06 and delete @c256{ grep m|ansi|     => keys %c256 };
 
     sort keys %c256;
 }    # tac_colors
@@ -1324,8 +1323,8 @@ the same terms as The Artistic License 2.0.
 
 =cut
 
-#,,,,,,.,,,,.,..,,..,,..,,..,,,,.,.,.,,.,,..,,..,,...,..,,.,.,,..,..,,,,,,..,,
-#2MHS4CWDJ3VQ5CTNC7X73GUVAODN62IXHYKLKFD7X4Q4FYNQWBXORUKVJWUOK5TE5AALVSJBJNG7W
-#\\\|3CP7CNXNHKEJBQSREU7YSTSH42EZ2ET2VCX2NHM2TV6IX455DLB \ / AMOS7 \ YOURUM ::
-#\[7]EDXEMEOHQP4LTEO4MRFQTFU73VK3M7GDHBVSAV7VME62PC4L4YDY 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,...,,,,,...,,,.,.,.,,,.,..,,..,,...,..,,,,.,,.,,.,.,,.,,..,,
+#H2WZNS3P2IMTHAWND2YXWH4F3H5BJMBZR4MU3YZCDP63YPEJVBQGN5N6HGMIPZELAPQW33KVQSRGM
+#\\\|EIT6Q3UKFWNRQ4VPW7HIME6QQCZ2DRXGILIUZANAIXDBD4NS6PW \ / AMOS7 \ YOURUM ::
+#\[7]UM756PG3JCD2ETFMKTSC7PYGTK2QYDYDR3GZQSZLYIFOHNQUT6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
