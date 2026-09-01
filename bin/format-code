@@ -319,6 +319,10 @@ while ( my $file_path = shift @files ) {
             } elsif ( $line =~ m{^Subroutine (\S+) redefined} ) {
                 print "${TRUE_color}:: redefined [ "
                     . "circular use ] : '$1'\n:$reset\n";
+            } elsif ( $line =~ m{^format-code: stubbed missing module (\S+)} )
+            {
+                print "${TRUE_color}:: stubbed "
+                    . "missing module : '$1'\n:$reset\n";
             }
         }
 
@@ -376,6 +380,20 @@ sub is_p7_module_text {
     ## literal first line with nothing before it -- no need to duplicate ##
     ## that scan here                                                    ##
     return $text =~ m{^## \[:< ##};
+}
+
+##[ helper : module names the file itself 'use's/'require's at its own    ]##
+## top level -- scopes the @INC-stub notice in real_syntax_errors to     ##
+## modules actually relevant to THIS file, not every transitive optional ##
+## probe [ Encode::ConfigLocal, PPI::XS, .. ] pulled in by something the ##
+## file [ or this tool's own checker preamble ] merely uses              ##
+sub extract_own_use_modules {
+    my $text = shift;
+    my %seen;
+    while ( $text =~ m{^\s*(?:use|require)\s+([A-Za-z]\w*(?:::\w+)*)}gm ) {
+        $seen{$1} = 1;
+    }
+    return keys %seen;
 }
 
 ##[ preprocessing pipeline ]##
@@ -2454,6 +2472,56 @@ sub real_syntax_errors {
     ## script does it or how many directories it walks                      ##
     my $abs_chk_path = abs_path($file_path) // $file_path;
     my $preamble     = qq{BEGIN { \$0 = "$abs_chk_path" }\n};
+
+    ## last-resort @INC hook : a script can legitimately 'use' a module     ##
+    ## that isn't installed on THIS machine [ hardware-specific gear like   ##
+    ## UDT::Simple, Device::PiGlow, .. -- see bin/dev/script-scratchpad/* ] ##
+    ## , and a bare 'perl -c' has no way to get past that 'use' line at all ##
+    ## : it dies at compile time before checking anything after it .  only  ##
+    ## tried once every real @INC path has already failed [ pushed , not    ##
+    ## unshifted ] , so an ACTUALLY installed module always wins first and  ##
+    ## this never masks a real "wrong module name" typo against anything    ##
+    ## perl itself already knows how to find. the stub's catch-all          ##
+    ## AUTOLOAD/import mean the rest of the file still gets a real syntax   ##
+    ## check instead of the whole thing aborting at the 'use'               ##
+    ##                                                                      ##
+    ## reporting is scoped to modules the file ITSELF 'use's/'require's at  ##
+    ## its own top level -- plenty of ordinary CPAN modules [ Encode , PPI  ##
+    ## , this tool's own List::MoreUtils/Perl::Tidy chain , .. ] try an     ##
+    ## optional module of their own [ Encode::ConfigLocal , PPI::XS , ..  ] ##
+    ## purely as a graceful-fallback feature probe that was NEVER going to  ##
+    ## fail the real check either way -- reporting every one of those as    ##
+    ## "stubbed missing module" falsely implies the file being checked      ##
+    ## depends on it. the stub still ALWAYS fires for any missing module    ##
+    ## regardless of this list [ still needed to keep checking past it ] ,  ##
+    ## only the informational note is scoped                                ##
+    my %own_module = map { $ARG => 1 } extract_own_use_modules($translated);
+    ## no map{} block here on purpose -- one level of braces [ just BEGIN's ##
+    ## own ] is easy to eyeball-balance ; nesting a second pair inside a    ##
+    ## qq{} delimited by the same character is exactly the kind of mistake  ##
+    ## this session spent a while chasing down elsewhere in this file       ##
+    my $own_module_pairs
+        = join( ',', map {qq{'$ARG' => 1}} sort keys %own_module );
+    $preamble
+        .= qq{BEGIN { \%main::FC_OWN_MODULES = ( $own_module_pairs ); }\n};
+    $preamble .= <<'STUB';
+BEGIN {
+    push @INC, sub {
+        my ( undef, $fname ) = @_;
+        my $pkg = $fname;
+        $pkg =~ s{/}{::}g;
+        $pkg =~ s{\.pm\z}{};
+        my $code = "package $pkg;\nour \$AUTOLOAD;\n"
+            . "sub AUTOLOAD { return; }\nsub import { return; }\n1;\n";
+        open my $fh, '<', \$code or return;
+        $INC{$fname} = '(format-code stub)';
+        warn "format-code: stubbed missing module $pkg for syntax check\n"
+            if $main::FC_OWN_MODULES{$pkg};
+        return $fh;
+    };
+}
+STUB
+
     if ( is_p7_module_text($src) ) {
         $preamble
             .= qq{use English; use List::Util qw| min max uniq reduce |; }
@@ -2509,6 +2577,13 @@ sub real_syntax_errors {
         next if $line =~ m{BEGIN not safe after errors};
         next if $line =~ m{syntax OK\s*$};
         next if $line =~ m{^\s*$};
+
+        ## known-benign : the @INC stub hook above firing on a module this ##
+        ## machine doesn't have installed -- not a real error, just a note ##
+        if ( $line =~ m{^format-code: stubbed missing module \S+} ) {
+            push @benign_once, $line;
+            next;
+        }
 
         ## known-benign : any fully-qualified [ Foo::Bar::name -- not just  ##
         ## plain main:: ] symbol used only once. this check only ever sees  ##
@@ -2647,8 +2722,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,..,,.,,,..,,,..,.,,,..,,,.,,,.,,..,,.,.,..,,...,...,.,,,.,.,,,,,.,,,,..,
-#MVYFF45OCIXXIHAQX6E73W6BATPFK2C7SJFEZGOCUU6JPFMVMMECNDJSIYJ4IHS42JNW53MG2K6YG
-#\\\|M7I42KE2N33DQX2RUPYNPVUF34J4NNWVWDLCKSWSJQQZFE2HJVQ \ / AMOS7 \ YOURUM ::
-#\[7]T4M4G6DKI6FOETYIH7HMUM3U2QSNUUYBHA5BM7EK7XYSBXSVFUBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,.,,,,..,...,.,.,...,,,,,,,,,..,,...,...,..,,.,,,,..,,,,,..,,
+#IAFILCGPK7P3WVXLTXSDZUXSSDK4AOCFNLJZVNM5KM62ZMQX7AUXQUX6IXR7VNIITJFAAYGO56PUO
+#\\\|B2LIDPGDIBTCH75Q7B6T4ZUWFD6TSKRPVYQR36AJQ7UHMDHYCO5 \ / AMOS7 \ YOURUM ::
+#\[7]UFJZKRLMEN7TMIZDSNJ2DXLTIM2G7F3PWFORFKG4SNXKRHU6XQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
