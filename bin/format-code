@@ -556,7 +556,7 @@ sub comment_block_line_parts {
     ## $content -- a leftover stray hash on a blank framing line was       ##
     ## exactly what broke box detection [ content stopped being truly '' ] ##
     my $has_close = 0;
-    if ( $content =~ s{\s*\#{2,}\s*$}{} ) {
+    if ( $content =~ s|\s*#{2,}\s*$|| ) {
         $has_close = 1;
     }
 
@@ -837,7 +837,7 @@ sub step4_align_comment_block {
 sub step5_normalize_bracket_bar {
     my $line = shift;
     return undef
-        if $line !~ m{^(\s*)\#\#\[\ (.*?)\ \]\#{4,}\s*(\r?\n)?$};
+        if $line !~ m|^(\s*)##\[ (.*?) \]#{4,}\s*(\r?\n)?$|;
     my ( $indent, $title, $nl ) = ( $1, $2, $3 // "\n" );
 
     my $fixed_len
@@ -858,8 +858,7 @@ sub step3_relocate_trailing_comment {
 
     ## match : code ws ## comment ## newline  only safe with the ## .. ## ##
     ## p7 annotation form                                                 ##
-    if ( $line
-        =~ m{^(\s*)([^\#\n].*?\S)(\s{2,})(\#\#\s.*?\s\#\#)\s*(\r?\n)?$} ) {
+    if ( $line =~ m|^(\s*)([^#\n].*?\S)(\s{2,})(##\s.*?\s##)\s*(\r?\n)?$| ) {
         my $indent    = $1;
         my $code      = $2;
         my $comment   = $4;
@@ -2015,11 +2014,17 @@ sub body_contains_unescaped_delim {
     return 0;
 }
 
-##[ helper : does a body contain | [ escaped or unescaped ] ? ]###############
+##[ helper : does a body contain a | that would force escalation to {} ? ]####
+## a raw '|' inside a [...] character class is just a literal member, not ##
+## alternation, so it can stay under | delimiters [ transform_regex_body  ##
+## backslash-escapes it there ] -- only a raw '|' outside a class is real ##
+## alternation and can't be escaped without changing meaning, and an      ##
+## already-escaped \| keeps its ambiguity regardless of bracket context   ##
 sub body_contains_pipe {
     my $body = shift;
 
-    my $len = length $body;
+    my $len        = length $body;
+    my $in_bracket = 0;
     for ( my $i = 0; $i < $len; $i++ ) {
         my $c = substr( $body, $i, 1 );
         if ( $c eq qw| \\ | and $i + 1 < $len ) {
@@ -2028,7 +2033,22 @@ sub body_contains_pipe {
             $i++;
             next;
         }
-        return 1 if $c eq '|';
+        if ( not $in_bracket and $c eq '[' ) {
+            $in_bracket = 1;
+            ## a leading '^' negation and/or a ']' right after '[' [ or ##
+            ## '[^' ] are literal class members, not the terminator     ##
+            my $j = $i + 1;
+            $j++ if $j < $len and substr( $body, $j, 1 ) eq '^';
+            if ( $j < $len and substr( $body, $j, 1 ) eq ']' ) {
+                $i = $j;
+            }
+            next;
+        }
+        if ( $in_bracket and $c eq ']' ) {
+            $in_bracket = 0;
+            next;
+        }
+        return 1 if not $in_bracket and $c eq '|';
     }
     return 0;
 }
@@ -2038,10 +2058,40 @@ sub transform_regex_body {
     my ( $body, $new_open, $new_close ) = @_;
 
     my %new_delim = map { $ARG => 1 } ( $new_open, $new_close );
+    my $paired    = ( $new_open ne $new_close );
     my %metachar  = map { $ARG => 1 } (
         qw| \\ |, '.', '*', '+', '?', '(', ')', '[',
         ']',      '{', '}', '^', '$', '|'
     );
+
+    ## for a paired new delimiter [ currently only {} ] , a raw close char  ##
+    ## only needs escaping when it is NOT balanced by an earlier raw open   ##
+    ## char in the body -- nested pairs [ quantifiers like {1,2} ] are safe ##
+    ## left as-is, because perl's own delimiter scanner counts nesting      ##
+    ## depth the same way ; only a genuinely unbalanced brace would         ##
+    ## prematurely close the regex early                                    ##
+    my %force_escape;
+    if ($paired) {
+        my @stack;
+        my $blen = length $body;
+        for ( my $i = 0; $i < $blen; $i++ ) {
+            my $c = substr( $body, $i, 1 );
+            if ( $c eq qw| \\ | and $i + 1 < $blen ) {
+                $i++;
+                next;
+            }
+            if ( $c eq $new_open ) {
+                push @stack, $i;
+            } elsif ( $c eq $new_close ) {
+                if (@stack) {
+                    pop @stack;
+                } else {
+                    $force_escape{$i} = 1;
+                }
+            }
+        }
+        $force_escape{$ARG} = 1 for @stack;
+    }
 
     my $out = '';
     my $len = length $body;
@@ -2060,6 +2110,13 @@ sub transform_regex_body {
                 $out .= $next;
             }
             $i++;
+        } elsif ( $new_delim{$c} and ( not $paired or $force_escape{$i} ) ) {
+            ## a raw occurrence of the new delimiter char must be escaped ##
+            ## -- it was never escaped under the old delimiter [ e.g. a   ##
+            ## literal '}' inside a /.../  pattern needs no escape , but  ##
+            ## the same char left bare after switching to {} delimiters   ##
+            ## would close the regex early ]                              ##
+            $out .= '\\' . $c;
         } else {
             $out .= $c;
         }
@@ -2100,11 +2157,11 @@ sub detect_signature_start {
     ##  trim trailing blank line  ##
     while ( $idx >= 0 and $lines->[$idx] =~ m{^\s*$} ) { $idx-- }
     return undef if $idx < 4;
-    return undef if $lines->[$idx] !~ m{^\#:{10,}};
+    return undef if $lines->[$idx] !~ m|^#:{10,}|;
 
     my $start = $idx;
     while ( $start > 0
-        and $lines->[ $start - 1 ] =~ m{^\#(?:[,\\\[].*|:{10,})} ) {
+        and $lines->[ $start - 1 ] =~ m{^#(?:[,\\\[].*|:{10,})} ) {
         $start--;
     }
     return $start + 1;
@@ -2540,8 +2597,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,,,,,.,.,.,.,.,,,,.,,.,.,,,.,..,,.,.,..,,..,,...,..,,...,..,,,..,,,.,,,.,
-#HH6FI353EN62DWHEPW3LGHFJP75DE6QP6DIGFRIIBYBE4VKNB3EFBF3FICTUCBBRR7C3TNTRWNTCW
-#\\\|D6FZW7KFHZD3LPZO3W2T6DCZ47ZXNOYCZ3U7HOQFIWNBBNTXTP4 \ / AMOS7 \ YOURUM ::
-#\[7]IC5L4FKLD4Z6C7VCW2XTKHHLWPKY6L7CLF5R4JHASMU4ESYSAQCQ 7  DATA SIGNATURE ::
+#,,..,...,...,,..,..,,.,,,...,...,,,,,...,,,.,..,,...,...,.,.,,.,,.,,,.,.,,..,
+#WZPCBWFQYFO3KXYXUYUDGEAX53VJZMASQX7Z46NGMKDZLPT5W6OT6DYDCTVGCRBM2PYVT5XDCES2E
+#\\\|YYRQCVPKFCNZBHGUNSPNORAIUO7QXBJ7K5YQSJG742PXKHIFUI6 \ / AMOS7 \ YOURUM ::
+#\[7]2KE3SPN5WHHXMTZZKYC34UFXXX2GSZQHHYFAQXYG5YS2BWRBZEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
