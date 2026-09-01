@@ -9,7 +9,7 @@ my $event = shift;
 my $timer_data = eval { $event->w->data }   // {};
 my $switch_id  = $timer_data->{'switch_id'} // '';
 
-my $state = $data{'coding'}{'vision_switch_state'}{$switch_id};
+my $state = <coding.vision_switch_state>->{$switch_id};
 if ( !defined $state ) {
     <[base.logs]>->(
         0, '[vision_switch] no state for switch_id=%s, stopping timer',
@@ -39,7 +39,7 @@ my $finish = sub {
     }
 
     $event->w->cancel if defined $event->w and $event->w->is_active;
-    delete $data{'coding'}{'vision_switch_state'}{$switch_id};
+    delete <coding.vision_switch_state>->{$switch_id};
 
     return TRUE;
 };
@@ -216,8 +216,8 @@ if ( $phase eq qw| switching | ) {
 );
 return $finish->( { mode => qw| false |, data => qw| internal-error | } );
 
-#,,,.,..,,,,,,,,,,.,.,.,,,,.,,.,.,.,,,..,,,,,,..,,...,...,.,.,.,,,,,,,.,,,.,.,
-#G3HB3DQLZZ7UFYDIRV6GLHZ5KBD3JG4K6EW4ZXFKN6CEUGQ322PFVG62C4KTXPW6NT6PK4ZHXWPMK
-#\\\|I3IO3ETD6QOMOPVANR6BYCCKQ4VDAF6SJE5HJM6WGLUVVSXMDQE \ / AMOS7 \ YOURUM ::
-#\[7]JLT5JZYTDT4FE3MB23FCMCXUWJ3YW2O7H4ASPCG3VNBPSDDU46DA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,.,.,,..,,,.,,..,,.,,.,,,..,,..,,...,...,...,,,,,,,.,...,,.,,
+#IVE35K7NRC23EV5I3SACLR6ELHM3K22GERNEV5UBZFAVBO556D4EWJLTBPN4YJ7VMS64O56AADD34
+#\\\|6XDNJSETNSRF7DEE7TPBNYFGIPW5WJ6DNSO6UFX7O2S6WQVDG6G \ / AMOS7 \ YOURUM ::
+#\[7]O6JOP6TGXMHAVSZG2MSEYOEEV3YTLCPGD53RSBRFIRMG2C6N2GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

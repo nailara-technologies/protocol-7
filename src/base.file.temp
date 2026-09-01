@@ -74,12 +74,11 @@ if ($unlink) {
     ## swapped to file.* in init
     unless (
         scalar(
-            grep { $_ eq 'file.cleanup-temp-files' }
-                $data{'callbacks'}{'end_code'}->@*
+            grep { $_ eq 'file.cleanup-temp-files' } <callbacks.end_code>->@*
         )
     ) {
-        $data{'callbacks'}{'end_code'} //= [];
-        push $data{'callbacks'}{'end_code'}->@*, qw|file.cleanup-temp-files|;
+        <callbacks.end_code> //= [];
+        push <callbacks.end_code>->@*, qw|file.cleanup-temp-files|;
     }
 }
 if ($register) {
@@ -95,8 +94,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,..,.,,,.,,,..,,,..,...,,,,,.,.,..,,.,.,,,.,..,,...,...,,,.,,,,,,,.,,,.,...,
-#RAFSF6AB6OFQXX7U4OIGSAKU6X4SFSY47LKZWRUFUCHIT7G6CKFOCTBKGFIKP5HFZK6AVVQW2XFDS
-#\\\|YBKEBOT7B4THSKG2QWED6T5G6GU4ITJF4OJXKID2ZQGMVDC7A7V \ / AMOS7 \ YOURUM ::
-#\[7]LRS7JHR4ILNAU4MAHLSZJF4MWDACH27YZLJFQGQGNUZUI4YJZICA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,,,,..,...,.,.,...,...,,.,,,,.,..,,...,..,,..,,,,.,,,,,.,,,.,.,
+#HOLLKO3RZJPEXPYSXXDZBBQBORC2BE77JE7SUM7DQP3EX52KFJAXGKA47HRH3IOOZ7TDZSPPDARAQ
+#\\\|XRN66RWERNJHUTNOBYGRTSKZVL466ZSGFMUW7EBVCG3NUTEO6AC \ / AMOS7 \ YOURUM ::
+#\[7]3BBGLRXFMJPF6N6S54KZJBCGQBPGUALXMUPFPSYT5TPUM5RXCABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

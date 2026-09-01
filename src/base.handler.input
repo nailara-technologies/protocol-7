@@ -115,8 +115,8 @@ if (    $len < <size.buffer.input>
     <[event.io_idle_restart]>->($event)    ##  required ?  ##
         if not $event->w->is_active;
 
-    $data{'watcher'}{'io'}{'transfer'}->start
-        if not $data{'watcher'}{'io'}{'transfer'}->is_active;
+    <watcher.io.transfer>->start
+        if not <watcher.io.transfer>->is_active;
 
     if ( $handle_href->{'paused'} //= FALSE ) {    ##  restart reading  ##
         <[base.log]>->( 2, 'restarting input handler =)' );
@@ -144,8 +144,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,,,,,..,..,,.,,,..,,,,.,,,.,...,,,.,,,,,..,,..,,...,...,...,,,.,..,,.,.,..,,
-#G6OSMMOZFWW2Q5L2FQU6GMA22WN3OMFGHBQTZNCWH7RSJ55VBA6DZAG6ZXGDFBHHZT3JJ6XQW6RN4
-#\\\|HPHSJZV5TTTEUYYV2P4VOK6N3XOMASCN3BPBG4BU2M6WFYXZPFB \ / AMOS7 \ YOURUM ::
-#\[7]77QA6NUEYFHXZLDJXSD52F7VFLDPBXRRUU6YSPEHY4PBZBS3E6AY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,,,.,..,,.,,,,..,.,,,.,.,,.,,..,,...,...,..,,..,,,,,,.,.,...,
+#K7BXDBWPLADFLKFGQUPLRC66XZA5EJ32NAHEJDPKIWD5TGTNCQJHL7N4IC2KYOPZI46YCBKXIL5JW
+#\\\|ZY4JQBTMPHTTSH775RWX3TRZYCKEPUWMR3HKBO7FQIINGELUFKB \ / AMOS7 \ YOURUM ::
+#\[7]2WLRAVHEHS3SUBMNS4SPXLWDTQIIIILLQ46VWTNL7BOFRPKMEACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ my $event      = shift;
 my $timer_data = eval { $event->w->data }  // {};
 my $defer_id   = $timer_data->{'defer_id'} // '';
 
-my $defer = $data{'coding'}{'seed_restart_defer'}{$defer_id};
+my $defer = <coding.seed_restart_defer>->{$defer_id};
 if ( !defined $defer ) {
     $event->w->cancel if defined $event->w and $event->w->is_active;
     return;
@@ -19,7 +19,7 @@ my $now      = <[base.time]>->(3);
 
 my $finish = sub {
     $event->w->cancel if defined $event->w and $event->w->is_active;
-    delete $data{'coding'}{'seed_restart_defer'}{$defer_id};
+    delete <coding.seed_restart_defer>->{$defer_id};
     return TRUE;
 };
 
@@ -59,7 +59,7 @@ if ( $now - ( $defer->{'started'} // $now ) > 120 ) {
     my $lock = $bs->{'lock'}                                // '';
     my $pst
         = length($lock)
-        ? $data{'coding'}{'self_test_probe_state'}{$lock}
+        ? <coding.self_test_probe_state>->{$lock}
         : undef;
     my $wait_more = FALSE;
     if (    ref $pst eq qw| HASH |
@@ -139,8 +139,8 @@ delete <coding.awaiting_resources>
 
 return $finish->();
 
-#,,..,,..,,.,,,,,,,,.,...,,,.,...,...,,,,,.,,,..,,...,...,.,,,.,.,.,.,,,.,..,,
-#OFLXCHNNQV7UZ63R3U3VEUXCF6PB7PLTHHCAENQHRI7LEVTHX5HM2S7FNBFYEPOOQQP7RNRPWCJZ2
-#\\\|LJB5JZCAWLIYSWQ4WWRGCYLCMLSDY75O7SVQQDGQI5LKUVXSXWQ \ / AMOS7 \ YOURUM ::
-#\[7]2B5EL6CBIRQAED3RUZE3C7CP5KSOWZ5JWR7PGTITVL24PQ3BGODQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,.,.,.,,,.,.,,.,,,.,,,,.,.,.,..,,...,...,.,.,,,.,..,,.,.,,,.,
+#JH7VVKEEAHDBN4S2XMSNZUMCVCK4WHBMUYVDJOMUO6CBZ7OLWTGJWHQC5ULN4PDM7JK5PIX53R6XY
+#\\\|VBTCXIMTDSJKOYCJBBDNNS3BOWQMDYD72QQQ24RD3UJNIHXMHJ7 \ / AMOS7 \ YOURUM ::
+#\[7]5NQZ33C4OGJI5AT42Z5DNBLMYIQKNQ7TX3IK7ZKPXGP63AZ6UACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

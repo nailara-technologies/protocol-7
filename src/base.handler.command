@@ -663,10 +663,10 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
     ### local command ###
 
     if ( $cmd =~ $re->{'cmd'}
-        or defined $data{'base'}{'cmd'}{$cmd} ) {
+        or defined <base.cmd>->{$cmd} ) {
 
-        if ( defined $data{'base'}{'cmd'}{$cmd} ) {
-            if ( defined $code{ $data{'base'}{'cmd'}{$cmd} } ) {
+        if ( defined <base.cmd>->{$cmd} ) {
+            if ( defined $code{ <base.cmd>->{$cmd} } ) {
 
 ##[ LOCAL COMMAND \ PREPARING DEFERRED ]######################################
 
@@ -883,7 +883,7 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                     ## use STRM-SIZE fragmentation for large replies sent  ##
                     ## through cube relay [ not for cube's own responses ] ##
 
-                    my $buf_limit = $data{'size'}->{'buffer'}->{'input'};
+                    my $buf_limit = <size.buffer.input>;
                     if ( $count > $buf_limit
                         and <system.zenka.type> ne qw| cube | ) {
 
@@ -1056,10 +1056,10 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
     ##  contextual reply for '.cmd.' in routed command names  ##
     if ( index( $cmd, qw| .cmd. | ) >= 0
-        and not defined $data{'base'}{'cmd'}{$cmd} ) {
+        and not defined <base.cmd>->{$cmd} ) {
 
-        if ( exists $data{'diag'}{'cmd_anomalies'}{$cmd} ) {
-            my $reason = $data{'diag'}{'cmd_anomalies'}{$cmd};
+        if ( exists <diag.cmd_anomalies>->{$cmd} ) {
+            my $reason = <diag.cmd_anomalies>->{$cmd};
             $output->$* .= <[base.sprint_t]>->(
                 qw| MALFORMED_CMD |,
                 $cmd_id_str, $cmd, $reason
@@ -1092,8 +1092,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,.,,,,,.,,,,,,.,,,,.,,,,,,.,,.,,,..,,.,,,..,,...,...,..,,,.,,,.,,,.,,...,
-#EPJBESPXMLP2G3ZQOS3JIT5JDXZVLBDBKWYSEIAIAEZT7CQRLQAPFIYGNHJ4FVG5FTPHMETNUHRPM
-#\\\|D74FIS7AD5TNGQSKCZV3PUAMRUEX33PN3UE3YJJROVFWBY2DXSS \ / AMOS7 \ YOURUM ::
-#\[7]DLMBJFMHM2NKAH3NJ2JNKSFIXQ5WRR7BNKD7QQ3MP6P627PO6QDI 7  DATA SIGNATURE ::
+#,,..,,,.,...,,.,,...,,..,.,.,,,.,,,,,,,.,,,,,..,,...,...,,..,,,.,,,,,..,,.,.,
+#4UUMNGMT5PZ7NWCNE4JRPH6CY6RTV6MI7T2TJBJ6DONKVCKVRFQQEIIR7BMRHGGRHIVRPOA3UZ3NS
+#\\\|6XFRBPPBVWK3H7F3F4YNKXAH4VCUJPWHA6GHLEV5ZC6PRFYMYHA \ / AMOS7 \ YOURUM ::
+#\[7]RC4YZI64I3IP4LHPOU4J7YMFKPFVPLFBE5TB2J7UTUL5WC73CEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

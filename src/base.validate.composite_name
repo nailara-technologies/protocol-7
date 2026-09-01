@@ -16,9 +16,9 @@ my $MAX_WITH_PREFIX = 27; ## Safe limit for 'unix-<name>' to fit in system-usr
 my $MAX_COMPOSITE   = 50; ## username[subname] composite limit
 
 ## Initialize warning tracking
-$data{'validate'}{'composite_name'}{'warnings'} //= {};
+<validate.composite_name.warnings> //= {};
 my $warn_key = "$context:$name";
-my $warned = $data{'validate'}{'composite_name'}{'warnings'}{$warn_key} // 0;
+my $warned   = <validate.composite_name.warnings>->{$warn_key} // 0;
 
 ## Start at log level 1 for first warning, increase on repeats (up to level 3)
 my $loglevel = 1;
@@ -26,7 +26,7 @@ $loglevel++ if $warned > 0  && $warned < 2;
 $loglevel++ if $warned >= 2 && $warned < 5;
 
 ## Basic validation - name matches usr_str pattern
-my $re = $data{'regex'}{'base'};
+my $re = <regex.base>;
 if ( $name !~ m{^$re->{'usr_str'}$} ) {
     return {
         valid => 0,
@@ -108,7 +108,7 @@ if ( @warnings && $loglevel <= 2 ) {
     }
 
     ## Track this warning
-    $data{'validate'}{'composite_name'}{'warnings'}{$warn_key} = $warned + 1;
+    <validate.composite_name.warnings>->{$warn_key} = $warned + 1;
 }
 
 ## 5. Store detailed info
@@ -118,8 +118,8 @@ $result{warning_count} = $warned + 1 if @warnings;
 
 return \%result;
 
-#,,,.,...,,,.,.,,,.,.,,,.,..,,..,,.,,,.,,,..,,..,,...,...,.,.,..,,,..,.,.,.,,,
-#ODHKXKZII75HPZQVBOQJQT724QYQRRIDQXQLDZ42QKP4MQNR5IJKAFYOWGOZBXDO2SLBRWJQ2XXVK
-#\\\|NZK6AT2MBHOSQSD3MGMXB7ZPIULGL47U3SG5Z4WO4MLMTVMWBBU \ / AMOS7 \ YOURUM ::
-#\[7]JRZR3DMCAWWXAZH3SBNNG46WXKMYHKIXO7KD2ZOER7T6XOKYEOBQ 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,,.,,..,,,,.,..,,,,.,.,.,..,,..,,...,...,.,.,..,,,,.,,,,,.,.,
+#AKBLSHSM64FYVHRXB47HWPYE4MRWSW7PLSQI63X4V4H2QQUG2Q5EJH3A3ZABXVNKEATVJ34TETBEY
+#\\\|36QJPQ6RZLXDOXUI7J5FRJQETWSGEPL3D3LBV4RBS6UUQVG23CN \ / AMOS7 \ YOURUM ::
+#\[7]SBVLUSPI67DNMWVJBDINO4MEX53FZ7E6BUKEJYLR4QDWSXZBM2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

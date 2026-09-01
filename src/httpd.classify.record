@@ -11,8 +11,8 @@
 #         carry secrets and are never classification input in phase 1.
 
 return undef
-    if not exists $data{'httpd'}{'classify'}
-    or not $data{'httpd'}{'classify'}{'enabled'};
+    if not exists <httpd.classify>
+    or not <httpd.classify.enabled>;
 
 my $peer_key     = shift // return undef;
 my $request_meta = shift // {};
@@ -32,7 +32,7 @@ my $match
 my $now = time;
 
 ##  global stats  ##
-my $stats = $data{'httpd'}{'classify'}{'stats'} //= {};
+my $stats = <httpd.classify.stats> //= {};
 $stats->{'total_requests'}++;
 $stats->{'by_family'} //= {};
 if ( defined $match ) {
@@ -41,7 +41,7 @@ if ( defined $match ) {
 }
 
 ##  per-peer rolling state  ##
-my $peer = $data{'httpd'}{'classify'}{'peer'}->{$peer_key} //= {
+my $peer = <httpd.classify.peer>->{$peer_key} //= {
     'first_seen'    => $now,
     'request_count' => 0,
     'classified'    => {},
@@ -70,8 +70,8 @@ shift @{$ring} while @{$ring} > $ring_size;
 
 return $match;
 
-#,,,.,.,.,,.,,.,.,,,.,,,,,,,.,,..,..,,..,,,,,,..,,...,...,,,,,,,,,.,.,,,,,.,.,
-#LQBYCDS565O3BRU5UMAC4HYSDTTHNSJELWE7F5GYH2PMVTTEO4F52PJHRD4ZZ3FZY2E7ARLNMEFUG
-#\\\|Q5YN45UUV2VNIXNN2TBTX5L5ANCLGTUP4S4BAZ5HZA46ADQMBXU \ / AMOS7 \ YOURUM ::
-#\[7]GR724UPARTA37NUITOELX7K27HR2BFTFLEBDNTCAR4XOX53ZSECY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,,.,,,..,,..,,..,,.,,..,,.,.,..,,...,...,,.,,.,.,.,,,.,,,,,,,
+#KXU4IDQXCEAY7PDHTLHSVXY6CW3HDDXETFIQWQ7HTCPOVNK35GJHZYN4QDAY7CRCCD27CMA76NKMI
+#\\\|MFVWGXKUJ24XZ774H3I5YI2HY3CQZP3KAPYTGNE5TNX3EUMC6E7 \ / AMOS7 \ YOURUM ::
+#\[7]TFGOXBEIXHHZ2PTQWOY4WPUOS4NCL4ZJC7L4WBYQ4FNTKVQAPYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,10 +7,10 @@
 #         cap pressure still-live entries are dropped rather than
 #         allowing unbounded growth.
 
-return FALSE if not exists $data{'httpd'}{'classify'};
-return FALSE if not $data{'httpd'}{'classify'}{'enabled'};
+return FALSE if not exists <httpd.classify>;
+return FALSE if not <httpd.classify.enabled>;
 
-my $peer_hash = $data{'httpd'}{'classify'}{'peer'} // return FALSE;
+my $peer_hash = <httpd.classify.peer> // return FALSE;
 
 my $ttl       = <httpd.classify.peer_ttl>  // 3600;
 my $max_peers = <httpd.classify.max_peers> // 10000;
@@ -42,8 +42,8 @@ if ( $peer_count > $max_peers ) {
 
 return TRUE;
 
-#,,,,,,..,...,,.,,.,.,.,.,..,,,,,,.,,,.,,,.,.,..,,...,.,.,,,,,...,,..,.,,,...,
-#4LSNU72WFAXWOFANES3OFEQLIBWLBN56XPY645JRBV6VQ5X6FPNGIQTUCS46CDVK6TWEOK4ADLB2K
-#\\\|E4I75TZBPAQCQULTSSV3OQLHALZCHS6MHKITMCOH7ZYXOOQWOSC \ / AMOS7 \ YOURUM ::
-#\[7]2BL4BFMIKRXNJ6UZ77JKEVTFXIZZBFEB7USOQZG235VYMZG3FCDY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,,..,,..,.,.,,,,,..,,,..,..,,..,,...,...,..,,,.,,.,.,.,,,..,,
+#3UMVWY4E5OS3H73JECRGZLMYYNMXRQY2LY6RMB3MISGEB5ZX3OUMAR2BXOXJMIMOAQ6XHAKK3B2BI
+#\\\|ZSRGOZ5UYZZLXPSYPEEXQTQJ6DYLWG2RSHZGWASNFX4UKBE3DUG \ / AMOS7 \ YOURUM ::
+#\[7]ZB45XM2ML5IQF2MCNAPE5QCVAMYRXIQCYIFTEQBZD67XIKYGBMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

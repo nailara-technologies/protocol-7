@@ -9,7 +9,7 @@ my $params    = $reply->{'params'} // {};
 my $client_id = $params->{'client_id'};
 my $domain    = $params->{'domain'} // '';
 
-my $client = $data{'proxy'}{'clients'}{$client_id};
+my $client = <proxy.clients>->{$client_id};
 if ( not defined $client ) {
     <[base.logs]>->(
         2, 'proxy.auth_lookup_reply: client %s gone', $client_id
@@ -39,7 +39,7 @@ if ( $mode eq qw| size | and defined $data_r and length $data_r ) {
 
 $auth_result //= { 'has_session' => FALSE, 'slots' => {} };
 
-$data{'proxy'}{'auth_cache'}{$domain} = $auth_result
+<proxy.auth_cache>->{$domain} = $auth_result
     if length $domain;
 
 $context->{'auth'} = $auth_result;
@@ -49,8 +49,8 @@ $client->{'state'} = 'processing';
 
 return;
 
-#,,,.,,..,.,.,,..,,..,.,.,...,,,.,,..,.,,,,,.,..,,...,...,..,,,..,.,.,,.,,.,.,
-#CS4BQG6PJXGZRRIYRWFN5F45LVK6YYVYQEW7UJQC4NRZWTBAO6QT5YBS267B72J7LDSUBDLTPYG6W
-#\\\|KXNHPHMJJ6HGSGJDSV2BJ5P5IG3GSL6UDWTA6OROOXWKK663MNE \ / AMOS7 \ YOURUM ::
-#\[7]MB5LF3KUYF7GMXFRLZI7I5FWRP7KDWRG7B5XQ5M57SNQJE23REAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,.,,,,,.,.,,,.,,,.,,..,...,..,,..,,...,.,.,,.,,,..,...,,.,,,,,,
+#MZZM6RB5VFA3RLH6X6MS3ZE7WD6YWQN27T3X5FKYK267NWUCZTU6JHCW76IOXVVUEO433M3K5PG5U
+#\\\|VB47UELYZ2X64P4WFRDURBU3YY7MKE3QCA3DGLWSY6ADJKMAVSE \ / AMOS7 \ YOURUM ::
+#\[7]AL2B6LNZPJBO7AKURW7LFY2IC7ZZFWETBIGJSXQRLMELFJJJXQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

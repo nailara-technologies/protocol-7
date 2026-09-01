@@ -64,8 +64,8 @@ if ( exists $data{'route_cache'}->{$cache_key} ) {
 }
 
 ## Route 0: registered route registry (exact, then prefix, then ANY) ##
-my $registry      = $data{'httpd'}{'route'}      // {};
-my $args_registry = $data{'httpd'}{'route_args'} // {};
+my $registry      = <httpd.route>      // {};
+my $args_registry = <httpd.route_args> // {};
 for my $match_type (qw| exact prefix |) {
     my $by_method      = $registry->{$match_type}      // {};
     my $args_by_method = $args_registry->{$match_type} // {};
@@ -178,8 +178,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,,,,.,.,.,,,.,,,...,,.,,,,,,,..,,,,,.,.,.,,,..,,...,...,,..,,..,,,.,,,,,..,,
-#NEX342AKCGM65WPCLULNYYICLO4JHZELLXKGSWWJ733DHZ2EZZOLHZWZVRN2WOG6M2774MVPJB3NO
-#\\\|U2PMRF2LAQIPKDJASEXDQDT2544DPEIXANYZXBGP53OVDI7Q66R \ / AMOS7 \ YOURUM ::
-#\[7]GGIGGN6PFMMV45Y2FK7QW6EWHJPFN36LO4XLSQDS3YKE7UINEIAA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,.,.,,,.,.,...,..,,,..,,,,,.,.,..,,...,...,...,...,,.,,.,.,.,.,
+#APUJ4TU6LUVB4TKUOUX7HZT2PIJ2N276EHT4H5D3ZY25OQ3T7MMJIBTYJZJRZSPUNMBSYAHCXI4JI
+#\\\|HAGCK4DPIQF4ODUBR3YPGVR2OREXJXJIFO4XMGIHD5NNKU3BSDY \ / AMOS7 \ YOURUM ::
+#\[7]4JJBSX7RR4WZ5M3ZFPT7YIBOHBZZ5RS47NLN62RBYCS5RAPY4WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

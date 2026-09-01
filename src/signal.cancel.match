@@ -7,12 +7,12 @@ my $line = $ARG[0] // '';
 
 return { 'matched' => 0 } if not length $line;
 
-if ( ref( $data{'signal'}{'cancel'}{'library'} ) ne qw| HASH |
-    or not exists $data{'signal'}{'cancel'}{'library'}{'compiled'} ) {
+if ( ref(<signal.cancel.library>) ne qw| HASH |
+    or not exists <signal.cancel.library.compiled> ) {
     <[signal.cancel.load]>;
 }
 
-my $library = $data{'signal'}{'cancel'}{'library'};
+my $library = <signal.cancel.library>;
 
 foreach my $entry ( $library->{'compiled'}->@* ) {
     next if not defined $entry->{'compiled'};
@@ -31,8 +31,8 @@ foreach my $entry ( $library->{'compiled'}->@* ) {
 
 return { 'matched' => 0 };
 
-#,,,,,,..,,.,,,,,,..,,,.,,,,.,,,,,.,.,.,,,..,,.,.,...,...,.,.,,..,..,,..,,,..,
-#CASHFG5E4AO2VSHSNIQHJHSF5BMQAVJUPZM7RPXDDITSY6UWFZO6JHJL6KQZQB2MBMIVM7WRY7MVK
-#\\\|O6ABN356E32FYI3GXTP3G7RE7ZWA2TIP3G5PTNJEQNZKFLNRGYL \ / AMOS7 \ YOURUM ::
-#\[7]IODAO7IN55JXHHL466NL35UM2RRM4CGADLUMLW7LMLCGMVDIVQDY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,..,,.,.,,..,...,,,.,...,.,.,,,.,.,.,...,...,..,,,.,,,.,,,..,...,
+#ANUA6UIBF4J5UEKWSZACEGAQEUEL43BW7Z4WZAVL43IAIKBBGZRPPJGLH5XJLGTJTRAA5DIYKIYRC
+#\\\|WETNFKKX2BGB2T44V7P4ZGGLUXFBG7YEMR5AWLZUDQTEU3W5LAZ \ / AMOS7 \ YOURUM ::
+#\[7]75U6QIWN2GGEUO3PDIGAFG7IVSUNAAB6YW2BP5QOEXTSGV5XBYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

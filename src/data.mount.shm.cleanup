@@ -7,8 +7,8 @@
 <[base.log]>->( 2, "SHM subsystem cleaning up on shutdown" );
 
 # Unlock all mlocked segments
-for my $path ( keys %{ $data{'mount'}{'shm'}{'segments'} } ) {
-    my $seg = $data{'mount'}{'shm'}{'segments'}{$path};
+for my $path ( keys %{<mount.shm.segments>} ) {
+    my $seg = <mount.shm.segments>->{$path};
     if ( $seg && $seg->{'mlocked'} ) {
         eval { <[data.mount.shm.lock.unlock]>->( $seg->{'mmap_ptr'} ) };
     }
@@ -19,14 +19,14 @@ for my $path ( keys %{ $data{'mount'}{'shm'}{'segments'} } ) {
 ## opened segments are never in this hash — see data.mount.shm.init_code / ##
 ## the phase-4 task doc's "critical correctness rule" — so this never      ##
 ## touches a segment this process did not create.                          ##
-for my $path ( keys %{ $data{'mount'}{'shm'}{'segments'} } ) {
+for my $path ( keys %{<mount.shm.segments>} ) {
     eval { <[data.mount.shm.remove]>->($path) };
 }
 
 return TRUE;
 
-#,,..,.,.,,..,,,,,,,,,...,,.,,...,..,,.,.,.,,,..,,...,...,,,.,,..,,,.,.,.,,,.,
-#B3GXZHOIB2DZQYQP53SE7AZXZW44CTA7BT4NWVRUMKF4YXJ4V64UNXSVXTGT2PDEQVHE62CSENJUA
-#\\\|LGSTC66OXBQNTKDQB65PKS7UBETNKLV5EOJFIJKNV4Q3PNYP744 \ / AMOS7 \ YOURUM ::
-#\[7]CMLFBZXNSCWFCGEVG7G5BTBHPOZGUBN4PPPY6TZZMJNQPBO2WCDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,,,.,,,,,.,,,...,,.,,..,,,.,,..,,...,...,.,,,...,,,,,...,.,,,
+#JYQJ5C5Y7ZMKS7USWKLUEQQSNL5UVC2HG6AWWJV3JUDNOWVIL3ID3QZ52OFJOYLKY6OHRPIKVPJWM
+#\\\|YODIKWLID2VUP3K2RDKCASZBFGEXMRB6LR5AGILKEXF5P4RM7UZ \ / AMOS7 \ YOURUM ::
+#\[7]Q2F5VUQX7Q5RSE4FRBG5BGDGGNCPFDR7ZI6PSABWEQPSJR2PZ6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

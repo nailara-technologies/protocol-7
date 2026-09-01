@@ -10,26 +10,25 @@ my $template    = $params{template}   or return;
 my $source_path = $params{source_path} // '';
 my $status      = $params{status}      // qw| unknown |;
 
-$data{'web'}{'assets'}{'registry'}{$asset_path} = {
+<web.assets.registry>->{$asset_path} = {
     asset_path     => $asset_path,
     template       => $template,
     source_path    => $source_path,
     status         => $status,
     last_validated => time(),
-    discovered_at  =>
-        $data{'web'}{'assets'}{'registry'}{$asset_path}{discovered_at}
+    discovered_at  => <web.assets.registry>->{$asset_path}{discovered_at}
         // time(),
 };
 
-$data{'web'}{'assets'}{'stats'}{total_assets}
-    = scalar( keys %{ $data{'web'}{'assets'}{'registry'} } );
+<web.assets.stats>->{total_assets}
+    = scalar( keys %{<web.assets.registry>} );
 
 return TRUE;
 
 0;
 
-#,,,.,...,,.,,.,,,,,.,.,,,.,.,..,,.,.,,..,.,.,..,,...,..,,...,.,,,,..,..,,.,.,
-#EYGI6LCJ5PORQHCVBZXXI2R646AJTHLCVQ3UBLWA4CLNRBXYWE4XXMWXPQZ73QMNLXN4IBWPABH5M
-#\\\|WZ4Y3GCL65TV4SBSLHK7CIORES7I5QJ2RHM7DYBAP5ZKXN4YN5V \ / AMOS7 \ YOURUM ::
-#\[7]JGESOZ6WDEMCFDJRRUXO3DL5DSGQJ7RNU5ESBDWILQNTTWRUZQDY 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,.,...,..,,.,.,,..,..,,,..,,,.,..,,...,...,..,,.,,,...,,,.,,.,,
+#R745MSKOTKO6YZSYXGGIM24EZ2AIV7OKCUCC4K3FMYWLIKCWW5HP6ERVT52BJBNGF4Z2H6KXYVIGY
+#\\\|GYR3HTGH3JGPK4ZGSHLUCJB4ZPWEJ3EDPTUQGAQXXHIRISIJSZH \ / AMOS7 \ YOURUM ::
+#\[7]J72NPJOLVWHGSFMMLF6RHL3A7OU75TU7WVNYKGEPSBDLI3IUNYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

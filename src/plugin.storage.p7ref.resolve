@@ -7,7 +7,7 @@ my ($args) = @ARG;
 my $p7ref = $args->{p7ref}
     or return { 'mode' => 'false', 'data' => 'p7ref required' };
 
-my $registry = $data{'storage'}{'mapping'}{'p7ref'};
+my $registry = <storage.mapping.p7ref>;
 
 # Parse first
 my $parse_res = <[plugin.storage.p7ref.parse]>->( { 'p7ref' => $p7ref } );
@@ -78,8 +78,7 @@ if ( $type eq 'checksum' ) {
 
         ## segment selects: best | meta | specific B32-224 response ##
         if ( $segment eq qw| meta | ) {
-            my $root = $data{'storage'}{'mapping'}{'inference'}{'root_path'}
-                // '';
+            my $root      = <storage.mapping.inference.root_path> // '';
             my $meta_path = "$root/$L13/.meta";
             $result = {
                 'mode' => ( -f $meta_path ) ? qw| true | : qw| false |,
@@ -143,8 +142,8 @@ if ( $result->{'mode'} eq 'true' ) {
 
 return $result;
 
-#,,..,,,,,,.,,..,,,,,,,,,,,,.,,.,,,,.,.,.,..,,.,.,...,...,.,.,,..,,..,...,,.,,
-#M5UI6F3PRO2F2SRXVUUUIK24KLWFN3YVGQZXFQN6Z6QP7DXQE3NI3J3T7U64VCW6L6EQ7KIJCZ2CQ
-#\\\|2ZUVD6K3ARASPTSPE6PB6XQHMEUJVUODFLUHREFJXZZKS7KONI2 \ / AMOS7 \ YOURUM ::
-#\[7]ITJKWVNOBDIR3VOTPKMMH5GQU3XVTVRVWGJGNKSVESIS4S2X24BQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,.,,,,.,,.,.,.,,,.,,,...,,,.,,,.,.,.,...,..,,,,,,..,,,.,,,.,,,,.,
+#Y3JV3HHV7DQXQ77YURBYOT3MPIB64UBQLUY6H5QEXPWZU5ZP5BUSYAWQX32TQBHSA6WIR45TIL2UW
+#\\\|HUHO275VIOE5RDFD4T2NDWY46CVJ6PL3NZAZXXTBDH6MLMHBTS4 \ / AMOS7 \ YOURUM ::
+#\[7]YJ3KJGEOCNDWWI6TDQD3QDS6UOXPFAECK65LPS3RP3VRAQYRRGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

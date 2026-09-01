@@ -5,7 +5,7 @@
 
 <[base.perlmod.autoload]>->('LWP::UserAgent');
 
-my $url = $data{'invoke-web'}{'url'} // 'http://127.0.0.1:9090';
+my $url = <invoke-web.url> // 'http://127.0.0.1:9090';
 
 my $ua       = LWP::UserAgent->new( timeout => 3 );
 my $response = $ua->get("$url/api/v1/app/version");
@@ -23,8 +23,8 @@ if ( $response->is_success ) {
     };
 }
 
-#,,..,,,.,.,,,,..,.,.,,,,,.,,,,..,...,...,,.,,..,,...,...,.,.,,..,...,,,,,,,,,
-#ZDXDXGBSB6Q33WHYFQLK2YCBJQNGF64QI4SHC23UOMYKWTBSYAWYJIG3RDEIIAPJGI66WQN6BHHAC
-#\\\|OLVSEKMKTEWYP7ZRBH56K3Y2P6SBF3RSJTPUORPPAO4AU6IMGU7 \ / AMOS7 \ YOURUM ::
-#\[7]NYPKNEGFY3UKCELGPFM76MZUV4T36QUL7SYZXE7DDJDCUKJ6IIAA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,,,..,,...,,.,,.,.,...,..,,,,,,..,,...,...,.,.,..,,,,.,..,,,,.,
+#PQEP77WCECORIDMTYPJPURFMPYXEKTQ3Q3XGGULFSUGYJ3T6IDOCB76TNRVR2XJKZJCYSBNVH6GMS
+#\\\|LV3EQTCGX236H272JNIKIO4ZDRIFUBO5MS2FJYNEEHJUHYG5GX3 \ / AMOS7 \ YOURUM ::
+#\[7]2A7DVKAYIS5ELFOTRGSVXMZTDVKEJWIIFI3UXIYHJ7UNUF4YXMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

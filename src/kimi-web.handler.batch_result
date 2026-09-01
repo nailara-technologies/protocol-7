@@ -4,9 +4,9 @@
 # descr = collect results from parallel agent dispatch
 
 my $data     = shift;
-my $agent_id = $data->{'params'}{'agent_id'} // '';
-my $batch_id = $data->{'params'}{'batch_id'} // '';
-my $result   = $data->{'body'}               // '';
+my $agent_id = <params.agent_id> // '';
+my $batch_id = <params.batch_id> // '';
+my $result   = $data->{'body'}   // '';
 my $is_error = $data->{'ok'} ? 0 : 1;
 
 my $batches = <kimi-web.agent.batches> // {};
@@ -60,8 +60,8 @@ if ( $batch->{'completed'} >= $batch->{'total'} ) {
     );
 }
 
-#,,..,,,.,.,,,.,,,,.,,.,.,..,,,.,,,,,,..,,.,,,.,.,...,...,...,,,.,.,.,...,,,,,
-#GMUU6V5ZO3AEKS7NGPGFUGMYOJADNWNSG6QNHZ6XKKZS6CRNJH73XXPYAFGT4Y66X677IITJWIL4A
-#\\\|EJ5KVWDGZT5SVM5XSOD5FDBQ26GWGNVF5C47GOZ3WFT4FGB4F5K \ / AMOS7 \ YOURUM ::
-#\[7]WWEZHMM4RITSIMWPA574NYDPKMHITVPQPRAT4M46RQXK5LD7UYCI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,.,,,,,.,.,.,.,,,,,.,.,,,.,.,,,.,.,...,...,,..,,,,,,..,..,,.,.,
+#5SQL5YLZ4L5VIB6TYJJX3EQSUMV4KB7ZVHSR3OGJRGXDLZ2S34N5PQL3DN2EAJLLVGHOLASXKPPIY
+#\\\|ZIBWERUKZERF4K3N342NUVPNESXAIX2QXTLBDREUN53RJM6GXFV \ / AMOS7 \ YOURUM ::
+#\[7]VA5W7HPNMGSE7JURCIYMBVHDJUD237GSJKBF3SUOE4EMTRIGCWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

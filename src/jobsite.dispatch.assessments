@@ -130,8 +130,8 @@ for my $job_id ( keys %{$store} ) {
             ## this loop -- a write that only hits job.write leaves that  ##
             ## global stale, so a future re-scrape of this same job would ##
             ## silently lose the flag                                     ##
-            $data{'jobs'}{'store'}{$job_id} = $failed_job
-                if ref $data{'jobs'}{'store'} eq 'HASH';
+            <jobs.store>->{$job_id} = $failed_job
+                if ref <jobs.store> eq 'HASH';
             next;
         }
 
@@ -142,8 +142,8 @@ for my $job_id ( keys %{$store} ) {
         my $marked_job = { %{$job}, 'desc_refetch_attempted' => TRUE };
         <[jobsite.job.write]>->( $job_id, $marked_job );
         ## see the persistent-store note above -- same reason, same fix ##
-        $data{'jobs'}{'store'}{$job_id} = $marked_job
-            if ref $data{'jobs'}{'store'} eq 'HASH';
+        <jobs.store>->{$job_id} = $marked_job
+            if ref <jobs.store> eq 'HASH';
 
         <jobsite.tasks>->{$job_id}{'awaiting_desc_refetch'} = TRUE;
         <[protocol-7.route-send]>->(
@@ -222,8 +222,8 @@ push @{<jobsite.assess_queue>}, @queue;
 
 return;
 
-#,,,,,..,,,..,.,,,...,.,.,.,,,...,,,.,.,,,..,,..,,...,...,..,,,,,,.,.,,..,,,,,
-#QUN22G2POCLGSWC5VUYCFX3LWECLJEUZ6PA6O3LMDMNHKTBX2NJWZVXBVBK4D3RDVWDGJAVAJAWTO
-#\\\|GOZHX3W2VOA4JJGNOTFGRDO2F6QB7M3Q6ZAMAPOMIBBFSX7XRRY \ / AMOS7 \ YOURUM ::
-#\[7]TGZGM5JNRQNLMWB5RQYECQ63HJAAIZL7SQVJVMNMJW3PG4ZZ7UBY 7  DATA SIGNATURE ::
+#,,,.,...,...,,,,,,,.,..,,..,,...,,..,..,,.,.,..,,...,...,,..,,,,,.,,,,,,,,.,,
+#FQCZUAUCXCZYWVKTYNBUDLWKOFYXFBODTVZFXD62XZHRDRZRCU5CAENYPEJOQ5DXO72CHZ6HRDM2Y
+#\\\|37X5KYWRJQZBKDI4XU2V3PZ46IEFEJMAZEATN5PMH3KXM5MXDQX \ / AMOS7 \ YOURUM ::
+#\[7]R6RPRD6TM5NV2RLX6NFX6VM3KNM7FMLAMYKG425TEMKV4WWRFSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

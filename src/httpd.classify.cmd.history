@@ -21,9 +21,9 @@ return {
     'mode' => qw| false |,
     'data' => 'httpd classification not enabled [ httpd.classify.enabled ]'
     }
-    if not exists $data{'httpd'}{'classify'};
+    if not exists <httpd.classify>;
 
-my $peer = $data{'httpd'}{'classify'}{'peer'}{$peer_key};
+my $peer = <httpd.classify.peer>->{$peer_key};
 return {
     'mode' => qw| false |,
     'data' => "no classification history for peer '$peer_key'"
@@ -51,8 +51,8 @@ foreach my $entry ( @{ $peer->{'ring'} // [] } ) {
 
 return { 'mode' => qw| true |, 'data' => join( "\n", @out ) };
 
-#,,,,,.,,,,,.,.,,,..,,,,.,,,,,,.,,,,,,,..,,.,,..,,...,...,,..,.,.,,.,,,,.,,,,,
-#ZLO44IL77BA2KZ5KVHNSXQ2YXI5CTSMC5NIIMJCSSDWH6X2RFUZ6EB7WVV6NMXB4POXPMQLGS7YKC
-#\\\|EAYVDVEZX4GPWZ6UZAEKNV4C6IEQKMBSP7MSSBNS4FUQPSA7PRO \ / AMOS7 \ YOURUM ::
-#\[7]E7FPIFFQC6MVQI77FPDXMJDYAT7X3BKKCCZUJZNANBKL7IK2W6CY 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,...,,.,,...,.,.,,.,,,..,..,,..,,...,...,...,...,,.,,..,,..,,
+#ZDIUYU3ZEI5KNLKJZESAN52QXCALFT6Q43GNZNSSXOG5TIABPZGEF6IIM7ODVKGQMEBDOLRFPBTBM
+#\\\|75OXQK44WW5O7OCUG5P23KUT36D36KJPFBE32ZNINPBT3PDPX2C \ / AMOS7 \ YOURUM ::
+#\[7]J6WYHFNY7W45ADD5527SMVGHL23ZBTEQTHX7BVVQGHWSQRDY7ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

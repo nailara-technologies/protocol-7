@@ -152,7 +152,7 @@ $window->signal_connect(
         ## update X immediately; Y follows configure-event [ which now queries
         ## get_origin() for true root coords ]
         $win_x_cache = $new_x;
-        $data{'protocol-7-menu'}{'window'}{'x'} = $new_x;
+        <protocol-7-menu.window.x> = $new_x;
         return 1;
     }
 );
@@ -265,7 +265,7 @@ $window->move( $pos_x, $pos_y );
 ## assign real initial values now that pos_x/pos_y are resolved
 ( $win_x_cache, $win_y_cache ) = ( $pos_x, $pos_y );
 
-$data{'protocol-7-menu'}{'window'} = {
+<protocol-7-menu.window> = {
     'x' => $pos_x,
     'y' => $pos_y,
     'w' => $win_width,
@@ -287,8 +287,8 @@ $window->signal_connect(
             my ( $rx, $ry ) = eval { $gdk_win->get_origin() };
             if ( defined $rx and $rx >= -32736 and $ry >= -32736 ) {   ##[LLL]
                 ( $win_x_cache, $win_y_cache ) = ( $rx, $ry );
-                $data{'protocol-7-menu'}{'window'}{'x'} = $win_x_cache;
-                $data{'protocol-7-menu'}{'window'}{'y'} = $win_y_cache;
+                <protocol-7-menu.window.x> = $win_x_cache;
+                <protocol-7-menu.window.y> = $win_y_cache;
             }
         }
         return 0;
@@ -547,7 +547,7 @@ if ($use_transparency) {
         50,
         sub {
             ## shm_ptr set by handler.pointer-stream-path once handshake done
-            my $shm_ptr = $data{'protocol-7-menu'}{'pointer'}{'shm_ptr'};
+            my $shm_ptr = <protocol-7-menu.pointer.shm_ptr>;
             return TRUE unless defined $shm_ptr;
             if ( <protocol-7-menu.menu_open> && $menu->get_visible ) {
                 $set_opacity->($opacity_click);
@@ -608,8 +608,8 @@ if ($use_transparency) {
 
 return 0;
 
-#,,,.,,,,,,..,,..,,,,,,,,,.,,,,.,,.,.,,,.,.,.,.,.,...,...,,.,,,,,,,,.,,..,,,.,
-#EU4QUJMTTVSVXYUONRLUFVJLP2NBHZVSXAIOL3YMVINY7KWF23B7EQ3AWRD3DLO7EXWTFDTOMLZPM
-#\\\|3OQYGVNUT5OEWEI5OQWKNNTNUVPFKFKM6EYGIKBDL5PG4KB6VPL \ / AMOS7 \ YOURUM ::
-#\[7]4IFZVRMCFM67I7TGGO4WG2C6UJO6ZROWRSF4JFSYQG75UXFBT2BY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,..,,,,.,.,,,,..,.,,,.,,,...,.,.,...,...,...,,,,,.,,,.,.,.,.,
+#RQZGUSETBZZ5CTNA3CLA4YGUR7MU4DO3UFURSDXWKKUYDEZIVR4FJXYAUS4WWOOM6WN4HQ2CBYQRE
+#\\\|TXAV62MODUKHIROZP6IMB2NGCT76IWXGVARG4OZRPMDGIR4R6SZ \ / AMOS7 \ YOURUM ::
+#\[7]QDVTPG3KZXTYDWZLVZCCBGQA7F24ZUH4DXEKMCV6KHLUI4YAYCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

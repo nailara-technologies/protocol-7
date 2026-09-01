@@ -19,7 +19,7 @@ for my $arg (@$args) {
 }
 
 if ( $cmd eq 'status' ) {
-    my $tree = $data{'context'}{'tree'}{'summary'};
+    my $tree = <context.tree.summary>;
     return sprintf(
         "Awareness Tree Status:\n  Version: %s\n  Events: %d (added: %d, "
             . "compacted: %d)\n  Summaries: %d\n  Queries served: %d\n  "
@@ -46,7 +46,7 @@ if ( $cmd eq 'status' ) {
     my $result = <[context.tree.summary.add-event]>->(
         {   'type'    => $type,
             'branch'  => $branch,
-            'agent'   => $opts{'agent'} // $data{'agent'}{'id'} // 'unknown',
+            'agent'   => $opts{'agent'} // <agent.id> // 'unknown',
             'payload' => $payload,
         }
     );
@@ -130,8 +130,8 @@ Commands:
 HELP
 }
 
-#,,.,,,,,,,,.,.,.,,,.,,.,,,,.,.,.,,..,,,,,.,.,.,.,...,...,...,,.,,,,.,,.,,,.,,
-#7HIQYIYWDLCTIXYMX7M7DLXJXMRISXHSRFUB7PJYWAWGBOEMJTEO2L5EKJKBZTBA5MQWME6OARZE4
-#\\\|W7DNFQBYLNC7FOQKXNF6DZDWT6OPPVE3QBGC2BBJTSF4IWW46WW \ / AMOS7 \ YOURUM ::
-#\[7]3VHQDOW57SJXEINFN65THRCXPS2N5OA35KABEPHQLGCLYCKDSKBA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,...,.,.,,,,,.,.,,,,,..,,.,,,.,.,...,...,.,,,,..,,,.,...,,,.,
+#AVYE37JGVBVLD4KKPQ4MMQ7DKDISJQPQMHMTHJQDD5F5JMCCMVXTQWJU3P32D7SL5WDA64WDCEWNO
+#\\\|3PXL26NWDAPG6RDR4AIWM2QRCU4N35KN6HVHHUZMLAB47JK2N4K \ / AMOS7 \ YOURUM ::
+#\[7]JAJAAZMLYZ3YOKOVMNS3HSVMUCEYT6UCCBIJEBIR4ABZUXDVY4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

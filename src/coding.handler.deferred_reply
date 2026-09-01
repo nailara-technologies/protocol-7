@@ -6,7 +6,7 @@
 
 my $deferred_id = shift;
 
-my $deferred = $data{"coding"}{"deferred_replies"}->{$deferred_id};
+my $deferred = <coding.deferred_replies>->{$deferred_id};
 return unless defined $deferred;
 
 ## cancel timeout timer if wait-done registered one ##
@@ -113,10 +113,10 @@ if ( not $is_error and length $chk ) {
 }
 
 $deferred->{'status'} = $is_error ? 'error' : 'complete';
-delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
+delete <coding.deferred_replies>->{$deferred_id};
 
-#,,,,,,..,,..,..,,,..,,..,,.,,.,,,,,.,.,.,..,,.,.,...,...,...,...,,.,,.,,,.,.,
-#WOQ5NPB424FN2MGHLV4E6U2AA7Z2C6VNMFPHNJYHHJAT2CJAC2KJCFHNSUCYIZQCHZQFVOKQ2Z7G6
-#\\\|WXUVLC3KRKKMIRHC3R5DKJD54OFZUCVBMSUK3JRHHPYAZSRJH7B \ / AMOS7 \ YOURUM ::
-#\[7]3V7JPXCHJQCB2H7MO3JQIFIFJ3TCAJMF2GKOLC6YWCXY3IFHY4AQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,...,.,.,,,,,.,,,..,,,,,,.,.,,,,,.,.,...,...,,..,.,,,,..,,,.,,,,,
+#QCHQYMAEP5B4ECCWROTGUM5QVJ67G2ACN73BAZ4VHNRRFZ4GU7KYPQB7FDD3APSBYDX7V275RVOBI
+#\\\|FWAXP66HFKZTTF46WACPP2MAATTKUZB54DGVFJAAPYJMUCUSWFF \ / AMOS7 \ YOURUM ::
+#\[7]3C3LWMYLNOXC5MYBHO4N2HDVLQMQMJO3DPMN2VJGVX63YVLZBODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

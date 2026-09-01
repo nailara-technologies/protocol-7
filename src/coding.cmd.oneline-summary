@@ -61,10 +61,9 @@ return {
     if !$queue_result->{'success'};
 
 ## deferred reply : returns when inference completes ##
-$data{'coding'}{'deferred_replies'} //= {};
-my $deferred_id
-    = <[base.gen_id]>->( $data{"coding"}{"deferred_replies"} );
-$data{"coding"}{"deferred_replies"}->{$deferred_id} = {
+<coding.deferred_replies> //= {};
+my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
+<coding.deferred_replies>->{$deferred_id} = {
     'deferred_id' => $deferred_id,
     'reply_id'    => $call->{'reply_id'},
     'task_id'     => $task->{'id'},
@@ -74,8 +73,8 @@ $data{"coding"}{"deferred_replies"}->{$deferred_id} = {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,..,,,,,,..,,,,,.,,,.,.,.,.,,,,,,..,,,,,..,,...,...,.,.,.,.,.,.,,.,,,..,
-#WJNFIYARIONQXNF3RWW4D2FQDAD4DY45PMGRLIMFZGDZP23YELB64MPETC4BCAXO7VAGYGTI7MQN6
-#\\\|YRBMGDMGUVN4J6FGXLCCHJPHFPQHCLWGN2IRXZ6RL73EXG3NEDM \ / AMOS7 \ YOURUM ::
-#\[7]35DL5WDZEJ6CGEWTO26TMULU5CPWUUKL6C3ZL6WMFPQ3FC46FCAY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,.,...,,,.,...,,..,.,.,.,.,.,.,..,,...,...,,.,,.,,,..,,.,,,,,,,
+#PI4WIYCHPUCCSMO6H56BU3ISCI4ABR5MIDE3AVD7WEYIJ2GX3VAKFFFF5CY46TAYIR2S4VKDOLKCI
+#\\\|LE4BGOS36UJVAJLAJV4HKDRPHXXL4FGZ3VWLT5QIC7IKLZXROU3 \ / AMOS7 \ YOURUM ::
+#\[7]ASKDGJ4WBLSUXT2IEYCCB2GISHYV5BWG2HDYJWCLN4LDLZEVDMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

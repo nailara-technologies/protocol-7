@@ -4,7 +4,7 @@
 # descr = reload subroutine whitelist from disk [ picks up updated list ]
 
 my $zenka_name = <system.zenka.name>;
-my $wl_file    = catfile( $data{'system'}{'conf_path'},
+my $wl_file    = catfile( <system.conf_path>,
     qw| zenki |, $zenka_name, qw| subroutines.load-early | );
 
 return FALSE if not -f $wl_file;
@@ -26,11 +26,10 @@ while ( my $line = <$fh> ) {
 }
 close $fh;
 
-my $old_count
-    = scalar keys %{ $data{'base'}{'loader'}{'sub_whitelist'} // {} };
+my $old_count = scalar keys %{ <base.loader.sub_whitelist> // {} };
 my $new_count = scalar keys %new_wl;
 
-$data{'base'}{'loader'}{'sub_whitelist'} = \%new_wl;
+<base.loader.sub_whitelist> = \%new_wl;
 
 <[base.logs]>->(
     'whitelist reloaded [ %d -> %d entries ]',
@@ -38,8 +37,8 @@ $data{'base'}{'loader'}{'sub_whitelist'} = \%new_wl;
 );
 return TRUE;
 
-#,,,.,..,,,.,,.,.,..,,,..,...,,..,...,.,.,,..,..,,...,..,,,..,.,,,,.,,.,,,,.,,
-#3I5YBYQOVBOBF6KODH5IPMBVZ5V6YMBUWU33ULI5PRFWUFJMUPWGDLUJRVMBOZGMCVMYDTHSMJEKS
-#\\\|FHVQ36Y6JZACHVHOGAIYVUDR6JWTL7Q5KILVSCUEIMU7VUBFRAQ \ / AMOS7 \ YOURUM ::
-#\[7]BFTII5CVUOOS2UBGXNUMCQIPPETPL2QG5B3VE53PBN6HQHOFWICQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,,,,,.,.,..,,,,,,.,,,,.,,,,.,..,,...,...,..,,,,,,...,...,,..,
+#FZT3ESBCQSC5RYUJAG47JKULV37H7ZYLISGY34OO7XVSJ3UHXMSSHJHWA7SQLBIFEOMJRRGCW5BQO
+#\\\|N4R6IBQ2WCBIIE6G2QBJAV26E4RPVRXEIEFAGHAXVPQXAVLC2C4 \ / AMOS7 \ YOURUM ::
+#\[7]L4TNIHPMQXKH3D6FO67GEYZWPZM3OM6Q6JEWVINGPKN62LWXUUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

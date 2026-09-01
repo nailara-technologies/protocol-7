@@ -20,7 +20,7 @@ if ( $input =~ m|@| ) {
     $input = $rest;
 }
 
-my $cursor = $data{'graphics-matrix'}{'cursor'};
+my $cursor = <graphics-matrix.cursor>;
 my ( $selX, $selY, $selZ )
     = ( $cursor->{'selX'}, $cursor->{'selY'}, $cursor->{'selZ'} );
 
@@ -37,7 +37,7 @@ if ( $input =~ m|^[UDLR]\d+$| and length $input >= 2 and length $input <= 3 )
 
 ## 2. checksum lookup ##
 elsif ( $input =~ m|^[A-Z0-9]{7}$| ) {
-    my $registry = $data{'graphics-matrix'}{'address'}{'checksum'}{$input};
+    my $registry = <graphics-matrix.address.checksum>->{$input};
     return { qw| mode | => qw| false |, qw| data | => 'checksum not found' }
         if not defined $registry;
     $scheme = qw| checksum |;
@@ -80,7 +80,7 @@ elsif ($input =~ m|^-?\d+\s+-?\d+\s+-?\d+$|
 
 ## 6. label lookup ##
 else {
-    my $registry = $data{'graphics-matrix'}{'address'}{'label'}{$input};
+    my $registry = <graphics-matrix.address.label>->{$input};
     return {
         qw| mode | => qw| false |,
         qw| data | => 'unknown address format'
@@ -100,8 +100,8 @@ return {
     qw| channel | => defined $channel ? $channel->{'label'} : undef,
 };
 
-#,,,,,..,,,.,,,,,,,..,..,,,,,,,..,...,...,,..,..,,...,...,...,,.,,,,.,.,.,,.,,
-#O3GEEB7SKWSU6KF6LR3VHAS7CTDNPPGE6PGV4HQMSV65FCGTUPKNZBJPYV3QISKVDBDGG7MQONO76
-#\\\|3ML2CSPWLMF6XI72GQS5SO7F3A7W5TN553SUGHIORPWSJCPGUQT \ / AMOS7 \ YOURUM ::
-#\[7]HPZ6XLYBLTNQU3RT5XIUPPFIZYHN6DJUWUHIIG42CJPQCEE2OMAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,,,.,,,.,,.,,.,.,.,.,.,,,,,.,..,,...,...,...,,..,,.,,..,,,,.,
+#U7SAPGPDQMCXLVMBO7ZYM2FRFNN6D7LFYBMVXQCCXUMWCSVWOJYV5JU3RHDNBKGEJZXGOEQKZPE52
+#\\\|L45SPJPHK4G42BYM76UBZTVDJS5KDYPCRSBOVYLRWFKILPUPSL3 \ / AMOS7 \ YOURUM ::
+#\[7]RMWONLQEQ5HVQUG2I22TIGAMNV7IELL7F5QLT5QOIEMQCCKMASBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

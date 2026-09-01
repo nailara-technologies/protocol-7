@@ -8,9 +8,9 @@ my $id    = $reply->{'params'}{'id'}    // '';
 my $winid = $reply->{'params'}{'winid'} // '';
 
 return if not length $id or not length $winid;
-return if not exists $data{'screen-setup'}{'instances'}{$id};
+return if not exists <screen-setup.instances>->{$id};
 
-my $inst = $data{'screen-setup'}{'instances'}{$id};
+my $inst = <screen-setup.instances>->{$id};
 
 my $entry;
 for my $win ( @{ $inst->{'windows'} // [] } ) {
@@ -42,7 +42,7 @@ if ( $mode eq qw| true | ) {
         {   'after' => 0.2,
             'cb'    => sub {
                 return
-                    if not exists $data{'screen-setup'}{'instances'}{$id};
+                    if not exists <screen-setup.instances>->{$id};
                 <[base.zenki.resolve_primary_sid]>->(
                     'X-11',
                     sub {
@@ -83,8 +83,8 @@ $window->queue_draw if defined $window;
 
 #
 
-#,,,,,.,.,,.,,,,,,,,.,,,.,...,,.,,...,.,,,..,,.,.,...,..,,,,,,...,..,,.,,,.,,,
-#VHYIDAAWUT3AINWU7HQTDQ4DCHSFC2AGI6T4MANR43SXQVQUPROB3XF4RJQXBEYH6S3TMAG75SRVC
-#\\\|5IJ3KE7KWOYUHV7LXL2LCH6W4XCVGVPT26FY7KUXKXCBJS5HJ4C \ / AMOS7 \ YOURUM ::
-#\[7]NWPIPN2FT7UY3JKLMLCUALIR7YQVIVBETN3V2NPBURFG7C5LPGCI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,,,,..,,,..,,,,,.,.,,.,,...,.,.,...,...,.,,,,,.,,,,,...,...,
+#7MKP6GNKE2LFSCPAP66CBPXADZS4UXZET5EMKCFQ2FFSPS6HNESCWOECV7MZAGHQUH5YIHNRRYRSK
+#\\\|XMVXHNYNUFULIPN3AFTKQF2RKMFO3V2HVRDSV3ULGTQ4QF5ZWNG \ / AMOS7 \ YOURUM ::
+#\[7]APAW2EVMUWQSSFAHISONT2QL6O4A3B3YM6YCKXMQXQOHPWMZV4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

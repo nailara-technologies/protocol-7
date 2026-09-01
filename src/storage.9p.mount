@@ -34,7 +34,7 @@ $port //= <plan-9.default_port> // 15640;
 
 my $name = $authority;    ## scan-by-authority convention [ see header ] ##
 
-my $pre_existing = exists $data{'storage'}{'9p'}{'connections'}{$name};
+my $pre_existing = exists <storage.9p.connections>->{$name};
 
 my $result = <[storage.9p.connect]>->(
     {   'host'  => $host,
@@ -48,7 +48,7 @@ return undef if not ref $result or $result->{'mode'} eq 'false';
 
 ## validate path with a probe walk from root ##
 my @path_parts = grep {length} split m|/|, $path;
-my $conn       = $data{'storage'}{'9p'}{'connections'}{$name};
+my $conn       = <storage.9p.connections>->{$name};
 
 if ( @path_parts and $conn ) {
     my $probe_fid = $conn->{next_fid}++;
@@ -61,7 +61,7 @@ if ( @path_parts and $conn ) {
         ## path not reachable : tear down connection we just created ##
         if ( not $pre_existing ) {
             close $conn->{'socket'} if $conn->{'socket'};
-            delete $data{'storage'}{'9p'}{'connections'}{$name};
+            delete <storage.9p.connections>->{$name};
         }
         return undef;
     }
@@ -69,14 +69,14 @@ if ( @path_parts and $conn ) {
 }
 
 ## mount point -> connection mapping for storage.9p.umount ##
-$data{'storage'}{'9p'}{'mounts'}{$path} = $name;
+<storage.9p.mounts>->{$path} = $name;
 
 <[base.logs]>->("Storage 9P: mounted $authority at $path");
 
 return $path;
 
-#,,..,,.,,.,,,..,,,..,.,,,,,.,.,,,,,,,.,,,,,.,.,.,...,..,,.,,,.,.,.,,,,,.,,.,,
-#EHZHNZB6HXLDUK2QTBYE7S65NYI4C3UMLFD7QSGOBU4DFWVPO6X466TZYDBTA42ROZGOKR45ZU2UC
-#\\\|DQTTL5GXWCKBGXFXSLIE2XDIYL4BX3A2KBWDKKOCFZLWL6QIT4B \ / AMOS7 \ YOURUM ::
-#\[7]NNZITXNRQEMFE6K5ZVYBDYDF5BDVP5NHL3MC6WYVI6ONR2MQ5KCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,,,,,,,.,,,,,...,,,,,,.,,,,.,.,.,...,...,...,,.,,,.,,,.,,,.,,
+#HEQEVI7TXPF6ZJORBML4QZUL3C2RXG67YEH5HDFKSGLO3TZ5JZ4KU6V3CFWFFSHXIXEZJRDWGNRP2
+#\\\|MCJEEH4OYKGG7URXN7A7PVEGC2Q4B7F2TKBDMLK4LIZHIDPPINB \ / AMOS7 \ YOURUM ::
+#\[7]TKKRMAFHXMY6KC5M47OHJ25NBVGJOJT66E2TCWERPFLLZ6HAQWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

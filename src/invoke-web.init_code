@@ -7,17 +7,14 @@
 map { <[base.perlmod.autoload]>->($ARG) } qw| IPC::Open3 Symbol Fcntl |;
 
 ## initialize state
-$data{'invoke-web'}{'status'} = 'idle';
-$data{'invoke-web'}{'pid'}    = undef;
-$data{'invoke-web'}{'url'}
-    = $data{'invoke-web'}{'external.models.invokeai.url'}
-    // 'http://127.0.0.1:9090';
-$data{'invoke-web'}{'binary'}
-    = '/home/taeki/miniconda3/envs/invokeai/bin/invokeai-web';
-$data{'invoke-web'}{'root'}         = '/home/taeki/.invokeai';
-$data{'invoke-web'}{'output'}       = '';
-$data{'invoke-web'}{'ready_logged'} = FALSE;
-$data{'invoke-web'}{'crash_logged'} = FALSE;
+<invoke-web.status> = 'idle';
+<invoke-web.pid>    = undef;
+<invoke-web.url> = <external.models.invokeai.url> // 'http://127.0.0.1:9090';
+<invoke-web.binary> = '/home/taeki/miniconda3/envs/invokeai/bin/invokeai-web';
+<invoke-web.root>   = '/home/taeki/.invokeai';
+<invoke-web.output> = '';
+<invoke-web.ready_logged> = FALSE;
+<invoke-web.crash_logged> = FALSE;
 
 ## check for orphan invoke.ai process from previous run
 my $saved_ref = <[file.zenka_dir.load]>->('state/invokeai.pid');
@@ -35,9 +32,9 @@ if ( defined $saved_ref ) {
         }
         if ( $proc_cmd =~ m|invokeai-web| ) {
             ## adopt orphan process
-            $data{'invoke-web'}{'pid'}        = $saved_pid;
-            $data{'invoke-web'}{'status'}     = 'running';
-            $data{'invoke-web'}{'start_time'} = <[base.time]>->(3);
+            <invoke-web.pid>        = $saved_pid;
+            <invoke-web.status>     = 'running';
+            <invoke-web.start_time> = <[base.time]>->(3);
             <[base.zenki.report_child_pid]>->($saved_pid);
             <[base.logs]>->(
                 1, 'adopted orphan invoke.ai process [pid:%d]', $saved_pid
@@ -68,8 +65,8 @@ if ( defined $saved_ref ) {
 
 0;
 
-#,,,.,,,.,.,.,.,,,,,.,,,.,.,.,,..,,..,.,.,,.,,..,,...,...,,..,,,.,,..,.,,,,,.,
-#2IDC2OIKJH4EZ5LQ6RPXQZZ6MG74DQGEQ4KTVUIJE6ORF2J3XAU2ZHELGEYFXTXTTCWQJBXXWOSA4
-#\\\|GUNAHYOKQ5V4KUOIGJE4TBZS56QFFUAKBJ6X4EDCCGHHQY7QYXF \ / AMOS7 \ YOURUM ::
-#\[7]BTEPM74ZSOKTWSQ7CMJH26XRTCL6IUP6OSNHSJFNTMNCKNJLFYCA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,,,..,,..,,...,...,.,,,..,,,,.,..,,...,...,.,,,.,,,...,.,,,,.,,
+#OGPJCCFJHIGTWRIYV63H4D3PLHHNGM74ZH2TBY5H4GXS7NF6NCR25NXCLHRF63CQO5NGKG4565T2O
+#\\\|BCD5UORXMBWRK42GVBDMFTOC73EIK7745KKZIMZZLWCWVHAAHDS \ / AMOS7 \ YOURUM ::
+#\[7]OU243527IHZMABK6RQCNVSKXFJWAWZ4KADB6OXOKVYHMKPBIWYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

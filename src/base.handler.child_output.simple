@@ -16,8 +16,7 @@ my $xpatterns = $child->{'callback_patterns'} // {};
 
 <child.output_buffer> //= '';
 
-my $read_bytes
-    = <[base.s_read]>->( $read_fh, \$data{'child'}{'output_buffer'}, 4096 );
+my $read_bytes = <[base.s_read]>->( $read_fh, \<child.output_buffer>, 4096 );
 if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     $event->w->cancel;
     close($read_fh);
@@ -78,8 +77,8 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,..,,..,.,,,,,.,.,.,,,,,,,,,,..,.,.,.,.,.,.,..,,...,...,.,,,.,.,..,,,.,,.,.,
-#OLPRQ2J3HIFQNKQSNDZWUOHCTARAI552HINMVUY72P5QW3SND7ZGHIA7GVZF3NKQ56LQL67RNRGVK
-#\\\|FAUB6SUBONEXJP44XWLYIVQQCL2DQGHVFB3U5RG7KNUZXSDIYML \ / AMOS7 \ YOURUM ::
-#\[7]FZKVGJSLZZEMEYMCSILS6TV6YHLZTX43IISCLB2C32W2MZJEJOAI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,..,...,,.,,.,.,...,,.,,..,,,,.,..,,...,...,,..,..,,.,,,,,.,...,
+#CC6TGFMHXIONUCSCD553CLI57TBQMO5CTRUP66FMD4V2SJESKPTQ3B5A3UKRQTSJJCMCHNE3W4J5G
+#\\\|SDYMCNIDDBJK3LZQRKPUNDHG7JLWUNJ4KL3VWRDUFNF7IVLHKDF \ / AMOS7 \ YOURUM ::
+#\[7]APYMI776ZFM3BYDIYS2XUBZCZY2QJ6MDFQKJUAW23XVBTKXAQUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -305,7 +305,7 @@ foreach my $commit (@$commits) {
                         $valid_files,
                         $total_files
                     );
-                    $data{'work'}{'history'}{'issues'}{$hash} = {
+                    <work.history.issues>->{$hash} = {
                         type    => qw| invalid_sources |,
                         commit  => $commit,
                         message => sprintf(
@@ -331,7 +331,7 @@ foreach my $commit (@$commits) {
                     1,
                     "    ✗ Version file signature cryptographically INVALID"
                 );
-                $data{'work'}{'history'}{'issues'}{$hash} = {
+                <work.history.issues>->{$hash} = {
                     type    => qw| invalid_version_file |,
                     commit  => $commit,
                     message =>
@@ -350,7 +350,7 @@ foreach my $commit (@$commits) {
                 $was_present,
                 $struct_valid
             );
-            $data{'work'}{'history'}{'issues'}{$hash} = {
+            <work.history.issues>->{$hash} = {
                 type    => qw| unsigned_version_file |,
                 commit  => $commit,
                 message =>
@@ -367,7 +367,7 @@ foreach my $commit (@$commits) {
         <[base.logs]>->( 2, "      Content preview : %s", $preview )
             if length($version_file_content) > 0;
 
-        $data{'work'}{'history'}{'issues'}{$hash} = {
+        <work.history.issues>->{$hash} = {
             type    => qw| missing_version_file |,
             commit  => $commit,
             message => 'Version file not found at this commit'
@@ -434,12 +434,11 @@ for ( my $i = 0; $i < @versions - 1; $i++ ) {
 }
 
 ## Update statistics
-<work.history.scanned> = time();
-$data{'work'}{'stats'}{'commits_total'}    = $total;
-$data{'work'}{'stats'}{'commits_analyzed'} = $commits_scanned;
-$data{'work'}{'stats'}{'issues_found'}     = $issues_found;
-$data{'work'}{'stats'}{'history_scans'}
-    = ( $data{'work'}{'stats'}{'history_scans'} // 0 ) + 1;
+<work.history.scanned>        = time();
+<work.stats.commits_total>    = $total;
+<work.stats.commits_analyzed> = $commits_scanned;
+<work.stats.issues_found>     = $issues_found;
+<work.stats.history_scans>    = ( <work.stats.history_scans> // 0 ) + 1;
 
 <[base.log]>->( 2, "  ✓ Scan complete" );
 <[base.log]>->( 2, "    Commits scanned : $commits_scanned / $total" );
@@ -465,8 +464,8 @@ $code{qw| work.parent.scan_history |} = \&workflow_parent_scan_history;
 
 0;
 
-#,,.,,.,.,..,,.,,,,..,.,.,,.,,,..,,.,,,,,,..,,..,,...,...,..,,,,,,..,,...,.,.,
-#CGV3YQLTYJTNO6RDBF3TPSFYL7PGOWSFO6DE7YGNLMWW6K6C7XU56QF7PUVUDHQ6YODTN6CU4QCXS
-#\\\|HDFN5KO6R7KAUZVOHOBWPEM5SPNRGR6CFFFMHL2TWCN267V4M6O \ / AMOS7 \ YOURUM ::
-#\[7]O4UWV4PUF4YPPFQTLIHDO3676ALC4W3WJFTUORISJ2Z5FNN5KQBA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,,,.,.,,..,,.,,,,,,...,,,,,,.,,..,,...,...,...,,,,,,.,,.,.,.,.,
+#JSXRQKAZYK7BIUWQ5QSKKIBPV5TM3UXPEQNIDFG3CETR7TBJOHB36CRPHA2GNFYS7TSV6NSJZGV5K
+#\\\|GDH3RSLXL37DMQ3JOV2XNXMZCLHX4AQKFBFTBXBOE6W3PQAGNW5 \ / AMOS7 \ YOURUM ::
+#\[7]2W3QHMJQMAKERGAWJA45H5YOXJJ7AWBQOGMMFERQU7YGTGNFF2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

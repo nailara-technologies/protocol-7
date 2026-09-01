@@ -3,7 +3,7 @@
 # name  = invoke.cmd.queue-status
 # descr = show invoke.ai queue status and tracked jobs
 
-my $url = $data{'invoke'}{'url'};
+my $url = <invoke.url>;
 my $ua  = LWP::UserAgent->new( timeout => 5 );
 my $out = '';
 
@@ -21,7 +21,7 @@ if ( $resp->is_success ) {
 }
 
 ## tracked jobs in this session
-my $jobs = $data{'invoke'}{'jobs'} // {};
+my $jobs = <invoke.jobs> // {};
 if ( keys %$jobs ) {
     $out .= "\ntracked jobs:\n";
     for my $item_id ( sort keys %$jobs ) {
@@ -35,8 +35,8 @@ if ( keys %$jobs ) {
 
 return { mode => qw| size |, data => $out };
 
-#,,.,,.,,,,.,,.,.,...,,,.,,,,,,,,,...,...,,.,,..,,...,...,.,,,..,,...,.,,,,.,,
-#4NDUVBIULZSKKXKUTFZYXGCWMMSGLOSWQ75N2PHI46U5I7NLYZQM46FU2547HJXUMOVCUT7KUUFSC
-#\\\|EBX6AAZ2X35SLAGOV6JRQTZ6UTBEYFUNDBCU6W5PV2JGT5AY255 \ / AMOS7 \ YOURUM ::
-#\[7]KJCJ3QN6BSK7PBCKUBZI3AHORQGUYUGHTRANXNBJCCAR4SXSCOAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,,,,..,.,.,,.,,,,.,,.,,...,,,.,..,,...,...,.,.,,,,,,,.,,..,...,
+#4HSUWUTSSD7ROBYZJDZSOSSFVRGPJZ7R4A46KO36OAGCCVEY3VQNJ6DKJNUVM7ZHTVQT2S7OYDNCO
+#\\\|VW4MHL6AN5QBBVWLFM6PLZHTFA3MJJ5LS6ZJE5OMTEOTNCMCW6G \ / AMOS7 \ YOURUM ::
+#\[7]CXEYPK7F5E2Z7TQDOXJYOHV3G7FCPXYEZQ5TEDZAQOCGLMG2VAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

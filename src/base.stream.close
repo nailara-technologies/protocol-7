@@ -29,9 +29,9 @@ if ( not defined $session ) {
     ## closing a stream is not itself input/output traffic, but the         ##
     ## idle-shutdown watcher only re-checks after one of those -- give it a ##
     ## prompt chance now instead of waiting on the next unrelated event     ##
-    $data{'watcher'}{'io'}{'transfer'}->start
-        if defined $data{'watcher'}{'io'}{'transfer'}
-        and not $data{'watcher'}{'io'}{'transfer'}->is_active;
+    <watcher.io.transfer>->start
+        if defined <watcher.io.transfer>
+        and not <watcher.io.transfer>->is_active;
 
     return 0;
 }
@@ -50,14 +50,14 @@ delete $session->{'streams'}->{$cmd_id};
 
 ## same idle-watcher nudge as the gated branch above -- the buffer write ##
 ## just queued here doesn't itself flush through base.handler.write      ##
-$data{'watcher'}{'io'}{'transfer'}->start
-    if defined $data{'watcher'}{'io'}{'transfer'}
-    and not $data{'watcher'}{'io'}{'transfer'}->is_active;
+<watcher.io.transfer>->start
+    if defined <watcher.io.transfer>
+    and not <watcher.io.transfer>->is_active;
 
 return 1;
 
-#,,.,,.,,,,,.,,,,,.,,,,.,,,..,,..,,..,,,,,,,,,..,,...,...,,,,,...,...,.,.,,,.,
-#SPENOIYMTRRRJQ24A7IHNX3EILTFAH3MUQSX55DQME3FBZICPUITCCTDUCHORXJDPPFDYPZ2ARHOM
-#\\\|5WZTQAJMSHN7QU3DUFGBU7NNSF6AYFYF5SFVTGDTXFLCE3ZZF7Z \ / AMOS7 \ YOURUM ::
-#\[7]Z6QCHPKUPJDRHON42CLM2Z5B24XLCTEVJES5ZQM3N3IX6AJJVODI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,,,.,,,,.,,,.,,...,,,.,..,,.,.,..,,...,..,,.,.,,.,,...,...,..,,
+#OEWQ7OJA53IAJOTVPAHCE6KU6UBUGPPY3J75DQ7OGU3GQDM2J66WGQ3DWQP3VNRPS77VNAX2OZPPQ
+#\\\|QBDJ7GU4DHHWSLAK733NPM5XR6Q66KDGQKXDQEXSBSAZLA4EMT6 \ / AMOS7 \ YOURUM ::
+#\[7]LZJRRNBTVFC4ODTFRBYWDQG2MFHKTOA573PXDUJX4T63MPPCH6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

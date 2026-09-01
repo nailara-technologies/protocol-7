@@ -54,9 +54,9 @@ return {
     unless $queue_result->{'success'};
 
 ## register deferred completion : on_task_complete routes result back ##
-$data{'coding'}{'deferred_replies'} //= {};
-my $deferred_id = <[base.gen_id]>->( $data{'coding'}{'deferred_replies'} );
-$data{'coding'}{'deferred_replies'}->{$deferred_id} = {
+<coding.deferred_replies> //= {};
+my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
+<coding.deferred_replies>->{$deferred_id} = {
     'deferred_id' => $deferred_id,
     'reply_id'    => $p->{'reply_id'},
     'callback_id' => $p->{'callback_id'}
@@ -74,8 +74,8 @@ $data{'coding'}{'deferred_replies'}->{$deferred_id} = {
 
 return { mode => qw| deferred | };
 
-#,,.,,,..,..,,,..,,,,,,.,,,,,,,.,,.,.,,,,,..,,..,,...,..,,...,,,.,..,,,,,,.,,,
-#3Z5JVQUPBMZLJWPQGQLQZFYHXRD6GP7BPZSZKPRSHFPDCCBYCHYUXPDHKTFPEYBMCZTAJ3XPACJC2
-#\\\|RBNWN4HHMTNSUY27A5GTG7JAVN7P6SJV4XI7AFJTD573V5AVUW6 \ / AMOS7 \ YOURUM ::
-#\[7]E7YZIBU6YDQ6ODZ5BSGOTPBHSOV2BESM6CDCZQMD2VDBJRLH32BI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,...,.,.,,,,,.,,,,,.,,.,,..,,..,,...,...,..,,.,.,..,,.,.,,,.,
+#XCX3ADR5WD2QORSLNL5E73FWFHF3XBFDEDBKUPWMXLI2F7GJX334VNV7NWMPVMLVW5EMFHWEV3DDM
+#\\\|N5VGABEBNSWKRDKOBMIESO2LTPQJ2FSZBFH3KIOGZRR65MIBNBZ \ / AMOS7 \ YOURUM ::
+#\[7]HCJYTN7ZYFANMEVRMUQM5TBD6XA6RRV6VMJCXU6F2V7XUPZ5QSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

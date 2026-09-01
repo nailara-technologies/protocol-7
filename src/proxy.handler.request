@@ -4,7 +4,7 @@
 # descr = main intercept handler: run selector, dispatch to template resolver
 
 my $client_id = shift;
-my $client    = $data{'proxy'}{'clients'}{$client_id};
+my $client    = <proxy.clients>->{$client_id};
 return if not defined $client;
 
 my $context  = $client->{'context'};
@@ -25,8 +25,8 @@ my $template = <[proxy.selector.match]>->($context);
 
 return;
 
-#,,.,,...,,,,,,..,..,,..,,,,.,,,.,,..,.,,,.,.,..,,...,...,...,.,.,..,,,,.,...,
-#O7UCO5EVLPCP6S3DRZBT4EI42DRIKUIESJNNCTDYU7Q32U5JYYZI7LUPSMOJFBIAZE4AILVDYESBM
-#\\\|6PBOLIDD34KNKOD7MD4TX7BFOSZYTEYQOS6F7OMSZQEXPVAXNNV \ / AMOS7 \ YOURUM ::
-#\[7]4XH2LEFKIKANXJXDUOBETA3DLF7LOXEZUL3VPYJBUEFUE5OWFICQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,,.,,...,,..,,.,,,.,,,,.,,..,..,,...,...,...,,.,,,..,,,,,,.,,
+#UWICPGFVILV5TCAHMTG5T5KQ6G5RE4HNAKGE3IO65UXSDL5LOXRSDCUCAEI3E7OLVMAYSTNSO6ZYA
+#\\\|NSFLHBQZBDHSBY4L4I7RGRWSMBVVZ2UUBUSWERZCXCLXK2DELQ3 \ / AMOS7 \ YOURUM ::
+#\[7]HW5IC6FBAXJUO5GO7MFVOCKBGEBQAMHSWOC36XZE5CQVYVZNSSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

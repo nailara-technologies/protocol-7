@@ -34,9 +34,9 @@ my $summary = join "\n", @lines;
 ## unique per-request id, mirrors window.place instance handling ##
 my $id;
 do { $id = <[base.prng.chars-anum]>->(8) }
-    while exists $data{'screen-setup'}{'instances'}{$id};
+    while exists <screen-setup.instances>->{$id};
 
-$data{'screen-setup'}{'instances'}{$id} = {
+<screen-setup.instances>->{$id} = {
     'monitors'       => $monitors,
     'model'          => $model,
     'windows'        => [],
@@ -71,8 +71,8 @@ $data{'screen-setup'}{'instances'}{$id} = {
 
 return { 'mode' => qw| size |, 'data' => $summary };
 
-#,,.,,,.,,..,,,,,,,,.,,,,,.,.,.,,,..,,,..,,,.,..,,...,...,,,.,,,.,...,.,,,.,.,
-#PPGZXXMJK6ZDP6MYWAPTZPQDNVLHZL4PUDF47UPKZ2DBTC4LGPCD3WSLLSZ6GAN4MTAK2U25CDV4Y
-#\\\|KMUTBGRKV2W4LR35S55CVIUQOW72KUHYAXVLNIMPTTRWZWIIV32 \ / AMOS7 \ YOURUM ::
-#\[7]4VZ5IMDTIEF7I43Z5RS3WRZEO6J3CSP62W7NKNY3EV57QOUXOMCI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,..,.,,,...,,.,,..,,,,.,,..,...,..,,...,...,...,..,,,..,,,.,.,,,
+#KM7KABSTSPI3W2HGNL3KI7FWDBYEK74UHBISTC2XQKDYPWBPOBXJDTU6TBAJ5GLVHMEHK3DESRB72
+#\\\|7FUSXJ7N6P6F5Q5DEWPPR2IS4Z2CZUDVWGFN6NC6KPU7H5XIBYE \ / AMOS7 \ YOURUM ::
+#\[7]J3WEFRF34GNLDJZEOVSBDGFVYDF6UROFD3NJ3AAICWO6TOMU5AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

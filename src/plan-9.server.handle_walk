@@ -29,7 +29,7 @@ foreach my $name (@wnames) {
     if ( $walk_result->{type} eq 'root' ) {
 
         # Walking from root - look up exported buffer or directory
-        my $buf = $data{'plan-9'}{'server'}{'buffers'}{$name};
+        my $buf = <plan-9.server.buffers>->{$name};
         return <[plan-9.protocol.error]>->( $tag, "file not found" )
             unless $buf;
 
@@ -101,8 +101,8 @@ foreach my $name (@wnames) {
             unless -e $child;
 
         my $is_dir = -d $child;
-        $data{'plan-9'}{'server'}{'realpath_qids'}{$child}
-            //= $data{'plan-9'}{'server'}{'next_qid'}++;
+        <plan-9.server.realpath_qids>->{$child}
+            //= <plan-9.server.next_qid>++;
 
         $walk_result = {
             type           => 'realpath',
@@ -115,7 +115,7 @@ foreach my $name (@wnames) {
                 ? <plan-9.protocol.constants.QTDIR>
                 : <plan-9.protocol.constants.QTFILE>,
                 version => 0,
-                path    => $data{'plan-9'}{'server'}{'realpath_qids'}{$child},
+                path    => <plan-9.server.realpath_qids>->{$child},
             },
         };
         push @qids, $walk_result->{qid};
@@ -123,8 +123,7 @@ foreach my $name (@wnames) {
     } elsif ( $walk_result->{type} eq 'buffer' ) {
 
         # Walking in buffer directory
-        my $buf
-            = $data{'plan-9'}{'server'}{'buffers'}{ $walk_result->{name} };
+        my $buf = <plan-9.server.buffers>->{ $walk_result->{name} };
 
         if ( $name =~ /^z-(\d+)$/ ) {
             my $z = $1;
@@ -179,8 +178,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, $resp
 );
 
-#,,..,,..,,,.,,..,.,,,,,.,.,,,,,,,,.,,,.,,,,.,.,.,...,...,..,,...,.,,,...,,,.,
-#4ZDQRA2ESMMXXPX4QASCTUHBNGQHSNVTHUAVL2GDUWYUHU5POETQAX5GTUMDBGDLSMFHCAK4B2CYQ
-#\\\|Q2JBFR522OGYMVB3LTWSBDZNZPZJYNQO4DP4CKDG5TYEQE45C6J \ / AMOS7 \ YOURUM ::
-#\[7]MYSHYVWAKE43OKMZTVLXM3FTLF547V6RDWNJZKAG5GCJIRECSUBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,..,,.,,,...,.,,,...,...,,,,,..,,.,.,...,...,...,..,,.,,,...,,..,
+#IBUAHURIKBE3YGE7ZCLHO3QCMEGVVSE4OYMHVTE4J3TIITMTHFSLIYQXCURRHKB7IXADGTOJ7IFBA
+#\\\|6YVRFAQD5KF4SITZQEA4KLTBM6WCQZPPFQMPBQ2AZICIODG5GNI \ / AMOS7 \ YOURUM ::
+#\[7]5TJ4TIYTXWIBLIFXC7GKWMUF4CP7PVQN3G7J6NTYNIMJTK7WUEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

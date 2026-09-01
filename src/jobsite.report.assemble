@@ -152,7 +152,7 @@ for my $csv_path ( sort glob("$csv_dir/*.csv") ) {
 ## --- merge live jobsite records : always "today", always wins ---------- ##
 
 if ( $param->{'include_live'} // 1 ) {
-    my $jobs = $data{'jobs'}{'store'} // <[jobsite.job.load_all]>;
+    my $jobs = <jobs.store> // <[jobsite.job.load_all]>;
     for my $job_id ( keys %{$jobs} ) {
         my $job = $jobs->{$job_id};
         my $canon_status
@@ -248,8 +248,8 @@ return {
     'count'       => scalar @entries,
 };
 
-#,,,,,,,,,,.,,...,...,.,,,,,,,.,,,,,,,,,.,,..,.,.,...,...,..,,,,,,.,.,,,.,.,.,
-#LUMXZ7H74L5CJ6FR4QVIQD4MSXKMAT2CV5N5HZVSIAKNPP6ZHWPPH5TP22RQA4PD5ON36P4G7FD24
-#\\\|2OJHG7MWFJ6EHWKTRNXOFWVD6S2FMY6SSJ33RENUVGMLCTOM6OL \ / AMOS7 \ YOURUM ::
-#\[7]JGTHWWRSOFT56PQ4YLTQNEOKXUP6CAZJZYX3D7URZ3IXDM4REYCI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,,,,.,,..,,...,,.,,...,,,.,,..,.,.,...,...,..,,..,,,,,,.,.,.,.,
+#BQ2JX27YHVAKEELTIW4ITNV3I5OUYWPSNCXLS3ZCMOFAYEEA4N63SL6UNYZODN67ZRJF3YFVNBVHO
+#\\\|7CUTUUDGQWQL2OM2SC62KACKWGXJ2YGAX5ILDFX4AUZPF2JYUTH \ / AMOS7 \ YOURUM ::
+#\[7]CVLKQ5NYWM5DHHJYKDEGVW6BKJG5OLTRV2TWXFROFVZA5JGUSUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

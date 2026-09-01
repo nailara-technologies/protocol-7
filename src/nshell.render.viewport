@@ -24,12 +24,12 @@ my $buf_len = length($buffer);
 
 ## get terminal width [ terminal_size returns ( cols, rows ) ]  prefer cached
 ## value from SIGWINCH handler; fall back to live query
-my $term_cols = $data{'nshell'}{'cfg'}{'term_cols'}
+my $term_cols = <nshell.cfg.term_cols>
     // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
 $term_cols = 20 if $term_cols < 20;    ## minimum sanity
 
 ## nshell state for view_offset and marker config
-my $state_ref   = $data{'nshell'}{'state'}    //= {};
+my $state_ref   = <nshell.state>              //= {};
 my $view_offset = $state_ref->{'view_offset'} //= 0;
 
 my $marker_color = $colors{'p7_fg_0003'};
@@ -66,8 +66,8 @@ if ( $buf_len < $term_cols ) {
 ## ── overflow: horizontal scroll viewport ─────────────────────────────────
 
 ## configurable marker chars [ '' disables the marker on that side ]
-my $ml = $data{'nshell'}{'cfg'}{'overflow_marker_left'}  // '<';
-my $mr = $data{'nshell'}{'cfg'}{'overflow_marker_right'} // '>';
+my $ml = <nshell.cfg.overflow_marker_left>  // '<';
+my $mr = <nshell.cfg.overflow_marker_right> // '>';
 
 ## reserve one column so total render never reaches term_cols  printing
 ## exactly term_cols chars puts the cursor in pending-wrap state, where \e[K]
@@ -146,8 +146,8 @@ print "\x08" x $back if $back > 0;
 STDOUT->flush();
 return;
 
-#,,,,,.,.,.,,,,..,,,.,,.,,.,,,.,,,,.,,..,,..,,..,,...,..,,..,,,,.,,,,,,,.,,,.,
-#NZPN5XTLD7T6PDMFGGMEVCJTRZYVOXGI77CN4HPC2IBMBGT3DMD7OKU2AVEUCEAXHA4KKFKPIAPV2
-#\\\|GEZPKQT7IN6OAU5LD77PVZZEFPWXINAYDSZI5V633SUSRF2ZQGP \ / AMOS7 \ YOURUM ::
-#\[7]N524QZ2ZZLDSGATVCNZGH7M65TLGFFJVI4JFR6PY7D5TUPTYHACQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,..,,.,,,,,,,,,,,..,,,,,.,,,,,.,..,,...,...,.,.,,,.,.,.,.,,,,,.,
+#UB2XM5ZXPJBPMLLGVUZFHOQ4OVP67L5SCWGFAGKP4UIKAFPTWDNXY6DBAOVFNUWH22FIIWTYB65RI
+#\\\|3GFUIKWVLJXMCVWRT4DS754EU7BWQGBB3GTG5RWBU2BOSMF75VF \ / AMOS7 \ YOURUM ::
+#\[7]JZ5T3652KE76UUQMPA35DVNZ5TKRVB6M7K6MUKTMT2ZKYNRIIKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,9 +3,9 @@
 # name  = proxy.init_code
 # descr = initialize proxy zenka state, load selector config, start listener
 
-$data{'proxy'}{'clients'}     //= {};
-$data{'proxy'}{'listen_sock'} //= undef;
-$data{'proxy'}{'auth_cache'}  //= {};
+<proxy.clients>     //= {};
+<proxy.listen_sock> //= undef;
+<proxy.auth_cache>  //= {};
 
 ## load required perl modules ##
 map { <[base.perlmod.autoload]>->($ARG) } qw| HTTP::Request URI YAML::XS |;
@@ -23,12 +23,12 @@ my $is_proxy_zenka = ( <system.zenka.name> // '' ) eq qw| proxy |;
 
 ## start listener only once — not re-run on reinit ##
 <[proxy.listen]>
-    if $is_proxy_zenka and not defined $data{'proxy'}{'listen_sock'};
+    if $is_proxy_zenka and not defined <proxy.listen_sock>;
 
 ## close any stale listen sockets on our port (leaked from prior process ##
 ## runs)                                                                 ##
-if ( $is_proxy_zenka and defined $data{'proxy'}{'listen_sock'} ) {
-    my $good_fd   = fileno( $data{'proxy'}{'listen_sock'} );
+if ( $is_proxy_zenka and defined <proxy.listen_sock> ) {
+    my $good_fd   = fileno(<proxy.listen_sock>);
     my $good_port = <proxy.cfg.listen_port> // 8118;
     if ( defined $good_fd and opendir my $dh, '/proc/self/fd' ) {
         for my $entry ( grep {m{^\d+$}} readdir $dh ) {
@@ -72,8 +72,8 @@ if ( $is_proxy_zenka and defined $data{'proxy'}{'listen_sock'} ) {
 
 0;
 
-#,,..,.,,,..,,...,.,.,,,.,...,..,,.,,,...,,.,,..,,...,...,,..,.,.,,,.,.,.,...,
-#YSZUCPZUULVPFVVYBJWNBN5HLHIULREOFABZ4CSKJ43V5EGQJ4M7Z5MTEYJMNHNN6TPCOSRVO33DG
-#\\\|PTMYEDG47JQ5LFLGY5RIDP645QWZSJSQH2UCFEPUGGXMD6636TB \ / AMOS7 \ YOURUM ::
-#\[7]FFO5CAX7J7HMHXF7GLET73JXWEMGOAUAEL6PSTOPBQ2KGOOCRWBI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,...,,,,,.,.,,..,,.,,,.,,...,..,,...,..,,.,,,,,,,,..,,.,,..,,
+#JBKQR5CNJB6CDZTCIXEY355STPVJ7LLMELWAX5HZRT3V3XZ5TTQ5W3PQZWSAIQHHLUYIDHGQEXDYW
+#\\\|ZDPY3VJP62R7FGFI46MYCIHO3BBIJNDJIOSSG5BEXEE3QDPKJGO \ / AMOS7 \ YOURUM ::
+#\[7]ZKPCAU2RWABZ7VCD6WLUHXB5C3BHQAQKTDDO6MDOQS6MFNSPBWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

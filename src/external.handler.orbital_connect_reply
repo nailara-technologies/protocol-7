@@ -20,7 +20,7 @@ if ( $step eq qw| grid_sync | ) {
     my $output = $reply_href->{'data'} // '';
     return unless length $output;
 
-    my $known = $data{'discover'}{'orbital'}{'known'} // {};
+    my $known = <discover.orbital.known> // {};
     my $count = 0;
 
     foreach my $line ( split "\n", $output ) {
@@ -64,7 +64,7 @@ if ( $step eq qw| grid_sync | ) {
 }
 
 ## connect step ##
-my $conn_ref = $data{'external'}{'connections'} // {};
+my $conn_ref = <external.connections> // {};
 return unless exists $conn_ref->{$name};
 
 my $reply_href = ref $data eq qw| HASH | ? $data : {};
@@ -121,8 +121,8 @@ if ( $reply_href->{'mode'} eq qw| true | ) {
 
 return;
 
-#,,,.,,..,.,.,..,,,..,,.,,,,.,.,,,...,..,,.,,,..,,...,...,,,,,,..,.,.,,,,,.,.,
-#C67XMJNFTMADJOGUNME3IFOGBAOVIO6BIKCVZJZ352WAIMSTOATIQAZLP76IM6VPGGAY436SSKM3Q
-#\\\|PV36GXXBYMR3YG4ZN5P4TNPGPRCLJ5EAUH4VWOR73OTK7EZRWZF \ / AMOS7 \ YOURUM ::
-#\[7]3WM2U6ZJWBZKMKQYTX3E6RSMIPBWYVRGOKNGA4Y6XCPLCLDJHQCA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,..,,,,.,..,,.,.,...,,,,,,,,,..,,...,...,,.,,,..,,,.,.,,,,.,,
+#6SS2MQT7UHEYTVESVA6RNOKZPZ6RTC6NISFRWU6H7RPPDXA24XYHXPL2NFAGTVY6URUZXQXNDAKY2
+#\\\|XFCTEJMPD5CL23EU6QJXZ2UCY7R7L2NIE2XDCJIKQP4WH3DXUAP \ / AMOS7 \ YOURUM ::
+#\[7]LU5SKFZVZYUFGJH442SGGEXH7BR6O2MXE7M2YZHRIQ5RMUNM66BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

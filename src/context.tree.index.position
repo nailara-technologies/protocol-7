@@ -14,7 +14,7 @@ my $bytes_in  = $args->{'bytes_in'};
 
 ## TODO: store position index in context tree ##
 
-my $tree = $data{'context'}{'tree'}{'index'} //= {};
+my $tree = <context.tree.index> //= {};
 $tree->{'positions'}{$stream_id}{$position} = {
     'checksum' => $checksum,
     'bytes_in' => $bytes_in,
@@ -22,8 +22,8 @@ $tree->{'positions'}{$stream_id}{$position} = {
 
 return 1;
 
-#,,,,,,..,.,.,.,,,.,.,...,,.,,.,.,..,,,,,,...,..,,...,...,.,.,..,,,,.,,,,,,,,,
-#WMTZJEMNF37IINXVMOLDSOA3DJLJWFFSX7XHXOG7LQXL6O7GIMYB5PDGRAHT6BITNUIUOEOGJZPBU
-#\\\|FMJDBAB2WGVHIEOX3AWWC3W2AJXU3NKXVJ3SVONXUC6OWNHCHA5 \ / AMOS7 \ YOURUM ::
-#\[7]B25RWJ3FM6ZAX752CAZFCAX2RBOI53MXPQDKJ27IO7A6EXHKS4CY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,.,.,.,..,,.,,,,..,...,,,.,...,..,,...,...,.,,,.,,,..,,,..,,..,
+#O2GLXUS2S2OQEZI6DSLZIJYXBZYK7VIAM7KDKWRKNYDGQUIWSVOS5KXTYLB24PVCVVV7YD2NUDT4A
+#\\\|M7UO5D23IM2JQKGZSIFSNBR6FOGBS2DKUN5YOOWTU7C5YDDPHEP \ / AMOS7 \ YOURUM ::
+#\[7]K56IXR44WGWFBYSKO6RSQ754PPIHPBHXAFVYGVMPYOERMU75NSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

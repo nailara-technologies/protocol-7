@@ -4,22 +4,22 @@
 # descr = initialize glow intensity state
 
 ## set up glow state with defaults ##
-$data{'graphics-matrix'}{'glow'} = {
+<graphics-matrix.glow> = {
     qw| base_intensity | => <graphics-matrix.glow.base_intensity> // 1.0,
     qw| falloff        | => <graphics-matrix.glow.falloff> // 'inverse',
     qw| shells         | => {},    ## hop => { count => N, intensity => F }
     qw| active         | => 0,     ## boolean - glow computation enabled
 };
 
-my $glow = $data{'graphics-matrix'}{'glow'};
+my $glow = <graphics-matrix.glow>;
 
 <[base.logs]>->(
     2,                  'glow initialized [falloff=%s base=%.2f]',
     $glow->{'falloff'}, $glow->{'base_intensity'}
 );
 
-#,,..,...,.,.,.,,,.,.,,,,,.,.,.,.,..,,...,,..,.,.,...,...,,.,,.,,,.,.,.,.,,.,,
-#ATKXWV3QX3EE47WFTND3PDBX23BKVAZI7Y7HRH5NWXIET7UUAMK3VHCBPRH3K6OTOD5HARXCPR45U
-#\\\|W3RDDFYCI5LBORCIV452EJ4IH63D2Z7J4WCI6IGBQMXVBBXTCN4 \ / AMOS7 \ YOURUM ::
-#\[7]HFXGJ3XPMY2DAWPW5RNRYPY6ZHBFM3KIIORX4D7XDPNKUD6CZACI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,..,,.,,,.,,..,,,.,,,,.,,..,.,.,.,.,...,...,,.,,..,,,.,,...,,,.,
+#PT5RQUTCGVJRR4XXWAH62UX5YJEZ2CROM7LJBUNGCVZJKZW73ANIYK447JVYVMCJDIJPCI5ZXF4JE
+#\\\|34DYVVA2JQ4S3YKTL2OQACA2S63VVJTAIYLXSCZPSWZ2IOAUWVG \ / AMOS7 \ YOURUM ::
+#\[7]JPIPYCHWMGRAJMKE2JSFBIMFJZZL3QHFUXBNVKI52JHEUSMQBMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

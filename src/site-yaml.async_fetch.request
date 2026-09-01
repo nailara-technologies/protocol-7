@@ -9,7 +9,7 @@ my ( $id, $url, $on_done ) = @ARG;
 ## registry key must stay unique across fetch_tick's and              ##
 ## import.fetch_page's independent queues : $id is a job/page id, not ##
 ## guaranteed unique -- issue a fresh key per request instead         ##
-my $pending = $data{'site-yaml'}{'async_fetch_pending'} //= {};
+my $pending = <site-yaml.async_fetch_pending> //= {};
 my $req_key = <[base.gen_id]>->($pending);
 
 $pending->{$req_key} = {
@@ -49,8 +49,8 @@ if ( not defined $state ) {
 
 return $state;
 
-#,,,.,,..,...,...,..,,..,,,.,,,,.,..,,.,,,,,.,..,,...,..,,,,,,.,,,.,,,.,.,...,
-#CJYNI2XTG334BFXXO6OQDWVA36YNUIG324QSMU4CPPEFRUB7CBUPWHMWHU6XFECKNHB7UYQBIFCGS
-#\\\|3ZUDELNEWUZ5CI3LYGTCMIDRHNMYWLVLNML7OV3BH74BCGA2XK4 \ / AMOS7 \ YOURUM ::
-#\[7]3L4FM6GGC7SYB2ZJS5MGR4MERSLNNALVT4GYTJBYPGGTXXFMO4BQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,.,,...,...,,,,,,,,,.,,,,,.,..,,...,...,...,,,,,.,.,...,...,
+#33P7VJ7AQD654E7RSYI33JAKYLHTQCUFOP2CVERET3RVLRZ4LKJZGA5ASW22WJJ2KZZIMKSHEG7PO
+#\\\|GVMRNUEENHFSWQ7MBJ3Z4BPV65TO3QZH7NXXSBB5DGZOZAX7LW6 \ / AMOS7 \ YOURUM ::
+#\[7]HFIVIIE75XTHPQBVWVM7HFOMVAEU4V55NSIONF3SQ666U3UXFACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

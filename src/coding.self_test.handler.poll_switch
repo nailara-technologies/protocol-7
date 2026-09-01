@@ -9,7 +9,7 @@ my $event = shift;
 my $timer_data = eval { $event->w->data }   // {};
 my $switch_id  = $timer_data->{'switch_id'} // '';
 
-my $state = $data{'coding'}{'self_test_switch_state'}{$switch_id};
+my $state = <coding.self_test_switch_state>->{$switch_id};
 if ( !defined $state ) {
     <[base.logs]>->(
         0, '[poll_switch] no state for switch_id=%s, stopping timer',
@@ -78,7 +78,7 @@ my $finish = sub {
     }
 
     $event->w->cancel if defined $event->w and $event->w->is_active;
-    delete $data{'coding'}{'self_test_switch_state'}{$switch_id};
+    delete <coding.self_test_switch_state>->{$switch_id};
 
     return TRUE;
 };
@@ -215,8 +215,7 @@ if ( $phase eq qw| switching | ) {
                     ## the switch state may be gone [ testing-timeout     ##
                     ## fallback already moved on ] - only act while still ##
                     ## in the testing phase                               ##
-                    my $st = $data{'coding'}{'self_test_switch_state'}
-                        {$switch_id};
+                    my $st = <coding.self_test_switch_state> {$switch_id};
                     return
                         if !defined $st
                         or ( $st->{'phase'} // '' ) ne qw| testing |;
@@ -293,7 +292,7 @@ if ( $phase eq qw| testing | ) {
         ## productive self-test. max_wait stays the bound for a probe that  ##
         ## is stalled or never calls back [ genuinely stuck ]               ##
         my $skip_timeout = FALSE;
-        my $probe_states = $data{'coding'}{'self_test_probe_state'} // {};
+        my $probe_states = <coding.self_test_probe_state> // {};
         for my $id ( keys %{$probe_states} ) {
             my $pst = $probe_states->{$id};
             next if ref $pst ne qw| HASH |;
@@ -433,8 +432,8 @@ return $finish->(
     }
 );
 
-#,,..,,,.,...,,,,,,..,,.,,,.,,...,.,,,..,,..,,..,,...,...,.,.,...,..,,,.,,,,.,
-#WGB73BHS7ZT4VZ6DRIOTLUQFNRG2J3OJR345WWSYESKYBCDT54OMDWQ7JOXKPIR3TAJD35FBMEB6W
-#\\\|HZD42W2LC22JGPMXVADIMTV6MJYRE3E6DHHYIHULMFSW7TIBAI3 \ / AMOS7 \ YOURUM ::
-#\[7]XT7VHGCG234OWXNIMX7XIQSRLWZFCYNB2COZA3JFYEZM5D7BLSDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,..,,.,,,...,,.,,.,.,..,,...,..,,...,...,...,,.,,.,,,,,.,,,.,
+#7SGZYTFPSH47WVCAX522SVHEFFFH5IBHNSFRFV6EER3K4PRIJK7QUZGIKCCPGFA5GVNM4CJVJUA4Q
+#\\\|DVOZTMFDBAIK5A7KBNDJBHVDM72SBWCJVWSFOQFEOS3N5NXGSFP \ / AMOS7 \ YOURUM ::
+#\[7]BU3NW4MM2HGW6RFYFU5TRVYLWHPLS6A4EKBUNJO7TTZV3HKNFGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

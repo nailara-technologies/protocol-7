@@ -110,10 +110,10 @@ my $run_started = <[coding.self_test.run]>->(
                     ## right here could kill the server mid-task. defer     ##
                     ## until the backend lock is free and the queue empty [ ##
                     ## bounded at 120s in the handler ]                     ##
-                    $data{'coding'}{'seed_restart_defer'} //= {};
-                    my $defer_id = <[base.gen_id]>
-                        ->( $data{'coding'}{'seed_restart_defer'} );
-                    $data{'coding'}{'seed_restart_defer'}{$defer_id} = {
+                    <coding.seed_restart_defer> //= {};
+                    my $defer_id
+                        = <[base.gen_id]>->(<coding.seed_restart_defer>);
+                    <coding.seed_restart_defer>->{$defer_id} = {
                         'backend'  => $backend,
                         'model_id' => $test_model_id,
                         'pid'      => $tested_pid,
@@ -265,16 +265,14 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
             ## never fire [ a real past bug in                              ##
             ## user-edit.setup_stdin_watcher ]                              ##
             $guard_watchers->{$backend} = <[event.add_var]>->(
-                {   'var' => \$data{'coding'}{'self_test_probe_in_flight'}
-                        {$backend},
-                    'poll'    => qw| w |,
-                    'prio'    => 0,
+                {   'var'  => \<coding.self_test_probe_in_flight> {$backend},
+                    'poll' => qw| w |,
+                    'prio' => 0,
                     'repeat'  => 1,
                     'handler' => qw| coding.helper.self_test_guard_watcher |,
                     'data'    => [
                         $backend,
-                        \$data{'coding'}{'self_test_probe_in_flight'}
-                            {$backend}
+                        \<coding.self_test_probe_in_flight> {$backend}
                     ],
                     'desc' =>
                         "coding self-test in-flight guard [backend=$backend]",
@@ -306,8 +304,7 @@ if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
                 ## another window and keep waiting. probe state is keyed by ##
                 ## probe_id, not backend : scan for the entry whose backend ##
                 ## field matches                                            ##
-                my $probe_states = $data{'coding'}{'self_test_probe_state'}
-                    // {};
+                my $probe_states = <coding.self_test_probe_state> // {};
                 for my $id ( keys %{$probe_states} ) {
                     my $pst = $probe_states->{$id};
                     next if ref $pst ne qw| HASH |;
@@ -401,8 +398,8 @@ if ( <coding.self_test_retry_timer>->{$backend} ) {
 
 return $run_started;
 
-#,,.,,,,,,,.,,,,.,..,,,,.,.,,,,..,...,,..,,..,..,,...,..,,..,,,,,,.,.,.,,,,,,,
-#6R6ZCYB6454BMQSEMRG57EBHRVERF5FC7WNU25ELP4A6HZZREA2NAQZ3UQOVSMHUWDDD4FEM6OYHW
-#\\\|ABCRZIXHWSKP7DXNDZJ5HM3LXUSFKEEOATLTHO4Y4ABX7LZSD6Y \ / AMOS7 \ YOURUM ::
-#\[7]4GME2NGMRDP5YHZHF52FNH4IC6NB7E23IZCSZA362XH2IL6LVGAQ 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,..,.,.,.,.,,,,,,,.,,,,,,.,,..,,...,...,,,,,,.,,,.,,,.,,,.,,
+#4O3NHIY5ZS3MU2TF3HZPEKAXKT64NSV3AIYAZYTPEQBCYTJX4IKPD577OIHIFDNMF7FINQYUZW52K
+#\\\|IFWJVXCSOA4BH43UWUD2OPP3LUVBDQVNFBDBTSR6N6VBCASN5NE \ / AMOS7 \ YOURUM ::
+#\[7]QPDHOE72X6Q4DLNCZLV53KL3WWH3JMJ2JWFGMKOAKMERVULVYKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

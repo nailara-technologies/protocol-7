@@ -7,18 +7,16 @@
 map { <[base.perlmod.autoload]>->($ARG) } qw| LWP::UserAgent JSON |;
 
 ## initialize state
-$data{'invoke'}{'status'} = 'idle';
-$data{'invoke'}{'url'}    = $data{'invoke'}{'external.models.invokeai.url'}
-    // 'http://127.0.0.1:9090';
-$data{'invoke'}{'outputs_dir'} = '/home/taeki/.invokeai/outputs/images';
-$data{'invoke'}{'default_model'}
-    = $data{'invoke'}{'external.models.invokeai.default_model'}
+<invoke.status> = 'idle';
+<invoke.url>    = <external.models.invokeai.url> // 'http://127.0.0.1:9090';
+<invoke.outputs_dir>   = '/home/taeki/.invokeai/outputs/images';
+<invoke.default_model> = <external.models.invokeai.default_model>
     // 'stable-diffusion-xl-base-1.0';
-$data{'invoke'}{'jobs'}        = {};
-$data{'invoke'}{'model_cache'} = {};
+<invoke.jobs>        = {};
+<invoke.model_cache> = {};
 
 ## quick health check : non-fatal if invoke.ai is not running yet
-my $url  = $data{'invoke'}{'url'};
+my $url  = <invoke.url>;
 my $ua   = LWP::UserAgent->new( timeout => 3 );
 my $resp = $ua->get("$url/api/v1/app/version");
 if ( $resp->is_success ) {
@@ -48,8 +46,8 @@ if ( $resp->is_success ) {
 
 0;
 
-#,,..,,..,.,,,...,,,.,,..,,,.,,..,.,.,,..,.,.,..,,...,...,..,,,,,,.,,,.,,,.,,,
-#VLZU5PIY3JEC2FA7ZZRNKQ7NUDWAMJJTLQLT7LH3UT2JI6XUH4FTRVQPWEGN5SSWCT3N4NN32WEKA
-#\\\|UPEEPNIAIWSS2NIP53GMEMEZ32NOER4ZPAYS74VHCTFX3VUGXEO \ / AMOS7 \ YOURUM ::
-#\[7]UT7UFAZUYRC7YYT3G6PK457PFC2KNS453MKQ43KWP2XABZXKXMBI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,.,,,,,,,,.,,.,,,,.,,..,..,,,.,,..,,...,...,,.,,,,,,,,.,.,,,...,
+#LHQ6M2R5NJPTYMY7UDGFWAMSE4P4ECLHBOQ3USIHZL2UGJTNQXL6G3BY3PP5DZE76AVO2E4JH5SAW
+#\\\|2DE3XQMPZS4HRD4EQBVLU2S4L4GHSN7BGXIVOZR2CL2PYAYGVV7 \ / AMOS7 \ YOURUM ::
+#\[7]QEE56ITGCYP5J4F7FOOINVBGEMDBR2U2EUKOUICDHMWN5YWVY6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

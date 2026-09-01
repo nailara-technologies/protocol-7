@@ -8,7 +8,7 @@ my $params = shift // {};
 ## default center to cursor position ##
 my $center = $params->{'center'} // <[graphics-matrix.cursor.position]>;
 my $radius = $params->{'radius'} // $center->{'radius'}
-    // $data{'graphics-matrix'}{'cursor'}{'radius'} // 0;
+    // <graphics-matrix.cursor.radius> // 0;
 
 my ( $cx, $cy, $cz )
     = ( $center->{'selX'}, $center->{'selY'}, $center->{'selZ'} );
@@ -16,7 +16,7 @@ my ( $cx, $cy, $cz )
 my $counts = {};
 my $total  = 0;
 
-my $cells = $data{'graphics-matrix'}{'cell'}{'cells'};
+my $cells = <graphics-matrix.cell.cells>;
 
 for my $key ( keys %$cells ) {
     my $cell = $cells->{$key};
@@ -39,8 +39,8 @@ return {
     qw| total  | => $total,
 };
 
-#,,.,,...,,..,.,.,...,,.,,..,,,,,,...,...,,.,,..,,...,...,,,.,,.,,,,.,,..,.,.,
-#YLXJJ4FSXRTSNS3UJTHUCBZEGOTVQQHATFFFAPNOBYO7JJVWAGAXBYHT4VCKYQ4AJL2ZFVDBV4AMG
-#\\\|4TV55CVVNGBG3SFOVDLAP63V6QZ4IL2HX46WFFY4D6KDWWAIGX3 \ / AMOS7 \ YOURUM ::
-#\[7]APSQKIJKO34EJIKTZFBNMGZFJNGTULONIVOVFOBOAM5GTO225YCY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,,,,,..,,,,,,,,.,,..,..,,,,.,..,,...,...,.,.,.,,,,,.,,,.,..,,
+#N5WPZ5O3FWCZF5E32CJBXX4UIZWNMILVZVV4VRN2XYKGET357EO7TYTVYBL6BKYH7JIOF2GTV67HG
+#\\\|F37VGH7NX5XID76U3XWJIAIMQM2RDBQCRPDDUFAA763GGHCKBMD \ / AMOS7 \ YOURUM ::
+#\[7]HPFE7FTLTCUKPSOQAL3OSHYJHDXLGSARUNWAEOXOEPOZF5O2ZCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

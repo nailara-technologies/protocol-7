@@ -4,7 +4,7 @@
 # descr = periodic health check for spawned agents
 
 my $data     = shift;
-my $agent_id = $data->{'params'}{'agent_id'} // '';
+my $agent_id = <params.agent_id> // '';
 my $timer    = $data->{'timer'};
 
 my $registry = <kimi-web.agent.registry> // {};
@@ -88,8 +88,8 @@ if ( $agent->{'status'} eq qw| starting | ) {
 
 $timer->cancel() if defined $timer;
 
-#,,,,,...,.,.,.,,,,.,,,..,,,,,,,,,.,.,.,,,...,.,.,...,...,,.,,,,.,..,,,,,,..,,
-#GC45M7Y3TBJJRSEBLTXJFHS64QM72SGK6EMV4XOBW5IFQXC74K7AM2DR5B3RQFKYFLROOIP7YQNRO
-#\\\|OK77PGWEF3DHRTSN4R4OKOYX4XSEYMJ4L33GFF7L3IXWKKESRO5 \ / AMOS7 \ YOURUM ::
-#\[7]7POREMLY4T6UJPMAVH3PMRQAUP6OD32SMEUD74E5FSC6RVVFJECY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,...,...,...,,..,,,.,.,,,..,,.,.,...,...,.,.,,,.,..,,...,,,,,
+#3QOKIQJBYVABQPTSMJWISALF5WYW6K6OLFJUKS6L3EAFJHDKLQUXZRKXPSQYVEDTQVPMWENBAADIC
+#\\\|LE64MQYQMDJCVOAWOQBNBWOUIHSOYV77XNR445A244SFEYRR5KP \ / AMOS7 \ YOURUM ::
+#\[7]RCBH2BHWYO66YIKX2LORH3IG2L3CLNWINRXQS2XNAKJ52XW2YADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

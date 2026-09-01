@@ -12,7 +12,7 @@ my $metadata = $args->{'metadata'} // {};
 return { 'mode' => 'false', 'data' => 'checksum required' }
     unless $checksum;
 
-my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+my $registry = <storage.mapping.checksum-cluster>;
 
 # Normalize checksum format
 $checksum = <[plugin.storage.util.normalize_checksum]>->($checksum);
@@ -79,8 +79,8 @@ return {
     }
 };
 
-#,,,,,,,.,,,,,.,.,..,,,,,,...,,,.,,.,,,..,,.,,.,.,...,...,...,..,,..,,,..,,,,,
-#U5457K4C64CHC5C2HCDJRWIHVKYUT7J5KP5OZJJXNEH4ANBS6YHAQJQG3LWEVV6OF75UAIXD4NEFK
-#\\\|QUNABXQTFTXHFZAJQGFYRMTVCOGDUMJ2WVLF4VT6PKVD35V3PMH \ / AMOS7 \ YOURUM ::
-#\[7]KJV4VH2L66RCIJ5KFANK2VPGHR53SNL3BYN5BKSJAZCKRKTPF6BY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,...,.,.,,,.,,,.,.,,,.,.,.,.,.,.,...,..,,...,,.,,.,.,,.,,..,,
+#QMRUBUCCH2BTPREKBEVNA3IZQVY6UIEJ3IC765UTNOMRIBIXIQUOVTS6CPOHKN34NTUQKRIT3H43S
+#\\\|KQZNXDCBTOKRSL5UD7OH3ILIF7LU2G57VADLH54FB7H27SPVBPB \ / AMOS7 \ YOURUM ::
+#\[7]INQ6FJJGCUAM2K7WX577ZE5G4VB5HMXBT3V4XQ4RWHKU4BBY22AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

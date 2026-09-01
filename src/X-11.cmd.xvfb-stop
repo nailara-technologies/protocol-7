@@ -15,7 +15,7 @@ return { 'mode' => qw| false |, 'data' => 'display number required' }
 return { 'mode' => qw| false |, 'data' => 'invalid display number' }
     if $display_num !~ m|^\d+$|;
 
-my $stored_pid = $data{'X-11'}{'xvfb'}{'pid'}{$display_num};
+my $stored_pid = <X-11.xvfb.pid>->{$display_num};
 
 return {
     'mode' => qw| true |,
@@ -25,7 +25,7 @@ return {
     or not kill 0, $stored_pid;
 
 if ( kill 15, $stored_pid ) {
-    delete $data{'X-11'}{'xvfb'}{'pid'}{$display_num};
+    delete <X-11.xvfb.pid>->{$display_num};
     return {
         'mode' => qw| true |,
         'data' => sprintf(
@@ -43,8 +43,8 @@ return {
     )
 };
 
-#,,..,.,,,.,,,,.,,..,,..,,,..,.,,,...,,,.,,.,,..,,...,...,.,.,,..,.,.,,..,,,.,
-#IUAOGHMF6H3LLHQZ3OCTEKUXOWVGRZ7LTSSHGEUI4A6DLVN2WOCYXFWBVX6ARQFV6POMFMOKM6YDO
-#\\\|RFAXK4HL5OH4PZFXDUTAQ735RDDXN3TZ2EUK3N4I2RVKXYOILTW \ / AMOS7 \ YOURUM ::
-#\[7]RSM5XPQYD32GDRLK6AXVKYUI5KUHJVF3LG4ZM7VHJCGKKZCBL6CA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,..,,,,,,...,,,.,...,,.,,.,,,,..,..,,...,..,,,.,,..,,...,.,,,,..,
+#TS74ZUR7BKCEQNZ44NSO2CWOUSO7HZW56FRZC6EV7BWLDQL5SX4SHR5SRMEL6OCVVUI7UE5E3QNEM
+#\\\|2VJFMFZUUO6BHEBRHBT7HLADCN3RG2HX4SJXKYBCNUPSUE5QXXY \ / AMOS7 \ YOURUM ::
+#\[7]2LVKPG7N4VJ2DZ24PLXDOZ74FWSL2DJKTWPMPC4LEPPOSWTIJWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

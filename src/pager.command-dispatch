@@ -48,7 +48,7 @@ if ( $cmd eq 'create' ) {
     );
 
     ## store named reference ##
-    $data{'pager'}{'named'}{$name} = $buffer_id if $buffer_id;
+    <pager.named>->{$name} = $buffer_id if $buffer_id;
 
     return $buffer_id
         ? "Created pager '$name' ($buffer_id)"
@@ -59,7 +59,7 @@ if ( $cmd eq 'create' ) {
     return "Usage: pager filter <name> <add|remove|clear|list> ..."
         unless $name && $filter_action;
 
-    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
+    my $buffer_id = <pager.named>->{$name} // $name;
 
     if ( $filter_action eq 'add' ) {
         my $type = shift @positional;
@@ -115,7 +115,7 @@ if ( $cmd eq 'create' ) {
     return "Usage: pager sort <name> <set|add|clear> ..."
         unless $name && $sort_action;
 
-    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
+    my $buffer_id = <pager.named>->{$name} // $name;
 
     if ( $sort_action eq 'set' ) {
         my @keys;
@@ -162,9 +162,9 @@ if ( $cmd eq 'create' ) {
     return "Usage: pager view <name> [--height=N] [--width=N]"
         unless $name;
 
-    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
-    my $height    = $opts{'height'}                // 24;
-    my $width     = $opts{'width'}                 // 80;
+    my $buffer_id = <pager.named>->{$name} // $name;
+    my $height    = $opts{'height'}        // 24;
+    my $width     = $opts{'width'}         // 80;
 
     my $render = <[pager.viewport.render]>->(
         {   'buffer_id' => $buffer_id,
@@ -180,7 +180,7 @@ if ( $cmd eq 'create' ) {
     my $name = shift @positional;
     return "Usage: pager edit <name>" unless $name;
 
-    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
+    my $buffer_id = <pager.named>->{$name} // $name;
 
     my $editor_id = <[pager.editor.integration]>->(
         {   'buffer_id' => $buffer_id,
@@ -193,9 +193,9 @@ if ( $cmd eq 'create' ) {
         : "Failed to open editor";
 } elsif ( $cmd eq 'list' ) {
     my @out = "Active pagers:";
-    for my $name ( sort keys $data{'pager'}{'named'}->%* ) {
-        my $id  = $data{'pager'}{'named'}{$name};
-        my $buf = $data{'pager'}{'buffers'}{$id};
+    for my $name ( sort keys <pager.named>->%* ) {
+        my $id  = <pager.named>->{$name};
+        my $buf = <pager.buffers>->{$id};
         next unless $buf;
 
         push @out,
@@ -210,9 +210,9 @@ if ( $cmd eq 'create' ) {
     my $name = shift @positional;
     return "Usage: pager close <name>" unless $name;
 
-    my $buffer_id = delete $data{'pager'}{'named'}{$name};
+    my $buffer_id = delete <pager.named>->{$name};
     if ($buffer_id) {
-        my $buf = delete $data{'pager'}{'buffers'}{$buffer_id};
+        my $buf = delete <pager.buffers>->{$buffer_id};
         ## close source if it has close method ##
         $buf->{'source'}{'close'}->()
             if $buf
@@ -225,8 +225,8 @@ if ( $cmd eq 'create' ) {
     my $name = shift @positional;
     return "Usage: pager stats <name>" unless $name;
 
-    my $buffer_id = $data{'pager'}{'named'}{$name} // $name;
-    my $buf       = $data{'pager'}{'buffers'}{$buffer_id};
+    my $buffer_id = <pager.named>->{$name} // $name;
+    my $buf       = <pager.buffers>->{$buffer_id};
     return "Buffer not found" unless $buf;
 
     my $stats = $buf->{'stats'};
@@ -284,8 +284,8 @@ examples:
 HELP
 }
 
-#,,,.,,.,,,.,,,,.,,.,,,.,,,,,,..,,...,,,,,,,,,.,.,...,...,,,.,,,,,..,,...,.,.,
-#B7EAOSZ7AUD7TJ34WEIYWKLPKNVZP24X6GSC5BOR4XU6X6SGPBXXF6ZWTLMFIDWNR5OAEHAJZ7WNI
-#\\\|UUG563344ZXSV2ZEVGPETWERLPKFN67LX56MZD2NAN334VC3BGA \ / AMOS7 \ YOURUM ::
-#\[7]FPRRL3BZZ2GKURFLPQ3VOS72LHZ4EVAUEWMV4CCJ5DL7KMS26OCA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,.,,,.,,,.,,.,.,,..,.,.,,,.,..,,.,.,...,...,...,..,,.,,,,.,,..,,
+#Y5UD2GT224SJEGDG4R6ZI5MD2SMEIFHBLQNYYSWM5PZVQXHVZVU5PGYM7LWB46ZSVQY3LCRO7KWEW
+#\\\|7YRNE6ANQNDM5OHSSP3P3HEXOU6CHAHB5JYLG2KJD6EB6M7NP2C \ / AMOS7 \ YOURUM ::
+#\[7]LQM52W7DKQYTTZWZFYMU3BEAFBTLYIMRVFH3MKASJUNT4GYKXIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

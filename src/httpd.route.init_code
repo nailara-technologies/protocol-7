@@ -6,8 +6,8 @@
 my $root_path  = <system.root_path> // qw| . |;
 my $routes_cfg = "$root_path/cfg/zenki/httpd/routes";
 
-$data{'httpd'}{'route'}      //= { 'exact' => {}, 'prefix' => {} };
-$data{'httpd'}{'route_args'} //= { 'exact' => {}, 'prefix' => {} };
+<httpd.route>      //= { 'exact' => {}, 'prefix' => {} };
+<httpd.route_args> //= { 'exact' => {}, 'prefix' => {} };
 
 if ( not -f $routes_cfg ) {
     <[base.logs]>->(
@@ -57,13 +57,12 @@ while ( my $line = <$fh> ) {
 
     ## prefix routes: prefix:/api/ or prefix: /api/
     if ( $path =~ s|^prefix:|| ) {
-        $data{'httpd'}{'route'}{'prefix'}{$method}{$path} = $sub_name;
-        $data{'httpd'}{'route_args'}{'prefix'}{$method}{$path}
-            = $handler_args;
+        <httpd.route.prefix>->{$method}{$path}      = $sub_name;
+        <httpd.route_args.prefix>->{$method}{$path} = $handler_args;
         $prefix_count++;
     } else {
-        $data{'httpd'}{'route'}{'exact'}{$method}{$path}      = $sub_name;
-        $data{'httpd'}{'route_args'}{'exact'}{$method}{$path} = $handler_args;
+        <httpd.route.exact>->{$method}{$path}      = $sub_name;
+        <httpd.route_args.exact>->{$method}{$path} = $handler_args;
         $exact_count++;
     }
 }
@@ -78,8 +77,8 @@ close $fh;
 
 0;
 
-#,,.,,...,,,.,,..,...,..,,,,,,..,,..,,...,.,,,..,,...,..,,.,.,,,.,,,.,,,,,,,,,
-#QKJRA3VI446YUDF2XOITCRCDYB7MB7SQ4CTOGXJYDOUSTHMW4VSKWXVQXCENISEWELIILVNYNCU5K
-#\\\|PWCMHC6KJXSEAF4YGIWU4US3I7622V6IW257JUO3UYG2XQXND5G \ / AMOS7 \ YOURUM ::
-#\[7]E7NI6EWZURGFLR6TDKE457HEMHKYAL6LYZKSQAD4HOHYGFFPWGBI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,..,,.,,,,.,.,,,,,.,...,,,,,.,.,..,,...,...,.,.,,,,,...,..,,.,.,
+#XCWGKNQ6SD2CEEGDSNYN3PD2APJUTTTW4CGMUPXF4N3R2VICMBUA3V45D54WZC3RIQHVLGXZQRTS2
+#\\\|EFMSIT75PYXIFQZ3X3B77UAY25GZYJ2WVV2DOT2DNINNY7FWRUL \ / AMOS7 \ YOURUM ::
+#\[7]ENQM7UXTUXVXFZQKEDXFBN67FMJM4D5UBAUWBBVMDWYKMUKZDIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

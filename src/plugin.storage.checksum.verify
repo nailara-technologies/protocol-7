@@ -7,7 +7,7 @@ my ($args) = @ARG;
 my $path = $args->{path}
     or return { 'mode' => 'false', 'data' => 'path required' };
 
-my $registry = $data{'storage'}{'mapping'}{'checksum'};
+my $registry = <storage.mapping.checksum>;
 my $cached   = $registry->{'cache'}{$path};
 
 return { 'mode' => 'false', 'data' => 'no cached checksum' }
@@ -55,8 +55,8 @@ return {
     }
 };
 
-#,,.,,.,.,...,,..,,..,..,,,..,,,.,.,.,.,.,,,.,.,.,...,...,.,,,.,.,,,,,,,,,,,,,
-#FQLWU4T3B2IMRQ4KQH44C4ZQEW7QTNKNNKPZJSGGEFSJLQDW7DIU3JEOVO3JVNIG26BXPM6JWCE7S
-#\\\|YZC5A6GOXUENA6NPDKAEN3ZIW6KCRZTF355DZG2BYW5J7COEE52 \ / AMOS7 \ YOURUM ::
-#\[7]CBH4TGBZGLMX7LMLE242ASZOI4AEHL5O4QJ2H4HYWTB435WAP2BI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,,,,,.,,,,,,,,,,,..,,.,.,.,.,.,.,...,...,.,.,,.,,..,,...,,,,,
+#BZQFC6E4VJS4YGFNKRZJMN77HDHAFM55ZBIEN2VM6IO2ZLJV52VTKJTGXAFF6QOQMEIF6G7ODZO7Q
+#\\\|CHBAQ5Z2C2BM4RPMQXEJO75NHND45MNOE7PDBFS5BX33OLAC2VI \ / AMOS7 \ YOURUM ::
+#\[7]T3HHUI52IA6CAM4ZTBMVLGXIF4X5GAZ54YUT4DSW75GAWCJRAIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 
 my ( $amos_id, $offset, $count ) = @ARG;
 
-my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+my $buf = <plan-9.server.buffers>->{$amos_id};
 return '' unless $buf;
 
 my $window  = $buf->{window};
@@ -48,8 +48,8 @@ $entries .= <[plan-9.protocol.codec.encode-stat]>->($meta_stat);
 
 return substr( $entries, $offset, $count );
 
-#,,..,,..,.,.,,,.,..,,...,,..,.,,,,,.,.,.,,.,,.,.,...,...,,,.,..,,.,,,...,.,,,
-#HHHENESSAZDLZTWXQRGCFUHGAPQ6SUKEFKC626CRN2BYCDPFPW6SIEF4C3XNCBVTAAD4T5XCDI2XM
-#\\\|ARFYB4ENFD2QYZJMVNGN5GQ7UMMP5G3WZZQSTFHUY2EEMM4ZS3F \ / AMOS7 \ YOURUM ::
-#\[7]VXLZPJL6QJVKX3HHL33BKCGXRZSUMESFWU4QS4XD5DKDX4VHOOCI 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,,,..,,,,.,...,.,.,,,,,..,,.,.,.,.,...,...,...,.,,,,,.,,..,,.,,
+#J4HFFJ2X7IVXIPNEIXUDIJNFTMPJ5SQBVY6WQH2JMQ4IPGCBWXIOCXFIGDSHEJ3ZUNRAY4J6STR44
+#\\\|MGB6AKOGDMNNS5IDQ7XUQEJ6PQ2UWFKKI4NJBH6RRZIYA3VKZJK \ / AMOS7 \ YOURUM ::
+#\[7]5NCYNX5FDADNYF6HRTOQJSMW7CAGSQ2VZBU3YCTSPAWJIRQRBYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

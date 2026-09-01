@@ -91,7 +91,7 @@ foreach my $domain (@domains) {
     }
 
     ##  load + memoize domain vectors [ token => [ vec, norm ] ]           ##
-    my $cache     = $data{'openvas'}{'enrich'}{'vec_cache'}{$domain};
+    my $cache     = <openvas.enrich.vec_cache>->{$domain};
     my $vec_mtime = ( stat $vec_path )[9] // 0;
     if ( not defined $cache or $cache->{'mtime'} != $vec_mtime ) {
         $cache = { 'mtime' => $vec_mtime, 'token' => {} };
@@ -114,7 +114,7 @@ foreach my $domain (@domains) {
             $cache->{'token'}{$token} = [ \@components, sqrt($norm) ];
         }
         close($vec_fh);
-        $data{'openvas'}{'enrich'}{'vec_cache'}{$domain} = $cache;
+        <openvas.enrich.vec_cache>->{$domain} = $cache;
     }
 
     ##  build query vector : mean of in-vocab query token vectors          ##
@@ -230,8 +230,8 @@ return {
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 
-#,,,.,,,,,,,,,.,,,,,.,,,,,.,.,,,.,.,,,...,.,,,..,,...,...,..,,,..,,,,,,.,,,,.,
-#S3APPE4JBLODSYB4SRWWNCF2APDG3K7R7QIN3BC7GWPIZEKIIZG2J3YFKMFJIRUR4WHUBHB646JXQ
-#\\\|DULGST6XLNVKEOQUYCUTN366M4RPE4PYYORDH7F6MOK6EC7QXUF \ / AMOS7 \ YOURUM ::
-#\[7]2NXG7TZIQFOIGIZWYB6BDN7DXYI5JXR42ZFQBNMBTPNV5EVRNODQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,...,...,,,,,,,.,.,,,,.,,,,,,..,,...,...,..,,,,.,.,,,..,,,,.,
+#RUU7IBSOWMPP7JJZBATZOK7HCKEG4KHW7VC73Q7HT7JIDU55HEYF6ULKO7Z3U7IKN55RZBB6BLVOQ
+#\\\|B25J26VIQVRHE6MBU4YZRBZKZCDFGANDDLLRMVIO5LRIXYAGVZJ \ / AMOS7 \ YOURUM ::
+#\[7]ZC2UCJHOBWXPGUF5YVV3WSKPP54FV4AFCCSYOZHMZCK4XBHLDOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,21 +3,21 @@
 # name  = invoke-web.cmd.status
 # descr = show invoke-web zenka and process status
 
-my $status = $data{'invoke-web'}{'status'} // 'idle';
-my $pid    = $data{'invoke-web'}{'pid'}    // '-';
-my $url    = $data{'invoke-web'}{'url'}    // '-';
+my $status = <invoke-web.status> // 'idle';
+my $pid    = <invoke-web.pid>    // '-';
+my $url    = <invoke-web.url>    // '-';
 
 ## verify pid is still alive if we think it is running
-if ( $status eq 'running' and defined $data{'invoke-web'}{'pid'} ) {
-    unless ( kill( 0, $data{'invoke-web'}{'pid'} ) ) {
+if ( $status eq 'running' and defined <invoke-web.pid> ) {
+    unless ( kill( 0, <invoke-web.pid> ) ) {
         $status = 'crashed';
-        $data{'invoke-web'}{'status'} = 'crashed';
+        <invoke-web.status> = 'crashed';
     }
 }
 
 my $uptime = '';
-if ( defined $data{'invoke-web'}{'start_time'} ) {
-    my $elapsed = <[base.time]>->(3) - $data{'invoke-web'}{'start_time'};
+if ( defined <invoke-web.start_time> ) {
+    my $elapsed = <[base.time]>->(3) - <invoke-web.start_time>;
     $uptime = sprintf " [uptime: %ds]", $elapsed;
 }
 
@@ -26,8 +26,8 @@ my $out = sprintf "status : %s%s\npid    : %s\nurl    : %s\n",
 
 return { mode => qw| size |, data => $out };
 
-#,,,,,,,,,.,.,,.,,,,.,,,.,...,.,.,,,.,.,.,,,,,..,,...,...,..,,.,.,,.,,.,,,,..,
-#4LJ3FULBVMEIVKKEOEXAYJ3NATEBBF34DLFIN5GWRMLH24TLAUCCKFA2AISTKWMVQ72KHLAPF3ARA
-#\\\|ZHUZBS7WQ7D2LR3VV7HN3PCSTGVP6RVNLHDLPV65GCBJFHO5NCZ \ / AMOS7 \ YOURUM ::
-#\[7]7HCJF5JHAS43H7QKT2TSDAH53U5LTEMY2ARLHLGRP46PWZED2MDA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,.,.,..,,,,,,...,,.,,...,,,,,..,,...,..,,...,.,,,...,.,,,,,,,
+#HCWGDVNFKIV2BZYQ4GZIXFH56XHKXPBJQXZ4DNPC2T3ATD5MUC37CKLXAJ2GBXD7CZDCKOTJJH4K6
+#\\\|ANURMYEIDOE5SGJIXPVJTWI3GNVSZ2IIFAHYICS5BHFIYONMKSC \ / AMOS7 \ YOURUM ::
+#\[7]XJ3R7DKWU73E4E57KSFA66XQQWVX6UBP55DLBX3EGIKHENIJ3SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

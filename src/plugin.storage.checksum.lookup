@@ -7,7 +7,7 @@ my ($args) = @ARG;
 my $checksum = $args->{checksum}
     or return { 'mode' => 'false', 'data' => 'checksum required' };
 
-my $registry = $data{'storage'}{'mapping'}{'checksum'};
+my $registry = <storage.mapping.checksum>;
 my $paths    = $registry->{'reverse'}{$checksum} // [];
 
 # Verify paths still exist and match
@@ -30,8 +30,8 @@ return {
     }
 };
 
-#,,,,,,.,,,..,,,.,.,.,.,.,,..,,.,,,,.,,.,,..,,.,.,...,...,..,,,..,..,,..,,..,,
-#MXJBTW5SVPJDWRPZNC5O5HO5N4FDYV2UO3HTYC6EJ3WTME32MGOUSF2ALPEG7SWT2Z5IFC4JBIPOE
-#\\\|C57VWC4CMWVXKDH6W2KUTB6NNDPCC7TMKVJ2C5A6ARUELS77KAG \ / AMOS7 \ YOURUM ::
-#\[7]F6U43WBB66WLNF535QUWHXN24ETQP3VA2VBHQTDPSCVRV6P2XMCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,..,,...,.,.,.,.,.,,,...,...,.,.,...,...,...,,,,,,,,,,,,,,,,,
+#GMFFLSFM6Y7BL6OXBALPE7FRHSF6XMPPIFU4TTHPPJQKWWM5T6MNIDX4G5JA3I7IGKB4M32V6C6XY
+#\\\|2O753QILPCKDGNILY7WMQKKBIEQOS37OHIFYHRY5PFM6CKE3MDF \ / AMOS7 \ YOURUM ::
+#\[7]LLI5QPF4EW745Y7KTIZRIR3EIELODH4G3FMDWFC7QOAA3EECOECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

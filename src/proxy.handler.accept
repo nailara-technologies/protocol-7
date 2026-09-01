@@ -10,13 +10,12 @@ return if not $client_sock;
 
 $client_sock->blocking(0);
 
-my $client_id
-    = <[base.gen_id]>->( $data{'proxy'}{'clients'}, 99999, '0123456789', 0 );
+my $client_id = <[base.gen_id]>->( <proxy.clients>, 99999, '0123456789', 0 );
 
 my $client_addr = $client_sock->peerhost // 'unknown';
 my $client_port = $client_sock->peerport // 0;
 
-$data{'proxy'}{'clients'}{$client_id} = {
+<proxy.clients>->{$client_id} = {
     sock        => $client_sock,
     buffer      => '',
     request     => undef,
@@ -26,7 +25,7 @@ $data{'proxy'}{'clients'}{$client_id} = {
     client_port => $client_port,
 };
 
-$data{'proxy'}{'clients'}{$client_id}{'watcher'} = <[event.add_io]>->(
+<proxy.clients>->{$client_id}{'watcher'} = <[event.add_io]>->(
     {   fd      => $client_sock,
         poll    => 'r',
         handler => 'proxy.handler.connection',
@@ -41,8 +40,8 @@ $data{'proxy'}{'clients'}{$client_id}{'watcher'} = <[event.add_io]>->(
 
 return;
 
-#,,.,,,,.,,,,,,.,,,.,,..,,,,.,...,...,...,,,.,..,,...,...,.,,,.,,,,,.,...,,,,,
-#2VT6SSZLBT32QWRLYVKVG2TQF23DKHDOMU3J7QP6VUMREH4I2AITO325ANETIAJQHDEGSKONP3YW4
-#\\\|SZONEAXN6T6LVVYX7X2Q5OZ4EFZ5CVKGLWUSPFSD5XGL4FNVE62 \ / AMOS7 \ YOURUM ::
-#\[7]G5LEXPZJJM5EFCP2UYRZDHJGCTKFUOEQN4UVW4OJXCPQM3G2IQCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,.,,,,.,.,.,,.,,,.,,,..,.,,,,..,..,,...,...,,..,,..,..,,,.,,,..,
+#OW5JQHDR5H45X46AXTLVHTF735IQNED7OFGK6OZ5LKWU6ZW2IGBZYMMXRPC3O3QIUSMQ76URW3WC4
+#\\\|IRLGKVZIBDCG2EVXDKJIEABIF75XGUW337R4RI46HVNDZAJ6BZ4 \ / AMOS7 \ YOURUM ::
+#\[7]KEQ6DTTCG5RVZMYC4Y2SZWHDZSMY36MDLPB7SAP6MHANOOIHMQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

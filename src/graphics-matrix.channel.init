@@ -4,7 +4,7 @@
 # descr = initialize context channel state
 
 ## set up channel state with 5 frequencies ##
-$data{'graphics-matrix'}{'channel'} = {
+<graphics-matrix.channel> = {
     qw| active   | => <graphics-matrix.channel.default> // 0,
     qw| count    | => 5,
     qw| channels | => {
@@ -47,15 +47,15 @@ $data{'graphics-matrix'}{'channel'} = {
     },
 };
 
-my $channel = $data{'graphics-matrix'}{'channel'};
+my $channel = <graphics-matrix.channel>;
 
 <[base.logs]>->(
     2,                   'channels initialized [%d channels, active=%s]',
     $channel->{'count'}, $channel->{'active'}
 );
 
-#,,,,,...,,..,,,,,,,,,.,.,,,,,..,,..,,,,,,...,..,,...,...,.,.,,.,,,.,,,,,,.,.,
-#WYICXULRT453Q5V5ZORCJEOPIDXNKWNMJ3GBJ622CEHVLGKYLVZS2NXC77MH5ZH2OYWRBYSTNPMDO
-#\\\|HSUFDXV5O7CIAPJWMGFPDQZGYIIMALMJWHDTHXQMYEEIVHHBZFV \ / AMOS7 \ YOURUM ::
-#\[7]ZRIPBK4GEW7OZEDKTHJNUCQCB2PUXIVZBM7TWU73GNZIEGYWT2CA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,,,,,...,.,,,.,.,.,,,...,,,.,..,,...,...,,,,,,,,,,,,,,..,,,.,
+#JHNYS746NWL2SE2TWD4GZD4GHCAXDP4TLFJEHVXFPOF727YEHEU4XAO736XCQBKDGPI6RSTRG2YAY
+#\\\|ICKOH6NQYEUWS2CHM2UTGMQQSLGI2EYO6V7FXSKTRLCK2FNH75N \ / AMOS7 \ YOURUM ::
+#\[7]T5MSX3WINFTZLAMRF6QZMJIOOHE4MNT5S7RJDMSBARRB6HLLQUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

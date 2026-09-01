@@ -22,7 +22,7 @@ unless ( length $prompt ) {
 }
 
 ## check invoke.ai is reachable before building graph
-my $url  = $data{'invoke'}{'url'};
+my $url  = <invoke.url>;
 my $ua   = LWP::UserAgent->new( timeout => 5 );
 my $ping = $ua->get("$url/api/v1/app/version");
 unless ( $ping->is_success ) {
@@ -33,8 +33,8 @@ unless ( $ping->is_success ) {
 }
 
 ## look up model key if not cached
-my $model_name = $params{'model'} // $data{'invoke'}{'default_model'};
-my $model_info = $data{'invoke'}{'model_cache'}{$model_name};
+my $model_name = $params{'model'} // <invoke.default_model>;
+my $model_info = <invoke.model_cache>->{$model_name};
 unless ($model_info) {
     ## query invoke.ai for available models
     my $models_resp = $ua->get("$url/api/v1/models/?model_type=main");
@@ -43,7 +43,7 @@ unless ($model_info) {
         for my $m ( @{ $models_data->{'models'} // [] } ) {
             next unless ( $m->{'name'} // '' ) eq $model_name;
             $model_info = { key => $m->{'key'}, base => $m->{'base'} };
-            $data{'invoke'}{'model_cache'}{$model_name} = $model_info;
+            <invoke.model_cache>->{$model_name} = $model_info;
             last;
         }
     }
@@ -88,7 +88,7 @@ my $batch_id = $result->{'batch'}{'batch_id'}       // '';
 my $item_id  = ( $result->{'item_ids'} // [] )->[0] // '';
 
 ## store job for poll_jobs to track
-$data{'invoke'}{'jobs'}{$item_id} = {
+<invoke.jobs>->{$item_id} = {
     'batch_id'  => $batch_id,
     'prompt'    => $prompt,
     'model'     => $model_name,
@@ -105,8 +105,8 @@ return {
         $item_id )
 };
 
-#,,.,,,.,,.,.,,..,.,,,,..,.,,,...,,.,,.,,,,.,,..,,...,...,,..,.,,,..,,,,.,,..,
-#MUOGPGZ3U4N4IK5TVZ4ZH6DI4R3PL3T3L225A2SXGBQNMAQZ666RAHSCIYWT6BLN5ME2T5RK4A7RC
-#\\\|BD3HWMPWAIWJ5J3MLRWR33DBACIN77HMXJSXQURZBBXGVJ66D5I \ / AMOS7 \ YOURUM ::
-#\[7]W4XMZFCDBYZFBMXW7JXYUCK3OMLB4GFYSEBPBQC53RSE6L3WTQAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,,,,,,,,.,,,.,,.,,,..,,...,..,,..,,...,...,..,,,.,,,..,.,,,..,,
+#3TGHQYKSXXKU4FPTQMWESVZXRCUTT5QJZ4G6WB4BAMPJNGNWJM2COPN6MBN46UFZ46ZDEQP5UYZEE
+#\\\|Z3PWG2KJUY6INTLFD2F2WITTWMFEKQDRRAVP54LDKDJ7Z5M2MAM \ / AMOS7 \ YOURUM ::
+#\[7]W3ILBCQJVXZG3WQPPZMFOQKZNPSH4EBXMZ367HG62PLE6H2I2UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

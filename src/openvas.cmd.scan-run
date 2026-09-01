@@ -56,8 +56,8 @@ return {
     }
     if $arg{'target'} =~ m{[^\w\.\-:/]};
 
-my $profile     = $arg{'profile'}                               // qw| full |;
-my $scan_config = $data{'openvas'}{'profile'}{$profile}{'name'} // '';
+my $profile     = $arg{'profile'}                       // qw| full |;
+my $scan_config = <openvas.profile>->{$profile}{'name'} // '';
 
 return {
     'mode' => qw| false |,
@@ -176,8 +176,8 @@ foreach my $finding ( sort { $b->{'severity'} <=> $a->{'severity'} }
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,,.,...,..,,..,,,,.,.,,,.,.,.,,,,.,,...,...,.,.,...,...,..,,,.,,,..,..,,..,,
-#JAPOR5SA3EIKPNUIBX3DPXTYSUTGDGCGVXHIAW7K4WMYF7N5OZT4YM4STLLDGW4GSYKRONENO5U4S
-#\\\|CU4OXSGACYVOQ35QTNN2LJCE7Z5FCX7GHXUCCBUYQSHT4X4PHFV \ / AMOS7 \ YOURUM ::
-#\[7]6VFWSV2HHX6YL7CWQU2T3JAWR7S43QJCGWS7RFJ7Z62QJ7NXIYBA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,...,,.,,.,,,.,,,.,.,,..,,.,,.,.,...,...,,..,,,,,,..,.,,,..,,
+#FE7UFQZU5BFJKO23HWI5SYKHZUB2LA4J6YEMWMHQ65RQDXCA6TKPCOMGBC47FBBJUR73Q53NY7FC4
+#\\\|5KD2TA5CSHXRM2KOVCAHUGEYO2DJXK4PYQV5M6YWQODRS44C3E5 \ / AMOS7 \ YOURUM ::
+#\[7]EAMSQUIJP3KBCBG7JY46VXQDMHMU5SHQ3SXSKWQ2MMZ6SVCZVYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

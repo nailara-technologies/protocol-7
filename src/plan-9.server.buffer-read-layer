@@ -4,7 +4,7 @@
 
 my ( $amos_id, $z, $offset, $count ) = @ARG;
 
-my $buf = $data{'plan-9'}{'server'}{'buffers'}{$amos_id};
+my $buf = <plan-9.server.buffers>->{$amos_id};
 return '' unless $buf;
 
 my $window     = $buf->{window};
@@ -12,8 +12,8 @@ my $layer_data = $window->{buffer}{layers}[$z] // '';
 
 return substr( $layer_data, $offset, $count );
 
-#,,,,,.,.,,.,,,.,,.,,,.,,,.,.,,..,..,,..,,..,,.,.,...,...,..,,.,.,.,.,,,.,,.,,
-#NB3YZJPZKIJHIYTNSISY4RZ5RRV6ZM7QRJ3ANNEIHOLLBBBB5YMASUNLG2L5I2XKFWILF2KIN53VI
-#\\\|QWIQAJZMSHXOUND5JX6EF3P2RGKZ3ZWUJNNX3VUFFWH2XUQTFOF \ / AMOS7 \ YOURUM ::
-#\[7]LKPNVM7OY7XD5JAF6RTGVQEXXRV7BZEZ7HG5BARQBLG3Y37L2SDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,,.,,...,.,.,,.,,,..,,,.,...,.,.,...,...,,..,,,,,,,.,...,,,,,
+#N7A7CMCFIGA3TZVZFD5LWM2LINSONTBJSAB57FNEYKATGDTHGHIT7ZNL6IPYG2KVPS2HKTR7Y47US
+#\\\|3DQQTJTD3BE3SLK76U5TTE5Y4PNTED5CHSHQOUY6QWJRFVL7NO4 \ / AMOS7 \ YOURUM ::
+#\[7]XEBPOKGZE3BJQHHD5FC6VGLEHUYDR2IXOXYBWWECINUN4D5ATKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

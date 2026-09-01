@@ -18,8 +18,7 @@ my $is_primary
 
 <X-11.output_buffer> //= '';
 
-my $read_bytes
-    = <[base.s_read]>->( $read_fh, \$data{'X-11'}{'output_buffer'}, 4096 );
+my $read_bytes = <[base.s_read]>->( $read_fh, \<X-11.output_buffer>, 4096 );
 
 if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     $event->cancel;
@@ -48,8 +47,8 @@ while ( <X-11.output_buffer> =~ s|^([^\n]*)\n||s ) {
     # LLL: terminate server here ?
 }
 
-#,,.,,...,,.,,,..,,,,,,,,,.,,,.,.,,,.,.,.,..,,..,,...,...,.,.,,,,,,,,,,.,,,..,
-#EFTR5ODD5JQPUVMHRNAGSAPJJGELNSBJHS2WE7SFV3LG5U2XH2RCRPFY4XGWBMGH4HHTO5YPXPE2U
-#\\\|PG352VBND3UYPE2XN6DWPTQO2HRQ7OIMTFH3YDE4NT6UPWINLDT \ / AMOS7 \ YOURUM ::
-#\[7]A2VNRRYB7MDYB5FHIS6WPFVZKEEIL5LTX3PGP37JYCDTNFUY4QAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,,,,,.,.,..,,,,.,..,,,,,,,.,,..,,...,..,,,..,,..,,..,,,,,.,,,
+#BDQM3YXUBJVGVF2CXLKQBUBWN47VGVBUCKHPL67SMDNYYOFLP3AM47C5NU4WNPPITJ62EKRBLMDEI
+#\\\|ZMG7E42FBDTLKMPIWYZMVUOVRVLQFGW5VHINQPBXX3MXOM35UA3 \ / AMOS7 \ YOURUM ::
+#\[7]M4UQEFH2KXGVHLNIOVELUWRAYA6FR4SXYXCJB45ZTYXZF44KIYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

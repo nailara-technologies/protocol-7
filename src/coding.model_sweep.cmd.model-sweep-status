@@ -23,7 +23,7 @@ my $cursor_data
 my @lines;
 
 for my $backend (@backends) {
-    my $active = $data{'coding'}{'model_sweep_state'}{$backend};
+    my $active = <coding.model_sweep_state>->{$backend};
     my $cursor = $cursor_data->{$backend} // {};
 
     if ( defined $active && ref $active eq qw| HASH | ) {
@@ -62,8 +62,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,,.,,,,.,,.,,,,.,...,.,,,,.,,.,.,.,.,.,,,..,,...,...,,..,,,.,,.,,..,,,.,,
-#UA2YSIDNDIDWEKMM64PU2JEJPGM3I5PD35X7N64M4JTLWFWOQOIRQMEZKKGGWGUCVFYHEQPDMWRLO
-#\\\|G4VQSTOD74E2LST6XLGDBAHQ3ZK25MW5GGPKX2ZKQDYOXZHYEGT \ / AMOS7 \ YOURUM ::
-#\[7]RT5AKZHNCHVYEU5T4EHMQZ5K2NS4JFVDT62FLPDCWLFB5QJSGMAA 7  DATA SIGNATURE ::
+#,,,.,...,...,,..,,.,,,,.,.,,,...,,,.,,,.,,,.,..,,...,...,.,.,...,,,.,...,,..,
+#7FILYRJJJL55EHCGLXNUQAWT36F5MK362YTELTSRMH2RK5O4D3NA2SUUOFKH4CVNTV6JNCCASRXI2
+#\\\|TPJ7F5VGX5TPWISHK4IJ6OE7NLEF5AKC34MFBIMXK6GIHAUYS4L \ / AMOS7 \ YOURUM ::
+#\[7]HHDRGPVP5LBRD7TLA4EY4IXJ53YKW63YD3ESULEVT5TPNC5JNCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

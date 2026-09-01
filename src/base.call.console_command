@@ -10,13 +10,13 @@
 
 $console_cmd //= qw| commands |;
 
-if ( not defined $data{'base'}{'console'}{$console_cmd} ) {
+if ( not defined <base.console>->{$console_cmd} ) {
     print "\n  << command '$console_cmd' not "
         . "found [ 'commands' for list ] >>\n\n";
     return;
 }
 
-my $command_handler = $data{'base'}{'console'}{$console_cmd};
+my $command_handler = <base.console>->{$console_cmd};
 
 if (   not defined $code{$command_handler}
     or not defined $code{$command_handler}->&* ) {
@@ -32,8 +32,8 @@ $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
 $code{$command_handler}->($console_params);
 
-#,,.,,..,,,,.,,,.,.,.,.,,,,,,,,,.,.,,,,..,,,,,..,,...,..,,...,,..,.,,,..,,,,,,
-#7BFRLZP5LRM5HLIW3YY5AYQS7VVICLAJ2BVAFBSPU4BXSXAXBBZS3QOR6VQV62W5BQGMV2JDIWOH6
-#\\\|H5WQN2PSQZG5JWUTH2CKQ4QZPOG6SHV4RDQIVBH4ASMOX5YUSCM \ / AMOS7 \ YOURUM ::
-#\[7]DJOKSP7E7DOLRZ4VN3MSE63WZBXOOUIQDXY77VQX67B3X6MDYGAI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,.,,,,,...,,..,.,.,,,.,.,.,,,.,..,,...,..,,...,,,.,,,.,,,,,.,.,
+#CPXN4VX46OH66K7TIAW55YD66BFW7XP5F5UUQVSSIF7HFGNYMOXYNOLXTXBADNK5SLD7XEIEOSSWW
+#\\\|2Q2ISPVUTD6M7XAFZZAQVLB2B2E5KXGOWK255O3WCGDL3LD7BM5 \ / AMOS7 \ YOURUM ::
+#\[7]CCKH5B72RQCSFWM342Z7K3ZU6CGQDTQWL7HUS7VVHSM2NK7YFQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
