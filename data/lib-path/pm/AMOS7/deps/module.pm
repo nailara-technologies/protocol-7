@@ -74,17 +74,17 @@ sub scan_zenki_pm_deps {
 
     opendir my $dh, $zenki_base or return \%pm_deps;
     while ( my $zenka = readdir $dh ) {
-        next if $zenka =~ /^\./;
+        next if $zenka =~ m|^\.|;
 
         my $pm_dep_dir = "$zenki_base/$zenka/deps/p-mod";
         next unless -d $pm_dep_dir;
 
         opendir my $pdh, $pm_dep_dir or next;
         while ( my $file = readdir $pdh ) {
-            next if $file =~ /^\./;
+            next if $file =~ m|^\.|;
 
             my $module = $file;
-            $module =~ s/__/::/g;
+            $module =~ s|__|::|g;
             push @{ $pm_deps{$module} }, $zenka;
         }
         closedir $pdh;
@@ -126,7 +126,7 @@ sub resolve_install {
     if ( $known && $known->{debian} ) {
         my @debs;
         if ( ref( $known->{debian} ) eq 'ARRAY' ) {
-            @debs = grep { !/^cpan:/ } @{ $known->{debian} };
+            @debs = grep { !m|^cpan:| } @{ $known->{debian} };
         }
         if (@debs) {
             return { method => 'debian', pkg => $debs[0] };
@@ -140,8 +140,8 @@ sub resolve_install {
 
 1;
 
-#,,..,.,,,...,,,,,,,.,,,.,.,,,.,,,,..,.,.,,.,,.,.,...,...,...,,,,,...,,..,.,.,
-#SMNBEWUXOLB4ZBHULV6R4LTXZXJU4BDJEODLIZHLM7QZ5DRMORW2M3IB2FQJLNYBX4F2H3PSLIRVG
-#\\\|RGKFXI3LKEED67WJ2KGOSJP67TXTS6F5OUVGZLMQOLHSRYRUHMZ \ / AMOS7 \ YOURUM ::
-#\[7]S3GV72JYFAWNRY33IXRVS6CIGTDCIMHTJDNH6XZHIBF4ATHUJUDA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,,,,,.,.,..,,,..,,..,...,..,,.,.,...,...,.,.,...,,.,,..,,,,,,
+#XC66FGJXKESNSJZDZJT4CSGOII7J7ZZXASG34ETCRFT5VE3D54ZWXGM7YP6JZSNRJY2ZAFQBVA4QS
+#\\\|FG26QA3WLK47O73STGAS5FDW4Z4ODTK6DUKRZJRNFENWOWJADMJ \ / AMOS7 \ YOURUM ::
+#\[7]HEQVM6NGMN2VA2W5OSO2XCGAN4SJ2XJJOJZ2D3FECCMXL6DH4IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

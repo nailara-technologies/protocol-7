@@ -70,14 +70,14 @@ sub scan_zenki_os_deps {
 
     opendir my $dh, $zenki_base or return \%os_deps;
     while ( my $zenka = readdir $dh ) {
-        next if $zenka =~ /^\./;
+        next if $zenka =~ m|^\.|;
 
         my $os_dep_base = "$zenki_base/$zenka/deps/os";
         next unless -d $os_dep_base;
 
         opendir my $odh, $os_dep_base or next;
         while ( my $dir_name = readdir $odh ) {
-            next if $dir_name =~ /^\./;
+            next if $dir_name =~ m|^\.|;
             next if $dir_name eq '.placeholder';
 
             my $type_dir = "$os_dep_base/$dir_name";
@@ -88,14 +88,14 @@ sub scan_zenki_os_deps {
             if ( $type eq 'binary' ) {
                 opendir my $bdh, $type_dir or next;
                 while ( my $bin = readdir $bdh ) {
-                    next if $bin =~ /^\./;
+                    next if $bin =~ m|^\.|;
                     push @{ $os_deps{binary}{$bin} }, $zenka;
                 }
                 closedir $bdh;
             } else {
                 opendir my $tdh, $type_dir or next;
                 while ( my $pkg = readdir $tdh ) {
-                    next if $pkg =~ /^\./;
+                    next if $pkg =~ m|^\.|;
                     push @{ $os_deps{$type}{$pkg} }, $zenka;
                 }
                 closedir $tdh;
@@ -151,8 +151,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,..,,,,,,..,.,.,..,,.,,,,.,,.,.,.,.,..,,.,,,..,,...,...,.,.,.,.,.,,,,.,,...,
-#VH7LZ4KKTXLV5Z35RM3Z7ABLTJDMRUGJX4U5TU74MXZGXBGQ2B76TAJGOZFYNC3GRB42PSPRLM5P4
-#\\\|K3WMPEEGPSAOAKRPABNFPFASJZ67QVFETHLOTUSJMQECNJQH2U3 \ / AMOS7 \ YOURUM ::
-#\[7]2NKFVWL3PUDZ2B3MKQ32G5EH67T6MYC7Q4WZO3NZAWOAS2OIA2BI 7  DATA SIGNATURE ::
+#,,..,.,.,...,...,..,,,.,,,,.,.,,,,,.,..,,...,..,,...,...,.,,,...,,,,,..,,.,,,
+#6WCSNIHKGBCKPRWUI3BIFBHAZYETH7KZZ4H2SFFTEYOTUDK4S7CFQOM74T7BT4FPUWOHJBCYED2OK
+#\\\|AO5NK2A6OLPQ4PH4U3CN7EICUPY246ONFI4LID3OTUE6K32B7JN \ / AMOS7 \ YOURUM ::
+#\[7]HJVIWJNL5CPIWVOWEWC37PG244UZ54VGVMVXSCHWOW67XVQFDIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

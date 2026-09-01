@@ -80,7 +80,7 @@ sub parse_nested {
     return undef if not defined $notation;
 
     return undef
-        unless $notation =~ /^\[([A-Z0-9]+):([A-Z0-9]+)\]$/;
+        unless $notation =~ m|^\[([A-Z0-9]+):([A-Z0-9]+)\]$|;
 
     return { child => $1, parent => $2 };
 }
@@ -129,8 +129,8 @@ sub reconstruct_chain {
 
 return TRUE ##################################################################
 
-#,,,,,,,.,.,,,,,.,,,.,,,,,.,,,.,,,,,.,...,,,.,..,,...,..,,.,,,,,.,,..,,.,,,,,,
-#QGHXWDWI7HNTQC3XRSY6SBPOERA5YJRGIR7NGM5UVFQAS5KMT3C656MMZNCI36WZIVWN7REUBVYFQ
-#\\\|ATMUJHJCYENFMRFMNOMIYCAVIEVR5VCIANEZHTAR3HLLMFDD54Q \ / AMOS7 \ YOURUM ::
-#\[7]YZOTG5664K7PWTY3DBROCANE6OXAFBQT4CNVZAGRBIRUYH2I6ACQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,..,,.,.,.,,,...,,.,,..,,,..,..,,...,...,,..,,,,,..,,.,,,.,.,
+#MRU63BO4Q2Y7G7HMDGCHG4UJXFMLC4ICRSZL5WA6BLI2CHZFUIBFRZ7GJEZHYCPPTP6MSG7YUCXK6
+#\\\|Q5F4CAEGAIQLZPUKPKHP7BEKITR4JLGSOCUTIAH44JVYY5TVSPP \ / AMOS7 \ YOURUM ::
+#\[7]PNLA2GFNNCUAQTB6E3S4JP24OCZXRVAY6GBR2O2GEYM6TADT56BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

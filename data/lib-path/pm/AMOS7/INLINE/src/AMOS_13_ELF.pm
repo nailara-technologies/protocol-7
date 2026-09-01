@@ -194,37 +194,37 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
         ## special value for null bytes ##
         my $z_val = 777;
 
-        ## entropy-loss-avoidance threshold : computed ONCE from the
-        ## starting result [ matching the C implementation's one-time
-        ## setup, AMOS_13_ELF.pm lines 44-45 ] -- NOT recomputed per
-        ## character. earlier version of this fallback recomputed it
-        ## inside the loop below, which is a real transcription bug: it
-        ## made the threshold track the CURRENT (growing) $result instead
-        ## of staying fixed, causing the entropy-loss-avoidance branch to
-        ## fire at a different point than the C version for any
-        ## sufficiently long input, independent of character content ##
+        ## entropy-loss-avoidance threshold : computed ONCE from the        ##
+        ## starting result [ matching the C implementation's one-time       ##
+        ## setup, AMOS_13_ELF.pm lines 44-45 ] -- NOT recomputed per        ##
+        ## character. earlier version of this fallback recomputed it inside ##
+        ## the loop below, which is a real transcription bug: it made the   ##
+        ## threshold track the CURRENT (growing) $result instead of staying ##
+        ## fixed, causing the entropy-loss-avoidance branch to fire at a    ##
+        ## different point than the C version for any sufficiently long     ##
+        ## input, independent of character content                          ##
         my $shift_limit = ~$result >> 4;
 
         ## iterate through string as UTF-8 codepoints ##
         ##
-        ## RESOLVED 2026-08-25 [ was: KNOWN LIMITATION ]: this used to
-        ## diverge from the compiled C implementation for any input
-        ## containing bytes >= 0x80. A byte-level Encode::decode rewrite
-        ## was tried here first and did NOT close the gap -- because the
-        ## actual cause was never a decode-model mismatch between this
-        ## codepoint-based loop and the C code's byte-level one. It was
-        ## two real bugs in the C side itself [ this file, ~lines 48-49
-        ## and ~128-134 ]: a stale pre-upgrade `len` that could underflow
-        ## the unsigned STRLEN and read past the buffer, and a forced
-        ## `u8_len = 1` override that misaligned the byte cursor on every
-        ## upgraded high byte. With both fixed in the C source, this
-        ## unpack('U*') codepoint loop and the compiled C now agree
-        ## exactly -- verified across 320+ random binary vectors [ 1..512
-        ## bytes ] plus the fixed UTF-8/malformed/high-entropy test set,
-        ## zero mismatches. See data/tasks/
-        ## elf-chksum-c-vs-pure-perl-utf8-divergence.md and data/tasks/
-        ## c25519-key-decryption-failure-hypothesis-2026-08-25.md for the
-        ## full investigation ##
+        ## RESOLVED 2026-08-25 [ was: KNOWN LIMITATION ]: this used to      ##
+        ## diverge from the compiled C implementation for any input         ##
+        ## containing bytes >= 0x80. A byte-level Encode::decode rewrite    ##
+        ## was tried here first and did NOT close the gap -- because the    ##
+        ## actual cause was never a decode-model mismatch between this      ##
+        ## codepoint-based loop and the C code's byte-level one. It was two ##
+        ## real bugs in the C side itself [ this file, ~lines 48-49 and     ##
+        ## ~128-134 ]: a stale pre-upgrade `len` that could underflow the   ##
+        ## unsigned STRLEN and read past the buffer, and a forced `u8_len = ##
+        ## 1` override that misaligned the byte cursor on every upgraded    ##
+        ## high byte. With both fixed in the C source, this unpack('U*')    ##
+        ## codepoint loop and the compiled C now agree exactly -- verified  ##
+        ## across 320+ random binary vectors [ 1..512 bytes ] plus the      ##
+        ## fixed UTF-8/malformed/high-entropy test set, zero mismatches.    ##
+        ## See data/tasks/  elf-chksum-c-vs-pure-perl-utf8-divergence.md    ##
+        ## and data/tasks/                                                  ##
+        ## c25519-key-decryption-failure-hypothesis-2026-08-25.md for the   ##
+        ## full investigation                                               ##
         foreach my $character ( unpack( 'U*', $input_str ) ) {
 
             ## reset left shift if approaching entropy loss ##
@@ -261,8 +261,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#,,..,.,.,,,,,,,.,..,,...,...,,,,,,.,,.,.,,,.,..,,...,.,.,,.,,,,.,,,,,,.,,,.,,
-#IZ4M6AFVTFGLWMBLNVNPFCAJQACOO4BODLZRPZWVSUIIJPPYLWJD4WHETYJ6IL3ZIE6YFAHXEJVWE
-#\\\|7ZCOW3TMVVE7DIWOTBNHHNONCEJTTXSG4ADQ32DTS54Y5KUBAPJ \ / AMOS7 \ YOURUM ::
-#\[7]5UPT6ID6QLFN5VJRZS24RWVOTKGNJFGWDKF5SCK7FPUFJNAFWWCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,.,..,,..,,,,,,,,,,,,,,.,,,,.,,..,,...,...,.,.,.,.,,..,.,.,,,,,
+#6LD56F6SVVYVZHAGM7H3TWSWL3TBRMKSVETTLZH2MHQX2HZEMWZUE7F4FAEVKWWCKGVIP47NFNFFO
+#\\\|BCVIAGSUR5CTJ7TPVPVUYUYITPXCBETFWFR7TCPSAN2UNUMS5A2 \ / AMOS7 \ YOURUM ::
+#\[7]ZLZLLFGNSUHZ72BQSEDAUKADPQ4ASTOJM5LGIRH4FQEYRKLYGODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

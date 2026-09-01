@@ -161,21 +161,21 @@ sub unpack_shm_header {
         _log( 2, "unpack: matched! version=$version, pubkey=$pubkey" );
 
         my %flags;
-        for my $flag_pair ( split( /,/, $flags_str ) ) {
-            my ( $key, $val ) = split( /=/, $flag_pair );
+        for my $flag_pair ( split( m|,|, $flags_str ) ) {
+            my ( $key, $val ) = split( m|=|, $flag_pair );
             $flags{$key} = $val if defined $key;
         }
 
         my @permissions;
-        for my $perm_str ( split( /;/, $perms_str // '' ) ) {
+        for my $perm_str ( split( m|;|, $perms_str // '' ) ) {
             next unless length($perm_str);
             my ( $to_hex, $branch, $rights, $expiry, $granted, $sig )
-                = split( /\|/, $perm_str );
+                = split( m{\|}, $perm_str );
             push @permissions,
                 {
                 'to'      => pack( 'H*', $to_hex // '' ),
                 'branch'  => $branch,
-                'rights'  => [ split( /,/, $rights // '' ) ],
+                'rights'  => [ split( m|,|, $rights // '' ) ],
                 'expiry'  => $expiry,
                 'granted' => $granted,
                 'sig'     => $sig,
@@ -724,7 +724,7 @@ sub sweep_stale_segments {
     );
 
     opendir( my $dh, $dir ) or return \%summary;
-    my @candidates = grep {/^p7:M:[^.]/} readdir($dh);
+    my @candidates = grep {m|^p7:M:[^.]|} readdir($dh);
     closedir($dh);
 
     for my $name (@candidates) {
@@ -810,8 +810,8 @@ END {
 
 return TRUE  #################################################################
 
-#,,.,,.,,,...,,,,,.,.,,.,,,,.,..,,,.,,..,,.,.,..,,...,..,,...,.,.,..,,,..,...,
-#6P7QLSJ6GAKOZYPFRSZ7MUBN6HYN4V7S7OKQYUU66FT4B37534VR7VG733GNJ7BWALGDXRWWEBFN6
-#\\\|HQN7RLUNUNRYX63YVTNCEUDWFWEOTW4LJY3XA2SS4CBQS2IHUU2 \ / AMOS7 \ YOURUM ::
-#\[7]MRV64RAXJEZUUOHGELCYXRK4WST67BID5JLB2IXUHLYU2ATIEWAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,..,..,,.,.,..,,,..,.,.,..,,.,,,..,,...,...,.,.,,,.,,,,,.,,,..,,
+#K33NCUDYL5IWVYGERRW47IVWCAA4XJ26CMGPZEGYQTK4BKAQW7EJ6N4Y3R4QP655DSJKPNKVCSCJ6
+#\\\|X44MZ3P3CYTOOCCEMUQJPFORLDPKT5LLROROHEU5UREZ4U3LUS6 \ / AMOS7 \ YOURUM ::
+#\[7]MEHHCPUFUKLESICCYSNGTMQTABS6AZLPIRALQUQ2OVOHURRB6KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
