@@ -27,9 +27,8 @@ use JSON::PP;
 use LWP::UserAgent;
 use Digest::SHA qw(sha256_hex);
 
-## Configuration
-## IMPORTANT: Use a SEPARATE directory from Invoke.ai's model directory!
-## This prevents accidental deletion of your single-file models.
+## Configuration  IMPORTANT: Use a SEPARATE directory from Invoke.ai's model
+## directory!  This prevents accidental deletion of your single-file models.
 my $CACHE_DIR = $ENV{'INVOKE_CACHE_DIR'}
     // '/var/cache/invoke-ai/huggingface';
 my $HF_ENDPOINT = 'https://huggingface.co';
@@ -321,7 +320,7 @@ sub download_file {
                     or die "Cannot read $tmpfile: $!";
                 my $content = do { local $/; <$fh> };
                 close($fh);
-                if ( $content =~ /error|not found|redirect|401|403/i ) {
+                if ( $content =~ m{error|not found|redirect|401|403}i ) {
                     print "    Error: " . substr( $content, 0, 80 ) . "\n"
                         if $opt_verbose;
                     unlink($tmpfile);
@@ -368,8 +367,8 @@ sub human_size {
     return sprintf( '%.1f %s', $bytes, $units[$unit] );
 }
 
-#,,.,,.,.,,.,,,..,,,.,,,.,.,.,.,.,,..,...,,..,.,.,...,...,...,.,,,.,.,.,,,..,,
-#4ZCE4S357CNCZ7EQU7FUNXNKA3QCN2ESVGFODZGWTY46QD6JAOFOJZ6YZQJ7H3QLNMGT3VRU3U24U
-#\\\|OCOQXTUSWL5CMAV4SJ5WDHISOX3F267RQBVPBDBWSQI5IDGMF5E \ / AMOS7 \ YOURUM ::
-#\[7]JYAP43QDR52NSN7CC675KO7FZWYB5DBXJYNY3HZJCLJGRI5I2EAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,..,,.,.,.,.,..,,.,.,,..,...,,,.,.,.,...,..,,...,.,.,,,,,,.,,,..,
+#22AJL4QIRPMZGDYX7LUCPJ7C4S7HX2CP67UOLQADYDAUIJKOH2LL2EBRO3KBHYAQNSLFC3RGYZY36
+#\\\|J4ZTJJ3T4N7EKRGVZFS6EGQBG22IGI27XOVSVDQJG3X6EE2HYTD \ / AMOS7 \ YOURUM ::
+#\[7]QI7HOM4YSF3DL72OQW5FIMQT4YOQQAHFBKSZKBZX4IQPYBFO5OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

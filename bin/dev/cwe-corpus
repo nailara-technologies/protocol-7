@@ -129,8 +129,8 @@ sub unzip_first_member {
     open my $zip_fh, qw| < |, \$zip_data
         or die ":: cannot open zip data : $OS_ERROR\n";
     my $zip = IO::Uncompress::Unzip->new($zip_fh)
-        or die ":: cannot read zip archive "
-        . ": $IO::Uncompress::Unzip::UnzipError\n";
+        or die ":: cannot read zip archive : "
+        . "$IO::Uncompress::Unzip::UnzipError\n";
 
     my $xml = '';
     my $buffer;
@@ -284,8 +284,8 @@ sub write_file {
     close $fh;
 }
 
-#,,,.,,,,,,,.,,,,,,,,,.,.,,,.,...,,,,,,.,,,,.,..,,...,...,.,.,,..,,,.,..,,.,.,
-#46ASRNJMELGQBPGCRPY4L5WBGFJNKACRM4D4IPAZRFCLQWUR6QKLCKGROCT6J55QWDE3RJCXTNODO
-#\\\|7KV263TAPQ3RQG74F3INIVWOR62OADEE7EN3WFJR3KGUR6GXBTF \ / AMOS7 \ YOURUM ::
-#\[7]F76TVWRRIMN6O7LIG3KWVJCE56FOJCKO5VRLUZRCJTX6PDCQ6ODY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,,..,.,,,,..,,,,,,.,,,,.,,.,,..,,...,...,.,,,...,.,.,,..,,.,,
+#3HPBFJN7K64RLHOIIA3W6W6M6SBBPR7WXEFLVR46CCOBBW2UYOFY52KU4CUQ2HOQD62PICB64Z5AO
+#\\\|G2BVG2XP6LOLV6DUMRFHZXQGYEHTUUBTMXSUVIHJTN3ILR4K3HG \ / AMOS7 \ YOURUM ::
+#\[7]XM6OS6KUDXSD725OSNC5SPW4C7ZEW5VPBGPYCUECUMSLSQLIYSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

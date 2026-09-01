@@ -68,9 +68,11 @@ print "\n✓ Export complete: $OUTPUT_DIR\n";
 print "  Size: " . human_size($size) . "\n";
 print "  Models: " . scalar( @{ $export->{models} } ) . "\n";
 print "  Conversations: "
-    . ( $export->{conversations}
+    . (
+    $export->{conversations}
     ? scalar( @{ $export->{conversations} } )
-    : 'skipped' ) . "\n";
+    : 'skipped'
+    ) . "\n";
 print "  Presets: " . scalar( @{ $export->{presets} } ) . "\n";
 
 ## Also copy to external if available
@@ -155,7 +157,7 @@ sub export_conversations {
     my $conv_dir = "$LMSTUDIO_DIR/conversations";
 
     opendir( my $dh, $conv_dir ) or return [];
-    my @files = grep {/\.json$/} readdir($dh);
+    my @files = grep {m|\.json$|} readdir($dh);
     closedir($dh);
 
     print "  Found " . scalar(@files) . " conversation files...\n";
@@ -215,7 +217,7 @@ sub export_presets {
     my $preset_dir = "$LMSTUDIO_DIR/config-presets";
 
     opendir( my $dh, $preset_dir ) or return [];
-    my @files = grep {/\.json$/} readdir($dh);
+    my @files = grep {m|\.json$|} readdir($dh);
     closedir($dh);
 
     for my $file ( sort @files ) {
@@ -305,8 +307,8 @@ USAGE
     exit(0);
 }
 
-#,,,,,.,,,,..,.,,,,..,...,.,,,..,,.,.,,.,,,..,.,.,...,...,...,..,,...,.,.,,..,
-#G5J3GTQXN3W4TRYD7K3FNJJKXZXVZINMJRPEAQ6KXO4D4G7FLHDVAWCI6TTSOTBUMDFTXRBI4F3IE
-#\\\|3Q7U3IT75GKYD6TGIK3CVG5UOZEUC7L4PBTCHHNRGDVT5NI43OS \ / AMOS7 \ YOURUM ::
-#\[7]BPNAPT6E72YBY45NSA42UGJZ4GQZRPD2H4J3L5H4ZIDRJE2F3CDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,,..,,.,,.,.,..,,.,,,..,,...,.,.,...,...,.,.,,,,,,..,,,.,,,.,
+#J63ANM2PXYZHNQUIEQHBCBC5II57YWJA6SN7HVHLN2NH3P33YWVJDQI6GIR7ON5UPFXGY2EJMZNA6
+#\\\|GYEQNY3XNJZRAC745HKDCMBUYHZD2UUDVX7WZHC5O5PWZPSIRXX \ / AMOS7 \ YOURUM ::
+#\[7]2GRDXBUS3I7GO77Z42LBUGHKAZL3O6NUURAJKI7VVMO4BVPBR6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

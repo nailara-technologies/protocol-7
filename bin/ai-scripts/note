@@ -152,7 +152,7 @@ sub p7_dispatch {
     );
 
     ##  escape for shell  ##
-    $json =~ s/'/'\\''/g;
+    $json =~ s|'|'\\''|g;
 
     my $output = qx{p7c coding dispatch-tool '$json' 2>&1};
 
@@ -182,8 +182,8 @@ sub decode_json {
     return eval { JSON::PP::decode_json($str) };
 }
 
-#,,..,,,,,.,.,...,,..,,,,,,.,,,,.,...,,,.,.,.,..,,...,...,,.,,..,,...,..,,,,,,
-#BYHW6RPZNV4VB67WJKKJQNAE3VXQYF2SBBY2DMRILWYMOJYO6MY6OC6SXW2DGVFUKT2JT56N7ZRFM
-#\\\|42IMJ7TQITZC26VA6EA7IATIXH5UZR5722S72BC2CTV32ETCV4O \ / AMOS7 \ YOURUM ::
-#\[7]2MCP4L2CXI4CWHJESET3W57FP7D5I3OAWJD7B2NIHAVUEOTIAQDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,,,.,.,.,..,,,,,,..,,,,.,.,,,..,,...,..,,...,,.,,.,,,,,.,,..,
+#3QXGQWAHBVCTFA7ECA7MCFMBRB4RFLU7CPHGRWBJ23X5OZNWAF2YWGPMQ6NI7WAKYLRKPE4TSQGVQ
+#\\\|6KQCATFBTY3JRACOPLO4GZNR5UNEQ27T262FNSO3JSRJ35QCTPH \ / AMOS7 \ YOURUM ::
+#\[7]F7ECCIBAP5R3HVX54FEAWI6EQT5WXBLFSN5TLMYYR5C2PC3ZJ2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

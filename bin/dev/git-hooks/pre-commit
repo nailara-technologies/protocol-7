@@ -92,7 +92,7 @@ unless ($skip_descr_check) {
         my $line_num = 0;
         while ( my $line = <$fh> ) {
             $line_num++;
-            if ( $line =~ m/^#\s*(descr|param)\s*=\s*(.+)$/ ) {
+            if ( $line =~ m{^#\s*(descr|param)\s*=\s*(.+)$} ) {
                 my $field   = $1;
                 my $content = $2;
                 my $length  = length($content);
@@ -209,16 +209,16 @@ unless ($skip_version_check) {
             . ( $commit_count + 1 )
             . ".$file_revision$rst\n";
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : "
-            . "run ${bl}./bin/dev/update-version$rst$fg to " . "fix\n";
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : run "
+            . "${bl}./bin/dev/update-version$rst$fg to fix\n";
         print STDERR "${fg}::\n";
         print STDERR "${fg}:: ${no}hint${rst}${fg} : version "
             . "numbers ensure commits are properly tracked\n";
         print STDERR "${fg}::\n";
 
         print STDERR "${fg}:: do _not_ override with : ${bl}git commit "
-            . "-bypass-sig-check$rst "
-            . "or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
+            . "-bypass-sig-check$rst or "
+            . "${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
 
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
@@ -255,12 +255,12 @@ unless ($skip_signature_check) {
         next if $file =~ m{^data/development/chat/};
         next if grep {
             my $e = $_;
-            $e =~ /\$$/ ? $file =~ m{$e} : $file =~ m{^\Q$e\E}
+            $e =~ m|\$$| ? $file =~ m{$e} : $file =~ m{^\Q$e\E}
         } @sig_exclude_paths;
         next
-            unless $file =~ /\.(pl|pm|yaml|sh)$/
+            unless $file =~ m{\.(pl|pm|yaml|sh)$}
             or $file =~ m{^(src|bin|cfg)/}
-            or ( $file =~ /\.md$/ and $file =~ m{/} );
+            or ( $file =~ m|\.md$| and $file =~ m{/} );
 
         my $file_path = File::Spec->catfile( $root_path, $file );
         next unless -f $file_path;
@@ -270,9 +270,9 @@ unless ($skip_signature_check) {
         close $fh;
 
         ## only flag files that look like source but have no signature ##
-        if (   $content =~ /^#!|^\s*(use|my\s+\$|sub\s+\w)|^#\s*name\s*=/m
-            || $content =~ /^---/m ) {
-            unless ( $content =~ /YOURUM|AMOS7.*DATA.*SIGNATURE/ ) {
+        if (   $content =~ m{^#!|^\s*(use|my\s+\$|sub\s+\w)|^#\s*name\s*=}m
+            || $content =~ m|^---|m ) {
+            unless ( $content =~ m{YOURUM|AMOS7.*DATA.*SIGNATURE} ) {
                 push @unsigned_files, $file;
             }
         }
@@ -286,14 +286,14 @@ unless ($skip_signature_check) {
             print STDERR "${fg}::   - $bl$f$rst\n";
         }
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : "
-            . "run ${bl}bin/Protocol-7 sourcecode "
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : run "
+            . "${bl}bin/Protocol-7 sourcecode "
             . "update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
 
         print STDERR "${fg}:: do _not_ override with : ${bl}git commit "
-            . "-bypass-sig-check$rst "
-            . "or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
+            . "-bypass-sig-check$rst or "
+            . "${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     }
@@ -311,13 +311,13 @@ unless ($skip_signature_check) {
         print STDERR "${fg}::\n";
         print STDERR $verify_output;
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : "
-            . "run ${bl}bin/Protocol-7 sourcecode "
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : run "
+            . "${bl}bin/Protocol-7 sourcecode "
             . "update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
         print STDERR "${fg}:: do _not_ override with : ${bl}git commit "
-            . "-bypass-sig-check$rst "
-            . "or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
+            . "-bypass-sig-check$rst or "
+            . "${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     } else {
@@ -328,8 +328,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,,.,,,.,.,,,...,.,,,,,,,.,.,,,.,...,,,.,..,,..,,...,...,,..,,.,,.,,,,,,,...,
-#YISX6557SLTLETYNKP33NXHFCNWPPCAL3PL6JA34XDV6QCW3NZVUFPCL35OSJLI6MZFX5ZRVHHONW
-#\\\|XOTF4R5SL4QZJ6O4HQ2FRXSJPME77JLRCH72IO43NRJMLW3ZQBA \ / AMOS7 \ YOURUM ::
-#\[7]3X4ZOTVNWNPCOZYBDM3ANU3GOF6VOIAWTEGSXJJ5HVDNSZWO3QAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,..,,,,.,.,,,,.,,,,.,,,.,..,,..,,...,...,..,,.,.,.,,,,.,,,,,,
+#AV2E37B2GG4WIAJO4E4GVWHTBDMG2CLA2VUSPTQS2ZRDMRV6VYDY6V4NFUHCDVXBWQPSTT25YRHVM
+#\\\|FIKOCLJLQ7MU7DVZYDVRWPW4FWNVAVOLBFS3VCL5GLYR5WQHLUK \ / AMOS7 \ YOURUM ::
+#\[7]TLJOAS67JT2TNEYBWIV2ZQOV2PWJ447POBX5YC646WSEF7J4J4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

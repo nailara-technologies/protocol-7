@@ -8,8 +8,8 @@ use File::Spec;
 use Cwd     qw| abs_path |;
 use FindBin qw| $RealBin |;
 
-##  invoke-queue-harmonize  ##
-##  Harmonically randomize InvokeAI queue using division-by-13 PRNG  ##
+## invoke-queue-harmonize  Harmonically randomize InvokeAI queue using ##
+## division-by-13 PRNG                                                 ##
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -25,7 +25,7 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
-##[ DBI ]####################################################################
+##[ DBI ]#####################################################################
 
 use DBI;
 
@@ -51,8 +51,8 @@ sub main {
     # 2. Check for in_progress items
     my $in_progress_count = check_in_progress_items($dbh);
     if ( $in_progress_count > 0 ) {
-        say
-            "Note: $in_progress_count item(s) currently in_progress (will not be modified)";
+        say "Note: $in_progress_count item(s) currently "
+            . "in_progress (will not be modified)";
     }
 
     # 3. Read pending queue items ONLY - don't touch in_progress items
@@ -122,9 +122,8 @@ sub check_in_progress_items {
     my $dbh = shift;
 
     my $sth
-        = $dbh->prepare(
-        "SELECT COUNT(*) as count FROM session_queue WHERE status = 'in_progress'"
-        );
+        = $dbh->prepare( "SELECT COUNT(*) as count FROM "
+            . "session_queue WHERE status = 'in_progress'" );
 
     unless ( $sth->execute ) {
         warn "Failed to query in_progress items: " . $dbh->errstr . "\n";
@@ -144,7 +143,8 @@ sub read_pending_queue {
 
     my $sth
         = $dbh->prepare(
-        "SELECT item_id, session_id, priority FROM session_queue WHERE status = 'pending' ORDER BY priority DESC, item_id ASC"
+              "SELECT item_id, session_id, priority FROM session_queue "
+            . "WHERE status = 'pending' ORDER BY priority DESC, item_id ASC"
         );
 
     unless ( $sth->execute ) {
@@ -264,9 +264,8 @@ sub update_queue_priorities {
     $dbh->begin_work;
 
     my $sth
-        = $dbh->prepare(
-        "UPDATE session_queue SET priority = ? WHERE item_id = ? AND status = 'pending'"
-        );
+        = $dbh->prepare( "UPDATE session_queue SET priority = ? "
+            . "WHERE item_id = ? AND status = 'pending'" );
 
     my $update_count = 0;
     for my $item (@$items_ref) {
@@ -285,8 +284,8 @@ sub update_queue_priorities {
     return;
 }
 
-#,,.,,.,.,,,,,,..,,,,,.,.,,,.,.,,,.,,,,..,,..,..,,...,.,.,.,,,,..,..,,.,,,.,.,
-#HWSNQJ53VF4WN6IEWHRJI4WV3VDDOUD6SRLGZX7QAD45TKWZVOGUEI25AGOFIU25RKUORU7EE6N3K
-#\\\|MTY5RJP7F6AHRIGLXY6HZ7DR7BB7SCXTXG23PPCCUVAL7D33ART \ / AMOS7 \ YOURUM ::
-#\[7]CZQFUJVPDRWFUS5BWL7GOU7SUNL7UMGBUQ54IUIRKPFIWDA734AY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,.,,,,.,,.,.,,..,,..,..,,,,.,..,,...,...,.,,,.,.,,.,,,,,,,,.,
+#N3FVQW25GR2K7GKJ73OWPPHRSVYPGNOSFVDOREK4UM3NYLOI7QEER3BYQLNEOSOQEEWLXCB7SOYKS
+#\\\|T6I3R5QZHSKMDQXQ7OBTH4SACZVIVZ5LRKXJCSJBWJBUSRKRZGM \ / AMOS7 \ YOURUM ::
+#\[7]MDMYK2R7CKO7UFNA4EOWUUT5IM75R245BOPHSO2C6T7XVWH2GSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

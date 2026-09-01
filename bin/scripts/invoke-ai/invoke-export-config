@@ -104,7 +104,7 @@ sub export_models {
 
     ## Add Windows path warnings
     for my $m (@$models) {
-        if ( $m->{path} && $m->{path} =~ /^[A-Z]:/i ) {
+        if ( $m->{path} && $m->{path} =~ m|^[A-Z]:|i ) {
             $m->{_warning} = "Windows path detected - needs conversion";
         }
     }
@@ -136,8 +136,8 @@ sub export_images {
 
     print "Exporting image metadata (this may take a while)...\n";
 
-    ## Export only essential metadata
-    ## Note: metadata field uses 'positive_prompt' not 'prompt'
+    ## Export only essential metadata  Note: metadata field uses
+    ## 'positive_prompt' not 'prompt'
     my $sql = q{SELECT
         i.image_name,
         i.image_origin,
@@ -258,8 +258,8 @@ USAGE
     exit(0);
 }
 
-#,,.,,,,,,,.,,.,.,.,.,,,.,,..,.,.,,,.,,.,,,,.,.,.,...,...,,..,.,.,.,,,,,,,.,.,
-#I4QEHZ7YESSQZVN5DBPT2STAUUAULCNDMED7QCVFE6BPJVLHXXLC3CODRSNUHKT5D4FOFTU7EFTA4
-#\\\|C3HO7SFCRIP3YTWKSKQFCP3RAYSQGGO5XUZ63PFX5DLW6KGZ46V \ / AMOS7 \ YOURUM ::
-#\[7]SZYQK6UT6G5NT75OZK3RMELQBVI5U4N5FGYYQLLOI5GF3PAYJ6AQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,,,,,.,,...,...,,,,,,,,,..,,.,.,...,...,,,.,.,.,..,,.,,,,..,
+#D6QAZ6EWIAULI5A4QGUYDVW5G2Z6B5PGQD7NP3XCKBSMUZTPVW5Y4NBYAJQR67G25MQGYRB47QX2Y
+#\\\|AA7Y7IZK6ZIOUD232WFHTPYDXUPW5JYIFO5MU3QHYKB7VARZZDX \ / AMOS7 \ YOURUM ::
+#\[7]YBYAEPRAXNSU2YZKBLVNV4VVJYLFITCEF5YQ7GM2KRZONBVPXGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -213,7 +213,9 @@ foreach my $char (@b32_sorted) {
 
     frame_row(
         sprintf(
-            "$C{'g'}%-8s$C{'R'} ${SEP} $C{'T'}%-10s$C{'R'} ${SEP} $C{'0'}%10d$C{'R'} ${SEP} $C{'T'}%10s$C{'R'} ${SEP} $C{'g'}%9.2f%%$C{'R'}",
+            "$C{'g'}%-8s$C{'R'} ${SEP} $C{'T'}%-10s$C{'R'} ${SEP} "
+                . "$C{'0'}%10d$C{'R'} ${SEP} $C{'T'}%10s$C{'R'} ${SEP} "
+                . "$C{'g'}%9.2f%%$C{'R'}",
             $bits, "'$char'", $count, $freq, $pct
         )
     );
@@ -327,7 +329,9 @@ foreach my $char (@content_sorted) {
 
     frame_row(
         sprintf(
-            "$C{'T'}%-10s$C{'R'} ${SEP} $C{'0'}%10d$C{'R'} ${SEP} $C{'T'}%10s$C{'R'} ${SEP} $C{'g'}%9.2f%%$C{'R'} ${SEP} $C{'0'}%-10s$C{'R'}",
+            "$C{'T'}%-10s$C{'R'} ${SEP} $C{'0'}%10d$C{'R'} ${SEP} "
+                . "$C{'T'}%10s$C{'R'} ${SEP} $C{'g'}%9.2f%%$C{'R'} ${SEP} "
+                . "$C{'0'}%-10s$C{'R'}",
             "'" . char_label($char) . "'",
             $count, $freq, $pct, $type
         )
@@ -381,7 +385,8 @@ for my $i ( 0 .. $#bin_ranges ) {
     my $pct  = sprintf( '%.2f', ( $bin_count / $decoded_len ) * 100 );
     frame_row(
         sprintf(
-            "$C{'0'}%-21s$C{'R'} ${SEP} $C{'T'}%10d$C{'R'} ${SEP} $C{'0'}%10s$C{'R'} ${SEP} $C{'g'}%9.2f%%$C{'R'}",
+            "$C{'0'}%-21s$C{'R'} ${SEP} $C{'T'}%10d$C{'R'} ${SEP} "
+                . "$C{'0'}%10s$C{'R'} ${SEP} $C{'g'}%9.2f%%$C{'R'}",
             $printable_bins[$i], $bin_count, $freq, $pct
         )
     );
@@ -394,8 +399,8 @@ say "$C{'T'}script complete$C{'R'}";
 
 __END__
 
-#,,.,,.,,,,,,,,..,,,.,,.,,,..,...,,..,,,,,,..,..,,...,...,...,,,.,,,.,,,.,,,.,
-#G25BS3ABRU6RS75IKIQ4WT3ZRRG5IG4U5QQ7A2W2ORLIQPKVG6NW57UTISTG4JYQWQIPLVCGDWGU6
-#\\\|4ZPGMYZKPKE6YIXMQ5ZBQC6GTNR3OHYVVISEGNEGOQXG7UDTPDV \ / AMOS7 \ YOURUM ::
-#\[7]PGHUTRQ6LEQERYXBPPHSCA3EGQINBD7LJ25SNWXJU2WCVUM7CMDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,,,.,.,..,,.,.,.,,,,,,,,,.,,,,,..,,...,...,,,.,...,,,.,,..,..,,
+#ZWF3NRBDBLW4OYRGQBLNDKMYJVO72YCXRYOAQ5L4GP4R7DFODDG3DIJFGUGEEJCSZRQYBBIKNYV5O
+#\\\|WLMQHJ5PEIJZFYOSMAHGAIHGGPI6Z7MAI2K6QUWJTZRTUQ22DRJ \ / AMOS7 \ YOURUM ::
+#\[7]QDL5VN4W5YVEJYA4U7P2X4I6DZKMDB2EOLPOJVCGRYXMWMVC6SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
