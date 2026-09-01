@@ -20,9 +20,8 @@ my $string      = $X->atom('STRING');
 my $fetch_title = sub {
     my ( $wid, $atom, $req_type ) = @_;
     return undef unless defined $wid and defined $atom;
-    my ($val) = eval {
-        $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 );
-    };
+    my ($val)
+        = eval { $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 ); };
     return undef if $EVAL_ERROR or not defined $val or not length $val;
     return $val;
 };
@@ -79,8 +78,8 @@ say '[ no mapped windows found ]' if not @entries;
 
 exit;
 
-#,,,,,...,,.,,..,,.,,,..,,,,.,.,,,,,,,...,,,.,..,,...,...,,,,,...,,.,,..,,.,,,
-#RJ3U5JJX7FOAWVJBOP6SKQ3UQX4OQ6UJCYIAIQ2QB4TY5NCDRH3XJTZ3GB4CTFYRQLJ3ATDNFA4FY
-#\\\|UVDYUGRRDM3V4JZ2DAWD3LIVDPIFD7S3OGMAA6UZOG5YOMMASVC \ / AMOS7 \ YOURUM ::
-#\[7]BOI443ZQY2SQ5JIWHFBW3HEUFTIGTGL73JKNYP7DQWUESIIVJ6AY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,,,,,.,.,.,.,,,,,..,,,.,,,.,,..,,...,..,,..,,,,.,..,,.,.,,.,,
+#75MR5ADQUOFUITC6ESYMCVME74QAEJICTWP2HHVBQ2YO4GRJDJT34BQHZ5MTNM3WGYJ65LLFQQDME
+#\\\|CJ4UD3OLQLTIKQEMFRWHQASQKAV6GQBYI3TCP3OVITY5JKD7LDP \ / AMOS7 \ YOURUM ::
+#\[7]AI4U3KOEKXVOV3MTKTCNRKBRJZOZQDI5ECWPDJ2RUQ2FC3FBLUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

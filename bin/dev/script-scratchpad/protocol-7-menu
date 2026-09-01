@@ -7,9 +7,9 @@ use strict;
 use English;
 use warnings;
 use File::Spec;
-use Gtk3 qw| -init |;
-use feature qw| :5.10 |;
-use Glib qw| TRUE FALSE |;
+use Gtk3        qw| -init |;
+use feature     qw| :5.10 |;
+use Glib        qw| TRUE FALSE |;
 use Time::HiRes qw| sleep |;
 
 use Data::Dumper qw| Dumper |;
@@ -81,8 +81,8 @@ $window->add($image);
 my $menu = Gtk3::Menu->new();
 
 my $trance_item = Gtk3::MenuItem->new_with_label(qq|start-up X-11 zenka|);
-$trance_item->signal_connect( 'activate' => sub {qx| p7c v7.start_once X-11 |}
-);
+$trance_item->signal_connect(
+    'activate' => sub {qx| p7c v7.start_once X-11 |} );
 $menu->append($trance_item);
 
 my $dpms_item = Gtk3::MenuItem->new_with_label(qq|OFF ( backlight )|);
@@ -139,8 +139,8 @@ sub handler_menu_activated {
     print "<activated> $label_str\n";
 }
 
-#,,,,,,,.,..,,..,,,..,,..,.,,,,,.,,.,,,,.,..,,..,,...,..,,,,.,,,.,,,,,,..,.,.,
-#4KYWTBZQJXBLQOP56FNMUPKACZTE6JGBWNTWO2NQR6IKHQ7NUONN6VGETRSN7SNMNGOB6TU3S2QEO
-#\\\|AVAYSZUBAD5FPYPOBWFVLBFJSXB3FTYOM23BFX6YVCKRWXN5L5B \ / AMOS7 \ YOURUM ::
-#\[7]V6DMMMQG2SBXQJSCG72TBANFVRX4ZBDWLLRTKVDUF4T7MSKLFADA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,..,,..,,,.,,,,,,...,...,,.,,..,,...,...,.,.,..,,.,,,..,,,,.,
+#2OELDEHLP5UTRYQTQERZUQB7GAYU47DKWCXQC6XSF3HYZQ7POY5NHN2QOWZ7G7VBM2ZAOAEN6FASM
+#\\\|7ZEHIHDQ46PRJGB7L2R5R7U3MBKG2JEA3ZCQUXOKIAVQMAAJAX5 \ / AMOS7 \ YOURUM ::
+#\[7]BLX4XRQNBXAUSJ2WXDRTITDVJNK5G3FQQZUDJYVS6M2FCR5GFSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

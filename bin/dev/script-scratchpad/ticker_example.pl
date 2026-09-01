@@ -46,7 +46,7 @@ my $bg_col = SDL::Color->new( 0x00, 0x00, 0x13 );    # background
 my $sh_col = SDL::Color->new( 0x00, 0x01, 0x17 );    # text shadow
 
 # the test text ...
-my $test_text = << '__EOT__'
+my $test_text = <<'__EOT__'
      . 0 000 4511 932 230769 - 040 \ 707 .,
     ^
         . parasites do not compute ., .:[ HOLES IN SPACE ]:.
@@ -121,8 +121,8 @@ SDL::Video::fill_rect( $display,
 my $scroll_text = $test_text;
 $scroll_text =~ s|\n| |g;
 $scroll_text =~ s| +| |g;
-$scroll_text =~ s/^\s+|\s+$//g;
-$scroll_text =~ s/\s*\^\s*/^/g;
+$scroll_text =~ s{^\s+|\s+$}{}g;
+$scroll_text =~ s|\s*\^\s*|^|g;
 
 ## preparing the text snipplet images in memory beforehand ##
 
@@ -289,8 +289,8 @@ while (1) {    # main loop ( exits on QUIT, mouse and key events)
     }
 }
 
-#,,.,,.,.,,,,,.,.,,,,,.,.,,.,,.,,,,,,,...,,..,..,,...,...,...,,,.,.,,,,,.,,.,,
-#MRNH2XOJW645AIWX6MI7OMQX3QAZMZILLGOYEOQO2QK3BMG4CFBFD6X3QZ5LZ6LE4MD4K422CEEHE
-#\\\|6JLUPQE7WYU6S3TR2HGXE6LPBH25H56LBCK6Z543DPR6Q5DFXV7 \ / AMOS7 \ YOURUM ::
-#\[7]75VGT4K3NHEWDIUPRRE67IZZDCWR3ZKGNJVG4FY4AR2S3I2MI4DY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,.,,,,.,,,.,...,.,.,.,,,..,,.,,,..,,...,...,...,..,,..,,..,,,,,,
+#4VB4PCKIN5XQBBWIVOBPCHXV2EJCPO67IVADIGIXDLDOKUIFCHZSU4GDZ4OQYIB5T4VXYCBPD6TCC
+#\\\|2OKQBQBYEBB7S3AP67CKNTT5CJLZBSYFFB2MI3YTH7JOPN25WSB \ / AMOS7 \ YOURUM ::
+#\[7]SN252OIFR4LK2SYYWP3H3M6PJ7VYFOO5JV3IBNMWNWSO7BHLL4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -141,10 +141,10 @@ ok( 'summary scanned at least two controlled segments',
 
 print "\n: cross-user skip behavior\n";
 print ":   /dev/shm sticky bit : ", `stat -c '%A' /dev/shm`;
-print
-    ":   verified by code reading only in this single-user test environment.\n";
-print
-    ":   sweep_stale_segments checks -O (owned by effective UID) before any\n";
+print ":   verified by code reading only in "
+    . "this single-user test environment.\n";
+print ":   sweep_stale_segments checks -O "
+    . "(owned by effective UID) before any\n";
 print ":   read or unlink attempt, so non-owned segments are counted as\n";
 print ":   skipped_other_owner and never touched.\n";
 
@@ -167,8 +167,8 @@ if ( $failed == 0 ) {
     exit 1;
 }
 
-#,,,,,,..,...,..,,,.,,,,.,.,.,,,,,.,.,.,.,,.,,..,,...,...,.,.,,.,,.,,,...,,,.,
-#3JYHK22C45UGKN5IKJNU4AD26KOLTYLEILWH24ESJWUEFLBOV7XARKRDXKL57TFTKE3HDA6QA7MBE
-#\\\|3NAIRGQLNEILFWYUNCAX6P3ORIMIR2ZAQM6ARKICTF2PRUDR5UM \ / AMOS7 \ YOURUM ::
-#\[7]QF4ITNSNT6G5BP62TIYJ6B4YKARLEMTJAXO7H2DBASXZKSQIC2BI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,..,,,.,,,..,,..,.,.,,,,,,,,,..,,...,...,,..,,,,,,,.,...,,..,
+#HJMY367FZ6WBIR73OF5IB7W6SEMD5MN2DWVMLHWBY3MKPJPH2ARP62RMZ4J7A3T6G7TY7ZKBZWHIM
+#\\\|IZPSWAWJT4IHPV4T3F7DAINY2TAZUJ4U7KB3BGDK43DXG2DPNR6 \ / AMOS7 \ YOURUM ::
+#\[7]4ECYYNZ7PK3UAJONCMSXDHKCRFW7SLEKAGKIEES6CBFQGJCJYUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

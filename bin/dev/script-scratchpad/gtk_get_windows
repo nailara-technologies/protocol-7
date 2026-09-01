@@ -17,21 +17,25 @@ Glib::Object::Introspection->setup(
 
 my $have_wnck = eval {
     Glib::Object::Introspection->setup(
-        basename => 'Wnck', version => '3.0', package => 'Wnck'
-    ); 1;
+        basename => 'Wnck',
+        version  => '3.0',
+        package  => 'Wnck'
+    );
+    1;
 };
 
 say "DISPLAY=$ENV{DISPLAY}";
-say "GDK_BACKEND=" . ( $ENV{GDK_BACKEND} // '<unset>' );
+say "GDK_BACKEND=" .     ( $ENV{GDK_BACKEND}     // '<unset>' );
 say "WAYLAND_DISPLAY=" . ( $ENV{WAYLAND_DISPLAY} // '<unset>' );
 say '';
 
 my $screen_gdk = Gtk3::Gdk::Screen::get_default();
 
-my $X;            ## [ X11::Protocol connection, shared with deiconify test ] ##
-my @titled;       ## [ titled windows from recursive tree walk ] ##
+## [ X11::Protocol connection, shared with deiconify test ] ##
+my $X;
+my @titled;    ## [ titled windows from recursive tree walk ] ##
 
-if ( $have_wnck ) {
+if ($have_wnck) {
     my $screen = Wnck::Screen::get_default();
     $screen->force_update;
 
@@ -42,9 +46,10 @@ if ( $have_wnck ) {
         printf "(%04d, %04d) %04dx%04d:%2s $name\n", $win->get_geometry, $w;
     }
 } else {
-    say '[ Wnck not available — using GDK window stack (no names, empty on Wayland) ]';
+    say '[ Wnck not available — using GDK window '
+        . 'stack (no names, empty on Wayland) ]';
     my $windows = $screen_gdk->get_window_stack() // [];
-    if ( @$windows ) {
+    if (@$windows) {
         for my $w (@$windows) {
             printf "(%04d, %04d) %04dx%04d\n",
                 $w->get_x, $w->get_y, $w->get_width, $w->get_height;
@@ -63,16 +68,17 @@ $window->set_default_size( 200, 100 );
 $window->show_all;
 
 ## pump events so the window is realized and mapped ##
-while ( Gtk3::events_pending ) { Gtk3::main_iteration }
+while (Gtk3::events_pending) {Gtk3::main_iteration}
 select( undef, undef, undef, 0.3 );    ## give X server time to register ##
-while ( Gtk3::events_pending ) { Gtk3::main_iteration }
+while (Gtk3::events_pending) {Gtk3::main_iteration}
 
 my $gdk_window = $window->get_window;
 my $xid;
 if ( $gdk_window and $gdk_window->can('get_xid') ) {
     $xid = $gdk_window->get_xid;
     my $display = $gdk_window->get_display;
-    my $display_name = $display->can('get_name') ? $display->get_name : 'unknown';
+    my $display_name
+        = $display->can('get_name') ? $display->get_name : 'unknown';
     say "probe window XID = $xid (GdkDisplay: $display_name)";
     say "  visible=" . ( $window->get_visible // '?' );
 } else {
@@ -94,18 +100,20 @@ if ($xid) {
             my @client_ids  = ();
             if ($client_list) {
                 my ( $value, $type, $format, $bytes_after )
-                    = $X->GetProperty( $X->root, $client_list, 'AnyPropertyType',
-                    0, -1, 0 );
+                    = $X->GetProperty( $X->root, $client_list,
+                    'AnyPropertyType', 0, -1, 0 );
                 @client_ids = unpack( 'L*', $value );
                 say "  _NET_CLIENT_LIST count: " . scalar(@client_ids);
             } else {
                 say "  _NET_CLIENT_LIST atom not found";
             }
 
-            my @found = grep { defined $_ and $_ ne 'None' and $_ == $xid } @children;
+            my @found = grep { defined $_ and $_ ne 'None' and $_ == $xid }
+                @children;
             my @found_client = grep { $_ == $xid } @client_ids;
 
-            ## recursive tree walk fallback (like updated X-11.window_id_found) ##
+            ## recursive tree walk fallback (like updated ##
+            ## X-11.window_id_found)                      ##
             my $found_tree = 0;
             if ( not @found_client and not @found ) {
                 my @stack = ( $X->root );
@@ -120,13 +128,17 @@ if ($xid) {
             if (@found_client) {
                 say "XID $xid found in _NET_CLIENT_LIST [OK]";
             } elsif (@found) {
-                say "XID $xid found as direct root child but NOT in _NET_CLIENT_LIST";
+                say "XID $xid found as direct root "
+                    . "child but NOT in _NET_CLIENT_LIST";
             } elsif ($found_tree) {
                 say "XID $xid found via recursive tree walk [OK]";
             } else {
                 say "X11::Protocol did NOT find XID $xid [FAIL]";
-                say "  first few child XIDs: " . join( ', ', @children[ 0 .. 9 ] );
-                say "  first few client XIDs: " . join( ', ', @client_ids[ 0 .. 9 ] );
+                say "  first few "
+                    . "child XIDs: "
+                    . join( ', ', @children[ 0 .. 9 ] );
+                say "  first few client " . "XIDs: "
+                    . join( ', ', @client_ids[ 0 .. 9 ] );
             }
         } else {
             say "could not connect X11::Protocol to $ENV{DISPLAY}: $@";
@@ -141,13 +153,12 @@ if ($xid) {
             my $net_wm_name = $X->atom('_NET_WM_NAME');
             my $utf8_string = $X->atom('UTF8_STRING');
             my $string      = $X->atom('STRING');
-            my $any         = 0;    ## AnyPropertyType
+            my $any         = 0;                          ## AnyPropertyType
 
-            say "atoms: WM_NAME=$wm_name  _NET_WM_NAME=$net_wm_name  "
-                . "UTF8_STRING=$utf8_string  STRING=$string";
+            say "atoms: WM_NAME=$wm_name  _NET_WM_NAME=$net_wm_name "
+                . " UTF8_STRING=$utf8_string  STRING=$string";
 
-            my ( undef, undef, @root_children )
-                = $X->QueryTree( $X->root );
+            my ( undef, undef, @root_children ) = $X->QueryTree( $X->root );
 
             ## helper to fetch a property and return ( value, type_name ) ##
             my $fetch_title = sub {
@@ -157,8 +168,9 @@ if ($xid) {
                     $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 );
                 };
                 return () if $@ or not defined $val or not length $val;
-                my $type_name
-                    = defined $type ? $X->atom_name($type) // $type : '<undef>';
+                my $type_name = defined $type
+                    ? $X->atom_name($type) // $type
+                    : '<undef>';
                 return ( $val, $type_name, $format, $bytes_after );
             };
 
@@ -171,20 +183,20 @@ if ($xid) {
                     [ 'WM_NAME',      $wm_name,     $string ],
                     [ '_NET_WM_NAME', $net_wm_name, $any ],
                     [ '_NET_WM_NAME', $net_wm_name, $utf8_string ],
-                    )
-                {
+                ) {
                     my ( $label, $atom, $req_type ) = @$spec;
                     my ( $val, $type, $format, $bytes_after )
                         = $fetch_title->( $xid, $atom, $req_type );
-                    printf "  %-18s req=%-12s => val=[%s] type=%s fmt=%s left=%s\n",
-                        $label,
-                        (   $req_type == 0
-                            ? 'Any'
-                            : $X->atom_name($req_type) // $req_type
+                    printf "  %-18s req=%-12s => val=[%s] "
+                        . "type=%s fmt=%s left=%s\n", $label,
+                        (
+                        $req_type == 0
+                        ? 'Any'
+                        : $X->atom_name($req_type) // $req_type
                         ),
                         ( defined $val ? $val : '<undef>' ),
-                        ( $type   // '<undef>' ),
-                        ( $format // '<undef>' ),
+                        ( $type        // '<undef>' ),
+                        ( $format      // '<undef>' ),
                         ( $bytes_after // '<undef>' );
                 }
             }
@@ -193,7 +205,10 @@ if ($xid) {
             say '';
             say 'direct root children:';
             foreach my $wid (@root_children) {
-                next unless defined $wid and $wid ne 'None' and $wid =~ m|^\d+$|;
+                next
+                    unless defined $wid
+                    and $wid ne 'None'
+                    and $wid =~ m|^\d+$|;
                 my %wa = eval { $X->GetWindowAttributes($wid) };
                 next if $@ or not %wa;
                 next if ( $wa{'map_state'} // '' ) eq 'Unmapped';
@@ -205,8 +220,7 @@ if ($xid) {
                     [ '_NET_WM_NAME/Any',  $net_wm_name, $any ],
                     [ 'WM_NAME/String',    $wm_name,     $string ],
                     [ 'WM_NAME/Any',       $wm_name,     $any ],
-                    )
-                {
+                ) {
                     my ( $label, $atom, $req_type ) = @$spec;
                     my ($val) = $fetch_title->( $wid, $atom, $req_type );
                     next unless defined $val and length $val;
@@ -235,8 +249,7 @@ if ($xid) {
                     [ '_NET_WM_NAME/Any',  $net_wm_name, $any ],
                     [ 'WM_NAME/String',    $wm_name,     $string ],
                     [ 'WM_NAME/Any',       $wm_name,     $any ],
-                    )
-                {
+                ) {
                     my ( undef, $atom, $req_type ) = @$spec;
                     my ($val) = $fetch_title->( $wid, $atom, $req_type );
                     next unless defined $val and length $val;
@@ -256,9 +269,9 @@ if ($xid) {
             say '';
             say 'external xprop check:';
             if ($xid) {
-                my $out = eval { `xprop -id $xid WM_NAME _NET_WM_NAME 2>&1` };
+                my $out = eval {`xprop -id $xid WM_NAME _NET_WM_NAME 2>&1`};
                 say "  probe $xid:";
-                say "    $_" for split /\n/, ( $out // '' );
+                say "    $_" for split m|\n|, ( $out // '' );
             }
         }
     } else {
@@ -275,7 +288,7 @@ if ($X) {
     my $target_title;
     foreach my $pair (@titled) {
         next unless defined $pair and @$pair == 2;
-        my ($id, $title) = @$pair;
+        my ( $id, $title ) = @$pair;
         next unless defined $id and defined $title;
         if ( index( lc($title), 'mpv' ) != -1 ) {
             $target_xid   = $id;
@@ -291,19 +304,21 @@ if ($X) {
     if ($target_xid) {
         say "target XID = $target_xid ($target_title)";
 
-        my $root           = $X->root;
-        my $wm_change_state = $X->atom('WM_CHANGE_STATE');
-        my $net_active_win  = $X->atom('_NET_ACTIVE_WINDOW');
-        my $net_wm_state    = $X->atom('_NET_WM_STATE');
+        my $root                = $X->root;
+        my $wm_change_state     = $X->atom('WM_CHANGE_STATE');
+        my $net_active_win      = $X->atom('_NET_ACTIVE_WINDOW');
+        my $net_wm_state        = $X->atom('_NET_WM_STATE');
         my $net_wm_state_hidden = $X->atom('_NET_WM_STATE_HIDDEN');
-        my $wm_state_atom   = $X->atom('WM_STATE');
+        my $wm_state_atom       = $X->atom('WM_STATE');
 
         my $show_target_state = sub {
-            my ($label) = @_;
-            my %wa = eval { $X->GetWindowAttributes($target_xid) };
+            my ($label)  = @_;
+            my %wa       = eval { $X->GetWindowAttributes($target_xid) };
             my $wm_state = eval {
-                my ($val) = $X->GetProperty($target_xid, $wm_state_atom, 'AnyPropertyType', 0, 2, 0);
-                defined $val ? join(',', unpack('L2', $val)) : 'undef';
+                my ($val)
+                    = $X->GetProperty( $target_xid, $wm_state_atom,
+                    'AnyPropertyType', 0, 2, 0 );
+                defined $val ? join( ',', unpack( 'L2', $val ) ) : 'undef';
             };
             say "  $label: map_state=$wa{map_state} WM_STATE=$wm_state";
         };
@@ -312,7 +327,7 @@ if ($X) {
         say '';
         say 'approach 0: X11::Protocol::WM::iconify';
         $show_target_state->('before');
-        eval { X11::Protocol::WM::iconify($X, $target_xid) };
+        eval { X11::Protocol::WM::iconify( $X, $target_xid ) };
         say "  iconify error: $@" if $@;
         select( undef, undef, undef, 1.0 );
         $show_target_state->('after');
@@ -323,9 +338,14 @@ if ($X) {
             return undef unless defined $wid and $wid ne 'None';
             my $current = $wid;
             while ( defined $current and $current ne 'None' ) {
-                my (undef, $parent, @siblings) = eval { $X->QueryTree($current) };
-                return $current if $@ or not defined $parent or $parent == $root;
-                return undef    if $parent == $current;    ## root reached somehow ##
+                my ( undef, $parent, @siblings )
+                    = eval { $X->QueryTree($current) };
+                return $current
+                    if $@
+                    or not defined $parent
+                    or $parent == $root;
+                ## root reached somehow ##
+                return undef if $parent == $current;
                 $current = $parent;
             }
             return undef;
@@ -334,77 +354,83 @@ if ($X) {
         say "  container (direct root child) = " . ( $container // '<none>' );
 
         my @approaches = (
-            [ 'wmctrl -ia (not available)', sub { } ],
+            [ 'wmctrl -ia (not available)',                  sub { } ],
             [ 'wmctrl -ir -b remove,hidden (not available)', sub { } ],
-            [ 'WM_CHANGE_STATE NormalState=1 ClientMessage',
-              sub {
-                  $X->SendEvent(
-                      $root, 0,
-                      $X->pack_event_mask(qw| SubstructureNotify SubstructureRedirect |),
-                      $X->pack_event(
-                          'name'   => 'ClientMessage',
-                          'window' => $target_xid,
-                          'type'   => $wm_change_state,
-                          'format' => 32,
-                          'data'   => pack('L5', 1, 0, 0, 0, 0)
-                      )
-                  );
-              }
+            [   'WM_CHANGE_STATE NormalState=1 ClientMessage',
+                sub {
+                    $X->SendEvent(
+                        $root, 0,
+                        $X->pack_event_mask(
+                            qw| SubstructureNotify SubstructureRedirect |),
+                        $X->pack_event(
+                            'name'   => 'ClientMessage',
+                            'window' => $target_xid,
+                            'type'   => $wm_change_state,
+                            'format' => 32,
+                            'data'   => pack( 'L5', 1, 0, 0, 0, 0 )
+                        )
+                    );
+                }
             ],
-            [ '_NET_WM_STATE remove _NET_WM_STATE_HIDDEN ClientMessage',
-              sub {
-                  return if not defined $net_wm_state_hidden;
-                  $X->SendEvent(
-                      $root, 0,
-                      $X->pack_event_mask(qw| SubstructureNotify SubstructureRedirect |),
-                      $X->pack_event(
-                          'name'   => 'ClientMessage',
-                          'window' => $target_xid,
-                          'type'   => $net_wm_state,
-                          'format' => 32,
-                          'data'   => pack('L5', 0, $net_wm_state_hidden, 0, 0, 0)
-                      )
-                  );
-              }
+            [   '_NET_WM_STATE remove _NET_WM_STATE_HIDDEN ClientMessage',
+                sub {
+                    return if not defined $net_wm_state_hidden;
+                    $X->SendEvent(
+                        $root, 0,
+                        $X->pack_event_mask(
+                            qw| SubstructureNotify SubstructureRedirect |),
+                        $X->pack_event(
+                            'name'   => 'ClientMessage',
+                            'window' => $target_xid,
+                            'type'   => $net_wm_state,
+                            'format' => 32,
+                            'data'   => pack(
+                                'L5', 0, $net_wm_state_hidden, 0, 0, 0
+                            )
+                        )
+                    );
+                }
             ],
-            [ 'MapWindow on container + ConfigureWindow Above',
-              sub {
-                  return if not defined $container;
-                  $X->MapWindow($container);
-                  $X->ConfigureWindow($container, 'stack_mode' => 'Above');
-              }
+            [   'MapWindow on container + ConfigureWindow Above',
+                sub {
+                    return if not defined $container;
+                    $X->MapWindow($container);
+                    $X->ConfigureWindow( $container,
+                        'stack_mode' => 'Above' );
+                }
             ],
-            [ 'set WM_STATE NormalState=1 + MapWindow container + MapWindow target',
-              sub {
-                  return if not defined $container;
-                  $X->ChangeProperty(
-                      $target_xid, $wm_state_atom, $wm_state_atom, 32, 'Replace',
-                      pack('L2', 1, 0)
-                  );
-                  $X->MapWindow($container);
-                  $X->MapWindow($target_xid);
-                  $X->ConfigureWindow($container, 'stack_mode' => 'Above');
-              }
+            [   'set WM_STATE NormalState=1 + '
+                    . 'MapWindow container + MapWindow target',
+                sub {
+                    return if not defined $container;
+                    $X->ChangeProperty( $target_xid, $wm_state_atom,
+                        $wm_state_atom, 32, 'Replace', pack( 'L2', 1, 0 ) );
+                    $X->MapWindow($container);
+                    $X->MapWindow($target_xid);
+                    $X->ConfigureWindow( $container,
+                        'stack_mode' => 'Above' );
+                }
             ],
-            [ '_NET_ACTIVE_WINDOW ClientMessage',
-              sub {
-                  $X->SendEvent(
-                      $root, 0,
-                      $X->pack_event_mask(qw| SubstructureNotify SubstructureRedirect |),
-                      $X->pack_event(
-                          'name'   => 'ClientMessage',
-                          'window' => $target_xid,
-                          'type'   => $net_active_win,
-                          'format' => 32,
-                          'data'   => pack('L5', 1, 0, 0, 0, 0)
-                      )
-                  );
-              }
+            [   '_NET_ACTIVE_WINDOW ClientMessage',
+                sub {
+                    $X->SendEvent(
+                        $root, 0,
+                        $X->pack_event_mask(
+                            qw| SubstructureNotify SubstructureRedirect |),
+                        $X->pack_event(
+                            'name'   => 'ClientMessage',
+                            'window' => $target_xid,
+                            'type'   => $net_active_win,
+                            'format' => 32,
+                            'data'   => pack( 'L5', 1, 0, 0, 0, 0 )
+                        )
+                    );
+                }
             ],
         );
 
         foreach my $approach (@approaches) {
-            my ($name, $code) = @$approach;
+            my ( $name, $code ) = @$approach;
             say '';
             say "approach: $name";
             $show_target_state->('before');
@@ -422,8 +448,8 @@ if ($X) {
 
 exit;
 
-#,,..,.,,,,.,,.,.,.,.,,,.,.,.,,,,,,,,,...,,.,,.,.,...,...,..,,,.,,.,,,,,,,.,.,
-#BOBNDD5NM7I3PQHW3BCDFGZXH64R2YQ5JKRL6YTTWIQ23X3IVM3PKZQ2PDNOO7WYS277Y55TBGGQG
-#\\\|D5V3AX2DRNPPZFWX4AFMCESM6PLJIB3UOUPDVKOBPJXHKAUHSZV \ / AMOS7 \ YOURUM ::
-#\[7]EP2NAN2FPAU6SMF4ZBNCXOCWTM7NQVZBEAFVB4ZVPZTLM5U3F4DQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,,,.,...,...,.,,,.,.,,..,,,.,.,.,...,...,..,,,,.,,,.,,,,,.,,,
+#M5M2FQNEMZGDBVW7BNVPP7JVQMF2BQMXDCEHGPTEBVSOZNCH7AFEVFRR2ID5JO224QU5YWCS23PMO
+#\\\|H6ITXY6RSXYX6W3MAAXQDGZNIM33SZQQHDW3IM7EYIV5GTIKG7X \ / AMOS7 \ YOURUM ::
+#\[7]VZWCRXFDUIYJEUI3BQ3BQOLIM5OYR7TUYZSOUZ6LRKJAU6R2UYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
