@@ -583,12 +583,60 @@ existing step0-step5 pipeline:
   would need the `sourcecode` zenka or an AMOS7 module instead, flagged
   as a future direction, not started.
 
+## 2026-09-01 continued: -p postfix-deref, -r regex-delimiter, signal cleanup
+
+Same session, after the -d/-m/used-once work above.
+
+- `-p` / `-postfix-deref` (`step8_compact_postfix_deref_sugar`, commit
+  82fdb008d for the repo-wide pass): `${<key.path>}` / `%{<key.path>}` /
+  `@{<key.path>}` (including the `<[module.name]>` call-sugar form) ->
+  postfix deref (`<key.path>->$*` etc.), only when the braces contain
+  nothing but the bare sugar token. 271 real occurrences. Simplest of the
+  four new steps, landed clean on the first real dispatch.
+- `-r` / `-regex-style` (`step9_normalize_regex_delimiters`, commit
+  d12228697 for the repo-wide pass): `m//`/`s///`/bare `=~ //` ->
+  `m||`/`s|||`, escalating to `m{}`/`s{}{}` only when the body contains a
+  literal `|`. Authoritative rule source:
+  `data/yaml/context-templates/regex-style-fix.yaml`. **Real, severe bug
+  found before any repo-wide run**: PPI can't parse `<key.path>` as a
+  completed Perl "value", so it misreads the defined-or operator `//`
+  right after one (e.g. `<system.task_id> // 'unknown'`) as an empty
+  regex match, producing `<system.task_id> m|| 'unknown'` -- silently
+  broken syntax. 1354 files / 3156 occurrences of `<...> //` in src/ would
+  have been hit. Caught by testing one file (`note.tag`) before the
+  repo-wide pass, not after. Fixed by treating ANY bare empty-pattern
+  `//` as this misparse and skipping it unconditionally -- a genuinely
+  intentional empty regex match is essentially never real code, while
+  `X // default` is everywhere in this codebase. 541 real occurrences in
+  the eventual clean repo-wide pass.
+- Signal-handling gap found separately (commit e2b6ea1ef): the
+  `-c` check path's `.chk.<name>` temp file only got cleaned up on normal
+  completion -- Ctrl-C, an external TERM, Ctrl-\, a downstream pipe reader
+  exiting early all left it behind. Fixed: track the in-flight temp file
+  in a file-scope var, one shared `sig_stop` handler (perl passes the
+  signal name to a `%SIG` handler as its first arg) registered for INT,
+  TERM, QUIT, HUP, and PIPE. HUP deliberately uses the traditional
+  "terminal gone, stop" meaning, not the daemon "reload config"
+  convention -- no persistent state to reload here, and silently
+  restarting the whole batch on a terminal hangup would be worse than
+  just stopping. PIPE skips the status-message print specifically (would
+  just raise PIPE again writing to the same broken pipe inside the
+  handler).
+
+**Also found twice this session, worth generalizing**: stale content from
+an earlier *pre-fix* exploratory run of a step can sit unnoticed in the
+working tree and ride into a LATER, unrelated batch commit once something
+else gets staged and the pre-commit hook's own broad auto-staging sweeps
+it in too -- see [[feedback-stale-tool-output-rides-into-later-commits]]
+for the general pattern (missing `->` on 42 real files, one file
+outright deleted, both traced back to this).
+
 ## related
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,,,,,,,,,..,.,.,...,..,,,..,...,,..,,,,,.,.,..,,...,...,...,..,,.,,,,,,,,..,
-#CY6SCPSSJORGJP4R2NM3LHX2LUZCMTLUXDIFPTMGKHBGQIR3LMOMSWRZ63NYQT35OJNJHUMXLYTNG
-#\\\|UPX3HEX2IZBJMX5ZOIRTLEYBNZVN4LWU7YBRVUUMWQFY6QYKD4Q \ / AMOS7 \ YOURUM ::
-#\[7]JYM2TF4H3VPVAQLIKA5FLQIEVICMDLQQL2J4ZGLWKYZ26EY6CYDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,..,,,,,,.,.,,,,,.,.,,.,,.,.,..,,...,.,.,,,,,,,,,,,,,,..,,.,,
+#X4ULZ2PISSRQ55MQJ35ZGPSCVN3USZHZ2N6EFS55DVQ62NEA2TFP3KYWWL2AVQGBJ7TXUPL54WDPC
+#\\\|UETWRLDQEHZUSG5CQD4BNWQEBU55NICY6IFQB52I4IDX3QLV36W \ / AMOS7 \ YOURUM ::
+#\[7]HKVSQV5BYMIPOY24GR4OHA26TKWXQAIC6656SR5MPIVVATOILOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
