@@ -55,24 +55,24 @@ my $flush = sub {
 while ( my $line = <$in_fh> ) {
     $line_count++;
 
-    if ( $line =~ /^From / and $seen_blank ) {
+    if ( $line =~ m|^From | and $seen_blank ) {
         $flush->($current_matched);
         $current_matched = 0;
         $in_headers      = 1;
     }
 
     if ($in_headers) {
-        if ( $line =~ /^\s*$/ ) {
+        if ( $line =~ m|^\s*$| ) {
             $in_headers = 0;
-        } elsif ( $line =~ /^(?:To|Cc|Bcc):\s*(.*)$/i ) {
+        } elsif ( $line =~ m{^(?:To|Cc|Bcc):\s*(.*)$}i ) {
             $current_matched = 1 if $1 =~ $to_re;
-        } elsif ( $line =~ /^Subject:\s*(.*)$/i ) {
-            $current_matched = 1 if $1 =~ /bewerbung/i;
+        } elsif ( $line =~ m|^Subject:\s*(.*)$|i ) {
+            $current_matched = 1 if $1 =~ m|bewerbung|i;
         }
     }
 
     push @buffer, $line;
-    $seen_blank = ( $line =~ /^\s*$/ ) ? 1 : 0;
+    $seen_blank = ( $line =~ m|^\s*$| ) ? 1 : 0;
 
     if ( $line_count % 200_000 == 0 ) {
         printf STDERR "..: %d lines, %d messages scanned, %d kept\n",
@@ -87,8 +87,8 @@ close($out_fh);
 printf STDERR "done : %d messages scanned, %d kept [ pattern '%s' ] -> %s\n",
     $total_messages, $kept_messages, $to_pattern, $output;
 
-#,,,,,..,,,.,,..,,.,.,,..,,.,,...,.,.,.,,,.,,,..,,...,...,,..,.,.,.,.,...,.,,,
-#RFRZR4KMNW2W4A2X34C6PEBPWGP7A6QPH64AGE4TZ6XMSZ2ACUTN2FU5T32LYRAF4JWDOJTI7647W
-#\\\|MKS6LJS4EOUN6F5WBMH2MQMTYPQLNBUPJSDRAUFXRKVWVWODK4P \ / AMOS7 \ YOURUM ::
-#\[7]MMHSBPYATQM2MJZHMLW3JD6CMWB7JPPWTVBYEEHUM4FE4HQK2ODY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,,.,,.,.,.,,,...,...,,..,...,..,,...,...,...,..,,..,,,..,,,,,
+#BDQQ2ZPCDXYUXC2RGFMBXH4NVR7JNMSJ2HPEVTN3CKLMQ5HH47UEEIKIOCNS3DEVCC7SFPLDTOXNK
+#\\\|ORSKYJKGNU73S2M6XJ7QZSK4N5JS24WJZ7F7QSZYBH63LEMNBXF \ / AMOS7 \ YOURUM ::
+#\[7]QLLWO4SAJQDVGNCKKKTARSEGZZZSHUBYFOIPETP2C4QREVAQQGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

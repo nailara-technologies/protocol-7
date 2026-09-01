@@ -699,22 +699,22 @@ sub load_profiles {
 
     while ( my $line = <$fh> ) {
         chomp $line;
-        next if $line =~ /^\s*#/;
-        next if $line =~ /^\s*$/;
+        next if $line =~ m|^\s*#|;
+        next if $line =~ m|^\s*$|;
 
-        if ( $line =~ /^  ([\w-]+):$/ ) {
+        if ( $line =~ m|^  ([\w-]+):$| ) {
             $current_profile            = $1;
             $current_section            = undef;
             $profiles{$current_profile} = {};
-        } elsif ( $line =~ /^    description: "(.+)"$/ ) {
+        } elsif ( $line =~ m|^    description: "(.+)"$| ) {
             $profiles{$current_profile}{description} = $1;
-        } elsif ( $line =~ /^    (includes|apt|cpan|cpan_fallback):$/ ) {
+        } elsif ( $line =~ m{^    (includes|apt|cpan|cpan_fallback):$} ) {
             $current_section = $1;
             $profiles{$current_profile}{$current_section} = [];
-        } elsif ( $line =~ /^      - (.+)$/ ) {
+        } elsif ( $line =~ m|^      - (.+)$| ) {
             my $item = $1;
-            $item =~ s/\s*#.*//;
-            $item =~ s/\s+$//;
+            $item =~ s|\s*#.*||;
+            $item =~ s|\s+$||;
             push @{ $profiles{$current_profile}{$current_section} }, $item
                 if $item;
         }
@@ -812,8 +812,8 @@ ${neon_green}ZENKA CONFIGURATION${reset}:
 EOF
 }
 
-#,,,.,,,.,,..,...,..,,..,,...,.,,,,,.,,,,,..,,..,,...,..,,,..,.,.,,.,,.,.,...,
-#PZIWTEGAXBQPJPRJVM7BL4P5SMGEU72YHOO7ALS3VROH6KEU5XUTFBSU2Z3TOD6EJJGLRRY6E66M2
-#\\\|ZLFYRCD4RRH4QAVH6AYJ2CG6CMPQXZCJU5LIU6CXWZWIEDR7M5K \ / AMOS7 \ YOURUM ::
-#\[7]RY2QORJBXXTALHRM7H46CKNYG7CPHUK57GID3WSD6XJ2INGPSOCI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,..,,,,.,,,,,,.,,.,,,.,.,,,.,,,,,..,,...,...,,..,,,,,,,,,,.,,,,,,
+#KL5RJXLZAQCHUXUOCCBQQVLMEKVDDHQGNQRFNNJ2XYNYSMKX3LAB4Z4GNUY3YKX4P424POTWBVJES
+#\\\|LD7FLGGHEEUU2VKWBPPYBXJF5U6LFZEMB2UVIPL6JTS7FU7L6GP \ / AMOS7 \ YOURUM ::
+#\[7]6T2OK3ATXKT73TTOD4ST5WKNQDN7HNTOAULCUKCGXRJY7TY2OGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
