@@ -26,7 +26,7 @@ my $output  = \$session->{'buffer'}->{'output'};
 ## encryption not initialized or nothing pending : plain drain ##
 if (   not defined $session->{'link_encryption_key'}
     or not bytes::length($$output) ) {
-    return $code{'base.handler.write'}->($event);
+    return <[base.handler.write]>->($event);
 }
 
 ##[ ENCRYPT PENDING OUTPUT INTO ONE FRAME ]###################################
@@ -75,10 +75,10 @@ $$output = $framed;
 $session->{'link_write_counter'} = $counter + 1;
 
 ## drain the framed bytes to the socket [ restarts watcher as needed ]
-return $code{'base.handler.write'}->($event);
+return <[base.handler.write]>->($event);
 
-#,,..,..,,,,,,...,...,..,,...,.,,,.,.,..,,.,,,.,.,...,...,.,,,..,,.,.,,,.,.,,,
-#2WHH4QHPQZYBRIIBVLPWPWARWCNEFWHLIOIFWSNA3D6E7PQPAGTDCBZ45MUM5AJ27Q57TYL4KFMDS
-#\\\|SUEI4LQV2I4JS7HQVGMTON3UKRRSIKFNZNXOAOOY4FK5WPJVEPN \ / AMOS7 \ YOURUM ::
-#\[7]3TVEHU7FD3L5POAFI6WDRCSC6MBQCTUP7QUWQ2HX4TWZHFSUUABQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,,.,,,,.,.,.,,..,,.,,..,,,..,.,.,...,...,,,,,.,.,,,.,..,,...,
+#HODH2PYOFUTQJGIZFSANVYLGCDMEJX6A7DRLLDCPYWHAYI3WYU2S46OETNZDEN23ETJQZFKZEZWRC
+#\\\|Q7PPU7VEXIZKHMIR7KX2DEVUQFOHYKLMDVEUC4ROGFYXXVLWRA4 \ / AMOS7 \ YOURUM ::
+#\[7]UMYP3P6NREKAK7G4CAXJIM55CXL5WVJTSHIKK3FW4EJK4VEF4QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

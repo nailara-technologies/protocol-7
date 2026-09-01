@@ -26,8 +26,7 @@ return $graph_result unless $graph_result->{'mode'} eq qw| true |;
 my $graph = $graph_result->{'data'};
 
 ## topological ordering ##
-my $order_result
-    = $code{'context.module.dep_order'}->( { 'graph' => $graph } );
+my $order_result = <[context.module.dep_order]>->( { 'graph' => $graph } );
 
 return $order_result unless $order_result->{'mode'} eq qw| true |;
 
@@ -79,8 +78,8 @@ my $plan = {
 
 return { 'mode' => qw| true |, 'data' => $plan };
 
-#,,.,,...,...,,,,,.,,,...,...,,.,,.,,,,,.,,,.,..,,...,...,,,,,.,,,.,.,..,,.,.,
-#3ZO3CGMQNPZDD5IAWR3S5KATA73O3MEZQ2DONCPXRHXTIA4HRA6BJOMFTM5CQGS626B7DQVPSC6LA
-#\\\|QEV7HEDLVR55E2H7JDSZBBX3SV2QGVMQAUTGO4K3TB34KWMIMJF \ / AMOS7 \ YOURUM ::
-#\[7]LC55D2THAWQHMQVRDCB56YFEOE7QPCHJ5RE7INXDDDDYSM77LCCY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,..,,,.,,,,.,.,,,,.,,.,,,.,,,,..,..,,...,...,...,,,.,,,.,..,,...,
+#IUTEJ3RM2CP2QL2D4L37FB6OIPUB6AOSJC25IR4RCVRB2VX23HBKGRB5LMYZDGRXMNJXXLPRUQXZC
+#\\\|Z6URB7EVHGTL66QKXH5SGZ6N6WSOUUZ63KJPPVFUVIAH6TGZDFE \ / AMOS7 \ YOURUM ::
+#\[7]FBT3SIG4THT2BVZ5BA5AH2XQMTH47B42MTAZCMVGVSVQ35IYW6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
