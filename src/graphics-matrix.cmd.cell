@@ -82,7 +82,7 @@ if ( $cmd eq '' ) {
         ->( { qw| counts | => $survey->{'counts'} } );
 
     ## format output like cmd.glow ##
-    my $glow = $data{'graphics-matrix'}{'glow'};
+    my $glow = <graphics-matrix.glow>;
     my $out  = sprintf "cell survey [total=%d]\n", $survey->{'total'} // 0;
 
     if ( %{ $glow->{'shells'} } ) {
@@ -131,7 +131,7 @@ if ( $cmd eq '' ) {
 
 } elsif ( $cmd eq qw| count | ) {
 
-    my $count = $data{'graphics-matrix'}{'cell'}{'count'};
+    my $count = <graphics-matrix.cell.count>;
     my $out   = sprintf "%d occupied cell%s\n",
         $count, ( $count == 1 ? '' : 's' );
     return { qw| mode | => qw| size |, qw| data | => $out };
@@ -144,8 +144,8 @@ if ( $cmd eq '' ) {
     };
 }
 
-#,,,.,.,.,.,,,.,.,,..,..,,..,,.,.,,,,,,.,,.,,,.,.,...,...,.,.,,,.,.,,,...,,.,,
-#OMI3BH4TSBUQL46A5I5B26HCYBSJKPUDESQLLGOUSU4H5UHKL2LMMPGXE6O6IKK5QCAQBSVQFECKW
-#\\\|YVYBBALLAPF56URZSHLKKDVXA5DTVUHLZXVQS72GTBAUFEODKHT \ / AMOS7 \ YOURUM ::
-#\[7]IS7GD2Q52LBFDYXLEWE2ZVGZGUG4CO5FIZ7EX4DOR546IKS3S2BQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,.,...,,.,,,,.,..,,,.,,,,,,.,,,.,.,...,...,..,,,,,,..,,...,.,,,
+#FMKYTHWTABL6WT2HM7P4WJNU5E6PWQNZMDJM7TZ3H5KBDXXSE6L6S3UZSJ5WOUTTZ7Y4GXCPZ4Q5I
+#\\\|C7DN6PX6TVEL73OE5APQELGKKPWSBD6A2ANY2NF4IIEK3JKIOFV \ / AMOS7 \ YOURUM ::
+#\[7]TM62A2LSEEV4SAVPKY454C6KGGVOAOX24TVEW2AQ4UBBKGX2XECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

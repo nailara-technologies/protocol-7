@@ -8,13 +8,13 @@
 ##[ REGISTER CORE ]###########################################################
 
 my $mapper = <[devmod.cmd.get]>->('data.topology.interference.map');
-$data{'topology'}{'interference'}{'map'} = $mapper;
+<topology.interference.map> = $mapper;
 
 $data{'get'} = <[devmod.cmd.get]>->('data.get');
 
 ##[ UNIFIED PHYSICS ]#########################################################
 
-$data{'unified'}{'physics'}{'electrical'} = sub {
+<unified.physics.electrical> = sub {
     my ( $position, $options ) = @ARG;
     $options //= {};
     $options->{'include_electrical'}  = 1;
@@ -27,7 +27,7 @@ $data{'unified'}{'physics'}{'electrical'} = sub {
     return $field->{'unified'} // {};
 };
 
-$data{'unified'}{'physics'}{'holographic'} = sub {
+<unified.physics.holographic> = sub {
     my ( $position, $options ) = @ARG;
     $options //= {};
     $options->{'include_electrical'}  = 0;
@@ -43,7 +43,7 @@ $data{'unified'}{'physics'}{'holographic'} = sub {
     };
 };
 
-$data{'unified'}{'physics'}{'magnetic'} = sub {
+<unified.physics.magnetic> = sub {
     my ( $position, $intent, $options ) = @ARG;
     $options //= {};
     $options->{'include_electrical'}  = 0;
@@ -66,7 +66,7 @@ $data{'unified'}{'physics'}{'magnetic'} = sub {
     };
 };
 
-$data{'unified'}{'physics'}{'field'} = sub {
+<unified.physics.field> = sub {
     my ( $position, $options ) = @ARG;
     my $hash  = <[data.init_holographic.coordinate_to_hash]>->(@$position);
     my $field = <[data.topology.interference.map]>->( $hash, $options // {} );
@@ -75,7 +75,7 @@ $data{'unified'}{'physics'}{'field'} = sub {
 
 ##[ TOPOLOGY ACCESS ]#########################################################
 
-$data{'topology'}{'resolve'} = sub {
+<topology.resolve> = sub {
     my ( $x, $y, $z, $property ) = @ARG;
     my $hash = <[data.init_holographic.coordinate_to_hash]>->( $x, $y, $z );
     my $data = <[data.topology.interference.map]>->( $hash, {} );
@@ -84,13 +84,13 @@ $data{'topology'}{'resolve'} = sub {
 
 ##[ INTENT REGISTRY ]#########################################################
 
-$data{'intent'}{'register'} = sub {
+<intent.register> = sub {
     my ( $entity_id, $current_pos, $intent_pos, $phase ) = @ARG;
 
     my $ghost_key = sprintf( "intent:%s:%d:%d:%d",
         $entity_id, $intent_pos->[0], $intent_pos->[1], $intent_pos->[2] );
 
-    $data{'topology'}{'ghosts'}{$ghost_key} = {
+    <topology.ghosts>->{$ghost_key} = {
         'entity'    => $entity_id,
         'from'      => $current_pos,
         'to'        => $intent_pos,
@@ -101,12 +101,12 @@ $data{'intent'}{'register'} = sub {
     return $ghost_key;
 };
 
-$data{'intent'}{'query_at'} = sub {
+<intent.query_at> = sub {
     my ($position) = @ARG;
     my @affecting;
 
-    for my $ghost_key ( keys %{ $data{'topology'}{'ghosts'} } ) {
-        my $ghost = $data{'topology'}{'ghosts'}{$ghost_key};
+    for my $ghost_key ( keys %{<topology.ghosts>} ) {
+        my $ghost = <topology.ghosts>->{$ghost_key};
         if (<[data.init_holographic.position_in_intent_path]>->(
                 $position, $ghost
             )
@@ -120,11 +120,11 @@ $data{'intent'}{'query_at'} = sub {
 
 ##[ WORKHOLE REGISTRY ]#######################################################
 
-$data{'workhole'}{'register'} = sub {
+<workhole.register> = sub {
     my ( $from_func, $to_func, $path_coords ) = @ARG;
     my $key = sprintf( "%s->%s", $from_func, $to_func );
 
-    $data{'topology'}{'workholes'}{$key} = {
+    <topology.workholes>->{$key} = {
         'from_function' => $from_func,
         'to_function'   => $to_func,
         'path'          => $path_coords,
@@ -136,12 +136,12 @@ $data{'workhole'}{'register'} = sub {
     return $key;
 };
 
-$data{'workhole'}{'find'} = sub {
+<workhole.find> = sub {
     my ($function) = @ARG;
     my @workholes;
 
-    for my $key ( keys %{ $data{'topology'}{'workholes'} } ) {
-        my $wh = $data{'topology'}{'workholes'}{$key};
+    for my $key ( keys %{<topology.workholes>} ) {
+        my $wh = <topology.workholes>->{$key};
         if (   $wh->{'from_function'} eq $function
             || $wh->{'to_function'} eq $function ) {
             push @workholes, $wh;
@@ -155,8 +155,8 @@ $data{'workhole'}{'find'} = sub {
 
 return 1;
 
-#,,,,,...,,..,,,,,...,,.,,,.,,.,.,.,.,...,,..,..,,...,...,,..,,,.,.,.,.,,,.,.,
-#FPIZH2NTOI772SKI3KM4YLUIEFJQ6UDLYDUIZ3GHCTHJCTXX67B3LVHORZQZOR5EVBZJU7R6NP7T2
-#\\\|ZLFWG4MP4O4TDMY2QDAUCKNURFFL5326EVBAJUMGOPKGT5Y6TL4 \ / AMOS7 \ YOURUM ::
-#\[7]EDCO3RFMZNEEWGFUZBGYSGGA3UDJNXX4Y4K76MQMJVIXTSONAUDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,,,,,,,..,,,..,,..,..,,,..,..,,..,,...,...,...,,,.,,..,,,.,,.,,
+#RTMKJXWGSMBLAIY2G6HHNVYBJYY7YK2XP7MYTUIOO77RAHM2PMDXKDG6BSP6XHR7FABKDE6XRTSDW
+#\\\|WWSXLNNBVQR6GDWOTJAF7IWQ4ASPTL6KGTMMD5IM6Q5WHWOARYM \ / AMOS7 \ YOURUM ::
+#\[7]REBOJ2RD2VWKXKFB57M2Y6RIDKKWPCRELMWWL5BTSLYE4KKZMYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

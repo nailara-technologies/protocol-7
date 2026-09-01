@@ -29,7 +29,7 @@ foreach my $setting_key ( sort keys %{$settings_map} ) {
         : ( $map_entry->{'key'} // $setting_key );
     foreach my $mpv_property (@mpv_properties) {
         next if $seen_property{$mpv_property}++;
-        my $value = $data{'mpv'}{'current'}{$mpv_property};
+        my $value = <mpv.current>->{$mpv_property};
         next if not defined $value;
         <mpv.snapshot.pending.properties>->{$mpv_property} = $value;
     }
@@ -56,8 +56,8 @@ push(
 
 return;
 
-#,,..,,,,,,.,,...,.,,,.,.,..,,,,.,.,.,,,.,,,,,..,,...,...,,.,,,,,,.,.,..,,,,.,
-#3FFSB2LBWMWHFFETLYOFPUBGQFPPZELRFHAZJDR3JS7JMBZQLUNIP2UFL6KFPUDU2ZHPFRPF7POMU
-#\\\|FSOP72D2GIAKSZGDSCQQ7PRRDZDKU5ATVDRDJUKFJ6UJEG7E6OC \ / AMOS7 \ YOURUM ::
-#\[7]WW2HZXB5QVMGR772BVPPKHAUG73GW2PA45ZIGYPEGRJWJ3PAVOAY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,...,,,.,,,.,.,.,,,,,.,.,.,.,,,,,..,,...,...,.,,,,..,,,,,,..,,,.,
+#MAENVPQ3S24DG2HWR64MUTQTCWNOK6DHBPF3XXZ5QZR6HAJPGMQSDTZ5P6KBUVDWQ5BHYL75XORYE
+#\\\|26FVSNQ2YYE7OYYZOKV35IRIS2GLDDS22JYQ23A35PSSLZD7IKQ \ / AMOS7 \ YOURUM ::
+#\[7]E6AIZLNJJXSZNITOER3OPNUKNJTSB4KN56IL3XO7WN4HJ3QHQUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

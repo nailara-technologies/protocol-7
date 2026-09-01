@@ -4,10 +4,10 @@
 # descr = periodic timer: poll invoke.ai for job completion
 
 ## called every 3 seconds by repeating timer
-my $jobs = $data{'invoke'}{'jobs'} // {};
+my $jobs = <invoke.jobs> // {};
 return unless keys %$jobs;
 
-my $url = $data{'invoke'}{'url'};
+my $url = <invoke.url>;
 my $ua  = LWP::UserAgent->new( timeout => 5 );
 
 for my $item_id ( keys %$jobs ) {
@@ -28,7 +28,7 @@ for my $item_id ( keys %$jobs ) {
     if ( $status eq 'completed' ) {
         my $image_name
             = eval { $item->{'output'}{'image'}{'image_name'} } // '';
-        my $outputs_dir = $data{'invoke'}{'outputs_dir'};
+        my $outputs_dir = <invoke.outputs_dir>;
         my $image_path  = "$outputs_dir/$image_name";
 
         <[base.logs]>->(
@@ -42,7 +42,7 @@ for my $item_id ( keys %$jobs ) {
             <[base.logs]>->( 1, ':. elapsed: %.1fs', $elapsed );
         }
 
-        delete $data{'invoke'}{'jobs'}{$item_id};
+        delete <invoke.jobs>->{$item_id};
 
     } elsif ( $status eq 'failed' ) {
         my $error = $item->{'error'} // 'unknown error';
@@ -50,16 +50,16 @@ for my $item_id ( keys %$jobs ) {
             0,        'invoke: item %s failed [ %s ]',
             $item_id, $error
         );
-        delete $data{'invoke'}{'jobs'}{$item_id};
+        delete <invoke.jobs>->{$item_id};
 
     } elsif ( $status eq 'canceled' ) {
-        delete $data{'invoke'}{'jobs'}{$item_id};
+        delete <invoke.jobs>->{$item_id};
     }
     ## pending/in_progress: leave in jobs hash, poll again next tick
 }
 
-#,,,,,,..,.,.,,,.,,,,,..,,,..,...,,,,,..,,...,..,,...,..,,...,.,,,,..,.,,,...,
-#SIJRYFT2OCZ2CC6VJEONNOHELRVM6TYNILCTVKSD5MQM6SVX56JNH43QNYWTR3OD3NZCXUGYYTTOY
-#\\\|O7YYRZOHS5233E5TNAZYU6CO5XUPWOZFXNQYJMXRKE2FC22ADR2 \ / AMOS7 \ YOURUM ::
-#\[7]R4LVTGIXGJWRKFNPHQU2ZBRV7C5WZTL2R7YCNMMC424QEEIYS4AI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,,,.,,,...,...,...,.,.,..,,..,,..,,...,...,,.,,..,,,,,,,,,,,..,
+#UGIRTVYJNAQ25UYOGZTB36LVU2ICFM7KT24CVWYOJELSKBTGPWXK2Y6K7ZLC4RCZDWFAXMLPM3YWU
+#\\\|J5ZIEQNWWDYBJSS6ZLJD6PUHUDOPJHI5A6KTBMT7YY44WVLPEEQ \ / AMOS7 \ YOURUM ::
+#\[7]HAQUOKBWJVHO34EQVSJXJINM2TNPXEQ6ADB6AKZPTK4MG2EXYMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,8 +3,8 @@
 # name  = coding.self_test.cmd.self-test-status
 # descr = show self-test results per model
 
-my $self_test = <coding.self_test>                                // {};
-my $stats     = $data{'coding'}{'cfg'}{'timeout_stats'}{'models'} // {};
+my $self_test = <coding.self_test>                // {};
+my $stats     = <coding.cfg.timeout_stats.models> // {};
 
 ## collect all known model ids ##
 my %model_ids = map { $_ => 1 } keys %$stats;
@@ -55,8 +55,8 @@ for my $model_id ( sort keys %model_ids ) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,,,.,,..,,,.,.,.,.,.,..,,.,,,.,,,...,,..,..,,...,...,,..,,..,...,,..,,..,
-#GVZ3ZS67BNX4PF46AKUWH23L4BHVO74GYXLSPV7QVNZIMBDSGBIBJLMV7FEOX4O4FEG57ZNGZS2DE
-#\\\|MJDSCQH52QC6PONCVLCZU6GX3NNDFINEAGU6IEJKA575YACGBTI \ / AMOS7 \ YOURUM ::
-#\[7]EDXGNDRLKDDWVYTDWFNORPA6P72XF4B2NEBGAM6QAJYP7YFTTOBI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,,,,..,..,,,,,,,,,,.,,,.,.,,..,..,,...,...,,..,,,,,,.,,...,..,,
+#XNDW5S5RZSXB5CTOGETU4LYH4MR4R7SDYJZAIVB4H4Z4PPTZLTIVVLO2TWVCKMUAD53IYOGQ5N7PY
+#\\\|BE6ZEQYKT3QOJKCC33HRJNVPYK4H255T63GACOUE7GKTBXMNPRA \ / AMOS7 \ YOURUM ::
+#\[7]4SU2MCKLWYTV67S37TOIEXP6TRZHQWBSJAWB6Z6PM3YJH3FFXWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

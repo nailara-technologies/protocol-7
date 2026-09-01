@@ -23,21 +23,21 @@ if ( defined &Event::loop_time ) {
         if defined &Event::all_watchers;
 
     # Count IO watchers
-    if ( exists $data{'event'} && exists $data{'event'}{'io'} ) {
-        $metrics->{'io_watchers'} = scalar( keys %{ $data{'event'}{'io'} } );
+    if ( exists $data{'event'} && exists <event.io> ) {
+        $metrics->{'io_watchers'} = scalar( keys %{<event.io>} );
     }
 
     # Count timer watchers
-    if ( exists $data{'event'} && exists $data{'event'}{'timer'} ) {
+    if ( exists $data{'event'} && exists <event.timer> ) {
         $metrics->{'timer_watchers'}
-            = scalar( keys %{ $data{'event'}{'timer'} } );
+            = scalar( keys %{<event.timer>} );
     }
 }
 
 return $metrics;
 
-#,,,.,..,,.,,,.,,,.,.,.,.,...,.,.,,,.,,.,,.,.,..,,...,...,..,,,..,.,,,.,,,,,,,
-#WMEPKZOETPAM65JEIGZY5KSEXD2V3UTBIAJ7TSQTWVU7CY2AQ7FSUPW5KNNTL5XYGNA4JMVXDTOFO
-#\\\|66MPS5NRHJBC7YCYBD34J6E7TKGEOHIMBFALSWGDJDV2YQQGGAI \ / AMOS7 \ YOURUM ::
-#\[7]6RFWT3362B2VZXJSV3W2WVKAYQZNAX2SNNEAPKRVGBKAQUC7KQCY 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,,,.,.,.,,,,,,,.,.,,,,.,,...,..,,...,...,..,,,.,,,,.,.,,,,..,
+#65NB44V5RX4EYMRNEXSQSLAFEFGQBND6TWFHJ3ZZSTXFGJPRB5SKETWAYFQIZMFCOJPGQO2NVDESE
+#\\\|DA3AUYHKK7KVIBF5C5ME7O5GSX3XALKBMHXPLPXQ43N6TRL7XTQ \ / AMOS7 \ YOURUM ::
+#\[7]5GAYVQ5AJXXNQMYSNIQTOQMR2BN3WSIKI2IIL3XWP5OWOUS43ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

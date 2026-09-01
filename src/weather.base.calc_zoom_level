@@ -9,11 +9,11 @@ my $cache_dir      = <weather.cache_dir>;
 my $zoom_file      = "$cache_dir/weather.zoom";
 my $tile_zoom_file = "$cache_dir/weather.tile_zoom";
 if ( -f $zoom_file ) {
-    <[file.slurp]>->( $zoom_file, \$data{'weather'}{'zoom_level'} );
+    <[file.slurp]>->( $zoom_file, \<weather.zoom_level> );
     chomp(<weather.zoom_level>);
 }
 if ( -f $tile_zoom_file ) {
-    <[file.slurp]>->( $tile_zoom_file, \$data{'weather'}{'tile_zoom'} );
+    <[file.slurp]>->( $tile_zoom_file, \<weather.tile_zoom> );
     chomp(<weather.tile_zoom>);
 }
 
@@ -85,8 +85,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     return undef;
 }
 
-#,,,,,,..,,..,.,.,...,,.,,...,...,,.,,,.,,,,,,..,,...,...,...,.,,,..,,,,.,,,,,
-#642JTVBXQC3GTUWWW6R2KCB3RPQHN37FCCGPWNK6NOUQOOCAKD55CSWDSYGBOEYPBFAYV6S5W2FO2
-#\\\|3LIJWAILOOGNAYNIL2QOK2VNXHDXGT6VPOBNUR2N7UZEW5J7KPM \ / AMOS7 \ YOURUM ::
-#\[7]DUAQ4F7Z56NY6G64AWDNOMGO7TA2Z7DU2LEXYK66ZUTRORAEQOAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,,,,,,,,,.,,..,,.,,...,.,.,.,,,..,,...,..,,...,.,.,.,,,.,.,,..,
+#7BE6B4UM5EBRIM5KPKHC3ZSDHXCYOKCHXSCPMY5S7IRXVYMEQR3IAOMHS5ZLU5KYXQVTGBM5OPLRS
+#\\\|SEAB45SB4XW36LOPMZ43JK4V4IPICC5PWVSQVBMNAF7YWTRBVAY \ / AMOS7 \ YOURUM ::
+#\[7]CCBSXULSP4ONNDFTUTXUQSLXOMQHNEYEFKGTSFDZ62G7YERIEKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

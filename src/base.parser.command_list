@@ -19,9 +19,9 @@ map {
         warn $cli . " cmd '$ARG' does not exist! <{C1}>";
     } else {
         my $cmd_str = $ARG;
-        if ( exists $data{'base'}{'commands'}{$section}{$ARG}{'param'} ) {
+        if ( exists <base.commands>->{$section}{$ARG}{'param'} ) {
             my $param_str
-                = $data{'base'}{'commands'}{$section}{$ARG}{'param'};
+                = <base.commands>->{$section}{$ARG}{'param'};
             $cmd_str .= ' ' . $param_str;
             $param{$ARG} = $param_str;
         }
@@ -35,8 +35,8 @@ foreach my $cmd (@commands) {
     my $cmd_descr;
     my $call_cmd = $data{'base'}{$section}{$cmd};
     if ( exists $code{$call_cmd} and defined &{ $code{$call_cmd} } ) {
-        if ( defined $data{'base'}{'commands'}{$section}{$cmd} ) {
-            $cmd_descr = $data{'base'}{'commands'}{$section}{$cmd}{'descr'};
+        if ( defined <base.commands>->{$section}{$cmd} ) {
+            $cmd_descr = <base.commands>->{$section}{$cmd}{'descr'};
         }
         $cmd_descr = qw| n\\a |
             if not defined $cmd_descr or not length $cmd_descr;
@@ -50,8 +50,8 @@ foreach my $cmd (@commands) {
 
 return ( \$reply_str, $max_len );
 
-#,,,,,,.,,..,,.,,,,.,,.,,,,,,,..,,,..,,.,,,,,,..,,...,...,..,,,..,,.,,.,,,..,,
-#PDQHIMXDLGQO44SJJ5GHOF3REJ5QNZDHCBHFPGYF26M5KLB4H3LQJJ2EJNQKG7B75D4NU6JWKPFYO
-#\\\|JBNAOSGMRWUHGUJ44FUL6A4BYS5ZIQQVVWIUYFCI3CCNAOCVPDN \ / AMOS7 \ YOURUM ::
-#\[7]S7ACYHMKVUWHVTJX7KQJFYFZU7HKKE7WY2ANPXXZMUAV2ML2JIAQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,,.,,..,,.,,,.,,,.,,,.,,,,,,,..,,...,...,..,,,,,,,.,,.,,,..,,
+#V5YYFKYIMNPJFSF5IKRI7AXGLVRN6KG2LD25UQQQPSDWT7NUQUQL47W3QB3OPRAWS73ZQJCQC2U4U
+#\\\|OC6OJLAK76FF32WVPSGFYVQ5ULBKNSODXTPTF46XYI5UWAWN7NG \ / AMOS7 \ YOURUM ::
+#\[7]H5CSLIV4I2YRQ4MY3ESOBORCQOYQRQXJUHGWJOITWCB5NZLQD2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

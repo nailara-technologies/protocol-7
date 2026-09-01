@@ -22,7 +22,7 @@ my $session        = $data{'session'}->{$session_id};
 my $server_read_fh = $params->{'process-fhs'}->{'out'};
 
 my $bfs       = length( $session->{'buffer'}->{'output'} ) // 0;
-my $size_left = $data{'size'}->{'buffer'}->{'output'} - $bfs;
+my $size_left = <size.buffer.output> - $bfs;
 
 ##  implement protocol devmod hooks ## [LLL]
 
@@ -44,8 +44,8 @@ if ( $bytecount < 0 ) {
     $event->w->cancel;
 }
 
-#,,.,,...,,.,,,.,,,,,,,,,,,.,,.,.,.,,,,,,,,,,,..,,...,...,,..,,..,,,,,,,,,...,
-#2HTHZ5L6HEGLMGN4B7PXN4CH2ALQ3B4AKM5HGLIETGVMZNNZR4XTEFQCLNUISNJRJF5IFJG4VCTEM
-#\\\|KBFLXD2G47YZ2HEEZNOVHU64E3FX6G7N75MX5DX23WCFPBDJKNP \ / AMOS7 \ YOURUM ::
-#\[7]PESC2BLRZWA4A7SXMYFL52XT2UTK7CVJG7N7J5624ET3ZO2VZ4AQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,.,...,..,,,.,,.,.,...,.,,,,,,,..,,...,...,...,...,.,.,.,,,,,,,
+#WQWYU6HWSI5YEAZGA6HNFNUUWPJPIGOOYK2PJBXEMOAJYQZ27ZBEPWTRU3MAVBSV7I6FWKCWKKLW6
+#\\\|X5NMEFAMUKTWVGNHE5SQ4LE5LAF5TELWZJEI772DGOQR2XABIVG \ / AMOS7 \ YOURUM ::
+#\[7]IAY5HBXBT7TXUG72G5YLZXU3Z4J7SQV4CUFU3L6HW7QLCYVARQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

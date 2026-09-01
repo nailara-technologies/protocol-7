@@ -58,7 +58,7 @@ my @lines;
 
 for my $backend (@backends) {
     ## refuse if a sweep is already active for this backend ##
-    if ( defined $data{'coding'}{'model_sweep_state'}{$backend} ) {
+    if ( defined <coding.model_sweep_state>->{$backend} ) {
         push @lines, sprintf '%s : already in progress', $backend;
         next;
     }
@@ -145,7 +145,7 @@ for my $backend (@backends) {
     }
 
     ## initialize in-memory state and start the sweep timer ##
-    $data{'coding'}{'model_sweep_state'}{$backend} = {
+    <coding.model_sweep_state>->{$backend} = {
         backend    => $backend,
         candidates => \@candidates,
         idx        => 0,
@@ -171,8 +171,8 @@ for my $backend (@backends) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,..,,,,,,,,,,,.,...,...,..,,...,,,.,,,.,,,,,..,,...,...,..,,.,.,,,.,,.,,,.,,
-#CEPFMXKM7XVQSEXN6RVWNMKDWCFVW6QMCWYVBHDK6GN6WV2MSTRT3KJKACJVH6R24SMMHFZ5KMIX6
-#\\\|Z6JEA3IANSEK6GSUERY4ZGVS24TD5Z3V2PYPN7XBC6LMVPOGAJV \ / AMOS7 \ YOURUM ::
-#\[7]JSILGTXYVUT44JCROROKY2LELP7CXRB3TSEYTUVPSDXVAKVDESAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,.,.,,.,,.,.,,.,,..,,,.,,.,,,..,,...,...,.,,,,.,,.,.,,,.,.,.,
+#BOIFXD4XBEURQQVPC66CW7PK6L565YFCBSLUTY56P5BRML2EDN2D7ZQX2FK2A6CD6TJD7TTSJKE3U
+#\\\|DGL3NAXPYUPZ64CYK6ZHKVMKW3TFP6NB6R3W67P7JG3JX55CMCL \ / AMOS7 \ YOURUM ::
+#\[7]TVK2FFLHJORUUIY7O4UDPUJPRLRZZ55Z53QPH6U7EXE4LTKPPQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

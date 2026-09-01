@@ -121,7 +121,7 @@ if ( defined <https.handler.get> ) {
 # when a TLS connection arrives
 
 # register IO::Socket::SSL type handlers [for listening socket]
-$data{'io'}{'type'}{'ip.ssl'} = {
+<io.type>->{'ip.ssl'} = {
     'ref'     => qw| IO::Socket::SSL |,
     'handler' => {
         'output' => {
@@ -143,7 +143,7 @@ $data{'io'}{'type'}{'ip.ssl'} = {
 # register HTTPS protocol with httpsd.request_handler bridge
 # httpsd.request_handler delegates to httpd.request_handler for HTTP parsing
 # TLS encryption/decryption is transparent at IO::Socket::SSL layer
-$data{'protocol'}{'https'} = {
+<protocol.https> = {
     'connect' => {
         'callback' => undef,
         'banner'   => ''
@@ -195,8 +195,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
 
 0;
 
-#,,.,,,..,,..,..,,,..,.,.,,.,,.,,,,,,,,.,,...,..,,...,...,.,,,..,,,,,,,,,,..,,
-#PWTL2PPEYA6L6HTE3S2ACQKUGVTQBWGHJTAKNEIX6Z52QY47BHHNDLB23LHO52MJ74FSE7N3I4T7U
-#\\\|RX3VKR5WG2GIALXSNQBISDJF7QU3UZRTEEFL2BUO7VTDFEBWPHI \ / AMOS7 \ YOURUM ::
-#\[7]CZTNEETYFUWRFUJ7GYFWU2MP2UGBCP6KSJKSP7Q7E23DSA2VAYCY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,,,,,,.,,,.,,,,,,,,,,.,.,.,,,..,,...,...,..,,,.,,,..,.,,,,,.,
+#GHLCUDSWGFDV75EXUXLO7NBP3SWXDGUIKRSH2II3TYZCEYPYPMJV35SJ6Y67ZVPXRMA3TAE5NMSYG
+#\\\|JPFDLW3CILETX2AG2TDJEPRP5KB76UVXN4JFUX7JFBO6U3NP45I \ / AMOS7 \ YOURUM ::
+#\[7]V5QQCRHQBVD7TZWSYWCYWOY3NHG2QEAG2T6LR6UBJBOZALKMZICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

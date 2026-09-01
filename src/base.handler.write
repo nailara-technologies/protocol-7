@@ -137,8 +137,8 @@ if ( $write_size = bytes::length( $session->{'buffer'}->{'output'} ) ) {
     <[event.io_idle_restart]>->($event)
         if defined $event and not $event->w->is_active;
 
-    $data{'watcher'}{'io'}{'transfer'}->start
-        if not $data{'watcher'}{'io'}{'transfer'}->is_active;
+    <watcher.io.transfer>->start
+        if not <watcher.io.transfer>->is_active;
 
 } else {
     ## buffer empty : stop write_handler watcher and restart output_buffer ##
@@ -154,8 +154,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return FALSE;
 
-#,,,,,..,,,..,.,,,,..,,,.,...,,..,,,,,...,,.,,..,,...,...,..,,.,.,,,,,,..,,..,
-#N3LKAOEZBKCMBQZOIL3FIJRDJZERG3AW3IJNAVB5R6EFGFOT7ZIBTCXNOLTD5GNHPZHCECULEWZX2
-#\\\|3TTBQUJTFA3KPGCTLZ2WS4SOE4BW7MTQJBLYTREPGRROCT7MT7U \ / AMOS7 \ YOURUM ::
-#\[7]X74Q4FYSCETY2YHYXJGHNG5W3DZV6EIRACP4MYD52MQL4SQSH6AA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,..,,,,,,,..,...,..,,.,,,,..,..,,...,..,,..,,...,,,,,...,,..,
+#6KXZC474CXPUQ24C4D7DHU6FPZDU2VQPMR3N2GZXLQ45MXGSMTDLSVERJ4GIDIMR26S5FXWHGGULE
+#\\\|CL2XTNAZEDVXNH62A4YNXLUMCYBO5TCLXUNZDGOOJ3KEYK5VJ3Y \ / AMOS7 \ YOURUM ::
+#\[7]MBYZPTGH3SABGV3BCSL66SMPRWXBYAPL22OOTX2QLD4Y4G73GAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

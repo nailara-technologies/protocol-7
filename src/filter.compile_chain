@@ -6,7 +6,7 @@
 my ( $chain_name, @chain_list ) = @_;
 my $warps = scalar(@chain_list);
 <[base.log]>->( 1, "compiling chain '$chain_name'" );
-my $id = <[base.gen_id]>->( \%data, $data{'system'}{'max'}{'chains'} || 777 );
+my $id         = <[base.gen_id]>->( \%data, <system.max.chains> || 777 );
 my $chain_code = 'sub {';
 $data{$id}{'name'} = $chain_name;
 $data{$id} = join( ".", @chain_list );
@@ -39,7 +39,7 @@ $chain_code .= $closure;
 undef $OS_ERROR;
 $code{ 'filter.chain.' . $id } = eval($chain_code);
 if ( !$EVAL_ERROR ) {
-    $data{'code'}{'filter'}{$id}{'status'} = 'no-error';
+    <code.filter>->{$id}{'status'} = 'no-error';
     return $id;
 } else {
     <[base.log]>->( 0, "broken chain code [$id:$EVAL_ERROR]" );
@@ -47,8 +47,8 @@ if ( !$EVAL_ERROR ) {
     return undef;
 }
 
-#,,.,,..,,...,,.,,,.,,,,,,...,.,.,...,,..,,,.,..,,...,...,...,.,.,,..,,..,,,.,
-#4WBAVI2OE67GQT33TESACOXALEZPOYBQOFCUSVQZPY2MS6HCJMPY2HDI5JMMVTTLQTEK6AYJEX2QK
-#\\\|ZFRV2WK6OQRIHZ7YB2R4IN3V4ER77XIGHS56CVV66RND2MF5E6X \ / AMOS7 \ YOURUM ::
-#\[7]4HQ6APS6G4Y236AWK76332IJOJM7MTBHPJ6LTHPALJ5KIEBJQMBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,.,,,,,,..,,,,,,..,..,,,..,.,.,..,,...,...,,,.,...,,..,,..,,,,,
+#TSJRMBJDXPXLIX3JFOQWP22OZYUIF4BZROZVGGHEOXQ2D3NKV2EGOKJIIXKHPO22X726H3JUSQJNO
+#\\\|564FXZ5GGE5DPWUAS4GCBPAPAXXFIMO7YG52SWUW3SJKT3AYCJV \ / AMOS7 \ YOURUM ::
+#\[7]CQLTCXFXGTEAIAR262LG2XKC73MCQD4VXQPB3PC4VUEK6RXZ2QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

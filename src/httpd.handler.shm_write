@@ -277,8 +277,8 @@ for my $seen_pkey ( keys %{ $data{'shm.seen_ntimes'} } ) {
 }
 
 ##  sweep timer [ matching replay window ] for idle periods, once only  ##
-if ( not defined $data{'httpd'}{'shm_sweep_timer'} ) {
-    $data{'httpd'}{'shm_sweep_timer'} = <[event.add_timer]>->(
+if ( not defined <httpd.shm_sweep_timer> ) {
+    <httpd.shm_sweep_timer> = <[event.add_timer]>->(
         {   'interval' => $window_secs,
             'desc'     => 'shm replay cache sweep',
             'cb'       => sub {
@@ -380,8 +380,8 @@ $session->{'watcher'}->{'input_buffer'}->now;
 
 return 1;
 
-#,,.,,..,,..,,.,.,..,,.,,,.,.,...,..,,..,,,..,..,,...,...,.,,,..,,,,,,,,.,.,.,
-#FONWZMZNNHJMNZQZ62KE4PLBUB4DQNC27UIOAO7VANUCTXT2QK7ZC4D3GT6L7FDYJO23V6BIAZPFE
-#\\\|QFIGMCIJV67UK7I6QOBKUDTNAMKR5DH7NBWCVJ63JSV6OUH4BTQ \ / AMOS7 \ YOURUM ::
-#\[7]BNPU4UMJZOEYWW5WSGYZPCKB3E7RSN5FKPZSGD7CNH2XQFRUAYAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,...,.,.,...,,,,,...,,..,,,.,..,,...,...,,,.,,.,,.,,,.,,,...,
+#XN5NS4CUI7ITK376BNYBL7WIA4WTGHBYNHKMKCZHZXO3EBBZDNT3FIXO2E337LAD53PKC64C7M6YW
+#\\\|RVVY4INYMTKLVABPV55ADLMEIW34MK6CVI5KOGYM5S7II6CEZVD \ / AMOS7 \ YOURUM ::
+#\[7]LWNKKI7HXNACFYN6HTHOT6CKD3XQM5ZVIN4NWZCLQ2IN2ODHHSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

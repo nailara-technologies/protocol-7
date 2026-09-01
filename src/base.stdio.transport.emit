@@ -8,7 +8,7 @@
 my $write_handler = sub {
     my $event  = shift;
     my $socket = $event->w->data;
-    my $conn   = $data{'stdio_transport'}{'connections'}{$socket};
+    my $conn   = <stdio_transport.connections>->{$socket};
     return if not defined $conn;
 
     while ( scalar $conn->{'write_queue'}->@* ) {
@@ -42,7 +42,7 @@ if ( not defined $conn_handle ) {
     return undef;
 }
 
-my $conn = $data{'stdio_transport'}{'connections'}{$conn_handle};
+my $conn = <stdio_transport.connections>->{$conn_handle};
 if ( not defined $conn ) {
     warn 'connection handle not found in transport registry <{C1}>';
     return undef;
@@ -82,8 +82,8 @@ if ( $written < 0 ) {
 
 return $written;
 
-#,,.,,,.,,,,,,.,,,.,,,,..,,,,,..,,,..,..,,,,.,..,,...,...,,,.,.,,,.,.,,.,,,..,
-#ZE5M6DZR2U2SUZSSWYL356KTO3HEJW4MNLXF5JHJ7PFVQKDZ4J4QJXKLRTPMCM64Q74MP64C5VEMU
-#\\\|FT734NLCORVIEAFS3Y2OZDZSN7WUUOP55C4XK7GRCGFPAUCEDDZ \ / AMOS7 \ YOURUM ::
-#\[7]F3UCB3JRMKQCGDU66W6NTVH4JX6LQPYPM3OMU7S5QWF77ZQ5L4AI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,..,,,.,,,.,,.,,,,..,,.,,.,.,,,,,..,,...,...,,,,,.,.,,,,,.,,,,,.,
+#E2SER5DTJZZ5EMLVTH7RQNSERCSBD43NHKHUQMWNS2OGUSWHL5VA5SC5Z4HHRBRK3NL4RPEOPTAVS
+#\\\|B6L334SE3BTCAEFQWWSTEUOLMNDDYVFBYYTYA3I5E2EYEDQSAO4 \ / AMOS7 \ YOURUM ::
+#\[7]APS7VBYLTPB25ZREE5OW3RI423MHJXUQUWJFSZKIIVTNQAOX3GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

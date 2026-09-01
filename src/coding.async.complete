@@ -467,7 +467,7 @@ if ( defined $result && $result->{'success'} ) {
         ->( { id => $task_id, output => "failed: $error_msg" } );
 
     ## fire any deferred reply waiting on this task (ask-reply, etc.) ##
-    my $deferred_replies = $data{'coding'}{'deferred_replies'} // {};
+    my $deferred_replies = <coding.deferred_replies> // {};
     for my $did ( keys %{$deferred_replies} ) {
         my $dr = $deferred_replies->{$did};
         if ( defined $dr && ( $dr->{'task_id'} // '' ) eq $task_id ) {
@@ -671,8 +671,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,..,,..,,,,,...,.,.,,..,.,,,.,,,,,.,...,,,,,.,.,...,...,...,.,.,...,.,,,.,,,
-#LNLEXVWEXQV6YQPDV7IAHJDOASGCEDEPJ3GVWNNXESOQB2BZ3MUETIA2GBMTU6CO4VAO6F4BP6RSG
-#\\\|QNPWALRZBMT5WOK7FSDPGWKJJOUCIXPA6GWENXN4DFWG5H56R5W \ / AMOS7 \ YOURUM ::
-#\[7]A5FB43V4RVHBXWUX5QAMNBUMAL4QC2QW6LVTPUL447FHCO2LTKDY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,,.,,,,.,,.,,,.,,,,,,..,,,.,,.,.,...,...,,..,,,,,..,,..,,.,.,
+#5WFTMOLEJHLDGZX2X2KUAGJKYGX5RKPGGDKBHWMPE2ZIW3MGBOCYMIHG3QG7S2CROIM4UEOALKFYA
+#\\\|X5HM6ENXNUUKJ3SDFXC7WNNUBZIMH2BMFMA72JRXFHXCTUVH5GU \ / AMOS7 \ YOURUM ::
+#\[7]5EVLCO6O4PH3KCK6A5N72QMM7NOVUFSH5ZT566CDYJCVUUT4LIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

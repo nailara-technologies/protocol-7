@@ -11,13 +11,13 @@
 <[base.perlmod.load]>->( 'Crypt::Misc',         qw| slow_eq | );
 
 ## already initialized guard ##
-if ( $data{'keyring'}{'root'}{'loaded'} // FALSE ) {
+if ( <keyring.root.loaded> // FALSE ) {
     <[base.logs]>->( 2, 'keyring: root key already loaded [ skipping ]' );
     return TRUE;
 }
 
 ## derive root key from C25519 session private key if available ##
-my $zenka_name = $data{'zenka'}{'name'} // '';
+my $zenka_name = <zenka.name> // '';
 my $root_key;
 
 if (    length $zenka_name
@@ -40,18 +40,18 @@ if (    length $zenka_name
     );
 }
 
-$data{'keyring'}{'root'}{'key'}    = $root_key;
-$data{'keyring'}{'root'}{'loaded'} = TRUE;
+<keyring.root.key>    = $root_key;
+<keyring.root.loaded> = TRUE;
 
 ## initialize namespace cache ##
-$data{'keyring'}{'namespace'} //= {};
+<keyring.namespace> //= {};
 
 <[base.logs]>->( 2, 'keyring: initialized' );
 
 return TRUE;
 
-#,,,,,.,,,.,.,,.,,,,.,.,.,,,,,,..,,,,,...,.,.,..,,...,...,,.,,..,,,,,,...,,.,,
-#AT6C3O3BB26V4ELZCPHKDALIUNXRHEQ5XPZCK4ZT62JUS7NUOSPLHGNW43EBOGXTENUUKMAV3L6RE
-#\\\|HBKQ2VJMPVZJUY2XDOV6D7BDPYCGBLFWNQVNZ7GITTGXJYEAJDB \ / AMOS7 \ YOURUM ::
-#\[7]SULOVJIN2GS73OYKGRDXYGHDKTQL2FG7OPNUTCG3CTNI3SPUX6DY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,...,,.,,,,.,.,,,,,,,,,.,..,,..,,...,...,...,.,.,..,,.,.,.,.,
+#HL67FJLKQXHWBQAVE7VRAG3GQ2FDNZZ6ZMGE6LNPUCSUOVYAFOJ7Y7FJBYYCBHKJFFRNZ4B2V27WI
+#\\\|PECW5W7XAOEX4RGPKLURZTOQ4MUZV6QM2IKXQOSAGHIMJVOEDYE \ / AMOS7 \ YOURUM ::
+#\[7]H5AERFYSUC4CYGKNPYDH4MJE7FINNGZCOR4DBURNI7G3SBAO5GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

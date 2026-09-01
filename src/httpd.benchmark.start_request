@@ -8,7 +8,7 @@ my $request_id   = shift;
 my $request_data = shift // {};
 
 # Skip if benchmark not enabled
-return if !$data{'httpd'}{'benchmark'}{'enabled'};
+return if !<httpd.benchmark.enabled>;
 
 # Initialize metrics for this request
 my $metrics = {
@@ -24,10 +24,10 @@ my $metrics = {
 };
 
 # Store metrics in global data structure
-$data{'httpd'}{'benchmark'}{'metrics'}{$request_id} = $metrics;
+<httpd.benchmark.metrics>->{$request_id} = $metrics;
 
 # Increment active request counter
-$data{'httpd'}{'active_requests'}{$request_id} = 1;
+<httpd.active_requests>->{$request_id} = 1;
 
 # Log start of request if debugging enabled
 <[base.log]>->(
@@ -35,12 +35,12 @@ $data{'httpd'}{'active_requests'}{$request_id} = 1;
     "Request $request_id started: "
         . "$metrics->{'request_data'}->{'method'} $metrics->{'request_data'}->{'uri'} "
         . "from $metrics->{'request_data'}->{'client_ip'}"
-) if $data{'httpd'}{'benchmark'}{'debug'};
+) if <httpd.benchmark.debug>;
 
 return $metrics;
 
-#,,..,.,,,...,..,,...,,..,..,,,,.,,..,.,.,,,.,..,,...,...,.,,,.,,,,,,,,..,.,,,
-#2WKKCKMA7XSAYJSEG5FSOOKJ6GHVW7BU5KVNK5FTEPFXZFUH3E3EWEKUE56NXCKV6JF4HNBXTCL5O
-#\\\|ONFNDL7NEORWLDU3H3A27FQ6LJFVXAXS3HMNSLPRP4OUNGD52IH \ / AMOS7 \ YOURUM ::
-#\[7]IVAP75ECVVJD3HZBCFJSK3LEKJGEVAWP2YIQCOPR5G3LWYICNCAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,.,...,,..,,,,,,,.,,,.,.,.,,,,,..,,...,...,..,,,,.,...,.,.,,,,,
+#2HTHORC54GLBUECSN7FILXTFGK5LJ7SGQWQTFB6YIMTX7MYPUCYVUF27YGNJDUSUYGI446E365IMO
+#\\\|WLUQK73UM3RZYS46YHZEQRFSJ7GEQZ6GVAR4LQDPMQJSDGQNGXV \ / AMOS7 \ YOURUM ::
+#\[7]2FLFH64PWWNBXKU5UKAM4AN56NGK2XFG7225WFGF45XOKWQF6ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

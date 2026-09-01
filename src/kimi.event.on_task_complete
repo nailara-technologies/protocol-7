@@ -17,7 +17,7 @@ unless ( defined $task_id && length $task_id ) {
 );
 
 ## check for deferred replies waiting on this task ##
-my $deferred_replies = $data{'kimi'}{'deferred_replies'} // {};
+my $deferred_replies = <kimi.deferred_replies> // {};
 foreach my $deferred_id ( keys %$deferred_replies ) {
     my $deferred = $deferred_replies->{$deferred_id};
     next unless defined $deferred && $deferred->{'task_id'} eq $task_id;
@@ -32,8 +32,8 @@ foreach my $deferred_id ( keys %$deferred_replies ) {
 
 return TRUE;
 
-#,,,.,.,.,.,.,...,,,,,,..,,..,,..,,,.,.,.,,,.,.,.,...,...,,..,,..,,..,,.,,,,,,
-#MSGUHEKBTNJNNO6IA2HLX5DT2LUMBMBPJCJAPAXUQYGWDF2NRLWGWMMW7F7PYDKI6AYUSLWL34I4Y
-#\\\|PMYC5AQCAZW4TSUSVPK44VI3SRCKH6B3CUV4WVZRFURPMLQDW6C \ / AMOS7 \ YOURUM ::
-#\[7]JW7HQBXCKJBKAYJV2ZXYJAUGENAKD5OZEHR2TMRJ2Q6VDJN6PIAI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,,,.,,.,,,,.,.,.,.,,,,,,,...,.,.,...,...,,..,..,,,..,,,.,.,,,
+#L3IZYVC7DSZ4YJJWCJEIAIKBAMWAIS5Q4RT4DBK47LBKBXJNAQOTFGF33U76OA4OPBOO4D32IIOJK
+#\\\|4JCHXDRBNNVAJ47LSHRILMYB25TZNPKSA3GSHSZ7S2QWVRJNVBD \ / AMOS7 \ YOURUM ::
+#\[7]H34WIQKIJM2LJMTPALZZAIAUOEQY65VU7MIJJVHVRUBEZGCGV2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

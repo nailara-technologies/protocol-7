@@ -27,9 +27,9 @@ if ( $depth > 0 ) {
 return if not <jobsite.fetch_saw_queue>;
 
 ## queue drained : cancel poll timer, pull stray jobs, then assess ##
-if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
-    $data{'jobsite'}{'queue_poll_timer'}->cancel;
-    $data{'jobsite'}{'queue_poll_timer'} = undef;
+if ( defined <jobsite.queue_poll_timer> ) {
+    <jobsite.queue_poll_timer>->cancel;
+    <jobsite.queue_poll_timer> = undef;
 }
 
 <[base.logs]>->( 1, 'fetch : site-yaml queue empty, claiming strays' );
@@ -38,8 +38,8 @@ if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
 
 return;
 
-#,,,,,,..,.,.,..,,.,,,..,,...,,,.,.,.,,..,.,,,.,.,...,...,...,...,,,.,..,,.,.,
-#YE5YHMD44SLKG3OG7TV5CIESOYF423BRCTXIOCBG24I4ELJZLRFCDZB7Y5IHUKR7KQIS3YZOOAWP2
-#\\\|3BNSR5I7TQNBMTLVQWQTI4CBG2TGGCHTSI6WL37BBXZHGGPXWXY \ / AMOS7 \ YOURUM ::
-#\[7]BGMAOGLQGXVNLZJPBVEEN3IG3ZJOOCW7NLIDDSVF5R3YYPONOYBI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,..,,..,,,.,,.,.,.,,,,,.,.,,,,.,,.,.,...,...,,,.,.,,,,,.,,,,,,,.,
+#2BVHZKOXIETSS4WQMNHHW4I7ZFZ346KJUYM2IPT7PVC3G6JXAV3BDIKAC7ORKSXCDZVW6WEZPGD5U
+#\\\|XLQSVMELPUWIFUXP6FVRSK65SBYS2JCKEWUWURSE2U6KNI4YSQE \ / AMOS7 \ YOURUM ::
+#\[7]AEEXYWPPIJXBRZDUXHW5Q65OR4AGH7AVXBJSAVUFZCXJBQQGCYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

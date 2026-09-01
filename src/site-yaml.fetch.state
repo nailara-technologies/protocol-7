@@ -25,27 +25,25 @@ if ( $op eq qw| load | ) {
         $item->{'id'} = <[base.vax-int.decode]>->( $item->{'id'} // '' );
     }
 
-    $data{'site-yaml'}{'fetch_delay'}     = $loaded->{'delay'}     // 1.5;
-    $data{'site-yaml'}{'fetch_delay_min'} = $loaded->{'delay_min'} // 0.5;
-    $data{'site-yaml'}{'fetch_delay_max'} = $loaded->{'delay_max'} // 10.0;
-    $data{'site-yaml'}{'fetch_errors'}    = $loaded->{'errors'}    // 0;
-    $data{'site-yaml'}{'fetch_successes'} = $loaded->{'successes'} // 0;
-    $data{'site-yaml'}{'fetch_queue'}     = $queue;
-    $data{'site-yaml'}{'fetch_drain_cb'}  = $loaded->{'drain_cb'} // '';
-    $data{'site-yaml'}{'fetch_timer'}     = undef;
+    <site-yaml.fetch_delay>     = $loaded->{'delay'}     // 1.5;
+    <site-yaml.fetch_delay_min> = $loaded->{'delay_min'} // 0.5;
+    <site-yaml.fetch_delay_max> = $loaded->{'delay_max'} // 10.0;
+    <site-yaml.fetch_errors>    = $loaded->{'errors'}    // 0;
+    <site-yaml.fetch_successes> = $loaded->{'successes'} // 0;
+    <site-yaml.fetch_queue>     = $queue;
+    <site-yaml.fetch_drain_cb>  = $loaded->{'drain_cb'} // '';
+    <site-yaml.fetch_timer>     = undef;
 
     <[base.logs]>->(
-        1,
-        'fetch: state loaded delay=%.1fs queue=%d',
-        $data{'site-yaml'}{'fetch_delay'},
-        scalar @{ $data{'site-yaml'}{'fetch_queue'} }
+        1,                       'fetch: state loaded delay=%.1fs queue=%d',
+        <site-yaml.fetch_delay>, scalar @{<site-yaml.fetch_queue>}
     );
     return TRUE;
 }
 
 if ( $op eq qw| save | ) {
     my $queue = [];
-    for my $item ( @{ $data{'site-yaml'}{'fetch_queue'} // [] } ) {
+    for my $item ( @{ <site-yaml.fetch_queue> // [] } ) {
         my $enc_item = { %{$item} };
         $enc_item->{'id'}
             = <[base.vax-int.encode]>->( $enc_item->{'id'} // '' );
@@ -53,13 +51,13 @@ if ( $op eq qw| save | ) {
     }
 
     my $payload = {
-        'delay'     => $data{'site-yaml'}{'fetch_delay'}     // 1.5,
-        'delay_min' => $data{'site-yaml'}{'fetch_delay_min'} // 0.5,
-        'delay_max' => $data{'site-yaml'}{'fetch_delay_max'} // 10.0,
-        'errors'    => $data{'site-yaml'}{'fetch_errors'}    // 0,
-        'successes' => $data{'site-yaml'}{'fetch_successes'} // 0,
+        'delay'     => <site-yaml.fetch_delay>     // 1.5,
+        'delay_min' => <site-yaml.fetch_delay_min> // 0.5,
+        'delay_max' => <site-yaml.fetch_delay_max> // 10.0,
+        'errors'    => <site-yaml.fetch_errors>    // 0,
+        'successes' => <site-yaml.fetch_successes> // 0,
         'queue'     => $queue,
-        'drain_cb'  => $data{'site-yaml'}{'fetch_drain_cb'} // '',
+        'drain_cb'  => <site-yaml.fetch_drain_cb> // '',
     };
 
     my $yaml;
@@ -75,8 +73,8 @@ if ( $op eq qw| save | ) {
 
 return FALSE;
 
-#,,..,,,,,.,.,.,,,,..,...,...,,,,,.,,,.,.,...,.,.,...,...,.,.,.,.,.,,,.,.,.,,,
-#7KVFMDND7DLLMVTIXJPA2NUKMHET55QEJ2GZVYFQC6LYY6QMQOUGB7T4ZTM4YNNTH4WGAAJHN6F4C
-#\\\|RV225FSOSEWVM42VXGE5HCHDNZ7WVXVU2LYEL44TOZWX5UVTQ34 \ / AMOS7 \ YOURUM ::
-#\[7]MWZ2LBMLOXYQR3LRB4KCYRTKSPECOJZRDYCMVZMC7S73R2BMHMDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,,..,,..,..,,.,.,,,,,...,.,.,.,.,...,...,...,.,,,..,,...,,..,
+#YA2G3GUD3QPS4UPF5GAYWFPR2AW3KBX4NQHUXOF6BHWGYHYVJYP3MVE6TTBH62WXOEG3BEJSUHX2M
+#\\\|SFE3XKVFYJKFEZBGJKX6FE3RVHL4GKI7JUZWDPJBAW64R2UMAZC \ / AMOS7 \ YOURUM ::
+#\[7]MVO7LVBXFQH5YQJFTR4ZGOP3X7X5SDTKXG3OMYV2OAM4GPXKPMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

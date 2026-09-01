@@ -38,8 +38,8 @@ $job->{'status'}            = qw| review |;
 ## patch the persistent store too, not just disk -- job-upsert's          ##
 ## preserve-on-reupsert whitelist reads $data{'jobs'}{'store'}, which a   ##
 ## bare job.write never touches ; see dispatch.assessments' matching note ##
-$data{'jobs'}{'store'}{$job_id} = $job
-    if ref $data{'jobs'}{'store'} eq 'HASH';
+<jobs.store>->{$job_id} = $job
+    if ref <jobs.store> eq 'HASH';
 
 <[base.logs]>->(
     0,
@@ -50,8 +50,8 @@ $data{'jobs'}{'store'}{$job_id} = $job
 
 return;
 
-#,,.,,...,...,.,.,,..,.,,,...,,.,,..,,,..,..,,..,,...,...,,..,,.,,.,,,..,,,,,,
-#IYUVU66X5RRDOQTRGQ5T4BLN7FMP63XCGWGOWFUHKGQ63GRTUB476JFCQX6YE6N4W3KMIIX7SJUWA
-#\\\|5ZKTYFJJT7DAMHDII7RQBNJ2FALTEPEXHIODXKJ35PFEIGOPFN5 \ / AMOS7 \ YOURUM ::
-#\[7]TF5XEH25D3S7N2VZJNOD3PULLIH6RL6Z5UMTDL4WQEVAHRAIWMBY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,,,,..,,,,,,,.,.,.,.,,,,.,,.,.,..,,...,...,..,,..,,...,.,.,..,,
+#5ATVZSIO26CWWMSBCCM7VFV2GH6LMECUUJRQHKYXIDYFEG6B3E45C3Y7NCNBDO2TV3BZA7XGYA7B2
+#\\\|ZBQ7APZXVGYTQ2AF6HC3TID7CA2MYGPQJBKW55U2FNBXWLEHG3R \ / AMOS7 \ YOURUM ::
+#\[7]COAXO2XRC4BELYAO7TKCTGHD2ASLUHXEUOWMRCLM4VKQHRIYUGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

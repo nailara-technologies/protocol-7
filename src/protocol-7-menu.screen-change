@@ -26,27 +26,27 @@ return
     if not <protocol-7-menu.graphical-initialized>;
 
 ## cancel any pending debounce timer from a previous event in this burst
-my $prev_id = $data{'protocol-7-menu'}{'screen_change_timer_id'};
+my $prev_id = <protocol-7-menu.screen_change_timer_id>;
 Glib::Source->remove($prev_id) if defined $prev_id;
 
 my $scr_w = $w;
 my $scr_h = $h;
 
-$data{'protocol-7-menu'}{'screen_change_timer_id'} = Glib::Timeout->add(
+<protocol-7-menu.screen_change_timer_id> = Glib::Timeout->add(
     700,
     sub {
-        delete $data{'protocol-7-menu'}{'screen_change_timer_id'};
+        delete <protocol-7-menu.screen_change_timer_id>;
 
         my $window = <protocol-7-menu.graphical-window>;
         return FALSE unless defined $window;
 
         ## use cached window metrics [ written by graphical-startup-init into
         ## %data via configure-event and motion-notify ] - fully non-blocking
-        my $cached = $data{'protocol-7-menu'}{'window'} // {};
-        my $cur_x  = $cached->{'x'}                     // 0;
-        my $cur_y  = $cached->{'y'}                     // 0;
-        my $cur_w  = $cached->{'w'}                     // 100;
-        my $cur_h  = $cached->{'h'}                     // 100;
+        my $cached = <protocol-7-menu.window> // {};
+        my $cur_x  = $cached->{'x'}           // 0;
+        my $cur_y  = $cached->{'y'}           // 0;
+        my $cur_w  = $cached->{'w'}           // 100;
+        my $cur_h  = $cached->{'h'}           // 100;
 
         my $monitors = <[base.gtk.list_monitors]> // [];
         return FALSE unless @$monitors;
@@ -115,8 +115,8 @@ $data{'protocol-7-menu'}{'screen_change_timer_id'} = Glib::Timeout->add(
         if ( defined $safe ) {
             my $new_x = $safe->{'x'};
             my $new_y = $safe->{'y'};
-            $data{'protocol-7-menu'}{'window'}{'x'} = $new_x;
-            $data{'protocol-7-menu'}{'window'}{'y'} = $new_y;
+            <protocol-7-menu.window.x> = $new_x;
+            <protocol-7-menu.window.y> = $new_y;
             <[base.logs]>->(
                 1, '[screen-change] relocated to x=%d y=%d (mon %d)',
                 $new_x, $new_y, $safe->{'monitor_index'} // -1
@@ -130,8 +130,8 @@ $data{'protocol-7-menu'}{'screen_change_timer_id'} = Glib::Timeout->add(
                 = $target->{'x'} + $target->{'width'} - $cur_w - $margin;
             my $new_y = $target->{'y'} + $margin;
             $window->move( $new_x, $new_y );
-            $data{'protocol-7-menu'}{'window'}{'x'} = $new_x;
-            $data{'protocol-7-menu'}{'window'}{'y'} = $new_y;
+            <protocol-7-menu.window.x> = $new_x;
+            <protocol-7-menu.window.y> = $new_y;
             <[base.logs]>->(
                 1, '[screen-change] fallback to x=%d y=%d on first monitor',
                 $new_x, $new_y
@@ -148,8 +148,8 @@ return;
 
 #
 
-#,,..,..,,,.,,...,.,,,,..,,.,,,..,..,,..,,,.,,..,,...,...,..,,,.,,.,,,,,.,,,.,
-#OQXWNK25R3EFNZ36VO5ZJTXYRQ5WTL2QERPJH27V6OHXHXGQ4REK2OSNW6II44HNR2RPQND6GWG72
-#\\\|XVRQCCWX26RISTAPU6QBN677M52EA4I3BWYGMBP27NUIIG4IHIV \ / AMOS7 \ YOURUM ::
-#\[7]CUWNPSSMHMQ277WCGZ57IOTNXN2LESKMTBTBR7UX44U6IGR52IAA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,.,,,,.,,,,,,.,,,,.,,,,,,.,,.,,,..,,...,...,...,,,.,,,.,.,.,,..,
+#XT5NRLQASJLDTL2VTTQBQOVJYIMANJOQ5WNTJT2DELBPJZG7NQRQONU2H6GEU365L7A3Y4DYL67GW
+#\\\|CBTTRZHPDJVR5PJMBOAP3KREYYKPJLRHTTK3WCUJWGZDRF2HILR \ / AMOS7 \ YOURUM ::
+#\[7]3T2F2PF5JGPRSBO6HAAYFRBPHW4BNEBLANF2OWKCQL2ECOIXZYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

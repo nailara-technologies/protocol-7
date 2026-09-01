@@ -10,7 +10,7 @@ my $members    = $args->{'members'};      # Single checksum or arrayref
 return { 'mode' => 'false', 'data' => 'cluster_id required' }
     unless $cluster_id;
 
-my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+my $registry = <storage.mapping.checksum-cluster>;
 $cluster_id = <[plugin.storage.util.normalize_checksum]>->($cluster_id);
 
 my $cluster = $registry->{'clusters'}{$cluster_id};
@@ -88,8 +88,8 @@ return {
     }
 };
 
-#,,.,,..,,...,,.,,,,.,,..,,,.,.,.,,.,,,,,,.,.,.,.,...,...,.,.,,,,,.,,,.,,,,.,,
-#IFWHE5PKJNMTKM73DVWM5GEWC3SAKBUG7HZMY2PUMRXBZUZWEY65IUMKHXZ5XNO2AKEVPWXC2NTRQ
-#\\\|WG4QWO4AWYDSTAN4JPFELSFWPD3OHTPS4IJ4LCYMDEW5UIGRZ42 \ / AMOS7 \ YOURUM ::
-#\[7]B4VJF3NXZKRDCZKZZXFSA4DVRVQNJUJHIO7BT7MLFSMCHND452CA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,,,.,,.,,,.,,,,,,,,,,..,,.,.,.,.,...,...,,..,,..,...,.,,,,,.,
+#C25D6PUURBQAQ4KN7BTNAWAIMEZZJ6VS37ZC3VGRVUY6DKQBSFGOKX2JNOSMHL2ORXHY7QR34IHQI
+#\\\|OPO6Z5HXI3IE4FZ26MDDPZM5DWACPF73QMOEI72WZJN6GU3I3QA \ / AMOS7 \ YOURUM ::
+#\[7]S6F4XXAJKIDPIUZLIBMHB55TGPRRDT34R3543RDIMCB2JLNJZ4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

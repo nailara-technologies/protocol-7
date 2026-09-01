@@ -9,14 +9,14 @@
 my $inst_id
     = ( defined $call->{'args'} and length $call->{'args'} )
     ? $call->{'args'}
-    : ( sort keys %{ $data{'screen-setup'}{'instances'} // {} } )[0];
+    : ( sort keys %{ <screen-setup.instances> // {} } )[0];
 
 return {
     'mode' => qw| false |,
     'data' => 'no active display-layout instance'
     }
     unless defined $inst_id
-    and exists $data{'screen-setup'}{'instances'}{$inst_id};
+    and exists <screen-setup.instances>->{$inst_id};
 
 my $snap_dir = <screen.setup.cfg.snapshot_dir>
     // join( '/', <system.root_path>, qw| data snapshots | );
@@ -59,8 +59,8 @@ return { 'mode' => qw| size |, 'data' => $path };
 
 #
 
-#,,,,,.,.,..,,,,.,,.,,,,.,,,,,,,.,,,,,...,.,,,.,.,...,...,...,..,,,.,,...,,,,,
-#BBEXCD4PSSZU2RAMEAG7XBIFIEAD3J3ZA4A2JSYOPXFD63OBFPN5LLQLWM3L5MWPUDLAMU5DG7HQQ
-#\\\|Z5XO7JVIV2GGQUXMTF7EZNZ4YLIQXSEVWXVKVSFUIYCQ4ALMYMZ \ / AMOS7 \ YOURUM ::
-#\[7]SCUMBSK2QZN3H37ZQ57W72W6RD7EBJKPBP42ABIQQFQWLJ33E2DY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,...,...,.,.,,,.,..,,..,,..,,.,.,...,...,,..,.,,,..,,...,.,,,
+#NFEQV5HNS35FLYBSLA42EOU326QQXPZ3JAMDQEWMLDLCKVVCZVIITI4DU5R22ZXGAHDDDAXBRDMYK
+#\\\|VDJKDHBOVNXBP6RNAPYRM2RXV2Z7MNU4R37MLV2TEJE44HBLXDZ \ / AMOS7 \ YOURUM ::
+#\[7]XA5KNO423WGRPSAIHF5QNP27WXJYJE7FQIVDYGD6IIEH3EUSCOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

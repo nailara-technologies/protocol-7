@@ -12,7 +12,7 @@ if ( not length( $name // '' ) or not length( $path // '' ) ) {
     };
 }
 
-my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+my $conn = <storage.9p.connections>->{$name};
 return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
 
 my $result = <[storage.9p.remove-path]>->( $conn, $path );
@@ -23,8 +23,8 @@ return {
     'data' => "removed $path"
 };
 
-#,,,,,,.,,,,.,.,,,,,.,,,.,...,,,.,,..,.,,,,,,,.,.,...,...,.,.,.,.,...,,..,..,,
-#6PBPYN3O26NHJ3J3XQIVEARFGW7RY4YW5SW3SNAPGKCCD2ZF26I3RSUF4XXXSXEUMKB5R34TCEHUI
-#\\\|HT4X7HVSND5FDF3DKW4TXU5WSSZPOGCBENTNPXWPMJZMTFXOMGD \ / AMOS7 \ YOURUM ::
-#\[7]VI7RHYFPW4MTO4366YZUBKJSS4BKIRWGNSOGKRGZ2YJGAW3QGKCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,..,,,,,,,,,,..,,,,,,..,,.,.,.,.,...,...,,..,..,,,..,,,.,.,,,
+#NDVC5VVUL6SX4MH3SUNXSDMX3DQG5MIRI7ZPI7QLVWL6QXRN5BDA3FVPK2VBISBLFO3YEKPW75B3I
+#\\\|5OXOS7PQRXZM25PNJEPYMJ6NP562FY2RY25APTPGAXL2ZWT42ET \ / AMOS7 \ YOURUM ::
+#\[7]U4JSABJWVLQNAZJ35SNEKHLH6RNH6SZLRQ4XHJXMW2GDCEDH74BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

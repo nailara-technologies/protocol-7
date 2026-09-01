@@ -4,7 +4,7 @@
 # param = <add|del> <name>
 # descr = register|remove ondemand zenki
 
-my $re = $data{'regex'}{'base'};
+my $re = <regex.base>;
 
 ## Trim leading|trailing whitespace from arguments
 my $args = defined $call->{'args'} ? $call->{'args'} : '';
@@ -37,7 +37,7 @@ if ( $cmd eq 'add' ) {
     } keys %{<zenki.virtual>};
 
     my $zenka_id = <[base.list.element.add]>->(
-        {   'key_ref' => \$data{'zenki'}{'virtual'},
+        {   'key_ref' => \<zenki.virtual>,
             'val_ref' => \{
                 'name'    => $zenka_name,
                 'type'    => 'ondemand',
@@ -79,8 +79,8 @@ if ( $cmd eq 'add' ) {
     };
 }
 
-#,,..,.,,,,,,,...,,..,,..,,,,,,.,,...,.,.,.,,,..,,...,...,,,.,,,,,,.,,.,.,...,
-#EOGK7XLRMISE6KPXDJ4ZPNMG5NIJJON34AXA7QC6GNFWMEJSOHXCKRZWIZUH4OWZEMDO327BCZLHQ
-#\\\|ECD43AICJU5463NWVBKYYGIRRS3SI7EDCCYKWOL7UNIC2OSY4Z6 \ / AMOS7 \ YOURUM ::
-#\[7]USMTNCO3OHKZXSQKLKOVEI53V4I3EWT6WUNF4PPBNLBLTLNGM4DY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,,,,,.,...,..,,...,,,.,.,.,,,,,..,,...,...,,.,,.,.,.,,,.,.,.,.,
+#4PPXIC6I2TUFWAYIN7TIR4754MUEMN3ZJWGKJ6FSKS275CODQSXSC3WJKDYDEJGXNW442TQT2AJ4I
+#\\\|MOMSSLWBRKMWHF6VY2NIYNJWFUD4MP4DWXQC4WOMGITSUTK4XVQ \ / AMOS7 \ YOURUM ::
+#\[7]QJKI7E4B6F5UIA3GJPHMUT43XSMGLCPYRP23LI5ZQ6YA7LCEEIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

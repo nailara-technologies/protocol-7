@@ -23,15 +23,15 @@ if ( $mode eq qw| true | || $mode eq 'TRUE' ) {
     <[base.log]>->( 1, "  ✓ v7 confirmed : $reply_data" );
 
     ## Update statistics
-    $data{'zenki'}{'stats'}{'successful_starts'}++
-        if exists $data{'zenki'}{'stats'};
+    <zenki.stats.successful_starts>++
+        if exists <zenki.stats>;
 
 } elsif ( $mode eq qw| false | || $mode eq 'FALSE' ) {
     <[base.log]>->( 0, "  ✗ v7 start failed : $reply_data" );
 
     ## Update statistics
-    $data{'zenki'}{'stats'}{'failed_starts'}++
-        if exists $data{'zenki'}{'stats'};
+    <zenki.stats.failed_starts>++
+        if exists <zenki.stats>;
 
 } else {
     <[base.log]>->( 1, "  v7 reply ($mode): $reply_data" );
@@ -43,8 +43,8 @@ if ( $mode eq qw| true | || $mode eq 'TRUE' ) {
 
 return TRUE;
 
-#,,,.,.,.,,..,.,,,..,,.,.,.,.,,,.,,,,,,.,,,,,,..,,...,..,,,.,,...,,,.,.,,,,..,
-#KMNODGGCHY5FVZDEPRSE34WWZSRYTGPXGHNSBAE3FSLZZPVXUWDSZ2XBS2WBMMFQNAJRLDRLIM2WS
-#\\\|WYM3BR4YZNWPG6EJRRVR7XKT3D6EHC35BARHOEF7RQY3XON6B32 \ / AMOS7 \ YOURUM ::
-#\[7]YXXFKZW2V3TV5PKKAXFZDQFI2F5F6CBG7L4UDTPVHW5SIMRYXQAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,..,,..,,,.,,..,,,,,,,,.,,..,..,,...,...,,.,,.,.,,.,,..,,,.,,
+#NBTZQUZ326MJFCPS4U5L4SUJDJ2WFVHB4HK3WGXFRPBFL66TISDTWNNVL5ESTODXYJOWGZMP57KWW
+#\\\|Z77Q23NXHUVJYHGR6FXWJ2LV3LVVGASZRQPWOCRGMMASXIEMY65 \ / AMOS7 \ YOURUM ::
+#\[7]CCN4XYWF262R2WRJBFCNI2II4N6RDGYHVMBNUOZL6LZ5U6XUKWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

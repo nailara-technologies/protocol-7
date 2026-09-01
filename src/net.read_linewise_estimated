@@ -19,7 +19,7 @@ my $protocol_stats = $data{'protocol'}->{$protocol}->{'statistics'}
     //= { qw| line-reads | => 0, qw| read-iterations | => 0 };    ##[ init ]##
 
 my $buffer_length = bytes::length $session->{'buffer'}->{'input'};
-my $size_left     = $data{'size'}->{'buffer'}->{'input'} - $buffer_length;
+my $size_left     = <size.buffer.input> - $buffer_length;
 
 ##  ignore start position for endline match  ##
 ##
@@ -88,8 +88,8 @@ if ( $linefeed_match_position == -1 ) {    ##  read not complete  ##
     return FALSE;    ##  request completed  ##
 }
 
-#,,,,,,,,,..,,.,,,,.,,,..,.,.,..,,,,.,,..,,,,,..,,...,...,..,,.,.,..,,..,,,..,
-#4JDDZSPNC3K53J2AHFKIFKXAXTDTNMZSAPRZYSFNV5DFUBZLOEFAXXY2DWT7JOWBKSIHWR7BST2UA
-#\\\|2HDU36ZD56JXISUDY7MRXHCQPTMF3W2STIXBWUDS6F7QVIE2PNP \ / AMOS7 \ YOURUM ::
-#\[7]E6HMHQMICN5LXUNR7L2U27RQMGMWZ6LR22ZPM7HJVA5BA4HURUDI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,.,,,.,,,..,,...,.,.,,,.,,,.,..,,...,...,.,.,,..,,..,...,,.,,
+#G2XKIY4SQGH52ADAQHO6M4CO6TMHYX4EOTAWPXOMW3HFBK5A4UQDLME7XN3F2FQYYHBDFZ6GKE7TW
+#\\\|JXOVWIXCACK4K6J273EZK3IBNLVQVBMR7YK7BKYE3FS2T4YJBDA \ / AMOS7 \ YOURUM ::
+#\[7]LRIAKSUNNDPVLAM5ZLPBKPIS4JEILMMBTRVKY5TKHK43ESHCY4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
