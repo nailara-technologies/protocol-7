@@ -911,8 +911,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     $cmd
                 );
 
-                ##  orphaned route : signal producer to stop  ##
-                if ( $cmd_id > 0
+                ## orphaned route : signal producer to stop  SIZE/CHRSIZE   ##
+                ## are atomic and already clean up their own route --       ##
+                ## there's no live producer stream to terminate, !TRM! is a ##
+                ## stream-control signal and sending it here is the wrong   ##
+                ## reply type. only STRM/STRM-SIZE genuinely have an active ##
+                ## stream a producer needs told to stop                     ##
+                if (    $cmd_id > 0
+                    and ( $cmd eq qw| STRM | or $cmd eq qw| STRM-SIZE | )
                     and
                     not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} ) {
                     $data{'session'}{$id}{'buffer'}{'output'}
@@ -1029,8 +1035,8 @@ UNKNOWN_TYPE_HANDLED:
 
 return 0;    ##  command complete  ##
 
-#,,..,.,.,..,,...,,..,.,,,...,,,,,...,,,.,,,,,..,,...,...,...,,.,,,,.,.,.,.,.,
-#O35JCQXCJYT33DNACBYZ47SSGMHE4NPNJ3TACGHB7MK2CDDKE6UMULAQKY7ZYHITEAL4RFBER7PDY
-#\\\|J3PF33C7RIK7GFNJS7DHZUA6MJJQAFW2XA7WH7FTJAYTJFGSAPU \ / AMOS7 \ YOURUM ::
-#\[7]DYZULX6LJVDCO2VM7FH2XLZJ2BTHEDAJ3IPD6CA45UTTZYXHAWAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,...,.,.,...,,.,,.,,,.,,,.,,,,,.,..,,...,..,,.,,,..,,.,.,..,,,,.,
+#JPJERCN5QE47LRV75LIRKHOYF6XAMSALQBDF47YZPG2XJAR7R45OZSJ2TWNSXUHVYHOHQWYF54CQ6
+#\\\|MEBL45TMJ3G6RVUAP3FPRQU2BFTBN5RL52JMH6X4QI6CVLV2PW6 \ / AMOS7 \ YOURUM ::
+#\[7]PTC7TFHA7PM2OCOIAXQY45QOCZKF67JLT66FB2Z4VOIF63VVC6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

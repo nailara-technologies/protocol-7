@@ -1,0 +1,201 @@
+task_id: format-code-regex-delimiter-style
+title: format-code — new opt-in step: normalize m//, s///, =~/!~ // regex delimiters to the P7-preferred forms
+priority: normal
+estimated_rounds: 22
+
+context: |
+  Fourth sibling to the -d, -m, and -p opt-in format-code steps (see
+  commits d0c7e28f6, c6821f56a, and the sibling task
+  format-code-postfix-deref-sugar.yaml). Same architecture, same
+  is_p7_module_text() + non-.pm gate, same "implement + demonstrate on a
+  few real files, do not run repo-wide in this task" scoping.
+
+  This one is meaningfully riskier than the other three -- a wrong
+  rewrite here can silently change what a regex actually matches, not
+  just its visual form -- so read this whole context section carefully
+  before writing any code, and keep the initial scope narrow rather than
+  trying to handle every edge case in one pass.
+
+  ## the actual rule, authoritative source
+
+  data/yaml/context-templates/regex-style-fix.yaml already documents this
+  project's regex-delimiter convention precisely (it's an existing
+  context template for a judgment-based dispatch that hand-fixes regex
+  style; this task is about building the SAME end result as a mechanical,
+  repeatable format-code step instead, for the subset of cases that are
+  pure delimiter substitution with no semantic risk). Quoting its rules
+  directly:
+
+      protocol-7 avoids `m//` and `s///` forms. preferred delimiters:
+      - `m|pattern|` for simple match [ pipe delimiter ]
+      - `m{pattern}` when pattern contains pipe `|` [ alternation ]
+      - `s|old|new|` for simple substitution
+      - `s{old}{new}` for complex substitution or when content has pipes
+      never use: `m/.../`, `s/.../`, `=~ /.../`
+      the `/` form conflicts visually with path separators and division.
+
+  Worked example from that same file (already correct, matches the
+  behavior this task must reproduce):
+
+      $path =~ s/\/+/\//g      ##  WRONG  ##
+      $path =~ s|/+|/|g        ##  CORRECT  ##
+
+  Note the escapes are GONE in the corrected form, not just the
+  delimiters -- see the unescaping rule below for exactly why that's safe
+  here specifically, and not safe in general.
+
+  ## delimiter selection : || is the DEFAULT target, {} is the fallback
+
+  Convert to `||` (or `m{...}` / `s{...}{...}` -- see next) by default.
+  Escalate to the paired `{}...{}` form ONLY when the pattern or
+  replacement body contains a literal `|` character (escaped or
+  unescaped -- see the unescaping rule, an escaped `\|` still counts as
+  "contains a pipe" and still forces the escalation, since `|` is a true
+  regex metacharacter and that escape must be preserved either way, so
+  `||` delimiters would need it doubly-escaped or ambiguous). Do not
+  escalate to `{}` just because the pattern is "complex" or long --
+  only the presence of `|` in the body triggers it.
+
+  ## the unescaping rule : per-character, not blanket
+
+  This is the part that needs the most care. When changing delimiters,
+  for each escaped character `\X` found in the pattern/replacement body:
+
+  - if X is a TRUE regex metacharacter -- the set is `\ . * + ? ( ) [ ]
+    { } ^ $ |` -- ALWAYS preserve the escape exactly as written,
+    regardless of what delimiter is chosen. These characters carry real
+    regex semantic meaning (e.g. `\|` means "match a literal pipe, not
+    alternation") that has nothing to do with which delimiter is in use,
+    so removing the escape would silently change what the regex matches.
+  - if X is NOT a true regex metacharacter (e.g. `/`, `,`, `!`, `#`, and
+    most other printable characters) -- the escape existed ONLY because X
+    happened to be the OLD delimiter, forcing it to be escaped just to
+    avoid prematurely closing the pattern. It carries zero regex-semantic
+    weight on its own. Once the delimiter changes to something other than
+    X, the escape is pure noise and should be REMOVED. This is exactly
+    the s/\/+/\// -> s|/+|/| example above: `/` is not a metacharacter,
+    so both `\/` escapes disappear once `/` stops being the delimiter.
+  - special case: if X is the character being escaped AND it also
+    happens to be the NEW delimiter (e.g. rewriting into `{}` form when
+    the pattern needs a literal `{` or `}`), the escape must stay --
+    it's now needed for the new delimiter's own sake.
+
+  Do not attempt this per-character analysis on anything you are not
+  fully confident about -- when unsure whether a character is escaped for
+  metacharacter reasons or delimiter reasons, leave that regex completely
+  untouched (see "what NOT to touch" below) rather than guessing.
+
+  ## what NOT to touch, from the existing template plus this task's own
+  ## narrower initial scope
+
+  - regexes inside `eval` blocks [ may be intentionally dynamic ]
+  - regexes in base.* infrastructure modules [ unless obviously just a
+    delimiter-style fix with zero semantic ambiguity ]
+  - multi-line regexes using the `/x` (extended/whitespace-insensitive)
+    flag [ delimiter change interacts with whitespace-significance in
+    ways that need careful individual review, not mechanical rewriting ]
+  - `s|||` cases where the replacement text itself contains `|` [ same
+    escalate-to-{} rule as the pattern side, apply it independently to
+    old and new ]
+  - any existing non-slash, non-`||`/`{}` delimiter form already in use
+    (`m,,`, `s,,,`, `s'''`, etc.) -- per the user: leave these as-is
+    unless a character inside them now requires changing form again
+    (i.e. treat an existing `m,pattern,` the same way you'd treat an
+    existing `m|pattern|` -- only touch it if the CURRENT delimiter
+    character itself now appears unescaped in the body, forcing a change,
+    using the same per-character unescape logic above)
+  - this task's own FIRST PASS should stick to the mechanical delimiter-
+    swap only -- do NOT attempt any of the "optimization" suggestions
+    also listed in regex-style-fix.yaml (qr{} precompilation, index()
+    instead of a trivial substring regex, \A...\z instead of ^...$,
+    named captures over positional $1/$2). Those need semantic judgment
+    about the surrounding code, not pure textual delimiter substitution,
+    and are explicitly out of scope for a mechanical format-code step
+
+issues_to_fix:
+  - id: regex-delimiter-normalization
+    description: |
+      new opt-in format-code step converting m/.../, s/.../.../,
+      bare =~ /.../, and !~ /.../ forms to m|...| / s|...|...| by
+      default, escalating to m{...} / s{...}{...} when the body contains
+      a literal pipe (escaped or not). Per-character escape removal only
+      for non-metacharacter escapes forced solely by the old delimiter.
+      Gated behind a new opt-in flag, off by default, same
+      is_p7_module_text() + non-.pm gate as the other steps.
+    files:
+      - bin/format-code (new step function + option-parsing wiring, flag
+        name -r / -regex-style, single-dash long form matching -d/-m/-p)
+    precedent: |
+      step6_compact_data_sugar / step7_compact_module_call_sugar
+      (bin/format-code) for the overall step structure and gating.
+      data/yaml/context-templates/regex-style-fix.yaml is the
+      authoritative rule source, quoted extensively above -- read it in
+      full before starting, it has additional worked examples beyond what
+      is quoted in this task file.
+      PPI's PPI::Token::Regexp::Match / PPI::Token::Regexp::Substitute
+      (and the ::Match/::Substitute distinction) expose the delimiter
+      characters and the separate pattern/replacement sections cleanly --
+      use PPI's own structure here rather than hand-rolling delimiter
+      detection with regex-on-text, given how easy it is to get this
+      wrong by scanning raw characters instead of using the parse tree.
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md
+    before starting
+  - all comments lowercase, `[ word ]` not `( word )` for annotations
+  - do not add a signature footer stub — the repo's signing system adds
+    the real one on commit
+  - -d, -m, -p are already single-dash long-form flags -- match that
+    convention exactly for this new flag too
+
+explicitly_out_of_scope: |
+  - do not run the new step across src/ in this task -- implement it,
+    demonstrate it correctly on a small number of real files (dry-run /
+    diff review only), and stop there. Applying it repo-wide is a
+    separate, deliberate step the user runs themselves later, likely in
+    smaller batches than -d/-m/-p given the higher risk class here
+  - do not implement any of the "optimization" transformations from
+    regex-style-fix.yaml (qr{}, index(), \A...\z, named captures) -- see
+    context above, semantic judgment required, not this task
+  - do not touch regexes inside eval blocks, /x-flagged regexes, or
+    already-non-slash-delimited regexes unless their own current
+    delimiter character now appears unescaped in the body
+  - do not touch the existing -d / -m / -p steps -- unrelated, already
+    correct (or, for -p, a separate sibling task)
+
+verification: |
+  1. Construct synthetic test fixtures (with a proper '## [:< ##' P7
+     module header) covering AT LEAST: a simple m/foo/ with no special
+     chars, s/\/+/\// (the worked example from the template -- must
+     produce s|/+|/|), a pattern containing an unescaped `|` (must
+     escalate to m{}), a pattern containing an escaped `\|` (must ALSO
+     escalate to m{} and KEEP the escape, producing e.g. m{foo\|bar}),
+     a pattern with a true metacharacter escape that is NOT the delimiter
+     (e.g. \. or \$ in a m/.../ pattern -- must be preserved unchanged
+     through the delimiter swap), a regex inside an eval block (must NOT
+     be touched), a regex with the /x flag (must NOT be touched), an
+     already-`m,,`-delimited regex with no reason to change (must NOT be
+     touched), and a bin/Protocol-7-style + .pm-style fixture (must NOT
+     be touched by the flag at all).
+  2. Run the new flag in dry-run mode against real files found via
+     search_code / grep for `=~ /` , `!~ /` , `m/` , `s/` patterns in
+     src/, diff review each rewrite by hand -- pay special attention to
+     any pattern containing metacharacters, don't just check the
+     delimiter changed.
+  3. Confirm `bin/dev/ptd -c` reports syntax ok on every rewritten file.
+  4. Confirm running format-code WITHOUT the new flag on the same files
+     produces no regex-delimiter changes at all.
+  5. For at least 2-3 real converted regexes, manually verify by hand
+     (not just syntax-checking) that the NEW form matches the exact same
+     strings the OLD form did -- e.g. test both forms against a few
+     sample input strings in a throwaway perl -e one-liner and confirm
+     identical match/no-match results. This is the step most likely to
+     catch a subtle escaping mistake that ptd -c alone would miss (a
+     syntax-valid regex can still match something different than
+     intended).
+
+#,,..,,,,,,,.,,,.,,,,,..,,.,,,,,.,...,...,..,,..,,...,...,...,,,,,...,...,,,.,
+#AF22EFYGBPMCJRQ6MX4VB76U26PDBXZDZJJE3I2ZHM5YMFB4LNWKGZPZLJMQMA6MRHUOXWO3VRL3U
+#\\\|3YVMZHPGNLMML532NY2DNEZDQENMXMHCK3JFD4W33O5AW3SO6QK \ / AMOS7 \ YOURUM ::
+#\[7]5QXSP2SVVZLYG6YTHIDQOAVOCYDS7UIJT72EY5SV5FXNLIK3OOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

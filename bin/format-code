@@ -71,6 +71,10 @@ my $no_utf8    = FALSE;
 my $data_sugar = FALSE;
 ##  opt-in $code{'a.b'}->(...) -> <[a.b]>->(...) rewrite  ##
 my $module_sugar = FALSE;
+##  opt-in ${<...>}/%{<...>}/@{<...>} -> <...>->$* / ->%* / ->@* rewrite  ##
+my $postfix_deref_sugar = FALSE;
+##  opt-in normalize m// , s/// and =~ /.../ regex delimiters to P7 style  ##
+my $regex_style = FALSE;
 
 while ( @ARGV and defined $ARGV[0] and $ARGV[0] =~ m|^-| ) {
     my $opt = $ARGV[0];
@@ -82,6 +86,12 @@ while ( @ARGV and defined $ARGV[0] and $ARGV[0] =~ m|^-| ) {
         shift @ARGV;
     } elsif ( $opt eq qw| -m | or $opt eq qw| -module-sugar | ) {
         $module_sugar = TRUE;
+        shift @ARGV;
+    } elsif ( $opt eq qw| -p | or $opt eq qw| -postfix-deref | ) {
+        $postfix_deref_sugar = TRUE;
+        shift @ARGV;
+    } elsif ( $opt eq qw| -r | or $opt eq qw| -regex-style | ) {
+        $regex_style = TRUE;
         shift @ARGV;
     } else {
         last;
@@ -484,6 +494,16 @@ sub preprocess_source {
         if $module_sugar
         and $path !~ m{\.pm$}
         and is_p7_module_text($text);
+
+    $result = step8_compact_postfix_deref_sugar($result)
+        if $postfix_deref_sugar
+        and $path !~ m{\.pm$}
+        and is_p7_module_text($text);
+
+    ## regex delimiter normalization runs on any perl file format-code     ##
+    ## processes -- it is generic perl syntax with no dependency on the p7 ##
+    ## sugar-expanding pre-parser                                          ##
+    $result = step9_normalize_regex_delimiters($result) if $regex_style;
     return $result;
 }
 
@@ -1550,6 +1570,460 @@ sub step7_compact_module_call_sugar {
     return $rewritten;
 }
 
+##[ step 8 : opt-in rewrite of ${<...>}/%{<...>}/@{<...>} to postfix-deref sugar ]##
+## only when the braces contain exactly one <key.path> or <[module.name]>  ##
+## sugar token and optional whitespace; anything else inside the braces is ##
+## skipped                                                                 ##
+sub step8_compact_postfix_deref_sugar {
+    my $text = shift;
+
+    my $doc = PPI::Document->new( \$text );
+    return $text if not defined $doc;
+
+    my @lines = split m{(?<=\n)}, $text;
+
+    my @rewrites;
+    my @tokens = $doc->tokens;
+    my $i      = 0;
+    while ( $i < @tokens ) {
+        my $t = $tokens[$i];
+        if (    $t->isa('PPI::Token::Cast')
+            and $t->content =~ m{^[\$\@\%]$} ) {
+            my $cast  = $t;
+            my $sigil = $cast->content;
+            my $block = $cast->snext_sibling;
+            if ( $block and $block->isa('PPI::Structure::Block') ) {
+                my $rewrite
+                    = extract_postfix_deref_rewrite( $cast, $block, $sigil );
+                if ($rewrite) {
+                    push @rewrites, $rewrite;
+
+                    ## skip to after this block so nested constructs are ##
+                    ## not reconsidered inside the same rewrite window   ##
+                    my $finish = $block->finish;
+                    my $j      = $i + 1;
+                    $j++ while $j < @tokens and $tokens[$j] != $finish;
+                    $i = $j;
+                    next;
+                }
+            }
+        }
+        $i++;
+    }
+
+    return $text if not @rewrites;
+
+    ##  replace from the end backward so earlier positions stay valid  ##
+    @rewrites = sort {
+        my $la = $a->{start_tok}->location->[0];
+        my $lb = $b->{start_tok}->location->[0];
+        $la == $lb
+            ? $b->{start_tok}->location->[1]
+            <=> $a->{start_tok}->location->[1]
+            : $lb <=> $la;
+    } @rewrites;
+
+    my %last_start_for_line;
+
+    for my $rw (@rewrites) {
+        my $start_loc  = $rw->{start_tok}->location;
+        my $end_loc    = $rw->{end_tok}->location;
+        my $start_line = $start_loc->[0];
+        my $end_line   = $end_loc->[0];
+
+        ##  only handle single-line rewrites  ##
+        next if $start_line != $end_line;
+
+        my $line_idx = $start_line - 1;
+        next if $line_idx < 0 or $line_idx > $#lines;
+
+        my $start_col = $start_loc->[1] - 1;    ##  0-based  ##
+        my $end_col
+            = $end_loc->[1] - 1 + length( $rw->{end_tok}->content );
+
+        ##  skip rewrites that would overlap a previous one on this line  ##
+        next
+            if defined $last_start_for_line{$line_idx}
+            and $end_col > $last_start_for_line{$line_idx};
+
+        my $line = $lines[$line_idx];
+        next if $start_col < 0 or $end_col > length($line);
+
+        my $postfix
+            = $rw->{sigil} eq qw| $ | ? '->$*'
+            : $rw->{sigil} eq qw| % | ? '->%*'
+            :                           '->@*';
+        my $replacement = $rw->{sugar} . $postfix;
+
+        $lines[$line_idx]
+            = substr( $line, 0, $start_col )
+            . $replacement
+            . substr( $line, $end_col );
+
+        $last_start_for_line{$line_idx} = $start_col;
+    }
+
+    return join( '', @lines );
+}
+
+##[ helper : verify a cast+block pair is a rewriteable postfix-deref target ]##
+sub extract_postfix_deref_rewrite {
+    my ( $cast, $block, $sigil ) = @_;
+
+    ##  the block must contain exactly one statement  ##
+    my @block_sig
+        = grep { not $ARG->isa('PPI::Token::Whitespace') } $block->children;
+    return undef if @block_sig != 1;
+    my $stmt = $block_sig[0];
+    return undef if not $stmt->isa('PPI::Statement');
+
+    ##  that statement must consist of exactly one sugar token  ##
+    my @stmt_sig
+        = grep { not $ARG->isa('PPI::Token::Whitespace') } $stmt->children;
+    return undef if not @stmt_sig;
+
+    my $sugar_text = join( '', map { $ARG->content } @stmt_sig );
+
+    ##  data access sugar : <key.path>  ##
+    my $is_data_sugar
+        = $sugar_text =~ m{^< (?:\w[\w\-]*) (?: \. \w[\w\-]* )* >$}x;
+
+    ##  module call sugar : <[module.name]>  ##
+    my $is_module_sugar
+        = $sugar_text =~ m{^< \[ (?:\w[\w\-]*) (?: \. \w[\w\-]* )* \] >$}x;
+
+    return undef if not $is_data_sugar and not $is_module_sugar;
+
+    ## postfix-deref + a trailing subscript needs a different transform, so ##
+    ## leave those untouched -- e.g. @{<a.b>}{key} or @{<a.b>}[0]           ##
+    my $next = $block->snext_sibling;
+    return undef
+        if $next
+        and ( $next->isa('PPI::Structure::Subscript')
+        or $next->isa('PPI::Structure::Constructor') );
+
+    return {
+        start_tok => $cast,
+        end_tok   => $block->finish,
+        sigil     => $sigil,
+        sugar     => $sugar_text,
+    };
+}
+
+##[ step 9 : opt-in normalize regex delimiters from / to | or {}         ]##
+## handles m/.../ , s/.../.../ , and bare =~ /.../ / !~ /.../ forms ;       ##
+## escalates to {} only when the pattern or replacement contains a pipe [   ##
+## escaped or not ]. per-character unescaping : true regex metachars and    ##
+## the new delimiter keep their backslash ; alphanumeric regex escapes [ \n ##
+## , \d , \Q .. ] keep theirs ; everything else loses the escape because it ##
+## only existed for the old delimiter's sake.                               ##
+sub step9_normalize_regex_delimiters {
+    my $text = shift;
+
+    my $doc = PPI::Document->new( \$text );
+    return $text if not defined $doc;
+
+    my @lines = split m{(?<=\n)}, $text;
+
+    my @rewrites;
+    my $regexps = $doc->find('PPI::Token::Regexp');
+    if ($regexps) {
+        for my $r (@$regexps) {
+            my $rewrite = extract_regex_delimiter_rewrite($r);
+            push @rewrites, $rewrite if $rewrite;
+        }
+    }
+
+    return $text if not @rewrites;
+
+    ##  replace from the end backward so earlier positions stay valid  ##
+    @rewrites = sort {
+        my $la = $a->{start_tok}->location->[0];
+        my $lb = $b->{start_tok}->location->[0];
+        $la == $lb
+            ? $b->{start_tok}->location->[1]
+            <=> $a->{start_tok}->location->[1]
+            : $lb <=> $la;
+    } @rewrites;
+
+    my %last_start_for_line;
+
+    for my $rw (@rewrites) {
+        my $start_loc  = $rw->{start_tok}->location;
+        my $end_loc    = $rw->{end_tok}->location;
+        my $start_line = $start_loc->[0];
+        my $end_line   = $end_loc->[0];
+
+        ##  only handle single-line regexes  ##
+        next if $start_line != $end_line;
+
+        my $line_idx = $start_line - 1;
+        next if $line_idx < 0 or $line_idx > $#lines;
+
+        my $start_col = $start_loc->[1] - 1;    ##  0-based  ##
+        my $end_col
+            = $end_loc->[1] - 1 + length( $rw->{end_tok}->content );
+
+        ##  skip rewrites that would overlap a previous one on this line  ##
+        next
+            if defined $last_start_for_line{$line_idx}
+            and $end_col > $last_start_for_line{$line_idx};
+
+        my $line = $lines[$line_idx];
+        next if $start_col < 0 or $end_col > length($line);
+
+        my $replacement;
+        if ( defined $rw->{subst_new} ) {
+            ##  substitution : s|match|subst|mods or s{match}{subst}mods  ##
+            if ( $rw->{open} eq $rw->{close} ) {
+                $replacement
+                    = $rw->{operator}
+                    . $rw->{open}
+                    . $rw->{match_new}
+                    . $rw->{open}
+                    . $rw->{subst_new}
+                    . $rw->{open}
+                    . $rw->{modifiers};
+            } else {
+                $replacement
+                    = $rw->{operator}
+                    . $rw->{open}
+                    . $rw->{match_new}
+                    . $rw->{close}
+                    . $rw->{open}
+                    . $rw->{subst_new}
+                    . $rw->{close}
+                    . $rw->{modifiers};
+            }
+        } else {
+            ##  match : m|match|mods or m{match}mods  ##
+            $replacement
+                = $rw->{operator}
+                . $rw->{open}
+                . $rw->{match_new}
+                . $rw->{close}
+                . $rw->{modifiers};
+        }
+
+        $lines[$line_idx]
+            = substr( $line, 0, $start_col )
+            . $replacement
+            . substr( $line, $end_col );
+
+        $last_start_for_line{$line_idx} = $start_col;
+    }
+
+    return join( '', @lines );
+}
+
+##[ helper : decide whether a regex token can be safely rewritten ]###########
+sub extract_regex_delimiter_rewrite {
+    my $tok = shift;
+
+    my $content = $tok->content;
+
+    ## PPI misidentifies P7-sugar '//=' [ defined-or assignment ] as a ##
+    ## regex token '//' followed by operator '=' -- skip it before any ##
+    ## other processing                                                ##
+    if ( $content eq qw| // | ) {
+        my $next = $tok->snext_sibling;
+        return undef
+            if $next
+            and $next->isa('PPI::Token::Operator')
+            and $next->content eq qw| = |;
+    }
+
+    ##  skip multi-line regexes -- too risky to rewrite mechanically  ##
+    return undef if $content =~ m{\n};
+
+    my $is_subst = $tok->isa('PPI::Token::Regexp::Substitute');
+    my $is_match = $tok->isa('PPI::Token::Regexp::Match');
+    return undef if not $is_subst and not $is_match;
+
+    ##  skip regexes inside eval blocks  ##
+    return undef if is_regex_inside_eval($tok);
+
+    ##  parse operator [ m , s , or bare match ] and opening delimiter  ##
+    my $rest     = $content;
+    my $operator = '';
+    if    ( $rest =~ s{^m}{} )               { $operator = 'm'; }
+    elsif ( $is_subst and $rest =~ s{^s}{} ) { $operator = 's'; }
+    elsif ($is_match)                        { $operator = ''; }
+    else                                     { return undef; }
+
+    my $open_delim = substr( $rest, 0, 1 );
+    return undef
+        if not defined $open_delim
+        or $open_delim eq ''
+        or $open_delim =~ m{\s};
+
+    my %paired_delim = (
+        '(' => ')',
+        '[' => ']',
+        '{' => '}',
+        '<' => '>',
+    );
+    my $close_delim = $paired_delim{$open_delim} // $open_delim;
+
+    ## this pass only rewrites slash-delimited regexes or same-open-close ##
+    ## delimiters whose own character has become ambiguous ; skip other   ##
+    ## paired delimiters [ e.g. m(...) ] -- those need individual review  ##
+    return undef
+        if $open_delim ne $close_delim
+        and not( $open_delim eq '{' and $close_delim eq '}' );
+
+    my $mods_hash = $tok->get_modifiers // {};
+
+    ## skip extended regexes -- delimiter change interacts with whitespace ##
+    return undef if $mods_hash->{x};
+
+    my $modifiers = join( '', sort keys %$mods_hash );
+
+    my $match_raw = $tok->get_match_string;
+    return undef if not defined $match_raw;
+
+    my $subst_raw;
+    if ($is_subst) {
+        $subst_raw = $tok->get_substitute_string;
+        return undef if not defined $subst_raw;
+    }
+
+    ##  decide whether this regex actually needs changing  ##
+    my $needs_change = 0;
+    if ( $open_delim eq qw| / | ) {
+        $needs_change = 1;
+    } else {
+        $needs_change = 1
+            if body_contains_unescaped_delim( $match_raw, $open_delim );
+        $needs_change = 1
+            if $is_subst
+            and body_contains_unescaped_delim( $subst_raw, $open_delim );
+    }
+    return undef if not $needs_change;
+
+    ##  default to | ; escalate to {} if a body contains a pipe  ##
+    my $has_pipe = body_contains_pipe($match_raw);
+    $has_pipe = body_contains_pipe($subst_raw) if $is_subst and not $has_pipe;
+
+    my ( $new_open, $new_close );
+    if ($has_pipe) {
+        ( $new_open, $new_close ) = ( qw| { |, qw| } | );
+    } else {
+        ( $new_open, $new_close ) = ( qw( | ), qw( | ) );
+    }
+
+    ##  bare =~ /.../ and !~ /.../ need an explicit 'm' once / is gone  ##
+    $operator = 'm' if $operator eq '';
+
+    my $match_new = transform_regex_body( $match_raw, $new_open, $new_close );
+    my $subst_new;
+    if ($is_subst) {
+        $subst_new
+            = transform_regex_body( $subst_raw, $new_open, $new_close );
+    }
+
+    return {
+        start_tok => $tok,
+        end_tok   => $tok,
+        operator  => $operator,
+        open      => $new_open,
+        close     => $new_close,
+        match_new => $match_new,
+        subst_new => $subst_new,
+        modifiers => $modifiers,
+    };
+}
+
+##[ helper : walk ancestors and skip regexes inside eval { ... } blocks ]#####
+sub is_regex_inside_eval {
+    my $tok = shift;
+
+    my $node      = $tok;
+    my $saw_block = 0;
+    while ( $node = $node->parent ) {
+        $saw_block = 1 if $node->isa('PPI::Structure::Block');
+        next           if not $node->can('children');
+
+        my @sig = grep { not $ARG->isa('PPI::Token::Whitespace') }
+            $node->children;
+        for my $c (@sig) {
+            return 1
+                if $saw_block
+                and $c->isa('PPI::Token::Word')
+                and $c->content eq 'eval';
+        }
+    }
+    return 0;
+}
+
+##[ helper : does a body contain the delimiter unescaped ? ]##################
+sub body_contains_unescaped_delim {
+    my ( $body, $delim ) = @_;
+
+    my $len = length $body;
+    for ( my $i = 0; $i < $len; $i++ ) {
+        my $c = substr( $body, $i, 1 );
+        if ( $c eq qw| \\ | and $i + 1 < $len ) {
+            $i++;    ##  skip escaped character  ##
+            next;
+        }
+        return 1 if $c eq $delim;
+    }
+    return 0;
+}
+
+##[ helper : does a body contain | [ escaped or unescaped ] ? ]###############
+sub body_contains_pipe {
+    my $body = shift;
+
+    my $len = length $body;
+    for ( my $i = 0; $i < $len; $i++ ) {
+        my $c = substr( $body, $i, 1 );
+        if ( $c eq qw| \\ | and $i + 1 < $len ) {
+            my $next = substr( $body, $i + 1, 1 );
+            return 1 if $next eq '|';
+            $i++;
+            next;
+        }
+        return 1 if $c eq '|';
+    }
+    return 0;
+}
+
+##[ helper : apply per-character escape keep/drop/escape-new-delim rules ]####
+sub transform_regex_body {
+    my ( $body, $new_open, $new_close ) = @_;
+
+    my %new_delim = map { $ARG => 1 } ( $new_open, $new_close );
+    my %metachar  = map { $ARG => 1 } (
+        qw| \\ |, '.', '*', '+', '?', '(', ')', '[',
+        ']',      '{', '}', '^', '$', '|'
+    );
+
+    my $out = '';
+    my $len = length $body;
+    for ( my $i = 0; $i < $len; $i++ ) {
+        my $c = substr( $body, $i, 1 );
+        if ( $c eq qw| \\ | and $i + 1 < $len ) {
+            my $next = substr( $body, $i + 1, 1 );
+            if ( $metachar{$next} or $new_delim{$next} ) {
+                $out .= '\\' . $next;
+            } elsif ( $next =~ m{\w} ) {
+                ## alphanumeric escapes [ \n , \d , \Q .. ] are regex ##
+                ## escapes in their own right , keep them as-is       ##
+                $out .= '\\' . $next;
+            } else {
+                ##  the escape only existed for the old delimiter's sake    ##
+                $out .= $next;
+            }
+            $i++;
+        } else {
+            $out .= $c;
+        }
+    }
+    return $out;
+}
+
 ##[ utilities ]##
 sub length_no_nl {
     my $s = shift;
@@ -1949,8 +2423,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,...,,,,,...,,,.,...,..,,,.,,.,,,...,.,.,..,,...,...,.,,,...,.,.,...,,,,,
-#6CDXUPGAAIDCAYT52HNE5Y3UVZYVFG3QY4PQ3NJ4UVQJALUZ6WG3XMENPO56TRLZDGZXOOLK3WKCI
-#\\\|UQPBNKUWF4FDXQDRTLEWKEY6MZKQ4UQ7HJXODBVTN2GYKUTBOM3 \ / AMOS7 \ YOURUM ::
-#\[7]XSL5ASWLEOUNZJ42HMTXIFFCLJUOZUB2OBSVDQPKPASJVUAYQYDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,.,,,.,.,.,.,,.,,.,.,,.,,..,,..,,...,...,,,.,..,,...,.,,,..,,
+#PXKLNVJRKRTPQ2PD6GMIKI3WYXULNBGVJER7NMDBABSGT4EW4JPNE7M2CZ7XD5ZQTBY6LGO5W2SRE
+#\\\|B4ZTU2YODX7373DVIGN5KSCYEQG2YTZSICVMCOU7XVZKF3FDBWS \ / AMOS7 \ YOURUM ::
+#\[7]6QOSBITHNRSGVGMIDSXHI6RQXLXWIEEOQ27IYZIU4VADFNFO3GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

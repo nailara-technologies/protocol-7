@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [kimi-dispatch-never-parallel](feedback-kimi-dispatch-never-parallel.md) — never fire two kimi_dispatch/kimi_continue calls concurrently: reproducible session-collision (only one session survives), garbled/wrong-sized results, and early process termination with budget to spare; mcp-server-p7's own 4620s timeout ruled out as cause, likely inside kimi-legacy itself; always dispatch sequentially, verify via `ps aux`/`kimi -r` picker not just the MCP result
 - [web-browser-pacing-collapse-after-timeout](bug-web-browser-pacing-collapse-after-timeout.md) — RESOLVED: after the per-page watchdog timeout fires once, slideshow pacing collapses to near-zero delay (a watchdog logged "timed out after 0.494s") because the timeout path never refreshed `<web-browser.time.fade_complete>`, which the inter-page delay math depends on; fixed by refreshing it in `handler.capture_page_timeout` too. 4th bug in the same session/feature area
 - [live-diagnostic-queries-can-disrupt-batch](feedback-live-diagnostic-queries-can-disrupt-batch.md) — querying a running zenka's live state (`eval-code`/`get`) WHILE it's mid-batch shares the same single-threaded event loop as the batch itself; interleaved log evidence suggests it can interrupt in-flight async ops. Use passive OS-level monitoring (`free`/`ps`/file reads) instead while something is actively running
 - [web-browser-stale-gtk-signal-headless-memory-leak](bug-web-browser-stale-gtk-signal-headless-memory-leak.md) — RESOLVED: headless capture mode caused a real OOM (WebKitWebProcess hit 59% RAM, watchdog killed it); a stale swap_views draw-signal never disconnected once headless skipped the code path that normally cleaned it up, driving a runaway clear_bg_view loop; fixed with a defensive disconnect helper + sentinel-URI guards. Generalizable: a signal_connect whose disconnect lives only in the "normal" re-entry path is unsafe once any path can skip that re-entry — audit cleanup responsibility before adding a fast/bypass path. Diagnosis technique (isolate to single input, tight `free -m` poll, hard abort) reusable for any live-GUI-zenka leak
@@ -109,8 +110,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [data-shadow-and-client-server-config-drift](feedback-data-shadow-and-client-server-config-drift.md) — `my $data` next to global `%data` is safe (sigils differ) but a real readability hazard, ~146 pre-existing files, use `$payload` in new code only, don't mass-rename; separately, `storage.cmd.plan9-connect`'s port default (5640) drifted from the server's actual default (15640) — grep the server's own config default before trusting a client's `//=` fallback for any client/server pair
 - [security-design-pacing-avoid-overreaction](feedback-security-design-pacing-avoid-overreaction.md) — for any security-hardening design, prioritize correctness/elegance over urgency; avoid naive reactive mechanisms (fail2ban-style self-lockout) especially once the threat model shows the classic vector doesn't apply (e.g. .env-scanner bots vs. Protocol-7's non-PHP/Docker architecture) — observe/classify before blocking, work step-by-step at the user's pace
 
-#,,.,,,.,,,..,..,,.,.,..,,,,.,..,,,..,.,.,,..,..,,...,..,,..,,,.,,,,.,.,,,,,,,
-#CVTKWCMBSKALDU3IACVXWKHSM2MCM5I7XAV43H42RMKYDWGLZ6QM7Z7TGX723XANHOF74HFSH3WM2
-#\\\|D7TZR5UVDHUXETRA2XWDBG6OE5LK2DF36KXMXOLYMQDKDMZPIVM \ / AMOS7 \ YOURUM ::
-#\[7]J7B7X3KTEFKUXRYIRT66BHGFTSSCFGJCDGQAY6PGPFXXVOYHGMCQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,.,.,.,.,..,,..,,.,,,,,.,,,,,..,,...,...,...,,,,,.,,,,..,..,,
+#XCYEX6EQ6Z2JFUWYPBHJUUJJU3CY437DRUV6R44PVVZWKTE5RSB4FUAZBZIMOSMQUNZOYW4FHKR2I
+#\\\|6G6FAWAZQM6DGYH3F5FNLAFRPD7NZPXYKJDPJOZMQEKE2JNOUVN \ / AMOS7 \ YOURUM ::
+#\[7]X2X75YQGB4NYY2SUUBDUKCWHB3NKDMM32UJBKTSVOF2VRTVVSADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
