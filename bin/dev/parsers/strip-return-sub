@@ -13,8 +13,8 @@ my $sig_pat = qr{^#[,\.]{5,}};
 my @targets = @ARGV;
 
 if ( !@targets ) {
-    die "usage: strip-return-sub <module-file> [<module-file> ...]\n"
-        . "       strip-return-sub --all   # scan modules/ directory\n";
+    die "usage: strip-return-sub <module-file> [<module-file> ...]\n "
+        . "      strip-return-sub --all   # scan modules/ directory\n";
 }
 
 if ( @targets == 1 and $targets[0] eq '--all' ) {
@@ -56,7 +56,7 @@ sub process_file {
     }
 
     ## check if file has the return sub { pattern
-    my $has_return_sub = grep {/^return sub \{/} @code;
+    my $has_return_sub = grep {m|^return sub \{|} @code;
     unless ($has_return_sub) {
         return 'skipped';
     }
@@ -82,8 +82,8 @@ sub transform {
     my ( $lines_ref, $path ) = @_;
     my @lines = @$lines_ref;
 
-    ## single-line case: return sub { EXPR };
-    ## transform to just the bare expression
+    ## single-line case: return sub { EXPR };  transform to just the bare
+    ## expression
     my @new;
     my $found     = 0;
     my $skip_call = 0;
@@ -92,17 +92,17 @@ sub transform {
     while ( $i <= $#lines ) {
         my $line = $lines[$i];
 
-        if ( $line =~ /^return sub \{\s*(.+?)\s*\};\s*$/ ) {
+        if ( $line =~ m|^return sub \{\s*(.+?)\s*\};\s*$| ) {
             ## single-line return sub { EXPR };  →  EXPR;
             my $expr = $1;
-            $expr .= ';' unless $expr =~ /;\s*$/;
+            $expr .= ';' unless $expr =~ m|;\s*$|;
             push @new, "$expr\n";
             $found = 1;
             $i++;
             next;
         }
 
-        if ( $line =~ /^return sub \{\s*$/ ) {
+        if ( $line =~ m|^return sub \{\s*$| ) {
             ## opening line of multi-line return sub {  — skip it
             $found = 1;
             $skip_call
@@ -113,7 +113,7 @@ sub transform {
 
         if ($skip_call) {
             $skip_call = 0;
-            if ( $line =~ /^\s*my\s*\(\$call\)\s*=\s*\@_;\s*$/ ) {
+            if ( $line =~ m|^\s*my\s*\(\$call\)\s*=\s*@_;\s*$| ) {
                 ## skip the call extraction line
                 $i++;
                 next;
@@ -122,7 +122,7 @@ sub transform {
         }
 
         ## detect and skip the outermost closing };
-        if ( $found and $line =~ /^\};\s*$/ ) {
+        if ( $found and $line =~ m|^\};\s*$| ) {
             push @new, "\n" unless @new and $new[-1] eq "\n";
             $i++;
             next;
@@ -138,15 +138,15 @@ sub transform {
     }
 
     ## trim trailing blank lines [ keep exactly one ]
-    while ( @new > 1 and $new[-1] =~ /^\s*$/ and $new[-2] =~ /^\s*$/ ) {
+    while ( @new > 1 and $new[-1] =~ m|^\s*$| and $new[-2] =~ m|^\s*$| ) {
         pop @new;
     }
 
     return join( '', @new );
 }
 
-#,,,,,,.,,.,,,,..,.,.,.,,,..,,,.,,...,...,,,.,..,,...,...,,,,,.,.,.,.,...,..,,
-#AT3LQEXQZZPCD3DCM7NMO4JGAXKDVYGFMHAURBMDIH3VK3LEMEDU5N2ASOCUVY55TOJIRY6O3UW66
-#\\\|EFFXBEJDQDCKJOCSSGJC5SGZ7AIIKUBQPJWGPN33JJZPEHU4UXO \ / AMOS7 \ YOURUM ::
-#\[7]PP7TI2X3T4JAKIGUABHJBFLINLEYZDA5MQZFCC4N5YPXGWFWNCBI 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,,,.,.,,..,.,,,,.,,,,,,,..,.,,,..,,...,...,..,,...,,,,,.,.,,.,,
+#7OBUJKJ5LZ4OELEPWY42TOEFJ5JPGPM5SBFN2U5355J5XDVOY5FALWD5LUHEA7E7I56UADOBHC42Q
+#\\\|SJZ7CNFVZ3H5KDDVTL33YNSEWA72SZVUPFVTBYEEFIGBEIJFIB2 \ / AMOS7 \ YOURUM ::
+#\[7]6JURRO5OMMVEW7T7HKWIARBGNSUYTLF6SM64OFQBRG7FN5K67KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

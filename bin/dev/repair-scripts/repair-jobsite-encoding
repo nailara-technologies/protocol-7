@@ -20,13 +20,15 @@ my @files    = grep { $_ ne '--dry-run' } @ARGV;
 my @TEXT_FIELDS = qw|
     title company city country industry
     description score_reason score_summary
-|;
+    |;
 
-## repair mojibake in a single string value, safe on already-correct strings ##
+## repair mojibake in a single string value, safe on already-correct ##
+## strings                                                           ##
 sub to_unicode {
     my $s = shift // '';
     unless ( utf8::is_utf8($s) ) {
-        return eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) }
+        return
+            eval { Encode::decode( 'UTF-8', $s, Encode::FB_CROAK ) }
             // Encode::decode( 'Latin-1', $s );
     }
     my $cur = $s;
@@ -36,7 +38,7 @@ sub to_unicode {
         last unless defined $fixed;
         $fixed =~ s{&#(\d+);}{chr($1)}ge;
         $cur = $fixed;
-        last unless $cur =~ /[\xC0-\xCF]/;    ## still mojibake?
+        last unless $cur =~ m|[\xC0-\xCF]|;    ## still mojibake?
     }
     return $cur;
 }
@@ -44,8 +46,8 @@ sub to_unicode {
 ## if no explicit files given, scan the whole jobs dir ##
 if ( not @files ) {
     opendir( my $dh, $jobs_dir ) or die "cannot open $jobs_dir: $!\n";
-    @files = map { "$jobs_dir/$_" }
-        grep { /^\d+\.yaml$/ } readdir($dh);
+    @files = map {"$jobs_dir/$_"}
+        grep {m|^\d+\.yaml$|} readdir($dh);
     closedir $dh;
 }
 
@@ -70,7 +72,7 @@ for my $file ( sort @files ) {
     my $changed = 0;
     for my $f (@TEXT_FIELDS) {
         next unless defined $job->{$f} and length $job->{$f};
-        my $orig    = $job->{$f};
+        my $orig         = $job->{$f};
         my $repaired_val = to_unicode($orig);
         if ( $repaired_val ne $orig ) {
             $job->{$f} = $repaired_val;
@@ -107,8 +109,8 @@ for my $file ( sort @files ) {
 printf ":\n:. done : %d repaired, %d clean, %d errors\n",
     $repaired, $skipped, $errors;
 
-#,,..,.,,,,.,,.,.,..,,,,,,,,,,..,,,,,,.,.,,..,..,,...,...,.,,,,..,,,.,.,,,.,,,
-#CIEWEHYCSWLO7PKN7RBDL7URHG5ULSMFCJGFOLNYX6BU3GDY7BS2Q5R2JEPSQH6QEOQRYXMPU22R6
-#\\\|XWYY3YLK5RX4K2S7I6KF4WL5W34IWLFKOWJIC25BBTBXPRPZG65 \ / AMOS7 \ YOURUM ::
-#\[7]VUXTS5V3DTUB5JUHBQMMQY5WK2PLH7CD2GSV4XDX6WD2VISKUQAI 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,,,,,,,...,,..,.,.,...,.,.,,.,,..,,...,...,...,,,,,,,,,,.,,.,.,
+#SJ4QUPXFUVX2XAWVGPM3GR46KMKHP42ZIXSA4JKM3VFIM3STW2P6HK3D7772776R6KP74CXQF7TZK
+#\\\|KWIVMGO5IJFSAJJELCIGRG3OH36XCS4NJFLFHP6DBDGWAPJHCK3 \ / AMOS7 \ YOURUM ::
+#\[7]EZUF4JKJ2HPOF7LW4HZI5E2SLHH42GBYQGYJORKQAGKU2XRAL2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

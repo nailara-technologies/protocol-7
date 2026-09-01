@@ -43,8 +43,8 @@ my %SKIP_TYPES = map { $_ => 1 } qw(
     unknown
 );
 
-## base aliases: create symlinks under ALL of these path prefixes ##
-## invoke may check multiple locations depending on version / config ##
+## base aliases: create symlinks under ALL of these path prefixes invoke ##
+## may check multiple locations depending on version / config            ##
 my %BASE_ALIASES = (
     'sd-1'         => [qw( sd-1  sd-1.5 )],
     'sdxl'         => [qw( sdxl )],
@@ -57,11 +57,10 @@ my %BASE_ALIASES = (
 
 ## query all models from database ##
 my $sql
-    = "SELECT name, type, source, source_type,"
-    . " json_extract(config, '\$.path') as path,"
-    . " json_extract(config, '\$.format') as format,"
-    . " json_extract(config, '\$.base') as base"
-    . " FROM models ORDER BY type, name;";
+    = "SELECT name, type, source, source_type, json_extract(config, "
+    . "'\$.path') as path, json_extract(config, '\$.format') as "
+    . "format, json_extract(config, '\$.base') as base FROM models "
+    . "ORDER BY type, name;";
 
 my $cmd  = qq{sqlite3 "$DB_FILE" ".mode json" "$sql" 2>/dev/null};
 my $json = `$cmd`;
@@ -74,7 +73,7 @@ die "failed to parse db output: $@\n" if $@;
 
 ## apply filters ##
 if ($opt_type) {
-    my %types = map { $_ => 1 } split /,/, $opt_type;
+    my %types = map { $_ => 1 } split m|,|, $opt_type;
     $models = [ grep { $types{ $_->{'type'} // '' } } @$models ];
 }
 if (@ARGV) {
@@ -114,10 +113,10 @@ for my $m (
     ## determine if this is a directory (diffusers) or single-file model ##
     my $is_dir = ( $format eq 'diffusers' );
 
-    ## uuid target + link names ##
-    ## files may be stored with literal %xx in their names (invoke stores them  ##
-    ## that way), so we check both raw and decoded target paths and use the one ##
-    ## that actually exists; we also create symlinks under both name variants.  ##
+    ## uuid target + link names  files may be stored with literal %xx in   ##
+    ## their names (invoke stores them that way), so we check both raw and ##
+    ## decoded target paths and use the one that actually exists; we also  ##
+    ## create symlinks under both name variants.                           ##
     my ( $target, @link_names );
 
     if ($is_dir) {
@@ -133,7 +132,8 @@ for my $m (
             my $t_raw = "$MODELS_DIR/$uuid/$filename_raw";
             $target = ( -e $t_dec || -l $t_dec ) ? $t_dec : $t_raw;
 
-            ## deduplicate: create symlinks for both variants if they differ ##
+            ## deduplicate: create symlinks for both variants if they ##
+            ## differ                                                 ##
             my %seen;
             @link_names
                 = grep { !$seen{$_}++ } ( $filename_dec, $filename_raw );
@@ -222,8 +222,8 @@ USAGE
     exit(0);
 }
 
-#,,..,,..,,..,,..,...,...,.,,,.,,,,.,,,..,,,.,..,,...,...,.,.,...,...,..,,.,.,
-#6NO2GHKQO3JM23RPWO533SW2KEAWWLC3LN2SD32UHIKQRBDJT6TDVQE2OYS54G2M22KPH6WWO3GVC
-#\\\|MYKJGFQPRVHNHGKACP4JZ5FS2ZKJMU2RGXNRKT4UNWKPMO3GSYJ \ / AMOS7 \ YOURUM ::
-#\[7]MWIUOTDZKOHR2CWOUUV4Y33AKJFTF6B3WDFW6OD5B42RTBYWO2AQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,.,.,.,.,,,.,,.,,,..,,.,,.,.,..,,...,...,...,...,,,.,.,,,..,,
+#Z55HVV6WY7OFYWIQCIBK67KJV3B2DCAL3UYCPAA6ORNLGB5HK5E5AGYQO5SEGRFJEJYFGVZTOWMKG
+#\\\|O52QYKSJBHGVQZUZ7FHUPGCMORPJF6CVDHIJH555AE6ZZBC4Y2Y \ / AMOS7 \ YOURUM ::
+#\[7]JDX6JT3HB7ZCGMRSAM2E3DNXYD53BHUDYPTM5KDUFFT5FKIFBGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,17 +5,17 @@ use English;
 use warnings;
 use open qw[ :std :utf8 ];
 ##
-## configure : git config core.hooksPath = bin/dev/git-hooks
-## Filters out AI-generated metadata (emoji + "Generated with", Co-Authored-By:)
-## from commit messages automatically instead of rejecting commits.
-## Saves tokens by avoiding retry loops when Claude Code generates metadata.
+## configure : git config core.hooksPath = bin/dev/git-hooks  Filters out
+## AI-generated metadata (emoji + "Generated with", Co-Authored-By:) from
+## commit messages automatically instead of rejecting commits.  Saves tokens
+## by avoiding retry loops when Claude Code generates metadata.
 ##
 ## Version: 3KZOLZEUIY-5261.0
 ##
 
 unless ( @ARGV && $ARGV[0] ) {
-    print STDERR "\n:: error :: this hook must be run by git "
-        . "[ it requires a commit message file argument ]\n\n";
+    print STDERR "\n:: error :: this hook must be run by git [ "
+        . "it requires a commit message file argument ]\n\n";
     exit 1;
 }
 
@@ -80,8 +80,8 @@ if (@filtered_lines) {
 
 exit 0;
 
-#,,.,,..,,,,,,...,,,,,,..,...,,,.,.,.,.,.,.,,,..,,...,...,..,,.,.,,,.,,,.,...,
-#LWS3M4HUDTT4DSV4CIPGH2ZU73EXP3SR25AOPNFGAPUCUWQLEAPCTLRU4CVYUBTMFGFBZSF66IUXS
-#\\\|VPQDH7KFCKJBR6BHCU2XCVNGH4F2XJ4CWKEYN6MOYC6GI4X7TOS \ / AMOS7 \ YOURUM ::
-#\[7]HXQXN2KZK6W2S66VHAUJ4AQVQSNZAXIBOWIBSXTU7QSZQEXTRQBY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,.,,,..,.,.,,,,,.,.,.,.,...,..,,...,...,,,.,,.,,..,,,.,,,,,,
+#L3IGJWMX3ANPBKD5A6WPZ2SEMKQL2YLY2XWEUZ6RAZSUJIJ7RW5GRLGB26S256JV3HOSAN6RGLEX2
+#\\\|XPISUG3MKSMD7EAEXDGUP52Z52VJEJHHZXK3ID66OKN6IBTJNMJ \ / AMOS7 \ YOURUM ::
+#\[7]6GYAJ6WKADL4WA2MZXZT5KQJM2M5O66NRK4TS6E36TR6Q7SZ3EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -134,8 +134,7 @@ if ($xid) {
                 say "XID $xid found via recursive tree walk [OK]";
             } else {
                 say "X11::Protocol did NOT find XID $xid [FAIL]";
-                say "  first few "
-                    . "child XIDs: "
+                say "  first few child XIDs: "
                     . join( ', ', @children[ 0 .. 9 ] );
                 say "  first few client " . "XIDs: "
                     . join( ', ', @client_ids[ 0 .. 9 ] );
@@ -168,7 +167,8 @@ if ($xid) {
                     $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 );
                 };
                 return () if $@ or not defined $val or not length $val;
-                my $type_name = defined $type
+                my $type_name
+                    = defined $type
                     ? $X->atom_name($type) // $type
                     : '<undef>';
                 return ( $val, $type_name, $format, $bytes_after );
@@ -448,8 +448,8 @@ if ($X) {
 
 exit;
 
-#,,..,,,.,,.,,,,,,,,.,...,...,.,,,.,.,,..,,,.,.,.,...,...,..,,,,.,,,.,,,,,.,,,
-#M5M2FQNEMZGDBVW7BNVPP7JVQMF2BQMXDCEHGPTEBVSOZNCH7AFEVFRR2ID5JO224QU5YWCS23PMO
-#\\\|H6ITXY6RSXYX6W3MAAXQDGZNIM33SZQQHDW3IM7EYIV5GTIKG7X \ / AMOS7 \ YOURUM ::
-#\[7]VZWCRXFDUIYJEUI3BQ3BQOLIM5OYR7TUYZSOUZ6LRKJAU6R2UYDA 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,.,.,..,,.,.,.,.,,.,,.,.,,,.,.,.,...,..,,..,,,..,..,,...,.,,,
+#JINB6CBI2YHC2HJAEXJVQBPGBUIRQOBLUMTUJJG76BIP45VCEIJ3I33YRQ5JM4LAXBZTPEY43BGBY
+#\\\|3XKOGXCISSBJ2GOVZ3ZQXH4GS6T5M7COSEGS5IL7CWZ2BIHGNN6 \ / AMOS7 \ YOURUM ::
+#\[7]HKC3TLG45TMBSAWFVZSPBOJOWTFI7MV2TFP4SHUQVCRU6LFDU4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
