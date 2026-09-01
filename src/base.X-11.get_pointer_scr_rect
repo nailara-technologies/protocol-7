@@ -3,7 +3,7 @@
 # name  = base.X-11.get_pointer_scr_rect
 
 my ($local_sid)
-    = keys %{ $data{'user'}{'cube'}{'session'} // {} };
+    = keys %{ <user.cube.session> // {} };
 return undef if not defined $local_sid;
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
@@ -36,8 +36,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (-?\d+) (-?\d+) (\d+) (\d+)\n$} ) {
 <[base.log]>->( 1, 'get_pointer_scr_rect : no result' );
 return undef;
 
-#,,..,,,,,.,,,..,,,,,,,.,,,,,,,,,,.,,,..,,..,,..,,...,...,.,,,,.,,,,.,,,,,,..,
-#FNPRR2FN2UXAMXQPYEO34DLBPORGG5DPRPAO4HXRWDE64PBD5E2WYGVJ2ECJPPQE4DAG5YVC5I2GW
-#\\\|AD5SXTXMQIIL27XSW5NM6XRHQ5M62L6EPSZXSJ4PYRAJTQJXDAZ \ / AMOS7 \ YOURUM ::
-#\[7]FYBHIHJVHD3OUZE3CA3AU2W7RVCG2WCBMTR2UPDGTEMFL36FZSBY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,,,,.,,,,,,,.,.,..,,,,,,.,.,..,,...,...,.,,,,,,,,.,,...,...,
+#I3E5OEERU4BR3BAN7XMGXFRZ3MFJERUV7KRP4VXJPJY55KAHW6K5SZ4LIAQGYYVXL2TC7BLS6BXYS
+#\\\|2SPPIGXXK4XUXLA3MXQ35JDUBWLH5JCLCD4KE6PCG66QZSKRTKN \ / AMOS7 \ YOURUM ::
+#\[7]RNK6L4CR4GGINNZZGFEEAJ53DX4JKWBKS5AA7RYMBN3O7WM7DWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

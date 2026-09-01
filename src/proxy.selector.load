@@ -9,14 +9,14 @@ my $config_path = <proxy.cfg.selector_config> // join( '/',
 my $yaml_str = <[file.slurp]>->($config_path)->$* // '';
 my $config   = eval { YAML::XS::Load($yaml_str) } // {};
 
-$data{'proxy'}{'selector'}{'rules'}    = [];
-$data{'proxy'}{'selector'}{'fallback'} = 'generic.proxy';
+<proxy.selector.rules>    = [];
+<proxy.selector.fallback> = 'generic.proxy';
 
 if ( ref $config eq 'HASH' ) {
     if ( exists $config->{'rules'} and ref $config->{'rules'} eq 'ARRAY' ) {
-        push $data{'proxy'}{'selector'}{'rules'}->@*, $config->{'rules'}->@*;
+        push <proxy.selector.rules>->@*, $config->{'rules'}->@*;
     }
-    $data{'proxy'}{'selector'}{'fallback'} = $config->{'fallback'}
+    <proxy.selector.fallback> = $config->{'fallback'}
         if exists $config->{'fallback'};
 }
 
@@ -37,7 +37,7 @@ if ( -d $domains_dir and opendir my $dh, $domains_dir ) {
                 for my $rule (@$drules) {
                     $rule->{'_domain'} = $domain;
                 }
-                push $data{'proxy'}{'selector'}{'rules'}->@*, @$drules;
+                push <proxy.selector.rules>->@*, @$drules;
             }
         }
     }
@@ -47,14 +47,14 @@ if ( -d $domains_dir and opendir my $dh, $domains_dir ) {
 <[base.logs]>->(
     1,
     'proxy.selector.load: %d rules loaded [fallback=%s]',
-    scalar( $data{'proxy'}{'selector'}{'rules'}->@* ),
-    $data{'proxy'}{'selector'}{'fallback'}
+    scalar( <proxy.selector.rules>->@* ),
+    <proxy.selector.fallback>
 );
 
 return;
 
-#,,.,,..,,,.,,...,,,,,...,.,.,.,,,.,.,..,,,..,..,,...,...,.,,,.,.,,.,,.,.,,,.,
-#XSTK7DRE4J5OYFTNZJL2HPSWA5JWOKB4KCBSDYOPWHGZE7XBG247P574VXHVVLFATJVXHQVRCHVDU
-#\\\|XJAZ4KH34DIZMQTL4ZCB52627QHJ2VFM53IEOJ7ZQBUXQREPWY2 \ / AMOS7 \ YOURUM ::
-#\[7]R6LL5RGUIZI7PFHJWCIN232I67AOYH5LHJOCUEP4DUS3QXWSF4DA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,...,...,.,.,,,.,,.,,..,,..,,..,,...,...,,.,,...,,.,,.,.,,,,,
+#CTUG4RUPO5QSYWOA2CFVJG5MXFS62UJVY4AOPGFR54XNDONXT2JPJPOOGTJZ2P4CDDI4MGG2IHMHI
+#\\\|VAFI6ZNAAHYQ7DBNLENOFXM33SATSCCLPE4DOEZZ4H7X7PIH2E2 \ / AMOS7 \ YOURUM ::
+#\[7]XVBBIAXL4ALAZ6QS7FVVHCQ7MPRPYCSG3UZG3ITWO6DDRJMCXOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

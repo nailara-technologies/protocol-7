@@ -9,7 +9,7 @@ my ( $fd, $bytes_sref ) = @ARG;
 
 my $conn_handle = <base.stdio_multiplex.conn> // undef;
 return if not defined $conn_handle;
-return if not defined $data{'stdio_transport'}{'connections'}{$conn_handle};
+return if not defined <stdio_transport.connections>->{$conn_handle};
 
 return if not defined $bytes_sref or ref $bytes_sref ne qw| SCALAR |;
 
@@ -21,8 +21,8 @@ return <[base.stdio.transport.emit]>->(
     { fd => $fd }
 );
 
-#,,.,,..,,..,,.,,,.,.,,,.,...,,..,,,,,,,.,..,,..,,...,...,..,,.,.,,,.,,,,,,.,,
-#7563RTKVO6AIB77IEOA4AFXJ5KTBNCZMRGJJDP4RIELBBFDIHG33HNYVSPJ6FAXQO3BSHOF4IRAN4
-#\\\|M5WXDSG2WGNQAYSBUW4PNXPAOBVEQBJKRNN67OJHAMGEVW5UAWC \ / AMOS7 \ YOURUM ::
-#\[7]HR6VC544PAYG7LMRZXWS4E7O4Q7US25YZZ2ONFYO7MEJCFJZJWBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,...,...,.,.,...,,.,,.,,,.,.,..,,...,...,,.,,,,,,.,,,,..,..,,
+#FETP2XJJRUXGQSGMISQCZOKAKIFRXAI7AZQSJO2ILAPGTYKLFKJFJVQZAIVNFVYESH2KI7TXUVTKA
+#\\\|GHXRSNCVCOEAUNIWGDSE5PW3OMZ7BNFVBP6PNBUK6DHAXYXILOJ \ / AMOS7 \ YOURUM ::
+#\[7]FX3FQDL4SG57QLF3CRLMOWZLF5TEBU75EV3AFP5YABKSMHVO7WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

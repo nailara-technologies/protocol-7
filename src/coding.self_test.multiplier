@@ -11,7 +11,7 @@ return { mode => qw| false |, data => 'model_id required' }
     if !length $model_id;
 
 ## add sample to rolling window ##
-my $models_ref = $data{'coding'}{'cfg'}{'timeout_stats'}{'models'} //= {};
+my $models_ref = <coding.cfg.timeout_stats.models> //= {};
 $models_ref->{$model_id}{'ttft_samples'} //= [];
 push @{ $models_ref->{$model_id}{'ttft_samples'} }, $ttft
     if $ttft > 0;
@@ -31,14 +31,14 @@ $models_ref->{$model_id}{'multiplier'}   = $multiplier;
 $models_ref->{$model_id}{'last_update'}  = <[base.ntime]>;
 
 ## update global aggregate values ##
-$data{'coding'}{'cfg'}{'timeout_stats'}{'percentile_95'} = $p95;
-$data{'coding'}{'cfg'}{'timeout_stats'}{'multiplier'}    = $multiplier;
-$data{'coding'}{'cfg'}{'timeout_stats'}{'last_update'}   = <[base.ntime]>;
+<coding.cfg.timeout_stats.percentile_95> = $p95;
+<coding.cfg.timeout_stats.multiplier>    = $multiplier;
+<coding.cfg.timeout_stats.last_update>   = <[base.ntime]>;
 
 return { mode => qw| true |, data => $multiplier };
 
-#,,,,,.,.,,,.,,,,,,.,,,,.,,,.,,..,.,,,,,.,,..,..,,...,..,,.,,,.,.,,.,,,,,,,,.,
-#BQAOBUVNMYLXELJHGXUPNKHW2KV4QAOZOJFY3N3EZ7ISXSULWBEJVGQUKKAKM3M7CXU4AVW5NJF7U
-#\\\|A2RLNEJPDVD7UDJRV3UJCCYYFFGG7LU6CNALMZ73OK2KYWYD6EK \ / AMOS7 \ YOURUM ::
-#\[7]RZWJY7B73ZTWUSJNY6UUKG2BH23MVFESO3TPJWIVIHZ53CRWHMDY 7  DATA SIGNATURE ::
+#,,..,...,...,...,.,.,,,,,,.,,..,,,,.,,..,.,,,..,,...,...,.,.,..,,,,,,,,.,...,
+#O75JGB3SABH6WU4OHERBL36NOW7FGJ6M3F4636AHLVUX2OMAKZ2QKKZOHQTQ3EWYEBZFLLO5BLEZA
+#\\\|LWQR6XFIE4VHVIHCB4GNUKT3HQQEQFEHJDAMWQSDNC2BDZ4WQLI \ / AMOS7 \ YOURUM ::
+#\[7]H2PWK35RX7A33XIUYA23PX5WMSL7AE27JTLBXWS6HW3Z5V3QJ2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

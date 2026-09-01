@@ -10,9 +10,9 @@ my $target_x = $reply->{'params'}{'target_x'};
 my $target_y = $reply->{'params'}{'target_y'};
 
 return if not length $id or not length $winid;
-return if not exists $data{'screen-setup'}{'instances'}{$id};
+return if not exists <screen-setup.instances>->{$id};
 
-my $inst = $data{'screen-setup'}{'instances'}{$id};
+my $inst = <screen-setup.instances>->{$id};
 
 my $mode = lc( $reply->{'cmd'} // '' );
 if ( $mode eq qw| true | ) {
@@ -137,8 +137,8 @@ if ( ( $inst->{'window_pending'} // 0 ) <= 0 ) {
 
 #
 
-#,,,.,...,,..,.,.,,,,,..,,.,,,.,,,...,.,,,...,.,.,...,...,,..,.,.,.,,,.,.,,,,,
-#4QWGVGIKEU2KPC2ZGVOYMYBDBJ6R3T3DKXNZH3LA3EQ4FLR6Q3RCBZKFMWREV7LFUFT7OYUK53B3G
-#\\\|COZTGGF3YCXUT25IAMZWCMTRAUSSQYZU4PRH7E6VIINV7KAO7LD \ / AMOS7 \ YOURUM ::
-#\[7]H3JZJJGTBETP2XMUDRELVCYKZDBRVYW67FACNRFWGSBXPMDB2QBQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,.,.,,,.,..,,..,,.,,,..,,,,,,.,.,...,.,.,.,.,,.,,.,.,,..,,..,
+#LT45MTVH2242DMO65ZEOMWUCKCRDIMXYGMIU4NNXACRSODHLPW474WCAFQNH56Q4HSWYGYNBBV6PS
+#\\\|XLE4SJFRMLUK7PBV2UWIGZ6EEDP2E7PS3S3A3AVAISQ573NNALD \ / AMOS7 \ YOURUM ::
+#\[7]AWWAVR6JNHTHKSSU6IG4CIJGX4OAO2X7GV2VZYNDEYNAB7YR5AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

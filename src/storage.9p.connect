@@ -14,7 +14,7 @@ my $aname = $args->{aname} // '';
 my $uname = $args->{uname} // 'root';
 
 # Check if already connected
-if ( exists $data{'storage'}{'9p'}{'connections'}{$name} ) {
+if ( exists <storage.9p.connections>->{$name} ) {
     return {
         'mode' => 'true',
         'data' => "Already connected to $name"
@@ -65,7 +65,7 @@ if ( $attach_res->{'mode'} eq 'false' ) {
     return $attach_res;
 }
 
-$data{'storage'}{'9p'}{'connections'}{$name} = $conn;
+<storage.9p.connections>->{$name} = $conn;
 
 <[base.logs]>->("Storage 9P: connected to $name");
 
@@ -74,8 +74,8 @@ return {
     'data' => $name
 };
 
-#,,,.,,.,,..,,,..,,,,,..,,..,,,,.,...,,.,,.,.,.,.,...,...,,..,...,.,,,.,.,,.,,
-#IGFSHK5RXTUFCN7LBLEXWX6VRX4ZE7QNE3U2SEPRNU2OJFERYB3BM32ADE6EABWEX5EGCDGBX5C3C
-#\\\|VJWTTGEIHS7JSCPDLPVLJNWFBSLN5IMROJ2PQIKCZH3RLYHKP4Y \ / AMOS7 \ YOURUM ::
-#\[7]ZNQYRAMVKOWOSFE3CQTCDV2ANNNOLDIQDD7K2OUX4HHCPTCYI6DA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,...,,,.,...,.,,,.,,,,,.,..,,.,.,...,...,.,.,,,,,,,.,,..,,..,
+#DZEYUFYZL5FWESE26WARDZHXNM2I46MRHPJSRBGAUXZ6JGTEPWIX3Y6T4RSZ57SZ5SKV7O3CV7ZRS
+#\\\|4TJNXKEWN3GP5Q5FMDU35P26ESKG6KJKXS55R2TZWOBPQDUQQJF \ / AMOS7 \ YOURUM ::
+#\[7]YAGIYJIJGXCIRHLA7QKNVQGXWM64UIUTEZCPYO6VSSSMOEXYNADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ my ( $channel_id, $max_messages ) = @ARG;
 
 $max_messages //= 1;
 
-my $channel = $data{'channel'}{'shm'}{'registry'}{$channel_id};
+my $channel = <channel.shm.registry>->{$channel_id};
 return undef unless defined $channel;
 
 my $shm      = $channel->{'shm'};
@@ -59,8 +59,8 @@ substr( ${$mmap_ptr}, SHM_HEADER_SIZE, RING_HEADER_SIZE )
 
 return \@messages;
 
-#,,..,,,.,.,,,...,,..,,,.,,,,,,,.,,,,,,..,.,.,..,,...,..,,.,,,,,.,..,,,..,,..,
-#XXRU6M5DAPQWE4X3357OWCZYVAIAGCPZEJXMHQ5DN2NKR6UVT2SFGV5H2KALRGNCYTR26TKKXDMPG
-#\\\|27BPQA2CHN6OLV2QT36QN6ROBBGQWRH2XRUME3VO7YMR5PEGOJM \ / AMOS7 \ YOURUM ::
-#\[7]SDOEBHKINFCTZ2JJ65WAJEKF6VSA43D4N25SPROGBONCM5S3YUDI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,.,.,,,.,,,.,...,,.,,.,,,..,,..,,...,.,.,..,,,,,,...,,,.,..,,
+#LQNIZEHTZU4DJ2UOGSRRBUU7DAXDNEHFZ2A2Y2JLH6AASOX4GEJPB5QF66QAAN3PSRCYP52UPTLNM
+#\\\|JN3Q6YZFUSSPUR3A5PVM5HRCSRXUFOGHYMH7GDZXPBZR6T3EAY3 \ / AMOS7 \ YOURUM ::
+#\[7]XYTVDBWCFLSLUZNY3JHQV23AHRDY6Z72WMLKXB4FHXFNKRDV62BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

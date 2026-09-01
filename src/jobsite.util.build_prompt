@@ -20,7 +20,7 @@ for ( $title, $co, $city, $ind, $raw_desc ) {
 my $desc = substr( $raw_desc, 0, 1200 );
 
 ## load candidate profile once and cache ##
-my $profile_text = $data{'jobsite'}{'cached_profile'} // '';
+my $profile_text = <jobsite.cached_profile> // '';
 if ( not length $profile_text ) {
     my $profile_file = <jobsite.cfg.profile_file>
         // '/etc/protocol-7/jobsite/profile.txt';
@@ -28,7 +28,7 @@ if ( not length $profile_text ) {
         // 'no profile configured : score based on job listing alone';
     $profile_text = Encode::decode( 'UTF-8', $profile_text )
         unless utf8::is_utf8($profile_text);
-    $data{'jobsite'}{'cached_profile'} = $profile_text;
+    <jobsite.cached_profile> = $profile_text;
 }
 
 ## extract candidate name from profile header ##
@@ -129,8 +129,8 @@ push @prompt_parts, $branche_line, "Beginne jetzt mit: score:";
 
 return join( "\n\n", @prompt_parts );
 
-#,,,.,.,.,.,,,,.,,..,,,.,,...,..,,..,,,..,.,,,.,.,...,...,.,,,.,,,,..,..,,.,,,
-#6SR5PZOWKM3P6IXE5B7GY34AHIQOF6PYII6IXONZDT6FZXHOB3F5VUYYQQ5GUWTIVEIGG4THUXUTU
-#\\\|WQLTTLCLWZYY5V7FFDSXHLQMVP6OHQNAGZDTQJYUDTLTN4BVU4R \ / AMOS7 \ YOURUM ::
-#\[7]F5HQFJOKEPOGHFGI5N6QL7XSB6XS7QGPHRVDNBUKBXQJTUKMZIBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,.,,,...,,,.,.,,,,.,,...,.,.,.,.,...,...,.,.,,..,,,.,,,,,..,,
+#YOPPXJHE3R2KLRPDWGQM5WNQ6QHPOQHM5TNHLMOGQXCL446NXDE3GQXWZZOYYP4HVESXEJQZV77RK
+#\\\|2RANPMD2D3JUHQ6ZZPA4OYQQT6DF2BYW6T4Y7NWP2BXIDBVPOI2 \ / AMOS7 \ YOURUM ::
+#\[7]NUYNQVMGWW3VFUI6RV5QSIMGCKGWYACFGATKRGGMVIEVL5XWCWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

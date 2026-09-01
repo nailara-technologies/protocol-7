@@ -3,13 +3,13 @@
 # name = data.get.get_caller_permissions
 # descr = Determine calling zenka's permissions
 
-my $caller_zenka = $data{'caller'}{'zenka'} // 'unknown';
+my $caller_zenka = <caller.zenka> // 'unknown';
 return ['all']                   if $caller_zenka eq 'root';
-return [ $caller_zenka, 'auth' ] if $data{'caller'}{'authenticated'};
+return [ $caller_zenka, 'auth' ] if <caller.authenticated>;
 return ['public'];
 
-#,,,.,,.,,.,,,,,,,,.,,.,.,,,.,,.,,,..,.,.,..,,..,,...,..,,.,,,.,,,.,.,,,.,,,,,
-#HSXXSYPMUM53EFOIDPMUFAZP24OUEAM6RODVCD5DQXE4OQ7EBNPF56V56VOUGWFHD2SGB6UH5ZABA
-#\\\|CQERSE2SEIONQS6EMFKZYQXXGCNSEXUGYXVVICWFVALQ2NS6FW2 \ / AMOS7 \ YOURUM ::
-#\[7]KJUJ2PJMAETYYTTLNSDKOYMRA5H6ITOMK6LPSGI3HXHVGAAJJ2AQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,.,,,,,,,..,..,,..,,.,,,...,..,,..,,...,...,...,...,.,,,.,.,...,
+#EXTQDKK4ZXXY52WEG46XV7IJFKRYHJDSKYH2BMVO5FGPIMPAE6QK6GKBXI4VHALICH765QNKW3WM6
+#\\\|I5VKFJMQQMTZDR4TFZEML2YDIBV3ZPVBD6QQ6FC6XSN4BBLBFI4 \ / AMOS7 \ YOURUM ::
+#\[7]BWIY6Q46QVCGAGX5CHWFE42QBCFUZ7QKDULSGUXQJ4M3ZQEDJWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

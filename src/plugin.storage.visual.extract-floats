@@ -8,7 +8,7 @@ my $p7ref = $args->{p7ref}
     or return { 'mode' => 'false', 'data' => 'p7ref required' };
 my $layers = $args->{layers} // ['intrinsic'];    # Array of layer names
 
-my $registry = $data{'storage'}{'mapping'}{'visual'};
+my $registry = <storage.mapping.visual>;
 my $result   = {};
 
 # Resolve P7REF to get metadata
@@ -56,8 +56,8 @@ return {
     'data' => $result,
 };
 
-#,,.,,.,.,...,,..,,.,,,..,..,,..,,...,,,,,.,,,.,.,...,...,...,..,,,.,,...,,..,
-#466TQR5UAPFNNVX2OYO6S2Q43HBBTSZOHBYJ4S6FEGFU7YOCT3R5RFI5IDCQ5UM2NW2DZLK7LUC2O
-#\\\|LJASAZAL3VQPHO7JJKM3HGMNNKU64DEHPX6WCD5OMYAS4SJD47W \ / AMOS7 \ YOURUM ::
-#\[7]4UJURSDG3WKTEEG4X5YCO4RRM7HZ2WBMF32MTC3XYWV5ATF6BGCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,,.,,,,.,..,,..,,...,,..,.,.,.,.,...,...,,,.,...,,.,,..,,,..,
+#TNYOOFDEV2C7V6AELT3LBP4JRF5AOYDE3BP2RN4OHFWAIVUMSJKK2VF52QEN7XYRFABJAJY3CWR6W
+#\\\|UJ3C6CFCPXOZ7I7KP6GW75J5JY227FDFGUH3SLY6DZCBOETGT5C \ / AMOS7 \ YOURUM ::
+#\[7]KE3DPYPIQIFXNDRL6AHEUDDU5H45U5ATLFJUSMHO53VFDVTH5WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -69,8 +69,8 @@ return {
     }
     if $arg{'target'} =~ m{[^\w\.\-:/]};
 
-my $profile       = $arg{'profile'} // qw| full |;
-my $scan_template = $data{'nessus'}{'profile'}{$profile}{'name'} // '';
+my $profile       = $arg{'profile'}                      // qw| full |;
+my $scan_template = <nessus.profile>->{$profile}{'name'} // '';
 
 return {
     'mode' => qw| false |,
@@ -197,8 +197,8 @@ foreach my $finding ( sort { $b->{'severity'} <=> $a->{'severity'} }
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,..,,.,,,,.,,,.,,,,,.,.,.,.,,,,,.,.,.,,,.,.,.,.,...,...,,..,..,,.,.,,,,,,,,,
-#JNBDZ52LVRC7D7225GAFWRXI4IXHORRSDHHF2ZBD3I6PLKY4ADSYW3WINYJCMMYAS3UE7ZTVM27AC
-#\\\|IDK7WPELNI5WNMB4JE5NHZ62A656NJI5XLI7EZ4VNNKBBYRERZR \ / AMOS7 \ YOURUM ::
-#\[7]QROUTY5OWDHP7AKN7Y4YP6UKWYFBQYDF5H5XJTJXEDZUQ7ZCEICI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,,.,,,,,,,,.,,.,,,,.,...,,,,,.,.,...,...,...,,.,,,,,,.,.,,,,,
+#FN4NEPRXJGF6QYHRC5KTCVFYUVWVMM6QF2UU6HT6VY2T2YAE7XWV4L6YQ4ECXCIHUZQD5R6DG2YRA
+#\\\|JCM4JJAJRHMPU6Z7RRPH6OQ4BEPTMXIDP5YRIRA6KECWDKLIUUJ \ / AMOS7 \ YOURUM ::
+#\[7]4RBVN3N5TA45A6AXE3UJZ2PJRUWO2MZUCNQFXKEIECGAN5SJS6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

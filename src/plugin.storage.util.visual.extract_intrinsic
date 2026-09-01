@@ -29,7 +29,7 @@ if ( -f $path ) {
 }
 
 # Reference count (from cache if available)
-my $registry = $data{'storage'}{'mapping'}{'checksum'};
+my $registry = <storage.mapping.checksum>;
 if ( $data->{checksum} and $registry->{reverse}{ $data->{checksum} } ) {
     $metrics{ref_count}
         = scalar( @{ $registry->{reverse}{ $data->{checksum} } } ) / 10.0;
@@ -38,8 +38,8 @@ if ( $data->{checksum} and $registry->{reverse}{ $data->{checksum} } ) {
 
 return \%metrics;
 
-#,,.,,,,.,,.,,.,.,.,.,.,.,.,.,.,,,,.,,,..,.,,,..,,...,...,,..,,,,,...,.,,,,.,,
-#OBNRQGSB7TAEM6Z7H6W7FWWR5PJXFRWEQCMI44YIEHKZUGOC63YZWDM5IJ6UPXAXCDBBFTU4ASFGO
-#\\\|5WXKPBHAR5J444K2JQAL7XOKHQ2VL3VEKQUUS2T7L4O4YFOUAF3 \ / AMOS7 \ YOURUM ::
-#\[7]SERRS52T7KKH7DYTUQCO7HQBILXEUQHLFW2LN7EW2TCZI33CYECA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,.,.,,..,,,.,,..,...,,,.,.,,,..,,...,..,,...,,,.,.,.,,..,.,,,
+#KRFUAWJV5DE772LHY6DTPYDYIJ5XST2KZCLKXSCN3MWLUUBQN6SHC2FQVMGOJJRTPQSNDDCQRUA7C
+#\\\|HMJ7JVY4USHN52D3Y65B7JHJM4PPNCK7ZEDFKDXX6BNASEZFJQV \ / AMOS7 \ YOURUM ::
+#\[7]OUPJKM4PRPZZZJ22FP3F6AMXDEYAMPMG3BSRMEEWNGR2GGQPWMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

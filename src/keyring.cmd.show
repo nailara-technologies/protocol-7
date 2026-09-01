@@ -23,7 +23,7 @@ if ( not defined $key ) {
     };
 }
 
-my $entry      = $data{'keyring'}{'namespace'}{$dot_path};
+my $entry      = <keyring.namespace>->{$dot_path};
 my $depth      = $entry->{'depth'}      // scalar split( /\./, $dot_path );
 my $derived_at = $entry->{'derived_at'} // '?';
 
@@ -37,8 +37,8 @@ my $output
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,.,,,.,,.,.,...,,.,,...,.,.,.,.,,,,,..,,,.,,..,,...,...,..,,,,,,,,,,.,,,.,,,
-#WV6SWYXNLJREHIYDFCNS5FDD3EQO242CLBTMTFTNNP36CUIMWMONQJXJTJYRLMQM3EP63XGVSLFTY
-#\\\|MVOWBCUXYAUUM5YDGLXFOQUK2I7YCWJOIBY37DIBURCXSG2OES4 \ / AMOS7 \ YOURUM ::
-#\[7]AG4WSTL7RNU3JMYBGGIPBIA5L3AY3GIBMWQ5AFMSZMKMPCGZTQDA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,,,,..,,..,,,,,,.,,,,,,.,,,.,,,..,,...,...,.,,,,..,...,..,,..,,
+#36MBBZRYLTBZ5MBRKJJRGPBA4ITUFIWXKTJ7VNZTH6PYUNRNXKR5FGLGCZXI37Z4L6VQCIHPOYBRK
+#\\\|7Z4T3QTU3NESHVXTQEEPWWHWUC7GH3HM3RHTXII6B4MEYMIQGKG \ / AMOS7 \ YOURUM ::
+#\[7]TSXME23VIQCKWBLEUF2JAZPAY65LJP5PY2E27DMCJI4MPYKF7ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,12 +5,12 @@
 
 my $id = shift;
 
-if ( not defined $id or not exists $data{'screen-setup'}{'instances'}{$id} ) {
+if ( not defined $id or not exists <screen-setup.instances>->{$id} ) {
     <[base.log]>->( 0, '[screen-setup.open_window] unknown instance id' );
     return undef;
 }
 
-my $inst = $data{'screen-setup'}{'instances'}{$id};
+my $inst = <screen-setup.instances>->{$id};
 
 <[screen.setup.ensure-display]>;
 
@@ -196,9 +196,9 @@ if ( not defined $saved ) {
             'interval' => 0.2,
             'cb'       => sub {
                 return
-                    if not exists $data{'screen-setup'}{'instances'}{$id};
+                    if not exists <screen-setup.instances>->{$id};
 
-                my $live_inst = $data{'screen-setup'}{'instances'}{$id};
+                my $live_inst = <screen-setup.instances>->{$id};
                 return if not defined $live_inst->{'window'};
 
                 $placement_attempts++;
@@ -323,8 +323,8 @@ Glib::Timeout->add_seconds(
     3,
     sub {
         return 0
-            unless exists $data{'screen-setup'}{'instances'}{$id};
-        my $live_inst = $data{'screen-setup'}{'instances'}{$id};
+            unless exists <screen-setup.instances>->{$id};
+        my $live_inst = <screen-setup.instances>->{$id};
 
         ## discover any windows opened since the last scan ##
         <[base.zenki.resolve_primary_sid]>->(
@@ -376,8 +376,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,..,..,,,,.,.,.,,..,.,,,,,.,...,,,,,,..,.,,,..,,...,...,.,,,.,.,.,,,.,.,,.,,
-#YA5EHWPTTAGAENOPZU6JYY47SRWQQH2VXAFY3TZRCYBBLXYXXX4VPSCKXWWX5CLPDMVZSWVB2Y5GK
-#\\\|Y4FIORVLJ5FTW7KO6HU464J7MYGHSELVBB5GRINOVGCCKGN7EPB \ / AMOS7 \ YOURUM ::
-#\[7]WC2VWBUHROXN4UMISSPHAXSFSYTNJZXUKT2ENCJ3CZ2QB7A2LSDQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,...,,..,,..,,,.,,,,,...,,..,..,,...,...,,,.,.,,,,,.,.,.,,..,
+#TQA4PUQ6F2AX3BXZ6GQH2MCBJAFSJFRGLB3FIASGAMSZ7MTGHJCU5XT6A7NH6G533IUZISQMNSTTA
+#\\\|ETTGHP7W37HUBFYIKSL4JNOO2YSBRFOI53ZLGIKX4XLGTGBGUEN \ / AMOS7 \ YOURUM ::
+#\[7]M7INA64FL3E3RURO67OQSOUZQ5UGNFNGPJ4NE3CXI75UGG5WSWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

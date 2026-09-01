@@ -354,10 +354,10 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
         ##  contextual reply for '.cmd.' in routed command names  ##
         if ( index( $cmd, qw| .cmd. | ) >= 0
-            and not defined $data{'base'}{'cmd'}{$cmd} ) {
+            and not defined <base.cmd>->{$cmd} ) {
 
-            if ( exists $data{'diag'}{'cmd_anomalies'}{$cmd} ) {
-                my $reason = $data{'diag'}{'cmd_anomalies'}{$cmd};
+            if ( exists <diag.cmd_anomalies>->{$cmd} ) {
+                my $reason = <diag.cmd_anomalies>->{$cmd};
                 $output->$* .= <[base.sprint_t]>->(
                     qw| MALFORMED_CMD |,
                     $cmd_id_str, $cmd, $reason
@@ -403,8 +403,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 return undef;    ##  fell through : caller handles unknown-command  ##
 
-#,,..,.,.,,.,,.,,,..,,...,.,.,.,.,.,,,.,,,.,,,..,,...,...,..,,..,,.,.,.,.,...,
-#ARO4DEDQZ2OBD6QC3BOL762YKS2GEGIAFX42XAJVQ54X6O4KVKMDNDR3NUW5326HACLMMCICWCUHO
-#\\\|WIDMQO4QKJG3BYP7UJUWNEKSZWAXOHVAKQW352L3Y3ROT6CPM6I \ / AMOS7 \ YOURUM ::
-#\[7]LEP3NZX4KPKOUCOQOAX2N6SY6KDQWFH2YAWK7AKNX66RIWCNMIAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,.,,,,.,.,,,.,.,.,.,.,,,,.,,,..,..,,...,..,,,.,,,,,,...,,,,,,..,
+#72HRSF6Z47F5K6Y6WROKCC2EOEAJYGQ3MA6CB5W7GAPUGRAGUAPQVAOWINIQMH2EUKVTBBSAXGKMS
+#\\\|2TR7PY7TAU25CNNGQZSB5X3UDMCEHOLXUHHB5FZRCL4O6W6TZAK \ / AMOS7 \ YOURUM ::
+#\[7]VUKWNINFHEHEI4I6SW5N5W6TWWAULTXORESETTNRUGFBUZZ6KCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

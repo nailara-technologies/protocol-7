@@ -4,13 +4,13 @@
 # descr = initialize address registry
 
 ## set up address registry ##
-$data{'graphics-matrix'}{'address'} = {
+<graphics-matrix.address> = {
     qw| checksum | => {},
     qw| label    | => {},
 };
 
 ## register current cursor position as origin ##
-my $cursor = $data{'graphics-matrix'}{'cursor'};
+my $cursor = <graphics-matrix.cursor>;
 <[graphics-matrix.address.register]>->(
     {   qw| position | => {
             qw| selX | => $cursor->{'selX'},
@@ -23,8 +23,8 @@ my $cursor = $data{'graphics-matrix'}{'cursor'};
 
 <[base.logs]>->( 2, 'address registry initialized' );
 
-#,,..,,.,,,,,,,,,,,..,.,,,..,,,.,,,,.,,,.,...,..,,...,...,...,,,,,...,,,,,,..,
-#2O5Q6Q4VEFC2PY3GDG4B53KXP4PKGOUA3KSFKQQPS5B2HQAPBPD7RRWYSFEBTYCBQBXBKGJIPX5XC
-#\\\|3WVE7G6WB2UYDHHHUWDMDZP2UAEQ6BTS5BRNFOPX64YYFMCMHBA \ / AMOS7 \ YOURUM ::
-#\[7]SNZQFFAPKH5AD3XL4UH6FR6POPNHAMIH2JWDGCFOR7L2J5H7PKBY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,...,,..,..,,...,,,,,,..,.,.,..,,...,...,...,,.,,.,.,,.,,,,,,
+#KF7YUHARLQ6MGHODSQTCVYAGQZ2YX4N2OXLUBYHYQJSVCLUMISOJPLHBQCQEBUXXYDLKUGS2WMQKM
+#\\\|3AZXBFCQUYR5RRJCYGTPZU6LIZVE25EH7IX5D34I5DX4NBT2OQR \ / AMOS7 \ YOURUM ::
+#\[7]UH6UTNHRJCO3LHCOMGHZIZBTIFG5ANAMOATRXTBIUFD7RFW7GKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

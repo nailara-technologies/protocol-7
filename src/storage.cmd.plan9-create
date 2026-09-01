@@ -29,7 +29,7 @@ for ( my $i = 0; $i < @tok; $i++ ) {
 
 my $content = join( ' ', @content_tok );
 
-my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+my $conn = <storage.9p.connections>->{$name};
 return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
 
 my $result = <[storage.9p.create-file]>->( $conn, $path, $content, $is_dir );
@@ -40,8 +40,8 @@ return {
     'data' => "created $path" . ( $is_dir ? " [directory]" : "" )
 };
 
-#,,,,,,,.,,,.,...,,.,,.,.,,.,,.,,,...,,,,,,.,,.,.,...,...,.,,,,..,,,,,,..,..,,
-#VUSU6N7MAQZ5IYAGYIZWSQ6NYULHH6A6XAOMRZAL46V4CY6NRTESLEJ55SVPPAQGGJI3X4CMQVBO2
-#\\\|3SZ4XZLZXXDR37R7BRZILMCQ5SYKSQCYGYX444SCA6BEYEXYOUN \ / AMOS7 \ YOURUM ::
-#\[7]DXYOHA3JOH26PEZEMWRQQNUGURCBXHVQAW7A6WQ5CCFDJFHJO4BQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,.,,,,,,..,,.,,,.,,...,,,.,,..,.,.,...,...,.,,,,,.,,.,,,,.,,,.,
+#MRVNZMLATEMMFO6RFT7BJLQKPVK5TIECNITMSCPRCHEMZCC2UYLOXGLXQRHYUFYUPW2EUGNC6ZTL2
+#\\\|DB3VNDWOV5RCI34XL2NO6SFNFWF4S3G7ECFS3N5SHICO7VERTUH \ / AMOS7 \ YOURUM ::
+#\[7]BE5Q5Z4TRZ43AXPWNSDEX57CKPKM2T27WMWPLHMCHDAWRVQHKOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

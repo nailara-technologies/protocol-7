@@ -36,53 +36,53 @@ $AMOS7::SHM::log_handler = sub { <[base.log]>->( $ARG[0], $ARG[1] ) };
 ##[ NAMESPACE INITIALIZATION ]################################################
 
 # SHM mount registry
-$data{'mount'}{'shm'}{'segments'}    //= {};    # Active mounts by path
-$data{'mount'}{'shm'}{'by_pubkey'}   //= {};    # Index by owner pubkey
-$data{'mount'}{'shm'}{'groups'}      //= {};    # Group definitions
-$data{'mount'}{'shm'}{'permissions'} //= {};    # Cached permission lookups
+<mount.shm.segments>    //= {};    # Active mounts by path
+<mount.shm.by_pubkey>   //= {};    # Index by owner pubkey
+<mount.shm.groups>      //= {};    # Group definitions
+<mount.shm.permissions> //= {};    # Cached permission lookups
 
 # Statistics
-$data{'mount'}{'shm'}{'stats'}{'created'}  //= 0;
-$data{'mount'}{'shm'}{'stats'}{'opened'}   //= 0;
-$data{'mount'}{'shm'}{'stats'}{'locked'}   //= 0;
-$data{'mount'}{'shm'}{'stats'}{'rejected'} //= 0;
+<mount.shm.stats.created>  //= 0;
+<mount.shm.stats.opened>   //= 0;
+<mount.shm.stats.locked>   //= 0;
+<mount.shm.stats.rejected> //= 0;
 
 ##[ CONSTANTS ]###############################################################
 
-$data{'mount'}{'shm'}{'const'}{'header_size'}     //= 512;
-$data{'mount'}{'shm'}{'const'}{'default_size'}    //= 63 * 1024;    # 63K
-$data{'mount'}{'shm'}{'const'}{'max_permissions'} //= 16;
-$data{'mount'}{'shm'}{'const'}{'magic'}           //= 'P7SH';
+<mount.shm.const.header_size>     //= 512;
+<mount.shm.const.default_size>    //= 63 * 1024;    # 63K
+<mount.shm.const.max_permissions> //= 16;
+<mount.shm.const.magic>           //= 'P7SH';
 
 ##[ LOCKING BACKEND DETECTION ]###############################################
 
 # Detect available memory locking mechanisms
-$data{'mount'}{'shm'}{'capabilities'}{'mlock'} = 0;
+<mount.shm.capabilities.mlock> = 0;
 
 if ( eval { require IO::AIO } ) {
-    $data{'mount'}{'shm'}{'capabilities'}{'mlock'}         = 1;
-    $data{'mount'}{'shm'}{'capabilities'}{'mlock_backend'} = 'IO::AIO';
+    <mount.shm.capabilities.mlock>         = 1;
+    <mount.shm.capabilities.mlock_backend> = 'IO::AIO';
 } elsif ( eval { require BSD::Resource } ) {
-    $data{'mount'}{'shm'}{'capabilities'}{'mlock'}         = 1;
-    $data{'mount'}{'shm'}{'capabilities'}{'mlock_backend'} = 'BSD::Resource';
+    <mount.shm.capabilities.mlock>         = 1;
+    <mount.shm.capabilities.mlock_backend> = 'BSD::Resource';
 } else {
-    $data{'mount'}{'shm'}{'capabilities'}{'mlock_backend'} = 'none';
+    <mount.shm.capabilities.mlock_backend> = 'none';
 }
 
 # Detect mmap capabilities
-$data{'mount'}{'shm'}{'capabilities'}{'mmap'} = 0;
+<mount.shm.capabilities.mmap> = 0;
 if ( eval { require Sys::Mmap } ) {
-    $data{'mount'}{'shm'}{'capabilities'}{'mmap'} = 1;
+    <mount.shm.capabilities.mmap> = 1;
 }
 
 ##[ POSIX SHM AVAILABILITY ]##################################################
 
-$data{'mount'}{'shm'}{'capabilities'}{'posix_shm'} = 0;
+<mount.shm.capabilities.posix_shm> = 0;
 if ( eval { require POSIX } ) {
 
     # Check if shm_open is available
     if ( defined &POSIX::shm_open ) {
-        $data{'mount'}{'shm'}{'capabilities'}{'posix_shm'} = 1;
+        <mount.shm.capabilities.posix_shm> = 1;
     }
 }
 
@@ -101,8 +101,8 @@ push <callbacks.end_code>->@*, qw| data.mount.shm.cleanup |;
 # Init codes must return 0 or 5 for success
 return TRUE;
 
-#,,,.,,,.,,.,,.,.,,.,,,,,,.,.,,,,,,..,,,.,,..,.,.,...,...,,,,,,,.,,,,,,..,.,.,
-#URXW4NGEURDMJ3YHR5D32DXSUCKNT4CIC2YZE76R5F62BNB6SSQTX4MO2JN36TVPZAZTU2APNIYJ4
-#\\\|FNOFWVEKH66TNEFKULTHJCUSWCH2XC3SJBQQDNHG7D5CG4FRLKG \ / AMOS7 \ YOURUM ::
-#\[7]KEXYZY7PAQHR5CF54VAA2ELSCIZTQCNSQKLXFJ75YGLOFUVDVIAI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,.,.,,.,,.,.,,,,,.,.,,,,,...,.,.,...,..,,...,,..,,..,.,,,...,
+#6DMFDSYNADYC6LJWQJRWCQUQDWVUX4HX4U2KOFMTQAKY4X6WKJGLZ32ZCTIENRE54PLQJFB7AXPRI
+#\\\|YARJEGIPGZWBS7Q5HO2TAE3M5HLMZNAJGZASSAFSAI4XX5NPK3X \ / AMOS7 \ YOURUM ::
+#\[7]7S72DJBSSDS5JHSOTFVHMZ36D6D24BYMNUJ7D4TBA5K5U6USUGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

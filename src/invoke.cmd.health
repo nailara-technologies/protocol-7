@@ -3,7 +3,7 @@
 # name  = invoke.cmd.health
 # descr = quick invoke.ai HTTP health check
 
-my $url  = $data{'invoke'}{'url'} // 'http://127.0.0.1:9090';
+my $url  = <invoke.url> // 'http://127.0.0.1:9090';
 my $ua   = LWP::UserAgent->new( timeout => 3 );
 my $resp = $ua->get("$url/api/v1/app/version");
 
@@ -21,8 +21,8 @@ if ( $resp->is_success ) {
     };
 }
 
-#,,,.,,,,,.,,,.,,,,,,,.,.,,,,,.,,,,,,,,,.,,.,,..,,...,...,...,,,.,,.,,.,,,,,.,
-#4EWYEGN6FLMZVKC7SUDR7Y52K6SIW6RVLYUHGTSPFUJEXMFCDNYHZC2X5MBS6LYSDQ7CHWO5XNRLA
-#\\\|WIO4UUHG3RIW4H24HJQZ7JFRRZLWAN6NZFHOIPSFXESRU3YZEML \ / AMOS7 \ YOURUM ::
-#\[7]MYBXWOUSNN4MI54CBNAUXHC46M2O5BRVRIA2TWFDZTLQMAOFXODQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,...,,,.,,..,.,,,..,,.,.,.,,,..,,...,...,.,.,,..,...,.,,,.,,,
+#NLI24IV4LVOWYH5PZ4W5IC6A32UVQK3KG2LNVUAIGEXENFPAMIGTMYNUCP2UDGQTIMQKEFAQTF4FO
+#\\\|PEMKX56DR4OC7KB3MTB6Q5ITOARQHOEDPOUPGESVS6CD3VZFSDV \ / AMOS7 \ YOURUM ::
+#\[7]LCWHLGUINGDCQORJPLRHWSZRSA2JRAQI4M2VKIR2V3HC3R3FTYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

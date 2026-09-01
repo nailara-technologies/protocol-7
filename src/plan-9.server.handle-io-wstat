@@ -42,11 +42,9 @@ if ( length $stat->{name} ) {
 
     ## migrate the stable qid mapping so the file keeps its identity across ##
     ## the rename, matching real 9P semantics                               ##
-    if ( exists $data{'plan-9'}{'server'}{'realpath_qids'}{ $f->{realpath} } )
-    {
-        $data{'plan-9'}{'server'}{'realpath_qids'}{$new_path}
-            = delete $data{'plan-9'}{'server'}{'realpath_qids'}
-            { $f->{realpath} };
+    if ( exists <plan-9.server.realpath_qids>->{ $f->{realpath} } ) {
+        <plan-9.server.realpath_qids>->{$new_path}
+            = delete <plan-9.server.realpath_qids> { $f->{realpath} };
     }
 
     $f->{realpath} = $new_path;
@@ -65,8 +63,8 @@ return <[plan-9.protocol.codec.encode-message]>->(
     $tag, ''
 );
 
-#,,..,,,.,,,,,.,.,.,.,,,,,,,,,.,.,,..,,,.,.,.,..,,...,...,,,,,,..,...,..,,,,,,
-#GOGREEM4ECSJTF4PSJSBCY264XKOJDECB45T2MI4NENESDFPQDQK6UKOIOIWW5EFBRAQD4Q6XDN5A
-#\\\|2ZWTVNYARPRAMEFKKMGSQKWCAI2RNHPW7MEXH3JH7GLQUDBIIZW \ / AMOS7 \ YOURUM ::
-#\[7]5VAIXZOLBKEEXBIKX77PHSEJPU73WDPIKQZCR73WYYWAL5JHYQAA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,,,..,,,.,,,,.,.,.,.,,,,,.,.,.,..,,...,...,,..,,..,.,.,...,.,.,
+#CLAABIG5U22ASWLU75HXRZQG6MXSK5IJO3APOZDPKFQUXB6Z5IJ3XEZBZDJPP52ZRQXH64YTC6D44
+#\\\|73IWKATNYNCVWSC22UMCKCS2HETPL3WUF25FMD5MS4G26NYDFTB \ / AMOS7 \ YOURUM ::
+#\[7]F57PL4ODZDOAYFKUTDSMKJYZDWDM7P6UQSEI3AKZC3LYKZKAV2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

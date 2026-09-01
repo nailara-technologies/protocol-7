@@ -9,7 +9,7 @@ my $params    = $reply->{'params'} // {};
 my $client_id = $params->{'client_id'};
 my $context   = $params->{'context'};
 
-my $client = $data{'proxy'}{'clients'}{$client_id};
+my $client = <proxy.clients>->{$client_id};
 if ( not defined $client ) {
     <[base.logs]>->( 2, 'proxy.site_yaml_reply: client %s gone', $client_id );
     return;
@@ -147,8 +147,8 @@ my $response
 
 return;
 
-#,,,.,.,,,,.,,,.,,.,,,..,,...,.,,,,,.,.,.,.,.,..,,...,...,..,,,,.,,,.,,..,,,,,
-#BT2HAQWTQKCBRJ6J3PG2WYPXBNGGOFYELS7DG2SPFOEZUD77JU3O6M4EJ3ZYEXLPMCED4EFZ5KOJY
-#\\\|TOFMHWWR5HXMUL6XZ5QI6EOATGAGYFQHW5TJGIQYTOKPHTU2XJI \ / AMOS7 \ YOURUM ::
-#\[7]6ADQCDMS5ZUJM3CSOZ4VIHUD55KZ3WBIIMLWIYN4K3KUMN4BRKDY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,...,...,..,,,,.,...,.,,,.,,,,,,,..,,...,...,,.,,.,,,,,.,.,,,,.,,
+#RHVC6ORKFKQNWV267TV7AUBDCA2I5GTWO5YKJ3VLLXK6RVOIDUBB774T5J32IJOTRUJYWCIBW22YA
+#\\\|HXIQZ6KLM6WV6ROM5C27R472UI46YZTB6DNUDJKVIQ4YB6VW4VX \ / AMOS7 \ YOURUM ::
+#\[7]X7774AJ54TP4PBNOH6OZ3U6KWEHVCSXMNIGZF2OMQK5V4C5RQSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

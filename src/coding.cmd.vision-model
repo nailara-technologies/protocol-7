@@ -118,11 +118,10 @@ $timeout //= <coding.cfg.vision_switch_idle_timeout> // 300;
 
 ## register per-request state and arm the poll timer : the reply fires ##
 ## deferred, exactly once, from coding.handler.vision_switch_poll      ##
-$data{'coding'}{'vision_switch_state'} //= {};
-my $switch_id
-    = <[base.gen_id]>->( $data{'coding'}{'vision_switch_state'} );
+<coding.vision_switch_state> //= {};
+my $switch_id = <[base.gen_id]>->(<coding.vision_switch_state>);
 
-$data{'coding'}{'vision_switch_state'}{$switch_id} = {
+<coding.vision_switch_state>->{$switch_id} = {
     'reply_id'        => $call->{'reply_id'} // '',
     'target_checksum' => $checksum,
     'timeout'         => $timeout,
@@ -148,8 +147,8 @@ $data{'coding'}{'vision_switch_state'}{$switch_id} = {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,,,,...,,,.,..,,,.,,,,,,,..,.,.,,..,..,,..,,...,.,.,,,,,...,,,,,,,,,...,
-#3LV5OBRDDAK2XRYHWQDDCXMS76DDO32Z2EFN2WNTK2BU2FPTQLJU4IP5VLLAQC5BRQ4IHTHDGB3R2
-#\\\|3EQT3YIHGGC5UC5TKU4NJTVJYUMW2CNCETRJP5VSFSDILGIXXKB \ / AMOS7 \ YOURUM ::
-#\[7]NLCEF67B2FSKRRHE2ZPI2WEM7OE7ZUZXOT2SZBTWWKVR5GZ6MMBA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,,..,.,,,,,.,..,,,,.,.,,,,..,..,,...,...,..,,...,,,.,,,.,.,,,
+#OLQ7INPQM24L7ZQBL7MGQJ74I4BZUWE2R5RIQ2ZZ552WHH36LT3V6FIHRDGNEPWJ57LP4CBNIHQNS
+#\\\|6MLYQKCTTUPONF2FMITV4F3BUJ2RJMUSW7DI2ELAZRKOWTO4LYU \ / AMOS7 \ YOURUM ::
+#\[7]3FBX7GGCWFTVPKHXX232WBQ7MIXQHBAYIENDT4Y3E74JUX7SEICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

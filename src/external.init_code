@@ -46,8 +46,8 @@
 
 ## schedule auto-connections to strongest neighbours on startup ##
 if ( <external.cfg.auto_connect> > 0 ) {
-    my $known     = $data{'discover'}{'orbital'}{'known'}      // {};
-    my $own_p7ref = $data{'nodes'}{'orbital'}{'current_p7ref'} // '';
+    my $known     = <discover.orbital.known>      // {};
+    my $own_p7ref = <nodes.orbital.current_p7ref> // '';
 
     my @sorted
         = sort { $known->{$b}->{'timestamp'} <=> $known->{$a}->{'timestamp'} }
@@ -78,8 +78,8 @@ if ( <external.cfg.auto_connect> > 0 ) {
 
 return TRUE;
 
-#,,.,,.,,,.,.,,,,,,.,,,..,,..,,..,,,,,,,,,,..,.,.,...,.,,,,,.,..,,,..,..,,,.,,
-#DVRNTSOPIWUI3KVLZJAEHJEJIT3N7MLLKG6MOB2EUOAUO65R5AZU6QQGD32UAN7VK75GMROVZL2T6
-#\\\|64XD5INXDKM4IHUFIR52YAGACSMRRBBGD6WVKGQEMGATHXGUS23 \ / AMOS7 \ YOURUM ::
-#\[7]OANQXXUT46UJH6HKYLOJVGCPNYTS4C3ZHFDYIHFJCNCRSVCPDIAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,..,,,,.,,,,,...,..,,,,.,.,,,,,.,.,.,...,...,,,.,,.,,.,,,.,.,,,.,
+#DLNOBXRNXNPNLBXXTJ5YDB3SXADRAD7SYDYMKXWUA2XNG3SCID35WDCFGIL44LDDH57OD5KGXYVWC
+#\\\|JNXD2IRC2SHFGP25MBDNZX57I65FMYDD44ANQM5ZUF3XVIQ2BPK \ / AMOS7 \ YOURUM ::
+#\[7]VIGI4ZW7BJW7CPU55UZ4RJJ6ZZOPS2J3VV3YAOGESW47A272WGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

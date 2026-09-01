@@ -28,11 +28,10 @@ if ( $cube_check->{running} ) {
     );
 
     ## Update registry
-    $data{'zenki'}{'running'}{'cube'} = {
+    <zenki.running.cube> = {
         pid     => $cube_check->{pid},
-        started => $data{'zenki'}{'running'}{'cube'}{'started'}
-            || <[base.ntime]>,
-        status => qw| running |
+        started => <zenki.running.cube.started> || <[base.ntime]>,
+        status  => qw| running |
     };
 
     return {
@@ -58,13 +57,13 @@ while ( time() - $start_time < $timeout ) {
         <[base.log]>->( 2, "  ✓ cube started by v7" );
 
         ## Update registry and statistics
-        $data{'zenki'}{'running'}{'cube'} = {
+        <zenki.running.cube> = {
             pid     => $check->{pid},
             started => <[base.ntime]>,
             status  => qw| running |
         };
 
-        $data{'zenki'}{'stats'}{'cube_starts'}++;
+        <zenki.stats.cube_starts>++;
 
         return {
             success       => TRUE,
@@ -83,8 +82,8 @@ return {
 
 0;
 
-#,,,,,,..,,.,,...,.,.,,..,,..,,.,,,.,,...,.,,,..,,...,...,,.,,,..,..,,..,,,.,,
-#274B5MYJMAEU3GBX2OGMK3O2HHXAMZEFOAD2K7KAH5JUXAJ4VIXUE263Z6A7Z7DJAHMDAXCBZW44C
-#\\\|CXDJB673XJALWJOI44Y4QFP76IBWBQMZYOR6AZICV6BIR4ZYK67 \ / AMOS7 \ YOURUM ::
-#\[7]3KMZW3RHYC5R4RN4QBI2EHVJR4KQSO2X553MNJ3DU7MWILUEFUCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,..,,.,.,.,,,,.,,..,,.,,,,.,,..,,..,,...,...,...,...,.,,,.,.,,.,,
+#DPKGDHNLODWWOUF7W3CRS27MBILQ6HQFQTV5F3CKJ6FWN5VMPCCOKFANNSEHQT5HFRKG24CBPLVXM
+#\\\|UGD3XMW3TQFTGVNCSTEBEJAEOKEIKYYPMQAQN2G6KMULU64WTSW \ / AMOS7 \ YOURUM ::
+#\[7]FKK4TPTW7JFD5UXZAE3VLSXZSKHVTTXLX4RPDW7LOOUZ4GVOKWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

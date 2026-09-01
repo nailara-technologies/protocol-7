@@ -6,13 +6,13 @@
 
 ##  feature guard : when disabled there is no state, no timer, no cost  ##
 my $enabled
-    = exists $data{'httpd'}{'classify'}
+    = exists <httpd.classify>
     ? <httpd.classify.enabled> // 0
     : 0;
 
 if ( not $enabled ) {
     ##  ensure zero data-tree presence when off  ##
-    delete $data{'httpd'}{'classify'} if exists $data{'httpd'}{'classify'};
+    delete <httpd.classify> if exists <httpd.classify>;
     return FALSE;
 }
 
@@ -23,8 +23,8 @@ if ( not $enabled ) {
 <httpd.classify.expire_interval> //= 300;
 
 ##  state tree [ never persisted across restarts by design ]  ##
-$data{'httpd'}{'classify'}{'peer'}  //= {};
-$data{'httpd'}{'classify'}{'stats'} //= {
+<httpd.classify.peer>  //= {};
+<httpd.classify.stats> //= {
     'total_requests'   => 0,
     'total_classified' => 0,
     'by_family'        => {},
@@ -71,8 +71,8 @@ while ( my ( $cmd_name, $sub_name ) = each %cmd_map ) {
 
 return TRUE;
 
-#,,,,,.,.,,.,,.,,,...,,.,,.,,,.,.,,..,,.,,,.,,..,,...,...,...,,,.,...,...,,,,,
-#V6MZPHXKJTP7ZVVVAAEVG3CGUBZVQFZYL5CJFTBYKHVDMUDESUOJAWXYEUNSZGQOH5JJM2VEHJDII
-#\\\|H2RR4M63ZDENNCHKLSPWGEWQTPEMY7HAR5ZALNKNR32YBLILJQH \ / AMOS7 \ YOURUM ::
-#\[7]ZSSKNHBI2MA3Z5NM5YKPWNAV5SSVD23APKL2SO56OSI2GH7YN6CY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,..,,...,,,.,.,.,..,,,..,,..,.,,,..,,...,...,.,.,.,,,.,,,,,.,.,.,
+#3TS45ZXZJWOH3OCN7NLMETEADXLL5RDWPHXMSZDALVDCMH4VTKWFEDZHMBSP4IBGINWG5Q52DZRIO
+#\\\|A5OMF7EDMDXFHVGWM52ZS4VT3562LITF3JPLGPIEXEKXRPBF4UX \ / AMOS7 \ YOURUM ::
+#\[7]EERHPE6CY5JEQWKL25DQHSZJ3CVDETT2YCQK3EPUYLABWS3C5ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

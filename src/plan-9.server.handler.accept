@@ -17,9 +17,9 @@ my $fd        = fileno($client_sock);
 my $peer_addr = $client_sock->peerhost // 'unknown';
 
 <[plan-9.server.client.accept]>->( $fd, $peer_addr );
-$data{'plan-9'}{'server'}{'clients'}{$fd}{'sock'} = $client_sock;
+<plan-9.server.clients>->{$fd}{'sock'} = $client_sock;
 
-$data{'plan-9'}{'server'}{'clients'}{$fd}{'watcher'} = <[event.add_io]>->(
+<plan-9.server.clients>->{$fd}{'watcher'} = <[event.add_io]>->(
     {   fd      => $client_sock,
         poll    => 'r',
         handler => 'plan-9.server.handler.read',
@@ -30,8 +30,8 @@ $data{'plan-9'}{'server'}{'clients'}{$fd}{'watcher'} = <[event.add_io]>->(
 
 return;
 
-#,,..,,.,,,,.,.,,,,.,,.,.,,,,,,,.,,,.,.,.,,,.,..,,...,...,,..,,,,,.,,,.,.,,,,,
-#LRLN6KVD6OR43FLVBBECUFZ4H44BPBLWHUD4OAN3A4ZTS2GZNIHMFEKOP4TZPR2X3PB663VVNKORC
-#\\\|XFRVRCCERJIPBLPRODUF2Q6ISOYAPB2LI742KPRRLCT2MYLD7FB \ / AMOS7 \ YOURUM ::
-#\[7]NPUADYPOSKKRNEQPZNH6KNTIPG2YZRCPZKBS66YFDWBQ5OLZO2CQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,..,,,..,.,,,..,,,,,,,,.,.,,,..,,...,...,.,,,.,,,.,,,,,,,,,.,
+#PRXT3I6CMLNGTMIHKQVLBEHE7EHM5B3DP6W4DKXN37VYLYXCEEWE2JJFBUHO6JU32EAQ3VZ2FYT6O
+#\\\|ZI74F4D6YSAOL4USQMJPNOON4TKTCGDHJQSZSK7QUWXN7PIGGRH \ / AMOS7 \ YOURUM ::
+#\[7]HD2CAUFFFA6XMRQJDEETUZPUR7WQZDYO44CLXSLYGAC3SGPTQACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

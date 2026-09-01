@@ -54,18 +54,16 @@ my $current_generation;
 my @prefix_parts = split( m|\.|, $source_sub_prefix );
 while (@prefix_parts) {
     my $candidate = join( '.', @prefix_parts );
-    if ( exists $data{'base'}{'loader'}{'namespace_generation'}{$candidate} )
-    {
+    if ( exists <base.loader.namespace_generation>->{$candidate} ) {
         $current_generation
-            = $data{'base'}{'loader'}{'namespace_generation'}{$candidate};
+            = <base.loader.namespace_generation>->{$candidate};
         last;
     }
     pop @prefix_parts;
 }
 $current_generation //= <base.loader.load_seq> // 0;    ##  fallback  ##
-my $swap_key = "$source_sub_prefix\->$target_sub_prefix";
-my $last_wipe_generation
-    = $data{'base'}{'swap_subs'}{'last_wipe_generation'}{$swap_key};
+my $swap_key             = "$source_sub_prefix\->$target_sub_prefix";
+my $last_wipe_generation = <base.swap_subs.last_wipe_generation>->{$swap_key};
 my $already_wiped_this_generation = defined $last_wipe_generation
     && $last_wipe_generation == $current_generation;
 
@@ -82,8 +80,7 @@ if ( $overwrite_policy eq qw| undefine |
         2,              "undefined %d subs from '%s' namespace",
         $removed_count, $target_sub_prefix
     ) if $removed_count;
-    $data{'base'}{'swap_subs'}{'last_wipe_generation'}{$swap_key}
-        = $current_generation;
+    <base.swap_subs.last_wipe_generation>->{$swap_key} = $current_generation;
 } elsif ( $overwrite_policy eq qw| undefine | ) {
     <[base.logs]>->(
         2, '<swap_subs> wipe skipped [ already done this generation : %s ]',
@@ -210,8 +207,8 @@ if ( <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |) ) {
     }
 }
 
-#,,,,,,,.,.,,,,,,,,..,,,.,,,,,.,,,.,.,.,,,..,,..,,...,...,.,,,...,...,.,.,..,,
-#LIHTARLLUHUIHNDPTVWO75TUGDREM5EUGAGSH47ULSRA4IEHGKSU3GIGFPW4PXOAEJSGFPYFW7TRA
-#\\\|6QOLGY6H6BMHNHZ55F7IT37SB3XCSSVMEE2YFR7CSRIYMRD5S2M \ / AMOS7 \ YOURUM ::
-#\[7]ZPU2LRSQKFAKNSXY3LZ3LEM7N5F7ZIQRCRAWL25P6EDK3U427SAA 7  DATA SIGNATURE ::
+#,,..,...,.,.,...,.,,,,,,,,.,,...,,.,,..,,.,.,..,,...,...,..,,.,.,,..,...,.,.,
+#S325M5L4LRFQCH5SEJT5HQIN6SBH7AVSRJVBFPFPSBKNYPXHU2L3WRLETTZSTKUX5BGGN5KAPBB64
+#\\\|Z74TRY4MCW7TCOJSUHABFPHRJVIHHQDABKMWYWI373EXDSJJKPC \ / AMOS7 \ YOURUM ::
+#\[7]I4QQPOOB3UGHRTK4WIRIOCNCVMRVMDCYHVWIED6NNKIW3OXBPYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

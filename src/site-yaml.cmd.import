@@ -22,7 +22,7 @@ if ( not length $url ) {
     ## legacy: bare url as the whole argument line ##
     $url = $args_str;
 }
-$url = $data{'site-yaml'}{'cfg'}{'stepstone_search_url'} // ''
+$url = <site-yaml.cfg.stepstone_search_url> // ''
     if not length $url;
 
 return { 'mode' => 'false', 'data' => 'no url' }
@@ -78,7 +78,7 @@ if ( length $block_file and -r $block_file ) {
 }
 
 ## drop stale queue entries that predate the generic fetch refactor
-my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+my $queue = <site-yaml.fetch_queue> // [];
 if ( @{$queue} ) {
     my $stale = scalar grep { not length( $ARG->{'reply_handler'} // '' ) }
         @{$queue};
@@ -88,12 +88,12 @@ if ( @{$queue} ) {
             'site-yaml.import: dropping %d stale fetch-queue entries',
             scalar @{$queue}
         );
-        $data{'site-yaml'}{'fetch_queue'} = [];
+        <site-yaml.fetch_queue> = [];
     }
 }
 
 ## if queue already has items from a prior scan, keep fetching
-my $queue_preload     = scalar @{ $data{'site-yaml'}{'fetch_queue'} // [] };
+my $queue_preload     = scalar @{ <site-yaml.fetch_queue> // [] };
 my $allow_early_break = ( not $full_mode and not $queue_preload ) ? 1 : 0;
 
 my $max_pages = <site-yaml.import_max_pages> // 1;
@@ -102,10 +102,9 @@ $max_pages = 5 if $max_pages > 5;    ## safety cap
 
 my $delay_search = <site-yaml.import_delay_search> // 1.5;
 
-my $import_id
-    = <[base.gen_id]>->( $data{'site-yaml'}{'import_state'} //= {} );
+my $import_id = <[base.gen_id]>->( <site-yaml.import_state> //= {} );
 
-$data{'site-yaml'}{'import_state'}{$import_id} = {
+<site-yaml.import_state>->{$import_id} = {
     'reply_id'          => $call->{'reply_id'},
     'url'               => $url,
     'reply_handler'     => $reply_handler,
@@ -125,8 +124,8 @@ $data{'site-yaml'}{'import_state'}{$import_id} = {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,...,,,,,..,,,.,,,,,,,,.,,.,,.,.,,,,,,..,.,.,...,...,,.,,,.,,...,,,.,.,.,
-#G6RQJ6JFVLXV7BP74HXR6XBWJMOQ5RMTHPG54W5MEV5OXTBXGQ4GEGCQCJ7AXSZET4LWOEZNGEKB4
-#\\\|2SFHITFT3H2J5YBJLY55LGKHQC4YDJUWZ6K2IWTWY5IDABRKGGM \ / AMOS7 \ YOURUM ::
-#\[7]3CJMM2ERN2DGFS2FLQBB42Y4WUHKMPZQDUQIOAKX7CYYDCWHDMBA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,..,,,,.,,,.,.,.,,..,.,.,,..,.,.,...,...,,.,,..,,...,,,.,...,
+#5UYVNDX6RMLYHMRARQRRYVU55DTK6KPSN6NO7SDK4EVBUKUT6T2CAYJEZ35UNAPFWSVYCIXLNI6KU
+#\\\|WINOWFAYSRWU6NNASVYYJBOS2R3NAJ2J5LTVJ7DUBTRQGL54DGV \ / AMOS7 \ YOURUM ::
+#\[7]XOQLWX3KFQ6X6ELEOQB4WYNNHPN3GHMYQMFNBD4HYQ42T6AXXSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,13 +7,13 @@ my ($args) = @ARG;
 
 my $type = $args->{'type'}
     or return { 'mode' => 'false', 'data' => 'type required' };
-my $agent      = $args->{'agent'}      // $data{'agent'}{'id'} // 'unknown';
+my $agent      = $args->{'agent'}      // <agent.id> // 'unknown';
 my $branch     = $args->{'branch'}     // 'general';
 my $payload    = $args->{'payload'}    // {};
 my $references = $args->{'references'} // {};
 my $timestamp  = $args->{'timestamp'}  // time();
 
-my $tree = $data{'context'}{'tree'}{'summary'};
+my $tree = <context.tree.summary>;
 
 # Create event node
 my $event = {
@@ -71,8 +71,8 @@ return {
     },
 };
 
-#,,..,,.,,,,,,,,,,,,.,,,,,,,,,.,.,...,,,.,,..,.,.,...,...,,..,..,,,,,,,,.,.,,,
-#HDFRTDMVCL4YLLS6DMQAOYEK4X5QEJQRJHLSWIHNVPDYHHHPH3WFKX4RY3FNVJ3NL3J3DW7SP2ARW
-#\\\|LA7CM4EELIFNHPD7Z7XFSHS225RS5CPPQAWI7TO63ROOT4C7INT \ / AMOS7 \ YOURUM ::
-#\[7]2WXLAQVGTFOTNOIB2QEHDOSB7NOBGDRYO5RLUNB5KX65HUCV6KCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,.,,..,.,,,,..,,..,.,.,..,,,..,.,.,...,..,,,,.,...,,..,,,.,.,,,
+#QBEAKXFJRX7GIAUNVRCCWTNPXZH3SRKMUH6WHBGG72J3YJAE4PE7WTG3J6H4EVQHHTEKWE5FEZDAQ
+#\\\|I3MWKBL4ZJ3YPBBXLAKWG2DLUJS7GWZ23QE2MTCX3Q74CS6GU7T \ / AMOS7 \ YOURUM ::
+#\[7]EIOJ6OPUFXREDVKFN3GBOKDPJ7M462ZKWE2U6SSNRFV7NR74XGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

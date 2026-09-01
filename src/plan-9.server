@@ -3,7 +3,7 @@
 # descr = 9P protocol server for exporting amos-term buffers
 
 # Server state
-$data{'plan-9'}{'server'} = {
+<plan-9.server> = {
     'buffers'  => {},
     'clients'  => {},
     'next_qid' => 1,
@@ -18,7 +18,7 @@ $options //= {};
 my $port = $options->{port} // <plan-9.default_port> // 15640;
 my $host = $options->{host} // '127.0.0.1';
 
-if ( defined $data{'plan-9'}{'server'}{'listener'} ) {
+if ( defined <plan-9.server.listener> ) {
     return {
         'mode' => 'true',
         'data' => "9P server already running on "
@@ -26,7 +26,7 @@ if ( defined $data{'plan-9'}{'server'}{'listener'} ) {
     };
 }
 
-$data{'plan-9'}{'server'}{'port'} = $port;
+<plan-9.server.port> = $port;
 
 my $lsock = <[io.ip.tcp.input.open]>->( $host, $port );
 
@@ -37,7 +37,7 @@ if ( not defined $lsock ) {
     };
 }
 
-$data{'plan-9'}{'server'}{'listener'} = $lsock;
+<plan-9.server.listener> = $lsock;
 
 ## nothing accepted connections on this listener before -- see         ##
 ## data/tasks/plan-9-server-event-loop-wiring.md for the full history. ##
@@ -58,8 +58,8 @@ return {
     'data' => "9P server started on $host:$port"
 };
 
-#,,.,,...,,,.,.,.,,..,,..,,.,,,..,.,.,,.,,,,.,.,.,...,...,...,,,.,,,.,,.,,,..,
-#HX2UDMFJUZXESHWWLKBLFI22MMP6TEM43CS42T2FOLJOAWUBVOX4RKGVZEPQSGKMKI7DXTLU4EIHM
-#\\\|QEZVEIUGF33OCX4R2SXEEVLJ3ZPUCJYO2BYBPJ2L6ILVRAEAJTT \ / AMOS7 \ YOURUM ::
-#\[7]DD3ZBHIVCO3PZQPFJ77VDZCA3IFZ4ACAMO5WEKLH7EU722T2RQCI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,..,,,..,,,.,,,,,,.,,,,,,,,,,.,.,.,.,...,...,..,,,,,,,,.,,..,...,
+#V7FOC6W2QYFJHX5WJMLKJ6WD52LRW4S24AXYDBSSGXTSAEWH5EBPYGTKBSZW4NZDPXWBHEVCCBUOQ
+#\\\|D5SKEAZBQQP2XUIC6QZWRHMM76DMNMYCMFBPMMVL34P7C2G6MYB \ / AMOS7 \ YOURUM ::
+#\[7]MLN2FYCKETCLZBMKXHVQCRZG7SGJHUZYDGZ5Y5CNXYRZ73SU54CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@
 my $url = $ARG[0] // '';
 return undef if not length $url;
 
-my $ua  = $data{'site-yaml'}{'ua'};
+my $ua  = <site-yaml.ua>;
 my $res = $ua->get($url);
 
 if ( not $res->is_success ) {
@@ -21,8 +21,8 @@ if ( not $res->is_success ) {
 
 return $res->decoded_content;
 
-#,,,,,,..,.,,,,.,,.,.,,,.,..,,,.,,,.,,,.,,,.,,..,,...,...,,..,,,.,..,,,,.,.,.,
-#RNZ7FLNAAYOZC62N2OIR4EQGBR47BONK7XFMIOSJCLPGRBU4FYIJMGQAQ3LD3A77WSUY4CZV4CI3M
-#\\\|3KB5B44EGDROJ3LK2YPHPLSQFHOOGBHRTXGCMIVBMIRELVIXV5J \ / AMOS7 \ YOURUM ::
-#\[7]GZICLDGYH2MILQ47EF2XAX5GFBV4XRAU4Y3AJIFZMQNPAP63HKBY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,..,,,,.,,..,.,.,,,.,.,.,.,,,..,,..,,...,..,,,..,,.,,...,.,,,,.,,
+#53XA4NXHSP7XOPMONEXWMJNVNOJXJPBQJD6TEDR7Q2F25P4OBH2XNTMDLVEVTMSHSX6AEE7MKR7XW
+#\\\|J2NBJVKUARP6WLOOLADBNGAFRK4SC426K2TLB2TJW3OTKXPRP4W \ / AMOS7 \ YOURUM ::
+#\[7]Z7GP7JGXWHWJIBS73XOUK2UNCDJPVBZCXB4FWEZB3PLKPE3UYMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

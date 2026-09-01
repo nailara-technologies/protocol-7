@@ -20,14 +20,14 @@ if ( ref $filter eq qw| HASH | ) {
 );
 
 ## Read activity buffer
-unless ( defined $data{'buffer'}{'acme-activity'} ) {
+unless ( defined <buffer.acme-activity> ) {
     return {
         'mode' => qw| size |,
         'data' => 'Activity log is empty (no acme-activity buffer found)'
     };
 }
 
-my @lines = @{ $data{'buffer'}{'acme-activity'}{'data'} };
+my @lines = @{<buffer.acme-activity.data>};
 
 unless (@lines) {
     return {
@@ -116,8 +116,8 @@ return {
     'data' => $output
 };
 
-#,,..,...,.,.,,..,.,,,.,.,,,.,,..,,.,,,.,,.,,,..,,...,...,...,..,,,,,,,,.,,,.,
-#MUXRUPLMO3VTEX4KBMQ7NQGFBWTA4U2IINSOV7GSTWFQ676UQ6MKFJ6DZWYVTA4NUCBH2ZAA3V5WQ
-#\\\|WQJFO52PVROJ3URLLX3TVPOD2DMCRPLM4MVLDG3CPYB3JGFRKT3 \ / AMOS7 \ YOURUM ::
-#\[7]64NX22H3CI6TZMRFJPEQUX37WNC3LWMJWJV4HFBAIIPDCAD6WCBA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,,,,.,,,,.,,...,..,,,.,,..,,..,,...,..,,..,,,..,,.,,..,,,..,
+#BYEHK6W5HYVW2GB24KO3LDIWOJU4LBLHPJPWAUEGLNNWJSQERP3VIFQOV7EOEKYCM5YTBQIJDQE7K
+#\\\|FMLEOQNZPMHQCUOQCEMIECN5TLGMQQJ4FCDVM6B2ECZJV6KB2CU \ / AMOS7 \ YOURUM ::
+#\[7]P6W4ZSI5YDVHYWKT5DDJXMIH2T6M44RK4YOWJLHS34ZTCY2U6QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

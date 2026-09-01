@@ -96,7 +96,7 @@ $data{'devmod'} //= {};
 ## skipping p7-zenka heartbeat [zenka-status] requests and responses ##
 <devmod.skip_p7_heartbeat> = TRUE;
 ##
-$data{'system'}{'process_start'} = {
+<system.process_start> = {
     'time'  => <[base.time]>->(5),
     'pname' => $PROGRAM_NAME,
     'euid'  => $EUID,
@@ -105,7 +105,7 @@ $data{'system'}{'process_start'} = {
     'uid'   => $UID,
     'gid'   => $GID,
     }
-    if not exists $data{'system'}{'process_start'};
+    if not exists <system.process_start>;
 
 # maximizing open files limit
 my ( $of_cur, $of_max ) = getrlimit( BSD::Resource::RLIMIT_NOFILE() );
@@ -120,10 +120,10 @@ if ( $of_cur != $of_max ) {
         $of_max, <[base.str.os_err]>
         );
 }
-$data{'system'}{'limits'}{'ofile'}
+<system.limits.ofile>
     = [ getrlimit( BSD::Resource::RLIMIT_NOFILE() ) ]->[1];
 
-$data{'system'}{'host'} = {
+<system.host> = {
     qw|    os    | => { qw| name | => $OSNAME },
     qw| hostname | => hostname,
     qw| timezone | => <[base.timezone]>
@@ -207,7 +207,7 @@ if (    defined <system.zenka.type>
     and <system.zenka.name> eq qw| cube | ) {
     <[base.disable_command]>->('verify-instance');
     <zenki.virtual> //= {};
-    my $key_ref = \$data{'zenki'}->{'virtual'};
+    my $key_ref = \<zenki.virtual>;
     <base.element>->{$key_ref}->{'max_count'} //= 4097;    # LLL: --> config.,
     <list.virtual> = {
         'var'   => qw| data |,
@@ -333,8 +333,8 @@ if ( scalar(@INDEXCUBE) == 0 ) {
 
 return FALSE;
 
-#,,,.,,.,,,,,,,.,,.,.,,..,...,,,,,,.,,..,,...,..,,...,...,.,.,,,,,,..,,,.,,.,,
-#32ALBVM2D7LQEARHRNNFDIVZ5JBMFFYLKCKDXRUTDMJBGNHJQD3F5Q74EOHFYBYXCRN6TXY35322O
-#\\\|475RRL5MPP74TY7DA5N66PTJLINFKC3ZNK5PDGWMMULGF2X3KYT \ / AMOS7 \ YOURUM ::
-#\[7]ENQ7TEZZAXAN4CCOOTMT76OJNWRWIZ37JW23TYFC3AXB7T23VYAY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,.,,.,,,..,,..,,.,.,,,.,,,.,.,,,..,,...,...,...,,.,,,.,,..,,,,.,
+#PPCR7ZMQU2Z47PRGZWLS2AXZBXPNEPECD2ZYK22ANLUAW5YG72VSRVS4UGA6QJKGXJF7NKERE6PBY
+#\\\|NSMJ7FCVTFLAMIXNNVUBKW2TCTLYHTDONGX2VADF3ZIGIV5SR6X \ / AMOS7 \ YOURUM ::
+#\[7]FR2DCWGQQDBQEETOMKCHTID7ANO4JRXFDA3HHG6ZNUIFR7KH6QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

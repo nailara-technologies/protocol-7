@@ -7,7 +7,7 @@ my $client_id = shift;
 my $code      = shift // 500;
 my $reason    = shift // '';
 
-my $client = $data{'proxy'}{'clients'}{$client_id};
+my $client = <proxy.clients>->{$client_id};
 return if not defined $client;
 
 my $status_text = <protocol.http.status_codes>->{$code}
@@ -28,8 +28,8 @@ $response .= "Connection: close\r\n\r\n$html";
 
 return;
 
-#,,..,.,.,..,,..,,..,,,,,,,..,,,,,,,,,,,.,,.,,..,,...,...,...,,.,,,..,,,,,..,,
-#EU7233E6QSJTD4BNB6OZBLDUCVYPE6K3QECIZRNNA3XKDBA77FFRM5DCOW6MBS7ADI7HVKGL27UAS
-#\\\|TNC6VGZIYK353E4ASRSIFTCIDF6BICW4BCTGXEEC6JMW6QNJRJZ \ / AMOS7 \ YOURUM ::
-#\[7]34I5ND5APBXQE2HNKSNTIRPRZLBGIEMIG55T4XAURWCL3TXBPSBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,,,,,..,,..,,,,.,,..,.,,,.,,,..,,...,...,...,,..,,..,,..,.,.,
+#6N672KSC2HWN2733TUIJFUZYZAHQRXUPSBCDMKRKEJVOXN77HPUUTNZGDMGJYOA6ZVH5ABF26ZVTW
+#\\\|36RHWQCXMUQZ26VOCTBGEYK37KA4BR37TAR4COG44CCKFCVWRI6 \ / AMOS7 \ YOURUM ::
+#\[7]KXE5PLXK5G5FWHTPRAFLAHI3BRPIZJXGYZAQEKR3AGCPBVGFAQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

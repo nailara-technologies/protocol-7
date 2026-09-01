@@ -16,29 +16,29 @@ my $mount_point = $args->{'mount_point'} // '';
 return { 'mode' => 'false', 'data' => 'mount_point required' }
     if not length $mount_point;
 
-my $name = $data{'storage'}{'9p'}{'mounts'}{$mount_point};
+my $name = <storage.9p.mounts>->{$mount_point};
 
 ## fallback : accept a connection name directly ##
 $name //= $mount_point
-    if exists $data{'storage'}{'9p'}{'connections'}{$mount_point};
+    if exists <storage.9p.connections>->{$mount_point};
 
 return { 'mode' => 'false', 'data' => "not mounted : $mount_point" }
     if not defined $name
-    or not exists $data{'storage'}{'9p'}{'connections'}{$name};
+    or not exists <storage.9p.connections>->{$name};
 
-my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+my $conn = <storage.9p.connections>->{$name};
 
 close $conn->{'socket'} if $conn->{'socket'};
 
-delete $data{'storage'}{'9p'}{'connections'}{$name};
-delete $data{'storage'}{'9p'}{'mounts'}{$mount_point};
+delete <storage.9p.connections>->{$name};
+delete <storage.9p.mounts>->{$mount_point};
 
 <[base.logs]>->("Storage 9P: unmounted $mount_point [ connection $name ]");
 
 return { 'mode' => 'true', 'data' => 'unmounted' };
 
-#,,,.,.,,,,,.,.,,,,..,,,.,,.,,.,,,...,,,.,..,,.,.,...,.,.,..,,,,.,.,,,,.,,,.,,
-#HAP5UEIET7G3BST5YSBPUM7ASQJWG3WNIT6YJHLUCC24RV3YMO43SEGRRHGNJILTW4CNSYSN7EZHC
-#\\\|TEEPQ75C3JSUXNCTFR3332AK3XHZM52MZKKBG43YC4OOGCJEGNR \ / AMOS7 \ YOURUM ::
-#\[7]WCMJK66MO4PKPKS3CLRSI2XSV6SWLLN35YLVPONPH33HGWWZREDY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,..,,.,.,,.,,,,,,,..,,,,,..,,.,.,...,...,...,,.,,.,,,,..,.,.,
+#5UABXEJD7K4ZT7ZIAGDQKSBJ42TQYIPZALLG5O4Y4PVGJKONZXR7MOHKNQE55BYJHT5ABNW6RTDE4
+#\\\|AI2GHJH76OSIB4CDEFI4APY5L63WMCRPF6CUUSZ3QLH7PRKNIJW \ / AMOS7 \ YOURUM ::
+#\[7]KXNWVDPRZ7ZHLNNDWOJQ6SGGCBBTLDOKUQ5OAFNMOTBAHRPT6OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

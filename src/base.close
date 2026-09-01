@@ -8,29 +8,27 @@ my $type = $data{'handle'}{$fd}{'link'};
 my $mode = $data{'handle'}{$fd}{'mode'};
 my @params;
 
-if ( not defined $data{'io'}{'type'}{$type} ) {
+if ( not defined <io.type>->{$type} ) {
     <[base.log]>->( 0, "base.close: io type '$type' not defined" );
     return undef;
-} elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
+} elsif ( not defined <io.type>->{$type}{'handler'}{$mode} ) {
     <[base.log]>->(
         0, "base.close: unknown io mode '$mode' for type '$type'"
     );
     return undef;
 } elsif (
-    not
-    defined &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'close'} }
-    } ) {
+    not defined &{ $code{ <io.type>->{$type}{'handler'}{$mode}{'close'} } } )
+{
     <[base.log]>->(
         0, "base.close: '$type'-handler for mode '$mode' not defined"
     );
     return undef;
 }
 
-return &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'close'} } }
-    (@params);
+return &{ $code{ <io.type>->{$type}{'handler'}{$mode}{'close'} } }(@params);
 
-#,,,.,,..,...,.,,,,..,,..,...,.,.,..,,..,,..,,..,,...,..,,,,.,.,.,.,.,.,,,,..,
-#GWZV2R4WKU4YWVDIGGMJ2KFX4APV3PZE6ZL3MTA3EPM4MBKZYFIB2E3IAJ37BCOCOMXGIATWA5TUW
-#\\\|5OADAM4PKFEKFQWIUBVSVAEB4FYTWTDXAO7VUIFV2U3KD3N4UDH \ / AMOS7 \ YOURUM ::
-#\[7]GJF3Y76KRKZFQFGBL4PGIIA6WUS2XA4KSYVNJ5SFGMWQRXVMOSBY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,.,.,.,.,.,,,,,,,,..,.,,,,.,,..,,...,...,..,,,,.,,.,,.,.,,.,,
+#OJYYRGMOHZ2GAYNTC4726OTMPX72UNM3TTPYDUZFJVFJKZGB2O3L4VORSLRCTMLPJTMJN5Y5ZECJ2
+#\\\|FT63CIJHXXYOHQMOG2ULUWDAS3JBHN7LR5KFGBOM4OH4F42CG3V \ / AMOS7 \ YOURUM ::
+#\[7]UMZA3Z4QUA4CVBSYH73Y7WFUVIFAFQP3XER3KNQDGADACZN7LWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,8 +40,8 @@ if ( $status eq qw| failed | or $status eq qw| error | ) {
 }
 
 ## register deferred reply : coding.event.on_task_complete will fire it ##
-$data{'coding'}{'deferred_replies'} //= {};
-my $deferred_id = <[base.gen_id]>->( $data{'coding'}{'deferred_replies'} );
+<coding.deferred_replies> //= {};
+my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
 
 my $deferred = {
     'deferred_id' => $deferred_id,
@@ -73,12 +73,12 @@ if ( $timeout > 0 ) {
     $deferred->{'timeout_timer'} = $timer;
 }
 
-$data{'coding'}{'deferred_replies'}->{$deferred_id} = $deferred;
+<coding.deferred_replies>->{$deferred_id} = $deferred;
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,..,,..,,.,,,,.,.,,,,,,,,,.,,..,,,.,,.,,..,,...,...,.,,,,.,,.,.,,.,,.,.,
-#QET6B55A4DHGJWBISWZHQJW4EE53NEKEBKROO6PHZZE3SVEKIVKKJNUAWUFGHB26BLLSKNW35TZ7U
-#\\\|CDMB6XMD65D662TK5XBB4KKRCN7SHZ4WH363M6PPYEOGUFEWHMU \ / AMOS7 \ YOURUM ::
-#\[7]K2W7NAXOXOMHT2KDCJO4PNYF4C4HZNAB6IT54FWHPOTPRR2WJYAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,,,,,,.,,.,.,.,,,,,.,.,,,,,,,..,,...,..,,,,.,,..,,.,,,,,,...,
+#DLZ5TDNBGDML5YISMJIQOEFGBBRXVVWMW6PHQMHVOWAVR5BZS2Y6K5CD3MOWXKAJSMPA4UAXHGQOQ
+#\\\|6MYOPU6X3VQKOGIKA63FWPEQLAAFFCXUXT7XAXBCWMWKMTRDZ7W \ / AMOS7 \ YOURUM ::
+#\[7]GUEYAFNRTL4HXEE2YPACN6YH7ZEFCHLAPCUF7QNAY73UVVK2TEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

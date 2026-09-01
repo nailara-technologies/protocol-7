@@ -5,10 +5,10 @@
 
 my $force_reload = $ARG[0] // 0;
 
-return $data{'signal'}{'cancel'}{'library'}
+return <signal.cancel.library>
     if not $force_reload
-    and ref( $data{'signal'}{'cancel'}{'library'} ) eq qw| HASH |
-    and exists $data{'signal'}{'cancel'}{'library'}{'compiled'};
+    and ref(<signal.cancel.library>) eq qw| HASH |
+    and exists <signal.cancel.library.compiled>;
 
 <[base.perlmod.load]>->('YAML::XS')
     if not <[base.perlmod.loaded]>->('YAML::XS');
@@ -76,7 +76,7 @@ foreach my $file_path (@pattern_files) {
     }
 }
 
-$data{'signal'}{'cancel'}{'library'} = $library;
+<signal.cancel.library> = $library;
 
 <[base.logs]>->(
     2, 'signal.cancel.load: loaded %d patterns from %d categories',
@@ -85,8 +85,8 @@ $data{'signal'}{'cancel'}{'library'} = $library;
 
 return $loaded_count;
 
-#,,,.,,.,,.,,,,..,,,,,,..,,..,,,.,..,,.,.,..,,.,.,...,...,...,,..,,,,,,,,,...,
-#367CXJDB6I6YSRROAWVLSZ2R46QTNDURHZAFRTLASOBMPPRHYSYCO5YUUGB5VW4BN3KJHPTDJREJU
-#\\\|AFXXVS2TEQ3BR4YJX5UWKBKBAN3V62O4E4MQ5TS43T5CX66HVUC \ / AMOS7 \ YOURUM ::
-#\[7]F2POVBERBFCDGTXZLNPLMHFP6LQXMI6DYMIC3FUAVFQEZJUEC6DY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,.,,..,,..,,..,,..,.,.,,,.,,.,,.,.,...,...,,,,,,,,,,..,,.,,..,,
+#LGRSSIIITBEPVGUGS7MZ6PC3GWF2FOSIMJSWUH2DHXYVDNRZIBBRG24EG77JHBMLEFEXRDYH3SSKW
+#\\\|PC2QFZS4ERSTBL3RL7JM6MN23L4NFJJ757W4YZKE4PJPEDYRY7S \ / AMOS7 \ YOURUM ::
+#\[7]IQVPCRWYBNITBY3NGNTGRMVTTKXS3YK5EHQBLUFE4A5O4YQIIYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

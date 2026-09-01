@@ -17,14 +17,14 @@
 
 ## level-6 D3 state : keyed by stream_id [ was global, now per-stream ] ##
 <decoder.level6> = {};
-delete $data{'decoder'}{'level6_acc'};    ## clean up old global if present ##
+delete <decoder.level6_acc>;    ## clean up old global if present ##
 
 ## boundary tracking ##
-$data{'decoder'}{'boundary_count'} = 0;
-$data{'decoder'}{'INDEXCUBE'}      = [];
+<decoder.boundary_count> = 0;
+<decoder.INDEXCUBE>      = [];
 
 ## d13 type-prefix histogram : keyed by GFX/B32/DOC/RT/UNK ##
-$data{'decoder'}{'d13_types'} = {};
+<decoder.d13_types> = {};
 
 ## initialize level-5-B32 rolling buffer ##
 if ( not exists <buffer.level-5-B32> ) {
@@ -66,10 +66,10 @@ if ( not exists <buffer.level-7-D13> ) {
 
 ## initialize Term::VTerm surface : 25×80 terminal [ matches xterm wrapper ##
 ## ]                                                                       ##
-$data{'decoder'}{'vterm'} = Term::VTerm->new( rows => 25, cols => 80 );
-my $screen = $data{'decoder'}{'vterm'}->obtain_screen;
+<decoder.vterm> = Term::VTerm->new( rows => 25, cols => 80 );
+my $screen = <decoder.vterm>->obtain_screen;
 $screen->set_damage_merge(2);    ## VTERM_DAMAGE_SCROLL ##
-$data{'decoder'}{'vterm_screen'} = $screen;
+<decoder.vterm_screen> = $screen;
 
 ## stream attachment registry ##
 <decoder.attached_streams> = [];
@@ -96,8 +96,8 @@ $data{'decoder'}{'vterm_screen'} = $screen;
 
 return TRUE;
 
-#,,..,,.,,,,.,.,,,...,..,,...,...,..,,,..,,..,..,,...,...,...,,..,...,,,.,,.,,
-#YB7FF5HIQDDESPJWZRFIDC52GZM5G4BEFHVMXZ26QJJ4V2Z6GKCTP2XQT7QGVWQ2IGRK5ELKD75CQ
-#\\\|FPR2U7ZTSMS6G4JPT32Y33N2F32HF4YJZS3NQKOH3TJI6CXMZLP \ / AMOS7 \ YOURUM ::
-#\[7]3WNJHBPBKV6JJ6S577NL22YBRNKN7SICSM2CAH4USA6R7JXBPWCI 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,,.,,..,,,..,,,.,,.,,,,.,,.,,..,,...,...,.,.,..,,..,,.,,,,.,,
+#TV3ZKUIAD24QAEFFFDN3NMZ6XF56OGWYC3P3TJWFWYPH5YBNCMOMEJYYDRDRDFKRD7JMYY3HV7HCS
+#\\\|3ZY5IVDIYEPLPR3DU2ZTVIDFHHKSOZFEYLHUD6Q5YWSNR3NETM3 \ / AMOS7 \ YOURUM ::
+#\[7]Z67CJYL2LMROIDNGA4V5JJRSIXLCHUFK4DOPKLEA4GYJAUZXYABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

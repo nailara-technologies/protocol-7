@@ -14,7 +14,7 @@ my $display_search = sub {    ### <-- extract subroutine [LLL]
         : $colors{'p7_fg_0004'};    # Blue = no-history mode
 
     my $prefix    = sprintf '[search: %s ] ', $term;
-    my $term_cols = $data{'nshell'}{'cfg'}{'term_cols'}
+    my $term_cols = <nshell.cfg.term_cols>
         // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
     my $avail = $term_cols - length($prefix) - 1;
 
@@ -131,7 +131,7 @@ if ( $key eq "\x0f" ) {    # Ctrl+O
         <[editor.control.load_field]>->( $editor, 'command', $selected );
 
         ## print command for execution [ truncate to terminal width ]
-        my $tw = $data{'nshell'}{'cfg'}{'term_cols'}
+        my $tw = <nshell.cfg.term_cols>
             // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
         my $disp = $selected;
         if ( length($disp) >= $tw ) {
@@ -237,7 +237,7 @@ if ( $key eq "\r" or $key eq "\n" ) {
         <[editor.control.load_field]>->( $editor, 'command', $selected );
         ## clear search prompt and display selected command  [ truncate to
         ## terminal width ]
-        my $tw = $data{'nshell'}{'cfg'}{'term_cols'}
+        my $tw = <nshell.cfg.term_cols>
             // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
         my $disp = $selected;
         if ( length($disp) >= $tw ) {
@@ -422,8 +422,8 @@ $display_search->( $state_ref->{'search_term'} );
 
 return 0;    ## Continue in search mode
 
-#,,,.,,,,,,.,,,,,,,,.,..,,,,.,...,,,.,,,,,,.,,.,.,...,...,.,.,,..,..,,...,...,
-#CRKT6HJMG7ECLS325P35Z72J5QR7PGU2KDYPA53VQEW5PRNTLRYC2ACENAGM6WI3UEW5HOFRCJ4WG
-#\\\|HO7WZCA3G25VMRZ2AX4CEZHHB5JBSAPAU6LHL5GSIYFSTYE3MM3 \ / AMOS7 \ YOURUM ::
-#\[7]F5IC2VDNWITV5XUVKWKAUCSEOZDLJCROVPRSYU3I6IHNBYUUFABQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,..,,.,.,,,.,...,...,,..,.,,,.,.,...,...,,..,.,,,,.,,,,.,...,
+#RXN5IAVYIBORNRPO6BKPEHBUVAEJ5RIIIEPNSP2CJTGQX33A5WKE4KQMMYIR4N7GIY4YR2XJC2YGO
+#\\\|KHH5QBIZC54JINEPOLQNAG63UPD4I4RKHGDQSZJDSZZPJ5XFDUO \ / AMOS7 \ YOURUM ::
+#\[7]N7NF7W5UDOE5HPPHZU5RWCXG6Y5ZY4NMY66TZ2VZDART53VOCCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

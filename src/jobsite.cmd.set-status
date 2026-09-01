@@ -22,7 +22,7 @@ return {
     }
     if not $valid{$status};
 
-my $store = $data{'jobs'}{'store'} // <[jobsite.job.load_all]>;
+my $store = <jobs.store> // <[jobsite.job.load_all]>;
 return { 'mode' => 'false', 'data' => "unknown job id: $id" }
     if not exists $store->{$id};
 
@@ -33,8 +33,8 @@ $store->{$id}{'applied_at'} = time if $status eq 'applied';
 
 return { 'mode' => 'true', 'data' => "ok: $id => $status" };
 
-#,,,.,...,,,.,,.,,..,,,..,,..,,,,,.,.,.,.,,,.,.,.,...,...,..,,,..,,,.,,,,,,,,,
-#ZIGY4HCHJV2FDH7VQTHSSIBHVQO5AEDYQ7EOKCH2WXLXY3NGJFIZ46YFK5UCET5P3UAKOWGF5I4Y6
-#\\\|KBLLQXGTZAFPNRFG7F6JY7QONIJE5IHMGHSXTD666XKOLDI5WXL \ / AMOS7 \ YOURUM ::
-#\[7]73V54F7SAB5URPULYDJTL3265T2QK7AMGHUSO76SHS2T5FZTWGBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,...,...,..,,.,,,,,.,,,,,,.,,.,.,...,...,.,,,,,,,,,.,.,.,,.,,
+#2CEOBGHKCWCWWSRC2KA6LYNECQQ75SG3F536WR7T2BX2NJWKQL5RLSFNW4EPDTBEI2XOBYJZRDDYW
+#\\\|Y5NPDCWLQGZY2AOOFO7ZEL6W76DPP6OP3SLUMKSXPDSBLSO3PLG \ / AMOS7 \ YOURUM ::
+#\[7]6X7W2QJWZKV66YI7SG6WGAUCDDLBEN4EXD66AR3CBG3AX6ZOMGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

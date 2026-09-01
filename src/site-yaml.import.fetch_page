@@ -4,7 +4,7 @@
 # descr = fetch one search-result page async, process it, continue or finish
 
 my $import_id = shift;
-my $st        = $data{'site-yaml'}{'import_state'}{$import_id};
+my $st        = <site-yaml.import_state>->{$import_id};
 return unless defined $st;
 
 my $page_url = $st->{'url'};
@@ -72,7 +72,7 @@ if ( $st->{'page'} > 1 ) {
                 }
             }
 
-            push @{ $data{'site-yaml'}{'fetch_queue'} },
+            push @{<site-yaml.fetch_queue>},
                 {
                 'id'            => $id,
                 'url'           => $link->{'url'},
@@ -109,8 +109,8 @@ if ( $st->{'page'} > 1 ) {
 
 return;
 
-#,,,,,,,.,.,,,.,.,,,.,,,,,.,,,...,,,,,..,,...,..,,...,...,..,,..,,,,,,,.,,,.,,
-#JVFO72W4UDIDOAHAIHAUDDNU4A7EIZW3ZZWIG6ZNY2SCS647NM3ER224QD75SPMGOJMLVTELG64WE
-#\\\|WTX6RFPGT7NROGVJD4FOXNUMJO3M4THG4QGOWXJWXISW4LQ6ILJ \ / AMOS7 \ YOURUM ::
-#\[7]MGWSKLAUDHW35P7HDH2XSWR5HBBPSS5FD45WYJYQILTIVUO6DGAY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,,..,.,,,,,,,,.,,,..,...,.,.,..,,...,...,.,.,.,.,,,,,.,,,,.,,
+#DLZJ5PXC7C4Q43JY4UKXZMXCNML66BHIUAXAFRY4IP37P5VVXYNOJ5VCZDFRSSQVMAH5V7L54TUYU
+#\\\|2BICXEJEK6LSNL3ZCMORHLHHTYV2QMWWUDA3X3SR52MN7W63KUW \ / AMOS7 \ YOURUM ::
+#\[7]KPT5FDIZPJ4HKQQM6HCAT33DX43TJF7FVFJGCFAB2SOWL3K75MCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

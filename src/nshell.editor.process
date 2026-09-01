@@ -128,7 +128,7 @@ if ( $action eq 'submit' ) {
     utf8::encode($result);
 
     ## editor_submit already reset the editor; reset viewport for next command
-    my $state_ref = $data{'nshell'}{'state'} //= {};
+    my $state_ref = <nshell.state> //= {};
     $state_ref->{'view_offset'} = 0;
 
     ## save to history if not empty
@@ -149,8 +149,8 @@ if ( $action eq 'submit' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,.,,.,.,..,,.,,,...,...,...,,,.,,.,,...,,,.,.,.,...,.,.,..,,,.,,,,,,,..,,,,,
-#CZCE6XED74RMWP55I7JMAHL6TATYEYGJ5W6P2E7ZHJXPM7NDJ5JARAUU52OZLMR2AH6KFAKC3AJIM
-#\\\|5SSKNWEFBYZVCGPUEMXX2JQIRMIBD6MXTOZ7MG4VBATDFNRYFZT \ / AMOS7 \ YOURUM ::
-#\[7]KXLA66ADEJWDDLOPXID73NPED67GHLKPFWFFLJRBLROK57Y6F6DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,.,.,..,,,,.,,,,,,,.,.,,,,..,.,.,...,...,.,,,.,.,,..,.,.,.,.,
+#3T2VMSQHEGV45S6BQQRO6MCDCD3XP5R6H4I6Z5KC3JXSTTVHSBRSUMDC3NXFDUTC55T7FBESVAQ4S
+#\\\|VIJVNCK2XSFLXA5CME2FUUSWDDLUN2NBP2EPWZQYKD2KKSQ2IFK \ / AMOS7 \ YOURUM ::
+#\[7]TQF6UGV4MSER45LRYOUVLU24MNEFQUDNFOTWFNF65KXJETGFD2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

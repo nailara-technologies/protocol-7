@@ -9,7 +9,7 @@ my $event = shift;
 my $timer_data = eval { $event->w->data }  // {};
 my $probe_id   = $timer_data->{'probe_id'} // '';
 
-my $state = $data{'coding'}{'self_test_probe_state'}{$probe_id};
+my $state = <coding.self_test_probe_state>->{$probe_id};
 if ( !defined $state ) {
     <[base.logs]>->(
         0, '[poll_probe] no state for probe_id=%s, stopping timer', $probe_id
@@ -588,7 +588,7 @@ if ( $state->{'phase'} eq qw| done | ) {
     ## wakes a same-backend waiter the instant the slot clears              ##
     <coding.self_test_probe_in_flight>->{$backend} = FALSE;
     $event->w->cancel if defined $event->w and $event->w->is_active;
-    delete $data{'coding'}{'self_test_probe_state'}{$probe_id};
+    delete <coding.self_test_probe_state>->{$probe_id};
 
     $on_done->($final) if ref $on_done eq qw| CODE |;
     return TRUE;
@@ -603,8 +603,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,,,,,,,,,,,,,,,,,..,.,.,...,,,.,,,.,...,,,,,..,,...,..,,...,,,.,,.,,,,.,,..,
-#PBVTY2KQL5FE5ZZOREXHROTNZZMLXGXYFEMAS5PX6T5GXTBGVPU4XVM4VCVADY2ROYIZKXOLXIHNS
-#\\\|3V3GB7H5JRA7ZA52AV5AVLZSSGFVO4ZP3VA33Z4VZ62TWFKJEZB \ / AMOS7 \ YOURUM ::
-#\[7]M2MIQYPQJOEJPIXFLZZLX5B5LSEGYW6YOBUIICCEQQL3GCODRUAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,,.,,,..,.,.,,,.,..,,,,.,...,..,,...,...,,.,,...,,,.,...,...,
+#KVFKFMZYNHD5KKKB22AYLJ4X6IETFQRE2ZN3PGIMK32JRITM2TMTBD36KYR5XRY4QYGKIKGNJY3BK
+#\\\|N6KFALJ5ZXLAAXSCQZYN6NWYYI7OYZRLZAVJ7LHDEAQJAHAJIDP \ / AMOS7 \ YOURUM ::
+#\[7]OI3ENRSEYHRUJZIOCASHGAOWECRGUHKTWGDS3YLR6WCLX2RDP2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,7 +31,7 @@ if ( $b !~ m|^-?\d+:-?\d+:-?\d+$| ) {
 }
 
 ## verify both cells exist ##
-my $cells = $data{'graphics-matrix'}{'cell'}{'cells'};
+my $cells = <graphics-matrix.cell.cells>;
 return { qw| mode | => qw| false |, qw| data | => "cell $a not found" }
     if not exists $cells->{$a};
 return { qw| mode | => qw| false |, qw| data | => "cell $b not found" }
@@ -40,7 +40,7 @@ return { qw| mode | => qw| false |, qw| data | => "cell $b not found" }
 ## canonical edge key ##
 my $edge_key = join( '|', sort( $a, $b ) );
 
-my $graph = $data{'graphics-matrix'}{'graph'};
+my $graph = <graphics-matrix.graph>;
 my $edges = $graph->{'edges'};
 
 if ( exists $edges->{$edge_key} ) {
@@ -69,8 +69,8 @@ $graph->{'count'}++;
 
 return $edge;
 
-#,,,.,.,,,..,,,.,,.,,,,,.,.,.,,..,,,.,.,.,,.,,..,,...,...,...,,,,,..,,..,,,.,,
-#F3MVWFT6PJCANRARZDSNBUCKM7FKBJICEQJTJWNZBJEKLIALVEN67CGYNWPRX5CQ7FE3SFLQLGB3U
-#\\\|NKIAUGV3UQZVBOO3CAZ3MTZTPFCHMUFLD74VVXIJHAOO3B5DBKO \ / AMOS7 \ YOURUM ::
-#\[7]UXIG4IXNSDIBT3JEPUUZ4BW2IDH36ZHUYL5VCEU5BJYR62ANQGDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,,,.,,.,,,,,,,..,...,,,,,,..,..,,...,...,,,,,,,,,.,,,.,.,,,,,
+#2BXHJNKI323BBYT3UQTUZ4NOZAODTX52IMCYB47T6XXWQA7GHOVAROGFQ66SALN5DNQHHFM74L2T6
+#\\\|2YHGUTZERVLJ4NICGAE4O5WP3NXA3I7L2UP3VH5MB7DY2N4C3XM \ / AMOS7 \ YOURUM ::
+#\[7]WNTQ3H6B4VOC2SAE5UWRAY6DKE4FLZQFH6MHVWWZWUOTA62KAKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

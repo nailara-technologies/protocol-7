@@ -15,7 +15,7 @@ if ( not <system.zenka.initialized> ) {
 my $existing_conn = <base.stdio_multiplex.conn> // undef;
 return TRUE
     if defined $existing_conn
-    and defined $data{'stdio_transport'}{'connections'}{$existing_conn};
+    and defined <stdio_transport.connections>->{$existing_conn};
 
 my $zenka_name  = <system.zenka.name> // '';
 my $socket_path = catfile( qw| /dev/shm/.7/STDIO |, $zenka_name );
@@ -50,8 +50,8 @@ if ( not defined $conn_handle ) {
 
 return TRUE;
 
-#,,..,.,.,,,.,...,,..,...,,,,,,,.,.,,,.,.,.,,,..,,...,...,.,.,.,.,.,,,...,..,,
-#ME3JI5LJMUCKZ6ZLB5MUTXFGTO6GITEQCLHQBS5GHUIQYXEDT5ZLYXH74NDJJVGEMJYH3OXVULNTA
-#\\\|XQVBE2ZZ75MHZZWNK4CNFSV4QS7FNXY5MJEEA6EJZYHDIXO4CUH \ / AMOS7 \ YOURUM ::
-#\[7]RWCC54MRNQD7GYKWTNYWIV6HN5JMTXXUBIWWE2JIVXU3YNOSCEAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,,,,,..,,..,,,..,,..,,..,...,..,,...,...,.,,,...,,.,,.,.,,..,
+#T55CRJVTBD77VKQCQDI2POIE6735HWNYPP2XNYX2FM3SIMCZZLG4UZAX4EQIALCZQ5GZ3MHCKRRTY
+#\\\|MXNGSATKYG2J2H74D2ZWTJ2XCBLGAFLLQCETNX3QAQCXLHKYC63 \ / AMOS7 \ YOURUM ::
+#\[7]UR72K5TFEGEMLWE5J62KU45ZPIM2YHHV4PQGDFXKO62SJ3TA5CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

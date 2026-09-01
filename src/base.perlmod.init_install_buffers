@@ -7,7 +7,7 @@
 <buffer.perlmod-install.max_size> //= 32 * 1024; # 32K buffer [install logs] #
 
 my $zenka_init
-    = defined $data{'buffer'}{'perlmod-install'}{'data'}
+    = defined <buffer.perlmod-install.data>
     ? qw| re-init |
     : qw| init |;
 
@@ -16,10 +16,10 @@ my $init_msg
     $zenka_init;
 
 ## Reset buffer if it only has initialization message ##
-if (    $zenka_init eq qw| re-init |
-    and $data{'buffer'}{'perlmod-install'}{'data'}->@* == 3 ) {
-    undef $data{'buffer'}{'perlmod-install'}{'data'}->@*;
-    $data{'buffer'}{'perlmod-install'}{'size'} = 0;
+if ( $zenka_init eq qw| re-init |
+    and <buffer.perlmod-install.data>->@* == 3 ) {
+    undef <buffer.perlmod-install.data>->@*;
+    <buffer.perlmod-install.size> = 0;
 }
 
 ## Populate buffer with initialization message ##
@@ -35,7 +35,7 @@ if (    $zenka_init eq qw| re-init |
 
 my $stats_init_msg
     = sprintf '.:[ zenka %s | CPAN module statistics tracker ]:.',
-    defined $data{'buffer'}{'perlmod-stats'}{'data'}
+    defined <buffer.perlmod-stats.data>
     ? qw| re-init |
     : qw| init |;
 
@@ -51,8 +51,8 @@ my $stats_init_msg
 
 return FALSE;
 
-#,,..,,,,,,,,,,.,,,..,,..,..,,,,.,...,,,.,,,.,..,,...,...,..,,...,..,,,.,,.,,,
-#NFFVT6BKIHTCDOUOIYLN26U24MEFLPE3ACHNOHO4S2UYSN3HATDLXEYUVUPL2P2734XETKCIIZECG
-#\\\|35CAIUQ3BCIN6QLO62HYQCPWDODSISIMXGSBTRGLHG7Z2UXCQKG \ / AMOS7 \ YOURUM ::
-#\[7]W4S5RTH2WX4ONLRMC22VDO4HXTWA7MKF3NGJMCUCC7NHJFFUQECQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,...,.,,,...,.,,,,,,,,,.,.,.,,,.,..,,...,...,..,,...,,..,.,,,,.,,
+#RH65FI33CWRCBPRDCCCSZ6FMKLDDITOLJMEFJNJHJ5FZCZ5NKU6YCYLFFD4EEXPQTYLP5O3ZCYFDM
+#\\\|LTNINQKS6YUNU3242NGTU2RTVS2T7YPH6JDL2PAEEPFXQVLLT2B \ / AMOS7 \ YOURUM ::
+#\[7]FOPVWH7OI2DMOA4NTGUR7Q2EBAP6JFBRH733TS4K3UFYQ6XAMACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

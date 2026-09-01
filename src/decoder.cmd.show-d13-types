@@ -3,7 +3,7 @@
 # name  = decoder.cmd.show-d13-types
 # descr = show d13 type-prefix decode histogram
 
-my $types = $data{'decoder'}{'d13_types'} // {};
+my $types = <decoder.d13_types> // {};
 
 return { 'mode' => qw| false |, 'data' => 'no d13 chunks decoded yet' }
     unless keys %{$types};
@@ -25,8 +25,8 @@ return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) };
 
 ## unsigned : new file, signing system adds the real footer on commit ##
 
-#,,,.,,,.,.,,,..,,,..,,.,,.,.,..,,,..,,,,,,..,..,,...,...,,..,,..,,,.,.,,,,.,,
-#LBEXCKMZPELZ3UL7ZKH7M6L7WLWR2DMZ6U5ANGMSZ7UJBFNR3B6PDP6ZHOFCS6XBNESJCXSRQRRBM
-#\\\|Q5LISE2FDE4AJLHHCHQHNL5RMSVITNOUWYGYLIEKU5CQHXETL5P \ / AMOS7 \ YOURUM ::
-#\[7]UKGNG5HBU3LOE6VHAG4DPRF4OMIYRIWSHM6O5FZJP4DNTQMQNIDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,,,,,,,..,,.,,,,.,,.,.,.,.,..,,..,,...,..,,...,...,,.,,,,,,..,,
+#DFOZ7E2YJLJ6PI6XVOZOWLGI76FDN3RYZHAAADMFSBEX2QADUUDTBMNZAVVK5QN5B7NTCWOPAGB7C
+#\\\|A3DW5MGIDBUXV24BOSVSN7R4OJ5HJ7PSCQPE3WNC5Q2H27VMOL4 \ / AMOS7 \ YOURUM ::
+#\[7]6HOZXATVTUINHANG5VFCCMOPKS43N5AUBFWLNV2NYOGCM7Y3S2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

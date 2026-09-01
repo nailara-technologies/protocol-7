@@ -13,7 +13,7 @@ if ( not length( $name // '' ) or not length( $path // '' ) ) {
 }
 $content //= '';
 
-my $conn = $data{'storage'}{'9p'}{'connections'}{$name};
+my $conn = <storage.9p.connections>->{$name};
 return { 'mode' => 'false', 'data' => 'not connected' } unless $conn;
 
 my $result = <[storage.9p.write-file]>->( $conn, $path, $content );
@@ -24,8 +24,8 @@ return {
     'data' => "wrote $result->{'data'} bytes to $path"
 };
 
-#,,,,,,,.,...,,..,,.,,.,,,,.,,.,,,.,,,...,,,.,..,,...,.,,,.,.,.,,,,,.,,.,,,,.,
-#M3GK3FFHAX4UB6KEDM4ILSWRRW6MMVQGT6NAPL7D2B3IJAEUQDATJAEQYGNALSYX47TEVQNBAULHQ
-#\\\|6PHVTZPADFLMLRRRV6RRW5Y256HDLD32U5Q3TWRSPWYK2CFT7DM \ / AMOS7 \ YOURUM ::
-#\[7]AOTTKAXY2YBYV26OZZSXPE2UEHAWDTYX445L2IS7PGEQS6SUL4BY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,.,,,..,,,,,.,,,,..,,.,,...,..,,...,...,..,,,,,,,..,.,,,,,.,
+#K4SXPZNL7NJLUQJ6PYWWNRCCZSKD64OMBZHLGEYYTSUWDIHRM2PQX7ECHZFIZ52GZKW4ZWKH7IO52
+#\\\|M74YRSXJE4JMOIT4ANKK3DVD7FWYAFLBUFY2XUADFQR4FLQ4XY3 \ / AMOS7 \ YOURUM ::
+#\[7]K5XL675NDFSPTHQYJVI4SCAPD7ZVM37QCLQ2QDMTLLUMJBXUGMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

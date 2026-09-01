@@ -7,8 +7,8 @@ my $event   = shift;
 my $fh      = $event->w->fd;
 my $buf_key = 'buf_' . ( fileno($fh) // 'x' );
 
-$data{'powershell'}{'pointer'}{$buf_key} //= '';
-my $buf_ref = \$data{'powershell'}{'pointer'}{$buf_key};
+<powershell.pointer>->{$buf_key} //= '';
+my $buf_ref = \<powershell.pointer>->{$buf_key};
 
 my $bytes = <[base.s_read]>->( $fh, $buf_ref, 512 );
 
@@ -17,12 +17,12 @@ if ( not defined $bytes or $bytes < 1 ) {
     close $fh;
     if ( defined <powershell.pointer.pid> ) {
         undef <powershell.pointer.pid>;
-        delete $data{'powershell'}{'pointer'}{'mount'};
-        delete $data{'powershell'}{'pointer'}{'shm'};
+        delete <powershell.pointer.mount>;
+        delete <powershell.pointer.shm>;
         ## restore ondemand timeout that was suspended during stream
         if ( defined <powershell.pointer.saved_timeout> ) {
-            $data{'system'}{'ondemand_timeout'}
-                = delete $data{'powershell'}{'pointer'}{'saved_timeout'};
+            <system.ondemand_timeout>
+                = delete <powershell.pointer.saved_timeout>;
         }
     }
     <[base.logs]>->( 1, 'pointer-stream : fd closed' );
@@ -34,7 +34,7 @@ $$buf_ref =~ s|\r||g;    ## normalize crlf before parsing
 <powershell.pointer.coord_count> //= 0;
 while ( $$buf_ref =~ s|^(-?\d+) (-?\d+)\n|| ) {
     my ( $x, $y ) = ( $1 + 0, $2 + 0 );
-    my $shm_ref = $data{'powershell'}{'pointer'}{'shm'};
+    my $shm_ref = <powershell.pointer.shm>;
     if ( not defined $shm_ref ) {
         <[base.logs]>->(
             1,  'pointer-stream : shm undef at coord %d %d',
@@ -52,8 +52,8 @@ $$buf_ref =~ s|^[^\n]*\n||g;    ## discard complete non-coord lines
 
 #
 
-#,,..,,,,,..,,,,,,.,.,..,,.,,,,,,,.,.,,..,,,.,..,,...,...,,,,,.,.,..,,,..,..,,
-#SJJPPCQKUDUH4PUMWKHJCNOH3CCQAFCEQR3MAAOR2OGU2KP2EXAZOCINQXBKDAG2UHXICKVY3KCRS
-#\\\|MFQH3KGTV63QXQ4IDRVROBYQ6J5CJK5IUAMNDOFAF4ZRNBKD5IX \ / AMOS7 \ YOURUM ::
-#\[7]MM7CIQ6OZ2LBOJVJW4EFU7YQIZNXXRVCEPUNTYM7JO6F2UTAIGDQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,,,,..,,.,,,.,.,,,,,,,,,,,.,..,,...,...,,,,,,..,,,.,,,,,,,.,
+#2K2HEANRO6GJT6DGPKJR5D6Z6GVWOLLFLLER6ZK3BC4MAAYHNDNNVMHPDGNZWLYFK2R36DC5KRVIS
+#\\\|G6XKIKJAKIROKHXMJD2ZGD24V3ZHUJWJFY5FOYDET2WCEJRWJC5 \ / AMOS7 \ YOURUM ::
+#\[7]R357KQE4FBOFOWVIZF4EL4UKKCTUKRP7IRYC6QLCDWB4V6FL2MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -71,7 +71,7 @@ $output .= join( "\n", @{ $render->{'lines'} } )
 $output .= "\n" . "=" x 80 . "\n";
 
 # Show stats
-my $buf = $data{'pager'}{'buffers'}{$buffer_id};
+my $buf = <pager.buffers>->{$buffer_id};
 if ($buf) {
     $output .= sprintf(
         "Stats: hits=%d misses=%d prefetches=%d\n",
@@ -82,12 +82,12 @@ if ($buf) {
 }
 
 # Cleanup
-delete $data{'pager'}{'buffers'}{$buffer_id};
+delete <pager.buffers>->{$buffer_id};
 
 return $output;
 
-#,,,.,,,.,.,.,..,,...,...,,.,,.,.,...,...,,.,,..,,...,...,.,,,...,...,,..,.,,,
-#JNIUHOIVYCA2EDN4CWWAULXBU3JNPZXW742ZUTFNPTR2ZIIJRI7L4R65ILOHUTLYNHGJPNJSFJEWU
-#\\\|GPMIN4LGZNJLWMSBNIX3UT3TR2RDAUMEQRJJIG7ELYFMKWIDBFD \ / AMOS7 \ YOURUM ::
-#\[7]7D4QVGXROLSJVVIBHUS3PV7MSY5ILMZVV6N3LZ7PLMMMXSCWYYBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,.,.,,.,,..,,.,.,,,.,..,,.,,,..,,...,...,...,,,.,..,,,.,,,,.,
+#U3TOFAD5SVGEY2BNXJHBBIPSFAVLZJKPB5VSBVRW7536QBMBKNZTEY6C42F6YCS4QVCRLTQQFWON4
+#\\\|JALATPYVKVVYIGAEX4IEJJTJXVEE7U3W5I3PHLBME5YCESKMEIV \ / AMOS7 \ YOURUM ::
+#\[7]62BISSAJPBCGRA74G7TTERII43WYS6CONLC25AR6RCYQSJ5TGGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

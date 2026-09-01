@@ -3,7 +3,7 @@
 # name  = graphics-matrix.cursor.checksum
 # descr = compute content-address checksum of current cursor state
 
-my $cursor = $data{'graphics-matrix'}{'cursor'};
+my $cursor = <graphics-matrix.cursor>;
 
 ## build canonical string (fixed precision for consistent checksums) ##
 my $canonical = sprintf "%d:%d:%d:%.6f:%d",
@@ -18,8 +18,8 @@ my $checksum = <[chk-sum.amos]>->($canonical);
 
 return $checksum;
 
-#,,,.,..,,...,...,,,.,,,,,,,.,,,.,,..,,..,.,,,.,.,...,...,...,.,.,,..,.,,,...,
-#BBTUZTUDGDKXPDUIQ5RJ2ZDERI4E7RDU3J7HGF2STJ65KZS5RG6BIAXRKM26DF57UZHNUU225WT7Y
-#\\\|NEX22IGLHFB3PJIVZB74T7R5BRY4WWW2XXEPXCYHEODD7S7SY5J \ / AMOS7 \ YOURUM ::
-#\[7]WE2AT34TH2JPTHN6YULYZFNU77K2P46EEN6QXO7IUINTYUX2WSDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,..,,...,..,,,,,,...,,.,,,.,,.,.,...,...,,..,.,.,.,.,,.,,.,.,
+#6ZN5QLEHZ3KFFOEGSWYGTKL24JDBX2S2HIMLHIGBC3VKLZHMFLMRP4LFY5IWOVPRYC37GUAATA3L6
+#\\\|ZQOAXQTWZNOTA5DJ3GA2OLSDZ4AOX4DRR44R4RGSRPANJITYHNH \ / AMOS7 \ YOURUM ::
+#\[7]6BYMBDXR4EHI5PUE2H3ZZLINHR2PL55GPIFSYVXQL7PVF2JGKQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

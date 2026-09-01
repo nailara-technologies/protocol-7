@@ -3,7 +3,7 @@
 # name = ssh.handler.connection_heartbeat
 
 my $con_id            = shift->w->data;
-my $connection        = $data{'ssh'}{'connections'}->{$con_id};
+my $connection        = <ssh.connections>->{$con_id};
 my $local_user        = $connection->{'local_user'};
 my $nailara_fh        = $connection->{'local_fh'};
 my $heartbeat_timeout = <ssh.cfg.globals>->{'connections.timeout'};
@@ -34,8 +34,8 @@ $connection->{'timer'}->{$interval_id} = <[event.add_timer]>->(
     }
 );
 
-#,,,.,...,.,,,,.,,...,,.,,.,,,,,.,.,,,,,.,,,,,..,,...,...,.,,,,,,,,.,,,..,.,,,
-#UW5HSFFKMMVETMKJTWPCSDMGD54DPIHE5LDBGIBQCRTZP3GSZ22Y3MKZENC5Q5SUK22SH43XCB5ZC
-#\\\|ZLFAGNDHJO2KSSDPVLNFHQXLRA4GCTBT2RDLGQZMUTNBSMOSOPP \ / AMOS7 \ YOURUM ::
-#\[7]OBG4VBHQCVUEXXXMWJCUA3A5PA6URNRWVSBOEN3PL4EE2QBX62AY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,,.,,,.,,,,.,.,.,,.,,,.,,.,,,..,,...,...,..,,..,,.,,,...,,..,
+#OELCW4NTBU4MJ72S57UWUVG4WILQGDAF45MCPQKKCDEU5H2OYJPA6YQ4MD2PFQ7243JMQHRIVQAEW
+#\\\|PAMIL7RUA6VPNO7P4Q7KGRRMUYYZFFMKMVJOJIXDJHGUTV7PUYT \ / AMOS7 \ YOURUM ::
+#\[7]AOPBZOPPDL4BXUZYGWQPQS2PHNSHCKK6ISOZPRE4MWKKRFERBIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

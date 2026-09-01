@@ -75,7 +75,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     delete <buffer.undef-subs>;        ##  clear previous undef-sub report  ##
     <base.modules.load_errors>      = 0;
     <base.modules.compile_warnings> = 0;
-    $data{'callbacks'}{'end_code'} = [];
+    <callbacks.end_code>            = [];
 
     <[base.logs]>->( '[%d] < reload source code >', $id );
 
@@ -115,7 +115,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     my $old_version = <protocol-7.src-ver> // qw| UNKNOWN |;
 
     my $s_strrc_version_file
-        = catfile( $data{'system'}{'conf_path'}, qw| protocol-7.src-ver | );
+        = catfile( <system.conf_path>, qw| protocol-7.src-ver | );
     <protocol-7.src-ver>
         = <[base.read_from_version_file]>->($s_strrc_version_file);
 
@@ -126,7 +126,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     my $old_release = <protocol-7.rel-ver> // qw| UNKNOWN |;
 
     my $rel_version_file
-        = catfile( $data{'system'}{'conf_path'}, qw| protocol-7.rel-ver | );
+        = catfile( <system.conf_path>, qw| protocol-7.rel-ver | );
     <protocol-7.rel-ver>
         = <[base.read_from_version_file]>->($rel_version_file);
 
@@ -223,8 +223,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,.,,,,.,.,,,,,,,,,.,...,,.,,.,.,..,,.,.,..,,..,,...,...,.,.,,,.,,,,,,,.,,,.,
-#OK7C7GMDZMRVDTUHMQ7MZO6WVEOGA3IXDAKERBOQ7QC4NVYSKM2BQF62VX7E65BSN2FLNLTKNU3WC
-#\\\|QAXXAO6LLTUVWX727PCCRVZQ3OATM36B5JCW6Z367NVTEGP34NJ \ / AMOS7 \ YOURUM ::
-#\[7]SMXXY2UCO72MZGG2MYRDMFZBTH6KYMK4ZC6AM2ZENKERCISRHEAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,.,,,.,,,.,.,.,.,,,.,,,.,.,.,..,,...,...,.,.,.,.,.,.,...,,,.,
+#DJ6Q4TX7DJBARMOFOLZECG242YPWIBJ3JKHLMGMGLFMIP7JRXJTORVIRGNH4JYTHI6DCB55A3LXCA
+#\\\|EEPDM74R2QHZARVBWRDK3XC4DUMHTXN52G6GKOZ5BOLCVWOLTV2 \ / AMOS7 \ YOURUM ::
+#\[7]BBOID3C2WXYUJAN4QJLO77IDO3RM2ODWFYJTQYTCJSABAZH7HSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

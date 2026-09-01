@@ -27,8 +27,8 @@ if ( $decimal == 769230 ) {
 }
 
 ## feed raw entropy bytes into Term::VTerm for ANSI/sequence parsing ##
-if ( defined $data{'decoder'}{'vterm'} ) {
-    $data{'decoder'}{'vterm'}->input_write( pack 'B42', $entropy );
+if ( defined <decoder.vterm> ) {
+    <decoder.vterm>->input_write( pack 'B42', $entropy );
 }
 
 ## level-5 : extract 5-bit chunks → base32 values [ per-stream state ] ##
@@ -80,7 +80,7 @@ if ( defined $decode_chunk and length($decode_chunk) == 7 ) {
     my ($type_tag) = $d13_decoded =~ m|^(\w+)\[|;
     $type_tag //= $d13_decoded;    ## e.g. plain 'UNK' ##
 
-    $data{'decoder'}{'d13_types'}{$type_tag}++;
+    <decoder.d13_types>->{$type_tag}++;
 
     <[base.buffer.add_line]>->(
         qw| level-7-D13 |,
@@ -107,8 +107,8 @@ return {
     }
 };
 
-#,,,,,.,,,,,,,,,.,,,,,,,,,...,...,,..,...,..,,..,,...,..,,.,.,,.,,.,,,,.,,..,,
-#ISDLRWTN4V53ZV3GZR2WYS5V43NYPQOOS32D7MKL77A5QM467KBFAYQQY5665KEHWKLXO573L7Y4Y
-#\\\|J5ZRPHHFKZ77LZ7B4JZJQUSSLDQ6M32DRXAZZ55E2BSRXIBAG3N \ / AMOS7 \ YOURUM ::
-#\[7]FUMT35GKXACMRGEVEAZL5FXYOCMGAIRJMDSQXOHGQ72656QLLABQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,..,,...,,,.,,.,,.,.,.,.,,,.,..,,...,...,.,.,,,,,,..,,..,,,,,
+#IOFIXJ4VSD2RUZBSWNX5Y6EHHMIHSCNS65WOYQAB4MOESYBBFQ6T2TRH76A7FHBEYWCAA2KOHJH5I
+#\\\|K4WMZ5HDZNYPY6S6YHP2KTRFHQMZFYVUD7HHL5TYNAQA2PSPAHE \ / AMOS7 \ YOURUM ::
+#\[7]KACIVTXLJMPDV5KG54P2ZYH2BF2XNCNOFVZYB35KTTZBITQTNQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

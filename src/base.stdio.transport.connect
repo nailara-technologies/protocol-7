@@ -20,7 +20,7 @@ if ( ref $on_record_coderef ne qw| CODE | ) {
 my $disconnect = sub {
     my ( $socket, $reason ) = @ARG;
 
-    my $conn = delete $data{'stdio_transport'}{'connections'}{$socket};
+    my $conn = delete <stdio_transport.connections>->{$socket};
     return if not defined $conn;
 
     ## [ synthesize scope-leave for unmatched scope-enters ] ##
@@ -56,7 +56,7 @@ my $disconnect = sub {
 my $read_handler = sub {
     my $event  = shift;
     my $socket = $event->w->data;
-    my $conn   = $data{'stdio_transport'}{'connections'}{$socket};
+    my $conn   = <stdio_transport.connections>->{$socket};
     return if not defined $conn;
 
     my $chunk = '';
@@ -106,7 +106,7 @@ my $read_handler = sub {
 my $write_handler = sub {
     my $event  = shift;
     my $socket = $event->w->data;
-    my $conn   = $data{'stdio_transport'}{'connections'}{$socket};
+    my $conn   = <stdio_transport.connections>->{$socket};
     return if not defined $conn;
 
     while ( scalar $conn->{'write_queue'}->@* ) {
@@ -163,7 +163,7 @@ my $socket = IO::Socket::UNIX->new(
 $socket->blocking(0);
 
 $data{'stdio_transport'} //= {};
-$data{'stdio_transport'}{'connections'} //= {};
+<stdio_transport.connections> //= {};
 
 my $conn = {
     qw| socket      | => $socket,
@@ -174,7 +174,7 @@ my $conn = {
     qw| watchers    | => {},
 };
 
-$data{'stdio_transport'}{'connections'}{$socket} = $conn;
+<stdio_transport.connections>->{$socket} = $conn;
 
 $conn->{'watchers'}{'read'} = <[event.add_io]>->(
     {   fd     => $socket,
@@ -198,8 +198,8 @@ $conn->{'watchers'}{'error'} = <[event.add_io]>->(
 
 return $socket;
 
-#,,.,,.,,,,..,,.,,,,,,,..,.,.,,,,,,,.,...,,,.,..,,...,...,...,...,...,...,...,
-#H5SK6EUFHO5A2BDR2PKPKUW7EZJ66FDJILCSP6JKFMGZ5UAK4URWNAA3KSETLUD2L2V53B6G5RAN6
-#\\\|5OOYMEGITASV5UV7M72KSWUBSVKH4TYVRWIBCXIG2QXNYVAU4OP \ / AMOS7 \ YOURUM ::
-#\[7]CWQUSR2UU46VLPUNO5F6H2OQBCWYRBA5Z7ATCXDIFC2MTYNU6EAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,..,,,,,,,..,.,,,,,.,.,,,.,,,..,,...,...,.,.,...,,..,,.,,.,.,
+#5M6BRVEK6XPXS2NMWEL2DEVYDTBTBABW5JF4535MDYPZBTGAN64RSSR2R6QZSSABTLI4RJYDWZ6AM
+#\\\|7AYWAJHOYAFGIQNZV2OCHCHNTKF7DYGOMLRQSBQPBML2SD5LX6C \ / AMOS7 \ YOURUM ::
+#\[7]7DZBH7YJIDXK6AO6S5NVIMT6NNRHMDQH7L7V3ETRPISQE2NM3SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

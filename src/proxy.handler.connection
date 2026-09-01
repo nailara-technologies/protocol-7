@@ -4,7 +4,7 @@
 # descr = read HTTP request from client, parse, build context, dispatch to handler
 
 my $client_id = shift->w->data;
-my $client    = $data{'proxy'}{'clients'}{$client_id};
+my $client    = <proxy.clients>->{$client_id};
 
 if ( not defined $client ) {
     <[base.logs]>->(
@@ -140,8 +140,8 @@ $client->{'state'} = 'processing';
 
 return;
 
-#,,,,,...,..,,,,.,,..,,.,,.,,,,,,,,.,,..,,..,,..,,...,...,,,.,,.,,,,.,,,.,..,,
-#7H3FJAG2QWXPTMFYSU2M7JKHXAVEFYX6COPGLCHG3A5QSKLGN2CAZ2Q3HLPOQ3JGACO4XZ4YVMNBC
-#\\\|DDGULRBJRTNGIMR3R6ASILZBV2WCN5VLVM7V6YIGQ3KSSLJAJBE \ / AMOS7 \ YOURUM ::
-#\[7]BNTLIVK5IV4AMATHX2H6JS427TD2YXN2YHSXL7Y5CIWIRTWB7WAA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,...,,,.,.,.,,,.,,,.,.,.,,..,..,,...,..,,.,.,.,,,.,.,.,.,.,.,
+#7ZQWLWQFNPKKX7EGZGVVZMH2UBAE6JJ3WIFBQEWB2I26K23N66KHG6ADUW5CPU6SFHBJ2ZNQB6X7O
+#\\\|YEOL7PTYBJFSOQUKGDZWDCEX5SFRJ2RWEHXOQMOSQNNITYXAWNW \ / AMOS7 \ YOURUM ::
+#\[7]JF6FOX2DUSPYBRWEH7BMK2N6QGCMH54VZSFHQIA62RAQM47ADCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

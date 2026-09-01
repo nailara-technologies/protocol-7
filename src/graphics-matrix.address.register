@@ -22,7 +22,7 @@ my $chk = $params->{'checksum'};
 
 ## compute checksum if not provided ##
 if ( not defined $chk ) {
-    my $cursor    = $data{'graphics-matrix'}{'cursor'};
+    my $cursor    = <graphics-matrix.cursor>;
     my $zoom      = $params->{'zoom'}   // $cursor->{'zoom'}   // 1.0;
     my $radius    = $params->{'radius'} // $cursor->{'radius'} // 1;
     my $canonical = sprintf "%d:%d:%d:%.6f:%d",
@@ -30,7 +30,7 @@ if ( not defined $chk ) {
     $chk = <[chk-sum.amos]>->($canonical);
 }
 
-my $registry = $data{'graphics-matrix'}{'address'};
+my $registry = <graphics-matrix.address>;
 
 ## store checksum mapping ##
 $registry->{'checksum'}{$chk} = {
@@ -63,8 +63,8 @@ return {
     }
 };
 
-#,,,,,.,,,,..,,..,,,.,.,,,,,,,,..,.,,,,..,,,.,..,,...,...,...,...,,,,,,,.,.,,,
-#M6CI55DVJTZZ653L5V7PYXMLUJ5Q63D6YY26QP2PKYGMCGFO3WQKEPWMN5PAHGK6SZDMMRTBPB6JA
-#\\\|DKTIH3NJOKS6QTE6CPXC7A3O54WCNRKACKG5L5NU4MLLFIA6BYU \ / AMOS7 \ YOURUM ::
-#\[7]CP4GAZHE7DBR7UUWPXJ2R7YRN5GRPSDNC66SBOE6KGGCJ4XJLSCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,.,.,,,.,,,.,..,,.,.,,..,...,..,,...,...,.,.,,,,,..,,,,.,,..,
+#HG4FVTEWIJCO6HKRAE2L35U5RL5BWWZ6NHTUZPEODBZLSSPT3TEKMIYK6R3BNFDEUIN3OAVYGE4DO
+#\\\|OMONVUK6RLT7ED74EI6RPCTWLIHBOWCR6JKCXVCNVTVCW75GPRO \ / AMOS7 \ YOURUM ::
+#\[7]UCRJAFKSTVCS2TJLG57I4LQ6UNJGCJULGHSK5WYQC7HYNZGM42CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

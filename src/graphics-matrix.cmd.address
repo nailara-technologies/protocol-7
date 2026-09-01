@@ -22,7 +22,7 @@ if ( $cmd eq '' ) {
     my $base32 = <[graphics-matrix.address.encode]>
         ->( { qw| scheme | => qw| base32 | } );
 
-    my $channel_data = $data{'graphics-matrix'}{'channel'};
+    my $channel_data = <graphics-matrix.channel>;
     my $active       = $channel_data->{'active'};
     my $label        = $channel_data->{'channels'}{$active}{'label'};
 
@@ -144,7 +144,7 @@ if ( $cmd eq '' ) {
 
 } elsif ( $cmd eq 'labels' ) {
 
-    my $registry = $data{'graphics-matrix'}{'address'}{'label'};
+    my $registry = <graphics-matrix.address.label>;
     my $out      = '';
 
     for my $name ( sort keys %$registry ) {
@@ -159,11 +159,9 @@ if ( $cmd eq '' ) {
 
 } elsif ( $cmd eq 'registry' ) {
 
-    my $chk_count
-        = scalar keys %{ $data{'graphics-matrix'}{'address'}{'checksum'} };
-    my $label_count
-        = scalar keys %{ $data{'graphics-matrix'}{'address'}{'label'} };
-    my $out = sprintf "address registry: %d checksums, %d labels\n",
+    my $chk_count   = scalar keys %{<graphics-matrix.address.checksum>};
+    my $label_count = scalar keys %{<graphics-matrix.address.label>};
+    my $out         = sprintf "address registry: %d checksums, %d labels\n",
         $chk_count, $label_count;
 
     return { qw| mode | => qw| size |, qw| data | => $out };
@@ -176,8 +174,8 @@ if ( $cmd eq '' ) {
     };
 }
 
-#,,..,,,,,.,,,,,.,,..,..,,.,.,.,.,,.,,.,,,..,,..,,...,...,...,..,,,.,,...,.,,,
-#73SLZ3CK7H3RV5YLEJSSVK5V2RUJZ5AVWNYIIYQYZRUPUBX3WPR33FPH2LCHKNPWMIAEDSQB3CDBM
-#\\\|P3RAXOQKXTJZQYQG5HWHQJ2EEOIS72Z5Z73HBVDTUVSOMQBRZ2K \ / AMOS7 \ YOURUM ::
-#\[7]P6DQF2QNQMPOWZSDJWI36TRGBT5V7HQXJI23E6Q6NKQ2NKBRPCAY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,..,,,.,..,,...,...,,..,,.,,..,,..,,...,..,,..,,,,,,,..,,,.,,,.,
+#6X72TNBWXDTL24SWX5Y3NJTRETHKWABMOO4KTOM26M27AGPLCGKK7AVZNM4SN26XPE4JAAK4IXQLI
+#\\\|EW44CAPQH6FGH5BKKZQNNJZULFIALF4YWDVJBE4ZL4AVPL2OUTP \ / AMOS7 \ YOURUM ::
+#\[7]TEWU56SJO2BT33H3T75YNVPTDBGPQ66Z5EZGEF755MEZJB34ZEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

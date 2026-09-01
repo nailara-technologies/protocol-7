@@ -22,7 +22,7 @@ if ( $f->{type} eq 'root' ) {
     $stat{name}        = '/';
     $stat{length}      = 0;
 } elsif ( $f->{type} eq 'buffer' ) {
-    my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{name} };
+    my $buf = <plan-9.server.buffers>->{ $f->{name} };
     $stat{qid_type}    = <plan-9.protocol.constants.QTDIR>;
     $stat{qid_version} = $buf->{qid_version} // 0;
     $stat{qid_path}    = $buf->{qid_path}    // 0;
@@ -30,7 +30,7 @@ if ( $f->{type} eq 'root' ) {
     $stat{name}        = $f->{name};
     $stat{length}      = 0;
 } elsif ( $f->{type} eq 'layer' ) {
-    my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{buffer} };
+    my $buf = <plan-9.server.buffers>->{ $f->{buffer} };
     $stat{qid_type}    = <plan-9.protocol.constants.QTFILE>;
     $stat{qid_version} = 0;
     $stat{qid_path}    = ( $buf->{qid_path} // 0 ) + $f->{z} + 1;
@@ -39,7 +39,7 @@ if ( $f->{type} eq 'root' ) {
     my $layer_data = $buf->{window}{buffer}{layers}[ $f->{z} ] // '';
     $stat{length} = length($layer_data);
 } elsif ( $f->{type} eq 'metadata' ) {
-    my $buf = $data{'plan-9'}{'server'}{'buffers'}{ $f->{buffer} };
+    my $buf = <plan-9.server.buffers>->{ $f->{buffer} };
     $stat{qid_type}    = <plan-9.protocol.constants.QTFILE>;
     $stat{qid_version} = 0;
     $stat{qid_path}    = ( $buf->{qid_path} // 0 ) + 100;
@@ -66,8 +66,8 @@ if ( $f->{type} eq 'root' ) {
 
 return \%stat;
 
-#,,,,,,.,,,.,,.,.,.,,,,,.,.,,,,,,,.,,,...,,..,.,.,...,...,...,.,,,,,,,...,,..,
-#BJOG3PH2CTJY4UETH6G46AMXOUL7Y3DPSU7CXRQBZPPYBH7KGDJWUJ3ZUTPF6ZIWNUDJJXSWSTRWQ
-#\\\|YOIEZQ7XGJXORVM7Y46PRSAIOP2PQNEMX7GRORWF2EME5ETRJAP \ / AMOS7 \ YOURUM ::
-#\[7]BGKLGJ7DBTO3MU3YA5NHR5Q6H5VTMPIFTGKJVES2P64N7RUNIMCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,.,,,..,,..,,,,,...,,.,,..,,.,,,.,.,...,..,,.,.,.,,,,,.,,,,,,,,,
+#4ZKMLSHCT3EPUQVR4ZTU3RM2FIUWXCQ5PTJCQYUMR5Y47SDBJKIDEFHEMWFQJ3UPSXY7JPOHWQSOE
+#\\\|OXFW2VWIK4CXFDL4Z2JYWXDQLMSJKNU33XOLIYSJ6JA3AO27623 \ / AMOS7 \ YOURUM ::
+#\[7]BYYDWWSQDFNFKST65S5M33QOIIKFQMO5MNYVS3OTET2BCEZUHIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

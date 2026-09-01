@@ -8,7 +8,7 @@ my $options     = shift                     // {};
 my $log_results = $options->{'log_results'} // 0;
 
 # Skip if benchmark not enabled
-return if !$data{'httpd'}{'benchmark'}{'enabled'};
+return if !<httpd.benchmark.enabled>;
 
 # Get current memory usage
 my $memory = {};
@@ -36,14 +36,14 @@ $memory->{'system'} = <[httpd.system.memory_stats]>;
 
 # Calculate memory per connection
 my $connection_count
-    = scalar( keys %{ $data{'httpd'}{'active_requests'} // {} } );
+    = scalar( keys %{ <httpd.active_requests> // {} } );
 $memory->{'per_connection'}
     = $connection_count > 0
     ? $memory->{'process'}{'rss'} / $connection_count
     : 0;
 
 # Store historical memory data
-push @{ $data{'httpd'}{'benchmark'}{'memory_history'} },
+push @{<httpd.benchmark.memory_history>},
     {
     'timestamp'        => <[base.ntime]>,
     'rss'              => $memory->{'process'}{'rss'},
@@ -52,8 +52,8 @@ push @{ $data{'httpd'}{'benchmark'}{'memory_history'} },
     };
 
 # Keep history size manageable (last 1000 entries)
-if ( scalar @{ $data{'httpd'}{'benchmark'}{'memory_history'} } > 1000 ) {
-    splice( @{ $data{'httpd'}{'benchmark'}{'memory_history'} }, 0, 100 );
+if ( scalar @{<httpd.benchmark.memory_history>} > 1000 ) {
+    splice( @{<httpd.benchmark.memory_history>}, 0, 100 );
 }
 
 # Log memory usage if requested
@@ -69,12 +69,12 @@ if ($log_results) {
 }
 
 # Update benchmark data
-$data{'httpd'}{'benchmark'}{'memory'} = $memory;
+<httpd.benchmark.memory> = $memory;
 
 return $memory->{'process'}{'rss'};
 
-#,,..,.,.,,,,,.,,,,.,,.,.,,..,.,,,,,,,..,,,,.,..,,...,...,,.,,,,,,...,...,,,.,
-#57JQJNJ76DI4X6KPUK3NHVFAOSAW42UDUXPL2KKVY37WGAVYXD7TVYV7XGQJCUY57HOSPDJE72CU2
-#\\\|NWDR2LJDLWK7HQSBK262RQPTBBOZ6DJCLJ76HWCEUGKEAVIJ5EV \ / AMOS7 \ YOURUM ::
-#\[7]NPDK3V6NCEYIUAR7QWURJVMA5QWBVGOSAZDXH6Q2QZUDBFDAEABY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,.,,.,,,,..,,.,,,..,,,.,.,.,...,..,,...,...,,,.,,,.,,.,,..,,.,,,
+#DVYI5DLOTNB7YQRY5SRJN4AMK7VBOKXPCUNTF2NX55HEXF6QFTCHK5QHOZBL7LYWXWZ6YV7XMGPH2
+#\\\|KEPNK2TGRGNRYOGUIQ37SCXRC6SRZZ6LMAE2ENF25RCFCPBCT3W \ / AMOS7 \ YOURUM ::
+#\[7]TVW46Y36JZ7CKBRFO2G5MXP57VQR5U4QRAJ6CAWB6H46BUOLRQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

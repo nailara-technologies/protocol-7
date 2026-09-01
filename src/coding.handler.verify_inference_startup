@@ -66,7 +66,7 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
         ## matches. at most one can exist per backend [ coding.self_test.   ##
         ## run's guard rejects concurrent same-backend runs ]               ##
         my $probe_state;
-        my $probe_states = $data{'coding'}{'self_test_probe_state'} // {};
+        my $probe_states = <coding.self_test_probe_state> // {};
         for my $id ( keys %{$probe_states} ) {
             my $pst = $probe_states->{$id};
             next if ref $pst ne qw| HASH |;
@@ -239,8 +239,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,,,,,,.,,..,,.,,...,,,.,,,.,...,,..,...,..,,..,,...,...,,..,,..,.,.,...,,..,
-#6N5VWZ3I4PTONLAHIXGOPVPRPN2FNA5G4CDMM3VIDUMF7SUUD73LMNNCFUTRGEDEN7P6VPPTOND2I
-#\\\|CN6G4ZYONJM6MD5ONNZ247S2E7UTMGTCOLNN2RLHAZKLF46S2DP \ / AMOS7 \ YOURUM ::
-#\[7]TRSLL5BO2CQE54LRR3YNSDQO7BO7RNWV3AVBN6LQLBUJ2VOF36CY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,.,.,.,.,...,.,.,..,,.,.,,,.,..,,...,...,.,,,.,,,,.,,..,,.,,,
+#AWC6IXNFEH2SR7XBFFNW7RR3C3YBY2ENU4AQIWMBRPEJUPUTJLQP66MF66C7RECFM2NMAZM5UYJFG
+#\\\|4RMVVBEWN3GAGQXCMRAPTFZENRHG62Q66KNQ42DBNHYGL7X52WR \ / AMOS7 \ YOURUM ::
+#\[7]KGGB2E7EQF6MTWYHAO6P3FPKRMFLQXAMRZXPXIRYEUHGDVOI2IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

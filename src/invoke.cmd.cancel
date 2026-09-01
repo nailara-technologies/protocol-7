@@ -7,13 +7,13 @@ my $target = $call->{'args'} // '';
 $target =~ s|^\s+||;
 $target =~ s|\s+$||;
 
-my $url = $data{'invoke'}{'url'};
+my $url = <invoke.url>;
 my $ua  = LWP::UserAgent->new( timeout => 10 );
 
 if ( !length $target or $target eq 'all' ) {
     ## cancel all : collect batch_ids from tracked jobs
-    my @batch_ids = map { $ARG->{'batch_id'} }
-        values %{ $data{'invoke'}{'jobs'} // {} };
+    my @batch_ids
+        = map { $ARG->{'batch_id'} } values %{ <invoke.jobs> // {} };
 
     unless (@batch_ids) {
         return { mode => qw| false |, data => 'no tracked jobs to cancel' };
@@ -26,7 +26,7 @@ if ( !length $target or $target eq 'all' ) {
     $req->content($body);
     my $resp = $ua->request($req);
 
-    $data{'invoke'}{'jobs'} = {};
+    <invoke.jobs> = {};
 
     return $resp->is_success
         ? { mode => qw| true |, data => 'cancelled all jobs' }
@@ -37,7 +37,7 @@ if ( !length $target or $target eq 'all' ) {
 }
 
 ## cancel specific item : find its batch_id
-my $job = $data{'invoke'}{'jobs'}{$target};
+my $job = <invoke.jobs>->{$target};
 unless ($job) {
     return {
         mode => qw| false |,
@@ -52,7 +52,7 @@ $req->header( 'Content-Type' => 'application/json' );
 $req->content($body);
 my $resp = $ua->request($req);
 
-delete $data{'invoke'}{'jobs'}{$target};
+delete <invoke.jobs>->{$target};
 
 return $resp->is_success
     ? {
@@ -64,8 +64,8 @@ return $resp->is_success
     data => sprintf( 'cancel failed [ %s ]', $resp->status_line )
     };
 
-#,,..,,..,,,.,.,.,.,,,,,.,...,.,,,,,.,.,,,,..,..,,...,..,,...,,,,,..,,,.,,,,.,
-#NFBUJHQBZMRWPD4NMQWZRPCYYLTANRNONXDYOJSKKTQDFLESRG3UJMHT2N76VGHTFUWKNMVD7Z5Z4
-#\\\|JHEHAPSNY6BXMGWWKUXG6KIBHLSMXJW3LLJRW7X6KPMA5VVNQJ7 \ / AMOS7 \ YOURUM ::
-#\[7]DIOROTHXCQ4YXRKKCLQ7HKGEO2UB2MWRKPGLTXKCUHZAEHRTAAAI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,.,,,,.,...,..,,,..,.,,,,,,,.,.,..,,...,...,.,.,,,.,...,...,,.,,
+#3ZFCPU6L4VYF2NSOBCB4DOJL2HS5YAPMQ7D6OJERKBO5CQIDITO7NUQEFUX6YEXHMWMBZSZCIM4ZO
+#\\\|FBGSI3H6UXAQL5CTV45JY43D2Z4XL25M7CCV2CWBLN7LVQT2VPR \ / AMOS7 \ YOURUM ::
+#\[7]CQDU34PTCUNWZPOD73NQTHD6XWXHVKFIRIA63V24XRAYQWX5S6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,7 @@ my $slot  = $event->{'slot'}                                 // '';
 return undef unless length $slot;
 
 ## walk proxy auth cache and remove entries referencing the slot ##
-my $auth_cache = $data{'proxy'}{'auth_cache'} // {};
+my $auth_cache = <proxy.auth_cache> // {};
 my $removed    = 0;
 
 for my $key ( keys %$auth_cache ) {
@@ -36,8 +36,8 @@ return { 'mode' => qw| true |, 'flushed' => $removed };
 
 ## [ end ] ###################################################################
 
-#,,..,,,,,...,.,,,,,.,,.,,...,.,,,,..,,.,,.,,,..,,...,...,,,.,.,.,.,,,..,,..,,
-#JTP5IGJKHIBX6Z3L5YXFI46RKBH3SSX62HOEH7QYWSENNEEHBL6CQTFIZNIGEWMSW4VBN5PQW6QHE
-#\\\|CUOMDMAYYFDWK6VRIYSSHJS63JSCQ7RDLWIXGFM4PPKCQ7NW6YY \ / AMOS7 \ YOURUM ::
-#\[7]ZRIKULMXYFNWMEVPVEWBKC7EWQBTNRSOKLBZVMKKXJKNFGAJQGAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,,,.,,.,,..,,,..,,.,,.,.,...,..,,...,...,...,...,.,.,,..,.,.,
+#B6I4XLTOB6K3XIA2EEVKTSDEGOEHYVWPWIEOC7OFG5NDJV3WZU3M467HW3BWWB4ZVISFD5KB3C35I
+#\\\|MEIBQTISEKWPAQHWJCEU5NQ4HTFAXTEB7MCPKSFA6DDQULGCWKJ \ / AMOS7 \ YOURUM ::
+#\[7]TU4QHR6TWMEF5B5GHHNPBDVFF7TVPYQ6XU2OTKGYQPSIF4KHQOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

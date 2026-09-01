@@ -13,9 +13,9 @@ return FALSE if !defined $file_path || $file_path eq '';
 return FALSE if !-f $file_path;
 
 # Initialize statistics data structure if needed
-$data{'httpd'}{'downloads'}           //= {};
-$data{'httpd'}{'downloads'}{'files'}  //= {};
-$data{'httpd'}{'downloads'}{'totals'} //= {
+<httpd.downloads>        //= {};
+<httpd.downloads.files>  //= {};
+<httpd.downloads.totals> //= {
     'count'     => 0,
     'bytes'     => 0,
     'last_time' => 0
@@ -27,8 +27,8 @@ if ( !defined $bytes ) {
 }
 
 # Update file-specific statistics
-if ( !exists $data{'httpd'}{'downloads'}{'files'}{$file_path} ) {
-    $data{'httpd'}{'downloads'}{'files'}{$file_path} = {
+if ( !exists <httpd.downloads.files>->{$file_path} ) {
+    <httpd.downloads.files>->{$file_path} = {
         'count'      => 0,
         'bytes'      => 0,
         'first_time' => <[base.ntime]>,
@@ -36,15 +36,14 @@ if ( !exists $data{'httpd'}{'downloads'}{'files'}{$file_path} ) {
     };
 }
 
-$data{'httpd'}{'downloads'}{'files'}{$file_path}{'count'}++;
-$data{'httpd'}{'downloads'}{'files'}{$file_path}{'bytes'} += $bytes;
-$data{'httpd'}{'downloads'}{'files'}{$file_path}{'last_time'}
-    = <[base.ntime]>;
+<httpd.downloads.files>->{$file_path}{'count'}++;
+<httpd.downloads.files>->{$file_path}{'bytes'} += $bytes;
+<httpd.downloads.files>->{$file_path}{'last_time'} = <[base.ntime]>;
 
 # Update global download statistics
-$data{'httpd'}{'downloads'}{'totals'}{'count'}++;
-$data{'httpd'}{'downloads'}{'totals'}{'bytes'} += $bytes;
-$data{'httpd'}{'downloads'}{'totals'}{'last_time'} = <[base.ntime]>;
+<httpd.downloads.totals.count>++;
+<httpd.downloads.totals.bytes> += $bytes;
+<httpd.downloads.totals.last_time> = <[base.ntime]>;
 
 # Log download at debug level
 <[base.log]>->(
@@ -55,24 +54,24 @@ $data{'httpd'}{'downloads'}{'totals'}{'last_time'} = <[base.ntime]>;
 );
 
 # Clean up old statistics if too many files are tracked
-if ( scalar( keys %{ $data{'httpd'}{'downloads'}{'files'} } ) > 1000 ) {
+if ( scalar( keys %{<httpd.downloads.files>} ) > 1000 ) {
 
     # Find oldest accessed files
     my @files = sort {
-        $data{'httpd'}{'downloads'}{'files'}{$a}{'last_time'}
-            <=> $data{'httpd'}{'downloads'}{'files'}{$b}{'last_time'}
-    } keys %{ $data{'httpd'}{'downloads'}{'files'} };
+        <httpd.downloads.files>->{$a}{'last_time'} <=>
+            <httpd.downloads.files>->{$b}{'last_time'}
+    } keys %{<httpd.downloads.files>};
 
     # Remove oldest entries to keep only 900 entries
     foreach my $old_file ( @files[ 0 .. 99 ] ) {
-        delete $data{'httpd'}{'downloads'}{'files'}{$old_file};
+        delete <httpd.downloads.files>->{$old_file};
     }
 }
 
 return TRUE;
 
-#,,..,...,.,,,...,.,.,...,...,,.,,.,,,...,...,..,,...,...,,.,,..,,...,,..,..,,
-#LED3HTWU3SW4CEV6N3E7Y3Q6MAKFSYBKDBNL2RM46NAVQSNH7WSO2ZLPBJT6HWNKHVPSX75ZRZQ5I
-#\\\|XHECOBGQ3ZSUSC7XXHO3OEPDNC7UP4Z5E5NIDEKD5C6HJVLEH22 \ / AMOS7 \ YOURUM ::
-#\[7]L42VX5DB367Z5N757NP7EKE6YHTNOIAZW65O23ZETNR52NGJIWBI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,..,,,.,,,.,..,,.,.,.,.,,,.,,..,..,,...,...,,,.,,,.,,.,,...,,,,,
+#JN4ZOFESC4ON4ZTBGQ5JVNXSQY6HVQABK2I6BRZSUHVZNIW46T5XHW5AOWAWWNFR7N6JN6UKC3OJ2
+#\\\|XSHZULH37NNE43LK7MH7GYN7KM4PPXCOEIHRPQ3LV4Y2LWFZOLR \ / AMOS7 \ YOURUM ::
+#\[7]2KOAQT6AWXIFY7ZIPRUOLZAY7E7EYID65O53CX6U5TN5HHW7XICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

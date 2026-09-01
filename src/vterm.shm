@@ -29,12 +29,12 @@ if ( $action eq qw| attach | ) {
         ## use local hash storage (non-persistent, per-process)
         my $local_key
             = sprintf( "vterm:%s:layer%d", $instance_id, $layer_id );
-        $data{'vterm'}{'local_shm'}{$local_key} //= \( ' ' x $size );
+        <vterm.local_shm>->{$local_key} //= \( ' ' x $size );
         return {
             type => qw| local |,
             path => $shm_path,
             size => $size,
-            ref  => $data{'vterm'}{'local_shm'}{$local_key},
+            ref  => <vterm.local_shm>->{$local_key},
             rows => $rows,
             cols => $cols,
         };
@@ -99,8 +99,8 @@ if ( $action eq qw| attach | ) {
 
 return undef;
 
-#,,..,...,,.,,..,,,,,,,.,,...,...,...,.,,,,,.,..,,...,..,,.,.,,..,.,.,,,,,,..,
-#RWB2GHPMJZRJZ7AS6DTT2K5LCDTZSWNZFS3NSJQVZVSIRTAU5WFWPEPUF7WAO5JDYQEEGLWDIKJZ6
-#\\\|ZM7QRUQN34FFJ4XC7YOZOWVLCDKLYM255FUMVY6WRVVFHL6NOGU \ / AMOS7 \ YOURUM ::
-#\[7]I4R6FBKAAMCPOCRKM4K42Y5M4V7IB6UW53KIOFY5RFELEUEPD4AI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,.,,,,,,.,.,.,.,,.,,..,,,,,,...,..,,...,..,,.,,,...,,.,,,,,,.,.,
+#TOCHK47WIAUMT2GCDVNZGC5RK36KLUMW5ZAAYE447CLQ2WAQUJERMIHC7EDQPQY4BR47TZKTSWP5W
+#\\\|Q6N72D2UHBJO3E2LJH4WXDXYTHRAATSMQKDP43N23CMPPIUATMZ \ / AMOS7 \ YOURUM ::
+#\[7]7A6YROWWGV4YJHSPVYCGGD4I57EMNILB4RDIN3EY53GGL6HV4SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

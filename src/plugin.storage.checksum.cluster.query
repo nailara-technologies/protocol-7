@@ -11,7 +11,7 @@ my $max_size    = $args->{'max_size'};
 my $pattern = $args->{'pattern'};        # Regex pattern for checksum matching
 my $limit   = $args->{'limit'} // 1000;
 
-my $registry = $data{'storage'}{'mapping'}{'checksum-cluster'};
+my $registry = <storage.mapping.checksum-cluster>;
 my @results;
 
 if ( $query_type eq 'all' || $query_type eq 'by_type' ) {
@@ -114,8 +114,8 @@ return {
     'count' => scalar(@results),
 };
 
-#,,..,,..,.,.,.,,,.,,,...,..,,...,,.,,.,,,,.,,.,.,...,...,,..,,..,...,,..,..,,
-#YZRCAZXBWUPYGUZV2DUHZKRYTVDDLEKPIFP3N23OVDBQDHGBBYT4MBTRLY5ZD2YLID6M74ZHU6GHI
-#\\\|F7LXZJPIQKEQRVFVFLXSUB3CZ5JNC5SEUTDG74KND7DDMQPS5FF \ / AMOS7 \ YOURUM ::
-#\[7]RLNGPXF2SHRCJATIB4PTUFJ5TJDQ54RWZ2GQCU4IWYU63NZ5TKCI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,,..,,,,,...,,.,,.,,,.,,,,..,.,.,...,...,..,,..,,..,,,.,,.,,,
+#DZEOYIRASGVWZYZ33UCJ6N7FEW3YKR27WDOIMF6A6TNSDJOB5KD3MGDJQDHYS4JTGX7MIU3ATMXFA
+#\\\|N2BQKC7VH52XLRTZEEJ7DOJYQBQVSFA4WNQT27AYVYAKAXPGELT \ / AMOS7 \ YOURUM ::
+#\[7]OB7TZPCCBWM7SVMRZLHL7RWEQN2JO6DK7HVSNEJ7BBCCZ5UPEMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

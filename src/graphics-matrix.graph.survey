@@ -8,7 +8,7 @@ my $params = shift // {};
 ## default center to cursor position ##
 my $center = $params->{'center'} // <[graphics-matrix.cursor.position]>;
 my $radius = $params->{'radius'} // $center->{'radius'}
-    // $data{'graphics-matrix'}{'cursor'}{'radius'} // 0;
+    // <graphics-matrix.cursor.radius> // 0;
 
 my ( $cx, $cy, $cz )
     = ( $center->{'selX'}, $center->{'selY'}, $center->{'selZ'} );
@@ -20,7 +20,7 @@ my $neighbors        = <[graphics-matrix.graph.neighbors]>->($center_key);
 my %neighbor_weights = map { $ARG->{'cell'} => $ARG->{'weight'} } @$neighbors;
 
 ## find cluster membership of center cell ##
-my $clusters       = $data{'graphics-matrix'}{'graph'}{'clusters'};
+my $clusters       = <graphics-matrix.graph.clusters>;
 my $center_cluster = undef;
 
 for my $cid ( keys %$clusters ) {
@@ -36,7 +36,7 @@ for my $cid ( keys %$clusters ) {
 
 my $counts = {};
 my $total  = 0;
-my $cells  = $data{'graphics-matrix'}{'cell'}{'cells'};
+my $cells  = <graphics-matrix.cell.cells>;
 
 for my $key ( keys %$cells ) {
     my $cell = $cells->{$key};
@@ -74,8 +74,8 @@ return {
     qw| total  | => $total,
 };
 
-#,,..,...,,,.,..,,.,.,...,..,,,,,,,..,,.,,,,,,..,,...,...,.,.,,,,,..,,...,...,
-#X7OIE3MKTHXEMNDE3MNI5MNN6DLV54KCUY5ZMSWYNG4Q5DXGLNURDJYF5ZSVEHJ4GZEYWNVKU3H7Q
-#\\\|H2BCV5R2MSTSQ35EGYG54NFISA5OH4ZES2EUCXEDZZJHUYLLE22 \ / AMOS7 \ YOURUM ::
-#\[7]GGYUBGZ7UUPPGDMOPXHUQRP7267HER7LPI4TBIV4L7A2EO7BFYBI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,,.,,.,,,,.,,,,,,,.,,,.,,..,,..,,...,...,,..,...,,,.,,,.,.,.,
+#E6MADTLTI2XXWY2CY6B32ML26D5U5U67HFSYWX5UICTT4MPFZ6WKV53U5EFXF2GCFCF3JBZFKSV5Y
+#\\\|ML6SXYDVMTM3DKW24VWSTEVWEPBEREK6JUSUXALTPQBLBHMOI2R \ / AMOS7 \ YOURUM ::
+#\[7]E3I7FC74G2KSN3HOEKLDM654YQGHNO6NHFLCOEAINFTYPL5MICAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

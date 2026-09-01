@@ -16,7 +16,7 @@ if ( !length $backend || $backend !~ m{^(gpu|cpu)$} ) {
     return;
 }
 
-my $state = $data{'coding'}{'model_sweep_state'}{$backend};
+my $state = <coding.model_sweep_state>->{$backend};
 if ( !defined $state ) {
     <[base.logs]>->(
         0, '[model_sweep] no state for backend=%s, stopping timer', $backend
@@ -105,7 +105,7 @@ my $finish_sweep = sub {
     }
     <[base.logs]>->( 1, $summary );
 
-    delete $data{'coding'}{'model_sweep_state'}{$backend};
+    delete <coding.model_sweep_state>->{$backend};
     $event->w->cancel if defined $event->w and $event->w->is_active;
 };
 
@@ -146,14 +146,13 @@ my $start_candidate = sub {
     <coding.self_test_switch_in_progress> = TRUE;
 
     ## create poll_switch state, backend-aware ##
-    $data{'coding'}{'self_test_switch_state'} //= {};
-    my $switch_id
-        = <[base.gen_id]>->( $data{'coding'}{'self_test_switch_state'} );
+    <coding.self_test_switch_state> //= {};
+    my $switch_id = <[base.gen_id]>->(<coding.self_test_switch_state>);
 
     my $prior_pid = ( <coding.inference_servers> // {} )->{$backend}{'pid'}
         // 0;
 
-    $data{'coding'}{'self_test_switch_state'}{$switch_id} = {
+    <coding.self_test_switch_state>->{$switch_id} = {
         'reply_id'       => '',
         'target_model'   => $checksum,
         'test_model'     => $checksum,
@@ -210,7 +209,7 @@ if ( $phase eq qw| waiting | ) {
     my $switch_id = $state->{'switch_id'} // '';
     my $switch_state
         = defined $switch_id
-        ? $data{'coding'}{'self_test_switch_state'}{$switch_id}
+        ? <coding.self_test_switch_state>->{$switch_id}
         : undef;
 
     if ( !defined $switch_state ) {
@@ -245,8 +244,8 @@ if ( $phase eq qw| waiting | ) {
 $state->{'idx'} = $total;
 return TRUE;
 
-#,,,.,,,,,,,.,..,,...,.,.,.,.,..,,,..,,,.,...,..,,...,...,.,.,,.,,...,,.,,,..,
-#M54X2IRS6O6R3X2WBFAL47DFFPI7HGMAFJFZFZHAPWV4MQHNPQSS6WEI6J4TRM4CLL6IOM27GSOQO
-#\\\|EXKRMSVWZ5RS6AQQX2UZ4WEFDW6HTC5MOXSOBO5J2RKDG4WX67P \ / AMOS7 \ YOURUM ::
-#\[7]CY52AXDJHYL7WUDFAOHDFJ6C7QWSO2LNUIJOLRRV3UXB6IA6YAAY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,,,.,.,..,,.,,,,,,,..,,,.,,.,.,..,,...,...,..,,.,,,,..,..,,.,,,
+#OWCTSSU7WTMZOAU4IIWQWYR3R4GUOG6ZOC77IGCZ62J4Y3SNH4RF544XRYRPCH567UJ3BJQC6XDRY
+#\\\|HJMCFU6E3BQ47IXYMBBWWSOF4CF5IOE5GLZZHBLILIA34HRSJWG \ / AMOS7 \ YOURUM ::
+#\[7]ZSKS7GHK52PN3AKWDWXUT77X5KYNF4X6AENOMN4BYTOPCWVETWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

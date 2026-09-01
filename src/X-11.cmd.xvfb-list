@@ -4,22 +4,22 @@
 # descr = list all known xvfb instances with status
 
 my @displays = sort { $a <=> $b }
-    keys %{ $data{'X-11'}{'xvfb'}{'pid'} // {} };
+    keys %{ <X-11.xvfb.pid> // {} };
 
 return { 'mode' => qw| true |, 'data' => 'no xvfb instances known' }
     if @displays == 0;
 
 my @rows;
 foreach my $display_num (@displays) {
-    my $pid    = $data{'X-11'}{'xvfb'}{'pid'}{$display_num};
+    my $pid    = <X-11.xvfb.pid>->{$display_num};
     my $status = ( defined $pid and kill 0, $pid ) ? 'running' : 'stopped';
     push @rows, sprintf( ":%s\t%d\t%s", $display_num, $pid // 0, $status );
 }
 
 return { 'mode' => qw| size |, 'data' => join( "\n", @rows ) };
 
-#,,..,,,.,...,...,,..,,,,,,.,,.,,,,,.,,..,,.,,..,,...,..,,.,,,.,.,...,.,.,,..,
-#E2KZB5GG4Y3N6UI3XHRI2HJBCOIN3NQHYN6LEKRWIZIVNWWSNASANYBKBBKVB5SZZ2Z7RLAUB74RG
-#\\\|XV4TBQYRXSEHHNCDNTTSYJU4X24A5ESYPOB4U2VAIQSWBWFZR2T \ / AMOS7 \ YOURUM ::
-#\[7]2RK5DC2PETTTKF4DKHHEKJKHFEAAP42RGG4W7HV4IQYBGGIHTGCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,..,,..,,.,.,,..,..,,,,,,,,,,...,..,,...,...,,,,,...,.,,,.,,,,..,
+#W32HYZ6YZXKA2KHYBWNBVDMNOYWJ3KQGLRSHBC34TDAZ7HT3F67N6FEFTBZUWCFEMEIQJQPSSF7PM
+#\\\|7IHGYKLHC3ZQCPBYP4SXTAHQOJ7VXNQEMR5IBX6Z7ZDFZXLC4UU \ / AMOS7 \ YOURUM ::
+#\[7]Z6RVFCELSSIQG6KYLSERMKZPKWB7A3HANRYW2OXBJ5R2KVOZNQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

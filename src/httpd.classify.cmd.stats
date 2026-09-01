@@ -8,9 +8,9 @@ return {
     'mode' => qw| false |,
     'data' => 'httpd classification not enabled [ httpd.classify.enabled ]'
     }
-    if not exists $data{'httpd'}{'classify'};
+    if not exists <httpd.classify>;
 
-my $classify = $data{'httpd'}{'classify'};
+my $classify = <httpd.classify>;
 my $stats    = $classify->{'stats'} // {};
 my $peers    = $classify->{'peer'}  // {};
 
@@ -46,8 +46,8 @@ if ( keys %{$by_family} ) {
 
 return { 'mode' => qw| true |, 'data' => join( "\n", @out ) };
 
-#,,,,,,.,,,.,,.,,,,.,,,,,,.,.,,,.,,,.,,..,...,..,,...,...,,.,,.,.,,..,,,.,,,,,
-#AVQKDJBAJVM7MDSSPDOV5T6LHPA57OSPJU7IB4WPTL6XW63NG3BBTXYP34EZ2RN76R57FJHWYBLS6
-#\\\|CVIE35ECOUTUOV55RI2YHMKHLMUPKA33AGIF2W5BNPZ65QCOURG \ / AMOS7 \ YOURUM ::
-#\[7]6LYBODI7RA6UNSK7ECRHQZQY6LNXMD5YJ4TCWJPL6NF5ONKIGICI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,,,,.,,..,,,.,,.,,,,,,,,..,.,,,..,,...,...,,,,,,..,,..,,..,,.,,
+#7BXRIQNUPML26I2DK6FOXJWGBU7AABIYUC3SOZ32EHLQUR2UG5N2ZNACCBJU4FD2XYBPYHSZQJ76M
+#\\\|GJN35SUPYYTRUVYC4EBKMCZQVWJS3RY72VZIPL66C3AZV63UKWU \ / AMOS7 \ YOURUM ::
+#\[7]DEDBUPW6UC2NUW3MOO2U47SKNNFWHCGEALNZ7MIMD7W7TWZCICAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ unless ($zenka_name) {
 <[base.log]>->( 2, "zenki.start: launching '$zenka_name'..." );
 
 ## Increment statistics
-$data{'zenki'}{'stats'}{'start_requests'}++;
+<zenki.stats.start_requests>++;
 
 ## Use v7's dependency resolution system  This automatically handles:
 ## - Ensuring v7 is running (if needed)
@@ -26,17 +26,17 @@ $data{'zenki'}{'stats'}{'start_requests'}++;
 my $result = <[zenki.parent.start_via_v7]>->( { zenka_name => $zenka_name } );
 
 if ( $result->{success} ) {
-    $data{'zenki'}{'stats'}{'successful_starts'}++;
+    <zenki.stats.successful_starts>++;
     return $result;
 } else {
-    $data{'zenki'}{'stats'}{'failed_starts'}++;
+    <zenki.stats.failed_starts>++;
     return $result;
 }
 
 0;
 
-#,,,.,.,.,..,,,..,.,,,..,,.,.,,..,...,,,,,..,,..,,...,...,..,,...,.,,,,,,,,..,
-#KHXTHLXHSWEIDESLN7QOHGBXEPUG7YCRTJYOTNEFMYSB2UMWQF6B45V4NM47QYJRLT34BUXE7N2MQ
-#\\\|3EFPEUY6BXPR6OC4JDGB6WSE3B6Z3EHTGWCFDH5RX5SPFIA7CQ3 \ / AMOS7 \ YOURUM ::
-#\[7]QSL44UVKWQULVDBX54OLDNG72FIXOCSHILSFCGEVTC4VN3DE46DY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,,..,,..,.,.,,,,,.,.,,..,,,,,..,,...,..,,...,.,,,,,.,.,.,.,.,
+#GIHMPSOQ3EKQTXAR2GHQYBY4IHYWLKOTGJ6ZHAY5ODSNUO25AGD4UALROZFZCDQ2X2WCW375V3JIA
+#\\\|7ONDRANPLPMI3OYY5FNIT7KQZVY2B2QVF2RSXBT5ARHEOA2F6EY \ / AMOS7 \ YOURUM ::
+#\[7]OFSQT5GS323AQ3NJXQ6OMHASMOUW7MF5HTBIV7EJJMOJ4GAFEOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,23 +7,23 @@ map { <[base.perlmod.autoload]>->($ARG) }
     qw| LWP::UserAgent HTTP::Request JSON YAML::XS HTML::Entities Socket Fcntl POSIX Errno |;
 
 ## http user agent : reused across requests
-$data{'site-yaml'}{'ua'} = LWP::UserAgent->new(
+<site-yaml.ua> = LWP::UserAgent->new(
     'agent' => 'Mozilla/5.0 (X11; Linux x86_64; '
         . 'rv:124.0) Gecko/20100101 Firefox/124.0',
     'timeout' => 30,
 );
-$data{'site-yaml'}{'ua'}
+<site-yaml.ua>
     ->default_header( 'Accept-Language' => 'de-DE,de;q=0.9,en;q=0.8' );
-$data{'site-yaml'}{'ua'}
+<site-yaml.ua>
     ->default_header( 'Accept' => 'text/html,application/xhtml+xml' );
 
 ## enable proxy from environment variables (HTTP_PROXY / HTTPS_PROXY) ##
-$data{'site-yaml'}{'ua'}->env_proxy;
+<site-yaml.ua>->env_proxy;
 
 ## bypass proxy for known direct-access domains [ configurable, default ##
 ## false ]                                                              ##
 if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
-    $data{'site-yaml'}{'ua'}->no_proxy(qw| stepstone.de www.stepstone.de |);
+    <site-yaml.ua>->no_proxy(qw| stepstone.de www.stepstone.de |);
 }
 
 ## async fetch worker defaults ##
@@ -35,7 +35,7 @@ if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
 
 ## drop stale queue entries from before the generic fetch refactor (they ##
 ## lack a reply_handler and would be silently discarded anyway)          ##
-my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+my $queue = <site-yaml.fetch_queue> // [];
 if ( @{$queue} ) {
     my $stale = scalar grep { not length( $ARG->{'reply_handler'} // '' ) }
         @{$queue};
@@ -45,15 +45,15 @@ if ( @{$queue} ) {
             'site-yaml: dropping %d stale fetch-queue entries',
             scalar @{$queue}
         );
-        $data{'site-yaml'}{'fetch_queue'} = [];
+        <site-yaml.fetch_queue> = [];
         <[site-yaml.fetch.state]>->('save');
     }
 }
 
 <[base.logs]>->( 1, 'site-yaml ready' );
 
-#,,..,.,,,..,,,..,.,,,.,,,,.,,,,,,..,,.,,,,..,.,.,...,...,,.,,...,..,,,,.,,..,
-#LHH34J7TMMZ4YKDEJC6ENFTIXLNLY2CA2KUHRVPTIF46F54SRDT2EEKNDC4EXGHHEHMJR23EP3W2O
-#\\\|7NGFKX7BT5LM4OIUQZXAMP6FRO6DHNUGX2VGZ4P4J7MEOQSBKWL \ / AMOS7 \ YOURUM ::
-#\[7]JUDHERAL722CZSKEHVMLA53TRHYRE77XHZJITM475XYSLHHHDYDA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,,,,.,,,,,,.,,,.,.,.,,,...,,,,,.,.,...,...,..,,.,,,,.,,,..,,,.,
+#WPJ5JTRE6IILYR32LXBSO7YLUDSQTZQMAEPBEFSUSNP732VBTWVUCDBWAQ5RWUDDDEFG3NFLWI5JU
+#\\\|CN3WG2T5HIJWLPH35VL7RSDDCW372CRKZ23ONJTATHH72CA4IY3 \ / AMOS7 \ YOURUM ::
+#\[7]X4KMIZ3HHN6BOALYBYKWJJ6QNRX2BCBSDZVRLOWHAH5PCJIRR2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

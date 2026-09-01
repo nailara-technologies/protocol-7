@@ -8,7 +8,7 @@ my $result = shift // {};
 my $params    = $result->{'params'} // {};
 my $client_id = $params->{'client_id'};
 
-my $client = $data{'proxy'}{'clients'}{$client_id};
+my $client = <proxy.clients>->{$client_id};
 if ( not defined $client ) {
     <[base.logs]>->(
         2, 'proxy.passthrough_reply: client %s gone', $client_id
@@ -48,8 +48,8 @@ $response .= "Connection: close\r\n\r\n" . $body;
 
 return;
 
-#,,,,,..,,.,.,...,,.,,...,.,,,.,,,,.,,,,.,,.,,..,,...,...,...,.,,,..,,.,.,...,
-#QZQIR4YURKDH64BE63SIXTPMGCCSJNYB72FWVY6ZGSWX3V75N74JDDOR23PNRPTHRRT4KC7M7YIZ2
-#\\\|NMB7WJXBJ3NIUZ3UQHBHI7MYYI56GO5I4WZV2YNLAUPZZJG2XIE \ / AMOS7 \ YOURUM ::
-#\[7]BFJC72DALTCRDUTKTUCFBRJGHVZHIHU6TOVHOGRLA2WQPVALDOBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,,,,,,,.,,.,,.,.,,,.,,,,,,.,,..,,...,...,.,.,,.,,.,.,..,,,,,,
+#OXFRGFWZ24AF2U4PRBCOSP6WSI6YFOY46C32KPC4TDTVI43TTAONQRWXY7JRLELDHTN44Q57MQMEA
+#\\\|6L3TYY5WIEUOSSFFZEWYCNOQDG4LIFHX6BY5L4VCKJG3BB3HZRI \ / AMOS7 \ YOURUM ::
+#\[7]P5YS32DHGPZJRLSDDOQHAHIPW4DO4VVABPBKJF7D43E4RW63XMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

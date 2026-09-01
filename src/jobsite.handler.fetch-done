@@ -46,12 +46,12 @@ if ( $total_queued > 0 ) {
         $total_queued
     );
 
-    if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
-        $data{'jobsite'}{'queue_poll_timer'}->cancel;
-        $data{'jobsite'}{'queue_poll_timer'} = undef;
+    if ( defined <jobsite.queue_poll_timer> ) {
+        <jobsite.queue_poll_timer>->cancel;
+        <jobsite.queue_poll_timer> = undef;
     }
 
-    $data{'jobsite'}{'queue_poll_timer'} = <[event.add_timer]>->(
+    <jobsite.queue_poll_timer> = <[event.add_timer]>->(
         {   after    => 3,
             repeat   => TRUE,
             interval => 3,
@@ -81,8 +81,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,..,.,,,,..,..,,.,,,,..,...,.,,,,..,,,,,.,,,..,,...,...,,,.,...,.,.,...,..,,
-#MYL7Q4L3DMPOHEFEFII4HJNMV5WQSRXNX7WVL7UXQTETPVEU53SOKGOUBHPWF7XPCIFJJ4NL2WEXM
-#\\\|TCUZUCLYW4IT3KMQ53UK6HIMBVIQVNZCSADH5K272ZQG7TSVJ6J \ / AMOS7 \ YOURUM ::
-#\[7]4NM7TTHKNV3EZ2L73G5DD66UKFWADWBCNSAFMDAMNO2WQ7IQZYDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,..,...,...,..,,..,,.,.,.,.,.,.,..,,...,...,,,.,...,...,.,,,,..,
+#57E4NGM5CO2QXFMXYI5TEEYS2BEVEPJUJLA4X2GWJGENXSAMVNSRP2V3QGWMZSOZMAYPOJBR65UMO
+#\\\|RZWVHPBYRDSPRA56UH6X7MZENMHXMZY6UTDXBYAPPAKO4KBYU5X \ / AMOS7 \ YOURUM ::
+#\[7]5MF4GUG4H3B4QXYHLB4CR5GJDKKJLP5KENBA3DTEBVIT2MBOKOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

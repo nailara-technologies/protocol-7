@@ -5,7 +5,7 @@
 
 my $params = shift // {};
 
-my $cursor = $data{'graphics-matrix'}{'cursor'};
+my $cursor = <graphics-matrix.cursor>;
 
 ## store previous position for logging ##
 my ( $old_x, $old_y, $old_z )
@@ -39,8 +39,8 @@ return {
     qw| selZ | => $cursor->{'selZ'}
 };
 
-#,,,,,.,,,.,.,...,.,,,,..,,,,,..,,..,,,,,,,,.,.,.,...,...,,.,,.,.,,,.,..,,..,,
-#YPOLZU2MK6V2DVUEOIZOFXIW3IZ5IK7RYCLT3P45MVBQEYMROZOUF7Y7GONYAP36THZGOJVFF7IEK
-#\\\|VLKQSDJVRNCUVKBAYSXXG4HDUZYYQTFQHZQGRPG5IG663QTZW25 \ / AMOS7 \ YOURUM ::
-#\[7]RNYKHHZN2KTVLPBJDKD4VG6ID5CHANZSC53YLJSLZHDH25OCCECQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,.,,,,.,,.,,,..,,..,.,,,,,.,.,.,...,...,.,,,,,.,,,.,..,,.,,,
+#SSZYFFGICKMW7XWWTRANJ5UX7DXK6MCPGYDZK3TW3JIC3YC3I6JJS4UWNMOFUWPTRTFFADXMUE5QY
+#\\\|P2M6O6J77GX6YHFG5VOFAM6ASKTXHZTO45PBVIXAUUE67NJFCB5 \ / AMOS7 \ YOURUM ::
+#\[7]6OJI3M2JME2AL6QMXCFIFJHGHULXHVAAGQKIT3FJYLIXGNOV2YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
