@@ -1,0 +1,122 @@
+task_id: format-code-module-call-sugar
+title: format-code — new opt-in step: compact $code{'literal.name'}->(...) into <[literal.name]>->(...)
+priority: normal
+estimated_rounds: 14
+
+context: |
+  Follow-up to data/yaml/archive/completed-coding-tasks/format-code-spaceless-split-and-data-key-sugar.yaml
+  (already landed, commit 5cd3d50e4) which added an opt-in -d flag to
+  bin/format-code compacting nested $data{'a'}{'b'} chains into <a.b>
+  sugar. This task adds the sibling transformation for the OTHER P7 sugar
+  form: subroutine-call sugar.
+
+  `<[module.name]>` is sugar for `$code{'module.name'}->()` (documented in
+  CLAUDE.md). 67 real call sites across 50 files in src/ still use the
+  literal `$code{'literal.name'}->(...)` form instead — e.g.
+  src/coding.tools.handler.read_module:9
+  (`$code{'coding.context.read_module'}->(`),
+  src/sourcecode.console.sign:13
+  (`$code{'sourcecode.console.update-signatures'}->($file_path);`).
+
+  Scope, decided in discussion before this task was written: ALWAYS keep
+  `->(...)` explicit and verbatim in the rewritten form -- do NOT also try
+  to elide `->()` for the zero-argument case (`<[module.name]>` alone,
+  relying on the parser's own "implicit ->() when no args" behavior).
+  Eliding it would be a valid further simplification per the language's
+  own semantics, but deciding when it's safe to drop is a separate, fuzzier
+  judgment call for a mechanical text-rewrite tool -- keeping `->(...)`
+  always, whatever is inside the parens (including empty `()`), is a pure,
+  unconditionally-safe substitution with no judgment needed. So:
+  `$code{'a.b'}->()` -> `<[a.b]>->()`, `$code{'a.b'}->($x, $y)` ->
+  `<[a.b]>->($x, $y)`.
+
+  ONLY compact when the key is a literal single- or double-quoted
+  bareword-shaped string (same bareword rule as the data-key-sugar step:
+  `^\w[\w\-]*$` after unquoting, double-quoted keys must not contain `$`/`@`
+  interpolation). Do NOT attempt the variable form (`$code{$var}->(...)` ->
+  `<[$var]>->(...)`) in this task -- literal-key-only for now, matching how
+  the data-key-sugar step also started literal-only.
+
+  CRITICAL, already learned the hard way on the data-key-sugar task: gate
+  this on the file actually being a P7 module, not just its `src/`
+  location. bin/format-code already has `is_p7_module_text($text)` (added
+  in the same commit as the data-key-sugar step) which checks for the
+  literal `## [:< ##` header as the first line of the source -- reuse it
+  exactly as-is, do not duplicate or reimplement this check. bin/Protocol-7
+  and AMOS7::*.pm also use `$code{...}->()` internally but have no
+  sugar-expanding pre-parser of their own, so compacting there would
+  produce broken code. The existing `.pm` exclusion pattern
+  (`$path !~ m{\.pm$}`) at the step6_compact_data_sugar call site is the
+  model to copy for this new step's call site too.
+
+issues_to_fix:
+  - id: module-call-sugar-compaction
+    description: |
+      new opt-in format-code step rewriting literal
+      $code{'a.b'}->(...) call sites into <[a.b]>->(...), keeping the
+      ->(...) part completely unchanged (whatever is inside the parens,
+      including empty). Gated behind a new flag, off by default, and
+      gated on is_p7_module_text() + non-.pm path same as the existing
+      data-key-sugar step.
+    files:
+      - bin/format-code (new step function + option-parsing wiring)
+    precedent: |
+      step6_compact_data_sugar (bin/format-code, added in commit 5cd3d50e4)
+      is the direct structural model: PPI-based token walk, is_quote_token
+      reuse, bareword-shape validation, single-line-only rewrites, replace
+      from end-of-line backward so earlier positions stay valid. This new
+      step is actually simpler in one way (no multi-key chain accumulation
+      needed, just $code{'literal'} immediately followed by -> and a
+      balanced ( ... ) argument list) but needs to correctly find the
+      matching close-paren for the ->(...) part, including when the
+      arguments themselves contain nested parens/braces/quoted strings
+      with parens inside them -- PPI's own structure/token boundaries
+      should make this straightforward (the -> ( ... ) is itself a
+      PPI::Structure::List, use its own token span rather than counting
+      parens by hand).
+
+style_notes: |
+  - read data/ai-mem/kimi/coding-style.md and data/ai-mem/kimi/MEMORY.md
+    before starting
+  - all comments lowercase, `[ word ]` not `( word )` for annotations
+  - do not add a signature footer stub — the repo's signing system adds
+    the real one on commit
+  - reuse is_p7_module_text() and is_quote_token() as-is, do not
+    reimplement either
+
+explicitly_out_of_scope: |
+  - do not implement the variable-key form ($code{$var}->(...) ->
+    <[$var]>->(...)) -- literal quoted keys only, this task
+  - do not attempt to elide ->() for zero-arg calls -- always keep
+    ->(...) verbatim, see context above for why
+  - do not run the new step across src/ in this task -- implement it,
+    demonstrate it correctly on a small number of the real call sites
+    listed in context (dry-run / diff review only), and stop there.
+    Applying it repo-wide (all 50 files) is a separate, deliberate step
+    the user runs themselves later after reviewing the tool's behavior
+  - do not touch the existing $data{}{} -> <a.b> sugar step
+    (step6_compact_data_sugar) -- unrelated, already correct, already
+    landed
+
+verification: |
+  1. Construct synthetic test fixtures (with a proper '## [:< ##' P7
+     module header) covering: zero-arg call, multi-arg call, a call whose
+     arguments themselves contain a nested paren or a quoted string with
+     a paren inside it, a double-quoted key with interpolation (must NOT
+     be rewritten), a variable key $code{$var}->() (must NOT be
+     rewritten, out of scope), and a bin/Protocol-7-style fixture (shebang
+     only, no P7 header) and a .pm-style fixture (package declaration) to
+     confirm both are left completely untouched by the new flag.
+  2. Run the new flag in dry-run mode against 2-3 of the real files named
+     in context (e.g. src/sourcecode.console.sign,
+     src/coding.tools.handler.read_module), diff review each rewrite by
+     hand.
+  3. Confirm `bin/dev/ptd -c` reports syntax ok on every rewritten file.
+  4. Confirm running format-code WITHOUT the new flag on the same files
+     produces no module-call-sugar changes at all.
+
+#,,.,,..,,,.,,...,,.,,.,,,.,,,,.,,.,.,,,.,.,.,..,,...,..,,.,.,,,,,..,,...,,..,
+#IJQDWFASDSIDE6PGO7AA66WLSDVJNV2HIXK7BURTINFLL25PS3PIPLVB54IFR2JEOF2G542O2LGUQ
+#\\\|HJ533LLBYQ44UILR6LC5ECWUNQ5K422TYOSF3UL4JUKPDDU7Z3O \ / AMOS7 \ YOURUM ::
+#\[7]QENPWLG5U65GBMCVRG4UU3FH6ELWA6QVQJWGOZAV4POSYWVKWODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
