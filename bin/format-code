@@ -110,7 +110,25 @@ my $TRUE_color        = "\e[38;2;6;71;195m";
 my $NEON_orange       = "\e[38;2;197;141;7m";
 my $NEON_green_yellow = "\e[38;2;71;195;6m";
 
-$SIG{'INT'} = \&sig_int;
+## TERM too, not just INT -- an external stop [ supervisor, timeout       ##
+## wrapper, plain 'kill' with no signal name ] sends TERM by default, not ##
+## INT, and would leave the same orphaned .chk.<name> temp file behind    ##
+## otherwise. perl calls a %SIG handler with the signal name as its first ##
+## arg, so one sub covers both correctly                                  ##
+$SIG{'INT'}  = \&sig_stop;
+$SIG{'TERM'} = \&sig_stop;
+## QUIT [ Ctrl-\ ] trades away its default terminate-with-core-dump  ##
+## behavior, worth it here for the same cleanup benefit -- this is a ##
+## short-lived CLI tool, not something anyone relies on core-dumping ##
+$SIG{'QUIT'} = \&sig_stop;
+## HUP : traditional "controlling terminal gone" meaning, not the daemon ##
+## "reload config" convention -- this tool has no persistent state to    ##
+## reload, and silently re-running the whole batch because the terminal  ##
+## disconnected would be a worse surprise than just stopping             ##
+$SIG{'HUP'} = \&sig_stop;
+## PIPE : e.g. 'format-code -c src/* | head' where the reader exits early ##
+## -- already defaults to terminating, same orphaned-temp-file gap        ##
+$SIG{'PIPE'} = \&sig_stop;
 
 ##[ perltidy args : no -o / -b / -bext needed, in-memory API takes care of ##
 ## both output capture and never touching the real file until we choose to ]##
@@ -187,6 +205,11 @@ say $blacklight, qw| : |;
 ## those two cases apart                                                    ##
 my $progress_line_open = FALSE;
 
+## tracks the .chk.<name> temp file [ if any ] currently on disk mid-check ##
+## so sig_int can remove it -- a plain 'next'/normal-exit cleanup never    ##
+## runs when SIGINT lands between creating it and unlinking it             ##
+my $current_chk_file;
+
 while ( my $file_path = shift @files ) {
     show_progress( $file_path, $file_count - scalar @files, $file_count );
     $progress_line_open = TRUE;
@@ -233,6 +256,7 @@ while ( my $file_path = shift @files ) {
             warn color_msg( lcfirst $OS_ERROR, $file_path );
             next;
         };
+        $current_chk_file = $chk_file;
         binmode $chk_fh, qw| :raw |;
         print $chk_fh( $no_utf8 ? $new_text : encode_utf8($new_text) );
         close $chk_fh;
@@ -252,6 +276,7 @@ while ( my $file_path = shift @files ) {
                 : perltidy_fail_reason($tidy_rc);
             warn color_msg( $err_msg, $file_path );
             unlink $chk_file;
+            $current_chk_file = undef;
             next;
         }
 
@@ -286,6 +311,7 @@ while ( my $file_path = shift @files ) {
         }
 
         unlink $chk_file;
+        $current_chk_file = undef;
         next;
     }
 
@@ -2404,10 +2430,19 @@ sub is_perl_code {
     return $is_code;
 }
 
-sub sig_int {
-    print "\b\b::\b\b\r$blacklight\:::\n:\n:: "
-        . "[ ${NEON_orange}SIGINT$blacklight ] $NEON_green_yellow "
-        . "format-code run aborted$blacklight ..,\n:$reset\n";
+sub sig_stop {
+    my $signame = shift // 'INT';
+    unlink $current_chk_file
+        if defined $current_chk_file and -e $current_chk_file;
+    ## PIPE fired because the reader is gone -- nobody can see this message ##
+    ## anyway, and printing to the same broken pipe would just raise PIPE   ##
+    ## again inside the handler                                             ##
+    if ( $signame ne qw| PIPE | ) {
+        print "\b\b::\b\b\r$blacklight\:::\n:\n:: "
+            . "[ ${NEON_orange}SIG$signame$blacklight "
+            . "] $NEON_green_yellow format-code run aborted$blacklight "
+            . "..,\n:$reset\n";
+    }
     exit('000113');
 }
 
@@ -2426,8 +2461,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,,..,,.,,..,,.,.,,..,.,,,,,,,,.,,..,,...,..,,...,..,,.,.,.,,,,..,,,,,,,,,
-#454NABFJUQV7SESTDXZCKYYLN6UEISDGTUGRYNUG7733XIK4O27S64S6P3QH4GCNFLFD2EZFODZWK
-#\\\|6YY5U2WHVTZREJUI3573DOKYI2DXXLMZMMM775LRSE4GHBD4V3F \ / AMOS7 \ YOURUM ::
-#\[7]JHQU4LXJJMA4UCXKUM7CJNXPFNR5234CHBWQOOX6MXOSWUKX5MDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,...,.,,,.,.,...,,,,,,,.,..,,..,,..,,...,...,,,.,..,,,,,,,,.,,,,,
+#XDTXJBX444W2LY5X4P5VXCBQANPUKPI7JP43I2XBB5CFLCK3KI77CA6PRYB4JBST6RJUY4SNRH5B6
+#\\\|PNLDNISJIS54Q57TAU4MXCQIIUTAMO3SUG2MWUGFTPQQJTUP2PR \ / AMOS7 \ YOURUM ::
+#\[7]PNZ3K3T526YBMOQ6TWVFEJIV3NRRJLYZ6NCT25EQLJ6TBA3AEYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
