@@ -50,8 +50,8 @@ while ( @ARGV && $ARGV[0] =~ m|^-| ) {
     } elsif ( $switch eq '-xz' ) {
         $use_xz = TRUE;
     } else {
-        die ":\n:: < ${NEON_green_yellow}ddcompress$reset "
-            . "> $reset:$NEON_orange unknown switch $reset : "
+        die ":\n:: < ${NEON_green_yellow}ddcompress$reset > "
+            . "$reset:$NEON_orange unknown switch $reset : "
             . "'$NEON_green_yellow$switch$reset'$reset\n:: valid "
             . "switches: -compress, -unpack, -xz\n:\n";
     }
@@ -90,8 +90,8 @@ my @all_content;
 ## Read input from files or stdin ##
 if (@ARGV) {
     foreach my $file (@ARGV) {
-        die ":\n:: < ${NEON_green_yellow}research-dedup$reset "
-            . "> $reset:$NEON_orange file not found $reset : "
+        die ":\n:: < ${NEON_green_yellow}research-dedup$reset > "
+            . "$reset:$NEON_orange file not found $reset : "
             . "'$NEON_green_yellow$file$reset'$reset\n:\n"
             if not -f $file;
 
@@ -121,9 +121,8 @@ if ( $mode eq 'stats' ) {
     ## Stats mode: show progress animation ##
 } else {
     ## Compress mode: show simple message ##
-    say {$ui_fh} "::[$NEON_green_yellow "
-        . "ddcompress $blacklight]:. ${TRUE_color}analyzing "
-        . "content$blacklight ..,";
+    say {$ui_fh} "::[$NEON_green_yellow ddcompress $blacklight]:. "
+        . "${TRUE_color}analyzing content$blacklight ..,";
     say {$ui_fh} "$blacklight:";
 }
 
@@ -582,23 +581,24 @@ my $stats_fh = ( $use_xz && $mode eq 'compress' ) ? \*STDERR : \*STDOUT;
 
 say {$stats_fh} "\n$blacklight:";
 say {$stats_fh} "::[$NEON_orange STATISTICS $blacklight]:.";
-say {$stats_fh} "::[$NEON_green_yellow "
-    . "elements $blacklight]:. ${TRUE_color}$word_count "
-    . "words$blacklight, ${TRUE_color}$sent_count "
-    . "sentences$blacklight, ${TRUE_color}$para_count "
-    . "paragraphs$blacklight";
+say {$stats_fh} "::[$NEON_green_yellow elements $blacklight]:. "
+    . "${TRUE_color}$word_count words$blacklight, "
+    . "${TRUE_color}$sent_count sentences$blacklight, "
+    . "${TRUE_color}$para_count paragraphs$blacklight";
 say {$stats_fh} "::[$NEON_green_yellow unique $blacklight]:. ${TRUE_color}"
     . ( scalar keys %element_freq )
     . " total elements$blacklight";
 say {$stats_fh} "::[$NEON_green_yellow encoding $blacklight]:. "
-    . "${TRUE_color}BASE32$blacklight ${violet}[${cyan}2-7A-Z${violet}]$blacklight with repetition compression";
+    . "${TRUE_color}BASE32$blacklight "
+    . "${violet}[${cyan}2-7A-Z${violet}]$blacklight with "
+    . "repetition compression";
 
 ## Display compression ratio ##
 if ( $output_for_ratio > 0 ) {
     my $ratio_str = sprintf( "i%04d", $compression_ratio );
     say {$stats_fh} "::[$NEON_green_yellow compression $blacklight]:. "
-        . "${TRUE_color}$total_input_bytes bytes$blacklight → "
-        . "${TRUE_color}$output_for_ratio bytes$blacklight "
+        . "${TRUE_color}$total_input_bytes bytes$blacklight "
+        . "→ ${TRUE_color}$output_for_ratio bytes$blacklight "
         . "${violet}[$cyan$ratio_str$violet]$blacklight";
 }
 
@@ -665,7 +665,8 @@ if ( $theoretical_xz_bytes > 0 && $total_input_bytes > 0 ) {
         : 0;
     say {$stats_fh} "::[$NEON_green_yellow xz compression $blacklight]:. "
         . "${TRUE_color}$base_bytes bytes$blacklight → "
-        . "${TRUE_color}$theoretical_xz_bytes bytes$blacklight "
+        . "${TRUE_color}$theoretical_xz_bytes "
+        . "bytes$blacklight "
         . "${violet}[$cyan$xz_ratio_str$violet]$blacklight";
 }
 
@@ -770,7 +771,8 @@ sub wrap_at_77_padded {
             my $padding_len = 77 - $content_len - $freq_str_len;
             my $padding     = '0' x $padding_len;
             $output
-                .= "$id_part$color$lines[$i]$reset$padding$marker$freq_part\n";
+                .= "$id_part$color$lines[$i]$reset"
+                . "$padding$marker$freq_part\n";
         } else {
             ## Continuation lines with padding + harmonization marker
             my $content_len = length($cont_indent) + length( $lines[$i] );
@@ -1026,15 +1028,15 @@ sub show_progress {
 ## Unpack mode: decompress encoded input ##
 sub unpack_mode {
     say "${blacklight}:";
-    say "::[$NEON_green_yellow ddcompress $blacklight]:. ${TRUE_color}unpack "
-        . "mode$blacklight - not yet implemented";
+    say "::[$NEON_green_yellow ddcompress $blacklight]:. "
+        . "${TRUE_color}unpack mode$blacklight - not yet implemented";
     say "$blacklight:$reset";
 
     die "Unpack mode coming soon!\n";
 }
 
-#,,,.,...,.,,,.,.,.,,,..,,,..,...,,..,..,,.,,,..,,...,...,,,,,,..,,.,,,,.,.,,,
-#UE35QHLJDQL4YQF32C5NHORL7D2RVS3QB2EDOZYOHFMKKUJKNOEY5KXKM7P7P27J22Y7IV7KVXMSY
-#\\\|4DYJT5CDYALII22STTEWMHR7FHRTUAQDDJO2RS3TYTW7S2K6JK7 \ / AMOS7 \ YOURUM ::
-#\[7]CDBXW7SOM4CHDDQF2X3CTXINJ2M6VEP3RQ5PBRSJYUFAU3M3K6BI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,..,,..,,,,.,,,.,,,,,,,.,,,.,..,,...,...,...,,,,,,..,,..,,..,
+#444JBHPDBFNAZX72CFYANIXX2XCMUCDL2JBRF4N7AHA6C46G4IL4M7XKVXJGMIQMU7KGHFJ7TITBO
+#\\\|RKZQ2AANQDTYAETBLXYAXEYANTD5I2SW2KL25PL77R7VVD2KQ43 \ / AMOS7 \ YOURUM ::
+#\[7]MFI352U2VBYRU3TA5F65QLDCZYTO5VBAK7636KBYF7G2G3H5PEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
