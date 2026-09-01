@@ -213,7 +213,7 @@ sub create {
     my $payload_size
         = PAGE_INDEX_SIZE
         + $total_pages * $page_size
-        + AMOS7::SHM::Feedback::FEEDBACK_SIZE;
+        + AMOS7::SHM::Feedback::FEEDBACK_SIZE();
 
     my $mount
         = AMOS7::SHM::shm_create( $pub_key_b32, $payload_size, $options );
@@ -229,8 +229,8 @@ sub create {
 
 return TRUE;
 
-#,,,,,,,,,,,,,,,.,,,.,,..,.,.,,.,,,.,,,,,,..,,..,,...,...,,.,,..,,.,,,...,.,.,
-#3C3G4ZBT4SZFXCNOBOCGTW3GBHXKGK4MXIVDEJHONOT5VYQJ234I2SKWV3NQB3WVBT46IIT6BVZS4
-#\\\|7SA7KROSYAM4WADFUXJB3W57SK3ORTS3VLCUNUYTERFSSHVWOGN \ / AMOS7 \ YOURUM ::
-#\[7]YJ6V3EHFXGQYVUF326ENDCV3HU3GNKWEVF4NT767ZUVQXFPEJWBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,...,,..,..,,,.,,.,.,...,,..,..,,...,...,,,,,..,,..,,,,,,,,.,
+#HOYRMIGU5OWZU4WHJHCDX6YK4CKRX42ZQGYYGO7O3OS7KIZCRKW6JYKFKSKN32ATVAJQ7UUOJC7ES
+#\\\|YKEQQPM6OXPZZXNPSTFT44FFKOQHCLXURROSBMLRIV663ZQSDYQ \ / AMOS7 \ YOURUM ::
+#\[7]KQT22KO72FFG243KX5DMC6YBH3ZQ3PD5SFOBUO34RH4LVLH5ZECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
