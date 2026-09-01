@@ -3,7 +3,7 @@
 # name  = kimi.cmd.approvals
 # descr = list pending tool call approval requests
 
-my @pending = sort keys %{<kimi.approval.pending>};
+my @pending = sort keys <kimi.approval.pending>->%*;
 
 if ( not @pending ) {
     return { 'mode' => qw| false |, 'data' => 'no pending approvals' };
@@ -20,8 +20,8 @@ foreach my $rid (@pending) {
 
 return { 'mode' => qw| data |, 'data' => $output };
 
-#,,,,,,.,,.,,,,,,,,.,,..,,.,.,.,,,,.,,...,.,.,.,.,...,...,...,,..,,,.,,..,,,.,
-#MSTCJ624EPQ263G3TQBJ3SUS3QCFWMKSEU75WYLAWWCD6BNMW3ZZ2AFRDVMKHVORPVRZLJ4BEP42U
-#\\\|T3HGXNQ2XKLK6BQAWOSL5UO5AY7D7XOKD6PEP6UBVHTPQTGKUIO \ / AMOS7 \ YOURUM ::
-#\[7]YRKNBEK2ZVKVYRPB7XPS5BX4BPVPWWYY2HSGWTI7GLQDL4FSC4CA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,,,.,,,,,,..,,.,,,..,,.,,..,,.,.,...,.,,,...,.,,,.,,,...,..,,
+#FOXWQFZHQ3SM3RBAV3QNBLZZFDYX5AEMSMIMJY2VLO2VMX4OK7HR3OP4TA6CYCI467TOTJE22QGQ2
+#\\\|EZ3U6LEO2N7FF72QDNNYM3UGAHTWBU577HNRHHAQ5ZO6XT6X5OH \ / AMOS7 \ YOURUM ::
+#\[7]XOGNQKRK2VMTQQZHX6Q2RSLS6QN5FDHYJJRDQKSA6XA7TKZVYIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,10 +3,10 @@
 # name  = amos-term.term-params-update
 # descr = update <amos-term.term-param> with values from zenka config file
 
-if ( defined <amos-term.term-param> and keys %{<amos-term.term-param>} ) {
+if ( defined <amos-term.term-param> and keys <amos-term.term-param>->%* ) {
 
     my %replaced;    ## replacing existing options ##
-    foreach my $option ( @{<amos-term.xterm-params>} ) {
+    foreach my $option ( <amos-term.xterm-params>->@* ) {
         if ( $option =~ m|\*(xterm\*)?([^:]{1,20}):(\S+)| ) {
             my $x_key_name = ${^CAPTURE}[1];
             my $c_val      = ${^CAPTURE}[2];
@@ -26,12 +26,12 @@ if ( defined <amos-term.term-param> and keys %{<amos-term.term-param>} ) {
         next if exists $replaced{$a_key_name};
         ( my $x_key_name = $a_key_name ) =~ s|-([a-z])|\u$1|g;
         push          ## append xterm option ##
-            @{<amos-term.xterm-params>},
+            <amos-term.xterm-params>->@*,
             sprintf( '%s:%s',
             $x_key_name, <amos-term.term-param>->{$a_key_name} );
         $added++;
     }
-    @{<amos-term.xterm-params>} = <[base.sort]>->(<amos-term.xterm-params>)
+    <amos-term.xterm-params>->@* = <[base.sort]>->(<amos-term.xterm-params>)
         if $added;
 
     ##  return number of changes \ additions  ##
@@ -40,8 +40,8 @@ if ( defined <amos-term.term-param> and keys %{<amos-term.term-param>} ) {
 
 return 0;    ## no changes ##
 
-#,,.,,,..,.,.,,,,,.,.,...,,,,,,,.,..,,.,.,.,.,..,,...,...,...,,.,,...,,,,,,.,,
-#UEJ5DPH7A4I4BBUE2XS27WMWXIADWQYA2DLG32P556YV2PPOJQ25K4LB7NDPRNDAULDGLVXKLXC5K
-#\\\|YNNJ33OJKB5XJWVEN6EXOQAFVG6DS6H7H7XWK4NTK3UNADQBY7Q \ / AMOS7 \ YOURUM ::
-#\[7]RU7FC4SH4ZHEHOS6E25OMG42MJ6CC5GU3YCPCHQNRUHNR4PAEQBI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,..,,.,,..,,,,.,.,.,,..,.,,,..,,...,...,.,,,,.,,..,,,,,,.,.,
+#YH66T5Q3PQKVV3LGRYXLCYDXNSB7AZYTGAR2L3ABBFZOK4UO7GIRD2RZ5KVRMWWY5DZ2S52PFLVD4
+#\\\|SGA5JQBOOVTNVJ2TQ2FVHWGKEFMATLOBVJ7WDTQPGH4ZINFXZBA \ / AMOS7 \ YOURUM ::
+#\[7]QHNCIWKW55T2JZ4EUHZLJPIPTOXSZKBXUH7L7QBQD3QEHYTWJGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

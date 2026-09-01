@@ -14,7 +14,7 @@ map {
         'mode' => qw| false |,
         'data' => "invalid url flag name '$flag_name' "
             . ".. comma seperated .. < "
-            . join( ' | ', sort keys( %{<content.url_flags>} ) ) . ' >'
+            . join( ' | ', sort keys( <content.url_flags>->%* ) ) . ' >'
         }
         if not exists <content.url_flags>->{$flag_name}
 } split( /,/, $flag_str );
@@ -29,7 +29,7 @@ map {
 } split( /,/, $flag_str );
 
 my $match = 0;
-map { $match++ if $ARG eq $url; } @{<content.file_list>};
+map { $match++ if $ARG eq $url; } <content.file_list>->@*;
 
 return { 'mode' => qw| false |, 'data' => 'no match in playlist!' }
     if !$match;
@@ -62,7 +62,7 @@ map {
 my $s = $flag_str =~ /,/ ? 's' : '';
 <[base.log]>->( 1, "setting url flag$s \"$flag_str\" for '$url'" );
 map { delete <content.url_flags>->{$ARG}->{$url} }
-    keys %{<content.url_flags>};
+    keys <content.url_flags>->%*;
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     $flag_param //= 1;
@@ -75,8 +75,8 @@ my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
 
 return { 'mode' => qw| true |, 'data' => $msgstr };
 
-#,,,,,,..,,,.,,,,,.,.,,.,,.,,,,..,,,.,,,,,,,,,..,,...,...,.,,,,,.,,.,,..,,,,.,
-#FFEAXAAPTEBBNWKT5ILYWSU4DY4NFUW5C4C2LCQDGBHQDBQ4Y4AQVVRZGY3A2FMMOCLZZVW4MDIWG
-#\\\|SSYFE7KZ6FLA5NMV5DJETA7KUOFWJ3TXG36QNEP4HMQ7KSXTFLG \ / AMOS7 \ YOURUM ::
-#\[7]NK4PPDN647FVH2ER5TMQVEYTY26KBCD6E6UGPYB3FQHETNJ7OWBA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,,,.,,..,,.,,.,.,.,.,..,,.,,,..,,...,...,..,,,,.,,,.,..,,,,,,
+#HFIEJUBAAAXE6BMOZJMKSRKLJLPDIRKZIZAMIEYIJQP5SOQUUIQDVSYUZTB6ECPC5P62ADKID4IP2
+#\\\|DLHVGYB2E2TUERXRO2LX2GZZ3ZXJHGVJ7H5G4RMDCVFVHVK3MDF \ / AMOS7 \ YOURUM ::
+#\[7]NXEVDHNGDWPXJGGII3DUNYPQFXB7LYOVZOSKRLROUBEDJA7KKSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

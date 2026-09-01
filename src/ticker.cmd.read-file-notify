@@ -73,7 +73,7 @@ if ( <[base.cfg_bool]>->(<ticker.notify.use_top_position>) ) {
 ## deferred reply: the caller waits until the user hovers/dismisses        ##
 if ($wait_for_dismiss) {
     if ( defined $call->{'reply_id'} ) {
-        push @{<ticker.notify.pending_reply_ids>}, $call->{'reply_id'};
+        push <ticker.notify.pending_reply_ids>->@*, $call->{'reply_id'};
         <[base.log]>->( 1, ': notify deferred reply registered' );
         return { 'mode' => qw| deferred | };
     }
@@ -84,8 +84,8 @@ if ($wait_for_dismiss) {
 
 return { 'mode' => qw| true |, 'data' => 'ticker notify content displayed' };
 
-#,,,.,,,.,.,.,,,,,,..,,.,,..,,.,.,,,,,,,,,...,.,.,...,...,.,.,..,,,..,...,..,,
-#ATXFLHZC33K4AZ7AQYWL6XLH3M3F4CMVNBEUQPXN26HIIKQWERGTN3JDEETLZX3USO5A2NOO57XSS
-#\\\|DDWFZ7JEYT6HQCJTNMMFZN2EGSDA3TDVF7R33M36EZ6F7FQUFRS \ / AMOS7 \ YOURUM ::
-#\[7]YSQ6N7FDTODAOJGYIWIHGOS2PSN6GCGDVYTNZR2L32O34372PMBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,.,.,,,,,..,,,,.,...,,..,..,,.,.,...,...,.,.,,,.,.,.,,,,,...,
+#QBUMJJ32FWJ35UF3TXAHXPEFUTUJ5PBTD6BBCHYQDGCY6QFISLYVWAUPMZ3TKUK7CN2QS5EYDVQGG
+#\\\|MMXOB2C4CFY5IBHADENQS3YPWHC6KNQ64GBI2EL7NJF3Y2Q5IZJ \ / AMOS7 \ YOURUM ::
+#\[7]NE4ACAUPAZUWQZXIGW7576FG7GRXAXQAP4EMYCRLFPAWWPGVSAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

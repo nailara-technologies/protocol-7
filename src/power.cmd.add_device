@@ -29,7 +29,7 @@ map {
         'data' => 'device already exists'
         }
         if <power.cfg.devices>->{$ARG}->{'ip'} eq $ip_addr
-} keys %{<power.cfg.devices>};
+} keys <power.cfg.devices>->%*;
 
 return { 'mode' => qw| false |, 'data' => 'invalid port parameter' }
     if defined $port and $port !~ /\d+/;
@@ -62,8 +62,8 @@ my $dev_id = <[base.gen_id]>->(<power.cfg.devices>);
 
 return { 'mode' => qw| true |, 'data' => "device added [id=$dev_id]" }
 
-#,,,,,,,,,,,,,,.,,.,.,..,,,,.,.,.,,,,,,,,,,,.,..,,...,..,,,..,,..,,,.,...,..,,
-#AYWSHN5GMWGMOTS7IMI3LHJZPZFRWG4OU6EJZM2PFL5OA4JRSOQGQHPCMLALEJOVV6WPVHCRGQWJY
-#\\\|AQGHZ5WDWZS6AI3HEVB4ESRV3VV6YVPJIXUPRJTDDKGOOEKE65J \ / AMOS7 \ YOURUM ::
-#\[7]OSNAB7WEIHHU2PFFHEJ6RXC4YA4VMDDZ5KG46RRSSI34W5X32ADA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,,.,,,..,,.,,,,,,,,,,,,.,..,,..,,...,...,.,.,...,...,.,.,,.,,
+#APSMGUDVCMW6N6XZUQOCXW3XYZ7L4LO5WZ7MAXOIKSZXFMSTF7QUF5ACOF4VJMIFVDRMNGMJQ57S2
+#\\\|7DYCARGN52PWFD4KLNHVK3WHOO7XWD43254GDWNGU7TWKC5B57K \ / AMOS7 \ YOURUM ::
+#\[7]AXEJ6KAGXGT23EJTDRALYPKPITTUKBN52C5PFPPMJHLWI4XPSYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,7 +23,7 @@ if ( defined $call->{'args'} and $call->{'args'} eq 'subscribe' ) {
     ) if not defined $h;
 
     <X-11.gpu_top.listeners> //= [];
-    push @{<X-11.gpu_top.listeners>}, $h;
+    push <X-11.gpu_top.listeners>->@*, $h;
     <[base.logs]>->(
         2, 'gpu stats listener added [sid=%d]',
         $call->{'session_id'}
@@ -33,15 +33,15 @@ if ( defined $call->{'args'} and $call->{'args'} eq 'subscribe' ) {
 
 if ( defined $call->{'args'} ) {
     my $ivl  = $call->{'args'};
-    my %secs = map { $ARG => 1 } @{<X-11.gpu_top.stats.secs>};
+    my %secs = map { $ARG => 1 } <X-11.gpu_top.stats.secs>->@*;
     return {
         'mode' => qw| false |,
         'data' => "no statistics for interval \"$ivl\" collected .. [ "
-            . join( ', ', @{<X-11.gpu_top.stats.secs>} ) . " ]"
+            . join( ', ', <X-11.gpu_top.stats.secs>->@* ) . " ]"
         }
         if not exists $secs{$ivl};
     if ( not defined <X-11.gpu_top.stats.load_average>->{$ivl} ) {
-        my $sample_count = keys %{<X-11.gpu_top.stats.sample>};
+        my $sample_count = keys <X-11.gpu_top.stats.sample>->%*;
         my $retry_in     = $ivl - $sample_count;
         my $s            = $retry_in > 1 ? 's' : '';
         $s .= ' ..' if $retry_in >= 5;
@@ -69,13 +69,13 @@ map {
     } else {
         $stats_str .= "[ ${_}s : $value ]  ";
     }
-} @{<X-11.gpu_top.stats.secs>};
+} <X-11.gpu_top.stats.secs>->@*;
 $stats_str =~ s| +$||;
 
 return { 'mode' => qw| true |, 'data' => $stats_str }
 
-#,,.,,,..,..,,..,,.,,,,.,,,..,.,.,.,.,.,.,,..,..,,...,.,.,..,,..,,...,.,,,.,.,
-#SDSGJFP4AHL4PLS25BNXKOZLPN7JA3LBZMBELCT7OVBRJWVNVKBDE2VALS7BNU3BE2GEXJZ2KGAEO
-#\\\|MNMJWX3SPT27XECZOJ2FS3KNQLJQSFC6OO3IPQRXQTDWDQLUCVG \ / AMOS7 \ YOURUM ::
-#\[7]STSRGXY246VRVOR5LK6UZVY4WJ3EVH2HEQCD5ZATDK74LBE3TMCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,,,,,,,.,,,,,..,,,,.,.,,,.,,,..,,...,...,..,,,..,,,.,...,,,,,
+#2OP36TMP2UCK6RWTKVU5HQ7NIWVCDRJSAYXIA3W77SHJYX7NUVLG5U42V44HB7MCBEFYHZHSHNKLE
+#\\\|BFC7XQPG4STKQQCK2VZ7CJKBIDJCXVFR4QLSVHUEG65IUHA46WZ \ / AMOS7 \ YOURUM ::
+#\[7]RB45YI275BDTYCV22A76LXWRPVPGZ6DAD3FJF4ZXYJQ7GYJVMCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

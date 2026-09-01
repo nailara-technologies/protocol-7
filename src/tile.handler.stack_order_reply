@@ -23,7 +23,7 @@ my @window_stack = split( /\n/, $answer->{'data'} );
 
 my $missing   = 0;
 my %wid_check = map { $ARG => 1 } @window_stack;
-for my $zenka_name ( keys %{<tile.layers>} ) {
+for my $zenka_name ( keys <tile.layers>->%* ) {
     my $wid_str = <tile.window_ids>->{$zenka_name};
     if ( not defined $wid_str ) {
         <[base.log]>
@@ -49,7 +49,7 @@ my @lower_ids;
 my %known_ids;
 for my $zenka_name (
     sort { <tile.layers>->{$b} <=> <tile.layers>->{$a} }
-    keys %{<tile.layers>}
+    keys <tile.layers>->%*
 ) {
     my $window_ids_str = <tile.window_ids>->{$zenka_name};
     next if not defined $window_ids_str;
@@ -82,8 +82,8 @@ if ( join( ',', @known_windows ) eq join( ',', @lower_ids ) ) {
     }
 ) if defined $reply_id;
 
-#,,.,,,,.,.,.,,,,,,..,..,,...,..,,...,,,.,.,,,..,,...,...,...,.,.,,.,,,..,,,.,
-#37ECMVOVIDIEXWZH6N24WV36VFHR27H6DMRUQO2BJEHXGXO42CT7T3YTICJXXTK5F57CNOOBQHDCI
-#\\\|YWRXVMJAXQF7ZVEMU4MV6XGPRKLGAPIE44LBKRJZRRSL6OP7UJZ \ / AMOS7 \ YOURUM ::
-#\[7]3M33T4XZWI7WHJ6GFJMEM5SH5UNGKJUH7SRPWJP7LYNN4ZVZ7OAI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,,,.,..,,,,,,...,,,,,.,.,...,..,,...,.,,,.,.,,,,,...,,,.,.,.,
+#TBTB5PJ37FL6HAKJD3DTHGY4BOZOI6VKVHJXW3JEXCSHNSU5R4NX5LIB732JVXZNEOXFVL6BKOFPK
+#\\\|JU7BXJAW5NBTZXMBB6VPPG2UBYDE3KLEG4PY6ZJPGSOSVX4UEU6 \ / AMOS7 \ YOURUM ::
+#\[7]E7FWDFMSP47QKUFCYSPDUXIBIIJFHVDQE2FVY5FWYH43WGE422DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

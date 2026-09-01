@@ -7,7 +7,7 @@ my $request_id = $call->{'args'} // '';
 
 ## approve all pending if no id given
 if ( not length $request_id ) {
-    my @pending = keys %{<kimi.approval.pending>};
+    my @pending = keys <kimi.approval.pending>->%*;
     if ( not @pending ) {
         return { 'mode' => qw| false |, 'data' => 'no pending approvals' };
     }
@@ -37,8 +37,8 @@ return {
         sprintf( 'approved %s [ %s ]', $request_id, $pend->{'action'} // '' )
 };
 
-#,,.,,,,.,.,,,.,.,..,,,,,,.,.,,.,,,..,,..,...,.,.,...,...,...,...,,.,,,..,.,,,
-#ED2NHGMV5OEVJK3DSMUXV2WSU2BZD26GZYX72HV7LOVBURF3GIDTWAE4OLNRMK2GHZ7GANB52IU4C
-#\\\|O5P7JES5WG5BGYTJSU5W3RCVYUHJITU4VE4DRLMCUJIMLFSM5QT \ / AMOS7 \ YOURUM ::
-#\[7]KMWHCMTIZ4ZICTWTXHAK2LHKHZICUBLUF7X2MLCOHIE7RQ7UN6AQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,..,,,,,,,,,,..,,..,,,.,..,,,.,,.,.,...,...,..,,...,.,.,.,.,,,.,
+#A7ZM2MDKWUDUMRRB75YCICNJKRKYXXDBWQJ65DYLR5OMCJ5JCWQCE3VKEO5SQGWTKZRCOTSTYBKKU
+#\\\|U5RBL6LWOMHKSNU6LCI7D6LFLP4QN4XWKJ7J3OKXSMAB4X6SX5E \ / AMOS7 \ YOURUM ::
+#\[7]HQTJXM5PE4ZGH5BBUADDXQ6JFK32H3SWTNH7SXL5GCZ7NPJ2QUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

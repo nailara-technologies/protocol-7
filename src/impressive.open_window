@@ -118,7 +118,7 @@ if ( defined <x11.geometry>
 
 my @exec_params
     = defined <x11.geometry> ? ( '-f', '-g' . <x11.geometry> ) : ();
-if ( @{<impressive.current_playlist>} > 1 ) {
+if ( <impressive.current_playlist>->@* > 1 ) {
     push( @exec_params, '--transition', $translist_str )
         if length($translist_str);
     push( @exec_params,
@@ -133,7 +133,7 @@ push(
         --scale
         --cursor
         |,
-    <impressive.gfx.cursor_png>, @{<impressive.current_playlist>}
+    <impressive.gfx.cursor_png>, <impressive.current_playlist>->@*
 );
 
 ## start up impressive window ##
@@ -235,8 +235,8 @@ if (    <impressive.cfg.use_start-anim>
     );
 }
 
-#,,..,,..,,,.,,.,,..,,.,.,,,.,,.,,,.,,,,,,,,.,..,,...,...,,,.,.,.,,..,...,...,
-#3QXNKCSJYFRZA366TYJ45ZJDUT7OT66OKWEU2Y6J6MO4OWSJTESBVT4DDHXHLAZ6VU4ID6DEX5LAE
-#\\\|GVHQZ7BULURFNBJGXS3CSHWTPLUSYIWEWL46NHMYFBCX7ZT2W6K \ / AMOS7 \ YOURUM ::
-#\[7]JR5MM6WS7T4YWETWCDIALTWWPGLBENZL3NLEFD6NTN46UEDNUCDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,..,,.,,.,.,...,.,.,,,,,,,,,...,..,,...,...,...,..,,,,,,..,,,..,
+#UZ3UJDBUESYHK3WHIP2DMRDYYLNTNE5HUXM2JH3MHLHCFIF2BAK7DQ4PWSR6G54MSRNX3PQDIO2NW
+#\\\|6RRQQXOHGX4SL7EIOLUJS2EXCINLIUIQYUN7HVA6SE3JCNG7OJA \ / AMOS7 \ YOURUM ::
+#\[7]DP75C7I5V455NEKR7IP5GV6LHRI46HMSNDZ4SNNXU7KP32UGZODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

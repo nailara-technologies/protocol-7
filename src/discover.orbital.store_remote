@@ -31,14 +31,14 @@ my $pkey_L13 = <[chk-sum.bmw.L13-str]>->($pkey);
 ## push to orbital STRM subscribers [ web's poll-replacement ] ##
 if (    <[base.cfg_bool]>->(<discover.cfg.orbital_push_enabled>)
     and defined <discover.orbital.listeners>
-    and @{<discover.orbital.listeners>} ) {
+    and <discover.orbital.listeners>->@* ) {
 
     my $pkey_short = substr( $pkey_b32, 0, 7 );
     my $payload    = sprintf "%s %s %s %s\n", $hostname, $pkey_short, $p7ref,
         '0.0s';
 
     my @keep;
-    for my $h ( @{<discover.orbital.listeners>} ) {
+    for my $h ( <discover.orbital.listeners>->@* ) {
         if ( <[base.stream.push]>->( $h, \$payload ) ) {
             push @keep, $h;
         } else {
@@ -51,8 +51,8 @@ if (    <[base.cfg_bool]>->(<discover.cfg.orbital_push_enabled>)
 
 return TRUE;
 
-#,,.,,..,,...,...,,..,.,.,,,.,...,,,.,..,,..,,..,,...,...,,,,,,..,...,...,.,.,
-#XF7NRC5K6ZPPPT4WUA3DUTYLZ42FCWXV5775HBWZMEYDMSMPMNVMNASERFSFUIULELLJ2ZWSYTOMM
-#\\\|GINZV3M66WVTG6EHJTOBGKPFOFSG4REPU75ZARCUTSQSD3JIX2G \ / AMOS7 \ YOURUM ::
-#\[7]IUWBW5KXYMOYL52CMN45HRAKUD4EAOFGJBZX77U4SDVW2KEC74CI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,..,,.,,,,,,.,,,,.,,.,,,...,,,.,..,,...,...,...,,..,,.,,..,,..,,
+#4UN3UEOXPSABR3REDIHZCYZF2G6GM2GPRCAMW5HXJS4RU5Q5JMNC6ADMCUDINTRQORGP37UAUGOBQ
+#\\\|DN27SFWDCNNCNCIMIRISKPCYEORDP7Q7AU7EABWNYCGE6CBL3WB \ / AMOS7 \ YOURUM ::
+#\[7]KAZXD4LLGYHOAFDN3HEJRDXDRBSQBUU4BUNK6PE5FDZEYNJ7IYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

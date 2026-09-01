@@ -16,7 +16,7 @@ my $bg_color = <web-browser.bg_color> // '#000013';
 
 if ( exists <web-browser.last_progress> or $progress != 100 ) {
     my $fg_view  = <web-browser.gtk_obj.view>->{1};
-    my $html_str = ${<web-browser.html_ref.loading_page>};
+    my $html_str = <web-browser.html_ref.loading_page>->$*;
     $html_str =~ s|\[BG_COLOR\]|$bg_color|sg;
     $html_str =~ s|\[COMPLETED_PERCENT\]|$progress|sg;
     $fg_view->load_alternate_html( $html_str, '[progress:$progress]' );
@@ -33,8 +33,8 @@ if ( $progress == 100 ) {
 
 return FALSE;
 
-#,,,.,,,,,.,.,.,,,..,,.,.,..,,,..,.,,,..,,,,.,..,,...,..,,,,,,,..,.,.,..,,.,,,
-#JGEZDRZN35TCKIRGYCBKZAK3QAK6SOGUBHLEDCSB2OW53OP63R7CPAIU57K5JI3FM5QK464BWFZIG
-#\\\|2WPYEGJF3QQNQIJMZRZ4UHHF6UUYPTOH2ZW2NTD2GA5ODPEXJCD \ / AMOS7 \ YOURUM ::
-#\[7]DKL4VJGSMFCJJAJICNHBZEEK7KCFCR457HTT247BG7JGOKJCOWBY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,.,,,,,,..,,.,,.,,,.,,,..,,,,,,..,,...,...,...,.,,,,,.,,,.,,.,,
+#J7HF4E7RY4DPAHCDUN6CW2HYBJN26PDUOBK5OACUF5TMLHWNBO5FTL6RCPORTVSTQH23LNHU6WFRY
+#\\\|Y63GIXAPJK6R3U7U5OBV2IY3QHSMT2NFOSOOW2ZD5OPBBUSE3L3 \ / AMOS7 \ YOURUM ::
+#\[7]J5S6JZWJOBIQZYMZBAZNIUTCWPRAI6MCSTYWBZ6UOGACA4Y6UMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

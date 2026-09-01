@@ -10,14 +10,14 @@ my $state  = $job->{'state'};
 ## phase 1: init -- pre-compute layout, build header ##
 unless ( defined $state ) {
 
-    unless ( defined <index.trie> and scalar keys %{<index.trie>} ) {
+    unless ( defined <index.trie> and scalar keys <index.trie>->%* ) {
         delete <index.jobs>->{$job_id};
         return
             <[base.log]>
             ->( 1, 'index.tick.persist-cube: trie not available' );
     }
 
-    my @depths    = sort { $a <=> $b } keys %{<index.trie>};
+    my @depths    = sort { $a <=> $b } keys <index.trie>->%*;
     my $max_depth = $depths[-1];
 
     my ( @ring_count, @comp_sizes, @dir_stride, @dir_base );
@@ -237,8 +237,8 @@ $state->{'curr_chk'}        = [];                        ## freed next tick ##
         . "entries, last batch ${batch_ms}ms ]"
 );
 
-#,,..,,..,..,,,,,,,..,.,,,...,,,.,.,,,.,.,...,..,,...,...,...,,..,.,,,,,,,..,,
-#HYLI53NJSN6PZSG3B4VV3XLRR6RKENN66TIXV7M4SRJH7I3DJ5WK7666HM3L43Y6NX2X3SOQRBQ4A
-#\\\|Q5VEHAUP4ZBQ5AFMPIUXHF6PSFIFKFTRJYPNXSVNCLXVXAYM6L7 \ / AMOS7 \ YOURUM ::
-#\[7]S7CF7ELJQU7ZTNMFF324UIGT4F5EKTI6ZDW4VGP7C4TX7LZN5KCY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,...,,.,,,,,,.,.,.,,,,.,,.,,,..,,...,..,,..,,.,.,...,.,,,,..,
+#MANQWU5D5L4J5ABRA6ULQ6RORTZ5GDAOB4GTQ6OD7RNGNX6ZOCWKJ6VR7NFQHDTCYXVE4UN7XF5IS
+#\\\|4MK5CYKY2Q5VJGFSPPFBXUSI7LHK5RJB6FDUHN5NN3JNCSSWC24 \ / AMOS7 \ YOURUM ::
+#\[7]3QYXNS6JO3HCYZLOR7U3SIIAS4DCVLFUNX5HVSEHSFQSLGKZPYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,7 @@ map { $file_types{$ARG} = 1 } split m| +|, $file_types_str;
 
 my %b32_index;
 my $index = -1;
-foreach my $file ( @{<content.file_list>} ) {
+foreach my $file ( <content.file_list>->@* ) {
     $index++;
     next
         if defined $subname
@@ -43,12 +43,12 @@ foreach my $file ( @{<content.file_list>} ) {
                 if $ARG eq $entry_tile
                 and not grep {m|^$b32id_str$|}
                 @{ <content.exclusive_b32id>->{$ARG} }
-        } keys %{<content.exclusive_b32id>};
+        } keys <content.exclusive_b32id>->%*;
     }
 
     next
         if grep {/^$b32id_str$/}
-        @{<content.hidden_b32id>};                # <-- SHOW/HIDE event
+        <content.hidden_b32id>->@*;               # <-- SHOW/HIDE event
 
     my @url_flags;
     map {
@@ -59,7 +59,7 @@ foreach my $file ( @{<content.file_list>} ) {
             push( @url_flags, $flag_str );
         }
         }
-        keys %{<content.url_flags>};
+        keys <content.url_flags>->%*;
     my $url_flags_str
         = @url_flags ? '#[' . uc( join( '|', sort @url_flags ) ) . ']#' : '';
 
@@ -77,8 +77,8 @@ foreach my $file ( @{<content.file_list>} ) {
 
 return { 'mode' => qw| size |, 'data' => $reply_string }
 
-#,,,.,.,,,..,,,,,,.,,,,..,,..,,,.,,.,,,.,,...,..,,...,...,...,...,,,,,.,.,,..,
-#VOGDKS4WI7PUJBV55ZVCALOEIVILZYQI47TLZSANKBQNXTZEFO5E6RY6LP5PIMFVMWHB5DIOUTB7C
-#\\\|AC7E4UALTMSVOYMTQWSM5MU6QHEQOOYE245T7KIXHCAXECRSIKR \ / AMOS7 \ YOURUM ::
-#\[7]JOVJF657DMPSJ3PDVXQ45UDJMVU4Y73PYFNZOVUHWGK2Q7ACPIAA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,...,...,,.,,.,,,,,,,,..,,..,,,.,..,,...,...,.,.,..,,.,,,,,,,,.,,
+#QJJCL3VMGOXE5N2DQFWLX44IQCJG6XH3KNAGZ7H2V3G3TYITWJAHC7KVL3JISZAAOBMX4JARCCRAK
+#\\\|XA2NLW7VC2DPN67ELZRBHLF24BV6P6SOSUJQRB2L74YN3HN7ZLF \ / AMOS7 \ YOURUM ::
+#\[7]JCKXQACTRKVHLSHD4TEU3Z5AIHSC45GXG72T2KYB3WKKN4ZNXCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

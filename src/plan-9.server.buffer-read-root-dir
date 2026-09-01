@@ -5,7 +5,7 @@
 my ( $offset, $count ) = @ARG;
 
 my $entries = '';
-foreach my $amos_id ( sort keys %{<plan-9.server.buffers>} ) {
+foreach my $amos_id ( sort keys <plan-9.server.buffers>->%* ) {
     my $buf  = <plan-9.server.buffers>->{$amos_id};
     my $stat = {
         type        => 0,
@@ -27,8 +27,8 @@ foreach my $amos_id ( sort keys %{<plan-9.server.buffers>} ) {
 
 return substr( $entries, $offset, $count );
 
-#,,.,,...,,,.,,,.,..,,,..,.,,,...,,.,,,,.,,,,,.,.,...,...,.,,,..,,.,.,.,,,.,.,
-#ZLV3AWOGPFSPF7TSI73Y6KWB2WDGRZARDABL6QAZV2ZZWTOO2DIADDOYCRL3RQUCT64OLZK62SXDC
-#\\\|TZE45B5OVFJ7NMHLZEHQC4IVWZCF2YAXLAKFLMOA3H7NAM6Z7EA \ / AMOS7 \ YOURUM ::
-#\[7]M4A72TDQF5Q34OSJRYTD6NNESN3BWUDZBGYRFE2X6KENXWCG5GAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,,,,,..,,,.,,,,.,.,.,,,,,,..,.,.,...,..,,,.,,,,.,,,.,.,,,..,,
+#CTSTU7RCK4E6J2B5L67CHABAD5VMQJU2UEKLPDT2T7BAIIPBTPVFIJANEOLE4OAAJLOV43B7UPRKE
+#\\\|TA7SOPDEAHBXIHYXUR3D6G72GAD7SNFRTDYEVEBBPEVOKPB6NFP \ / AMOS7 \ YOURUM ::
+#\[7]6KZ2PYBCPX4HMOTPQKGJ6TC5NCJFOR7UE5YTDGS3DC7QOPFH2QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

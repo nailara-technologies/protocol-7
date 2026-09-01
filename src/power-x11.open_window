@@ -52,7 +52,7 @@ my $logo_png = <system.root_path> . '/data/gfx/logos/power-x11/pms-lan.png';
 my $image    = Gtk3::Image->new_from_file($logo_png);
 $grid->attach( $image, 1, 1, 1, 1 );
 
-if ( !keys %{<power-x11.devices>} ) {
+if ( !keys <power-x11.devices>->%* ) {
     my $label = Gtk3::Label->new();
     $label->set_markup(
         "<span size=\"large\"><b>no devices configured</b></span>");
@@ -77,7 +77,7 @@ foreach my $d_id (
     sort {
         <power-x11.devices>->{$a}->{'mac'} cmp
             <power-x11.devices>->{$b}->{'mac'}
-    } keys %{<power-x11.devices>}
+    } keys <power-x11.devices>->%*
 ) {
     my $device = <power-x11.devices>->{$d_id};
     $d_num++;
@@ -125,7 +125,7 @@ foreach my $d_id (
             'notify::active' => sub {
                 my ( $widget, $switch_data ) = @_;
                 my ( $id, $sn, $found ) = ( 0, 0, 0 );
-                my @device_ids = sort keys %{<power-x11.switch>};
+                my @device_ids = sort keys <power-x11.switch>->%*;
                 my $new_state  = $widget->get_active;
 
                 foreach my $_id (@device_ids) {
@@ -171,8 +171,8 @@ $window->move( $pos_x, $pos_y );
 
 Gtk3->main;
 
-#,,..,...,.,,,.,.,,.,,...,,,.,,,.,.,,,..,,,,.,..,,...,...,,..,,..,,.,,.,,,,..,
-#MPLYU6LBO74COEC3SM7I7OEJ5UJ5U5FH6BFKI33MTXYKYVK6R66F3RIQO5IPTDADY3SFK67SHQPVU
-#\\\|EOOTF5NL5ZNT2MRIHOENWCW6PZHDZ57XBBISWSAVAHCKALJJOCB \ / AMOS7 \ YOURUM ::
-#\[7]5IOIVFSDKEWI6ANXZ6GUDTELBLYQV32V5ZQ7WPBODNA4NVAFDICI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,,,.,,,.,...,...,...,,..,,..,..,,...,...,,..,,,.,..,,,,.,,,.,
+#D5PLPOUMVYQVWAWJXYWZW2THRKO6RCDL76RVTYD22VRYCFLFULGWPJTO6CVWUOQNLFJF5L7ZSZTAO
+#\\\|TDOWWWNY7XHSCHPU5UWME7Y7MBHBGGI27QYBP7U4LN7N6IL5EZ7 \ / AMOS7 \ YOURUM ::
+#\[7]NKINH23EQNVF65GOFJGPW63W5GRB533AF26DEAHECU73B44WXYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,13 +8,13 @@ my $overlay_str = $call->{'args'} // '';
 
 <tile.transition_queue> //= [];
 <tile.overlays.current> //= [];
-<tile.overlays.previous> = [ @{<tile.overlays.current>} ];
+<tile.overlays.previous> = [ <tile.overlays.current>->@* ];
 
 return {
     'mode' => qw| false |,
     'data' => 'no tile group overlay is active'
     }
-    if !@{<tile.overlays.current>};
+    if !<tile.overlays.current>->@*;
 map {
     return {
         'mode' => qw| false |,
@@ -37,25 +37,26 @@ map {
         'data' => "tile group \"$overlay_str\" not found"
         }
         if not exists <tile.setup.tile>->{$ARG};
-    push( @{<tile.overlays.current>}, $ARG );
+    push( <tile.overlays.current>->@*, $ARG );
 } @del_overlays;
 
 ( my $current_one = <tile.current_tile_group> ) =~ s|\+.*$||;
 
-my $prev_count = scalar @{<tile.overlays.current>};
+my $prev_count = scalar <tile.overlays.current>->@*;
 
 my %active = map { $ARG => 1 }
-    grep { length($ARG) and $ARG ne $current_one } @{<tile.overlays.current>};
+    grep { length($ARG) and $ARG ne $current_one }
+    <tile.overlays.current>->@*;
 map { delete $active{$ARG} if exists $active{$ARG} } @del_overlays;
-@{<tile.overlays.current>} = sort keys %active;
+<tile.overlays.current>->@* = sort keys %active;
 
 return {
     'mode' => qw| false |,
     'data' => "no match for tile group '$overlay_str'"
     }
-    if scalar @{<tile.overlays.current>} == $prev_count;
+    if scalar <tile.overlays.current>->@* == $prev_count;
 
-my $merged_name = join( '+', $current_one, @{<tile.overlays.current>} );
+my $merged_name = join( '+', $current_one, <tile.overlays.current>->@* );
 
 <[base.log]>->( 2, "creating merged [ overlay ] tile group '$merged_name'" );
 
@@ -65,12 +66,12 @@ map {
     <tile.setup.tile>->{$merged_name}
         = merge( <tile.setup.tile>->{$merged_name},
         <tile.setup.tile>->{$ARG} );
-} @{<tile.overlays.current>};
+} <tile.overlays.current>->@*;
 
 return <[tile.cmd.switch-group]>->( { 'args' => $merged_name } );
 
-#,,.,,,..,.,,,..,,.,.,,.,,...,...,...,...,.,,,..,,...,..,,,.,,.,,,,,.,.,.,.,.,
-#6XHM25EASUD4DOWC7NQLNXFEVEVBRWKYCDXUTHCHABNID6VLA24NPJTHEFSWVQWEXS7EIYY4UO44I
-#\\\|R4626QAAYQJCC5YDXOOQ2FWP5T4HV2F3LOJLNVIN5MA7PSN64ZF \ / AMOS7 \ YOURUM ::
-#\[7]R7EOUVVUXCAP6VBSY7AUKIPCNGDZQE2RQ52EOX2FOHZ5OAN74WBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,..,,,.,,...,..,,...,,..,..,,,..,..,,...,...,,..,,.,,.,.,,..,.,.,
+#77VJ35XQQNU3LWXSH2GYTCAJIOKDYZGHL54THKJHHQLQSOW5F32EM5K44QTZ5ZK2OTANTH7FNULVM
+#\\\|56SK42TWELOJYT6GHNRWIZE7IIJJP3ETYW4SCJDXUC3XRVOLUWB \ / AMOS7 \ YOURUM ::
+#\[7]YFJYSC45VX6EFP7IY5XU4DBGQKW7ZGIOIQHKH7N52C3Q6VY7XMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

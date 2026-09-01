@@ -16,7 +16,7 @@ return if $error_str eq qw| success |;
 if ( ( <mpv.snapshot.pending.stage> // '' ) eq qw| pos | ) {
     <mpv.snapshot.pending.stage> = qw| playlist |;
     push(
-        @{<mpv.command.reply>},
+        <mpv.command.reply>->@*,
         {   'handler'  => qw| mpv.handler.snapshot_collect_playlist |,
             'callback' => qw| mpv.handler.snapshot_collect_error |,
         }
@@ -28,8 +28,8 @@ if ( ( <mpv.snapshot.pending.stage> // '' ) eq qw| pos | ) {
 
 return;
 
-#,,..,.,,,..,,,,.,.,.,...,,,,,,,.,...,...,,..,..,,...,...,,,.,,..,,.,,,..,,,,,
-#NN3XO4OQJ2YL5I6KQD6FG7RMJUVOQQOZ2SPQQIGUWJEP3PH4FKPRLZWNUBCTYP5RGMZQ6OTK3BDG2
-#\\\|YYEFXUFVT3LWWB252L4NA3JSR2BK4SJIV54J7Y4NBRXELLEB3HO \ / AMOS7 \ YOURUM ::
-#\[7]6ELWYSILW3HFQRXU4B6LNHLPFANSF4QIQCA5XRF5P3VEXOFFOAAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,.,,,,,.,.,.,,,.,..,,...,.,,,..,,...,..,,...,,,,,,..,,.,,,.,,
+#UWPYE6HBK3QPOAJTFDUEDDD45CF3CSFXDLQGZ34HMPVJKRURQZVI45EOWYM22ZUDDSJ4LIPFHZQSW
+#\\\|UQ3DPDZ6XXGBYFVNTFTAIME6LMN5MK26L5WAKE3YZ7MHSQY6GI6 \ / AMOS7 \ YOURUM ::
+#\[7]HHQ5NFSOTPCOVSQAOYMIJKKLMUYF32GODILA65E2ZERW62IK36BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,7 @@ if ( defined <web-browser.url_list.bmw>
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, 'received empty url list.' );
-    @{<web-browser.url.list>} = ();
+    <web-browser.url.list>->@* = ();
     <web-browser.slideshow.running> = 0;
     <[web-browser.clear_views]>;
 
@@ -64,13 +64,13 @@ foreach my $url (@url_list) {
 my $y = $entry_count == 1 ? 'y' : 'ies';
 <[base.log]>->( 1, ": $entry_count entr$y received" );
 
-@{<web-browser.url.list_reply>} = @url_list;
+<web-browser.url.list_reply>->@* = @url_list;
 
 my $index = 0;
 
 ### quickfix ( cleanup old url entries ) ###
 
-@{<web-browser.url.list>} = ();
+<web-browser.url.list>->@* = ();
 
 ############################################
 
@@ -102,13 +102,13 @@ foreach my $entry (@url_list) {
             = '!' . <web-browser.url.list_reply>->[$index];
 
     } else {
-        push( @{<web-browser.url.list>}, $entry );
+        push( <web-browser.url.list>->@*, $entry );
     }
     $index++;
 }
 
 my $pause_cnt = 0;
-my $url_count = scalar @{<web-browser.url.list>};
+my $url_count = scalar <web-browser.url.list>->@*;
 map {
     $pause_cnt++ if $ARG eq '[PAUSE]';    # universal-child
 
@@ -120,9 +120,9 @@ map {
         <web-browser.min_zoom> = 1;
         <[web-browser.calc_zoom_level]>;
     }
-} @{<web-browser.url.list>};
+} <web-browser.url.list>->@*;
 
-if (@{<web-browser.url.list>}
+if (<web-browser.url.list>->@*
     and $pause_cnt != $url_count    # <-- prevents infinite while loops
     and <web-browser.slideshow.autostart>
     and !<web-browser.slideshow.running>
@@ -132,8 +132,8 @@ if (@{<web-browser.url.list>}
     <[web-browser.start_slideshow]>;
 }
 
-#,,..,,.,,.,,,...,.,,,,.,,,..,,..,,,,,.,.,,,.,..,,...,...,.,,,,,,,,..,,.,,,.,,
-#WAT5KYAPIUWQKS2J2S6XJTPTPLVEBGFNP322N5KOXJ2U6HVC4VQHSKHWB2DFUX77I2LDOK56FAAMA
-#\\\|ON2I6Z6A6QYKICDXHWSQI6IKJDPTKY6J5U4JGL57F35RAQXMUXH \ / AMOS7 \ YOURUM ::
-#\[7]HM6F5F4F2XK3LCU6PNGFTQHA5D3EOWIXG2PNNMDDT6WFIESST4CQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,.,,,.,.,.,,,..,,,.,,.,.,...,..,,...,..,,,.,,,..,..,,..,,..,,
+#NGUYIFPKD7IEBKTGNSG7INOJC6QLNBOEYK32XOE5FJK3HZ6ZVL43AJJ5EUEDFLMLT5M4S7D2XU2DA
+#\\\|OWOK2VVU5ZECPWIX5YVAQJVOAW5YF6R4FF2FLQQH65QTJAF7XHU \ / AMOS7 \ YOURUM ::
+#\[7]POEZBAPCHYARIXICRNGZBRF23B4PEGVZ6LFD2XQWF64DOYCKLIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

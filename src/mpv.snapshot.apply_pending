@@ -34,7 +34,7 @@ if (    defined $position
     <[base.logs]>->(
         1, '[snapshot] seeking to restored position %.1f', $position
     );
-    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    push( <mpv.command.reply>->@*, { 'handler' => qw| dev.null | } );
     <[mpv.send_command]>->( 'seek', $position, 'absolute', 'exact' );
 } elsif ( defined $position and $position > 0 ) {
     <[base.logs]>->(
@@ -47,14 +47,14 @@ if (    defined $position
 ## the snapshot state wins                                                  ##
 my $pause = delete <mpv.snapshot.pending_pause>;
 if ( defined $pause and $pause =~ m{^(yes|no)$} ) {
-    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    push( <mpv.command.reply>->@*, { 'handler' => qw| dev.null | } );
     <[mpv.send_command]>->( 'set_property_string', 'pause', $pause );
 }
 
 return;
 
-#,,..,,..,.,.,.,,,.,.,.,.,,.,,,..,,..,,.,,.,,,..,,...,...,.,.,,.,,,,.,,,.,..,,
-#O3DLD7YRDDEKQ4HZITN42CEEXEIKL4AMFPB6LBVYFRB2M4IVJNSTTTW2ICGAPMNJ4N44CNBFARVFK
-#\\\|EIV5XXLI2GIOS2XBGJZTNHS5FVRIY73YKETPHEHSVS5MEQXLCDA \ / AMOS7 \ YOURUM ::
-#\[7]JTQ6ZXLIHDU674TCFMXDV3AMPA7Z5KPQ7FLLKFNGJK35WYXORSAI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,,,,,.,,,,.,,,.,,...,,,,,,,.,..,,...,...,..,,.,,,.,,,,,.,.,.,
+#QZXIHHTG3CXLTYOHQJMK2JLYTFOAGMUSKOWY6ASDJ47BYQDHY5GMXN2RGNWMAF3TZF4N5CSUXJTMW
+#\\\|FOEQ5DFFPB7U2T6RKKFVPJ2P3UHQQYUZTQIT2XBVPH4C35GFBR3 \ / AMOS7 \ YOURUM ::
+#\[7]WZ7E6K3JRZ2NX7X6SX2MBYDX4US53IHZWJ6NJIQ4OHBGMWF6E2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,7 +37,7 @@ if ( $new_status eq qw| disconnected | ) {
 
     ## schedule reconnect if work is pending or session was previously ready
     my $has_preserved_prompt = FALSE;
-    for my $pend_id ( keys %{<kimi.wire.pending>} ) {
+    for my $pend_id ( keys <kimi.wire.pending>->%* ) {
         if ( ( <kimi.wire.pending>->{$pend_id}{'type'} // '' ) eq qw| prompt |
         ) {
             $has_preserved_prompt = TRUE;
@@ -191,7 +191,7 @@ if ( $new_status eq qw| disconnected | ) {
             my $active_id     = <kimi.task.active_id>;
             my $repend_msg_id = do {
                 my $found;
-                for my $mid ( keys %{<kimi.wire.pending>} ) {
+                for my $mid ( keys <kimi.wire.pending>->%* ) {
                     if ( ( <kimi.wire.pending>->{$mid}{'type'} // '' ) eq
                         qw| prompt | ) {
                         $found = $mid;
@@ -252,8 +252,8 @@ if ( $new_status eq qw| disconnected | ) {
 
 return TRUE;
 
-#,,,,,,,.,...,,.,,...,..,,..,,,,.,,,.,,.,,,,.,..,,...,..,,,,.,,,,,,,.,..,,..,,
-#Y35CKNPZZT44Y5QOLGOLAHXTMP4Y2SVWNFNBYPSFYILETK2342LOPZ5VZCF37MJYUY5PGX3ES2234
-#\\\|JVNZY6OIJRD33KOUF52QHPADJLTC24JPO2NVEONGIWTIUSHBDP5 \ / AMOS7 \ YOURUM ::
-#\[7]GPRQVOPBDHVYJKKHFBCW7YABSYD5MLQ5HVPFYHWC4ATVA6GMDOBQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,.,.,,,.,..,,.,.,..,,,.,,,,.,..,,...,..,,..,,,..,,,.,,..,,..,
+#NUPBHOGFIDMAI5Q4NBZX55VNHE6OKLQFDM2MS44D4PZBRV6QOPR2VLY2TFGG7GUZXDBKYK2KJ4T3W
+#\\\|HFLYBPNXRO6FRUK4XTRC6RWVXJSLYKZIZE6Y5G5JWOCKG7GCDGZ \ / AMOS7 \ YOURUM ::
+#\[7]BQU45MK2L3RHMOLDJTAL67YGUFJAS67RTODQXUVTWDLXKTN4L4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

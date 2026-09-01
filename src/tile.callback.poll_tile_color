@@ -14,7 +14,7 @@ my $bg_color = <tile.x11_bg_color> // '';
 
 my %zenka_names;
 map { $zenka_names{$ARG} = 1 if $ARG =~ /\[$tile_name\]$/ }
-    keys %{<tile.coordinates>};
+    keys <tile.coordinates>->%*;
 ( my $zenka_name ) = keys(%zenka_names);
 
 my $coordinates_data = <tile.coordinates>->{$zenka_name};
@@ -42,8 +42,8 @@ return warn "[!] unable to find coordinates for tile '$tile_name'"
     }
 );
 
-#,,,,,,.,,.,,,..,,..,,,,,,,,.,.,,,..,,,,.,.,,,..,,...,...,.,,,,,.,,,,,..,,,,,,
-#53APG2QTZJCWCAWVTK6K7MLGQW3MJJLEAHGRZCJDJCNDOSBVWCKOKLNMAWS67JSBHO5LV647RZ3PQ
-#\\\|WLSLVBBBGXS3F4SCYONBXOCVMBRKTCW5B6IBMPNTU2IK2D74QBK \ / AMOS7 \ YOURUM ::
-#\[7]45KHFQPP7BJX5ONGSYLKN4JDJHFNNCN23JHIL556ON2UDI5VO4BI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,,..,,.,,..,,,.,,..,,...,,..,..,,...,...,,,,,,..,.,.,,..,.,.,
+#HIMCKDISJMVT7RKVOJNRK27FHOSDBP4GKTIB632OOCBBCLG3RF7HSIQKZOKJHCTRQCO2ENWOVYC4A
+#\\\|2TFE2GHKESDQC7YLWZW3DBKMLIKQWI6FWRJTIR7POWT2MTXGPIS \ / AMOS7 \ YOURUM ::
+#\[7]B7UDVNX4EO5R6NHFGG5L2ZFC4E37ZBSXHDRMNCP2P6YJGTHQ7MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

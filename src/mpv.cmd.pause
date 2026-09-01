@@ -3,16 +3,17 @@
 # name  = mpv.cmd.pause
 # descr = pause playback
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 
-push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.cmd_prop.pause' } );
+push( <mpv.command.reply>->@*,
+    { 'handler' => 'mpv.handler.cmd_prop.pause' } );
 <mpv.pause_cmd_mode> = 'pause';
 <[mpv.send_command]>->( 'get_property_string', 'pause' );
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,.,.,.,.,...,...,,.,,.,,,,,,,...,...,,..,..,,...,...,..,,...,,.,,.,,,.,,,
-#DV4JBSKSNEPOPQCJDCP6Q5XT42K5PFHI7GXV7GQFEOXUPNZRXSVX53HMPTF73TKBMMG2I7LZ5ZEOM
-#\\\|6CNAMFRCIOOL4LPSBIAZNAOD473V6D6Q4JEMVZQ7LZLNVZ65EEY \ / AMOS7 \ YOURUM ::
-#\[7]WWDZWBCALOC3DRBEKU6ZHRQOKIGYFJXVHLR4X2TYKNOX6DRGS4AA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,,,,,,,,,..,,.,,,,,,,.,,,.,,,..,,...,...,..,,,..,.,.,.,,,,,.,
+#3IZ5F2R6JHILMUILVZCILRQ7J7JNUXPUFBWMM7G4PHYCLBPTDSLOJ6K5TJCF7FPFXP2DIFOHJE7XE
+#\\\|VBAC2RLCGR4AV4XXB7LACXGNQOPHQ6AN6WRI2GNUKCTHJTBZJUL \ / AMOS7 \ YOURUM ::
+#\[7]F2ZOFHCTPZ4XJQGE5FWS4ZNZI2EE5NPUIUBUJAUMRAMPLYWHEGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

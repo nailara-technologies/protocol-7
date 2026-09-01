@@ -172,7 +172,7 @@ if ( $arg eq qw| init | or $arg eq qw| all | ) {
     my $undef_sub_count
         = ( <[base.cfg_bool]>->(<base.referenced_subroutines.console_report>)
             and ref <base.subroutines.referenced> eq qw| HASH | )
-        ? scalar keys %{<base.subroutines.referenced>}
+        ? scalar keys <base.subroutines.referenced>->%*
         : 0;
 
     if ( $modules_init_success and not $undef_sub_count ) {
@@ -223,8 +223,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,,,,.,,,,,,,,.,,.,,,.,,,.,.,.,.,,,.,,,.,.,.,..,,...,...,.,.,.,.,.,.,...,,,.,
-#DJ6Q4TX7DJBARMOFOLZECG242YPWIBJ3JKHLMGMGLFMIP7JRXJTORVIRGNH4JYTHI6DCB55A3LXCA
-#\\\|EEPDM74R2QHZARVBWRDK3XC4DUMHTXN52G6GKOZ5BOLCVWOLTV2 \ / AMOS7 \ YOURUM ::
-#\[7]BBOID3C2WXYUJAN4QJLO77IDO3RM2ODWFYJTQYTCJSABAZH7HSCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,,.,,...,...,,.,,.,.,.,,,.,.,..,,...,...,.,,,,,.,...,,..,,,.,
+#BLU354WNBIKH5FW52GC7QN7BK7IDYCVGNVDTWTJ4VHI5RD7R52DIW24YO6NPMD4RPKT4FAKF3Z7SY
+#\\\|NNACEOD4OYIYY7AEEYCLXHRFTFUCV5ZZVBG55A4W3D6KRSWOFSX \ / AMOS7 \ YOURUM ::
+#\[7]ACAUDWKABAYV5H3KWZZ73VAYBFBPVZ4GF2VKMQW5E66E52SJCEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@
 my @nodes;
 
 ## iterate all nodes in valued.index ##
-foreach my $id ( keys %{<valued.index>} ) {
+foreach my $id ( keys <valued.index>->%* ) {
     my $priority = <[valued.resolve]>->($id);
     push @nodes, { 'id' => $id, 'priority' => $priority };
 }
@@ -32,8 +32,8 @@ my $output = sprintf
 
 return { 'mode' => qw| true |, 'data' => $output };
 
-#,,,,,,,.,...,...,..,,,.,,.,,,,,,,...,.,.,,,,,..,,...,...,..,,,.,,..,,,.,,.,.,
-#FOZVHBVR2XGK5GCF7FKR45IA7HLRZRX2OMTYXXRO6HEK4CSJ6D26KRSQHKNZACBYDPECMS7FHRQMM
-#\\\|632S6HGRDZDPRBPNR33GKJ77FWTKUZEMSOJGUSGB6UXGH4RDOMY \ / AMOS7 \ YOURUM ::
-#\[7]MF2OEGXJNBWODEWAXVU2EQGLB7BOLUOAKKLGXQSEJQGKVHZVU2BY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,..,.,.,.,.,.,,,..,,,.,,.,,,,,,,..,,...,...,..,,,.,,,,.,,,,,,..,
+#EV532K4YJZPI3VUYYVVHK3I4WIJMYZ5GHSJTDJABFS7ZSEWKQJ2IAMIXQVM5TUOBAL3IKLK6QEOM2
+#\\\|36EAA7VH3ZAD2PYTPWAFQ7AXSIR64R7DO3WEXJ2ACU3WIVJ775N \ / AMOS7 \ YOURUM ::
+#\[7]A6Q6VADWDGNAYGJYFSQPFKRO2VW44SQS7H7T6YBP2KO6ENQZVYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

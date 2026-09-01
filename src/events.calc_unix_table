@@ -8,13 +8,13 @@ my $new_events = 0;
 <[base.log]>->( 2, "[re]calculating (unix) timetable.," );
 
 # use event ID if its name was not defined
-map { <events.setup>->{$ARG}->{'name'} //= $ARG } keys( %{<events.setup>} );
+map { <events.setup>->{$ARG}->{'name'} //= $ARG } keys( <events.setup>->%* );
 map {
     <events.timetable>->{$ARG}->{'name'} //= <events.setup>->{$ARG}->{'name'}
     }
-    keys( %{<events.timetable>} );
+    keys( <events.timetable>->%* );
 
-foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
+foreach my $ev_id ( keys( <events.timetable>->%* ) ) {
     my $ev_name = <events.timetable>->{$ev_id}->{'name'};
 
     next if exists <events.unix.timetable>->{$ev_id};
@@ -116,8 +116,8 @@ foreach my $ev_id ( keys( %{<events.timetable>} ) ) {
 }
 <[base.log]>->( 2, ": nothing to do.." ) if !$new_events;
 
-#,,,,,..,,,,.,.,,,,.,,,..,,.,,.,,,,,,,..,,,.,,..,,...,...,...,,,,,.,,,.,.,,,.,
-#RSMUSLE4A6AYAPBH5JRDHRAHKKPZVZQTTHU5QWRY5MDNJEZOXGNWJGZD3TPKS5YECJIRNR64DH3LQ
-#\\\|GM5OK7FJYOV4FT236MHJ7BCKQWZMOMVBJAKJI3K7XPU4YGCQZUT \ / AMOS7 \ YOURUM ::
-#\[7]PVZRZJE3JBOLPOFID6YDMUCCCR4LCNAO4HDCFKGL4AIMETFHMUDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,.,,,,..,.,.,..,,..,,.,,,.,.,..,,...,...,...,,,,,.,,,..,,.,.,
+#DTDGYUERHCKLZGJCBT33CN6EH3NSH2GY2AWQKIVBU3NZT45H3FK54ZFTTAUECAXM3QDZP5YFVHYIC
+#\\\|7IIOCV7K5T43VCT6GEG2K4JSM7DEXPU6MP3QXURPBSRSZSOGV6J \ / AMOS7 \ YOURUM ::
+#\[7]HUXYFNZV4FMMCUQDI6POFODF774T3TB47UTB6Q5EJJJGRNBUL2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

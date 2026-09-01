@@ -23,7 +23,7 @@ unless ( exists <menu-commands.categories>->{$category_id} ) {
 
 # Count items using this category
 my $count = 0;
-foreach my $m ( values %{<menu-commands.mappings>} ) {
+foreach my $m ( values <menu-commands.mappings>->%* ) {
     $count++ if ( $m->{'category'} // '' ) eq $category_id;
 }
 
@@ -50,8 +50,8 @@ return {
     'data' => 'Removed category: ' . $category_id
 };
 
-#,,..,,.,,,,,,,.,,,,,,,..,,..,.,.,...,...,.,,,..,,...,...,..,,,,.,,,.,..,,.,.,
-#TBBBF3WRU23GL5VND27L2ASKEJR2W7BT74M73MRS7QS2KXL5SQY6DDQD7OKSORGHLUOD7CSP66AM6
-#\\\|PSMP75NNJD2VUU3AWDHIHGNX6TJNJNKKK7M44K3FJTEAQOBKQS5 \ / AMOS7 \ YOURUM ::
-#\[7]ZQQIEZPTO6YNKLOWIWPK4NOAOXUG4WPQUFMQGUJHOZ36HDLHZKCA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,,,,...,.,.,,..,...,.,.,...,..,,...,...,.,.,.,.,.,,,...,,,,,
+#EYEWOC26J6BNXLNFB5IVIDEJFO46CXIPBJSS3452ZP3SGSU5SI25KAXUNY7BFGN7XOUWGLKHRN66Y
+#\\\|CLHONOL7K7UTVMT6BL6IMQXJAWEKOYKG6X2D5Q5YQWVMED42RNH \ / AMOS7 \ YOURUM ::
+#\[7]U2MNWXSCVKXWAGEPBVX33MPCC2HAOD2Y34EXOJRYTBTJ5DAXP4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

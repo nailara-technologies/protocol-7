@@ -15,8 +15,8 @@ return {
     }
     if $cmd_str =~ m,^\!?(run|hook|subprocess),;
 
-push( @{<mpv.reply_ids>},     $call->{'reply_id'} );
-push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.command' } );
+push( <mpv.reply_ids>->@*,     $call->{'reply_id'} );
+push( <mpv.command.reply>->@*, { 'handler' => 'mpv.handler.pipe.command' } );
 
 if ( $cmd_str !~ s|^\!|| ) {
     <[mpv.send_command]>->( split / +/, $cmd_str );
@@ -27,8 +27,8 @@ if ( $cmd_str !~ s|^\!|| ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,.,..,,...,,,,,,,.,.,.,,..,,.,,.,.,..,,..,,...,...,.,.,...,.,.,,.,,,..,
-#VHAK6VQSVFHE3B5LHCPS2YZ2H453G5DHULAXM3DJWJYI3OOZYTQOJH7TBQIFTVWLJYAOJUMBXT7MS
-#\\\|XSR3525PCVY6SQVXXXL7EWBJ5BPGLQCUPUCALHEPVUR2SSETNM2 \ / AMOS7 \ YOURUM ::
-#\[7]HLHHQJTPDTQVIMQ2W66HBWBXMJZD475FRSCS3UOROD4GLXT42MBA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,...,,.,,.,.,,,,,..,,.,.,.,,,..,,...,...,..,,...,,.,,,,.,..,,
+#ERSU5GTHTEF456C7ZI2IAINBILUNIWJ63W27RZBVCDBSPI7O5N2T6FKORSKUWPQICATZKVDKWEL5Q
+#\\\|2J7SY3VO5BYP37NZKHLD5VJ6MBHEACBV5PAPBMW7QLPYGMDMB2D \ / AMOS7 \ YOURUM ::
+#\[7]ZJIVYQJOVM5OLZFNYPNA6ODPPFD7VR5FNIYSGD64PFAYP56NVSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

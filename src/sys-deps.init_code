@@ -23,9 +23,9 @@ my $zenki_base = <system.conf_path> . '/zenki';
 <[base.log]>->(
     2,
     "  scanned: "
-        . scalar( keys %{<sys-deps.pm_deps>} )
+        . scalar( keys <sys-deps.pm_deps>->%* )
         . " pm deps, "
-        . scalar( keys %{<sys-deps.os_deps>} )
+        . scalar( keys <sys-deps.os_deps>->%* )
         . " os dep types"
 );
 
@@ -47,7 +47,9 @@ if ( -f $track_file ) {
     } else {
         <[base.log]>->(
             2,
-            "  tracking log: " . scalar( @{<sys-deps.tracked>} ) . " entries"
+            "  tracking log: "
+                . scalar( <sys-deps.tracked>->@* )
+                . " entries"
         );
     }
 }
@@ -56,8 +58,8 @@ if ( -f $track_file ) {
 
 0;
 
-#,,..,,.,,,.,,,,.,,.,,...,..,,.,.,,..,.,,,,.,,..,,...,..,,.,,,,..,,,.,,.,,,.,,
-#LZJ6OKQKNPMNEV5PNCG4ADYQX5XREQM4UA34MCX4U4NKL4ARNWL7YICBX4U6JTY232YVER7FK74AU
-#\\\|N4YWBYSNPQEGZRH2HTXD4MPHXVSUMBWSX4D63UVHIV3B6H2RJBW \ / AMOS7 \ YOURUM ::
-#\[7]IHZSSKG5TAKAXYBYFBXLLUWFCAZI4V4P2GFBKMBER2KMK6ZHGQDI 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,..,,,..,.,.,,.,,...,,.,,,.,,..,,...,...,..,,...,..,,..,,.,.,
+#BEMZWM2JZD7VB6DOTC4KKPFEZBHRWXL4ZSD53A2D4VP6JWZRQE5AV2EJVPD4RZYT3BYCEAWGXVZW6
+#\\\|E4CPRZDQKWTEPQDGFGGKQUFC6XRUEVO6P5SQ74GGBWAC7GPA6Y7 \ / AMOS7 \ YOURUM ::
+#\[7]YGG3SYLCQ3F326ZMOGUAZGC5VDTBUNIOVLTFXXURRSY4D2WLKYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

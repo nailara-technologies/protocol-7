@@ -10,7 +10,7 @@ if ( exists <base.p7_mod.loaded>->{'base'} ) {
     $base = 1;
 }
 
-my @p7m = grep {defined} keys %{<base.p7_mod.loaded>};
+my @p7m = grep {defined} keys <base.p7_mod.loaded>->%*;
 map { $ARG =~ s|\s+||g } @p7m;
 
 my @modules = <[base.reverse-sort]>->( grep {length} @p7m );
@@ -20,8 +20,8 @@ unshift( @modules, qw| base | ) and <base.p7_mod.loaded>->{'base'} = 1
 
 return @modules;
 
-#,,,,,...,,.,,,,,,,,.,...,...,,,,,.,.,.,.,...,..,,...,..,,..,,...,..,,.,,,,,,,
-#SPEN4CK5O7EAUA5BIUONCI7HI3H5B6MFIPIZVOQODZ3O4APTV6HHJVCE2HIHQDODTJ4G6HMM7H2CU
-#\\\|USPHIOMWAL3GKC6WBKIKKYMBRV5XVBZFXWNVE4OIP6FUG47MBBD \ / AMOS7 \ YOURUM ::
-#\[7]U2754PTWI3KE7G55ACKV7VX5KVEL5DYXK7QZ2VJRQLN3ZDJ7GUAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,...,...,,.,,..,,...,...,,,.,..,,...,.,.,...,,..,.,,,,,,,,.,,
+#7GESJX5G4ND6GCCJ5LELGHT2KOYJDP4RG45K3TXVTG56FYSCE5VH5CQHLVCFEJXGQ3EXRVSSQNC7Y
+#\\\|F4HKCLGSESZ6MKIJPGR2Y7C5OBUJBPP24QUB42RNA5PA26QSKLM \ / AMOS7 \ YOURUM ::
+#\[7]2BXAVVG5BGEIW5RBTOVPTVUR7OCOBKDF7VW7IR3MGPOPWANO6OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,12 +7,13 @@
 
 my $reply_str = '';
 
-map { $reply_str .= "$ARG\n" } sort { $a <=> $b } keys %{<power.cfg.devices>};
+map { $reply_str .= "$ARG\n" }
+    sort { $a <=> $b } keys <power.cfg.devices>->%*;
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,,,,,,.,,...,..,,...,,.,,...,..,,...,.,,,..,,...,...,.,.,,,,,,,.,.,,,..,,
-#IZ534UIH6G2FPC7VOI52YAQ6CV5TMHL7ZBATGDAW6UT7PVNAV4YFDQHVBV26VBGSZ2ZO3HIG2R4SY
-#\\\|TO3NJRAZYZERED2SHGVLOQRCILQEBJDKB26XTIUYX5LLCMEXK2L \ / AMOS7 \ YOURUM ::
-#\[7]QJC5ONZ6H5R35HVI3LT7PBCXCK23XZPGIWSOWDKSUCYNFLVROEDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,..,..,,.,,,,,.,,..,,..,,.,,..,,..,,...,...,...,,..,,.,,,..,.,.,
+#6A5KILTG7DSQPUBEEYX3AWDUYU64LEUPSHYFHWHXPA4CXONOIFP524WQ2KRSRKV4U5PFOKRQS3C2M
+#\\\|PYTAXMCB4SKZRTW5MSXKSLN3CPENOW53UNBXBOGHZZ6KLB6R4NK \ / AMOS7 \ YOURUM ::
+#\[7]MGEHH2FDJGTECYZLNY2GH3FIY6F3424Q4ERFBPDIU7HEGWAANAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

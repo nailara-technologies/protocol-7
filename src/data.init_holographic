@@ -105,7 +105,7 @@ $data{'get'} = <[devmod.cmd.get]>->('data.get');
     my ($position) = @ARG;
     my @affecting;
 
-    for my $ghost_key ( keys %{<topology.ghosts>} ) {
+    for my $ghost_key ( keys <topology.ghosts>->%* ) {
         my $ghost = <topology.ghosts>->{$ghost_key};
         if (<[data.init_holographic.position_in_intent_path]>->(
                 $position, $ghost
@@ -140,7 +140,7 @@ $data{'get'} = <[devmod.cmd.get]>->('data.get');
     my ($function) = @ARG;
     my @workholes;
 
-    for my $key ( keys %{<topology.workholes>} ) {
+    for my $key ( keys <topology.workholes>->%* ) {
         my $wh = <topology.workholes>->{$key};
         if (   $wh->{'from_function'} eq $function
             || $wh->{'to_function'} eq $function ) {
@@ -155,8 +155,8 @@ $data{'get'} = <[devmod.cmd.get]>->('data.get');
 
 return 1;
 
-#,,,.,.,,,,.,,,,,,,,,,..,,,..,,..,..,,,..,..,,..,,...,...,...,,,.,,..,,,.,,.,,
-#RTMKJXWGSMBLAIY2G6HHNVYBJYY7YK2XP7MYTUIOO77RAHM2PMDXKDG6BSP6XHR7FABKDE6XRTSDW
-#\\\|WWSXLNNBVQR6GDWOTJAF7IWQ4ASPTL6KGTMMD5IM6Q5WHWOARYM \ / AMOS7 \ YOURUM ::
-#\[7]REBOJ2RD2VWKXKFB57M2Y6RIDKKWPCRELMWWL5BTSLYE4KKZMYBQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,,.,,.,,,...,.,,,.,,,..,,..,,..,,...,...,..,,..,,,,,,,.,,..,,
+#ENJ4M7KWZ2KKIONNP2YIF7YBO74RUNLC6KAZFFQITIT3TSAQIWD6VUCJT22XS2B5VV3GTL7ADEIRK
+#\\\|WSIFAYC7KLA2JA6M5ZNEJF4X4LBIJYLGB3A2GBTVSHWXLLTMJCF \ / AMOS7 \ YOURUM ::
+#\[7]LNSHDQU6UJNBXHWEVJPWTDAIXCPJC5NNCRHXHCTP7WFL6TOGYYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

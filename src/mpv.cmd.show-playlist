@@ -3,15 +3,15 @@
 # name  = mpv.cmd.show-playlist
 # descr = display current playlist
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 
-push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.playlist' } );
+push( <mpv.command.reply>->@*, { 'handler' => 'mpv.handler.pipe.playlist' } );
 <[mpv.send_command]>->( 'get_property_string', 'playlist' );
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,...,,,,,,.,,.,,,,,,,...,.,.,,,.,,.,,,.,,..,,...,..,,,.,,.,,,...,,,.,.,.,
-#75AAH6EMG43SD4RJOZIGHSOYSUWM67WO3WVIZ7YZ4BU5FV7WGMRCLXUHPRJYEUTVEZSLKI4XNOOHS
-#\\\|CYOPKLBJYQ4RMJZW7OFTQYAVRFRTHXHGAFKZSTHE54RE4BEHRX3 \ / AMOS7 \ YOURUM ::
-#\[7]JLHBTA7GWRA5GUYKTZVNCQTHDBHPKPRYKRYKGIJA3TMTK5EKNAAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,.,,..,.,.,,,.,...,..,,,,,,,,.,..,,...,...,...,...,...,.,.,.,.,
+#ZRYQKY4CWE2DG3QBFOHENSUFNZCPSZCX56WFRYSLSUBOIK573LI3L5Y673MUTUYD7LYF7IK54AW6A
+#\\\|ZTF7MYANK3Y6QIYB5JTU5ENFPTXSP4PYVK5EY2XLSRGZH7BZSYM \ / AMOS7 \ YOURUM ::
+#\[7]2ELXTUOOYUDFD72QNKMDL7BVJ32CYCQZF7XQUQIX25OO2QZTLCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

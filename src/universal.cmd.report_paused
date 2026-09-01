@@ -47,21 +47,21 @@ map {
     <universal.children_ready> = 0
         if <universal.child>->{$ARG}->{'status'} ne 'ready'
     }
-    keys %{<universal.child>};
+    keys <universal.child>->%*;
 
 if ( <universal.children_ready> and $was_starting ) {
     <[base.log]>->( 1, "universal zenka children online. =)" );
     <[base.X-11.assign_window]>->(
         join( ',',
             map { <universal.child>->{$ARG}->{'window_id'} }
-                keys %{<universal.child>} )
+                keys <universal.child>->%* )
     );
 }
 
 if (<universal.children_ready>) {
     if ( defined $switch_zenka ) {
         <[universal.switch_child]>->($switch_zenka)
-            if @{<universal.playlist.files>};
+            if <universal.playlist.files>->@*;
     } elsif (<universal.start-anim_running>) {    # [ empty playlist case ]
         <universal.playlist_was_empty> = 1;
         <[universal.stop_start-anim]>;
@@ -79,8 +79,8 @@ return {
     'data' => 'acknowledged'
     }
 
-#,,.,,,.,,,.,,.,.,,,.,,,.,...,,..,,.,,...,..,,..,,...,...,...,.,,,,.,,,,,,.,.,
-#PT4FXPX4KLI5RVLWXAMNTW5WR6LOXEEVYNP7JSQ5T6QB4PKDGJ2AGLQQWNTNIRQB56MFIDARXF5VA
-#\\\|BMQYA42NMW6YCY366QBLP6RKJ7OTIZSCAQOY3BE7MQMLYBU7JQ4 \ / AMOS7 \ YOURUM ::
-#\[7]G2HA2HGFDXO25CGIDEUWITEBPTJWWSHDT76GITH75AZQFPTM7YCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,.,,..,,..,,,..,,,.,,..,...,,..,..,,...,...,.,.,...,...,,,.,,,,,
+#G6KCJFCMFUYF53DXDCUNJKLSBA2LMUY2SHLBZEHRW4BQBGR2EACROXBJH7UV2MCYPGJ2IVR5CY5PM
+#\\\|PLKJWB2PC2MWGXQG52MFUAEQ4W4KUCDUNVH3Y6AXHVMOL4ZZJFQ \ / AMOS7 \ YOURUM ::
+#\[7]F4VYQ3BK5WK7T7XE5LCCDJW6JT55SWISSIGMCBPE6LKTYNJSJUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

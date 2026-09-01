@@ -4,20 +4,20 @@
 # descr = return current volume setting [in percent]
 
 my $reply_id = $call->{'reply_id'};
-push( @{<mpv.reply_ids>}, $reply_id );
+push( <mpv.reply_ids>->@*, $reply_id );
 
 <mpv.request>->{$reply_id} = 'volume';
 
 push(
-    @{<mpv.command.reply>},
+    <mpv.command.reply>->@*,
     { 'handler' => 'mpv.handler.pipe.val_percent' }
 );
 <[mpv.send_command]>->( 'get_property_string', 'volume' );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,..,..,,,.,,,,,,,.,,,,.,,,,,,,,,,..,...,..,,...,...,.,,,,,.,...,,..,.,.,
-#MJUHPD47BMES2ARBAPF7AVKSOCKXQB5L6FC54AADZXGHJC3K3SU66RLF7PCCQAVJBDRCOFHKJNCGS
-#\\\|ROQQAGFLT4IMR3QG2WL2CFN7MGPDNZX7DYTFOVR5D24JX5GG4GT \ / AMOS7 \ YOURUM ::
-#\[7]WSISL6CHKOALKAVCLWIKEOZIHIZLYTSNIQ6YC6FMS4IOWMNR5CCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,.,,..,...,,,.,,.,,,..,...,,..,..,,...,...,...,,..,...,...,.,.,
+#OFBWBRHKFA4HASROIO7X7HM54PHDTW4H7RG6XGSFTB26TB46RRNUSFPRDLBYGV3SDVZGT3DZAMEHI
+#\\\|GXQZWCIYVOOX7ZVX44K73D3IQCWP63QO5DBNS22WRY2HSB6KXZY \ / AMOS7 \ YOURUM ::
+#\[7]F35UHT22G6UQG5Q46X7B2A5RWJL4T7AR56YYI4FBIKEW5YBWGMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@ my $gravity = shift;
 $gravity //= '';
 die "invalid gravity keyword '$gravity' [left|right|top|bottom]"
     if $gravity !~ /^(top|bottom|left|right)$/;
-my ($local_sid) = keys( %{<user.cube.session>} );
+my ($local_sid) = keys( <user.cube.session>->%* );
 
 <[base.log]>->(
     1, "setting gravity for window id " . <x11.id> . " to '$gravity'.."
@@ -37,8 +37,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return FALSE;
 }
 
-#,,..,.,.,...,,..,,,,,,.,,,.,,,,,,...,.,.,.,.,..,,...,...,,..,,.,,.,.,,.,,,,.,
-#B2U5REMOAUTHMUXP7QBMYGIEUYCLR7JXASYDYWYZ6D26SIAMPOBHRGHF4TETRBWKWVAVHPVIK7JQ4
-#\\\|QA65H3YLZPRZCSZEMVLS6WNUYYJCHZ3OC4GSL4SN53SOURAKUX7 \ / AMOS7 \ YOURUM ::
-#\[7]6OWOEJ3KI3FE6DP2A3PCEWZNYQJAK64O2I5IGLOL6WVQTEHUUKCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,,,.,.,.,..,,,.,,,.,,..,,,,.,..,,...,...,,.,,.,,,.,,,,,.,,,,,
+#XF4JJMKM2RWBY7QAMYACLIQI7USRLGVUBAP7YXPOWY43COTPYWGPAQL24NAV2QFOIN4C77CZUDXQ6
+#\\\|L6UJ2P7UEYPV5JSSUA2NSI7F66Z5IUF5HH4FXWM6QTLUTW7MZUY \ / AMOS7 \ YOURUM ::
+#\[7]FUFIFNO7WATLJIBBPLBXW4KLHLKJBKOCDPQ4MWPAV2GFZ62ENACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

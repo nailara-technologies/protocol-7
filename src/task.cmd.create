@@ -97,7 +97,7 @@ if ( length $parent_id ) {
 
 ## store in queue
 <task.queue>->{$task_id} = $task;
-push @{<task.queue.order>}, $task_id;
+push <task.queue.order>->@*, $task_id;
 
 ## persist to disk
 <[task.persist.save]>;
@@ -118,8 +118,8 @@ my $sent = <[protocol-7.route-send]>->(
 
 return { 'mode' => 'size', 'data' => $task_id };
 
-#,,,,,..,,,,,,...,.,,,..,,,.,,,..,...,,.,,.,.,..,,...,...,...,..,,.,.,,.,,.,.,
-#A4NX55BEHHXDP5TYB4FGDXUMUJV62445HL5CKQ77LOWSQVFPSCYJ76ICEXM7KMR7GDYNB3AXHXCAS
-#\\\|D6BST6YGKNXV2LQB3IRQQWPMEEWT6SK2MC7VHDAX5PUDBXCSRYS \ / AMOS7 \ YOURUM ::
-#\[7]UNYU5MYPBIHTNDPTVNBZBRMLPBRAQIEWSV4TAQGCV25BMTK6DWBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,,..,,,,,.,,,,.,,,,.,.,.,,,.,..,,...,...,...,,,.,,..,,,.,,..,
+#5Y3SWWUVP4C4EC57BCSGEUH6DTQEH2WANEIUMPSM2PO4PVI4VAM4MQYGGDPLU46YXV7JFZMSSFVYQ
+#\\\|PFRKMDK4AV6KJ2XUPMT4B5AJWXODXPJS6REWKZEJL6KE5VOP44T \ / AMOS7 \ YOURUM ::
+#\[7]GPV3HH2S3GBCYKY3Q5CCSTJR2VYDCYQJYJYQFPTRWYKZPEXOOIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

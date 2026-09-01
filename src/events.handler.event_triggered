@@ -160,7 +160,7 @@ if ( index( $action_type, qw| tile- | ) == 0 ) {
     my @tile_groups_stack = sort {
         <events.stack.tile.visibility>->{$a} <=>
             <events.stack.tile.visibility>->{$b}
-    } keys %{<events.stack.tile.visibility>};
+    } keys <events.stack.tile.visibility>->%*;
     my $current_tile_group = pop @tile_groups_stack;
     my $restore_config
         = -d <events.tile.cfg_directory>
@@ -216,8 +216,8 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
         if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
 
-#,,..,,.,,,,,,.,,,.,.,..,,.,,,..,,...,...,,.,,..,,...,...,.,.,,.,,,.,,...,,,.,
-#5ZMBPYGW2S7GN7WU7LY6DKJXW6WKA5S4T5D7K4M56NVUBSHKFIV5VLDSDIDEVKZYQZR6L275UUIEQ
-#\\\|GEYC2BJKSJDNWF5J6GHFETAVXTRNT6R3OFUGPKAP2EVQBZHSYLY \ / AMOS7 \ YOURUM ::
-#\[7]I4R2EAKOLALVMVFFIFDIBL3ZDAD4QR56QA2NND35MCNDCJFIXIAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,.,.,.,,,,,,,,..,,..,.,,,.,,,..,,...,...,.,,,...,,,.,...,,.,,
+#F6OHGUAZGI2YVNCPQLLB3F3A5762IDQFKK6WOY3OBQNM77GNZKDMTFAFAPOE5FMQBQDXWNJO6SVIG
+#\\\|JLIDUCIAOTVGTCD27LACNVQNYAESWKDKMDWBAT755KQRQXTHVZZ \ / AMOS7 \ YOURUM ::
+#\[7]RUEPDUEQFYM64EFKRJRLIEWMEKQCPQGMVR36FEEQI3UQ5ZNUP2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

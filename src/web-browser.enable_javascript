@@ -2,7 +2,7 @@
 
 # name  = web-browser.enable_javascript
 
-my $expected_count = scalar keys %{<web-browser.gtk_obj.view>};
+my $expected_count = scalar keys <web-browser.gtk_obj.view>->%*;
 
 map {
     my $view     = <web-browser.gtk_obj.view>->{$ARG};
@@ -13,14 +13,14 @@ map {
     $settings->set_enable_javascript(1);
 
     $view->set_settings($settings);
-} keys %{<web-browser.gtk_obj.view>};
+} keys <web-browser.gtk_obj.view>->%*;
 
 <web-browser.cfg.javascript_enabled> = 1;
 
 return $expected_count ? 0 : 1;
 
-#,,..,,.,,.,.,...,..,,,,.,,,.,,.,,,.,,,.,,.,,,..,,...,...,,.,,,,.,..,,,,,,.,.,
-#TY2DGBMQZ457UVCK3OXFT5UVUJIBYRNLTXD33G7LHEUEZU5YF3K52LVXAFVQ7GU44POQX4SQ7KG4Y
-#\\\|PMGNGC57HFIEMHCFANQ45JER3SCMOHFQ7FPIS5FXNEJWXWMD5HH \ / AMOS7 \ YOURUM ::
-#\[7]VJB2CQCCEVLI6FLOAZOUFUTUSGFUADXNYFIVXFWCJXDFRBESBUBY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,.,...,..,,,..,...,,.,,,..,.,,,..,,...,...,..,,,,,,.,,,,,.,.,,,
+#R2RKMUWYGMBUA5OH7NQNQMAHSVQOTHLB6WSZPQ4WZ6FYFRSYYSZ6OY7PPSJMBHX3WK3IQO62TM5J4
+#\\\|FSI5V7JSDJDJL4FFGZUDK7PIE4DUS4G3PA74XUHGBX4ISGFX2I7 \ / AMOS7 \ YOURUM ::
+#\[7]MJTUG2HHGHGMQVU5IBVIA6E6QAXHALG6PR72V25QV7VZSOR3MYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

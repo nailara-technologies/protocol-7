@@ -54,13 +54,13 @@ if ( !exists <httpd.downloads.files>->{$file_path} ) {
 );
 
 # Clean up old statistics if too many files are tracked
-if ( scalar( keys %{<httpd.downloads.files>} ) > 1000 ) {
+if ( scalar( keys <httpd.downloads.files>->%* ) > 1000 ) {
 
     # Find oldest accessed files
     my @files = sort {
         <httpd.downloads.files>->{$a}{'last_time'} <=>
             <httpd.downloads.files>->{$b}{'last_time'}
-    } keys %{<httpd.downloads.files>};
+    } keys <httpd.downloads.files>->%*;
 
     # Remove oldest entries to keep only 900 entries
     foreach my $old_file ( @files[ 0 .. 99 ] ) {
@@ -70,8 +70,8 @@ if ( scalar( keys %{<httpd.downloads.files>} ) > 1000 ) {
 
 return TRUE;
 
-#,,,.,..,,,..,,..,,,.,,,.,..,,.,.,.,.,,,.,,..,..,,...,...,,,.,,,.,,.,,...,,,,,
-#JN4ZOFESC4ON4ZTBGQ5JVNXSQY6HVQABK2I6BRZSUHVZNIW46T5XHW5AOWAWWNFR7N6JN6UKC3OJ2
-#\\\|XSHZULH37NNE43LK7MH7GYN7KM4PPXCOEIHRPQ3LV4Y2LWFZOLR \ / AMOS7 \ YOURUM ::
-#\[7]2KOAQT6AWXIFY7ZIPRUOLZAY7E7EYID65O53CX6U5TN5HHW7XICQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,,.,,,.,,...,,..,,.,,,,.,,,,,..,,...,..,,...,,.,,,,.,...,,,.,
+#GSGXMB7H32UPAGGOEVNVT6AHGDL3653NUQFVSJZB5RRIEJMHMZIXQXR5DSYPELXNQSPRO2PBJ6VOQ
+#\\\|UVWTRX4U5HJHAYSJPFQDCFWT6ZNMWDG5IF7C54V4OZRI6RHXIBZ \ / AMOS7 \ YOURUM ::
+#\[7]FKKY7JGBYJVSMXF46GWKHCMUSDLT2ZCSHUZVWC4RNZFSQE3YYWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

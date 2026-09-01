@@ -108,7 +108,7 @@ if ( not defined $sock ) {
 ## if prompts were preserved across reconnect, restore busy status so that
 ## history_complete skips initialize [ TurnEnd will fire when work completes ]
 my $has_preserved_prompt = FALSE;
-for my $pend_id ( keys %{<kimi.wire.pending>} ) {
+for my $pend_id ( keys <kimi.wire.pending>->%* ) {
     if ( ( <kimi.wire.pending>->{$pend_id}{'type'} // '' ) eq qw| prompt | ) {
         $has_preserved_prompt = TRUE;
         last;
@@ -150,8 +150,8 @@ if (@stale) {
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,,.,,..,.,,,.,.,,,,,.,,,,,,,,,.,,..,...,,..,.,.,...,...,,..,,..,..,,,,.,.,,,
-#WDHAYCLY77FOOAOIOXSV4KOG6WCYGDFJFSHY6M4O5GBRYB4C7TEFHV3BTLSOMT7E75CGX5ACKKUY6
-#\\\|UW6II6HM2RFH2HBE3FTR6SVB4B3SRWPX34AVE2OH3M4XIZYIMYR \ / AMOS7 \ YOURUM ::
-#\[7]F6MXPQ47FA462QKFPR3PLTAFMC5CDSXCWYMCFH5RDAXGCDWJBKDI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,,.,,.,,,...,,..,,..,..,,..,,.,.,...,...,..,,,,,,...,.,,,..,,
+#4DQ6JEKZ7T62T7KDRHG7YN3CDKG6UDMSNGP5U2ZFIWPG7LVYDH6I245W2VHC2XMEF4IRW2KQ5PNNA
+#\\\|K4AL7JMNKL3EKMVAYL4DDT4RRB5RBDNYRIVUADCLVTYEDBELH5R \ / AMOS7 \ YOURUM ::
+#\[7]BRLTLFJFNMRSMRBDXON7YAWEN5MONCEDFBWPPN6YDRW5GLKNCAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

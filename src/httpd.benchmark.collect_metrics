@@ -40,9 +40,9 @@ $metrics->{'bytes_per_second'}
     = $elapsed > 0 ? $metrics->{'bytes_sent'} / $elapsed : 0;
 
 # Store metrics in history (keep last 1000)
-push @{<httpd.benchmark.history>}, $metrics;
-if ( @{<httpd.benchmark.history>} > 1000 ) {
-    shift @{<httpd.benchmark.history>};
+push <httpd.benchmark.history>->@*, $metrics;
+if ( <httpd.benchmark.history>->@* > 1000 ) {
+    shift <httpd.benchmark.history>->@*;
 }
 
 # Log metrics if debug mode enabled
@@ -61,8 +61,8 @@ if (<httpd.benchmark.debug>) {
 
 return TRUE;
 
-#,,,.,.,.,,.,,.,.,,.,,..,,...,,..,,.,,..,,,,,,..,,...,...,..,,,,.,...,..,,..,,
-#QHIDK34YJKWAJSYAHFNEV7FZQBDEK6274GUO7245NYU5DJJKX5GU7WXYRRKXDCILW6ECWOG5Y6DUA
-#\\\|JX2NIGZV3JBDLK35K6OLAEPH6SNRCNY23KCJIFKO37HCGE67IK5 \ / AMOS7 \ YOURUM ::
-#\[7]HHDUVECS5RBMQ6HMXRANARL364VKHEM3NJVYO6XRJT3HN4JMKQDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,.,,,,.,,,..,.,.,,..,,,,,.,.,..,,...,...,.,,,...,.,,,,,,,.,.,
+#JL5ARS4NDE3FKKOSWKO3ALYZ2FSYOWSA7U5GZYIDJZXJ32WJLGF34LFXRW2Z6YOZPJZ4KDJNOVBMY
+#\\\|ZU6ELT2BOMQQND3IYFPD2YAOW4DVBI57UO4P2BB7Z2Q3NCQ5KKW \ / AMOS7 \ YOURUM ::
+#\[7]HZATXZKN4QCY4VA7GGH7X5EVM4CUNPZ27EF74VJLWBTR34CABSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

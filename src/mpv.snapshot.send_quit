@@ -8,15 +8,15 @@
 return if <mpv.snapshot.quit_sent> // FALSE;
 <mpv.snapshot.quit_sent> = TRUE;
 
-push( @{<mpv.reply_ids>}, <mpv.snapshot.quit_reply_id> // qw| silent | );
+push( <mpv.reply_ids>->@*, <mpv.snapshot.quit_reply_id> // qw| silent | );
 <mpv.success_reply_str> = 'shutting down mpv zenka';
 
 <[mpv.send_command]>->('quit');
 
 return;
 
-#,,,,,,,,,,,,,.,.,,,.,,,.,,,.,,,,,,,.,,..,,..,..,,...,...,,,.,,,.,.,.,.,.,,.,,
-#RWNRARKCZ6AULLQOOZGG2L2LOABCUOYLWCV2NDPKNCL5ZZIJTID74NPTY5RZLHUAREUPIPYGQ543I
-#\\\|HGDXJLTB5K6QNPTJEHOVEUXEJDHVLVHR6DGEJ7NB33TPENENLI3 \ / AMOS7 \ YOURUM ::
-#\[7]MJ55APC5QZVS6YGEDRHAURRZH2CLOCYIH73PZ3IG5DRVW7HKACAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,,,.,,..,,,,,...,.,,,,.,,,,.,..,,...,...,.,.,,.,,,..,...,,..,
+#JQKTI3LWGBSWGB5Q7QAF7S5RGD3Y4BKRQBH6AA33C23HCBIM23CQ2IBIMAN3PKT7NUEYQS4E4C74O
+#\\\|RBZQ62YG6MWJHBPU5CYL37TY6EBXMBYEPIGGGDGR3R3RA35KDYE \ / AMOS7 \ YOURUM ::
+#\[7]AATL276CX7YNFJA2EN5JLH5STKL4KMNECEMVBA67PNQUPDXDVWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

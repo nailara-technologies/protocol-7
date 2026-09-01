@@ -11,7 +11,7 @@ if (<system.zenka.mode> eq 'universal-child'
 ) {
     <[base.log]>->( 2, "file loaded, pausing playback.." );
     <mpv.pause_next> = 1;
-    push( @{<mpv.reply_ids>}, 'silent' );
+    push( <mpv.reply_ids>->@*, 'silent' );
     <mpv.success_reply_str> = '[PAUSE]d';
     <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
 } else {
@@ -23,8 +23,8 @@ if (<system.zenka.mode> eq 'universal-child'
 ## apply deferred snapshot seek + pause once the saved file is loaded ##
 <[base.code.call_optional]>->(qw| mpv.snapshot.apply_pending |);
 
-#,,,,,,,.,.,.,,,.,..,,,,,,,..,...,..,,.,.,...,..,,...,...,.,,,.,,,,.,,,,,,,,,,
-#Z5IWVO7M74KBLDJWYZMNWB5BBVGOB6FPKVNHF5L4CHAEY3DRRVPFSJ3MAZE5VMGTBGW6QNFM3CTLI
-#\\\|F4C6VWGP5IYFDTZKM2ZX6NERCAYZBX6ELFHXEX7GU2TVSSWIRYE \ / AMOS7 \ YOURUM ::
-#\[7]XFJCYWSJVSXNREENAB7FSZ5Z3YA7MK4JCYXN6JN5MH5WRJTSSOAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,.,,,,,,,,,.,.,,,,,,,...,,,.,..,,...,...,,,.,.,,,,..,,.,,..,,
+#QV24MJMSB4SXQGPAROURTUCXTMZA7QP7WFT5ZZ3FD4WKBX7IQUX3RLFC2TRGA45JCYT67BG2LMIE2
+#\\\|LPJGXNNXP3YRX3YGEVJJNUPBK3VD652HAE5D5REXXERUZFYIGLP \ / AMOS7 \ YOURUM ::
+#\[7]4OA773C5AWJBVR2YHYOWA3O4I3MVLIR6HPSB47U4DJJC7LYZMODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

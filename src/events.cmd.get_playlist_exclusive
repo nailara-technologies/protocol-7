@@ -10,14 +10,14 @@ return {
     'data' => 'no exclusive playlist events are active'
     }
     if not defined <events.stack.exclusive>
-    or !keys %{<events.stack.exclusive>};
+    or !keys <events.stack.exclusive>->%*;
 
-map { $reply_str .= "$ARG\n" } keys %{<events.stack.exclusive>};
+map { $reply_str .= "$ARG\n" } keys <events.stack.exclusive>->%*;
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,.,,,..,,,,,,,.,...,,..,...,..,,,..,,..,,,,,..,,...,...,..,,.,.,..,,.,,,,..,
-#R4EQJCVZQ6QE36N5JEBAGX4FRXU5YPU7DH4FWYIUTZ4FT2JNVOJPYORB6KN62ABQTSAWHNRGBQLVI
-#\\\|K2MC3NWFTRJLG2JC34TX3JTLTSNRGMVIUGJA3XM5RHYCXJFHGTH \ / AMOS7 \ YOURUM ::
-#\[7]I3IZ3OC56YYA2QMKELC7PDFDDFWPGJ6AH4KRMWS2R2UXIRFD2YCA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,.,,,...,...,.,,,.,,,.,.,,,,,..,,...,..,,..,,..,,.,.,...,,..,
+#7TF6CRZ3DEJ2SIFV43TBYS4ZBNC6XNXPN7HIOEA5TPUZWIJ75UR3RQ7PCX2AYFPPXENDUXNU3MTDY
+#\\\|5W6OOZQBUWV7FEHHGB6F7HOZ6EYNYKAYTRHRM5MKFH3GUCWKN3D \ / AMOS7 \ YOURUM ::
+#\[7]MHDZW4LLBE7JBYMRJZ5ERY3QSROABCZCHXTUG7YWJ7IKI36TR2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

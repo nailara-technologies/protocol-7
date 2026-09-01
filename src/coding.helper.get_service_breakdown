@@ -6,7 +6,7 @@
 my %service_totals = ();
 my %service_counts = ();
 
-foreach my $txn ( @{<coding.budget.transactions>} ) {
+foreach my $txn ( <coding.budget.transactions>->@* ) {
     my $svc = $txn->{service} // 'unknown';
     $service_totals{$svc} += $txn->{tokens_used};
     $service_counts{$svc}++;
@@ -29,11 +29,11 @@ foreach my $service ( sort keys %service_totals ) {
 return {
     success            => TRUE,
     by_service         => \@breakdown,
-    total_transactions => scalar( @{<coding.budget.transactions>} )
+    total_transactions => scalar( <coding.budget.transactions>->@* )
 };
 
-#,,,.,.,.,..,,,,.,..,,.,.,,,,,...,,.,,,,,,,,,,..,,...,...,..,,,..,,..,,,.,.,,,
-#R7NXWKKID24ITAI6V66GEO4G2EEUHEKOTXFCRMIUW6AZLFTCH6ZCSBWSXL7WI5ANUF2FRRZMCLMLW
-#\\\|6223E5KQLH4XFZTASZSB4T43KTJZ2W3DQCREFZ56FJY753BXVUR \ / AMOS7 \ YOURUM ::
-#\[7]RGPA4M6TQJL6CMPMUMFMCUEBYLAPKSLZFJKGDMWROTZSTLDITYBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,.,..,,,..,...,,,,,,.,,,,.,,,.,..,,...,...,..,,...,,,.,,..,..,,
+#KQVX67IRTM2LBFSS7SVKEYYORWKVRGRHGTHRC3UV45YEGQDVZJM374PJOBHQ4VXGCE72CRFVBEJSI
+#\\\|7JCTPD5UKPE4UIEOAMRFEMEV4Y7WJXPDTZGZCGLCAMEMYBQMWRZ \ / AMOS7 \ YOURUM ::
+#\[7]ZHGURY5MNN3IDNP7CDJ3V3LZXLVF2CLABTZVC45M53N3BO4KKQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

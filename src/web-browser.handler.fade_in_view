@@ -22,14 +22,14 @@ if ( <web-browser.fg_opacity> >= 1 ) {    # fade in complete
 
     <[web-browser.clear_bg_view]>;
     delete <web-browser.time.fade_view>;
-    while ( my $reply_id = shift @{<web-browser.fade.reply_ids>} ) {
+    while ( my $reply_id = shift <web-browser.fade.reply_ids>->@* ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => <web-browser.fade.reply_mode>,
                 'data' => <web-browser.fade.reply_msg>
             }
         );
-        if ( !@{<web-browser.fade.reply_ids>} ) {
+        if ( !<web-browser.fade.reply_ids>->@* ) {
             delete <web-browser.fade.reply_mode>;
             delete <web-browser.fade.reply_msg>;
         }
@@ -45,8 +45,8 @@ if ( <web-browser.fg_opacity> >= 1 ) {    # fade in complete
 <web-browser.gtk_obj.scrolled_window>
     ->{$fg_index}->set_opacity(<web-browser.fg_opacity>);
 
-#,,,,,.,.,.,.,.,,,,..,,,.,,,,,,..,...,,..,,,,,..,,...,...,..,,..,,..,,.,.,.,,,
-#SMHD3RS4HQBJLFYDJ57SQN2NDLQ2MU6ASZXXVKLA44HNQQLEDTHKGHWAN4TKS6M6LW3ITE4HMKT5Y
-#\\\|ISWF3U2I7HVF3CZ6H26J77IDMB73F2WC2NG2RWIQUMY6OSRAC4A \ / AMOS7 \ YOURUM ::
-#\[7]BTGXZHUPPTI4HJIMCJ5PPTN7S2ZV2NZRHEPCEJXYBTIGLSKLYEDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,..,,...,,,.,..,,,,,,,..,...,,..,..,,...,...,.,.,.,.,,,,,,..,,.,,
+#JMMKFN57EHAXW4V5IQOA7PBQ5PKIVWMNHNJZIICA426ZM2E7GRV2NQHZDEILTIF7PEJHTRR2X4ZUI
+#\\\|ZUX4JR6A24BMLXGP6N24UKDE32FEIWEQIXQW42MQF2NDV6PEPEG \ / AMOS7 \ YOURUM ::
+#\[7]6PKIKVGQXXHPCQNIOLED4XHF77HU5HY3YBYXDYCIPMHSFEMH5CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

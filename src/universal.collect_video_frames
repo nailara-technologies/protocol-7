@@ -23,7 +23,7 @@ foreach my $playlist_entry ( @{ <universal.playlist.zenka>->{'mpv'} } ) {
     }
 }
 
-foreach my $frame_id ( keys %{<universal.frames_to_go>} ) {
+foreach my $frame_id ( keys <universal.frames_to_go>->%* ) {
     my $vid_file_path = <universal.frames_to_go>->{$frame_id};
     my $path_chk_sum  = <[chk-sum.elf]>->($vid_file_path);
     my $frame_path    = "$video_frame_dir/$path_chk_sum.png";
@@ -35,13 +35,13 @@ foreach my $frame_id ( keys %{<universal.frames_to_go>} ) {
 }
 delete <universal.sequence.frame_pos>;
 
-my $count = keys %{<universal.frames_to_go>};
+my $count = keys <universal.frames_to_go>->%*;
 
 if ( !$count ) {    # frames already complete
     <[universal.startup_sub_zenki]>;
 } else {
     <[base.log]>->( 1, "extracting video frames ($count to go..)" );
-    my ( $frame_id, $vid_file_path ) = each %{<universal.frames_to_go>};
+    my ( $frame_id, $vid_file_path ) = each <universal.frames_to_go>->%*;
     <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.melt.extract_frame",
             'call_args' => { 'args' => "-0 $vid_file_path" },
@@ -53,8 +53,8 @@ if ( !$count ) {    # frames already complete
     );
 }
 
-#,,,,,.,.,,.,,.,.,.,,,,,.,,,,,.,.,,,.,,,.,,..,..,,...,..,,,.,,.,,,...,..,,,..,
-#VV66UV67DJW6A3M3PD5OI56KKYU43L55P2J5Y6PHXSRS5N5XNY6AXRQAT46EE3U2AQKBGXBCYI6OI
-#\\\|TRFFVLFWOWDGJAMPRCDRLPF6HE6Z56J5RHLCZVUPWHGUVGIRSXU \ / AMOS7 \ YOURUM ::
-#\[7]WIV6S7N4CAU764O3S5KKW5KMM3VAW7Y26JLO45UP4F55TYWRS6CA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,,,.,,,.,,..,,..,.,,,.,,,.,.,..,,...,...,..,,..,,..,,,,.,,,.,
+#BCZ4JOSYXQQ7WE7BVS5WYFMLC3GRZF3TRK3MBJOONKR2DU2SMAWOA5XUJGRKC2MJ4CWHDBF5KOJJE
+#\\\|5FHMR5GDUE36EKUGEY7TRBCPW66655ZPZFVETF4JCIHLXJGSQO5 \ / AMOS7 \ YOURUM ::
+#\[7]UX7ZWPKFJ3X7N3PXBZVNBDC4ZXWMGIPWA4OIUP4WAVDNRT2ZBSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

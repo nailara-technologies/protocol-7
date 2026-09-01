@@ -10,19 +10,19 @@ return {} if !<httpd.diagnostic.enabled>;
 
 # Calculate metrics
 my $metrics = {
-    'enabled'              => <httpd.diagnostic.enabled>,
-    'debug'                => <httpd.diagnostic.debug>,
-    'uptime'               => time() - <httpd.start_time>,
-    'active_operations'    => scalar( keys %{<httpd.diagnostic.operations>} ),
+    'enabled'           => <httpd.diagnostic.enabled>,
+    'debug'             => <httpd.diagnostic.debug>,
+    'uptime'            => time() - <httpd.start_time>,
+    'active_operations' => scalar( keys <httpd.diagnostic.operations>->%* ),
     'completed_operations' =>
-        scalar( keys %{<httpd.diagnostic.completed_operations>} ),
+        scalar( keys <httpd.diagnostic.completed_operations>->%* ),
     'blocking_operations' =>
         scalar( keys %{ <httpd.diagnostic.blocking_operations> // {} } )
 };
 
 # Get operation counts by type
 $metrics->{'operations_by_type'} = {};
-foreach my $op_id ( keys %{<httpd.diagnostic.completed_operations>} ) {
+foreach my $op_id ( keys <httpd.diagnostic.completed_operations>->%* ) {
     my $op = <httpd.diagnostic.completed_operations>->{$op_id};
     $metrics->{'operations_by_type'}{ $op->{'type'} }++;
 }
@@ -32,7 +32,7 @@ $metrics->{'operation_durations'} = {};
 foreach my $type ( keys %{ $metrics->{'operations_by_type'} } ) {
     my @durations = ();
 
-    foreach my $op_id ( keys %{<httpd.diagnostic.completed_operations>} ) {
+    foreach my $op_id ( keys <httpd.diagnostic.completed_operations>->%* ) {
         my $op = <httpd.diagnostic.completed_operations>->{$op_id};
         if ( $op->{'type'} eq $type ) {
             push @durations, $op->{'elapsed'};
@@ -63,11 +63,11 @@ foreach my $type ( keys %{ $metrics->{'operations_by_type'} } ) {
 
 # Get threshold violations
 $metrics->{'threshold_violations'} = {};
-foreach my $type ( keys %{<httpd.diagnostic.thresholds>} ) {
+foreach my $type ( keys <httpd.diagnostic.thresholds>->%* ) {
     $metrics->{'threshold_violations'}{$type} = 0;
 }
 
-foreach my $op_id ( keys %{<httpd.diagnostic.completed_operations>} ) {
+foreach my $op_id ( keys <httpd.diagnostic.completed_operations>->%* ) {
     my $op        = <httpd.diagnostic.completed_operations>->{$op_id};
     my $type      = $op->{'type'};
     my $threshold = <httpd.diagnostic.thresholds>->{$type} // 1.0;
@@ -248,8 +248,8 @@ HTML
     return { 'text' => $text, 'raw' => $metrics };
 }
 
-#,,,.,..,,,,.,,,.,.,.,,,.,.,.,.,.,,..,..,,..,,..,,...,...,..,,,,.,,..,,,,,.,.,
-#5L4RA7HABUJMBWCG4KS3MUHRN4OCLOWHSCBBM4QE5YLTELVKTEZZA7NF5W5EX6KBDIBVNIAGWUTTE
-#\\\|BPQAFWAU5OUQ4E5EHVJV547GC6MX2FQEZZQULWWMW7YELW6ZKJH \ / AMOS7 \ YOURUM ::
-#\[7]NERF7X5QRSK56CP7A4KFS5HERGL63DGBC6XTRYN7HG3YW3HIWWAI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,,.,,,,,,,,.,,,,,,,,,,,,,.,.,..,,...,...,...,.,,,,,.,...,,,,,
+#LMINX366RJPYEQZWPKZJE4UIR4BDPVXGY6JHXYY3W2RQQAP3AYT4AQV44MCBEPWV6VUS5C63ET43Y
+#\\\|OVAMWFF72KUE5CNWRPT5V3EC2PJCMPBVNXB4CMWI7TQXF4PN4NL \ / AMOS7 \ YOURUM ::
+#\[7]NBBV3OOPTPASU5OEC52HPXFBHZT5Q45RZSFPSVKWA2PDUE26SIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

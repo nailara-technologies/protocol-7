@@ -6,7 +6,7 @@ my $cube_reply = shift // {};
 
 die "[!] no tile transition data defined"
     if not defined <tile.transition.status>
-    or !keys %{<tile.transition.status>};
+    or !keys <tile.transition.status>->%*;
 <tile.transition.status>->{'start_time'} //= <[base.ntime]>;
 
 my $fade_out_duration = 0.8;    # --> config
@@ -15,7 +15,7 @@ my $fade_out_duration = 0.8;    # --> config
 
 if ( not defined <tile.transition.status.waiting.stop>
     and defined <tile.transition.status.zenki.stop> ) {
-    my @stop_zenki = keys %{<tile.transition.status.zenki.stop>};
+    my @stop_zenki = keys <tile.transition.status.zenki.stop>->%*;
     <tile.transition.status.waiting.stop> = scalar @stop_zenki;
     <tile.transition.status.waiting.i_id> = 0;
     <tile.transition.status.zenki.fade_out> //= {};
@@ -233,7 +233,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
 if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
     and !<tile.transition.status.waiting.i_id>
     and defined <tile.transition.status.zenki.start> ) {
-    my @start_zenki = keys %{<tile.transition.status.zenki.start>};
+    my @start_zenki = keys <tile.transition.status.zenki.start>->%*;
     <tile.transition.status.waiting.start> = scalar @start_zenki;
 
     foreach my $zenka (@start_zenki) {
@@ -257,7 +257,7 @@ if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
 if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
     my $still_waiting = 0;
     map { $still_waiting += <tile.transition.status.waiting>->{$ARG} }
-        keys %{<tile.transition.status.waiting>};
+        keys <tile.transition.status.waiting>->%*;
     if ( !$still_waiting ) {                         ## all done! ##
         delete <tile.transition.status.waiting>;
         <tile.transition_in_progress> = 0;
@@ -269,19 +269,19 @@ if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
             if defined $prev_tile_groups and $prev_tile_groups =~ /\+/;
 
         if ( defined <tile.transition_queue>
-            and @{<tile.transition_queue>} ) {
-            my $trans_count = scalar @{<tile.transition_queue>};
+            and <tile.transition_queue>->@* ) {
+            my $trans_count = scalar <tile.transition_queue>->@*;
             my $s           = $trans_count > 1 ? 's' : '';
             <[base.log]>->( 1, "found $trans_count queued transition$s.." );
             <[tile.cmd.switch-group]>
-                ->( { 'args' => shift @{<tile.transition_queue>} } );
+                ->( { 'args' => shift <tile.transition_queue>->@* } );
         } elsif ( defined <tile.restore.overlays>
-            and @{<tile.restore.overlays>} ) {
-            my $count = scalar @{<tile.restore.overlays>};
+            and <tile.restore.overlays>->@* ) {
+            my $count = scalar <tile.restore.overlays>->@*;
             my $s     = $count > 1 ? 's' : '';
             <[base.log]>->( 1, "restoring $count tile overlay$s.." );
             <[tile.cmd.add_overlay]>
-                ->( { 'args' => join( ' ', @{<tile.restore.overlays>} ) } );
+                ->( { 'args' => join( ' ', <tile.restore.overlays>->@* ) } );
             delete <tile.restore.overlays>;
         }
     }
@@ -290,8 +290,8 @@ if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,.,,,..,.,,,,,.,,.,,.,.,.,.,,.,,,.,,,,.,...,..,,...,...,...,.,.,...,...,...,
-#F73SNV4W2QEFTQBV7J3RVBDYG66AK44BAK66JBJAAO3B25DGOZFYJBEWIS4SDNJZ5FRYEPSVCATAW
-#\\\|UPH5UNZPWDEC5ET3O53KSXATCSCDMMO3XB3OEXIIURNWEOPR4WB \ / AMOS7 \ YOURUM ::
-#\[7]XEAFUBMINCHK2JKPLVI4XLL23LJKITQDPWKKYZJWNL562CLZCAAY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,,..,..,,,..,.,.,.,.,,,.,...,..,,...,..,,...,..,,..,,..,,..,,
+#PW6FJTVSEBPUGW26XUF72XUZXMZ43HPJ5YSWNNRNDETMR5N4B2FTFAXOAPJGLNBYMCXL233LBUCFS
+#\\\|6T5W675CNNLWDQKJGBKURICMFWMET3XOKYCFH4QIHR4H5HWFVR6 \ / AMOS7 \ YOURUM ::
+#\[7]JOUIKCVDDAFZBTYR36FZVZMUZXTBSHMSEMEUMOXX7T2IVCJPKMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

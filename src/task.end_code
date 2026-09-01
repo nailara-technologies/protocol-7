@@ -11,7 +11,7 @@ my @in_progress = ();
 my @blocked     = ();
 my @recent_done = ();
 
-for my $task_id ( @{<task.queue.order>} ) {
+for my $task_id ( <task.queue.order>->@* ) {
     my $task = <task.queue>->{$task_id};
     next unless defined $task;
 
@@ -38,7 +38,7 @@ if (@in_progress) {
 
 ## top 5 pending by valued priority ##
 my @pending;
-for my $task_id ( @{<task.queue.order>} ) {
+for my $task_id ( <task.queue.order>->@* ) {
     my $task = <task.queue>->{$task_id};
     next unless defined $task and ( $task->{'status'} // '' ) eq 'pending';
     my $priority = <[valued.resolve]>->( $task->{'node_id'} // '' ) // 0.0;
@@ -105,8 +105,8 @@ utf8::encode($handover);
     length $handover
 );
 
-#,,,.,.,,,,,,,,..,,,,,,.,,.,,,,,,,..,,...,,..,..,,...,...,...,..,,..,,,..,,,.,
-#IQOFKQJWA6FUEAPKUUM2M3IJHX7DECJUHXKWGLBUUKPOKOAUEA6U2UESZNRKXGLFQKNP75SYJX7LW
-#\\\|3WDY3W5UCSHRRMTVSUH67OKC6V3ES63O7QC4UZW5UYCLQT4QSIV \ / AMOS7 \ YOURUM ::
-#\[7]YDXKZV6JJO7F67CI3QOV6ZUGQBLQ4DGVU5QLNB63KSVMTWIRWCAA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,,,,,,,.,,,,,.,,,,,,,.,..,,,.,,..,,...,...,..,,..,,...,...,.,.,
+#HURDZVYXKHYX2QFBR5SLTJYSC3W5E5YXQAQDESEF2GBBNHK3S2AZZQKLVQIFMOBYDSJS27LTYF2YW
+#\\\|CT4PWPHIUXLALOKL72DXQOS7TVV36DBKLEBUEAKUL7REKJCAMWL \ / AMOS7 \ YOURUM ::
+#\[7]UOMLXKYH76VRTQM3YTAGY7KYXCEMSU73DGESUEBDNNPH7X2GZAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

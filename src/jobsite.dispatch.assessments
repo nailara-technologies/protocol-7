@@ -212,7 +212,7 @@ for my $job_id (@to_assess) {
 
 ## append : a batch may already be mid-flight with its own queue tail ##
 <jobsite.assess_queue> //= [];
-push @{<jobsite.assess_queue>}, @queue;
+push <jobsite.assess_queue>->@*, @queue;
 
 ## dispatch first task only if nothing was already running -- an in-flight ##
 ## chain's own assess-done -> dispatch.next will pick up the appended      ##
@@ -222,8 +222,8 @@ push @{<jobsite.assess_queue>}, @queue;
 
 return;
 
-#,,,.,...,...,,,,,,,.,..,,..,,...,,..,..,,.,.,..,,...,...,,..,,,,,.,,,,,,,,.,,
-#FQCZUAUCXCZYWVKTYNBUDLWKOFYXFBODTVZFXD62XZHRDRZRCU5CAENYPEJOQ5DXO72CHZ6HRDM2Y
-#\\\|37X5KYWRJQZBKDI4XU2V3PZ46IEFEJMAZEATN5PMH3KXM5MXDQX \ / AMOS7 \ YOURUM ::
-#\[7]R6RPRD6TM5NV2RLX6NFX6VM3KNM7FMLAMYKG425TEMKV4WWRFSCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,,.,,...,.,,,,,,,,.,,,,.,..,,..,,...,...,.,,,,..,,.,,..,,,,.,
+#4VUZYYJKP67YZZYNYIDOHPZISTQ2IK7VWL7C4J2CRYYDEY2LMGLOK4FRZQSWVSLIRF5AK4Q3SL4UI
+#\\\|IIBVTF4OW4HKKBFZEOR5RPOJPAZIOXP4IYBYU5KITHSXM4WPUA7 \ / AMOS7 \ YOURUM ::
+#\[7]B5DUMAEVSJSXHDVXGBIUVEVDN5RULSROY42A7QRZAKFV7UR4Q4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

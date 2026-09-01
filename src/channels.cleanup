@@ -12,7 +12,7 @@ my $channels_removed = 0;
 my $clients_removed  = 0;
 
 ##  Clean up SUSPENDED channels (no subscribers)  ##
-foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
+foreach my $channel_path ( keys <channels.subscriptions>->%* ) {
     my $channel = <channels.subscriptions>->{$channel_path};
     next unless $channel->{'status'} eq 'SUSPENDED';
 
@@ -39,7 +39,7 @@ foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
 }
 
 ##  Clean up expired blocking clients (stale requests)  ##
-foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
+foreach my $request_id ( keys <channels.blocking_clients>->%* ) {
     my $client = <channels.blocking_clients>->{$request_id};
     next unless defined $client;
 
@@ -72,8 +72,8 @@ return {
 
 1;
 
-#,,,,,...,.,,,.,,,...,,,.,.,,,,..,,,.,...,...,.,.,...,...,,..,.,,,,,,,.,,,,,.,
-#D3OFQHJE4SO4VJ55H53NISZ5CUNENWKF7NQVHSL7E7QXTH3OX5LQDYA7EUKOIHYX4GOEHWICFHCOE
-#\\\|LTCIRBD7ZDZ7IAQRDXXP57JN2FY45UII6PZSINQ4ZHTVESSXX65 \ / AMOS7 \ YOURUM ::
-#\[7]KYXCWC7AT6MV326OS3VTV5TC5MKMFQHLMW5PBWUIDCPGKIA67CAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,..,,...,.,.,,..,.,,,,,,,..,,.,.,...,...,,,,,,.,,.,,,,,,,.,.,
+#5BIMELWYT7FPUASKVR7LI7K7NKP5L3YDBVQ4DZ27OAWKJLYWMMLBKLCAQ34HZNLCZXSPWYNHKNKGW
+#\\\|YERAW3PTCKFNV4EFAOEJB4OTK3O63IFAQAGWWF67GQQAMW6KZJB \ / AMOS7 \ YOURUM ::
+#\[7]SSEJBJ3M3PCU3PD5V2GQZX3W5JAEE2G5H6V6IYKGU37F3FI6PQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

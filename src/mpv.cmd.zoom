@@ -11,7 +11,7 @@ return { 'mode' => qw| false |, 'data' => 'invalid zoom value! [-10..20]' }
     or $zoom_level < -10
     or $zoom_level > 20;
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 
 if ( $zoom_level == 0 ) {
     <mpv.success_reply_str> = 'zoom = 0 (reset)';
@@ -23,8 +23,8 @@ if ( $zoom_level == 0 ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,.,,,,..,..,,,,,,,.,,,..,.,,,...,.,,,..,,..,,...,..,,...,...,.,.,,..,,.,,
-#K26BKXVR2XWP5KPBM24XLWT7T4IYY5JS2X6ORM5PEQXS3P7J7Y44B6IO75F2NK3I5SNQODYKC2QY2
-#\\\|LNMVMKF7RNQDZHCH2F6CD6AHFHFOBND3FUJCKN4FEMFENRYGRFO \ / AMOS7 \ YOURUM ::
-#\[7]5YUWAYZ6WHYTUQMSZ2AI2F3M6WCQ43D4OCZVLTDLVSOW3U6S4QAA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,,,,,,,,,,,,,...,.,,,,,,,.,,,..,,...,...,.,,,...,...,,,.,,.,,
+#5M3DXEDA7GTVN2ZCZ2HISG4TEKPDI6XHQSUU7SQRZVUN6TVLSW3V3BDATD7Z5XHJVKUS5XN55UBRQ
+#\\\|ANW6NS2DE5YPXRXYRGXKX4MUEXS2J7BKDUS7ZNRIGX4DQNQELWS \ / AMOS7 \ YOURUM ::
+#\[7]X5S52ISWRQUJVCX3OZZZLS2ZP5UMYOT3RSLY4XVYV4H3KRXJ5EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

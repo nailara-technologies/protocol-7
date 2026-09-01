@@ -33,7 +33,7 @@ if ($domain_filter) {
 
 ## List all vhosts using list infrastructure
 my @output;
-my $count = scalar keys %{<httpd.vhosts.registry>};
+my $count = scalar keys <httpd.vhosts.registry>->%*;
 
 if ( $count == 0 ) {
     return {
@@ -45,7 +45,7 @@ if ( $count == 0 ) {
 push @output, sprintf( "Configured virtual hosts: %d\n", $count );
 
 ## Use fallback manual display since base.list.formatted.show doesn't exist
-foreach my $id ( sort keys %{<httpd.vhosts.registry>} ) {
+foreach my $id ( sort keys <httpd.vhosts.registry>->%* ) {
     my $vh   = <httpd.vhosts.registry>->{$id};
     my $cert = $vh->{cert} ? '✓' : '✗';
     push @output, sprintf( "  [%s]  (cert: %s)", $id, $cert );
@@ -56,8 +56,8 @@ return {
     'data' => join( "\n", @output )
 };
 
-#,,.,,,.,,,..,,.,,.,.,.,,,,,.,.,.,,.,,.,.,.,.,..,,...,..,,..,,,,.,,,.,.,,,,..,
-#L7AKNMWS2ZVQ6VY5J3TZY35PQCOTJB3JG4DUK4VGTV5W3KW2B54XXW4SJ5CD5YGWX2JJ4RXO2DN3K
-#\\\|A4JCWVSN6UCT2HF5PLOJDFLMNEREXMBNZGJH5YKXWICCHN72NY7 \ / AMOS7 \ YOURUM ::
-#\[7]BVTCPFQE7ZCZ6VDN6TEZWZNOURPPWTAQKJR7K3AWOGELRFTPPOCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,...,,,.,,..,..,,...,,,,,,,,,..,,...,...,.,.,,,,,.,,,..,,.,,,
+#5V3FB35DGFXDSVSPQGVYETCOKWLFWBU6BBB5RMIZE2KIE6BT2XGWGPUKGR5YJFJN3S5BES3NBOMCO
+#\\\|QWULA3CGMVVXKC5E5XHTEYEO43M2VPDBUIPXKJPDSRV5JBCWGFR \ / AMOS7 \ YOURUM ::
+#\[7]YWMZQPRH3F3FRQWBBY5JLY73QEAUITZHWDOPFNL42PEVE4VCXOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
