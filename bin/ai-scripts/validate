@@ -31,7 +31,7 @@ Checks performed:
   ✓ Whitelist registration
 
 HELP
-    exit $module ? 0 : 1;
+    exit( $module ? 0 : 1 );
 }
 
 ##  dispatch validation  ##
@@ -53,7 +53,7 @@ sub p7_dispatch {
         }
     );
 
-    $json =~ s/'/'\\''/g;
+    $json =~ s|'|'\\''|g;
 
     my $output = qx{p7c coding dispatch-tool '$json' 2>&1};
 
@@ -78,8 +78,8 @@ sub decode_json {
     eval { JSON::PP::decode_json($str) };
 }
 
-#,,.,,.,,,...,,..,.,.,..,,...,..,,.,.,,.,,.,.,..,,...,...,.,.,.,,,..,,,.,,.,,,
-#MJD6MYFI6BWB23YGHJAKDJWPHZ6KFSMAFEXFEBP7MQJ5I42RKCLOJGQTFBTTCJQM64GZYP6RCJO2I
-#\\\|NA633W4YNCMPJAFZBTIAUFXXFKA26UFPVY2UHCI5NUKXV7TZKC6 \ / AMOS7 \ YOURUM ::
-#\[7]PABYYMKQ6G5EEA75K3KORDPAJKVAMEUQO4L4DF5TIKCGPCWRHSDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,...,,,,,,,,,,,,,..,,..,,,,,,..,,...,...,..,,.,.,...,,.,,,,,,
+#5CLKUBIQQPVXVOUUMJFWEKNBNKLRSQQTHWGC4FGC2FQXSGW6I7IAZNQP7YPQIYLLL2YWV6SGYAR2E
+#\\\|JQIMGUIEMJXKHI35K4KWZT36K6UEFTC3H3F4IOMNWNQQ2QNAYEP \ / AMOS7 \ YOURUM ::
+#\[7]3WIIXO3EMN3J4ORFTS425KIIQNA4SOAL25OGFNYUFB4D2PNDQ4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

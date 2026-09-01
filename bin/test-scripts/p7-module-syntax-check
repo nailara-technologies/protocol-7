@@ -42,7 +42,7 @@ for my $file (@ARGV) {
             and $_ !~ m{Can't locate (Event|JSON|Crypt|Digest|IO|Const|AMOS7)}
             and $_ !~ m{BEGIN failed}
             and $_ !~ m{compilation aborted}
-    } split /\n/, $out;
+    } split m|\n|, $out;
     if ( @errs and $out !~ m{syntax OK} ) {
         print "FAIL $file\n$out\n";
         $rc = 1;
@@ -52,8 +52,8 @@ for my $file (@ARGV) {
 }
 exit $rc;
 
-#,,.,,.,.,,..,,,,,,,.,,,,,.,.,,.,,.,.,..,,.,,,..,,...,...,,,,,.,.,,,,,..,,...,
-#QUOAGDTIA2F5OZYXX6X333SGUWADWFPBO55F64VIK3LWLQS4DX4P5WVXQL4C6OEMKIF4TGF6SGJ4O
-#\\\|7Y2TUCVH4U2AIBQBU6DTSTHDOOVYBB5EY3JZ7QVSFV7AGXELLDI \ / AMOS7 \ YOURUM ::
-#\[7]R2OA25C54CADK6JSU76DP5DTFTL5MV34NH3VJIOHIL3EMXPW7GDA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,...,.,.,...,...,,,.,..,,,,.,..,,...,..,,.,.,...,...,,,.,.,,,
+#LJ6KJ6RITXCNFXM7UFXOSGVHQZM26PTT67YGZKQ5ZZYOSKM7JRLLE56A3KZ5FR74URXFFLL3IR2IO
+#\\\|FWM4PY7N6XGRWVP5T6UFQJEGEJAYKQPZ5PUTUYDMWVIT2TIYNGV \ / AMOS7 \ YOURUM ::
+#\[7]WOOYOCDPJSBRT4SLSU4BV7PTFWTPT67QGQZVMRTCFCGHXG3T2SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
