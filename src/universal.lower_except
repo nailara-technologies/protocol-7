@@ -5,7 +5,7 @@
 my $zenka_name = shift;
 die "zenka name expected" if not defined $zenka_name;
 
-foreach my $lower_zenka ( keys %{<universal.child>} ) {
+foreach my $lower_zenka ( keys <universal.child>->%* ) {
     next if $lower_zenka eq $zenka_name;
     my $lower_wid = <universal.child>->{$lower_zenka}->{'window_id'};
     <[base.log]>->( 2, ": lowering '$lower_zenka' window ($lower_wid)" );
@@ -16,8 +16,8 @@ foreach my $lower_zenka ( keys %{<universal.child>} ) {
     );
 }
 
-#,,..,...,...,,..,,,,,.,.,..,,.,.,..,,,..,,..,..,,...,...,.,.,,..,,.,,,.,,.,,,
-#OYPEKBPOIA4BLHP7TDYJCPOHBDIOK7MUGL57AM72HTVBGBF6RSL7D5F5F37MIBGHMKHPNYY745X2Q
-#\\\|265HJ72F7HAVFCZNRZP5ZPXXMEPHUEA4CAGBYQ2KXJPJHFZNJYV \ / AMOS7 \ YOURUM ::
-#\[7]ER5KT73OSIYKISKN32H2RLY6PFI2PXG2YEAEH2LR6RRO3P5HSODQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,,..,..,,..,,,..,,,.,,.,,..,,..,,...,...,...,,,.,,,,,,,.,,,.,
+#BTAGYMRURNMXWZILXYVUJLFN6JHK26BAVWPF36S56Q5UGWKZ3TO5QK7EW5GDPJ2JU2WUGQCDSITZO
+#\\\|LOVABODRUA3NVIO5WLF7BI3YBK46LY3FXVQT6BQVYO2KOM4MRJ4 \ / AMOS7 \ YOURUM ::
+#\[7]FD3YNSD4HCI277ZQL7GZQHPHHMNNETY7CLX4Z4FWU4NBIUCL26BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

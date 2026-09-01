@@ -43,7 +43,7 @@ $memory->{'per_connection'}
     : 0;
 
 # Store historical memory data
-push @{<httpd.benchmark.memory_history>},
+push <httpd.benchmark.memory_history>->@*,
     {
     'timestamp'        => <[base.ntime]>,
     'rss'              => $memory->{'process'}{'rss'},
@@ -52,8 +52,8 @@ push @{<httpd.benchmark.memory_history>},
     };
 
 # Keep history size manageable (last 1000 entries)
-if ( scalar @{<httpd.benchmark.memory_history>} > 1000 ) {
-    splice( @{<httpd.benchmark.memory_history>}, 0, 100 );
+if ( scalar <httpd.benchmark.memory_history>->@* > 1000 ) {
+    splice( <httpd.benchmark.memory_history>->@*, 0, 100 );
 }
 
 # Log memory usage if requested
@@ -73,8 +73,8 @@ if ($log_results) {
 
 return $memory->{'process'}{'rss'};
 
-#,,.,,.,,,,,.,,.,,.,,,,..,,.,,,..,,,.,.,.,...,..,,...,...,,,.,,,.,,.,,..,,.,,,
-#DVYI5DLOTNB7YQRY5SRJN4AMK7VBOKXPCUNTF2NX55HEXF6QFTCHK5QHOZBL7LYWXWZ6YV7XMGPH2
-#\\\|KEPNK2TGRGNRYOGUIQ37SCXRC6SRZZ6LMAE2ENF25RCFCPBCT3W \ / AMOS7 \ YOURUM ::
-#\[7]TVW46Y36JZ7CKBRFO2G5MXP57VQR5U4QRAJ6CAWB6H46BUOLRQAQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,.,.,..,,...,,.,,,,.,.,,,...,..,,...,...,.,,,.,,,.,,,..,,...,
+#FJWLQA6MNO2CGKEWEJHD6DQ6H66VMW4PER77DOYFIQHYYHM6LABPNAHEXMKNH2OUXCOB5ZMXUW3DC
+#\\\|NWY7AOGZGTBUTNSXTGNNB3S2QFFEANG3HNPYURC6SBCO4DMEBML \ / AMOS7 \ YOURUM ::
+#\[7]HKI2OFNZPCH3OYAWLZ2LBCTMQTHVCJOSZBRKZXI66XCKXI4YVGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

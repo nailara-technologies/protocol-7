@@ -13,7 +13,7 @@ my $current_ts_b32 = <[base.ntime.b32]>;
 my $clients_notified = 0;
 
 ##  Find all blocking clients waiting for this channel  ##
-foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
+foreach my $request_id ( keys <channels.blocking_clients>->%* ) {
     my $client = <channels.blocking_clients>->{$request_id};
     next unless defined $client;
 
@@ -61,8 +61,8 @@ return $clients_notified;
 
 1;
 
-#,,,.,,,.,,..,,,,,,,,,.,.,,,.,,..,,,,,..,,.,.,.,.,...,...,.,.,...,...,,.,,..,,
-#SAXOFMXYRBB64DDSDJOJ3KPBZWDHVUSELKBW6N2423L6S7PZRVGQIJXGJGTVTB5C2JEEGLYQ3QGHQ
-#\\\|PZNPVZSQXH72VKS7C7GHOFYYAPI5VVA7HWWC3HKPGN36HJPT5CI \ / AMOS7 \ YOURUM ::
-#\[7]VWQYMN5YRS76ZYPHBYPEU4Z6TRFR7GS7CMCXVSN4PLMYSMAYH2AY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,,..,,,,,,..,,.,,.,.,.,,,,.,,.,.,...,...,...,.,,,,,.,,.,,,.,,
+#GV3JURZ4AWZV44S7UMHN6KIGHCXUN6Q47UPG4PWZD47TV4K7BVODVJQ7OQ6JQIVMVPLK5N6CGIDWG
+#\\\|3I6O4D7TD44KZZXW46KRDUI4B63XK72GRYGFXLUAA7SOGC4EQHG \ / AMOS7 \ YOURUM ::
+#\[7]AYNEB4MMIMTMV5AR7FX3X6LO6J77GVO7FXG2JLTKTZ62TZAH66AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

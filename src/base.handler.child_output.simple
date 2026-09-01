@@ -56,7 +56,7 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
 
     ## [ translating registered error message strings ] ###
     map { $output_line = $ARG->($output_line) if ref($ARG) eq qw| CODE | }
-        @{<base.message_parsers.child_output>}
+        <base.message_parsers.child_output>->@*
         if defined <base.message_parsers.child_output>
         and ref <base.message_parsers.child_output> eq qw| ARRAY |;
     ##
@@ -77,8 +77,8 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,..,,,,,,..,,..,...,,.,,.,.,...,,.,,..,,,,.,..,,...,...,,..,..,,.,,,,,.,...,
-#CC6TGFMHXIONUCSCD553CLI57TBQMO5CTRUP66FMD4V2SJESKPTQ3B5A3UKRQTSJJCMCHNE3W4J5G
-#\\\|SDYMCNIDDBJK3LZQRKPUNDHG7JLWUNJ4KL3VWRDUFNF7IVLHKDF \ / AMOS7 \ YOURUM ::
-#\[7]APYMI776ZFM3BYDIYS2XUBZCZY2QJ6MDFQKJUAW23XVBTKXAQUCA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,,,.,.,.,..,,,,.,,,,,,.,,...,..,,...,...,..,,,..,,..,,,.,,,,,
+#WKHYIULNKP7WXPN5OPIJJMJLGLS7GNJ6BY5XMABBTFRB2KCSWV23C5GK3XZHQGVJ7BJVT23GDHGQQ
+#\\\|UC7K3WHH2W7ALIOQCSAFUF254JRBA3SC5VS3Q5XG3AD3VXUMZQE \ / AMOS7 \ YOURUM ::
+#\[7]XYH3AWZ2WJGKKQKBUMJSWZLRIAOEE745UUMW5CXJE7EZDX55PQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

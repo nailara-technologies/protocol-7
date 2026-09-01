@@ -10,14 +10,14 @@ return { 'mode' => qw| false |, 'data' => 'URL expected!' }
     or $url !~ m|^https?://|;
 
 my $match = 0;
-map { $match++ if $ARG eq $url; } @{<content.file_list>};
+map { $match++ if $ARG eq $url; } <content.file_list>->@*;
 
 return { 'mode' => qw| false |, 'data' => 'no such url in playlist!' }
     if !$match;
 
 my $clear_count;
 map { $clear_count++ if delete <content.url_flags>->{$ARG}->{$url} }
-    keys %{<content.url_flags>};
+    keys <content.url_flags>->%*;
 
 return {
     'mode' => qw| false |,
@@ -33,8 +33,8 @@ my $s = $clear_count > 1 ? 's' : '';
 
 return { 'mode' => qw| true |, 'data' => "url flag$s cleared" };
 
-#,,,.,,..,,,,,,,.,,,.,,..,,,.,,,.,.,.,,,,,.,.,..,,...,...,.,,,.,,,..,,,,.,,,,,
-#OAWRKNQPIMBVFZXOHYJH4AL3QNITZ6YA5Y3S3M7AMZZ3U4UL5RAX6FRCYTXFW4KDPMJQP7T4T2COS
-#\\\|X2OCTXR5XYHSU6I7TYMQOUUQNHQOTNGS2FIZWXRSJHM4T3O4GML \ / AMOS7 \ YOURUM ::
-#\[7]5V4FJ6EGDVW75LHXHQHUJDZ5RXLAIIVAZGA6XPDYTLVHBJ2UDKAI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,..,..,,...,..,,,,,,.,,,,..,,..,..,,...,...,.,,,...,,..,,..,.,,,
+#HPYFE5P2IDLREWL5TEDQLGK4R7CKZJM4IFKC4DZIZWV4IKCOLSYV557KCMEKATYXYBZ5PXCSNEWZA
+#\\\|UK7E2MTRL6P4LPRMF5QJ75UX43DNPNK53TJDNQ6I3RNYH6FQFAE \ / AMOS7 \ YOURUM ::
+#\[7]VFDE76T6MKLGZZGKMQX5WIPXWTZHFM7BLMV2IFTULAFK7XCJEGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

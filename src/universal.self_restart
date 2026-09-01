@@ -19,7 +19,7 @@ Event->unloop_all();    # making sure log messages make it..,
 $SIG{'CHLD'} = 'IGNORE';
 
 # LLL: temporary quickfix for leftover mpv process
-map { kill( 'TERM', $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
+map { kill( 'TERM', $ARG ) if $ARG =~ m|^\d+$| } keys <universal.running>->%*;
 <[base.sleep]>->(0.42);
 
 <[protocol-7.command.send.local]>->(
@@ -30,8 +30,8 @@ map { kill( 'TERM', $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
 return TRUE;
 
-#,,,,,..,,..,,,,.,,,,,.,.,...,,,,,,,,,,,.,,,.,..,,...,...,.,.,,,,,,..,,,.,..,,
-#LK3SQRGJS4VZBX2FD6JEVGVTS33KXY4F5TQGEGJ72FSJC6EQGHPLWNTCUPM5G4FMTILM3CKR7AUF2
-#\\\|7YSRDDHVCR3ZKOHGPL6YFS2S7VVPJZ3UZOIDM2AHTPRWF3CWO4J \ / AMOS7 \ YOURUM ::
-#\[7]V2H2PBJGCW73LPIMRRSPMDUF5YIEMPJYBZK33P77Q2MJ4WOLICBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,.,,,..,,..,,.,,,.,.,...,,..,..,,...,...,,,,,.,.,,..,,,,,...,
+#Q3ALKLNY7LEVMNEOOXQRQRK4PTAJ5LTRODCLCZD4QNHVLDYJFTQ44AQ4BNRLYSI74XB2JZVLYGYSW
+#\\\|PDU66VSC4P6X6MPY4IF7U4WVOBZL2UBYWUOMCX5FO2HB6XHSBDX \ / AMOS7 \ YOURUM ::
+#\[7]ZUJ3LB3RXLIUCILOAMSQVWRY2LECLXPWSXXILGLOWDRYPGWA64BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

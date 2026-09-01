@@ -33,7 +33,7 @@ $metrics->{'memory_delta'}
     = $metrics->{'memory_final'} - ( $metrics->{'memory_usage'} // 0 );
 
 # Add to historical data
-push @{<httpd.benchmark.history>},
+push <httpd.benchmark.history>->@*,
     {
     'timestamp'    => $end_time,
     'request_id'   => $request_id,
@@ -44,17 +44,17 @@ push @{<httpd.benchmark.history>},
     };
 
 # Keep history size manageable (last 1000 entries)
-if ( scalar @{<httpd.benchmark.history>} > 1000 ) {
-    splice( @{<httpd.benchmark.history>}, 0, 100 );
+if ( scalar <httpd.benchmark.history>->@* > 1000 ) {
+    splice( <httpd.benchmark.history>->@*, 0, 100 );
 }
 
 # Calculate and update averages
-my $total_requests = scalar @{<httpd.benchmark.history>};
+my $total_requests = scalar <httpd.benchmark.history>->@*;
 my $sum_duration   = 0;
 my $sum_size       = 0;
 my $sum_memory     = 0;
 
-foreach my $entry ( @{<httpd.benchmark.history>} ) {
+foreach my $entry ( <httpd.benchmark.history>->@* ) {
     $sum_duration += $entry->{'duration'};
     $sum_size     += $entry->{'size'};
     $sum_memory   += $entry->{'memory_delta'};
@@ -76,8 +76,8 @@ foreach my $entry ( @{<httpd.benchmark.history>} ) {
 
 return $metrics;
 
-#,,..,..,,,,.,,,,,,.,,,..,.,.,,.,,.,.,,,,,..,,..,,...,...,,,.,,,.,,.,,,..,,,,,
-#54ZVCJEFEREAPAQ2PAYFSBID2E3CRJGHTEANLI7QH2HWPFMREYIGHS3RPYX22ZLGULKIH2VUS2GW4
-#\\\|WIMGSHQA3B36FKPMXPENC2D6PVVYR4W3C24BO7YV6YPIOI35UQF \ / AMOS7 \ YOURUM ::
-#\[7]F6A2VZPLEDOLWSDK2GVAAV5KV4STAWRDUTMKVTMY2QINUHTTUGCA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,,,..,,,.,,.,.,...,,..,.,.,,.,,..,,...,...,,,.,.,,,,..,.,.,...,
+#5NK7VVHQLP2FNZARWE6KL4K4OJZCGNJPRAMVWMK2ODZLTLNQWGQIMXUVZ5XZCED7GFIGY7CNLSFGG
+#\\\|SL5ADGAFPE6ZIW7AM4BBP3POWJ6GRQ7EJD4S42XNBWMEGTYIRUB \ / AMOS7 \ YOURUM ::
+#\[7]I7VKMVWRWDIEJPCHQKSYRH2KNRX4JGAYKKMJ7PJAYJFOMEYBAOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

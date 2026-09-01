@@ -5,13 +5,13 @@
 my $watcher = shift->w;
 
 <system.process.wait_gone> //= {};
-if ( !keys %{<system.process.wait_gone>} ) {
+if ( !keys <system.process.wait_gone>->%* ) {
     delete <system.process.wait_gone>;
     $watcher->cancel;
     return;
 }
 
-my %pids_gone = map { $ARG => 1 } keys %{<system.process.wait_gone>};
+my %pids_gone = map { $ARG => 1 } keys <system.process.wait_gone>->%*;
 
 foreach my $p ( @{ <system.process.pt>->table } ) {
     my $pid = $p->pid;
@@ -24,13 +24,13 @@ map {
         if defined $code{$callback} and ref( $code{$callback} ) eq 'CODE';
 } keys %pids_gone;
 
-if ( !keys %{<system.process.wait_gone>} ) {
+if ( !keys <system.process.wait_gone>->%* ) {
     delete <system.process.wait_gone>;
     $watcher->cancel;
 }
 
-#,,.,,,,.,..,,.,,,,..,.,.,,..,,.,,,.,,,,,,,,,,..,,...,...,.,.,,,,,,,.,,..,,,.,
-#IXDFIQK2Q3W3QAU4K2446OBLYX2W7Z7EN27ZLPBI2LYX7HRJ7TGXUUH7JWY24ALDEPRZWRFMIVNJY
-#\\\|VT4BVYNPK4ZNUKQPQONMYKDJIZRCFVIAZWWEVXW4J2JIEHLPAXP \ / AMOS7 \ YOURUM ::
-#\[7]JR3GWJKXZZYVSXDREE374TOFRC7ESQSZKB6O23YPKPVMEL6FEYBY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,..,,,,,,,,.,,..,,,.,.,.,...,..,,...,..,,...,,,.,,..,,..,,.,,
+#RWQ6QZKLCXXL2DKVN6Y5M67QWWZYSEC2HEEPMJ2FVNCPTJLXOUG6XZWEKNMGY3LMU2DLB4HS3JWSI
+#\\\|B2WSJLSDVOD6CVJLPYRD6IZBL2UB3SOTS3H4XSIRW3RAJCH5K3R \ / AMOS7 \ YOURUM ::
+#\[7]PQECACEODIMOX7LPXKRNZXD4VRSAJEUHYWH4Z2VPWTXC2PLOGYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

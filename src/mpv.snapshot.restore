@@ -47,7 +47,7 @@ foreach my $mpv_property ( sort keys %{$properties} ) {
     next if $mpv_property eq qw| pause |;
     my $value = $properties->{$mpv_property};
     next if not defined $value;
-    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    push( <mpv.command.reply>->@*, { 'handler' => qw| dev.null | } );
     <[mpv.send_command]>->( 'set_property_string', $mpv_property, $value );
 }
 
@@ -68,11 +68,11 @@ if ( defined $current_path and $current_path eq $snap_path ) {
     if (    defined $position
         and $position =~ m|^\d+(\.\d+)?$|
         and $position > 0 ) {
-        push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+        push( <mpv.command.reply>->@*, { 'handler' => qw| dev.null | } );
         <[mpv.send_command]>->( 'seek', $position, 'absolute', 'exact' );
     }
     if ( defined <mpv.snapshot.pending_pause> ) {
-        push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+        push( <mpv.command.reply>->@*, { 'handler' => qw| dev.null | } );
         <[mpv.send_command]>->(
             'set_property_string', 'pause',
             delete <mpv.snapshot.pending_pause>
@@ -100,10 +100,10 @@ if (@playlist) {
         @playlist[ 0 .. $start_idx - 1 ]
     );
     my $first = shift @ordered;
-    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    push( <mpv.command.reply>->@*, { 'handler' => qw| dev.null | } );
     <[mpv.send_command]>->( 'loadfile', $first, 'replace' );
     map {
-        push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+        push( <mpv.command.reply>->@*, { 'handler' => qw| dev.null | } );
         <[mpv.send_command]>->( 'loadfile', $ARG, 'append' );
     } @ordered;
     <[base.logs]>->(
@@ -112,15 +112,15 @@ if (@playlist) {
         scalar @playlist, $start_idx
     );
 } else {
-    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    push( <mpv.command.reply>->@*, { 'handler' => qw| dev.null | } );
     <[mpv.send_command]>->( 'loadfile', $snap_path, 'replace' );
     <[base.logs]>->( 1, '[snapshot] reloading saved file' );
 }
 
 return 1;
 
-#,,..,,.,,,.,,...,.,.,.,,,,.,,,.,,,..,..,,,.,,..,,...,...,..,,,.,,,,,,.,.,,,.,
-#FOPX73RZ4ZH6UGN5LDUVY4CJIKKGHICSKU5W5MHVFDOELJJIB5DD5Z76O4YSY6ZBVSH6GWXDXQO7M
-#\\\|DGJXTW6MQP7OD4S3J7USWZJD3KVQLRSR6OXVGUR7TXXHOU4LFHI \ / AMOS7 \ YOURUM ::
-#\[7]AM5RSCS5EIBJ5MXLJD5R572ZLGH7BQ4KNGECKHX7PGQ3GKBTBGBY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,.,.,..,,,..,,,.,,..,.,.,,.,,..,,...,...,.,,,,,,,,,,,,..,,..,
+#5H7DNPLB3AQOZSSVCDTJLLHWB2V24U5ACPQDAO2YMDWDZQLJXAVKYKWGI7ORGCANPUL53ZCWUKYLE
+#\\\|66B5HNQ6AU5JGSMGCJLXW5IWFQIS6W7FADYDO4L5MBJRFZDY4NY \ / AMOS7 \ YOURUM ::
+#\[7]7SUQOK6OMPIKLHYDBDVUW35DYSQUDS3UD7L5SWESU46KFDWZ36DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

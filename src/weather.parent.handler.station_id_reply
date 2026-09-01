@@ -25,7 +25,7 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
         or warn "cannot remove $location_file [ \l$OS_ERROR ]";
     ##
 
-    foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
+    foreach my $reply_id ( <weather.get-urls.reply_ids>->@* ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => qw| false |,
@@ -67,11 +67,11 @@ if ( !<weather.zenka.initialized> ) {
 
 if (    defined <weather.get-urls.reply_ids>
     and ref(<weather.get-urls.reply_ids>) eq 'ARRAY'
-    and @{<weather.get-urls.reply_ids>} ) {
+    and <weather.get-urls.reply_ids>->@* ) {
     my $url_list_str;
     map { $url_list_str .= "$ARG\n" }
         <[weather.parent.get_url_list]>->($station_id);
-    foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
+    foreach my $reply_id ( <weather.get-urls.reply_ids>->@* ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => qw| size |,
@@ -82,8 +82,8 @@ if (    defined <weather.get-urls.reply_ids>
     }
 }
 
-#,,..,,,.,...,.,,,...,,,.,...,...,.,.,.,,,,.,,..,,...,...,..,,,.,,,.,,..,,...,
-#OECDFZRF3IV5EHGJOL437YLNU2AYCNR2NK4Y3SS7OMUH53HRK3BSU6JCTBUBIUTPXD5NAIKEVZN34
-#\\\|YRCOJC5CAGWZMGENOIVPIDIV2XVC3HPZFKBNAEYMW2BD6FEU7IU \ / AMOS7 \ YOURUM ::
-#\[7]TN4MPYRY74LBBBFDUALLX4U2FMWQGMTQYUP2TXVQOTHPSSWXXADQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,...,,..,.,,,..,,.,,,,,,,.,.,.,.,..,,...,...,.,,,...,,..,.,,,,.,,
+#LY5BWKM2F3GNPV5IG2MIJNLHW62NRBGW4K7E3DGN7WZ665C4P4UJS5WQPB3E5MA42NKNJB7O2SPNC
+#\\\|CMGPKHVKY3GMHLOW2Z7AJKFZX3WQ7RZT44CU6WGPH5TN7PGLDD5 \ / AMOS7 \ YOURUM ::
+#\[7]DWRUMBYTUD6KK7TVMUXFQAQ5LLSK4U2UV3JXHTIDRPS4ORMOT2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

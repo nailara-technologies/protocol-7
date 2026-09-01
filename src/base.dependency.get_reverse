@@ -8,15 +8,15 @@ die "base.dependency.add: expected valid dependency-object id"
     if not exists <dependency.object>->{$object_id};
 
 my %depending_objects;
-foreach my $id ( keys %{<dependency.chain>} ) {
+foreach my $id ( keys <dependency.chain>->%* ) {
     map { $depending_objects{$id} = 1 if $ARG == $object_id }
         @{ <dependency.chain>->{$id} };
 }
 
 return keys %depending_objects;
 
-#,,.,,,,,,.,.,,.,,,.,,,,,,,.,,,..,,,,,...,,,,,..,,...,...,..,,...,.,.,,,.,..,,
-#FRARAK72K3WINTQ5TDDVU4I4V7JWLGTDZTNHXHKLGPKJO64DJAWTZFHGHTEBVWC3BMEMBWJOKQ27A
-#\\\|PCPUK24VSKGLE7ZSN3O3KNSO57WWAVD3HT4ETFX62CZ5VZBANDQ \ / AMOS7 \ YOURUM ::
-#\[7]K5RZOUXCMXWOAPIEZZKOPU3B6ELBZPZF46LKTJBZECF7I3NBS6DQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,,.,,,.,,,,.,.,.,,,.,...,,,.,..,,...,...,.,.,,,.,...,,.,,,,.,
+#HVPHMHP3OBKJWF26WQVRP5DQCFZVB57YYWY5LOHSXSMKS5TW6JL25GMZQFTUW3P44DFGF77W4KXFS
+#\\\|MXK3XL6IUVKEVHIDBXF4Q37FTRDS4I2CNYMFDZHAHOYEKTMTJNC \ / AMOS7 \ YOURUM ::
+#\[7]GEY5WCDVQLCWX7JLIJGOYHAMDTJQWNDYZU54XD4R6TA7MOSLICDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

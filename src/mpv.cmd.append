@@ -11,15 +11,15 @@ return { 'mode' => qw| false |, 'data' => 'expected path or url' }
 
 $file_path =~ s|/+$|| if -d $file_path;
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
 <mpv.success_reply_str> = 'added to playlist';
 
 <[mpv.send_command]>->( 'loadfile', $file_path, 'append' );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,.,.,...,.,,,..,,.,.,..,,.,.,..,,,,,,,.,,..,,...,...,..,,.,,,,,,,,.,,,,.,
-#G3CTRFZYUEZDS3LYFIRDUNIPLHTUESMKDCB6ENTAX5GDYCHRTPV2AT2FV3DSR6D2CMWYDJP3EW3QK
-#\\\|EKZ7BYT2A4VQ7PHH3BON5EA5CTGJIGK5KEYBSHBM3XGZ2ABVO7B \ / AMOS7 \ YOURUM ::
-#\[7]XCAWECBBO23KYDGDYPBRU2GSNC2H7DFS2NBPNIVAXQQW6L7FGKBA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,,..,.,.,,..,,,.,.,.,...,.,,,..,,...,...,...,...,.,,,..,,..,,
+#5AF2ZLOXSCKPSEB546HYMTP2MUZG6IYQUNMN7RF64GWBZUY2FNMML2J3LWDMJ4HXKDG6EWY2UTQRG
+#\\\|MA74TGOAHY3ZQLUVTN3UXS5UC3IXEBWWGKHY4UYIV3R6OKGAJSH \ / AMOS7 \ YOURUM ::
+#\[7]ORGNQ3KGFPGT57ONZHRTQGPLPLCC5YLXXJBUJ4UBFMOVXJQW72AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

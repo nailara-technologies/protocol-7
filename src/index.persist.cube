@@ -5,9 +5,9 @@
 
 return FALSE
     unless defined <index.trie>
-    and scalar keys %{<index.trie>};
+    and scalar keys <index.trie>->%*;
 
-my @depths    = sort { $a <=> $b } keys %{<index.trie>};
+my @depths    = sort { $a <=> $b } keys <index.trie>->%*;
 my $max_depth = $depths[-1];
 
 ## pre-compute ring counts and compartment sizes ##
@@ -189,8 +189,8 @@ return <[base.log]>->( 1, 'index.persist.cube: write failed' )
 
 return TRUE;
 
-#,,,,,...,...,,..,.,,,.,,,.,,,,,,,..,,..,,.,,,..,,...,...,.,.,..,,,,.,,.,,,,,,
-#NTRIV3FOJDVHP373TKU4TL3NELGRJJC7MP5OTIQEM65ZUZWKFM3IPYKDRRWHAP7FKJE7DDOBL6HHW
-#\\\|ENEELJ72JO5PCHEVNWO3Q7I2GJPQUM7NBOYHTY2E2H3MGHQR6TJ \ / AMOS7 \ YOURUM ::
-#\[7]HNQPX7WYOYRSITS7HPGZQ5AMAABVP5L5QYJ23KTFVHLCSPJXNAAY 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,.,,,,,,,.,,,,,,,,,.,..,,,,,,..,,...,...,,,.,,..,,,.,..,,,..,
+#DEOWPPD6MLKOLHRPTNXGRXON4H2UGVFHUJOVQCJ4CHHUB4DPJ4JBYO27ZOXSM3SLGQNI52YPEHPZ4
+#\\\|WAISMLURUSNJCZ6F2CB4VZM3QKKJTILYMVVPB4ADMTJM25STFUF \ / AMOS7 \ YOURUM ::
+#\[7]H5OMZJSK5S72EI4L3K6LMU36P7LJEMFPZ4ACVVY3ELHN6SLMDKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

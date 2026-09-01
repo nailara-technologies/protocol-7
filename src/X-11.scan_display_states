@@ -8,7 +8,7 @@ my $connected = 0;
 
 my $first_name;
 my @disp_names;
-foreach my $disp_name ( keys %{<X-11.path.display_status>} ) {
+foreach my $disp_name ( keys <X-11.path.display_status>->%* ) {
     my $file_path = <X-11.path.display_status>->{$disp_name};
     chomp( my $status = ${ <[file.slurp]>->($file_path) } );
     my $connected_state = $status eq 'connected' ? 1 : 0;
@@ -34,15 +34,15 @@ if ( @disp_names and defined <X-11.display_status.handler> ) {
 
 if ( $connected and defined <X-11.wait_for_display.callback> ) {
     my $callback_name = delete <X-11.wait_for_display.callback>;
-    delete <X-11.wait_for_display> if !keys %{<X-11.wait_for_display>};
+    delete <X-11.wait_for_display> if !keys <X-11.wait_for_display>->%*;
     <[base.log]>->(
         2, "calling wait_for_display callback '$callback_name'.."
     );
     $code{$callback_name}->($first_name) if defined $code{$callback_name};
 }
 
-#,,.,,..,,,..,...,,..,,.,,,,,,,,,,...,.,.,.,.,..,,...,...,,.,,...,.,.,..,,,,,,
-#ZWQFSC4QQLTUKXPXWNIV5K6CMBBG67AQFGXOALZUXYG3OGPYU2UQMXJW53R5U7IQ5AR5VWO7ZJWHI
-#\\\|I5WIOY3JZ75TM3QRQZAG4FCYSYF2IVOAWASNLSELIXZNCFBA2IY \ / AMOS7 \ YOURUM ::
-#\[7]6SB2BTG2Z2GBAH3BEVC24KTH23VSMO3RMSEB7QVCA6E7GN2NKKDA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,.,,,.,,,,.,.,,,...,,.,,..,,,..,..,,...,..,,...,,,.,.,,,,,.,,..,
+#UK44ITBY7KP4WL5WE4MLTOONGSKFAML7PZT42WB47NJD75XXB3SGTO3MUAM4AQAAL3HK2RCP22H7A
+#\\\|64VEOB2NU2NXNRYA6LEMKPQU3KIRJIHRS5NNAATZM6GWYJEIK6X \ / AMOS7 \ YOURUM ::
+#\[7]SGG44KLH5JRP5MIUCFE4JRPHRW5T7DPIT3KO6E6HL3LUZ7FJ4CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

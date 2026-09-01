@@ -127,7 +127,7 @@ if ( defined <web-browser.keep_text_zoom_path> ) {
 # store current url in /var/tmp in case web-browser engine segfaults
 my $url_file     = '/var/tmp/.protocol-7.web-browser.' . $PID;
 my $file_content = "current_url : $load_uri\nurl_flags   : "
-    . join( ', ', sort keys %{<web-browser.url_flags>} ) . "\n";
+    . join( ', ', sort keys <web-browser.url_flags>->%* ) . "\n";
 <[file.put]>->( $url_file, $file_content ) or warn "$url_file : \l$OS_ERROR";
 #
 
@@ -166,8 +166,8 @@ if ( $load_uri_cmp eq $load_view_uri_cmp and length($load_view_uri_cmp) ) {
 
 return FALSE;
 
-#,,,.,...,..,,,.,,,..,..,,..,,.,,,.,,,..,,...,..,,...,..,,..,,,,,,,,.,,,,,,..,
-#Y7CQWXJRUAEUZYBB6Q4DZAOTRSWGHSIRBWQFCKI6HP4BNIYHMIZGSQQNF7PK2S7VVHEAOOHSUMGW4
-#\\\|7UNM3JIK5H7RJ5DUG3UKBWVHCI6VHF6Y7W2B5UGJ27SGAZIBJAM \ / AMOS7 \ YOURUM ::
-#\[7]I7EJUZEVX3AEHFJUCHJ57IVRUV3KSI4HDO5PI4YOVUJVX3RRF6CQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,.,,,,.,,,.,,,..,,..,.,,,.,,,..,,...,...,...,,..,.,,,.,.,,.,,
+#ECSWT7KT4LVX7NRTZKYWBZNJ2FAK7OA65RYJ4KWTJVO4YW5AMQFT5I726SCD45ONWAGTWJHEBNEM2
+#\\\|B67P676FH3U4XU67BOZ3EUBUJABFC4CECQI6DSMNF34SFAREDL4 \ / AMOS7 \ YOURUM ::
+#\[7]LCPVYGZE4FHYHIYH22FK552BCI7EDBQTTHX5T4NHGIT3BHYV2OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

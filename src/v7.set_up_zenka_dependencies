@@ -37,7 +37,7 @@ foreach my $zenka_name (@zenki) {
 foreach my $s_id (
     sort {
         <v7.zenka.setup>->{$a}->{'name'} cmp <v7.zenka.setup>->{$b}->{'name'}
-    } keys( %{<v7.zenka.setup>} )
+    } keys( <v7.zenka.setup>->%* )
 ) {
     my $zenka_name   = <v7.zenka.setup>->{$s_id}->{'name'};
     my $dependencies = <[zenka.get_dependencies]>->($zenka_name);
@@ -53,7 +53,7 @@ foreach my $s_id (
         my $object_id;
         if ( $dep_zenka_name =~ /^([\w\.]+)\.(\w+)$/ ) {
             my ( $type, $name ) = ( $1, $2 );
-            foreach my $id ( keys %{<dependency.object>} ) {
+            foreach my $id ( keys <dependency.object>->%* ) {
                 next if <dependency.object>->{$id}->{'type'} ne $type;
                 if ( <dependency.object>->{$id}->{'name'} eq $name ) {
                     $object_id = $id;
@@ -100,8 +100,8 @@ foreach my $s_id (
     }
 }
 
-#,,,,,..,,.,.,,,,,..,,,..,.,.,.,.,.,,,,,,,,,.,..,,...,...,.,.,,,,,...,..,,,,,,
-#SVA7GXZWLW3P4KDYEC5VU3ATUQABPBZKEHKEYERCQFZ7KXND3GVNO4HMW4LREDMYMIMQGYFY253W2
-#\\\|YHUZBW7TPUMA4W5HLYMX7KZE3XRCUQ64C6GE6S6KLT36MFNDHFT \ / AMOS7 \ YOURUM ::
-#\[7]YLHTPXZ27DO3FFJIYWLXPWOW57B44IFETUTCAISSVY6GT4JQC6AA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,.,,,...,.,,,,.,,,.,,.,.,,.,,..,,...,..,,...,,..,,..,.,.,.,.,
+#LAW3QTW4VOOX3BG3MW3MO5DAUMPAUPAYU7OAZQ2CRGD5RAQPGPERA6DUIGNIGV7OMIBDG6EFHHO5K
+#\\\|QF74BKPSV4ZFPHUZADB73HEFVEXRLIXB3CDMXBMRXU542M6GLT6 \ / AMOS7 \ YOURUM ::
+#\[7]JLKKI7HEF47AJK7ELC25NWAWHUM6T4GL27QME4AZ2ZVTGAA5BADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,15 +14,16 @@ if (    <system.zenka.mode> eq 'universal-child'
 }
 delete <mpv.universal_child_resume>;
 
-push( @{<mpv.reply_ids>},     $call->{'reply_id'} );
-push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.cmd_prop.pause' } );
+push( <mpv.reply_ids>->@*, $call->{'reply_id'} );
+push( <mpv.command.reply>->@*,
+    { 'handler' => 'mpv.handler.cmd_prop.pause' } );
 <mpv.pause_cmd_mode> = 'resume';
 <[mpv.send_command]>->( 'get_property_string', 'pause' );
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,,,,,.,,.,.,...,,.,,,.,,...,,.,,,.,,..,,..,,...,...,,..,...,.,.,...,...,
-#M5TZUTPOIHAO3UDJB7P6LYF2G7ZEW4E4IDYSJZ4QQEANKNQTSOCZSQ5YXEGN66S5H2OJWCXNDVO3E
-#\\\|HAFQ4PZNZ7TTRON5GKJQGCVLW754O7RMUZ3WBD64E5GOWC2RPK6 \ / AMOS7 \ YOURUM ::
-#\[7]YTCO5XLEKIROMSFRUUMH64PJ4RDZGBWDDOG4CMZMT3D7XV44ESCA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,..,,,..,...,..,,.,.,..,,.,.,.,.,..,,...,...,.,,,,.,,.,.,,.,,,,.,
+#KL3Y2GNUWDHC2L5GHEYWJCWE4TU3QDV4VTZTPBDXWZ6GBLTM5QFTGJXDTQOQFYGHYRQSX5AFV2UWU
+#\\\|UTYANQ3DZYHTBSH5EFVWTPGHMCP7OKM4U6KFNFBCRVKL3QBWMGE \ / AMOS7 \ YOURUM ::
+#\[7]22FQCQ3LTPBP5JAGJDLFIRAEKCLAHILI2USPTUL4BEHEBYRCGYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

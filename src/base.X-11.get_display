@@ -4,7 +4,7 @@
 
 my $silent_warnings = shift // 0;
 
-my ($local_sid) = keys %{<user.cube.session>};
+my ($local_sid) = keys <user.cube.session>->%*;
 
 <[base.log]>->( 2, 'requesting display name from X-11 zenka.,' );
 
@@ -52,8 +52,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return undef;
 }
 
-#,,,,,.,,,...,.,.,..,,...,.,.,,,,,,..,.,.,,.,,..,,...,...,.,,,,,.,..,,.,.,,,.,
-#TJNCVIXAQEWGGJG6G5V3XWZPLBS2H2MK7BPNTIT4E3UHZBOZG3ZSELNACRPBCYSHGE5B5RYSJXQA6
-#\\\|5FS7C2MAPMDOGLGP2M3ZDIRW3YF4YSYFHL6NLC57U6PTCFHZSDX \ / AMOS7 \ YOURUM ::
-#\[7]6TWCPOT7SMYA7H3WPORDRCJYGZJQF6NOMR6ETOMWRZWAZOYQMGAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,,.,..,,,,.,,,.,.,.,.,,,,,.,..,,...,...,..,,,..,,,.,,.,,.,,,
+#5QKHJS7433W3MXQ2KD7MCLUFNR4UW5EEIRU4MZCSLMYSLSXMNRBVTF7SBL2VOGH2BNZU4NYPF3JCO
+#\\\|JIWBEJH6NHVNNVNSAXRQWV4XRXSD2A7AZQKJNCKSOHS773HWBCW \ / AMOS7 \ YOURUM ::
+#\[7]C553LW7RTKWBOFG7RQBKS2OQPDPXVLBQPGDLHTN3TGJR3Y6HNIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

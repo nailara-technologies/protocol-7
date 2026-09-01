@@ -11,12 +11,12 @@ return {
     'mode' => qw| false |,
     'data' => "no zenki have 'manually stopped' status"
     }
-    if !keys( %{<v7.zenka.manually_stopped>} );
+    if !keys( <v7.zenka.manually_stopped>->%* );
 
 my $cleared_count = 0;
 
 if ( !length($clear_zenki) ) {
-    $cleared_count = scalar keys( %{<v7.zenka.manually_stopped>} );
+    $cleared_count = scalar keys( <v7.zenka.manually_stopped>->%* );
     <v7.zenka.manually_stopped> = {};
 } else {
     map {
@@ -39,8 +39,8 @@ return {
     'data' => "'manually stopped' status cleared ( $cleared_count zenk$s )"
     }
 
-#,,,.,,.,,.,,,,.,,,..,..,,..,,..,,.,.,...,,..,..,,...,...,,.,,...,,,.,,,,,.,.,
-#EO52AWNX7TEOYIG2AOCDNUOKQJ2HC4L4B6JQIDLZWBYKA34AEXKDHG7M4PLOPWUPAZAC6ZZ3A63LK
-#\\\|L7HRXL7IH66JT4XXU6GD7DT6VAO5UCOCWXZFNZ7S7IMTFVI23OZ \ / AMOS7 \ YOURUM ::
-#\[7]XXWMIE7MDLU6WRKZT2RG6EDB2KHC422AAV2H3PZC5E5S37G7CYBI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,.,,..,...,,.,,..,,,.,,,,.,...,..,,...,...,...,.,.,.,.,..,,,.,,
+#HNKMKAF3LJ7UH5NRSXCZ36TJETUQDLY6CQ6Q6TOD7H5K7NXCOQDXWQY3UCK2SUYAQJL3LUFKWDHPO
+#\\\|HLPOWDS7L4VC4EDTUTXZMAUHZ7FUZYR3KVCXFU4BCB7PNW4A3LW \ / AMOS7 \ YOURUM ::
+#\[7]AFWVKRDQOT2HJ5J6MKDJYLEXWG3Q6WTNRWTTCV7S4SIVHWVGNMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

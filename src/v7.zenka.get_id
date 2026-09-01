@@ -11,7 +11,7 @@ $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)]$||;
 
 die 'expected zenka name' if not defined $zenka_name or !length($zenka_name);
 
-foreach my $id ( keys %{<v7.zenka.setup>} ) {
+foreach my $id ( keys <v7.zenka.setup>->%* ) {
     my $setup_zenka = <v7.zenka.setup>->{$id}->{'name'};
     return $id if defined $setup_zenka and $setup_zenka eq $zenka_name;
 }
@@ -19,8 +19,8 @@ foreach my $id ( keys %{<v7.zenka.setup>} ) {
 <[base.log]>->( 2, "v7.zenka.get_id: no zenka '$zenka_name' found in setup" );
 return undef;    # no such zenka
 
-#,,.,,.,,,,.,,,,,,,.,,..,,,.,,,.,,.,,,,,.,,.,,..,,...,...,,..,,..,,,,,.,.,,..,
-#WFHF4OMBL6I6SVFV3BJRABIH3PN2WTATEKNRLRNGTMW65C5YDPQCDAHDG7GDEAXLRF7EAGEML62GE
-#\\\|X3YHOSIFSYK6GZ5NNXX7QPRFCDJ6F5VP5KBVA77RNPPJPBSJHMJ \ / AMOS7 \ YOURUM ::
-#\[7]SMLSSD2V3CPDCU5OYXNVA3HFS6IT2CSJYNRFCCVD42NTFESF2QDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,,,.,,.,,..,,,,,,,,.,..,,.,.,..,,...,...,,,.,,,,,...,...,,,.,
+#Q3CB3IONY7ZBIXPK2ACADMQ7MLBHPHEGJ2EY3J7GFAJVXJUI7ZBVUICZL3I7DIKI756H2MEHECODS
+#\\\|IOV3V7TEN3UAPXHGFITCCWWIVVRBUWQTDHJGLQH2WCD52R5PQKY \ / AMOS7 \ YOURUM ::
+#\[7]RCC4RUCTMEUOVKENZYKVOM7EDQC2BAS6WAKF2GDKIB7GK7D7Y2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

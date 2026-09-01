@@ -24,7 +24,7 @@ if ( defined <system.timer.host_reboot> ) {
     my $reboot_timer = <system.timer.host_reboot>;
     $reboot_timer->cancel if $reboot_timer->is_active;
     delete <system.timer.host_reboot>;
-    delete <system.timer> if !keys( %{<system.timer>} );
+    delete <system.timer> if !keys( <system.timer>->%* );
 } else {
     $reply_message
         = "automatic 'xcrash' reboot deactivated, "
@@ -37,8 +37,8 @@ if ( defined <system.timer.host_reboot> ) {
 
 return { 'mode' => qw| true |, 'data' => $reply_message }
 
-#,,,,,,.,,.,.,.,.,..,,..,,.,,,.,,,.,,,,.,,,,,,..,,...,..,,,,.,..,,,.,,,,,,,,.,
-#6EJMRRFVWBIEEXXMCAI53C7BEV7WS5FJGGIJFASGEWSA2J7T7QTE3IUTRKY5SAMACZV23PGFNHQP4
-#\\\|I5BV37UNMSKNHXXUIA3HOGWQ6AAT4BNKULNKHBUMIXCTTT5WIET \ / AMOS7 \ YOURUM ::
-#\[7]Y76Z34RHNZW4CLF7Y3BZWI3NUUJCJM6SP35URQRN7RXEAW6QLOCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,,..,.,,,,,,,,.,,,,.,,,.,,,,,..,,...,...,.,,,.,,,.,.,.,,,.,.,
+#FCG5F2265NUFCRPX76JVLOBFFIBG5WHOCPME3V4UMX6ZTHBHX2BVUVSEPRNPMYD7ONI7SNS3CRG64
+#\\\|Q7Q37TAIYG5LDGM3QWQZZ6T2HMRNW44UW4YOWHRYUZ2AZAV3Y4Q \ / AMOS7 \ YOURUM ::
+#\[7]7ZNUW33R5OCXCPX7KWLTFAUQ3SBC7B6D7JGN5ECPFYRZZT6QDOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

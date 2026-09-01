@@ -23,7 +23,7 @@ if ( defined $call->{'args'} and $call->{'args'} eq qw| subscribe | ) {
         if not defined $h;
 
     <graphics-matrix.orbital.listeners> //= [];
-    push @{<graphics-matrix.orbital.listeners>}, $h;
+    push <graphics-matrix.orbital.listeners>->@*, $h;
     <[base.logs]>->(
         2, 'orbital sync listener added [sid=%d]',
         $call->{'session_id'}
@@ -41,8 +41,8 @@ return {
     qw| data | => <[graphics-matrix.orbital.build_summary]>,
 };
 
-#,,..,,,,,,..,.,,,,..,,,.,.,,,...,,..,..,,..,,..,,...,...,...,.,,,..,,,..,,..,
-#CZC2AGGZNW2LMTJICECH4K6SDYW6XGKCONWJKNFNRHZMIH4XQ6BCNT6IICLTMQD5VE6QJGCEAJ456
-#\\\|J4DANB5INW6F4RWYOON6BKAQ57QVNG5CBJWGFNNVZF36Q7AGQCZ \ / AMOS7 \ YOURUM ::
-#\[7]H5RP4D45E4SXXLJJG2RVWON7QAWR35C3A4HWCSZKGFFOWGKM6OCA 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,,.,,,..,,,.,,..,,,,,,,.,.,,,..,,...,...,,,.,,..,.,,,,,,,,,.,
+#VE5FBKR5DHB4RJN57VIIQKOVYM7KT74AE2IN64Q5NSREWNSNDYI23M4GIXBT56STWLATLP7NU2XB6
+#\\\|LHOGOLCX365ARS32URG7L36VAKEFOII5A5P6EIDZLRI34C5I5WM \ / AMOS7 \ YOURUM ::
+#\[7]4IBUZOF4VQIKHHXRXFAZZWJZNSKSWM6NWYVVSSQU5NYNROIL6EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

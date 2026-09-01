@@ -10,7 +10,7 @@
 return unless <[base.cfg_bool]>->(<nodes.cfg.orbital_push_enabled>);
 return
     unless defined <nodes.orbital.listeners>
-    and @{<nodes.orbital.listeners>};
+    and <nodes.orbital.listeners>->@*;
 
 my $result = <[nodes.orbital.current_position]>;
 return unless ( $result->{'mode'} // '' ) eq qw| true |;
@@ -19,7 +19,7 @@ my $payload = <[nodes.orbital.format_strm_payload]>->( $result->{'data'} );
 return unless length $payload;
 
 my @keep;
-for my $h ( @{<nodes.orbital.listeners>} ) {
+for my $h ( <nodes.orbital.listeners>->@* ) {
     if ( <[base.stream.push]>->( $h, \$payload ) ) {
         push @keep, $h;
     } else {
@@ -30,8 +30,8 @@ for my $h ( @{<nodes.orbital.listeners>} ) {
 
 return TRUE;
 
-#,,.,,..,,,..,,,,,,..,,..,.,.,..,,,..,,,.,,,,,..,,...,...,..,,...,.,.,.,,,,,,,
-#QB5TSAUFXGB6DIVU4PFWLJVEVURLS5WECUWVONUDU2EKY3DAR6CYDVUKGU3VBOSJBR6OKEU4CLYNU
-#\\\|6OPAEMLBQJPAID4TQ3SWRLU7TQCOENQTXNGHYVOCASRHOERFGYP \ / AMOS7 \ YOURUM ::
-#\[7]TUTSE5CLU4T67KCQOBWLMQDUZHUVSAYVRPT2RI7MQ5X46ML2CEBQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,,,,,.,,,,,,,.,,,...,,..,,,.,..,,...,.,.,,,,,,.,,,,,,,.,,..,,
+#IM5RBHQGKA3UVTSGC44C7QSXD57OLZZLPWXTCIZL5ZVCQTUQWWWJMK44CYMJFQ23K46TDDZZCJNPM
+#\\\|LNVHRXU5B7XSUCSW6ZOBM4XGVISBBJQ4SPQRDFKBDXQOBUMXO5I \ / AMOS7 \ YOURUM ::
+#\[7]FK6EBBUJXJ2I3TWTWB3EA43VKC7BYACHE7XEULMTULPPWIRE2YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

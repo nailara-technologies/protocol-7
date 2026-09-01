@@ -16,7 +16,7 @@ if ( $zenka_name =~ m|^\[([^\]]+)\]$| ) {    # <-- only subname given
     my $subname = $1;
     my %zenka_names;
     map { $zenka_names{$ARG} = 1 if $ARG =~ m|\[$subname\]$| }
-        keys %{<tile.coordinates>};
+        keys <tile.coordinates>->%*;
     my $err_msg;
     if ( !keys(%zenka_names) ) {
         $err_msg = "no zenka matches subname '$subname'";
@@ -37,7 +37,7 @@ if ( not exists <tile.coordinates>->{$zenka_name} ) {
                 $last_match = $ARG;
                 $match++;
             }
-        } keys %{<tile.coordinates>};
+        } keys <tile.coordinates>->%*;
     }
     $msg_str
         = "multiple '$zenka_name' instances defined, zenka subname required"
@@ -68,8 +68,8 @@ return {
     'data' => join( ' ', @coordinates )
     }
 
-#,,.,,,,,,,.,,.,.,,.,,,..,,.,,.,,,,,.,.,.,,..,..,,...,...,,..,,.,,,,,,,..,.,,,
-#NDTZR7GVQQPNOTBHL3TL5O6R4ZRRT3E7VLUDVEQWWHRRRMA6PAXRTQB3EF7X3QMZU3EET7I5FEHSA
-#\\\|LBADI3RWJOQI7C6OPC3PJJQHNM7QSJ2N3YPSIBWONNAT56R5GMK \ / AMOS7 \ YOURUM ::
-#\[7]LG5TA7VRVHZSBMUZIGUDVYE2QXJOJGTVH6G62UJLORAHN6KAZIDQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,...,,,.,,.,,...,.,,,,.,,.,,,,.,,..,,...,...,.,,,,,,,.,,,...,,.,,
+#F6F4BLEBOURRE7S5LHRX4RCO6WQ7DSZCSQIGKI6LZTBZ76PQFBMO2MIOAHTOHUCMZMFP5JFIY4J6I
+#\\\|WGTKPCLHGADXGHYJWBCNJTXY6A437KIXY7TS5RJUJ2HKQ5VYNJI \ / AMOS7 \ YOURUM ::
+#\[7]M6OMY37F7P346RTVMOMBHF64PMGHJC6ZKFHVIU227EJ64IYNYCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

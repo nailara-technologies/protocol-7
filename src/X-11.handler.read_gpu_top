@@ -91,7 +91,7 @@ while ( $data{'X-11'}{'gpu_top.output_buffer'} =~ s|^([^\n]*)\n||s ) {
 
     ## emit to STRM listeners ##
     if ( defined <X-11.gpu_top.listeners>
-        and @{<X-11.gpu_top.listeners>} ) {
+        and <X-11.gpu_top.listeners>->@* ) {
         my $load_1s = $load_ref->{1} // 0;
         my $avg_5s  = $load_ref->{5};
         my $payload
@@ -100,7 +100,7 @@ while ( $data{'X-11'}{'gpu_top.output_buffer'} =~ s|^([^\n]*)\n||s ) {
             : sprintf( "%s\n", $load_1s );
 
         my @keep;
-        for my $h ( @{<X-11.gpu_top.listeners>} ) {
+        for my $h ( <X-11.gpu_top.listeners>->@* ) {
             push @keep, $h if <[base.stream.push]>->( $h, \$payload );
         }
         <X-11.gpu_top.listeners> = \@keep;
@@ -156,8 +156,8 @@ if ( defined <X-11.gpu_top.write_to_disk.path> ) {
     rename( "$stats_file.NEW", $stats_file ) or die "rename : \l$OS_ERROR";
 }
 
-#,,.,,,.,,..,,,,.,.,,,...,,,,,,,.,...,..,,...,..,,...,..,,.,,,.,.,...,.,,,,.,,
-#B7RMNESF2REAJW53372JLHWODK3IK5EV2JFMGBQOYR6VUW4Q754EWWGMJDBVEX5UEANSYQK24QTZS
-#\\\|PDCU525XQ54JJB2DPPZVZBZGHHNTZRDIFLPO7ALX4AE33VYCD2K \ / AMOS7 \ YOURUM ::
-#\[7]ACXG6LUDJZXQ3D4WSDODJ55H7RV4IQMWRMKUQ5YRR7DO3I6XJMDQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,.,,,..,,.,.,,,.,,,,,,,,,,..,..,,...,...,..,,..,,..,,.,,,,,.,
+#Q756Z7OQLDMSC5FNS46YYAG3WUZDWDLGA7BQMQEAM5XLBAWGIHQOXXEQ4UJHAH6SFNTWSR2RLQWYI
+#\\\|VMN27KCZSHH735FB7DQAUXKJ57WVSZ2YTTXSGO47H66YG5NKIL7 \ / AMOS7 \ YOURUM ::
+#\[7]XJ4EVUV3W2P775M7UZFV7BVZ3YL2WS5KP3OB7IYJXILR25EVPGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

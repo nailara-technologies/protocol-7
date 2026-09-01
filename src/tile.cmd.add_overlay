@@ -8,7 +8,7 @@ my $overlay_str = $call->{'args'} // '';
 
 <tile.transition_queue> //= [];
 <tile.overlays.current> //= [];
-<tile.overlays.previous> = [ @{<tile.overlays.current>} ];
+<tile.overlays.previous> = [ <tile.overlays.current>->@* ];
 
 return {
     'mode' => qw| false |,
@@ -32,15 +32,15 @@ map {
         }
         if not exists <tile.setup.tile>->{$ARG};
 
-    push( @{<tile.overlays.current>}, $ARG );
+    push( <tile.overlays.current>->@*, $ARG );
 } @new_overlays;
 
 my $merged_name = <[tile.merge_multiple]>->(@new_overlays);
 
 return <[tile.cmd.switch-group]>->( { 'args' => $merged_name } );
 
-#,,.,,..,,...,,..,...,,,,,...,,..,,..,,.,,,,.,..,,...,...,...,,,.,.,.,.,,,.,,,
-#25ALJGDRV6CVIN66LY7IACLX6AC7NBZDRYL4RH3HA7VPMYSGG5AWK6BWEUKQI5PY7TMQYRWTZK6YO
-#\\\|2G7IPUOYP64X7SYS72OKPBQPQ54DCSCCOT4LDSWEPCFLMDIPWJC \ / AMOS7 \ YOURUM ::
-#\[7]FJJYNLNSVC76OJGYZ5GYCZLBD43SEBL4KUB3SXA7WJ5Y7PROL6AQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,.,.,...,,..,.,,,,..,,..,,.,,..,,...,..,,..,,,..,...,,,.,,,,,
+#H52PUCGJRG6Z75PMPBU4MB4RYCJFQSRIHL6CGRHTCO3WH6WCIU4BLNUVXUAJCR75NETHAMQPPSA7O
+#\\\|UUK74HQFH4UM7IPENSD2G73LM4P3D25PVY2RQIWJGNHN4JOVZ7Y \ / AMOS7 \ YOURUM ::
+#\[7]G74OGQW43XQ2UHLXYULVF57VIWO6CDE5YGUF3NDZK6AZFJE4MKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

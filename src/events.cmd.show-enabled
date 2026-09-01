@@ -5,11 +5,11 @@
 
 return { 'mode' => qw| false |, 'data' => 'no events configured' }
     if not defined <events.unix.timetable>
-    or !keys %{<events.unix.timetable>};
+    or !keys <events.unix.timetable>->%*;
 
 return { 'mode' => qw| false |, 'data' => 'no events are enabled' }
     if not defined <events.enabled>
-    or !keys %{<events.enabled>};
+    or !keys <events.enabled>->%*;
 
 my @enabled_events = <[base.reverse-sort]>->(<events.enabled>);
 
@@ -18,8 +18,8 @@ return {
     'data' => join( '', map {": enabled : $ARG\n"} @enabled_events )
     }
 
-#,,,,,,,.,,,.,,,.,,.,,..,,,.,,,.,,.,.,.,,,...,..,,...,...,,..,..,,.,,,.,,,..,,
-#YRYBRN7PDNUFUWUBR3OHSNOBE4CNYJGSPWKFFCJTAYRMKV5GGSHOSI2JSJHFWBCQ54YTELWSQJZK2
-#\\\|DGPPXMNLHNXIQRAUL3FT32PME7WZQGQJMATYTVTCBOHNA24AQ3Q \ / AMOS7 \ YOURUM ::
-#\[7]LVOSMLXLI67VFFLACTD6S5WKPVAKKTSBQS4TQCV3RXBQNTTUACCA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,,.,,...,..,,,,.,.,.,..,,,,,,..,,...,...,,,.,.,,,,,,,,.,,,,,,
+#FAN7455MDYF74RQMPDUEYYUERLYYORAI6OZBQDYCSUQ7TUSBJBZN4TGF3V4EBUIDZSGBNRTF34JP6
+#\\\|2DTZAMEKTXQG7MNOAF7NY6XOXDSQXMZAE46JKQ2HQTV26ZF5BUE \ / AMOS7 \ YOURUM ::
+#\[7]W4WPKVQ6SDKOKLI7554CRDBEYRT73XQ7E7BPTSWGPXGANKSAZGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

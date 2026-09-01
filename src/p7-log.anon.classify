@@ -15,7 +15,7 @@ my @spans;
 ## rename it /users, chroots may use something else entirely ] -- configure ##
 ## additional roots via <p7-log.anon.home_roots> aref                       ##
 <p7-log.anon.home_roots> //= [qw| home users |];
-my $home_root_alt = join( '|', @{<p7-log.anon.home_roots>} );
+my $home_root_alt = join( '|', <p7-log.anon.home_roots>->@* );
 while ( $line =~ m{(/(?:$home_root_alt)/[\w\-\.]+/[^\s'",;)]+)}g ) {
     push( @spans, [ $-[1], $+[1], qw| path | ] );
 }
@@ -47,8 +47,8 @@ foreach my $span (@spans) {
 
 return \@result;
 
-#,,..,,..,.,.,..,,,.,,...,,,,,..,,.,,,..,,,,,,..,,...,...,...,,,,,.,.,,..,..,,
-#3QVHMBTRU32DUQG7PTIRTIAQK5JIHPG7G4QJ2J2BL55QVVAMEMEJMFX7YV4BBWWUAJLNFOW24IVDC
-#\\\|QXNRNE3LWKZJV7HXEOEQBU2S3GFCJS5HX6ZOQW6I3QRJ2DOYIHA \ / AMOS7 \ YOURUM ::
-#\[7]ROWOWIL3QBRHW7WISJWTJUH6C5X2ILDK5KVUOJ2UYJ25HOZ5JODY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,,,.,.,,..,,..,,,,,,,,,..,,.,.,..,,...,...,.,,,...,,..,,,,,...,
+#XYQBOAHGDEW6F4GXVOYHB3ZLKX5SHRKOY4YZC2ACRAGMG7UMAZ2BJBHSYNEA37VIZWH662QNRBBM4
+#\\\|LCR6RFQ26ZNOIGP4W3LJ4W7L6WJDK43DQWCBR25NLLEERVUBBZ6 \ / AMOS7 \ YOURUM ::
+#\[7]RHDNI3BUE4B4XUXLM2V66MOH7CKDCRWNSKH6QJ2RT7YZKXHNZIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

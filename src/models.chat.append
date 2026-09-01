@@ -21,12 +21,12 @@ my $entry = {
     'sender'  => $sender,
     'message' => $encoded,
 };
-push @{<models.chat.messages>}, $entry;
+push <models.chat.messages>->@*, $entry;
 
 ## limit structured storage (keep last 500 messages)
 my $max_size = <models.cfg.chat_buffer_size> // 500;
-if ( scalar @{<models.chat.messages>} > $max_size ) {
-    shift @{<models.chat.messages>};
+if ( scalar <models.chat.messages>->@* > $max_size ) {
+    shift <models.chat.messages>->@*;
 }
 
 ## also log to Protocol-7 buffer for visibility
@@ -38,8 +38,8 @@ return TRUE;
 
 0;
 
-#,,,.,,..,..,,,..,.,.,.,.,..,,..,,.,,,.,.,,,,,..,,...,...,...,.,,,,.,,,,,,,,,,
-#LRDLVUILBIEULNLCOSKQ3OFWOD6RJWOPQOMA5H5C2QU2DMHRSMD7KAPEBRCAPR5BVM6SMTNIQTKAM
-#\\\|PYMBGDPF7STTOESGW3IZM77XW243E22V3VZIOX7OWB4NTJPWNUV \ / AMOS7 \ YOURUM ::
-#\[7]ECDREQS2ZA7MR6GFY6WKTTXTJSNDBQV2Q32FFDMKUBEVH2WYD6AI 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,,,.,..,,,,,,...,,.,,.,.,,..,..,,...,...,...,,,,,.,,,..,,.,.,
+#KNTXGNSSSHT3YF657ZZARP3JSU22WE6GKSUPVYH37SQOA3Q45P7ITQQIZCZIJ44QNHT6NY6B7S2G2
+#\\\|PCXDG6QBS55DJ35AWCGQYWWMDHFMZ6HQU2DC6MAJ7QDQLOZBI5D \ / AMOS7 \ YOURUM ::
+#\[7]ENLONRDLNUFJVO3AQE3R3XTTMI7AXYPSNVC6RYL5MVS5JL4THQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

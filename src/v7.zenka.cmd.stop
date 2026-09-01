@@ -95,7 +95,7 @@ foreach my $name ( <[base.reverse-sort]>->( \%shutdown_names ) ) {
     if ( exists <v7.zenka.auto_cleanup>->{$name} ) {
         delete <v7.zenka.auto_cleanup>->{$name};
         delete <v7.zenka.auto_cleanup>
-            if not keys %{<v7.zenka.auto_cleanup>};
+            if not keys <v7.zenka.auto_cleanup>->%*;
     }
     my $instances_remaining = $zenka_names{$name} - $shutdown_names{$name};
     if ( !$instances_remaining ) {
@@ -118,7 +118,7 @@ foreach my $name ( <[base.reverse-sort]>->( \%shutdown_names ) ) {
         ) if $stop_mode eq qw| manual |;
 
         next if not exists <v7.zenka.dependency>;
-        foreach my $dep_name ( keys %{<v7.zenka.dependency>} ) {
+        foreach my $dep_name ( keys <v7.zenka.dependency>->%* ) {
             delete <v7.zenka.dependency>->{$dep_name}->{$name};
             if ( !keys %{ <v7.zenka.dependency>->{$dep_name} } ) {
                 delete <v7.zenka.dependency>->{$dep_name};
@@ -133,7 +133,7 @@ foreach my $name ( <[base.reverse-sort]>->( \%shutdown_names ) ) {
             }
         }
         delete <v7.zenka.dependency>
-            if not keys %{<v7.zenka.dependency>};
+            if not keys <v7.zenka.dependency>->%*;
     }
 }
 
@@ -173,8 +173,8 @@ if ($count) {
     };
 }
 
-#,,,,,,.,,,,.,,,.,,..,...,,..,.,,,,,,,..,,,..,..,,...,...,..,,,.,,.,.,,.,,.,,,
-#SAJ62A3UJWUBVZDT4YTQOLCSU4K672GIY5WFWWDTOHJX234EFA4YNPSDQYYZ7MBUL7UVL7U264OFS
-#\\\|XFK7OBAV4OEYYZYH4ZAAVNV5HFMZSABHVD25VOVQITISJPTAXN6 \ / AMOS7 \ YOURUM ::
-#\[7]NRS5FGSILO7HFPBXZPLJF2V7CGGECXII7PSG2PMKBZJAYYHH6KCA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,..,,,,,...,...,,,,,,,.,,,.,,,.,..,,...,...,..,,.,.,...,.,,,..,,
+#7FMLZGJIUJU3MCY23ESTSUJQTXGENDPYFYSVCFF4I2HOJP7QLJ7XTN7T6HKW3O4VKKADSHWSSMO7U
+#\\\|GFB4FPBOOQHFWIRPESIWZ24RXF4QXPWTJHXXHHBEFVCDI6CYT4G \ / AMOS7 \ YOURUM ::
+#\[7]HCJVGCDPKZWYRXBFLGBNFKAY2CV677DQPLZZC4OZVVEDAUSGRWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

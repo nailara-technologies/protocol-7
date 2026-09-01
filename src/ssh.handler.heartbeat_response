@@ -31,7 +31,7 @@ if ( $status ne qw| TRUE | ) {
     delete <ssh.heartbeat_request>->{$con_id}->{$int_id};
     delete <ssh.heartbeat_request>->{$con_id}
         if !keys %{ <ssh.heartbeat_request>->{$con_id} };
-    delete <ssh.heartbeat_request> if !keys %{<ssh.heartbeat_request>};
+    delete <ssh.heartbeat_request> if !keys <ssh.heartbeat_request>->%*;
 
     my $delta_t = <[base.time]>->(5) - $request->{'time_sent'};
     my $latency = sprintf( '%.2f', $delta_t * 1000 );
@@ -40,8 +40,8 @@ if ( $status ne qw| TRUE | ) {
     ## $link_name, $latency );
 }
 
-#,,,,,,.,,.,.,.,,,.,.,...,.,.,,,,,..,,,..,...,..,,...,...,,,,,,.,,,..,.,,,,,.,
-#SM7BCRTECXEZVYM26FFEMANP4AO6YKYFARP7I7VRTLMWQFGYB44PFNY7ZL7AEFQ7UAESZUDKAIDTQ
-#\\\|HBRUEOLW7BSB47BSSWSXTPNFP6U7JPB4AHTXNQC225TZJPPQKZ3 \ / AMOS7 \ YOURUM ::
-#\[7]6YPLA6YYO5MB3RAJE2J7NFOOLVV2BKINW42SEAQT7IJEH3WIAAAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,,..,.,,,,,.,,,,,.,.,,,.,.,,,..,,...,...,,..,,.,,,.,,.,.,,,.,
+#7TEW5DRUUKX42RWXW5BQPLMPRG4Z4W6YLX4XA7ZZQVYO2S6DTAGWZBVAX5IRKAMNMRCMDA744QPNC
+#\\\|X7HEFYJPHZXPA3N2KWPHTKSAS23DDMR74VRNKI7TWD3EHQ4BDV4 \ / AMOS7 \ YOURUM ::
+#\[7]MINCVWJOQGTCWDEHOLIVMYAFLZAN7IZXZWOHMEGZSFCP3ZB3CODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

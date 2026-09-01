@@ -243,10 +243,10 @@ unless ($no_push) {
             @remotes_to_push = ($specific_remote);
             say sprintf ' : Pushing to specific remote: %s', $specific_remote;
         } elsif ( ref(<work.git.remotes>) eq 'ARRAY'
-            && @{<work.git.remotes>} ) {
+            && <work.git.remotes>->@* ) {
 
             # Multiple remotes configured
-            @remotes_to_push = @{<work.git.remotes>};
+            @remotes_to_push = <work.git.remotes>->@*;
             say sprintf ' : Pushing to %d configured remotes: %s',
                 scalar(@remotes_to_push), join( ', ', @remotes_to_push );
         } else {
@@ -337,8 +337,8 @@ if ($no_push) {
 } elsif ( length $specific_remote ) {
     say sprintf ' : Pushed to: %s', $specific_remote;
 } elsif ( ref(<work.git.remotes>) eq 'ARRAY'
-    && @{<work.git.remotes>} ) {
-    say sprintf ' : Pushed to: %s', join( ', ', @{<work.git.remotes>} );
+    && <work.git.remotes>->@* ) {
+    say sprintf ' : Pushed to: %s', join( ', ', <work.git.remotes>->@* );
 } else {
     say ' : Pushed to: origin';
 }
@@ -347,8 +347,8 @@ say '';
 
 return FALSE;
 
-#,,..,...,...,,..,,.,,.,,,.,.,.,,,,,,,,..,,.,,..,,...,...,,,.,.,.,,,,,,.,,,,.,
-#FOTXMQ2FIUZAM5MSNPL5O2K5PGZNDYRUF3WRQHHTKJDALJCLS6ZVOONCP74ZLMDP5L3AN6BG2RAMI
-#\\\|GWI4ZQMWAXBJA7QPUVRDGXPW7PS4CVRZLAVVBJ2PMR2CSYUD5KA \ / AMOS7 \ YOURUM ::
-#\[7]V3JX33DDWCWMVKIZRQDV3SKGBQ7IHXXIH2DXJTBSYUT56AAAIYBI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,,,,,...,.,.,,.,,.,.,.,,,...,..,,...,...,.,.,,.,,...,,,.,,,.,
+#H5LYFFE63N2DDC2H7RVAD6MVDONLAOSYJGKLJMSQ2PBG437EL7LB7TFNJAC7JZJKIVZYNSAGTH5EM
+#\\\|R2PSHJDYMISUDOAETCZBM573QWNIRUHMLQURWRGPK3N3IAHYJNZ \ / AMOS7 \ YOURUM ::
+#\[7]CQ36X5ZP7E7RR5IJPU3G5XOZSVWGT2FEUNAZOIVMPOALN37KZSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

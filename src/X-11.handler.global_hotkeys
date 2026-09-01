@@ -110,7 +110,7 @@ if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
 
     <[base.log]>->( 1, "recorded '$command_str' hot key [key:$keycode] ..." );
 
-    foreach my $reply_id ( @{<X-11.hotkeys.rec_reply_ids>} ) {
+    foreach my $reply_id ( <X-11.hotkeys.rec_reply_ids>->@* ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => qw| true |,
@@ -129,7 +129,7 @@ if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
     }
 } elsif ( $event_type eq 'press' ) {
 
-    foreach my $h_id ( keys %{<X-11.hotkeys.active>} ) {
+    foreach my $h_id ( keys <X-11.hotkeys.active>->%* ) {
         if (    <X-11.hotkeys.active>->{$h_id}->{'keycode'} == $keycode
             and <X-11.hotkeys.active>->{$h_id}->{'mod_state'} == $mod_state )
         {
@@ -158,8 +158,8 @@ if ($no_key_pressed) {
     delete <X-11.hotkeys.triggered>;
 }
 
-#,,.,,,,.,.,.,,,,,.,.,,,.,,,.,...,,,.,.,.,.,,,..,,...,...,,,,,,.,,.,,,,,.,...,
-#PQWQMNFL2O2KVB44UYLCYG25WMBBCMZBIHGDY3WHDJ2REO376HSIWQRP2UZ5HJDOX2RL4FFQHDWQO
-#\\\|BWYCPTNL5DOUMABDAK5N4MMSWNI5YRQOXRCBVTFYEG4XY5ORWEC \ / AMOS7 \ YOURUM ::
-#\[7]PCGSQDDZUQO5YL237Q4QKAZKOGYBXGOJQMETAMVWV4QHIHF6QIDI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,,,,,.,,,...,...,.,,,..,,.,.,..,,...,..,,...,...,,,.,,.,,...,
+#YCQHOTJIYMSMITUNW66V3JDU3WG3GAXMYNULH2KRCDKR4PY5EB3APPHTUFWXHJSCOPGRQCOY2D63Q
+#\\\|2L4HJXOW77IPIBFWB5LBO6DXDOA6QDSG6BHK5YS4O2426C62FJJ \ / AMOS7 \ YOURUM ::
+#\[7]TCEGGH2JYHKNTELXV3ULSH5FSK7YHG43K3BCPCYRAJSQZ3DFTGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,11 +30,11 @@ if ( defined <weather.station_id> ) {    # cached station id present
 
     if (    defined <weather.get-urls.reply_ids>
         and ref(<weather.get-urls.reply_ids>) eq 'ARRAY'
-        and @{<weather.get-urls.reply_ids>} ) {
+        and <weather.get-urls.reply_ids>->@* ) {
         my $url_list_str;
         map { $url_list_str .= "$ARG\n" }
             <[weather.parent.get_url_list]>->(<weather.station_id>);
-        foreach my $reply_id ( @{<weather.get-urls.reply_ids>} ) {
+        foreach my $reply_id ( <weather.get-urls.reply_ids>->@* ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
                 {   'mode' => qw| size |,
@@ -46,8 +46,8 @@ if ( defined <weather.station_id> ) {    # cached station id present
     }
 }
 
-#,,.,,,..,,..,.,,,,,,,.,,,,,,,,,.,.,.,.,,,,.,,..,,...,..,,.,.,.,,,,,,,..,,,.,,
-#3ZGCFB76CYOOVRQZFTS5NPSWEJ257JAJUOLCCV7PSE4A4UT2P3QVWHX3TG4HG22YMHMWFPWSXIVMU
-#\\\|X7YUFA6B4M7XZ2AW3E7S7QDHWFXEZF7GHADFWSLXWCU4IUXOI2Q \ / AMOS7 \ YOURUM ::
-#\[7]TW4CZFIY77KAVBTJWLAZXCTX3C7GVKUD72SJUIRMXAFBRWLIPOCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,,,.,...,,.,,,,,,...,..,,,..,..,,...,...,.,,,,..,...,,..,...,
+#7RMVABG25WENYZWSL6MN5XCNLBM6W7WU4LIBVEO5DJZAXJ4OMKW25HNWY7GIXGRKWDFXKCFLYIWPA
+#\\\|24Y2JMHVNYCH3CM7M2Q634JVNBRV6DJHO7KFUC447I22X3QZGVJ \ / AMOS7 \ YOURUM ::
+#\[7]6473EBGO5ZAHCHDKXC65C366AIMRBECF3FRDN6YRISWLSWQJ4UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

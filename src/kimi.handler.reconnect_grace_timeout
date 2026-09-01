@@ -4,7 +4,7 @@
 # descr = fail preserved prompt entries that survived reconnect grace period
 
 ## if prompts are still pending after grace period, fail them now
-foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
+foreach my $pend_id ( keys <kimi.wire.pending>->%* ) {
     my $pend = <kimi.wire.pending>->{$pend_id};
     next if ( $pend->{'type'} // '' ) ne qw| prompt |;
 
@@ -37,8 +37,8 @@ if ( defined <kimi.task.active_id> ) {
 ## status change triggers watcher : handles reconnect scheduling
 <kimi.ws.status> = qw| disconnected |;
 
-#,,.,,...,,.,,...,,..,,,.,...,,,.,.,,,,.,,,..,.,.,...,...,..,,.,.,,,,,.,.,.,.,
-#KKE4PAIT52Z34ROJM6JJASHLQJ4VJDDDJMKYCSVAJAJOKXJHLCJATILXSCFXSPQZVWO3YBERXRMAA
-#\\\|XDQUEIJLDI7RJNUFY3FGHC5NPVCYJPZ3B43VQPJM5U3G5RAQZEJ \ / AMOS7 \ YOURUM ::
-#\[7]SZ2W42TBRH52AVSLKSH2JC4YFNNHR3A7LJ3FAY7FUYANCEBLQSAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,...,,..,.,,,,.,,,..,..,,,..,.,.,...,...,...,...,,.,,...,..,,
+#BLUSO7COM6BHB34OAB65W7QIQEVQCIWSJI7ZZBA7RCU7GXLDK2RKIZ27UKRND66R2C6RWYV6VHPPK
+#\\\|7PB7MDVE2EZWHQAZT7RFV75XEH4U2KPGJRJDORJVF4KCSPV6ALG \ / AMOS7 \ YOURUM ::
+#\[7]F3EOGXNVCV5ERC64BNBU7KDCV3RTSNKUSI67E57XVWLJBHNCYQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

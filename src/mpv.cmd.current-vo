@@ -4,7 +4,7 @@
 # descr = return the selected vid. output driver
 
 my $reply_id = $call->{'reply_id'};
-push( @{<mpv.reply_ids>}, $reply_id );
+push( <mpv.reply_ids>->@*, $reply_id );
 
 my $mpv_property = 'current-vo';
 
@@ -12,7 +12,7 @@ my $mpv_property = 'current-vo';
     = $mpv_property;    # <-- stored for err. msgs
 
 push(
-    @{<mpv.command.reply>},
+    <mpv.command.reply>->@*,
     { 'handler' => 'mpv.handler.pipe.single_line' }
 );
 
@@ -20,8 +20,8 @@ push(
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,,.,,.,,...,...,,.,,,..,,.,,,.,,,,.,.,.,..,,...,..,,...,,.,,,..,,.,,,,.,
-#DKIGE4NUYSMN3HW2OZHDTZ5LBYYTVZTJUIQO2TD3RIM2WGVRFG5KVXW2W7DYG2RVDBQZILJFSZC7U
-#\\\|B6XO6YV3KQSAVDYRUPUQ6ONKGWDNU2G3NCKI4EY2FLP7RTP3P2G \ / AMOS7 \ YOURUM ::
-#\[7]SPOPDJKZ6KGEIPM33R53VDJHOSQW5EY3RKRJWGOP32TU5W4SLIBI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,.,.,,..,,,,,,,.,...,,..,,,,,..,,...,...,,..,,,.,,.,,..,,..,,
+#O3CVRAOQPUL57BOLQGXQ3OLB3A7HHQC6FHZWMFWDXH453ZKYOSCHVBPPJPVILZY7UO6D6AINRE6WM
+#\\\|F4SKL3ZTZ5WIFCAUMUFMCH2VPZ2UNDOC3QD64CKUUERFWWGIPIF \ / AMOS7 \ YOURUM ::
+#\[7]N2YWUUS6KNLJINNUJ4XUQ7233AK4K66FPCO2BXLGFVJBXULTGEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

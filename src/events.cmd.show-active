@@ -5,12 +5,12 @@
 
 return { 'mode' => qw| false |, 'data' => 'no events configured' }
     if not defined <events.unix.timetable>
-    or !keys %{<events.unix.timetable>};
+    or !keys <events.unix.timetable>->%*;
 
 my @events_active;
 my $current_time = <[base.time]>->(2);
 
-foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
+foreach my $ev_id ( keys <events.unix.timetable>->%* ) {
     push( @events_active,
         join( ' ', $ev_id, <events.timetable>->{$ev_id}->{'name'} ) )
         if defined <events.unix.timetable>->{$ev_id}->{'end'}
@@ -27,8 +27,8 @@ return {
     'data' => join( '', map {"$ARG\n"} @events_active )
     }
 
-#,,.,,..,,.,,,,.,,...,.,.,,,,,,..,..,,...,,,,,..,,...,...,.,.,,,.,..,,,.,,...,
-#QHUKWAMBGNK6CP2A2MQCI4XNQICZ257SRVXZNJILPYQV24LRAVFLBEDI6IFV76QOCLSQ44SPVLOSI
-#\\\|UYSMYXNUFBEIPNF6XSLLJBBQK24BGHYRK4ISAXDNGRB45JXXARV \ / AMOS7 \ YOURUM ::
-#\[7]XM6XCPWV5CWCFFLOHXNTGZE4XFK4BUQ75SIYGKYLIRUMRNAEHYBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,.,..,,,.,,..,,..,,..,,.,.,.,,,..,,...,...,.,.,,..,,..,,..,,..,
+#4C2ZD5GCCKBLBJ6VV3DPCAIQTFOM6SATE7USYD36L2LFIKVGFGFVO4HJG2ZSM6DVKYGCDDPBDDJUW
+#\\\|2AEEUJXKSGFKVUOGHLBSFXSSPHL3I3RNUTUWNYDMKG5HFE4U7TA \ / AMOS7 \ YOURUM ::
+#\[7]VVGUH7BDZLMWTR6ZXH4MBWLVWM7TMJX7GRLVELGBHLWOOTIQBSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

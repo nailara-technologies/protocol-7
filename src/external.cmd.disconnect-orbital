@@ -39,10 +39,10 @@ delete $conn_ref->{$name}->{'timer'}
 ## longer exists                                                       ##
 if (    <[base.cfg_bool]>->(<external.cfg.orbital_push_enabled>)
     and defined <external.orbital.listeners>
-    and @{<external.orbital.listeners>} ) {
+    and <external.orbital.listeners>->@* ) {
     my $payload = sprintf "%s %s\n", $name, qw| DISCONNECTED |;
     my @keep;
-    for my $h ( @{<external.orbital.listeners>} ) {
+    for my $h ( <external.orbital.listeners>->@* ) {
         push @keep, $h if <[base.stream.push]>->( $h, \$payload );
     }
     <external.orbital.listeners> = \@keep;
@@ -57,8 +57,8 @@ return {
     'data' => qq| disconnected $name |
 };
 
-#,,,,,..,,,,.,,,,,,,,,.,,,.,.,..,,,..,..,,..,,..,,...,..,,,,.,,.,,.,,,,,,,..,,
-#AVPFMAWVQTTB7VRTUOMPNVIPACGRFAV5GTVZEERVNIOJ46OSB7VXN6BQTUCK42XTJ6TKSGLLBOYP2
-#\\\|7MFJPXQKV5HUKNAJAHGV3WCCVIG3I3MPQ663EWLIOV5DOM6NVM3 \ / AMOS7 \ YOURUM ::
-#\[7]N6XHSGUHFV4D5VZYG4DXFOWTTV4QM2OQ7S2EFAKNRUSW3FBHSWCQ 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,,,,,,.,,,..,,.,,,,.,,..,,,,,..,,...,..,,,,,,...,,.,,,,,,,..,
+#UMUXM454KMNYXROXPKQPQFFTPRFJ3FOCLXTYG55CNXQ3TQRJSBXNFC4DVX64V7WREVHVKWQA37ZZG
+#\\\|MXU6XGZATVUJ634HHJE7A37SO367TTS26SPR4KRB44BNTXEBA56 \ / AMOS7 \ YOURUM ::
+#\[7]FEKUVKD42UKTYJGMPXMQ2A6O5HK4L67N3EUOSHSTH4DCLMWTEMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

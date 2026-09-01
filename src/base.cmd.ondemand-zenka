@@ -34,7 +34,7 @@ if ( $cmd eq 'add' ) {
             }
             if <zenki.virtual>->{$ARG}->{'type'} eq 'ondemand'
             and <zenki.virtual>->{$ARG}->{'name'} eq $zenka_name
-    } keys %{<zenki.virtual>};
+    } keys <zenki.virtual>->%*;
 
     my $zenka_id = <[base.list.element.add]>->(
         {   'key_ref' => \<zenki.virtual>,
@@ -65,7 +65,7 @@ if ( $cmd eq 'add' ) {
             $_zenka = delete <zenki.virtual>->{$ARG};
             $del_id = $ARG;
         }
-    } keys %{<zenki.virtual>};
+    } keys <zenki.virtual>->%*;
     return {
         'mode' => qw| false |,
         'data' => "no such zenka registered ['$zenka_name']"
@@ -79,8 +79,8 @@ if ( $cmd eq 'add' ) {
     };
 }
 
-#,,,.,,..,..,,.,,,,,.,...,..,,...,,,.,.,.,,,,,..,,...,...,,.,,.,.,.,,,.,.,.,.,
-#4PPXIC6I2TUFWAYIN7TIR4754MUEMN3ZJWGKJ6FSKS275CODQSXSC3WJKDYDEJGXNW442TQT2AJ4I
-#\\\|MOMSSLWBRKMWHF6VY2NIYNJWFUD4MP4DWXQC4WOMGITSUTK4XVQ \ / AMOS7 \ YOURUM ::
-#\[7]QJKI7E4B6F5UIA3GJPHMUT43XSMGLCPYRP23LI5ZQ6YA7LCEEIBA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,.,,,..,,...,,.,,,..,,,.,..,,..,,...,...,...,..,,,,.,.,,,.,,,
+#2XGJ3NLE2T7ZHJRKHIWDNLIDK3PDHXM746OSQXRVXNJOFJNV2M24GLX3MGAHB32KWCHFV7D5STS46
+#\\\|O272BQKD5LJHDURTASCUXGORVKQVCL3LVZTYSVJYYQRBWGLQOUU \ / AMOS7 \ YOURUM ::
+#\[7]YDE3V6C4YIMPHZB25CAVHVHYYKV2ZTFKRQZ4T5BMWD42HW7SBYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

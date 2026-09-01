@@ -7,8 +7,8 @@ my $sid    = <kimi.session_id> // 'none';
 my $status = <kimi.ws.status>  // 'unknown';
 my $conn   = <kimi.ws.connected> ? 'yes' : 'no';
 my $task   = <kimi.task.active_id> // 'none';
-my $pend   = scalar keys %{<kimi.wire.pending>};
-my $approv = scalar keys %{<kimi.approval.pending>};
+my $pend   = scalar keys <kimi.wire.pending>->%*;
+my $approv = scalar keys <kimi.approval.pending>->%*;
 my $auto   = <kimi.approval.auto_approve> ? 'on' : 'off';
 
 my $output = sprintf " session_id   : %s\n", $sid;
@@ -21,8 +21,8 @@ $output .= sprintf " auto_approve : %s\n", $auto;
 
 return { 'mode' => qw| data |, 'data' => $output };
 
-#,,..,,..,,,.,.,.,,.,,,.,,..,,.,.,.,.,...,,.,,.,.,...,...,.,,,,,.,,..,..,,.,.,
-#TV5CIHCVZW6SAO36JGYJGAGMY2DLQ2NHMXBGXYM4RHGFTPCU7SE6VCH6DD55RVV7PZHYDK5UKWXLU
-#\\\|236B4Y3SPPKQGYZW3KGSTJG7EOYBNKL4WSEOAF4LRMT37UIKOCO \ / AMOS7 \ YOURUM ::
-#\[7]VBPKCFH3R3BDTNTW4VYZSJS2OK24SZYKORST23P7NKLFWOXIXKAA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,..,...,...,.,,,,..,.,.,...,,,,,.,.,...,...,.,,,..,,,,,,..,,,,.,
+#7JMD3JWWMEOOFM2W7FATPSY6XANULT3V5GPASBCOQLO27LKSA5F2XDFU6ERH7PNMZFXW4HALAOHV4
+#\\\|K27M5NUSL7VPNIG3EZK37B4L3EIF4DMIF74EHQLBN5QBXSQH3MJ \ / AMOS7 \ YOURUM ::
+#\[7]23Q3PONYPY6TZDXLPE7XSHO34QFWUEDP4KFIMHBDH4IQM4JQZ6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

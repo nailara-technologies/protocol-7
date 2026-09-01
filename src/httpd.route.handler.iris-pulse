@@ -70,11 +70,11 @@ if ( $intensity !~ m{^\d*\.?\d+$} or $intensity < 0 or $intensity > 1 ) {
 my $now = <[base.time]>->(3);
 
 # [ prune entries older than 0.5s ]
-@{<bmw384.separator.pulses>}
+<bmw384.separator.pulses>->@*
     = grep { ( $now - $_->{'timestamp'} ) <= 0.5 }
-    @{<bmw384.separator.pulses>};
+    <bmw384.separator.pulses>->@*;
 
-push @{<bmw384.separator.pulses>},
+push <bmw384.separator.pulses>->@*,
     {
     'arc'       => int($arc),
     'timestamp' => $now,
@@ -86,7 +86,7 @@ my $rb = <[httpd.json.encode]>->(
     {   qw| arc       | => int($arc) + 0,
         qw| type      | => $type,
         qw| intensity | => $intensity + 0,
-        qw| count     | => scalar @{<bmw384.separator.pulses>},
+        qw| count     | => scalar <bmw384.separator.pulses>->@*,
     }
 );
 
@@ -100,8 +100,8 @@ $session->{'buffer'}->{'output'} .= $rb;
 
 return 2;
 
-#,,.,,,,.,,..,,..,,,,,,,.,,.,,,,.,,,.,..,,,..,..,,...,...,...,..,,..,,..,,.,.,
-#XAMD4XVO5CV7QXM3JV5QU4YBKQZJQCZBNRCTIT2ZAQ75VALNUDY7KFNYJSGUOBGXOF6DWROOFKNGA
-#\\\|HURPIU3N2ZXPPDM5AONP3JD47ICFPGSWITFYXST2LBNPCCB5QT6 \ / AMOS7 \ YOURUM ::
-#\[7]ZYQFLS32WFND4EATJ4ZGEOBVQ2DAZTLRG6MVTFU67V4LNT2KGEDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,,,,,,,.,.,.,,,.,,,.,,,,,,,,,,,..,,...,...,..,,,,,,...,,,.,,,,,
+#JQWFBECEQDXNI7D72BHVOJOK7MY7HQYP2HAJLAIEIYQOBSOP2C6BBYWBG5F54PNGN3PVFZCYHJ5OU
+#\\\|GZXIDRXTDUKRYNJKJRAVV3QU32RQJZRZITY4EOUDHRY6HMBUYMV \ / AMOS7 \ YOURUM ::
+#\[7]HEUPWCUDBF7CNI6AYEAOQPRQAOXL2UZVES22N7TJS4TDF2KDSYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

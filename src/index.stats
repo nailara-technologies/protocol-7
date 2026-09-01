@@ -13,7 +13,7 @@ push @lines, sprintf "  chars ingested : %d", $total_chars;
 my $ring0_count = scalar keys %{ <index.freq> // {} };
 push @lines, sprintf "  ring 0 : %6d tokens", $ring0_count;
 
-for my $depth ( sort { $a <=> $b } keys %{<index.packed_rank>} ) {
+for my $depth ( sort { $a <=> $b } keys <index.packed_rank>->%* ) {
     next if $depth == 0;
     my $count
         = length( <index.packed_rank>->{$depth} // '' ) / ( $depth + 1 );
@@ -43,8 +43,8 @@ my $result = join( "\n", @lines ) . "\n";
 
 return { mode => 'size', data => $result };
 
-#,,..,...,,.,,,.,,,,.,,.,,.,,,,..,,.,,,,.,,,.,.,.,...,...,..,,,,,,,,,,,..,,,,,
-#VZ2LCB2FZIU7IIE3XIV2O4SHHTGOVZCSI2ME7DHJSRFW7IAIC4UACR5II6CZENVBORDHSQKBZGCC6
-#\\\|NYDOYAGNPWSDOZPXM2FQIVU4ONPZRRYK2XJNTUKM2IJWPPE5HBZ \ / AMOS7 \ YOURUM ::
-#\[7]PODTNVHJZL4SAS4DZNDC5PMX3KBC653L6BSEKF7QPQVCIQJJRUAA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,..,,..,,,,,,.,,,.,,..,,...,,,.,.,.,...,...,,..,,..,,,,,,,.,...,
+#DOJ3I6KL4WO5JMMPXKQDR5Y7BPCEUPJ7SRUITCGOBHLSPHEUA2XYUDBBTW7FV2FV447XRP7OAASI2
+#\\\|EQD5NF33VGICY6KE4ZTZ5YVOLWAACETOYHTLJ5ZVIVPVK2A6PSL \ / AMOS7 \ YOURUM ::
+#\[7]MFNNBC22HE6KRJAITMVGH7N6BSPWRKPNMF25ZYRGXMVHGMEDDEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

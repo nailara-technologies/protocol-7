@@ -15,7 +15,7 @@ push @yaml_lines, "    total: $total";
 push @yaml_lines, "    tokens: $tokens";
 
 push @yaml_lines, "  trie:";
-for my $depth ( sort { $a <=> $b } keys %{<index.trie>} ) {
+for my $depth ( sort { $a <=> $b } keys <index.trie>->%* ) {
     push @yaml_lines, "    - depth: $depth";
     push @yaml_lines, "      nodes:";
     for my $node ( @{ <index.trie>->{$depth} } ) {
@@ -48,8 +48,8 @@ if ( defined $out_path and length $out_path ) {
     return $yaml_str;
 }
 
-#,,,.,..,,...,...,.,.,.,.,,,,,.,.,...,...,.,.,.,.,...,...,..,,,,.,...,,..,,..,
-#AB75XXAGIBT3Z7E7HV23VWNXYI2ZCLZTOFRUPR56TIC7VM4CUXQMP3W2IJ432TGRELBP67L5NR6FO
-#\\\|ZDQ75JXMDVJFTDMPFHP6UBVKIFN27NITZIGJDVUSKT5PA4C64TB \ / AMOS7 \ YOURUM ::
-#\[7]UN5SP2KWS6QSEE5UDUJGO52BFNTJQCFV4HZ22KEW3UVZOBVI24DQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,,.,,.,,,.,.,,,.,,.,,..,,.,.,.,.,...,...,...,.,.,,,.,,.,,.,.,
+#4DDIHOTD5W2LYPDS4DT4CSEIOSLTEU3H6X4IT36YWNR4B7K4C2GUUOSL5MVRCAUAV5VOXY32ZEMAC
+#\\\|SJ67ODIYQHSPW6GGGOH6HT4SIUXQ5LQBI7WYL44ASMQ23XQF46P \ / AMOS7 \ YOURUM ::
+#\[7]XDEBV775XD6RW65WPOO2267H6UWNDE72T4ZXYV4CEM7L4GPILYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

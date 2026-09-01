@@ -5,16 +5,16 @@
 my $audio_device  = <mpv.audio_device>  // 'auto';
 my $audio_channel = <mpv.audio_channel> // 1;
 
-push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+push( <mpv.command.reply>->@*, { 'handler' => 'dev.null' } );
 <[mpv.send_command]>->( 'set_property', 'volume', 0 );
 
-push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
+push( <mpv.command.reply>->@*, { 'handler' => 'dev.null' } );
 <[mpv.send_command]>
     ->( 'set_property_string', 'audio-device', $audio_device );
 <[mpv.send_command]>->( 'set_property_string', 'audio', $audio_channel );
 
-#,,,,,.,.,,,,,,..,,,.,.,,,..,,,,.,.,,,.,.,.,,,..,,...,..,,,,,,,,,,,,.,.,.,,.,,
-#7BGRYSUNDHWARBCG2YSJZTFJDGPWOTB3APKVEHGHDQQYXA4XGAXVIGZ47R42PJ3R7VAJYC2K6HW3M
-#\\\|DP2LKOJX5VATNZD2TQE35XTQ2ZPDNDQNNLOYYKE4XSBJUYUE6DF \ / AMOS7 \ YOURUM ::
-#\[7]TOX2R7PWT7Q7M6V2QGMZMTC44YRTJOU76NTS2UUPXIP6DEP45QAY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,..,,,.,,,.,,..,,...,..,,,,.,,,,,..,,...,...,,..,.,.,,,.,,.,,,..,
+#AG5PZHRUMTT6KPFK45RLYW7XWCFWWNT3TP7GOSOI6FUMOTXBNHC67HO63XIGXJGLC3RTUUOE3XACE
+#\\\|KLUHDYY3USWJ2SSBLZKAQOINQ23FCMCRSU55ZMZMF7HMF57AV4D \ / AMOS7 \ YOURUM ::
+#\[7]WJSMW44WFQU5DFLEU443XV22DIYCLBPITYC3DW4LXLUJWDEIGGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

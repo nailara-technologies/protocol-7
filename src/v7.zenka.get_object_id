@@ -7,15 +7,15 @@ my $zenka_id = shift // '';
 die "v7.zenka.get_object_id: zenka id '$zenka_id' does not exist\n"
     if not exists <v7.zenka.setup>->{$zenka_id};
 
-foreach my $id ( keys %{<dependency.object>} ) {
+foreach my $id ( keys <dependency.object>->%* ) {
     next       if <dependency.object>->{$id}->{'type'} ne 'zenka';
     return $id if <dependency.object>->{$id}->{'zenka_id'} == $zenka_id;
 }
 
 return undef;    # not found
 
-#,,.,,.,.,,,.,.,,,,.,,...,,,.,,.,,,,.,...,.,.,..,,...,...,.,.,,..,,,,,,.,,,,,,
-#4DPZFI4LTMZDSTZO2E7ENLLEYHES43LNHVJRNVDHFEHSJY2WHPJV2C3IYL6OAIGFUPWNXZL5T5XSK
-#\\\|Y5QZ22FDR2JXSO3ZHFNU6Y4VV3AUDNZUGYKEOLBV7HW665MODVD \ / AMOS7 \ YOURUM ::
-#\[7]MCNMIICWFCP3K3OPYSWMFV23M7ECJJWJVP4VFJ3TTMXTB23WLACY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,,,,,.,,,,,.,...,.,.,.,,,,,.,..,,...,..,,...,...,.,,,.,,,.,.,
+#GP7B7XOLHXBVJR7AJVUJWLTNEUIZAA6IAC7PRE2KZXGRZDOPQBVKVF7SCYONLSTFOVYWQ3IVZD4JE
+#\\\|OTNJYSADRUUJJ5MDT6NK4AESSDYDDXJJYPCOZWPKYJMQ4XO7RRX \ / AMOS7 \ YOURUM ::
+#\[7]M4HO4MCH6PVJ2OOU6DNZELNTSQZ637A2UCOUZCJYLUVYOCYNKMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

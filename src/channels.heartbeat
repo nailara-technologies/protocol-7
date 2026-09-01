@@ -14,7 +14,7 @@ my $inactive_timeout   = <channels.cfg.inactive_timeout_seconds>   // 86400;
 my $channels_updated = 0;
 
 ##  Process each active channel  ##
-foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
+foreach my $channel_path ( keys <channels.subscriptions>->%* ) {
     next unless defined <channels.subscriptions>->{$channel_path};
 
     my $channel_entry  = <channels.subscriptions>->{$channel_path};
@@ -61,8 +61,8 @@ return $channels_updated;
 
 1;
 
-#,,,.,..,,.,.,,,.,,,.,,..,,,,,,,,,..,,..,,,..,.,.,...,...,...,.,.,.,,,,,.,.,.,
-#AF5CIW3TBM6YCQ2LJI6KE6FFEPZ6VHHAAHOEESVCNG2U7II72457JRESZ5AOOAEKGHYSOSZ54MOMG
-#\\\|HZJHJDAMTLYHGXLWLCLLAPZF7XS4LJCC4YPYQEIQ2KX2XA4CDCP \ / AMOS7 \ YOURUM ::
-#\[7]NQVYVXZVZWLXR55OKA72MFEPXFQXDC7HTZYA2H36IXHKOUZFPQBY 7  DATA SIGNATURE ::
+#,,..,...,...,...,...,..,,..,,,,,,...,,,.,..,,.,.,...,...,.,,,..,,...,,,,,,,.,
+#DROIDKQQB6GUBHOBLNLDXUAE4YYRAL2ERRC3DUTVAGQ625YPT4FPRQBZ345EVYELO4XVHUR47UV4W
+#\\\|ZCYTPBIQ7MUVF7QYIJVOCB5VFDY7OBSWUF6DLXXXSILLTJ7DBHB \ / AMOS7 \ YOURUM ::
+#\[7]M2BDNZWC33WEW67DTVG2WXSQUDNU5O4LKN2C52IJYVE7CDQOH4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

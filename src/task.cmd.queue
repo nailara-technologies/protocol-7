@@ -20,7 +20,7 @@ if ( defined $call->{'param'} and ref $call->{'param'} eq 'HASH' ) {
 my @lines;
 
 ## iterate in insertion order
-foreach my $task_id ( @{<task.queue.order>} ) {
+foreach my $task_id ( <task.queue.order>->@* ) {
     my $task = <task.queue>->{$task_id};
     next unless defined $task;    ## skip if deleted somehow
 
@@ -47,8 +47,8 @@ $output = join( "\n", @lines ) . "\n";
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,.,,.,.,...,,,,,,,.,.,,,..,,,..,.,.,.,.,.,,,..,,...,..,,,,.,,..,,,.,...,.,,,
-#MYSDUFDHQNAFK4LA3Y3OYIWKSNEI256BPOPHSHSEYLVQNCD7VFLKSOT4GTZTK372CXBVDROPDLSEA
-#\\\|4XBHPKEUTJDYLSBBQZTZLTMYHIEWA3RGYMU46GXOUUIQBMJKGKG \ / AMOS7 \ YOURUM ::
-#\[7]2DQSNM3B5MXHWLOYE4O5EP7NW24ZC6YVGLITAHBITYCDHJH45IDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,...,,..,,..,,,,,..,,...,.,,,..,,...,...,,.,,,,,,.,.,.,.,,..,
+#EWMNEU7HA5RAPUSPKDQGW272EN6YMXOX5IVI2YBE234UB5FWNNHMNMUMNPAAMKYPACRMSOUBFUNIY
+#\\\|KA3335EUYVQVF4QMB3OGVEFBJQPWSVCVPI54UHBQXKZY54LNAAA \ / AMOS7 \ YOURUM ::
+#\[7]Y4O6JVAOYUODUOUWM5ZWES22WDGI5QEK5FWMSM3YBPZSAALDEADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

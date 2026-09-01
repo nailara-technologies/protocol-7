@@ -7,7 +7,7 @@ my $tile_group_name = <tile.current_tile_group>;
 my $err_str;
 
 $err_str = "no tile configured"
-    if !keys( %{<tile.setup.tile>} );
+    if !keys( <tile.setup.tile>->%* );
 $err_str //= "\<tile.current_tile_group> not defined"
     if not defined $tile_group_name;
 $err_str //= "no setup found for tile '$tile_group_name'"
@@ -20,8 +20,8 @@ return {
     'data' => scalar keys( %{ <tile.setup.tile>->{$tile_group_name} } )
 };
 
-#,,.,,,..,,,.,,,.,,..,..,,,,,,,,,,,,.,..,,.,,,..,,...,...,..,,..,,,..,,..,...,
-#IXO4RW7ISLGFJ5ZF5GLK4LGS5UI2J73YCH6HET7UKHL63IKOHKXBTI5STMT4AKLC636JD6DBNDXHO
-#\\\|DSPSV5UXZDUD44C7ZMFJ6TN6RNJERTZRQGG65V2YDHYA7LNXNSL \ / AMOS7 \ YOURUM ::
-#\[7]TULLHM2RGGZKY4QYLB7HM263MVMPYYWZCIPFPSTCDGGJ3HL4EWDI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,,.,,,.,,,..,,,.,.,,,,.,,.,,,..,,...,...,,,,,,,.,.,,,,,.,..,,
+#PFYNWN75Z3YYPLW2KJWJI7KM6DMWFCPHSJ762VPCNKGKXIVMVEL3Q3DLBX2S4WAQPDKS2ZRV42XNA
+#\\\|XTTS7RFRW7G4GCYMK7FIFI2EOVQ7N24SMNHJH6BGTSENYGRAF7K \ / AMOS7 \ YOURUM ::
+#\[7]J376Z4RNLESS7X2FKE4OCIPXNGVFXBCG6KBGNC2EE64R2UZHK2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

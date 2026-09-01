@@ -20,7 +20,7 @@ if ( $cmd eq 'list' ) {
     push @output, sprintf( qq| Total assets: %d |, $total );
     push @output, qq| |;
 
-    foreach my $path ( sort keys %{<web.assets.registry>} ) {
+    foreach my $path ( sort keys <web.assets.registry>->%* ) {
         my $asset  = <web.assets.registry>->{$path};
         my $status = $asset->{status};
 
@@ -118,8 +118,8 @@ if ( $cmd eq 'list' ) {
     );
 }
 
-#,,..,,..,,..,,.,,,,,,.,,,.,.,...,..,,,.,,,,.,..,,...,...,...,,.,,,.,,,..,,.,,
-#VBQ74UTHDWC5WQDATVZ6KEQLXYPXBYY4ADGKBG6XZA5UUVX5I7Z3KVPCHO74VW4DS7EQZHZ6ZH5QC
-#\\\|N7B6J3LIAI6EA3GOU5QHLMGQ23FLLIMCZ3C6OESCKFUNIL6IOZ5 \ / AMOS7 \ YOURUM ::
-#\[7]XBMGOCWHVXGECGXAQUKEATHD2PCQA5AR5GXN4IKZ7GFSO7HESSCI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,,,..,,...,.,,,..,,,..,,.,,..,,..,,...,...,..,,.,.,,..,,,.,,,,,
+#NLEBFTM23IWXJ7XFIXP5KVG2GTH4EIFXH6VVX4WZL4IBQJDJD26ZN7OZILAULNTJIHY7GMGCUSNPI
+#\\\|3USMSSKRWFHLYNR64U5SCN5QEVX4SNG2XTJCAR67GSEPB7TCBN4 \ / AMOS7 \ YOURUM ::
+#\[7]LT772KZWSIJQOICSTTCSBWSZKQGPPJGXIY24GUK6SH3LUVTOEQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

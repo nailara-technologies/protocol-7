@@ -9,7 +9,7 @@ $assignee =~ s{\s+$}{};    ## trim trailing whitespace ##
 my $highest_priority = -1.0;
 my $highest_task_id;
 
-for my $task_id ( @{<task.queue.order>} ) {
+for my $task_id ( <task.queue.order>->@* ) {
     my $task = <task.queue>->{$task_id};
     next unless defined $task;
     next unless $task->{'status'} eq 'pending';
@@ -57,8 +57,8 @@ my $summary = sprintf(
 
 return { 'mode' => 'true', 'data' => $summary };
 
-#,,,.,..,,,,,,,,.,,..,..,,,.,,...,,,.,,,.,,,,,..,,...,.,.,,,.,.,.,.,,,,,.,,,.,
-#WVZYKDFCGJXARYH4RCSXIHPU4HNP3S4THKA55JQNTAJD5TACTCY2SZ6GW3EQGYVQE24FVZRYOGWV2
-#\\\|MGI3B7WQJXGTS74ME5GXYQEQ444P5Q5KUFVZBKDLIFR6PDMUYZN \ / AMOS7 \ YOURUM ::
-#\[7]MXB6HIX4OR2XXYYJR5GKZLZ34KFHWVNSD2KHYKM7562CVU4BV2DA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,.,.,.,,,.,.,,..,,,,,..,,,,,,..,,...,...,...,,..,.,.,,.,,..,,
+#M6DI45FCKOT6ESSXGAMWGEM2HQN6ISILUHMUYKRUIC2DH334LWFIHFLBJ2TALNTFD2Q7LURK6RTAO
+#\\\|VEEYRFSWFXOMH3WJB4B6ACT6BK2IGMVOA2MHJMKUPD7WFDKKJ4D \ / AMOS7 \ YOURUM ::
+#\[7]HLQFFVUWSHLFPCDFQ56EGGTL3KTLCXN7Q6IZMRSXRO5DMRBTJGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

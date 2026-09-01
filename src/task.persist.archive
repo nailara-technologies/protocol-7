@@ -11,15 +11,15 @@ my $task = delete <task.queue>->{$task_id};
 return FALSE unless defined $task;
 
 ## remove from queue order ##
-<task.queue.order> = [ grep { $ARG ne $task_id } @{<task.queue.order>} ];
+<task.queue.order> = [ grep { $ARG ne $task_id } <task.queue.order>->@* ];
 
 ## store in history ##
 <task.history>->{$task_id} = $task;
 
 return TRUE;
 
-#,,,.,,..,,..,,,,,,,,,,.,,.,,,,,.,,.,,...,...,..,,...,...,,..,.,.,,..,.,,,..,,
-#UYEQ3TEFGRHEGSXTBOUQ37LFMRGSL4ECC27QVWRO7PBNU4IVHQIOG5KJIUSOLCNUWYSLUOZEX53IK
-#\\\|L4BZWAPOIE6MRE5RYDJPB4L5NMCZNZEPCXW7HYFGJYZF2TVN3YT \ / AMOS7 \ YOURUM ::
-#\[7]HSYQFTKLYQ66PY4IPWKRBPCVV3ZASHLZMMWIY27YJCVXVTOJNUAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,.,,,...,,,.,...,..,,,,,,..,,..,,...,...,..,,.,.,...,..,,.,,,
+#6B6WDACX73TZKYVKIWJO65TE7JEJZK4YJUVINTV3WLSESWWUUMOVN5ELOPH43F444RQTT3ADAJPDS
+#\\\|XPFYC5UVXLFBDUN4MIQBQGVZ2ZABMBLKLN4QWST54ZBBLKD2AUF \ / AMOS7 \ YOURUM ::
+#\[7]RKXIXXYRBC4AOYFG47M2WGEKEPHOZUB3E76JSSUQ5MCWBEJCU2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

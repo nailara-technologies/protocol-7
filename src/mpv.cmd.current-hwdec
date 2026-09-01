@@ -4,7 +4,7 @@
 # descr = return chosen hardware decoding driver [if any]
 
 my $reply_id = $call->{'reply_id'};
-push( @{<mpv.reply_ids>}, $reply_id );
+push( <mpv.reply_ids>->@*, $reply_id );
 
 my $mpv_property = 'hwdec-current';
 
@@ -12,7 +12,7 @@ my $mpv_property = 'hwdec-current';
     = $mpv_property;    # <-- stored for err. msgs
 
 push(
-    @{<mpv.command.reply>},
+    <mpv.command.reply>->@*,
     { 'handler' => 'mpv.handler.pipe.single_line' }
 );
 
@@ -20,8 +20,8 @@ push(
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,..,,,,.,,.,,..,,,..,..,,...,.,,,..,,...,..,,...,.,.,,,,,,..,..,,.,.,..,,
-#PIRBID43RZJDBETAFXUL5SR2NQAYMRSCYFU6KHSRPMP3A3EA5FVY64572BWORFMTDHETCP2NRTCKK
-#\\\|5QPGZMBOJQVQ3ED2K33FFZ37HIW5VJ7SLNBJEUNMKJEUZTT6NDY \ / AMOS7 \ YOURUM ::
-#\[7]JTAACU65LSTFRAG2BH2UZOPR3J2S7QV6Z6VN77MY2RRKWFKLB4BI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,,,.,,..,.,,,,,,,,.,,,..,,,,,..,,...,..,,...,.,.,..,,,..,...,
+#4U7JDJOYGCGKM3N6IEV5M6Q7Q62GU3YL5QBLI6W5WLP6CNZDMMSJGKQBSA3JRRXCNEBSGH4TN73QM
+#\\\|WXPT6P2QZ26YAKEFJQSKI3S524JAKUH3AFQKTZCQM6TGXWK2E2C \ / AMOS7 \ YOURUM ::
+#\[7]QOD7KI7J2EGZFE3YVVOFP64BMJ3WAGZUCG6GWLWBYT5Q7WFOSQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
