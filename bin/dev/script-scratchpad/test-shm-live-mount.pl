@@ -162,7 +162,8 @@ if ( $child_pid == 0 ) {
     } else {
         my $detail
             = defined $result
-            ? "fired=$result->{'fired'} bytes=$result->{'bytes'} timeout=$result->{'timeout'}"
+            ? "fired=$result->{'fired'} bytes=$result->{'bytes'} "
+            . "timeout=$result->{'timeout'}"
             : 'undef';
         print $cw "MISSED $detail\n";
     }
@@ -236,8 +237,8 @@ if ( $failed == 0 ) {
     exit 1;
 }
 
-#,,,.,...,..,,.,.,,..,...,,.,,,,,,..,,.,.,...,..,,...,...,,,,,..,,.,.,,,,,..,,
-#H24WUTSW6E6FZ5XFO7JG3OBGHVJAQOUUQ63O4KRLDMHHW5UZIM2F3TZUGRYKSKGMHU6JD2Z353G74
-#\\\|7HXWVRCQHYDSRVFY3ITMD6ML7U6ZDBQYE67IRUBYL6TIU4B3VBK \ / AMOS7 \ YOURUM ::
-#\[7]C56PVXMROQQ3WIHF7SHGQZLHUNERZU4AQ5ZJWS6G36XMIINUVMCY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,.,,,,,,,...,..,,,,.,,,,,.,,,..,,...,...,..,,,,.,.,.,.,,,,,.,
+#ZS4SPVYHORHZJQRSXME6NC2DTXWL4PVBSZI3D2KGXOZ7VLLOCQHHMRAZBQ5S4R5F6DAWIGBTVRI7M
+#\\\|K2CBBFGVLKVWWBJHOMTL4563WLDQDGW6F7V764QOD47WS5JDO5F \ / AMOS7 \ YOURUM ::
+#\[7]NHOWDWLD5C4KMDYLXG3VNCSKQ7EZKRBED5GYTGPML3Y4WM5KSMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,21 +11,21 @@ use warnings;
 use Gtk3 '-init';
 use Glib qw(TRUE FALSE);
 
-my $backend = $ENV{GDK_BACKEND} // '(default)';
+my $backend  = $ENV{GDK_BACKEND} // '(default)';
 my $target_x = 140;
 my $target_y = 90;
 
 print "GDK_BACKEND=$backend\n";
-print "DISPLAY="         . ( $ENV{DISPLAY}         // '(unset)' ) . "\n";
+print "DISPLAY=" .         ( $ENV{DISPLAY}         // '(unset)' ) . "\n";
 print "WAYLAND_DISPLAY=" . ( $ENV{WAYLAND_DISPLAY} // '(unset)' ) . "\n";
 print "target position: x=$target_x y=$target_y\n\n";
 
 my $window = Gtk3::Window->new('toplevel');
 $window->set_title("position-restore test [$backend]");
-$window->set_default_size(300, 120);
+$window->set_default_size( 300, 120 );
 $window->set_gravity('north-west');
 
-## matching protocol-7-menu.graphical-startup-init's attribute set [ this   ##
+## matching protocol-7-menu.graphical-startup-init's attribute set [ this  ##
 ## is the CONFIRMED-WORKING standalone path - x=2718 y=9 restored exactly, ##
 ## almost certainly a non-primary monitor ]; notably it does NOT set       ##
 ## accept_focus/focus_on_map, and DOES set position('none') + stick        ##
@@ -39,10 +39,11 @@ my $screen = $window->get_screen;
 my $rgba   = $screen->get_rgba_visual();
 $window->set_visual($rgba) if $rgba;
 
-my $label = Gtk3::Label->new("backend: $backend\ntarget: $target_x,$target_y");
+my $label = Gtk3::Label->new(
+    "backend: $backend\ntarget: " . "$target_x,$target_y" );
 $window->add($label);
 
-## app_paintable(1) + RGBA visual with no draw handler leaves the surface  ##
+## app_paintable(1) + RGBA visual with no draw handler leaves the surface ##
 ## unpainted [ shadow-only / near-transparent ] - paint a fill like       ##
 ## window-place's handler.draw does, to rule this out as a positioning    ##
 ## confound                                                               ##
@@ -57,7 +58,7 @@ $window->signal_connect(
     }
 );
 
-$window->signal_connect('destroy' => sub { Gtk3->main_quit; });
+$window->signal_connect( 'destroy' => sub { Gtk3->main_quit; } );
 
 my $mapped_once = 0;
 $window->signal_connect(
@@ -77,21 +78,20 @@ $window->show_all;
 my ( $x0, $y0 ) = $window->get_position();
 printf "  [immediately after show_all] x=%s y=%s\n", $x0, $y0;
 
-## check again after the event loop has had a chance to settle - this is
-## where a compositor-deferred/ignored move would show up as a mismatch ##
+## check again after the event loop has had a chance to settle - this is ##
+## where a compositor-deferred/ignored move would show up as a mismatch  ##
 Glib::Timeout->add(
     800,
     sub {
         my ( $x1, $y1 ) = $window->get_position();
         printf "  [+800ms]      x=%s y=%s  %s\n",
-            $x1, $y1,
-            ( $x1 == $target_x and $y1 == $target_y )
+            $x1, $y1, ( $x1 == $target_x and $y1 == $target_y )
             ? '[MATCH]'
             : '[MISMATCH]';
 
-        ## retry move() now that the window is definitely mapped, to see  ##
-        ## if a post-map move (the window-place/select-region pattern)   ##
-        ## succeeds even when the pre-map one didn't                    ##
+        ## retry move() now that the window is definitely mapped, to see if ##
+        ## a post-map move (the window-place/select-region pattern)         ##
+        ## succeeds even when the pre-map one didn't                        ##
         print "-> move(after map, retry)\n";
         $window->move( $target_x, $target_y );
 
@@ -117,8 +117,8 @@ print "Starting GTK main loop...\n";
 Gtk3->main();
 print "Finished.\n";
 
-#,,,.,.,.,,,,,,..,..,,.,,,..,,,..,.,.,...,,.,,..,,...,...,,,.,..,,.,.,,.,,,.,,
-#6X4XYA26SFRHLUACMFHLOEYAXBFJSUSRP37RGBH3PQ2LBNJIJMLXJ2UGKEZ77R6WXZ5ZFXUYUMLIK
-#\\\|7G2RNK37UB2B5WBPZT5C6ERRH3ODBGHLZPA3FW23WRZDNVZRE6K \ / AMOS7 \ YOURUM ::
-#\[7]3UVYRHNGTTCBD5DHBXMEX6ZZE2GYAMYWJQMPZE47MYZLKORD5YAY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,.,.,..,,.,,,,..,,,.,,,.,..,,..,,...,...,...,.,,,.,,,,,.,,..,
+#HY5IBXANXDNHGJ5QTBWBJH5ZXEYCA2VMBKGTEXOKAX4JL4Z3SPZKJD3UEF7JHHGDB6EQH5LCJFJCG
+#\\\|ARWG3N2T6A7W3P2WUJ5JLEQENNHQYL2DR7WG3KZX4BPEFP4CXF3 \ / AMOS7 \ YOURUM ::
+#\[7]OHJE6UHREMGP44SG4UZ46IUL23T6ORSIMJ32VX2IQEOLXEU3QIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
