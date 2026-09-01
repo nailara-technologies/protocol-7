@@ -6,14 +6,14 @@ use English;
 use warnings;
 use File::Spec;
 use Term::ReadLine;
-use Cwd qw| abs_path |;
-use vars qw| $root_path |;
-use IPC::Open2 qw| open2 |;
-use FindBin qw| $RealBin |;
+use Cwd         qw| abs_path |;
+use vars        qw| $root_path |;
+use IPC::Open2  qw| open2 |;
+use FindBin     qw| $RealBin |;
 use Time::HiRes qw| sleep |;
 use SigAction::SetCallBack;
 use List::MoreUtils qw| minmax |;
-use Crypt::Misc qw| decode_b32r |;
+use Crypt::Misc     qw| decode_b32r |;
 
 ###                 ###
 ##   true-readline   ##
@@ -23,7 +23,7 @@ use Crypt::Misc qw| decode_b32r |;
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
@@ -134,9 +134,8 @@ while ( $force_use_readline or not $is_true_string ) {
         clear();
         if ($line_length) {
             print blacklight_line()
-                . "\r :.   .:[ len :. $line_length .:"
-                . " $min_len .:. $max_len ]:."
-                . "\r :. ";
+                . "\r :.   .:[ len :. $line_length "
+                . ".: $min_len .:. $max_len ]:.\r :. ";
             sleep $msg_delay;
             clear();
         }
@@ -156,8 +155,7 @@ while ( $force_use_readline or not $is_true_string ) {
         if ( length $line and not $is_true_string ) {
             clear();
             print blacklight_line()
-                . "\r :.   .:[  message not true  ]:."
-                . "\r :. ";
+                . "\r :.   .:[  message not true  ]:.\r :. ";
             sleep $msg_delay;
             clear();
         } else {
@@ -244,8 +242,7 @@ sub blacklight_line {
     if ( $y <= 1 ) {
         $y_pos = 1;
         my $s = $x <= 27 ? '' : ' ' x int( ( $x - 27 ) / 2 );
-        print "\r$C{'B02'}$clear_all"
-            . "$C{'T'}$s<<[ increase term-width ]>>\r"
+        print "\r$C{'B02'}$clear_all$C{'T'}$s<<[ increase term-width ]>>\r"
             and sleep 1.2
             if $x < 47;
         return join( '', $C{'T'}, $C{'B02'}, $clear_all );
@@ -281,8 +278,8 @@ sub readline_signals {
     exit_term();
 }
 
-#,,,,,...,..,,.,.,,,,,,..,.,.,.,.,,..,.,.,.,,,..,,...,...,...,.,.,,.,,.,,,,..,
-#3IN5L46NBMM4DFYDQCBCFW6HW6Y7ZLDH3PLY6ZJFDOERVLJHLXC5UFBQCNTCBK32J4IXFIG2QQ52I
-#\\\|YFVOADXVBVKPEOKRAIYIVGAY7IZLGRXJL7G2C5DNA6SYAKGV6AK \ / AMOS7 \ YOURUM ::
-#\[7]73Y5OXZHBER3OHQ3DBI2Q5N4WUYTTX7WNIVEIEJSWL6M6HTV6EDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,,,,,,.,,,.,,,.,,,,.,,..,.,.,..,,...,...,,,.,,.,,..,,,,.,,,.,
+#YNCVALZZQBAXHEMLWBLW6C4LZZ4RMBA6VHYZWXYJVF5YSFKK7FRTXC2ZPENFIJPQC446YJIBFHOJ2
+#\\\|OSDXJRC7O7SYBVTZZX4FV7YE3JYZHHHWJXOSKLLNMSNXRR3DIUA \ / AMOS7 \ YOURUM ::
+#\[7]ADRD5X3VH3Z45J57WQ4TNYVQB2ZO747MVK6S4S7TR3U437UW64CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

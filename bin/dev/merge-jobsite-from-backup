@@ -43,13 +43,13 @@ sub to_unicode {
         last unless defined $fixed;
         $fixed =~ s{&#(\d+);}{chr($1)}ge;
         $cur = $fixed;
-        last unless $cur =~ /[\xC0-\xCF]/;
+        last unless $cur =~ m|[\xC0-\xCF]|;
     }
     return $cur;
 }
 
 opendir( my $dh, $jobs_dir ) or die "cannot open $jobs_dir: $!\n";
-my @files = grep {/^\d+\.yaml$/} readdir($dh);
+my @files = grep {m|^\d+\.yaml$|} readdir($dh);
 closedir $dh;
 
 print ".\n:\n";
@@ -57,7 +57,7 @@ print ".\n:\n";
 my ( $merged, $no_backup, $errors ) = ( 0, 0, 0 );
 
 for my $file ( sort @files ) {
-    my $job_id      = $file =~ s/\.yaml$//r;
+    my $job_id      = $file =~ s|\.yaml$||r;
     my $cur_path    = "$jobs_dir/$file";
     my $backup_path = "$backup_dir/$file";
 
@@ -124,8 +124,8 @@ for my $file ( sort @files ) {
 printf ":\n:. done : %d merged, %d without backup, %d errors\n",
     $merged, $no_backup, $errors;
 
-#,,..,,.,,.,,,,.,,,..,...,,,.,..,,.,.,...,...,..,,...,...,,,,,,.,,,..,,,,,.,,,
-#N62X55QDCUUHQU5BAXR4PG3RSFQE32SCFRUGR2RD7OTCIUREWKDLQW4E4XMH3E6FVVLACXZCLS4XK
-#\\\|XTPCO3P2VKRJGFBHHURIGO4LTSY55UZIOSRGRQXAFORHO7THZXR \ / AMOS7 \ YOURUM ::
-#\[7]K63PDY7JN67LVJNFLDPBBMM6WQUUYMBZ74N7GURL2R2C7BQJCACQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,..,,,.,,.,,,,,.,,..,.,.,,.,,..,,...,...,.,.,..,,,.,,.,,,.,.,
+#NXJL7C4562PQXD27OTPCL4PWDMF6BY6ZXWUR72X3OSRPI6GTCXVGZW22FB7QJEAGWTS6I3A64YCAY
+#\\\|AQXA7XZAERNHP7PVXIHS6JO5SDXIMSW6IPVLAM6RWTSHGFV3MWO \ / AMOS7 \ YOURUM ::
+#\[7]BHL4CHHA27KZ7Z6M26MFTCDMKBPG3HJ6Y7LX3KJRURF3GJVMMQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

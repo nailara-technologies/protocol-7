@@ -61,6 +61,13 @@ use constant ERR_WRAP_MAX => 42;
 ## tight-but-fitting here doesn't overflow once perltidy re-indents it      ##
 use constant CONT_MARGIN => 4;
 
+## floor for find_split_positions' last-resort raw-character fallback [ see ##
+## its own comment ] -- below this, forcing a split does more harm than the ##
+## few chars of overage it saves : a short spaceless word left over from an ##
+## earlier split [ e.g. "quitting\n" ] would otherwise get butchered        ##
+## mid-letter instead of just staying a little over LINE_MAX                ##
+use constant MIN_RAW_SPLIT_LEN => 30;
+
 $OUTPUT_AUTOFLUSH = TRUE;
 
 ##[ argv parsing ]##
@@ -163,8 +170,8 @@ my @clean_argv
 ## changed-entry [ e.g. a renamed dir-symlink from vc-changed-files ]       ##
 map {
     die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
-        . "not present $reset : "
-        . "'$NEON_green_yellow$ARG$reset' $reset\n:\n"
+        . "not present $reset : '$NEON_green_yellow$ARG$reset' "
+        . "$reset\n:\n"
         if not( -e $ARG or -l $ARG )
 } @clean_argv;
 
@@ -1092,17 +1099,18 @@ sub step0_rejoin_concat_chain {
         $continuation_indent );
 }
 
-##[ step 1 : split a long-line quoted string at whitespace , or at  ]##
-##  comma/semicolon when the value is spaceless                       ]##
+##[ step 1 : split a long-line quoted string at whitespace , falling  ]##
+##  back to comma/semicolon , then to any character , when spaceless   ]##
 sub step1_split_long_string {
     my $line   = shift;
     my $quotes = shift;
     return undef if length_no_nl($line) <= LINE_MAX;
     return undef if not $quotes or not @$quotes;
 
-    ## pick longest quote token on the line whose split fits within ##
-    ## LINE_MAX ; whitespace split positions take priority , with a ##
-    ## comma/semicolon fallback for spaceless values                ##
+    ## pick longest quote token on the line whose split fits within        ##
+    ## LINE_MAX ; whitespace split positions take priority , falling back  ##
+    ## to comma/semicolon , then to any character , for values that don't  ##
+    ## have the preferred kind of break point [ see find_split_positions ] ##
     my @candidates = sort { $b->{length} <=> $a->{length} } @$quotes;
     for my $tok (@candidates) {
         my $col      = $tok->{col};
@@ -1145,30 +1153,37 @@ sub find_split_positions {
     my @positions;
     my $len = length $inner;
     my $i   = 0;
-    ##  build a mask of "in interpolation" for double-quoted  ##
-    my @in_interp = (0) x $len;
+    ## build a run-id per character : 0 = plain text ; a positive id groups ##
+    ## the characters of ONE interpolation [ or escape pair ] together , so ##
+    ## a split is only unsafe when it lands INSIDE a single run -- landing  ##
+    ## at the boundary between two runs [ or a run and plain text ] never   ##
+    ## cuts anything open and is always safe , e.g. right before a ${var}   ##
+    ## starts or right after it ends , even though both sides "touch" it    ##
+    my @run_id   = (0) x $len;
+    my $next_run = 1;
     if ( $quote eq q|"| ) {
         while ( $i < $len ) {
             my $c = substr( $inner, $i, 1 );
             if ( $c eq qw| \\ | ) {
-                $in_interp[$i] = 1;
-                $in_interp[ $i + 1 ] = 1 if $i + 1 < $len;
+                my $run = $next_run++;
+                $run_id[$i] = $run;
+                $run_id[ $i + 1 ] = $run if $i + 1 < $len;
                 $i += 2;
                 next;
             }
             if ( $c eq qw| $ | or $c eq qw| @ | ) {
                 ##  start interp : ${expr} , $var , @arr , @{expr}  ##
-                my $start = $i;
-                $in_interp[$i] = 1;
+                my $run = $next_run++;
+                $run_id[$i] = $run;
                 $i++;
                 if ( $i < $len and substr( $inner, $i, 1 ) eq '{' ) {
                     ##  bracketed - find matching brace  ##
                     my $depth = 1;
-                    $in_interp[$i] = 1;
+                    $run_id[$i] = $run;
                     $i++;
                     while ( $i < $len and $depth > 0 ) {
                         my $cc = substr( $inner, $i, 1 );
-                        $in_interp[$i] = 1;
+                        $run_id[$i] = $run;
                         if    ( $cc eq '{' ) { $depth++ }
                         elsif ( $cc eq '}' ) { $depth-- }
                         $i++;
@@ -1177,7 +1192,7 @@ sub find_split_positions {
                 }
                 ##  bareword variable name [ + optional [] {} -> chain ]  ##
                 while ( $i < $len and substr( $inner, $i, 1 ) =~ m{\w} ) {
-                    $in_interp[$i] = 1;
+                    $run_id[$i] = $run;
                     $i++;
                 }
                 ##  allow subscript/method chain to remain protected  ##
@@ -1187,11 +1202,11 @@ sub find_split_positions {
                         my $open  = $cc;
                         my $close = $cc eq '[' ? ']' : '}';
                         my $depth = 1;
-                        $in_interp[$i] = 1;
+                        $run_id[$i] = $run;
                         $i++;
                         while ( $i < $len and $depth > 0 ) {
                             my $cc2 = substr( $inner, $i, 1 );
-                            $in_interp[$i] = 1;
+                            $run_id[$i] = $run;
                             if    ( $cc2 eq $open )  { $depth++ }
                             elsif ( $cc2 eq $close ) { $depth-- }
                             $i++;
@@ -1199,8 +1214,8 @@ sub find_split_positions {
                         next;
                     }
                     if ( substr( $inner, $i, 2 ) eq '->' ) {
-                        $in_interp[$i] = 1;
-                        $in_interp[ $i + 1 ] = 1;
+                        $run_id[$i] = $run;
+                        $run_id[ $i + 1 ] = $run;
                         $i += 2;
                         next;
                     }
@@ -1217,8 +1232,9 @@ sub find_split_positions {
             if ( $c eq qw| \\ | and $i + 1 < $len ) {
                 my $nx = substr( $inner, $i + 1, 1 );
                 if ( $nx eq qw| \\ | or $nx eq qw| ' | ) {
-                    $in_interp[$i] = 1;
-                    $in_interp[ $i + 1 ] = 1;
+                    my $run = $next_run++;
+                    $run_id[$i] = $run;
+                    $run_id[ $i + 1 ] = $run;
                     $i += 2;
                     next;
                 }
@@ -1227,25 +1243,49 @@ sub find_split_positions {
         }
     }
 
-    ## collect split points : just after a whitespace , when neither side ##
-    ## is inside an interpolation segment                                 ##
+    ## a split at $p [ between chars $p-1 and $p ] is unsafe only when both ##
+    ## sides belong to the SAME run -- that's the only way it can cut an    ##
+    ## interpolation or escape pair open mid-sequence                       ##
+    my $cuts_a_run = sub {
+        my $p = shift;
+        my $a = $run_id[ $p - 1 ];
+        my $b = $run_id[$p];
+        return $a && $b && $a == $b;
+    };
+
+    ## collect split points : just after a whitespace , as long as it ##
+    ## doesn't cut a single interpolation/escape run in half          ##
     for ( my $p = 1; $p < $len; $p++ ) {
         my $prev = substr( $inner, $p - 1, 1 );
         next if $prev !~ m{\s};
-        next if $in_interp[ $p - 1 ];
-        next if $in_interp[$p];
+        next if $cuts_a_run->($p);
         push @positions, $p;
     }
 
-    ## spaceless value fallback : split after a comma or semicolon , same ##
-    ## interpolation-boundary respect. only used when no whitespace split ##
-    ## exists , so the existing whitespace path keeps priority            ##
+    ## spaceless value fallback : split after a comma or semicolon , same   ##
+    ## run-boundary respect. only used when no whitespace split exists , so ##
+    ## the existing whitespace path keeps priority                          ##
     if ( not @positions ) {
         for ( my $p = 1; $p < $len; $p++ ) {
             my $prev = substr( $inner, $p - 1, 1 );
             next if $prev !~ m{[,;]};
-            next if $in_interp[ $p - 1 ];
-            next if $in_interp[$p];
+            next if $cuts_a_run->($p);
+            push @positions, $p;
+        }
+    }
+
+    ## last-resort fallback : split at ANY character position , still       ##
+    ## respecting run boundaries -- for a value with neither whitespace nor ##
+    ## comma/semicolon to break on [ e.g. a bare URL ] . whitespace and     ##
+    ## comma/semicolon were only ever meant to prioritize where a split     ##
+    ## lands, not to limit whether one can happen at all ; without this,    ##
+    ## such a value never splits and is left over LINE_MAX . gated on a     ##
+    ## minimum length so a short spaceless word [ e.g. a trailing           ##
+    ## "quitting\n" fragment left over from an earlier split ] is instead   ##
+    ## just left a few chars over budget rather than butchered mid-letter   ##
+    if ( not @positions and $len > MIN_RAW_SPLIT_LEN ) {
+        for ( my $p = 1; $p < $len; $p++ ) {
+            next if $cuts_a_run->($p);
             push @positions, $p;
         }
     }
@@ -2574,9 +2614,9 @@ sub sig_stop {
     ## anyway, and printing to the same broken pipe would just raise PIPE   ##
     ## again inside the handler                                             ##
     if ( $signame ne qw| PIPE | ) {
-        print "\b\b::\b\b\r$blacklight\:::\n:\n:: "
-            . "[ ${NEON_orange}SIG$signame$blacklight "
-            . "] $NEON_green_yellow format-code run aborted$blacklight "
+        print "\b\b::\b\b\r$blacklight\:::\n:\n:: [ "
+            . "${NEON_orange}SIG$signame$blacklight ] "
+            . "$NEON_green_yellow format-code run aborted$blacklight "
             . "..,\n:$reset\n";
     }
     exit('000113');
@@ -2597,8 +2637,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,...,...,,..,..,,.,,,...,...,,,,,...,,,.,..,,...,...,.,.,,.,,.,,,.,.,,..,
-#WZPCBWFQYFO3KXYXUYUDGEAX53VJZMASQX7Z46NGMKDZLPT5W6OT6DYDCTVGCRBM2PYVT5XDCES2E
-#\\\|YYRQCVPKFCNZBHGUNSPNORAIUO7QXBJ7K5YQSJG742PXKHIFUI6 \ / AMOS7 \ YOURUM ::
-#\[7]2KE3SPN5WHHXMTZZKYC34UFXXX2GSZQHHYFAQXYG5YS2BWRBZEBY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,.,,,,.,..,,...,,,,,,,,,.,.,,.,,..,,...,...,...,..,,.,.,.,,,..,,
+#EA6V3HMEEAW5WIK6LDMMMOBD3FMJ3EPLZNF4WVVNOQETMK6L3JUHO46XW2ELZSN4H53AHQHSVTU6K
+#\\\|HKWQQGKVWIMS3L6M2V2LGAMVEOVLPW6PYYHXQEPKSAF7SGZSWTG \ / AMOS7 \ YOURUM ::
+#\[7]FVSVIDWRNN4Q7DQJKSVXHC5LBOL2WBU3IAAEUP22ZPUUSQZJLICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

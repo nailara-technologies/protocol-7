@@ -5,7 +5,7 @@
 my $VERSION = "1.3.1-AMOS";
 
 ################################################################################
-## https://github.com/so-fancy/diff-so-fancy  #  <--  unchanged version       ##
+## https://github.com/so-fancy/diff-so-fancy  #  <--  unchanged version ##
 ################################################################################
 
 use 5.010;                 # require perl 5.10 for 'state' variables
@@ -58,7 +58,7 @@ my $meta_color       = '';
 my $strip_ansi = sub {
     my $s = shift;
     return $s unless defined $s;
-    $s =~ s/\e\[[0-9;]*[mK]//g;
+    $s =~ s|\e\[[0-9;]*[mK]||g;
     return $s;
 };
 
@@ -449,9 +449,8 @@ sub do_dsf_stuff {
             $nll = 5 if $nll < 5;
             my $name_line = '─' x $nll;
 
-            print "\n$blacklight   $name_line   ─    ─\n"
-                . "$blacklight | $neon_green"
-                . "$last_file_seen$blacklight:$neon_green"
+            print "\n$blacklight   $name_line   ─    ─\n$blacklight "
+                . "| $neon_green$last_file_seen$blacklight:$neon_green"
                 . sprintf( '%04d', $start_line )
                 . "$blacklight |"
                 . "${bold}${last_function_color}${remain}${reset}\n"
@@ -941,9 +940,8 @@ git config --global core.pager \"diff-so-fancy | less --tabs=4 -RFX\"\n\n"
 sub version {
     ( my $name = $0 ) =~ s|^.*/||;
     my $ret
-        = "\n :: $name :: VERSION :: $VERSION :."
-        . "\n ::\n :: modified from :: "
-        . "https://github.com/so-fancy/diff-so-fancy\n";
+        = "\n :: $name :: VERSION :: $VERSION :.\n ::\n :: modified "
+        . "from :: https://github.com/so-fancy/diff-so-fancy\n";
 
     return $ret;
 }
@@ -962,7 +960,8 @@ sub is_windows {
 
 sub set_defaults {
     my $git_config
-        = 'git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"';
+        = 'git config --global core.pager '
+        . '"diff-so-fancy | less --tabs=4 -RFX"';
     my $first_cmd = 'git config --global diff-so-fancy.first-run false';
 
     my @cmds;
@@ -1080,8 +1079,8 @@ sub get_terminal_width {
 
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
-#,,.,,,,,,,,,,.,,,,,,,.,.,,.,,,.,,.,.,..,,,.,,..,,...,..,,.,,,,.,,,..,,,,,..,,
-#C4NLXHADVFMUXPHYHC4NQOPAJOLDMYLV6ND5C2BOI7FUOIDCVUNEVCABMEN667HTMKSEX2ZBDACCE
-#\\\|E62DRXTYXGZ6BAN3ZRQS72GGBB2M42NIORJ5VGI3NT6IZFJOTZ7 \ / AMOS7 \ YOURUM ::
-#\[7]EIF64FKAOATNBSMBTFLMQKCY42RAFKTJS6YN7IURGBOA255QIYDI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,..,,.,,..,,...,.,,,,.,,..,,...,..,,...,...,.,.,..,,,..,..,,,,,,
+#KWY6TROWBCER3DOZMGI4F5CGUZROY3WYGLIO5T3V3IJCRDGF4LNDKDESU4ASCWMYY37KG3FED3IZC
+#\\\|PQNZ462CKSNRTOCXXD4NCGVC63Z7USC4R6JXN5C6SFMNLBGC75Q \ / AMOS7 \ YOURUM ::
+#\[7]TAYLK2MJ4YHXYYB2GA2QINCH3QGQQI526UO47UKFGNLMPYJXMYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

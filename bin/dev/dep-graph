@@ -375,7 +375,7 @@ sub extract_module_name {
 
     open my $fh, qw| < |, $file or return undef;
     while ( my $line = <$fh> ) {
-        if ( $line =~ m/^\s*#\s*name\s*=\s*(\S+)/ ) {
+        if ( $line =~ m|^\s*#\s*name\s*=\s*(\S+)| ) {
             close $fh;
             return $1;
         }
@@ -401,7 +401,7 @@ sub extract_calls {
         my $line = $lines[$i];
 
         ##  primary call pattern: <[module.name]>  ##
-        while ( $line =~ m/<\[([a-zA-Z0-9._-]+)\]>/g ) {
+        while ( $line =~ m|<\[([a-zA-Z0-9._-]+)\]>|g ) {
             push @calls, $1;
         }
 
@@ -412,10 +412,10 @@ sub extract_calls {
         ## edges [ silent- skip by contract if the owning namespace isn't   ##
         ## loaded ], so track the target separately for the per-zenka       ##
         ## reachability gate                                                ##
-        if ( $line =~ m/<\[base\.code\.call_(?:optional|expected)\]>/ ) {
+        if ( $line =~ m{<\[base\.code\.call_(?:optional|expected)\]>} ) {
             my $window = join '', @lines[ $i .. min( $i + 4, $end_idx ) ];
-            if (   $window =~ m/qw\|\s*([a-zA-Z][\w-]*(?:\.[\w-]+)+)\s*\|/
-                || $window =~ m/['"]([a-zA-Z][\w-]*(?:\.[\w-]+)+)['"]/ ) {
+            if (   $window =~ m{qw\|\s*([a-zA-Z][\w-]*(?:\.[\w-]+)+)\s*\|}
+                || $window =~ m|['"]([a-zA-Z][\w-]*(?:\.[\w-]+)+)['"]| ) {
                 my $target = $1;
                 push @calls, $target;
                 $conditional_targets{$target} = 1;
@@ -425,7 +425,7 @@ sub extract_calls {
         ##  runtime dispatch: $code{'module.name'} or $code{"module.name"}  ##
         ##  skip guarded optional calls : if (exists|defined) $code{'X'}    ##
         ##  [ soft dep — only present in specific zenki, not a hard edge ]  ##
-        while ( $line =~ m/\$code\{['"]([a-zA-Z0-9._-]+)['"]\}/g ) {
+        while ( $line =~ m|\$code\{['"]([a-zA-Z0-9._-]+)['"]\}|g ) {
             my $mod       = $1;
             my $lookahead = join '', @lines[ $i .. min( $i + 2, $end_idx ) ];
             my $guard_re
@@ -439,15 +439,15 @@ sub extract_calls {
        #  val forms : => qw| name |  => 'name'  => "name"                    #
         my $cb_re  = qr/(?:qw\|\s*)?['"]?(?:handler|callback)/;
         my $val_re = qr/(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/;
-        while ( $line =~ m/$cb_re['"]?(?:\s*\|)?\s*=>\s*$val_re/g ) {
+        while ( $line =~ m{$cb_re['"]?(?:\s*\|)?\s*=>\s*$val_re}g ) {
             push @calls, $1;
         }
 
         #  handler|callback key with value on next line [ multiline split ]  #
         if (    $i < $end_idx
-            and $line =~ m/$cb_re['"]?(?:\s*\|)?\s*=>\s*$/ ) {
+            and $line =~ m{$cb_re['"]?(?:\s*\|)?\s*=>\s*$} ) {
             my $next = $lines[ $i + 1 ] // '';
-            if ( $next =~ m/^\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/ ) {
+            if ( $next =~ m{^\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)} ) {
                 push @calls, $1;
             }
         }
@@ -455,7 +455,7 @@ sub extract_calls {
         #  data-variable assigned sub name [ filter_hooks and similar ]      #
         #  pattern : <data.variable> = qw| sub.name |                        #
         #  pattern : 'key' => qw| sub.name |  [ filters hash entries ]       #
-        if ( $line =~ m/=>?\s*qw\|\s*([a-zA-Z][\w.-]+)\s*\|/ ) {
+        if ( $line =~ m{=>?\s*qw\|\s*([a-zA-Z][\w.-]+)\s*\|} ) {
             push @calls, $1;
         }
     }
@@ -828,7 +828,7 @@ sub analyze_zenka_reachability {
         ##  check if loaded module or any of its expansions are reachable  ##
         my $found = 0;
         for my $reachable_module ( keys %reachable ) {
-            if ( $reachable_module =~ m/^\Q$loaded\E/ ) {
+            if ( $reachable_module =~ m|^\Q$loaded\E| ) {
                 $found = 1;
                 last;
             }
@@ -847,9 +847,9 @@ sub analyze_zenka_reachability {
     for my $res (@resolved) {
         for my $target ( @{ $res->{targets} } ) {
             next if $reachable{$target};
-            if ( $target =~ s/\.\*$// ) {
+            if ( $target =~ s|\.\*$|| ) {
                 ##  prefix wildcard — add all matching graph nodes  ##
-                for my $node ( grep {m/^\Q$target\E/} keys %{$graph} ) {
+                for my $node ( grep {m|^\Q$target\E|} keys %{$graph} ) {
                     my %new = walk_reachable( $pruned_graph, [$node] );
                     %reachable = ( %reachable, %new );
                 }
@@ -865,7 +865,7 @@ sub analyze_zenka_reachability {
         ## include all subs from runtime-loaded modules  base.load_modules ##
         ## loads the full namespace at runtime                             ##
         for my $loaded ( keys %{$loaded_set} ) {
-            for my $node ( grep {m/^\Q$loaded\E(?:\.|$)/} keys %{$graph} ) {
+            for my $node ( grep {m{^\Q$loaded\E(?:\.|$)}} keys %{$graph} ) {
                 my %new = walk_reachable( $pruned_graph, [$node] );
                 %reachable = ( %reachable, %new );
             }
@@ -873,7 +873,7 @@ sub analyze_zenka_reachability {
 
         ##  include eager-load namespaces from white-list.register  ##
         for my $ns ( @{$whitelist_register} ) {
-            for my $node ( grep {m/^\Q$ns\E(?:\.|$)/} keys %{$graph} ) {
+            for my $node ( grep {m{^\Q$ns\E(?:\.|$)}} keys %{$graph} ) {
                 next if $reachable{$node};
                 my %new = walk_reachable( $pruned_graph, [$node] );
                 %reachable = ( %reachable, %new );
@@ -907,7 +907,7 @@ sub analyze_zenka_reachability {
                         next if $runtime_ns_seen{$ns}++;
                         $loaded_set->{$ns} = 1;
                         for my $node (
-                            grep {m/^\Q$ns\E(?:\.|$)/}
+                            grep {m{^\Q$ns\E(?:\.|$)}}
                             keys %{$graph}
                         ) {
                             next if $reachable{$node};
@@ -947,7 +947,7 @@ sub analyze_zenka_reachability {
         if ( exists $loaded_set->{'net'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
                 for my $node (
-                    grep {m/^\Q$ns\E\.(?:.*\.)?(?:cmd|console)\./}
+                    grep {m{^\Q$ns\E\.(?:.*\.)?(?:cmd|console)\.}}
                     keys %{$graph}
                 ) {
                     next if $reachable{$node};
@@ -964,7 +964,7 @@ sub analyze_zenka_reachability {
             and exists $reachable{'base.call.console_command'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
                 for my $node (
-                    grep {m/^\Q$ns\E\.(?:.*\.)?console\./}
+                    grep {m|^\Q$ns\E\.(?:.*\.)?console\.|}
                     keys %{$graph}
                 ) {
                     next if $reachable{$node};
@@ -987,7 +987,7 @@ sub analyze_zenka_reachability {
                     $loaded_ns{$1} = 1;
                 }
             }
-            for my $node ( grep {m/^plugin\./} keys %{$graph} ) {
+            for my $node ( grep {m|^plugin\.|} keys %{$graph} ) {
                 next if $reachable{$node};
                 my ($plugin_ns) = $node =~ m|^plugin\.([^.]+)|;
                 next if defined $plugin_ns and not $loaded_ns{$plugin_ns};
@@ -1077,15 +1077,15 @@ sub analyze_zenka_reachability {
                 for my $sub ( keys %reachable ) {
 
                     ##  non-cmd / non-devmod subs are never filtered  ##
-                    if (   $sub !~ m/\.(?:cmd|console)\./
-                        && $sub !~ m/^devmod\./ ) {
+                    if (   $sub !~ m{\.(?:cmd|console)\.}
+                        && $sub !~ m|^devmod\.| ) {
                         push @filtered, $sub;
                         next;
                     }
 
                     ## cmd and devmod subs : keep if command name matches ##
                     ## mirrors base.has_access regex check at runtime     ##
-                    if ( $sub =~ m/\.(?:cmd|console)\.(.+)$|^devmod\.(.+)$/ )
+                    if ( $sub =~ m{\.(?:cmd|console)\.(.+)$|^devmod\.(.+)$} )
                     {
                         my $cmd_name = $1 // $2;
                         push @filtered, $sub
@@ -1135,8 +1135,8 @@ sub analyze_zenka_reachability {
             ##  phase 2.5: add confidence annotation  ##
             my $conf_tag = " [$entry->{confidence}]";
 
-            say "   $entry->{module} [ $range : "
-                . "code{ \$$entry->{var} }$origin_tag$via_str$conf_tag ]";
+            say "   $entry->{module} [ $range : code{ "
+                . "\$$entry->{var} }$origin_tag$via_str$conf_tag ]";
         }
     }
 
@@ -1193,28 +1193,28 @@ sub parse_start_lines {
     my $current = '';
     for my $line ( @{$lines_ref} ) {
         chomp $line;
-        if ( $line =~ m/\\\s*$/ ) {
+        if ( $line =~ m|\\\s*$| ) {
             ##  line continues - strip \ and append  ##
-            $line =~ s/\\\s*$//;
+            $line =~ s|\\\s*$||;
             $current .= $line . ' ';
         } else {
             $current .= $line;
-            push @joined_lines, $current if $current =~ m/\S/;
+            push @joined_lines, $current if $current =~ m|\S|;
             $current = '';
         }
     }
-    push @joined_lines, $current if $current =~ m/\S/;
+    push @joined_lines, $current if $current =~ m|\S|;
 
     ##  extract modules.load value  ##
     my %loaded_set;
     for my $line (@joined_lines) {
-        if ( $line =~ m/^\s*modules\.load\s*=\s*(.+)/ ) {
+        if ( $line =~ m|^\s*modules\.load\s*=\s*(.+)| ) {
             my $value = $1;
             ##  strip comments  ##
-            $value =~ s/\s*##.*$//;
+            $value =~ s|\s*##.*$||;
             ##  split on whitespace  ##
-            for my $mod ( split /\s+/, $value ) {
-                $loaded_set{$mod} = 1 if $mod =~ m/\S/;
+            for my $mod ( split m|\s+|, $value ) {
+                $loaded_set{$mod} = 1 if $mod =~ m|\S|;
             }
         }
     }
@@ -1223,14 +1223,14 @@ sub parse_start_lines {
     my @config_files;
     my @config_ambiguous;    ##  variable-ref cases [ runtime-resolved ]  ##
     for my $line (@joined_lines) {
-        if ( $line =~ m/^\s*\[(?:base\.)?load_config_file\s*:\s*([^\]]+)\]/ )
+        if ( $line =~ m|^\s*\[(?:base\.)?load_config_file\s*:\s*([^\]]+)\]| )
         {
             my $arg = $1;
-            $arg =~ s/^\s+|\s+$//g;
-            if ( $arg =~ m/^['"](.+)['"]$/ ) {
+            $arg =~ s{^\s+|\s+$}{}g;
+            if ( $arg =~ m|^['"](.+)['"]$| ) {
                 ##  literal string — extractable  ##
                 push @config_files, $1;
-            } elsif ( $arg =~ m/^<([^>]+)>$/ ) {
+            } elsif ( $arg =~ m|^<([^>]+)>$| ) {
                 ##  variable reference — runtime-resolved  ##
                 push @config_ambiguous, $arg;
             } else {
@@ -1242,11 +1242,11 @@ sub parse_start_lines {
     ##  extract entry-point commands from [cmd:param] lines  ##
     my @entry_commands;
     for my $line (@joined_lines) {
-        if ( $line =~ m/^\s*\[([^\]:]+)/ ) {
+        if ( $line =~ m|^\s*\[([^\]:]+)| ) {
             my $cmd = $1;
             ##  strip params after : if present  ##
-            $cmd =~ s/:.*$//;
-            push @entry_commands, $cmd if $cmd =~ m/\S/;
+            $cmd =~ s|:.*$||;
+            push @entry_commands, $cmd if $cmd =~ m|\S|;
         }
     }
 
@@ -1254,10 +1254,10 @@ sub parse_start_lines {
     my @whitelist_register;
     for my $line (@joined_lines) {
         if ( $line
-            =~ m/^\s*\[(?:base\.)?white-list\.register\s*:\s*([^\]]+)\]/ ) {
+            =~ m|^\s*\[(?:base\.)?white-list\.register\s*:\s*([^\]]+)\]| ) {
             my $arg = $1;
-            $arg =~ s/^\s+|\s+$//g;
-            if ( $arg =~ m/^['"](.+)['"]$/ ) {
+            $arg =~ s{^\s+|\s+$}{}g;
+            if ( $arg =~ m|^['"](.+)['"]$| ) {
                 push @whitelist_register, $1;
             } else {
                 push @whitelist_register, $arg;
@@ -1299,25 +1299,25 @@ sub parse_access_cmd_config {
         my $current = '';
         for my $line (@lines) {
             chomp $line;
-            if ( $line =~ m/\\\s*$/ ) {
-                $line =~ s/\\\s*$//;
+            if ( $line =~ m|\\\s*$| ) {
+                $line =~ s|\\\s*$||;
                 $current .= $line . ' ';
             } else {
                 $current .= $line;
-                push @joined_lines, $current if $current =~ m/\S/;
+                push @joined_lines, $current if $current =~ m|\S|;
                 $current = '';
             }
         }
-        push @joined_lines, $current if $current =~ m/\S/;
+        push @joined_lines, $current if $current =~ m|\S|;
 
         ##  extract access.cmd.* entries  ##
         for my $line (@joined_lines) {
-            if ( $line =~ m/^\s*access\.cmd\.\S+\.([^\s=]+)\s*=\s*(.+)/ ) {
+            if ( $line =~ m|^\s*access\.cmd\.\S+\.([^\s=]+)\s*=\s*(.+)| ) {
                 my ( $target, $value ) = ( $1, $2 );
-                $value =~ s/\s*##.*$//;     ##  strip ## comments  ##
-                $value =~ s/\s+#\s.*$//;    ##  strip #  comments  ##
-                for my $pat ( split /\s+/, $value ) {
-                    push @{ $raw_patterns{$target} }, $pat if $pat =~ m/\S/;
+                $value =~ s|\s*##.*$||;     ##  strip ## comments  ##
+                $value =~ s|\s+#\s.*$||;    ##  strip #  comments  ##
+                for my $pat ( split m|\s+|, $value ) {
+                    push @{ $raw_patterns{$target} }, $pat if $pat =~ m|\S|;
                 }
             }
         }
@@ -1325,10 +1325,10 @@ sub parse_access_cmd_config {
         ##  follow load_config_file includes  ##
         for my $line (@joined_lines) {
             if ( $line
-                =~ m/^\s*\[(?:base\.)?load_config_file\s*:\s*['"]?([^\]'"]+)['"]?\]/
+                =~ m|^\s*\[(?:base\.)?load_config_file\s*:\s*['"]?([^\]'"]+)['"]?\]|
             ) {
                 my $arg = $1;
-                $arg =~ s/^\s+|\s+$//g;
+                $arg =~ s{^\s+|\s+$}{}g;
                 my $cfg
                     = $arg =~ m|^/|
                     ? $arg
@@ -1433,7 +1433,7 @@ sub find_variable_dispatch {
     for my $loaded ( keys %{$loaded_set} ) {
         ##  find all modules matching this loaded prefix  ##
         for my $module ( keys %module_to_file ) {
-            next unless $module =~ m/^\Q$loaded\E/;
+            next unless $module =~ m|^\Q$loaded\E|;
             next unless exists $graph->{$module};
 
             my $file = $module_to_file{$module};
@@ -1448,7 +1448,7 @@ sub find_variable_dispatch {
             for my $i ( 0 .. $end_idx ) {
                 my $line = $lines[$i];
                 ##  match variable dispatch: $code{$var} or $code{ $var }  ##
-                while ( $line =~ m/\$code\{\s*\$(\w+)\s*\}/g ) {
+                while ( $line =~ m|\$code\{\s*\$(\w+)\s*\}|g ) {
                     my $var_name   = $1;
                     my $usage_line = $i + 1;
 
@@ -1512,7 +1512,7 @@ sub load_rules {
     return \@rules unless -d $rules_dir;
 
     opendir my $dh, $rules_dir or return \@rules;
-    my @rule_files = sort grep {m/\.rules$/} readdir $dh;
+    my @rule_files = sort grep {m|\.rules$|} readdir $dh;
     closedir $dh;
 
     for my $filename (@rule_files) {
@@ -1520,7 +1520,7 @@ sub load_rules {
         open my $fh, qw| < |, $path or next;
         while ( my $line = <$fh> ) {
             chomp $line;
-            next if $line =~ m/^\s*(?:#.*)?$/;   ##  skip blank / comments  ##
+            next if $line =~ m|^\s*(?:#.*)?$|;   ##  skip blank / comments  ##
 
             ## parse: module_glob : var ~ /pattern/ -> template ##
             ## or: var ~ /pattern/ -> template                  ##
@@ -1534,7 +1534,7 @@ sub load_rules {
             } else {
                 next;
             }
-            $template =~ s/\s+$//;
+            $template =~ s|\s+$||;
 
             push @rules,
                 {
@@ -1556,8 +1556,8 @@ sub module_matches_glob {
     ## 'foo.bar.*' (prefix), 'foo.bar' (exact)                           ##
     my ( $glob, $module ) = @ARG;
     return 1 if $glob eq '*';
-    if ( $glob =~ s/\.\*$// ) {
-        return $module =~ m/^\Q$glob\E/;
+    if ( $glob =~ s|\.\*$|| ) {
+        return $module =~ m|^\Q$glob\E|;
     }
     return $module eq $glob;
 }
@@ -1574,14 +1574,14 @@ sub apply_rules {
             && $rule->{var_name} ne $var_name;
 
         my $pattern = $rule->{pattern};
-        if ( $context_str =~ m/$pattern/m ) {
+        if ( $context_str =~ m|$pattern|m ) {
             ##  build resolution from template substituting captures  ##
             my @cap    = map { $_ // '' } ( $1, $2, $3, $4, $5 );
             my $target = $rule->{template};
-            $target =~ s/\$(\d)/$cap[$1-1]/g;
-            $target =~ s/\$\{?var\}?/$var_name/g;
-            $target =~ s/\s+$//;
-            return ( [$target], $rule->{source} ) if $target =~ m/\S/;
+            $target =~ s|\$(\d)|$cap[$1-1]|g;
+            $target =~ s|\$\{?var\}?|$var_name|g;
+            $target =~ s|\s+$||;
+            return ( [$target], $rule->{source} ) if $target =~ m|\S|;
         }
     }
 
@@ -1614,7 +1614,7 @@ sub backtrack_variable_origin {
 
         ##  phase 2: check for handover: $var = $other_var  ##
         #  captures: $var = $other; $var = $other->(); $var = $other->{key}  #
-        if ( $line =~ m/^\s*\$\Q$var_name\E\s*=\s*\$(\w+)/ ) {
+        if ( $line =~ m|^\s*\$\Q$var_name\E\s*=\s*\$(\w+)| ) {
             my $source_var = $1;
 
             ##  recursively trace the source variable  ##
@@ -1640,11 +1640,11 @@ sub backtrack_variable_origin {
 
         ## check for parameter assignment patterns  my $var = shift; my ##
         ## $var = $ARG[0]; my ( $var ) = @ARG;                          ##
-        if (   $line =~ m/^\s*my\s*\(?\s*\$\Q$var_name\E\s*\)?\s*=\s*shift\b/
+        if (   $line =~ m|^\s*my\s*\(?\s*\$\Q$var_name\E\s*\)?\s*=\s*shift\b|
             || $line
-            =~ m/^\s*my\s*\$\Q$var_name\E\s*=\s*\$ARG\s*\[\s*\d+\s*\]/
+            =~ m|^\s*my\s*\$\Q$var_name\E\s*=\s*\$ARG\s*\[\s*\d+\s*\]|
             || $line
-            =~ m/^\s*my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)\s*=\s*\@ARG\b/ ) {
+            =~ m|^\s*my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)\s*=\s*@ARG\b| ) {
             $result->{start_line}  = $line_num;
             $result->{origin_line} = $line_num;
             $result->{type}        = 'parameter';
@@ -1654,10 +1654,10 @@ sub backtrack_variable_origin {
 
         ## check for my $var = ... assignment [local variable] handles ##
         ## both: my $var = ...  and  my $var\n    = ...                ##
-        if ($line =~ m/^\s*my\s*\$\Q$var_name\E\s*=/
-            || (   $line =~ m/^\s*my\s*\$\Q$var_name\E\s*$/
+        if ($line =~ m|^\s*my\s*\$\Q$var_name\E\s*=|
+            || (   $line =~ m|^\s*my\s*\$\Q$var_name\E\s*$|
                 && $i < $#lines
-                && $lines[ $i + 1 ] =~ m/^\s*=/ )
+                && $lines[ $i + 1 ] =~ m|^\s*=| )
         ) {
             $result->{start_line}  = $line_num;
             $result->{origin_line} = $line_num;
@@ -1668,7 +1668,7 @@ sub backtrack_variable_origin {
 
        #  check for list-context my declaration: my ( ..., $var, ... ) = ... #
        #  covers: my ( $a, $b ) = @$ref  and  ( my $var, ... ) = split ...   #
-        if ( $line =~ m/my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)?\s*=/ ) {
+        if ( $line =~ m|my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)?\s*=| ) {
             $result->{start_line}  = $line_num;
             $result->{origin_line} = $line_num;
             $result->{type}        = 'local';
@@ -1677,7 +1677,7 @@ sub backtrack_variable_origin {
         }
 
         ##  check for foreach my $var  ##
-        if ( $line =~ m/\bmy\s*\$\Q$var_name\E\s+\b/ ) {
+        if ( $line =~ m|\bmy\s*\$\Q$var_name\E\s+\b| ) {
             $result->{start_line}  = $line_num;
             $result->{origin_line} = $line_num;
             $result->{type}        = 'local';
@@ -1718,26 +1718,26 @@ sub classify_dispatch_confidence {
         my $line = $lines[$i];
 
         ##  check for regex validation: $var =~ /pattern/  ##
-        if ( $line =~ m/\$\Q$var_name\E\s*=~\s*m?[^\w]/ ) {
+        if ( $line =~ m|\$\Q$var_name\E\s*=~\s*m?[^\w]| ) {
             $has_regex_check       = 1;
             $has_conditional_guard = 1 if $i < $usage_idx;
         }
 
         ##  check for literal string comparison: $var eq 'literal'  ##
-        if ( $line =~ m/\$\Q$var_name\E\s+(eq|ne)\s+['"]/ ) {
+        if ( $line =~ m{\$\Q$var_name\E\s+(eq|ne)\s+['"]} ) {
             $has_literal_compare   = 1;
             $has_conditional_guard = 1 if $i < $usage_idx;
         }
 
         ##  check for hash key existence: exists $handlers{$var}  ##
-        if ( $line =~ m/exists\s+\$\w+\{\$\Q$var_name\E\}/ ) {
+        if ( $line =~ m|exists\s+\$\w+\{\$\Q$var_name\E\}| ) {
             $has_hash_lookup       = 1;
             $has_conditional_guard = 1 if $i < $usage_idx;
         }
 
         ## check for conditional guarding the dispatch  if ( $var =~ /.../ ##
         ## ) { ... $code{$var}->()                                         ##
-        if ( $i < $usage_idx && $line =~ m/\b(if|unless|while)\s*\(/ ) {
+        if ( $i < $usage_idx && $line =~ m{\b(if|unless|while)\s*\(} ) {
             ##  check if condition involves our variable  ##
             my $cond_line = $line;
             ##  peek at next few lines for multi-line conditions  ##
@@ -1745,7 +1745,7 @@ sub classify_dispatch_confidence {
                 last                     if $j >= $usage_idx;
                 $cond_line .= $lines[$j] if $j <= $#lines;
             }
-            if ( $cond_line =~ m/\$\Q$var_name\E/ ) {
+            if ( $cond_line =~ m|\$\Q$var_name\E| ) {
                 $has_conditional_guard = 1;
             }
         }
@@ -1771,8 +1771,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,.,,..,,,,,...,,,.,.,,,..,,.,.,,,.,..,,,,,,.,.,...,...,.,,,...,.,.,,.,,..,,
-#TXVV7FNFN2KGZO3DY7MS4FDLFHER36GDQBEVH2QPYMGQBNIJIOZAU4YANNO3RN5HSBFEX6TCWXIU2
-#\\\|L6EFB5A44E375JU6RYM7ISKA3QN3XWIQKKA6SHXNXBADQXWR5M5 \ / AMOS7 \ YOURUM ::
-#\[7]MHJ62OPDPP42T6TOPFWOVMQDWR5YAI7AZ642REAATAAHMSWVRWDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,.,..,,,,,,,..,,..,,.,,.,,,,.,,.,.,...,..,,,.,,,,,,..,,,..,...,
+#2NX5QUCM6OVIH65PK4OIBCV6OST4KBGPYUBDK7GCMAV2JA34KLGA6R2BSKRBAMXWWQT65KFG4TE76
+#\\\|DQEZP7AQNYP727LVIBPZFRC2QQ3HK7NRRI5PHSCE6ITUMSGPUML \ / AMOS7 \ YOURUM ::
+#\[7]UWEFJPRUDELCVVJZRAH6CLIC5G7OQ5525ISPPRVWYXC6SH6ZWGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

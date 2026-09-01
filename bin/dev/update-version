@@ -119,7 +119,7 @@ $git->add($vers_file);
     my $md_copy = my $md_str = <$md_fh>;
     close($md_fh);
 
-    $md_str =~ s{: ($B32_re|\d\d\.\d{4})\-\d{4,}\.\d+ }{: $version_string }g
+    $md_str =~ s{: ($B32_re|\d\d\.\d{4})-\d{4,}\.\d+ }{: $version_string }g
         if $md_str !~ s|\Q$old_version\E|$version_string|g;
 
     ## sync AMOS7 release version [ link text + tag URL ] ##
@@ -146,8 +146,8 @@ $git->add($vers_file);
 
     # Extract network timestamp and commit count from version string
     my ( $timestamp, $commit_count_with_minor )
-        = split( /-/, $version_string );
-    my ( $commit_count, $minor ) = split( /\./, $commit_count_with_minor );
+        = split( m|-|, $version_string );
+    my ( $commit_count, $minor ) = split( m|\.|, $commit_count_with_minor );
     $minor //= '0';
 
     # Update the version identifier in the markdown file
@@ -247,16 +247,16 @@ sub get_release_version {
     $rel_version =~ s|\s+$||;
 
     ## sanity check : $rl_v_file is meant to hold nothing but the plain
-    ## 'AMOS7-vX.Y.Z' output of `release-version` -- if a wrong command
-    ## ever gets redirected there instead [ has happened : ANSI-colored
-    ## output from an unrelated zenka console ], silently accepting
-    ## whatever's on the first line corrupts every generated file this
-    ## script writes into, and the later substitutions can't detect or
-    ## repair an already-malformed target line on their own. reject
-    ## anything that isn't the exact expected shape instead.
+    ## 'AMOS7-vX.Y.Z' output of `release-version` -- if a wrong command ever
+    ## gets redirected there instead [ has happened : ANSI-colored output from
+    ## an unrelated zenka console ], silently accepting whatever's on the
+    ## first line corrupts every generated file this script writes into, and
+    ## the later substitutions can't detect or repair an already-malformed
+    ## target line on their own. reject anything that isn't the exact expected
+    ## shape instead.
     if ( $rel_version !~ m|^AMOS7-v\d+\.\d+\.\d+$| ) {
-        warn "$rl_v_file : content not a valid release version "
-            . "[ '$rel_version' ] -- ignoring\n";
+        warn "$rl_v_file : content not a valid release "
+            . "version [ '$rel_version' ] -- ignoring\n";
         return '';
     }
 
@@ -318,8 +318,8 @@ RETRY_BASE_NTIME_B32:              ## only choose harmonic values ##
     return $encoded_ntime;
 }
 
-#,,.,,..,,,.,,,,,,,..,,.,,...,...,...,,..,.,,,..,,...,...,,..,..,,,..,,.,,,,,,
-#V7A5CRRKHMKXCMRV3KNXIZ4M7RV72X5TUJZ7B36R4XWDJSGWVQQCJT6NRQUPDTJKYCUDK7NVM2VR4
-#\\\|VL6NCL5BBISTDBGZPL3NFNSKFUIDFPDQUHXUURUZNCYXV2BKZSO \ / AMOS7 \ YOURUM ::
-#\[7]NSC53PKSTIPJESMBXMQKS5HM72GDYJVNFPUKHL3NZWUKHGAXK6DY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,,,,,...,.,.,,.,,.,,,...,,..,..,,...,..,,,.,,,..,..,,,,.,,,.,
+#4WSYR2GL4XKLIP6KUXO4W6NV2FC7E47U76P3P6AUAUVFBYURIMPB5CX7FID5CCKZ2K7ORYQP3YV2U
+#\\\|KIW37UQRKVF2SZ3PZ75TZXJD7LCNQNYFGS4JTG6X5J3QY7RU2Z6 \ / AMOS7 \ YOURUM ::
+#\[7]3QRMQBB3SAX7GZLMFFDD42GTXZDLMMHZ4SZMQ64YZPFRBSIMRWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
